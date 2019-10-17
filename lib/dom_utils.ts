@@ -4,6 +4,7 @@ type kMouseMoveEvents = "mouseover" | "mouseenter" | "mousemove" | "mouseout" | 
 type kMouseClickEvents = "mousedown" | "mouseup" | "click" | "auxclick";
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6WeakMapAndWeakSet) {
   var WeakSet: WeakSetConstructor | undefined;
+  var WeakMap: WeakMapConstructor | undefined;
 }
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinES6$ForOf$Map$SetAnd$Symbol) {
   var Set: SetConstructor | undefined;

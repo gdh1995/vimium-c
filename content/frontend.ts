@@ -3,6 +3,14 @@ var VHud: VHUDTy, VApi: VApiTy, VTr: VTransType
 if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { var browser: unknown; }
 
 (function () {
+  const enum kNodeInfo {
+    NONE = 0,
+    ShadowBlur = 1, ShadowFull = 2,
+  }
+  interface NodeWithInfo extends Node {
+    vimiumInfo?: kNodeInfo;
+  }
+
   interface EscF {
     <T extends Exclude<HandlerResult, HandlerResult.ExitPassMode>> (this: void, i: T): T;
     (this: void, i: HandlerResult.ExitPassMode): HandlerResult.Prevent;
@@ -37,7 +45,6 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     /** its initial value should be 0, need by {@link #hook} */
     , browserVer: BrowserVer = 0 // should be used only if BTypes includes Chrome
     , isCmdTriggered: BOOL = 0
-    , isTop = top === window
     , needToRetryParentClickable: BOOL = 0
     , safer = Object.create as { (o: null): any; <T>(o: null): SafeDict<T>; }
     , coreTester: { name_: string, rand_: number, recvTick_: number, sendTick_: number,
@@ -222,20 +229,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       isNormalHost = Build.MinCVer >= BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInShadowDOM
           && !(Build.BTypes & ~BrowserType.Chrome)
         ? (top = (path as EventPath)[0]) !== target
-        : !!(top = path && path[0]) && top !== window && top !== target,
-      len = isNormalHost ? Build.MinCVer >= BrowserVer.Min$Event$$path$IsStdArrayAndIncludesWindow
-              || !(Build.BTypes & BrowserType.Chrome) // in fact, FF66 has no event.path
-        ? (path as EventTarget[]).indexOf(target) : [].indexOf.call(path as NodeList, target) : 1;
-      isNormalHost ? (target = top as Element) : (path = [sr]);
-      while (0 <= --len) {
-        // root is target or inside target, so always a Node
-        const root = (path as EventPath)[len] as Node;
-        if (root.nodeType !== kNode.DOCUMENT_FRAGMENT_NODE
-            || (root as ShadowRoot).vimiumListened === ShadowRootListenType.Full) { continue; }
-        VKey.SetupEventListener_(root, "focus", onShadow);
-        VKey.SetupEventListener_(root, "blur", onShadow);
-        (root as ShadowRoot).vimiumListened = ShadowRootListenType.Full;
-      }
+        : !!(top = path && path[0]) && top !== window && top !== target;
+      isNormalHost ? hookOnShadowRoot(path as EventPath, target as Element) : hookOnShadowRoot([sr, 0 as never], 0);
+      target = isNormalHost ? top as Element : target;
     }
     if (VDom.getEditableType_<LockableElement>(target)) {
       VCui.activeEl_ = target;
@@ -274,27 +270,17 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     }
     if (!sr || target === VCui.box_) { return; }
     if (same) {
-      sr.vimiumListened = ShadowRootListenType.Blur;
-      return;
-    }
-    for (let len = Build.MinCVer >= BrowserVer.Min$Event$$path$IsStdArrayAndIncludesWindow
-                    || !(Build.BTypes & BrowserType.Chrome)
-              ? (path as EventTarget[]).indexOf(target) : [].indexOf.call(path as NodeList, target)
-          ; 0 <= --len; ) {
-      // root is target or inside target, so always a Node
-      const root = (path as EventPath)[len] as Node;
-      if (root.nodeType !== kNode.DOCUMENT_FRAGMENT_NODE) { continue; }
-      VKey.SetupEventListener_(root, "focus", onShadow, 1);
-      VKey.SetupEventListener_(root, "blur", onShadow, 1);
-      (root as ShadowRoot).vimiumListened = ShadowRootListenType.None;
+      domNodeMap.set(sr, kNodeInfo.ShadowBlur);
+    } else {
+      hookOnShadowRoot(path as EventPath, target as Element, 1);
     }
   }
   function onActivate(event: Event): void {
     if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
         ? event.isTrusted : event.isTrusted !== false) {
       const path = event.path,
-      el = (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsured$ActivateEvent$$Path || path)
-          && (Build.MinCVer >= BrowserVer.Min$ActivateEvent$$Path$IncludeWindowAndElementsIfListenedOnWindow
+      el = (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsured$Event$$Path || path)
+          && (Build.MinCVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
             || !(Build.BTypes & BrowserType.Chrome)
             || (path as EventTarget[]).length > 1)
           ? (path as EventTarget[])[0] as Element : event.target as Element;
@@ -316,10 +302,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     if (isEnabled && event.type === "focus") {
       return onFocus(event);
     }
-    if (!isEnabled || this.vimiumListened === ShadowRootListenType.Blur) {
-      VKey.SetupEventListener_(this, "focus", onShadow, 1);
-      VKey.SetupEventListener_(this, "blur", onShadow, 1);
-      this.vimiumListened = ShadowRootListenType.None;
+    if (!isEnabled || domNodeMap.get(this) === kNodeInfo.ShadowBlur) {
+      hookOnShadowRoot([this, 0 as never], 0, 1);
     }
     if (isEnabled) {
       onBlur(event);
@@ -327,12 +311,14 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   }
 
   const injector = VimiumInjector,
+  isTop = top === window,
+  setupEventListener = VKey.SetupEventListener_,
   hook = (function (action: HookAction): void {
     let f = action ? removeEventListener : addEventListener;
-    if (Build.MinCVer < BrowserVer.Min$ActivateEvent$$Path$IncludeWindowAndElementsIfListenedOnWindow
+    if (Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
         && Build.BTypes & BrowserType.Chrome) {
       Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome ||
-      (action || browserVer < BrowserVer.Min$ActivateEvent$$Path$IncludeWindowAndElementsIfListenedOnWindow) &&
+      (action || browserVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow) &&
       f.call(document, "DOMActivate", onActivate, true);
       if (action === HookAction.SuppressActivateOnDocument) { return; }
     }
@@ -343,6 +329,20 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     f(Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome
         ? "click" : "DOMActivate", onActivate, true);
   }),
+  hookOnShadowRoot = function (path: ArrayLike<EventTarget | 0>, target: Node | 0, disable?: 1): void {
+    for (let len = Build.MinCVer >= BrowserVer.Min$Event$$path$IsStdArrayAndIncludesWindow
+          || !(Build.BTypes & BrowserType.Chrome)
+          ? (path as Array<EventTarget | 0>).indexOf(target) : [].indexOf.call(path as Array<EventTarget | 0>, target)
+        ; 0 <= --len; ) {
+      const root = (path as EventPath)[len] as Node;
+      // root is target or inside target, so always a Node
+      if (root.nodeType === kNode.DOCUMENT_FRAGMENT_NODE) {
+        setupEventListener(root, "focus", onShadow, disable);
+        setupEventListener(root, "blur", onShadow, disable);
+        disable ? domNodeMap.delete(root) : domNodeMap.set(root, kNodeInfo.ShadowFull);
+      }
+    }
+  },
   Commands: {
     [K in kFgCmd & number]:
       K extends keyof SpecialCommands ? SpecialCommands[K] :
@@ -646,7 +646,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
             }
           };
           VKey.pushHandler_(InsertMode.ExitGrab_, InsertMode);
-          VKey.SetupEventListener_(0, "mousedown", InsertMode.ExitGrab_);
+          setupEventListener(0, "mousedown", InsertMode.ExitGrab_);
           return;
         }
       }
@@ -660,7 +660,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (!InsertMode.grabBackFocus_) { return /* safer */ HandlerResult.Nothing; }
       InsertMode.grabBackFocus_ = false;
       VKey.removeHandler_(InsertMode);
-      VKey.SetupEventListener_(0, "mousedown", InsertMode.ExitGrab_, 1);
+      setupEventListener(0, "mousedown", InsertMode.ExitGrab_, 1);
       // it's acceptable to not set the userActed flag if there's only the top frame;
       // when an iframe gets clicked, the events are mousedown and then focus, so SafePost_ is needed
       !(event instanceof Event) || !frames.length && isTop ||
@@ -1023,9 +1023,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       (r[kBgReq.reset] as (request: BgReq[kBgReq.reset], initing?: 1) => void)(request, 1);
       if (isEnabled) {
         InsertMode.init_();
-        if (Build.MinCVer < BrowserVer.Min$ActivateEvent$$Path$IncludeWindowAndElementsIfListenedOnWindow
+        if (Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
             && Build.BTypes & BrowserType.Chrome
-            && browserVer >= BrowserVer.Min$ActivateEvent$$Path$IncludeWindowAndElementsIfListenedOnWindow) {
+            && browserVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow) {
           hook(HookAction.SuppressActivateOnDocument);
         }
       } else {
@@ -1172,7 +1172,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     // Note: not suppress key on the top, because help dialog may need a while to render,
     // and then a keyup may occur before or after it
     if (CSS) { VCui.css_(CSS); }
-    const oldShowHelp = Commands[kFgCmd.showHelp], suppress = VKey.SetupEventListener_;
+    const oldShowHelp = Commands[kFgCmd.showHelp];
     oldShowHelp("e");
     if (!VDom.isHTML_()) { return; }
     if (oldShowHelp !== Commands[kFgCmd.showHelp]) { return; } // an old dialog exits
@@ -1191,16 +1191,16 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       box = box.firstChild as SafeHTMLElement;
     }
     box.onclick = VKey.Stop_;
-    suppress(box, "mousedown");
-    suppress(box, "mouseup");
+    setupEventListener(box, "mousedown");
+    setupEventListener(box, "mouseup");
     // note: if wheel is listened, then mousewheel won't be dispatched even on Chrome 35
-    suppress(box, "wheel");
-    suppress(box, "auxclick");
-    suppress(box, "contextmenu");
+    setupEventListener(box, "wheel");
+    setupEventListener(box, "auxclick");
+    setupEventListener(box, "contextmenu");
     if (Build.MinCVer >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument
         || !(Build.BTypes & BrowserType.Chrome)
         || browserVer >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument) {
-      suppress(box,
+      setupEventListener(box,
         (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
           : OnOther !== BrowserType.Chrome)
         ? "click" : "DOMActivate", onActivate);
@@ -1471,6 +1471,13 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       port.onMessage.addListener(vPort.Listener_);
       VTr = VTr || ((tid, _, args) => trans("" + tid, args));
     })
+  },
+  
+  domNodeMap = Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
+      || WeakMap ? new (WeakMap as WeakMapConstructor)<Node, kNodeInfo>() as never : {
+    set (node: Node, info: Exclude<kNodeInfo, kNodeInfo.NONE>): any { (node as NodeWithInfo).vimiumInfo = info; },
+    get (node: Node): kNodeInfo | undefined { return (node as NodeWithInfo).vimiumInfo; },
+    delete (node: Node): any { delete (node as NodeWithInfo).vimiumInfo; }
   };
 
   if (injector) {

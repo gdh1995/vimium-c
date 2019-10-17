@@ -53,7 +53,7 @@ interface WeakMapConstructor {
     new <K extends object = object, V = any>(entries?: ReadonlyArray<[K, V]> | null): WeakMap<K, V>;
     readonly prototype: WeakMap<object, any>;
 }
-declare var WeakMap: WeakMapConstructor;
+declare var WeakMap: WeakMapConstructor | undefined;
 
 interface Set<T> {
     add(value: T): this;

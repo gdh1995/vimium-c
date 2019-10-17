@@ -498,7 +498,7 @@ declare const enum BrowserVer {
   // on C34 and if EXPERIMENTAL, then it's not implied; before C37, `'unsafe-inline'` is necessary in CSP
   StyleSrc$UnsafeInline$MayNotImply$UnsafeEval = 34,
   MinEnsuredUnprefixedShadowDOMV0 = 35, // even if LEGACY
-  MinEnsured$ActivateEvent$$Path = 35, // = MinEnsuredUnprefixedShadowDOMV0
+  MinEnsured$Event$$Path = 35, // = MinEnsuredUnprefixedShadowDOMV0
   // there're WeakMap, WeakSet, Map, Set and Symbols on C35 if #enable-javascript-harmony
   MinEnsuredES6WeakMapAndWeakSet = 36,
   // but shadowRoot.getElementById still exists on C31
@@ -687,7 +687,7 @@ declare const enum BrowserVer {
   Min$Node$$getRootNode = 54, // not on Edge
   MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInShadowDOM = 55,
   // before C55, onActivate should only be installed on document
-  Min$ActivateEvent$$Path$IncludeWindowAndElementsIfListenedOnWindow = 55,
+  Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow = 55,
   Min$SVGElement$$dataset = 55,
   // MinStricterArgsIn$Windows$$Create = 55, // I forget what's stricter
   MinSomeDocumentListenersArePassiveByDefault = 56,

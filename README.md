@@ -32,7 +32,7 @@ This project is developed by [gdh1995](https://github.com/gdh1995)
 
 An old name of this project is "Vimium++", which has been given up on 2018-08-21.
 
-For MS Edge (Chromium), it works well, and it can even run on MS Edge (EdgeHTML), though there're still some errors.
+On MS Edge (Chromium), it works well, and it can even run on MS Edge (EdgeHTML), though there're still some errors.
 
 # Project Introduction
 

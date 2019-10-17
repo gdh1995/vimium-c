@@ -1,12 +1,3 @@
-declare const enum ShadowRootListenType {
-  None = 0,
-  Blur = 1,
-  Full = 2,
-}
-interface ShadowRoot {
-  vimiumListened?: ShadowRootListenType;
-}
-
 interface WindowWithTop extends Window {
   top: Window;
 }
