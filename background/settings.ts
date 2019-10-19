@@ -445,6 +445,7 @@ shortcut-forwarding-tool@gdh1995.cn`
     focusNewTabContent: true,
     grabBackFocus: false,
     hideHud: false,
+    hookAccessKeys: true,
     ignoreCapsLock: 0,
     ignoreKeyboardLayout: false,
     innerCSS: "",
@@ -513,6 +514,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     { 19: "/icons/disabled_19.png", 38: "/icons/disabled_38.png" }
   ] as [IconNS.PathBuffer, IconNS.PathBuffer, IconNS.PathBuffer],
   valuesToLoad_: { __proto__: null as never,
+    hookAccessKeys: "a",
     ignoreKeyboardLayout: "L",
     keyboard: "k", linkHintCharacters: "l",
     regexFindMode: "R", smoothScroll: "S", scrollStepSize: "t"
@@ -675,6 +677,7 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   obj.ContentScripts_ = ref2.map(func);
 
   payload_.g = settings.get_("grabBackFocus");
+  if (!(Build.BTypes & BrowserType.Chrome)) { delete valuesToLoad_.hookAccessKeys; }
   for (let _i in valuesToLoad_) {
     const key = valuesToLoad_[_i as keyof SettingsNS.FrontendSettingNameMap];
     (payload_ as Generalized<typeof payload_>)[key] = settings.get_(_i as keyof SettingsNS.FrontendSettingNameMap);

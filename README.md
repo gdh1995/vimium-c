@@ -60,6 +60,9 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
+1.78.4:
+* Chrome: add a feature to hook in-page "access keys" and this is enabled by default
+
 1.78.3
 * LinkHints: fix a regression since v1.78.0 that Vimium C might fail in clicking targets inside shadow-DOM trees
 * image filename extension: add support for `.apng`

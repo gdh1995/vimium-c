@@ -261,8 +261,10 @@ declare namespace SettingsNS {
     regexFindMode: boolean;
     scrollStepSize: number;
     smoothScroll: boolean;
+    hookAccessKeys: boolean;
   }
   interface FrontendSettingNameMap {
+    hookAccessKeys: "a";
     ignoreKeyboardLayout: "L";
     keyboard: "k";
     linkHintCharacters: "l";

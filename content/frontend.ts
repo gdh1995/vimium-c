@@ -46,6 +46,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     /** its initial value should be 0, need by {@link #hook} */
     , browserVer: BrowserVer = 0 // should be used only if BTypes includes Chrome
     , isCmdTriggered: BOOL = 0
+    , isWaitingAccessKey: number = 0
     , needToRetryParentClickable: BOOL = 0
     , safer = Object.create as { (o: null): any; <T>(o: null): SafeDict<T>; }
     , coreTester: { name_: string, rand_: number, recvTick_: number, sendTick_: number,
@@ -70,14 +71,17 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     return key;
   }
   function isEscape(event: KeyboardEvent): boolean {
-    let ch: string | undefined;
+    let ch0: string | undefined, ch: string | undefined;
     if (mappedKeys && event.keyCode !== kKeyCode.ime) {
-      ch = VKey.char_(event);
-      ch = ch && mapKey(ch, event);
+      ch0 = VKey.char_(event);
+      ch = ch0 && mapKey(ch0, event);
     }
-    return ch ? ch === "<esc>" || ch === "<c-[>" : VKey.isRawEscape_(event);
+    return ch ? ch === "<esc>" || ch === "<c-[>"
+      ? (Build.BTypes & BrowserType.Chrome && checkPotentialAccessKey(event, ch0 as string), true)
+      : false
+      : VKey.isRawEscape_(event);
   }
-  function checkKey(char: string, code: kKeyCode, event: EventControlKeys
+  function checkKey(char: string, code: kKeyCode, event: KeyboardEvent
       ): HandlerResult.Nothing | HandlerResult.Prevent | HandlerResult.Esc | HandlerResult.AdvancedEscEnum {
     // when checkValidKey, Vimium C must be enabled, so passKeys won't be `""`
     const key0 = VKey.key_(event, char);
@@ -86,6 +90,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     }
     let key: string = mappedKeys ? mapKey(char, event) : key0, j: ReadonlyChildKeyMap | ValidKeyAction | undefined;
     if (key === "<esc>" || key === "<c-[>") {
+      Build.BTypes & BrowserType.Chrome && mappedKeys && checkPotentialAccessKey(event, char);
       return nextKeys ? (esc(HandlerResult.ExitPassMode), HandlerResult.Prevent)
         : key[1] === "c" ? HandlerResult.Esc : HandlerResult.AdvancedEscEnum;
     }
@@ -128,13 +133,17 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     return action;
   }
   function onKeydown(event: KeyboardEventToPrevent): void {
-    let keyChar: string, action: HandlerResult;
+    let keyChar: string | undefined, action: HandlerResult;
     const key = event.keyCode;
     if (!isEnabled
         || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
             : event.isTrusted === false) // skip checks of `instanceof KeyboardEvent` if checking `!.keyCode`
         || !key) { return; }
-    if (VSc.keyIsDown_ && VSc.OnScrolls_(event)) { return; }
+    if (VSc.keyIsDown_ && VSc.OnScrolls_(event)) {
+      Build.BTypes & BrowserType.Chrome && checkPotentialAccessKey(event, "");
+      return;
+    }
+    if (Build.BTypes & BrowserType.Chrome) { isWaitingAccessKey = 0; }
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) ? insertLock
           : insertLock && OnOther === BrowserType.Firefox)
@@ -154,7 +163,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           event.repeat && InsertMode.focusUpper_(key, true, event);
           action = /* the real is HandlerResult.PassKey; here's for smaller code */ HandlerResult.Nothing;
         } else {
-          action = g && g.passExitKey ? HandlerResult.Nothing : HandlerResult.Prevent;
+          action = g && g.passExitKey ? (
+            Build.BTypes & BrowserType.Chrome && checkPotentialAccessKey(event, ""),
+            HandlerResult.Nothing) : HandlerResult.Prevent;
           InsertMode.exit_(event.target as Element);
         }
       }
@@ -175,6 +186,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     }
     if (action < HandlerResult.MinStopOrPreventEvents) { return; }
     if (action > HandlerResult.MaxNotPrevent) {
+      Build.BTypes & BrowserType.Chrome && checkPotentialAccessKey(event, keyChar || "");
       VKey.prevent_(event);
     } else {
       VKey.Stop_(event);
@@ -189,6 +201,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         || !key) { return; }
     VSc.scrollTick_(0);
     isCmdTriggered = 0;
+    if (Build.BTypes & BrowserType.Chrome) {
+      isWaitingAccessKey = 0;
+    }
     if (InsertMode.suppressType_ && getSelection().type !== InsertMode.suppressType_) {
       events.setupSuppress_();
     }
@@ -298,6 +313,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     exitPassMode && exitPassMode();
     KeydownEvents = safer(null);
     isCmdTriggered = 0;
+    if (Build.BTypes & BrowserType.Chrome) {
+      isWaitingAccessKey = 0;
+    }
     injector || (<RegExpOne> /a?/).test("");
     esc(HandlerResult.ExitPassMode);
   }
@@ -314,6 +332,25 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       onBlur(event);
     }
   }
+  function onAnyClick(this: void, event: MouseEventToPrevent): void {
+    // Note: here `event` may be a simulated one from a browser itself or page scripts
+    // here has been on Chrome
+    if (isWaitingAccessKey
+        && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted ? event.isTrusted : event.isTrusted !== false)
+        && !event.detail && !event.clientY /* exclude those simulated (e.g. generated by element.click()) */
+        ) {
+      const path = event.path,
+      t = (Build.MinCVer >= BrowserVer.MinEnsured$Event$$Path || path)
+          && (Build.MinCVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
+              || (path as EventTarget[]).length > 1)
+          ? (path as EventTarget[])[0] as Element : event.target as Element;
+      if (Element.prototype.getAttribute.call(t, "accesskey")) {
+        // if a script has modified [accesskey], then do nothing on - just in case.
+        isWaitingAccessKey = 0;
+        VKey.prevent_(event);
+      }
+    }
+  }
 
   const injector = VimiumInjector,
   isTop = top === window,
@@ -322,10 +359,12 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     let f = action ? removeEventListener : addEventListener;
     if (Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
         && Build.BTypes & BrowserType.Chrome) {
-      Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome ||
-      (action || browserVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow) &&
-      f.call(document, "DOMActivate", onActivate, true);
-      if (action === HookAction.SuppressActivateOnDocument) { return; }
+      if (!(Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome)
+          && (action || browserVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow)) {
+        f.call(document, "DOMActivate", onActivate, true);
+        f.call(document, "click", onAnyClick, true);
+      }
+      if (action === HookAction.SuppressListenersOnDocument) { return; }
     }
     f("keydown", onKeydown, true);
     f("keyup", onKeyup, true);
@@ -333,6 +372,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     f("blur", onBlur, true);
     f(Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome
         ? "click" : "DOMActivate", onActivate, true);
+    if (!(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && OnOther === BrowserType.Chrome) {
+      f("click", onAnyClick, true);
+    }
   }),
   hookOnShadowRoot = function (path: ArrayLike<EventTarget | 0>, target: Node | 0, disable?: 1): void {
     for (let len = Build.MinCVer >= BrowserVer.Min$Event$$path$IsStdArrayAndIncludesWindow
@@ -346,6 +388,28 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         setupEventListener(root, "blur", onShadow, disable);
         disable ? domNodeMap.delete(root) : domNodeMap.set(root, kNodeInfo.ShadowFull);
       }
+    }
+  },
+  checkPotentialAccessKey = function (event: KeyboardEvent, char: string): void {
+    /** On Firefox, access keys are only handled during keypress events, so it has been "hooked" well:
+     * https://dxr.mozilla.org/mozilla/source/content/events/src/nsEventStateManager.cpp#960 .
+     * And the modifier stat for access keys is user-configurable: `ui.key.generalAccessKey`
+     * * there was another one (`ui.key.contentAccess`) but it has been removed from the latest code
+     */
+    if (Build.BTypes & BrowserType.Chrome && event.altKey && fgCache.a
+        && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)) {
+      /** On Chrome, there're 2 paths to trigger accesskey:
+       * * `blink::WebInputEvent::kRawKeyDown` := `event#keydown` => `blink::WebInputEvent::kChar` := `handleAccessKey`
+       * * `blink::WebInputEvent::kKeyDown` := `handleAccessKey` + `event#keydown`
+       * In source code on 2019-10-19, the second `WebInputEvent::kKeyDown` is almost not in use (except in Pepper API),
+       * and https://cs.chromium.org/chromium/src/third_party/blink/public/platform/web_input_event.h?l=110&q=kKeyDown
+       *     says that Android uses `WebInputEvent::kKeyDown` and Windows prefers `RawKeyDown+Char`,
+       * so, here ignores the 2nd path.
+       */
+      isWaitingAccessKey = +((char || VKey.char_(event)).length === 1
+          && (VKey.getKeyStat_(event) & ~KeyStat.shiftKey) ===
+              (fgCache.m ? KeyStat.ctrlKey | KeyStat.altKey : KeyStat.altKey) // Chrome ignore .shiftKey
+          );
     }
   },
   Commands: {
@@ -703,7 +767,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
     },
     /** should only be called during keydown events */
-    focusUpper_ (this: void, key: kKeyCode, force: boolean, event: ToPrevent
+    focusUpper_ (this: void, key: kKeyCode, force: boolean, event: KeyboardEventToPrevent
         ): void | 1 {
       const parEl = VDom.frameElement_();
       if (!parEl && (!force || isTop)) { return; }
@@ -1005,6 +1069,12 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key) {
         load.m && (VKey.keyIdCorrectionOffset_ = 300);
       }
+      if (!(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && OnOther & BrowserType.Chrome) {
+        if (!load.a) {
+          setupEventListener(0, "click", onAnyClick, 1, 1);
+          setupEventListener(document, "click", onAnyClick, 1, 1);
+        }
+      }
       if (Build.BTypes & BrowserType.Chrome
           && (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl)) {
         D.specialZoom_ = (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
@@ -1030,7 +1100,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         if (Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
             && Build.BTypes & BrowserType.Chrome
             && browserVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow) {
-          hook(HookAction.SuppressActivateOnDocument);
+          hook(HookAction.SuppressListenersOnDocument);
         }
       } else {
         InsertMode.grabBackFocus_ = false;
@@ -1114,6 +1184,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         (i2 in cache) && (VKey.safer_(cache)[i2] = undefined as never);
       }
       delta.d != null && HUD.box_ && HUD.box_.classList.toggle("D", !!delta.d);
+      if (!(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && OnOther & BrowserType.Chrome) {
+        delta.a != null && setupEventListener(0, "click", onAnyClick, delta.a, 1);
+      }
     },
     /* kBgReq.focusFrame: */ FrameMask.Focus_,
     /* kBgReq.exitGrab: */ InsertMode.ExitGrab_ as (this: void, request: Req.bg<kBgReq.exitGrab>) => void,

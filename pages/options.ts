@@ -477,6 +477,11 @@ let optionsInit1_ = function (): void {
     $("#dialogMode").dataset.model = "Boolean";
     nextTick_(box => box.style.display = "", $("#dialogModeBox"));
   }
+  if (!(Build.BTypes & BrowserType.Chrome)
+      || Build.BTypes & ~BrowserType.Chrome && bgOnOther_ !== BrowserType.Chrome) {
+    $("#hookAccessKeys").removeAttribute("data-model");
+    nextTick_(box => box.style.display = "none", $("#hookAccessKeysBox"));
+  }
 
   let _ref: {length: number, [index: number]: HTMLElement} = $$("[data-model]");
   const types = {
