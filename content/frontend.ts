@@ -106,13 +106,16 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     }
     return HandlerResult.Prevent;
   }
-  function onEscDown(event: KeyboardEventToPrevent, key: kKeyCode): HandlerResult {
-    let action = HandlerResult.Prevent, { repeat } = event
+  /** @param key should be valid */
+  function onEscDown(event: KeyboardEventToPrevent, key: kKeyCode
+      ): HandlerResult.Default | HandlerResult.PassKey | HandlerResult.Prevent {
+    let action: HandlerResult.Default | HandlerResult.PassKey | HandlerResult.Prevent = HandlerResult.Prevent
+      , { repeat } = event
       , { activeElement: activeEl, body } = document;
     /** if `notBody` then `activeEl` is not null */
     if (!repeat && VCui.removeSelection_()) {
       /* empty */
-    } else if (repeat && !KeydownEvents[kKeyCode.esc] && activeEl !== body) {
+    } else if (repeat && !KeydownEvents[key] && activeEl !== body) {
       (Build.BTypes & ~BrowserType.Firefox ? typeof (activeEl as Element).blur === "function"
           : (activeEl as Element).blur) &&
       (activeEl as HTMLElement | SVGElement).blur();
@@ -147,9 +150,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
               & ~HandlerResult.AdvancedEscFlag) === HandlerResult.Esc
           : isEscape(event)
       ) {
-        if (insertLock === document.body && insertLock || !isTop && innerHeight < 3) {
+        if ((insertLock === document.body && insertLock || !isTop && innerHeight < 3) && !g) {
           event.repeat && InsertMode.focusUpper_(key, true, event);
-          action = HandlerResult.PassKey;
+          action = /* the real is HandlerResult.PassKey; here's for smaller code */ HandlerResult.Nothing;
         } else {
           action = g && g.passExitKey ? HandlerResult.Nothing : HandlerResult.Prevent;
           InsertMode.exit_(event.target as Element);
