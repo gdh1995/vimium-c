@@ -25,6 +25,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   }
 
   let KeydownEvents: KeydownCacheArray, keyMap: KeyMap
+    , fgCache: SettingsNS.FrontendSettingCache = null as never
     , insertLock = null as LockableElement | null
     , thisCore: Writable<ContentWindowCore> | undefined
     , currentKeys = "", isEnabled = false, isLocked = false
@@ -98,12 +99,12 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     currentKeys += key;
     if (j === KeyAction.cmd) {
       post({ H: kFgReq.key, k: currentKeys, l: code });
+      esc(HandlerResult.Prevent);
       isCmdTriggered = 1;
-      return esc(HandlerResult.Prevent);
     } else {
       nextKeys = j !== KeyAction.count ? j : keyMap;
-      return HandlerResult.Prevent;
     }
+    return HandlerResult.Prevent;
   }
   function onEscDown(event: KeyboardEventToPrevent, key: kKeyCode): HandlerResult {
     let action = HandlerResult.Prevent, { repeat } = event
@@ -124,7 +125,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     return action;
   }
   function onKeydown(event: KeyboardEventToPrevent): void {
-    let keyChar: string, key = event.keyCode, action: HandlerResult;
+    let keyChar: string, action: HandlerResult;
+    const key = event.keyCode;
     if (!isEnabled
         || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
             : event.isTrusted === false) // skip checks of `instanceof KeyboardEvent` if checking `!.keyCode`
@@ -150,13 +152,13 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           action = HandlerResult.PassKey;
         } else {
           action = g && g.passExitKey ? HandlerResult.Nothing : HandlerResult.Prevent;
-          InsertMode.exit_(event);
+          InsertMode.exit_(event.target as Element);
         }
       }
     }
-    else if (key > kKeyCode.maxNotPrintable && key !== kKeyCode.ime
-        || key === kKeyCode.backspace || key === kKeyCode.tab
-        || key === kKeyCode.esc || key === kKeyCode.enter) {
+    else if (key > kKeyCode.maxNotPrintable ? key !== kKeyCode.ime
+        : ((1 << kKeyCode.backspace | 1 << kKeyCode.tab | 1 << kKeyCode.esc | 1 << kKeyCode.enter
+            ) >> key) & 1) {
       if (keyChar = VKey.char_(event)) {
         action = checkKey(keyChar, key, event);
         if ((action & ~HandlerResult.AdvancedEscFlag) === HandlerResult.Esc) {
@@ -385,7 +387,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
 
     /* kFgCmd.toggle: */ function (_0: number, options: CmdOptions[kFgCmd.toggle]): void {
       const key = options.k, backupKey = "_" + key as string as typeof key,
-      cache = VKey.safer_(VDom.cache_), cur = cache[key];
+      cache = VKey.safer_(fgCache), cur = cache[key];
       let val = options.v, u: undefined;
       if (val === null && (cur === !!cur)) {
         val = !cur;
@@ -625,7 +627,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       /** if `notBody` then `activeEl` is not null */
       let activeEl = document.activeElement as Element, notBody = activeEl !== document.body;
       KeydownEvents = safer(null);
-      if (VDom.cache_.g && InsertMode.grabBackFocus_) {
+      if (fgCache.g && InsertMode.grabBackFocus_) {
         let counter = 0, prompt = function (): void {
           counter++ || console.log(VTr(kTip.blockAutoFocus, "Vimium C blocks auto-focusing."));
         };
@@ -718,21 +720,20 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         KeydownEvents[key] = 2;
       }
     },
-    exit_ (event: KeyboardEvent): void {
-      let target: Element | null = event.target as Element;
-      if (VDom.GetShadowRoot_(target)) {
+    exit_: function (target: Element | null): void {
+      if (VDom.GetShadowRoot_(target as Element)) {
         if (target = insertLock) {
           insertLock = null;
           (target as LockableElement).blur();
         }
-      } else if (target === insertLock ? (insertLock = null, 1) : VDom.getEditableType_<1>(target)) {
+      } else if (target === insertLock ? (insertLock = null, 1) : VDom.getEditableType_<1>(target as Element)) {
         (target as LockableElement).blur();
       }
       if (InsertMode.global_) {
         insertLock = null; InsertMode.global_ = null;
         HUD.hide_();
       }
-    },
+    } as (target: Element) => void,
     onExitSuppress_: null as ((this: void) => void) | null,
     exitInputHint_ (): void {
       let hint = InsertMode.inputHint_;
@@ -935,7 +936,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         return;
       }
       el = VDom.createElement_("div");
-      el.className = "R HUD" + VDom.cache_.d;
+      el.className = "R HUD" + fgCache.d;
       el.textContent = text;
       HUD._$text = el.firstChild as Text;
       if (!embed) {
@@ -947,7 +948,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       VCui.add_(HUD.box_ = el, VHints.hints_ ? AdjustType.NotAdjust : AdjustType.DEFAULT, VHints.box_);
     },
     _tween (this: void, fake?: TimerType.fake): void { // safe-interval
-      const el = HUD.box_ as HTMLDivElement, st = el.style, reduce = isEnabled && VDom.cache_.r;
+      const el = HUD.box_ as HTMLDivElement, st = el.style, reduce = isEnabled && fgCache.r;
       let opacity = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake
                     && fake ? 0 : +(st.opacity || 1);
       if (opacity === HUD.opacity_) { /* empty */ }
@@ -997,7 +998,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           && <number> Build.BTypes !== BrowserType.Edge) {
         OnOther = load.b as NonNullable<typeof load.b>;
       }
-      D.cache_ = VKey.cache_ = load as EnsureItemsNonNull<typeof load>;
+      D.cache_ = VKey.cache_ = fgCache = load as EnsureItemsNonNull<typeof load>;
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key) {
         load.m && (VKey.keyIdCorrectionOffset_ = 300);
       }
@@ -1103,7 +1104,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     /* kBgReq.settingsUpdate: */function ({ d: delta }: BgReq[kBgReq.settingsUpdate]): void {
       type Keys = keyof typeof delta;
       VKey.safer_(delta);
-      const cache = VDom.cache_;
+      const cache = fgCache;
       for (const i in delta) {
         (cache as Generalized<typeof cache>)[i as Keys] = (delta as EnsureItemsNonNull<typeof delta>)[i as Keys];
         const i2 = "_" + i as Keys;
@@ -1472,7 +1473,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       VTr = VTr || ((tid, _, args) => trans("" + tid, args));
     })
   },
-  
+
   domNodeMap = Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
       || WeakMap ? new (WeakMap as WeakMapConstructor)<Node, kNodeInfo>() as never : {
     set (node: Node, info: Exclude<kNodeInfo, kNodeInfo.NONE>): any { (node as NodeWithInfo).vimiumInfo = info; },

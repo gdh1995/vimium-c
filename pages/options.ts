@@ -369,6 +369,7 @@ TextOption_.prototype.showError_ = function<T extends TextualizedOptionNames>(th
   });
 };
 
+setupBorderWidth_ && nextTick_(setupBorderWidth_);
 nextTick_(versionEl => {
   const docCls = (document.documentElement as HTMLHtmlElement).classList;
   const kEventName = "DOMContentLoaded", onload = () => {

@@ -757,7 +757,9 @@ declare const enum BrowserVer {
   // a bug that special style.zoom may not work is fixed since MinASameZoomOfDocElAsdevPixRatioWorksAgain
   MinDevicePixelRatioImplyZoomOfDocEl = 61,
   MinCorrectBoxWidthForOptionsUI = 61,
-  MinUseful$visualViewport$ = 61, // visualViewport.width/h, .pageL/T and .offsetL/T occurs
+  MinInnerWidthKeepsTheSameWhenPinchZooming = 61, // on touch-screen devices
+  // visualViewport.width/h, .pageL/T and .offsetL/T occurs, and `innerWidth` is not "scaled"
+  MinUseful$visualViewport$ = 61,
   MinEnsured$visualViewport$ = 61,
   MinScrollIntoViewOptions = 61,
   // also means ensured Element::scrollBy, Element::scrollTo and window.scrollTo/scrollBy({})

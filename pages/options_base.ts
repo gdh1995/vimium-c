@@ -448,13 +448,12 @@ timer_?: number;
 ExclusionRulesOption_.prototype._reChar = <RegExpOne> /^[\^*]|[^\\][$()*+?\[\]{|}]/;
 ExclusionRulesOption_.prototype._escapeRe = <RegExpG> /\\(.)/g;
 
-if ((Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
+let setupBorderWidth_ = (Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
       && Build.BTypes & BrowserType.Chrome
       && bgBrowserVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo)
     || devicePixelRatio < 2 && (Build.MinCVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
         || bgBrowserVer_ >= BrowserVer.MinRoundedBorderWidthIsNotEnsured)
-    ) {
-nextTick_((): void => {
+    ? (): void => {
   const css = document.createElement("style"), ratio = devicePixelRatio;
   const onlyInputs = (Build.MinCVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
     || bgBrowserVer_ >= BrowserVer.MinRoundedBorderWidthIsNotEnsured) && ratio >= 1;
@@ -465,8 +464,7 @@ nextTick_((): void => {
   css.textContent = onlyInputs ? `input, textarea { border-width: ${scale}px; }`
   : `* { border-width: ${scale}px !important; }`;
   (document.head as HTMLHeadElement).appendChild(css);
-});
-}
+} : null;
 
 location.pathname.toLowerCase().indexOf("/popup.html") !== -1 &&
 Promise.all([ BG_.BgUtils_.require_("Exclusions"),
@@ -726,6 +724,7 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
     bgExclusions.testers_ = null as never;
     BG_.BgUtils_.GC_(-1);
   };
+  setupBorderWidth_ && nextTick_(setupBorderWidth_);
 
   function forceState(act: "Reset" | "Enable" | "Disable", event?: EventToPrevent): void {
     event && event.preventDefault();
