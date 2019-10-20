@@ -789,7 +789,7 @@ declare const enum BrowserVer {
   // `/deep/` works on C35 even if LEGACY
   // static `/deep/` selector in query is still supported on Chrome LATEST_TESTED
   // https://www.chromestatus.com/features/6750456638341120
-  MinSelector$deep$InDynamicCSSMeansNothing = 63,
+  MinSelector$deep$InDynamicCssMeansNothing = 63,
   MinCSS$OverscrollBehavior = 63,
   MinOmniboxSupportDeleting = 63,
   Min$addEventListener$IsInStrictMode = 64, // otherwise addEventListener has null .caller and null .arguments

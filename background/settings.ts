@@ -203,7 +203,7 @@ var Settings_ = {
       let findCSS = css.slice(findOffset + /* '/*#find*\/\n' */ 10);
       css = css.slice(0, findOffset - /* `\n` */ 1);
       if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinUsableCSS$All || hasAll) {
-        // Note: must not move "all:" into ":host" even when "s" and >= MinSelector$deep$InDynamicCSSMeansNothing
+        // Note: must not move "all:" into ":host" even when "s" and >= MinSelector$deep$InDynamicCssMeansNothing
         // in case that ":host" is set [style="all:unset"]
         const ind2 = css.indexOf("all:"), ind1 = css.lastIndexOf("{", ind2),
         ind3 = Build.MinCVer >= BrowserVer.MinEnsuredSafeInnerCSS || !(Build.BTypes & BrowserType.Chrome)
