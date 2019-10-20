@@ -587,6 +587,8 @@ let optionsInit1_ = function (): void {
     _ref[_i].onclick = func;
   }
 
+  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinUserSelectAll
+      && bgBrowserVer_ < BrowserVer.MinUserSelectAll) {
   _ref = $$(".sel-all");
   func = function (this: HTMLElement, event): void {
     if (event.target !== this) { return; }
@@ -595,6 +597,7 @@ let optionsInit1_ = function (): void {
   } as ElementWithDelay["onmousedown"];
   for (let _i = _ref.length; 0 <= --_i; ) {
     _ref[_i].onmousedown = func;
+  }
   }
 
   let setUI = function (curTabId: number | null): void {

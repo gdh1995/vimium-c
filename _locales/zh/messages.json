@@ -903,7 +903,7 @@
 		"message": "%s 和 $s 的用法作用完全相同"
 	},
 	"needToInstallExt": {
-		"message": "注意此用法需要先安装相应的扩展程序"
+		"message": "使用此页面需要先安装相应的扩展程序"
 	},
 	"webPageLimits": {
 		"message": "注意：扩展程序内置页面中不能访问普通网页，\n因此在这种情况下只会使用 Vimium C 内置的搜索框页面。"

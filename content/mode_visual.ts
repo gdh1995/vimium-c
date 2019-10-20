@@ -504,7 +504,7 @@ var VVisual = {
       const num1 = a.oldLen_ - 2, num2 = isMove || ("" + a.selection_).length;
       a.modify_(VisualModeNS.kDir.left, VisualModeNS.G.character);
       if (!isMove) {
-        // in most cases, initial selection won't be a caret at the middle of sel-all
+        // in most cases, initial selection won't be a caret at the middle of `[style=user-select:all]`
         // - so correct selection won't be from the middle to the end
         // if in the case, selection can not be kept during @getDi,
         // so it's okay to ignore the case
