@@ -434,7 +434,7 @@ var VFind = {
   },
   postMode_: {
     lock_: null as Element | null,
-    activate_  (): void {
+    activate_ (): void {
       const pm = this;
       const el = VApi.lock_(), Exit = pm.exit_ as (this: void, a?: boolean | Event) => void;
       if (!el) { Exit(); return; }

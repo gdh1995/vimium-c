@@ -67,7 +67,10 @@ var VKey = {
     }
     return shiftKey && key.length < 2 ? key : key.toLowerCase();
   },
-  /** not constrain letter cases if returned name is long */
+  /**
+   * * not constrain letter cases if returned name is long
+   * * return `"space"` for the <Space> key - in most code it needs to be treated as a long key
+   */
   char_ (event: Pick<KeyboardEvent, "code" | "key" | "keyCode" | "keyIdentifier" | "shiftKey">): string {
     let {key, shiftKey} = event;
     if (Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.BTypes & BrowserType.Chrome && !key) {

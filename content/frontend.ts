@@ -62,7 +62,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     let key = onlyChar || VKey.key_(event, char), mapped: string | undefined, chLower: string;
     if (mappedKeys) {
       key = mappedKeys[key] || (
-        (mapped = mappedKeys[chLower = char.toLowerCase()]) ? (
+        (mapped = mappedKeys[chLower = char.toLowerCase()]) && mapped.length < 2 ? (
           mapped = char === chLower ? mapped : mapped.toUpperCase(),
           onlyChar ? mapped : VKey.key_(event, mapped)
         ) : key
@@ -180,6 +180,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         }
         if (action === HandlerResult.Nothing
             && InsertMode.suppressType_ && keyChar.length < 2 && !VKey.getKeyStat_(event)) {
+          // not suppress ' ', so that it's easier to exit this mode
           action = HandlerResult.Prevent;
         }
       }
@@ -406,6 +407,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
        *     says that Android uses `WebInputEvent::kKeyDown` and Windows prefers `RawKeyDown+Char`,
        * so, here ignores the 2nd path.
        */
+      // during tests, an access key of ' ' (space) can not be triggered on Win 10 (2019-10-20)
       isWaitingAccessKey = +((char || VKey.char_(event)).length === 1
           && (VKey.getKeyStat_(event) & ~KeyStat.shiftKey) ===
               (fgCache.m ? KeyStat.ctrlKey | KeyStat.altKey : KeyStat.altKey) // Chrome ignore .shiftKey
@@ -1491,11 +1493,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     },
     mapKey_: mapKey,
     setupSuppress_ (this: void, onExit?: (this: void) => void): void {
-      const mode = InsertMode, f = mode.onExitSuppress_;
-      mode.onExitSuppress_ = mode.suppressType_ = null;
+      const f = InsertMode.onExitSuppress_;
+      InsertMode.onExitSuppress_ = InsertMode.suppressType_ = null;
       if (onExit) {
-        mode.suppressType_ = getSelection().type;
-        mode.onExitSuppress_ = onExit;
+        InsertMode.suppressType_ = getSelection().type;
+        InsertMode.onExitSuppress_ = onExit;
       }
       if (f) { return f(); }
     },

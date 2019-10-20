@@ -182,7 +182,7 @@ var VVisual = {
       a.resetKeys_();
     }
     if (obj != null) { /* empty */ }
-    else if (key.length === 1 && (i = +key[0]) < 10 && (i || a.currentCount_)) {
+    else if (key.length < 2 && (i = +key[0]) < 10 && (i || a.currentCount_)) {
       a.currentCount_ = a.currentCount_ * 10 + i;
       a.currentSeconds_ = null;
     } else if ((obj = a.keyMap_[key]) == null) {
@@ -195,7 +195,7 @@ var VVisual = {
       a.currentCount_ = 0;
     }
     if (obj == null) {
-      return ch.length === 1 && !VKey.getKeyStat_(event) ? HandlerResult.Prevent : HandlerResult.Suppress;
+      return ch.length < 2 && !VKey.getKeyStat_(event) ? HandlerResult.Prevent : HandlerResult.Suppress;
     }
     VKey.prevent_(event);
     a.di_ = VisualModeNS.kDir.unknown; // make @di safe even when a user modifies the selection
