@@ -9422,8 +9422,8 @@ declare var devicePixelRatio: number;
 declare var doNotTrack: string;
 declare var document: Document;
 // only exist on Firefox: https://developer.mozilla.org/en-US/docs/Web/API/Window/fullScreen
-declare var fullScreen: boolean | undefined;
-declare var event: -42;
+// declare var fullScreen: boolean | undefined;
+// declare var event: -42;
 /*
 declare var external: External;
 */

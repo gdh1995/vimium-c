@@ -10,7 +10,7 @@
   },
   "build": { // for [ local, dist ]
     "MinCVer": [ 74, 38 ], // keep dist to be 38 : the relase version
-    "MinFFVer": [ 64, 64 ],
+    "MinFFVer": [ 63, 63 ],
     "BTypes": [ 3, 1 ], // [ Chrome | Firefox, Chrome ]
     "NoDialogUI": [ 1, 1 ],
     "DetectAPIOnFirefox": [1, 0],

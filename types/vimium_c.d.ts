@@ -892,15 +892,17 @@ declare const enum BrowserVer {
   assumedVer = 999,
 }
 declare const enum FirefoxBrowserVer {
+  // though it's under control of `dom.webcomponents.shadowdom.enabled` (removed on FF65),
+  // here still think it's "ensured" since FF63 - the code will be much simpler
   MinEnsuredShadowDOMV1 = 63, // also DocumentOrShadowRoot::getSelection
   MinUsable$Navigator$$Clipboard = 63,
   MinMediaQuery$PrefersReducedMotion = 63,
-  Min$Document$$FullscreenElement = 64,
+  Min$Document$$FullscreenElement = 64, // under control of `full-screen-api.unprefix.enabled` on about:config
   // Min$globalThis = 65, // should not export `globalThis` into the outside
   MinMediaQuery$PrefersColorScheme = 67,
   MinFollowSelectionColorOnInactiveFrame = 68,
   // https://bugzilla.mozilla.org/show_bug.cgi?id=1587723
   // TODO: recheck this, because it's not fixed on Firefox nightly 71.0a1 (2019-10-10)
   MinValidMediaQueryWatchersInBgProc = 73,
-  MinSupported = 64,
+  MinSupported = 63,
 }

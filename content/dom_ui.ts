@@ -96,6 +96,8 @@ var VCui = {
     return parent as (T extends true | 1 ? HTMLDialogElement : HTMLDivElement) & SafeElement;
   },
   adjust_ (this: void, event?: Event | /* enable */ 1 | /* disable */ 2): void {
+    // Before Firefox 64, the mozFullscreenChangeEvent.target is document
+    // so here should only use `VDom.fullscreenEl_unsafe_`
     const UI = VCui, el: Element | null = VDom.fullscreenEl_unsafe_(),
     box = UI.box_ as NonNullable<typeof UI.box_>,
     el2 = el && !(UI.root_ as Node).contains(el) ? el : document.documentElement as Element;

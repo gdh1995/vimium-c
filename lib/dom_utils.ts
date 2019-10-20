@@ -194,6 +194,7 @@ var VDom = {
   },
   /** @UNSAFE_RETURNED */
   fullscreenEl_unsafe_ (): Element | null {
+    /** On Firefox, document.fullscreenElement may not exist even since FF64 - see Min$Document$$FullscreenElement */
     return !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
       ? document.mozFullScreenElement
       : !(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
