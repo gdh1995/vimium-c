@@ -1069,12 +1069,6 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key) {
         load.m && (VKey.keyIdCorrectionOffset_ = 300);
       }
-      if (!(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && OnOther & BrowserType.Chrome) {
-        if (!load.a) {
-          setupEventListener(0, "click", onAnyClick, 1, 1);
-          setupEventListener(document, "click", onAnyClick, 1, 1);
-        }
-      }
       if (Build.BTypes & BrowserType.Chrome
           && (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl)) {
         D.specialZoom_ = (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
@@ -1101,6 +1095,14 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
             && Build.BTypes & BrowserType.Chrome
             && browserVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow) {
           hook(HookAction.SuppressListenersOnDocument);
+        }
+        if (Build.BTypes & BrowserType.Chrome
+            && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
+            && !load.a) {
+          setupEventListener(0, "click", onAnyClick, 1, 1);
+          if (Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow) {
+            setupEventListener(document, "click", onAnyClick, 1, 1);
+          }
         }
       } else {
         InsertMode.grabBackFocus_ = false;
@@ -1184,8 +1186,15 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         (i2 in cache) && (VKey.safer_(cache)[i2] = undefined as never);
       }
       delta.d != null && HUD.box_ && HUD.box_.classList.toggle("D", !!delta.d);
-      if (!(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && OnOther & BrowserType.Chrome) {
-        delta.a != null && setupEventListener(0, "click", onAnyClick, delta.a, 1);
+      if (Build.BTypes & BrowserType.Chrome
+          && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
+          && delta.a != null) {
+        setupEventListener(0, "click", onAnyClick, delta.a, 1);
+        if (Build.BTypes & BrowserType.Chrome
+            && Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
+            && browserVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow) {
+          setupEventListener(document, "click", onAnyClick, delta.a, 1);
+        }
       }
     },
     /* kBgReq.focusFrame: */ FrameMask.Focus_,
