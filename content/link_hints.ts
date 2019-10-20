@@ -1084,11 +1084,12 @@ var VHints = {
     }
     for (const stack of stacks) {
       reverse && stack.reverse();
-      const i = stack[stack.length - 1];
-      let oldI = ref[i].zIndex_ || i;
+      const i = stack[stack.length - 1], max = reverse ? stack[0] : i;
+      let oldI: number = ref[i].zIndex_ || i;
       for (const j of stack) {
-        const hint = ref[j], {style} = hint.marker_, newI = hint.zIndex_ || j;
-        style.zIndex = (hint.zIndex_ = oldI) as number | string as string;
+        const hint = ref[j], { marker_ } = hint, newI = hint.zIndex_ || j;
+        marker_.style.zIndex = (hint.zIndex_ = oldI) as number | string as string;
+        marker_.classList.toggle("OH", oldI < max);
         oldI = newI;
       }
       reverse && stack.reverse();
