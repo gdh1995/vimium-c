@@ -531,8 +531,7 @@ MediaWatcher_ = {
       else if (!a._timer) {
         if ((!(Build.BTypes & BrowserType.Firefox)
               || (Build.BTypes & ~BrowserType.Firefox && OnOther !== BrowserType.Firefox))
-            ? (navigator.userAgent.match(/\bFirefox\/(\d+)/) || [0, ""])[1]
-              < FirefoxBrowserVer.MinValidMediaQueryWatchersInBgProc
+            ? CurFFVer_ < FirefoxBrowserVer.MinValidMediaQueryWatchersInBgProc
             : true) {
           a._timer = setInterval(MediaWatcher_.RefreshAll_, GlobalConsts.MediaWatchInterval);
         }

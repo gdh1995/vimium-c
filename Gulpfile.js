@@ -59,7 +59,7 @@ const FILE_URLS_CSS = "front/file_urls.css";
 
 const KnownBackendGlobals = [
   "Backend_", "BgUtils_", "BrowserProtocol_",
-  "Clipboard_", "CommandsData_", "Completion_", "ContentSettings_", "CurCVer_",
+  "Clipboard_", "CommandsData_", "Completion_", "ContentSettings_", "CurCVer_", "CurFFVer_",
   "FindModeHistory_", "IncognitoWatcher_", "Marks_", "MediaWatcher_",
   "Settings_", "TabRecency_", "trans_"
 ];

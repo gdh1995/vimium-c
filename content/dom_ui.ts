@@ -156,14 +156,16 @@ var VCui = {
     let gcs = getComputedStyle, st: CSSStyleDeclaration;
     if (sout = document.body) {
       st = gcs(sout);
-      if ((st.userSelect || !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinUnprefixedUserSelect
-            || st.webkitUserSelect) === "none") {
+      if ((Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinUnprefixedUserSelect
+            || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinUnprefixedUserSelect
+            ? st.userSelect || st.webkitUserSelect : st.userSelect) === "none") {
         return false;
       }
     }
     st = gcs(document.documentElement as HTMLHtmlElement);
-    return (st.userSelect || !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinUnprefixedUserSelect
-            || st.webkitUserSelect) !== "none";
+    return (Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinUnprefixedUserSelect
+            || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinUnprefixedUserSelect
+            ? st.userSelect || st.webkitUserSelect : st.userSelect) !== "none";
   },
   toggleSelectStyle_ (enable: BOOL): void {
     let a = VCui, sout = a.styleOut_;

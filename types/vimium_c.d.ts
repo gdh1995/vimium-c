@@ -901,8 +901,14 @@ declare const enum FirefoxBrowserVer {
   // Min$globalThis = 65, // should not export `globalThis` into the outside
   MinMediaQuery$PrefersColorScheme = 67,
   MinFollowSelectionColorOnInactiveFrame = 68,
+  Min$visualViewport$OnAndroid = 68, // for desktop version: https://bugzilla.mozilla.org/show_bug.cgi?id=1551302
+  MinNoKeygenElement = 69,
+  MinUnprefixedUserSelect = 69,
+  MinCSSEnableContain = 69,
+  MinUserScriptsAPI = 69, // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/userScripts
   // https://bugzilla.mozilla.org/show_bug.cgi?id=1587723
   // TODO: recheck this, because it's not fixed on Firefox nightly 71.0a1 (2019-10-10)
   MinValidMediaQueryWatchersInBgProc = 73,
   MinSupported = 63,
+  assumedVer = 99,
 }

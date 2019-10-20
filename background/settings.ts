@@ -190,10 +190,13 @@ var Settings_ = {
       if (!(Build.NDEBUG || css.startsWith(":host{"))) {
         console.log('Assert error: `css.startsWith(":host{")` in Settings_.updateHooks_.baseCSS');
       }
-      if (Build.MinCVer < BrowserVer.MinUnprefixedUserSelect && Build.BTypes & BrowserType.Chrome
-            && browserVer < BrowserVer.MinUnprefixedUserSelect
-          || (!(Build.BTypes & ~BrowserType.Firefox)
-          || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox)) {
+      if (Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinUnprefixedUserSelect
+            && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
+          ? CurFFVer_ < FirefoxBrowserVer.MinUnprefixedUserSelect
+          : Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinUnprefixedUserSelect
+            && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
+          ? browserVer < BrowserVer.MinUnprefixedUserSelect
+          : false) {
         css = css.replace(<RegExpG> /user-select\b/g, "-webkit-$&");
       }
       if (!Build.NDEBUG) {

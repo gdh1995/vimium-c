@@ -9423,6 +9423,7 @@ declare var doNotTrack: string;
 declare var document: Document;
 // only exist on Firefox: https://developer.mozilla.org/en-US/docs/Web/API/Window/fullScreen
 // declare var fullScreen: boolean | undefined;
+// On Firefox: only 63, 64 and 66+: https://developer.mozilla.org/en-US/docs/Mozilla/Firefox/Releases/66#DOM_events
 // declare var event: -42;
 /*
 declare var external: External;
