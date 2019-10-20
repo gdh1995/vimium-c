@@ -245,6 +245,11 @@ var VCui = {
       , rect?: Rect | null, modifiers?: MyMouseControlKeys | null, addFocus?: boolean | BOOL
       , button?: 0 | 2, touchMode?: /** default: false */ null | false | /** false */ 0 | true | "auto"): void {
     const a = VDom;
+    if (!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && VOther === BrowserType.Edge) {
+      if ((element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
+        return;
+      }
+    }
     rect || (rect = a.getVisibleClientRect_(element));
     const center = a.center_(rect);
     if (Build.BTypes & BrowserType.Chrome
@@ -255,6 +260,13 @@ var VCui = {
       a.touch_(element, center, a.touch_(element, center));
     }
     element === a.lastHovered_ || a.hover_(element, center);
+    if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox) {
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=329509 says this starts on FF65,
+      // but tests also confirmed it on Firefox 63.0.3 x64, Win10
+      if ((element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
+        return;
+      }
+    }
     a.mouse_(element, "mousedown", center, modifiers, null, button);
     // Note: here we can check doc.activeEl only when @click is used on the current focused document
     addFocus && element !== VApi.lock_() && element !== document.activeElement &&
@@ -263,7 +275,8 @@ var VCui = {
       (element as HTMLElement | SVGElement).focus();
     a.mouse_(element, "mouseup", center, modifiers, null, button);
     if (button /* is the right button */
-        || (element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
+        || Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || VOther & BrowserType.Chrome)
+            && (element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
       if (button) { // if button is the right, then auxclick can be triggered even if element.disabled
         a.mouse_(element, "auxclick", center, modifiers, null, button);
       }
