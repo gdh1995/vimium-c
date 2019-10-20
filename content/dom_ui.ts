@@ -91,16 +91,12 @@ var VCui = {
       style.left = left; style.top = top;
       zoom - 1 && (style.zoom = zoom as number | string as string);
     }
-    (!(Build.BTypes & ~BrowserType.Firefox) ? fullScreen
-      : !(Build.BTypes & ~BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
-      ? document.fullscreenElement : document.webkitIsFullScreen) && (style.position = "fixed");
+    VDom.fullscreenEl_unsafe_() && (style.position = "fixed");
     this.add_(parent, AdjustType.DEFAULT, this._lastFlash);
     return parent as (T extends true | 1 ? HTMLDialogElement : HTMLDivElement) & SafeElement;
   },
   adjust_ (this: void, event?: Event | /* enable */ 1 | /* disable */ 2): void {
-    const UI = VCui, el: Element | null = !(Build.BTypes & ~BrowserType.Chrome)
-          || Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
-        ? document.fullscreenElement : document.webkitFullscreenElement,
+    const UI = VCui, el: Element | null = VDom.fullscreenEl_unsafe_(),
     box = UI.box_ as NonNullable<typeof UI.box_>,
     el2 = el && !(UI.root_ as Node).contains(el) ? el : document.documentElement as Element;
     // Chrome also always remove node from its parent since 58 (just like Firefox), which meets the specification
@@ -115,9 +111,12 @@ var VCui = {
       if (Build.BTypes & BrowserType.Chrome
           && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)) {
         VKey.SetupEventListener_(0, "webkit" + name, UI.adjust_, removeEL);
+      } else if (!(Build.BTypes & ~BrowserType.Firefox)
+          || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox) {
+        VKey.SetupEventListener_(0, "moz" + name, UI.adjust_, removeEL);
       }
       if (!(Build.BTypes & BrowserType.Chrome)
-          || VDom.cache_.v >= BrowserVer.MinEnsured$Document$$fullscreenElement) {
+          || VDom.cache_.v >= BrowserVer.MinMaybe$Document$$fullscreenElement) {
         VKey.SetupEventListener_(0, name, UI.adjust_, removeEL);
       }
     }
@@ -370,9 +369,7 @@ var VCui = {
     const a = this as typeof VCui;
     rect || (rect = a.getRect_(el as Element));
     if (!rect) { return; }
-    const flashEl = VDom.createElement_("div"), nfs = !(!(Build.BTypes & ~BrowserType.Firefox) ? fullScreen
-        : !(Build.BTypes & ~BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
-        ? document.fullscreenElement : document.webkitIsFullScreen);
+    const flashEl = VDom.createElement_("div"), nfs = !VDom.fullscreenEl_unsafe_();
     flashEl.className = "R Flash" + (classNames || "");
     VDom.setBoundary_(flashEl.style, rect, nfs);
     Build.BTypes & ~BrowserType.Firefox &&

@@ -560,9 +560,7 @@ var VHints = {
     Sc = VSc,
     wantClickable = filter === a.GetClickable_,
     isInAnElement = !Build.NDEBUG && !!wholeDoc && (wholeDoc as {}) instanceof Element,
-    box = !wholeDoc && (!(Build.BTypes & ~BrowserType.Chrome)
-          || Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
-        ? D.fullscreenElement : D.webkitFullscreenElement)
+    box = !wholeDoc && VDom.fullscreenEl_unsafe_()
         || !Build.NDEBUG && isInAnElement && wholeDoc as {} as Element
         || D,
     isD = box === D,
@@ -780,9 +778,7 @@ var VHints = {
   frameNested_: false as HintsNS.NestedFrame,
   checkNestedFrame_ (output?: Hint[]): void {
     const res = output && output.length > 1 ? null : !frames.length ? false
-      : (!(Build.BTypes & ~BrowserType.Firefox) ? fullScreen
-          : !(Build.BTypes & ~BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
-          ? document.fullscreenElement : document.webkitIsFullScreen)
+      : VDom.fullscreenEl_unsafe_()
       ? 0 : this._getNestedFrame(output);
     this.frameNested_ = res === false && document.readyState === "complete" ? null : res;
   },

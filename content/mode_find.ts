@@ -540,15 +540,11 @@ var VFind = {
     let re: RegExpG | null = query && a.safeCreateRe_(ww ? B + query + B : query, a.ignoreCase_ ? "gi" : "g") || null;
     let matches: RegExpMatchArray | null = null;
     if (re) {
-      type FullScreenElement = Element & { innerText?: string | Element };
-      let el = (!(Build.BTypes & ~BrowserType.Chrome)
-            || Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
-          ? document.fullscreenElement : document.webkitFullscreenElement) as FullScreenElement | null,
-      text: string | undefined | Element;
-      if (el && typeof (text = el.innerText) !== "string") { // in case of SVG elements
+      let el = VDom.fullscreenEl_unsafe_(), text: HTMLElement["innerText"] | undefined;
+      while (el && (el as ElementToHTML).lang == null) { // in case of SVG elements
         el = VDom.GetParent_(el, PNType.DirectElement);
       }
-      query = el && <string> text ||
+      query = el && typeof (text = (el as HTMLElement).innerText) === "string" && text ||
           (Build.BTypes & ~BrowserType.Firefox ? (document.documentElement as HTMLElement).innerText + ""
             : (document.documentElement as HTMLElement).innerText as string);
       matches = query.match(re) || query.replace(a.A0Re_, " ").match(re);

@@ -192,6 +192,13 @@ var VDom = {
       : el || !fallback ? el as SafeElement | null // el is safe object or null
       : this.notSafe_(docEl) ? null : docEl as SafeElement | null;
   },
+  /** @UNSAFE_RETURNED */
+  fullscreenEl_unsafe_ (): Element | null {
+    return !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
+      ? document.mozFullScreenElement
+      : !(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
+      ? document.fullscreenElement : document.webkitFullscreenElement;
+  },
   // Note: sometimes a cached frameElement is not the wanted
   frameElement_ (): Element | null | void {
     let el: typeof frameElement | undefined;
@@ -430,9 +437,7 @@ var VDom = {
     const a = this as typeof VDom;
     let docEl = document.documentElement as Element, ratio = devicePixelRatio
       , gcs = getComputedStyle, st = gcs(docEl), zoom = +st.zoom || 1
-      , el: Element | null = !(Build.BTypes & ~BrowserType.Chrome)
-            || Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
-          ? document.fullscreenElement : document.webkitFullscreenElement;
+      , el: Element | null = a.fullscreenEl_unsafe_();
     Build.BTypes & BrowserType.Chrome &&
     Math.abs(zoom - ratio) < 1e-5 && (!(Build.BTypes & ~BrowserType.Chrome)
       && Build.MinCVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl || a.specialZoom_) && (zoom = 1);
@@ -464,9 +469,7 @@ var VDom = {
     let iw = innerWidth, ih = innerHeight;
     const a = this;
     const ratio = devicePixelRatio, ratio2 = Math.min(ratio, 1), doc = document;
-    if (!(Build.BTypes & ~BrowserType.Firefox) ? fullScreen
-        : !(Build.BTypes & ~BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
-        ? document.fullscreenElement : document.webkitIsFullScreen) {
+    if (a.fullscreenEl_unsafe_()) {
       a.getZoom_(1);
       a.dScale_ = 1;
       const zoom3 = a.wdZoom_ / ratio2;
