@@ -36,10 +36,7 @@ const Clipboard_ = {
     ? Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
   ? function (this: object): Promise<string> | null {
     const clipboard = navigator.clipboard as EnsureNonNull<Navigator["clipboard"]> | undefined;
-    return (Build.MinFFVer >= FirefoxBrowserVer.MinUsable$Navigator$$Clipboard || clipboard)
-      ? (clipboard as NonNullable<typeof clipboard>).readText().then(
-        (this as typeof Clipboard_).reformat_)
-      : null;
+    return clipboard ? clipboard.readText().then((this as typeof Clipboard_).reformat_) : null;
   } : function (this: object): string {
     const textArea = (this as typeof Clipboard_).getTextArea_();
     textArea.maxLength = GlobalConsts.MaxBufferLengthForPasting;
@@ -678,7 +675,7 @@ BgUtils_.timeout_(120, function (): void {
 
 BgUtils_.copy_ = Build.BTypes & BrowserType.Firefox
     && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-    && (Build.MinFFVer >= FirefoxBrowserVer.MinUsable$Navigator$$Clipboard || navigator.clipboard)
+    && navigator.clipboard
 ? function (this: void, data, join): void {
   (navigator.clipboard as EnsureNonNull<Navigator["clipboard"]>).writeText(Clipboard_.format_(data, join));
 } : function (this: void, data, join): void {

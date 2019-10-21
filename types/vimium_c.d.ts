@@ -669,8 +669,7 @@ declare const enum BrowserVer {
   MinEnsuredShadowDOMV1 = 53,
   // since C53, Vimium's inner styles have been really safe, because `>>>` only works on "open" mode shadow trees
   MinEnsuredSafeInnerCSS = MinEnsuredShadowDOMV1,
-  // webkitUserSelect still works on C35
-  MinUserSelectAll = 53,
+  MinEnsuredWebkitUserSelectAll = 53, // `-webkit-user-select: all` still works on C31 if EXPERIMENTAL
   // even if EXPERIMENTAL or LEGACY
   MinUntrustedEventsDoNothing = 53, // fake click events won't show a <select>'s popup
   // before Chrome 53, there may be window.VisualViewport under flags, but not the instance
@@ -892,12 +891,12 @@ declare const enum BrowserVer {
   assumedVer = 999,
 }
 declare const enum FirefoxBrowserVer {
-  // though it's under control of `dom.webcomponents.shadowdom.enabled` (removed on FF65),
+  // though it's under the control of `dom.webcomponents.shadowdom.enabled` (removed on FF65),
   // here still think it's "ensured" since FF63 - the code will be much simpler
   MinEnsuredShadowDOMV1 = 63, // also DocumentOrShadowRoot::getSelection
-  MinUsable$Navigator$$Clipboard = 63,
+  MinMaybeUsable$navigator$$clipboard = 63, // under the control of `dom.events.asyncClipboard`
   MinMediaQuery$PrefersReducedMotion = 63,
-  Min$Document$$FullscreenElement = 64, // under control of `full-screen-api.unprefix.enabled` on about:config
+  Min$Document$$FullscreenElement = 64, // under the control of `full-screen-api.unprefix.enabled` on about:config
   // Min$globalThis = 65, // should not export `globalThis` into the outside
   MinMediaQuery$PrefersColorScheme = 67,
   MinFollowSelectionColorOnInactiveFrame = 68,
