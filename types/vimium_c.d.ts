@@ -906,8 +906,8 @@ declare const enum FirefoxBrowserVer {
   MinCSSEnableContain = 69,
   MinUserScriptsAPI = 69, // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/userScripts
   // https://bugzilla.mozilla.org/show_bug.cgi?id=1587723
-  // TODO: recheck this, because it's not fixed on Firefox nightly 71.0a1 (2019-10-10)
-  MinValidMediaQueryWatchersInBgProc = 73,
+  MinMediaChangeEventsOnBackgroundPage = 73,
   MinSupported = 63,
-  assumedVer = 99,
+  None = 0,
+  assumedVer = 999,
 }

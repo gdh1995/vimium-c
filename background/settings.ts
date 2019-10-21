@@ -691,7 +691,9 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
       settings.set_("newTabUrl", obj.NewTabForNewUser_);
     }
   }
-  obj.StyleCacheId_ = obj.VerCode_ + "," + CurCVer_
+  obj.StyleCacheId_ = obj.VerCode_ + ","
+    + ( !(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && OnOther === BrowserType.Chrome
+        ? CurCVer_ : Build.BTypes & BrowserType.Firefox ? CurFFVer_ : 0)
     + ( (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
           && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
           && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)

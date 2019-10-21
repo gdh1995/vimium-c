@@ -521,14 +521,16 @@ MediaWatcher_ = {
       query.onchange = a._onChange;
       watchers[key] = query;
       if (!(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-          && (!(Build.BTypes & ~BrowserType.Firefox)
-              || Build.MinFFVer >= FirefoxBrowserVer.MinValidMediaQueryWatchersInBgProc)
-          && (!(Build.BTypes & ~BrowserType.Chrome)
-              || Build.MinFFVer >= BrowserVer.MinMediaChangeEventsOnBackgroundPage)) { /* empty */ }
+          && (!(Build.BTypes & BrowserType.Firefox)
+              || Build.MinFFVer >= FirefoxBrowserVer.MinMediaChangeEventsOnBackgroundPage)
+          && (!(Build.BTypes & BrowserType.Chrome)
+              || Build.MinCVer >= BrowserVer.MinMediaChangeEventsOnBackgroundPage)) { /* empty */ }
       else if (!a._timer) {
-        if ((!(Build.BTypes & BrowserType.Firefox)
-              || (Build.BTypes & ~BrowserType.Firefox && OnOther !== BrowserType.Firefox))
-            ? CurFFVer_ < FirefoxBrowserVer.MinValidMediaQueryWatchersInBgProc
+        if (!(Build.BTypes & ~BrowserType.Firefox)
+              || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
+            ? CurFFVer_ < FirefoxBrowserVer.MinMediaChangeEventsOnBackgroundPage
+            : !(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && OnOther & BrowserType.Chrome
+            ? CurCVer_ < BrowserVer.MinMediaChangeEventsOnBackgroundPage
             : true) {
           a._timer = setInterval(MediaWatcher_.RefreshAll_, GlobalConsts.MediaWatchInterval);
         }
