@@ -535,6 +535,10 @@ declare const enum BrowserVer {
   MinEnsuredTextEncoderAndDecoder = 38, // even if LEGACY; still exists on C31 if EXPERIMENTAL
   MinWithFrameIdInArg = 39,
   MinMaybe$String$$StartsWithAndEndsWith = 39, // if EXPERIMENTAL
+  // only cause event#load even if failing in decoding its data. Test code:
+  // var a=new XMLHttpRequest();a.open("GET","data:text/plain;charset=utf-8,%E9%9A",!0);
+  // a.onerror=a.onload=function(i){console.log(i.type,i)};a.responseType='text';a.send();
+  MinRequestDataURLOnBackgroundPage = 39, // even if EXPERIMENTAL or LEGACY
   MinOptionsUI = 40,
   MinDisableMoveTabAcrossIncognito = 40,
   // even if EXPERIMENTAL or LEGACY
@@ -557,6 +561,7 @@ declare const enum BrowserVer {
   Min$Tabs$$getZoom = 42,
   Min$EnableSitePerProcess$Flag = 42,
   MinParentNodeGetterInNodePrototype = 42, // also .childNodes; even if even if EXPERIMENTAL or LEGACY
+  MinEnsured$fetch = 42, // even if LEGACY; can not fetch chrome-extension:// before C47
   // before C43, "font-size: ***" of <select> overrides those of its <options>s'
   // since C42@exp, <option> is visible, but its text has a strange extra prefix of "A" - fixed on C43
   Min$Option$HasReliableFontSize = 43, // even if LEGACY
@@ -594,6 +599,8 @@ declare const enum BrowserVer {
   Min$KeyboardEvent$MayHas$$Key = 47, // if EXPERIMENTAL
   Min$IFrame$MayHas$$Referrerpolicy = 47, // if EXPERIMENTAL
   MinEnsured$InputDeviceCapabilities = 47, // even if LEGACY; also ensured UIEvent.sourceCapabilities
+  MinFetchExtensionFiles = 47, // even if EXPERIMENTAL or LEGACY
+  MinFetchDataURL = 48, // even if EXPERIMENTAL; test code: fetch('data:,abc').then(i=>i.text()).then(cb,cb)
   // even if EXPERIMENTAL or LEGACY
   // before: real-width := Math.floor(width * zoom)
   // after: real-width := Math.floor(width * zoom) || (width ? 1 : 0)

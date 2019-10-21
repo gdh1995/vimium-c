@@ -1598,7 +1598,6 @@ knownCs: CompletersMap & SafeObject = {
       const xhr = new XMLHttpRequest();
       xhr.responseType = "text";
       xhr.onload = Decoder.OnXHR_;
-      xhr.onerror = Decoder.OnXHR_;
       return xhr;
     },
     onUpdate_ (this: void, charset: string): void {
@@ -1694,9 +1693,14 @@ Completion_ = {
 };
 
 Settings_.updateHooks_.phraseBlacklist = BlacklistFilter.OnUpdate_;
-Settings_.updateHooks_.localeEncoding = Decoder.onUpdate_;
 Settings_.postUpdate_("phraseBlacklist");
-Settings_.postUpdate_("localeEncoding");
+if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinRequestDataURLOnBackgroundPage
+    || CurCVer_ >= BrowserVer.MinRequestDataURLOnBackgroundPage) {
+  Settings_.updateHooks_.localeEncoding = Decoder.onUpdate_;
+  Settings_.postUpdate_("localeEncoding");
+} else {
+  Decoder.onUpdate_("");
+}
 
 BgUtils_.timeout_(80, function () {
   Settings_.postUpdate_("searchEngines", null);

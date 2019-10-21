@@ -388,8 +388,14 @@ _el.onchange = function (this: HTMLSelectElement): void {
     click($("#settingsFile"));
     return;
   }
+  const recommended = "../settings_template.json";
+  if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinFetchExtensionFiles
+      || bgBrowserVer_ >= BrowserVer.MinFetchExtensionFiles) {
+    fetch(recommended).then(r => r.text()).then(t => importSettings(0, t, true));
+    return;
+  }
   const req = new XMLHttpRequest();
-  req.open("GET", "../settings_template.json", true);
+  req.open("GET", recommended, true);
   req.responseType = "text";
   req.onload = function (this: XMLHttpRequest): void {
     return importSettings(0, this.responseText, true);

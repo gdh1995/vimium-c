@@ -9585,6 +9585,25 @@ declare var onpointerout: (this: Window, ev: PointerEvent) => any;
 declare var onpointerover: (this: Window, ev: PointerEvent) => any;
 declare var onpointerup: (this: Window, ev: PointerEvent) => any;
 declare var onwheel: (this: Window, ev: WheelEvent) => any;
+type RequestInfo = string;
+interface Body {
+  readonly bodyUsed: boolean;
+  arrayBuffer(): Promise<ArrayBuffer>;
+  blob(): Promise<Blob>;
+  json<T>(): Promise<T>;
+  text(): Promise<string>;
+}
+type ResponseType = "basic" | "cors" | "default" | "error" | "opaque" | "opaqueredirect";
+interface Response extends Body {
+  readonly ok: boolean;
+  readonly redirected: boolean;
+  readonly status: number;
+  readonly statusText: string;
+  readonly type: ResponseType;
+  readonly url: string;
+  clone(): Response;
+}
+declare function fetch(input: RequestInfo): Promise<Response>;
 declare function clearInterval(handle: number): void;
 declare function clearTimeout(handle: number): void;
 declare function atob(encodedString: string): string;

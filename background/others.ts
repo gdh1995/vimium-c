@@ -881,7 +881,6 @@ BgUtils_.timeout_(600, function (): void {
   });
 });
 
-declare var fetch: any;
 declare const enum I18nConsts {
   storageKey = "i18n_f",
 }
@@ -915,7 +914,7 @@ BgUtils_.timeout_(500, function (): void {
   };
   for (const langName of new (Set as SetConstructor)<string>(["en", trans_("lang1"), trans_("lang2")]) as any) {
     if (langName) {
-      fetch(`/_locales/${langName}/messages.json`).then((r: any) => r.json()).then(onload);
+      fetch(`/_locales/${langName}/messages.json`).then(r => r.json<Dict<any>>()).then(onload);
       toDos++;
     }
   }

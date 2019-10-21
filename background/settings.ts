@@ -395,15 +395,23 @@ var Settings_ = {
     }
   } as { [key in SettingsNS.DeclaredUpdateHooks]: SettingsNS.UpdateHook<key>; } as SettingsNS.FullUpdateHookMap,
   /** can only fetch files in the `[ROOT]/front` folder */
-  fetchFile_ (file: "words" | keyof SettingsNS.CachedFiles, callback?: (this: void) => any): TextXHR | null {
-    if (callback && file in this.cache_) { callback(); return null; }
-    const fileName = this.CONST_[file];
-    if (!fileName) { throw Error("unknown file: " + file); } // just for debugging
+  fetchFile_ (file: "words" | keyof SettingsNS.CachedFiles, callback?: (this: void) => any): void {
+    if (callback && file in this.cache_) { callback(); return; }
+    let filePath = this.CONST_[file];
+    if (!filePath) { throw Error("unknown file: " + file); } // just for debugging
+    filePath = "/front/" + filePath;
+    if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinFetchExtensionFiles
+        || CurCVer_ >= BrowserVer.MinFetchExtensionFiles) {
+      fetch(filePath).then(r => r.text()).then(onLoad);
+      return;
+    }
     const req = new XMLHttpRequest() as TextXHR;
-    req.open("GET", "/front/" + fileName, true);
+    req.open("GET", filePath, true);
     req.responseType = "text";
     req.onload = function (): void {
-      const text = this.responseText;
+      onLoad(this.responseText);
+    };
+    function onLoad(text: string): void {
       if (file === "baseCSS") {
         Settings_.postUpdate_(file, text);
       } else if ((Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
@@ -415,10 +423,8 @@ var Settings_ = {
         Settings_.set_(file as Exclude<typeof file, "baseCSS" | "words">, text);
       }
       callback && setTimeout(callback, 0);
-      return;
     };
     req.send();
-    return req as TextXHR;
   },
   // clear localStorage & sync, if value === @defaults[key]
   // the default of all nullable fields must be set to null for compatibility with @Sync.set
