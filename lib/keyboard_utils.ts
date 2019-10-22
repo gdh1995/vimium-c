@@ -1,24 +1,13 @@
 var VKey = {
   _keyNames: ["space", "pageup", "pagedown", "end", "home", "left", "up", "right", "down",
     /* 41 */ "", "", "", "", "insert", "delete"] as ReadonlyArray<string>,
-  keyIdCorrectionOffset_: Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
-      ? 185 : 0,
-  _codeCorrectionMap: {
-    __proto__: null as never,
-    Backquote: "`~",
-    Backslash: "\\|",
-    BracketLeft: "[{",
-    BracketRight: "]}",
-    Comma: ",<",
-    Equal: "=+",
-    IntlBackslash: "\\|",
-    Minus: "-_",
-    Period: ".>",
-    Quote: "'\"",
-    Semicolon: ";:",
-    Slash: "/?"
-  } as ReadonlySafeDict<string>,
-  modifierKeys_: {
+  keyIdCorrectionOffset_: (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
+      ? 185 : 0) as 0 | 185 | 300,
+  _codeCorrectionMap: ["Semicolon", "Equal", "Comma", "Minus", "Period", "Slash", "Backquote",
+    "BracketLeft", "Backslash", "BracketRight", "Quote", "IntlBackslash"],
+  _charCorrectionList: Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
+      ? ";=,-./`[\\]'\\:+<_>?~{|}\"|" as const : 0 as never,
+  _modifierKeys: {
     __proto__: null as never,
     Alt: 1, AltGraph: 1, Control: 1, Meta: 1, OS: 1, Shift: 1
   } as SafeEnum,
@@ -49,20 +38,22 @@ var VKey = {
       // here omits a `(...)` after the first `&&`, since there has been `keyId >= kCharCode.minNotAlphabet`
       return keyId > (this as typeof VKey).keyIdCorrectionOffset_
           && (keyId -= 186) < 7 || (keyId -= 26) > 6 && keyId < 11
-          ? ";=,-./`[\\]':+<_>?~{|}\""[keyId + shiftKey * 11]
+          ? (this as typeof VKey)._charCorrectionList[keyId + shiftKey * 12]
           : "";
     }
   }) as (this: {}, event: Pick<OldKeyboardEvent, "keyIdentifier">, shiftKey: BOOL) => string,
   _forceEnUSLayout (key: string, code: string, shiftKey: boolean): string {
-    let prefix = code.slice(0, 2), mapped: string | undefined;
+    let prefix = code.slice(0, 2), mapped: number | undefined;
     if (prefix !== "Nu") { // not (Numpad* or NumLock)
       if (prefix === "Ke" || prefix === "Di" || prefix === "Ar") {
         code = code.slice(code < "K" ? 5 : 3);
       }
       key = code < "0" || code > "9"
-          ? (mapped = this._codeCorrectionMap[code]) ? mapped[+shiftKey]
-            : code.length > 1 ? this.modifierKeys_[key] ? "" : code === "Escape" ? "esc" : code
-            : code
+          ? code.length < 2 ? code
+            : this._modifierKeys[key] ? ""
+            : (mapped = this._codeCorrectionMap.indexOf(code)) < 0 ? code === "Escape" ? "esc" : code
+            : (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
+                ? this._charCorrectionList : ";=,-./`[\\]'\\:+<_>?~{|}\"|")[mapped + 12 * +shiftKey]
           : shiftKey ? ")!@#$%^&*("[+code] : code;
     }
     return shiftKey && key.length < 2 ? key : key.toLowerCase();
