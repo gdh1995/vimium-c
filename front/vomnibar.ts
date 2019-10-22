@@ -1058,19 +1058,16 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     q: ""
   },
   spacesRe_: <RegExpG> /\s+/g,
-  _singleQuoteRe: <RegExpG> /'/g,
   fetch_ (): void {
     const a = Vomnibar_;
     let mode: Req.fg<kFgReq.omni> = a.mode_
-      , str: string, last: string, newMatchType = CompletersNS.MatchType.Default;
+      , str: string, newMatchType = CompletersNS.MatchType.Default;
     a.timer_ = -1;
     if (a.useInput_) {
       a.lastQuery_ = str = a.input_.value.trim();
-      if (!a.isInputComposing_) { /* empty */ }
-      else if (str.startsWith(last = a.lastNormalInput_)) {
-        str = last + str.slice(last.length).replace(a._singleQuoteRe, "");
-      } else {
-        str = str.replace(a._singleQuoteRe, " ");
+      if (a.isInputComposing_) {
+        let last = a.lastNormalInput_, isStart = str.startsWith(last);
+        str = (isStart ? last : "") + (isStart ? str.slice(last.length) : str).replace(<RegExpG> /'/g, "");
       }
       str = str.replace(a.spacesRe_, " ");
       if (str === mode.q) { return a.postUpdate_(); }

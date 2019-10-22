@@ -504,7 +504,7 @@ historyEngine = {
   },
   quickSearch_ (history: ReadonlyArray<Readonly<HistoryItem>>): Suggestion[] {
     const onlyUseTime = queryTerms.length === 1 && (queryTerms[0][0] === "."
-      ? BgUtils_.commonFileExtRe_.test(queryTerms[0])
+      ? (<RegExpOne> /^\.\w+$/).test(queryTerms[0])
       : (BgUtils_.convertToUrl_(queryTerms[0], null, Urls.WorkType.KeepAll),
         BgUtils_.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl)
     ),
@@ -1204,6 +1204,7 @@ knownCs: CompletersMap & SafeObject = {
     }
   },
 
+  escapeAllRe = <RegExpG & RegExpSearchable<0>> /[$()*+.?\[\\\]\^{|}]/g,
   RegExpCache = {
     parts_: null as never as CachedRegExp[],
     starts_: null as never as CachedRegExp[],
@@ -1212,14 +1213,14 @@ knownCs: CompletersMap & SafeObject = {
       const d: CachedRegExp[] = this.parts_ = [] as never;
       this.starts_ = this.words_ = null as never;
       for (const s of queryTerms) {
-        d.push(new RegExp(s.replace(BgUtils_.escapeAllRe_, "\\$&"), BgUtils_.hasUpperCase_(s) ? "" : "i" as ""
+        d.push(new RegExp(s.replace(escapeAllRe, "\\$&"), BgUtils_.hasUpperCase_(s) ? "" : "i" as ""
           ) as CachedRegExp);
       }
     },
     buildOthers_ (): void {
       const ss = this.starts_ = [] as CachedRegExp[], ws = this.words_ = [] as CachedRegExp[];
       for (const s of queryTerms) {
-        const start = "\\b" + s.replace(BgUtils_.escapeAllRe_, "\\$&"),
+        const start = "\\b" + s.replace(escapeAllRe, "\\$&"),
         flags = BgUtils_.hasUpperCase_(s) ? "" : "i" as "";
         ss.push(new RegExp(start, flags) as CachedRegExp);
         ws.push(new RegExp(start + "\\b", flags) as CachedRegExp);
@@ -1228,7 +1229,7 @@ knownCs: CompletersMap & SafeObject = {
     fixParts_ (): void {
       if (!this.parts_) { return; }
       let s = queryTerms[0];
-      this.parts_[0] = new RegExp(s.replace(BgUtils_.escapeAllRe_, "\\$&"), BgUtils_.hasUpperCase_(s) ? "" : "i" as ""
+      this.parts_[0] = new RegExp(s.replace(escapeAllRe, "\\$&"), BgUtils_.hasUpperCase_(s) ? "" : "i" as ""
         ) as CachedRegExp;
     }
   },

@@ -155,8 +155,6 @@ constructor (element: TextElement, onUpdated: (this: TextOption_<T>) => void) {
     (this as Option_<TextOptionNames>).checker_ = TextOption_.charsChecker_;
   }
 }
-whiteRe_: RegExpG;
-whiteMaskRe_: RegExpG;
 fetch_ (): void {
   super.fetch_();
   // allow old users to correct mistaken chars and save
@@ -164,7 +162,7 @@ fetch_ (): void {
     && TextOption_.charsChecker_.check_(this.previous_ as AllowedOptions[TextOptionNames]) === this.previous_;
 }
 populateElement_ (value: AllowedOptions[T] | string, enableUndo?: boolean): void {
-  const value2 = (value as string).replace(this.whiteRe_, "\xa0");
+  const value2 = (value as string).replace(<RegExpG> / /g, "\xa0");
   if (enableUndo !== true) {
     this.element_.value = value2;
   } else {
@@ -173,7 +171,7 @@ populateElement_ (value: AllowedOptions[T] | string, enableUndo?: boolean): void
 }
 /** @returns string */
 readValueFromElement_ (): AllowedOptions[T] {
-  let value = this.element_.value.trim().replace(this.whiteMaskRe_, " "), ops = this.converter_;
+  let value = this.element_.value.trim().replace(<RegExpG> /\xa0/g, " "), ops = this.converter_;
   if (value && ops.length > 0) {
     ops.indexOf("lower") >= 0 && (value = value.toLowerCase());
     ops.indexOf("upper") >= 0 && (value = value.toUpperCase());
@@ -198,8 +196,6 @@ static toChars_ (value: string): string {
   return str2;
 }
 }
-TextOption_.prototype.whiteRe_ = <RegExpG> / /g;
-TextOption_.prototype.whiteMaskRe_ = <RegExpG> /\xa0/g;
 
 class NonEmptyTextOption_<T extends TextOptionNames> extends TextOption_<T> {
 readValueFromElement_ (): string {

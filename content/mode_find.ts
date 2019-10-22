@@ -22,8 +22,6 @@ var VFind = {
   countEl_: null as never as SafeHTMLElement,
   styleIn_: null as never as HTMLStyleElement,
   styleOut_: null as never as HTMLStyleElement,
-  A0Re_: <RegExpG> /\xa0/g,
-  tailRe_: <RegExpOne> /\n$/,
   activate_ (this: void, _0: number, options: CmdOptions[kFgCmd.findMode]): void {
     const a = VFind, dom = VDom, UI = VCui;
     UI.findCss_ = options.f || UI.findCss_;
@@ -429,7 +427,7 @@ var VFind = {
   saveQuery_ (): void {
     this.query_ && VApi.post_({
       H: kFgReq.findQuery,
-      q: this.input_.innerText.replace(this.A0Re_, " ").replace(this.tailRe_, "")
+      q: this.input_.innerText.replace(<RegExpG> /\xa0/g, " ").replace(<RegExpOne> /\n$/, "")
     });
   },
   postMode_: {
@@ -472,7 +470,7 @@ var VFind = {
       if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
           ? !e.isTrusted : e.isTrusted === false) { return; }
     }
-    const _this = VFind, query = _this.input_.innerText.replace(_this.A0Re_, " ").replace(_this.tailRe_, "");
+    const _this = VFind, query = _this.input_.innerText.replace(<RegExpG> /\xa0/g, " ").replace(<RegExpOne> /\n$/, "");
     let s = _this.query_;
     if (!_this.hasResults_ && !_this.isRegex_ && !_this.wholeWord_ && _this.notEmpty_ && query.startsWith(s)
         && query.slice(s.length - 1).indexOf("\\") < 0) {
@@ -500,16 +498,14 @@ var VFind = {
     if (a._small && count < 152) { return; }
     a.box_.style.width = ((a._small = count < 152) ? 0 as number | string as string : count + "px");
   },
-  _ctrlRe: <RegExpG & RegExpSearchable<0>> /\\[CIRW\\cirw]/g,
-  _backslashRe: <RegExpG & RegExpSearchable<0>> /\\\\/g,
-  _escapeAllRe: <RegExpG> /[$()*+.?\[\\\]\^{|}]/g,
   updateQuery_ (query: string): void {
     const a = this;
     a.query_ = query;
     a.wholeWord_ = false;
     a.isRegex_ = a.ignoreCase_ = null as boolean | null;
-    query = a.isQueryRichText_ ? query.replace(a._ctrlRe, a.FormatQuery_) : query;
-    let isRe = a.isRegex_, ww = a.wholeWord_, B = "\\b";
+    query = a.isQueryRichText_ ? query.replace(<RegExpG & RegExpSearchable<0>> /\\[CIRW\\cirw]/g, a.FormatQuery_)
+        : query;
+    let isRe = a.isRegex_, ww = a.wholeWord_, B = "\\b", escapeAllRe = <RegExpG> /[$()*+.?\[\\\]\^{|}]/g;
     if (a.isQueryRichText_) {
     if (isRe === null && !ww) {
       isRe = VDom.cache_.R;
@@ -521,21 +517,22 @@ var VFind = {
         isRe = true;
       }
     }
-    if (ww && (isRe || !(Build.BTypes & BrowserType.Chrome)
+    if (ww && (!(Build.BTypes & BrowserType.Chrome) || isRe
               || ((Build.BTypes & ~BrowserType.Chrome) && VOther !== BrowserType.Chrome)
         )) {
-      query = B + query.replace(a._backslashRe, "\\").replace(a._escapeAllRe, "\\$&") + B;
+      query = B + query.replace(<RegExpG & RegExpSearchable<0>> /\\\\/g, "\\").replace(escapeAllRe, "\\$&") + B;
       ww = false;
       isRe = true;
     }
-    query = isRe ? query !== "\\b\\b" && query !== B ? query : "" : query.replace(a._backslashRe, "\\");
+    query = isRe ? query !== "\\b\\b" && query !== B ? query : ""
+        : query.replace(<RegExpG & RegExpSearchable<0>> /\\\\/g, "\\");
     }
     a.parsedQuery_ = query;
     a.isRegex_ = !!isRe;
     a.wholeWord_ = ww;
     a.notEmpty_ = !!query;
     a.ignoreCase_ !== null || (a.ignoreCase_ = query.toLowerCase() === query);
-    isRe || (query = a.isActive_ ? query.replace(a._escapeAllRe, "\\$&") : "");
+    isRe || (query = a.isActive_ ? query.replace(escapeAllRe, "\\$&") : "");
 
     let re: RegExpG | null = query && a.safeCreateRe_(ww ? B + query + B : query, a.ignoreCase_ ? "gi" : "g") || null;
     let matches: RegExpMatchArray | null = null;
@@ -547,7 +544,7 @@ var VFind = {
       query = el && typeof (text = (el as HTMLElement).innerText) === "string" && text ||
           (Build.BTypes & ~BrowserType.Firefox ? (document.documentElement as HTMLElement).innerText + ""
             : (document.documentElement as HTMLElement).innerText as string);
-      matches = query.match(re) || query.replace(a.A0Re_, " ").match(re);
+      matches = query.match(re) || query.replace(<RegExpG> /\xa0/g, " ").match(re);
     }
     a.regexMatches_ = isRe ? matches : null;
     a.parsedRegexp_ = isRe ? re : null;

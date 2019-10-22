@@ -82,18 +82,10 @@ var BgUtils_ = {
     ) as (<T extends object> (opt: T) => T & SafeObject),
   domains_: Object.create<CompletersNS.Domain>(null),
   hostRe_: <RegExpOne & RegExpSearchable<4>> /^([^:]+(:[^:]+)?@)?([^:]+|\[[^\]]+])(:\d{2,5})?$/,
-  _ipv4Re: <RegExpOne> /^\d{1,3}(?:\.\d{1,3}){3}$/,
-  _ipv6Re: <RegExpOne> /^\[[\da-f]{0,4}(?::[\da-f]{0,4}){1,5}(?:(?::[\da-f]{0,4}){1,2}|:\d{0,3}(?:\.\d{0,3}){3})]$/,
-  _lfSpacesRe: <RegExpG> /[\n\r]+[\t \xa0]*/g,
   spacesRe_: <RegExpG> /\s+/g,
   A0Re_: <RegExpG> /\xa0/g,
-  _nonENTldRe: <RegExpOne> /[^a-z]/,
   protocolRe_: <RegExpOne> /^[a-z][\+\-\.\da-z]+:\/\//,
-  _nonENDomainRe: <RegExpOne> /[^.\da-z\-]|^-/,
-  _jsNotEscapeRe: <RegExpOne> /["\[\]{}\u00ff-\uffff]|%(?![\dA-F]{2}|[\da-f]{2})/,
   quotedStringRe_: <RegExpOne> /^"[^"]*"$|^'[^']*'$|^\u201c[^\u201d]*\u201d$/,
-  filePathRe_: <RegExpOne> /^[A-Za-z]:(?:[\\/][^:*?"<>|]*)?$|^\/(?:Users|home|root)\/[^:*?"<>|]+$/,
-  _backSlashRe: <RegExpG> /\\/g,
   lastUrlType_: Urls.Type.Default,
   convertToUrl_: function (this: {}, str: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkType): Urls.Url {
     const a = this as typeof BgUtils_;
@@ -103,7 +95,7 @@ var BgUtils_ = {
       if (Build.MinCVer < BrowserVer.MinAutoDecodeJSURL && Build.BTypes & BrowserType.Chrome
           && CurCVer_ < BrowserVer.MinAutoDecodeJSURL
           && str.indexOf("%", 11) > 0
-          && !a._jsNotEscapeRe.test(str)) {
+          && !(<RegExpOne> /["\[\]{}\u00ff-\uffff]|%(?![\dA-F]{2}|[\da-f]{2})/).test(str)) {
         str = a.DecodeURLPart_(str);
       }
       str = str.replace(a.A0Re_, " ");
@@ -116,16 +108,16 @@ var BgUtils_ = {
       , arr: [never, string | undefined, string | undefined, string, string | undefined] | null | undefined;
     // refer: https://cs.chromium.org/chromium/src/url/url_canon_etc.cc?type=cs&q=IsRemovableURLWhitespace&g=0&l=18
     // here's not its copy, but a more generalized strategy
-    oldString = str.replace(a._lfSpacesRe, "").replace(a.A0Re_, " ");
+    oldString = str.replace(<RegExpG> /[\n\r]+[\t \xa0]*/g, "").replace(a.A0Re_, " ");
     str = oldString[0] === '"' && oldString.endsWith('"') ? oldString.slice(1, -1) : oldString;
-    if (a.filePathRe_.test(str)) {
+    if ((<RegExpOne> /^[A-Za-z]:(?:[\\/][^:*?"<>|]*)?$|^\/(?:Users|home|root)\/[^:*?"<>|]+$/).test(str)) {
       str[1] === ":" && (str = str[0].toUpperCase() + ":/"
-          + str.slice(3).replace(a._backSlashRe, "/"));
+          + str.slice(3).replace(<RegExpG> /\\/g, "/"));
       a.resetRe_();
       return "file://" + (str[0] === "/" ? str : "/" + str);
     }
     if (str.startsWith("\\\\") && str.length > 3) {
-      str = str.slice(2).replace(a._backSlashRe, "/");
+      str = str.slice(2).replace(<RegExpG> /\\/g, "/");
       str.lastIndexOf("/") <= 0 && (str += "/");
       a.resetRe_();
       return "file://" + str;
@@ -175,7 +167,7 @@ var BgUtils_ = {
     ) {
       type = Urls.Type.Search;
     }
-    else if (a._nonENTldRe.test(str.slice(0, index))) {
+    else if ((<RegExpOne> /[^a-z]/).test(str.slice(0, index))) {
       type = (index = str.charCodeAt(index + 3)) > kCharCode.space
         && index !== kCharCode.slash ? Urls.Type.Full : Urls.Type.Search;
     }
@@ -213,7 +205,7 @@ var BgUtils_ = {
       type = expected !== Urls.Type.NoSchema && (index < 0 || index2 >= 3 && index2 <= 5)
         || a.checkInDomain_(str, arr[4]) > 0 ? expected : Urls.Type.Search;
     } else if (str.length !== index + 3 && type === Urls.TldType.ENTld
-        && a._nonENDomainRe.test(str)) {
+        && (<RegExpOne> /[^.\da-z\-]|^-/).test(str)) {
       // `notEnglish-domain.English-notCC-TLD`
       type = Urls.Type.Search;
     } else if (expected !== Urls.Type.NoSchema || hasPath) {
@@ -298,7 +290,7 @@ var BgUtils_ = {
     return url.slice(0, GlobalConsts.MaxSenderURLLength) + "\u2026";
   },
   isTld_ (tld: string, onlyEN?: boolean): Urls.TldType {
-    return !onlyEN && this._nonENTldRe.test(tld) ? (this._nonENTlds.indexOf("." + tld + ".") !== -1
+    return !onlyEN && (<RegExpOne> /[^a-z]/).test(tld) ? (this._nonENTlds.indexOf("." + tld + ".") !== -1
         ? Urls.TldType.NonENTld : Urls.TldType.NotTld)
       : tld.length < this._tlds.length && this._tlds[tld.length].indexOf(tld) > 0 ? Urls.TldType.ENTld
       : Urls.TldType.NotTld;
@@ -310,13 +302,15 @@ var BgUtils_ = {
   },
   /** type: 0=all */
   isIPHost_ (hostname: string, type: 0 | 4 | 6): boolean {
-     if (type !== 6 && this._ipv4Re.test(hostname) || type !== 4 && this._ipv6Re.test(hostname)) {
-       return !!this.safeParseURL_("http://" + hostname);
-     }
-     return false;
+    if (type !== 6 && (<RegExpOne> /^\d{1,3}(?:\.\d{1,3}){3}$/).test(hostname)
+        || type !== 4
+            && (<RegExpOne> /^\[[\da-f]{0,4}(?::[\da-f]{0,4}){1,5}(?:(?::[\da-f]{0,4}){1,2}|:\d{0,3}(?:\.\d{0,3}){3})]$/
+                ).test(hostname)) {
+      return !!this.safeParseURL_("http://" + hostname);
+    }
+    return false;
   },
   safeParseURL_(url: string): URL | null { try { return new URL(url); } catch {} return null; },
-  commonFileExtRe_: <RegExpOne> /\.\w+$/,
   formatVimiumUrl_ (fullPath: string, partly: boolean, vimiumUrlWork: Urls.WorkType): string {
     let ind: number, subPath = "", query = "", tempStr: string | undefined, path = fullPath.trim();
     if (!path) { return partly ? "" : location.origin + "/pages/"; }
@@ -324,11 +318,11 @@ var BgUtils_ = {
       query = path.slice(ind).trim();
       path = path.slice(0, ind - 1);
     }
-    if (ind = path.indexOf("/") + 1 || path.search(this._queryRe) + 1) {
+    if (ind = path.indexOf("/") + 1 || path.search(<RegExpOne> /[#?]/) + 1) {
       subPath = path.slice(ind - 1).trim();
       path = path.slice(0, ind - 1);
     }
-    if (!this.commonFileExtRe_.test(path)) {
+    if (!(<RegExpOne> /\.\w+$/).test(path)) {
       path = path.toLowerCase();
       if ((tempStr = Settings_.CONST_.RedirectedUrls_[path]) != null) {
         tempStr = path = !tempStr || tempStr[0] === "/" || tempStr[0] === "#" ? Settings_.CONST_.HomePage_ + tempStr
@@ -350,27 +344,24 @@ var BgUtils_ = {
     return path + (query && (path.indexOf("#") > 0 ? " " : "#!") + query);
   },
   _nestedEvalCounter: 0,
-  _vimiumCmdRe: <RegExpI> /^[a-z][\da-z\-]*(?:\.[a-z][\da-z\-]*)*$/i,
-  _vimiumFileExtRe: <RegExpI> /\.(?:css|html|js)$/i,
-  _mathSpaceRe: <RegExpG> /[\s+,\uff0c]+/g,
   evalVimiumUrl_: function (this: {}, path: string, workType?: Urls.WorkType
       , onlyOnce?: boolean): Urls.Url | null {
     const a = this as typeof BgUtils_;
     let ind: number, cmd: string, arr: string[], obj: { u: string } | null, res: Urls.Url | string[];
     workType = (workType as Urls.WorkType) | 0;
-    if (workType < Urls.WorkType.ValidNormal || !(cmd = path = path.trim()) || (ind = path.indexOf(" ")) <= 0 ||
-        !a._vimiumCmdRe.test(cmd = path.slice(0, ind).toLowerCase()) ||
-        a._vimiumFileExtRe.test(cmd)) {
+    if (workType < Urls.WorkType.ValidNormal || !(cmd = path = path.trim()) || (ind = path.indexOf(" ")) <= 0
+        || !(<RegExpI> /^[a-z][\da-z\-]*(?:\.[a-z][\da-z\-]*)*$/i).test(cmd = path.slice(0, ind).toLowerCase())
+        || (<RegExpI> /\.(?:css|html|js)$/i).test(cmd)) {
       return null;
     }
     path = path.slice(ind + 1).trimLeft();
     if (!path) { return null; }
     if (workType === Urls.WorkType.ActIfNoSideEffects) { switch (cmd) {
     case "sum": case "mul":
-      path = path.replace(a._mathSpaceRe, cmd === "sum" ? " + " : " * ");
+      path = path.replace(<RegExpG> /[\s+,\uff0c]+/g, cmd === "sum" ? " + " : " * ");
       cmd = "e"; break;
     case "avg": case "average":
-      arr = path.split(a._mathSpaceRe);
+      arr = path.split(<RegExpG> /[\s+,\uff0c]+/g);
       path = "(" + arr.join(" + ") + ") / " + arr.length;
       cmd = "e"; break;
     } }
@@ -492,7 +483,6 @@ var BgUtils_ = {
     });
   },
   searchWordRe_: <RegExpG & RegExpSearchable<2>> /\$([sS])(?:\{([^}]*)})?/g,
-  searchWordRe2_: <RegExpG & RegExpSearchable<2>> /([^\\]|^)%([sS])/g,
   searchVariable_: <RegExpG & RegExpSearchable<1>> /\$([+-]?\d+)/g,
   createSearchUrl_: function (this: {}, query: string[], keyword: string, vimiumUrlWork: Urls.WorkType): Urls.Url {
     const a = this as typeof BgUtils_;
@@ -556,11 +546,9 @@ var BgUtils_ = {
     } catch {}
     return url;
   },
-  escapedColonOrSlashRe_: <RegExpOne> /%(?:3[aA]|2[fF])/,
   decodeEscapedURL_ (url: string): string {
-    return url.indexOf("://") < 0 && this.escapedColonOrSlashRe_.test(url) ? this.DecodeURLPart_(url).trim() : url;
+    return url.indexOf("://") < 0 && (<RegExpOne> /%(?:3[aA]|2[fF])/).test(url) ? this.DecodeURLPart_(url).trim() : url;
   },
-  unicodeDotRe_: <RegExpG> /\u3002/g,
   fixCharsInUrl_ (url: string): string {
     let type = (url.indexOf("\u3002") < 0 ? 0 : 1) + (url.indexOf("\uff1a") < 0 ? 0 : 2);
     if (type === 0) { return url; }
@@ -569,7 +557,7 @@ var BgUtils_ = {
     if (i >= 0 && i < 4) { return url; }
     let str = i > 0 ? url.slice(0, i) : url;
     if (type & 1) {
-      str = str.replace(this.unicodeDotRe_, ".");
+      str = str.replace(<RegExpG> /\u3002/g, ".");
     }
     if (type & 2) {
       str = str.replace("\uff1a", ":").replace("\uff1a", ":");
@@ -578,9 +566,10 @@ var BgUtils_ = {
     this.convertToUrl_(str, null, Urls.WorkType.KeepAll);
     return this.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl ? str : url;
   },
-  imageFileRe_: <RegExpI & RegExpOne> /\.(?:bmp|gif|icon?|jpe?g|a?png|tiff?|webp)$/i, // SVG is not blocked by images CS
   showFileUrl_ (url: string): string {
-    return this.imageFileRe_.test(url) ? this.formatVimiumUrl_("show image " + url, false, Urls.WorkType.Default)
+    // SVG is not blocked by images CS
+    return (<RegExpI & RegExpOne> /\.(?:bmp|gif|icon?|jpe?g|a?png|tiff?|webp)$/i).test(url)
+      ? this.formatVimiumUrl_("show image " + url, false, Urls.WorkType.Default)
       : url;
   },
   reformatURL_ (url: string): string {
@@ -610,12 +599,8 @@ var BgUtils_ = {
     const a = this;
     let ids: string[], tmpRule: Search.TmpRule | null, tmpKey: Search.Rule["delimiter_"],
     key: string, obj: Search.RawEngine,
-    ind: number, rSlash = <RegExpOne> /[^\\]\//, rules = [] as Search.Rule[],
-    rEscapeSpace = <RegExpG & RegExpSearchable<0>> /\\\s/g, rSpace = <RegExpOne> /\s/,
-    rEscapeS = <RegExpG & RegExpSearchable<0>> /\\s/g, rColon = <RegExpG & RegExpSearchable<0>> /\\:/g,
-    rPercent = <RegExpG & RegExpSearchable<0>> /\\%/g, rRe = <RegExpI> /\sre=/i,
-    rBlank = <RegExpI & RegExpSearchable<0>> /\sblank=/i,
-    encodedSearchWordRe = <RegExpG & RegExpSearchable<1>> /%24([sS])/g, re = a.searchWordRe_,
+    ind: number, rules = [] as Search.Rule[],
+    rSpace = <RegExpOne> /\s/, re = a.searchWordRe_,
     func = (function (k: string): boolean {
       return (k = k.trim()) && k !== "__proto__" && k.length < Consts.MinInvalidLengthOfSearchKey
         ? (map[k] = obj, true) : false;
@@ -628,29 +613,30 @@ var BgUtils_ = {
         ind = val.indexOf(":", ind + 1);
       } while (val.charCodeAt(ind - 1) === kCharCode.backslash);
       if (ind <= 0 || !(key = val.slice(0, ind).trimRight())) { continue; }
-      ids = key.replace(rColon, ":").split("|");
+      ids = key.replace(<RegExpG & RegExpSearchable<0>> /\\:/g, ":").split("|");
       val = val.slice(ind + 1).trimLeft();
       if (!val) { continue; }
-      key = val.replace(rEscapeSpace, "\\s");
+      key = val.replace(<RegExpG & RegExpSearchable<0>> /\\\s/g, "\\s");
       ind = key.search(rSpace);
       let blank = "";
       if (ind > 0) {
         str = val.slice(ind);
         val = key.slice(0, ind);
-        ind = str.search(rBlank);
+        ind = str.search(<RegExpI & RegExpSearchable<0>> /\sblank=/i);
         if (ind >= 0) {
           let ind2 = str.slice(ind + 7).search(rSpace);
           ind2 = ind2 > 0 ? ind + 7 + ind2 : 0;
           blank = str.slice(ind + 7, ind2 || void 0);
           str = str.slice(0, ind) + (ind2 ? str.slice(ind2) : "");
         }
-        ind = str.search(rRe);
+        ind = str.search(<RegExpI> /\sre=/i);
       } else {
         val = key;
         str = "";
       }
-      val = val.replace(rEscapeS, " ").trim().replace(a.searchWordRe2_, "$1$$$2"
-        ).replace(rPercent, "%");
+      val = val.replace(<RegExpG & RegExpSearchable<0>> /\\s/g, " "
+        ).trim().replace(<RegExpG & RegExpSearchable<2>> /([^\\]|^)%([sS])/g, "$1$$$2"
+        ).replace(<RegExpG & RegExpSearchable<0>> /\\%/g, "%");
       obj = {
         name_: "",
         blank_: blank,
@@ -670,7 +656,7 @@ var BgUtils_ = {
           }
           val = a.convertToUrl_(val, null, Urls.WorkType.ConvertKnown);
           if (a.lastUrlType_ > Urls.Type.MaxOfInputIsPlainUrl) {
-            val = val.replace(encodedSearchWordRe, "$$$1");
+            val = val.replace(<RegExpG & RegExpSearchable<1>> /%24([sS])/g, "$$$1");
             ind = val.search(re as RegExp as RegExpOne) + 1;
           } else if (a.lastUrlType_ !== Urls.Type.Full) {
             ind += a.lastUrlType_ === Urls.Type.NoSchema ? 7 : 5;
@@ -678,7 +664,7 @@ var BgUtils_ = {
           if (tmpRule = a.reParseSearchUrl_(val.toLowerCase(), ind)) {
             if (key.indexOf("$") >= 0) {
               key = key.replace(a.searchVariable_, "(.*)");
-              tmpKey = new RegExp("^" + key, a.alphaRe_.test(key) ? "i" as "" : ""
+              tmpKey = new RegExp("^" + key, (<RegExpI> /[a-z]/i).test(key) ? "i" as "" : ""
                 ) as RegExpI | RegExpOne;
             } else {
               tmpKey = key.trim() || " ";
@@ -693,7 +679,7 @@ var BgUtils_ = {
       } else if (str.charCodeAt(ind + 4) === kCharCode.slash) {
         key = ind > 1 ? str.slice(1, ind).trim() : "";
         str = str.slice(ind + 5);
-        ind = str.search(rSlash) + 1;
+        ind = str.search(<RegExpOne> /[^\\]\//) + 1;
         val = str.slice(0, ind);
         str = str.slice(ind + 1);
         ind = str.search(rSpace);
@@ -712,10 +698,6 @@ var BgUtils_ = {
     }
     return rules;
   },
-  escapeAllRe_: <RegExpG & RegExpSearchable<0>> /[$()*+.?\[\\\]\^{|}]/g,
-  _spaceOrPlusRe: <RegExpG> /\\\+|%20| /g,
-  _queryRe: <RegExpOne> /[#?]/,
-  alphaRe_: <RegExpI> /[a-z]/i,
   reParseSearchUrl_ (url: string, ind: number): Search.TmpRule | null {
     const a = this;
     if (ind < 1 || !a.protocolRe_.test(url)) { return null; }
@@ -723,7 +705,7 @@ var BgUtils_ = {
     prefix = url.slice(0, ind - 1);
     if (ind = Math.max(prefix.lastIndexOf("?"), prefix.lastIndexOf("#")) + 1) {
       str2 = str = prefix.slice(ind);
-      prefix = prefix.slice(0, prefix.search(a._queryRe));
+      prefix = prefix.slice(0, prefix.search(<RegExpOne> /[#?]/));
       if (ind2 = str.lastIndexOf("&") + 1) {
         str2 = str.slice(ind2);
       }
@@ -737,17 +719,18 @@ var BgUtils_ = {
     } else {
       str = "^([^#?]*)";
       if (str2 = url.slice(prefix.length + 2)) {
-        if (ind = str2.search(a._queryRe) + 1) {
+        if (ind = str2.search(<RegExpOne> /[#?]/) + 1) {
           str2 = str2.slice(0, ind - 1);
         }
       }
       url = "";
     }
-    str2 = str2 && str2.replace(a.escapeAllRe_, "\\$&").replace(a._spaceOrPlusRe, "(?:\\+|%20| )");
+    str2 = str2 && str2.replace(<RegExpG & RegExpSearchable<0>> /[$()*+.?\[\\\]\^{|}]/g, "\\$&"
+        ).replace(<RegExpG> /\\\+|%20| /g, "(?:\\+|%20| )");
     prefix = a.prepareReParsingPrefix_(prefix);
     return {
       prefix_: prefix,
-      matcher_: new RegExp(str + str2 + url, a.alphaRe_.test(str2) ? "i" as "" : "") as RegExpI | RegExpOne
+      matcher_: new RegExp(str + str2 + url, (<RegExpI> /[a-z]/i).test(str2) ? "i" as "" : "") as RegExpI | RegExpOne
     };
   },
   IsURLHttp_ (this: void, url: string): ProtocolType {
@@ -773,13 +756,13 @@ var BgUtils_ = {
     return null;
   },
   keyRe_: <RegExpG & RegExpSearchable<0>> /<(?!<)(?:.-){0,4}.\w*?>|./g, /* need to support "<<left>" */
-  keyReToFormat_: <RegExpG & RegExpSearchable<2>> /<(?!<)((?:[acm]-){0,3})([^a-z\d][\dA-Z]*)>/g,
   onFormatKey_ (this: void, _0: string, modifiers: string, ch: string): string {
     const chLower = ch.toLowerCase();
     return ch !== chLower ? `<${modifiers}s-${chLower}>` : _0;
   },
   formatKeys_ (keys: string): string {
-    return keys && keys.replace(this.keyReToFormat_, this.onFormatKey_);
+    return keys &&
+        keys.replace(<RegExpG & RegExpSearchable<2>> /<(?!<)((?:[acm]-){0,3})([^a-z\d][\dA-Z]*)>/g, this.onFormatKey_);
   },
   getNull_ (this: void): null { return null; },
   timeout_ (timeout: number, callback: (this: void, fakeArgs?: TimerType.fake) => void): void {

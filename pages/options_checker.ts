@@ -1,7 +1,6 @@
 let keyMappingChecker_ = {
   normalizeKeys_: null as never as (this: void, s: string) => string,
   init_ (): void {
-    const keyLeftRe = <RegExpG & RegExpSearchable<2>> /<(?!<)((?:[ACMSacms]-){0,4})(.[^>]*)>/g;
     function sortModifiers(option: string) {
       return option.length < 4 ? option : option.length > 6 ? "a-c-m-s-"
         : option.slice(0, -1).split("-").sort().join("-") + "-";
@@ -18,19 +17,18 @@ let keyMappingChecker_ = {
       ch !== chLower && !hasShift && (modifiers += "s-");
       return modifiers || isLong ? `<${modifiers}${chLower}>` : ch;
     }
-    this.normalizeKeys_ = keys => keys.replace(keyLeftRe, func);
+    this.normalizeKeys_ = k => k.replace(<RegExpG&RegExpSearchable<2>> /<(?!<)((?:[ACMSacms]-){0,4})(.[^>]*)>/g, func);
     this.normalizeMap_ = this.normalizeMap_.bind(this);
     this.normalizeCmd_ = this.normalizeCmd_.bind(this);
     this.normalizeOptions_ = this.normalizeOptions_.bind(this);
     this.init_ = null as never;
   },
-  hexCharRe_: <RegExpGI & RegExpSearchable<1>> /\\(?:x([\da-z]{2})|\\)/gi,
   onHex_ (this: void, _s: string, hex: string): string {
     return hex ? "\\u00" + hex : "\\\\";
   },
   normalizeOptions_ (str: string, value: string, s2: string | undefined, tail: string): string {
     if (s2) {
-      s2 = s2.replace(this.hexCharRe_, this.onHex_);
+      s2 = s2.replace(<RegExpGI & RegExpSearchable<1>> /\\(?:x([\da-z]{2})|\\)/gi, this.onHex_);
       value = `"${s2}"`;
     } else if (!tail && value === "\\\\") {
       value = "\\";
@@ -44,11 +42,9 @@ let keyMappingChecker_ = {
     } catch {
       s2 && (value = s2);
     }
-    value = value && JSON.stringify(value).replace(this.toHexCharRe_, this.onToHex_);
+    value = value && JSON.stringify(value).replace(<RegExpG & RegExpSearchable<0>> /\s/g, this.onToHex_);
     return "=" + value + tail;
   },
-  optionValueRe_: <RegExpG & RegExpSearchable<3>> /=("(\S*(?:\s[^=]*)?)"|\S+)(\s|$)/g,
-  toHexCharRe_: <RegExpG & RegExpSearchable<0>> /\s/g,
   onToHex_ (this: void, s: string): string {
     const hex = s.charCodeAt(0) + 0x100000;
     return "\\u" + hex.toString(16).slice(2);
@@ -59,24 +55,21 @@ let keyMappingChecker_ = {
       console.log("KeyMappings Checker:", keys, "is corrected into", keys2);
       keys = keys2;
     }
-    options = options ? options.replace(this.optionValueRe_, this.normalizeOptions_) : "";
-    return cmd + keys + options;
+    return this.normalizeCmd_("", cmd, keys, options);
   },
   normalizeCmd_ (_0: string, cmd: string, name: string, options: string) {
-    options = options ? options.replace(this.optionValueRe_, this.normalizeOptions_) : "";
+    options = options ? options.replace(<RegExpG & RegExpSearchable<3>> /=("(\S*(?:\s[^=]*)?)"|\S+)(\s|$)/g,
+        this.normalizeOptions_) : "";
     return cmd + name + options;
   },
-  mapKeyRe_: <RegExpG & RegExpSearchable<3>> /(\n[ \t]*#?(?:un)?map\s+)(\S+)([^\n]*)/g,
-  cmdKeyRe_: <RegExpG & RegExpSearchable<3>> /(\n[ \t]*#?(?:command|shortcut)\s+)(\S+)([^\n]*)/g,
-  wrapLineRe_: <RegExpG & RegExpSearchable<0>> /\\\\?\n/g,
-  wrapLineRe2_: <RegExpG & RegExpSearchable<0>> /\\\r/g,
   check_ (str: string): string {
     if (!str) { return str; }
     this.init_ && this.init_();
-    str = "\n" + str.replace(this.wrapLineRe_, i => i.length === 3 ? i : "\\\r");
-    str = str.replace(this.mapKeyRe_, this.normalizeMap_);
-    str = str.replace(this.cmdKeyRe_, this.normalizeCmd_);
-    str = str.replace(this.wrapLineRe2_, "\\\n").trim();
+    str = "\n" + str.replace(<RegExpG & RegExpSearchable<0>> /\\\\?\n/g, i => i.length === 3 ? i : "\\\r");
+    str = str.replace(<RegExpG & RegExpSearchable<3>> /(\n[ \t]*#?(?:un)?map\s+)(\S+)([^\n]*)/g, this.normalizeMap_);
+    str = str.replace(<RegExpG & RegExpSearchable<3>> /(\n[ \t]*#?(?:command|shortcut)\s+)(\S+)([^\n]*)/g,
+        this.normalizeCmd_);
+    str = str.replace(<RegExpG & RegExpSearchable<0>> /\\\r/g, "\\\n").trim();
     return str;
   },
 };

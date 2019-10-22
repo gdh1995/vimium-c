@@ -292,8 +292,6 @@ var VHints = {
       st.maxHeight && (st.maxHeight = mt - elements[i][1].t + 18 + "px");
     }
   },
-  btnRe_: <RegExpOne> /\b(?:[Bb](?:utto|t)n|[Cc]lose)(?:$|[-\s_])/,
-  roleRe_: <RegExpI> /^(?:button|checkbox|link|radio|tab)$|^menuitem/i,
   /**
    * Must ensure only call {@link scroller.ts#VSc.shouldScroll_need_safe_} during {@link #getVisibleElements_}
    */
@@ -365,7 +363,7 @@ var VHints = {
     if (isClickable === null) {
       type = (s = element.contentEditable) !== "inherit" && s && s !== "false" ? ClickType.edit
         : element.getAttribute("onclick")
-          || (s = element.getAttribute("role")) && _this.roleRe_.test(s)
+          || (s = element.getAttribute("role")) && (<RegExpI> /^(?:button|checkbox|link|radio|tab)$|^menuitem/i).test(s)
           || _this.ngEnabled_ && element.getAttribute("ng-click")
           || _this.forHover_ && element.getAttribute("onmouseover")
           || _this.jsaEnabled_ && (s = element.getAttribute("jsaction")) && _this.checkJSAction_(s)
@@ -381,7 +379,7 @@ var VHints = {
                 && (clientSize = element.clientWidth) > GlobalConsts.MinScrollableAreaSizeForDetection - 1
                 && clientSize + 5 < element.scrollWidth ? ClickType.scrollX
               : ClickType.Default)
-          || ((s = element.className) && _this.btnRe_.test(s)
+          || ((s = element.className) && (<RegExpOne> /\b(?:[Bb](?:utto|t)n|[Cc]lose)(?:$|[-\s_])/).test(s)
                 && (!(anotherEl = element.parentElement)
                     || (s = VDom.htmlTag_(anotherEl), s.indexOf("button") < 0 && s !== "a"))
               || element.hasAttribute("aria-selected") ? ClickType.classname : ClickType.Default);
@@ -413,18 +411,16 @@ var VHints = {
       }
     }
   },
-  noneActionRe_: <RegExpOne> /\._\b(?![\$\.])/,
   checkJSAction_ (str: string): boolean {
     for (let s of str.split(";")) {
       s = s.trim();
       const t = s.startsWith("click:") ? (s = s.slice(6)) : s && s.indexOf(":") === -1 ? s : null;
-      if (t && t !== "none" && !this.noneActionRe_.test(t)) {
+      if (t && t !== "none" && !(<RegExpOne> /\._\b(?![\$\.])/).test(t)) {
         return true;
       }
     }
     return false;
   },
-  _HNTagRe: <RegExpOne> /h\d/,
   checkAnchor_ (anchor: HTMLAnchorElement & EnsuredMountedHTMLElement): Rect | null {
     // for Google search result pages
     let mayBeSearchResult = !!(anchor.rel
@@ -432,7 +428,7 @@ var VHints = {
     el = mayBeSearchResult || anchor.childElementCount === 1 ? anchor.firstElementChild as Element | null : null,
     tag = el ? VDom.htmlTag_(el) : "";
     return el && (mayBeSearchResult
-        ? this._HNTagRe.test(tag) && this.isNotReplacedBy_(el as HTMLHeadingElement & SafeHTMLElement)
+        ? (<RegExpOne> /h\d/).test(tag) && this.isNotReplacedBy_(el as HTMLHeadingElement & SafeHTMLElement)
           ? VDom.getVisibleClientRect_(el) : null
         : tag === "img" && !anchor.clientHeight
           ? VDom.getCroppedRect_(el as HTMLImageElement, VDom.getVisibleClientRect_(el))
@@ -467,7 +463,8 @@ var VHints = {
             || ((tag !== "div"
                   || !!(el2 = (el2 as HTMLHeadingElement).firstElementChild as Element | null,
                         tag = el2 ? VDom.htmlTag_(el2) : ""))
-                && this._HNTagRe.test(tag) && (el2 = (el2 as HTMLHeadingElement).firstElementChild as Element | null)
+                && (<RegExpOne> /h\d/).test(tag)
+                && (el2 = (el2 as HTMLHeadingElement).firstElementChild as Element | null)
                 && VDom.htmlTag_(el2) === "a")
           );
   },
@@ -1236,7 +1233,6 @@ decodeURL_ (this: void, url: string, decode?: (this: void, url: string) => strin
   return url;
 },
 jsRe_: <RegExpI & RegExpOne> /^javascript:/i,
-_imageUrlRe: <RegExpI & RegExpOne> /\.(?:bmp|gif|icon?|jpe?g|a?png|svg|tiff?|webp)\b/i,
 isImageUrl_ (str: string | null): boolean {
   if (!str || str[0] === "#" || str.length < 5 || str.startsWith("data:") || this.jsRe_.test(str)) {
     return false;
@@ -1244,7 +1240,7 @@ isImageUrl_ (str: string | null): boolean {
   const end = str.lastIndexOf("#") + 1 || str.length;
   // tslint:disable-next-line: ban-types
   str = (str as EnsureNonNull<String>).substring(str.lastIndexOf("/", str.lastIndexOf("?") + 1 || end), end);
-  return this._imageUrlRe.test(str);
+  return (<RegExpI & RegExpOne> /\.(?:bmp|gif|icon?|jpe?g|a?png|svg|tiff?|webp)\b/i).test(str);
 },
 getUrlData_ (link: HTMLAnchorElement): string {
   const str = link.dataset.vimUrl;

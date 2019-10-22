@@ -12,7 +12,6 @@ var VKey = {
     Alt: 1, AltGraph: 1, Control: 1, Meta: 1, OS: 1, Shift: 1
   } as SafeEnum,
   cache_: null as never as SettingsNS.FrontendSettingCache,
-  _funcKeyRe: <RegExpOne> /^F\d\d?$/,
   getKeyName_ (event: Pick<KeyboardEvent, "key" | "keyCode">): string {
     let {keyCode: i} = event, s: string | undefined;
     return i < kKeyCode.minNotDelete ? (i > kKeyCode.space - 1
@@ -20,7 +19,7 @@ var VKey = {
           : i === kKeyCode.esc ? "esc"
           : i === kKeyCode.tab ? "tab" : i === kKeyCode.enter ? "enter" : ""
         )
-      : (s = event.key) ? this._funcKeyRe.test(s) ? s : ""
+      : (s = event.key) ? (<RegExpOne> /^F\d\d?$/).test(s) ? s : ""
       : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn ? "F" + (i - kKeyCode.maxNotFn) : "";
   },
   _getKeyCharUsingKeyIdentifier: (!(Build.BTypes & BrowserType.Chrome)

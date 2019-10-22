@@ -361,8 +361,6 @@ onRemoveRow_ (event: Event): void {
   }
 }
 
-_reChar: RegExpOne;
-_escapeRe: RegExpG;
 readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"] {
   const rules: ExclusionsNS.StoredRule[] = [];
   part = (part === true);
@@ -384,9 +382,9 @@ readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"] {
     }
     let schemaLen = pattern[0] === ":" ? 0 : pattern.indexOf("://");
     if (!schemaLen) { /* empty */ }
-    else if (!this._reChar.test(pattern)) {
+    else if (!(<RegExpOne> /^[\^*]|[^\\][$()*+?\[\]{|}]/).test(pattern)) {
       fixTail = pattern.indexOf("/", schemaLen + 3) < 0 && pattern.lastIndexOf("vimium:", 0) < 0;
-      pattern = pattern.replace(this._escapeRe, "$1");
+      pattern = pattern.replace(<RegExpG> /\\(.)/g, "$1");
       pattern = (schemaLen < 0 ? ":http://" : ":") + pattern;
     } else if (pattern[0] !== "^") {
       fixTail = pattern.indexOf("/", schemaLen + 3) < 0;
@@ -445,8 +443,6 @@ readonly areEqual_ = Option_.areJSONEqual_;
 sortRules_: (el?: HTMLElement) => void;
 timer_?: number;
 }
-ExclusionRulesOption_.prototype._reChar = <RegExpOne> /^[\^*]|[^\\][$()*+?\[\]{|}]/;
-ExclusionRulesOption_.prototype._escapeRe = <RegExpG> /\\(.)/g;
 
 let setupBorderWidth_ = (Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
       && Build.BTypes & BrowserType.Chrome

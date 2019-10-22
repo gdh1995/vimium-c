@@ -11,13 +11,12 @@ const Clipboard_ = {
       && (el.contentEditable = "true");
     return el;
   },
-  tailSpacesOrNewLineRe_: <RegExpG & RegExpSearchable<0>> /[ \t]+(\r\n?|\n)|\r\n?/g,
   format_ (data: string | string[], join?: FgReq[kFgReq.copy]["j"]): string {
     if (typeof data !== "string") {
       data = data.join(join !== !!join && (join as string) || "\n") +
           (data.length > 1 && (!join || join === !!join) ? "\n" : "");
     }
-    data = data.replace(BgUtils_.A0Re_, " ").replace(this.tailSpacesOrNewLineRe_, "\n");
+    data = data.replace(BgUtils_.A0Re_, " ").replace(<RegExpG & RegExpSearchable<0>> /[ \t]+(\r\n?|\n)|\r\n?/g, "\n");
     let i = data.charCodeAt(data.length - 1);
     if (i !== kCharCode.space && i !== kCharCode.tab) { /* empty */ }
     else if (i = data.lastIndexOf("\n") + 1) {
