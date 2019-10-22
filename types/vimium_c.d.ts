@@ -432,7 +432,7 @@ declare const enum GlobalConsts {
 
 declare const enum kCharCode {
   tab = 9, space = 32, minNotSpace, bang = 33, quote2 = 34, hash = 35,
-  maxCommentHead = hash, and = 38, quote1 = 39, minNotInKeyNames = 41,
+  maxCommentHead = hash, and = 38, quote1 = 39,
   /** '-' */ dash = 45,
   dot = 46, slash = 47,
   maxNotNum = 48 - 1, N0, N9 = N0 + 9, minNotNum, colon = 58, lt = 60, gt = 62, question = 63,
@@ -447,7 +447,7 @@ declare const enum kKeyCode {
   minAcsKeys = 16, maxAcsKeys = 18,
   maxNotPrintable = 32 - 1, space, maxNotPageUp = space, pageup, minNotSpace = pageup,
   pagedown, maxNotEnd = pagedown, end, home, maxNotLeft = home, left, up,
-  right, minNotUp = right, down, minNotDown, minNotInKeyNames = minNotDown,
+  right, minNotUp = right, down, minNotDown,
   maxNotInsert = 45 - 1, insert, deleteKey, minNotDelete,
   maxNotNum = 48 - 1, N0, N9 = N0 + 9, minNotNum,
   maxNotAlphabet = 65 - 1, A, B, C, D, E, F, G, H, I, J, K, L, M, N,

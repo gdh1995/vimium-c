@@ -1,5 +1,5 @@
 var VKey = {
-  keyNames_: ["space", "pageup", "pagedown", "end", "home", "left", "up", "right", "down",
+  _keyNames: ["space", "pageup", "pagedown", "end", "home", "left", "up", "right", "down",
     /* 41 */ "", "", "", "", "insert", "delete"] as ReadonlyArray<string>,
   keyIdCorrectionOffset_: Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
       ? 185 : 0,
@@ -26,8 +26,8 @@ var VKey = {
   _funcKeyRe: <RegExpOne> /^F\d\d?$/,
   getKeyName_ (event: Pick<KeyboardEvent, "key" | "keyCode">): string {
     let {keyCode: i} = event, s: string | undefined;
-    return i < kKeyCode.minNotDelete ? (i > kKeyCode.maxNotPrintable
-          ? this.keyNames_[i - kKeyCode.space] : i === kKeyCode.backspace ? "backspace"
+    return i < kKeyCode.minNotDelete ? (i > kKeyCode.space - 1
+          ? this._keyNames[i - kKeyCode.space] : i === kKeyCode.backspace ? "backspace"
           : i === kKeyCode.esc ? "esc"
           : i === kKeyCode.tab ? "tab" : i === kKeyCode.enter ? "enter" : ""
         )
