@@ -356,12 +356,13 @@ var BgUtils_ = {
     }
     path = path.slice(ind + 1).trimLeft();
     if (!path) { return null; }
+    const mathSepRe = <RegExpG> /[\s+,\uff0b\uff0c]+/g;
     if (workType === Urls.WorkType.ActIfNoSideEffects) { switch (cmd) {
     case "sum": case "mul":
-      path = path.replace(<RegExpG> /[\s+,\uff0c]+/g, cmd === "sum" ? " + " : " * ");
+      path = path.replace(mathSepRe, cmd === "sum" ? " + " : " * ");
       cmd = "e"; break;
     case "avg": case "average":
-      arr = path.split(<RegExpG> /[\s+,\uff0c]+/g);
+      arr = path.split(mathSepRe);
       path = "(" + arr.join(" + ") + ") / " + arr.length;
       cmd = "e"; break;
     } }
@@ -547,7 +548,7 @@ var BgUtils_ = {
     return url;
   },
   decodeEscapedURL_ (url: string): string {
-    return url.indexOf("://") < 0 && (<RegExpOne> /%(?:3[aA]|2[fF])/).test(url) ? this.DecodeURLPart_(url).trim() : url;
+    return url.indexOf("://") < 0 && (<RegExpI> /%(?:3a|2f)/i).test(url) ? this.DecodeURLPart_(url).trim() : url;
   },
   fixCharsInUrl_ (url: string): string {
     let type = (url.indexOf("\u3002") < 0 ? 0 : 1) + (url.indexOf("\uff1a") < 0 ? 0 : 2);
@@ -635,7 +636,7 @@ var BgUtils_ = {
         str = "";
       }
       val = val.replace(<RegExpG & RegExpSearchable<0>> /\\s/g, " "
-        ).trim().replace(<RegExpG & RegExpSearchable<2>> /([^\\]|^)%([sS])/g, "$1$$$2"
+        ).trim().replace(<RegExpG & RegExpSearchable<2>> /([^\\]|^)%(s)/gi, "$1$$$2"
         ).replace(<RegExpG & RegExpSearchable<0>> /\\%/g, "%");
       obj = {
         name_: "",
@@ -656,7 +657,7 @@ var BgUtils_ = {
           }
           val = a.convertToUrl_(val, null, Urls.WorkType.ConvertKnown);
           if (a.lastUrlType_ > Urls.Type.MaxOfInputIsPlainUrl) {
-            val = val.replace(<RegExpG & RegExpSearchable<1>> /%24([sS])/g, "$$$1");
+            val = val.replace(<RegExpG & RegExpSearchable<1>> /%24(s)/gi, "$$$1");
             ind = val.search(re as RegExp as RegExpOne) + 1;
           } else if (a.lastUrlType_ !== Urls.Type.Full) {
             ind += a.lastUrlType_ === Urls.Type.NoSchema ? 7 : 5;

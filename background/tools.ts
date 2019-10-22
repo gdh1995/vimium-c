@@ -487,7 +487,7 @@ IncognitoWatcher_ = {
   }
 },
 MediaWatcher_ = {
-  _watchers: [
+  watchers_: [
     !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinMediaQuery$PrefersReducedMotion)
       && !(Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinMediaQuery$PrefersReducedMotion)
     ? MediaNS.Watcher.NotWatching
@@ -505,11 +505,11 @@ MediaWatcher_ = {
   ] as { [k in MediaNS.kName]: MediaNS.Watcher | MediaQueryList } & Array<MediaNS.Watcher | MediaQueryList>,
   _timer: 0,
   get_ (key: MediaNS.kName): boolean | null {
-    let watcher = MediaWatcher_._watchers[key];
+    let watcher = MediaWatcher_.watchers_[key];
     return typeof watcher === "object" ? watcher.matches : null;
   },
   listen_ (key: MediaNS.kName, doListen: boolean): void {
-    let a = MediaWatcher_, watchers = a._watchers, cur = watchers[key],
+    let a = MediaWatcher_, watchers = a.watchers_, cur = watchers[key],
     name = !key ? "prefers-reduced-motion" as const : "prefers-color-scheme" as const;
     if (cur === MediaNS.Watcher.WaitToTest && doListen) {
       watchers[key] = cur = matchMedia(`(${name})`).matches ? MediaNS.Watcher.NotWatching
@@ -548,14 +548,14 @@ MediaWatcher_ = {
     }
   },
   update_ (this: void, key: MediaNS.kName, embed?: 1 | 0): void {
-    let watcher = MediaWatcher_._watchers[key], isObj = typeof watcher === "object";
+    let watcher = MediaWatcher_.watchers_[key], isObj = typeof watcher === "object";
     if ((!(Build.BTypes & ~BrowserType.Firefox)
           || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox)
         && embed == null && isObj) {
       let watcher2 = matchMedia((watcher as Exclude<typeof watcher, number>).media);
       watcher2.onchange = (watcher as Exclude<typeof watcher, number>).onchange;
       (watcher as Exclude<typeof watcher, number>).onchange = null;
-      MediaWatcher_._watchers[key] = watcher = watcher2;
+      MediaWatcher_.watchers_[key] = watcher = watcher2;
     }
     const settings = Settings_, payload = settings.payload_,
     omniToggled = key ? "dark" : "less-motion",
@@ -578,7 +578,7 @@ MediaWatcher_ = {
     });
   },
   RefreshAll_ (this: void): void {
-    for (let arr = MediaWatcher_._watchers, i = arr.length; 0 <= --i; ) {
+    for (let arr = MediaWatcher_.watchers_, i = arr.length; 0 <= --i; ) {
       let watcher = arr[i];
       if (typeof watcher === "object") {
         MediaWatcher_.update_(i);
@@ -590,9 +590,13 @@ MediaWatcher_ = {
       clearInterval(MediaWatcher_._timer);
     }
     MediaWatcher_._timer = -1;
-    let index = MediaWatcher_._watchers.indexOf(this);
+    let index = MediaWatcher_.watchers_.indexOf(this);
     if (index >= 0) {
       MediaWatcher_.update_(index);
+    }
+    if (!Build.NDEBUG) {
+      console.log("Media watcher:", this.media, "has changed to",
+          matchMedia(this.media).matches, "/", index < 0 ? index : MediaWatcher_.get_(index));
     }
   }
 },

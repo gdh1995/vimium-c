@@ -423,7 +423,7 @@ var Settings_ = {
         Settings_.set_(file as Exclude<typeof file, "baseCSS" | "words">, text);
       }
       callback && setTimeout(callback, 0);
-    };
+    }
     req.send();
   },
   // clear localStorage & sync, if value === @defaults[key]

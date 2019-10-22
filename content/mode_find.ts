@@ -427,7 +427,7 @@ var VFind = {
   saveQuery_ (): void {
     this.query_ && VApi.post_({
       H: kFgReq.findQuery,
-      q: this.input_.innerText.replace(<RegExpG> /\xa0/g, " ").replace(<RegExpOne> /\n$/, "")
+      q: this.query0_
     });
   },
   postMode_: {
@@ -474,9 +474,9 @@ var VFind = {
     let s = _this.query_;
     if (!_this.hasResults_ && !_this.isRegex_ && !_this.wholeWord_ && _this.notEmpty_ && query.startsWith(s)
         && query.slice(s.length - 1).indexOf("\\") < 0) {
+      _this.query0_ = query;
       return _this.showCount_(0);
     }
-    s = "";
     _this.coords_ && VMarks.ScrollTo_(_this.coords_);
     _this.updateQuery_(query);
     _this.restoreSelection_();
@@ -500,7 +500,7 @@ var VFind = {
   },
   updateQuery_ (query: string): void {
     const a = this;
-    a.query_ = query;
+    a.query_ = a.query0_ = query;
     a.wholeWord_ = false;
     a.isRegex_ = a.ignoreCase_ = null as boolean | null;
     query = a.isQueryRichText_ ? query.replace(<RegExpG & RegExpSearchable<0>> /\\[CIRW\\cirw]/g, a.FormatQuery_)

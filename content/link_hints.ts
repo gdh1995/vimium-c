@@ -428,7 +428,8 @@ var VHints = {
     el = mayBeSearchResult || anchor.childElementCount === 1 ? anchor.firstElementChild as Element | null : null,
     tag = el ? VDom.htmlTag_(el) : "";
     return el && (mayBeSearchResult
-        ? (<RegExpOne> /h\d/).test(tag) && this.isNotReplacedBy_(el as HTMLHeadingElement & SafeHTMLElement)
+          // use `^...$` to exclude custom tags
+        ? (<RegExpOne> /^h\d$/).test(tag) && this.isNotReplacedBy_(el as HTMLHeadingElement & SafeHTMLElement)
           ? VDom.getVisibleClientRect_(el) : null
         : tag === "img" && !anchor.clientHeight
           ? VDom.getCroppedRect_(el as HTMLImageElement, VDom.getVisibleClientRect_(el))
@@ -463,7 +464,7 @@ var VHints = {
             || ((tag !== "div"
                   || !!(el2 = (el2 as HTMLHeadingElement).firstElementChild as Element | null,
                         tag = el2 ? VDom.htmlTag_(el2) : ""))
-                && (<RegExpOne> /h\d/).test(tag)
+                && (<RegExpOne> /^h\d$/).test(tag)
                 && (el2 = (el2 as HTMLHeadingElement).firstElementChild as Element | null)
                 && VDom.htmlTag_(el2) === "a")
           );

@@ -2762,7 +2762,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
     },
     setIcon_ (): void { /* empty */ },
     complain_ (action: string): void {
-      return this.showHUD_(trans_("notAllowA", [action]));
+      Backend_.showHUD_(trans_("notAllowA", [action]));
     },
     parse_ (this: void, request: FgReqWithRes[kFgReq.parseSearchUrl]): FgRes[kFgReq.parseSearchUrl] {
       let s0 = request.u, url = s0.toLowerCase(), pattern: Search.Rule | undefined
@@ -2888,7 +2888,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
       };
       cPort = indexFrame(tabId, 0) || ref[0];
       if (stat === null && tabId < 0) {
-        oldStatus !== Frames.Status.disabled && this.showHUD_(trans_("unknownStatAction", [act]));
+        oldStatus !== Frames.Status.disabled && Backend_.showHUD_(trans_("unknownStatAction", [act]));
         return;
       }
       let pattern: string | null, newStatus = locked ? stat as Frames.ValidStatus : Frames.Status.enabled;
@@ -2896,7 +2896,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
         const port = ref[i], sender = port.s;
         sender.f = locked ? sender.f | Frames.Flags.locked : sender.f & ~Frames.Flags.locked;
         if (unknown) {
-          pattern = msg.p = this.getExcluded_(sender.u, sender);
+          pattern = msg.p = Backend_.getExcluded_(sender.u, sender);
           newStatus = pattern === null ? Frames.Status.enabled : pattern
             ? Frames.Status.partial : Frames.Status.disabled;
           if (newStatus !== Frames.Status.partial && sender.s === newStatus) { continue; }
@@ -2906,11 +2906,11 @@ var Backend_: BackendHandlersNS.BackendHandlers;
         sender.s = newStatus;
         port.postMessage(msg);
       }
-      newStatus !== Frames.Status.disabled && this.showHUD_(trans_("newStat", [
+      newStatus !== Frames.Status.disabled && Backend_.showHUD_(trans_("newStat", [
         trans_(newStatus === Frames.Status.enabled ? "fullEnabled" : "halfDisabled")
       ]));
       if (needIcon && (newStatus = ref[0].s.s) !== oldStatus) {
-        return this.setIcon_(tabId, newStatus);
+        Backend_.setIcon_(tabId, newStatus);
       }
     },
     ExecuteShortcut_ (this: void, cmd: string): void {
