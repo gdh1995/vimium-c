@@ -204,9 +204,9 @@ function cutUrl(this: void, str: string, ranges: number[], deltaLen: number, max
   } else {
     cutStart += 22; // for data:text/javascript,var xxx; ...
   }
-  if (cutStart < end) {
-    for (let i = ranges.length, start = end + 8; (i -= 2) >= 0 && start >= cutStart; start = ranges[i]) {
-      const subEndInLeft = ranges[i + 1], delta = start - 20 - Math.max(subEndInLeft, cutStart);
+  if (cutStart < end && ranges.length) {
+    for (let i = ranges.length, start = end + 8; (i -= 2) > -4 && start >= cutStart; start = i < 0 ? 0 : ranges[i]) {
+      const subEndInLeft = i < 0 ? cutStart : ranges[i + 1], delta = start - 20 - Math.max(subEndInLeft, cutStart);
       if (delta > 0) {
         end -= delta;
         if (end <= maxLen) {
@@ -1634,11 +1634,18 @@ Completion_ = {
     Completers.getOffset_();
     query = rawQuery;
     queryTerms = query
-      ? (query.length > Consts.MaxCharsInQuery ? query.slice(0, Consts.MaxCharsInQuery).trimRight()
+      ? (query = query.length > Consts.MaxCharsInQuery ? query.slice(0, Consts.MaxCharsInQuery).trimRight()
           : query).split(" ")
       : [];
-    maxChars = Math.max(Consts.LowerBoundOfMaxChars, Math.min((<number> options.c | 0) || 128
-      , Consts.UpperBoundOfMaxChars));
+    maxChars = (<number> options.c | 0) || 128;
+    if (maxChars) {
+      // take CJK characters into consideration
+      maxChars -= query.replace(<RegExpG>
+          /[\u2e80-\u2eff\u2f00-\u2fdf\u3000-\u303f\u31c0-\u31ef\u3200-\u9fbf\uf900-\ufaff\ufe30-\ufe4f\uff00-\uffef]/g,
+          "aa").length - query.length;
+    }
+    maxChars = Math.max(Consts.LowerBoundOfMaxChars, Math.min(maxChars, Consts.UpperBoundOfMaxChars));
+
     const flags = options.f;
     isForAddressBar = !!(flags & CompletersNS.QueryFlags.AddressBar);
     wantTreeMode = !!(flags & CompletersNS.QueryFlags.TabTree);
@@ -1662,7 +1669,7 @@ Completion_ = {
         autoSelect = arr.length === 1;
         hasOmniTypePrefix = true;
         queryTerms.shift();
-        rawQuery = query.slice(3);
+        rawQuery = rawQuery.slice(3);
         if (expectedTypes !== SugType.Empty) { arr = null; }
       }
     }
