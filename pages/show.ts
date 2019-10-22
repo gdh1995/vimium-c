@@ -685,34 +685,26 @@ function recoverHash_(): void {
 
 function encrypt_(message: string, password: number, doEncrypt: boolean): string {
   let arr: number[] | Uint8Array = [] as number[];
-  if ((Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !(Build.BTypes & BrowserType.Chrome))
-      && !(Build.BTypes & BrowserType.Edge)
-      ? doEncrypt : doEncrypt && (window as any).TextEncoder) {
-    arr = new TextEncoder().encode(message).slice(0);
+  if (doEncrypt) {
+    message = encodeURIComponent(message);
   } else {
-    for (const ch of (
-        (Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !(Build.BTypes & BrowserType.Chrome))
-          && !(Build.BTypes & BrowserType.Edge)
-        || !doEncrypt ? atob : encodeURIComponent)(message)) {
-      arr.push(ch.charCodeAt(0));
-    }
+    try {
+      message = atob(message);
+    } catch { message = ""; }
+  }
+  for (const ch of message) {
+    arr.push(ch.charCodeAt(0));
   }
   for (let i = 0; i < arr.length; i++) {
     arr[i] = 0xff & (arr[i] ^ (password >>> (8 * (i & 3))));
   }
-  if ((Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !(Build.BTypes & BrowserType.Chrome))
-      && !(Build.BTypes & BrowserType.Edge)
-      ? doEncrypt : doEncrypt && (window as any).TextEncoder) {
-    return new TextDecoder().decode(new Uint8Array(arr));
-  }
   message = String.fromCharCode(... <number[]> arr);
-  if ((Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !(Build.BTypes & BrowserType.Chrome))
-      && !(Build.BTypes & BrowserType.Edge) || !doEncrypt) {
+  if (doEncrypt) {
+    message = btoa(message);
+  } else {
     try {
       message = decodeURIComponent(message);
     } catch { message = ""; }
-  } else {
-    message = btoa(message);
   }
   return message;
 }
