@@ -387,14 +387,20 @@ label:active {
   top: -2px;
   width: 300px;
 }
+.line-1x {
+  top: 5px;
+}
+.line-2x {
+  top: 3px;
+}
 .line-help:lang(zh) {
   top: -6px;
 }
-.help > .line-1x {
-  top: 5px;
+.line-1x:lang(zh) {
+  top: 6px;
 }
-.help > .line-2x {
-  top: 3px;
+.line-2x:lang(zh) {
+  top: 2px;
 }
 .wrap-space {
   padding-left: 0.3em;

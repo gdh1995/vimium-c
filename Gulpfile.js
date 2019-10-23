@@ -752,7 +752,7 @@ var toRemovedGlobal = null;
 
 function beforeUglify(file) {
   var contents = null, changed = false, oldLen = 0;
-  function get() { contents == null && (contents = String(file.contents), changed = true, oldLen = contents.length); }
+  function get() { contents == null && (contents = ToString(file.contents), changed = true, oldLen = contents.length); }
   if (!locally && outputES6) {
     get();
     contents = contents.replace(/\bconst([\s{\[])/g, "let$1");
@@ -762,13 +762,13 @@ function beforeUglify(file) {
     contents = contents.replace(/\.offsetWidth\b/g, ".$offsetWidth()");
   }
   if (changed || oldLen > 0 && contents.length !== oldLen) {
-    file.contents = new Buffer(contents);
+    file.contents = ToBuffer(contents);
   }
 }
 
 function postUglify(file, needToPatchExtendClick) {
   var contents = null, changed = false, oldLen = 0;
-  function get() { contents == null && (contents = String(file.contents), changed = true, oldLen = contents.length); }
+  function get() { contents == null && (contents = ToString(file.contents), changed = true, oldLen = contents.length); }
   if (needToPatchExtendClick) {
     get();
     contents = patchExtendClick(contents);
@@ -820,7 +820,7 @@ function postUglify(file, needToPatchExtendClick) {
     contents = contents.replace(/\bappendChild\b/g, "append");
   }
   if (changed || oldLen > 0 && contents.length !== oldLen) {
-    file.contents = new Buffer(contents);
+    file.contents = ToBuffer(contents);
   }
 }
 
@@ -830,10 +830,10 @@ function copyByPath(path) {
     .pipe(gulpMap(function(file) {
       var fileName = file.history.join("|");
       if (fileName.indexOf("vimium.css") >= 0) {
-        file.contents = new Buffer(String(file.contents).replace(/\r\n?/g, "\n"));
+        file.contents = ToBuffer(ToString(file.contents).replace(/\r\n?/g, "\n"));
       } else if (fileName.indexOf("vomnibar.html") >= 0
           && getBuildItem("BTypes") === BrowserType.Firefox) {
-        file.contents = new Buffer(String(file.contents).replace(/(\d)px\b/g, "$1rem"
+        file.contents = ToBuffer(ToString(file.contents).replace(/(\d)px\b/g, "$1rem"
             ).replace(/body ?\{/, "html{font-size:1px;}\nbody{"));
       }
     }))
@@ -1040,9 +1040,16 @@ function getBuildConfigStream() {
       _buildConfigPrinted = true;
       print("Current build config is:\n" + _buildConfigTSContent);
     }
-    file.contents = new Buffer(_buildConfigTSContent);
+    file.contents = ToBuffer(_buildConfigTSContent);
     return file;
   }));
+}
+
+function ToBuffer(string) {
+  return Buffer.from ? Buffer.from(string) : new Buffer(string);
+}
+function ToString(buffer) {
+  return String(buffer);
 }
 
 var _buildConfigTSContent;
