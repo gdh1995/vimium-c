@@ -44,18 +44,21 @@ var VKey = {
   _forceEnUSLayout (key: string, code: string, shiftKey: boolean): string {
     let prefix = code.slice(0, 2), mapped: number | undefined;
     if (prefix !== "Nu") { // not (Numpad* or NumLock)
+      // https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code/code_values
       if (prefix === "Ke" || prefix === "Di" || prefix === "Ar") {
         code = code.slice(code < "K" ? 5 : 3);
       }
-      key = code < "0" || code > "9"
-          ? code.length < 2 ? code
+      key = code.length === 1 ? code < "0" || code > "9"
+              ? /* means `/^Key[A-Z]$/` */ key !== key.toUpperCase() ? code.toLowerCase() : code
+              : shiftKey ? ")!@#$%^&*("[+code] : code
             : this._modifierKeys[key] ? ""
+            : !code ? key
             : (mapped = this._codeCorrectionMap.indexOf(code)) < 0 ? code === "Escape" ? "esc" : code
             : (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
                 ? this._charCorrectionList : ";=,-./`[\\]'\\:+<_>?~{|}\"|")[mapped + 12 * +shiftKey]
-          : shiftKey ? ")!@#$%^&*("[+code] : code;
+          ;
     }
-    return shiftKey && key.length < 2 ? key : key.toLowerCase();
+    return key.length < 2 ? key : key === "Unidentified" ? "" : key.toLowerCase();
   },
   /**
    * * not constrain letter cases if returned name is long
