@@ -48,7 +48,7 @@ var VKey = {
       if (prefix === "Ke" || prefix === "Di" || prefix === "Ar") {
         code = code.slice(code < "K" ? 5 : 3);
       }
-      // Note: <Alt+P> may generate a upper-case '\u013b' on Mac,
+      // Note: <Alt+P> may generate an upper-case '\u013b' on Mac,
       // so for /^Key[A-Z]/, can assume the status of CapsLock.
       // https://github.com/philc/vimium/issues/2161#issuecomment-225813082
       key = code.length === 1

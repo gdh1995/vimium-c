@@ -105,11 +105,16 @@ function loadUglifyConfig(path, reload) {
     else if (m && !m.keep_fnames) {
       m.keep_fnames = c.keep_fnames;
     }
-    let ver = "";
+    let ver = "", terser = null;
     try {
       ver = require('terser/package').version;
     } catch (e) {
       console.log("Can not read the version of terser.");
+    }
+    try {
+      terser = require('terser');
+    } catch (e) {
+      console.log("Can not read the module of terser.");
     }
     if (ver) {
       var hasOptionUndeclared = ver >= '4.1.2', has_wrap_func_args = ver >= '4.3';
@@ -124,6 +129,21 @@ function loadUglifyConfig(path, reload) {
       }
       if (!has_wrap_func_args && a.output && a.output.wrap_func_args !== undefined) {
         delete a.output.wrap_func_args;
+      }
+    }
+    if (terser && terser.default_options) {
+      var allowed = terser.default_options();
+      if (allowed) {
+        var allowedKeys = new Set(Object.keys(allowed.compress)), skipped = [];
+        for (var key1 in c) {
+          if (!allowedKeys.has(key1)) {
+            skipped.push(key1);
+            delete c[key1];
+          }
+        }
+        if (skipped.length > 0) {
+          require("fancy-log")(`Skip these terser options: ${skipped.join(", ")}`);
+        }
       }
     }
   }

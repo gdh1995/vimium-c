@@ -61,7 +61,7 @@ __Other extensions supporting Vimium C:__
 # Release Notes
 
 1.78.4:
-* Chrome: add a feature to hook in-page "access keys" and this is enabled by default
+* Chrome: add a feature to hook in-page "access keys" and enable it by default
 
 1.78.3
 * LinkHints: fix a regression since v1.78.0 that Vimium C might fail in clicking targets inside shadow-DOM trees
@@ -83,7 +83,7 @@ __Other extensions supporting Vimium C:__
 * its UI uses Simplified Chinese (简体中文) for all `zh-*` language regions
 * the default value of `ignore keyboard layout` option rolls back to `false` again
 * the `passKeys` will only exclude key strokes when the "current key" sequence is empty
-* `closeTabsOnRight` now closes ***all tabs*** on the right, just like what Vimium does (so does `closeTabsOnLeft`)
+* `closeTabsOnRight` now closes *all tabs* on the right, just like what Vimium does (so does `closeTabsOnLeft`)
 * `LinkHints` now uses a single <kbd>F2</kbd> to re-find new page nodes with `onclick` event listeners
 * `LinkHints.activateModeToCopyLinkText`: add an option `join:string/boolean` to join selected text pieces
 * `LinkHints`: better support for "weibo.com" and pages using Material Design
