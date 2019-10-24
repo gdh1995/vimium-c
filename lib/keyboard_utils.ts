@@ -48,9 +48,11 @@ var VKey = {
       if (prefix === "Ke" || prefix === "Di" || prefix === "Ar") {
         code = code.slice(code < "K" ? 5 : 3);
       }
-      key = code.length === 1 ? code < "0" || code > "9"
-              ? /* means `/^Key[A-Z]$/` */ key !== key.toUpperCase() ? code.toLowerCase() : code
-              : shiftKey ? ")!@#$%^&*("[+code] : code
+      // Note: <Alt+P> may generate a upper-case '\u013b' on Mac,
+      // so for /^Key[A-Z]/, can assume the status of CapsLock.
+      // https://github.com/philc/vimium/issues/2161#issuecomment-225813082
+      key = code.length === 1
+            ? !shiftKey || code < "0" || code > "9" ? code : ")!@#$%^&*("[+code]
             : this._modifierKeys[key] ? ""
             : !code ? key
             : (mapped = this._codeCorrectionMap.indexOf(code)) < 0 ? code === "Escape" ? "esc" : code
@@ -58,7 +60,7 @@ var VKey = {
                 ? this._charCorrectionList : ";=,-./`[\\]'\\:+<_>?~{|}\"|")[mapped + 12 * +shiftKey]
           ;
     }
-    return key.length < 2 ? key : key === "Unidentified" ? "" : key.toLowerCase();
+    return shiftKey && key.length < 2 ? key : key === "Unidentified" ? "" : key.toLowerCase();
   },
   /**
    * * not constrain letter cases if returned name is long
