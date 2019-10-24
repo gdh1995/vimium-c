@@ -723,12 +723,7 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
   stream = stream.pipe(gulpMap(function(file) {
     beforeUglify(file);
   }));
-  const config = {...stdConfig};
-  if (stdConfig.compress.inline === 3 || stdConfig.compress.inline === true) {
-    config.compress = {...config.compress};
-    config.compress.inline = isContent ? 3 : 2;
-    // print("Terser: Use compress.inline =", config.compress.inline)
-  }
+  const config = stdConfig;
   stream = stream.pipe(getGulpUglify()(config));
   stream = stream.pipe(getGulpUglify()({...config, mangle: null}));
   if (!is_file && new_suffix !== "") {

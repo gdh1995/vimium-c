@@ -12,10 +12,16 @@ UBO=0
 HOME_PAGE=
 
 function wp() {
-  local dir=${2#/}
-  local win_dir=${dir%%/*}
-  dir=${dir#[a-z]}
-  declare -g $1=${win_dir^}:${dir}
+  local dir=${2}
+  test "${dir::5}" == "/mnt/" && dir="${dir:4}" ||
+  test "${dir::10}" == "/cygdrive/" && dir="${dir:9}"
+  if test "${dir::1}" != "/" -o "${dir:2:1}" != "/"; then
+    dir=$($REALPATH -m "$dir")
+  else
+    local win_dir=${dir:1:1}
+    dir=${win_dir^}:${dir:3}
+  fi
+  declare -g $1=${dir}
 }
 
 while [[ $# -gt 0 ]]; do
