@@ -8,7 +8,7 @@
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
 **Visit Vimium C on [Chrome Web Store](
-  https://chrome.google.com/webstore/detail/vimium-c/hfjbmagddngcpeloejdejnfgbamkjaeg
+  https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg/reviews
   )** /
 **[Firefox Add-ons](
   https://addons.mozilla.org/firefox/addon/vimium-c/

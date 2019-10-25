@@ -60,10 +60,10 @@ var HelpDialog = {
       homePage: Settings_.CONST_.HomePage_,
       version: Settings_.CONST_.VerName_,
       title: trans_(isOptionsPage ? "cmdList" : "help"),
-      reviewPage: (!(Build.BTypes & ~BrowserType.Firefox)
+      reviewPage: !(Build.BTypes & ~BrowserType.Firefox)
               || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
-            ? BuildStr.FirefoxAddonPrefix + "vimium-c/" : BuildStr.ChromeWebStorePage
-          ).replace("$id", chrome.runtime.id),
+            ? BuildStr.FirefoxAddonPrefix + "vimium-c/"
+            : BuildStr.ChromeWebStorePage.replace("$id", chrome.runtime.id),
       webStore: !(Build.BTypes & ~BrowserType.Firefox)
             || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
           ? trans_("addons") : trans_("webstore"),
