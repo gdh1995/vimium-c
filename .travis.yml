@@ -1,33 +1,16 @@
 language: node_js
 node_js: node
-# before_install:
-#   - sudo apt-get -qq update
-#   - sudo apt-get install -y zip openssl
 install:
   - npm install --dev
-  - npm install -g gulp
-before_script:
-  - pem=scripts/vimium_c.pem ; key=aa42231ca000
-  - rm -f *.zip *.crx $pem 2>/dev/null
-  - eval openssl aes-256-cbc -K \$encrypted_${key}_key -iv \$encrypted_${key}_iv -in $pem.enc -out $pem -d
+  - npm install -g gulp-cli
 script:
-  - NEED_COMMIT=1 gulp dist
-  - IN_DIST=1 WITH_MAP=0 ./scripts/make.sh ./vimium_c-\${VERSION}-chrome.zip $pem
-  - rm -rf $pem
+  - npm run chrome
+  - npm run firefox
 cache:
   directories:
     - node_modules
-deploy:
-  provider: releases
-  api_key:
-    secure: ZUfUVQwsKTRYdXLLru2EoYUYk2GA6MbrPU87nG+P7mEFwztXR00Jo5NZiBovc1W+JmvtyRruXIIT0c8mv4BELxBGFhm6a9dPyx1/mOvh2mu5N0TyvkIssOLCgnCx5OlyRJPJbYwQmmvMTrPeusRpI8M2ibI3uefm6xgLbzIzos8+6RBLCpq62M0XScjJhFFT9MHGfPZx29ICTYNebIFOLIvGdiTlNoM3tSxlGCh92VOkt1jLiyN2frY4J/n0mLv2oj00N+CvJ33IQca3l/FiFWoVTwG5iG8PbAj56O5z8PpsF0UjxW1fX/8gKlLSY8VWEisno7jta333uB2QObwLOr/8PzHlsbnnmRk/aQ7k4NmjI4A8veL2WgxhhQDtSisx4CA/PriSBmS3OO7GunElOvbjhSSPcxzsgH2Pe6Rb4oArOBVxnWLLLd4uWgKRpNx/uYpr6Bnr2oO97IPNre+wJ4XBkoWNHu8o+ShYdPyYB2po0PtVSCQZKmyKpdBgPp8ILoXNY4Bm64hE+fof9e1dryNDEyUBA4tP+lBhRNGM1QFBzYHdA/GjcesKz/vm562CLNM+W7QBlQGdYsOJisg2JrkdonMcfctPs6fWIYxn92/F38QgJss9FmoTqARWfqCcyGXfh0O4oFUhxB9wZRx6Om/JAOwUts/KTpGhdFrmvfs=
-  file_glob: true
-  file: "*.crx"
-  skip_cleanup: true
-  on:
-    tags: true
 notifications:
-  email: false
+  email: true
 branches:
   only:
     - master
