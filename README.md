@@ -62,6 +62,9 @@ __Other extensions supporting Vimium C:__
 
 1.78.4:
 * Chrome: add a feature to hook in-page "access keys" and enable it by default
+* Firefox: support 63+ and more conditions
+* VHints: <kbd>Tab</kbd>: now only switch visibility in limited ranges
+* fix some old bugs
 
 1.78.3
 * LinkHints: fix a regression since v1.78.0 that Vimium C might fail in clicking targets inside shadow-DOM trees

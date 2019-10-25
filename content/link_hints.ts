@@ -1183,7 +1183,7 @@ alphabetHints_: {
       }
       keyStatus.tab_ = (1 - keyStatus.tab_) as BOOL;
     } else if (keyStatus.tab_) {
-      a.hintKeystroke_ = "";
+      a.hintKeystroke_ = a.hintKeystroke_.slice(0, -1);
       keyStatus.tab_ = 0;
     }
     keyStatus.known_ = 1;
@@ -1208,15 +1208,16 @@ alphabetHints_: {
     keyStatus.newHintLength_ = keyChar.length;
     keyStatus.known_ = 0;
     VHints.zIndexes_ && (VHints.zIndexes_ = null);
-    const wanted = !keyStatus.tab_;
     if (arr !== null && keyChar.length >= a.countMax_) {
       hints.some(function (hint): boolean {
         return hint.key_ === keyChar && ((arr as HintsNS.HintItem[]).push(hint), true);
       });
       if (arr.length === 1) { return arr; }
     }
+    const notDoSubCheck = !keyStatus.tab_, wanted = notDoSubCheck ? keyChar : keyChar.slice(0, -1);
     return hints.filter(function (hint) {
-      const pass = (hint.key_ as string).startsWith(keyChar) === wanted;
+      const pass = (hint.key_ as string).startsWith(wanted)
+          && (notDoSubCheck || !(hint.key_ as string).startsWith(keyChar));
       hint.marker_.style.visibility = pass ? "" : "hidden";
       return pass;
     });
