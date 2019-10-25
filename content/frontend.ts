@@ -840,14 +840,13 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       hints.push(element as SafeHTMLElement);
     }
   },
-  findAndFollowLink_: !(Build.NDEBUG || GlobalConsts.MaxNumberOfNextPatterns <= 255)
-      ? (console.log("Assert error: GlobalConsts.MaxNumberOfNextPatterns <= 255"), 0 as never)
-      : function (names: string[], isNext: boolean, lenLimit: number[], totalMax: number): boolean {
+  findAndFollowLink_ (names: string[], isNext: boolean, lenLimit: number[], totalMax: number): boolean {
     interface Candidate { [0]: number; [1]: string; [2]: Parameters<typeof Pagination.GetButtons_>[0][number]; }
     // Note: this traverser should not need a prepareCrop
     let links = VHints.traverse_(VHints.kSafeAllSelector_, Pagination.GetButtons_, true, true);
     const count = names.length,
     quirk = isNext ? ">>" : "<<", quirkIdx = names.indexOf(quirk),
+    rel = isNext ? "next" : "prev", relIdx = names.indexOf(rel),
     detectQuirk = quirkIdx > 0 ? names.lastIndexOf(isNext ? ">" : "<", quirkIdx) : -1,
     refusedStr = isNext ? "<" : ">";
     links.push(document.documentElement as never as SafeHTMLElement);
@@ -855,20 +854,26 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     for (let re1 = <RegExpOne> /\s+/, _len = links.length - 1; 0 <= --_len; ) {
       const link = links[_len];
       if (link.contains(links[_len + 1]) || (s = link.innerText).length > totalMax) { continue; }
-      if (!s && !(s = (ch = (link as HTMLInputElement).value) && ch.toLowerCase && ch || link.title)) { continue; }
-      if (s.length > totalMax) { continue; }
-      s = s.toLowerCase();
-      for (let i = 0; i < count; i++) {
-        if (s.length < lenLimit[i] && s.indexOf(names[i]) !== -1) {
-          if (s.indexOf(refusedStr) === -1 && (len = (s = s.trim()).split(re1).length) <= maxLen) {
-            let i2 = detectQuirk - i ? names.indexOf(s, i + 1) : s.indexOf(quirk) >= 0 ? quirkIdx : -1;
-            if (i2 >= 0) { i = i2; len = 2; }
-            maxLen > len && (maxLen = len + 1);
-            // requires GlobalConsts.MaxNumberOfNextPatterns <= 255
-            candidates.push([(i << 23) | (len << 16) | (candidates.length & 0xffff), s, link]);
+      if (s = s || (ch = (link as HTMLInputElement).value) && ch.toLowerCase && ch || link.title) {
+        if (s.length > totalMax) { continue; }
+        s = s.toLowerCase();
+        for (let i = 0; i < count; i++) {
+          if (s.length < lenLimit[i] && s.indexOf(names[i]) !== -1) {
+            if (s.indexOf(refusedStr) === -1 && (len = (s = s.trim()).split(re1).length) <= maxLen) {
+              let i2 = detectQuirk - i ? names.indexOf(s, i + 1) : s.indexOf(quirk) >= 0 ? quirkIdx : -1;
+              if (i2 >= 0) { i = i2; len = 2; }
+              maxLen > len && (maxLen = len + 1);
+              // requires GlobalConsts.MaxNumberOfNextPatterns <= 255
+              candidates.push([(i << 23) | (len << 16) | (candidates.length & 0xffff), s, link]);
+            }
+            break;
           }
-          break;
         }
+      }
+      // for non-English pages like www.google.co.jp
+      if (s.length < 5 && relIdx >= 0 && (ch = link.id) && ch.indexOf(rel) >= 0) {
+        candidates.push([(relIdx << 23) | (((4 + ch.length) & 0x3f) << 16) | (candidates.length & 0xffff),
+            rel, link]);
       }
     }
     if (candidates.length <= 0) { return false; }
@@ -1718,4 +1723,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$Stri
     const i = this.length - s.length;
     return i >= 0 && this.indexOf(s, i) === i;
   };
+}
+if (!(Build.NDEBUG || GlobalConsts.MaxNumberOfNextPatterns <= 255)) {
+  console.log("Assert error: GlobalConsts.MaxNumberOfNextPatterns <= 255");
 }

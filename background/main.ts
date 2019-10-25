@@ -1048,22 +1048,17 @@ var Backend_: BackendHandlersNS.BackendHandlers;
       let rel: string | undefined = cOptions.rel, p2: string[] = []
         , patterns: string | string[] | boolean | number = cOptions.patterns;
       rel = rel ? rel + "" : "next";
-      if (patterns instanceof Array) {
-        for (let i of patterns) {
-          i = i && (i + "").trim();
-          i && p2.push(i.toLowerCase());
-        }
-      } else {
+      if (!(patterns instanceof Array)) {
         typeof patterns === "string" || (patterns = "");
         patterns = (patterns as string)
             || (rel !== "next" ? Settings_.cache_.previousPatterns : Settings_.cache_.nextPatterns);
-        patterns = patterns.trim().toLowerCase().split(",");
-        for (let i of patterns) {
-          i = i.trim();
-          i && p2.push(i);
-        }
+        patterns = patterns.split(",");
       }
-      if (p2.length > GlobalConsts.MaxNumberOfNextPatterns) { p2.length = GlobalConsts.MaxNumberOfNextPatterns; }
+      for (let i of patterns) {
+        i = i && (i + "").trim();
+        i && p2.push(i.toLowerCase());
+        if (p2.length === GlobalConsts.MaxNumberOfNextPatterns) { break; }
+      }
       const maxLens: number[] = p2.map(i => Math.max(i.length + 12, i.length * 4)),
       totalMaxLen: number = Math.max.apply(Math, maxLens);
       cPort.postMessage<1, kFgCmd.goNext>({ N: kBgReq.execute,
