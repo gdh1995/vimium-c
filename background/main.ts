@@ -2911,10 +2911,11 @@
       const tabId = TabRecency_.last_, ports = framesForTab[tabId];
       if (cmd === kShortcutAliases.nextTab1) { cmd = kShortcutNames.nextTab; }
       type NullableShortcutMap = ShortcutInfoMap & { [key in string]?: CommandsNS.Item | null; };
-      if (!((CommandsData_.shortcutMap_ as NullableShortcutMap)[cmd])) {
-        // normally, only userCustomized* and those from 3rd-party extensions will enter this branch
-        if ((CommandsData_.shortcutMap_ as NullableShortcutMap)[cmd] !== null) {
-          (CommandsData_.shortcutMap_ as NullableShortcutMap)[cmd] = null;
+      const map = CommandsData_.shortcutMap_ as NullableShortcutMap;
+      if (!map || !map[cmd]) {
+        // usually, only userCustomized* and those from 3rd-party extensions will enter this branch
+        if (map && map[cmd] !== null) {
+          map[cmd] = null;
           console.log("Shortcut %o has not been configured.", cmd);
         }
         return;
@@ -2934,9 +2935,12 @@
         : indexFrame(tabId, frameId);
     } as BackendHandlersNS.BackendHandlers["indexPorts_"],
     onInit_(): void {
+      if (Settings_.temp_.initing_ !== BackendHandlersNS.kInitStat.FINISHED) { return; }
+      if (!CommandsData_.keyMap_) {
+        Settings_.postUpdate_("keyMappings");
+      }
       // the line below requires all necessary have inited when calling this
       Backend_.onInit_ = null;
-      Settings_.postUpdate_("vomnibarOptions");
       Settings_.get_("hideHud", true);
       Settings_.get_("nextPatterns", true);
       Settings_.get_("previousPatterns", true);
@@ -3036,6 +3040,7 @@
 
   Settings_.postUpdate_("vomnibarPage", null);
   Settings_.postUpdate_("searchUrl", null); // will also update newTabUrl
+  Settings_.postUpdate_("vomnibarOptions");
 
   // will run only on <F5>, not on runtime.reload
   window.onunload = function (event): void {

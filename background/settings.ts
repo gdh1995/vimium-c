@@ -6,6 +6,7 @@ var Settings_ = {
     hasEmptyLocalStorage_: localStorage.length <= 0,
     backupSettingsToLocal_: null as null | ((wait: number) => void) | true,
     onInstall_: null as Parameters<chrome.runtime.RuntimeInstalledEvent["addListener"]>[0] | null,
+    initing_: BackendHandlersNS.kInitStat.START,
     cmdErrors_: 0,
     newSettingsToBroadcast_: null as BgReq[kBgReq.settingsUpdate]["d"] | null,
     IconBuffer_: null as IconNS.AccessIconBuffer | null,
@@ -598,11 +599,14 @@ chrome.runtime.getPlatformInfo(function (info): void {
   (Settings_.payload_ as Writable<typeof Settings_.payload_>).o = osEnum;
   Settings_.payload_.i = Settings_.omniPayload_.i =
       ignoreCapsLock > 1 || ignoreCapsLock === 1 && !osEnum;
+  Settings_.temp_.initing_ |= BackendHandlersNS.kInitStat.platformInfo;
+  Backend_ && (Backend_.onInit_ as NonNullable<typeof Backend_.onInit_>)();
 });
 } else {
   Settings_.CONST_.Platform_ = Build.BTypes & BrowserType.Edge
     && (!(Build.BTypes & BrowserType.Edge) || OnOther === BrowserType.Edge) ? "win" : "unknown";
   Settings_.payload_.i = Settings_.get_("ignoreCapsLock") > 1;
+  Settings_.temp_.initing_ |= BackendHandlersNS.kInitStat.platformInfo;
 }
 
 if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox

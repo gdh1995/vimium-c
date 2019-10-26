@@ -496,10 +496,12 @@ if (!Build.NDEBUG) {
   Commands.defaultKeyMappings_.push("<a-s-f12>", "debugBackground", "<s-f12>", "focusOptions");
 }
 if (Backend_.onInit_) {
-  Commands.parseKeyMappings_(Settings_.get_("keyMappings"));
-  Commands.populateCommandKeys_(true);
-  if (!Settings_.get_("vimSync") && !Settings_.temp_.hasEmptyLocalStorage_) {
-    Commands = null as never;
+  if (Settings_.temp_.initing_ & BackendHandlersNS.kInitStat.platformInfo) {
+    Commands.parseKeyMappings_(Settings_.get_("keyMappings"));
+    Commands.populateCommandKeys_(true);
+    if (!Settings_.get_("vimSync") && !Settings_.temp_.hasEmptyLocalStorage_) {
+      Commands = null as never;
+    }
   }
   Build.BTypes & BrowserType.Edge && !chrome.commands ||
   (chrome.commands.onCommand as chrome.events.Event<

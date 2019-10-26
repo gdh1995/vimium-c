@@ -694,6 +694,7 @@ BgUtils_.copy_ = Build.BTypes & BrowserType.Firefox
   textArea.value = "";
   BgUtils_.resetRe_();
 };
+Settings_.temp_.initing_ |= BackendHandlersNS.kInitStat.others;
 (Backend_.onInit_ as NonNullable<BackendHandlersNS.BackendHandlers["onInit_"]>)();
 
 chrome.extension.isAllowedIncognitoAccess &&

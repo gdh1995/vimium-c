@@ -428,6 +428,10 @@ declare namespace BackendHandlersNS {
     ExecuteShortcut_ (this: void, command: string): void;
     onInit_: ((this: void) => void) | null;
   }
+  const enum kInitStat {
+    none = 0, platformInfo = 1, others = 2,
+    START = none, FINISHED = platformInfo | others,
+  }
 }
 
 type ShortcutInfoMap = {
