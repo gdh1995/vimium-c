@@ -479,7 +479,9 @@ availableCommands_: { __proto__: null as never,
   toggleVomnibarStyle: [ kBgCmd.toggleVomnibarStyle, 1, 1, { style: "dark" } ],
   closeDownloadBar: [ kBgCmd.moveTabToNewWindow, 1, 1, { all: 1 } ],
   showTip: [ kBgCmd.showTip, 1, 1 ],
-  visitPreviousTab: [ kBgCmd.visitPreviousTab, 1, 0 ]
+  visitPreviousTab: [ kBgCmd.visitPreviousTab, 1, 0 ],
+  zoomIn: [ kBgCmd.toggleZoom, 1, 0 ],
+  zoomOut: [ kBgCmd.toggleZoom, 1, 0, { count: -1 } ],
 } as ReadonlySafeDict<CommandsNS.Description>
 },
 CommandsData_: CommandsDataTy = CommandsData_ as never || {

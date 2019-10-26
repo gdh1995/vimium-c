@@ -473,6 +473,12 @@
 	"visitPreviousTab": {
 		"message": "Go to previously-visited tab on current window"
 	},
+	"zoomIn": {
+		"message": "Make a current tab zoom in"
+	},
+	"zoomOut": {
+		"message": "Make a current tab zoom out"
+	},
 	"createTab_s": {
 		"message": "Create new tab"
 	},

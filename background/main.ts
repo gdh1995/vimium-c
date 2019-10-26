@@ -970,7 +970,8 @@
     UseTab.CurWndTabs, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab, UseTab.ActiveTab,
     UseTab.ActiveTab, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab,
     UseTab.CurWndTabs, UseTab.NoTab, UseTab.NoTab,
-    UseTab.ActiveTab, UseTab.NoTab, UseTab.ActiveTab, UseTab.ActiveTab, UseTab.NoTab, UseTab.NoTab
+    UseTab.ActiveTab, UseTab.NoTab, UseTab.ActiveTab, UseTab.ActiveTab, UseTab.NoTab, UseTab.NoTab,
+    UseTab.NoTab
   ],
   BackgroundCommands: {
     [K in kBgCmd & number]:
@@ -1882,6 +1883,41 @@
         keyword: cOptions.keyword,
       });
       BackgroundCommands[kBgCmd.openUrl]();
+    },
+    /* kBgCmd.toggleZoom: */ function (this: void): void {
+      if (Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge)) {
+        Backend_.complain_("control zoom settings of tabs");
+        return;
+      }
+      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Tabs$$setZoom
+          && CurCVer_ < BrowserVer.Min$Tabs$$setZoom) {
+        Backend_.showHUD_(`Vimium C can not control zoom settings before Chrome ${BrowserVer.Min$Tabs$$setZoom}`);
+        return;
+      }
+      chrome.tabs.getZoom(curZoom => {
+        if (!curZoom) { return onRuntimeError(); }
+        cRepeat < -4 && (cRepeat = -cRepeat);
+        let newZoom = curZoom, m = Math;
+        if (cRepeat > 4) {
+          newZoom = cRepeat / (cRepeat > 1000 ? cRepeat : cRepeat > 49 ? 100 : 10);
+          newZoom = !(Build.BTypes & ~BrowserType.Firefox)
+              || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
+              ? m.max(0.3, m.min(newZoom, 3)) : m.max(0.25, m.min(newZoom, 5));
+        } else {
+          let nearest = 0, delta = 9,
+          steps = !(Build.BTypes & ~BrowserType.Firefox)
+              || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
+              ? [0.3, 0.5, 0.67, 0.8, 0.9, 1, 1.1, 1.2, 1.33, 1.5, 1.7, 2, 2.4, 3]
+              : [0.25, 1 / 3, 0.5, 2 / 3, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4, 5];
+          for (let ind = 0, d2 = 0; ind < steps.length && (d2 = m.abs(steps[ind] - curZoom)) < delta; ind++) {
+            nearest = ind; delta = d2;
+          }
+          newZoom = steps[nearest + cRepeat < 0 ? 0 : m.min(nearest + cRepeat, steps.length - 1)];
+        }
+        if (m.abs(newZoom - curZoom) > 0.005) {
+          chrome.tabs.setZoom(newZoom);
+        }
+      });
     }
   ],
   numHeadRe = <RegExpOne> /^-?\d+|^-/;

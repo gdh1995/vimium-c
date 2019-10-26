@@ -563,6 +563,7 @@ declare const enum BrowserVer {
   // before 42, event.path is a simple NodeList instance ; even if EXPERIMENTAL or LEGACY
   Min$Event$$path$IsStdArrayAndIncludesWindow = 42,
   Min$Tabs$$getZoom = 42,
+  Min$Tabs$$setZoom = 42,
   Min$EnableSitePerProcess$Flag = 42,
   MinParentNodeGetterInNodePrototype = 42, // also .childNodes; even if even if EXPERIMENTAL or LEGACY
   MinEnsured$fetch = 42, // even if LEGACY; can not fetch chrome-extension:// before C47

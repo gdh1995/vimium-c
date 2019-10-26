@@ -347,6 +347,12 @@
 	"visitPreviousTab": {
 		"message": "切换到最近访问的上一个标签页"
 	},
+	"zoomIn": {
+		"message": "放大网页"
+	},
+	"zoomOut": {
+		"message": "缩小网页"
+	},
 	"createTab_s": {
 		"message": "打开新的标签页"
 	},

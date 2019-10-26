@@ -64,6 +64,8 @@ __Other extensions supporting Vimium C:__
 * Chrome: add a feature to hook in-page "access keys" and enable it by default
 * Firefox: support 63+ and more conditions
 * VHints: <kbd>Tab</kbd>: now only switch visibility in limited ranges
+* add `zoomIn` and `zoomOut` commands, and use a huge count like `1111` to reset zoom
+  ([#83](https://github.com/gdh1995/vimium-c/issues/83), [philc#2978](https://github.com/philc/vimium/pull/2978))
 * fix some old bugs
 
 1.78.3
