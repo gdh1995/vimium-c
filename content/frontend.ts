@@ -409,8 +409,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
        */
       // during tests, an access key of ' ' (space) can be triggered on macOS (2019-10-20)
       isWaitingAccessKey = +(((char = char || VKey.char_(event)).length === 1 || char === "space")
-          && (VKey.getKeyStat_(event) & ~KeyStat.shiftKey) ===
-              (fgCache.m ? KeyStat.ctrlKey | KeyStat.altKey : KeyStat.altKey) // Chrome ignore .shiftKey
+          && (VKey.getKeyStat_(event) & ~KeyStat.shiftKey /* Chrome ignore .shiftKey */) ===
+              (fgCache.o ? KeyStat.altKey : KeyStat.altKey | KeyStat.ctrlKey)
           );
     }
   },
@@ -1074,7 +1074,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
       D.cache_ = VKey.cache_ = fgCache = load as EnsureItemsNonNull<typeof load>;
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key) {
-        load.m && (VKey.keyIdCorrectionOffset_ = 300);
+        load.o || (VKey.keyIdCorrectionOffset_ = 300);
       }
       if (Build.BTypes & BrowserType.Chrome
           && (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl)) {

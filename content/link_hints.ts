@@ -890,7 +890,7 @@ var VHints = {
       }
       setTimeout(a._reinit.bind(a, null, null), 0);
     } else if (i < kKeyCode.maxAcsKeys + 1 && i > kKeyCode.minAcsKeys - 1
-        || (i === kKeyCode.metaKey && VDom.cache_.m)) {
+        || (i === kKeyCode.metaKey && !VDom.cache_.o)) {
       const mode = a.mode_, mode1 = a.mode1_,
       mode2 = mode1 > HintMode.min_copying - 1 && mode1 < HintMode.max_copying + 1
         ? i === kKeyCode.ctrlKey ? (mode1 | HintMode.queue) ^ HintMode.list
@@ -1612,13 +1612,13 @@ Modes_: [
       VCui.simulateSelect_(link, rect, true);
       return false;
     }
-    const mask = a.mode_ & HintMode.mask_focus_new, notMac = !VDom.cache_.m,
+    const mask = a.mode_ & HintMode.mask_focus_new, isMac = !VDom.cache_.o,
     isRight = a.options_.button === "right",
     newTab = mask > HintMode.newTab - 1 && !isRight;
     VCui.click_(link, rect, {
       altKey_: false,
-      ctrlKey_: newTab && notMac,
-      metaKey_: newTab && !notMac,
+      ctrlKey_: newTab && !isMac,
+      metaKey_: newTab && isMac,
       shiftKey_: newTab && mask > HintMode.mask_focus_new - 1
     }, mask > 0 || link.tabIndex >= 0
     , isRight ? 2 : 0

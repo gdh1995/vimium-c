@@ -18,22 +18,22 @@ var Settings_ = {
     d: "",
     g: false,
     i: false,
-    m: Build.BTypes & BrowserType.Edge ? 0 : false
+    o: kOS.win
   } : {
-    __proto__: null as never, r: false, d: "", g: false, i: false, m: Build.BTypes & BrowserType.Edge ? 0 : false
+    __proto__: null as never, r: false, d: "", g: false, i: false, o: kOS.win
   }) as SettingsNS.FrontendSettingsWithoutSyncing & SettingsNS.FrontendSettingsSyncedManually
       & SafeObject as SettingsNS.FrontendSettingCache & SafeObject,
   omniPayload_: (Build.BTypes & BrowserType.Chrome ? {
     v: CurCVer_,
     i: false,
-    m: 0,
+    o: kOS.win,
     c: "",
     I: 0,
     M: 0,
     n: "",
     s: ""
   } : {
-    i: false, m: 0,
+    i: false, o: kOS.win,
     c: "", M: 0, I: 0, n: "", s: ""
   }) as VomnibarPayload,
   newTabs_: BgUtils_.safeObj_() as ReadonlySafeDict<Urls.NewTabType>,
@@ -309,7 +309,7 @@ var Settings_ = {
       a.broadcastOmni_({ N: kBgReq.omni_updateOptions, d: { c: a.omniPayload_.c } });
     },
     ignoreCapsLock (this: {}, value: FullSettings["ignoreCapsLock"]): void {
-      const flag = value > 1 || value === 1 && !!Settings_.payload_.m;
+      const flag = value > 1 || value === 1 && !Settings_.payload_.o;
       if (Settings_.payload_.i === flag) { return; }
       Settings_.payload_.i = Settings_.omniPayload_.i = flag;
       Settings_.broadcast_({ N: kBgReq.settingsUpdate, d: { i: flag } });
@@ -587,16 +587,17 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
 
 if (!(Build.BTypes & BrowserType.Edge) || chrome.runtime.getPlatformInfo) {
 chrome.runtime.getPlatformInfo(function (info): void {
-  const os = (!(Build.BTypes & ~BrowserType.Chrome) ? info.os : info.os || "").toLowerCase(),
+  const os = (Build.BTypes & ~BrowserType.Chrome ? info.os || "" : info.os).toLowerCase(),
   types = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinRuntimePlatformOs
     ? chrome.runtime.PlatformOs as NonNullable<typeof chrome.runtime.PlatformOs>
-    : chrome.runtime.PlatformOs || { MAC: "mac", WIN: "win" };
+    : chrome.runtime.PlatformOs || { MAC: "mac", WIN: "win" },
+  osEnum = os === types.WIN ? kOS.win : os === types.MAC ? kOS.mac : kOS.linux,
+  ignoreCapsLock = Settings_.get_("ignoreCapsLock");
   Settings_.CONST_.Platform_ = os;
-  (Settings_.omniPayload_ as Writable<typeof Settings_.omniPayload_>).m =
-  (Settings_.payload_ as Writable<typeof Settings_.payload_>).m = os === types.MAC || (os === types.WIN && 0);
-  const ignoreCapsLock = Settings_.get_("ignoreCapsLock");
+  (Settings_.omniPayload_ as Writable<typeof Settings_.omniPayload_>).o =
+  (Settings_.payload_ as Writable<typeof Settings_.payload_>).o = osEnum;
   Settings_.payload_.i = Settings_.omniPayload_.i =
-      ignoreCapsLock > 1 || ignoreCapsLock === 1 && os === types.MAC;
+      ignoreCapsLock > 1 || ignoreCapsLock === 1 && !osEnum;
 });
 } else {
   Settings_.CONST_.Platform_ = Build.BTypes & BrowserType.Edge

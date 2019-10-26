@@ -1,4 +1,3 @@
-var Backend_: BackendHandlersNS.BackendHandlers;
 (function () {
   interface LatestPromise extends Promise<void> {
     finally (onFinally: (() => void) | Promise<void>): LatestPromise;

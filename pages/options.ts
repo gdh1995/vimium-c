@@ -315,7 +315,7 @@ class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
   readValueFromElement_ (): FullSettings[T] {
     let value = this.element_.indeterminate ? this.map_[1] : this.map_[this.element_.checked ? this.true_index_ : 0];
     if (this.field_ === "ignoreCapsLock" && window.VDom && VDom.cache_) {
-      VDom.cache_.i = value > 1 || value === 1 && !!bgSettings_.payload_.m;
+      VDom.cache_.i = value > 1 || value === 1 && !bgSettings_.payload_.o;
     }
     return value;
   }
@@ -1027,14 +1027,8 @@ el.textContent = (Build.BTypes & BrowserType.Edge
     ? "MS Edge (EdgeHTML)"
     : Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)
-    ? "Firefox"
-    : ((<RegExpOne> /\bChromium\b/).exec(navigator.appVersion) || ["Chrome"])[0]
-  ) + (Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)
-    ? " " + (navigator.userAgent.match(/\bFirefox\/(\d+)/) || [0, ""])[1]
-    : Build.BTypes & BrowserType.Chrome
-        && (!(Build.BTypes & ~BrowserType.Chrome) || bgOnOther_ === BrowserType.Chrome)
-    ? " " + bgBrowserVer_ : ""
+    ? "Firefox " + BG_.CurFFVer_
+    : ((<RegExpOne> /\bChromium\b/).exec(navigator.appVersion) || ["Chrome"])[0] + " " + bgBrowserVer_
   ) + pTrans_("comma") + (pTrans_(bgSettings_.CONST_.Platform_)
         || bgSettings_.CONST_.Platform_[0].toUpperCase() + bgSettings_.CONST_.Platform_.slice(1));
 }, $("#browserName"));

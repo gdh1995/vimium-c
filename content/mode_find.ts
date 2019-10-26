@@ -146,7 +146,7 @@ var VFind = {
     // an extra <div> may be necessary: https://github.com/gdh1995/vimium-c/issues/79#issuecomment-540921532
     const box = Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
-        && VDom.cache_.m === false
+        && VDom.cache_.o === kOS.linux
         ? addElement("div", 0) as HTMLDivElement : body,
     root = VDom.createShadowRoot_(box),
     inShadow = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
@@ -286,7 +286,7 @@ var VFind = {
       : n === kKeyCode.enter
         ? event.shiftKey ? FindNS.Action.PassDirectly : (a.saveQuery_(), FindNS.Action.ExitToPostMode)
       : (n !== kKeyCode.backspace && n !== kKeyCode.deleteKey) ? FindNS.Action.DoNothing
-      : a.query_ || (n === kKeyCode.deleteKey && !VDom.cache_.m || event.repeat) ? FindNS.Action.PassDirectly
+      : a.query_ || (n === kKeyCode.deleteKey && VDom.cache_.o || event.repeat) ? FindNS.Action.PassDirectly
       : FindNS.Action.Exit;
     if (!i) {
       if (VKey.isEscape_(event)) { i = FindNS.Action.ExitAndReFocus; }

@@ -175,7 +175,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   wheelDelta_: 0,
   browser_: BrowserType.Chrome,
   browserVer_: Build.BTypes & BrowserType.Chrome ? BrowserVer.assumedVer : BrowserVer.assumedVer,
-  onMac_: 0 as SettingsNS.FrontendSettingsWithoutSyncing["m"],
+  os_: kOS.win as SettingsNS.FrontendSettingsWithoutSyncing["o"],
   maxMatches_: 0,
   queryInterval_: 0,
   heightIfEmpty_: VomnibarNS.PixelData.OthersIfEmpty,
@@ -427,7 +427,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
       }
       else if (!focused) { /* empty */ }
       else if (n > kKeyCode.A && n < kKeyCode.G && n !== kKeyCode.C
-          || n === kKeyCode.backspace && !a.onMac_) {
+          || n === kKeyCode.backspace && a.os_) {
         return a.onBashAction_(n - kKeyCode.maxNotAlphabet);
       }
       if (event.altKey) { a.keyResult_ = HandlerResult.Nothing; return; }
@@ -448,7 +448,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
         return;
       } else if (Build.BTypes & ~BrowserType.Firefox
           && (!(Build.BTypes & BrowserType.Firefox) || a.browser_ !== BrowserType.Firefox)
-          && n === kKeyCode.backspace && event.ctrlKey && a.onMac_) {
+          && n === kKeyCode.backspace && event.ctrlKey && !a.os_) {
         return a.onBashAction_(n - kKeyCode.maxNotAlphabet);
       } else {
         action = event.code === "BracketLeft" ? AllowedActions.dismiss
@@ -1354,7 +1354,7 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
     if (Build.BTypes & BrowserType.Chrome) {
       Vomnibar_.browserVer_ = payload.v as NonNullable<typeof payload.v>;
     }
-    Vomnibar_.onMac_ = payload.m;
+    Vomnibar_.os_ = payload.o;
     Vomnibar_.styles_ = payload.s;
     Vomnibar_.updateOptions_({ N: kBgReq.omni_updateOptions, d: {
       c: payload.c, M: payload.M, I: payload.I, n: payload.n

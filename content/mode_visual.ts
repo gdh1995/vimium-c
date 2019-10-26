@@ -440,7 +440,7 @@ var VVisual = {
       if (direction &&
           (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && isFirefox
             ? !Build.NativeWordMoveOnFirefox || shouldSkipSpaceWhenMovingRight
-            : (VDom.cache_.m === /* win */ 0) !== shouldSkipSpaceWhenMovingRight)) {
+            : (VDom.cache_.o > kOS.MAX_NOT_WIN) !== shouldSkipSpaceWhenMovingRight)) {
         fixWord = 1;
         if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && isFirefox
             ? !Build.NativeWordMoveOnFirefox : !shouldSkipSpaceWhenMovingRight) {

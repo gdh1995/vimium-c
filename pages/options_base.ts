@@ -695,7 +695,7 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
   });
   if (!(Build.BTypes & BrowserType.Chrome)
       || Build.BTypes & ~BrowserType.Chrome && bgOnOther_ !== BrowserType.Chrome
-      || bgSettings_.payload_.m
+      || !bgSettings_.payload_.o
       ) {
     window.addEventListener("keydown", function (event): void {
       if (event.altKey

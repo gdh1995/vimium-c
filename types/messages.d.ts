@@ -133,7 +133,7 @@ interface BgReq {
 interface VomnibarPayload {
   readonly /** browser */ b?: BrowserType;
   readonly /** browserVer */ v?: BrowserVer;
-  readonly /** onMac */ m?: SettingsNS.FrontendSettingsWithoutSyncing["m"];
+  readonly /** OS */ o?: SettingsNS.FrontendSettingsWithoutSyncing["o"];
   /** ignoreCapsLock */ i: boolean;
   /** css */ c: string;
   /** maxMatches */ M: number;

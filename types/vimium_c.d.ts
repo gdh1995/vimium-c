@@ -287,7 +287,7 @@ declare namespace SettingsNS {
   interface FrontendSettingsWithoutSyncing {
     /** browserVer */ readonly v?: BrowserVer;
     /** browser */ readonly b?: BrowserType;
-    /** onMac: `mac`: true, `win`: 0, `others`: false */ readonly m: boolean | 0;
+    /** OS */ readonly o: kOS.mac | kOS.linux | kOS.win;
     /** grabBackFocus */ g: boolean;
   }
   interface FrontendSettingsWithSync extends CachedFrontendSettings, FrontendSettingsSyncedManually {}
@@ -295,6 +295,10 @@ declare namespace SettingsNS {
   interface FrontendSettingCache extends FrontendSettingsWithSync, FrontendSettingsWithoutSyncing {
     /** browserVer */ readonly v: BrowserVer;
   }
+}
+declare const enum kOS {
+  mac = 0, linux = 1, win = 2,
+  MAX_NOT_WIN = 1, UNKNOWN = 9,
 }
 
 declare const enum HintMode {

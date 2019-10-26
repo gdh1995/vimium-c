@@ -457,6 +457,7 @@ interface Window {
   readonly HelpDialog?: BaseHelpDialog;
   readonly OnOther?: BrowserType;
   readonly CurCVer_: BrowserVer;
+  readonly CurFFVer_: FirefoxBrowserVer;
 
   readonly Backend_: BackendHandlersNS.BackendHandlers;
   readonly trans_: typeof chrome.i18n.getMessage;

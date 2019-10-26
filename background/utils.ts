@@ -1,3 +1,14 @@
+declare var OnOther: BrowserType;
+if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
+  (window as Writable<Window>).OnOther = Build.BTypes & BrowserType.Chrome &&
+    (typeof browser === "undefined" || (browser && (browser as typeof chrome).runtime) == null
+    || location.protocol.lastIndexOf("chrome", 0) >= 0) // in case Chrome also supports `browser` in the future
+  ? BrowserType.Chrome
+  : Build.BTypes & BrowserType.Edge && !!(window as {} as {StyleMedia: unknown}).StyleMedia ? BrowserType.Edge
+  : Build.BTypes & BrowserType.Firefox ? BrowserType.Firefox
+  : /* an invalid state */ BrowserType.Unknown;
+}
+
 var BgUtils_ = {
   /**
    * both b and a must extend SafeObject
@@ -771,19 +782,9 @@ var BgUtils_ = {
   },
   GC_: function (this: void): void { /* empty */ } as (this: void, inc?: number) => void,
   hasUpperCase_ (this: void, s: string): boolean { return s.toLowerCase() !== s; }
-};
-
-declare var OnOther: BrowserType;
-if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
-  (window as Writable<Window>).OnOther = Build.BTypes & BrowserType.Chrome &&
-    (typeof browser === "undefined" || (browser && (browser as typeof chrome).runtime) == null
-    || location.protocol.lastIndexOf("chrome", 0) >= 0) // in case Chrome also supports `browser` in the future
-  ? BrowserType.Chrome
-  : Build.BTypes & BrowserType.Edge && !!(window as {} as {StyleMedia: unknown}).StyleMedia ? BrowserType.Edge
-  : Build.BTypes & BrowserType.Firefox ? BrowserType.Firefox
-  : /* an invalid state */ BrowserType.Unknown;
-}
-var
+},
+Backend_: BackendHandlersNS.BackendHandlers,
+trans_ = chrome.i18n.getMessage,
 CurCVer_: BrowserVer = Build.BTypes & BrowserType.Chrome ? 0 | (
   (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
   && navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/)
@@ -792,8 +793,7 @@ CurFFVer_: FirefoxBrowserVer = !(Build.BTypes & ~BrowserType.Firefox)
   || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
   ? 0 | (navigator.userAgent.match(/\bFirefox\/(\d+)/) || [0, FirefoxBrowserVer.assumedVer])[1] as number
   : FirefoxBrowserVer.None,
-trans_ = chrome.i18n.getMessage;
-const BrowserProtocol_ = Build.BTypes & ~BrowserType.Chrome
+BrowserProtocol_ = Build.BTypes & ~BrowserType.Chrome
     && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)
   ? Build.BTypes & BrowserType.Firefox
     && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) ? "moz"
