@@ -611,11 +611,11 @@ let optionsInit1_ = function (): void {
     if (Build.MinCVer >= BrowserVer.MinCorrectBoxWidthForOptionsUI
         || !(Build.BTypes & BrowserType.Chrome)
         || bgBrowserVer_ >= BrowserVer.MinCorrectBoxWidthForOptionsUI) { return; }
-    nextTick_(() => {
     ratio > 1 && ((document.body as HTMLBodyElement).style.width = 910 / ratio + "px");
-    });
-    chrome.tabs.getZoom && chrome.tabs.getZoom(curTabId, function (zoom): void {
-      // >= BrowserVer.Min$Tabs$$getZoom
+    ( !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+      && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.Min$Tabs$$getZoom)
+      || Build.BTypes & BrowserType.ChromeOrFirefox && chrome.tabs.getZoom) &&
+    chrome.tabs.getZoom(curTabId, function (zoom): void {
       if (!zoom) { return chrome.runtime.lastError; }
       const ratio2 = Math.round(devicePixelRatio / zoom * 1024) / 1024;
       (document.body as HTMLBodyElement).style.width = ratio2 !== 1 ? 910 / ratio2 + "px" : "";

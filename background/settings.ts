@@ -18,9 +18,9 @@ var Settings_ = {
     d: "",
     g: false,
     i: false,
-    m: false
+    m: Build.BTypes & BrowserType.Edge ? 0 : false
   } : {
-    __proto__: null as never, r: false, d: "", g: false, i: false, m: false
+    __proto__: null as never, r: false, d: "", g: false, i: false, m: Build.BTypes & BrowserType.Edge ? 0 : false
   }) as SettingsNS.FrontendSettingsWithoutSyncing & SettingsNS.FrontendSettingsSyncedManually
       & SafeObject as SettingsNS.FrontendSettingCache & SafeObject,
   omniPayload_: (Build.BTypes & BrowserType.Chrome ? {
@@ -585,8 +585,8 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
   }
 };
 
-!(Build.BTypes & BrowserType.Edge) ||
-chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function (info): void {
+if (!(Build.BTypes & BrowserType.Edge) || chrome.runtime.getPlatformInfo) {
+chrome.runtime.getPlatformInfo(function (info): void {
   const os = (!(Build.BTypes & ~BrowserType.Chrome) ? info.os : info.os || "").toLowerCase(),
   types = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinRuntimePlatformOs
     ? chrome.runtime.PlatformOs as NonNullable<typeof chrome.runtime.PlatformOs>
@@ -597,8 +597,12 @@ chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function (info):
   const ignoreCapsLock = Settings_.get_("ignoreCapsLock");
   Settings_.payload_.i = Settings_.omniPayload_.i =
       ignoreCapsLock > 1 || ignoreCapsLock === 1 && os === types.MAC;
-}) : (Settings_.CONST_.Platform_ = Build.BTypes & BrowserType.Edge
-    && (!(Build.BTypes & BrowserType.Edge) || OnOther === BrowserType.Edge) ? "win" : "unknown");
+});
+} else {
+  Settings_.CONST_.Platform_ = Build.BTypes & BrowserType.Edge
+    && (!(Build.BTypes & BrowserType.Edge) || OnOther === BrowserType.Edge) ? "win" : "unknown";
+  Settings_.payload_.i = Settings_.get_("ignoreCapsLock") > 1;
+}
 
 if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   || Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp

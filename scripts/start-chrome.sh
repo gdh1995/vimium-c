@@ -19,7 +19,7 @@ function wp() {
     dir=$($REALPATH -m "$dir")
   else
     local win_dir=${dir:1:1}
-    dir=${win_dir^}:${dir:3}
+    dir=${win_dir^}:${dir:2}
   fi
   declare -g $1=${dir}
 }
