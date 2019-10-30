@@ -1,5 +1,5 @@
 <span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span>
-![Icon](icons/icon32.png)
+![Icon](icons/icon32.png) - All by Keyboard
 ========
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
@@ -16,10 +16,17 @@
 
 A <span style="color: #a55e18;">C</span>ustomized
   [<span style="color: #2f508e;">Vim</span>ium](https://github.com/philc/vimium)
+  (to click web page content and manipulate browser windows using only keyboard)
   having <span style="color: #a55e18;">**C**</span>hinese support,
     global <span style="color: #a55e18;">**C**</span>ommands
     and inje**c**tion functionality,
   in <span style="color: #a55e18;">**C**</span>-style code for qui**c**ker action and less resource **c**ost.
+
+[<span style="color: #2f508e;">Vim</span>ium](https://github.com/philc/vimium)的一款<span style="color: #a55e18;">
+修改版</span>（可以用键盘点击网页内容、操纵浏览器窗口），
+添加了完整的<span style="color: #a55e18;">中文</span>支持、<span style="color: #a55e18;">
+全局快捷键</span>功能，还能运行在某些接受Vimium C的扩展程序的私有页面里，并且对CPU和内存资源的<span style="color: #a55e18;">
+消耗很低</span>。
 
 It (the version in Web Store) supports Chrome and other Chromium-based browsers whose core versions are >= 38,
   and supports almost all of the functionality on a latest Firefox (since version 64.0).
@@ -273,6 +280,20 @@ while `gulp dist` compiles and minimizes files into `dist/`.
 
 The options including `MinCVer` and `BTypes` in [gulp.tsconfig.json](scripts/gulp.tsconfig.json)
   are used to control supported target browsers and set a minimum browser version.
+
+# Donate / 捐赠
+
+Vimium C is an open-source browser extension, and everyone can install and use it free of charge.
+If you indeed want to give its author ([gdh1995](http://gdh1995.cn/)) financial support,
+you may donate any small amount of money to him using [Alipay](https://intl.alipay.com/). Thanks a lot!
+
+Vimium C 是一款开源的浏览器扩展程序，任何人都可以安装使用它而无需支付任何费用。
+如果您确实想要资助它的开发者（[gdh1995](http://gdh1995.cn/)），
+可以通过[支付宝](https://www.alipay.com/)赠与他一小笔钱。谢谢您的支持！
+
+![Alipay QRCode of gdh1995](https://gdh1995.github.io/alipay-recv-money.png)
+
+
 
 # Thanks & Licenses
 
