@@ -1,5 +1,5 @@
 import SettingsWithDefaults = SettingsNS.SettingsWithDefaults;
-
+const As_ = <T> (i: T): T => i;
 var Settings_ = {
   cache_: BgUtils_.safeObj_() as Readonly<SettingsNS.FullCache>,
   temp_: {
@@ -12,8 +12,8 @@ var Settings_ = {
     IconBuffer_: null as IconNS.AccessIconBuffer | null,
     shownHash_: null as ((this: void) => string) | null
   },
-  payload_: (Build.BTypes & BrowserType.Chrome ? {
-    __proto__: null as never,
+  payload_: <SettingsNS.FrontendSettingCache> As_<SettingsNS.DeclaredFrontendValues>(
+      Build.BTypes & BrowserType.Chrome ? {
     v: CurCVer_,
     r: false,
     d: "",
@@ -21,10 +21,10 @@ var Settings_ = {
     i: false,
     o: kOS.win
   } : {
-    __proto__: null as never, r: false, d: "", g: false, i: false, o: kOS.win
-  }) as SelectValueType<SettingsNS.ConstItems & SettingsNS.ManualItems & SettingsNS.OneTimeItems>
-      & SafeObject as SettingsNS.FrontendSettingCache & SafeObject,
-  omniPayload_: (Build.BTypes & BrowserType.Chrome ? {
+    r: false, d: "", g: false, i: false, o: kOS.win
+  }),
+  omniPayload_: <SettingsNS.VomnibarPayload> As_<SettingsNS.DeclaredVomnibarPayload>(
+      Build.BTypes & BrowserType.Chrome ? {
     v: CurCVer_,
     i: false,
     o: kOS.win,
@@ -36,7 +36,7 @@ var Settings_ = {
   } : {
     i: false, o: kOS.win,
     c: "", I: 0, M: 0, n: "", s: ""
-  }) as SettingsNS.VomnibarPayload,
+  }),
   newTabs_: BgUtils_.safeObj_() as ReadonlySafeDict<Urls.NewTabType>,
   extWhiteList_: null as never as SafeDict<boolean>,
   storage_: localStorage,
@@ -429,7 +429,7 @@ var Settings_ = {
   },
   // clear localStorage & sync, if value === @defaults[key]
   // the default of all nullable fields must be set to null for compatibility with @Sync.set
-  defaults_: {
+  defaults_: As_<Readonly<SettingsWithDefaults> & SafeObject>({
     __proto__: null as never,
     autoDarkMode: true,
     autoReduceMotion: false,
@@ -491,7 +491,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
 # d: https://duckduckgo.com/?q=%s DuckDuckGo
 # az: https://www.amazon.com/s/?field-keywords=%s Amazon
 # qw: https://www.qwant.com/?q=%s Qwant`,
-    searchEngineMap: {},
+    searchEngineMap: {} as SafeDict<any>,
     showActionIcon: true,
     showAdvancedCommands: false,
     showAdvancedOptions: false,
@@ -510,25 +510,25 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     vomnibarPage: "front/vomnibar.html",
     vomnibarPage_f: "",
     phraseBlacklist: ""
-  } as Readonly<SettingsWithDefaults> & SafeObject,
+  }),
   // not set localStorage, neither sync, if key in @nonPersistent
   // not clean if exists (for simpler logic)
-  nonPersistent_: { __proto__: null as never,
+  nonPersistent_: As_<TypedSafeEnum<SettingsNS.NonPersistentSettings>>({ __proto__: null as never,
     baseCSS: 1, exclusionTemplate: 1, helpDialog: 1,
     searchEngineMap: 1, searchEngineRules: 1, searchKeywords: 1
-  } as TypedSafeEnum<SettingsNS.NonPersistentSettings>,
+  }),
   frontUpdateAllowed_: ["showAdvancedCommands"] as Array<keyof SettingsNS.FrontUpdateAllowedSettings>,
-  icons_: [
+  icons_: As_<[IconNS.PathBuffer, IconNS.PathBuffer, IconNS.PathBuffer]>([
     { 19: "/icons/enabled_19.png", 38: "/icons/enabled_38.png" },
     { 19: "/icons/partial_19.png", 38: "/icons/partial_38.png" },
     { 19: "/icons/disabled_19.png", 38: "/icons/disabled_38.png" }
-  ] as [IconNS.PathBuffer, IconNS.PathBuffer, IconNS.PathBuffer],
-  valuesToLoad_: { __proto__: null as never,
+  ]),
+  valuesToLoad_: As_<SelectNameToKey<SettingsNS.AutoItems> & SafeObject>({ __proto__: null as never,
     hookAccessKeys: "a",
     ignoreKeyboardLayout: "L",
     keyboard: "k", linkHintCharacters: "l",
     regexFindMode: "R", smoothScroll: "S", scrollStepSize: "t"
-  } as SelectNameToKey<SettingsNS.AutoItems> & SafeObject,
+  }),
   sync_: BgUtils_.blank_ as SettingsNS.Sync["set"],
   restore_: null as (() => Promise<void> | null) | null,
   CONST_: {

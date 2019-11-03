@@ -267,6 +267,7 @@ declare namespace SettingsNS {
     /** browserVer */ v: ["browserVer", BrowserVer | undefined];
     /** OS */ o: ["OS", kOS.mac | kOS.linux | kOS.win];
   }
+  type DeclaredConstValues = SelectValueType<Partial<Pick<ConstItems, "v">> & Pick<ConstItems, "o">>;
   type VomnibarOptionItems = {
     /** maxMatches */ M: ["maxMatches", number];
     /** queryInterval */ I: ["queryInterval", number];
@@ -289,6 +290,8 @@ declare namespace SettingsNS {
   }
 
   interface FrontendSettingsSyncingItems extends AutoItems, ManualItems {}
+  interface DeclaredFrontendValues extends SelectValueType<ManualItems & OneTimeItems>, DeclaredConstValues {
+  }
   type FrontendSettings = SelectNVType<AutoItems>;
 
   /** Note: should have NO names which may be uglified */
@@ -303,6 +306,8 @@ declare namespace SettingsNS {
   }
   interface VomnibarPayload extends Readonly<SelectValueType<SettingsNS.ConstItems>>
       , SelectValueType<OtherVomnibarItems> {
+  }
+  interface DeclaredVomnibarPayload extends Omit<VomnibarPayload, keyof ConstItems>, DeclaredConstValues {
   }
 }
 declare const enum kOS {

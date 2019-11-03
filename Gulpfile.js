@@ -61,7 +61,7 @@ const KnownBackendGlobals = [
   "Backend_", "BgUtils_", "BrowserProtocol_",
   "Clipboard_", "CommandsData_", "Completion_", "ContentSettings_", "CurCVer_", "CurFFVer_",
   "FindModeHistory_", "IncognitoWatcher_", "Marks_", "MediaWatcher_",
-  "Settings_", "TabRecency_", "trans_"
+  "Settings_", "TabRecency_", "trans_", "As_"
 ];
 
 var CompileTasks = {
@@ -579,6 +579,7 @@ function compile(pathOrStream, header_files, done, options) {
   if (willListFiles) {
     stream = stream.pipe(gulpPrint());
   }
+  stream = stream.pipe(gulpMap(beforeCompile));
   var merged = doesMergeProjects ? _mergedProjectInput : null;
   var isInitingMerged = merged == null;
   if (isInitingMerged) {
@@ -606,16 +607,12 @@ function compile(pathOrStream, header_files, done, options) {
 
 function outputJSResult(stream) {
   if (locally) {
-    stream = stream.pipe(gulpMap(function(file) {
-      beforeUglify(file);
-    }));
+    stream = stream.pipe(gulpMap(beforeUglify));
     if (doesUglifyLocalFiles) {
       var config = loadUglifyConfig();
       stream = stream.pipe(getGulpUglify()(config));
     }
-    stream = stream.pipe(gulpMap(function(file) {
-      postUglify(file, file.history.join("|").indexOf("extend_click") >= 0);
-    }));
+    stream = stream.pipe(gulpMap(postUglify));
   }
   stream = stream.pipe(gulpChanged(JSDEST, {
     hasChanged: compareContentAndTouch
@@ -699,14 +696,12 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
       ext: new_suffix + ".js"
     }));
   }
-  let needPatch = false;
+  let allPaths = null;
   if (enableSourceMap) {
     stream = stream.pipe(require('gulp-sourcemaps').init({ loadMaps: true }));
-  } else {
+  } else if (is_file) {
     stream = stream.pipe(gulpMap(function(file) {
-      if (file.history.join("|").indexOf("extend_click") >= 0) {
-        needPatch = true;
-      }
+      allPaths = (allPaths || []).concat(file.history);
     }));
   }
   if (is_file) {
@@ -715,14 +710,13 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
     }
     stream = stream.pipe(require('gulp-concat')(output));
   }
-  var stdConfig = loadUglifyConfig(!!exArgs.nameCache);
-  if (exArgs.nameCache) {
-    stdConfig.nameCache = exArgs.nameCache;
+  var nameCache = exArgs.nameCache;
+  var stdConfig = loadUglifyConfig(!!nameCache);
+  if (nameCache) {
+    stdConfig.nameCache = nameCache;
     patchGulpUglify();
   }
-  stream = stream.pipe(gulpMap(function(file) {
-    beforeUglify(file);
-  }));
+  stream = stream.pipe(gulpMap(beforeUglify));
   const config = stdConfig;
   stream = stream.pipe(getGulpUglify()(config));
   stream = stream.pipe(getGulpUglify()({...config, mangle: null}));
@@ -730,7 +724,7 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
      stream = stream.pipe(require('gulp-rename')({ suffix: new_suffix }));
   }
   stream = stream.pipe(gulpMap(function(file) {
-    postUglify(file, needPatch);
+    postUglify(file, allPaths);
   }));
   if (willListEmittedFiles && !is_file) {
     stream = stream.pipe(gulpPrint());
@@ -743,16 +737,26 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
   return stream.pipe(gulp.dest(DEST));
 }
 
+function beforeCompile(file) {
+  var allPathStr = file.history.join("|");
+  var contents = null, changed = false, oldLen = 0;
+  function get() { contents == null && (contents = ToString(file.contents), changed = true, oldLen = contents.length); }
+  if (!locally && allPathStr.indexOf("settings") >= 0) {
+    get();
+    contents = contents.replace(/\b(const|let|var)?\s?As_\s?=[^,;]+[,;]/g, "").replace(/\bAs_\b/g, "");
+  }
+  if (changed || oldLen > 0 && contents.length !== oldLen) {
+    file.contents = ToBuffer(contents);
+  }
+}
+
 var toRemovedGlobal = null;
 
 function beforeUglify(file) {
+  var allPathStr = file.history.join("|");
   var contents = null, changed = false, oldLen = 0;
   function get() { contents == null && (contents = ToString(file.contents), changed = true, oldLen = contents.length); }
-  if (!locally && outputES6) {
-    get();
-    contents = contents.replace(/\bconst([\s{\[])/g, "let$1");
-  }
-  if (file.history.join("|").indexOf("viewer") >= 0) {
+  if (allPathStr.indexOf("viewer") >= 0) {
     get();
     contents = contents.replace(/\.offsetWidth\b/g, ".$offsetWidth()");
   }
@@ -761,10 +765,11 @@ function beforeUglify(file) {
   }
 }
 
-function postUglify(file, needToPatchExtendClick) {
+function postUglify(file, allPaths) {
+  var allPathStr = (allPaths || file.history).join("|");
   var contents = null, changed = false, oldLen = 0;
   function get() { contents == null && (contents = ToString(file.contents), changed = true, oldLen = contents.length); }
-  if (needToPatchExtendClick) {
+  if (allPathStr.indexOf("extend_click") >= 0) {
     get();
     contents = patchExtendClick(contents);
   }
@@ -806,7 +811,7 @@ function postUglify(file, needToPatchExtendClick) {
     }
     changed = changed || n > 0;
   }
-  if (file.history.join("|").indexOf("viewer") >= 0) {
+  if (allPathStr.indexOf("viewer") >= 0) {
     get();
     contents = contents.replace(/\.\$offsetWidth\(\)/g, ".offsetWidth");
   }

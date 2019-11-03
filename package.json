@@ -38,6 +38,7 @@
     "p": "gulp pages",
     "lint": "./node_modules/.bin/tslint --project .",
     "build": "gulp build",
+    "dist": "npm run chrome-latest",
     "rebuild": "gulp rebuild",
     "legacy": "bash -c \"BUILD_MinCVer=32 BUILD_BTypes=1 LOCAL_DIST=${LOCAL_DIST:-dist} BUILD_NDEBUG=0 gulp local2",
     "latest": "bash -c \"BUILD_MinCVer=73 BUILD_BTypes=1 LOCAL_DIST=${LOCAL_DIST:-dist} BUILD_NDEBUG=0 gulp local2",
