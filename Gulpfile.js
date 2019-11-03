@@ -744,9 +744,7 @@ function beforeCompile(file) {
   if (!locally && (allPathStr.includes("settings") || allPathStr.includes("commands")
       || allPathStr.includes("help_dialog"))) {
     get();
-    let a = contents.length;
     contents = contents.replace(/\b(const|let|var)?\s?As_\s?=[^,;]+[,;]/g, "").replace(/\bAs_\b/g, "");
-    print("test: " + (a - contents.length));
   }
   if (changed || oldLen > 0 && contents.length !== oldLen) {
     file.contents = ToBuffer(contents);
@@ -759,6 +757,10 @@ function beforeUglify(file) {
   var allPathStr = file.history.join("|");
   var contents = null, changed = false, oldLen = 0;
   function get() { contents == null && (contents = ToString(file.contents), changed = true, oldLen = contents.length); }
+  if (!locally && outputES6) {
+    get();
+    contents = contents.replace(/\bconst([\s{\[])/g, "let$1");
+  }
   if (allPathStr.indexOf("viewer") >= 0) {
     get();
     contents = contents.replace(/\.offsetWidth\b/g, ".$offsetWidth()");

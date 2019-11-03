@@ -240,7 +240,7 @@ var HelpDialog = {
       , kCName.closeTabsOnRight, kCName.closeOtherTabs, kCName.moveTabLeft, kCName.moveTabRight
       , kCName.enableCSTemp, kCName.toggleCS, kCName.clearCS, kCName.copyWindowInfo],
     misc: [kCName.showHelp, kCName.autoCopy, kCName.autoOpen, kCName.searchAs, kCName.searchInAnother
-      , kCName.toggleLinkHintCharacters,
+      , kCName.toggleLinkHintCharacters
       , kCName.toggleSwitchTemp, kCName.passNextKey, kCName.debugBackground, kCName.closeDownloadBar, kCName.blank]
   } as Readonly< EnsuredSafeDict<ReadonlyArray<kCName>> >,
   advancedCommands_: As_<{ readonly [k in kCName]?: 1 | 0; } & SafeObject>({ __proto__: null as never,
