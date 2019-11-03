@@ -52,20 +52,6 @@ declare const enum kFgReq {
   shortcut = "shortcut",
 }
 
-declare const enum kShortcutNames {
-  createTab = "createTab",
-  goBack = "goBack",
-  goForward = "goForward",
-  previousTab = "previousTab",
-  nextTab = "nextTab",
-  reloadTab = "reloadTab",
-  userCustomized = "userCustomized",
-}
-declare const enum kShortcutAliases {
-  _mask = 0,
-  nextTab1 = "quickNext",
-}
-
 interface BgReq {
   [kBgReq.init]: {
     /** status */ s: Frames.Flags;
@@ -192,8 +178,8 @@ interface FgOptions extends SafeDict<any> {}
 type SelectActions = "" | "all" | "all-input" | "all-line" | "start" | "end";
 
 interface CmdOptions {
-  [kFgCmd.linkHints]: FgOptions;
-  [kFgCmd.unhoverLast]: FgOptions;
+  [kFgCmd.linkHints]: Dict<any>;
+  [kFgCmd.unhoverLast]: Dict<any>;
   [kFgCmd.marks]: {
     mode?: "create" | /* all others are treated as "goto"  */ "goto" | "goTo";
     prefix?: true | false;
@@ -202,7 +188,7 @@ interface CmdOptions {
   [kFgCmd.scroll]: {
     /** continuous */ $c?: BOOL;
     axis?: "y" | "x";
-    dir?: 1 | -1;
+    dir?: 1 | -1 | 0.5 | -0.5;
     view?: 0 | /** means 0 */ undefined | 1 | "max" | /* all others are treated as "view" */ 2 | "view";
     dest?: undefined;
   } | {
@@ -212,7 +198,7 @@ interface CmdOptions {
     view?: undefined;
     dir?: undefined;
   };
-  [kFgCmd.reset]: FgOptions;
+  [kFgCmd.reset]: Dict<any>;
   [kFgCmd.toggle]: {
     k: keyof SettingsNS.FrontendSettingsSyncingItems;
     n: string; // `"${SettingsNS.FrontendSettingsSyncingItems[keyof SettingsNS.FrontendSettingsSyncingItems][0]}"`
@@ -227,6 +213,7 @@ interface CmdOptions {
   };
   [kFgCmd.framesGoBack]: {
     reuse?: ReuseType;
+    count?: -1; // just for commands.ts
   };
   [kFgCmd.vomnibar]: {
     /* vomnibar */ v: string;

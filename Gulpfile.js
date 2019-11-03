@@ -741,9 +741,12 @@ function beforeCompile(file) {
   var allPathStr = file.history.join("|");
   var contents = null, changed = false, oldLen = 0;
   function get() { contents == null && (contents = ToString(file.contents), changed = true, oldLen = contents.length); }
-  if (!locally && allPathStr.indexOf("settings") >= 0) {
+  if (!locally && (allPathStr.includes("settings") || allPathStr.includes("commands")
+      || allPathStr.includes("help_dialog"))) {
     get();
+    let a = contents.length;
     contents = contents.replace(/\b(const|let|var)?\s?As_\s?=[^,;]+[,;]/g, "").replace(/\bAs_\b/g, "");
+    print("test: " + (a - contents.length));
   }
   if (changed || oldLen > 0 && contents.length !== oldLen) {
     file.contents = ToBuffer(contents);

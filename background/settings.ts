@@ -676,7 +676,7 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) ||
   (ref3[ChromeNewTab] = ref3[ChromeNewTab + "/"] = Urls.NewTabType.browser);
   obj.GlobalCommands_ = (<Array<kShortcutNames | kShortcutAliases & string>> Object.keys(ref.commands || {})
-      ).map(i => i === kShortcutAliases.nextTab1 ? kShortcutNames.nextTab : i);
+      ).map(i => i === <string> <unknown> kShortcutAliases.nextTab1 ? kCName.nextTab : i);
   obj.VerCode_ = ref.version;
   obj.VerName_ = ref.version_name || ref.version;
   obj.OptionsPage_ = func(ref.options_page || obj.OptionsPage_);

@@ -2947,7 +2947,7 @@
     },
     ExecuteShortcut_ (this: void, cmd: string): void {
       const tabId = TabRecency_.last_, ports = framesForTab[tabId];
-      if (cmd === kShortcutAliases.nextTab1) { cmd = kShortcutNames.nextTab; }
+      if (cmd === <string> <unknown> kShortcutAliases.nextTab1) { cmd = kCName.nextTab; }
       type NullableShortcutMap = ShortcutInfoMap & { [key in string]?: CommandsNS.Item | null; };
       const map = CommandsData_.shortcutMap_ as NullableShortcutMap;
       if (!map || !map[cmd]) {

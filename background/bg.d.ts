@@ -227,7 +227,7 @@ declare namespace CommandsNS {
   /** [ enum, is background, count limit, default options ] */
   type Description = BgDescription | FgDescription;
   interface BaseItem {
-    readonly command_: string;
+    readonly command_: kCName;
     readonly options_: Options | null;
     readonly repeat_: number;
     readonly help_: CustomHelpInfo | null;
@@ -455,7 +455,6 @@ declare const enum kCName {
   enterVisualMode = "enterVisualMode",
   firstTab = "firstTab",
   focusInput = "focusInput",
-  focusOptions = "focusOptions",
   focusOrLaunch = "focusOrLaunch",
   goBack = "goBack",
   goForward = "goForward",
@@ -523,6 +522,155 @@ declare const enum kCName {
   visitPreviousTab = "visitPreviousTab",
   zoomIn = "zoomIn",
   zoomOut = "zoomOut",
+}
+
+declare namespace CommandsNS {
+  const enum OtherCNames {
+    focusOptions = "focusOptions",
+    userCustomized = "userCustomized",
+  }
+
+  type CmdNameIds = {
+    [kCName.LinkHints_activate]: kFgCmd.linkHints;
+    [kCName.LinkHints_activateMode]: kFgCmd.linkHints;
+    [kCName.LinkHints_activateModeToCopyLinkText]: kFgCmd.linkHints;
+    [kCName.LinkHints_activateModeToCopyLinkUrl]: kFgCmd.linkHints;
+    [kCName.LinkHints_activateModeToDownloadImage]: kFgCmd.linkHints;
+    [kCName.LinkHints_activateModeToDownloadLink]: kFgCmd.linkHints;
+    [kCName.LinkHints_activateModeToEdit]: kFgCmd.linkHints;
+    [kCName.LinkHints_activateModeToHover]: kFgCmd.linkHints;
+    [kCName.LinkHints_activateModeToLeave]: kFgCmd.linkHints;
+    [kCName.LinkHints_activateModeToOpenImage]: kFgCmd.linkHints;
+    [kCName.LinkHints_activateModeToOpenIncognito]: kFgCmd.linkHints;
+    [kCName.LinkHints_activateModeToOpenInNewForegroundTab]: kFgCmd.linkHints;
+    [kCName.LinkHints_activateModeToOpenInNewTab]: kFgCmd.linkHints;
+    [kCName.LinkHints_activateModeToOpenVomnibar]: kFgCmd.linkHints;
+    [kCName.LinkHints_activateModeToSearchLinkText]: kFgCmd.linkHints;
+    [kCName.LinkHints_activateModeWithQueue]: kFgCmd.linkHints;
+    [kCName.LinkHints_unhoverLast]: kFgCmd.unhoverLast;
+    [kCName.Marks_activate]: kFgCmd.marks;
+    [kCName.Marks_activateCreateMode]: kFgCmd.marks;
+    [kCName.Marks_clearGlobal]: kBgCmd.clearMarks;
+    [kCName.Marks_clearLocal]: kBgCmd.clearMarks;
+    [kCName.Vomnibar_activate]: kBgCmd.showVomnibar;
+    [kCName.Vomnibar_activateBookmarks]: kBgCmd.showVomnibar;
+    [kCName.Vomnibar_activateBookmarksInNewTab]: kBgCmd.showVomnibar;
+    [kCName.Vomnibar_activateEditUrl]: kBgCmd.showVomnibar;
+    [kCName.Vomnibar_activateEditUrlInNewTab]: kBgCmd.showVomnibar;
+    [kCName.Vomnibar_activateHistory]: kBgCmd.showVomnibar;
+    [kCName.Vomnibar_activateHistoryInNewTab]: kBgCmd.showVomnibar;
+    [kCName.Vomnibar_activateInNewTab]: kBgCmd.showVomnibar;
+    [kCName.Vomnibar_activateTabSelection]: kBgCmd.showVomnibar;
+    [kCName.Vomnibar_activateUrl]: kBgCmd.showVomnibar;
+    [kCName.Vomnibar_activateUrlInNewTab]: kBgCmd.showVomnibar;
+    [kCName.autoCopy]: kFgCmd.autoCopy;
+    [kCName.autoOpen]: kFgCmd.autoOpen;
+    [kCName.blank]: kBgCmd.blank;
+    [kCName.clearCS]: kBgCmd.clearCS;
+    [kCName.clearFindHistory]: kBgCmd.clearFindHistory;
+    [kCName.closeDownloadBar]: kBgCmd.moveTabToNewWindow;
+    [kCName.closeOtherTabs]: kBgCmd.removeTabsR;
+    [kCName.closeTabsOnLeft]: kBgCmd.removeTabsR;
+    [kCName.closeTabsOnRight]: kBgCmd.removeTabsR;
+    [kCName.copyCurrentTitle]: kBgCmd.copyTabInfo;
+    [kCName.copyCurrentUrl]: kBgCmd.copyTabInfo;
+    [kCName.copyWindowInfo]: kBgCmd.copyTabInfo;
+    [kCName.createTab]: kBgCmd.createTab;
+    [kCName.debugBackground]: kBgCmd.openUrl;
+    [kCName.discardTab]: kBgCmd.discardTab;
+    [kCName.duplicateTab]: kBgCmd.duplicateTab;
+    [kCName.enableCSTemp]: kBgCmd.toggleCS;
+    [kCName.enterFindMode]: kBgCmd.performFind;
+    [kCName.enterInsertMode]: kBgCmd.enterInsertMode;
+    [kCName.enterVisualLineMode]: kBgCmd.enterVisualMode;
+    [kCName.enterVisualMode]: kBgCmd.enterVisualMode;
+    [kCName.firstTab]: kBgCmd.goToTab;
+    [kCName.focusInput]: kFgCmd.focusInput;
+    [kCName.focusOrLaunch]: kBgCmd.openUrl;
+    [kCName.goBack]: kFgCmd.framesGoBack;
+    [kCName.goForward]: kFgCmd.framesGoBack;
+    [kCName.goNext]: kBgCmd.goNext;
+    [kCName.goPrevious]: kBgCmd.goNext;
+    [kCName.goToRoot]: kBgCmd.goToRoot;
+    [kCName.goUp]: kBgCmd.goUp;
+    [kCName.lastTab]: kBgCmd.goToTab;
+    [kCName.mainFrame]: kBgCmd.mainFrame;
+    [kCName.moveTabLeft]: kBgCmd.moveTab;
+    [kCName.moveTabRight]: kBgCmd.moveTab;
+    [kCName.moveTabToIncognito]: kBgCmd.moveTabToNewWindow;
+    [kCName.moveTabToNewWindow]: kBgCmd.moveTabToNewWindow;
+    [kCName.moveTabToNextWindow]: kBgCmd.moveTabToNextWindow;
+    [kCName.nextFrame]: kBgCmd.nextFrame;
+    [kCName.nextTab]: kBgCmd.goToTab;
+    [kCName.openCopiedUrlInCurrentTab]: kBgCmd.openUrl;
+    [kCName.openCopiedUrlInNewTab]: kBgCmd.openUrl;
+    [kCName.openUrl]: kBgCmd.openUrl;
+    [kCName.parentFrame]: kBgCmd.parentFrame;
+    [kCName.passNextKey]: kFgCmd.passNextKey;
+    [kCName.performAnotherFind]: kBgCmd.performFind;
+    [kCName.performBackwardsFind]: kBgCmd.performFind;
+    [kCName.performFind]: kBgCmd.performFind;
+    [kCName.previousTab]: kBgCmd.goToTab;
+    [kCName.quickNext]: kBgCmd.goToTab;
+    [kCName.reload]: kFgCmd.reload;
+    [kCName.reloadGivenTab]: kBgCmd.reloadGivenTab;
+    [kCName.reloadTab]: kBgCmd.reloadTab;
+    [kCName.removeRightTab]: kBgCmd.removeRightTab;
+    [kCName.removeTab]: kBgCmd.removeTab;
+    [kCName.reopenTab]: kBgCmd.reopenTab;
+    [kCName.restoreGivenTab]: kBgCmd.restoreGivenTab;
+    [kCName.restoreTab]: kBgCmd.restoreTab;
+    [kCName.scrollDown]: kFgCmd.scroll;
+    [kCName.scrollFullPageDown]: kFgCmd.scroll;
+    [kCName.scrollFullPageUp]: kFgCmd.scroll;
+    [kCName.scrollLeft]: kFgCmd.scroll;
+    [kCName.scrollPageDown]: kFgCmd.scroll;
+    [kCName.scrollPageUp]: kFgCmd.scroll;
+    [kCName.scrollPxDown]: kFgCmd.scroll;
+    [kCName.scrollPxLeft]: kFgCmd.scroll;
+    [kCName.scrollPxRight]: kFgCmd.scroll;
+    [kCName.scrollPxUp]: kFgCmd.scroll;
+    [kCName.scrollRight]: kFgCmd.scroll;
+    [kCName.scrollTo]: kFgCmd.scroll;
+    [kCName.scrollToBottom]: kFgCmd.scroll;
+    [kCName.scrollToLeft]: kFgCmd.scroll;
+    [kCName.scrollToRight]: kFgCmd.scroll;
+    [kCName.scrollToTop]: kFgCmd.scroll;
+    [kCName.scrollUp]: kFgCmd.scroll;
+    [kCName.searchAs]: kFgCmd.searchAs;
+    [kCName.searchInAnother]: kBgCmd.searchInAnother;
+    [kCName.showHelp]: kBgCmd.showHelp;
+    [kCName.simBackspace]: kFgCmd.switchFocus;
+    [kCName.switchFocus]: kFgCmd.switchFocus;
+    [kCName.toggleCS]: kBgCmd.toggleCS;
+    [kCName.toggleLinkHintCharacters]: kBgCmd.toggle;
+    [kCName.toggleMuteTab]: kBgCmd.toggleMuteTab;
+    [kCName.togglePinTab]: kBgCmd.togglePinTab;
+    [kCName.toggleSwitchTemp]: kBgCmd.toggle;
+    [kCName.toggleViewSource]: kBgCmd.toggleViewSource;
+    [kCName.toggleVomnibarStyle]: kBgCmd.toggleVomnibarStyle;
+    [kCName.showTip]: kBgCmd.showTip;
+    [kCName.visitPreviousTab]: kBgCmd.visitPreviousTab;
+    [kCName.zoomIn]: kBgCmd.toggleZoom;
+    [kCName.zoomOut]: kBgCmd.toggleZoom;
+  }
+
+  /** [ enum, is background, count limit, default options ] */
+  type NameMetaMap = {
+    readonly [k in kCName]:
+        CmdNameIds[k] extends kBgCmd ? [CmdNameIds[k], 1, 0 | 1, object?]
+        : CmdNameIds[k] extends keyof CmdOptions
+          ? [CmdNameIds[k], 0, 0 | 1, CmdOptions[CmdNameIds[k]]?]
+        : CmdNameIds[k] extends kFgCmd ? [CmdNameIds[k], 0, 0 | 1]
+        : never;
+  };
+}
+
+declare type kShortcutNames = kCName.createTab | kCName.goBack | kCName.goForward | kCName.previousTab
+    | kCName.nextTab | kCName.reloadTab | CommandsNS.OtherCNames.userCustomized;
+declare const enum kShortcutAliases {
+  _mask = 0,
+  nextTab1 = kCName.quickNext,
 }
 
 declare namespace BackendHandlersNS {
