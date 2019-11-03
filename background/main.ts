@@ -2339,7 +2339,6 @@
             if (i1.parentFrameId === self) {
               if (childId) { childId = 0; break; }
               childId = i1.frameId;
-              break;
             }
           }
           const port2 = childId && indexFrame(tabId, childId);
