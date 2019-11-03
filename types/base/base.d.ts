@@ -39,6 +39,19 @@ type MappedType<Type, NewValue> = {
   [key in keyof Type]: NewValue;
 };
 
+type SelectValueType<T> = {
+  [k in keyof T]: T[k] extends [string, infer V] ? V : unknown;
+};
+type SelectNameType<T> = {
+  [k in keyof T]: T[k] extends [infer FullK, any] ? FullK : T[k] extends string ? T[k] : never;
+};
+type SelectNVType<T extends { [k in K]: [string, any] }, K extends string = (keyof T) & string> = {
+  [name in T[K][0]]: K extends keyof T ? T[K][0] extends name ? T[K][1] : never : never;
+};
+type SelectNameToKey<T extends { [k in K]: [string, any] }, K extends string = (keyof T) & string> = {
+  [name in T[K][0]]: K extends keyof T ? T[K][0] extends name ? K : never : never;
+}
+
 // type EmptyArray = never[];
 declare const enum TimerType {
   _native = 0,

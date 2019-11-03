@@ -175,7 +175,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   wheelDelta_: 0,
   browser_: BrowserType.Chrome,
   browserVer_: Build.BTypes & BrowserType.Chrome ? BrowserVer.assumedVer : BrowserVer.assumedVer,
-  os_: kOS.win as SettingsNS.FrontendSettingsWithoutSyncing["o"],
+  os_: kOS.win as SettingsNS.ConstItems["o"][1],
   maxMatches_: 0,
   queryInterval_: 0,
   heightIfEmpty_: VomnibarNS.PixelData.OthersIfEmpty,

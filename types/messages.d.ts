@@ -112,9 +112,7 @@ interface BgReq {
     /** advanced */ c: boolean;
   } & Partial<BgCSSReq>;
   [kBgReq.settingsUpdate]: {
-    /** delta */ d: {
-      [key in keyof SettingsNS.FrontendSettingsWithSync]?: SettingsNS.FrontendSettingsWithSync[key];
-    };
+    /** delta */ d: Partial<SelectValueType<SettingsNS.FrontendSettingsSyncingItems>>;
   };
   [kBgReq.url]: {
     /** url */ u?: string;
@@ -127,19 +125,6 @@ interface BgReq {
     /** id */ i: number;
     /** message-in-confirmation-dialog */ m: string;
   };
-}
-
-/** Note: should have NO names which may be uglified */
-interface VomnibarPayload {
-  readonly /** browser */ b?: BrowserType;
-  readonly /** browserVer */ v?: BrowserVer;
-  readonly /** OS */ o?: SettingsNS.FrontendSettingsWithoutSyncing["o"];
-  /** ignoreCapsLock */ i: boolean;
-  /** css */ c: string;
-  /** maxMatches */ M: number;
-  /** queryInterval */ I: number;
-  /** comma-joined size numbers */ n: string;
-  /** styles */ s: string;
 }
 
 interface BgVomnibarSpecialReq {
@@ -156,7 +141,7 @@ interface BgVomnibarSpecialReq {
   } & Req.baseBg<kBgReq.omni_returnFocus>;
   [kBgReq.omni_init]: {
     /** secret */ s: number;
-    /* payload */ l: EnsureItemsNonNull<VomnibarPayload>;
+    /* payload */ l: SettingsNS.VomnibarPayload;
   };
   [kBgReq.omni_parsed]: {
     /** id */ i: number;
@@ -167,7 +152,7 @@ interface BgVomnibarSpecialReq {
     /** current */ c: boolean;
   };
   [kBgReq.omni_updateOptions]: {
-    /** delta */ d: Partial<Exclude<VomnibarPayload, "b" | "v">>;
+    /** delta */ d: Partial<SelectValueType<SettingsNS.OtherVomnibarItems>>;
   }
 }
 type ValidBgVomnibarReq = keyof BgVomnibarSpecialReq | kBgReq.injectorRun;
@@ -183,7 +168,7 @@ declare const enum kBgCmd {
   // endregion: need cport
   createTab,
   duplicateTab, moveTabToNewWindow, moveTabToNextWindow, toggleCS,
-  clearCS, goTab, removeTab, removeTabsR, removeRightTab,
+  clearCS, goToTab, removeTab, removeTabsR, removeRightTab,
   restoreTab, restoreGivenTab, discardTab, openUrl, searchInAnother,
   togglePinTab, toggleMuteTab, reloadTab, reloadGivenTab, reopenTab,
   goToRoot, goUp, moveTab, mainFrame,
@@ -229,8 +214,8 @@ interface CmdOptions {
   };
   [kFgCmd.reset]: FgOptions;
   [kFgCmd.toggle]: {
-    k: keyof SettingsNS.FrontendSettingsWithSync;
-    n: string; // `"${keyof SettingsNS.FrontendSettingNameMap}"`
+    k: keyof SettingsNS.FrontendSettingsSyncingItems;
+    n: string; // `"${SettingsNS.FrontendSettingsSyncingItems[keyof SettingsNS.FrontendSettingsSyncingItems][0]}"`
     v: SettingsNS.FrontendSettings[keyof SettingsNS.FrontendSettings] | null;
   };
   [kFgCmd.passNextKey]: {

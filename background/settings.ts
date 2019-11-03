@@ -22,7 +22,7 @@ var Settings_ = {
     o: kOS.win
   } : {
     __proto__: null as never, r: false, d: "", g: false, i: false, o: kOS.win
-  }) as SettingsNS.FrontendSettingsWithoutSyncing & SettingsNS.FrontendSettingsSyncedManually
+  }) as SelectValueType<SettingsNS.ConstItems & SettingsNS.ManualItems & SettingsNS.OneTimeItems>
       & SafeObject as SettingsNS.FrontendSettingCache & SafeObject,
   omniPayload_: (Build.BTypes & BrowserType.Chrome ? {
     v: CurCVer_,
@@ -35,8 +35,8 @@ var Settings_ = {
     s: ""
   } : {
     i: false, o: kOS.win,
-    c: "", M: 0, I: 0, n: "", s: ""
-  }) as VomnibarPayload,
+    c: "", I: 0, M: 0, n: "", s: ""
+  }) as SettingsNS.VomnibarPayload,
   newTabs_: BgUtils_.safeObj_() as ReadonlySafeDict<Urls.NewTabType>,
   extWhiteList_: null as never as SafeDict<boolean>,
   storage_: localStorage,
@@ -528,7 +528,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     ignoreKeyboardLayout: "L",
     keyboard: "k", linkHintCharacters: "l",
     regexFindMode: "R", smoothScroll: "S", scrollStepSize: "t"
-  } as SettingsNS.FrontendSettingNameMap & SafeObject,
+  } as SelectNameToKey<SettingsNS.AutoItems> & SafeObject,
   sync_: BgUtils_.blank_ as SettingsNS.Sync["set"],
   restore_: null as (() => Promise<void> | null) | null,
   CONST_: {
@@ -593,7 +593,7 @@ chrome.runtime.getPlatformInfo(function (info): void {
     ? chrome.runtime.PlatformOs as NonNullable<typeof chrome.runtime.PlatformOs>
     : chrome.runtime.PlatformOs || { MAC: "mac", WIN: "win" },
   osEnum = os === types.WIN ? kOS.win : os === types.MAC ? kOS.mac : kOS.linux,
-  ignoreCapsLock = Settings_.get_("ignoreCapsLock");
+  ignoreCapsLock = Settings_.get_(SettingsNS.kNames.ignoreCapsLock);
   Settings_.CONST_.Platform_ = os;
   (Settings_.omniPayload_ as Writable<typeof Settings_.omniPayload_>).o =
   (Settings_.payload_ as Writable<typeof Settings_.payload_>).o = osEnum;
@@ -605,7 +605,7 @@ chrome.runtime.getPlatformInfo(function (info): void {
 } else {
   Settings_.CONST_.Platform_ = Build.BTypes & BrowserType.Edge
     && (!(Build.BTypes & BrowserType.Edge) || OnOther === BrowserType.Edge) ? "win" : "unknown";
-  Settings_.payload_.i = Settings_.get_("ignoreCapsLock") > 1;
+  Settings_.payload_.i = Settings_.get_(SettingsNS.kNames.ignoreCapsLock) > 1;
   Settings_.temp_.initing_ |= BackendHandlersNS.kInitStat.platformInfo;
 }
 
@@ -651,7 +651,7 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   }
   if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
     (payload_ as Writable<typeof payload_>).b =
-        (settings.omniPayload_ as Writable<VomnibarPayload>).b = OnOther;
+        (settings.omniPayload_ as Writable<typeof settings.omniPayload_>).b = OnOther;
   }
   if (Build.MayOverrideNewTab) {
     const overrides = ref.chrome_url_overrides, hasNewTab = overrides && overrides.newtab;
@@ -694,11 +694,12 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   }
   obj.ContentScripts_ = ref2.map(func);
 
-  payload_.g = settings.get_("grabBackFocus");
+  payload_.g = settings.get_(SettingsNS.kNames.grabBackFocus);
   if (!(Build.BTypes & BrowserType.Chrome)) { delete valuesToLoad_.hookAccessKeys; }
+  type AutoNames = SettingsNS.AutoItems[keyof SettingsNS.AutoItems][0];
   for (let _i in valuesToLoad_) {
-    const key = valuesToLoad_[_i as keyof SettingsNS.FrontendSettingNameMap];
-    (payload_ as Generalized<typeof payload_>)[key] = settings.get_(_i as keyof SettingsNS.FrontendSettingNameMap);
+    const key = valuesToLoad_[_i as AutoNames];
+    (payload_ as Generalized<typeof payload_>)[key] = settings.get_(_i as AutoNames);
   }
 
   if (Build.MayOverrideNewTab) {

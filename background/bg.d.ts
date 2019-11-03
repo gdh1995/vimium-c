@@ -307,14 +307,12 @@ declare namespace MediaNS {
 declare namespace SettingsNS {
   interface BackendSettings extends BaseBackendSettings {
     autoDarkMode: boolean;
-    autoReduceMotion: boolean;
     dialogMode: boolean;
     exclusionListenHash: boolean;
     exclusionOnlyFirstMatch: boolean;
     exclusionRules: ExclusionsNS.StoredRule[];
     extWhiteList: string;
     findModeRawQueryList: string;
-    grabBackFocus: boolean;
     hideHud: boolean;
     innerCSS: string;
     keyMappings: string;
@@ -401,8 +399,7 @@ declare namespace SettingsNS {
 }
 import FullSettings = SettingsNS.FullSettings;
 
-declare const enum kName {
-  
+declare const enum kCName {
   LinkHints_activate = "LinkHints.activate",
   LinkHints_activateMode = "LinkHints.activateMode",
   LinkHints_activateModeToCopyLinkText = "LinkHints.activateModeToCopyLinkText",

@@ -31,7 +31,7 @@
     [kBgCmd.createTab]: UseTab.ActiveTab | UseTab.NoTab;
     [kBgCmd.openUrl]: UseTab.ActiveTab | UseTab.NoTab;
 
-    [kBgCmd.goTab]: UseTab.CurShownTabs;
+    [kBgCmd.goToTab]: UseTab.CurShownTabs;
     [kBgCmd.removeTab]: UseTab.CurWndTabs;
     [kBgCmd.removeTabsR]: UseTab.CurWndTabs;
     [kBgCmd.removeRightTab]: UseTab.CurWndTabs;
@@ -1072,10 +1072,12 @@
       });
     },
     /* kBgCmd.toggle: */ function (this: void): void {
-      type Keys = keyof SettingsNS.FrontendSettingMutableNames;
+      type Keys = SettingsNS.FrontendSettingsSyncingItems[keyof SettingsNS.FrontendSettingsSyncingItems][0];
       const all = Settings_.payload_, key: Keys = (cOptions.key || "") + "" as Keys,
-      kIgnoreCapsLock = "ignoreCapsLock",
-      key2 = key === kIgnoreCapsLock ? "i" : Settings_.valuesToLoad_[key],
+      key2 = key === SettingsNS.kNames.ignoreCapsLock ? "i"
+          : key === SettingsNS.kNames.darkMode ? "d"
+          : key === SettingsNS.kNames.reduceMotion ? "r"
+          : Settings_.valuesToLoad_[key],
       old = key2 ? all[key2] : 0, keyRepr = trans_("quoteA", [key]);
       let value = cOptions.value, isBool = typeof value === "boolean", msg = "";
       if (!key2) {
@@ -1439,7 +1441,7 @@
       }
       return ContentSettings_.clearCS_(cOptions, cPort);
     },
-    /* kBgCmd.goTab: */ function (this: void, tabs: Tab[]): void {
+    /* kBgCmd.goToTab: */ function (this: void, tabs: Tab[]): void {
       if (tabs.length < 2) { return; }
       const count = cRepeat, len = tabs.length;
       let cur: Tab | undefined, index = cOptions.absolute
@@ -1994,11 +1996,11 @@
       const key = allowed[k], p = Settings_.restore_ && Settings_.restore_();
       p ? p.then(() => { Settings_.set_(key, request.v); }) : Settings_.set_(key, request.v);
       interface BaseCheck { key: 123; }
-      type Map1<T> = T extends keyof SettingsNS.FrontendSettingNameMap ? T : 123;
+      type Map1<T> = T extends keyof SettingsNS.AutoItems ? T : 123;
       interface Check extends BaseCheck { key: Map1<keyof SettingsNS.FrontUpdateAllowedSettings>; }
       if (!Build.NDEBUG) { // just a type assertion
         let obj: Check = {
-          key: key as keyof SettingsNS.FrontUpdateAllowedSettings & keyof SettingsNS.FrontendSettingNameMap
+          key: key as keyof SettingsNS.FrontUpdateAllowedSettings & keyof SettingsNS.AutoItems
         };
         console.log("updated from content scripts:", obj);
       }

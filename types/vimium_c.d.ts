@@ -238,62 +238,71 @@ declare const enum PortType {
 }
 
 declare namespace SettingsNS {
+  const enum kNames {
+    autoReduceMotion = "autoReduceMotion",
+    ignoreCapsLock = "ignoreCapsLock",
+    grabBackFocus = "grabBackFocus",
+    darkMode = "darkMode",
+    reduceMotion = "reduceMotion",
+  }
+  type AutoItems = {
+    /** hookAccessKeys */ a: ["hookAccessKeys", boolean];
+    /** ignoreKeyboardLayout */ L: ["ignoreKeyboardLayout", boolean];
+    /** keyboard */ k: ["keyboard", [number, number]];
+    /** linkHintCharacters */ l: ["linkHintCharacters", string];
+    /** regexFindMode */ R: ["regexFindMode", boolean];
+    /** scrollStepSize */ t: ["scrollStepSize", number];
+    /** smoothScroll */ S: ["smoothScroll", boolean];
+  }
+  interface ManualItems {
+    /** darkMode */ d: [kNames.darkMode, " D" | ""];
+    /** ignoreCapsLock */ i: [kNames.ignoreCapsLock, boolean];
+    /** reduceMotion */ r: [kNames.reduceMotion, BaseBackendSettings["autoReduceMotion"]];
+  }
+  interface OneTimeItems {
+    /** grabBackFocus */ g: [kNames.grabBackFocus, BaseBackendSettings[kNames.grabBackFocus]];
+  }
+  interface ConstItems {
+    /** browser */ b: ["browser", BrowserType | undefined];
+    /** browserVer */ v: ["browserVer", BrowserVer | undefined];
+    /** OS */ o: ["OS", kOS.mac | kOS.linux | kOS.win];
+  }
+  type VomnibarOptionItems = {
+    /** maxMatches */ M: ["maxMatches", number];
+    /** queryInterval */ I: ["queryInterval", number];
+    /** comma-joined size numbers */ n: ["sizes", string];
+    /** styles */ s: ["styles", string];
+  }
+
   interface BaseBackendSettings {
+    [kNames.autoReduceMotion]: boolean;
     focusNewTabContent: boolean;
+    [kNames.grabBackFocus]: boolean;
     /** if want to rework it, must search it in all files and take care */
-    ignoreCapsLock: 0 | 1 | 2;
+    [kNames.ignoreCapsLock]: 0 | 1 | 2;
     newTabUrl_f: string;
     showAdvancedCommands: boolean;
-    vomnibarOptions: {
-      maxMatches: number;
-      queryInterval: number;
-      sizes: string; // comma-joined size numbers
-      styles: string;
-    };
+    vomnibarOptions: SelectNVType<VomnibarOptionItems>;
   }
   interface FrontUpdateAllowedSettings {
     showAdvancedCommands: 0;
   }
-  interface FrontendSettings {
-    ignoreKeyboardLayout: boolean;
-    keyboard: [number, number];
-    linkHintCharacters: string;
-    regexFindMode: boolean;
-    scrollStepSize: number;
-    smoothScroll: boolean;
-    hookAccessKeys: boolean;
-  }
-  interface FrontendSettingNameMap {
-    hookAccessKeys: "a";
-    ignoreKeyboardLayout: "L";
-    keyboard: "k";
-    linkHintCharacters: "l";
-    regexFindMode: "R";
-    smoothScroll: "S";
-    scrollStepSize: "t";
-  }
-  interface FrontendSettingMutableNames extends FrontendSettingNameMap {
-    ignoreCapsLock: "i";
-  }
-  type CachedFrontendSettingsTemplate<T> = T extends keyof FrontendSettingNameMap ? {
-    [k in FrontendSettingNameMap[T]]: FrontendSettings[T];
-  } : never;
-  type CachedFrontendSettings = UnionToIntersection<CachedFrontendSettingsTemplate<keyof FrontendSettings>>;
-  interface FrontendSettingsSyncedManually {
-    /** reduceMotion */ r: boolean;
-    /** darkMode */ d: " D" | "";
-    /** ignoreCapsLock */ i: boolean;
-  }
-  interface FrontendSettingsWithoutSyncing {
-    /** browserVer */ readonly v?: BrowserVer;
-    /** browser */ readonly b?: BrowserType;
-    /** OS */ readonly o: kOS.mac | kOS.linux | kOS.win;
-    /** grabBackFocus */ g: boolean;
-  }
-  interface FrontendSettingsWithSync extends CachedFrontendSettings, FrontendSettingsSyncedManually {}
+
+  interface FrontendSettingsSyncingItems extends AutoItems, ManualItems {}
+  type FrontendSettings = SelectNVType<AutoItems>;
+
   /** Note: should have NO names which may be uglified */
-  interface FrontendSettingCache extends FrontendSettingsWithSync, FrontendSettingsWithoutSyncing {
-    /** browserVer */ readonly v: BrowserVer;
+  interface FrontendSettingCache extends Readonly<SelectValueType<ConstItems>>
+      , SelectValueType<FrontendSettingsSyncingItems & OneTimeItems> {
+  }
+
+  /** Note: should have NO names which may be uglified */
+  interface OtherVomnibarItems extends Pick<SettingsNS.ManualItems, "i">
+      , VomnibarOptionItems {
+    /** css */ c: ["omniCSS", string];
+  }
+  interface VomnibarPayload extends Readonly<SelectValueType<SettingsNS.ConstItems>>
+      , SelectValueType<OtherVomnibarItems> {
   }
 }
 declare const enum kOS {

@@ -661,13 +661,13 @@ BgUtils_.timeout_(120, function (): void {
 
   const settings = Settings_;
   settings.updateHooks_.autoDarkMode = settings.updateHooks_.autoReduceMotion = (value: boolean
-      , keyName: "autoReduceMotion" | "autoDarkMode"): void => {
+      , keyName: SettingsNS.kNames.autoReduceMotion | "autoDarkMode"): void => {
     const key = keyName.length > 12 ? MediaNS.kName.PrefersReduceMotion
         : MediaNS.kName.PrefersColorScheme;
     MediaWatcher_.listen_(key, value);
   };
   settings.postUpdate_("autoDarkMode");
-  settings.postUpdate_("autoReduceMotion");
+  settings.postUpdate_(SettingsNS.kNames.autoReduceMotion);
   settings.updateOmniStyles_ = MediaWatcher_.update_;
   settings.updateMediaQueries_ = MediaWatcher_.RefreshAll_;
 
