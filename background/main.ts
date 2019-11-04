@@ -2250,12 +2250,14 @@
       }
       let tabId = port.s.t, ref = framesForTab[tabId] as Frames.WritableFrames | undefined, status: Frames.ValidStatus;
       if (!ref) {
-        return needIcon ? Backend_.setIcon_(tabId, port.s.s) : undefined;
+        needIcon && Backend_.setIcon_(tabId, port.s.s);
+        return;
       }
       if (port === ref[0]) { return; }
       if (needIcon && (status = port.s.s) !== ref[0].s.s) {
         ref[0] = port;
-        return Backend_.setIcon_(tabId, status);
+        Backend_.setIcon_(tabId, status);
+        return;
       }
       ref[0] = port;
     },

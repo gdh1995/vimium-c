@@ -560,13 +560,21 @@ BgUtils_.timeout_(150, function (): void {
       }, 200);
       return;
     }
+    if (imageData) { return; }
     if (!(Build.BTypes & BrowserType.Chrome)) {
       imageData = 1 as unknown as IconNS.StatusMap<IconNS.IconBuffer>;
-      return;
+    } else {
+      imageData = BgUtils_.safeObj_();
+      tabIds = BgUtils_.safeObj_();
     }
-    if (imageData) { return; }
-    imageData = BgUtils_.safeObj_();
-    tabIds = BgUtils_.safeObj_();
+    // only do partly updates: ignore "rare" cases like `sender.s` is enabled but the real icon isn't
+    const ref = Backend_.indexPorts_();
+    for (const tabId in ref) {
+      const sender = (ref[+tabId] as Frames.Frames)[0].s;
+      if (sender.s !== Frames.Status.enabled) {
+        Backend_.setIcon_(sender.t, sender.s);
+      }
+    }
   } as IconNS.AccessIconBuffer;
   Backend_.setIcon_ = function (this: void, tabId: number, type: Frames.ValidStatus, isLater?: true): void {
     let data: IconNS.IconBuffer | undefined, path: IconNS.PathBuffer;
