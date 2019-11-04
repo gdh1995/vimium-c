@@ -44,7 +44,7 @@ if (typeof VApi == "object" && VApi && typeof VApi.destroy_ == "function") {
   VApi.destroy_(1);
 }
 
-var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
+var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_ || "", Vomnibar_ = {
   pageType_: VomnibarNS.PageType.Default,
   activate_ (options: Options): void {
     VUtils_.safer_(options);
@@ -1097,14 +1097,14 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
       return;
     }
     item.favIcon = (str = Vomnibar_.showFavIcon_ ? item.u : "") && Vomnibar_._favPrefix +
-        VUtils_.escapeCSSUrlInAttr_(str = Vomnibar_._parseFavIcon(item, str) ? str : "about:blank"
-          /* , Build.BTypes >= BrowserVer.MinChromeFavicon2 || Vomnibar_.browserVer_ >= BrowserVer.MinChromeFavicon2 */
-          ) +
+        VUtils_.escapeCSSUrlInAttr_((str = Vomnibar_._parseFavIcon(item, str)) || "about:blank") +
         "&quot;);";
   },
   _parseFavIcon (item: SuggestionE, url: string): string {
-    let str = url.slice(0, 11).toLowerCase();
-    return str.startsWith("vimium://") ? "chrome-extension://" + (VCID_ || chrome.runtime.id) + "/pages/options.html"
+    let str = url.slice(0, 11).toLowerCase(), optionsPage = "/pages/options.html";
+    return str.startsWith("vimium://")
+      ? Vomnibar_.pageType_ !== VomnibarNS.PageType.ext
+        ? chrome.runtime.getURL(optionsPage) : location.protocol + "//" + VHost_ + optionsPage
       : url.length > 512 || str === "javascript:" || str.startsWith("data:") ? ""
       : item.e === "search" && !item.v
         ? url.startsWith("http") ? url.slice(0, (url.indexOf("/", url[4] === "s" ? 8 : 7) + 1) || void 0) : ""
@@ -1276,7 +1276,7 @@ VPort_ = {
   },
   _ClearPort (this: void): void { VPort_._port = null; },
   connect_ (type: PortType): FgPort {
-    const data = { name: PortNameEnum.Prefix + type + (VCID_ ? PortNameEnum.Delimiter + BuildStr.Commit : "") },
+    const data = { name: VCID_ ? PortNameEnum.Prefix + type + (PortNameEnum.Delimiter + BuildStr.Commit) : "" + type },
     port = VPort_._port = (VCID_ ? chrome.runtime.connect(VCID_, data) : chrome.runtime.connect(data)) as FgPort;
     port.onDisconnect.addListener(VPort_._ClearPort);
     port.onMessage.addListener(VPort_._Listener as (message: object) => void);
@@ -1307,10 +1307,11 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
   if (location.pathname.startsWith("/front/") || !(curEl = document.currentScript as HTMLScriptElement | null)) {
     /* is inner or web */
   }
-  else if (curEl.src.endsWith("/front/vomnibar.js") && !(<RegExpOne> /^ftp|^http/).test(curEl.src)) {
+  else if (curEl.src.endsWith("/front/vomnibar.js") && !(<RegExpOne> /^(ht|f)tp/).test(curEl.src)) {
     VCID_ = new URL(curEl.src).host;
     Build.MinCVer < BrowserVer.Min$URL$NewableAndInstancesHaveProperties && Build.BTypes & BrowserType.Chrome &&
     (VCID_ = VCID_ || "");
+    VHost_ = VCID_;
     if (!(Build.BTypes & BrowserType.Chrome)
         || Build.BTypes & ~BrowserType.Chrome && (VCID_ as string).indexOf("-") > 0) {
       VCID_ = curEl.dataset.vimiumId || BuildStr.FirefoxID;
@@ -1352,7 +1353,7 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
       Vomnibar_.browser_ = payload.b as BrowserType;
     }
     if (Build.BTypes & BrowserType.Chrome) {
-      Vomnibar_.browserVer_ = payload.v as NonNullable<typeof payload.v>;
+      Vomnibar_.browserVer_ = payload.v as BrowserVer;
     }
     Vomnibar_.os_ = payload.o;
     Vomnibar_.styles_ = payload.s;

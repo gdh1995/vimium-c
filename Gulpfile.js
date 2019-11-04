@@ -291,6 +291,10 @@ var Tasks = {
     } else if (minVer && minVer < 999) {
       manifest.minimum_chrome_version = "" + (minVer | 0);
     }
+    if (getBuildItem("EdgeI")) {
+      delete manifest.key;
+      delete manifest.update_url;
+    }
     if (!(browser & ~BrowserType.Firefox)) {
       delete manifest.background.persistent;
     }

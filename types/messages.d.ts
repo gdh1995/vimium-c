@@ -107,7 +107,7 @@ interface BgReq {
     /** url */ u: string; // a javascript: URL
   } & Req.baseBg<kBgReq.eval>;
   [kBgReq.count]: {
-    /** cmd */ c: kShortcutNames | "";
+    /** cmd: kShortcutNames | "" */ c: string;
     /** id */ i: number;
     /** message-in-confirmation-dialog */ m: string;
   };

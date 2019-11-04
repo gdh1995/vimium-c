@@ -1146,7 +1146,7 @@
 		"message": " 上给予好评"
 	},
 	"ifBug": {
-		"message": "发现了Bug？"
+		"message": "发现了故障？"
 	},
 	"HReport": {
 		"message": "请点此反馈您的问题"

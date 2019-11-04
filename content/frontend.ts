@@ -1066,7 +1066,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     /* kBgReq.init: */ function (request: BgReq[kBgReq.init]): void {
       const r = requestHandlers, {c: load, s: flags} = request, D = VDom;
       if (Build.BTypes & BrowserType.Chrome) {
-        browserVer = load.v as NonNullable<typeof load.v>;
+        browserVer = load.v as BrowserVer;
       }
       if (<number> Build.BTypes !== BrowserType.Chrome && <number> Build.BTypes !== BrowserType.Firefox
           && <number> Build.BTypes !== BrowserType.Edge) {
@@ -1075,6 +1075,18 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       D.cache_ = VKey.cache_ = fgCache = load as EnsureItemsNonNull<typeof load>;
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key) {
         load.o || (VKey.keyIdCorrectionOffset_ = 300);
+      }
+      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNoKeygenElement
+          || Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinNoKeygenElement) {
+        /** here should keep the same as {@link ../background/settings.ts#Settings_.payload_} */
+        if (Build.BTypes & BrowserType.Chrome
+            ? Build.MinCVer < BrowserVer.MinNoKeygenElement && browserVer < BrowserVer.MinNoKeygenElement
+            : Build.BTypes & BrowserType.Firefox
+            ? Build.MinFFVer < FirefoxBrowserVer.MinNoKeygenElement
+              && <FirefoxBrowserVer | 0> load.v < FirefoxBrowserVer.MinNoKeygenElement
+            : false) {
+          (D.editableTypes_ as Writable<typeof D.editableTypes_>).keygen = EditableType.Select;
+        }
       }
       if (Build.BTypes & BrowserType.Chrome
           && (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl)) {
@@ -1556,9 +1568,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       status = requestHandlers[0] ? PortType.initing
         : (isEnabled ? passKeys ? PortType.knownPartial : PortType.knownEnabled : PortType.knownDisabled)
         + (isLocked ? PortType.isLocked : 0) + (VCui.styleIn_ ? PortType.hasCSS : 0),
-      name = PortNameEnum.Prefix + (
-        PortType.isTop * +isTop + PortType.hasFocus * +document.hasFocus() + status),
-      data = { name: injector ? name + injector.$h : name },
+      name = PortType.isTop * +isTop + PortType.hasFocus * +document.hasFocus() + status,
+      data = { name: injector ? PortNameEnum.Prefix + name + injector.$h : "" + name },
       port = vPort._port = injector ? connect(injector.id, data) as Port : connect(data) as Port;
       port.onDisconnect.addListener(vPort.ClearPort_);
       port.onMessage.addListener(vPort.Listener_);

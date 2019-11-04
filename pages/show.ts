@@ -540,7 +540,7 @@ function clean() {
 function parseSmartImageUrl_(originUrl: string): string | null {
   function safeParseURL(url1: string): URL | null { try { return new URL(url1); } catch {} return null; }
   const parsed = safeParseURL(originUrl);
-  if (!parsed || !(<RegExpI> /^s?ftp|^http/i).test(parsed.protocol)) { return null; }
+  if (!parsed || !(<RegExpI> /^(ht|s?f)tp/i).test(parsed.protocol)) { return null; }
   let search = parsed.search;
   function DecodeURLPart_(this: void, url1: string | undefined): string {
     try {

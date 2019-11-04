@@ -586,9 +586,9 @@ var VDom = {
     button: 1, checkbox: 1, color: 1, file: 1, hidden: 1, //
     image: 1, radio: 1, range: 1, reset: 1, submit: 1
   },
-  editableTypes_: <SafeDict<EditableType>> { __proto__: null as never,
+  editableTypes_: <ReadonlySafeDict<EditableType>> { __proto__: null as never,
     input: EditableType.input_, textarea: EditableType.TextBox,
-    keygen: EditableType.Select, select: EditableType.Select,
+    select: EditableType.Select,
     embed: EditableType.Embed, object: EditableType.Embed
   },
   /**

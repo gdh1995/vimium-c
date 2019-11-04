@@ -2460,7 +2460,7 @@
       chrome.tabs.query({ url, windowType: "normal" }, cb2);
     },
     /** kFgReq.cmd: */ function (this: void, request: FgReq[kFgReq.cmd], port: Port): void {
-      const cmd = request.c, id = request.i;
+      const cmd = request.c as kShortcutNames | "", id = request.i;
       if (id >= -1 && gCmdTimer !== id) { return; } // an old / aborted / test message
       setupSingletonCmdTimer(0);
       if (request.r) {
@@ -2982,8 +2982,7 @@
       Settings_.get_("nextPatterns", true);
       Settings_.get_("previousPatterns", true);
       chrome.runtime.onConnect.addListener(function (port): void {
-        return OnConnect(port as Frames.Port,
-            (port.name.slice(PortNameEnum.PrefixLen) as string | number as number) | 0);
+        return OnConnect(port as Frames.Port, (port.name as string | number as number) | 0);
       });
       if (Build.BTypes & BrowserType.Edge && !chrome.runtime.onConnectExternal) {
         return;

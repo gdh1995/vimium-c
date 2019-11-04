@@ -264,10 +264,10 @@ declare namespace SettingsNS {
   }
   interface ConstItems {
     /** browser */ b: ["browser", BrowserType | undefined];
-    /** browserVer */ v: ["browserVer", BrowserVer | undefined];
+    /** browserVer */ v: ["browserVer", BrowserVer | FirefoxBrowserVer | 0 | undefined];
     /** OS */ o: ["OS", kOS.mac | kOS.linux | kOS.win];
   }
-  type DeclaredConstValues = SelectValueType<Partial<Pick<ConstItems, "v">> & Pick<ConstItems, "o">>;
+  type DeclaredConstValues = SelectValueType<Omit<ConstItems, "b">>;
   type VomnibarOptionItems = {
     /** maxMatches */ M: ["maxMatches", number];
     /** queryInterval */ I: ["queryInterval", number];
@@ -382,7 +382,7 @@ interface VimiumInjectorTy {
   alive: 0 | 0.5 | 1 | -1;
   host: string;
   version: string;
-  $h: string;
+  $h: ExternalMsgs[kFgReq.inject]["res"]["h"];
   clickable: WeakSet<Element> | null | undefined;
   cache: Dict<any> | null;
   getCommandCount: (this: void) => number;
@@ -917,6 +917,7 @@ declare const enum BrowserVer {
   assumedVer = 999,
 }
 declare const enum FirefoxBrowserVer {
+  MinSupported = 63,
   // though it's under the control of `dom.webcomponents.shadowdom.enabled` (removed on FF65),
   // here still think it's "ensured" since FF63 - the code will be much simpler
   MinEnsuredShadowDOMV1 = 63, // also DocumentOrShadowRoot::getSelection
@@ -935,7 +936,6 @@ declare const enum FirefoxBrowserVer {
   MinUserScriptsAPI = 69, // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/userScripts
   // https://bugzilla.mozilla.org/show_bug.cgi?id=1587723
   MinMediaChangeEventsOnBackgroundPage = 73,
-  MinSupported = 63,
   None = 0,
   assumedVer = 999,
 }

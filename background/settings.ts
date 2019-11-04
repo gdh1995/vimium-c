@@ -12,20 +12,16 @@ var Settings_ = {
     IconBuffer_: null as IconNS.AccessIconBuffer | null,
     shownHash_: null as ((this: void) => string) | null
   },
-  payload_: <SettingsNS.FrontendSettingCache> As_<SettingsNS.DeclaredFrontendValues>(
-      Build.BTypes & BrowserType.Chrome ? {
-    v: CurCVer_,
+  payload_: <SettingsNS.FrontendSettingCache> As_<SettingsNS.DeclaredFrontendValues>({
+    v: Build.BTypes & BrowserType.Chrome ? CurCVer_ : Build.BTypes & BrowserType.Firefox ? CurFFVer_ : 0,
     r: false,
     d: "",
     g: false,
     i: false,
     o: kOS.win
-  } : {
-    r: false, d: "", g: false, i: false, o: kOS.win
   }),
-  omniPayload_: <SettingsNS.VomnibarPayload> As_<SettingsNS.DeclaredVomnibarPayload>(
-      Build.BTypes & BrowserType.Chrome ? {
-    v: CurCVer_,
+  omniPayload_: <SettingsNS.VomnibarPayload> As_<SettingsNS.DeclaredVomnibarPayload>({
+    v: Build.BTypes & BrowserType.Chrome ? CurCVer_ : Build.BTypes & BrowserType.Firefox ? CurFFVer_ : 0,
     i: false,
     o: kOS.win,
     c: "",
@@ -33,9 +29,6 @@ var Settings_ = {
     M: 0,
     n: "",
     s: ""
-  } : {
-    i: false, o: kOS.win,
-    c: "", I: 0, M: 0, n: "", s: ""
   }),
   newTabs_: BgUtils_.safeObj_() as ReadonlySafeDict<Urls.NewTabType>,
   extWhiteList_: null as never as SafeDict<boolean>,
