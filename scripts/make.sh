@@ -38,6 +38,8 @@ if [ -z "$output" -o -d "$output" ]; then
     if [ -n "$ori_output" ]; then :
     elif bool "$WITH_MAP"; then
       ver=${ver}-debug
+    elif test "$FOR_EDGE" == 1; then
+      ver=${ver}-edge
     elif test -f "$ZIP_BASE/.build/.chrome.build"; then
       ver=${ver}-chrome
     elif test -f "$ZIP_BASE/.build/.firefox.build"; then
@@ -98,7 +100,7 @@ if ! bool "$NOT_IGNORE_FRONT"; then
 fi
 zip -rX -MM $args "$output_for_zip" ${input[@]} -x 'weidu*' 'helpers*' 'test*' 'git*' \
   'dist*' 'node_modules*' 'script*' '*tsconfig*' 'type*' \
-  'pages/dialog_ui*' 'GUD*' 'Gulp*' 'gulp*' 'package*' 'todo*' 'tsc.*' \
+  'pages/dialog_ui*' 'GUD*' 'Gulp*' 'gulp*' 'package*' 'todo*' 'tsc.*' 'RELEASE*.md' \
   '*tslint*' '*.dll' '*.so' '*.lib' '*.exp' '*.a' '*.pdb' \
   '*.coffee' '*.crx' '*.enc' '*.log' '*.psd' '*.sh' '*.ts' '*.zip' $ZIP_IGNORE $4
 err=$?

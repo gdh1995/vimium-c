@@ -1,6 +1,6 @@
 {
   "name": "vimium-c",
-  "version": "1.78.4",
+  "version": "1.78.5",
   "description": "A keyboard shortcut tool for keyboard-based page navigation and browser tab operations with an advanced omnibar and global shortcuts",
   "private": true,
   "config": {
@@ -48,7 +48,9 @@
     "chrome-latest": "bash -c \"BUILD_MinCVer=73 BUILD_BTypes=1 BUILD_NDEBUG=1 gulp dist",
     "chromium": "npm run chrome",
     "firefox": "bash -c \"BUILD_MinFFVer=63 BUILD_PContentSettings=0 BUILD_BTypes=2 NEED_COMMIT=1 gulp dist && IN_DIST=1 ./scripts/make.sh\"",
-    "edge-insider": "bash -c \"BUILD_MinCVer=75 BUILD_BTypes=1 BUILD_EdgeI=1 NEED_COMMIT=1 gulp dist && IN_DIST=1 ./scripts/make.sh\"",
+    "edge-c": "bash -c \"BUILD_MinCVer=75 BUILD_BTypes=1 BUILD_EdgeC=1 NEED_COMMIT=1 gulp dist && IN_DIST=1 FOR_EDGE=1 ./scripts/make.sh\"",
+    "edge-i": "npm run edge-c",
+    "edge-insider": "npm run edge-c",
     "zip": "bash -c \"ENABLE_SOURCE_MAP=0 gulp dist && IN_DIST=1 WITH_MAP=0 ./scripts/make.sh\"",
     "zip-d": "bash -c \"DEBUG=1 ENABLE_SOURCE_MAP=1 gulp dist && IN_DIST=1 WITH_MAP=1 ./scripts/make.sh\"",
     "clean": "gulp clean",

@@ -895,8 +895,8 @@ declare const enum I18nConsts {
 if (Build.BTypes & BrowserType.Firefox
     && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
 BgUtils_.timeout_(500, function (): void {
-  const i18nVer = `${navigator.language}@${Settings_.CONST_.VerCode_},`,
-  nativeTrans = trans_,
+  const nativeTrans = trans_, lang2 = nativeTrans("lang2"), lang1 = trans_("lang1"),
+  i18nVer = `${lang2 || lang1 || "en"},${Settings_.CONST_.VerCode_},`,
   newTrans: typeof chrome.i18n.getMessage = (messageName: string, substitutions?: Array<string | number>): string => {
     return i18nKeys.has(messageName) ? nativeTrans(messageName, substitutions) : "";
   };
@@ -920,7 +920,7 @@ BgUtils_.timeout_(500, function (): void {
       fixTrans(1);
     }
   };
-  for (const langName of new (Set as SetConstructor)<string>(["en", trans_("lang1"), trans_("lang2")]) as any) {
+  for (const langName of new (Set as SetConstructor)<string>(["en", lang1, lang2]) as any) {
     if (langName) {
       fetch(`/_locales/${langName}/messages.json`).then(r => r.json<Dict<any>>()).then(onload);
       toDos++;
