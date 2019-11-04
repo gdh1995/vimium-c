@@ -1028,7 +1028,8 @@ el.textContent = (Build.BTypes & BrowserType.Edge
     : Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)
     ? "Firefox " + BG_.CurFFVer_
-    : ((<RegExpOne> /\bChromium\b/).exec(navigator.appVersion) || ["Chrome"])[0] + " " + bgBrowserVer_
+    : ((<RegExpOne> /\sEdg\//).test(navigator.appVersion) ? ["MS Edge"]
+        : (<RegExpOne> /\bChromium\b/).exec(navigator.appVersion) || ["Chrome"])[0] + " " + bgBrowserVer_
   ) + pTrans_("comma") + (pTrans_(bgSettings_.CONST_.Platform_)
         || bgSettings_.CONST_.Platform_[0].toUpperCase() + bgSettings_.CONST_.Platform_.slice(1));
 }, $("#browserName"));
