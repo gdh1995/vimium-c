@@ -61,6 +61,5 @@ Vimium C 具有完善的安全机制：
 
 ## 更多
 
-如果想要了解更多细节，可以前往 https://github.com/gdh1995/vimium-c#readme
-查看开放的源码、版本更新历史、操作手册（Wiki）等。
+https://github.com/gdh1995/vimium-c 公开了项目源码、版本更新历史、操作手册（Wiki）等。
 如果遇到任何使用上的问题或者有新的功能意见和建议，都可以去仓库的“issues”页面上提出。
