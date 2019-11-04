@@ -95,12 +95,12 @@ fi
 if ! bool "$WITH_MAP"; then
   ZIP_IGNORE=$ZIP_IGNORE' *.map'
 fi
-if ! bool "$NOT_IGNORE_FRONT"; then
-  ZIP_IGNORE=$ZIP_IGNORE' front/manifest* front/*.png'
+if ! bool "$INCLUDE_ALL_DOCS"; then
+  ZIP_IGNORE=$ZIP_IGNORE' RELEASE*.md README_*.md'
 fi
 zip -rX -MM $args "$output_for_zip" ${input[@]} -x 'weidu*' 'helpers*' 'test*' 'git*' \
   'dist*' 'node_modules*' 'script*' '*tsconfig*' 'type*' \
-  'pages/dialog_ui*' 'GUD*' 'Gulp*' 'gulp*' 'package*' 'todo*' 'tsc.*' 'RELEASE*.md' \
+  'pages/dialog_ui*' 'GUD*' 'Gulp*' 'gulp*' 'package*' 'todo*' 'tsc.*' \
   '*tslint*' '*.dll' '*.so' '*.lib' '*.exp' '*.a' '*.pdb' \
   '*.coffee' '*.crx' '*.enc' '*.log' '*.psd' '*.sh' '*.ts' '*.zip' $ZIP_IGNORE $4
 err=$?

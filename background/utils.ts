@@ -338,7 +338,6 @@ var BgUtils_ = {
       if ((tempStr = Settings_.CONST_.RedirectedUrls_[path]) != null) {
         tempStr = path = !tempStr || tempStr[0] === "/" || tempStr[0] === "#"
           ? Settings_.CONST_.HomePage_ + (tempStr.indexOf(".") > 0 ? "/blob/master" + tempStr : tempStr)
-            + (tempStr.startsWith("/REL") ? "#" + Settings_.CONST_.VerCode_ : "")
           : tempStr;
       } else if (path === "newtab") {
         return Settings_.cache_.newTabUrl_f;

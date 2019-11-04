@@ -1,6 +1,6 @@
 <span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span>
 ![Icon](icons/icon32.png) - All by Keyboard
-========
+===========================================
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
 [![Version 1.78.5](https://img.shields.io/badge/release-1.78.5-orange.svg
@@ -53,6 +53,7 @@ An old name of this project is "Vimium++", which has been given up on 2018-08-21
 
 __<span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span>:__
 
+* [中文介绍 (description in Chinese)](README_cn.md)
 * a web extension on Chrome and Firefox that provides keyboard-based navigation and control
     of the web, in the spirit of the Vim editor.
 * add some powerful functions and provide more configurable details and convenience.
