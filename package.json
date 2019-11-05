@@ -11,10 +11,12 @@
     "typescript": "^3.6.4"
   },
   "devDependencies": {
+    "clean-css": "^4.2.1",
     "gulp": ">=4",
     "gulp-changed": "*",
     "gulp-clean": "*",
     "gulp-concat": "*",
+    "gulp-htmlmin": "^5.0.1",
     "gulp-newer": "*",
     "gulp-print": "*",
     "gulp-rename": "*",

@@ -86,11 +86,11 @@ var CompileTasks = {
 var Tasks = {
   "build/pages": ["build/options", "build/show", "build/others"],
   "static/special": function() {
-    const path = ["lib/*.min.js"];
+    const path = ["lib/*.min.js", "lib/*.min.css"];
     uglify_viewer && path.push("!" + VIEWER_JS);
     return copyByPath(path);
   },
-  "static/uglify": function() {
+  "static/uglify-js": function() {
     const path = ["lib/math_parser*.js"];
     uglify_viewer && path.push(VIEWER_JS);
     if (!getNonNullBuildItem("NDEBUG")) {
@@ -98,11 +98,33 @@ var Tasks = {
     }
     return uglifyJSFiles(path, ".", "", { base: "." });
   },
+  "minify-css": function() {
+    const path = ["pages/*.css"];
+    if (!getNonNullBuildItem("NDEBUG")) { return copyByPath(path); }
+    const CleanCSS = require("clean-css"), clean_css = new CleanCSS();
+    return copyByPath(path, function(file) {
+      file.contents = ToBuffer(clean_css.minify(ToString(file.contents)).styles);
+    });
+  },
+  "minify-html": function() {
+    const arr = ["front/*.html", "pages/*.html", "!*/vomnibar.html"];
+    may_have_newtab || arr.push("!" + NEWTAB_FILE.replace(".ts", ".*"));
+    if (!getNonNullBuildItem("NDEBUG")) { return copyByPath(arr); }
+    return copyByPath(arr, null, require('gulp-htmlmin')({
+      collapseWhitespace: true,
+      minifyCSS: true,
+      maxLineLength: 4096
+    }));
+  },
+  "static/uglify": function(cb) {
+    gulp.parallel("static/uglify-js", "minify-css", "minify-html")(cb);
+  },
   static: ["static/special", "static/uglify", function() {
-    var arr = ["front/*", "pages/*", "icons/*", "lib/*.css"
+    var arr = ["front/*", "pages/*", "icons/*", "lib/*"
       , "settings_template.json", "*.txt", "*.md"
       , "_locales/*/messages.json"
-      , "!**/manifest*.json"
+      , "!**/manifest*.json", "!**/*.min.*"
+      , "!pages/*.css", "!front/[a-u]*.html", "!front/[w-z]*.html", "!pages/*.html", "!REL*.md", "!README_*.md"
       , "!**/*.log", "!**/*.psd", "!**/*.zip", "!**/*.tar", "!**/*.tgz", "!**/*.gz"
       , '!**/*.ts', "!**/*.js", "!**/tsconfig*.json"
       , "!test*", "!todo*"
@@ -833,10 +855,10 @@ function postUglify(file, allPaths) {
   }
 }
 
-function copyByPath(path) {
+function copyByPath(path, mapFunc, pipe) {
   var stream = gulp.src(path, { base: "." })
     .pipe(newer(DEST))
-    .pipe(gulpMap(function(file) {
+    .pipe(gulpMap(mapFunc || function(file) {
       var fileName = file.history.join("|");
       if (fileName.indexOf("vimium.css") >= 0) {
         file.contents = ToBuffer(ToString(file.contents).replace(/\r\n?/g, "\n"));
@@ -845,7 +867,9 @@ function copyByPath(path) {
         file.contents = ToBuffer(ToString(file.contents).replace(/(\d)px\b/g, "$1rem"
             ).replace(/body ?\{/, "html{font-size:1px;}\nbody{"));
       }
-    }))
+    }));
+  stream = pipe ? stream.pipe(pipe) : stream;
+  stream = stream
     .pipe(gulpChanged(DEST, {
       hasChanged: compareContentAndTouch
     }));
