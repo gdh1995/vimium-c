@@ -640,7 +640,7 @@ let optionsInit1_ = function (): void {
     const errors = bgSettings_.temp_.cmdErrors_,
     msg = !errors ? "" : pTrans_("openBgLogs", [pTrans_(errors === 1 ? "error" : "errors", [errors])]);
     if (bgSettings_.payload_.L && !msg) {
-      let str = Object.keys(BG_.CommandsData_.keyMap_).join(""), mapKey = BG_.CommandsData_.mapKeyRegistry_;
+      let str = Object.keys(BG_.CommandsData_.keyMap_).join(""), mapKey = BG_.CommandsData_.mappedKeyRegistry_;
       str += mapKey ? Object.keys(mapKey).join("") : "";
       if ((<RegExpOne> /[^ -\xff]/).test(str)) {
         this.showError_(pTrans_("ignoredNonEN"), null);

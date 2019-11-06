@@ -176,6 +176,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   browser_: BrowserType.Chrome,
   browserVer_: Build.BTypes & BrowserType.Chrome ? BrowserVer.assumedVer : BrowserVer.assumedVer,
   os_: kOS.win as SettingsNS.ConstItems["o"][1],
+  mappedKeyRegistry_: null as SettingsNS.OtherVomnibarItems["m"][1],
   maxMatches_: 0,
   queryInterval_: 0,
   heightIfEmpty_: VomnibarNS.PixelData.OthersIfEmpty,
@@ -832,6 +833,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     css_ != null && Vomnibar_.css_(css_);
     maxMatches_ != null && (Vomnibar_.maxMatches_ = maxMatches_);
     queryInterval_ != null && (Vomnibar_.queryInterval_ = queryInterval_);
+    delta.m !== undefined && (Vomnibar_.mappedKeyRegistry_ = delta.m);
     if (sizes_str != null) {
       let sizes = sizes_str.split(","), n = +sizes[0], m = Math.min, M = Math.max;
       Vomnibar_.heightIfEmpty_ = M(24, m(n || VomnibarNS.PixelData.OthersIfEmpty, 320));
@@ -1346,9 +1348,8 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
     }
   },
   timer = setTimeout(function () { location.href = "about:blank"; }, 700);
-  Vomnibar_.secret_ = function (this: void, request): void {
+  Vomnibar_.secret_ = function (this: void, {l: payload, s: secret}): void {
     Vomnibar_.secret_ = null;
-    const payload = request.l;
     if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
       Vomnibar_.browser_ = payload.b as BrowserType;
     }
@@ -1356,11 +1357,11 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
       Vomnibar_.browserVer_ = payload.v as BrowserVer;
     }
     Vomnibar_.os_ = payload.o;
+    Vomnibar_.mappedKeyRegistry_ = payload.m;
     Vomnibar_.styles_ = payload.s;
     Vomnibar_.updateOptions_({ N: kBgReq.omni_updateOptions, d: {
       c: payload.c, M: payload.M, I: payload.I, n: payload.n
     } });
-    const { s: secret } = request;
     _sec = secret;
     for (const i of unsafeMsg) {
       if (i[0] === secret) {

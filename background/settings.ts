@@ -27,6 +27,7 @@ var Settings_ = {
     c: "",
     I: 0,
     M: 0,
+    m: null,
     n: "",
     s: ""
   }),

@@ -177,8 +177,8 @@ var Commands = {
       }
     }
     CommandsData_.keyToCommandRegistry_ = registry;
-    CommandsData_.shortcutMap_ = cmdMap as ShortcutInfoMap;
-    CommandsData_.mapKeyRegistry_ = mk > 0 ? mkReg : null;
+    CommandsData_.shortcutRegistry_ = cmdMap as ShortcutInfoMap;
+    CommandsData_.mappedKeyRegistry_ = Settings_.omniPayload_.m = mk > 0 ? mkReg : null;
     Settings_.temp_.cmdErrors_ = Settings_.temp_.cmdErrors_ > 0 ? ~errors : errors;
   }),
   setupUserCustomized_ (cmdMap: Partial<ShortcutInfoMap>, key: kShortcutNames
@@ -196,15 +196,15 @@ var Commands = {
     }
     return ret < 1 ? 'requires a "command" option' : ret > 1 ? "" : "gets an unknown command";
   },
-  populateCommandKeys_: (function (this: void, detectNewError: boolean): void {
+  populateKeyMap_: (function (this: void, detectNewError: boolean): void {
     const d = CommandsData_, ref = d.keyMap_ = BgUtils_.safeObj_<ValidKeyAction | ChildKeyMap>(),
     keyRe = BgUtils_.keyRe_,
+    C = Commands,
     d2 = Settings_.temp_, oldErrors = d2.cmdErrors_;
     if (oldErrors < 0) { d2.cmdErrors_ = ~oldErrors; }
     for (let ch = 10; 0 <= --ch; ) { ref[ch] = KeyAction.count; }
     ref["-"] = KeyAction.count;
-    const C = Commands, R = d.keyToCommandRegistry_;
-    for (const key in R) {
+    for (const key in d.keyToCommandRegistry_) {
       const arr = key.match(keyRe) as RegExpMatchArray, last = arr.length - 1;
       if (last === 0) {
         (key in ref) && detectNewError && C.warnInactive_(ref[key] as ReadonlyChildKeyMap, key);
@@ -240,7 +240,7 @@ var Commands = {
       const val = ref[key] as NonNullable<(typeof ref)[string]>;
       if (val !== KeyAction.cmd && val !== KeyAction.count) { func(val); }
     }
-  }),
+  }) as (this: void, detectNewError: boolean) => void,
   logError_: function (): void {
     console.log.apply(console, arguments);
   } as (firstMsg: string, ...args: any[]) => void ,
@@ -488,8 +488,8 @@ availableCommands_: <{[key in string]?: CommandsNS.Description} & SafeObject> As
 CommandsData_: CommandsDataTy = CommandsData_ as never || {
   keyToCommandRegistry_: null as never as SafeDict<CommandsNS.Item>,
   keyMap_: null as never as KeyMap,
-  shortcutMap_: null as never as ShortcutInfoMap,
-  mapKeyRegistry_: null as SafeDict<string> | null
+  shortcutRegistry_: null as never as ShortcutInfoMap,
+  mappedKeyRegistry_: null as SafeDict<string> | null
 };
 
 if (!Build.NDEBUG) {
@@ -502,7 +502,7 @@ if (!Build.NDEBUG) {
 if (Backend_.onInit_) {
   if (Settings_.temp_.initing_ & BackendHandlersNS.kInitStat.platformInfo) {
     Commands.parseKeyMappings_(Settings_.get_("keyMappings"));
-    Commands.populateCommandKeys_(true);
+    Commands.populateKeyMap_(true);
     if (!Settings_.get_("vimSync") && !Settings_.temp_.hasEmptyLocalStorage_) {
       Commands = null as never;
     }
@@ -515,11 +515,17 @@ if (Backend_.onInit_) {
 if (Commands) {
 Settings_.updateHooks_.keyMappings = function (this: {}, value: string | null): void {
   value != null && Commands.parseKeyMappings_(value);
-  Commands.populateCommandKeys_(value != null);
-  return (this as typeof Settings_).broadcast_({
+  Commands.populateKeyMap_(value != null);
+  Settings_.broadcast_({
     N: kBgReq.keyMap,
-    m: CommandsData_.mapKeyRegistry_,
+    m: CommandsData_.mappedKeyRegistry_,
     k: CommandsData_.keyMap_
+  });
+  Settings_.broadcastOmni_({
+    N: kBgReq.omni_updateOptions,
+    d: {
+      m: CommandsData_.mappedKeyRegistry_
+    }
   });
 };
 }

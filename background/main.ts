@@ -924,7 +924,7 @@
       }
       port.s.f |= Frames.Flags.userActed;
     } else {
-      let registry = CommandsData_.shortcutMap_[shortcutName], cmdName = registry.command_,
+      let registry = CommandsData_.shortcutRegistry_[shortcutName], cmdName = registry.command_,
       cmdFallback: kBgCmd & number = 0;
       if (cmdName === "goBack" || cmdName === "goForward") {
         if (Build.BTypes & BrowserType.Chrome
@@ -2469,7 +2469,7 @@
         onConfirm(request.r);
         return;
       }
-      executeCommand(CommandsData_.shortcutMap_[cmd as Exclude<typeof cmd, "">]
+      executeCommand(CommandsData_.shortcutRegistry_[cmd as Exclude<typeof cmd, "">]
           , request.n, kKeyCode.None, port, 0);
     },
     /** kFgReq.removeSug: */ function (this: void, req: FgReq[kFgReq.removeSug], port?: Port): void {
@@ -2641,7 +2641,7 @@
         s: flags,
         c: Settings_.payload_,
         p: pass,
-        m: CommandsData_.mapKeyRegistry_,
+        m: CommandsData_.mappedKeyRegistry_,
         k: CommandsData_.keyMap_
       });
     }
@@ -2950,7 +2950,7 @@
       const tabId = TabRecency_.last_, ports = framesForTab[tabId];
       if (cmd === <string> <unknown> kShortcutAliases.nextTab1) { cmd = kCName.nextTab; }
       type NullableShortcutMap = ShortcutInfoMap & { [key in string]?: CommandsNS.Item | null; };
-      const map = CommandsData_.shortcutMap_ as NullableShortcutMap;
+      const map = CommandsData_.shortcutRegistry_ as NullableShortcutMap;
       if (!map || !map[cmd]) {
         // usually, only userCustomized* and those from 3rd-party extensions will enter this branch
         if (map && map[cmd] !== null) {
@@ -2960,10 +2960,10 @@
         return;
       }
       if (ports == null || (ports[0].s.f & Frames.Flags.userActed) || tabId < 0) {
-        return executeShortcut(cmd as keyof typeof CommandsData_.shortcutMap_, ports);
+        return executeShortcut(cmd as keyof typeof CommandsData_.shortcutRegistry_, ports);
       }
       chrome.tabs.get(tabId, function (tab): void {
-        executeShortcut(cmd as keyof typeof CommandsData_.shortcutMap_,
+        executeShortcut(cmd as keyof typeof CommandsData_.shortcutRegistry_,
           tab && tab.status === "complete" ? framesForTab[tab.id] : null);
         return onRuntimeError();
       });

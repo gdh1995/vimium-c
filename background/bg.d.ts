@@ -713,8 +713,8 @@ type ShortcutInfoMap = {
 interface CommandsDataTy {
   keyToCommandRegistry_: SafeDict<CommandsNS.Item>;
   keyMap_: KeyMap;
-  shortcutMap_: ShortcutInfoMap;
-  mapKeyRegistry_: SafeDict<string> | null;
+  shortcutRegistry_: ShortcutInfoMap;
+  mappedKeyRegistry_: SafeDict<string> | null;
 }
 
 interface VClipboardTy {

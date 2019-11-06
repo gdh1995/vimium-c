@@ -303,6 +303,7 @@ declare namespace SettingsNS {
   interface OtherVomnibarItems extends Pick<SettingsNS.ManualItems, "i">
       , VomnibarOptionItems {
     /** css */ c: ["omniCSS", string];
+    /** mappedKeys */ m: ["mappedKeys", SafeDict<string> | null];
   }
   interface VomnibarPayload extends Readonly<SelectValueType<SettingsNS.ConstItems>>
       , SelectValueType<OtherVomnibarItems> {

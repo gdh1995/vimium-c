@@ -127,7 +127,7 @@ interface BgVomnibarSpecialReq {
   } & Req.baseBg<kBgReq.omni_returnFocus>;
   [kBgReq.omni_init]: {
     /** secret */ s: number;
-    /* payload */ l: SettingsNS.VomnibarPayload;
+    /** payload */ l: SettingsNS.VomnibarPayload;
   };
   [kBgReq.omni_parsed]: {
     /** id */ i: number;
