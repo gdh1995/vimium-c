@@ -8,7 +8,7 @@
     "safe": false
   },
   "dependencies": {
-    "typescript": "^3.6.4"
+    "typescript": "^3.7.2"
   },
   "devDependencies": {
     "clean-css": "^4.2.1",

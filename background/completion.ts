@@ -567,10 +567,14 @@ historyEngine = {
     return sessions.some(function (item): boolean {
       const entry = item.tab;
       if (!entry) { return false; }
-      if (!showThoseInBlacklist && !BlacklistFilter.TestNotMatched_(entry.url, entry.title)) { return false; }
-      const key = entry.url + "\n" + entry.title;
+      let url = entry.url;
+      if (url.length > GlobalConsts.MaxHistoryURLLength) {
+        entry.url = url = HistoryCache.trimURLAndTitleWhenTooLong_(url, entry);
+      }
+      if (!showThoseInBlacklist && !BlacklistFilter.TestNotMatched_(url, entry.title)) { return false; }
+      const key = url + "\n" + entry.title;
       if (key in arr) { return false; }
-      arr[key] = 1; arr[entry.url] = 1;
+      arr[key] = 1; arr[url] = 1;
       ++i > 0 && historyArr.push(entry);
       return historyArr.length >= maxResults;
     }) ? historyEngine.filterFinish_(historyArr) : historyEngine.filterFill_(historyArr, query, arr, -i, 0);
@@ -582,7 +586,13 @@ historyEngine = {
       maxResults: offset + maxResults * (showThoseInBlacklist ? 1 : 2) + neededMore
     }, function (historyArr2: chrome.history.HistoryItem[] | BrowserUrlItem[]): void {
       if (query.o) { return; }
-      historyArr2 = (historyArr2 as chrome.history.HistoryItem[]).filter(historyEngine.urlNotIn_, arr);
+      historyArr2 = (historyArr2 as chrome.history.HistoryItem[]).filter(function (this: Dict<number>, i) {
+        let url = i.url;
+        if (url.length > GlobalConsts.MaxHistoryURLLength) {
+          i.url = url = HistoryCache.trimURLAndTitleWhenTooLong_(url, i);
+        }
+        return !(url in this);
+      }, arr);
       if (!showThoseInBlacklist) {
         historyArr2 = (historyArr2 as chrome.history.HistoryItem[]).filter(function (entry) {
           return BlacklistFilter.TestNotMatched_(entry.url, entry.title || "");
@@ -609,9 +619,6 @@ historyEngine = {
     sessionId = e.sessionId;
     sessionId && (o.s = sessionId, o.label = "&#8617;");
     arr[i] = o;
-  },
-  urlNotIn_ (this: Dict<number>, i: chrome.history.HistoryItem): boolean {
-    return !(i.url in this);
   }
 },
 
@@ -1262,7 +1269,7 @@ knownCs: CompletersMap & SafeObject = {
       for (let i = 0, len = arr.length; i < len; i++) {
         let j = arr[i] as chrome.history.HistoryItem, url = j.url;
         if (url.length > GlobalConsts.MaxHistoryURLLength) {
-          url = HistoryCache.trimTooLongURL_(url, j);
+          url = HistoryCache.trimURLAndTitleWhenTooLong_(url, j);
         }
         (arr as HistoryItem[])[i] = {
           text_: url,
@@ -1319,7 +1326,7 @@ knownCs: CompletersMap & SafeObject = {
     OnPageVisited_ (this: void, newPage: chrome.history.HistoryItem): void {
       let url = newPage.url;
       if (url.length > GlobalConsts.MaxHistoryURLLength) {
-        url = HistoryCache.trimTooLongURL_(url, newPage);
+        url = HistoryCache.trimURLAndTitleWhenTooLong_(url, newPage);
       }
       const time = newPage.lastVisitTime,
       title = Build.BTypes & ~BrowserType.Chrome ? newPage.title || "" : newPage.title as string,
@@ -1401,13 +1408,14 @@ knownCs: CompletersMap & SafeObject = {
         }
       }
     },
-    trimTooLongURL_ (url: string, history: chrome.history.HistoryItem): string {
+    trimURLAndTitleWhenTooLong_ (url: string, history: chrome.history.HistoryItem | chrome.tabs.Tab): string {
+      // should be idempotent
       const colon = url.lastIndexOf(":", 9), hasHost = colon > 0 && url.substr(colon, 3) === "://",
       title = history.title;
       url = url.slice(0, (hasHost ? url.indexOf("/", colon + 4) : colon)
-                + GlobalConsts.TrimmedURLLengthForTooLongURL) + "\u2026";
-      if (title && title.length > GlobalConsts.TrimmedTitleLengthForTooLongURL) {
-        history.title = BgUtils_.unicodeSubstring_(title, 0, GlobalConsts.TrimmedTitleLengthForTooLongURL);
+                + GlobalConsts.TrimmedURLPathLengthWhenURLIsTooLong) + "\u2026";
+      if (title && title.length > GlobalConsts.TrimmedTitleLengthWhenURLIsTooLong) {
+        history.title = BgUtils_.unicodeSubstring_(title, 0, GlobalConsts.TrimmedTitleLengthWhenURLIsTooLong);
       }
       return url;
     },
@@ -1432,7 +1440,11 @@ knownCs: CompletersMap & SafeObject = {
       const arr = HistoryCache.history_ as HistoryItem[], bs = HistoryCache.binarySearch_;
       if (arr.length <= 0) { return; }
       for (const info of history) {
-        const j = bs(info.url);
+        let url = info.url;
+        if (url.length > GlobalConsts.MaxHistoryURLLength) {
+          info.url = url = HistoryCache.trimURLAndTitleWhenTooLong_(url, info);
+        }
+        const j = bs(url);
         if (j < 0) {
           HistoryCache.toRefreshCount_--;
         } else {

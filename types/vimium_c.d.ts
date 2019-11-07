@@ -431,8 +431,8 @@ declare const enum GlobalConsts {
   MediaWatchInterval = 60_000, // 60 seconds - chrome.alarms only accepts an interval >= 1min, so do us
   MaxHistoryURLLength = 2_000, // to avoid data: URLs and malformed webpages
   MaxSenderURLLength = 4_000, // if too long, keep the first `MaxSenderURLLength` characters and append a "..."
-  TrimmedURLLengthForTooLongURL = 320,
-  TrimmedTitleLengthForTooLongURL = 160,
+  TrimmedURLPathLengthWhenURLIsTooLong = 320,
+  TrimmedTitleLengthWhenURLIsTooLong = 160,
   // so that `P` = 89 / 9e6 < 1e-5
   SecretRange = 9e6,
   SecretBase = 1e6,
