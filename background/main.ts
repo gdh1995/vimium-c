@@ -3080,7 +3080,7 @@
   Settings_.postUpdate_("searchUrl", null); // will also update newTabUrl
   Settings_.postUpdate_("vomnibarOptions");
 
-  // will run only on <F5>, not on runtime.reload
+  // will run only on <kbd>F5</kbd>, not on runtime.reload
   window.onunload = function (event): void {
     if (event
         && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)

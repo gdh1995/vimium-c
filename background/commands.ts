@@ -344,7 +344,7 @@ defaultKeyMappings_: [
   "gF", kCName.mainFrame,
   "gn", kCName.toggleVomnibarStyle,
   "<f1>", kCName.simBackspace,
-  "<F1>", kCName.switchFocus,
+  "<s-f1>", kCName.switchFocus,
   "<f2>", kCName.switchFocus,
   "m", kCName.Marks_activateCreateMode,
   "`", kCName.Marks_activate
