@@ -155,8 +155,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       const g = InsertMode.global_;
       if (g ? !g.code ? isEscape(event) : key === g.code && VKey.getKeyStat_(event) === g.stat
           : key > kKeyCode.maxNotFn && key < kKeyCode.minNotFn
-          ? ((action = checkKey(VKey.getKeyName_(event), key, event))
-              & ~HandlerResult.AdvancedEscFlag) === HandlerResult.Esc
+          ? (keyChar = VKey.getKeyName_(event))
+            && ((action = checkKey(keyChar, key, event)) & ~HandlerResult.AdvancedEscFlag) === HandlerResult.Esc
           : isEscape(event)
       ) {
         if ((insertLock === document.body && insertLock || !isTop && innerHeight < 3) && !g) {
