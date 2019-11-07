@@ -407,6 +407,78 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     sel >= 1 && _ref[sel - 1].classList.add("p");
     sel >= 0 && _ref[sel].classList.add("s");
   },
+  _keyNames: ["space", "pageup", "pagedown", "end", "home", "left", "up", "right", "down",
+    /* 41 */ "", "", "", "", "insert", "delete"] as ReadonlyArray<string>,
+  _codeCorrectionMap: ["Semicolon", "Equal", "Comma", "Minus", "Period", "Slash", "Backquote",
+    "BracketLeft", "Backslash", "BracketRight", "Quote", "IntlBackslash"],
+  _charCorrectionList: Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
+      ? ";=,-./`[\\]'\\:+<_>?~{|}\"|" as const : 0 as never,
+  _modifierKeys: {
+    __proto__: null as never,
+    Alt: 1, AltGraph: 1, Control: 1, Meta: 1, OS: 1, Shift: 1
+  } as SafeEnum,
+  keyIdCorrectionOffset_: (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
+      ? 185 : 0) as 0 | 185 | 300,
+  char_ (event: Pick<KeyboardEvent, "code" | "key" | "keyCode" | "keyIdentifier" | "shiftKey">): string {
+    const charCorrectionList = ";=,-./`[\\]'\\:+<_>?~{|}\"|", enNumTrans = ")!@#$%^&*(";
+    let {key, shiftKey} = event;
+    if (Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.BTypes & BrowserType.Chrome && !key) {
+      let {keyCode: i} = event, keyId: kCharCode;
+      key = i < kKeyCode.minNotDelete
+        ? i > kKeyCode.space - 1
+            ? this._keyNames[i - kKeyCode.space] : i === kKeyCode.backspace ? "backspace"
+            : i === kKeyCode.esc ? "esc"
+            : i === kKeyCode.tab ? "tab" : i === kKeyCode.enter ? "enter" : ""
+        : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn ? "f" + (i - kKeyCode.maxNotFn)
+        : (key = Build.BTypes & ~BrowserType.Chrome ? <string | undefined> event.keyIdentifier || ""
+              : event.keyIdentifier as string).startsWith("U+") && (keyId = parseInt(key.slice(2), 16))
+        ? keyId < kCharCode.minNotAlphabet && keyId > kCharCode.minNotSpace - 1
+          ? shiftKey && keyId > kCharCode.maxNotNum && keyId < kCharCode.minNotNum ? enNumTrans[keyId - kCharCode.N0]
+            : String.fromCharCode(keyId < kCharCode.minAlphabet || shiftKey ? keyId : keyId + kCharCode.CASE_DELTA)
+          : keyId > this.keyIdCorrectionOffset_ && ((keyId -= 186) < 7 || (keyId -= 26) > 6 && keyId < 11)
+          ? charCorrectionList[keyId + 12 * +shiftKey]
+          : ""
+        : "";
+    } else {
+      let code = event.code as string, prefix = code.slice(0, 2), mapped: number | undefined;
+      if (prefix !== "Nu") { // not (Numpad* or NumLock)
+        if (prefix === "Ke" || prefix === "Di" || prefix === "Ar") {
+          code = code.slice(code < "K" ? 5 : 3);
+        }
+        key = code.length === 1
+              ? !shiftKey || code < "0" || code > "9" ? code : enNumTrans[+code]
+              : this._modifierKeys[key as string] ? ""
+              : !code ? key
+              : (mapped = this._codeCorrectionMap.indexOf(code)) < 0 ? code === "Escape" ? "esc" : code
+              : charCorrectionList[mapped + 12 * +shiftKey]
+            ;
+      }
+      key = shiftKey && (key as string).length < 2 ? key as string
+          : key === "Unidentified" ? "" : (key as string).toLowerCase();
+    }
+    return key;
+  },
+  key_ (event: EventControlKeys, ch: string): string {
+    if (!(Build.NDEBUG || ch.length === 1 || ch.length > 1 && ch === ch.toLowerCase())) {
+      console.error(`Assert error: VKey.key_ get an invalid char of "${ch}" !`);
+    }
+    let modifiers = `${event.altKey ? "a-" : ""}${event.ctrlKey ? "c-" : ""}${event.metaKey ? "m-" : ""}`
+      , isLong = ch.length > 1, chLower = ch.toLowerCase();
+    event.shiftKey && (isLong || modifiers && ch.toUpperCase() !== chLower) && (modifiers += "s-");
+    return isLong || modifiers ? `<${modifiers}${chLower}>` : ch;
+  },
+  mapKey_ (/* not "" */ char: string, event: EventControlKeys): string {
+    let key = VKey.key_(event, char), mapped: string | undefined, chLower: string;
+    if (Vomnibar_.mappedKeyRegistry_) {
+      key = Vomnibar_.mappedKeyRegistry_[key] || (
+        (mapped = Vomnibar_.mappedKeyRegistry_[chLower = char.toLowerCase()]) && mapped.length < 2 ? (
+          mapped = char === chLower ? mapped : mapped.toUpperCase(),
+          VKey.key_(event, mapped)
+        ) : key
+      );
+    }
+    return key;
+  },
   ctrlMap_: {
     32: AllowedActions.toggle, 66: AllowedActions.pageup
     , 74: AllowedActions.down, 75: AllowedActions.up, 78: AllowedActions.down, 80: AllowedActions.up
