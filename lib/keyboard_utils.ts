@@ -2,7 +2,7 @@ var VKey = {
   _keyNames: ["space", "pageup", "pagedown", "end", "home", "left", "up", "right", "down",
     /* 41 */ "", "", "", "", "insert", "delete"] as ReadonlyArray<string>,
   keyIdCorrectionOffset_: (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
-      ? 185 : 0) as 0 | 185 | 300,
+      ? 185 : 0 as never) as 185 | 300,
   _codeCorrectionMap: ["Semicolon", "Equal", "Comma", "Minus", "Period", "Slash", "Backquote",
     "BracketLeft", "Backslash", "BracketRight", "Quote", "IntlBackslash"],
   _charCorrectionList: Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
@@ -12,6 +12,7 @@ var VKey = {
     Alt: 1, AltGraph: 1, Control: 1, Meta: 1, OS: 1, Shift: 1
   } as SafeEnum,
   cache_: null as never as SettingsNS.FrontendSettingCache,
+  /** only return lower-case long string */
   getKeyName_ (event: Pick<KeyboardEvent, "key" | "keyCode">): string {
     let {keyCode: i} = event, s: string | undefined;
     return i < kKeyCode.minNotDelete ? (i > kKeyCode.space - 1
@@ -19,9 +20,11 @@ var VKey = {
           : i === kKeyCode.esc ? "esc"
           : i === kKeyCode.tab ? "tab" : i === kKeyCode.enter ? "enter" : ""
         )
-      : (s = event.key) ? (<RegExpOne> /^F\d\d?$/).test(s) ? s : ""
-      : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn ? "F" + (i - kKeyCode.maxNotFn) : "";
+      : ((s = event.key) ? (<RegExpOne> /^F\d\d?$/).test(s) : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn)
+      ? "f" + (s ? s.slice(1) : i - kKeyCode.maxNotFn)
+      : "";
   },
+  /** return single characters which only depend on `shiftKey` (CapsLock is ignored) */
   _getKeyCharUsingKeyIdentifier: (!(Build.BTypes & BrowserType.Chrome)
         || Build.MinCVer >= BrowserVer.MinEnsured$KeyboardEvent$$Key ? 0 as never
       : function (this: {}, event: Pick<OldKeyboardEvent, "keyIdentifier">, shiftKey: BOOL): string {
@@ -30,9 +33,8 @@ var VKey = {
     keyId: kCharCode = s.startsWith("U+") ? parseInt(s.slice(2), 16) : 0;
     if (keyId < kCharCode.minNotAlphabet) {
       return keyId < kCharCode.minNotSpace ? ""
-      : (shiftKey && keyId > kCharCode.maxNotNum
-          && keyId < kCharCode.minNotNum) ? ")!@#$%^&*("[keyId - kCharCode.N0]
-      : String.fromCharCode(keyId < kCharCode.minAlphabet || shiftKey ? keyId : keyId + kCharCode.CASE_DELTA);
+          : shiftKey && keyId > kCharCode.maxNotNum && keyId < kCharCode.minNotNum ? ")!@#$%^&*("[keyId - kCharCode.N0]
+          : String.fromCharCode(keyId < kCharCode.minAlphabet || shiftKey ? keyId : keyId + kCharCode.CASE_DELTA);
     } else {
       // here omits a `(...)` after the first `&&`, since there has been `keyId >= kCharCode.minNotAlphabet`
       return keyId > (this as typeof VKey).keyIdCorrectionOffset_
@@ -41,6 +43,7 @@ var VKey = {
           : "";
     }
   }) as (this: {}, event: Pick<OldKeyboardEvent, "keyIdentifier">, shiftKey: BOOL) => string,
+  /** return strings of 1-N characters and CapsLock is ignored */
   _forceEnUSLayout (key: string, code: string, shiftKey: boolean): string {
     let prefix = code.slice(0, 2), mapped: number | undefined;
     if (prefix !== "Nu") { // not (Numpad* or NumLock)
@@ -63,7 +66,6 @@ var VKey = {
     return shiftKey && key.length < 2 ? key : key === "Unidentified" ? "" : key.toLowerCase();
   },
   /**
-   * * not constrain letter cases if returned name is long
    * * return `"space"` for the <Space> key - in most code it needs to be treated as a long key
    */
   char_ (event: Pick<KeyboardEvent, "code" | "key" | "keyCode" | "keyIdentifier" | "shiftKey">): string {
@@ -77,15 +79,15 @@ var VKey = {
     } else {
       key = this.cache_.L
         ? this._forceEnUSLayout(key as string, event.code as NonNullable<typeof event.code>, shiftKey)
-        : (key as string).length > 1 || event.keyCode === kKeyCode.space ? this.getKeyName_(event)
-        : key as string;
+        : (key as string).length > 1 || key === " " ? this.getKeyName_(event)
+        : this.cache_.i ? shiftKey ? (<string> key).toUpperCase() : (<string> key).toLowerCase() : <string> key;
     }
-    return this.cache_.i ? shiftKey ? key.toUpperCase() : key.toLowerCase() : key as string;
+    return key;
   },
-  /** @argument ch must not be `""` */
+  /** @argument ch must not be `""`; if length > 1, then must be lower-case */
   key_ (event: EventControlKeys, ch: string): string {
-    if (!(Build.NDEBUG || ch)) {
-      console.log("Assert error: VKey.key_ must receive a non-empty char");
+    if (!(Build.NDEBUG || ch.length === 1 || ch.length > 1 && ch === ch.toLowerCase())) {
+      console.error(`Assert error: VKey.key_ get an invalid char of "${ch}" !`);
     }
     let modifiers = `${event.altKey ? "a-" : ""}${event.ctrlKey ? "c-" : ""}${event.metaKey ? "m-" : ""}`
       , isLong = ch.length > 1, chLower = ch.toLowerCase();
