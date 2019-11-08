@@ -576,7 +576,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
       wiki: "/wiki",
       __proto__: null as never
     } as SafeDict<string>,
-    GlobalCommands_: null as never as kShortcutNames[],
+    GlobalCommands_: null as never as Array<keyof ShortcutInfoMap>,
     ShowPage_: "pages/show.html",
     VomnibarPageInner_: "", VomnibarScript_: "/front/vomnibar.js", VomnibarScript_f_: ""
   }
@@ -671,7 +671,7 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   ref3[CommonNewTab] = ref3[CommonNewTab + "/"] = Urls.NewTabType.browser;
   (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) ||
   (ref3[ChromeNewTab] = ref3[ChromeNewTab + "/"] = Urls.NewTabType.browser);
-  obj.GlobalCommands_ = (<Array<kShortcutNames | kShortcutAliases & string>> Object.keys(ref.commands || {})
+  obj.GlobalCommands_ = (<Array<keyof ShortcutInfoMap | kShortcutAliases & string>> Object.keys(ref.commands || {})
       ).map(i => i === <string> <unknown> kShortcutAliases.nextTab1 ? kCName.nextTab : i);
   obj.VerCode_ = ref.version;
   obj.VerName_ = ref.version_name || ref.version;

@@ -415,8 +415,9 @@ function defaultOnClick(event: MouseEventToPrevent): void {
 
 function clickShownNode(event: MouseEventToPrevent): void {
   event.preventDefault();
-  if ((VShown as ValidNodeTypes).onclick) {
-    (VShown as ValidNodeTypes).onclick(event);
+  const a = VShown as ValidNodeTypes;
+  if (a.onclick) {
+    a.onclick(event);
   }
 }
 

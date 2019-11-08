@@ -147,12 +147,12 @@ var Commands = {
         if (splitLine.length < 3) {
           a.logError_("Lacking command name and options in shortcut:", line);
         } else if (!key.startsWith(CommandsNS.OtherCNames.userCustomized)
-            && (Settings_.CONST_.GlobalCommands_ as Array<kShortcutNames | string>).indexOf(key) < 0) {
+            && (Settings_.CONST_.GlobalCommands_ as Array<keyof ShortcutInfoMap | string>).indexOf(key) < 0) {
           a.logError_(shortcutLogPrefix, colorRed, key, "is not a valid name");
         } else if (key in cmdMap) {
           a.logError_(shortcutLogPrefix, colorRed, key, "has been configured");
         } else {
-          key = a.setupUserCustomized_(cmdMap, key as kShortcutNames, a.getOptions_(splitLine, 2));
+          key = a.setupUserCustomized_(cmdMap, key as keyof ShortcutInfoMap, a.getOptions_(splitLine, 2));
           if (!key) { continue; }
           a.logError_(shortcutLogPrefix, colorRed, splitLine[1], key);
         }
@@ -170,9 +170,9 @@ var Commands = {
       ++errors;
     }
     for (key of Settings_.CONST_.GlobalCommands_) {
-      if (!key.startsWith("user") && !cmdMap[key as kShortcutNames]) {
+      if (!key.startsWith("user") && !cmdMap[key as keyof ShortcutInfoMap]) {
         if (regItem = a.makeCommand_(key)) {
-          cmdMap[key as kShortcutNames] = regItem;
+          cmdMap[key as keyof ShortcutInfoMap] = regItem;
         }
       }
     }
@@ -181,7 +181,7 @@ var Commands = {
     CommandsData_.mappedKeyRegistry_ = Settings_.omniPayload_.m = mk > 0 ? mkReg : null;
     Settings_.temp_.cmdErrors_ = Settings_.temp_.cmdErrors_ > 0 ? ~errors : errors;
   }),
-  setupUserCustomized_ (cmdMap: Partial<ShortcutInfoMap>, key: kShortcutNames
+  setupUserCustomized_ (cmdMap: Partial<ShortcutInfoMap>, key: keyof ShortcutInfoMap
       , options: CommandsNS.Options | null): string {
     let has_cmd: BOOL = 1
       , command: string = options && options.command || (has_cmd = 0, key.startsWith("user") ? "" : key)
@@ -509,7 +509,7 @@ if (Backend_.onInit_) {
   }
   Build.BTypes & BrowserType.Edge && !chrome.commands ||
   (chrome.commands.onCommand as chrome.events.Event<
-        (command: kShortcutNames | kShortcutAliases & string, exArg: FakeArg) => void
+        (command: keyof ShortcutInfoMap | kShortcutAliases & string, exArg: FakeArg) => void
       >).addListener(Backend_.ExecuteShortcut_);
 }
 if (Commands) {

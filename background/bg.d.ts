@@ -666,11 +666,18 @@ declare namespace CommandsNS {
   };
 }
 
-declare type kShortcutNames = kCName.createTab | kCName.goBack | kCName.goForward | kCName.previousTab
-    | kCName.nextTab | kCName.reloadTab | CommandsNS.OtherCNames.userCustomized;
 declare const enum kShortcutAliases {
   _mask = 0,
   nextTab1 = kCName.quickNext,
+}
+interface ShortcutInfoMap {
+  [kCName.createTab]: CommandsNS.Item;
+  [kCName.goBack]: CommandsNS.Item;
+  [kCName.goForward]: CommandsNS.Item;
+  [kCName.previousTab]: CommandsNS.Item;
+  [kCName.nextTab]: CommandsNS.Item;
+  [kCName.reloadTab]: CommandsNS.Item
+  [CommandsNS.OtherCNames.userCustomized]: CommandsNS.Item;
 }
 
 declare namespace BackendHandlersNS {
@@ -705,10 +712,6 @@ declare namespace BackendHandlersNS {
     START = none, FINISHED = platformInfo | others,
   }
 }
-
-type ShortcutInfoMap = {
-  [shortcut in kShortcutNames]: CommandsNS.Item;
-};
 
 interface CommandsDataTy {
   keyToCommandRegistry_: SafeDict<CommandsNS.Item>;

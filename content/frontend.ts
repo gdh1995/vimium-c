@@ -1710,7 +1710,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
     }
   }();
-  if (esc) {
+  if (esc as EscF | null) {
     VDom.clickable_ = !(Build.BTypes & BrowserType.Firefox)
         || Build.BTypes & ~BrowserType.Firefox && OnOther !== BrowserType.Firefox
         ? VDom.clickable_ ||

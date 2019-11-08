@@ -460,7 +460,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
   key_ (event: EventControlKeys, ch: string): string {
     if (!(Build.NDEBUG || ch.length === 1 || ch.length > 1 && ch === ch.toLowerCase())) {
-      console.error(`Assert error: VKey.key_ get an invalid char of "${ch}" !`);
+      console.error(`Assert error: Vomnibar_.key_ get an invalid char of "${ch}" !`);
     }
     let modifiers = `${event.altKey ? "a-" : ""}${event.ctrlKey ? "c-" : ""}${event.metaKey ? "m-" : ""}`
       , isLong = ch.length > 1, chLower = ch.toLowerCase();
@@ -468,12 +468,12 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     return isLong || modifiers ? `<${modifiers}${chLower}>` : ch;
   },
   mapKey_ (/* not "" */ char: string, event: EventControlKeys): string {
-    let key = VKey.key_(event, char), mapped: string | undefined, chLower: string;
+    let key = Vomnibar_.key_(event, char), mapped: string | undefined, chLower: string;
     if (Vomnibar_.mappedKeyRegistry_) {
       key = Vomnibar_.mappedKeyRegistry_[key] || (
         (mapped = Vomnibar_.mappedKeyRegistry_[chLower = char.toLowerCase()]) && mapped.length < 2 ? (
           mapped = char === chLower ? mapped : mapped.toUpperCase(),
-          VKey.key_(event, mapped)
+          Vomnibar_.key_(event, mapped)
         ) : key
       );
     }

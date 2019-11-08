@@ -107,11 +107,13 @@ interface BgReq {
     /** url */ u: string; // a javascript: URL
   } & Req.baseBg<kBgReq.eval>;
   [kBgReq.count]: {
-    /** cmd: kShortcutNames | "" */ c: string;
+    /** cmd */ c: keyof ShortcutInfoMap | "";
     /** id */ i: number;
     /** message-in-confirmation-dialog */ m: string;
   };
 }
+
+interface ShortcutInfoMap {}
 
 interface BgVomnibarSpecialReq {
   [kBgReq.omni_omni]: {

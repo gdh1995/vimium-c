@@ -3001,7 +3001,7 @@ interface HTMLElement extends Element {
     oncanplay: (ev: Event) => any;
     oncanplaythrough: (ev: Event) => any;
     onchange: (ev: Event) => any;
-    onclick: (ev: MouseEventToPrevent) => any;
+    onclick?: (ev: MouseEventToPrevent) => any;
     oncontextmenu: (ev: PointerEvent) => any;
     oncopy: (ev: ClipboardEvent) => any;
     oncuechange: (ev: Event) => any;

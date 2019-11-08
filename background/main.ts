@@ -913,7 +913,7 @@
       });
     }
   }
-  function executeShortcut(shortcutName: kShortcutNames, ports: Frames.Frames | null | undefined): void {
+  function executeShortcut(shortcutName: keyof ShortcutInfoMap, ports: Frames.Frames | null | undefined): void {
     setupSingletonCmdTimer(0);
     if (ports) {
       let port = ports[0];
@@ -2462,7 +2462,7 @@
       chrome.tabs.query({ url, windowType: "normal" }, cb2);
     },
     /** kFgReq.cmd: */ function (this: void, request: FgReq[kFgReq.cmd], port: Port): void {
-      const cmd = request.c as kShortcutNames | "", id = request.i;
+      const cmd = request.c as keyof ShortcutInfoMap | "", id = request.i;
       if (id >= -1 && gCmdTimer !== id) { return; } // an old / aborted / test message
       setupSingletonCmdTimer(0);
       if (request.r) {
