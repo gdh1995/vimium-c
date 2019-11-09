@@ -468,8 +468,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     event.shiftKey && (isLong || modifiers && ch.toUpperCase() !== chLower) && (modifiers += "s-");
     return isLong || modifiers ? `<${modifiers}${chLower}>` : ch;
   },
-  mapKey_ (/* not "" */ char: string, event: EventControlKeys): string {
-    let key = Vomnibar_.key_(event, char), mapped: string | undefined, chLower: string;
+  mappedKey_ (event: KeyboardEvent): string {
+    const char = Vomnibar_.char_(event);
+    let key = char && Vomnibar_.key_(event, char), mapped: string | undefined, chLower: string;
+    if (!key || key.length < 2 && Vomnibar_.focused_) { return ""; }
     if (Vomnibar_.mappedKeyRegistry_) {
       key = Vomnibar_.mappedKeyRegistry_[key] || (
         (mapped = Vomnibar_.mappedKeyRegistry_[chLower = char.toLowerCase()]) && mapped.length < 2 ? (
@@ -480,63 +482,80 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     return key;
   },
-  ctrlMap_: {
-    32: AllowedActions.toggle, 66: AllowedActions.pageup
-    , 74: AllowedActions.down, 75: AllowedActions.up, 78: AllowedActions.down, 80: AllowedActions.up
-    , 219: AllowedActions.dismiss, 221: AllowedActions.toggle
+  ctrlCharOrShiftKeyMap_: {
+    // for Ctrl / Meta
+    space: AllowedActions.toggle, b: AllowedActions.pageup
+    , j: AllowedActions.down, k: AllowedActions.up, n: AllowedActions.down, p: AllowedActions.up
+    , "[": AllowedActions.dismiss, "]": AllowedActions.toggle
+    // for Shift
+    , up: AllowedActions.pageup, down: AllowedActions.pagedown
+    , tab: AllowedActions.up, delete: AllowedActions.remove
   } as Readonly<Dict<AllowedActions>>,
   normalMap_: {
-    9: AllowedActions.down, 27: AllowedActions.dismiss
-    , 33: AllowedActions.pageup, 34: AllowedActions.pagedown, 38: AllowedActions.up, 40: AllowedActions.down
-    , 112: AllowedActions.backspace, 113: AllowedActions.blur
+    tab: AllowedActions.down, esc: AllowedActions.dismiss
+    , pageup: AllowedActions.pageup, pagedown: AllowedActions.pagedown
+    , up: AllowedActions.up, down: AllowedActions.down
+    , f1: AllowedActions.backspace, f2: AllowedActions.blur
   } as Readonly<Dict<AllowedActions>>,
   onKeydown_ (event: KeyboardEventToPrevent): void {
-    const a = Vomnibar_;
-    let action: AllowedActions = AllowedActions.nothing, n = event.keyCode, focused = a.focused_;
+    const a = Vomnibar_, n = event.keyCode, focused = a.focused_,
+    key = n !== kKeyCode.ime ? a.mappedKey_(event) : "";
     a.lastKey_ = n;
-    if (event.altKey || event.metaKey) {
-      if (event.ctrlKey || event.shiftKey) { /* empty */ }
-      else if (n === kKeyCode.f2) {
+    if (!key) {
+      a.keyResult_ = focused && n !== kKeyCode.menuKey && n !== kKeyCode.ime
+          ? HandlerResult.Suppress : HandlerResult.Nothing;
+      return;
+    }
+    let action: AllowedActions = AllowedActions.nothing;
+    const char = key.length > 1 ? key.slice(key[2] === "-" ? 3 : 1, -1) : key,
+    mainModifier = key.slice(1, 3) as "a-" | "c-" | "m-" | "s-" | "unknown" | "";
+    if (mainModifier === "a-" || mainModifier === "m-") {
+      if (char === "f2") {
         return a.onAction_(focused ? AllowedActions.blurInput : AllowedActions.focus);
       }
       else if (!focused) { /* empty */ }
-      else if (n > kKeyCode.A && n < kKeyCode.G && n !== kKeyCode.C
-          || n === kKeyCode.backspace && a.os_) {
-        return a.onBashAction_(n - kKeyCode.maxNotAlphabet);
+      else if (char.length === 1 && char > "a" && char < "g" && char !== "c"
+          || char === kChar.backspace && a.os_) {
+        return a.onBashAction_(char.length === 1
+            ? char.charCodeAt(0) - (kCharCode.maxNotAlphabet | kCharCode.CASE_DELTA) : -1);
       }
-      if (event.altKey) { a.keyResult_ = HandlerResult.Nothing; return; }
+      if (mainModifier === "a-") { a.keyResult_ = HandlerResult.Nothing; return; }
     }
-    if (n === kKeyCode.enter) {
-      window.onkeyup = a.OnEnterUp_;
+    if ((char === kChar.enter || char.endsWith(`-${kChar.enter}`))) {
+      if (event.key === "Enter" || n === kKeyCode.enter) {
+        window.onkeyup = a.OnEnterUp_;
+      } else {
+        a.onEnter_(key);
+      }
       return;
     }
-    else if (event.ctrlKey || event.metaKey) {
-      if (event.shiftKey) {
-        action = n === kKeyCode.F ? AllowedActions.pagedown : n === kKeyCode.B ? AllowedActions.pageup
+    if (mainModifier === "c-" || mainModifier === "m-") {
+      if (char.startsWith("s-")) {
+        action = char === "s-f" ? AllowedActions.pagedown : char === "s-b" ? AllowedActions.pageup
           : AllowedActions.nothing;
-      } else if (n === kKeyCode.up || n === kKeyCode.down || n === kKeyCode.end || n === kKeyCode.home) {
+      } else if (char === kChar.up || char === kChar.down || char === kChar.end || char === kChar.home) {
         event.preventDefault();
         a.lastScrolling_ = Date.now();
         window.onkeyup = Vomnibar_.HandleKeydown_;
-        VPort_.postToOwner_({ N: VomnibarNS.kFReq.scroll, keyCode: n });
+        VPort_.postToOwner_({ N: VomnibarNS.kFReq.scroll,
+          keyCode: char === kChar.up ? kKeyCode.up : char === kChar.down ? kKeyCode.down
+              : char === kChar.end ? kKeyCode.end : kKeyCode.home
+        });
         return;
       } else if (Build.BTypes & ~BrowserType.Firefox
           && (!(Build.BTypes & BrowserType.Firefox) || a.browser_ !== BrowserType.Firefox)
-          && n === kKeyCode.backspace && event.ctrlKey && !a.os_) {
-        return a.onBashAction_(n - kKeyCode.maxNotAlphabet);
+          && key === `<c-${kChar.backspace}>` && !a.os_) {
+        return a.onBashAction_(-1);
       } else {
-        action = event.code === "BracketLeft" ? AllowedActions.dismiss
-          : event.code === "BracketRight" ? AllowedActions.toggle
-          : a.ctrlMap_[n] || AllowedActions.nothing;
+        action = char === "[" ? AllowedActions.dismiss : char === "]" ? AllowedActions.toggle
+          : a.ctrlCharOrShiftKeyMap_[char] || AllowedActions.nothing;
       }
     }
-    else if (event.shiftKey) {
-      action = n === kKeyCode.up ? AllowedActions.pageup : n === kKeyCode.down ? AllowedActions.pagedown
-        : n === kKeyCode.tab ? AllowedActions.up : n === kKeyCode.deleteKey ? AllowedActions.remove
-        : AllowedActions.nothing;
+    else if (mainModifier === "s-") {
+      action = a.ctrlCharOrShiftKeyMap_[char] || AllowedActions.nothing;
     }
-    else if (action = a.normalMap_[n] || AllowedActions.nothing) { /* empty */ }
-    else if (n === kKeyCode.ime || n > kKeyCode.f1 && n < kKeyCode.minNotFn) {
+    else if (action = a.normalMap_[char] || AllowedActions.nothing) { /* empty */ }
+    else if (char > "f0" && char < "f:") { // "f" + N
       a.keyResult_ = HandlerResult.Nothing;
       return;
     }
@@ -544,7 +563,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       if (focused) { a.keyResult_ = HandlerResult.Suppress; }
       return;
     }
-    else if (n !== kKeyCode.space) { /* empty */ }
+    else if (n !== kKeyCode.space || char !== kChar.space) { /* empty */ }
     else if (!focused) { action = AllowedActions.focus; }
     else if ((a.selection_ >= 0
         || a.completions_.length <= 1) && a.input_.value.endsWith("  ")) {
@@ -554,11 +573,15 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       return a.onAction_(action);
     }
 
-    if (!focused && n < kKeyCode.minNotNum && n > kKeyCode.maxNotNum) {
-      n = (n - kKeyCode.N0) || 10;
-      return !event.shiftKey && n <= a.completions_.length ? a.onEnter_(event, n - 1) : undefined;
+    let ind: number;
+    if (focused || char.length !== 1 || isNaN(ind = parseInt(char, 16))) {
+      a.keyResult_ = focused && n !== kKeyCode.menuKey ? HandlerResult.Suppress : HandlerResult.Nothing;
+    } else {
+      ind = ind || 10;
+      if (ind <= a.completions_.length) {
+        a.onEnter_(key, ind - 1);
+      }
     }
-    a.keyResult_ = focused && n !== kKeyCode.menuKey ? HandlerResult.Suppress : HandlerResult.Nothing;
   },
   onAction_ (action: AllowedActions): void {
     const a = Vomnibar_;
@@ -594,7 +617,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   onBashAction_ (code: number): void {
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || Vomnibar_.browser_ === BrowserType.Firefox)
-        && code < 0) { // alt+backspace
+        && code < 0) { // alt/ctrl/meta + backspace
       Vomnibar_.input_.value = "";
       Vomnibar_.onInput_();
       return;
@@ -629,13 +652,17 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.isInputComposing_ = false;
     a.update_(0);
   },
-  onEnter_ (event?: EventControlKeys | true, newSel?: number): void {
+  onEnter_ (event?: KeyStat | true | string, newSel?: number): void {
     const a = Vomnibar_;
     let sel = newSel != null ? newSel : a.selection_;
+    if (typeof event === "string") {
+      event = (event.indexOf("a-") > 0 ? KeyStat.altKey : 0) + (event.indexOf("c-") > 0 ? KeyStat.ctrlKey : 0)
+          + (event.indexOf("m-") > 0 ? KeyStat.metaKey : 0) + (event.indexOf("s-") > 0 ? KeyStat.shiftKey : 0);
+    }
     a.actionType_ = event == null ? a.actionType_
       : event === true ? a.forceNewTab_ ? ReuseType.newFg : ReuseType.current
-      : event.ctrlKey || event.metaKey ? event.shiftKey ? ReuseType.newBg : ReuseType.newFg
-      : event.shiftKey || !a.forceNewTab_ ? ReuseType.current : ReuseType.newFg;
+      : event & KeyStat.PrimaryModifier ? event & KeyStat.shiftKey ? ReuseType.newBg : ReuseType.newFg
+      : event & KeyStat.shiftKey || !a.forceNewTab_ ? ReuseType.current : ReuseType.newFg;
     if (newSel != null) { /* empty */ }
     else if (sel === -1 && a.input_.value.length === 0) { return; }
     else if (!a.timer_) { /* empty */ }
@@ -661,20 +688,14 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   OnEnterUp_ (this: void, event: KeyboardEvent): void {
     const keyCode = event.keyCode;
     if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? event.isTrusted
-        : event.isTrusted === true
-          || event.isTrusted == null && event instanceof KeyboardEvent
-            && (keyCode === kKeyCode.enter || keyCode === kKeyCode.ctrlKey || keyCode === kKeyCode.shiftKey
-                || keyCode === kKeyCode.metaKey)
+        : event.isTrusted !== false
     ) { // call onEnter once an enter / control key is up
       Vomnibar_.lastKey_ = kKeyCode.None;
       window.onkeyup = null as never;
-      var keys = {
-        altKey: event.altKey || keyCode === kKeyCode.altKey,
-        ctrlKey: event.ctrlKey || keyCode === kKeyCode.ctrlKey,
-        metaKey: event.metaKey || keyCode === kKeyCode.metaKey,
-        shiftKey: event.shiftKey || keyCode === kKeyCode.shiftKey
-      };
-      Vomnibar_.onEnter_(keys);
+      Vomnibar_.onEnter_((event.altKey || keyCode === kKeyCode.altKey ? KeyStat.altKey : 0)
+          + (event.ctrlKey || keyCode === kKeyCode.ctrlKey ? KeyStat.ctrlKey : 0)
+          + (event.metaKey || keyCode === kKeyCode.metaKey ? KeyStat.metaKey : 0)
+          + (event.shiftKey || keyCode === kKeyCode.shiftKey ? KeyStat.shiftKey : 0));
     }
   },
   removeCur_ (): void {
@@ -703,7 +724,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     while (el && el.parentElement !== a.list_) { el = el.parentElement as SafeHTMLElement | null; }
     if (!el) { return; }
     a.lastKey_ = kKeyCode.None;
-    a.onEnter_(event, [].indexOf.call(a.list_.children, el));
+    a.onEnter_(<number> <boolean|number> event.altKey |
+      (<number> <boolean|number> event.ctrlKey * 2) |
+      (<number> <boolean|number> event.metaKey * 4) |
+      (<number> <boolean|number> event.shiftKey * 8), [].indexOf.call(a.list_.children, el));
   },
   OnMenu_ (this: void, event: Event): void {
     let el = event.target as SafeHTMLElement, item: Element | null, Anchor = HTMLAnchorElement;
@@ -958,7 +982,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     const a = Vomnibar_;
     window.onclick = function (e) { Vomnibar_.onClick_(e); };
     a.onWheel_ = a.onWheel_.bind(a);
-    VUtils_.safer_(a.ctrlMap_);
+    VUtils_.safer_(a.ctrlCharOrShiftKeyMap_);
     VUtils_.safer_(a.normalMap_);
     const list = a.list_ = document.getElementById("list") as EnsuredMountedHTMLElement;
     const ver: BrowserVer = Build.BTypes & BrowserType.Chrome ? a.browserVer_ : BrowserVer.assumedVer,
@@ -1084,6 +1108,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (window.onkeyup) {
       let stop = !event.repeat, now: number = 0;
       if (!Vomnibar_.lastScrolling_) {
+        // clear state, to avoid OnEnterUp receives unrelated keys
         stop = event.keyCode > kKeyCode.ctrlKey || event.keyCode < kKeyCode.shiftKey;
       } else if (stop || (now = Date.now()) - Vomnibar_.lastScrolling_ > 40 || now < Vomnibar_.lastScrolling_) {
         VPort_.postToOwner_({ N: stop ? VomnibarNS.kFReq.scrollEnd : VomnibarNS.kFReq.scrollGoing });
@@ -1427,6 +1452,9 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
     }
     if (Build.BTypes & BrowserType.Chrome) {
       Vomnibar_.browserVer_ = payload.v as BrowserVer;
+    }
+    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key) {
+      payload.o || (Vomnibar_.keyIdCorrectionOffset_ = 300);
     }
     Vomnibar_.os_ = payload.o;
     Vomnibar_.mappedKeyRegistry_ = payload.m;
