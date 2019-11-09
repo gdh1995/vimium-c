@@ -945,7 +945,7 @@ declare const enum FirefoxBrowserVer {
   MinCSSEnableContain = 69,
   MinUserScriptsAPI = 69, // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/userScripts
   // https://bugzilla.mozilla.org/show_bug.cgi?id=1587723
-  MinMediaChangeEventsOnBackgroundPage = 73,
+  MinMediaChangeEventsOnBackgroundPage = 99,
   None = 0,
   assumedVer = 999,
 }
