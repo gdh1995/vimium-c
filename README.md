@@ -9,11 +9,11 @@
   )](https://travis-ci.org/gdh1995/vimium-c)
 **Visit on [Chrome Web Store](
   https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg/reviews
-  )** /
-**[Firefox Add-ons](
+  ) /
+[Firefox Add-ons](
   https://addons.mozilla.org/firefox/addon/vimium-c/
-  )** /
-**[MS Edge Addons](
+  ) /
+[MS Edge Addons](
   https://microsoftedge.microsoft.com/insider-addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo
   )**
 

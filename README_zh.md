@@ -2,9 +2,26 @@
 ![Icon](icons/icon32.png) - 全键盘操作浏览器
 ============================================
 
+[![MIT 许可协议](https://img.shields.io/badge/许可协议-MIT-blue.svg)](LICENSE.txt)
+[![版本：1.78.5](https://img.shields.io/badge/版本-1.78.5-orange.svg
+  )](https://github.com/gdh1995/vimium-c/releases)
+**在 [Chrome 网上应用店](
+  https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg/reviews
+  ) /
+[Firefox 附加组件](
+  https://addons.mozilla.org/firefox/addon/vimium-c/
+  ) /
+[MS Edge 插件](
+  https://microsoftedge.microsoft.com/insider-addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo
+  ) 中查看**
+
 Vimium C 是一款开源、免费的键盘增强类浏览器扩展，支持为多种多样的命令任意设置快捷键。
 只要有一个键盘，您就能自由点击网页中的链接和按钮、选择和复制文字和网址，也能轻松操纵浏览器标签页，
 还能在一个便捷的搜索框中随意搜索历史记录、收藏夹或打开的标签等等。
+
+本项目由 [gdh1995](https://github.com/gdh1995) 开发，且以 [MIT 许可协议](LICENSE.txt) 开源。
+
+本项目的前身是[<span style="color: #2f508e;">Vim</span>ium](https://github.com/philc/vimium)。
 
 ## 多种多样的命令
 
@@ -58,6 +75,18 @@ Vimium C 具有完善的安全机制：
 * 上述搜索框支持设置屏蔽词来隐藏部分搜索结果（主动搜索了某屏蔽词时则不隐藏）
 * 当它收到来自其它扩展程序的消息时，会按照一份用户指定的白名单来审核消息来源
 * 可以关闭“借助浏览器账号同步扩展设置”的功能，且此同步功能不会同步页内查找历史等信息
+
+## 捐赠 / Donate
+
+Vimium C 是一款开源的浏览器扩展程序，任何人都可以安装使用它而无需支付任何费用。
+如果您确实想要资助它的开发者（[gdh1995](http://gdh1995.cn/)），
+可以通过[支付宝](https://www.alipay.com/)赠与他一小笔钱。谢谢您的支持！
+
+Vimium C is an open-source browser extension, and everyone can install and use it free of charge.
+If you indeed want to give its author ([gdh1995](http://gdh1995.cn/)) financial support,
+you may donate any small amount of money to him using [Alipay](https://intl.alipay.com/). Thanks a lot!
+
+![gdh1995 的支付宝二维码](https://gdh1995.github.io/alipay-recv-money.png)
 
 ## 更多
 
