@@ -1,28 +1,29 @@
 var VKey = {
-  _keyNames: ["space", "pageup", "pagedown", "end", "home", "left", "up", "right", "down",
-    /* 41 */ "", "", "", "", "insert", "delete"] as ReadonlyArray<string>,
+  _keyNames: [kChar.space, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
+    kChar.left, kChar.up, kChar.right, kChar.down,
+    /* 41 */ "", "", "", "", kChar.insert, kChar.delete] as readonly kChar[],
   keyIdCorrectionOffset_: (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
       ? 185 : 0 as never) as 185 | 300,
   _codeCorrectionMap: ["Semicolon", "Equal", "Comma", "Minus", "Period", "Slash", "Backquote",
     "BracketLeft", "Backslash", "BracketRight", "Quote", "IntlBackslash"],
   _charCorrectionList: Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
-      ? ";=,-./`[\\]'\\:+<_>?~{|}\"|" as const : 0 as never,
+      ? kChar.CharCorrectionList as kChar.CharCorrectionList : 0 as never,
   _modifierKeys: {
     __proto__: null as never,
     Alt: 1, AltGraph: 1, Control: 1, Meta: 1, OS: 1, Shift: 1
   } as SafeEnum,
   cache_: null as never as SettingsNS.FrontendSettingCache,
   /** only return lower-case long string */
-  getKeyName_ (event: Pick<KeyboardEvent, "key" | "keyCode">): string {
+  getKeyName_ (event: Pick<KeyboardEvent, "key" | "keyCode">): kChar {
     let {keyCode: i} = event, s: string | undefined;
     return i < kKeyCode.minNotDelete ? (i > kKeyCode.space - 1
-          ? this._keyNames[i - kKeyCode.space] : i === kKeyCode.backspace ? "backspace"
-          : i === kKeyCode.esc ? "esc"
-          : i === kKeyCode.tab ? "tab" : i === kKeyCode.enter ? "enter" : ""
+          ? this._keyNames[i - kKeyCode.space] : i === kKeyCode.backspace ? kChar.backspace
+          : i === kKeyCode.esc ? kChar.esc
+          : i === kKeyCode.tab ? kChar.tab : i === kKeyCode.enter ? kChar.enter : kChar.None
         )
       : ((s = event.key) ? (<RegExpOne> /^F\d\d?$/).test(s) : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn)
-      ? "f" + (s ? s.slice(1) : i - kKeyCode.maxNotFn)
-      : "";
+      ? ("f" + (s ? s.slice(1) : i - kKeyCode.maxNotFn)) as kChar.F_num
+      : kChar.None;
   },
   /** return single characters which only depend on `shiftKey` (CapsLock is ignored) */
   _getKeyCharUsingKeyIdentifier: (!(Build.BTypes & BrowserType.Chrome)
@@ -33,7 +34,8 @@ var VKey = {
     keyId: kCharCode = s.startsWith("U+") ? parseInt(s.slice(2), 16) : 0;
     if (keyId < kCharCode.minNotAlphabet) {
       return keyId < kCharCode.minNotSpace ? ""
-          : shiftKey && keyId > kCharCode.maxNotNum && keyId < kCharCode.minNotNum ? ")!@#$%^&*("[keyId - kCharCode.N0]
+          : shiftKey && keyId > kCharCode.maxNotNum && keyId < kCharCode.minNotNum
+          ? kChar.EnNumTrans[keyId - kCharCode.N0]
           : String.fromCharCode(keyId < kCharCode.minAlphabet || shiftKey ? keyId : keyId + kCharCode.CASE_DELTA);
     } else {
       // here omits a `(...)` after the first `&&`, since there has been `keyId >= kCharCode.minNotAlphabet`
@@ -55,12 +57,12 @@ var VKey = {
       // so for /^Key[A-Z]/, can assume the status of CapsLock.
       // https://github.com/philc/vimium/issues/2161#issuecomment-225813082
       key = code.length === 1
-            ? !shiftKey || code < "0" || code > "9" ? code : ")!@#$%^&*("[+code]
+            ? !shiftKey || code < "0" || code > "9" ? code : kChar.EnNumTrans[+code]
             : this._modifierKeys[key] ? ""
             : !code ? key
-            : (mapped = this._codeCorrectionMap.indexOf(code)) < 0 ? code === "Escape" ? "esc" : code
+            : (mapped = this._codeCorrectionMap.indexOf(code)) < 0 ? code === "Escape" ? kChar.esc : code
             : (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
-                ? this._charCorrectionList : ";=,-./`[\\]'\\:+<_>?~{|}\"|")[mapped + 12 * +shiftKey]
+                ? this._charCorrectionList : kChar.CharCorrectionList)[mapped + 12 * +shiftKey]
           ;
     }
     return shiftKey && key.length < 2 ? key : key === "Unidentified" ? "" : key.toLowerCase();

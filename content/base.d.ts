@@ -225,9 +225,7 @@ declare namespace VomnibarNS {
   interface FReq {
     [kFReq.hide]: {
     };
-    [kFReq.scroll]: {
-      /** keyCode */ keyCode: kKeyCode;
-    };
+    [kFReq.scroll]: Pick<KeyboardEvent, "keyCode">;
     [kFReq.style]: {
       // unit: physical pixel (if C<52)
       h: number;

@@ -455,7 +455,8 @@ declare const enum kCharCode {
   /** '-' */ dash = 45,
   dot = 46, slash = 47,
   maxNotNum = 48 - 1, N0, N9 = N0 + 9, minNotNum, colon = 58, lt = 60, gt = 62, question = 63,
-  A = 65, minAlphabet = A, B, C, I = A + 8, K = I + 2, W = A + 22, minLastAlphabet = A + 25, minNotAlphabet,
+  A = 65, maxNotAlphabet = A - 1, minAlphabet = A,
+  B, C, I = A + 8, K = I + 2, W = A + 22, minLastAlphabet = A + 25, minNotAlphabet,
   a = 97, CASE_DELTA = a - A,
   backslash = 92, s = 115,
 }
@@ -479,6 +480,14 @@ declare const enum KeyStat {
   Default = 0, plain = Default,
   altKey = 1, ctrlKey = 2, metaKey = 4, shiftKey = 8,
   PrimaryModifier = ctrlKey | metaKey,
+}
+declare const enum kChar {
+  space = "space", pageup = "pageup", pagedown = "pagedown",
+  end = "end", home = "home", left = "left", up = "up", right = "right", down = "down",
+  insert = "insert", delete = "delete",
+  backspace = "backspace", esc = "esc", tab = "tab", enter = "enter",
+  None = "", F_num = "f",
+  CharCorrectionList = ";=,-./`[\\]'\\:+<_>?~{|}\"|", EnNumTrans = ")!@#$%^&*(",
 }
 
 declare const enum BrowserType {

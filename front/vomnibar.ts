@@ -20,7 +20,7 @@ type Options = VomnibarNS.FgOptions;
 declare const enum AllowedActions {
   Default = 0,
   nothing = Default,
-  dismiss, focus, blurInput, backspace, blur, up, down = up + 2, toggle, pageup, pagedown, enter, remove
+  dismiss, focus, blurInput, backspace, blur, up, down = up + 2, toggle, pageup, pagedown, remove
 }
 declare var setTimeout: SetTimeout;
 interface SetTimeout {
@@ -407,28 +407,29 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     sel >= 1 && _ref[sel - 1].classList.add("p");
     sel >= 0 && _ref[sel].classList.add("s");
   },
-  _keyNames: ["space", "pageup", "pagedown", "end", "home", "left", "up", "right", "down",
-    /* 41 */ "", "", "", "", "insert", "delete"] as ReadonlyArray<string>,
+  _keyNames: Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.BTypes & BrowserType.Chrome
+      ? [kChar.space, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
+        kChar.left, kChar.up, kChar.right, kChar.down,
+        /* 41 */ "", "", "", "", kChar.insert, kChar.delete] as readonly kChar[]
+      : 0 as never,
   _codeCorrectionMap: ["Semicolon", "Equal", "Comma", "Minus", "Period", "Slash", "Backquote",
     "BracketLeft", "Backslash", "BracketRight", "Quote", "IntlBackslash"],
-  _charCorrectionList: Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
-      ? ";=,-./`[\\]'\\:+<_>?~{|}\"|" as const : 0 as never,
   _modifierKeys: {
     __proto__: null as never,
     Alt: 1, AltGraph: 1, Control: 1, Meta: 1, OS: 1, Shift: 1
   } as SafeEnum,
   keyIdCorrectionOffset_: (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
-      ? 185 : 0) as 0 | 185 | 300,
+      ? 185 : 0 as never) as 185 | 300,
   char_ (event: Pick<KeyboardEvent, "code" | "key" | "keyCode" | "keyIdentifier" | "shiftKey">): string {
-    const charCorrectionList = ";=,-./`[\\]'\\:+<_>?~{|}\"|", enNumTrans = ")!@#$%^&*(";
+    const charCorrectionList = kChar.CharCorrectionList, enNumTrans = kChar.EnNumTrans;
     let {key, shiftKey} = event;
     if (Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.BTypes & BrowserType.Chrome && !key) {
       let {keyCode: i} = event, keyId: kCharCode;
       key = i < kKeyCode.minNotDelete
         ? i > kKeyCode.space - 1
-            ? this._keyNames[i - kKeyCode.space] : i === kKeyCode.backspace ? "backspace"
-            : i === kKeyCode.esc ? "esc"
-            : i === kKeyCode.tab ? "tab" : i === kKeyCode.enter ? "enter" : ""
+            ? this._keyNames[i - kKeyCode.space] : i === kKeyCode.backspace ? kChar.backspace
+            : i === kKeyCode.esc ? kChar.esc
+            : i === kKeyCode.tab ? kChar.tab : i === kKeyCode.enter ? kChar.enter : kChar.None
         : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn ? "f" + (i - kKeyCode.maxNotFn)
         : (key = Build.BTypes & ~BrowserType.Chrome ? <string | undefined> event.keyIdentifier || ""
               : event.keyIdentifier as string).startsWith("U+") && (keyId = parseInt(key.slice(2), 16))
@@ -449,7 +450,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
               ? !shiftKey || code < "0" || code > "9" ? code : enNumTrans[+code]
               : this._modifierKeys[key as string] ? ""
               : !code ? key
-              : (mapped = this._codeCorrectionMap.indexOf(code)) < 0 ? code === "Escape" ? "esc" : code
+              : (mapped = this._codeCorrectionMap.indexOf(code)) < 0 ? code === "Escape" ? kChar.esc : code
               : charCorrectionList[mapped + 12 * +shiftKey]
             ;
       }
@@ -547,7 +548,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     else if (!focused) { action = AllowedActions.focus; }
     else if ((a.selection_ >= 0
         || a.completions_.length <= 1) && a.input_.value.endsWith("  ")) {
-      action = AllowedActions.enter;
+      return a.onEnter_(true);
     }
     if (action) {
       return a.onAction_(action);
@@ -587,7 +588,6 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       return a.updateSelection_(sel);
     case AllowedActions.toggle: return a.toggleInput_();
     case AllowedActions.pageup: case AllowedActions.pagedown: return a.goPage_(action !== AllowedActions.pageup);
-    case AllowedActions.enter: return a.onEnter_(true);
     case AllowedActions.remove: return a.removeCur_();
     }
   },
