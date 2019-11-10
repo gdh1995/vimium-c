@@ -594,13 +594,10 @@
 		"message": "忽略键盘布局"
 	},
 	"o51": {
-		"message": "始终按照"
-	},
-	"o52": {
-		"message": "英文"
+		"message": "始终按照英文"
 	},
 	"o53": {
-		"message": " QWERTY 键盘布局来识别按键，使用非英文或中文的键盘布局时可能需要启用此设置。"
+		"message": " QWERTY 键盘布局来识别按键并忽略大小写，使用英文以外的键盘布局时可能需要启用此设置。"
 	},
 	"o53_2": {
 		"message": "拦截网页内的快捷键（access keys)"
@@ -1137,7 +1134,7 @@
 		"message": "喜欢"
 	},
 	"HStar": {
-		"message": "在 GitHub 上收藏此项目"
+		"message": "在 GitHub 上收藏"
 	},
 	"HReview": {
 		"message": "在 "
@@ -1145,11 +1142,14 @@
 	"_HReview_2": {
 		"message": " 上给予好评"
 	},
+	"Donate": {
+		"message": "打赏开发者"
+	},
 	"ifBug": {
-		"message": "发现了故障？"
+		"message": "发现了问题？"
 	},
 	"HReport": {
-		"message": "请点此反馈您的问题"
+		"message": "请点此反馈"
 	},
 	"HCredits": {
 		"message": "致谢："

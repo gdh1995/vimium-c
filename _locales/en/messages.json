@@ -783,9 +783,6 @@
 	"HReview": {
 		"message": "Review on "
 	},
-	"_HReview_2": {
-		"message": ""
-	},
 	"ifBug": {
 		"message": "Found a bug? "
 	},
