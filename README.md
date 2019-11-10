@@ -126,8 +126,9 @@ The options including `MinCVer` and `BTypes` in [gulp.tsconfig.json](scripts/gul
   are used to control supported target browsers and set a minimum browser version.
 
 
-# [Donate / 捐赠](#donate)
+# Donate / 捐赠
 
+<a name="donate"></a>
 Vimium C is an open-source browser extension, and everyone can install and use it free of charge.
 If you indeed want to give its author ([gdh1995](http://gdh1995.cn/)) financial support,
 you may donate any small amount of money to him using [Alipay](https://intl.alipay.com/). Thanks a lot!
