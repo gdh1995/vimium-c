@@ -115,7 +115,7 @@ var VFind = {
     const doc = wnd.document, docEl = doc.documentElement as HTMLHtmlElement,
     body = doc.body as HTMLBodyElement,
     a = VFind,
-    zoom = Build.BTypes & BrowserType.Firefox ? wnd.devicePixelRatio : 1,
+    zoom = Build.BTypes & ~BrowserType.Firefox ? wnd.devicePixelRatio : 1,
     list = doc.createDocumentFragment(),
     addElement = function (tag: 0 | "div" | "style", id?: string | 0): SafeHTMLElement {
       const newEl = doc.createElement(tag || "span") as SafeHTMLElement;
@@ -126,7 +126,7 @@ var VFind = {
     addElement(0, "s").textContent = "/";
     const el = a.input_ = addElement(0, "i");
     addElement(0, "h");
-    if (!(Build.BTypes & BrowserType.Firefox) && !Build.DetectAPIOnFirefox) {
+    if (!(Build.BTypes & ~BrowserType.Firefox) && !Build.DetectAPIOnFirefox) {
       el.contentEditable = "true";
       VKey.SetupEventListener_(wnd, "paste", null, 1, 1);
     } else if (Build.BTypes & ~BrowserType.Chrome) {
@@ -171,7 +171,7 @@ var VFind = {
         (doc.head as HTMLHeadElement).appendChild(st);
         body.appendChild(box);
       }
-    } else if (zoom < 1) {
+    } else if (Build.BTypes & ~BrowserType.Firefox && zoom < 1) {
       docEl.style.zoom = "" + 1 / zoom;
     }
     a.box_.style.display = "";
