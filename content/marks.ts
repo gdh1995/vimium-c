@@ -2,6 +2,7 @@ var VMarks = {
   onKeyChar_: null as never as (event: HandlerNS.Event, keyChar: string) => void,
   prefix_: true,
   swap_: true,
+  doesMapKey_: false,
   count_: 0,
   activate_ (this: void, count: number, options: CmdOptions[kFgCmd.marks]): void {
     const a = VMarks;
@@ -9,7 +10,8 @@ var VMarks = {
     a.onKeyChar_ = isGo ? a._goto : a._create;
     a.count_ = count < 0 || count > 9 ? 0 : count - 1;
     a.prefix_ = options.prefix !== false;
-    a.swap_ = options.swap === true;
+    a.swap_ = !!options.swap;
+    a.doesMapKey_ = !!options.mapKey;
     VKey.removeHandler_(a);
     VKey.pushHandler_(a.onKeydown_, a);
     return VHud.show_(isGo ? kTip.nowGotoMark : kTip.nowCreateMark, (isGo ? "Go to" : "Create") + " mark\u2026");
@@ -21,6 +23,7 @@ var VMarks = {
         || (keyChar = VKey.char_(event)).length !== 1)) {
       return HandlerResult.Suppress;
     }
+    keyChar = keyChar && this.doesMapKey_ ? VApi.mapKey_(keyChar, event, keyChar) : keyChar;
     VKey.removeHandler_(this);
     notEsc && keyCode > kKeyCode.space ? this.onKeyChar_(event, keyChar as string) : VHud.hide_();
     this.prefix_ = this.swap_ = true;

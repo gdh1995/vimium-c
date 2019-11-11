@@ -6,7 +6,7 @@
 type Exclude<T, U> = T extends U ? never : T;  // Remove types from T that are assignable to U
 type Extract<T, U> = T extends U ? T : never;  // Remove types from T that are not assignable to U
 type Writable<T> = { -readonly [P in keyof T]-?: T[P] };
-type NonNullable<T> = Exclude<T, null | undefined | void>;  // Remove null and undefined from T
+type NonNullable<T> = T extends null | undefined | void ? never : T;  // Remove null and undefined from T
 type TypeName<T> =
     T extends string ? "string" :
     T extends number ? "number" :

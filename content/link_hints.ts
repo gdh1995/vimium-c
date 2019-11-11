@@ -1193,7 +1193,7 @@ alphabetHints_: {
         return [];
       }
       a.hintKeystroke_ = a.hintKeystroke_.slice(0, -1);
-    } else if ((keyChar = VKey.char_(e))
+    } else if ((keyChar = VKey.char_(e)) && keyChar.length < 2
         && (keyChar = (VHints.doesMapKey_ ? VApi.mapKey_(keyChar, e, keyChar) : keyChar).toUpperCase()
             ).length < 2) {
       if (a.chars_.indexOf(keyChar) === -1) {

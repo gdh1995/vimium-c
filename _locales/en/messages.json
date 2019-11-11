@@ -108,7 +108,7 @@
 		"message": "Go to a mark"
 	},
 	"Marks_activate_p": {
-		"message": "prefix=true, swap"
+		"message": "prefix=true, swap, mapKey"
 	},
 	"Marks_activateCreateMode": {
 		"message": "Create a new mark"
@@ -1166,6 +1166,9 @@
 	},
 	"31": {
 		"message": "On Firefox you have to visit this URL manually"
+	},
+	"44": {
+		"message": "Selected line boundary"
 	},
 	"0": {
 		"message": "Open link in current tab"

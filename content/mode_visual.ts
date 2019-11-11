@@ -149,61 +149,34 @@ var VVisual = {
   selType_: null as never as () => SelType,
   /** @unknown_di_result */
   onKeydown_ (event: KeyboardEventToPrevent): HandlerResult {
-    const a = this;
-    let i: kKeyCode | KeyStat = event.keyCode, count = 0;
-    if (i === kKeyCode.ime || i === kKeyCode.menuKey) {
-      return HandlerResult.Nothing;
+    const { keyCode } = event, a = this, doPass = keyCode === kKeyCode.ime || keyCode === kKeyCode.menuKey,
+    srcChar = doPass ? "" : VKey.char_(event), key = srcChar && VApi.mapKey_(srcChar, event),
+    char = key.length > 1 ? key.slice(key[2] === "-" ? 3 : 1, -1) : key;
+    if (!key || key === "<esc>" || key === "<c-[>") {
+      !key || a.currentCount_ || a.currentSeconds_ ? a.resetKeys_() : a.deactivate_(1);
+      return key ? HandlerResult.Prevent : doPass ? HandlerResult.Nothing : HandlerResult.Suppress;
     }
-    if (i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn) {
+    if (char === kChar.enter) {
       a.resetKeys_();
-      if (i === kKeyCode.f1) {
-        a.flashSelection_();
-      }
-      return i === kKeyCode.f1 ? HandlerResult.Prevent : HandlerResult.Nothing;
-    }
-    if (i === kKeyCode.enter) {
-      i = VKey.getKeyStat_(event);
-      if ((i & KeyStat.shiftKey) && a.mode_ !== VisualModeNS.Mode.Caret) { a.retainSelection_ = true; }
-      (i & KeyStat.PrimaryModifier) ? a.deactivate_()
-        : (a.resetKeys_(), a.yank_(i === KeyStat.altKey || null));
+      if (key.indexOf("s-") > 0 && a.mode_ !== VisualModeNS.Mode.Caret) { a.retainSelection_ = true; }
+      key[1] === "c" || key[1] === "m" ? a.deactivate_() : a.yank_(key[1] === "a" || null);
       return HandlerResult.Prevent;
     }
-    if (VKey.isEscape_(event)) {
-      a.currentCount_ || a.currentSeconds_ ? a.resetKeys_() : a.deactivate_(1);
-      return HandlerResult.Prevent;
+    const count = a.currentCount_, childAction = a.currentSeconds_ && a.currentSeconds_[key],
+    newActions = childAction != null ? childAction : a.keyMap_[key];
+    if (typeof newActions !== "number") {
+      // asserts newActions is SafeDict<VisualAction> | null | undefined
+      a.currentCount_ = !newActions && key.length < 2 && +key < 10 ? a.currentSeconds_ ? +key : +key + count * 10 : 0;
+      a.currentSeconds_ = newActions || null;
+      return newActions || srcChar.length < 2 && !VKey.getKeyStat_(event) ? HandlerResult.Prevent
+          : char < "f1" || char > "f9" ? HandlerResult.Suppress
+          : key === "<f1>" ? (a.flashSelection_(), HandlerResult.Prevent) : HandlerResult.Nothing;
     }
-    const ch = VKey.char_(event);
-    if (!ch) {
-      a.resetKeys_();
-      return HandlerResult.Suppress;
-    }
-    let key = VApi.mapKey_(ch, event)
-      , obj: SafeDict<VisualAction> | null | VisualAction | undefined;
-    if (obj = a.currentSeconds_) {
-      obj = obj[key];
-      count = a.currentCount_;
-      a.resetKeys_();
-    }
-    if (obj != null) { /* empty */ }
-    else if (key.length < 2 && (i = +key[0]) < 10 && (i || a.currentCount_)) {
-      a.currentCount_ = a.currentCount_ * 10 + i;
-      a.currentSeconds_ = null;
-    } else if ((obj = a.keyMap_[key]) == null) {
-      a.currentCount_ = 0;
-    } else if (typeof obj === "object") {
-      a.currentSeconds_ = obj;
-      obj = null;
-    } else {
-      count = a.currentCount_;
-      a.currentCount_ = 0;
-    }
-    if (obj == null) {
-      return ch.length < 2 && !VKey.getKeyStat_(event) ? HandlerResult.Prevent : HandlerResult.Suppress;
-    }
+    a.resetKeys_();
     VKey.prevent_(event);
     a.di_ = VisualModeNS.kDir.unknown; // make @di safe even when a user modifies the selection
     a.diType_ = VisualModeNS.DiType.UnsafeUnknown;
-    a.commandHandler_(obj, count || 1);
+    a.commandHandler_(newActions, count || 1);
     return HandlerResult.Prevent;
   },
   /** @not_related_to_di */
@@ -460,6 +433,9 @@ var VVisual = {
     // either `count > 0` or `fixWord && _moveRight***()`
     a.mode_ !== VisualModeNS.Mode.Caret && (a.diType_ &= ~VisualModeNS.DiType.isUnsafe);
     a.di_ = direction === oldDi ? direction : VisualModeNS.kDir.unknown;
+    if (granularity === VisualModeNS.G.lineBoundary) {
+      a.prompt_(kTip.selectLineBoundary, "Selected line boundary", 2000);
+    }
     if (fixWord) {
       if (!shouldSkipSpaceWhenMovingRight) { // not shouldSkipSpace -> go left
         if (!(Build.BTypes & BrowserType.Firefox) || !Build.NativeWordMoveOnFirefox
