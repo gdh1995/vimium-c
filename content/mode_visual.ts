@@ -151,6 +151,9 @@ var VVisual = {
   onKeydown_ (event: KeyboardEventToPrevent): HandlerResult {
     const a = this;
     let i: kKeyCode | KeyStat = event.keyCode, count = 0;
+    if (i === kKeyCode.ime || i === kKeyCode.menuKey) {
+      return HandlerResult.Nothing;
+    }
     if (i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn) {
       a.resetKeys_();
       if (i === kKeyCode.f1) {
@@ -172,7 +175,7 @@ var VVisual = {
     const ch = VKey.char_(event);
     if (!ch) {
       a.resetKeys_();
-      return i === kKeyCode.ime || i === kKeyCode.menuKey ? HandlerResult.Nothing : HandlerResult.Suppress;
+      return HandlerResult.Suppress;
     }
     let key = VApi.mapKey_(ch, event)
       , obj: SafeDict<VisualAction> | null | VisualAction | undefined;

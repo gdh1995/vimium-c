@@ -867,14 +867,14 @@ var VHints = {
     let linksMatched: HintsNS.LinksMatched, i: number;
     if (event.repeat || !a.isActive_) {
       // NOTE: should always prevent repeated keys.
-    } else if (VKey.isEscape_(event)) {
-      a.clean_();
-    } else if ((i = event.keyCode) === kKeyCode.esc) {
-      return HandlerResult.Suppress;
-    } else if (i === kKeyCode.ime) {
+    } else if ((i = event.keyCode) === kKeyCode.ime) {
       a.clean_(1);
       VHud.tip_(kTip.exitForIME, "LinkHints exits because you're typing");
       return HandlerResult.Nothing;
+    } else if (VKey.isEscape_(event)) {
+      a.clean_();
+    } else if (i === kKeyCode.esc) {
+      return HandlerResult.Suppress;
     } else if (i > kKeyCode.f1 && i <= kKeyCode.f12) {
       a.ResetMode_();
       if (i !== kKeyCode.f2) { return HandlerResult.Nothing; }

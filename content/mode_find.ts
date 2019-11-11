@@ -73,6 +73,7 @@ var VFind = {
     b.mode_ ? b.prompt_(kTip.findFrameFail, s, 2000) : VHud.tip_(kTip.findFrameFail, s);
   },
   onLoad_ (later?: 1): void {
+    if (!this.isActive_) { return; }
     const a = this, box: HTMLIFrameElement = a.box_,
     wnd = box.contentWindow, f = wnd.addEventListener.bind(wnd) as typeof addEventListener,
     onKey = a.onKeydown_.bind(a),
@@ -112,6 +113,7 @@ var VFind = {
     if (later) { a.onLoad2_(wnd); }
   },
   onLoad2_ (wnd: Window): void {
+    if (!this.isActive_) { return; }
     const doc = wnd.document, docEl = doc.documentElement as HTMLHtmlElement,
     body = doc.body as HTMLBodyElement,
     a = VFind,
