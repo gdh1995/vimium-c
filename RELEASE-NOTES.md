@@ -1,6 +1,14 @@
 Release Notes of Vimium C
 =========================
 
+#### 1.78.6
+* Vomnibar: all of its shortcuts, including `<esc>`, now support `mapKey`
+  * now Normal Mode, VisualMode and Vomnibar supports full-featured mapKey
+  * LinkHints and Marks support mappings from single characters to single characters
+    * this is enabled by default for `LinkHints.*`, but not for `Marks.*`
+  * others support mappings to Esc (`<esc>` and `<c-[>`)
+* fix some bugs
+
 #### 1.78.5
 * Edge (Chromium): release its first version
 * fix that `LinkHints` may focus wrong iframes
