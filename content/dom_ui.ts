@@ -357,6 +357,12 @@ var VCui = {
           return;
         }
         (element as TextElement).select();
+        if (Build.BTypes & BrowserType.Firefox
+            && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
+            && (gotoEnd || gotoStart)) {
+          (element as TextElement).setSelectionRange(gotoEnd ? len : 0, gotoEnd ? len : 0);
+          return;
+        }
       }
       if (gotoEnd) {
         sel.collapseToEnd();
