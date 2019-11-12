@@ -588,7 +588,7 @@ var VFind = {
     const a = this;
     let el: LockableElement | null
       , found: boolean, count = ((options.n as number) | 0) || 1, back = count < 0
-      , par: Element | null = null, timesRegExpNotMatch = 0
+      , par: Element | null | undefined, timesRegExpNotMatch = 0
       , sel: Selection | undefined
       , q: string, notSens = a.ignoreCase_ && !options.caseSensitive;
     /** Note: FirefoxBrowserVer.MinFollowSelectionColorOnInactiveFrame
@@ -622,9 +622,14 @@ var VFind = {
             && !(pR as RegExpG & RegExpSearchable<0>).test(text as string)
             && timesRegExpNotMatch++ < 9) {
           count++;
+          par = null;
         }
       }
     } while (0 < --count && found);
+    if (found) {
+      par = par || VDom.GetSelectionParent_unsafe_(VCui.getSelected_()[0]);
+      par && VDom.view_(par);
+    }
     options.noColor || setTimeout(a.HookSel_, 0);
     (el = VApi.lock_()) && !VDom.isSelected_() && el.blur();
     Build.BTypes & BrowserType.Firefox && focusHUD && a.focus_();
