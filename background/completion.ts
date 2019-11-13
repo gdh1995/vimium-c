@@ -926,8 +926,12 @@ searchEngine = {
           && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
           ? sug.t : BgUtils_.escapeText_(sug.t);
     }
-    sug.v = Build.BTypes & BrowserType.Chrome ? searchEngine.calcBestFaviconSource_(url) : "";
-    sug.p = pattern.name_;
+    if (Build.BTypes & BrowserType.Chrome) {
+      sug.v = searchEngine.calcBestFaviconSource_(url);
+    }
+    if (Build.BTypes & BrowserType.Chrome || isForAddressBar) {
+      sug.p = pattern.name_;
+    }
 
     if (!promise) {
       return Completers.next_([sug], SugType.search);
@@ -1020,8 +1024,12 @@ searchEngine = {
     sug.textSplit = Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
         ? sug.t : BgUtils_.escapeText_(sug.t);
-    sug.v = Build.BTypes & BrowserType.Chrome ? searchEngine.calcBestFaviconSource_(url) : "";
-    sug.p = isSearch ? "~" : "";
+    if (Build.BTypes & BrowserType.Chrome) {
+      sug.v = searchEngine.calcBestFaviconSource_(url);
+    }
+    if (Build.BTypes & BrowserType.Chrome || isForAddressBar) {
+      sug.p = isSearch ? "~" : "";
+    }
     return sug;
   },
   BuildSearchKeywords_ (): void {
