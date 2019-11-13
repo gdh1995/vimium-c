@@ -154,7 +154,7 @@ var VVisual = {
     char = key.length > 1 ? key.slice(key[2] === "-" ? 3 : 1, -1) : key;
     if (!key || key === "<esc>" || key === "<c-[>") {
       !key || a.currentCount_ || a.currentSeconds_ ? a.resetKeys_() : a.deactivate_(1);
-      return key ? HandlerResult.Prevent : doPass ? HandlerResult.Nothing : HandlerResult.Suppress;
+      return key ? HandlerResult.Prevent : doPass ? HandlerResult.PassKey : HandlerResult.Suppress;
     }
     if (char === kChar.enter) {
       a.resetKeys_();
@@ -202,7 +202,7 @@ var VVisual = {
     if (movement.scope_ && !movement.selection_.rangeCount) {
       movement.scope_ = null;
       movement.selection_ = getSelection();
-      if (!movement.selection_.rangeCount) {
+      if (command < VisualAction.MaxNotFind + 1 && !movement.selection_.rangeCount) {
         movement.deactivate_();
         return VHud.tip_(kTip.loseSel, "Selection is lost.");
       }

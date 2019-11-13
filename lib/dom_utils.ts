@@ -853,7 +853,12 @@ var VDom = {
     script.type = "text/javascript";
     script.textContent = code;
     if (Build.BTypes & ~BrowserType.Firefox) {
-      doc.appendChild.call(docEl || document, script);
+      /* {@link ../Gulpfile.js#postUglify} */
+      if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$append) {
+        (docEl ? script : doc).appendChild.call(docEl || doc, script);
+      } else {
+        doc.appendChild.call(docEl || doc, script);
+      }
     } else {
       (docEl || doc).appendChild(script);
     }

@@ -589,7 +589,6 @@ var VFind = {
     let el: LockableElement | null
       , found: boolean, count = ((options.n as number) | 0) || 1, back = count < 0
       , par: Element | null | undefined, timesRegExpNotMatch = 0
-      , sel: Selection | undefined
       , q: string, notSens = a.ignoreCase_ && !options.caseSensitive;
     /** Note: FirefoxBrowserVer.MinFollowSelectionColorOnInactiveFrame
      * Before Firefox 68, it's impossible to replace the gray bg color for blurred selection:
@@ -615,7 +614,7 @@ var VFind = {
         getSelection().removeAllRanges(); // move to start
         found = a.find_(q, !notSens, back, true, a.wholeWord_, false, false);
       }
-      if (found && pR && (par = VDom.GetSelectionParent_unsafe_(sel || (sel = VCui.getSelected_()[0]), q))) {
+      if (found && pR && (par = VDom.GetSelectionParent_unsafe_(VCui.getSelected_()[0], q))) {
         pR.lastIndex = 0;
         let text = (par as HTMLElement | Element & {innerText?: undefined}).innerText;
         if (text && !(Build.BTypes & ~BrowserType.Firefox && typeof text !== "string")
