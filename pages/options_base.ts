@@ -648,7 +648,7 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
       return;
     }
     const testers = bgExclusions.testers_;
-    BG_.Backend_.forceStatus_("reset", frameInfo.t);
+    BG_.Backend_.forceStatus_("reset silent", frameInfo.t);
     exclusions.save_();
     setTimeout(function () {
       bgExclusions.testers_ = testers;

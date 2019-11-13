@@ -2904,6 +2904,8 @@
       if (spaceInd > 0) {
         act = act.slice(0, spaceInd) as Frames.ForcedStatusText;
       }
+      const silent = newPassedKeys.startsWith("silent");
+      newPassedKeys = (silent ? newPassedKeys.slice(7) : newPassedKeys).trimLeft();
       if (newPassedKeys && !newPassedKeys.startsWith("^ ")) {
         console.log('"vimium://status" only accepts a list of hooked keys');
         newPassedKeys = "";
@@ -2921,7 +2923,7 @@
       };
       cPort = indexFrame(tabId, 0) || ref[0];
       if (stat === null && tabId < 0) {
-        oldStatus !== Frames.Status.disabled && Backend_.showHUD_(trans_("unknownStatAction", [act]));
+        silent || oldStatus !== Frames.Status.disabled && Backend_.showHUD_(trans_("unknownStatAction", [act]));
         return;
       }
       let pattern: string | null, newStatus = locked ? stat as Frames.ValidStatus : Frames.Status.enabled;
@@ -2939,7 +2941,7 @@
         sender.s = newStatus;
         port.postMessage(msg);
       }
-      newStatus !== Frames.Status.disabled && Backend_.showHUD_(trans_("newStat", [
+      silent || newStatus !== Frames.Status.disabled && Backend_.showHUD_(trans_("newStat", [
         trans_(newStatus === Frames.Status.enabled ? "fullEnabled" : "halfDisabled")
       ]));
       if (needIcon && (newStatus = ref[0].s.s) !== oldStatus) {
