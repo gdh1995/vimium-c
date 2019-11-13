@@ -430,7 +430,6 @@ var Tasks = {
   lint: ["tslint"],
   local2: function(cb) {
     gNoComments = false;
-    compilerOptions.removeComments = false;
     locally = true;
     if (!process.env.LOCAL_DIST) {
       process.env.LOCAL_DIST = "dist";
@@ -973,16 +972,10 @@ function loadValidCompilerOptions(tsConfigFile, keepCustomOptions) {
   if (buildConfig && opts.types) {
     opts.types = opts.types.filter(i => i !== "build");
   }
-  if (!keepCustomOptions && (keepCustomOptions === false || !opts.typescript)) {
-    delete opts.inferThisForObjectLiterals;
-    delete opts.narrowFormat;
-  }
   if (opts.noImplicitUseStrict) {
     opts.alwaysStrict = false;
   }
-  if (gNoComments) {
-    opts.removeComments = true;
-  }
+  opts.removeComments = false;
   const arr = opts.plugins || [];
   for (let i = 0; i < arr.length; i++) {
     if (arr[i].name == "typescript-tslint-plugin") {
@@ -1330,7 +1323,6 @@ function loadUglifyConfig(reload) {
     if (!getNonNullBuildItem("NDEBUG")) {
       a.mangle = false;
       a.output.beautify = true;
-      a.output.comments = true;
       a.output.indent_level = 2;
     }
     if (outputES6) {

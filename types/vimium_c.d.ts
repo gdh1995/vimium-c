@@ -480,6 +480,7 @@ declare const enum KeyStat {
   Default = 0, plain = Default,
   altKey = 1, ctrlKey = 2, metaKey = 4, shiftKey = 8,
   PrimaryModifier = ctrlKey | metaKey,
+  ExceptShift = altKey | ctrlKey | metaKey, ExceptPrimaryModifier = altKey | shiftKey,
 }
 declare const enum kChar {
   space = "space", pageup = "pageup", pagedown = "pagedown",

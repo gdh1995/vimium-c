@@ -1,7 +1,7 @@
 {
   "output": {
     "ascii_only": true, // if `false` by default, '\xa0' is replaced with '\xc2\xa0', which is wrong
-    "comments": "all", // in gulp, replaced with `/^!/`
+    "comments": true,
     "keep_quoted_props": false,
     "wrap_iife": true,
     "wrap_func_args": false
@@ -17,7 +17,7 @@
     "hoist_funs": true,
     "hoist_vars": true,
     "if_return": true,
-    "inline": true, // only for content/
+    "inline": true,
     "join_vars": true,
     "keep_fargs": false,
     "keep_fnames": "/^(startsWith|endsWith|addEventListener|toString|VC)$/",
@@ -35,7 +35,7 @@
       "Object.create", "Object.setPrototypeOf",
       "getAttribute", "hasAttribute", "querySelectorAll",
       "Math.max", "Math.min", "Math.floor", "Math.round", "Math.abs", "Math.random",
-      "VApi.lock_", "lock_", "VApi.mapKey_", "VKey.safer_", "safer_",
+      "VApi.lock_", "lock_", "VApi.mapKey_", "VKey.safer_", "safer_", "safer",
       "onRuntimeError", "BgUtils_.runtimeError_",
       "trans_", "pTrans_", "sTrans_", "VTr",
       "SafeEl_", "notSafe_", "getEditableType_",

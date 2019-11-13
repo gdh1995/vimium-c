@@ -293,7 +293,7 @@ var VFind = {
     if (!i) {
       if (VKey.isEscape_(event)) { i = FindNS.Action.ExitAndReFocus; }
       else if (i = VKey.getKeyStat_(event)) {
-        if (i & ~KeyStat.PrimaryModifier) { return; }
+        if (i & KeyStat.ExceptPrimaryModifier) { return; }
         else if (n === kKeyCode.up || n === kKeyCode.down || n === kKeyCode.end || n === kKeyCode.home) {
           VSc.BeginScroll_(event);
         }
@@ -324,7 +324,7 @@ var VFind = {
       a._onUnexpectedBlur && a._onUnexpectedBlur();
       a.focus_();
       return HandlerResult.Prevent;
-    } else if (i && !(i & ~KeyStat.PrimaryModifier)) {
+    } else if (i && !(i & KeyStat.ExceptPrimaryModifier)) {
       if (n === kKeyCode.J || n === kKeyCode.K) {
         a.execute_(null, { n: (kKeyCode.K - n) || -1 });
         return HandlerResult.Prevent;

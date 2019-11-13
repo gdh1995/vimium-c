@@ -407,6 +407,7 @@ function prepareRegister(this: void, element: Element): void {
         && (doc1 as Exclude<typeof doc1, Window>).nodeType === kNode.DOCUMENT_NODE
         && (doc1 as Document).defaultView) {
       // just smell like a Document
+      /*#__NOINLINE__*/
       safeReRegister(element, doc1 as Document);
     } // `defaultView` is to check whether element is in a DOM tree of a real frame
     // Note: on C72, ownerDocument of elements under <template>.content
@@ -507,7 +508,7 @@ function executeCmd(eventOrDestroy?: Event): void {
   // always stopProp even if the secret does not match, so that an attacker can not detect secret by enumerating numbers
   detail && call(StopProp, eventOrDestroy as Event);
   if (cmd < kContentCmd.Destroy) {
-    cmd === kContentCmd.FindAllOnClick && findAllOnClick(cmd);
+    cmd === kContentCmd.FindAllOnClick && /*#__NOINLINE__*/ findAllOnClick(cmd);
     return;
   }
   toRegister.length = detectDisabled = 0;

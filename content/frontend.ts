@@ -176,7 +176,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (keyChar = VKey.char_(event)) {
         action = checkKey(keyChar, key, event);
         if ((action & ~HandlerResult.AdvancedEscFlag) === HandlerResult.Esc) {
-          action = action & HandlerResult.AdvancedEscFlag ? onEscDown(event, key) : HandlerResult.Nothing;
+          action = action & HandlerResult.AdvancedEscFlag ? /*#__NOINLINE__*/ onEscDown(event, key)
+              : HandlerResult.Nothing;
         }
         if (action === HandlerResult.Nothing
             && InsertMode.suppressType_ && keyChar.length < 2 && !VKey.getKeyStat_(event)) {
@@ -409,7 +410,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
        */
       // during tests, an access key of ' ' (space) can be triggered on macOS (2019-10-20)
       isWaitingAccessKey = +(((char = char || VKey.char_(event)).length === 1 || char === "space")
-          && (VKey.getKeyStat_(event) & ~KeyStat.shiftKey /* Chrome ignore .shiftKey */) ===
+          && (VKey.getKeyStat_(event) & KeyStat.ExceptShift /* Chrome ignore .shiftKey */) ===
               (fgCache.o ? KeyStat.altKey : KeyStat.altKey | KeyStat.ctrlKey)
           );
     }

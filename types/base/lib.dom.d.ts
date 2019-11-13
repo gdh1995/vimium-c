@@ -5434,11 +5434,11 @@ interface MouseEvent extends UIEvent {
     initMouseEvent(typeArg: string, canBubbleArg: boolean, cancelableArg: boolean, viewArg: Window, detailArg: number, screenXArg: number, screenYArg: number, clientXArg: number, clientYArg: number, ctrlKeyArg: boolean, altKeyArg: boolean, shiftKeyArg: boolean, metaKeyArg: boolean, buttonArg: number, relatedTargetArg: EventTarget | null): void;
 }
 
-type EnsuredMouseEventInitKeys = "sourceCapabilities";
+type OptionalMouseEventInitKeys = "sourceCapabilities";
 type ValidMouseEventInit = {
-    [P in Exclude<keyof MouseEventInit, EnsuredMouseEventInitKeys>]-?: Exclude<MouseEventInit[P], undefined>;
+    [P in Exclude<keyof MouseEventInit, OptionalMouseEventInitKeys>]-?: Exclude<MouseEventInit[P], undefined>;
 } & {
-    [P in EnsuredMouseEventInitKeys]?: MouseEventInit[P];
+    [P in OptionalMouseEventInitKeys]?: MouseEventInit[P];
 };
 declare var MouseEvent: {
     prototype: MouseEvent;

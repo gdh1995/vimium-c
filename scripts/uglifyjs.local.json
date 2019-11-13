@@ -3,7 +3,7 @@
     "ascii_only": true, // if `false` by default, '\xa0' is replaced with '\xc2\xa0', which is wrong
     "beautify": true,
     "braces": true,
-    "comments": true,
+    "comments": "/\\S \\S|\\n|^!/",
     "indent_level": 2,
     "keep_quoted_props": false,
     "semicolons": true,

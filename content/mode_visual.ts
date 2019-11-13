@@ -50,7 +50,8 @@ declare const enum VisualAction {
   LexicalWord = MaxNotLexical + VisualModeNS.G.word,
 
   MaxNotYank = 30, Yank, YankLine, YankWithoutExit, YankAndOpen, YankAndNewTab,
-  MaxNotFind = 35, FindPrevious, FindNext,
+
+  MaxNotFind = 45, PerformFind, FindPrevious = PerformFind | dec, FindNext = PerformFind | inc, HighlightRange,
 
   MaxNotNewMode = 50,
   VisualMode = MaxNotNewMode + VisualModeNS.Mode.Visual, VisualLineMode = MaxNotNewMode + VisualModeNS.Mode.Line,
@@ -168,9 +169,10 @@ var VVisual = {
       // asserts newActions is SafeDict<VisualAction> | null | undefined
       a.currentCount_ = !newActions && key.length < 2 && +key < 10 ? a.currentSeconds_ ? +key : +key + count * 10 : 0;
       a.currentSeconds_ = newActions || null;
-      return newActions || srcChar.length < 2 && !VKey.getKeyStat_(event) ? HandlerResult.Prevent
-          : char < "f1" || char > "f9" ? HandlerResult.Suppress
-          : key === "<f1>" ? (a.flashSelection_(), HandlerResult.Prevent) : HandlerResult.Nothing;
+      return newActions ? HandlerResult.Prevent
+          : srcChar.length > 1 || VKey.getKeyStat_(event) & KeyStat.ExceptShift
+          ? srcChar < "f1" || srcChar > "f9" ? HandlerResult.Suppress : HandlerResult.Nothing
+          : HandlerResult.Prevent;
     }
     a.resetKeys_();
     VKey.prevent_(event);
@@ -207,9 +209,12 @@ var VVisual = {
         return VHud.tip_(kTip.loseSel, "Selection is lost.");
       }
     }
+    if (command === VisualAction.HighlightRange) {
+      return movement.highlightRange_();
+    }
     mode === VisualModeNS.Mode.Caret && movement.collapseToFocus_(0);
     if (command > VisualAction.MaxNotFind) {
-      movement.find_(command - VisualAction.FindNext ? -count : count);
+      movement.find_(command - VisualAction.PerformFind ? count : -count);
       return;
     } else if (command > VisualAction.MaxNotYank) {
       command === VisualAction.YankLine && movement.selectLine_(count);
@@ -333,7 +338,7 @@ var VVisual = {
     VApi.post_(action != null ? { H: kFgReq.openUrl, u: str, r: action }
         : { H: kFgReq.copy, d: str });
   },
-  flashSelection_(): void {
+  highlightRange_(): void {
     const sel = this.selection_, range = sel.rangeCount > 0 ? sel.getRangeAt(0) : null,
     br = range && range.getBoundingClientRect();
     if (br && br.height > 0 && br.right > 0) { // width may be 0 in Caret mode
@@ -760,7 +765,9 @@ keyMap_: {
 
   y: VisualAction.Yank, Y: VisualAction.YankLine, C: VisualAction.YankWithoutExit,
   p: VisualAction.YankAndOpen, P: VisualAction.YankAndNewTab,
+
   n: VisualAction.FindNext, N: VisualAction.FindPrevious,
+  "<f1>": VisualAction.HighlightRange,
 
   v: VisualAction.VisualMode, V: VisualAction.VisualLineMode, c: VisualAction.CaretMode,
   "/": VisualAction.EmbeddedFindMode,

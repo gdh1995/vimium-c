@@ -87,23 +87,28 @@ function loadUglifyConfig(path, reload) {
     if (!reload) {
       _uglifyjsConfig = a;
     }
-    a.output || (a.output = {});
+    var o = a.output || (a.output = {});
     var c = a.compress || (a.compress = {}); // gd = c.global_defs || (c.global_defs = {});
+    function ToRegExp(literal) {
+      var re = literal.match(/^\/(.*)\/([a-z]*)$/);
+      return re ? new RegExp(re[1], re[2]) : literal;
+    }
     if (typeof c.keep_fnames === "string") {
-      var re = c.keep_fnames.match(/^\/(.*)\/([a-z]*)$/);
-      c.keep_fnames = new RegExp(re[1], re[2]);
+      c.keep_fnames = ToRegExp(c.keep_fnames);
     }
     var m = a.mangle, p = m && m.properties;
     if (p && typeof p.regex === "string") {
-      var re = p.regex.match(/^\/(.*)\/([a-z]*)$/);
-      p.regex = new RegExp(re[1], re[2]);
+      p.regex = ToRegExp(p.regex);
     }
     if (m && typeof m.keep_fnames === "string") {
-      var re = m.keep_fnames.match(/^\/(.*)\/([a-z]*)$/);
-      m.keep_fnames = new RegExp(re[1], re[2]);
+      m.keep_fnames = ToRegExp(m.keep_fnames);
     }
     else if (m && !m.keep_fnames) {
       m.keep_fnames = c.keep_fnames;
+    }
+    var comments = o.comments;
+    if (comments && typeof comments === "string") {
+      o.comments = ToRegExp(comments);
     }
     let ver = "", terser = null;
     try {
