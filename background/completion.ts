@@ -686,7 +686,8 @@ domainEngine = {
         sug = new Suggestion("domain", url, word === queryTerms[0] ? result : result + "/", "",
             get2ndArg, 2);
         prepareHtml(sug);
-        const ind = HistoryCache.binarySearch_(url), item = (HistoryCache.history_ as HistoryItem[])[ind];
+        const ind = HistoryCache.sorted_ ? HistoryCache.binarySearch_(url) : -1,
+        item = ind > 0 ? (HistoryCache.history_ as HistoryItem[])[ind] : null;
         if (item && (showThoseInBlacklist || item.visible_)) {
           sug.title = Build.BTypes & BrowserType.Firefox
               && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
@@ -1245,6 +1246,7 @@ knownCs: CompletersMap & SafeObject = {
     lastRefresh_: 0,
     updateCount_: 0,
     toRefreshCount_: 0,
+    sorted_: false,
     history_: null as HistoryItem[] | null,
     _callbacks: null as HistoryCallback[] | null,
     domains_: null as typeof BgUtils_.domains_ | null,
@@ -1308,6 +1310,7 @@ knownCs: CompletersMap & SafeObject = {
           }, 200);
         }, 100);
         (HistoryCache.history_ as HistoryItem[]).sort((a, b) => a.url_ > b.url_ ? 1 : -1);
+        HistoryCache.sorted_ = true;
         chrome.history.onVisitRemoved.addListener(HistoryCache.OnVisitRemoved_);
         chrome.history.onVisited.addListener(HistoryCache.OnPageVisited_);
       }, 100);
@@ -1703,7 +1706,7 @@ Completion_ = {
       break;
     case "history":
       {
-        const found = !HistoryCache.history_ || HistoryCache.binarySearch_(url) >= 0;
+        const found = !HistoryCache.sorted_ || HistoryCache.binarySearch_(url) >= 0;
         chrome.history.deleteUrl({ url });
         callback(found);
       }
