@@ -557,6 +557,16 @@ BgUtils_.timeout_(150, function (): void {
         if (Settings_.get_("showActionIcon")) { return; }
         imageData = null;
         if (Build.BTypes & BrowserType.Chrome) { tabIds = null; }
+        if (Build.BTypes & ~BrowserType.Chrome
+            && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) {
+          const ref2 = Backend_.indexPorts_();
+          for (const tabId in ref2) {
+            if ((ref2[+tabId] as Frames.Frames)[0].s.s !== Frames.Status.enabled) {
+              Backend_.setIcon_(+tabId, Frames.Status.enabled);
+            }
+          }
+          return;
+        }
       }, 200);
       return;
     }
