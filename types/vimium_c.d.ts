@@ -64,7 +64,7 @@ declare namespace CompletersNS {
     title: string;
     /** sessionId */ s?: string | number;
     label?: string;
-    /** visited */ v?: boolean;
+    /** source page of favIcon */ v?: string;
     favIcon?: string;
   }
   interface Suggestion extends BaseSuggestion {

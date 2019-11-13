@@ -1196,7 +1196,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       return;
     }
     item.favIcon = (str = Vomnibar_.showFavIcon_ ? item.u : "") && Vomnibar_._favPrefix +
-        VUtils_.escapeCSSUrlInAttr_((str = Vomnibar_._parseFavIcon(item, str)) || "about:blank") +
+        VUtils_.escapeCSSUrlInAttr_(Vomnibar_._parseFavIcon(item, str) || "about:blank") +
         "&quot;);";
   },
   _parseFavIcon (item: SuggestionE, url: string): string {
@@ -1205,9 +1205,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       ? Vomnibar_.pageType_ !== VomnibarNS.PageType.ext
         ? chrome.runtime.getURL(optionsPage) : location.protocol + "//" + VHost_ + optionsPage
       : url.length > 512 || str === "javascript:" || str.startsWith("data:") ? ""
-      : item.e === "search" && !item.v
-        ? url.startsWith("http") ? url.slice(0, (url.indexOf("/", url[4] === "s" ? 8 : 7) + 1) || void 0) : ""
-      : url;
+      : item.e === "search" ? item.v as NonNullable<typeof item.v> || url : url;
   },
   navigateToUrl_ (url: string, reuse: ReuseType, https: boolean | null): void {
     if (url.charCodeAt(10) === kCharCode.colon && url.slice(0, 11).toLowerCase() === "javascript:") {
