@@ -696,7 +696,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   ],
 
   InsertMode = {
-    grabBackFocus_: D.docNotCompleteWhenVimiumIniting_ as boolean | (
+    grabBackFocus_: D.docInitingWhenVimiumIniting_ as boolean | (
         (event: Event, target: LockableElement) => void),
     global_: null as CmdOptions[kFgCmd.insertMode] | null,
     hinting_: false,
@@ -1667,7 +1667,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     const parEl = D.frameElement_();
     if (!parEl) {
       if ((Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
-          || WeakSet) && D.docNotCompleteWhenVimiumIniting_) {
+          || WeakSet) && D.docInitingWhenVimiumIniting_) {
         needToRetryParentClickable = 1;
         if (Build.MinCVer >= BrowserVer.MinES6$ForOf$Map$SetAnd$Symbol || !(Build.BTypes & BrowserType.Chrome)
             || Set) {
@@ -1706,7 +1706,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         }
       }
       if ((!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-          && D.docNotCompleteWhenVimiumIniting_) {
+          && D.docInitingWhenVimiumIniting_) {
         // here the parent `core` is invalid - maybe from a fake provider
         D.parentCore_ = () => 0;
       }
@@ -1731,6 +1731,22 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       has (element: Element): boolean { return !!(element as ElementWithClickable).vimiumClick; }
     }) : /* now know it's on Firefox */
         D.clickable_ || new (WeakSet as WeakSetConstructor)<Element>();
+    if (!D.docInitingWhenVimiumIniting_) {
+      D.OnDocLoaded_ = D.execute_;
+    } else {
+      let listeners: Array<(this: void) => void> = [],
+      setupLoadedListener = setupEventListener.bind(null, 0, "DOMContentLoaded", function (): void {
+        // not need to check event.isTrusted
+        setupLoadedListener(1);
+        if (VDom === D) { // check `a` for safety even if reloaded
+          D.OnDocLoaded_ = D.execute_;
+          listeners.forEach(D.execute_);
+        }
+        setupLoadedListener = listeners = null as never;
+      })
+      D.OnDocLoaded_ = listeners.push.bind(listeners);
+      setupLoadedListener(0);
+    }
     // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
     hook(HookAction.Install);
     vPort.Connect_();

@@ -454,6 +454,7 @@ var VFind = {
       return exit ? HandlerResult.Prevent : HandlerResult.Nothing;
     },
     exit_ (skip?: boolean | Event): void {
+      // safe if destroyed, because `el.onblur = Exit`
       if (skip instanceof Event
           && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
               ? !skip.isTrusted : skip.isTrusted === false)) { return; }

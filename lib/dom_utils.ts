@@ -28,7 +28,7 @@ var VDom = {
   specialZoom_: !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl
     ? true : Build.BTypes & BrowserType.Chrome ? true : false,
   docSelectable_: true,
-  docNotCompleteWhenVimiumIniting_: document.readyState !== "complete",
+  docInitingWhenVimiumIniting_: document.readyState === "loading",
   unsafeFramesetTag_: (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
       ? "" : 0 as never) as "frameset" | "",
 
@@ -699,27 +699,7 @@ var VDom = {
    *
    * should not be called before the one in {@link ../content/extend_click.ts}
    */
-  OnDocLoaded_ (callback: (this: void) => void): void {
-    const a = this, call = a.execute_, kEventName = "DOMContentLoaded";
-    if (document.readyState !== "loading") {
-      a.OnDocLoaded_ = call;
-      return callback();
-    }
-    let listeners = [callback];
-    function eventHandler(): void {
-      // not need to check event.isTrusted
-      removeEventListener(kEventName, eventHandler, true);
-      if (VDom === a) { // check `a` for safety even if reloaded
-        VDom.OnDocLoaded_ = call;
-        listeners.forEach(call);
-      }
-      listeners = null as never;
-    }
-    a.OnDocLoaded_ = function (callback1): void {
-      listeners.push(callback1);
-    };
-    addEventListener(kEventName, eventHandler, true);
-  },
+  OnDocLoaded_: null as never as (callback: (this: void) => void) => void | number,
   mouse_: function (this: {}, element: Element
       , type: kMouseClickEvents | kMouseMoveEvents
       , center: Point2D, modifiers?: MyMouseControlKeys | null, relatedTarget?: Element | null

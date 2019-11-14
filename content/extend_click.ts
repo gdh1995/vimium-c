@@ -145,14 +145,13 @@ if (VDom && VimiumInjector === undefined) {
       box && dispatchCmd(cmd as ValidContentCommands & ContentCommandsNotSuppress);
       return;
     }
-    const events = VApi;
     /** this function should keep idempotent */
     if (box) {
       VKey.SetupEventListener_(box, kVOnClick1, onClick, 1);
       dispatchCmd(kContentCmd.Destroy);
     }
     if (box == null && isFirstTime) {
-      removeEventListener(kHook, hook, !0);
+      VKey.SetupEventListener_(0, kHook, hook, 1, 1);
       if (Build.BTypes & ~BrowserType.Firefox
           && (!(Build.BTypes & BrowserType.Firefox) || VOther !== BrowserType.Firefox)
           && cmd === kContentCmd.DestroyForCSP) {
@@ -163,7 +162,7 @@ if (VDom && VimiumInjector === undefined) {
       }
     }
     box = 0;
-    events && (events.execute_ = null);
+    VApi.execute_ = null;
   }
 
   const appInfo = Build.BTypes & BrowserType.Chrome
@@ -560,9 +559,6 @@ _listen(kOnDomReady, start, !0);
     : docEl.insertBefore(script, docEl.firstChild) : doc.appendChild(script);
   isFirstTime ? (script.dataset.vimium = "") : script.remove();
   }
-  if (!(Build.NDEBUG || !isFirstTime || (VDom.OnDocLoaded_ + "").indexOf("DOMContentLoaded") >= 0)) {
-    console.log("Assert error: VDom.OnDocLoaded_ should have not been called");
-  }
   if (!(Build.NDEBUG
         || BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage <= BrowserVer.NoRAFOrRICOnSandboxedPage)) {
     console.log("Assert error: Warning: may no timer function on sandbox page!");
@@ -573,7 +569,10 @@ _listen(kOnDomReady, start, !0);
       : !script.dataset.vimium) { // It succeeded to hook.
     !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox ||
     VDom.OnDocLoaded_(function (): void {
-      box || execute(kContentCmd.DestroyForCSP);
+      // not check isFirstTime, to auto clean VApi.execute_
+      setTimeout(function (): void { // wait the inner listener of `start` to finish its work
+        box || execute(kContentCmd.DestroyForCSP);
+      }, 0);
     });
     isFirstTime &&
     VKey.SetupEventListener_(0, "load", delayFindAll, 0, 1);
@@ -622,5 +621,6 @@ _listen(kOnDomReady, start, !0);
       : requestAnimationFrame(cb)
       ;
   } as any);
-})(VDom.docNotCompleteWhenVimiumIniting_);
+})(VDom.docInitingWhenVimiumIniting_)
+;
 }
