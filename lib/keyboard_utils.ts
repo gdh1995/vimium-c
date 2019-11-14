@@ -127,7 +127,7 @@ var VKey = {
    */
   SetupEventListener_<T extends EventTarget, Active extends 1 | undefined = undefined> (this: void
       , target: T | 0, eventType: string
-      , func?: ((this: T, e: Active extends 1 ? EventToPrevent : Event) => void) | null
+      , func?: ((this: T, e: Active extends 1 ? EventToPrevent : Event) => void) | null | EventListenerObject
       , disable?: boolean | BOOL, activeMode?: Active): void {
     (disable ? removeEventListener : addEventListener).call(target || window, eventType, func || VKey.Stop_,
         {passive: !activeMode, capture: true} as EventListenerOptions | boolean as boolean);

@@ -1205,7 +1205,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       ? Vomnibar_.pageType_ !== VomnibarNS.PageType.ext
         ? chrome.runtime.getURL(optionsPage) : location.protocol + "//" + VHost_ + optionsPage
       : url.length > 512 || str === "javascript:" || str.startsWith("data:") ? ""
-      : item.e === "search" ? item.v || url : url;
+      : item.e === "search" && item.v || url;
   },
   navigateToUrl_ (url: string, reuse: ReuseType, https: boolean | null): void {
     if (url.charCodeAt(10) === kCharCode.colon && url.slice(0, 11).toLowerCase() === "javascript:") {

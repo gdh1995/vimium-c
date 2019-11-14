@@ -8932,7 +8932,11 @@ interface AssignedNodesOptions {
     flatten?: boolean;
 }
 
-declare type EventListenerOrEventListenerObject = EventListener | null; // | EventListenerObject;
+interface EventListenerObject {
+  __proto__: never;
+  handleEvent?: (evt: Event) => ELRet;
+}
+declare type EventListenerOrEventListenerObject = EventListener | null | EventListenerObject;
 declare type EventListenerOptions = boolean | {
     capture?: true;
     once?: true;
@@ -9572,7 +9576,8 @@ declare function removeEventListener<K extends keyof WindowEventMap>(type: K,
   listener: (this: Window, ev: WindowEventMap[K]) => ELRet,
   useCapture?: EventListenerOptions
   ): void;
-declare function removeEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
+declare function removeEventListener(type: string, listener: EventListenerOrEventListenerObject,
+  useCapture?: EventListenerOptions | boolean): void;
 declare var sessionStorage: Storage;
 declare var localStorage: Storage;
 declare var console: Console;
@@ -9614,7 +9619,8 @@ declare function addEventListener<K extends keyof WindowEventMap>(type: K,
   useCapture?: EventListenerOptions
   ): void;
 declare var close: unknown;
-declare function addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
+declare function addEventListener(type: string, listener: EventListenerOrEventListenerObject,
+  useCapture?: EventListenerOptions | boolean): void;
 interface RequestIdleCallback {
   (callback: (idleDeadline: { didTimeout: boolean }) => void, options?: { timeout?: number }): number;
 }

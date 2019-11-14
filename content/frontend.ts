@@ -46,7 +46,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     /** its initial value should be 0, need by {@link #hook} */
     , browserVer: BrowserVer = 0 // should be used only if BTypes includes Chrome
     , isCmdTriggered: BOOL = 0
-    , isWaitingAccessKey: number = 0
+    , isWaitingAccessKey: boolean = false
     , needToRetryParentClickable: BOOL = 0
     , safer = Object.create as { (o: null): any; <T>(o: null): SafeDict<T>; }
     , coreTester: { name_: string, rand_: number, recvTick_: number, sendTick_: number,
@@ -77,7 +77,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       ch = ch0 && mapKey(ch0, event);
     }
     return ch ? ch === "<esc>" || ch === "<c-[>"
-      ? (Build.BTypes & BrowserType.Chrome && checkPotentialAccessKey(event, ch0 as string), true)
+      ? (Build.BTypes & BrowserType.Chrome && checkPotentialAccessKey(event, ch0), true)
       : false
       : VKey.isRawEscape_(event);
   }
@@ -140,10 +140,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
             : event.isTrusted === false) // skip checks of `instanceof KeyboardEvent` if checking `!.keyCode`
         || !key) { return; }
     if (VSc.keyIsDown_ && VSc.OnScrolls_(event)) {
-      Build.BTypes & BrowserType.Chrome && checkPotentialAccessKey(event, "");
+      Build.BTypes & BrowserType.Chrome && checkPotentialAccessKey(event);
       return;
     }
-    if (Build.BTypes & BrowserType.Chrome) { isWaitingAccessKey = 0; }
+    if (Build.BTypes & BrowserType.Chrome) { isWaitingAccessKey && resetAnyClickHandler(); }
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) ? insertLock
           : insertLock && OnOther === BrowserType.Firefox)
@@ -164,7 +164,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           action = /* the real is HandlerResult.PassKey; here's for smaller code */ HandlerResult.Nothing;
         } else {
           action = g && g.passExitKey ? (
-            Build.BTypes & BrowserType.Chrome && checkPotentialAccessKey(event, ""),
+            Build.BTypes & BrowserType.Chrome && checkPotentialAccessKey(event),
             HandlerResult.Nothing) : HandlerResult.Prevent;
           InsertMode.exit_(event.target as Element);
         }
@@ -188,7 +188,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     }
     if (action < HandlerResult.MinStopOrPreventEvents) { return; }
     if (action > HandlerResult.MaxNotPrevent) {
-      Build.BTypes & BrowserType.Chrome && checkPotentialAccessKey(event, keyChar || "");
+      Build.BTypes & BrowserType.Chrome && checkPotentialAccessKey(event, keyChar);
       VKey.prevent_(event);
     } else {
       VKey.Stop_(event);
@@ -204,7 +204,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     VSc.scrollTick_(0);
     isCmdTriggered = 0;
     if (Build.BTypes & BrowserType.Chrome) {
-      isWaitingAccessKey = 0;
+      isWaitingAccessKey && resetAnyClickHandler();
     }
     if (InsertMode.suppressType_ && getSelection().type !== InsertMode.suppressType_) {
       events.setupSuppress_();
@@ -316,7 +316,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     KeydownEvents = safer(null);
     isCmdTriggered = 0;
     if (Build.BTypes & BrowserType.Chrome) {
-      isWaitingAccessKey = 0;
+      isWaitingAccessKey && resetAnyClickHandler();
     }
     injector || (<RegExpOne> /a?/).test("");
     esc(HandlerResult.ExitPassMode);
@@ -348,7 +348,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           ? (path as EventTarget[])[0] as Element : event.target as Element;
       if (Element.prototype.getAttribute.call(t, "accesskey")) {
         // if a script has modified [accesskey], then do nothing on - just in case.
-        isWaitingAccessKey = 0;
+        resetAnyClickHandler();
         VKey.prevent_(event);
       }
     }
@@ -357,6 +357,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   const injector = VimiumInjector,
   isTop = top === window,
   setupEventListener = VKey.SetupEventListener_,
+  anyClickHandler: EventListenerObject = safer(null),
+  resetAnyClickHandler = function (): void { isWaitingAccessKey = false; delete anyClickHandler.handleEvent; },
   hook = (function (action: HookAction): void {
     let f = action ? removeEventListener : addEventListener;
     if (Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
@@ -364,7 +366,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (!(Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome)
           && (action || browserVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow)) {
         f.call(document, "DOMActivate", onActivate, true);
-        f.call(document, "click", onAnyClick, true);
+        f.call(document, "click", anyClickHandler, true);
       }
       if (action === HookAction.SuppressListenersOnDocument) { return; }
     }
@@ -375,7 +377,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     f(Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome
         ? "click" : "DOMActivate", onActivate, true);
     if (!(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && OnOther === BrowserType.Chrome) {
-      f("click", onAnyClick, true);
+      f("click", anyClickHandler, true);
     }
   }),
   hookOnShadowRoot = function (path: ArrayLike<EventTarget | 0>, target: Node | 0, disable?: 1): void {
@@ -392,7 +394,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
     }
   },
-  checkPotentialAccessKey = function (event: KeyboardEvent, char: string): void {
+  checkPotentialAccessKey = function (event: KeyboardEvent, char?: string | undefined): void {
     /** On Firefox, access keys are only handled during keypress events, so it has been "hooked" well:
      * https://dxr.mozilla.org/mozilla/source/content/events/src/nsEventStateManager.cpp#960 .
      * And the modifier stat for access keys is user-configurable: `ui.key.generalAccessKey`
@@ -409,10 +411,17 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
        * so, here ignores the 2nd path.
        */
       // during tests, an access key of ' ' (space) can be triggered on macOS (2019-10-20)
-      isWaitingAccessKey = +(((char = char || VKey.char_(event)).length === 1 || char === "space")
+      if (isWaitingAccessKey !== ((char = char || VKey.char_(event)).length === 1 || char === "space")
           && (VKey.getKeyStat_(event) & KeyStat.ExceptShift /* Chrome ignore .shiftKey */) ===
               (fgCache.o ? KeyStat.altKey : KeyStat.altKey | KeyStat.ctrlKey)
-          );
+          ) {
+        if (isWaitingAccessKey) {
+          resetAnyClickHandler();
+        } else {
+          isWaitingAccessKey = true;
+          anyClickHandler.handleEvent = onAnyClick;
+        }
+      }
     }
   },
   Commands: {
@@ -1119,9 +1128,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         if (Build.BTypes & BrowserType.Chrome
             && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
             && !load.a) {
-          setupEventListener(0, "click", onAnyClick, 1, 1);
+          setupEventListener(0, "click", anyClickHandler, 1, 1);
           if (Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow) {
-            setupEventListener(document, "click", onAnyClick, 1, 1);
+            setupEventListener(document, "click", anyClickHandler, 1, 1);
           }
         }
       } else {
@@ -1209,11 +1218,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (Build.BTypes & BrowserType.Chrome
           && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
           && delta.a != null) {
-        setupEventListener(0, "click", onAnyClick, delta.a, 1);
+        setupEventListener(0, "click", anyClickHandler, delta.a, 1);
         if (Build.BTypes & BrowserType.Chrome
             && Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
             && browserVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow) {
-          setupEventListener(document, "click", onAnyClick, delta.a, 1);
+          setupEventListener(document, "click", anyClickHandler, delta.a, 1);
         }
       }
     },
