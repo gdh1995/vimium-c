@@ -358,16 +358,21 @@ type VTransType = (tid: kTip | HintMode | string, fallback?: string, args?: Arra
 
 declare const enum kContentCmd {
   _fake = 0,
-  FindAllOnClick = 2,
-  _minNotDispatchDirectly = 4,
+  AutoFindAllOnClick = 1,
+  ManuallyFindAllOnClick = 2,
+  _minSuppressClickable = 4,
+  // see injected_end.ts for difference between Destroy and SuppressClickable
   SuppressClickable = 5,
   Destroy = 6,
   DestroyForCSP = 7,
   MaskedBitNumber = 3,
   SecretRange = 9e7,
 }
-type ValidContentCommands = Exclude<kContentCmd, kContentCmd._fake | kContentCmd._minNotDispatchDirectly
-    | kContentCmd.MaskedBitNumber>;
+type ValidContentCommands = Exclude<kContentCmd, kContentCmd._fake | kContentCmd._minSuppressClickable
+    | kContentCmd.MaskedBitNumber | kContentCmd.AutoFindAllOnClick>;
+type ContentCommandsNotSuppress = kContentCmd.AutoFindAllOnClick | kContentCmd.ManuallyFindAllOnClick;
+type SecondLevelContentCmds = kContentCmd.AutoFindAllOnClick | kContentCmd.ManuallyFindAllOnClick
+    | kContentCmd.Destroy;
 
 interface ContentWindowCore {
   readonly VDom?: object;

@@ -76,7 +76,7 @@ if (VDom && VimiumInjector === undefined) {
   }
 
   let box: Element | undefined | 0, hookRetryTimes = 0,
-  isFirstResolve: 0 | 1 | 2 | 3 = isFirstTime && window === top ? 3 : 0,
+  isFirstResolve: 0 | 1 | 2 | 3 | 4 = window === top ? 3 : 4,
   hook = function (event: CustomEvent & ToPrevent): void {
     const t = event.target;
     // use `instanceof` to require the `t` element is a new instance which has never entered this extension world
@@ -98,8 +98,8 @@ if (VDom && VimiumInjector === undefined) {
                 ? !e.isTrusted : e.isTrusted === !1))) { return; }
     removeEventListener("load", delayFindAll, !0);
     delayFindAll = null as never;
-    box && setTimeout(function (): void {
-      box && dispatchCmd(kContentCmd.FindAllOnClick);
+    box && isFirstResolve && setTimeout(function (): void {
+      box && isFirstResolve && dispatchCmd(kContentCmd.AutoFindAllOnClick);
       isFirstResolve = 0;
     }, InnerConsts.DelayToFindAll);
   };
@@ -137,18 +137,16 @@ if (VDom && VimiumInjector === undefined) {
     }
     isBox && ((box as Element).textContent = "");
   }
-  function dispatchCmd(cmd: ValidContentCommands) {
+  function dispatchCmd(cmd: SecondLevelContentCmds) {
     (box as Exclude<typeof box, 0 | undefined>).dispatchEvent(new CustomEvent(
         (InnerConsts.kCmd + BuildStr.RandomName1) as InnerConsts.kCmd, {
       detail: <CommandEventDetail> (secret << kContentCmd.MaskedBitNumber) | cmd
     }));
   }
   function execute(cmd: ValidContentCommands): void {
-    if (cmd < kContentCmd._minNotDispatchDirectly) {
-      if (cmd === kContentCmd.FindAllOnClick) {
-        isFirstResolve = 0;
-      }
-      box && dispatchCmd(cmd);
+    if (cmd < kContentCmd._minSuppressClickable) {
+      isFirstResolve = 0;
+      box && dispatchCmd(cmd as ValidContentCommands & ContentCommandsNotSuppress);
       return;
     }
     const events = VApi;
@@ -484,12 +482,13 @@ function safeReRegister(element: Element, doc1: Document): void {
     isReRegistering = 0;
   }
 }
-function findAllOnClick(cmd?: kContentCmd.FindAllOnClick): void {
+function findAllOnClick(cmd: kContentCmd.AutoFindAllOnClick | kContentCmd.ManuallyFindAllOnClick): void {
   if (!root) { return; }
   call(Remove, root);
   allNodesInDocument = call(getElementsByTagNameInDoc, doc, "*");
   let len = allNodesInDocument.length, i = unsafeDispatchCounter = 0;
-  len = cmd || len < GlobalConsts.MinElementCountToStopScanOnClick ? len : 0; // stop it
+  len = len < GlobalConsts.MinElementCountToStopScanOnClick || cmd === kContentCmd.ManuallyFindAllOnClick
+      ? len : 0; // stop it
   for (; i < len; i++) {
     const el: Element | HTMLElement = allNodesInDocument[i];
     if ((el as HTMLElement).onclick && !call(HasAttr, el, "onclick")
@@ -502,13 +501,14 @@ function findAllOnClick(cmd?: kContentCmd.FindAllOnClick): void {
 }
 function executeCmd(eventOrDestroy?: Event): void {
   const detail: CommandEventDetail = eventOrDestroy && (eventOrDestroy as CustomEvent).detail,
-  cmd = detail ? (detail >> kContentCmd.MaskedBitNumber) === sec ? detail & ((1 << kContentCmd.MaskedBitNumber) - 1)
+  cmd: SecondLevelContentCmds | kContentCmd._fake = detail
+      ? (detail >> kContentCmd.MaskedBitNumber) === sec ? detail & ((1 << kContentCmd.MaskedBitNumber) - 1)
         : kContentCmd._fake
-        : eventOrDestroy ? kContentCmd._fake : kContentCmd.Destroy;
+      : eventOrDestroy ? kContentCmd._fake : kContentCmd.Destroy;
   // always stopProp even if the secret does not match, so that an attacker can not detect secret by enumerating numbers
   detail && call(StopProp, eventOrDestroy as Event);
-  if (cmd < kContentCmd.Destroy) {
-    cmd === kContentCmd.FindAllOnClick && /*#__NOINLINE__*/ findAllOnClick(cmd);
+  if (cmd < kContentCmd._minSuppressClickable) {
+    cmd && /*#__NOINLINE__*/ findAllOnClick(cmd as ContentCommandsNotSuppress);
     return;
   }
   toRegister.length = detectDisabled = 0;

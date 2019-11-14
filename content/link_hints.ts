@@ -886,7 +886,7 @@ var VHints = {
       } else {
         if (!VApi.execute_) { return HandlerResult.Prevent; }
         a.isClickListened_ = true;
-        (VApi as EnsureNonNull<VApiTy>).execute_(kContentCmd.FindAllOnClick);
+        (VApi as EnsureNonNull<VApiTy>).execute_(kContentCmd.ManuallyFindAllOnClick);
       }
       setTimeout(a._reinit.bind(a, null, null), 0);
     } else if (i < kKeyCode.maxAcsKeys + 1 && i > kKeyCode.minAcsKeys - 1
