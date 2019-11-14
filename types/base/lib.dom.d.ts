@@ -1866,8 +1866,8 @@ interface Document extends Node, GlobalEventHandlers, NodeSelector, DocumentEven
     createElement<K extends keyof HTMLElementTagNameMap>(tagName: K): HTMLElementTagNameMap[K];
     createElement(tagName: string): HTMLElement;
     createElementNS(namespaceURI: "http://www.w3.org/1999/xhtml", qualifiedName: string): HTMLElement
-    createElementNS(namespaceURI: "http://www.w3.org/2000/svg", qualifiedName: string): SVGElement
-    createElementNS(namespaceURI: string | null, qualifiedName: string): Element;
+    // createElementNS(namespaceURI: "http://www.w3.org/2000/svg", qualifiedName: string): SVGElement
+    // createElementNS(namespaceURI: string | null, qualifiedName: string): Element;
     /**
       * Creates a NodeIterator object that you can use to traverse filtered lists of nodes or elements in a document. 
       * @param root The root element or node to start traversing on.

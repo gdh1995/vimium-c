@@ -674,15 +674,7 @@ var VDom = {
 
   /** action section */
 
-  createElement_: function<K extends VimiumContainerElementType> (this: {},
-      tagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement | Element {
-    const d = document, node = document.createElement(tagName);
-    (this as typeof VDom).createElement_ = "lang" in <ElementToHTML> node
-      ? d.createElement.bind(d) as typeof VDom.createElement_
-      : d.createElementNS.bind<Document, "http://www.w3.org/1999/xhtml", [VimiumContainerElementType]
-        , HTMLElement>(d, "http://www.w3.org/1999/xhtml") as typeof VDom.createElement_;
-    return node;
-  } as {
+  createElement_: document.createElement.bind(document) as {
     // tslint:disable-next-line: callable-types
     <K extends VimiumContainerElementType> (this: {}, tagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement;
   },

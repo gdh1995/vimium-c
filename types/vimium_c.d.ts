@@ -440,6 +440,8 @@ declare const enum GlobalConsts {
   MaxRetryTimesForSecret = 89,
   SecretStringLength = 7,
   MarkForName3Length = 10,
+  ExtendClick_DelayToFindAll = 600,
+  ExtendClick_DelayToStartIteration = 666,
   SYNC_QUOTA_BYTES = 102_400, // QUOTA_BYTES of storage.sync in https://developer.chrome.com/extensions/storage
   SYNC_QUOTA_BYTES_PER_ITEM = 8192,
   /** ceil(102_400 / (8192 - (12 + 16) * 4)) ; 12 and 16 is inner consts in {@link ../background/others.ts} */

@@ -53,7 +53,7 @@ $("#exclusionSortButton").onclick = function (): void {
   return (Option_.all_.exclusionRules as ExclusionRulesOption_).sortRules_(this);
 };
 
-function formatDate(time: number | Date): string {
+function formatDate_(time: number | Date): string {
   return new Date(+time - new Date().getTimezoneOffset() * 1000 * 60
     ).toJSON().slice(0, 19).replace("T", " ");
 }
@@ -73,7 +73,7 @@ interface ExportedSettings {
 }
 
 let _lastBlobURL = "";
-function cleanRes() {
+function cleanRes_() {
   if ((Build.MinCVer >= BrowserVer.MinCanNotRevokeObjectURLAtOnce
         || !(Build.BTypes & BrowserType.Chrome)
         || bgBrowserVer_ >= BrowserVer.MinCanNotRevokeObjectURLAtOnce)
@@ -84,7 +84,7 @@ function cleanRes() {
 }
 
 $<ElementWithDelay>("#exportButton").onclick = function (event): void {
-  cleanRes();
+  cleanRes_();
   let exported_object: ExportedSettings | null;
   const all_static = event ? event.ctrlKey || event.metaKey || event.shiftKey : false;
   const d = new Date();
@@ -124,7 +124,7 @@ $<ElementWithDelay>("#exportButton").onclick = function (event): void {
       exported_object[key] = storedVal;
     }
   }
-  let exported_data = JSON.stringify(exported_object, null, "\t"), d_s = formatDate(d);
+  let exported_data = JSON.stringify(exported_object, null, "\t"), d_s = formatDate_(d);
   if (exported_object.environment.platform === "win") {
     // in case "endings" didn't work
     exported_data = exported_data.replace(<RegExpG> /\n/g, "\r\n");
@@ -167,7 +167,7 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
         (ext_ver > 1 ? pTrans_("fileVCVer_2").replace("*", "" + ext_ver) : "") + (newer ? pTrans_("fileVCNewer") : ""),
         plat ? pTrans_("filePlatform", [pTrans_(plat) || plat[0].toUpperCase() + plat.slice(1)])
           : pTrans_("commonPlatform"),
-        time ? pTrans_("atTime", [formatDate(time)]) : pTrans_("before")]))) {
+        time ? pTrans_("atTime", [formatDate_(time)]) : pTrans_("before")]))) {
     window.VHud && VHud.tip_(kTip.cancelImport, "", 1000);
     return;
   }
@@ -200,7 +200,7 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
     (method: string, key: string, actionName: string, val: any): any;
   };
   if (time > 10000) {
-    console.info("IMPORT settings saved at %c%s%c.", "color:darkblue", formatDate(time), "color:auto");
+    console.info("IMPORT settings saved at %c%s%c.", "color:darkblue", formatDate_(time), "color:auto");
   } else {
     console.info("IMPORT settings:", is_recommended ? "recommended." : "saved before.");
   }
@@ -232,6 +232,9 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
   delete new_data.omniCSS;
   delete new_data.newTabUrl_f;
   delete new_data.vomnibarPage_f;
+  if (Build.BTypes & BrowserType.Firefox) {
+    delete new_data.i18n_f;
+  }
   if (new_data.vimSync !== bgSettings_.get_("vimSync")) {
     logUpdate("import", "vimSync", new_data.vimSync);
     bgSettings_.set_("vimSync", new_data.vimSync);
@@ -322,11 +325,11 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
   if (window.VHud) { VHud.tip_(kTip.importOK, "", 1000); }
 }
 
-function importSettings(time: number | string | Date
+function importSettings_(time: number | string | Date
     , data: string, is_recommended?: boolean): void {
   let new_data: ExportedSettings | null = null, e: Error | null = null, err_msg: string = "";
   try {
-    let d = parseJSON(is_recommended ? data : data.replace(<RegExpG> /\xa0/g, " "));
+    let d = parseJSON_(is_recommended ? data : data.replace(<RegExpG> /\xa0/g, " "));
     if (d instanceof Error) { e = d; }
     else if (!d) { err_msg = pTrans_("notJSON"); }
     else { new_data = d; }
@@ -375,7 +378,7 @@ _el.onchange = function (this: HTMLInputElement): void {
   const reader = new FileReader(), lastModified = file.lastModified || file.lastModifiedDate || 0;
   reader.onload = function (this: FileReader) {
     let result: string = this.result;
-    return importSettings(lastModified, result, false);
+    return importSettings_(lastModified, result, false);
   };
   reader.readAsText(file);
 };
@@ -391,14 +394,14 @@ _el.onchange = function (this: HTMLSelectElement): void {
   const recommended = "../settings_template.json";
   if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinFetchExtensionFiles
       || bgBrowserVer_ >= BrowserVer.MinFetchExtensionFiles) {
-    fetch(recommended).then(r => r.text()).then(t => importSettings(0, t, true));
+    fetch(recommended).then(r => r.text()).then(t => importSettings_(0, t, true));
     return;
   }
   const req = new XMLHttpRequest();
   req.open("GET", recommended, true);
   req.responseType = "text";
   req.onload = function (this: XMLHttpRequest): void {
-    return importSettings(0, this.responseText, true);
+    return importSettings_(0, this.responseText, true);
   };
   req.send();
 };
@@ -411,7 +414,7 @@ _el = null;
   node.onclick && node.onclick(event);
 })();
 
-function parseJSON(text: string): any {
+function parseJSON_(text: string): any {
   const notLFRe = <RegExpG & RegExpSearchable<0>> /[^\r\n]+/g
     , errMsgRe = <RegExpSearchable<3> & RegExpOne> /\b(?:position (\d+)|line (\d+) column (\d+))/
     , stringOrCommentRe = <RegExpG & RegExpSearchable<0>

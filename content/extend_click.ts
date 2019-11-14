@@ -11,8 +11,6 @@ if (VDom && VimiumInjector === undefined) {
     MaxElementsInOneTickRelease = 256,
     MaxUnsafeEventsInOneTick = 12,
     DelayToWaitDomReady = 1000,
-    DelayToFindAll = 600,
-    DelayToStartIteration = 666,
     DelayForNext = 36,
     DelayForNextComplicatedCase = 1,
     TimeoutOf3rdPartyFunctionsCache = 1e4, // 10 seconds
@@ -39,12 +37,9 @@ if (VDom && VimiumInjector === undefined) {
     }): CustomEvent;
   }
 
-  if (!(Build.NDEBUG || !isFirstTime || (VDom.createElement_ + "").indexOf('"lang"') >= 0)) {
-    console.log("Assert error: VDom.createElement_ should have not been called");
-  }
   const kVOnClick1 = InnerConsts.kVOnClick
     , kHook = (InnerConsts.kHook + BuildStr.RandomName0) as InnerConsts.kHook
-    , docEl = document.documentElement
+    , doc = document, docEl = doc.documentElement
     , secret: number = (Math.random() * kContentCmd.SecretRange + 1) | 0
     , script = VDom.createElement_("script");
 /**
@@ -59,6 +54,7 @@ if (VDom && VimiumInjector === undefined) {
  * Vimium issue: https://github.com/philc/vimium/pull/1797#issuecomment-135761835
  */
   if ((script as Element as ElementToHTML).lang == null) {
+    VDom.createElement_ = doc.createElementNS.bind(doc, "http://www.w3.org/1999/xhtml") as typeof VDom.createElement_;
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)) {
       if (!(docEl && (docEl as ElementToHTMLorSVG).tabIndex != null)) {
@@ -101,7 +97,7 @@ if (VDom && VimiumInjector === undefined) {
     box && isFirstResolve && setTimeout(function (): void {
       box && isFirstResolve && dispatchCmd(kContentCmd.AutoFindAllOnClick);
       isFirstResolve = 0;
-    }, InnerConsts.DelayToFindAll);
+    }, GlobalConsts.ExtendClick_DelayToFindAll);
   };
   function onClick(event: CustomEvent): void {
     VKey.Stop_(event);
@@ -308,7 +304,7 @@ hooks = {
           // note: window.history is mutable on C35, so only these can be used: top,window,location,document
           && a && !(a as Window).window && (a as Node).nodeType === kNode.ELEMENT_NODE) {
       toRegister.p(a as Element);
-      timer = timer || setTimeout_(next, InnerConsts.DelayToStartIteration);
+      timer = timer || setTimeout_(next, GlobalConsts.ExtendClick_DelayToStartIteration);
     }
     // returns void: https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/events/event_target.idl
   }
@@ -561,7 +557,7 @@ _listen(kOnDomReady, handler, !0);
   script.type = "text/javascript";
   script.dataset.vimium = secret as number | string as string;
   docEl ? Build.BTypes & ~BrowserType.Firefox ? script.insertBefore.call(docEl, script, docEl.firstChild)
-    : docEl.insertBefore(script, docEl.firstChild) : document.appendChild(script);
+    : docEl.insertBefore(script, docEl.firstChild) : doc.appendChild(script);
   isFirstTime ? (script.dataset.vimium = "") : script.remove();
   }
   if (!(Build.NDEBUG || !isFirstTime || (VDom.OnDocLoaded_ + "").indexOf("DOMContentLoaded") >= 0)) {
@@ -579,6 +575,7 @@ _listen(kOnDomReady, handler, !0);
     VDom.OnDocLoaded_(function (): void {
       box || execute(kContentCmd.DestroyForCSP);
     });
+    isFirstTime &&
     VKey.SetupEventListener_(0, "load", delayFindAll, 0, 1);
     Build.MinCVer > BrowserVer.NoRAFOrRICOnSandboxedPage ||
     !(Build.BTypes & BrowserType.Chrome) ||

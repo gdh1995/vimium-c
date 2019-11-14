@@ -1494,7 +1494,7 @@
 		"message": "已复制：$1"
 	},
 	"21": {
-		"message": "很抱歉，Vimium C 无法在当前网页上执行 JavaScript 脚本程序"
+		"message": "抱歉，Vimium C 无法在当前网页上执行 JavaScript 脚本"
 	},
 	"22": {
 		"message": "Vimium C 拦截了一次网页文本框自动获取键盘焦点的操作。"
