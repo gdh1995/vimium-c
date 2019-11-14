@@ -330,15 +330,15 @@ if (Build.BTypes & BrowserType.Firefox && _toSource) {
   myToSourceObj.s = myToSource + "";
 }
 
-let handler = function (this: void): void {
-  /** not check if a DOMReady event is trusted: keep the same as {@link ../lib/dom_utils.ts#VDom.OnDocLoaded_ } */
-  rEL(kOnDomReady, handler, !0);
+let start = function (this: void): void {
+  /** not check if a DOMReady event is trusted: keep the same as {@link frontend.ts#D.OnDocLoaded_ } */
+  rEL(kOnDomReady, start, !0);
   clearTimeout_(timer);
   detectDisabled = 0;
   const docEl2 = docChildren[0] as Element | null,
   el = call(hooks.C, doc, "div") as HTMLDivElement,
   key = InnerConsts.kSecretAttr;
-  handler = docChildren = null as never;
+  start = docChildren = null as never;
   if (!docEl2) { return executeCmd(); }
   call(Attr, el, key, "");
   listen(el, (InnerConsts.kCmd + BuildStr.RandomName1) as InnerConsts.kCmd, executeCmd, !0);
@@ -381,7 +381,7 @@ next = function (): void {
   doRegister(0);
   allNodesInDocument = allNodesForDetached = null;
 }
-, root: HTMLDivElement, timer = setTimeout_(handler, InnerConsts.DelayToWaitDomReady)
+, root: HTMLDivElement, timer = setTimeout_(start, InnerConsts.DelayToWaitDomReady)
 ;
 function prepareRegister(this: void, element: Element): void {
   if (contains(element)) {
@@ -512,7 +512,7 @@ function executeCmd(eventOrDestroy?: Event): void {
   root = null as never;
   clearTimeout_(timer);
   timer = 1;
-  rEL(kOnDomReady, handler, !0);
+  rEL(kOnDomReady, start, !0);
 }
 
 toRegister.p = push as any, toRegister.s = toRegister.splice;
@@ -523,7 +523,7 @@ FP.toString = myToStr;
 if (Build.BTypes & BrowserType.Firefox && _toSource) {
   (FP as {toSource?: any}).toSource = myToSource;
 }
-_listen(kOnDomReady, handler, !0);
+_listen(kOnDomReady, start, !0);
 
   }).toString() + ")();" /** need "toString()": {@see Gulpfile.js#patchExtendClick} */;
   if (isFirstTime) {
