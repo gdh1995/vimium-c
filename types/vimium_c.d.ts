@@ -883,6 +883,7 @@ declare const enum BrowserVer {
   MinEnsured$Document$$fullscreenElement = 71, // even if LEGACY; MinMaybe$Document$$fullscreenElement=61
   Min$Tabs$$Update$DoesNotAcceptJavaScriptURLs = 71,
   MinTabIdBeSmallAgain = 71,
+  Min$queueMicrotask = 71, // even if EXPERIMENTAL or LEGACY
   Min$Tabs$$goBack = 72, // and tabs.goForward; even if EXPERIMENTAL or LEGACY
   // https://www.chromestatus.com/features/5656049583390720
   // deprecation is since C66
@@ -945,6 +946,7 @@ declare const enum FirefoxBrowserVer {
   MinUnprefixedUserSelect = 69,
   MinCSSEnableContain = 69,
   MinUserScriptsAPI = 69, // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/userScripts
+  Min$queueMicrotask = 69,
   // https://bugzilla.mozilla.org/show_bug.cgi?id=1587723
   MinMediaChangeEventsOnBackgroundPage = 99,
   None = 0,

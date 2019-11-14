@@ -9609,6 +9609,7 @@ interface Response extends Body {
   clone(): Response;
 }
 declare function fetch(input: RequestInfo): Promise<Response>;
+declare function queueMicrotask(callback: (this: void) => void): void;
 declare function clearInterval(handle: number): void;
 declare function clearTimeout(handle: number): void;
 declare function atob(encodedString: string): string;

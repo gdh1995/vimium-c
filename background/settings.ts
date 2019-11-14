@@ -83,6 +83,10 @@ var Settings_ = {
         , old = Settings_.temp_.newSettingsToBroadcast_;
       if (old) {
         BgUtils_.extendIf_(cur, old);
+      } else if ((Build.MinCVer >= BrowserVer.Min$queueMicrotask || !(Build.BTypes & BrowserType.Chrome))
+          && (Build.MinFFVer >= FirefoxBrowserVer.Min$queueMicrotask || !(Build.BTypes & BrowserType.Firefox))
+          && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)) {
+        queueMicrotask(Settings_._BroadcastSettingsUpdates.bind(null, request));
       } else {
         Promise.resolve(request).then(Settings_._BroadcastSettingsUpdates);
       }

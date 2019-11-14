@@ -75,14 +75,26 @@ nextTick_ = (function (): {<T>(task: (self: T) => void, context: T): void; (task
     }
     if (tasks.length > oldSize) {
       tasks.splice(0, oldSize);
-      Promise.resolve(1).then(ticked);
+      if ((Build.MinCVer >= BrowserVer.Min$queueMicrotask || !(Build.BTypes & BrowserType.Chrome))
+          && (Build.MinFFVer >= FirefoxBrowserVer.Min$queueMicrotask || !(Build.BTypes & BrowserType.Firefox))
+          && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)) {
+        queueMicrotask(ticked);
+      } else {
+        Promise.resolve().then(ticked);
+      }
     } else {
       tasks.length = 0;
     }
   };
   return function <T> (task: ((self: T) => void) | ((this: void) => void), context?: T): void {
     if (tasks.length <= 0) {
-      Promise.resolve(1).then(ticked);
+      if ((Build.MinCVer >= BrowserVer.Min$queueMicrotask || !(Build.BTypes & BrowserType.Chrome))
+          && (Build.MinFFVer >= FirefoxBrowserVer.Min$queueMicrotask || !(Build.BTypes & BrowserType.Firefox))
+          && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)) {
+        queueMicrotask(ticked);
+      } else {
+        Promise.resolve().then(ticked);
+      }
     }
     if (context as unknown as number === 9) {
       // here ignores the case of re-entry
