@@ -609,11 +609,12 @@ _listen(kOnDomReady, start, !0);
   },
   listen = newListen.call.bind(_listen), apply = newListen.apply,
   resolve = Build.NDEBUG ? 0 as never : (): void => {
-    timer = resolved = 0;
     console.log(`Vimium C: extend click: resolve [%o] in %o @t=%o .`
         , resolved
         , location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1")
         , Date.now() % 3600000);
+    timer && clearTimeout(timer);
+    timer = resolved = 0;
   },
   isFirstTime = VDom.docInitingWhenVimiumIniting_,
   findAllOnClick = (cmd: kContentCmd.AutoFindAllOnClick | kContentCmd.ManuallyFindAllOnClick): void => {

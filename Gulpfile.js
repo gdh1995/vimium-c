@@ -1254,6 +1254,7 @@ function gulpMerge() {
 
 function patchExtendClick(source) {
   if (locally && envLegacy) { return source; }
+  if (!(getBuildItem("BTypes") & ~BrowserType.Firefox)) { return source; }
   print('Patch the extend_click module');
   source = source.replace(/\b(addEventListener|toString) ?: ?function ?\w*/g, "$1");
   let match = /\/: \?function \\w\+\/g, ?(""|'')/.exec(source);
