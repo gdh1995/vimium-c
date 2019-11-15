@@ -716,7 +716,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         let counter = 0, prompt = function (): void {
           counter++ || console.log(VTr(kTip.blockAutoFocus, "Vimium C blocks auto-focusing."));
         };
-        if (notBody) {
+        if (notBody = notBody && VDom.getEditableType_<1>(activeEl)) {
           InsertMode.last_ = null;
           prompt();
           (Build.BTypes & ~BrowserType.Firefox ? typeof activeEl.blur === "function" : activeEl.blur) &&
@@ -935,7 +935,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         // check <div> to detect whether no other visible elements except <frame>s in this frame
         || (Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter && Build.BTypes & BrowserType.Chrome
                 && D.unsafeFramesetTag_  // treat a doc.body of <form> as <frameset> to simplify logic
-              ? D.notSafe_(doc.body) : D.htmlTag_(doc.body as NonNullable<Document["body"]>) === "frameset")
+              ? D.notSafe_(doc.body)
+              : doc.body && D.htmlTag_(doc.body) === "frameset")
             && (div = doc.querySelector("div"), !div || div === U.box_ && !K._handlers.length)
       ) {
         post({
