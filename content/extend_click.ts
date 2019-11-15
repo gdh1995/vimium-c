@@ -252,8 +252,7 @@ rEL = removeEventListener, clearTimeout_ = clearTimeout,
 kVOnClick = InnerConsts.kVOnClick,
 kEventName2 = kVOnClick + BuildStr.RandomName2,
 kOnDomReady = "DOMContentLoaded",
-kValue = "value",
-StringIndexOf = kValue.indexOf, StringSubstr = kValue.substr,
+StringIndexOf = kOnDomReady.indexOf, StringSubstr = kOnDomReady.substr,
 decryptFromVerifier = (func: InnerVerifier | unknown): string => {
   const str = call(_toString, func as InnerVerifier), offset = call(StringIndexOf, str, kMarkToVerify);
   return call(StringSubstr, str, offset
@@ -418,13 +417,14 @@ function prepareRegister(this: void, element: Element): void {
     return;
   }
   let e1: Element | null = element, e2: Node | RadioNodeList | null, e3: Node | RadioNodeList | null | undefined;
+  const kValue = "value";
   for (; e2 = e1.parentElement as Exclude<Element["parentElement"], Window>; e1 = e2 as Element) {
     // according to tests and source code, the named getter for <frameset> requires <frame>.contentDocument is valid
     // so here pe and pn will not be Window if only ignoring the case of `<div> -> #shadow-root -> <frameset>`
     if (Build.BTypes & ~BrowserType.Firefox
         && e2 !== (e3 = e1.parentNode as Exclude<Element["parentNode"], Window>)
         && kValue in e2) {
-      // here skips more cases than a most precise solution, but it is enough
+      // here skips more cases than an "almost precise" solution, but it is enough
       if (!e3 || kValue in e3) { return; }
       if (e3.nodeType !== kNode.ELEMENT_NODE) { break; }
       e2 = e3 as Element;
@@ -440,7 +440,8 @@ function prepareRegister(this: void, element: Element): void {
   // Note: ignore the case that a plain #document-fragment has a fake .host
   } else if (e2.nodeType === kNode.DOCUMENT_FRAGMENT_NODE
       && !((e2 as ShadowRoot | DocumentFragment & { host?: undefined }).host
-    // here use a larger matching of `"value" in`, so that a RadioNodeList can not crash the block below
+    // here use a larger matching than `kValue in`, in case: e1:=<form>, e3:=RadioNodeList, e3.parentElement:=undefined
+    // so that a RadioNodeList can not crash the block below
             || Build.BTypes & ~BrowserType.Firefox && (e3 = e1.nextSibling) && e3.parentElement !== null)) {
     // not register, if ShadowRoot or .nextSibling is not real
     // NOTE: ignore nodes belonging to a shadowRoot,
