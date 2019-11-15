@@ -63,14 +63,7 @@ if (VDom && VimiumInjector === undefined) {
  */
   if ((script as Element as ElementToHTML).lang == null) {
     VDom.createElement_ = doc.createElementNS.bind(doc, "http://www.w3.org/1999/xhtml") as typeof VDom.createElement_;
-    if (Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)) {
-      if (!(docEl && (docEl as ElementToHTMLorSVG).tabIndex != null)) {
-        // Raw XML: should never create any HTMLElement instance
-        VDom.allowScripts_ = 0;
-        return;
-      }
-    } else if (!(Build.BTypes & BrowserType.Edge)
+    if (!(Build.BTypes & BrowserType.Edge)
         && Build.MinCVer > BrowserVer.NoRAFOrRICOnSandboxedPage
         && Build.MinCVer >= BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage) {
       return;
@@ -112,12 +105,8 @@ if (VDom && VimiumInjector === undefined) {
     let detail = event.detail as ClickableEventDetail | null, fromAttrs: 1 | 2 = detail ? (detail[2] + 1) as 1 | 2 : 1;
     if (!Build.NDEBUG) {
       let target = event.target as Element;
-      console.log(`Vimium C: extend click: resolve ${
-          detail ? Build.BTypes & ~BrowserType.Firefox ? "[%o + %o]" : "[%o+%o]" : "<%o>%s"
-        } in %o @t=%o .`
-        , detail ? detail[0].length
-          : Build.BTypes & ~BrowserType.Firefox && typeof target.localName !== "string" ? target + ""
-          : target.localName as string
+      console.log(`Vimium C: extend click: resolve ${detail ? "[%o + %o]" : "<%o>%s"} in %o @t=%o .`
+        , detail ? detail[0].length : typeof target.localName !== "string" ? target + "" : target.localName as string
         , detail ? detail[2] ? -0 : detail[1].length : ""
         , location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1")
         , Date.now() % 3600000);
@@ -160,9 +149,7 @@ if (VDom && VimiumInjector === undefined) {
     }
     if (box == null && isFirstTime) {
       VKey.SetupEventListener_(0, kHook, hook, 1, 1);
-      if (Build.BTypes & ~BrowserType.Firefox
-          && (!(Build.BTypes & BrowserType.Firefox) || VOther !== BrowserType.Firefox)
-          && cmd === kContentCmd.DestroyForCSP) {
+      if (cmd === kContentCmd.DestroyForCSP) {
         // normally, if here, must have: limited by CSP; not C or C >= MinEnsuredNewScriptsFromExtensionOnSandboxedPage
         // ignore the rare (unexpected) case that injected code breaks even when not limited by CSP,
         //     which might mean curCVer has no ES6...
@@ -200,7 +187,7 @@ if (VDom && VimiumInjector === undefined) {
   interface InnerVerifier {
     (maybeSecret: string, maybeAnotherVerifierInner: InnerVerifier | unknown): void;
     // tslint:disable-next-line: ban-types
-    (maybeSecret: string): [EventTarget["addEventListener"], Function["toString"], Function["toString"]?] | void;
+    (maybeSecret: string): [EventTarget["addEventListener"], Function["toString"]] | void;
   }
   type PublicFunction = (maybeKNeedToVerify: string, verifierFunc: InnerVerifier | unknown) => void | string;
   let injected: string = '"use strict";(' + (function VC(this: void): void {
@@ -209,14 +196,7 @@ function verifier(maybeSecret: string, maybeVerifierB?: InnerVerifier | unknown)
   if (maybeSecret === BuildStr.MarkForName3 + BuildStr.RandomName3
       && noAbnormalVerifyingFound) {
     if (!maybeVerifierB) {
-      return Build.BTypes & BrowserType.Firefox ? [myAEL, myToStr, myToSource] : [myAEL, myToStr];
-    } else if (Build.BTypes & BrowserType.Firefox) {
-      [anotherAEL, anotherToStr, anotherToSource] =
-          (maybeVerifierB as InnerVerifier)(decryptFromVerifier(maybeVerifierB)
-          ) as NonNullable<ReturnType<InnerVerifier>>;
-      setTimeout_(function (): void {
-        anotherAEL = anotherToStr = anotherToSource = 0;
-      }, InnerConsts.TimeoutOf3rdPartyFunctionsCache);
+      return [myAEL, myToStr];
     } else {
       [anotherAEL, anotherToStr] = (maybeVerifierB as InnerVerifier)(decryptFromVerifier(maybeVerifierB)
           ) as NonNullable<ReturnType<InnerVerifier>>;
@@ -244,7 +224,6 @@ push = nodeIndexListInDocument.push,
 pushInDocument = push.bind(nodeIndexListInDocument), pushForDetached = push.bind(nodeIndexListForDetached),
 CE = CustomEvent as VimiumCustomEventCls, HA = HTMLAnchorElement,
 FP = Function.prototype, _toString = FP.toString,
-_toSource = Build.BTypes & BrowserType.Firefox && (FP as {toSource?: any}).toSource,
 listen = _call.bind<(this: EventTarget,
         type: string, listener: EventListenerOrEventListenerObject, useCapture?: EventListenerOptions) => any,
     [EventTarget, string, EventListenerOrEventListenerObject, EventListenerOptions?], any>(_listen),
@@ -261,22 +240,17 @@ decryptFromVerifier = (func: InnerVerifier | unknown): string => {
 toStringOrSource = function (a: FUNC, args: IArguments, realToStrOrSrc: (this: FUNC) => string): string {
     const replaced = a === myAEL || BuildStr.RandomName3 && a === anotherAEL ? _listen
         : a === myToStr || BuildStr.RandomName3 && a === anotherToStr ? _toString
-        : Build.BTypes & BrowserType.Firefox
-          && (a === myToSource || BuildStr.RandomName3 && a === anotherToSource) ? _toSource
         : 0,
     str = call(_apply as (this: (this: FUNC, ...args: Array<{}>) => string, self: FUNC, args: IArguments) => string,
               realToStrOrSrc, replaced || a, args),
     expectedFunc = !BuildStr.RandomName3 || replaced ? 0 : str === sAEL ? _listen : str === sToStr ? _toString
-        : Build.BTypes & BrowserType.Firefox && str === myToSourceObj.s ? _toSource
         : 0;
-    Build.BTypes & ~BrowserType.Firefox &&
     detectDisabled && str === detectDisabled && executeCmd();
     return !BuildStr.RandomName3 ? str
         : !expectedFunc ? call(StringIndexOf, str, kMarkToVerify) > 0 ? call(realToStrOrSrc, noop) : str
         : (
           noAbnormalVerifyingFound && (a as PublicFunction)(kMarkToVerify, verifier),
           a === anotherAEL ? call(realToStrOrSrc, _listen) : a === anotherToStr ? call(realToStrOrSrc, _toString)
-          : Build.BTypes & BrowserType.Firefox && a === anotherToSource ? call(realToStrOrSrc, _toSource)
           : (noAbnormalVerifyingFound = 0, str)
         );
 },
@@ -289,7 +263,7 @@ hooks = {
     if (BuildStr.RandomName3 && args.length === 2 && (args[0] as any) === kMarkToVerify) {
       // randomize the body of this function
       (args[1] as InnerVerifier)(
-          decryptFromVerifier(Build.BTypes & BrowserType.Firefox ? args[1] : args[1] || BuildStr.RandomName3_public),
+          decryptFromVerifier(args[1] || BuildStr.RandomName3_public),
           verifier);
     }
     return toStringOrSource(this, args, _toString);
@@ -299,7 +273,7 @@ hooks = {
     const a = this, args = arguments, len = args.length;
     if (BuildStr.RandomName3 && type === kMarkToVerify) {
       (listener as any as InnerVerifier)(
-        decryptFromVerifier(Build.BTypes & BrowserType.Firefox ? listener : listener || BuildStr.RandomName3_public),
+        decryptFromVerifier(listener || BuildStr.RandomName3_public),
         verifier);
       return;
     }
@@ -319,24 +293,7 @@ hooks = {
 },
 noop = (): 1 => 1,
 myAEL = hooks.addEventListener, myToStr = hooks.toString,
-myToSourceObj = Build.BTypes & BrowserType.Firefox && _toSource ? {
-  s: 0 as number | string as string,
-  toSource (this: any): string {
-    const args = arguments;
-    if (BuildStr.RandomName3 && args.length === 2 && (args[0] as any) === kMarkToVerify) {
-      // randomize the body of this function
-      (args[1] as InnerVerifier)(
-        decryptFromVerifier(Build.BTypes & BrowserType.Firefox ? args[1] : args[1] || BuildStr.RandomName3_public),
-        verifier);
-    }
-    return toStringOrSource(this, args, _toSource);
-  }
-} : 0 as never,
-myToSource = Build.BTypes & BrowserType.Firefox && _toSource && myToSourceObj.toSource,
 sAEL = myAEL + "", sToStr = myToStr + "";
-if (Build.BTypes & BrowserType.Firefox && _toSource) {
-  myToSourceObj.s = myToSource + "";
-}
 
 let start = function (this: void): void {
   /** not check if a DOMReady event is trusted: keep the same as {@link frontend.ts#D.OnDocLoaded_ } */
@@ -364,7 +321,6 @@ kMarkToVerify = BuildStr.MarkForName3 as const, // declare it later so that ters
 detectDisabled: string | 0 = `Vimium${sec}=>9`,
 noAbnormalVerifyingFound: BOOL = 1,
 anotherAEL: typeof myAEL | undefined | 0, anotherToStr: typeof myToStr | undefined | 0,
-anotherToSource: typeof myToSource | undefined | 0,
 // here `setTimeout` is normal and will not use TimerType.fake
 setTimeout_ = setTimeout as SafeSetTimeout,
 docChildren = doc.children,
@@ -421,8 +377,7 @@ function prepareRegister(this: void, element: Element): void {
   for (; e2 = e1.parentElement as Exclude<Element["parentElement"], Window>; e1 = e2 as Element) {
     // according to tests and source code, the named getter for <frameset> requires <frame>.contentDocument is valid
     // so here pe and pn will not be Window if only ignoring the case of `<div> -> #shadow-root -> <frameset>`
-    if (Build.BTypes & ~BrowserType.Firefox
-        && e2 !== (e3 = e1.parentNode as Exclude<Element["parentNode"], Window>)
+    if (e2 !== (e3 = e1.parentNode as Exclude<Element["parentNode"], Window>)
         && kValue in e2) {
       // here skips more cases than an "almost precise" solution, but it is enough
       if (!e3 || kValue in e3) { return; }
@@ -442,14 +397,13 @@ function prepareRegister(this: void, element: Element): void {
       && !((e2 as ShadowRoot | DocumentFragment & { host?: undefined }).host
     // here use a larger matching than `kValue in`, in case: e1:=<form>, e3:=RadioNodeList, e3.parentElement:=undefined
     // so that a RadioNodeList can not crash the block below
-            || Build.BTypes & ~BrowserType.Firefox && (e3 = e1.nextSibling) && e3.parentElement !== null)) {
+            || (e3 = e1.nextSibling) && e3.parentElement !== null)) {
     // not register, if ShadowRoot or .nextSibling is not real
     // NOTE: ignore nodes belonging to a shadowRoot,
     // in case of `<html> -> ... -> <div> -> #shadow-root -> ... -> <iframe>`,
     // because `<iframe>` will destroy if removed
     if (unsafeDispatchCounter < InnerConsts.MaxUnsafeEventsInOneTick - 2) {
       doRegister(0);
-      Build.BTypes & ~BrowserType.Firefox || (e3 = e1.nextSibling);
       call(Append, root, e1);
       unsafeDispatchCounter++;
       dispatch(element, new CE(kVOnClick));
@@ -530,9 +484,6 @@ toRegister.p = push as any, toRegister.s = toRegister.splice;
 cs.remove();
 ETP.addEventListener = myAEL;
 FP.toString = myToStr;
-if (Build.BTypes & BrowserType.Firefox && _toSource) {
-  (FP as {toSource?: any}).toSource = myToSource;
-}
 _listen(kOnDomReady, start, !0);
 
   }).toString() + ")();" /** need "toString()": {@see Gulpfile.js#patchExtendClick} */;
@@ -569,8 +520,7 @@ _listen(kOnDomReady, start, !0);
   script.textContent = injected;
   script.type = "text/javascript";
   script.dataset.vimium = secret as number | string as string;
-  docEl ? Build.BTypes & ~BrowserType.Firefox ? script.insertBefore.call(docEl, script, docEl.firstChild)
-    : docEl.insertBefore(script, docEl.firstChild) : doc.appendChild(script);
+  docEl ? script.insertBefore.call(docEl, script, docEl.firstChild) : doc.appendChild(script);
   isFirstTime ? (script.dataset.vimium = "") : script.remove();
   }
   if (!(Build.NDEBUG
@@ -581,7 +531,6 @@ _listen(kOnDomReady, start, !0);
         && !(Build.BTypes & ~BrowserType.Chrome))
       ? true : isFirstTime ? !script.parentNode
       : !script.dataset.vimium) { // It succeeded to hook.
-    !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox ||
     VDom.OnDocLoaded_(function (): void {
       // not check isFirstTime, to auto clean VApi.execute_
       setTimeout(function (): void { // wait the inner listener of `start` to finish its work
