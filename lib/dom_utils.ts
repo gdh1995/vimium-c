@@ -34,7 +34,9 @@ var VDom = {
 
   /** DOM-compatibility section */
 
-  isHTML_: (): boolean => "lang" in <ElementToHTML> (document.documentElement || {}),
+  isHTML_: Build.BTypes & ~BrowserType.Firefox
+      ? (): boolean => "lang" in <ElementToHTML> (document.documentElement || {})
+      : (): boolean => document instanceof HTMLDocument,
   htmlTag_: (Build.BTypes & ~BrowserType.Firefox ? function (element: Element | HTMLElement): string {
     let s: Element["localName"];
     if ("lang" in element && typeof (s = element.localName) === "string") {

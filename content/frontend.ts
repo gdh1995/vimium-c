@@ -266,6 +266,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       esc(HandlerResult.Nothing);
       insertLock = target;
       if (InsertMode.mutable_) {
+        // here ignore the rare case of an XMLDocument with a editable node on Firefox, for smaller code
         if (doc.activeElement !== doc.body) {
           InsertMode.last_ = target;
         }
@@ -706,7 +707,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     mutable_: true,
     init_ (): void {
       /** if `notBody` then `activeEl` is not null */
-      let activeEl = doc.activeElement as Element, notBody = activeEl !== doc.body;
+      let activeEl = doc.activeElement as Element,
+      notBody = activeEl !== doc.body && (!(Build.BTypes & BrowserType.Firefox)
+            || Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox
+            || D.isHTML_() || activeEl !== doc.documentElement);
       KeydownEvents = safer(null);
       if (fgCache.g && InsertMode.grabBackFocus_) {
         let counter = 0, prompt = function (): void {
@@ -717,6 +721,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           prompt();
           (Build.BTypes & ~BrowserType.Firefox ? typeof activeEl.blur === "function" : activeEl.blur) &&
           (activeEl as HTMLElement | SVGElement).blur();
+          // here ignore the rare case of an XMLDocument with a editable node on Firefox, for smaller code
           notBody = (activeEl = doc.activeElement as Element) !== doc.body;
         }
         if (!notBody) {
@@ -1113,6 +1118,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (Build.BTypes & ~BrowserType.Firefox && Build.BTypes & BrowserType.Firefox
           && OnOther === BrowserType.Firefox) {
         D.notSafe_ = (_el): _el is HTMLFormElement => false;
+        D.isHTML_ = (): boolean => document instanceof HTMLDocument;
       }
       r[kBgReq.keyMap](request);
       if (flags) {

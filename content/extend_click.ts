@@ -659,7 +659,7 @@ _listen(kOnDomReady, start, !0);
       alive = false;
     }
   };
-  if (!(doc instanceof HTMLDocument)) {
+  if (Build.BTypes & ~BrowserType.Firefox ? !(doc instanceof HTMLDocument) : !VDom.isHTML_()) {
     // for <script>
     VDom.createElement_ = doc.createElementNS.bind(doc, "http://www.w3.org/1999/xhtml") as typeof VDom.createElement_;
   }
