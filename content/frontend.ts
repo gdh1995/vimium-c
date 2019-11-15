@@ -1145,8 +1145,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         HUD.enabled_ = true;
         onWndFocus = vPort.SafePost_.bind(vPort as never, <Req.fg<kFgReq.focus>> { H: kFgReq.focus });
         needToRetryParentClickable && setTimeout(function (): void {
-          const parentCore = D.allowScripts_ &&
-              (Build.BTypes & BrowserType.Firefox ? D.parentCore_() : D.frameElement_() && parent as Window),
+          const parentCore = !(Build.BTypes & ~BrowserType.Firefox)
+              || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
+              ? D.parentCore_() : D.allowScripts_ && D.frameElement_() && parent as Window,
           parDom = parentCore && parentCore.VDom as typeof VDom,
           oldSet = D.clickable_ as any as Element[] & Set<Element>,
           set = D.clickable_ = parDom ? parDom.clickable_ : new (WeakSet as NonNullable<typeof WeakSet>)<Element>();
@@ -1429,7 +1430,12 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
       url = url.slice(11).trim();
       if ((<RegExpOne> /^void\s*\( ?0 ?\)\s*;?$|^;?$/).test(url)) { /* empty */ }
-      else if (D.allowScripts_) {
+      else if (!(Build.BTypes & ~BrowserType.Firefox)
+          || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
+          ? D.allowScripts_ === 2 || D.allowScripts_ &&
+            (D.allowScripts_ = (D.runJS_('document.currentScript.dataset.vimium="1"', 1) as HTMLScriptElement
+                ).dataset.vimium ? 2 : 0)
+          : D.allowScripts_) {
         setTimeout(function (): void {
           D.runJS_(Hints.decodeURL_(url, decodeURIComponent));
         }, 0);

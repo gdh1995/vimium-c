@@ -23,7 +23,7 @@ var VDom = {
   cache_: null as never as EnsureItemsNonNull<SettingsNS.FrontendSettingCache>,
   clickable_: null as never as { add(value: Element): object | void | number; has(value: Element): boolean; },
   // note: scripts always means allowing timers - vPort.ClearPort requires this assumption
-  allowScripts_: 1 as BOOL,
+  allowScripts_: 1 as 0 | 1 | 2,
   allowRAF_: 1 as BOOL,
   specialZoom_: !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl
     ? true : Build.BTypes & BrowserType.Chrome ? true : false,
@@ -820,7 +820,7 @@ var VDom = {
     !(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
     Element.prototype.scrollBy ? scrollBy({behavior: "instant", left, top}) : scrollBy(left, top);
   },
-  runJS_ (code: string): void {
+  runJS_ (code: string, returnEl?: 1): void | HTMLScriptElement {
     const script = VDom.createElement_("script"), doc = document, docEl = doc.documentElement;
     script.type = "text/javascript";
     script.textContent = code;
@@ -835,6 +835,9 @@ var VDom = {
       (docEl || doc).appendChild(script);
     }
     script.remove();
+    if (Build.BTypes & BrowserType.Firefox && returnEl) {
+      return script;
+    }
   },
 
   /** rect section */

@@ -1,4 +1,12 @@
+declare function exportFunction(this: void, func: Function, targetScope: object, options?: {
+  defineAs: string;
+  allowCrossOriginArguments?: boolean;
+}): void;
+
 if (VDom && VimiumInjector === undefined) {
+!(Build.BTypes & BrowserType.Firefox)
+|| Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox
+?
 (function extendClick(this: void, isFirstTime?: boolean): void {
 /** Note(gdh1995):
  * According to source code of C72,
@@ -181,6 +189,8 @@ if (VDom && VimiumInjector === undefined) {
   if (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome) {
     VDom.allowRAF_ = appVer !== BrowserVer.NoRAFOrRICOnSandboxedPage ? 1 : 0;
   }
+
+// #region injected code
 
   /** the `InnerVerifier` needs to satisfy
    * * never return any object (aka. keep void) if only "not absolutely safe"
@@ -525,6 +535,9 @@ if (Build.BTypes & BrowserType.Firefox && _toSource) {
 _listen(kOnDomReady, start, !0);
 
   }).toString() + ")();" /** need "toString()": {@see Gulpfile.js#patchExtendClick} */;
+
+// #endregion injected code
+
   if (isFirstTime) {
     if (Build.MinCVer < BrowserVer.MinEnsuredES6MethodFunction && Build.BTypes & BrowserType.Chrome &&
         appVer >= BrowserVer.MinEnsuredES6MethodFunction) {
@@ -622,5 +635,82 @@ _listen(kOnDomReady, start, !0);
       ;
   } as any);
 })(VDom.docInitingWhenVimiumIniting_)
-;
+
+// #else: on Firefox
+
+: (function (): void {
+  const PEventTarget = (window as any).EventTarget as typeof EventTarget | undefined,
+  Cls = PEventTarget && PEventTarget.prototype,
+  wrappedCls = Cls && (Cls as any).wrappedJSObject as typeof Cls | undefined,
+  _listen = wrappedCls && wrappedCls.addEventListener,
+  newListen = function addEventListener(this: EventTarget, type: string
+      , listener: EventListenerOrEventListenerObject): void {
+    const a = this, args = arguments, len = args.length;
+    len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2])
+      : apply.call(_listen as (this: EventTarget, ...args: Array<{}>) => void, a, args);
+    if (type === "click" && alive
+        && listener && !(a instanceof HTMLAnchorElement) && a instanceof Element) {
+      if (!Build.NDEBUG) {
+        VDom.clickable_.has(a) || resolved++;
+        timer = timer || setTimeout(resolve, GlobalConsts.ExtendClick_DelayToStartIteration);
+      }
+      VDom.clickable_.add(a);
+    }
+  },
+  listen = newListen.call.bind(_listen), apply = newListen.apply,
+  resolve = Build.NDEBUG ? 0 as never : (): void => {
+    timer = resolved = 0;
+    console.log(`Vimium C: extend click: resolve [%o] in %o @t=%o .`
+        , resolved
+        , location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1")
+        , Date.now() % 3600000);
+  },
+  isFirstTime = VDom.docInitingWhenVimiumIniting_,
+  findAllOnClick = (cmd: kContentCmd.AutoFindAllOnClick | kContentCmd.ManuallyFindAllOnClick): void => {
+    hasFindAll = 1;
+    const allNodesInDocument = document.querySelectorAll("*") as ArrayLike<Element> as Element[],
+    clickable = VDom.clickable_;
+    if (allNodesInDocument.length > GlobalConsts.MinElementCountToStopScanOnClick - 1
+        && cmd === kContentCmd.AutoFindAllOnClick) {
+      return;
+    }
+    if (!Build.NDEBUG) { resolved && resolve(); }
+    for (const el of allNodesInDocument) {
+      if (((el as any).wrappedJSObject as typeof el as HTMLElement).onclick && !el.hasAttribute("onclick")
+          && !(el instanceof HTMLAnchorElement) && !(el instanceof HTMLButtonElement)) {
+        if (!Build.NDEBUG) {
+          clickable.has(el) || resolved++;
+        }
+        clickable.add(el);
+      }
+    }
+    if (!Build.NDEBUG) { resolved && resolve(); }
+  }, doc = document;
+
+  let alive = true, timer = 0, resolved = 0, hasFindAll: BOOL = 0;
+
+  if (isFirstTime) {
+    if (typeof _listen === "function") {
+      exportFunction(newListen, Cls as NonNullable<typeof Cls>, { defineAs: newListen.name });
+    }
+    VKey.SetupEventListener_(0, "load", function delayFindAll(event?: Event): void {
+      if (event && (event.target !== document || !event.isTrusted)) { return; }
+      removeEventListener("load", delayFindAll, !0);
+      event && VDom && setTimeout(function (): void {
+        hasFindAll || VDom && findAllOnClick(kContentCmd.AutoFindAllOnClick);
+      }, GlobalConsts.ExtendClick_DelayToFindAll);
+    }, 0, 1);
+  }
+  VApi.execute_ = (cmd: ValidContentCommands): void => {
+    if (cmd < kContentCmd._minSuppressClickable) {
+      findAllOnClick(cmd as ValidContentCommands & ContentCommandsNotSuppress);
+    } else {
+      alive = false;
+    }
+  };
+  if (!(doc instanceof HTMLDocument)) {
+    // for <script>
+    VDom.createElement_ = doc.createElementNS.bind(doc, "http://www.w3.org/1999/xhtml") as typeof VDom.createElement_;
+  }
+})();
 }
