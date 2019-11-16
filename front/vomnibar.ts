@@ -1404,7 +1404,7 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
   if (location.pathname.startsWith("/front/") || !(curEl = document.currentScript as HTMLScriptElement | null)) {
     /* is inner or web */
   }
-  else if (curEl.src.endsWith("/front/vomnibar.js") && !(<RegExpOne> /^(ht|f)tp/).test(curEl.src)) {
+  else if (curEl.src.endsWith("/front/vomnibar.js") && !(<RegExpOne> /^(ht|s?f)tp/).test(curEl.src)) {
     VCID_ = new URL(curEl.src).host;
     Build.MinCVer < BrowserVer.Min$URL$NewableAndInstancesHaveProperties && Build.BTypes & BrowserType.Chrome &&
     (VCID_ = VCID_ || "");

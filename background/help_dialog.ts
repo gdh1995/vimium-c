@@ -34,7 +34,7 @@ var HelpDialog = {
               && !(Build.BTypes & ~BrowserType.ChromeOrFirefox))
             && noShadow) {
           head = head.replace(<RegExpG> /[#.][A-Z]/g, "#VimiumUI $&"
-            ).replace("HelpAdvanced #VimiumUI .HelpAdv", "HelpAdvanced .HelpAdv");
+            ).replace("HelpAdvanced #VimiumUI", "HelpAdvanced");
         }
         Settings_.set_("helpDialog", "");
       }

@@ -66,6 +66,7 @@ interface SafeHTMLElement extends BaseSafeHTMLElement {
   readonly innerText: string;
   readonly parentElement: Element | null;
   readonly parentNode: Node | null;
+  readonly nextElementSibling: Element | null;
 }
 type SaferType<Ty> = Ty extends HTMLElement ? SafeHTMLElement : Ty extends Element ? SafeElement : Ty;
 interface LockableElement extends SafeHTMLElement {

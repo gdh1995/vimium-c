@@ -333,6 +333,7 @@ var BgUtils_ = {
       subPath = path.slice(ind - 1).trim();
       path = path.slice(0, ind - 1);
     }
+    path === "display" && (path = "show");
     if (!(<RegExpOne> /\.\w+$/).test(path)) {
       path = path.toLowerCase();
       if ((tempStr = Settings_.CONST_.RedirectedUrls_[path]) != null) {

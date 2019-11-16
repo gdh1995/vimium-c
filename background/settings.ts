@@ -719,7 +719,7 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
         ? "s" : "")
     + (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinUsableCSS$All ? ""
       : (Build.MinCVer > BrowserVer.MinUsableCSS$All || CurCVer_ > BrowserVer.MinUsableCSS$All)
-        && (!(Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge))
+        && (!(Build.BTypes & BrowserType.Edge) || Build.BTypes & ~BrowserType.Edge && OnOther !== BrowserType.Edge
           || "all" in (document.documentElement as HTMLHtmlElement).style)
       ? "a" : "")
     + ",";
