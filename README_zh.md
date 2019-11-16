@@ -11,7 +11,7 @@
 [Firefox 附加组件](
   https://addons.mozilla.org/firefox/addon/vimium-c/
   ) /
-[MS Edge 插件](
+[MS Edge 插件商店](
   https://microsoftedge.microsoft.com/insider-addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo
   ) 中查看**
 
@@ -22,6 +22,8 @@ Vimium C 是一款开源、免费的键盘增强类浏览器扩展，支持为�
 本项目由 [gdh1995](https://github.com/gdh1995) 开发，且以 [MIT 许可协议](LICENSE.txt) 开源。
 
 本项目的前身是[<span style="color: #2f508e;">Vim</span>ium](https://github.com/philc/vimium)。
+
+# 主要功能
 
 ## 多种多样的命令
 
@@ -76,7 +78,7 @@ Vimium C 具有完善的安全机制：
 * 当它收到来自其它扩展程序的消息时，会按照一份用户指定的白名单来审核消息来源
 * 可以关闭“借助浏览器账号同步扩展设置”的功能，且此同步功能不会同步页内查找历史等信息
 
-## 捐赠 / Donate
+# 捐赠 / Donate
 
 <a name="donate"></a>
 Vimium C 是一款开源的浏览器扩展程序，任何人都可以安装使用它而无需支付任何费用。
@@ -89,7 +91,18 @@ you may donate any small amount of money to him using [Alipay](https://intl.alip
 
 ![gdh1995 的支付宝二维码](https://gdh1995.github.io/alipay-recv-money.png)
 
-## 更多
+# 关于适用区域的声明
+
+[Vimium C](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
+和 [gdh1995](https://github.com/gdh1995) 发布的其他扩展，在被发布到“Chrome 网上应用店”和“微软 Edge
+浏览器插件商店”等商店上时，均已向*所有地区*的所有人公开。
+但这个行为只是为了让这些插件更容易使用，**并不代表或者暗示**作者 gdh1995 “同意或者不反对”“台湾”一词可以同“中国”并列。
+虽然并列显示的确**不正确地出现**在了这些商店的页面中（2019年11月16日）。
+
+根据[《中华人民共和国宪法》](http://www.npc.gov.cn/npc/c505/201803/e87e5cd7c1ce46ef866f4ec8e2d709ea.shtml)和国际共识，
+*台湾是中华人民共和国的**神圣领土（不可分割的）一部分***.
+
+# 更多
 
 https://github.com/gdh1995/vimium-c 公开了项目源码、版本更新历史、操作手册（Wiki）等。
 如果遇到任何使用上的问题或者有新的功能意见和建议，都可以去仓库的“issues”页面上提出。

@@ -54,7 +54,7 @@ An old name of this project is "Vimium++", which has been given up on 2018-08-21
 __<span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span>:__
 
 * [中文介绍 (description in Chinese)](README_zh.md)
-* a web extension on Chrome and Firefox that provides keyboard-based navigation and control
+* a web extension for Chrome and Firefox that provides keyboard-based navigation and control
     of the web, in the spirit of the Vim editor.
 * add some powerful functions and provide more configurable details and convenience.
 * here is its [license](LICENSE.txt) and [privacy policy](PRIVACY-POLICY.md)
@@ -87,18 +87,18 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
-1.78.5 (Not released yet):
+#### 1.78.6
+* Vomnibar: all of its shortcuts, including `<esc>`, now support `mapKey`
+  * now Normal Mode, VisualMode and Vomnibar supports full-featured mapKey
+  * LinkHints and Marks support mappings from single characters to single characters
+    * this is enabled by default for `LinkHints.*`, but not for `Marks.*`
+  * others support mappings to Esc (`<esc>` and `<c-[>`)
+* fix some bugs
+
+#### 1.78.5
 * Edge (Chromium): release its first version
 * fix that `LinkHints` may focus wrong iframes
 * fix some other bugs
-
-1.78.4:
-* Chrome: add a feature to hook in-page "access keys" and enable it by default
-* Firefox: support 63+ and more conditions
-* VHints: <kbd>Tab</kbd>: now only switch visibility in limited ranges
-* add `zoomIn` and `zoomOut` commands, and use a huge count like `1111` to reset zoom
-  ([#83](https://github.com/gdh1995/vimium-c/issues/83), [philc#2978](https://github.com/philc/vimium/pull/2978))
-* fix some old bugs
 
 See more on [RELEASE-NOTES.md](https://github.com/gdh1995/vimium-c/blob/master/RELEASE-NOTES.md).
 
@@ -167,3 +167,19 @@ See the [MIT LICENSE](LICENSE.txt) for details.
   Copyright (c) Mozilla and individual contributors.
   Licensed under the Apache License, Version 2.0.
 * The orange picture in the icon is from https://pixabay.com/vectors/orange-fruit-mandarin-citrus-fruit-158258/
+
+# Declaration for Applicable Regions
+
+The [Vimium C](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
+    and other extensions published by [gdh1995](https://github.com/gdh1995)
+    are available for all people in *"all regions"*
+    of Chrome Web Store, Microsoft Edge Addons and some other markets.
+This behavior is only to make these extensions easier to use, but<br>
+**DOES NOT EXPRESS OR IMPLIED** the author (gdh1995) "agrees or has no objection to"
+    that "Taiwan" can be parallel to "China",
+    which was an **inappropriate** status quo in the stores' pages on 2019-11-16.
+
+According to [the Constitution of the People's Republic of China](
+    http://www.npc.gov.cn/npc/c505/201803/e87e5cd7c1ce46ef866f4ec8e2d709ea.shtml)
+    and international consensus,
+*Taiwan is **an inalienable part** of the sacred territory of the People's Republic of China*.

@@ -2,6 +2,7 @@ Release Notes of Vimium C
 =========================
 
 #### 1.78.6
+(the current published version on Chrome Web Store and Firefox Add-ons)
 * Vomnibar: all of its shortcuts, including `<esc>`, now support `mapKey`
   * now Normal Mode, VisualMode and Vomnibar supports full-featured mapKey
   * LinkHints and Marks support mappings from single characters to single characters
@@ -15,8 +16,6 @@ Release Notes of Vimium C
 * fix some other bugs
 
 #### 1.78.4
-
-(the current published version on Chrome Web Store and Firefox Add-ons)
 
 * Chrome: add a feature to hook in-page "access keys" and enable it by default
 * Firefox: support 63+ and more conditions
