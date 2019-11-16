@@ -319,7 +319,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     KeydownEvents = safer(null);
     isCmdTriggered = 0;
     if (Build.BTypes & BrowserType.Chrome) {
-      isWaitingAccessKey && resetAnyClickHandler();
+      resetAnyClickHandler();
     }
     injector || (<RegExpOne> /a?/).test("");
     esc(HandlerResult.ExitPassMode);
@@ -360,8 +360,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   const injector = VimiumInjector,
   isTop = top === window,
   setupEventListener = K.SetupEventListener_,
+  /** `undefined` and `null` are safe enough on Chrome 78: {@link ../tests/dom.handleevent.html} */
   anyClickHandler: EventListenerObject = safer(null),
-  resetAnyClickHandler = function (): void { isWaitingAccessKey = false; delete anyClickHandler.handleEvent; },
+  resetAnyClickHandler = function (): void { isWaitingAccessKey = false; anyClickHandler.handleEvent = null; },
   hook = (function (action: HookAction): void {
     let f = action ? removeEventListener : addEventListener;
     if (Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
@@ -418,12 +419,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           && (K.getKeyStat_(event) & KeyStat.ExceptShift /* Chrome ignore .shiftKey */) ===
               (fgCache.o ? KeyStat.altKey : KeyStat.altKey | KeyStat.ctrlKey)
           ) {
-        if (isWaitingAccessKey) {
-          resetAnyClickHandler();
-        } else {
-          isWaitingAccessKey = true;
-          anyClickHandler.handleEvent = onAnyClick;
-        }
+        isWaitingAccessKey = !isWaitingAccessKey;
+        anyClickHandler.handleEvent = isWaitingAccessKey ? onAnyClick : null;
       }
     }
   },
@@ -1660,6 +1657,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       let rand2 = Math.random();
       // an ES6 method function is always using the strict mode, so the arguments are inaccessible outside it
       if (coreTester.sendTick_ > GlobalConsts.MaxRetryTimesForSecret
+          // if `comparer` is a Proxy, then `toString` returns "[native code]", so the line below is safe
           || esc.toString.call(comparer) !== coreTester.compare_ + ""
           || comparer(rand2, coreTester.encrypt_(rand2, +rand1))) {
         if (coreTester.sendTick_ <= GlobalConsts.MaxRetryTimesForSecret) {

@@ -1461,7 +1461,7 @@
 		"message": "模拟了鼠标从上次选中内容上移出"
 	},
 	"5": {
-		"message": "Vimium C 暂时禁用中$1"
+		"message": "Vimium C 已暂停$1"
 	},
 	"6": {
 		"message": "没有被禁用的快捷键"

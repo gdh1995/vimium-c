@@ -8934,7 +8934,7 @@ interface AssignedNodesOptions {
 
 interface EventListenerObject {
   __proto__: never;
-  handleEvent?: (evt: Event) => ELRet;
+  handleEvent?: ((evt: Event) => ELRet) | null;
 }
 declare type EventListenerOrEventListenerObject = EventListener | null | EventListenerObject;
 declare type EventListenerOptions = boolean | {
