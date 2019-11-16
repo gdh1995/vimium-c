@@ -70,7 +70,7 @@
     "css": [ "front/file_urls.css" ],
     "matches": [ "file:///*" ]
   } ],
-  "content_security_policy": "script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'none'; object-src 'none'; connect-src 'self' data:",
+  "content_security_policy": "script-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none'",
   "default_locale": "en",
   "description": "__MSG_description__",
   "homepage_url": "https://github.com/gdh1995/vimium-c",
