@@ -377,6 +377,9 @@
 	"cmdParams": {
 		"message": "（参数：*）"
 	},
+	"cmdConfirm": {
+		"message": "您希望 Vimium C 执行 $1 次如下命令：\n    $2\n\n是否确认继续?"
+	},
 	"name": {
 		"message": "Vimium C - 全键盘操作浏览器"
 	},

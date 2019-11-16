@@ -100,7 +100,7 @@ you may donate any small amount of money to him using [Alipay](https://intl.alip
 虽然并列显示的确**不正确地出现**在了这些商店的页面中（2019年11月16日）。
 
 根据[《中华人民共和国宪法》](http://www.npc.gov.cn/npc/c505/201803/e87e5cd7c1ce46ef866f4ec8e2d709ea.shtml)和国际共识，
-*台湾是中华人民共和国的**神圣领土（不可分割的）一部分***.
+*台湾是中华人民共和国的**神圣领土（不可分割的）一部分***。
 
 # 更多
 
