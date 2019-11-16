@@ -324,6 +324,7 @@ declare namespace SettingsNS {
     searchEngines: string;
     showActionIcon: boolean;
     showAdvancedOptions: boolean;
+    showInIncognito: boolean;
     userDefinedCss: string;
     vimSync: boolean | null;
     vomnibarPage: string;

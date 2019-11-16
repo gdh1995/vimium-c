@@ -35,6 +35,7 @@ interface VDataTy {
   url: string;
   file?: string;
   auto?: boolean | "once";
+  incognito?: boolean;
   error?: string;
 }
 
@@ -52,7 +53,7 @@ if (!(BG_ && BG_.BgUtils_ && BG_.BgUtils_.convertToUrl_)) {
 }
 
 let VShown: ValidNodeTypes | null = null;
-let bgLink = $<HTMLAnchorElement>("#bgLink");
+let bgLink = $<HTMLAnchorElement & SafeHTMLElement>("#bgLink");
 let tempEmit: ((succeed: boolean) => void) | null = null;
 let viewer_: ViewerType | null = null;
 var VData: VDataTy = null as never;
@@ -102,19 +103,23 @@ window.onhashchange = function (this: void): void {
     type = "url";
   }
   url = url.startsWith("%20") ? url.slice(3) : url.trim();
-  for (let ind: number; ind = url.indexOf("&") + 1; ) {
-    if (url.startsWith("download=")) {
+  for (let ind = 0; ind = url.indexOf("&") + 1; url = url.slice(ind)) {
+    let ind2 = url.slice(0, ind).indexOf("="),
+    key = ind2 > 0 ? url.slice(0, ind2) : "", val = ind2 > 0 ? url.slice(ind2 + 1, ind - 1) : "";
+    if (key === "download") {
       // avoid confusing meanings in title content
-      file = decodeURLPart(url.slice(9, ind - 1)).split(<RegExpOne> /\||\uff5c| [-\xb7] /, 1)[0].trim();
+      file = decodeURLPart(val).split(<RegExpOne> /\||\uff5c| [-\xb7] /, 1)[0].trim();
       file = file.replace(<RegExpG> /[\r\n"]/g, "");
       VData.file = file;
-      url = url.slice(ind);
-    } else if (url.startsWith("auto=")) {
-      let i = url.slice(5, 12).split("&", 1)[0].toLowerCase();
-      VData.auto = i === "once" ? i : i === "true" ? true : i === "false" ? false : parseInt(i, 10) > 0;
-      url = url.slice(ind);
     } else {
-      break;
+      val = val.toLowerCase();
+      if (key === "auto") {
+        VData.auto = val === "once" ? val : val === "true" ? true : val === "false" ? false : parseInt(val, 10) > 0;
+      } else if (key === "incognito") {
+        VData.incognito = val === "true" || val !== "false" && parseInt(val, 10) > 0;
+      } else {
+        break;
+      }
     }
   }
   url = decodeURLPart(url, url.indexOf(":") <= 0 && url.indexOf("/") < 0 ? null : decodeURI).trim();
@@ -154,7 +159,7 @@ window.onhashchange = function (this: void): void {
       resetOnceProperties_();
       VData.auto = false;
       this.onerror = this.onload = null as never;
-      this.alt = VData.error = pTrans_("failInLoading");
+      this.alt = VData.error = pTrans_("failInLoading") || "\xa0(fail in loading)\xa0";
       if (Build.MinCVer >= BrowserVer.MinNoBorderForBrokenImage || !(Build.BTypes & BrowserType.Chrome)
           || BG_ && BG_.Settings_
             && BG_.CurCVer_ >= BrowserVer.MinNoBorderForBrokenImage) {
@@ -169,9 +174,8 @@ window.onhashchange = function (this: void): void {
       };
     };
     if (url.indexOf(":") > 0 || url.lastIndexOf(".") > 0) {
-      VShown.src = url;
       VShown.onclick = defaultOnClick;
-      VShown.onload = function (this: HTMLImageElement): void {
+      fetchImage_(url, VShown, function (this: HTMLImageElement): void {
         const width = this.naturalWidth;
         if (width < 12 && this.naturalHeight < 12) {
           if (VData.auto) {
@@ -188,6 +192,7 @@ window.onhashchange = function (this: void): void {
         }
         resetOnceProperties_();
         this.onerror = this.onload = null as never;
+        this.src.startsWith("blob:") ||
         setTimeout(function () { // safe; because on C65, in some tests refreshing did not trigger replay
           (VShown as HTMLImageElement).src = (VShown as HTMLImageElement).src; // trigger replay for gif
         }, 0);
@@ -197,11 +202,11 @@ window.onhashchange = function (this: void): void {
         if (width >= innerWidth * 0.9) {
           (document.body as HTMLBodyElement).classList.add("filled");
         }
-      };
+      });
     } else {
       url = VData.url = "";
       (VShown as HTMLImageElement).onerror(null as never);
-      VShown.alt = VData.error = pTrans_("none");
+      VShown.alt = VData.error = pTrans_("none") || "\xa0(null)\xa0";
     }
     if (file) {
       VData.file = file = tryToFixFileExt_(file) || file;
@@ -632,6 +637,34 @@ function tryToFixFileExt_(file: string): string | void {
   }
 }
 
+function fetchImage_(url: string, element: HTMLImageElement, callback: (this: HTMLImageElement) => void): void {
+  element.onload = callback;
+  if (!(VData.incognito || BG_.Settings_.get_("showInIncognito"))
+      || !(<RegExpI> /^(ht|s?f)tp/i).test(url)
+      || !!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinEnsured$fetch
+          && !(window as any).fetch
+      || !!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinEnsuredFetchRequestCache
+          && !("cache" in Request.prototype)) {
+    element.src = url;
+    return;
+  }
+  const text = new Text(),
+  body = document.body as HTMLBodyElement;
+  body.replaceChild(text, element);
+  fetch(url, {
+    cache: "no-store",
+    referrer: "no-referrer"
+  }).then(res => res.blob()).then(URL.createObjectURL, () => url).then(url => {
+    element.src = url;
+    body.replaceChild(element, text);
+  });
+  setTimeout(() => {
+    if (text.parentNode) {
+      text.data = pTrans_("loading") || "loading\u2026";
+    }
+  }, 200);
+}
+
 function tryDecryptUrl(url: string): string {
   const schema = url.split(":", 1)[0];
   switch (schema.toLowerCase()) {
@@ -675,6 +708,7 @@ function recoverHash_(): void {
     return;
   }
   let url = "#!" + type + " "
+      + (VData.incognito ? "incognito=1&" : "")
       + (VData.file ? "download=" + encodeURIComponent(VData.file) + "&" : "")
       + (VData.auto ? "auto=" + (VData.auto === "once" ? "once" : 1) + "&" : "")
       + VData.original;

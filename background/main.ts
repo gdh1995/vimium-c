@@ -624,7 +624,7 @@
     BgUtils_.resetRe_();
     typeof url !== "string" ? onEvalUrl(url as Urls.SpecialUrl)
       // tslint:disable-next-line: no-unused-expression
-      : openShowPage[0](url, reuse, options) ? 0
+      : openShowPage(url, reuse, options) ? 0
       : BgUtils_.isJSUrl_(url) ? openJSUrl(url)
       : reuse === ReuseType.reuse ? requestHandlers[kFgReq.focusOrLaunch]({ u: url })
       : reuse === ReuseType.current ? safeUpdate(url)
@@ -702,25 +702,35 @@
     }
   }
   const
-  openShowPage = [function (url, reuse, options, tab): boolean {
+  openShowPage = function (url: string, reuse: ReuseType
+      , options: Pick<OpenUrlOptions, "position" | "opener">, tab?: Tab): boolean {
     const prefix = Settings_.CONST_.ShowPage_;
     if (url.length < prefix.length + 3 || !url.startsWith(prefix)) { return false; }
     if (!tab) {
       getCurTab(function (tabs: [Tab]): void {
         if (!tabs || tabs.length <= 0) { return onRuntimeError(); }
-        openShowPage[0](url, reuse, options, tabs[0]);
+        openShowPage(url, reuse, options, tabs[0]);
       });
       return true;
     }
-    const { incognito } = tab;
     url = url.slice(prefix.length);
+    if (url.startsWith("#!image ") && TabRecency_.incognito_ === IncognitoType.true) {
+      url = "#!image incognito=1&" + url.slice(8).trim();
+    }
+    const { incognito } = tab;
     const arr: ShowPageData = [url, null, 0];
     Settings_.temp_.shownHash_ = arr[1] = function (this: void) {
       clearTimeout(arr[2]);
       Settings_.temp_.shownHash_ = null;
       return arr[0];
     };
-    arr[2] = setTimeout(openShowPage[1], 1200, arr);
+    arr[2] = setTimeout(() => {
+      arr[0] = "#!url vimium://error (vimium://show: sorry, the info has expired.)";
+      arr[2] = setTimeout(function () {
+        if (Settings_.temp_.shownHash_ === arr[1]) { Settings_.temp_.shownHash_ = null; }
+        arr[0] = "", arr[1] = null;
+      }, 2000);
+    }, 1200);
     if (reuse === ReuseType.current && !incognito) {
       let views = Build.BTypes & BrowserType.Chrome
             && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
@@ -744,16 +754,7 @@
       });
     }
     return true;
-  }, function (arr) {
-    arr[0] = "#!url vimium://error (vimium://show: sorry, the info has expired.)";
-    arr[2] = setTimeout(function () {
-      if (Settings_.temp_.shownHash_ === arr[1]) { Settings_.temp_.shownHash_ = null; }
-      arr[0] = "", arr[1] = null;
-    }, 2000);
-  }] as [
-    (url: string, reuse: ReuseType, options: Pick<OpenUrlOptions, "position" | "opener">, tab?: Tab) => boolean,
-    (arr: ShowPageData) => void
-  ];
+  };
   // use Urls.WorkType.Default
   function openUrls(tabs: [Tab]): void {
     const tab = tabs[0], { windowId } = tab;
@@ -2178,7 +2179,7 @@
           return;
         }
         query2 = BgUtils_.createSearchUrl_((query2 as string).split(BgUtils_.spacesRe_), (search as ParsedSearch).k);
-        openShowPage[0](query2, ReuseType.current, {}) || safeUpdate(query2);
+        openShowPage(query2, ReuseType.current, {}) || safeUpdate(query2);
       }
     },
     /** kFgReq.gotoSession: */ function (this: void, request: FgReq[kFgReq.gotoSession], port?: Port): void {
@@ -2488,7 +2489,7 @@
       if (req.a !== false) {
         prefix += "auto=once&";
       }
-      openShowPage[0](prefix + req.u, req.r, { opener: true });
+      openShowPage(prefix + req.u, req.r, { opener: true });
     },
     /** kFgReq.gotoMainFrame: */ function (this: void, req: FgReq[kFgReq.gotoMainFrame], port: Port): void {
       // Now that content scripts always auto-reconnect, it's not needed to find a parent frame.

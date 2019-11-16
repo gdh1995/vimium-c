@@ -642,12 +642,6 @@
 	"invalidOption": {
 		"message": "This option is invalid $1"
 	},
-	"keyShortcutOf": {
-		"message": "\"Keyboard shortcuts\" of "
-	},
-	"manageShortcut": {
-		"message": "\"Manage Shortcuts\" in \"Tools Menu\" of "
-	},
 	"addons": {
 		"message": "Firefox Add-ons"
 	},
@@ -719,12 +713,6 @@
 	},
 	"JSONTooLarge": {
 		"message": "    Fatal Error:\n\nYour settings file \"$1\" seems too large!\n\nAs limited by your browser, the max size is only $2 KB."
-	},
-	"failInLoading": {
-		"message": "\u00a0(fail in loading)\u00a0"
-	},
-	"none": {
-		"message": "\u00a0(null)\u00a0"
 	},
 	"Once": {
 		"message": " for once"

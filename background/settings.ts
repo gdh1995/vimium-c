@@ -493,6 +493,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     showActionIcon: true,
     showAdvancedCommands: false,
     showAdvancedOptions: false,
+    showInIncognito: false,
     smoothScroll: true,
     vomnibarOptions: {
       maxMatches: 10,

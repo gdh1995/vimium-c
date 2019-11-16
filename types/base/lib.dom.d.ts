@@ -7748,7 +7748,7 @@ interface Text extends CharacterData {
 
 declare var Text: {
     prototype: Text;
-    new(): Text;
+    new(data?: string): Text;
 }
 
 interface TextDecodeOptions {
@@ -9608,7 +9608,14 @@ interface Response extends Body {
   readonly url: string;
   clone(): Response;
 }
-declare function fetch(input: RequestInfo): Promise<Response>;
+interface Request {
+  cache: string;
+  referrer: string;
+}
+declare var Request: {
+  prototype: Request;
+}
+declare function fetch(input: RequestInfo, init?: Partial<Request>): Promise<Response>;
 declare function queueMicrotask(callback: (this: void) => void): void;
 declare function clearInterval(handle: number): void;
 declare function clearTimeout(handle: number): void;
