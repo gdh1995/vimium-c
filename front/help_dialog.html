@@ -55,14 +55,17 @@
 	color: #a55e18;
 }
 .HelpTables {
-	display: flex;
+	border-spacing: 0;
+	table-layout: fixed;
 	width: 800px;
+}
+.HTablesTop {
+	vertical-align: top;
 }
 .HelpTable {
 	border-collapse: separate;
 	border-spacing: 5.5px 3px;
 	contain: content;
-	flex: 1 1 auto;
 	line-height: 130%;
 	/* XML pages have a different default value of "word-break" */
 	word-break: normal;
@@ -266,14 +269,13 @@
 		</span>
 	</div>
 	<div class="HDivider"></div>
-	<div class="HelpTables">
-	<table class="HelpTable">
+	<table class="HelpTables"><tbody><tr>
+	<td class="HTablesTop"><table class="HelpTable">
 		<tbody class="HColumn">
 			<tr><td class="HelpTd"></td><td class="HelpTd HelpSectionTitle">$pageNav</td></tr>
 {{pageNavigation}}{{lbPad}}
 		</tbody>
-	</table>
-	<table class="HelpTable">
+	</table></td><td class="HTablesTop"><table class="HelpTable">
 		<tbody class="HColumn">
 			<tr><td class="HelpTd"></td><td class="HelpTd HelpSectionTitle">$useVomnibar</td></tr>
 {{vomnibarCommands}}
@@ -288,7 +290,7 @@
 			<tr><td class="HelpTd TdBottom">&#160;</td></tr>
 		</tbody>
 	</table>
-	</div>
+	</td></tr></tbody></table>
 
 	<div class="HDivider"></div>
 
