@@ -82,14 +82,14 @@ Vimium C 具有完善的安全机制：
 
 <a name="donate"></a>
 Vimium C 是一款开源的浏览器扩展程序，任何人都可以安装使用它而无需支付任何费用。
-如果您确实想要资助它的开发者（[gdh1995](http://gdh1995.cn/)），
+如果您确实想要资助它的开发者（[gdh1995](https://gdh1995.cn/)），
 可以通过[支付宝](https://www.alipay.com/)无偿赠与他一小笔钱。谢谢您的支持！
 
 Vimium C is an open-source browser extension, and everyone can install and use it free of charge.
-If you indeed want to give its author ([gdh1995](http://gdh1995.cn/)) financial support,
+If you indeed want to give its author ([gdh1995](https://gdh1995.cn/)) financial support,
 you may donate any small amount of money to him using [Alipay](https://intl.alipay.com/). Thanks a lot!
 
-![gdh1995 的支付宝二维码](https://gdh1995.github.io/alipay-recv-money.png)
+![gdh1995 的支付宝二维码](https://gdh1995.cn/alipay-recv-money.png)
 
 # 关于适用区域的声明
 

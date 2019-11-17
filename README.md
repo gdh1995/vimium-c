@@ -44,7 +44,7 @@ If re-compiled from the source code, Vimium C is able to support Chromium 32~37.
 同时它完美支持了新版 Microsoft Edge (Chromium 内核) 浏览器，甚至在 Edge (EdgeHTML 内核) 上也能正常执行大部分命令。
 如果从源码重新编译，Vimum C 还可以支持 Chromium 32~37。
 
-![Usage Demo of Vimium C](https://gdh1995.github.io/vimium-c/demo.gif)
+![Usage Demo of Vimium C](https://gdh1995.cn/vimium-c/demo.gif)
 
 An old name of this project is "Vimium++", which has been given up on 2018-08-21.
 
@@ -129,14 +129,14 @@ The options including `MinCVer` and `BTypes` in [gulp.tsconfig.json](scripts/gul
 
 <a name="donate"></a>
 Vimium C is an open-source browser extension, and everyone can install and use it free of charge.
-If you indeed want to give its author ([gdh1995](http://gdh1995.cn/)) financial support,
+If you indeed want to give its author ([gdh1995](https://gdh1995.cn/)) financial support,
 you may donate any small amount of money to him using [Alipay](https://intl.alipay.com/). Thanks a lot!
 
 Vimium C 是一款开源的浏览器扩展程序，任何人都可以安装使用它而无需支付任何费用。
-如果您确实想要资助它的开发者（[gdh1995](http://gdh1995.cn/)），
+如果您确实想要资助它的开发者（[gdh1995](https://gdh1995.cn/)），
 可以通过[支付宝](https://www.alipay.com/)无偿赠与他一小笔钱。谢谢您的支持！
 
-![Alipay QRCode of gdh1995](https://gdh1995.github.io/alipay-recv-money.png)
+![Alipay QRCode of gdh1995](https://gdh1995.cn/alipay-recv-money.png)
 
 
 # Thanks & Licenses
@@ -178,7 +178,7 @@ This behavior is only to make these extensions easier to use, but<br>
     that "Taiwan" can be parallel to "China",
     which was an **inappropriate** status quo in the stores' pages on 2019-11-16.
 
-According to [the Constitution of the People's Republic of China](
+According to [The Constitution of the People's Republic of China](
     http://www.npc.gov.cn/npc/c505/201803/e87e5cd7c1ce46ef866f4ec8e2d709ea.shtml)
     and international consensus,
 *Taiwan is **an inalienable part** of the sacred territory of the People's Republic of China*.
