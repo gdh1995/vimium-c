@@ -148,7 +148,7 @@ See the [MIT LICENSE](LICENSE.txt) for details.
   Copyright (c) 2010 Phil Crosby, Ilya Sukhar.
   [MIT-licensed](https://github.com/philc/vimium/blob/master/MIT-LICENSE.txt).
 * [微度新标签页](http://www.weidunewtab.com/):
-  ©2012 杭州佐拉网络有限公司 保留所有权利.
+  (c) 2012 杭州佐拉网络有限公司 保留所有权利.
 * [JavaScript Expression Evaluator](https://github.com/silentmatt/expr-eval)
   ([Modified](https://github.com/gdh1995/js-expression-eval)):
   Copyright (c) 2015 Matthew Crumley.
