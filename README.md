@@ -3,7 +3,7 @@
 ===========================================
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.78.6](https://img.shields.io/badge/release-1.78.6-orange.svg
+[![Version 1.78.7](https://img.shields.io/badge/release-1.78.7-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -87,17 +87,16 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
-#### 1.78.6
-* Vomnibar: all of its shortcuts, including `<esc>`, now support `mapKey`
-  * now Normal Mode, VisualMode and Vomnibar supports full-featured mapKey
-  * LinkHints and Marks support mappings from single characters to single characters
-    * this is enabled by default for `LinkHints.*`, but not for `Marks.*`
-  * others support mappings to Esc (`<esc>` and `<c-[>`)
-* fix some bugs
+### 1.78.7
 
-#### 1.78.5
-* Edge (Chromium): release its first version
-* fix that `LinkHints` may focus wrong iframes
+* Firefox: fix `focusInput` can not select begin/end of text
+* `FindMode`: try to scroll highlighted text into view
+* `Vomnibar`: show better favIcons for URLs from search engines
+* Firefox: a much more efficient way to detect elements with click listeners
+  * also fix detection on CSP-protected pages
+* `vimium://show`: notify browser not to cache images from incognito tabs
+  * add an option for never writing into caches
+* hook access keys: avoid negative influence on debugging experience
 * fix some other bugs
 
 See more on [RELEASE-NOTES.md](https://github.com/gdh1995/vimium-c/blob/master/RELEASE-NOTES.md).

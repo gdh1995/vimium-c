@@ -1,8 +1,20 @@
 Release Notes of Vimium C
 =========================
 
-#### 1.78.6
+#### 1.78.7
 (the current published version on Chrome Web Store and Firefox Add-ons)
+* Firefox: fix `focusInput` can not select begin/end of text
+* `FindMode`: try to scroll highlighted text into view
+* `Vomnibar`: show better favIcons for URLs from search engines
+* Firefox: a much more efficient way to detect elements with click listeners
+  * also fix detection on CSP-protected pages
+* `vimium://show`: notify browser not to cache images from incognito tabs
+  * add an option for never writing into caches
+* hook access keys: avoid negative influence on debugging experience
+* fix some other bugs
+
+
+#### 1.78.6
 * Vomnibar: all of its shortcuts, including `<esc>`, now support `mapKey`
   * now Normal Mode, VisualMode and Vomnibar supports full-featured mapKey
   * LinkHints and Marks support mappings from single characters to single characters
