@@ -150,7 +150,6 @@ window.onhashchange = function (this: void): void {
       }
     }
     VShown = (importBody as ImportBody)("shownImage");
-    VShown.classList.add("hidden");
     VShown.onerror = function (): void {
       if (VData.url !== VData.original && VData.url) {
         disableAutoAndReload_();
@@ -165,7 +164,6 @@ window.onhashchange = function (this: void): void {
             && BG_.CurCVer_ >= BrowserVer.MinNoBorderForBrokenImage) {
         this.classList.add("broken");
       }
-      this.classList.remove("hidden");
       setTimeout(showBgLink, 34);
       this.onclick = function (e) {
         !e.ctrlKey && !e.shiftKey && !e.altKey && chrome.tabs && chrome.tabs.update
@@ -175,7 +173,7 @@ window.onhashchange = function (this: void): void {
     };
     if (url.indexOf(":") > 0 || url.lastIndexOf(".") > 0) {
       VShown.onclick = defaultOnClick;
-      fetchImage_(url, VShown, function (this: HTMLImageElement): void {
+      VShown.onload = function (this: HTMLImageElement): void {
         const width = this.naturalWidth;
         if (width < 12 && this.naturalHeight < 12) {
           if (VData.auto) {
@@ -197,12 +195,12 @@ window.onhashchange = function (this: void): void {
           (VShown as HTMLImageElement).src = (VShown as HTMLImageElement).src; // trigger replay for gif
         }, 0);
         showBgLink();
-        this.classList.remove("hidden");
         this.classList.add("zoom-in");
         if (width >= innerWidth * 0.9) {
           (document.body as HTMLBodyElement).classList.add("filled");
         }
-      });
+      };
+      fetchImage_(url, VShown);
     } else {
       url = VData.url = "";
       (VShown as HTMLImageElement).onerror(null as never);
@@ -637,32 +635,43 @@ function tryToFixFileExt_(file: string): string | void {
   }
 }
 
-function fetchImage_(url: string, element: HTMLImageElement, callback: (this: HTMLImageElement) => void): void {
-  element.onload = callback;
+function fetchImage_(url: string, element: HTMLImageElement): void {
+  const text = new Text(), body = document.body as HTMLBodyElement,
+  clearTimer = () => {
+    element.removeEventListener("load", clearTimer);
+    element.removeEventListener("error", clearTimer);
+    clearInterval(timer);
+    text.remove();
+    timer = 0;
+  }
+  element.addEventListener("load", clearTimer, true);
+  element.addEventListener("error", clearTimer, true);
   if (!(VData.incognito || BG_.Settings_.get_("showInIncognito"))
       || !(<RegExpI> /^(ht|s?f)tp/i).test(url)
       || !!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinEnsured$fetch
           && !(window as any).fetch
       || !!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinEnsuredFetchRequestCache
           && !("cache" in Request.prototype)) {
+    
     element.src = url;
-    return;
+  } else {
+    body.replaceChild(text, element);
+    fetch(url, {
+      cache: "no-store",
+      referrer: "no-referrer"
+    }).then(res => res.blob()).then(URL.createObjectURL, () => url).then(url => {
+      element.src = url;
+      body.replaceChild(element, text);
+    });
   }
-  const text = new Text(),
-  body = document.body as HTMLBodyElement;
-  body.replaceChild(text, element);
-  fetch(url, {
-    cache: "no-store",
-    referrer: "no-referrer"
-  }).then(res => res.blob()).then(URL.createObjectURL, () => url).then(url => {
-    element.src = url;
-    body.replaceChild(element, text);
-  });
-  setTimeout(() => {
-    if (text.parentNode) {
+  let timer = setInterval(() => {
+    if (element.scrollHeight >= 24 || element.scrollWidth >= 80) { // some pixels drawn
+      clearTimer();
+    } else if (!text.parentNode) {
+      body.insertBefore(text, element);
       text.data = pTrans_("loading") || "loading\u2026";
     }
-  }, 200);
+  }, 400);
 }
 
 function tryDecryptUrl(url: string): string {

@@ -9,9 +9,6 @@ body.filled:not(.viewer-open) {
 .filled > img {
   outline: none;
 }
-.hidden {
-  visibility: hidden;
-}
 .zoom-in {
   cursor: zoom-in;
 }
