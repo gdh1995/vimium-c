@@ -545,6 +545,7 @@ function parseSmartImageUrl_(originUrl: string): string | null {
   function safeParseURL(url1: string): URL | null { try { return new URL(url1); } catch {} return null; }
   const parsed = safeParseURL(originUrl);
   if (!parsed || !(<RegExpI> /^(ht|s?f)tp/i).test(parsed.protocol)) { return null; }
+  const {origin, pathname: path} = parsed;
   let search = parsed.search;
   function DecodeURLPart_(this: void, url1: string | undefined): string {
     try {
@@ -553,30 +554,32 @@ function parseSmartImageUrl_(originUrl: string): string | null {
     return url1 as string;
   }
   if (search.length > 10) {
-    const keyRe = <RegExpOne> /^(?:imgurl|mediaurl|objurl|origin(?:al)?|real\w*|src|url)$/i,
-    encodedSignRe = <RegExpOne> /%(?:3[aA]|2[fF])/;
     for (const item of search.slice(1).split("&")) {
       const key = item.split("=", 1)[0];
-      search = item.slice(key.length + 1);
-      if (search.length > 7) {
-        search.indexOf("://") < 0 && encodedSignRe.test(search) && (search = DecodeURLPart_(search).trim());
-        if (search.indexOf("/") > 0 && safeParseURL(search) != null) {
-          if (keyRe.test(key)) {
-            return search;
+      let val0 = item.slice(key.length + 1), val = val0;
+      if (val.length > 7) {
+        if (val.indexOf("://") < 0 && (<RegExpOne> /%(?:3[aA]|2[fF])/).test(val)) {
+          val = DecodeURLPart_(val).trim();
+        }
+        if (val.indexOf("/") > 0 && safeParseURL(val) != null) {
+          if ((<RegExpOne> /^(?:imgurl|mediaurl|objurl|origin(?:al)?|real\w*|src|url)$/i).test(key)) {
+            return val;
           }
-          let arr = search.split("?")[0].split("/");
+          let arr = val.split("?")[0].split("/");
           if (ImageExtRe.test(arr[arr.length - 1]) && key.toLowerCase().indexOf("thumb") < 0) {
-            return search;
+            return val;
           }
+        } else if (key === "id" && (<RegExpOne> /&w=\d{2,4}&h=\d{2,4}/).test(search)) {
+          return origin + path + "?id=" + val0;
         }
       }
     }
   }
   let arr1: RegExpExecArray | null = null;
-  if ((arr1 = (<RegExpOne> /[?&]s=\d{2,4}(&|$)/).exec(search = parsed.search)) && search.split("=").length <= 3) {
-    return parsed.origin + parsed.pathname;
+  if ((arr1 = (<RegExpOne> /[?&]s=\d{2,4}(&|$)/).exec(search)) && search.split("=").length <= 3) {
+    return origin + path;
   }
-  const path = search = parsed.pathname;
+  search = path;
   let offset = search.lastIndexOf("/") + 1;
   search = search.slice(offset);
   let index = search.lastIndexOf("@") + 1 || search.lastIndexOf("!") + 1;
@@ -624,7 +627,7 @@ function parseSmartImageUrl_(originUrl: string): string | null {
   } else {
     found = 0;
   }
-  return found !== 0 ? parsed.origin + path.slice(0, offset) + search : null;
+  return found !== 0 ? origin + path.slice(0, offset) + search : null;
 }
 
 function tryToFixFileExt_(file: string): string | void {
