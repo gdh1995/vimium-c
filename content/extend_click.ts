@@ -648,7 +648,10 @@ _listen(kOnDomReady, start, !0);
       if (event && (event.target !== document || !event.isTrusted)) { return; }
       removeEventListener("load", delayFindAll, !0);
       event && VDom && setTimeout(function (): void {
-        hasFindAll || VDom && findAllOnClick(kContentCmd.AutoFindAllOnClick);
+        if (!hasFindAll && VDom) {
+          findAllOnClick(kContentCmd.AutoFindAllOnClick);
+          VHints.isActive_ && setTimeout(VHints.CheckLast_, 34);
+        }
       }, GlobalConsts.ExtendClick_DelayToFindAll);
     }, 0, 1);
   }
