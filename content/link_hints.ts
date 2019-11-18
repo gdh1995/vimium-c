@@ -17,6 +17,8 @@ declare namespace HintsNS {
   }
   interface Options extends SafeObject {
     action?: string;
+    character?: string;
+    doFilter?: boolean;
     mode?: string | number;
     url?: boolean;
     keyword?: string;
@@ -44,6 +46,10 @@ declare namespace HintsNS {
     tab_: BOOL;
   }
   type HintSources = SafeElement[] | NodeListOf<SafeElement>;
+  interface Rule {
+    initMarkers_ (hintItems: HintsNS.HintItem[]): void;
+    matchHintsByKey_ (hints: HintsNS.HintItem[], e: KeyboardEvent, keyStatus: HintsNS.KeyStatus): HintsNS.LinksMatched;
+  }
 }
 
 var VHints = {
@@ -73,6 +79,8 @@ var VHints = {
   isClickListened_: true,
   ngEnabled_: null as boolean | null,
   jsaEnabled_: null as boolean | null,
+  chars_: "",
+  hintKeystroke_: "",
   keyStatus_: {
     known_: 0,
     newHintLength_: 0,
@@ -102,14 +110,16 @@ var VHints = {
       }
       if (!VDom.isHTML_()) { return; }
     }
-    let s0 = options.characters, str = s0 ? s0 + "" : VDom.cache_.l;
+    const doFilter0 = options.doFilter, doFilter = doFilter0 != null ? !!doFilter0 : VDom.cache_.f,
+    s0 = options.characters, str = s0 ? s0 + "" : doFilter ? VDom.cache_.n : VDom.cache_.l;
     if (str.length < 3) {
       a.clean_(1);
       return VHud.tip_(kTip.fewChars, "Characters for LinkHints are too few.", 1000);
     }
     VKey.removeHandler_(a);
     a.setModeOpt_(count, options);
-    a.alphabetHints_.chars_ = str.toUpperCase();
+    a.chars_ = str.toUpperCase();
+    a.curRule_ = doFilter ? a.filterHints_ : a.alphabetHints_;
     a.doesMapKey_ = options.mapKey !== false;
 
     const arr: ViewBox = VDom.getViewBox_(1) as ViewBox;
@@ -136,7 +146,8 @@ var VHints = {
     a.hints_ = elements.map(a.createHint_, a);
     VDom.bZoom_ !== 1 && a.adjustMarkers_(elements);
     elements = null as never;
-    a.alphabetHints_.initMarkers_(a.hints_);
+    a.hintKeystroke_ = "";
+    a.curRule_.initMarkers_(a.hints_);
 
     a.noHUD_ = arr[3] <= 40 || arr[2] <= 320 || (options.hideHUD || options.hideHud) === true;
     VCui.ensureBorder_(VDom.wdZoom_);
@@ -818,7 +829,7 @@ var VHints = {
             ? a.kEditableSelector_ + a.kSafeAllSelector_ : a.kEditableSelector_, a.GetEditable_);
     a.maxLeft_ = view[2], a.maxTop_ = view[3], a.maxRight_ = view[4];
     if (a.maxRight_ > 0) {
-      _i = Math.ceil(Math.log(visibleElements.length) / Math.log(a.alphabetHints_.chars_.length));
+      _i = Math.ceil(Math.log(visibleElements.length) / Math.log(a.chars_.length));
       a.maxLeft_ -= 16 * _i + 12;
     }
     visibleElements.reverse();
@@ -883,6 +894,8 @@ var VHints = {
         a.wantDialogMode_ = !a.wantDialogMode_;
       } else if (i & KeyStat.shiftKey) {
         a.isClickListened_ = !a.isClickListened_;
+      } else if (i & KeyStat.PrimaryModifier) {
+        a.options_.doFilter = a.curRule_ !== a.filterHints_;
       } else {
         if (!VApi.execute_) { return HandlerResult.Prevent; }
         a.isClickListened_ = true;
@@ -915,7 +928,7 @@ var VHints = {
       a.zIndexes_ === false || a.rotateHints_(event.shiftKey);
       event.shiftKey && a.ResetMode_();
     } else if (!(linksMatched
-        = a.alphabetHints_.matchHintsByKey_(a.hints_ as HintsNS.HintItem[], event, a.keyStatus_))) {
+        = a.curRule_.matchHintsByKey_(a.hints_ as HintsNS.HintItem[], event, a.keyStatus_))) {
       if (linksMatched === false) {
         a.tooHigh_ = null;
         setTimeout(a._reinit.bind(a, null, null), 0);
@@ -1032,7 +1045,7 @@ var VHints = {
       VDom.lastHovered_ = null;
     }
     if ((!r2 || r) && _this.isActive_ && (_this.hints_ as HintsNS.HintItem[]).length < 64
-        && !_this.alphabetHints_.hintKeystroke_
+        && !_this.hintKeystroke_
         && (hidden || Math.abs((r2 as ClientRect).left - (r as Rect).l) > 100
             || Math.abs((r2 as ClientRect).top - (r as Rect).t) > 60)) {
       return _this._reinit();
@@ -1040,15 +1053,15 @@ var VHints = {
   },
   clean_ (keepHUD?: boolean | BOOL): void {
     const a = this,
-    ks = a.keyStatus_, alpha = a.alphabetHints_;
-    a.options_ = a.modeOpt_ = a.zIndexes_ = a.hints_ = null as never;
+    ks = a.keyStatus_;
+    a.options_ = a.modeOpt_ = a.zIndexes_ = a.hints_ = a.curRule_ = null as never;
     a.pTimer_ > 0 && clearTimeout(a.pTimer_);
     a.lastMode_ = a.mode_ = a.mode1_ = a.count_ = a.pTimer_ =
     a.maxLeft_ = a.maxTop_ = a.maxRight_ =
-    ks.tab_ = ks.newHintLength_ = ks.known_ = alpha.countMax_ = 0;
+    ks.tab_ = ks.newHintLength_ = ks.known_ = a.alphabetHints_.countMax_ = 0;
     a.keyCode_ = kKeyCode.None;
     a.yankedList_ = [];
-    alpha.hintKeystroke_ = alpha.chars_ = "";
+    a.hintKeystroke_ = a.chars_ = "";
     a.isActive_ = a.noHUD_ = a.tooHigh_ = a.doesMapKey_ = false;
     VKey.removeHandler_(a);
     VApi.onWndBlur_(null);
@@ -1117,13 +1130,20 @@ var VHints = {
     stackForThisMarker || stacks.push([i]);
   },
 
+curRule_: null as never as HintsNS.Rule,
+filterHints_: {
+  initMarkers_ (hintItems: HintsNS.HintItem[]): void {
+    VHints.alphabetHints_.initMarkers_(hintItems);
+  },
+  matchHintsByKey_ (hints: HintsNS.HintItem[], e: KeyboardEvent, keyStatus: HintsNS.KeyStatus): HintsNS.LinksMatched {
+    return VHints.alphabetHints_.matchHintsByKey_(hints, e, keyStatus);
+  }
+},
 alphabetHints_: {
-  chars_: "",
-  hintKeystroke_: "",
   countMax_: 0,
   countLimit_: 0,
   numberToHintString_ (num: number): string {
-    const characterSet = this.chars_, base = characterSet.length;
+    const characterSet = VHints.chars_, base = characterSet.length;
     let hintString = "";
     do {
       let remainder = num % base;
@@ -1142,7 +1162,6 @@ alphabetHints_: {
   },
   initMarkers_ (hintItems: HintsNS.HintItem[]): void {
     const a = this;
-    a.hintKeystroke_ = "";
     for (let end = hintItems.length, hints = a.buildHintIndexes_(end), h = 0; h < end; h++) {
       const hint = hintItems[h], marker = hint.marker_,
       hintString = hint.key_ = a.numberToHintString_(hints[h]), last = hintString.length - 1;
@@ -1157,7 +1176,8 @@ alphabetHints_: {
     a.countLimit_ = 0;
   },
   buildHintIndexes_ (linkCount: number): number[] {
-    const hints: number[] = [], result: number[] = [], len = this.chars_.length, count = linkCount, start = count % len;
+    const hints: number[] = [], result: number[] = [],
+    len = VHints.chars_.length, count = linkCount, start = count % len;
     let i = this.countMax_ = Math.ceil(Math.log(count) / Math.log(len)), max = count - start + len
       , end = this.countLimit_ = ((Math.pow(len, i) - count) / (len - 1)) | 0;
     for (i = 0; i < end; i++) {
@@ -1175,39 +1195,39 @@ alphabetHints_: {
     return result;
   },
   matchHintsByKey_ (hints: HintsNS.HintItem[], e: KeyboardEvent, keyStatus: HintsNS.KeyStatus): HintsNS.LinksMatched {
-    const a = this;
+    const a = this, h = VHints;
     let keyChar: string, key = e.keyCode, arr = null as HintsNS.HintItem[] | null;
     if (key === kKeyCode.tab) {
-      if (!a.hintKeystroke_) {
+      if (!h.hintKeystroke_) {
         return false;
       }
       keyStatus.tab_ = (1 - keyStatus.tab_) as BOOL;
     } else if (keyStatus.tab_) {
-      a.hintKeystroke_ = a.hintKeystroke_.slice(0, -1);
+      h.hintKeystroke_ = h.hintKeystroke_.slice(0, -1);
       keyStatus.tab_ = 0;
     }
     keyStatus.known_ = 1;
     if (key === kKeyCode.tab) { /* empty */ }
     else if (key === kKeyCode.backspace || key === kKeyCode.deleteKey || key === kKeyCode.f1) {
-      if (!a.hintKeystroke_) {
+      if (!h.hintKeystroke_) {
         return [];
       }
-      a.hintKeystroke_ = a.hintKeystroke_.slice(0, -1);
+      h.hintKeystroke_ = h.hintKeystroke_.slice(0, -1);
     } else if ((keyChar = VKey.char_(e)) && keyChar.length < 2
-        && (keyChar = (VHints.doesMapKey_ ? VApi.mapKey_(keyChar, e, keyChar) : keyChar).toUpperCase()
+        && (keyChar = (h.doesMapKey_ ? VApi.mapKey_(keyChar, e, keyChar) : keyChar).toUpperCase()
             ).length < 2) {
-      if (a.chars_.indexOf(keyChar) === -1) {
+      if (h.chars_.indexOf(keyChar) === -1) {
         return [];
       }
-      a.hintKeystroke_ += keyChar;
+      h.hintKeystroke_ += keyChar;
       arr = [];
     } else {
       return null;
     }
-    keyChar = a.hintKeystroke_;
+    keyChar = h.hintKeystroke_;
     keyStatus.newHintLength_ = keyChar.length;
     keyStatus.known_ = 0;
-    VHints.zIndexes_ && (VHints.zIndexes_ = null);
+    h.zIndexes_ && (h.zIndexes_ = null);
     if (arr !== null && keyChar.length >= a.countMax_) {
       hints.some(function (hint): boolean {
         return hint.key_ === keyChar && ((arr as HintsNS.HintItem[]).push(hint), true);
