@@ -334,7 +334,7 @@ label:active {
   float: left;
   margin-right: 5px;
 }
-#linkHintCharacters {
+#linkHintCharacters, #linkHintNumbers {
   margin-top: 1px;
 }
 .min-height-4 {

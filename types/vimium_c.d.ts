@@ -250,6 +250,9 @@ declare namespace SettingsNS {
     /** ignoreKeyboardLayout */ L: ["ignoreKeyboardLayout", boolean];
     /** keyboard */ k: ["keyboard", [number, number]];
     /** linkHintCharacters */ l: ["linkHintCharacters", string];
+    /** linkHintNumbers */ n: ["linkHintNumbers", string];
+    /** filterLinkHints */ f: ["filterLinkHints", boolean];
+    /** waitForEnter */ w: ["waitForEnter", boolean];
     /** regexFindMode */ R: ["regexFindMode", boolean];
     /** scrollStepSize */ t: ["scrollStepSize", number];
     /** smoothScroll */ S: ["smoothScroll", boolean];

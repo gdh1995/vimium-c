@@ -348,7 +348,8 @@ TextOption_.prototype.showError_ = function<T extends TextualizedOptionNames>(th
     , msg: string, tag?: OptionErrorType | null, errors?: boolean): void {
   errors != null || (errors = !!msg);
   const { element_: el } = this, { classList: cls } = el, par = el.parentElement as HTMLElement;
-  let errEl = par.querySelector(".tip") as HTMLElement | null;
+  let errEl = el.nextElementSibling as HTMLElement | null;
+  errEl = errEl && errEl.classList.contains("tip") ? errEl : null;
   nextTick_(() => {
   if (errors) {
     if (errEl == null) {
@@ -651,11 +652,22 @@ let optionsInit1_ = function (): void {
   };
   opt.onSave_();
 
-  opt = Option_.all_.linkHintCharacters;
-  opt.onSave_ = function (this: Option_<"linkHintCharacters">): void {
-    this.showError_(this.previous_.length < 3 ? pTrans_("hintCharsTooFew") : "");
+  let optChars = Option_.all_.linkHintCharacters, optNums = Option_.all_.linkHintNumbers;
+  opt = Option_.all_.filterLinkHints;
+  optChars.onSave_ = optNums.onSave_ = function (this: Option_<"linkHintCharacters" | "linkHintNumbers">): void {
+    this.showError_(!this.element_.style.display && this.previous_.length < 3 ? pTrans_("hintCharsTooFew") : "");
+  };
+  opt.onSave_ = function (): void {
+    nextTick_(el => {
+      const enableFilterLinkHints = Option_.all_.filterLinkHints.readValueFromElement_();
+      el.style.display = optNums.element_.style.display = enableFilterLinkHints ? "" : "none";
+      optChars.element_.style.display = enableFilterLinkHints ? "none" : "";
+      optChars.onSave_();
+      optNums.onSave_();
+    }, $<HTMLElement>("#waitForEnterBox"));
   };
   opt.onSave_();
+  opt.element_.addEventListener("change", opt.onSave_.bind(opt), true);
 
   opt = Option_.all_.vomnibarPage;
   opt.onSave_ = function (this: Option_<"vomnibarPage">): void {

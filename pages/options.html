@@ -103,7 +103,9 @@ mapKey &lt;a-e&gt; &lt;esc&gt;
         <td class="caption" data-i="o37" id="o37">Characters used<br/> for link hints</td>
         <td>
           <input id="linkHintCharacters" type="text" data-model="NonEmptyText"
-            data-converter="lower chars" class="code" />
+            data-converter="lower chars" class="code"
+            /><input id="linkHintNumbers" type="text" data-model="NonEmptyText"
+            data-converter="lower chars" class="code" style="display: none;" />
           <div class="nonEmptyTip info" data-i="nonEmpty">Delete all to reset this option.</div>
         </td>
         <td class="help"><div class="help-inner" data-i="o38">
@@ -172,6 +174,32 @@ key: https://c.com/$s/space=\s\ space_end
           </td>
         </tr>
         <tr>
+          <td>
+            <label class="booleanOption" tabindex="-1" aria-hidden="true">
+              <input id="filterLinkHints" type="checkbox" tabindex="-1" aria-hidden="true" data-model="Boolean" />
+              <span data-i="o44_2" class="checkboxHint" role="checkbox" tabindex="0" aria-hidden="false"
+                >Use the link's name and characters for link-hint filtering</span>
+            </label>
+          </td>
+          <td class="help"><div class="help-inner line-help" data-i="o44_3">
+            In link-hint mode, this option lets you select a link by typing its text.
+          </div></td>
+        </tr>
+        <tr id="waitForEnterBox" style="display: none;">
+          <td class="caption"></td>
+          <td>
+            <label class="booleanOption" tabindex="-1" aria-hidden="true">
+              <input id="waitForEnter" type="checkbox" tabindex="-1" aria-hidden="true" data-model="Boolean" />
+              <span data-i="o44_4" class="checkboxHint" role="checkbox" tabindex="0" aria-hidden="false"
+                ><span>Require "Enter" when filtering hints</span>
+            </label>
+          </td>
+          <td class="help"><div class="help-inner line-help" data-i="o44_5">
+            You activate the link with "Enter", always; so you never accidentally type Vimium commands.
+          </div></td>
+        </tr>
+        <tr>
+          <td class="caption"></td>
           <td>
             <label class="booleanOption" tabindex="-1" aria-hidden="true">
               <input id="grabBackFocus" type="checkbox" tabindex="-1" aria-hidden="true" data-model="Boolean" />

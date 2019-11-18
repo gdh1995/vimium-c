@@ -2137,7 +2137,7 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     webkitRequestFullscreen(): void;
     getElementsByClassName<T extends Element>(classNames: string): NodeListOf<T>;
     getElementsByClassName(classNames: string): NodeListOf<Element>;
-    matches(selector: string): boolean;
+    matches? (selector: string): boolean; // maybe since C34
     closest? (selector: string): Element | null;
     /** default to true  */
     scrollIntoView(alignToTop?: boolean | ScrollIntoViewOptions): void;

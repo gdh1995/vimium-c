@@ -449,6 +449,7 @@ clnalilglegcjmlgenoppklmfppddien`
 newtab-adapter@gdh1995.cn
 shortcut-forwarding-tool@gdh1995.cn`
 : "",
+    filterLinkHints: false,
     findModeRawQueryList: "",
     focusNewTabContent: true,
     grabBackFocus: false,
@@ -460,6 +461,7 @@ shortcut-forwarding-tool@gdh1995.cn`
     keyboard: [560, 33],
     keyMappings: "",
     linkHintCharacters: "sadjklewcmpgh",
+    linkHintNumbers: "0123456789",
     localeEncoding: "gbk",
     newTabUrl: "",
     newTabUrl_f: "",
@@ -508,6 +510,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     vimSync: null,
     vomnibarPage: "front/vomnibar.html",
     vomnibarPage_f: "",
+    waitForEnter: true,
     phraseBlacklist: ""
   }),
   // not set localStorage, neither sync, if key in @nonPersistent
@@ -523,10 +526,10 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     { 19: "/icons/disabled_19.png", 38: "/icons/disabled_38.png" }
   ]),
   valuesToLoad_: As_<SelectNameToKey<SettingsNS.AutoItems> & SafeObject>({ __proto__: null as never,
-    hookAccessKeys: "a",
+    filterLinkHints: "f", hookAccessKeys: "a",
     ignoreKeyboardLayout: "L",
-    keyboard: "k", linkHintCharacters: "l",
-    regexFindMode: "R", smoothScroll: "S", scrollStepSize: "t"
+    keyboard: "k", linkHintCharacters: "l", linkHintNumbers: "n",
+    regexFindMode: "R", smoothScroll: "S", scrollStepSize: "t", waitForEnter: "w"
   }),
   sync_: BgUtils_.blank_ as SettingsNS.Sync["set"],
   restore_: null as (() => Promise<void> | null) | null,
