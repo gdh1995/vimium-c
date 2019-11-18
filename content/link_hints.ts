@@ -1275,13 +1275,22 @@ getUrlData_ (link: HTMLAnchorElement): string {
 },
 /** return: img is HTMLImageElement | HTMLAnchorElement | HTMLElement[style={backgroundImage}] */
 _getImageUrl (img: SafeHTMLElement, forShow?: 1): string | void {
-  let text: string | null, src = img.dataset.src || "", elTag = img.localName;
-  if (elTag === "img") {
+  let text: string | null, src = img.dataset.src || "", elTag = img.localName, n: number,
+  notImg: 0 | 1 | 2 = elTag !== "img" ? 1 : 0;
+  if (!notImg) {
     text = (img as HTMLImageElement).currentSrc || img.getAttribute("src") && (img as HTMLImageElement).src;
+    if ((n = (img as HTMLImageElement).naturalWidth) && n < 3
+        && (n = (img as HTMLImageElement).naturalHeight) && n < 3) {
+      notImg = 2;
+      text = "";
+    }
   } else {
     text = elTag === "a" ? img.getAttribute("href") && (img as HTMLAnchorElement).href : "";
+  }
+  if (notImg) {
     if (!this.isImageUrl_(text)) {
-      let arr = (<RegExpI> /^url\(\s?['"]?((?:\\['"]|[^'"])+?)['"]?\s?\)/i).exec(img.style.backgroundImage as string);
+      let arr = (<RegExpI> /^url\(\s?['"]?((?:\\['"]|[^'"])+?)['"]?\s?\)/i).exec(
+        (notImg > 1 ? getComputedStyle(img) : img.style).backgroundImage as string);
       if (arr && arr[1]) {
         const a1 = document.createElement("a");
         a1.href = arr[1].replace(<RegExpG> /\\(['"])/g, "$1");
