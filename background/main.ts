@@ -269,14 +269,17 @@
     }
     BgUtils_.resetRe_();
   }
-  function onEvalUrl(this: void, arr: Urls.SpecialUrl): void {
-    if (arr instanceof Promise) { arr.then(onEvalUrl); return; }
+  function onEvalUrl(this: void, workType: Urls.WorkType, arr: Urls.SpecialUrl): void {
+    if (arr instanceof Promise) { arr.then(onEvalUrl.bind(null, workType)); return; }
     BgUtils_.resetRe_();
     switch (arr[1]) {
     case "copy":
       return Backend_.showHUD_((arr as Urls.CopyEvalResult)[0], true);
     case "status":
-      return Backend_.forceStatus_((arr as Urls.StatusEvalResult)[0]);
+      if (workType >= Urls.WorkType.EvenAffectStatus) {
+        Backend_.forceStatus_((arr as Urls.StatusEvalResult)[0]);
+      }
+      return;
     }
   }
   function complainNoSession(this: void): void {
@@ -622,7 +625,7 @@
     options = cOptions as OpenUrlOptions;
     cOptions = null as never;
     BgUtils_.resetRe_();
-    typeof url !== "string" ? onEvalUrl(url as Urls.SpecialUrl)
+    typeof url !== "string" ? onEvalUrl(workType, url as Urls.SpecialUrl)
       // tslint:disable-next-line: no-unused-expression
       : openShowPage(url, reuse, options) ? 0
       : BgUtils_.isJSUrl_(url) ? openJSUrl(url)
@@ -643,7 +646,7 @@
         url = BgUtils_.detectLinkDeclaration_(url);
       }
     }
-    return openUrl(url, Urls.WorkType.ActAnyway, tabs);
+    openUrl(url, Urls.WorkType.ActAnyway, tabs);
   }
   function openUrlInNewTab(this: void, url: string, reuse: ReuseType
       , options: Readonly<Pick<OpenUrlOptions, "position" | "opener" | "window" | "incognito">>
@@ -1602,7 +1605,7 @@
         return onRuntimeError() || <any> void getCurTab(BackgroundCommands[kBgCmd.openUrl]);
       }
       if (cOptions.url) {
-        openUrl(cOptions.url + "", Urls.WorkType.ActAnyway, tabs);
+        openUrl(cOptions.url + "", Urls.WorkType.EvenAffectStatus, tabs);
       } else if (cOptions.copied) {
         const url = Clipboard_.paste_();
         if (url instanceof Promise) {
@@ -2169,7 +2172,7 @@
         query.then(doSearch, () => doSearch(null));
         return;
       }
-      return doSearch(query);
+      doSearch(query);
       function doSearch(this: void, query2: string | null): void {
         let err = query2 === null ? "It's not allowed to read clipboard"
           : (query2 = (query2 as string).trim()) ? "" : trans_("noSelOrCopied");
@@ -2225,7 +2228,7 @@
         }
         url = BgUtils_.fixCharsInUrl_(url);
         url = BgUtils_.convertToUrl_(url, request.k || null
-            , unsafe ? Urls.WorkType.ConvertKnown : Urls.WorkType.ActAnyway);
+            , unsafe ? Urls.WorkType.ConvertKnown : Urls.WorkType.EvenAffectStatus);
         const type = BgUtils_.lastUrlType_;
         if (request.h != null && (type === Urls.Type.NoSchema || type === Urls.Type.NoProtocolName)) {
           url = (request.h ? "https" : "http") + (url as string).slice((url as string)[4] === "s" ? 5 : 4);

@@ -587,6 +587,7 @@ declare const enum BrowserVer {
   MinCSS$ScrollBehavior$$Smooth$Work = 41,
   // MethodFunction is accepted since C42 if EMPTY
   MinMayBeES6MethodFunction = 41, // if EXPERIMENTAL
+  MinMaybe$fetch$And$Request = 41, // if EXPERIMENTAL
   // before 42, event.path is a simple NodeList instance ; even if EXPERIMENTAL or LEGACY
   Min$Event$$path$IsStdArrayAndIncludesWindow = 42,
   Min$Tabs$$getZoom = 42,

@@ -391,7 +391,7 @@ var BgUtils_ = {
     case "error":
       return [path, "ERROR"];
     } }
-    else if (workType === Urls.WorkType.ActAnyway) { switch (cmd) {
+    else if (workType >= Urls.WorkType.ActAnyway) { switch (cmd) {
     case "status": case "state":
       return [path.toLowerCase(), "status"] as Urls.StatusEvalResult;
     case "url-copy": case "search-copy": case "search.copy": case "copy-url":

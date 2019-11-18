@@ -654,8 +654,8 @@ function fetchImage_(url: string, element: HTMLImageElement): void {
       || !!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinEnsured$fetch
           && !(window as any).fetch
       || !!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinEnsuredFetchRequestCache
+          // has known MinMaybe$fetch$And$Request == MinMaybe$fetch == 41
           && !("cache" in Request.prototype)) {
-    
     element.src = url;
   } else {
     body.replaceChild(text, element);

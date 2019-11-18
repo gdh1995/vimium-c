@@ -82,6 +82,7 @@ declare namespace Urls {
     ConvertKnown = -1,
     ActIfNoSideEffects = 1,
     ActAnyway = 2,
+    AffectStatus = 3,
     ValidNormal = Default,
     FakeType = 9,
   }
