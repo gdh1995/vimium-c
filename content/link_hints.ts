@@ -18,7 +18,7 @@ declare namespace HintsNS {
   interface Options extends SafeObject {
     action?: string;
     character?: string;
-    doFilter?: boolean;
+    useFilter?: boolean;
     mode?: string | number;
     url?: boolean;
     keyword?: string;
@@ -110,8 +110,8 @@ var VHints = {
       }
       if (!VDom.isHTML_()) { return; }
     }
-    const doFilter0 = options.doFilter, doFilter = doFilter0 != null ? !!doFilter0 : VDom.cache_.f,
-    s0 = options.characters, str = s0 ? s0 + "" : doFilter ? VDom.cache_.n : VDom.cache_.l;
+    const useFilter0 = options.useFilter, useFilter = useFilter0 != null ? !!useFilter0 : VDom.cache_.f,
+    s0 = options.characters, str = s0 ? s0 + "" : useFilter ? VDom.cache_.n : VDom.cache_.l;
     if (str.length < 3) {
       a.clean_(1);
       return VHud.tip_(kTip.fewChars, "Characters for LinkHints are too few.", 1000);
@@ -119,7 +119,8 @@ var VHints = {
     VKey.removeHandler_(a);
     a.setModeOpt_(count, options);
     a.chars_ = str.toUpperCase();
-    a.curEngine_ = doFilter ? a.filterEngine_ : a.alphabetEngine_;
+    a.useFilter_ = useFilter;
+    a.curEngine_ = useFilter ? a.filterEngine_ : a.alphabetEngine_;
     a.doesMapKey_ = options.mapKey !== false;
 
     const arr: ViewBox = VDom.getViewBox_(1) as ViewBox;
@@ -895,7 +896,7 @@ var VHints = {
       } else if (i & KeyStat.shiftKey) {
         a.isClickListened_ = !a.isClickListened_;
       } else if (i & KeyStat.PrimaryModifier) {
-        a.options_.doFilter = VDom.cache_.f = a.curEngine_ !== a.filterEngine_;
+        a.options_.useFilter = VDom.cache_.f = a.curEngine_ !== a.filterEngine_;
       } else {
         if (!VApi.execute_) { return HandlerResult.Prevent; }
         a.isClickListened_ = true;
