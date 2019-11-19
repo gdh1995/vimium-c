@@ -451,10 +451,10 @@ var VHints = {
     const arr2: Hint[] = [], a = this, clickListened = a.isClickListened_;
     if (element) {
       if (!isExpected && (element as TypeToAssert<HTMLElement, HTMLInputElement, "disabled">).disabled) { return !1; }
-      isExpected && (VDom.clickable_.add(element), a.isClickListened_ = true);
+      isExpected && (VDom.clickable_.add(element), a.isClickListened_ = !0);
       a.GetClickable_(arr2, element);
+      a.isClickListened_ = clickListened;
       if (!clickListened && isExpected && arr2.length && arr2[0][2] === ClickType.codeListener) {
-        a.isClickListened_ = clickListened;
         a.GetClickable_(arr2, element);
         if (arr2.length < 2) { // note: excluded during normal logic
           isExpected.push(arr2[0]);
