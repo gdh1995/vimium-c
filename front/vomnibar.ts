@@ -916,9 +916,6 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
     }
   },
-  ToggleDark_ (this: void, event: MouseEvent): void {
-    Vomnibar_.toggleStyle_({ t: "dark", c: event.ctrlKey });
-  },
   updateOptions_ (response: Req.bg<kBgReq.omni_updateOptions>): void {
     const delta = VUtils_.safer_(response.d),
     { c: css_, M: maxMatches_, I: queryInterval_, n: sizes_str, s: styles } = delta;
@@ -1037,7 +1034,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     a.styleEl_ && (document.head as HTMLElement).appendChild(a.styleEl_);
     a.darkBtn_ = document.querySelector("#toggle-dark") as HTMLElement | null;
-    a.darkBtn_ && (a.darkBtn_.onclick = a.ToggleDark_);
+    a.darkBtn_ && (a.darkBtn_.onclick = (event: MouseEvent): void => {
+      Vomnibar_.toggleStyle_({ t: "dark", c: event.ctrlKey });
+      Vomnibar_.input_.focus();
+    });
     a.onStyleUpdate_(a.styles_);
     if (a.pageType_ === VomnibarNS.PageType.inner) {
       for (const el of document.querySelectorAll("[title]") as ArrayLike<Element> as HTMLElement[]) {
