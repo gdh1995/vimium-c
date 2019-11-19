@@ -16,8 +16,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     (this: void, i: HandlerResult.ExitPassMode): HandlerResult.Prevent;
   }
   interface Port extends chrome.runtime.Port {
-    postMessage<K extends keyof FgRes>(request: Req.fgWithRes<K>): 1;
-    postMessage<K extends keyof FgReq>(request: Req.fg<K>): 1;
+    postMessage<k extends keyof FgRes>(request: Req.fgWithRes<k>): 1;
+    postMessage<k extends keyof FgReq>(request: Req.fg<k>): 1;
   }
   interface SpecialCommands {
     [kFgCmd.reset] (this: void): void;
@@ -56,7 +56,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         compare_: Parameters<SandboxGetterFunc>[0] }
     ;
 
-  function post<K extends keyof FgReq>(this: void, request: FgReq[K] & Req.baseFg<K>): 1 | void {
+  function post<k extends keyof FgReq>(this: void, request: FgReq[k] & Req.baseFg<k>): 1 | void {
     (vPort._port as Port).postMessage(request);
   }
 
@@ -425,9 +425,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     }
   },
   Commands: {
-    [K in kFgCmd & number]:
-      K extends keyof SpecialCommands ? SpecialCommands[K] :
-      (this: void, count: number, options: CmdOptions[K], key?: -42) => void;
+    [k in kFgCmd & number]:
+      k extends keyof SpecialCommands ? SpecialCommands[k] :
+      (this: void, count: number, options: CmdOptions[k], key?: -42) => void;
   } = [
     /* kFgCmd.framesGoBack: */ function (rawStep: number, options: CmdOptions[kFgCmd.framesGoBack]): void {
       const maxStep = Math.min(Math.abs(rawStep), history.length - 1),
@@ -1077,7 +1077,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
     }
   },
-  requestHandlers: { [K in keyof BgReq]: (this: void, request: BgReq[K]) => void } = [
+  requestHandlers: { [k in keyof BgReq]: (this: void, request: BgReq[k]) => void } = [
     /* kBgReq.init: */ function (request: BgReq[kBgReq.init]): void {
       const r = requestHandlers, {c: load, s: flags} = request;
       if (Build.BTypes & BrowserType.Chrome) {
@@ -1205,7 +1205,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       request.u = location.href;
       post<T>(request);
     },
-    /* kBgReq.msg: */ function<K extends keyof FgRes> (response: Req.res<K>): void {
+    /* kBgReq.msg: */ function<k extends keyof FgRes> (response: Req.res<k>): void {
       const arr = vPort._callbacks, id = response.m, handler = arr[id];
       delete arr[id];
       handler(response.r);
@@ -1422,8 +1422,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
 
   events: VApiTy = VApi = {
     post_: post,
-    send_ <K extends keyof FgRes> (this: void, cmd: K, args: Req.fgWithRes<K>["a"]
-        , callback: (this: void, res: FgRes[K]) => void): void {
+    send_ <k extends keyof FgRes> (this: void, cmd: k, args: Req.fgWithRes<k>["a"]
+        , callback: (this: void, res: FgRes[k]) => void): void {
       let id = ++vPort._id;
       (post as Port["postMessage"])({ H: kFgReq.msg, i: id, c: cmd, a: args });
       vPort._callbacks[id] = callback as <K2 extends keyof FgRes>(this: void, res: FgRes[K2]) => void;
@@ -1551,9 +1551,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
 
   vPort = {
     _port: null as Port | null,
-    _callbacks: safer(null) as { [msgId: number]: <K extends keyof FgRes>(this: void, res: FgRes[K]) => void },
+    _callbacks: safer(null) as { [msgId: number]: <k extends keyof FgRes>(this: void, res: FgRes[k]) => void },
     _id: 1,
-    SafePost_<K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>): void {
+    SafePost_<k extends keyof FgReq> (this: void, request: FgReq[k] & Req.baseFg<k>): void {
       try {
         if (!vPort._port) {
           vPort.Connect_();
@@ -1567,8 +1567,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
     },
     Listener_<T extends keyof BgReq> (this: void, response: Req.bg<T>): void {
-      type TypeToCheck = { [K in keyof BgReq]: (this: void, request: BgReq[K]) => void };
-      type TypeChecked = { [K in keyof BgReq]: <T2 extends keyof BgReq>(this: void, request: BgReq[T2]) => void };
+      type TypeToCheck = { [k in keyof BgReq]: (this: void, request: BgReq[k]) => void };
+      type TypeChecked = { [k in keyof BgReq]: <T2 extends keyof BgReq>(this: void, request: BgReq[T2]) => void };
       (requestHandlers as TypeToCheck as TypeChecked)[response.N](response);
     },
     TestAlive_ (): void { vPort._port || safeDestroy(); },
@@ -1754,7 +1754,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           listeners.forEach(D.execute_);
         }
         setupLoadedListener = listeners = null as never;
-      })
+      });
       D.OnDocLoaded_ = listeners.push.bind(listeners);
       setupLoadedListener(0);
     }
@@ -1763,16 +1763,16 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     vPort.Connect_();
   }
 
-if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".startsWith) {
-  const StringCls = String.prototype;
-  StringCls.startsWith = function (this: string, s: string): boolean {
-    return this.length >= s.length && this.lastIndexOf(s, 0) === 0;
-  };
-  StringCls.endsWith = function (this: string, s: string): boolean {
-    const i = this.length - s.length;
-    return i >= 0 && this.indexOf(s, i) === i;
-  };
-}
+  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".startsWith) {
+    const StringCls = String.prototype;
+    StringCls.startsWith = function (this: string, s: string): boolean {
+      return this.length >= s.length && this.lastIndexOf(s, 0) === 0;
+    };
+    StringCls.endsWith = function (this: string, s: string): boolean {
+      const i = this.length - s.length;
+      return i >= 0 && this.indexOf(s, i) === i;
+    };
+  }
 })();
 if (!(Build.NDEBUG || GlobalConsts.MaxNumberOfNextPatterns <= 255)) {
   console.log("Assert error: GlobalConsts.MaxNumberOfNextPatterns <= 255");

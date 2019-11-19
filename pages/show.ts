@@ -640,13 +640,13 @@ function tryToFixFileExt_(file: string): string | void {
 
 function fetchImage_(url: string, element: HTMLImageElement): void {
   const text = new Text(), body = document.body as HTMLBodyElement,
-  clearTimer = () => {
+  clearTimer = (): void => {
     element.removeEventListener("load", clearTimer);
     element.removeEventListener("error", clearTimer);
     clearInterval(timer);
     text.remove();
     timer = 0;
-  }
+  };
   element.addEventListener("load", clearTimer, true);
   element.addEventListener("error", clearTimer, true);
   if (!(VData.incognito || BG_.Settings_.get_("showInIncognito"))
@@ -662,8 +662,8 @@ function fetchImage_(url: string, element: HTMLImageElement): void {
     fetch(url, {
       cache: "no-store",
       referrer: "no-referrer"
-    }).then(res => res.blob()).then(URL.createObjectURL, () => url).then(url => {
-      element.src = url;
+    }).then(res => res.blob()).then(URL.createObjectURL, () => url).then(newUrl => {
+      element.src = newUrl;
       body.replaceChild(element, text);
     });
   }
