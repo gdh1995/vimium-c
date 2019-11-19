@@ -1,4 +1,4 @@
-declare function exportFunction(this: void, func: Function, targetScope: object, options?: {
+declare function exportFunction(this: void, func: (...args: any[]) => any, targetScope: object, options?: {
   defineAs: string;
   allowCrossOriginArguments?: boolean;
 }): void;
@@ -47,7 +47,7 @@ if (VDom && VimiumInjector === undefined) {
 
   const kVOnClick1 = InnerConsts.kVOnClick
     , kHook = (InnerConsts.kHook + BuildStr.RandomName0) as InnerConsts.kHook
-    , doc = document, docEl = doc.documentElement
+    , Doc = document, docEl = Doc.documentElement
     , secret: number = (Math.random() * kContentCmd.SecretRange + 1) | 0
     , script = VDom.createElement_("script");
 /**
@@ -62,7 +62,7 @@ if (VDom && VimiumInjector === undefined) {
  * Vimium issue: https://github.com/philc/vimium/pull/1797#issuecomment-135761835
  */
   if ((script as Element as ElementToHTML).lang == null) {
-    VDom.createElement_ = doc.createElementNS.bind(doc, "http://www.w3.org/1999/xhtml") as typeof VDom.createElement_;
+    VDom.createElement_ = Doc.createElementNS.bind(Doc, "http://www.w3.org/1999/xhtml") as typeof VDom.createElement_;
     if (!(Build.BTypes & BrowserType.Edge)
         && Build.MinCVer > BrowserVer.NoRAFOrRICOnSandboxedPage
         && Build.MinCVer >= BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage) {
@@ -295,15 +295,15 @@ noop = (): 1 => 1,
 myAEL = hooks.addEventListener, myToStr = hooks.toString,
 sAEL = myAEL + "", sToStr = myToStr + "";
 
-let start = function (this: void): void {
+let doInit = function (this: void): void {
   /** not check if a DOMReady event is trusted: keep the same as {@link frontend.ts#D.OnDocLoaded_ } */
-  rEL(kOnDomReady, start, !0);
+  rEL(kOnDomReady, doInit, !0);
   clearTimeout_(timer);
   detectDisabled = 0;
   const docEl2 = docChildren[0] as Element | null,
   el = call(hooks.C, doc, "div") as HTMLDivElement,
   key = InnerConsts.kSecretAttr;
-  start = docChildren = null as never;
+  doInit = docChildren = null as never;
   if (!docEl2) { return executeCmd(); }
   call(Attr, el, key, "");
   listen(el, (InnerConsts.kCmd + BuildStr.RandomName1) as InnerConsts.kCmd, executeCmd, !0);
@@ -345,7 +345,7 @@ next = function (): void {
   doRegister(0);
   allNodesInDocument = allNodesForDetached = null;
 }
-, root: HTMLDivElement, timer = setTimeout_(start, InnerConsts.DelayToWaitDomReady)
+, root: HTMLDivElement, timer = setTimeout_(doInit, InnerConsts.DelayToWaitDomReady)
 ;
 function prepareRegister(this: void, element: Element): void {
   if (contains(element)) {
@@ -476,7 +476,7 @@ function executeCmd(eventOrDestroy?: Event): void {
   root = null as never;
   clearTimeout_(timer);
   timer = 1;
-  rEL(kOnDomReady, start, !0);
+  rEL(kOnDomReady, doInit, !0);
 }
 
 toRegister.p = push as any, toRegister.s = toRegister.splice;
@@ -484,7 +484,7 @@ toRegister.p = push as any, toRegister.s = toRegister.splice;
 cs.remove();
 ETP.addEventListener = myAEL;
 FP.toString = myToStr;
-_listen(kOnDomReady, start, !0);
+_listen(kOnDomReady, doInit, !0);
 
   }).toString() + ")();" /** need "toString()": {@see Gulpfile.js#patchExtendClick} */;
 
@@ -520,7 +520,7 @@ _listen(kOnDomReady, start, !0);
   script.textContent = injected;
   script.type = "text/javascript";
   script.dataset.vimium = secret as number | string as string;
-  docEl ? script.insertBefore.call(docEl, script, docEl.firstChild) : doc.appendChild(script);
+  docEl ? script.insertBefore.call(docEl, script, docEl.firstChild) : Doc.appendChild(script);
   isFirstTime ? (script.dataset.vimium = "") : script.remove();
   }
   if (!(Build.NDEBUG
@@ -608,9 +608,9 @@ _listen(kOnDomReady, start, !0);
     }
   },
   listen = newListen.call.bind(_listen), apply = newListen.apply,
-  resolve = Build.NDEBUG ? 0 as never : (): void => {
-    console.log(`Vimium C: extend click: resolve [%o] in %o @t=%o .`
-        , resolved
+  resolve = Build.NDEBUG ? 0 as never : (fromAttr?: 1): void => {
+    console.log("Vimium C: extend click: resolve [%o+%o] in %o @t=%o ."
+        , fromAttr ? 0 : resolved, fromAttr ? resolved : 0
         , location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1")
         , Date.now() % 3600000);
     timer && clearTimeout(timer);
@@ -620,22 +620,27 @@ _listen(kOnDomReady, start, !0);
   findAllOnClick = (cmd: kContentCmd.AutoFindAllOnClick | kContentCmd.ManuallyFindAllOnClick): void => {
     hasFindAll = 1;
     const allNodesInDocument = document.querySelectorAll("*") as ArrayLike<Element> as Element[],
-    clickable = VDom.clickable_;
+    clickable = VDom.clickable_, tree_scopes: Element[][] = [allNodesInDocument];
     if (allNodesInDocument.length > GlobalConsts.MinElementCountToStopScanOnClick - 1
         && cmd === kContentCmd.AutoFindAllOnClick) {
       return;
     }
     if (!Build.NDEBUG) { resolved && resolve(); }
-    for (const el of allNodesInDocument) {
-      if (((el as any).wrappedJSObject as typeof el as HTMLElement).onclick && !el.hasAttribute("onclick")
-          && !(el instanceof HTMLAnchorElement) && !(el instanceof HTMLButtonElement)) {
-        if (!Build.NDEBUG) {
-          clickable.has(el) || resolved++;
+    for (; tree_scopes.length > 0; tree_scopes.shift()) {
+      for (const el of tree_scopes[0]) {
+        if (((el as any).wrappedJSObject as typeof el as HTMLElement).onclick && !el.hasAttribute("onclick")
+            && !(el instanceof HTMLAnchorElement) && !(el instanceof HTMLButtonElement)) {
+          if (!Build.NDEBUG) {
+            clickable.has(el) || resolved++;
+          }
+          clickable.add(el);
         }
-        clickable.add(el);
+        if (el.shadowRoot) {
+          tree_scopes.push((el.shadowRoot as ShadowRoot).querySelectorAll("*") as ArrayLike<Element> as Element[]);
+        }
       }
     }
-    if (!Build.NDEBUG) { resolved && resolve(); }
+    if (!Build.NDEBUG) { resolved && resolve(1); }
   }, doc = document;
 
   let alive = true, timer = 0, resolved = 0, hasFindAll: BOOL = 0;
