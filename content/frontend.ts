@@ -1745,18 +1745,20 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     if (!D.docInitingWhenVimiumIniting_) {
       D.OnDocLoaded_ = D.execute_;
     } else {
-      let listeners: Array<(this: void) => void> = [],
-      setupLoadedListener = setupEventListener.bind(null, 0, "DOMContentLoaded", function (): void {
+      let listeners: Array<(this: void) => void> = [], Name = "DOMContentLoaded",
+      onLoad = function (): void {
         // not need to check event.isTrusted
-        setupLoadedListener(1);
+        setupEventListener(0, Name, onLoad, 1);
         if (VDom === D) { // check `a` for safety even if reloaded
           D.OnDocLoaded_ = D.execute_;
           listeners.forEach(D.execute_);
         }
-        setupLoadedListener = listeners = null as never;
-      });
+        if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinTestedES6Environment) {
+          onLoad = listeners = null as never;
+        }
+      };
       D.OnDocLoaded_ = listeners.push.bind(listeners);
-      setupLoadedListener(0);
+      setupEventListener(0, Name, onLoad, 0);
     }
     // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
     hook(HookAction.Install);

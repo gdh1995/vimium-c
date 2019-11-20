@@ -12,6 +12,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinES6$ForOf
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$InputDeviceCapabilities) {
   var InputDeviceCapabilities: InputDeviceCapabilitiesVar | undefined;
 }
+if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback) {
+  // it's not needed to declare it on Edge: only be used in extend_click[Chrome] and injector
+  var requestIdleCallback: RequestIdleCallback | undefined;
+}
 interface VisualViewport { width?: number; height: number; offsetLeft: number; offsetTop: number;
     pageLeft: number; pageTop: number; scale: number; }
 if (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinEnsured$visualViewport$) {
@@ -677,6 +681,8 @@ var VDom = {
 
   /** action section */
 
+  /** Note: won't call functions if Vimium C is destroyed */
+  OnDocLoaded_: null as never as (callback: (this: void) => void) => void | number,
   createElement_: document.createElement.bind(document) as {
     // tslint:disable-next-line: callable-types
     <K extends VimiumContainerElementType> (this: {}, tagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement;
@@ -697,12 +703,6 @@ var VDom = {
       ? (box as Ensure<typeof box, "webkitCreateShadowRoot">).webkitCreateShadowRoot() : box;
   },
   execute_ (callback: (this: void) => void): void { callback(); },
-  /** Note:
-   * won't call functions if Vimium is destroyed;
-   *
-   * should not be called before the one in {@link ../content/extend_click.ts}
-   */
-  OnDocLoaded_: null as never as (callback: (this: void) => void) => void | number,
   mouse_: function (this: {}, element: Element
       , type: kMouseClickEvents | kMouseMoveEvents
       , center: Point2D, modifiers?: MyMouseControlKeys | null, relatedTarget?: Element | null

@@ -47,6 +47,24 @@ if (VDom && VimiumInjector === undefined) {
 
   const kVOnClick1 = InnerConsts.kVOnClick
     , kHook = (InnerConsts.kHook + BuildStr.RandomName0) as InnerConsts.kHook
+    , appInfo = Build.BTypes & BrowserType.Chrome
+        && (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
+            || Build.MinCVer < BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
+            || Build.MinCVer < BrowserVer.MinEnsuredES6MethodFunction
+            || Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage)
+        && (!(Build.BTypes & ~BrowserType.ChromeOrFirefox) || VOther === BrowserType.Chrome)
+        ? navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/) : 0 as 0
+    , appVer: BrowserVer | 1 | 0 = Build.BTypes & BrowserType.Chrome
+        && (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
+            || Build.MinCVer < BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
+            || Build.MinCVer < BrowserVer.MinEnsuredES6MethodFunction
+            || Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage)
+        ? appInfo && <BrowserVer> +appInfo[1] || 0
+        : Build.BTypes & BrowserType.Chrome
+          && (!(Build.BTypes & ~BrowserType.ChromeOrFirefox) || VOther === BrowserType.Chrome)
+        ? 1 : 0
+    , rAF = Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome
+        ? requestAnimationFrame : 0 as never
     , Doc = document, docEl = Doc.documentElement
     , secret: number = (Math.random() * kContentCmd.SecretRange + 1) | 0
     , script = VDom.createElement_("script");
@@ -63,11 +81,6 @@ if (VDom && VimiumInjector === undefined) {
  */
   if ((script as Element as ElementToHTML).lang == null) {
     VDom.createElement_ = Doc.createElementNS.bind(Doc, "http://www.w3.org/1999/xhtml") as typeof VDom.createElement_;
-    if (!(Build.BTypes & BrowserType.Edge)
-        && Build.MinCVer > BrowserVer.NoRAFOrRICOnSandboxedPage
-        && Build.MinCVer >= BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage) {
-      return;
-    }
     isFirstTime != null && VDom.OnDocLoaded_(extendClick); // retry after a while, using a real <script>
     return;
   }
@@ -90,8 +103,8 @@ if (VDom && VimiumInjector === undefined) {
     }
   },
   delayFindAll = function (e: Event): void {
-    if (e && (e.target !== document
-            || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+    if (e && (e.target !== Doc
+            || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.ChromeOrFirefox)
                 ? !e.isTrusted : e.isTrusted === !1))) { return; }
     removeEventListener("load", delayFindAll, !0);
     delayFindAll = null as never;
@@ -123,7 +136,7 @@ if (VDom && VimiumInjector === undefined) {
   }
   function resolve(isBox: BOOL, nodeIndexList: number[]): void {
     if (!nodeIndexList.length) { return; }
-    let list = isBox ? (box as Element).getElementsByTagName("*") : document.getElementsByTagName("*");
+    let list = isBox ? (box as Element).getElementsByTagName("*") : Doc.getElementsByTagName("*");
     for (const index of nodeIndexList) {
       let el = list[index];
       el && VDom.clickable_.add(el);
@@ -160,23 +173,6 @@ if (VDom && VimiumInjector === undefined) {
     VApi.execute_ = null;
   }
 
-  const appInfo = Build.BTypes & BrowserType.Chrome
-        && (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
-            || Build.MinCVer < BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
-            || Build.MinCVer < BrowserVer.MinEnsuredES6MethodFunction
-            || Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage)
-        && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)
-        ? navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/) : 0 as 0
-    , appVer: BrowserVer | 0 = Build.BTypes & BrowserType.Chrome
-        && (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
-            || Build.MinCVer < BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
-            || Build.MinCVer < BrowserVer.MinEnsuredES6MethodFunction
-            || Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage)
-        && appInfo && <BrowserVer> +appInfo[1] || 0;
-  if (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome) {
-    VDom.allowRAF_ = appVer !== BrowserVer.NoRAFOrRICOnSandboxedPage ? 1 : 0;
-  }
-
 // #region injected code
 
   /** the `InnerVerifier` needs to satisfy
@@ -190,7 +186,7 @@ if (VDom && VimiumInjector === undefined) {
     (maybeSecret: string): [EventTarget["addEventListener"], Function["toString"]] | void;
   }
   type PublicFunction = (maybeKNeedToVerify: string, verifierFunc: InnerVerifier | unknown) => void | string;
-  let injected: string = '"use strict";(' + (function VC(this: void): void {
+  let injected: string = isFirstTime ? '"use strict";(' + (function VC(this: void): void {
 
 function verifier(maybeSecret: string, maybeVerifierB?: InnerVerifier | unknown): ReturnType<InnerVerifier> {
   if (maybeSecret === BuildStr.MarkForName3 + BuildStr.RandomName3
@@ -486,7 +482,8 @@ ETP.addEventListener = myAEL;
 FP.toString = myToStr;
 _listen(kOnDomReady, doInit, !0);
 
-  }).toString() + ")();" /** need "toString()": {@see Gulpfile.js#patchExtendClick} */;
+      }).toString() + ")();" /** need "toString()": {@see Gulpfile.js#patchExtendClick} */
+      : 'document.currentScript.dataset.vimium=""';
 
 // #endregion injected code
 
@@ -501,9 +498,6 @@ _listen(kOnDomReady, doInit, !0);
     }
     VApi.execute_ = execute;
     VKey.SetupEventListener_(0, kHook, hook, 0, 1);
-  } else if (Build.MinCVer < BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
-      || Build.BTypes & ~BrowserType.Chrome) {
-    injected = 'document.currentScript.dataset.vimium=""';
   }
   /**
    * According to `V8CodeCache::ProduceCache` and `V8CodeCache::GetCompileOptions`
@@ -513,25 +507,26 @@ _listen(kOnDomReady, doInit, !0);
    * inlined script are not cached for `v8::ScriptCompiler::kNoCacheBecauseInlineScript`.
    * But here it still uses the same script, just for my personal preference.
    */
-  if (!(Build.BTypes & BrowserType.Chrome) || isFirstTime
-      || (Build.BTypes & ~BrowserType.Chrome
-            || Build.MinCVer < BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage)
-          && appVer < BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage) {
   script.textContent = injected;
   script.type = "text/javascript";
   script.dataset.vimium = secret as number | string as string;
   docEl ? script.insertBefore.call(docEl, script, docEl.firstChild) : Doc.appendChild(script);
   isFirstTime ? (script.dataset.vimium = "") : script.remove();
-  }
   if (!(Build.NDEBUG
         || BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage <= BrowserVer.NoRAFOrRICOnSandboxedPage)) {
     console.log("Assert error: Warning: may no timer function on sandbox page!");
   }
-  if ((Build.MinCVer >= BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
-        && !(Build.BTypes & ~BrowserType.Chrome))
-      ? true : isFirstTime ? !script.parentNode
-      : !script.dataset.vimium) { // It succeeded to hook.
+  if (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome
+      && appVer === BrowserVer.NoRAFOrRICOnSandboxedPage) {
+    VDom.allowRAF_ = 0;
+    rAF(() => { VDom.allowRAF_ = 1; });
+  }
+  // not check MinEnsuredNewScriptsFromExtensionOnSandboxedPage
+  // for the case JavaScript is disabled in CS: https://github.com/philc/vimium/issues/3187
+  if (isFirstTime ? !script.parentNode : !script.dataset.vimium) { // It succeeded to hook.
     VDom.OnDocLoaded_(function (): void {
+      // only for new versions of Chrome (and Edge);
+      // CSP would block a <script> before MinEnsuredNewScriptsFromExtensionOnSandboxedPage
       // not check isFirstTime, to auto clean VApi.execute_
       setTimeout(function (): void { // wait the inner listener of `start` to finish its work
         box || execute(kContentCmd.DestroyForCSP);
@@ -539,21 +534,18 @@ _listen(kOnDomReady, doInit, !0);
     });
     isFirstTime &&
     VKey.SetupEventListener_(0, "load", delayFindAll, 0, 1);
-    Build.MinCVer > BrowserVer.NoRAFOrRICOnSandboxedPage ||
-    !(Build.BTypes & BrowserType.Chrome) ||
-    VDom.allowRAF_ || requestAnimationFrame(() => { VDom.allowRAF_ = 1; });
     return;
   }
-  // else: sandboxed or JS-disabled; Firefox == * or Chrome < 68 (MinEnsuredNewScriptsFromExtensionOnSandboxedPage)
+  // else: CSP script-src before C68, CSP sandbox before C68 or JS-disabled-in-CS on C/E
   VDom.allowScripts_ = 0;
   script.remove();
   execute(kContentCmd.Destroy);
   if (!(Build.BTypes & BrowserType.Chrome)
-      || Build.MinCVer >= BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
-      || Build.BTypes & ~BrowserType.Chrome && !appVer) {
+      || Build.BTypes & ~BrowserType.ChromeOrFirefox && !appVer) {
+    // on Edge (EdgeHTML), `setTimeout` and `requestAnimationFrame` work well
     return;
   }
-  // else: Chrome < MinEnsuredNewScriptsFromExtensionOnSandboxedPage
+  // ensured on Chrome
   const breakTotally = Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage
       // still check appVer, so that treat it as a latest version if appVer parsing is failed
       && appVer && appVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage;
@@ -565,23 +557,16 @@ _listen(kOnDomReady, doInit, !0);
     VApi.destroy_(1);
     return;
   }
-  let rIC = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback || Build.BTypes & BrowserType.Edge
-      ? window.requestIdleCallback : 0 as const;
-  if (Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback) {
-    // use `instanceof` to require `rIC` is a new instance in this world
-    // tslint:disable-next-line: triple-equals
-    rIC = typeof rIC != "function" || rIC instanceof Element ? 0 : rIC;
-  }
-  // here rIC is (not defined), 0 or real
   setTimeout = (setInterval = function (func: (info?: TimerType.fake) => void, timeout: number): number {
     const cb = () => func(TimerType.fake);
+    const rIC = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? requestIdleCallback : 0 as const;
     // in case there's `$("#requestIdleCallback")`
     return timeout > 19
-      && (Build.MinCVer >= BrowserVer.MinEnsured$requestIdleCallback && !(Build.BTypes & BrowserType.Edge)
-          || rIC)
+      && (Build.MinCVer >= BrowserVer.MinEnsured$requestIdleCallback || rIC)
       ? ((Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? rIC : requestIdleCallback
           ) as RequestIdleCallback)(cb, { timeout })
-      : requestAnimationFrame(cb)
+      : (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome
+          ? rAF : requestAnimationFrame)(cb)
       ;
   } as any);
 })(VDom.docInitingWhenVimiumIniting_)
@@ -619,7 +604,7 @@ _listen(kOnDomReady, doInit, !0);
   isFirstTime = VDom.docInitingWhenVimiumIniting_,
   findAllOnClick = (cmd: kContentCmd.AutoFindAllOnClick | kContentCmd.ManuallyFindAllOnClick): void => {
     hasFindAll = 1;
-    const allNodesInDocument = document.querySelectorAll("*") as ArrayLike<Element> as Element[],
+    const allNodesInDocument = doc.querySelectorAll("*") as ArrayLike<Element> as Element[],
     clickable = VDom.clickable_, tree_scopes: Element[][] = [allNodesInDocument];
     if (allNodesInDocument.length > GlobalConsts.MinElementCountToStopScanOnClick - 1
         && cmd === kContentCmd.AutoFindAllOnClick) {
@@ -650,7 +635,7 @@ _listen(kOnDomReady, doInit, !0);
       exportFunction(newListen, Cls as NonNullable<typeof Cls>, { defineAs: newListen.name });
     }
     VKey.SetupEventListener_(0, "load", function delayFindAll(event?: Event): void {
-      if (event && (event.target !== document || !event.isTrusted)) { return; }
+      if (event && (event.target !== doc || !event.isTrusted)) { return; }
       removeEventListener("load", delayFindAll, !0);
       event && VDom && setTimeout(function (): void {
         if (!hasFindAll && VDom) {
