@@ -17,7 +17,7 @@ loadContent_ = (): void => {
 },
 chrome_ = (!(Build.BTypes & ~BrowserType.Chrome) ? chrome
     : !(Build.BTypes & ~BrowserType.Firefox) ? browser as typeof chrome
-    : window.chrome || browser as typeof chrome
+    : window.browser as never || chrome
     );
 isRedirecting_ ?
 chrome_.tabs[focusContent_ ? "create" as const : "update" as const]({

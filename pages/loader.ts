@@ -10,7 +10,7 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
     : typeof browser !== "undefined" && browser && (browser as typeof chrome).runtime) {
   window.chrome = browser as typeof chrome;
 }
-window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
+chrome.runtime && chrome.runtime.getManifest && (function () {
   let loader = document.currentScript as HTMLScriptElement;
   const head = loader.parentElement as HTMLElement
     , scripts: HTMLScriptElement[] = [loader]

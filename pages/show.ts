@@ -44,7 +44,7 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
   window.chrome = browser as typeof chrome;
 }
 var $ = <T extends HTMLElement>(selector: string): T => document.querySelector(selector) as T,
-BG_ = window.chrome && chrome.extension && chrome.extension.getBackgroundPage() as Window as BgWindow,
+BG_ = chrome.extension && chrome.extension.getBackgroundPage() as Window as BgWindow,
 pTrans_: typeof chrome.i18n.getMessage = Build.BTypes & BrowserType.Firefox
       && (!(Build.BTypes & ~BrowserType.Firefox) || BG_.OnOther === BrowserType.Firefox)
       ? (i, j) => BG_.trans_(i, j) : chrome.i18n.getMessage;

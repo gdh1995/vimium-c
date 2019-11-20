@@ -205,7 +205,8 @@ var VDom = {
   // Note: sometimes a cached frameElement is not the wanted
   frameElement_ (): Element | null | void {
     let el: typeof frameElement | undefined;
-    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement) {
+    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement
+        || Build.BTypes & BrowserType.Edge) {
       try {
         if (!(Build.BTypes & BrowserType.Firefox)) { return frameElement; }
         else { el = frameElement; }

@@ -8,6 +8,9 @@ if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox &&
   : Build.BTypes & BrowserType.Firefox ? BrowserType.Firefox
   : /* an invalid state */ BrowserType.Unknown;
 }
+if (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) {
+  window.chrome = browser as typeof chrome;
+}
 
 var BgUtils_ = {
   /**
@@ -811,7 +814,4 @@ String.prototype.endsWith = function (this: string, s: string): boolean {
   const i = this.length - s.length;
   return i >= 0 && this.indexOf(s, i) === i;
 };
-}
-if (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) {
-  window.chrome = browser as typeof chrome;
 }
