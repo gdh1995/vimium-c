@@ -1131,6 +1131,7 @@ var VHints = {
     stackForThisMarker || stacks.push([i]);
   },
 
+useFilter_: true,
 curEngine_: null as never as HintsNS.Engine,
 filterEngine_: {
   initMarkers_ (hintItems: HintsNS.HintItem[]): void {

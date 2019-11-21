@@ -15,8 +15,8 @@ if (VDom && VimiumInjector === undefined) {
  * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/container_node.cc?type=cs&q=getElementsByTagName&g=0&l=1578
  */
   const enum InnerConsts {
-    MaxElementsInOneTickDebug = 512,
-    MaxElementsInOneTickRelease = 256,
+    MaxElementsInOneTickDebug = 1024,
+    MaxElementsInOneTickRelease = 512,
     MaxUnsafeEventsInOneTick = 12,
     DelayToWaitDomReady = 1000,
     DelayForNext = 36,
