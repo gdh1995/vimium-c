@@ -155,7 +155,8 @@ var VVisual = {
     char = key.length > 1 ? key.slice(key[2] === "-" ? 3 : 1, -1) : key;
     if (!key || key === "<esc>" || key === "<c-[>") {
       !key || a.currentCount_ || a.currentSeconds_ ? a.resetKeys_() : a.deactivate_(1);
-      return key ? HandlerResult.Prevent : doPass ? HandlerResult.PassKey : HandlerResult.Suppress;
+      // if doPass, then use nothing to bubble such an event, so handlers like LinkHints will also exit
+      return key ? HandlerResult.Prevent : doPass ? HandlerResult.Nothing : HandlerResult.Suppress;
     }
     if (char === kChar.enter) {
       a.resetKeys_();
