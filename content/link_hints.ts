@@ -391,7 +391,8 @@ var VHints = {
                 && (clientSize = element.clientWidth) > GlobalConsts.MinScrollableAreaSizeForDetection - 1
                 && clientSize + 5 < element.scrollWidth ? ClickType.scrollX
               : ClickType.Default)
-          || ((s = element.className) && (<RegExpOne> /\b(?:[Bb](?:utto|t)n|[Cc]lose)(?:$|[-\s_])/).test(s)
+          || ((s = element.className)
+                && (<RegExpOne> /\b(?:[Bb](?:utto|t)n|[Cc]lose|hate|like|reply)(?:$|[-\s_])/).test(s)
                 && (!(anotherEl = element.parentElement)
                     || (s = VDom.htmlTag_(anotherEl), s.indexOf("button") < 0 && s !== "a"))
               || element.hasAttribute("aria-selected") ? ClickType.classname : ClickType.Default);
