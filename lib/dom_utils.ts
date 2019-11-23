@@ -768,12 +768,18 @@ var VDom = {
     } else {
       last = Null;
     }
-    a.lastHovered_ = newEl;
-    if (newEl) {
+    a.lastHovered_ = Null;
+    if (newEl && isInDOM(newEl)) {
       a.mouse_(newEl, "mouseover", center as Point2D, Null, last);
-      a.mouse_(newEl, "mouseenter", center as Point2D, Null, last);
-      canDispatchMove && a.mouse_(newEl, "mousemove", center as Point2D);
+      if (isInDOM(newEl)) {
+        a.mouse_(newEl, "mouseenter", center as Point2D, Null, last);
+        if (canDispatchMove && isInDOM(newEl)) {
+          a.mouse_(newEl, "mousemove", center as Point2D);
+        }
+        a.lastHovered_ = isInDOM(newEl) ? newEl : Null;
+      }
     }
+    // here always ensure lastHovered_ is "in DOM" or null
   } as {
     (newEl: SafeElementForMouse, center: Point2D): void;
     (newEl: null): void;

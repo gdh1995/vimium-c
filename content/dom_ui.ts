@@ -246,22 +246,27 @@ var VCui = {
   click_ (element: SafeElementForMouse
       , rect?: Rect | null, modifiers?: MyMouseControlKeys | null, addFocus?: boolean | BOOL
       , button?: 0 | 2, touchMode?: /** default: false */ null | false | /** false */ 0 | true | "auto"): void {
-    const a = VDom;
     if (!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && VOther === BrowserType.Edge) {
       if ((element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
         return;
       }
     }
-    rect || (rect = a.getVisibleClientRect_(element));
-    const center = a.center_(rect);
+    const a = VDom, isInDom = a.IsInDOM_, center = a.center_(rect || a.getVisibleClientRect_(element));
     if (Build.BTypes & BrowserType.Chrome
         && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)
         && (Build.MinCVer >= BrowserVer.MinEnsuredTouchEventConstructor
             || a.cache_.v >= BrowserVer.MinEnsuredTouchEventConstructor)
         && (touchMode === !0 || touchMode && a.isInTouchMode_())) {
-      a.touch_(element, center, a.touch_(element, center));
+      let id = a.touch_(element, center);
+      if (isInDom(element)) {
+        a.touch_(element, center, id);
+      }
+      if (!isInDom(element)) { return; }
     }
-    element === a.lastHovered_ || a.hover_(element, center);
+    if (element !== a.lastHovered_) {
+      a.hover_(element, center);
+      if (!a.lastHovered_) { return; }
+    }
     if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox) {
       // https://bugzilla.mozilla.org/show_bug.cgi?id=329509 says this starts on FF65,
       // but tests also confirmed it on Firefox 63.0.3 x64, Win10
@@ -270,11 +275,15 @@ var VCui = {
       }
     }
     a.mouse_(element, "mousedown", center, modifiers, null, button);
+    if (!isInDom(element)) { return; }
     // Note: here we can check doc.activeEl only when @click is used on the current focused document
-    addFocus && element !== VApi.lock_() && element !== document.activeElement &&
-      !(element as Partial<HTMLInputElement>).disabled &&
-      (element as HTMLElement | SVGElement).focus();
+    if (addFocus && element !== VApi.lock_() && element !== document.activeElement &&
+        !(element as Partial<HTMLInputElement>).disabled) {
+      element.focus();
+      if (!isInDom(element)) { return; }
+    }
     a.mouse_(element, "mouseup", center, modifiers, null, button);
+    if (!isInDom(element)) { return; }
     if (button /* is the right button */
         || Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || VOther & BrowserType.Chrome)
             && (element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
@@ -302,7 +311,7 @@ var VCui = {
           ? ActionType.DispatchAndMayFix : ActionType.FixButNotDispatch;
     }
     if (result >= ActionType.FixButNotDispatch
-        || a.mouse_(element, "click", center, modifiers, null, button) && result) {
+        || a.mouse_(element, "click", center, modifiers, null, button) && result && isInDom(element)) {
       // do fix
       VApi.post_({
         H: kFgReq.openUrl,
