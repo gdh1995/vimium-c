@@ -32,6 +32,7 @@
       "toUpperCase", "toLowerCase", "trim", "trimLeft", "trimRight",
       "search", "match", "exec", "replace",
       "create", "setPrototypeOf", "bind", "toString",
+      "createElement", "numberToHintString_",
       "Object.create", "Object.setPrototypeOf",
       "getAttribute", "hasAttribute", "querySelectorAll",
       "Math.max", "Math.min", "Math.floor", "Math.round", "Math.abs", "Math.random",

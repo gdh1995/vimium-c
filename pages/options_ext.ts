@@ -421,7 +421,7 @@ function parseJSON_(text: string): any {
         > /"(?:\\[\\\"]|[^"])*"|'(?:\\[\\\']|[^'])*'|\/\/[^\r\n]*|\/\*[^]*?\*\//g
     ;
   if (!text || !(text = text.trimRight())) { return null; }
-  let match: string[] | null;
+  let match: string[] | null, kSpaces = " ";
   try {
     const obj = JSON.parse(text.replace(stringOrCommentRe, onReplace));
     clean();
@@ -445,9 +445,9 @@ function parseJSON_(text: string): any {
 
   function clean(this: void): boolean { return (<RegExpOne> /a?/).test(""); }
   function spaceN(this: void, str: string): string {
-    if (" ".repeat) { return (" " as Ensure<string, "repeat">).repeat(str.length); }
-    for (var s2 = "", n = str.length; 0 < n--; ) { s2 += " "; }
-    return s2;
+    let n = str.length;
+    for (; kSpaces.length < n; kSpaces += kSpaces) {}
+    return kSpaces.slice(0, n);
   }
   function onReplace(this: void, str: string): string {
     let ch = str[0];

@@ -67,7 +67,7 @@ var VHints = {
   box_: null as HTMLDivElement | HTMLDialogElement | null,
   dialogMode_: false,
   wantDialogMode_: null as boolean | null,
-  hints_: null as HintsNS.HintItem[] | null,
+  hints_: null as never as HintsNS.HintItem[],
   mode_: 0 as HintMode,
   mode1_: 0 as HintMode,
   modeOpt_: null as never as HintsNS.ModeOpt,
@@ -144,8 +144,8 @@ var VHints = {
     }
 
     if (a.box_) { a.box_.remove(); a.box_ = null; }
-    a.hints_ = elements.map(a.createHint_, a);
-    VDom.bZoom_ !== 1 && a.adjustMarkers_(elements);
+    const hints = elements.map(a.createHint_, a);
+    VDom.bZoom_ !== 1 && a.adjustMarkers_(elements, hints);
     elements = null as never;
     a.hintKeystroke_ = "";
     a.curEngine_.initMarkers_(a.hints_);
@@ -153,7 +153,7 @@ var VHints = {
     a.noHUD_ = arr[3] <= 40 || arr[2] <= 320 || (options.hideHUD || options.hideHud) === true;
     VCui.ensureBorder_(VDom.wdZoom_);
     a.setMode_(a.mode_, false);
-    a.box_ = VCui.addElementList_(a.hints_, arr, a.dialogMode_);
+    a.box_ = VCui.addElementList_(a.hints_ = hints, arr, a.dialogMode_);
     a.dialogMode_ && (a.box_ as HTMLDialogElement).showModal();
 
     a.isActive_ = true;
@@ -265,11 +265,7 @@ var VHints = {
   createHint_ (link: Hint): HintsNS.HintItem {
     let i: number = link.length < 4 ? link[1].l : (link as Hint4)[3][0].l + (link as Hint4)[3][1];
     const marker = VDom.createElement_("span") as HintsNS.MarkerElement, st = marker.style,
-    isBox = link[2] > ClickType.MaxNotBox,
-    hint: HintsNS.HintItem = {
-      key_: "", dest_: link[0], marker_: marker,
-      refer_: link.length > 4 ? (link as Hint5)[4] : isBox ? link[0] : null,
-    };
+    isBox = link[2] > ClickType.MaxNotBox;
     marker.className = isBox ? "LH BH" : "LH";
     st.left = i + "px";
     if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar)
@@ -282,14 +278,16 @@ var VHints = {
         && i > this.maxTop_) {
       st.maxHeight = this.maxTop_ - i + GlobalConsts.MaxHeightOfLinkHintMarker + "px";
     }
-    return hint;
+    return {
+      key_: "",
+      dest_: link[0], marker_: marker, refer_: link.length > 4 ? (link as Hint5)[4] : isBox ? link[0] : null
+    };
   },
-  adjustMarkers_ (elements: Hint[]): void {
+  adjustMarkers_ (elements: Hint[], arr: HintsNS.HintItem[]): void {
     const zi = VDom.bZoom_, root = VCui.root_;
     let i = elements.length - 1;
     if (!root || elements[i][0] !== VOmni.box_ && !root.querySelector("#HelpDialog")) { return; }
     const z = Build.BTypes & ~BrowserType.Firefox ? ("" + 1 / zi).slice(0, 5) : "",
-    arr = this.hints_ as HintsNS.HintItem[],
     mr = Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar
         ? this.maxRight_ * zi : 0,
     mt = Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar
@@ -930,7 +928,7 @@ var VHints = {
       a.zIndexes_ === false || a.rotateHints_(event.shiftKey);
       event.shiftKey && a.ResetMode_();
     } else if (!(linksMatched
-        = a.curEngine_.matchHintsByKey_(a.hints_ as HintsNS.HintItem[], event, a.keyStatus_))) {
+        = a.curEngine_.matchHintsByKey_(a.hints_, event, a.keyStatus_))) {
       if (linksMatched === false) {
         a.tooHigh_ = null;
         setTimeout(a._reinit.bind(a, null, null), 0);
@@ -950,14 +948,12 @@ var VHints = {
   },
   hideSpans_ (linksMatched: HintsNS.HintItem[]): void {
     const limit = this.keyStatus_.tab_ ? 0 : this.keyStatus_.newHintLength_;
-    let newClass: string;
     for (const { marker_: { childNodes: ref } } of linksMatched) {
 // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/dom_token_list.cc?q=DOMTokenList::setValue&g=0&l=258
 // shows that `.classList.add()` costs more
       for (let j = ref.length - 1; 0 <= --j; ) {
-        newClass = j < limit ? "MC" : "";
-        (ref[j] as Exclude<HintsNS.MarkerElement, Text>).className !== newClass &&
-        ((ref[j] as Exclude<HintsNS.MarkerElement, Text>).className = newClass);
+        !(ref[j] as Exclude<HintsNS.MarkerElement, Text>).className !== (j < limit) ||
+        ((ref[j] as Exclude<HintsNS.MarkerElement, Text>).className = j < limit ? "MC" : "");
       }
     }
   },
@@ -972,7 +968,7 @@ var VHints = {
   },
   resetHints_ (): void {
     let ref = this.hints_, i = 0, len = ref ? ref.length : 0;
-    this.hints_ = this.zIndexes_ = null;
+    this.hints_ = this.zIndexes_ = null as never;
     this.pTimer_ > 0 && clearTimeout(this.pTimer_);
     while (i < len) { (ref as HintsNS.HintItem[])[i++].dest_ = null as never; }
   },
@@ -1046,7 +1042,7 @@ var VHints = {
     if (hidden && VDom.lastHovered_ === el) {
       VDom.lastHovered_ = null;
     }
-    if ((!r2 || r) && _this.isActive_ && (_this.hints_ as HintsNS.HintItem[]).length < 64
+    if ((!r2 || r) && _this.isActive_ && _this.hints_.length < 64
         && !_this.hintKeystroke_
         && (hidden || Math.abs((r2 as ClientRect).left - (r as Rect).l) > 100
             || Math.abs((r2 as ClientRect).top - (r as Rect).t) > 60)) {
@@ -1060,7 +1056,7 @@ var VHints = {
     a.pTimer_ > 0 && clearTimeout(a.pTimer_);
     a.lastMode_ = a.mode_ = a.mode1_ = a.count_ = a.pTimer_ =
     a.maxLeft_ = a.maxTop_ = a.maxRight_ =
-    ks.tab_ = ks.newHintLength_ = ks.known_ = a.alphabetEngine_.countMax_ = 0;
+    ks.tab_ = ks.newHintLength_ = ks.known_ = a.countMax_ = 0;
     a.keyCode_ = kKeyCode.None;
     a.yankedList_ = [];
     a.hintKeystroke_ = a.chars_ = "";
@@ -1079,8 +1075,8 @@ var VHints = {
     VKey.suppressTail_(isLastKeyKnown ? 0 : VDom.cache_.k[0]);
   },
   rotateHints_ (reverse?: boolean): void {
-    const a = this;
-    let ref = a.hints_ as HintsNS.HintItem[], stacks = a.zIndexes_;
+    const a = this, ref = a.hints_;
+    let stacks = a.zIndexes_;
     if (!stacks) {
       stacks = [] as HintsNS.Stacks;
       ref.forEach(a.MakeStacks_, [[], stacks] as [Array<ClientRect | null>, HintsNS.Stacks]);
@@ -1146,20 +1142,10 @@ alphabetEngine_: {
   countMax_: 0,
   countLimit_: 0,
   numberToHintString_ (num: number): string {
-    const characterSet = VHints.chars_, base = characterSet.length;
-    let hintString = "";
-    do {
-      let remainder = num % base;
-      num = (num / base) | 0;
-      hintString = characterSet[remainder] + hintString;
-    } while (num > 0);
-    num = this.countMax_ - hintString.length - +(num < this.countLimit_);
-    if (num > 0) {
-      hintString = (Build.MinCVer >= BrowserVer.MinSafe$String$$StartsWith
-              || !(Build.BTypes & BrowserType.Chrome)
-          ? (characterSet[0] as Ensure<string, "repeat">).repeat(num)
-          : (VHints as Ensure<typeof VHints, "repeat_">).repeat_(characterSet[0], num)
-        ) + hintString;
+    const characterSet = this.chars_, base = characterSet.length;
+    let hintString = "", repeat = this.countMax_ - +(num < this.countLimit_);
+    for (; repeat-- > 0 || num > 0; num = (num / base) | 0) {
+      hintString = characterSet[num % base] + hintString;
     }
     return hintString;
   },
@@ -1186,9 +1172,9 @@ alphabetEngine_: {
   },
   buildHintIndexes_ (linkCount: number): number[] {
     const hints: number[] = [], result: number[] = [],
-    len = VHints.chars_.length, count = linkCount, start = count % len;
-    let i = this.countMax_ = Math.ceil(Math.log(count) / Math.log(len)), max = count - start + len
-      , end = this.countLimit_ = ((Math.pow(len, i) - count) / (len - 1)) | 0;
+    H = VHints, len = H.chars_.length, start = count % len;
+    let i = H.countMax_ = Math.ceil(Math.log(count) / Math.log(len)), max = count - start + len
+      , end = H.countLimit_ = ((Math.pow(len, i) - count) / (len - 1)) | 0;
     for (i = 0; i < end; i++) {
       hints.push(i);
     }
@@ -1204,7 +1190,7 @@ alphabetEngine_: {
     return result;
   },
   matchHintsByKey_ (hints: HintsNS.HintItem[], e: KeyboardEvent, keyStatus: HintsNS.KeyStatus): HintsNS.LinksMatched {
-    const a = this, h = VHints;
+    const h = VHints;
     let keyChar: string, key = e.keyCode, arr = null as HintsNS.HintItem[] | null;
     if (key === kKeyCode.tab) {
       if (!h.hintKeystroke_) {
@@ -1237,7 +1223,7 @@ alphabetEngine_: {
     keyStatus.newHintLength_ = keyChar.length;
     keyStatus.known_ = 0;
     h.zIndexes_ && (h.zIndexes_ = null);
-    if (arr !== null && keyChar.length >= a.countMax_) {
+    if (arr !== null && keyChar.length >= h.countMax_) {
       hints.some(function (hint): boolean {
         return hint.key_ === keyChar && ((arr as HintsNS.HintItem[]).push(hint), true);
       });
@@ -1245,19 +1231,13 @@ alphabetEngine_: {
     }
     const notDoSubCheck = !keyStatus.tab_, wanted = notDoSubCheck ? keyChar : keyChar.slice(0, -1);
     return hints.filter(function (hint) {
-      const pass = (hint.key_ as string).startsWith(wanted)
-          && (notDoSubCheck || !(hint.key_ as string).startsWith(keyChar));
+      const pass = hint.key_.startsWith(wanted)
+          && (notDoSubCheck || !hint.key_.startsWith(keyChar));
       hint.marker_.style.visibility = pass ? "" : "hidden";
       return pass;
     });
   }
 },
-  repeat_: !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinSafe$String$$StartsWith ? 0 as never
-      : function (this: void, s: string, n: number): string {
-    if (s.repeat) { return s.repeat(n); }
-    for (var s2 = s; --n; ) { s2 += s; }
-    return s2;
-  },
 
 decodeURL_ (this: void, url: string, decode?: (this: void, url: string) => string): string {
   try { url = (decode || decodeURI)(url); } catch {}
