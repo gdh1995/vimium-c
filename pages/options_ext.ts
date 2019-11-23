@@ -73,18 +73,12 @@ interface ExportedSettings {
 }
 
 let _lastBlobURL = "";
-function cleanRes_() {
-  if ((Build.MinCVer >= BrowserVer.MinCanNotRevokeObjectURLAtOnce
-        || !(Build.BTypes & BrowserType.Chrome)
-        || bgBrowserVer_ >= BrowserVer.MinCanNotRevokeObjectURLAtOnce)
-      && _lastBlobURL) {
+
+$<ElementWithDelay>("#exportButton").onclick = function (event): void {
+  if (_lastBlobURL) {
     URL.revokeObjectURL(_lastBlobURL);
     _lastBlobURL = "";
   }
-}
-
-$<ElementWithDelay>("#exportButton").onclick = function (event): void {
-  cleanRes_();
   let exported_object: ExportedSettings | null;
   const all_static = event ? event.ctrlKey || event.metaKey || event.shiftKey : false;
   const d = new Date();
