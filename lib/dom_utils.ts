@@ -708,14 +708,15 @@ var VDom = {
   mouse_: function (this: {}, element: SafeElementForMouse
       , type: kMouseClickEvents | kMouseMoveEvents
       , center: Point2D, modifiers?: MyMouseControlKeys | null, relatedTarget?: SafeElementForMouse | null
-      , button?: 0 | 2): boolean {
+      , button?: 0 | 2 | 4): boolean {
     const doc = element.ownerDocument, view = (doc as Document).defaultView || window,
     tyKey = type.slice(5, 6),
-    isAboutButtons = "dui".indexOf(tyKey) >= 0, // is: down | up | (click) | dblclick | auxclick
+    // is: down | up | (click) | dblclick | auxclick
+    detail = "dui".indexOf(tyKey) < 0 ? 0 : <number> button & 4 ? 2 : 1,
     x = center[0], y = center[1], ctrlKey = modifiers ? modifiers.ctrlKey_ : !1,
     altKey = modifiers ? modifiers.altKey_ : !1, shiftKey = modifiers ? modifiers.shiftKey_ : !1,
     metaKey = modifiers ? modifiers.metaKey_ : !1;
-    button = (<number> button | 0) as 0 | 2;
+    button = (<number> button & 2) as 0 | 2;
     relatedTarget = relatedTarget && relatedTarget.ownerDocument === doc ? relatedTarget : null;
     let mouseEvent: MouseEvent;
     // note: there seems no way to get correct screenX/Y of an element
@@ -724,7 +725,7 @@ var VDom = {
         || (this as typeof VDom).cache_.v >= BrowserVer.MinUsable$MouseEvent$$constructor) {
       // Note: The `composed` here may require Shadow DOM support
       const init: ValidMouseEventInit = {
-        bubbles: !0, cancelable: !0, composed: !0, detail: +isAboutButtons, view,
+        bubbles: !0, cancelable: !0, composed: !0, detail, view,
         screenX: x, screenY: y, clientX: x, clientY: y, ctrlKey, shiftKey, altKey, metaKey,
         button, buttons: tyKey === "d" ? button || 1 : 0,
         relatedTarget
@@ -742,14 +743,14 @@ var VDom = {
       mouseEvent = new MouseEvent(type, init);
     } else {
       mouseEvent = (doc as Document).createEvent("MouseEvents");
-      mouseEvent.initMouseEvent(type, !0, !0, view, +isAboutButtons, x, y, x, y
+      mouseEvent.initMouseEvent(type, !0, !0, view, detail, x, y, x, y
         , ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget);
     }
     return element.dispatchEvent(mouseEvent);
   } as {
     (element: SafeElementForMouse, type: kMouseClickEvents
       , center: Point2D
-      , modifiers?: MyMouseControlKeys | null, related?: SafeElementForMouse | null, button?: 0 | 2): boolean;
+      , modifiers?: MyMouseControlKeys | null, related?: SafeElementForMouse | null, button?: 0 | 2 | 4): boolean;
     (element: SafeElementForMouse, type: kMouseMoveEvents, center: Point2D
       , modifiers?: null, related?: SafeElementForMouse | null): boolean;
   },

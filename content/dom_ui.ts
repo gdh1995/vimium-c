@@ -246,7 +246,7 @@ var VCui = {
   click_ (element: SafeElementForMouse
       , rect?: Rect | null, modifiers?: MyMouseControlKeys | null, addFocus?: boolean | BOOL
       , specialAction?: 0 | 1 | 2 | 5 | 6 | 8
-      , button?: 0 | 2, /** default: false */ touchMode?: null | false | /** false */ 0 | true | "auto"): void {
+      , button?: 0 | 2 | 4, /** default: false */ touchMode?: null | false | /** false */ 0 | true | "auto"): void {
     if (!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && VOther === BrowserType.Edge) {
       if ((element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
         return;
@@ -313,10 +313,10 @@ var VCui = {
       // require element is still visible
       if (specialAction === 8) {
         // use old rect
-        VCui.click_(element, rect, modifiers, 0, 0, button);
+        VCui.click_(element, rect, modifiers, 0, 0, 4);
         if (!(element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled
             && a.getVisibleClientRect_(element)) {
-          a.mouse_(element, "dblclick", center, modifiers);
+          a.mouse_(element, "dblclick", center, modifiers, null, 4);
         }
         return;
       }
