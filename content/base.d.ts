@@ -93,6 +93,7 @@ interface Rect extends WritableRect {
 interface Point2D extends Array<number> {
   readonly [0]: number;
   readonly [1]: number;
+  readonly length: 2;
 }
 
 interface ViewOffset {

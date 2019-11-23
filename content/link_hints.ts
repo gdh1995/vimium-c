@@ -1243,9 +1243,8 @@ decodeURL_ (this: void, url: string, decode?: (this: void, url: string) => strin
   try { url = (decode || decodeURI)(url); } catch {}
   return url;
 },
-jsRe_: <RegExpI & RegExpOne> /^javascript:/i,
 isImageUrl_ (str: string | null): boolean {
-  if (!str || str[0] === "#" || str.length < 5 || str.startsWith("data:") || this.jsRe_.test(str)) {
+  if (!str || str[0] === "#" || str.length < 5 || str.startsWith("data:") || VDom.jsRe_.test(str)) {
     return false;
   }
   const end = str.lastIndexOf("#") + 1 || str.length;
@@ -1287,7 +1286,7 @@ _getImageUrl (img: SafeHTMLElement, forShow?: 1): string | void {
       }
     }
   }
-  if (!text || forShow && text.startsWith("data:") || this.jsRe_.test(text)
+  if (!text || forShow && text.startsWith("data:") || VDom.jsRe_.test(text)
       || src.length > text.length + 7 && (text === (img as HTMLElement & {href?: string}).href)) {
     text = src;
   }
@@ -1636,7 +1635,7 @@ Modes_: [
     openUrlInNewTab = tag !== "a" || isRight ? 0
         : a.options_.newtab === "force" ? newTab ? 6 : 2
         : !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
-          ? newTab ? 5 : 1
+          ? newTab ? 5 : 1 // need to work around Firefox's popup blocker
         : 0;
     VCui.click_(link, rect, {
       altKey_: false,

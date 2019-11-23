@@ -1429,7 +1429,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       vPort._callbacks[id] = callback as <K2 extends keyof FgRes>(this: void, res: FgRes[K2]) => void;
     },
     evalIfOK_ (url: string): boolean {
-      if (!Hints.jsRe_.test(url)) {
+      if (!D.jsRe_.test(url)) {
         return false;
       }
       url = url.slice(11).trim();

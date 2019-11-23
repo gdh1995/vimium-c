@@ -35,6 +35,7 @@ var VDom = {
   docInitingWhenVimiumIniting_: document.readyState === "loading",
   unsafeFramesetTag_: (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
       ? "" : 0 as never) as "frameset" | "",
+  jsRe_: <RegExpI & RegExpOne> /^javascript:/i,
 
   /** DOM-compatibility section */
 
@@ -747,9 +748,9 @@ var VDom = {
     return element.dispatchEvent(mouseEvent);
   } as {
     (element: SafeElementForMouse, type: kMouseClickEvents
-      , rect: Point2D // rect must be not optional, so that human can understand program logic easily
+      , center: Point2D
       , modifiers?: MyMouseControlKeys | null, related?: SafeElementForMouse | null, button?: 0 | 2): boolean;
-    (element: SafeElementForMouse, type: kMouseMoveEvents, rect: Point2D
+    (element: SafeElementForMouse, type: kMouseMoveEvents, center: Point2D
       , modifiers?: null, related?: SafeElementForMouse | null): boolean;
   },
   _idc: null as InputDeviceCapabilities | null,
@@ -770,6 +771,7 @@ var VDom = {
     }
     a.lastHovered_ = Null;
     if (newEl && isInDOM(newEl)) {
+      // then center is not null
       a.mouse_(newEl, "mouseover", center as Point2D, Null, last);
       if (isInDOM(newEl)) {
         a.mouse_(newEl, "mouseenter", center as Point2D, Null, last);

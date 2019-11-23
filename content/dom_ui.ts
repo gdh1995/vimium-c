@@ -245,14 +245,14 @@ var VCui = {
   } as (root?: VUIRoot, justTest?: 1) => boolean,
   click_ (element: SafeElementForMouse
       , rect?: Rect | null, modifiers?: MyMouseControlKeys | null, addFocus?: boolean | BOOL
-      , openUrlInNewTab?: 0 | 1 | 2 | 5 | 6
+      , specialAction?: 0 | 1 | 2 | 5 | 6
       , button?: 0 | 2, touchMode?: /** default: false */ null | false | /** false */ 0 | true | "auto"): void {
     if (!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && VOther === BrowserType.Edge) {
       if ((element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
         return;
       }
     }
-    const a = VDom, isInDom = a.IsInDOM_, center = a.center_(rect || a.getVisibleClientRect_(element));
+    const a = VDom, isInDom = a.IsInDOM_, center = a.center_(rect || (rect = a.getVisibleClientRect_(element)));
     if (Build.BTypes & BrowserType.Chrome
         && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)
         && (Build.MinCVer >= BrowserVer.MinEnsuredTouchEventConstructor
@@ -295,26 +295,28 @@ var VCui = {
     }
     const enum ActionType {
       OnlyDispatch = 0,
-      DispatchAndMayFix = 1,
-      FixButNotDispatch = 2,
+      DispatchAndMayOpenTab = 2,
+      OpenTabButNotDispatch = 3,
     }
-    let result: ActionType = ActionType.OnlyDispatch;
-    if (openUrlInNewTab
-        && (openUrlInNewTab > 1 || (element as HTMLAnchorElement).target === "_blank")
-        && (element as HTMLAnchorElement).href) {
-      // need to work around Firefox's popup blocker
-      result = openUrlInNewTab & 1 && (element.getAttribute("onclick") || a.clickable_.has(element))
-          ? ActionType.DispatchAndMayFix : ActionType.FixButNotDispatch;
+    let result: ActionType = ActionType.OnlyDispatch, url: string | null;
+    if (specialAction) {
+      result =
+          specialAction < 2 && (element as HTMLAnchorElement).target !== "_blank"
+            || !(url = element.getAttribute("href")) || url[0] === "#" || a.jsRe_.test(url)
+          ? ActionType.OnlyDispatch
+          : specialAction & 1 && (element.getAttribute("onclick") || a.clickable_.has(element))
+          ? ActionType.DispatchAndMayOpenTab : ActionType.OpenTabButNotDispatch;
     }
-    if (result >= ActionType.FixButNotDispatch
-        || a.mouse_(element, "click", center, modifiers, null, button) && result && isInDom(element)) {
+    if ((result >= ActionType.OpenTabButNotDispatch || a.mouse_(element, "click", center, modifiers) && result)
+        && a.getVisibleClientRect_(element)) {
+      // require element is still visible
       // do fix
       VApi.post_({
         H: kFgReq.openUrl,
         u: (element as HTMLAnchorElement).href,
         n: ((element as HTMLAnchorElement).rel.split(<RegExpOne> /\s/) as ES6Array<string>).includes("noopener"),
         r: (modifiers as MyMouseControlKeys).shiftKey_
-          || (<number> openUrlInNewTab) < 4
+          || (<number> specialAction) < 4
           ? ReuseType.newFg : ReuseType.newBg
       });
     }
