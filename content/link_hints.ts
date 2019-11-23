@@ -22,7 +22,7 @@ declare namespace HintsNS {
     mode?: string | number;
     url?: boolean;
     keyword?: string;
-    newtab?: boolean;
+    newtab?: boolean | "force";
     button?: "right";
     touch?: boolean | null;
     join?: FgReq[kFgReq.copy]["j"];
@@ -1632,13 +1632,19 @@ Modes_: [
     }
     const mask = a.mode_ & HintMode.mask_focus_new, isMac = !VDom.cache_.o,
     isRight = a.options_.button === "right",
-    newTab = mask > HintMode.newTab - 1 && !isRight;
+    newTab = mask > HintMode.newTab - 1 && !isRight,
+    openUrlInNewTab = tag !== "a" || isRight ? 0
+        : a.options_.newtab === "force" ? newTab ? 6 : 2
+        : !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
+          ? newTab ? 5 : 1
+        : 0;
     VCui.click_(link, rect, {
       altKey_: false,
       ctrlKey_: newTab && !isMac,
       metaKey_: newTab && isMac,
       shiftKey_: newTab && mask > HintMode.mask_focus_new - 1
     }, mask > 0 || link.tabIndex >= 0
+    , openUrlInNewTab
     , isRight ? 2 : 0
     , !(Build.BTypes & BrowserType.Chrome) || isRight || newTab ? 0 : a.options_.touch);
   }

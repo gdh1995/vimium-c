@@ -245,6 +245,7 @@ var VCui = {
   } as (root?: VUIRoot, justTest?: 1) => boolean,
   click_ (element: SafeElementForMouse
       , rect?: Rect | null, modifiers?: MyMouseControlKeys | null, addFocus?: boolean | BOOL
+      , openUrlInNewTab?: 0 | 1 | 2 | 5 | 6
       , button?: 0 | 2, touchMode?: /** default: false */ null | false | /** false */ 0 | true | "auto"): void {
     if (!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && VOther === BrowserType.Edge) {
       if ((element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
@@ -292,22 +293,17 @@ var VCui = {
       }
       return;
     }
-    if (!(Build.BTypes & BrowserType.Firefox)) {
-      a.mouse_(element, "click", center, modifiers, null, button);
-      return;
-    }
     const enum ActionType {
       OnlyDispatch = 0,
       DispatchAndMayFix = 1,
       FixButNotDispatch = 2,
     }
     let result: ActionType = ActionType.OnlyDispatch;
-    if ((!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
-        && modifiers && !modifiers.altKey_
-        && a.htmlTag_(element) === "a" && (element as HTMLAnchorElement).href
-        && ((element as HTMLAnchorElement).target === "_blank" || modifiers.ctrlKey_ || modifiers.metaKey_)) {
+    if (openUrlInNewTab
+        && (openUrlInNewTab > 1 || (element as HTMLAnchorElement).target === "_blank")
+        && (element as HTMLAnchorElement).href) {
       // need to work around Firefox's popup blocker
-      result = element.getAttribute("onclick") || a.clickable_.has(element)
+      result = openUrlInNewTab & 1 && (element.getAttribute("onclick") || a.clickable_.has(element))
           ? ActionType.DispatchAndMayFix : ActionType.FixButNotDispatch;
     }
     if (result >= ActionType.FixButNotDispatch
@@ -318,7 +314,7 @@ var VCui = {
         u: (element as HTMLAnchorElement).href,
         n: ((element as HTMLAnchorElement).rel.split(<RegExpOne> /\s/) as ES6Array<string>).includes("noopener"),
         r: (modifiers as MyMouseControlKeys).shiftKey_
-          || !(modifiers as MyMouseControlKeys).ctrlKey_ && !(modifiers as MyMouseControlKeys).metaKey_
+          || (<number> openUrlInNewTab) < 4
           ? ReuseType.newFg : ReuseType.newBg
       });
     }
