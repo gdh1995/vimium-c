@@ -22,6 +22,7 @@ declare namespace HintsNS {
     mode?: string | number;
     url?: boolean;
     keyword?: string;
+    dblclick?: boolean;
     newtab?: boolean | "force";
     button?: "right";
     touch?: boolean | null;
@@ -1631,8 +1632,10 @@ Modes_: [
     }
     const mask = a.mode_ & HintMode.mask_focus_new, isMac = !VDom.cache_.o,
     isRight = a.options_.button === "right",
-    newTab = mask > HintMode.newTab - 1 && !isRight,
-    openUrlInNewTab = tag !== "a" || isRight ? 0
+    dblClick = !!a.options_.dblclick,
+    specialActions = isRight || dblClick,
+    newTab = mask > HintMode.newTab - 1 && !specialActions,
+    openUrlInNewTab = specialActions || tag !== "a" ? 0
         : a.options_.newtab === "force" ? newTab ? 6 : 2
         : !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
           ? newTab ? 5 : 1 // need to work around Firefox's popup blocker
@@ -1643,9 +1646,9 @@ Modes_: [
       metaKey_: newTab && isMac,
       shiftKey_: newTab && mask > HintMode.mask_focus_new - 1
     }, mask > 0 || link.tabIndex >= 0
-    , openUrlInNewTab
+    , dblClick ? 8 : openUrlInNewTab
     , isRight ? 2 : 0
-    , !(Build.BTypes & BrowserType.Chrome) || isRight || newTab ? 0 : a.options_.touch);
+    , !(Build.BTypes & BrowserType.Chrome) || specialActions || newTab ? 0 : a.options_.touch);
   }
   , HintMode.OPEN_IN_CURRENT_TAB, "Open link in current tab"
   , HintMode.OPEN_IN_NEW_BG_TAB, "Open link in new tab"

@@ -1,7 +1,7 @@
 /// <reference path="../content/base.d.ts" />
 interface ElementWithClickable { vimiumClick?: boolean; }
 type kMouseMoveEvents = "mouseover" | "mouseenter" | "mousemove" | "mouseout" | "mouseleave";
-type kMouseClickEvents = "mousedown" | "mouseup" | "click" | "auxclick";
+type kMouseClickEvents = "mousedown" | "mouseup" | "click" | "auxclick" | "dblclick";
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6WeakMapAndWeakSet) {
   var WeakSet: WeakSetConstructor | undefined;
   var WeakMap: WeakMapConstructor | undefined;
@@ -711,7 +711,7 @@ var VDom = {
       , button?: 0 | 2): boolean {
     const doc = element.ownerDocument, view = (doc as Document).defaultView || window,
     tyKey = type.slice(5, 6),
-    isAboutButtons = "dui".indexOf(tyKey) >= 0, // is: down | up | (click) | auxclick
+    isAboutButtons = "dui".indexOf(tyKey) >= 0, // is: down | up | (click) | dblclick | auxclick
     x = center[0], y = center[1], ctrlKey = modifiers ? modifiers.ctrlKey_ : !1,
     altKey = modifiers ? modifiers.altKey_ : !1, shiftKey = modifiers ? modifiers.shiftKey_ : !1,
     metaKey = modifiers ? modifiers.metaKey_ : !1;

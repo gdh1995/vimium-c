@@ -245,8 +245,8 @@ var VCui = {
   } as (root?: VUIRoot, justTest?: 1) => boolean,
   click_ (element: SafeElementForMouse
       , rect?: Rect | null, modifiers?: MyMouseControlKeys | null, addFocus?: boolean | BOOL
-      , specialAction?: 0 | 1 | 2 | 5 | 6
-      , button?: 0 | 2, touchMode?: /** default: false */ null | false | /** false */ 0 | true | "auto"): void {
+      , specialAction?: 0 | 1 | 2 | 5 | 6 | 8
+      , button?: 0 | 2, /** default: false */ touchMode?: null | false | /** false */ 0 | true | "auto"): void {
     if (!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && VOther === BrowserType.Edge) {
       if ((element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
         return;
@@ -295,13 +295,14 @@ var VCui = {
     }
     const enum ActionType {
       OnlyDispatch = 0,
+      DispatchAndCheckInDOM = 1,
       DispatchAndMayOpenTab = 2,
       OpenTabButNotDispatch = 3,
     }
     let result: ActionType = ActionType.OnlyDispatch, url: string | null;
     if (specialAction) {
-      result =
-          specialAction < 2 && (element as HTMLAnchorElement).target !== "_blank"
+      result = specialAction > 7 ? ActionType.DispatchAndCheckInDOM
+          : specialAction < 2 && (element as HTMLAnchorElement).target !== "_blank"
             || !(url = element.getAttribute("href")) || url[0] === "#" || a.jsRe_.test(url)
           ? ActionType.OnlyDispatch
           : specialAction & 1 && (element.getAttribute("onclick") || a.clickable_.has(element))
@@ -310,6 +311,15 @@ var VCui = {
     if ((result >= ActionType.OpenTabButNotDispatch || a.mouse_(element, "click", center, modifiers) && result)
         && a.getVisibleClientRect_(element)) {
       // require element is still visible
+      if (specialAction === 8) {
+        // use old rect
+        VCui.click_(element, rect, modifiers, 0, 0, button);
+        if (!(element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled
+            && a.getVisibleClientRect_(element)) {
+          a.mouse_(element, "dblclick", center, modifiers);
+        }
+        return;
+      }
       // do fix
       VApi.post_({
         H: kFgReq.openUrl,
