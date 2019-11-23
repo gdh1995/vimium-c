@@ -453,7 +453,7 @@ var VDom = {
       const body = el ? null : document.body;
       // if fullscreen and there's nested "contain" styles,
       // then it's a whole mess and nothing can be ensured to be right
-      a.bZoom_ = body && (target === 1 || a.isInDOM_(target, body)) && +gcs(body).zoom || 1;
+      a.bZoom_ = body && (target === 1 || a.IsInDOM_(target, body)) && +gcs(body).zoom || 1;
     }
     for (; el && el !== docEl;
         el = a.GetParent_(el, Build.MinCVer < BrowserVer.MinSlotIsNotDisplayContents
@@ -555,7 +555,7 @@ var VDom = {
     (element: Element): VisibilityType;
     (element: null, rect: ClientRect): VisibilityType;
   },
-  isInDOM_: function (element: Element, root?: Element | Document | Window | RadioNodeList
+  IsInDOM_: function (this: void, element: Element, root?: Element | Document | Window | RadioNodeList
       , checkMouseEnter?: 1): boolean {
     if (!root) {
       const isConnected = element.isConnected; /** {@link #BrowserVer.Min$Node$$isConnected} */
@@ -588,7 +588,7 @@ var VDom = {
     // if not pe, then PNType.DirectNode won't return an Element
     // because .GetParent_ will only return a real parent, but not a fake <form>.parentNode
     return (pe || VDom.GetParent_(element, PNType.DirectNode)) === root;
-  } as (element: Element, root?: Element | Document, checkMouseEnter?: 1) => boolean,
+  } as (this: void,  element: Element, root?: Element | Document, checkMouseEnter?: 1) => boolean,
   uneditableInputs_: <SafeEnum> { __proto__: null as never,
     button: 1, checkbox: 1, color: 1, file: 1, hidden: 1, //
     image: 1, radio: 1, range: 1, reset: 1, submit: 1
@@ -610,9 +610,10 @@ var VDom = {
       )
       : VDom.uneditableInputs_[(element as HTMLInputElement).type] ? EditableType.NotEditable : EditableType.TextBox;
   } as {
+    (element: Element): element is LockableElement;
     <Ty extends 0>(element: Element): EditableType;
-    <Ty extends 1>(element: Element): element is LockableElement;
-    <Ty extends LockableElement>(element: EventTarget): element is Ty;
+    <Ty extends 2>(element: EventTarget): element is LockableElement;
+    (element: Element): element is LockableElement; // this line is just to avoid a warning on VS Code
   },
   isInputInTextMode_ (el: TextElement): boolean | void {
     if (Build.MinCVer >= BrowserVer.Min$selectionStart$MayBeNull || !(Build.BTypes & BrowserType.Chrome)) {
@@ -703,24 +704,19 @@ var VDom = {
       ? (box as Ensure<typeof box, "webkitCreateShadowRoot">).webkitCreateShadowRoot() : box;
   },
   execute_ (callback: (this: void) => void): void { callback(); },
-  mouse_: function (this: {}, element: Element
+  mouse_: function (this: {}, element: SafeElementForMouse
       , type: kMouseClickEvents | kMouseMoveEvents
-      , center: Point2D, modifiers?: MyMouseControlKeys | null, relatedTarget?: Element | null
+      , center: Point2D, modifiers?: MyMouseControlKeys | null, relatedTarget?: SafeElementForMouse | null
       , button?: 0 | 2): boolean {
-    let mouseEvent: MouseEvent, doc = element.ownerDocument;
-    Build.BTypes & BrowserType.Chrome &&
-    (Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter && (this as typeof VDom).unsafeFramesetTag_
-        && (doc as WindowWithTop).top === top
-      || (doc as Node | RadioNodeList).nodeType !== kNode.DOCUMENT_NODE) &&
-    (doc = document);
-    button = (<number> button | 0) as 0 | 2;
-    relatedTarget = relatedTarget && relatedTarget.ownerDocument === doc ? relatedTarget : null;
-    const view = (doc as Document).defaultView || window,
+    const doc = element.ownerDocument, view = (doc as Document).defaultView || window,
     tyKey = type.slice(5, 6),
     isAboutButtons = "dui".indexOf(tyKey) >= 0, // is: down | up | (click) | auxclick
     x = center[0], y = center[1], ctrlKey = modifiers ? modifiers.ctrlKey_ : !1,
     altKey = modifiers ? modifiers.altKey_ : !1, shiftKey = modifiers ? modifiers.shiftKey_ : !1,
     metaKey = modifiers ? modifiers.metaKey_ : !1;
+    button = (<number> button | 0) as 0 | 2;
+    relatedTarget = relatedTarget && relatedTarget.ownerDocument === doc ? relatedTarget : null;
+    let mouseEvent: MouseEvent;
     // note: there seems no way to get correct screenX/Y of an element
     if (!(Build.BTypes & BrowserType.Chrome)
         || Build.MinCVer >= BrowserVer.MinUsable$MouseEvent$$constructor
@@ -748,41 +744,41 @@ var VDom = {
       mouseEvent.initMouseEvent(type, !0, !0, view, +isAboutButtons, x, y, x, y
         , ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget);
     }
-    return Build.BTypes & ~BrowserType.Firefox ? dispatchEvent.call(element, mouseEvent)
-      : element.dispatchEvent(mouseEvent);
+    return element.dispatchEvent(mouseEvent);
   } as {
-    (element: Element, type: kMouseClickEvents
+    (element: SafeElementForMouse, type: kMouseClickEvents
       , rect: Point2D // rect must be not optional, so that human can understand program logic easily
-      , modifiers?: MyMouseControlKeys | null, related?: Element | null, button?: 0 | 2): boolean;
-    (element: Element, type: kMouseMoveEvents, rect: Point2D
-      , modifiers?: null, related?: Element | null): boolean;
+      , modifiers?: MyMouseControlKeys | null, related?: SafeElementForMouse | null, button?: 0 | 2): boolean;
+    (element: SafeElementForMouse, type: kMouseMoveEvents, rect: Point2D
+      , modifiers?: null, related?: SafeElementForMouse | null): boolean;
   },
   _idc: null as InputDeviceCapabilities | null,
-  lastHovered_: null as Element | null,
+  lastHovered_: null as SafeElementForMouse | null,
   /** note: will NOT skip even if newEl == @lastHovered */
-  hover_: function (this: {}, newEl: Element | null, center?: Point2D): void {
-    const canDispatchMove = center && document.elementFromPoint(center[0], center[1]) === newEl;
-    let a = VDom as typeof VDom, last = a.lastHovered_;
-    if (last && a.isInDOM_(last)) {
+  hover_: function (this: {}, newEl: SafeElementForMouse | null, center?: Point2D): void {
+    const canDispatchMove = center && document.elementFromPoint(center[0], center[1]) === newEl,
+    a = VDom as typeof VDom, isInDOM = a.IsInDOM_, Null = null;
+    let last = a.lastHovered_;
+    if (last && isInDOM(last)) {
       const notSame = newEl !== last;
-      a.mouse_(last, "mouseout", [0, 0], null, notSame ? newEl : null);
-      if (!newEl || notSame && !a.isInDOM_(newEl, last, 1)) {
-        a.mouse_(last, "mouseleave", [0, 0], null, newEl);
+      a.mouse_(last, "mouseout", [0, 0], Null, notSame ? newEl : Null);
+      if (!newEl || notSame && !isInDOM(newEl, last, 1)) {
+        a.mouse_(last, "mouseleave", [0, 0], Null, newEl);
       }
     } else {
-      last = null;
+      last = Null;
     }
     a.lastHovered_ = newEl;
     if (newEl) {
-      a.mouse_(newEl, "mouseover", center as Point2D, null, last);
-      a.mouse_(newEl, "mouseenter", center as Point2D, null, last);
+      a.mouse_(newEl, "mouseover", center as Point2D, Null, last);
+      a.mouse_(newEl, "mouseenter", center as Point2D, Null, last);
       canDispatchMove && a.mouse_(newEl, "mousemove", center as Point2D);
     }
   } as {
-    (newEl: Element, center: Point2D): void;
+    (newEl: SafeElementForMouse, center: Point2D): void;
     (newEl: null): void;
   },
-  touch_: Build.BTypes & BrowserType.Chrome ? function (this: {}, element: Element
+  touch_: Build.BTypes & BrowserType.Chrome ? function (this: {}, element: SafeElementForMouse
       , [x, y]: Point2D, id?: number): number {
     const newId = id || Date.now(),
     touchObj = new Touch({
@@ -791,14 +787,13 @@ var VDom = {
       screenX: x, screenY: y,
       pageX: x + scrollX, pageY: y + scrollY,
       radiusX: 8, radiusY: 8, force: 1,
-    }),
+    }), touches = id ? [] : [touchObj],
     touchEvent = new TouchEvent(id ? "touchend" : "touchstart", {
       cancelable: true, bubbles: true,
-      touches: id ? [] : [touchObj],
-      targetTouches: id ? [] : [touchObj],
+      touches, targetTouches: touches,
       changedTouches: [touchObj],
     });
-    document.dispatchEvent.call(element, touchEvent);
+    element.dispatchEvent(touchEvent);
     return newId;
   } : 0 as never,
   scrollIntoView_ (el: Element, dir?: boolean): void {

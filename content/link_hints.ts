@@ -480,7 +480,7 @@ var VHints = {
                 && VDom.htmlTag_(el2) === "a")
           );
   },
-  /** Note: required by {@link #kFgCmd.focusInput}, should only add SafeHTMLElement instances */
+  /** Note: required by {@link #kFgCmd.focusInput}, should only add LockableElement instances */
   GetEditable_ (this: void, hints: Hint[], element: SafeHTMLElement): void {
     let arr: Rect | null, s: string;
     switch (element.localName) {
@@ -977,7 +977,7 @@ var VHints = {
     let rect: Rect | null | undefined, clickEl: HintsNS.LinkEl | null = hint.dest_;
     a.resetHints_();
     (VHud as Writable<VHUDTy>).t = "";
-    if (VDom.isInDOM_(clickEl)) {
+    if (VDom.IsInDOM_(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
       // must use UI.getRect, so that VDom.zooms are updated, and prepareCrop is called
       rect = VCui.getRect_(clickEl, hint.refer_ !== clickEl ? hint.refer_ as HTMLElementUsingMap | null : null);
@@ -1598,7 +1598,7 @@ Modes_: [
       link.focus();
       VCui.flash_(link);
     } else {
-      VCui.simulateSelect_(link, rect, true);
+      VCui.simulateSelect_(link as HintsNS.InputHintItem["dest_"], rect, true);
     }
     return false;
   }
@@ -1627,7 +1627,7 @@ Modes_: [
     } else if (hint.refer_ && hint.refer_ === link) {
       return a.Modes_[0][0](link, rect, hint);
     } else if (VDom.getEditableType_<0>(link) >= EditableType.TextBox) {
-      VCui.simulateSelect_(link, rect, true);
+      VCui.simulateSelect_(link as LockableElement, rect, true);
       return false;
     }
     const mask = a.mode_ & HintMode.mask_focus_new, isMac = !VDom.cache_.o,

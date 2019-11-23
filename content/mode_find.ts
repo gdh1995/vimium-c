@@ -365,9 +365,9 @@ var VFind = {
     if (i > FindNS.Action.MaxExitButNoWork && hasResult && (!el || el !== VApi.lock_())) {
       let container = a.focusFoundLinkIfAny_();
       if (container && i === FindNS.Action.ExitAndReFocus && (el2 = document.activeElement)
-          && VDom.getEditableType_(el2) >= EditableType.TextBox && container.contains(el2)) {
+          && VDom.getEditableType_<0>(el2) >= EditableType.TextBox && container.contains(el2)) {
         VDom.prepareCrop_();
-        VCui.simulateSelect_(el2);
+        VCui.simulateSelect_(el2 as LockableElement);
       } else if (el) {
         // always call scrollIntoView if only possible, to keep a consistent behavior
         !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions

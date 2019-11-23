@@ -228,7 +228,7 @@ var VCui = {
   },
   getSelectionText_ (notTrim?: 1): string {
     let sel = getSelection(), s = "" + sel, el: Element | null, rect: ClientRect;
-    if (s && !VApi.lock_() && (el = VCui.activeEl_) && VDom.getEditableType_(el) === EditableType.TextBox
+    if (s && !VApi.lock_() && (el = VCui.activeEl_) && VDom.getEditableType_<0>(el) === EditableType.TextBox
         && (rect = sel.getRangeAt(0).getBoundingClientRect(), !rect.width || !rect.height)) {
       s = "";
     }
@@ -243,7 +243,7 @@ var VCui = {
     justTest || sel.collapseToStart();
     return true;
   } as (root?: VUIRoot, justTest?: 1) => boolean,
-  click_ (element: Element
+  click_ (element: SafeElementForMouse
       , rect?: Rect | null, modifiers?: MyMouseControlKeys | null, addFocus?: boolean | BOOL
       , button?: 0 | 2, touchMode?: /** default: false */ null | false | /** false */ 0 | true | "auto"): void {
     const a = VDom;
@@ -273,7 +273,6 @@ var VCui = {
     // Note: here we can check doc.activeEl only when @click is used on the current focused document
     addFocus && element !== VApi.lock_() && element !== document.activeElement &&
       !(element as Partial<HTMLInputElement>).disabled &&
-      (Build.BTypes & ~BrowserType.Firefox ? typeof element.focus === "function" : element.focus) &&
       (element as HTMLElement | SVGElement).focus();
     a.mouse_(element, "mouseup", center, modifiers, null, button);
     if (button /* is the right button */
@@ -315,7 +314,7 @@ var VCui = {
       });
     }
   },
-  simulateSelect_ (element: Element, rect?: Rect | null, flash?: boolean
+  simulateSelect_ (element: LockableElement, rect?: Rect | null, flash?: boolean
       , action?: SelectActions, suppressRepeated?: boolean): void {
     const y = scrollY;
     this.click_(element, rect, null, true);
@@ -324,7 +323,7 @@ var VCui = {
     flash && this.flash_(element);
     if (element !== VApi.lock_()) { return; }
     // then `element` is always safe
-    this._moveSel_need_safe(element as LockableElement, action);
+    this._moveSel_need_safe(element, action);
     if (suppressRepeated === true) { VKey.suppressTail_(0); }
   },
   /** @NEED_SAFE_ELEMENTS element is LockableElement */

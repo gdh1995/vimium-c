@@ -168,7 +168,7 @@ declare namespace HintsNS {
   }
 
   interface InputHintItem extends BaseHintItem {
-    dest_: SafeHTMLElement;
+    dest_: LockableElement;
   }
 }
 
@@ -260,8 +260,9 @@ interface HintOffset {
 }
 
 type HTMLElementUsingMap = HTMLImageElement | HTMLObjectElement;
+type SafeElementForMouse = SafeHTMLElement | SVGElement;
 interface Hint {
-  [0]: SafeHTMLElement | SVGElement; // element
+  [0]: SafeElementForMouse; // element
   [1]: Rect; // bounding rect
   [2]: number; // priority (smaller is prior)
   [3]?: HintOffset;

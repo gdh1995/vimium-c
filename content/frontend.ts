@@ -149,7 +149,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) ? insertLock
           : insertLock && OnOther === BrowserType.Firefox)
-        && !D.isInDOM_(insertLock as LockableElement, doc)) {
+        && !D.IsInDOM_(insertLock as LockableElement, doc)) {
       insertLock = null;
     }
     if (action = K.bubbleEvent_(event)) { /* empty */ }
@@ -257,7 +257,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       isNormalHost ? hookOnShadowRoot(path as EventPath, target as Element) : hookOnShadowRoot([sr, 0 as never], 0);
       target = isNormalHost ? top as Element : target;
     }
-    if (D.getEditableType_<LockableElement>(target)) {
+    if (D.getEditableType_<2>(target)) {
       U.activeEl_ = target;
       if (InsertMode.grabBackFocus_) {
         (InsertMode.grabBackFocus_ as Exclude<typeof InsertMode.grabBackFocus_, boolean>)(event, target);
@@ -713,7 +713,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         let counter = 0, prompt = function (): void {
           counter++ || console.log(VTr(kTip.blockAutoFocus, "Vimium C blocks auto-focusing."));
         };
-        if (notBody = notBody && VDom.getEditableType_<1>(activeEl)) {
+        if (notBody = notBody && VDom.getEditableType_(activeEl)) {
           InsertMode.last_ = null;
           prompt();
           (Build.BTypes & ~BrowserType.Firefox ? typeof activeEl.blur === "function" : activeEl.blur) &&
@@ -736,7 +736,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         }
       }
       InsertMode.grabBackFocus_ = false;
-      if (notBody && D.getEditableType_<1>(activeEl)) {
+      if (notBody && D.getEditableType_(activeEl)) {
         insertLock = activeEl;
       }
     },
@@ -803,20 +803,20 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         KeydownEvents[key] = 2;
       }
     },
-    exit_: function (target: Element | null): void {
-      if (D.GetShadowRoot_(target as Element)) {
-        if (target = insertLock) {
+    exit_: function (target: Element): void {
+      if (D.GetShadowRoot_(target)) {
+        if (target = insertLock as LockableElement | null as unknown as Element) {
           insertLock = null;
           (target as LockableElement).blur();
         }
-      } else if (target === insertLock ? (insertLock = null, 1) : D.getEditableType_<1>(target as Element)) {
+      } else if (target === insertLock ? (insertLock = null, 1) : D.getEditableType_(target)) {
         (target as LockableElement).blur();
       }
       if (InsertMode.global_) {
         insertLock = null; InsertMode.global_ = null;
         HUD.hide_();
       }
-    } as (target: Element) => void,
+    },
     onExitSuppress_: null as ((this: void) => void) | null,
     exitInputHint_ (): void {
       let hint = InsertMode.inputHint_;
@@ -1334,7 +1334,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         K.prevent_(event);
       }
       optLink.onclick = closeBtn.onclick = null as never;
-      let i = D.lastHovered_;
+      let i: Element | null = D.lastHovered_;
       i && box.contains(i) && (D.lastHovered_ = null);
       (i = U.activeEl_) && box.contains(i) && (U.activeEl_ = null);
       K.removeHandler_(box);
