@@ -164,6 +164,7 @@ declare namespace HintsNS {
 
   interface HintItem extends BaseHintItem {
     key_: string;
+    text_: string;
     refer_: HTMLElementUsingMap | Hint[0] | null;
     zIndex_?: number;
   }

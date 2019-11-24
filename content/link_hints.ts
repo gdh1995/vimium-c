@@ -48,7 +48,7 @@ declare namespace HintsNS {
   }
   type HintSources = SafeElement[] | NodeListOf<SafeElement>;
   interface Engine {
-    initMarkers_ (hintItems: HintsNS.HintItem[]): void;
+    buildHintStrings_ (hintItems: HintItem[]): void;
     matchHintsByKey_ (hints: HintsNS.HintItem[], e: KeyboardEvent, keyStatus: HintsNS.KeyStatus): HintsNS.LinksMatched;
   }
 }
@@ -149,7 +149,7 @@ var VHints = {
     VDom.bZoom_ !== 1 && a.adjustMarkers_(elements, hints);
     elements = null as never;
     a.hintKeystroke_ = "";
-    a.curEngine_.initMarkers_(a.hints_);
+    a.renderMarkers_(hints);
 
     a.noHUD_ = arr[3] <= 40 || arr[2] <= 320 || (options.hideHUD || options.hideHud) === true;
     VCui.ensureBorder_(VDom.wdZoom_);
@@ -281,6 +281,7 @@ var VHints = {
     }
     return {
       key_: "",
+      text: "",
       dest_: link[0], marker_: marker, refer_: link.length > 4 ? (link as Hint5)[4] : isBox ? link[0] : null
     };
   },
@@ -1057,7 +1058,7 @@ var VHints = {
     a.pTimer_ > 0 && clearTimeout(a.pTimer_);
     a.lastMode_ = a.mode_ = a.mode1_ = a.count_ = a.pTimer_ =
     a.maxLeft_ = a.maxTop_ = a.maxRight_ =
-    ks.tab_ = ks.newHintLength_ = ks.known_ = a.countMax_ = 0;
+    ks.tab_ = ks.newHintLength_ = ks.known_ = a.alphabetEngine_.maxPrefixLen_ = 0;
     a.keyCode_ = kKeyCode.None;
     a.yankedList_ = [];
     a.hintKeystroke_ = a.chars_ = "";
@@ -1132,63 +1133,62 @@ var VHints = {
 useFilter_: true,
 curEngine_: null as never as HintsNS.Engine,
 filterEngine_: {
-  initMarkers_ (hintItems: HintsNS.HintItem[]): void {
-    VHints.alphabetEngine_.initMarkers_(hintItems);
+  buildHintStrings_ (hints: HintsNS.HintItem[]): void {
+    VHints.alphabetEngine_.buildHintStrings_(hints);
   },
   matchHintsByKey_ (hints: HintsNS.HintItem[], e: KeyboardEvent, keyStatus: HintsNS.KeyStatus): HintsNS.LinksMatched {
     return VHints.alphabetEngine_.matchHintsByKey_(hints, e, keyStatus);
   }
 },
-alphabetEngine_: {
-  countMax_: 0,
-  countLimit_: 0,
-  numberToHintString_ (num: number): string {
-    const characterSet = this.chars_, base = characterSet.length;
-    let hintString = "", repeat = this.countMax_ - +(num < this.countLimit_);
+  numberToHintString_ (num: number, repeat: number): string {
+    const characterSet = VHints.chars_, base = characterSet.length;
+    let hintString = "";
     for (; repeat-- > 0 || num > 0; num = (num / base) | 0) {
       hintString = characterSet[num % base] + hintString;
     }
     return hintString;
   },
-  initMarkers_ (hintItems: HintsNS.HintItem[]): void {
-    const a = this, doc = document,
-    noAppend = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$append
+  renderMarkers_ (hintItems: HintsNS.HintItem[]): void {
+    const a = VHints, doc = document, useFilter = a.useFilter_,
+    noAppend = !!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$append
         && VDom.cache_.v < BrowserVer.MinEnsured$ParentNode$$append;
-    for (let end = hintItems.length, hints = a.buildHintIndexes_(end), h = 0; h < end; h++) {
-      const hint = hintItems[h], marker = hint.marker_,
-      hintString = hint.key_ = a.numberToHintString_(hints[h]), last = hintString.length - 1;
-      for (let i = 0; i < last; i++) {
-        const node = doc.createElement("span");
-        node.textContent = hintString[i];
-        marker.appendChild(node);
+    a.curEngine_.buildHintStrings_(hintItems);
+    for (const { marker_: marker, text_: text, key_: key } of hintItems) {
+      const right = !useFilter ? key.slice(-1) : text && text[0] === ":"
+          ? text.length > 34 ? text.slice(0, 34).trimRight() + "\u2026" : text : "";
+      if (useFilter) {
+        marker.textContent = key;
+        if (!right) { continue; }
+      } else {
+        for (const ch of key.slice(0, -1)) {
+          const node = doc.createElement("span");
+          node.textContent = ch;
+          marker.appendChild(node);
+        }
       }
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$append && noAppend) {
-        marker.insertAdjacentText("beforeend", hintString[last]);
+        marker.insertAdjacentText("beforeend", right);
       } else {
-        (marker as Ensure<HTMLElement, "append">).append(hintString[last]);
+        (marker as Ensure<HTMLElement, "append">).append(right);
       }
     }
-    a.countMax_ -= (a.countLimit_ > 0) as boolean | number as number;
-    a.countLimit_ = 0;
   },
-  buildHintIndexes_ (linkCount: number): number[] {
-    const hints: number[] = [], result: number[] = [],
-    H = VHints, len = H.chars_.length, start = count % len;
-    let i = H.countMax_ = Math.ceil(Math.log(count) / Math.log(len)), max = count - start + len
-      , end = H.countLimit_ = ((Math.pow(len, i) - count) / (len - 1)) | 0;
-    for (i = 0; i < end; i++) {
-      hints.push(i);
-    }
-    for (end *= len - 1; i < count; i++) {
-      hints.push(i + end);
-    }
-    for (i = 0; i < len; i++) {
-      if (i === start) { max -= len; }
-      for (let j = i; j < max; j += len) {
-        result.push(hints[j]);
+alphabetEngine_: {
+  maxPrefixLen_: 0,
+  buildHintStrings_ (hintItems: HintsNS.HintItem[]): void {
+    const count: number = hintItems.length, H = VHints, step = H.chars_.length, start = count % step,
+    maxStrLen = Math.ceil(Math.log(count) / Math.log(step)),
+    leftSize = ((Math.pow(step, maxStrLen) - count) / (step - 1)) | 0, midMargin = leftSize * step - leftSize,
+    maxStrLenS1 = maxStrLen - +!!leftSize;
+    let area = count - start + step, hintInd = 0;
+    for (let i = 0, x = 0; i < step; i++) {
+      if (i === start) { area -= step; }
+      for (x = i; x < area; x += step) {
+        hintItems[hintInd++].key_ = x < leftSize
+            ? H.numberToHintString_(x, maxStrLenS1) : H.numberToHintString_(x + midMargin, maxStrLen);
       }
     }
-    return result;
+    this.maxPrefixLen_ = maxStrLenS1;
   },
   matchHintsByKey_ (hints: HintsNS.HintItem[], e: KeyboardEvent, keyStatus: HintsNS.KeyStatus): HintsNS.LinksMatched {
     const h = VHints;
@@ -1224,7 +1224,7 @@ alphabetEngine_: {
     keyStatus.newHintLength_ = keyChar.length;
     keyStatus.known_ = 0;
     h.zIndexes_ && (h.zIndexes_ = null);
-    if (arr !== null && keyChar.length >= h.countMax_) {
+    if (arr !== null && keyChar.length >= this.maxPrefixLen_) {
       hints.some(function (hint): boolean {
         return hint.key_ === keyChar && ((arr as HintsNS.HintItem[]).push(hint), true);
       });
