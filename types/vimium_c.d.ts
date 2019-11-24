@@ -567,6 +567,7 @@ declare const enum BrowserVer {
   // https://bugs.chromium.org/p/chromium/issues/detail?id=394907
   MinCorrect$KeyboardEvent$$Repeat = 38,
   MinEnsuredTextEncoderAndDecoder = 38, // even if LEGACY; still exists on C31 if EXPERIMENTAL
+  Min$Math$$log2 = 38, // even if EXPERIMENTAL or LEGACY
   MinWithFrameIdInArg = 39,
   MinMaybe$String$$StartsWithAndEndsWith = 39, // if EXPERIMENTAL
   // only cause event#load even if failing in decoding its data. Test code:
@@ -886,6 +887,7 @@ declare const enum BrowserVer {
   // if `toggleCS` repeatedly, then a 3rd-party iframe gets a new CS later than its owner top frame
   // and if reopenTab, the CS is synced among frames again
   MinIframeInRestoredSessionTabHasPreviousTopFrameContentSettings = 70, // even if EXPERIMENTAL or LEGACY
+  MinStableSort = 70, // even if EXPERIMENTAL or LEGACY
   // means unprefixed properties and event name
   MinEnsured$Document$$fullscreenElement = 71, // even if LEGACY; MinMaybe$Document$$fullscreenElement=61
   Min$Tabs$$Update$DoesNotAcceptJavaScriptURLs = 71,

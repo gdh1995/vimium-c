@@ -1140,14 +1140,6 @@ filterEngine_: {
     return VHints.alphabetEngine_.matchHintsByKey_(hints, e, keyStatus);
   }
 },
-  numberToHintString_ (num: number, repeat: number): string {
-    const characterSet = VHints.chars_, base = characterSet.length;
-    let hintString = "";
-    for (; repeat-- > 0 || num > 0; num = (num / base) | 0) {
-      hintString = characterSet[num % base] + hintString;
-    }
-    return hintString;
-  },
   renderMarkers_ (hintItems: HintsNS.HintItem[]): void {
     const a = VHints, doc = document, useFilter = a.useFilter_,
     noAppend = !!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$append
@@ -1176,19 +1168,32 @@ filterEngine_: {
 alphabetEngine_: {
   maxPrefixLen_: 0,
   buildHintStrings_ (hintItems: HintsNS.HintItem[]): void {
-    const count: number = hintItems.length, H = VHints, step = H.chars_.length, start = count % step,
-    maxStrLen = Math.ceil(Math.log(count) / Math.log(step)),
-    leftSize = ((Math.pow(step, maxStrLen) - count) / (step - 1)) | 0, midMargin = leftSize * step - leftSize,
-    maxStrLenS1 = maxStrLen - +!!leftSize;
-    let area = count - start + step, hintInd = 0;
-    for (let i = 0, x = 0; i < step; i++) {
-      if (i === start) { area -= step; }
-      for (x = i; x < area; x += step) {
-        hintItems[hintInd++].key_ = x < leftSize
-            ? H.numberToHintString_(x, maxStrLenS1) : H.numberToHintString_(x + midMargin, maxStrLen);
-      }
+    const M = Math, C = M.ceil, charSet = VHints.chars_, step = charSet.length,
+    sortedChars = (" " + charSet).split("").sort(),
+    charIndexes: number[] = [],
+    count = hintItems.length, start = (C((count - 1) / (step - 1)) | 0) || 1,
+    bitStep = C(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Math$$log2
+          ? M.log(step + 1) / M.LN2 : M.log2(step + 1)) | 0;
+    let hints: number[] = [0], next = 1, bitOffset = 0;
+    for (const ch of charSet) {
+      charIndexes.push(sortedChars.indexOf(ch));
     }
-    this.maxPrefixLen_ = maxStrLenS1;
+    for (let offset = 0, hint = 0; offset < start; ) {
+      if (next === offset) { next = next * step + 1, bitOffset += bitStep; }
+      hint = hints[offset++];
+      for (const ch of charIndexes) { hints.push((ch << bitOffset) | hint); }
+    }
+    this.maxPrefixLen_ = (bitOffset / bitStep - +(next > start)) | 0;
+    while (next-- > start) { hints[next] <<= bitStep; }
+    hints = hints.slice(start, start + count).sort((i, j) => i - j);
+    for (let i = 0, mask = (1 << bitStep) - 1; i < count; i++) {
+      let hintString = "", num = hints[i];
+      if (!(num & mask)) { num >>= bitStep; }
+      for (; num; num >>>= bitStep) { // use ">>>" to prevent potential typos from causing a dead loop
+        hintString += sortedChars[num & mask];
+      }
+      hintItems[i].key_ = hintString;
+    }
   },
   matchHintsByKey_ (hints: HintsNS.HintItem[], e: KeyboardEvent, keyStatus: HintsNS.KeyStatus): HintsNS.LinksMatched {
     const h = VHints;
