@@ -3653,6 +3653,7 @@ interface HTMLInputElement extends HTMLElement {
     readonly innerText: string;
     readonly parentElement: Element | null;
     readonly parentNode: Node | null;
+    readonly labels: NodeListOf<HTMLLabelElement>;
     /**
       * Sets or retrieves a comma-separated list of content types.
       */

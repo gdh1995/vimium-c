@@ -281,7 +281,7 @@ var VHints = {
     }
     return {
       key_: "",
-      text: "",
+      text_: this.useFilter_ ? this.filterEngine_.generateText_(link) : "",
       dest_: link[0], marker_: marker, refer_: link.length > 4 ? (link as Hint5)[4] : isBox ? link[0] : null
     };
   },
@@ -1133,8 +1133,68 @@ var VHints = {
 useFilter_: true,
 curEngine_: null as never as HintsNS.Engine,
 filterEngine_: {
+  exclusionRe_: null as never as RegExpOne,
+  hasWordArrays_: true,
   buildHintStrings_ (hints: HintsNS.HintItem[]): void {
-    VHints.alphabetEngine_.buildHintStrings_(hints);
+    const a = this, H = VHints, chars = H.chars_, base = chars.length, is10Digits = chars === "0123456789",
+    count = hints.length;
+    a.exclusionRe_ = new RegExp(`[\\W${H.chars_.replace(<RegExpG> /[-\\\]]/g, "\\$&")}]+`);
+    a.hasWordArrays_ = !1;
+    for (let i = 0; i < count; i++) {
+      let hintString = "", num = is10Digits ? 0 : i + 1;
+      for (; num; num = (num / base) | 0) {
+        hintString = chars[num % base] + hintString;
+      }
+      hints[i].key_ = is10Digits ? i + 1 + "" : hintString;
+    }
+  },
+  generateText_ (hint: Hint): string {
+    let el = hint[0] as SafeHTMLElement, text: string = "", show = false;
+    switch ("lang" in el ? el.localName : "") { // skip SVGElement
+    case "input": case "textarea": case "select":
+      let labels = (el as HTMLInputElement).labels;
+      if (labels && labels.length > 0
+          && (text = (labels[0] as SafeHTMLElement).innerText).trim()) {
+        show = !0;
+      } else if (el.localName !== "select") {
+        text = (el as HTMLSelectElement).value;
+      } else if ((el as HTMLInputElement).type === "file") {
+        text = "Choose File";
+      } else if ((el as HTMLInputElement).type !== "password") {
+        text = (el as HTMLInputElement).value || (el as HTMLInputElement).placeholder || "";
+      }
+      break;
+    case "img":
+      text = (el as HTMLImageElement).alt || (el as HTMLImageElement).title;
+      show = !0;
+      break;
+    case "a":
+      text = el.textContent.trim();
+      if (!text) {
+        let el2 = el.firstElementChild as Element | null;
+        text = el2 && VDom.htmlTag_(el2) === "img"
+            ? (el2 as HTMLImageElement).alt || (el2 as HTMLImageElement).title : "";
+        show = !!text;
+        text = text || el.title;
+      }
+      break;
+    case "details":
+      text = "Open"; show = !0;
+      break;
+    default:
+      if (show = hint[2] > ClickType.MaxNotBox) {
+        text = hint[2] > ClickType.frame ? "Scroll" : "Frame";
+      } else {
+        text = el.textContent.trim() || el.title;
+      }
+      break;
+    }
+    if (text) {
+      text = text.slice(0, 256).trim();
+      text.endsWith(":") && (text = text.substr(0, -1).trimRight());
+      text.startsWith(":") && (text = text.substr(1).trimLeft());
+    }
+    return show && text ? ": " + text : text;
   },
   matchHintsByKey_ (hints: HintsNS.HintItem[], e: KeyboardEvent, keyStatus: HintsNS.KeyStatus): HintsNS.LinksMatched {
     return VHints.alphabetEngine_.matchHintsByKey_(hints, e, keyStatus);
