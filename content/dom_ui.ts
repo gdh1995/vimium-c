@@ -303,7 +303,8 @@ var VCui = {
     if (specialAction) {
       result = specialAction > 7 ? ActionType.DispatchAndCheckInDOM
           : specialAction < 2 && (element as HTMLAnchorElement).target !== "_blank"
-            || !(url = element.getAttribute("href")) || url[0] === "#" || a.jsRe_.test(url)
+            || !(url = element.getAttribute("href")) || specialAction & 2 && url[0] === "#"
+            || a.jsRe_.test(url)
           ? ActionType.OnlyDispatch
           : specialAction & 1 && (element.getAttribute("onclick") || a.clickable_.has(element))
           ? ActionType.DispatchAndMayOpenTab : ActionType.OpenTabButNotDispatch;

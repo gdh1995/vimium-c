@@ -505,7 +505,7 @@ var VHints = {
   GetLinks_ (this: void, hints: Hint[], element: SafeHTMLElement): void {
     let a: string | null, arr: Rect | null;
     if (element.localName === "a" && ((a = element.getAttribute("href")) && a !== "#"
-        && !VHints.jsRe_.test(a)
+        && !VDom.jsRe_.test(a)
         || (element as HTMLAnchorElement).dataset.vimUrl != null)) {
       if (arr = VDom.getVisibleClientRect_(element)) {
         hints.push([element as HTMLAnchorElement, arr, ClickType.Default]);
