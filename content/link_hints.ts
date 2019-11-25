@@ -392,7 +392,7 @@ var VHints = {
                 && clientSize + 5 < element.scrollWidth ? ClickType.scrollX
               : ClickType.Default)
           || ((s = element.className)
-                && (<RegExpOne> /\b(?:[Bb](?:utto|t)n|[Cc]lose|hate|like|reply)(?:$|[-\s_])/).test(s)
+                && (<RegExpOne> /\b(?:[Bb](?:utto|t)n|[Cc]lose|hate|like)(?:$|[-\s_])/).test(s)
                 && (!(anotherEl = element.parentElement)
                     || (s = VDom.htmlTag_(anotherEl), s.indexOf("button") < 0 && s !== "a"))
               || element.hasAttribute("aria-selected") ? ClickType.classname : ClickType.Default);
@@ -738,12 +738,13 @@ var VHints = {
         j = i;
       }
       else if (i + 1 < list.length && list[j = i + 1][2] === ClickType.Default
-          && (element = list[i + 1][0]).parentNode === list[i][0]
-          && (element as Hint[0]).localName.indexOf("button") >= 0) {
+          && this._isDescendant(element = list[i + 1][0], list[i][0], false)
+          && (<RegExpOne> /\b(button|a$)/).test((element as Hint[0]).localName)) {
         list.splice(i, 1);
         continue;
       }
-      else if (i > 0 && (k = list[j = i - 1][2]) > ClickType.MaxWeak || !this._isDescendant(list[i][0], list[j][0])) {
+      else if (i > 0 && (k = list[j = i - 1][2]) > ClickType.MaxWeak
+          || !this._isDescendant(list[i][0], list[j][0], true)) {
         continue;
       } else if (VDom.isContaining_(list[j][1], list[i][1])) {
         list.splice(i, 1);
@@ -753,7 +754,7 @@ var VHints = {
       }
       for (; j > i - 3 && 0 < j
             && (k = list[j - 1][2]) > ClickType.MaxNotWeak && k < ClickType.MinNotWeak
-            && this._isDescendant(list[j][0], list[j - 1][0])
+            && this._isDescendant(list[j][0], list[j - 1][0], true)
           ; j--) { /* empty */ }
       if (j < i) {
         list.splice(j, i - j);
@@ -764,7 +765,7 @@ var VHints = {
       list.shift();
     }
   },
-  _isDescendant (d: Element, p: Hint[0]): boolean {
+  _isDescendant (d: Element, p: Hint[0], shouldBeSingleChild: boolean): boolean {
     // Note: currently, not compute normal shadowDOMs / even <slot>s (too complicated)
     let i = 3, c: EnsuredMountedElement | null | undefined, f: Node | null, s: string;
     while (0 < i--
@@ -777,7 +778,7 @@ var VHints = {
       d = c;
     }
     if (c !== <Element> p) { return false; }
-    if ((s = p.localName).indexOf("button") < 0 && s !== "a") {
+    if (shouldBeSingleChild && (s = p.localName).indexOf("button") < 0 && s !== "a") {
       for (; ; ) {
         if (c.childElementCount !== 1 || ((f = c.firstChild) instanceof Text && f.data.trim())) { return false; }
         if (i++ === 2) { break; }
