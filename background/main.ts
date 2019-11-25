@@ -610,9 +610,13 @@
   ];
   function openUrl(url: Urls.Url, workType: Urls.WorkType, tabs?: [Tab] | never[]): void {
     if (typeof url === "string") {
-      let mask: string | undefined = cOptions.url_mask;
+      const tabUrl = tabs && (tabs as Tab[]).length > 0 ? (tabs as [Tab])[0].url : "";
+      let mask: string | undefined = cOptions.url_mask || cOptions.url_mark;
       if (mask) {
-        url = url && url.replace(mask + "", (tabs as Tab[]).length > 0 ? (tabs as [Tab])[0].url : "");
+        url = url && url.replace(mask + "", tabUrl);
+      }
+      if (mask = cOptions.host_mask || cOptions.host_mark) {
+        url = url && url.replace(mask + "", new URL(tabUrl).host);
       }
       if (mask = cOptions.id_mask || cOptions.id_mark || cOptions.id_marker) {
         url = url && url.replace(mask + "", chrome.runtime.id);
@@ -1601,7 +1605,7 @@
         if (!(cOptions.urls instanceof Array)) { cOptions = null as never; return; }
         return tabs && tabs.length > 0 ? openUrls(tabs as [Tab]) : void getCurTab(openUrls);
       }
-      if (cOptions.url_mask && !tabs) {
+      if ((cOptions.url_mask || cOptions.url_mark || cOptions.host_mask || cOptions.host_mark) && !tabs) {
         return onRuntimeError() || <any> void getCurTab(BackgroundCommands[kBgCmd.openUrl]);
       }
       if (cOptions.url) {
