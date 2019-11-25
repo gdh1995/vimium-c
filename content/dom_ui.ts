@@ -313,11 +313,12 @@ var VCui = {
         && a.getVisibleClientRect_(element)) {
       // require element is still visible
       if (specialAction === 8) {
-        // use old rect
-        VCui.click_(element, rect, modifiers, 0, 0, 4);
-        if (!(element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled
-            && a.getVisibleClientRect_(element)) {
-          a.mouse_(element, "dblclick", center, modifiers, null, 4);
+        if (!(element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
+          // use old rect
+          VCui.click_(element, rect, modifiers, 0, 0, 4);
+          if (a.getVisibleClientRect_(element)) {
+            a.mouse_(element, "dblclick", center, modifiers, null, 4);
+          }
         }
         return;
       }
