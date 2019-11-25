@@ -56,7 +56,7 @@ var BgUtils_ = {
     return this.escapeText_(str);
   },
   isJSUrl_ (s: string): boolean {
-    return s.charCodeAt(10) === kCharCode.colon && s.slice(0, 11).toLowerCase() === "javascript:";
+    return s.charCodeAt(10) === kCharCode.colon && s.slice(0, 10).toLowerCase() === "javascript";
   },
   isRefusingIncognito_ (url: string): boolean {
     url = url.toLowerCase();
@@ -528,7 +528,7 @@ var BgUtils_ = {
         s1 = " ";
       } else {
         arr = (q2 || (q2 = query.map(encodeURIComponent)));
-        s1 = "+";
+        s1 = BgUtils_.isJSUrl_(url) ? "%20" : "+";
       }
       if (arr.length === 0) { return ""; }
       if (s2 && s2.indexOf("$") !== -1) {

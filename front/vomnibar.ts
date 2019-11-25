@@ -1208,7 +1208,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       : item.e === "search" && item.v || url;
   },
   navigateToUrl_ (url: string, reuse: ReuseType, https: boolean | null): void {
-    if (url.charCodeAt(10) === kCharCode.colon && url.slice(0, 11).toLowerCase() === "javascript:") {
+    if ((<RegExpI> /javascript:/i).test(url)) {
       VPort_.postToOwner_({ N: VomnibarNS.kFReq.evalJS, u: url });
       return;
     }
