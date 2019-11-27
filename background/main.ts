@@ -14,12 +14,10 @@
   interface PopWindow extends Window {
     tabs: Tab[];
   }
-  interface InfoToCreateMultiTab {
+  interface InfoToCreateMultiTab extends
+      Partial<Pick<chrome.tabs.CreateProperties, "index" | "openerTabId" | "windowId">> {
     url: string;
     active: boolean;
-    windowId?: number;
-    index?: number;
-    openerTabId?: number;
     pinned?: boolean;
   }
   const enum UseTab { NoTab = 0, ActiveTab = 1, CurWndTabs = 2, CurShownTabs = 3 }

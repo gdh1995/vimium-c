@@ -517,7 +517,7 @@ var VHints = {
     // according to https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement#Browser_compatibility,
     // <img>.currentSrc is since C45
     const src: string | null | undefined = element.getAttribute("src") || element.currentSrc || element.dataset.src;
-    if (!src || src.startsWith("data:")) { return; }
+    if (!src) { return; }
     let rect: ClientRect | undefined, cr: Rect | null = null, w: number, h: number;
     if ((w = element.width) < 8 && (h = element.height) < 8) {
       if (w !== h || (w !== 0 && w !== 3)) { return; }
@@ -548,8 +548,7 @@ var VHints = {
       str = (element as SafeHTMLElement).dataset.src || element.getAttribute("href");
       if (!VHints.isImageUrl_(str)) {
         str = (element as SafeHTMLElement).style.backgroundImage as string;
-        // skip "data:" URLs, because they are not likely to be big images
-        str = str && str.slice(0, 3).toLowerCase() === "url" && str.lastIndexOf("data:", 9) < 0 ? str : "";
+        str = str && (<RegExpI> /^url\(/i).test(str) ? str : "";
       }
     }
     if (str) {
@@ -1311,7 +1310,7 @@ decodeURL_ (this: void, url: string, decode?: (this: void, url: string) => strin
   return url;
 },
 isImageUrl_ (str: string | null): boolean {
-  if (!str || str[0] === "#" || str.length < 5 || str.startsWith("data:") || VDom.jsRe_.test(str)) {
+  if (!str || str[0] === "#" || str.length < 5 || VDom.jsRe_.test(str)) {
     return false;
   }
   const end = str.lastIndexOf("#") + 1 || str.length;
@@ -1329,7 +1328,7 @@ getUrlData_ (link: HTMLAnchorElement): string {
   return link.href;
 },
 /** return: img is HTMLImageElement | HTMLAnchorElement | HTMLElement[style={backgroundImage}] */
-_getImageUrl (img: SafeHTMLElement, forShow?: 1): string | void {
+_getImageUrl (img: SafeHTMLElement): string | void {
   let text: string | null, src = img.dataset.src || "", elTag = img.localName, n: number,
   notImg: 0 | 1 | 2 = elTag !== "img" ? 1 : 0;
   if (!notImg) {
@@ -1353,7 +1352,7 @@ _getImageUrl (img: SafeHTMLElement, forShow?: 1): string | void {
       }
     }
   }
-  if (!text || forShow && text.startsWith("data:") || VDom.jsRe_.test(text)
+  if (!text || VDom.jsRe_.test(text)
       || src.length > text.length + 7 && (text === (img as HTMLElement & {href?: string}).href)) {
     text = src;
   }
@@ -1492,7 +1491,7 @@ Modes_: [
         str: string | null | undefined;
     if (isUrl) {
       str = a.getUrlData_(link as HTMLAnchorElement);
-      str.length > 7 && str.toLowerCase().startsWith("mailto:") && (str = str.slice(7).trim());
+      str && (<RegExpI> /^mailto:./).test(str) && (str = str.slice(7).trim());
     }
     /** Note: SVGElement::dataset is only since `BrowserVer.Min$SVGElement$$dataset` */
     else if ((str = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$SVGElement$$dataset
@@ -1518,7 +1517,7 @@ Modes_: [
           : tag === "select" ? ((link as HTMLSelectElement).selectedIndex < 0
               ? "" : (link as HTMLSelectElement).options[(link as HTMLSelectElement).selectedIndex].text)
           : tag && (str = (link as SafeHTMLElement).innerText.trim(),
-              str.length > 7 && str.slice(0, 7).toLowerCase() === "mailto:" ? str.slice(7).trim() : str)
+              (<RegExpI> /^mailto:./).test(str) ? str.slice(7).trim() : str)
             || (str = link.textContent.trim()) && str.replace(<RegExpG> /\s+/g, " ")
           ;
       }
@@ -1611,7 +1610,7 @@ Modes_: [
 ] as HintsNS.ModeOpt,
 [
   (img: SafeHTMLElement): void => {
-    const a = VHints, text = a._getImageUrl(img, 1);
+    const a = VHints, text = a._getImageUrl(img);
     if (!text) { return; }
     VApi.post_({
       H: kFgReq.openImage,

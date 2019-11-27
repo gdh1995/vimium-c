@@ -74,6 +74,10 @@ interface ExportedSettings {
 
 let _lastBlobURL = "";
 
+window.addEventListener("unload", function (): void {
+  _lastBlobURL && URL.revokeObjectURL(_lastBlobURL);
+});
+
 $<ElementWithDelay>("#exportButton").onclick = function (event): void {
   if (_lastBlobURL) {
     URL.revokeObjectURL(_lastBlobURL);

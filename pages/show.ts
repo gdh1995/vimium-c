@@ -57,8 +57,9 @@ let bgLink = $<HTMLAnchorElement & SafeHTMLElement>("#bgLink");
 let tempEmit: ((succeed: boolean) => void) | null = null;
 let viewer_: ViewerType | null = null;
 var VData: VDataTy = null as never;
-let encryptKey = window.name && +window.name.split(" ")[0] || 0;
+let encryptKey = +window.name || 0;
 let ImageExtRe = <RegExpI> /\.(bmp|gif|icon?|jpe?g|a?png|tiff?|webp)(?=[.\-_]|\b)/i;
+let _shownBlobURL = "";
 
 if (navigator.language.slice(0, 2).toLowerCase() !== "en") {
   document.title = pTrans_("vDisplay") || document.title;
@@ -77,6 +78,9 @@ window.onhashchange = function (this: void): void {
   let url = location.hash, type: ValidShowTypes = "", file = "";
   if (!url && BG_ && BG_.Settings_ && BG_.Settings_.temp_.shownHash_) {
     url = BG_.Settings_.temp_.shownHash_();
+    if ((<RegExpI> /^[^:]+[ &]data:/i).test(url)) {
+      encryptKey = -1;
+    }
     encryptKey = encryptKey || Math.floor(Math.random() * 0x100000000) || 0xc3e73c18;
     let encryptedUrl = encrypt_(url, encryptKey, true);
     if (history.state) {
@@ -84,12 +88,12 @@ window.onhashchange = function (this: void): void {
     } else {
       history.replaceState(encryptedUrl, "", "");
     }
-    window.name = encryptKey + " " + url;
+    window.name = "" + encryptKey;
   }
   else if (url || !history.state) { /* empty */ }
   else if (encryptKey) {
     url = encrypt_(history.state, encryptKey, false);
-    window.name = encryptKey + " " + url;
+    window.name = "" + encryptKey;
   } else {
     history.replaceState(null, "", ""); // clear useless data
   }
@@ -138,6 +142,7 @@ window.onhashchange = function (this: void): void {
     url = "http://" + url;
   }
   VData.type = type;
+  (<RegExpI> /^data:/i).test(url) && (url = "data:" + url.slice(5));
   VData.url = VData.original = url;
 
   switch (type) {
@@ -185,10 +190,12 @@ window.onhashchange = function (this: void): void {
             return;
           }
         }
-        if (VData.url !== VData.original) {
-          VData.original = VData.url;
-        }
+        VData.original = VData.url;
         resetOnceProperties_();
+        if (VData.url.startsWith("data:") && !this.src.startsWith("data")) {
+          bgLink.dataset.vimUrl = VData.original = VData.url = this.src;
+          recoverHash_(1);
+        }
         this.onerror = this.onload = null as never;
         this.src.startsWith("blob:") ||
         setTimeout(function () { // safe; because on C65, in some tests refreshing did not trigger replay
@@ -277,6 +284,8 @@ String.prototype.endsWith = function (this: string, s: string): boolean {
 window.onpopstate = function () {
   (window.onhashchange as () => void)();
 };
+
+window.onunload = destroyObject_;
 
 document.addEventListener("keydown", function (this: void, event): void {
   if (VData.type === "image" && imgOnKeydown(event)) {
@@ -531,6 +540,7 @@ function showSlide(ViewerModule: Window["Viewer"]): Promise<ViewerType> | Viewer
 }
 
 function clean() {
+  destroyObject_();
   if (VData.type === "image") {
     (document.body as HTMLBodyElement).classList.remove("filled");
     (VShown as HTMLImageElement).removeAttribute("src");
@@ -649,8 +659,8 @@ function fetchImage_(url: string, element: HTMLImageElement): void {
   };
   element.addEventListener("load", clearTimer, true);
   element.addEventListener("error", clearTimer, true);
-  if (!(VData.incognito || BG_.Settings_.get_("showInIncognito"))
-      || !(<RegExpI> /^(ht|s?f)tp/i).test(url)
+  if (!(VData.incognito || BG_.Settings_.get_("showInIncognito") || url.startsWith("data:"))
+      || !(<RegExpI> /^(ht|s?f)tp|^data:/i).test(url)
       || !!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinEnsured$fetch
           && !(window as any).fetch
       || !!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinEnsuredFetchRequestCache
@@ -658,11 +668,12 @@ function fetchImage_(url: string, element: HTMLImageElement): void {
           && !("cache" in Request.prototype)) {
     element.src = url;
   } else {
+    destroyObject_();
     body.replaceChild(text, element);
     fetch(url, {
       cache: "no-store",
       referrer: "no-referrer"
-    }).then(res => res.blob()).then(URL.createObjectURL, () => url).then(newUrl => {
+    }).then(res => res.blob()).then(blob => _shownBlobURL = URL.createObjectURL(blob), () => url).then(newUrl => {
       element.src = newUrl;
       body.replaceChild(element, text);
     });
@@ -675,6 +686,13 @@ function fetchImage_(url: string, element: HTMLImageElement): void {
       text.data = pTrans_("loading") || "loading\u2026";
     }
   }, 400);
+}
+
+function destroyObject_(): void {
+  if (_shownBlobURL) {
+    URL.revokeObjectURL(_shownBlobURL);
+    _shownBlobURL = "";
+  }
 }
 
 function tryDecryptUrl(url: string): string {
@@ -714,7 +732,7 @@ function resetOnceProperties_() {
   return changed;
 }
 
-function recoverHash_(): void {
+function recoverHash_(notUpdateHistoryState?: 1): void {
   const type = VData.type;
   if (!type) {
     return;
@@ -724,13 +742,14 @@ function recoverHash_(): void {
       + (VData.file ? "download=" + encodeURIComponent(VData.file) + "&" : "")
       + (VData.auto ? "auto=" + (VData.auto === "once" ? "once" : 1) + "&" : "")
       + VData.original;
-  window.name = encryptKey + " " + url;
   VData.full = url;
+  if (notUpdateHistoryState) { return; }
   let encryptedUrl = encrypt_(url, encryptKey, true);
   history.replaceState(encryptedUrl, "", "");
 }
 
 function encrypt_(message: string, password: number, doEncrypt: boolean): string {
+  if (password === -1) { return message; }
   let arr: number[] | Uint8Array = [] as number[];
   if (doEncrypt) {
     message = encodeURIComponent(message);
