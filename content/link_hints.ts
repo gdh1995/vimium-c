@@ -1229,19 +1229,15 @@ alphabetEngine_: {
   maxPrefixLen_: 0,
   buildHintStrings_ (hintItems: HintsNS.HintItem[]): void {
     const M = Math, C = M.ceil, charSet = VHints.chars_, step = charSet.length,
-    sortedChars = (" " + charSet).split("").sort(),
-    charIndexes: number[] = [],
+    chars2 = " " + charSet,
     count = hintItems.length, start = (C((count - 1) / (step - 1)) | 0) || 1,
     bitStep = C(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Math$$log2
           ? M.log(step + 1) / M.LN2 : M.log2(step + 1)) | 0;
     let hints: number[] = [0], next = 1, bitOffset = 0;
-    for (const ch of charSet) {
-      charIndexes.push(sortedChars.indexOf(ch));
-    }
     for (let offset = 0, hint = 0; offset < start; ) {
       if (next === offset) { next = next * step + 1, bitOffset += bitStep; }
       hint = hints[offset++];
-      for (const ch of charIndexes) { hints.push((ch << bitOffset) | hint); }
+      for (let ch = 1; ch <= step; ch++) { hints.push((ch << bitOffset) | hint); }
     }
     this.maxPrefixLen_ = (bitOffset / bitStep - +(next > start)) | 0;
     while (next-- > start) { hints[next] <<= bitStep; }
@@ -1250,7 +1246,7 @@ alphabetEngine_: {
       let hintString = "", num = hints[i];
       if (!(num & mask)) { num >>= bitStep; }
       for (; num; num >>>= bitStep) { // use ">>>" to prevent potential typos from causing a dead loop
-        hintString += sortedChars[num & mask];
+        hintString += chars2[num & mask];
       }
       hintItems[i].key_ = hintString;
     }
