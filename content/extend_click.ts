@@ -47,6 +47,7 @@ if (VDom && VimiumInjector === undefined) {
 
   const kVOnClick1 = InnerConsts.kVOnClick
     , kHook = (InnerConsts.kHook + BuildStr.RandomName0) as InnerConsts.kHook
+    , setupEventListener = VKey.SetupEventListener_
     , appInfo = Build.BTypes & BrowserType.Chrome
         && (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
             || Build.MinCVer < BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
@@ -94,11 +95,11 @@ if (VDom && VimiumInjector === undefined) {
         || event.detail !== secret || !(t instanceof Element)) { return; }
     // it's unhooking is delayed, so here may no VKey
     event.stopImmediatePropagation();
-    removeEventListener(kHook, hook, !0);
+    setupEventListener(0, kHook, hook, 1);
     hook = null as never;
     if (box == null) {
       t.removeAttribute(InnerConsts.kSecretAttr);
-      VKey.SetupEventListener_(t, kVOnClick1, onClick);
+      setupEventListener(t, kVOnClick1, onClick);
       box = t;
     }
   },
@@ -106,7 +107,7 @@ if (VDom && VimiumInjector === undefined) {
     if (e && (e.target !== Doc
             || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.ChromeOrFirefox)
                 ? !e.isTrusted : e.isTrusted === !1))) { return; }
-    removeEventListener("load", delayFindAll, !0);
+    setupEventListener(0, "load", delayFindAll, 1);
     delayFindAll = null as never;
     box && isFirstResolve && setTimeout(function (): void {
       box && isFirstResolve && dispatchCmd(kContentCmd.AutoFindAllOnClick);
@@ -157,11 +158,11 @@ if (VDom && VimiumInjector === undefined) {
     }
     /** this function should keep idempotent */
     if (box) {
-      VKey.SetupEventListener_(box, kVOnClick1, onClick, 1);
+      setupEventListener(box, kVOnClick1, onClick, 1);
       dispatchCmd(kContentCmd.Destroy);
     }
     if (box == null && isFirstTime) {
-      VKey.SetupEventListener_(0, kHook, hook, 1, 1);
+      setupEventListener(0, kHook, hook, 1);
       if (cmd === kContentCmd.DestroyForCSP) {
         // normally, if here, must have: limited by CSP; not C or C >= MinEnsuredNewScriptsFromExtensionOnSandboxedPage
         // ignore the rare (unexpected) case that injected code breaks even when not limited by CSP,
@@ -497,7 +498,7 @@ _listen(kOnDomReady, doInit, !0);
           , ((Math.random() * GlobalConsts.SecretRange + GlobalConsts.SecretBase) | 0) + '"');
     }
     VApi.execute_ = execute;
-    VKey.SetupEventListener_(0, kHook, hook, 0, 1);
+    setupEventListener(0, kHook, hook, 0);
   }
   /**
    * According to `V8CodeCache::ProduceCache` and `V8CodeCache::GetCompileOptions`
@@ -533,7 +534,7 @@ _listen(kOnDomReady, doInit, !0);
       }, 0);
     });
     isFirstTime &&
-    VKey.SetupEventListener_(0, "load", delayFindAll, 0, 1);
+    setupEventListener(0, "load", delayFindAll, 0);
     return;
   }
   // else: CSP script-src before C68, CSP sandbox before C68 or JS-disabled-in-CS on C/E
@@ -557,7 +558,7 @@ _listen(kOnDomReady, doInit, !0);
     VApi.destroy_(1);
     return;
   }
-  setTimeout = (setInterval = function (func: (info?: TimerType.fake) => void, timeout: number): number {
+  setTimeout = setInterval = function (func: (info?: TimerType.fake) => void, timeout: number): number {
     const cb = () => func(TimerType.fake);
     const rIC = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? requestIdleCallback : 0 as const;
     // in case there's `$("#requestIdleCallback")`
@@ -568,7 +569,7 @@ _listen(kOnDomReady, doInit, !0);
       : (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome
           ? rAF : requestAnimationFrame)(cb)
       ;
-  } as any);
+  } as any;
 })(VDom.docInitingWhenVimiumIniting_)
 
 // #else: on Firefox

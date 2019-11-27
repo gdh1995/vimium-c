@@ -44,7 +44,7 @@ declare namespace HintsNS {
   interface KeyStatus {
     known_: BOOL;
     newHintLength_: number;
-    tab_: BOOL;
+    tab_: number;
   }
   type HintSources = SafeElement[] | NodeListOf<SafeElement>;
   interface Engine {
@@ -935,16 +935,16 @@ var VHints = {
         a.tooHigh_ = null;
         setTimeout(a._reinit.bind(a, null, null), 0);
       }
-    } else if (linksMatched.length === 0) {
+    } else if (linksMatched.length <= 0) {
       a.deactivate_(a.keyStatus_.known_);
-    } else if (linksMatched.length === 1) {
+    } else if (linksMatched.length > 1) {
+      a.hideSpans_(linksMatched);
+    } else {
       VKey.prevent_(event);
       /** safer; necessary for {@link #VHints._highlightChild} */
       VApi.keydownEvents_()[i] = 1;
       a.keyCode_ = i;
       a.execute_(linksMatched[0]);
-    } else {
-      a.hideSpans_(linksMatched);
     }
     return HandlerResult.Prevent;
   },

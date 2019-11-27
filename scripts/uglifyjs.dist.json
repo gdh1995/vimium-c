@@ -30,7 +30,7 @@
     "pure_funcs": ["startsWith", "endsWith", "contains", "indexOf", "lastIndexOf",
       "substring", "substr", "slice", "charAt", "charCodeAt", "repeat", "concat",
       "toUpperCase", "toLowerCase", "trim", "trimLeft", "trimRight",
-      "search", "match", "exec", "replace",
+      "search", "match", "exec", "replace", "split",
       "create", "setPrototypeOf", "bind", "toString",
       "createElement", "numberToHintString_",
       "Object.create", "Object.setPrototypeOf",
