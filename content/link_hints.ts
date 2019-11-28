@@ -8,7 +8,7 @@ declare namespace HintsNS {
   type LinkEl = Hint[0];
   interface Executor {
     // tslint:disable-next-line: callable-types
-    (linkEl: LinkEl, rect: Rect | null, hintEl: Pick<HintsNS.HintItem, "refer_">): void | boolean;
+    (linkEl: LinkEl, rect: Rect | null, hintEl: Pick<HintsNS.HintItem, "r">): void | boolean;
   }
   interface ModeOpt extends ReadonlyArray<Executor | HintMode | string> {
     [0]: Executor;
@@ -38,18 +38,19 @@ declare namespace HintsNS {
     // tslint:disable-next-line: callable-types
     (this: void, hints: T[], element: SafeHTMLElement): void;
   }
-  type LinksMatched = false | null | HintItem[];
+  type LinksMatched = null | HintItem[];
   type Stack = number[];
   type Stacks = Stack[];
   interface KeyStatus {
+    hints_: HintItem[];
+    keySequence_: string;
+    textSequence_: string;
     known_: BOOL;
-    newHintLength_: number;
     tab_: number;
   }
   type HintSources = SafeElement[] | NodeListOf<SafeElement>;
   interface Engine {
-    buildHintStrings_ (hintItems: HintItem[]): void;
-    matchHintsByKey_ (hints: HintsNS.HintItem[], e: KeyboardEvent, keyStatus: HintsNS.KeyStatus): HintsNS.LinksMatched;
+    init_ (hintItems: HintItem[]): void;
   }
 }
 
@@ -68,7 +69,7 @@ var VHints = {
   box_: null as HTMLDivElement | HTMLDialogElement | null,
   dialogMode_: false,
   wantDialogMode_: null as boolean | null,
-  hints_: null as never as HintsNS.HintItem[],
+  fullHints_: null as never as HintsNS.HintItem[],
   mode_: 0 as HintMode,
   mode1_: 0 as HintMode,
   modeOpt_: null as never as HintsNS.ModeOpt,
@@ -81,10 +82,11 @@ var VHints = {
   ngEnabled_: null as boolean | null,
   jsaEnabled_: null as boolean | null,
   chars_: "",
-  hintKeystroke_: "",
   keyStatus_: {
+    hints_: null as never,
+    keySequence_: "",
+    textSequence_: "",
     known_: 0,
-    newHintLength_: 0,
     tab_: 0
   } as HintsNS.KeyStatus,
   doesMapKey_: false,
@@ -145,16 +147,16 @@ var VHints = {
     }
 
     if (a.box_) { a.box_.remove(); a.box_ = null; }
-    const hints = elements.map(a.createHint_, a);
+    const hints = a.fullHints_ = a.keyStatus_.hints_ = elements.map(a.createHint_, a);
     VDom.bZoom_ !== 1 && a.adjustMarkers_(elements, hints);
     elements = null as never;
-    a.hintKeystroke_ = "";
+    a.curEngine_.init_(hints);
     a.renderMarkers_(hints);
 
     a.noHUD_ = arr[3] <= 40 || arr[2] <= 320 || (options.hideHUD || options.hideHud) === true;
     VCui.ensureBorder_(VDom.wdZoom_);
     a.setMode_(a.mode_, false);
-    a.box_ = VCui.addElementList_(a.hints_ = hints, arr, a.dialogMode_);
+    a.box_ = VCui.addElementList_(hints, arr, a.dialogMode_);
     a.dialogMode_ && (a.box_ as HTMLDialogElement).showModal();
 
     a.isActive_ = true;
@@ -262,7 +264,7 @@ var VHints = {
   maxLeft_: 0,
   maxTop_: 0,
   maxRight_: 0,
-  zIndexes_: null as null | false | HintsNS.Stacks,
+  zIndexes_: null as null | 0 | HintsNS.Stacks,
   createHint_ (link: Hint): HintsNS.HintItem {
     let i: number = link.length < 4 ? link[1].l : (link as Hint4)[3][0].l + (link as Hint4)[3][1];
     const marker = VDom.createElement_("span") as HintsNS.MarkerElement, st = marker.style,
@@ -279,10 +281,13 @@ var VHints = {
         && i > this.maxTop_) {
       st.maxHeight = this.maxTop_ - i + GlobalConsts.MaxHeightOfLinkHintMarker + "px";
     }
-    return {
-      key_: "",
-      text_: this.useFilter_ ? this.filterEngine_.generateText_(link) : "",
-      dest_: link[0], marker_: marker, refer_: link.length > 4 ? (link as Hint5)[4] : isBox ? link[0] : null
+    return { // the order of keys is for easier debugging
+      a: "",
+      d: link[0],
+      h: this.useFilter_ ? this.filterEngine_.generateHintText_(link) : null,
+      i: 0,
+      m: marker,
+      r: link.length > 4 ? (link as Hint5)[4] : isBox ? link[0] : null
     };
   },
   adjustMarkers_ (elements: Hint[], arr: HintsNS.HintItem[]): void {
@@ -295,7 +300,7 @@ var VHints = {
     mt = Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar
         ? this.maxTop_ * zi : 0;
     while (0 <= i && root.contains(elements[i][0])) {
-      let st = arr[i--].marker_.style;
+      let st = arr[i--].m.style;
       Build.BTypes & ~BrowserType.Firefox && (st.zoom = z);
       if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinAbsolutePositionNotCauseScrollbar) {
         continue;
@@ -500,7 +505,7 @@ var VHints = {
       break;
     }
     if (arr = VDom.getVisibleClientRect_(element)) {
-      hints.push([element as HintsNS.InputHintItem["dest_"], arr, ClickType.edit]);
+      hints.push([element as HintsNS.InputHintItem["d"], arr, ClickType.edit]);
     }
   },
   GetLinks_ (this: void, hints: Hint[], element: SafeHTMLElement): void {
@@ -926,19 +931,18 @@ var VHints = {
     } else if (i <= kKeyCode.down && i >= kKeyCode.pageup) {
       VSc.BeginScroll_(event);
       a.ResetMode_();
-    } else if (i === kKeyCode.space) {
-      a.zIndexes_ === false || a.rotateHints_(event.shiftKey);
-      event.shiftKey && a.ResetMode_();
-    } else if (!(linksMatched
-        = a.curEngine_.matchHintsByKey_(a.hints_, event, a.keyStatus_))) {
-      if (linksMatched === false) {
-        a.tooHigh_ = null;
-        setTimeout(a._reinit.bind(a, null, null), 0);
-      }
+    } else if (i === kKeyCode.tab && !a.keyStatus_.keySequence_) {
+      a.tooHigh_ = null;
+      setTimeout(a._reinit.bind(a, null, null), 0);
+    } else if (i === kKeyCode.space && (!a.useFilter_ || VKey.getKeyStat_(event))) {
+      a.zIndexes_ === 0 || a.rotateHints_(event.shiftKey);
+      a.ResetMode_();
+    } else if (!(linksMatched = a.matchHintsByKey_(a.keyStatus_, event))) {
     } else if (linksMatched.length <= 0) {
+      // then .a.keyStatus_.hintSequence_ is the last key char
       a.deactivate_(a.keyStatus_.known_);
     } else if (linksMatched.length > 1) {
-      a.hideSpans_(linksMatched);
+      a.useFilter_ || a.hideSpans_(linksMatched);
     } else {
       VKey.prevent_(event);
       /** safer; necessary for {@link #VHints._highlightChild} */
@@ -949,8 +953,8 @@ var VHints = {
     return HandlerResult.Prevent;
   },
   hideSpans_ (linksMatched: HintsNS.HintItem[]): void {
-    const limit = this.keyStatus_.tab_ ? 0 : this.keyStatus_.newHintLength_;
-    for (const { marker_: { childNodes: ref } } of linksMatched) {
+    const limit = this.keyStatus_.keySequence_.length - +!!this.keyStatus_.tab_;
+    for (const { m: { childNodes: ref } } of linksMatched) {
 // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/dom_token_list.cc?q=DOMTokenList::setValue&g=0&l=258
 // shows that `.classList.add()` costs more
       for (let j = ref.length - 1; 0 <= --j; ) {
@@ -968,21 +972,15 @@ var VHints = {
       }
     }
   },
-  resetHints_ (): void {
-    let ref = this.hints_, i = 0, len = ref ? ref.length : 0;
-    this.hints_ = this.zIndexes_ = null as never;
-    this.pTimer_ > 0 && clearTimeout(this.pTimer_);
-    while (i < len) { (ref as HintsNS.HintItem[])[i++].dest_ = null as never; }
-  },
   execute_ (hint: HintsNS.HintItem): void {
     const a = this;
-    let rect: Rect | null | undefined, clickEl: HintsNS.LinkEl | null = hint.dest_;
+    let rect: Rect | null | undefined, clickEl: HintsNS.LinkEl | null = hint.d;
     a.resetHints_();
     (VHud as Writable<VHUDTy>).t = "";
     if (VDom.IsInDOM_(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
       // must use UI.getRect, so that VDom.zooms are updated, and prepareCrop is called
-      rect = VCui.getRect_(clickEl, hint.refer_ !== clickEl ? hint.refer_ as HTMLElementUsingMap | null : null);
+      rect = VCui.getRect_(clickEl, hint.r !== clickEl ? hint.r as HTMLElementUsingMap | null : null);
       const showRect = a.modeOpt_[0](clickEl, rect, hint);
       if (showRect !== false && (rect || (rect = VDom.getVisibleClientRect_(clickEl)))) {
         setTimeout(function (): void {
@@ -1015,8 +1013,6 @@ var VHints = {
       return;
     }
     a.isActive_ = false;
-    a.keyStatus_.tab_ = 0;
-    a.zIndexes_ = null;
     a.resetHints_();
     const isClick = a.mode1_ < HintMode.min_job;
     a.activate_(0, a.options_);
@@ -1044,24 +1040,35 @@ var VHints = {
     if (hidden && VDom.lastHovered_ === el) {
       VDom.lastHovered_ = null;
     }
-    if ((!r2 || r) && _this.isActive_ && _this.hints_.length < 64
-        && !_this.hintKeystroke_
+    if ((!r2 || r) && _this.isActive_ && _this.fullHints_.length < 64
+        && !_this.keyStatus_.keySequence_
         && (hidden || Math.abs((r2 as ClientRect).left - (r as Rect).l) > 100
             || Math.abs((r2 as ClientRect).top - (r as Rect).t) > 60)) {
       return _this._reinit();
     }
   },
-  clean_ (keepHUD?: boolean | BOOL): void {
-    const a = this,
-    ks = a.keyStatus_;
-    a.options_ = a.modeOpt_ = a.zIndexes_ = a.hints_ = a.curEngine_ = null as never;
+  resetHints_ (): void {
+    const a = this;
+    a.fullHints_ = a.zIndexes_ = a.filterEngine_.activeHintMarker_ = null as never;
     a.pTimer_ > 0 && clearTimeout(a.pTimer_);
+    a.chars_ = "";
+    a.keyStatus_ = {
+      hints_: null as never,
+      keySequence_: "", textSequence_: "",
+      known_: 0, tab_: 0
+    };
+  },
+  clean_ (keepHUD?: boolean | BOOL): void {
+    const a = this, filterEngine = a.filterEngine_;
+    a.resetHints_();
+    a.options_ = a.modeOpt_ = a.curEngine_ = null as never;
+    filterEngine.exclusionRe_ = null as never;
     a.lastMode_ = a.mode_ = a.mode1_ = a.count_ = a.pTimer_ =
     a.maxLeft_ = a.maxTop_ = a.maxRight_ =
-    ks.tab_ = ks.newHintLength_ = ks.known_ = a.alphabetEngine_.maxPrefixLen_ = 0;
+    a.alphabetEngine_.maxPrefixLen_ = 0;
     a.keyCode_ = kKeyCode.None;
     a.yankedList_ = [];
-    a.hintKeystroke_ = a.chars_ = "";
+    a.useFilter_ = filterEngine.doesIncludeLetter_ =
     a.isActive_ = a.noHUD_ = a.tooHigh_ = a.doesMapKey_ = false;
     VKey.removeHandler_(a);
     VApi.onWndBlur_(null);
@@ -1077,14 +1084,14 @@ var VHints = {
     VKey.suppressTail_(isLastKeyKnown ? 0 : VDom.cache_.k[0]);
   },
   rotateHints_ (reverse?: boolean): void {
-    const a = this, ref = a.hints_;
+    const a = this, ref = a.keyStatus_.hints_;
     let stacks = a.zIndexes_;
     if (!stacks) {
       stacks = [] as HintsNS.Stacks;
       ref.forEach(a.MakeStacks_, [[], stacks] as [Array<ClientRect | null>, HintsNS.Stacks]);
       stacks = stacks.filter(stack => stack.length > 1);
       if (stacks.length <= 0) {
-        a.zIndexes_ = a.keyStatus_.newHintLength_ <= 0 ? false : null;
+        a.zIndexes_ = a.keyStatus_.keySequence_ || a.keyStatus_.textSequence_ ? null : 0;
         return;
       }
       a.zIndexes_ = stacks;
@@ -1092,10 +1099,10 @@ var VHints = {
     for (const stack of stacks) {
       reverse && stack.reverse();
       const i = stack[stack.length - 1], max = reverse ? stack[0] : i;
-      let oldI: number = ref[i].zIndex_ || i;
+      let oldI: number = ref[i].i || i;
       for (const j of stack) {
-        const hint = ref[j], { marker_ } = hint, { classList } = marker_, newI = hint.zIndex_ || j;
-        marker_.style.zIndex = (hint.zIndex_ = oldI) as number | string as string;
+        const hint = ref[j], { m: marker_ } = hint, { classList } = marker_, newI = hint.i || j;
+        marker_.style.zIndex = (hint.i = oldI) as number | string as string;
         classList.toggle("OH", oldI < max); classList.toggle("SH", oldI >= max);
         oldI = newI;
       }
@@ -1104,8 +1111,9 @@ var VHints = {
   },
   MakeStacks_ (this: [Array<ClientRect | null>, HintsNS.Stacks], hint: HintsNS.HintItem, i: number) {
     let rects = this[0];
-    if (hint.marker_.style.visibility === "hidden") { rects.push(null); return; }
-    const stacks = this[1], m = hint.marker_.getClientRects()[0];
+    if (hint.m.style.visibility === "hidden") { rects.push(null); return; }
+    if (VHints.useFilter_) { hint.i = 0; }
+    const stacks = this[1], m = hint.m.getClientRects()[0];
     rects.push(m);
     let stackForThisMarker = null as HintsNS.Stack | null;
     for (let j = 0, len2 = stacks.length; j < len2; ) {
@@ -1130,25 +1138,31 @@ var VHints = {
     stackForThisMarker || stacks.push([i]);
   },
 
-useFilter_: true,
+useFilter_: false,
 curEngine_: null as never as HintsNS.Engine,
 filterEngine_: {
-  exclusionRe_: null as never as RegExpOne,
-  hasWordArrays_: true,
-  buildHintStrings_ (hints: HintsNS.HintItem[]): void {
-    const a = this, H = VHints, chars = H.chars_, base = chars.length, is10Digits = chars === "0123456789",
+  exclusionRe_: null as never as RegExpG,
+  doesIncludeLetter_: false,
+  activeHintMarker_: null as HintsNS.MarkerElement | null,
+  init_ (): void {
+    const a = this, H = VHints, chars = H.chars_;
+    a.exclusionRe_ = new RegExp(`[\\W${chars.replace(<RegExpG> /[-\\\]]/g, "\\$&")}]+`, "g");
+    a.doesIncludeLetter_ = chars !== chars.toLowerCase();
+    H.keyStatus_.textSequence_ = "1";
+    a.getMatchingHints_(H.keyStatus_, "", "");
+  },
+  GenerateHintStrings_ (this: void, hints: HintsNS.HintItem[]): void {
+    const H = VHints, chars = H.chars_, base = chars.length, is10Digits = chars === "0123456789",
     count = hints.length;
-    a.exclusionRe_ = new RegExp(`[\\W${H.chars_.replace(<RegExpG> /[-\\\]]/g, "\\$&")}]+`);
-    a.hasWordArrays_ = !1;
     for (let i = 0; i < count; i++) {
       let hintString = "", num = is10Digits ? 0 : i + 1;
       for (; num; num = (num / base) | 0) {
         hintString = chars[num % base] + hintString;
       }
-      hints[i].key_ = is10Digits ? i + 1 + "" : hintString;
+      hints[i].a = is10Digits ? i + 1 + "" : hintString;
     }
   },
-  generateText_ (hint: Hint): string {
+  generateHintText_ (hint: Hint): HintsNS.HintText {
     let el = hint[0] as SafeHTMLElement, text: string = "", show = false;
     switch ("lang" in el ? el.localName : "") { // skip SVGElement
     case "input": case "textarea": case "select":
@@ -1191,27 +1205,122 @@ filterEngine_: {
     }
     if (text) {
       text = text.slice(0, 256).trim();
-      text.endsWith(":") && (text = text.substr(0, -1).trimRight());
-      text.startsWith(":") && (text = text.substr(1).trimLeft());
+      text.endsWith(":") && (text = text.substr(0, -1).trim());
+      text && text[0] === ":" && (text = text.substr(1).trim());
     }
-    return show && text ? ": " + text : text;
+    return { t: show && text ? ": " + text : text, w: null };
   },
-  matchHintsByKey_ (hints: HintsNS.HintItem[], e: KeyboardEvent, keyStatus: HintsNS.KeyStatus): HintsNS.LinksMatched {
-    return VHints.alphabetEngine_.matchHintsByKey_(hints, e, keyStatus);
+  getMatchingHints_ (keyStatus: HintsNS.KeyStatus, seq: string, text: string): void {
+    const H = VHints, fullHints = H.fullHints_ as HintsNS.FilterHintItem[],
+    a = this, oldActive = a.activeHintMarker_, inited = !!oldActive;
+    let hints = keyStatus.hints_ as HintsNS.FilterHintItem[]
+      , t1 = text.replace(a.exclusionRe_, " ").trimLeft(), ind = 1;
+    if (keyStatus.textSequence_ !== t1) {
+      const t2 = t1.trim(), t0 = keyStatus.textSequence_.trim();
+      if (t0 !== t2) {
+        const oldHints = t2.startsWith(t0) ? hints : fullHints, words = t2.split(" "),
+        hasSearch = !!t2, indStep = 1 / (1 + oldHints.length);
+        hasSearch && (hints = []);
+        for (const hint of oldHints) {
+          if (hasSearch) {
+            const s = a.scoreHint_(hint.h, words);
+            (hint.i = s && s + (ind -= indStep)) && hints.push(hint);
+          } else {
+            hint.i = (ind -= indStep) - hint.h.t.length;
+          }
+        }
+        if (!hints.length) { return; }
+        if (!hasSearch) {
+          hints = oldHints.slice(0); // necessary so that a second `hint.i = (ind -= ...) - ...` can work
+        }
+        hints.sort((a, b) => b.i - a.i);
+        keyStatus.hints_ = hints;
+        keyStatus.keySequence_ = "";
+        // hints[].zIndex is reset in .MakeStacks_
+        a.GenerateHintStrings_(hints);
+        if (inited) {
+          for (const hint of hints) {
+            const el = hint.m.firstElementChild as Element | null;
+            el && el.remove();
+            (hint.m.firstChild as Text).data = hint.a;
+          }
+          for (const hint of oldHints) {
+            hint.m.style.visibility = hint.i !== 0 ? "" : "hidden";
+          }
+        }
+      }
+      keyStatus.textSequence_ = t1;
+    }
+    if (keyStatus.keySequence_ !== seq) {
+      keyStatus.keySequence_ = seq;
+      for (const { m: marker, a: key } of hints) {
+        const match = key.startsWith(seq);
+        marker.style.visibility = match ? "" : "hidden";
+        if (match) {
+          let child = marker.firstChild as Text | HintsNS.MarkerElement, el: HintsNS.MarkerElement;
+          if (child instanceof Text) {
+            el = marker.insertBefore(document.createElement("span") as HintsNS.MarkerElement, child);
+            el.className = "MC";
+          } else {
+            el = child;
+            child = child.nextSibling as Text;
+          }
+          el.textContent = seq;
+          child.data = key.slice(seq.length);
+        }
+      }
+    }
+    const newActive = hints[(keyStatus.tab_ < 0 ? (keyStatus.tab_ += hints.length) : keyStatus.tab_) % hints.length].m;
+    if (oldActive !== newActive) {
+      if (oldActive) {
+        oldActive.classList.remove("MC");
+        oldActive.style.zIndex = "";
+      }
+      newActive.classList.add("MC");
+      newActive.style.zIndex = fullHints.length as number | string as string;
+      a.activeHintMarker_ = newActive;
+    }
+  },
+  /**
+   * total / Math.log(~)
+   * * `>=` 1 / `Math.log`(1 + 256) `>` 0.18
+   * * margin `>=` `0.0001267`
+   * 
+   * so, use `~ * 1e4` to ensure delta > 1
+   */
+  scoreHint_ (textHint: HintsNS.HintText, searchWords: string[]): number {
+    let words = textHint.w, total = 0;
+    if (!words) {
+      words = textHint.w = textHint.t.toLowerCase().split(this.exclusionRe_);
+      words[0] || words.shift();
+      words.length && (words[words.length - 1] || words.pop());
+    }
+    if (!words.length) { return 0; }
+    for (const search of searchWords) {
+      let max = 0;
+      for (const word of words) {
+        const pos = word.indexOf(search);
+        if (pos < 0) { return 0; }
+        max = Math.max(max, pos ? 1 : words.length - search.length ? max ? 2 : 6 : max ? 4 : 8);
+      }
+      total += max;
+    }
+    return total * 1e4 / Math.log(1 + textHint.t.length);
   }
 },
   renderMarkers_ (hintItems: HintsNS.HintItem[]): void {
     const a = VHints, doc = document, useFilter = a.useFilter_,
     noAppend = !!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$append
         && VDom.cache_.v < BrowserVer.MinEnsured$ParentNode$$append;
-    a.curEngine_.buildHintStrings_(hintItems);
-    for (const { marker_: marker, text_: text, key_: key } of hintItems) {
-      const right = !useFilter ? key.slice(-1) : text && text[0] === ":"
-          ? text.length > 34 ? text.slice(0, 34).trimRight() + "\u2026" : text : "";
+    for (const { m: marker, h: text, a: key } of hintItems) {
+      let right: string;
       if (useFilter) {
         marker.textContent = key;
-        if (!right) { continue; }
+        const r = (text as NonNullable<typeof text>).t;
+        if (!r || r[0] !== ":") { continue; }
+        right = r.length > 34 ? r.slice(0, 34).trimRight() + "\u2026" : r;
       } else {
+        right = key.slice(-1);
         for (const ch of key.slice(0, -1)) {
           const node = doc.createElement("span");
           node.textContent = ch;
@@ -1227,7 +1336,7 @@ filterEngine_: {
   },
 alphabetEngine_: {
   maxPrefixLen_: 0,
-  buildHintStrings_ (hintItems: HintsNS.HintItem[]): void {
+  init_ (hintItems: HintsNS.HintItem[]): void {
     const M = Math, C = M.ceil, charSet = VHints.chars_, step = charSet.length,
     chars2 = " " + charSet,
     count = hintItems.length, start = (C((count - 1) / (step - 1)) | 0) || 1,
@@ -1248,58 +1357,71 @@ alphabetEngine_: {
       for (; num; num >>>= bitStep) { // use ">>>" to prevent potential typos from causing a dead loop
         hintString += chars2[num & mask];
       }
-      hintItems[i].key_ = hintString;
+      hintItems[i].a = hintString;
     }
   },
-  matchHintsByKey_ (hints: HintsNS.HintItem[], e: KeyboardEvent, keyStatus: HintsNS.KeyStatus): HintsNS.LinksMatched {
-    const h = VHints;
-    let keyChar: string, key = e.keyCode, arr = null as HintsNS.HintItem[] | null;
-    if (key === kKeyCode.tab) {
-      if (!h.hintKeystroke_) {
-        return false;
-      }
-      keyStatus.tab_ = (1 - keyStatus.tab_) as BOOL;
-    } else if (keyStatus.tab_) {
-      h.hintKeystroke_ = h.hintKeystroke_.slice(0, -1);
-      keyStatus.tab_ = 0;
-    }
+},
+  matchHintsByKey_ (keyStatus: HintsNS.KeyStatus, e: KeyboardEvent): HintsNS.LinksMatched {
+    const h = VHints, {useFilter_: useFilter, curEngine_: engine} = h;
+    let keyChar: string
+      , {keySequence_: sequence, textSequence_: textSeq, tab_: oldTab, hints_: hints} = keyStatus
+      , key = e.keyCode, mayMatchSingle: 0 | 1 | 2 = 0;
+    keyStatus.tab_ = key === kKeyCode.tab ? useFilter ? oldTab - 2 * +e.shiftKey + 1 : 1 - oldTab
+        : (useFilter || oldTab && (sequence = sequence.slice(0, -1)), 0);
     keyStatus.known_ = 1;
     if (key === kKeyCode.tab) { /* empty */ }
     else if (key === kKeyCode.backspace || key === kKeyCode.deleteKey || key === kKeyCode.f1) {
-      if (!h.hintKeystroke_) {
+      if (!sequence && !textSeq) {
         return [];
       }
-      h.hintKeystroke_ = h.hintKeystroke_.slice(0, -1);
+      sequence ? sequence = sequence.slice(0, -1) : textSeq = textSeq.slice(0, -1);
+    } else if (key === kKeyCode.space) { // then useFilter is true
+      sequence = "";
+      textSeq += " ";
     } else if ((keyChar = VKey.char_(e)) && keyChar.length < 2
-        && (keyChar = (h.doesMapKey_ ? VApi.mapKey_(keyChar, e, keyChar) : keyChar).toUpperCase()
-            ).length < 2) {
-      if (h.chars_.indexOf(keyChar) === -1) {
+        && (keyChar = h.doesMapKey_ ? VApi.mapKey_(keyChar, e, keyChar) : keyChar).length < 2) {
+      keyChar = useFilter ? keyChar : keyChar.toUpperCase();
+      if (h.chars_.indexOf(keyChar) >= 0) {
+        sequence += keyChar;
+        mayMatchSingle = useFilter || sequence.length >= (engine as typeof h.alphabetEngine_).maxPrefixLen_ ? 2 : 1;
+      } else if (!useFilter) {
         return [];
+      } else if ((engine as typeof h.filterEngine_).doesIncludeLetter_ && keyChar !== keyChar.toLowerCase()
+          || ((engine as typeof h.filterEngine_).exclusionRe_ as RegExpOne).test(keyChar)) {
+        (engine as typeof h.filterEngine_).exclusionRe_.lastIndex = 0;
+        return null;
+      } else {
+        sequence = "";
+        textSeq += keyChar.toLowerCase();
       }
-      h.hintKeystroke_ += keyChar;
-      arr = [];
     } else {
       return null;
     }
-    keyChar = h.hintKeystroke_;
-    keyStatus.newHintLength_ = keyChar.length;
     keyStatus.known_ = 0;
-    h.zIndexes_ && (h.zIndexes_ = null);
-    if (arr !== null && keyChar.length >= this.maxPrefixLen_) {
-      hints.some(function (hint): boolean {
-        return hint.key_ === keyChar && ((arr as HintsNS.HintItem[]).push(hint), true);
-      });
-      if (arr.length === 1) { return arr; }
+    h.zIndexes_ = h.zIndexes_ && null;
+    if (mayMatchSingle > 1) {
+      if (useFilter) {
+        let index = 0, base = h.chars_.length, end = hints.length;
+        for (const ch of sequence) { index = index * base + h.chars_.indexOf(ch); }
+        if (index * base >= end) { return index <= end ? [hints[index - 1]] : []; }
+      } else {
+        for (const hint of hints) { if (hint.a === sequence) { return [hint]; } }
+      }
     }
-    const notDoSubCheck = !keyStatus.tab_, wanted = notDoSubCheck ? keyChar : keyChar.slice(0, -1);
-    return hints.filter(function (hint) {
-      const pass = hint.key_.startsWith(wanted)
-          && (notDoSubCheck || !hint.key_.startsWith(keyChar));
-      hint.marker_.style.visibility = pass ? "" : "hidden";
-      return pass;
-    });
-  }
-},
+    if (useFilter) {
+      (engine as typeof h.filterEngine_).getMatchingHints_(keyStatus, sequence, textSeq);
+    } else {
+      keyStatus.keySequence_ = sequence;
+      keyStatus.textSequence_ = textSeq;
+      const notDoSubCheck = !keyStatus.tab_, wanted = notDoSubCheck ? sequence : sequence.slice(0, -1);
+      keyStatus.hints_ = (mayMatchSingle ? hints : h.fullHints_).filter(function (hint) {
+        const pass = hint.a.startsWith(wanted) && (notDoSubCheck || !hint.a.startsWith(sequence));
+        hint.m.style.visibility = pass ? "" : "hidden";
+        return pass;
+      });
+    }
+    return keyStatus.hints_;
+  },
 
 decodeURL_ (this: void, url: string, decode?: (this: void, url: string) => string): string {
   try { url = (decode || decodeURI)(url); } catch {}
@@ -1659,7 +1781,7 @@ Modes_: [
       link.focus();
       VCui.flash_(link);
     } else {
-      VCui.simulateSelect_(link as HintsNS.InputHintItem["dest_"], rect, true);
+      VCui.simulateSelect_(link as HintsNS.InputHintItem["d"], rect, true);
     }
     return false;
   }
@@ -1685,7 +1807,7 @@ Modes_: [
       }
       (link as HTMLDetailsElement).open = !(link as HTMLDetailsElement).open;
       return;
-    } else if (hint.refer_ && hint.refer_ === link) {
+    } else if (hint.r && hint.r === link) {
       return a.Modes_[0][0](link, rect, hint);
     } else if (VDom.getEditableType_<0>(link) >= EditableType.TextBox) {
       VCui.simulateSelect_(link as LockableElement, rect, true);

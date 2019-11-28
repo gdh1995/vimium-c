@@ -158,19 +158,26 @@ declare namespace HintsNS {
     readonly childNodes: NodeListOf<HTMLSpanElement | Text>
   }
   interface BaseHintItem {
-    marker_: MarkerElement;
-    dest_: Hint[0];
+    /** marker */ m: MarkerElement;
+    /** dest */ d: Hint[0];
   }
 
+  interface HintText {
+    /** rawText */ t: string;
+    /** words */ w: string[] | null;
+  }
   interface HintItem extends BaseHintItem {
-    key_: string;
-    text_: string;
-    refer_: HTMLElementUsingMap | Hint[0] | null;
-    zIndex_?: number;
+    /** key */ a: string;
+    /** text */ h: HintText | null;
+    /** refer */ r: HTMLElementUsingMap | Hint[0] | null;
+    /** zIndex */ i: number;
   }
 
   interface InputHintItem extends BaseHintItem {
-    dest_: LockableElement;
+    d: LockableElement;
+  }
+  interface FilterHintItem extends HintItem {
+    h: HintText;
   }
 }
 

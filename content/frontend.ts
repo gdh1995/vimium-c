@@ -625,7 +625,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       // here those editable and inside UI root are always detected, in case that a user modifies the shadow DOM
       const visibleInputs = Hints.traverse_(Build.BTypes & ~BrowserType.Firefox
             ? Hints.kEditableSelector_ + Hints.kSafeAllSelector_ : Hints.kEditableSelector_, Hints.GetEditable_
-          ) as Array<Hint & { [0]: HintsNS.InputHintItem["dest_"]; }>,
+          ) as Array<Hint & { [0]: HintsNS.InputHintItem["d"]; }>,
       action = options.select;
       let sel = visibleInputs.length;
       if (sel === 0) {
@@ -641,19 +641,19 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
       const hints: HintsNS.InputHintItem[] = visibleInputs.sort((a, b) => a[2] - b[2]).map(
           function (link): HintsNS.InputHintItem {
-        const marker = D.createElement_("span") as HintsNS.BaseHintItem["marker_"],
+        const marker = D.createElement_("span") as HintsNS.BaseHintItem["m"],
         rect = D.padClientRect_(D.getBoundingClientRect_(link[0]), 3);
         rect.l--, rect.t--, rect.r--, rect.b--;
         marker.className = "IH";
         D.setBoundary_(marker.style, rect);
-        return {marker_: marker, dest_: link[0]};
+        return {m: marker, d: link[0]};
       });
       if (count === 1 && InsertMode.last_) {
         sel = Math.max(0, visibleInputs.map(link => link[0]).indexOf(InsertMode.last_));
       } else {
         sel = count > 0 ? Math.min(count, sel) - 1 : Math.max(0, sel + count);
       }
-      hints[sel].marker_.className = "IH IHS";
+      hints[sel].m.className = "IH IHS";
       U.simulateSelect_(visibleInputs[sel][0], visibleInputs[sel][1], false, action, false);
       U.ensureBorder_(D.wdZoom_);
       const box = U.addElementList_<false>(hints, arr), keep = !!options.keep, pass = !!options.passExitKey;
@@ -668,9 +668,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           sel = (oldSel + (event.shiftKey ? len - 1 : 1)) % len;
           InsertMode.hinting_ = true;
           K.prevent_(event); // in case that selecting is too slow
-          U.simulateSelect_(hints2[sel].dest_, null, false, action);
-          hints2[oldSel].marker_.className = "IH";
-          hints2[sel].marker_.className = "IH IHS";
+          U.simulateSelect_(hints2[sel].d, null, false, action);
+          hints2[oldSel].m.className = "IH";
+          hints2[sel].m.className = "IH IHS";
           InsertMode.hinting_ = false;
           return HandlerResult.Prevent;
         }
@@ -681,7 +681,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         else if (keep ? isEscape(event) || (
             keyCode === kKeyCode.enter && (keyStat = K.getKeyStat_(event),
               keyStat !== KeyStat.shiftKey
-              && (keyStat !== KeyStat.plain || this.h[sel].dest_.localName === "input" ))
+              && (keyStat !== KeyStat.plain || this.h[sel].d.localName === "input" ))
           ) : keyCode !== kKeyCode.ime && keyCode !== kKeyCode.f12
         ) {
           InsertMode.exitInputHint_();
@@ -1034,7 +1034,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         st.visibility = "hidden";
         U.box_ || U.ensureBorder_();
       }
-      U.add_(HUD.box_ = el, Hints.hints_ ? AdjustType.NotAdjust : AdjustType.DEFAULT, Hints.box_);
+      U.add_(HUD.box_ = el, Hints.fullHints_ ? AdjustType.NotAdjust : AdjustType.DEFAULT, Hints.box_);
     },
     _tween (this: void, fake?: TimerType.fake): void { // safe-interval
       const el = HUD.box_ as HTMLDivElement, st = el.style, reduce = isEnabled && fgCache.r;

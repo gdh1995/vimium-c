@@ -79,7 +79,7 @@ var VCui = {
     const parent = VDom.createElement_(dialogContainer ? "dialog" : "div");
     parent.className = "R HM" + (dialogContainer ? " DHM" : "") + VDom.cache_.d;
     for (const el of els) {
-      parent.appendChild(el.marker_);
+      parent.appendChild(el.m);
     }
     const style = parent.style, zoom = VDom.bZoom_ / VDom.dScale_,
     left = offset[0] + "px", top = offset[1] + "px";
