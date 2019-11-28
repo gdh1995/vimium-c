@@ -146,7 +146,7 @@ var VHints = {
     const hints = a.fullHints_ = a.keyStatus_.hints_ = elements.map(a.createHint_, a);
     VDom.bZoom_ !== 1 && a.adjustMarkers_(elements, hints);
     elements = null as never;
-    useFilter ? a.filterEngine_.init_() : a.initAlphabetEngine__(hints);
+    useFilter ? a.filterEngine_.getMatchingHints_(a.keyStatus_, "", "") : a.initAlphabetEngine_(hints);
     a.renderMarkers_(hints);
 
     a.noHUD_ = arr[3] <= 40 || arr[2] <= 320 || (options.hideHUD || options.hideHud) === true;
@@ -1054,16 +1054,15 @@ var VHints = {
     };
   },
   clean_ (keepHUD?: boolean | BOOL): void {
-    const a = this, filterEngine = a.filterEngine_;
+    const a = this;
     a.resetHints_();
     a.options_ = a.modeOpt_ = null as never;
-    filterEngine.exclusionRe_ = null as never;
     a.lastMode_ = a.mode_ = a.mode1_ = a.count_ = a.pTimer_ =
     a.maxLeft_ = a.maxTop_ = a.maxRight_ =
     a.maxPrefixLen_ = 0;
     a.keyCode_ = kKeyCode.None;
     a.yankedList_ = [];
-    a.useFilter_ = filterEngine.doesIncludeLetter_ =
+    a.useFilter_ =
     a.isActive_ = a.noHUD_ = a.tooHigh_ = a.doesMapKey_ = false;
     VKey.removeHandler_(a);
     VApi.onWndBlur_(null);
@@ -1134,15 +1133,10 @@ var VHints = {
   },
 
 filterEngine_: {
-  exclusionRe_: null as never as RegExpG,
-  doesIncludeLetter_: false,
   activeHintMarker_: null as HintsNS.MarkerElement | null,
-  init_ (): void {
-    const a = this, H = VHints, chars = H.chars_;
-    a.exclusionRe_ = new RegExp(`[\\W${chars.replace(<RegExpG> /[-\\\]]/g, "\\$&")}]+`, "g");
-    a.doesIncludeLetter_ = chars !== chars.toLowerCase();
-    H.keyStatus_.textSequence_ = "1";
-    a.getMatchingHints_(H.keyStatus_, "", "");
+  getRe_ (matches: string): RegExpG {
+    const chars = VHints.chars_;
+    return new RegExp(matches + (chars === "0123456789" ? "\\d" : chars.replace(<RegExpG> /\D+/g, "")) + "]+", "g");
   },
   GenerateHintStrings_ (this: void, hints: HintsNS.HintItem[]): void {
     const H = VHints, chars = H.chars_, base = chars.length, is10Digits = chars === "0123456789",
@@ -1207,16 +1201,25 @@ filterEngine_: {
     const H = VHints, fullHints = H.fullHints_ as HintsNS.FilterHintItem[],
     a = this, oldActive = a.activeHintMarker_, inited = !!oldActive;
     let hints = keyStatus.hints_ as HintsNS.FilterHintItem[]
-      , t1 = text.replace(a.exclusionRe_, " ").trimLeft(), ind = 1;
-    if (keyStatus.textSequence_ !== t1) {
-      const t2 = t1.trim(), t0 = keyStatus.textSequence_.trim();
+      , oldTextSeq = inited ? keyStatus.textSequence_ : "a"
+      , t1 = text.trimLeft(), ind = 1;
+    if (oldTextSeq !== t1) {
+      const t2 = t1.trim(), t0 = oldTextSeq.trim();
       if (t0 !== t2) {
-        const oldHints = t2.startsWith(t0) ? hints : fullHints, words = t2.split(" "),
+        const oldHints = t2.startsWith(t0) ? hints : fullHints, search = t2.split(" "),
         hasSearch = !!t2, indStep = 1 / (1 + oldHints.length);
+        if (hasSearch && !fullHints[0].h.w) {
+          const exclusionRe = a.getRe_("[\\W");
+          for (const {h: textHint} of fullHints) {
+            const words = textHint.w = textHint.t.toLowerCase().split(exclusionRe);
+            words[0] || words.shift();
+            words.length && (words[words.length - 1] || words.pop());
+          }
+        }
         hasSearch && (hints = []);
         for (const hint of oldHints) {
           if (hasSearch) {
-            const s = a.scoreHint_(hint.h, words);
+            const s = a.scoreHint_(hint.h, search);
             (hint.i = s && s + (ind -= indStep)) && hints.push(hint);
           } else {
             hint.i = (ind -= indStep) - hint.h.t.length;
@@ -1286,12 +1289,7 @@ filterEngine_: {
    * so, use `~ * 1e4` to ensure delta > 1
    */
   scoreHint_ (textHint: HintsNS.HintText, searchWords: string[]): number {
-    let words = textHint.w, total = 0;
-    if (!words) {
-      words = textHint.w = textHint.t.toLowerCase().split(this.exclusionRe_);
-      words[0] || words.shift();
-      words.length && (words[words.length - 1] || words.pop());
-    }
+    let words = textHint.w as NonNullable<HintsNS.HintText["w"]>, total = 0;
     if (!words.length) { return 0; }
     for (const search of searchWords) {
       let max = 0;
@@ -1307,18 +1305,20 @@ filterEngine_: {
 },
   renderMarkers_ (hintItems: HintsNS.HintItem[]): void {
     const a = VHints, doc = document, useFilter = a.useFilter_,
+    exclusionRe = useFilter as true | never && a.filterEngine_.getRe_("[^\\x21-\\x7e]+|["),
     noAppend = !!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$append
         && VDom.cache_.v < BrowserVer.MinEnsured$ParentNode$$append;
-    for (const { m: marker, h: text, a: key } of hintItems) {
-      let right: string;
+    for (const hint of hintItems) {
+      let right: string, marker = hint.m;
       if (useFilter) {
-        marker.textContent = key;
-        const r = (text as NonNullable<typeof text>).t;
-        if (!r || r[0] !== ":") { continue; }
-        right = r.length > 34 ? r.slice(0, 34).trimRight() + "\u2026" : r;
+        marker.textContent = hint.a;
+        right = (hint.h as HintsNS.HintText).t;
+        if (!right || right[0] !== ":") { continue; }
+        right = right.replace(exclusionRe, " ").trim();
+        right = right.length > 34 ? right.slice(0, 34).trimRight() + "\u2026" : right;
       } else {
-        right = key.slice(-1);
-        for (const ch of key.slice(0, -1)) {
+        right = hint.a.slice(-1);
+        for (const ch of hint.a.slice(0, -1)) {
           const node = doc.createElement("span");
           node.textContent = ch;
           marker.appendChild(node);
@@ -1332,7 +1332,7 @@ filterEngine_: {
     }
   },
   maxPrefixLen_: 0,
-  initAlphabetEngine__ (hintItems: HintsNS.HintItem[]): void {
+  initAlphabetEngine_ (hintItems: HintsNS.HintItem[]): void {
     const M = Math, C = M.ceil, charSet = this.chars_, step = charSet.length,
     chars2 = " " + charSet,
     count = hintItems.length, start = (C((count - 1) / (step - 1)) | 0) || 1,
@@ -1381,9 +1381,8 @@ filterEngine_: {
         mayMatchSingle = useFilter || sequence.length >= h.maxPrefixLen_ ? 2 : 1;
       } else if (!useFilter) {
         return [];
-      } else if (h.filterEngine_.doesIncludeLetter_ && keyChar !== keyChar.toLowerCase()
-          || (h.filterEngine_.exclusionRe_ as RegExpOne).test(keyChar)) {
-        h.filterEngine_.exclusionRe_.lastIndex = 0;
+      } else if (keyChar !== keyChar.toLowerCase() && (<RegExpOne> /[A-Z]/).test(h.chars_)
+          || (<RegExpOne> /\W/).test(keyChar)) {
         return hints;
       } else {
         sequence = "";
