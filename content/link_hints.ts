@@ -38,7 +38,6 @@ declare namespace HintsNS {
     // tslint:disable-next-line: callable-types
     (this: void, hints: T[], element: SafeHTMLElement): void;
   }
-  type LinksMatched = null | HintItem[];
   type Stack = number[];
   type Stacks = Stack[];
   interface KeyStatus {
@@ -881,7 +880,7 @@ var VHints = {
   },
   onKeydown_ (event: KeyboardEventToPrevent): HandlerResult {
     const a = this;
-    let linksMatched: HintsNS.LinksMatched, i: number;
+    let linksMatched: HintsNS.HintItem[], i: number;
     if (event.repeat || !a.isActive_) {
       // NOTE: should always prevent repeated keys.
     } else if ((i = event.keyCode) === kKeyCode.ime) {
@@ -930,19 +929,16 @@ var VHints = {
     } else if (i <= kKeyCode.down && i >= kKeyCode.pageup) {
       VSc.BeginScroll_(event);
       a.ResetMode_();
-    } else if (i === kKeyCode.tab && !a.keyStatus_.keySequence_) {
+    } else if (i === kKeyCode.tab && !a.useFilter_ && !a.keyStatus_.keySequence_) {
       a.tooHigh_ = null;
       setTimeout(a._reinit.bind(a, null, null), 0);
     } else if (i === kKeyCode.space && (!a.useFilter_ || VKey.getKeyStat_(event))) {
       a.zIndexes_ === 0 || a.rotateHints_(event.shiftKey);
       a.ResetMode_();
-    } else if (!(linksMatched = a.matchHintsByKey_(a.keyStatus_, event))) {
-    } else if (linksMatched.length <= 0) {
+    } else if (linksMatched = a.matchHintsByKey_(a.keyStatus_, event), linksMatched.length < 1) {
       // then .a.keyStatus_.hintSequence_ is the last key char
       a.deactivate_(a.keyStatus_.known_);
-    } else if (linksMatched.length > 1) {
-      a.useFilter_ || a.hideSpans_(linksMatched);
-    } else {
+    } else if (linksMatched.length < 2) {
       VKey.prevent_(event);
       /** safer; necessary for {@link #VHints._highlightChild} */
       VApi.keydownEvents_()[i] = 1;
@@ -1268,6 +1264,9 @@ filterEngine_: {
         }
       }
     }
+    if (seq) {
+      hints = hints.filter(hint => hint.a.startsWith(seq));
+    }
     const newActive = hints[(keyStatus.tab_ < 0 ? (keyStatus.tab_ += hints.length) : keyStatus.tab_) % hints.length].m;
     if (oldActive !== newActive) {
       if (oldActive) {
@@ -1357,7 +1356,7 @@ filterEngine_: {
       hintItems[i].a = hintString;
     }
   },
-  matchHintsByKey_ (keyStatus: HintsNS.KeyStatus, e: KeyboardEvent): HintsNS.LinksMatched {
+  matchHintsByKey_ (keyStatus: HintsNS.KeyStatus, e: KeyboardEvent): HintsNS.HintItem[] {
     const h = VHints, {useFilter_: useFilter} = h;
     let keyChar: string
       , {keySequence_: sequence, textSequence_: textSeq, tab_: oldTab, hints_: hints} = keyStatus
@@ -1385,13 +1384,13 @@ filterEngine_: {
       } else if (h.filterEngine_.doesIncludeLetter_ && keyChar !== keyChar.toLowerCase()
           || (h.filterEngine_.exclusionRe_ as RegExpOne).test(keyChar)) {
         h.filterEngine_.exclusionRe_.lastIndex = 0;
-        return null;
+        return hints;
       } else {
         sequence = "";
         textSeq += keyChar.toLowerCase();
       }
     } else {
-      return null;
+      return hints;
     }
     keyStatus.known_ = 0;
     h.zIndexes_ = h.zIndexes_ && null;
@@ -1415,6 +1414,7 @@ filterEngine_: {
         hint.m.style.visibility = pass ? "" : "hidden";
         return pass;
       });
+      h.hideSpans_(keyStatus.hints_);
     }
     return keyStatus.hints_;
   },
