@@ -49,9 +49,6 @@ declare namespace HintsNS {
     tab_: number;
   }
   type HintSources = SafeElement[] | NodeListOf<SafeElement>;
-  interface Engine {
-    init_ (hintItems: HintItem[]): void;
-  }
 }
 
 var VHints = {
@@ -82,6 +79,7 @@ var VHints = {
   ngEnabled_: null as boolean | null,
   jsaEnabled_: null as boolean | null,
   chars_: "",
+  useFilter_: false,
   keyStatus_: {
     hints_: null as never,
     keySequence_: "",
@@ -123,7 +121,6 @@ var VHints = {
     a.setModeOpt_(count, options);
     a.chars_ = str.toUpperCase();
     a.useFilter_ = useFilter;
-    a.curEngine_ = useFilter ? a.filterEngine_ : a.alphabetEngine_;
     a.doesMapKey_ = options.mapKey !== false;
 
     const arr: ViewBox = VDom.getViewBox_(1) as ViewBox;
@@ -150,12 +147,12 @@ var VHints = {
     const hints = a.fullHints_ = a.keyStatus_.hints_ = elements.map(a.createHint_, a);
     VDom.bZoom_ !== 1 && a.adjustMarkers_(elements, hints);
     elements = null as never;
-    a.curEngine_.init_(hints);
+    useFilter ? a.filterEngine_.init_() : a.initAlphabetEngine__(hints);
     a.renderMarkers_(hints);
 
     a.noHUD_ = arr[3] <= 40 || arr[2] <= 320 || (options.hideHUD || options.hideHud) === true;
     VCui.ensureBorder_(VDom.wdZoom_);
-    a.setMode_(a.mode_, false);
+    a.setMode_(a.mode_);
     a.box_ = VCui.addElementList_(hints, arr, a.dialogMode_);
     a.dialogMode_ && (a.box_ as HTMLDialogElement).showModal();
 
@@ -194,9 +191,9 @@ var VHints = {
     a.modeOpt_ = modeOpt;
     a.options_ = options;
     a.count_ = count;
-    return a.setMode_(mode, true);
+    a.setMode_(mode, 1);
   },
-  setMode_ (mode: HintMode, silent?: boolean): void {
+  setMode_ (mode: HintMode, silent?: 1): void {
     const a = this;
     a.lastMode_ = a.mode_ = mode;
     a.mode1_ = mode = mode & ~HintMode.queue;
@@ -206,13 +203,15 @@ var VHints = {
       a.pTimer_ = setTimeout(a.SetHUDLater_, 1000);
       return;
     }
-    const msg = a.dialogMode_ ? " (modal UI)" : "", base = VTr(a.mode_);
-    return VHud.show_(kTip.raw, base || a.modeOpt_[a.modeOpt_.indexOf(a.mode_) + 1] + msg
-        , [base + (msg && VTr(kTip.modalHints))], true);
+    let msg = VTr(a.mode_), textSeq = a.keyStatus_.textSequence_;
+    msg = msg || a.modeOpt_[a.modeOpt_.indexOf(a.mode_) + 1] as string;
+    msg += textSeq && ` [${textSeq}]`;
+    msg += a.dialogMode_ ? VTr(kTip.modalHints, " (modal UI)") : "";
+    return VHud.show_(kTip.raw, "$1", [msg], true);
   },
   SetHUDLater_ (this: void): void {
     const a = VHints;
-    if (a && a.isActive_) { a.pTimer_ = 0; return a.setMode_(a.mode_); }
+    if (a && a.isActive_) { a.pTimer_ = 0; a.setMode_(a.mode_); }
   },
   TryNestedFrame_ (cmd: FgCmdAcrossFrames, count: number, options: SafeObject): boolean {
     const a = this;
@@ -902,7 +901,7 @@ var VHints = {
       } else if (i & KeyStat.shiftKey) {
         a.isClickListened_ = !a.isClickListened_;
       } else if (i & KeyStat.PrimaryModifier) {
-        a.options_.useFilter = VDom.cache_.f = a.curEngine_ !== a.filterEngine_;
+        a.options_.useFilter = VDom.cache_.f = !a.useFilter_;
       } else {
         if (!VApi.execute_) { return HandlerResult.Prevent; }
         a.isClickListened_ = true;
@@ -1002,7 +1001,7 @@ var VHints = {
       const _this = VHints;
       _this._reinit(clickEl, rect);
       if (1 === --_this.count_ && _this.isActive_) {
-        return _this.setMode_(_this.mode1_);
+        _this.setMode_(_this.mode1_);
       }
     }, 18);
   },
@@ -1061,11 +1060,11 @@ var VHints = {
   clean_ (keepHUD?: boolean | BOOL): void {
     const a = this, filterEngine = a.filterEngine_;
     a.resetHints_();
-    a.options_ = a.modeOpt_ = a.curEngine_ = null as never;
+    a.options_ = a.modeOpt_ = null as never;
     filterEngine.exclusionRe_ = null as never;
     a.lastMode_ = a.mode_ = a.mode1_ = a.count_ = a.pTimer_ =
     a.maxLeft_ = a.maxTop_ = a.maxRight_ =
-    a.alphabetEngine_.maxPrefixLen_ = 0;
+    a.maxPrefixLen_ = 0;
     a.keyCode_ = kKeyCode.None;
     a.yankedList_ = [];
     a.useFilter_ = filterEngine.doesIncludeLetter_ =
@@ -1138,8 +1137,6 @@ var VHints = {
     stackForThisMarker || stacks.push([i]);
   },
 
-useFilter_: false,
-curEngine_: null as never as HintsNS.Engine,
 filterEngine_: {
   exclusionRe_: null as never as RegExpG,
   doesIncludeLetter_: false,
@@ -1250,6 +1247,7 @@ filterEngine_: {
         }
       }
       keyStatus.textSequence_ = t1;
+      inited && H.setMode_(H.mode_);
     }
     if (keyStatus.keySequence_ !== seq) {
       keyStatus.keySequence_ = seq;
@@ -1334,10 +1332,9 @@ filterEngine_: {
       }
     }
   },
-alphabetEngine_: {
   maxPrefixLen_: 0,
-  init_ (hintItems: HintsNS.HintItem[]): void {
-    const M = Math, C = M.ceil, charSet = VHints.chars_, step = charSet.length,
+  initAlphabetEngine__ (hintItems: HintsNS.HintItem[]): void {
+    const M = Math, C = M.ceil, charSet = this.chars_, step = charSet.length,
     chars2 = " " + charSet,
     count = hintItems.length, start = (C((count - 1) / (step - 1)) | 0) || 1,
     bitStep = C(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Math$$log2
@@ -1360,9 +1357,8 @@ alphabetEngine_: {
       hintItems[i].a = hintString;
     }
   },
-},
   matchHintsByKey_ (keyStatus: HintsNS.KeyStatus, e: KeyboardEvent): HintsNS.LinksMatched {
-    const h = VHints, {useFilter_: useFilter, curEngine_: engine} = h;
+    const h = VHints, {useFilter_: useFilter} = h;
     let keyChar: string
       , {keySequence_: sequence, textSequence_: textSeq, tab_: oldTab, hints_: hints} = keyStatus
       , key = e.keyCode, mayMatchSingle: 0 | 1 | 2 = 0;
@@ -1383,12 +1379,12 @@ alphabetEngine_: {
       keyChar = useFilter ? keyChar : keyChar.toUpperCase();
       if (h.chars_.indexOf(keyChar) >= 0) {
         sequence += keyChar;
-        mayMatchSingle = useFilter || sequence.length >= (engine as typeof h.alphabetEngine_).maxPrefixLen_ ? 2 : 1;
+        mayMatchSingle = useFilter || sequence.length >= h.maxPrefixLen_ ? 2 : 1;
       } else if (!useFilter) {
         return [];
-      } else if ((engine as typeof h.filterEngine_).doesIncludeLetter_ && keyChar !== keyChar.toLowerCase()
-          || ((engine as typeof h.filterEngine_).exclusionRe_ as RegExpOne).test(keyChar)) {
-        (engine as typeof h.filterEngine_).exclusionRe_.lastIndex = 0;
+      } else if (h.filterEngine_.doesIncludeLetter_ && keyChar !== keyChar.toLowerCase()
+          || (h.filterEngine_.exclusionRe_ as RegExpOne).test(keyChar)) {
+        h.filterEngine_.exclusionRe_.lastIndex = 0;
         return null;
       } else {
         sequence = "";
@@ -1409,7 +1405,7 @@ alphabetEngine_: {
       }
     }
     if (useFilter) {
-      (engine as typeof h.filterEngine_).getMatchingHints_(keyStatus, sequence, textSeq);
+      h.filterEngine_.getMatchingHints_(keyStatus, sequence, textSeq);
     } else {
       keyStatus.keySequence_ = sequence;
       keyStatus.textSequence_ = textSeq;
