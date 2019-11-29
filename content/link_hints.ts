@@ -1294,9 +1294,10 @@ filterEngine_: {
       let max = 0;
       for (const word of words) {
         const pos = word.indexOf(search);
-        if (pos < 0) { return 0; }
-        max = Math.max(max, pos ? 1 : words.length - search.length ? max ? 2 : 6 : max ? 4 : 8);
+        max = pos < 0 ? max : Math.max(max,
+            pos ? 1 : words.length - search.length ? max ? 2 : 6 : max ? 4 : 8);
       }
+      if (!max) { return 0; }
       total += max;
     }
     return total * 1e4 / Math.log(1 + textHint.t.length);

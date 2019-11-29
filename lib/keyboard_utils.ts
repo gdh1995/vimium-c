@@ -165,8 +165,8 @@ var VKey = {
 
   /** handler section */
   _handlers: [] as Array<{ func_: (event: HandlerNS.Event) => HandlerResult; env_: object; }>,
-  pushHandler_<T extends object> (func: HandlerNS.Handler<T>, env: T): number {
-    return this._handlers.push({ func_: func, env_: env });
+  pushHandler_<T extends object> (func: HandlerNS.Handler<T>, env: T): void {
+    this._handlers.push({ func_: func, env_: env });
   },
   bubbleEvent_ (event: HandlerNS.Event): HandlerResult {
     for (let ref = this._handlers, i = ref.length; 0 <= --i; ) {
