@@ -116,8 +116,8 @@ var VOmni = {
       options.p = "";
       return a.setOptions_(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront);
     }
-    if (VimiumInjector === null && (window as Window & {VData?: Element | VDataTy}).VData && VData.full) {
-      url = url.split("#", 1)[0] + VData.full.replace(<RegExpOne> /^-?\d+ /, "");
+    if (VimiumInjector === null && (window as Window & {VData?: Element | VDataTy}).VData) {
+      url = VData.getOmni_(url);
     }
     const trail = options.trailing_slash;
     VApi.send_(kFgReq.parseSearchUrl, {

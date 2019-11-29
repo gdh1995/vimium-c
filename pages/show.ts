@@ -75,6 +75,7 @@ window.onhashchange = function (this: void): void {
   }
 
   VData = Object.create(null);
+  VData.getOmni_ = getOmni_;
   let url = location.hash, type: ValidShowTypes = "", file = "";
   if (!url && BG_ && BG_.Settings_ && BG_.Settings_.temp_.shownHash_) {
     url = BG_.Settings_.temp_.shownHash_();
@@ -773,4 +774,9 @@ function encrypt_(message: string, password: number, doEncrypt: boolean): string
     } catch { message = ""; }
   }
   return message;
+}
+
+function getOmni_(oldUrl: string) {
+  if (!VData.full) { return oldUrl; }
+  return location.href.split("#", 1)[0] + VData.full;
 }

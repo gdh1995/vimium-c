@@ -347,6 +347,7 @@ declare var VimiumInjector: VimiumInjectorTy | undefined | null, VApi: VApiTy;
 
 interface VDataTy {
   full: string;
+  getOmni_ (oldUrl: string): string;
 }
 
 declare const enum kTip {
