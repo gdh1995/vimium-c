@@ -929,8 +929,9 @@ var VHints = {
     } else if (i <= kKeyCode.down && i >= kKeyCode.pageup) {
       VSc.BeginScroll_(event);
       a.ResetMode_();
-    } else if (i === kKeyCode.tab && !a.useFilter_ && !a.keyStatus_.keySequence_) {
+    } else if (i === kKeyCode.tab && !a.keyStatus_.keySequence_ && !a.keyStatus_.textSequence_) {
       a.tooHigh_ = null;
+      a.ResetMode_();
       setTimeout(a._reinit.bind(a, null, null), 0);
     } else if (i === kKeyCode.space && (!a.useFilter_ || VKey.getKeyStat_(event))) {
       a.zIndexes_ === 0 || a.rotateHints_(event.shiftKey);
@@ -948,7 +949,7 @@ var VHints = {
     return HandlerResult.Prevent;
   },
   hideSpans_ (linksMatched: HintsNS.HintItem[]): void {
-    const limit = this.keyStatus_.keySequence_.length - +!!this.keyStatus_.tab_;
+    const limit = this.keyStatus_.keySequence_.length - this.keyStatus_.tab_;
     for (const { m: { childNodes: ref } } of linksMatched) {
 // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/dom_token_list.cc?q=DOMTokenList::setValue&g=0&l=258
 // shows that `.classList.add()` costs more
@@ -1267,9 +1268,7 @@ filterEngine_: {
         }
       }
     }
-    if (seq) {
-      hints = hints.filter(hint => hint.a.startsWith(seq));
-    }
+    hints = seq ? hints.filter(hint => hint.a.startsWith(seq)) : hints;
     const newActive = hints[(keyStatus.tab_ < 0 ? (keyStatus.tab_ += hints.length) : keyStatus.tab_) % hints.length].m;
     if (oldActive !== newActive) {
       if (oldActive) {
@@ -1364,7 +1363,9 @@ filterEngine_: {
     keyStatus.tab_ = key === kKeyCode.tab ? useFilter ? oldTab - 2 * +e.shiftKey + 1 : 1 - oldTab
         : (useFilter || oldTab && (sequence = sequence.slice(0, -1)), 0);
     keyStatus.known_ = 1;
-    if (key === kKeyCode.tab) { /* empty */ }
+    if (key === kKeyCode.tab) {
+      h.ResetMode_();
+    }
     else if (key === kKeyCode.backspace || key === kKeyCode.deleteKey || key === kKeyCode.f1) {
       if (!sequence && !textSeq) {
         return [];
