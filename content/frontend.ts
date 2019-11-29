@@ -81,7 +81,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     return ch ? ch === "<esc>" || ch === "<c-[>"
       ? (Build.BTypes & BrowserType.Chrome && checkPotentialAccessKey(event, ch0), true)
       : false
-      : K.isRawEscape_(event);
+      : K._isRawEscape(event);
   }
   function checkKey(char: string, code: kKeyCode, event: KeyboardEvent
       ): HandlerResult.Nothing | HandlerResult.Prevent | HandlerResult.Esc | HandlerResult.AdvancedEscEnum {

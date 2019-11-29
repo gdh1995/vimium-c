@@ -405,8 +405,9 @@ var VCui = {
     return rect && !a.isContaining_(bcr, rect) ? rect
       : a.cropRectToVisible_(bcr.l, bcr.t, bcr.r, bcr.b) ? bcr : null;
   },
-  _lastFlash: null as HTMLElement | null,
-  flash_: function (this: {}, el: Element | null, rect?: Rect | null, lifeTime?: number, classNames?: string): void {
+  _lastFlash: null as SafeHTMLElement | null,
+  flash_: function (this: {}, el: Element | null, rect?: Rect | null, lifeTime?: number, classNames?: string
+      ): SafeHTMLElement | number | void {
     const a = this as typeof VCui;
     rect || (rect = a.getRect_(el as Element));
     if (!rect) { return; }
@@ -418,14 +419,16 @@ var VCui = {
     a.add_(flashEl);
     a._lastFlash = flashEl;
     if (!Build.NDEBUG) {
-      lifeTime = Math.max(lifeTime || 0, <number> (VCui as DomUIEx).flashTime | 0);
+      type DomUIEx = typeof VCui & { flashTime: number | undefined; };
+      lifeTime = lifeTime === -1 ? - 1 : Math.max(lifeTime || 0, <number> (VCui as DomUIEx).flashTime | 0);
     }
-    setTimeout(function (): void {
+    return lifeTime === -1 ? flashEl : setTimeout(function (): void {
       a._lastFlash === flashEl && (a._lastFlash = null);
       flashEl.remove();
     }, lifeTime || GlobalConsts.DefaultRectFlashTime);
   } as {
-    (el: null, rect: Rect, lifeTime?: number, classNames?: string): void;
+    (el: null, rect: Rect, lifeTime: -1, classNames?: string): SafeHTMLElement;
+    (el: null, rect: Rect, lifeTime?: number, classNames?: string): number;
     (el: Element): void;
   },
   _toExit: [0, 0] as Array<((this: void) => void) | 0>,
@@ -461,7 +464,3 @@ var VCui = {
     VCui.setupExitOnClick_(0, 0);
   }
 };
-type DomUIEx = typeof VCui & { flashTime: number | undefined; };
-if (!Build.NDEBUG) {
-  (VCui as DomUIEx).flashTime = GlobalConsts.DefaultRectFlashTime;
-}

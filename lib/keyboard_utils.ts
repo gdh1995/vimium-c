@@ -103,7 +103,7 @@ var VKey = {
             (<number> <boolean|number> event.shiftKey * 8);
   },
   isEscape_: null as never as (event: KeyboardEvent) => boolean,
-  isRawEscape_ (event: KeyboardEvent): boolean {
+  _isRawEscape (event: KeyboardEvent): boolean {
     if (event.keyCode !== kKeyCode.esc && !event.ctrlKey || event.keyCode === kKeyCode.ctrlKey) { return false; }
     const i = this.getKeyStat_(event),
     code = Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Code && Build.BTypes & BrowserType.Chrome
@@ -138,13 +138,18 @@ var VKey = {
     return key > kKeyCode.f10 && key < kKeyCode.f13 || key === kKeyCode.f5 ?
       HandlerResult.Suppress : HandlerResult.Prevent;
   },
-  /** if not timeout, then only suppress repeated keys */
-  suppressTail_ (timeout: number): void {
+  /**
+   * if not timeout, then only suppress repeated keys
+   * 
+   * @argument callback can be valid only if BTypes & Chrome
+   */
+  suppressTail_ (timeout: number, callback?: () => void): void {
     let func: HandlerNS.Handler<object>, tick: number, timer: number;
     if (!timeout) {
       func = function (event) {
         if (event.repeat) { return HandlerResult.Prevent; }
         VKey.removeHandler_(this);
+        Build.BTypes & BrowserType.Chrome && callback && callback();
         return HandlerResult.Nothing;
       };
     } else {
@@ -157,6 +162,7 @@ var VKey = {
               && info) {
           clearInterval(timer);
           VKey && VKey.removeHandler_(func); // safe enough even if reloaded
+          Build.BTypes & BrowserType.Chrome && callback && callback();
         }
       }, (GlobalConsts.TimeOfSuppressingTailKeydownEvents * 0.36) | 0);
     }

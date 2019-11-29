@@ -968,15 +968,49 @@ var VHints = {
       }
     }
   },
+  doesDelayToExecute_ (hint: HintsNS.HintItem, rect: Rect | null): void | 1 {
+    const a = this, K = VKey, cache = VDom.cache_;
+    if (!(Build.BTypes & BrowserType.Chrome)
+        || Build.BTypes & ~BrowserType.Chrome && VOther !== BrowserType.Chrome
+        || Build.MinCVer < BrowserVer.MinUserActivationV2 && cache.v < BrowserVer.MinUserActivationV2
+        ) {
+      if (!cache.w) {
+        K.suppressTail_(200);
+        return 1;
+      }
+    }
+    const el = rect && VCui.flash_(null, rect, -1),
+    callback = (stop?: boolean): void => { el && el.remove(); stop || a.isActive_ && a.execute_(hint); };
+    if (!(Build.BTypes & BrowserType.Chrome) || cache.w) {
+      K.pushHandler_(event => {
+        const code = event.keyCode,
+        action = code === kKeyCode.ime || K.isEscape_(event) ? 2
+            : code === kKeyCode.enter || event.key === "Enter" ? 1
+            : 0;
+        if (action) {
+          K.removeHandler_(callback);
+          K.prevent_(event);
+          callback(action > 1);
+        }
+        return action > 1 ? HandlerResult.Nothing : HandlerResult.Prevent;
+      }, callback);
+    } else {
+      K.suppressTail_(200, callback);
+    }
+  },
   execute_ (hint: HintsNS.HintItem): void {
-    const a = this;
+    const a = this, keyStatus = a.keyStatus_;
+    if (!a.isActive_) { return; }
     let rect: Rect | null | undefined, clickEl: HintsNS.LinkEl | null = hint.d;
-    a.resetHints_();
+    a.resetHints_(); // here .keyStatus_ is reset
     (VHud as Writable<VHUDTy>).t = "";
     if (VDom.IsInDOM_(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
       // must use UI.getRect, so that VDom.zooms are updated, and prepareCrop is called
       rect = VCui.getRect_(clickEl, hint.r !== clickEl ? hint.r as HTMLElementUsingMap | null : null);
+      if (keyStatus.textSequence_ && !keyStatus.keySequence_ && !keyStatus.known_) {
+        if (!a.doesDelayToExecute_(hint, rect)) { return; }
+      }
       const showRect = a.modeOpt_[0](clickEl, rect, hint);
       if (showRect !== false && (rect || (rect = VDom.getVisibleClientRect_(clickEl)))) {
         setTimeout(function (): void {
@@ -1045,9 +1079,9 @@ var VHints = {
   },
   resetHints_ (): void {
     const a = this;
-    a.fullHints_ = a.zIndexes_ = a.filterEngine_.activeHintMarker_ = null as never;
+    a.fullHints_ = a.zIndexes_ = a.filterEngine_.activeHint_ = null as never;
     a.pTimer_ > 0 && clearTimeout(a.pTimer_);
-    a.chars_ = "";
+    a.pTimer_ = 0;
     a.keyStatus_ = {
       hints_: null as never,
       keySequence_: "", textSequence_: "",
@@ -1058,13 +1092,14 @@ var VHints = {
     const a = this;
     a.resetHints_();
     a.options_ = a.modeOpt_ = null as never;
-    a.lastMode_ = a.mode_ = a.mode1_ = a.count_ = a.pTimer_ =
+    a.lastMode_ = a.mode_ = a.mode1_ = a.count_ =
     a.maxLeft_ = a.maxTop_ = a.maxRight_ =
     a.maxPrefixLen_ = 0;
     a.keyCode_ = kKeyCode.None;
     a.yankedList_ = [];
     a.useFilter_ =
     a.isActive_ = a.noHUD_ = a.tooHigh_ = a.doesMapKey_ = false;
+    a.chars_ = "";
     VKey.removeHandler_(a);
     VApi.onWndBlur_(null);
     if (a.box_) {
@@ -1134,7 +1169,7 @@ var VHints = {
   },
 
 filterEngine_: {
-  activeHintMarker_: null as HintsNS.MarkerElement | null,
+  activeHint_: null as HintsNS.FilterHintItem | null,
   getRe_ (matches: string): RegExpG {
     const chars = VHints.chars_;
     return new RegExp(matches + (chars === "0123456789" ? "\\d" : chars.replace(<RegExpG> /\D+/g, "")) + "]+", "g");
@@ -1200,7 +1235,7 @@ filterEngine_: {
   },
   getMatchingHints_ (keyStatus: HintsNS.KeyStatus, seq: string, text: string): void {
     const H = VHints, fullHints = H.fullHints_ as HintsNS.FilterHintItem[],
-    a = this, oldActive = a.activeHintMarker_, inited = !!oldActive;
+    a = this, oldActive = a.activeHint_, inited = !!oldActive;
     let hints = keyStatus.hints_ as HintsNS.FilterHintItem[]
       , oldTextSeq = inited ? keyStatus.textSequence_ : "a"
       , t1 = text.trimLeft(), ind = 1;
@@ -1269,15 +1304,15 @@ filterEngine_: {
       }
     }
     hints = seq ? hints.filter(hint => hint.a.startsWith(seq)) : hints;
-    const newActive = hints[(keyStatus.tab_ < 0 ? (keyStatus.tab_ += hints.length) : keyStatus.tab_) % hints.length].m;
+    const newActive = hints[(keyStatus.tab_ < 0 ? (keyStatus.tab_ += hints.length) : keyStatus.tab_) % hints.length];
     if (oldActive !== newActive) {
       if (oldActive) {
-        oldActive.classList.remove("MC");
-        oldActive.style.zIndex = "";
+        oldActive.m.classList.remove("MC");
+        oldActive.m.style.zIndex = "";
       }
-      newActive.classList.add("MC");
-      newActive.style.zIndex = fullHints.length as number | string as string;
-      a.activeHintMarker_ = newActive;
+      newActive.m.classList.add("MC");
+      newActive.m.style.zIndex = fullHints.length as number | string as string;
+      a.activeHint_ = newActive;
     }
   },
   /**
@@ -1375,6 +1410,9 @@ filterEngine_: {
     } else if (key === kKeyCode.space) { // then useFilter is true
       sequence = "";
       textSeq += " ";
+    } else if (key === kKeyCode.enter && useFilter) {
+      // keep .known_ to be 1 - needed by .execute_
+      return [h.filterEngine_.activeHint_ as NonNullable<typeof h.filterEngine_.activeHint_>];
     } else if ((keyChar = VKey.char_(e)) && keyChar.length < 2
         && (keyChar = h.doesMapKey_ ? VApi.mapKey_(keyChar, e, keyChar) : keyChar).length < 2) {
       keyChar = useFilter ? keyChar : keyChar.toUpperCase();
