@@ -1236,14 +1236,20 @@ filterEngine_: {
   },
   getMatchingHints_ (keyStatus: HintsNS.KeyStatus, seq: string, text: string): void {
     const H = VHints, fullHints = H.fullHints_ as HintsNS.FilterHintItem[],
-    a = this, oldActive = a.activeHint_, inited = !!oldActive;
+    a = this, oldActive = a.activeHint_, inited = !!oldActive,
+    oldTextSeq = inited ? keyStatus.textSequence_ : "a",
+    oldKeySeq = keyStatus.keySequence_;
     let hints = keyStatus.hints_ as HintsNS.FilterHintItem[]
-      , oldTextSeq = inited ? keyStatus.textSequence_ : "a"
-      , t1 = text.trimLeft(), ind = 1;
-    if (oldTextSeq !== t1) {
-      const t2 = t1.trim(), t0 = oldTextSeq.trim();
-      if (t0 !== t2) {
-        const oldHints = t2.startsWith(t0) ? hints : fullHints, search = t2.split(" "),
+      , newLen = 2, ind = 1;
+    if (oldTextSeq !== text) {
+      const t2 = text.trim(), t1 = oldTextSeq.trim(),
+      oldHints = t2.startsWith(t1) ? hints : fullHints;
+      keyStatus.textSequence_ = t1 !== t2 ? text
+          : t1 === oldTextSeq ? t2 && text
+          : t2 !== text ? oldTextSeq : text;
+      keyStatus.keySequence_ = "";
+      if (t1 !== t2) {
+        const search = t2.split(" "),
         hasSearch = !!t2, indStep = 1 / (1 + oldHints.length);
         if (hasSearch && !fullHints[0].h.w) {
           const exclusionRe = a.getRe_("[\\W");
@@ -1262,28 +1268,31 @@ filterEngine_: {
             hint.i = (ind -= indStep) - hint.h.t.length;
           }
         }
-        if (!hints.length) { return; }
-        if (!hasSearch) {
-          hints = oldHints.slice(0); // necessary so that a second `hint.i = (ind -= ...) - ...` can work
+        newLen = hints.length;
+        if (newLen) {
+          keyStatus.hints_ = hasSearch ? hints : hints = oldHints.slice(0);
+          if (hasSearch && newLen < 2) { // in case of only 1 hint in fullHints
+            return;
+          }
+          hints.sort((x1, x2) => x2.i - x1.i);
+          a.GenerateHintStrings_(hints);
         }
-        hints.sort((x1, x2) => x2.i - x1.i);
-        keyStatus.hints_ = hints;
-        keyStatus.keySequence_ = "";
-        if (hints.length < 2) { return; }
         // hints[].zIndex is reset in .MakeStacks_
-        a.GenerateHintStrings_(hints);
-        if (inited) {
-          for (const hint of hints) {
-            const el = hint.m.firstElementChild as Element | null;
-            el && el.remove();
-            (hint.m.firstChild as Text).data = hint.a;
-          }
-          for (const hint of oldHints) {
-            hint.m.style.visibility = hint.i !== 0 ? "" : "hidden";
-          }
+      }
+      if (inited && (t1 !== t2 || oldKeySeq)) {
+        for (const hint of newLen ? hints : oldHints) {
+          const el = hint.m.firstElementChild as Element | null;
+          el && el.remove();
+          (hint.m.firstChild as Text).data = hint.a;
+        }
+        for (const hint of oldHints) {
+          hint.m.style.visibility = hint.i !== 0 ? "" : "hidden";
+        }
+        if (!newLen) {
+          keyStatus.textSequence_ = oldTextSeq;
+          return;
         }
       }
-      keyStatus.textSequence_ = t1;
       inited && H.setMode_(H.mode_);
     }
     if (keyStatus.keySequence_ !== seq) {
