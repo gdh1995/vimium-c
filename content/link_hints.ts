@@ -979,8 +979,8 @@ var VHints = {
         return 1;
       }
     }
-    const el = rect && VCui.flash_(null, rect, -1),
-    callback = (stop?: boolean): void => { el && el.remove(); stop || a.isActive_ && a.execute_(hint); };
+    const removeFlash = rect && VCui.flash_(null, rect, -1),
+    callback = (stop?: boolean): void => { stop || a.isActive_ && a.execute_(hint); removeFlash && removeFlash(); };
     if (!(Build.BTypes & BrowserType.Chrome) || cache.w) {
       K.pushHandler_(event => {
         const code = event.keyCode,

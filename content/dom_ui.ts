@@ -407,7 +407,7 @@ var VCui = {
   },
   _lastFlash: null as SafeHTMLElement | null,
   flash_: function (this: {}, el: Element | null, rect?: Rect | null, lifeTime?: number, classNames?: string
-      ): SafeHTMLElement | number | void {
+      ): (() => void) | void {
     const a = this as typeof VCui;
     rect || (rect = a.getRect_(el as Element));
     if (!rect) { return; }
@@ -422,14 +422,15 @@ var VCui = {
       type DomUIEx = typeof VCui & { flashTime: number | undefined; };
       lifeTime = lifeTime === -1 ? - 1 : Math.max(lifeTime || 0, <number> (VCui as DomUIEx).flashTime | 0);
     }
-    return lifeTime === -1 ? flashEl : setTimeout(function (): void {
+    const remove = function (): void {
       a._lastFlash === flashEl && (a._lastFlash = null);
       flashEl.remove();
-    }, lifeTime || GlobalConsts.DefaultRectFlashTime);
+    };
+    lifeTime === -1 || setTimeout(remove, lifeTime || GlobalConsts.DefaultRectFlashTime);
+    return remove;
   } as {
-    (el: null, rect: Rect, lifeTime: -1, classNames?: string): SafeHTMLElement;
-    (el: null, rect: Rect, lifeTime?: number, classNames?: string): number;
-    (el: Element): void;
+    (el: null, rect: Rect, lifeTime?: number, classNames?: string): () => void;
+    (el: Element): (() => void) | void;
   },
   _toExit: [0, 0] as Array<((this: void) => void) | 0>,
   /** key: 0 := vomnibar; 1 := help dialog */
