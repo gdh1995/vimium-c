@@ -140,7 +140,7 @@ var VKey = {
   },
   /**
    * if not timeout, then only suppress repeated keys
-   * 
+   *
    * @argument callback can be valid only if BTypes & Chrome
    */
   suppressTail_ (timeout: number, callback?: () => void): void {

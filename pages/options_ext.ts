@@ -444,7 +444,7 @@ function parseJSON_(text: string): any {
   function clean(this: void): boolean { return (<RegExpOne> /a?/).test(""); }
   function spaceN(this: void, str: string): string {
     let n = str.length;
-    for (; kSpaces.length < n; kSpaces += kSpaces) {}
+    for (; kSpaces.length < n; kSpaces += kSpaces) { /* empty */ }
     return kSpaces.slice(0, n);
   }
   function onReplace(this: void, str: string): string {

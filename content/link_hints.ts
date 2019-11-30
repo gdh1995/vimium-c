@@ -204,7 +204,7 @@ var VHints = {
     }
     let msg = VTr(a.mode_), textSeq = a.keyStatus_.textSequence_;
     msg = msg || a.modeOpt_[a.modeOpt_.indexOf(a.mode_) + 1] as string;
-    msg += textSeq && ` [${textSeq}]`;
+    msg += a.useFilter_ ? ` [${textSeq}]` : "";
     msg += a.dialogMode_ ? VTr(kTip.modalHints, " (modal UI)") : "";
     return VHud.show_(kTip.raw, "$1", [msg], true);
   },
@@ -979,6 +979,7 @@ var VHints = {
         return 1;
       }
     }
+    (a.box_ as NonNullable<typeof a.box_>).remove();
     const removeFlash = rect && VCui.flash_(null, rect, -1),
     callback = (stop?: boolean): void => { stop || a.isActive_ && a.execute_(hint); removeFlash && removeFlash(); };
     if (!(Build.BTypes & BrowserType.Chrome) || cache.w) {
@@ -1265,9 +1266,10 @@ filterEngine_: {
         if (!hasSearch) {
           hints = oldHints.slice(0); // necessary so that a second `hint.i = (ind -= ...) - ...` can work
         }
-        hints.sort((a, b) => b.i - a.i);
+        hints.sort((x1, x2) => x2.i - x1.i);
         keyStatus.hints_ = hints;
         keyStatus.keySequence_ = "";
+        if (hints.length < 2) { return; }
         // hints[].zIndex is reset in .MakeStacks_
         a.GenerateHintStrings_(hints);
         if (inited) {
@@ -1319,7 +1321,7 @@ filterEngine_: {
    * total / Math.log(~)
    * * `>=` 1 / `Math.log`(1 + 256) `>` 0.18
    * * margin `>=` `0.0001267`
-   * 
+   *
    * so, use `~ * 1e4` to ensure delta > 1
    */
   scoreHint_ (textHint: HintsNS.HintText, searchWords: string[]): number {

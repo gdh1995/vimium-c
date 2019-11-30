@@ -803,7 +803,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         KeydownEvents[key] = 2;
       }
     },
-    exit_: function (target: Element): void {
+    exit_ (target: Element): void {
       if (D.GetShadowRoot_(target)) {
         if (target = insertLock as LockableElement | null as unknown as Element) {
           insertLock = null;

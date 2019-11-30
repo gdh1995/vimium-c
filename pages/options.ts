@@ -1133,7 +1133,6 @@ bgSettings_.restore_ && bgSettings_.restore_() ? (
   (bgSettings_.restore_() as NonNullable<ReturnType<typeof bgSettings_.restore_>>).then(optionsInitAll_)
 ) : optionsInitAll_();
 
-
 // below is for programmer debugging
 window.onunload = function (): void {
   BG_.removeEventListener("unload", OnBgUnload);
