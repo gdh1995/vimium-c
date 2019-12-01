@@ -149,7 +149,7 @@ var VHints = {
     useFilter ? a.filterEngine_.getMatchingHints_(a.keyStatus_, "", "") : a.initAlphabetEngine_(hints);
     a.renderMarkers_(hints);
 
-    a.noHUD_ = arr[3] <= 40 || arr[2] <= 320 || (options.hideHUD || options.hideHud) === true;
+    a.noHUD_ = !(useFilter || arr[3] > 40 && arr[2] > 320) || (options.hideHUD || options.hideHud) === true;
     VCui.ensureBorder_(VDom.wdZoom_);
     a.setMode_(a.mode_);
     a.box_ = VCui.addElementList_(hints, arr, a.dialogMode_);
@@ -880,7 +880,7 @@ var VHints = {
   },
   onKeydown_ (event: KeyboardEventToPrevent): HandlerResult {
     const a = this;
-    let linksMatched: HintsNS.HintItem[], i: number;
+    let matchedHint: ReturnType<typeof VHints.matchHintsByKey_>, i: number;
     if (event.repeat || !a.isActive_) {
       // NOTE: should always prevent repeated keys.
     } else if ((i = event.keyCode) === kKeyCode.ime) {
@@ -936,15 +936,15 @@ var VHints = {
     } else if (i === kKeyCode.space && (!a.useFilter_ || VKey.getKeyStat_(event))) {
       a.zIndexes_ === 0 || a.rotateHints_(event.shiftKey);
       a.ResetMode_();
-    } else if (linksMatched = a.matchHintsByKey_(a.keyStatus_, event), linksMatched.length < 1) {
+    } else if (matchedHint = a.matchHintsByKey_(a.keyStatus_, event), matchedHint === 0) {
       // then .a.keyStatus_.hintSequence_ is the last key char
       a.deactivate_(a.keyStatus_.known_);
-    } else if (linksMatched.length < 2) {
+    } else if (matchedHint !== 1) {
       VKey.prevent_(event);
       /** safer; necessary for {@link #VHints._highlightChild} */
       VApi.keydownEvents_()[i] = 1;
       a.keyCode_ = i;
-      a.execute_(linksMatched[0]);
+      a.execute_(matchedHint);
     }
     return HandlerResult.Prevent;
   },
@@ -1234,7 +1234,7 @@ filterEngine_: {
     }
     return { t: show && text ? ": " + text : text, w: null };
   },
-  getMatchingHints_ (keyStatus: HintsNS.KeyStatus, seq: string, text: string): void {
+  getMatchingHints_ (keyStatus: HintsNS.KeyStatus, seq: string, text: string): HintsNS.HintItem | 1 {
     const H = VHints, fullHints = H.fullHints_ as HintsNS.FilterHintItem[],
     a = this, oldActive = a.activeHint_, inited = !!oldActive,
     oldTextSeq = inited ? keyStatus.textSequence_ : "a",
@@ -1272,14 +1272,14 @@ filterEngine_: {
         if (newLen) {
           keyStatus.hints_ = hasSearch ? hints : hints = oldHints.slice(0);
           if (hasSearch && newLen < 2) { // in case of only 1 hint in fullHints
-            return;
+            return hints[0];
           }
           hints.sort((x1, x2) => x2.i - x1.i);
           a.GenerateHintStrings_(hints);
         }
         // hints[].zIndex is reset in .MakeStacks_
       }
-      if (inited && (t1 !== t2 || oldKeySeq)) {
+      if (inited && (t1 !== t2 && newLen || oldKeySeq)) {
         for (const hint of newLen ? hints : oldHints) {
           const el = hint.m.firstElementChild as Element | null;
           el && el.remove();
@@ -1288,22 +1288,22 @@ filterEngine_: {
         for (const hint of oldHints) {
           hint.m.style.visibility = hint.i !== 0 ? "" : "hidden";
         }
-        if (!newLen) {
-          keyStatus.textSequence_ = oldTextSeq;
-          return;
-        }
+      }
+      if (!newLen) {
+        keyStatus.textSequence_ = oldTextSeq;
+        return 1;
       }
       inited && H.setMode_(H.mode_);
     }
     if (keyStatus.keySequence_ !== seq) {
       keyStatus.keySequence_ = seq;
       for (const { m: marker, a: key } of hints) {
-        const match = key.startsWith(seq);
+        const match = key.startsWith(seq), createEl = VDom.createElement_;
         marker.style.visibility = match ? "" : "hidden";
         if (match) {
           let child = marker.firstChild as Text | HintsNS.MarkerElement, el: HintsNS.MarkerElement;
           if (child instanceof Text) {
-            el = marker.insertBefore(document.createElement("span") as HintsNS.MarkerElement, child);
+            el = marker.insertBefore(createEl("span") as HintsNS.MarkerElement, child);
             el.className = "MC";
           } else {
             el = child;
@@ -1325,6 +1325,7 @@ filterEngine_: {
       newActive.m.style.zIndex = fullHints.length as number | string as string;
       a.activeHint_ = newActive;
     }
+    return 1;
   },
   /**
    * total / Math.log(~)
@@ -1402,7 +1403,7 @@ filterEngine_: {
       hintItems[i].a = hintString;
     }
   },
-  matchHintsByKey_ (keyStatus: HintsNS.KeyStatus, e: KeyboardEvent): HintsNS.HintItem[] {
+  matchHintsByKey_ (keyStatus: HintsNS.KeyStatus, e: KeyboardEvent): HintsNS.HintItem | 0 | 1 {
     const h = VHints, {useFilter_: useFilter} = h;
     let keyChar: string
       , {keySequence_: sequence, textSequence_: textSeq, tab_: oldTab, hints_: hints} = keyStatus
@@ -1415,7 +1416,7 @@ filterEngine_: {
     }
     else if (key === kKeyCode.backspace || key === kKeyCode.deleteKey || key === kKeyCode.f1) {
       if (!sequence && !textSeq) {
-        return [];
+        return 0;
       }
       sequence ? sequence = sequence.slice(0, -1) : textSeq = textSeq.slice(0, -1);
     } else if (key === kKeyCode.space) { // then useFilter is true
@@ -1423,7 +1424,7 @@ filterEngine_: {
       textSeq += " ";
     } else if (key === kKeyCode.enter && useFilter) {
       // keep .known_ to be 1 - needed by .execute_
-      return [h.filterEngine_.activeHint_ as NonNullable<typeof h.filterEngine_.activeHint_>];
+      return h.filterEngine_.activeHint_ as NonNullable<typeof h.filterEngine_.activeHint_>;
     } else if ((keyChar = VKey.char_(e)) && keyChar.length < 2
         && (keyChar = h.doesMapKey_ ? VApi.mapKey_(keyChar, e, keyChar) : keyChar).length < 2) {
       keyChar = useFilter ? keyChar : keyChar.toUpperCase();
@@ -1431,16 +1432,16 @@ filterEngine_: {
         sequence += keyChar;
         mayMatchSingle = useFilter || sequence.length >= h.maxPrefixLen_ ? 2 : 1;
       } else if (!useFilter) {
-        return [];
+        return 0;
       } else if (keyChar !== keyChar.toLowerCase() && (<RegExpOne> /[A-Z]/).test(h.chars_)
           || (<RegExpOne> /\W/).test(keyChar)) {
-        return hints;
+        return 1;
       } else {
         sequence = "";
         textSeq += keyChar.toLowerCase();
       }
     } else {
-      return hints;
+      return 1;
     }
     keyStatus.known_ = 0;
     h.zIndexes_ = h.zIndexes_ && null;
@@ -1448,25 +1449,25 @@ filterEngine_: {
       if (useFilter) {
         let index = 0, base = h.chars_.length, end = hints.length;
         for (const ch of sequence) { index = index * base + h.chars_.indexOf(ch); }
-        if (index * base >= end) { return index <= end ? [hints[index - 1]] : []; }
+        if (index * base >= end) { return index <= end ? hints[index - 1] : 0; }
       } else {
-        for (const hint of hints) { if (hint.a === sequence) { return [hint]; } }
+        for (const hint of hints) { if (hint.a === sequence) { return hint; } }
       }
     }
     if (useFilter) {
-      h.filterEngine_.getMatchingHints_(keyStatus, sequence, textSeq);
+      return h.filterEngine_.getMatchingHints_(keyStatus, sequence, textSeq);
     } else {
       keyStatus.keySequence_ = sequence;
       keyStatus.textSequence_ = textSeq;
       const notDoSubCheck = !keyStatus.tab_, wanted = notDoSubCheck ? sequence : sequence.slice(0, -1);
-      keyStatus.hints_ = (mayMatchSingle ? hints : h.fullHints_).filter(function (hint) {
+      hints = keyStatus.hints_ = (mayMatchSingle ? hints : h.fullHints_).filter(function (hint): boolean {
         const pass = hint.a.startsWith(wanted) && (notDoSubCheck || !hint.a.startsWith(sequence));
         hint.m.style.visibility = pass ? "" : "hidden";
         return pass;
       });
-      h.hideSpans_(keyStatus.hints_);
+      h.hideSpans_(hints);
+      return hints.length ? 1 : 0;
     }
-    return keyStatus.hints_;
   },
 
 decodeURL_ (this: void, url: string, decode?: (this: void, url: string) => string): string {

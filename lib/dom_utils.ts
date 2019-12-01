@@ -687,7 +687,7 @@ var VDom = {
   OnDocLoaded_: null as never as (callback: (this: void) => void) => void | number,
   createElement_: document.createElement.bind(document) as {
     // tslint:disable-next-line: callable-types
-    <K extends VimiumContainerElementType> (this: {}, tagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement;
+    <K extends VimiumContainerElementType> (this: void, tagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement;
   },
   createShadowRoot_<T extends HTMLDivElement | HTMLBodyElement> (box: T): ShadowRoot | T {
     return (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
