@@ -1189,8 +1189,9 @@ filterEngine_: {
       if (labels && labels.length > 0
           && (text = (labels[0] as SafeHTMLElement).innerText).trim()) {
         show = !0;
-      } else if (el.localName !== "select") {
-        text = (el as HTMLSelectElement).value;
+      } else if (el.localName === "select") {
+        const selected = (el as HTMLSelectElement).selectedOptions[0];
+        text = selected ? selected.label : "";
       } else if ((el as HTMLInputElement).type === "file") {
         text = "Choose File";
       } else if ((el as HTMLInputElement).type !== "password") {

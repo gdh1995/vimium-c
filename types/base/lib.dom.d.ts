@@ -1204,7 +1204,7 @@ interface DOMStringList {
     readonly length: number;
     contains(str: string): boolean;
     item(index: number): string | null;
-    [index: number]: string;
+    // [index: number]: string;
 }
 
 declare var DOMStringList: {
@@ -1229,7 +1229,7 @@ interface DOMTokenList {
     remove(...token: string[]): void;
     toString(): string;
     toggle(token: string, force?: boolean): boolean;
-    [index: number]: string;
+    // [index: number]: string;
 }
 
 declare var DOMTokenList: {
@@ -1283,7 +1283,7 @@ interface DataTransferItemList {
     clear(): void;
     item(index: number): DataTransferItem;
     remove(index: number): void;
-    [index: number]: DataTransferItem;
+    // [index: number]: DataTransferItem;
 }
 
 declare var DataTransferItemList: {
@@ -2307,7 +2307,7 @@ declare var FormData: {
 interface HTMLAllCollection {
     readonly length: number;
     namedItem(name: string): Element;
-    [index: number]: Element;
+    // [index: number]: Element;
 }
 
 declare var HTMLAllCollection: {
