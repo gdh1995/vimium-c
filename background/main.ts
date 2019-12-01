@@ -648,6 +648,18 @@
         url = BgUtils_.detectLinkDeclaration_(url);
       }
     }
+    let start = url.indexOf("://") + 3;
+    if (start > 3) {
+      // an origin with "/"
+      let arr: RegExpExecArray | null;
+      const end = url.indexOf("/", start) + 1 || url.length,
+      host = url.slice(start, end),
+      type = host.startsWith("0.0.0.0") ? 7
+          : host.indexOf(":::") >= 0 && (arr = (<RegExpOne> /^(\[?::\]?):\d{2,5}$/).exec(host))
+          ? arr[1].length : 0;
+      url = type ? url.slice(0, start) + (type > 6 ? "127.0.0.1" : "[::1]") + url.slice(start + type) : url;
+    }
+
     openUrl(url, Urls.WorkType.ActAnyway, tabs);
   }
   function openUrlInNewTab(this: void, url: string, reuse: ReuseType
