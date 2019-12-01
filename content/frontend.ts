@@ -360,9 +360,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   const injector = VimiumInjector,
   isTop = top === window,
   setupEventListener = K.SetupEventListener_,
-  /** `undefined` and `null` are safe enough on Chrome 78: {@link ../tests/dom.handleevent.html} */
-  anyClickHandler: EventListenerObject = safer(null),
-  resetAnyClickHandler = function (): void { isWaitingAccessKey = false; anyClickHandler.handleEvent = null; },
+  noopEventHandler = Object.is as any as EventListenerObject["handleEvent"],
+  anyClickHandler: EventListenerObject = { handleEvent: noopEventHandler },
+  resetAnyClickHandler = function (): void {
+    isWaitingAccessKey = false; anyClickHandler.handleEvent = noopEventHandler;
+  },
   hook = (function (action: HookAction): void {
     let f = action ? removeEventListener : addEventListener;
     if (Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
@@ -420,7 +422,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
               (fgCache.o ? KeyStat.altKey : KeyStat.altKey | KeyStat.ctrlKey)
           ) {
         isWaitingAccessKey = !isWaitingAccessKey;
-        anyClickHandler.handleEvent = isWaitingAccessKey ? onAnyClick : null;
+        anyClickHandler.handleEvent = isWaitingAccessKey ? onAnyClick : noopEventHandler;
       }
     }
   },
