@@ -10,10 +10,9 @@ declare namespace HintsNS {
     // tslint:disable-next-line: callable-types
     (linkEl: LinkEl, rect: Rect | null, hintEl: Pick<HintsNS.HintItem, "r">): void | boolean;
   }
-  interface ModeOpt extends ReadonlyArray<Executor | HintMode | string> {
+  interface ModeOpt extends ReadonlyArray<Executor | HintMode> {
     [0]: Executor;
     [1]: HintMode;
-    [2]: string;
   }
   interface Options extends SafeObject {
     action?: string;
@@ -180,9 +179,6 @@ var VHints = {
         break;
       }
     }
-    if (!(Build.NDEBUG || a.Modes_.length === 9)) {
-      console.log("Assert error: VHints.Modes_ should have 9 items");
-    }
     if (!modeOpt) {
       modeOpt = a.Modes_[8];
       mode = count > 1 ? HintMode.OPEN_WITH_QUEUE : HintMode.OPEN_IN_CURRENT_TAB;
@@ -203,7 +199,6 @@ var VHints = {
       return;
     }
     let msg = VTr(a.mode_), textSeq = a.keyStatus_.textSequence_;
-    msg = msg || a.modeOpt_[a.modeOpt_.indexOf(a.mode_) + 1] as string;
     msg += a.useFilter_ ? ` [${textSeq}]` : "";
     msg += a.dialogMode_ ? VTr(kTip.modalHints) : "";
     return VHud.show_(kTip.raw, [msg], true);
@@ -1630,8 +1625,8 @@ Modes_: [
       }
     }
   }
-  , HintMode.HOVER, "Hover over node"
-  , HintMode.HOVER | HintMode.queue, "Hover over nodes continuously"
+  , HintMode.HOVER
+  , HintMode.HOVER | HintMode.queue
 ] as HintsNS.ModeOpt,
 [
   (element: Hint[0]): void => {
@@ -1643,8 +1638,8 @@ Modes_: [
     a.hover_(null);
     if (document.activeElement === element) { element.blur(); }
   }
-  , HintMode.LEAVE, "Simulate mouse leaving link"
-  , HintMode.LEAVE | HintMode.queue, "Simulate mouse leaving continuously"
+  , HintMode.LEAVE
+  , HintMode.LEAVE | HintMode.queue
 ] as HintsNS.ModeOpt,
 [
   (link): boolean | void => {
@@ -1724,16 +1719,16 @@ Modes_: [
     });
     return VHud.copied_(shownText);
   }
-  , HintMode.SEARCH_TEXT, "Search selected text"
-  , HintMode.COPY_TEXT, "Copy link text to Clipboard"
-  , HintMode.COPY_URL, "Copy link URL to Clipboard"
-  , HintMode.SEARCH_TEXT | HintMode.queue, "Search link text one by one"
-  , HintMode.COPY_TEXT | HintMode.queue, "Copy link text one by one"
-  , HintMode.COPY_TEXT | HintMode.queue | HintMode.list, "Copy link text list"
-  , HintMode.COPY_URL | HintMode.queue, "Copy link URL one by one"
-  , HintMode.COPY_URL | HintMode.queue | HintMode.list, "Copy link URL list"
-  , HintMode.EDIT_LINK_URL, "Edit link URL on Vomnibar"
-  , HintMode.EDIT_TEXT, "Edit link text on Vomnibar"
+  , HintMode.SEARCH_TEXT
+  , HintMode.COPY_TEXT
+  , HintMode.COPY_URL
+  , HintMode.SEARCH_TEXT | HintMode.queue
+  , HintMode.COPY_TEXT | HintMode.queue
+  , HintMode.COPY_TEXT | HintMode.queue | HintMode.list
+  , HintMode.COPY_URL | HintMode.queue
+  , HintMode.COPY_URL | HintMode.queue | HintMode.list
+  , HintMode.EDIT_LINK_URL
+  , HintMode.EDIT_TEXT
 ] as HintsNS.ModeOpt,
 [
   (link: HTMLAnchorElement): void => {
@@ -1742,8 +1737,8 @@ Modes_: [
       return VHints.openUrl_(url, true);
     }
   }
-  , HintMode.OPEN_INCOGNITO_LINK, "Open link in incognito window"
-  , HintMode.OPEN_INCOGNITO_LINK | HintMode.queue, "Open multiple incognito tabs"
+  , HintMode.OPEN_INCOGNITO_LINK
+  , HintMode.OPEN_INCOGNITO_LINK | HintMode.queue
 ] as HintsNS.ModeOpt,
 [
   (element: SafeHTMLElement): void => {
@@ -1767,8 +1762,8 @@ Modes_: [
     VDom.mouse_(a, "click", [0, 0]);
     return VHud.tip_(kTip.downloaded, 2000, [text]);
   }
-  , HintMode.DOWNLOAD_MEDIA, "Download media"
-  , HintMode.DOWNLOAD_MEDIA | HintMode.queue, "Download multiple media"
+  , HintMode.DOWNLOAD_MEDIA
+  , HintMode.DOWNLOAD_MEDIA | HintMode.queue
 ] as HintsNS.ModeOpt,
 [
   (img: SafeHTMLElement): void => {
@@ -1782,8 +1777,8 @@ Modes_: [
       a: a.options_.auto
     });
   }
-  , HintMode.OPEN_IMAGE, "Open image"
-  , HintMode.OPEN_IMAGE | HintMode.queue, "Open multiple images"
+  , HintMode.OPEN_IMAGE
+  , HintMode.OPEN_IMAGE | HintMode.queue
 ] as HintsNS.ModeOpt,
 [
   (link: HTMLAnchorElement, rect): void => {
@@ -1815,8 +1810,8 @@ Modes_: [
       link.removeAttribute("href");
     }
   }
-  , HintMode.DOWNLOAD_LINK, "Download link"
-  , HintMode.DOWNLOAD_LINK | HintMode.queue, "Download multiple links"
+  , HintMode.DOWNLOAD_LINK
+  , HintMode.DOWNLOAD_LINK | HintMode.queue
 ] as HintsNS.ModeOpt,
 [
   (link, rect): void | false => {
@@ -1829,9 +1824,9 @@ Modes_: [
     }
     return false;
   }
-  , HintMode.FOCUS, "Focus node"
-  , HintMode.FOCUS | HintMode.queue, "Focus nodes continuously"
-  , HintMode.FOCUS_EDITABLE, "Select an editable area"
+  , HintMode.FOCUS
+  , HintMode.FOCUS | HintMode.queue
+  , HintMode.FOCUS_EDITABLE
 ] as HintsNS.ModeOpt,
 [
   (link, rect, hint): void | boolean => {
@@ -1877,15 +1872,18 @@ Modes_: [
     , isRight ? 2 : 0
     , !(Build.BTypes & BrowserType.Chrome) || specialActions || newTab ? 0 : a.options_.touch);
   }
-  , HintMode.OPEN_IN_CURRENT_TAB, "Open link in current tab"
-  , HintMode.OPEN_IN_NEW_BG_TAB, "Open link in new tab"
-  , HintMode.OPEN_IN_NEW_FG_TAB, "Open link in new active tab"
-  , HintMode.OPEN_IN_CURRENT_TAB | HintMode.queue, "Open multiple links in current tab"
-  , HintMode.OPEN_IN_NEW_BG_TAB | HintMode.queue, "Open multiple links in new tabs"
-  , HintMode.OPEN_IN_NEW_FG_TAB | HintMode.queue, "Activate link and hold on"
+  , HintMode.OPEN_IN_CURRENT_TAB
+  , HintMode.OPEN_IN_NEW_BG_TAB
+  , HintMode.OPEN_IN_NEW_FG_TAB
+  , HintMode.OPEN_IN_CURRENT_TAB | HintMode.queue
+  , HintMode.OPEN_IN_NEW_BG_TAB | HintMode.queue
+  , HintMode.OPEN_IN_NEW_FG_TAB | HintMode.queue
 ] as HintsNS.ModeOpt
 ] as const
 };
 if (!(Build.NDEBUG || HintMode.min_not_hint <= <number> kTip.START_FOR_OTHERS)) {
   console.log("Assert error: HintMode.min_not_hint <= kTip.START_FOR_OTHERS");
+}
+if (!(Build.NDEBUG || VHints.Modes_.length === 9)) {
+  console.log("Assert error: VHints.Modes_ should have 9 items");
 }
