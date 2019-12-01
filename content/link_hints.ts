@@ -319,9 +319,7 @@ var VHints = {
       if (element === VOmni.box_) {
         if (arr = VDom.getVisibleClientRect_(element)) {
           (arr as WritableRect).l += 12; (arr as WritableRect).t += 9;
-          hints.push([element, arr, ClickType.frame]);
         }
-        return;
       }
       isClickable = element !== VFind.box_;
       type = isClickable ? ClickType.frame : ClickType.Default;
@@ -334,6 +332,7 @@ var VHints = {
       if (!(element as TextElement).readOnly || _this.mode1_ > HintMode.min_job - 1
           || tag === "input"
               && VDom.uneditableInputs_[(element as HTMLInputElement).type]) {
+        type = ClickType.edit;
         isClickable = true;
       }
       break;
@@ -731,6 +730,12 @@ var VHints = {
           if (crect && VDom.isContaining_(crect, prect) && VDom.htmlTag_(element)) {
             list[i] = [element as SafeHTMLElement, crect, ClickType.tabindex];
           }
+        } else if (k === ClickType.edit && i > 0 && (element = list[i - 1][0]) === list[i][0].parentElement
+            && element.childElementCount < 2 && element.localName === "a"
+            && !VDom.getEditableType_(list[i][0])) {
+          // a rare case that <a> has only a clickable <input>
+          list.splice(--i, 1);
+          continue;
         }
         j = i;
       }
