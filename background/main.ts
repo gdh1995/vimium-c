@@ -649,7 +649,7 @@
       }
     }
     let start = url.indexOf("://") + 3;
-    if (start > 3) {
+    if (start > 3 && BgUtils_.protocolRe_.test(url)) {
       // an origin with "/"
       let arr: RegExpExecArray | null;
       const end = url.indexOf("/", start) + 1 || url.length,
