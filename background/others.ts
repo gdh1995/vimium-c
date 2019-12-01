@@ -904,7 +904,7 @@ declare const enum I18nConsts {
 }
 if (Build.BTypes & BrowserType.Firefox
     && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
-BgUtils_.timeout_(500, function (): void {
+setTimeout(function (loadI18nPayload: () => void): void {
   const nativeTrans = trans_, lang2 = nativeTrans("lang2"), lang1 = trans_("lang1"),
   i18nVer = `${lang2 || lang1 || "en"},${Settings_.CONST_.VerCode_},`,
   newTrans: typeof chrome.i18n.getMessage = (messageName: string, substitutions?: Array<string | number>): string => {
@@ -918,6 +918,7 @@ BgUtils_.timeout_(500, function (): void {
     if (updateCache) {
       localStorage.setItem(I18nConsts.storageKey, i18nVer + [...(i18nKeys as any)].join(","));
     }
+    Settings_.temp_.loadI18nPayload_ = loadI18nPayload;
   };
   if (oldStr && oldStr.startsWith(i18nVer)) {
     keyArrays = oldStr.slice(i18nVer.length).split(",");
@@ -936,7 +937,8 @@ BgUtils_.timeout_(500, function (): void {
       toDos++;
     }
   }
-});
+}, 33, Settings_.temp_.loadI18nPayload_ as NonNullable<typeof Settings_.temp_.loadI18nPayload_>);
+Settings_.temp_.loadI18nPayload_ = null;
 }
 
 // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed

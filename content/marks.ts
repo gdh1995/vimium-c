@@ -14,7 +14,7 @@ var VMarks = {
     a.doesMapKey_ = !!options.mapKey;
     VKey.removeHandler_(a);
     VKey.pushHandler_(a.onKeydown_, a);
-    return VHud.show_(isGo ? kTip.nowGotoMark : kTip.nowCreateMark, (isGo ? "Go to" : "Create") + " mark\u2026");
+    return VHud.show_(isGo ? kTip.nowGotoMark : kTip.nowCreateMark);
   },
   onKeydown_ (event: HandlerNS.Event): HandlerResult {
     const keyCode = event.keyCode, notEsc = !VKey.isEscape_(event);
@@ -40,7 +40,7 @@ var VMarks = {
   _create (event: HandlerNS.Event, keyChar: string): void {
     if (keyChar === "`" || keyChar === "'") {
       this.setPreviousPosition_(this.count_);
-      return VHud.tip_(kTip.didCreateLastMark, "Created local mark [last].", 1000);
+      return VHud.tip_(kTip.didCreateLastMark, 1000);
     } else if (event.shiftKey !== this.swap_) {
       if (top === window) {
         return this.createMark_(keyChar);
@@ -60,8 +60,8 @@ var VMarks = {
       if (pos) {
         a.ScrollTo_(pos);
       }
-      return VHud.tip_(kTip.didLocalMarkTask, `${pos ? "Jumped to" : "Created"} local mark [ $2 ]`, 1000,
-          [VTr(pos ? kTip.didJumpTo : kTip.didCreate), count ? count + 1 : VTr(kTip.lastMark, "last")]);
+      return VHud.tip_(kTip.didLocalMarkTask, 1000,
+          [VTr(pos ? kTip.didJumpTo : kTip.didCreate), count ? count + 1 : VTr(kTip.lastMark)]);
     }
     const req: Extract<Req.fg<kFgReq.marks>, { a: kMarkAction.goto }> = {
       H: kFgReq.marks, a: kMarkAction.goto,
@@ -104,7 +104,7 @@ var VMarks = {
       u: location.href,
       s: [scrollX | 0, scrollY | 0]
     });
-    VHud.tip_(kTip.didNormalMarkTask, "Created $2 mark : ' $3 '.", 1000,
+    VHud.tip_(kTip.didNormalMarkTask, 1000,
         [ VTr(kTip.didCreate), VTr(local || "global"), markName ]);
   },
   GoTo_ (this: void, _0: number, { n: a, s: scroll, k: typeKey, l: local }: CmdOptions[kFgCmd.goToMarks]): void {
@@ -112,7 +112,7 @@ var VMarks = {
     VMarks.ScrollTo_(scroll);
     local || VApi.focusAndRun_();
     if (a) {
-      VHud.tip_(kTip.didNormalMarkTask, "Jumped to $2 mark : ' $3 '.", local ? 1000 : 2000,
+      VHud.tip_(kTip.didNormalMarkTask, local ? 1000 : 2000,
           [ VTr(kTip.didJumpTo), VTr(typeKey), a ]);
     }
   }

@@ -44,7 +44,7 @@ chrome.runtime && chrome.runtime.getManifest && (function () {
         && curPath.indexOf("newtab") >= 0) {
       setTimeout(function (): void {
         const hud = (window as {} as {VHud?: VHUDTy}).VHud;
-        hud && hud.tip_(kTip.firefoxRefuseURL, "", 2560);
+        hud && hud.tip_(kTip.firefoxRefuseURL, 2560);
       }, 100);
     }
   }

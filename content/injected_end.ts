@@ -15,12 +15,22 @@ VDom.allowScripts_ = 0;
     }
     VDom.parentCore_ = () => VDom.frameElement_() && parent as Window;
   }
-  VTr = (tid, fallback, args): string => {
+  let i18nMessages: FgRes[kFgReq.i18n]["m"] = null,
+  i18nCallback: ((res: FgRes[kFgReq.i18n]) => void) | null = res => {
+    i18nMessages = res.m;
+    if (!i18nMessages && i18nCallback) {
+      setTimeout(() => VApi.send_(kFgReq.i18n, {}, i18nCallback as NonNullable<typeof i18nCallback>), 150);
+    }
+    i18nCallback = null;
+  };
+  VApi.send_(kFgReq.i18n, {}, i18nCallback);
+  VTr = (tid, args): string => {
     if (typeof tid === "string") {
       return tid;
     }
-    fallback = fallback || "";
-    return args ? fallback.replace(transArgsRe, s => <string> args[+s[1] - 1]) : fallback;
+    return !i18nMessages ? args && args.length ? `T${tid}: ${args.join(", ")}` : "T" + tid
+        : args ? i18nMessages[tid].replace(transArgsRe, s => <string> args[+s[1] - 1])
+        : i18nMessages[tid];
   };
   const injector = VimiumInjector as VimiumInjectorTy,
   parentInjector = top !== window

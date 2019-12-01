@@ -2582,7 +2582,11 @@
           runAt: "document_start",
         }, onRuntimeError);
       }
-    }
+    },
+    /** kFgReq.i18n: */ function (this: void): FgRes[kFgReq.i18n] {
+        Settings_.temp_.loadI18nPayload_ && Settings_.temp_.loadI18nPayload_();
+        return { m: Settings_.i18nPayload_ };
+      }
   ],
   framesForOmni: Frames.WritableFrames = [];
   function OnMessage <K extends keyof FgReq, T extends keyof FgRes>(this: void, request: Req.fg<K> | Req.fgWithRes<T>
@@ -3047,14 +3051,19 @@
     }
     if (typeof message === "string") {
       executeExternalCmd({command: message}, sender);
+      return;
     }
-    else if (typeof message !== "object" || !message) { /* empty */ }
-    else if (message.handler === kFgReq.shortcut) {
+    else if (typeof message !== "object" || !message) {
+      return;
+    }
+    switch (message.handler) {
+    case kFgReq.shortcut:
       let shortcut = message.shortcut;
       if (shortcut) {
         Backend_.ExecuteShortcut_(shortcut + "");
       }
-    } else if (message.handler === kFgReq.id) {
+      break;
+    case kFgReq.id:
       (sendResponse as (res: ExternalMsgs[kFgReq.id]["res"]) => void | 1)({
         name: "Vimium C",
         host: location.host,
@@ -3062,15 +3071,18 @@
         injector: Settings_.CONST_.Injector_,
         version: Settings_.CONST_.VerCode_
       });
-    } else if (message.handler === kFgReq.inject) {
+      break;
+    case kFgReq.inject:
       (sendResponse as (res: ExternalMsgs[kFgReq.inject]["res"]) => void | 1)({
         s: message.scripts ? Settings_.CONST_.ContentScripts_ : null,
         version: Settings_.CONST_.VerCode_,
         host: !(Build.BTypes & ~BrowserType.Chrome) ? "" : location.host,
         h: PortNameEnum.Delimiter + Settings_.CONST_.GitVer
       });
-    } else if (message.handler === kFgReq.command) {
+      break;
+    case kFgReq.command:
       executeExternalCmd(message, sender);
+      break;
     }
   }), Settings_.postUpdate_("extWhiteList"));
 

@@ -99,11 +99,11 @@ var VVisual = {
     const isRange = type === SelType.Range, newMode = isRange ? mode : VisualModeNS.Mode.Caret,
     toCaret = newMode === VisualModeNS.Mode.Caret;
     a.hudTimer_ && clearTimeout(a.hudTimer_);
-    VHud.show_(kTip.visualMode, "$1 mode",
+    VHud.show_(kTip.visualMode,
         [a.modeName_ = VTr(toCaret ? "Caret" : newMode === VisualModeNS.Mode.Line ? "Line" : "Visual")],
         !!options.r);
     if (newMode !== mode) {
-      a.prompt_(kTip.noUsableSel, "No usable selection, entering caret mode\u2026", 1000);
+      a.prompt_(kTip.noUsableSel, 1000);
     }
     VCui.toggleSelectStyle_(1);
     a.di_ = isRange ? VisualModeNS.kDir.unknown : VisualModeNS.kDir.right;
@@ -111,7 +111,7 @@ var VVisual = {
     a.alterMethod_ = toCaret ? "move" : "extend";
     if (/* type === SelType.None */ !type && a.establishInitialSelectionAnchor_(theSelected[1])) {
       a.deactivate_();
-      return VHud.tip_(kTip.needSel, "Create a selection before entering visual mode.");
+      return VHud.tip_(kTip.needSel);
     }
     if (toCaret && isRange) {
       // `sel` is not changed by @establish... , since `isRange`
@@ -207,7 +207,7 @@ var VVisual = {
       movement.selection_ = getSelection();
       if (command < VisualAction.MaxNotFind + 1 && !movement.selection_.rangeCount) {
         movement.deactivate_();
-        return VHud.tip_(kTip.loseSel, "Selection is lost.");
+        return VHud.tip_(kTip.loseSel);
       }
     }
     if (command === VisualAction.HighlightRange) {
@@ -280,17 +280,17 @@ var VVisual = {
     return !a.selection_.rangeCount;
   },
   /** @not_related_to_di */
-  prompt_ (tid: kTip, text: string, duration: number, args?: string[]): void {
+  prompt_ (tid: kTip, duration: number, args?: string[]): void {
     this.hudTimer_ && clearTimeout(this.hudTimer_);
     this.hudTimer_ = setTimeout(this.ResetHUD_, duration);
-    return VHud.show_(tid, text, args);
+    return VHud.show_(tid, args);
   },
   /** @not_related_to_di */
   ResetHUD_ (i?: TimerType.fake): void {
     const a = VVisual;
     if (!a || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i) { return; }
     a.hudTimer_ = 0;
-    if (a.modeName_) { VHud.show_(kTip.visualMode, "$1 mode", [a.modeName_]); }
+    if (a.modeName_) { VHud.show_(kTip.visualMode, [a.modeName_]); }
   },
   find_ (count: number): void {
     if (!VFind.query_) {
@@ -299,7 +299,7 @@ var VVisual = {
           VFind.updateQuery_(query);
           VVisual.find_(count);
         } else {
-          VVisual.prompt_(kTip.noOldQuery, "No history queries", 1000);
+          VVisual.prompt_(kTip.noOldQuery, 1000);
         }
       });
       return;
@@ -321,7 +321,7 @@ var VVisual = {
       return;
     }
     range && !sel.rangeCount && sel.addRange(range);
-    a.prompt_(kTip.noMatchFor, 'No matches for "$1"', 1000, [VFind.query_]);
+    a.prompt_(kTip.noMatchFor, 1000, [VFind.query_]);
   },
   /**
    * @safe_di if action !== true
@@ -330,7 +330,7 @@ var VVisual = {
   yank_ (action?: true | ReuseType.current | ReuseType.newFg | null): void {
     const str = "" + this.selection_;
     if (action === true) {
-      this.prompt_(kTip.copiedIs, "Copied: $1", 2000, [VHud.copied_(str, "", 1)]);
+      this.prompt_(kTip.copiedIs, 2000, [VHud.copied_(str, "", 1)]);
       action = null;
     } else {
       this.deactivate_();
@@ -440,7 +440,7 @@ var VVisual = {
     a.mode_ !== VisualModeNS.Mode.Caret && (a.diType_ &= ~VisualModeNS.DiType.isUnsafe);
     a.di_ = direction === oldDi ? direction : VisualModeNS.kDir.unknown;
     if (granularity === VisualModeNS.G.lineBoundary) {
-      a.prompt_(kTip.selectLineBoundary, "Selected line boundary", 2000);
+      a.prompt_(kTip.selectLineBoundary, 2000);
     }
     if (fixWord) {
       if (!shouldSkipSpaceWhenMovingRight) { // not shouldSkipSpace -> go left

@@ -10,6 +10,7 @@ var Settings_ = {
     cmdErrors_: 0,
     newSettingsToBroadcast_: null as BgReq[kBgReq.settingsUpdate]["d"] | null,
     IconBuffer_: null as IconNS.AccessIconBuffer | null,
+    loadI18nPayload_: null as (() => void) | null,
     shownHash_: null as ((this: void) => string) | null
   },
   payload_: <SettingsNS.FrontendSettingCache> As_<SettingsNS.DeclaredFrontendValues>({
@@ -31,6 +32,7 @@ var Settings_ = {
     n: "",
     s: ""
   }),
+  i18nPayload_: null as string[] | null,
   newTabs_: BgUtils_.safeObj_() as ReadonlySafeDict<Urls.NewTabType>,
   extWhiteList_: null as never as SafeDict<boolean>,
   storage_: localStorage,

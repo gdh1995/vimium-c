@@ -240,7 +240,7 @@ declare namespace VomnibarNS {
       h: number;
       m?: number;
     };
-    [kFReq.hud]: { k: kTip, t: string; };
+    [kFReq.hud]: { k: kTip; };
     [kFReq.focus]: {
       /** lastKey */ l: kKeyCode;
     };
@@ -336,9 +336,9 @@ interface VHUDTy {
   readonly box_: HTMLDivElement | null;
   readonly t: string;
   readonly opacity_: 0 | 0.25 | 0.5 | 0.75 | 1;
-  show_ (tid: kTip | HintMode, text: string, args?: Array<string | number>, embed?: boolean): void;
+  show_ (tid: kTip | HintMode, args?: Array<string | number>, embed?: boolean): void;
   /** duration is default to 1500 */
-  tip_ (tid: kTip | HintMode, text: string, duration?: number, args?: Array<string | number>): void;
+  tip_ (tid: kTip, duration?: number, args?: Array<string | number>): void;
   copied_ (text: string, type: string, virtual: 1): string;
   copied_ (text: string, type?: "url" | ""): void;
   hide_ (this: void, info?: TimerType): void;
@@ -354,7 +354,7 @@ declare const enum kTip {
   /* 4..15 is not used by HintMode */
   /* 4..9 */ didUnHoverLast = 4, globalInsertMode, noPassKeys, normalMode, nTimes, passNext,
   /* 10..15 */ noLinksToGo, noFocused, focusedIsHidden, noInputToFocus, noUrlCopied, noTextCopied,
-  /* 20..25 */ copiedIs = 20, failToEvalJS, blockAutoFocus, useVal, turnOn, turnOff,
+  /* 20..25 */ copiedIs = 20, failToEvalJS, _deprecated1, useVal, turnOn, turnOff,
   /* 26..31 */ nMatches, oneMatch, someMatches, noMatches, modalHints, haveToOpenManually,
   /* 44..47 */ selectLineBoundary = 44,
   raw = 69, START_FOR_OTHERS = raw,
@@ -364,8 +364,9 @@ declare const enum kTip {
   /* 85: */ lastMark, didNormalMarkTask, findFrameFail, noOldQuery, noMatchFor,
   /* 90: */ visualMode, noUsableSel, loseSel, needSel, omniFrameFail,
   /* 95: */ failToDelSug, firefoxRefuseURL, cancelImport, importOK,
+  END,
 }
-type VTransType = (tid: kTip | HintMode | string, fallback?: string, args?: Array<string | number>) => string;
+type VTransType = (tid: kTip | HintMode | string, args?: Array<string | number>) => string;
 
 declare const enum kContentCmd {
   _fake = 0,

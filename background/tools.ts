@@ -694,6 +694,15 @@ BgUtils_.copy_ = Build.BTypes & BrowserType.Firefox
   textArea.value = "";
   BgUtils_.resetRe_();
 };
+Settings_.temp_.loadI18nPayload_ = function (): void {
+  Settings_.temp_.loadI18nPayload_ = null;
+  const arr: string[] = Settings_.i18nPayload_ = [],
+  args = ["$1", "$2", "$3", "$4"];
+  for (let i = 0; i < kTip.END; i++) {
+    arr.push(trans_("" + i, args));
+  }
+};
+
 Settings_.temp_.initing_ |= BackendHandlersNS.kInitStat.others;
 (Backend_.onInit_ as NonNullable<BackendHandlersNS.BackendHandlers["onInit_"]>)();
 

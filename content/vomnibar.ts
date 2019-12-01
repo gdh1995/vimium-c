@@ -36,7 +36,7 @@ var VOmni = {
     let timer1 = setTimeout(a.RefreshKeyHandler_, GlobalConsts.TimeOfSuppressingTailKeydownEvents);
     if (VApi.checkHidden_(kFgCmd.vomnibar, count, options)) { return; }
     if (a.status_ === VomnibarNS.Status.KeepBroken) {
-      return VHud.tip_(kTip.omniFrameFail, "Sorry, Vomnibar page seems to fail in loading.", 2000);
+      return VHud.tip_(kTip.omniFrameFail, 2000);
     }
     if (!options || !options.k || !options.v) { return; }
     if (dom.OnDocLoaded_ !== dom.execute_) {
@@ -285,7 +285,7 @@ var VOmni = {
     case VomnibarNS.kFReq.broken: focus(); // no break;
     case VomnibarNS.kFReq.unload: return VOmni ? a.reset_(data.N === VomnibarNS.kFReq.broken) : undefined;
     case VomnibarNS.kFReq.hud:
-      VHud.tip_((data as Req[VomnibarNS.kFReq.hud]).k, (data as Req[VomnibarNS.kFReq.hud]).t);
+      VHud.tip_((data as Req[VomnibarNS.kFReq.hud]).k);
       return;
     }
   },

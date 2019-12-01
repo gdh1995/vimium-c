@@ -114,7 +114,7 @@ var VHints = {
     s0 = options.characters, str = s0 ? s0 + "" : useFilter ? VDom.cache_.n : VDom.cache_.l;
     if (str.length < 3) {
       a.clean_(1);
-      return VHud.tip_(kTip.fewChars, "Characters for LinkHints are too few.", 1000);
+      return VHud.tip_(kTip.fewChars, 1000);
     }
     VKey.removeHandler_(a);
     a.setModeOpt_(count, options);
@@ -139,7 +139,7 @@ var VHints = {
     }
     if (elements.length === 0) {
       a.clean_(1);
-      return VHud.tip_(kTip.noLinks, "No links to select.", 1000);
+      return VHud.tip_(kTip.noLinks, 1000);
     }
 
     if (a.box_) { a.box_.remove(); a.box_ = null; }
@@ -205,8 +205,8 @@ var VHints = {
     let msg = VTr(a.mode_), textSeq = a.keyStatus_.textSequence_;
     msg = msg || a.modeOpt_[a.modeOpt_.indexOf(a.mode_) + 1] as string;
     msg += a.useFilter_ ? ` [${textSeq}]` : "";
-    msg += a.dialogMode_ ? VTr(kTip.modalHints, " (modal UI)") : "";
-    return VHud.show_(kTip.raw, "$1", [msg], true);
+    msg += a.dialogMode_ ? VTr(kTip.modalHints) : "";
+    return VHud.show_(kTip.raw, [msg], true);
   },
   SetHUDLater_ (this: void): void {
     const a = VHints;
@@ -885,7 +885,7 @@ var VHints = {
       // NOTE: should always prevent repeated keys.
     } else if ((i = event.keyCode) === kKeyCode.ime) {
       a.clean_(1);
-      VHud.tip_(kTip.exitForIME, "LinkHints exits because you're typing");
+      VHud.tip_(kTip.exitForIME);
       return HandlerResult.Nothing;
     } else if (VKey.isEscape_(event)) {
       a.clean_();
@@ -1020,7 +1020,7 @@ var VHints = {
       }
     } else {
       clickEl = null;
-      VHud.tip_(kTip.linkRemoved, "The link has been removed from page", 2000);
+      VHud.tip_(kTip.linkRemoved, 2000);
     }
     a.pTimer_ = -!!VHud.t;
     if (!(a.mode_ & HintMode.queue)) {
@@ -1518,7 +1518,7 @@ _getImageUrl (img: SafeHTMLElement): string | void {
       || src.length > text.length + 7 && (text === (img as HTMLElement & {href?: string}).href)) {
     text = src;
   }
-  return text || VHud.tip_(kTip.notImg, "Not an image", 1000);
+  return text || VHud.tip_(kTip.notImg, 1000);
 },
 getImageName_: (img: SafeHTMLElement): string | null =>
   img.getAttribute("download") || img.title || img.getAttribute("alt"),
@@ -1593,7 +1593,7 @@ Modes_: [
     type || element.tabIndex < 0 ||
     (<RegExpI> /^i?frame$/).test(VDom.htmlTag_(element)) && element.focus && element.focus();
     if (a.mode1_ < HintMode.min_job) { // called from Modes[-1]
-      return VHud.tip_(kTip.hoverScrollable, "Hover for scrolling", 1000);
+      return VHud.tip_(kTip.hoverScrollable, 1000);
     }
     if (!toggleMap || typeof toggleMap !== "object") { return; }
     VKey.safer_(toggleMap);
@@ -1665,7 +1665,7 @@ Modes_: [
       if (tag === "input") {
         let type = (link as HTMLInputElement).type, f: HTMLInputElement["files"];
         if (type === "password") {
-          return VHud.tip_(kTip.ignorePassword, "Sorry, Vimium C won't copy a password.", 2000);
+          return VHud.tip_(kTip.ignorePassword, 2000);
         }
         if (!VDom.uneditableInputs_[type]) {
           str = (link as HTMLInputElement).value || (link as HTMLInputElement).placeholder;
@@ -1712,7 +1712,7 @@ Modes_: [
     let shownText = str, lastYanked = mode1 & HintMode.list ? a.yankedList_ : 0 as const;
     if (lastYanked) {
       if (lastYanked.indexOf(str) >= 0) {
-        return VHud.show_(kTip.noNewToCopy, "Nothing new to copy");
+        return VHud.show_(kTip.noNewToCopy);
       }
       shownText = `[${lastYanked.length + 1}] ` + str;
       lastYanked.push(str);
@@ -1765,7 +1765,7 @@ Modes_: [
     a.download = VHints.getImageName_(element) || "";
     // todo: how to trigger download
     VDom.mouse_(a, "click", [0, 0]);
-    return VHud.tip_(kTip.downloaded, "Download: $1", 2000, [text]);
+    return VHud.tip_(kTip.downloaded, 2000, [text]);
   }
   , HintMode.DOWNLOAD_MEDIA, "Download media"
   , HintMode.DOWNLOAD_MEDIA | HintMode.queue, "Download multiple media"

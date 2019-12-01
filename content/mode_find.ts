@@ -69,8 +69,8 @@ var VFind = {
       if (this.box_.contentWindow.document) { return 1; }
     } catch {}
     this.deactivate_(FindNS.Action.ExitUnexpectedly);
-    let s = "Sorry, Vimium C can not open a HUD on this page", b = VVisual;
-    b.mode_ ? b.prompt_(kTip.findFrameFail, s, 2000) : VHud.tip_(kTip.findFrameFail, s);
+    let b = VVisual;
+    b.mode_ ? b.prompt_(kTip.findFrameFail, 2000) : VHud.tip_(kTip.findFrameFail);
   },
   onLoad_ (later?: 1): void {
     if (!this.isActive_) { return; }
@@ -213,7 +213,7 @@ var VFind = {
   },
   findAndFocus_ (query: string, options: CmdOptions[kFgCmd.findMode]): void {
     if (!query) {
-      return VHud.tip_(kTip.noOldQuery, "No history queries");
+      return VHud.tip_(kTip.noOldQuery);
     }
     const a = this;
     a.init_ && a.init_(AdjustType.MustAdjust);
@@ -234,7 +234,7 @@ var VFind = {
       a.ToggleStyle_(1);
       if (!a.isActive_) {
         VCui.toggleSelectStyle_(0);
-        VHud.tip_(kTip.noMatchFor, 'No matches for "$1"', 0, [a.query_]);
+        VHud.tip_(kTip.noMatchFor, 0, [a.query_]);
       }
       return;
     }
@@ -493,7 +493,6 @@ var VFind = {
     if (changed) {
       (a.countEl_.firstChild as Text).data = !a.parsedQuery_ ? "" : VTr(
           count > 1 ? kTip.nMatches : count ? kTip.oneMatch : a.hasResults_ ? kTip.someMatches : kTip.noMatches,
-          "(" + (count || (a.hasResults_ ? "Some" : "No")) + " match" + (count !== 1 ? "es)" : ")"),
           [count]
       );
     }

@@ -702,7 +702,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (Vomnibar_.selection_ < 0) { return; }
     const completion = Vomnibar_.completions_[Vomnibar_.selection_], type = completion.e;
     if (type !== "tab" && (type !== "history" || completion.s != null)) {
-      VPort_.postToOwner_({ N: VomnibarNS.kFReq.hud, k: kTip.failToDelSug, t: "This item can not be deleted." });
+      VPort_.postToOwner_({ N: VomnibarNS.kFReq.hud, k: kTip.failToDelSug });
       return;
     }
     VPort_.post_({

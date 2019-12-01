@@ -791,7 +791,7 @@ let optionsInit1_ = function (): void {
     event.preventDefault();
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
-      window.VHud ? VHud.tip_(kTip.haveToOpenManually, "") : alert(pTrans_("" + kTip.haveToOpenManually));
+      window.VHud ? VHud.tip_(kTip.haveToOpenManually) : alert(pTrans_("" + kTip.haveToOpenManually));
     } else {
       BG_.Backend_.focus_({ u: this.href, r: ReuseType.reuse, p: true });
     }

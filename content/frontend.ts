@@ -447,7 +447,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     /* kFgCmd.linkHints: */ Hints.activate_,
     /* kFgCmd.unhoverLast: */ function (this: void): void {
       D.hover_(null);
-      HUD.tip_(kTip.didUnHoverLast, "The last element is unhovered");
+      HUD.tip_(kTip.didUnHoverLast);
     },
     /* kFgCmd.marks: */ VMarks.activate_,
     /* kFgCmd.goToMarks: */ VMarks.GoTo_,
@@ -480,20 +480,19 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       (cache as Generalized<typeof cache>)[key] = val as typeof cur;
       let notBool = val !== !!val;
       HUD.tip_(notBool ? kTip.useVal : val ? kTip.turnOn : kTip.turnOff,
-          val === false ? "$1 has been turned off" : "Now $1" + (notBool ? " use $2" : " is on"),
           1000, [options.n, notBool ? JSON.stringify(val) : ""]);
     },
     /* kFgCmd.insertMode: */ function (_0: number, opt: CmdOptions[kFgCmd.insertMode]): void {
       let { code, stat } = opt;
       InsertMode.global_ = opt;
-      if (opt.hud) { HUD.show_(kTip.globalInsertMode, "Insert mode$1", [code ? `: ${code}/${stat}` : ""]); }
+      if (opt.hud) { HUD.show_(kTip.globalInsertMode, [code ? `: ${code}/${stat}` : ""]); }
     },
     /* kFgCmd.passNextKey: */ function (count0: number, options: CmdOptions[kFgCmd.passNextKey]): void {
       let keyCount = 0, count = Math.abs(count0);
       if (!!options.normal === (count0 > 0)) {
         esc(HandlerResult.ExitPassMode); // singleton
         if (!passKeys) {
-          return HUD.tip_(kTip.noPassKeys, "No pass keys.");
+          return HUD.tip_(kTip.noPassKeys);
         }
         const oldEsc = esc, oldPassKeys = passKeys;
         passKeys = null;
@@ -506,8 +505,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           currentKeys = ""; nextKeys = keyMap;
           if (keyCount - count || !HUD.t) {
             keyCount = count;
-            HUD.show_(kTip.normalMode, "Normal mode (pass keys disabled)$1",
-                [count > 1 ? VTr(kTip.nTimes, ": $1 times", [count]) : ""]);
+            HUD.show_(kTip.normalMode, [count > 1 ? VTr(kTip.nTimes, [count]) : ""]);
           }
           return i;
         } as EscF;
@@ -524,8 +522,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       onKeyup2 = function (event): void {
         if (keyCount === 0 || --keyCount || --count) {
           keys[event ? event.keyCode : kKeyCode.None] = 0;
-          HUD.show_(kTip.passNext, "Pass next keys$1",
-              [count > 1 ? VTr(kTip.nTimes, ": $1 times", [count]) : ""]);
+          HUD.show_(kTip.passNext, [count > 1 ? VTr(kTip.nTimes, [count]) : ""]);
         } else {
           (exitPassMode as NonNullable<typeof exitPassMode>)();
         }
@@ -541,7 +538,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (!D.isHTML_() || Pagination.findAndFollowRel_(rel)) { return; }
       const isNext = rel === "next";
       if (patterns.length <= 0 || !Pagination.findAndFollowLink_(patterns, isNext, l, m)) {
-        return HUD.tip_(kTip.noLinksToGo, "No links to go $1", 0, [VTr(rel)]);
+        return HUD.tip_(kTip.noLinksToGo, 0, [VTr(rel)]);
       }
     },
     /* kFgCmd.reload: */ function (_0: number, options: CmdOptions[kFgCmd.reload]): void {
@@ -563,10 +560,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
       newEl = InsertMode.last_;
       if (!newEl) {
-        return HUD.tip_(kTip.noFocused, "Nothing was focused", 1200);
+        return HUD.tip_(kTip.noFocused, 1200);
       }
       if (!D.view_(newEl) && D.NotVisible_(newEl)) {
-        return HUD.tip_(kTip.focusedIsHidden, "The last focused is hidden", 2000);
+        return HUD.tip_(kTip.focusedIsHidden, 2000);
       }
       InsertMode.last_ = null;
       InsertMode.mutable_ = true;
@@ -630,7 +627,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       let sel = visibleInputs.length;
       if (sel === 0) {
         InsertMode.exitInputHint_();
-        return HUD.tip_(kTip.noInputToFocus, "There are no inputs to focus.", 1000);
+        return HUD.tip_(kTip.noInputToFocus, 1000);
       } else if (sel === 1) {
         InsertMode.exitInputHint_();
         return U.simulateSelect_(visibleInputs[0][0], visibleInputs[0][1], true, action, true);
@@ -711,7 +708,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       KeydownEvents = safer(null);
       if (fgCache.g && InsertMode.grabBackFocus_) {
         let counter = 0, prompt = function (): void {
-          counter++ || console.log(VTr(kTip.blockAutoFocus, "Vimium C blocks auto-focusing."));
+          counter++ || console.log("Vimium C blocks auto-focusing.");
         };
         if (notBody = notBody && VDom.getEditableType_(activeEl)) {
           InsertMode.last_ = null;
@@ -994,23 +991,23 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     copied_: function (text: string, e?: "url" | "", virtual?: 1): string | void {
       if (!text) {
         if (virtual) { return text; }
-        return HUD.tip_(e ? kTip.noUrlCopied : kTip.noTextCopied, `No ${e || "text"} found!`, 1000);
+        return HUD.tip_(e ? kTip.noUrlCopied : kTip.noTextCopied, 1000);
       }
       if (text.startsWith("chrome-") && text.indexOf("://") > 0) {
         // tslint:disable-next-line: ban-types
         text = (text as EnsureNonNull<String>).substring(text.indexOf("/", text.indexOf("/") + 2)) || text;
       }
       text = (text.length > 41 ? text.slice(0, 41) + "\u2026" : text + ".");
-      if (virtual) { return text; }
-      return HUD.tip_(kTip.copiedIs, "Copied: $1", 2000, [text]);
+      return virtual ? text : HUD.tip_(kTip.copiedIs, 2000, [text]);
     } as VHUDTy["copied_"],
-    tip_ (tid: kTip | HintMode | string, text: string, duration?: number, args?: Array<string | number>): void {
-      HUD.show_(tid, text, args);
+    tip_ (tid: kTip | HintMode, duration?: number, args?: Array<string | number>): void {
+      HUD.show_(tid, args);
       HUD.t && ((HUD as typeof HUD)._timer = setTimeout(HUD.hide_, duration || 1500));
     },
-    show_ (tid: kTip | HintMode | string, text: string, args?: Array<string | number>, embed?: boolean): void {
+    show_ (tid: kTip | HintMode, args?: Array<string | number>, embed?: boolean): void {
       if (!HUD.enabled_ || !D.isHTML_()) { return; }
-      HUD.opacity_ = 1; HUD.t = text = VTr(tid, text, args);
+      const text = HUD.t = VTr(tid, args);
+      HUD.opacity_ = 1;
       if (HUD._timer) { clearTimeout(HUD._timer); HUD._timer = 0; }
       embed || HUD._tweenId || (HUD._tweenId = setInterval(HUD._tween, 40));
       let el = HUD.box_;
@@ -1276,7 +1273,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         }
       }
       // tslint:disable-next-line: no-unused-expression
-      req.t ? req.c ? HUD.copied_(req.t) : HUD.tip_(kTip.raw, "$1", 0, [req.t]) : 0;
+      req.t ? req.c ? HUD.copied_(req.t) : HUD.tip_(kTip.raw, 0, [req.t]) : 0;
     },
     /* kBgReq.count: */ function (request: BgReq[kBgReq.count]): void {
       let n = parseInt(currentKeys, 10) || 1, count2: 0 | 1 | 2 | 3 = 0;
@@ -1444,7 +1441,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           D.runJS_(Hints.decodeURL_(url, decodeURIComponent));
         }, 0);
       } else {
-        HUD.tip_(kTip.failToEvalJS, "Here's not allowed to eval scripts");
+        HUD.tip_(kTip.failToEvalJS);
       }
       return true;
     },
@@ -1594,7 +1591,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       port = vPort._port = injector ? connect(injector.id, data) as Port : connect(data) as Port;
       port.onDisconnect.addListener(vPort.ClearPort_);
       port.onMessage.addListener(vPort.Listener_);
-      VTr = VTr || ((tid, _, args) => trans("" + tid, args));
+      VTr = VTr || ((tid, args) => trans("" + tid, args));
     })
   },
 
