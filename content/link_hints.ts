@@ -1234,16 +1234,16 @@ filterEngine_: {
     }
     return { t: show && text ? ": " + text : text, w: null };
   },
-  getMatchingHints_ (keyStatus: HintsNS.KeyStatus, seq: string, text: string): HintsNS.HintItem | 1 {
+  getMatchingHints_ (keyStatus: HintsNS.KeyStatus, seq: string, text: string): HintsNS.HintItem | 1 | 0 {
     const H = VHints, fullHints = H.fullHints_ as HintsNS.FilterHintItem[],
     a = this, oldActive = a.activeHint_, inited = !!oldActive,
-    oldTextSeq = inited ? keyStatus.textSequence_ : "a",
-    oldKeySeq = keyStatus.keySequence_;
-    let hints = keyStatus.hints_ as HintsNS.FilterHintItem[]
-      , newLen = 2, ind = 1;
+    oldTextSeq = inited ? keyStatus.textSequence_ : "a";
+    let hints = keyStatus.hints_ as HintsNS.FilterHintItem[];
     if (oldTextSeq !== text) {
       const t2 = text.trim(), t1 = oldTextSeq.trim(),
+      oldKeySeq = keyStatus.keySequence_,
       oldHints = t2.startsWith(t1) ? hints : fullHints;
+      let newLen = 2, ind = 1;
       keyStatus.textSequence_ = t1 !== t2 ? text
           : t1 === oldTextSeq ? t2 && text
           : t2 !== text ? oldTextSeq : text;
@@ -1297,6 +1297,9 @@ filterEngine_: {
     }
     if (keyStatus.keySequence_ !== seq) {
       keyStatus.keySequence_ = seq;
+      let index = 0, base = H.chars_.length, end = hints.length;
+      for (const ch of seq) { index = index * base + H.chars_.indexOf(ch); }
+      if (index * base >= end) { return index <= end ? hints[index - 1] : 0; }
       for (const { m: marker, a: key } of hints) {
         const match = key.startsWith(seq), createEl = VDom.createElement_;
         marker.style.visibility = match ? "" : "hidden";
@@ -1407,7 +1410,7 @@ filterEngine_: {
     const h = VHints, {useFilter_: useFilter} = h;
     let keyChar: string
       , {keySequence_: sequence, textSequence_: textSeq, tab_: oldTab, hints_: hints} = keyStatus
-      , key = e.keyCode, mayMatchSingle: 0 | 1 | 2 = 0;
+      , key = e.keyCode, doesDetectMatchSingle: 0 | 1 | 2 = 0;
     keyStatus.tab_ = key === kKeyCode.tab ? useFilter ? oldTab - 2 * +e.shiftKey + 1 : 1 - oldTab
         : (useFilter || oldTab && (sequence = sequence.slice(0, -1)), 0);
     keyStatus.known_ = 1;
@@ -1430,7 +1433,7 @@ filterEngine_: {
       keyChar = useFilter ? keyChar : keyChar.toUpperCase();
       if (h.chars_.indexOf(keyChar) >= 0) {
         sequence += keyChar;
-        mayMatchSingle = useFilter || sequence.length >= h.maxPrefixLen_ ? 2 : 1;
+        doesDetectMatchSingle = useFilter || sequence.length < h.maxPrefixLen_ ? 1 : 2;
       } else if (!useFilter) {
         return 0;
       } else if (keyChar !== keyChar.toLowerCase() && (<RegExpOne> /[A-Z]/).test(h.chars_)
@@ -1445,14 +1448,8 @@ filterEngine_: {
     }
     keyStatus.known_ = 0;
     h.zIndexes_ = h.zIndexes_ && null;
-    if (mayMatchSingle > 1) {
-      if (useFilter) {
-        let index = 0, base = h.chars_.length, end = hints.length;
-        for (const ch of sequence) { index = index * base + h.chars_.indexOf(ch); }
-        if (index * base >= end) { return index <= end ? hints[index - 1] : 0; }
-      } else {
-        for (const hint of hints) { if (hint.a === sequence) { return hint; } }
-      }
+    if (doesDetectMatchSingle > 1) {
+      for (const hint of hints) { if (hint.a === sequence) { return hint; } }
     }
     if (useFilter) {
       return h.filterEngine_.getMatchingHints_(keyStatus, sequence, textSeq);
@@ -1460,7 +1457,7 @@ filterEngine_: {
       keyStatus.keySequence_ = sequence;
       keyStatus.textSequence_ = textSeq;
       const notDoSubCheck = !keyStatus.tab_, wanted = notDoSubCheck ? sequence : sequence.slice(0, -1);
-      hints = keyStatus.hints_ = (mayMatchSingle ? hints : h.fullHints_).filter(function (hint): boolean {
+      hints = keyStatus.hints_ = (doesDetectMatchSingle ? hints : h.fullHints_).filter(function (hint): boolean {
         const pass = hint.a.startsWith(wanted) && (notDoSubCheck || !hint.a.startsWith(sequence));
         hint.m.style.visibility = pass ? "" : "hidden";
         return pass;
