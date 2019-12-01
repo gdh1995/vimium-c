@@ -655,7 +655,8 @@ let optionsInit1_ = function (): void {
   let optChars = Option_.all_.linkHintCharacters, optNums = Option_.all_.linkHintNumbers;
   opt = Option_.all_.filterLinkHints;
   optChars.onSave_ = optNums.onSave_ = function (this: Option_<"linkHintCharacters" | "linkHintNumbers">): void {
-    this.showError_(!this.element_.style.display && this.previous_.length < 3 ? pTrans_("hintCharsTooFew") : "");
+    this.showError_(!this.element_.style.display && this.previous_.length < GlobalConsts.MinHintCharSetSize
+        ? pTrans_("hintCharsTooFew") : "");
   };
   opt.onSave_ = function (): void {
     nextTick_(el => {

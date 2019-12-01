@@ -111,7 +111,7 @@ var VHints = {
     }
     const useFilter0 = options.useFilter, useFilter = useFilter0 != null ? !!useFilter0 : VDom.cache_.f,
     s0 = options.characters, str = s0 ? s0 + "" : useFilter ? VDom.cache_.n : VDom.cache_.l;
-    if (str.length < 3) {
+    if (str.length < GlobalConsts.MinHintCharSetSize) {
       a.clean_(1);
       return VHud.tip_(kTip.fewChars, 1000);
     }
@@ -130,15 +130,15 @@ var VHints = {
     a.dialogMode_ = !!(a.wantDialogMode_ != null ? a.wantDialogMode_ : document.querySelector("dialog[open]"))
         && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement
             || typeof HTMLDialogElement === "function");
-    let elements = a.getVisibleElements_(arr);
+    let elements = a.getVisibleElements_(arr), elLen = elements.length;
     if (a.frameNested_) {
       if (a.TryNestedFrame_(kFgCmd.linkHints, count, options)) {
         return a.clean_();
       }
     }
-    if (elements.length === 0) {
+    if (!elLen || elLen > GlobalConsts.MaxCountToHint) {
       a.clean_(1);
-      return VHud.tip_(kTip.noLinks, 1000);
+      return VHud.tip_(elLen ? kTip.tooManyLinks : kTip.noLinks, 1000);
     }
 
     if (a.box_) { a.box_.remove(); a.box_ = null; }

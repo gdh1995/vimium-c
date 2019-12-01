@@ -354,7 +354,7 @@ declare const enum kTip {
   /* 4..15 is not used by HintMode */
   /* 4..9 */ didUnHoverLast = 4, globalInsertMode, noPassKeys, normalMode, nTimes, passNext,
   /* 10..15 */ noLinksToGo, noFocused, focusedIsHidden, noInputToFocus, noUrlCopied, noTextCopied,
-  /* 20..25 */ copiedIs = 20, failToEvalJS, _deprecated1, useVal, turnOn, turnOff,
+  /* 20..25 */ copiedIs = 20, failToEvalJS, tooManyLinks, useVal, turnOn, turnOff,
   /* 26..31 */ nMatches, oneMatch, someMatches, noMatches, modalHints, haveToOpenManually,
   /* 44..47 */ selectLineBoundary = 44,
   raw = 69, START_FOR_OTHERS = raw,

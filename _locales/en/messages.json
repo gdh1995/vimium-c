@@ -985,10 +985,10 @@
 		"message": "$1"
 	},
 	"70": {
-		"message": "Characters for LinkHints are too few."
+		"message": "Characters for LinkHints are too few"
 	},
 	"71": {
-		"message": "No links to select."
+		"message": "No links to select"
 	},
 	"72": {
 		"message": "LinkHints exits because you're typing"
@@ -1128,6 +1128,7 @@
 	"21": {
 		"message": "Here's not allowed to eval scripts"
 	},
+	"22": { "message": "Too many links to select" },
 	"23": {
 		"message": "Now $1 use $2"
 	},
