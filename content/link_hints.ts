@@ -976,7 +976,9 @@ var VHints = {
     }
     (a.box_ as NonNullable<typeof a.box_>).remove();
     const removeFlash = rect && VCui.flash_(null, rect, -1),
-    callback = (stop?: boolean): void => { stop || a.isActive_ && a.execute_(hint); removeFlash && removeFlash(); };
+    callback = (doesContinue?: boolean): void => {
+      doesContinue && a.isActive_ ? a.execute_(hint, removeFlash) : removeFlash && removeFlash();
+    };
     if (!(Build.BTypes & BrowserType.Chrome) || cache.w) {
       K.pushHandler_(event => {
         const code = event.keyCode,
@@ -986,7 +988,7 @@ var VHints = {
         if (action) {
           K.removeHandler_(callback);
           K.prevent_(event);
-          callback(action > 1);
+          callback(action < 2);
         }
         return action > 1 ? HandlerResult.Nothing : HandlerResult.Prevent;
       }, callback);
@@ -994,9 +996,8 @@ var VHints = {
       K.suppressTail_(200, callback);
     }
   },
-  execute_ (hint: HintsNS.HintItem): void {
+  execute_ (hint: HintsNS.HintItem, removeFlash?: (() => void) | null): void {
     const a = this, keyStatus = a.keyStatus_;
-    if (!a.isActive_) { return; }
     let rect: Rect | null | undefined, clickEl: HintsNS.LinkEl | null = hint.d;
     a.resetHints_(); // here .keyStatus_ is reset
     (VHud as Writable<VHUDTy>).t = "";
@@ -1007,13 +1008,17 @@ var VHints = {
       if (keyStatus.textSequence_ && !keyStatus.keySequence_ && !keyStatus.known_) {
         if (!a.doesDelayToExecute_(hint, rect)) { return; }
       }
+      // tolerate new rects in some cases
       const showRect = a.modeOpt_[0](clickEl, rect, hint);
-      if (showRect !== false && (rect || (rect = VDom.getVisibleClientRect_(clickEl)))) {
-        setTimeout(function (): void {
+      removeFlash ? removeFlash()
+      : showRect !== false && (rect || (rect = VDom.getVisibleClientRect_(clickEl)))
+      ? setTimeout(function (): void {
           (showRect || document.hasFocus()) && VCui.flash_(null, rect as Rect);
-        }, 17);
-      }
+        }, 17)
+      // tslint:disable-next-line: no-unused-expression
+      : 0;
     } else {
+      removeFlash && removeFlash();
       clickEl = null;
       VHud.tip_(kTip.linkRemoved, 2000);
     }
