@@ -974,9 +974,6 @@
 	"invalidOption": {
 		"message": "此设置项无效，因为$1"
 	},
-	"keyShortcutOf": {
-		"message": ""
-	},
 	"manageShortcut": {
 		"message": ""
 	},
@@ -1070,7 +1067,7 @@
 	"t_ERROR": {
 		"message": "错误"
 	},
-	"fail_to_load": {
+	"failInLoading": {
 		"message": "（图片加载失败）"
 	},
 	"none": {

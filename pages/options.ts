@@ -774,17 +774,13 @@ let optionsInit1_ = function (): void {
   if (Build.MinCVer < BrowserVer.MinEnsuredChromeURL$ExtensionShortcuts
       && Build.BTypes & BrowserType.Chrome
       && bgBrowserVer_ < BrowserVer.MinEnsuredChromeURL$ExtensionShortcuts) {
-    nextTick_(el => {
-      el.href = "chrome://extensions/configureCommands";
-      (el.parentElement as HTMLElement).insertBefore(
-          new Text(pTrans_("keyShortcutOf") || '"Keyboard shortcuts" of '), el);
-    }, _element as HTMLAnchorElement);
+    (_element as HTMLAnchorElement).href = "chrome://extensions/configureCommands";
   } else if (Build.BTypes & BrowserType.Firefox
       && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
     nextTick_(([el, el2, el3]) => {
       el.textContent = el.href = "about:addons";
       const el1 = el.parentElement as HTMLElement, prefix = BuildStr.FirefoxAddonPrefix;
-      el1.insertBefore(new Text(pTrans_("manageShortcut") || '"Manage Shortcuts" in "Tools Menu" of '), el);
+      el1.insertBefore(new Text(pTrans_("manageShortcut")), el);
       el1.insertBefore(new Text(pTrans_("manageShortcut_2")), el.nextSibling);
       el2.href = prefix + "shortcut-forwarding-tool/";
       el3.href = prefix + "newtab-adapter/";

@@ -642,6 +642,9 @@
 	"invalidOption": {
 		"message": "This option is invalid $1"
 	},
+	"manageShortcut": {
+		"message": "\"Manage Shortcuts\" in \"Tools Menu\" of "
+	},
 	"addons": {
 		"message": "Firefox Add-ons"
 	},
