@@ -33,10 +33,15 @@ let keyMappingChecker_ = {
     } else if (!tail && value === "\\\\") {
       value = "\\";
     }
+    let s3 = "";
+    if (value && value[0] === "{") {
+      value = value.replace(<RegExpG> /([{,] ?)(\w+):/g, '$1"$2":');
+      s3 = value;
+    }
     try {
       const obj = JSON.parse(value);
       if (typeof obj !== "string") {
-        return obj !== true ? str : "";
+        return obj !== true ? s3 ? "=" + s3 + tail : str : "";
       }
       value = obj;
     } catch {
