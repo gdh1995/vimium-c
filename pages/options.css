@@ -545,6 +545,9 @@ label:active {
   transform: translateY(-3px);
   line-height: 20px;
 }
+#o38 {
+  padding-top: 1px;
+}
 @media (min-width: 1067px) {
   #wrapper, #footerWrapper {
     margin-left: auto;

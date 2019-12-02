@@ -970,6 +970,8 @@ declare const enum FirefoxBrowserVer {
   Min$queueMicrotask = 69,
   // https://bugzilla.mozilla.org/show_bug.cgi?id=1587723
   MinMediaChangeEventsOnBackgroundPage = 99,
+  // members of a Selection are never updated when an <input> gets focused, so no work-around
+  Min$Selection$SupportTextBox = 999,
   None = 0,
   assumedVer = 999,
 }

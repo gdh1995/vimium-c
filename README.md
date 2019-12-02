@@ -90,7 +90,7 @@ __Other extensions supporting Vimium C:__
 ### 1.79.0
 
 not released yet
-* `LinkHints` adds support for the Filter Hint mode, and adopts almost the same behavior logic as Vimium
+* `LinkHints` adds support for the Filtered Hint mode, and adopts almost the same behavior logic as Vimium
   * <kbd>Tab</kbd> will still re-init hints as in alphabet mode, if no text has been typed
   * include a fix for https://github.com/philc/vimium/issues/3103
 * `LinkHints` uses a new algorithm to assign hint characters in alphabet mode

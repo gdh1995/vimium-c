@@ -1176,7 +1176,7 @@ var VHints = {
   },
 
 filterEngine_: {
-  activeHint_: null as HintsNS.FilterHintItem | null,
+  activeHint_: null as HintsNS.FilteredHintItem | null,
   getRe_ (matches: string): RegExpG {
     const chars = VHints.chars_;
     return new RegExp(matches + (chars === "0123456789" ? "\\d" : chars.replace(<RegExpG> /\D+/g, "")) + "]+", "g");
@@ -1242,10 +1242,10 @@ filterEngine_: {
     return { t: show && text ? ": " + text : text, w: null };
   },
   getMatchingHints_ (keyStatus: HintsNS.KeyStatus, seq: string, text: string): HintsNS.HintItem | 1 | 0 {
-    const H = VHints, fullHints = H.hints_ as HintsNS.FilterHintItem[],
+    const H = VHints, fullHints = H.hints_ as HintsNS.FilteredHintItem[],
     a = this, oldActive = a.activeHint_, inited = !!oldActive,
     oldTextSeq = inited ? keyStatus.textSequence_ : "a";
-    let hints = keyStatus.hints_ as HintsNS.FilterHintItem[];
+    let hints = keyStatus.hints_ as HintsNS.FilteredHintItem[];
     if (oldTextSeq !== text) {
       const t2 = text.trim(), t1 = oldTextSeq.trim(),
       oldKeySeq = keyStatus.keySequence_,

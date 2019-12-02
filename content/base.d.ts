@@ -176,7 +176,7 @@ declare namespace HintsNS {
   interface InputHintItem extends BaseHintItem {
     d: LockableElement;
   }
-  interface FilterHintItem extends HintItem {
+  interface FilteredHintItem extends HintItem {
     h: HintText;
   }
 }
