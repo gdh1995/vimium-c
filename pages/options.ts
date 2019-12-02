@@ -780,7 +780,7 @@ let optionsInit1_ = function (): void {
       && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
     nextTick_(([el, el2, el3]) => {
       el.textContent = el.href = "about:addons";
-      const el1 = el.parentElement as HTMLElement, prefix = BuildStr.FirefoxAddonPrefix;
+      const el1 = el.parentElement as HTMLElement, prefix = GlobalConsts.FirefoxAddonPrefix;
       el1.insertBefore(new Text(pTrans_("manageShortcut")), el);
       el1.insertBefore(new Text(pTrans_("manageShortcut_2")), el.nextSibling);
       el2.href = prefix + "shortcut-forwarding-tool/";
@@ -807,7 +807,7 @@ let optionsInit1_ = function (): void {
           && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
         children[0].textContent = "moz";
         anchor.textContent = name;
-        anchor.href = BuildStr.FirefoxAddonPrefix + "newtab-adapter/";
+        anchor.href = GlobalConsts.FirefoxAddonPrefix + "newtab-adapter/";
       }
       anchor.title = name + " - " + pTrans_(Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox) ? "addons" : "webstore");

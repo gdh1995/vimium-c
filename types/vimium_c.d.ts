@@ -454,6 +454,13 @@ declare const enum GlobalConsts {
   LOCAL_QUOTA_BYTES = 5_242_880, // 5MB ; no QUOTA_BYTES_PER_ITEM for local
   LOCAL_STORAGE_BYTES = 10_485_760, // 10MB
   MaxTabTreeIndent = 5,
+  FirefoxAddonPrefix = "https://addons.mozilla.org/firefox/addon/",
+  FirefoxHelp = "https://support.mozilla.org/kb/keyboard-shortcuts-perform-firefox-tasks-quickly",
+  ChromeWebStorePage = "https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/$id/reviews",
+  ChromeHelp = "https://support.google.com/chrome/answer/157179",
+  HasEdgUrls = 0, // todo: use real info
+  EdgStorePage = "https://microsoftedge.microsoft.com/insider-addons/detail/$id",
+  EdgHelp = "https://support.google.com/chrome/answer/157179",
 }
 
 declare const enum kCharCode {

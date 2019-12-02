@@ -738,6 +738,7 @@
 	"help": {
 		"message": "Help"
 	},
+	"browserHelp": { "message": "Browser Help" },
 	"tipClickToCopy": {
 		"message": "Tip: Click a command name to copy it to the clipboard."
 	},

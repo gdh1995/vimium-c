@@ -1112,6 +1112,7 @@
 	"help": {
 		"message": "帮助"
 	},
+	"browserHelp": { "message": "浏览器帮助" },
 	"tipClickToCopy": {
 		"message": "提示：点击命令名称即可复制到剪贴板。"
 	},
