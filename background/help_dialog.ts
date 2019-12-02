@@ -236,6 +236,7 @@ var HelpDialog = {
     tabManipulation: [kCName.nextTab, kCName.previousTab, kCName.firstTab, kCName.lastTab, kCName.createTab
       , kCName.duplicateTab, kCName.removeTab, kCName.removeRightTab, kCName.restoreTab, kCName.restoreGivenTab
       , kCName.discardTab, kCName.moveTabToNextWindow, kCName.moveTabToNewWindow, kCName.moveTabToIncognito
+      , kCName.joinTabs
       , kCName.togglePinTab, kCName.toggleMuteTab, kCName.visitPreviousTab, kCName.closeTabsOnLeft
       , kCName.closeTabsOnRight, kCName.closeOtherTabs, kCName.moveTabLeft, kCName.moveTabRight
       , kCName.enableCSTemp, kCName.toggleCS, kCName.clearCS, kCName.copyWindowInfo],

@@ -430,6 +430,7 @@ availableCommands_: <{[key in string]?: CommandsNS.Description} & SafeObject> As
   moveTabToIncognito: [ kBgCmd.moveTabToNewWindow, 1, 1, { incognito: true } ],
   moveTabToNewWindow: [ kBgCmd.moveTabToNewWindow, 1, /** 30 in main.ts */ 0 ],
   moveTabToNextWindow: [ kBgCmd.moveTabToNextWindow, 1, 0 ],
+  joinTabs: [ kBgCmd.joinTabs, 1, 1 ],
   nextFrame: [ kBgCmd.nextFrame, 1, 0 ],
   nextTab: [ kBgCmd.goToTab, 1, 0 ],
   openCopiedUrlInCurrentTab: [ kBgCmd.openUrl, 1, 1, { reuse: ReuseType.current, copied: true } ],

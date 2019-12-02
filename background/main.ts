@@ -982,7 +982,7 @@
     UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.NoTab,
     Build.MinCVer < BrowserVer.MinNoAbnormalIncognito && Build.BTypes & BrowserType.Chrome
         && Build.CreateFakeIncognito ? UseTab.NoTab : UseTab.ActiveTab,
-    UseTab.NoTab, UseTab.NoTab, UseTab.ActiveTab, UseTab.ActiveTab,
+    UseTab.NoTab, UseTab.NoTab, UseTab.ActiveTab, UseTab.NoTab, UseTab.ActiveTab,
     UseTab.NoTab, UseTab.CurShownTabs, UseTab.CurWndTabs, UseTab.CurWndTabs, UseTab.CurWndTabs,
     UseTab.NoTab, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab, UseTab.ActiveTab,
     UseTab.CurWndTabs, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab, UseTab.ActiveTab,
@@ -1443,6 +1443,51 @@
           tabId: tab.id,
           incognito: tab.incognito
         }, wnds.length === 1 && wnds[0].type === "normal" ? wnds[0].state : "", notifyCKey);
+      });
+    },
+    /* kBgCmd.joinTabs: */ function (this: void): void {
+      if (Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther & BrowserType.Edge)) {
+        Backend_.showHUD_("Can not collect tab info of all windows");
+        return;
+      }
+      chrome.windows.getAll(Build.MinCVer < BrowserVer.Min$windows$$GetAll$SupportWindowTypes
+          && Build.BTypes & BrowserType.Chrome && CurCVer_ < BrowserVer.Min$windows$$GetAll$SupportWindowTypes
+          ? {populate: true} : {populate: true, windowTypes: ["normal", "popup"]},
+      (wnds: Array<Window & {tabs: Tab[]}>) => {
+        if (Build.MinCVer < BrowserVer.Min$windows$$GetAll$SupportWindowTypes && Build.BTypes & BrowserType.Chrome
+            && CurCVer_ < BrowserVer.Min$windows$$GetAll$SupportWindowTypes) {
+          wnds = wnds.filter(wnd => wnd.type === "normal" || wnd.type === "popup");
+        }
+        const curIncognito = TabRecency_.incognito_ === IncognitoType.true, curWndId = TabRecency_.lastWnd_;
+        wnds = wnds.filter(wnd => wnd.incognito === curIncognito);
+        const _cur0 = wnds.filter(wnd => wnd.id === curWndId), _curWnd = _cur0.length ? _cur0[0] : null;
+        if (!_curWnd) { return; }
+        const cb = (curWnd: typeof wnds[0]): void => {
+          const tabIds: number[] = [], push = (j: Tab) => tabIds.push(j.id);
+          wnds.sort((i, j) => i.id - j.id).forEach(i => i.tabs.forEach(push));
+          if (!tabIds.length) { return; }
+          if (!(Build.BTypes & ~BrowserType.Firefox)
+              || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox) {
+            let start = curWnd.tabs.length;
+            for (const tabId of tabIds) {
+              chrome.tabs.move(tabId, { windowId: curWnd.id, index: start++ });
+            }
+          } else {
+            chrome.tabs.move(tabIds, { windowId: curWnd.id, index: curWnd.tabs.length });
+          }
+        };
+        if (_curWnd.type === "popup" && _curWnd.tabs.length) {
+          // always convert a popup window to a normal one
+          let curTabId = _curWnd.tabs[0].id;
+          _curWnd.tabs = _curWnd.tabs.filter(i => i.id !== curTabId);
+          makeWindow({
+            tabId: curTabId,
+            incognito: curIncognito
+          }, _curWnd.state, cb);
+        } else {
+          wnds = wnds.filter(wnd => wnd.id !== curWndId);
+          cb(_curWnd);
+        }
       });
     },
     /* kBgCmd.toggleCS: */ function (this: void, tabs: [Tab]): void {

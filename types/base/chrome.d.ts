@@ -2886,9 +2886,8 @@ declare namespace chrome.windows {
         incognito: boolean;
         /**
          * The type of browser window this is.
-         * One of: "normal", "popup", "panel", "app", or "devtools"
          */
-        type: string;
+        type: "normal" | "popup" | "panel" | "app" | "devtools";
         /** Optional. The ID of the window. Window IDs are unique within a browser session. Under some circumstances a Window may not be assigned an ID, for example when querying windows using the sessions API, in which case a session ID may be present. */
         id: number;
         /** Optional. The offset of the window from the left edge of the screen in pixels. Under some circumstances a Window may not be assigned left property, for example when querying closed windows from the sessions API. */

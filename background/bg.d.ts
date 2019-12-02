@@ -471,6 +471,7 @@ declare const enum kCName {
   moveTabToIncognito = "moveTabToIncognito",
   moveTabToNewWindow = "moveTabToNewWindow",
   moveTabToNextWindow = "moveTabToNextWindow",
+  joinTabs = "joinTabs",
   nextFrame = "nextFrame",
   nextTab = "nextTab",
   openCopiedUrlInCurrentTab = "openCopiedUrlInCurrentTab",
@@ -602,6 +603,7 @@ declare namespace CommandsNS {
     [kCName.moveTabToIncognito]: kBgCmd.moveTabToNewWindow;
     [kCName.moveTabToNewWindow]: kBgCmd.moveTabToNewWindow;
     [kCName.moveTabToNextWindow]: kBgCmd.moveTabToNextWindow;
+    [kCName.joinTabs]: kBgCmd.joinTabs;
     [kCName.nextFrame]: kBgCmd.nextFrame;
     [kCName.nextTab]: kBgCmd.goToTab;
     [kCName.openCopiedUrlInCurrentTab]: kBgCmd.openUrl;

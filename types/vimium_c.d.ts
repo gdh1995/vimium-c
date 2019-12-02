@@ -632,6 +632,7 @@ declare const enum BrowserVer {
   // occur on Chrome 46 if EXPERIMENTAL; always enabled since C47 even if LEGACY
   MinMayBe$requestIdleCallback = 46,
   Min$windows$APIsFilterOutDevToolsByDefault = 46,
+  Min$windows$$GetAll$SupportWindowTypes = 46,
   MinEnsured$requestIdleCallback = 47,
   Min$Tabs$$Query$RejectHash = 47,
   // if .key exists, it's "v" for `v`, but "" (empty) for `<c-v>` - doesn't support all cases

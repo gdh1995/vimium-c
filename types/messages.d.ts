@@ -172,7 +172,7 @@ declare const enum kBgCmd {
   MIN_NEED_CPORT = nextFrame, MAX_NEED_CPORT = showVomnibar,
   // endregion: need cport
   createTab,
-  duplicateTab, moveTabToNewWindow, moveTabToNextWindow, toggleCS,
+  duplicateTab, moveTabToNewWindow, moveTabToNextWindow, joinTabs, toggleCS,
   clearCS, goToTab, removeTab, removeTabsR, removeRightTab,
   restoreTab, restoreGivenTab, discardTab, openUrl, searchInAnother,
   togglePinTab, toggleMuteTab, reloadTab, reloadGivenTab, reopenTab,
