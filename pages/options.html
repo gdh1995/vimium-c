@@ -66,7 +66,7 @@
         <td id="mappingsHelp">
           <textarea id="keyMappings" class="code" inputmode="text" data-model="Text" data-check=""
             placeholder="# Insert your preferred key mappings here."></textarea>
-          <div class="plainText info">
+          <div class="info">
             <span data-i="o16_2">The related option "</span><label for="ignoreKeyboardLayout"
                 class="ref-text" role="link" data-i="o50">Ignore keyboard layout</label><span data-i="o16_3"
               >" is </span><span id="ignoreKeyboardLayoutStatus">enabled</span><span data-i="o16_4"></span>
@@ -106,7 +106,13 @@ mapKey &lt;a-e&gt; &lt;esc&gt;
             data-converter="lower chars" class="code"
             /><input id="linkHintNumbers" type="text" data-model="NonEmptyText"
             data-converter="lower chars" class="code" style="display: none;" />
-          <div class="nonEmptyTip info" data-i="nonEmpty">Delete all to reset this option.</div>
+          <div class="info">
+            <span data-i="o16_2">The related option "</span><label for="filterLinkHints"
+                class="ref-text" role="link" data-i="o37_2">Use link name</label><span data-i="o16_3"
+              >" is </span><span id="filterLinkHintsStatus">enabled</span><span
+                data-i="o16_4"></span><span data-i="semicolon2">; </span><span data-i="nonEmpty"
+              >Delete all to reset this option.</span>
+          </div>
         </td>
         <td class="help"><div class="help-inner" data-i="o38">
           The characters placed next to each link after typing "f" to enter link-hint mode.
@@ -116,7 +122,7 @@ mapKey &lt;a-e&gt; &lt;esc&gt;
         <td class="caption" data-i="o29">Default search<br/>engine</td>
         <td>
           <input id="searchUrl" type="text" inputmode="url" data-model="NonEmptyText" data-check="" />
-          <div class="nonEmptyTip info" data-i="nonEmpty">Delete all to reset this option.</div>
+          <div class="info" data-i="nonEmpty">Delete all to reset this option.</div>
         </td>
         <td class="help"><div class="help-inner line-1x">
           <span data-i="o30">Used when no search engine (or "</span><kbd>~</kbd><span data-i="o31">") matched.</span>
@@ -126,7 +132,7 @@ mapKey &lt;a-e&gt; &lt;esc&gt;
         <td class="caption" data-i="o32">Custom search<br/>engines</td>
         <td>
           <textarea id="searchEngines" data-model="NonEmptyText"></textarea>
-          <div class="nonEmptyTip info" data-i="nonEmpty">Delete all to reset this option.</div>
+          <div class="info" data-i="nonEmpty">Delete all to reset this option.</div>
         </td>
         <td class="help"><div class="help-inner">
           <span data-i="o33">Define search engines to create &amp; parse URLs. Format:</span>
@@ -384,7 +390,7 @@ title="Warning: Chrome has a bug of mistaken dialogue width if you has changed s
           <td class="caption" data-i="o25">New tab URL</td>
           <td>
             <input id="newTabUrl" type="text" inputmode="url" data-model="NonEmptyText" />
-            <div class="nonEmptyTip info" data-i="nonEmpty">Delete all to reset this option.</div>
+            <div class="info" data-i="nonEmpty">Delete all to reset this option.</div>
           </td>
           <td class="help"><div class="help-inner break-all">
             "<kbd class="sel-all" role="button">pages/blank.html</kbd>" <span data-i="o26">for a blank page.</span>
@@ -400,7 +406,7 @@ title="Warning: Chrome has a bug of mistaken dialogue width if you has changed s
           <td class="caption" data-i="o68">Previous patterns</td>
           <td>
             <input id="previousPatterns" type="text" data-model="NonEmptyText" data-converter="lower" />
-            <div class="nonEmptyTip info" data-i="nonEmpty">Delete all to reset this option.</div>
+            <div class="info" data-i="nonEmpty">Delete all to reset this option.</div>
           </td>
           <td class="help"><div class="help-inner" data-i="o69">
             The "navigate to previous page" command uses these patterns to find the link to follow (ignore case).
@@ -410,7 +416,7 @@ title="Warning: Chrome has a bug of mistaken dialogue width if you has changed s
           <td class="caption" data-i="o70">Next patterns</td>
           <td>
             <input id="nextPatterns" type="text" data-model="NonEmptyText" data-converter="lower" />
-            <div class="nonEmptyTip info" data-i="nonEmpty">Delete all to reset this option.</div>
+            <div class="info" data-i="nonEmpty">Delete all to reset this option.</div>
           </td>
           <td class="help"><div class="help-inner" data-i="o71">
             The "navigate to next page" command uses these patterns to find the link to follow (ignore case).
@@ -441,7 +447,7 @@ title="Warning: Chrome has a bug of mistaken dialogue width if you has changed s
           <td>
             <textarea id="vomnibarOptions" class="code height-6" data-model="JSON">
             </textarea>
-            <div class="nonEmptyTip info" data-i="nonEmpty">Delete all to reset this option.</div>
+            <div class="info" data-i="nonEmpty">Delete all to reset this option.</div>
           </td>
           <td class="help"><div class="help-inner">
             <div data-i="o78">Adjust some inner behaviors of Vomnibar:</div>
@@ -477,7 +483,7 @@ title="Warning: Chrome has a bug of mistaken dialogue width if you has changed s
           <td>
             <textarea id="extWhiteList" class="code min-height-4" data-model="NonEmptyText"
               data-permission="web_accessible_resources"></textarea>
-            <div class="nonEmptyTip info" data-i="nonEmpty">Delete all to reset this option.</div>
+            <div class="info" data-i="nonEmpty">Delete all to reset this option.</div>
           </td>
           <td class="help"><div class="help-inner">
             <div data-i="o92">Only browser extensions in this list are allowed to request Vimium C's support.
@@ -495,7 +501,7 @@ title="Warning: Chrome has a bug of mistaken dialogue width if you has changed s
           <td class="caption" data-i="o96">Preferred<br/> Vomnibar Page</td>
           <td>
             <input id="vomnibarPage" type="text" inputmode="url" data-model="NonEmptyText" />
-            <div class="nonEmptyTip info" data-i="nonEmpty">Delete all to reset this option.</div>
+            <div class="info" data-i="nonEmpty">Delete all to reset this option.</div>
           </td>
           <td class="help"><div class="help-inner break-all">
             <span data-i="o97">Example: </span><kbd class="sel-all" role="link" id="chromeExtVomnibar"
@@ -527,7 +533,7 @@ so only the default inner version will be used on them"
           <td class="caption" data-i="o104">Keyboard settings</td>
           <td>
             <input id="keyboard" type="text" inputmode="numeric" data-model="JSON" data-check="" />
-            <div class="nonEmptyTip info" data-i="nonEmpty">Delete all to reset this option.</div>
+            <div class="info" data-i="nonEmpty">Delete all to reset this option.</div>
           </td>
           <td class="help"><div class="help-inner">
             <div data-i="o105">

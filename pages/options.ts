@@ -822,14 +822,13 @@ let optionsInit1_ = function (): void {
     }, $("#showActionIconHelp"));
   }
 
-  opt = Option_.all_.ignoreKeyboardLayout;
-  opt.onSave_ = function (): void {
+  _ref = $$(".ref-text");
+  const updateRefStat = function (this: BooleanOption_<PossibleOptionNames<boolean>>): void {
     nextTick_(ref2 => {
       ref2.textContent = pTrans_(this.previous_ ? "o145_2" : "o144");
-    }, $("#ignoreKeyboardLayoutStatus"));
-  };
-  opt.onSave_();
-  $("[for=ignoreKeyboardLayout]").onclick = event => {
+    }, $(`#${this.element_.id}Status`));
+  },
+  onRefStatClick = function (this: HTMLElement, event: MouseEventToPrevent): void {
     if (!advancedMode) {
       $<AdvancedOptBtn>("#advancedOptionsButton").onclick(null);
     }
@@ -840,8 +839,15 @@ let optionsInit1_ = function (): void {
       ? window.VDom ? VDom.view_(node2) : (node2 as EnsureItemsNonNull<SafeHTMLElement>).scrollIntoViewIfNeeded()
       : node2.scrollIntoView({ block: "center" });
       node2.focus();
-    }, Option_.all_.ignoreKeyboardLayout.element_.nextElementSibling as SafeHTMLElement);
+    }, Option_.all_[this.getAttribute("for") as "ignoreKeyboardLayout"].element_.nextElementSibling as SafeHTMLElement);
   };
+  for (let _i = _ref.length; 0 <= --_i; ) {
+    const name = _ref[_i].getAttribute("for") as string as PossibleOptionNames<boolean>;
+    opt = Option_.all_[name];
+    opt.onSave_ = updateRefStat;
+    opt.onSave_();
+    _ref[_i].onclick = onRefStatClick;
+  }
 },
 optionsInitAll_ = function (): void {
 
