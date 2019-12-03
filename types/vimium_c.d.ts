@@ -410,6 +410,7 @@ declare const enum GlobalConsts {
   WndIdNone = -1,
   MinHintCharSetSize = 4, // {@link ../_locales/*/messages.json#hintCharsTooFew */}
   MaxCountToHint = 1e6,
+  MaxLengthOfShownText = 35, // include the length of ": "
   VomnibarSecretTimeout = 3000,
   VomnibarWheelStepForPage = 300,
   VomnibarWheelIntervalForPage = 150,

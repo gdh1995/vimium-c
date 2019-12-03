@@ -876,6 +876,9 @@ var VHints = {
       }
       r2 = null;
     }
+    if (GlobalConsts.MaxLengthOfShownText > 0 && a.useFilter_) {
+      a.maxLeft_ -= 16 * (GlobalConsts.MaxLengthOfShownText >>> 2);
+    }
     return visibleElements.reverse();
   },
   onKeydown_ (event: KeyboardEventToPrevent): HandlerResult {
@@ -1372,7 +1375,9 @@ filterEngine_: {
         right = (hint.h as HintsNS.HintText).t;
         if (!right || right[0] !== ":") { continue; }
         right = right.replace(exclusionRe, " ").trim();
-        right = right.length > 34 ? right.slice(0, 34).trimRight() + "\u2026" : right !== ":" ? right : "";
+        right = right.length > GlobalConsts.MaxLengthOfShownText
+            ? right.slice(0, GlobalConsts.MaxLengthOfShownText - 2).trimRight() + "\u2026" // the "\u2026" is wide
+            : right !== ":" ? right : "";
       } else {
         right = hint.a.slice(-1);
         for (const ch of hint.a.slice(0, -1)) {
