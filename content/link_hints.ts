@@ -29,7 +29,7 @@ declare namespace HintsNS {
     toggle?: {
       [selector: string]: string;
     };
-    mapKey?: boolean;
+    mapKey?: true | false;
     auto?: boolean;
   }
   type NestedFrame = false | 0 | null | HTMLIFrameElement | HTMLFrameElement;
