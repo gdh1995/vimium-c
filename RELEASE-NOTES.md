@@ -10,7 +10,7 @@ Release Notes of Vimium C
   * also fix detection on CSP-protected pages
 * `vimium://show`: notify browser not to cache images from incognito tabs
   * add an option for never writing into caches
-* hook access keys: avoid negative influence on debugging experience
+* hook access keys: avoid part of negative influence on debugging experience
 * fix some other bugs
 
 

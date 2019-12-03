@@ -3,7 +3,7 @@
 ===========================================
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.78.7](https://img.shields.io/badge/release-1.78.7-orange.svg
+[![Version 1.79.0](https://img.shields.io/badge/release-1.79.0-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -87,16 +87,14 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
-### 1.78.7
+### 1.79.0
 
-* Firefox: fix `focusInput` can not select begin/end of text
-* `FindMode`: try to scroll highlighted text into view
-* `Vomnibar`: show better favIcons for URLs from search engines
-* Firefox: a much more efficient way to detect elements with click listeners
-  * also fix detection on CSP-protected pages
-* `vimium://show`: notify browser not to cache images from incognito tabs
-  * add an option for never writing into caches
-* hook access keys: avoid negative influence on debugging experience
+not released yet
+* `LinkHints` adds support for the Filter Hint mode, and adopts almost the same behavior logic as Vimium
+  * <kbd>Tab</kbd> will still re-init hints as in alphabet mode, if no text has been typed
+  * include a fix for https://github.com/philc/vimium/issues/3103
+* `LinkHints` uses a new algorithm to assign hint characters in alphabet mode
+* hook access keys: completely avoid negative influence on debugging experience
 * fix some other bugs
 
 See more on [RELEASE-NOTES.md](https://github.com/gdh1995/vimium-c/blob/master/RELEASE-NOTES.md).
