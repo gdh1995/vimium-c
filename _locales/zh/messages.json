@@ -212,6 +212,7 @@
 	"moveTabToNextWindow": {
 		"message": "移动当前标签页到下一个窗口"
 	},
+	"joinTabs": { "message": "合并所有窗口" },
 	"nextFrame": {
 		"message": "移动键盘焦点到下一个子页面"
 	},

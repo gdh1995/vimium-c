@@ -409,7 +409,7 @@ declare const enum GlobalConsts {
   MaxImpossibleTabId = -4,
   WndIdNone = -1,
   MinHintCharSetSize = 4, // {@link ../_locales/*/messages.json#hintCharsTooFew */}
-  MaxCountToHint = 1e5,
+  MaxCountToHint = 1e6,
   VomnibarSecretTimeout = 3000,
   VomnibarWheelStepForPage = 300,
   VomnibarWheelIntervalForPage = 150,

@@ -64,7 +64,7 @@ var VHints = {
   box_: null as HTMLDivElement | HTMLDialogElement | null,
   dialogMode_: false,
   wantDialogMode_: null as boolean | null,
-  fullHints_: null as never as HintsNS.HintItem[],
+  hints_: null as never as HintsNS.HintItem[],
   mode_: 0 as HintMode,
   mode1_: 0 as HintMode,
   modeOpt_: null as never as HintsNS.ModeOpt,
@@ -142,7 +142,7 @@ var VHints = {
     }
 
     if (a.box_) { a.box_.remove(); a.box_ = null; }
-    const hints = a.fullHints_ = a.keyStatus_.hints_ = elements.map(a.createHint_, a);
+    const hints = a.hints_ = a.keyStatus_.hints_ = elements.map(a.createHint_, a);
     VDom.bZoom_ !== 1 && a.adjustMarkers_(elements, hints);
     elements = null as never;
     useFilter ? a.filterEngine_.getMatchingHints_(a.keyStatus_, "", "") : a.initAlphabetEngine_(hints);
@@ -732,7 +732,7 @@ var VHints = {
           }
         } else if (k === ClickType.edit && i > 0 && (element = list[i - 1][0]) === list[i][0].parentElement
             && element.childElementCount < 2 && element.localName === "a"
-            && !VDom.getEditableType_(list[i][0])) {
+            && !(element as HTMLElement | Element & { innerText?: undefined }).innerText) {
           // a rare case that <a> has only a clickable <input>
           list.splice(--i, 1);
           continue;
@@ -1076,7 +1076,7 @@ var VHints = {
     if (hidden && VDom.lastHovered_ === el) {
       VDom.lastHovered_ = null;
     }
-    if ((!r2 || r) && _this.isActive_ && _this.fullHints_.length < 64
+    if ((!r2 || r) && _this.isActive_ && _this.hints_.length < 64
         && !_this.keyStatus_.keySequence_
         && (hidden || Math.abs((r2 as ClientRect).left - (r as Rect).l) > 100
             || Math.abs((r2 as ClientRect).top - (r as Rect).t) > 60)) {
@@ -1085,7 +1085,7 @@ var VHints = {
   },
   resetHints_ (): void {
     const a = this;
-    a.fullHints_ = a.zIndexes_ = a.filterEngine_.activeHint_ = null as never;
+    a.hints_ = a.zIndexes_ = a.filterEngine_.activeHint_ = null as never;
     a.pTimer_ > 0 && clearTimeout(a.pTimer_);
     a.pTimer_ = 0;
     a.keyStatus_ = {
@@ -1241,7 +1241,7 @@ filterEngine_: {
     return { t: show && text ? ": " + text : text, w: null };
   },
   getMatchingHints_ (keyStatus: HintsNS.KeyStatus, seq: string, text: string): HintsNS.HintItem | 1 | 0 {
-    const H = VHints, fullHints = H.fullHints_ as HintsNS.FilterHintItem[],
+    const H = VHints, fullHints = H.hints_ as HintsNS.FilterHintItem[],
     a = this, oldActive = a.activeHint_, inited = !!oldActive,
     oldTextSeq = inited ? keyStatus.textSequence_ : "a";
     let hints = keyStatus.hints_ as HintsNS.FilterHintItem[];
@@ -1371,7 +1371,7 @@ filterEngine_: {
         right = (hint.h as HintsNS.HintText).t;
         if (!right || right[0] !== ":") { continue; }
         right = right.replace(exclusionRe, " ").trim();
-        right = right.length > 34 ? right.slice(0, 34).trimRight() + "\u2026" : right;
+        right = right.length > 34 ? right.slice(0, 34).trimRight() + "\u2026" : right !== ":" ? right : "";
       } else {
         right = hint.a.slice(-1);
         for (const ch of hint.a.slice(0, -1)) {
@@ -1463,7 +1463,7 @@ filterEngine_: {
       keyStatus.keySequence_ = sequence;
       keyStatus.textSequence_ = textSeq;
       const notDoSubCheck = !keyStatus.tab_, wanted = notDoSubCheck ? sequence : sequence.slice(0, -1);
-      hints = keyStatus.hints_ = (doesDetectMatchSingle ? hints : h.fullHints_).filter(function (hint): boolean {
+      hints = keyStatus.hints_ = (doesDetectMatchSingle ? hints : h.hints_).filter(function (hint): boolean {
         const pass = hint.a.startsWith(wanted) && (notDoSubCheck || !hint.a.startsWith(sequence));
         hint.m.style.visibility = pass ? "" : "hidden";
         return pass;

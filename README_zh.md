@@ -83,13 +83,18 @@ Vimium C 具有完善的安全机制：
 <a name="donate"></a>
 Vimium C 是一款开源的浏览器扩展程序，任何人都可以安装使用它而无需支付任何费用。
 如果您确实想要资助它的开发者（[gdh1995](https://gdh1995.cn/)），
-可以通过[支付宝](https://www.alipay.com/)无偿赠与他一小笔钱。谢谢您的支持！
+可以通过[支付宝](https://www.alipay.com/)或 [PayPal](https://www.paypal.com/)
+无偿赠与他一小笔钱。谢谢您的支持！
 
 Vimium C is an open-source browser extension, and everyone can install and use it free of charge.
 If you indeed want to give its author ([gdh1995](https://gdh1995.cn/)) financial support,
-you may donate any small amount of money to him using [Alipay](https://intl.alipay.com/). Thanks a lot!
+you may donate any small amount of money to him through [PayPal](https://www.paypal.com/)
+  or [Alipay](https://intl.alipay.com/). Thanks a lot!
 
+支付宝（Alipay）：<br/>
 ![gdh1995 的支付宝二维码](https://gdh1995.cn/alipay-recv-money.png)
+
+PayPal: https://www.paypal.me/gdh1995 (accout: gdh1995@qq.com)
 
 # 关于适用区域的声明
 
@@ -97,7 +102,7 @@ you may donate any small amount of money to him using [Alipay](https://intl.alip
 和 [gdh1995](https://github.com/gdh1995) 发布的其他扩展，在被发布到“Chrome 网上应用店”和“微软 Edge
 浏览器插件商店”等商店上时，均已向*所有地区*的所有人公开。
 但这个行为只是为了让这些插件更容易使用，**并不代表或者暗示**作者 gdh1995 “同意或者不反对”“台湾”一词可以同“中国”并列。
-虽然并列显示的确**不正确地出现**在了这些商店的页面中（2019年11月16日确认）。
+虽然并列显示这一现状的确**不正确地出现**在了这些商店的页面中（2019年11月16日确认）。
 
 根据[《中华人民共和国宪法》](http://www.npc.gov.cn/npc/c505/201803/e87e5cd7c1ce46ef866f4ec8e2d709ea.shtml)和国际共识，
 *台湾是中华人民共和国的**神圣领土（不可分割的）一部分***。

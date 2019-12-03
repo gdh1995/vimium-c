@@ -1033,7 +1033,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         st.visibility = "hidden";
         U.box_ || U.ensureBorder_();
       }
-      U.add_(HUD.box_ = el, Hints.fullHints_ ? AdjustType.NotAdjust : AdjustType.DEFAULT, Hints.box_);
+      U.add_(HUD.box_ = el, Hints.hints_ ? AdjustType.NotAdjust : AdjustType.DEFAULT, Hints.box_);
     },
     _tween (this: void, fake?: TimerType.fake): void { // safe-interval
       const el = HUD.box_ as HTMLDivElement, st = el.style, reduce = isEnabled && fgCache.r;

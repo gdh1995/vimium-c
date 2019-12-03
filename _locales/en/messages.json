@@ -302,6 +302,7 @@
 	"moveTabToNextWindow_p": {
 		"message": "right"
 	},
+	"joinTabs": { "message": "Collect all tabs into current window" },
 	"nextFrame": {
 		"message": "Cycle forward to the next frame on the page"
 	},

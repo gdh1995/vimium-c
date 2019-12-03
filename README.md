@@ -130,12 +130,17 @@ The options including `MinCVer` and `BTypes` in [gulp.tsconfig.json](scripts/gul
 <a name="donate"></a>
 Vimium C is an open-source browser extension, and everyone can install and use it free of charge.
 If you indeed want to give its author ([gdh1995](https://gdh1995.cn/)) financial support,
-you may donate any small amount of money to him using [Alipay](https://intl.alipay.com/). Thanks a lot!
+you may donate any small amount of money to him through [PayPal](https://www.paypal.com/)
+  or [Alipay](https://intl.alipay.com/). Thanks a lot!
 
 Vimium C 是一款开源的浏览器扩展程序，任何人都可以安装使用它而无需支付任何费用。
 如果您确实想要资助它的开发者（[gdh1995](https://gdh1995.cn/)），
-可以通过[支付宝](https://www.alipay.com/)无偿赠与他一小笔钱。谢谢您的支持！
+可以通过[支付宝](https://www.alipay.com/)或 [PayPal](https://www.paypal.com/)
+无偿赠与他一小笔钱。谢谢您的支持！
 
+PayPal: https://www.paypal.me/gdh1995 (accout: gdh1995@qq.com)
+
+Alipay / 支付宝 : <br/>
 ![Alipay QRCode of gdh1995](https://gdh1995.cn/alipay-recv-money.png)
 
 
