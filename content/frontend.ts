@@ -481,7 +481,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
       (cache as Generalized<typeof cache>)[key] = val as typeof cur;
       let notBool = val !== !!val;
-      HUD.tip_(notBool ? kTip.useVal : val ? kTip.turnOn : kTip.turnOff,
+      options.n && HUD.tip_(notBool ? kTip.useVal : val ? kTip.turnOn : kTip.turnOff,
           1000, [options.n, notBool ? JSON.stringify(val) : ""]);
     },
     /* kFgCmd.insertMode: */ function (_0: number, opt: CmdOptions[kFgCmd.insertMode]): void {

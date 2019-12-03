@@ -1111,12 +1111,15 @@
       if (msg) {
         Backend_.showHUD_(msg);
       } else {
-        cPort.postMessage<1, kFgCmd.toggle>({
-          N: kBgReq.execute,
-          S: ensureInnerCSS(cPort),
-          c: kFgCmd.toggle, n: 1,
-          a: { k: key2, n: keyRepr, v: value }
-        });
+        const ports = Backend_.indexPorts_(cPort.s.t) as Frames.Frames;
+        for (let i = 1; i < ports.length; i++) {
+          ports[i].postMessage<1, kFgCmd.toggle>({
+            N: kBgReq.execute,
+            S: ports[i] === ports[0] ? ensureInnerCSS(cPort) : null,
+            c: kFgCmd.toggle, n: 1,
+            a: { k: key2, n: ports[i] !== ports[0] ? keyRepr : "", v: value }
+          });
+        }
       }
     },
     /* kBgCmd.showHelp: */ function (this: void): void {
