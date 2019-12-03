@@ -974,15 +974,16 @@ var VHints = {
         || Build.BTypes & ~BrowserType.Chrome && VOther !== BrowserType.Chrome
         || Build.MinCVer < BrowserVer.MinUserActivationV2 && cache.v < BrowserVer.MinUserActivationV2
         ) {
+      // e.g.: https://github.com/philc/vimium/issues/3103#issuecomment-552653871
       if (!cache.w) {
-        K.suppressTail_(200);
+        K.suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents);
         return 1;
       }
     }
     (a.box_ as NonNullable<typeof a.box_>).remove();
     const removeFlash = rect && VCui.flash_(null, rect, -1),
-    callback = (doesContinue?: boolean): void => {
-      doesContinue && a.isActive_ ? a.execute_(hint, removeFlash) : removeFlash && removeFlash();
+    callback = (doesStop?: boolean): void => {
+      doesStop || !a.isActive_ ? removeFlash && removeFlash() : a.execute_(hint, removeFlash);
     };
     if (!(Build.BTypes & BrowserType.Chrome) || cache.w) {
       K.pushHandler_(event => {
@@ -993,12 +994,12 @@ var VHints = {
         if (action) {
           K.removeHandler_(callback);
           K.prevent_(event);
-          callback(action < 2);
+          callback(action > 1);
         }
         return action > 1 ? HandlerResult.Nothing : HandlerResult.Prevent;
       }, callback);
     } else {
-      K.suppressTail_(200, callback);
+      K.suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents, callback);
     }
   },
   execute_ (hint: HintsNS.HintItem, removeFlash?: (() => void) | null): void {

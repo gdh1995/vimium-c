@@ -141,32 +141,32 @@ var VKey = {
   /**
    * if not timeout, then only suppress repeated keys
    *
-   * @argument callback can be valid only if BTypes & Chrome
+   * @argument callback can be valid only if `BTypes & Chrome` and `timeout`
    */
-  suppressTail_ (timeout: number, callback?: () => void): void {
-    let func: HandlerNS.Handler<object>, tick: number, timer: number;
-    if (!timeout) {
-      func = function (event) {
-        if (event.repeat) { return HandlerResult.Prevent; }
-        VKey.removeHandler_(this);
-        Build.BTypes & BrowserType.Chrome && callback && callback();
-        return HandlerResult.Nothing;
-      };
-    } else {
-      func = function () { tick = Date.now(); return HandlerResult.Prevent; };
-      tick = Date.now() + timeout;
-      timer = setInterval(function (info?: TimerType.fake) { // safe-interval
-        const delta = Date.now() - tick; // Note: performance.now() may has a worse resolution
-        if (delta > GlobalConsts.TimeOfSuppressingTailKeydownEvents || delta < -3e3
-           || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake
-              && info) {
-          clearInterval(timer);
-          VKey && VKey.removeHandler_(func); // safe enough even if reloaded
-          Build.BTypes & BrowserType.Chrome && callback && callback();
+  suppressTail_: function (this: {}, timeout: number, callback?: (() => void) | 0): void {
+    let timer = 0,
+    func: HandlerNS.Handler<object> | (() => HandlerResult) = timeout ? () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => { // safe-interval
+        if (VKey) {
+          VKey.removeHandler_(func); // safe enough even if reloaded;
+          if (Build.BTypes & BrowserType.Chrome && callback) {
+            callback();
+            callback = 0; // in case that native `setTimeout` is broken and the current one is simulated
+          }
         }
-      }, (GlobalConsts.TimeOfSuppressingTailKeydownEvents * 0.36) | 0);
-    }
-    this.pushHandler_(func, func);
+      }, timeout);
+      return HandlerResult.Prevent;
+    } : event => {
+      if (event.repeat) { return HandlerResult.Prevent; }
+      VKey.removeHandler_(func);
+      return HandlerResult.Nothing;
+    };
+    timeout && (func as () => HandlerResult)();
+    (this as typeof VKey).pushHandler_(func, func);
+  } as {
+    (timeout: 0, callback?: undefined): void;
+    (timeout: number, callback?: () => void): void;
   },
 
   /** handler section */
