@@ -728,7 +728,7 @@
 		"message": "Vimium C has been upgraded to v$1.\n"
 	},
 	"upgradeMsg2": {
-		"message": "Browser NewTab is not managed any more!"
+		"message": "LinkHints is enhanced and supports Filtered Hints!"
 	},
 	"clickForMore": {
 		"message": "Click here for more information."

@@ -415,10 +415,10 @@
 		"message": "设置"
 	},
 	"Patterns": {
-		"message": "网址模式"
+		"message": "网址匹配规则"
 	},
 	"Pattern": {
-		"message": "网址模式"
+		"message": "网址匹配规则"
 	},
 	"Keys": {
 		"message": "按键列表"
@@ -1094,7 +1094,7 @@
 		"message": "您的 Vimium C 已经更新至 $1 版。\n"
 	},
 	"upgradeMsg2": {
-		"message": "此版本不再接管浏览器新标签页设置！"
+		"message": "重点增强了提示模式，支持按链接文字匹配"
 	},
 	"clickForMore": {
 		"message": "点击阅读详细信息。"

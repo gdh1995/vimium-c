@@ -775,28 +775,26 @@ var VHints = {
       list.shift();
     }
   },
-  _isDescendant (d: Element, p: Hint[0], shouldBeSingleChild: boolean): boolean {
+  _isDescendant: function (c: Element, p: Hint[0], shouldBeSingleChild: boolean): boolean {
     // Note: currently, not compute normal shadowDOMs / even <slot>s (too complicated)
-    let i = 3, c: EnsuredMountedElement | null | undefined, f: Node | null, s: string;
+    let i = 3, f: Node | null;
     while (0 < i--
-        && (c = (Build.BTypes & ~BrowserType.Firefox ? VDom.GetParent_(d, PNType.DirectElement)
-                : d.parentElement as Element | null) as EnsuredMountedElement | null)
-        && c !== <Element> p
+        && (c = Build.BTypes & ~BrowserType.Firefox ? VDom.GetParent_(c, PNType.DirectElement) as Element
+                : c.parentElement as Element | null as Element)
+        && c !== p
         && !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
-              && VDom.unsafeFramesetTag_ && (c as Element["firstElementChild"] as WindowWithTop).top === top)
-        ) {
-      d = c;
+              && VDom.unsafeFramesetTag_ && VDom.notSafe_(c))
+        ) { /* empty */ }
+    if (c !== p
+        || !shouldBeSingleChild || (<RegExpOne> /\b(button|a$)/).test(p.localName)) {
+      return c === p;
     }
-    if (c !== <Element> p) { return false; }
-    if (shouldBeSingleChild && (s = p.localName).indexOf("button") < 0 && s !== "a") {
-      for (; ; ) {
-        if (c.childElementCount !== 1 || ((f = c.firstChild) instanceof Text && f.data.trim())) { return false; }
-        if (i++ === 2) { break; }
-        c = c.lastElementChild;
-      }
-    }
-    return true;
-  },
+    for (; c.childElementCount === 1
+          && ((f = c.firstChild as Node).nodeType !== kNode.TEXT_NODE || !(f as Text).data.trim())
+          && ++i < 3
+        ; c = c.lastElementChild as Element | null as Element) {}
+    return i > 2;
+  } as (c: Element, p: Hint[0], shouldBeSingleChild: boolean) => boolean,
   frameNested_: false as HintsNS.NestedFrame,
   checkNestedFrame_ (output?: Hint[]): void {
     const res = output && output.length > 1 ? null : !frames.length ? false
@@ -1323,7 +1321,7 @@ filterEngine_: {
         marker.style.visibility = match ? "" : "hidden";
         if (match) {
           let child = marker.firstChild as Text | HintsNS.MarkerElement, el: HintsNS.MarkerElement;
-          if (child instanceof Text) {
+          if (child.nodeType === kNode.TEXT_NODE) {
             el = marker.insertBefore(createEl("span") as HintsNS.MarkerElement, child);
             el.className = "MC";
           } else {
