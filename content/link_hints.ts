@@ -707,7 +707,15 @@ var VHints = {
       k = list[i][2];
       if (k !== ClickType.classname) {
         if (k === ClickType.codeListener) {
-          if (((element = list[i][0]) as Exclude<Hint[0], SVGElement>).localName === "div"
+          if (s = ((element = list[i][0]) as Exclude<Hint[0], SVGElement>).localName, s === "i") {
+            if (i > 0 && (<RegExpOne> /\b(button|a$)/).test(list[i - 1][0].localName)
+                && !element.innerHTML.trim()
+                && this._isDescendant(element as SafeHTMLElement, list[i - 1][0], false) ) {
+              // icons: button > i
+              list.splice(i, 1);
+              continue;
+            }
+          } else if (s === "div"
               && (j = i + 1) < list.length
               && (s = list[j][0].localName, s === "div" || s === "a")) {
             prect = list[i][1]; crect = list[j][1];
