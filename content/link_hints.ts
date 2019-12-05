@@ -131,11 +131,6 @@ var VHints = {
         && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement
             || typeof HTMLDialogElement === "function");
     let elements = a.getVisibleElements_(arr), elLen = elements.length;
-    if (a.frameNested_) {
-      if (a.TryNestedFrame_(kFgCmd.linkHints, count, options)) {
-        return a.clean_();
-      }
-    }
     if (!elLen || elLen > GlobalConsts.MaxCountToHint) {
       a.clean_(1);
       return VHud.tip_(elLen ? kTip.tooManyLinks : kTip.noLinks, 1000);
@@ -207,52 +202,24 @@ var VHints = {
     const a = VHints;
     if (a && a.isActive_) { a.pTimer_ = 0; a.setMode_(a.mode_); }
   },
-  TryNestedFrame_ (cmd: FgCmdAcrossFrames, count: number, options: SafeObject): boolean {
+  TryNestedFrame_ (cmd: Exclude<FgCmdAcrossFrames, kFgCmd.linkHints>, count: number, options: SafeObject): boolean {
     const a = this;
     if (a.frameNested_ !== null) {
-      cmd !== kFgCmd.linkHints && VDom.prepareCrop_();
+      VDom.prepareCrop_();
       a.checkNestedFrame_();
     }
-    interface VWindow extends Window {
-      VHints: typeof VHints;
-    }
-    let frame = a.frameNested_, err = true, done = false;
-    let events: VApiTy | undefined, core: ContentWindowCore | null | 0 | void | undefined = null;
-    if (!frame) { return false; }
-    try {
-      if (frame.contentDocument
-          && (core = Build.BTypes & BrowserType.Firefox ? VDom.getWndCore_(frame.contentWindow) : frame.contentWindow)
-          && core.VDom && (core.VDom as typeof VDom).isHTML_()) {
-        if (cmd === kFgCmd.linkHints) {
-          (done = (core as VWindow).VHints.isActive_) && (core as VWindow).VHints.deactivate_(1);
-        }
-        events = core.VApi as VApiTy;
-        err = events.keydownEvents_(Build.BTypes & BrowserType.Firefox ? VApi.keydownEvents_() : VApi);
-      }
-    } catch (e) {
-      if (!Build.NDEBUG) {
-        let notDocError = true;
-        if (Build.BTypes & BrowserType.Chrome && VDom.cache_.v < BrowserVer.Min$ContentDocument$NotThrow) {
-          try {
-            notDocError = frame.contentDocument !== undefined;
-          } catch { notDocError = false; }
-        }
-        if (notDocError) {
-          console.log("Assert error: Child frame check breaks:", e);
-        }
-      }
-    }
-    if (err) {
+    if (!a.frameNested_) { return false; }
+    // let events: VApiTy | undefined, core: ContentWindowCore | null | 0 | void | undefined = null;
+    const core = a.detectUsableChild_(a.frameNested_);
+    if (core) {
+      core.VApi.focusAndRun_(cmd, count, options);
+      if (document.readyState !== "complete") { a.frameNested_ = false; }
+    } else {
       // It's cross-site, or Vimium C on the child is wholly disabled
       // * Cross-site: it's in an abnormal situation, so we needn't focus the child;
       a.frameNested_ = null;
-      return false;
     }
-    done ? (events as NonNullable<typeof events>).focusAndRun_()
-    : (events as NonNullable<typeof events>).focusAndRun_(cmd, count, options);
-    if (done) { return true; }
-    if (document.readyState !== "complete") { a.frameNested_ = false; }
-    return true;
+    return !!core;
   },
   maxLeft_: 0,
   maxTop_: 0,
@@ -609,7 +576,7 @@ var VHints = {
             shadowQueryAll || (shadowQueryAll = shadowRoot.querySelectorAll);
             let sub_tree: HintsNS.HintSources = shadowQueryAll.call(shadowRoot, selector) as NodeListOf<SafeElement>;
             if (!matchAll) {
-              sub_tree = a.addShadowHosts_(sub_tree,
+              sub_tree = a.addChildTrees_(sub_tree,
                   shadowQueryAll.call(shadowRoot, a.kSafeAllSelector_) as NodeListOf<SafeElement>);
             }
             cur_scope[1] = i;
@@ -662,15 +629,13 @@ var VHints = {
       a.checkNestedFrame_(output as Hint[]);
     } else if (output.length > 0) {
       a.frameNested_ = null;
-    } else {
-      a.checkNestedFrame_();
     }
     return output as Hint[];
   } as {
     (key: string, filter: HintsNS.Filter<SafeHTMLElement>, notWantVUI?: true, wholeDoc?: true): SafeHTMLElement[];
     (key: string, filter: HintsNS.Filter<Hint>, notWantVUI?: boolean): Hint[];
   },
-  addShadowHosts_ (list: HintsNS.HintSources, allNodes: NodeListOf<SafeElement>): HintsNS.HintSources {
+  addChildTrees_ (list: HintsNS.HintSources, allNodes: NodeListOf<SafeElement>): HintsNS.HintSources {
     let matchWebkit = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
                       && VDom.cache_.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0;
     let hosts: SafeElement[] = [], matched: SafeElement | undefined;
@@ -1551,24 +1516,13 @@ openUrl_ (url: string, incognito?: boolean): void {
   incognito && (opt.i = incognito);
   VApi.post_(opt);
 },
-_highlightChild (el: HintsNS.LinkEl, tag: string): 0 | 1 | 2 {
-  if (!(<RegExpOne> /^i?frame$/).test(tag)) {
-    return 0;
-  }
-  const { count_: count, options_: options } = this;
-  options.mode = this.mode_;
-  this.mode_ = HintMode.DEFAULT;
-  if (el === VOmni.box_) {
-    VOmni.focus_();
-    return 1;
-  }
+detectUsableChild_ (el: HTMLIFrameElement | HTMLFrameElement
+    ): ContentWindowCore & Ensure<ContentWindowCore, "VApi"> | null {
   let err: boolean | null = true, childEvents: VApiTy | undefined,
   core: ContentWindowCore | void | undefined | 0;
   try {
-    err = !(el as HTMLIFrameElement | HTMLFrameElement).contentDocument
-        || !(core = Build.BTypes & BrowserType.Firefox
-              ? VDom.getWndCore_((el as HTMLIFrameElement | HTMLFrameElement).contentWindow)
-              : (el as HTMLIFrameElement | HTMLFrameElement).contentWindow)
+    err = !el.contentDocument
+        || !(core = Build.BTypes & BrowserType.Firefox ? VDom.getWndCore_(el.contentWindow) : el.contentWindow)
         || !(childEvents = core.VApi)
         || childEvents.keydownEvents_(Build.BTypes & BrowserType.Firefox ? VApi.keydownEvents_() : VApi);
   } catch (e) {
@@ -1576,7 +1530,7 @@ _highlightChild (el: HintsNS.LinkEl, tag: string): 0 | 1 | 2 {
       let notDocError = true;
       if (Build.BTypes & BrowserType.Chrome && VDom.cache_.v < BrowserVer.Min$ContentDocument$NotThrow) {
         try {
-          notDocError = (el as HTMLIFrameElement | HTMLFrameElement).contentDocument !== undefined;
+          notDocError = el.contentDocument !== undefined;
         } catch { notDocError = false; }
       }
       if (notDocError) {
@@ -1584,18 +1538,32 @@ _highlightChild (el: HintsNS.LinkEl, tag: string): 0 | 1 | 2 {
       }
     }
   }
+  return err ? null : core as Exclude<typeof core, 0 | null | undefined | void> & Ensure<ContentWindowCore, "VApi">;
+},
+_highlightChild (el: HintsNS.LinkEl, tag: string): 0 | 1 | 2 {
+  if (!(<RegExpOne> /^i?frame$/).test(tag)) {
+    return 0;
+  }
+  const a = this, { count_: count, options_: options } = a;
+  options.mode = a.mode_;
+  a.mode_ = HintMode.DEFAULT;
+  if (el === VOmni.box_) {
+    VOmni.focus_();
+    return 1;
+  }
+  const core = a.detectUsableChild_(el as HTMLIFrameElement | HTMLFrameElement);
   el.focus();
-  if (err) {
+  if (!core) {
     VApi.send_(kFgReq.execInChild, {
       u: (el as HTMLIFrameElement | HTMLFrameElement).src,
-      c: kFgCmd.linkHints, n: count, k: this.keyCode_, a: options
+      c: kFgCmd.linkHints, n: count, k: a.keyCode_, a: options
     }, function (res): void {
       if (!res) {
         (el as HTMLIFrameElement | HTMLFrameElement).contentWindow.focus();
       }
     });
   } else {
-    (childEvents as NonNullable<typeof childEvents>).focusAndRun_(kFgCmd.linkHints, count, options, 1);
+    core.VApi.focusAndRun_(kFgCmd.linkHints, count, options, 1);
   }
   return 2;
 },
