@@ -1666,7 +1666,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
       if (!thisCore) {
         /** @see {@link base.d.ts#ContentWindowCore} */
-        thisCore = { VDom, VKey, VHints, VSc, VOmni, VFind, VApi, VIh: () => innerHeight };
+        thisCore = { VDom, VKey, VHints, VSc, VOmni, VFind, VApi, VIh: () => innerHeight, VCui };
       }
       return thisCore;
     }});
@@ -1687,8 +1687,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           D.clickable_ = arr;
           arr.add = arr.push;
           // a temp collection, so it's okay just to ignore its elements
-          arr.has = Build.MinCVer >= BrowserVer.MinEnsured$Array$$Includes || !(Build.BTypes & BrowserType.Chrome)
-              ? (arr.includes as NonNullable<typeof arr.includes>) : () => !1;
+          arr.has = Build.MinCVer >= BrowserVer.MinEnsuredES6$Array$$Includes || !(Build.BTypes & BrowserType.Chrome)
+              ? (arr as ReadonlyArrayWithIncludes<Element>).includes : () => !1;
         }
       }
       return;

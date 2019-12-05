@@ -74,7 +74,7 @@ var VCui = {
     }
   }) as <T extends HTMLElement> (element: T, adjust?: AdjustType, before?: Element | null | true) => void,
   addElementList_ <T extends boolean | BOOL> (
-      els: ReadonlyArray<HintsNS.BaseHintItem>, offset: ViewOffset, dialogContainer?: T | null
+      els: readonly HintsNS.BaseHintItem[], offset: ViewOffset, dialogContainer?: T | null
       ): (T extends true | 1 ? HTMLDialogElement : HTMLDivElement) & SafeElement {
     const parent = VDom.createElement_(dialogContainer ? "dialog" : "div");
     parent.className = "R HM" + (dialogContainer ? " DHM" : "") + VDom.cache_.d;
@@ -93,6 +93,7 @@ var VCui = {
     }
     VDom.fullscreenEl_unsafe_() && (style.position = "fixed");
     this.add_(parent, AdjustType.DEFAULT, this._lastFlash);
+    dialogContainer && (parent as HTMLDialogElement).showModal()
     return parent as (T extends true | 1 ? HTMLDialogElement : HTMLDivElement) & SafeElement;
   },
   adjust_ (this: void, event?: Event | /* enable */ 1 | /* disable */ 2): void {
@@ -132,7 +133,7 @@ var VCui = {
         Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo &&
           VDom.cache_.v < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
         ? 1.01 : 0.51) / zoom).slice(0, 5)
-      , st = this.styleIn_;
+      ;
     if (!patch) {
       patch = this.cssPatch_ = ["", function (this: NonNullable<typeof VCui["cssPatch_"]>, css) {
         return css.replace(<RegExpG> /\b(border(?:-\w*-?width)?: ?)(0\.5px\b|[^;}]+\/\*!DPI\*\/)/g, "$1" + this[0]
@@ -141,7 +142,7 @@ var VCui = {
     }
     if (patch[0] === width) { return; }
     patch[0] = width;
-    st && this.css_(typeof st === "string" ? st : st.textContent);
+    this.learnCss_(this);
   },
   createStyle_ (text?: string, css?: HTMLStyleElement): HTMLStyleElement {
     css = css || VDom.createElement_("style");
@@ -150,6 +151,13 @@ var VCui = {
     return css;
   },
   css_ (innerCSS: string): void { this.styleIn_ = innerCSS; },
+  learnCss_ (src: { styleIn_: string | HTMLStyleElement | null }): void {
+    if (!this.styleIn_) {
+      const srcStyleIn = (src as typeof VCui).styleIn_,
+      css = srcStyleIn && (typeof srcStyleIn === "string" ? srcStyleIn : srcStyleIn.textContent);
+      css && this.css_(css);
+    }
+  },
   getDocSelectable_ (): boolean {
     let sout: HTMLStyleElement | null | HTMLBodyElement | HTMLFrameSetElement = this.styleOut_;
     if (sout && sout.parentNode) { return false; }

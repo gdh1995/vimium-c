@@ -377,6 +377,7 @@ interface ContentWindowCore {
   readonly VSc?: object;
   readonly VOmni?: object;
   readonly VFind?: object;
+  readonly VCui?: object;
   readonly VApi?: VApiTy;
   readonly VIh?: (this: void) => number;
 }

@@ -132,7 +132,8 @@ if (VDom && VimiumInjector === undefined) {
     }
     if (isFirstResolve & fromAttrs) {
       isFirstResolve ^= fromAttrs;
-      VHints.isActive_ && !VHints.keyStatus_.keySequence_ && setTimeout(VHints.CheckLast_, 34);
+      const a = VHints;
+      a.hints_ && !a.keyStatus_.keySequence_ && !a.keyStatus_.textSequence_ && setTimeout(a.CheckLast_, 34);
     }
   }
   function resolve(isBox: BOOL, nodeIndexList: number[]): void {
@@ -641,7 +642,8 @@ _listen(kOnDomReady, doInit, !0);
       event && VDom && setTimeout(function (): void {
         if (!hasFindAll && VDom) {
           findAllOnClick(kContentCmd.AutoFindAllOnClick);
-          VHints.isActive_ && !VHints.keyStatus_.keySequence_ && setTimeout(VHints.CheckLast_, 34);
+          const a = VHints;
+          a.hints_ &&!a.keyStatus_.keySequence_ && !a.keyStatus_.textSequence_ && setTimeout(a.CheckLast_, 34);
         }
       }, GlobalConsts.ExtendClick_DelayToFindAll);
     }, 0, 1);
