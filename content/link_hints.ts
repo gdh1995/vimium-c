@@ -55,7 +55,7 @@ declare namespace HintsNS {
         , master: Master | null, result: FrameHintsInfo[]
         , addChildFrame: (el: HTMLIFrameElement | HTMLFrameElement, rect: Rect | null) => boolean
         , allHints: HintItem[]): HintItem[];
-    render_ (hints: readonly HintItem[], arr: ViewBox, css: typeof VCui): void;
+    render_ (hints: readonly HintItem[], arr: ViewBox): void;
     execute_ (hint: HintItem, removeFlash?: (() => void) | null): void;
     clean_ (keepHUD?: boolean | BOOL): void;
   }
@@ -170,7 +170,10 @@ var VHints = {
       addChild: typeof a._addChildFrame = (el, rect) => {
         const core = a.detectUsableChild_(el),
         slave: HintsNS.Slave | null | undefined = core && core.VHints as typeof VHints | undefined;
-        slave && childFrames.push({ e: el, v: rect, s: slave });
+        if (slave) {
+          ((core as ContentWindowCore).VCui as typeof VCui).learnCss_(VCui);
+          childFrames.push({ e: el, v: rect, s: slave });
+        }
         return !slave;
       };
       allHints = a.collectFrameHints_(count, options, chars, useFilter, null, frameList, addChild, []);
@@ -196,7 +199,7 @@ var VHints = {
     a.renderMarkers_(allHints);
     a.setMode_(a.mode_);
     for (const frame of frameList) {
-      frame.s.render_(frame.h, frame.v, VCui);
+      frame.s.render_(frame.h, frame.v);
     }
   },
   collectFrameHints_ (count: number, options: FgOptions, chars: string, useFilter: boolean
@@ -223,15 +226,14 @@ var VHints = {
     a._addChildFrame = addChildFrame;
     const elements = a.getVisibleElements_(view);
     const hintItems = elements.map(a.createHint_, a);
-    VDom.bZoom_ !== 1 && a.adjustMarkers_(elements, hintItems);
     a._addChildFrame = null as never;
+    VDom.bZoom_ !== 1 && a.adjustMarkers_(elements, hintItems);
     result.push({ h: hintItems, v: view, s: a });
     return hintItems.length ? allHints.concat(hintItems) : allHints;
   },
-  render_ (hints: readonly HintsNS.HintItem[], arr: ViewBox, masterUI: typeof VCui): void {
+  render_ (hints: readonly HintsNS.HintItem[], arr: ViewBox): void {
     const a = this, master = a._master || a;
     if (a.box_) { a.box_.remove(); a.box_ = null; }
-    a._master && VCui.learnCss_(masterUI);
     if (hints.length) {
       VCui.ensureBorder_(VDom.wdZoom_);
       a.box_ = VCui.addElementList_(hints, arr, master.dialogMode_);

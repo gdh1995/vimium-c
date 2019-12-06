@@ -155,7 +155,10 @@ var VCui = {
     if (!this.styleIn_) {
       const srcStyleIn = (src as typeof VCui).styleIn_,
       css = srcStyleIn && (typeof srcStyleIn === "string" ? srcStyleIn : srcStyleIn.textContent);
-      css && this.css_(css);
+      if (css) {
+        this.css_(css);
+        VApi.post_({H: kFgReq.learnCSS});
+      }
     }
   },
   getDocSelectable_ (): boolean {

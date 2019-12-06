@@ -60,7 +60,7 @@ declare const enum kFgReq {
   focusOrLaunch, cmd, removeSug, openImage,
   /** can be used only with `FgCmdAcrossFrames` and when a fg command is just being called */
   gotoMainFrame,
-  setOmniStyle, findFromVisual, framesGoBack, i18n,
+  setOmniStyle, findFromVisual, framesGoBack, i18n, learnCSS,
   END,
   msg = 90,
   inject = 99,
@@ -448,6 +448,7 @@ interface FgReq {
   };
   [kFgReq.findFromVisual]: {};
   [kFgReq.framesGoBack]: { /** step */ s: number; /** reuse */ r: ReuseType | undefined };
+  [kFgReq.learnCSS]: {};
 }
 
 declare namespace Req {

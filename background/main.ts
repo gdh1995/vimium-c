@@ -2644,9 +2644,12 @@
       }
     },
     /** kFgReq.i18n: */ function (this: void): FgRes[kFgReq.i18n] {
-        Settings_.temp_.loadI18nPayload_ && Settings_.temp_.loadI18nPayload_();
-        return { m: Settings_.i18nPayload_ };
-      }
+      Settings_.temp_.loadI18nPayload_ && Settings_.temp_.loadI18nPayload_();
+      return { m: Settings_.i18nPayload_ };
+    },
+    /** kFgReq.learnCSS */ function (this: void, _req: FgReq[kFgReq.learnCSS], port: Port): void {
+      (port as Frames.Port).s.f |= Frames.Flags.hasCSS;
+    }
   ],
   framesForOmni: Frames.WritableFrames = [];
   function OnMessage <K extends keyof FgReq, T extends keyof FgRes>(this: void, request: Req.fg<K> | Req.fgWithRes<T>
