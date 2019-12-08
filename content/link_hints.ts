@@ -51,6 +51,7 @@ declare namespace HintsNS {
   interface BaseHinter {
     readonly isActive_: boolean;
     readonly hints_: unknown;
+    keyCode_: kKeyCode;
     collectFrameHints_ (count: number, options: FgOptions, chars: string, useFilter: boolean
         , master: Master | null, result: FrameHintsInfo[]
         , addChildFrame: (el: HTMLIFrameElement | HTMLFrameElement, rect: Rect | null) => boolean
@@ -132,7 +133,7 @@ var VHints = {
   kEditableSelector_: "input,textarea,[contenteditable]" as const,
   _master: null as HintsNS.Master | null,
   /** return whether the element's VHints is not accessible */
-  _addChildFrame: null as never as (el: HTMLIFrameElement | HTMLFrameElement, rect: Rect | null) => boolean,
+  _addChildFrame: null as ((el: HTMLIFrameElement | HTMLFrameElement, rect: Rect | null) => boolean) | null,
   activate_ (this: void, count: number, options: FgOptions): void {
     const a = VHints;
     if (a.isActive_) { return; }
@@ -209,14 +210,14 @@ var VHints = {
       , allHints: HintsNS.HintItem[]): HintsNS.HintItem[] {
     const a = this;
     a._master = master;
-    VKey.removeHandler_(a);
+    master && a.resetHints_();
+    a.setModeOpt_(count, options);
+    a.chars_ = chars;
+    a.useFilter_ = useFilter;
     if (!VDom.isHTML_()) {
       frameList.push({ h: [], v: null as never, s: a });
       return allHints;
     }
-    a.setModeOpt_(count, options);
-    a.chars_ = chars;
-    a.useFilter_ = useFilter;
 
     const view = VDom.getViewBox_(1) as ViewBox;
     VDom.prepareCrop_(1);
@@ -240,9 +241,10 @@ var VHints = {
       a.box_ = VCui.addElementList_(hints, arr, master.dialogMode_ as typeof a.dialogMode_);
     }
     VApi.keydownEvents_((master.keydownEvents_ as typeof a.keydownEvents_)());
-    a.isActive_ = true;
-    VKey.pushHandler_(a.onKeydown_, a);
     VApi.onWndBlur_(master.ResetMode_ as typeof a.ResetMode_);
+    VKey.removeHandler_(a);
+    VKey.pushHandler_(a.onKeydown_, a);
+    a.isActive_ = true;
   },
   setModeOpt_ (count: number, options: HintsNS.Options): void {
     const a = this;
@@ -377,7 +379,8 @@ var VHints = {
       if (isClickable = element !== VFind.box_) {
         arr = VDom.getVisibleClientRect_(element);
         if (element !== VOmni.box_) {
-          isClickable = VHints._addChildFrame(element as HTMLIFrameElement | HTMLFrameElement, arr);
+          isClickable = _this._addChildFrame ? _this._addChildFrame(
+              element as HTMLIFrameElement | HTMLFrameElement, arr) : !!arr;
         } else if (arr) {
           (arr as WritableRect).l += 12; (arr as WritableRect).t += 9;
         }
@@ -735,8 +738,11 @@ var VHints = {
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
             && matchWebkit ? el.webkitShadowRoot : el.shadowRoot) {
         hosts.push(matched = el);
-      } else if (tag = el.localName, (tag === "iframe" || tag === "frame") && VDom.htmlTag_(el)) {
-        if (el !== VOmni.box_ && el !== VFind.box_) {
+      } else if (((tag = el.localName) === "iframe" || tag === "frame") && this._addChildFrame
+          && VDom.htmlTag_(el)) {
+        if (!(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredShadowDOMV1
+              || Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+            || el !== VOmni.box_ && el !== VFind.box_) {
           this._addChildFrame(el as HTMLIFrameElement | HTMLFrameElement, VDom.getVisibleClientRect_(el));
         }
       }
@@ -1016,11 +1022,11 @@ var VHints = {
       VKey.prevent_(event);
       /** safer; necessary since {@link #VHints._highlightChild} calls {@link #VHints.detectUsableChild_} */
       VApi.keydownEvents_()[i] = 1;
-      a.keyCode_ = i;
       for (const list of a.frameList_) {
         if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
             ? list.h.indexOf(matchedHint) >= 0
             : (list.h as ReadonlyArrayWithIncludes<HintsNS.HintItem>).includes(matchedHint)) {
+          (list.s as HintsNS.BaseHinter | typeof a).keyCode_ = i;
           (list.s.execute_ as typeof a.execute_)(matchedHint);
           break;
         }
@@ -1067,7 +1073,7 @@ var VHints = {
     };
     if (!(Build.BTypes & BrowserType.Chrome) || cache.w) {
       K.pushHandler_(event => {
-        const code = event.keyCode,
+        const code = a.keyCode_ = event.keyCode,
         action = code === kKeyCode.ime || K.isEscape_(event) ? 2
             : code === kKeyCode.enter || event.key === "Enter" ? 1
             : 0;
@@ -1086,6 +1092,9 @@ var VHints = {
     const a = this, keyStatus = a.keyStatus_;
     let rect: Rect | null | undefined, clickEl: HintsNS.LinkEl | null = hint.d;
     (a._master || a).resetHints_(); // here .keyStatus_ is reset
+    if (a._master) {
+      VApi.keydownEvents_((a._master.keydownEvents_ as typeof a.keydownEvents_)());
+    }
     (VHud as Writable<VHUDTy>).t = "";
     if (VDom.IsInDOM_(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
@@ -1169,6 +1178,7 @@ var VHints = {
     a.hints_ = a.zIndexes_ = a.filterEngine_.activeHint_ = null as never;
     a.pTimer_ > 0 && clearTimeout(a.pTimer_);
     a.pTimer_ = 0;
+    a.keyStatus_.hints_ = null as never;
     a.keyStatus_ = {
       hints_: null as never,
       keySequence_: "", textSequence_: "",
