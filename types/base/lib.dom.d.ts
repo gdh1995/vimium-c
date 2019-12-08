@@ -2654,7 +2654,7 @@ interface HTMLBodyElement extends HTMLElement {
     readonly tagName: "BODY";
     readonly nodeName: "BODY";
     readonly localName: "body";
-    readonly innerText: string;
+    innerText: string;
     aLink: any;
     background: string;
     bgColor: any;

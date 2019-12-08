@@ -36,7 +36,7 @@ if (lang_ !== "en") {
     t && el && ((el as HTMLInputElement).placeholder = t);
     for (el of $$("[data-i]") as ArrayLike<Element> as Element[] as HTMLElement[]) {
       t = pTrans_(el.dataset.i as string);
-      t && (el.innerText = t);
+      t && (el.textContent = t);
     }
     for (el of $$("[data-i-t]") as ArrayLike<Element> as Element[] as HTMLElement[]) {
       t = pTrans_(el.dataset.iT as string);
@@ -309,7 +309,7 @@ addRule_ (pattern: string, autoFocus?: false | undefined): void {
 }
 populateElement_ (rules: ExclusionsNS.StoredRule[]): void {
   if (!this.inited_) { return; }
-  this.$list_.textContent = "";
+  this.$list_.innerText = "";
   this.list_ = [];
   if (rules.length <= 0) { /* empty */ }
   else if (rules.length === 1) {
@@ -486,7 +486,7 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
     && (curTab.url.lastIndexOf("http", 0) === 0 || curTab.url.lastIndexOf("ftp", 0) === 0));
   if (notRunnable) {
     const body = document.body as HTMLBodyElement, docEl = document.documentElement as HTMLHtmlElement;
-    body.textContent = "";
+    body.innerText = "";
     blockedMsg.style.display = "";
     (blockedMsg.querySelector(".version") as HTMLElement).textContent = bgSettings_.CONST_.VerName_;
     const refreshTip = blockedMsg.querySelector("#refresh-after-install") as HTMLElement;

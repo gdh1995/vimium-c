@@ -1408,7 +1408,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     ui.DoExitOnClick_();
 
     VDom = VKey = VCui = VHints = VSc = VOmni = VFind = VVisual = VMarks =
-    VHud = VApi = esc = null as never;
+    VHud = VApi = VTr = esc = null as never;
 
     silent || console.log("%cVimium C%c in %o has been destroyed at %o."
       , "color:red", "color:auto"

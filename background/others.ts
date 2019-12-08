@@ -1061,7 +1061,7 @@ BgUtils_.timeout_(1200, function (): void {
   chrome.runtime.onInstalled.removeListener(
       Settings_.temp_.onInstall_ as NonNullable<typeof Settings_.temp_.onInstall_>);
   Settings_.temp_.onInstall_ = null;
-  (document.documentElement as HTMLHtmlElement).textContent = "";
+  (document.documentElement as HTMLHtmlElement).innerText = "";
   BgUtils_.resetRe_();
   if (!Build.NDEBUG) {
     interface WindowExForDebug extends Window { a: unknown; cb: (i: any) => void; }

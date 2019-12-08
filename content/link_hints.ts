@@ -1078,12 +1078,13 @@ var VHints = {
     }
   },
   execute_ (hint: HintsNS.HintItem, event: HandlerNS.Event): void {
-    const a = this, keyStatus = a.keyStatus_, master = a._master;
+    const a = this, keyStatus = a.keyStatus_, master = a._master, masterOrA = master || a;
     let rect: Rect | null | undefined, clickEl: HintsNS.LinkEl | null = hint.d;
     VKey.prevent_(event);
-    (master || a).resetHints_(); // here .keyStatus_ is reset
+    masterOrA.resetHints_(); // here .keyStatus_ is reset
     if (master) {
       VApi.keydownEvents_((master.keydownEvents_ as typeof a.keydownEvents_)());
+      a.setMode_(master.mode_ as typeof a.mode_, 1);
     }
     VApi.keydownEvents_()[a.keyCode_ = event.keyCode] = 1;
     (VHud as Writable<VHUDTy>).t = "";
