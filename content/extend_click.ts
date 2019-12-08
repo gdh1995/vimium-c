@@ -643,7 +643,7 @@ _listen(kOnDomReady, doInit, !0);
         if (!hasFindAll && VDom) {
           findAllOnClick(kContentCmd.AutoFindAllOnClick);
           const a = VHints;
-          a.hints_ &&!a.keyStatus_.keySequence_ && !a.keyStatus_.textSequence_ && setTimeout(a.CheckLast_, 34);
+          a.hints_ && !a.keyStatus_.keySequence_ && !a.keyStatus_.textSequence_ && setTimeout(a.CheckLast_, 34);
         }
       }, GlobalConsts.ExtendClick_DelayToFindAll);
     }, 0, 1);

@@ -1161,6 +1161,7 @@
 	"44": {
 		"message": "Selected line boundary"
 	},
+	"45": { "message": "A child frame was just changed" },
 	"0": {
 		"message": "Open link in current tab"
 	},

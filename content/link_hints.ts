@@ -49,29 +49,35 @@ declare namespace HintsNS {
   type HintSources = SafeElement[] | NodeListOf<SafeElement>;
 
   interface BaseHinter {
-    readonly isActive_: boolean;
+    isActive_: boolean;
     readonly hints_: unknown;
     keyCode_: kKeyCode;
     collectFrameHints_ (count: number, options: FgOptions, chars: string, useFilter: boolean
         , master: Master | null, result: FrameHintsInfo[]
         , addChildFrame: (el: HTMLIFrameElement | HTMLFrameElement, rect: Rect | null) => boolean
         , allHints: HintItem[]): HintItem[];
-    render_ (hints: readonly HintItem[], arr: ViewBox): void;
+    render_ (hints: readonly HintItem[], arr: ViewBox, hud: VHUDTy): void;
     execute_ (hint: HintItem, event: HandlerNS.Event): void;
-    clean_ (keepHUD?: boolean | BOOL): void;
+    clean_ (keepHudOrEvent?: BOOL | Event): void;
   }
   interface Master extends BaseHinter {
     readonly dialogMode_: boolean;
     readonly keyStatus_: KeyStatus;
+    readonly frameList_: FrameHintsInfo[];
+    mode_: HintMode;
+    mode1_: HintMode;
     _onWaitingKey: HandlerNS.VoidHandler | null;
     box_: HTMLDivElement | HTMLDialogElement | null;
     _master: null;
+    setMode_ (mode: HintMode, silent?: 1): void;
     ResetMode_ (): void;
     onKeydown_ (event: KeyboardEventToPrevent): HandlerResult;
-    _reinit (lastEl?: LinkEl | null, rect?: Rect | null): void;
+    _reinit (slave?: BaseHinter | null, lastEl?: LinkEl | null, rect?: Rect | null): void;
     resetHints_ (): void;
     keydownEvents_ (this: void): KeydownCacheArray;
     delayToExecute_ (hint: HintsNS.HintItem, hinter: BaseHinter, wnd: Window): void;
+    onFrameUnload_ (slave: HintsNS.Slave): void;
+    _setupCheck (slave?: BaseHinter | null, el?: HintsNS.LinkEl | null, r?: Rect | null): void;
   }
   interface Slave extends BaseHinter {
     _master: Master | null;
@@ -138,6 +144,7 @@ var VHints = {
   kSafeAllSelector_: Build.BTypes & ~BrowserType.Firefox ? ":not(form)" as const : "*" as const,
   kEditableSelector_: "input,textarea,[contenteditable]" as const,
   _master: null as HintsNS.Master | null,
+  hud_: null as never as VHUDTy,
   /** return whether the element's VHints is not accessible */
   _addChildFrame: null as ((el: HTMLIFrameElement | HTMLFrameElement, rect: Rect | null) => boolean) | null,
   activate_ (this: void, count: number, options: FgOptions): void {
@@ -192,7 +199,7 @@ var VHints = {
           toClean.push(child.s);
         }
       }
-      for (const i of toClean) { i._master = null; i.clean_(); }
+      for (const i of toClean) { (i as HintsNS.Slave | typeof a)._master = null; (i.clean_ as typeof a.clean_)(); }
       total = allHints.length;
       if (!total || total > GlobalConsts.MaxCountToHint) {
         a.clean_(1);
@@ -203,11 +210,12 @@ var VHints = {
     a.doesMapKey_ = options.mapKey !== false;
     a.noHUD_ = !(useFilter || frameList[0].v[3] > 40 && frameList[0].v[2] > 320)
         || (options.hideHUD || options.hideHud) === true;
-    useFilter ? a.filterEngine_.getMatchingHints_(a.keyStatus_, "", "") : a.initAlphabetEngine_(allHints);
+    useFilter ? a.filterEngine_.getMatchingHints_(a.keyStatus_, "", "", 0) : a.initAlphabetEngine_(allHints);
     a.renderMarkers_(allHints);
+    a.hud_ = VHud;
     a.setMode_(a.mode_);
     for (const frame of frameList) {
-      (frame.s.render_ as typeof a.render_)(frame.h, frame.v);
+      (frame.s.render_ as typeof a.render_)(frame.h, frame.v, VHud);
     }
   },
   collectFrameHints_ (count: number, options: FgOptions, chars: string, useFilter: boolean
@@ -239,9 +247,10 @@ var VHints = {
     frameList.push({ h: hintItems, v: view, s: a });
     return hintItems.length ? allHints.length ? allHints.concat(hintItems) : hintItems : allHints;
   },
-  render_ (hints: readonly HintsNS.HintItem[], arr: ViewBox): void {
+  render_ (hints: readonly HintsNS.HintItem[], arr: ViewBox, hud: VHUDTy): void {
     const a = this, master = a._master || a;
     if (a.box_) { a.box_.remove(); a.box_ = null; }
+    a.hud_ = hud;
     if (hints.length) {
       VCui.ensureBorder_(VDom.wdZoom_);
       a.box_ = VCui.addElementList_(hints, arr, master.dialogMode_ as typeof a.dialogMode_);
@@ -250,6 +259,7 @@ var VHints = {
     VApi.onWndBlur_(master.ResetMode_ as typeof a.ResetMode_);
     VKey.removeHandler_(a);
     VKey.pushHandler_(a.onKeydown_, a);
+    a._master && VKey.SetupEventListener_(0, "unload", a.clean_);
     a.isActive_ = true;
   },
   setModeOpt_ (count: number, options: HintsNS.Options): void {
@@ -295,7 +305,7 @@ var VHints = {
     let msg = VTr(a.mode_), textSeq = a.keyStatus_.textSequence_;
     msg += a.useFilter_ ? ` [${textSeq}]` : "";
     msg += a.dialogMode_ ? VTr(kTip.modalHints) : "";
-    return VHud.show_(kTip.raw, [msg], true);
+    return a.hud_.show_(kTip.raw, [msg], true);
   },
   SetHUDLater_ (this: void): void {
     const a = VHints;
@@ -993,7 +1003,7 @@ var VHints = {
         a.isClickListened_ = true;
         (VApi as EnsureNonNull<VApiTy>).execute_(kContentCmd.ManuallyFindAllOnClick);
       }
-      setTimeout(a._reinit.bind(a, null, null), 0);
+      setTimeout(a._reinit.bind(a, null, null, null), 0);
     } else if (i < kKeyCode.maxAcsKeys + 1 && i > kKeyCode.minAcsKeys - 1
         || (i === kKeyCode.metaKey && !VDom.cache_.o)) {
       const mode = a.mode_, mode1 = a.mode1_,
@@ -1019,7 +1029,7 @@ var VHints = {
     } else if (i === kKeyCode.tab && !a.keyStatus_.keySequence_ && !a.keyStatus_.textSequence_) {
       a.tooHigh_ = null;
       a.ResetMode_();
-      setTimeout(a._reinit.bind(a, null, null), 0);
+      setTimeout(a._reinit.bind(a, null, null, null), 0);
     } else if (i === kKeyCode.space && (!a.useFilter_ || VKey.getKeyStat_(event))) {
       a.zIndexes_ === 0 || a.rotateHints_(event.shiftKey);
       a.ResetMode_();
@@ -1062,7 +1072,11 @@ var VHints = {
   /** must be called from a master */
   delayToExecute_ (hint: HintsNS.HintItem, slave: HintsNS.BaseHinter, wnd: Window): void {
     const a = this, callback: HandlerNS.VoidHandler = event => {
-      wnd.closed || !slave.isActive_ ? a.isActive_ && a.clean_() : slave.execute_(hint, event);
+      let closed: 1 | boolean = 1;
+      try {
+        closed = wnd.closed;
+      } catch {}
+      closed || !slave.isActive_ ? a.isActive_ && a.clean_() : slave.execute_(hint, event);
     };
     (a.box_ as NonNullable<typeof a.box_>).remove();
     a.box_ = null;
@@ -1087,7 +1101,7 @@ var VHints = {
       a.setMode_(master.mode_ as typeof a.mode_, 1);
     }
     VApi.keydownEvents_()[a.keyCode_ = event.keyCode] = 1;
-    (VHud as Writable<VHUDTy>).t = "";
+    (a.hud_ as Writable<VHUDTy>).t = "";
     if (VDom.IsInDOM_(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
       // must use UI.getRect, so that VDom.zooms are updated, and prepareCrop is called
@@ -1101,7 +1115,7 @@ var VHints = {
           VKey.suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents);
         } else {
           a._removeFlash = rect && VCui.flash_(null, rect, -1);
-          return (master || a).delayToExecute_(hint, a, window);
+          return masterOrA.delayToExecute_(hint, a, window);
         }
       }
       master && focus();
@@ -1114,62 +1128,71 @@ var VHints = {
       }
     } else {
       clickEl = null;
-      VHud.tip_(kTip.linkRemoved, 2000);
+      a.hud_.tip_(kTip.linkRemoved, 2000);
     }
     a._removeFlash && a._removeFlash();
     a._removeFlash = null;
-    a.pTimer_ = -!!VHud.t;
+    (masterOrA as typeof a).pTimer_ = -!!a.hud_.t;
     if (!(a.mode_ & HintMode.queue)) {
-      a._setupCheck(clickEl);
-      return a.deactivate_(1);
+      masterOrA._setupCheck(a, clickEl);
+      a.deactivate_(1);
+      return;
     }
+    (masterOrA as typeof a).postExecute_(a, clickEl, rect);
+  },
+  postExecute_ (slave: HintsNS.BaseHinter, clickEl: HintsNS.LinkEl | null, rect?: Rect | null): void {
+    const a = this;
     a.isActive_ = false;
-    a._setupCheck();
+    a._setupCheck(a);
     setTimeout(function (): void {
-      const _this = VHints;
-      (_this._master || _this)._reinit(clickEl, rect);
-      if (1 === --_this.count_ && _this.isActive_) {
-        _this.setMode_(_this.mode1_);
+      a._reinit(slave, clickEl, rect);
+      if (2 === a.count_ && a.isActive_) {
+        a.count_ = 1;
+        a.setMode_(a.mode1_);
       }
-    }, 18);
+    }, a.frameList_.length > 1 ? 50 : 18);
   },
   /** should only be called on master */
-  _reinit (lastEl?: HintsNS.LinkEl | null, rect?: Rect | null): void {
+  _reinit (slave?: HintsNS.BaseHinter | null, lastEl?: HintsNS.LinkEl | null, rect?: Rect | null): void {
     const a = this, events = VApi;
-    if (events.keydownEvents_(Build.BTypes & BrowserType.Firefox ? events.keydownEvents_() : events)) {
-      a.clean_();
+    if (!events || events.keydownEvents_(Build.BTypes & BrowserType.Firefox ? events.keydownEvents_() : events)) {
+      events && a.clean_();
       return;
     }
     a.isActive_ = false;
     a.resetHints_();
     a.activate_(0, a.options_);
-    a._setupCheck(lastEl, rect);
+    a._setupCheck(slave, lastEl, rect);
   },
-  _setupCheck (el?: HintsNS.LinkEl | null, r?: Rect | null): void {
+  /** should only be called on master */
+  _setupCheck (slave?: HintsNS.BaseHinter | null, el?: HintsNS.LinkEl | null, r?: Rect | null): void {
     const a = this;
     a.timer_ && clearTimeout(a.timer_);
-    a.timer_ = el && a.mode1_ < HintMode.min_job ? setTimeout(function (i): void {
+    a.timer_ = slave && el && a.mode1_ < HintMode.min_job ? setTimeout(function (i): void {
+      a.timer_ = 0;
       Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i ||
-      VHints && VHints.CheckLast_(el, r);
-    }, 255) : 0;
+      slave && (slave as typeof VHints).CheckLast_(el, r) && a._reinit();
+    }, a.frameList_.length > 1 ? 380 : 255) : 0;
   },
   // if not el, then reinit if only no key stroke and hints.length < 64
-  CheckLast_ (this: void, el?: HintsNS.LinkEl | TimerType.fake, r?: Rect | null): void {
+  CheckLast_ (this: void, el?: HintsNS.LinkEl | TimerType.fake, r?: Rect | null): void | 1 {
     const _this = VHints;
     if (!_this) { return; }
-    _this.timer_ = 0;
+    if (window.closed) { return 1; }
+    const master = _this._master || _this;
     const r2 = el && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinNo$TimerType$$Fake
                       || el !== TimerType.fake) ? VDom.getBoundingClientRect_(el as HintsNS.LinkEl) : 0,
     hidden = !r2 || r2.width < 1 && r2.height < 1 || getComputedStyle(el as HintsNS.LinkEl).visibility !== "visible";
     if (hidden && VDom.lastHovered_ === el) {
       VDom.lastHovered_ = null;
     }
-    const master = _this._master || _this;
-    if ((!r2 || r) && master.isActive_ && (master.hints_ as typeof _this.hints_ as HintsNS.HintItem[]).length < 64
+    if ((!r2 || r) && master.isActive_
+        && (master.hints_ as typeof _this.hints_ as HintsNS.HintItem[]).length < (
+              (master.frameList_ as typeof _this.frameList_).length > 1 ? 200 : 100)
         && !master.keyStatus_.keySequence_
         && (hidden || Math.abs((r2 as ClientRect).left - (r as Rect).l) > 100
             || Math.abs((r2 as ClientRect).top - (r as Rect).t) > 60)) {
-      return master._reinit();
+      master._reinit();
     }
   },
   resetHints_ (): void {
@@ -1189,20 +1212,32 @@ var VHints = {
       frame.h = [];
     }
   },
-  clean_ (keepHUD?: boolean | BOOL): void {
-    const a = this;
-    a._master && (a._master.clean_ as typeof a.clean_)(keepHUD);
-    for (const { s: frame } of a.frameList_) {
-      let master = (frame as typeof frame | typeof a)._master;
-      (frame as typeof frame | typeof a)._master = null;
-      master && (frame.clean_ as typeof a.clean_)(1);
+  clean_ (keepHudOrEvent?: 0 | 1 | 2 | Event): void {
+    const a = VHints, master = a && a._master;
+    if (!a) { return; }
+    if (keepHudOrEvent === 2) {
+      master && (master.onFrameUnload_ as typeof a.onFrameUnload_)(a);
     }
+    else if (keepHudOrEvent && keepHudOrEvent !== 1
+        && (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Event$$IsTrusted
+            ? keepHudOrEvent.isTrusted !== !1 : keepHudOrEvent.isTrusted)
+        && keepHudOrEvent.target === document) {
+      master && (master.onFrameUnload_ as typeof a.onFrameUnload_)(a);
+      return;
+    }
+    master && (master.clean_ as typeof a.clean_)(keepHudOrEvent);
+    for (const { s: frame } of a.frameList_) {
+      let hasMaster = (frame as typeof frame | typeof a)._master;
+      (frame as typeof frame | typeof a)._master = null;
+      hasMaster && (frame.clean_ as typeof a.clean_)(1);
+    }
+    VKey.SetupEventListener_(0, "unload", a.clean_, 1);
     a.resetHints_();
     VKey.removeHandler_(a);
     VApi.onWndBlur_(null);
     a._removeFlash && a._removeFlash();
     a.yankedList_ = a.frameList_ = [];
-    a._removeFlash =
+    a._removeFlash = a.hud_ =
     a.options_ = a.modeOpt_ = a._master = null as never;
     a.lastMode_ = a.mode_ = a.mode1_ = a.count_ =
     a.maxLeft_ = a.maxTop_ = a.maxRight_ =
@@ -1215,10 +1250,38 @@ var VHints = {
       a.box_.remove();
       a.box_ = null;
     }
-    keepHUD || VHud.hide_();
+    keepHudOrEvent === 1 || VHud.hide_();
+  },
+  onFrameUnload_ (slave: HintsNS.Slave): void {
+    const a = this, frames = a.frameList_, len = frames.length;
+    let i = 0, offset = 0;
+    while (i < len && frames[i].s !== slave) {
+      offset += frames[i++].h.length;
+    }
+    if (i >= len || !a.isActive_ || a.timer_) { return; }
+    const keyStat = a.keyStatus_, hints = keyStat.hints_ = a.hints_ as HintsNS.HintItem[],
+    deleteCount = frames[i].h.length;
+    deleteCount && hints.splice(offset, deleteCount);
+    frames.splice(i, 1);
+    if (!deleteCount) { return; }
+    VKey.suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents);
+    if (!hints.length) {
+      a.clean_(1);
+      VHud.tip_(kTip.frameUnloaded);
+      return;
+    }
+    a.zIndexes_ = null;
+    keyStat.known_ = keyStat.tab_ = 0;
+    if (a.useFilter_) {
+      a.filterEngine_.getMatchingHints_(keyStat, "", "", 1);
+    } else {
+      for (const link of hints) { link.m.innerText = ""; }
+      a.initAlphabetEngine_(hints);
+      a.renderMarkers_(hints);
+    }
   },
   deactivate_ (isLastKeyKnown: BOOL): void {
-    this.clean_(this.pTimer_ < 0);
+    this.clean_(this.pTimer_ < 0 ? 1 : 0);
     (<RegExpOne> /0?/).test("");
     VKey.suppressTail_(isLastKeyKnown ? 0 : VDom.cache_.k[0]);
   },
@@ -1343,10 +1406,11 @@ filterEngine_: {
     }
     return { t: show && text ? ": " + text : text, w: null };
   },
-  getMatchingHints_ (keyStatus: HintsNS.KeyStatus, seq: string, text: string): HintsNS.HintItem | 1 | 0 {
+  getMatchingHints_ (keyStatus: HintsNS.KeyStatus, seq: string, text: string
+      , inited: 0 | 1 | 2): HintsNS.HintItem | 1 | 0 {
     const H = VHints, fullHints = H.hints_ as readonly HintsNS.FilteredHintItem[],
-    a = this, oldActive = a.activeHint_, inited = !!oldActive,
-    oldTextSeq = inited ? keyStatus.textSequence_ : "a";
+    a = this,
+    oldTextSeq = inited > 1 ? keyStatus.textSequence_ : "a";
     let hints = keyStatus.hints_ as HintsNS.FilteredHintItem[];
     if (oldTextSeq !== text) {
       const t2 = text.trim(), t1 = oldTextSeq.trim(),
@@ -1427,6 +1491,7 @@ filterEngine_: {
       }
     }
     hints = seq ? hints.filter(hint => hint.a.startsWith(seq)) : hints;
+    const oldActive = a.activeHint_;
     const newActive = hints[(keyStatus.tab_ < 0 ? (keyStatus.tab_ += hints.length) : keyStatus.tab_) % hints.length];
     if (oldActive !== newActive) {
       if (oldActive) {
@@ -1563,7 +1628,7 @@ filterEngine_: {
       for (const hint of hints) { if (hint.a === sequence) { return hint; } }
     }
     if (useFilter) {
-      return h.filterEngine_.getMatchingHints_(keyStatus, sequence, textSeq);
+      return h.filterEngine_.getMatchingHints_(keyStatus, sequence, textSeq, 2);
     } else {
       keyStatus.keySequence_ = sequence;
       keyStatus.textSequence_ = textSeq;
@@ -1629,7 +1694,7 @@ _getImageUrl (img: SafeHTMLElement): string | void {
       || src.length > text.length + 7 && (text === (img as HTMLElement & {href?: string}).href)) {
     text = src;
   }
-  return text || VHud.tip_(kTip.notImg, 1000);
+  return text || this.hud_.tip_(kTip.notImg, 1000);
 },
 getImageName_: (img: SafeHTMLElement): string | null =>
   img.getAttribute("download") || img.title || img.getAttribute("alt"),
@@ -1674,7 +1739,7 @@ _highlightChild (el: HintsNS.LinkEl, tag: string): 0 | 1 | 2 {
   }
   const a = this, { count_: count, options_: options } = a;
   options.mode = a.mode_;
-  a.mode_ = HintMode.DEFAULT;
+  (a._master || a).mode_ = a.mode_ = HintMode.DEFAULT;
   if (el === VOmni.box_) {
     VOmni.focus_();
     return 1;
@@ -1707,7 +1772,7 @@ Modes_: [
     type || element.tabIndex < 0 ||
     (<RegExpI> /^i?frame$/).test(VDom.htmlTag_(element)) && element.focus && element.focus();
     if (a.mode1_ < HintMode.min_job) { // called from Modes[-1]
-      return VHud.tip_(kTip.hoverScrollable, 1000);
+      return a.hud_.tip_(kTip.hoverScrollable, 1000);
     }
     if (!toggleMap || typeof toggleMap !== "object") { return; }
     VKey.safer_(toggleMap);
@@ -1779,7 +1844,7 @@ Modes_: [
       if (tag === "input") {
         let type = (link as HTMLInputElement).type, f: HTMLInputElement["files"];
         if (type === "password") {
-          return VHud.tip_(kTip.ignorePassword, 2000);
+          return a.hud_.tip_(kTip.ignorePassword, 2000);
         }
         if (!VDom.uneditableInputs_[type]) {
           str = (link as HTMLInputElement).value || (link as HTMLInputElement).placeholder;
@@ -1803,7 +1868,7 @@ Modes_: [
       }
     }
     if (!str) {
-      return VHud.copied_("", isUrl ? "url" : "");
+      return a.hud_.copied_("", isUrl ? "url" : "");
     }
     if (mode1 > HintMode.min_edit - 1 && mode1 < HintMode.max_edit + 1) {
       let newtab = a.options_.newtab;
@@ -1826,7 +1891,7 @@ Modes_: [
     let shownText = str, lastYanked = mode1 & HintMode.list ? a.yankedList_ : 0 as const;
     if (lastYanked) {
       if (lastYanked.indexOf(str) >= 0) {
-        return VHud.show_(kTip.noNewToCopy);
+        return a.hud_.show_(kTip.noNewToCopy);
       }
       shownText = `[${lastYanked.length + 1}] ` + str;
       lastYanked.push(str);
@@ -1836,7 +1901,7 @@ Modes_: [
       j: a.options_.join,
       d: lastYanked || str
     });
-    VHud.copied_(shownText);
+    a.hud_.copied_(shownText);
   }
   , HintMode.SEARCH_TEXT
   , HintMode.COPY_TEXT
@@ -1879,7 +1944,7 @@ Modes_: [
     a.download = VHints.getImageName_(element) || "";
     // todo: how to trigger download
     VDom.mouse_(a, "click", [0, 0]);
-    VHud.tip_(kTip.downloaded, 2000, [text]);
+    VHints.hud_.tip_(kTip.downloaded, 2000, [text]);
   }
   , HintMode.DOWNLOAD_MEDIA
   , HintMode.DOWNLOAD_MEDIA | HintMode.queue

@@ -20,7 +20,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     postMessage<k extends keyof FgReq>(request: Req.fg<k>): 1;
   }
   interface SpecialCommands {
-    [kFgCmd.reset] (this: void): void;
+    [kFgCmd.reset] (this: void, isAlive: BOOL | CmdOptions[kFgCmd.reset]): void;
     [kFgCmd.showHelp] (msg?: number | "e"): void;
   }
 
@@ -456,12 +456,12 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     /* kFgCmd.scroll: */ VSc.activate_,
     /* kFgCmd.visualMode: */ VVisual.activate_,
     /* kFgCmd.vomnibar: */ VOmni.activate_,
-    /* kFgCmd.reset: */ function (): void {
+    /* kFgCmd.reset: */ (isAlive): void => {
       const a = InsertMode;
       U.activeEl_ = D.lastHovered_ = a.last_ = insertLock = a.global_ = null;
       a.mutable_ = true;
       a.ExitGrab_(); events.setupSuppress_();
-      Hints.clean_(); VVisual.deactivate_();
+      Hints.clean_(isAlive ? 2 : 0); VVisual.deactivate_();
       VFind.init_ || VFind.deactivate_(FindNS.Action.ExitNoAnyFocus);
       onWndBlur();
     },
@@ -1147,12 +1147,14 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       D.OnDocLoaded_(function (): void {
         HUD.enabled_ = true;
         onWndFocus = vPort.SafePost_.bind(vPort as never, <Req.fg<kFgReq.focus>> { H: kFgReq.focus });
-        needToRetryParentClickable && setTimeout(function (): void {
+        setTimeout(function (): void {
           const parentCore = !(Build.BTypes & ~BrowserType.Firefox)
               || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
               ? D.parentCore_() : D.allowScripts_ && D.frameElement_() && parent as Window,
           parDom = parentCore && parentCore.VDom as typeof VDom,
-          oldSet = D.clickable_ as any as Element[] & Set<Element>,
+          parHints = parentCore && parentCore.VHints as typeof VHints;
+          if (needToRetryParentClickable) {
+          const oldSet = D.clickable_ as any as Element[] & Set<Element>,
           set = D.clickable_ = parDom ? parDom.clickable_ : new (WeakSet as NonNullable<typeof WeakSet>)<Element>();
           if (!Build.NDEBUG && parDom) {
             // here assumes that `set` is not a temp array but a valid WeakSet / Set
@@ -1167,6 +1169,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
             console.log(`Vimium C: extend click: ${count ? "add " + count : "no"} local items to the parent's set.`);
           } else {
             oldSet.forEach(el => set.add(el));
+          }
+          }
+          if (parHints && parHints.isActive_) {
+            (parHints._master || parHints)._reinit();
           }
         }, 330);
       });
@@ -1194,7 +1200,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         (old && !isLocked) || hook(HookAction.Install);
         // here should not return even if old - a url change may mean the fullscreen mode is changed
       } else {
-        Commands[kFgCmd.reset]();
+        Commands[kFgCmd.reset](1);
       }
       if (U.box_) { U.adjust_(+newEnabled ? 1 : 2); }
     },
@@ -1402,7 +1408,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     hook(HookAction.Destroy);
 
     let ui = VCui;
-    Commands[kFgCmd.reset]();
+    Commands[kFgCmd.reset](0);
     events.execute_ && events.execute_(kContentCmd.Destroy);
     ui.box_ && ui.adjust_(2);
     ui.DoExitOnClick_();
