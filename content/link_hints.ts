@@ -137,6 +137,7 @@ var VHints = {
   doesMapKey_: false,
   keyCode_: kKeyCode.None,
   isActive_: false,
+  hasExecuted_: 0 as BOOL,
   noHUD_: false,
   options_: null as never as HintsNS.Options,
   timer_: 0,
@@ -224,7 +225,7 @@ var VHints = {
       , allHints: HintsNS.HintItem[]): HintsNS.HintItem[] {
     const a = this;
     a._master = master;
-    master && a.resetHints_();
+    a.resetHints_();
     a.setModeOpt_(count, options);
     a.chars_ = chars;
     a.useFilter_ = useFilter;
@@ -1143,11 +1144,10 @@ var VHints = {
   postExecute_ (slave: HintsNS.BaseHinter, clickEl: HintsNS.LinkEl | null, rect?: Rect | null): void {
     const a = this;
     a.isActive_ = false;
-    a._setupCheck(a);
+    a._setupCheck();
     setTimeout(function (): void {
       a._reinit(slave, clickEl, rect);
-      if (2 === a.count_ && a.isActive_) {
-        a.count_ = 1;
+      if (a.isActive_ && 1 === --a.count_) {
         a.setMode_(a.mode1_);
       }
     }, a.frameList_.length > 1 ? 50 : 18);
@@ -1172,6 +1172,9 @@ var VHints = {
       a.timer_ = 0;
       Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i ||
       slave && (slave as typeof VHints).CheckLast_(el, r) && a._reinit();
+      for (const frame of a.isActive_ ? a.frameList_ : []) {
+        (frame.s as typeof a).hasExecuted_ = 1;
+      }
     }, a.frameList_.length > 1 ? 380 : 255) : 0;
   },
   // if not el, then reinit if only no key stroke and hints.length < 64
@@ -1192,6 +1195,7 @@ var VHints = {
         && !master.keyStatus_.keySequence_
         && (hidden || Math.abs((r2 as ClientRect).left - (r as Rect).l) > 100
             || Math.abs((r2 as ClientRect).top - (r as Rect).t) > 60)) {
+      if (_this._master) { return 1; }
       master._reinit();
     }
   },
@@ -1201,7 +1205,7 @@ var VHints = {
     a._onWaitingKey =
     a.hints_ = a.zIndexes_ = a.filterEngine_.activeHint_ = null as never;
     a.pTimer_ > 0 && clearTimeout(a.pTimer_);
-    a.pTimer_ = 0;
+    a.hasExecuted_ = a.pTimer_ = 0;
     a.keyStatus_.hints_ = null as never;
     a.keyStatus_ = {
       hints_: null as never,
@@ -1241,7 +1245,7 @@ var VHints = {
     a.options_ = a.modeOpt_ = a._master = null as never;
     a.lastMode_ = a.mode_ = a.mode1_ = a.count_ =
     a.maxLeft_ = a.maxTop_ = a.maxRight_ =
-    a.maxPrefixLen_ = 0;
+    a.maxPrefixLen_ = a.hasExecuted_ = 0;
     a.keyCode_ = kKeyCode.None;
     a.useFilter_ =
     a.isActive_ = a.noHUD_ = a.tooHigh_ = a.doesMapKey_ = false;
