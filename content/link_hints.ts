@@ -62,7 +62,7 @@ declare namespace HintsNS {
   interface Master extends BaseHinter {
     readonly dialogMode_: boolean;
     readonly keyStatus_: KeyStatus;
-    CheckLast_ (this: void, el?: LinkEl | TimerType.fake, r?: Rect | null): void;
+    _master: null;
     ResetMode_ (): void;
     onKeydown_ (event: KeyboardEventToPrevent): HandlerResult;
     _reinit (lastEl?: LinkEl | null, rect?: Rect | null): void;
@@ -179,8 +179,9 @@ var VHints = {
       allHints = a.collectFrameHints_(count, options, chars, useFilter, null, frameList, addChild, []);
       while (child = childFrames.pop()) {
         if (child.v) {
-          allHints = child.s.collectFrameHints_(count, options, chars, useFilter, a, frameList, addChild, allHints);
-        } else if (child.s.isActive_) {
+          allHints = (child.s.collectFrameHints_ as typeof a.collectFrameHints_)(count, options, chars, useFilter
+                , a as typeof a & { _master: null }, frameList, addChild, allHints);
+        } else if (child.s.isActive_ as typeof a.isActive_) {
           toClean.push(child.s);
         }
       }
@@ -199,18 +200,18 @@ var VHints = {
     a.renderMarkers_(allHints);
     a.setMode_(a.mode_);
     for (const frame of frameList) {
-      frame.s.render_(frame.h, frame.v);
+      (frame.s.render_ as typeof a.render_)(frame.h, frame.v);
     }
   },
   collectFrameHints_ (count: number, options: FgOptions, chars: string, useFilter: boolean
-      , master: HintsNS.Master | null, result: HintsNS.FrameHintsInfo[]
+      , master: HintsNS.Master | null, frameList: HintsNS.FrameHintsInfo[]
       , addChildFrame: (el: HTMLIFrameElement | HTMLFrameElement, rect: Rect | null) => boolean
       , allHints: HintsNS.HintItem[]): HintsNS.HintItem[] {
     const a = this;
     a._master = master;
     VKey.removeHandler_(a);
     if (!VDom.isHTML_()) {
-      result.push({ h: [], v: null as never, s: a });
+      frameList.push({ h: [], v: null as never, s: a });
       return allHints;
     }
     a.setModeOpt_(count, options);
@@ -228,20 +229,20 @@ var VHints = {
     const hintItems = elements.map(a.createHint_, a);
     a._addChildFrame = null as never;
     VDom.bZoom_ !== 1 && a.adjustMarkers_(elements, hintItems);
-    result.push({ h: hintItems, v: view, s: a });
-    return hintItems.length ? allHints.concat(hintItems) : allHints;
+    frameList.push({ h: hintItems, v: view, s: a });
+    return hintItems.length ? allHints.length ? allHints.concat(hintItems) : hintItems : allHints;
   },
   render_ (hints: readonly HintsNS.HintItem[], arr: ViewBox): void {
     const a = this, master = a._master || a;
     if (a.box_) { a.box_.remove(); a.box_ = null; }
     if (hints.length) {
       VCui.ensureBorder_(VDom.wdZoom_);
-      a.box_ = VCui.addElementList_(hints, arr, master.dialogMode_);
+      a.box_ = VCui.addElementList_(hints, arr, master.dialogMode_ as typeof a.dialogMode_);
     }
-    VApi.keydownEvents_(master.keydownEvents_());
+    VApi.keydownEvents_((master.keydownEvents_ as typeof a.keydownEvents_)());
     a.isActive_ = true;
     VKey.pushHandler_(a.onKeydown_, a);
-    VApi.onWndBlur_(master.ResetMode_);
+    VApi.onWndBlur_(master.ResetMode_ as typeof a.ResetMode_);
   },
   setModeOpt_ (count: number, options: HintsNS.Options): void {
     const a = this;
@@ -632,8 +633,7 @@ var VHints = {
     isD = box === D,
     querySelectorAll = Build.BTypes & ~BrowserType.Firefox
       ? /* just smaller code */ (isD ? D : Element.prototype).querySelectorAll : box.querySelectorAll;
-    let list: HintsNS.HintSources | null = querySelectorAll.call(box, selector) as NodeListOf<SafeElement>,
-    shadowQueryAll: ShadowRoot["querySelectorAll"] | undefined;
+    let list: HintsNS.HintSources | null = querySelectorAll.call(box, selector) as NodeListOf<SafeElement>;
     wantClickable && Sc.getScale_();
     if (matchAll) {
       if (a.ngEnabled_ === null) {
@@ -665,11 +665,10 @@ var VHints = {
                 && VDom.cache_.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
               ? el.webkitShadowRoot as ShadowRoot | null | undefined : el.shadowRoot as ShadowRoot | null | undefined;
           if (shadowRoot) {
-            shadowQueryAll || (shadowQueryAll = shadowRoot.querySelectorAll);
-            let sub_tree: HintsNS.HintSources = shadowQueryAll.call(shadowRoot, selector) as NodeListOf<SafeElement>;
+            let sub_tree: HintsNS.HintSources = shadowRoot.querySelectorAll(selector) as NodeListOf<SafeElement>;
             if (!matchAll) {
               sub_tree = a.addChildTrees_(sub_tree,
-                  shadowQueryAll.call(shadowRoot, a.kSafeAllSelector_) as NodeListOf<SafeElement>);
+                  shadowRoot.querySelectorAll(a.kSafeAllSelector_) as NodeListOf<SafeElement>);
             }
             cur_scope[1] = i;
             tree_scopes.push([sub_tree, i = 0]);
@@ -853,7 +852,7 @@ var VHints = {
     for (; c.childElementCount === 1
           && ((f = c.firstChild as Node).nodeType !== kNode.TEXT_NODE || !(f as Text).data.trim())
           && ++i < 3
-        ; c = c.lastElementChild as Element | null as Element) {}
+        ; c = c.lastElementChild as Element | null as Element) { /* empty */ }
     return i > 2;
   } as (c: Element, p: Hint[0], shouldBeSingleChild: boolean) => boolean,
   frameNested_: false as HintsNS.NestedFrame,
@@ -955,8 +954,8 @@ var VHints = {
     if (event.repeat || !a.isActive_) {
       // NOTE: should always prevent repeated keys.
     } else if (a._master) {
-      VApi.keydownEvents_(a._master.keydownEvents_());
-      return a._master.onKeydown_(event);
+      VApi.keydownEvents_((a._master.keydownEvents_ as typeof a.keydownEvents_)());
+      return (a._master.onKeydown_ as typeof a.onKeydown_)(event);
     } else if ((i = event.keyCode) === kKeyCode.ime) {
       a.clean_(1);
       VHud.tip_(kTip.exitForIME);
@@ -1015,14 +1014,14 @@ var VHints = {
       a.deactivate_(a.keyStatus_.known_);
     } else if (matchedHint !== 1) {
       VKey.prevent_(event);
-      /** safer; necessary for {@link #VHints._highlightChild} */
+      /** safer; necessary since {@link #VHints._highlightChild} calls {@link #VHints.detectUsableChild_} */
       VApi.keydownEvents_()[i] = 1;
       a.keyCode_ = i;
       for (const list of a.frameList_) {
         if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
             ? list.h.indexOf(matchedHint) >= 0
             : (list.h as ReadonlyArrayWithIncludes<HintsNS.HintItem>).includes(matchedHint)) {
-          list.s.execute_(matchedHint);
+          (list.s.execute_ as typeof a.execute_)(matchedHint);
           break;
         }
       }
@@ -1049,7 +1048,7 @@ var VHints = {
       }
     }
   },
-  _doesDelayToExecute (hint: HintsNS.HintItem, rect: Rect | null): void | 1 {
+  _doesNotDelayToExecute (hint: HintsNS.HintItem, rect: Rect | null): void | 1 {
     const a = this, K = VKey, cache = VDom.cache_;
     if (!(Build.BTypes & BrowserType.Chrome)
         || Build.BTypes & ~BrowserType.Chrome && VOther !== BrowserType.Chrome
@@ -1093,7 +1092,7 @@ var VHints = {
       // must use UI.getRect, so that VDom.zooms are updated, and prepareCrop is called
       rect = VCui.getRect_(clickEl, hint.r !== clickEl ? hint.r as HTMLElementUsingMap | null : null);
       if (keyStatus.textSequence_ && !keyStatus.keySequence_ && !keyStatus.known_) {
-        if (!a._doesDelayToExecute(hint, rect)) { return; }
+        if (!a._doesNotDelayToExecute(hint, rect)) { return; }
       }
       (clickEl.ownerDocument as Document).defaultView.focus();
       // tolerate new rects in some cases
@@ -1165,6 +1164,7 @@ var VHints = {
     }
   },
   resetHints_ (): void {
+    // here should not consider about ._master
     const a = this;
     a.hints_ = a.zIndexes_ = a.filterEngine_.activeHint_ = null as never;
     a.pTimer_ > 0 && clearTimeout(a.pTimer_);
@@ -1180,11 +1180,11 @@ var VHints = {
   },
   clean_ (keepHUD?: boolean | BOOL): void {
     const a = this;
-    a._master && a._master.clean_(keepHUD);
+    a._master && (a._master.clean_ as typeof a.clean_)(keepHUD);
     for (const { s: frame } of a.frameList_) {
-      let master = (frame as typeof a)._master;
-      (frame as typeof a)._master = null;
-      master && frame.clean_(1);
+      let master = (frame as typeof frame | typeof a)._master;
+      (frame as typeof frame | typeof a)._master = null;
+      master && (frame.clean_ as typeof a.clean_)(1);
     }
     a.resetHints_();
     VKey.removeHandler_(a);

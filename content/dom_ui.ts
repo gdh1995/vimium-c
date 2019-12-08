@@ -93,7 +93,7 @@ var VCui = {
     }
     VDom.fullscreenEl_unsafe_() && (style.position = "fixed");
     this.add_(parent, AdjustType.DEFAULT, this._lastFlash);
-    dialogContainer && (parent as HTMLDialogElement).showModal()
+    dialogContainer && (parent as HTMLDialogElement).showModal();
     return parent as (T extends true | 1 ? HTMLDialogElement : HTMLDivElement) & SafeElement;
   },
   adjust_ (this: void, event?: Event | /* enable */ 1 | /* disable */ 2): void {
