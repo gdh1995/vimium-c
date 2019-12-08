@@ -143,30 +143,33 @@ var VKey = {
    *
    * @argument callback can be valid only if `BTypes & Chrome` and `timeout`
    */
-  suppressTail_: function (this: {}, timeout: number, callback?: (() => void) | 0): void {
+  suppressTail_: function (this: {}, timeout: number, callback?: HandlerNS.VoidHandler | 0): HandlerNS.Handler<{}> {
     let timer = 0,
-    func: HandlerNS.Handler<object> | (() => HandlerResult) = timeout ? () => {
+    func: HandlerNS.Handler<{}> = event => {
+      if (!timeout) {
+        if (event.repeat) { return HandlerResult.Prevent; }
+        VKey.removeHandler_(func);
+        return HandlerResult.Nothing;
+      }
       clearTimeout(timer);
       timer = setTimeout(() => { // safe-interval
         if (VKey) {
           VKey.removeHandler_(func); // safe enough even if reloaded;
           if (Build.BTypes & BrowserType.Chrome && callback) {
-            callback();
+            callback(event);
             callback = 0; // in case that native `setTimeout` is broken and the current one is simulated
           }
         }
       }, timeout);
+      // todo: event.view
       return HandlerResult.Prevent;
-    } : event => {
-      if (event.repeat) { return HandlerResult.Prevent; }
-      VKey.removeHandler_(func);
-      return HandlerResult.Nothing;
     };
     timeout && (func as () => HandlerResult)();
-    (this as typeof VKey).pushHandler_(func, func);
+    (this as typeof VKey).pushHandler_(func as HandlerNS.Handler<{}>, func);
+    return func;
   } as {
-    (timeout: 0, callback?: undefined): void;
-    (timeout: number, callback?: () => void): void;
+    (timeout: 0, callback?: undefined): HandlerNS.Handler<{}>;
+    (timeout: number, callback?: HandlerNS.VoidHandler): HandlerNS.Handler<{}>;
   },
 
   /** handler section */

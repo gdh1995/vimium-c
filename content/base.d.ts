@@ -26,6 +26,10 @@ declare namespace HandlerNS {
   interface Handler<T extends object> {
     (this: T, event: HandlerNS.Event): HandlerResult;
   }
+
+  interface VoidHandler {
+    (this: unknown, event: HandlerNS.Event): void;
+  }
 }
 interface KeydownCacheArray extends SafeObject {
   [keyCode: number]: BOOL | 2 | undefined;

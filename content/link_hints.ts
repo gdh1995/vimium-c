@@ -57,18 +57,21 @@ declare namespace HintsNS {
         , addChildFrame: (el: HTMLIFrameElement | HTMLFrameElement, rect: Rect | null) => boolean
         , allHints: HintItem[]): HintItem[];
     render_ (hints: readonly HintItem[], arr: ViewBox): void;
-    execute_ (hint: HintItem, removeFlash?: (() => void) | null): void;
+    execute_ (hint: HintItem, event: HandlerNS.Event): void;
     clean_ (keepHUD?: boolean | BOOL): void;
   }
   interface Master extends BaseHinter {
     readonly dialogMode_: boolean;
     readonly keyStatus_: KeyStatus;
+    _onWaitingKey: HandlerNS.VoidHandler | null;
+    box_: HTMLDivElement | HTMLDialogElement | null;
     _master: null;
     ResetMode_ (): void;
     onKeydown_ (event: KeyboardEventToPrevent): HandlerResult;
     _reinit (lastEl?: LinkEl | null, rect?: Rect | null): void;
     resetHints_ (): void;
     keydownEvents_ (this: void): KeydownCacheArray;
+    delayToExecute_ (hint: HintsNS.HintItem, hinter: BaseHinter, wnd: Window): void;
   }
   interface Slave extends BaseHinter {
     _master: Master | null;
@@ -122,6 +125,9 @@ var VHints = {
     known_: 0,
     tab_: 0
   } as HintsNS.KeyStatus,
+  _removeFlash: null as (() => void) | null,
+  /** must be called from a master, required by {@link #VHints.delayToExecute_ } */
+  _onWaitingKey: null as HandlerNS.VoidHandler | null,
   doesMapKey_: false,
   keyCode_: kKeyCode.None,
   isActive_: false,
@@ -957,11 +963,13 @@ var VHints = {
   onKeydown_ (event: KeyboardEventToPrevent): HandlerResult {
     const a = this;
     let matchedHint: ReturnType<typeof VHints.matchHintsByKey_>, i: number;
-    if (event.repeat || !a.isActive_) {
-      // NOTE: should always prevent repeated keys.
-    } else if (a._master) {
+    if (a._master) {
       VApi.keydownEvents_((a._master.keydownEvents_ as typeof a.keydownEvents_)());
       return (a._master.onKeydown_ as typeof a.onKeydown_)(event);
+    } else if (Build.BTypes & BrowserType.Chrome && a._onWaitingKey) {
+      a._onWaitingKey(event);
+    } else if (event.repeat || !a.isActive_) {
+      // NOTE: should always prevent repeated keys.
     } else if ((i = event.keyCode) === kKeyCode.ime) {
       a.clean_(1);
       VHud.tip_(kTip.exitForIME);
@@ -1019,15 +1027,12 @@ var VHints = {
       // then .a.keyStatus_.hintSequence_ is the last key char
       a.deactivate_(a.keyStatus_.known_);
     } else if (matchedHint !== 1) {
-      VKey.prevent_(event);
       /** safer; necessary since {@link #VHints._highlightChild} calls {@link #VHints.detectUsableChild_} */
-      VApi.keydownEvents_()[i] = 1;
       for (const list of a.frameList_) {
         if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
             ? list.h.indexOf(matchedHint) >= 0
             : (list.h as ReadonlyArrayWithIncludes<HintsNS.HintItem>).includes(matchedHint)) {
-          (list.s as HintsNS.BaseHinter | typeof a).keyCode_ = i;
-          (list.s.execute_ as typeof a.execute_)(matchedHint);
+          (list.s.execute_ as typeof a.execute_)(matchedHint, event);
           break;
         }
       }
@@ -1054,70 +1059,64 @@ var VHints = {
       }
     }
   },
-  _doesNotDelayToExecute (hint: HintsNS.HintItem, rect: Rect | null): void | 1 {
-    const a = this, K = VKey, cache = VDom.cache_;
-    if (!(Build.BTypes & BrowserType.Chrome)
-        || Build.BTypes & ~BrowserType.Chrome && VOther !== BrowserType.Chrome
-        || Build.MinCVer < BrowserVer.MinUserActivationV2 && cache.v < BrowserVer.MinUserActivationV2
-        ) {
-      // e.g.: https://github.com/philc/vimium/issues/3103#issuecomment-552653871
-      if (!cache.w) {
-        K.suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents);
-        return 1;
-      }
-    }
-    (a.box_ as NonNullable<typeof a.box_>).remove();
-    const removeFlash = rect && VCui.flash_(null, rect, -1),
-    callback = (doesStop?: boolean): void => {
-      doesStop || !a.isActive_ ? removeFlash && removeFlash() : a.execute_(hint, removeFlash);
+  /** must be called from a master */
+  delayToExecute_ (hint: HintsNS.HintItem, slave: HintsNS.BaseHinter, wnd: Window): void {
+    const a = this, callback: HandlerNS.VoidHandler = event => {
+      wnd.closed || !slave.isActive_ ? a.isActive_ && a.clean_() : slave.execute_(hint, event);
     };
-    if (!(Build.BTypes & BrowserType.Chrome) || cache.w) {
-      K.pushHandler_(event => {
-        const code = a.keyCode_ = event.keyCode,
-        action = code === kKeyCode.ime || K.isEscape_(event) ? 2
-            : code === kKeyCode.enter || event.key === "Enter" ? 1
-            : 0;
-        if (action) {
-          K.removeHandler_(callback);
-          K.prevent_(event);
-          callback(action > 1);
+    (a.box_ as NonNullable<typeof a.box_>).remove();
+    a.box_ = null;
+    if (!(Build.BTypes & BrowserType.Chrome) || VDom.cache_.w) {
+      a._onWaitingKey = event => {
+        if (event.keyCode === kKeyCode.enter || event.key === "Enter") {
+          callback(event);
         }
-        return action > 1 ? HandlerResult.Nothing : HandlerResult.Prevent;
-      }, callback);
+      };
     } else {
-      K.suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents, callback);
+      a._onWaitingKey = VKey.suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents, callback);
+      VKey.removeHandler_(a._onWaitingKey);
     }
   },
-  execute_ (hint: HintsNS.HintItem, removeFlash?: (() => void) | null): void {
-    const a = this, keyStatus = a.keyStatus_;
+  execute_ (hint: HintsNS.HintItem, event: HandlerNS.Event): void {
+    const a = this, keyStatus = a.keyStatus_, master = a._master;
     let rect: Rect | null | undefined, clickEl: HintsNS.LinkEl | null = hint.d;
-    (a._master || a).resetHints_(); // here .keyStatus_ is reset
-    if (a._master) {
-      VApi.keydownEvents_((a._master.keydownEvents_ as typeof a.keydownEvents_)());
+    VKey.prevent_(event);
+    (master || a).resetHints_(); // here .keyStatus_ is reset
+    if (master) {
+      VApi.keydownEvents_((master.keydownEvents_ as typeof a.keydownEvents_)());
     }
+    VApi.keydownEvents_()[a.keyCode_ = event.keyCode] = 1;
     (VHud as Writable<VHUDTy>).t = "";
     if (VDom.IsInDOM_(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
       // must use UI.getRect, so that VDom.zooms are updated, and prepareCrop is called
       rect = VCui.getRect_(clickEl, hint.r !== clickEl ? hint.r as HTMLElementUsingMap | null : null);
       if (keyStatus.textSequence_ && !keyStatus.keySequence_ && !keyStatus.known_) {
-        if (!a._doesNotDelayToExecute(hint, rect)) { return; }
+        if ((!(Build.BTypes & BrowserType.Chrome)
+              || Build.BTypes & ~BrowserType.Chrome && VOther !== BrowserType.Chrome
+              || Build.MinCVer < BrowserVer.MinUserActivationV2 && VDom.cache_.v < BrowserVer.MinUserActivationV2)
+            && !VDom.cache_.w) {
+          // e.g.: https://github.com/philc/vimium/issues/3103#issuecomment-552653871
+          VKey.suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents);
+        } else {
+          a._removeFlash = rect && VCui.flash_(null, rect, -1);
+          return (master || a).delayToExecute_(hint, a, window);
+        }
       }
-      (clickEl.ownerDocument as Document).defaultView.focus();
+      master && focus();
       // tolerate new rects in some cases
       const showRect = a.modeOpt_[0](clickEl, rect, hint);
-      removeFlash ? removeFlash()
-      : showRect !== false && (rect || (rect = VDom.getVisibleClientRect_(clickEl)))
-      ? setTimeout(function (): void {
+      if (!a._removeFlash && showRect !== false && (rect || (rect = VDom.getVisibleClientRect_(clickEl)))) {
+        setTimeout(function (): void {
           (showRect || document.hasFocus()) && VCui.flash_(null, rect as Rect);
-        }, 17)
-      // tslint:disable-next-line: no-unused-expression
-      : 0;
+        }, 17);
+      }
     } else {
-      removeFlash && removeFlash();
       clickEl = null;
       VHud.tip_(kTip.linkRemoved, 2000);
     }
+    a._removeFlash && a._removeFlash();
+    a._removeFlash = null;
     a.pTimer_ = -!!VHud.t;
     if (!(a.mode_ & HintMode.queue)) {
       a._setupCheck(clickEl);
@@ -1175,6 +1174,7 @@ var VHints = {
   resetHints_ (): void {
     // here should not consider about ._master
     const a = this;
+    a._onWaitingKey =
     a.hints_ = a.zIndexes_ = a.filterEngine_.activeHint_ = null as never;
     a.pTimer_ > 0 && clearTimeout(a.pTimer_);
     a.pTimer_ = 0;
@@ -1199,7 +1199,9 @@ var VHints = {
     a.resetHints_();
     VKey.removeHandler_(a);
     VApi.onWndBlur_(null);
+    a._removeFlash && a._removeFlash();
     a.yankedList_ = a.frameList_ = [];
+    a._removeFlash =
     a.options_ = a.modeOpt_ = a._master = null as never;
     a.lastMode_ = a.mode_ = a.mode1_ = a.count_ =
     a.maxLeft_ = a.maxTop_ = a.maxRight_ =
@@ -1833,7 +1835,7 @@ Modes_: [
       j: a.options_.join,
       d: lastYanked || str
     });
-    return VHud.copied_(shownText);
+    VHud.copied_(shownText);
   }
   , HintMode.SEARCH_TEXT
   , HintMode.COPY_TEXT
@@ -1850,7 +1852,7 @@ Modes_: [
   (link: HTMLAnchorElement): void => {
     const url = VHints.getUrlData_(link);
     if (!VApi.evalIfOK_(url)) {
-      return VHints.openUrl_(url, true);
+      VHints.openUrl_(url, true);
     }
   }
   , HintMode.OPEN_INCOGNITO_LINK
@@ -1876,7 +1878,7 @@ Modes_: [
     a.download = VHints.getImageName_(element) || "";
     // todo: how to trigger download
     VDom.mouse_(a, "click", [0, 0]);
-    return VHud.tip_(kTip.downloaded, 2000, [text]);
+    VHud.tip_(kTip.downloaded, 2000, [text]);
   }
   , HintMode.DOWNLOAD_MEDIA
   , HintMode.DOWNLOAD_MEDIA | HintMode.queue
@@ -1934,9 +1936,9 @@ Modes_: [
     if (VHints.mode_ < HintMode.min_disable_queue) {
       VDom.view_(link);
       link.focus();
-      VCui.flash_(link);
+      VHints._removeFlash || VCui.flash_(link);
     } else {
-      VCui.simulateSelect_(link as HintsNS.InputHintItem["d"], rect, true);
+      VCui.simulateSelect_(link as HintsNS.InputHintItem["d"], rect, !VHints._removeFlash);
     }
     return false;
   }
@@ -1957,15 +1959,16 @@ Modes_: [
           // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_summary_element.cc?l=109
           rect = (link as HTMLDetailsElement).open || !rect ? VDom.getVisibleClientRect_(summary) : rect;
           VCui.click_(summary, rect, null, 1);
-          rect && VCui.flash_(null, rect);
+          a._removeFlash || rect && VCui.flash_(null, rect);
           return false;
       }
       (link as HTMLDetailsElement).open = !(link as HTMLDetailsElement).open;
       return;
     } else if (hint.r && hint.r === link) {
-      return a.Modes_[0][0](link, rect, hint);
+      a.Modes_[0][0](link, rect, hint);
+      return;
     } else if (VDom.getEditableType_<0>(link) >= EditableType.TextBox) {
-      VCui.simulateSelect_(link as LockableElement, rect, true);
+      VCui.simulateSelect_(link as LockableElement, rect, !a._removeFlash);
       return false;
     }
     const mask = a.mode_ & HintMode.mask_focus_new, isMac = !VDom.cache_.o,
