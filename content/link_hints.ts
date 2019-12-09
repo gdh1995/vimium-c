@@ -1084,7 +1084,6 @@ var VHints = {
     (a.box_ as NonNullable<typeof a.box_>).remove();
     a.box_ = null;
     if (Build.BTypes & BrowserType.Chrome && !VDom.cache_.w) {
-    } else {
       a._onWaitingKey = VKey.suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents, callback);
       VKey.removeHandler_(a._onWaitingKey);
     }
