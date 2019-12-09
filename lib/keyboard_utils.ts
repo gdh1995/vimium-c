@@ -156,7 +156,7 @@ var VKey = {
         if (VKey) {
           VKey.removeHandler_(func); // safe enough even if reloaded;
           if (Build.BTypes & BrowserType.Chrome && callback) {
-            callback(event);
+            callback();
             callback = 0; // in case that native `setTimeout` is broken and the current one is simulated
           }
         }
@@ -165,7 +165,7 @@ var VKey = {
       return HandlerResult.Prevent;
     };
     timeout && (func as () => HandlerResult)();
-    (this as typeof VKey).pushHandler_(func as HandlerNS.Handler<{}>, func);
+    (this as typeof VKey).pushHandler_(func, func);
     return func;
   } as {
     (timeout: 0, callback?: undefined): HandlerNS.Handler<{}>;

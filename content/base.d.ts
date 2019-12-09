@@ -28,6 +28,10 @@ declare namespace HandlerNS {
   }
 
   interface VoidHandler {
+    (this: unknown): void;
+  }
+
+  interface VoidEventHandler {
     (this: unknown, event: HandlerNS.Event): void;
   }
 }

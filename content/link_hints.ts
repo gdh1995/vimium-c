@@ -57,7 +57,7 @@ declare namespace HintsNS {
         , addChildFrame: (el: HTMLIFrameElement | HTMLFrameElement, rect: Rect | null) => boolean
         , allHints: HintItem[]): HintItem[];
     render_ (hints: readonly HintItem[], arr: ViewBox, hud: VHUDTy): void;
-    execute_ (hint: HintItem, event: HandlerNS.Event): void;
+    execute_ (hint: HintItem, event?: HandlerNS.Event): void;
     clean_ (keepHudOrEvent?: BOOL | Event): void;
   }
   interface Master extends BaseHinter {
@@ -66,7 +66,6 @@ declare namespace HintsNS {
     readonly frameList_: FrameHintsInfo[];
     mode_: HintMode;
     mode1_: HintMode;
-    _onWaitingKey: HandlerNS.VoidHandler | null;
     box_: HTMLDivElement | HTMLDialogElement | null;
     _master: null;
     setMode_ (mode: HintMode, silent?: 1): void;
@@ -133,7 +132,8 @@ var VHints = {
   } as HintsNS.KeyStatus,
   _removeFlash: null as (() => void) | null,
   /** must be called from a master, required by {@link #VHints.delayToExecute_ } */
-  _onWaitingKey: null as HandlerNS.VoidHandler | null,
+  _onTailEnter: null as HandlerNS.VoidEventHandler | null,
+  _onWaitingKey: null as HandlerNS.VoidEventHandler | null,
   doesMapKey_: false,
   keyCode_: kKeyCode.None,
   isActive_: false,
@@ -1005,6 +1005,8 @@ var VHints = {
         (VApi as EnsureNonNull<VApiTy>).execute_(kContentCmd.ManuallyFindAllOnClick);
       }
       setTimeout(a._reinit.bind(a, null, null, null), 0);
+    } else if (Build.BTypes & BrowserType.Chrome && a._onTailEnter) {
+      (i === kKeyCode.enter || event.key === "Enter") && a._onTailEnter(event);
     } else if (i < kKeyCode.maxAcsKeys + 1 && i > kKeyCode.minAcsKeys - 1
         || (i === kKeyCode.metaKey && !VDom.cache_.o)) {
       const mode = a.mode_, mode1 = a.mode1_,
@@ -1071,36 +1073,34 @@ var VHints = {
   },
   /** must be called from a master */
   delayToExecute_ (hint: HintsNS.HintItem, slave: HintsNS.BaseHinter, wnd: Window): void {
-    const a = this, callback: HandlerNS.VoidHandler = event => {
+    const a = this, callback: (event?: HandlerNS.Event) => void = event => {
       let closed: 1 | boolean = 1;
       try {
         closed = wnd.closed;
       } catch {}
       closed || !slave.isActive_ ? a.isActive_ && a.clean_() : slave.execute_(hint, event);
     };
+    a._onTailEnter = callback;
     (a.box_ as NonNullable<typeof a.box_>).remove();
     a.box_ = null;
-    if (!(Build.BTypes & BrowserType.Chrome) || VDom.cache_.w) {
-      a._onWaitingKey = event => {
-        if (event.keyCode === kKeyCode.enter || event.key === "Enter") {
-          callback(event);
-        }
-      };
+    if (Build.BTypes & BrowserType.Chrome && !VDom.cache_.w) {
     } else {
       a._onWaitingKey = VKey.suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents, callback);
       VKey.removeHandler_(a._onWaitingKey);
     }
   },
-  execute_ (hint: HintsNS.HintItem, event: HandlerNS.Event): void {
+  execute_ (hint: HintsNS.HintItem, event?: HandlerNS.Event): void {
     const a = this, keyStatus = a.keyStatus_, master = a._master, masterOrA = master || a;
     let rect: Rect | null | undefined, clickEl: HintsNS.LinkEl | null = hint.d;
-    VKey.prevent_(event);
-    masterOrA.resetHints_(); // here .keyStatus_ is reset
     if (master) {
       VApi.keydownEvents_((master.keydownEvents_ as typeof a.keydownEvents_)());
       a.setMode_(master.mode_ as typeof a.mode_, 1);
     }
-    VApi.keydownEvents_()[a.keyCode_ = event.keyCode] = 1;
+    if (event) {
+      VKey.prevent_(event);
+      VApi.keydownEvents_()[a.keyCode_ = event.keyCode] = 1;
+    }
+    masterOrA.resetHints_(); // here .keyStatus_ is reset
     (a.hud_ as Writable<VHUDTy>).t = "";
     if (VDom.IsInDOM_(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
@@ -1201,7 +1201,7 @@ var VHints = {
   resetHints_ (): void {
     // here should not consider about ._master
     const a = this;
-    a._onWaitingKey =
+    a._onWaitingKey = a._onTailEnter =
     a.hints_ = a.zIndexes_ = a.filterEngine_.activeHint_ = null as never;
     a.pTimer_ > 0 && clearTimeout(a.pTimer_);
     a.hasExecuted_ = a.pTimer_ = 0;
