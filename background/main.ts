@@ -2825,7 +2825,7 @@
       s: Frames.Status.enabled,
       f: Frames.Flags.blank,
       t: tab.id,
-      u: url.length > GlobalConsts.MaxSenderURLLength ? BgUtils_.limitUrlInSender_(url) : url
+      u: url.length > GlobalConsts.MaxSenderURLLength ? sender.url = BgUtils_.limitUrlInSender_(url) : url
     };
   }
 

@@ -1636,6 +1636,7 @@ filterEngine_: {
       return 1;
     }
     keyStatus.known_ = 0;
+    h.hasExecuted_ = 0;
     h.zIndexes_ = (h.frameList_.length > 1 || h.zIndexes_) && null;
     if (doesDetectMatchSingle > 1) {
       for (const hint of hints) { if (hint.a === sequence) { return hint; } }
@@ -1697,7 +1698,7 @@ _getImageUrl (img: SafeHTMLElement): string | void {
       let arr = (<RegExpI> /^url\(\s?['"]?((?:\\['"]|[^'"])+?)['"]?\s?\)/i).exec(
         (notImg > 1 ? getComputedStyle(img) : img.style).backgroundImage as string);
       if (arr && arr[1]) {
-        const a1 = document.createElement("a");
+        const a1 = VDom.createElement_("a");
         a1.href = arr[1].replace(<RegExpG> /\\(['"])/g, "$1");
         text = a1.href;
       }

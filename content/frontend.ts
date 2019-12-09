@@ -1171,8 +1171,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
             oldSet.forEach(el => set.add(el));
           }
           }
-          if (parHints && parHints.hasExecuted_
-              && !parHints.keyStatus_.keySequence_ && !parHints.keyStatus_.textSequence_) {
+          if (parHints && (parHints._master as typeof VHints || parHints).hasExecuted_) {
             (parHints._master || parHints)._reinit();
           }
         }, 330);
