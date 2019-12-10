@@ -129,6 +129,9 @@ const Suggestion: SuggestionConstructor = function (
 } as any;
 
 function prepareHtml(sug: Suggestion): void {
+  if (!isForAddressBar && !sug.v) {
+    sug.v = searchEngine.calcBestFaviconSource_(sug.u);
+  }
   if (sug.textSplit != null) {
     if (sug.t === sug.u) { sug.t = ""; }
     return;
@@ -926,8 +929,9 @@ searchEngine = {
           && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
           ? sug.t : BgUtils_.escapeText_(sug.t);
     }
-    if (Build.BTypes & BrowserType.Chrome) {
-      sug.v = searchEngine.calcBestFaviconSource_(url);
+    if (Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
+        && isForAddressBar) {
+      sug.v = pattern.blank_ || searchEngine.calcBestFaviconSource_(url);
     }
     if (Build.BTypes & BrowserType.Chrome || isForAddressBar) {
       sug.p = pattern.name_;
@@ -957,27 +961,25 @@ searchEngine = {
     matchedTotal++;
     Completers.next_([output, sug], SugType.search);
   },
-  calcBestFaviconSource_: Build.BTypes & BrowserType.Chrome ? function (url: string): string {
-    const mostHigh = (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
-        && !isForAddressBar && HistoryCache.sorted_ && url.startsWith("http")
-        ? ~HistoryCache.binarySearch_(url) - 1 : -1,
+  calcBestFaviconSource_: Build.BTypes & BrowserType.Chrome ? (url: string): string => {
+    const mostHigh = HistoryCache.sorted_ && url.startsWith("http") ? ~HistoryCache.binarySearch_(url) - 1 : -2,
     arr = mostHigh < -1 ? [] as never : HistoryCache.history_ as HistoryItem[];
-    let slashInd = url.indexOf(":") + 3, low = 0, left = 0;
+    let slashInd = url.indexOf(":") + 3, low = 0, left = 0, u = "", e = "", m = 0, h = 0;
     for (
         ; low <= mostHigh
           && (slashInd = url[slashInd] === "/" ? slashInd + 1 : url.indexOf("/", slashInd + 1) + (left ? 0 : 1)) > 0
         ; left = slashInd) {
-      for (let u = url.slice(left, slashInd), e = "", m = 0, h = mostHigh; low <= h; ) {
+      for (u = url.slice(left, slashInd), h = mostHigh; low <= h; ) {
         m = (low + h) >>> 1;
         e = arr[m].url_.slice(left);
         if (e > u) { h = m - 1; }
         else if (e !== u) { low = m + 1; }
-        else { return arr[m].url_; }
+        else { return left ? arr[m].url_ : ""; }
       }
       if (low <= mostHigh && left) {
-        const temp = arr[low].url_;
-        if (temp[slashInd] === "/" && temp.length <= ++slashInd) {
-          return temp;
+        u = arr[low].url_;
+        if (u[slashInd] === "/" && u.length <= ++slashInd) {
+          return u;
         }
       }
     }
@@ -1024,7 +1026,8 @@ searchEngine = {
     sug.textSplit = Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
         ? sug.t : BgUtils_.escapeText_(sug.t);
-    if (Build.BTypes & BrowserType.Chrome) {
+    if (Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
+        && isForAddressBar) {
       sug.v = searchEngine.calcBestFaviconSource_(url);
     }
     if (Build.BTypes & BrowserType.Chrome || isForAddressBar) {
