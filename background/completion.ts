@@ -962,8 +962,9 @@ searchEngine = {
     Completers.next_([output, sug], SugType.search);
   },
   calcBestFaviconSource_: Build.BTypes & BrowserType.Chrome ? (url: string): string => {
-    const mostHigh = HistoryCache.sorted_ && url.startsWith("http") ? ~HistoryCache.binarySearch_(url) - 1 : -2,
-    arr = mostHigh < -1 ? [] as never : HistoryCache.history_ as HistoryItem[];
+    const pos0 = HistoryCache.sorted_ && url.startsWith("http") ? HistoryCache.binarySearch_(url) : -1,
+    mostHigh = pos0 < 0 ? ~pos0 - 1 : pos0,
+    arr = mostHigh < 0 ? [] as never : HistoryCache.history_ as HistoryItem[];
     let slashInd = url.indexOf(":") + 3, low = 0, left = 0, u = "", e = "", m = 0, h = 0;
     for (
         ; low <= mostHigh
