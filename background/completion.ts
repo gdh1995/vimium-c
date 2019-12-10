@@ -476,25 +476,38 @@ historyEngine = {
   filter_ (query: CompletersNS.QueryStatus, index: number): void {
     if (Build.BTypes & BrowserType.Edge && !chrome.history
         || !(allExpectedTypes & SugType.history)) { return Completers.next_([], SugType.history); }
-    const history = HistoryCache.history_;
+    const history = HistoryCache.history_, someQuery = queryTerms.length > 0;
     if (queryType === FirstQuery.waitFirst) {
-      queryType = queryTerms.length === 0 || index === 0 ? FirstQuery.history : FirstQuery.historyIncluded;
-    }
-    if (queryTerms.length > 0) {
-      if (history) {
-        return Completers.next_(historyEngine.quickSearch_(history), SugType.history);
-      }
-      return HistoryCache.use_(function (historyList): void {
-        if (query.o) { return; }
-        return Completers.next_(historyEngine.quickSearch_(historyList), SugType.history);
-      });
+      queryType = !someQuery || index === 0 ? FirstQuery.history : FirstQuery.historyIncluded;
     }
     if (history) {
+      if (someQuery) {
+        return Completers.next_(historyEngine.quickSearch_(history), SugType.history);
+      }
       if (HistoryCache.updateCount_ > 10 || HistoryCache.toRefreshCount_ > 0) {
         HistoryCache.refreshInfo_();
       }
-    } else if (!HistoryCache.lastRefresh_) {
-      setTimeout(function (): void { HistoryCache.use_(); }, 50);
+    } else {
+      const loadAllHistory: Parameters<typeof HistoryCache.use_>[0] = !someQuery ? null : historyList => {
+        if (query.o) { return; }
+        return Completers.next_(historyEngine.quickSearch_(historyList), SugType.history);
+      };
+      if (someQuery && (isForAddressBar || HistoryCache.loadingTimer_)) {
+        HistoryCache.loadingTimer_ > 0 && clearTimeout(HistoryCache.loadingTimer_);
+        HistoryCache.loadingTimer_ = 0;
+        HistoryCache.use_(loadAllHistory);
+      } else {
+        if (!HistoryCache.loadingTimer_) {
+          HistoryCache.loadingTimer_ = setTimeout(() => { HistoryCache.loadingTimer_ = 0;
+              HistoryCache.use_(loadAllHistory); }, someQuery ? 200 : 150);
+        }
+        if (someQuery) {
+          const curAll = Completers.suggestions_ as readonly Suggestion[], len = curAll.length, someMatches = len > 0;
+          (Completers.callback_ as CompletersNS.Callback)(someMatches && curAll[0].t === "search" ? [curAll[0]] : []
+              , autoSelect && someMatches, MatchType.Default, SugType.Empty, len);
+        }
+      }
+      if (someQuery) { return; }
     }
     autoSelect = false;
     if (index === 0) {
@@ -1051,10 +1064,10 @@ searchEngine = {
 Completers = {
   counter_: 0,
   sugTypes_: SugType.Empty,
-  suggestions_: null as ReadonlyArray<Suggestion> | null,
+  suggestions_: null as readonly Suggestion[] | null,
   mostRecentQuery_: null as CompletersNS.QueryStatus | null,
   callback_: null as CompletersNS.Callback | null,
-  filter_ (completers: ReadonlyArray<Completer>): void {
+  filter_ (completers: readonly Completer[]): void {
     if (Completers.mostRecentQuery_) { Completers.mostRecentQuery_.o = true; }
     const query: CompletersNS.QueryStatus = Completers.mostRecentQuery_ = {
       o: false
@@ -1285,17 +1298,19 @@ knownCs: CompletersMap & SafeObject = {
     updateCount_: 0,
     toRefreshCount_: 0,
     sorted_: false,
+    loadingTimer_: 0,
     history_: null as HistoryItem[] | null,
     _callbacks: null as HistoryCallback[] | null,
     domains_: null as typeof BgUtils_.domains_ | null,
-    use_ (callback?: HistoryCallback): void {
+    use_ (this: void, callback?: HistoryCallback | null): void {
       if (Build.BTypes & BrowserType.Edge && !chrome.history) { callback && callback([]); return; }
-      if (this._callbacks) {
-        callback && this._callbacks.push(callback);
+      if (HistoryCache._callbacks) {
+        callback && HistoryCache._callbacks.push(callback);
         return;
       }
-      this._callbacks = callback ? [callback] : [];
-      this.lastRefresh_ = Date.now(); // safe for time changes
+      HistoryCache._callbacks = callback ? [callback] : [];
+      HistoryCache.lastRefresh_ = Date.now(); // safe for time changes
+      if (HistoryCache.loadingTimer_) { return; }
       chrome.history.search({
         text: "",
         maxResults: InnerConsts.historyMaxSize,
@@ -1353,8 +1368,8 @@ knownCs: CompletersMap & SafeObject = {
         chrome.history.onVisited.addListener(HistoryCache.OnPageVisited_);
       }, 100);
       HistoryCache.history_ = arr as HistoryItem[];
-      HistoryCache.use_ = function (this: typeof HistoryCache, callback?: HistoryCallback): void {
-        if (callback) { callback(this.history_ as HistoryItem[]); }
+      HistoryCache.use_ = (callback): void => {
+        if (callback) { callback(HistoryCache.history_ as HistoryItem[]); }
       };
       HistoryCache._callbacks && HistoryCache._callbacks.length > 0 &&
       setTimeout(function (ref: HistoryCallback[]): void {
