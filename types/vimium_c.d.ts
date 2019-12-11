@@ -779,7 +779,8 @@ declare const enum BrowserVer {
   MinExtIframesAlwaysInSharedProcess = 58,
   MinExtensionContentPageAlwaysCanShowFavIcon = MinExtIframesAlwaysInSharedProcess,
   MinEmbedElementIsNotFunction = 58,
-  // the 6 below are correct even if EXPERIMENTAL or LEGACY
+  // the 7 below are correct even if EXPERIMENTAL or LEGACY
+  MinTbodyAcceptInnerTextSetter = 58,
   MinCaseSensitiveUseMap = 58,
   // tmp_width := (since 58 ? Math.round : Math.floor)(width * devicePixelRatio * zoom)
   // real_width := width && Math.max(tmp_width, 1)

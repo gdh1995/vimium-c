@@ -36,7 +36,7 @@ if (lang_ !== "en") {
     t && el && ((el as HTMLInputElement).placeholder = t);
     for (el of $$("[data-i]") as ArrayLike<Element> as Element[] as HTMLElement[]) {
       t = pTrans_(el.dataset.i as string);
-      t && (el.textContent = t);
+      t && (el.innerText = t);
     }
     for (el of $$("[data-i-t]") as ArrayLike<Element> as Element[] as HTMLElement[]) {
       t = pTrans_(el.dataset.iT as string);
@@ -309,7 +309,11 @@ addRule_ (pattern: string, autoFocus?: false | undefined): void {
 }
 populateElement_ (rules: ExclusionsNS.StoredRule[]): void {
   if (!this.inited_) { return; }
-  this.$list_.innerText = "";
+  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinTbodyAcceptInnerTextSetter) {
+    this.$list_.textContent = "";
+  } else {
+    (this.$list_ as HTMLElement).innerText = "";
+  }
   this.list_ = [];
   if (rules.length <= 0) { /* empty */ }
   else if (rules.length === 1) {

@@ -73,7 +73,7 @@ declare namespace HintsNS {
     onKeydown_ (event: KeyboardEventToPrevent): HandlerResult;
     _reinit (slave?: BaseHinter | null, lastEl?: LinkEl | null, rect?: Rect | null): void;
     resetHints_ (): void;
-    keydownEvents_ (this: void): KeydownCacheArray;
+    keydownEvents_ (this: void): Pick<VApiTy, "keydownEvents_"> | KeydownCacheArray;
     delayToExecute_ (hint: HintsNS.HintItem, hinter: BaseHinter, wnd: Window): void;
     onFrameUnload_ (slave: HintsNS.Slave): void;
     _setupCheck (slave?: BaseHinter | null, el?: HintsNS.LinkEl | null, r?: Rect | null): void;
@@ -162,11 +162,11 @@ var VHints = {
         return;
       }
     }
-    const parent = VDom.parentCore_();
-    if (parent) {
-      (parent.VCui as typeof VCui).learnCss_(VCui);
+    const upper = Build.BTypes & BrowserType.Firefox ? VDom.parentCore_() : VDom.frameElement_() && parent as Window;
+    if (upper && upper.VCui) {
+      (upper.VCui as typeof VCui).learnCss_(VCui);
       // recursively go up and use the topest frame in a same origin
-      (parent.VHints as typeof VHints).activate_(count, options);
+      (upper.VHints as typeof VHints).activate_(count, options);
       return;
     }
     const useFilter0 = options.useFilter, useFilter = useFilter0 != null ? !!useFilter0 : VDom.cache_.f,
@@ -970,7 +970,7 @@ var VHints = {
     }
     return visibleElements.reverse();
   },
-  keydownEvents_: () => VApi.keydownEvents_(),
+  keydownEvents_: () => Build.BTypes & BrowserType.Firefox ? VApi.keydownEvents_() : VApi,
   onKeydown_ (event: KeyboardEventToPrevent): HandlerResult {
     const a = this;
     let matchedHint: ReturnType<typeof VHints.matchHintsByKey_>, i: number;
@@ -1482,9 +1482,9 @@ filterEngine_: {
     }
     if (keyStatus.keySequence_ !== seq) {
       keyStatus.keySequence_ = seq;
-      let index = 0, base = H.chars_.length, end = hints.length;
+      let index = 0, base = H.chars_.length, last = hints.length;
       for (const ch of seq) { index = index * base + H.chars_.indexOf(ch); }
-      if (index * base >= end) { return index <= end ? hints[index - 1] : 0; }
+      if (index * base > last) { return index > last ? 0 : hints[index - 1]; }
       for (const { m: marker, a: key } of hints) {
         const match = key.startsWith(seq), createEl = VDom.createElement_;
         marker.style.visibility = match ? "" : "hidden";

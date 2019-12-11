@@ -498,8 +498,10 @@ historyEngine = {
         HistoryCache.use_(loadAllHistory);
       } else {
         if (!HistoryCache.loadingTimer_) {
-          HistoryCache.loadingTimer_ = setTimeout(() => { HistoryCache.loadingTimer_ = 0;
-              HistoryCache.use_(loadAllHistory); }, someQuery ? 200 : 150);
+          HistoryCache.loadingTimer_ = setTimeout(() => {
+            HistoryCache.loadingTimer_ = 0;
+            HistoryCache.use_(loadAllHistory);
+          }, someQuery ? 200 : 150);
         }
         if (someQuery) {
           const curAll = Completers.suggestions_ as readonly Suggestion[], len = curAll.length, someMatches = len > 0;

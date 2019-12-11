@@ -1117,7 +1117,7 @@
             N: kBgReq.execute,
             S: ports[i] === ports[0] ? ensureInnerCSS(cPort) : null,
             c: kFgCmd.toggle, n: 1,
-            a: { k: key2, n: ports[i] !== ports[0] ? keyRepr : "", v: value }
+            a: { k: key2, n: ports[i] === ports[0] ? keyRepr : "", v: value }
           });
         }
       }

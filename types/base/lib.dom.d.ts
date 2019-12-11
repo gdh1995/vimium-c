@@ -4919,6 +4919,7 @@ declare var HTMLTableRowElement: {
 }
 
 interface HTMLTableSectionElement extends HTMLElement, HTMLTableAlignment {
+    innerText: never;
     /**
       * Sets or retrieves a value that indicates the table alignment.
       */
