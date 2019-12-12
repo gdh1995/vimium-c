@@ -74,7 +74,6 @@ declare namespace HintsNS {
     _reinit (slave?: BaseHinter | null, lastEl?: LinkEl | null, rect?: Rect | null): void;
     resetHints_ (): void;
     keydownEvents_ (this: void): Pick<VApiTy, "keydownEvents_"> | KeydownCacheArray;
-    delayToExecute_ (hint: HintsNS.HintItem, hinter: BaseHinter, wnd: Window): void;
     onFrameUnload_ (slave: HintsNS.Slave): void;
     _setupCheck (slave?: BaseHinter | null, el?: HintsNS.LinkEl | null, r?: Rect | null): void;
   }
@@ -1006,7 +1005,7 @@ var VHints = {
       }
       setTimeout(a._reinit.bind(a, null, null, null), 0);
     } else if (Build.BTypes & BrowserType.Chrome && a._onTailEnter) {
-      (i === kKeyCode.enter || event.key === "Enter") && a._onTailEnter(event);
+      a._onTailEnter(event);
     } else if (i < kKeyCode.maxAcsKeys + 1 && i > kKeyCode.minAcsKeys - 1
         || (i === kKeyCode.metaKey && !VDom.cache_.o)) {
       const mode = a.mode_, mode1 = a.mode1_,
@@ -1072,13 +1071,18 @@ var VHints = {
     }
   },
   /** must be called from a master */
-  delayToExecute_ (hint: HintsNS.HintItem, slave: HintsNS.BaseHinter, wnd: Window): void {
+  delayToExecute_ (hint: HintsNS.HintItem, slave: HintsNS.BaseHinter, wnd: Window
+      , flashEl: SafeHTMLElement | null): void {
     const a = this, callback: (event?: HandlerNS.Event) => void = event => {
       let closed: 1 | boolean = 1;
       try {
         closed = wnd.closed;
       } catch {}
-      closed || !slave.isActive_ ? a.isActive_ && a.clean_() : slave.execute_(hint, event);
+      if (closed || !slave.isActive_) { a.isActive_ && a.clean_(); return; }
+      const i = event ? event.keyCode : kKeyCode.None;
+      (i === kKeyCode.enter || event && event.key === "Enter") ? slave.execute_(hint, event)
+      // tslint:disable-next-line: no-unused-expression
+      : i === kKeyCode.f1 && flashEl ? flashEl.classList.toggle("Sel") : 0;
     };
     a._onTailEnter = callback;
     (a.box_ as NonNullable<typeof a.box_>).remove();
@@ -1086,6 +1090,8 @@ var VHints = {
     if (Build.BTypes & BrowserType.Chrome && !VDom.cache_.w) {
       a._onWaitingKey = VKey.suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents, callback);
       VKey.removeHandler_(a._onWaitingKey);
+    } else {
+      a.hud_.show_(kTip.waitEnter);
     }
   },
   execute_ (hint: HintsNS.HintItem, event?: HandlerNS.Event): void {
@@ -1114,7 +1120,7 @@ var VHints = {
           VKey.suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents);
         } else {
           a._removeFlash = rect && VCui.flash_(null, rect, -1);
-          return masterOrA.delayToExecute_(hint, a, window);
+          return (masterOrA as typeof a).delayToExecute_(hint, a, window, rect && VCui.lastFlashEl_);
         }
       }
       master && focus();

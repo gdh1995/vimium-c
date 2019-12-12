@@ -1162,6 +1162,7 @@
 		"message": "Selected line boundary"
 	},
 	"45": { "message": "A child frame was just changed" },
+	"46": { "message": "Hit <Enter> to proceed\u2026" },
 	"0": {
 		"message": "Open link in current tab"
 	},
