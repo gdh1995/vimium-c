@@ -14,7 +14,7 @@
   https://addons.mozilla.org/firefox/addon/vimium-c/
   ) /
 [MS Edge Addons](
-  https://microsoftedge.microsoft.com/insider-addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo
+  https://microsoftedge.microsoft.com/addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo
   )**
 
 A <span style="color: #a55e18;">C</span>ustomized

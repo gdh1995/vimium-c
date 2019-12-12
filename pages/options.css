@@ -72,6 +72,9 @@ body {
 body.dialog-ui {
   margin-right: 25px;
 }
+:focus {
+  outline-color: var(--input-focus-border-color);
+}
 a, a:visited {
   color: #15c;
   color: var(--link-color);

@@ -12,7 +12,7 @@
   https://addons.mozilla.org/firefox/addon/vimium-c/
   ) /
 [MS Edge 插件商店](
-  https://microsoftedge.microsoft.com/insider-addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo
+  https://microsoftedge.microsoft.com/addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo
   ) 中查看**
 
 Vimium C 是一款开源、免费的键盘增强类浏览器扩展，支持为多种多样的命令任意设置快捷键。
