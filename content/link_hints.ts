@@ -783,25 +783,27 @@ var VHints = {
     return result.length > 12 ? result : list;
   },
   deduplicate_ (list: Hint[]): void {
-    let i = list.length, j = 0, k: ClickType, s: string;
+    let i = list.length, j: number, k: ClickType, s: string, notRemoveParents: boolean;
     let element: Element, prect: Rect, crect: Rect | null;
     while (0 <= --i) {
       k = list[i][2];
-      if (k !== ClickType.classname) {
+      notRemoveParents = k === ClickType.classname;
+      if (!notRemoveParents) {
         if (k === ClickType.codeListener) {
           if (s = ((element = list[i][0]) as Exclude<Hint[0], SVGElement>).localName, s === "i") {
-            if (i > 0 && (<RegExpOne> /\b(button|a$)/).test(list[i - 1][0].localName)
+            if (notRemoveParents
+                = i > 0 && (<RegExpOne> /\b(button|a$)/).test(list[i - 1][0].localName)
                 && !element.innerHTML.trim()
                 && this._isDescendant(element as SafeHTMLElement, list[i - 1][0], false) ) {
               // icons: button > i
               list.splice(i, 1);
-              continue;
             }
           } else if (s === "div"
               && (j = i + 1) < list.length
               && (s = list[j][0].localName, s === "div" || s === "a")) {
             prect = list[i][1]; crect = list[j][1];
-            if (crect.l < prect.l + /* icon_16 */ 19 && crect.t < prect.t + 9
+            if (notRemoveParents
+                = crect.l < prect.l + /* icon_16 */ 19 && crect.t < prect.t + 9
                 && crect.l > prect.l - 4 && crect.t > prect.t - 4 && crect.b > prect.b - 9
                 && (s !== "a" || element.contains(list[j][0]))) {
               // the `<a>` is a single-line box's most left element and the first clickable element,
@@ -810,7 +812,6 @@ var VHints = {
               // if there's more content, it should have hints for itself
               list.splice(i, 1);
             }
-            continue;
           }
         } else if (k === ClickType.tabindex
             && (element = list[i][0]).childElementCount === 1 && i + 1 < list.length
@@ -820,12 +821,12 @@ var VHints = {
           if (crect && VDom.isContaining_(crect, prect) && VDom.htmlTag_(element)) {
             list[i] = [element as SafeHTMLElement, crect, ClickType.tabindex];
           }
-        } else if (k === ClickType.edit && i > 0 && (element = list[i - 1][0]) === list[i][0].parentElement
+        } else if (notRemoveParents
+            = k === ClickType.edit && i > 0 && (element = list[i - 1][0]) === list[i][0].parentElement
             && element.childElementCount < 2 && element.localName === "a"
             && !(element as HTMLElement | Element & { innerText?: undefined }).innerText) {
           // a rare case that <a> has only a clickable <input>
           list.splice(--i, 1);
-          continue;
         }
         j = i;
       }
@@ -833,17 +834,16 @@ var VHints = {
           && this._isDescendant(element = list[i + 1][0], list[i][0], false)
           && (<RegExpOne> /\b(button|a$)/).test((element as Hint[0]).localName)) {
         list.splice(i, 1);
-        continue;
       }
-      else if (i > 0 && (k = list[j = i - 1][2]) > ClickType.MaxWeak
+      else if (j = i - 1, i < 1 || (k = list[j][2]) > ClickType.MaxWeak
           || !this._isDescendant(list[i][0], list[j][0], true)) {
-        continue;
+        /* empty */
       } else if (VDom.isContaining_(list[j][1], list[i][1])) {
         list.splice(i, 1);
-        continue;
-      } else if (k < ClickType.MinWeak) {
-        continue;
+      } else {
+        notRemoveParents = k < ClickType.MinWeak;
       }
+      if (notRemoveParents) { continue; }
       for (; j > i - 3 && 0 < j
             && (k = list[j - 1][2]) > ClickType.MaxNotWeak && k < ClickType.MinNotWeak
             && this._isDescendant(list[j][0], list[j - 1][0], true)
