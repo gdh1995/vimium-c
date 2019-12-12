@@ -99,5 +99,6 @@ interface EnsuredMountedHTMLElement extends HTMLElement {
   readonly lastElementChild: EnsuredMountedHTMLElement;
   readonly parentNode: EnsuredMountedHTMLElement;
   readonly parentElement: EnsuredMountedHTMLElement;
+  readonly previousElementSibling: EnsuredMountedHTMLElement;
   readonly nextElementSibling: EnsuredMountedHTMLElement;
 }
