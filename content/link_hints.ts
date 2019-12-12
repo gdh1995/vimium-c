@@ -814,12 +814,16 @@ var VHints = {
             }
           }
         } else if (k === ClickType.tabindex
-            && (element = list[i][0]).childElementCount === 1 && i + 1 < list.length
-            && list[i + 1][0].parentNode !== element) {
+            && (element = list[i][0]).childElementCount === 1 && i + 1 < list.length) {
           element = element.lastElementChild as Element;
           prect = list[i][1]; crect = VDom.getVisibleClientRect_(element);
           if (crect && VDom.isContaining_(crect, prect) && VDom.htmlTag_(element)) {
-            list[i] = [element as SafeHTMLElement, crect, ClickType.tabindex];
+            if (list[i + 1][0].parentNode !== element) {
+              list[i] = [element as SafeHTMLElement, crect, ClickType.tabindex];
+            } else if (list[i + 1][2] === ClickType.codeListener) {
+              // [tabindex] > :listened, then [i] is only a layout container
+              list.splice(i, 1);
+            }
           }
         } else if (notRemoveParents
             = k === ClickType.edit && i > 0 && (element = list[i - 1][0]) === list[i][0].parentElement
