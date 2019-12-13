@@ -1038,16 +1038,28 @@ $("#importButton").onclick = function (): void {
 };
 
 nextTick_(el => {
+let isEdg: boolean = false;
 el.textContent = (Build.BTypes & BrowserType.Edge
         && (!(Build.BTypes & ~BrowserType.Edge) || bgOnOther_ === BrowserType.Edge)
     ? "MS Edge (EdgeHTML)"
     : Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)
     ? "Firefox " + BG_.CurFFVer_
-    : ((<RegExpOne> /\sEdg\//).test(navigator.appVersion) ? ["MS Edge"]
+    : ((isEdg = (<RegExpOne> /\sEdg\//).test(navigator.appVersion)) ? ["MS Edge"]
         : (<RegExpOne> /\bChromium\b/).exec(navigator.appVersion) || ["Chrome"])[0] + " " + bgBrowserVer_
   ) + pTrans_("comma") + (pTrans_(bgSettings_.CONST_.Platform_)
         || bgSettings_.CONST_.Platform_[0].toUpperCase() + bgSettings_.CONST_.Platform_.slice(1));
+if (isEdg) {
+  let el = $<EnsuredMountedHTMLElement>("#chromeExtVomnibar");
+  el.nextElementSibling.remove();
+  el.parentElement.classList.add("line-1x");
+  el.remove();
+  el = $<EnsuredMountedHTMLElement>("#shortcutHelper");
+  el.previousElementSibling.textContent = pTrans_("period");
+  el.remove();
+  const a = $<HTMLAnchorElement>("#openExtensionPage");
+  a.textContent = a.href = "edge://extensions/shortcuts";
+}
 }, $("#browserName"));
 
 function loadJS(file: string): HTMLScriptElement {

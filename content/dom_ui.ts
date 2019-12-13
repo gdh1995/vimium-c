@@ -92,7 +92,7 @@ var VCui = {
       zoom - 1 && (style.zoom = zoom as number | string as string);
     }
     VDom.fullscreenEl_unsafe_() && (style.position = "fixed");
-    this.add_(parent, AdjustType.DEFAULT, this._lastFlash);
+    this.add_(parent, AdjustType.DEFAULT, this.lastFlashEl_);
     dialogContainer && (parent as HTMLDialogElement).showModal();
     return parent as (T extends true | 1 ? HTMLDialogElement : HTMLDivElement) & SafeElement;
   },
@@ -416,7 +416,7 @@ var VCui = {
     return rect && !a.isContaining_(bcr, rect) ? rect
       : a.cropRectToVisible_(bcr.l, bcr.t, bcr.r, bcr.b) ? bcr : null;
   },
-  _lastFlash: null as SafeHTMLElement | null,
+  lastFlashEl_: null as SafeHTMLElement | null,
   flash_: function (this: {}, el: Element | null, rect?: Rect | null, lifeTime?: number, classNames?: string
       ): (() => void) | void {
     const a = this as typeof VCui;
@@ -428,13 +428,13 @@ var VCui = {
     Build.BTypes & ~BrowserType.Firefox &&
     VDom.bZoom_ !== 1 && nfs && (flashEl.style.zoom = "" + VDom.bZoom_);
     a.add_(flashEl);
-    a._lastFlash = flashEl;
+    a.lastFlashEl_ = flashEl;
     if (!Build.NDEBUG) {
       type DomUIEx = typeof VCui & { flashTime: number | undefined; };
       lifeTime = lifeTime === -1 ? - 1 : Math.max(lifeTime || 0, <number> (VCui as DomUIEx).flashTime | 0);
     }
     const remove = function (): void {
-      a._lastFlash === flashEl && (a._lastFlash = null);
+      a.lastFlashEl_ === flashEl && (a.lastFlashEl_ = null);
       flashEl.remove();
     };
     lifeTime === -1 || setTimeout(remove, lifeTime || GlobalConsts.DefaultRectFlashTime);

@@ -74,7 +74,6 @@ declare namespace HintsNS {
     _reinit (slave?: BaseHinter | null, lastEl?: LinkEl | null, rect?: Rect | null): void;
     resetHints_ (): void;
     keydownEvents_ (this: void): Pick<VApiTy, "keydownEvents_"> | KeydownCacheArray;
-    delayToExecute_ (hint: HintsNS.HintItem, hinter: BaseHinter, wnd: Window): void;
     onFrameUnload_ (slave: HintsNS.Slave): void;
     _setupCheck (slave?: BaseHinter | null, el?: HintsNS.LinkEl | null, r?: Rect | null): void;
   }
@@ -784,25 +783,27 @@ var VHints = {
     return result.length > 12 ? result : list;
   },
   deduplicate_ (list: Hint[]): void {
-    let i = list.length, j = 0, k: ClickType, s: string;
+    let i = list.length, j: number, k: ClickType, s: string, notRemoveParents: boolean;
     let element: Element, prect: Rect, crect: Rect | null;
     while (0 <= --i) {
       k = list[i][2];
-      if (k !== ClickType.classname) {
+      notRemoveParents = k === ClickType.classname;
+      if (!notRemoveParents) {
         if (k === ClickType.codeListener) {
           if (s = ((element = list[i][0]) as Exclude<Hint[0], SVGElement>).localName, s === "i") {
-            if (i > 0 && (<RegExpOne> /\b(button|a$)/).test(list[i - 1][0].localName)
+            if (notRemoveParents
+                = i > 0 && (<RegExpOne> /\b(button|a$)/).test(list[i - 1][0].localName)
                 && !element.innerHTML.trim()
                 && this._isDescendant(element as SafeHTMLElement, list[i - 1][0], false) ) {
               // icons: button > i
               list.splice(i, 1);
-              continue;
             }
           } else if (s === "div"
               && (j = i + 1) < list.length
               && (s = list[j][0].localName, s === "div" || s === "a")) {
             prect = list[i][1]; crect = list[j][1];
-            if (crect.l < prect.l + /* icon_16 */ 19 && crect.t < prect.t + 9
+            if (notRemoveParents
+                = crect.l < prect.l + /* icon_16 */ 19 && crect.t < prect.t + 9
                 && crect.l > prect.l - 4 && crect.t > prect.t - 4 && crect.b > prect.b - 9
                 && (s !== "a" || element.contains(list[j][0]))) {
               // the `<a>` is a single-line box's most left element and the first clickable element,
@@ -811,22 +812,25 @@ var VHints = {
               // if there's more content, it should have hints for itself
               list.splice(i, 1);
             }
-            continue;
           }
         } else if (k === ClickType.tabindex
-            && (element = list[i][0]).childElementCount === 1 && i + 1 < list.length
-            && list[i + 1][0].parentNode !== element) {
+            && (element = list[i][0]).childElementCount === 1 && i + 1 < list.length) {
           element = element.lastElementChild as Element;
           prect = list[i][1]; crect = VDom.getVisibleClientRect_(element);
           if (crect && VDom.isContaining_(crect, prect) && VDom.htmlTag_(element)) {
-            list[i] = [element as SafeHTMLElement, crect, ClickType.tabindex];
+            if (list[i + 1][0].parentNode !== element) {
+              list[i] = [element as SafeHTMLElement, crect, ClickType.tabindex];
+            } else if (list[i + 1][2] === ClickType.codeListener) {
+              // [tabindex] > :listened, then [i] is only a layout container
+              list.splice(i, 1);
+            }
           }
-        } else if (k === ClickType.edit && i > 0 && (element = list[i - 1][0]) === list[i][0].parentElement
+        } else if (notRemoveParents
+            = k === ClickType.edit && i > 0 && (element = list[i - 1][0]) === list[i][0].parentElement
             && element.childElementCount < 2 && element.localName === "a"
             && !(element as HTMLElement | Element & { innerText?: undefined }).innerText) {
           // a rare case that <a> has only a clickable <input>
           list.splice(--i, 1);
-          continue;
         }
         j = i;
       }
@@ -834,17 +838,16 @@ var VHints = {
           && this._isDescendant(element = list[i + 1][0], list[i][0], false)
           && (<RegExpOne> /\b(button|a$)/).test((element as Hint[0]).localName)) {
         list.splice(i, 1);
-        continue;
       }
-      else if (i > 0 && (k = list[j = i - 1][2]) > ClickType.MaxWeak
+      else if (j = i - 1, i < 1 || (k = list[j][2]) > ClickType.MaxWeak
           || !this._isDescendant(list[i][0], list[j][0], true)) {
-        continue;
+        /* empty */
       } else if (VDom.isContaining_(list[j][1], list[i][1])) {
         list.splice(i, 1);
-        continue;
-      } else if (k < ClickType.MinWeak) {
-        continue;
+      } else {
+        notRemoveParents = k < ClickType.MinWeak;
       }
+      if (notRemoveParents) { continue; }
       for (; j > i - 3 && 0 < j
             && (k = list[j - 1][2]) > ClickType.MaxNotWeak && k < ClickType.MinNotWeak
             && this._isDescendant(list[j][0], list[j - 1][0], true)
@@ -1006,7 +1009,7 @@ var VHints = {
       }
       setTimeout(a._reinit.bind(a, null, null, null), 0);
     } else if (Build.BTypes & BrowserType.Chrome && a._onTailEnter) {
-      (i === kKeyCode.enter || event.key === "Enter") && a._onTailEnter(event);
+      a._onTailEnter(event);
     } else if (i < kKeyCode.maxAcsKeys + 1 && i > kKeyCode.minAcsKeys - 1
         || (i === kKeyCode.metaKey && !VDom.cache_.o)) {
       const mode = a.mode_, mode1 = a.mode1_,
@@ -1072,13 +1075,18 @@ var VHints = {
     }
   },
   /** must be called from a master */
-  delayToExecute_ (hint: HintsNS.HintItem, slave: HintsNS.BaseHinter, wnd: Window): void {
+  delayToExecute_ (hint: HintsNS.HintItem, slave: HintsNS.BaseHinter, wnd: Window
+      , flashEl: SafeHTMLElement | null): void {
     const a = this, callback: (event?: HandlerNS.Event) => void = event => {
       let closed: 1 | boolean = 1;
       try {
         closed = wnd.closed;
       } catch {}
-      closed || !slave.isActive_ ? a.isActive_ && a.clean_() : slave.execute_(hint, event);
+      if (closed || !slave.isActive_) { a.isActive_ && a.clean_(); return; }
+      const i = event ? event.keyCode : kKeyCode.None;
+      (i === kKeyCode.enter || event && event.key === "Enter") ? slave.execute_(hint, event)
+      // tslint:disable-next-line: no-unused-expression
+      : i === kKeyCode.f1 && flashEl ? flashEl.classList.toggle("Sel") : 0;
     };
     a._onTailEnter = callback;
     (a.box_ as NonNullable<typeof a.box_>).remove();
@@ -1086,6 +1094,8 @@ var VHints = {
     if (Build.BTypes & BrowserType.Chrome && !VDom.cache_.w) {
       a._onWaitingKey = VKey.suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents, callback);
       VKey.removeHandler_(a._onWaitingKey);
+    } else {
+      a.hud_.show_(kTip.waitEnter);
     }
   },
   execute_ (hint: HintsNS.HintItem, event?: HandlerNS.Event): void {
@@ -1114,7 +1124,7 @@ var VHints = {
           VKey.suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents);
         } else {
           a._removeFlash = rect && VCui.flash_(null, rect, -1);
-          return masterOrA.delayToExecute_(hint, a, window);
+          return (masterOrA as typeof a).delayToExecute_(hint, a, window, rect && VCui.lastFlashEl_);
         }
       }
       master && focus();
