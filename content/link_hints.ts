@@ -1036,7 +1036,8 @@ var VHints = {
       a.tooHigh_ = null;
       a.ResetMode_();
       setTimeout(a._reinit.bind(a, null, null, null), 0);
-    } else if (i === kKeyCode.space && (!a.useFilter_ || VKey.getKeyStat_(event))) {
+    } else if (i === kKeyCode.space
+        && (!a.useFilter_ || !a.keyStatus_.textSequence_ || VKey.getKeyStat_(event))) {
       a.rotateHints_(event.shiftKey);
     } else if (matchedHint = a.matchHintsByKey_(a.keyStatus_, event), matchedHint === 0) {
       // then .a.keyStatus_.hintSequence_ is the last key char

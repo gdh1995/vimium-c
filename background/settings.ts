@@ -528,7 +528,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     { 19: "/icons/disabled_19.png", 38: "/icons/disabled_38.png" }
   ]),
   valuesToLoad_: As_<SelectNameToKey<SettingsNS.AutoItems> & SafeObject>({ __proto__: null as never,
-    filterLinkHints: "f", hookAccessKeys: "a",
+    filterLinkHints: "f", hookAccessKeys: Build.BTypes & BrowserType.Chrome ? "a" : "" as never,
     ignoreKeyboardLayout: "L",
     keyboard: "k", linkHintCharacters: "l", linkHintNumbers: "n",
     regexFindMode: "R", smoothScroll: "S", scrollStepSize: "t", waitForEnter: "w"
