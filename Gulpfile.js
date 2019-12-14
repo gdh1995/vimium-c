@@ -98,6 +98,13 @@ var Tasks = {
     }
     return uglifyJSFiles(path, ".", "", { base: "." });
   },
+  "static/json": function() {
+    const path = ["_locales/*/messages.json", "settings_template.json"];
+    if (!getNonNullBuildItem("NDEBUG")) {
+      return copyByPath(path);
+    }
+    return uglifyJSFiles(path, ".", "", { base: ".", json: true });
+  },
   "minify-css": function() {
     const path = ["pages/*.css"];
     if (!getNonNullBuildItem("NDEBUG")) { return copyByPath(path); }
@@ -107,6 +114,7 @@ var Tasks = {
     });
   },
   "minify-html": function() {
+    print("==== 123");
     const arr = ["front/*.html", "pages/*.html", "!*/vomnibar.html"];
     may_have_newtab || arr.push("!" + NEWTAB_FILE.replace(".ts", ".*"));
     if (!getNonNullBuildItem("NDEBUG")) { return copyByPath(arr); }
@@ -117,12 +125,11 @@ var Tasks = {
     }));
   },
   "static/uglify": function(cb) {
-    gulp.parallel("static/uglify-js", "minify-css", "minify-html")(cb);
+    gulp.parallel("static/uglify-js", "static/json", "minify-css", "minify-html")(cb);
   },
   static: ["static/special", "static/uglify", function() {
     var arr = ["front/*", "pages/*", "icons/*", "lib/*"
-      , "settings_template.json", "*.txt", "*.md"
-      , "_locales/*/messages.json"
+      , "*.txt", "*.md", "!**/*.json"
       , "!**/manifest*.json", "!**/*.min.*"
       , "!pages/*.css", "!front/[a-u]*.html", "!front/[w-z]*.html", "!pages/*.html", "!REL*.md", "!README_*.md"
       , "!**/*.log", "!**/*.psd", "!**/*.zip", "!**/*.tar", "!**/*.tgz", "!**/*.gz"
@@ -149,6 +156,7 @@ var Tasks = {
   "build/scripts": ["build/background", "build/content", "build/front"],
   "build/_clean_diff": function() {
     return cleanByPath([".build/**", "manifest.json", "pages/dialog_ui.*", "*/vomnibar.html"
+      , "*/*.html", "*/*.css", "**/*.json"
       , "**/*.js", "!helpers/*/*.js"
       , FILE_URLS_CSS]);
   },
@@ -693,7 +701,8 @@ function checkJSAndUglifyAll(taskOrder, maps, key, exArgs, cb) {
 }
 
 function uglifyJSFiles(path, output, new_suffix, exArgs) {
-  const base = exArgs && exArgs.base || JSDEST;
+  exArgs || (exArgs = {});
+  const base = exArgs.base || JSDEST;
   path = formatPath(path, base);
   const pathId = path.filter(i => i[0] !== "!").join(""),
   isContent = pathId.indexOf("content") >= 0, isBackground = !isContent && pathId.indexOf("background") >= 0;
@@ -702,27 +711,29 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
   }
   output = output || ".";
   new_suffix = new_suffix !== "" ? (new_suffix || ".min") : "";
-  exArgs || (exArgs = {});
 
   var stream = gulp.src(path, { base: base });
-  var is_file = output.endsWith(".js");
+  var isJson = !!exArgs.json;
+  var ext = isJson ? ".json" : ".js";
+  var is_file = output.endsWith(ext);
+
   if (!exArgs.passAll) {
     stream = stream.pipe(newer(is_file ? {
       extra: exArgs.nameCachePath || null,
       dest: osPath.join(DEST, output)
     } : exArgs.nameCache ? {
       dest: DEST,
-      ext: new_suffix + ".js",
+      ext: new_suffix + ext,
       extra: exArgs.passAll === false ? exArgs.nameCachePath || null
         : (exArgs.nameCachePath && path.push(exArgs.nameCachePath), path)
     } : {
       dest: DEST,
       extra: exArgs.nameCachePath || null,
-      ext: new_suffix + ".js"
+      ext: new_suffix + ext
     }));
   }
   let allPaths = null;
-  if (enableSourceMap) {
+  if (enableSourceMap && !isJson) {
     stream = stream.pipe(require('gulp-sourcemaps').init({ loadMaps: true }));
   } else if (is_file) {
     stream = stream.pipe(gulpMap(function(file) {
@@ -741,20 +752,28 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
     stdConfig.nameCache = nameCache;
     patchGulpUglify();
   }
-  stream = stream.pipe(gulpMap(beforeUglify));
+  if (!isJson) {
+    stream = stream.pipe(gulpMap(beforeUglify));
+  }
   const config = stdConfig;
-  stream = stream.pipe(getGulpUglify()(config));
-  stream = stream.pipe(getGulpUglify()({...config, mangle: null}));
+  if (isJson) {
+    stream = stream.pipe(gulpMap(uglifyJson));
+  } else {
+    stream = stream.pipe(getGulpUglify()(config));
+    stream = stream.pipe(getGulpUglify()({...config, mangle: null}));
+  }
   if (!is_file && new_suffix !== "") {
      stream = stream.pipe(require('gulp-rename')({ suffix: new_suffix }));
   }
-  stream = stream.pipe(gulpMap(function(file) {
-    postUglify(file, allPaths);
-  }));
+  if (!isJson) {
+    stream = stream.pipe(gulpMap(function(file) {
+      postUglify(file, allPaths);
+    }));
+  }
   if (willListEmittedFiles && !is_file) {
     stream = stream.pipe(gulpPrint());
   }
-  if (enableSourceMap) {
+  if (enableSourceMap && !isJson) {
     stream = stream.pipe(require('gulp-sourcemaps').write(".", {
       sourceRoot: "/"
     }));
@@ -850,6 +869,15 @@ function postUglify(file, allPaths) {
     contents = contents.replace(/\bappendChild\b/g, "append");
   }
   if (changed || oldLen > 0 && contents.length !== oldLen) {
+    file.contents = ToBuffer(contents);
+  }
+}
+
+function uglifyJson(file) {
+  var contents = ToString(file.contents), oldLen = contents.length;
+  var data = JSON.parse(contents);
+  contents = JSON.stringify(data);
+  if (contents.length !== oldLen) {
     file.contents = ToBuffer(contents);
   }
 }

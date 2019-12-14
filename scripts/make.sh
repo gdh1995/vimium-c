@@ -47,8 +47,6 @@ if [ -z "$output" -o -d "$output" ]; then
     else
       ver=${ver}-dist
     fi
-    echo SHELL: "$SHELL"
-    set -x
     if test -f /cmd/git.exe; then
       exact_git=/cmd/git.exe
     elif test -f /usr/bin/git; then
@@ -57,8 +55,7 @@ if [ -z "$output" -o -d "$output" ]; then
       exact_git=git
     fi
     git_hash=$("$exact_git" rev-parse --short=7 HEAD 2>/dev/null)
-    set +x
-    echo "git_hash: $git_hash"
+    # echo "Use Git Hash: $git_hash"
     ver=${ver}${git_hash:+-${git_hash}}
     if [ -d '/wo' ]; then
       output=/wo/

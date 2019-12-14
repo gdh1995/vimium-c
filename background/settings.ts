@@ -620,24 +620,17 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
     && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) {
   ( (Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox))
     ? !Build.NativeWordMoveOnFirefox
-    : Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
-      && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
-      && CurCVer_ < (
-        BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
-        ? BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
-        : BrowserVer.MinSelExtendForwardOnlySkipWhitespaces)
+      && !((): boolean | void => { try { return new RegExp("\\p{L}", "u").test("a"); } catch {} })()
+    : Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
+      && Build.MinCVer < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
       && (!(Build.BTypes & BrowserType.Edge) || OnOther !== BrowserType.Edge)
-  ) &&
-  ( Build.BTypes & ~BrowserType.Firefox
-    && Build.MinCVer < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
-    && (BrowserVer.MinSelExtendForwardOnlySkipWhitespaces <= BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
-      || CurCVer_ < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp)
-    && (Build.NativeWordMoveOnFirefox || !(Build.BTypes & BrowserType.Firefox) || OnOther !== BrowserType.Firefox)
-  || !function (): boolean | void {
-    try {
-      return new RegExp("\\p{L}", "u").test("a");
-    } catch {}
-  }()) ? Settings_.fetchFile_("words") : (Settings_.CONST_.words = "");
+      && (BrowserVer.MinSelExtendForwardOnlySkipWhitespaces <= BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
+        ? CurCVer_ < (
+          BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
+          ? BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp : BrowserVer.MinSelExtendForwardOnlySkipWhitespaces)
+        : CurCVer_ < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
+          || !((): boolean | void => { try { return new RegExp("\\p{L}", "u").test("a"); } catch {} })())
+  ) ? Settings_.fetchFile_("words") : (Settings_.CONST_.words = "");
 }
 
 (function (): void {
