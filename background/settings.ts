@@ -543,6 +543,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
         ? "https://www.msn.cn/spartan/ntp"
         : Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
         ? "chrome-search://local-ntp/local-ntp.html" : "pages/blank.html",
+    BlankNewTab_: "pages/blank.html",
     DisallowIncognito_: false,
     ContentScripts_: null as never as string[],
     VerCode_: "", VerName_: "",

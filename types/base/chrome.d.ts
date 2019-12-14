@@ -2923,7 +2923,7 @@ declare namespace chrome.windows {
          * Optional.
          * A URL or array of URLs to open as tabs in the window. Fully-qualified URLs must include a scheme (i.e. 'http://www.google.com', not 'www.google.com'). Relative URLs will be relative to the current page within the extension. Defaults to the New Tab Page.
          */
-        url?: string;
+        url?: string | string[];
         /**
          * Optional.
          * The number of pixels to position the new window from the top edge of the screen. If not specified, the new window is offset naturally from the last focused window. This value is ignored for panels.

@@ -63,9 +63,20 @@ let keyMappingChecker_ = {
     return this.normalizeCmd_("", cmd, keys, options);
   },
   normalizeCmd_ (_0: string, cmd: string, name: string, options: string) {
+    if (options.indexOf("createTab") > 0 && (<RegExpOne> /^\s+createTab\s/).test(options)
+        && !(<RegExpI> /\surls?=/i).test(options)) {
+      options = this.convertFromLegacyUrlList_(options);
+    }
     options = options ? options.replace(<RegExpG & RegExpSearchable<3>> /=("(\S*(?:\s[^=]*)?)"|\S+)(\s|$)/g,
         this.normalizeOptions_) : "";
     return cmd + name + options;
+  },
+  convertFromLegacyUrlList_ (this: void, options: string): string {
+    const urls: string[] = [];
+    options = (options + " ").replace(<RegExpG & RegExpSearchable<1>> /\s(\w+:[^=\s]+|[^\s=]+:\/\/\S+)(?=\s|$)/g,
+        (_, url) => (urls.push(url), "")).trimRight();
+    const len = urls.length;
+    return options + (len > 1 ? " urls=" : len ? " url=" : "") + (len ? JSON.stringify(len > 1 ? urls : urls[0]) : "");
   },
   check_ (str: string): string {
     if (!str) { return str; }

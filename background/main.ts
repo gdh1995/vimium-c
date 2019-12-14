@@ -4,6 +4,7 @@
   }
   type Tab = chrome.tabs.Tab;
   type Window = chrome.windows.Window;
+  type WindowWithTabs = Window & { tabs: Tab[] };
   interface IncNormalWnd extends Window {
     incognito: true;
     type: "normal";
@@ -117,16 +118,21 @@
     gCmdTimer = newTimer;
   }
 
+  /* if not args.url, then "openerTabId" must not in args */
   function tabsCreate(args: chrome.tabs.CreateProperties, callback?: ((this: void, tab: Tab) => void) | null): 1 {
     let { url } = args, type: Urls.NewTabType | undefined;
     if (!url) {
-      if (Build.MayOverrideNewTab && Settings_.CONST_.OverrideNewTab_
+      url = Settings_.cache_.newTabUrl_f;
+      if (TabRecency_.incognito_ === IncognitoType.true && url.endsWith(Settings_.CONST_.BlankNewTab_)
+          && url.startsWith(location.origin)) { /* empty */ }
+      else if (Build.MayOverrideNewTab && Settings_.CONST_.OverrideNewTab_
           ? Settings_.cache_.focusNewTabContent
           : !(Build.BTypes & BrowserType.Firefox)
             || (Build.BTypes & ~BrowserType.Firefox && OnOther !== BrowserType.Firefox)
-            || !Settings_.newTabs_[Settings_.cache_.newTabUrl_f]) {
-        args.url = Settings_.cache_.newTabUrl_f;
-      } else if (url != null) {
+            || !Settings_.newTabs_[url]) {
+        args.url = url;
+      }
+      if (!args.url) {
         delete args.url;
       }
     } else if (!(type = Settings_.newTabs_[url])) { /* empty */ }
@@ -474,13 +480,13 @@
   getCurShownTabs = Build.BTypes & BrowserType.Firefox
       && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
     ? chrome.tabs.query.bind(null, { currentWindow: true, hidden: false }) : 0 as never,
-  getCurWnd = function (populate: boolean, callback: (window: chrome.windows.Window, exArg: FakeArg) => void): 1 {
+  getCurWnd = function (populate: boolean, callback: (window: Window, exArg: FakeArg) => void): 1 {
     const wndId = TabRecency_.lastWnd_, args = { populate };
     return wndId >= 0 ? chrome.windows.get(wndId, args, callback) : chrome.windows.getCurrent(args, callback);
   } as {
-    (populate: true, callback: (window: (chrome.windows.Window & { tabs: chrome.tabs.Tab[] }) | null | undefined
+    (populate: true, callback: (window: WindowWithTabs | null | undefined
       , exArg: FakeArg) => void): 1;
-    (populate: false, callback: (window: chrome.windows.Window, exArg: FakeArg) => void): 1;
+    (populate: false, callback: (window: Window, exArg: FakeArg) => void): 1;
   };
   function findCPort(port: Port | null | undefined): Port | null {
     const frames = framesForTab[port ? port.s.t : TabRecency_.last_];
@@ -659,14 +665,13 @@
           ? arr[1].length : 0;
       url = type ? url.slice(0, start) + (type > 6 ? "127.0.0.1" : "[::1]") + url.slice(start + type) : url;
     }
-
     openUrl(url, Urls.WorkType.ActAnyway, tabs);
   }
   function openUrlInNewTab(this: void, url: string, reuse: ReuseType
       , options: Readonly<Pick<OpenUrlOptions, "position" | "opener" | "window" | "incognito">>
       , tabs: [Tab]): void {
     const tab = tabs[0] as Tab | undefined, tabIncognito = tab ? tab.incognito : false,
-    { incognito } = options, active = reuse !== ReuseType.newBg;
+    incognito = options.incognito, active = reuse !== ReuseType.newBg;
     let window = options.window;
     if (BgUtils_.isRefusingIncognito_(url)) {
       if (tabIncognito || TabRecency_.incognito_ === IncognitoType.true) {
@@ -719,8 +724,7 @@
     }
   }
   const
-  openShowPage = function (url: string, reuse: ReuseType
-      , options: Pick<OpenUrlOptions, "position" | "opener">, tab?: Tab): boolean {
+  openShowPage = function (url: string, reuse: ReuseType, options: OpenUrlOptions, tab?: Tab): boolean {
     const prefix = Settings_.CONST_.ShowPage_;
     if (url.length < prefix.length + 3 || !url.startsWith(prefix)) { return false; }
     if (!tab) {
@@ -748,6 +752,7 @@
         arr[0] = "", arr[1] = null;
       }, 2000);
     }, 1200);
+    cRepeat = 1;
     if (reuse === ReuseType.current && !incognito) {
       let views = Build.BTypes & BrowserType.Chrome
             && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
@@ -761,27 +766,34 @@
       } else {
         chrome.tabs.update(tab.id, { url: prefix });
       }
+    } else if (incognito) {
+      tabsCreate({ url: prefix, active: reuse !== ReuseType.newBg });
     } else {
-      tabsCreate({
-        active: reuse !== ReuseType.newBg,
-        index: incognito ? undefined : newTabIndex(tab, options.position),
-        windowId: incognito ? undefined : tab.windowId,
-        openerTabId: !incognito && options.opener ? tab.id : undefined,
-        url: prefix
-      });
+      openUrlInNewTab(prefix, reuse, options, [tab]);
     }
     return true;
   };
   // use Urls.WorkType.Default
   function openUrls(tabs: [Tab]): void {
     const tab = tabs[0], { windowId } = tab;
+    type OptionEx = {formatted_?: 1};
     let urls: string[] = cOptions.urls, repeat = cRepeat;
-    for (let i = 0; i < urls.length; i++) {
-      urls[i] = BgUtils_.convertToUrl_(urls[i] + "");
+    if (!(cOptions as OptionEx).formatted_) {
+      for (let i = 0; i < urls.length; i++) {
+        urls[i] = BgUtils_.convertToUrl_(urls[i] + "");
+      }
+      (cOptions as OptionEx).formatted_ = 1;
     }
+    const wndOpt: chrome.windows.CreateData | null = cOptions.window ? {
+      url: urls, incognito: !!cOptions.incognito
+    } : null;
     tab.active = !(cOptions.reuse < ReuseType.newFg);
     cOptions = null as never;
     do {
+      if (wndOpt) {
+        chrome.windows.create(wndOpt, onRuntimeError);
+        continue;
+      }
       for (let i = 0, index = tab.index + 1, { active } = tab; i < urls.length; i++, active = false, index++) {
         tabsCreate({ url: urls[i], index, windowId, active });
       }
@@ -1346,7 +1358,7 @@
       function moveTabToIncognito(wnd: PopWindow): void {
         const tab = selectFrom(wnd.tabs);
         if (wnd.incognito && tab.incognito) { return reportNoop(); }
-        const options: chrome.windows.CreateData = {tabId: tab.id, incognito: true}, url = tab.url;
+        const options: chrome.windows.CreateData & {url?: string} = {tabId: tab.id, incognito: true}, url = tab.url;
         if (tab.incognito) { /* empty */ }
         else if (Build.MinCVer < BrowserVer.MinNoAbnormalIncognito && Build.BTypes & BrowserType.Chrome
             && wnd.incognito) {
@@ -2686,7 +2698,7 @@
         sender.f = Frames.Flags.userActed;
       } else if (type === PortType.CloseSelf) {
         if (Build.BTypes & ~BrowserType.Chrome && tabId >= 0 && !sender.i) {
-          removeTempTab(tabId, ((port as chrome.runtime.Port).sender.tab as chrome.tabs.Tab).windowId, sender.u);
+          removeTempTab(tabId, ((port as chrome.runtime.Port).sender.tab as Tab).windowId, sender.u);
         }
         return;
       } else {
