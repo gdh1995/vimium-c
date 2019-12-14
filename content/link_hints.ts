@@ -1078,21 +1078,28 @@ var VHints = {
   /** must be called from a master */
   delayToExecute_ (hint: HintsNS.HintItem, slave: HintsNS.BaseHinter, wnd: Window
       , flashEl: SafeHTMLElement | null): void {
-    const a = this, callback: (event?: HandlerNS.Event) => void = event => {
+    const a = this, waitEnter = Build.BTypes & BrowserType.Chrome && VDom.cache_.w,
+    callback: (event?: HandlerNS.Event) => void = event => {
       let closed: 1 | boolean = 1;
       try {
         closed = wnd.closed;
       } catch {}
       if (closed || !slave.isActive_) { a.isActive_ && a.clean_(); return; }
-      const i = event ? event.keyCode : kKeyCode.None;
-      (i === kKeyCode.enter || event && event.key === "Enter") ? slave.execute_(hint, event)
-      // tslint:disable-next-line: no-unused-expression
-      : i === kKeyCode.f1 && flashEl ? flashEl.classList.toggle("Sel") : 0;
+      if (event) {
+        const i = event.keyCode, key = event.key;
+        tick = waitEnter && (i === kKeyCode.space || key === "Space") ? tick + 1 : 0;
+        tick === 3 || i === kKeyCode.enter || key === "Enter" ? slave.execute_(hint, event)
+        // tslint:disable-next-line: no-unused-expression
+        : (i === kKeyCode.f1 || key === "F1") && flashEl ? flashEl.classList.toggle("Sel") : 0;
+      } else {
+        slave.execute_(hint);
+      }
     };
+    let tick = 0;
     a._onTailEnter = callback;
     (a.box_ as NonNullable<typeof a.box_>).remove();
     a.box_ = null;
-    if (Build.BTypes & BrowserType.Chrome && !VDom.cache_.w) {
+    if (Build.BTypes & BrowserType.Chrome && !waitEnter) {
       a._onWaitingKey = VKey.suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents, callback);
       VKey.removeHandler_(a._onWaitingKey);
     } else {
