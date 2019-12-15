@@ -1003,6 +1003,11 @@ var VHints = {
       a.clean_();
     } else if (i === kKeyCode.esc) {
       return HandlerResult.Suppress;
+    } else if (i === kKeyCode.f1 && event.shiftKey) {
+      a.ResetMode_();
+      for (const frame of this.frameList_) {
+        ((frame.s as typeof VHints).box_ as SafeHTMLElement).classList.toggle("HM1");
+      }
     } else if (i > kKeyCode.f1 && i <= kKeyCode.f12) {
       a.ResetMode_();
       if (i !== kKeyCode.f2) { return HandlerResult.Nothing; }
