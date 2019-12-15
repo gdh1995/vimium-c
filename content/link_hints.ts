@@ -1128,6 +1128,7 @@ var VHints = {
       // must get outline first, because clickEl may hide itself when activated
       // must use UI.getRect, so that VDom.zooms are updated, and prepareCrop is called
       rect = VCui.getRect_(clickEl, hint.r !== clickEl ? hint.r as HTMLElementUsingMap | null : null);
+      rect = VDom.getCroppedRect_(clickEl, rect);
       if (keyStatus.textSequence_ && !keyStatus.keySequence_ && !keyStatus.known_) {
         if ((!(Build.BTypes & BrowserType.Chrome)
               || Build.BTypes & ~BrowserType.Chrome && VOther !== BrowserType.Chrome
