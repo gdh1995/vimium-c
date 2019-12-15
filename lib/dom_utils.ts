@@ -253,17 +253,17 @@ var VDom = {
   /** computation section */
 
   /** depends on .dbZoom_, .bZoom_, .paintBox_ */
-  prepareCrop_ (inVisualViewport?: 1): number {
-    let vright: number, vbottom: number, ihs: number, vleft: number, vtop: number, vtops: number;
-    this.prepareCrop_ = (function (this: void, inVisual?: 1): number {
+  prepareCrop_ (inVisualViewport?: 1, limitedView?: Rect | null): number {
+    let vright: number, vbottom: number, vbottoms: number, vleft: number, vtop: number, vtops: number;
+    this.prepareCrop_ = (function (this: void, inVisual?: 1, limited?: Rect | null): number {
       const a = VDom, fz = a.dbZoom_, dz = fz / a.bZoom_, b = a.paintBox_,
+      max = Math.max, min = Math.min,
       d = document, visual = inVisual && visualViewport;
       let i: number, j: number, el: Element | null, doc: typeof d.documentElement;
-      vleft = vtop = 0; vtops = 3;
+      vleft = vtop = 0;
       if (visual && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinUseful$visualViewport$
                       || visual.width)) {
         vleft = visual.offsetLeft | 0, vtop = visual.offsetTop | 0;
-        vtops = vtop + 3;
         i = vleft + <number> visual.width | 0; j = vtop + visual.height | 0;
       }
       else if (doc = d.documentElement,
@@ -274,20 +274,27 @@ var VDom = {
         i = (el as SafeElement).clientWidth, j = (el as SafeElement).clientHeight;
       } else {
         i = innerWidth, j = innerHeight;
-        if (!doc) { return vbottom = j, ihs = j - 8, vright = i; }
+        if (!doc) { return vbottom = j, vbottoms = j - 8, vright = i; }
         // the below is not reliable but safe enough, even when docEl is unsafe
-        i = Math.min(Math.max(i - GlobalConsts.MaxScrollbarWidth, (doc.clientWidth * dz) | 0), i);
-        j = Math.min(Math.max(j - GlobalConsts.MaxScrollbarWidth, (doc.clientHeight * dz) | 0), j);
+        i = min(max(i - GlobalConsts.MaxScrollbarWidth, (doc.clientWidth * dz) | 0), i);
+        j = min(max(j - GlobalConsts.MaxScrollbarWidth, (doc.clientHeight * dz) | 0), j);
       }
       if (b) {
-        i = Math.min(i, b[0] * dz); j = Math.min(j, b[1] * dz);
+        i = min(i, b[0] * dz); j = min(j, b[1] * dz);
       }
       vright = (i / fz) | 0, vbottom = (j / fz) | 0;
-      ihs = ((j - 8) / fz) | 0;
+      if (limited) {
+        vleft = max(vleft, limited.l);
+        vtop = max(vtop, limited.t);
+        vright = min(vright, limited.r);
+        vbottom = min(vbottom, limited.b);
+      }
+      vtops = vtop + 3;
+      vbottoms = ((j - 8) / fz) | 0;
       return vright;
     });
     this.cropRectToVisible_ = (function (left, top, right, bottom): Rect | null {
-      if (top > ihs || bottom < vtops) {
+      if (top > vbottoms || bottom < vtops) {
         return null;
       }
       const cr: Rect = {
@@ -298,7 +305,7 @@ var VDom = {
       };
       return cr.r - cr.l > 2 && cr.b - cr.t > 2 ? cr : null;
     });
-    return this.prepareCrop_(inVisualViewport);
+    return this.prepareCrop_(inVisualViewport, limitedView);
   },
   getBoundingClientRect_ (el: Element): ClientRect {
     return Build.BTypes & ~BrowserType.Firefox ? Element.prototype.getBoundingClientRect.call(el)

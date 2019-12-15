@@ -52,10 +52,7 @@ declare namespace HintsNS {
     isActive_: boolean;
     readonly hints_: unknown;
     keyCode_: kKeyCode;
-    collectFrameHints_ (count: number, options: FgOptions, chars: string, useFilter: boolean
-        , master: Master | null, result: FrameHintsInfo[]
-        , addChildFrame: (el: HTMLIFrameElement | HTMLFrameElement, rect: Rect | null) => boolean
-        , allHints: HintItem[]): HintItem[];
+    collectFrameHints_: unknown;
     render_ (hints: readonly HintItem[], arr: ViewBox, hud: VHUDTy): void;
     execute_ (hint: HintItem, event?: HandlerNS.Event): void;
     clean_ (keepHudOrEvent?: BOOL | Event): void;
@@ -186,15 +183,15 @@ var VHints = {
         slave: HintsNS.Slave | null | undefined = core && core.VHints as typeof VHints | undefined;
         if (slave) {
           ((core as ContentWindowCore).VCui as typeof VCui).learnCss_(VCui);
-          childFrames.push({ e: el, v: rect, s: slave });
+          childFrames.push({ e: el, v: rect && a.getPreciseChildRect_(el, rect), s: slave });
         }
         return !slave;
       };
-      allHints = a.collectFrameHints_(count, options, chars, useFilter, null, frameList, addChild, []);
+      allHints = a.collectFrameHints_(count, options, chars, useFilter, null, null, frameList, addChild, []);
       while (child = childFrames.pop()) {
         if (child.v) {
           allHints = (child.s.collectFrameHints_ as typeof a.collectFrameHints_)(count, options, chars, useFilter
-                , a as typeof a & { _master: null }, frameList, addChild, allHints);
+                , child.v, a as typeof a & { _master: null }, frameList, addChild, allHints);
         } else if (child.s.isActive_ as typeof a.isActive_) {
           toClean.push(child.s);
         }
@@ -218,7 +215,7 @@ var VHints = {
       (frame.s.render_ as typeof a.render_)(frame.h, frame.v, VHud);
     }
   },
-  collectFrameHints_ (count: number, options: FgOptions, chars: string, useFilter: boolean
+  collectFrameHints_ (count: number, options: FgOptions, chars: string, useFilter: boolean, outerView: Rect | null
       , master: HintsNS.Master | null, frameList: HintsNS.FrameHintsInfo[]
       , addChildFrame: (el: HTMLIFrameElement | HTMLFrameElement, rect: Rect | null) => boolean
       , allHints: HintsNS.HintItem[]): HintsNS.HintItem[] {
@@ -234,7 +231,7 @@ var VHints = {
     }
 
     const view = VDom.getViewBox_(1) as ViewBox;
-    VDom.prepareCrop_(1);
+    VDom.prepareCrop_(1, outerView);
     if (a.tooHigh_ !== null) {
       a.tooHigh_ = (VDom.scrollingEl_(1) as HTMLElement).scrollHeight / innerHeight
         > GlobalConsts.LinkHintTooHighThreshold;
@@ -310,6 +307,20 @@ var VHints = {
   SetHUDLater_ (this: void): void {
     const a = VHints;
     if (a && a.isActive_) { a.pTimer_ = 0; a.setMode_(a.mode_); }
+  },
+  getPreciseChildRect_ (frameEl: HTMLIFrameElement | HTMLElement, view: Rect): Rect | null {
+    const max = Math.max, min = Math.min, kVisible = "visible", brect = VDom.getBoundingClientRect_(frameEl);
+    let x0 = min(view.l, brect.left), y0 = min(view.t, brect.top), l = x0, t = y0, r = view.r, b = view.b;
+    for (let el: Element | null = frameEl; el = VDom.GetParent_(el, PNType.RevealSlotAndGotoParent); ) {
+      const st = getComputedStyle(el);
+      if (st.overflow !== kVisible) {
+        let outer = VDom.getBoundingClientRect_(el);
+        st.overflowX !== kVisible && (l = max(l, outer.left), r = min(r, outer.right ));
+        st.overflowY !== kVisible && (t = max(t, outer.top ), b = min(b, outer.bottom));
+      }
+    }
+    l = max(l, view.l), t = max(t, view.t);
+    return l + 7 < r && t + 7 < b ? {l: l - x0, t: t - y0, r: r - x0, b: b - y0} : null;
   },
   TryNestedFrame_ (cmd: Exclude<FgCmdAcrossFrames, kFgCmd.linkHints>, count: number, options: SafeObject): boolean {
     const a = this;
