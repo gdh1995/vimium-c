@@ -1053,7 +1053,7 @@ var VHints = {
     } else if (matchedHint = a.matchHintsByKey_(a.keyStatus_, event), matchedHint === 0) {
       // then .a.keyStatus_.hintSequence_ is the last key char
       a.deactivate_(a.keyStatus_.known_);
-    } else if (matchedHint !== 1) {
+    } else if (matchedHint !== 2) {
       /** safer; necessary since {@link #VHints._highlightChild} calls {@link #VHints.detectUsableChild_} */
       for (const list of a.frameList_) {
         if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
@@ -1065,17 +1065,6 @@ var VHints = {
       }
     }
     return HandlerResult.Prevent;
-  },
-  hideSpans_ (linksMatched: readonly HintsNS.HintItem[]): void {
-    const limit = this.keyStatus_.keySequence_.length - this.keyStatus_.tab_;
-    for (const { m: { childNodes: ref } } of linksMatched) {
-// https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/dom_token_list.cc?q=DOMTokenList::setValue&g=0&l=258
-// shows that `.classList.add()` costs more
-      for (let j = ref.length - 1; 0 <= --j; ) {
-        !(ref[j] as Exclude<HintsNS.MarkerElement, Text>).className !== (j < limit) ||
-        ((ref[j] as Exclude<HintsNS.MarkerElement, Text>).className = j < limit ? "MC" : "");
-      }
-    }
   },
   ResetMode_ (): void {
     let a = VHints, d: KeydownCacheArray;
@@ -1448,7 +1437,7 @@ filterEngine_: {
     return { t: show && text ? ": " + text : text, w: null };
   },
   getMatchingHints_ (keyStatus: HintsNS.KeyStatus, seq: string, text: string
-      , inited: 0 | 1 | 2): HintsNS.HintItem | 1 | 0 {
+      , inited: 0 | 1 | 2): HintsNS.HintItem | 2 | 0 {
     const H = VHints, fullHints = H.hints_ as readonly HintsNS.FilteredHintItem[],
     a = this,
     oldTextSeq = inited > 1 ? keyStatus.textSequence_ : "a";
@@ -1505,7 +1494,7 @@ filterEngine_: {
       }
       if (!newLen) {
         keyStatus.textSequence_ = oldTextSeq;
-        return 1;
+        return 2;
       }
       inited && H.setMode_(H.mode_);
     }
@@ -1543,7 +1532,7 @@ filterEngine_: {
       newActive.m.style.zIndex = fullHints.length as number | string as string;
       a.activeHint_ = newActive;
     }
-    return 1;
+    return 2;
   },
   /**
    * total / Math.log(~)
@@ -1623,7 +1612,7 @@ filterEngine_: {
       hintItems[i].a = hintString;
     }
   },
-  matchHintsByKey_ (keyStatus: HintsNS.KeyStatus, e: KeyboardEvent): HintsNS.HintItem | 0 | 1 {
+  matchHintsByKey_ (keyStatus: HintsNS.KeyStatus, e: KeyboardEvent): HintsNS.HintItem | 0 | 2 {
     const h = VHints, {useFilter_: useFilter} = h;
     let keyChar: string
       , {keySequence_: sequence, textSequence_: textSeq, tab_: oldTab, hints_: hints} = keyStatus
@@ -1655,13 +1644,13 @@ filterEngine_: {
         return 0;
       } else if (keyChar !== keyChar.toLowerCase() && (<RegExpOne> /[A-Z]/).test(h.chars_)
           || (<RegExpOne> /\W/).test(keyChar)) {
-        return 1;
+        return 2;
       } else {
         sequence = "";
         textSeq += keyChar.toLowerCase();
       }
     } else {
-      return 1;
+      return 2;
     }
     keyStatus.known_ = 0;
     h.hasExecuted_ = 0;
@@ -1680,8 +1669,16 @@ filterEngine_: {
         hint.m.style.visibility = pass ? "" : "hidden";
         return pass;
       });
-      h.hideSpans_(hints);
-      return hints.length ? 1 : 0;
+      const limit = sequence.length - keyStatus.tab_;
+      for (const { m: { childNodes: ref } } of hints) {
+  // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/dom_token_list.cc?q=DOMTokenList::setValue&g=0&l=258
+  // shows that `.classList.add()` costs more
+        for (let j = ref.length - 1; 0 <= --j; ) {
+          !(ref[j] as Exclude<HintsNS.MarkerElement, Text>).className !== (j < limit) ||
+          ((ref[j] as Exclude<HintsNS.MarkerElement, Text>).className = j < limit ? "MC" : "");
+        }
+      }
+      return hints.length ? 2 : 0;
     }
   },
 
