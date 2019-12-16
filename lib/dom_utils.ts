@@ -261,10 +261,10 @@ var VDom = {
       d = document, visual = inVisual && visualViewport;
       let i: number, j: number, el: Element | null, doc: typeof d.documentElement;
       vleft = vtop = 0;
-      if (visual && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinUseful$visualViewport$
-                      || visual.width)) {
-        vleft = visual.offsetLeft | 0, vtop = visual.offsetTop | 0;
-        i = vleft + <number> visual.width | 0; j = vtop + visual.height | 0;
+      if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinUseful$visualViewport$ ? visual
+          : visual && visual.width) {
+        vleft = (visual as VisualViewport).offsetLeft | 0, vtop = (visual as VisualViewport).offsetTop | 0;
+        i = vleft + <number> (visual as VisualViewport).width | 0; j = vtop + (visual as VisualViewport).height | 0;
       }
       else if (doc = d.documentElement,
           el = Build.MinCVer >= BrowserVer.MinScrollTopLeftInteropIsAlwaysEnabled
@@ -441,6 +441,7 @@ var VDom = {
   wdZoom_: 1, // <html>.zoom * min(devicePixelRatio, 1) := related to physical pixels
   dbZoom_: 1, // absolute zoom value of <html> * <body>
   dScale_: 1, // <html>.transform:scale (ignore the case of sx != sy)
+  bScale_: 1, // <body>.transform:scale (ignore the case of sx != sy)
   /** zoom of <body> (if not fullscreen else 1) */
   bZoom_: 1,
   /**
@@ -487,7 +488,7 @@ var VDom = {
     const ratio = devicePixelRatio, ratio2 = Math.min(ratio, 1), doc = document;
     if (a.fullscreenEl_unsafe_()) {
       a.getZoom_(1);
-      a.dScale_ = 1;
+      a.dScale_ = a.bScale_ = 1;
       const zoom3 = a.wdZoom_ / ratio2;
       return [0, 0, (iw / zoom3) | 0, (ih / zoom3) | 0, 0];
     }
@@ -496,13 +497,15 @@ var VDom = {
     box2 = doc.body, st2 = box2 ? gcs(box2) : st,
     zoom2 = a.bZoom_ = Build.BTypes & ~BrowserType.Firefox && box2 && +st2.zoom || 1,
     containHasPaint = (<RegExpOne> /content|paint|strict/).test(st.contain as string),
+    kMatrix = "matrix(1,",
     stacking = st.position !== "static" || containHasPaint || st.transform !== "none",
-    // ignore the case that x != y in "transform: scale(x, y)""
-    _tf = st.transform, scale = a.dScale_ = _tf && !_tf.startsWith("matrix(1,") && float(_tf.slice(7)) || 1,
     // NOTE: if box.zoom > 1, although document.documentElement.scrollHeight is integer,
     //   its real rect may has a float width, such as 471.333 / 472
     rect = VDom.getBoundingClientRect_(box);
-    let zoom = Build.BTypes & ~BrowserType.Firefox && +st.zoom || 1;
+    let zoom = Build.BTypes & ~BrowserType.Firefox && +st.zoom || 1,
+    // ignore the case that x != y in "transform: scale(x, y)""
+    _tf = st.transform, scale = a.dScale_ = _tf && !_tf.startsWith(kMatrix) && float(_tf.slice(7)) || 1;
+    a.bScale_ = box2 && (_tf = st2.transform) && !_tf.startsWith(kMatrix) && float(_tf.slice(7)) || 1;
     Build.BTypes & BrowserType.Chrome &&
     Math.abs(zoom - ratio) < 1e-5 && (!(Build.BTypes & ~BrowserType.Chrome)
       && Build.MinCVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl || a.specialZoom_) && (zoom = 1);

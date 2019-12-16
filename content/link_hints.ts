@@ -143,7 +143,7 @@ var VHints = {
   _master: null as HintsNS.Master | null,
   hud_: null as never as VHUDTy,
   /** return whether the element's VHints is not accessible */
-  _addChildFrame: null as ((el: HTMLIFrameElement | HTMLFrameElement, rect: Rect | null) => boolean) | null,
+  _addChildFrame: null as ((this: {}, el: HTMLIFrameElement | HTMLFrameElement, rect: Rect | null) => boolean) | null,
   activate_ (this: void, count: number, options: FgOptions): void {
     const a = VHints;
     if (a.isActive_) { return; }
@@ -178,12 +178,12 @@ var VHints = {
     let allHints: HintsNS.HintItem[], child: HintsNS.ChildFrame | undefined, total: number;
     {
       const childFrames: HintsNS.ChildFrame[] = [],
-      addChild: typeof a._addChildFrame = (el, rect) => {
+      addChild: typeof a._addChildFrame = function (el, rect) {
         const core = a.detectUsableChild_(el),
         slave: HintsNS.Slave | null | undefined = core && core.VHints as typeof VHints | undefined;
         if (slave) {
           ((core as ContentWindowCore).VCui as typeof VCui).learnCss_(VCui);
-          childFrames.push({ e: el, v: rect && a.getPreciseChildRect_(el, rect), s: slave });
+          childFrames.push({ e: el, v: rect && (this as typeof a).getPreciseChildRect_(el, rect), s: slave });
         }
         return !slave;
       };
@@ -217,7 +217,7 @@ var VHints = {
   },
   collectFrameHints_ (count: number, options: FgOptions, chars: string, useFilter: boolean, outerView: Rect | null
       , master: HintsNS.Master | null, frameList: HintsNS.FrameHintsInfo[]
-      , addChildFrame: (el: HTMLIFrameElement | HTMLFrameElement, rect: Rect | null) => boolean
+      , addChildFrame: (this: {}, el: HTMLIFrameElement | HTMLFrameElement, rect: Rect | null) => boolean
       , allHints: HintsNS.HintItem[]): HintsNS.HintItem[] {
     const a = this;
     a._master = master;
@@ -309,18 +309,23 @@ var VHints = {
     if (a && a.isActive_) { a.pTimer_ = 0; a.setMode_(a.mode_); }
   },
   getPreciseChildRect_ (frameEl: HTMLIFrameElement | HTMLElement, view: Rect): Rect | null {
-    const max = Math.max, min = Math.min, kVisible = "visible", brect = VDom.getBoundingClientRect_(frameEl);
+    const max = Math.max, min = Math.min, kVisible = "visible", D = VDom, brect = D.getBoundingClientRect_(frameEl),
+    docEl = document.documentElement, body = document.body, inBody = !!body && VDom.IsInDOM_(frameEl, body, 1),
+    zoom = (Build.BTypes & BrowserType.Chrome ? D.dbZoom_ / (inBody ? 1 : D.bZoom_) : 1
+        ) / D.dScale_ / (inBody ? D.bScale_ : 1);
     let x0 = min(view.l, brect.left), y0 = min(view.t, brect.top), l = x0, t = y0, r = view.r, b = view.b;
-    for (let el: Element | null = frameEl; el = VDom.GetParent_(el, PNType.RevealSlotAndGotoParent); ) {
+    for (let el: Element | null = frameEl; el = D.GetParent_(el, PNType.RevealSlotAndGotoParent); ) {
       const st = getComputedStyle(el);
       if (st.overflow !== kVisible) {
-        let outer = VDom.getBoundingClientRect_(el);
-        st.overflowX !== kVisible && (l = max(l, outer.left), r = min(r, outer.right ));
-        st.overflowY !== kVisible && (t = max(t, outer.top ), b = min(b, outer.bottom));
+        let outer = D.getBoundingClientRect_(el), hx = st.overflowX !== kVisible, hy = st.overflowY !== kVisible,
+        scale = el !== docEl && inBody ? D.dScale_ * D.bScale_ : D.dScale_;
+        hx && (l = max(l, outer.left), r = l + min(r - l, outer.width , hy ? el.clientWidth * scale : r));
+        hy && (t = max(t, outer.top ), b = t + min(b - t, outer.height, hx ? el.clientHeight * scale : b));
       }
     }
     l = max(l, view.l), t = max(t, view.t);
-    return l + 7 < r && t + 7 < b ? {l: l - x0, t: t - y0, r: r - x0, b: b - y0} : null;
+    return l + 7 < r && t + 7 < b ? {
+        l: (l - x0) * zoom, t: (t - y0) * zoom, r: (r - x0) * zoom, b: (b - y0) * zoom} : null;
   },
   TryNestedFrame_ (cmd: Exclude<FgCmdAcrossFrames, kFgCmd.linkHints>, count: number, options: SafeObject): boolean {
     const a = this;
@@ -373,7 +378,7 @@ var VHints = {
   adjustMarkers_ (elements: Hint[], arr: HintsNS.HintItem[]): void {
     const zi = VDom.bZoom_, root = VCui.root_;
     let i = elements.length - 1;
-    if (!root || elements[i][0] !== VOmni.box_ && !root.querySelector("#HelpDialog")) { return; }
+    if (!root || i < 1 || elements[i][0] !== VOmni.box_ && !root.querySelector("#HelpDialog")) { return; }
     const z = Build.BTypes & ~BrowserType.Firefox ? ("" + 1 / zi).slice(0, 5) : "",
     mr = Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar
         ? this.maxRight_ * zi : 0,
@@ -1677,8 +1682,8 @@ filterEngine_: {
       });
       const limit = sequence.length - keyStatus.tab_;
       for (const { m: { childNodes: ref } } of hints) {
-  // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/dom_token_list.cc?q=DOMTokenList::setValue&g=0&l=258
-  // shows that `.classList.add()` costs more
+// https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/dom_token_list.cc?q=DOMTokenList::setValue&g=0&l=258
+// shows that `.classList.add()` costs more
         for (let j = ref.length - 1; 0 <= --j; ) {
           !(ref[j] as Exclude<HintsNS.MarkerElement, Text>).className !== (j < limit) ||
           ((ref[j] as Exclude<HintsNS.MarkerElement, Text>).className = j < limit ? "MC" : "");

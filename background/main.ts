@@ -776,7 +776,7 @@
   // use Urls.WorkType.Default
   function openUrls(tabs: [Tab]): void {
     const tab = tabs[0], { windowId } = tab;
-    type OptionEx = {formatted_?: 1};
+    interface OptionEx { formatted_?: 1; }
     let urls: string[] = cOptions.urls, repeat = cRepeat;
     if (!(cOptions as OptionEx).formatted_) {
       for (let i = 0; i < urls.length; i++) {
