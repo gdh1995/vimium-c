@@ -59,13 +59,14 @@ var BgUtils_ = {
     return s.charCodeAt(10) === kCharCode.colon && s.slice(0, 10).toLowerCase() === "javascript";
   },
   isRefusingIncognito_ (url: string): boolean {
-    url = url.toLowerCase();
+    url = url.slice(0, 99).toLowerCase();
     // https://cs.chromium.org/chromium/src/url/url_constants.cc?type=cs&q=kAboutBlankWithHashPath&g=0&l=12
     return url.startsWith("about:") ? url !== "about:blank" && ((Build.BTypes & ~BrowserType.Chrome
           && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) || url !== "about:blank/")
-      : Build.BTypes & BrowserType.Chrome && url.startsWith("chrome:") ? !url.startsWith("chrome://downloads")
+      : !(Build.BTypes & BrowserType.Chrome) ? url.startsWith(BrowserProtocol_)
+      : url.startsWith("chrome:") ? !url.startsWith("chrome://downloads")
       : url.startsWith(BrowserProtocol_) && !url.startsWith(Settings_.CONST_.NtpNewTab_)
-        || (!!(Build.BTypes & BrowserType.Chrome) && url.startsWith("edge"));
+        || IsEdg_ && url.startsWith("edge");
   },
   _nonENTlds: ".\u4e2d\u4fe1.\u4e2d\u56fd.\u4e2d\u570b.\u4e2d\u6587\u7f51.\u4f01\u4e1a.\u4f5b\u5c71.\u4fe1\u606f\
 .\u516c\u53f8.\u516c\u76ca.\u5546\u57ce.\u5546\u5e97.\u5546\u6807.\u5728\u7ebf.\u5a31\u4e50.\u5e7f\u4e1c\
@@ -794,6 +795,9 @@ CurCVer_: BrowserVer = Build.BTypes & BrowserType.Chrome ? 0 | (
   (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
   && navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/)
   || [0, BrowserVer.assumedVer])[1] as number : BrowserVer.assumedVer,
+IsEdg_: boolean = Build.BTypes & BrowserType.Chrome
+    && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
+    ? (<RegExpOne> /\sEdg\//).test(navigator.appVersion) : false,
 CurFFVer_: FirefoxBrowserVer = !(Build.BTypes & ~BrowserType.Firefox)
   || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
   ? 0 | (navigator.userAgent.match(/\bFirefox\/(\d+)/) || [0, FirefoxBrowserVer.assumedVer])[1] as number

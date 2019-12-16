@@ -55,9 +55,6 @@ var HelpDialog = {
       }
       (commandToKeys[command] || (commandToKeys[command] = [])).push([key, registry]);
     }
-    const inEdg = Build.BTypes & BrowserType.Chrome && GlobalConsts.HasEdgUrls
-        && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther & BrowserType.Chrome)
-        ? (<RegExpOne> /\sEdg\//).test(navigator.appVersion) : false;
     const result = BgUtils_.safer_<Dict<string>>({
       className: Settings_.payload_.d,
       homePage: Settings_.CONST_.HomePage_,
@@ -66,14 +63,14 @@ var HelpDialog = {
       reviewPage: !(Build.BTypes & ~BrowserType.Firefox)
               || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
           ? GlobalConsts.FirefoxAddonPrefix + "vimium-c/"
-          : (Build.BTypes & BrowserType.Chrome && GlobalConsts.HasEdgUrls && inEdg
+          : (Build.BTypes & BrowserType.Chrome && GlobalConsts.HasEdgUrls && IsEdg_
               ? GlobalConsts.EdgStorePage : GlobalConsts.ChromeWebStorePage).replace("$id", chrome.runtime.id),
       webStore: !(Build.BTypes & ~BrowserType.Firefox)
             || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
           ? trans_("addons") : trans_("webstore"),
       browserHelp: !(Build.BTypes & ~BrowserType.Firefox)
           || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox ? GlobalConsts.FirefoxHelp as string
-          : Build.BTypes & BrowserType.Chrome && GlobalConsts.HasEdgUrls && inEdg ? GlobalConsts.EdgHelp
+          : Build.BTypes & BrowserType.Chrome && GlobalConsts.HasEdgUrls && IsEdg_ ? GlobalConsts.EdgHelp
           : GlobalConsts.ChromeHelp,
       tip: showNames ? trans_("tipClickToCopy")  : "",
       lbPad: showNames ? '\n\t\t<tr><td class="HelpTd TdBottom">&#160;</td></tr>' : ""

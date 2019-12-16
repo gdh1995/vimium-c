@@ -61,7 +61,7 @@ const KnownBackendGlobals = [
   "Backend_", "BgUtils_", "BrowserProtocol_",
   "Clipboard_", "CommandsData_", "Completion_", "ContentSettings_", "CurCVer_", "CurFFVer_",
   "FindModeHistory_", "IncognitoWatcher_", "Marks_", "MediaWatcher_",
-  "Settings_", "TabRecency_", "trans_", "As_"
+  "Settings_", "TabRecency_", "trans_", "As_", "IsEdg_"
 ];
 
 var CompileTasks = {

@@ -1037,19 +1037,18 @@ $("#importButton").onclick = function (): void {
   opt.onchange ? opt.onchange(null as never) : click($("#settingsFile"));
 };
 
-nextTick_(el => {
-let isEdg: boolean = false;
-el.textContent = (Build.BTypes & BrowserType.Edge
+nextTick_(el0 => {
+el0.textContent = (Build.BTypes & BrowserType.Edge
         && (!(Build.BTypes & ~BrowserType.Edge) || bgOnOther_ === BrowserType.Edge)
     ? "MS Edge (EdgeHTML)"
     : Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)
     ? "Firefox " + BG_.CurFFVer_
-    : ((isEdg = (<RegExpOne> /\sEdg\//).test(navigator.appVersion)) ? ["MS Edge"]
+    : (BG_.IsEdg_ ? ["MS Edge"]
         : (<RegExpOne> /\bChromium\b/).exec(navigator.appVersion) || ["Chrome"])[0] + " " + bgBrowserVer_
   ) + pTrans_("comma") + (pTrans_(bgSettings_.CONST_.Platform_)
         || bgSettings_.CONST_.Platform_[0].toUpperCase() + bgSettings_.CONST_.Platform_.slice(1));
-if (isEdg) {
+if (Build.BTypes & BrowserType.Chrome && BG_.IsEdg_) {
   let el = $<EnsuredMountedHTMLElement>("#chromeExtVomnibar");
   el.nextElementSibling.remove();
   el.parentElement.classList.add("line-1x");

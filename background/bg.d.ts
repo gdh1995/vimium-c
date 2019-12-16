@@ -740,6 +740,7 @@ interface Window {
   readonly HelpDialog?: BaseHelpDialog;
   readonly OnOther?: BrowserType;
   readonly CurCVer_: BrowserVer;
+  readonly IsEdg_: boolean | 0;
   readonly CurFFVer_: FirefoxBrowserVer;
 
   readonly Backend_: BackendHandlersNS.BackendHandlers;

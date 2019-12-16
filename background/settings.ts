@@ -522,7 +522,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     searchEngineMap: 1, searchEngineRules: 1, searchKeywords: 1
   }),
   frontUpdateAllowed_: ["showAdvancedCommands"] as Array<keyof SettingsNS.FrontUpdateAllowedSettings>,
-  icons_: As_<[IconNS.PathBuffer, IconNS.PathBuffer, IconNS.PathBuffer]>([
+  icons_: As_<readonly [IconNS.PathBuffer, IconNS.PathBuffer, IconNS.PathBuffer]>([
     { 19: "/icons/enabled_19.png", 38: "/icons/enabled_38.png" },
     { 19: "/icons/partial_19.png", 38: "/icons/partial_38.png" },
     { 19: "/icons/disabled_19.png", 38: "/icons/disabled_38.png" }
@@ -540,7 +540,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     BaseCSSLength_: 0,
     // should keep lower case
     NtpNewTab_: Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge)
-        ? "https://www.msn.cn/spartan/ntp"
+        ? Build.MayOverrideNewTab ? "https://www.msn.cn/spartan/ntp" : "h"
         : Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
         ? "chrome-search://local-ntp/local-ntp.html" : "pages/blank.html",
     BlankNewTab_: "pages/blank.html",
