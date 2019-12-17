@@ -1263,7 +1263,7 @@
 		"message": "需要“text”参数为提示文字"
 	},
 	"noEngineFind": {
-		"message": "未指定某个已定义的搜索引擎"
+		"message": "未能识别所属的搜索引擎"
 	},
 	"noSelOrCopied": {
 		"message": "没有选中文字，剪贴板中也没有文字"

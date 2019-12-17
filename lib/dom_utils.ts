@@ -446,12 +446,10 @@ var VDom = {
   /** zoom of <body> (if not fullscreen else 1) */
   bZoom_: 1,
   /**
-   * return: VDom.wdZoom_ := min(devRatio, 1) * docEl.zoom
-   *
    * also update VDom.docZoom_
    * update VDom.bZoom_ if target
    */
-  getZoom_: Build.BTypes & ~BrowserType.Firefox ? function (this: {}, target?: 1 | Element): number {
+  getZoom_: Build.BTypes & ~BrowserType.Firefox ? function (this: {}, target?: 1 | Element): void {
     const a = this as typeof VDom;
     let docEl = document.documentElement as Element, ratio = devicePixelRatio
       , gcs = getComputedStyle, st = gcs(docEl), zoom = +st.zoom || 1
@@ -474,14 +472,12 @@ var VDom = {
     a.paintBox_ = null; // it's not so necessary to get a new paintBox here
     a.docZoom_ = zoom;
     a.wdZoom_ = Math.round(zoom * Math.min(ratio, 1) * 1000) / 1000;
-    return zoom;
-  } : function (this: {}): number {
+  } : function (this: {}): void {
     const a = this as typeof VDom;
     a.paintBox_ = null;
     a.docZoom_ = a.bZoom_ = 1;
     /** the min() is required in {@link ../front/vomnibar.ts#Vomnibar_.activate_ } */
     a.wdZoom_ = Math.min(devicePixelRatio, 1);
-    return 1;
   } as never,
   getViewBox_ (needBox?: 1): ViewBox | ViewOffset {
     let iw = innerWidth, ih = innerHeight;

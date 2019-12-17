@@ -537,6 +537,7 @@ declare const enum BrowserVer {
   Min$document$$hidden = 33, // unprefixed; .webkitHidden still exists on C31
   // `<input type=number>.selectionStart` throws since Chrome 33 and before C58 (Min$selectionStart$MayBeNull),
   Min$selectionStart$MayThrow = 33,
+  MinCSSWidthUnit$vw = 34, // even if EXPERIMENTAL or LEGACY
   Min$Object$$setPrototypeOf = 34,
   // before C34, 2 images share a size part (the first one's), and different height/width would work as the smaller one
   /** {@see ../pages/options.css#select { background: ...; }} */

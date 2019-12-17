@@ -27,7 +27,7 @@ var VOmni = {
   _timer: 0,
   // unit: physical pixel (if C<52)
   screenHeight_: 0,
-  docZoom_: 0,
+  canUseVW_: true,
   activate_ (this: void, count: number, options: VomnibarNS.FullOptions): void {
     const a = VOmni, dom = VDom;
     // hide all further key events to wait iframe loading and focus changing from JS
@@ -60,7 +60,7 @@ var VOmni = {
     if (!isTop && !options.$forced) { // check $forced to avoid dead loops
       let p: ContentWindowCore | void | 0 | null = parent as Window;
       if (p === top
-          && (Build.BTypes & BrowserType.Firefox ? (p = VDom.parentCore_()) : VDom.frameElement_())
+          && (Build.BTypes & BrowserType.Firefox ? (p = dom.parentCore_()) : dom.frameElement_())
           && (p as ContentWindowCore).VOmni) {
         ((p as ContentWindowCore).VOmni as typeof VOmni).activate_(count, options);
       } else {
@@ -70,18 +70,23 @@ var VOmni = {
     }
     if (!dom.isHTML_()) { return; }
     a.options_ = null;
+    dom.getViewBox_();
+    a.canUseVW_ = (Build.MinCVer >= BrowserVer.MinCSSWidthUnit$vw
+            || !!(Build.BTypes & BrowserType.Chrome) && dom.cache_.v > BrowserVer.MinCSSWidthUnit$vw - 1)
+        && !dom.fullscreenEl_unsafe_() && dom.docZoom_ === 1 && dom.dScale_ === 1;
     let scale = devicePixelRatio;
+    let width = a.canUseVW_ ? innerWidth : !(Build.BTypes & ~BrowserType.Firefox) ? dom.prepareCrop_()
+        : (dom.bZoom_ = 1, dom.prepareCrop_() * dom.docZoom_);
     if (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
         && (!(Build.BTypes & ~BrowserType.Chrome)
             || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome)) {
-      options.w = dom.prepareCrop_() * scale;
+      options.w = width * scale;
       options.h = a.screenHeight_ = innerHeight * scale;
     } else {
-      options.w = dom.prepareCrop_();
+      options.w = width;
       options.h = a.screenHeight_ = innerHeight;
     }
     options.z = scale;
-    a.docZoom_ = dom.getZoom_();
     if (!(Build.NDEBUG || VomnibarNS.Status.Inactive - VomnibarNS.Status.NotInited === 1)) {
       console.log("Assert error: VomnibarNS.Status.Inactive - VomnibarNS.Status.NotInited === 1");
     }
@@ -102,6 +107,7 @@ var VOmni = {
       a.focus_();
       a.status_ = VomnibarNS.Status.ToShow;
     }
+    a.box_.classList.toggle("O2", !a.canUseVW_);
     VCui.setupExitOnClick_(0, options.exitOnClick ? a.hide_ : 0);
     let upper = 0;
     if (url != null) {
@@ -136,7 +142,7 @@ var VOmni = {
     style = Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval
         && Build.BTypes & BrowserType.Chrome ? a.box_.style : 0 as never;
     a.status_ = VomnibarNS.Status.Inactive;
-    a.screenHeight_ = a.docZoom_ = 0;
+    a.screenHeight_ = 0; a.canUseVW_ = !0;
     VCui.setupExitOnClick_(0, 0);
     if (fromInner == null) {
       active && a.port_.postMessage(VomnibarNS.kCReq.hide);
@@ -264,7 +270,7 @@ var VOmni = {
       }
       break;
     case VomnibarNS.kFReq.style:
-      a.box_.style.height = Math.ceil((data as Req[VomnibarNS.kFReq.style]).h / a.docZoom_
+      a.box_.style.height = Math.ceil((data as Req[VomnibarNS.kFReq.style]).h / VDom.docZoom_
           / (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
               && (!(Build.BTypes & ~BrowserType.Chrome)
                   || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome)
@@ -297,7 +303,8 @@ var VOmni = {
           && (!(Build.BTypes & ~BrowserType.Chrome)
               || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome)
           ? devicePixelRatio : 1),
-    top = a.screenHeight_ > topHalfThreshold * 2 ? ((50 - maxBoxHeight * 0.6 / a.screenHeight_ * 100) | 0) + "%" : "";
+    top = a.screenHeight_ > topHalfThreshold * 2 ? ((50 - maxBoxHeight * 0.6 / a.screenHeight_ * 100) | 0
+        ) + (a.canUseVW_ ? "vh" : "%") : "";
     style.top = !Build.NoDialogUI && VimiumInjector === null && location.hash === "#dialog-ui" ? "8px" : top;
     style.display = "";
     setTimeout(a.RefreshKeyHandler_, 160);
