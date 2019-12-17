@@ -941,7 +941,8 @@ var VHints = {
       : a.traverse_(Build.BTypes & ~BrowserType.Firefox
             ? a.kEditableSelector_ + a.kSafeAllSelector_ : a.kEditableSelector_, a.GetEditable_);
     a.maxLeft_ = view[2], a.maxTop_ = view[3], a.maxRight_ = view[4];
-    if (a.maxRight_ > 0) {
+    if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar)
+        && a.maxRight_ > 0) {
       _i = Math.ceil(Math.log(visibleElements.length) / Math.log(a.chars_.length));
       a.maxLeft_ -= 16 * _i + 12;
     }
@@ -984,7 +985,8 @@ var VHints = {
       }
       r2 = null;
     }
-    if (GlobalConsts.MaxLengthOfShownText > 0 && a.useFilter_) {
+    if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar)
+        && GlobalConsts.MaxLengthOfShownText > 0 && a.useFilter_) {
       a.maxLeft_ -= 16 * (GlobalConsts.MaxLengthOfShownText >>> 2);
     }
     return visibleElements.reverse();
