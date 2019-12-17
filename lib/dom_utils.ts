@@ -252,11 +252,12 @@ var VDom = {
 
   /** computation section */
 
-  /** depends on .dbZoom_, .bZoom_, .paintBox_ */
+  /** depends on .docZoom_, .bZoom_, .paintBox_ */
   prepareCrop_ (inVisualViewport?: 1, limitedView?: Rect | null): number {
     let vright: number, vbottom: number, vbottoms: number, vleft: number, vtop: number, vtops: number;
     this.prepareCrop_ = (function (this: void, inVisual?: 1, limited?: Rect | null): number {
-      const a = VDom, fz = a.dbZoom_, dz = fz / a.bZoom_, b = a.paintBox_,
+      const a = VDom, dz = Build.BTypes & ~BrowserType.Firefox ? a.docZoom_ : 1,
+      fz = Build.BTypes & ~BrowserType.Firefox ? dz * a.bZoom_ : 1, b = a.paintBox_,
       max = Math.max, min = Math.min,
       d = document, visual = inVisual && visualViewport;
       let i: number, j: number, el: Element | null, doc: typeof d.documentElement;
@@ -284,13 +285,13 @@ var VDom = {
       }
       vright = (i / fz) | 0, vbottom = (j / fz) | 0;
       if (limited) {
-        vleft = max(vleft, limited.l);
-        vtop = max(vtop, limited.t);
-        vright = min(vright, limited.r);
-        vbottom = min(vbottom, limited.b);
+        vleft = max(vleft, limited.l | 0);
+        vtop = max(vtop, limited.t | 0);
+        vright = min(vright, limited.r | 0);
+        vbottom = min(vbottom, limited.b | 0);
       }
       vtops = vtop + 3;
-      vbottoms = ((j - 8) / fz) | 0;
+      vbottoms = (vbottom - 8 / fz) | 0;
       return vright;
     });
     this.cropRectToVisible_ = (function (left, top, right, bottom): Rect | null {
@@ -439,7 +440,7 @@ var VDom = {
   },
   paintBox_: null as [number, number] | null, // it may need to use `paintBox[] / <body>.zoom`
   wdZoom_: 1, // <html>.zoom * min(devicePixelRatio, 1) := related to physical pixels
-  dbZoom_: 1, // absolute zoom value of <html> * <body>
+  docZoom_: 1, // zoom of <html>
   dScale_: 1, // <html>.transform:scale (ignore the case of sx != sy)
   bScale_: 1, // <body>.transform:scale (ignore the case of sx != sy)
   /** zoom of <body> (if not fullscreen else 1) */
@@ -447,7 +448,7 @@ var VDom = {
   /**
    * return: VDom.wdZoom_ := min(devRatio, 1) * docEl.zoom
    *
-   * also update VDom.dbZoom_
+   * also update VDom.docZoom_
    * update VDom.bZoom_ if target
    */
   getZoom_: Build.BTypes & ~BrowserType.Firefox ? function (this: {}, target?: 1 | Element): number {
@@ -471,13 +472,13 @@ var VDom = {
       zoom *= +gcs(el).zoom || 1;
     }
     a.paintBox_ = null; // it's not so necessary to get a new paintBox here
-    a.dbZoom_ = a.bZoom_ * zoom;
+    a.docZoom_ = zoom;
     a.wdZoom_ = Math.round(zoom * Math.min(ratio, 1) * 1000) / 1000;
     return zoom;
   } : function (this: {}): number {
     const a = this as typeof VDom;
     a.paintBox_ = null;
-    a.dbZoom_ = a.bZoom_ = 1;
+    a.docZoom_ = a.bZoom_ = 1;
     /** the min() is required in {@link ../front/vomnibar.ts#Vomnibar_.activate_ } */
     a.wdZoom_ = Math.min(devicePixelRatio, 1);
     return 1;
@@ -510,7 +511,7 @@ var VDom = {
     Math.abs(zoom - ratio) < 1e-5 && (!(Build.BTypes & ~BrowserType.Chrome)
       && Build.MinCVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl || a.specialZoom_) && (zoom = 1);
     a.wdZoom_ = Math.round(zoom * ratio2 * 1000) / 1000;
-    a.dbZoom_ = Build.BTypes & ~BrowserType.Firefox ? zoom * zoom2 : 1;
+    a.docZoom_ = Build.BTypes & ~BrowserType.Firefox ? zoom : 1;
     let x = !stacking ? float(st.marginLeft)
           : !(Build.BTypes & ~BrowserType.Firefox)
             || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
@@ -860,7 +861,7 @@ var VDom = {
   /** rect section */
 
   center_ (rect?: Rect | null): Point2D {
-    let zoom = Build.BTypes & ~BrowserType.Firefox ? this.dbZoom_ / 2 : 0.5;
+    let zoom = Build.BTypes & ~BrowserType.Firefox ? this.docZoom_ * this.bZoom_ / 2 : 0.5;
     rect = rect && this.cropRectToVisible_(rect.l, rect.t, rect.r, rect.b) || rect;
     return rect ? [((rect.l + rect.r) * zoom) | 0, ((rect.t + rect.b) * zoom) | 0] : [0, 0];
   },

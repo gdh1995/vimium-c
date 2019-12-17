@@ -311,7 +311,7 @@ var VHints = {
   getPreciseChildRect_ (frameEl: HTMLIFrameElement | HTMLElement, view: Rect): Rect | null {
     const max = Math.max, min = Math.min, kVisible = "visible", D = VDom, brect = D.getBoundingClientRect_(frameEl),
     docEl = document.documentElement, body = document.body, inBody = !!body && VDom.IsInDOM_(frameEl, body, 1),
-    zoom = (Build.BTypes & BrowserType.Chrome ? D.dbZoom_ / (inBody ? 1 : D.bZoom_) : 1
+    zoom = (Build.BTypes & BrowserType.Chrome ? D.docZoom_ * (inBody ? D.bZoom_ : 1) : 1
         ) / D.dScale_ / (inBody ? D.bScale_ : 1);
     let x0 = min(view.l, brect.left), y0 = min(view.t, brect.top), l = x0, t = y0, r = view.r, b = view.b;
     for (let el: Element | null = frameEl; el = D.GetParent_(el, PNType.RevealSlotAndGotoParent); ) {
@@ -735,15 +735,15 @@ var VHints = {
         && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1
           || uiRoot.mode === "closed")
         ) {
-      const z = d.dbZoom_, bz = d.bZoom_, notHookScroll = Sc.scrolled_ === 0;
+      const bz = d.bZoom_, notHookScroll = Sc.scrolled_ === 0;
       if (bz !== 1 && isD) {
-        d.dbZoom_ = z / bz;
+        d.bZoom_ = 1;
         d.prepareCrop_(1);
       }
       for (const el of (<ShadowRoot> uiRoot).querySelectorAll(selector)) {
         filter(output, el as SafeHTMLElement);
       }
-      d.dbZoom_ = z;
+      d.bZoom_ = bz;
       if (notHookScroll) {
         Sc.scrolled_ = 0;
       }

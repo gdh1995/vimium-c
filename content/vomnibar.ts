@@ -70,7 +70,6 @@ var VOmni = {
     }
     if (!dom.isHTML_()) { return; }
     a.options_ = null;
-    dom.dbZoom_ = 1;
     let scale = devicePixelRatio;
     if (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
         && (!(Build.BTypes & ~BrowserType.Chrome)
