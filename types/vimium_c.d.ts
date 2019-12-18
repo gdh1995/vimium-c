@@ -728,6 +728,7 @@ declare const enum BrowserVer {
   MinEnsuredWebkitUserSelectAll = 53, // `-webkit-user-select: all` still works on C31 if EXPERIMENTAL
   // even if EXPERIMENTAL or LEGACY
   MinUntrustedEventsDoNothing = 53, // fake click events won't show a <select>'s popup
+  MinEnsuredUnicodeFlagInRegExp = 53, // even if LEGACY
   // before Chrome 53, there may be window.VisualViewport under flags, but not the instance
   // between C53 and C59, `visualViewport` only has .clientW/H .scrollL/T, .pageX/Y and .scale
   Min$visualViewport$UnderFlags = 53, // window.visualViewport occurs if EXPERIMENTAL (though not on C60)

@@ -129,8 +129,10 @@ const Suggestion: SuggestionConstructor = function (
 } as any;
 
 function prepareHtml(sug: Suggestion): void {
-  if (!isForAddressBar && !sug.v) {
-    sug.v = searchEngine.calcBestFaviconSource_(sug.u);
+  if (Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)) {
+    if (!isForAddressBar && !sug.v) {
+      sug.v = searchEngine.calcBestFaviconSource_(sug.u);
+    }
   }
   if (sug.textSplit != null) {
     if (sug.t === sug.u) { sug.t = ""; }

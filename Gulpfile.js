@@ -114,7 +114,6 @@ var Tasks = {
     });
   },
   "minify-html": function() {
-    print("==== 123");
     const arr = ["front/*.html", "pages/*.html", "!*/vomnibar.html"];
     may_have_newtab || arr.push("!" + NEWTAB_FILE.replace(".ts", ".*"));
     if (!getNonNullBuildItem("NDEBUG")) { return copyByPath(arr); }
