@@ -76,7 +76,7 @@ var VOmni = {
         && !dom.fullscreenEl_unsafe_() && dom.docZoom_ === 1 && dom.dScale_ === 1;
     let scale = devicePixelRatio;
     let width = a.canUseVW_ ? innerWidth : !(Build.BTypes & ~BrowserType.Firefox) ? dom.prepareCrop_()
-        : (dom.bZoom_ = 1, dom.prepareCrop_() * dom.docZoom_);
+        : dom.prepareCrop_() * dom.docZoom_ * dom.bZoom_;
     if (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
         && (!(Build.BTypes & ~BrowserType.Chrome)
             || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome)) {

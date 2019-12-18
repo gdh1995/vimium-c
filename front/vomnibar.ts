@@ -965,14 +965,14 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
   blurred_ (this: void, blurred?: boolean): void {
     if (!Vomnibar_) { return; }
-    const a = (document.body as HTMLBodyElement).classList, kTransparent = "transparent" as const;
+    const doc = document, a = (doc.body as HTMLBodyElement).classList, kTransparent = "transparent" as const;
     // Document.hidden is since C33, according to MDN
     !Vomnibar_.isActive_ ||
       (blurred != null ? !blurred
         : (Build.MinCVer < BrowserVer.Min$document$$hidden
             && Build.BTypes & BrowserType.Chrome && Vomnibar_.browserVer_ < BrowserVer.Min$document$$hidden
-            ? document.webkitHidden : document.hidden
-          ) || document.hasFocus())
+            ? doc.webkitHidden : doc.hidden
+          ) || doc.hasFocus())
       ? a.remove(kTransparent) : a.add(kTransparent);
   },
   init_ (): void {
@@ -1207,6 +1207,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         ? chrome.runtime.getURL(optionsPage) : location.protocol + "//" + VHost_ + optionsPage
       : url.length > 512 || str === "javascript:" || str.startsWith("data:") ? ""
       : item.v
+        || item.e === "history" && url
         || (str.startsWith("http") || str.indexOf("-") > 0 && url.lastIndexOf("://", 21) > 0
             ? (i = url.indexOf("/", url.indexOf("://") + 3), i > 0 ? url.slice(0, i + 1) : url + "/") : url);
   },

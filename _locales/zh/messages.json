@@ -159,7 +159,7 @@
 		"message": "进入页内查找模式"
 	},
 	"enterInsertMode": {
-		"message": "暂时禁用快捷键，按Esc退出"
+		"message": "暂停识别快捷键，按Esc退出"
 	},
 	"enterVisualLineMode": {
 		"message": "进入文字选择模式（对齐到行）"
@@ -635,10 +635,10 @@
 		"message": "”可以切换回普通查找模式，如果不启用此设置，则“\\r”可以开启正则表达式模式。还支持“\\i”和“\\w”等。"
 	},
 	"o57": {
-		"message": "在暂时禁用快捷键时隐藏右下角提示框"
+		"message": "在暂停识别快捷键时隐藏右下角提示框"
 	},
 	"o58": {
-		"message": "启用此设置项时，隐藏“Vimium C 暂时禁用中”的提示框，和“enterInsertMode hideHUD=true”效果相同。"
+		"message": "启用此设置项时，隐藏“Vimium C 已暂停”的提示框，和“enterInsertMode hideHUD=true”效果相同。"
 	},
 	"o59": {
 		"message": "自动切换浅色和深色模式"
