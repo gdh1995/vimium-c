@@ -85,7 +85,7 @@ var Commands = {
     lines = line.replace(<RegExpSearchable<0>> /\\\\?\n/g, t => t.length === 3 ? "\\\n" : ""
                ).replace(<RegExpG> /[\t ]+/g, " ").split("\n");
     if (lines[0] !== "unmapAll" && lines[0] !== "unmapall") {
-      const defaultMap = a.defaultKeyMappings_;
+      const defaultMap = a.defaultKeyMappings_.split(" ");
       for (_i = defaultMap.length; 0 < _i; ) {
         _i -= 2;
         registry[defaultMap[_i]] = a.makeCommand_(defaultMap[_i + 1]) as NonNullable<ReturnType<typeof a.makeCommand_>>;
@@ -272,83 +272,83 @@ var Commands = {
     exec(regItem, count, lastKey, port as Port, 0);
   },
 
-defaultKeyMappings_: [
-  "?", kCName.showHelp,
-  "j", kCName.scrollDown,
-  "k", kCName.scrollUp,
-  "h", kCName.scrollLeft,
-  "l", kCName.scrollRight,
-  "gg", kCName.scrollToTop,
-  "G", kCName.scrollToBottom,
-  "zH", kCName.scrollToLeft,
-  "zL", kCName.scrollToRight,
-  "<c-e>", kCName.scrollDown,
-  "<c-y>", kCName.scrollUp,
-  "d", kCName.scrollPageDown,
-  "u", kCName.scrollPageUp,
-  "r", kCName.reload,
-  "gs", kCName.toggleViewSource,
-  "R", kCName.reloadGivenTab,
-  "<a-R>", kCName.reopenTab,
-  "<a-r>", kCName.reloadTab,
-  "<a-t>", kCName.createTab,
-  "<a-c>", kCName.previousTab,
-  "<a-C>", kCName.nextTab,
-  "<a-v>", kCName.nextTab,
-  "i", kCName.enterInsertMode,
-  "v", kCName.enterVisualMode,
-  "V", kCName.enterVisualLineMode,
-  "<f8>", kCName.enterVisualMode,
-  "H", kCName.goBack,
-  "L", kCName.goForward,
-  "gu", kCName.goUp,
-  "gU", kCName.goToRoot,
-  "gi", kCName.focusInput,
-  "f", kCName.LinkHints_activate,
-  "F", kCName.LinkHints_activateModeToOpenInNewTab,
-  "<a-f>", kCName.LinkHints_activateModeWithQueue,
-  "/", kCName.enterFindMode,
-  "n", kCName.performFind,
-  "N", kCName.performBackwardsFind,
-  "<a-n>", kCName.performAnotherFind,
-  "[[", kCName.goPrevious,
-  "]]", kCName.goNext,
-  "yy", kCName.copyCurrentUrl,
-  "yf", kCName.LinkHints_activateModeToCopyLinkUrl,
-  "p", kCName.openCopiedUrlInCurrentTab,
-  "P", kCName.openCopiedUrlInNewTab,
-  "K", kCName.nextTab,
-  "J", kCName.previousTab,
-  "gt", kCName.nextTab,
-  "gT", kCName.previousTab,
-  "^", kCName.visitPreviousTab,
-  "<<", kCName.moveTabLeft,
-  ">>", kCName.moveTabRight,
-  "g0", kCName.firstTab,
-  "g$", kCName.lastTab,
-  "W", kCName.moveTabToNextWindow,
-  "t", kCName.createTab,
-  "yt", kCName.duplicateTab,
-  "x", kCName.removeTab,
-  "X", kCName.restoreTab,
-  "<a-p>", kCName.togglePinTab,
-  "<a-m>", kCName.toggleMuteTab,
-  "o", kCName.Vomnibar_activate,
-  "O", kCName.Vomnibar_activateInNewTab,
-  "T", kCName.Vomnibar_activateTabSelection,
-  "b", kCName.Vomnibar_activateBookmarks,
-  "B", kCName.Vomnibar_activateBookmarksInNewTab,
-  "ge", kCName.Vomnibar_activateUrl,
-  "gE", kCName.Vomnibar_activateUrlInNewTab,
-  "gf", kCName.nextFrame,
-  "gF", kCName.mainFrame,
-  "gn", kCName.toggleVomnibarStyle,
-  "<f1>", kCName.simBackspace,
-  "<s-f1>", kCName.switchFocus,
-  "<f2>", kCName.switchFocus,
-  "m", kCName.Marks_activateCreateMode,
-  "`", kCName.Marks_activate
-],
+defaultKeyMappings_:
+  "? " + kCName.showHelp +
+  " j " + kCName.scrollDown +
+  " k " + kCName.scrollUp +
+  " h " + kCName.scrollLeft +
+  " l " + kCName.scrollRight +
+  " gg " + kCName.scrollToTop +
+  " G " + kCName.scrollToBottom +
+  " zH " + kCName.scrollToLeft +
+  " zL " + kCName.scrollToRight +
+  " <c-e> " + kCName.scrollDown +
+  " <c-y> " + kCName.scrollUp +
+  " d " + kCName.scrollPageDown +
+  " u " + kCName.scrollPageUp +
+  " r " + kCName.reload +
+  " gs " + kCName.toggleViewSource +
+  " R " + kCName.reloadGivenTab +
+  " <a-R> " + kCName.reopenTab +
+  " <a-r> " + kCName.reloadTab +
+  " <a-t> " + kCName.createTab +
+  " <a-c> " + kCName.previousTab +
+  " <a-C> " + kCName.nextTab +
+  " <a-v> " + kCName.nextTab +
+  " i " + kCName.enterInsertMode +
+  " v " + kCName.enterVisualMode +
+  " V " + kCName.enterVisualLineMode +
+  " <f8> " + kCName.enterVisualMode +
+  " H " + kCName.goBack +
+  " L " + kCName.goForward +
+  " gu " + kCName.goUp +
+  " gU " + kCName.goToRoot +
+  " gi " + kCName.focusInput +
+  " f " + kCName.LinkHints_activate +
+  " F " + kCName.LinkHints_activateModeToOpenInNewTab +
+  " <a-f> " + kCName.LinkHints_activateModeWithQueue +
+  " / " + kCName.enterFindMode +
+  " n " + kCName.performFind +
+  " N " + kCName.performBackwardsFind +
+  " <a-n> " + kCName.performAnotherFind +
+  " [[ " + kCName.goPrevious +
+  " ]] " + kCName.goNext +
+  " yy " + kCName.copyCurrentUrl +
+  " yf " + kCName.LinkHints_activateModeToCopyLinkUrl +
+  " p " + kCName.openCopiedUrlInCurrentTab +
+  " P " + kCName.openCopiedUrlInNewTab +
+  " K " + kCName.nextTab +
+  " J " + kCName.previousTab +
+  " gt " + kCName.nextTab +
+  " gT " + kCName.previousTab +
+  " ^ " + kCName.visitPreviousTab +
+  " << " + kCName.moveTabLeft +
+  " >> " + kCName.moveTabRight +
+  " g0 " + kCName.firstTab +
+  " g$ " + kCName.lastTab +
+  " W " + kCName.moveTabToNextWindow +
+  " t " + kCName.createTab +
+  " yt " + kCName.duplicateTab +
+  " x " + kCName.removeTab +
+  " X " + kCName.restoreTab +
+  " <a-p> " + kCName.togglePinTab +
+  " <a-m> " + kCName.toggleMuteTab +
+  " o " + kCName.Vomnibar_activate +
+  " O " + kCName.Vomnibar_activateInNewTab +
+  " T " + kCName.Vomnibar_activateTabSelection +
+  " b " + kCName.Vomnibar_activateBookmarks +
+  " B " + kCName.Vomnibar_activateBookmarksInNewTab +
+  " ge " + kCName.Vomnibar_activateUrl +
+  " gE " + kCName.Vomnibar_activateUrlInNewTab +
+  " gf " + kCName.nextFrame +
+  " gF " + kCName.mainFrame +
+  " gn " + kCName.toggleVomnibarStyle +
+  " <f1> " + kCName.simBackspace +
+  " <s-f1> " + kCName.switchFocus +
+  " <f2> " + kCName.switchFocus +
+  " m " + kCName.Marks_activateCreateMode +
+  " ` " + kCName.Marks_activate
+,
 availableCommands_: <{[key in string]?: CommandsNS.Description} & SafeObject> As_<CommandsNS.NameMetaMap & SafeObject>({
   __proto__: null as never,
   "LinkHints.activate": [ kFgCmd.linkHints, 0, 0 ],
@@ -497,8 +497,7 @@ if (!Build.NDEBUG) {
   Commands.availableCommands_[CommandsNS.OtherCNames.focusOptions] = [
     kBgCmd.openUrl, 1, 1, { reuse: ReuseType.reuse, url: "vimium://options" }
   ];
-  Commands.defaultKeyMappings_.push("<a-s-f12>", kCName.debugBackground
-      , "<s-f12>", CommandsNS.OtherCNames.focusOptions);
+  Commands.defaultKeyMappings_ += ` <a-s-f12> ${kCName.debugBackground} <s-f12> ${CommandsNS.OtherCNames.focusOptions}`;
 }
 if (Backend_.onInit_) {
   if (Settings_.temp_.initing_ & BackendHandlersNS.kInitStat.platformInfo) {
