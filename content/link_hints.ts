@@ -1385,9 +1385,11 @@ var VHints = {
 
 filterEngine_: {
   activeHint_: null as HintsNS.FilteredHintItem | null,
-  getRe_ (matches: string): RegExpG {
-    const chars = VHints.chars_;
-    return new RegExp(matches + (chars === "0123456789" ? "\\d" : chars.replace(<RegExpG> /\D+/g, "")) + "]+", "g");
+  getRe_ (forMatch: BOOL): RegExpG {
+    const chars = VHints.chars_,
+    excluded_numbers = chars === "0123456789" ? "\\d" : chars.replace(<RegExpG> /\D/g, ""),
+    keyboard_letters_Ll_Lu = forMatch ? "[^" + GlobalConsts.KeyboardLettersLl : "[^" + GlobalConsts.KeyboardLettersLlLu;
+    return new RegExp(keyboard_letters_Ll_Lu + GlobalConsts.KeyboardLettersLo + "]+|[" + excluded_numbers + "]+", "g");
   },
   GenerateHintStrings_ (this: void, hints: HintsNS.HintItem[]): void {
     const H = VHints, chars = H.chars_, base = chars.length, is10Digits = chars === "0123456789",
@@ -1468,7 +1470,7 @@ filterEngine_: {
         const search = t2.split(" "),
         hasSearch = !!t2, indStep = 1 / (1 + oldHints.length);
         if (hasSearch && !fullHints[0].h.w) {
-          const exclusionRe = a.getRe_("[\\W");
+          const exclusionRe = a.getRe_(1);
           for (const {h: textHint} of fullHints) {
             const words = textHint.w = textHint.t.toLowerCase().split(exclusionRe);
             words[0] || words.shift();
@@ -1572,7 +1574,7 @@ filterEngine_: {
 },
   renderMarkers_ (hintItems: HintsNS.HintItem[]): void {
     const a = VHints, doc = document, useFilter = a.useFilter_,
-    exclusionRe = useFilter as true | never && a.filterEngine_.getRe_("[^\\x21-\\x7e]+|["),
+    exclusionRe = useFilter as true | never && a.filterEngine_.getRe_(0),
     noAppend = !!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$append
         && VDom.cache_.v < BrowserVer.MinEnsured$ParentNode$$append;
     for (const hint of hintItems) {
