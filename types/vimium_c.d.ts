@@ -463,8 +463,8 @@ declare const enum GlobalConsts {
   EdgStorePage = "https://microsoftedge.microsoft.com/addons/detail/$id",
   EdgHelp = "https://support.google.com/chrome/answer/157179",
 
-  KeyboardLettersLl = "\\w\xdf-\xfc\u0430-\u045f",
-  KeyboardLettersLlLu = "!-~\xc0-\xfc\u0402-\u045f",
+  KeyboardLettersLl = "a-z_\xdf-\xfc\u0430-\u045f",
+  LettersLlLuAndASCII = "!-/:-~\xc0-\xfc\u0402-\u045f",
   KeyboardLettersLo = "\xba\u0621-\u064a",
 }
 

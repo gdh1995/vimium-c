@@ -1119,7 +1119,7 @@ var VHints = {
     }
   },
   execute_ (hint: HintsNS.HintItem, event?: HandlerNS.Event): void {
-    const a = this, keyStatus = a.keyStatus_, master = a._master, masterOrA = master || a;
+    const a = this, master = a._master, masterOrA = master || a, keyStatus = masterOrA.keyStatus_;
     let rect: Rect | null | undefined, clickEl: HintsNS.LinkEl | null = hint.d;
     if (master) {
       VApi.keydownEvents_((master.keydownEvents_ as typeof a.keydownEvents_)());
@@ -1232,7 +1232,7 @@ var VHints = {
     // here should not consider about ._master
     const a = this;
     a._onWaitingKey = a._onTailEnter =
-    a.hints_ = a.zIndexes_ = a.filterEngine_.activeHint_ = null as never;
+    a.hints_ = a.zIndexes_ = a.filterEngine_.activeHint_ = a.filterEngine_.reForMatch_ = null as never;
     a.pTimer_ > 0 && clearTimeout(a.pTimer_);
     a.hasExecuted_ = a.pTimer_ = 0;
     a.keyStatus_.hints_ = null as never;
@@ -1385,11 +1385,12 @@ var VHints = {
 
 filterEngine_: {
   activeHint_: null as HintsNS.FilteredHintItem | null,
+  reForMatch_: null as never as RegExpG,
   getRe_ (forMatch: BOOL): RegExpG {
-    const chars = VHints.chars_,
-    excluded_numbers = chars === "0123456789" ? "\\d" : chars.replace(<RegExpG> /\D/g, ""),
-    keyboard_letters_Ll_Lu = forMatch ? "[^" + GlobalConsts.KeyboardLettersLl : "[^" + GlobalConsts.KeyboardLettersLlLu;
-    return new RegExp(keyboard_letters_Ll_Lu + GlobalConsts.KeyboardLettersLo + "]+|[" + excluded_numbers + "]+", "g");
+    const chars = VHints.chars_, kNum = "0123456789",
+    accepted_numbers = chars === kNum ? "" : kNum.replace(new RegExp(chars.replace(<RegExpG> /\D/g, ""), "g"), ""),
+    accepted_letters = forMatch ? "[^" + GlobalConsts.KeyboardLettersLl : "[^" + GlobalConsts.LettersLlLuAndASCII;
+    return new RegExp(accepted_letters + accepted_numbers + GlobalConsts.KeyboardLettersLo + "]+", "g");
   },
   GenerateHintStrings_ (this: void, hints: HintsNS.HintItem[]): void {
     const H = VHints, chars = H.chars_, base = chars.length, is10Digits = chars === "0123456789",
@@ -1470,9 +1471,8 @@ filterEngine_: {
         const search = t2.split(" "),
         hasSearch = !!t2, indStep = 1 / (1 + oldHints.length);
         if (hasSearch && !fullHints[0].h.w) {
-          const exclusionRe = a.getRe_(1);
           for (const {h: textHint} of fullHints) {
-            const words = textHint.w = textHint.t.toLowerCase().split(exclusionRe);
+            const words = textHint.w = textHint.t.toLowerCase().split(a.reForMatch_);
             words[0] || words.shift();
             words.length && (words[words.length - 1] || words.pop());
           }
@@ -1574,16 +1574,16 @@ filterEngine_: {
 },
   renderMarkers_ (hintItems: HintsNS.HintItem[]): void {
     const a = VHints, doc = document, useFilter = a.useFilter_,
-    exclusionRe = useFilter as true | never && a.filterEngine_.getRe_(0),
     noAppend = !!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$append
         && VDom.cache_.v < BrowserVer.MinEnsured$ParentNode$$append;
+    let exclusionRe: RegExpG | undefined;
     for (const hint of hintItems) {
       let right: string, marker = hint.m;
       if (useFilter) {
         marker.textContent = hint.a;
         right = (hint.h as HintsNS.HintText).t;
         if (!right || right[0] !== ":") { continue; }
-        right = right.replace(exclusionRe, " ").trim();
+        right = right.replace(exclusionRe = exclusionRe || a.filterEngine_.getRe_(0), " ").trim();
         right = right.length > GlobalConsts.MaxLengthOfShownText
             ? right.slice(0, GlobalConsts.MaxLengthOfShownText - 2).trimRight() + "\u2026" // the "\u2026" is wide
             : right !== ":" ? right : "";
@@ -1628,7 +1628,7 @@ filterEngine_: {
     }
   },
   matchHintsByKey_ (keyStatus: HintsNS.KeyStatus, e: KeyboardEvent): HintsNS.HintItem | 0 | 2 {
-    const h = VHints, {useFilter_: useFilter} = h;
+    const h = VHints, {useFilter_: useFilter, filterEngine_: filterEngine} = h;
     let keyChar: string
       , {keySequence_: sequence, textSequence_: textSeq, tab_: oldTab, hints_: hints} = keyStatus
       , key = e.keyCode, doesDetectMatchSingle: 0 | 1 | 2 = 0;
@@ -1648,21 +1648,25 @@ filterEngine_: {
       textSeq += " ";
     } else if (key === kKeyCode.enter && useFilter) {
       // keep .known_ to be 1 - needed by .execute_
-      return h.filterEngine_.activeHint_ as NonNullable<typeof h.filterEngine_.activeHint_>;
+      return filterEngine.activeHint_ as NonNullable<typeof filterEngine.activeHint_>;
     } else if ((keyChar = VKey.char_(e)) && keyChar.length < 2
         && (keyChar = h.doesMapKey_ ? VApi.mapKey_(keyChar, e, keyChar) : keyChar).length < 2) {
       keyChar = useFilter ? keyChar : keyChar.toUpperCase();
       if (h.chars_.indexOf(keyChar) >= 0) {
         sequence += keyChar;
         doesDetectMatchSingle = useFilter || sequence.length < h.maxPrefixLen_ ? 1 : 2;
-      } else if (!useFilter) {
-        return 0;
-      } else if (keyChar !== keyChar.toLowerCase() && (<RegExpOne> /[A-Z]/).test(h.chars_)
-          || (<RegExpOne> /\W/).test(keyChar)) {
-        return 2;
+      } else if (useFilter) {
+        let lower = keyChar.toLowerCase();
+        if (keyChar !== lower && h.chars_ !== h.chars_.toLowerCase() // ignore {Lo} in h.chars_
+            || (filterEngine.reForMatch_ as RegExpG & RegExpOne || (filterEngine.reForMatch_ = filterEngine.getRe_(1))
+                ).test(lower)) {
+          return 2;
+        } else {
+          sequence = "";
+          textSeq += lower;
+        }
       } else {
-        sequence = "";
-        textSeq += keyChar.toLowerCase();
+        return 0;
       }
     } else {
       return 2;
@@ -1674,7 +1678,7 @@ filterEngine_: {
       for (const hint of hints) { if (hint.a === sequence) { return hint; } }
     }
     if (useFilter) {
-      return h.filterEngine_.getMatchingHints_(keyStatus, sequence, textSeq, 2);
+      return filterEngine.getMatchingHints_(keyStatus, sequence, textSeq, 2);
     } else {
       keyStatus.keySequence_ = sequence;
       keyStatus.textSequence_ = textSeq;
