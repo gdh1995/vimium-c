@@ -1393,7 +1393,7 @@ filterEngine_: {
           || Build.MinCVer >= BrowserVer.MinTestedES6Environment
               && Build.MinCVer >= BrowserVer.MinEnsuredES6SpreadOperator
               && Build.MinCVer >= BrowserVer.MinEnsuredES6$String$$StartsWithEndsWithAndRepeatAndIncludes
-        ? [... <string[]> <unknown> kNum].filter(ch => !(chars as Ensure<String, "includes">).includes(ch)).join("")
+        ? [... <string[]> <unknown> kNum].filter(ch => !(chars as Ensure<string, "includes">).includes(ch)).join("")
         : kNum.replace(new RegExp(`[${chars.replace(<RegExpG> /\D/g, "")}]`, "g"), ""),
     accepted_letters = forMatch ? "[^" + GlobalConsts.KeyboardLettersLl : "[^" + GlobalConsts.LettersLlLuAndASCII;
     return new RegExp(accepted_letters + accepted_numbers + GlobalConsts.KeyboardLettersLo + "]+", "g");
@@ -1410,14 +1410,15 @@ filterEngine_: {
     }
   },
   generateHintText_ (hint: Hint): HintsNS.HintText {
-    let el = hint[0] as SafeHTMLElement, text: string = "", show = false;
-    switch ("lang" in el ? el.localName : "") { // skip SVGElement
+    let el = hint[0] as SafeHTMLElement, text: string = "", show = false
+      , localName = "lang" in el ? el.localName : "", ind: number;
+    switch (localName) { // skip SVGElement
     case "input": case "textarea": case "select":
       let labels = (el as HTMLInputElement).labels;
       if (labels && labels.length > 0
           && (text = (labels[0] as SafeHTMLElement).innerText).trim()) {
         show = !0;
-      } else if (el.localName === "select") {
+      } else if (localName[0] === "s") {
         const selected = (el as HTMLSelectElement).selectedOptions[0];
         text = selected ? selected.label : "";
       } else if ((el as HTMLInputElement).type === "file") {
@@ -1428,26 +1429,25 @@ filterEngine_: {
       break;
     case "img":
       text = (el as HTMLImageElement).alt || (el as HTMLImageElement).title;
-      show = !0;
-      break;
-    case "a":
-      text = el.textContent.trim();
-      if (!text) {
-        let el2 = el.firstElementChild as Element | null;
-        text = el2 && VDom.htmlTag_(el2) === "img"
-            ? (el2 as HTMLImageElement).alt || (el2 as HTMLImageElement).title : "";
-        show = !!text;
-        text = text || el.title;
-      }
-      break;
+      // no break;
     case "details":
-      text = "Open"; show = !0;
+      text = text || "Open"; show = !0;
       break;
     default:
       if (show = hint[2] > ClickType.MaxNotBox) {
         text = hint[2] > ClickType.frame ? "Scroll" : "Frame";
+      } else if (text = el.innerText.trim()) {
+        ind = text.indexOf("\n") + 1;
+        // tslint:disable-next-line: no-unused-expression
+        ind && (ind = text.indexOf("\n", ind + 1)) > 0 ? text = text.slice(0, ind) : 0;
       } else {
-        text = el.textContent.trim() || el.title;
+        if (localName === "a") {
+          let el2 = el.firstElementChild as Element | null;
+          text = el2 && VDom.htmlTag_(el2) === "img"
+              ? (el2 as HTMLImageElement).alt || (el2 as HTMLImageElement).title : "";
+          show = !!text;
+        }
+        text = text || el.title;
       }
       break;
     }
