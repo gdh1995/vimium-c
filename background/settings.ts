@@ -261,7 +261,7 @@ var Settings_ = {
         body += `\n${prefix}:before,${prefix}:after,.R:before,.R:after{display:none!important}`;
         css = prefix + css.slice(5, hostEnd) +
             /** Note: {@link ../front/vimium.css}: this requires no ID/attr selectors in base styles */
-            body.replace(<RegExpG> /\.(?!D\{)[A-Z]/g, `${prefix} $&`).replace(new RegExp(`>${prefix} `, "g"), ">");
+            body.replace(<RegExpG> /\.(?!D\{)[A-Z]/g, prefix + " $&").replace(<RegExpG> />#VimiumUI /g, ">");
       }
       css = cacheId + css.length + "\n" + css;
       const css2 = a.parseCustomCSS_(a.get_("userDefinedCss"));
@@ -417,7 +417,8 @@ var Settings_ = {
           || Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
               && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces)
           && file === "words") {
-        Settings_.CONST_.words = text.replace(<RegExpG> /[\n\r]/g, "");
+        Settings_.CONST_.words = text.replace(<RegExpG> /[\n\r]/g, ""
+            ).replace(<RegExpG & RegExpSearchable<1>> /\\u(\w{4})/g, (_, s1) => String.fromCharCode(+("0x" + s1)));
       } else {
         Settings_.set_(file as Exclude<typeof file, "baseCSS" | "words">, text);
       }
@@ -477,7 +478,8 @@ shortcut-forwarding-tool@gdh1995.cn`
 bi|bing: https://www.bing.com/search?q=%s Bing
 g|go|gg|google: https://www.google.com/search?q=%s Google
 js\\:|Js: javascript:\\ $S; JavaScript
-w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
+w|wiki:\\
+  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
 v.m|v\\:math: vimium://math\\ $S re= Calculate
 
 # More examples.
@@ -619,16 +621,18 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
     && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) {
   ( (Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox))
     ? !Build.NativeWordMoveOnFirefox
-      && !((): boolean | void => { try { return new RegExp("\\p{L}", "u").test("a"); } catch {} })()
+      // tslint:disable-next-line: no-unused-expression
+      && !((): boolean | void => { try { new RegExp("\\p{L}", "u"); } catch {} })()
     : Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
       && Build.MinCVer < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
       && (!(Build.BTypes & BrowserType.Edge) || OnOther !== BrowserType.Edge)
-      && (BrowserVer.MinSelExtendForwardOnlySkipWhitespaces <= BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
+      && (BrowserVer.MinSelExtendForwardOnlySkipWhitespaces < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
         ? CurCVer_ < (
           BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
           ? BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp : BrowserVer.MinSelExtendForwardOnlySkipWhitespaces)
         : CurCVer_ < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
-          || !((): boolean | void => { try { return new RegExp("\\p{L}", "u").test("a"); } catch {} })())
+          // tslint:disable-next-line: no-unused-expression
+          || !((): boolean | void => { try { new RegExp("\\p{L}", "u"); } catch {} })())
   ) ? Settings_.fetchFile_("words") : (Settings_.CONST_.words = "");
 }
 

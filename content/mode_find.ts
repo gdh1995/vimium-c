@@ -505,7 +505,7 @@ var VFind = {
     a.query_ = a.query0_ = query;
     a.wholeWord_ = false;
     a.isRegex_ = a.ignoreCase_ = null as boolean | null;
-    query = a.isQueryRichText_ ? query.replace(<RegExpG & RegExpSearchable<0>> /\\[CIRW\\cirw]/g, a.FormatQuery_)
+    query = a.isQueryRichText_ ? query.replace(<RegExpG & RegExpSearchable<0>> /\\[cirw\\]/gi, a.FormatQuery_)
         : query;
     let isRe = a.isRegex_, ww = a.wholeWord_, B = "\\b", escapeAllRe = <RegExpG> /[$()*+.?\[\\\]\^{|}]/g;
     if (a.isQueryRichText_) {

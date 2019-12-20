@@ -1389,6 +1389,11 @@ filterEngine_: {
   getRe_ (forMatch: BOOL): RegExpG {
     const chars = VHints.chars_, kNum = "0123456789",
     accepted_numbers = chars === kNum ? ""
+        : !(Build.BTypes & BrowserType.Chrome)
+          || Build.MinCVer >= BrowserVer.MinTestedES6Environment
+              && Build.MinCVer >= BrowserVer.MinEnsuredES6SpreadOperator
+              && Build.MinCVer >= BrowserVer.MinEnsuredES6$String$$StartsWithEndsWithAndRepeatAndIncludes
+        ? [... <string[]> <unknown> kNum].filter(ch => !(chars as Ensure<String, "includes">).includes(ch)).join("")
         : kNum.replace(new RegExp(`[${chars.replace(<RegExpG> /\D/g, "")}]`, "g"), ""),
     accepted_letters = forMatch ? "[^" + GlobalConsts.KeyboardLettersLl : "[^" + GlobalConsts.LettersLlLuAndASCII;
     return new RegExp(accepted_letters + accepted_numbers + GlobalConsts.KeyboardLettersLo + "]+", "g");
