@@ -1388,7 +1388,8 @@ filterEngine_: {
   reForMatch_: null as never as RegExpG,
   getRe_ (forMatch: BOOL): RegExpG {
     const chars = VHints.chars_, kNum = "0123456789",
-    accepted_numbers = chars === kNum ? "" : kNum.replace(new RegExp(chars.replace(<RegExpG> /\D/g, ""), "g"), ""),
+    accepted_numbers = chars === kNum ? ""
+        : kNum.replace(new RegExp(`[${chars.replace(<RegExpG> /\D/g, "")}]`, "g"), ""),
     accepted_letters = forMatch ? "[^" + GlobalConsts.KeyboardLettersLl : "[^" + GlobalConsts.LettersLlLuAndASCII;
     return new RegExp(accepted_letters + accepted_numbers + GlobalConsts.KeyboardLettersLo + "]+", "g");
   },
