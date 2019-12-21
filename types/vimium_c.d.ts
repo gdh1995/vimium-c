@@ -320,7 +320,7 @@ declare const enum kOS {
 }
 
 declare const enum HintMode {
-  empty = 0, focused = 1, list = 1, newTab = 2, mask_focus_new = focused | newTab,
+  empty = 0, focused = 1, list = 1, newTab = 2, newtab_n_active = focused | newTab, mask_focus_new = newtab_n_active,
   queue = 16, min_job = 32, min_disable_queue = 64,
   OPEN_IN_CURRENT_TAB = empty, DEFAULT = OPEN_IN_CURRENT_TAB, // also 1
   OPEN_IN_NEW_BG_TAB = newTab,

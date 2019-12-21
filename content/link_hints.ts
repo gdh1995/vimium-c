@@ -31,6 +31,7 @@ declare namespace HintsNS {
     };
     mapKey?: true | false;
     auto?: boolean;
+    vivaldi?: boolean;
   }
   type NestedFrame = false | 0 | null | HTMLIFrameElement | HTMLFrameElement;
   interface Filter<T> {
@@ -2044,10 +2045,10 @@ Modes_: [
       link.download = "";
     }
     VCui.click_(link, rect, {
-      altKey_: true,
-      ctrlKey_: false,
-      metaKey_: false,
-      shiftKey_: false
+      altKey_: !0,
+      ctrlKey_: !1,
+      metaKey_: !1,
+      shiftKey_: !1
     }, 0, 0);
     if (hadNoDownload) {
       link.removeAttribute(kDownload);
@@ -2107,16 +2108,18 @@ Modes_: [
     dblClick = !!a.options_.dblclick,
     specialActions = isRight || dblClick,
     newTab = mask > HintMode.newTab - 1 && !specialActions,
+    newtab_n_active = newTab && mask > HintMode.newtab_n_active - 1,
+    ctrl = newTab && !(a.options_.vivaldi && newtab_n_active),
     openUrlInNewTab = specialActions || tag !== "a" ? 0
         : a.options_.newtab === "force" ? newTab ? 6 : 2
         : !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
           ? newTab ? 5 : 1 // need to work around Firefox's popup blocker
         : 0;
     VCui.click_(link, rect, {
-      altKey_: false,
-      ctrlKey_: newTab && !isMac,
-      metaKey_: newTab && isMac,
-      shiftKey_: newTab && mask > HintMode.mask_focus_new - 1
+      altKey_: !1,
+      ctrlKey_: ctrl && !isMac,
+      metaKey_: ctrl && isMac,
+      shiftKey_: newtab_n_active
     }, mask > 0 || link.tabIndex >= 0
     , dblClick ? 8 : openUrlInNewTab
     , isRight ? 2 : 0
