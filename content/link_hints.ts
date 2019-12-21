@@ -31,7 +31,8 @@ declare namespace HintsNS {
     };
     mapKey?: true | false;
     auto?: boolean;
-    vivaldi?: boolean;
+    noCtrlShift?: boolean;
+    swapCtrlShift?: boolean;
   }
   type NestedFrame = false | 0 | null | HTMLIFrameElement | HTMLFrameElement;
   interface Filter<T> {
@@ -1045,7 +1046,7 @@ var VHints = {
         ? mode < HintMode.min_disable_queue
           ? ((mode1 < HintMode.min_job ? HintMode.newTab : HintMode.empty) | mode) ^ HintMode.queue : mode
         : mode1 < HintMode.min_job
-          ? i === kKeyCode.shiftKey ? (mode | HintMode.focused) ^ HintMode.mask_focus_new
+        ? (i === kKeyCode.shiftKey) === !a.options_.swapCtrlShift ? (mode | HintMode.focused) ^ HintMode.mask_focus_new
           : (mode | HintMode.newTab) ^ HintMode.focused
         : mode;
       if (mode2 !== mode) {
@@ -2109,7 +2110,7 @@ Modes_: [
     specialActions = isRight || dblClick,
     newTab = mask > HintMode.newTab - 1 && !specialActions,
     newtab_n_active = newTab && mask > HintMode.newtab_n_active - 1,
-    ctrl = newTab && !(a.options_.vivaldi && newtab_n_active),
+    ctrl = newTab && !(a.options_.noCtrlShift && newtab_n_active),
     openUrlInNewTab = specialActions || tag !== "a" ? 0
         : a.options_.newtab === "force" ? newTab ? 6 : 2
         : !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
