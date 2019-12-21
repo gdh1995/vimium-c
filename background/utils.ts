@@ -195,7 +195,7 @@ var BgUtils_ = {
 
     // Note: here `string` should be just a host, and can only become a hostname.
     //       Otherwise `type` must not be `NoSchema | NoProtocolName`
-    if (type === Urls.TempType.Unspecified && str.indexOf("%") >= 0) {
+    if (type === Urls.TempType.Unspecified && str.lastIndexOf("%") >= 0) {
       str = BgUtils_.DecodeURLPart_(str);
       if (str.indexOf("/") >= 0) { type = Urls.Type.Search; }
     }

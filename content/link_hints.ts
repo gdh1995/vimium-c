@@ -1439,7 +1439,7 @@ filterEngine_: {
       } else if (text = el.innerText.trim()) {
         ind = text.indexOf("\n") + 1;
         // tslint:disable-next-line: no-unused-expression
-        ind && (ind = text.indexOf("\n", ind + 1)) > 0 ? text = text.slice(0, ind) : 0;
+        ind && (ind = text.indexOf("\n", ind)) > 0 ? text = text.slice(0, ind) : 0;
       } else {
         if (localName === "a") {
           let el2 = el.firstElementChild as Element | null;
@@ -1478,7 +1478,8 @@ filterEngine_: {
         hasSearch = !!t2, indStep = 1 / (1 + oldHints.length);
         if (hasSearch && !fullHints[0].h.w) {
           for (const {h: textHint} of fullHints) {
-            const words = textHint.w = textHint.t.toLowerCase().split(a.reForMatch_);
+            // cache lower-case versions for smaller memory usage
+            const words = textHint.w = (textHint.t = textHint.t.toLowerCase()).split(a.reForMatch_);
             words[0] || words.shift();
             words.length && (words[words.length - 1] || words.pop());
           }

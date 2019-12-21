@@ -1599,7 +1599,7 @@ knownCs: CompletersMap & SafeObject = {
   _decodeFunc = decodeURIComponent, // core function
   Decoder = {
     decodeURL_ (a: string, o: ItemToDecode): string {
-      if (a.length >= 400 || a.indexOf("%") < 0) { return a; }
+      if (a.length >= 400 || a.lastIndexOf("%") < 0) { return a; }
       try {
         return _decodeFunc(a);
       } catch {}
@@ -1612,7 +1612,7 @@ knownCs: CompletersMap & SafeObject = {
         try {
           while (++i < l) {
             j = a[i]; s = j.url_;
-            j.text_ = s.length >= 400 || s.indexOf("%") < 0 ? s : _decodeFunc(s);
+            j.text_ = s.length >= 400 || s.lastIndexOf("%") < 0 ? s : _decodeFunc(s);
           }
           break;
         } catch {
