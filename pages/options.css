@@ -437,7 +437,6 @@ label:active {
 
 /* Boolean options have a tighter form representation than text options. */
 .booleanOption {
-  font-size: 14px;
   padding-top: 1px;
 }
 .booleanOption.innerLine {
