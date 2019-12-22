@@ -211,7 +211,7 @@ var VVisual = {
       }
     }
     if (command === VisualAction.HighlightRange) {
-      return movement.highlightRange_();
+      return movement.HighlightRange_(movement.selection_);
     }
     mode === VisualModeNS.Mode.Caret && movement.collapseToFocus_(0);
     if (command > VisualAction.MaxNotFind) {
@@ -339,8 +339,8 @@ var VVisual = {
     VApi.post_(action != null ? { H: kFgReq.openUrl, u: str, r: action }
         : { H: kFgReq.copy, d: str });
   },
-  highlightRange_(): void {
-    const sel = this.selection_, range = sel.rangeCount > 0 ? sel.getRangeAt(0) : null,
+  HighlightRange_(this: void, sel: Selection): void {
+    const range = sel.rangeCount > 0 ? sel.getRangeAt(0) : null,
     br = range && range.getBoundingClientRect();
     if (br && br.height > 0 && br.right > 0) { // width may be 0 in Caret mode
       let cr = VDom.cropRectToVisible_(br.left - 4, br.top - 5, br.right + 3, br.bottom + 4);
@@ -768,7 +768,7 @@ keyMap_: {
   p: VisualAction.YankAndOpen, P: VisualAction.YankAndNewTab,
 
   n: VisualAction.FindNext, N: VisualAction.FindPrevious,
-  "<f1>": VisualAction.HighlightRange,
+  "<f1>": VisualAction.HighlightRange, "<a-f1>": VisualAction.HighlightRange,
 
   v: VisualAction.VisualMode, V: VisualAction.VisualLineMode, c: VisualAction.CaretMode,
   "/": VisualAction.EmbeddedFindMode,

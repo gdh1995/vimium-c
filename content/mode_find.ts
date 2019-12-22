@@ -293,7 +293,11 @@ var VFind = {
     if (!i) {
       if (VKey.isEscape_(event)) { i = FindNS.Action.ExitAndReFocus; }
       else if (i = VKey.getKeyStat_(event)) {
-        if (i & KeyStat.ExceptPrimaryModifier) { return; }
+        if (n === kKeyCode.f1 && i === KeyStat.altKey) {
+          VDom.prepareCrop_();
+          VVisual.HighlightRange_(VCui.getSelected_()[0]);
+        }
+        else if (i & KeyStat.ExceptPrimaryModifier) { return; }
         else if (n === kKeyCode.up || n === kKeyCode.down || n === kKeyCode.end || n === kKeyCode.home) {
           VSc.BeginScroll_(event);
         }
