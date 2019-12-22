@@ -905,6 +905,12 @@
     this.p && tabs2.sort((a, b) => a.url.length - b.url.length);
     let tab: Tab = selectFrom(tabs2);
     if (tab.url.length > tabs2[0].url.length) { tab = tabs2[0]; }
+    if (!Build.NDEBUG && Build.BTypes & BrowserType.Chrome
+        && url.startsWith(Settings_.CONST_.OptionsPage_) && !framesForTab[tab.id] && !this.s) {
+      tabsCreate({ url });
+      chrome.tabs.remove(tab.id);
+      return;
+    }
     chrome.tabs.update(tab.id, {
       url: tab.url === url || tab.url.startsWith(url) ? undefined : url,
       active: true

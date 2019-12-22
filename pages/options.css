@@ -94,16 +94,19 @@ a:active {
   outline: none;
 }
 header {
-  color: var(--heading-color);
-  font-size: 18px;
-  font-weight: normal;
   /* keep 1px so it can be more conspicuous than 0.5px */
   border-bottom: 1px solid #ddd;
   border-color: var(--heading-border-color, #ddd);
+  border-width: 1px !important;
+  color: var(--heading-color);
+  font-size: 18px;
+  font-weight: normal;
+  height: 24px;
+  line-height: 24px;
   padding: 20px 0 15px 0;
 }
 .dialog-ui header {
-  padding: 0 0 5px 0;
+  padding: 0 0 3px 0;
 }
 button, select {
   background-color: /* buttonface */ #ddd;
@@ -143,7 +146,7 @@ button:hover:not(:disabled), select:hover {
   color: black;
   color: var(--button-hover-color);
 }
-button:active, select:active {
+button:active:hover, select:active {
   background-image: linear-gradient(#e7e7e7, #e7e7e7 38%, #d7d7d7);
   background-image: var(--button-active-background-image);
   box-shadow: none;
@@ -233,6 +236,7 @@ input, textarea {
   box-sizing: border-box;
   color: var(--input-color);
   font: inherit;
+  line-height: 16px;
   height: 28px;
   padding: 3px;
   white-space: pre;
@@ -293,6 +297,9 @@ label:active {
   user-select: all;
 }
 
+#advanced {
+  padding-top: 0;
+}
 #wrapper, #footerWrapper {
   width: 890px;
   margin-left: 35px;
@@ -469,9 +476,7 @@ label:active {
   background: none;
   color: #979ca0;
   cursor: default;
-  font-size: 13px;
-  font-family: "Segoe UI Symbol", monospace;
-  line-height: 12px;
+  font: 13px/12px "Segoe UI Symbol", sans-serif;
   padding: 5px 4px 5px 3px;
   -webkit-user-select: none;
   user-select: none;
