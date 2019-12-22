@@ -1768,7 +1768,7 @@ _getImageUrl (img: SafeHTMLElement): string | void {
   return text || this.hud_.tip_(kTip.notImg, 1000);
 },
 getImageName_: (img: SafeHTMLElement): string | null =>
-  img.getAttribute("download") || img.title || img.getAttribute("alt"),
+  img.getAttribute("download") || img.getAttribute("alt") || img.title,
 
 openUrl_ (url: string, incognito?: boolean): void {
   let kw = this.options_.keyword, opt: Req.fg<kFgReq.openUrl> = {

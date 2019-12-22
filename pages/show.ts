@@ -216,8 +216,8 @@ window.onhashchange = function (this: void): void {
     }
     if (file) {
       VData.file = file = tryToFixFileExt_(file) || file;
-      const path = file.split(<RegExpOne> /\/\\/);
-      VShown.setAttribute("download", path[path.length - 1]);
+      const path = file.split(<RegExpOne> /[/\\]+/);
+      path.length > 1 && VShown.setAttribute("download", path[path.length - 1]);
       VShown.alt = file;
       VShown.title = file;
     }
