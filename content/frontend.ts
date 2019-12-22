@@ -406,7 +406,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
      * And the modifier stat for access keys is user-configurable: `ui.key.generalAccessKey`
      * * there was another one (`ui.key.contentAccess`) but it has been removed from the latest code
      */
-    if (Build.BTypes & BrowserType.Chrome && event.altKey && fgCache.a
+    if (Build.BTypes & BrowserType.Chrome && event.altKey
         && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)) {
       /** On Chrome, there're 2 paths to trigger accesskey:
        * * `blink::WebInputEvent::kRawKeyDown` := `event#keydown` => `blink::WebInputEvent::kChar` := `handleAccessKey`
@@ -1131,14 +1131,6 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
             && browserVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow) {
           hook(HookAction.SuppressListenersOnDocument);
         }
-        if (Build.BTypes & BrowserType.Chrome
-            && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
-            && !load.a) {
-          setupEventListener(0, "click", anyClickHandler, 1, 1);
-          if (Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow) {
-            setupEventListener(doc, "click", anyClickHandler, 1, 1);
-          }
-        }
       } else {
         InsertMode.grabBackFocus_ = false;
         hook(HookAction.Suppress);
@@ -1227,16 +1219,6 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         (i2 in cache) && (K.safer_(cache)[i2] = undefined as never);
       }
       delta.d != null && HUD.box_ && HUD.box_.classList.toggle("D", !!delta.d);
-      if (Build.BTypes & BrowserType.Chrome
-          && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
-          && delta.a != null) {
-        setupEventListener(0, "click", anyClickHandler, delta.a, 1);
-        if (Build.BTypes & BrowserType.Chrome
-            && Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
-            && browserVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow) {
-          setupEventListener(doc, "click", anyClickHandler, delta.a, 1);
-        }
-      }
     },
     /* kBgReq.focusFrame: */ FrameMask.Focus_,
     /* kBgReq.exitGrab: */ InsertMode.ExitGrab_ as (this: void, request: Req.bg<kBgReq.exitGrab>) => void,

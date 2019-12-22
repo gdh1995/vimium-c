@@ -455,7 +455,6 @@ shortcut-forwarding-tool@gdh1995.cn`
     focusNewTabContent: true,
     grabBackFocus: false,
     hideHud: false,
-    hookAccessKeys: true,
     ignoreCapsLock: 0,
     ignoreKeyboardLayout: false,
     innerCSS: "",
@@ -528,7 +527,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     { 19: "/icons/disabled_19.png", 38: "/icons/disabled_38.png" }
   ]),
   valuesToLoad_: As_<SelectNameToKey<SettingsNS.AutoItems> & SafeObject>({ __proto__: null as never,
-    filterLinkHints: "f", hookAccessKeys: Build.BTypes & BrowserType.Chrome ? "a" : "" as never,
+    filterLinkHints: "f",
     ignoreKeyboardLayout: "L",
     keyboard: "k", linkHintCharacters: "l", linkHintNumbers: "n",
     regexFindMode: "R", smoothScroll: "S", scrollStepSize: "t", waitForEnter: "w"
@@ -697,7 +696,6 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   obj.ContentScripts_ = ref2.map(func);
 
   payload_.g = settings.get_(SettingsNS.kNames.grabBackFocus);
-  if (!(Build.BTypes & BrowserType.Chrome)) { delete valuesToLoad_.hookAccessKeys; }
   type AutoNames = SettingsNS.AutoItems[keyof SettingsNS.AutoItems][0];
   for (let _i in valuesToLoad_) {
     const key = valuesToLoad_[_i as AutoNames];

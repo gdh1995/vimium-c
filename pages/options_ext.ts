@@ -203,11 +203,8 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
     console.info("IMPORT settings:", is_recommended ? "recommended." : "saved before.");
   }
 
-  delete new_data.name;
-  delete new_data.time;
-  delete new_data.environment;
-  delete new_data.author;
-  delete new_data.description;
+  const delKeys = (keys: string): void => keys.split(" ").forEach(k => delete new_data[k]);
+  delKeys("name time environment author description");
   for (let key in new_data) {
     if (key[0] === "@") {
       delete new_data[key];
@@ -223,15 +220,9 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
       new_data[key] = null;
     }
   }
-  delete new_data.findModeRawQuery;
-  delete new_data.findModeRawQueryList;
-  delete new_data.innerCSS;
-  delete new_data.findCSS;
-  delete new_data.omniCSS;
-  delete new_data.newTabUrl_f;
-  delete new_data.vomnibarPage_f;
+  delKeys("findModeRawQuery findModeRawQueryList innerCSS findCSS omniCSS newTabUrl_f hookAccessKeys vomnibarPage_f");
   if (Build.BTypes & BrowserType.Firefox) {
-    delete new_data.i18n_f;
+    delKeys("i18n_f");
   }
   if (new_data.vimSync !== bgSettings_.get_("vimSync")) {
     logUpdate("import", "vimSync", new_data.vimSync);

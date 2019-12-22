@@ -246,7 +246,6 @@ declare namespace SettingsNS {
     reduceMotion = "reduceMotion",
   }
   type AutoItems = {
-    /** hookAccessKeys */ a: ["hookAccessKeys", boolean];
     /** ignoreKeyboardLayout */ L: ["ignoreKeyboardLayout", boolean];
     /** keyboard */ k: ["keyboard", [number, number]];
     /** linkHintCharacters */ l: ["linkHintCharacters", string];
