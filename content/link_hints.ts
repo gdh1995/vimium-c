@@ -1387,8 +1387,8 @@ var VHints = {
 
 filterEngine_: {
   activeHint_: null as HintsNS.FilteredHintItem | null,
-  reForMatch_: null as never as RegExpG,
-  getRe_ (forMatch: BOOL): RegExpG {
+  reForMatch_: null as never as RegExpG & RegExpOne & RegExpSearchable<0>,
+  getRe_ (forMatch: BOOL): RegExpG & RegExpOne & RegExpSearchable<0> {
     const chars = VHints.chars_, kNum = "0123456789",
     accepted_numbers = chars === kNum ? ""
         : !(Build.BTypes & BrowserType.Chrome)
@@ -1398,7 +1398,8 @@ filterEngine_: {
         ? [... <string[]> <unknown> kNum].filter(ch => !(chars as Ensure<string, "includes">).includes(ch)).join("")
         : kNum.replace(new RegExp(`[${chars.replace(<RegExpG> /\D/g, "")}]`, "g"), ""),
     accepted_letters = forMatch ? "[^" + GlobalConsts.KeyboardLettersLl : "[^" + GlobalConsts.LettersLlLuAndASCII;
-    return new RegExp(accepted_letters + accepted_numbers + GlobalConsts.KeyboardLettersLo + "]+", "g");
+    return new RegExp(accepted_letters + accepted_numbers + GlobalConsts.KeyboardLettersLo + "]+", "g"
+        ) as RegExpG & RegExpOne & RegExpSearchable<0>;
   },
   GenerateHintStrings_ (this: void, hints: HintsNS.HintItem[]): void {
     const H = VHints, chars = H.chars_, base = chars.length, is10Digits = chars === "0123456789",
@@ -1594,9 +1595,11 @@ filterEngine_: {
         right = (hint.h as HintsNS.HintText).t;
         if (!right || right[0] !== ":") { continue; }
         right = right.replace(exclusionRe = exclusionRe || a.filterEngine_.getRe_(0), " ").trim();
+        right = (hint.h as HintsNS.HintText).t = right !== ":" ? right : "";
         right = right.length > GlobalConsts.MaxLengthOfShownText
             ? right.slice(0, GlobalConsts.MaxLengthOfShownText - 2).trimRight() + "\u2026" // the "\u2026" is wide
-            : right !== ":" ? right : "";
+            : right;
+        right = (<RegExpOne> /[\w\x80-\uffff]/).test(right) ? right : "";
       } else {
         right = hint.a.slice(-1);
         for (const ch of hint.a.slice(0, -1)) {
@@ -1668,8 +1671,8 @@ filterEngine_: {
       } else if (useFilter) {
         let lower = keyChar.toLowerCase();
         if (keyChar !== lower && h.chars_ !== h.chars_.toLowerCase() // ignore {Lo} in h.chars_
-            || (filterEngine.reForMatch_ as RegExpG & RegExpOne || (filterEngine.reForMatch_ = filterEngine.getRe_(1))
-                ).test(lower)) {
+            /** this line requires lower.length must be 1 or 0 */
+            || (filterEngine.reForMatch_ || (filterEngine.reForMatch_ = filterEngine.getRe_(1))).test(lower)) {
           return 2;
         } else {
           sequence = "";
