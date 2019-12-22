@@ -1455,8 +1455,9 @@ filterEngine_: {
     }
     if (text) {
       text = text.slice(0, 256).trim();
-      text.endsWith(":") && (text = text.substr(0, -1).trim());
-      text && text[0] === ":" && (text = text.substr(1).trim());
+      if (text && (text[0] === ":" || text.endsWith(":"))) {
+        text = text.replace(<RegExpG> /^[:\s]+|:+$/g, "").trim();
+      }
     }
     return { t: show && text ? ": " + text : text, w: null };
   },
