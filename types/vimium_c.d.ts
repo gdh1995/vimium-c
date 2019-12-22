@@ -949,8 +949,10 @@ declare const enum BrowserVer {
   MinBlockAutoFocusingInCrossOriginFrame = 75,
   MinMediaQuery$PrefersColorScheme = 76,
   MinChromeFavicon2 = 77, // tested on 77.0.3865.90, chrome://favicon2/ is forbidden to use on extension pages
+  // https://github.com/philc/vimium/issues/3449#issuecomment-568248237
+  FlagOutOfBlinkCorsMayCauseBug = 81,
   // https://groups.google.com/a/chromium.org/forum/#!msg/blink-dev/h-JwMiPUnuU/sl79aLoLBQAJ
-  MinNoShadowDOMv0 = 80,
+  MinNoShadowDOMv0 = 83,
   // ses https://bugs.chromium.org/p/chromium/issues/detail?id=968651&can=2&q=reduced-motion%20change
   // TODO: use a real version code when the bug report above is solved
   MinMediaChangeEventsOnBackgroundPage = 99,

@@ -3586,7 +3586,7 @@ interface HTMLImageElement extends HTMLElement {
       * Retrieves whether the object is fully loaded.
       */
     readonly complete: boolean;
-    crossOrigin: string | null;
+    crossOrigin: "anonymous" | "use-credentials" | null;
     readonly currentSrc: string;
     /**
       * Sets or retrieves the height of the object.

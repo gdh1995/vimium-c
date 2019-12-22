@@ -547,6 +547,9 @@ BgUtils_.timeout_(150, function (): void {
     for (const i in path) {
       img = new Image();
       img.onload = onload, img.onerror = onerror;
+      if (CurCVer_ === BrowserVer.FlagOutOfBlinkCorsMayCauseBug) {
+        img.crossOrigin = "anonymous";
+      }
       img.src = path[i as IconNS.ValidSizes];
     }
   }
