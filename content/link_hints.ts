@@ -1018,8 +1018,7 @@ var VHints = {
         ((frame.s as typeof VHints).box_ as SafeHTMLElement).classList.toggle("HM1");
       }
     } else if (i > kKeyCode.f1 && i <= kKeyCode.f12) {
-      a.ResetMode_();
-      if (i !== kKeyCode.f2) { return HandlerResult.Nothing; }
+      if (i !== kKeyCode.f2) { a.ResetMode_(); return HandlerResult.Nothing; }
       i = VKey.getKeyStat_(event);
       if (i === KeyStat.altKey) {
         a.wantDialogMode_ = !a.wantDialogMode_;
@@ -1028,10 +1027,11 @@ var VHints = {
       } else if (i & KeyStat.PrimaryModifier) {
         a.options_.useFilter = VDom.cache_.f = !a.useFilter_;
       } else {
-        if (!VApi.execute_) { return HandlerResult.Prevent; }
+        if (!VApi.execute_) { a.ResetMode_(); return HandlerResult.Prevent; }
         a.isClickListened_ = true;
         (VApi as EnsureNonNull<VApiTy>).execute_(kContentCmd.ManuallyFindAllOnClick);
       }
+      a.ResetMode_(1);
       setTimeout(a._reinit.bind(a, null, null, null), 0);
     } else if (Build.BTypes & BrowserType.Chrome && a._onTailEnter) {
       a._onTailEnter(event);
@@ -1046,7 +1046,8 @@ var VHints = {
         ? mode < HintMode.min_disable_queue
           ? ((mode1 < HintMode.min_job ? HintMode.newTab : HintMode.empty) | mode) ^ HintMode.queue : mode
         : mode1 < HintMode.min_job
-        ? (i === kKeyCode.shiftKey) === !a.options_.swapCtrlAndShift ? (mode | HintMode.focused) ^ HintMode.mask_focus_new
+        ? (i === kKeyCode.shiftKey) === !a.options_.swapCtrlAndShift
+          ? (mode | HintMode.focused) ^ HintMode.mask_focus_new
           : (mode | HintMode.newTab) ^ HintMode.focused
         : mode;
       if (mode2 !== mode) {
@@ -1080,12 +1081,12 @@ var VHints = {
     }
     return HandlerResult.Prevent;
   },
-  ResetMode_ (): void {
+  ResetMode_ (silent?: 1): void {
     let a = VHints, d: KeydownCacheArray;
     if (a.lastMode_ !== a.mode_ && a.mode_ < HintMode.min_disable_queue) {
       d = VApi.keydownEvents_();
       if (d[kKeyCode.ctrlKey] || d[kKeyCode.metaKey] || d[kKeyCode.shiftKey] || d[kKeyCode.altKey]) {
-        a.setMode_(a.lastMode_);
+        a.setMode_(a.lastMode_, silent);
       }
     }
   },
@@ -1417,17 +1418,28 @@ filterEngine_: {
       , localName = "lang" in el ? el.localName : "", ind: number;
     switch (localName) { // skip SVGElement
     case "input": case "textarea": case "select":
-      let labels = (el as HTMLInputElement).labels;
+      let labels = (el as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement).labels;
       if (labels && labels.length > 0
           && (text = (labels[0] as SafeHTMLElement).innerText).trim()) {
         show = !0;
       } else if (localName[0] === "s") {
         const selected = (el as HTMLSelectElement).selectedOptions[0];
         text = selected ? selected.label : "";
-      } else if ((el as HTMLInputElement).type === "file") {
-        text = "Choose File";
-      } else if ((el as HTMLInputElement).type !== "password") {
-        text = (el as HTMLInputElement).value || (el as HTMLInputElement).placeholder || "";
+      } else {
+        if (localName[0] === "i") {
+          if ((el as HTMLInputElement).type === "file") {
+            text = "Choose File";
+          } else if ((el as HTMLInputElement).type === "password") {
+            break;
+          }
+        }
+        text = text || (el as HTMLInputElement | HTMLTextAreaElement).value
+            || (el as HTMLInputElement | HTMLTextAreaElement).placeholder;
+        if (localName[0] === "t" && !(el as HTMLTextAreaElement).scrollTop) {
+          ind = text.indexOf("\n") + 1;
+          // tslint:disable-next-line: no-unused-expression
+          ind && (ind = text.indexOf("\n", ind)) > 0 ? text = text.slice(0, ind) : 0;
+        }
       }
       break;
     case "img":
@@ -1551,10 +1563,10 @@ filterEngine_: {
     const newActive = hints[(keyStatus.tab_ < 0 ? (keyStatus.tab_ += hints.length) : keyStatus.tab_) % hints.length];
     if (oldActive !== newActive) {
       if (oldActive) {
-        oldActive.m.classList.remove("MC");
+        oldActive.m.classList.remove("MH");
         oldActive.m.style.zIndex = "";
       }
-      newActive.m.classList.add("MC");
+      newActive.m.classList.add("MH");
       newActive.m.style.zIndex = fullHints.length as number | string as string;
       a.activeHint_ = newActive;
     }

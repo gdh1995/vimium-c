@@ -448,9 +448,9 @@ function showText(tip: string, body: string | string[]): void {
 }
 
 function copyThing(event: EventToPrevent): void {
-  event.preventDefault();
   const str = VData.type === "url" ? $("#textBody").textContent : VData.url;
   if (!(str && window.VApi)) { return; }
+  event.preventDefault();
   VApi.post_({
     H: kFgReq.copy,
     d: str

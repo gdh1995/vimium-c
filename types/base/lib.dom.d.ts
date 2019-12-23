@@ -4495,6 +4495,7 @@ declare var HTMLScriptElement: {
 }
 
 interface HTMLSelectElement extends HTMLElement {
+    readonly labels: NodeListOf<HTMLLabelElement>;
     /**
       * Provides a way to direct a user to a specific field when a document loads. This can provide both direction and convenience for a user, reducing the need to click or tab to a field when a page opens. This attribute is true when present on an element, and false when missing.
       */
@@ -4965,6 +4966,7 @@ interface HTMLTextAreaElement extends HTMLElement {
     readonly innerText: string;
     readonly parentElement: Element | null;
     readonly parentNode: Node | null;
+    readonly labels: NodeListOf<HTMLLabelElement>;
     /**
       * Provides a way to direct a user to a specific field when a document loads. This can provide both direction and convenience for a user, reducing the need to click or tab to a field when a page opens. This attribute is true when present on an element, and false when missing.
       */
