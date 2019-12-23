@@ -1012,14 +1012,23 @@ var VHints = {
       a.clean_();
     } else if (i === kKeyCode.esc) {
       return HandlerResult.Suppress;
-    } else if (i === kKeyCode.f1 && event.shiftKey) {
-      a.ResetMode_();
-      for (const frame of this.frameList_) {
-        ((frame.s as typeof VHints).box_ as SafeHTMLElement).classList.toggle("HM1");
-      }
-    } else if (i > kKeyCode.f1 && i <= kKeyCode.f12) {
-      if (i !== kKeyCode.f2) { a.ResetMode_(); return HandlerResult.Nothing; }
+    } else if (Build.BTypes & BrowserType.Chrome && a._onTailEnter && i !== kKeyCode.f12) {
+      a._onTailEnter(event);
+    } else if (i > kKeyCode.f1 ? i < kKeyCode.f12 + 1 : i > kKeyCode.f1 - 1) {
+      if (i > kKeyCode.f2) { a.ResetMode_(); return HandlerResult.Nothing; }
       i = VKey.getKeyStat_(event);
+      if (i < kKeyCode.f2) {
+        a.ResetMode_();
+        if (i & KeyStat.altKey && a.useFilter_) {
+          (a.locateHint_(a.filterEngine_.activeHint_ as HintsNS.HintItem) as typeof a)._highlightHint(
+              a.filterEngine_.activeHint_ as HintsNS.HintItem);
+        } else if (i & KeyStat.shiftKey) {
+          for (const frame of this.frameList_) {
+            ((frame.s as typeof VHints).box_ as SafeHTMLElement).classList.toggle("HM1");
+          }
+        }
+        return HandlerResult.Prevent;
+      }
       if (i === KeyStat.altKey) {
         a.wantDialogMode_ = !a.wantDialogMode_;
       } else if (i & KeyStat.shiftKey) {
@@ -1033,8 +1042,6 @@ var VHints = {
       }
       a.ResetMode_(1);
       setTimeout(a._reinit.bind(a, null, null, null), 0);
-    } else if (Build.BTypes & BrowserType.Chrome && a._onTailEnter) {
-      a._onTailEnter(event);
     } else if (i < kKeyCode.maxAcsKeys + 1 && i > kKeyCode.minAcsKeys - 1
         || (i === kKeyCode.metaKey && !VDom.cache_.o)) {
       const mode = a.mode_, mode1 = a.mode1_,
@@ -1058,7 +1065,7 @@ var VHints = {
     } else if (i <= kKeyCode.down && i >= kKeyCode.pageup) {
       VSc.BeginScroll_(event);
       a.ResetMode_();
-    } else if (i === kKeyCode.tab && !a.keyStatus_.keySequence_ && !a.keyStatus_.textSequence_) {
+    } else if (i === kKeyCode.tab && !a.useFilter_ && !a.keyStatus_.keySequence_) {
       a.tooHigh_ = null;
       a.ResetMode_();
       setTimeout(a._reinit.bind(a, null, null, null), 0);
@@ -1069,17 +1076,25 @@ var VHints = {
       // then .a.keyStatus_.hintSequence_ is the last key char
       a.deactivate_(a.keyStatus_.known_);
     } else if (matchedHint !== 2) {
-      /** safer; necessary since {@link #VHints._highlightChild} calls {@link #VHints.detectUsableChild_} */
-      for (const list of a.frameList_) {
-        if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
-            ? list.h.indexOf(matchedHint) >= 0
-            : (list.h as ReadonlyArrayWithIncludes<HintsNS.HintItem>).includes(matchedHint)) {
-          (list.s.execute_ as typeof a.execute_)(matchedHint, event);
-          break;
-        }
-      }
+      a.locateHint_(matchedHint).execute_(matchedHint, event);
     }
     return HandlerResult.Prevent;
+  },
+  locateHint_ (matchedHint: HintsNS.HintItem): HintsNS.BaseHinter {
+    /** safer; necessary since {@link #VHints._highlightChild} calls {@link #VHints.detectUsableChild_} */
+    const arr = this.frameList_;
+    for (const list of arr.length > 1 && matchedHint ? arr : []) {
+      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
+          ? list.h.indexOf(matchedHint) >= 0
+          : (list.h as ReadonlyArrayWithIncludes<HintsNS.HintItem>).includes(matchedHint)) {
+        return list.s;
+      }
+    }
+    return this;
+  },
+  _highlightHint (hint: HintsNS.HintItem): void {
+    VCui.flash_(hint.m, null, 660, " Sel");
+    (this.box_ as NonNullable<typeof VHints.box_>).classList.toggle("HMM");
   },
   ResetMode_ (silent?: 1): void {
     let a = VHints, d: KeydownCacheArray;
