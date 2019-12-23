@@ -339,7 +339,7 @@ var VVisual = {
     VApi.post_(action != null ? { H: kFgReq.openUrl, u: str, r: action }
         : { H: kFgReq.copy, d: str });
   },
-  HighlightRange_(this: void, sel: Selection): void {
+  HighlightRange_ (this: void, sel: Selection): void {
     const range = sel.rangeCount > 0 ? sel.getRangeAt(0) : null,
     br = range && range.getBoundingClientRect();
     if (br && br.height > 0 && br.right > 0) { // width may be 0 in Caret mode

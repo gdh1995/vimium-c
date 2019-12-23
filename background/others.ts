@@ -547,7 +547,8 @@ BgUtils_.timeout_(150, function (): void {
     for (const i in path) {
       img = new Image();
       img.onload = onload, img.onerror = onerror;
-      if (CurCVer_ === BrowserVer.FlagOutOfBlinkCorsMayCauseBug) {
+      if (Build.MinCVer <= BrowserVer.FlagOutOfBlinkCorsMayCauseBug
+          && CurCVer_ === BrowserVer.FlagOutOfBlinkCorsMayCauseBug) {
         img.crossOrigin = "anonymous";
       }
       img.src = path[i as IconNS.ValidSizes];
@@ -577,7 +578,7 @@ BgUtils_.timeout_(150, function (): void {
     if (!(Build.BTypes & BrowserType.Chrome)) {
       imageData = 1 as unknown as IconNS.StatusMap<IconNS.IconBuffer>;
     } else {
-      imageData = BgUtils_.safeObj_();
+      imageData = [null, null, null];
       tabIds = BgUtils_.safeObj_();
     }
     // only do partly updates: ignore "rare" cases like `sender.s` is enabled but the real icon isn't
@@ -590,7 +591,7 @@ BgUtils_.timeout_(150, function (): void {
     }
   } as IconNS.AccessIconBuffer;
   Backend_.setIcon_ = function (this: void, tabId: number, type: Frames.ValidStatus, isLater?: true): void {
-    let data: IconNS.IconBuffer | undefined, path: IconNS.PathBuffer;
+    let data: IconNS.IconBuffer | null, path: IconNS.PathBuffer;
     /** Firefox does not use ImageData as inner data format
      * * https://dxr.mozilla.org/mozilla-central/source/toolkit/components/extensions/schemas/manifest.json#577
      *   converts ImageData objects in parameters into data:image/png,... URLs

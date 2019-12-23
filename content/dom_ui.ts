@@ -441,7 +441,7 @@ var VCui = {
     return remove;
   } as {
     (el: null, rect: Rect, lifeTime?: number, classNames?: string): () => void;
-    (el: Element): (() => void) | void;
+    (el: Element, rect?: null, lifeTime?: number, classNames?: string): (() => void) | void;
   },
   _toExit: [0, 0] as Array<((this: void) => void) | 0>,
   /** key: 0 := vomnibar; 1 := help dialog */
