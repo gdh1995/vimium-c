@@ -5478,9 +5478,14 @@ interface Navigator extends Object, NavigatorID, NavigatorOnLine, NavigatorConte
     readonly clipboard?: {
         readText?(): Promise<string>;
         writeText?(data: string): Promise<void>;
+        write?(data: object[]): Promise<void>;
     };
     javaEnabled(): boolean;
     vibrate(pattern: number | number[]): boolean;
+}
+declare var ClipboardItem: {
+  prototype: any;
+  new(data: { [mime: string]: Blob }): any;
 }
 
 declare var Navigator: {

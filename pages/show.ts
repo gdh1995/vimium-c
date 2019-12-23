@@ -59,7 +59,7 @@ let viewer_: ViewerType | null = null;
 var VData: VDataTy = null as never;
 let encryptKey = +window.name || 0;
 let ImageExtRe = <RegExpI> /\.(bmp|gif|icon?|jpe?g|a?png|tiff?|webp)(?=[.\-_]|\b)/i;
-let _shownBlobURL = "";
+let _shownBlobURL = "", _shownBlob: Blob | null | 0 = null;
 
 if (navigator.language.slice(0, 2).toLowerCase() !== "en") {
   document.title = pTrans_("vDisplay") || document.title;
@@ -300,7 +300,7 @@ document.addEventListener("keydown", function (this: void, event): void {
       download: VData.file || ""
     }, event);
   } else if (str === "C") {
-    "" + getSelection() && copyThing(event);
+    copyThing(event);
     return;
   } else if (str === "A") {
     return toggleInvert(event);
@@ -448,9 +448,33 @@ function showText(tip: string, body: string | string[]): void {
 }
 
 function copyThing(event: EventToPrevent): void {
+  const sel = getSelection();
+  if ("" + sel) { return; }
+  if (VData.type === "image" && VData.url) {
+    const clipboard = navigator.clipboard;
+    if (clipboard && clipboard.write) {
+      const blobPromise = _shownBlob != null ? Promise.resolve(_shownBlob) : fetch(VData.url, {
+        cache: "force-cache",
+        referrer: "no-referrer"
+      }).then(res => res.blob()).catch(() => (_copyStr(VData.url), 0 as const)
+      ).then(blob => _shownBlob = blob);
+      blobPromise.then<0 | void>(blob =>
+        blob && (clipboard as Ensure<typeof clipboard, "write">).write([new ClipboardItem({
+          // Chrome 79 refuses image/jpeg
+          "image/png": new Blob([blob], {type: "image/png"}),
+          "text/plain": new Blob([VData.url], {type: "text/plain"})
+        })])
+      ).catch(ex => { console.log(ex); _copyStr(VData.url); });
+      return;
+    }
+  }
   const str = VData.type === "url" ? $("#textBody").textContent : VData.url;
+  _copyStr(str, event);
+}
+
+function _copyStr(str: string, event?: EventToPrevent): void {
   if (!(str && window.VApi)) { return; }
-  event.preventDefault();
+  event && event.preventDefault();
   VApi.post_({
     H: kFgReq.copy,
     d: str
@@ -542,6 +566,7 @@ function showSlide(ViewerModule: Window["Viewer"]): Promise<ViewerType> | Viewer
 
 function clean() {
   destroyObject_();
+  Promise.resolve().then(() => { _shownBlob = null; });
   if (VData.type === "image") {
     (document.body as HTMLBodyElement).classList.remove("filled");
     (VShown as HTMLImageElement).removeAttribute("src");
@@ -647,6 +672,17 @@ function tryToFixFileExt_(file: string): string | void {
   if (ext) {
     return file + ext[0];
   }
+  const type = _shownBlob ? _shownBlob.type.toLowerCase() : "";
+  if (type.startsWith("image/")) {
+    const map = {
+      jpeg: "jpg", png: 0, bmp: 0, svg: 0, gif: 0, tif: 0, ico: 0
+    } as const;
+    for (const key in map) {
+      if (map.hasOwnProperty(key) && type.indexOf(key) > 0) {
+        return map[key as keyof typeof map] || "." + key;
+      }
+    }
+  }
 }
 
 function fetchImage_(url: string, element: HTMLImageElement): void {
@@ -674,7 +710,8 @@ function fetchImage_(url: string, element: HTMLImageElement): void {
     fetch(url, {
       cache: "no-store",
       referrer: "no-referrer"
-    }).then(res => res.blob()).then(blob => _shownBlobURL = URL.createObjectURL(blob), () => url).then(newUrl => {
+    }).then(res => res.blob()).then(blob => _shownBlobURL = URL.createObjectURL(_shownBlob = blob), () => url
+    ).then(newUrl => {
       element.src = newUrl;
       body.replaceChild(element, text);
     });
