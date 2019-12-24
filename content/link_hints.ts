@@ -143,6 +143,8 @@ var VHints = {
   kEditableSelector_: "input,textarea,[contenteditable]" as const,
   _master: null as HintsNS.Master | null,
   hud_: null as never as VHUDTy,
+  _wrap: !(Build.BTypes & BrowserType.Firefox) ? 0 as never
+      : <T extends object> (obj: T): T => (obj as XrayedObject<T>).wrappedJSObject || obj,
   /** return whether the element's VHints is not accessible */
   _addChildFrame: null as ((this: {}, el: HTMLIFrameElement | HTMLFrameElement, rect: Rect | null) => boolean) | null,
   activate_ (this: void, count: number, options: FgOptions): void {
@@ -167,7 +169,8 @@ var VHints = {
       return;
     }
     const useFilter0 = options.useFilter, useFilter = useFilter0 != null ? !!useFilter0 : VDom.cache_.f,
-    frameList: HintsNS.FrameHintsInfo[] = a.frameList_ = [], toClean: HintsNS.Slave[] = [],
+    frameList: HintsNS.FrameHintsInfo[] = a.frameList_ = [{h: [], v: null as never, s: a}],
+    toClean: HintsNS.Slave[] = [],
     s0 = options.characters, chars = (s0 ? s0 + "" : useFilter ? VDom.cache_.n : VDom.cache_.l).toUpperCase();
     if (chars.length < GlobalConsts.MinHintCharSetSize) {
       a.clean_(1);
@@ -176,7 +179,8 @@ var VHints = {
     a.dialogMode_ = !!(a.wantDialogMode_ != null ? a.wantDialogMode_ : document.querySelector("dialog[open]"))
         && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement
             || typeof HTMLDialogElement === "function");
-    let allHints: HintsNS.HintItem[], child: HintsNS.ChildFrame | undefined, total: number;
+    let allHints: readonly HintsNS.HintItem[], child: HintsNS.ChildFrame | undefined, insertPos = 0
+      , frameInfo: HintsNS.FrameHintsInfo, total: number;
     {
       const childFrames: HintsNS.ChildFrame[] = [],
       addChild: typeof a._addChildFrame = function (el, rect) {
@@ -184,15 +188,23 @@ var VHints = {
         slave: HintsNS.Slave | null | undefined = core && core.VHints as typeof VHints | undefined;
         if (slave) {
           ((core as ContentWindowCore).VCui as typeof VCui).learnCss_(VCui);
-          childFrames.push({ e: el, v: rect && (this as typeof a).getPreciseChildRect_(el, rect), s: slave });
+          childFrames.splice(insertPos, 0, {
+            v: rect && (this as typeof a).getPreciseChildRect_(el, rect),
+            s: slave
+          });
         }
         return !slave;
       };
-      allHints = a.collectFrameHints_(count, options, chars, useFilter, null, null, frameList, addChild, []);
+      a.collectFrameHints_(count, options, chars, useFilter, null, null, frameList[0], addChild);
+      allHints = frameList[0].h;
       while (child = childFrames.pop()) {
         if (child.v) {
-          allHints = (child.s.collectFrameHints_ as typeof a.collectFrameHints_)(count, options, chars, useFilter
-                , child.v, a as typeof a & { _master: null }, frameList, addChild, allHints);
+          insertPos = childFrames.length;
+          frameList.push(frameInfo = {h: [], v: null as never, s: child.s});
+          (child.s.collectFrameHints_ as typeof a.collectFrameHints_)(count, options, chars, useFilter
+                , child.v, a as typeof a & { _master: null }, frameInfo, addChild);
+          // ensure allHints always belong to the master frame
+          allHints = frameInfo.h.length ? allHints.concat(frameInfo.h) : allHints;
         } else if (child.s.isActive_ as typeof a.isActive_) {
           toClean.push(child.s);
         }
@@ -217,18 +229,17 @@ var VHints = {
     }
   },
   collectFrameHints_ (count: number, options: FgOptions, chars: string, useFilter: boolean, outerView: Rect | null
-      , master: HintsNS.Master | null, frameList: HintsNS.FrameHintsInfo[]
+      , master: HintsNS.Master | null, frameInfo: HintsNS.FrameHintsInfo
       , addChildFrame: (this: {}, el: HTMLIFrameElement | HTMLFrameElement, rect: Rect | null) => boolean
-      , allHints: HintsNS.HintItem[]): HintsNS.HintItem[] {
+      ): void {
     const a = this;
-    a._master = master;
+    a._master = Build.BTypes & BrowserType.Firefox ? master && a._wrap(master) : master;
     a.resetHints_();
     a.setModeOpt_(count, options);
     a.chars_ = chars;
     a.useFilter_ = useFilter;
     if (!VDom.isHTML_()) {
-      frameList.push({ h: [], v: null as never, s: a });
-      return allHints;
+      return;
     }
 
     const view = VDom.getViewBox_(1) as ViewBox;
@@ -242,13 +253,13 @@ var VHints = {
     const hintItems = elements.map(a.createHint_, a);
     a._addChildFrame = null as never;
     VDom.bZoom_ !== 1 && a.adjustMarkers_(elements, hintItems);
-    frameList.push({ h: hintItems, v: view, s: a });
-    return hintItems.length ? allHints.length ? allHints.concat(hintItems) : hintItems : allHints;
+    frameInfo.h = hintItems;
+    frameInfo.v = view;
   },
   render_ (hints: readonly HintsNS.HintItem[], arr: ViewBox, hud: VHUDTy): void {
     const a = this, master = a._master || a;
     if (a.box_) { a.box_.remove(); a.box_ = null; }
-    a.hud_ = hud;
+    a.hud_ = Build.BTypes & BrowserType.Firefox ? a._wrap(hud) : hud;
     if (hints.length) {
       VCui.ensureBorder_(VDom.wdZoom_);
       a.box_ = VCui.addElementList_(hints, arr, master.dialogMode_ as typeof a.dialogMode_);
@@ -1104,16 +1115,17 @@ var VHints = {
       }
     }
   },
-  /** must be called from a master */
-  delayToExecute_ (hint: HintsNS.HintItem, slave: HintsNS.BaseHinter, wnd: Window
-      , flashEl: SafeHTMLElement | null): void {
+  delayToExecute_ (slave: HintsNS.BaseHinter, hint: HintsNS.HintItem, flashEl: SafeHTMLElement | null): void {
     const a = this, waitEnter = Build.BTypes & BrowserType.Chrome && VDom.cache_.w,
     callback: (event?: HandlerNS.Event) => void = event => {
-      let closed: 1 | boolean = 1;
+      let closed: void | 1 | 2 = 1;
       try {
-        closed = wnd.closed;
+        closed = (slave as typeof VHints).CheckLast_(1);
       } catch {}
-      if (closed || !slave.isActive_) { a.isActive_ && a.clean_(); return; }
+      if (closed !== 2) {
+        a.isActive_ && (a.clean_(), VHud.tip_(kTip.linkRemoved));
+        return;
+      }
       if (event) {
         const i = event.keyCode, key = event.key;
         tick = waitEnter && (i === kKeyCode.space || key === "Space") ? tick + 1 : 0;
@@ -1128,6 +1140,7 @@ var VHints = {
     a._onTailEnter = callback;
     (a.box_ as NonNullable<typeof a.box_>).remove();
     a.box_ = null;
+    Build.BTypes & BrowserType.Firefox && (slave = a._wrap(slave));
     if (Build.BTypes & BrowserType.Chrome && !waitEnter) {
       a._onWaitingKey = VKey.suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents, callback);
       VKey.removeHandler_(a._onWaitingKey);
@@ -1162,7 +1175,7 @@ var VHints = {
           VKey.suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents);
         } else {
           a._removeFlash = rect && VCui.flash_(null, rect, -1);
-          return (masterOrA as typeof a).delayToExecute_(hint, a, window, rect && VCui.lastFlashEl_);
+          return (masterOrA as typeof a).delayToExecute_(a, hint, rect && VCui.lastFlashEl_);
         }
       }
       master && focus();
@@ -1216,18 +1229,24 @@ var VHints = {
     a.timer_ && clearTimeout(a.timer_);
     a.timer_ = slave && el && a.mode1_ < HintMode.min_job ? setTimeout(function (i): void {
       a.timer_ = 0;
-      Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i ||
-      slave && (slave as typeof VHints).CheckLast_(el, r) && a._reinit();
+      let reinit: BOOL | void = 0;
+      try {
+        Build.BTypes & BrowserType.Firefox && (slave = a._wrap(slave as NonNullable<typeof slave>));
+        Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i ||
+        slave && (reinit = (slave as typeof VHints).CheckLast_(el, r));
+      } catch {}
+      reinit && a._reinit();
       for (const frame of a.isActive_ ? a.frameList_ : []) {
         (frame.s as typeof a).hasExecuted_ = 1;
       }
     }, a.frameList_.length > 1 ? 380 : 255) : 0;
   },
   // if not el, then reinit if only no key stroke and hints.length < 64
-  CheckLast_ (this: void, el?: HintsNS.LinkEl | TimerType.fake, r?: Rect | null): void | 1 {
+  CheckLast_: function (this: void, el?: HintsNS.LinkEl | TimerType.fake | 1, r?: Rect | null): void | BOOL | 2 {
     const _this = VHints;
     if (!_this) { return; }
     if (window.closed) { return 1; }
+    if (el === 1) { return 2; }
     const master = _this._master || _this;
     const r2 = el && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinNo$TimerType$$Fake
                       || el !== TimerType.fake) ? VDom.getBoundingClientRect_(el as HintsNS.LinkEl) : 0,
@@ -1244,6 +1263,9 @@ var VHints = {
       if (_this._master) { return 1; }
       master._reinit();
     }
+  } as {
+    (el?: HintsNS.LinkEl | TimerType.fake, r?: Rect | null): void | BOOL;
+    (el: 1, r?: Rect | null): void | 1 | 2;
   },
   resetHints_ (): void {
     // here should not consider about ._master
@@ -1275,11 +1297,7 @@ var VHints = {
       }
     }
     master && (master.clean_ as typeof a.clean_)(keepHudOrEvent);
-    for (const { s: frame } of a.frameList_) {
-      let hasMaster = (frame as typeof frame | typeof a)._master;
-      (frame as typeof frame | typeof a)._master = null;
-      hasMaster && (frame.clean_ as typeof a.clean_)(1);
-    }
+    a.frameList_.forEach(a._cleanFrameInfo);
     a.yankedList_ = a.frameList_ = [];
     VKey.SetupEventListener_(0, "unload", a.clean_, 1);
     a.resetHints_();
@@ -1301,10 +1319,18 @@ var VHints = {
     }
     keepHudOrEvent === 1 || VHud.hide_();
   },
+  _cleanFrameInfo (frameInfo: HintsNS.FrameHintsInfo) {
+    try {
+      let frame = frameInfo.s, hasMaster = (frame as typeof frame | typeof VHints)._master;
+      (frame as typeof frame | typeof VHints)._master = null;
+      hasMaster && (frame.clean_ as typeof VHints.clean_)(1);
+    } catch { /* empty */ }
+  },
   onFrameUnload_ (slave: HintsNS.Slave): void {
     const a = this, frames = a.frameList_, len = frames.length;
+    const wrappedSlave = Build.BTypes & BrowserType.Firefox ? a._wrap(slave) : 0 as never;
     let i = 0, offset = 0;
-    while (i < len && frames[i].s !== slave) {
+    while (i < len && frames[i].s !== (Build.BTypes & BrowserType.Firefox ? wrappedSlave : slave)) {
       offset += frames[i++].h.length;
     }
     if (i >= len || !a.isActive_ || a.timer_) { return; }
