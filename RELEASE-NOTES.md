@@ -1,8 +1,27 @@
 Release Notes of Vimium C
 =========================
 
-#### 1.78.7
+#### 1.79.0
 (the current published version on Chrome Web Store and Firefox Add-ons)
+* `LinkHints`: merge logic from Vimium and add new options
+  * add "Filtered Hints" mode
+    * support filtering by some common non-English letters
+    * include a fix for https://github.com/philc/vimium/issues/3103
+  * use a new algorithm to assign letters in "Alphabet Hints" mode
+  * support and simulate Vivaldi: add boolean options `noCtrlPlusShift` and `swapCtrlAndShift`
+  * add `newtab="force"` to skip click and force openUrlInNewTab
+  * now support `dblclick` and `button="right"` to double click / click the right button
+* always hook in-page access keys
+  * completely avoid negative influence on debugging experience
+  * the option `hook access keys` which was added in v1.78 is not needed any more
+* `toggleSwitchTemp`: apply on all frames of a tab
+* `createTab`: if `url: string` is specified, supports `host_mask: string`
+* display image: support <kbd>Ctrl+C</kbd> to copy image data on Chrome 76+
+* open copied URL: auto convert `0.0.0.0` to `127.0.0.1`
+* some other bug fixes and enhancements
+
+
+#### 1.78.7
 * Firefox: fix `focusInput` can not select begin/end of text
 * `FindMode`: try to scroll highlighted text into view
 * `Vomnibar`: show better favIcons for URLs from search engines

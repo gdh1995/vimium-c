@@ -16,7 +16,7 @@ declare namespace HintsNS {
   }
   interface Options extends SafeObject {
     action?: string;
-    character?: string;
+    characters?: string;
     useFilter?: boolean;
     mode?: string | number;
     url?: boolean;
@@ -33,6 +33,8 @@ declare namespace HintsNS {
     auto?: boolean;
     noCtrlPlusShift?: boolean;
     swapCtrlAndShift?: boolean;
+    hideHud?: boolean;
+    hideHUD?: boolean;
   }
   type NestedFrame = false | 0 | null | HTMLIFrameElement | HTMLFrameElement;
   interface Filter<T> {
@@ -146,7 +148,7 @@ var VHints = {
       : <T extends object> (obj: T): T => (obj as XrayedObject<T>).wrappedJSObject || obj,
   /** return whether the element's VHints is not accessible */
   _addChildFrame: null as ((this: {}, el: HTMLIFrameElement | HTMLFrameElement, rect: Rect | null) => boolean) | null,
-  activate_ (this: void, count: number, options: FgOptions): void {
+  activate_ (this: void, count: number, options: HintsNS.Options): void {
     const a = VHints;
     if (a.isActive_) { return; }
     if (VApi.checkHidden_(kFgCmd.linkHints, count, options)) {

@@ -88,14 +88,11 @@ __Other extensions supporting Vimium C:__
 # Release Notes
 
 ### 1.79.0
-
-not released yet
 * `LinkHints` adds support for the Filtered Hint mode, and adopts almost the same behavior logic as Vimium
-  * <kbd>Tab</kbd> will still re-init hints as in alphabet mode, if no text has been typed
-  * include a fix for https://github.com/philc/vimium/issues/3103
 * `LinkHints` uses a new algorithm to assign hint characters in alphabet mode
 * hook access keys: completely avoid negative influence on debugging experience
-* fix some other bugs
+* display image: support <kbd>Ctrl+C</kbd> to copy image data on Chrome 76+
+* some other bug fixes and enhancements
 
 See more on [RELEASE-NOTES.md](https://github.com/gdh1995/vimium-c/blob/master/RELEASE-NOTES.md).
 
