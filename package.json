@@ -57,6 +57,7 @@
     "zip": "bash -c \"ENABLE_SOURCE_MAP=0 gulp dist && IN_DIST=1 WITH_MAP=0 ./scripts/make.sh\"",
     "zip-d": "bash -c \"DEBUG=1 ENABLE_SOURCE_MAP=1 gulp dist && IN_DIST=1 WITH_MAP=1 ./scripts/make.sh\"",
     "clean": "gulp clean",
+    "nclean": "bash -c \"gulp clean\"",
     "local": "gulp local",
     "start": "gulp local",
     "test": "gulp test"

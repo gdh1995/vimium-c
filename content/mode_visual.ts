@@ -629,7 +629,8 @@ var VVisual = {
             : VDom.Getter_(Node, anchorNode as Element, "childNodes") || []
             )[num1 >= 0 ? num1 : sel.anchorOffset] as Node | undefined;
         if (lock === child || /** tend to trust that the selected is a textbox */ !child) {
-          if (VDom.isInputInTextMode_(lock as TextModeElement)) {
+          if (Build.MinCVer >= BrowserVer.Min$selectionStart$MayBeNull || !(Build.BTypes & BrowserType.Chrome)
+              ? (lock as TextModeElement).selectionEnd != null : VDom.isInputInTextMode_(lock as TextModeElement)) {
             a.diType_ = VisualModeNS.DiType.TextBox | (oldDiType & VisualModeNS.DiType.isUnsafe);
           }
         }

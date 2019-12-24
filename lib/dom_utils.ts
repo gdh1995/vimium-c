@@ -623,10 +623,8 @@ var VDom = {
     <Ty extends 2>(element: EventTarget): element is LockableElement;
     (element: Element): element is LockableElement; // this line is just to avoid a warning on VS Code
   },
-  isInputInTextMode_ (el: TextElement): boolean | void {
-    if (Build.MinCVer >= BrowserVer.Min$selectionStart$MayBeNull || !(Build.BTypes & BrowserType.Chrome)) {
-      return el.selectionEnd != null;
-    }
+  isInputInTextMode_: Build.MinCVer >= BrowserVer.Min$selectionStart$MayBeNull || !(Build.BTypes & BrowserType.Chrome)
+      ? 0 as never : function (el: TextElement): boolean | void {
     try {
       return el.selectionEnd != null;
     } catch {}

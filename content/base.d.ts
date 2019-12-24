@@ -398,7 +398,7 @@ interface SandboxGetterWrapper { _get: SandboxGetterFunc; }
 declare var wrappedJSObject: { [key: string]: SandboxGetterWrapper; };
 declare var XPCNativeWrapper: <T extends object> (wrapped: T) => XrayedObject<T>;
 type XrayedObject<T extends object> = T & {
-  wrappedJSObject?: T;
+  wrappedJSObject: T;
 }
 
 interface Window extends ContentWindowCore {

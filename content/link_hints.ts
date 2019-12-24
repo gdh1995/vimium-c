@@ -42,13 +42,13 @@ declare namespace HintsNS {
   type Stack = number[];
   type Stacks = Stack[];
   interface KeyStatus {
-    hints_: HintItem[];
+    hints_: readonly HintItem[];
     keySequence_: string;
     textSequence_: string;
     known_: BOOL;
     tab_: number;
   }
-  type HintSources = SafeElement[] | NodeListOf<SafeElement>;
+  type HintSources = readonly SafeElement[] | NodeListOf<SafeElement>;
 
   interface BaseHinter {
     isActive_: boolean;
@@ -80,7 +80,6 @@ declare namespace HintsNS {
     _master: Master | null;
   }
   interface ChildFrame {
-    e: HTMLIFrameElement | HTMLElement;
     v: Rect | null;
     s: Slave;
   }
@@ -106,7 +105,7 @@ var VHints = {
   box_: null as HTMLDivElement | HTMLDialogElement | null,
   dialogMode_: false,
   wantDialogMode_: null as boolean | null,
-  hints_: null as HintsNS.HintItem[] | null,
+  hints_: null as readonly HintsNS.HintItem[] | null,
   frameList_: [] as HintsNS.FrameHintsInfo[],
   mode_: 0 as HintMode,
   mode1_: 0 as HintMode,
@@ -377,7 +376,7 @@ var VHints = {
       r: link.length > 4 ? (link as Hint5)[4] : isBox ? link[0] : null
     };
   },
-  adjustMarkers_ (elements: Hint[], arr: HintsNS.HintItem[]): void {
+  adjustMarkers_ (elements: readonly Hint[], arr: readonly HintsNS.HintItem[]): void {
     const zi = VDom.bZoom_, root = VCui.root_;
     let i = elements.length - 1;
     if (!root || i < 1 || elements[i][0] !== VOmni.box_ && !root.querySelector("#HelpDialog")) { return; }
@@ -689,7 +688,7 @@ var VHints = {
     if (!Build.NDEBUG && isInAnElement) {
       // just for easier debugging
       list = [].slice.call(list);
-      list.unshift(wholeDoc as unknown as SafeElement);
+      (list as SafeElement[]).unshift(wholeDoc as unknown as SafeElement);
     }
     for (const tree_scopes: Array<[HintsNS.HintSources, number]> = [[list, 0]]; tree_scopes.length > 0; ) {
       let cur_scope = tree_scopes[tree_scopes.length - 1], [cur_tree, i] = cur_scope, len = cur_tree.length
@@ -931,7 +930,7 @@ var VHints = {
     }
     return null;
   },
-  getVisibleElements_ (view: ViewBox): Hint[] {
+  getVisibleElements_ (view: ViewBox): readonly Hint[] {
     let a = this, _i: number = a.mode1_,
     visibleElements = _i > HintMode.min_media - 1 && _i < HintMode.max_media + 1
       // not check `img[src]` in case of `<img srcset=... >`
@@ -1133,7 +1132,7 @@ var VHints = {
       a._onWaitingKey = VKey.suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents, callback);
       VKey.removeHandler_(a._onWaitingKey);
     } else {
-      a.hud_.show_(kTip.waitEnter);
+      VHud.show_(kTip.waitEnter);
     }
   },
   execute_ (hint: HintsNS.HintItem, event?: HandlerNS.Event): void {
@@ -1237,7 +1236,7 @@ var VHints = {
       VDom.lastHovered_ = null;
     }
     if ((!r2 || r) && master.isActive_
-        && (master.hints_ as typeof _this.hints_ as HintsNS.HintItem[]).length < (
+        && (master.hints_ as NonNullable<typeof _this.hints_>).length < (
               (master.frameList_ as typeof _this.frameList_).length > 1 ? 200 : 100)
         && !master.keyStatus_.keySequence_
         && (hidden || Math.abs((r2 as ClientRect).left - (r as Rect).l) > 100
@@ -1266,15 +1265,14 @@ var VHints = {
   clean_ (keepHudOrEvent?: 0 | 1 | 2 | Event): void {
     const a = VHints, master = a && a._master;
     if (!a) { return; }
-    if (keepHudOrEvent === 2) {
-      master && (master.onFrameUnload_ as typeof a.onFrameUnload_)(a);
-    }
-    else if (keepHudOrEvent && keepHudOrEvent !== 1
+    if (keepHudOrEvent === 2 || keepHudOrEvent && keepHudOrEvent !== 1
         && (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Event$$IsTrusted
             ? keepHudOrEvent.isTrusted !== !1 : keepHudOrEvent.isTrusted)
         && keepHudOrEvent.target === document) {
       master && (master.onFrameUnload_ as typeof a.onFrameUnload_)(a);
-      return;
+      if (keepHudOrEvent !== 2) {
+        return;
+      }
     }
     master && (master.clean_ as typeof a.clean_)(keepHudOrEvent);
     for (const { s: frame } of a.frameList_) {
@@ -1282,12 +1280,12 @@ var VHints = {
       (frame as typeof frame | typeof a)._master = null;
       hasMaster && (frame.clean_ as typeof a.clean_)(1);
     }
+    a.yankedList_ = a.frameList_ = [];
     VKey.SetupEventListener_(0, "unload", a.clean_, 1);
     a.resetHints_();
     VKey.removeHandler_(a);
     VApi.onWndBlur_(null);
     a._removeFlash && a._removeFlash();
-    a.yankedList_ = a.frameList_ = [];
     a._removeFlash = a.hud_ =
     a.options_ = a.modeOpt_ = a._master = null as never;
     a.lastMode_ = a.mode_ = a.mode1_ = a.count_ =
@@ -1310,9 +1308,9 @@ var VHints = {
       offset += frames[i++].h.length;
     }
     if (i >= len || !a.isActive_ || a.timer_) { return; }
-    const keyStat = a.keyStatus_, hints = keyStat.hints_ = a.hints_ as HintsNS.HintItem[],
+    const keyStat = a.keyStatus_, hints = keyStat.hints_ = a.hints_ as NonNullable<typeof a.hints_>,
     deleteCount = frames[i].h.length;
-    deleteCount && hints.splice(offset, deleteCount);
+    deleteCount && (hints as HintsNS.HintItem[]).splice(offset, deleteCount); // remove `readonly` by intent
     frames.splice(i, 1);
     if (!deleteCount) { return; }
     VKey.suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents);
@@ -1417,7 +1415,7 @@ filterEngine_: {
     return new RegExp(accepted_letters + accepted_numbers + GlobalConsts.KeyboardLettersLo + "]+", "g"
         ) as RegExpG & RegExpOne & RegExpSearchable<0>;
   },
-  GenerateHintStrings_ (this: void, hints: HintsNS.HintItem[]): void {
+  GenerateHintStrings_ (this: void, hints: readonly HintsNS.HintItem[]): void {
     const H = VHints, chars = H.chars_, base = chars.length, is10Digits = chars === "0123456789",
     count = hints.length;
     for (let i = 0; i < count; i++) {
@@ -1594,7 +1592,7 @@ filterEngine_: {
    *
    * so, use `~ * 1e4` to ensure delta > 1
    */
-  scoreHint_ (textHint: HintsNS.HintText, searchWords: string[]): number {
+  scoreHint_ (textHint: HintsNS.HintText, searchWords: readonly string[]): number {
     let words = textHint.w as NonNullable<HintsNS.HintText["w"]>, total = 0;
     if (!words.length) { return 0; }
     for (const search of searchWords) {
@@ -1610,7 +1608,7 @@ filterEngine_: {
     return total * 1e4 / Math.log(1 + textHint.t.length);
   }
 },
-  renderMarkers_ (hintItems: HintsNS.HintItem[]): void {
+  renderMarkers_ (hintItems: readonly HintsNS.HintItem[]): void {
     const a = VHints, doc = document, useFilter = a.useFilter_,
     noAppend = !!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$append
         && VDom.cache_.v < BrowserVer.MinEnsured$ParentNode$$append;
@@ -1643,7 +1641,7 @@ filterEngine_: {
     }
   },
   maxPrefixLen_: 0,
-  initAlphabetEngine_ (hintItems: HintsNS.HintItem[]): void {
+  initAlphabetEngine_ (hintItems: readonly HintsNS.HintItem[]): void {
     const M = Math, C = M.ceil, charSet = this.chars_, step = charSet.length,
     chars2 = " " + charSet,
     count = hintItems.length, start = (C((count - 1) / (step - 1)) | 0) || 1,
@@ -1723,7 +1721,8 @@ filterEngine_: {
       keyStatus.keySequence_ = sequence;
       keyStatus.textSequence_ = textSeq;
       const notDoSubCheck = !keyStatus.tab_, wanted = notDoSubCheck ? sequence : sequence.slice(0, -1);
-      hints = keyStatus.hints_ = (doesDetectMatchSingle ? hints : h.hints_ as HintsNS.HintItem[]).filter(hint => {
+      hints = keyStatus.hints_ = (doesDetectMatchSingle ? hints : h.hints_ as readonly HintsNS.HintItem[]
+          ).filter(hint => {
         const pass = hint.a.startsWith(wanted) && (notDoSubCheck || !hint.a.startsWith(sequence));
         hint.m.style.visibility = pass ? "" : "hidden";
         return pass;
