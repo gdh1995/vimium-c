@@ -390,7 +390,7 @@ var VHints = {
   adjustMarkers_ (elements: readonly Hint[], arr: readonly HintsNS.HintItem[]): void {
     const zi = VDom.bZoom_, root = VCui.root_;
     let i = elements.length - 1;
-    if (!root || i < 1 || elements[i][0] !== VOmni.box_ && !root.querySelector("#HelpDialog")) { return; }
+    if (!root || i < 0 || elements[i][0] !== VOmni.box_ && !root.querySelector("#HelpDialog")) { return; }
     const z = Build.BTypes & ~BrowserType.Firefox ? ("" + 1 / zi).slice(0, 5) : "",
     mr = Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar
         ? this.maxRight_ * zi : 0,
@@ -1086,6 +1086,7 @@ var VHints = {
       // then .a.keyStatus_.hintSequence_ is the last key char
       a.deactivate_(a.keyStatus_.known_);
     } else if (matchedHint !== 2) {
+      a.lastMode_ = a.mode_;
       a.locateHint_(matchedHint).execute_(matchedHint, event);
     }
     return HandlerResult.Prevent;
