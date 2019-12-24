@@ -478,7 +478,9 @@ var VHints = {
     }
     if (isClickable === null) {
       type = (s = element.contentEditable) !== "inherit" && s && s !== "false" ? ClickType.edit
-        : element.getAttribute("onclick")
+        : (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
+            ? ((element as XrayedObject<SafeHTMLElement>).wrappedJSObject || element).onclick
+            : element.getAttribute("onclick"))
           || (s = element.getAttribute("role")) && (<RegExpI> /^(?:button|checkbox|link|radio|tab)$|^menuitem/i).test(s)
           || _this.ngEnabled_ && element.getAttribute("ng-click")
           || _this.forHover_ && element.getAttribute("onmouseover")
@@ -516,7 +518,11 @@ var VHints = {
       // never accept raw `Element` instances, so that properties like .tabIndex and .dataset are ensured
       if ((element as ElementToHTMLorSVG).tabIndex != null) { // SVG*
         // not need to distinguish attrListener and codeListener
-        type = VDom.clickable_.has(element) || element.getAttribute("onclick")
+        type = VDom.clickable_.has(element)
+            || (!(Build.BTypes & ~BrowserType.Firefox)
+                || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
+                ? ((element as XrayedObject<SafeHTMLElement>).wrappedJSObject || element).onclick
+                : element.getAttribute("onclick"))
             || this.ngEnabled_ && element.getAttribute("ng-click")
             || this.jsaEnabled_ && (s = element.getAttribute("jsaction")) && this.checkJSAction_(s)
           ? ClickType.attrListener
@@ -1046,9 +1052,16 @@ var VHints = {
       } else if (i & KeyStat.PrimaryModifier) {
         a.options_.useFilter = VDom.cache_.f = !a.useFilter_;
       } else {
-        if (!VApi.execute_) { a.ResetMode_(); return HandlerResult.Prevent; }
+        if (Build.BTypes & BrowserType.Firefox
+              && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
+              && a.isClickListened_
+            || !VApi.execute_) {
+          a.ResetMode_(); return HandlerResult.Prevent;
+        }
         a.isClickListened_ = true;
-        (VApi as EnsureNonNull<VApiTy>).execute_(kContentCmd.ManuallyFindAllOnClick);
+        if (Build.BTypes & ~BrowserType.Firefox) {
+          (VApi as EnsureNonNull<VApiTy>).execute_(kContentCmd.ManuallyFindAllOnClick);
+        }
       }
       a.ResetMode_(1);
       setTimeout(a._reinit.bind(a, null, null, null), 0);

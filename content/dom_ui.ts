@@ -317,7 +317,12 @@ var VCui = {
             || !(url = element.getAttribute("href")) || specialAction & 2 && url[0] === "#"
             || a.jsRe_.test(url)
           ? ActionType.OnlyDispatch
-          : specialAction & 1 && (element.getAttribute("onclick") || a.clickable_.has(element))
+          : specialAction & 1
+            && ((!(Build.BTypes & ~BrowserType.Firefox)
+                || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
+                ? ((element as XrayedObject<SafeHTMLElement>).wrappedJSObject || element).onclick
+                : element.getAttribute("onclick"))
+              || a.clickable_.has(element))
           ? ActionType.DispatchAndMayOpenTab : ActionType.OpenTabButNotDispatch;
     }
     if ((result >= ActionType.OpenTabButNotDispatch || a.mouse_(element, "click", center, modifiers) && result)

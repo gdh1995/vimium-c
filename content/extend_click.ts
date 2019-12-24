@@ -604,33 +604,9 @@ _listen(kOnDomReady, doInit, !0);
     timer = resolved = 0;
   },
   isFirstTime = VDom.docInitingWhenVimiumIniting_,
-  findAllOnClick = (cmd: kContentCmd.AutoFindAllOnClick | kContentCmd.ManuallyFindAllOnClick): void => {
-    hasFindAll = 1;
-    const allNodesInDocument = doc.querySelectorAll("*") as ArrayLike<Element> as Element[],
-    clickable = VDom.clickable_, tree_scopes: Element[][] = [allNodesInDocument];
-    if (allNodesInDocument.length > GlobalConsts.MinElementCountToStopScanOnClick - 1
-        && cmd === kContentCmd.AutoFindAllOnClick) {
-      return;
-    }
-    if (!Build.NDEBUG) { resolved && resolve(); }
-    for (; tree_scopes.length > 0; tree_scopes.shift()) {
-      for (const el of tree_scopes[0]) {
-        if (((el as any).wrappedJSObject as typeof el as HTMLElement).onclick && !el.hasAttribute("onclick")
-            && !(el instanceof HTMLAnchorElement) && !(el instanceof HTMLButtonElement)) {
-          if (!Build.NDEBUG) {
-            clickable.has(el) || resolved++;
-          }
-          clickable.add(el);
-        }
-        if (el.shadowRoot) {
-          tree_scopes.push((el.shadowRoot as ShadowRoot).querySelectorAll("*") as ArrayLike<Element> as Element[]);
-        }
-      }
-    }
-    if (!Build.NDEBUG) { resolved && resolve(1); }
-  }, doc = document;
+  doc = document;
 
-  let alive = true, timer = 0, resolved = 0, hasFindAll: BOOL = 0;
+  let alive = true, timer = 0, resolved = 0;
 
   if (isFirstTime) {
     if (typeof _listen === "function") {
@@ -640,18 +616,15 @@ _listen(kOnDomReady, doInit, !0);
       if (event && (event.target !== doc || !event.isTrusted)) { return; }
       removeEventListener("load", delayFindAll, !0);
       event && VDom && setTimeout(function (): void {
-        if (!hasFindAll && VDom) {
-          findAllOnClick(kContentCmd.AutoFindAllOnClick);
-          const a = VHints;
+        const a = VHints;
+        if (a) {
           a.hints_ && !a.keyStatus_.keySequence_ && !a.keyStatus_.textSequence_ && setTimeout(a.CheckLast_, 34);
         }
       }, GlobalConsts.ExtendClick_DelayToFindAll);
     }, 0, 1);
   }
   VApi.execute_ = (cmd: ValidContentCommands): void => {
-    if (cmd < kContentCmd._minSuppressClickable) {
-      findAllOnClick(cmd as ValidContentCommands & ContentCommandsNotSuppress);
-    } else {
+    if (cmd > kContentCmd._minSuppressClickable - 1) {
       alive = false;
     }
   };
