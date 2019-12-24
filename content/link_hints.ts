@@ -60,7 +60,6 @@ declare namespace HintsNS {
     clean_ (keepHudOrEvent?: BOOL | Event): void;
   }
   interface Master extends BaseHinter {
-    readonly dialogMode_: boolean;
     readonly keyStatus_: KeyStatus;
     readonly frameList_: FrameHintsInfo[];
     mode_: HintMode;
@@ -262,7 +261,7 @@ var VHints = {
     a.hud_ = Build.BTypes & BrowserType.Firefox ? a._wrap(hud) : hud;
     if (hints.length) {
       VCui.ensureBorder_(VDom.wdZoom_);
-      a.box_ = VCui.addElementList_(hints, arr, master.dialogMode_ as typeof a.dialogMode_);
+      a.box_ = VCui.addElementList_(hints, arr, (master as typeof a).dialogMode_);
     }
     VApi.keydownEvents_((master.keydownEvents_ as typeof a.keydownEvents_)());
     VApi.onWndBlur_(master.ResetMode_ as typeof a.ResetMode_);
