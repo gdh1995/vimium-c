@@ -458,9 +458,8 @@ declare const enum GlobalConsts {
   FirefoxHelp = "https://support.mozilla.org/kb/keyboard-shortcuts-perform-firefox-tasks-quickly",
   ChromeWebStorePage = "https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/$id/reviews",
   ChromeHelp = "https://support.google.com/chrome/answer/157179",
-  HasEdgUrls = 0, // todo: use real info
-  EdgStorePage = "https://microsoftedge.microsoft.com/addons/detail/$id",
-  EdgHelp = "https://support.google.com/chrome/answer/157179",
+  EdgStorePage = "https://microsoftedge.microsoft.com/addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo",
+  EdgHelp = "https://microsoftedgesupport.microsoft.com/hc",
 
   KeyboardLettersLl = "a-z_\xdf-\xfc\u0430-\u045f",
   LettersLlLuAndASCII = "!-/:-~\xc0-\xfc\u0402-\u045f",

@@ -541,7 +541,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     NtpNewTab_: Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge)
         ? Build.MayOverrideNewTab ? "https://www.msn.cn/spartan/ntp" : "h"
         : Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
-        ? "chrome-search://local-ntp/local-ntp.html" : "pages/blank.html",
+        ? IsEdg_ ? "https://www.msn.cn/spartan/ntp" : "chrome-search://local-ntp/local-ntp.html" : "pages/blank.html",
     BlankNewTab_: "pages/blank.html",
     DisallowIncognito_: false,
     ContentScripts_: null as never as string[],
@@ -643,6 +643,7 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   // on Edge, https://www.msn.cn/spartan/ntp also works with some complicated search parameters
   // on Firefox, both "about:newtab" and "about:home" work,
   //   but "about:newtab" skips extension hooks and uses last configured URL, so it's better.
+  EdgNewTab = "edge://newtab",
   CommonNewTab = Build.BTypes & BrowserType.Edge
       && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge)
     ? "about:home" : "about:newtab", ChromeNewTab = "chrome://newtab",
@@ -671,11 +672,14 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   (defaults as SettingsWithDefaults).newTabUrl = Build.MayOverrideNewTab && settings.CONST_.OverrideNewTab_
       ? obj.NtpNewTab_
       : (Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome))
-      ? ChromeNewTab : CommonNewTab;
+      ? IsEdg_ ? EdgNewTab : ChromeNewTab : CommonNewTab;
   // note: on firefox, "about:newtab/" is invalid, but it's OKay if still marking the URL a NewTab URL.
   ref3[CommonNewTab] = ref3[CommonNewTab + "/"] = Urls.NewTabType.browser;
   (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) ||
   (ref3[ChromeNewTab] = ref3[ChromeNewTab + "/"] = Urls.NewTabType.browser);
+  if (Build.BTypes & BrowserType.Chrome && IsEdg_) {
+    ref3[EdgNewTab] = ref3[EdgNewTab + "/"] = Urls.NewTabType.browser;
+  }
   obj.GlobalCommands_ = (<Array<keyof ShortcutInfoMap | kShortcutAliases & string>> Object.keys(ref.commands || {})
       ).map(i => i === <string> <unknown> kShortcutAliases.nextTab1 ? kCName.nextTab : i);
   obj.VerCode_ = ref.version;

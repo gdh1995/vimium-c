@@ -63,14 +63,14 @@ var HelpDialog = {
       reviewPage: !(Build.BTypes & ~BrowserType.Firefox)
               || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
           ? GlobalConsts.FirefoxAddonPrefix + "vimium-c/"
-          : (Build.BTypes & BrowserType.Chrome && GlobalConsts.HasEdgUrls && IsEdg_
+          : (Build.BTypes & BrowserType.Chrome && IsEdg_
               ? GlobalConsts.EdgStorePage : GlobalConsts.ChromeWebStorePage).replace("$id", chrome.runtime.id),
       webStore: !(Build.BTypes & ~BrowserType.Firefox)
             || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
-          ? trans_("addons") : trans_("webstore"),
+          ? trans_("addons") : trans_(IsEdg_ ? "edgestore" : "webstore"),
       browserHelp: !(Build.BTypes & ~BrowserType.Firefox)
           || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox ? GlobalConsts.FirefoxHelp as string
-          : Build.BTypes & BrowserType.Chrome && GlobalConsts.HasEdgUrls && IsEdg_ ? GlobalConsts.EdgHelp
+          : Build.BTypes & BrowserType.Chrome && IsEdg_ ? GlobalConsts.EdgHelp
           : GlobalConsts.ChromeHelp,
       tip: showNames ? trans_("tipClickToCopy")  : "",
       lbPad: showNames ? '\n\t\t<tr><td class="HelpTd TdBottom">&#160;</td></tr>' : ""

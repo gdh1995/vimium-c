@@ -652,6 +652,9 @@
 	"webstore": {
 		"message": "Chrome Web Store"
 	},
+	"edgestore": {
+		"message": "Microsoft Edge Addons"
+	},
 	"NewTabAdapter": {
 		"message": "NewTab Adapter"
 	},

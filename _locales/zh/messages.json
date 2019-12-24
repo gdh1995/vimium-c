@@ -991,6 +991,9 @@
 	"webstore": {
 		"message": "Chrome 网上应用店"
 	},
+	"edgestore": {
+		"message": "微软 Edge 扩展"
+	},
 	"NewTabAdapter": {
 		"message": "NewTab Adapter"
 	},
@@ -1164,7 +1167,7 @@
 		"message": "在 "
 	},
 	"_HReview_2": {
-		"message": "上给予好评"
+		"message": " 上给予好评"
 	},
 	"Donate": {
 		"message": "打赏开发者"
