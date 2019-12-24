@@ -3,7 +3,7 @@
 ===========================================
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.79.0](https://img.shields.io/badge/release-1.79.0-orange.svg
+[![Version 1.79.1](https://img.shields.io/badge/release-1.79.1-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -87,7 +87,7 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
-### 1.79.0
+### 1.79.1
 * `LinkHints` adds support for the Filtered Hint mode, and adopts almost the same behavior logic as Vimium
 * `LinkHints` uses a new algorithm to assign hint characters in alphabet mode
 * hook access keys: completely avoid negative influence on debugging experience
