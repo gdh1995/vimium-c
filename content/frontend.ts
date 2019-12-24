@@ -654,7 +654,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
       hints[sel].m.className = "IH IHS";
       U.simulateSelect_(visibleInputs[sel][0], visibleInputs[sel][1], false, action, false);
-      U.ensureBorder_(D.wdZoom_);
+      U.ensureBorder_(D.wdZoom_ / VDom.dScale_);
       const box = U.addElementList_<false>(hints, arr), keep = !!options.keep, pass = !!options.passExitKey;
       // delay exiting the old to avoid some layout actions
       // although old elements can not be GC-ed before this line, it has little influence

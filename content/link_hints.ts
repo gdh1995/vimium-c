@@ -57,7 +57,7 @@ declare namespace HintsNS {
     collectFrameHints_: unknown;
     render_ (hints: readonly HintItem[], arr: ViewBox, hud: VHUDTy): void;
     execute_ (hint: HintItem, event?: HandlerNS.Event): void;
-    clean_ (keepHudOrEvent?: BOOL | Event): void;
+    clean_ (keepHudOrEvent?: BOOL | Event, suppressTimeout?: number): void;
   }
   interface Master extends BaseHinter {
     readonly keyStatus_: KeyStatus;
@@ -260,7 +260,7 @@ var VHints = {
     if (a.box_) { a.box_.remove(); a.box_ = null; }
     a.hud_ = Build.BTypes & BrowserType.Firefox ? a._wrap(hud) : hud;
     if (hints.length) {
-      VCui.ensureBorder_(VDom.wdZoom_);
+      VCui.ensureBorder_(VDom.wdZoom_ / VDom.dScale_);
       a.box_ = VCui.addElementList_(hints, arr, (master as typeof a).dialogMode_);
     }
     VApi.keydownEvents_((master.keydownEvents_ as typeof a.keydownEvents_)());
@@ -1032,7 +1032,7 @@ var VHints = {
     } else if (i > kKeyCode.f1 ? i < kKeyCode.f12 + 1 : i > kKeyCode.f1 - 1) {
       if (i > kKeyCode.f2) { a.ResetMode_(); return HandlerResult.Nothing; }
       i = VKey.getKeyStat_(event);
-      if (i < kKeyCode.f2) {
+      if (event.keyCode < kKeyCode.f2) {
         a.ResetMode_();
         if (i & KeyStat.altKey && a.useFilter_) {
           (a.locateHint_(a.filterEngine_.activeHint_ as HintsNS.HintItem) as typeof a)._highlightHint(
@@ -1096,7 +1096,7 @@ var VHints = {
       a.rotateHints_(event.shiftKey);
     } else if (matchedHint = a.matchHintsByKey_(a.keyStatus_, event), matchedHint === 0) {
       // then .a.keyStatus_.hintSequence_ is the last key char
-      a.deactivate_(a.keyStatus_.known_);
+      a.clean_(0, a.keyStatus_.known_ ? 0 : VDom.cache_.k[0]);
     } else if (matchedHint !== 2) {
       a.lastMode_ = a.mode_;
       a.locateHint_(matchedHint).execute_(matchedHint, event);
@@ -1208,7 +1208,8 @@ var VHints = {
     (masterOrA as typeof a).pTimer_ = -!!a.hud_.t;
     if (!(a.mode_ & HintMode.queue)) {
       masterOrA._setupCheck(a, clickEl);
-      a.deactivate_(1);
+      masterOrA.clean_(<1 | 0> -(masterOrA as typeof a).pTimer_, 0);
+      (<RegExpOne> /0?/).test("");
       return;
     }
     (masterOrA as typeof a).postExecute_(a, clickEl, rect);
@@ -1285,8 +1286,8 @@ var VHints = {
     const a = this;
     a._onWaitingKey = a._onTailEnter =
     a.hints_ = a.zIndexes_ = a.filterEngine_.activeHint_ = a.filterEngine_.reForMatch_ = null as never;
-    a.pTimer_ > 0 && clearTimeout(a.pTimer_);
-    a.hasExecuted_ = a.pTimer_ = 0;
+    a.pTimer_ > 0 && (clearTimeout(a.pTimer_), a.pTimer_ = 0);
+    a.hasExecuted_ = 0;
     a.keyStatus_.hints_ = null as never;
     a.keyStatus_ = {
       hints_: null as never,
@@ -1297,7 +1298,7 @@ var VHints = {
       frame.h = [];
     }
   },
-  clean_ (keepHudOrEvent?: 0 | 1 | 2 | Event): void {
+  clean_ (keepHudOrEvent?: 0 | 1 | 2 | Event, suppressTimeout?: number): void {
     const a = VHints, master = a && a._master;
     if (!a) { return; }
     if (keepHudOrEvent === 2 || keepHudOrEvent && keepHudOrEvent !== 1
@@ -1309,16 +1310,18 @@ var VHints = {
         return;
       }
     }
-    master && (master.clean_ as typeof a.clean_)(keepHudOrEvent);
-    a.frameList_.forEach(a._cleanFrameInfo);
+    a._master = null;
+    master && (master.clean_ as typeof a.clean_)(keepHudOrEvent, suppressTimeout);
+    a.frameList_.forEach(a._CleanFrameInfo, suppressTimeout);
     a.yankedList_ = a.frameList_ = [];
     VKey.SetupEventListener_(0, "unload", a.clean_, 1);
     a.resetHints_();
     VKey.removeHandler_(a);
+    suppressTimeout != null && VKey.suppressTail_(suppressTimeout);
     VApi.onWndBlur_(null);
     a._removeFlash && a._removeFlash();
     a._removeFlash = a.hud_ =
-    a.options_ = a.modeOpt_ = a._master = null as never;
+    a.options_ = a.modeOpt_ = null as never;
     a.lastMode_ = a.mode_ = a.mode1_ = a.count_ =
     a.maxLeft_ = a.maxTop_ = a.maxRight_ =
     a.maxPrefixLen_ = a.hasExecuted_ = 0;
@@ -1332,11 +1335,11 @@ var VHints = {
     }
     keepHudOrEvent === 1 || VHud.hide_();
   },
-  _cleanFrameInfo (frameInfo: HintsNS.FrameHintsInfo) {
+  _CleanFrameInfo (this: number, frameInfo: HintsNS.FrameHintsInfo): void {
     try {
       let frame = frameInfo.s, hasMaster = (frame as typeof frame | typeof VHints)._master;
       (frame as typeof frame | typeof VHints)._master = null;
-      hasMaster && (frame.clean_ as typeof VHints.clean_)(1);
+      hasMaster && (frame.clean_ as typeof VHints.clean_)(1, this);
     } catch { /* empty */ }
   },
   onFrameUnload_ (slave: HintsNS.Slave): void {
@@ -1367,11 +1370,6 @@ var VHints = {
       a.initAlphabetEngine_(hints);
       a.renderMarkers_(hints);
     }
-  },
-  deactivate_ (isLastKeyKnown: BOOL): void {
-    this.clean_(this.pTimer_ < 0 ? 1 : 0);
-    (<RegExpOne> /0?/).test("");
-    VKey.suppressTail_(isLastKeyKnown ? 0 : VDom.cache_.k[0]);
   },
   rotateHints_ (reverse?: boolean) {
     const a = this, frames = a.frameList_, notUseSelected = frames.length > 1,

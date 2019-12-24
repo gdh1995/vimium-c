@@ -142,7 +142,7 @@ var VCui = {
     }
     if (patch[0] === width) { return; }
     patch[0] = width;
-    this.learnCss_(this);
+    this.learnCss_(this, 1);
   },
   createStyle_ (text?: string, css?: HTMLStyleElement): HTMLStyleElement {
     css = css || VDom.createElement_("style");
@@ -151,13 +151,13 @@ var VCui = {
     return css;
   },
   css_ (innerCSS: string): void { this.styleIn_ = innerCSS; },
-  learnCss_ (src: { styleIn_: string | HTMLStyleElement | null }): void {
-    if (!this.styleIn_) {
+  learnCss_ (src: { styleIn_: string | HTMLStyleElement | null }, force?: 1): void {
+    if (!this.styleIn_ || force) {
       const srcStyleIn = (src as typeof VCui).styleIn_,
       css = srcStyleIn && (typeof srcStyleIn === "string" ? srcStyleIn : srcStyleIn.textContent);
       if (css) {
         this.css_(css);
-        VApi.post_({H: kFgReq.learnCSS});
+        force || VApi.post_({H: kFgReq.learnCSS});
       }
     }
   },
