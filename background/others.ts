@@ -554,15 +554,28 @@ BgUtils_.timeout_(150, function (): void {
       if (count++ || !mayShowIcons) {
         ctx = null; return;
       }
+      installCache();
+    }
+    const installCache = () => {
       (imageData as Exclude<typeof imageData, null>)[type] = cache;
       const arr = (tabIds as IconNS.StatusMap<number[]>)[type] as number[];
       delete (tabIds as IconNS.StatusMap<number[]>)[type];
-      for (w = 0, h = arr.length; w < h; w++) {
+      for (let w = 0, h = arr.length; w < h; w++) {
         Backend_.setIcon_(arr[w], type, true);
       }
-    }
+    }, loadFromRawArray = (size: IconNS.ValidSizes, array: ArrayBuffer) => {
+      cache[size] = new ImageData(new Uint8ClampedArray(array), +size, +size);
+      if (count++) { return; }
+      installCache();
+    };
     BgUtils_.safer_(path);
-    for (const i in path) {
+    for (var i in path) {
+      if (!Build.NDEBUG && Build.MinCVer >= BrowserVer.MinFetchExtensionFiles) {
+        fetch(path[i as keyof typeof path].replace(".png", ".bin")
+            ).then(r => r.blob()).then(b => b.arrayBuffer()
+            ).then(loadFromRawArray.bind(null, i as keyof typeof path));
+        continue;
+      }
       img = new Image();
       img.onload = onload, img.onerror = onerror;
       if (Build.MinCVer <= BrowserVer.FlagOutOfBlinkCorsMayCauseBug
