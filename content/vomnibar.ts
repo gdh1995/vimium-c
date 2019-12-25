@@ -71,8 +71,8 @@ var VOmni = {
     if (!dom.isHTML_()) { return; }
     a.options_ = null;
     dom.getViewBox_();
-    a.canUseVW_ = (Build.MinCVer >= BrowserVer.MinCSSWidthUnit$vw
-            || !!(Build.BTypes & BrowserType.Chrome) && dom.cache_.v > BrowserVer.MinCSSWidthUnit$vw - 1)
+    a.canUseVW_ = (Build.MinCVer >= BrowserVer.MinCSSWidthUnit$vw$InCalc
+            || !!(Build.BTypes & BrowserType.Chrome) && dom.cache_.v > BrowserVer.MinCSSWidthUnit$vw$InCalc - 1)
         && !dom.fullscreenEl_unsafe_() && dom.docZoom_ === 1 && dom.dScale_ === 1;
     let scale = devicePixelRatio;
     let width = a.canUseVW_ ? innerWidth : !(Build.BTypes & ~BrowserType.Firefox) ? dom.prepareCrop_()

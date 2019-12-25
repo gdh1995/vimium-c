@@ -455,9 +455,9 @@ title="Warning: Chrome has a bug of mistaken dialogue width if you has changed s
           </div></td>
         </tr>
         <tr>
-          <td class="caption" data-i="o87">Phrase blacklist<br/>for Vomnibar</td>
+          <td class="caption" data-i="o87">Block list of words<br/> for Vomnibar</td>
           <td>
-            <textarea id="phraseBlacklist" class="code min-height-4" data-model="MaskedText"></textarea>
+            <textarea id="omniBlockList" class="code min-height-4" data-model="MaskedText"></textarea>
           </td>
           <td class="help"><div class="help-inner">
             <div data-i="o88">For a bookmark / history item,
@@ -468,9 +468,9 @@ title="Warning: Chrome has a bug of mistaken dialogue width if you has changed s
           </div></td>
         </tr>
         <tr>
-          <td class="caption" data-i="o91">Whitelist of other<br/> extension IDs</td>
+          <td class="caption" data-i="o91">Allow list of other<br/> extension IDs</td>
           <td>
-            <textarea id="extWhiteList" class="code min-height-4" data-model="NonEmptyText"
+            <textarea id="extAllowList" class="code min-height-4" data-model="NonEmptyText"
               data-permission="web_accessible_resources"></textarea>
             <div class="info" data-i="nonEmpty">Delete all to reset this option.</div>
           </td>
@@ -479,7 +479,7 @@ title="Warning: Chrome has a bug of mistaken dialogue width if you has changed s
             One extension id per line.</div>
             <span data-i="o93">Any line the first char of which is neither a letter nor a number or
               "</span><kbd>_</kbd><span data-i="o94">" will be ignored.</span>
-            <a class="wrap-left-space" data-auto-resize="extWhiteList" role="button" tabindex="0"
+            <a class="wrap-left-space" data-auto-resize="extAllowList" role="button" tabindex="0"
                 data-i="autoResize">Auto resize</a><span data-i="period">.</span><br/>
             <a href="" target="_blank" rel="noopener noreferrer" data-i="o95"
                 data-href="vimium://home/wiki/Inject-into-other-extensions">

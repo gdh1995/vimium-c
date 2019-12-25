@@ -308,7 +308,7 @@ declare namespace SettingsNS {
     exclusionListenHash: boolean;
     exclusionOnlyFirstMatch: boolean;
     exclusionRules: ExclusionsNS.StoredRule[];
-    extWhiteList: string;
+    extAllowList: string;
     findModeRawQueryList: string;
     hideHud: boolean;
     innerCSS: string;
@@ -326,7 +326,7 @@ declare namespace SettingsNS {
     vimSync: boolean | null;
     vomnibarPage: string;
     vomnibarPage_f: string;
-    phraseBlacklist: string;
+    omniBlockList: string;
   }
   interface CachedFiles {
     baseCSS: string;
@@ -362,7 +362,7 @@ declare namespace SettingsNS {
 
   type DeclaredUpdateHooks = "newTabUrl" | "searchEngines" | "searchEngineMap" | "searchUrl"
         | "baseCSS" | "userDefinedCss" | "innerCSS" | "vomnibarPage"
-        | "extWhiteList";
+        | "extAllowList";
   type EnsuredUpdateHooks = DeclaredUpdateHooks | WoThisUpdateHooks | SpecialUpdateHooks;
   type UpdateHook<key extends keyof FullSettings> =
         key extends NullableUpdateHooks ? NullableUpdateHook<key>
@@ -391,6 +391,11 @@ declare namespace SettingsNS {
     ui?: string;
     find?: string;
     omni?: string;
+  }
+
+  interface LegacyNames {
+    phraseBlacklist: "omniBlockList";
+    extWhiteList: "extAllowList";
   }
 
   // type NameList = Array<SettingNames>;

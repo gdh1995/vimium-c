@@ -168,7 +168,7 @@
       && CurCVer_ < BrowserVer.MinWithFrameId;
   function isExtIdAllowed(this: void, extId: string | null | undefined, url: string | undefined): boolean {
     if (extId == null) { extId = "unknown_sender"; }
-    let list = Settings_.extWhiteList_, stat = list[extId];
+    let list = Settings_.extAllowList_, stat = list[extId];
     if (stat != null) { return stat; }
     if (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)
         && stat == null && url) {
@@ -180,7 +180,7 @@
       return true;
     }
     const backgroundLightYellow = "background-color:#fffbe5";
-    console.log("%cReceive message from an extension/sender not in the white list: %c%s",
+    console.log("%cReceive message from an extension/sender not in the allow list: %c%s",
       backgroundLightYellow, backgroundLightYellow + ";color:red", extId);
     return list[extId] = false;
   }
@@ -3165,7 +3165,7 @@
       executeExternalCmd(message, sender);
       break;
     }
-  }), Settings_.postUpdate_("extWhiteList"));
+  }), Settings_.postUpdate_("extAllowList"));
 
   chrome.tabs.onReplaced.addListener(function (addedTabId, removedTabId) {
     const ref = framesForTab, frames = ref[removedTabId];

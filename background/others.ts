@@ -369,8 +369,8 @@ BgUtils_.timeout_(1000, function (): void {
           if (curJSON !== jsonVal) {
             SetLocal(key, curVal);
           }
+          delete items[key];
         }
-        delete items[key];
       }
       const left = Object.keys(items);
       if (left.length > 0) { chrome.storage.local.remove(left); }
@@ -437,6 +437,24 @@ BgUtils_.timeout_(1000, function (): void {
       storage().set({ vimSync });
     }
     const toReset: string[] = [];
+    for (const key in items) { if (key in Settings_.legacyNames_) { toReset.push(key); } }
+    const toRemove: string[] = [], toAdd: Dict<string> = {};
+    for (let key of toReset) {
+      const newKey = Settings_.legacyNames_[key as keyof SettingsNS.LegacyNames];
+      for (let i = -1, j: string; i < GlobalConsts.MaxSyncedSlices && (j = i < 0 ? key : key + ":" + i) in items; i++) {
+        const newJ = i < 0 ? newKey : newKey + ":" + i;
+        toAdd[newJ] = items[newJ] = items[j];
+        delete items[j];
+        toRemove.push(j);
+      }
+    }
+    if (toReset.length > 0) {
+      chrome.storage.onChanged.removeListener(HandleStorageUpdate);
+      Settings_.sync_ = BgUtils_.blank_;
+      storage().remove(toRemove);
+      storage().set(toAdd, BgUtils_.runtimeError_);
+      toReset.length = 0;
+    }
     for (let i = 0, end = localStorage.length; i < end; i++) {
       const key = localStorage.key(i) as string;
       // although storeAndPropagate indeed checks @shouldSyncKey(key)

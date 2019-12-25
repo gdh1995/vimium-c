@@ -114,7 +114,7 @@ let queryType: FirstQuery = FirstQuery.nothing, matchType: MatchType = MatchType
     hasOmniTypePrefix = false,
     domainToSkip = "",
     allExpectedTypes = SugType.Empty,
-    phraseBlacklist: string[] | null = null, showThoseInBlacklist: boolean = true;
+    omniBlockList: string[] | null = null, showThoseInBlocklist: boolean = true;
 
 const Suggestion: SuggestionConstructor = function (
     this: CompletersNS.WritableCoreSuggestion,
@@ -307,7 +307,7 @@ const bookmarkEngine = {
       const i = arr[ind];
       const title = isPath ? i.path_ : i.title_;
       if (!RankingUtils.Match2_(i.text_, title)) { continue; }
-      if (showThoseInBlacklist || i.visible_) {
+      if (showThoseInBlocklist || i.visible_) {
         results.push([-RankingUtils.wordRelevancy_(i.text_, i.title_), ind]);
       }
     }
@@ -402,7 +402,7 @@ const bookmarkEngine = {
     bookmarkEngine.bookmarks_.push({
       id_: id, path_: path, title_: title || id,
       text_: isJS ? jsSchema : url,
-      visible_: phraseBlacklist ? BlacklistFilter.TestNotMatched_(url, title) : kVisibility.visible,
+      visible_: omniBlockList ? BlockListFilter.TestNotMatched_(url, title) : kVisibility.visible,
       url_: isJS ? jsSchema : url,
       jsUrl_: isJS ? url : null, jsText_: isJS ? BgUtils_.DecodeURLPart_(url) : null
     });
@@ -449,8 +449,8 @@ const bookmarkEngine = {
           (cur as WBookmark).text_ = Decoder.decodeURL_(url2, cur as WBookmark);
           Decoder.continueToWork_();
         }
-        if (phraseBlacklist) {
-          (cur as WBookmark).visible_ = BlacklistFilter.TestNotMatched_(cur.url_, cur.title_);
+        if (omniBlockList) {
+          (cur as WBookmark).visible_ = BlockListFilter.TestNotMatched_(cur.url_, cur.title_);
         }
       } else {
         arr.splice(i, 1);
@@ -539,7 +539,7 @@ historyEngine = {
     for (const len = history.length; i < len; i++) {
       const item = history[i];
       if (onlyUseTime ? !parts0.test(item.text_) : !Match2(item.text_, item.title_)) { continue; }
-      if (!(showThoseInBlacklist || item.visible_)) { continue; }
+      if (!(showThoseInBlocklist || item.visible_)) { continue; }
       const score = onlyUseTime ? ComputeRecency(item.time_) || /* < 0.0002 */ 1e-16 * item.time_
           : ComputeRelevancy(item.text_, item.title_, item.time_);
       matched++;
@@ -591,7 +591,7 @@ historyEngine = {
       if (url.length > GlobalConsts.MaxHistoryURLLength) {
         entry.url = url = HistoryCache.trimURLAndTitleWhenTooLong_(url, entry);
       }
-      if (!showThoseInBlacklist && !BlacklistFilter.TestNotMatched_(url, entry.title)) { return false; }
+      if (!showThoseInBlocklist && !BlockListFilter.TestNotMatched_(url, entry.title)) { return false; }
       const key = url + "\n" + entry.title;
       if (key in arr) { return false; }
       arr[key] = 1; arr[url] = 1;
@@ -603,7 +603,7 @@ historyEngine = {
       cut: number, neededMore: number): void {
     chrome.history.search({
       text: "",
-      maxResults: offset + maxResults * (showThoseInBlacklist ? 1 : 2) + neededMore
+      maxResults: offset + maxResults * (showThoseInBlocklist ? 1 : 2) + neededMore
     }, function (historyArr2: chrome.history.HistoryItem[] | BrowserUrlItem[]): void {
       if (query.o) { return; }
       historyArr2 = (historyArr2 as chrome.history.HistoryItem[]).filter(function (this: Dict<number>, i) {
@@ -613,9 +613,9 @@ historyEngine = {
         }
         return !(url in this);
       }, arr);
-      if (!showThoseInBlacklist) {
+      if (!showThoseInBlocklist) {
         historyArr2 = (historyArr2 as chrome.history.HistoryItem[]).filter(function (entry) {
-          return BlacklistFilter.TestNotMatched_(entry.url, entry.title || "");
+          return BlockListFilter.TestNotMatched_(entry.url, entry.title || "");
         });
       }
       if (cut < 0) {
@@ -669,7 +669,7 @@ domainEngine = {
     for (const domain in ref) {
       if (domain.indexOf(word) === -1) { continue; }
       matchedDomain = ref[domain];
-      if (showThoseInBlacklist || matchedDomain.count_ > 0) {
+      if (showThoseInBlocklist || matchedDomain.count_ > 0) {
         const score = ComputeRelevancy(domain, "", matchedDomain.time_);
         if (score > result_score) { result_score = score; result = domain; }
       }
@@ -681,7 +681,7 @@ domainEngine = {
         if (r2.indexOf(word) !== -1) {
           let d2: Domain | undefined;
           r2 = "www." + r2;
-          if ((d2 = ref[r2]) && (showThoseInBlacklist || d2.count_ > 0)) { result = r2; matchedDomain = d2; }
+          if ((d2 = ref[r2]) && (showThoseInBlocklist || d2.count_ > 0)) { result = r2; matchedDomain = d2; }
         }
       }
       let mainLen = result.startsWith(word) ? 0 : result.startsWith("www." + word) ? 4 : -1;
@@ -708,7 +708,7 @@ domainEngine = {
         prepareHtml(sug);
         const ind = HistoryCache.sorted_ ? HistoryCache.binarySearch_(url) : -1,
         item = ind > 0 ? (HistoryCache.history_ as HistoryItem[])[ind] : null;
-        if (item && (showThoseInBlacklist || item.visible_)) {
+        if (item && (showThoseInBlocklist || item.visible_)) {
           sug.title = Build.BTypes & BrowserType.Firefox
               && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
               ? item.title_ : BgUtils_.escapeText_(item.title_);
@@ -875,7 +875,7 @@ searchEngine = {
       autoSelect = true;
       maxResults--;
       matchedTotal++;
-      showThoseInBlacklist = showThoseInBlacklist && BlacklistFilter.IsExpectingHidden_([keyword]);
+      showThoseInBlocklist = showThoseInBlocklist && BlockListFilter.IsExpectingHidden_([keyword]);
       return Completers.next_([sug], SugType.search);
     } else {
       pattern = Settings_.cache_.searchEngineMap[keyword as "__proto__"] as Search.Engine | null | undefined;
@@ -903,7 +903,7 @@ searchEngine = {
     } else {
       q = [];
     }
-    showThoseInBlacklist = showThoseInBlacklist && BlacklistFilter.IsExpectingHidden_([keyword]);
+    showThoseInBlocklist = showThoseInBlocklist && BlockListFilter.IsExpectingHidden_([keyword]);
 
     let { url_: url, indexes_: indexes } = BgUtils_.createSearch_(q, pattern.url_, pattern.blank_, []), text = url;
     if (keyword === "~") { /* empty */ }
@@ -1164,7 +1164,7 @@ Completers = {
     mayGoToAnotherMode = rawQuery === ":" && !hasOmniTypePrefix,
     newMatchType = matchType < MatchType.plain ? (matchType === MatchType.searching_
           && !someMatches ? MatchType.searchWanted : MatchType.Default)
-        : !showThoseInBlacklist ? MatchType.Default
+        : !showThoseInBlocklist ? MatchType.Default
         : queryTerms.length <= 0 ? MatchType.Default
         : someMatches ? MatchType.someMatches
         : mayGoToAnotherMode ? MatchType.searchWanted
@@ -1186,7 +1186,7 @@ Completers = {
     queryType = FirstQuery.nothing;
     autoSelect = isForAddressBar = hasOmniTypePrefix = false;
     wantInCurrentWindow = false;
-    showThoseInBlacklist = true;
+    showThoseInBlocklist = true;
   },
   getOffset_ (this: void): void {
     let str = rawQuery, ind: number, i: number;
@@ -1338,9 +1338,9 @@ knownCs: CompletersMap & SafeObject = {
           url_: url
         };
       }
-      if (phraseBlacklist) {
+      if (omniBlockList) {
         for (const k of arr as HistoryItem[]) {
-          if (BlacklistFilter.TestNotMatched_(k.text_, k.title_) === 0) {
+          if (BlockListFilter.TestNotMatched_(k.text_, k.title_) === 0) {
             k.visible_ = kVisibility.hidden;
           }
         }
@@ -1401,7 +1401,7 @@ knownCs: CompletersMap & SafeObject = {
         text_: "",
         title_: title,
         time_: time,
-        visible_: phraseBlacklist ? BlacklistFilter.TestNotMatched_(url, title) : kVisibility.visible,
+        visible_: omniBlockList ? BlockListFilter.TestNotMatched_(url, title) : kVisibility.visible,
         url_: url
       };
       let slot: Domain | undefined;
@@ -1422,8 +1422,8 @@ knownCs: CompletersMap & SafeObject = {
         j.time_ = time;
         if (title && title !== j.title_) {
           j.title_ = title;
-          if (phraseBlacklist) {
-            const newVisible = BlacklistFilter.TestNotMatched_(url, title);
+          if (omniBlockList) {
+            const newVisible = BlockListFilter.TestNotMatched_(url, title);
             if (j.visible_ !== newVisible) {
               j.visible_ = newVisible;
               if (slot) {
@@ -1534,9 +1534,9 @@ knownCs: CompletersMap & SafeObject = {
     }
   },
 
-  BlacklistFilter = {
+  BlockListFilter = {
     TestNotMatched_ (url: string, title: string): Visibility {
-      for (const phrase of <string[]> phraseBlacklist) {
+      for (const phrase of <string[]> omniBlockList) {
         if (title.indexOf(phrase) >= 0 || url.indexOf(phrase) >= 0) {
           return kVisibility.hidden;
         }
@@ -1544,9 +1544,9 @@ knownCs: CompletersMap & SafeObject = {
       return kVisibility.visible;
     },
     IsExpectingHidden_ (query: string[]): boolean {
-      if (!phraseBlacklist) { return true; }
+      if (!omniBlockList) { return true; }
       for (const word of query) {
-        for (let phrase of <string[]> phraseBlacklist) {
+        for (let phrase of <string[]> omniBlockList) {
           phrase = phrase.trim();
           if (word.indexOf(phrase) >= 0 || phrase.length > 9 && word.length + 2 >= phrase.length
               && phrase.indexOf(word) >= 0) {
@@ -1559,7 +1559,7 @@ knownCs: CompletersMap & SafeObject = {
     UpdateAll_ (this: void): void {
       if (bookmarkEngine.bookmarks_) {
         for (const k of bookmarkEngine.bookmarks_) {
-          (k as Writable<Bookmark>).visible_ = phraseBlacklist ? BlacklistFilter.TestNotMatched_(k.text_, k.path_)
+          (k as Writable<Bookmark>).visible_ = omniBlockList ? BlockListFilter.TestNotMatched_(k.text_, k.path_)
             : kVisibility.visible;
         }
       }
@@ -1568,7 +1568,7 @@ knownCs: CompletersMap & SafeObject = {
       }
       const d = HistoryCache.domains_;
       for (const k of HistoryCache.history_) {
-        const newVisible = phraseBlacklist ? BlacklistFilter.TestNotMatched_(k.text_, k.title_) : kVisibility.visible;
+        const newVisible = omniBlockList ? BlockListFilter.TestNotMatched_(k.text_, k.title_) : kVisibility.visible;
         if (k.visible_ !== newVisible) {
           k.visible_ = newVisible;
           if (d) {
@@ -1591,8 +1591,8 @@ knownCs: CompletersMap & SafeObject = {
           arr.push(line);
         }
       }
-      phraseBlacklist = arr.length > 0 ? arr : null;
-      (HistoryCache.history_ || bookmarkEngine.bookmarks_) && setTimeout(BlacklistFilter.UpdateAll_, 100);
+      omniBlockList = arr.length > 0 ? arr : null;
+      (HistoryCache.history_ || bookmarkEngine.bookmarks_) && setTimeout(BlockListFilter.UpdateAll_, 100);
     }
   },
 
@@ -1748,7 +1748,7 @@ Completion_ = {
     if (queryTerms.length > 0) {
       queryTerms[0] = BgUtils_.fixCharsInUrl_(queryTerms[0]);
     }
-    showThoseInBlacklist = BlacklistFilter.IsExpectingHidden_(queryTerms);
+    showThoseInBlocklist = BlockListFilter.IsExpectingHidden_(queryTerms);
     allExpectedTypes = expectedTypes !== SugType.Empty ? expectedTypes : SugType.Full;
     Completers.filter_(arr || knownCs.omni);
   },
@@ -1772,8 +1772,8 @@ Completion_ = {
   }
 };
 
-Settings_.updateHooks_.phraseBlacklist = BlacklistFilter.OnUpdate_;
-Settings_.postUpdate_("phraseBlacklist");
+Settings_.updateHooks_.omniBlockList = BlockListFilter.OnUpdate_;
+Settings_.postUpdate_("omniBlockList");
 if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinRequestDataURLOnBackgroundPage
     || CurCVer_ >= BrowserVer.MinRequestDataURLOnBackgroundPage) {
   Settings_.updateHooks_.localeEncoding = Decoder.onUpdate_;

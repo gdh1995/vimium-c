@@ -34,7 +34,7 @@ var Settings_ = {
   }),
   i18nPayload_: null as string[] | null,
   newTabs_: BgUtils_.safeObj_() as ReadonlySafeDict<Urls.NewTabType>,
-  extWhiteList_: null as never as SafeDict<boolean>,
+  extAllowList_: null as never as SafeDict<boolean>,
   storage_: localStorage,
   get_<K extends keyof SettingsWithDefaults> (key: K, forCache?: boolean): SettingsWithDefaults[K] {
     if (key in this.cache_) {
@@ -130,9 +130,9 @@ var Settings_ = {
   },
   updateHooks_: {
     __proto__: null as never,
-    extWhiteList (val): void {
-      const old = (this as typeof Settings_).extWhiteList_;
-      const map = (this as typeof Settings_).extWhiteList_ = BgUtils_.safeObj_<boolean>();
+    extAllowList (val): void {
+      const old = (this as typeof Settings_).extAllowList_;
+      const map = (this as typeof Settings_).extAllowList_ = BgUtils_.safeObj_<boolean>();
       if (old && Build.BTypes & BrowserType.Chrome
           && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)) {
         for (const key in old) { if (old[key] === false) { map[key] = false; } }
@@ -436,7 +436,7 @@ var Settings_ = {
     exclusionListenHash: true,
     exclusionOnlyFirstMatch: false,
     exclusionRules: [{pattern: ":https://mail.google.com/", passKeys: ""}] as ExclusionsNS.StoredRule[],
-    extWhiteList: !(Build.BTypes & ~BrowserType.Chrome)
+    extAllowList: !(Build.BTypes & ~BrowserType.Chrome)
       || Build.BTypes & BrowserType.Chrome && OnOther === BrowserType.Chrome
 ? `# modified versions of X New Tab and PDF Viewer,
 # NewTab Adapter, and Shortcuts Forwarding Tool
@@ -467,6 +467,7 @@ shortcut-forwarding-tool@gdh1995.cn`
     newTabUrl_f: "",
     nextPatterns: "\u4e0b\u4e00\u5c01,\u4e0b\u9875,\u4e0b\u4e00\u9875,\u4e0b\u4e00\u7ae0,\u540e\u4e00\u9875\
 ,next,more,newer,>,\u203a,\u2192,\xbb,\u226b,>>",
+    omniBlockList: "",
     previousPatterns: "\u4e0a\u4e00\u5c01,\u4e0a\u9875,\u4e0a\u4e00\u9875,\u4e0a\u4e00\u7ae0,\u524d\u4e00\u9875\
 ,prev,previous,back,older,<,\u2039,\u2190,\xab,\u226a,<<",
     regexFindMode: false,
@@ -511,8 +512,11 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     vimSync: null,
     vomnibarPage: "front/vomnibar.html",
     vomnibarPage_f: "",
-    waitForEnter: true,
-    phraseBlacklist: ""
+    waitForEnter: true
+  }),
+  legacyNames_: As_<SettingsNS.LegacyNames & SafeObject>({ __proto__: null as never,
+    extWhiteList: "extAllowList",
+    phraseBlacklist: "omniBlockList"
   }),
   // not set localStorage, neither sync, if key in @nonPersistent
   // not clean if exists (for simpler logic)
@@ -706,6 +710,13 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
     (payload_ as Generalized<typeof payload_>)[key] = settings.get_(_i as AutoNames);
   }
 
+  for (let oldKey in settings.legacyNames_) {
+    let oldVal = settings.storage_.getItem(oldKey);
+    if (oldVal != null) {
+      settings.set_(settings.legacyNames_[oldKey as keyof typeof settings.legacyNames_], oldVal);
+      settings.storage_.removeItem(oldKey);
+    }
+  }
   if (Build.MayOverrideNewTab) {
     if (settings.temp_.hasEmptyLocalStorage_) {
       settings.set_("newTabUrl", obj.NewTabForNewUser_);
@@ -727,11 +738,11 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
           || "all" in (document.documentElement as HTMLHtmlElement).style)
       ? "a" : "")
     + ",";
-  const innerCSS = localStorage.getItem("innerCSS");
+  const innerCSS = settings.storage_.getItem("innerCSS");
   if (innerCSS && innerCSS.startsWith(obj.StyleCacheId_)) {
     settings.postUpdate_("innerCSS", innerCSS);
     return;
   }
-  localStorage.removeItem("vomnibarPage_f");
+  settings.storage_.removeItem("vomnibarPage_f");
   settings.fetchFile_("baseCSS");
 })();

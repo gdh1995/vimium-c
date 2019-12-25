@@ -46,7 +46,7 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
     host = runtime.id || location.host || location.protocol;
     noBackend = !!(msg && msg.lastIndexOf("not exist") >= 0 && runtime.id);
     if (res === false) { // disabled
-      str = ": not in the white list.";
+      str = ": not in the allow list.";
     } else if (!noBackend && err) {
       str = msg ? `:\n\t${msg}` : ": no backend found.";
     } else if (tick > 3) {

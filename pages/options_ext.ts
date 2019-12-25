@@ -224,6 +224,12 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
   if (Build.BTypes & BrowserType.Firefox) {
     delKeys("i18n_f");
   }
+  for (let key in bgSettings_.legacyNames_) {
+    if (key in new_data) {
+      new_data[bgSettings_.legacyNames_[key as keyof SettingsNS.LegacyNames]] = new_data[key];
+      delete new_data[key];
+    }
+  }
   if (new_data.vimSync !== bgSettings_.get_("vimSync")) {
     logUpdate("import", "vimSync", new_data.vimSync);
     bgSettings_.set_("vimSync", new_data.vimSync);
