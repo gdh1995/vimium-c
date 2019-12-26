@@ -1,6 +1,12 @@
 #!/usr/bin/env node
+// @ts-check
 "use strict";
-var fs = require('fs');
+/** @type {import("./dependencies").FileSystem} */
+// @ts-ignore
+var fs = require("fs");
+/** @type {import("./dependencies").ProcessType} */
+// @ts-ignore
+var process = require("process");
 var lib = require("./dependencies");
 
 var argv = process.argv, argi = 0;
@@ -17,9 +23,11 @@ if (cwd && fs.existsSync(cwd) && fs.statSync(cwd).isDirectory()) {
   argv.length = argi;
 } else if (cwd && cwd[0] !== "-") {
   console.error("No such command or directory:", cwd);
+  // @ts-ignore
   return;
 }
 if (!fs.existsSync("tsconfig.json")) {
+  // @ts-ignore
   var parent = __dirname.replace(/[\\\/][^\\\/]+[\\\/]?$/, "");
   if (fs.existsSync(parent + "/tsconfig.json")) {
     process.chdir(parent);
@@ -59,7 +67,9 @@ function patchTSC() {
 
 patchTSC();
 if (!_tscPatched) {
+  // @ts-ignore
   require("typescript/lib/tsc");
+  // @ts-ignore
   return;
 }
 
@@ -74,6 +84,7 @@ var real_args = argv.length > 2 ? argv.splice(2, argv.length - 2) : [];
 
 argv.length = 2;
 argv.push(fakeArg);
+// @ts-ignore
 var ts = require("typescript/lib/tsc");
 argv.length = 2;
 
@@ -104,6 +115,7 @@ ts.sys.writeFile = function(path, data, writeBom) {
   }
 };
 
+/** @type {import("./dependencies").TerserOptions | null} */
 var defaultUglifyConfig = null;
 var getUglifyJS = function() {
   var uglify;

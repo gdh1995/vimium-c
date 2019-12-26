@@ -1,8 +1,48 @@
+// @ts-check
 "use strict";
 
+/**
+ * @typedef { {
+ *    argv: string[];
+ *    env: {[key: string]: string | undefined};
+ *    chdir (cwd: string): void;
+ *    exit (err?: number): void;
+ * } } ProcessType
+ * @typedef { {
+ *    [ind: number]: number; length: number;
+ *    toString (encoding?: string, start?: number, end?: number): string;
+ * } } Buffer
+ * @typedef { {
+ *    mtime: Date; atime: Date;
+ *    isDirectory (): boolean;
+ * } } FileStat
+ * @typedef { {
+ *    openSync (path: string, method: "a" | "r" | "w"): number;
+ *    fstatSync (fd: number): FileStat;
+ *    futimesSync (fd: number, atime: number, mtime: number): void;
+ *    closeSync (fd: number): void;
+ *    existsSync (path: string): boolean;
+ *    statSync (path: string): FileStat;
+ *    readFileSync (path: string): Buffer;
+ *    writeFile (path: string, data: string | Buffer, callback?: () => void): void;
+ *    writeFileSync (path: string, data: string | Buffer): void;
+ *    createReadStream (path: string): any;
+ * } } FileSystem
+ * 
+ * @typedef { {
+ *    compress: any; output: any; mangle: any;
+ * } } TerserOptions
+ */
+/** @type {FileSystem} */
+// @ts-ignore
 var fs = require("fs");
-var osPath = require('path');
 
+/**
+ * Read file to string and remember info like BOM (support utf-8 / utf16le)
+ * @param {string} fileName - file path
+ * @param { { bom?: "\uFFFE" | "\uFEFF" | "" } | null } [info] - object to store extra info
+ * @returns {string} file text content
+ */
 function readFile(fileName, info) {
   info == null && (info = {});
   var buffer = fs.readFileSync(fileName);
@@ -34,8 +74,20 @@ function readFile(fileName, info) {
   return buffer.toString("utf8");
 }
 
+/**
+ * @callback ReadJson
+ * @param {string} fileName - file path
+ * @param {boolean} [throwError]
+ * @returns {any} parsed JSON object
+ */
+/** @type {ReadJson} */
 var _readJSON;
 
+/**
+ * Read json file to any object or throw error
+ * @type {ReadJson}
+ * @param {boolean} [throwError] - throw on error or just log it
+ */
 function readJSON(fileName, throwError) {
   if (!_readJSON) {
     _makeJSONReader();
@@ -46,9 +98,11 @@ function readJSON(fileName, throwError) {
 function _makeJSONReader() {
   var stringOrComment = /"(?:\\[\\\"]|[^"])*"|'(?:\\[\\\']|[^'])*'|\/\/[^\r\n]*|\/\*[^]*?\*\//g
     , notLF = /[^\r\n]+/g, notWhiteSpace = /\S/;
+  /** @param {string} str */
   function spaceN(str) {
     return ' '.repeat(str.length);
   }
+  /** @param {string} str */
   function onReplace(str) {
     switch (str[0]) {
     case '/': case '#':
@@ -62,6 +116,7 @@ function _makeJSONReader() {
       return str;
     }
   }
+  /** @type {ReadJson} */
   function readJSON1(fileName, throwError) {
     var text = readFile(fileName);
     text = text.replace(stringOrComment, onReplace);
@@ -80,6 +135,13 @@ function _makeJSONReader() {
 }
 
 var _uglifyjsConfig = null;
+
+/**
+ * Load configuration of UglifyJS or terser
+ * @param {string} path - file path
+ * @param {boolean} [reload] - force to reload or return the cache if possible
+ * @returns {TerserOptions} parsed configuration object
+ */
 function loadUglifyConfig(path, reload) {
   var a = _uglifyjsConfig;
   if (a == null || reload) {
@@ -112,12 +174,14 @@ function loadUglifyConfig(path, reload) {
     }
     let ver = "", terser = null;
     try {
-      ver = require('terser/package').version;
+      // @ts-ignore
+      ver = require("terser/package").version;
     } catch (e) {
       console.log("Can not read the version of terser.");
     }
     try {
-      terser = require('terser');
+      // @ts-ignore
+      terser = require("terser");
     } catch (e) {
       console.log("Can not read the module of terser.");
     }
@@ -136,7 +200,9 @@ function loadUglifyConfig(path, reload) {
         delete a.output.wrap_func_args;
       }
     }
+    // @ts-ignore
     if (terser && terser.default_options) {
+      // @ts-ignore
       var allowed = terser.default_options();
       if (allowed) {
         var allowedKeys = new Set(Object.keys(allowed.compress)), skipped = [];
@@ -155,10 +221,17 @@ function loadUglifyConfig(path, reload) {
   return a;
 }
 
-function touchFileIfNeeded(targetPath, /** Optional */ fileToCompareTime) {
+/**
+ * Touch a file if it's older than `fileToCompareTime`
+ * @param {string} targetPath - target file to check and touch
+ * @param {string} [fileToCompareTime] - source file to compare its mtime
+ * @param {boolean} [virtual] - whether to skip real actions
+ * @returns {boolean | null} whether it's needed to touch or not
+ */
+function touchFileIfNeeded(targetPath, fileToCompareTime, virtual) {
   if (fileToCompareTime === targetPath) { fileToCompareTime = null; }
   if (!fs.existsSync(targetPath) || fileToCompareTime && !fs.existsSync(fileToCompareTime)) {
-    return;
+    return null;
   }
   var fd = fs.openSync(targetPath, "a"), fd2 = null;
   try {
@@ -166,9 +239,11 @@ function touchFileIfNeeded(targetPath, /** Optional */ fileToCompareTime) {
     if (stat.mtime != null && fileToCompareTime) {
       var srcMtime = fs.fstatSync(fd2 = fs.openSync(fileToCompareTime, "r")).mtime;
       if (srcMtime != null && srcMtime < stat.mtime) {
-        return;
+        return false;
       }
     }
+    virtual ||
+    // @ts-ignore
     fs.futimesSync(fd, parseInt(stat.atime.getTime() / 1000, 10), parseInt(Date.now() / 1000, 10));
   } finally {
     fs.closeSync(fd);
@@ -179,6 +254,23 @@ function touchFileIfNeeded(targetPath, /** Optional */ fileToCompareTime) {
   return true;
 }
 
+/**
+ * Compare modification time of two files
+ * @param {string} src - source file
+ * @param {string} dest - target file
+ * @returns {boolean} whether src is older than dest or not
+ */
+function compareFileTime(src, dest) {
+  return touchFileIfNeeded(dest, src, true) === false;
+}
+
+/**
+ * Copy members of `a` into `b`
+ * @template T
+ * @param {T} b - dest object
+ * @param {Partial<T>} a - source object
+ * @return {T} b
+ */
 function extendIf(b, a) {
   Object.setPrototypeOf(a, null);
   for (var i in a) {
@@ -187,6 +279,10 @@ function extendIf(b, a) {
   return b;
 }
 
+/**
+ * Get git commit id (7-character version) or null
+ * @return {string | null}
+ */
 function getGitCommit() {
   try {
     var branch = readFile(".git/HEAD");
@@ -204,6 +300,7 @@ module.exports = {
   readJSON: readJSON,
   loadUglifyConfig: loadUglifyConfig,
   touchFileIfNeeded: touchFileIfNeeded,
+  compareFileTime: compareFileTime,
   extendIf: extendIf,
   getGitCommit: getGitCommit,
 };
