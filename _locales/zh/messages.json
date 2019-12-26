@@ -997,9 +997,6 @@
 	"NewTabAdapter": {
 		"message": "NewTab Adapter"
 	},
-	"notReadCanvas": {
-		"message": "您启用了浏览器实验性参数“--disable-reading-from-canvas”，因此无法使用动态图标"
-	},
 	"refusedURLs": {
 		"message": "Firefox 不允许扩展程序打开“$1”这个网址。"
 	},

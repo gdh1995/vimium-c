@@ -8529,6 +8529,7 @@ interface XMLHttpRequest extends EventTarget, XMLHttpRequestEventTarget {
     readonly LOADING: number;
     readonly OPENED: number;
     readonly UNSENT: number;
+    onload: (ev: Event & TypedEvent<"load">) => void;
     addEventListener<K extends keyof XMLHttpRequestEventMap>(type: K, listener: (this: XMLHttpRequest, ev: XMLHttpRequestEventMap[K]) => void, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 }
@@ -8538,7 +8539,6 @@ interface TextXHR extends XMLHttpRequest {
     readonly responseText: string;
     readonly responseXML: never;
     responseType: "text";
-    onload: (this: TextXHR, ev: Event & TypedEvent<"load">) => void;
 }
 
 interface JSONXHR extends XMLHttpRequest {
@@ -8546,7 +8546,14 @@ interface JSONXHR extends XMLHttpRequest {
     readonly responseText: never;
     readonly responseXML: never;
     responseType: "json";
-    onload: (this: JSONXHR, ev: Event & TypedEvent<"load">) => void;
+}
+
+interface ArrayXHR extends XMLHttpRequest {
+    readonly response: ArrayBuffer;
+    readonly responseText: never;
+    readonly responseXML: never;
+    responseType: "arraybuffer";
+    onload: (ev: Event & TypedEvent<"load">) => void;
 }
 
 declare var XMLHttpRequest: {

@@ -105,6 +105,12 @@ var Tasks = {
     }
     return uglifyJSFiles(path, ".", "", { base: ".", json: true });
   },
+  "png2bin": function(cb) {
+    const p2b = require("./scripts/icons-to-blob");
+    if (p2b.called) { return cb(); } p2b.called = true;
+    p2b.setDestRoot(DEST);
+    p2b.main(() => cb(), { print });
+  },
   "minify-css": function() {
     const path = ["pages/*.css"];
     if (!getNonNullBuildItem("NDEBUG")) { return copyByPath(path); }
@@ -128,7 +134,7 @@ var Tasks = {
   },
   static: ["static/special", "static/uglify", function() {
     var arr = ["front/*", "pages/*", "icons/*", "lib/*"
-      , "*.txt", "*.md", "!**/*.json"
+      , "*.txt", "*.md", "!**/*.json", "!**/*.bin"
       , "!**/manifest*.json", "!**/*.min.*"
       , "!pages/*.css", "!front/[a-u]*.html", "!front/[w-z]*.html", "!pages/*.html", "!REL*.md", "!README_*.md"
       , "!**/*.log", "!**/*.psd", "!**/*.zip", "!**/*.tar", "!**/*.tgz", "!**/*.gz"
@@ -136,15 +142,19 @@ var Tasks = {
       , "!test*", "!todo*"
     ];
     may_have_newtab || arr.push("!" + NEWTAB_FILE.replace(".ts", ".*"));
-    getBuildItem("BTypes") & BrowserType.Chrome || arr.push("!" + FILE_URLS_CSS);
+    var btypes = getBuildItem("BTypes");
+    btypes & BrowserType.Chrome || arr.push("!" + FILE_URLS_CSS);
     uglify_viewer && arr.push("!" + VIEWER_JS);
-    var has_wordsRe = getBuildItem("BTypes") & ~BrowserType.Firefox
+    var has_wordsRe = btypes & ~BrowserType.Firefox
             && getBuildItem("MinCVer") <
                 59 /* min(MinSelExtendForwardOnlySkipWhitespaces, MinEnsuredUnicodePropertyEscapesInRegExp) */
-        || getBuildItem("BTypes") & BrowserType.Firefox && !getNonNullBuildItem("NativeWordMoveOnFirefox");
+        || btypes & BrowserType.Firefox && !getNonNullBuildItem("NativeWordMoveOnFirefox");
     if (!has_wordsRe) {
       arr.push("!front/words.txt");
       gulp.series(function() { return cleanByPath("front/words.txt"); })();
+    }
+    if (btypes & BrowserType.Chrome) {
+      gulp.series("png2bin")();
     }
     if (!has_dialog_ui) {
       arr.push("!*/dialog_ui.*");
@@ -408,7 +418,7 @@ var Tasks = {
   p: ["pages"],
   pa: ["pages"],
   pg: ["pages"],
-  local: ["scripts", "options", "show"],
+  local: ["scripts", "options", "show", "png2bin"],
   "local/": ["local"],
   tsc: ["locally", function(done) {
     debugging = true;

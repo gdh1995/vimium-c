@@ -150,7 +150,21 @@ function getDefaultUglifyConfig() {
   return defaultUglifyConfig;
 }
 
-process.exit = real_proc_exit;
+var iconsDone = null, tsDone = null;
+
+process.exit = function (exit_code) {
+  tsDone = exit_code;
+  if (iconsDone != null) { real_proc_exit(tsDone || iconsDone); }
+};
+
+try {
+  require("./icons-to-blob").main(function (err) {
+    iconsDone = err ? 1 : 0;
+    if (tsDone != null) { real_proc_exit(tsDone || iconsDone); }
+  });
+} catch (ex) {
+  console.log("Failed to convert icons to binary data:", ex);
+}
 ts.executeCommandLine(ts.sys, {
     onCompilerHostCreate: ts.noop,
     onCompilationComplete: ts.noop,

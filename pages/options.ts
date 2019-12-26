@@ -169,7 +169,7 @@ populateElement_ (value: AllowedOptions[T] | string, enableUndo?: boolean): void
     this.atomicUpdate_(value2, true, true);
   }
 }
-/** @returns string */
+/** @returns `string` in fact */
 readValueFromElement_ (): AllowedOptions[T] {
   let value = this.element_.value.trim().replace(<RegExpG> /\xa0/g, " "), ops = this.converter_;
   if (value && ops.length > 0) {
@@ -807,14 +807,6 @@ let optionsInit1_ = function (): void {
       anchor.title = name + " - " + pTrans_(Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox) ? "addons" : "webstore");
     }, $("#chromeExtVomnibar"));
-  }
-
-  if (BG_.Backend_.setIcon_ === BG_.BgUtils_.blank_ && Option_.all_.showActionIcon.previous_) {
-    nextTick_(el2 => {
-    let element = Option_.all_.showActionIcon.element_;
-    (element as EnsuredMountedHTMLElement).nextElementSibling.classList.add("has-error");
-    el2.textContent = pTrans_("notReadCanvas");
-    }, $("#showActionIconHelp"));
   }
 
   _ref = $$(".ref-text");

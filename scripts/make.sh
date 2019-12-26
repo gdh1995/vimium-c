@@ -29,6 +29,8 @@ set -o noglob
 ver=$(grep -m1 -o '"version":\s*"[0-9\.]*"' ${ZIP_BASE}manifest.json | awk -F '"' '{print $4;}')
 output=$1
 ori_output=$output
+chrome_only=${CHROME_ONLY:-0} # 0: may be; 1: is indeed; 2: is not
+chrome_only=${FOR_EDGE:$chrome_only}
 if [ -z "$output" -o -d "$output" ]; then
   output=${output%/}
   [ -z "${output#.}" ] && output=
@@ -42,8 +44,10 @@ if [ -z "$output" -o -d "$output" ]; then
       ver=${ver}-edge
     elif test -f "$ZIP_BASE/.build/.chrome.build"; then
       ver=${ver}-chrome
+      chrome_only=1
     elif test -f "$ZIP_BASE/.build/.firefox.build"; then
       ver=${ver}-fx
+      chrome_only=2
     else
       ver=${ver}-dist
     fi
@@ -105,13 +109,18 @@ fi
 if ! bool "$WITH_MAP"; then
   ZIP_IGNORE=$ZIP_IGNORE' *.map'
 fi
+if test $chrome_only = 2; then
+  ZIP_IGNORE=$ZIP_IGNORE' *.bin'
+elif test $chrome_only = 1; then
+  ZIP_IGNORE=$ZIP_IGNORE' icons/disable*.png icons/partial*.png'
+fi
 if ! bool "$INCLUDE_ALL_DOCS"; then
   ZIP_IGNORE=$ZIP_IGNORE' RELEASE*.md README_*.md'
 fi
 zip -rX -MM $args "$output_for_zip" ${input[@]} -x 'weidu*' 'helpers*' 'test*' 'git*' \
   'dist*' 'node_modules*' 'script*' '*tsconfig*' 'type*' \
   'pages/dialog_ui*' 'GUD*' 'Gulp*' 'gulp*' 'package*' 'todo*' 'tsc.*' \
-  '*tslint*' '*.dll' '*.so' '*.lib' '*.exp' '*.a' '*.pdb' '*.py' '*.bin' \
+  '*tslint*' '*.dll' '*.so' '*.lib' '*.exp' '*.a' '*.pdb' '*.py' '[a-hj-z]*.bin' \
   '*.coffee' '*.crx' '*.enc' '*.log' '*.psd' '*.sh' '*.ts' '*.zip' $ZIP_IGNORE $4
 err=$?
 [ $pushd_err -eq 0 ] && popd >/dev/null 2>&1

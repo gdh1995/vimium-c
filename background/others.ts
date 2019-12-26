@@ -522,67 +522,42 @@ BgUtils_.timeout_(150, function (): void {
   let imageData: IconNS.StatusMap<IconNS.IconBuffer> | null, tabIds: IconNS.StatusMap<number[]> | null;
   let mayShowIcons = true;
   function loadImageAndSetIcon(type: Frames.ValidStatus, path: IconNS.PathBuffer) {
-    let img: HTMLImageElement, cache = BgUtils_.safeObj_() as IconNS.IconBuffer, count = 0,
-    ctx: CanvasRenderingContext2D | null = null;
-    function onerror(this: HTMLImageElement, err: Event | 1 | null): void {
-      console.log("%cError:%c %s %s", "color:red", "color:auto"
-        , err === 1 ? "Could not read image data from a <canvas> for"
-          : "Could not load action icon:", this.getAttribute("src"));
+    let cache = BgUtils_.safeObj_() as IconNS.IconBuffer, count = 0;
+    const onerror = (err: any): void => {
       if (!mayShowIcons) { return; }
       mayShowIcons = false;
+      console.log("Can not access binary icon data:", err);
       Backend_.setIcon_ = BgUtils_.blank_;
-      tabIds = null;
       chrome.browserAction.setTitle({ title: "Vimium C\n\nFailed in showing dynamic icons." });
-    }
-    function onload(this: HTMLImageElement): void {
-      if (!mayShowIcons) { return; }
-      if (!ctx) {
-        const canvas = document.createElement("canvas");
-        canvas.width = canvas.height = IconNS.PixelConsts.MaxSize;
-        ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-      }
-      let w = this.width, h = this.height;
-      ctx.clearRect(0, 0, w, h);
-      ctx.drawImage(this, 0, 0, w, h);
-      // in case of https://peter.sh/experiments/chromium-command-line-switches/#disable-reading-from-canvas
-      // and tested on C54 and C74
-      try {
-        cache[w as number | string as IconNS.ValidSizes] = ctx.getImageData(0, 0, w, h);
-      } catch {
-        this.onerror(1 as never);
-      }
-      if (count++ || !mayShowIcons) {
-        ctx = null; return;
-      }
-      installCache();
-    }
-    const installCache = () => {
+    },
+    loadFromRawArray = (size: IconNS.ValidSizes, array: ArrayBuffer) => {
+      cache[size] = new ImageData(new Uint8ClampedArray(array), +size, +size);
+      if (count++) { return; }
       (imageData as Exclude<typeof imageData, null>)[type] = cache;
       const arr = (tabIds as IconNS.StatusMap<number[]>)[type] as number[];
       delete (tabIds as IconNS.StatusMap<number[]>)[type];
       for (let w = 0, h = arr.length; w < h; w++) {
         Backend_.setIcon_(arr[w], type, true);
       }
-    }, loadFromRawArray = (size: IconNS.ValidSizes, array: ArrayBuffer) => {
-      cache[size] = new ImageData(new Uint8ClampedArray(array), +size, +size);
-      if (count++) { return; }
-      installCache();
     };
     BgUtils_.safer_(path);
     for (var i in path) {
-      if (!Build.NDEBUG && Build.MinCVer >= BrowserVer.MinFetchExtensionFiles) {
-        fetch(path[i as keyof typeof path].replace(".png", ".bin")
-            ).then(r => r.blob()).then(b => b.arrayBuffer()
+      if (Build.MinCVer >= BrowserVer.MinFetchExtensionFiles
+          || !Build.NDEBUG && CurCVer_ >= BrowserVer.MinFetchExtensionFiles) {
+        var p = fetch(path[i as keyof typeof path].replace(".png", ".bin")
+            ).then(r => r.blob().then(b => b.arrayBuffer())
             ).then(loadFromRawArray.bind(null, i as keyof typeof path));
-        continue;
+        if (!Build.NDEBUG) { p.catch(onerror); }
+      } else {
+        var req = new XMLHttpRequest() as ArrayXHR;
+        req.open("GET", path[i as keyof typeof path].replace(".png", ".bin"), true);
+        req.responseType = "arraybuffer";
+        if (!Build.NDEBUG) { req.onerror = onerror; }
+        req.onload = (i2 => {
+          return function (this: typeof req) { loadFromRawArray(i2, this.response); };
+        })(i as keyof typeof path);
+        req.send();
       }
-      img = new Image();
-      img.onload = onload, img.onerror = onerror;
-      if (Build.MinCVer <= BrowserVer.FlagOutOfBlinkCorsMayCauseBug
-          && CurCVer_ === BrowserVer.FlagOutOfBlinkCorsMayCauseBug) {
-        img.crossOrigin = "anonymous";
-      }
-      img.src = path[i as IconNS.ValidSizes];
     }
   }
   Settings_.temp_.IconBuffer_ = function (this: void, enabled?: boolean): boolean | void {

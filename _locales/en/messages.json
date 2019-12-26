@@ -658,9 +658,6 @@
 	"NewTabAdapter": {
 		"message": "NewTab Adapter"
 	},
-	"notReadCanvas": {
-		"message": "Sorry, but the icon can not be dynamic if the browser flag \"--disable-reading-from-canvas\" is enabled"
-	},
 	"refusedURLs": {
 		"message": "The URL \"$1\" is refused by the Firefox browser to be opened by a web-extension."
 	},
