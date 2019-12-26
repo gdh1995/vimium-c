@@ -280,6 +280,9 @@ constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption_) => v
     let table = container.firstElementChild as HTMLElement;
     table.remove();
     this.template_.remove();
+    if (Option_.syncToFrontend_) { // is on options page
+      this.template_.draggable = true;
+    }
     this.inited_ = true;
     if (this.saved_) { // async and .fetch called
       nextTick_(() => this.populateElement_(this.previous_));
