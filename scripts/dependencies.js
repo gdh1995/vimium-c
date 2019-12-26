@@ -52,7 +52,7 @@ function _makeJSONReader() {
   function onReplace(str) {
     switch (str[0]) {
     case '/': case '#':
-      if (str[0] === "/*") {
+      if (str.slice(0, 2) === "/*") {
         // replace comments with whitespace to preserve original character positions
         return str.replace(notLF, spaceN);
       }

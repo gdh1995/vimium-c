@@ -40,13 +40,14 @@ function patchTSC() {
   try {
     var code = lib.readFile(path, info).trim();
     var patched = "\n;\n\nmodule.exports = ts;\n"
-          + "ts.sys.args[0] !== '" + fakeArg + "' && ts.executeCommandLine(ts.sys.args);\n";
-    if (code.slice(-patched.length) !== patched && code.indexOf("module.exports = ") < 0) {
-      var oldTail = "ts.executeCommandLine(ts.sys.args);";
-      if (code.slice(-oldTail.length) === oldTail) {
-        code = code.slice(0, -oldTail.length);
+          + "ts.sys.args[0] !== '" + fakeArg + "' &&\n";
+    if (code.slice(-4096).indexOf(patched) < 0 && code.indexOf("module.exports = ") < 0) {
+      var oldTail = "ts.executeCommandLine(ts.sys";
+      var pos = code.lastIndexOf(oldTail);
+      if (pos < 0) {
+        throw Error("The target call is not found:");
       }
-      code = code + patched;;
+      code = code.slice(0, pos) + patched + code.slice(pos);
       fs.writeFileSync(path, code);
       console.log("Patch TypeScript/lib/tsc.js: succeed");
     }
@@ -83,11 +84,11 @@ ts.sys.writeFile = function(path, data, writeBom) {
   var isJS = path.slice(-3) === ".js";
   var srcPath = isJS ? path.slice(0, -3) + ".ts" : path;
   if (cache[path] === data) {
-    if (fs.existsSync(targetPath)) {
+    if (fs.existsSync(path)) {
       console.log("\tTOUCH:", path);
       lib.touchFileIfNeeded(path, srcPath);
     } else {
-      fs.closeSync(fs.openSync(targetPath, "w"));
+      fs.closeSync(fs.openSync(path, "w"));
     }
     return;
   }
@@ -138,4 +139,9 @@ function getDefaultUglifyConfig() {
 }
 
 process.exit = real_proc_exit;
-ts.executeCommandLine(real_args);
+ts.executeCommandLine(ts.sys, {
+    onCompilerHostCreate: ts.noop,
+    onCompilationComplete: ts.noop,
+    onSolutionBuilderHostCreate: ts.noop,
+    onSolutionBuildComplete: ts.noop
+}, real_args);
