@@ -349,7 +349,8 @@ defaultKeyMappings_:
   " m " + kCName.Marks_activateCreateMode +
   " ` " + kCName.Marks_activate
 ,
-availableCommands_: <{[key in string]?: CommandsNS.Description} & SafeObject> As_<CommandsNS.NameMetaMap & SafeObject>({
+availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeObject>
+    As_<CommandsNS.NameMetaMap & SafeObject>({
   __proto__: null as never,
   "LinkHints.activate": [ kFgCmd.linkHints, 0, 0 ],
   "LinkHints.activateMode": [ kFgCmd.linkHints, 0, 0 ],

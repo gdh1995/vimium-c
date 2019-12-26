@@ -37,6 +37,7 @@
     ".*",
     "dist",
     "node_modules",
+    "scripts",
     "test*",
     "weidu"
   ]

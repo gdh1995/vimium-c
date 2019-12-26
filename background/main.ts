@@ -3042,7 +3042,7 @@
     ExecuteShortcut_ (this: void, cmd: string): void {
       const tabId = TabRecency_.last_, ports = framesForTab[tabId];
       if (cmd === <string> <unknown> kShortcutAliases.nextTab1) { cmd = kCName.nextTab; }
-      type NullableShortcutMap = ShortcutInfoMap & { [key in string]?: CommandsNS.Item | null; };
+      type NullableShortcutMap = ShortcutInfoMap & { [key: string]: CommandsNS.Item | null | undefined; };
       const map = CommandsData_.shortcutRegistry_ as NullableShortcutMap;
       if (!map || !map[cmd]) {
         // usually, only userCustomized* and those from 3rd-party extensions will enter this branch

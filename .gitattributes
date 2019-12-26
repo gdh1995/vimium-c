@@ -1,4 +1,5 @@
 * crlf=input
+*.bin binary
 *.bmp binary
 *.crx binary
 *.enc binary
