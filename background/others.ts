@@ -545,7 +545,7 @@ BgUtils_.timeout_(150, function (): void {
       if (Build.MinCVer >= BrowserVer.MinFetchExtensionFiles
           || !Build.NDEBUG && CurCVer_ >= BrowserVer.MinFetchExtensionFiles) {
         var p = fetch(path[i as keyof typeof path].replace(".png", ".bin")
-            ).then(r => r.blob().then(b => b.arrayBuffer())
+            ).then(r => r.arrayBuffer()
             ).then(loadFromRawArray.bind(null, i as keyof typeof path));
         if (!Build.NDEBUG) { p.catch(onerror); }
       } else {

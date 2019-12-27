@@ -65,10 +65,11 @@ var VKey = {
                 ? this._charCorrectionList : kChar.CharCorrectionList)[mapped + 12 * +shiftKey]
           ;
     }
-    return shiftKey && key.length < 2 ? key : key === "Unidentified" ? "" : key.toLowerCase();
+    return shiftKey && key.length < 2 ? key : key.toLowerCase();
   },
   /**
    * * return `"space"` for the <Space> key - in most code it needs to be treated as a long key
+   * * does not skip "Unidentified", because it can not solve any issue if skipping it
    */
   char_ (event: Pick<KeyboardEvent, "code" | "key" | "keyCode" | "keyIdentifier" | "shiftKey">): string {
     let {key, shiftKey} = event;
