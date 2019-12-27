@@ -521,8 +521,8 @@ BgUtils_.timeout_(150, function (): void {
   const func = Settings_.updateHooks_.showActionIcon;
   let imageData: IconNS.StatusMap<IconNS.IconBuffer> | null, tabIds: IconNS.StatusMap<number[]> | null;
   let mayShowIcons = true;
-  function loadImageAndSetIcon(type: Frames.ValidStatus, path: IconNS.PathBuffer) {
-    let cache = BgUtils_.safeObj_() as IconNS.IconBuffer, count = 0;
+  function loadBinaryImagesAndSetIcon(type: Frames.ValidStatus) {
+    const path = Settings_.icons_[type] as IconNS.BinaryPath;
     const onerror = (err: any): void => {
       if (!mayShowIcons) { return; }
       mayShowIcons = false;
@@ -530,9 +530,12 @@ BgUtils_.timeout_(150, function (): void {
       Backend_.setIcon_ = BgUtils_.blank_;
       chrome.browserAction.setTitle({ title: "Vimium C\n\nFailed in showing dynamic icons." });
     },
-    loadFromRawArray = (size: IconNS.ValidSizes, array: ArrayBuffer) => {
-      cache[size] = new ImageData(new Uint8ClampedArray(array), +size, +size);
-      if (count++) { return; }
+    loadFromRawArray = (array: ArrayBuffer) => {
+      const uint8Array = new Uint8ClampedArray(array), firstSize = array.byteLength / 5,
+      small = (Math.sqrt(firstSize / 4) | 0) as IconNS.ValidSizes, large = (small + small) as IconNS.ValidSizes,
+      cache = BgUtils_.safeObj_() as IconNS.IconBuffer;
+      cache[small] = new ImageData(uint8Array.subarray(0, firstSize), small, small);
+      cache[large] = new ImageData(uint8Array.subarray(firstSize), large, large);
       (imageData as Exclude<typeof imageData, null>)[type] = cache;
       const arr = (tabIds as IconNS.StatusMap<number[]>)[type] as number[];
       delete (tabIds as IconNS.StatusMap<number[]>)[type];
@@ -540,25 +543,18 @@ BgUtils_.timeout_(150, function (): void {
         Backend_.setIcon_(arr[w], type, true);
       }
     };
-    BgUtils_.safer_(path);
-    for (var i in path) {
       if (Build.MinCVer >= BrowserVer.MinFetchExtensionFiles
           || !Build.NDEBUG && CurCVer_ >= BrowserVer.MinFetchExtensionFiles) {
-        var p = fetch(path[i as keyof typeof path].replace(".png", ".bin")
-            ).then(r => r.arrayBuffer()
-            ).then(loadFromRawArray.bind(null, i as keyof typeof path));
+        const p = fetch(path).then(r => r.arrayBuffer()).then(loadFromRawArray);
         if (!Build.NDEBUG) { p.catch(onerror); }
       } else {
         var req = new XMLHttpRequest() as ArrayXHR;
-        req.open("GET", path[i as keyof typeof path].replace(".png", ".bin"), true);
+        req.open("GET", path, true);
         req.responseType = "arraybuffer";
         if (!Build.NDEBUG) { req.onerror = onerror; }
-        req.onload = (i2 => {
-          return function (this: typeof req) { loadFromRawArray(i2, this.response); };
-        })(i as keyof typeof path);
+        req.onload = function (this: typeof req) { loadFromRawArray(this.response); };
         req.send();
       }
-    }
   }
   Settings_.temp_.IconBuffer_ = function (this: void, enabled?: boolean): boolean | void {
     if (enabled == null) { return !!imageData; }
@@ -597,7 +593,6 @@ BgUtils_.timeout_(150, function (): void {
     }
   } as IconNS.AccessIconBuffer;
   Backend_.setIcon_ = function (this: void, tabId: number, type: Frames.ValidStatus, isLater?: true): void {
-    let data: IconNS.IconBuffer | null, path: IconNS.PathBuffer;
     /** Firefox does not use ImageData as inner data format
      * * https://dxr.mozilla.org/mozilla-central/source/toolkit/components/extensions/schemas/manifest.json#577
      *   converts ImageData objects in parameters into data:image/png,... URLs
@@ -607,9 +602,10 @@ BgUtils_.timeout_(150, function (): void {
      */
     if (Build.BTypes & ~BrowserType.Chrome
         && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) {
-      chrome.browserAction.setIcon({ tabId, path: Settings_.icons_[type] });
+      chrome.browserAction.setIcon({ tabId, path: Settings_.icons_[type] as IconNS.ImagePath });
       return;
     }
+    let data: IconNS.IconBuffer | null;
     if (data = (imageData as Exclude<typeof imageData, null>)[type]) {
       const f = chrome.browserAction.setIcon, args: chrome.browserAction.TabIconDetails = {
         tabId,
@@ -618,8 +614,8 @@ BgUtils_.timeout_(150, function (): void {
       isLater ? f(args, BgUtils_.runtimeError_) : f(args);
     } else if ((tabIds as IconNS.StatusMap<number[]>)[type]) {
       ((tabIds as IconNS.StatusMap<number[]>)[type] as number[]).push(tabId);
-    } else if (path = Settings_.icons_[type]) {
-      setTimeout(loadImageAndSetIcon, 0, type, path);
+    } else {
+      setTimeout(loadBinaryImagesAndSetIcon, 0, type);
       (tabIds as IconNS.StatusMap<number[]>)[type] = [tabId];
     }
   };

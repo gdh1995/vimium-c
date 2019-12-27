@@ -418,7 +418,7 @@ var Tasks = {
   p: ["pages"],
   pa: ["pages"],
   pg: ["pages"],
-  local: ["scripts", "options", "show", "png2bin"],
+  local: ["scripts", "options", "show"],
   "local/": ["local"],
   tsc: ["locally", function(done) {
     debugging = true;

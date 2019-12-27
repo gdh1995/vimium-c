@@ -23,8 +23,9 @@
  *    closeSync (fd: number): void;
  *    existsSync (path: string): boolean;
  *    statSync (path: string): FileStat;
+ *    mkdirSync (path: string, options?: {recursive?: boolean}): void;
  *    readFileSync (path: string): Buffer;
- *    writeFile (path: string, data: string | Buffer, callback?: () => void): void;
+ *    writeFile (path: string, data: string | Buffer, callback?: (err?: Error) => void): void;
  *    writeFileSync (path: string, data: string | Buffer): void;
  *    createReadStream (path: string): any;
  * } } FileSystem

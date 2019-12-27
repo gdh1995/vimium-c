@@ -267,9 +267,9 @@ declare namespace CompletersNS {
 type Suggestion = CompletersNS.Suggestion;
 
 declare namespace IconNS {
-  type ValidSizes = "19" | "38";
+  type ValidSizes = 19 | 38;
   const enum PixelConsts {
-    MaxSize = 38, // what's currently used
+    ChromeMaxSize = 38, // what's currently used
 // https://docs.microsoft.com/en-us/microsoft-edge/extensions/api-support/supported-manifest-keys#browser_action-or-page_action-keys
     KnownRecommendedLargeSizeForEdge = 40,
     // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/browserAction/setIcon
@@ -280,9 +280,10 @@ declare namespace IconNS {
   type IconBuffer = {
     [size in ValidSizes]?: ImageData;
   };
-  type PathBuffer = {
+  type ImagePath = {
     readonly [size in ValidSizes]: string;
   };
+  type BinaryPath = string;
   interface AccessIconBuffer {
     (this: void, enabled: boolean): void;
     (this: void, enabled?: undefined): boolean;
