@@ -2079,7 +2079,7 @@ Modes_: [
     a.href = url;
     a.download = VHints.getImageName_(element) || "";
     // todo: how to trigger download
-    VDom.mouse_(a, "click", [0, 0]);
+    VDom.mouse_(a, "click", [0, 0], {altKey_: !0, ctrlKey_: !1, metaKey_: !1, shiftKey_: !1});
     VHints.hud_.tip_(kTip.downloaded, 2000, [text]);
   }
   , HintMode.DOWNLOAD_MEDIA

@@ -155,11 +155,19 @@ var VFind = {
         && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
         && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
         ? true : (a.inShadow_ = root !== box),
-    root2 = inShadow ? addElement("div", 0) : box;
+    root2 = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
+        && (!(Build.BTypes & BrowserType.Firefox)
+            || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+        && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+        || inShadow ? addElement("div", 0) : box;
     root2.className = "r" + VDom.cache_.d;
     root2.spellcheck = false;
     root2.appendChild(list);
-    if (inShadow) {
+    if ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
+        && (!(Build.BTypes & BrowserType.Firefox)
+            || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+        && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+        || inShadow) {
       // here can not use `box.contentEditable = "true"`, otherwise Backspace will break on Firefox, Win
       box.setAttribute("role", "textbox");
       VKey.SetupEventListener_(root2, "mousedown", a.OnMousedown_, 0, 1);
@@ -288,7 +296,7 @@ var VFind = {
       : n === kKeyCode.enter
         ? event.shiftKey ? FindNS.Action.PassDirectly : (a.saveQuery_(), FindNS.Action.ExitToPostMode)
       : (n !== kKeyCode.backspace && n !== kKeyCode.deleteKey) ? FindNS.Action.DoNothing
-      : a.query_ || (n === kKeyCode.deleteKey && VDom.cache_.o || event.repeat) ? FindNS.Action.PassDirectly
+      : a.notEmpty_ || (n === kKeyCode.deleteKey && VDom.cache_.o || event.repeat) ? FindNS.Action.PassDirectly
       : FindNS.Action.Exit;
     if (!i) {
       if (VKey.isEscape_(event)) { i = FindNS.Action.ExitAndReFocus; }
@@ -399,7 +407,7 @@ var VFind = {
   },
   /** return an element if no <a> else null */
   focusFoundLinkIfAny_ (): SafeElement | null {
-    let sel = VCui.getSelected_()[0], cur = sel.rangeCount ? VDom.GetSelectionParent_unsafe_(sel) : null;
+    let cur = VCui.GetSelectionParent_unsafe_();
     Build.BTypes & ~BrowserType.Firefox && (cur = VDom.SafeEl_(cur));
     for (let i = 0, el: Element | null = cur; el && el !== document.body && i++ < 5;
         el = VDom.GetParent_(el, PNType.RevealSlotAndGotoParent)) {
@@ -488,7 +496,7 @@ var VFind = {
     _this.updateQuery_(query);
     _this.restoreSelection_();
     _this.execute_(!_this.isRegex_ ? _this.parsedQuery_ : _this.regexMatches_ ? _this.regexMatches_[0] : "");
-    return _this.showCount_(1);
+    _this.showCount_(1);
   },
   _small: false,
   showCount_ (changed: BOOL): void {
@@ -618,7 +626,12 @@ var VFind = {
         getSelection().removeAllRanges(); // move to start
         found = a.find_(q, !notSens, back, true, a.wholeWord_, false, false);
       }
-      if (found && pR && (par = VDom.GetSelectionParent_unsafe_(VCui.getSelected_()[0], q))) {
+      /**
+       * Warning: on Firefox and before {@link #FirefoxBrowserVer.Min$find$NotReturnFakeTrueOnPlaceholderAndSoOn},
+       * `found` may be unreliable,
+       * because Firefox may "match" a placeholder and cause `getSelection().type` to be `"None"`
+       */
+      if (found && pR && (par = VCui.GetSelectionParent_unsafe_())) {
         pR.lastIndex = 0;
         let text = (par as HTMLElement | Element & {innerText?: undefined}).innerText;
         if (text && !(Build.BTypes & ~BrowserType.Firefox && typeof text !== "string")
@@ -630,7 +643,7 @@ var VFind = {
       }
     } while (0 < --count && found);
     if (found) {
-      par = par || VDom.GetSelectionParent_unsafe_(VCui.getSelected_()[0]);
+      par = par || VCui.GetSelectionParent_unsafe_();
       par && VDom.view_(par);
     }
     options.noColor || setTimeout(a.HookSel_, 0);

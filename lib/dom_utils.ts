@@ -639,29 +639,6 @@ var VDom = {
               || node.childNodes instanceof NodeList)
         && element === (node.childNodes as NodeList | RadioNodeList)[sel.anchorOffset];
   },
-  /**
-   * need selection.rangeCount > 0; return HTMLElement if there's only Firefox
-   * @UNSAFE_RETURNED
-   */
-  GetSelectionParent_unsafe_ (sel: Selection, selected?: string): Element | null {
-    let range = sel.getRangeAt(0), par: Node | null = range.commonAncestorContainer, p0 = par;
-    while (par && (par as NodeToElement as ElementToHTML).lang == null) {
-      par = Build.BTypes & ~BrowserType.Firefox ? VDom.GetParent_(par, PNType.DirectNode)
-            : par.parentNode as Exclude<Node["parentNode"], Window | RadioNodeList | HTMLCollection>;
-    }
-    // in case of Document or other ParentNode types with named getters
-    par = par && (par instanceof Element || par.nodeType === kNode.ELEMENT_NODE) ? par : null;
-    // now par is HTMLElement or null, and may be a <form> / <frameset>
-    if (selected && p0.nodeType === kNode.TEXT_NODE && (p0 as Text).data.trim().length <= selected.length) {
-      let text: HTMLElement["innerText"] | undefined;
-      while (par && (text = (par as  TypeToAssert<Element, HTMLElement, "innerText">).innerText,
-            !(Build.BTypes & ~BrowserType.Firefox) || typeof text === "string")
-          && selected.length === (text as string).length) {
-        par = VDom.GetParent_(par as HTMLElement, PNType.DirectElement);
-      }
-    }
-    return par !== document.documentElement ? par as Element | null : null;
-  },
   getSelectionFocusEdge_ (sel: Selection, knownDi: VisualModeNS.ForwardDir): SafeElement | null {
     if (!sel.rangeCount) { return null; }
     let el = sel.focusNode as NonNullable<Selection["focusNode"]>, nt: Node["nodeType"]

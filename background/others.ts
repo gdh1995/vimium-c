@@ -518,19 +518,19 @@ BgUtils_.timeout_(1000, function (): void {
 
 BgUtils_.timeout_(150, function (): void {
   if (!chrome.browserAction) { return; }
-  const func = Settings_.updateHooks_.showActionIcon;
   let imageData: IconNS.StatusMap<IconNS.IconBuffer> | null, tabIds: IconNS.StatusMap<number[]> | null;
   let mayShowIcons = true;
-  function loadBinaryImagesAndSetIcon(type: Frames.ValidStatus) {
-    const path = Settings_.icons_[type] as IconNS.BinaryPath;
-    const onerror = (err: any): void => {
+  const func = Settings_.updateHooks_.showActionIcon,
+  onerror = (err: any): void => {
       if (!mayShowIcons) { return; }
       mayShowIcons = false;
       console.log("Can not access binary icon data:", err);
       Backend_.setIcon_ = BgUtils_.blank_;
       chrome.browserAction.setTitle({ title: "Vimium C\n\nFailed in showing dynamic icons." });
-    },
-    loadFromRawArray = (array: ArrayBuffer) => {
+  },
+  loadBinaryImagesAndSetIcon = (type: Frames.ValidStatus) => {
+      const path = Settings_.icons_[type] as IconNS.BinaryPath;
+      const loadFromRawArray = (array: ArrayBuffer) => {
       const uint8Array = new Uint8ClampedArray(array), firstSize = array.byteLength / 5,
       small = (Math.sqrt(firstSize / 4) | 0) as IconNS.ValidSizes, large = (small + small) as IconNS.ValidSizes,
       cache = BgUtils_.safeObj_() as IconNS.IconBuffer;
@@ -542,7 +542,7 @@ BgUtils_.timeout_(150, function (): void {
       for (let w = 0, h = arr.length; w < h; w++) {
         Backend_.setIcon_(arr[w], type, true);
       }
-    };
+      };
       if (Build.MinCVer >= BrowserVer.MinFetchExtensionFiles
           || !Build.NDEBUG && CurCVer_ >= BrowserVer.MinFetchExtensionFiles) {
         const p = fetch(path).then(r => r.arrayBuffer()).then(loadFromRawArray);
@@ -555,7 +555,7 @@ BgUtils_.timeout_(150, function (): void {
         req.onload = function (this: typeof req) { loadFromRawArray(this.response); };
         req.send();
       }
-  }
+  };
   Settings_.temp_.IconBuffer_ = function (this: void, enabled?: boolean): boolean | void {
     if (enabled == null) { return !!imageData; }
     if (!enabled) {

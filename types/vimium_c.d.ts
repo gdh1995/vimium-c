@@ -967,6 +967,7 @@ declare const enum FirefoxBrowserVer {
   MinMediaQuery$PrefersReducedMotion = 63,
   Min$Document$$FullscreenElement = 64, // under the control of `full-screen-api.unprefix.enabled` on about:config
   // Min$globalThis = 65, // should not export `globalThis` into the outside
+  Min$find$NotReturnFakeTrueOnPlaceholderAndSoOn = 65,
   MinMediaQuery$PrefersColorScheme = 67,
   // See https://bugzilla.mozilla.org/show_bug.cgi?id=1408996 and https://bugzilla.mozilla.org/show_bug.cgi?id=1514050
   MinExpandoObjectForSandboxWindowWrapperNotGetLost = 67, // https://github.com/philc/vimium/issues/2675
