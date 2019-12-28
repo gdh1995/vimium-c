@@ -278,11 +278,11 @@ var VFind = {
   } : 0 as never,
   onKeydown_ (event: KeyboardEventToPrevent): void {
     VKey.Stop_(event);
-    if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
-        ? !event.isTrusted : event.isTrusted === false) { return; }
-    if (VSc.keyIsDown_ && VSc.OnScrolls_(event) || event.type === "keyup") { return; }
     const a = this;
     const n = event.keyCode;
+    if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+        ? !event.isTrusted : event.isTrusted === false) { return; }
+    if (n === kKeyCode.ime || VSc.keyIsDown_ && VSc.OnScrolls_(event) || event.type === "keyup") { return; }
     type Result = FindNS.Action;
     let i: Result | KeyStat = event.altKey ? FindNS.Action.DoNothing
       : n === kKeyCode.enter

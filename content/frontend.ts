@@ -78,9 +78,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       ch0 = K.char_(event);
       ch = ch0 && mapKey(ch0, event);
     }
-    return ch ? ch === "<esc>" || ch === "<c-[>"
-      ? (Build.BTypes & BrowserType.Chrome && checkPotentialAccessKey(event, ch0), true)
-      : false
+    return ch ? Build.BTypes & BrowserType.Chrome
+      ? ch === "<esc>" || ch === "<c-[>" && (checkPotentialAccessKey(event, ch0), true)
+      : ch === "<esc>" || ch === "<c-[>"
       : K._isRawEscape(event);
   }
   function checkKey(char: string, code: kKeyCode, event: KeyboardEvent

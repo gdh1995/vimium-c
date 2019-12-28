@@ -17,8 +17,9 @@ var VMarks = {
     return VHud.show_(isGo ? kTip.nowGotoMark : kTip.nowCreateMark);
   },
   onKeydown_ (event: HandlerNS.Event): HandlerResult {
-    const keyCode = event.keyCode, notEsc = !VKey.isEscape_(event);
-    let keyChar: string | undefined;
+    const keyCode = event.keyCode;
+    if (keyCode === kKeyCode.ime) { return HandlerResult.Nothing; }
+    let keyChar: string | undefined, notEsc = !VKey.isEscape_(event);
     if (notEsc && (keyCode > kKeyCode.f1 && keyCode < kKeyCode.minNotFn || keyCode < kKeyCode.minNotSpace
         || (keyChar = VKey.char_(event)).length !== 1)) {
       return HandlerResult.Suppress;

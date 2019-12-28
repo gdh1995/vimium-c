@@ -59,6 +59,7 @@ var VKey = {
       key = code.length === 1
             ? !shiftKey || code < "0" || code > "9" ? code : kChar.EnNumTrans[+code]
             : this._modifierKeys[key] ? ""
+            // e.g. https://github.com/philc/vimium/issues/3451#issuecomment-569124026
             : !code ? key
             : (mapped = this._codeCorrectionMap.indexOf(code)) < 0 ? code === "Escape" ? kChar.esc : code
             : (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
@@ -162,7 +163,6 @@ var VKey = {
           }
         }
       }, timeout);
-      // todo: event.view
       return HandlerResult.Prevent;
     };
     timeout && (func as () => HandlerResult)();
