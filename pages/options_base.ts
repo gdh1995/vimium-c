@@ -15,9 +15,6 @@ interface BgWindow extends Window {
   Settings_: typeof Settings_;
 }
 
-const lang_ = navigator.language.slice(0, 2).toLowerCase(),
-$$ = document.querySelectorAll.bind(document) as <T extends HTMLElement>(selector: string) => NodeListOf<T>;
-
 declare var bgOnOther_: BrowserType;
 if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
     : typeof browser !== "undefined" && (browser && (browser as typeof chrome).runtime) != null) {
@@ -30,7 +27,11 @@ var $ = <T extends HTMLElement>(selector: string): T => document.querySelector(s
   , pTrans_: typeof chrome.i18n.getMessage = Build.BTypes & BrowserType.Firefox
       && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)
       ? (i, j) => BG_.trans_(i, j) : chrome.i18n.getMessage;
-if (lang_ !== "en") {
+
+const $$ = document.querySelectorAll.bind(document) as <T extends HTMLElement>(selector: string) => NodeListOf<T>,
+lang_ = chrome.i18n.getMessage("lang1");
+
+if (lang_) {
   (function () {
     let t = pTrans_("keyMappingsP"), el: HTMLElement | null = $("#keyMappings");
     t && el && ((el as HTMLInputElement).placeholder = t);
@@ -260,7 +261,7 @@ constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption_) => v
     }
     this.template_ = (container.querySelector("#exclusionTemplate") as HTMLTemplateElement
         ).content.firstChild as HTMLTableRowElement;
-    if (lang_ !== "en") {
+    if (lang_) {
       let el: HTMLElement, t: string;
       for (el of container.querySelectorAll("[data-i]") as ArrayLike<Element> as Element[] as HTMLElement[]) {
         t = pTrans_(el.dataset.i as string);

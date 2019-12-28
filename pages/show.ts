@@ -61,7 +61,7 @@ let encryptKey = +window.name || 0;
 let ImageExtRe = <RegExpI> /\.(bmp|gif|icon?|jpe?g|a?png|tiff?|webp)(?=[.\-_]|\b)/i;
 let _shownBlobURL = "", _shownBlob: Blob | null | 0 = null;
 
-if (navigator.language.slice(0, 2).toLowerCase() !== "en") {
+if (chrome.i18n.getMessage("lang1")) {
   document.title = pTrans_("vDisplay") || document.title;
 }
 

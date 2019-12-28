@@ -5469,7 +5469,7 @@ declare var NamedNodeMap: {
 
 interface Navigator extends Object, NavigatorID, NavigatorOnLine, NavigatorContentUtils, NavigatorStorageUtils {
     readonly cookieEnabled: boolean;
-    readonly language: string;
+    readonly language: unknown; // by intent
     readonly maxTouchPoints: number;
     readonly mimeTypes: MimeTypeArray;
     readonly plugins: PluginArray;

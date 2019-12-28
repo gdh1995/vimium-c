@@ -61,7 +61,7 @@ chrome.runtime && chrome.runtime.getManifest && (function () {
     }
   }
   if (curPath.indexOf("blank") > 0) {
-    if (navigator.language.slice(0, 2).toLowerCase() !== "en") {
+    if (chrome.i18n.getMessage("lang1")) {
       let s = (Build.BTypes & BrowserType.Firefox && bg0 && bg0.trans_ || chrome.i18n.getMessage)("vBlank");
       s && (document.title = s);
     }
