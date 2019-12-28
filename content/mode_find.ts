@@ -148,16 +148,29 @@ var VFind = {
     // an extra <div> may be necessary: https://github.com/gdh1995/vimium-c/issues/79#issuecomment-540921532
     const box = Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
+        && (Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME
+            || !(Build.BTypes & BrowserType.Chrome)
+                && (!(Build.BTypes & ~BrowserType.Firefox) || VDom.cache_.v < FirefoxBrowserVer.assumedVer)
+                && VDom.cache_.v >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
         && VDom.cache_.o === kOS.linux
         ? addElement("div", 0) as HTMLDivElement : body,
-    root = VDom.createShadowRoot_(box),
+    root = !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
+        ? Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME
+          || !(Build.BTypes & BrowserType.Chrome)
+              && (!(Build.BTypes & ~BrowserType.Firefox) || VDom.cache_.v < FirefoxBrowserVer.assumedVer)
+              && VDom.cache_.v >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME
+          ? VDom.createShadowRoot_(box) as ShadowRoot : box
+        : VDom.createShadowRoot_(box),
     inShadow = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
-        && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+        && (!(Build.BTypes & BrowserType.Firefox)
+            || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
+                && Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
         && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
         ? true : (a.inShadow_ = root !== box),
     root2 = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
         && (!(Build.BTypes & BrowserType.Firefox)
-            || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+            || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
+                && Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
         && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
         || inShadow ? addElement("div", 0) : box;
     root2.className = "r" + VDom.cache_.d;
@@ -165,7 +178,8 @@ var VFind = {
     root2.appendChild(list);
     if ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
         && (!(Build.BTypes & BrowserType.Firefox)
-            || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+            || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
+                && Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
         && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
         || inShadow) {
       // here can not use `box.contentEditable = "true"`, otherwise Backspace will break on Firefox, Win
@@ -484,6 +498,7 @@ var VFind = {
       VKey.Stop_(e);
       if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
           ? !e.isTrusted : e.isTrusted === false) { return; }
+      if ((e as InputEvent | Event & {isComposing?: boolean}).isComposing) { return; }
     }
     const _this = VFind, query = _this.input_.innerText.replace(<RegExpG> /\xa0/g, " ").replace(<RegExpOne> /\n$/, "");
     let s = _this.query_;

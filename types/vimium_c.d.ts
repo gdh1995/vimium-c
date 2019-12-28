@@ -978,6 +978,9 @@ declare const enum FirefoxBrowserVer {
   MinCSSEnableContain = 69,
   MinUserScriptsAPI = 69, // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/userScripts
   Min$queueMicrotask = 69,
+  // but doesn't support code changes focus during input events when is composing
+  // tested on Win 10 + MS PinYin and Ubuntu 18 + an inner PinYin IME
+  MinContentEditableInShadowSupportIME = 69,
   // https://bugzilla.mozilla.org/show_bug.cgi?id=1587723
   MinMediaChangeEventsOnBackgroundPage = 99,
   // members of a Selection are never updated when an <input> gets focused, so no work-around
