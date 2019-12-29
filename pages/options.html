@@ -53,7 +53,7 @@
             Otherwise it will be converted.</span>
           <br/>
           <span data-i="o10">If "</span><var data-i="Keys">Keys</var><span data-i="o11">" is empty,
-            then Vimium C gets wholly disabled;</span><br/>
+            Vimium C gets wholly disabled;</span><br/>
           <span data-i="o12">if "</span><var data-i="Keys">Keys</var><span data-i="o13">"
               starts with "</span><kbd class="wrap-space">^</kbd><span data-i="o14">",
             only listed keys are enabled,<br/>
@@ -135,7 +135,7 @@ mapKey &lt;a-e&gt; &lt;esc&gt;
           <div class="info" data-i="nonEmpty">Delete all to reset this option.</div>
         </td>
         <td class="help"><div class="help-inner">
-          <span data-i="o33">Define search engines to create &amp; parse URLs. Format:</span>
+          <span data-i="o33">Define search engines to build URLs. Format:</span>
           <code>
           <pre>
 a|A|MainName: https://a.com/?q=<span data-i-t="twoS" title="%s is equal with $s">%s</span>
@@ -144,7 +144,7 @@ key: https://c.com/$s/space=\s\ space_end
 # <span data-i="o34">this is a comment</span></pre>
           </code>
           <kbd data-i-t="twoS" title="%s is equal with $s">$s</kbd>
-            <span data-i="o35">will be replaced with real search terms.</span>
+            <span data-i="o35">will be replaced with real queries.</span>
           <a data-auto-resize="searchEngines" role="button" tabindex="0" data-i="autoResize">Auto resize
             </a><span data-i="period">.</span><br/>
           <a href="" target="_blank" rel="noopener noreferrer" data-i="o36"
@@ -288,7 +288,7 @@ key: https://c.com/$s/space=\s\ space_end
             </label>
           </td>
           <td class="help"><div class="help-inner line-help" data-i="o58">
-            When enabled, the HUD will not be displayed in insert mode, just like a command option of `hideHUD=true`.
+            When enabled, the HUD will not be displayed in insert mode, just like a parameter of `hideHUD=true`.
           </div></td>
         </tr>
         <tr>
@@ -326,11 +326,11 @@ key: https://c.com/$s/space=\s\ space_end
               <input id="showActionIcon" type="checkbox" tabindex="-1" aria-hidden="true"
                   data-model="Boolean" data-permission="browser_action" />
               <span data-i="o63" class="checkboxHint" role="checkbox" tabindex="0" aria-hidden="false"
-                >Show dynamic extension icons on the top right</span>
+                >Show extension icon dynamically on the top right</span>
             </label>
           </td>
           <td class="help"><div id="showActionIconHelp" class="help-inner line-help" data-i="o64">
-            Make the extension icon reflect states on current page.<br/>
+            Make it reflect working states on a current page.<br/>
             If this is unchecked, Vimium C will be a little faster.
           </div></td>
         </tr>
@@ -475,7 +475,7 @@ title="Warning: Chrome has a bug of mistaken dialogue width if you has changed s
             <div class="info" data-i="nonEmpty">Delete all to reset this option.</div>
           </td>
           <td class="help"><div class="help-inner">
-            <div data-i="o92">Only browser extensions in this list are allowed to request Vimium C's support.
+            <div data-i="o92">Only extensions in this list are allowed to request Vimium C's support.
             One extension id per line.</div>
             <span data-i="o93">Any line the first char of which is neither a letter nor a number or
               "</span><kbd>_</kbd><span data-i="o94">" will be ignored.</span>
