@@ -7,19 +7,13 @@
  *    data: Buffer; width: number; height: number;
  * } } PNGImage
  */
-var allIcons = [
+
+ var allIcons = [
   { 19: "/icons/enabled_19.png", 38: "/icons/enabled_38.png" },
   { 19: "/icons/partial_19.png", 38: "/icons/partial_38.png" },
   { 19: "/icons/disabled_19.png", 38: "/icons/disabled_38.png" }
 ];
-
-/**
- * ===========================
- * This section is for Node.js
- * ===========================
- */
-
- /** @type {import("./dependencies").FileSystem} */
+/** @type {import("./dependencies").FileSystem} */
 // @ts-ignore
 var fs = require("fs");
 /** @type {import("./dependencies").ProcessType} */
@@ -86,7 +80,7 @@ function main(callback = null
       , islatest = 0;
     checkLatest && sublist.forEach(filePath => checkLatest(filePath, dest) && islatest++);
     if (islatest === sublist.length) { continue; }
-    const destFolder = dest.split("/").slice(0, -1).join("");
+    const destFolder = dest.split("/").slice(0, -1).join("/");
     if (destFolder && !fs.existsSync(destFolder)) {
       fs.mkdirSync(destFolder, {recursive: true});
     }
@@ -116,6 +110,10 @@ if (typeof module !== "undefined") {
     allIcons: allIcons,
     readPNGImage: readPNGImage,
     main: main,
+    /**
+     * setup dest root
+     * @param {string} newRoot - new root of dest files
+     */
     setDestRoot: function (newRoot) {
       destRoot = newRoot;
     }
