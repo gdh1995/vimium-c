@@ -100,6 +100,9 @@ var Tasks = {
   },
   "static/json": function() {
     const path = ["_locales/*/messages.json", "settings_template.json"];
+    if (getBuildItem("BTypes") === BrowserType.Firefox) {
+      path.push("!_locales/*_*/**")
+    }
     if (!getNonNullBuildItem("NDEBUG")) {
       return copyByPath(path);
     }

@@ -110,7 +110,7 @@ if ! bool "$WITH_MAP"; then
   ZIP_IGNORE=$ZIP_IGNORE' *.map'
 fi
 if test $chrome_only = 2; then
-  ZIP_IGNORE=$ZIP_IGNORE' *.bin'
+  ZIP_IGNORE=$ZIP_IGNORE' *.bin _locales/*_*'
 elif test $chrome_only = 1; then
   ZIP_IGNORE=$ZIP_IGNORE' icons/disable*.png icons/partial*.png'
 fi
