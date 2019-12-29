@@ -845,27 +845,6 @@
     tab && chrome.windows.update(tab.windowId, { focused: true });
     return onRuntimeError();
   }
-  /** `direction` is treated as limited; limited by pinned */
-  function removeTabsRelative(activeTab: {index: number, pinned: boolean}, direction: number, tabs: Tab[]): void {
-    let i = activeTab.index, noPinned = false;
-    if (direction > 0) {
-      ++i;
-      tabs = tabs.slice(i, i + direction);
-    } else {
-      noPinned = i > 0 && tabs[0].pinned && !tabs[i - 1].pinned;
-      if (direction < 0) {
-        tabs = tabs.slice(Math.max(i + direction, 0), i);
-      } else {
-        tabs.splice(i, 1);
-      }
-    }
-    if (noPinned) {
-      tabs = tabs.filter(tab => !tab.pinned);
-    }
-    if (tabs.length > 0) {
-      chrome.tabs.remove(tabs.map(tab => tab.id), onRuntimeError);
-    }
-  }
   /** safe when cPort is null */
   const
   focusOrLaunch = [function (tabs): void {
@@ -1598,7 +1577,26 @@
       removeTabsInOrder(tab, tabs, start, end);
     },
     /* kBgCmd.removeTabsR: */ function (this: void, tabs: Tab[]): void {
-      return removeTabsRelative(selectFrom(tabs), cOptions.other ? 0 : cRepeat, tabs);
+      /** `direction` is treated as limited; limited by pinned */
+      let activeTab: {index: number, pinned: boolean} = selectFrom(tabs), direction = cOptions.other ? 0 : cRepeat;
+      let i = activeTab.index, noPinned = false;
+      if (direction > 0) {
+        ++i;
+        tabs = tabs.slice(i, i + direction);
+      } else {
+        noPinned = i > 0 && tabs[0].pinned && !tabs[i - 1].pinned;
+        if (direction < 0) {
+          tabs = tabs.slice(Math.max(i + direction, 0), i);
+        } else {
+          tabs.splice(i, 1);
+        }
+      }
+      if (noPinned) {
+        tabs = tabs.filter(tab => !tab.pinned);
+      }
+      if (tabs.length > 0) {
+        chrome.tabs.remove(tabs.map(tab => tab.id), onRuntimeError);
+      }
     },
     /* kBgCmd.removeRightTab: */ function (this: void, tabs: Tab[]): void {
       if (!tabs) { return; }
@@ -2234,7 +2232,7 @@
         }
       }
       if (!end && url.slice(0, start).indexOf("git") > 0) {
-        path = upperGitUrls(url, path) || path;
+        path = /*#__NOINLINE__*/ upperGitUrls(url, path) || path;
       }
       str = decoded ? enc(path) : path;
       url = url.slice(0, start) + (end ? str + url.slice(end) : str);

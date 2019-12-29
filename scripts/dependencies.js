@@ -135,7 +135,7 @@ function _makeJSONReader() {
   _readJSON = readJSON1;
 }
 
-var _uglifyjsConfig = null;
+var _uglifyjsConfig = null, _configWarningLogged = false;
 
 /**
  * Load configuration of UglifyJS or terser
@@ -213,7 +213,8 @@ function loadUglifyConfig(path, reload) {
             delete c[key1];
           }
         }
-        if (skipped.length > 0) {
+        if (skipped.length > 0 && !_configWarningLogged) {
+          _configWarningLogged = true;
           require("fancy-log")(`Skip these terser options: ${skipped.join(", ")}`);
         }
       }

@@ -440,23 +440,6 @@ function safeReRegister(element: Element, doc1: Document): void {
     isReRegistering = 0;
   }
 }
-function findAllOnClick(cmd: kContentCmd.AutoFindAllOnClick | kContentCmd.ManuallyFindAllOnClick): void {
-  if (!root) { return; }
-  call(Remove, root);
-  allNodesInDocument = call(getElementsByTagNameInDoc, doc, "*");
-  let len = allNodesInDocument.length, i = unsafeDispatchCounter = 0;
-  len = len < GlobalConsts.MinElementCountToStopScanOnClick || cmd === kContentCmd.ManuallyFindAllOnClick
-      ? len : 0; // stop it
-  for (; i < len; i++) {
-    const el: Element | HTMLElement = allNodesInDocument[i];
-    if ((el as HTMLElement).onclick && !call(HasAttr, el, "onclick")
-        && !(el instanceof HA)) { // ignore <button>s to iter faster
-      pushInDocument(i);
-    }
-  }
-  doRegister(1);
-  allNodesInDocument = null;
-}
 function executeCmd(eventOrDestroy?: Event): void {
   const detail: CommandEventDetail = eventOrDestroy && (eventOrDestroy as CustomEvent).detail,
   cmd: SecondLevelContentCmds | kContentCmd._fake = detail
@@ -466,7 +449,21 @@ function executeCmd(eventOrDestroy?: Event): void {
   // always stopProp even if the secret does not match, so that an attacker can not detect secret by enumerating numbers
   detail && call(StopProp, eventOrDestroy as Event);
   if (cmd < kContentCmd._minSuppressClickable) {
-    cmd && /*#__NOINLINE__*/ findAllOnClick(cmd as ContentCommandsNotSuppress);
+    if (!cmd || !root) { return; }
+    call(Remove, root);
+    allNodesInDocument = call(getElementsByTagNameInDoc, doc, "*");
+    let len = allNodesInDocument.length, i = unsafeDispatchCounter = 0;
+    len = len < GlobalConsts.MinElementCountToStopScanOnClick || cmd === kContentCmd.ManuallyFindAllOnClick
+        ? len : 0; // stop it
+    for (; i < len; i++) {
+      const el: Element | HTMLElement = allNodesInDocument[i];
+      if ((el as HTMLElement).onclick && !call(HasAttr, el, "onclick")
+          && !(el instanceof HA)) { // ignore <button>s to iter faster
+        pushInDocument(i);
+      }
+    }
+    doRegister(1);
+    allNodesInDocument = null;
     return;
   }
   toRegister.length = detectDisabled = 0;
