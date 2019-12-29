@@ -95,7 +95,7 @@ var VFind = {
       if (event && b && b.isActive_ && delta < 500 && delta > -99 && event.target === wnd1) {
         wnd1.closed || setTimeout(function (): void { VFind === b && b.isActive_ && b.focus_(); }, tick++ * 17);
       } else {
-        VKey.SetupEventListener_(wnd1, "blur", b._onUnexpectedBlur, 0, 1);
+        VKey.SetupEventListener_(wnd1, "blur", b._onUnexpectedBlur, 1, 1);
         b._onUnexpectedBlur = null;
       }
     }, t);
