@@ -145,31 +145,57 @@ var VFind = {
     }
     (a.countEl_ = addElement(0, "c")).textContent = " ";
     VCui.createStyle_(VCui.findCss_.i, VCui.styleFind_ = addElement("style") as HTMLStyleElement);
-    // an extra <div> in <body> did not work during further tests (on 2019/12/29, Fx69/71+U18)
-    const
-    root = !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
-        ? ((Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME
+    // an extra <div> may be necessary: https://github.com/gdh1995/vimium-c/issues/79#issuecomment-540921532
+    const box = Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
+        && (Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME
             || !(Build.BTypes & BrowserType.Chrome)
                 && (!(Build.BTypes & ~BrowserType.Firefox) || VDom.cache_.v < FirefoxBrowserVer.assumedVer)
-                && VDom.cache_.v >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME))
-          && VDom.cache_.o !== kOS.linux
-          ? VDom.createShadowRoot_(body) as ShadowRoot : body
-        : VDom.createShadowRoot_(body),
-    inShadow = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
-        ? true : (a.inShadow_ = root !== body),
-    root2 = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
-        || inShadow ? addElement("div", 0) : body;
+                && VDom.cache_.v >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
+        && VDom.cache_.o === kOS.linux
+        ? addElement("div", 0) as HTMLDivElement : body,
+    root = !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
+        ? Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME
+          || !(Build.BTypes & BrowserType.Chrome)
+              && (!(Build.BTypes & ~BrowserType.Firefox) || VDom.cache_.v < FirefoxBrowserVer.assumedVer)
+              && VDom.cache_.v >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME
+          ? VDom.createShadowRoot_(box) as ShadowRoot : box
+        : VDom.createShadowRoot_(box),
+    inShadow = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
+        && (!(Build.BTypes & BrowserType.Firefox)
+            || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
+                && Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
+        && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+        ? true : (a.inShadow_ = root !== box),
+    root2 = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
+        && (!(Build.BTypes & BrowserType.Firefox)
+            || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
+                && Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
+        && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+        || inShadow ? addElement("div", 0) : box;
     root2.className = "r" + VDom.cache_.d;
     root2.spellcheck = false;
     root2.appendChild(list);
-    if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+    if ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
+        && (!(Build.BTypes & BrowserType.Firefox)
+            || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
+                && Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
+        && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
         || inShadow) {
       // here can not use `box.contentEditable = "true"`, otherwise Backspace will break on Firefox, Win
-      body.setAttribute("role", "textbox");
+      box.setAttribute("role", "textbox");
       VKey.SetupEventListener_(root2, "mousedown", a.OnMousedown_, 0, 1);
       root.appendChild(root2);
     }
-    if (Build.BTypes & ~BrowserType.Firefox && zoom < 1) {
+    if (Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)) {
+      if (box !== body) {
+        const st = addElement("style", 0) as HTMLStyleElement;
+        st.textContent = "body{margin:0!important}";
+        (doc.head as HTMLHeadElement).appendChild(st);
+        body.appendChild(box);
+      }
+    } else if (Build.BTypes & ~BrowserType.Firefox && zoom < 1) {
       docEl.style.zoom = "" + 1 / zoom;
     }
     a.box_.style.display = "";
