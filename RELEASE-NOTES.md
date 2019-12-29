@@ -1,7 +1,10 @@
 Release Notes of Vimium C
 =========================
 
-#### 1.79.0
+#### 1.79.2
+* Firefox: fix IME compatibility issues in find mode
+
+#### 1.79.1
 (the current published version on Chrome Web Store and Firefox Add-ons)
 * `LinkHints`: merge logic from Vimium and add new options
   * add "Filtered Hints" mode
