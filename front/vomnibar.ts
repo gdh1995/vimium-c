@@ -178,6 +178,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       ? Build.BTypes : BrowserType.Chrome,
   browserVer_: Build.BTypes & BrowserType.Chrome ? BrowserVer.assumedVer : BrowserVer.assumedVer,
   os_: kOS.win as SettingsNS.ConstItems["o"][1],
+  mapRModifier: false as SettingsNS.AllVomnibarItems["a"][1],
   mappedKeyRegistry_: null as SettingsNS.AllVomnibarItems["k"][1],
   maxMatches_: 0,
   queryInterval_: 0,
@@ -422,7 +423,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   } as SafeEnum,
   keyIdCorrectionOffset_: (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
       ? 185 : 0 as never) as 185 | 300,
-  char_ (event: Pick<KeyboardEvent, "code" | "key" | "keyCode" | "keyIdentifier" | "shiftKey">): string {
+  char_ (event: Pick<KeyboardEvent, "code" | "key" | "keyCode" | "keyIdentifier" | "location" | "shiftKey">): string {
     const charCorrectionList = kChar.CharCorrectionList, enNumTrans = kChar.EnNumTrans;
     let {key, shiftKey} = event;
     if (!(Build.BTypes & BrowserType.Edge)
@@ -430,11 +431,14 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         ? Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.BTypes & BrowserType.Chrome && !key
         : true) {
       let {keyCode: i} = event, keyId: kCharCode;
-      key = i < kKeyCode.minNotDelete
-        ? i > kKeyCode.space - 1
-            ? this._keyNames[i - kKeyCode.space] : i === kKeyCode.backspace ? kChar.backspace
+      key = i > kKeyCode.space - 1 && i < kKeyCode.minNotDelete ? this._keyNames[i - kKeyCode.space]
+        : i < kKeyCode.minNotDelete || i === kKeyCode.osRight
+        ? i === kKeyCode.backspace ? kChar.backspace
             : i === kKeyCode.esc ? kChar.esc
-            : i === kKeyCode.tab ? kChar.tab : i === kKeyCode.enter ? kChar.enter : kChar.None
+            : i === kKeyCode.tab ? kChar.tab : i === kKeyCode.enter ? kChar.enter
+            : (i === kKeyCode.osRight || i > kKeyCode.minAcsKeys - 1 && i < kKeyCode.maxAcsKeys + 1)
+              && Vomnibar_.mapRModifier && event.location === 2 ? kChar.Modifier
+            : kChar.None
         : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn ? "f" + (i - kKeyCode.maxNotFn)
         : (key = Build.BTypes & ~BrowserType.Chrome ? <string | undefined> event.keyIdentifier || ""
               : event.keyIdentifier as string).startsWith("U+") && (keyId = parseInt(key.slice(2), 16))
@@ -453,7 +457,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         }
         key = code.length === 1
               ? !shiftKey || code < "0" || code > "9" ? code : enNumTrans[+code]
-              : this._modifierKeys[key as string] ? ""
+              : this._modifierKeys[key as string] ? Vomnibar_.mapRModifier && event.location === 2 ? kChar.Modifier : ""
               : !code ? key
               : (mapped = this._codeCorrectionMap.indexOf(code)) < 0 ? code === "Escape" ? kChar.esc : code
               : charCorrectionList[mapped + 12 * +shiftKey]
@@ -928,6 +932,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       Vomnibar_.onStyleUpdate_(styles);
     }
     delta.c != null && Vomnibar_.css_(delta.c);
+    delta.a != null && (Vomnibar_.mapRModifier = delta.a);
     delta.n != null && (Vomnibar_.maxMatches_ = delta.n);
     delta.t != null && (Vomnibar_.queryInterval_ = delta.t);
     delta.k !== undefined && (Vomnibar_.mappedKeyRegistry_ = delta.k);

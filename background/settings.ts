@@ -24,6 +24,7 @@ var Settings_ = {
   omniPayload_: <SettingsNS.VomnibarPayload> As_<SettingsNS.DeclaredVomnibarPayload>({
     v: Build.BTypes & BrowserType.Chrome ? CurCVer_ : Build.BTypes & BrowserType.Firefox ? CurFFVer_ : 0,
     o: kOS.win,
+    a: false,
     n: 0,
     t: 0,
     l: "",
@@ -306,6 +307,9 @@ var Settings_ = {
       }
       a.broadcastOmni_({ N: kBgReq.omni_updateOptions, d: { c: a.omniPayload_.c } });
     },
+    mapModifier (this: {}, value: FullSettings["mapModifier"]): void {
+      Settings_.broadcastOmni_({ N: kBgReq.omni_updateOptions, d: { a: value } });
+    },
     ignoreCapsLock (this: {}, value: FullSettings["ignoreCapsLock"]): void {
       const flag = value > 1 || value === 1 && !Settings_.payload_.o;
       if (Settings_.payload_.i === flag) { return; }
@@ -455,6 +459,7 @@ shortcut-forwarding-tool@gdh1995.cn`
     hideHud: false,
     ignoreCapsLock: 0,
     ignoreKeyboardLayout: false,
+    mapModifier: false,
     innerCSS: "",
     keyboard: [560, 33],
     keyMappings: "",
@@ -534,6 +539,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
   valuesToLoad_: As_<SelectNameToKey<SettingsNS.AutoItems> & SafeObject>({ __proto__: null as never,
     filterLinkHints: "f",
     ignoreKeyboardLayout: "l",
+    mapModifier: "a",
     keyboard: "k", linkHintCharacters: "c", linkHintNumbers: "n",
     regexFindMode: "r", smoothScroll: "s", scrollStepSize: "t", waitForEnter: "w"
   }),

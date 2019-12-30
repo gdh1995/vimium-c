@@ -255,6 +255,7 @@ declare namespace SettingsNS {
     /** regexFindMode */ r: ["regexFindMode", boolean];
     /** scrollStepSize */ t: ["scrollStepSize", number];
     /** smoothScroll */ s: ["smoothScroll", boolean];
+    /** mapRightModifierKeys */ a: ["mapModifier", boolean];
   }
   interface ManualItems {
     /** darkMode */ d: [kNames.darkMode, " D" | ""];
@@ -308,7 +309,7 @@ declare namespace SettingsNS {
 
   /** Note: should have NO names which may be uglified */
   interface AllVomnibarItems extends VomnibarOptionItems, OtherVomnibarItems
-  {
+      , Pick<AutoItems, "a"> {
   }
   interface VomnibarPayload extends AllConstValues, SelectValueType<AllVomnibarItems> {
   }
@@ -490,7 +491,7 @@ declare const enum kKeyCode {
   maxNotNum = 48 - 1, N0, N9 = N0 + 9, minNotNum,
   maxNotAlphabet = 65 - 1, A, B, C, D, E, F, G, H, I, J, K, L, M, N,
   O, P, Q, R, S, T, U, V, W, X, Y, Z, MinNotAlphabet,
-  metaKey = 91, menuKey = 93, maxNotFn = 112 - 1, f1, f2, f5 = f1 + 4,
+  metaKey = 91, osRight = 92, menuKey = 93, maxNotFn = 112 - 1, f1, f2, f5 = f1 + 4,
   f10 = f1 + 9, f12 = f1 + 11, f13, f20 = f1 + 19, minNotFn, ime = 229,
   questionWin = 191, questionMac = kCharCode.question,
 }
@@ -507,6 +508,7 @@ declare const enum kChar {
   backspace = "backspace", esc = "esc", tab = "tab", enter = "enter",
   None = "", F_num = "f",
   CharCorrectionList = ";=,-./`[\\]'\\:+<_>?~{|}\"|", EnNumTrans = ")!@#$%^&*(",
+  Modifier = "modifier",
 }
 
 declare const enum BrowserType {

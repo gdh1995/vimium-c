@@ -14,12 +14,15 @@ var VKey = {
   } as SafeEnum,
   cache_: null as never as SettingsNS.FrontendSettingCache,
   /** only return lower-case long string */
-  getKeyName_ (event: Pick<KeyboardEvent, "key" | "keyCode">): kChar {
+  getKeyName_ (event: Pick<KeyboardEvent, "key" | "keyCode" | "location">): kChar {
     let {keyCode: i} = event, s: string | undefined;
-    return i < kKeyCode.minNotDelete ? (i > kKeyCode.space - 1
-          ? this._keyNames[i - kKeyCode.space] : i === kKeyCode.backspace ? kChar.backspace
+    return i > kKeyCode.space - 1 && i < kKeyCode.minNotDelete ? this._keyNames[i - kKeyCode.space]
+      : i < kKeyCode.minNotDelete || i === kKeyCode.osRight ? (i === kKeyCode.backspace ? kChar.backspace
           : i === kKeyCode.esc ? kChar.esc
-          : i === kKeyCode.tab ? kChar.tab : i === kKeyCode.enter ? kChar.enter : kChar.None
+          : i === kKeyCode.tab ? kChar.tab : i === kKeyCode.enter ? kChar.enter
+          : (i === kKeyCode.osRight || i > kKeyCode.minAcsKeys - 1 && i < kKeyCode.maxAcsKeys + 1)
+            && this.cache_.a && event.location === 2 ? kChar.Modifier
+          : kChar.None
         )
       : ((s = event.key) ? (<RegExpOne> /^F\d\d?$/).test(s) : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn)
       ? ("f" + (s ? s.slice(1) : i - kKeyCode.maxNotFn)) as kChar.F_num
@@ -46,8 +49,9 @@ var VKey = {
     }
   }) as (this: {}, event: Pick<OldKeyboardEvent, "keyIdentifier">, shiftKey: BOOL) => string,
   /** return strings of 1-N characters and CapsLock is ignored */
-  _forceEnUSLayout (key: string, code: string, shiftKey: boolean): string {
-    let prefix = code.slice(0, 2), mapped: number | undefined;
+  _forceEnUSLayout (key: string, event: Pick<KeyboardEvent, "key" | "keyCode" | "code" | "location">
+      , shiftKey: boolean): string {
+    let code = event.code as NonNullable<typeof event.code>, prefix = code.slice(0, 2), mapped: number | undefined;
     if (prefix !== "Nu") { // not (Numpad* or NumLock)
       // https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code/code_values
       if (prefix === "Ke" || prefix === "Di" || prefix === "Ar") {
@@ -58,7 +62,7 @@ var VKey = {
       // https://github.com/philc/vimium/issues/2161#issuecomment-225813082
       key = code.length === 1
             ? !shiftKey || code < "0" || code > "9" ? code : kChar.EnNumTrans[+code]
-            : this._modifierKeys[key] ? ""
+            : this._modifierKeys[key] ? this.cache_.a && event.location === 2 ? kChar.Modifier : ""
             // e.g. https://github.com/philc/vimium/issues/3451#issuecomment-569124026
             : !code ? key
             : (mapped = this._codeCorrectionMap.indexOf(code)) < 0 ? code === "Escape" ? kChar.esc : code
@@ -72,7 +76,7 @@ var VKey = {
    * * return `"space"` for the <Space> key - in most code it needs to be treated as a long key
    * * does not skip "Unidentified", because it can not solve any issue if skipping it
    */
-  char_ (event: Pick<KeyboardEvent, "code" | "key" | "keyCode" | "keyIdentifier" | "shiftKey">): string {
+  char_ (event: Pick<KeyboardEvent, "code" | "key" | "keyCode" | "keyIdentifier" | "location" | "shiftKey">): string {
     let {key, shiftKey} = event;
     if (Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.BTypes & BrowserType.Chrome && !key) {
       // since Browser.Min$KeyboardEvent$MayHas$$Key and before .MinEnsured$KeyboardEvent$$Key
@@ -83,7 +87,7 @@ var VKey = {
     } else {
       key = (!(Build.BTypes & BrowserType.Edge) || Build.BTypes & ~BrowserType.Edge && VOther !== BrowserType.Edge)
           && this.cache_.c
-        ? this._forceEnUSLayout(key as string, event.code as NonNullable<typeof event.code>, shiftKey)
+        ? this._forceEnUSLayout(key as string, event, shiftKey)
         : (key as string).length > 1 || key === " " ? this.getKeyName_(event)
         : this.cache_.i ? shiftKey ? (<string> key).toUpperCase() : (<string> key).toLowerCase() : <string> key;
     }

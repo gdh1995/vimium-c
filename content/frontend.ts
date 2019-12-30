@@ -85,7 +85,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   }
   function checkKey(char: string, code: kKeyCode, event: KeyboardEvent
       ): HandlerResult.Nothing | HandlerResult.Prevent | HandlerResult.Esc | HandlerResult.AdvancedEscEnum {
-    // when checkValidKey, Vimium C must be enabled, so passKeys won't be `""`
+    // when checkKey, Vimium C must be enabled, so passKeys won't be `""`
     const key0 = K.key_(event, char);
     if (passKeys && !currentKeys && (key0 in <SafeEnum> passKeys) !== isPassKeysReverted) {
       return esc(HandlerResult.Nothing);
@@ -174,6 +174,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     }
     else if (key > kKeyCode.maxNotPrintable ? key !== kKeyCode.ime
         : ((1 << kKeyCode.backspace | 1 << kKeyCode.tab | 1 << kKeyCode.esc | 1 << kKeyCode.enter
+            | 1 << kKeyCode.altKey | 1 << kKeyCode.ctrlKey | 1 << kKeyCode.shiftKey
             ) >> key) & 1) {
       if (keyChar = K.char_(event)) {
         action = checkKey(keyChar, key, event);
