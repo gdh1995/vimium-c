@@ -87,7 +87,10 @@ var VFind = {
       f("paste", a._OnPaste, t);
     }
     f("unload", a.OnUnload_, t);
-    for (const i of ["keypress", "mouseup", "click", "auxclick", "contextmenu", "copy", "cut", "paste"]) {
+    f("compositionend", Build.BTypes & BrowserType.Chrome
+        && (!(Build.BTypes & ~BrowserType.Chrome) || VDom.cache_.b === BrowserType.Chrome)
+        ? a.OnInput_ : s, t);
+    for (const i of ["compositionstart", "keypress", "mouseup", "click", "auxclick", "contextmenu", "copy", "cut", "paste"]) {
       f(i, s, t);
     }
     f("blur", a._onUnexpectedBlur = function (this: Window, event): void {

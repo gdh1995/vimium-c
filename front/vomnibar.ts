@@ -1021,14 +1021,17 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         : "#input::-ms-clear { display: none; }";
       (document.head as HTMLHeadElement).appendChild(css);
     }
-    if (Build.MinCVer < BrowserVer.Min$InputEvent$$isComposing
-        && Build.BTypes & BrowserType.Chrome
-        && ver < BrowserVer.Min$InputEvent$$isComposing) {
+    if (Build.BTypes & ~BrowserType.Firefox
+        && (!(Build.BTypes & BrowserType.Firefox) || a.browser_ !== BrowserType.Firefox)) {
       let func = function (this: HTMLInputElement, event: CompositionEvent): void {
         if (Vomnibar_.isInputComposing_ = event.type === "compositionstart") {
+          if (Build.MinCVer >= BrowserVer.Min$InputEvent$$isComposing) { return; }
           Vomnibar_.lastNormalInput_ = this.value.trim();
         }
       };
+      (Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || a.browser_ === BrowserType.Edge)
+        || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$InputEvent$$isComposing
+            && ver < BrowserVer.Min$InputEvent$$isComposing) &&
       input.addEventListener("compositionstart", func);
       input.addEventListener("compositionend", func);
     }
