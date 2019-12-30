@@ -173,7 +173,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   wheelStart_: 0,
   wheelTime_: 0,
   wheelDelta_: 0,
-  browser_: BrowserType.Chrome,
+  browser_: !(Build.BTypes & ~BrowserType.Chrome)
+      || !(Build.BTypes & ~BrowserType.Firefox) || !(Build.BTypes & ~BrowserType.Edge)
+      ? Build.BTypes : BrowserType.Chrome,
   browserVer_: Build.BTypes & BrowserType.Chrome ? BrowserVer.assumedVer : BrowserVer.assumedVer,
   os_: kOS.win as SettingsNS.ConstItems["o"][1],
   mappedKeyRegistry_: null as SettingsNS.OtherVomnibarItems["m"][1],
@@ -1384,7 +1386,8 @@ VPort_ = {
   _ClearPort (this: void): void { VPort_._port = null; },
   connect_ (type: PortType): FgPort {
     const data = { name: VCID_ ? PortNameEnum.Prefix + type + (PortNameEnum.Delimiter + BuildStr.Commit)
-        : !(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && OnOther & BrowserType.Edge
+        : !(Build.BTypes & ~BrowserType.Edge)
+          || Build.BTypes & BrowserType.Edge && !!(window as {} as {StyleMedia: unknown}).StyleMedia
         ? type + PortNameEnum.Delimiter + location.href
         : "" + type },
     port = VPort_._port = (VCID_ ? chrome.runtime.connect(VCID_, data) : chrome.runtime.connect(data)) as FgPort;

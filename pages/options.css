@@ -283,6 +283,10 @@ input::-webkit-input-placeholder, input::placeholder {
   color: #bfbfbf;
   color: var(--placeholder-color, #bfbfbf);
 }
+input::-ms-input-placeholder {
+  color: #bfbfbf;
+  color: var(--placeholder-color, #bfbfbf);
+}
 button:focus, input:focus, select:focus, textarea:focus {
   transition: border-color 200ms;
   transition-duration: var(--transition-duration, 200ms);

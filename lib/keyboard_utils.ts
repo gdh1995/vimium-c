@@ -81,7 +81,7 @@ var VKey = {
       key = this.getKeyName_(event) // it's safe to skip the check of `event.keyCode`
         || this._getKeyCharUsingKeyIdentifier(event as Pick<OldKeyboardEvent, "keyIdentifier">, +shiftKey as BOOL);
     } else {
-      key = !(Build.BTypes & BrowserType.Edge) || Build.BTypes & ~BrowserType.Edge && VOther !== BrowserType.Edge
+      key = (!(Build.BTypes & BrowserType.Edge) || Build.BTypes & ~BrowserType.Edge && VOther !== BrowserType.Edge)
           && this.cache_.L
         ? this._forceEnUSLayout(key as string, event.code as NonNullable<typeof event.code>, shiftKey)
         : (key as string).length > 1 || key === " " ? this.getKeyName_(event)
