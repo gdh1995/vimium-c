@@ -540,7 +540,7 @@ var VFind = {
     let isRe = a.isRegex_, ww = a.wholeWord_, B = "\\b", escapeAllRe = <RegExpG> /[$()*+.?\[\\\]\^{|}]/g;
     if (a.isQueryRichText_) {
     if (isRe === null && !ww) {
-      isRe = VDom.cache_.R;
+      isRe = VDom.cache_.r;
       const info = 2 * +query.startsWith(B) + +query.endsWith(B);
       if (info === 3 && !isRe && query.length > 3) {
         query = query.slice(2, -2);

@@ -372,7 +372,7 @@ nextTick_(versionEl => {
   const kEventName = "DOMContentLoaded", onload = () => {
     removeEventListener(kEventName, onload);
     bgSettings_.payload_.d && docCls.add("auto-dark");
-    bgSettings_.payload_.r && docCls.add("less-motion");
+    bgSettings_.payload_.m && docCls.add("less-motion");
   };
   addEventListener(kEventName, onload);
   versionEl.textContent = bgSettings_.CONST_.VerName_;
@@ -635,7 +635,7 @@ let optionsInit1_ = function (): void {
   opt.onSave_ = function (): void {
     const errors = bgSettings_.temp_.cmdErrors_,
     msg = !errors ? "" : pTrans_("openBgLogs", [pTrans_(errors === 1 ? "error" : "errors", [errors])]);
-    if (bgSettings_.payload_.L && !msg) {
+    if (bgSettings_.payload_.c && !msg) {
       let str = Object.keys(BG_.CommandsData_.keyMap_).join(""), mapKey = BG_.CommandsData_.mappedKeyRegistry_;
       str += mapKey ? Object.keys(mapKey).join("") : "";
       if ((<RegExpOne> /[^ -\xff]/).test(str)) {

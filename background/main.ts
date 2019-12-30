@@ -81,7 +81,7 @@
         (this: void, request: FgReq[kFgReq.checkIfEnabled], port: Frames.Port) => void);
     [kFgReq.parseUpperUrl]: {
       (this: void,
-        request: FgReqWithRes[kFgReq.parseUpperUrl] & Pick<FgReq[kFgReq.parseUpperUrl], "E">, port: Port | null): void;
+        request: FgReqWithRes[kFgReq.parseUpperUrl] & Pick<FgReq[kFgReq.parseUpperUrl], "e">, port: Port | null): void;
       (this: void, request: FgReqWithRes[kFgReq.parseUpperUrl], port?: Port): FgRes[kFgReq.parseUpperUrl];
     };
     [kFgReq.focusOrLaunch]: (this: void, request: MarksNS.FocusOrLaunch, _port?: Port | null, notFolder?: true) => void;
@@ -1866,7 +1866,7 @@
         u: "", // just a hack to make TypeScript compiler happy
         p: -cRepeat,
         t: trail != null ? !!trail : null,
-        E: true
+        e: true
       });
     },
     /* kBgCmd.moveTab: */ function (this: void, tabs: Tab[]): void {
@@ -2106,8 +2106,8 @@
     },
     /** kFgReq.parseUpperUrl: */ function (this: void, request: FgReqWithRes[kFgReq.parseUpperUrl]
         , port?: Port | null): FgRes[kFgReq.parseUpperUrl] | void {
-      if ((request as FgReq[kFgReq.parseUpperUrl]).E) {
-        (request as FgReq[kFgReq.parseUpperUrl]).E = false;
+      if ((request as FgReq[kFgReq.parseUpperUrl]).e) {
+        (request as FgReq[kFgReq.parseUpperUrl]).e = false;
         const result = requestHandlers[kFgReq.parseUpperUrl](request);
         if (result.p == null) {
           cPort = port as Port;

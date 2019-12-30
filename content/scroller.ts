@@ -144,7 +144,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
         amount /= 2;
       }
       this._checkCurrent(element);
-    } else if (VDom.cache_.S
+    } else if (VDom.cache_.s
         && (Build.MinCVer > BrowserVer.NoRAFOrRICOnSandboxedPage || !(Build.BTypes & BrowserType.Chrome)
             || VDom.allowRAF_)) {
       amount && this._animate(element, di, amount);

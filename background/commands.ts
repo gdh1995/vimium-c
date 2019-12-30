@@ -178,7 +178,7 @@ var Commands = {
     }
     CommandsData_.keyToCommandRegistry_ = registry;
     CommandsData_.shortcutRegistry_ = cmdMap as ShortcutInfoMap;
-    CommandsData_.mappedKeyRegistry_ = Settings_.omniPayload_.m = mk > 0 ? mkReg : null;
+    CommandsData_.mappedKeyRegistry_ = Settings_.omniPayload_.k = mk > 0 ? mkReg : null;
     Settings_.temp_.cmdErrors_ = Settings_.temp_.cmdErrors_ > 0 ? ~errors : errors;
   }),
   setupUserCustomized_ (cmdMap: Partial<ShortcutInfoMap>, key: keyof ShortcutInfoMap
@@ -525,7 +525,7 @@ Settings_.updateHooks_.keyMappings = function (this: {}, value: string | null): 
   Settings_.broadcastOmni_({
     N: kBgReq.omni_updateOptions,
     d: {
-      m: CommandsData_.mappedKeyRegistry_
+      k: CommandsData_.mappedKeyRegistry_
     }
   });
 };

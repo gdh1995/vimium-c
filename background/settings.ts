@@ -15,22 +15,21 @@ var Settings_ = {
   },
   payload_: <SettingsNS.FrontendSettingCache> As_<SettingsNS.DeclaredFrontendValues>({
     v: Build.BTypes & BrowserType.Chrome ? CurCVer_ : Build.BTypes & BrowserType.Firefox ? CurFFVer_ : 0,
-    r: false,
     d: "",
-    g: false,
     i: false,
+    m: false,
+    g: false,
     o: kOS.win
   }),
   omniPayload_: <SettingsNS.VomnibarPayload> As_<SettingsNS.DeclaredVomnibarPayload>({
     v: Build.BTypes & BrowserType.Chrome ? CurCVer_ : Build.BTypes & BrowserType.Firefox ? CurFFVer_ : 0,
-    i: false,
     o: kOS.win,
+    n: 0,
+    t: 0,
+    l: "",
+    s: "",
     c: "",
-    I: 0,
-    M: 0,
-    m: null,
-    n: "",
-    s: ""
+    k: null
   }),
   i18nPayload_: null as string[] | null,
   newTabs_: BgUtils_.safeObj_() as ReadonlySafeDict<Urls.NewTabType>,
@@ -310,9 +309,8 @@ var Settings_ = {
     ignoreCapsLock (this: {}, value: FullSettings["ignoreCapsLock"]): void {
       const flag = value > 1 || value === 1 && !Settings_.payload_.o;
       if (Settings_.payload_.i === flag) { return; }
-      Settings_.payload_.i = Settings_.omniPayload_.i = flag;
+      Settings_.payload_.i = flag;
       Settings_.broadcast_({ N: kBgReq.settingsUpdate, d: { i: flag } });
-      Settings_.broadcastOmni_({ N: kBgReq.omni_updateOptions, d: { i: flag } });
     },
     innerCSS (this: {}, css): void {
       const a = this as typeof Settings_, cache = a.cache_ as Writable<typeof Settings_.cache_>;
@@ -379,16 +377,16 @@ var Settings_ = {
       }
       (a.cache_ as Writable<typeof a.cache_>).vomnibarOptions = options = isSame ? defaultOptions
         : options as NonNullable<typeof options>;
-      payload.M = maxMatches;
-      payload.I = queryInterval;
-      payload.n = sizes;
+      payload.n = maxMatches;
+      payload.t = queryInterval;
+      payload.l = sizes;
       payload.s = styles;
       a.updateOmniStyles_(MediaNS.kName.PrefersReduceMotion, 1);
       a.updateOmniStyles_(MediaNS.kName.PrefersColorScheme, 1);
       a.broadcastOmni_({ N: kBgReq.omni_updateOptions, d: {
-        M: maxMatches,
-        I: queryInterval,
-        n: sizes,
+        n: maxMatches,
+        t: queryInterval,
+        l: sizes,
         s: payload.s
       } });
     }
@@ -535,9 +533,9 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
   ]),
   valuesToLoad_: As_<SelectNameToKey<SettingsNS.AutoItems> & SafeObject>({ __proto__: null as never,
     filterLinkHints: "f",
-    ignoreKeyboardLayout: "L",
-    keyboard: "k", linkHintCharacters: "l", linkHintNumbers: "n",
-    regexFindMode: "R", smoothScroll: "S", scrollStepSize: "t", waitForEnter: "w"
+    ignoreKeyboardLayout: "l",
+    keyboard: "k", linkHintCharacters: "c", linkHintNumbers: "n",
+    regexFindMode: "r", smoothScroll: "s", scrollStepSize: "t", waitForEnter: "w"
   }),
   sync_: BgUtils_.blank_ as SettingsNS.Sync["set"],
   restore_: null as (() => Promise<void> | null) | null,
@@ -610,8 +608,7 @@ chrome.runtime.getPlatformInfo(function (info): void {
   Settings_.CONST_.Platform_ = os;
   (Settings_.omniPayload_ as Writable<typeof Settings_.omniPayload_>).o =
   (Settings_.payload_ as Writable<typeof Settings_.payload_>).o = osEnum;
-  Settings_.payload_.i = Settings_.omniPayload_.i =
-      ignoreCapsLock > 1 || ignoreCapsLock === 1 && !osEnum;
+  Settings_.payload_.i = ignoreCapsLock > 1 || ignoreCapsLock === 1 && !osEnum;
   Settings_.temp_.initing_ |= BackendHandlersNS.kInitStat.platformInfo;
   Backend_ && (Backend_.onInit_ as NonNullable<typeof Backend_.onInit_>)();
 });

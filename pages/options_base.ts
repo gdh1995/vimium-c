@@ -517,7 +517,7 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
       blockedMsg = null as never;
       const docCls = (document.documentElement as HTMLHtmlElement).classList;
       docCls.toggle("auto-dark", !!bgSettings_.payload_.d);
-      docCls.toggle("less-motion", !!bgSettings_.payload_.r);
+      docCls.toggle("less-motion", !!bgSettings_.payload_.m);
       versionEl.textContent = bgSettings_.CONST_.VerName_;
     }, $<HTMLElement>(".version"));
   }

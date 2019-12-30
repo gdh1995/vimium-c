@@ -561,9 +561,9 @@ MediaWatcher_ = {
     omniToggled = key ? "dark" : "less-motion",
     bMatched: boolean = isObj ? (watcher as Exclude<typeof watcher, number>).matches : false;
     if (!key) {
-      if (payload.r !== bMatched) {
-        payload.r = bMatched;
-        embed || settings.broadcast_({ N: kBgReq.settingsUpdate, d: { r: bMatched } });
+      if (payload.m !== bMatched) {
+        payload.m = bMatched;
+        embed || settings.broadcast_({ N: kBgReq.settingsUpdate, d: { m: bMatched } });
       }
     } else {
       if (!!payload.d !== bMatched) {

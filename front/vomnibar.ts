@@ -178,7 +178,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       ? Build.BTypes : BrowserType.Chrome,
   browserVer_: Build.BTypes & BrowserType.Chrome ? BrowserVer.assumedVer : BrowserVer.assumedVer,
   os_: kOS.win as SettingsNS.ConstItems["o"][1],
-  mappedKeyRegistry_: null as SettingsNS.OtherVomnibarItems["m"][1],
+  mappedKeyRegistry_: null as SettingsNS.AllVomnibarItems["k"][1],
   maxMatches_: 0,
   queryInterval_: 0,
   heightIfEmpty_: VomnibarNS.PixelData.OthersIfEmpty,
@@ -922,18 +922,17 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
   },
   updateOptions_ (response: Req.bg<kBgReq.omni_updateOptions>): void {
-    const delta = VUtils_.safer_(response.d),
-    { c: css_, M: maxMatches_, I: queryInterval_, n: sizes_str, s: styles } = delta;
+    const delta = VUtils_.safer_(response.d), styles = delta.s;
     if (styles != null && Vomnibar_.styles_ !== styles) {
       Vomnibar_.styles_ = styles;
       Vomnibar_.onStyleUpdate_(styles);
     }
-    css_ != null && Vomnibar_.css_(css_);
-    maxMatches_ != null && (Vomnibar_.maxMatches_ = maxMatches_);
-    queryInterval_ != null && (Vomnibar_.queryInterval_ = queryInterval_);
-    delta.m !== undefined && (Vomnibar_.mappedKeyRegistry_ = delta.m);
-    if (sizes_str != null) {
-      let sizes = sizes_str.split(","), n = +sizes[0], m = Math.min, M = Math.max;
+    delta.c != null && Vomnibar_.css_(delta.c);
+    delta.n != null && (Vomnibar_.maxMatches_ = delta.n);
+    delta.t != null && (Vomnibar_.queryInterval_ = delta.t);
+    delta.k !== undefined && (Vomnibar_.mappedKeyRegistry_ = delta.k);
+    if (delta.l != null) {
+      let sizes = delta.l.split(","), n = +sizes[0], m = Math.min, M = Math.max;
       Vomnibar_.heightIfEmpty_ = M(24, m(n || VomnibarNS.PixelData.OthersIfEmpty, 320));
       n = +sizes[1];
       Vomnibar_.baseHeightIfNotEmpty_ = M(24, m(Vomnibar_.heightIfEmpty_
@@ -1117,7 +1116,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       let stop = !event.repeat, now: number = 0;
       if (!Vomnibar_.lastScrolling_) {
         // clear state, to avoid OnEnterUp receives unrelated keys
-        stop = event.keyCode > kKeyCode.ctrlKey || event.keyCode < kKeyCode.shiftKey;
+        stop = event.keyCode > kKeyCode.maxAcsKeys || event.keyCode < kKeyCode.minAcsKeys;
       } else if (stop || (now = Date.now()) - Vomnibar_.lastScrolling_ > 40 || now < Vomnibar_.lastScrolling_) {
         VPort_.postToOwner_({ N: stop ? VomnibarNS.kFReq.scrollEnd : VomnibarNS.kFReq.scrollGoing });
         Vomnibar_.lastScrolling_ = now;
@@ -1471,10 +1470,10 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
       payload.o || (Vomnibar_.keyIdCorrectionOffset_ = 300);
     }
     Vomnibar_.os_ = payload.o;
-    Vomnibar_.mappedKeyRegistry_ = payload.m;
+    Vomnibar_.mappedKeyRegistry_ = payload.k;
     Vomnibar_.styles_ = payload.s;
     Vomnibar_.updateOptions_({ N: kBgReq.omni_updateOptions, d: {
-      c: payload.c, M: payload.M, I: payload.I, n: payload.n
+      c: payload.c, n: payload.n, t: payload.t, l: payload.l
     } });
     _sec = secret;
     for (const i of unsafeMsg) {

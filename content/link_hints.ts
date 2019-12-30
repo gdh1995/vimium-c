@@ -172,7 +172,7 @@ var VHints = {
     const useFilter0 = options.useFilter, useFilter = useFilter0 != null ? !!useFilter0 : VDom.cache_.f,
     frameList: HintsNS.FrameHintsInfo[] = a.frameList_ = [{h: [], v: null as never, s: a}],
     toClean: HintsNS.Slave[] = [],
-    s0 = options.characters, chars = (s0 ? s0 + "" : useFilter ? VDom.cache_.n : VDom.cache_.l).toUpperCase();
+    s0 = options.characters, chars = (s0 ? s0 + "" : useFilter ? VDom.cache_.n : VDom.cache_.c).toUpperCase();
     if (chars.length < GlobalConsts.MinHintCharSetSize) {
       a.clean_(1);
       return VHud.tip_(kTip.fewChars, 1000);

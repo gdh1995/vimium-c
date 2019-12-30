@@ -157,7 +157,7 @@ interface BgVomnibarSpecialReq {
     /** current */ c: boolean;
   };
   [kBgReq.omni_updateOptions]: {
-    /** delta */ d: Partial<SelectValueType<SettingsNS.OtherVomnibarItems>>;
+    /** delta */ d: Partial<SelectValueType<SettingsNS.AllVomnibarItems>>;
   }
 }
 type ValidBgVomnibarReq = keyof BgVomnibarSpecialReq | kBgReq.injectorRun;
@@ -323,6 +323,7 @@ interface FgReqWithRes {
     /** upper */ p: number;
     /** id */ i?: undefined;
     /** trailing_slash */ t: boolean | null;
+    /** execute / e: unknown; */
   };
   [kFgReq.parseSearchUrl]: {
     /** url */ u: string;
@@ -344,7 +345,7 @@ interface FgReq {
     /** url */ u: string;
   };
   [kFgReq.parseUpperUrl]: FgReqWithRes[kFgReq.parseUpperUrl] & {
-    /** execute */ E: boolean;
+    /** execute */ e: boolean;
   };
   [kFgReq.findQuery]: {
     /** query */ q: string;

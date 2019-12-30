@@ -1046,12 +1046,12 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (opacity === HUD.opacity_) { /* empty */ }
       else if (opacity === 0) {
         HUD._$text.data = HUD.t;
-        st.opacity = fgCache.r
+        st.opacity = fgCache.m
             || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && fake
             ? "" : "0.25";
         st.visibility = "";
         return U.adjust_();
-      } else if (!fgCache.r && doc.hasFocus()) {
+      } else if (!fgCache.m && doc.hasFocus()) {
         opacity += opacity < HUD.opacity_ ? 0.25 : -0.25;
       } else {
         opacity = HUD.opacity_;

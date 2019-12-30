@@ -246,20 +246,20 @@ declare namespace SettingsNS {
     reduceMotion = "reduceMotion",
   }
   type AutoItems = {
-    /** ignoreKeyboardLayout */ L: ["ignoreKeyboardLayout", boolean];
+    /** ignoreKeyboardLayout */ l: ["ignoreKeyboardLayout", boolean];
     /** keyboard */ k: ["keyboard", [number, number]];
-    /** linkHintCharacters */ l: ["linkHintCharacters", string];
+    /** linkHintCharacters */ c: ["linkHintCharacters", string];
     /** linkHintNumbers */ n: ["linkHintNumbers", string];
     /** filterLinkHints */ f: ["filterLinkHints", boolean];
     /** waitForEnter */ w: ["waitForEnter", boolean];
-    /** regexFindMode */ R: ["regexFindMode", boolean];
+    /** regexFindMode */ r: ["regexFindMode", boolean];
     /** scrollStepSize */ t: ["scrollStepSize", number];
-    /** smoothScroll */ S: ["smoothScroll", boolean];
+    /** smoothScroll */ s: ["smoothScroll", boolean];
   }
   interface ManualItems {
     /** darkMode */ d: [kNames.darkMode, " D" | ""];
     /** ignoreCapsLock */ i: [kNames.ignoreCapsLock, boolean];
-    /** reduceMotion */ r: [kNames.reduceMotion, BaseBackendSettings["autoReduceMotion"]];
+    /** reduceMotion */ m: [kNames.reduceMotion, BaseBackendSettings["autoReduceMotion"]];
   }
   interface OneTimeItems {
     /** grabBackFocus */ g: [kNames.grabBackFocus, BaseBackendSettings[kNames.grabBackFocus]];
@@ -269,12 +269,17 @@ declare namespace SettingsNS {
     /** browserVer */ v: ["browserVer", BrowserVer | FirefoxBrowserVer | 0 | undefined];
     /** OS */ o: ["OS", kOS.mac | kOS.linux | kOS.win];
   }
-  type DeclaredConstValues = SelectValueType<Omit<ConstItems, "b">>;
+  type DeclaredConstValues = Readonly<SelectValueType<Pick<ConstItems, "v" | "o">>>;
+  interface AllConstValues extends Readonly<SelectValueType<ConstItems>> {}
   type VomnibarOptionItems = {
-    /** maxMatches */ M: ["maxMatches", number];
-    /** queryInterval */ I: ["queryInterval", number];
-    /** comma-joined size numbers */ n: ["sizes", string];
+    /** maxMatchNumber */ n: ["maxMatches", number];
+    /** queryInterval */ t: ["queryInterval", number];
+    /** comma-joined size numbers */ l: ["sizes", string];
     /** styles */ s: ["styles", string];
+  }
+  interface OtherVomnibarItems {
+    /** css */ c: ["omniCSS", string];
+    /** mappedKeys */ k: ["mappedKeys", SafeDict<string> | null];
   }
 
   interface BaseBackendSettings {
@@ -297,20 +302,17 @@ declare namespace SettingsNS {
   type FrontendSettings = SelectNVType<AutoItems>;
 
   /** Note: should have NO names which may be uglified */
-  interface FrontendSettingCache extends Readonly<SelectValueType<ConstItems>>
+  interface FrontendSettingCache extends AllConstValues
       , SelectValueType<FrontendSettingsSyncingItems & OneTimeItems> {
   }
 
   /** Note: should have NO names which may be uglified */
-  interface OtherVomnibarItems extends Pick<SettingsNS.ManualItems, "i">
-      , VomnibarOptionItems {
-    /** css */ c: ["omniCSS", string];
-    /** mappedKeys */ m: ["mappedKeys", SafeDict<string> | null];
+  interface AllVomnibarItems extends VomnibarOptionItems, OtherVomnibarItems
+  {
   }
-  interface VomnibarPayload extends Readonly<SelectValueType<SettingsNS.ConstItems>>
-      , SelectValueType<OtherVomnibarItems> {
+  interface VomnibarPayload extends AllConstValues, SelectValueType<AllVomnibarItems> {
   }
-  interface DeclaredVomnibarPayload extends Omit<VomnibarPayload, keyof ConstItems>, DeclaredConstValues {
+  interface DeclaredVomnibarPayload extends SelectValueType<AllVomnibarItems>, DeclaredConstValues {
   }
 }
 declare const enum kOS {
