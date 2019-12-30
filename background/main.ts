@@ -337,6 +337,10 @@
         && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
       favIcon = list.length > 0 && list[0].e === "tab" ? favIcon && 2 : 0;
     }
+    else if (Build.BTypes & BrowserType.Edge
+        && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge)) {
+      favIcon = 0;
+    }
     else if (Build.BTypes & BrowserType.Chrome && favIcon0 === 1
         && (Build.MinCVer >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon
           || CurCVer_ >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon)) {
@@ -3075,6 +3079,11 @@
       Settings_.get_("nextPatterns", true);
       Settings_.get_("previousPatterns", true);
       chrome.runtime.onConnect.addListener(function (port): void {
+        if (!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && OnOther & BrowserType.Edge) {
+          let name = port.name, pos = name.indexOf(PortNameEnum.Delimiter), type = pos > 0 ? name.slice(0, pos) : name;
+          port.sender.url = name.slice(type.length + 1);
+          return OnConnect(port as Frames.Port, (type as string | number as number) | 0);
+        }
         return OnConnect(port as Frames.Port, (port.name as string | number as number) | 0);
       });
       if (Build.BTypes & BrowserType.Edge && !chrome.runtime.onConnectExternal) {

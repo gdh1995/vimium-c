@@ -617,21 +617,22 @@ chrome.runtime.getPlatformInfo(function (info): void {
 });
 } else {
   Settings_.CONST_.Platform_ = Build.BTypes & BrowserType.Edge
-    && (!(Build.BTypes & BrowserType.Edge) || OnOther === BrowserType.Edge) ? "win" : "unknown";
+    && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge) ? "win" : "unknown";
   Settings_.payload_.i = Settings_.get_(SettingsNS.kNames.ignoreCapsLock) > 1;
   Settings_.temp_.initing_ |= BackendHandlersNS.kInitStat.platformInfo;
 }
 
 if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
+  || Build.BTypes & BrowserType.Edge
   || Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
     && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) {
   ( (Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox))
     ? !Build.NativeWordMoveOnFirefox
       // tslint:disable-next-line: no-unused-expression
       && !((): boolean | void => { try { new RegExp("\\p{L}", "u"); } catch {} })()
+    : Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge) ? true
     : Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
       && Build.MinCVer < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
-      && (!(Build.BTypes & BrowserType.Edge) || OnOther !== BrowserType.Edge)
       && (BrowserVer.MinSelExtendForwardOnlySkipWhitespaces < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
         ? CurCVer_ < (
           BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces

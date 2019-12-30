@@ -423,7 +423,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   char_ (event: Pick<KeyboardEvent, "code" | "key" | "keyCode" | "keyIdentifier" | "shiftKey">): string {
     const charCorrectionList = kChar.CharCorrectionList, enNumTrans = kChar.EnNumTrans;
     let {key, shiftKey} = event;
-    if (Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.BTypes & BrowserType.Chrome && !key) {
+    if (!(Build.BTypes & BrowserType.Edge)
+        || Build.BTypes & ~BrowserType.Edge && Vomnibar_.browser_ !== BrowserType.Edge
+        ? Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.BTypes & BrowserType.Chrome && !key
+        : true) {
       let {keyCode: i} = event, keyId: kCharCode;
       key = i < kKeyCode.minNotDelete
         ? i > kKeyCode.space - 1
@@ -1380,7 +1383,10 @@ VPort_ = {
   },
   _ClearPort (this: void): void { VPort_._port = null; },
   connect_ (type: PortType): FgPort {
-    const data = { name: VCID_ ? PortNameEnum.Prefix + type + (PortNameEnum.Delimiter + BuildStr.Commit) : "" + type },
+    const data = { name: VCID_ ? PortNameEnum.Prefix + type + (PortNameEnum.Delimiter + BuildStr.Commit)
+        : !(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && OnOther & BrowserType.Edge
+        ? type + PortNameEnum.Delimiter + location.href
+        : "" + type },
     port = VPort_._port = (VCID_ ? chrome.runtime.connect(VCID_, data) : chrome.runtime.connect(data)) as FgPort;
     port.onDisconnect.addListener(VPort_._ClearPort);
     port.onMessage.addListener(VPort_._Listener as (message: object) => void);

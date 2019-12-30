@@ -333,6 +333,9 @@ var Tasks = {
     } else if (minVer && minVer < 999) {
       manifest.minimum_chrome_version = "" + (minVer | 0);
     }
+    if (browser & BrowserType.Edge) {
+      manifest.name = "Vimium C";
+    }
     if (getBuildItem("EdgeC")) {
       delete manifest.key;
       delete manifest.update_url;

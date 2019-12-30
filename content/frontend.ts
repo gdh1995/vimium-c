@@ -1582,7 +1582,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         : (isEnabled ? passKeys ? PortType.knownPartial : PortType.knownEnabled : PortType.knownDisabled)
         + (isLocked ? PortType.isLocked : 0) + (U.styleIn_ ? PortType.hasCSS : 0),
       name = PortType.isTop * +isTop + PortType.hasFocus * +doc.hasFocus() + status,
-      data = { name: injector ? PortNameEnum.Prefix + name + injector.$h : "" + name },
+      data = { name: injector ? PortNameEnum.Prefix + name + injector.$h
+          : !(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && OnOther & BrowserType.Edge
+          ? name + PortNameEnum.Delimiter + location.href
+          : "" + name
+      },
       port = vPort._port = injector ? connect(injector.id, data) as Port : connect(data) as Port;
       port.onDisconnect.addListener(vPort.ClearPort_);
       port.onMessage.addListener(vPort.Listener_);

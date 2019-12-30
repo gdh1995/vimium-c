@@ -81,7 +81,8 @@ var VKey = {
       key = this.getKeyName_(event) // it's safe to skip the check of `event.keyCode`
         || this._getKeyCharUsingKeyIdentifier(event as Pick<OldKeyboardEvent, "keyIdentifier">, +shiftKey as BOOL);
     } else {
-      key = this.cache_.L
+      key = !(Build.BTypes & BrowserType.Edge) || Build.BTypes & ~BrowserType.Edge && VOther !== BrowserType.Edge
+          && this.cache_.L
         ? this._forceEnUSLayout(key as string, event.code as NonNullable<typeof event.code>, shiftKey)
         : (key as string).length > 1 || key === " " ? this.getKeyName_(event)
         : this.cache_.i ? shiftKey ? (<string> key).toUpperCase() : (<string> key).toLowerCase() : <string> key;
@@ -109,9 +110,10 @@ var VKey = {
     if (event.keyCode !== kKeyCode.esc && !event.ctrlKey || event.keyCode === kKeyCode.ctrlKey) { return false; }
     const i = this.getKeyStat_(event),
     code = Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Code && Build.BTypes & BrowserType.Chrome
-            ? event.code : "";
+        || Build.BTypes & BrowserType.Edge ? event.code : "";
     return i === KeyStat.plain || i === KeyStat.ctrlKey
       && (Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Code && Build.BTypes & BrowserType.Chrome
+          || Build.BTypes & BrowserType.Edge
           ? code ? code === "BracketLeft" : this._getKeyCharUsingKeyIdentifier(event as OldKeyboardEvent, 0) === "["
           : event.code === "BracketLeft");
   },
