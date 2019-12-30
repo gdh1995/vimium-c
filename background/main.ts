@@ -450,7 +450,7 @@
       });
     } else if (excl && excl.rules_.length > 0
         && (ignoreHash || excl._listeningHash)
-        && (cPort.s.u.length <= GlobalConsts.MaxSenderURLLength)) {
+        ) {
       request.u = cPort.s.u;
       (requestHandlers as Req1 as Req2)[request.H](request, cPort);
     } else {
@@ -2357,7 +2357,7 @@
       const { s: sender } = port, { u: oldUrl } = sender,
       url1: string | undefined = (request as ExclusionsNS.Details).url,
       pattern = Backend_.getExcluded_(sender.u = from_content ? (request as FgReq[kFgReq.checkIfEnabled]).u
-                  : url1.length > GlobalConsts.MaxSenderURLLength ? BgUtils_.limitUrlInSender_(url1) : url1
+                  : url1
         , sender),
       status = pattern === null ? Frames.Status.enabled : pattern ? Frames.Status.partial : Frames.Status.disabled;
       if (sender.s !== status) {
@@ -2845,7 +2845,7 @@
       s: Frames.Status.enabled,
       f: Frames.Flags.blank,
       t: tab.id,
-      u: url.length > GlobalConsts.MaxSenderURLLength ? sender.url = BgUtils_.limitUrlInSender_(url) : url
+      u: url
     };
   }
 

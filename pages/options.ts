@@ -820,13 +820,19 @@ let optionsInit1_ = function (): void {
       $<AdvancedOptBtn>("#advancedOptionsButton").onclick(null);
     }
     event.preventDefault();
-    nextTick_(node2 => {
+    const node2 = Option_.all_[this.getAttribute("for") as "ignoreKeyboardLayout"
+        ].element_.nextElementSibling as SafeHTMLElement;
+    {
       Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
         && bgBrowserVer_ < BrowserVer.MinScrollIntoViewOptions
       ? window.VDom ? VDom.view_(node2) : (node2 as EnsureItemsNonNull<SafeHTMLElement>).scrollIntoViewIfNeeded()
       : node2.scrollIntoView({ block: "center" });
       node2.focus();
-    }, Option_.all_[this.getAttribute("for") as "ignoreKeyboardLayout"].element_.nextElementSibling as SafeHTMLElement);
+    }
+    if (window.VCui) {
+      VDom.prepareCrop_();
+      VCui.flash_((node2 as EnsuredMountedHTMLElement).parentElement.parentElement);
+    }
   };
   for (let _i = _ref.length; 0 <= --_i; ) {
     const name = _ref[_i].getAttribute("for") as string as PossibleOptionNames<boolean>;

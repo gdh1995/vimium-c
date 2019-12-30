@@ -301,9 +301,6 @@ var BgUtils_ = {
     url = this.convertToUrl_(url, null, Urls.WorkType.KeepAll);
     return BgUtils_.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl && !url.startsWith("vimium:") ? url : str;
   },
-  limitUrlInSender_ (url: string): string {
-    return url.slice(0, GlobalConsts.MaxSenderURLLength) + "\u2026";
-  },
   isTld_ (tld: string, onlyEN?: boolean): Urls.TldType {
     return !onlyEN && (<RegExpOne> /[^a-z]/).test(tld) ? (this._nonENTlds.indexOf("." + tld + ".") !== -1
         ? Urls.TldType.NonENTld : Urls.TldType.NotTld)
