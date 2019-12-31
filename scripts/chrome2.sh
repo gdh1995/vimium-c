@@ -151,7 +151,7 @@ fi
 dir=${GUD}; dir=${dir#/}; gud_w=${dir%%/*}; dir=${dir#[a-z]}
 gud_w=${gud_w^}:${dir}
 
-test -d "$FUD" || mkdir -p "$FUD" || exit $?
+test -d "$GUD" || mkdir -p "$GUD" || exit $?
 test -d "$WORKING_DIR" && cd "$WORKING_DIR" 2>/dev/null || cd "${EXE%/*}"
 
 # Refer: https://peter.sh/experiments/chromium-command-line-switches/

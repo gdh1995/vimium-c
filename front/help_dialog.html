@@ -178,21 +178,16 @@
 	height: 42px;
 	position: relative;
 }
-#HelpTip {
+#HelpTip, #AdvancedCommands {
 	position: absolute;
 	top: -34px;
 }
 #HelpVersion {
 	float: right;
 }
-#HelpCredits {
-	clear: left;
-}
 #AdvancedCommands {
-	position: absolute;
 	right: 0px;
 	text-decoration: none;
-	top: -34px;
 }
 #AdvancedCommands:hover {
 	text-decoration: underline;
@@ -300,9 +295,7 @@
 		<button class="VimL" id="AdvancedCommands"
 				><span data-s="$Show" data-h="$Hide">$Show</span><span>$advCmd</span></button>
 
-		<div id="HelpAbout">
 			<div id="HelpVersion">$VerIs{{version}}</div>
-			<div>
 				$Enjoying <span class="Vim">Vim</span>ium <span class="VimC">C</span>$question2<a
 				  class="VimL" target="_blank" rel="noopener noreferrer" href="{{reviewPage}}"
 				>$HReview{{webStore}}$_HReview_2</a>$semicolon2<a
@@ -312,9 +305,7 @@
 				>$Donate</a>$period2$ifBug<a
 					class="VimL" rel="noopener noreferrer" target="_blank" href="{{homePage}}/issues"
 					>$HReport</a>$period
-			</div>
-		</div>
-		<div id="HelpCredits">
+			<br/>
 			$HCredits<a
 					class="VimL" target="_blank" rel="noopener noreferrer" href="https://github.com/philc/vimium"
 				>Vimium</a>$HOriginal<a
@@ -322,7 +313,6 @@
 				>Viewer.js</a>$HBy<i>Chen Fengyuan</i>$HAnd<a
 					class="VimL" target="_blank" rel="noopener noreferrer" href="https://github.com/silentmatt/expr-eval"
 				>JavaScript Expression Evaluator</a>$HBy<i>Matthew Crumley</i>$HEnd
-		</div>
 	</div>
 </div>
 </div>

@@ -256,16 +256,14 @@ input[type=number]::-webkit-inner-spin-button {
 }
 input[type=checkbox] {
   height: 13px;
-  margin: 3px;
+  margin: 4px 3px 2px;
   outline: none;
   padding: 0;
-  position: relative;
-  top: 2px;
   vertical-align: bottom;
   width: 13px;
 }
 input[type=checkbox]:lang(zh) {
-  top: 1px;
+  margin: 3px;
 }
 input[type=text]:read-only,
 input[type=number]:read-only,
