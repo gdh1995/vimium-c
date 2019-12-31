@@ -1139,7 +1139,7 @@
       });
     },
     /* kBgCmd.enterInsertMode: */ function (): void {
-      let code = cOptions.code | 0, stat: KeyStat = cOptions.stat | 0,
+      let code = cOptions.code | 0, stat: KeyStat = cOptions.stat | 0, key = cOptions.key,
       hud = cOptions.hideHUD != null ? !cOptions.hideHUD : cOptions.hideHud != null ? !cOptions.hideHud
           : !Settings_.cache_.hideHud;
       code = stat !== KeyStat.plain ? code || kKeyCode.esc : code === kKeyCode.esc ? 0 : code;
@@ -1148,7 +1148,7 @@
         c: kFgCmd.insertMode,
         n: 1,
         a: {
-          code, stat,
+          code, stat, key: key && typeof key === "string" ? key : null,
           passExitKey: !!cOptions.passExitKey,
           hud
         }

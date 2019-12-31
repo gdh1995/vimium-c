@@ -155,7 +155,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     if (action = K.bubbleEvent_(event)) { /* empty */ }
     else if (InsertMode.isActive_()) {
       const g = InsertMode.global_;
-      if (g ? !g.code ? isEscape(event) : key === g.code && K.getKeyStat_(event) === g.stat
+      if (g ? !g.code ? isEscape(event) : !g.key ? key === g.code && K.getKeyStat_(event) === g.stat
+            : (keyChar = K.char_(event)) && mapKey(keyChar, event) === g.key
           : key > kKeyCode.maxNotFn && key < kKeyCode.minNotFn
           ? (keyChar = K.getKeyName_(event))
             && ((action = checkKey(keyChar, key, event)) & ~HandlerResult.AdvancedEscFlag) === HandlerResult.Esc

@@ -249,6 +249,7 @@ interface CmdOptions {
     /** max of length limit list */ m: number;
   };
   [kFgCmd.insertMode]: {
+    key: string | null;
     code: kKeyCode;
     stat: KeyStat;
     passExitKey: boolean;
