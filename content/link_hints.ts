@@ -1071,7 +1071,7 @@ var VHints = {
         || (i === kKeyCode.metaKey && !VDom.cache_.o)) {
       const mode = a.mode_, mode1 = a.mode1_,
       mode2 = mode1 > HintMode.min_copying - 1 && mode1 < HintMode.max_copying + 1
-        ? i === kKeyCode.ctrlKey ? (mode1 | HintMode.queue) ^ HintMode.list
+        ? i === kKeyCode.ctrlKey || i === kKeyCode.metaKey ? (mode1 | HintMode.queue) ^ HintMode.list
           : i === kKeyCode.altKey ? (mode & ~HintMode.list) ^ HintMode.queue
           : mode
         : i === kKeyCode.altKey

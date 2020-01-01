@@ -7,10 +7,11 @@ OTHER_ARGS=
 FUD=${FUD:-/r/TEMP/FUD}
 WORKING_DIR=${WORKING_DIR:-/r/working}
 VC_ROOT=
-DIST=0
+DIST=
 AUTO_RELOAD=0
-HOME_PAGE="--start-url about:debugging#/runtime/this-firefox"
+HOME_PAGE=
 default_vc_root=/e/Git/weidu+vim/vimium-c
+debugger_url="about:debugging#/runtime/this-firefox"
 export WSLENV=PATH/l
 unset "${!WEB_EXT@}"
 
@@ -118,10 +119,16 @@ if test "$VER" == wo -o -z "$VER"; then
 else
   EXE=$WORKING_DIR/core${VER}/firefox.exe
   test -f "$EXE" || EXE=$FIREFOX_ROOT/core${VER}/chrome.exe
+  if test $VER -le 68; then
+    debugger_url="about:debugging#addons"
+  fi
 fi
 VC_ROOT=$(/usr/bin/realpath "${VC_ROOT}")
-if test $DIST -gt 0; then
-  VC_EXT=${VC_ROOT}/dist
+VC_EXT=${VC_ROOT}/dist
+if test -z "$DIST" && test -d "${VC_EXT}"/_locales && ! test -d "${VC_EXT}"/_locales/zh_CN; then
+  DIST=1
+fi
+if test ${DIST:-0} -gt 0; then
   VC_EXT=$(/usr/bin/realpath "${VC_EXT}")
   rm -rf "${VC_EXT}"/_locales/*_*
   wp vc_ext_w "$VC_EXT"
@@ -168,4 +175,4 @@ $NODE $WEB_EXT run \
   --source-dir "$VC_EXT" \
   --keep-profile-changes \
   $OTHER_ARGS \
-  $HOME_PAGE $FLAGS "$@"
+  --start-url $debugger_url $HOME_PAGE $FLAGS "$@"

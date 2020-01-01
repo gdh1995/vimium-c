@@ -1092,10 +1092,11 @@
     },
     /* kBgCmd.toggle: */ function (this: void): void {
       type Keys = SettingsNS.FrontendSettingsSyncingItems[keyof SettingsNS.FrontendSettingsSyncingItems][0];
+      type ManualNamesMap = SelectNameToKey<SettingsNS.ManualItems>;
       const all = Settings_.payload_, key: Keys = (cOptions.key || "") + "" as Keys,
-      key2 = key === SettingsNS.kNames.ignoreCapsLock ? "i"
-          : key === SettingsNS.kNames.darkMode ? "d"
-          : key === SettingsNS.kNames.reduceMotion ? "r"
+      key2 = key === SettingsNS.kNames.ignoreCapsLock ? "i" as ManualNamesMap[SettingsNS.kNames.ignoreCapsLock]
+          : key === SettingsNS.kNames.darkMode ? "d" as ManualNamesMap[SettingsNS.kNames.darkMode]
+          : key === SettingsNS.kNames.reduceMotion ? "m" as ManualNamesMap[SettingsNS.kNames.reduceMotion]
           : Settings_.valuesToLoad_[key],
       old = key2 ? all[key2] : 0, keyRepr = trans_("quoteA", [key]);
       let value = cOptions.value, isBool = typeof value === "boolean", msg = "";
