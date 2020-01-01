@@ -214,9 +214,9 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
         }
         amount = 0;
       }
-      a.scrolled_ = 0;
     }
     a._innerScroll(element, di, amount);
+    a.scrolled_ = 0;
     a.top_ = null;
   } as {
     (di: ScrollByY, amount: number, isTo: 0
@@ -298,7 +298,6 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       // otherwise, cache selected element for less further cost
       VCui.activeEl_ || (VCui.activeEl_ = element);
     }
-    a.scrolled_ = 0;
     return element;
   },
   prepareTop_ (): void {
@@ -416,6 +415,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
         a._innerScroll(a.findScrollable_(1, hasY), 1, hasY);
       }
     }
+    a.scrolled_ = 0;
     a.scrollTick_(0); // it's safe to only clean keyIsDown here
   },
   scrolled_: 0,

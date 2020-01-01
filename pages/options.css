@@ -561,12 +561,18 @@ label:active {
 @media (min-width: 1067px) {
   #wrapper, #footerWrapper {
     margin-left: auto;
-    margin-left: calc(50vw - 490px);
     margin-right: auto;
     width: 980px;
   }
   #footerButtons {
     width: 390px;
+  }
+  #wrapper {
+    left: calc(50vw - 50%);
+    position: relative;
+  }
+  #footerWrapper {
+    margin-left: calc(50vw - 490px);
   }
 }
 @media (max-width: 1066.99px) and (min-width: 977px) {
