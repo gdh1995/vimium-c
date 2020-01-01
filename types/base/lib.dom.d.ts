@@ -5243,7 +5243,7 @@ interface KeyboardEvent extends UIEvent {
     readonly keyCode: kKeyCode;
     readonly keyIdentifier: unknown;
     readonly locale: string;
-    readonly location: number;
+    readonly location: 0 | 1 | 2 | 3;
     readonly metaKey: boolean;
     readonly repeat: boolean;
     readonly shiftKey: boolean;
