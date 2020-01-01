@@ -869,6 +869,7 @@ declare const enum BrowserVer {
   // if #enable-md-extensions, it's there since C60
   MinEnsuredChromeURL$ExtensionShortcuts = 65,
   // the 3 below are correct even if EXPERIMENTAL or LEGACY
+  /** @todo: trace https://bugs.chromium.org/p/chromium/issues/detail?id=1038569 */
   Min$compositionend$$isComposing$IsMistakenlyFalse = 65,
   MinCanNotRevokeObjectURLAtOnce = 65,
   MinExtraScrollbarWidthIfScrollStyleIsOverlay = 65,
@@ -878,14 +879,14 @@ declare const enum BrowserVer {
   // https://github.com/chromium/chromium/commit/511efa694bdf9fbed3dc83e3fa4cda12909ce2b6
   MinWarningOfEscapingHashInBodyOfDataURL = 66,
   BorderRadiusCauseBorderDisappearOnIFrame = 66,
-  // https://bugs.chromium.org/p/chromium/issues/detail?id=582245
+  // @see https://bugs.chromium.org/p/chromium/issues/detail?id=582245
   Min$ContentDocument$NotThrow = 67, // even if EXPERIMENTAL or LEGACY
   MinSlotIsNotDisplayContents = 67,
   Min$NotificationOptions$$isClickable$IsDeprecated = 67,
   MinPinchZoomOnWindowsAndTouchpad = 67, // even if EXPERIMENTAL or LEGACY
   // even if EXPERIMENTAL or LEGACY
   // but not on pages whose JS is disabled in chrome://settings/content/siteDetails?site=<origin>
-  // issue: https://bugs.chromium.org/p/chromium/issues/detail?id=811528
+  // @see https://bugs.chromium.org/p/chromium/issues/detail?id=811528
   // the commit is firstly applied to C68:
   // https://github.com/chromium/chromium/commit/5a5267ab58dd0310fc2b427db30de60c0eea4457
   MinEnsuredNewScriptsFromExtensionOnSandboxedPage = 68, // extension can insert and run <script> correctly
@@ -918,14 +919,14 @@ declare const enum BrowserVer {
   // https://www.chromestatus.com/features/5656049583390720
   // deprecation is since C66
   MinEscapeHashInBodyOfDataURL = 72,
-  // https://bugs.chromium.org/p/chromium/issues/detail?id=908809 seems related with it
+  // @see https://bugs.chromium.org/p/chromium/issues/detail?id=908809 seems related with it
   MinElement$Focus$MayMakeArrowKeySelectIt = 72, // if only EXPERIMENTAL (feature #KeyboardFocusableScrollers)
   // https://www.chromestatus.com/features/5722065667620864 , https://mustaqahmed.github.io/user-activation-v2/
   MinUserActivationV2 = 72, // even if EXPERIMENTAL or LEGACY
   // https://www.chromestatus.com/features/6569666117894144
-  // https://bugs.chromium.org/p/chromium/issues/detail?id=179006#c45
+  // @see https://bugs.chromium.org/p/chromium/issues/detail?id=179006#c45
   MinSpecCompliantShadowBlurRadius = 73,
-  // re-implement extension APIs into C++ bindings: https://bugs.chromium.org/p/chromium/issues/detail?id=763564
+  // re-implement extension APIs into C++ bindings: @see https://bugs.chromium.org/p/chromium/issues/detail?id=763564
   MinEnsuredNativeCrxBindings = 73, // even if LEGACY
   /** Related: https://chromium.googlesource.com/chromium/src/+/0146a7468d623a36bcb55fc6ae69465702bae7fa%5E%21/#F18
    * Stack Trace:
@@ -956,9 +957,9 @@ declare const enum BrowserVer {
   // https://github.com/philc/vimium/issues/3449#issuecomment-568248237
   FlagOutOfBlinkCorsMayCauseBug = 81,
   // https://groups.google.com/a/chromium.org/forum/#!msg/blink-dev/h-JwMiPUnuU/sl79aLoLBQAJ
+  /** @todo trace https://www.chromestatus.com/features/4507242028072960 */
   MinNoShadowDOMv0 = 83,
-  // ses https://bugs.chromium.org/p/chromium/issues/detail?id=968651&can=2&q=reduced-motion%20change
-  // TODO: use a real version code when the bug report above is solved
+  /** @todo: trace https://bugs.chromium.org/p/chromium/issues/detail?id=968651&can=2&q=reduced-motion%20change */
   MinMediaChangeEventsOnBackgroundPage = 99,
   MinNo$TimerType$$Fake = 999,
   assumedVer = 999,
@@ -986,7 +987,7 @@ declare const enum FirefoxBrowserVer {
   // but doesn't support code changes focus during input events when is composing
   // tested on Win 10 + MS PinYin and Ubuntu 18 + an inner PinYin IME
   MinContentEditableInShadowSupportIME = 69,
-  // https://bugzilla.mozilla.org/show_bug.cgi?id=1587723
+  /** @todo: trace https://bugzilla.mozilla.org/show_bug.cgi?id=1587723 */
   MinMediaChangeEventsOnBackgroundPage = 99,
   // members of a Selection are never updated when an <input> gets focused, so no work-around
   Min$Selection$SupportTextBox = 999,

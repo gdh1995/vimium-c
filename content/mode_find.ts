@@ -410,8 +410,8 @@ var VFind = {
     VCui.toggleSelectStyle_(0);
     if (i === FindNS.Action.ExitToPostMode) { return a.postMode_.activate_(); }
   },
+  // @see https://bugs.chromium.org/p/chromium/issues/detail?id=594613
 /** ScrollIntoView to notify it's `<tab>`'s current target since Min$ScrollIntoView$SetTabNavigationNode (C51)
- * https://bugs.chromium.org/p/chromium/issues/detail?id=594613
  * https://chromium.googlesource.com/chromium/src/+/0bb887b20c70582eeafad2a58ac1650b7159f2b6
  *
  * Tracking:

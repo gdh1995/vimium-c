@@ -7,7 +7,7 @@
   - `[name] = Window`
   - test page: http://www.w3school.com.cn/tiy/loadtext.asp?f=html_frame_cols
   - OverrideBuiltins: removed since C70, commit 6a866d29f4314b990981119285da46540a50742c
-    - https://bugs.chromium.org/p/chromium/issues/detail?id=695891
+    - @see https://bugs.chromium.org/p/chromium/issues/detail?id=695891
     - BrowserVer.MinFramesetHasNoNamedGetter
   - according to tests and source code, its named getter requires `<frame>.contentDocument` is valid
   - not on MS Edge 18.17763
@@ -103,7 +103,7 @@ On Chrome, `window.Var && typeof window.Var !== "function"` is not enough,
 because on some old versions (< 58) of Chrome, `typeof <embed>` is unfortunately `"function"`.
 Related doc: https://www.chromestatus.com/features/5715026367217664
 
-My filed issue about `<form>` is https://bugs.chromium.org/p/chromium/issues/detail?id=897399
+My filed issue about `<form>` is @see https://bugs.chromium.org/p/chromium/issues/detail?id=897399
 and https://github.com/whatwg/html/issues/4458 .
 
 And there's a test page: https://jsfiddle.net/bvumn4g3/ (../tests/dom/named-property.html)

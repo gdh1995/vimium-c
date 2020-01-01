@@ -339,7 +339,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     return !!scrollSnap && scrollSnap !== "none";
   },
   _doesScroll (el: SafeElement, di: ScrollByY, amount: number): boolean {
-    // todo: check whether it's scrollable when hasSpecialScrollSnap_ on Firefox.
+    /** @todo: re-check whether it's scrollable when hasSpecialScrollSnap_ on Firefox */
     // Currently, Firefox corrects positions before .scrollBy returns,
     // so it always fails if amount < next-box-size
     const before = this.getDimension_(el, di, kScrollDim.position),
