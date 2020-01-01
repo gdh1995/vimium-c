@@ -75,7 +75,7 @@ interface NumberChecker extends Checker<"scrollStepSize"> {
   default: number;
   check_ (value: number): number;
 }
-type UniversalNumberSettings = Exclude<PossibleOptionNames<number>, "ignoreCapsLock">;
+type UniversalNumberSettings = Exclude<PossibleOptionNames<number>, "ignoreCapsLock" | "mapModifier">;
 class NumberOption_<T extends UniversalNumberSettings> extends Option_<T> {
 readonly element_: HTMLInputElement;
 previous_: number;
@@ -310,7 +310,7 @@ class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
   populateElement_ (value: FullSettings[T]): void {
     this.element_.checked = value === this.map_[this.true_index_];
     this.element_.indeterminate = this.true_index_ > 1 && value === this.map_[1];
-    this.inner_status_ = this.map_.indexOf(value) as 0 | 1 | 2;
+    this.inner_status_ = Math.max(0, this.map_.indexOf(value)) as 0 | 1 | 2;
   }
   readValueFromElement_ (): FullSettings[T] {
     let value = this.element_.indeterminate ? this.map_[1] : this.map_[this.element_.checked ? this.true_index_ : 0];

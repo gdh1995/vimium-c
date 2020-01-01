@@ -620,13 +620,13 @@
 		"message": " QWERTY 键盘布局来识别按键并忽略大小写锁定，使用非英文的键盘布局时可能需要启用此设置。"
 	},
 	"o53": {
-		"message": "映射键盘右侧的修饰键"
+		"message": "映射键盘右侧（或左侧）的修饰键"
 	},
 	"o53_2": {
-		"message": "将右手位的 Alt、Ctrl、Shift 等修饰键视为 "
+		"message": "将某一侧 Alt、Ctrl、Shift 等修饰键视为“"
 	},
 	"o53_3": {
-		"message": " 键，此时“右 Shift”键对应 "
+		"message": "”键，“右Shift”键（部分选中时“左Shift”）对应 "
 	},
 	"o53_4": {
 		"message": " 。"

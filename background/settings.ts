@@ -24,7 +24,7 @@ var Settings_ = {
   omniPayload_: <SettingsNS.VomnibarPayload> As_<SettingsNS.DeclaredVomnibarPayload>({
     v: Build.BTypes & BrowserType.Chrome ? CurCVer_ : Build.BTypes & BrowserType.Firefox ? CurFFVer_ : 0,
     o: kOS.win,
-    a: false,
+    a: 0,
     n: 0,
     t: 0,
     l: "",
@@ -463,7 +463,7 @@ shortcut-forwarding-tool@gdh1995.cn`
     hideHud: false,
     ignoreCapsLock: 0,
     ignoreKeyboardLayout: false,
-    mapModifier: false,
+    mapModifier: 0,
     innerCSS: "",
     keyboard: [560, 33],
     keyMappings: "",

@@ -177,7 +177,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       ? Build.BTypes : BrowserType.Chrome,
   browserVer_: Build.BTypes & BrowserType.Chrome ? BrowserVer.assumedVer : BrowserVer.assumedVer,
   os_: kOS.win as SettingsNS.ConstItems["o"][1],
-  mapRModifier: false as SettingsNS.AllVomnibarItems["a"][1],
+  mapModifier_: 0 as SettingsNS.AllVomnibarItems["a"][1],
   mappedKeyRegistry_: null as SettingsNS.AllVomnibarItems["k"][1],
   maxMatches_: 0,
   queryInterval_: 0,
@@ -436,7 +436,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
             : i === kKeyCode.esc ? kChar.esc
             : i === kKeyCode.tab ? kChar.tab : i === kKeyCode.enter ? kChar.enter
             : (i === kKeyCode.osRight || i > kKeyCode.minAcsKeys - 1 && i < kKeyCode.maxAcsKeys + 1)
-              && Vomnibar_.mapRModifier && event.location === 2 ? kChar.Modifier
+              && Vomnibar_.mapModifier_ && Vomnibar_.mapModifier_ === event.location ? kChar.Modifier
             : kChar.None
         : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn ? "f" + (i - kKeyCode.maxNotFn)
         : (key = Build.BTypes & ~BrowserType.Chrome ? <string | undefined> event.keyIdentifier || ""
@@ -456,7 +456,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         }
         key = code.length === 1
               ? !shiftKey || code < "0" || code > "9" ? code : enNumTrans[+code]
-              : this._modifierKeys[key as string] ? Vomnibar_.mapRModifier && event.location === 2 ? kChar.Modifier : ""
+              : this._modifierKeys[key as string] ? Vomnibar_.mapModifier_ && event.location === 2 ? kChar.Modifier : ""
               : !code ? key
               : (mapped = this._codeCorrectionMap.indexOf(code)) < 0 ? code === "Escape" ? kChar.esc : code
               : charCorrectionList[mapped + 12 * +shiftKey]
@@ -931,7 +931,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       Vomnibar_.onStyleUpdate_(styles);
     }
     delta.c != null && Vomnibar_.css_(delta.c);
-    delta.a != null && (Vomnibar_.mapRModifier = delta.a);
+    delta.a != null && (Vomnibar_.mapModifier_ = delta.a);
     delta.n != null && (Vomnibar_.maxMatches_ = delta.n);
     delta.t != null && (Vomnibar_.queryInterval_ = delta.t);
     delta.k !== undefined && (Vomnibar_.mappedKeyRegistry_ = delta.k);

@@ -255,7 +255,7 @@ declare namespace SettingsNS {
     /** regexFindMode */ r: ["regexFindMode", boolean];
     /** scrollStepSize */ t: ["scrollStepSize", number];
     /** smoothScroll */ s: ["smoothScroll", boolean];
-    /** mapRightModifierKeys */ a: ["mapModifier", boolean];
+    /** mapModifier */ a: ["mapModifier", 0 | 1 | 2];
   }
   interface ManualItems {
     /** darkMode */ d: [kNames.darkMode, " D" | ""];

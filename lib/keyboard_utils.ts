@@ -21,7 +21,7 @@ var VKey = {
           : i === kKeyCode.esc ? kChar.esc
           : i === kKeyCode.tab ? kChar.tab : i === kKeyCode.enter ? kChar.enter
           : (i === kKeyCode.osRight || i > kKeyCode.minAcsKeys - 1 && i < kKeyCode.maxAcsKeys + 1)
-            && this.cache_.a && event.location === 2 ? kChar.Modifier
+            && this.cache_.a && this.cache_.a === event.location ? kChar.Modifier
           : kChar.None
         )
       : ((s = event.key) ? (<RegExpOne> /^F\d\d?$/).test(s) : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn)
