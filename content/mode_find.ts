@@ -146,6 +146,10 @@ var VFind = {
     } else {
       el.contentEditable = "plaintext-only";
     }
+    if (Build.BTypes & BrowserType.Chrome && VDom.cache_.v < BrowserVer.MinEnsuredInputEventIsNotOnlyInShadowDOMV1) {
+      // not check MinEnsuredShadowDOMV1 for smaller code
+      VKey.SetupEventListener_(el, "input", a.OnInput_);
+    }
     (a.countEl_ = addElement(0, "c")).textContent = " ";
     VCui.createStyle_(VCui.findCss_.i, VCui.styleFind_ = addElement("style") as HTMLStyleElement);
     // an extra <div> may be necessary: https://github.com/gdh1995/vimium-c/issues/79#issuecomment-540921532
@@ -497,10 +501,16 @@ var VFind = {
     }
   },
   OnInput_ (this: void, e?: Event): void {
-    if (e != null) {
+    if (e) {
       VKey.Stop_(e);
-      if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
-          ? !e.isTrusted : e.isTrusted === false) { return; }
+      if (Build.BTypes & BrowserType.Chrome
+          && (!(Build.BTypes & ~BrowserType.Chrome) || VOther & BrowserType.Chrome)
+          && (Build.MinCVer >= BrowserVer.Min$compositionend$$isComposing$IsMistakenlyFalse
+              || VDom.cache_.v > BrowserVer.Min$compositionend$$isComposing$IsMistakenlyFalse - 1)
+          && e.type[0] === "c") {
+        if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+            ? !e.isTrusted : e.isTrusted === false) { return; }
+      }
       if ((e as InputEvent | Event & {isComposing?: boolean}).isComposing) { return; }
     }
     const _this = VFind, query = _this.input_.innerText.replace(<RegExpG> /\xa0/g, " ").replace(<RegExpOne> /\n$/, "");

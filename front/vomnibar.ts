@@ -94,7 +94,6 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
  * Note: "@1x" is necessary, because only the whole 'size/aa@bx/' can be optional
  * * definition: https://cs.chromium.org/chromium/src/chrome/browser/ui/webui/favicon_source.h?type=cs&q=FaviconSource&g=0&l=47
  * * parser: https://cs.chromium.org/chromium/src/components/favicon_base/favicon_url_parser.cc?type=cs&q=ParseFaviconPath&g=0&l=33
- * * if no '@', then Chromium's buggy code would misunderstand the wanted URL (BrowserVer.MinChar$At$InFaviconUrl)
  */
       const prefix = '" style="background-image: url(&quot;';
       // if (Build.BTypes >= BrowserVer.MinChromeFavicon2 || a.browserVer_ >= BrowserVer.MinChromeFavicon2) {

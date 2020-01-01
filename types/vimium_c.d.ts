@@ -817,6 +817,7 @@ declare const enum BrowserVer {
   // the 8 below are correct even if EXPERIMENTAL or LEGACY
   MinNoBorderForBrokenImage = 60,
   MinNoSelectionColorOnTextBoxWhenFindModeHUDIsFocused = 60,
+  MinEnsuredInputEventIsNotOnlyInShadowDOMV1 = 60, // even if LEGACY; in ShadowDOMV0, "input" will also work on window
   MinTabsCreateRefuseOpenerTabIdIfNotOnCurrentWindow = 61,
   MinRoundedBorderWidthIsNotEnsured = 61, // a border is only showing if `width * ratio * zoom >= 0.5`
   // a bug that special style.zoom may not work is fixed since MinASameZoomOfDocElAsdevPixRatioWorksAgain
@@ -867,15 +868,16 @@ declare const enum BrowserVer {
   VomnibarMayClearLog2 = 65,
   // if #enable-md-extensions, it's there since C60
   MinEnsuredChromeURL$ExtensionShortcuts = 65,
-  // the 2 below are correct even if EXPERIMENTAL or LEGACY
+  // the 3 below are correct even if EXPERIMENTAL or LEGACY
+  Min$compositionend$$isComposing$IsMistakenlyFalse = 65,
   MinCanNotRevokeObjectURLAtOnce = 65,
   MinExtraScrollbarWidthIfScrollStyleIsOverlay = 65,
   MinEnsuredDisplayContents = 65,
-  // MinChar$At$InFaviconUrl = 65, // it may work but sometimes not, so '@1x' is necessary
   MinInputMode = 66, // even if LEGACY; still works on C35 if EXPERIMENTAL
   // @see MinEscapeHashInBodyOfDataURL
   // https://github.com/chromium/chromium/commit/511efa694bdf9fbed3dc83e3fa4cda12909ce2b6
   MinWarningOfEscapingHashInBodyOfDataURL = 66,
+  BorderRadiusCauseBorderDisappearOnIFrame = 66,
   // https://bugs.chromium.org/p/chromium/issues/detail?id=582245
   Min$ContentDocument$NotThrow = 67, // even if EXPERIMENTAL or LEGACY
   MinSlotIsNotDisplayContents = 67,
