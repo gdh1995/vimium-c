@@ -29,6 +29,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   let KeydownEvents: KeydownCacheArray, keyMap: KeyMap
     , fgCache: SettingsNS.FrontendSettingCache = null as never
     , insertLock = null as LockableElement | null
+    , lastWndFocusTime = 0
     , thisCore: Writable<ContentWindowCore> | undefined
     , currentKeys = "", isEnabled = false, isLocked = false
     , mappedKeys = null as SafeDict<string> | null, nextKeys = null as KeyMap | ReadonlyChildKeyMap | null
@@ -227,6 +228,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     // on Firefox, target may also be `document`
     let target: EventTarget | Element | Window | Document = event.target;
     if (target === window) {
+      lastWndFocusTime = Date.now();
       return onWndFocus();
     }
     if (!isEnabled || Build.BTypes & BrowserType.Firefox && target === doc) { return; }
@@ -259,8 +261,12 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       isNormalHost ? hookOnShadowRoot(path as EventPath, target as Element) : hookOnShadowRoot([sr, 0 as never], 0);
       target = isNormalHost ? top as Element : target;
     }
+    if (!lastWndFocusTime || Date.now() - lastWndFocusTime > 30) {
+      U.activeEl_ = Build.BTypes & ~BrowserType.Firefox
+          ? D.SafeEl_(target as Element) || U.activeEl_ : target as SafeElement;
+    }
+    lastWndFocusTime = 0;
     if (D.getEditableType_<2>(target)) {
-      U.activeEl_ = target;
       if (InsertMode.grabBackFocus_) {
         (InsertMode.grabBackFocus_ as Exclude<typeof InsertMode.grabBackFocus_, boolean>)(event, target);
         return;
@@ -273,9 +279,6 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           InsertMode.last_ = target;
         }
       }
-    } else {
-      U.activeEl_ = Build.BTypes & ~BrowserType.Firefox
-          ? D.SafeEl_(target as Element) || U.activeEl_ : target as SafeElement;
     }
   }
   function onBlur(this: void, event: Event | FocusEvent): void {
