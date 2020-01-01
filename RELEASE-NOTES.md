@@ -124,7 +124,7 @@ Release Notes of Vimium C
 
 1.76.5:
 * fix a bug in the popup page ([#64](https://github.com/gdh1995/vimium-c/issues/64))
-* extension whitelist: allow [Vimium C's helpers](https://github.com/gdh1995/vimium-c-helpers) by default
+* extension allow list: allow [Vimium C's helpers](https://github.com/gdh1995/vimium-c-helpers) by default
 
 1.76.4:
 * fix that <kbd>Alt+Shift+F</kbd> was not translated into <kbd>&lt;a-s-f&gt;</kbd> when CapsLock is on
