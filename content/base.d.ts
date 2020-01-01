@@ -44,7 +44,7 @@ interface KeydownCacheArray extends SafeObject {
  *
  * when used, MUST handle the cases of `Document` and `ShadowRoot`
  *
- * Note .role does not exist on C35
+ * Note .role does not exist on C35 / C67 / C79-not-exp
  */
 type NodeToElement = TypeToAssert<Node, Element, "tagName", "nodeType">;
 /**

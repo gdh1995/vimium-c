@@ -320,14 +320,11 @@ class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
     return value;
   }
   onTripleStatusesClicked (event: EventToPrevent): void {
-    if (this.inner_status_ === 0) {
-      event.preventDefault();
-      this.element_.indeterminate = true;
-      this.element_.checked = false;
-      this.inner_status_ = 1;
-    } else {
-      this.inner_status_ = this.element_.checked ? 2 : 0;
-    }
+    event.preventDefault();
+    const old = this.inner_status_;
+    this.inner_status_ = old === 2 ? 1 : old ? 0 : 2;
+    this.element_.indeterminate = old === 2;
+    this.element_.checked = this.inner_status_ === 2;
   }
 }
 
