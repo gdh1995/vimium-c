@@ -195,6 +195,7 @@ declare namespace FindNS {
     DoNothing = 0, Exit, ExitNoAnyFocus, ExitNoFocus, ExitUnexpectedly,
     ExitToPostMode, ExitAndReFocus,
     MaxExitButNoWork = ExitUnexpectedly, MinExitAndWork = ExitToPostMode,
+    CtrlDelete = ExitAndReFocus + 1, MinNotExit = CtrlDelete,
   }
   interface ExecuteOptions extends Partial<Pick<CmdOptions[kFgCmd.findMode], "n">> {
     noColor?: boolean;

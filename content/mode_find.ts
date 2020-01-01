@@ -17,7 +17,8 @@ var VFind = {
   activeRegexIndex_: 0,
   regexMatches_: null as RegExpMatchArray | null,
   inShadow_: true,
-  box_: null as never as HTMLIFrameElement & { contentDocument: Document },
+  box_: null as never as HTMLIFrameElement,
+  innerDoc_: null as never as HTMLDocument,
   input_: null as never as SafeHTMLElement,
   countEl_: null as never as SafeHTMLElement,
   styleIn_: null as never as HTMLStyleElement,
@@ -78,6 +79,7 @@ var VFind = {
     wnd = box.contentWindow, f = wnd.addEventListener.bind(wnd) as typeof addEventListener,
     onKey = a.onKeydown_.bind(a),
     now = Date.now(), s = VKey.Stop_, t = true;
+    a.innerDoc_ = box.contentDocument as HTMLDocument;
     let tick = 0;
     f("mousedown", a.OnMousedown_, t);
     f("keydown", onKey, t);
@@ -111,15 +113,15 @@ var VFind = {
         || VKey.Stop_(event);
     }, t);
     box.onload = later ? null as never : function (): void {
-      this.onload = null as never; VFind.onLoad2_(this.contentWindow);
+      this.onload = null as never; VFind.onLoad2_();
     };
-    if (later) { a.onLoad2_(wnd); }
+    if (later) { a.onLoad2_(); }
   },
-  onLoad2_ (wnd: Window): void {
+  onLoad2_ (): void {
     if (!this.isActive_) { return; }
-    const doc = wnd.document, docEl = doc.documentElement as HTMLHtmlElement,
+    const a = VFind, wnd: Window = a.box_.contentWindow, doc = a.innerDoc_,
+    docEl = doc.documentElement as HTMLHtmlElement,
     body = doc.body as HTMLBodyElement,
-    a = VFind,
     zoom = Build.BTypes & ~BrowserType.Firefox ? wnd.devicePixelRatio : 1,
     list = doc.createDocumentFragment(),
     addElement = function (tag: 0 | "div" | "style", id?: string | 0): SafeHTMLElement {
@@ -152,7 +154,7 @@ var VFind = {
     }
     (a.countEl_ = addElement(0, "c")).textContent = " ";
     VCui.createStyle_(VCui.findCss_.i, VCui.styleFind_ = addElement("style") as HTMLStyleElement);
-    // an extra <div> may be necessary: https://github.com/gdh1995/vimium-c/issues/79#issuecomment-540921532
+    // an extra <div> may be necessary for Ctrl+A: https://github.com/gdh1995/vimium-c/issues/79#issuecomment-540921532
     const box = Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
         && (Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME
@@ -226,7 +228,7 @@ var VFind = {
     a.query_ || a.SetQuery_(query);
     a.isQueryRichText_ = true;
     a.notEmpty_ = !!a.query_;
-    a.notEmpty_ && a.box_.contentDocument.execCommand("selectAll", false);
+    a.notEmpty_ && a.innerDoc_.execCommand("selectAll", false);
   },
   init_ (adjust: AdjustType): void {
     const ref = this.postMode_, UI = VCui,
@@ -281,7 +283,7 @@ var VFind = {
     _this.parsedQuery_ = _this.query_ = _this.query0_ = "";
     _this.historyIndex_ = _this.matchCount_ = 0;
     VCui.styleFind_ = _this._onUnexpectedBlur =
-    _this.box_ = _this.input_ = _this.countEl_ = _this.parsedRegexp_ =
+    _this.box_ = _this.innerDoc_ = _this.input_ = _this.countEl_ = _this.parsedRegexp_ =
     _this.initialRange_ = _this.regexMatches_ = _this.coords_ = null as never;
   },
   OnUnload_ (this: void, e: Event): void {
@@ -317,6 +319,9 @@ var VFind = {
       : n === kKeyCode.enter
         ? event.shiftKey ? FindNS.Action.PassDirectly : (a.saveQuery_(), FindNS.Action.ExitToPostMode)
       : (n !== kKeyCode.backspace && n !== kKeyCode.deleteKey) ? FindNS.Action.DoNothing
+      : Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || VOther & BrowserType.Firefox)
+        && VDom.cache_.o === kOS.linux && (event.ctrlKey || event.shiftKey) ? FindNS.Action.CtrlDelete
       : a.notEmpty_ || (n === kKeyCode.deleteKey && VDom.cache_.o || event.repeat) ? FindNS.Action.PassDirectly
       : FindNS.Action.Exit;
     if (!i) {
@@ -336,7 +341,7 @@ var VFind = {
         else { return; }
         i = FindNS.Action.DoNothing;
       }
-      else if (n === kKeyCode.f1) { a.box_.contentDocument.execCommand("delete"); }
+      else if (n === kKeyCode.f1) { a.innerDoc_.execCommand("delete"); }
       else if (n === kKeyCode.f2) {
         Build.BTypes & BrowserType.Firefox && a.box_.blur();
         focus(); VApi.keydownEvents_()[n] = 1;
@@ -349,6 +354,14 @@ var VFind = {
     VKey.prevent_(event);
     if (!i) { return; }
     VApi.keydownEvents_()[n] = 1;
+    if (Build.BTypes & BrowserType.Firefox && i === FindNS.Action.CtrlDelete) {
+      const sel = a.innerDoc_.getSelection();
+      // on Chrome 79 + Win 10 / Firefox 69 + Ubuntu 18, delete a range itself
+      // while on Firefox 70 + Win 10 it collapses first
+      sel.type === "Caret" && sel.modify("extend", n - kKeyCode.deleteKey ? "backward" : "forward", "word");
+      a.innerDoc_.execCommand("delete");
+      return;
+    }
     a.deactivate_(i as FindNS.Action);
   },
   onHostKeydown_ (event: KeyboardEventToPrevent): HandlerResult {
@@ -452,7 +465,7 @@ var VFind = {
     wnd.getSelection().collapseToEnd();
   },
   SetQuery_ (this: void, query: string): void {
-    let _this = VFind, doc: Document;
+    let _this = VFind, doc: Document | null;
     if (query === _this.query_ || !(doc = _this.box_.contentDocument)) { return; }
     if (!query && _this.historyIndex_ > 0) { --_this.historyIndex_; return; }
     doc.execCommand("selectAll", false);
@@ -642,7 +655,7 @@ var VFind = {
     const isRe = a.isRegex_, pR = a.parsedRegexp_;
     const focusHUD = !!(Build.BTypes & BrowserType.Firefox)
       && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
-      && a.isActive_ && a.box_.contentDocument.hasFocus();
+      && a.isActive_ && a.innerDoc_.hasFocus();
     do {
       q = query != null ? query : isRe ? a.getNextQueryFromRegexMatches_(back) : a.parsedQuery_;
       found = Build.BTypes & ~BrowserType.Chrome

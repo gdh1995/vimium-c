@@ -555,6 +555,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           && (!(Build.BTypes & BrowserType.Firefox) || a.browser_ !== BrowserType.Firefox)
           && key === `<c-${kChar.backspace}>` && !a.os_) {
         return a.onBashAction_(-1);
+      } else if (char === kChar.delete) {
+        a.keyResult_ = HandlerResult.Suppress;
       } else {
         action = char === "[" ? AllowedActions.dismiss : char === "]" ? AllowedActions.toggle
           : a.ctrlCharOrShiftKeyMap_[char] || AllowedActions.nothing;
@@ -632,7 +634,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       return;
     }
     const sel = getSelection(), isExtend = code === 4 || code < 0;
-    sel.modify(isExtend ? "extend" : "move", code < 4 ? "backward" : "forward", "word");
+    sel.type === "Caret" && sel.modify(isExtend ? "extend" : "move", code < 4 ? "backward" : "forward", "word");
     if (isExtend && Vomnibar_.input_.selectionStart < Vomnibar_.input_.selectionEnd) {
       document.execCommand("delete");
     }
