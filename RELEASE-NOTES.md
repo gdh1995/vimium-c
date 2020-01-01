@@ -3,6 +3,9 @@ Release Notes of Vimium C
 
 #### 1.79.2
 * Firefox: fix IME compatibility issues in find mode
+* Chrome: fix bugs and IME issues in find mode on old versions of Chrome
+* add a new option "`mapModifier`" to generate keys like `<s-modifier>`
+* fix some bugs (including some on Edge)
 
 #### 1.79.1
 (the current published version on Chrome Web Store and Firefox Add-ons)

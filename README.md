@@ -87,8 +87,11 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
+### 1.79.2
+* Chrome/Firefox: fix IME compatibility issues in find mode
+* add a new option "`mapModifier`" to generate keys like `<s-modifier>`
+
 ### 1.79.1
-* (1.79.2): Firefox: fix IME compatibility issues in find mode
 * `LinkHints` adds support for the Filtered Hint mode, and adopts almost the same behavior logic as Vimium
 * `LinkHints` uses a new algorithm to assign hint characters in alphabet mode
 * hook access keys: completely avoid negative influence on debugging experience
