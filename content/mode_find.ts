@@ -503,11 +503,11 @@ var VFind = {
   OnInput_ (this: void, e?: Event): void {
     if (e) {
       VKey.Stop_(e);
-      if (Build.BTypes & BrowserType.Chrome
+      if (!(Build.BTypes & BrowserType.Chrome
           && (!(Build.BTypes & ~BrowserType.Chrome) || VOther & BrowserType.Chrome)
           && (Build.MinCVer >= BrowserVer.Min$compositionend$$isComposing$IsMistakenlyFalse
               || VDom.cache_.v > BrowserVer.Min$compositionend$$isComposing$IsMistakenlyFalse - 1)
-          && e.type[0] === "c") {
+          && e.type[0] === "c")) {
         if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
             ? !e.isTrusted : e.isTrusted === false) { return; }
       }
