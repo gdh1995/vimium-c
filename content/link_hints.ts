@@ -1066,9 +1066,8 @@ var VHints = {
       }
       a.ResetMode_(1);
       setTimeout(a._reinit.bind(a, null, null, null), 0);
-    } else if (i < kKeyCode.maxAcsKeys + 1 && i > kKeyCode.minAcsKeys - 1
-        && VDom.cache_.a && event.location === VDom.cache_.a
-        || (i === kKeyCode.metaKey && !VDom.cache_.o)) {
+    } else if ((i < kKeyCode.maxAcsKeys + 1 && i > kKeyCode.minAcsKeys - 1 || i === kKeyCode.metaKey)
+        && (!VDom.cache_.a || event.location !== VDom.cache_.a) {
       const mode = a.mode_, mode1 = a.mode1_,
       mode2 = mode1 > HintMode.min_copying - 1 && mode1 < HintMode.max_copying + 1
         ? i === kKeyCode.ctrlKey || i === kKeyCode.metaKey ? (mode1 | HintMode.queue) ^ HintMode.list

@@ -62,7 +62,7 @@ var VKey = {
       // https://github.com/philc/vimium/issues/2161#issuecomment-225813082
       key = code.length === 1
             ? !shiftKey || code < "0" || code > "9" ? code : kChar.EnNumTrans[+code]
-            : this._modifierKeys[key] ? this.cache_.a && event.location === 2 ? kChar.Modifier : ""
+            : this._modifierKeys[key] ? this.cache_.a && event.location === this.cache_.a ? kChar.Modifier : ""
             // e.g. https://github.com/philc/vimium/issues/3451#issuecomment-569124026
             : !code ? key
             : (mapped = this._codeCorrectionMap.indexOf(code)) < 0 ? code === "Escape" ? kChar.esc : code

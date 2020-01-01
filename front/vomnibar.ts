@@ -456,7 +456,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         }
         key = code.length === 1
               ? !shiftKey || code < "0" || code > "9" ? code : enNumTrans[+code]
-              : this._modifierKeys[key as string] ? Vomnibar_.mapModifier_ && event.location === 2 ? kChar.Modifier : ""
+              : this._modifierKeys[key as string]
+                ? Vomnibar_.mapModifier_ && event.location === Vomnibar_.mapModifier_ ? kChar.Modifier : ""
               : !code ? key
               : (mapped = this._codeCorrectionMap.indexOf(code)) < 0 ? code === "Escape" ? kChar.esc : code
               : charCorrectionList[mapped + 12 * +shiftKey]
