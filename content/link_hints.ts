@@ -480,7 +480,8 @@ var VHints = {
     if (isClickable === null) {
       type = (s = element.contentEditable) !== "inherit" && s && s !== "false" ? ClickType.edit
         : (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
-            ? ((element as XrayedObject<SafeHTMLElement>).wrappedJSObject || element).onclick
+            ? (anotherEl = (element as XrayedObject<SafeHTMLElement>).wrappedJSObject || element).onclick
+              || (anotherEl as TypeToAssert<Element, SafeHTMLElement, "onmousedown", "tagName">).onmousedown
             : element.getAttribute("onclick"))
           || (s = element.getAttribute("role")) && (<RegExpI> /^(?:button|checkbox|link|radio|tab)$|^menuitem/i).test(s)
           || _this.ngEnabled_ && element.getAttribute("ng-click")
@@ -514,6 +515,8 @@ var VHints = {
     ) { hints.push([element, tag === "img" ? VDom.getCroppedRect_(element, arr) : arr, type]); }
   },
   _getClickableInMaybeSVG (hints: Hint[], element: SVGElement | Element): void {
+    type MayBeSVGElement = TypeToAssert<Element, SVGElement, "onmousedown" | "onclick", "tagName">;
+    let anotherEl: MayBeSVGElement;
     let arr: Rect | null | undefined, s: string | null , type = ClickType.Default;
     { // not HTML*
       // never accept raw `Element` instances, so that properties like .tabIndex and .dataset are ensured
@@ -522,7 +525,8 @@ var VHints = {
         type = VDom.clickable_.has(element)
             || (!(Build.BTypes & ~BrowserType.Firefox)
                 || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
-                ? ((element as XrayedObject<SafeHTMLElement>).wrappedJSObject || element).onclick
+                ? ((anotherEl = (element as XrayedObject<Element>).wrappedJSObject || element) as MayBeSVGElement
+                    ).onclick || (anotherEl as MayBeSVGElement).onmousedown
                 : element.getAttribute("onclick"))
             || this.ngEnabled_ && element.getAttribute("ng-click")
             || this.jsaEnabled_ && (s = element.getAttribute("jsaction")) && this.checkJSAction_(s)

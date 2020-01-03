@@ -279,7 +279,8 @@ hooks = {
       : call(_apply as (this: (this: EventTarget, ...args: Array<{}>) => void
                         , self: EventTarget, args: IArguments) => void,
              _listen as (this: EventTarget, ...args: Array<{}>) => void, a, args);
-    if (type === "click" ? listener && !(a instanceof HA) && a instanceof E
+    if (type === "click" || type === "mousedown" || type === "dblclick"
+        ? listener && !(a instanceof HA) && a instanceof E
         : type === kEventName2 && !isReRegistering
           // note: window.history is mutable on C35, so only these can be used: top,window,location,document
           && a && !(a as Window).window && (a as Node).nodeType === kNode.ELEMENT_NODE) {
@@ -457,7 +458,7 @@ function executeCmd(eventOrDestroy?: Event): void {
         ? len : 0; // stop it
     for (; i < len; i++) {
       const el: Element | HTMLElement = allNodesInDocument[i];
-      if ((el as HTMLElement).onclick && !call(HasAttr, el, "onclick")
+      if (((el as HTMLElement).onclick || (el as HTMLElement).onmousedown) && !call(HasAttr, el, "onclick")
           && !(el instanceof HA)) { // ignore <button>s to iter faster
         pushInDocument(i);
       }
@@ -582,7 +583,7 @@ _listen(kOnDomReady, doInit, !0);
     const a = this, args = arguments, len = args.length;
     len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2])
       : apply.call(_listen as (this: EventTarget, ...args: Array<{}>) => void, a, args);
-    if (type === "click" && alive
+    if ((type === "click" || type === "mousedown" || type === "dblclick") && alive
         && listener && !(a instanceof HTMLAnchorElement) && a instanceof Element) {
       if (!Build.NDEBUG) {
         VDom.clickable_.has(a) || resolved++;
