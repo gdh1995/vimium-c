@@ -1330,7 +1330,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (event instanceof Event) {
         K.prevent_(event);
       }
-      optLink.onclick = closeBtn.onclick = null as never;
+      advCmd.onclick = optLink.onclick = closeBtn.onclick = null as never;
       let i: Element | null = D.lastHovered_;
       i && box.contains(i) && (D.lastHovered_ = null);
       (i = U.activeEl_) && box.contains(i) && (U.activeEl_ = null);

@@ -257,43 +257,44 @@ var VOmni = {
     } catch {}
     return false;
   },
-  onMessage_<K extends keyof VomnibarNS.FReq> ({ data }: { data: VomnibarNS.FReq[K] & VomnibarNS.Msg<K> }): void | 1 {
+  onMessage_: function (this: {}, msg: { data: any }): void | 1 {
     type Req = VomnibarNS.FReq;
-    const a = this;
+    type ReqTypes<K> = K extends keyof Req ? Req[K] & VomnibarNS.Msg<K> : never;
+    const a = this as typeof VOmni, data = msg.data as ReqTypes<keyof Req>;
     switch (data.N) {
     case VomnibarNS.kFReq.iframeIsAlive:
       a.status_ = VomnibarNS.Status.ToShow;
       let opt = a.options_;
       a.options_ = null;
-      if (!(data as VomnibarNS.FReq[VomnibarNS.kFReq.iframeIsAlive]).o && opt) {
+      if (!data.o && opt) {
         return a.port_.postMessage<VomnibarNS.kCReq.activate>(opt as VomnibarNS.FgOptionsToFront);
       }
       break;
     case VomnibarNS.kFReq.style:
-      a.box_.style.height = Math.ceil((data as Req[VomnibarNS.kFReq.style]).h / VDom.docZoom_
+      a.box_.style.height = Math.ceil(data.h / VDom.docZoom_
           / (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
               && (!(Build.BTypes & ~BrowserType.Chrome)
                   || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome)
               ? devicePixelRatio : 1)) + "px";
       if (a.status_ === VomnibarNS.Status.ToShow) {
-        a.onShown_((data as Req[VomnibarNS.kFReq.style]).m as number);
+        a.onShown_(data.m as NonNullable<typeof data.m>);
       }
       break;
     case VomnibarNS.kFReq.focus:
       focus();
-      return VApi.keydownEvents_()[(data as Req[VomnibarNS.kFReq.focus]).l] = 1;
+      return VApi.keydownEvents_()[data.l] = 1;
     case VomnibarNS.kFReq.hide: return a.hide_(1);
-    case VomnibarNS.kFReq.scroll: return VSc.BeginScroll_(data as Req[VomnibarNS.kFReq.scroll]);
+    case VomnibarNS.kFReq.scroll: return VSc.BeginScroll_(data);
     case VomnibarNS.kFReq.scrollGoing: // no break;
     case VomnibarNS.kFReq.scrollEnd: VSc.scrollTick_(data.N === VomnibarNS.kFReq.scrollGoing); break;
-    case VomnibarNS.kFReq.evalJS: VApi.evalIfOK_((data as Req[VomnibarNS.kFReq.evalJS]).u); break;
+    case VomnibarNS.kFReq.evalJS: VApi.evalIfOK_(data.u); break;
     case VomnibarNS.kFReq.broken: focus(); // no break;
     case VomnibarNS.kFReq.unload: return VOmni ? a.reset_(data.N === VomnibarNS.kFReq.broken) : undefined;
     case VomnibarNS.kFReq.hud:
-      VHud.tip_((data as Req[VomnibarNS.kFReq.hud]).k);
+      VHud.tip_(data.k);
       return;
     }
-  },
+  } as <K extends keyof VomnibarNS.FReq> ({ data }: { data: VomnibarNS.FReq[K] & VomnibarNS.Msg<K> }) => void | 1,
   onShown_ (maxBoxHeight: number): void {
     const a = this;
     a.status_ = VomnibarNS.Status.Showing;
