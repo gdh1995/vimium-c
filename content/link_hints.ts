@@ -1503,7 +1503,7 @@ filterEngine_: {
     default:
       if (show = hint[2] > ClickType.MaxNotBox) {
         text = hint[2] > ClickType.frame ? "Scroll" : "Frame";
-      } else if (text = el.innerText.trim()) {
+      } else if (localName && (text = el.innerText.trim())) {
         ind = text.indexOf("\n") + 1;
         // tslint:disable-next-line: no-unused-expression
         ind && (ind = text.indexOf("\n", ind)) > 0 ? text = text.slice(0, ind) : 0;
@@ -1514,7 +1514,7 @@ filterEngine_: {
               ? (el2 as HTMLImageElement).alt || (el2 as HTMLImageElement).title : "";
           show = !!text;
         }
-        text = text || el.title;
+        text = text || (localName && el.title);
       }
       break;
     }
