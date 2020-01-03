@@ -622,7 +622,7 @@ let optionsInit1_ = function (): void {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs): void {
       let url: string;
       if (document.hasFocus() && tabs[0] && (url = tabs[0].url).indexOf("-") > 0
-              && url.lastIndexOf(location.protocol, 0) < 0) {
+          && !url.startsWith(location.protocol)) {
         setUI(tabs[0].id);
       }
       setUI = null as never;
@@ -665,7 +665,7 @@ let optionsInit1_ = function (): void {
   opt = Option_.all_.vomnibarPage;
   opt.onSave_ = function (this: Option_<"vomnibarPage">): void {
     let {element_: element2} = this, url: string = this.previous_
-      , isExtPage = !url.lastIndexOf(location.protocol, 0) || !url.lastIndexOf("front/", 0);
+      , isExtPage = url.startsWith(location.protocol) || url.startsWith("front/");
     if (Build.MinCVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg
         && Build.BTypes & BrowserType.Chrome
         && bgBrowserVer_ < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
@@ -680,9 +680,9 @@ let optionsInit1_ = function (): void {
     url = bgSettings_.cache_.vomnibarPage_f || url; // for the case Chrome is initing
     if (isExtPage) { /* empty */ }
     // Note: the old code here thought on Firefox web pages couldn't be used, but it was just because of wrappedJSObject
-    else if (url.lastIndexOf("file://", 0) !== -1) {
+    else if (url.startsWith("file://")) {
       return this.showError_(pTrans_("fileVomnibar"), "highlight");
-    } else if (url.lastIndexOf("http://", 0) !== -1) {
+    } else if (url.startsWith("http://")) {
       return this.showError_(pTrans_("httpVomnibar"), "highlight");
     }
     return this.showError_("");
@@ -858,7 +858,7 @@ newTabUrlOption.checker_ = {
       }
       Option_.all_.newTabUrl.showError_(err);
     }
-    return value.lastIndexOf("http", 0) < 0 && (url in bgSettings_.newTabs_
+    return !value.startsWith("http") && (url in bgSettings_.newTabs_
       || (<RegExpI> /^(?!http|ftp)[a-z\-]+:\/?\/?newtab\b\/?/i).test(value)
       ) ? bgSettings_.defaults_.newTabUrl : value;
   }

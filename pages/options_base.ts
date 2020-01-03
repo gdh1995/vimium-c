@@ -15,6 +15,16 @@ interface BgWindow extends Window {
   Settings_: typeof Settings_;
 }
 
+if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".startsWith) {
+String.prototype.startsWith = function (this: string, s: string): boolean {
+  return this.lastIndexOf(s, 0) === 0;
+};
+String.prototype.endsWith = function (this: string, s: string): boolean {
+  const i = this.length - s.length;
+  return i >= 0 && this.indexOf(s, i) === i;
+};
+}
+
 declare var bgOnOther_: BrowserType;
 if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
     : typeof browser !== "undefined" && (browser && (browser as typeof chrome).runtime) != null) {
@@ -403,7 +413,7 @@ readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"] {
     let schemaLen = pattern[0] === ":" ? 0 : pattern.indexOf("://");
     if (!schemaLen) { /* empty */ }
     else if (!(<RegExpOne> /^[\^*]|[^\\][$()*+?\[\]{|}]/).test(pattern)) {
-      fixTail = pattern.indexOf("/", schemaLen + 3) < 0 && pattern.lastIndexOf("vimium:", 0) < 0;
+      fixTail = pattern.indexOf("/", schemaLen + 3) < 0 && !pattern.startsWith("vimium:");
       pattern = pattern.replace(<RegExpG> /\\(.)/g, "$1");
       pattern = (schemaLen < 0 ? ":http://" : ":") + pattern;
     } else if (pattern[0] !== "^") {
@@ -491,7 +501,7 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
   const curTab = activeTabs[0];
   let ref = BG_.Backend_.indexPorts_(curTab.id), blockedMsg = $("#blocked-msg");
   const notRunnable = !ref && !(curTab && curTab.url && curTab.status === "loading"
-    && (curTab.url.lastIndexOf("http", 0) === 0 || curTab.url.lastIndexOf("ftp", 0) === 0));
+    && (<RegExpOne> /^(ht|s?f)tp/).test(curTab.url));
   if (notRunnable) {
     const body = document.body as HTMLBodyElement, docEl = document.documentElement as HTMLHtmlElement;
     body.innerText = "";
@@ -500,8 +510,8 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
     const refreshTip = blockedMsg.querySelector("#refresh-after-install") as HTMLElement;
     if (!(Build.BTypes & ~BrowserType.Firefox)
         || Build.BTypes & BrowserType.Firefox && bgOnOther_ === BrowserType.Firefox
-        || !curTab || !curTab.url || !(curTab.url.lastIndexOf("http", 0) === 0
-        || curTab.url.lastIndexOf("ftp", 0) === 0)) {
+        || !curTab || !curTab.url || !(<RegExpI> /^(ht|s?f)tp/i).test(curTab.url)
+        ) {
       refreshTip.remove();
     } else if (Build.BTypes & BrowserType.Edge
         && (!(Build.BTypes & ~BrowserType.Edge) || bgOnOther_ === BrowserType.Edge)) {
@@ -557,7 +567,7 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
       if (!pattern) { return false; }
       const rule = bgExclusions.testers_[pattern] as NonNullable<(typeof bgExclusions.testers_)[string]>;
       if (rule.type_ === ExclusionsNS.TesterType.StringPrefix
-          ? !url.lastIndexOf(rule.value_, 0) && (!topUrl || !topUrl.lastIndexOf(rule.value_, 0))
+          ? url.startsWith(rule.value_) && (!topUrl || topUrl.startsWith(rule.value_))
           : rule.value_.test(url) && (!topUrl || rule.value_.test(topUrl))) {
         return true;
       }
@@ -590,7 +600,7 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
       }
       const parsedPattern = bgExclusions.createRule_(pattern, ""), patternElement = vnode.$pattern_;
       if (parsedPattern.type_ === ExclusionsNS.TesterType.StringPrefix
-          ? !url.lastIndexOf(parsedPattern.value_, 0) : parsedPattern.value_.test(url)) {
+          ? url.startsWith(parsedPattern.value_) : parsedPattern.value_.test(url)) {
         patternElement.title = patternElement.style.color = "";
       } else {
         patternElement.style.color = "red";
@@ -598,11 +608,11 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
       }
     }
     static generateDefaultPattern_ (this: void): string {
-      const url2 = url.lastIndexOf("http:", 0) === 0
+      const url2 = url.startsWith("http:")
         ? "^https?://" + url.split("/", 3)[2].replace(<RegExpG> /[.[\]]/g, "\\$&") + "/"
-        : url.lastIndexOf(location.origin, 0) === 0
+        : url.startsWith(location.origin)
         ? ":vimium:/" + new URL(url).pathname.replace("/pages", "")
-        : (<RegExpOne> /^[^:]+:\/\/./).test(url) && url.lastIndexOf("file:", 0) < 0
+        : (<RegExpOne> /^[^:]+:\/\/./).test(url) && !url.startsWith("file:")
         ? ":" + (url.split("/", 3).join("/") + "/")
         : ":" + url;
       PopExclusionRulesOption.generateDefaultPattern_ = () => url2;
