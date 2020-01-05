@@ -528,6 +528,7 @@ var VHints = {
                 ? ((anotherEl = (element as XrayedObject<Element>).wrappedJSObject || element) as MayBeSVGElement
                     ).onclick || (anotherEl as MayBeSVGElement).onmousedown
                 : element.getAttribute("onclick"))
+            || (s = element.getAttribute("role")) && (<RegExpI> /^button$/i).test(s)
             || this.ngEnabled_ && element.getAttribute("ng-click")
             || this.jsaEnabled_ && (s = element.getAttribute("jsaction")) && this.checkJSAction_(s)
           ? ClickType.attrListener
