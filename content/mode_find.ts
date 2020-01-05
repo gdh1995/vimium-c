@@ -216,6 +216,12 @@ var VFind = {
   },
   _onUnexpectedBlur: null as ((event?: Event) => void) | null,
   focus_ (): void {
+    if (!(Build.BTypes & ~BrowserType.Firefox)
+        || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox) {
+      const doc = document, lock = VApi.lock_(), activeEl = lock || doc.activeElement;
+      (lock || activeEl !== doc.body) && (activeEl as Partial<HTMLElement>).blur &&
+      (activeEl as HTMLElement).blur();
+    }
     this._active = false;
     this.input_.focus();
     this._active = true;
