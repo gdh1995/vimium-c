@@ -3,7 +3,7 @@
 ===========================================
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.79.2](https://img.shields.io/badge/release-1.79.2-orange.svg
+[![Version 1.79.3](https://img.shields.io/badge/release-1.79.3-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -86,6 +86,12 @@ __Other extensions supporting Vimium C:__
 
 
 # Release Notes
+
+#### 1.79.3
+* fix broken `ignoringKeyboardLayout` in v1.79.2
+* LinkHints: filtered hints: fix a crash
+* LinkHints: filtered hints: type <kbd>Space</kbd> 3 times to activate a current hint
+* LinkHints: detect more items
 
 ### 1.79.2
 * Chrome/Firefox: fix IME compatibility issues in find mode

@@ -1,6 +1,13 @@
 Release Notes of Vimium C
 =========================
 
+#### 1.79.3
+* fix broken `ignoringKeyboardLayout` in v1.79.2
+* LinkHints: filtered hints: fix a crash
+* LinkHints: filtered hints: type <kbd>Space</kbd> 3 times to activate a current hint
+* clickable targets: add detection for `mousedown` and `dblclick` listeners
+* clickable targets: detect SVG nodes with `[role=button]`
+
 #### 1.79.2
 * Firefox: fix IME compatibility issues in find mode
 * Chrome: fix bugs and IME issues in find mode on old versions of Chrome
