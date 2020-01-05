@@ -715,7 +715,7 @@ var VDom = {
       IDC = Build.MinCVer >= BrowserVer.MinEnsured$InputDeviceCapabilities || !(Build.BTypes & BrowserType.Chrome)
           ? null : InputDeviceCapabilities;
       if (Build.BTypes & BrowserType.Chrome
-          && (!(Build.BTypes & ~BrowserType.Chrome) || (this as typeof VDom).cache_.b & BrowserType.Chrome)
+          && (!(Build.BTypes & ~BrowserType.Chrome) || VOther & BrowserType.Chrome)
           && (Build.MinCVer >= BrowserVer.MinEnsured$InputDeviceCapabilities || IDC)
           ) {
         init.sourceCapabilities = (this as typeof VDom)._idc = (this as typeof VDom)._idc ||

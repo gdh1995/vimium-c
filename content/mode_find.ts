@@ -90,7 +90,7 @@ var VFind = {
     }
     f("unload", a.OnUnload_, t);
     f("compositionend", Build.BTypes & BrowserType.Chrome
-        && (!(Build.BTypes & ~BrowserType.Chrome) || VDom.cache_.b === BrowserType.Chrome)
+        && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)
         ? a.OnInput_ : s, t);
     for (const i of ["compositionstart", "keypress", "mouseup", "click", "auxclick", "contextmenu", "copy", "cut", "paste"]) {
       f(i, s, t);

@@ -1094,7 +1094,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
       if (<number> Build.BTypes !== BrowserType.Chrome && <number> Build.BTypes !== BrowserType.Firefox
           && <number> Build.BTypes !== BrowserType.Edge) {
-        OnOther = load.b as NonNullable<typeof load.b>;
+        (window as Writable<Window>).VOther = OnOther = load.b as NonNullable<typeof load.b>;
       }
       D.cache_ = K.cache_ = fgCache = load as EnsureItemsNonNull<typeof load>;
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key) {

@@ -86,7 +86,7 @@ var VKey = {
         || this._getKeyCharUsingKeyIdentifier(event as Pick<OldKeyboardEvent, "keyIdentifier">, +shiftKey as BOOL);
     } else {
       key = (!(Build.BTypes & BrowserType.Edge) || Build.BTypes & ~BrowserType.Edge && VOther !== BrowserType.Edge)
-          && this.cache_.c
+          && this.cache_.l
         ? this._forceEnUSLayout(key as string, event, shiftKey)
         : (key as string).length > 1 || key === " " ? this.getKeyName_(event)
         : this.cache_.i ? shiftKey ? (<string> key).toUpperCase() : (<string> key).toLowerCase() : <string> key;
