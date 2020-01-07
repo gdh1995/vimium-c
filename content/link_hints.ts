@@ -509,9 +509,8 @@ var VHints = {
         && (arr = arr || VDom.getVisibleClientRect_(element))
         && (type < ClickType.scrollX
           || VSc.shouldScroll_need_safe_(element, type - ClickType.scrollX as 0 | 1) > 0)
-        && ((s = element.getAttribute("aria-hidden")) == null || s && s.toLowerCase() !== "true")
-        && ((s = element.getAttribute("aria-disabled")) == null || (s && s.toLowerCase() !== "true")
-            || _this.mode_ > HintMode.min_job - 1)
+        && VDom.isAriaNotTrue_(element, kAria.hidden)
+        && (_this.mode_ > HintMode.min_job - 1 || VDom.isAriaNotTrue_(element, kAria.disabled))
     ) { hints.push([element, tag === "img" ? VDom.getCroppedRect_(element, arr) : arr, type]); }
   },
   _getClickableInMaybeSVG (hints: Hint[], element: SVGElement | Element): void {
@@ -534,7 +533,10 @@ var VHints = {
           ? ClickType.attrListener
           : (element as SVGElement).tabIndex >= 0 ? ClickType.tabindex
           : ClickType.Default;
-        if (type > ClickType.Default && (arr = VDom.getVisibleClientRect_(element))) {
+        if (type > ClickType.Default && (arr = VDom.getVisibleClientRect_(element))
+            && VDom.isAriaNotTrue_(element as SafeElement, kAria.hidden)
+            && (this.mode_ > HintMode.min_job - 1 || VDom.isAriaNotTrue_(element as SafeElement, kAria.disabled))
+            ) {
           hints.push([element as SVGElement, arr, type]);
         }
       }

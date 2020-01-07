@@ -39,6 +39,10 @@ interface KeydownCacheArray extends SafeObject {
   [keyCode: number]: BOOL | 2 | undefined;
 }
 
+declare const enum kAria {
+  hidden = 1, disabled = 2,
+}
+
 /**
  * only Element has string .tagName, .id
  *

@@ -843,7 +843,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     }
     return true;
   },
-  GetButtons_ (this: void, hints: SafeHTMLElement[], element: Element): void {
+  GetButtons_: function (this: void, hints, element): void {
     let s: string | null;
     const tag = element.localName, isClickable = tag === "a" || tag && (
       tag === "button" ? !(element as HTMLButtonElement).disabled
@@ -855,12 +855,12 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         (s = element.getAttribute("role")) ? (<RegExpI> /^(button|link)$/i).test(s)
         : Hints.ngEnabled_ && element.getAttribute("ng-click")));
     if (!isClickable) { return; }
-    if ((s = element.getAttribute("aria-disabled")) != null && (!s || s.toLowerCase() === "true")) { return; }
+    if (!D.isAriaNotTrue_(element, kAria.disabled)) { return; }
     const rect = D.getBoundingClientRect_(element);
     if (rect.width > 2 && rect.height > 2 && getComputedStyle(element).visibility === "visible") {
       hints.push(element as SafeHTMLElement);
     }
-  },
+  } as HintsNS.Filter<SafeHTMLElement>,
   findAndFollowLink_ (names: string[], isNext: boolean, lenLimit: number[], totalMax: number): boolean {
     interface Candidate { [0]: number; [1]: string; [2]: Parameters<typeof Pagination.GetButtons_>[0][number]; }
     // Note: this traverser should not need a prepareCrop
