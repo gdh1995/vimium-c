@@ -98,7 +98,7 @@
 		"map i focusInput keep select=\"all-line\"",
 		"map n nextFrame",
 		"map UU goToRoot",
-		"map Uu goUp trailing_slash",
+		"map Uu goUp trailingSlash",
 		"map Uf parentFrame",
 		"map N moveTabToNewWindow",
 		"map I moveTabToIncognito",

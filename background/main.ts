@@ -1144,15 +1144,15 @@
       hud = cOptions.hideHUD != null ? !cOptions.hideHUD : cOptions.hideHud != null ? !cOptions.hideHud
           : !Settings_.cache_.hideHud;
       key = key && typeof key === "string" ? key : null;
-      code = key ? kKeyCode.esc : stat !== KeyStat.plain ? code || kKeyCode.esc : code === kKeyCode.esc ? 0 : code;
+      code = key ? kKeyCode.True : stat !== KeyStat.plain ? code || kKeyCode.esc : code === kKeyCode.esc ? 0 : code;
       cPort.postMessage<1, kFgCmd.insertMode>({ N: kBgReq.execute,
         S: hud ? ensureInnerCSS(cPort) : null,
         c: kFgCmd.insertMode,
         n: 1,
         a: {
-          code, stat, key,
-          passExitKey: !!cOptions.passExitKey,
-          hud
+          c: code, s: stat, k: key,
+          p: !!cOptions.passExitKey,
+          h: hud ? [trans_("" + kTip.globalInsertMode, [code ? ": " + (key || code + "/" + stat) : ""])] : null
         }
       });
     },
@@ -1562,7 +1562,7 @@
         }
         if (noCurrent) { return; }
       }
-      if (count >= total && cOptions.allow_close !== true) {
+      if (count >= total && (cOptions.mayClose != null ? cOptions.mayClose : cOptions.allow_close) !== true) {
         chrome.windows.getAll(removeAllTabsInWnd.bind(null, tab, tabs));
         return;
       }
@@ -1850,9 +1850,8 @@
       });
     },
     /* kBgCmd.goToRoot: */ function (this: void, tabs: [Tab]): void {
-      const trail = cOptions.trailing_slash,
-      { p: path, u: url } = requestHandlers[kFgReq.parseUpperUrl]({
-        t: trail != null ? !!trail : null,
+      const { p: path, u: url } = requestHandlers[kFgReq.parseUpperUrl]({
+        t: cOptions.trailingSlash, s: cOptions.trailing_slash,
         u: tabs[0].url, p: cRepeat
       });
       if (path != null) {
@@ -1862,12 +1861,11 @@
       return Backend_.showHUD_(url);
     },
     /* kBgCmd.goUp: */ function (this: void): void {
-      const trail = cOptions.trailing_slash;
       requireURL({
         H: kFgReq.parseUpperUrl,
         u: "", // just a hack to make TypeScript compiler happy
         p: -cRepeat,
-        t: trail != null ? !!trail : null,
+        t: cOptions.trailingSlash, s: cOptions.trailing_slash,
         e: true
       });
     },
@@ -2220,7 +2218,7 @@
       } else if (!hash && url_l.startsWith("ftp:")) {
         endSlash = true;
       } else {
-        endSlash = request.t != null ? !!request.t
+        endSlash = request.t != null ? !!request.t : request.s != null ? !!request.s
           : path.length > 1 && path.endsWith("/")
             || (<RegExpI> /\.([a-z]{2,3}|apng|jpeg|tiff)$/i).test(path); // just a try: not include .html
       }
@@ -2449,14 +2447,15 @@
           Settings_.fetchFile_("helpDialog", resolve);
         })
       ]).then(function (args): void {
-        const port2 = request.w && indexFrame(port.s.t, 0) || port;
+        const port2 = request.w && indexFrame(port.s.t, 0) || port,
+        options = request.a || {};
         (port2.s as Frames.Sender).f |= Frames.Flags.hadHelpDialog;
         port2.postMessage({
           N: kBgReq.showHelpDialog,
           S: ensureInnerCSS(port2),
           h: args[0].render_(port2.s.u.startsWith(Settings_.CONST_.OptionsPage_)),
           o: Settings_.CONST_.OptionsPage_,
-          a: request.a || {},
+          e: !!options.exitOnClick,
           c: Settings_.get_("showAdvancedCommands", true)
         });
       }, Build.NDEBUG ? null : function (args): void {

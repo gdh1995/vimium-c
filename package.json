@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "pngjs": "^3.4.0",
-    "typescript": "^3.7.2"
+    "typescript": "^3.7.4"
   },
   "devDependencies": {
     "clean-css": "^4.2.1",

@@ -481,7 +481,7 @@ declare const enum kCharCode {
 }
 
 declare const enum kKeyCode {
-  None = 0,
+  None = 0, True = 1,
   backspace = 8, tab = 9, enter = 13, shiftKey = 16, ctrlKey = 17, altKey = 18, esc = 27,
   minAcsKeys = 16, maxAcsKeys = 18,
   maxNotPrintable = 32 - 1, space, maxNotPageUp = space, pageup, minNotSpace = pageup,

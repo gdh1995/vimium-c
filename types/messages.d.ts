@@ -111,7 +111,7 @@ interface BgReq {
   [kBgReq.showHelpDialog]: {
     /** html */ h: string | /** for Firefox */ { /** head->style */ h: string; /** body */ b: string; };
     /** optionUrl */ o: string;
-    /** extra args */ a: CmdOptions[kFgCmd.showHelp];
+    /** exitOnClick */ e: boolean;
     /** advanced */ c: boolean;
   } & Partial<BgCSSReq>;
   [kBgReq.settingsUpdate]: {
@@ -249,11 +249,11 @@ interface CmdOptions {
     /** max of length limit list */ m: number;
   };
   [kFgCmd.insertMode]: {
-    key: string | null;
-    code: kKeyCode;
-    stat: KeyStat;
-    passExitKey: boolean;
-    hud: boolean;
+    k: string | null;
+    c: kKeyCode;
+    s: KeyStat;
+    p: boolean;
+    h: [string] | null;
   };
   [kFgCmd.visualMode]: {
     /** mode */ m: VisualModeNS.Mode.Visual | VisualModeNS.Mode.Line | VisualModeNS.Mode.Caret;
@@ -323,7 +323,8 @@ interface FgReqWithRes {
     /** url */ u: string;
     /** upper */ p: number;
     /** id */ i?: undefined;
-    /** trailing_slash */ t: boolean | null;
+    /** trailingSlash */ t: boolean | null | undefined;
+    /** @deprecated trailingSlash (old) */ s: boolean | null | undefined;
     /** execute / e: unknown; */
   };
   [kFgReq.parseSearchUrl]: {

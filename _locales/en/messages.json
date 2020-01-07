@@ -33,7 +33,7 @@
 		"message": "Close N tab(s)"
 	},
 	"removeTab_p": {
-		"message": "allow_close, goto=\"\"/left/right/previous"
+		"message": "mayClose, goto=\"\"/left/right/previous"
 	},
 	"restoreTab": {
 		"message": "Restore closed tab(s)"
@@ -279,7 +279,7 @@
 		"message": "Go up the URL hierarchy"
 	},
 	"goUp_p": {
-		"message": "trailing_slash=null/true/false"
+		"message": "trailingSlash=null/true/false"
 	},
 	"lastTab": {
 		"message": "Go to the last N-th tab"

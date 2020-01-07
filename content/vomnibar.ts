@@ -1,6 +1,7 @@
 declare namespace VomnibarNS {
   interface ContentOptions extends GlobalOptions {
-    trailing_slash: boolean;
+    trailingSlash?: boolean;
+    trailing_slash?: boolean;
   }
   interface Port {
     postMessage<K extends keyof CReq> (this: Port, msg: CReq[K]): void | 1;
@@ -124,10 +125,9 @@ var VOmni = {
     if (VimiumInjector === null && (window as Window & {VData?: Element | VDataTy}).VData) {
       url = VData.getOmni_(url);
     }
-    const trail = options.trailing_slash;
     VApi.send_(kFgReq.parseSearchUrl, {
-        t: trail != null ? !!trail : null,
-        p: upper, u: url
+      t: options.trailingSlash, s: options.trailing_slash,
+      p: upper, u: url
     }, function (search): void {
       options.p = search;
       if (search != null) { options.url = ""; }

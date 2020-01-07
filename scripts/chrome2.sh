@@ -111,6 +111,16 @@ else
   CHROME_ROOT='/d/Program Files/Google'
   VC_ROOT=${VC_ROOT:-${dir%/*}}
 fi
+if test -z "$VER"; then
+  VER_MIN=63
+  for ((i=99;i>=VER_MIN;i--)); do
+    if test -f "$WORKING_DIR/$i/chrome.exe"; then
+      VER=$i; break
+    fi
+  done
+if test -z "$VER" && test -f "$WORKING_DIR"/Chrome-bin/chrome.exe; then
+  VER=wo
+fi
 test "$VER" == cur && VER=
 if test "$VER" == wo; then
   EXE=$WORKING_DIR/Chrome-bin/chrome.exe

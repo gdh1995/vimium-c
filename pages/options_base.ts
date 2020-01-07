@@ -545,7 +545,7 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
   }
 
   const bgExclusions = BG_.Exclusions as typeof Exclusions,
-  frameInfo: Frames.Sender = ref ? ref[0].s : {
+  frameInfo: Frames.Sender = ref && (!ref[0].s.i || BG_.BgUtils_.protocolRe_.test(ref[0].s.u)) ? ref[0].s : {
     /** must keep aligned with {@link ../background/main.ts#formatPortSender} */
     i: 0,
     a: curTab.incognito,
@@ -707,10 +707,9 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
   for (let _i = 0, _len = rules.length; _i < _len; _i++) {
     ref1[rules[_i].pattern] = ref2[_i];
   }
-  const sender = ref ? ref[0].s : <Readonly<Frames.Sender>> { s: Frames.Status.enabled, f: Frames.Flags.Default }
-    , toggleAction = sender.s !== Frames.Status.disabled ? "Disable" : "Enable"
-    , curIsLocked = !!(sender.f & Frames.Flags.locked);
-  curLockedStatus = curIsLocked ? sender.s : Frames.Status.__fake;
+  const toggleAction = frameInfo.s !== Frames.Status.disabled ? "Disable" : "Enable"
+    , curIsLocked = !!(frameInfo.f & Frames.Flags.locked);
+  curLockedStatus = curIsLocked ? frameInfo.s : Frames.Status.__fake;
   let el0 = $<EnsuredMountedHTMLElement>("#toggleOnce"), el1 = el0.nextElementSibling;
   nextTick_(() => {
   el0.firstElementChild.textContent = (pTrans_(toggleAction) || toggleAction) + (curIsLocked ? "" : pTrans_("Once"));

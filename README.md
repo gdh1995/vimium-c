@@ -118,9 +118,10 @@ and please read https://github.com/gdh1995/vimium-c/wiki/Known-issues-on-various
 If you want to compile this project manually, please run:
 
 ``` bash
-npm install typescript@3.4.3
-node scripts/tsc all
-#./scripts/make.sh output-file.zip
+npm install typescript@3.7.4
+npm install pngjs # needed for Chromium-based browsers
+node scripts/tsc
+# ./scripts/make.sh released-file.zip
 ```
 
 `gulp local` can also compile files in place (using configurable build options),

@@ -156,8 +156,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     if (action = K.bubbleEvent_(event)) { /* empty */ }
     else if (InsertMode.isActive_()) {
       const g = InsertMode.global_;
-      if (g ? !g.code ? isEscape(event) : !g.key ? key === g.code && K.getKeyStat_(event) === g.stat
-            : (keyChar = K.char_(event)) && mapKey(keyChar, event) === g.key
+      if (g ? !g.c ? isEscape(event) : !g.k ? key === g.c && K.getKeyStat_(event) === g.s
+            : (keyChar = K.char_(event)) && mapKey(keyChar, event) === g.k
           : key > kKeyCode.maxNotFn && key < kKeyCode.minNotFn
           ? (keyChar = K.getKeyName_(event))
             && ((action = checkKey(keyChar, key, event)) & ~HandlerResult.AdvancedEscFlag) === HandlerResult.Esc
@@ -167,7 +167,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           event.repeat && InsertMode.focusUpper_(key, true, event);
           action = /* the real is HandlerResult.PassKey; here's for smaller code */ HandlerResult.Nothing;
         } else {
-          action = g && g.passExitKey ? (
+          action = g && g.p ? (
             Build.BTypes & BrowserType.Chrome && checkPotentialAccessKey(event),
             HandlerResult.Nothing) : HandlerResult.Prevent;
           InsertMode.exit_(event.target as Element);
@@ -490,9 +490,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           1000, [options.n, notBool ? JSON.stringify(val) : ""]);
     },
     /* kFgCmd.insertMode: */ function (_0: number, opt: CmdOptions[kFgCmd.insertMode]): void {
-      let { code, stat, key } = opt;
       InsertMode.global_ = opt;
-      if (opt.hud) { HUD.show_(kTip.globalInsertMode, [code ? ": " + (key || code + "/" + stat) : ""]); }
+      if (opt.h) { HUD.show_(kTip.raw, opt.h); }
     },
     /* kFgCmd.passNextKey: */ function (count0: number, options: CmdOptions[kFgCmd.passNextKey]): void {
       let keyCount = 0, count = Math.abs(count0);
@@ -1286,7 +1285,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       post({ H: kFgReq.cmd, c: request.c, n, i: request.i, r: count2 });
     },
     /* kBgReq.showHelpDialog: */
-  function ({ h: html, c: shouldShowAdvanced, o: optionUrl, S: CSS, a: options }: Req.bg<kBgReq.showHelpDialog>): void {
+  function ({ h: html, c: shouldShowAdvanced, o: optionUrl, S: CSS
+      , e: exitOnClick }: Req.bg<kBgReq.showHelpDialog>): void {
     // Note: not suppress key on the top, because help dialog may need a while to render,
     // and then a keyup may occur before or after it
     if (CSS) { U.css_(CSS); }
@@ -1367,7 +1367,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     shouldShowAdvanced && toggleAdvanced();
     U.ensureBorder_();
     U.add_(box, AdjustType.Normal, true);
-    options.exitOnClick && U.setupExitOnClick_(1, hide);
+    exitOnClick && U.setupExitOnClick_(1, hide);
     doc.hasFocus() || events.focusAndRun_();
     // on FF66, `scrollIntoView` does not set tab-navigation node
     // tslint:disable-next-line: no-unused-expression
