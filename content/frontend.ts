@@ -490,9 +490,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           1000, [options.n, notBool ? JSON.stringify(val) : ""]);
     },
     /* kFgCmd.insertMode: */ function (_0: number, opt: CmdOptions[kFgCmd.insertMode]): void {
-      let { code, stat } = opt;
+      let { code, stat, key } = opt;
       InsertMode.global_ = opt;
-      if (opt.hud) { HUD.show_(kTip.globalInsertMode, [code ? `: ${code}/${stat}` : ""]); }
+      if (opt.hud) { HUD.show_(kTip.globalInsertMode, [code ? ": " + (key || code + "/" + stat) : ""]); }
     },
     /* kFgCmd.passNextKey: */ function (count0: number, options: CmdOptions[kFgCmd.passNextKey]): void {
       let keyCount = 0, count = Math.abs(count0);

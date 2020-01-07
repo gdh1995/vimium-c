@@ -1143,13 +1143,14 @@
       let code = cOptions.code | 0, stat: KeyStat = cOptions.stat | 0, key = cOptions.key,
       hud = cOptions.hideHUD != null ? !cOptions.hideHUD : cOptions.hideHud != null ? !cOptions.hideHud
           : !Settings_.cache_.hideHud;
-      code = stat !== KeyStat.plain ? code || kKeyCode.esc : code === kKeyCode.esc ? 0 : code;
+      key = key && typeof key === "string" ? key : null;
+      code = key ? kKeyCode.esc : stat !== KeyStat.plain ? code || kKeyCode.esc : code === kKeyCode.esc ? 0 : code;
       cPort.postMessage<1, kFgCmd.insertMode>({ N: kBgReq.execute,
         S: hud ? ensureInnerCSS(cPort) : null,
         c: kFgCmd.insertMode,
         n: 1,
         a: {
-          code, stat, key: key && typeof key === "string" ? key : null,
+          code, stat, key,
           passExitKey: !!cOptions.passExitKey,
           hud
         }
