@@ -218,9 +218,7 @@ var VFind = {
   focus_ (): void {
     if (!(Build.BTypes & ~BrowserType.Firefox)
         || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox) {
-      const doc = document, lock = VApi.lock_(), activeEl = lock || doc.activeElement;
-      (lock || activeEl !== doc.body) && (activeEl as Partial<HTMLElement>).blur &&
-      (activeEl as HTMLElement).blur();
+      this.box_.contentWindow.focus();
     }
     this._active = false;
     this.input_.focus();
