@@ -216,11 +216,11 @@ var VFind = {
   },
   _onUnexpectedBlur: null as ((event?: Event) => void) | null,
   focus_ (): void {
+    this._active = false;
     if (!(Build.BTypes & ~BrowserType.Firefox)
         || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox) {
       this.box_.contentWindow.focus();
     }
-    this._active = false;
     this.input_.focus();
     this._active = true;
   },
