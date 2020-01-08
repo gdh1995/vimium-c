@@ -320,10 +320,11 @@ var VCui = {
     }
     a.mouse_(element, "mouseup", center, modifiers, null, button);
     if (!isInDom(element)) { return; }
-    if (button /* is the right button */
+    if (button === 2 /* is the right button */
         || Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || VOther & BrowserType.Chrome)
             && (element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
-      if (button) { // if button is the right, then auxclick can be triggered even if element.disabled
+      if (button === 2) {
+        // if button is the right, then auxclick can be triggered even if element.disabled
         a.mouse_(element, "auxclick", center, modifiers, null, button);
       }
       return;
@@ -363,10 +364,16 @@ var VCui = {
         return;
       }
       // do fix
+      const isBlank = (element as HTMLAnchorElement).target !== "blank", relAttr = element.getAttribute("rel"),
+      /** {@link #FirefoxBrowserVer.Min$TargetIsBlank$Implies$Noopener}; here also apply on Chrome */
+      noopener = relAttr == null ? isBlank
+          : Build.MinCVer >= BrowserVer.MinEnsuredES6$Array$$Includes || !(Build.BTypes & BrowserType.Chrome)
+          ? (relAttr.split(<RegExpOne> /\s/) as ReadonlyArrayWithIncludes<string>).includes("noopener")
+          : relAttr.split(<RegExpOne> /\s/).indexOf("noopener") >= 0;
       VApi.post_({
         H: kFgReq.openUrl,
         u: (element as HTMLAnchorElement).href,
-        n: ((element as HTMLAnchorElement).rel.split(<RegExpOne> /\s/) as ES6Array<string>).includes("noopener"),
+        n: noopener,
         r: (modifiers as MyMouseControlKeys).shiftKey_
           || (<number> specialAction) < 4
           ? ReuseType.newFg : ReuseType.newBg

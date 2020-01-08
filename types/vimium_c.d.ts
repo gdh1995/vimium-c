@@ -977,6 +977,8 @@ declare const enum FirefoxBrowserVer {
   MinMediaQuery$PrefersColorScheme = 67,
   // See https://bugzilla.mozilla.org/show_bug.cgi?id=1408996 and https://bugzilla.mozilla.org/show_bug.cgi?id=1514050
   MinExpandoObjectForSandboxWindowWrapperNotGetLost = 67, // https://github.com/philc/vimium/issues/2675
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=1522083
+  Min$TargetIsBlank$Implies$Noopener = 67, // treats `[rel]=null` as `[rel=noopener]`
   MinFollowSelectionColorOnInactiveFrame = 68,
   Min$visualViewport$OnAndroid = 68, // for desktop version: https://bugzilla.mozilla.org/show_bug.cgi?id=1551302
   MinNoKeygenElement = 69,
