@@ -24,7 +24,7 @@ declare namespace HintsNS {
     dblclick?: boolean;
     newtab?: boolean | "force";
     button?: "right";
-    touch?: boolean | null;
+    touch?: null | boolean | "auto";
     join?: FgReq[kFgReq.copy]["j"];
     toggle?: {
       [selector: string]: string;
@@ -2120,12 +2120,12 @@ Modes_: [
     if (hadNoDownload) {
       link.download = "";
     }
-    VCui.click_(link, rect, {
+    VCui.click_(link, rect, 0, {
       altKey_: !0,
       ctrlKey_: !1,
       metaKey_: !1,
       shiftKey_: !1
-    }, 0, 0);
+    });
     if (hadNoDownload) {
       link.removeAttribute(kDownload);
     }
@@ -2166,7 +2166,7 @@ Modes_: [
           // `HTMLSummaryElement::DefaultEventHandler(event)` in
           // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_summary_element.cc?l=109
           rect = (link as HTMLDetailsElement).open || !rect ? VDom.getVisibleClientRect_(summary) : rect;
-          VCui.click_(summary, rect, null, 1);
+          VCui.click_(summary, rect, 1);
           a._removeFlash || rect && VCui.flash_(null, rect);
           return false;
       }
@@ -2181,24 +2181,24 @@ Modes_: [
     }
     const mask = a.mode_ & HintMode.mask_focus_new, isMac = !VDom.cache_.o,
     isRight = a.options_.button === "right",
-    dblClick = !!a.options_.dblclick,
+    dblClick = !!a.options_.dblclick && !isRight,
     specialActions = isRight || dblClick,
     newTab = mask > HintMode.newTab - 1 && !specialActions,
     newtab_n_active = newTab && mask > HintMode.newtab_n_active - 1,
     ctrl = newTab && !(a.options_.noCtrlPlusShift && newtab_n_active),
-    openUrlInNewTab = specialActions || tag !== "a" ? 0
-        : a.options_.newtab === "force" ? newTab ? 6 : 2
+    openUrlInNewTab = dblClick ? kClickAction.forceToDblclick : specialActions || tag !== "a" ? kClickAction.none
+        : a.options_.newtab === "force" ? newTab
+            ? kClickAction.forceToOpenInNewTab | kClickAction.newTabFromMode : kClickAction.forceToOpenInNewTab
         : !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
-          ? newTab ? 5 : 1 // need to work around Firefox's popup blocker
-        : 0;
-    VCui.click_(link, rect, {
+          ? newTab // need to work around Firefox's popup blocker
+            ? kClickAction.plainMayOpenManually | kClickAction.newTabFromMode : kClickAction.plainMayOpenManually
+        : kClickAction.none;
+    VCui.click_(link, rect, mask > 0 || link.tabIndex >= 0, {
       altKey_: !1,
       ctrlKey_: ctrl && !isMac,
       metaKey_: ctrl && isMac,
       shiftKey_: newtab_n_active
-    }, mask > 0 || link.tabIndex >= 0
-    , dblClick ? 8 : openUrlInNewTab
-    , isRight ? 2 : 0
+    }, openUrlInNewTab, isRight ? kClickButton.second : kClickButton.none
     , !(Build.BTypes & BrowserType.Chrome) || specialActions || newTab ? 0 : a.options_.touch);
   }
   , HintMode.OPEN_IN_CURRENT_TAB

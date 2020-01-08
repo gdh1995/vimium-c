@@ -694,15 +694,15 @@ var VDom = {
   mouse_: function (this: {}, element: SafeElementForMouse
       , type: kMouseClickEvents | kMouseMoveEvents
       , center: Point2D, modifiers?: MyMouseControlKeys | null, relatedTarget?: SafeElementForMouse | null
-      , button?: 0 | 2 | 4): boolean {
+      , button?: AcceptableClickButtons): boolean {
     const doc = element.ownerDocument, view = (doc as Document).defaultView || window,
     tyKey = type.slice(5, 6),
     // is: down | up | (click) | dblclick | auxclick
-    detail = "dui".indexOf(tyKey) < 0 ? 0 : <number> button & 4 ? 2 : 1,
+    detail = "dui".indexOf(tyKey) < 0 ? 0 : <number> button & kClickButton.primaryAndTwice ? 2 : 1,
     x = center[0], y = center[1], ctrlKey = modifiers ? modifiers.ctrlKey_ : !1,
     altKey = modifiers ? modifiers.altKey_ : !1, shiftKey = modifiers ? modifiers.shiftKey_ : !1,
     metaKey = modifiers ? modifiers.metaKey_ : !1;
-    button = (<number> button & 2) as 0 | 2;
+    button = (<number> button & kClickButton.second) as kClickButton.none | kClickButton.second;
     relatedTarget = relatedTarget && relatedTarget.ownerDocument === doc ? relatedTarget : null;
     let mouseEvent: MouseEvent;
     // note: there seems no way to get correct screenX/Y of an element
@@ -736,7 +736,8 @@ var VDom = {
   } as {
     (element: SafeElementForMouse, type: kMouseClickEvents
       , center: Point2D
-      , modifiers?: MyMouseControlKeys | null, related?: SafeElementForMouse | null, button?: 0 | 2 | 4): boolean;
+      , modifiers?: MyMouseControlKeys | null, related?: SafeElementForMouse | null
+      , button?: AcceptableClickButtons): boolean;
     (element: SafeElementForMouse, type: kMouseMoveEvents, center: Point2D
       , modifiers?: null, related?: SafeElementForMouse | null): boolean;
   },

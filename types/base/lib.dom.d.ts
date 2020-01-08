@@ -171,8 +171,8 @@ interface MouseEventInit extends EventModifierInit {
     screenY?: number;
     clientX?: number;
     clientY?: number;
-    button?: number;
-    buttons?: number;
+    /** 0: main-pressed; 2: second pressed */ button?: 0 | 2;
+    /** 0: not-mousedown; 1: primary; 2: second */ buttons?: 0 | 1 | 2;
     relatedTarget?: EventTarget | null;
 }
 
@@ -233,7 +233,7 @@ declare var InputDeviceCapabilities: InputDeviceCapabilitiesVar | undefined;
 
 interface UIEventInit extends EventInit {
     view?: Window;
-    detail?: number;
+    detail?: 0 | 1 | 2;
     sourceCapabilities?: InputDeviceCapabilities | null;
 }
 
@@ -932,7 +932,8 @@ interface CanvasRenderingContext2D extends Object, CanvasPathMethods {
     drawFocusIfNeeded(element: Element): void;
     drawImage(image: HTMLImageElement | HTMLCanvasElement | HTMLVideoElement | ImageBitmap, dstX: number, dstY: number): void;
     drawImage(image: HTMLImageElement | HTMLCanvasElement | HTMLVideoElement | ImageBitmap, dstX: number, dstY: number, dstW: number, dstH: number): void;
-    drawImage(image: HTMLImageElement | HTMLCanvasElement | HTMLVideoElement | ImageBitmap, srcX: number, srcY: number, srcW: number, srcH: number, dstX: number, dstY: number, dstW: number, dstH: number): void;
+    drawImage(image: HTMLImageElement | HTMLCanvasElement | HTMLVideoElement | ImageBitmap, srcX: number, srcY: number, srcW: number, srcH: number
+        , dstX: number, dstY: number, dstW: number, dstH: number): void;
     fill(fillRule?: string): void;
     fillRect(x: number, y: number, w: number, h: number): void;
     fillText(text: string, x: number, y: number, maxWidth?: number): void;
@@ -1952,10 +1953,12 @@ interface Document extends Node, GlobalEventHandlers, NodeSelector, DocumentEven
     hasFocus(): boolean;
     importNode<T extends Node>(importedNode: T, deep: true): T;
     /**
-      * Opens a new window and loads a document specified by a given URL. Also, opens a new window that uses the url parameter and the name parameter to collect the output of the write method and the writeln method.
+      * Opens a new window and loads a document specified by a given URL.
+      * Also, opens a new window that uses the url parameter and the name parameter to collect the output of the write method and the writeln method.
       * @param url Specifies a MIME type for the document.
       * @param name Specifies the name of the window. This name is used as the value for the TARGET attribute on a form or an anchor element.
-      * @param features Contains a list of items separated by commas. Each item consists of an option and a value, separated by an equals sign (for example, "fullscreen=yes, toolbar=yes"). The following values are supported.
+      * @param features Contains a list of items separated by commas. Each item consists of an option and a value,
+      * separated by an equals sign (for example, "fullscreen=yes, toolbar=yes"). The following values are supported.
       * @param replace Specifies whether the existing entry for the document is replaced in the history list.
       */
     // open(url?: string, name?: string, features?: string, replace?: boolean): Document;
@@ -2041,7 +2044,12 @@ declare var DocumentType: {
 
 interface DragEvent extends MouseEvent {
     readonly dataTransfer: DataTransfer;
-    initDragEvent(typeArg: string, canBubbleArg: boolean, cancelableArg: boolean, viewArg: Window, detailArg: number, screenXArg: number, screenYArg: number, clientXArg: number, clientYArg: number, ctrlKeyArg: boolean, altKeyArg: boolean, shiftKeyArg: boolean, metaKeyArg: boolean, buttonArg: number, relatedTargetArg: EventTarget, dataTransferArg: DataTransfer): void;
+    initDragEvent(typeArg: string, canBubbleArg: boolean, cancelableArg: boolean, viewArg: Window
+        , detailArg: NonNullable<UIEventInit["detail"]>
+        , screenXArg: number, screenYArg: number, clientXArg: number, clientYArg: number
+        , ctrlKeyArg: boolean, altKeyArg: boolean, shiftKeyArg: boolean, metaKeyArg: boolean
+        , buttonArg: NonNullable<MouseEventInit["button"]>, relatedTargetArg: EventTarget
+        , dataTransferArg: DataTransfer): void;
 }
 
 declare var DragEvent: {
@@ -2694,7 +2702,8 @@ declare var HTMLBodyElement: {
 
 interface HTMLButtonElement extends HTMLElement {
     /**
-      * Provides a way to direct a user to a specific field when a document loads. This can provide both direction and convenience for a user, reducing the need to click or tab to a field when a page opens. This attribute is true when present on an element, and false when missing.
+      * Provides a way to direct a user to a specific field when a document loads. This can provide both direction and convenience for a user,
+      * reducing the need to click or tab to a field when a page opens. This attribute is true when present on an element, and false when missing.
       */
     autofocus: boolean;
     disabled: boolean;
@@ -2715,7 +2724,8 @@ interface HTMLButtonElement extends HTMLElement {
       */
     formMethod: string;
     /**
-      * Overrides any validation or required attributes on a form or form elements to allow it to be submitted without validation. This can be used to create a "save draft"-type submit option.
+      * Overrides any validation or required attributes on a form or form elements to allow it to be submitted without validation.
+      * This can be used to create a "save draft"-type submit option.
       */
     formNoValidate: string;
     /**
@@ -2732,7 +2742,8 @@ interface HTMLButtonElement extends HTMLElement {
       */
     type: string;
     /**
-      * Returns the error message that would be displayed if the user submits the form, or an empty string if no error message. It also triggers the standard error message, such as "this is a required field". The result is that the user sees validation messages without actually submitting.
+      * Returns the error message that would be displayed if the user submits the form, or an empty string if no error message.
+      * It also triggers the standard error message, such as "this is a required field". The result is that the user sees validation messages without actually submitting.
       */
     readonly validationMessage: string;
     /**
@@ -2775,8 +2786,11 @@ interface HTMLCanvasElement extends HTMLElement {
       */
     width: number;
     /**
-      * Returns an object that provides methods and properties for drawing and manipulating images and graphics on a canvas element in a document. A context object includes information about colors, line widths, fonts, and other graphic parameters that can be drawn on a canvas.
-      * @param contextId The identifier (ID) of the type of canvas to create. Internet Explorer 9 and Internet Explorer 10 support only a 2-D context using canvas.getContext("2d"); IE11 Preview also supports 3-D or WebGL context using canvas.getContext("experimental-webgl");
+      * Returns an object that provides methods and properties for drawing and manipulating images and graphics on a canvas element in a document.
+      * A context object includes information about colors, line widths, fonts, and other graphic parameters that can be drawn on a canvas.
+      * @param contextId The identifier (ID) of the type of canvas to create.
+      * Internet Explorer 9 and Internet Explorer 10 support only a 2-D context using canvas.getContext("2d");
+      * IE11 Preview also supports 3-D or WebGL context using canvas.getContext("experimental-webgl");
       */
     getContext(contextId: "2d", contextAttributes?: Canvas2DContextAttributes): CanvasRenderingContext2D | null;
     getContext(contextId: string, contextAttributes?: {}): CanvasRenderingContext2D | null;
@@ -3136,7 +3150,8 @@ interface HTMLFieldSetElement extends HTMLElement {
     readonly form: HTMLFormElement;
     name: string;
     /**
-      * Returns the error message that would be displayed if the user submits the form, or an empty string if no error message. It also triggers the standard error message, such as "this is a required field". The result is that the user sees validation messages without actually submitting.
+      * Returns the error message that would be displayed if the user submits the form, or an empty string if no error message.
+      * It also triggers the standard error message, such as "this is a required field". The result is that the user sees validation messages without actually submitting.
       */
     readonly validationMessage: string;
     /**
@@ -3230,7 +3245,9 @@ interface HTMLFormElement extends HTMLElement {
     checkValidity(): boolean;
     /**
       * Retrieves a form object or an object from an elements collection.
-      * @param name Variant of type Number or String that specifies the object or collection to retrieve. If this parameter is a Number, it is the zero-based index of the object. If this parameter is a string, all objects with matching name or id properties are retrieved, and a collection is returned if more than one match is made.
+      * @param name Variant of type Number or String that specifies the object or collection to retrieve. If this parameter is a Number,
+      * it is the zero-based index of the object. If this parameter is a string, all objects with matching name or id properties are retrieved,
+      * and a collection is returned if more than one match is made.
       * @param index Variant of type Number that specifies the zero-based index of the object to retrieve when a collection is returned.
       */
     item(name?: any, index?: any): any;
@@ -3402,7 +3419,8 @@ interface HTMLFrameSetElement extends HTMLElement {
       * Sets or retrieves the frame heights of the object.
       */
     rows: string;
-    addEventListener<K extends keyof HTMLFrameSetElementEventMap>(type: K, listener: (this: HTMLFrameSetElement, ev: HTMLFrameSetElementEventMap[K]) => any, useCapture?: boolean): void;
+    addEventListener<K extends keyof HTMLFrameSetElementEventMap>(
+        type: K, listener: (this: HTMLFrameSetElement, ev: HTMLFrameSetElementEventMap[K]) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 }
 
@@ -3672,7 +3690,8 @@ interface HTMLInputElement extends HTMLElement {
       */
     autocomplete: string;
     /**
-      * Provides a way to direct a user to a specific field when a document loads. This can provide both direction and convenience for a user, reducing the need to click or tab to a field when a page opens. This attribute is true when present on an element, and false when missing.
+      * Provides a way to direct a user to a specific field when a document loads. This can provide both direction and convenience for a user,
+      * reducing the need to click or tab to a field when a page opens. This attribute is true when present on an element, and false when missing.
       */
     autofocus: boolean;
     /**
@@ -3717,7 +3736,8 @@ interface HTMLInputElement extends HTMLElement {
       */
     formMethod: string;
     /**
-      * Overrides any validation or required attributes on a form or form elements to allow it to be submitted without validation. This can be used to create a "save draft"-type submit option.
+      * Overrides any validation or required attributes on a form or form elements to allow it to be submitted without validation.
+      * This can be used to create a "save draft"-type submit option.
       */
     formNoValidate: string;
     /**
@@ -3738,7 +3758,8 @@ interface HTMLInputElement extends HTMLElement {
       */
     readonly list: HTMLElement;
     /**
-      * Defines the maximum acceptable value for an input element with type="number".When used with the min and step attributes, lets you control the range and increment (such as only even numbers) that the user can enter into an input field.
+      * Defines the maximum acceptable value for an input element with type="number".When used with the min and step attributes,
+      * lets you control the range and increment (such as only even numbers) that the user can enter into an input field.
       */
     max: string;
     /**
@@ -3746,7 +3767,8 @@ interface HTMLInputElement extends HTMLElement {
       */
     maxLength: number;
     /**
-      * Defines the minimum acceptable value for an input element with type="number". When used with the max and step attributes, lets you control the range and increment (such as even numbers only) that the user can enter into an input field.
+      * Defines the minimum acceptable value for an input element with type="number". When used with the max and step attributes,
+      * lets you control the range and increment (such as even numbers only) that the user can enter into an input field.
       */
     min: string;
     /**
@@ -3762,7 +3784,8 @@ interface HTMLInputElement extends HTMLElement {
       */
     pattern: string;
     /**
-      * Gets or sets a text string that is displayed in an input field as a hint or prompt to users as the format or type of information they need to enter.The text appears in an input field until the user puts focus on the field.
+      * Gets or sets a text string that is displayed in an input field as a hint or prompt to users as the format or type of information they need to enter.
+      * The text appears in an input field until the user puts focus on the field.
       */
     placeholder: string;
     readOnly: boolean;
@@ -3786,7 +3809,8 @@ interface HTMLInputElement extends HTMLElement {
     src: string;
     status: boolean;
     /**
-      * Defines an increment or jump between values that you want to allow the user to enter. When used with the max and min attributes, lets you control the range and increment (for example, allow only even numbers) that the user can enter into an input field.
+      * Defines an increment or jump between values that you want to allow the user to enter. When used with the max and min attributes,
+      * lets you control the range and increment (for example, allow only even numbers) that the user can enter into an input field.
       */
     step: string;
     /**
@@ -3798,7 +3822,8 @@ interface HTMLInputElement extends HTMLElement {
       */
     useMap: string;
     /**
-      * Returns the error message that would be displayed if the user submits the form, or an empty string if no error message. It also triggers the standard error message, such as "this is a required field". The result is that the user sees validation messages without actually submitting.
+      * Returns the error message that would be displayed if the user submits the form, or an empty string if no error message.
+      * It also triggers the standard error message, such as "this is a required field". The result is that the user sees validation messages without actually submitting.
       */
     readonly validationMessage: string;
     /**
@@ -3848,12 +3873,14 @@ interface HTMLInputElement extends HTMLElement {
       */
     setSelectionRange(start: number, end: number, direction?: string): void;
     /**
-      * Decrements a range input control's value by the value given by the Step attribute. If the optional parameter is used, it will decrement the input control's step value multiplied by the parameter's value.
+      * Decrements a range input control's value by the value given by the Step attribute.
+      * If the optional parameter is used, it will decrement the input control's step value multiplied by the parameter's value.
       * @param n Value to decrement the value by.
       */
     stepDown(n?: number): void;
     /**
-      * Increments a range input control's value by the value given by the Step attribute. If the optional parameter is used, will increment the input control's value by that value.
+      * Increments a range input control's value by the value given by the Step attribute.
+      * If the optional parameter is used, will increment the input control's value by that value.
       * @param n Value to increment the value by.
       */
     stepUp(n?: number): void;
@@ -4011,7 +4038,8 @@ interface HTMLMarqueeElement extends HTMLElement {
     width: string;
     start(): void;
     stop(): void;
-    addEventListener<K extends keyof HTMLMarqueeElementEventMap>(type: K, listener: (this: HTMLMarqueeElement, ev: HTMLMarqueeElementEventMap[K]) => any, useCapture?: boolean): void;
+    addEventListener<K extends keyof HTMLMarqueeElementEventMap>(
+        type: K, listener: (this: HTMLMarqueeElement, ev: HTMLMarqueeElementEventMap[K]) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 }
 
@@ -4203,7 +4231,8 @@ interface HTMLObjectElement extends HTMLElement, GetSVGDocument {
       */
     useMap: string;
     /**
-      * Returns the error message that would be displayed if the user submits the form, or an empty string if no error message. It also triggers the standard error message, such as "this is a required field". The result is that the user sees validation messages without actually submitting.
+      * Returns the error message that would be displayed if the user submits the form, or an empty string if no error message.
+      * It also triggers the standard error message, such as "this is a required field". The result is that the user sees validation messages without actually submitting.
       */
     readonly validationMessage: string;
     /**
@@ -4498,7 +4527,9 @@ declare var HTMLScriptElement: {
 interface HTMLSelectElement extends HTMLElement {
     readonly labels: NodeListOf<HTMLLabelElement>;
     /**
-      * Provides a way to direct a user to a specific field when a document loads. This can provide both direction and convenience for a user, reducing the need to click or tab to a field when a page opens. This attribute is true when present on an element, and false when missing.
+      * Provides a way to direct a user to a specific field when a document loads.
+      * This can provide both direction and convenience for a user, reducing the need to click or tab to a field when a page opens.
+      * This attribute is true when present on an element, and false when missing.
       */
     autofocus: boolean;
     disabled: boolean;
@@ -4537,7 +4568,8 @@ interface HTMLSelectElement extends HTMLElement {
       */
     readonly type: string;
     /**
-      * Returns the error message that would be displayed if the user submits the form, or an empty string if no error message. It also triggers the standard error message, such as "this is a required field". The result is that the user sees validation messages without actually submitting.
+      * Returns the error message that would be displayed if the user submits the form, or an empty string if no error message.
+      * It also triggers the standard error message, such as "this is a required field". The result is that the user sees validation messages without actually submitting.
       */
     readonly validationMessage: string;
     /**
@@ -4554,7 +4586,8 @@ interface HTMLSelectElement extends HTMLElement {
     readonly willValidate: boolean;
     /**
       * Adds an element to the areas, controlRange, or options collection.
-      * @param element Variant of type Number that specifies the index position in the collection where the element is placed. If no value is given, the method places the element at the end of the collection.
+      * @param element Variant of type Number that specifies the index position in the collection where the element is placed.
+      * If no value is given, the method places the element at the end of the collection.
       * @param before Variant of type Object that specifies an element to insert before, or null to append the object to the collection. 
       */
     add(element: HTMLElement, before?: HTMLElement | number): void;
@@ -4564,7 +4597,9 @@ interface HTMLSelectElement extends HTMLElement {
     checkValidity(): boolean;
     /**
       * Retrieves a select object or an object from an options collection.
-      * @param name Variant of type Number or String that specifies the object or collection to retrieve. If this parameter is an integer, it is the zero-based index of the object. If this parameter is a string, all objects with matching name or id properties are retrieved, and a collection is returned if more than one match is made.
+      * @param name Variant of type Number or String that specifies the object or collection to retrieve.
+      * If this parameter is an integer, it is the zero-based index of the object.
+      * If this parameter is a string, all objects with matching name or id properties are retrieved, and a collection is returned if more than one match is made.
       * @param index Variant of type Number that specifies the zero-based index of the object to retrieve when a collection is returned.
       */
     item(name?: any, index?: any): any;
@@ -4903,7 +4938,8 @@ interface HTMLTableRowElement extends HTMLElement, HTMLTableAlignment {
     readonly sectionRowIndex: number;
     /**
       * Removes the specified cell from the table row, as well as from the cells collection.
-      * @param index Number that specifies the zero-based position of the cell to remove from the table row. If no value is provided, the last cell in the cells collection is deleted.
+      * @param index Number that specifies the zero-based position of the cell to remove from the table row.
+      * If no value is provided, the last cell in the cells collection is deleted.
       */
     deleteCell(index?: number): void;
     /**
@@ -4969,7 +5005,9 @@ interface HTMLTextAreaElement extends HTMLElement {
     readonly parentNode: Node | null;
     readonly labels: NodeListOf<HTMLLabelElement>;
     /**
-      * Provides a way to direct a user to a specific field when a document loads. This can provide both direction and convenience for a user, reducing the need to click or tab to a field when a page opens. This attribute is true when present on an element, and false when missing.
+      * Provides a way to direct a user to a specific field when a document loads.
+      * This can provide both direction and convenience for a user, reducing the need to click or tab to a field when a page opens.
+      * This attribute is true when present on an element, and false when missing.
       */
     autofocus: boolean;
     /**
@@ -4994,7 +5032,8 @@ interface HTMLTextAreaElement extends HTMLElement {
       */
     name: string;
     /**
-      * Gets or sets a text string that is displayed in an input field as a hint or prompt to users as the format or type of information they need to enter.The text appears in an input field until the user puts focus on the field.
+      * Gets or sets a text string that is displayed in an input field as a hint or prompt to users as the format or type of information they need to enter.
+      * The text appears in an input field until the user puts focus on the field.
       */
     placeholder: string;
     /**
@@ -5027,7 +5066,9 @@ interface HTMLTextAreaElement extends HTMLElement {
       */
     readonly type: string;
     /**
-      * Returns the error message that would be displayed if the user submits the form, or an empty string if no error message. It also triggers the standard error message, such as "this is a required field". The result is that the user sees validation messages without actually submitting.
+      * Returns the error message that would be displayed if the user submits the form, or an empty string if no error message.
+      * It also triggers the standard error message, such as "this is a required field".
+      * The result is that the user sees validation messages without actually submitting.
       */
     readonly validationMessage: string;
     /**
@@ -5250,7 +5291,8 @@ interface KeyboardEvent extends UIEvent {
     readonly which: number;
     readonly code?: string;
     getModifierState(keyArg: string): boolean;
-    initKeyboardEvent(typeArg: string, canBubbleArg: boolean, cancelableArg: boolean, viewArg: Window, keyArg: string, locationArg: number, modifiersListArg: string, repeat: boolean, locale: string): void;
+    initKeyboardEvent(typeArg: string, canBubbleArg: boolean, cancelableArg: boolean, viewArg: Window
+        , keyArg: string, locationArg: number, modifiersListArg: string, repeat: boolean, locale: string): void;
     readonly DOM_KEY_LOCATION_JOYSTICK: number;
     readonly DOM_KEY_LOCATION_LEFT: number;
     readonly DOM_KEY_LOCATION_MOBILE: number;
@@ -5436,7 +5478,11 @@ interface MouseEvent extends UIEvent {
     readonly x: number;
     readonly y: number;
     getModifierState(keyArg: string): boolean;
-    initMouseEvent(typeArg: string, canBubbleArg: boolean, cancelableArg: boolean, viewArg: Window, detailArg: number, screenXArg: number, screenYArg: number, clientXArg: number, clientYArg: number, ctrlKeyArg: boolean, altKeyArg: boolean, shiftKeyArg: boolean, metaKeyArg: boolean, buttonArg: number, relatedTargetArg: EventTarget | null): void;
+    initMouseEvent(typeArg: string, canBubbleArg: boolean, cancelableArg: boolean, viewArg: Window
+        , detailArg: NonNullable<UIEventInit["detail"]>
+        , screenXArg: number, screenYArg: number, clientXArg: number, clientYArg: number
+        , ctrlKeyArg: boolean, altKeyArg: boolean, shiftKeyArg: boolean, metaKeyArg: boolean
+        , buttonArg: NonNullable<MouseEventInit["button"]>, relatedTargetArg: EventTarget | null): void;
 }
 
 type OptionalMouseEventInitKeys = "sourceCapabilities";
@@ -5714,7 +5760,12 @@ interface PointerEvent extends MouseEvent {
     readonly width: number;
     getCurrentPoint(element: Element): void;
     getIntermediatePoints(element: Element): void;
-    initPointerEvent(typeArg: string, canBubbleArg: boolean, cancelableArg: boolean, viewArg: Window, detailArg: number, screenXArg: number, screenYArg: number, clientXArg: number, clientYArg: number, ctrlKeyArg: boolean, altKeyArg: boolean, shiftKeyArg: boolean, metaKeyArg: boolean, buttonArg: number, relatedTargetArg: EventTarget, offsetXArg: number, offsetYArg: number, widthArg: number, heightArg: number, pressure: number, rotation: number, tiltX: number, tiltY: number, pointerIdArg: number, pointerType: any, hwTimestampArg: number, isPrimary: boolean): void;
+    initPointerEvent(typeArg: string, canBubbleArg: boolean, cancelableArg: boolean, viewArg: Window
+        , detailArg: number, screenXArg: number, screenYArg: number, clientXArg: number, clientYArg: number
+        , ctrlKeyArg: boolean, altKeyArg: boolean, shiftKeyArg: boolean, metaKeyArg: boolean
+        , buttonArg: number, relatedTargetArg: EventTarget, offsetXArg: number, offsetYArg: number
+        , widthArg: number, heightArg: number, pressure: number, rotation: number, tiltX: number, tiltY: number
+        , pointerIdArg: number, pointerType: any, hwTimestampArg: number, isPrimary: boolean): void;
 }
 
 declare var PointerEvent: {
@@ -6017,7 +6068,8 @@ interface SVGComponentTransferFunctionElement extends SVGElement {
     readonly SVG_FECOMPONENTTRANSFER_TYPE_LINEAR: number;
     readonly SVG_FECOMPONENTTRANSFER_TYPE_TABLE: number;
     readonly SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN: number;
-    addEventListener<K extends keyof SVGElementEventMap>(type: K, listener: (this: SVGComponentTransferFunctionElement, ev: SVGElementEventMap[K]) => any, useCapture?: boolean): void;
+    addEventListener<K extends keyof SVGElementEventMap>(
+        type: K, listener: (this: SVGComponentTransferFunctionElement, ev: SVGElementEventMap[K]) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 }
 
@@ -7281,6 +7333,10 @@ interface SVGSVGElementEventMap extends SVGElementEventMap {
     "SVGZoom": SVGZoomEvent;
 }
 
+type __SVGIntersectElements1 = SVGCircleElement | SVGEllipseElement | SVGImageElement | SVGLineElement | SVGPathElement
+type __SVGIntersectElements2 = SVGPolygonElement | SVGPolylineElement | SVGRectElement | SVGTextElement | SVGUseElement;
+type __SVGIntersectElements = __SVGIntersectElements1 | __SVGIntersectElements2;
+
 interface SVGSVGElement extends SVGGraphicsElement, DocumentEvent, SVGFitToViewBox, SVGZoomAndPan {
     readonly tagName: "SVG";
     readonly nodeName: "SVG";
@@ -7319,8 +7375,8 @@ interface SVGSVGElement extends SVGGraphicsElement, DocumentEvent, SVGFitToViewB
     getComputedStyle(elt: Element, pseudoElt?: string): CSSStyleDeclaration;
     getCurrentTime(): number;
     getElementById(elementId: string): Element;
-    getEnclosureList(rect: SVGRect, referenceElement: SVGElement): NodeListOf<SVGCircleElement | SVGEllipseElement | SVGImageElement | SVGLineElement | SVGPathElement | SVGPolygonElement | SVGPolylineElement | SVGRectElement | SVGTextElement | SVGUseElement>;
-    getIntersectionList(rect: SVGRect, referenceElement: SVGElement): NodeListOf<SVGCircleElement | SVGEllipseElement | SVGImageElement | SVGLineElement | SVGPathElement | SVGPolygonElement | SVGPolylineElement | SVGRectElement | SVGTextElement | SVGUseElement>;
+    getEnclosureList(rect: SVGRect, referenceElement: SVGElement): NodeListOf<__SVGIntersectElements>;
+    getIntersectionList(rect: SVGRect, referenceElement: SVGElement): NodeListOf<__SVGIntersectElements>;
     pauseAnimations(): void;
     setCurrentTime(seconds: number): void;
     suspendRedraw(maxWaitMilliseconds: number): number;
@@ -7780,7 +7836,11 @@ interface TextEncoderEncodeIntoResult {
   written?: number;
 }
 
-/** A decoder for a specific method, that is a specific character encoding, like utf-8, iso-8859-2, koi8, cp1261, gbk, etc. A decoder takes a stream of bytes as input and emits a stream of code points. For a more scalable, non-native library, see StringView – a C-like representation of strings based on typed arrays. */
+/**
+ * A decoder for a specific method, that is a specific character encoding, like utf-8, iso-8859-2, koi8, cp1261, gbk, etc.
+ * A decoder takes a stream of bytes as input and emits a stream of code points.
+ * For a more scalable, non-native library, see StringView – a C-like representation of strings based on typed arrays.
+ */
 interface TextDecoder extends TextDecoderCommon {
   /**
    * Returns the result of running encoding's decoder.
@@ -7809,14 +7869,18 @@ interface TextDecoderCommon {
   readonly ignoreBOM: boolean;
 }
 
-/** TextEncoder takes a stream of code points as input and emits a stream of bytes. For a more scalable, non-native library, see StringView – a C-like representation of strings based on typed arrays. */
+/**
+ * TextEncoder takes a stream of code points as input and emits a stream of bytes.
+ * For a more scalable, non-native library, see StringView – a C-like representation of strings based on typed arrays.
+ */
 interface TextEncoder extends TextEncoderCommon {
   /**
    * Returns the result of running UTF-8's encoder.
    */
   encode(input?: string): Uint8Array;
   /**
-   * Runs the UTF-8 encoder on source, stores the result of that operation into destination, and returns the progress made as a dictionary whereby read is the number of converted code units of source and written is the number of bytes modified in destination.
+   * Runs the UTF-8 encoder on source, stores the result of that operation into destination,
+   * and returns the progress made as a dictionary whereby read is the number of converted code units of source and written is the number of bytes modified in destination.
    */
   encodeInto(source: string, destination: Uint8Array): TextEncoderEncodeIntoResult;
 }
@@ -8081,7 +8145,8 @@ declare var TreeWalker: {
 interface UIEvent extends Event {
     readonly detail: number;
     readonly view: Window;
-    initUIEvent(typeArg: string, canBubbleArg: boolean, cancelableArg: boolean, viewArg: Window, detailArg: number): void;
+    initUIEvent(typeArg: string, canBubbleArg: boolean, cancelableArg: boolean, viewArg: Window
+        , detailArg: NonNullable<UIEventInit["detail"]>): void;
 }
 
 declare var UIEvent: {
@@ -8246,7 +8311,11 @@ interface WheelEvent extends MouseEvent {
     // readonly wheelDeltaX: number;
     // readonly wheelDeltaY: number;
     getCurrentPoint(element: Element): void;
-    initWheelEvent(typeArg: string, canBubbleArg: boolean, cancelableArg: boolean, viewArg: Window, detailArg: number, screenXArg: number, screenYArg: number, clientXArg: number, clientYArg: number, buttonArg: number, relatedTargetArg: EventTarget, modifiersListArg: string, deltaXArg: number, deltaYArg: number, deltaZArg: number, deltaMode: number): void;
+    initWheelEvent(typeArg: string, canBubbleArg: boolean, cancelableArg: boolean, viewArg: Window
+        , detailArg: NonNullable<UIEventInit["detail"]>
+        , screenXArg: number, screenYArg: number, clientXArg: number, clientYArg: number
+        , buttonArg: NonNullable<MouseEventInit["button"]>, relatedTargetArg: EventTarget
+        , modifiersListArg: string, deltaXArg: number, deltaYArg: number, deltaZArg: number, deltaMode: number): void;
     readonly DOM_DELTA_LINE: number;
     readonly DOM_DELTA_PAGE: number;
     readonly DOM_DELTA_PIXEL: number;
@@ -8567,7 +8636,8 @@ declare var XMLHttpRequest: {
 }
 
 interface XMLHttpRequestUpload extends EventTarget, XMLHttpRequestEventTarget {
-    addEventListener<K extends keyof XMLHttpRequestEventTargetEventMap>(type: K, listener: (this: XMLHttpRequestUpload, ev: XMLHttpRequestEventTargetEventMap[K]) => any, useCapture?: boolean): void;
+    addEventListener<K extends keyof XMLHttpRequestEventTargetEventMap>(
+        type: K, listener: (this: XMLHttpRequestUpload, ev: XMLHttpRequestEventTargetEventMap[K]) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 }
 
@@ -8680,7 +8750,8 @@ interface GlobalEventHandlers {
     onpointerover: (this: GlobalEventHandlers, ev: PointerEvent) => any;
     onpointerup: (this: GlobalEventHandlers, ev: PointerEvent) => any;
     onwheel: (this: GlobalEventHandlers, ev: WheelEvent) => any;
-    addEventListener<K extends keyof GlobalEventHandlersEventMap>(type: K, listener: (this: GlobalEventHandlers, ev: GlobalEventHandlersEventMap[K]) => any, useCapture?: boolean): void;
+    addEventListener<K extends keyof GlobalEventHandlersEventMap>(
+        type: K, listener: (this: GlobalEventHandlers, ev: GlobalEventHandlersEventMap[K]) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 }
 
@@ -8803,7 +8874,8 @@ interface XMLHttpRequestEventTarget {
     onloadstart: (this: XMLHttpRequestEventTarget, ev: Event) => any;
     onprogress: (this: XMLHttpRequestEventTarget, ev: ProgressEvent) => any;
     ontimeout: (this: XMLHttpRequestEventTarget, ev: ProgressEvent) => any;
-    addEventListener<K extends keyof XMLHttpRequestEventTargetEventMap>(type: K, listener: (this: XMLHttpRequestEventTarget, ev: XMLHttpRequestEventTargetEventMap[K]) => any, useCapture?: boolean): void;
+    addEventListener<K extends keyof XMLHttpRequestEventTargetEventMap>(
+        type: K, listener: (this: XMLHttpRequestEventTarget, ev: XMLHttpRequestEventTargetEventMap[K]) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 }
 

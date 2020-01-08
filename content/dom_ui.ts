@@ -279,9 +279,9 @@ var VCui = {
     return true;
   } as (root?: VUIRoot, justTest?: 1) => boolean,
   click_ (element: SafeElementForMouse
-      , rect?: Rect | null, modifiers?: MyMouseControlKeys | null, addFocus?: boolean | BOOL
-      , specialAction?: 0 | 1 | 2 | 5 | 6 | 8
-      , button?: 0 | 2 | 4, /** default: false */ touchMode?: null | false | /** false */ 0 | true | "auto"): void {
+      , rect?: Rect | null, addFocus?: boolean | BOOL, modifiers?: MyMouseControlKeys | null
+      , specialAction?: kClickAction, button?: AcceptableClickButtons
+      , /** default: false */ touchMode?: null | false | /** false */ 0 | true | "auto"): void {
     if (!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && VOther === BrowserType.Edge) {
       if ((element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
         return;
@@ -320,13 +320,13 @@ var VCui = {
     }
     a.mouse_(element, "mouseup", center, modifiers, null, button);
     if (!isInDom(element)) { return; }
-    if (button === 2 /* is the right button */
-        || Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || VOther & BrowserType.Chrome)
-            && (element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
-      if (button === 2) {
+    if (button === kClickButton.second) {
         // if button is the right, then auxclick can be triggered even if element.disabled
         a.mouse_(element, "auxclick", center, modifiers, null, button);
-      }
+    }
+    if (button === kClickButton.second /* is the right button */
+        || Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || VOther & BrowserType.Chrome)
+            && (element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
       return;
     }
     const enum ActionType {
@@ -337,28 +337,26 @@ var VCui = {
     }
     let result: ActionType = ActionType.OnlyDispatch, url: string | null;
     if (specialAction) {
-      result = specialAction > 7 ? ActionType.DispatchAndCheckInDOM
-          : specialAction < 2 && (element as HTMLAnchorElement).target !== "_blank"
-            || !(url = element.getAttribute("href")) || specialAction & 2 && url[0] === "#"
+      result = specialAction > kClickAction.MaxOpenForAnchor ? ActionType.DispatchAndCheckInDOM
+          : specialAction < kClickAction.MinNotPlainOpenManually && (element as HTMLAnchorElement).target !== "_blank"
+            || !(url = element.getAttribute("href"))
+            || specialAction & kClickAction.forceToOpenInNewTab && url[0] === "#"
             || a.jsRe_.test(url)
           ? ActionType.OnlyDispatch
-          : specialAction & 1
-            && ((!(Build.BTypes & ~BrowserType.Firefox)
-                || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
-                ? ((element as XrayedObject<SafeHTMLElement>).wrappedJSObject || element).onclick
-                : element.getAttribute("onclick"))
+          : specialAction & kClickAction.plainMayOpenManually
+            && (((element as XrayedObject<SafeHTMLElement>).wrappedJSObject || element).onclick
               || a.clickable_.has(element))
           ? ActionType.DispatchAndMayOpenTab : ActionType.OpenTabButNotDispatch;
     }
     if ((result >= ActionType.OpenTabButNotDispatch || a.mouse_(element, "click", center, modifiers) && result)
         && a.getVisibleClientRect_(element)) {
       // require element is still visible
-      if (specialAction === 8) {
+      if (specialAction === kClickAction.forceToDblclick) {
         if (!(element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
           // use old rect
-          VCui.click_(element, rect, modifiers, 0, 0, 4);
+          VCui.click_(element, rect, 0, modifiers, kClickAction.none, kClickButton.primaryAndTwice);
           if (a.getVisibleClientRect_(element)) {
-            a.mouse_(element, "dblclick", center, modifiers, null, 4);
+            a.mouse_(element, "dblclick", center, modifiers, null, kClickButton.primaryAndTwice);
           }
         }
         return;
@@ -375,7 +373,7 @@ var VCui = {
         u: (element as HTMLAnchorElement).href,
         n: noopener,
         r: (modifiers as MyMouseControlKeys).shiftKey_
-          || (<number> specialAction) < 4
+          || (<kClickAction> specialAction) < kClickAction.newTabFromMode
           ? ReuseType.newFg : ReuseType.newBg
       });
     }
@@ -383,7 +381,7 @@ var VCui = {
   simulateSelect_ (element: LockableElement, rect?: Rect | null, flash?: boolean
       , action?: SelectActions, suppressRepeated?: boolean): void {
     const y = scrollY;
-    this.click_(element, rect, null, true);
+    this.click_(element, rect, 1);
     VDom.view_(element, y);
     // re-compute rect of element, in case that an input is resized when focused
     flash && this.flash_(element);

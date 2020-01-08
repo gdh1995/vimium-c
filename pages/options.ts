@@ -719,6 +719,7 @@ let optionsInit1_ = function (): void {
       nextTick_(el1 => {
         (el1 as TextElement).disabled = true;
         if (el1 instanceof HTMLInputElement && el1.type === "checkbox") {
+          (el1 as SafeHTMLElement as EnsuredMountedHTMLElement).nextElementSibling.tabIndex = -1;
           el1 = el1.parentElement as HTMLElement;
           el1.title = key;
         } else {

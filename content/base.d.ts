@@ -43,6 +43,17 @@ declare const enum kAria {
   hidden = 0, disabled = 1,
 }
 
+declare const enum kClickButton {
+  none = 0, primary = 1, second = 2, primaryAndTwice = 4,
+}
+type AcceptableClickButtons = kClickButton.none | kClickButton.second | kClickButton.primaryAndTwice;
+declare const enum kClickAction {
+  none = 0,
+  /** should only be used on Firefox */ plainMayOpenManually = 1,
+  forceToOpenInNewTab = 2, newTabFromMode = 4, forceToDblclick = 8,
+  MinNotPlainOpenManually = 2, MaxOpenForAnchor = 7,
+}
+
 /**
  * only Element has string .tagName, .id
  *
