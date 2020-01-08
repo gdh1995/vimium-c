@@ -53,7 +53,7 @@ var VDom = {
   ) as (element: Element) => string, // duplicate the signature, for easier F12 in VS Code
   isAriaNotTrue_ (element: SafeElement, ariaType: kAria): boolean {
     let s = element.getAttribute(ariaType ? "aria-disabled" : "aria-hidden");
-    return s == null || (!!s && s.toLowerCase() !== "true");
+    return s === null || (!!s && s.toLowerCase() !== "true");
   },
   isInTouchMode_: Build.BTypes & BrowserType.Chrome ? function (): boolean {
     const viewport = document.querySelector("meta[name=viewport]");

@@ -1102,7 +1102,8 @@ var VHints = {
       setTimeout(a._reinit.bind(a, null, null, null), 0);
     } else if (i === kKeyCode.space && (!a.useFilter_ || VKey.getKeyStat_(event))) {
       a.keyStatus_.textSequence_ = a.keyStatus_.textSequence_.replace("  ", " ");
-      a.rotateHints_(event.shiftKey);
+      a.zIndexes_ !== 0 && a.rotateHints_(event.shiftKey);
+      a.ResetMode_();
     } else if (matchedHint = a.matchHintsByKey_(a.keyStatus_, event), matchedHint === 0) {
       // then .a.keyStatus_.hintSequence_ is the last key char
       a.clean_(0, a.keyStatus_.known_ ? 0 : VDom.cache_.k[0]);
@@ -1380,25 +1381,23 @@ var VHints = {
       a.renderMarkers_(hints);
     }
   },
+  /** require `.zIndexes_` is not `0` */
   rotateHints_ (reverse?: boolean) {
-    const a = this, frames = a.frameList_, notUseSelected = frames.length > 1,
-    reInit = a.zIndexes_ !== null ? 0 : notUseSelected ? 2
-        : a.keyStatus_.keySequence_ || a.keyStatus_.textSequence_.trim() ? 1 : 0;
+    const a = this, frames = a.frameList_, notUseKeyStatus: boolean = a.useFilter_ || frames.length > 1,
+    saveCache = a.useFilter_ || !a.keyStatus_.keySequence_;
     for (const list of frames) {
-      (list.s as typeof a)._rotateHints(notUseSelected ? list.h : a.keyStatus_.hints_, reverse, reInit);
+      (list.s as typeof a)._rotateHints(notUseKeyStatus ? list.h : a.keyStatus_.hints_, reverse, saveCache);
     }
-    a.ResetMode_();
   },
-  _rotateHints (ref: readonly HintsNS.HintItem[], reverse: boolean | undefined, reInit: 0 | 1 | 2): void {
+  _rotateHints (ref: readonly HintsNS.HintItem[], reverse: boolean | undefined, saveIfNoOverlap: boolean): void {
     const a = this;
     let stacks = a.zIndexes_;
-    if (!stacks || reInit > 1) {
-      if (reInit < 2 && stacks === 0) { return; }
+    if (!stacks) {
       stacks = [] as HintsNS.Stacks;
       ref.forEach(a.MakeStacks_, [[], stacks] as [Array<ClientRect | null>, HintsNS.Stacks]);
       stacks = stacks.filter(stack => stack.length > 1);
       if (stacks.length <= 0) {
-        a.zIndexes_ = reInit === 1 ? null : 0;
+        a.zIndexes_ = saveIfNoOverlap ? 0 : null;
         return;
       }
       a.zIndexes_ = stacks;
@@ -1757,7 +1756,9 @@ filterEngine_: {
     }
     keyStatus.known_ = 0;
     h.hasExecuted_ = 0;
-    h.zIndexes_ = (h.frameList_.length > 1 || h.zIndexes_) && null;
+    if (!useFilter) {
+      h.zIndexes_ = h.zIndexes_ && null;
+    }
     if (doesDetectMatchSingle > 1) {
       for (const hint of hints) { if (hint.a === sequence) { return hint; } }
     }
