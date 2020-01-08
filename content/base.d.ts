@@ -40,7 +40,7 @@ interface KeydownCacheArray extends SafeObject {
 }
 
 declare const enum kAria {
-  hidden = 1, disabled = 2,
+  hidden = 0, disabled = 1,
 }
 
 /**

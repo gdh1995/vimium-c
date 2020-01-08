@@ -113,6 +113,9 @@ else
   FIREFOX_ROOT='/r/working'
   VC_ROOT=${VC_ROOT:-${dir%/*}}
 fi
+if test -z "$VER" && test -f "$WORKING_DIR"/core/firefox.exe; then
+  VER=wo
+fi
 if test -z "$VER"; then
   VER_MIN=63
   for ((i=99;i>=VER_MIN;i--)); do
