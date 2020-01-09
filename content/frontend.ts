@@ -625,10 +625,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       InsertMode.inputHint_ && (InsertMode.inputHint_.h = null as never);
       const arr: ViewOffset = D.getViewBox_();
       D.prepareCrop_(1);
+      interface InputHint extends Hint { [0]: HintsNS.InputHintItem["d"]; }
       // here those editable and inside UI root are always detected, in case that a user modifies the shadow DOM
       const visibleInputs = Hints.traverse_(Build.BTypes & ~BrowserType.Firefox
             ? Hints.kEditableSelector_ + Hints.kSafeAllSelector_ : Hints.kEditableSelector_, Hints.GetEditable_
-          ) as Array<Hint & { [0]: HintsNS.InputHintItem["d"]; }>,
+          ) as Array<InputHint>,
       action = options.select;
       let sel = visibleInputs.length;
       if (sel === 0) {
@@ -640,9 +641,13 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
       for (let ind = 0; ind < sel; ind++) {
         const hint = visibleInputs[ind], j = hint[0].tabIndex;
-        hint[2] = j > 0 ? ind / 8192 - j : ind;
+        hint[2] = j < 1 ? -ind
+            : !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+              && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)
+            ? j : j + ind / 8192;
       }
-      const hints: HintsNS.InputHintItem[] = visibleInputs.sort((a, b) => a[2] - b[2]).map(
+      const hints: HintsNS.InputHintItem[] = visibleInputs.sort(
+          (a, b) => a[2] < 1 ? b[2] - a[2] : b[2] < 1 ? -1 : a[2] - b[2]).map(
           function (link): HintsNS.InputHintItem {
         const marker = D.createElement_("span") as HintsNS.BaseHintItem["m"],
         rect = D.padClientRect_(D.getBoundingClientRect_(link[0]), 3);
