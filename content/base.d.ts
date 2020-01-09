@@ -193,7 +193,8 @@ declare namespace HintsNS {
     /** key */ a: string;
     /** text */ h: HintText | null;
     /** refer */ r: HTMLElementUsingMap | Hint[0] | null;
-    /** zIndex */ i: number;
+    /** score */ i: number;
+    /** zIndex */ z?: number;
   }
 
   interface InputHintItem extends BaseHintItem {

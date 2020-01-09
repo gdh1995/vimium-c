@@ -1385,18 +1385,18 @@ var VHints = {
   },
   /** require `.zIndexes_` is not `0` */
   rotateHints_ (reverse?: boolean) {
-    const a = this, frames = a.frameList_, notUseKeyStatus: boolean = a.useFilter_ || frames.length > 1,
-    saveCache = a.useFilter_ || !a.keyStatus_.keySequence_;
+    const a = this, frames = a.frameList_,
+    saveCache = !a.keyStatus_.keySequence_ && !a.keyStatus_.textSequence_;
     for (const list of frames) {
-      (list.s as typeof a)._rotateHints(notUseKeyStatus ? list.h : a.keyStatus_.hints_, reverse, saveCache);
+      (list.s as typeof a)._rotateHints(list.h, reverse, saveCache);
     }
   },
-  _rotateHints (ref: readonly HintsNS.HintItem[], reverse: boolean | undefined, saveIfNoOverlap: boolean): void {
+  _rotateHints (totalHints: readonly HintsNS.HintItem[], reverse: boolean | undefined, saveIfNoOverlap: boolean): void {
     const a = this;
     let stacks = a.zIndexes_;
     if (!stacks) {
       stacks = [] as HintsNS.Stacks;
-      ref.forEach(a.MakeStacks_, [[], stacks] as [Array<ClientRect | null>, HintsNS.Stacks]);
+      totalHints.forEach(a.MakeStacks_, [[], stacks] as [Array<ClientRect | null>, HintsNS.Stacks]);
       stacks = stacks.filter(stack => stack.length > 1);
       if (stacks.length <= 0) {
         a.zIndexes_ = saveIfNoOverlap ? 0 : null;
@@ -1405,22 +1405,21 @@ var VHints = {
       a.zIndexes_ = stacks;
     }
     for (const stack of stacks) {
-      reverse && stack.reverse();
-      const i = stack[stack.length - 1], max = reverse ? stack[0] : i;
-      let oldI: number = ref[i].i || i;
-      for (const j of stack) {
-        const hint = ref[j], { m: marker_ } = hint, { classList } = marker_, newI = hint.i || j;
-        marker_.style.zIndex = (hint.i = oldI) as number | string as string;
+      for (let length = stack.length, j = reverse ? length - 1 : 0, end = reverse ? -1 : length
+            , max = Math.max.apply(Math, stack)
+            , oldI: number = totalHints[stack[reverse ? 0 : length - 1]].z as number
+          ; j !== end; reverse ? j-- : j++) {
+        const hint = totalHints[stack[j]], { m: { style, classList } } = hint, newI = hint.z as number;
+        style.zIndex = (hint.z = oldI) as number | string as string;
         classList.toggle("OH", oldI < max); classList.toggle("SH", oldI >= max);
         oldI = newI;
       }
-      reverse && stack.reverse();
     }
   },
   MakeStacks_ (this: [Array<ClientRect | null>, HintsNS.Stacks], hint: HintsNS.HintItem, i: number) {
     let rects = this[0];
-    if (hint.m.style.visibility === "hidden") { rects.push(null); return; }
-    if (VHints.useFilter_) { hint.i = 0; }
+    if (hint.m.style.visibility) { rects.push(null); return; }
+    hint.z = hint.z || i + 1;
     const stacks = this[1], m = hint.m.getClientRects()[0];
     rects.push(m);
     let stackForThisMarker = null as HintsNS.Stack | null;
@@ -1544,6 +1543,7 @@ filterEngine_: {
       const t2 = text.trim(), t1 = oldTextSeq.trim();
       keyStatus.textSequence_ = text;
       if (t1 !== t2) {
+        H.zIndexes_ = H.zIndexes_ && null;
         const search = t2.split(" "),
         oldKeySeq = keyStatus.keySequence_,
         oldHints = t2.startsWith(t1) ? hints : fullHints,
@@ -1613,16 +1613,17 @@ filterEngine_: {
     }
     if (keyStatus.keySequence_ !== seq) {
       keyStatus.keySequence_ = seq;
+      H.zIndexes_ = H.zIndexes_ && null;
       let index = 0, base = H.chars_.length, last = hints.length;
       for (const ch of seq) { index = index * base + H.chars_.indexOf(ch); }
       if (index * base > last) { return index > last ? 0 : hints[index - 1]; }
       for (const { m: marker, a: key } of hints) {
-        const match = key.startsWith(seq), createEl = VDom.createElement_;
+        const match = key.startsWith(seq);
         marker.style.visibility = match ? "" : "hidden";
         if (match) {
           let child = marker.firstChild as Text | HintsNS.MarkerElement, el: HintsNS.MarkerElement;
           if (child.nodeType === kNode.TEXT_NODE) {
-            el = marker.insertBefore(createEl("span") as HintsNS.MarkerElement, child);
+            el = marker.insertBefore(VDom.createElement_("span") as HintsNS.MarkerElement, child);
             el.className = "MC";
           } else {
             el = child;
@@ -1779,15 +1780,13 @@ filterEngine_: {
     }
     keyStatus.known_ = 0;
     h.hasExecuted_ = 0;
-    if (!useFilter) {
-      h.zIndexes_ = h.zIndexes_ && null;
-    }
     if (doesDetectMatchSingle > 1) {
       for (const hint of hints) { if (hint.a === sequence) { return hint; } }
     }
     if (useFilter) {
       return filterEngine.getMatchingHints_(keyStatus, textSeq, sequence, 2);
     } else {
+      h.zIndexes_ = h.zIndexes_ && null;
       keyStatus.keySequence_ = sequence;
       const notDoSubCheck = !keyStatus.tab_, wanted = notDoSubCheck ? sequence : sequence.slice(0, -1);
       hints = keyStatus.hints_ = (doesDetectMatchSingle ? hints : h.hints_ as readonly HintsNS.HintItem[]
