@@ -629,7 +629,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       // here those editable and inside UI root are always detected, in case that a user modifies the shadow DOM
       const visibleInputs = Hints.traverse_(Build.BTypes & ~BrowserType.Firefox
             ? Hints.kEditableSelector_ + Hints.kSafeAllSelector_ : Hints.kEditableSelector_, Hints.GetEditable_
-          ) as Array<InputHint>,
+          ) as InputHint[],
       action = options.select;
       let sel = visibleInputs.length;
       if (sel === 0) {
@@ -647,7 +647,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
             ? j : j + ind / 8192;
       }
       const hints: HintsNS.InputHintItem[] = visibleInputs.sort(
-          (a, b) => a[2] < 1 ? b[2] - a[2] : b[2] < 1 ? -1 : a[2] - b[2]).map(
+          (a, b) => a[2] < 1 || b[2] < 1 ? b[2] - a[2] : a[2] - b[2]).map(
           function (link): HintsNS.InputHintItem {
         const marker = D.createElement_("span") as HintsNS.BaseHintItem["m"],
         rect = D.padClientRect_(D.getBoundingClientRect_(link[0]), 3);

@@ -281,7 +281,7 @@ var Tasks = {
           props[key] = vars[key];
         }
       }
-      if (KnownBackendGlobals.length > 0) {
+      if (KnownBackendGlobals.length > 0 && loadUglifyConfig(false).mangle) {
         throw new Error('Some global variable are not found: ' + KnownBackendGlobals.join(", "));
       }
     }
