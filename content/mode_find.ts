@@ -399,8 +399,8 @@ var VFind = {
     if (i !== FindNS.Action.ExitUnexpectedly && i !== FindNS.Action.ExitNoFocus
         && i !== FindNS.Action.ExitNoAnyFocus) {
       el = VDom.getSelectionFocusEdge_(VCui.getSelected_()[0], 1);
-      el && (Build.BTypes & ~BrowserType.Firefox ? typeof el.focus === "function" : el.focus) &&
-      (el as HTMLElement | SVGElement).focus();
+      el && (Build.BTypes & ~BrowserType.Firefox ? (el as ElementToHTMLorSVG).tabIndex != null : el.focus) &&
+      (el as Ensure<SafeElement, "focus">).focus();
     }
     if ((i === FindNS.Action.ExitAndReFocus || !hasResult || VVisual.mode_) && !noStyle) {
       a.ToggleStyle_(1);

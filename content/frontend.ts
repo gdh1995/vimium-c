@@ -125,8 +125,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       /* empty */
     } else if (repeat && !KeydownEvents[key] && activeEl !== body) {
       (Build.BTypes & ~BrowserType.Firefox ? typeof (activeEl as Element).blur === "function"
-          : (activeEl as Element).blur) &&
-      (activeEl as HTMLElement | SVGElement).blur();
+          : (activeEl as SafeElement).blur) && // in case activeEl is unsafe
+      (activeEl as Ensure<Element, "blur">).blur();
     } else if (!isTop && activeEl === body) {
       InsertMode.focusUpper_(key, repeat, event);
       action = HandlerResult.PassKey;
@@ -745,8 +745,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         if (notBody = notBody && VDom.getEditableType_(activeEl)) {
           InsertMode.last_ = null;
           prompt();
-          (Build.BTypes & ~BrowserType.Firefox ? typeof activeEl.blur === "function" : activeEl.blur) &&
-          (activeEl as HTMLElement | SVGElement).blur();
+          (activeEl as LockableElement).blur();
           // here ignore the rare case of an XMLDocument with a editable node on Firefox, for smaller code
           notBody = (activeEl = doc.activeElement as Element) !== doc.body;
         }
@@ -883,7 +882,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     if (!isClickable) { return; }
     if (!D.isAriaNotTrue_(element, kAria.disabled)) { return; }
     const rect = D.getBoundingClientRect_(element);
-    if (rect.width > 2 && rect.height > 2 && getComputedStyle(element).visibility === "visible") {
+    if (rect.width > 2 && rect.height > 2 && D.isStyleVisible_(element)) {
       hints.push(element as SafeHTMLElement);
     }
   } as HintsNS.Filter<SafeHTMLElement>,
@@ -1500,7 +1499,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       let box = D.getBoundingClientRect_(el),
       par: ReturnType<typeof VDom.parentCore_> | undefined,
       parEvents: VApiTy | undefined,
-      result: boolean | BOOL = !box.height && !box.width || getComputedStyle(el).visibility === "hidden";
+      result: boolean | BOOL = !box.height && !box.width || !D.isStyleVisible_(el);
       if (cmd) {
         type EnsuredOptionsTy = Exclude<typeof options, undefined>;
         // if in a forced cross-origin env (by setting doc.domain),
@@ -1543,7 +1542,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         VOmni.box_.blur();
       } else {
         // cur is safe because on Firefox
-        let cur: SafeElement | null = doc.activeElement as SaferType<Document["activeElement"]>;
+        const cur = doc.activeElement as SafeElement | null;
         cur && (<RegExpOne> /^i?frame$/).test(cur.localName) && cur.blur &&
         (cur as HTMLFrameElement | HTMLIFrameElement).blur();
       }

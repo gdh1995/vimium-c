@@ -649,7 +649,7 @@ var VHints = {
       h = rect.bottom + (rect.height < 3 ? 3 : 0);
       cr = VDom.cropRectToVisible_(rect.left, rect.top, w, h);
     }
-    if (cr && getComputedStyle(element).visibility === "visible") {
+    if (cr && VDom.isStyleVisible_(element)) {
       hints.push([element, cr, ClickType.Default]);
     }
   },
@@ -950,7 +950,7 @@ var VHints = {
         && (rect2 = VDom.getBoundingClientRect_(document.documentElement as HTMLElement))
         && rect.top - rect2.top < 20 && rect.left - rect2.left < 20
         && rect2.right - rect.right < 20 && rect2.bottom - rect.bottom < 20
-        && getComputedStyle(element).visibility === "visible"
+        && VDom.isStyleVisible_(element)
     ) {
       return element as HTMLFrameElement | HTMLIFrameElement;
     }
@@ -1275,7 +1275,8 @@ var VHints = {
     const master = _this._master || _this;
     const r2 = el && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinNo$TimerType$$Fake
                       || el !== TimerType.fake) ? VDom.getBoundingClientRect_(el as HintsNS.LinkEl) : 0,
-    hidden = !r2 || r2.width < 1 && r2.height < 1 || getComputedStyle(el as HintsNS.LinkEl).visibility !== "visible";
+    hidden = !r2 || r2.width < 2 && r2.height < 2
+        || !VDom.isStyleVisible_(el as HintsNS.LinkEl); // use 2px: may be safer
     if (hidden && VDom.lastHovered_ === el) {
       VDom.lastHovered_ = null;
     }
