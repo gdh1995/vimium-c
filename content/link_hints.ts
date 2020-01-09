@@ -1525,7 +1525,7 @@ filterEngine_: {
       break;
     }
     if (text) {
-      text = text.slice(0, 256).trim();
+      text = text.slice(0, GlobalConsts.MaxLengthOfHintText).trim();
       if (text && (text[0] === ":" || text.endsWith(":"))) {
         text = text.replace(<RegExpG> /^[:\s]+|:+$/g, "").trim();
       }
@@ -1545,8 +1545,14 @@ filterEngine_: {
         const search = t2.split(" "),
         oldKeySeq = keyStatus.keySequence_,
         oldHints = t2.startsWith(t1) ? hints : fullHints,
-        hasSearch = !!t2, indStep = 1 / (1 + oldHints.length);
-        let newLen = 2, ind = 1;
+        hasSearch = !!t2,
+        indStep = !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+            && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)
+            ? 0 : 1 / (1 + oldHints.length);
+        let newLen = 2,
+        ind = !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+            && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)
+            ? 0 : hasSearch ? 1 : GlobalConsts.MaxLengthOfHintText + 3;
         keyStatus.keySequence_ = "";
         if (hasSearch && !fullHints[0].h.w) {
           for (const {h: textHint} of fullHints) {
@@ -1560,9 +1566,15 @@ filterEngine_: {
         for (const hint of oldHints) {
           if (hasSearch) {
             const s = a.scoreHint_(hint.h, search);
-            (hint.i = s && s + (ind -= indStep)) && hints.push(hint);
+            (hint.i = !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+                && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)
+                ? s : s && s + (ind -= indStep)) &&
+            hints.push(hint);
           } else {
-            hint.i = (ind -= indStep) - hint.h.t.length;
+            hint.i = !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+                && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)
+                ? hint.h.t.length + 1
+                : (ind -= indStep) - hint.h.t.length;
           }
         }
         newLen = hints.length;
@@ -1571,7 +1583,12 @@ filterEngine_: {
           if (hasSearch && newLen < 2) { // in case of only 1 hint in fullHints
             return hints[0];
           }
-          hints.sort((x1, x2) => x2.i - x1.i);
+          if (!(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+              && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)) {
+            hints.sort((x1, x2) => x1.i - x2.i);
+          } else {
+            hints.sort((x1, x2) => x2.i - x1.i);
+          }
           a.GenerateHintStrings_(hints);
         }
         // hints[].zIndex is reset in .MakeStacks_
@@ -1630,7 +1647,7 @@ filterEngine_: {
   },
   /**
    * total / Math.log(~)
-   * * `>=` 1 / `Math.log`(1 + 256) `>` 0.18
+   * * `>=` 1 / `Math.log`(1 + (MaxLengthOfHintText = 256)) `>` 0.18
    * * margin `>=` `0.0001267`
    *
    * so, use `~ * 1e4` to ensure delta > 1
@@ -1648,7 +1665,11 @@ filterEngine_: {
       if (!max) { return 0; }
       total += max;
     }
-    return total * 1e4 / Math.log(1 + textHint.t.length);
+    if (!(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+        && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)) {
+      return total && Math.log(1 + textHint.t.length) / total;
+    }
+    return total * GlobalConsts.MatchingScoreFactorForHintText / Math.log(1 + textHint.t.length);
   }
 },
   renderMarkers_ (hintItems: readonly HintsNS.HintItem[]): void {

@@ -2,8 +2,7 @@ let keyMappingChecker_ = {
   normalizeKeys_: null as never as (this: void, s: string) => string,
   init_ (): void {
     function sortModifiers(option: string) {
-      return option.length < 4 ? option : option.length > 6 ? "a-c-m-s-"
-        : option.slice(0, -1).split("-").sort().join("-") + "-";
+      return option.length < 4 ? option : option.slice(0, -1).split("-").sort().join("-") + "-";
     }
     function func(_0: string, oldModifiers: string, ch: string): string {
       let modifiers = oldModifiers.toLowerCase();

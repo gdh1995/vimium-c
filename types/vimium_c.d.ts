@@ -413,6 +413,8 @@ declare const enum GlobalConsts {
   MinHintCharSetSize = 4, // {@link ../_locales/*/messages.json#hintCharsTooFew */}
   MaxCountToHint = 1e6,
   MaxLengthOfShownText = 35, // include the length of ": "
+  MaxLengthOfHintText = 252, // [512 bytes - (sizeof(uchar*) = 8)] / sizeof(uchar) = 252
+  MatchingScoreFactorForHintText = 1e4,
   VomnibarSecretTimeout = 3000,
   VomnibarWheelStepForPage = 300,
   VomnibarWheelIntervalForPage = 150,
@@ -909,6 +911,7 @@ declare const enum BrowserVer {
   // if `toggleCS` repeatedly, then a 3rd-party iframe gets a new CS later than its owner top frame
   // and if reopenTab, the CS is synced among frames again
   MinIframeInRestoredSessionTabHasPreviousTopFrameContentSettings = 70, // even if EXPERIMENTAL or LEGACY
+  // test: https://mathiasbynens.be/demo/sort-stability
   MinStableSort = 70, // even if EXPERIMENTAL or LEGACY
   // means unprefixed properties and event name
   MinEnsured$Document$$fullscreenElement = 71, // even if LEGACY; MinMaybe$Document$$fullscreenElement=61

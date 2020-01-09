@@ -872,6 +872,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     refusedStr = isNext ? "<" : ">";
     links.push(doc.documentElement as never as SafeHTMLElement);
     let candidates: Candidate[] = [], ch: string, s: string, maxLen = totalMax, len: number;
+    let candInd = 0;
     for (let re1 = <RegExpOne> /\s+/, _len = links.length - 1; 0 <= --_len; ) {
       const link = links[_len];
       if (link.contains(links[_len + 1]) || (s = link.innerText).length > totalMax) { continue; }
@@ -885,7 +886,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
               if (i2 >= 0) { i = i2; len = 2; }
               maxLen > len && (maxLen = len + 1);
               // requires GlobalConsts.MaxNumberOfNextPatterns <= 255
-              candidates.push([(i << 23) | (len << 16) | (candidates.length & 0xffff), s, link]);
+              candidates.push([(i << 23) | (len << 16) | (
+                    !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+                    && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)
+                    ? 0 : candInd++ & 0xffff),
+                  s, link]);
             }
             break;
           }
@@ -893,11 +898,18 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
       // for non-English pages like www.google.co.jp
       if (s.length < 5 && relIdx >= 0 && (ch = link.id) && ch.indexOf(rel) >= 0) {
-        candidates.push([(relIdx << 23) | (((4 + ch.length) & 0x3f) << 16) | (candidates.length & 0xffff),
+        candidates.push([(relIdx << 23) | (((4 + ch.length) & 0x3f) << 16) | (
+              !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+              && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)
+              ? 0 : candInd++ & 0xffff),
             rel, link]);
       }
     }
-    if (candidates.length <= 0) { return false; }
+    if (!(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+        && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)
+        ? candidates.length <= 0 : candInd <= 0) {
+      return false;
+    }
     links = [];
     maxLen = (maxLen + 1) << 16;
     candidates = candidates.filter(a => (a[0] & 0x7fffff) < maxLen).sort((a, b) => a[0] - b[0]);
