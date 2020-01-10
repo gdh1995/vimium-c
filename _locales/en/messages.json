@@ -21,7 +21,7 @@
 		"message": "Open URL"
 	},
 	"openUrl_p": {
-		"message": "url:string, urls:string[], reuse=-1/0/1/-2, incognito, window, end"
+		"message": "url:string, urls:string[], reuse=-1/0/1/-2, incognito, window, position"
 	},
 	"reloadTab": {
 		"message": "Reload N tab(s)"

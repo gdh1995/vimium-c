@@ -56,7 +56,7 @@
   }
   interface OpenUrlOptions {
     incognito?: boolean;
-    position?: "start" | "end" | "before" | "after";
+    position?: "start" | "begin" | "end" | "before" | "after";
     opener?: boolean;
     window?: boolean;
   }
@@ -204,9 +204,13 @@
       }
     }
   }
-  function newTabIndex(this: void, tab: Readonly<Tab>, pos: OpenUrlOptions["position"]): number | undefined {
-    return pos === "before" ? tab.index : pos === "start" ? 0
-      : pos !== "end" ? tab.index + 1 : undefined;
+  function newTabIndex(this: void, tab: Readonly<Tab>, pos: OpenUrlOptions["position"]
+      , openerTabId?: boolean): number | undefined {
+    return pos === "before" ? tab.index : pos === "start" || pos === "begin" ? 0
+      : pos !== "end" ? tab.index + 1
+      : Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & BrowserType.Firefox) || OnOther & BrowserType.Firefox)
+        && openerTabId ? 1e4
+      : undefined;
   }
   function makeWindow(this: void, option: chrome.windows.CreateData, state?: chrome.windows.ValidStates | ""
       , callback?: ((wnd: Window) => void) | null): void {
@@ -511,7 +515,7 @@
         windowId: inCurWnd ? tab.windowId : wnds[wnds.length - 1].id
       };
       if (inCurWnd) {
-        options.index = newTabIndex(tab, opts.position);
+        options.index = newTabIndex(tab, opts.position, opts.opener);
         opts.opener && (options.openerTabId = tab.id);
       }
       openMultiTab(options, cRepeat);
@@ -621,7 +625,7 @@
       const tabUrl = tabs && (tabs as Tab[]).length > 0 ? (tabs as [Tab])[0].url : "";
       let mask: string | undefined = cOptions.url_mask || cOptions.url_mark;
       if (mask) {
-        url = url && url.replace(mask + "", tabUrl);
+        url = url && url.replace(mask + "", (<RegExpOne> /^[%$]s/).test(mask) ? encodeURIComponent(tabUrl) : tabUrl);
       }
       if (mask = cOptions.host_mask || cOptions.host_mark) {
         url = url && url.replace(mask + "", new URL(tabUrl).host);
@@ -697,10 +701,11 @@
       });
       return;
     }
+    let openerTabId = options.opener && tab ? tab.id : undefined;
     return openMultiTab({
       url, active, windowId: tab ? tab.windowId : undefined,
-      openerTabId: options.opener && tab ? tab.id : undefined,
-      index: tab ? newTabIndex(tab, options.position) : undefined
+      openerTabId,
+      index: tab ? newTabIndex(tab, options.position, openerTabId != null) : undefined
     }, cRepeat);
   }
   function openJSUrl(url: string): void {
@@ -791,15 +796,17 @@
     const wndOpt: chrome.windows.CreateData | null = cOptions.window ? {
       url: urls, incognito: !!cOptions.incognito
     } : null;
-    tab.active = !(cOptions.reuse < ReuseType.newFg);
+    let active = !(cOptions.reuse < ReuseType.newFg), index = newTabIndex(tab, cOptions.position);
     cOptions = null as never;
     do {
       if (wndOpt) {
         chrome.windows.create(wndOpt, onRuntimeError);
         continue;
       }
-      for (let i = 0, index = tab.index + 1, { active } = tab; i < urls.length; i++, active = false, index++) {
-        tabsCreate({ url: urls[i], index, windowId, active });
+      for (const url of urls) {
+        tabsCreate({ url, index, windowId, active });
+        active = false;
+        index != null && index++;
       }
     } while (0 < --repeat);
   }
