@@ -243,7 +243,7 @@ var VFind = {
     this.styleOut_ = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
           && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
           && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-        || UI.box_ !== UI.root_ ? UI.createStyle_(css) : sin;
+        || Build.BTypes & ~BrowserType.Edge && UI.box_ !== UI.root_ ? UI.createStyle_(css) : sin;
     this.init_ = null as never;
   },
   findAndFocus_ (query: string, options: CmdOptions[kFgCmd.findMode]): void {
@@ -727,8 +727,9 @@ var VFind = {
       (UI.box_ as HTMLDivElement).appendChild(sout);
       !((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
         && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
-        && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)) &&
-      sin === sout || UI.add_(sin, AdjustType.NotAdjust, true);
+        && !(Build.BTypes & ~BrowserType.ChromeOrFirefox))
+      && (!(Build.BTypes & ~BrowserType.Edge) || sin === sout)
+      || UI.add_(sin, AdjustType.NotAdjust, true);
     }
     sout.sheet && (sout.sheet.disabled = disable);
     sin.sheet && (sin.sheet.disabled = disable);

@@ -331,7 +331,7 @@ declare const enum HintMode {
   OPEN_WITH_QUEUE = queue | newTab,
   OPEN_FG_WITH_QUEUE = queue | newTab | focused,
   HOVER = min_job, min_hovering = HOVER,
-  LEAVE, max_hovering = LEAVE, max_mouse_events = LEAVE,
+  UNHOVER, max_hovering = UNHOVER, max_mouse_events = UNHOVER,
   FOCUS,
   DOWNLOAD_MEDIA, min_media = DOWNLOAD_MEDIA,
   OPEN_IMAGE, max_media = OPEN_IMAGE,
@@ -957,11 +957,11 @@ declare const enum BrowserVer {
   MinBlockAutoFocusingInCrossOriginFrame = 75,
   MinMediaQuery$PrefersColorScheme = 76,
   MinChromeFavicon2 = 77, // tested on 77.0.3865.90, chrome://favicon2/ is forbidden to use on extension pages
+  // https://groups.google.com/a/chromium.org/forum/#!msg/blink-dev/h-JwMiPUnuU/sl79aLoLBQAJ
+  // https://www.chromestatus.com/features/4507242028072960
+  MinNoShadowDOMv0 = 80,
   // https://github.com/philc/vimium/issues/3449#issuecomment-568248237
   FlagOutOfBlinkCorsMayCauseBug = 81,
-  // https://groups.google.com/a/chromium.org/forum/#!msg/blink-dev/h-JwMiPUnuU/sl79aLoLBQAJ
-  /** @todo trace https://www.chromestatus.com/features/4507242028072960 */
-  MinNoShadowDOMv0 = 83,
   /** @todo: trace https://bugs.chromium.org/p/chromium/issues/detail?id=968651&can=2&q=reduced-motion%20change */
   MinMediaChangeEventsOnBackgroundPage = 99,
   MinNo$TimerType$$Fake = 999,

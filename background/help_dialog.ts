@@ -48,6 +48,8 @@ var HelpDialog = {
       let command: string = registry.command_;
       if (command.endsWith(".activateMode")) {
         command = command.slice(0, -4);
+      } else if (command.endsWith("Leave")) {
+        command = command.slice(0, -5) + "Unhover";
       } else if (command.indexOf("EditUrl") > 0) {
         command = command.replace("EditUrl", "Url");
       } else if (command === <string> <unknown> kShortcutAliases.nextTab1) {

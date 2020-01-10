@@ -891,10 +891,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
               if (i2 >= 0) { i = i2; len = 2; }
               maxLen > len && (maxLen = len + 1);
               // requires GlobalConsts.MaxNumberOfNextPatterns <= 255
-              candidates.push([(i << 23) | (len << 16) | (
+              candidates.push([
                     !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
                     && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)
-                    ? 0 : candInd++ & 0xffff),
+                    ? (i << 23) | (len << 16) : (i << 23) | (len << 16) | candInd++ & 0xffff,
                   s, link]);
             }
             break;
@@ -903,10 +903,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
       // for non-English pages like www.google.co.jp
       if (s.length < 5 && relIdx >= 0 && (ch = link.id) && ch.indexOf(rel) >= 0) {
-        candidates.push([(relIdx << 23) | (((4 + ch.length) & 0x3f) << 16) | (
+        candidates.push([
               !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
               && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)
-              ? 0 : candInd++ & 0xffff),
+              ? (relIdx << 23) | (((4 + ch.length) & 0x3f) << 16)
+              : (relIdx << 23) | (((4 + ch.length) & 0x3f) << 16) | candInd++ & 0xffff,
             rel, link]);
       }
     }

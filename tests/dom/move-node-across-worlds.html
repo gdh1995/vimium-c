@@ -21,7 +21,7 @@
     testNode.textContent = 'this-is-test-span';
     var iframeContent = mainIframe.contentDocument.createElement('div');
     testNode.addEventListener("click", function(event) {
-      var path = event.path, loc = path && path[path.length - 1].location;
+      var path = event.composedPath && event.composedPath() || event.path, loc = path && path[path.length - 1].location;
       loc && console.log("current is", loc.protocol === "about:" ? loc.href : loc.pathname.replace(/.*\//, "") || "/");
       if (testNode.parentNode === iframeContent) {
         mainContent.appendChild(testNode);

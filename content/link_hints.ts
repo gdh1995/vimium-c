@@ -96,8 +96,8 @@ var VHints = {
     focus: HintMode.FOCUS,
     hover: HintMode.HOVER,
     input: HintMode.FOCUS_EDITABLE,
-    leave: HintMode.LEAVE,
-    unhover: HintMode.LEAVE,
+    leave: HintMode.UNHOVER,
+    unhover: HintMode.UNHOVER,
     text: HintMode.COPY_TEXT,
     "copy-text": HintMode.COPY_TEXT,
     url: HintMode.COPY_URL,
@@ -751,14 +751,14 @@ var VHints = {
       return output;
     }
     list = null;
-    if (uiRoot
+    if (Build.BTypes & ~BrowserType.Edge && uiRoot
         && ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
           || uiRoot !== VCui.box_)
         // now must have shadow DOM, because `UI.root_` !== `UI.box_`
         && !notWantVUI
-        && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1
+        && (Build.NDEBUG && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
           || uiRoot.mode === "closed")
         ) {
       const bz = d.bZoom_, notHookScroll = Sc.scrolled_ === 0;
@@ -798,8 +798,9 @@ var VHints = {
         hosts.push(matched = el);
       } else if (((tag = el.localName) === "iframe" || tag === "frame") && this._addChildFrame
           && VDom.htmlTag_(el)) {
-        if (!(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredShadowDOMV1
-              || Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+        if ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
+            && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+            && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
             || el !== VOmni.box_ && el !== VFind.box_) {
           this._addChildFrame(el as HTMLIFrameElement | HTMLFrameElement, VDom.getVisibleClientRect_(el));
         }
@@ -1986,8 +1987,7 @@ Modes_: [
     a.hover_(null);
     if (document.activeElement === element) { element.blur(); }
   }
-  , HintMode.LEAVE
-  , HintMode.LEAVE | HintMode.queue
+  , HintMode.UNHOVER, HintMode.UNHOVER | HintMode.queue
 ] as HintsNS.ModeOpt,
 [
   (link): boolean | void => {

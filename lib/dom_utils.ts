@@ -99,15 +99,13 @@ var VDom = {
     // Note: .webkitShadowRoot and .shadowRoot share a same object
     const sr = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
         && VDom.cache_.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0 ? el.webkitShadowRoot : el.shadowRoot;
-    if (sr) {
-      // according to https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow,
-      // <form> and <frameset> can not have shadowRoot
-      return VDom.notSafe_(el) ? null : sr as ShadowRoot;
-    }
+    // according to https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow,
+    // <form> and <frameset> can not have shadowRoot
     return (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
         && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
         && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-      ? sr as Exclude<typeof sr, undefined> : sr || null;
+      ? sr && VDom.notSafe_(el) ? null : sr as Exclude<typeof sr, undefined | Element | RadioNodeList | Window>
+      : sr && !VDom.notSafe_(el) && <Exclude<typeof sr, Element | RadioNodeList | Window>> sr || null;
   },
   /**
    * Try its best to find a real parent
@@ -123,7 +121,7 @@ var VDom = {
      */
     const a = Build.BTypes & ~BrowserType.Firefox ? VDom : 0 as never,
     kPN = "parentNode";
-    if (type >= PNType.RevealSlot) {
+    if (type >= PNType.RevealSlot && Build.BTypes & ~BrowserType.Edge) {
       if (Build.MinCVer < BrowserVer.MinNoShadowDOMv0 && Build.BTypes & BrowserType.Chrome) {
         const func = Element.prototype.getDestinationInsertionPoints,
         arr = func ? func.call(el as Element) : [], len = arr.length;
@@ -676,7 +674,8 @@ var VDom = {
     <K extends VimiumContainerElementType> (this: void, tagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement;
   },
   createShadowRoot_<T extends HTMLDivElement | HTMLBodyElement> (box: T): ShadowRoot | T {
-    return (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
+    return !(Build.BTypes & ~BrowserType.Edge) ? box
+      : (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
         && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
         && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
         || box.attachShadow
