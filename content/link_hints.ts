@@ -261,9 +261,11 @@ var VHints = {
     const a = this, master = a._master || a;
     if (a.box_) { a.box_.remove(); a.box_ = null; }
     a.hud_ = Build.BTypes & BrowserType.Firefox ? a._wrap(hud) : hud;
+    VCui.ensureBorder_(VDom.wdZoom_ / VDom.dScale_);
     if (hints.length) {
-      VCui.ensureBorder_(VDom.wdZoom_ / VDom.dScale_);
       a.box_ = VCui.addElementList_(hints, arr, (master as typeof a).dialogMode_);
+    } else if (a === master) {
+      VCui.adjust_();
     }
     VApi.keydownEvents_((master.keydownEvents_ as typeof a.keydownEvents_)());
     VApi.onWndBlur_(master.ResetMode_ as typeof a.ResetMode_);
