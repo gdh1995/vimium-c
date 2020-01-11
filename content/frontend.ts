@@ -248,7 +248,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     if (target === U.box_) { return K.Stop_(event); }
     const sr = D.GetShadowRoot_(target as Element);
     if (sr) {
-      let path = event.path, top: EventTarget | undefined,
+      let path = !(Build.BTypes & ~BrowserType.Firefox)
+          || Build.BTypes & BrowserType.Firefox && !(Build.BTypes & BrowserType.Edge)
+              && Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
+          ? (event as Ensure<Event, "composedPath">).composedPath() : event.path
+        , top: EventTarget | undefined,
       /**
        * isNormalHost is true if one of:
        * - Chrome is since BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInShadowDOM
@@ -256,9 +260,12 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
        */
       isNormalHost = Build.MinCVer >= BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInShadowDOM
           && !(Build.BTypes & ~BrowserType.Chrome)
+        || !(Build.BTypes & ~BrowserType.Firefox)
+        || Build.BTypes & BrowserType.Firefox && !(Build.BTypes & BrowserType.Edge)
+            && Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
         ? (top = (path as EventPath)[0]) !== target
         : !!(top = path && path[0]) && top !== window && top !== target;
-      isNormalHost ? hookOnShadowRoot(path as EventPath, target as Element) : hookOnShadowRoot([sr, 0 as never], 0);
+      hookOnShadowRoot(isNormalHost ? path as EventPath : [sr, target], target as Element);
       target = isNormalHost ? top as Element : target;
     }
     if (!lastWndFocusTime || Date.now() - lastWndFocusTime > 30) {
@@ -288,9 +295,16 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     const target: EventTarget | Element | Window | Document = event.target;
     if (target === window) { return onWndBlur(); }
     if (Build.BTypes & BrowserType.Firefox && target === doc) { return; }
-    let path = event.path as EventPath | undefined, top: EventTarget | undefined
+    let path = !(Build.BTypes & ~BrowserType.Firefox)
+        || Build.BTypes & BrowserType.Firefox && !(Build.BTypes & BrowserType.Edge)
+            && Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
+        ? (event as Ensure<Event, "composedPath">).composedPath() : event.path
+      , top: EventTarget | undefined
       , same = Build.MinCVer >= BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInShadowDOM
             && !(Build.BTypes & ~BrowserType.Chrome)
+          || !(Build.BTypes & ~BrowserType.Firefox)
+          || Build.BTypes & BrowserType.Firefox && !(Build.BTypes & BrowserType.Edge)
+              && Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
           ? (top = (path as EventPath)[0]) === target
           : !(top = path && path[0]) || top === window || top === target
       , sr = D.GetShadowRoot_(target as Element);
@@ -308,11 +322,18 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   function onActivate(event: Event): void {
     if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
         ? event.isTrusted : event.isTrusted !== false) {
-      const path = event.path,
-      el = (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsured$Event$$Path || path)
-          && (Build.MinCVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
-            || !(Build.BTypes & BrowserType.Chrome)
-            || (path as EventTarget[]).length > 1)
+      const path = !(Build.BTypes & ~BrowserType.Firefox)
+          || Build.BTypes & BrowserType.Firefox && !(Build.BTypes & BrowserType.Edge)
+              && Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
+          ? (event as Ensure<Event, "composedPath">).composedPath() : event.path,
+      el = Build.MinCVer >= BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInShadowDOM
+            && !(Build.BTypes & ~BrowserType.Chrome)
+          || !(Build.BTypes & ~BrowserType.Firefox)
+          || Build.BTypes & BrowserType.Firefox && !(Build.BTypes & BrowserType.Edge)
+              && Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
+          || (Build.MinCVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
+                || !(Build.BTypes & BrowserType.Chrome)
+              ? path : path && (path as EventTarget[]).length > 1)
           ? (path as EventTarget[])[0] as Element : event.target as Element;
       U.activeEl_ = Build.BTypes & ~BrowserType.Firefox ? D.SafeEl_(el) : el as SafeElement | null;
     }
@@ -350,9 +371,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         && !event.detail && !event.clientY /* exclude those simulated (e.g. generated by element.click()) */
         ) {
       const path = event.path,
-      t = (Build.MinCVer >= BrowserVer.MinEnsured$Event$$Path || path)
-          && (Build.MinCVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
-              || (path as EventTarget[]).length > 1)
+      t = (Build.MinCVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
+           ? Build.MinCVer >= BrowserVer.MinEnsured$Event$$Path || path
+           : (Build.MinCVer >= BrowserVer.MinEnsured$Event$$Path || path) && (path as EventTarget[]).length > 1)
           ? (path as EventTarget[])[0] as Element : event.target as Element;
       if (Element.prototype.getAttribute.call(t, "accesskey")) {
         // if a script has modified [accesskey], then do nothing on - just in case.
