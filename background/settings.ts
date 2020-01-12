@@ -144,6 +144,7 @@ var Settings_ = {
         }
       }
     },
+    clipSub (): void { Clipboard_.clipSub_ = null; },
     grabBackFocus (this: {}, value: FullSettings["grabBackFocus"]): void {
       (this as typeof Settings_).payload_.g = value;
     },
@@ -438,6 +439,7 @@ var Settings_ = {
     __proto__: null as never,
     autoDarkMode: true,
     autoReduceMotion: false,
+    clipSub: "",
     dialogMode: false,
     exclusionListenHash: true,
     exclusionOnlyFirstMatch: false,

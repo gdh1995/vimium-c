@@ -1,7 +1,56 @@
 type CSTypes = chrome.contentSettings.ValidTypes;
 type Tab = chrome.tabs.Tab;
 type MarkStorage = Pick<Storage, "setItem"> & SafeDict<string>;
+declare const enum ClipAction {
+  copy = 1, paste = 2,
+}
+interface ClipSubItem {
+  action_: ClipAction;
+  match_: RegExp;
+  replaced_: string;
+}
+
 const Clipboard_ = {
+  clipSub_: null as null | ClipSubItem[],
+  initSub_ (): ClipSubItem[] {
+    const result: ClipSubItem[] = [];
+    for (let line of Settings_.get_("clipSub").split("\n")) {
+      line = line.trim();
+      const prefix = (<RegExpOne> /^(cp?|pc?|s)([^\x00- A-Za-z\x7f-\uffff\\])/).exec(line);
+      if (!prefix) { continue; }
+      const sep = "\\x" + (prefix[2].charCodeAt(0) + 256).toString(16).slice(1),
+      exprAndSep = `((?:\\\\${sep}|[^${sep}])+)${sep}`,
+      body = (new RegExp(`^${exprAndSep + exprAndSep}([a-z]{0,9})$`)).exec(line.slice(prefix[0].length));
+      if (!body) { continue; }
+      let matchRe: RegExpG | null = null;
+      try {
+        matchRe = new RegExp(body[1], body[3] as "");
+      } catch { continue; }
+      result.push({
+        action_: prefix[1] === "c" ? ClipAction.copy : prefix[1] === "p" ? ClipAction.paste
+            : ClipAction.copy | ClipAction.paste,
+        match_: matchRe,
+        replaced_: body[2].replace(<RegExpG & RegExpSearchable<1>> /\\(x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|[^xu])/g,
+            (_, s: string): string => {
+          return s[0] === "x" || s[0] === "u"
+              ? (s = String.fromCharCode(parseInt(s.slice(1), 16)), s === "$" ? s + s : s)
+              : s === "t" ? "\t" : s === "r" ? "\r" : s === "n" ? "\n"
+              : s === "0" ? "$&" : s >= "1" && s <= "9" ? "$" + s // like r"\1" in sed
+              : s; // like r"abc\.def" / r"abc\\def"
+        })
+      });
+    }
+    return Clipboard_.clipSub_ = result;
+  },
+  substitute_ (text: string, action: ClipAction.copy | ClipAction.paste): string {
+    const arr = Clipboard_.clipSub_ || Clipboard_.initSub_();
+    for (const item of arr) {
+      if (item.action_ & action) {
+        text = text.replace(item.match_ as RegExpG, item.replaced_);
+      }
+    }
+    return text;
+  },
   getTextArea_ (): HTMLTextAreaElement {
     const el = document.createElement("textarea");
     el.style.position = "absolute";
@@ -24,10 +73,12 @@ const Clipboard_ = {
     } else if ((i = data.charCodeAt(0)) !== kCharCode.space && i !== kCharCode.tab) {
       data = data.trimRight();
     }
+    data = Clipboard_.substitute_(data, ClipAction.copy);
     return data;
   },
   reformat_ (copied: string): string {
     copied = copied.replace(BgUtils_.A0Re_, " ");
+    copied = Clipboard_.substitute_(copied, ClipAction.paste);
     BgUtils_.resetRe_();
     return copied;
   },

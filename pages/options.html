@@ -471,6 +471,22 @@ title="Warning: Chrome has a bug of mistaken dialogue width if you has changed s
           </div></td>
         </tr>
         <tr>
+          <td class="caption" data-i="o86_2">Substitution for<br/> clipboard text</td>
+          <td>
+            <textarea id="clipSub" class="code min-height-4" data-model="Text"
+              placeholder="/* example: */
+c/regexp-to-replace/target-string/g
+p:regexp-to-replace:target-string:i"
+              ></textarea>
+          </td>
+          <td class="help"><div class="help-inner"><span data-i="o86_3">
+            Substitute text before doing real actions, when copying / pasting through Vimium C's commands.<br/>
+            Support a simpler version of syntax of the "sed" tool.<br/>
+            The prefix character may be </span><kbd>c/p/s/cp</kbd><span data-i="o86_4">,
+            and "c" means it's for copying only, "p" for pasting and others for both.</span>
+          </div></td>
+        </tr>
+        <tr>
           <td class="caption" data-i="o87">Block list of words<br/> for Vomnibar</td>
           <td>
             <textarea id="omniBlockList" class="code min-height-4" data-model="MaskedText"></textarea>

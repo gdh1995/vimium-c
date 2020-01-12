@@ -305,6 +305,7 @@ declare namespace MediaNS {
 declare namespace SettingsNS {
   interface BackendSettings extends BaseBackendSettings {
     autoDarkMode: boolean;
+    clipSub: string;
     dialogMode: boolean;
     exclusionListenHash: boolean;
     exclusionOnlyFirstMatch: boolean;
@@ -363,7 +364,7 @@ declare namespace SettingsNS {
 
   type DeclaredUpdateHooks = "newTabUrl" | "searchEngines" | "searchEngineMap" | "searchUrl"
         | "baseCSS" | "userDefinedCss" | "innerCSS" | "vomnibarPage"
-        | "extAllowList";
+        | "clipSub" | "extAllowList";
   type EnsuredUpdateHooks = DeclaredUpdateHooks | WoThisUpdateHooks | SpecialUpdateHooks;
   type UpdateHook<key extends keyof FullSettings> =
         key extends NullableUpdateHooks ? NullableUpdateHook<key>
