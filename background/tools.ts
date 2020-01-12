@@ -33,11 +33,11 @@ const Clipboard_ = {
   },
   paste_: Settings_.CONST_.AllowClipboardRead_
     ? Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-  ? function (this: object): Promise<string> | null {
+  ? function (this: void): Promise<string> | null {
     const clipboard = navigator.clipboard as EnsureNonNull<Navigator["clipboard"]> | undefined;
-    return clipboard ? clipboard.readText().then((this as typeof Clipboard_).reformat_) : null;
-  } : function (this: object): string {
-    const textArea = (this as typeof Clipboard_).getTextArea_();
+    return clipboard ? clipboard.readText().then(Clipboard_.reformat_) : null;
+  } : function (this: void): string {
+    const textArea = Clipboard_.getTextArea_();
     textArea.maxLength = GlobalConsts.MaxBufferLengthForPasting;
     (document.documentElement as HTMLHtmlElement).appendChild(textArea);
     textArea.focus();
@@ -46,7 +46,7 @@ const Clipboard_ = {
     textArea.value = "";
     textArea.remove();
     textArea.removeAttribute("maxlength");
-    return (this as typeof Clipboard_).reformat_(value);
+    return Clipboard_.reformat_(value);
   } : function (this: void): null { return null; }
 },
 ContentSettings_ = Build.PContentSettings ? {
@@ -125,15 +125,15 @@ ContentSettings_ = Build.PContentSettings ? {
   },
   clearCS_ (options: CommandsNS.Options, port: Port | null): void {
     const ty = "" + options.type as CSTypes;
-    if (!this.complain_(ty, "http://a.cc/")) {
-      this.Clear_(ty, port ? port.s.a : TabRecency_.incognito_ === IncognitoType.true);
+    if (!ContentSettings_.complain_(ty, "http://a.cc/")) {
+      ContentSettings_.Clear_(ty, port ? port.s.a : TabRecency_.incognito_ === IncognitoType.true);
       return Backend_.showHUD_(trans_("csCleared", [trans_(ty) || ty]));
     }
   },
   toggleCS_ (count: number, options: CommandsNS.Options, tabs: [Tab]): void {
     const ty = "" + options.type as CSTypes, tab = tabs[0];
-    return options.incognito ? this.ensureIncognito_(count, ty, tab)
-      : this.toggleCurrent_(count, ty, tab, options.action === "reopen");
+    return options.incognito ? ContentSettings_.ensureIncognito_(count, ty, tab)
+      : ContentSettings_.toggleCurrent_(count, ty, tab, options.action === "reopen");
   },
   toggleCurrent_ (this: void, count: number, contentType: CSTypes, tab: Tab, reopen: boolean): void {
     const pattern = BgUtils_.removeComposedScheme_(tab.url);
@@ -292,8 +292,8 @@ Marks_ = { // NOTE: all public members should be static
     return map;
   },
   _set ({ l: local, n: markName, u: url, s: scroll }: MarksNS.NewMark, incognito: boolean, tabId?: number): void {
-    const storage = incognito ? this.cacheI_ || (IncognitoWatcher_.watch_(), this.cacheI_ = this._storage())
-      : this.cache_;
+    const storage = incognito ? Marks_.cacheI_ || (IncognitoWatcher_.watch_(), Marks_.cacheI_ = Marks_._storage())
+      : Marks_.cache_;
     if (local && scroll[0] === 0 && scroll[1] === 0) {
       if (scroll.length === 2) {
         const i = url.indexOf("#");
@@ -302,7 +302,7 @@ Marks_ = { // NOTE: all public members should be static
         scroll.pop();
       }
     }
-    storage.setItem(this.getLocationKey_(markName, local ? url : "")
+    storage.setItem(Marks_.getLocationKey_(markName, local ? url : "")
       , JSON.stringify<MarksNS.StoredGlobalMark | MarksNS.ScrollInfo>(local ? scroll
         : { tabId: tabId as number, url, scroll }));
   },
@@ -346,18 +346,18 @@ Marks_ = { // NOTE: all public members should be static
     markInfo.p = request.p !== false && markInfo.s[1] === 0 && markInfo.s[0] === 0 &&
         !!BgUtils_.IsURLHttp_(markInfo.u);
     if (tabId >= 0 && Backend_.indexPorts_(tabId)) {
-      chrome.tabs.get(tabId, Marks_.checkTab_.bind(markInfo));
+      chrome.tabs.get(tabId, Marks_.checkTab_.bind(0, markInfo));
     } else {
       return Backend_.focus_(markInfo);
     }
   },
-  checkTab_ (this: MarksNS.MarkToGo, tab: chrome.tabs.Tab): void {
+  checkTab_ (this: 0, mark: MarksNS.MarkToGo, tab: chrome.tabs.Tab): void {
     const url = tab.url.split("#", 1)[0];
-    if (url === this.u || this.p && this.u.startsWith(url)) {
+    if (url === mark.u || mark.p && mark.u.startsWith(url)) {
       Backend_.gotoSession_({ s: tab.id });
-      return Marks_.scrollTab_(this, tab);
+      return Marks_.scrollTab_(mark, tab);
     } else {
-      return Backend_.focus_(this);
+      return Backend_.focus_(mark);
     }
   },
   getLocationKey_ (markName: string, url: string | undefined): string {
@@ -402,9 +402,9 @@ FindModeHistory_ = {
   listI_: null as string[] | null,
   timer_: 0,
   init_ (): void {
-    const str: string = Settings_.get_(this.key_);
-    this.list_ = str ? str.split("\n") : [];
-    this.init_ = null as never;
+    const str: string = Settings_.get_(FindModeHistory_.key_);
+    FindModeHistory_.list_ = str ? str.split("\n") : [];
+    FindModeHistory_.init_ = null as never;
   },
   query_: function (incognito: boolean, query?: string, nth?: number): string | void {
     const a = FindModeHistory_;
@@ -444,26 +444,25 @@ FindModeHistory_ = {
   },
   removeAll_ (incognito: boolean): void {
     if (incognito) {
-      this.listI_ && (this.listI_ = []);
+      FindModeHistory_.listI_ && (FindModeHistory_.listI_ = []);
       return;
     }
-    this.init_ = null as never;
-    this.list_ = [];
-    Settings_.set_(this.key_, "");
+    FindModeHistory_.init_ = null as never;
+    FindModeHistory_.list_ = [];
+    Settings_.set_(FindModeHistory_.key_, "");
   }
 },
 IncognitoWatcher_ = {
   watching_: false,
   timer_: 0,
   watch_ (): void {
-    if (this.watching_) { return; }
-    chrome.windows.onRemoved.addListener(this.OnWndRemoved_);
-    this.watching_ = true;
+    if (IncognitoWatcher_.watching_) { return; }
+    chrome.windows.onRemoved.addListener(IncognitoWatcher_.OnWndRemoved_);
+    IncognitoWatcher_.watching_ = true;
   },
   OnWndRemoved_ (this: void): void {
-    const _this = IncognitoWatcher_;
-    if (!_this.watching_) { return; }
-    _this.timer_ = _this.timer_ || setTimeout(_this.TestIncognitoWnd_, 34);
+    if (!IncognitoWatcher_.watching_) { return; }
+    IncognitoWatcher_.timer_ = IncognitoWatcher_.timer_ || setTimeout(IncognitoWatcher_.TestIncognitoWnd_, 34);
   },
   TestIncognitoWnd_ (this: void): void {
     IncognitoWatcher_.timer_ = 0;
@@ -482,8 +481,8 @@ IncognitoWatcher_ = {
   cleanI_ (): void {
     FindModeHistory_.listI_ = null;
     Marks_.cacheI_ = null;
-    chrome.windows.onRemoved.removeListener(this.OnWndRemoved_);
-    this.watching_ = false;
+    chrome.windows.onRemoved.removeListener(IncognitoWatcher_.OnWndRemoved_);
+    IncognitoWatcher_.watching_ = false;
   }
 },
 MediaWatcher_ = {
