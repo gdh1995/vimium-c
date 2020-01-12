@@ -1921,6 +1921,10 @@
         nameRe = <RegExpG & RegExpSearchable<1>> /\$\{([^}]+)\}/g;
         tabs = tabs.filter(i => i.incognito === incognito);
         tabs.sort((a, b) => (a.windowId - b.windowId || a.index - b.index));
+        if (type === "tab") {
+          const ind = selectFrom(tabs).index, range = getTabRange(ind, tabs.length);
+          tabs = tabs.slice(range[0], range[1]);
+        }
         const data: string[] = tabs.map(i => format.replace(nameRe, (_, s1): string => {
           return decoded && s1 === "url" ? BgUtils_.DecodeURLPart_(i.url, decodeURI)
             : s1 !== "__proto__" && (i as Dict<any>)[s1] || "";
