@@ -474,7 +474,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     /* kFgCmd.findMode: */ VFind.activate_,
     /* kFgCmd.linkHints: */ Hints.activate_,
     /* kFgCmd.unhoverLast: */ function (this: void): void {
-      D.hover_(null);
+      D.hover_();
       HUD.tip_(kTip.didUnHoverLast);
     },
     /* kFgCmd.marks: */ VMarks.activate_,

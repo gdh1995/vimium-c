@@ -744,7 +744,7 @@ var VDom = {
   _idc: null as InputDeviceCapabilities | null,
   lastHovered_: null as SafeElementForMouse | null,
   /** note: will NOT skip even if newEl == @lastHovered */
-  hover_: function (this: {}, newEl: SafeElementForMouse | null, center?: Point2D): void {
+  hover_: function (this: {}, newEl?: SafeElementForMouse | null, center?: Point2D): void {
     const canDispatchMove = center && document.elementFromPoint(center[0], center[1]) === newEl,
     a = VDom as typeof VDom, isInDOM = a.IsInDOM_, Null = null;
     let last = a.lastHovered_;
@@ -772,7 +772,7 @@ var VDom = {
     // here always ensure lastHovered_ is "in DOM" or null
   } as {
     (newEl: SafeElementForMouse, center: Point2D): void;
-    (newEl: null): void;
+    (newEl?: null): void;
   },
   touch_: Build.BTypes & BrowserType.Chrome ? function (this: {}, element: SafeElementForMouse
       , [x, y]: Point2D, id?: number): number {

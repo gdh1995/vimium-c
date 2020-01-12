@@ -8,7 +8,7 @@ declare namespace HintsNS {
   type LinkEl = Hint[0];
   interface Executor {
     // tslint:disable-next-line: callable-types
-    (linkEl: LinkEl, rect: Rect | null, hintEl: Pick<HintItem, "r">): void | boolean;
+    (this: void, linkEl: LinkEl, rect: Rect | null, hintEl: Pick<HintItem, "r">): void | boolean;
   }
   interface ModeOpt extends ReadonlyArray<Executor | HintMode> {
     [0]: Executor;
@@ -1942,6 +1942,14 @@ Modes_: [
 [
   (element, rect): void => {
     const a = VHints, type = VDom.getEditableType_<0>(element), toggleMap = a.options_.toggle;
+    const exit: HandlerNS.Handler<any> = event => {
+      VKey.removeHandler_(a);
+      if (VKey.isEscape_(event) && !VApi.lock_()) {
+        VDom.hover_();
+        return HandlerResult.Prevent;
+      }
+      return HandlerResult.Nothing;
+    };
     // here not check VDom.lastHovered on purpose
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
     VCui.activeEl_ = element;
@@ -1950,6 +1958,7 @@ Modes_: [
     if (a.mode1_ < HintMode.min_job) { // called from Modes[-1]
       return a.hud_.tip_(kTip.hoverScrollable, 1000);
     }
+    a.mode_ & HintMode.queue || VKey.pushHandler_(exit, exit);
     if (!toggleMap || typeof toggleMap !== "object") { return; }
     VKey.safer_(toggleMap);
     let ancestors: Element[] = [], top: Element | null = element, re = <RegExpOne> /^-?\d+/;
@@ -1992,10 +2001,10 @@ Modes_: [
   (element: HintsNS.LinkEl): void => {
     const a = VDom;
     if (a.lastHovered_ !== element) {
-      a.hover_(null);
+      a.hover_();
     }
     a.lastHovered_ = element;
-    a.hover_(null);
+    a.hover_();
     if (document.activeElement === element) { element.blur && element.blur(); }
   }
   , HintMode.UNHOVER, HintMode.UNHOVER | HintMode.queue
