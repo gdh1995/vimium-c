@@ -1082,7 +1082,11 @@
       }
       for (let i of patterns) {
         i = i && (i + "").trim();
-        i && p2.push(i.toLowerCase());
+        i && p2.push((!(Build.BTypes & BrowserType.Chrome)
+            || Build.MinCVer >= BrowserVer.MinEnsuredES6$String$$StartsWithEndsWithAndRepeatAndIncludes
+            ? (GlobalConsts.SelectorPrefixesInPatterns as Ensure<string, "includes">).includes(i[0])
+            : GlobalConsts.SelectorPrefixesInPatterns.indexOf(i[0]) >= 0)
+          ? i : i.toLowerCase());
         if (p2.length === GlobalConsts.MaxNumberOfNextPatterns) { break; }
       }
       const maxLens: number[] = p2.map(i => Math.max(i.length + 12, i.length * 4)),

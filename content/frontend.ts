@@ -890,21 +890,36 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     interface Candidate { [0]: number; [1]: string; [2]: Parameters<typeof Pagination.GetButtons_>[0][number]; }
     // Note: this traverser should not need a prepareCrop
     let links = Hints.traverse_(Hints.kSafeAllSelector_, Pagination.GetButtons_, true, true);
-    const count = names.length,
+    const tryQuery = (selector: string): NodeListOf<Element> | void => {
+      try { return document.querySelectorAll(selector); } catch {}
+    }, wordRe = <RegExpOne> /\b/,
     quirk = isNext ? ">>" : "<<", quirkIdx = names.indexOf(quirk),
     rel = isNext ? "next" : "prev", relIdx = names.indexOf(rel),
     detectQuirk = quirkIdx > 0 ? names.lastIndexOf(isNext ? ">" : "<", quirkIdx) : -1,
     refusedStr = isNext ? "<" : ">";
     links.push(doc.documentElement as never as SafeHTMLElement);
     let candidates: Candidate[] = [], ch: string, s: string, maxLen = totalMax, len: number;
-    let candInd = 0;
+    let i: number, candInd = 0, count = names.length;
+    for (i = 0; i < count; i++) {
+      if (!(Build.BTypes & BrowserType.Chrome)
+          || Build.MinCVer >= BrowserVer.MinEnsuredES6$String$$StartsWithEndsWithAndRepeatAndIncludes
+          ? (GlobalConsts.SelectorPrefixesInPatterns as Ensure<string, "includes">).includes(names[i][0])
+          : GlobalConsts.SelectorPrefixesInPatterns.indexOf(names[i][0]) >= 0) {
+        const arr = tryQuery(names[i]);
+        if (arr && arr.length === 1 && VDom.htmlTag_(arr[0])) {
+          candidates.push([i << 23, "", arr[0] as SafeHTMLElement]);
+          count = i + 1;
+          break;
+        }
+      }
+    }
     for (let re1 = <RegExpOne> /\s+/, _len = links.length - 1; 0 <= --_len; ) {
       const link = links[_len];
       if (link.contains(links[_len + 1]) || (s = link.innerText).length > totalMax) { continue; }
       if (s = s || (ch = (link as HTMLInputElement).value) && ch.toLowerCase && ch || link.title) {
         if (s.length > totalMax) { continue; }
         s = s.toLowerCase();
-        for (let i = 0; i < count; i++) {
+        for (i = 0; i < count; i++) {
           if (s.length < lenLimit[i] && s.indexOf(names[i]) !== -1) {
             if (s.indexOf(refusedStr) === -1 && (len = (s = s.trim()).split(re1).length) <= maxLen) {
               let i2 = detectQuirk - i ? names.indexOf(s, i + 1) : s.indexOf(quirk) >= 0 ? quirkIdx : -1;
@@ -939,12 +954,12 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     links = [];
     maxLen = (maxLen + 1) << 16;
     candidates = candidates.filter(a => (a[0] & 0x7fffff) < maxLen).sort((a, b) => a[0] - b[0]);
-    for (let re2 = <RegExpOne> /\b/, i = candidates[0][0] >> 23; i < count; ) {
+    for (i = candidates[0][0] >> 23; i < count; ) {
       s = names[i++];
-      const re = new RegExp(re2.test(s[0]) || re2.test(s.slice(-1)) ? `\\b${s}\\b` : s, ""), j = i << 23;
+      const re = new RegExp(wordRe.test(s[0]) || wordRe.test(s.slice(-1)) ? `\\b${s}\\b` : s, ""), j = i << 23;
       for (const candidate of candidates) {
         if (candidate[0] > j) { break; }
-        if (re.test(candidate[1])) { return Pagination.followLink_(candidate[2]); }
+        if (!candidate[1] || re.test(candidate[1])) { return Pagination.followLink_(candidate[2]); }
       }
     }
     return false;

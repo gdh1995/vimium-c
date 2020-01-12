@@ -762,11 +762,11 @@ var BgUtils_ = {
     }
     return prefix;
   },
-  makeRegexp_ (pattern: string, suffix: string, logError?: boolean): RegExp | null {
+  makeRegexp_ (pattern: string, suffix: string, logError?: 0): RegExp | null {
     try {
       return new RegExp(pattern, suffix as "");
     } catch {
-      logError === false || console.log("%c/%s/%s", "color:#c41a16", pattern, suffix, "is not a valid regexp.");
+      logError === 0 || console.log("%c/%s/%s", "color:#c41a16", pattern, suffix, "is not a valid regexp.");
     }
     return null;
   },

@@ -13,7 +13,7 @@ var Exclusions = {
       };
     }
     if (pattern[0] === "^") {
-      if (re = BgUtils_.makeRegexp_(pattern.startsWith("^$|") ? pattern.slice(3) : pattern, "", false)) {
+      if (re = BgUtils_.makeRegexp_(pattern.startsWith("^$|") ? pattern.slice(3) : pattern, "", 0)) {
         /* empty */
       } else {
         console.log("Failed in creating an RegExp from %o", pattern);
