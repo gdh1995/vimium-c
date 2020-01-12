@@ -513,31 +513,30 @@ var VHints = {
         && (_this.mode_ > HintMode.min_job - 1 || VDom.isAriaNotTrue_(element, kAria.disabled))
     ) { hints.push([element, tag === "img" ? VDom.getCroppedRect_(element, arr) : arr, type]); }
   },
-  _getClickableInMaybeSVG (hints: Hint[], element: SVGElement | Element): void {
-    type MayBeSVGElement = TypeToAssert<Element, SVGElement, "onmousedown" | "onclick", "tagName">;
-    let anotherEl: MayBeSVGElement;
+  _getClickableInMaybeSVG (hints: Hint[], element: SafeElement & { __other: 1 | 2; }): void {
+    let anotherEl: SVGElement;
     let arr: Rect | null | undefined, s: string | null , type = ClickType.Default;
+    const isSVG = (element as ElementToHTMLorSVG).tabIndex != null;
     { // not HTML*
-      // never accept raw `Element` instances, so that properties like .tabIndex and .dataset are ensured
-      if ((element as ElementToHTMLorSVG).tabIndex != null) { // SVG*
-        // not need to distinguish attrListener and codeListener
+      {
+        /** not use .codeListener, {@see #VHints.deduplicate_} */
         type = VDom.clickable_.has(element)
-            || (!(Build.BTypes & ~BrowserType.Firefox)
+            || isSVG && (!(Build.BTypes & ~BrowserType.Firefox)
                 || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
-                ? ((anotherEl = (element as XrayedObject<Element>).wrappedJSObject || element) as MayBeSVGElement
-                    ).onclick || (anotherEl as MayBeSVGElement).onmousedown
+                ? ((anotherEl = (element as XrayedObject<SVGElement>).wrappedJSObject || element as SVGElement)
+                    ).onclick || anotherEl.onmousedown
                 : element.getAttribute("onclick"))
             || (s = element.getAttribute("role")) && (<RegExpI> /^button$/i).test(s)
             || this.ngEnabled_ && element.getAttribute("ng-click")
             || this.jsaEnabled_ && (s = element.getAttribute("jsaction")) && this.checkJSAction_(s)
           ? ClickType.attrListener
-          : (element as SVGElement).tabIndex >= 0 ? ClickType.tabindex
+          : isSVG && (element as SVGElement).tabIndex >= 0 ? ClickType.tabindex
           : ClickType.Default;
         if (type > ClickType.Default && (arr = VDom.getVisibleClientRect_(element))
             && VDom.isAriaNotTrue_(element as SafeElement, kAria.hidden)
             && (this.mode_ > HintMode.min_job - 1 || VDom.isAriaNotTrue_(element as SafeElement, kAria.disabled))
             ) {
-          hints.push([element as SVGElement, arr, type]);
+          hints.push([element as SVGElement | OtherSafeElement, arr, type]);
         }
       }
     }
@@ -653,7 +652,7 @@ var VHints = {
       hints.push([element, cr, ClickType.Default]);
     }
   },
-  GetImages_ (this: void, hints: Hint[], element: Element): void {
+  GetImages_ (this: void, hints: Hint[], element: SafeHTMLElement): void {
     const tag = element.localName;
     if (tag === "img") {
       VHints._getImagesInImg(hints, element as HTMLImageElement);
@@ -661,17 +660,17 @@ var VHints = {
     }
     let str: string | null, cr: Rect | null;
     if (VHints.mode1_ === HintMode.DOWNLOAD_MEDIA && (tag === "video" || tag === "audio")) {
-      str = (element as HTMLImageElement).currentSrc || (element as HTMLImageElement).src;
+      str = (element as unknown as HTMLImageElement).currentSrc || (element as unknown as HTMLImageElement).src;
     } else {
-      str = (element as SafeHTMLElement).dataset.src || element.getAttribute("href");
+      str = element.dataset.src || element.getAttribute("href");
       if (!VHints.isImageUrl_(str)) {
-        str = (element as SafeHTMLElement).style.backgroundImage as string;
+        str = element.style.backgroundImage as string;
         str = str && (<RegExpI> /^url\(/i).test(str) ? str : "";
       }
     }
     if (str) {
       if (cr = VDom.getVisibleClientRect_(element)) {
-        hints.push([element as SafeHTMLElement, cr, ClickType.Default]);
+        hints.push([element, cr, ClickType.Default]);
       }
     }
   },
@@ -736,7 +735,8 @@ var VHints = {
             break;
           }
         } else if (wantClickable) {
-          a._getClickableInMaybeSVG(output as Exclude<typeof output, SafeHTMLElement[]>, el);
+          a._getClickableInMaybeSVG(output as Exclude<typeof output, SafeHTMLElement[]>
+              , el as (typeof el) & { __other: 1 | 2 });
         }
       }
       if (i >= len) {
@@ -833,7 +833,7 @@ var VHints = {
       notRemoveParents = k === ClickType.classname;
       if (!notRemoveParents) {
         if (k === ClickType.codeListener) {
-          if (s = ((element = list[i][0]) as Exclude<Hint[0], SVGElement>).localName, s === "i") {
+          if (s = ((element = list[i][0]) as SafeHTMLElement).localName, s === "i") {
             if (notRemoveParents
                 = i > 0 && (<RegExpOne> /\b(button|a$)/).test(list[i - 1][0].localName)
                 && !element.innerHTML.trim()
@@ -1477,7 +1477,7 @@ filterEngine_: {
     let el = hint[0], text: string = "", show = false
       , localName = el.localName, isHTML = "lang" in el
       , ind: number;
-    switch (isHTML ? localName : "") { // skip SVGElement
+    switch (isHTML ? localName : "") {
     case "input": case "textarea": case "select":
       let labels = (el as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement).labels;
       if (labels && labels.length > 0
@@ -1509,7 +1509,7 @@ filterEngine_: {
     case "details":
       text = text || "Open"; show = !0;
       break;
-    default:
+    default: // include SVGElement and OtherSafeElement
       if (show = hint[2] > ClickType.MaxNotBox) {
         text = hint[2] > ClickType.frame ? "Scroll" : "Frame";
       } else if (isHTML && (text = (el as SafeHTMLElement).innerText.trim())) {
@@ -1920,7 +1920,7 @@ _highlightChild (el: HintsNS.LinkEl, tag: string): 0 | 1 | 2 {
     return 1;
   }
   const core = a.detectUsableChild_(el as HTMLIFrameElement | HTMLFrameElement);
-  el.focus();
+  (el as HTMLIFrameElement | HTMLFrameElement).focus();
   if (!core) {
     VApi.send_(kFgReq.execInChild, {
       u: (el as HTMLIFrameElement | HTMLFrameElement).src,
@@ -1944,8 +1944,7 @@ Modes_: [
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
     VCui.activeEl_ = element;
     VDom.hover_(element, VDom.center_(rect));
-    type || element.tabIndex < 0 ||
-    (<RegExpI> /^i?frame$/).test(VDom.htmlTag_(element)) && element.focus && element.focus();
+    type || element.focus && !(<RegExpI> /^i?frame$/).test(VDom.htmlTag_(element)) && element.focus();
     if (a.mode1_ < HintMode.min_job) { // called from Modes[-1]
       return a.hud_.tip_(kTip.hoverScrollable, 1000);
     }
@@ -1988,14 +1987,14 @@ Modes_: [
   , HintMode.HOVER | HintMode.queue
 ] as HintsNS.ModeOpt,
 [
-  (element: Hint[0]): void => {
+  (element: HintsNS.LinkEl): void => {
     const a = VDom;
     if (a.lastHovered_ !== element) {
       a.hover_(null);
     }
     a.lastHovered_ = element;
     a.hover_(null);
-    if (document.activeElement === element) { element.blur(); }
+    if (document.activeElement === element) { element.blur && element.blur(); }
   }
   , HintMode.UNHOVER, HintMode.UNHOVER | HintMode.queue
 ] as HintsNS.ModeOpt,
@@ -2008,9 +2007,7 @@ Modes_: [
       str = a.getUrlData_(link as HTMLAnchorElement);
       str && (<RegExpI> /^mailto:./).test(str) && (str = str.slice(7).trim());
     }
-    /** Note: SVGElement::dataset is only since `BrowserVer.Min$SVGElement$$dataset` */
-    else if ((str = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$SVGElement$$dataset
-          ?  link.getAttribute("data-vim-text") : (link.dataset as NonNullable<typeof link.dataset>).vimText)
+    else if ((str = link.getAttribute("data-vim-text"))
         && (str = str.trim())) { /* empty */ }
     else {
       const tag = VDom.htmlTag_(link), isChild = a._highlightChild(link, tag);
@@ -2175,7 +2172,7 @@ Modes_: [
   (link, rect): void | false => {
     if (VHints.mode_ < HintMode.min_disable_queue) {
       VDom.view_(link);
-      link.focus();
+      link.focus && link.focus();
       VHints._removeFlash || VCui.flash_(link);
     } else {
       VCui.simulateSelect_(link as HintsNS.InputHintItem["d"], rect, !VHints._removeFlash);
@@ -2225,7 +2222,7 @@ Modes_: [
           ? newTab // need to work around Firefox's popup blocker
             ? kClickAction.plainMayOpenManually | kClickAction.newTabFromMode : kClickAction.plainMayOpenManually
         : kClickAction.none;
-    VCui.click_(link, rect, mask > 0 || link.tabIndex >= 0, {
+    VCui.click_(link, rect, mask > 0 || <number> (link as ElementToHTMLorSVG).tabIndex >= 0, {
       altKey_: !1,
       ctrlKey_: ctrl && !isMac,
       metaKey_: ctrl && isMac,

@@ -316,7 +316,7 @@ var VCui = {
     // Note: here we can check doc.activeEl only when @click is used on the current focused document
     if (addFocus && element !== VApi.lock_() && element !== document.activeElement &&
         !(element as Partial<HTMLInputElement>).disabled) {
-      element.focus();
+      element.focus && element.focus();
       if (!isInDom(element)) { return; }
     }
     a.mouse_(element, "mouseup", center, modifiers, null, button);
@@ -338,6 +338,7 @@ var VCui = {
     }
     let result: ActionType = ActionType.OnlyDispatch, url: string | null;
     if (specialAction) {
+      // for forceToDblclick, element can be OtherSafeElement; for 1..7, element must be HTML <a>
       result = specialAction > kClickAction.MaxOpenForAnchor ? ActionType.DispatchAndCheckInDOM
           : specialAction < kClickAction.MinNotPlainOpenManually && (element as HTMLAnchorElement).target !== "_blank"
             || !(url = element.getAttribute("href"))
@@ -345,7 +346,7 @@ var VCui = {
             || a.jsRe_.test(url)
           ? ActionType.OnlyDispatch
           : specialAction & kClickAction.plainMayOpenManually
-            && (((element as XrayedObject<SafeHTMLElement>).wrappedJSObject || element).onclick
+            && (((element as XrayedObject<HTMLAnchorElement>).wrappedJSObject || element).onclick
               || a.clickable_.has(element))
           ? ActionType.DispatchAndMayOpenTab : ActionType.OpenTabButNotDispatch;
     }
