@@ -1450,15 +1450,16 @@ filterEngine_: {
   reForMatch_: null as never as RegExpG & RegExpOne & RegExpSearchable<0>,
   getRe_ (forMatch: BOOL): RegExpG & RegExpOne & RegExpSearchable<0> {
     const chars = VHints.chars_, kNum = "0123456789",
-    accepted_numbers = chars === kNum ? ""
+    accepted_numbers = !forMatch || chars === kNum ? ""
         : !(Build.BTypes & BrowserType.Chrome)
           || Build.MinCVer >= BrowserVer.MinTestedES6Environment
               && Build.MinCVer >= BrowserVer.MinEnsuredES6SpreadOperator
               && Build.MinCVer >= BrowserVer.MinEnsuredES6$String$$StartsWithEndsWithAndRepeatAndIncludes
         ? [... <string[]> <unknown> kNum].filter(ch => !(chars as Ensure<string, "includes">).includes(ch)).join("")
         : kNum.replace(new RegExp(`[${chars.replace(<RegExpG> /\D/g, "")}]`, "g"), ""),
-    accepted_letters = forMatch ? "[^" + GlobalConsts.KeyboardLettersLl : "[^" + GlobalConsts.LettersLlLuAndASCII;
-    return new RegExp(accepted_letters + accepted_numbers + GlobalConsts.KeyboardLettersLo + "]+", "g"
+    accepted_words = forMatch ? "[^" + GlobalConsts.KeyboardLettersLl + accepted_numbers
+        : "[^" + GlobalConsts.LettersLlLuAndOtherASCII;
+    return new RegExp(accepted_words + GlobalConsts.KeyboardLettersLo + "]+", "g"
         ) as RegExpG & RegExpOne & RegExpSearchable<0>;
   },
   GenerateHintStrings_ (this: void, hints: readonly HintsNS.HintItem[]): void {
@@ -1473,9 +1474,10 @@ filterEngine_: {
     }
   },
   generateHintText_ (hint: Hint): HintsNS.HintText {
-    let el = hint[0] as SafeHTMLElement, text: string = "", show = false
-      , localName = "lang" in el ? el.localName : "", ind: number;
-    switch (localName) { // skip SVGElement
+    let el = hint[0], text: string = "", show = false
+      , localName = el.localName, isHTML = "lang" in el
+      , ind: number;
+    switch (isHTML ? localName : "") { // skip SVGElement
     case "input": case "textarea": case "select":
       let labels = (el as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement).labels;
       if (labels && labels.length > 0
@@ -1510,28 +1512,34 @@ filterEngine_: {
     default:
       if (show = hint[2] > ClickType.MaxNotBox) {
         text = hint[2] > ClickType.frame ? "Scroll" : "Frame";
-      } else if (localName && (text = el.innerText.trim())) {
+      } else if (isHTML && (text = (el as SafeHTMLElement).innerText.trim())) {
         ind = text.indexOf("\n") + 1;
         // tslint:disable-next-line: no-unused-expression
         ind && (ind = text.indexOf("\n", ind)) > 0 ? text = text.slice(0, ind) : 0;
-      } else {
-        if (localName === "a") {
+      } else if (localName === "a" && isHTML) {
           let el2 = el.firstElementChild as Element | null;
           text = el2 && VDom.htmlTag_(el2) === "img"
               ? (el2 as HTMLImageElement).alt || (el2 as HTMLImageElement).title : "";
           show = !!text;
-        }
-        text = text || (localName && el.title);
+      } else if (!isHTML && (el as ElementToHTMLorSVG).tabIndex != null) {
+        // demo: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/text
+        const el2 = localName === "text" ? el as SVGTextElement : el.querySelector("text");
+        text = el2 ? el2.innerHTML : text;
+        show = !!text;
+      } else if (isHTML) { // plain Element
+        // demo: https://developer.mozilla.org/en-US/docs/Web/MathML/Element/mfrac on Firefox
+        text = el.textContent;
       }
+      text = isHTML ? text || (el as SafeHTMLElement).title : text;
       break;
     }
     if (text) {
-      text = text.slice(0, GlobalConsts.MaxLengthOfHintText).trim();
-      if (text && (text[0] === ":" || text.endsWith(":"))) {
-        text = text.replace(<RegExpG> /^[:\s]+|:+$/g, "").trim();
+      text = text.trim().slice(0, GlobalConsts.MaxLengthOfHintText).trim();
+      if (text && text[0] === ":") {
+        text = text.replace(<RegExpOne> /^[:\s]+/, "");
       }
     }
-    return { t: show && text ? ": " + text : text, w: null };
+    return { t: show && text ? ":" + text : text, w: null };
   },
   getMatchingHints_ (keyStatus: HintsNS.KeyStatus, text: string, seq: string
       , inited: 0 | 1 | 2): HintsNS.HintItem | 2 | 0 {
@@ -1554,7 +1562,7 @@ filterEngine_: {
         let newLen = 2,
         ind = !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
             && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)
-            ? 0 : hasSearch ? 1 : GlobalConsts.MaxLengthOfHintText + 3;
+            ? 0 : hasSearch ? 1 : GlobalConsts.MaxLengthOfHintText + 1;
         keyStatus.keySequence_ = "";
         if (hasSearch && !fullHints[0].h.w) {
           for (const {h: textHint} of fullHints) {
@@ -1686,12 +1694,14 @@ filterEngine_: {
         marker.textContent = hint.a;
         right = (hint.h as HintsNS.HintText).t;
         if (!right || right[0] !== ":") { continue; }
-        right = right.replace(exclusionRe = exclusionRe || a.filterEngine_.getRe_(0), " ").trim();
-        right = (hint.h as HintsNS.HintText).t = right !== ":" ? right : "";
+        right = (hint.h as HintsNS.HintText).t = right.slice(1);
+        right = right.replace(exclusionRe = exclusionRe || a.filterEngine_.getRe_(0), " "
+            ).replace(<RegExpOne> /^[^\w\x80-\uffff]+|:[:\s]*$/, "").trim();
         right = right.length > GlobalConsts.MaxLengthOfShownText
             ? right.slice(0, GlobalConsts.MaxLengthOfShownText - 2).trimRight() + "\u2026" // the "\u2026" is wide
             : right;
-        right = (<RegExpOne> /[\w\x80-\uffff]/).test(right) ? right : "";
+        if (!right) { continue; }
+        right = ": " + right;
       } else {
         right = hint.a.slice(-1);
         for (const ch of hint.a.slice(0, -1)) {
