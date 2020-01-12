@@ -1020,7 +1020,7 @@ function (details: chrome.runtime.InstalledDetails): void {
       if (id !== reason) { return; }
       chrome.notifications.clear(reason);
       Backend_.focus_({
-        u: BgUtils_.convertToUrl_("vimium://changelog")
+        u: BgUtils_.convertToUrl_("vimium://release")
       });
     });
   });

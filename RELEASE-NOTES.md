@@ -1,6 +1,9 @@
 Release Notes of Vimium C
 =========================
 
+ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
+说明文档: https://github.com/gdh1995/vimium-c/blob/master/README_zh.md .
+
 #### 1.79.3
 * fix broken `ignoringKeyboardLayout` in v1.79.2
 * LinkHints: filtered hints: fix a crash

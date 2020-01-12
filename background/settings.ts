@@ -595,12 +595,12 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
       popup: "options.html",
       privacy: "/PRIVACY-POLICY.md#privacy-policy",
       readme: "#readme",
-      releases: "/RELEASE-NOTES.md",
+      release: "/RELEASE-NOTES.md",
       "release-notes": "/RELEASE-NOTES.md",
       settings: "options.html",
       wiki: "/wiki",
       __proto__: null as never
-    } as SafeDict<string>,
+    },
     GlobalCommands_: null as never as Array<keyof ShortcutInfoMap>,
     ShowPage_: "pages/show.html",
     VomnibarPageInner_: "", VomnibarScript_: "/front/vomnibar.js", VomnibarScript_f_: ""
@@ -705,6 +705,7 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   obj.VomnibarPageInner_ = func(defaults.vomnibarPage);
   obj.VomnibarScript_f_ = func(obj.VomnibarScript_);
   obj.HomePage_ = ref.homepage_url || obj.HomePage_;
+  obj.RedirectedUrls_.release += "#" + obj.VerCode_.replace(<RegExpG> /\D/g, "");
   obj.Injector_ = func(obj.Injector_);
   ref2.push(obj.InjectEnd_);
   if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith

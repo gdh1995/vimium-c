@@ -39,6 +39,24 @@ var HelpDialog = {
         Settings_.set_("helpDialog", "");
       }
       body = body.replace(<RegExpG & RegExpSearchable<1>> /\$(\w+)/g, (_, s) => trans_(s) || (s[0] === "_" ? "" : s));
+      const consts = BgUtils_.safer_<Dict<string>>({
+      homePage: Settings_.CONST_.HomePage_,
+      version: Settings_.CONST_.VerName_,
+      release: BgUtils_.convertToUrl_("vimium://release"),
+      reviewPage: !(Build.BTypes & ~BrowserType.Firefox)
+              || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
+          ? GlobalConsts.FirefoxAddonPrefix + "vimium-c/"
+          : (Build.BTypes & BrowserType.Chrome && IsEdg_
+              ? GlobalConsts.EdgStorePage : GlobalConsts.ChromeWebStorePage).replace("$id", chrome.runtime.id),
+      webStore: !(Build.BTypes & ~BrowserType.Firefox)
+            || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
+          ? trans_("addons") : trans_(IsEdg_ ? "edgestore" : "webstore"),
+      browserHelp: !(Build.BTypes & ~BrowserType.Firefox)
+          || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox ? GlobalConsts.FirefoxHelp as string
+          : Build.BTypes & BrowserType.Chrome && IsEdg_ ? GlobalConsts.EdgHelp
+          : GlobalConsts.ChromeHelp,
+      });
+      body = body.replace(<RegExpSearchable<1>> /\{\{(\w+)}}/g, (_, group: string) => consts[group] || _);
       a.html_ = [head, body];
     }
     const commandToKeys = BgUtils_.safeObj_<Array<[string, CommandsNS.Item]>>(),
@@ -59,21 +77,7 @@ var HelpDialog = {
     }
     const result = BgUtils_.safer_<Dict<string>>({
       className: Settings_.payload_.d,
-      homePage: Settings_.CONST_.HomePage_,
-      version: Settings_.CONST_.VerName_,
       title: trans_(isOptionsPage ? "cmdList" : "help"),
-      reviewPage: !(Build.BTypes & ~BrowserType.Firefox)
-              || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
-          ? GlobalConsts.FirefoxAddonPrefix + "vimium-c/"
-          : (Build.BTypes & BrowserType.Chrome && IsEdg_
-              ? GlobalConsts.EdgStorePage : GlobalConsts.ChromeWebStorePage).replace("$id", chrome.runtime.id),
-      webStore: !(Build.BTypes & ~BrowserType.Firefox)
-            || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
-          ? trans_("addons") : trans_(IsEdg_ ? "edgestore" : "webstore"),
-      browserHelp: !(Build.BTypes & ~BrowserType.Firefox)
-          || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox ? GlobalConsts.FirefoxHelp as string
-          : Build.BTypes & BrowserType.Chrome && IsEdg_ ? GlobalConsts.EdgHelp
-          : GlobalConsts.ChromeHelp,
       tip: showNames ? trans_("tipClickToCopy")  : "",
       lbPad: showNames ? '\n\t\t<tr><td class="HelpTd TdBottom">&#160;</td></tr>' : ""
     });

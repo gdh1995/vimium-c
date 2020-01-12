@@ -337,7 +337,7 @@ var BgUtils_ = {
     path === "display" && (path = "show");
     if (!(<RegExpOne> /\.\w+$/).test(path)) {
       path = path.toLowerCase();
-      if ((tempStr = Settings_.CONST_.RedirectedUrls_[path]) != null) {
+      if ((tempStr = (Settings_.CONST_.RedirectedUrls_ as SafeDict<string>)[path]) != null) {
         tempStr = path = !tempStr || tempStr[0] === "/" || tempStr[0] === "#"
           ? Settings_.CONST_.HomePage_ + (tempStr.indexOf(".") > 0 ? "/blob/master" + tempStr : tempStr)
           : tempStr;
