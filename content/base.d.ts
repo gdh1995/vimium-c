@@ -50,7 +50,9 @@ type AcceptableClickButtons = kClickButton.none | kClickButton.second | kClickBu
 declare const enum kClickAction {
   none = 0,
   /** should only be used on Firefox */ plainMayOpenManually = 1,
-  forceToOpenInNewTab = 2, newTabFromMode = 4, forceToDblclick = 8,
+  forceToOpenInNewTab = 2, newTabFromMode = 4,
+  // the 1..7 before this line should always mean HTML <a>
+  forceToDblclick = 8,
   MinNotPlainOpenManually = 2, MaxOpenForAnchor = 7,
 }
 
@@ -84,13 +86,16 @@ interface SafeElement extends Element {
   nodeName: string;
   localName: string;
 }
+interface Element { __other: 0 | 1 | 2; }
+interface HTMLElement { __other: 0; }
+interface SVGElement extends SafeElement { __other: 1; }
+interface OtherSafeElement extends SafeElement { __other: 2; }
 type BaseSafeHTMLElement = HTMLElement & SafeElement;
 interface SafeHTMLElement extends BaseSafeHTMLElement {
   readonly innerText: string;
   readonly parentElement: Element | null;
   readonly parentNode: Node | null;
 }
-type SaferType<Ty> = Ty extends HTMLElement ? SafeHTMLElement : Ty extends Element ? SafeElement : Ty;
 interface LockableElement extends SafeHTMLElement {
 }
 
@@ -193,7 +198,8 @@ declare namespace HintsNS {
     /** key */ a: string;
     /** text */ h: HintText | null;
     /** refer */ r: HTMLElementUsingMap | Hint[0] | null;
-    /** zIndex */ i: number;
+    /** score */ i: number;
+    /** zIndex */ z?: number;
   }
 
   interface InputHintItem extends BaseHintItem {
@@ -293,7 +299,7 @@ interface HintOffset {
 }
 
 type HTMLElementUsingMap = HTMLImageElement | HTMLObjectElement;
-type SafeElementForMouse = SafeHTMLElement | SVGElement;
+type SafeElementForMouse = SafeHTMLElement | SVGElement | OtherSafeElement;
 interface Hint {
   [0]: SafeElementForMouse; // element
   [1]: Rect; // bounding rect

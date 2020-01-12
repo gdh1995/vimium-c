@@ -51,10 +51,6 @@ var VDom = {
     return "";
   } : (element: Element): string => "lang" in element ? (element as SafeHTMLElement).localName as string : ""
   ) as (element: Element) => string, // duplicate the signature, for easier F12 in VS Code
-  isAriaNotTrue_ (element: SafeElement, ariaType: kAria): boolean {
-    let s = element.getAttribute(ariaType ? "aria-disabled" : "aria-hidden");
-    return s === null || (!!s && s.toLowerCase() !== "true");
-  },
   isInTouchMode_: Build.BTypes & BrowserType.Chrome ? function (): boolean {
     const viewport = document.querySelector("meta[name=viewport]");
     return !!viewport &&
@@ -599,6 +595,11 @@ var VDom = {
     // because .GetParent_ will only return a real parent, but not a fake <form>.parentNode
     return (pe || VDom.GetParent_(element, PNType.DirectNode)) === root;
   } as (this: void,  element: Element, root?: Element | Document, checkMouseEnter?: 1) => boolean,
+  isStyleVisible_: (element: Element): boolean => getComputedStyle(element).visibility === "visible",
+  isAriaNotTrue_ (element: SafeElement, ariaType: kAria): boolean {
+    let s = element.getAttribute(ariaType ? "aria-disabled" : "aria-hidden");
+    return s === null || (!!s && s.toLowerCase() !== "true");
+  },
   uneditableInputs_: <SafeEnum> { __proto__: null as never,
     button: 1, checkbox: 1, color: 1, file: 1, hidden: 1, //
     image: 1, radio: 1, range: 1, reset: 1, submit: 1

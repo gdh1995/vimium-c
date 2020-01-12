@@ -81,6 +81,10 @@ case "$1" in
     HOME_PAGE=$HOME_PAGE" --start-url $1"
     shift
     ;;
+  localhost)
+    HOME_PAGE=$HOME_PAGE" --start-url http://$1/"
+    shift
+    ;;
   *)
     if test -d "$1" && test -f "$1/manifest.json"; then
       VC_ROOT=$1

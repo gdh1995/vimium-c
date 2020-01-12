@@ -515,31 +515,30 @@ var VHints = {
         && (_this.mode_ > HintMode.min_job - 1 || VDom.isAriaNotTrue_(element, kAria.disabled))
     ) { hints.push([element, tag === "img" ? VDom.getCroppedRect_(element, arr) : arr, type]); }
   },
-  _getClickableInMaybeSVG (hints: Hint[], element: SVGElement | Element): void {
-    type MayBeSVGElement = TypeToAssert<Element, SVGElement, "onmousedown" | "onclick", "tagName">;
-    let anotherEl: MayBeSVGElement;
+  _getClickableInMaybeSVG (hints: Hint[], element: SafeElement & { __other: 1 | 2; }): void {
+    let anotherEl: SVGElement;
     let arr: Rect | null | undefined, s: string | null , type = ClickType.Default;
+    const isSVG = (element as ElementToHTMLorSVG).tabIndex != null;
     { // not HTML*
-      // never accept raw `Element` instances, so that properties like .tabIndex and .dataset are ensured
-      if ((element as ElementToHTMLorSVG).tabIndex != null) { // SVG*
-        // not need to distinguish attrListener and codeListener
+      {
+        /** not use .codeListener, {@see #VHints.deduplicate_} */
         type = VDom.clickable_.has(element)
-            || (!(Build.BTypes & ~BrowserType.Firefox)
+            || isSVG && (!(Build.BTypes & ~BrowserType.Firefox)
                 || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
-                ? ((anotherEl = (element as XrayedObject<Element>).wrappedJSObject || element) as MayBeSVGElement
-                    ).onclick || (anotherEl as MayBeSVGElement).onmousedown
+                ? ((anotherEl = (element as XrayedObject<SVGElement>).wrappedJSObject || element as SVGElement)
+                    ).onclick || anotherEl.onmousedown
                 : element.getAttribute("onclick"))
             || (s = element.getAttribute("role")) && (<RegExpI> /^button$/i).test(s)
             || this.ngEnabled_ && element.getAttribute("ng-click")
             || this.jsaEnabled_ && (s = element.getAttribute("jsaction")) && this.checkJSAction_(s)
           ? ClickType.attrListener
-          : (element as SVGElement).tabIndex >= 0 ? ClickType.tabindex
+          : isSVG && (element as SVGElement).tabIndex >= 0 ? ClickType.tabindex
           : ClickType.Default;
         if (type > ClickType.Default && (arr = VDom.getVisibleClientRect_(element))
             && VDom.isAriaNotTrue_(element as SafeElement, kAria.hidden)
             && (this.mode_ > HintMode.min_job - 1 || VDom.isAriaNotTrue_(element as SafeElement, kAria.disabled))
             ) {
-          hints.push([element as SVGElement, arr, type]);
+          hints.push([element as SVGElement | OtherSafeElement, arr, type]);
         }
       }
     }
@@ -651,11 +650,11 @@ var VHints = {
       h = rect.bottom + (rect.height < 3 ? 3 : 0);
       cr = VDom.cropRectToVisible_(rect.left, rect.top, w, h);
     }
-    if (cr && getComputedStyle(element).visibility === "visible") {
+    if (cr && VDom.isStyleVisible_(element)) {
       hints.push([element, cr, ClickType.Default]);
     }
   },
-  GetImages_ (this: void, hints: Hint[], element: Element): void {
+  GetImages_ (this: void, hints: Hint[], element: SafeHTMLElement): void {
     const tag = element.localName;
     if (tag === "img") {
       VHints._getImagesInImg(hints, element as HTMLImageElement);
@@ -663,17 +662,17 @@ var VHints = {
     }
     let str: string | null, cr: Rect | null;
     if (VHints.mode1_ === HintMode.DOWNLOAD_MEDIA && (tag === "video" || tag === "audio")) {
-      str = (element as HTMLImageElement).currentSrc || (element as HTMLImageElement).src;
+      str = (element as unknown as HTMLImageElement).currentSrc || (element as unknown as HTMLImageElement).src;
     } else {
-      str = (element as SafeHTMLElement).dataset.src || element.getAttribute("href");
+      str = element.dataset.src || element.getAttribute("href");
       if (!VHints.isImageUrl_(str)) {
-        str = (element as SafeHTMLElement).style.backgroundImage as string;
+        str = element.style.backgroundImage as string;
         str = str && (<RegExpI> /^url\(/i).test(str) ? str : "";
       }
     }
     if (str) {
       if (cr = VDom.getVisibleClientRect_(element)) {
-        hints.push([element as SafeHTMLElement, cr, ClickType.Default]);
+        hints.push([element, cr, ClickType.Default]);
       }
     }
   },
@@ -738,7 +737,8 @@ var VHints = {
             break;
           }
         } else if (wantClickable) {
-          a._getClickableInMaybeSVG(output as Exclude<typeof output, SafeHTMLElement[]>, el);
+          a._getClickableInMaybeSVG(output as Exclude<typeof output, SafeHTMLElement[]>
+              , el as (typeof el) & { __other: 1 | 2 });
         }
       }
       if (i >= len) {
@@ -835,7 +835,7 @@ var VHints = {
       notRemoveParents = k === ClickType.classname;
       if (!notRemoveParents) {
         if (k === ClickType.codeListener) {
-          if (s = ((element = list[i][0]) as Exclude<Hint[0], SVGElement>).localName, s === "i") {
+          if (s = ((element = list[i][0]) as SafeHTMLElement).localName, s === "i") {
             if (notRemoveParents
                 = i > 0 && (<RegExpOne> /\b(button|a$)/).test(list[i - 1][0].localName)
                 && !element.innerHTML.trim()
@@ -952,7 +952,7 @@ var VHints = {
         && (rect2 = VDom.getBoundingClientRect_(document.documentElement as HTMLElement))
         && rect.top - rect2.top < 20 && rect.left - rect2.left < 20
         && rect2.right - rect.right < 20 && rect2.bottom - rect.bottom < 20
-        && getComputedStyle(element).visibility === "visible"
+        && VDom.isStyleVisible_(element)
     ) {
       return element as HTMLFrameElement | HTMLIFrameElement;
     }
@@ -1277,7 +1277,8 @@ var VHints = {
     const master = _this._master || _this;
     const r2 = el && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinNo$TimerType$$Fake
                       || el !== TimerType.fake) ? VDom.getBoundingClientRect_(el as HintsNS.LinkEl) : 0,
-    hidden = !r2 || r2.width < 1 && r2.height < 1 || getComputedStyle(el as HintsNS.LinkEl).visibility !== "visible";
+    hidden = !r2 || r2.width < 2 && r2.height < 2
+        || !VDom.isStyleVisible_(el as HintsNS.LinkEl); // use 2px: may be safer
     if (hidden && VDom.lastHovered_ === el) {
       VDom.lastHovered_ = null;
     }
@@ -1386,18 +1387,18 @@ var VHints = {
   },
   /** require `.zIndexes_` is not `0` */
   rotateHints_ (reverse?: boolean) {
-    const a = this, frames = a.frameList_, notUseKeyStatus: boolean = a.useFilter_ || frames.length > 1,
-    saveCache = a.useFilter_ || !a.keyStatus_.keySequence_;
+    const a = this, frames = a.frameList_,
+    saveCache = !a.keyStatus_.keySequence_ && !a.keyStatus_.textSequence_;
     for (const list of frames) {
-      (list.s as typeof a)._rotateHints(notUseKeyStatus ? list.h : a.keyStatus_.hints_, reverse, saveCache);
+      (list.s as typeof a)._rotateHints(list.h, reverse, saveCache);
     }
   },
-  _rotateHints (ref: readonly HintsNS.HintItem[], reverse: boolean | undefined, saveIfNoOverlap: boolean): void {
+  _rotateHints (totalHints: readonly HintsNS.HintItem[], reverse: boolean | undefined, saveIfNoOverlap: boolean): void {
     const a = this;
     let stacks = a.zIndexes_;
     if (!stacks) {
       stacks = [] as HintsNS.Stacks;
-      ref.forEach(a.MakeStacks_, [[], stacks] as [Array<ClientRect | null>, HintsNS.Stacks]);
+      totalHints.forEach(a.MakeStacks_, [[], stacks] as [Array<ClientRect | null>, HintsNS.Stacks]);
       stacks = stacks.filter(stack => stack.length > 1);
       if (stacks.length <= 0) {
         a.zIndexes_ = saveIfNoOverlap ? 0 : null;
@@ -1406,22 +1407,21 @@ var VHints = {
       a.zIndexes_ = stacks;
     }
     for (const stack of stacks) {
-      reverse && stack.reverse();
-      const i = stack[stack.length - 1], max = reverse ? stack[0] : i;
-      let oldI: number = ref[i].i || i;
-      for (const j of stack) {
-        const hint = ref[j], { m: marker_ } = hint, { classList } = marker_, newI = hint.i || j;
-        marker_.style.zIndex = (hint.i = oldI) as number | string as string;
+      for (let length = stack.length, j = reverse ? length - 1 : 0, end = reverse ? -1 : length
+            , max = Math.max.apply(Math, stack)
+            , oldI: number = totalHints[stack[reverse ? 0 : length - 1]].z as number
+          ; j !== end; reverse ? j-- : j++) {
+        const hint = totalHints[stack[j]], { m: { style, classList } } = hint, newI = hint.z as number;
+        style.zIndex = (hint.z = oldI) as number | string as string;
         classList.toggle("OH", oldI < max); classList.toggle("SH", oldI >= max);
         oldI = newI;
       }
-      reverse && stack.reverse();
     }
   },
   MakeStacks_ (this: [Array<ClientRect | null>, HintsNS.Stacks], hint: HintsNS.HintItem, i: number) {
     let rects = this[0];
-    if (hint.m.style.visibility === "hidden") { rects.push(null); return; }
-    if (VHints.useFilter_) { hint.i = 0; }
+    if (hint.m.style.visibility) { rects.push(null); return; }
+    hint.z = hint.z || i + 1;
     const stacks = this[1], m = hint.m.getClientRects()[0];
     rects.push(m);
     let stackForThisMarker = null as HintsNS.Stack | null;
@@ -1452,15 +1452,16 @@ filterEngine_: {
   reForMatch_: null as never as RegExpG & RegExpOne & RegExpSearchable<0>,
   getRe_ (forMatch: BOOL): RegExpG & RegExpOne & RegExpSearchable<0> {
     const chars = VHints.chars_, kNum = "0123456789",
-    accepted_numbers = chars === kNum ? ""
+    accepted_numbers = !forMatch || chars === kNum ? ""
         : !(Build.BTypes & BrowserType.Chrome)
           || Build.MinCVer >= BrowserVer.MinTestedES6Environment
               && Build.MinCVer >= BrowserVer.MinEnsuredES6SpreadOperator
               && Build.MinCVer >= BrowserVer.MinEnsuredES6$String$$StartsWithEndsWithAndRepeatAndIncludes
         ? [... <string[]> <unknown> kNum].filter(ch => !(chars as Ensure<string, "includes">).includes(ch)).join("")
         : kNum.replace(new RegExp(`[${chars.replace(<RegExpG> /\D/g, "")}]`, "g"), ""),
-    accepted_letters = forMatch ? "[^" + GlobalConsts.KeyboardLettersLl : "[^" + GlobalConsts.LettersLlLuAndASCII;
-    return new RegExp(accepted_letters + accepted_numbers + GlobalConsts.KeyboardLettersLo + "]+", "g"
+    accepted_words = forMatch ? "[^" + GlobalConsts.KeyboardLettersLl + accepted_numbers
+        : "[^" + GlobalConsts.LettersLlLuAndOtherASCII;
+    return new RegExp(accepted_words + GlobalConsts.KeyboardLettersLo + "]+", "g"
         ) as RegExpG & RegExpOne & RegExpSearchable<0>;
   },
   GenerateHintStrings_ (this: void, hints: readonly HintsNS.HintItem[]): void {
@@ -1475,9 +1476,10 @@ filterEngine_: {
     }
   },
   generateHintText_ (hint: Hint): HintsNS.HintText {
-    let el = hint[0] as SafeHTMLElement, text: string = "", show = false
-      , localName = "lang" in el ? el.localName : "", ind: number;
-    switch (localName) { // skip SVGElement
+    let el = hint[0], text: string = "", show = false
+      , localName = el.localName, isHTML = "lang" in el
+      , ind: number;
+    switch (isHTML ? localName : "") {
     case "input": case "textarea": case "select":
       let labels = (el as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement).labels;
       if (labels && labels.length > 0
@@ -1509,31 +1511,37 @@ filterEngine_: {
     case "details":
       text = text || "Open"; show = !0;
       break;
-    default:
+    default: // include SVGElement and OtherSafeElement
       if (show = hint[2] > ClickType.MaxNotBox) {
         text = hint[2] > ClickType.frame ? "Scroll" : "Frame";
-      } else if (localName && (text = el.innerText.trim())) {
+      } else if (isHTML && (text = (el as SafeHTMLElement).innerText.trim())) {
         ind = text.indexOf("\n") + 1;
         // tslint:disable-next-line: no-unused-expression
         ind && (ind = text.indexOf("\n", ind)) > 0 ? text = text.slice(0, ind) : 0;
-      } else {
-        if (localName === "a") {
+      } else if (localName === "a" && isHTML) {
           let el2 = el.firstElementChild as Element | null;
           text = el2 && VDom.htmlTag_(el2) === "img"
               ? (el2 as HTMLImageElement).alt || (el2 as HTMLImageElement).title : "";
           show = !!text;
-        }
-        text = text || (localName && el.title);
+      } else if (!isHTML && (el as ElementToHTMLorSVG).tabIndex != null) {
+        // demo: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/text
+        const el2 = localName === "text" ? el as SVGTextElement : el.querySelector("text");
+        text = el2 ? el2.innerHTML : text;
+        show = !!text;
+      } else if (isHTML) { // plain Element
+        // demo: https://developer.mozilla.org/en-US/docs/Web/MathML/Element/mfrac on Firefox
+        text = el.textContent;
       }
+      text = isHTML ? text || (el as SafeHTMLElement).title : text;
       break;
     }
     if (text) {
-      text = text.slice(0, GlobalConsts.MaxLengthOfHintText).trim();
-      if (text && (text[0] === ":" || text.endsWith(":"))) {
-        text = text.replace(<RegExpG> /^[:\s]+|:+$/g, "").trim();
+      text = text.trim().slice(0, GlobalConsts.MaxLengthOfHintText).trim();
+      if (text && text[0] === ":") {
+        text = text.replace(<RegExpOne> /^[:\s]+/, "");
       }
     }
-    return { t: show && text ? ": " + text : text, w: null };
+    return { t: show && text ? ":" + text : text, w: null };
   },
   getMatchingHints_ (keyStatus: HintsNS.KeyStatus, text: string, seq: string
       , inited: 0 | 1 | 2): HintsNS.HintItem | 2 | 0 {
@@ -1545,6 +1553,7 @@ filterEngine_: {
       const t2 = text.trim(), t1 = oldTextSeq.trim();
       keyStatus.textSequence_ = text;
       if (t1 !== t2) {
+        H.zIndexes_ = H.zIndexes_ && null;
         const search = t2.split(" "),
         oldKeySeq = keyStatus.keySequence_,
         oldHints = t2.startsWith(t1) ? hints : fullHints,
@@ -1555,7 +1564,7 @@ filterEngine_: {
         let newLen = 2,
         ind = !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
             && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)
-            ? 0 : hasSearch ? 1 : GlobalConsts.MaxLengthOfHintText + 3;
+            ? 0 : hasSearch ? 1 : GlobalConsts.MaxLengthOfHintText + 1;
         keyStatus.keySequence_ = "";
         if (hasSearch && !fullHints[0].h.w) {
           for (const {h: textHint} of fullHints) {
@@ -1614,16 +1623,17 @@ filterEngine_: {
     }
     if (keyStatus.keySequence_ !== seq) {
       keyStatus.keySequence_ = seq;
+      H.zIndexes_ = H.zIndexes_ && null;
       let index = 0, base = H.chars_.length, last = hints.length;
       for (const ch of seq) { index = index * base + H.chars_.indexOf(ch); }
       if (index * base > last) { return index > last ? 0 : hints[index - 1]; }
       for (const { m: marker, a: key } of hints) {
-        const match = key.startsWith(seq), createEl = VDom.createElement_;
+        const match = key.startsWith(seq);
         marker.style.visibility = match ? "" : "hidden";
         if (match) {
           let child = marker.firstChild as Text | HintsNS.MarkerElement, el: HintsNS.MarkerElement;
           if (child.nodeType === kNode.TEXT_NODE) {
-            el = marker.insertBefore(createEl("span") as HintsNS.MarkerElement, child);
+            el = marker.insertBefore(VDom.createElement_("span") as HintsNS.MarkerElement, child);
             el.className = "MC";
           } else {
             el = child;
@@ -1686,12 +1696,14 @@ filterEngine_: {
         marker.textContent = hint.a;
         right = (hint.h as HintsNS.HintText).t;
         if (!right || right[0] !== ":") { continue; }
-        right = right.replace(exclusionRe = exclusionRe || a.filterEngine_.getRe_(0), " ").trim();
-        right = (hint.h as HintsNS.HintText).t = right !== ":" ? right : "";
+        right = (hint.h as HintsNS.HintText).t = right.slice(1);
+        right = right.replace(exclusionRe = exclusionRe || a.filterEngine_.getRe_(0), " "
+            ).replace(<RegExpOne> /^[^\w\x80-\uffff]+|:[:\s]*$/, "").trim();
         right = right.length > GlobalConsts.MaxLengthOfShownText
             ? right.slice(0, GlobalConsts.MaxLengthOfShownText - 2).trimRight() + "\u2026" // the "\u2026" is wide
             : right;
-        right = (<RegExpOne> /[\w\x80-\uffff]/).test(right) ? right : "";
+        if (!right) { continue; }
+        right = ": " + right;
       } else {
         right = hint.a.slice(-1);
         for (const ch of hint.a.slice(0, -1)) {
@@ -1780,15 +1792,13 @@ filterEngine_: {
     }
     keyStatus.known_ = 0;
     h.hasExecuted_ = 0;
-    if (!useFilter) {
-      h.zIndexes_ = h.zIndexes_ && null;
-    }
     if (doesDetectMatchSingle > 1) {
       for (const hint of hints) { if (hint.a === sequence) { return hint; } }
     }
     if (useFilter) {
       return filterEngine.getMatchingHints_(keyStatus, textSeq, sequence, 2);
     } else {
+      h.zIndexes_ = h.zIndexes_ && null;
       keyStatus.keySequence_ = sequence;
       const notDoSubCheck = !keyStatus.tab_, wanted = notDoSubCheck ? sequence : sequence.slice(0, -1);
       hints = keyStatus.hints_ = (doesDetectMatchSingle ? hints : h.hints_ as readonly HintsNS.HintItem[]
@@ -1912,7 +1922,7 @@ _highlightChild (el: HintsNS.LinkEl, tag: string): 0 | 1 | 2 {
     return 1;
   }
   const core = a.detectUsableChild_(el as HTMLIFrameElement | HTMLFrameElement);
-  el.focus();
+  (el as HTMLIFrameElement | HTMLFrameElement).focus();
   if (!core) {
     VApi.send_(kFgReq.execInChild, {
       u: (el as HTMLIFrameElement | HTMLFrameElement).src,
@@ -1936,8 +1946,7 @@ Modes_: [
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
     VCui.activeEl_ = element;
     VDom.hover_(element, VDom.center_(rect));
-    type || element.tabIndex < 0 ||
-    (<RegExpI> /^i?frame$/).test(VDom.htmlTag_(element)) && element.focus && element.focus();
+    type || element.focus && !(<RegExpI> /^i?frame$/).test(VDom.htmlTag_(element)) && element.focus();
     if (a.mode1_ < HintMode.min_job) { // called from Modes[-1]
       return a.hud_.tip_(kTip.hoverScrollable, 1000);
     }
@@ -1980,14 +1989,14 @@ Modes_: [
   , HintMode.HOVER | HintMode.queue
 ] as HintsNS.ModeOpt,
 [
-  (element: Hint[0]): void => {
+  (element: HintsNS.LinkEl): void => {
     const a = VDom;
     if (a.lastHovered_ !== element) {
       a.hover_(null);
     }
     a.lastHovered_ = element;
     a.hover_(null);
-    if (document.activeElement === element) { element.blur(); }
+    if (document.activeElement === element) { element.blur && element.blur(); }
   }
   , HintMode.UNHOVER, HintMode.UNHOVER | HintMode.queue
 ] as HintsNS.ModeOpt,
@@ -2000,9 +2009,7 @@ Modes_: [
       str = a.getUrlData_(link as HTMLAnchorElement);
       str && (<RegExpI> /^mailto:./).test(str) && (str = str.slice(7).trim());
     }
-    /** Note: SVGElement::dataset is only since `BrowserVer.Min$SVGElement$$dataset` */
-    else if ((str = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$SVGElement$$dataset
-          ?  link.getAttribute("data-vim-text") : (link.dataset as NonNullable<typeof link.dataset>).vimText)
+    else if ((str = link.getAttribute("data-vim-text"))
         && (str = str.trim())) { /* empty */ }
     else {
       const tag = VDom.htmlTag_(link), isChild = a._highlightChild(link, tag);
@@ -2167,7 +2174,7 @@ Modes_: [
   (link, rect): void | false => {
     if (VHints.mode_ < HintMode.min_disable_queue) {
       VDom.view_(link);
-      link.focus();
+      link.focus && link.focus();
       VHints._removeFlash || VCui.flash_(link);
     } else {
       VCui.simulateSelect_(link as HintsNS.InputHintItem["d"], rect, !VHints._removeFlash);
@@ -2217,7 +2224,7 @@ Modes_: [
           ? newTab // need to work around Firefox's popup blocker
             ? kClickAction.plainMayOpenManually | kClickAction.newTabFromMode : kClickAction.plainMayOpenManually
         : kClickAction.none;
-    VCui.click_(link, rect, mask > 0 || link.tabIndex >= 0, {
+    VCui.click_(link, rect, mask > 0 || <number> (link as ElementToHTMLorSVG).tabIndex >= 0, {
       altKey_: !1,
       ctrlKey_: ctrl && !isMac,
       metaKey_: ctrl && isMac,

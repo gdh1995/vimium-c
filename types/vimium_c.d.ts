@@ -466,8 +466,10 @@ declare const enum GlobalConsts {
   EdgHelp = "https://microsoftedgesupport.microsoft.com/hc",
 
   KeyboardLettersLl = "a-z_\xdf-\xfc\u0430-\u045f",
-  LettersLlLuAndASCII = "!-/:-~\xc0-\xfc\u0402-\u045f",
+  LettersLlLuAndOtherASCII = "!-~\xc0-\xfc\u0402-\u045f",
   KeyboardLettersLo = "\xba\u0621-\u064a",
+
+  SelectorPrefixesInPatterns = ".#",
 }
 
 declare const enum kCharCode {

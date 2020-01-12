@@ -1042,7 +1042,7 @@ el0.textContent = (Build.BTypes & BrowserType.Edge
 if (Build.BTypes & BrowserType.Chrome && BG_.IsEdg_) {
   let el = $<EnsuredMountedHTMLElement>("#chromeExtVomnibar");
   el.nextElementSibling.remove();
-  el.parentElement.classList.add("line-1x");
+  el.parentElement.classList.add("line-input");
   el.remove();
   el = $<EnsuredMountedHTMLElement>("#shortcutHelper");
   el.previousElementSibling.textContent = pTrans_("period");

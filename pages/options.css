@@ -255,15 +255,12 @@ input[type=number]::-webkit-inner-spin-button {
   margin-left: 1px;
 }
 input[type=checkbox] {
-  height: 13px;
-  margin: 4px 3px 2px;
+  height: 12px;
+  margin: 1px 3px;
   outline: none;
   padding: 0;
-  vertical-align: bottom;
-  width: 13px;
-}
-input[type=checkbox]:lang(zh) {
-  margin: 3px;
+  vertical-align: text-top;
+  width: 12px;
 }
 input[type=text]:read-only,
 input[type=number]:read-only,
@@ -400,17 +397,14 @@ label:active {
   top: -2px;
   width: 300px;
 }
-.line-1x {
-  top: 5px;
-}
-.line-2x {
-  top: 3px;
-}
-.line-help:lang(zh) {
+.line-help {
   top: -6px;
 }
-.line-1x:lang(zh) {
+.line-input {
   top: 6px;
+}
+.line-2x {
+  top: 0px;
 }
 .line-2x:lang(zh) {
   top: 2px;

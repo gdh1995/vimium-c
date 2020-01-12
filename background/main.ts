@@ -1082,7 +1082,11 @@
       }
       for (let i of patterns) {
         i = i && (i + "").trim();
-        i && p2.push(i.toLowerCase());
+        i && p2.push((!(Build.BTypes & BrowserType.Chrome)
+            || Build.MinCVer >= BrowserVer.MinEnsuredES6$String$$StartsWithEndsWithAndRepeatAndIncludes
+            ? (GlobalConsts.SelectorPrefixesInPatterns as Ensure<string, "includes">).includes(i[0])
+            : GlobalConsts.SelectorPrefixesInPatterns.indexOf(i[0]) >= 0)
+          ? i : i.toLowerCase());
         if (p2.length === GlobalConsts.MaxNumberOfNextPatterns) { break; }
       }
       const maxLens: number[] = p2.map(i => Math.max(i.length + 12, i.length * 4)),
@@ -1921,6 +1925,10 @@
         nameRe = <RegExpG & RegExpSearchable<1>> /\$\{([^}]+)\}/g;
         tabs = tabs.filter(i => i.incognito === incognito);
         tabs.sort((a, b) => (a.windowId - b.windowId || a.index - b.index));
+        if (type === "tab") {
+          const ind = selectFrom(tabs).index, range = getTabRange(ind, tabs.length);
+          tabs = tabs.slice(range[0], range[1]);
+        }
         const data: string[] = tabs.map(i => format.replace(nameRe, (_, s1): string => {
           return decoded && s1 === "url" ? BgUtils_.DecodeURLPart_(i.url, decodeURI)
             : s1 !== "__proto__" && (i as Dict<any>)[s1] || "";

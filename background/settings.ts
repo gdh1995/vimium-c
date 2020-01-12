@@ -636,7 +636,7 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   ( (Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox))
     ? !Build.NativeWordMoveOnFirefox
       // tslint:disable-next-line: no-unused-expression
-      && !((): boolean | void => { try { new RegExp("\\p{L}", "u"); } catch {} })()
+      && !BgUtils_.makeRegexp_("\\p{L}", "u", 0)
     : Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge) ? true
     : Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
       && Build.MinCVer < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
@@ -646,7 +646,7 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
           ? BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp : BrowserVer.MinSelExtendForwardOnlySkipWhitespaces)
         : CurCVer_ < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
           // tslint:disable-next-line: no-unused-expression
-          || !((): boolean | void => { try { new RegExp("\\p{L}", "u"); } catch {} })())
+          || !BgUtils_.makeRegexp_("\\p{L}", "u", 0))
   ) ? Settings_.fetchFile_("words") : (Settings_.CONST_.words = "");
 }
 

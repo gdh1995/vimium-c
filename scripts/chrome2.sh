@@ -79,7 +79,11 @@ case "$1" in
     shift
     ;;
   *://*|about:*|chrome:*)
-    HOME_PAGE=$1
+    HOME_PAGE=$HOME_PAGE" $1"
+    shift
+    ;;
+  localhost)
+    HOME_PAGE=$HOME_PAGE" http://$1/"
     shift
     ;;
   *)

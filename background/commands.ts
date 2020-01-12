@@ -23,10 +23,6 @@ var Commands = {
     try {
       return JSON.parse(val);
     } catch {}
-    if (!val.startsWith('"')) { return val; }
-    try {
-      return JSON.parse(val);
-    } catch {}
     return val;
   },
   makeCommand_ (command: string, options?: CommandsNS.RawOptions | null, details?: CommandsNS.Description
@@ -293,7 +289,7 @@ defaultKeyMappings_:
   " <a-r> " + kCName.reloadTab +
   " <a-t> " + kCName.createTab +
   " <a-c> " + kCName.previousTab +
-  " <a-C> " + kCName.nextTab +
+  " <a-s-c> " + kCName.nextTab +
   " <a-v> " + kCName.nextTab +
   " i " + kCName.enterInsertMode +
   " v " + kCName.enterVisualMode +
@@ -396,7 +392,7 @@ availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeO
   closeTabsOnRight: [ kBgCmd.removeTabsR, 1, 0, { count: 1e6 } ],
   copyCurrentTitle: [ kBgCmd.copyTabInfo, 1, 1, { type: "title" } ],
   copyCurrentUrl: [ kBgCmd.copyTabInfo, 1, 1 ],
-  copyWindowInfo: [ kBgCmd.copyTabInfo, 1, 1, { type: "window" } ],
+  copyWindowInfo: [ kBgCmd.copyTabInfo, 1, 0, { type: "window" } ],
   createTab: [ kBgCmd.createTab, 1, 20 as 0 ],
   debugBackground: [ kBgCmd.openUrl, 1, 1,
     {
