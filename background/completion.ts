@@ -141,7 +141,7 @@ function prepareHtml(sug: Suggestion): void {
   sug.title = cutTitle(sug.title);
   const text = sug.t, str = shortenUrl(text);
   sug.t = text.length !== sug.u.length ? str : "";
-  sug.textSplit = cutUrl(str, getMatchRanges(str), text.length - str.length
+  sug.textSplit = /*#__NOINLINE__*/ cutUrl(str, getMatchRanges(str), text.length - str.length
     , isForAddressBar ? maxChars - 13 - Math.min(sug.title.length, 40) : maxChars);
 }
 function cutTitle(title: string): string {

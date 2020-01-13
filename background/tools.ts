@@ -756,7 +756,6 @@ Settings_.temp_.loadI18nPayload_ = function (): void {
 Settings_.temp_.initing_ |= BackendHandlersNS.kInitStat.others;
 (Backend_.onInit_ as NonNullable<BackendHandlersNS.BackendHandlers["onInit_"]>)();
 
-chrome.extension.isAllowedIncognitoAccess &&
 chrome.extension.isAllowedIncognitoAccess(function (isAllowedAccess): void {
   Settings_.CONST_.DisallowIncognito_ = isAllowedAccess === false;
 });

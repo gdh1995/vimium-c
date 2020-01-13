@@ -641,10 +641,10 @@
     options = cOptions as OpenUrlOptions;
     cOptions = null as never;
     BgUtils_.resetRe_();
-    typeof url !== "string" ? onEvalUrl(workType, url as Urls.SpecialUrl)
+    typeof url !== "string" ? /*#__NOINLINE__*/ onEvalUrl(workType, url as Urls.SpecialUrl)
       // tslint:disable-next-line: no-unused-expression
       : openShowPage(url, reuse, options) ? 0
-      : BgUtils_.isJSUrl_(url) ? openJSUrl(url)
+      : BgUtils_.isJSUrl_(url) ? /*#__NOINLINE__*/ openJSUrl(url)
       : reuse === ReuseType.reuse ? requestHandlers[kFgReq.focusOrLaunch]({ u: url })
       : reuse === ReuseType.current ? safeUpdate(url)
       : tabs ? openUrlInNewTab(url, reuse, options, tabs as [Tab])
@@ -2710,13 +2710,13 @@
     });
   }
   function OnConnect(this: void, port: Frames.Port, type: number): void {
-    const sender = formatPortSender(port), { t: tabId, u: url } = sender
+    const sender = /*#__NOINLINE__*/ formatPortSender(port), { t: tabId, u: url } = sender
       , ref = framesForTab[tabId] as Frames.WritableFrames | undefined
       , isOmni = url === Settings_.cache_.vomnibarPage_f;
     let status: Frames.ValidStatus = Frames.Status.enabled;
     if (type >= PortType.omnibar || isOmni) {
       if (type < PortType.knownStatusBase || isOmni) {
-        if (onOmniConnect(port, tabId, type)) {
+        if (/*#__NOINLINE__*/ onOmniConnect(port, tabId, type)) {
           return;
         }
         sender.f = Frames.Flags.userActed;
