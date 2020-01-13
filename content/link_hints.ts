@@ -2158,7 +2158,7 @@ Modes_: [
     }
     const kDownload = "download", hadNoDownload = !link.hasAttribute(kDownload);
     if (hadNoDownload) {
-      link.download = "";
+      link[kDownload] = "";
     }
     VCui.click_(link, rect, 0, {
       altKey_: !0,

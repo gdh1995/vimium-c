@@ -26,7 +26,7 @@ var VCui = {
       ? root as ShadowRoot : 0, "load",
     function Onload(this: ShadowRoot | Window, e: Event): void {
       if (!VDom) { removeEventListener("load", Onload, true); return; } // safe enough even if reloaded
-      const t = e.target as HTMLElement;
+      const t = e.target as HTMLElement | Document;
       if (t.parentNode === VCui.root_) {
         VKey.Stop_(e); t.onload && t.onload(e);
       }

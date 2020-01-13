@@ -497,7 +497,7 @@ _listen(kOnDomReady, doInit, !0);
           , ((Math.random() * GlobalConsts.SecretRange + GlobalConsts.SecretBase) | 0) + '"');
     }
     VApi.execute_ = execute;
-    setupEventListener(0, kHook, hook, 0);
+    setupEventListener(0, kHook, hook);
   }
   /**
    * According to `V8CodeCache::ProduceCache` and `V8CodeCache::GetCompileOptions`
@@ -533,7 +533,7 @@ _listen(kOnDomReady, doInit, !0);
       }, 0);
     });
     isFirstTime &&
-    setupEventListener(0, "load", delayFindAll, 0);
+    setupEventListener(0, "load", delayFindAll);
     return;
   }
   // else: CSP script-src before C68, CSP sandbox before C68 or JS-disabled-in-CS on C/E

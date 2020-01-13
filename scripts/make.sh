@@ -30,7 +30,7 @@ ver=$(grep -m1 -o '"version":\s*"[0-9\.]*"' ${ZIP_BASE}manifest.json | awk -F '"
 output=$1
 ori_output=$output
 chrome_only=${CHROME_ONLY:-0} # 0: may be; 1: is indeed; 2: is not
-chrome_only=${FOR_EDGE:$chrome_only}
+chrome_only=${FOR_EDGE:-$chrome_only}
 if [ -z "$output" -o -d "$output" ]; then
   output=${output%/}
   [ -z "${output#.}" ] && output=

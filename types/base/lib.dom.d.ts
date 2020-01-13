@@ -1404,6 +1404,7 @@ interface DocumentAttrsToBeDetected {
 
 interface Document extends Node, GlobalEventHandlers, NodeSelector, DocumentEvent, ParentNode, DocumentOrShadowRoot {
     readonly nodeType: kNode.DOCUMENT_NODE | Element | HTMLCollection | Window;
+    readonly parentNode: null;
     /**
       * Sets or gets the URL for the current document. 
       */

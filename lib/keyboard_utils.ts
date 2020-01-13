@@ -129,6 +129,7 @@ var VKey = {
   },
   /**
    * @param target Default to `window`
+   * @param eventType string
    * @param func Default to `VKey.Stop_`
    * @param disable Default to `0`
    * @param activeMode Default to `{passive: true, capture: true}`; `1` means `passive: false`

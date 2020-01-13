@@ -1812,7 +1812,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         }
       };
       D.OnDocLoaded_ = listeners.push.bind(listeners);
-      setupEventListener(0, Name, onLoad, 0);
+      setupEventListener(0, Name, onLoad);
     }
     // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
     hook(HookAction.Install);
