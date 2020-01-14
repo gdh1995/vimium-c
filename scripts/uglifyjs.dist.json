@@ -3,6 +3,7 @@
     "ascii_only": true, // if `false` by default, '\xa0' is replaced with '\xc2\xa0', which is wrong
     "comments": true,
     "keep_quoted_props": false,
+    "preserve_annotations": true,
     "wrap_iife": true,
     "wrap_func_args": false
   },
@@ -22,7 +23,6 @@
     "keep_fargs": false,
     "keep_fnames": "/^(startsWith|endsWith|addEventListener|toString|VC)$/",
     "keep_infinity": false,
-    "longterm_closure_size": 20,
     "loops": true,
     "negate_iife": false,
     "passes": 1,

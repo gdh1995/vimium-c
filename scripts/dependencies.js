@@ -187,18 +187,10 @@ function loadUglifyConfig(path, reload) {
       console.log("Can not read the module of terser.");
     }
     if (ver) {
-      var hasOptionUndeclared = ver >= '4.1.2', has_wrap_func_args = ver >= '4.3';
       if (m) {
-        if (hasOptionUndeclared) {
           if (p.undeclared == null) {
             p.undeclared = true;
           }
-        } else {
-          delete p.undeclared;
-        }
-      }
-      if (!has_wrap_func_args && a.output && a.output.wrap_func_args !== undefined) {
-        delete a.output.wrap_func_args;
       }
     }
     // @ts-ignore

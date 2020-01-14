@@ -774,23 +774,8 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
   if (isJson) {
     stream = stream.pipe(gulpMap(uglifyJson));
   } else {
-    stream = stream.pipe(gulpMap(srcFile => {
-      let text = ToString(srcFile.contents), old = text.length;
-      text = text.replace(/\/\*[#@](__\w+__)\*\//g, "/*!!$1*/ $&");
-      if (text.length !== old) {
-        srcFile.__doubleComments = true;
-        srcFile.contents = ToBuffer(text);
-      }
-    }));
-    stream = stream.pipe(getGulpUglify()(config));
-    stream = stream.pipe(gulpMap(srcFile => {
-      if (!srcFile.__doubleComments) { return; }
-      let text = ToString(srcFile.contents), old = text.length;
-      text = text.replace(/\/\*!!(__\w+__)\*\//g, "/*#$1*/");
-      if (text.length !== old) {
-        srcFile.contents = ToBuffer(text);
-      }
-    }));
+    const anno = !!config.output.preserve_annotations;
+    stream = stream.pipe(getGulpUglify()(anno ? {...config, output: {...config.output, comments: /^[!@#]/}} : config));
     stream = stream.pipe(getGulpUglify()({...config, mangle: null}));
   }
   if (!is_file && new_suffix !== "") {
