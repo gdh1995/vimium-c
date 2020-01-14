@@ -54,9 +54,15 @@ var VFind = {
     a.activeRegexIndex_ = 0;
 
     const el = a.box_ = dom.createElement_("iframe") as typeof VFind.box_, st = el.style;
-    el.className = "R HUD UI" + VDom.cache_.d;
+    el.className = "R HUD UI" + dom.cache_.d;
     st.display = "none"; st.width = "0";
     if (Build.BTypes & ~BrowserType.Firefox && dom.wdZoom_ !== 1) { st.zoom = "" + 1 / dom.wdZoom_; }
+    if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox) {
+      const ratio = devicePixelRatio, n = (4 - 1 / ratio) + "px ";
+      if (ratio > 1) {
+        st.padding = n + n + "0";
+      }
+    }
     el.onload = function (this: HTMLIFrameElement): void { VFind.notDisableScript_() && VFind.onLoad_(1); };
     VKey.pushHandler_(VKey.SuppressMost_, a);
     a.query_ || (a.query0_ = query);
