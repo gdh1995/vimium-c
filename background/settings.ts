@@ -239,7 +239,7 @@ var Settings_ = {
       }
       if ((Build.BTypes & (BrowserType.Chrome | BrowserType.Edge) && Build.MinCVer < BrowserVer.MinCSS$Color$$RRGGBBAA
           && ((!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && OnOther === BrowserType.Edge)
-            || CurCVer_ < BrowserVer.MinCSS$Color$$RRGGBBAA
+            || browserVer < BrowserVer.MinCSS$Color$$RRGGBBAA
           ))) {
         css = css.replace(<RegExpG & RegExpSearchable<0>> /#[\da-f]{8}/gi, function (s: string): string {
           const color = parseInt(s.slice(1), 16),
@@ -249,7 +249,7 @@ var Settings_ = {
       }
       if (!(Build.BTypes & BrowserType.Chrome) || Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome
           || (Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar
-              && CurCVer_ < BrowserVer.MinAbsolutePositionNotCauseScrollbar)) {
+              && browserVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar)) {
         css = css.replace(".LH{", ".LH{box-sizing:border-box;");
       }
       if (!((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)

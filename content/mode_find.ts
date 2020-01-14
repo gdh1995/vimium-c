@@ -16,7 +16,7 @@ var VFind = {
   initialRange_: null as Range | null,
   activeRegexIndex_: 0,
   regexMatches_: null as RegExpMatchArray | null,
-  inShadow_: true,
+  root_: null as ShadowRoot | null,
   box_: null as never as HTMLIFrameElement,
   innerDoc_: null as never as HTMLDocument,
   input_: null as never as SafeHTMLElement,
@@ -63,7 +63,8 @@ var VFind = {
         st.padding = n + n + "0";
       }
     }
-    el.onload = function (this: HTMLIFrameElement): void { VFind.notDisableScript_() && VFind.onLoad_(1); };
+    el.onmousedown = a.OnMousedown_;
+    el.onload = function (this: HTMLIFrameElement): void { VFind.onLoad_(1); };
     VKey.pushHandler_(VKey.SuppressMost_, a);
     a.query_ || (a.query0_ = query);
     a.init_ && a.init_(AdjustType.NotAdjust);
@@ -73,19 +74,20 @@ var VFind = {
   },
   notDisableScript_(): 1 | void {
     try {
-      if (this.box_.contentWindow.document) { return 1; }
+      if (this.innerDoc_ = this.box_.contentDocument as HTMLDocument | null as HTMLDocument | never) {
+        return 1;
+      }
     } catch {}
     this.deactivate_(FindNS.Action.ExitUnexpectedly);
     let b = VVisual;
     b.mode_ ? b.prompt_(kTip.findFrameFail, 2000) : VHud.tip_(kTip.findFrameFail);
   },
   onLoad_ (later?: 1): void {
-    if (!this.isActive_) { return; }
+    if (!this.isActive_ || !VFind.notDisableScript_()) { return; }
     const a = this, box: HTMLIFrameElement = a.box_,
     wnd = box.contentWindow, f = wnd.addEventListener.bind(wnd) as typeof addEventListener,
     onKey = a.onKeydown_.bind(a),
     now = Date.now(), s = VKey.Stop_, t = true;
-    a.innerDoc_ = box.contentDocument as HTMLDocument;
     let tick = 0;
     f("mousedown", a.OnMousedown_, t);
     f("keydown", onKey, t);
@@ -181,7 +183,7 @@ var VFind = {
             || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
                 && Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
         && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-        ? true : (a.inShadow_ = root !== box),
+        ? true : root !== box,
     root2 = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
         && (!(Build.BTypes & BrowserType.Firefox)
             || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
@@ -197,6 +199,7 @@ var VFind = {
                 && Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
         && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
         || inShadow) {
+      a.root_ = root as ShadowRoot;
       // here can not use `box.contentEditable = "true"`, otherwise Backspace will break on Firefox, Win
       box.setAttribute("role", "textbox");
       VKey.SetupEventListener_(root2, "mousedown", a.OnMousedown_, 0, 1);
@@ -222,13 +225,16 @@ var VFind = {
   },
   _onUnexpectedBlur: null as ((event?: Event) => void) | null,
   focus_ (): void {
-    this._active = false;
+    const a = this;
+    a._active = false;
     if (!(Build.BTypes & ~BrowserType.Firefox)
         || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox) {
-      this.box_.contentWindow.focus();
+      a.box_.contentWindow.focus();
     }
-    this.input_.focus();
-    this._active = true;
+    // fix that: search "a" in VFind, Ctrl+F, "a", Esc, select normal text using mouse, `/` can not refocus
+    (a.root_ || a.innerDoc_).activeElement === a.input_ && a.input_.blur();
+    a.input_.focus();
+    a._active = true;
   },
   _active: false,
   setFirstQuery_ (query: string): void {
@@ -293,7 +299,7 @@ var VFind = {
     _this.parsedQuery_ = _this.query_ = _this.query0_ = "";
     _this.historyIndex_ = _this.matchCount_ = 0;
     VCui.styleFind_ = _this._onUnexpectedBlur =
-    _this.box_ = _this.innerDoc_ = _this.input_ = _this.countEl_ = _this.parsedRegexp_ =
+    _this.box_ = _this.innerDoc_ = _this.root_ = _this.input_ = _this.countEl_ = _this.parsedRegexp_ =
     _this.initialRange_ = _this.regexMatches_ = _this.coords_ = null as never;
   },
   OnUnload_ (this: void, e: Event): void {
@@ -303,12 +309,14 @@ var VFind = {
     f.isActive_ && f.deactivate_(FindNS.Action.ExitUnexpectedly);
   },
   OnMousedown_ (this: Window | HTMLElement, event: MouseEventToPrevent): void {
-    const target = event.target as Element;
-    if (target !== VFind.input_ && (!VFind.inShadow_ || target.parentNode === this)
+    const target = event.target as Element, a = VFind;
+    if (a && target !== a.input_ && (!a.root_ || target.parentNode === this || target === this)
         && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
             ? event.isTrusted : event.isTrusted !== false)) {
       VKey.prevent_(event);
-      VFind.focus_();
+      a.focus_();
+      const text = a.input_.firstChild as Text;
+      text && a.innerDoc_.getSelection().collapse(text, target !== a.input_.previousSibling ? text.data.length : 0);
     }
   },
   _OnPaste: Build.BTypes & ~BrowserType.Chrome ? function (this: Window, event: ClipboardEvent & ToPrevent): void {
@@ -470,16 +478,15 @@ var VFind = {
       VApi.send_(kFgReq.findQuery, { i: ind }, this.SetQuery_);
       return;
     }
-    const wnd = this.box_.contentWindow;
-    wnd.document.execCommand("undo", false);
-    wnd.getSelection().collapseToEnd();
+    this.innerDoc_.execCommand("undo", false);
+    this.innerDoc_.getSelection().collapseToEnd();
   },
   SetQuery_ (this: void, query: string): void {
-    let _this = VFind, doc: Document | null;
-    if (query === _this.query_ || !(doc = _this.box_.contentDocument)) { return; }
+    let _this = VFind;
+    if (query === _this.query_ || !_this.innerDoc_) { return; }
     if (!query && _this.historyIndex_ > 0) { --_this.historyIndex_; return; }
-    doc.execCommand("selectAll", false);
-    doc.execCommand("insertText", false, query.replace(<RegExpOne> /^ /, "\xa0"));
+    _this.innerDoc_.execCommand("selectAll", false);
+    _this.innerDoc_.execCommand("insertText", false, query.replace(<RegExpOne> /^ /, "\xa0"));
     _this.OnInput_();
   },
   saveQuery_ (): void {
@@ -741,10 +748,10 @@ var VFind = {
     sin.sheet && (sin.sheet.disabled = disable);
   },
   getCurrentRange_ (): void {
-    let sel = VCui.getSelected_()[0], range: Range;
+    let sel = VCui.getSelected_()[0], range: Range, doc = document;
     if (!sel.rangeCount) {
-      range = document.createRange();
-      range.setStart(document.body || document.documentElement as Element, 0);
+      range = doc.createRange();
+      range.setStart(doc.body || doc.documentElement as Element, 0);
     } else {
       range = sel.getRangeAt(0);
       // Note: `range.collapse` doesn't work if selection is inside a ShadowRoot (tested on C72 stable)
