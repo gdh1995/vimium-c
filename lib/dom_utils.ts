@@ -745,7 +745,9 @@ var VDom = {
   lastHovered_: null as SafeElementForMouse | null,
   /** note: will NOT skip even if newEl == @lastHovered */
   hover_: function (this: {}, newEl?: SafeElementForMouse | null, center?: Point2D): void {
-    const canDispatchMove = center && document.elementFromPoint(center[0], center[1]) === newEl,
+    // if center is affected by zoom / transform, then still dispatch mousemove
+    const elFromPoint = center && document.elementFromPoint(center[0], center[1]),
+    canDispatchMove:boolean = !newEl || elFromPoint === newEl || !elFromPoint || !newEl.contains(elFromPoint),
     a = VDom as typeof VDom, isInDOM = a.IsInDOM_, Null = null;
     let last = a.lastHovered_;
     if (last && isInDOM(last)) {
