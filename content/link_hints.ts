@@ -1768,9 +1768,11 @@ filterEngine_: {
       return filterEngine.activeHint_ as NonNullable<typeof filterEngine.activeHint_>;
     } else if (isSpace) { // then useFilter is true
       textSeq = textSeq0 + " ";
-    } else if ((keyChar = VKey.char_(e)) && keyChar.length < 2
+    } else if (!(useFilter && e.ctrlKey)
+        && (keyChar = VKey.char_(e)) && keyChar.length < 2
         && (keyChar = h.doesMapKey_ ? VApi.mapKey_(keyChar, e, keyChar) : keyChar).length < 2) {
       keyChar = useFilter ? keyChar : keyChar.toUpperCase();
+      useFilter && h.ResetMode_();
       if (h.chars_.indexOf(keyChar) >= 0) {
         sequence += keyChar;
         doesDetectMatchSingle = useFilter || sequence.length < h.maxPrefixLen_ ? 1 : 2;
