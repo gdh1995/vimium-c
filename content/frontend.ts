@@ -705,7 +705,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         }
         let keyStat: KeyStat;
         if (keyCode === kKeyCode.shiftKey || keep && (keyCode === kKeyCode.altKey
-            || keyCode === kKeyCode.ctrlKey || keyCode === kKeyCode.metaKey)) { /* empty */ }
+            || keyCode === kKeyCode.ctrlKey
+            || keyCode > kKeyCode.maxNotMetaKey && keyCode < kKeyCode.minNotMetaKeyOrMenu)) { /* empty */ }
         else if (event.repeat) { return HandlerResult.Nothing; }
         else if (keep ? isEscape(event) || (
             keyCode === kKeyCode.enter && (keyStat = K.getKeyStat_(event),

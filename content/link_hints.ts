@@ -1076,11 +1076,12 @@ var VHints = {
       }
       a.ResetMode_(1);
       setTimeout(a._reinit.bind(a, null, null, null), 0);
-    } else if ((i < kKeyCode.maxAcsKeys + 1 && i > kKeyCode.minAcsKeys - 1 || i === kKeyCode.metaKey && !VDom.cache_.o)
+    } else if ((i < kKeyCode.maxAcsKeys + 1 && i > kKeyCode.minAcsKeys - 1
+            || !VDom.cache_.o && (i > kKeyCode.maxNotMetaKey && i < kKeyCode.minNotMetaKeyOrMenu))
         && (!VDom.cache_.a || event.location !== VDom.cache_.a)) {
       const mode = a.mode_, mode1 = a.mode1_,
       mode2 = mode1 > HintMode.min_copying - 1 && mode1 < HintMode.max_copying + 1
-        ? i === kKeyCode.ctrlKey || i === kKeyCode.metaKey ? (mode1 | HintMode.queue) ^ HintMode.list
+        ? i === kKeyCode.ctrlKey || i > kKeyCode.maxNotMetaKey ? (mode1 | HintMode.queue) ^ HintMode.list
           : i === kKeyCode.altKey ? (mode & ~HintMode.list) ^ HintMode.queue
           : mode
         : i === kKeyCode.altKey
@@ -1136,7 +1137,8 @@ var VHints = {
     let a = VHints, d: KeydownCacheArray;
     if (a.lastMode_ !== a.mode_ && a.mode_ < HintMode.min_disable_queue) {
       d = VApi.keydownEvents_();
-      if (d[kKeyCode.ctrlKey] || d[kKeyCode.metaKey] || d[kKeyCode.shiftKey] || d[kKeyCode.altKey]) {
+      if (d[kKeyCode.ctrlKey] || d[kKeyCode.metaKey] || d[kKeyCode.shiftKey] || d[kKeyCode.altKey]
+          || d[kKeyCode.osRightMac] || d[kKeyCode.osRightNonMac]) {
         a.setMode_(a.lastMode_, silent);
       }
     }

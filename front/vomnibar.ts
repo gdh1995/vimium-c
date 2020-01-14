@@ -431,11 +431,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         : true) {
       let {keyCode: i} = event, keyId: kCharCode;
       key = i > kKeyCode.space - 1 && i < kKeyCode.minNotDelete ? this._keyNames[i - kKeyCode.space]
-        : i < kKeyCode.minNotDelete || i === kKeyCode.osRight
+        : i < kKeyCode.minNotDelete || i === kKeyCode.osRightNonMac
         ? i === kKeyCode.backspace ? kChar.backspace
             : i === kKeyCode.esc ? kChar.esc
             : i === kKeyCode.tab ? kChar.tab : i === kKeyCode.enter ? kChar.enter
-            : (i === kKeyCode.osRight || i > kKeyCode.minAcsKeys - 1 && i < kKeyCode.maxAcsKeys + 1)
+            : (i === kKeyCode.osRightNonMac || i > kKeyCode.minAcsKeys - 1 && i < kKeyCode.maxAcsKeys + 1)
               && Vomnibar_.mapModifier_ && Vomnibar_.mapModifier_ === event.location ? kChar.Modifier
             : kChar.None
         : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn ? "f" + (i - kKeyCode.maxNotFn)
@@ -511,7 +511,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     key = n !== kKeyCode.ime ? a.mappedKey_(event) : "";
     a.lastKey_ = n;
     if (!key) {
-      a.keyResult_ = focused && n !== kKeyCode.menuKey && n !== kKeyCode.ime
+      a.keyResult_ = focused && !(n === kKeyCode.menuKey && a.os_) && n !== kKeyCode.ime
           ? HandlerResult.Suppress : HandlerResult.Nothing;
       return;
     }
@@ -586,7 +586,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
 
     let ind: number;
     if (focused || char.length !== 1 || isNaN(ind = parseInt(char, 16))) {
-      a.keyResult_ = focused && n !== kKeyCode.menuKey ? HandlerResult.Suppress : HandlerResult.Nothing;
+      a.keyResult_ = focused && !(n === kKeyCode.menuKey && a.os_) ? HandlerResult.Suppress : HandlerResult.Nothing;
     } else {
       ind = ind || 10;
       if (ind <= a.completions_.length) {
@@ -701,11 +701,12 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? event.isTrusted
         : event.isTrusted !== false
     ) { // call onEnter once an enter / control key is up
-      Vomnibar_.lastKey_ = kKeyCode.None;
       window.onkeyup = null as never;
+      Vomnibar_.lastKey_ = kKeyCode.None;
       Vomnibar_.onEnter_((event.altKey || keyCode === kKeyCode.altKey ? KeyStat.altKey : 0)
           + (event.ctrlKey || keyCode === kKeyCode.ctrlKey ? KeyStat.ctrlKey : 0)
-          + (event.metaKey || keyCode === kKeyCode.metaKey ? KeyStat.metaKey : 0)
+          + (event.metaKey || keyCode > kKeyCode.maxNotMetaKey && keyCode < kKeyCode.minNotMetaKeyOrMenu
+              ? KeyStat.metaKey : 0)
           + (event.shiftKey || keyCode === kKeyCode.shiftKey ? KeyStat.shiftKey : 0));
     }
   },

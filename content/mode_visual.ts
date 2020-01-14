@@ -150,7 +150,8 @@ var VVisual = {
   selType_: null as never as () => SelType,
   /** @unknown_di_result */
   onKeydown_ (event: KeyboardEventToPrevent): HandlerResult {
-    const { keyCode } = event, a = this, doPass = keyCode === kKeyCode.ime || keyCode === kKeyCode.menuKey,
+    const { keyCode } = event, a = this,
+    doPass = keyCode === kKeyCode.ime || keyCode === kKeyCode.menuKey && !!VDom.cache_.o,
     srcChar = doPass ? "" : VKey.char_(event), key = srcChar && VApi.mapKey_(srcChar, event),
     char = key.length > 1 ? key.slice(key[2] === "-" ? 3 : 1, -1) : key;
     if (!key || key === "<esc>" || key === "<c-[>") {

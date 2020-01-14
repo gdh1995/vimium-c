@@ -16,7 +16,6 @@
     "evaluate": true,
     "keep_fargs": false,
     "keep_fnames": true,
-    "longterm_closure_size": 20,
     "passes": 1,
     "properties": true,
     "pure_getters": true,

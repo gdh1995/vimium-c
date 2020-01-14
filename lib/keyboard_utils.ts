@@ -17,10 +17,10 @@ var VKey = {
   getKeyName_ (event: Pick<KeyboardEvent, "key" | "keyCode" | "location">): kChar {
     let {keyCode: i} = event, s: string | undefined;
     return i > kKeyCode.space - 1 && i < kKeyCode.minNotDelete ? this._keyNames[i - kKeyCode.space]
-      : i < kKeyCode.minNotDelete || i === kKeyCode.osRight ? (i === kKeyCode.backspace ? kChar.backspace
+      : i < kKeyCode.minNotDelete || i === kKeyCode.osRightNonMac ? (i === kKeyCode.backspace ? kChar.backspace
           : i === kKeyCode.esc ? kChar.esc
           : i === kKeyCode.tab ? kChar.tab : i === kKeyCode.enter ? kChar.enter
-          : (i === kKeyCode.osRight || i > kKeyCode.minAcsKeys - 1 && i < kKeyCode.maxAcsKeys + 1)
+          : (i === kKeyCode.osRightNonMac || i > kKeyCode.minAcsKeys - 1 && i < kKeyCode.maxAcsKeys + 1)
             && this.cache_.a && this.cache_.a === event.location ? kChar.Modifier
           : kChar.None
         )
