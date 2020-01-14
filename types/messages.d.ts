@@ -269,6 +269,7 @@ interface CmdOptions {
     /* return to view port */ r: boolean;
     /* auto use selected text */ s: boolean;
     /** findCSS */ f: FindCSS | null;
+    /** use post mode on esc */ p: boolean;
   };
   [kFgCmd.goToMarks]: {
     /** local */ l?: true;

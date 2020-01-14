@@ -12,6 +12,7 @@ var VFind = {
   wholeWord_: false,
   hasResults_: false,
   matchCount_: 0,
+  postOnEsc_: true,
   coords_: null as null | MarksNS.ScrollInfo,
   initialRange_: null as Range | null,
   activeRegexIndex_: 0,
@@ -44,6 +45,7 @@ var VFind = {
         a.coords_ = [scrollX, scrollY];
       }
     }
+    a.postOnEsc_ = options.p;
     if (a.isActive_) {
       VHud.hide_(TimerType.noTimer);
       return a.setFirstQuery_(query);
@@ -292,7 +294,7 @@ var VFind = {
     const _this = VFind;
     _this.coords_ && VMarks.ScrollTo_(_this.coords_);
     _this.hasResults_ =
-    _this.isActive_ = _this._small = _this._active = _this.notEmpty_ = false;
+    _this.isActive_ = _this._small = _this._active = _this.notEmpty_ = _this.postOnEsc_ = false;
     VKey.removeHandler_(_this);
     _this.box_ && _this.box_.remove();
     if (_this.box_ === VDom.lastHovered_) { VDom.lastHovered_ = null; }
@@ -407,24 +409,26 @@ var VFind = {
    */
   deactivate_(i: FindNS.Action): void {
     let a = this, sin = a.styleIn_, noStyle = !sin || !sin.parentNode, hasResult = a.hasResults_
+      , visualMode = VVisual.mode_
+      , maxNotRunPost = a.postOnEsc_ ? FindNS.Action.ExitAndReFocus - 1 : FindNS.Action.ExitToPostMode - 1
       , el: SafeElement | null | undefined, el2: Element | null;
     i === FindNS.Action.ExitNoAnyFocus || focus();
     a.clean_();
-    if (i !== FindNS.Action.ExitUnexpectedly && i !== FindNS.Action.ExitNoFocus
-        && i !== FindNS.Action.ExitNoAnyFocus) {
+    if (i > FindNS.Action.MaxExitButNoWork) {
       el = VDom.getSelectionFocusEdge_(VCui.getSelected_()[0], 1);
       el && (Build.BTypes & ~BrowserType.Firefox ? (el as ElementToHTMLorSVG).tabIndex != null : el.focus) &&
       (el as Ensure<SafeElement, "focus">).focus();
     }
-    if ((i === FindNS.Action.ExitAndReFocus || !hasResult || VVisual.mode_) && !noStyle) {
+    if ((i === FindNS.Action.ExitAndReFocus || !hasResult || visualMode) && !noStyle) {
       a.ToggleStyle_(1);
       a.restoreSelection_(true);
     }
-    if (VVisual.mode_) {
-      return VVisual.activate_(1, VKey.safer_<CmdOptions[kFgCmd.visualMode]>({
+    if (visualMode) {
+      VVisual.activate_(1, VKey.safer_<CmdOptions[kFgCmd.visualMode]>({
         m: VisualModeNS.Mode.Visual,
         r: true
       }));
+      return;
     }
     if (i > FindNS.Action.MaxExitButNoWork && hasResult && (!el || el !== VApi.lock_())) {
       let container = a.focusFoundLinkIfAny_();
@@ -439,7 +443,9 @@ var VFind = {
       }
     }
     VCui.toggleSelectStyle_(0);
-    if (i === FindNS.Action.ExitToPostMode) { return a.postMode_.activate_(); }
+    if (i > maxNotRunPost) {
+      a.postMode_.activate_();
+    }
   },
   // @see https://bugs.chromium.org/p/chromium/issues/detail?id=594613
 /** ScrollIntoView to notify it's `<tab>`'s current target since Min$ScrollIntoView$SetTabNavigationNode (C51)
@@ -458,14 +464,14 @@ var VFind = {
     oldPos && VMarks.ScrollTo_(oldPos);
   },
   /** return an element if no <a> else null */
-  focusFoundLinkIfAny_ (): SafeElement | null {
+  focusFoundLinkIfAny_ (): SafeElement | null | void {
     let cur = VCui.GetSelectionParent_unsafe_();
     Build.BTypes & ~BrowserType.Firefox && (cur = VDom.SafeEl_(cur));
     for (let i = 0, el: Element | null = cur; el && el !== document.body && i++ < 5;
         el = VDom.GetParent_(el, PNType.RevealSlotAndGotoParent)) {
       if (VDom.htmlTag_(el) === "a") {
         (el as HTMLAnchorElement).focus();
-        return null;
+        return;
       }
     }
     return cur as SafeElement | null;

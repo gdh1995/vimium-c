@@ -214,9 +214,9 @@ declare namespace FindNS {
   const enum Action {
     PassDirectly = -1,
     DoNothing = 0, Exit, ExitNoAnyFocus, ExitNoFocus, ExitUnexpectedly,
-    ExitToPostMode, ExitAndReFocus,
-    MaxExitButNoWork = ExitUnexpectedly, MinExitAndWork = ExitToPostMode,
-    CtrlDelete = ExitAndReFocus + 1, MinNotExit = CtrlDelete,
+    MaxExitButNoWork = ExitUnexpectedly, MinExitAndWork,
+    ExitAndReFocus = MinExitAndWork, ExitToPostMode,
+    MinNotExit, CtrlDelete = MinNotExit,
   }
   interface ExecuteOptions extends Partial<Pick<CmdOptions[kFgCmd.findMode], "n">> {
     noColor?: boolean;

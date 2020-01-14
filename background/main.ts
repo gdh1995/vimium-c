@@ -1210,6 +1210,7 @@
         f: findCSS,
         r: cOptions.returnToViewport === true,
         s: !nth && absRepeat < 2 && !!cOptions.selected,
+        p: !!cOptions.postOnEsc,
         q: leave || cOptions.last ? FindModeHistory_.query_(sender.a, "", nth < 0 ? -nth : nth) : ""
       }});
     },
