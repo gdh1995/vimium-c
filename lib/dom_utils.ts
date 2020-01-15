@@ -310,7 +310,7 @@ var VDom = {
     return Build.BTypes & ~BrowserType.Firefox ? Element.prototype.getBoundingClientRect.call(el)
       : el.getBoundingClientRect();
   },
-  getVisibleClientRect_ (element: Element, el_style?: CSSStyleDeclaration): Rect | null {
+  getVisibleClientRect_ (element: Element, el_style?: CSSStyleDeclaration | null): Rect | null {
     const arr = Build.BTypes & ~BrowserType.Firefox ? Element.prototype.getClientRects.call(element)
                 : element.getClientRects();
     let cr: Rect | null, style: CSSStyleDeclaration | null, _ref: HTMLCollection | undefined
@@ -838,7 +838,7 @@ var VDom = {
 
   /** rect section */
 
-  center_ (rect?: Rect | null): Point2D {
+  center_ (rect: Rect | null): Point2D {
     let zoom = Build.BTypes & ~BrowserType.Firefox ? this.docZoom_ * this.bZoom_ / 2 : 0.5;
     rect = rect && this.cropRectToVisible_(rect.l, rect.t, rect.r, rect.b) || rect;
     return rect ? [((rect.l + rect.r) * zoom) | 0, ((rect.t + rect.b) * zoom) | 0] : [0, 0];

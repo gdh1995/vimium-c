@@ -420,11 +420,11 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
   },
   scrolled_: 0,
   /** @NEED_SAFE_ELEMENTS */
-  shouldScroll_need_safe_ (element: SafeElement, di: ScrollByY, amount?: number): -1 | 0 | 1 {
+  shouldScroll_need_safe_ (element: SafeElement, di: ScrollByY, amount: number): -1 | 0 | 1 {
     const st = getComputedStyle(element);
     return (di ? st.overflowY : st.overflowX) === "hidden" || st.display === "none" || st.visibility !== "visible" ? -1
       : <BOOL> +this._doesScroll(element, di
-                  , amount != null ? amount : +!(di ? element.scrollTop : element.scrollLeft));
+                  , amount || +!(di ? element.scrollTop : element.scrollLeft));
   },
   suppressScroll_ (): void {
     if (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome

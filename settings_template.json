@@ -112,7 +112,7 @@
 		"map Pm passNextKey normal",
 		"map <a-m> toggleMuteTab",
 		"",
-		"map / enterFindMode",
+		"map / enterFindMode postOnEsc",
 		"map . performFind",
 		"map , performBackwardsFind",
 		"map <a-.> performAnotherFind",

@@ -508,9 +508,9 @@ var VHints = {
               || element.hasAttribute("aria-selected") ? ClickType.classname : ClickType.Default);
     }
     if ((isClickable || type !== ClickType.Default)
-        && (arr = arr || VDom.getVisibleClientRect_(element))
+        && (arr = arr || VDom.getVisibleClientRect_(element, null))
         && (type < ClickType.scrollX
-          || VSc.shouldScroll_need_safe_(element, type - ClickType.scrollX as 0 | 1) > 0)
+          || VSc.shouldScroll_need_safe_(element, type - ClickType.scrollX as ScrollByY, 0) > 0)
         && VDom.isAriaNotTrue_(element, kAria.hidden)
         && (_this.mode_ > HintMode.min_job - 1 || VDom.isAriaNotTrue_(element, kAria.disabled))
     ) { hints.push([element, tag === "img" ? VDom.getCroppedRect_(element, arr) : arr, type]); }
@@ -534,7 +534,7 @@ var VHints = {
           ? ClickType.attrListener
           : isSVG && (element as SVGElement).tabIndex >= 0 ? ClickType.tabindex
           : ClickType.Default;
-        if (type > ClickType.Default && (arr = VDom.getVisibleClientRect_(element))
+        if (type > ClickType.Default && (arr = VDom.getVisibleClientRect_(element, null))
             && VDom.isAriaNotTrue_(element as SafeElement, kAria.hidden)
             && (this.mode_ > HintMode.min_job - 1 || VDom.isAriaNotTrue_(element as SafeElement, kAria.disabled))
             ) {
