@@ -228,7 +228,7 @@ listen = _call.bind<(this: EventTarget,
 rEL = removeEventListener, clearTimeout_ = clearTimeout,
 kVOnClick = InnerConsts.kVOnClick,
 kEventName2 = kVOnClick + BuildStr.RandomName2,
-kOnDomReady = "DOMContentLoaded",
+kOnDomReady = "DOMContentLoaded", kFunc = "function",
 StringIndexOf = kOnDomReady.indexOf, StringSubstr = kOnDomReady.substr,
 decryptFromVerifier = (func: InnerVerifier | unknown): string => {
   const str = call(_toString, func as InnerVerifier), offset = call(StringIndexOf, str, kMarkToVerify);
@@ -285,7 +285,7 @@ hooks = {
           // note: window.history is mutable on C35, so only these can be used: top,window,location,document
           && a && !(a as Window).window && (a as Node).nodeType === kNode.ELEMENT_NODE) {
       toRegister.p(a as Element);
-      timer = timer || setTimeout_(next, GlobalConsts.ExtendClick_DelayToStartIteration);
+      timer = timer || (queueMicroTask_(delayToStartIteration), 1);
     }
     // returns void: https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/events/event_target.idl
   }
@@ -327,6 +327,9 @@ unsafeDispatchCounter = 0,
 allNodesInDocument = null as HTMLCollectionOf<Element> | null,
 allNodesForDetached = null as HTMLCollectionOf<Element> | null,
 isReRegistering: BOOL | boolean = 0,
+// To avoid a host script detect Vimum C by code like:
+// ` a1 = setTimeout(()=>{}); $0.addEventListener('click', ()=>{}); a2=setTimeout(()=>{}); [a1, a2] `
+delayToStartIteration = () => { setTimeout_(next, GlobalConsts.ExtendClick_DelayToStartIteration); },
 next = function (): void {
   const len = toRegister.length,
   start = len > (Build.NDEBUG ? InnerConsts.MaxElementsInOneTickRelease : InnerConsts.MaxElementsInOneTickDebug)
@@ -345,7 +348,16 @@ next = function (): void {
   allNodesInDocument = allNodesForDetached = null;
 }
 , root: HTMLDivElement, timer = setTimeout_(doInit, InnerConsts.DelayToWaitDomReady)
+, queueMicroTask_: (callback: () => void) => void =
+    !(Build.BTypes & ~BrowserType.ChromeOrFirefox) && Build.MinCVer >= BrowserVer.Min$queueMicrotask
+    ? queueMicrotask : Build.BTypes & ~BrowserType.Edge ? (window as any).queueMicrotask : 0 as unknown as any
 ;
+if (!(Build.BTypes & ~BrowserType.Edge)
+    || (Build.BTypes & ~BrowserType.ChromeOrFirefox || Build.MinCVer < BrowserVer.Min$queueMicrotask)
+        && typeof queueMicroTask_ !== kFunc) {
+  queueMicroTask_ = Promise.resolve() as any;
+  queueMicroTask_ = (queueMicroTask_ as any as Promise<void>).then.bind(queueMicroTask_ as any as Promise<void>);
+}
 function prepareRegister(this: void, element: Element): void {
   if (contains(element)) {
     pushInDocument(
@@ -427,7 +439,7 @@ function doRegister(fromAttrs: BOOL): void {
   }
 }
 function safeReRegister(element: Element, doc1: Document): void {
-  const localAEL = doc1.addEventListener, localREL = doc1.removeEventListener, kFunc = "function";
+  const localAEL = doc1.addEventListener, localREL = doc1.removeEventListener;
   // tslint:disable-next-line: triple-equals
   if (typeof localAEL == kFunc && typeof localREL == kFunc && localAEL !== myAEL) {
     isReRegistering = 1;
@@ -561,7 +573,9 @@ _listen(kOnDomReady, doInit, !0);
     const cb = () => func(TimerType.fake);
     const rIC = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? requestIdleCallback : 0 as const;
     // in case there's `$("#requestIdleCallback")`
-    return timeout > 19
+    return Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome && !VDom.allowRAF_
+      ? (Promise.resolve().then(cb), 1)
+      : timeout > 19
       && (Build.MinCVer >= BrowserVer.MinEnsured$requestIdleCallback || rIC)
       ? ((Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? rIC : requestIdleCallback
           ) as RequestIdleCallback)(cb, { timeout })
