@@ -765,7 +765,6 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
   var stdConfig = loadUglifyConfig(!!nameCache);
   if (nameCache) {
     stdConfig.nameCache = nameCache;
-    patchGulpUglify();
   }
   if (!isJson) {
     stream = stream.pipe(gulpMap(beforeUglify));
@@ -1341,25 +1340,6 @@ function getGulpUglify() {
     uglify,
     logger
   );
-}
-
-var _gulpUglifyPatched = false;
-function patchGulpUglify() {
-  if (_gulpUglifyPatched) { return; }
-  var path = "node_modules/gulp-uglify/lib/minify.js";
-  var info = {};
-  try {
-    var minify_tmpl = readFile(path, info);
-    if (! /nameCache\s*=/.test(minify_tmpl)) {
-      minify_tmpl = minify_tmpl.replace(/\b(\w+)\s?=\s?setup\(([^)]+)\)(.*?);/
-          , "$1 = setup($2)$3;\n      $1.nameCache = ($2).nameCache || null;");
-      fs.writeFileSync(path, minify_tmpl);
-      print("Patch gulp-uglify: succeed");
-    }
-  } catch (e) {
-    logger.error("Error: Failed to patch gulp-uglify: " + e);
-  }
-  _gulpUglifyPatched = true;
 }
 
 function loadUglifyConfig(reload) {

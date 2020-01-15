@@ -24,7 +24,7 @@
     "gulp-some": "*",
     "gulp-sourcemaps": "*",
     "gulp-typescript": "*",
-    "gulp-uglify": ">=3",
+    "gulp-uglify": ">=3.0.2",
     "seedrandom": ">=3.0.1",
     "terser": "^4.6.3",
     "tslint": "^5.19.0",
