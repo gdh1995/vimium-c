@@ -54,7 +54,7 @@
     "chrome-latest": "bash -c \"BUILD_MinCVer=73 BUILD_BTypes=1 BUILD_NDEBUG=1 gulp dist\"",
     "chromium": "npm run chrome",
     "firefox": "bash -c \"BUILD_MinFFVer=63 BUILD_PContentSettings=0 BUILD_BTypes=2 NEED_COMMIT=1 gulp dist && IN_DIST=1 ./scripts/make.sh\"",
-    "edge-c": "bash -c \"BUILD_MinCVer=73 BUILD_BTypes=1 BUILD_EdgeC=1 NEED_COMMIT=1 gulp dist && IN_DIST=1 FOR_EDGE=1 ./scripts/make.sh\"",
+    "edge-c": "bash -c \"BUILD_MinCVer=73 BUILD_BTypes=1 BUILD_EdgeC=1 NEED_COMMIT=1 gulp dist && IN_DIST=1 BUILD_EdgeC=1 ./scripts/make.sh\"",
     "edge-i": "npm run edge-c",
     "edge-insider": "npm run edge-c",
     "edge-e": "npm run latest-edge",

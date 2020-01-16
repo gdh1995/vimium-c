@@ -969,7 +969,7 @@ declare const enum BrowserVer {
   /** @todo: trace https://bugs.chromium.org/p/chromium/issues/detail?id=968651&can=2&q=reduced-motion%20change */
   MinMediaChangeEventsOnBackgroundPage = 99,
   MinNo$TimerType$$Fake = 999,
-  assumedVer = 999,
+  assumedVer = 998,
 }
 declare const enum FirefoxBrowserVer {
   MinSupported = 63,

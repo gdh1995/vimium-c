@@ -30,7 +30,7 @@ ver=$(grep -m1 -o '"version":\s*"[0-9\.]*"' ${ZIP_BASE}manifest.json | awk -F '"
 output=$1
 ori_output=$output
 chrome_only=${CHROME_ONLY:-0} # 0: may be; 1: is indeed; 2: is not
-chrome_only=${FOR_EDGE:-$chrome_only}
+chrome_only=${BUILD_EdgeC:-$chrome_only}
 if [ -z "$output" -o -d "$output" ]; then
   output=${output%/}
   [ -z "${output#.}" ] && output=
@@ -40,7 +40,7 @@ if [ -z "$output" -o -d "$output" ]; then
     if [ -n "$ori_output" ]; then :
     elif bool "$WITH_MAP"; then
       ver=${ver}-debug
-    elif test "$FOR_EDGE" == 1; then
+    elif test "$BUILD_EdgeC" == 1; then
       ver=${ver}-edge
     elif test -f "$ZIP_BASE/.build/.chrome.build"; then
       ver=${ver}-chrome

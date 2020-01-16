@@ -25,8 +25,8 @@ Vimium C requires these permissions:
 * **`webNavigation`**: to match an incoming URL, confirming whether Vimium C should be enabled or disabled on the page.
 * **clipboard read+write & browsing activity**: to add shortcuts for copying and pasting the page title/URL, link
   text/href, and the like.
-* **`contentSettings`**: to toggle your browser's content settings. For example, displaying your preferred typeface, or
-  a larger font size, on selected websites.
+* **`contentSettings`**: to toggle your browser's content settings. For example, turn on/off images, or JavaScript,
+  on selected websites.
 * **`notifications`**: to show a notification whenever Vimium C is upgraded.
 * **`sessions`**: to allow you to restore closed tabs. This functionality requires Chrome 37+ or Firefox.
 * **`storage`**: its syncing functionality is **not in use** by default. However, if you enable "`Sync settings with
@@ -39,11 +39,11 @@ Note:
 * Vimium C never deletes any browser history item, except on explicit user requests (such as <kbd>Shift+Delete</kbd>).
 
 
-Further Information
+Other Information
 ===================
 
 Vimium C formerly overrode the "newtab" browser URL, to provide a better user experience on the `chrome://newtab` page.
-That behavior was reversed in version 1.77.0, released in Sep 2019; Vimium C no longer overrides this setting. If you'd
+That behavior was reversed in version 1.77.0, released in Sep 2019: Vimium C no longer overrides this setting. If you'd
 like to restore the previous behavior, we recommend [NewTab
 Adapter](https://github.com/gdh1995/vimium-c-helpers/tree/master/newtab#readme).
 

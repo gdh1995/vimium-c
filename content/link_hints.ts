@@ -1509,9 +1509,9 @@ filterEngine_: {
       break;
     case "img":
       text = (el as HTMLImageElement).alt || (el as HTMLImageElement).title;
-      // no break;
+      break;
     case "details":
-      text = text || "Open"; show = !0;
+      text = "Open"; show = !0;
       break;
     default: // include SVGElement and OtherSafeElement
       if (show = hint[2] > ClickType.MaxNotBox) {
@@ -1524,12 +1524,12 @@ filterEngine_: {
           let el2 = el.firstElementChild as Element | null;
           text = el2 && VDom.htmlTag_(el2) === "img"
               ? (el2 as HTMLImageElement).alt || (el2 as HTMLImageElement).title : "";
-          show = !!text;
+          show = !0;
       } else if (!isHTML && (el as ElementToHTMLorSVG).tabIndex != null) {
         // demo: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/text
         const el2 = localName === "text" ? el as SVGTextElement : el.querySelector("text");
-        text = el2 ? el2.innerHTML : text;
-        show = !!text;
+        text = el2 ? el2.textContent : text;
+        show = el2 !== el;
       } else if (isHTML) { // plain Element
         // demo: https://developer.mozilla.org/en-US/docs/Web/MathML/Element/mfrac on Firefox
         text = el.textContent;

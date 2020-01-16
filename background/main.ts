@@ -209,7 +209,7 @@
     return pos === "before" ? tab.index : pos === "start" || pos === "begin" ? 0
       : pos !== "end" ? tab.index + 1
       : Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & BrowserType.Firefox) || OnOther & BrowserType.Firefox)
-        && openerTabId ? 1e4
+        && openerTabId ? 3e4
       : undefined;
   }
   function makeWindow(this: void, option: chrome.windows.CreateData, state?: chrome.windows.ValidStates | ""

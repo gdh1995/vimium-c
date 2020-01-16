@@ -6,10 +6,10 @@
 [![版本：1.79.3](https://img.shields.io/badge/版本-1.79.3-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 **在 [Chrome 网上应用店](
-  https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg/reviews
+  https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg
   ) /
 [Firefox 附加组件](
-  https://addons.mozilla.org/firefox/addon/vimium-c/
+  https://addons.mozilla.org/zh-CN/firefox/addon/vimium-c/
   ) /
 [MS Edge 插件商店](
   https://microsoftedge.microsoft.com/addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo
