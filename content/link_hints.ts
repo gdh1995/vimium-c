@@ -518,12 +518,12 @@ var VHints = {
   _getClickableInMaybeSVG (hints: Hint[], element: SafeElement & { __other: 1 | 2; }): void {
     let anotherEl: SVGElement;
     let arr: Rect | null | undefined, s: string | null , type = ClickType.Default;
-    const isSVG = (element as ElementToHTMLorSVG).tabIndex != null;
+    const tabIndex = (element as ElementToHTMLorSVG).tabIndex;
     { // not HTML*
       {
         /** not use .codeListener, {@see #VHints.deduplicate_} */
         type = VDom.clickable_.has(element)
-            || isSVG && (!(Build.BTypes & ~BrowserType.Firefox)
+            || tabIndex != null && (!(Build.BTypes & ~BrowserType.Firefox)
                 || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
                 ? ((anotherEl = (element as XrayedObject<SVGElement>).wrappedJSObject || element as SVGElement)
                     ).onclick || anotherEl.onmousedown
@@ -532,7 +532,7 @@ var VHints = {
             || this.ngEnabled_ && element.getAttribute("ng-click")
             || this.jsaEnabled_ && (s = element.getAttribute("jsaction")) && this.checkJSAction_(s)
           ? ClickType.attrListener
-          : isSVG && (element as SVGElement).tabIndex >= 0 ? ClickType.tabindex
+          : tabIndex != null && tabIndex >= 0 ? element.localName === "a" ? ClickType.attrListener : ClickType.tabindex
           : ClickType.Default;
         if (type > ClickType.Default && (arr = VDom.getVisibleClientRect_(element, null))
             && VDom.isAriaNotTrue_(element as SafeElement, kAria.hidden)
@@ -1525,14 +1525,10 @@ filterEngine_: {
           text = el2 && VDom.htmlTag_(el2) === "img"
               ? (el2 as HTMLImageElement).alt || (el2 as HTMLImageElement).title : "";
           show = !0;
-      } else if (!isHTML && (el as ElementToHTMLorSVG).tabIndex != null) {
-        // demo: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/text
-        const el2 = localName === "text" ? el as SVGTextElement : el.querySelector("text");
-        text = el2 ? el2.textContent : text;
-        show = el2 !== el;
-      } else if (isHTML) { // plain Element
+      } else if (!isHTML) { // SVG elements or plain `Element` nodes
+        // SVG: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/text
         // demo: https://developer.mozilla.org/en-US/docs/Web/MathML/Element/mfrac on Firefox
-        text = el.textContent;
+        text = el.textContent.replace(<RegExpG> /\s{2}/g, " ");
       }
       text = isHTML ? text || (el as SafeHTMLElement).title : text;
       break;
@@ -1947,7 +1943,7 @@ Modes_: [
   (element, rect): void => {
     const a = VHints, type = VDom.getEditableType_<0>(element), toggleMap = a.options_.toggle;
     const exit: HandlerNS.Handler<any> = event => {
-      VKey.removeHandler_(a);
+      VKey.removeHandler_(exit);
       if (VKey.isEscape_(event) && !VApi.lock_()) {
         VDom.hover_();
         return HandlerResult.Prevent;
