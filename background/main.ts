@@ -1916,7 +1916,8 @@
       }
       // include those hidden on Firefox
       chrome.tabs.query(type === "browser" ? {windowType: "normal"}
-          : {active: type !== "window" || void 0, currentWindow: true}, (tabs): void => {
+          : { active: type !== "window" && (type !== "tab" || cRepeat === 1 || cRepeat === -1) || void 0,
+              currentWindow: true }, (tabs): void => {
         if (!type || type === "title" || type === "frame" || type === "url") {
           requestHandlers[kFgReq.copy]({ u: type === "title" ? tabs[0].title : tabs[0].url, d: decoded });
           return;
@@ -1935,7 +1936,7 @@
             : s1 !== "__proto__" && (i as Dict<any>)[s1] || "";
         }));
         BgUtils_.copy_(data, cOptions.join);
-        Backend_.showHUD_(type === "tab" ? data[0] : trans_("copiedWndInfo"), true);
+        Backend_.showHUD_(type === "tab" && data.length === 1 ? data[0] : trans_("copiedWndInfo"), true);
       });
     },
     /* kBgCmd.clearFindHistory: */ function (this: void): void {
