@@ -1956,7 +1956,7 @@
       }
       // include those hidden on Firefox
       chrome.tabs.query(type === "browser" ? {windowType: "normal"}
-          : { active: type !== "window" && (type !== "tab" || cRepeat === 1 || cRepeat === -1) || void 0,
+          : { active: type !== "window" && (type !== "tab" || abs(cRepeat) < 2) || void 0,
               currentWindow: true }, (tabs): void => {
         if (!type || type === "title" || type === "frame" || type === "url") {
           requestHandlers[kFgReq.copy]({
@@ -1966,18 +1966,19 @@
         const incognito = cPort ? cPort.s.a : TabRecency_.incognito_ === IncognitoType.true,
         format = "" + (cOptions.format || "${title}: ${url}"),
         nameRe = <RegExpG & RegExpSearchable<1>> /\$\{([^}]+)\}/g;
-        tabs = tabs.filter(i => i.incognito === incognito);
-        tabs.sort((a, b) => (a.windowId - b.windowId || a.index - b.index));
         if (type === "tab") {
-          const ind = selectFrom(tabs).index, range = getTabRange(ind, tabs.length);
+          const ind = tabs.length < 2 ? 0 : selectFrom(tabs).index, range = getTabRange(ind, tabs.length);
           tabs = tabs.slice(range[0], range[1]);
+        } else {
+          tabs = tabs.filter(i => i.incognito === incognito);
+          tabs.sort((a, b) => (a.windowId - b.windowId || a.index - b.index));
         }
         const data: string[] = tabs.map(i => format.replace(nameRe, (_, s1): string => {
           return decoded && s1 === "url" ? BgUtils_.DecodeURLPart_(i.url, 1)
             : s1 !== "__proto__" && (i as Dict<any>)[s1] || "";
         }));
         data[0] = BgUtils_.copy_(data, cOptions.join);
-        Backend_.showHUD_(type === "tab" && data.length === 1 ? data[0] : trans_("copiedWndInfo"), 1);
+        Backend_.showHUD_(type === "tab" && data.length < 2 ? data[0] : trans_("copiedWndInfo"), 1);
       });
     },
     /* kBgCmd.clearFindHistory: */ function (this: void): void {
@@ -3051,7 +3052,7 @@
           N: kBgReq.showHUD,
           S: ensureInnerCSS(cPort),
           t: message,
-          c: isCopy
+          c: isCopy as BgReq[kBgReq.showHUD]["c"] as undefined
         })) {
         cPort = null as never;
       }

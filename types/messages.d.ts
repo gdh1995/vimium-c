@@ -95,11 +95,13 @@ interface BgReq {
     /** mappedKeys */ m: SafeDict<string> | null;
     /** keyMap */ k: KeyMap;
   };
-  [kBgReq.showHUD]: {
+  [kBgReq.showHUD]: ({
     /** text */ t?: string;
-    /** isCopy */ c?: 1 | undefined;
-    /** findCSS */ f?: FindCSS;
-  } & Req.baseBg<kBgReq.showHUD> & Partial<BgCSSReq>;
+    /** isCopy */ c?: undefined;
+  } | {
+    /** text */ t: string;
+    /** isCopy */ c: 1;
+  }) & {/** findCSS */ f?: FindCSS;} & Req.baseBg<kBgReq.showHUD> & Partial<BgCSSReq>;
   [kBgReq.focusFrame]: {
     /** mask */ m: FrameMaskType;
     /** key */ k: kKeyCode;

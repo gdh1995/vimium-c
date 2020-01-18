@@ -57,7 +57,7 @@ declare namespace HintsNS {
     readonly hints_: unknown;
     keyCode_: kKeyCode;
     collectFrameHints_: unknown;
-    render_ (hints: readonly HintItem[], arr: ViewBox, hud: VHUDTy): void;
+    render_ (hints: readonly HintItem[], arr: ViewBox, hud: VHUDTy, api: VApiTy): void;
     execute_ (hint: HintItem, event?: HandlerNS.Event): void;
     clean_ (keepHudOrEvent?: BOOL | Event, suppressTimeout?: number): void;
   }
@@ -73,7 +73,6 @@ declare namespace HintsNS {
     onKeydown_ (event: KeyboardEventToPrevent): HandlerResult;
     _reinit (slave?: BaseHinter | null, lastEl?: LinkEl | null, rect?: Rect | null): void;
     resetHints_ (): void;
-    keydownEvents_ (this: void): Pick<VApiTy, "keydownEvents_"> | KeydownCacheArray;
     onFrameUnload_ (slave: HintsNS.Slave): void;
     _setupCheck (slave?: BaseHinter | null, el?: HintsNS.LinkEl | null, r?: Rect | null): void;
   }
@@ -144,6 +143,7 @@ var VHints = {
   kEditableSelector_: "input,textarea,[contenteditable]" as const,
   _master: null as HintsNS.Master | null,
   hud_: null as never as VHUDTy,
+  api_: null as never as VApiTy,
   _wrap: !(Build.BTypes & BrowserType.Firefox) ? 0 as never
       : <T extends object> (obj: T): T => (obj as XrayedObject<T>).wrappedJSObject || obj,
   /** return whether the element's VHints is not accessible */
@@ -224,9 +224,10 @@ var VHints = {
     useFilter ? a.filterEngine_.getMatchingHints_(a.keyStatus_, "", "", 0) : a.initAlphabetEngine_(allHints);
     a.renderMarkers_(allHints);
     a.hud_ = VHud;
+    a.api_ = VApi;
     a.setMode_(a.mode_);
     for (const frame of frameList) {
-      (frame.s.render_ as typeof a.render_)(frame.h, frame.v, VHud);
+      (frame.s.render_ as typeof a.render_)(frame.h, frame.v, VHud, VApi);
     }
   },
   collectFrameHints_ (count: number, options: FgOptions, chars: string, useFilter: boolean, outerView: Rect | null
@@ -257,17 +258,19 @@ var VHints = {
     frameInfo.h = hintItems;
     frameInfo.v = view;
   },
-  render_ (hints: readonly HintsNS.HintItem[], arr: ViewBox, hud: VHUDTy): void {
+  render_ (hints: readonly HintsNS.HintItem[], arr: ViewBox, hud: VHUDTy, api: VApiTy): void {
     const a = this, master = a._master || a;
     if (a.box_) { a.box_.remove(); a.box_ = null; }
     a.hud_ = Build.BTypes & BrowserType.Firefox ? a._wrap(hud) : hud;
+    a.api_ = Build.BTypes & BrowserType.Firefox ? a._wrap(api) : api;
     VCui.ensureBorder_(VDom.wdZoom_ / VDom.dScale_);
     if (hints.length) {
       a.box_ = VCui.addElementList_(hints, arr, (master as typeof a).dialogMode_);
     } else if (a === master) {
       VCui.adjust_();
     }
-    VApi.keydownEvents_((master.keydownEvents_ as typeof a.keydownEvents_)());
+    VApi.keydownEvents_(Build.BTypes & BrowserType.Firefox ? (master as typeof a).api_.keydownEvents_()
+        : (master as typeof a).api_);
     VApi.onWndBlur_(master.ResetMode_ as typeof a.ResetMode_);
     VKey.removeHandler_(a);
     VKey.pushHandler_(a.onKeydown_, a);
@@ -1020,12 +1023,12 @@ var VHints = {
     }
     return visibleElements.reverse();
   },
-  keydownEvents_: () => Build.BTypes & BrowserType.Firefox ? VApi.keydownEvents_() : VApi,
   onKeydown_ (event: KeyboardEventToPrevent): HandlerResult {
     const a = this;
     let matchedHint: ReturnType<typeof VHints.matchHintsByKey_>, i: number;
     if (a._master) {
-      VApi.keydownEvents_((a._master.keydownEvents_ as typeof a.keydownEvents_)());
+      VApi.keydownEvents_(Build.BTypes & BrowserType.Firefox ? (a._master as typeof a).api_.keydownEvents_()
+          : (a._master as typeof a).api_);
       return (a._master.onKeydown_ as typeof a.onKeydown_)(event);
     } else if (Build.BTypes & BrowserType.Chrome && a._onWaitingKey) {
       a._onWaitingKey(event);
@@ -1180,7 +1183,8 @@ var VHints = {
     const a = this, master = a._master, masterOrA = master || a, keyStatus = masterOrA.keyStatus_;
     let rect: Rect | null | undefined, clickEl: HintsNS.LinkEl | null = hint.d;
     if (master) {
-      VApi.keydownEvents_((master.keydownEvents_ as typeof a.keydownEvents_)());
+      VApi.keydownEvents_(Build.BTypes & BrowserType.Firefox ? (master as typeof a).api_.keydownEvents_()
+          : (master as typeof a).api_);
       a.setMode_(master.mode_ as typeof a.mode_, 1);
     }
     if (event) {
@@ -1336,7 +1340,7 @@ var VHints = {
     suppressTimeout != null && VKey.suppressTail_(suppressTimeout);
     VApi.onWndBlur_(null);
     a._removeFlash && a._removeFlash();
-    a._removeFlash = a.hud_ =
+    a._removeFlash = a.hud_ = a.api_ =
     a.options_ = a.modeOpt_ = null as never;
     a.lastMode_ = a.mode_ = a.mode1_ = a.count_ =
     a.maxLeft_ = a.maxTop_ = a.maxRight_ =
@@ -1884,7 +1888,7 @@ openUrl_ (url: string, incognito?: boolean): void {
     k: kw != null ? kw + "" : ""
   };
   incognito && (opt.i = incognito);
-  VApi.post_(opt);
+  this.api_.post_(opt);
 },
 detectUsableChild_ (el: HTMLIFrameElement | HTMLFrameElement
     ): ContentWindowCore & Ensure<ContentWindowCore, "VApi"> | null {
@@ -2078,7 +2082,7 @@ Modes_: [
       lastYanked.push(str);
       a.hud_.copied_(`[${lastYanked.length}] ` + str);
     }
-    VApi.post_({
+    a.api_.post_({
       H: kFgReq.copy,
       j: a.options_.join,
       s: lastYanked || str

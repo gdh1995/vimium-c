@@ -1316,11 +1316,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         }
       }
       // tslint:disable-next-line: no-unused-expression
-      req.t
-      ? req.c
+      req.c
         ? VVisual.mode_ ? VVisual.prompt_(kTip.copiedIs, 2000, [HUD.copied_(req.t, "", 1)])
           : HUD.copied_(req.t)
-        : HUD.tip_(kTip.raw, 0, [req.t])
+        : req.t ? HUD.tip_(kTip.raw, 0, [req.t])
       : 0;
     },
     /* kBgReq.count: */ function (request: BgReq[kBgReq.count]): void {
