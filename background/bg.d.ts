@@ -582,9 +582,9 @@ declare namespace CommandsNS {
     [kCName.closeOtherTabs]: kBgCmd.removeTabsR;
     [kCName.closeTabsOnLeft]: kBgCmd.removeTabsR;
     [kCName.closeTabsOnRight]: kBgCmd.removeTabsR;
-    [kCName.copyCurrentTitle]: kBgCmd.copyTabInfo;
-    [kCName.copyCurrentUrl]: kBgCmd.copyTabInfo;
-    [kCName.copyWindowInfo]: kBgCmd.copyTabInfo;
+    [kCName.copyCurrentTitle]: kBgCmd.copyWindowInfo;
+    [kCName.copyCurrentUrl]: kBgCmd.copyWindowInfo;
+    [kCName.copyWindowInfo]: kBgCmd.copyWindowInfo;
     [kCName.createTab]: kBgCmd.createTab;
     [kCName.debugBackground]: kBgCmd.openUrl;
     [kCName.discardTab]: kBgCmd.discardTab;

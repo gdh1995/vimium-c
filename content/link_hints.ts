@@ -1528,7 +1528,7 @@ filterEngine_: {
       } else if (!isHTML) { // SVG elements or plain `Element` nodes
         // SVG: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/text
         // demo: https://developer.mozilla.org/en-US/docs/Web/MathML/Element/mfrac on Firefox
-        text = el.textContent.replace(<RegExpG> /\s{2}/g, " ");
+        text = el.textContent.replace(<RegExpG> /\s{2,}/g, " ");
       }
       text = isHTML ? text || (el as SafeHTMLElement).title : text;
       break;

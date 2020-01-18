@@ -110,7 +110,7 @@
       time = now;
       return secret;
     };
-  })();
+  })(), abs = Math.abs;
   function setupSingletonCmdTimer(newTimer: number): void {
     if (gCmdTimer) {
       clearTimeout(gCmdTimer);
@@ -411,9 +411,9 @@
     if (extraCount) { count += count > 0 ? extraCount : -extraCount; }
     const end = current + count, pos = count > 0;
     return end <= total && end > -2 ? pos ? [current, end] : [end + 1, current + 1] // normal range
-      : !cOptions.limited && Math.abs(count) < (countToAutoLimitBeforeScale || total
+      : !cOptions.limited && abs(count) < (countToAutoLimitBeforeScale || total
           ) * GlobalConsts.ThresholdToAutoLimitTabOperation
-        ? Math.abs(count) < total ? pos ? [total - count, total] : [0, -count] // go forward and backward
+        ? abs(count) < total ? pos ? [total - count, total] : [0, -count] // go forward and backward
         : [0, total] // all
       : pos ? [current, total] : [0, current + 1] // limited
       ;
@@ -436,7 +436,7 @@
       return;
     }
     const now = Date.now(), result = window.confirm(msg);
-    return Math.abs(Date.now() - now) > 9 ? result ? count : 0
+    return abs(Date.now() - now) > 9 ? result ? count : 0
         : (Build.NDEBUG || console.log("A confirmation dialog may fail in showing."), 1);
   }
   function onConfirm(response: Exclude<FgReq[kFgReq.cmd]["r"], null | undefined | 0>): void {
@@ -1538,12 +1538,12 @@
       const count = cRepeat, len = tabs.length;
       let cur: Tab | undefined, index = cOptions.absolute
         ? count > 0 ? Math.min(len, count) - 1 : Math.max(0, len + count)
-        : Math.abs(count) > tabs.length * 2 ? (count > 0 ? -1 : 0)
-        : (cur = selectFrom(tabs, 1)).index + count;
+        : abs(count) > tabs.length * 2 ? (count > 0 ? -1 : 0)
+        : (cur = Build.BTypes & BrowserType.Firefox ? selectFrom(tabs, 1) : selectFrom(tabs)).index + count;
       index = (index >= 0 ? 0 : len) + (index % len);
       let toSelect: Tab = tabs[index];
       if (toSelect.pinned && count < 0 && cOptions.noPinned) {
-        let curIndex = (cur || selectFrom(tabs, 1)).index;
+        let curIndex = (cur || (Build.BTypes & BrowserType.Firefox ? selectFrom(tabs, 1) : selectFrom(tabs))).index;
         if (curIndex > index && !tabs[curIndex - 1].pinned) {
           while (tabs[index].pinned) { index++; }
           toSelect = tabs[index];
@@ -1638,7 +1638,7 @@
         return complainNoSession();
       }
       let count = cRepeat;
-      if (count < 2 && count > -2 && (cPort ? cPort.s.a : TabRecency_.incognito_ === IncognitoType.true)) {
+      if (abs(count) < 2 && (cPort ? cPort.s.a : TabRecency_.incognito_ === IncognitoType.true)) {
         return Backend_.showHUD_(trans_("notRestoreIfIncog"));
       }
       const limit = chrome.sessions.MAX_SESSION_RESULTS;
@@ -1673,8 +1673,9 @@
           && CurCVer_ < BrowserVer.Min$tabs$$discard) {
         Backend_.showHUD_(trans_("noDiscardIfOld", [BrowserVer.Min$tabs$$discard]));
       }
-      let current = selectFrom(tabs, 1).index, end = Math.max(0, Math.min(current + cRepeat, tabs.length - 1)),
-      count = Math.abs(end - current), step = end > current ? 1 : -1;
+      let current = (Build.BTypes & BrowserType.Firefox ? selectFrom(tabs, 1) : selectFrom(tabs)).index
+        , end = Math.max(0, Math.min(current + cRepeat, tabs.length - 1)),
+      count = abs(end - current), step = end > current ? 1 : -1;
       if (count > 20) {
         if (Build.BTypes & ~BrowserType.Chrome) {
           if (cNeedConfirm) {
@@ -1743,7 +1744,7 @@
     /* kBgCmd.togglePinTab: */ function (this: void, tabs: Tab[]): void {
       const tab = selectFrom(tabs), pin = !tab.pinned, action = {pinned: pin}, offset = pin ? 0 : 1;
       let skipped = 0;
-      if (Math.abs(cRepeat) > 1 && pin) {
+      if (abs(cRepeat) > 1 && pin) {
         while (tabs[skipped].pinned) { skipped++; }
       }
       const range = getTabRange(tab.index, tabs.length - skipped, tabs.length);
@@ -1848,7 +1849,7 @@
       }
     },
     /* kBgCmd.reloadGivenTab: */ function (): void {
-      if (cRepeat < 2 && cRepeat > -2) {
+      if (abs(cRepeat) < 2) {
         let reloadProperties = { bypassCache: (cOptions.hard || cOptions.bypassCache) === true };
         chrome.tabs.reload(reloadProperties);
         return;
@@ -1920,7 +1921,7 @@
         : Math.max(0, tabs.length + cRepeat)];
       tab && selectTab(tab.id);
     },
-    /* kBgCmd.copyTabInfo: */ function (this: void): void {
+    /* kBgCmd.copyWindowInfo: */ function (this: void): void {
       let decoded = !!(cOptions.decoded || cOptions.decode), type = cOptions.type as string | undefined;
       if (type === "frame" && cPort) {
         requireURL({ H: kFgReq.copy, u: "" as "url", d: decoded });
@@ -2027,12 +2028,12 @@
               || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
               ? [0.3, 0.5, 0.67, 0.8, 0.9, 1, 1.1, 1.2, 1.33, 1.5, 1.7, 2, 2.4, 3]
               : [0.25, 1 / 3, 0.5, 2 / 3, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4, 5];
-          for (let ind = 0, d2 = 0; ind < steps.length && (d2 = m.abs(steps[ind] - curZoom)) < delta; ind++) {
+          for (let ind = 0, d2 = 0; ind < steps.length && (d2 = abs(steps[ind] - curZoom)) < delta; ind++) {
             nearest = ind; delta = d2;
           }
           newZoom = steps[nearest + cRepeat < 0 ? 0 : m.min(nearest + cRepeat, steps.length - 1)];
         }
-        if (m.abs(newZoom - curZoom) > 0.005) {
+        if (abs(newZoom - curZoom) > 0.005) {
           chrome.tabs.setZoom(newZoom);
         }
       });
@@ -2058,11 +2059,11 @@
         if (!overriddenCount) {
           cKey = lastKey;
           cPort = port;
-          confirm_(registryEntry.command_, Math.abs(cRepeat = count), onLargeCountConfirmed.bind(registryEntry));
+          confirm_(registryEntry.command_, abs(cRepeat = count), onLargeCountConfirmed.bind(registryEntry));
           return;
         }
       } else {
-        count = (confirm_(registryEntry.command_, Math.abs(count)) as number) * (count < 0 ? -1 : 1);
+        count = (confirm_(registryEntry.command_, abs(count)) as number) * (count < 0 ? -1 : 1);
       }
       if (!count) { return; }
     } else { count = count || 1; }
