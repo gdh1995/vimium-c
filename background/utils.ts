@@ -361,8 +361,13 @@ var BgUtils_ = {
   evalVimiumUrl_: function (this: {}, path: string, workType?: Urls.WorkType
       , onlyOnce?: boolean): Urls.Url | null {
     const a = this as typeof BgUtils_;
-    let ind: number, cmd: string, arr: string[], obj: { u: string } | null, res: Urls.Url | string[];
+    let ind: number, cmd: string, arr: string[], obj: { u: string } | null
+      , res: Urls.Url | string[] | Promise<string | null> | null;
     workType = (workType as Urls.WorkType) | 0;
+    if (workType > Urls.WorkType.ActIfNoSideEffects - 1 && path === "paste") {
+      res = BgUtils_.paste_();
+      return res instanceof Promise ? res.then<Urls.PasteEvalResult>(s => [s || "", "paste"]) : [res || "", path];
+    }
     if (workType < Urls.WorkType.ValidNormal || !(cmd = path = path.trim()) || (ind = path.indexOf(" ")) <= 0
         || !(<RegExpI> /^[a-z][\da-z\-]*(?:\.[a-z][\da-z\-]*)*$/i).test(cmd = path.slice(0, ind).toLowerCase())
         || (<RegExpI> /\.(?:css|html|js)$/i).test(cmd)) {
@@ -401,7 +406,7 @@ var BgUtils_ = {
         return res.then(function (arr1): Urls.CopyEvalResult {
           let path2 = arr1[0] || (arr1[2] || "");
           path2 = path2 instanceof Array ? path2.join(" ") : path2;
-          BgUtils_.copy_(path2);
+          path2 = BgUtils_.copy_(path2);
           return [path2, "copy"];
         });
       } else {
@@ -411,7 +416,7 @@ var BgUtils_ = {
       }
       // no break;
     case "c": case "cp": case "copy": // here `typeof path` must be `string`
-      BgUtils_.copy_(path);
+      path = BgUtils_.copy_(path);
       return [path, "copy"];
     } }
     switch (cmd) {
@@ -469,7 +474,8 @@ var BgUtils_ = {
     }
     return result;
   },
-  copy_ (this: void, _s: string | string[], _j?: FgReq[kFgReq.copy]["j"]): void | Promise<void> { /* empty */ },
+  copy_ (this: void, _s: string | string[], _j?: FgReq[kFgReq.copy]["j"]): string { return ""; /* empty */ },
+  paste_: (() => "") as (this: void) => string | Promise<string | null> | null,
   require_ <K extends SettingsNS.DynamicFiles> (name: K): Promise<NonNullable<Window[K]>> {
     type T = NonNullable<Window[K]>;
     type P = Promise<T>;

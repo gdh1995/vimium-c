@@ -56,8 +56,9 @@
   }
   interface OpenUrlOptions {
     incognito?: boolean;
+    /** default to false */ opener?: boolean;
+    /* pasted */ $p?: 1;
     position?: "start" | "begin" | "end" | "before" | "after";
-    opener?: boolean;
     window?: boolean;
   }
   interface OpenUrlOptionsInBgCmd extends OpenUrlOptions {
@@ -277,12 +278,22 @@
     }
     BgUtils_.resetRe_();
   }
-  function onEvalUrl(this: void, workType: Urls.WorkType, arr: Urls.SpecialUrl): void {
-    if (arr instanceof Promise) { arr.then(onEvalUrl.bind(null, workType)); return; }
+  function onEvalUrl(this: void, workType: Urls.WorkType, options: OpenUrlOptions, tabs: [Tab] | undefined
+      , arr: Urls.SpecialUrl): void {
+    if (arr instanceof Promise) { arr.then(onEvalUrl.bind(null, workType, options, tabs)); return; }
     BgUtils_.resetRe_();
     switch (arr[1]) {
     case "copy":
       return Backend_.showHUD_((arr as Urls.CopyEvalResult)[0], true);
+    case "paste":
+      if (options.$p) {
+        workType = Urls.WorkType.Default;
+      } else {
+        options = BgUtils_.extendIf_(BgUtils_.safeObj_(), options);
+        options.$p = 1;
+        cOptions = options as CommandsNS.Options;
+      }
+      return openUrl(BgUtils_.convertToUrl_((arr as Urls.PasteEvalResult)[0]), workType, tabs);
     case "status":
       if (workType >= Urls.WorkType.EvenAffectStatus) {
         Backend_.forceStatus_((arr as Urls.StatusEvalResult)[0]);
@@ -641,7 +652,8 @@
     options = cOptions as OpenUrlOptions;
     cOptions = null as never;
     BgUtils_.resetRe_();
-    typeof url !== "string" ? /*#__NOINLINE__*/ onEvalUrl(workType, url as Urls.SpecialUrl)
+    typeof url !== "string"
+      ? /*#__NOINLINE__*/ onEvalUrl(workType, options, tabs as [Tab] | undefined, url as Urls.SpecialUrl)
       // tslint:disable-next-line: no-unused-expression
       : openShowPage(url, reuse, options) ? 0
       : BgUtils_.isJSUrl_(url) ? /*#__NOINLINE__*/ openJSUrl(url)
@@ -1695,7 +1707,8 @@
     /* kBgCmd.openUrl: */ function (this: void, tabs?: [Tab] | never[]): void {
       if (cOptions.urls) {
         if (!(cOptions.urls instanceof Array)) { cOptions = null as never; return; }
-        return tabs && tabs.length > 0 ? openUrls(tabs as [Tab]) : void getCurTab(openUrls);
+        tabs && tabs.length > 0 ? openUrls(tabs as [Tab]) : getCurTab(openUrls);
+        return;
       }
       if ((cOptions.url_mask || cOptions.url_mark || cOptions.host_mask || cOptions.host_mark) && !tabs) {
         return onRuntimeError() || <any> void getCurTab(BackgroundCommands[kBgCmd.openUrl]);
@@ -1703,9 +1716,9 @@
       if (cOptions.url) {
         openUrl(cOptions.url + "", Urls.WorkType.EvenAffectStatus, tabs);
       } else if (cOptions.copied) {
-        const url = Clipboard_.paste_();
+        const url = BgUtils_.paste_();
         if (url instanceof Promise) {
-          url.then(openCopiedUrl.bind(null, tabs), openCopiedUrl.bind(null, null as never, null));
+          url.then(openCopiedUrl.bind(null, tabs));
           return;
         }
         openCopiedUrl(tabs, url);
@@ -2266,9 +2279,9 @@
         cPort = port;
         return Backend_.showHUD_(trans_("noEngineFind"));
       }
-      query = request.s.trim() || (request.c ? Clipboard_.paste_() : "");
+      query = request.s.trim() || (request.c ? BgUtils_.paste_() : "");
       if (query instanceof Promise) {
-        query.then(doSearch, () => doSearch(null));
+        query.then(doSearch);
         return;
       }
       doSearch(query);

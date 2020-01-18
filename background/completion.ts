@@ -857,7 +857,7 @@ tabEngine = {
 searchEngine = {
   _nestedEvalCounter: 0,
   filter_: BgUtils_.blank_,
-  preFilter_ (query: CompletersNS.QueryStatus, failIfNull?: true): void | true {
+  preFilter_: function (query: CompletersNS.QueryStatus, failIfNull?: true): void | true | Promise<void> {
     if (!(allExpectedTypes & SugType.search)) {
       return Completers.next_([], SugType.search);
     }
@@ -913,15 +913,26 @@ searchEngine = {
         promise = ret;
       } else if (ret instanceof Array) {
         switch (ret[1]) {
+        case "paste":
+          let pasted = (ret as Urls.PasteEvalResult)[0].trim().replace(BgUtils_.spacesRe_, " ");
+          if (!pasted) { break; }
+          pasted = pasted.length > Consts.MaxCharsInQuery ? pasted.slice(0, Consts.MaxCharsInQuery).trim() : pasted;
+          rawQuery = "\\ " + pasted;
+          rawMore = "";
+          queryTerms = rawQuery.split(" ");
+          if (queryTerms.length > 1) {
+            queryTerms[1] = BgUtils_.fixCharsInUrl_(queryTerms[1]);
+          }
+          return searchEngine.preFilter_(query);
         case "search":
-          const newQuery = ret[0] as string[];
-          const counter = searchEngine._nestedEvalCounter++;
+          const newQuery = (ret as Urls.SearchEvalResult)[0];
           queryTerms = newQuery.length > 1 || newQuery.length === 1 && newQuery[0] ? newQuery : queryTerms;
+          const counter = searchEngine._nestedEvalCounter++;
           if (counter > 12) { break; }
           const subVal = searchEngine.preFilter_(query, true);
           if (counter <= 0) { searchEngine._nestedEvalCounter = 0; }
           if (subVal !== true) {
-            return;
+            return subVal;
           }
           break;
         }
@@ -957,7 +968,10 @@ searchEngine = {
     if (!promise) {
       return Completers.next_([sug], SugType.search);
     }
-    promise.then(searchEngine.onPromise_.bind(searchEngine, query, sug));
+    return promise.then(searchEngine.onPromise_.bind(searchEngine, query, sug));
+  } as {
+    (query: CompletersNS.QueryStatus, failIfNull: true): void | true | Promise<void>;
+    (query: CompletersNS.QueryStatus): void | Promise<void>;
   },
   onPromise_ (query: CompletersNS.QueryStatus, output: Suggestion, arr: Urls.MathEvalResult): void {
     if (query.o) { return; }
@@ -1081,12 +1095,19 @@ Completers = {
     Completers.suggestions_ = [];
     matchType = offset && MatchType.reset;
     if (completers[0] === searchEngine) {
-      searchEngine.preFilter_(query);
+      const ret = searchEngine.preFilter_(query);
       if (l < 2) {
+        return;
+      }
+      if (ret) {
+        ret.then(Completers._filter2.bind(null, completers, query, i));
         return;
       }
       i = 1;
     }
+    Completers._filter2(completers, query, i);
+  },
+  _filter2 (this: void, completers: readonly Completer[], query: CompletersNS.QueryStatus, i: number): void {
     RankingUtils.timeAgo_ = Date.now() - TimeEnums.timeCalibrator; // safe for time change
     RankingUtils.maxScoreP_ = RankingEnums.maximumScore * queryTerms.length || 0.01;
     if (queryTerms.indexOf("__proto__") >= 0) {
@@ -1094,7 +1115,7 @@ Completers = {
     }
     queryTerms.sort(Completers.rSortQueryTerms_);
     RegExpCache.buildParts_();
-    for (; i < l; i++) {
+    for (; i < completers.length; i++) {
       completers[i].filter_(query, i);
     }
   },

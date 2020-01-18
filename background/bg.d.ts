@@ -23,7 +23,7 @@ declare namespace Search {
   interface EngineMap extends SafeDict<Engine> {}
 }
 declare namespace Urls {
-  type ValidEvalTag = "math" | "copy" | "search" | "ERROR" | "status";
+  type ValidEvalTag = "math" | "copy" | "search" | "ERROR" | "status" | "paste";
 
   interface BaseEvalResult extends Array<any> {
     readonly [0]: string | string[];
@@ -41,10 +41,12 @@ declare namespace Urls {
     readonly [2]: string;
   }
   interface SearchEvalResult extends BaseEvalResult {
+    readonly [0]: string[];
     readonly [1]: "search";
     readonly [2]?: undefined;
   }
   interface CopyEvalResult extends BasePlainEvalResult<"copy"> {}
+  interface PasteEvalResult extends BasePlainEvalResult<"paste"> {}
   interface ErrorEvalResult extends BasePlainEvalResult<"ERROR"> {}
   interface StatusEvalResult extends BasePlainEvalResult<"status"> {
     readonly [0]: Frames.ForcedStatusText;
@@ -727,10 +729,6 @@ interface CommandsDataTy {
   keyMap_: KeyMap;
   shortcutRegistry_: ShortcutInfoMap;
   mappedKeyRegistry_: SafeDict<string> | null;
-}
-
-interface VClipboardTy {
-  copy_ (data: string): Promise<void> | void;
 }
 
 interface BaseHelpDialog {

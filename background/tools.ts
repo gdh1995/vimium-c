@@ -49,6 +49,7 @@ const Clipboard_ = {
         text = text.replace(item.match_ as RegExpG, item.replaced_);
       }
     }
+    BgUtils_.resetRe_();
     return text;
   },
   getTextArea_ (): HTMLTextAreaElement {
@@ -77,28 +78,12 @@ const Clipboard_ = {
     return data;
   },
   reformat_ (copied: string): string {
+    if (copied) {
     copied = copied.replace(BgUtils_.A0Re_, " ");
     copied = Clipboard_.substitute_(copied, ClipAction.paste);
-    BgUtils_.resetRe_();
+    }
     return copied;
-  },
-  paste_: Settings_.CONST_.AllowClipboardRead_
-    ? Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-  ? function (this: void): Promise<string> | null {
-    const clipboard = navigator.clipboard as EnsureNonNull<Navigator["clipboard"]> | undefined;
-    return clipboard ? clipboard.readText().then(Clipboard_.reformat_) : null;
-  } : function (this: void): string {
-    const textArea = Clipboard_.getTextArea_();
-    textArea.maxLength = GlobalConsts.MaxBufferLengthForPasting;
-    (document.documentElement as HTMLHtmlElement).appendChild(textArea);
-    textArea.focus();
-    document.execCommand("paste");
-    let value = textArea.value.slice(0, GlobalConsts.MaxBufferLengthForPasting);
-    textArea.value = "";
-    textArea.remove();
-    textArea.removeAttribute("maxlength");
-    return Clipboard_.reformat_(value);
-  } : function (this: void): null { return null; }
+  }
 },
 ContentSettings_ = Build.PContentSettings ? {
   makeKey_ (this: void, contentType: CSTypes, url?: string): string {
@@ -731,19 +716,43 @@ BgUtils_.timeout_(120, function (): void {
 BgUtils_.copy_ = Build.BTypes & BrowserType.Firefox
     && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
     && navigator.clipboard
-? function (this: void, data, join): void {
-  (navigator.clipboard as EnsureNonNull<Navigator["clipboard"]>).writeText(Clipboard_.format_(data, join));
-} : function (this: void, data, join): void {
+? function (this: void, data, join): string {
   data = Clipboard_.format_(data, join);
-  const textArea = Clipboard_.getTextArea_();
-  textArea.value = data;
-  (document.documentElement as HTMLHtmlElement).appendChild(textArea);
-  textArea.select();
-  document.execCommand("copy");
-  textArea.remove();
-  textArea.value = "";
-  BgUtils_.resetRe_();
+  if (data) {
+    (navigator.clipboard as EnsureNonNull<Navigator["clipboard"]>).writeText(data);
+  }
+  return data;
+} : function (this: void, data, join): string {
+  data = Clipboard_.format_(data, join);
+  if (data) {
+    const doc = document, textArea = Clipboard_.getTextArea_();
+    textArea.value = data;
+    (doc.documentElement as HTMLHtmlElement).appendChild(textArea);
+    textArea.select();
+    doc.execCommand("copy");
+    textArea.remove();
+    textArea.value = "";
+  }
+  return data;
 };
+BgUtils_.paste_ = !Settings_.CONST_.AllowClipboardRead_ ? () => null
+: Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
+? function (this: void): Promise<string | null> | null {
+  const clipboard = navigator.clipboard as EnsureNonNull<Navigator["clipboard"]> | undefined;
+  return clipboard ? clipboard.readText().then(Clipboard_.reformat_, () => null) : null;
+} : function (this: void): string {
+  const textArea = Clipboard_.getTextArea_();
+  textArea.maxLength = GlobalConsts.MaxBufferLengthForPasting;
+  (document.documentElement as HTMLHtmlElement).appendChild(textArea);
+  textArea.focus();
+  document.execCommand("paste");
+  let value = textArea.value.slice(0, GlobalConsts.MaxBufferLengthForPasting);
+  textArea.value = "";
+  textArea.remove();
+  textArea.removeAttribute("maxlength");
+  return Clipboard_.reformat_(value);
+};
+
 Settings_.temp_.loadI18nPayload_ = function (): void {
   Settings_.temp_.loadI18nPayload_ = null;
   const arr: string[] = Settings_.i18nPayload_ = [],
