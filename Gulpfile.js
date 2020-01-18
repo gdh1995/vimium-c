@@ -409,7 +409,7 @@ var Tasks = {
   all: ["build"],
   clean: function() {
     return cleanByPath([".build/**", "**/*.js", "!helpers/*/*.js"
-      , "front/vomnibar.html", "front/words.txt"]);
+      , "front/help_dialog.html", "front/vomnibar.html", "front/words.txt"]);
   },
 
   scripts: ["background", "content", "front"],
@@ -908,6 +908,11 @@ function copyByPath(path, mapFunc, pipe) {
           && getBuildItem("BTypes") === BrowserType.Firefox) {
         file.contents = ToBuffer(ToString(file.contents).replace(/(\d)px\b/g, "$1rem"
             ).replace(/body ?\{/, "html{font-size:1px;}\nbody{"));
+      } else if (fileName.indexOf("help_dialog.html") >= 0
+          && getBuildItem("BTypes") === BrowserType.Firefox) {
+        let str = ToString(file.contents), ind = str.indexOf("-webkit-scrollbar"),
+        start = str.lastIndexOf("\n", ind), end = str.indexOf("</style>", ind);
+        file.contents = ToBuffer(str.slice(0, start + 1) + str.slice(end));
       }
     }));
   stream = pipe ? stream.pipe(pipe) : stream;
