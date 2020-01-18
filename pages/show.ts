@@ -477,9 +477,8 @@ function _copyStr(str: string, event?: EventToPrevent): void {
   event && event.preventDefault();
   VApi.post_({
     H: kFgReq.copy,
-    d: str
+    s: str
   });
-  return VHud.copied_(str);
 }
 
 function toggleInvert(event: EventToPrevent): void {

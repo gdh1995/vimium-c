@@ -162,7 +162,7 @@ var VVisual = {
     if (char === kChar.enter) {
       a.resetKeys_();
       if (key.indexOf("s-") > 0 && a.mode_ !== VisualModeNS.Mode.Caret) { a.retainSelection_ = true; }
-      key[1] === "c" || key[1] === "m" ? a.deactivate_() : a.yank_(key[1] === "a" || null);
+      key[1] === "c" || key[1] === "m" ? a.deactivate_() : a.yank_(key[1] === "a" ? 9 : 8);
       return HandlerResult.Prevent;
     }
     const count = a.currentCount_, childAction = a.currentSeconds_ && a.currentSeconds_[key],
@@ -220,8 +220,7 @@ var VVisual = {
       return;
     } else if (command > VisualAction.MaxNotYank) {
       command === VisualAction.YankLine && movement.selectLine_(count);
-      movement.yank_([null, null, true as true,
-          ReuseType.current as ReuseType.current, ReuseType.newFg as ReuseType.newFg][command - VisualAction.Yank]);
+      movement.yank_(([8, 8, 9, ReuseType.current, ReuseType.newFg] as const)[command - VisualAction.Yank]);
       if (command !== VisualAction.YankWithoutExit) { return; }
     } else if (command > VisualAction.MaxNotLexical) {
       movement.selectLexicalEntity_((command - VisualAction.MaxNotLexical
@@ -328,17 +327,12 @@ var VVisual = {
    * @safe_di if action !== true
    * @not_related_to_di otherwise
    */
-  yank_ (action?: true | ReuseType.current | ReuseType.newFg | null): void {
+  yank_ (action: /* copy but not exit */ 9 | /* copy&exit */ 8 | ReuseType.current | ReuseType.newFg): void {
     const str = "" + this.selection_;
-    if (action === true) {
-      this.prompt_(kTip.copiedIs, 2000, [VHud.copied_(str, "", 1)]);
-      action = null;
-    } else {
+    if (action < 9) {
       this.deactivate_();
-      action != null || VHud.copied_(str);
     }
-    VApi.post_(action != null ? { H: kFgReq.openUrl, u: str, r: action }
-        : { H: kFgReq.copy, d: str });
+    VApi.post_(action < 8 ? { H: kFgReq.openUrl, u: str, r: action } : { H: kFgReq.copy, s: str });
   },
   HighlightRange_ (this: void, sel: Selection): void {
     const range = sel.rangeCount > 0 ? sel.getRangeAt(0) : null,

@@ -91,7 +91,6 @@
       (this: void, req: FgReq[kFgReq.framesGoBack], port: Port): void;
       (this: void, req: FgReq[kFgReq.framesGoBack], port: null, tabId: Pick<Tab, "id" | "url">): void;
     };
-    [kFgReq.copy]: (this: void, req: FgReq[kFgReq.copy]) => void;
   }
 
   /** any change to `cRepeat` should ensure it won't be `0` */
@@ -284,7 +283,7 @@
     BgUtils_.resetRe_();
     switch (arr[1]) {
     case "copy":
-      return Backend_.showHUD_((arr as Urls.CopyEvalResult)[0], true);
+      return Backend_.showHUD_((arr as Urls.CopyEvalResult)[0], 1);
     case "paste":
       if (options.$p) {
         workType = Urls.WorkType.Default;
@@ -1924,7 +1923,7 @@
     /* kBgCmd.copyTabInfo: */ function (this: void): void {
       let decoded = !!(cOptions.decoded || cOptions.decode), type = cOptions.type as string | undefined;
       if (type === "frame" && cPort) {
-        requireURL({ H: kFgReq.copy, u: "", d: decoded });
+        requireURL({ H: kFgReq.copy, u: "" as "url", d: decoded });
         return;
       }
       // include those hidden on Firefox
@@ -1932,7 +1931,8 @@
           : { active: type !== "window" && (type !== "tab" || cRepeat === 1 || cRepeat === -1) || void 0,
               currentWindow: true }, (tabs): void => {
         if (!type || type === "title" || type === "frame" || type === "url") {
-          requestHandlers[kFgReq.copy]({ u: type === "title" ? tabs[0].title : tabs[0].url, d: decoded });
+          requestHandlers[kFgReq.copy]({
+              u: (type === "title" ? tabs[0].title : tabs[0].url) as "url", d: decoded }, cPort);
           return;
         }
         const incognito = cPort ? cPort.s.a : TabRecency_.incognito_ === IncognitoType.true,
@@ -1945,11 +1945,11 @@
           tabs = tabs.slice(range[0], range[1]);
         }
         const data: string[] = tabs.map(i => format.replace(nameRe, (_, s1): string => {
-          return decoded && s1 === "url" ? BgUtils_.DecodeURLPart_(i.url, decodeURI)
+          return decoded && s1 === "url" ? BgUtils_.DecodeURLPart_(i.url, 1)
             : s1 !== "__proto__" && (i as Dict<any>)[s1] || "";
         }));
-        BgUtils_.copy_(data, cOptions.join);
-        Backend_.showHUD_(type === "tab" && data.length === 1 ? data[0] : trans_("copiedWndInfo"), true);
+        data[0] = BgUtils_.copy_(data, cOptions.join);
+        Backend_.showHUD_(type === "tab" && data.length === 1 ? data[0] : trans_("copiedWndInfo"), 1);
       });
     },
     /* kBgCmd.clearFindHistory: */ function (this: void): void {
@@ -2332,7 +2332,6 @@
       const opts: OpenUrlOptionsInBgCmd & SafeObject = BgUtils_.safeObj_();
       opts.reuse = request.r;
       opts.incognito = request.i;
-      opts.opener = false;
       if (url) {
         if (url[0] === ":" && request.o && (<RegExpOne> /^:[bdhostw]\s/).test(url)) {
           url = url.slice(2).trim();
@@ -2523,14 +2522,24 @@
           , Parameters<CompletersNS.Callback>, void>(port
         , (<number> request.i | 0) as number as 0 | 1 | 2));
     },
-    /** kFgReq.copy: */ function (this: void, request: FgReq[kFgReq.copy]): void {
-      if (request.u != null) {
-        let str = request.d ? BgUtils_.DecodeURLPart_(request.u, decodeURI) : request.u;
-        BgUtils_.copy_(str);
-        Backend_.showHUD_(str, true);
+    /** kFgReq.copy: */ function (this: void, request: FgReq[kFgReq.copy], port: Port): void {
+      let str: string | string[] | undefined, hud: boolean = !0;
+      if (str = request.u) {
+        if (request.d) {
+          str = BgUtils_.DecodeURLPart_(str, 1);
+          // not append "%20", so that "\x20" and "%20" won't exist simultaneously - avoid "%25%20"
+          str = str.endsWith(" ") ? str : request.u;
+        }
       } else {
-        BgUtils_.copy_(request.d, request.j);
+        str = request.s;
+        hud = typeof str === "string";
+        if (hud && str.length < 4 && !(str as string).trim() && str[0] === " ") {
+          str = "";
+        }
       }
+      str = str && BgUtils_.copy_(str, request.j);
+      cPort = port;
+      hud && Backend_.showHUD_(str, 1);
     },
     /** kFgReq.key: */ function (this: void, request: FgReq[kFgReq.key], port: Port): void {
       (port.s as Frames.Sender).f |= Frames.Flags.userActed;
@@ -3010,12 +3019,12 @@
       // should never remove its session item - in case that goBack/goForward might be wanted
       // not seems to need to restore muted status
     },
-    showHUD_ (message: string, isCopy?: boolean): void {
+    showHUD_ (message: string, isCopy?: 1): void {
       if (cPort && !safePost(cPort, {
           N: kBgReq.showHUD,
           S: ensureInnerCSS(cPort),
           t: message,
-          c: isCopy === true
+          c: isCopy
         })) {
         cPort = null as never;
       }

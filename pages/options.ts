@@ -1208,9 +1208,8 @@ document.addEventListener("click", function onClickOnce(): void {
       str = target.textContent.slice(1, -1);
       VApi.post_({
         H: kFgReq.copy,
-        d: str
+        s: str
       });
-      return VHud.copied_(str);
     }
   }, true);
 }, true);

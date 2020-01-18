@@ -560,10 +560,10 @@ var BgUtils_ = {
     a.resetRe_();
     return indexes == null ? url : { url_: url, indexes_: indexes };
   } as Search.Executor,
-  DecodeURLPart_ (this: void, url: string | undefined, func?: (this: void, url: string) => string): string {
+  DecodeURLPart_ (this: void, url: string | undefined, wholeURL?: 1): string {
     if (!url) { return ""; }
     try {
-      url = (func || decodeURIComponent)(url);
+      url = (wholeURL ? decodeURI : decodeURIComponent)(url);
     } catch {}
     return url;
   },

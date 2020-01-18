@@ -97,7 +97,7 @@ interface BgReq {
   };
   [kBgReq.showHUD]: {
     /** text */ t?: string;
-    /** isCopy */ c?: boolean;
+    /** isCopy */ c?: 1 | undefined;
     /** findCSS */ f?: FindCSS;
   } & Req.baseBg<kBgReq.showHUD> & Partial<BgCSSReq>;
   [kBgReq.focusFrame]: {
@@ -402,13 +402,14 @@ interface FgReq {
     /** favIcon */ i?: 0 | 1 | 2;
   } & CompletersNS.Options;
   [kFgReq.copy]: {
-    /** data */ d: string | string[];
+    /** data */ s: string | string[];
     /** [].join($j) */ j?: string | boolean;
-    u?: undefined;
+    u?: undefined | "";
   } | {
-    /** url */ u: string;
+    /** url */ u: "url";
+    /** data */ s?: undefined | "";
     j?: undefined;
-    /** decode */ d: boolean;
+    /** decode */ d?: boolean;
   };
   [kFgReq.key]: {
     /* keySequence */ k: string;

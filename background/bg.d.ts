@@ -706,7 +706,7 @@ declare namespace BackendHandlersNS {
     setIcon_ (tabId: number, type: Frames.ValidStatus, isLater?: true): void;
     removeSug_ (this: void, req: FgReq[kFgReq.removeSug], port?: Port): void;
     complain_ (this: BackendHandlers, message: string): void;
-    showHUD_ (message: string, isCopy?: boolean | undefined): void;
+    showHUD_ (message: string, isCopy?: 1 | undefined): void;
     getExcluded_: ExclusionsNS.GetExcluded,
     forceStatus_ (this: BackendHandlers, act: Frames.ForcedStatusText, tabId?: number): void;
     indexPorts_: {

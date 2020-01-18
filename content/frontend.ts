@@ -609,22 +609,12 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     },
     /* kFgCmd.autoCopy: */ function (_0: number, options: CmdOptions[kFgCmd.autoCopy]): void {
       let str = U.getSelectionText_(1);
-      if (!str) {
-        str = options.url ? location.href : doc.title;
-        (options.decoded || options.decode) && (str = Hints.decodeURL_(str));
-        if (str.endsWith(" ") && options.url) {
-          str = str.slice(0, -1) + "%20";
-        }
-      }
-      if (str.length < 4 && !str.trim() && str[0] === " ") {
-        str = "";
-      } else {
-        post({
-          H: kFgReq.copy,
-          d: str
-        });
-      }
-      return HUD.copied_(str);
+      post({
+        H: kFgReq.copy,
+        s: str as never as undefined,
+        u: (str ? "" : options.url ? location.href : doc.title) as "url",
+        d: options.decoded || options.decode,
+      });
     },
     /* kFgCmd.autoOpen: */ function (_0: number, options: CmdOptions[kFgCmd.autoOpen]): void {
       let url = U.getSelectionText_(), keyword = (options.keyword || "") + "";
@@ -1326,7 +1316,12 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         }
       }
       // tslint:disable-next-line: no-unused-expression
-      req.t ? req.c ? HUD.copied_(req.t) : HUD.tip_(kTip.raw, 0, [req.t]) : 0;
+      req.t
+      ? req.c
+        ? VVisual.mode_ ? VVisual.prompt_(kTip.copiedIs, 2000, [HUD.copied_(req.t, "", 1)])
+          : HUD.copied_(req.t)
+        : HUD.tip_(kTip.raw, 0, [req.t])
+      : 0;
     },
     /* kBgReq.count: */ function (request: BgReq[kBgReq.count]): void {
       let n = parseInt(currentKeys, 10) || 1, count2: 0 | 1 | 2 | 3 = 0;

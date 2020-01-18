@@ -1873,7 +1873,7 @@ _getImageUrl (img: SafeHTMLElement): string | void {
   }
   return text || this.hud_.tip_(kTip.notImg, 1000);
 },
-getImageName_: (img: SafeHTMLElement): string | null =>
+getImageName_: (img: SafeHTMLElement): string =>
   img.getAttribute("download") || img.getAttribute("alt") || img.title,
 
 openUrl_ (url: string, incognito?: boolean): void {
@@ -2070,20 +2070,19 @@ Modes_: [
     // NOTE: url should not be modified
     // although BackendUtils.convertToUrl does replace '\u3000' with ' '
     str = isUrl ? a.decodeURL_(str) : str;
-    let shownText = str, lastYanked = mode1 & HintMode.list ? a.yankedList_ : 0 as const;
+    let lastYanked = mode1 & HintMode.list ? ((a._master || a) as typeof a).yankedList_ : 0 as const;
     if (lastYanked) {
       if (lastYanked.indexOf(str) >= 0) {
         return a.hud_.show_(kTip.noNewToCopy);
       }
-      shownText = `[${lastYanked.length + 1}] ` + str;
       lastYanked.push(str);
+      a.hud_.copied_(`[${lastYanked.length}] ` + str);
     }
     VApi.post_({
       H: kFgReq.copy,
       j: a.options_.join,
-      d: lastYanked || str
+      s: lastYanked || str
     });
-    a.hud_.copied_(shownText);
   }
   , HintMode.SEARCH_TEXT
   , HintMode.COPY_TEXT
@@ -2123,7 +2122,7 @@ Modes_: [
       text = text.slice(0, 39) + "\u2026";
     }
     a.href = url;
-    a.download = VHints.getImageName_(element) || "";
+    a.download = VHints.getImageName_(element);
     /** @todo: how to trigger download */
     VDom.mouse_(a, "click", [0, 0], {altKey_: !0, ctrlKey_: !1, metaKey_: !1, shiftKey_: !1});
     VHints.hud_.tip_(kTip.downloaded, 2000, [text]);
