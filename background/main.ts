@@ -33,8 +33,9 @@
     [kBgCmd.goToTab]: UseTab.CurShownTabs | UseTab.CurWndTabs;
     [kBgCmd.removeTabsR]: UseTab.CurWndTabs;
     [kBgCmd.removeRightTab]: UseTab.CurWndTabs;
-    [kBgCmd.togglePinTab]: UseTab.CurWndTabsIfRepeat;
     [kBgCmd.discardTab]: UseTab.CurWndTabs;
+    [kBgCmd.togglePinTab]: UseTab.CurWndTabsIfRepeat;
+    [kBgCmd.reloadTab]: UseTab.CurWndTabsIfRepeat;
     [kBgCmd.moveTab]: UseTab.CurWndTabs;
     [kBgCmd.visitPreviousTab]: UseTab.CurShownTabs | UseTab.CurWndTabs;
 
@@ -92,7 +93,6 @@
   }
   interface SpecialCommands {
     [kBgCmd.removeTab]: (this: void, called?: 1 | 2, tabs?: readonly Tab[]) => void;
-    [kBgCmd.reloadTab]: (this: void, tabs?: Tab[] | never[] | [Tab]) => void;
   }
 
   /** any change to `cRepeat` should ensure it won't be `0` */
@@ -1009,7 +1009,7 @@
         ? UseTab.CurShownTabs : UseTab.CurWndTabs,
       UseTab.NoTab, UseTab.CurWndTabs, UseTab.CurWndTabs,
     UseTab.NoTab, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab, UseTab.ActiveTab,
-    UseTab.CurWndTabsIfRepeat, UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.ActiveTab,
+    UseTab.CurWndTabsIfRepeat, UseTab.NoTab, UseTab.CurWndTabsIfRepeat, UseTab.ActiveTab,
     UseTab.ActiveTab, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab,
     Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
@@ -1834,22 +1834,20 @@
     /* kBgCmd.reloadTab: */ function (this: void, tabs?: Tab[] | never[] | [Tab]): void {
       const reloadProperties = { bypassCache: (cOptions.hard || cOptions.bypassCache) === true },
       reload = chrome.tabs.reload;
-      if (abs(cRepeat) < 2) {
-        reload(reloadProperties);
-        return;
-      }
       if (!tabs || tabs.length < 1) {
         if (tabs) {
           getCurWnd(true, (wnd) => {
-            wnd && wnd.tabs.length > 0 && BackgroundCommands[kBgCmd.reloadTab](wnd.tabs);
+            wnd && wnd.tabs.length && BackgroundCommands[kBgCmd.reloadTab](wnd.tabs);
             return onRuntimeError();
           });
-        } else {
-          onRuntimeError() || void getCurTabs(BackgroundCommands[kBgCmd.reloadTab])
         }
         return onRuntimeError();
       }
-      let ind = tabs.length < 2 ? 0 : selectFrom(tabs).index
+      if (abs(cRepeat) < 2) {
+        reload(selectFrom(tabs).id, reloadProperties);
+        return;
+      }
+      let ind = selectFrom(tabs).index
         , [start, end] = getTabRange(ind, tabs.length);
       if (cOptions.single) {
         ind = ind + 1 === end || cRepeat > 0 && start !== ind ? start : end - 1;
@@ -1875,13 +1873,6 @@
       for (; start !== end; start++) {
         start !== ind && reload(tabs[start].id, reloadProperties);
       }
-    },
-    /* kBgCmd.reloadGivenTab: */ function (): void {
-      if (abs(cRepeat) < 2) {
-        BackgroundCommands[kBgCmd.reloadTab]();
-        return;
-      }
-      getCurTabs(BackgroundCommands[kBgCmd.reloadTab]);
     },
     /* kBgCmd.reopenTab: */ function (this: void, tabs: [Tab] | never[]): void {
       if (tabs.length <= 0) { return; }
@@ -2366,7 +2357,7 @@
           url || (unsafe = false);
         }
         url = BgUtils_.fixCharsInUrl_(url);
-        url = BgUtils_.convertToUrl_(url, request.k || null
+        url = BgUtils_.convertToUrl_(url, request.k ? request.k + "" : ""
             , unsafe ? Urls.WorkType.ConvertKnown : Urls.WorkType.EvenAffectStatus);
         const type = BgUtils_.lastUrlType_;
         if (request.h != null && (type === Urls.Type.NoSchema || type === Urls.Type.NoProtocolName)) {
@@ -2378,7 +2369,7 @@
         opts.url_f = url;
       } else {
         opts.copied = request.c;
-        opts.keyword = request.k;
+        opts.keyword = request.k ? request.k + "" : "";
       }
       cRepeat = 1;
       cOptions = opts;

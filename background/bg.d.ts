@@ -624,7 +624,7 @@ declare namespace CommandsNS {
     [kCName.previousTab]: kBgCmd.goToTab;
     [kCName.quickNext]: kBgCmd.goToTab;
     [kCName.reload]: kFgCmd.reload;
-    [kCName.reloadGivenTab]: kBgCmd.reloadGivenTab;
+    [kCName.reloadGivenTab]: kBgCmd.reloadTab;
     [kCName.reloadTab]: kBgCmd.reloadTab;
     [kCName.removeRightTab]: kBgCmd.removeRightTab;
     [kCName.removeTab]: kBgCmd.removeTab;

@@ -442,7 +442,7 @@ availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeO
   previousTab: [ kBgCmd.goToTab, 1, 0, { count: -1 } ],
   quickNext: [ kBgCmd.goToTab, 1, 0 ],
   reload: [ kFgCmd.reload, 0, 1 ],
-  reloadGivenTab: [ kBgCmd.reloadGivenTab, 1, 0, { single: true } ],
+  reloadGivenTab: [ kBgCmd.reloadTab, 1, 0, { single: true } ],
   reloadTab: [ kBgCmd.reloadTab, 1, /** 20 in main.ts */ 0 ],
   removeRightTab: [ kBgCmd.removeRightTab, 1, 0 ],
   removeTab: [ kBgCmd.removeTab, 1, /** 20 in main.ts */ 0 ],

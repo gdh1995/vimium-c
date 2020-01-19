@@ -623,6 +623,7 @@ declare const enum BrowserVer {
   // before C43, "font-size: ***" of <select> overrides those of its <options>s'
   // since C42@exp, <option> is visible, but its text has a strange extra prefix of "A" - fixed on C43
   Min$Option$HasReliableFontSize = 43, // even if LEGACY
+  Min$DocumentOrShadowRoot$$elementsFromPoint = 43, // even if EXPERIMENTAL or LEGACY
   MinEnsuredES6$String$$StartsWithEndsWithAndRepeatAndIncludes = 43, // even if LEGACY
   MinSafe$String$$StartsWith = MinEnsuredES6$String$$StartsWithEndsWithAndRepeatAndIncludes + 1, // add a margin
   MinRuntimePlatformOs = 44,
