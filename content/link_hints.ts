@@ -1042,7 +1042,7 @@ var VHints = {
       a.clean_();
     } else if (i === kKeyCode.esc) {
       return HandlerResult.Suppress;
-    } else if (Build.BTypes & BrowserType.Chrome && a._onTailEnter && i !== kKeyCode.f12) {
+    } else if (a._onTailEnter && i !== kKeyCode.f12) {
       a._onTailEnter(event);
     } else if (i > kKeyCode.f1 ? i < kKeyCode.f12 + 1 : i > kKeyCode.f1 - 1) {
       if (i > kKeyCode.f2) { a.ResetMode_(); return HandlerResult.Nothing; }
