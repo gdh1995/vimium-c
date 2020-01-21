@@ -644,15 +644,16 @@ let optionsInit1_ = function (): void {
   };
   opt.onSave_();
 
-  let optChars = Option_.all_.linkHintCharacters, optNums = Option_.all_.linkHintNumbers;
-  opt = Option_.all_.filterLinkHints;
+  let optChars = Option_.all_.linkHintCharacters, optNums = Option_.all_.linkHintNumbers,
+  optFilter = Option_.all_.filterLinkHints;
+  opt = optFilter;
   optChars.onSave_ = optNums.onSave_ = function (this: Option_<"linkHintCharacters" | "linkHintNumbers">): void {
     this.showError_(!this.element_.style.display && this.previous_.length < GlobalConsts.MinHintCharSetSize
         ? pTrans_("hintCharsTooFew") : "");
   };
   opt.onSave_ = function (): void {
     nextTick_(el => {
-      const enableFilterLinkHints = Option_.all_.filterLinkHints.readValueFromElement_();
+      const enableFilterLinkHints = optFilter.readValueFromElement_();
       el.style.display = optNums.element_.style.display = enableFilterLinkHints ? "" : "none";
       optChars.element_.style.display = enableFilterLinkHints ? "none" : "";
       optChars.onSave_();
@@ -865,6 +866,16 @@ newTabUrlOption.checker_ = {
   }
 };
 newTabUrlOption.checker_.check_(newTabUrlOption.previous_);
+
+const ignoreKeyboardLayoutOption = Option_.all_.ignoreKeyboardLayout;
+ignoreKeyboardLayoutOption.onSave_ = function (): void {
+  nextTick_(el => {
+    el.style.display = ignoreKeyboardLayoutOption.readValueFromElement_() ? "none" : "";
+  }, $<HTMLElement>("#ignoreCapsLockBox"));
+};
+ignoreKeyboardLayoutOption.onSave_();
+ignoreKeyboardLayoutOption.element_.addEventListener("change",
+    ignoreKeyboardLayoutOption.onSave_.bind(ignoreKeyboardLayoutOption), true);
 
 Option_.all_.userDefinedCss.onSave_ = function () {
   if (!window.VDom || !VDom.cache_) { return; }

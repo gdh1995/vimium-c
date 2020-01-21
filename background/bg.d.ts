@@ -366,7 +366,7 @@ declare namespace SettingsNS {
 
   type DeclaredUpdateHooks = "newTabUrl" | "searchEngines" | "searchEngineMap" | "searchUrl"
         | "baseCSS" | "userDefinedCss" | "innerCSS" | "vomnibarPage"
-        | "clipSub" | "extAllowList";
+        | "extAllowList";
   type EnsuredUpdateHooks = DeclaredUpdateHooks | WoThisUpdateHooks | SpecialUpdateHooks;
   type UpdateHook<key extends keyof FullSettings> =
         key extends NullableUpdateHooks ? NullableUpdateHook<key>

@@ -162,6 +162,7 @@ if ! test -f "$EXE"; then
 fi
 if test -n "$VER" -o "$FIREFOX_ROOT" == '/r/working'; then
   rm -f "${EXE%/*}"/uninstall/* "${EXE%/*}"/update[-r]*
+  rm -r "${EXE%/*}"/uninstall 2>/dev/null
 fi
 
 

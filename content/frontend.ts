@@ -617,11 +617,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       });
     },
     /* kFgCmd.autoOpen: */ function (_0: number, options: CmdOptions[kFgCmd.autoOpen]): void {
-      let url = U.getSelectionText_(), keyword = (options.keyword || "") + "";
+      let url = U.getSelectionText_();
       url && events.evalIfOK_(url) || post({
         H: kFgReq.openUrl,
         c: !url,
-        k: keyword, u: url
+        k: options.keyword, u: url
       });
     },
     /* kFgCmd.searchAs: */ function (_0: number, options: CmdOptions[kFgCmd.searchAs]): void {

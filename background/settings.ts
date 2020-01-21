@@ -145,7 +145,6 @@ var Settings_ = {
         }
       }
     },
-    clipSub (): void { Clipboard_.clipSub_ = null; },
     grabBackFocus (this: {}, value: FullSettings["grabBackFocus"]): void {
       (this as typeof Settings_).payload_.g = value;
     },

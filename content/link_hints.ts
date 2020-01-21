@@ -1881,11 +1881,11 @@ getImageName_: (img: SafeHTMLElement): string =>
   img.getAttribute("download") || img.getAttribute("alt") || img.title,
 
 openUrl_ (url: string, incognito?: boolean): void {
-  let kw = this.options_.keyword, opt: Req.fg<kFgReq.openUrl> = {
+  let opt: Req.fg<kFgReq.openUrl> = {
     H: kFgReq.openUrl,
     r: this.mode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
     u: url,
-    k: kw != null ? kw + "" : ""
+    k: this.options_.keyword
   };
   incognito && (opt.i = incognito);
   this.api_.post_(opt);
@@ -2064,7 +2064,7 @@ Modes_: [
         c: 1,
         newtab: newtab != null ? !!newtab : !isUrl,
         url: str,
-        keyword: (a.options_.keyword || "") + ""
+        keyword: a.options_.keyword
       });
       return;
     } else if (mode1 === HintMode.SEARCH_TEXT) {

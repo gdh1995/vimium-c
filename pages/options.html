@@ -144,8 +144,8 @@ key: https://c.com/$s/space=\s\ space_end
 # <span data-i="o34">this is a comment</span></pre>
           </code>
           <kbd data-i-t="twoS" title="%s is equal with $s">$s</kbd>
-            <span data-i="o35">will be replaced with real queries.</span>
-          <a data-auto-resize="searchEngines" role="button" tabindex="0" data-i="autoResize">Auto resize
+            <span data-i="o35">will be replaced with real queries.</span><a
+              data-auto-resize="searchEngines" role="button" tabindex="0" data-i="autoResize">Auto resize
             </a><span data-i="period">.</span><br/>
           <a href="" target="_blank" rel="noopener noreferrer" data-i="o36"
               data-href="vimium://home/wiki/Search-engine-rules">
@@ -240,20 +240,6 @@ key: https://c.com/$s/space=\s\ space_end
           <td class="caption"></td>
           <td>
             <label class="booleanOption" tabindex="-1" aria-hidden="true">
-              <input id="ignoreCapsLock" type="checkbox" tabindex="-1" aria-hidden="true"
-                  data-model="Boolean" data-map="[0,1,2]" />
-              <span data-i="o48" class="checkboxHint" role="checkbox" tabindex="0" aria-hidden="false"
-                >Ignore CapsLock status</span>
-            </label>
-          </td>
-          <td class="help"><div class="help-inner line-help" data-i="o49">
-            If partially checked, Vimium C will only ignore CapsLock on macOS.
-          </div></td>
-        </tr>
-        <tr>
-          <td class="caption"></td>
-          <td>
-            <label class="booleanOption" tabindex="-1" aria-hidden="true">
               <input id="ignoreKeyboardLayout" type="checkbox" tabindex="-1" aria-hidden="true" data-model="Boolean" />
               <span data-i="o50" class="checkboxHint" role="checkbox" tabindex="0" aria-hidden="false"
                 >Ignore keyboard layout</span>
@@ -262,6 +248,20 @@ key: https://c.com/$s/space=\s\ space_end
           <td class="help"><div class="help-inner line-help">
             <span data-i="o51">Always recognize keys in en-US</span><span data-i="o52">
               QWERTY layout and ignore CapsLock, for some non-Latin keyboards.</span>
+          </div></td>
+        </tr>
+        <tr id="ignoreCapsLockBox">
+          <td class="caption"></td>
+          <td>
+            <label class="booleanOption" tabindex="-1" aria-hidden="true">
+              <input id="ignoreCapsLock" type="checkbox" tabindex="-1" aria-hidden="true"
+                  data-model="Boolean" data-map="[0,1,2]" />
+              <span data-i="o48" class="checkboxHint" role="checkbox" tabindex="0" aria-hidden="false"
+                >Ignore CapsLock status</span>
+            </label>
+          </td>
+          <td class="help"><div class="help-inner line-help" data-i="o49">
+            If partially checked, Vimium C will only ignore CapsLock on macOS.
           </div></td>
         </tr>
         <tr>
@@ -398,9 +398,7 @@ title="Warning: Chrome has a bug of mistaken dialogue width if you has changed s
             <div class="info" data-i="nonEmpty">Delete all to reset this option.</div>
           </td>
           <td class="help"><div class="help-inner break-all">
-            "<kbd class="sel-all" role="button">pages/blank.html</kbd>" <span data-i="o26">for a blank page.</span>
-            <a href="https://github.com/gdh1995/vimium-c/issues/53" data-i="o27">Since v1.77.0,
-              Vimium C doesn't manage browser new tab any more.</a><br/>
+            "<kbd class="sel-all" role="button">pages/blank.html</kbd>" <span data-i="o26">for a blank page.</span><br/>
             <a href="" target="_blank" rel="noopener noreferrer" data-i="o28"
                 data-href="vimium://home/wiki/Use-another-extension-as-the-New-Tab">
               How to redirect to another extension's newtab?

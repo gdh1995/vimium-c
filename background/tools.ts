@@ -753,6 +753,9 @@ BgUtils_.paste_ = !Settings_.CONST_.AllowClipboardRead_ ? () => null
   return Clipboard_.reformat_(value);
 };
 
+
+Settings_.updateHooks_.clipSub = (): void => { Clipboard_.clipSub_ = null; };
+
 Settings_.temp_.loadI18nPayload_ = function (): void {
   Settings_.temp_.loadI18nPayload_ = null;
   const arr: string[] = Settings_.i18nPayload_ = [],
