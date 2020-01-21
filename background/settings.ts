@@ -11,6 +11,7 @@ var Settings_ = {
     newSettingsToBroadcast_: null as BgReq[kBgReq.settingsUpdate]["d"] | null,
     IconBuffer_: null as IconNS.AccessIconBuffer | null,
     loadI18nPayload_: null as (() => void) | null,
+    omniStyleOverridden_: false,
     shownHash_: null as ((this: void) => string) | null
   },
   payload_: <SettingsNS.FrontendSettingCache> As_<SettingsNS.DeclaredFrontendValues>({

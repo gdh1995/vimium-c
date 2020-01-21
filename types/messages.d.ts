@@ -446,11 +446,9 @@ interface FgReq {
     /** options */ a: OptionsWithForce;
   };
   [kFgReq.setOmniStyle]: {
-    /** style */ s: string;
-  } | {
-    s?: undefined;
     /** toggled */ t: string;
     /** enable */ e?: boolean; /* if null, then toggle .t */
+    /** override-system-settings */ o?: 1; // `o === 1` and `b === false` should never be true in the meanwhile
     /** broadcast, default to true */ b?: boolean;
   };
   [kFgReq.findFromVisual]: {};

@@ -2004,7 +2004,7 @@
         }
       }
       if (current) { return; }
-      requestHandlers[kFgReq.setOmniStyle]({ t: toggled });
+      requestHandlers[kFgReq.setOmniStyle]({ t: toggled, o: 1 });
     },
     // only work on Chrome: Firefox has neither tabs.goBack, nor support for tabs.update("javascript:...")
     /* kBgCmd.goBackFallback: */ Build.BTypes & BrowserType.Chrome ? function (tabs: [Tab]): void {
@@ -2641,14 +2641,19 @@
     },
     /** kFgReq.setOmniStyle: */ function (this: void, req: FgReq[kFgReq.setOmniStyle], port?: Port): void {
       let styles: string, payload = Settings_.omniPayload_, curStyles = payload.s;
-      if (req.s == null) {
-        let toggled = ` ${req.t} `, extSt = curStyles && ` ${curStyles} `, exists = extSt.indexOf(toggled) >= 0;
-        styles = (req.e != null ? req.e : exists) ? exists ? curStyles : curStyles + toggled
-            : extSt.replace(toggled, " ");
+      if (!req.o && Settings_.temp_.omniStyleOverridden_) {
+        return;
+      }
+      {
+        let toggled = ` ${req.t} `, extSt = curStyles && ` ${curStyles} `, exists = extSt.indexOf(toggled) >= 0,
+        newExist = req.e != null ? req.e : exists;
+        styles = newExist ? exists ? curStyles : curStyles + toggled : extSt.replace(toggled, " ");
         styles = styles.trim().replace(BgUtils_.spacesRe_, " ");
         if (req.b === false) { payload.s = styles; return; }
-      } else {
-        styles = req.s;
+        if (req.o) {
+          Settings_.temp_.omniStyleOverridden_ = newExist !==
+              (` ${Settings_.cache_.vomnibarOptions.styles} `.indexOf(toggled) >= 0);
+        }
       }
       if (styles === curStyles) { return; }
       payload.s = styles;

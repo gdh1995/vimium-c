@@ -103,8 +103,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         a._favPrefix = prefix + "chrome://favicon/size/16@" + scale + "x/";
       }
     }
+    keyword = (keyword || "") + "";
     if (url == null) {
-      return a.reset_(keyword ? keyword + " " : "");
+      return a.reset_(keyword && keyword + " ");
     }
     if (search) {
       start = search.s;
@@ -889,16 +890,17 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
   },
   toggleStyle_ (req: BgVomnibarSpecialReq[kBgReq.omni_toggleStyle]): void {
-    let omniStyles = Vomnibar_.styles_, toggle = ` ${req.t} `;
-    omniStyles = omniStyles && ` ${omniStyles} `;
-    omniStyles = omniStyles.indexOf(toggle) >= 0 ? omniStyles.replace(toggle, " ") : omniStyles + req.t;
-    omniStyles = omniStyles.trim().replace(Vomnibar_.spacesRe_, " ");
+    const oldStyles = Vomnibar_.styles_ && ` ${Vomnibar_.styles_} `, toggle = ` ${req.t} `,
+    add = oldStyles.indexOf(toggle) < 0,
+    omniStyles = (add ? oldStyles + req.t : oldStyles.replace(toggle, " ")).trim().replace(Vomnibar_.spacesRe_, " ");
     Vomnibar_.styles_ = omniStyles;
     Vomnibar_.onStyleUpdate_(omniStyles);
-    if (toggle && !req.c) {
+    if (!req.c) {
       VPort_.post_({
         H: kFgReq.setOmniStyle,
-        s: omniStyles
+        t: req.t,
+        o: 1,
+        e: add,
       });
     }
   },
