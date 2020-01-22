@@ -4,6 +4,21 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://github.com/gdh1995/vimium-c/blob/master/README_zh.md .
 
+#### 1.80.0
+* LinkHints: Firefox: fix broken Filtered Hints mode
+* LinkHints: change some behavior details
+* LinkHints: click mode: check `[aria-hidden]` on SVG elements ([#98](https://github.com/gdh1995/vimium-c/issues/98))
+* LinkHints: click mode: support plain `Element` nodes
+* LinkHints: click mode: add `newtab="window"` to open URLs on a new window
+* LinkHints: hover mode: unhover on `<esc>`
+* add an advanced option: `Substitution for clipboard text` to replace text before copying and pasting
+* URL conversion: now auto replace `vimium://paste` with real text content in system clipboard
+* `copyWindowInfo`: add type=tab to copy info of N tabs
+* `goNext`: support id/class selectors
+* `enterInsertMode`: support `key: string` to declare a (mapped) key as the one to exit
+* Vomnibar: dark button: fix it will be overridden when "Auto switch between light and dark mode" is on
+* FindMode: apply a new appearance
+
 #### 1.79.3
 * fix broken `ignoringKeyboardLayout` in v1.79.2
 * LinkHints: filtered hints: fix a crash

@@ -3,7 +3,7 @@
 ===========================================
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.79.3](https://img.shields.io/badge/release-1.79.3-orange.svg
+[![Version 1.80.0](https://img.shields.io/badge/release-1.80.0-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -87,22 +87,20 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
-#### 1.79.3
-* fix broken `ignoringKeyboardLayout` in v1.79.2
-* LinkHints: filtered hints: fix a crash
-* LinkHints: filtered hints: type <kbd>Space</kbd> 3 times to activate a current hint
-* LinkHints: detect more items
-
-### 1.79.2
-* Chrome/Firefox: fix IME compatibility issues in find mode
-* add a new option "`mapModifier`" to generate keys like `<s-modifier>`
-
-### 1.79.1
-* `LinkHints` adds support for the Filtered Hint mode, and adopts almost the same behavior logic as Vimium
-* `LinkHints` uses a new algorithm to assign hint characters in alphabet mode
-* hook access keys: completely avoid negative influence on debugging experience
-* display image: support <kbd>Ctrl+C</kbd> to copy image data on Chrome 76+
-* some other bug fixes and enhancements
+### 1.80.0
+* LinkHints: Firefox: fix broken Filtered Hints mode
+* LinkHints: change some behavior details
+* LinkHints: click mode: check `[aria-hidden]` on SVG elements ([#98](https://github.com/gdh1995/vimium-c/issues/98))
+* LinkHints: click mode: support plain `Element` nodes
+* LinkHints: click mode: add `newtab="window"` to open URLs on a new window
+* LinkHints: hover mode: unhover on `<esc>`
+* add an advanced option: `Substitution for clipboard text` to replace text before copying and pasting
+* URL conversion: now auto replace `vimium://paste` with real text content in system clipboard
+* `copyWindowInfo`: add type=tab to copy info of N tabs
+* `goNext`: support id/class selectors
+* `enterInsertMode`: support `key: string` to declare a (mapped) key as the one to exit
+* Vomnibar: dark button: fix it will be overridden when "Auto switch between light and dark mode" is on
+* FindMode: apply a new appearance
 
 See more on [RELEASE-NOTES.md](https://github.com/gdh1995/vimium-c/blob/master/RELEASE-NOTES.md).
 

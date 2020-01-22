@@ -3,7 +3,7 @@
 ============================================
 
 [![MIT 许可协议](https://img.shields.io/badge/许可协议-MIT-blue.svg)](LICENSE.txt)
-[![版本：1.79.3](https://img.shields.io/badge/版本-1.79.3-orange.svg
+[![版本：1.80.0](https://img.shields.io/badge/版本-1.80.0-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 **在 [Chrome 网上应用店](
   https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg
@@ -21,7 +21,8 @@ Vimium C 是一款开源、免费的键盘增强类浏览器扩展，支持为�
 
 本项目由 [gdh1995](https://github.com/gdh1995) 开发，且以 [MIT 许可协议](LICENSE.txt) 开源。
 
-本项目的前身是[<span style="color: #2f508e;">Vim</span>ium](https://github.com/philc/vimium)。
+本项目地址是 https://github.com/gdh1995/vimium-c
+。本项目的前身是[<span style="color: #2f508e;">Vim</span>ium](https://github.com/philc/vimium)。
 
 # 主要功能
 
