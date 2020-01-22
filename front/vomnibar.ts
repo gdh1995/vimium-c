@@ -432,11 +432,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         : true) {
       let {keyCode: i} = event, keyId: kCharCode;
       key = i > kKeyCode.space - 1 && i < kKeyCode.minNotDelete ? this._keyNames[i - kKeyCode.space]
-        : i < kKeyCode.minNotDelete || i === kKeyCode.osRightNonMac
+        : i < kKeyCode.minNotDelete || i === kKeyCode.osRightMac
         ? i === kKeyCode.backspace ? kChar.backspace
             : i === kKeyCode.esc ? kChar.esc
             : i === kKeyCode.tab ? kChar.tab : i === kKeyCode.enter ? kChar.enter
-            : (i === kKeyCode.osRightNonMac || i > kKeyCode.minAcsKeys - 1 && i < kKeyCode.maxAcsKeys + 1)
+            : (i === kKeyCode.osRightMac || i > kKeyCode.minAcsKeys - 1 && i < kKeyCode.maxAcsKeys + 1)
               && Vomnibar_.mapModifier_ && Vomnibar_.mapModifier_ === event.location ? kChar.Modifier
             : kChar.None
         : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn ? "f" + (i - kKeyCode.maxNotFn)
