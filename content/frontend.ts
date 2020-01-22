@@ -1814,14 +1814,20 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     vPort.Connect_();
   }
 
-  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".startsWith) {
+  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".includes) {
     const StringCls = String.prototype;
-    StringCls.startsWith = function (this: string, s: string): boolean {
-      return this.length >= s.length && this.lastIndexOf(s, 0) === 0;
-    };
-    StringCls.endsWith = function (this: string, s: string): boolean {
-      const i = this.length - s.length;
-      return i >= 0 && this.indexOf(s, i) === i;
+    /** startsWith may exist - {@see #BrowserVer.Min$String$$StartsWithEndsWithAndIncludes$ByDefault} */
+    if (!"".startsWith) {
+      StringCls.startsWith = function (this: string, s: string): boolean {
+        return this.lastIndexOf(s, 0) === 0;
+      };
+      StringCls.endsWith = function (this: string, s: string): boolean {
+        const i = this.length - s.length;
+        return i >= 0 && this.indexOf(s, i) === i;
+      };
+    }
+    StringCls.includes = function (this: string, s: string, pos?: number): boolean {
+      return this.indexOf(s, pos) >= 0;
     };
   }
 })();

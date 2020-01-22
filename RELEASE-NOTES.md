@@ -5,7 +5,7 @@ ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://github.com/gdh1995/vimium-c/blob/master/README_zh.md .
 
 #### 1.80.0
-* LinkHints: Firefox: fix broken Filtered Hints mode
+* LinkHints: Firefox: fix broken Filtered Hints mode ([#108](https://github.com/gdh1995/vimium-c/issues/108))
 * LinkHints: change some behavior details
 * LinkHints: click mode: check `[aria-hidden]` on SVG elements ([#98](https://github.com/gdh1995/vimium-c/issues/98))
 * LinkHints: click mode: support plain `Element` nodes

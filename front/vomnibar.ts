@@ -1406,13 +1406,16 @@ VPort_ = {
   }
 };
 
-if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith) {
+if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".includes) {
 "".startsWith || (String.prototype.startsWith = function (this: string, s: string): boolean {
-  return this.length >= s.length && this.lastIndexOf(s, 0) === 0;
+  return this.lastIndexOf(s, 0) === 0;
 });
 "".endsWith || (String.prototype.endsWith = function (this: string, s: string): boolean {
   const i = this.length - s.length;
   return i >= 0 && this.indexOf(s, i) === i;
+});
+"".includes || (String.prototype.includes = function (this: string, s: string, pos?: number): boolean {
+  return this.indexOf(s, pos) >= 0;
 });
 }
 

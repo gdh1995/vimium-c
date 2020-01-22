@@ -712,7 +712,7 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   ref2.push(obj.InjectEnd_);
   if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith
       && CurCVer_ < BrowserVer.MinSafe$String$$StartsWith
-      && "".startsWith.name !== "startsWith") {
+      && "".includes.name !== "includes") {
     ref2.unshift(obj.PolyFill_);
   }
   obj.ContentScripts_ = ref2.map(func);

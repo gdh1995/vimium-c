@@ -813,12 +813,21 @@ BrowserProtocol_ = Build.BTypes & ~BrowserType.Chrome
     && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge) ? "ms-browser" : "about"
   : "chrome";
 
-if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".startsWith) {
-String.prototype.startsWith = function (this: string, s: string): boolean {
-  return this.length >= s.length && this.lastIndexOf(s, 0) === 0;
-};
-String.prototype.endsWith = function (this: string, s: string): boolean {
-  const i = this.length - s.length;
-  return i >= 0 && this.indexOf(s, i) === i;
-};
+if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".includes) {
+(function (): void {
+  const StringCls = String.prototype;
+  /** startsWith may exist - {@see #BrowserVer.Min$String$$StartsWithEndsWithAndIncludes$ByDefault} */
+  if (!"".startsWith) {
+    StringCls.startsWith = function (this: string, s: string): boolean {
+      return this.lastIndexOf(s, 0) === 0;
+    };
+    StringCls.endsWith = function (this: string, s: string): boolean {
+      const i = this.length - s.length;
+      return i >= 0 && this.indexOf(s, i) === i;
+    };
+  }
+  StringCls.includes = function (this: string, s: string, pos?: number): boolean {
+    return this.indexOf(s, pos) >= 0;
+  };
+})();
 }
