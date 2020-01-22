@@ -51,9 +51,10 @@ declare const enum kClickAction {
   none = 0,
   /** should only be used on Firefox */ plainMayOpenManually = 1,
   forceToOpenInNewTab = 2, newTabFromMode = 4,
-  // the 1..7 before this line should always mean HTML <a>
-  forceToDblclick = 8,
-  MinNotPlainOpenManually = 2, MaxOpenForAnchor = 7,
+  openInNewWindow = 8,
+  // the 1..MaxOpenForAnchor before this line should always mean HTML <a>
+  forceToDblclick = 16,
+  MinNotPlainOpenManually = 2, MaxOpenForAnchor = 15,
 }
 
 /**

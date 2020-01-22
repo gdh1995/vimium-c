@@ -693,7 +693,7 @@
       , tabs: [Tab]): void {
     const tab = tabs[0] as Tab | undefined, tabIncognito = tab ? tab.incognito : false,
     incognito = options.incognito, active = reuse !== ReuseType.newBg;
-    let window = options.window;
+    let window = reuse === ReuseType.newWindow || options.window;
     if (BgUtils_.isRefusingIncognito_(url)) {
       if (tabIncognito || TabRecency_.incognito_ === IncognitoType.true) {
         window = true;
@@ -806,10 +806,11 @@
       }
       (cOptions as OptionEx).formatted_ = 1;
     }
-    const wndOpt: chrome.windows.CreateData | null = cOptions.window ? {
+    const reuse = cOptions.reuse,
+    wndOpt: chrome.windows.CreateData | null = reuse === ReuseType.newWindow || cOptions.window ? {
       url: urls, incognito: !!cOptions.incognito
     } : null;
-    let active = !(cOptions.reuse < ReuseType.newFg), index = newTabIndex(tab, cOptions.position);
+    let active = !(reuse < ReuseType.newFg), index = newTabIndex(tab, cOptions.position);
     cOptions = null as never;
     do {
       if (wndOpt) {

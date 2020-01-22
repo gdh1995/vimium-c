@@ -22,7 +22,7 @@ declare namespace HintsNS {
     url?: boolean;
     keyword?: string;
     dblclick?: boolean;
-    newtab?: boolean | "force";
+    newtab?: boolean | "force" | "window";
     button?: "right";
     touch?: null | boolean | "auto";
     join?: FgReq[kFgReq.copy]["j"];
@@ -31,6 +31,7 @@ declare namespace HintsNS {
     };
     mapKey?: true | false;
     auto?: boolean;
+    ctrlShiftForWindow?: boolean | null;
     noCtrlPlusShift?: boolean;
     swapCtrlAndShift?: boolean;
     hideHud?: boolean;
@@ -2225,24 +2226,30 @@ Modes_: [
     const mask = a.mode_ & HintMode.mask_focus_new, isMac = !VDom.cache_.o,
     isRight = a.options_.button === "right",
     dblClick = !!a.options_.dblclick && !isRight,
-    specialActions = isRight || dblClick,
-    newTab = mask > HintMode.newTab - 1 && !specialActions,
+    newTabOption = a.options_.newtab,
+    otherActions = isRight || dblClick,
+    newTab = mask > HintMode.newTab - 1 && !otherActions,
     newtab_n_active = newTab && mask > HintMode.newtab_n_active - 1,
-    ctrl = newTab && !(a.options_.noCtrlPlusShift && newtab_n_active),
-    openUrlInNewTab = dblClick ? kClickAction.forceToDblclick : specialActions || tag !== "a" ? kClickAction.none
-        : a.options_.newtab === "force" ? newTab
+    newWindow = newTabOption === "window" && !otherActions,
+    cnsForWin = a.options_.ctrlShiftForWindow,
+    noCtrlPlusShiftForActive: boolean | undefined = cnsForWin != null ? cnsForWin : a.options_.noCtrlPlusShift,
+    ctrl = newTab && !(newtab_n_active && noCtrlPlusShiftForActive) || newWindow && !!noCtrlPlusShiftForActive,
+    shift = newWindow || newtab_n_active,
+    specialActions = dblClick ? kClickAction.forceToDblclick : otherActions || tag !== "a" ? kClickAction.none
+        : newTabOption === "force" ? newTab
             ? kClickAction.forceToOpenInNewTab | kClickAction.newTabFromMode : kClickAction.forceToOpenInNewTab
         : !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
-          ? newTab // need to work around Firefox's popup blocker
+        ? newWindow ? kClickAction.openInNewWindow
+          : newTab // need to work around Firefox's popup blocker
             ? kClickAction.plainMayOpenManually | kClickAction.newTabFromMode : kClickAction.plainMayOpenManually
         : kClickAction.none;
     VCui.click_(link, rect, mask > 0 || <number> (link as ElementToHTMLorSVG).tabIndex >= 0, {
       altKey_: !1,
       ctrlKey_: ctrl && !isMac,
       metaKey_: ctrl && isMac,
-      shiftKey_: newtab_n_active
-    }, openUrlInNewTab, isRight ? kClickButton.second : kClickButton.none
-    , !(Build.BTypes & BrowserType.Chrome) || specialActions || newTab ? 0 : a.options_.touch);
+      shiftKey_: shift
+    }, specialActions, isRight ? kClickButton.second : kClickButton.none
+    , !(Build.BTypes & BrowserType.Chrome) || otherActions || newTab ? 0 : a.options_.touch);
   }
   , HintMode.OPEN_IN_CURRENT_TAB
   , HintMode.OPEN_IN_NEW_BG_TAB

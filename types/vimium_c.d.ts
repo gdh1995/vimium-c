@@ -170,8 +170,9 @@ declare const enum ReuseType {
   current = 0,
   Default = current,
   reuse = 1,
+  newWindow = 2,
   newFg = -1,
-  newBg = -2
+  newBg = -2,
 }
 
 declare const enum FrameMaskType {

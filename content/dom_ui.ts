@@ -338,14 +338,14 @@ var VCui = {
     }
     let result: ActionType = ActionType.OnlyDispatch, url: string | null;
     if (specialAction) {
-      // for forceToDblclick, element can be OtherSafeElement; for 1..7, element must be HTML <a>
+      // for forceToDblclick, element can be OtherSafeElement; for 1..MaxOpenForAnchor, element must be HTML <a>
       result = specialAction > kClickAction.MaxOpenForAnchor ? ActionType.DispatchAndCheckInDOM
           : specialAction < kClickAction.MinNotPlainOpenManually && (element as HTMLAnchorElement).target !== "_blank"
             || !(url = element.getAttribute("href"))
             || specialAction & kClickAction.forceToOpenInNewTab && url[0] === "#"
             || a.jsRe_.test(url)
           ? ActionType.OnlyDispatch
-          : specialAction & kClickAction.plainMayOpenManually
+          : specialAction & (kClickAction.plainMayOpenManually | kClickAction.openInNewWindow)
             && (((element as XrayedObject<HTMLAnchorElement>).wrappedJSObject || element).onclick
               || a.clickable_.has(element))
           ? ActionType.DispatchAndMayOpenTab : ActionType.OpenTabButNotDispatch;
@@ -363,20 +363,21 @@ var VCui = {
         }
         return;
       }
-      // do fix
       const isBlank = (element as HTMLAnchorElement).target !== "blank", relAttr = element.getAttribute("rel"),
       /** {@link #FirefoxBrowserVer.Min$TargetIsBlank$Implies$Noopener}; here also apply on Chrome */
       noopener = relAttr == null ? isBlank
           : Build.MinCVer >= BrowserVer.MinEnsuredES6$Array$$Includes || !(Build.BTypes & BrowserType.Chrome)
           ? (relAttr.split(<RegExpOne> /\s/) as ReadonlyArrayWithIncludes<string>).includes("noopener")
-          : relAttr.split(<RegExpOne> /\s/).indexOf("noopener") >= 0;
+          : relAttr.split(<RegExpOne> /\s/).indexOf("noopener") >= 0,
+      reuse = Build.BTypes & BrowserType.Firefox && (<kClickAction> specialAction) & kClickAction.openInNewWindow
+          ? ReuseType.newWindow
+          : (modifiers as MyMouseControlKeys).shiftKey_ || (<kClickAction> specialAction) < kClickAction.newTabFromMode
+            ? ReuseType.newFg : ReuseType.newBg;
       VApi.post_({
         H: kFgReq.openUrl,
         u: (element as HTMLAnchorElement).href,
         n: noopener,
-        r: (modifiers as MyMouseControlKeys).shiftKey_
-          || (<kClickAction> specialAction) < kClickAction.newTabFromMode
-          ? ReuseType.newFg : ReuseType.newBg
+        r: reuse
       });
     }
   },
