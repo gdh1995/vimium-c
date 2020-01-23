@@ -40,9 +40,13 @@ if (VDom && VimiumInjector === undefined) {
     new <Type extends InnerConsts & string>(typeArg: Type, eventInitDict?: { detail?:
       Type extends InnerConsts.kVOnClick ? ClickableEventDetail
         : Type extends InnerConsts.kCmd ? CommandEventDetail
-        : Type extends InnerConsts.kHook ? /** secret */ number
         : never;
     }): CustomEvent;
+  }
+  interface VimiumDelegateEventCls {
+    prototype: FocusEvent;
+    new (typeArg: InnerConsts.kVOnClick | InnerConsts.kHook
+        , eventInitDict: EnsureItemsNonNull<Pick<FocusEventInit, "relatedTarget">>): FocusEvent;
   }
 
   const kVOnClick1 = InnerConsts.kVOnClick
@@ -88,17 +92,18 @@ if (VDom && VimiumInjector === undefined) {
 
   let box: Element | undefined | 0, hookRetryTimes = 0,
   isFirstResolve: 0 | 1 | 2 | 3 | 4 = window === top ? 3 : 4,
-  hook = function (event: CustomEvent & ToPrevent): void {
-    const t = event.target;
+  hook = function (event: VimiumDelegateEventCls["prototype"] & ToPrevent): void {
+    const t = event.relatedTarget, attr = InnerConsts.kSecretAttr;
     // use `instanceof` to require the `t` element is a new instance which has never entered this extension world
     if (++hookRetryTimes > GlobalConsts.MaxRetryTimesForSecret
-        || event.detail !== secret || !(t instanceof Element)) { return; }
+        || !(t instanceof Element)) { return; }
     // it's unhooking is delayed, so here may no VKey
     event.stopImmediatePropagation();
+    if (t.getAttribute(attr) !== "" + secret) { return; }
     setupEventListener(0, kHook, hook, 1);
     hook = null as never;
     if (box == null) {
-      t.removeAttribute(InnerConsts.kSecretAttr);
+      t.removeAttribute(attr);
       setupEventListener(t, kVOnClick1, onClick);
       box = t;
     }
@@ -114,11 +119,11 @@ if (VDom && VimiumInjector === undefined) {
       isFirstResolve = 0;
     }, GlobalConsts.ExtendClick_DelayToFindAll);
   };
-  function onClick(event: CustomEvent): void {
+  function onClick(event: (VimiumCustomEventCls | VimiumDelegateEventCls)["prototype"]): void {
     VKey.Stop_(event);
-    let detail = event.detail as ClickableEventDetail | null, fromAttrs: 1 | 2 = detail ? (detail[2] + 1) as 1 | 2 : 1;
+    let detail = event.detail as ClickableEventDetail | null, fromAttrs: 1 | 2 = detail ? (detail[2] + 1) as 1 | 2 : 1,
+    target = (event as VimiumDelegateEventCls["prototype"]).relatedTarget as Element;
     if (!Build.NDEBUG) {
-      let target = event.target as Element;
       console.log(`Vimium C: extend click: resolve ${detail ? "[%o + %o]" : "<%o>%s"} in %o @t=%o .`
         , detail ? detail[0].length : typeof target.localName !== "string" ? target + "" : target.localName as string
         , detail ? detail[2] ? -0 : detail[1].length : ""
@@ -128,7 +133,7 @@ if (VDom && VimiumInjector === undefined) {
     if (detail) {
       resolve(0, detail[0]); resolve(1, detail[1]);
     } else {
-      VDom.clickable_.add(event.target as Element);
+      VDom.clickable_.add(target);
     }
     if (isFirstResolve & fromAttrs) {
       isFirstResolve ^= fromAttrs;
@@ -211,7 +216,7 @@ toRegister: Element[] & { p (el: Element): void | 1; s: Element[]["splice"] } = 
 _apply = _listen.apply, _call = _listen.call,
 call = _call.bind(_call) as <T, A extends any[], R>(func: (this: T, ...args: A) => R, thisArg: T, ...args: A) => R,
 dispatch = _call.bind<(evt: Event) => boolean, [EventTarget, Event], boolean>(ETP.dispatchEvent),
-E = Element, EP = E.prototype, Append = EP.appendChild, Insert = EP.insertBefore,
+E = Element, EP = E.prototype, Append = EP.appendChild,
 Attr = EP.setAttribute, HasAttr = EP.hasAttribute, Remove = EP.remove,
 StopProp = Event.prototype.stopImmediatePropagation as (this: Event) => void,
 contains = EP.contains.bind(doc), // in fact, it is Node.prototype.contains
@@ -221,6 +226,7 @@ IndexOf = _call.bind(toRegister.indexOf) as never as (list: HTMLCollectionOf<Ele
 push = nodeIndexListInDocument.push,
 pushInDocument = push.bind(nodeIndexListInDocument), pushForDetached = push.bind(nodeIndexListForDetached),
 CE = CustomEvent as VimiumCustomEventCls, HA = HTMLAnchorElement,
+DE = FocusEvent as VimiumDelegateEventCls,
 FP = Function.prototype, _toString = FP.toString,
 listen = _call.bind<(this: EventTarget,
         type: string, listener: EventListenerOrEventListenerObject, useCapture?: EventListenerOptions) => any,
@@ -304,11 +310,9 @@ let doInit = function (this: void): void {
   key = InnerConsts.kSecretAttr;
   doInit = docChildren = null as never;
   if (!docEl2) { return executeCmd(); }
-  call(Attr, el, key, "");
+  call(Attr, el, key, "" + sec);
   listen(el, (InnerConsts.kCmd + BuildStr.RandomName1) as InnerConsts.kCmd, executeCmd, !0);
-  call(Append, docEl2, el),
-  dispatch(el, new CE((InnerConsts.kHook + BuildStr.RandomName0) as InnerConsts.kHook, {detail: sec})),
-  call(Remove, el);
+  dispatch(window, new DE((InnerConsts.kHook + BuildStr.RandomName0) as InnerConsts.kHook, {relatedTarget: el}));
   if (call(HasAttr, el, key)) {
     executeCmd();
   } else {
@@ -405,20 +409,14 @@ function prepareRegister(this: void, element: Element): void {
         , element));
   // Note: ignore the case that a plain #document-fragment has a fake .host
   } else if (e2.nodeType === kNode.DOCUMENT_FRAGMENT_NODE
-      && !((e2 as ShadowRoot | DocumentFragment & { host?: undefined }).host
-    // here use a larger matching than `kValue in`, in case: e1:=<form>, e3:=RadioNodeList, e3.parentElement:=undefined
-    // so that a RadioNodeList can not crash the block below
-            || (e3 = e1.nextSibling) && e3.parentElement !== null)) {
+      && !(e2 as TypeToAssert<DocumentFragment, ShadowRoot, "host">).host) {
     // not register, if ShadowRoot or .nextSibling is not real
     // NOTE: ignore nodes belonging to a shadowRoot,
     // in case of `<html> -> ... -> <div> -> #shadow-root -> ... -> <iframe>`,
     // because `<iframe>` will destroy if removed
     if (unsafeDispatchCounter < InnerConsts.MaxUnsafeEventsInOneTick - 2) {
-      doRegister(0);
-      call(Append, root, e1);
       unsafeDispatchCounter++;
-      dispatch(element, new CE(kVOnClick));
-      call(Insert, e2, e1, e3 as Exclude<typeof e3, undefined>);
+      dispatch(root, new DE(kVOnClick, {relatedTarget: element}));
     } else {
       toRegister.p(element);
       if (unsafeDispatchCounter < InnerConsts.MaxUnsafeEventsInOneTick + 1) {

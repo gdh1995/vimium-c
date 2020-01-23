@@ -258,7 +258,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
        * - Chrome is since BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInShadowDOM
        * - `event.currentTarget` (`this`) is a shadowRoot
        */
-      isNormalHost = Build.MinCVer >= BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInShadowDOM
+      isNormalHost = Build.MinCVer >= BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInClosedShadowDOM
           && !(Build.BTypes & ~BrowserType.Chrome)
         || !(Build.BTypes & ~BrowserType.Firefox)
         || Build.BTypes & BrowserType.Firefox && !(Build.BTypes & BrowserType.Edge)
@@ -300,7 +300,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
             && Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
         ? (event as Ensure<Event, "composedPath">).composedPath() : event.path
       , top: EventTarget | undefined
-      , same = Build.MinCVer >= BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInShadowDOM
+      , same = Build.MinCVer >= BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInClosedShadowDOM
             && !(Build.BTypes & ~BrowserType.Chrome)
           || !(Build.BTypes & ~BrowserType.Firefox)
           || Build.BTypes & BrowserType.Firefox && !(Build.BTypes & BrowserType.Edge)
@@ -326,7 +326,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           || Build.BTypes & BrowserType.Firefox && !(Build.BTypes & BrowserType.Edge)
               && Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
           ? (event as Ensure<Event, "composedPath">).composedPath() : event.path,
-      el = Build.MinCVer >= BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInShadowDOM
+      el = Build.MinCVer >= BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInClosedShadowDOM
             && !(Build.BTypes & ~BrowserType.Chrome)
           || !(Build.BTypes & ~BrowserType.Firefox)
           || Build.BTypes & BrowserType.Firefox && !(Build.BTypes & BrowserType.Edge)
@@ -354,7 +354,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
         ? !event.isTrusted : event.isTrusted === false) { return; }
     if (isEnabled && event.type === "focus") {
-      return onFocus(event);
+      onFocus(event);
+      return;
     }
     if (!isEnabled || domNodeMap.get(this) === kNodeInfo.ShadowBlur) {
       hookOnShadowRoot([this, 0 as never], 0, 1);
@@ -1312,11 +1313,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           U.styleFind_ && (U.styleFind_.textContent = req.f.i);
         }
       }
-      // tslint:disable-next-line: no-unused-expression
       req.c
         ? VVisual.mode_ ? VVisual.prompt_(kTip.copiedIs, 2000, [HUD.copied_(req.t, "", 1)])
           : HUD.copied_(req.t)
         : req.t ? HUD.tip_(kTip.raw, 0, [req.t])
+      // tslint:disable-next-line: no-unused-expression
       : 0;
     },
     /* kBgReq.count: */ function (request: BgReq[kBgReq.count]): void {

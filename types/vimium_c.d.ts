@@ -756,7 +756,7 @@ declare const enum BrowserVer {
   MinNo$KeyboardEvent$$keyIdentifier = 54,
   // https://chromium.googlesource.com/chromium/src/+/9520623861da283533e71d6b7a8babd02675cb0b
   Min$Node$$getRootNode = 54, // not on Edge
-  MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInShadowDOM = 55,
+  MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInClosedShadowDOM = 55,
   // before C55, onActivate should only be installed on document
   Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow = 55,
   Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow = 55,
