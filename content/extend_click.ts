@@ -235,20 +235,20 @@ decryptFromVerifier = (func: InnerVerifier | unknown): string => {
   return call(StringSubstr, str, offset
       , GlobalConsts.MarkForName3Length + GlobalConsts.SecretStringLength);
 },
-toStringOrSource = function (a: FUNC, args: IArguments, realToStrOrSrc: (this: FUNC) => string): string {
+newFuncToString = function (a: FUNC, args: IArguments): string {
     const replaced = a === myAEL || BuildStr.RandomName3 && a === anotherAEL ? _listen
         : a === myToStr || BuildStr.RandomName3 && a === anotherToStr ? _toString
         : 0,
     str = call(_apply as (this: (this: FUNC, ...args: Array<{}>) => string, self: FUNC, args: IArguments) => string,
-              realToStrOrSrc, replaced || a, args),
+              _toString, replaced || a, args),
     expectedFunc = !BuildStr.RandomName3 || replaced ? 0 : str === sAEL ? _listen : str === sToStr ? _toString
         : 0;
     detectDisabled && str === detectDisabled && executeCmd();
     return !BuildStr.RandomName3 ? str
-        : !expectedFunc ? call(StringIndexOf, str, kMarkToVerify) > 0 ? call(realToStrOrSrc, noop) : str
+        : !expectedFunc ? call(StringIndexOf, str, kMarkToVerify) > 0 ? call(_toString, noop) : str
         : (
           noAbnormalVerifyingFound && (a as PublicFunction)(kMarkToVerify, verifier),
-          a === anotherAEL ? call(realToStrOrSrc, _listen) : a === anotherToStr ? call(realToStrOrSrc, _toString)
+          a === anotherAEL ? call(_toString, _listen) : a === anotherToStr ? call(_toString, _toString)
           : (noAbnormalVerifyingFound = 0, str)
         );
 },
@@ -264,7 +264,7 @@ hooks = {
           decryptFromVerifier(args[1] || BuildStr.RandomName3_public),
           verifier);
     }
-    return toStringOrSource(this, args, _toString);
+    return newFuncToString(this, args);
   },
   addEventListener: function addEventListener(this: EventTarget, type: string
       , listener: EventListenerOrEventListenerObject): void {

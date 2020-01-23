@@ -722,7 +722,7 @@
     }, cRepeat);
   }
   function openJSUrl(url: string): void {
-    if (";".indexOf(url.slice(11).trim()) >= 0) {
+    if ("void 0;void(0);".includes(url.slice(11).trim())) {
       return;
     }
     if (cPort) {

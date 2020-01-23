@@ -599,7 +599,7 @@ let optionsInit1_ = function (): void {
     (document.body as HTMLBodyElement).classList.add("dialog-ui");
     mainHeader.remove();
     element2.style.display = "";
-    (element2.nextElementSibling as Element).remove();
+    (element2.nextElementSibling as SafeHTMLElement).style.display = "none";
     });
     if (Build.MinCVer >= BrowserVer.MinCorrectBoxWidthForOptionsUI
         || !(Build.BTypes & BrowserType.Chrome)
@@ -621,7 +621,7 @@ let optionsInit1_ = function (): void {
   } else if (chrome.tabs.query) {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs): void {
       let url: string;
-      if (document.hasFocus() && tabs[0] && (url = tabs[0].url).indexOf("-") > 0
+      if (tabs[0] && (<RegExpOne> /^(about|chrome|edge):/).test(url = tabs[0].url)
           && !url.startsWith(location.protocol)) {
         setUI(tabs[0].id);
       }

@@ -736,12 +736,13 @@ domainEngine = {
     }
   },
   ParseDomainAndScheme_ (this: void, url: string): UrlDomain | null {
-    let d: Urls.SchemaId, n = url.lastIndexOf(":", 5), schema = n > 0 ? url.slice(0, n) : "";
+    let n = url.lastIndexOf(":", 5), schema = n > 0 ? url.slice(0, n) : "", d: Urls.SchemaId, i: number;
     if (schema === "http") { d = Urls.SchemaId.HTTP; }
     else if (schema === "https") { d = Urls.SchemaId.HTTPS; }
     else if (schema === "ftp") { d = Urls.SchemaId.FTP; }
     else { return null; }
-    url = url.slice(d, url.indexOf("/", d));
+    i = url.indexOf("/", d);
+    url = url.slice(d, i < 0 ? url.length : i);
     return { domain_: url !== "__proto__" ? url : ".__proto__", schema_: d };
   }
 },
