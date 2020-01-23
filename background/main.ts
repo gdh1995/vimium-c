@@ -422,7 +422,7 @@
   }
   function confirm_(this: void, command: string, count: number
       , callback?: (_arg: FakeArg) => void): number | void {
-    if (!(Build.NDEBUG || command.indexOf(".") < 0)) {
+    if (!(Build.NDEBUG || !command.includes("."))) {
       console.log("Assert error: command should has no limit on repeats: %c%s", "color:red", command);
     }
     let msg = trans_("cmdConfirm", [count, trans_(command)]);
@@ -585,10 +585,7 @@
     }, cRepeat);
   }, function (url, tab, repeat, allTabs): void {
     const urlLower = url.toLowerCase().split("#", 1)[0];
-    allTabs = allTabs.filter(function (tab1) {
-      const url2 = tab1.url.toLowerCase(), end = url2.indexOf("#");
-      return (end < 0 ? url2 : url2.slice(0, end)) === urlLower;
-    });
+    allTabs = allTabs.filter(tab1 => tab1.url.split("#", 1)[0].toLowerCase() === urlLower);
     if (allTabs.length === 0) {
       chrome.windows.getAll(hackedCreateTab[2].bind(url, tab, repeat));
       return;
@@ -682,7 +679,7 @@
       const end = url.indexOf("/", start) + 1 || url.length,
       host = url.slice(start, end),
       type = host.startsWith("0.0.0.0") ? 7
-          : host.indexOf(":::") >= 0 && (arr = (<RegExpOne> /^(\[?::\]?):\d{2,5}$/).exec(host))
+          : host.includes(":::") && (arr = (<RegExpOne> /^(\[?::\]?):\d{2,5}$/).exec(host))
           ? arr[1].length : 0;
       url = type ? url.slice(0, start) + (type > 6 ? "127.0.0.1" : "[::1]") + url.slice(start + type) : url;
     }
@@ -1101,11 +1098,7 @@
       }
       for (let i of patterns) {
         i = i && (i + "").trim();
-        i && p2.push((!(Build.BTypes & BrowserType.Chrome)
-            || Build.MinCVer >= BrowserVer.MinEnsuredES6$String$$StartsWithEndsWithAndRepeatAndIncludes
-            ? (GlobalConsts.SelectorPrefixesInPatterns as Ensure<string, "includes">).includes(i[0])
-            : GlobalConsts.SelectorPrefixesInPatterns.indexOf(i[0]) >= 0)
-          ? i : i.toLowerCase());
+        i && p2.push(GlobalConsts.SelectorPrefixesInPatterns.includes(i[0]) ? i : i.toLowerCase());
         if (p2.length === GlobalConsts.MaxNumberOfNextPatterns) { break; }
       }
       const maxLens: number[] = p2.map(i => Math.max(i.length + 12, i.length * 4)),
@@ -2189,7 +2182,7 @@
           arr = argRe.exec(str) || (<RegExpOne> /(^|&)([^&\/=]*\/[^&=]*)(?:&|$)/).exec(str);
           path = arr ? arr[2] : str;
           // here `path` is ensured not empty
-          if (path === "/" || path.indexOf("://") >= 0) { path = null; }
+          if (path === "/" || path.includes("://")) { path = null; }
           else if (!arr) { start = 0; }
           else if (!decoded) { start = arr.index + arr[1].length; }
           else {
@@ -2285,7 +2278,7 @@
           path = (startSlash ? "/" : "") + path + (endSlash ? "/" : "");
         }
       }
-      if (!end && url.slice(0, start).indexOf("git") > 0) {
+      if (!end && url.lastIndexOf("git", start - 3) > 0) {
         path = /*#__NOINLINE__*/ upperGitUrls(url, path) || path;
       }
       str = decoded ? enc(path) : path;
@@ -2595,7 +2588,7 @@
       // * do not limit windowId or windowType
       let url = BgUtils_.reformatURL_(request.u.split("#", 1)[0]), callback = focusOrLaunch[0];
       let cb2: (result: Tab[], exArg: FakeArg) => void;
-      if (url.startsWith("file:") && !notFolder && url.slice(url.lastIndexOf("/") + 1).indexOf(".") < 0) {
+      if (!notFolder && url.startsWith("file:") && !url.includes(".", url.lastIndexOf("/") + 1)) {
         url += "/";
         cb2 = function (tabs): void {
           return tabs && tabs.length > 0 ? callback.call(request, tabs)
@@ -2646,14 +2639,14 @@
         return;
       }
       {
-        let toggled = ` ${req.t} `, extSt = curStyles && ` ${curStyles} `, exists = extSt.indexOf(toggled) >= 0,
+        let toggled = ` ${req.t} `, extSt = curStyles && ` ${curStyles} `, exists = extSt.includes(toggled),
         newExist = req.e != null ? req.e : exists;
         styles = newExist ? exists ? curStyles : curStyles + toggled : extSt.replace(toggled, " ");
         styles = styles.trim().replace(BgUtils_.spacesRe_, " ");
         if (req.b === false) { payload.s = styles; return; }
         if (req.o) {
           Settings_.temp_.omniStyleOverridden_ = newExist !==
-              (` ${Settings_.cache_.vomnibarOptions.styles} `.indexOf(toggled) >= 0);
+              (` ${Settings_.cache_.vomnibarOptions.styles} `.includes(toggled));
         }
       }
       if (styles === curStyles) { return; }

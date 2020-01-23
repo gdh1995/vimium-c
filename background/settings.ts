@@ -188,7 +188,7 @@ var Settings_ = {
       browserVer = CurCVer_,
       browserInfo = cacheId.slice(cacheId.indexOf(",") + 1),
       hasAll = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinUsableCSS$All
-          || browserInfo.indexOf("a") >= 0;
+          || browserInfo.includes("a");
       if (!(Build.NDEBUG || css.startsWith(":host{"))) {
         console.log('Assert error: `css.startsWith(":host{")` in Settings_.updateHooks_.baseCSS');
       }
@@ -255,7 +255,7 @@ var Settings_ = {
       if (!((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             && !(Build.BTypes & ~BrowserType.ChromeOrFirefox))
-          && browserInfo.indexOf("s") < 0) {
+          && !browserInfo.includes("s")) {
         /** Note: {@link ../front/vimium.css}: this requires `:host{` is at the beginning */
         const hostEnd = css.indexOf("}") + 1, secondEnd = css.indexOf("}", hostEnd) + 1,
         prefix = "#VimiumUI";

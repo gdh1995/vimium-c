@@ -118,7 +118,7 @@ var VOmni = {
     options.k = 0; options.v = options.i = "";
     options.N = VomnibarNS.kCReq.activate;
     options.T = "";
-    if (!url || url.indexOf("://") === -1) {
+    if (!url || !url.includes("://")) {
       options.p = "";
       return a.setOptions_(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront);
     }

@@ -29,7 +29,7 @@ var VFind = {
     UI.findCss_ = options.f || UI.findCss_;
     if (!dom.isHTML_()) { return; }
     let query: string = options.s ? UI.getSelectionText_() : "";
-    (query.length > 99 || query.indexOf("\n") > 0) && (query = "");
+    (query.length > 99 || query.includes("\n")) && (query = "");
     a.isQueryRichText_ = !query;
     query || (query = options.q);
     a.isActive_ || query === a.query_ && options.l || VMarks.setPreviousPosition_();
@@ -552,7 +552,7 @@ var VFind = {
     const _this = VFind, query = _this.input_.innerText.replace(<RegExpG> /\xa0/g, " ").replace(<RegExpOne> /\n$/, "");
     let s = _this.query_;
     if (!_this.hasResults_ && !_this.isRegex_ && !_this.wholeWord_ && _this.notEmpty_ && query.startsWith(s)
-        && query.slice(s.length - 1).indexOf("\\") < 0) {
+        && !query.includes("\\", s.length - 1)) {
       _this.query0_ = query;
       return _this.showCount_(0);
     }

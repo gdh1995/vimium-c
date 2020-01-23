@@ -401,7 +401,7 @@ var VCui = {
         : EditableType.Default;
     if (type === EditableType.Default) { return; }
     const isBox = type === EditableType.TextBox || type === EditableType.rich_
-        && element.textContent.indexOf("\n") >= 0,
+        && element.textContent.includes("\n"),
     lineAllAndBoxEnd = action === "all-input" || action === "all-line",
     gotoStart = action === "start",
     gotoEnd = !action || action === "end" || isBox && lineAllAndBoxEnd;

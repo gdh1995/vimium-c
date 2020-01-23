@@ -474,7 +474,7 @@ var VHints = {
       }
       if ((_this.forHover_ && (!(anotherEl = element.parentElement) || VDom.htmlTag_(anotherEl) !== "a"))
           || ((s = (element as HTMLElement).style.cursor as string) ? s !== "default"
-              : (s = getComputedStyle(element).cursor as string) && (s.indexOf("zoom") >= 0 || s.startsWith("url"))
+              : (s = getComputedStyle(element).cursor as string) && (s.includes("zoom") || s.startsWith("url"))
           )) {
         isClickable = true;
       }
@@ -508,7 +508,7 @@ var VHints = {
           || ((s = element.className)
                 && (<RegExpOne> /\b(?:[Bb](?:utto|t)n|[Cc]lose|hate|like)(?:$|[-\s_])/).test(s)
                 && (!(anotherEl = element.parentElement)
-                    || (s = VDom.htmlTag_(anotherEl), s.indexOf("button") < 0 && s !== "a"))
+                    || (s = VDom.htmlTag_(anotherEl), !s.includes("button") && s !== "a"))
               || element.hasAttribute("aria-selected") ? ClickType.classname : ClickType.Default);
     }
     if ((isClickable || type !== ClickType.Default)
@@ -550,7 +550,7 @@ var VHints = {
   checkJSAction_ (str: string): boolean {
     for (let s of str.split(";")) {
       s = s.trim();
-      const t = s.startsWith("click:") ? (s = s.slice(6)) : s && s.indexOf(":") === -1 ? s : null;
+      const t = s.startsWith("click:") ? (s = s.slice(6)) : s && !s.includes(":") ? s : null;
       if (t && t !== "none" && !(<RegExpOne> /\._\b(?![\$\.])/).test(t)) {
         return true;
       }
@@ -1776,7 +1776,7 @@ filterEngine_: {
         && (keyChar = h.doesMapKey_ ? VApi.mapKey_(keyChar, e, keyChar) : keyChar).length < 2) {
       keyChar = useFilter ? keyChar : keyChar.toUpperCase();
       useFilter && h.ResetMode_();
-      if (h.chars_.indexOf(keyChar) >= 0) {
+      if (h.chars_.includes(keyChar)) {
         sequence += keyChar;
         doesDetectMatchSingle = useFilter || sequence.length < h.maxPrefixLen_ ? 1 : 2;
       } else if (useFilter) {
@@ -2037,7 +2037,7 @@ Modes_: [
           str = (link as HTMLInputElement).value || (link as HTMLInputElement).placeholder;
         } else if (type === "file") {
           str = (f = (link as HTMLInputElement).files) && f.length > 0 ? f[0].name : "";
-        } else if ("button image submit reset".indexOf(type) >= 0) {
+        } else if ("button image submit reset".includes(type)) {
           str = (link as HTMLInputElement).value;
         }
       } else {

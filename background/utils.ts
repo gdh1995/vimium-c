@@ -109,7 +109,7 @@ var BgUtils_ = {
     if (a.isJSUrl_(str)) {
       if (Build.MinCVer < BrowserVer.MinAutoDecodeJSURL && Build.BTypes & BrowserType.Chrome
           && CurCVer_ < BrowserVer.MinAutoDecodeJSURL
-          && str.indexOf("%", 11) > 0
+          && str.includes("%")
           && !(<RegExpOne> /["\[\]{}\u00ff-\uffff]|%(?![\dA-F]{2}|[\da-f]{2})/).test(str)) {
         str = a.DecodeURLPart_(str);
       }
@@ -188,7 +188,7 @@ var BgUtils_ = {
     }
     else if (str.startsWith("file:")) { type = Urls.Type.Full; }
     else if (str.startsWith("chrome:")) {
-      type = str.length < oldString.length && str.indexOf("/", 9) === -1 ? Urls.Type.Search : Urls.Type.Full;
+      type = str.length < oldString.length && str.includes("/") ? Urls.Type.Search : Urls.Type.Full;
     } else {
       str = str.slice(index + 3, index2 >= 0 ? index2 : void 0);
     }
@@ -197,7 +197,7 @@ var BgUtils_ = {
     //       Otherwise `type` must not be `NoSchema | NoProtocolName`
     if (type === Urls.TempType.Unspecified && str.lastIndexOf("%") >= 0) {
       str = BgUtils_.DecodeURLPart_(str);
-      if (str.indexOf("/") >= 0) { type = Urls.Type.Search; }
+      if (str.includes("/")) { type = Urls.Type.Search; }
     }
     if (type === Urls.TempType.Unspecified && str.startsWith(".")) { str = str.slice(1); }
     if (type !== Urls.TempType.Unspecified) { /* empty */ }
@@ -260,7 +260,7 @@ var BgUtils_ = {
     const isSlash = str.substr(i + 1, 1) === "/";
     switch (str.slice(0, i)) {
     case "about":
-      return isSlash ? Urls.Type.Search : spacePos > 0 || str.indexOf("@", i) > 0
+      return isSlash ? Urls.Type.Search : spacePos > 0 || str.includes("@", i)
         ? Urls.TempType.Unspecified : Urls.Type.Full;
     case "blob": case "view-source":
       str = str.slice(i + 1);
@@ -296,15 +296,15 @@ var BgUtils_ = {
     let s = str.slice(0, i - 1).trim().toLowerCase();
     if (s !== "link" && s !== "\u94fe\u63a5") { return str; }
     let url = str.slice(i).trim();
-    (i = url.indexOf(" ")) > 0 && (url = url.slice(0, i));
-    ",.;\u3002\uff0c\uff1b".indexOf(url.slice(-1)) >= 0 && (url = url.slice(0, -1));
+    url = url.split(" ", 1)[0];
+    ",.;\u3002\uff0c\uff1b".includes(url.slice(-1)) && (url = url.slice(0, -1));
     url = this.convertToUrl_(url, null, Urls.WorkType.KeepAll);
     return BgUtils_.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl && !url.startsWith("vimium:") ? url : str;
   },
   isTld_ (tld: string, onlyEN?: boolean): Urls.TldType {
-    return !onlyEN && (<RegExpOne> /[^a-z]/).test(tld) ? (this._nonENTlds.indexOf("." + tld + ".") !== -1
+    return !onlyEN && (<RegExpOne> /[^a-z]/).test(tld) ? (this._nonENTlds.includes("." + tld + ".")
         ? Urls.TldType.NonENTld : Urls.TldType.NotTld)
-      : tld.length < this._tlds.length && this._tlds[tld.length].indexOf(tld) > 0 ? Urls.TldType.ENTld
+      : tld.length < this._tlds.length && this._tlds[tld.length].includes(tld) ? Urls.TldType.ENTld
       : Urls.TldType.NotTld;
   },
   splitByPublicSuffix_ (host: string): [string[], /* partsNum */ 1 | 2 | 3] {
@@ -330,7 +330,7 @@ var BgUtils_ = {
       query = path.slice(ind).trim();
       path = path.slice(0, ind - 1);
     }
-    if (ind = path.indexOf("/") + 1 || path.search(<RegExpOne> /[#?]/) + 1) {
+    if (ind = path.search(<RegExpOne> /[\/#?]/) + 1) {
       subPath = path.slice(ind - 1).trim();
       path = path.slice(0, ind - 1);
     }
@@ -339,7 +339,7 @@ var BgUtils_ = {
       path = path.toLowerCase();
       if ((tempStr = (Settings_.CONST_.RedirectedUrls_ as SafeDict<string>)[path]) != null) {
         tempStr = path = !tempStr || tempStr[0] === "/" || tempStr[0] === "#"
-          ? Settings_.CONST_.HomePage_ + (tempStr.indexOf(".") > 0 ? "/blob/master" + tempStr : tempStr)
+          ? Settings_.CONST_.HomePage_ + (tempStr.includes(".") ? "/blob/master" + tempStr : tempStr)
           : tempStr;
       } else if (path === "newtab") {
         return Settings_.cache_.newTabUrl_f;
@@ -351,11 +351,11 @@ var BgUtils_ = {
         path = "show.html#!url vimium://" + path;
       }
     }
-    if (!partly && (!tempStr || tempStr.indexOf("://") < 0)) {
+    if (!partly && (!tempStr || !tempStr.includes("://"))) {
       path = location.origin + (path[0] === "/" ? "" : "/pages/") + path;
     }
     subPath && (path += subPath);
-    return path + (query && (path.indexOf("#") > 0 ? " " : "#!") + query);
+    return path + (query && (path.includes("#") ? " " : "#!") + query);
   },
   _nestedEvalCounter: 0,
   evalVimiumUrl_: function (this: {}, path: string, workType?: Urls.WorkType
@@ -422,7 +422,7 @@ var BgUtils_ = {
     switch (cmd) {
     case "p": case "parse": case "decode":
       cmd = path.split(" ", 1)[0];
-      if (cmd.indexOf("/") < 0 && cmd.toLowerCase().indexOf("%2f") < 0) {
+      if (cmd.search(<RegExpI> /\/|%2f/i) < 0) {
         path = path.slice(cmd.length + 1).trimLeft();
       } else {
         cmd = "~";
@@ -535,7 +535,7 @@ var BgUtils_ = {
         s1 = BgUtils_.isJSUrl_(url) ? "%20" : "+";
       }
       if (arr.length === 0) { return ""; }
-      if (s2 && s2.indexOf("$") !== -1) {
+      if (s2 && s2.includes("$")) {
         s2 = s2.replace(BgUtils_.searchVariable_, function (_t: string, s3: string): string {
           let i = parseInt(s3, 10);
           if (!i) {
@@ -568,10 +568,10 @@ var BgUtils_ = {
     return url;
   },
   decodeEscapedURL_ (url: string): string {
-    return url.indexOf("://") < 0 && (<RegExpI> /%(?:3a|2f)/i).test(url) ? this.DecodeURLPart_(url).trim() : url;
+    return !url.includes("://") && (<RegExpI> /%(?:3a|2f)/i).test(url) ? this.DecodeURLPart_(url).trim() : url;
   },
   fixCharsInUrl_ (url: string): string {
-    let type = (url.indexOf("\u3002") < 0 ? 0 : 1) + (url.indexOf("\uff1a") < 0 ? 0 : 2);
+    let type = +url.includes("\u3002") + 2 * +url.includes("\uff1a");
     if (type === 0) { return url; }
     let i = url.indexOf("//");
     i = url.indexOf("/", i >= 0 ? i + 2 : 0);
@@ -683,7 +683,7 @@ var BgUtils_ = {
             ind += a.lastUrlType_ === Urls.Type.NoSchema ? 7 : 5;
           }
           if (tmpRule = a.reParseSearchUrl_(val.toLowerCase(), ind)) {
-            if (key.indexOf("$") >= 0) {
+            if (key.includes("$")) {
               key = key.replace(a.searchVariable_, "(.*)");
               tmpKey = new RegExp("^" + key, (<RegExpI> /[a-z]/i).test(key) ? "i" as "" : ""
                 ) as RegExpI | RegExpOne;

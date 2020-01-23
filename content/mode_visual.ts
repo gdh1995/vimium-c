@@ -161,7 +161,7 @@ var VVisual = {
     }
     if (char === kChar.enter) {
       a.resetKeys_();
-      if (key.indexOf("s-") > 0 && a.mode_ !== VisualModeNS.Mode.Caret) { a.retainSelection_ = true; }
+      if (key.includes("s-") && a.mode_ !== VisualModeNS.Mode.Caret) { a.retainSelection_ = true; }
       key[1] === "c" || key[1] === "m" ? a.deactivate_() : a.yank_(key[1] === "a" ? 9 : 8);
       return HandlerResult.Prevent;
     }

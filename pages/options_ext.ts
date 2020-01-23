@@ -104,7 +104,7 @@ $<ElementWithDelay>("#exportButton").onclick = function (event): void {
   storage = localStorage, all = bgSettings_.defaults_;
   for (let i = 0, len = storage.length; i < len; i++) {
     const key = storage.key(i) as string;
-    if (key.indexOf("|") < 0 && key.slice(-2) !== "_f"
+    if (!key.includes("|") && key.slice(-2) !== "_f"
         && key !== "findModeRawQueryList"
         && key.slice(-3) !== "CSS" // ignore innerCSS, findCSS, omniCSS
     ) {
@@ -116,7 +116,7 @@ $<ElementWithDelay>("#exportButton").onclick = function (event): void {
     const storedVal = storage.getItem(key) as string;
     if (typeof all[key] !== "string") {
       exported_object[key] = (key in all) ? bgSettings_.get_(key) : storedVal;
-    } else if (storedVal.indexOf("\n") > 0) {
+    } else if (storedVal.includes("\n")) {
       (exported_object[key] = storedVal.split("\n")).push("");
     } else {
       exported_object[key] = storedVal;
@@ -215,7 +215,7 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
   otherLineEndRe = <RegExpG> /\r\n?/g;
   for (let i = storage.length; 0 <= --i; ) {
     const key = storage.key(i) as string;
-    if (key.indexOf("|") >= 0) { continue; }
+    if (key.includes("|")) { continue; }
     if (!(key in new_data)) {
       new_data[key] = null;
     }

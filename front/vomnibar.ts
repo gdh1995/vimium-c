@@ -352,7 +352,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     const onlyUrl = !line.t, url = line.u;
     const ind = VUtils_.ensureText_(line);
     let str = onlyUrl ? url : VUtils_.decodeURL_(url, decodeURIComponent);
-    if (!onlyUrl && str.length === url.length && url.indexOf("%") >= 0) {
+    if (!onlyUrl && str.length === url.length && url.includes("%")) {
       // has error during decoding
       str = line.t;
       if (ind) {
@@ -668,8 +668,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     const a = Vomnibar_;
     let sel = newSel != null ? newSel : a.selection_;
     if (typeof event === "string") {
-      event = (event.indexOf("a-") > 0 ? KeyStat.altKey : 0) + (event.indexOf("c-") > 0 ? KeyStat.ctrlKey : 0)
-          + (event.indexOf("m-") > 0 ? KeyStat.metaKey : 0) + (event.indexOf("s-") > 0 ? KeyStat.shiftKey : 0);
+      event = (event.includes("a-") ? KeyStat.altKey : 0) + (event.includes("c-") ? KeyStat.ctrlKey : 0)
+          + (event.includes("m-") ? KeyStat.metaKey : 0) + (event.includes("s-") ? KeyStat.shiftKey : 0);
     }
     a.actionType_ = event == null ? a.actionType_
       : event === true ? a.forceNewTab_ ? ReuseType.newFg : ReuseType.current
@@ -760,7 +760,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     end = el.selectionEnd - 1;
     if (left.charCodeAt(end) !== kCharCode.space || end === left.length - 1) { return; }
     left = left.slice(0, end).trimRight();
-    if (left.indexOf(" ") === -1) {
+    if (!left.includes(" ")) {
       el.setSelectionRange(0, left.length, "backward");
     }
   },
@@ -891,7 +891,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
   toggleStyle_ (req: BgVomnibarSpecialReq[kBgReq.omni_toggleStyle]): void {
     const oldStyles = Vomnibar_.styles_ && ` ${Vomnibar_.styles_} `, toggle = ` ${req.t} `,
-    add = oldStyles.indexOf(toggle) < 0,
+    add = !oldStyles.includes(toggle),
     omniStyles = (add ? oldStyles + req.t : oldStyles.replace(toggle, " ")).trim().replace(Vomnibar_.spacesRe_, " ");
     Vomnibar_.styles_ = omniStyles;
     Vomnibar_.onStyleUpdate_(omniStyles);
@@ -907,13 +907,13 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   onStyleUpdate_ (omniStyles: string): void {
     omniStyles = ` ${omniStyles} `;
     if (Vomnibar_.darkBtn_) {
-      Vomnibar_.darkBtn_.textContent = omniStyles.indexOf(" dark ") >= 0 ? "\u2600" : "\u263D";
+      Vomnibar_.darkBtn_.textContent = omniStyles.includes(" dark ") ? "\u2600" : "\u263D";
     }
-    const monospaceURL = omniStyles.indexOf(" mono-url ") >= 0;
+    const monospaceURL = omniStyles.includes(" mono-url ");
     // Note: should not use style[title], because "title" on style/link has special semantics
     // https://html.spec.whatwg.org/multipage/semantics.html#the-style-element
     for (const style of (document.querySelectorAll("style[id]") as {} as HTMLStyleElement[])) {
-      const key = " " + style.id + " ", found = key === " custom " || omniStyles.indexOf(key) >= 0;
+      const key = " " + style.id + " ", found = key === " custom " || omniStyles.includes(key);
       (style.sheet as CSSStyleSheet).disabled = !found;
       if (found) {
         omniStyles = omniStyles.replace(key, " ");
@@ -1107,7 +1107,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           || Build.BTypes & BrowserType.Chrome
               && a.browserVer_ >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon;
     if (type === VomnibarNS.PageType.web
-        || location.origin.indexOf("-") < 0) { /* empty */ }
+        || !location.origin.includes("-")) { /* empty */ }
     else if (type === VomnibarNS.PageType.inner) {
       fav = canShowOnExtOrWeb || a.sameOrigin_ ? 2 : 0;
     } else if ((canShowOnExtOrWeb || a.sameOrigin_) && (str = docEl.dataset.favicons) != null) {
@@ -1152,7 +1152,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   updateQueryFlag_ (flag: CompletersNS.QueryFlags, enable: boolean | BOOL | null): void {
     let isFirst = enable == null;
     if (isFirst && flag === CompletersNS.QueryFlags.MonospaceURL) {
-      enable = ` ${Vomnibar_.styles_} `.indexOf(" mono-url ") >= 0;
+      enable = ` ${Vomnibar_.styles_} `.includes(" mono-url ");
     }
     var newFlag = (Vomnibar_.mode_.f & ~flag) | (enable ? flag : 0);
     if (Vomnibar_.mode_.f === newFlag) { return; }
@@ -1189,7 +1189,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       if (str === mode.q) { return a.postUpdate_(); }
       mode.t = a.matchType_ < CompletersNS.MatchType.someMatches || !str.startsWith(mode.q) ? CompletersNS.SugType.Empty
         : a.matchType_ === CompletersNS.MatchType.searchWanted
-        ? str.indexOf(" ") < 0 ? CompletersNS.SugType.search : CompletersNS.SugType.Empty
+        ? !str.includes(" ") ? CompletersNS.SugType.search : CompletersNS.SugType.Empty
         : (newMatchType = a.matchType_, a.sugTypes_);
       mode.q = str;
       a.matchType_ = newMatchType;
@@ -1325,7 +1325,7 @@ VUtils_ = {
       if (wantSchema && !text.startsWith(str)) {
         text = str + text;
       }
-      if (url.endsWith("/") && !str.endsWith("/") && str.indexOf("/") > 0) {
+      if (url.endsWith("/") && !str.endsWith("/") && str.includes("/")) {
         text += "/";
       }
     }
@@ -1439,7 +1439,7 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
     (VCID_ = VCID_ || "");
     VHost_ = VCID_;
     if (!(Build.BTypes & BrowserType.Chrome)
-        || Build.BTypes & ~BrowserType.Chrome && (VCID_ as string).indexOf("-") > 0) {
+        || Build.BTypes & ~BrowserType.Chrome && (VCID_ as string).includes("-")) {
       VCID_ = curEl.dataset.vimiumId || BuildStr.FirefoxID;
     }
   } else {

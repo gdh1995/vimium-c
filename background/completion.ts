@@ -644,10 +644,9 @@ historyEngine = {
 
 domainEngine = {
   filter_ (query: CompletersNS.QueryStatus, index: number): void {
-    let i: number;
     if (queryTerms.length !== 1 || queryType === FirstQuery.searchEngines
         || !(allExpectedTypes & SugType.domain)
-        || (i = queryTerms[0].indexOf("/") + 1) && i < queryTerms[0].length) {
+        || queryTerms[0].lastIndexOf("/", queryTerms[0].length - 2) >= 0) {
       return Completers.next_([], SugType.domain);
     }
     if (HistoryCache.domains_) { /* empty */ }
@@ -667,7 +666,7 @@ domainEngine = {
     let sug: Suggestion | undefined, result = "", matchedDomain: Domain | undefined, result_score = -1.1;
     RankingUtils.maxScoreP_ = RankingEnums.maximumScore;
     for (const domain in ref) {
-      if (domain.indexOf(word) === -1) { continue; }
+      if (!domain.includes(word)) { continue; }
       matchedDomain = ref[domain];
       if (showThoseInBlocklist || matchedDomain.count_ > 0) {
         const score = ComputeRelevancy(domain, "", matchedDomain.time_);
@@ -1027,7 +1026,7 @@ searchEngine = {
       return MatchType.searching_;
     }
     if (key.length >= searchEngine.searchKeywordMaxLength_) { return MatchType.plain; }
-    return arr.indexOf("\n" + key) >= 0 ? MatchType.searching_ : MatchType.plain;
+    return arr.includes("\n" + key) ? MatchType.searching_ : MatchType.plain;
   },
   makeText_ (url: string, arr: number[]): string {
     let len = arr.length, i: number, str: string, ind: number;
@@ -1559,7 +1558,7 @@ knownCs: CompletersMap & SafeObject = {
   BlockListFilter = {
     TestNotMatched_ (url: string, title: string): Visibility {
       for (const phrase of <string[]> omniBlockList) {
-        if (title.indexOf(phrase) >= 0 || url.indexOf(phrase) >= 0) {
+        if (title.includes(phrase) || url.includes(phrase)) {
           return kVisibility.hidden;
         }
       }
@@ -1570,8 +1569,8 @@ knownCs: CompletersMap & SafeObject = {
       for (const word of query) {
         for (let phrase of <string[]> omniBlockList) {
           phrase = phrase.trim();
-          if (word.indexOf(phrase) >= 0 || phrase.length > 9 && word.length + 2 >= phrase.length
-              && phrase.indexOf(word) >= 0) {
+          if (word.includes(phrase) || phrase.length > 9 && word.length + 2 >= phrase.length
+              && phrase.includes(word)) {
             return true;
           }
         }

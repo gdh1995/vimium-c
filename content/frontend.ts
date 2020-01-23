@@ -892,10 +892,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     let candidates: Candidate[] = [], ch: string, s: string, maxLen = totalMax, len: number;
     let i: number, candInd = 0, count = names.length;
     for (i = 0; i < count; i++) {
-      if (!(Build.BTypes & BrowserType.Chrome)
-          || Build.MinCVer >= BrowserVer.MinEnsuredES6$String$$StartsWithEndsWithAndRepeatAndIncludes
-          ? (GlobalConsts.SelectorPrefixesInPatterns as Ensure<string, "includes">).includes(names[i][0])
-          : GlobalConsts.SelectorPrefixesInPatterns.indexOf(names[i][0]) >= 0) {
+      if (GlobalConsts.SelectorPrefixesInPatterns.includes(names[i][0])) {
         const arr = tryQuery(names[i]);
         if (arr && arr.length === 1 && VDom.htmlTag_(arr[0])) {
           candidates.push([i << 23, "", arr[0] as SafeHTMLElement]);
@@ -911,9 +908,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         if (s.length > totalMax) { continue; }
         s = s.toLowerCase();
         for (i = 0; i < count; i++) {
-          if (s.length < lenLimit[i] && s.indexOf(names[i]) !== -1) {
-            if (s.indexOf(refusedStr) === -1 && (len = (s = s.trim()).split(re1).length) <= maxLen) {
-              let i2 = detectQuirk - i ? names.indexOf(s, i + 1) : s.indexOf(quirk) >= 0 ? quirkIdx : -1;
+          if (s.length < lenLimit[i] && s.includes(names[i])) {
+            if (!s.includes(refusedStr) && (len = (s = s.trim()).split(re1).length) <= maxLen) {
+              let i2 = detectQuirk - i ? names.indexOf(s, i + 1) : s.includes(quirk) ? quirkIdx : -1;
               if (i2 >= 0) { i = i2; len = 2; }
               maxLen > len && (maxLen = len + 1);
               // requires GlobalConsts.MaxNumberOfNextPatterns <= 255
@@ -928,7 +925,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         }
       }
       // for non-English pages like www.google.co.jp
-      if (s.length < 5 && relIdx >= 0 && (ch = link.id) && ch.indexOf(rel) >= 0) {
+      if (s.length < 5 && relIdx >= 0 && (ch = link.id) && ch.includes(rel)) {
         candidates.push([
               !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
               && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)
@@ -1047,7 +1044,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         if (virtual) { return text; }
         return HUD.tip_(e ? kTip.noUrlCopied : kTip.noTextCopied, 1000);
       }
-      if (text.startsWith("chrome-") && text.indexOf("://") > 0) {
+      if (text.startsWith(!(Build.BTypes & ~BrowserType.Firefox) ? "moz-" : "chrome-") && text.includes("://")) {
         // tslint:disable-next-line: ban-types
         text = (text as EnsureNonNull<String>).substring(text.indexOf("/", text.indexOf("/") + 2)) || text;
       }

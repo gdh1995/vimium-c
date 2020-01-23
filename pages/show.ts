@@ -113,7 +113,7 @@ window.onhashchange = function (this: void): void {
     key = ind2 > 0 ? url.slice(0, ind2) : "", val = ind2 > 0 ? url.slice(ind2 + 1, ind - 1) : "";
     if (key === "download") {
       // avoid confusing meanings in title content
-      file = decodeURLPart(val).split(<RegExpOne> /\||\uff5c| [-\xb7] /, 1)[0].trim();
+      file = decodeURLPart_(val).split(<RegExpOne> /\||\uff5c| [-\xb7] /, 1)[0].trim();
       file = file.replace(<RegExpG> /[\r\n"]/g, "");
       VData.file = file;
     } else {
@@ -127,7 +127,7 @@ window.onhashchange = function (this: void): void {
       }
     }
   }
-  url = decodeURLPart(url, url.indexOf(":") <= 0 && url.indexOf("/") < 0 ? null : decodeURI).trim();
+  url = decodeURLPart_(url, !url.includes(":") && !url.includes("/") ? null : decodeURI).trim();
   if (!url) {
     type === "image" && (type = "");
   } else if (url.toLowerCase().startsWith("javascript:")) {
@@ -177,7 +177,7 @@ window.onhashchange = function (this: void): void {
         : clickLink({ target: "_top" }, e);
       };
     };
-    if (url.indexOf(":") > 0 || url.lastIndexOf(".") > 0) {
+    if ((<RegExpOne> /[:.]/).test(url)) {
       VShown.onclick = defaultOnClick;
       VShown.onload = function (this: HTMLImageElement): void {
         const width = this.naturalWidth;
@@ -407,7 +407,7 @@ function doImageAction(viewer: ViewerType, action: number) {
   }
 }
 
-function decodeURLPart(url: string, func?: typeof decodeURI | null): string {
+function decodeURLPart_(url: string, func?: typeof decodeURI | null): string {
   try {
     url = (func || decodeURIComponent)(url);
   } catch {}
@@ -603,15 +603,15 @@ function parseSmartImageUrl_(originUrl: string): string | null {
       const key = item.split("=", 1)[0];
       let val0 = item.slice(key.length + 1), val = val0;
       if (val.length > 7) {
-        if (val.indexOf("://") < 0 && (<RegExpOne> /%(?:3[aA]|2[fF])/).test(val)) {
+        if (!val.includes("://") && (<RegExpOne> /%(?:3[aA]|2[fF])/).test(val)) {
           val = DecodeURLPart_(val).trim();
         }
-        if (val.indexOf("/") > 0 && safeParseURL(val) != null) {
+        if (val.includes("/") && safeParseURL(val) != null) {
           if ((<RegExpOne> /^(?:imgurl|mediaurl|objurl|origin(?:al)?|real\w*|src|url)$/i).test(key)) {
             return val;
           }
           let arr = val.split("?")[0].split("/");
-          if (ImageExtRe.test(arr[arr.length - 1]) && key.toLowerCase().indexOf("thumb") < 0) {
+          if (ImageExtRe.test(arr[arr.length - 1]) && !(<RegExpI> /\bthumb/i).test(key)) {
             return val;
           }
         } else if (key === "id" && (<RegExpOne> /&w=\d{2,4}&h=\d{2,4}/).test(search)) {
@@ -687,7 +687,7 @@ function tryToFixFileExt_(file: string): string | void {
       jpeg: "jpg", png: 0, bmp: 0, svg: 0, gif: 0, tif: 0, ico: 0
     } as const;
     for (const key in map) {
-      if (map.hasOwnProperty(key) && type.indexOf(key) > 0) {
+      if (map.hasOwnProperty(key) && type.includes(key)) {
         return map[key as keyof typeof map] || "." + key;
       }
     }

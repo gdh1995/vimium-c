@@ -8,7 +8,7 @@ var HelpDialog = {
       const noShadow = !( (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             && !(Build.BTypes & ~BrowserType.ChromeOrFirefox))
-          && Settings_.CONST_.StyleCacheId_.indexOf("s") < 0,
+          && !Settings_.CONST_.StyleCacheId_.includes("s"),
       template = Settings_.cache_.helpDialog as string,
       noContain = Build.MinCVer <= BrowserVer.CSS$Contain$BreaksHelpDialogSize && Build.BTypes & BrowserType.Chrome
           && CurCVer_ === BrowserVer.CSS$Contain$BreaksHelpDialogSize;
@@ -67,7 +67,7 @@ var HelpDialog = {
         command = command.slice(0, -4);
       } else if (command.endsWith("Leave")) {
         command = command.slice(0, -5) + "Unhover";
-      } else if (command.indexOf("EditUrl") > 0) {
+      } else if (command.includes("EditUrl")) {
         command = command.replace("EditUrl", "Url");
       } else if (command === <string> <unknown> kShortcutAliases.nextTab1) {
         command = kCName.nextTab;

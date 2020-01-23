@@ -422,11 +422,11 @@ readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"] {
     let schemaLen = pattern[0] === ":" ? 0 : pattern.indexOf("://");
     if (!schemaLen) { /* empty */ }
     else if (!(<RegExpOne> /^[\^*]|[^\\][$()*+?\[\]{|}]/).test(pattern)) {
-      fixTail = pattern.indexOf("/", schemaLen + 3) < 0 && !pattern.startsWith("vimium:");
+      fixTail = !pattern.includes("/", schemaLen + 3) && !pattern.startsWith("vimium:");
       pattern = pattern.replace(<RegExpG> /\\(.)/g, "$1");
       pattern = (schemaLen < 0 ? ":http://" : ":") + pattern;
     } else if (pattern[0] !== "^") {
-      fixTail = pattern.indexOf("/", schemaLen + 3) < 0;
+      fixTail = !pattern.includes("/", schemaLen + 3);
       pattern = (schemaLen < 0 ? "^https?://" : "^") +
           (pattern[0] !== "*" || pattern[1] === "."
             ? ((pattern = pattern.replace(<RegExpG> /\./g, "\\.")),
@@ -501,7 +501,7 @@ let setupBorderWidth_ = (Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithout
   (document.head as HTMLHeadElement).appendChild(css);
 } : null;
 
-location.pathname.toLowerCase().indexOf("/popup.html") !== -1 &&
+location.pathname.toLowerCase().includes("/popup.html") &&
 Promise.all([ BG_.BgUtils_.require_("Exclusions"),
     BG_.BgUtils_.GC_(1), bgSettings_.restore_ && bgSettings_.restore_()
 ]).then((callback => () => {

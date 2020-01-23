@@ -6,7 +6,7 @@ let keyMappingChecker_ = {
     }
     function func(_0: string, oldModifiers: string, ch: string): string {
       let modifiers = oldModifiers.toLowerCase();
-      const isLong = ch.length > 1, hasShift = modifiers.indexOf("s-") >= 0, chUpper = ch.toUpperCase();
+      const isLong = ch.length > 1, hasShift = modifiers.includes("s-"), chUpper = ch.toUpperCase();
       if (!isLong) {
         if (!modifiers) { return _0; }
         if (hasShift && modifiers.length < 3) { return chUpper; }
@@ -62,7 +62,7 @@ let keyMappingChecker_ = {
     return this.normalizeCmd_("", cmd, keys, options);
   },
   normalizeCmd_ (_0: string, cmd: string, name: string, options: string) {
-    if (options.indexOf("createTab") > 0 && (<RegExpOne> /^\s+createTab\s/).test(options)
+    if (options.includes("createTab") && (<RegExpOne> /^\s+createTab\s/).test(options)
         && !(<RegExpI> /\surls?=/i).test(options)) {
       options = this.convertFromLegacyUrlList_(options);
     }

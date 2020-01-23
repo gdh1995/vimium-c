@@ -698,7 +698,7 @@ var VDom = {
     const doc = element.ownerDocument, view = (doc as Document).defaultView || window,
     tyKey = type.slice(5, 6),
     // is: down | up | (click) | dblclick | auxclick
-    detail = "dui".indexOf(tyKey) < 0 ? 0 : <number> button & kClickButton.primaryAndTwice ? 2 : 1,
+    detail = !"dui".includes(tyKey) ? 0 : <number> button & kClickButton.primaryAndTwice ? 2 : 1,
     x = center[0], y = center[1], ctrlKey = modifiers ? modifiers.ctrlKey_ : !1,
     altKey = modifiers ? modifiers.altKey_ : !1, shiftKey = modifiers ? modifiers.shiftKey_ : !1,
     metaKey = modifiers ? modifiers.metaKey_ : !1;

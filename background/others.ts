@@ -47,7 +47,7 @@ BgUtils_.timeout_(1000, function (): void {
       changes_to_merge = null;
     }
     for (const key in changes) {
-      const change = changes[key], is_part = key.indexOf(":") > 0,
+      const change = changes[key], is_part = key.includes(":"),
       result = is_part ? 8 : storeAndPropagate(key, change != null ? change.newValue : null);
       if (result === 8) {
         changes_to_merge = changes;
@@ -467,7 +467,7 @@ BgUtils_.timeout_(1000, function (): void {
       storeAndPropagate(key, null);
     }
     for (const key in items) {
-      if (key.indexOf(":") < 0) {
+      if (!key.includes(":")) {
         storeAndPropagate(key, items[key], items);
       }
     }
@@ -827,7 +827,7 @@ BgUtils_.timeout_(600, function (): void {
     inputTime = now;
     subInfoMap = suggestions = null; firstResultUrl = "";
     const type: SugType = matchType < MatchType.someMatches || !key.startsWith(last as string) ? SugType.Empty
-      : matchType === MatchType.searchWanted ? key.indexOf(" ") < 0 ? SugType.search : SugType.Empty
+      : matchType === MatchType.searchWanted ? !key.includes(" ") ? SugType.search : SugType.Empty
       : matchedSugTypes;
     Completion_.filter_(key
       , { o: "omni", t: type, r: maxResults, c: maxChars, f: CompletersNS.QueryFlags.AddressBar }
@@ -966,7 +966,7 @@ function (details: chrome.runtime.InstalledDetails): void {
     offset = location.origin.length, js = Settings_.CONST_.ContentScripts_;
     for (let _i = tabs.length, _len = js.length - 1; 0 <= --_i; ) {
       let url = tabs[_i].url;
-      if (url.startsWith(BrowserProtocol_) || url.indexOf("://") === -1) { continue; }
+      if (url.startsWith(BrowserProtocol_) || !url.includes("://")) { continue; }
       if (Build.BTypes & BrowserType.Chrome && url.startsWith(secondPrefix)) { continue; }
       let tabId = tabs[_i].id;
       for (let _j = 0; _j < _len; ++_j) {

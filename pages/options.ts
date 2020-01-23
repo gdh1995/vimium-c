@@ -189,7 +189,7 @@ static charsChecker_: Checker<TextOptionNames> = {
 static toChars_ (value: string): string {
   let str2 = "";
   for (let ch of value.replace(<RegExpG> /\s/g, "")) {
-    if (str2.indexOf(ch) < 0) {
+    if (!str2.includes(ch)) {
       str2 += ch;
     }
   }
