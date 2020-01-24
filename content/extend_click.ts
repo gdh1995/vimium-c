@@ -46,7 +46,7 @@ if (VDom && VimiumInjector === undefined) {
   interface VimiumDelegateEventCls {
     prototype: FocusEvent;
     new (typeArg: InnerConsts.kVOnClick | InnerConsts.kHook
-        , eventInitDict: EnsureItemsNonNull<Pick<FocusEventInit, "relatedTarget">>): FocusEvent;
+        , eventInitDict: Pick<FocusEventInit, "relatedTarget" | "composed">): FocusEvent;
   }
 
   const kVOnClick1 = InnerConsts.kVOnClick
@@ -119,20 +119,29 @@ if (VDom && VimiumInjector === undefined) {
       isFirstResolve = 0;
     }, GlobalConsts.ExtendClick_DelayToFindAll);
   };
-  function onClick(event: (VimiumCustomEventCls | VimiumDelegateEventCls)["prototype"]): void {
+  function onClick(this: Element | Window, event: (VimiumCustomEventCls | VimiumDelegateEventCls)["prototype"]): void {
+    if (!box) { return; }
     VKey.Stop_(event);
     let detail = event.detail as ClickableEventDetail | null, fromAttrs: 1 | 2 = detail ? (detail[2] + 1) as 1 | 2 : 1,
-    target = (event as VimiumDelegateEventCls["prototype"]).relatedTarget as Element;
+    path: typeof event.path,
+    target = detail ? null : (event as VimiumDelegateEventCls["prototype"]).relatedTarget as Element | null
+        || (!(Build.BTypes & BrowserType.Edge)
+            && Build.MinCVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
+          ? (event.path as NonNullable<typeof event.path>)[0] as Element
+          : (path = event.path) && path.length > 1 ? path[0] as Element : null);
     if (!Build.NDEBUG) {
       console.log(`Vimium C: extend click: resolve ${detail ? "[%o + %o]" : "<%o>%s"} in %o @t=%o .`
-        , detail ? detail[0].length : typeof target.localName !== "string" ? target + "" : target.localName as string
-        , detail ? detail[2] ? -0 : detail[1].length : ""
-        , location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1")
+        , detail ? detail[0].length
+          : target && (typeof target.localName !== "string" ? target + "" : target.localName as string)
+        , detail ? detail[2] ? -0 : detail[1].length
+          : (event as FocusEvent).relatedTarget ? " (detached)"
+          : this === window ? " (path on window)" : " (path on box)"
+        , location.pathname.replace(<RegExpOne> /^.*(\/[^\/;]+\/?)(;[^\/]+)?$/, "$1")
         , Date.now() % 3600000);
     }
     if (detail) {
       resolve(0, detail[0]); resolve(1, detail[1]);
-    } else {
+    } else if (/* safer */ target) {
       VDom.clickable_.add(target);
     }
     if (isFirstResolve & fromAttrs) {
@@ -148,7 +157,6 @@ if (VDom && VimiumInjector === undefined) {
       let el = list[index];
       el && VDom.clickable_.add(el);
     }
-    isBox && ((box as Element).textContent = "");
   }
   function dispatchCmd(cmd: SecondLevelContentCmds) {
     (box as Exclude<typeof box, 0 | undefined>).dispatchEvent(new CustomEvent(
@@ -169,6 +177,7 @@ if (VDom && VimiumInjector === undefined) {
     }
     if (box == null && isFirstTime) {
       setupEventListener(0, kHook, hook, 1);
+      setupEventListener(0, kVOnClick1, onClick, 1);
       if (cmd === kContentCmd.DestroyForCSP) {
         // normally, if here, must have: limited by CSP; not C or C >= MinEnsuredNewScriptsFromExtensionOnSandboxedPage
         // ignore the rare (unexpected) case that injected code breaks even when not limited by CSP,
@@ -217,6 +226,7 @@ _apply = _listen.apply, _call = _listen.call,
 call = _call.bind(_call) as <T, A extends any[], R>(func: (this: T, ...args: A) => R, thisArg: T, ...args: A) => R,
 dispatch = _call.bind<(evt: Event) => boolean, [EventTarget, Event], boolean>(ETP.dispatchEvent),
 E = Element, EP = E.prototype, Append = EP.appendChild,
+GetRootNode = EP.getRootNode, composed = {composed: !0},
 Attr = EP.setAttribute, HasAttr = EP.hasAttribute, Remove = EP.remove,
 StopProp = Event.prototype.stopImmediatePropagation as (this: Event) => void,
 contains = EP.contains.bind(doc), // in fact, it is Node.prototype.contains
@@ -387,44 +397,59 @@ function prepareRegister(this: void, element: Element): void {
     // is a fake "about:blank" document object
     return;
   }
-  let e1: Element | null = element, e2: Node | RadioNodeList | null, e3: Node | RadioNodeList | null | undefined;
-  const kValue = "value";
-  for (; e2 = e1.parentElement as Exclude<Element["parentElement"], Window>; e1 = e2 as Element) {
+  let parent: Node | RadioNodeList | null | undefined, tempParent: Node | RadioNodeList | null | undefined;
+  if (!(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.Min$Node$$getRootNode || GetRootNode) {
+    parent = call(GetRootNode as NonNullable<typeof GetRootNode>, element);
+  } else {
     // according to tests and source code, the named getter for <frameset> requires <frame>.contentDocument is valid
     // so here pe and pn will not be Window if only ignoring the case of `<div> -> #shadow-root -> <frameset>`
-    if (e2 !== (e3 = e1.parentNode as Exclude<Element["parentNode"], Window>)
-        && kValue in e2) {
+    let kValue = "value", curEl: Element | null = element;
+    for (;  parent     = curEl.parentNode    as Exclude<Element["parentNode"],    Window>
+          , tempParent = curEl.parentElement as Exclude<Element["parentElement"], Window>
+        ; curEl = tempParent as Element) {
       // here skips more cases than an "almost precise" solution, but it is enough
-      if (!e3 || kValue in e3) { return; }
-      if (e3.nodeType !== kNode.ELEMENT_NODE) { break; }
-      e2 = e3 as Element;
+      if (tempParent !== parent && kValue in tempParent) {
+        if (!parent || parent.nodeType !== kNode.ELEMENT_NODE) { break; }
+        if (kValue in parent) { return; }
+        tempParent = parent as Element;
+      }
     }
+    parent = parent || curEl;
   }
-  // note: the below changes DOM trees,
+  // Document::nodeType is not changable (except overridden by an element like <img>), so the comparsion below is safe
+  let type = parent.nodeType;
+  // note: the below may change DOM trees,
   // so `dispatch` MUST NEVER throw. Otherwise a page might break
-  if (!(e2 = e1.parentNode as Exclude<Element["parentNode"], Window>)) {
-    root !== e1 && call(Append, root, e1);
+  if (type === kNode.ELEMENT_NODE) {
+    parent !== root && call(Append, root, parent);
     pushForDetached(
       IndexOf(allNodesForDetached = allNodesForDetached || call(getElementsByTagNameInEP, root, "*")
         , element));
   // Note: ignore the case that a plain #document-fragment has a fake .host
-  } else if (e2.nodeType === kNode.DOCUMENT_FRAGMENT_NODE
-      && !(e2 as TypeToAssert<DocumentFragment, ShadowRoot, "host">).host) {
-    // not register, if ShadowRoot or .nextSibling is not real
-    // NOTE: ignore nodes belonging to a shadowRoot,
-    // in case of `<html> -> ... -> <div> -> #shadow-root -> ... -> <iframe>`,
-    // because `<iframe>` will destroy if removed
-    if (unsafeDispatchCounter < InnerConsts.MaxUnsafeEventsInOneTick - 2) {
+  }
+  else if (type !== kNode.DOCUMENT_FRAGMENT_NODE) { /* empty */ }
+  else if (unsafeDispatchCounter < InnerConsts.MaxUnsafeEventsInOneTick - 2) {
+    if (Build.BTypes & ~BrowserType.Edge
+        && (tempParent = (parent as TypeToAssert<DocumentFragment, ShadowRoot, "host">).host)) {
+      parent = (!(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.Min$Node$$getRootNode || GetRootNode)
+          && (tempParent as NonNullable<ShadowRoot["host"]>).shadowRoot // an open shadow tree
+          && call(GetRootNode as NonNullable<typeof GetRootNode>, element, composed);
+      if (parent && (parent === doc || (<NodeToElement> parent).nodeType === kNode.ELEMENT_NODE)) {
+        parent !== doc && parent !== root && call(Append, root, parent);
+        unsafeDispatchCounter++;
+        dispatch(element, new DE(kVOnClick, composed));
+      }
+    } else {
       unsafeDispatchCounter++;
       dispatch(root, new DE(kVOnClick, {relatedTarget: element}));
-    } else {
+    }
+  } else {
       toRegister.p(element);
       if (unsafeDispatchCounter < InnerConsts.MaxUnsafeEventsInOneTick + 1) {
         unsafeDispatchCounter = InnerConsts.MaxUnsafeEventsInOneTick + 1; // a fake value to run it only once a tick
         clearTimeout_(timer);
         timer = setTimeout_(next, InnerConsts.DelayForNextComplicatedCase);
       }
-    }
   }
 }
 function doRegister(fromAttrs: BOOL): void {
@@ -435,6 +460,9 @@ function doRegister(fromAttrs: BOOL): void {
     }));
     nodeIndexListInDocument.length = nodeIndexListForDetached.length = 0;
   }
+// check lastChild, so avoid a mutation scope created in
+// https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/core/dom/node.cc;l=2117;drc=06e052d21baaa5afc7c851ed43c6a90e53dc6156
+  root.lastChild && (root.textContent = "");
 }
 function safeReRegister(element: Element, doc1: Document): void {
   const localAEL = doc1.addEventListener, localREL = doc1.removeEventListener;
@@ -508,6 +536,7 @@ _listen(kOnDomReady, doInit, !0);
     }
     VApi.execute_ = execute;
     setupEventListener(0, kHook, hook);
+    setupEventListener(0, kVOnClick1, onClick);
   }
   /**
    * According to `V8CodeCache::ProduceCache` and `V8CodeCache::GetCompileOptions`
