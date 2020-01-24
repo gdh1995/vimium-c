@@ -528,6 +528,12 @@
 	"o26": {
 		"message": "可以用作空白页。"
 	},
+	"o27": {
+		"message": "希望 "
+	},
+	"o27_2": {
+		"message": " 后能直接操作网页？"
+	},
 	"o28": {
 		"message": "如何使用其它扩展程序提供的页面？"
 	},
@@ -1008,6 +1014,9 @@
 	},
 	"NewTabAdapter": {
 		"message": "NewTab Adapter"
+	},
+	"NewTabAdapterDesc": {
+		"message": "NewTab Adapter:\n接管并自定义浏览器的新标签页设置"
 	},
 	"refusedURLs": {
 		"message": "Firefox 不允许扩展程序打开“$1”这个网址。"

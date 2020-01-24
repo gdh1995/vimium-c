@@ -1830,7 +1830,7 @@
       reload = chrome.tabs.reload;
       if (!tabs || tabs.length < 1) {
         if (tabs) {
-          getCurWnd(true, (wnd) => {
+          getCurWnd(true, wnd => {
             wnd && wnd.tabs.length && BackgroundCommands[kBgCmd.reloadTab](wnd.tabs);
             return onRuntimeError();
           });

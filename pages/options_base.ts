@@ -56,7 +56,7 @@ if (lang_) {
     t && el && ((el as HTMLInputElement).placeholder = t);
     for (el of $$("[data-i]") as ArrayLike<Element> as Element[] as HTMLElement[]) {
       t = pTrans_(el.dataset.i as string);
-      t && (el.innerText = t);
+      el.innerText = t;
     }
     for (el of $$("[data-i-t]") as ArrayLike<Element> as Element[] as HTMLElement[]) {
       t = pTrans_(el.dataset.iT as string);

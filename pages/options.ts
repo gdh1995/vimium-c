@@ -845,6 +845,10 @@ optionsInitAll_ = function (): void {
 
 optionsInit1_();
 
+if (!bgSettings_.payload_.o) {
+  nextTick_(el => { el.textContent = "Cmd"; }, $("#Ctrl"));
+}
+
 const newTabUrlOption = Option_.all_.newTabUrl;
 newTabUrlOption.checker_ = {
   check_ (value: string): string {
@@ -1040,6 +1044,7 @@ $("#importButton").onclick = function (): void {
 };
 
 nextTick_(el0 => {
+const platform = bgSettings_.CONST_.Platform_;
 el0.textContent = (Build.BTypes & BrowserType.Edge
         && (!(Build.BTypes & ~BrowserType.Edge) || bgOnOther_ === BrowserType.Edge)
     ? "MS Edge (EdgeHTML)"
@@ -1048,8 +1053,8 @@ el0.textContent = (Build.BTypes & BrowserType.Edge
     ? "Firefox " + BG_.CurFFVer_
     : (BG_.IsEdg_ ? ["MS Edge"]
         : (<RegExpOne> /\bChromium\b/).exec(navigator.appVersion) || ["Chrome"])[0] + " " + bgBrowserVer_
-  ) + pTrans_("comma") + (pTrans_(bgSettings_.CONST_.Platform_)
-        || bgSettings_.CONST_.Platform_[0].toUpperCase() + bgSettings_.CONST_.Platform_.slice(1));
+  ) + pTrans_("comma") + (pTrans_(platform)
+        || platform[0].toUpperCase() + platform.slice(1));
 if (Build.BTypes & BrowserType.Chrome && BG_.IsEdg_) {
   let el = $<EnsuredMountedHTMLElement>("#chromeExtVomnibar");
   el.nextElementSibling.remove();
