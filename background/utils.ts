@@ -422,6 +422,22 @@ var BgUtils_ = {
       return [path, Urls.kEval.copy];
     } }
     switch (cmd) {
+    case "cd":
+      arr = (path + "  ").split(" ");
+      if (!arr[2]) {
+        if (workType < Urls.WorkType.ActIfNoSideEffects) { return null; }
+        return new Promise<Urls.BaseEvalResult>(resolve => {
+          chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+            const err1 = !tabs || tabs.length < 1 ? "No current tab found" : 0,
+            res1 = err1 || BgUtils_.evalVimiumUrl_(path + " " + tabs[0].url, workType as Urls.WorkAllowEval, onlyOnce
+                ) as string | Urls.BaseEvalResult;
+            resolve(err1 ? [err1, Urls.kEval.ERROR] : typeof res1 === "string" ? [res1, Urls.kEval.plainUrl] : res1);
+            return BgUtils_.runtimeError_();
+          });
+        });
+      }
+      let cdRes = Backend_.parse_({ u: path, p: +arr[0], t: null, f: 1, a: arr[1] });
+      return cdRes && cdRes.u || [cdRes ? cdRes.e as string : "No upper path", Urls.kEval.ERROR];
     case "parse": case "decode":
       cmd = path.split(" ", 1)[0];
       if (cmd.search(<RegExpI> /\/|%2f/i) < 0) {

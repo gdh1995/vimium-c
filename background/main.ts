@@ -287,7 +287,8 @@
     case Urls.kEval.copy:
       return Backend_.showHUD_((arr as Urls.CopyEvalResult)[0], 1);
     case Urls.kEval.paste:
-      if (options.$p) {
+    case Urls.kEval.plainUrl:
+      if (options.$p || arr[1] === Urls.kEval.plainUrl) {
         workType = Urls.WorkType.Default;
       } else {
         options = BgUtils_.extendIf_(BgUtils_.safeObj_(), options);
@@ -2232,7 +2233,7 @@
         }
       }
       if (!path) {
-        if (url_l.startsWith(BrowserProtocol_)) {
+        if (url_l.startsWith(BrowserProtocol_) && !request.f) {
           BgUtils_.resetRe_();
           return { u: "An extension has no upper-level pages", p: null };
         }
@@ -2250,11 +2251,15 @@
       }
       // Note: here should ensure `end` >= 0
       i = request.p;
-      startSlash = path.startsWith("/");
+      startWithSlash = path.startsWith("/");
       if (!hash && url_l.startsWith("file:")) {
         if (path.length <= 1 || url.length === 11 && url.endsWith(":/")) {
-          BgUtils_.resetRe_();
-          return { u: "This has been the root path", p: null };
+          if (request.f) {
+            i = 0;
+          } else {
+            BgUtils_.resetRe_();
+            return { u: "This has been the root path", p: null };
+          }
         }
         endSlash = true;
         i === 1 && (i = -1);
@@ -2266,18 +2271,21 @@
             || (<RegExpI> /\.([a-z]{2,3}|apng|jpeg|tiff)$/i).test(path); // just a try: not include .html
       }
       if (!i || i === 1) {
-        path = "/";
+        path = "";
       } else {
-        const arr3 = path.slice(+startSlash, path.length - +path.endsWith("/")).split("/");
+        const arr3 = path.slice(+startWithSlash, path.length - +path.endsWith("/")).split("/");
         i < 0 && (i += arr3.length);
         if (i <= 0) {
-          path = "/";
+          path = "";
         } else if (i > 0 && i < arr3.length) {
           arr3.length = i;
           path = arr3.join("/");
-          path = (startSlash ? "/" : "") + path + (endSlash ? "/" : "");
         }
       }
+      if (str = request.a || "") {
+        path += str[0] === "/" ? path + str : path + "/" + str;
+      }
+      path = path ? (path[0] === "/" ? "" : "/") + path + (!endSlash || path.endsWith("/") ? "" : "/") : "/";
       if (!end && url.lastIndexOf("git", start - 3) > 0) {
         path = /*#__NOINLINE__*/ upperGitUrls(url, path) || path;
       }

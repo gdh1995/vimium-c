@@ -29,6 +29,7 @@ interface ParsedSearch {
   /** keyword */ k: string;
   /** start */ s: number;
   /** url */ u: string;
+  /** error */ e?: string | null;
 }
 
 interface FindCSS {
@@ -325,9 +326,11 @@ interface FgReqWithRes {
   [kFgReq.parseUpperUrl]: {
     /** url */ u: string;
     /** upper */ p: number;
+    /** appended */ a?: string;
+    /** force */ f?: BOOL;
     /** id */ i?: undefined;
     /** trailingSlash */ t: boolean | null | undefined;
-    /** @deprecated trailingSlash (old) */ s: boolean | null | undefined;
+    /** @deprecated trailingSlash (old) */ s?: boolean | null | undefined;
     /** execute / e: unknown; */
   };
   [kFgReq.parseSearchUrl]: {
