@@ -366,7 +366,9 @@ var BgUtils_ = {
     workType = (workType as Urls.WorkType) | 0;
     if (workType > Urls.WorkType.ActIfNoSideEffects - 1 && path === "paste") {
       res = BgUtils_.paste_();
-      return res instanceof Promise ? res.then<Urls.PasteEvalResult>(s => [s || "", "paste"]) : [res || "", path];
+      return res instanceof Promise ? res.then<Urls.PasteEvalResult>(
+          s => [s ? s.trim().replace(BgUtils_.spacesRe_, " ") : "", Urls.kEval.paste])
+                : [res ? res.trim().replace(BgUtils_.spacesRe_, " ") : "", Urls.kEval.paste];
     }
     if (workType < Urls.WorkType.ValidNormal || !(cmd = path = path.trim()) || (ind = path.indexOf(" ")) <= 0
         || !(<RegExpI> /^[a-z][\da-z\-]*(?:\.[a-z][\da-z\-]*)*$/i).test(cmd = path.slice(0, ind).toLowerCase())
@@ -392,14 +394,14 @@ var BgUtils_ = {
         BgUtils_.quotedStringRe_.test(path) && (path = path.slice(1, -1));
         path = path.replace(/\uff0c/g as RegExpG, " ");
         let result = BgUtils_.tryEvalMath_(path, MathParser) || "";
-        return [result, "math", path];
+        return [result, Urls.kEval.math, path];
       });
     case "error":
-      return [path, "ERROR"];
+      return [path, Urls.kEval.ERROR];
     } }
     else if (workType >= Urls.WorkType.ActAnyway) { switch (cmd) {
     case "status": case "state":
-      return [path.toLowerCase(), "status"] as Urls.StatusEvalResult;
+      return [path.toLowerCase(), Urls.kEval.status] as Urls.StatusEvalResult;
     case "url-copy": case "search-copy": case "search.copy": case "copy-url":
       res = a.convertToUrl_(path, null, Urls.WorkType.ActIfNoSideEffects);
       if (res instanceof Promise) {
@@ -407,7 +409,7 @@ var BgUtils_ = {
           let path2 = arr1[0] || (arr1[2] || "");
           path2 = path2 instanceof Array ? path2.join(" ") : path2;
           path2 = BgUtils_.copy_(path2);
-          return [path2, "copy"];
+          return [path2, Urls.kEval.copy];
         });
       } else {
         res = a.lastUrlType_ === Urls.Type.Functional &&
@@ -415,12 +417,12 @@ var BgUtils_ = {
         path = res instanceof Array ? res.join(" ") : res;
       }
       // no break;
-    case "c": case "cp": case "copy": // here `typeof path` must be `string`
+    case "cp": case "copy": case "clip": // here `typeof path` must be `string`
       path = BgUtils_.copy_(path);
-      return [path, "copy"];
+      return [path, Urls.kEval.copy];
     } }
     switch (cmd) {
-    case "p": case "parse": case "decode":
+    case "parse": case "decode":
       cmd = path.split(" ", 1)[0];
       if (cmd.search(<RegExpI> /\/|%2f/i) < 0) {
         path = path.slice(cmd.length + 1).trimLeft();
@@ -449,7 +451,7 @@ var BgUtils_ = {
       return null;
     }
     if (onlyOnce) {
-      return [arr, "search"];
+      return [arr, Urls.kEval.search];
     }
     ind = a._nestedEvalCounter++;
     if (ind > 12) { return null; }

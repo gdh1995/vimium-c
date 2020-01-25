@@ -279,14 +279,14 @@
     }
     BgUtils_.resetRe_();
   }
-  function onEvalUrl(this: void, workType: Urls.WorkType, options: OpenUrlOptions, tabs: [Tab] | undefined
+  function onEvalUrl_(this: void, workType: Urls.WorkType, options: OpenUrlOptions, tabs: [Tab] | undefined
       , arr: Urls.SpecialUrl): void {
-    if (arr instanceof Promise) { arr.then(onEvalUrl.bind(null, workType, options, tabs)); return; }
+    if (arr instanceof Promise) { arr.then(onEvalUrl_.bind(null, workType, options, tabs)); return; }
     BgUtils_.resetRe_();
     switch (arr[1]) {
-    case "copy":
+    case Urls.kEval.copy:
       return Backend_.showHUD_((arr as Urls.CopyEvalResult)[0], 1);
-    case "paste":
+    case Urls.kEval.paste:
       if (options.$p) {
         workType = Urls.WorkType.Default;
       } else {
@@ -295,7 +295,7 @@
         cOptions = options as CommandsNS.Options;
       }
       return openUrl(BgUtils_.convertToUrl_((arr as Urls.PasteEvalResult)[0]), workType, tabs);
-    case "status":
+    case Urls.kEval.status:
       if (workType >= Urls.WorkType.EvenAffectStatus) {
         Backend_.forceStatus_((arr as Urls.StatusEvalResult)[0]);
       }
@@ -651,7 +651,7 @@
     cOptions = null as never;
     BgUtils_.resetRe_();
     typeof url !== "string"
-      ? /*#__NOINLINE__*/ onEvalUrl(workType, options, tabs as [Tab] | undefined, url as Urls.SpecialUrl)
+      ? /*#__NOINLINE__*/ onEvalUrl_(workType, options, tabs as [Tab] | undefined, url as Urls.SpecialUrl)
       // tslint:disable-next-line: no-unused-expression
       : openShowPage(url, reuse, options) ? 0
       : BgUtils_.isJSUrl_(url) ? /*#__NOINLINE__*/ openJSUrl(url)
@@ -2170,7 +2170,7 @@
         return { u: "This url has no upper paths", p: null };
       }
       const enc = encodeURIComponent;
-      let hash = "", str: string, arr: RegExpExecArray | null, startSlash = false, endSlash = false
+      let hash = "", str: string, arr: RegExpExecArray | null, startWithSlash = false, endSlash = false
         , path: string | null = null, i: number, start = 0, end = 0, decoded = false, arr2: RegExpExecArray | null;
       if (i = url.lastIndexOf("#") + 1) {
         hash = url.slice(i + +(url.substr(i, 1) === "!"));
@@ -2956,9 +2956,9 @@
         return null;
       }
       if (request.p) {
-        const obj = requestHandlers[kFgReq.parseUpperUrl](request as FgReqWithRes[kFgReq.parseUpperUrl]);
-        obj.p != null && (s0 = obj.u);
-        return { k: "", s: 0, u: s0 };
+        const obj = requestHandlers[kFgReq.parseUpperUrl](request as FgReqWithRes[kFgReq.parseUpperUrl]),
+        didSucceed = obj.p != null;
+        return { k: "", s: 0, u: didSucceed ? obj.u : s0, e: didSucceed ? obj.p : obj.u };
       }
       const decoders = Settings_.cache_.searchEngineRules;
       if (_i = BgUtils_.IsURLHttp_(url)) {

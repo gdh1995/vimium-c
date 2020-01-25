@@ -926,10 +926,11 @@ searchEngine = {
   },
   onEvalUrl_ (query: CompletersNS.QueryStatus
       , getSug: (this: void) => SearchSuggestion, ret: Urls.BaseEvalResult): void | Promise<void> {
-        let sugs: Suggestion[] | undefined;
-        switch (query.o ? "" : ret[1]) {
-        case "paste":
-          let pasted = (ret as Urls.PasteEvalResult)[0].trim().replace(BgUtils_.spacesRe_, " ");
+    let sugs: Suggestion[] | undefined;
+    switch (query.o ? "" : ret[1]) {
+    case Urls.kEval.paste:
+    case Urls.kEval.plainUrl:
+          let pasted = (ret as Urls.BasePlainEvalResult<Urls.kEval.plainUrl> | Urls.PasteEvalResult)[0];
           if (!pasted) { break; }
           pasted = pasted.length > Consts.MaxCharsInQuery ? pasted.slice(0, Consts.MaxCharsInQuery).trim() : pasted;
           rawQuery = "\\ " + pasted;
@@ -939,7 +940,7 @@ searchEngine = {
             queryTerms[1] = BgUtils_.fixCharsInUrl_(queryTerms[1]);
           }
           return searchEngine.preFilter_(query);
-        case "search":
+    case Urls.kEval.search:
           const newQuery = (ret as Urls.SearchEvalResult)[0];
           queryTerms = newQuery.length > 1 || newQuery.length === 1 && newQuery[0] ? newQuery : queryTerms;
           const counter = searchEngine._nestedEvalCounter++;
@@ -947,14 +948,14 @@ searchEngine = {
           const subVal = searchEngine.preFilter_(query, true);
           if (counter <= 0) { searchEngine._nestedEvalCounter = 0; }
           if (subVal !== true) { return subVal; }
-        case "math":
+    case Urls.kEval.math:
           if (ret[0]) {
             sugs = searchEngine.mathResult_(getSug(), ret as Urls.MathEvalResult);
           }
           // no break;
-        // no default:
-        }
-        Completers.next_(sugs || [getSug()], SugType.search);
+    // no default:
+    }
+    Completers.next_(sugs || [getSug()], SugType.search);
   },
   plainResult_ (q: string[], url: string, text: string, pattern: Search.Engine, indexes: number[]): SearchSuggestion {
     const sug = new Suggestion("search", url, text

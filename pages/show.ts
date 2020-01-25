@@ -444,7 +444,10 @@ function clickShownNode(event: MouseEventToPrevent): void {
   }
 }
 
-function showText(tip: string, body: string | string[]): void {
+function showText(tip: string | Urls.kEval, body: string | string[]): void {
+  tip = typeof tip === "number" ? ["math", "copy", "search", "ERROR", "status", "paste"
+      , "url"
+      ][tip] : tip;
   $("#textTip").dataset.text = pTrans_("t_" + tip) || tip;
   $(".colon").dataset.colon = pTrans_("colon") + pTrans_("NS");
   const textBody = $("#textBody");

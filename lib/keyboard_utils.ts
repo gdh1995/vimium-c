@@ -1,3 +1,4 @@
+declare var VOther: BrowserType;
 var VKey = {
   _keyNames: [kChar.space, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
     kChar.left, kChar.up, kChar.right, kChar.down,

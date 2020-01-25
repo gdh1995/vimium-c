@@ -23,32 +23,35 @@ declare namespace Search {
   interface EngineMap extends SafeDict<Engine> {}
 }
 declare namespace Urls {
-  type ValidEvalTag = "math" | "copy" | "search" | "ERROR" | "status" | "paste";
+  const enum kEval {
+    math = 0, copy = 1, search = 2, ERROR = 3, status = 4, paste = 5,
+    plainUrl = 6,
+  }
 
   interface BaseEvalResult extends Array<any> {
     readonly [0]: string | string[];
-    readonly [1]: ValidEvalTag;
+    readonly [1]: kEval;
     readonly [2]?: undefined | string;
   }
-  interface BasePlainEvalResult<T extends ValidEvalTag> extends BaseEvalResult {
+  interface BasePlainEvalResult<T extends kEval> extends BaseEvalResult {
     readonly [0]: string;
     readonly [1]: T;
     readonly [2]?: undefined;
   }
   interface MathEvalResult extends BaseEvalResult {
     readonly [0]: string;
-    readonly [1]: "math";
+    readonly [1]: kEval.math;
     readonly [2]: string;
   }
   interface SearchEvalResult extends BaseEvalResult {
     readonly [0]: string[];
-    readonly [1]: "search";
+    readonly [1]: kEval.search;
     readonly [2]?: undefined;
   }
-  interface CopyEvalResult extends BasePlainEvalResult<"copy"> {}
-  interface PasteEvalResult extends BasePlainEvalResult<"paste"> {}
-  interface ErrorEvalResult extends BasePlainEvalResult<"ERROR"> {}
-  interface StatusEvalResult extends BasePlainEvalResult<"status"> {
+  interface CopyEvalResult extends BasePlainEvalResult<kEval.copy> {}
+  interface PasteEvalResult extends BasePlainEvalResult<kEval.paste> {}
+  interface ErrorEvalResult extends BasePlainEvalResult<kEval.ERROR> {}
+  interface StatusEvalResult extends BasePlainEvalResult<kEval.status> {
     readonly [0]: Frames.ForcedStatusText;
   }
 
