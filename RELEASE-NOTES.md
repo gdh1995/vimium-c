@@ -13,6 +13,7 @@ ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 * LinkHints: hover mode: unhover on `<esc>`
 * add an advanced option: `Substitution for clipboard text` to replace text before copying and pasting
 * URL conversion: now auto replace `vimium://paste` with real text content in system clipboard
+  * Firefox: only for commands like `openUrl`; not on Vomnibar because of a bug
 * `copyWindowInfo`: add type=tab to copy info of N tabs
 * `goNext`: support id/class selectors
 * `enterInsertMode`: support `key: string` to declare a (mapped) key as the one to exit

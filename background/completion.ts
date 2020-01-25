@@ -862,7 +862,7 @@ searchEngine = {
       return Completers.next_([], SugType.search);
     }
     let sug: SearchSuggestion, q = queryTerms, keyword = q.length > 0 ? q[0] : "",
-       pattern: Search.Engine | null | undefined, promise: Promise<Urls.BaseEvalResult> | undefined;
+       pattern: Search.Engine | null | undefined;
     if (q.length === 0) { /* empty */ }
     else if (failIfNull !== true && keyword[0] === "\\" && keyword[1] !== "\\") {
       if (keyword.length > 1) {
@@ -909,10 +909,25 @@ searchEngine = {
     if (keyword === "~") { /* empty */ }
     else if (url.startsWith("vimium://")) {
       const ret = BgUtils_.evalVimiumUrl_(url.slice(9), Urls.WorkType.ActIfNoSideEffects, true);
+      const getSug = searchEngine.plainResult_.bind(searchEngine, q, url, text, pattern, indexes);
       if (ret instanceof Promise) {
-        promise = ret;
+        return ret.then<void>(searchEngine.onEvalUrl_.bind(searchEngine, query, getSug));
       } else if (ret instanceof Array) {
-        switch (ret[1]) {
+        return searchEngine.onEvalUrl_(query, getSug, ret);
+      }
+    } else {
+      url = BgUtils_.convertToUrl_(url, null, Urls.WorkType.KeepAll);
+    }
+    sug = searchEngine.plainResult_(q, url, text, pattern, indexes);
+    return Completers.next_([sug], SugType.search);
+  } as {
+    (query: CompletersNS.QueryStatus, failIfNull: true): void | true | Promise<void>;
+    (query: CompletersNS.QueryStatus): void | Promise<void>;
+  },
+  onEvalUrl_ (query: CompletersNS.QueryStatus
+      , getSug: (this: void) => SearchSuggestion, ret: Urls.BaseEvalResult): void | Promise<void> {
+        let sugs: Suggestion[] | undefined;
+        switch (query.o ? "" : ret[1]) {
         case "paste":
           let pasted = (ret as Urls.PasteEvalResult)[0].trim().replace(BgUtils_.spacesRe_, " ");
           if (!pasted) { break; }
@@ -931,16 +946,18 @@ searchEngine = {
           if (counter > 12) { break; }
           const subVal = searchEngine.preFilter_(query, true);
           if (counter <= 0) { searchEngine._nestedEvalCounter = 0; }
-          if (subVal !== true) {
-            return subVal;
+          if (subVal !== true) { return subVal; }
+        case "math":
+          if (ret[0]) {
+            sugs = searchEngine.mathResult_(getSug(), ret as Urls.MathEvalResult);
           }
-          break;
+          // no break;
+        // no default:
         }
-      }
-    } else {
-      url = BgUtils_.convertToUrl_(url, null, Urls.WorkType.KeepAll);
-    }
-    sug = new Suggestion("search", url, text
+        Completers.next_(sugs || [getSug()], SugType.search);
+  },
+  plainResult_ (q: string[], url: string, text: string, pattern: Search.Engine, indexes: number[]): SearchSuggestion {
+    const sug = new Suggestion("search", url, text
       , pattern.name_ + ": " + q.join(" "), get2ndArg, 9) as SearchSuggestion;
 
     if (q.length > 0) {
@@ -964,21 +981,10 @@ searchEngine = {
     if (Build.BTypes & BrowserType.Chrome || isForAddressBar) {
       sug.p = pattern.name_;
     }
-
-    if (!promise) {
-      return Completers.next_([sug], SugType.search);
-    }
-    return promise.then(searchEngine.onPromise_.bind(searchEngine, query, sug));
-  } as {
-    (query: CompletersNS.QueryStatus, failIfNull: true): void | true | Promise<void>;
-    (query: CompletersNS.QueryStatus): void | Promise<void>;
+    return sug;
   },
-  onPromise_ (query: CompletersNS.QueryStatus, output: Suggestion, arr: Urls.MathEvalResult): void {
-    if (query.o) { return; }
+  mathResult_ (stdSug: SearchSuggestion, arr: Urls.MathEvalResult): [SearchSuggestion, Suggestion] {
     const result = arr[0];
-    if (!result) {
-      return Completers.next_([output], SugType.search);
-    }
     const sug = new Suggestion("math", "vimium://copy " + result, result, result, get2ndArg, 9);
     --sug.r;
     if (!(Build.BTypes & BrowserType.Firefox
@@ -990,7 +996,7 @@ searchEngine = {
         ? arr[2] : BgUtils_.escapeText_(arr[2]);
     maxResults--;
     matchedTotal++;
-    Completers.next_([output, sug], SugType.search);
+    return [stdSug, sug];
   },
   calcBestFaviconSource_: Build.BTypes & BrowserType.Chrome ? (url: string): string => {
     const pos0 = HistoryCache.sorted_ && url.startsWith("http") ? HistoryCache.binarySearch_(url) : -1,
