@@ -426,14 +426,22 @@ var BgUtils_ = {
         return new Promise<Urls.BaseEvalResult>(resolve => {
           chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
             const err1 = !tabs || tabs.length < 1 ? "No current tab found" : 0,
-            res1 = err1 || BgUtils_.evalVimiumUrl_(path + " " + tabs[0].url, workType as Urls.WorkAllowEval, onlyOnce
+            url = tabs[0].url,
+            newPath = path.includes(" ") ? path + url : path + " . " + url,
+            res1 = err1 || BgUtils_.evalVimiumUrl_(newPath, workType as Urls.WorkAllowEval, onlyOnce
                 ) as string | Urls.BaseEvalResult;
             resolve(err1 ? [err1, Urls.kEval.ERROR] : typeof res1 === "string" ? [res1, Urls.kEval.plainUrl] : res1);
             return BgUtils_.runtimeError_();
           });
         });
       }
-      let cdRes = Backend_.parse_({ u: path, p: +arr[0], t: null, f: 1, a: arr[1] });
+      cmd = arr[0];
+      let startsWithSlash = cmd[0] === "/";
+      ind = parseInt(cmd, 10);
+      ind = !isNaN(ind) ? ind : cmd === "/" ? 1
+          : (cmd.split(<RegExpOne> (startsWithSlash ? /(\.+)/ : /\.(\.+)|./)).join(""
+              ).length || 1) * (startsWithSlash ? 1 : -1);
+      let cdRes = Backend_.parse_({ u: path, p: ind, t: null, f: 1, a: arr[1] !== "." ? arr[1] : "" });
       return cdRes && cdRes.u || [cdRes ? cdRes.e as string : "No upper path", Urls.kEval.ERROR];
     case "parse": case "decode":
       cmd = path.split(" ", 1)[0];
@@ -495,6 +503,13 @@ var BgUtils_ = {
       mathParser.clean();
     }
     return result;
+  },
+  parseUpperLevel_ (str: string): number {
+    let startsWithSlash = str[0] === "/", level: number | null = parseInt(str, 10);
+    if (!isNaN(level)) { return level; }
+    return startsWithSlash && str === "/" ? 1
+        : str.split(<RegExpOne> (startsWithSlash ? /(\.+)/ : /\.(\.+)|./)).join(""
+          ).length * (startsWithSlash ? 1 : -1);
   },
   copy_ (this: void, _s: string | string[], _j?: FgReq[kFgReq.copy]["j"]): string { return ""; /* empty */ },
   paste_: (() => "") as (this: void) => string | Promise<string | null> | null,
