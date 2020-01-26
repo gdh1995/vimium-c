@@ -364,11 +364,8 @@ var BgUtils_ = {
     let ind: number, cmd: string, arr: string[], obj: { u: string } | null
       , res: Urls.Url | string[] | Promise<string | null> | null;
     workType = (workType as Urls.WorkType) | 0;
-    if (workType > Urls.WorkType.ActIfNoSideEffects - 1 && path === "paste") {
-      res = BgUtils_.paste_();
-      return res instanceof Promise ? res.then<Urls.PasteEvalResult>(
-          s => [s ? s.trim().replace(BgUtils_.spacesRe_, " ") : "", Urls.kEval.paste])
-                : [res ? res.trim().replace(BgUtils_.spacesRe_, " ") : "", Urls.kEval.paste];
+    if (path === "paste") {
+      path += " .";
     }
     if (workType < Urls.WorkType.ValidNormal || !(cmd = path = path.trim()) || (ind = path.indexOf(" ")) <= 0
         || !(<RegExpI> /^[a-z][\da-z\-]*(?:\.[a-z][\da-z\-]*)*$/i).test(cmd = path.slice(0, ind).toLowerCase())
@@ -463,6 +460,13 @@ var BgUtils_ = {
       // here path is not empty, and so `decodeEscapedURL(path).trim()` is also not empty
       arr = a.decodeEscapedURL_(path).split(a.spacesRe_);
       break;
+    case "paste":
+      if (workType > Urls.WorkType.ActIfNoSideEffects - 1) {
+        res = BgUtils_.paste_();
+        return res instanceof Promise ? res.then<Urls.PasteEvalResult>(
+            s => [s ? s.trim().replace(BgUtils_.spacesRe_, " ") : "", Urls.kEval.paste])
+                  : [res ? res.trim().replace(BgUtils_.spacesRe_, " ") : "", Urls.kEval.paste];
+      }
     default:
       return null;
     }
