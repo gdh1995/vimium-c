@@ -604,7 +604,7 @@ declare namespace CommandsNS {
     [kCName.goForward]: kFgCmd.framesGoBack;
     [kCName.goNext]: kBgCmd.goNext;
     [kCName.goPrevious]: kBgCmd.goNext;
-    [kCName.goToRoot]: kBgCmd.goToRoot;
+    [kCName.goToRoot]: kBgCmd.goUp;
     [kCName.goUp]: kBgCmd.goUp;
     [kCName.lastTab]: kBgCmd.goToTab;
     [kCName.mainFrame]: kBgCmd.mainFrame;

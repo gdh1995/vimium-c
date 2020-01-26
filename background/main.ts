@@ -43,7 +43,6 @@
     [kBgCmd.toggleCS]: UseTab.ActiveTab;
     [kBgCmd.searchInAnother]: UseTab.ActiveTab;
     [kBgCmd.reopenTab]: UseTab.ActiveTab;
-    [kBgCmd.goToRoot]: UseTab.ActiveTab;
     [kBgCmd.toggleViewSource]: UseTab.ActiveTab;
     [kBgCmd.toggleVomnibarStyle]: UseTab.ActiveTab;
     [kBgCmd.goBackFallback]: UseTab.ActiveTab;
@@ -1009,7 +1008,7 @@
       UseTab.NoTab, UseTab.CurWndTabs, UseTab.CurWndTabs,
     UseTab.NoTab, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab, UseTab.ActiveTab,
     UseTab.CurWndTabsIfRepeat, UseTab.NoTab, UseTab.CurWndTabsIfRepeat, UseTab.ActiveTab,
-    UseTab.ActiveTab, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab,
+    UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab,
     Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
         ? UseTab.CurShownTabs : UseTab.CurWndTabs, UseTab.NoTab, UseTab.NoTab,
@@ -1887,22 +1886,14 @@
         return Backend_.reopenTab_(tab);
       });
     },
-    /* kBgCmd.goToRoot: */ function (this: void, tabs: [Tab]): void {
-      const { p: path, u: url } = requestHandlers[kFgReq.parseUpperUrl]({
-        t: cOptions.trailingSlash, s: cOptions.trailing_slash,
-        u: tabs[0].url, p: cRepeat
-      });
-      if (path != null) {
-        chrome.tabs.update(tabs[0].id, {url});
-        return;
-      }
-      return Backend_.showHUD_(url);
-    },
     /* kBgCmd.goUp: */ function (this: void): void {
+      if (cRepeat > 0 && cPort && cPort.s.i) {
+        cPort = indexFrame(cPort.s.t, 0) || cPort;
+      }
       requireURL({
         H: kFgReq.parseUpperUrl,
         u: "", // just a hack to make TypeScript compiler happy
-        p: -cRepeat,
+        p: cRepeat,
         t: cOptions.trailingSlash, s: cOptions.trailing_slash,
         e: true
       });
