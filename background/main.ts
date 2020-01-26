@@ -2253,7 +2253,7 @@
           }
         }
         endSlash = true;
-        i === 1 && (i = -1);
+        request.f || i === 1 && (i = -1);
       } else if (!hash && url_l.startsWith("ftp:")) {
         endSlash = true;
       } else {
@@ -2261,14 +2261,11 @@
           : path.length > 1 && path.endsWith("/")
             || (<RegExpI> /\.([a-z]{2,3}|apng|jpeg|tiff)$/i).test(path); // just a try: not include .html
       }
-      if (!i || i === 1) {
-        path = "";
-      } else {
+      {
         const arr3 = path.slice(+startWithSlash, path.length - +path.endsWith("/")).split("/");
-        i < 0 && (i += arr3.length);
-        if (i <= 0) {
-          path = "";
-        } else if (i > 0 && i < arr3.length) {
+        const len = arr3.length, level = i < 0 ? i + len : i;
+        i = level > len ? len : i > 0 ? level - 1 : level > 0 ? level : 0;
+        {
           arr3.length = i;
           path = arr3.join("/");
         }
