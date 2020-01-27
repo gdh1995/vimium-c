@@ -613,6 +613,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       post({
         H: kFgReq.copy,
         s: str as never as undefined,
+        e: options.sed,
         u: (str ? "" : options.url ? location.href : doc.title) as "url",
         d: options.decoded || options.decode,
       });
@@ -630,7 +631,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         H: kFgReq.searchAs,
         u: location.href,
         c: options.copied,
-        s: options.selected ? U.getSelectionText_() : ""
+        s: options.sed,
+        t: options.selected ? U.getSelectionText_() : ""
       });
     },
     /* kFgCmd.focusInput: */ function (count: number, options: CmdOptions[kFgCmd.focusInput]): void {

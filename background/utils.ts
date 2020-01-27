@@ -470,7 +470,7 @@ var BgUtils_ = {
       break;
     case "paste":
       if (workType > Urls.WorkType.ActIfNoSideEffects - 1) {
-        res = BgUtils_.paste_();
+        res = BgUtils_.paste_(path.replace(<RegExpG> / (cp?|pc?|s)(?![a-zA-Z])/g, "\n$1"));
         return res instanceof Promise ? res.then<Urls.PasteEvalResult>(
             s => [s ? s.trim().replace(BgUtils_.spacesRe_, " ") : "", Urls.kEval.paste])
                   : [res ? res.trim().replace(BgUtils_.spacesRe_, " ") : "", Urls.kEval.paste];
@@ -511,8 +511,8 @@ var BgUtils_ = {
         : str.split(<RegExpOne> (startsWithSlash ? /(\.+)/ : /\.(\.+)|./)).join(""
           ).length * (startsWithSlash ? 1 : -1);
   },
-  copy_ (this: void, _s: string | string[], _j?: FgReq[kFgReq.copy]["j"]): string { return ""; /* empty */ },
-  paste_: (() => "") as (this: void) => string | Promise<string | null> | null,
+  copy_: (() => "") as (this: void, text: string | string[], join?: FgReq[kFgReq.copy]["j"], sed?: string) => string,
+  paste_: (() => "") as (this: void, sed?: string) => string | Promise<string | null> | null,
   require_ <K extends SettingsNS.DynamicFiles> (name: K): Promise<NonNullable<Window[K]>> {
     type T = NonNullable<Window[K]>;
     type P = Promise<T>;

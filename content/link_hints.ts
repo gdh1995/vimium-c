@@ -26,6 +26,7 @@ declare namespace HintsNS {
     button?: "right";
     touch?: null | boolean | "auto";
     join?: FgReq[kFgReq.copy]["j"];
+    sed?: string;
     toggle?: {
       [selector: string]: string;
     };
@@ -2086,6 +2087,7 @@ Modes_: [
     a.api_.post_({
       H: kFgReq.copy,
       j: a.options_.join,
+      e: a.options_.sed,
       s: lastYanked || str
     });
   }

@@ -1729,7 +1729,7 @@
       if (cOptions.url) {
         openUrl(cOptions.url + "", Urls.WorkType.EvenAffectStatus, tabs);
       } else if (cOptions.copied) {
-        const url = BgUtils_.paste_();
+        const url = BgUtils_.paste_(cOptions.sed);
         if (url instanceof Promise) {
           url.then(openCopiedUrl.bind(null, tabs));
           return;
@@ -1928,7 +1928,7 @@
     /* kBgCmd.copyWindowInfo: */ function (this: void): void {
       let decoded = !!(cOptions.decoded || cOptions.decode), type = cOptions.type as string | undefined;
       if (type === "frame" && cPort) {
-        requireURL({ H: kFgReq.copy, u: "" as "url", d: decoded });
+        requireURL({ H: kFgReq.copy, u: "" as "url", d: decoded, e: cOptions.sed });
         return;
       }
       // include those hidden on Firefox
@@ -1937,7 +1937,8 @@
               currentWindow: true }, (tabs): void => {
         if (!type || type === "title" || type === "frame" || type === "url") {
           requestHandlers[kFgReq.copy]({
-              u: (type === "title" ? tabs[0].title : tabs[0].url) as "url", d: decoded }, cPort);
+            u: (type === "title" ? tabs[0].title : tabs[0].url) as "url", d: decoded, e: cOptions.sed
+          }, cPort);
           return;
         }
         const incognito = cPort ? cPort.s.a : TabRecency_.incognito_ === IncognitoType.true,
@@ -1954,7 +1955,7 @@
           return decoded && s1 === "url" ? BgUtils_.DecodeURLPart_(i.url, 1)
             : s1 !== "__proto__" && (i as Dict<any>)[s1] || "";
         }));
-        data[0] = BgUtils_.copy_(data, cOptions.join);
+        data[0] = BgUtils_.copy_(data, cOptions.join, cOptions.sed);
         Backend_.showHUD_(type === "tab" && data.length < 2 ? data[0] : trans_("copiedWndInfo"), 1);
       });
     },
@@ -2288,7 +2289,7 @@
         cPort = port;
         return Backend_.showHUD_(trans_("noEngineFind"));
       }
-      query = request.s.trim() || (request.c ? BgUtils_.paste_() : "");
+      query = request.t.trim() || (request.c ? BgUtils_.paste_(request.s) : "");
       if (query instanceof Promise) {
         query.then(doSearch);
         return;
@@ -2546,7 +2547,7 @@
           str = "";
         }
       }
-      str = str && BgUtils_.copy_(str, request.j);
+      str = str && BgUtils_.copy_(str, request.j, request.e);
       cPort = port;
       hud && Backend_.showHUD_(str, 1);
     },

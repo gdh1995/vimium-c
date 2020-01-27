@@ -283,6 +283,7 @@ interface CmdOptions {
   [kFgCmd.autoCopy]: {
     url: boolean; decoded: boolean;
     decode?: boolean;
+    sed?: string;
   };
   [kFgCmd.autoOpen]: {
     keyword?: string;
@@ -290,6 +291,7 @@ interface CmdOptions {
   [kFgCmd.searchAs]: {
     /** default to true */ copied?: boolean;
     /** default to true */ selected?: boolean;
+    /** sed rule */ sed?: string;
   };
   [kFgCmd.focusInput]: {
     select?: SelectActions;
@@ -361,7 +363,8 @@ interface FgReq {
   };
   [kFgReq.searchAs]: {
     /** url */ u: string;
-    /** search */ s: string;
+    /** selected text */ t: string;
+    /** sed */ s: string | undefined;
     /** copied */ c: boolean | undefined;
   };
   [kFgReq.gotoSession]: {
@@ -409,11 +412,13 @@ interface FgReq {
   [kFgReq.copy]: {
     /** data */ s: string | string[];
     /** [].join($j) */ j?: string | boolean;
+    /** sed */ e?: string;
     u?: undefined | "";
   } | {
     /** url */ u: "url";
     /** data */ s?: undefined | "";
     j?: undefined;
+    /** sed */ e?: string;
     /** decode */ d?: boolean;
   };
   [kFgReq.key]: {

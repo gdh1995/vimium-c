@@ -11,10 +11,10 @@ interface ClipSubItem {
 }
 
 const Clipboard_ = {
-  clipSub_: null as null | ClipSubItem[],
-  initSub_ (): ClipSubItem[] {
+  staticSeds_: null as null | ClipSubItem[],
+  parseSeds_ (text: string): ClipSubItem[] {
     const result: ClipSubItem[] = [];
-    for (let line of Settings_.get_("clipSub").split("\n")) {
+    for (let line of text.split("\n")) {
       line = line.trim();
       const prefix = (<RegExpOne> /^(cp?|pc?|s)([^\x00- A-Za-z\x7f-\uffff\\])/).exec(line);
       if (!prefix) { continue; }
@@ -40,10 +40,13 @@ const Clipboard_ = {
         })
       });
     }
-    return Clipboard_.clipSub_ = result;
+    return result;
   },
-  substitute_ (text: string, action: ClipAction.copy | ClipAction.paste): string {
-    const arr = Clipboard_.clipSub_ || Clipboard_.initSub_();
+  substitute_ (text: string, action: ClipAction.copy | ClipAction.paste, sed?: string): string {
+    let arr = Clipboard_.staticSeds_
+        || (Clipboard_.staticSeds_ = Clipboard_.parseSeds_(Settings_.get_("clipSub")));
+    // note: `sed` may come from options of key mappings, so here always convert it to a string
+    sed && (arr = arr.concat(Clipboard_.parseSeds_(sed + "")));
     for (const item of arr) {
       if (item.action_ & action) {
         text = text.replace(item.match_ as RegExpG, item.replaced_);
@@ -61,7 +64,7 @@ const Clipboard_ = {
       && (el.contentEditable = "true");
     return el;
   },
-  format_ (data: string | string[], join?: FgReq[kFgReq.copy]["j"]): string {
+  format_ (data: string | string[], join?: FgReq[kFgReq.copy]["j"], sed?: string): string {
     if (typeof data !== "string") {
       data = data.join(join !== !!join && (join as string) || "\n") +
           (data.length > 1 && (!join || join === !!join) ? "\n" : "");
@@ -74,13 +77,13 @@ const Clipboard_ = {
     } else if ((i = data.charCodeAt(0)) !== kCharCode.space && i !== kCharCode.tab) {
       data = data.trimRight();
     }
-    data = Clipboard_.substitute_(data, ClipAction.copy);
+    data = Clipboard_.substitute_(data, ClipAction.copy, sed);
     return data;
   },
-  reformat_ (copied: string): string {
+  reformat_ (copied: string, sed?: string): string {
     if (copied) {
     copied = copied.replace(BgUtils_.A0Re_, " ");
-    copied = Clipboard_.substitute_(copied, ClipAction.paste);
+    copied = Clipboard_.substitute_(copied, ClipAction.paste, sed);
     }
     return copied;
   }
@@ -716,14 +719,14 @@ BgUtils_.timeout_(120, function (): void {
 BgUtils_.copy_ = Build.BTypes & BrowserType.Firefox
     && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
     && navigator.clipboard
-? function (this: void, data, join): string {
-  data = Clipboard_.format_(data, join);
+? function (this: void, data, join, sed): string {
+  data = Clipboard_.format_(data, join, sed);
   if (data) {
     (navigator.clipboard as EnsureNonNull<Navigator["clipboard"]>).writeText(data);
   }
   return data;
-} : function (this: void, data, join): string {
-  data = Clipboard_.format_(data, join);
+} : function (this: void, data, join, sed): string {
+  data = Clipboard_.format_(data, join, sed);
   if (data) {
     const doc = document, textArea = Clipboard_.getTextArea_();
     textArea.value = data;
@@ -737,10 +740,10 @@ BgUtils_.copy_ = Build.BTypes & BrowserType.Firefox
 };
 BgUtils_.paste_ = !Settings_.CONST_.AllowClipboardRead_ ? () => null
 : Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-? function (this: void): Promise<string | null> | null {
+? function (this: void, sed): Promise<string | null> | null {
   const clipboard = navigator.clipboard as EnsureNonNull<Navigator["clipboard"]> | undefined;
-  return clipboard ? clipboard.readText().then(Clipboard_.reformat_, () => null) : null;
-} : function (this: void): string {
+  return clipboard ? clipboard.readText().then(s => Clipboard_.reformat_(s, sed), () => null) : null;
+} : function (this: void, sed): string {
   const textArea = Clipboard_.getTextArea_();
   textArea.maxLength = GlobalConsts.MaxBufferLengthForPasting;
   (document.documentElement as HTMLHtmlElement).appendChild(textArea);
@@ -750,10 +753,10 @@ BgUtils_.paste_ = !Settings_.CONST_.AllowClipboardRead_ ? () => null
   textArea.value = "";
   textArea.remove();
   textArea.removeAttribute("maxlength");
-  return Clipboard_.reformat_(value);
+  return Clipboard_.reformat_(value, sed);
 };
 
-Settings_.updateHooks_.clipSub = (): void => { Clipboard_.clipSub_ = null; };
+Settings_.updateHooks_.clipSub = (): void => { Clipboard_.staticSeds_ = null; };
 
 Settings_.temp_.loadI18nPayload_ = function (): void {
   Settings_.temp_.loadI18nPayload_ = null;
