@@ -292,8 +292,8 @@
       } else {
         options = BgUtils_.extendIf_(BgUtils_.safeObj_(), options);
         options.$p = 1;
-        cOptions = options as CommandsNS.Options;
       }
+      cOptions = options as CommandsNS.Options;
       return openUrl(BgUtils_.convertToUrl_((arr as Urls.PasteEvalResult)[0]), workType, tabs);
     case Urls.kEval.status:
       if (workType >= Urls.WorkType.EvenAffectStatus) {

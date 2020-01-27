@@ -428,9 +428,10 @@ var BgUtils_ = {
             const err1 = !tabs || tabs.length < 1 ? "No current tab found" : 0,
             url = tabs[0].url,
             newPath = path.includes(" ") ? path + url : path + " . " + url,
-            res1 = err1 || BgUtils_.evalVimiumUrl_(newPath, workType as Urls.WorkAllowEval, onlyOnce
-                ) as string | Urls.BaseEvalResult;
-            resolve(err1 ? [err1, Urls.kEval.ERROR] : typeof res1 === "string" ? [res1, Urls.kEval.plainUrl] : res1);
+            res1 = err1 || BgUtils_.evalVimiumUrl_("cd " + newPath, workType as Urls.WorkAllowEval, onlyOnce
+                ) as string | Urls.BaseEvalResult | null;
+            resolve(err1 || !res1 ? [err1 || "fail in parsing", Urls.kEval.ERROR]
+                : typeof res1 === "string" ? [res1, Urls.kEval.plainUrl] : res1);
             return BgUtils_.runtimeError_();
           });
         });
@@ -439,9 +440,9 @@ var BgUtils_ = {
       let startsWithSlash = cmd[0] === "/";
       ind = parseInt(cmd, 10);
       ind = !isNaN(ind) ? ind : cmd === "/" ? 1
-          : (cmd.split(<RegExpOne> (startsWithSlash ? /(\.+)/ : /\.(\.+)|./)).join(""
-              ).length || 1) * (startsWithSlash ? 1 : -1);
-      let cdRes = Backend_.parse_({ u: path, p: ind, t: null, f: 1, a: arr[1] !== "." ? arr[1] : "" });
+          : startsWithSlash ? cmd.replace(<RegExpG> /(\.+)|./g, "$1").length + 1
+          : -cmd.replace(<RegExpG> /\.(\.+)|./g, "$1").length || -1;
+      let cdRes = Backend_.parse_({ u: arr[2], p: ind, t: null, f: 1, a: arr[1] !== "." ? arr[1] : "" });
       return cdRes && cdRes.u || [cdRes ? cdRes.e as string : "No upper path", Urls.kEval.ERROR];
     case "parse": case "decode":
       cmd = path.split(" ", 1)[0];
