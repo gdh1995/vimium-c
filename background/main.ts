@@ -2272,7 +2272,7 @@
         }
       }
       if (str = request.a || "") {
-        path += str[0] === "/" ? path + str : path + "/" + str;
+        path += str[0] === "/" ? str : "/" + str;
       }
       path = path ? (path[0] === "/" ? "" : "/") + path + (!endSlash || path.endsWith("/") ? "" : "/") : "/";
       if (!end && url.lastIndexOf("git", start - 3) > 0) {

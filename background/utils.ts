@@ -372,7 +372,7 @@ var BgUtils_ = {
         || (<RegExpI> /\.(?:css|html|js)$/i).test(cmd)) {
       return null;
     }
-    path = path.slice(ind + 1).trimLeft();
+    path = path.slice(ind + 1).trim();
     if (!path) { return null; }
     const mathSepRe = <RegExpG> /[\s+,\uff0b\uff0c]+/g;
     if (workType === Urls.WorkType.ActIfNoSideEffects) { switch (cmd) {
@@ -426,9 +426,9 @@ var BgUtils_ = {
         return new Promise<Urls.BaseEvalResult>(resolve => {
           chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
             const err1 = !tabs || tabs.length < 1 ? "No current tab found" : 0,
-            url = tabs[0].url,
-            newPath = path.includes(" ") ? path + url : path + " . " + url,
-            res1 = err1 || BgUtils_.evalVimiumUrl_("cd " + newPath, workType as Urls.WorkAllowEval, onlyOnce
+            url = err1 || tabs[0].url,
+            res1 = err1 || BgUtils_.evalVimiumUrl_("cd " + path + " " + (path.includes(" ") ? url : ". " + url)
+                , workType as Urls.WorkAllowEval, onlyOnce
                 ) as string | Urls.BaseEvalResult | null;
             resolve(err1 || !res1 ? [err1 || "fail in parsing", Urls.kEval.ERROR]
                 : typeof res1 === "string" ? [res1, Urls.kEval.plainUrl] : res1);
