@@ -648,7 +648,7 @@ var VFind = {
     const sel = getSelection(),
     range = !isCur ? this.initialRange_ : sel.isCollapsed ? null : sel.getRangeAt(0);
     if (!range) { return; }
-    sel.removeAllRanges();
+    VCui.resetSelectionToDocStart_(sel);
     // Note: it works even when range is inside a shadow root (tested on C72 stable)
     sel.addRange(range);
   },
@@ -687,7 +687,7 @@ var VFind = {
       if (Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
           && !found) {
-        getSelection().removeAllRanges(); // move to start
+        VCui.resetSelectionToDocStart_();
         found = a.find_(q, !notSens, back, true, a.wholeWord_, false, false);
       }
       /**

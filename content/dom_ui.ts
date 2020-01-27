@@ -279,6 +279,9 @@ var VCui = {
     justTest || sel.collapseToStart();
     return true;
   } as (root?: VUIRoot, justTest?: 1) => boolean,
+  resetSelectionToDocStart_ (sel?: Selection): void {
+    (sel || getSelection()).removeAllRanges();
+  },
   click_ (element: SafeElementForMouse
       , rect?: Rect | null, addFocus?: boolean | BOOL, modifiers?: MyMouseControlKeys | null
       , specialAction?: kClickAction, button?: AcceptableClickButtons
@@ -414,7 +417,7 @@ var VCui = {
       if (type === EditableType.rich_) {
         const range = document.createRange();
         range.selectNodeContents(element);
-        sel.removeAllRanges();
+        VCui.resetSelectionToDocStart_(sel);
         sel.addRange(range);
       } else {
         let len = (element as TextElement).value.length

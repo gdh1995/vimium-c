@@ -174,7 +174,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     } else {
       count *= +<number> options.dir || 1;
     }
-    a.scroll_(di, count, dest ? 1 as never : 0, options.view, fromMax as false);
+    a.scroll_(di, count, dest ? 1 as never : 0, options.view, fromMax as false, options);
     if (a.keyIsDown_ && !options.$c) {
       a.scrollTick_(0);
     }
@@ -185,10 +185,10 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
    * @param fromMax can not be true, if `isTo` is 0
    */
   scroll_: function (this: {}, di: ScrollByY, amount0: number, isTo: BOOL
-      , factor?: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined, fromMax?: boolean): void {
+      , factor?: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined, fromMax?: boolean
+      , options?: CmdOptions[kFgCmd.scroll]): void {
     const a = this as typeof VSc;
     a.prepareTop_();
-    isTo && di && VMarks.setPreviousPosition_();
     let amount = amount0;
     const element = a.findScrollable_(di, isTo ? fromMax ? 1 : -1 : amount);
     amount = !factor ? a._adjustAmount(di, amount, element)
@@ -215,14 +215,21 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
         amount = 0;
       }
     }
+    if (isTo && amount && element === a.top_ && di) {
+      VMarks.setPreviousPosition_();
+      if (!fromMax && !amount0 && (options as Extract<typeof options, {dest: string}>).sel === "clear") {
+        VCui.resetSelectionToDocStart_();
+      }
+    }
     a._innerScroll(element, di, amount);
     a.scrolled_ = 0;
     a.top_ = null;
   } as {
     (di: ScrollByY, amount: number, isTo: 0
-      , factor?: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined, fromMax?: false): void;
+      , factor?: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined, fromMax?: false
+      , options?: CmdOptions[kFgCmd.scroll]): void;
     (di: ScrollByY, amount: number, isTo: 1
-      , factor?: undefined | 0, fromMax?: boolean): void;
+      , factor?: undefined | 0, fromMax?: boolean, options?: CmdOptions[kFgCmd.scroll]): void;
   },
   _joined: null as unknown,
   scrollTick_ (willContinue: BOOL | boolean): void {

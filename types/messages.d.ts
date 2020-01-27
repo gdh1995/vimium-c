@@ -219,6 +219,7 @@ interface CmdOptions {
     dest: "min" | "max";
     axis?: "y" | "x";
     view?: undefined;
+    sel?: "clear";
     dir?: undefined;
   };
   [kFgCmd.reset]: Dict<any>;

@@ -88,7 +88,7 @@ var VVisual = {
         VDom.getZoom_(1);
         VDom.prepareCrop_();
         if (!VDom.cropRectToVisible_(l, t, (l || r) && r + 3, (t || b) && b + 3)) {
-          sel.removeAllRanges();
+          VCui.resetSelectionToDocStart_(sel);
         } else if (type === SelType.Caret) {
           a.extend_(VisualModeNS.kDir.right);
           a.selType_() === SelType.Range || a.extend_(VisualModeNS.kDir.left);
