@@ -421,20 +421,20 @@ var BgUtils_ = {
     switch (cmd) {
     case "cd":
       arr = (path + "  ").split(" ");
-      if (!arr[2]) {
-        if (workType < Urls.WorkType.ActIfNoSideEffects) { return null; }
-        return new Promise<Urls.BaseEvalResult>(resolve => {
-          chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
-            const err1 = !tabs || tabs.length < 1 ? "No current tab found" : 0,
-            url = err1 || tabs[0].url,
-            res1 = err1 || BgUtils_.evalVimiumUrl_("cd " + path + " " + (path.includes(" ") ? url : ". " + url)
+      if (!arr[2] || !Backend_) {
+        if (workType < Urls.WorkType.ActIfNoSideEffects || !Backend_) { return null; }
+        res = Backend_.getPortUrl_();
+        if (typeof res === "string") {
+          arr[2] = res;
+        } else {
+          return res.then(url => {
+            const res1 = url && BgUtils_.evalVimiumUrl_("cd " + path + " " + (path.includes(" ") ? url : ". " + url)
                 , workType as Urls.WorkAllowEval, onlyOnce
                 ) as string | Urls.BaseEvalResult | null;
-            resolve(err1 || !res1 ? [err1 || "fail in parsing", Urls.kEval.ERROR]
-                : typeof res1 === "string" ? [res1, Urls.kEval.plainUrl] : res1);
-            return BgUtils_.runtimeError_();
+            return !res1 ? [url ? "fail in parsing" : "No current tab found", Urls.kEval.ERROR]
+                : typeof res1 === "string" ? [res1, Urls.kEval.plainUrl] : res1;
           });
-        });
+        }
       }
       cmd = arr[0];
       let startsWithSlash = cmd[0] === "/";

@@ -1,4 +1,4 @@
-(function () {
+(function (): void {
   interface LatestPromise extends Promise<void> {
     finally (onFinally: (() => void) | Promise<void>): LatestPromise;
   }
@@ -457,21 +457,16 @@
     type T1 = keyof FgReq;
     type Req1 = { [K in T1]: (req: FgReq[K], port: Frames.Port) => void; };
     type Req2 = { [K in T1]: <T extends T1>(req: FgReq[T], port: Frames.Port) => void; };
-    const excl = Exclusions;
-    if (!cPort) {
-      getCurTab(tabs => {
-        if (!tabs || !tabs.length) { return onRuntimeError(); }
-        request.u = tabs[0].url;
-        (requestHandlers as Req1 as Req2)[request.H](request, cPort);
+    cPort = cPort || indexFrame(TabRecency_.last_, 0);
+    const res = Backend_.getPortUrl_(cPort, ignoreHash);
+    if (typeof res !== "string") {
+      res.then(url => {
+        request.u = url;
+        url && (requestHandlers as Req1 as Req2)[request.H](request, cPort);
       });
-    } else if (excl && excl.rules_.length > 0
-        && (ignoreHash || excl._listeningHash)
-        ) {
-      request.u = cPort.s.u;
+    } else if (res) {
+      request.u = res;
       (requestHandlers as Req1 as Req2)[request.H](request, cPort);
-    } else {
-      request.N = kBgReq.url;
-      cPort.postMessage(request as Req.bg<kBgReq.url>);
     }
   }
   function ensureInnerCSS(this: void, port: Frames.Port): string | null {
@@ -507,7 +502,8 @@
     (populate: true, callback: (window: WindowWithTabs | null | undefined
       , exArg: FakeArg) => void): 1;
     (populate: false, callback: (window: Window, exArg: FakeArg) => void): 1;
-  };
+  },
+  tabsGet = chrome.tabs.get;
   function findCPort(port: Port | null | undefined): Port | null {
     const frames = framesForTab[port ? port.s.t : TabRecency_.last_];
     return frames ? frames[0] : null as never as Port;
@@ -547,7 +543,7 @@
     if (!tabs) { /* empty */ }
     else if (tabs.length > 0) { tab = tabs[0]; }
     else if (TabRecency_.last_ >= 0) {
-      chrome.tabs.get(TabRecency_.last_, function (lastTab): void {
+      tabsGet(TabRecency_.last_, function (lastTab): void {
         standardCreateTab(onlyNormal, lastTab && [lastTab]);
       });
       return onRuntimeError();
@@ -922,7 +918,7 @@
     if (tab.status === "complete" || tick >= 2) {
       return Marks_.scrollTab_(this, tab);
     }
-    setTimeout(() => { chrome.tabs.get(tab.id, focusOrLaunch[3].bind(this, tick + 1)); }, 800);
+    setTimeout(() => { tabsGet(tab.id, focusOrLaunch[3].bind(this, tick + 1)); }, 800);
   }] as [
     (this: MarksNS.FocusOrLaunch, tabs: Tab[]) => void,
     (this: MarksNS.FocusOrLaunch, tabs: [Tab] | never[]) => void,
@@ -1279,7 +1275,7 @@
           || TabRecency_.incognito_ === IncognitoType.ensuredFalse
           || Settings_.CONST_.DisallowIncognito_
           ) {
-        chrome.tabs.get(tabId, fallback);
+        tabsGet(tabId, fallback);
       } else {
         chrome.windows.getCurrent({populate: true}, function (wnd: PopWindow): void {
           const tab = wnd.tabs.filter(tab2 => tab2.id === tabId)[0];
@@ -2931,6 +2927,21 @@
     focus_: requestHandlers[kFgReq.focusOrLaunch],
     setOmniStyle_: requestHandlers[kFgReq.setOmniStyle],
     getExcluded_: BgUtils_.getNull_,
+    getPortUrl_ (port?: Port | null, ignoreHash?: boolean): string | Promise<string> {
+      const excl = Exclusions;
+      port = port || indexFrame(TabRecency_.last_, 0);
+      return port && excl && excl.rules_.length > 0 && (ignoreHash || excl._listeningHash) ? port.s.u
+          : port && port.s.i ? ""
+          : new Promise<string>(resolve => {
+        port ? tabsGet(port.s.t, tab => {
+          resolve(tab ? tab.url : "");
+          return onRuntimeError();
+        }) : getCurTab(tabs => {
+          resolve(tabs && tabs.length ? tabs[0].url : "");
+          return onRuntimeError();
+        });
+      });
+    },
     removeSug_ (this: void, { t: type, u: url }: FgReq[kFgReq.removeSug], port?: Port | null): void {
       const name = type === "tab" ? type : type + " item";
       cPort = findCPort(port) as Port;
@@ -3010,7 +3021,7 @@
           step = step + 1;
           if (step >= RefreshTabStep.end) { return; }
           setTimeout(function (): void {
-            chrome.tabs.get(tabId, onRefresh);
+            tabsGet(tabId, onRefresh);
           }, 50 * step * step);
         };
         if (needTempBlankTab) {
@@ -3019,7 +3030,7 @@
           });
         }
         chrome.tabs.remove(tabId, onRuntimeError);
-        chrome.tabs.get(tabId, onRefresh);
+        tabsGet(tabId, onRefresh);
         return;
       }
       tabsCreate({
@@ -3112,7 +3123,7 @@
       if (ports == null || (ports[0].s.f & Frames.Flags.userActed) || tabId < 0) {
         return executeShortcut(cmd as keyof typeof CommandsData_.shortcutRegistry_, ports);
       }
-      chrome.tabs.get(tabId, function (tab): void {
+      tabsGet(tabId, function (tab): void {
         executeShortcut(cmd as keyof typeof CommandsData_.shortcutRegistry_,
           tab && tab.status === "complete" ? framesForTab[tab.id] : null);
         return onRuntimeError();
