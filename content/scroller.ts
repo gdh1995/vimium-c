@@ -215,9 +215,9 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
         amount = 0;
       }
     }
-    if (isTo && amount && element === a.top_ && di) {
-      VMarks.setPreviousPosition_();
-      if (!fromMax && !amount0 && (options as Extract<typeof options, {dest: string}>).sel === "clear") {
+    if (isTo && element === a.top_) {
+      amount && di && VMarks.setPreviousPosition_();
+      if (!a._joined && (options as Extract<typeof options, {dest: string}>).sel === "clear") {
         VCui.resetSelectionToDocStart_();
       }
     }

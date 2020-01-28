@@ -882,7 +882,7 @@ searchEngine = {
     }
     if (failIfNull === true) {
       if (!pattern) { return true; }
-    } else if (!pattern) {
+    } else if (!pattern && !keyword.startsWith("vimium://")) {
       if (matchType === MatchType.plain && q.length <= 1) {
         matchType = q.length ? searchEngine.calcNextMatchType_() : MatchType.reset;
       }
@@ -891,21 +891,27 @@ searchEngine = {
       autoSelect = true;
       maxResults--;
       matchedTotal++;
-      if (queryType === FirstQuery.waitFirst) { q.push(rawMore); offset = 0; }
-      q.length > 1 ? (queryType = FirstQuery.searchEngines) : (matchType = MatchType.reset);
+      if (queryType === FirstQuery.waitFirst && pattern) { q.push(rawMore); offset = 0; }
+      q.length > 1 || !pattern ? (queryType = FirstQuery.searchEngines) : (matchType = MatchType.reset);
     }
-    if (q.length > 1) {
+    if (q.length > 1 && pattern) {
       q.shift();
       if (rawQuery.length > Consts.MaxCharsInQuery) {
         q = rawQuery.split(" ");
         q.shift();
       }
-    } else {
+    } else if (pattern) {
       q = [];
     }
     showThoseInBlocklist = showThoseInBlocklist && BlockListFilter.IsExpectingHidden_([keyword]);
 
-    let { url_: url, indexes_: indexes } = BgUtils_.createSearch_(q, pattern.url_, pattern.blank_, []), text = url;
+    let url: string, indexes: number[], text: string;
+    if (pattern) {
+      let res = BgUtils_.createSearch_(q, pattern.url_, pattern.blank_, []);
+      text = url = res.url_; indexes = res.indexes_;
+    } else {
+      text = url = q.join(" "); indexes = [];
+    }
     if (keyword === "~") { /* empty */ }
     else if (url.startsWith("vimium://")) {
       const ret = BgUtils_.evalVimiumUrl_(url.slice(9), Urls.WorkType.ActIfNoSideEffects, true);
@@ -914,6 +920,8 @@ searchEngine = {
         return ret.then<void>(searchEngine.onEvalUrl_.bind(searchEngine, query, getSug));
       } else if (ret instanceof Array) {
         return searchEngine.onEvalUrl_(query, getSug, ret);
+      } else if (ret) {
+        url = text = ret; indexes = [];
       }
     } else {
       url = BgUtils_.convertToUrl_(url, null, Urls.WorkType.KeepAll);
@@ -957,11 +965,12 @@ searchEngine = {
     }
     Completers.next_(sugs || [getSug()], SugType.search);
   },
-  plainResult_ (q: string[], url: string, text: string, pattern: Search.Engine, indexes: number[]): SearchSuggestion {
+  plainResult_ (q: string[], url: string, text: string
+      , pattern: Search.Engine | null | undefined, indexes: number[]): SearchSuggestion {
     const sug = new Suggestion("search", url, text
-      , pattern.name_ + ": " + q.join(" "), get2ndArg, 9) as SearchSuggestion;
+      , (pattern ? pattern.name_ + ": " : "") + q.join(" "), get2ndArg, 9) as SearchSuggestion;
 
-    if (q.length > 0) {
+    if (q.length > 0 && pattern) {
       sug.t = searchEngine.makeText_(text, indexes);
       sug.title = highlight(sug.title, [pattern.name_.length + 2, sug.title.length]);
       sug.textSplit = highlight(sug.t, indexes);
@@ -976,11 +985,11 @@ searchEngine = {
           ? sug.t : BgUtils_.escapeText_(sug.t);
     }
     if (Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
-        && isForAddressBar) {
-      sug.v = pattern.blank_ || searchEngine.calcBestFaviconSource_(url);
+        && !isForAddressBar) {
+      sug.v = pattern && pattern.blank_ || searchEngine.calcBestFaviconSource_(url);
     }
     if (Build.BTypes & BrowserType.Chrome || isForAddressBar) {
-      sug.p = pattern.name_;
+      sug.p = pattern ? pattern.name_ : "";
     }
     return sug;
   },
@@ -1066,7 +1075,7 @@ searchEngine = {
         && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
         ? sug.t : BgUtils_.escapeText_(sug.t);
     if (Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
-        && isForAddressBar) {
+        && !isForAddressBar) {
       sug.v = searchEngine.calcBestFaviconSource_(url);
     }
     if (Build.BTypes & BrowserType.Chrome || isForAddressBar) {
