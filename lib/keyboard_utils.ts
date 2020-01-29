@@ -115,10 +115,11 @@ var VKey = {
     if (event.keyCode !== kKeyCode.esc && !event.ctrlKey || event.keyCode === kKeyCode.ctrlKey) { return false; }
     const i = this.getKeyStat_(event),
     code = Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Code && Build.BTypes & BrowserType.Chrome
-        || Build.BTypes & BrowserType.Edge ? event.code : "";
+        ? event.code : "";
     return i === KeyStat.plain || i === KeyStat.ctrlKey
-      && (Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Code && Build.BTypes & BrowserType.Chrome
-          || Build.BTypes & BrowserType.Edge
+      && (!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && VOther & BrowserType.Edge
+          ? event.key === "["
+          : Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Code && Build.BTypes & BrowserType.Chrome
           ? code ? code === "BracketLeft" : this._getKeyCharUsingKeyIdentifier(event as OldKeyboardEvent, 0) === "["
           : event.code === "BracketLeft");
   },
