@@ -173,11 +173,11 @@ if (VDom && VimiumInjector === undefined) {
     /** this function should keep idempotent */
     if (box) {
       setupEventListener(box, kVOnClick1, onClick, 1);
+      setupEventListener(0, kVOnClick1, onClick, 1);
       dispatchCmd(kContentCmd.Destroy);
     }
     if (box == null && isFirstTime) {
       setupEventListener(0, kHook, hook, 1);
-      setupEventListener(0, kVOnClick1, onClick, 1);
       if (cmd === kContentCmd.DestroyForCSP) {
         // normally, if here, must have: limited by CSP; not C or C >= MinEnsuredNewScriptsFromExtensionOnSandboxedPage
         // ignore the rare (unexpected) case that injected code breaks even when not limited by CSP,
