@@ -72,7 +72,7 @@ declare namespace HintsNS {
     _master: null;
     setMode_ (mode: HintMode, silent?: 1): void;
     ResetMode_ (): void;
-    onKeydown_ (event: KeyboardEventToPrevent): HandlerResult;
+    onKeydown_ (event: HandlerNS.Event): HandlerResult;
     _reinit (slave?: BaseHinter | null, lastEl?: LinkEl | null, rect?: Rect | null): void;
     resetHints_ (): void;
     onFrameUnload_ (slave: HintsNS.Slave): void;
@@ -131,7 +131,7 @@ var VHints = {
   } as HintsNS.KeyStatus,
   _removeFlash: null as (() => void) | null,
   /** must be called from a master, required by {@link #VHints.delayToExecute_ } */
-  _onTailEnter: null as HandlerNS.VoidEventHandler | null,
+  _onTailEnter: null as ((this: unknown, event: HandlerNS.Event, key: string) => void) | null,
   _onWaitingKey: null as HandlerNS.VoidEventHandler | null,
   doesMapKey_: false,
   keyCode_: kKeyCode.None,
@@ -1025,48 +1025,48 @@ var VHints = {
     }
     return visibleElements.reverse();
   },
-  onKeydown_ (event: KeyboardEventToPrevent): HandlerResult {
+  onKeydown_ (event: HandlerNS.Event): HandlerResult {
     const a = this;
-    let matchedHint: ReturnType<typeof VHints.matchHintsByKey_>, i: number;
+    let matchedHint: ReturnType<typeof VHints.matchHintsByKey_>, i: number = event.i, key: string, keybody: string;
     if (a._master) {
       VApi.keydownEvents_(Build.BTypes & BrowserType.Firefox ? (a._master as typeof a).api_.keydownEvents_()
           : (a._master as typeof a).api_);
       return (a._master.onKeydown_ as typeof a.onKeydown_)(event);
     } else if (Build.BTypes & BrowserType.Chrome && a._onWaitingKey) {
       a._onWaitingKey(event);
-    } else if (event.repeat || !a.isActive_) {
+    } else if (event.e.repeat || !a.isActive_) {
       // NOTE: should always prevent repeated keys.
-    } else if ((i = event.keyCode) === kKeyCode.ime) {
+    } else if (i === kKeyCode.ime) {
       a.clean_(1);
       VHud.tip_(kTip.exitForIME);
       return HandlerResult.Nothing;
-    } else if (VKey.isEscape_(event)) {
+    } else if (key = VKey.key_(event, kModeId.Link), VKey.isEscape_(key)) {
       a.clean_();
-    } else if (i === kKeyCode.esc) {
+    } else if (i === kKeyCode.esc && key.includes("esc")) {
       return HandlerResult.Suppress;
     } else if (a._onTailEnter && i !== kKeyCode.f12) {
-      a._onTailEnter(event);
-    } else if (i > kKeyCode.f1 ? i < kKeyCode.f12 + 1 : i > kKeyCode.f1 - 1) {
-      if (i > kKeyCode.f2) { a.ResetMode_(); return HandlerResult.Nothing; }
+      a._onTailEnter(event, key);
+    } else if (keybody = VKey.keybody(key), keybody > "f0" && keybody <= "f9" && key !== "f1") { // exclude <f1>
+      if (keybody > "f1" && keybody !== "f2") { a.ResetMode_(); return HandlerResult.Nothing; }
       i = VKey.getKeyStat_(event);
-      if (event.keyCode < kKeyCode.f2) {
+      if (keybody < "f2") {
         a.ResetMode_();
-        if (i & KeyStat.altKey && a.useFilter_) {
+        if (key[0] === "a" && a.useFilter_) {
           (a.locateHint_(a.filterEngine_.activeHint_ as HintsNS.HintItem) as typeof a)._highlightHint(
               a.filterEngine_.activeHint_ as HintsNS.HintItem);
-        } else if (i & KeyStat.shiftKey) {
+        } else if (key[0] === "s") {
           for (const frame of this.frameList_) {
             ((frame.s as typeof VHints).box_ as SafeHTMLElement).classList.toggle("HM1");
           }
         }
         return HandlerResult.Prevent;
       }
-      if (i === KeyStat.altKey) {
+      if (key[0] === "a") {
         a.wantDialogMode_ = !a.wantDialogMode_;
-      } else if (i & KeyStat.shiftKey) {
-        a.isClickListened_ = !a.isClickListened_;
-      } else if (i & KeyStat.PrimaryModifier) {
+      } else if ("cm".includes(key[0])) {
         a.options_.useFilter = VDom.cache_.f = !a.useFilter_;
+      } else if (key !== keybody) { // <s-f2>
+        a.isClickListened_ = !a.isClickListened_;
       } else {
         if (Build.BTypes & BrowserType.Firefox
               && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
@@ -1083,7 +1083,7 @@ var VHints = {
       setTimeout(a._reinit.bind(a, null, null, null), 0);
     } else if ((i < kKeyCode.maxAcsKeys + 1 && i > kKeyCode.minAcsKeys - 1
             || !VDom.cache_.o && (i > kKeyCode.maxNotMetaKey && i < kKeyCode.minNotMetaKeyOrMenu))
-        && (!VDom.cache_.a || event.location !== VDom.cache_.a)) {
+        && !key) {
       const mode = a.mode_, mode1 = a.mode1_,
       mode2 = mode1 > HintMode.min_copying - 1 && mode1 < HintMode.max_copying + 1
         ? i === kKeyCode.ctrlKey || i > kKeyCode.maxNotMetaKey ? (mode1 | HintMode.queue) ^ HintMode.list
@@ -1105,15 +1105,15 @@ var VHints = {
     } else if (i <= kKeyCode.down && i >= kKeyCode.pageup) {
       VSc.BeginScroll_(event);
       a.ResetMode_();
-    } else if (i === kKeyCode.tab && !a.useFilter_ && !a.keyStatus_.keySequence_) {
+    } else if (keybody === kChar.tab && !a.useFilter_ && !a.keyStatus_.keySequence_) {
       a.tooHigh_ = null;
       a.ResetMode_();
       setTimeout(a._reinit.bind(a, null, null, null), 0);
-    } else if (i === kKeyCode.space && (!a.useFilter_ || VKey.getKeyStat_(event))) {
+    } else if (keybody === kChar.space && (!a.useFilter_ || key !== keybody)) {
       a.keyStatus_.textSequence_ = a.keyStatus_.textSequence_.replace("  ", " ");
-      a.zIndexes_ !== 0 && a.rotateHints_(event.shiftKey);
+      a.zIndexes_ !== 0 && a.rotateHints_(key === "s-" + keybody);
       a.ResetMode_();
-    } else if (matchedHint = a.matchHintsByKey_(a.keyStatus_, event), matchedHint === 0) {
+    } else if (matchedHint = a.matchHintsByKey_(a.keyStatus_, event, key, keybody), matchedHint === 0) {
       // then .a.keyStatus_.hintSequence_ is the last key char
       a.clean_(0, a.keyStatus_.known_ ? 0 : VDom.cache_.k[0]);
     } else if (matchedHint !== 2) {
@@ -1160,7 +1160,7 @@ var VHints = {
         return;
       }
       if (event) {
-        const i = event.keyCode, key = event.key;
+        const i = event.i, key = event.e.key;
         tick = waitEnter && (i === kKeyCode.space || key === "Space") ? tick + 1 : 0;
         tick === 3 || i === kKeyCode.enter || key === "Enter" ? slave.execute_(hint, event)
         // tslint:disable-next-line: no-unused-expression
@@ -1190,8 +1190,8 @@ var VHints = {
       a.setMode_(master.mode_ as typeof a.mode_, 1);
     }
     if (event) {
-      VKey.prevent_(event);
-      VApi.keydownEvents_()[a.keyCode_ = event.keyCode] = 1;
+      VKey.prevent_(event.e);
+      VApi.keydownEvents_()[a.keyCode_ = event.i] = 1;
     }
     masterOrA.resetHints_(); // here .keyStatus_ is reset
     (a.hud_ as Writable<VHUDTy>).t = "";
@@ -1748,33 +1748,34 @@ filterEngine_: {
       hintItems[i].a = hintString;
     }
   },
-  matchHintsByKey_ (keyStatus: HintsNS.KeyStatus, e: KeyboardEvent): HintsNS.HintItem | 0 | 2 {
+  matchHintsByKey_ (keyStatus: HintsNS.KeyStatus
+      , event: HandlerNS.Event, key: string, keybody: string): HintsNS.HintItem | 0 | 2 {
     const h = VHints, {useFilter_: useFilter, filterEngine_: filterEngine} = h;
     let keyChar: string
       , {keySequence_: sequence, textSequence_: textSeq, tab_: oldTab, hints_: hints} = keyStatus
-      , key = e.keyCode, doesDetectMatchSingle: 0 | 1 | 2 = 0
-      , textSeq0 = textSeq, isSpace = key === kKeyCode.space;
+      , doesDetectMatchSingle: 0 | 1 | 2 = 0
+      , textSeq0 = textSeq, isSpace = keybody === kChar.space, isTab = keybody === kChar.tab;
     textSeq = textSeq && textSeq.replace("  ", " ");
     keyStatus.tab_ = isSpace ? oldTab
-        : key === kKeyCode.tab ? useFilter ? oldTab - 2 * +e.shiftKey + 1 : 1 - oldTab
+        : isTab ? useFilter ? oldTab - 2 * +(key === "s-" + keybody) + 1 : 1 - oldTab
         : (useFilter || oldTab && (sequence = sequence.slice(0, -1)), 0);
     keyStatus.known_ = 1;
-    if (key === kKeyCode.tab) {
+    if (isTab) {
       h.ResetMode_();
     }
-    else if (key === kKeyCode.backspace || key === kKeyCode.deleteKey || key === kKeyCode.f1) {
+    else if (keybody === kChar.backspace || keybody === kChar.delete || keybody === kChar.f1) {
       if (!sequence && !textSeq) {
         return 0;
       }
       sequence ? sequence = sequence.slice(0, -1) : textSeq = textSeq.slice(0, -1);
-    } else if (useFilter && key === kKeyCode.enter || isSpace && textSeq0 !== textSeq) {
+    } else if (useFilter && keybody === kChar.enter || isSpace && textSeq0 !== textSeq) {
       // keep .known_ to be 1 - needed by .execute_
       return filterEngine.activeHint_ as NonNullable<typeof filterEngine.activeHint_>;
     } else if (isSpace) { // then useFilter is true
       textSeq = textSeq0 + " ";
-    } else if (!(useFilter && e.ctrlKey)
-        && (keyChar = VKey.char_(e)) && keyChar.length < 2
-        && (keyChar = h.doesMapKey_ ? VApi.mapKey_(keyChar, e, keyChar) : keyChar).length < 2) {
+    } else if (!(useFilter && key.includes("c-")) && event.c.length === 1
+        && (key.length === 1 || key.slice(-2, -1) === "-")) {
+      keyChar = key.length < 2 ? key : key.slice(-1);
       keyChar = useFilter ? keyChar : keyChar.toUpperCase();
       useFilter && h.ResetMode_();
       if (h.chars_.includes(keyChar)) {
@@ -1950,7 +1951,7 @@ Modes_: [
     const a = VHints, type = VDom.getEditableType_<0>(element), toggleMap = a.options_.toggle;
     const exit: HandlerNS.Handler<any> = event => {
       VKey.removeHandler_(exit);
-      if (VKey.isEscape_(event) && !VApi.lock_()) {
+      if (VKey.isEscape_(VKey.key_(event, kModeId.Link)) && !VApi.lock_()) {
         VDom.hover_();
         return HandlerResult.Prevent;
       }

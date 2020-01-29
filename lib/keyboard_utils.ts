@@ -77,8 +77,10 @@ var VKey = {
    * * return `"space"` for the <Space> key - in most code it needs to be treated as a long key
    * * does not skip "Unidentified", because it can not solve any issue if skipping it
    */
-  char_ (event: Pick<KeyboardEvent, "code" | "key" | "keyCode" | "keyIdentifier" | "location" | "shiftKey">): string {
-    let {key, shiftKey} = event;
+  char_ (eventWrapper: HandlerNS.Event): kChar {
+    let event: Pick<KeyboardEvent, "code" | "key" | "keyCode" | "keyIdentifier" | "location" | "shiftKey">
+        = eventWrapper.e
+      , {key, shiftKey} = eventWrapper.e;
     if (Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.BTypes & BrowserType.Chrome && !key) {
       // since Browser.Min$KeyboardEvent$MayHas$$Key and before .MinEnsured$KeyboardEvent$$Key
       // event.key may be an empty string if some modifier keys are held on
@@ -92,36 +94,18 @@ var VKey = {
         : (key as string).length > 1 || key === " " ? this.getKeyName_(event)
         : this.cache_.i ? shiftKey ? (<string> key).toUpperCase() : (<string> key).toLowerCase() : <string> key;
     }
-    return key;
+    return eventWrapper.c = key as kChar;
   },
-  /** @argument ch must not be `""`; if length > 1, then must be lower-case */
-  key_ (event: EventControlKeys, ch: string): string {
-    if (!(Build.NDEBUG || ch.length === 1 || ch.length > 1 && ch === ch.toLowerCase())) {
-      console.error(`Assert error: VKey.key_ get an invalid char of "${ch}" !`);
-    }
-    let modifiers = `${event.altKey ? "a-" : ""}${event.ctrlKey ? "c-" : ""}${event.metaKey ? "m-" : ""}`
-      , isLong = ch.length > 1, chLower = ch.toLowerCase();
-    event.shiftKey && (isLong || modifiers && ch.toUpperCase() !== chLower) && (modifiers += "s-");
-    return isLong || modifiers ? `<${modifiers}${chLower}>` : ch;
-  },
-  getKeyStat_ (event: EventControlKeys): KeyStat {
+  keybody: (key: string): string => key.slice(key.slice(1, 2) === "-" ? 2 : 0),
+  key_: null as never as (this: void, event: HandlerNS.Event, mode: kModeId) => string,
+  getKeyStat_ ({e: event}: {e: EventControlKeys}): KeyStat {
     return <number> <boolean|number> event.altKey |
             (<number> <boolean|number> event.ctrlKey * 2) |
             (<number> <boolean|number> event.metaKey * 4) |
             (<number> <boolean|number> event.shiftKey * 8);
   },
-  isEscape_: null as never as (event: KeyboardEvent) => boolean,
-  _isRawEscape (event: KeyboardEvent): boolean {
-    if (event.keyCode !== kKeyCode.esc && !event.ctrlKey || event.keyCode === kKeyCode.ctrlKey) { return false; }
-    const i = this.getKeyStat_(event),
-    code = Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Code && Build.BTypes & BrowserType.Chrome
-        ? event.code : "";
-    return i === KeyStat.plain || i === KeyStat.ctrlKey
-      && (!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && VOther & BrowserType.Edge
-          ? event.key === "["
-          : Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Code && Build.BTypes & BrowserType.Chrome
-          ? code ? code === "BracketLeft" : this._getKeyCharUsingKeyIdentifier(event as OldKeyboardEvent, 0) === "["
-          : event.code === "BracketLeft");
+  isEscape_ (key: string): HandlerResult.AdvancedEsc | HandlerResult.PlainEsc | HandlerResult.Nothing {
+    return key === "esc" ? HandlerResult.AdvancedEsc : key === "c-[" ? HandlerResult.PlainEsc : HandlerResult.Nothing;
   },
 
   /** event section */
@@ -143,9 +127,9 @@ var VKey = {
     (disable ? removeEventListener : addEventListener).call(target || window, eventType, func || VKey.Stop_,
         {passive: !activeMode, capture: true} as EventListenerOptions | boolean as boolean);
   },
-  SuppressMost_ (this: object, event: KeyboardEvent): HandlerResult {
-    VKey.isEscape_(event) && VKey.removeHandler_(this);
-    const key = event.keyCode;
+  SuppressMost_ (this: object, event: HandlerNS.Event): HandlerResult {
+    VKey.isEscape_(VKey.key_(event, kModeId.Normal)) && VKey.removeHandler_(this);
+    const key = event.i;
     return key > kKeyCode.f10 && key < kKeyCode.f13 || key === kKeyCode.f5 ?
       HandlerResult.Suppress : HandlerResult.Prevent;
   },
@@ -158,7 +142,7 @@ var VKey = {
     let timer = 0,
     func: HandlerNS.Handler<{}> = event => {
       if (!timeout) {
-        if (event.repeat) { return HandlerResult.Prevent; }
+        if (event.e.repeat) { return HandlerResult.Prevent; }
         VKey.removeHandler_(func);
         return HandlerResult.Nothing;
       }

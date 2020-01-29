@@ -155,14 +155,14 @@ declare const enum KeyAction {
 }
 type ValidChildKeyAction = KeyAction.cmd;
 type ValidKeyAction = ValidChildKeyAction | KeyAction.count;
-interface ChildKeyMap {
-  [index: string]: ValidChildKeyAction | ChildKeyMap | undefined;
+interface ChildKeyFSM {
+  [index: string]: ValidChildKeyAction | ChildKeyFSM | undefined;
   readonly __proto__: never;
 }
-interface ReadonlyChildKeyMap {
-  readonly [index: string]: ValidChildKeyAction | ReadonlyChildKeyMap | undefined;
+interface ReadonlyChildKeyFSM {
+  readonly [index: string]: ValidChildKeyAction | ReadonlyChildKeyFSM | undefined;
 }
-type KeyMap = ReadonlySafeDict<ValidKeyAction | ReadonlyChildKeyMap>;
+type KeyFSM = ReadonlySafeDict<ValidKeyAction | ReadonlyChildKeyFSM>;
 
 type TextElement = HTMLInputElement | HTMLTextAreaElement;
 
@@ -471,6 +471,14 @@ declare const enum GlobalConsts {
   KeyboardLettersLo = "\xba\u0621-\u064a",
 
   SelectorPrefixesInPatterns = ".#",
+  DelimeterForKeyCharAndMode = ":",
+  ModeIds = "nilofvms"
+}
+
+declare const enum kModeId {
+  Normal = 0, Insert, Link, Omni, Find, Visual, Marks,
+  Show,
+  NO_MAP_KEY,
 }
 
 declare const enum kCharCode {
@@ -508,11 +516,12 @@ declare const enum KeyStat {
   ExceptShift = altKey | ctrlKey | metaKey, ExceptPrimaryModifier = altKey | shiftKey,
 }
 declare const enum kChar {
+  INVALID = " ",
   space = "space", pageup = "pageup", pagedown = "pagedown",
   end = "end", home = "home", left = "left", up = "up", right = "right", down = "down",
   insert = "insert", delete = "delete",
   backspace = "backspace", esc = "esc", tab = "tab", enter = "enter",
-  None = "", F_num = "f",
+  None = "", F_num = "f", f1 = "f1", f2 = "f2", f12 = "f12",
   CharCorrectionList = ";=,-./`[\\]'\\:+<_>?~{|}\"|", EnNumTrans = ")!@#$%^&*(",
   Modifier = "modifier",
 }

@@ -329,44 +329,45 @@ var VFind = {
   } : 0 as never,
   onKeydown_ (event: KeyboardEventToPrevent): void {
     VKey.Stop_(event);
-    const a = this;
-    const n = event.keyCode;
+    const a = this, n = event.keyCode;
     if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
         ? !event.isTrusted : event.isTrusted === false) { return; }
     if (n === kKeyCode.ime || VSc.keyIsDown_ && VSc.OnScrolls_(event) || event.type === "keyup") { return; }
     type Result = FindNS.Action;
-    let i: Result | KeyStat = event.altKey ? FindNS.Action.DoNothing
-      : n === kKeyCode.enter
-        ? event.shiftKey ? FindNS.Action.PassDirectly : (a.saveQuery_(), FindNS.Action.ExitToPostMode)
-      : (n !== kKeyCode.backspace && n !== kKeyCode.deleteKey) ? FindNS.Action.DoNothing
+    const eventWrapper: HandlerNS.Event = {c: kChar.INVALID, e: event, i: n},
+    key = VKey.key_(eventWrapper, kModeId.Find), keybody = VKey.keybody(key);
+    let i: Result | KeyStat = key.startsWith("a-") && event.altKey ? FindNS.Action.DoNothing
+      : keybody === kChar.enter
+        ? key.includes("s-") ? FindNS.Action.PassDirectly : (a.saveQuery_(), FindNS.Action.ExitToPostMode)
+      : keybody !== kChar.delete && keybody !== kChar.backspace
+        ? VKey.isEscape_(key) ? FindNS.Action.ExitAndReFocus : FindNS.Action.DoNothing
       : Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther & BrowserType.Firefox)
-        && VDom.cache_.o === kOS.linux && (event.ctrlKey || event.shiftKey) ? FindNS.Action.CtrlDelete
+        && VDom.cache_.o === kOS.linux && (key.includes("c-") || key.includes("s-")) ? FindNS.Action.CtrlDelete
       : a.notEmpty_ || (n === kKeyCode.deleteKey && VDom.cache_.o || event.repeat) ? FindNS.Action.PassDirectly
       : FindNS.Action.Exit;
     if (!i) {
-      if (VKey.isEscape_(event)) { i = FindNS.Action.ExitAndReFocus; }
-      else if (i = VKey.getKeyStat_(event)) {
-        if (n === kKeyCode.f1 && i === KeyStat.altKey) {
+      if (keybody !== key) {
+        if (key === "a-f1") {
           VDom.prepareCrop_();
           VVisual.HighlightRange_(VCui.getSelected_()[0]);
         }
-        else if (i & KeyStat.ExceptPrimaryModifier) { return; }
-        else if (n === kKeyCode.up || n === kKeyCode.down || n === kKeyCode.end || n === kKeyCode.home) {
-          VSc.BeginScroll_(event);
+        else if (key < "c-" || key > "m-") { return; }
+        else if (keybody === kChar.up || keybody === kChar.down || keybody === kChar.end || keybody === kChar.home) {
+          VSc.BeginScroll_(eventWrapper);
         }
-        else if (n === kKeyCode.J || n === kKeyCode.K) {
-          a.execute_(null, { n: (kKeyCode.K - n) || -1 });
+        else if (keybody === "j" || keybody === "k") {
+          a.execute_(null, { n: keybody > "j" ? -1 : 1 });
         }
         else { return; }
         i = FindNS.Action.DoNothing;
       }
-      else if (n === kKeyCode.f1) { a.innerDoc_.execCommand("delete"); }
-      else if (n === kKeyCode.f2) {
+      else if (keybody === kChar.f1) { a.innerDoc_.execCommand("delete"); }
+      else if (keybody === kChar.f2) {
         Build.BTypes & BrowserType.Firefox && a.box_.blur();
         focus(); VApi.keydownEvents_()[n] = 1;
       }
-      else if (n === kKeyCode.up || n === kKeyCode.down) { a.nextQuery_(n !== kKeyCode.up); }
+      else if (keybody === kChar.up || keybody === kChar.down) { a.nextQuery_(keybody < kChar.up); }
       else { return; }
     } else if (i === FindNS.Action.PassDirectly) {
       return;
@@ -384,20 +385,18 @@ var VFind = {
     }
     a.deactivate_(i as FindNS.Action);
   },
-  onHostKeydown_ (event: KeyboardEventToPrevent): HandlerResult {
-    let i = VKey.getKeyStat_(event), n = event.keyCode, a = this;
-    if (!i && n === kKeyCode.f2) {
+  onHostKeydown_ (event: HandlerNS.Event): HandlerResult {
+    const key = VKey.key_(event, kModeId.Find), key2 = key.replace("m-", "c-"),  a = this;
+    if (key === "f2") {
       a._onUnexpectedBlur && a._onUnexpectedBlur();
       a.focus_();
       return HandlerResult.Prevent;
-    } else if (i && !(i & KeyStat.ExceptPrimaryModifier)) {
-      if (n === kKeyCode.J || n === kKeyCode.K) {
-        a.execute_(null, { n: (kKeyCode.K - n) || -1 });
+    } else if (key2 === "c-j" || key2 === "c-k") {
+        a.execute_(null, { n: key > "c-j" ? -1 : 1 });
         return HandlerResult.Prevent;
-      }
     }
-    if (!VApi.lock_() && VKey.isEscape_(event)) {
-      VKey.prevent_(event); // safer
+    if (!VApi.lock_() && VKey.isEscape_(key)) {
+      VKey.prevent_(event.e); // safer
       a.deactivate_(FindNS.Action.ExitNoFocus); // should exit
       return HandlerResult.Prevent;
     }
@@ -517,8 +516,8 @@ var VFind = {
       pm.lock_ = el;
       VKey.SetupEventListener_(el, "blur", Exit);
     },
-    onKeydown_ (event: KeyboardEvent): HandlerResult {
-      const exit = VKey.isEscape_(event);
+    onKeydown_ (event: HandlerNS.Event): HandlerResult {
+      const exit = VKey.isEscape_(VKey.key_(event, kModeId.Insert));
       exit ? this.exit_() : VKey.removeHandler_(this);
       return exit ? HandlerResult.Prevent : HandlerResult.Nothing;
     },

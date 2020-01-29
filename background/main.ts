@@ -2786,7 +2786,7 @@
         c: Settings_.payload_,
         p: pass,
         m: CommandsData_.mappedKeyRegistry_,
-        k: CommandsData_.keyMap_
+        k: CommandsData_.keyFSM_
       });
     }
     sender.s = status;
@@ -3136,7 +3136,7 @@
     } as BackendHandlersNS.BackendHandlers["indexPorts_"],
     onInit_(): void {
       if (Settings_.temp_.initing_ !== BackendHandlersNS.kInitStat.FINISHED) { return; }
-      if (!CommandsData_.keyMap_) {
+      if (!CommandsData_.keyFSM_) {
         Settings_.postUpdate_("keyMappings");
       }
       // the line below requires all necessary have inited when calling this

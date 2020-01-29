@@ -17,16 +17,14 @@ var VMarks = {
     return VHud.show_(isGo ? kTip.nowGotoMark : kTip.nowCreateMark);
   },
   onKeydown_ (event: HandlerNS.Event): HandlerResult {
-    const keyCode = event.keyCode;
+    const keyCode = event.i;
     if (keyCode === kKeyCode.ime) { return HandlerResult.Nothing; }
-    let keyChar: string | undefined, notEsc = !VKey.isEscape_(event);
-    if (notEsc && (keyCode > kKeyCode.f1 && keyCode < kKeyCode.minNotFn || keyCode < kKeyCode.minNotSpace
-        || (keyChar = VKey.char_(event)).length !== 1)) {
+    let key = VKey.key_(event, kModeId.Marks), notEsc = !VKey.isEscape_(key);
+    if (notEsc && key.length !== 1) {
       return HandlerResult.Suppress;
     }
-    keyChar = keyChar && this.doesMapKey_ ? VApi.mapKey_(keyChar, event, keyChar) : keyChar;
     VKey.removeHandler_(this);
-    notEsc && keyCode > kKeyCode.space ? this.onKeyChar_(event, keyChar as string) : VHud.hide_();
+    notEsc ? this.onKeyChar_(event, key) : VHud.hide_();
     this.prefix_ = this.swap_ = true;
     this.onKeyChar_ = null as never;
     return HandlerResult.Prevent;
@@ -42,7 +40,7 @@ var VMarks = {
     if (keyChar === "`" || keyChar === "'") {
       this.setPreviousPosition_(this.count_);
       return VHud.tip_(kTip.didCreateLastMark, 1000);
-    } else if (event.shiftKey !== this.swap_) {
+    } else if (event.e.shiftKey !== this.swap_) {
       if (top === window) {
         return this.createMark_(keyChar);
       } else {
@@ -69,7 +67,7 @@ var VMarks = {
       p: a.prefix_,
       n: keyChar
     };
-    if (event.shiftKey !== a.swap_) {
+    if (event.e.shiftKey !== a.swap_) {
       VHud.hide_();
     } else {
       try {

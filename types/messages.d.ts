@@ -45,7 +45,7 @@ interface OptionsWithForce extends FgOptions {
 declare const enum kBgReq {
   START = 0,
   init = START, reset, injectorRun, url, msg, eval,
-  settingsUpdate, focusFrame, exitGrab, keyMap, execute,
+  settingsUpdate, focusFrame, exitGrab, keyFSM, execute,
   createMark, showHUD, count, showHelpDialog,
   OMNI_MIN = 42,
   omni_init = OMNI_MIN, omni_omni, omni_parsed, omni_returnFocus,
@@ -76,7 +76,7 @@ interface BgReq {
     /** cache (aka. payload) */ c: SettingsNS.FrontendSettingCache;
     /** passKeys */ p: string | null;
     /** mappedKeys */ m: SafeDict<string> | null;
-    /** keyMap */ k: KeyMap;
+    /** keyFSM */ k: KeyFSM;
   };
   [kBgReq.injectorRun]: {
     /** task */ t: InjectorTask;
@@ -92,9 +92,9 @@ interface BgReq {
   [kBgReq.createMark]: {
     /** markName */ n: string;
   };
-  [kBgReq.keyMap]: {
+  [kBgReq.keyFSM]: {
     /** mappedKeys */ m: SafeDict<string> | null;
-    /** keyMap */ k: KeyMap;
+    /** keyMap */ k: KeyFSM;
   };
   [kBgReq.showHUD]: ({
     /** text */ t?: string;

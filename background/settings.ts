@@ -80,7 +80,7 @@ var Settings_ = {
     <K extends SettingsNS.NullableUpdateHooks>(key: K, value?: FullSettings[K] | null): void;
     <K extends SettingsNS.EnsuredUpdateHooks | keyof SettingsWithDefaults>(key: K, value?: FullSettings[K]): void;
   },
-  broadcast_<K extends kBgReq.settingsUpdate | kBgReq.url | kBgReq.keyMap> (request: Req.bg<K>): void {
+  broadcast_<K extends kBgReq.settingsUpdate | kBgReq.url | kBgReq.keyFSM> (request: Req.bg<K>): void {
     if (request.N === kBgReq.settingsUpdate) {
       const cur = BgUtils_.safer_((request as Req.bg<kBgReq.settingsUpdate>).d)
         , old = Settings_.temp_.newSettingsToBroadcast_;

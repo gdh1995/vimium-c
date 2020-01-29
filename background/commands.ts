@@ -77,6 +77,7 @@ var Commands = {
       , regItem: CommandsNS.Item | null
       , mkReg = BgUtils_.safeObj_<string>();
     const a = this as typeof Commands, available = a.availableCommands_;
+    const strip = BgUtils_.stripKey_;
     const colorRed = "color:red", shortcutLogPrefix = "Shortcut %c%s";
     lines = line.replace(<RegExpSearchable<0>> /\\\\?\n/g, t => t.length === 3 ? "\\\n" : ""
                ).replace(<RegExpG> /[\t ]+/g, " ").split("\n");
@@ -126,15 +127,16 @@ var Commands = {
         }
         continue;
       } else if (key === "mapkey" || key === "mapKey") {
+        const re = <RegExpG & RegExpSearchable<1>> /<(?!<[^:])([acms]-){0,4}.\w*?(:[a-z])?>|./g;
         if (splitLine.length !== 3) {
           a.logError_(`MapKey needs ${splitLine.length > 3 ? "only" : "both"} source and target keys`, line);
-        } else if ((key = splitLine[1]).length > 1 && (key.match(BgUtils_.keyRe_) as RegExpMatchArray).length > 1
-          || splitLine[2].length > 1 && (splitLine[2].match(BgUtils_.keyRe_) as RegExpMatchArray).length > 1) {
+        } else if ((key = splitLine[1]).length > 1 && (key.match(re) as RegExpMatchArray).length > 1
+          || splitLine[2].length > 1 && (splitLine[2].match(re) as RegExpMatchArray).length > 1) {
           a.logError_("MapKey: a source / target key should be a single key:", line);
-        } else if (key in mkReg) {
-          a.logError_("This key %c%s", colorRed, key, "has been mapped to another key:", mkReg[key]);
+        } else if (strip(key) in mkReg) {
+          a.logError_("This key %c%s", colorRed, key, "has been mapped to another key:", mkReg[strip(key)]);
         } else {
-          mkReg[key === "<escape>" ? "<esc>" : key] = splitLine[2] === "<escape>" ? "<esc>" : splitLine[2];
+          mkReg[key === "<escape>" ? "esc" : strip(key)] = splitLine[2] === "<escape>" ? "esc" : strip(splitLine[2]);
           mk++;
           continue;
         }
@@ -193,29 +195,31 @@ var Commands = {
     return ret < 1 ? 'requires a "command" option' : ret > 1 ? "" : "gets an unknown command";
   },
   populateKeyMap_: (function (this: void, detectNewError: boolean): void {
-    const d = CommandsData_, ref = d.keyMap_ = BgUtils_.safeObj_<ValidKeyAction | ChildKeyMap>(),
+    const d = CommandsData_, ref = d.keyFSM_ = BgUtils_.safeObj_<ValidKeyAction | ChildKeyFSM>(),
     keyRe = BgUtils_.keyRe_,
+    strip = BgUtils_.stripKey_,
     C = Commands,
     d2 = Settings_.temp_, oldErrors = d2.cmdErrors_;
     if (oldErrors < 0) { d2.cmdErrors_ = ~oldErrors; }
     for (let ch = 10; 0 <= --ch; ) { ref[ch] = KeyAction.count; }
     ref["-"] = KeyAction.count;
-    for (const key in d.keyToCommandRegistry_) {
+    for (let key in d.keyToCommandRegistry_) {
       const arr = key.match(keyRe) as RegExpMatchArray, last = arr.length - 1;
       if (last === 0) {
-        (key in ref) && detectNewError && C.warnInactive_(ref[key] as ReadonlyChildKeyMap, key);
-        ref[key] = KeyAction.cmd;
+        let key2 = strip(key);
+        detectNewError && (key2 in ref) && C.warnInactive_(ref[key2] as ReadonlyChildKeyFSM, key);
+        ref[key2] = KeyAction.cmd;
         continue;
       }
-      let ref2 = ref as ChildKeyMap, tmp: ChildKeyMap | ValidChildKeyAction | undefined = ref2, j = 0;
-      while ((tmp = ref2[arr[j]]) && j < last) { j++; ref2 = tmp; }
+      let ref2 = ref as ChildKeyFSM, tmp: ChildKeyFSM | ValidChildKeyAction | undefined = ref2, j = 0;
+      while ((tmp = ref2[strip(arr[j])]) && j < last) { j++; ref2 = tmp; }
       if (tmp === KeyAction.cmd) {
         detectNewError && C.warnInactive_(key, arr.slice(0, j + 1).join(""));
         continue;
       }
       tmp != null && detectNewError && C.warnInactive_(tmp, key);
-      while (j < last) { ref2 = ref2[arr[j++]] = BgUtils_.safeObj_() as ChildKeyMap; }
-      ref2[arr[last]] = KeyAction.cmd;
+      while (j < last) { ref2 = ref2[strip(arr[j++])] = BgUtils_.safeObj_() as ChildKeyFSM; }
+      ref2[strip(arr[last])] = KeyAction.cmd;
     }
     if (detectNewError && d2.cmdErrors_) {
       console.log("%cKey Mappings: %o errors found.", "background-color:#fffbe5", d2.cmdErrors_);
@@ -223,9 +227,9 @@ var Commands = {
       console.log("The new key mappings have no errors");
     }
     const maybePassed = Exclusions ? Exclusions.getAllPassed_() : null;
-    const func = function (obj: ChildKeyMap): void {
+    const func = function (obj: ChildKeyFSM): void {
       for (const key in obj) {
-        const val = obj[key] as NonNullable<ChildKeyMap[string]>;
+        const val = obj[key] as NonNullable<ChildKeyFSM[string]>;
         if (val !== KeyAction.cmd) { func(val); }
         else if (maybePassed !== true && ref[key] === KeyAction.cmd && !(maybePassed && key in maybePassed)) {
           delete obj[key];
@@ -240,7 +244,7 @@ var Commands = {
   logError_: function (): void {
     console.log.apply(console, arguments);
   } as (firstMsg: string, ...args: any[]) => void ,
-  warnInactive_ (obj: ReadonlyChildKeyMap | string, newKey: string): void {
+  warnInactive_ (obj: ReadonlyChildKeyFSM | string, newKey: string): void {
     console.log("inactive key:", obj, "with", newKey);
     ++Settings_.temp_.cmdErrors_;
   },
@@ -486,7 +490,7 @@ availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeO
 },
 CommandsData_: CommandsDataTy = CommandsData_ as never || {
   keyToCommandRegistry_: null as never as SafeDict<CommandsNS.Item>,
-  keyMap_: null as never as KeyMap,
+  keyFSM_: null as never as KeyFSM,
   shortcutRegistry_: null as never as ShortcutInfoMap,
   mappedKeyRegistry_: null as SafeDict<string> | null
 };
@@ -515,9 +519,9 @@ Settings_.updateHooks_.keyMappings = function (this: {}, value: string | null): 
   value != null && Commands.parseKeyMappings_(value);
   Commands.populateKeyMap_(value != null);
   Settings_.broadcast_({
-    N: kBgReq.keyMap,
+    N: kBgReq.keyFSM,
     m: CommandsData_.mappedKeyRegistry_,
-    k: CommandsData_.keyMap_
+    k: CommandsData_.keyFSM_
   });
   Settings_.broadcastOmni_({
     N: kBgReq.omni_updateOptions,

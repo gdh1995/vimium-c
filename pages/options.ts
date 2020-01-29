@@ -633,7 +633,7 @@ let optionsInit1_ = function (): void {
     const errors = bgSettings_.temp_.cmdErrors_,
     msg = !errors ? "" : pTrans_("openBgLogs", [pTrans_(errors === 1 ? "error" : "errors", [errors])]);
     if (bgSettings_.payload_.l && !msg) {
-      let str = Object.keys(BG_.CommandsData_.keyMap_).join(""), mapKey = BG_.CommandsData_.mappedKeyRegistry_;
+      let str = Object.keys(BG_.CommandsData_.keyFSM_).join(""), mapKey = BG_.CommandsData_.mappedKeyRegistry_;
       str += mapKey ? Object.keys(mapKey).join("") : "";
       if ((<RegExpOne> /[^ -\xff]/).test(str)) {
         this.showError_(pTrans_("ignoredNonEN"), null);
@@ -1084,31 +1084,28 @@ function loadChecker(this: HTMLElement): void {
 
 document.addEventListener("keydown", function (this: void, event): void {
   if (event.keyCode !== kKeyCode.space) {
-    if (!window.VKey || !VKey.cache_) { return; }
-    let ch: string | undefined;
-    if (!Build.NDEBUG && (ch = VKey.char_(event)) && VKey.key_(event, ch) === "<a-f12>") {
+    if (!window.VKey || !VKey.cache_ || VApi.lock_()) { return; }
+    const eventWrapper: HandlerNS.Event = {c: kChar.INVALID, e: event, i: event.keyCode},
+    ch = VKey.char_(eventWrapper).toLowerCase(),
+    stat = VKey.getKeyStat_(eventWrapper);
+    if (stat === KeyStat.altKey && ch === kChar.f12) {
       $<HTMLOptionElement>("#recommendedSettings").selected = true;
       let el2 = $<HTMLSelectElement>("#importOptions");
       el2.onchange ? (el2 as any).onchange() : setTimeout(() => {
         el2.onchange && (el2 as any).onchange();
       }, 100) && el2.click();
-      return;
     }
-    let wanted = event.keyCode === kKeyCode.questionWin || event.keyCode === kKeyCode.questionMac ? "?" : "";
-    if (wanted && (!Build.NDEBUG ? <string> ch : VKey.char_(event)) === wanted
-        && VApi.mapKey_(wanted, event) === wanted) {
-      if (!Build.NDEBUG && !VApi.lock_()) {
+    if (!stat && ch === "?") {
+      if (!Build.NDEBUG) {
         console.log('The document receives a "?" key which has been passed (excluded) by Vimium C,',
           "so open the help dialog.");
       }
-      if (!VApi.lock_()) {
-        $("#showCommands").click();
-      }
+      $("#showCommands").click();
     }
     return;
   }
   const el = event.target as Element;
-  if (el instanceof HTMLSpanElement && el.parentElement instanceof HTMLLabelElement) {
+  if (el.tagName === "span" && (el as EnsuredMountedHTMLElement).parentElement.tagName === "label") {
     event.preventDefault();
   }
 });

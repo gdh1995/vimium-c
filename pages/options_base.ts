@@ -68,8 +68,7 @@ if (lang_) {
   })();
 }
 
-const KeyRe_ = <RegExpG> /<(?!<)(?:a-)?(?:c-)?(?:m-)?(?:s-)?(?:[a-z][\da-z]+|[^\sA-Z])>|\S/g,
-__extends = function<Child, Super, Base> (
+const __extends = function<Child, Super, Base> (
     child: (new <Args extends any[]> (...args: Args) => Child) & {
         prototype?: Super & { "constructor": new () => Child }
     }, parent: (new <Args extends any[]> (...args: Args) => Super) & {
@@ -439,7 +438,7 @@ readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"] {
     }
     if (passKeys) {
       passKeys = BG_.BgUtils_.formatKeys_(passKeys);
-      const passArr = passKeys.match(KeyRe_);
+      const passArr = passKeys.match(<RegExpG> /<(?!<)(?:a-)?(?:c-)?(?:m-)?(?:s-)?(?:[a-z][\da-z]+|[^\sA-Z])>|\S/g);
       if (passArr) {
         const isReverted = passArr[0] === "^" && passArr.length > 1;
         isReverted && passArr.shift();

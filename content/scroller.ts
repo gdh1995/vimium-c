@@ -242,9 +242,9 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       }
     }
   },
-  BeginScroll_ (event?: Partial<EventControlKeys> & (KeyboardEventToPrevent | { keyCode: kKeyCode })): void {
-    if (!event || event.shiftKey || event.altKey) { return; }
-    const { keyCode } = event, c = (keyCode & 1) as BOOL;
+  BeginScroll_ (eventWrapper: HandlerNS.BaseUIEvent | HandlerNS.Event): void {
+    if (!eventWrapper || eventWrapper.e.shiftKey || eventWrapper.e.altKey) { return; }
+    const {i: keyCode, e: event} = eventWrapper, c = (keyCode & 1) as BOOL;
     if (!(keyCode > kKeyCode.maxNotPageUp && keyCode < kKeyCode.minNotDown)) { return; }
     const work = keyCode > kKeyCode.maxNotLeft ? 1 : keyCode > kKeyCode.maxNotEnd ? 2
       : !(event.ctrlKey || event.metaKey) ? 3 : 0,

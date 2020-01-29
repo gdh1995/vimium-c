@@ -28,6 +28,7 @@ var BgUtils_ = {
     return this._reToReset.test("") as true;
   },
   runtimeError_ (this: void): any { return chrome.runtime.lastError; },
+  stripKey_: (key: string): string => key.length > 1 ? key.slice(1, -1) : key,
   // start should in [0 .. length]; end should in [0 .. inf)
   unicodeSubstring_ (str: string, start: number, end: number): string {
     const charCode = end < str.length && end > start ? str.charCodeAt(end - 1) : 0;

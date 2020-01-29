@@ -149,20 +149,19 @@ var VVisual = {
   /** need real diType */
   selType_: null as never as () => SelType,
   /** @unknown_di_result */
-  onKeydown_ (event: KeyboardEventToPrevent): HandlerResult {
-    const { keyCode } = event, a = this,
+  onKeydown_ (event: HandlerNS.Event): HandlerResult {
+    const { i: keyCode } = event, a = this,
     doPass = keyCode === kKeyCode.ime || keyCode === kKeyCode.menuKey && !!VDom.cache_.o,
-    srcChar = doPass ? "" : VKey.char_(event), key = srcChar && VApi.mapKey_(srcChar, event),
-    char = key.length > 1 ? key.slice(key[2] === "-" ? 3 : 1, -1) : key;
-    if (!key || key === "<esc>" || key === "<c-[>") {
+    key = doPass ? "" : VKey.key_(event, kModeId.Visual);
+    if (!key || VKey.isEscape_(key)) {
       !key || a.currentCount_ || a.currentSeconds_ ? a.resetKeys_() : a.deactivate_(1);
       // if doPass, then use nothing to bubble such an event, so handlers like LinkHints will also exit
       return key ? HandlerResult.Prevent : doPass ? HandlerResult.Nothing : HandlerResult.Suppress;
     }
-    if (char === kChar.enter) {
+    if (VKey.keybody(key) === kChar.enter) {
       a.resetKeys_();
       if (key.includes("s-") && a.mode_ !== VisualModeNS.Mode.Caret) { a.retainSelection_ = true; }
-      key[1] === "c" || key[1] === "m" ? a.deactivate_() : a.yank_(key[1] === "a" ? 9 : 8);
+      "cm".includes(key[0]) ? a.deactivate_() : a.yank_(key[0] === "a" ? 9 : 8);
       return HandlerResult.Prevent;
     }
     const count = a.currentCount_, childAction = a.currentSeconds_ && a.currentSeconds_[key],
@@ -172,12 +171,12 @@ var VVisual = {
       a.currentCount_ = !newActions && key.length < 2 && +key < 10 ? a.currentSeconds_ ? +key : +key + count * 10 : 0;
       a.currentSeconds_ = newActions || null;
       return newActions ? HandlerResult.Prevent
-          : srcChar.length > 1 || VKey.getKeyStat_(event) & KeyStat.ExceptShift
-          ? srcChar < "f1" || srcChar > "f9" ? HandlerResult.Suppress : HandlerResult.Nothing
+          : event.c.length > 1 || VKey.getKeyStat_(event) & KeyStat.ExceptShift
+          ? event.c < "f1" || event.c > "f9" ? HandlerResult.Suppress : HandlerResult.Nothing
           : HandlerResult.Prevent;
     }
     a.resetKeys_();
-    VKey.prevent_(event);
+    VKey.prevent_(event.e);
     a.di_ = VisualModeNS.kDir.unknown; // make @di safe even when a user modifies the selection
     a.diType_ = VisualModeNS.DiType.UnsafeUnknown;
     a.commandHandler_(newActions, count || 1);
@@ -764,13 +763,13 @@ keyMap_: {
   p: VisualAction.YankAndOpen, P: VisualAction.YankAndNewTab,
 
   n: VisualAction.FindNext, N: VisualAction.FindPrevious,
-  "<f1>": VisualAction.HighlightRange, "<a-f1>": VisualAction.HighlightRange,
+  f1: VisualAction.HighlightRange, "a-f1": VisualAction.HighlightRange,
 
   v: VisualAction.VisualMode, V: VisualAction.VisualLineMode, c: VisualAction.CaretMode,
   "/": VisualAction.EmbeddedFindMode,
 
-  "<c-e>": VisualAction.ScrollDown, "<c-y>": VisualAction.ScrollUp,
-  "<c-down>": VisualAction.ScrollDown, "<c-up>": VisualAction.ScrollUp
+  "c-e": VisualAction.ScrollDown, "c-y": VisualAction.ScrollUp,
+  "c-down": VisualAction.ScrollDown, "c-up": VisualAction.ScrollUp
 } as {
   [key: string]: VisualAction | {
     [key: string]: VisualAction;

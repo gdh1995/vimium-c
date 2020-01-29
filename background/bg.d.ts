@@ -735,7 +735,7 @@ declare namespace BackendHandlersNS {
 
 interface CommandsDataTy {
   keyToCommandRegistry_: SafeDict<CommandsNS.Item>;
-  keyMap_: KeyMap;
+  keyFSM_: KeyFSM;
   shortcutRegistry_: ShortcutInfoMap;
   mappedKeyRegistry_: SafeDict<string> | null;
 }

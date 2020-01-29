@@ -13,7 +13,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
 
   interface EscF {
     <T extends Exclude<HandlerResult, HandlerResult.ExitPassMode>> (this: void, i: T): T;
-    (this: void, i: HandlerResult.ExitPassMode): HandlerResult.Prevent;
+    (this: void, i: HandlerResult.ExitPassMode): unknown;
   }
   interface Port extends chrome.runtime.Port {
     postMessage<k extends keyof FgRes>(request: Req.fgWithRes<k>): 1;
@@ -24,15 +24,13 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     [kFgCmd.showHelp] (msg?: number | "e"): void;
   }
 
-  const doc = document, D = VDom, K = VKey, U = VCui, Hints = VHints;
-
-  let KeydownEvents: KeydownCacheArray, keyMap: KeyMap
+  let KeydownEvents: KeydownCacheArray, keyFSM: KeyFSM
     , fgCache: SettingsNS.FrontendSettingCache = null as never
     , insertLock = null as LockableElement | null
     , lastWndFocusTime = 0
     , thisCore: Writable<ContentWindowCore> | undefined
     , currentKeys = "", isEnabled = false, isLocked = false
-    , mappedKeys = null as SafeDict<string> | null, nextKeys = null as KeyMap | ReadonlyChildKeyMap | null
+    , mappedKeys = null as SafeDict<string> | null, nextKeys = null as KeyFSM | ReadonlyChildKeyFSM | null
     , esc = function<T extends Exclude<HandlerResult, HandlerResult.ExitPassMode>> (i: T): T {
       currentKeys = ""; nextKeys = null; return i;
     } as EscF
@@ -61,56 +59,53 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     (vPort._port as Port).postMessage(request);
   }
 
-  function mapKey(this: void, /* not "" */ char: string, event: EventControlKeys, onlyChar?: string): string {
-    let key = onlyChar || K.key_(event, char), mapped: string | undefined, chLower: string;
-    if (mappedKeys) {
-      key = mappedKeys[key] || (
-        (mapped = mappedKeys[chLower = char.toLowerCase()]) && mapped.length < 2 ? (
-          mapped = char === chLower ? mapped : mapped.toUpperCase(),
-          onlyChar ? mapped : K.key_(event, mapped)
-        ) : key
-      );
+  function getMappedKey(this: void, eventWrapper: HandlerNS.Event, mode: kModeId): string {
+    const char = eventWrapper.c !== kChar.INVALID ? eventWrapper.c : VKey.char_(eventWrapper), event = eventWrapper.e;
+    let key: string = char, mapped: string | undefined;
+    if (char) {
+      const baseMod = `${event.altKey ? "a-" : ""}${event.ctrlKey ? "c-" : ""}${event.metaKey ? "m-" : ""}`,
+      chLower = char.toLowerCase(), isLong = char.length > 1,
+      mod = event.shiftKey && (isLong || baseMod && char.toUpperCase() !== chLower) ? baseMod + "s-" : baseMod;
+      if (!(Build.NDEBUG || char.length === 1 || char.length > 1 && char === char.toLowerCase())) {
+        console.error(`Assert error: mapKey get an invalid char of "${char}" !`);
+      }
+      key = isLong || mod ? mod + chLower : char;
+      if (mappedKeys && mode < kModeId.NO_MAP_KEY) {
+        mapped = mode && mappedKeys[key + GlobalConsts.DelimeterForKeyCharAndMode + GlobalConsts.ModeIds[mode]
+            ] || mappedKeys[key];
+        key = mapped ? mapped : !isLong && (mapped = mappedKeys[chLower]) && mapped.length < 2
+            ? char === chLower ? mod + mapped : mod + mapped.toUpperCase() : key;
+      }
     }
     return key;
   }
-  function isEscape(event: KeyboardEvent): boolean {
-    let ch0: string | undefined, ch: string | undefined;
-    if (mappedKeys && event.keyCode !== kKeyCode.ime) {
-      ch0 = K.char_(event);
-      ch = ch0 && mapKey(ch0, event);
-    }
-    return ch ? Build.BTypes & BrowserType.Chrome
-      ? ch === "<esc>" || ch === "<c-[>" && (checkPotentialAccessKey(event, ch0), true)
-      : ch === "<esc>" || ch === "<c-[>"
-      : K._isRawEscape(event);
-  }
-  function checkKey(char: string, code: kKeyCode, event: KeyboardEvent
-      ): HandlerResult.Nothing | HandlerResult.Prevent | HandlerResult.Esc | HandlerResult.AdvancedEscEnum {
+  function checkKey(event: HandlerNS.Event, key: string
+      ): HandlerResult.Nothing | HandlerResult.Prevent | HandlerResult.PlainEsc | HandlerResult.AdvancedEsc {
     // when checkKey, Vimium C must be enabled, so passKeys won't be `""`
-    const key0 = K.key_(event, char);
-    if (passKeys && !currentKeys && (key0 in <SafeEnum> passKeys) !== isPassKeysReverted) {
-      return esc(HandlerResult.Nothing);
+    const key0 = passKeys && key && getMappedKey(event, kModeId.NO_MAP_KEY);
+    if (!key || key0 && !currentKeys && (key0 in <SafeEnum> passKeys) !== isPassKeysReverted) {
+      return key ? esc(HandlerResult.Nothing) : HandlerResult.Nothing;
     }
-    let key: string = mappedKeys ? mapKey(char, event) : key0, j: ReadonlyChildKeyMap | ValidKeyAction | undefined;
-    if (key === "<esc>" || key === "<c-[>") {
-      Build.BTypes & BrowserType.Chrome && mappedKeys && checkPotentialAccessKey(event, char);
+    let j: ReadonlyChildKeyFSM | ValidKeyAction | undefined;
+    if (K.isEscape_(key)) {
+      Build.BTypes & BrowserType.Chrome && mappedKeys && checkPotentialAccessKey(event);
       return nextKeys ? (esc(HandlerResult.ExitPassMode), HandlerResult.Prevent)
-        : key[1] === "c" ? HandlerResult.Esc : HandlerResult.AdvancedEscEnum;
+          : K.isEscape_(key);
     }
     if (!nextKeys || (j = nextKeys[key]) == null) {
-      j = keyMap[key];
-      if (j == null || nextKeys && passKeys && (key0 in <SafeEnum> passKeys) !== isPassKeysReverted) {
+      j = keyFSM[key];
+      if (j == null || nextKeys && key0 && (key0 in <SafeEnum> passKeys) !== isPassKeysReverted) {
         return esc(HandlerResult.Nothing);
       }
       if (j !== KeyAction.cmd) { currentKeys = ""; }
     }
-    currentKeys += key;
+    currentKeys += key.length > 1 ? `<${key}>` : key;
     if (j === KeyAction.cmd) {
-      post({ H: kFgReq.key, k: currentKeys, l: code });
+      post({ H: kFgReq.key, k: currentKeys, l: event.i });
       esc(HandlerResult.Prevent);
       isCmdTriggered = 1;
     } else {
-      nextKeys = j !== KeyAction.count ? j : keyMap;
+      nextKeys = j !== KeyAction.count ? j : keyFSM;
     }
     return HandlerResult.Prevent;
   }
@@ -136,14 +131,14 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     return action;
   }
   function onKeydown(event: KeyboardEventToPrevent): void {
-    let keyChar: string | undefined, action: HandlerResult;
     const key = event.keyCode;
+    const eventWrapper: HandlerNS.Event = {c: kChar.INVALID, e: event, i: key};
     if (!isEnabled
         || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
             : event.isTrusted === false) // skip checks of `instanceof KeyboardEvent` if checking `!.keyCode`
         || !key) { return; }
     if (VSc.keyIsDown_ && VSc.OnScrolls_(event)) {
-      Build.BTypes & BrowserType.Chrome && checkPotentialAccessKey(event);
+      Build.BTypes & BrowserType.Chrome && checkPotentialAccessKey(eventWrapper);
       return;
     }
     if (Build.BTypes & BrowserType.Chrome) { isWaitingAccessKey && resetAnyClickHandler(); }
@@ -153,22 +148,23 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         && !D.IsInDOM_(insertLock as LockableElement, doc)) {
       insertLock = null;
     }
-    if (action = K.bubbleEvent_(event)) { /* empty */ }
+    let action: HandlerResult;
+    if (action = K.bubbleEvent_(eventWrapper)) { /* empty */ }
     else if (InsertMode.isActive_()) {
-      const g = InsertMode.global_;
-      if (g ? !g.c ? isEscape(event) : !g.k ? key === g.c && K.getKeyStat_(event) === g.s
-            : (keyChar = K.char_(event)) && mapKey(keyChar, event) === g.k
+      const g = InsertMode.global_, keyStr = getMappedKey(eventWrapper, kModeId.Insert);
+      if (g ? !g.c ? K.isEscape_(keyStr)
+              : !g.k ? key === g.c && K.getKeyStat_(eventWrapper) === g.s
+              : keyStr === g.k
           : key > kKeyCode.maxNotFn && key < kKeyCode.minNotFn
-          ? (keyChar = K.getKeyName_(event))
-            && ((action = checkKey(keyChar, key, event)) & ~HandlerResult.AdvancedEscFlag) === HandlerResult.Esc
-          : isEscape(event)
+          ? (action = checkKey(eventWrapper, keyStr)) > HandlerResult.MaxNotEsc
+          : K.isEscape_(keyStr)
       ) {
         if ((insertLock === doc.body && insertLock || !isTop && innerHeight < 3) && !g) {
           event.repeat && InsertMode.focusUpper_(key, true, event);
           action = /* the real is HandlerResult.PassKey; here's for smaller code */ HandlerResult.Nothing;
         } else {
           action = g && g.p ? (
-            Build.BTypes & BrowserType.Chrome && checkPotentialAccessKey(event),
+            Build.BTypes & BrowserType.Chrome && checkPotentialAccessKey(eventWrapper),
             HandlerResult.Nothing) : HandlerResult.Prevent;
           InsertMode.exit_(event.target as Element);
         }
@@ -178,22 +174,20 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         : ((1 << kKeyCode.backspace | 1 << kKeyCode.tab | 1 << kKeyCode.esc | 1 << kKeyCode.enter
             | 1 << kKeyCode.altKey | 1 << kKeyCode.ctrlKey | 1 << kKeyCode.shiftKey
             ) >> key) & 1) {
-      if (keyChar = K.char_(event)) {
-        action = checkKey(keyChar, key, event);
-        if ((action & ~HandlerResult.AdvancedEscFlag) === HandlerResult.Esc) {
-          action = action & HandlerResult.AdvancedEscFlag ? /*#__NOINLINE__*/ onEscDown(event, key)
+        action = checkKey(eventWrapper, getMappedKey(eventWrapper, kModeId.Normal));
+        if (action > HandlerResult.MaxNotEsc) {
+          action = action > HandlerResult.PlainEsc ? /*#__NOINLINE__*/ onEscDown(event, key)
               : HandlerResult.Nothing;
         }
         if (action === HandlerResult.Nothing
-            && InsertMode.suppressType_ && keyChar.length < 2 && !K.getKeyStat_(event)) {
+            && InsertMode.suppressType_ && eventWrapper.c.length === 1 && !K.getKeyStat_(eventWrapper)) {
           // not suppress ' ', so that it's easier to exit this mode
           action = HandlerResult.Prevent;
         }
-      }
     }
     if (action < HandlerResult.MinStopOrPreventEvents) { return; }
     if (action > HandlerResult.MaxNotPrevent) {
-      Build.BTypes & BrowserType.Chrome && checkPotentialAccessKey(event, keyChar);
+      Build.BTypes & BrowserType.Chrome && checkPotentialAccessKey(eventWrapper);
       K.prevent_(event);
     } else {
       K.Stop_(event);
@@ -385,6 +379,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   }
 
   const injector = VimiumInjector,
+  doc = document, D = VDom, K = VKey, U = VCui, Hints = VHints,
   isTop = top === window,
   setupEventListener = K.SetupEventListener_,
   noopEventHandler = Object.is as any as EventListenerObject["handleEvent"],
@@ -427,13 +422,13 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
     }
   },
-  checkPotentialAccessKey = function (event: KeyboardEvent, char?: string | undefined): void {
+  checkPotentialAccessKey = function (event: HandlerNS.Event): void {
     /** On Firefox, access keys are only handled during keypress events, so it has been "hooked" well:
      * https://dxr.mozilla.org/mozilla/source/content/events/src/nsEventStateManager.cpp#960 .
      * And the modifier stat for access keys is user-configurable: `ui.key.generalAccessKey`
      * * there was another one (`ui.key.contentAccess`) but it has been removed from the latest code
      */
-    if (Build.BTypes & BrowserType.Chrome && event.altKey
+    if (Build.BTypes & BrowserType.Chrome && event.e.altKey
         && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)) {
       /** On Chrome, there're 2 paths to trigger accesskey:
        * * `blink::WebInputEvent::kRawKeyDown` := `event#keydown` => `blink::WebInputEvent::kChar` := `handleAccessKey`
@@ -444,7 +439,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
        * so, here ignores the 2nd path.
        */
       // during tests, an access key of ' ' (space) can be triggered on macOS (2019-10-20)
-      if (isWaitingAccessKey !== ((char = char || K.char_(event)).length === 1 || char === "space")
+      event.c === kChar.INVALID && VKey.char_(event);
+      if (isWaitingAccessKey !== (event.c.length === 1 || event.c === kChar.space)
           && (K.getKeyStat_(event) & KeyStat.ExceptShift /* Chrome ignore .shiftKey */) ===
               (fgCache.o ? KeyStat.altKey : KeyStat.altKey | KeyStat.ctrlKey)
           ) {
@@ -528,9 +524,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           if (i === HandlerResult.Prevent && 0 >= --count || i === HandlerResult.ExitPassMode) {
             HUD.hide_();
             passKeys = oldPassKeys;
-            return (esc = oldEsc)(HandlerResult.Prevent);
+            esc = oldEsc;
+            return oldEsc(HandlerResult.Prevent);
           }
-          currentKeys = ""; nextKeys = keyMap;
+          currentKeys = ""; nextKeys = keyFSM;
           if (keyCount - count || !HUD.t) {
             keyCount = count;
             HUD.show_(kTip.normalMode, [count > 1 ? VTr(kTip.nTimes, [count]) : ""]);
@@ -543,8 +540,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       exitPassMode && exitPassMode();
       const keys = safer<BOOL>(null);
       K.pushHandler_(function (event) {
-        keyCount += +!keys[event.keyCode];
-        keys[event.keyCode] = 1;
+        keyCount += +!keys[event.i];
+        keys[event.i] = 1;
         return HandlerResult.PassKey;
       }, keys);
       onKeyup2 = function (event): void {
@@ -684,12 +681,15 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       InsertMode.exitInputHint_();
       InsertMode.inputHint_ = { b: box, h: hints };
       K.pushHandler_(function (event) {
-        const { keyCode } = event;
-        if (keyCode === kKeyCode.tab) {
+        const keyCode = event.i, isIME = keyCode === kKeyCode.ime, repeat = event.e.repeat,
+        key = isIME || repeat ? "" : VKey.key_(event, kModeId.Insert)
+        // keybody = VKey.keybody(key),
+        ;
+        if (key === kChar.tab || key === "s-tab") {
           const hints2 = this.h, oldSel = sel, len = hints2.length;
-          sel = (oldSel + (event.shiftKey ? len - 1 : 1)) % len;
+          sel = (oldSel + (key < "t" ? len - 1 : 1)) % len;
           InsertMode.hinting_ = true;
-          K.prevent_(event); // in case that selecting is too slow
+          K.prevent_(event.e); // in case that selecting is too slow
           U.simulateSelect_(hints2[sel].d, null, false, action);
           hints2[oldSel].m.className = "IH";
           hints2[sel].m.className = "IH IHS";
@@ -697,18 +697,20 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           return HandlerResult.Prevent;
         }
         let keyStat: KeyStat;
-        if (keyCode === kKeyCode.shiftKey || keep && (keyCode === kKeyCode.altKey
+        // check `!key` for mapModifier
+        if (!key && (keyCode === kKeyCode.shiftKey || keep && (keyCode === kKeyCode.altKey
             || keyCode === kKeyCode.ctrlKey
-            || keyCode > kKeyCode.maxNotMetaKey && keyCode < kKeyCode.minNotMetaKeyOrMenu)) { /* empty */ }
-        else if (event.repeat) { return HandlerResult.Nothing; }
-        else if (keep ? isEscape(event) || (
-            keyCode === kKeyCode.enter && (keyStat = K.getKeyStat_(event),
+            || keyCode > kKeyCode.maxNotMetaKey && keyCode < kKeyCode.minNotMetaKeyOrMenu))) { /* empty */ }
+        else if (repeat) { return HandlerResult.Nothing; }
+        else if (keep ? VKey.isEscape_(key) || (
+            (keyCode === kKeyCode.enter || key === kChar.enter)
+            && (keyStat = K.getKeyStat_(event),
               keyStat !== KeyStat.shiftKey
               && (keyStat !== KeyStat.plain || this.h[sel].d.localName === "input" ))
-          ) : keyCode !== kKeyCode.ime && keyCode !== kKeyCode.f12
+          ) : !isIME && keyCode !== kKeyCode.f12
         ) {
           InsertMode.exitInputHint_();
-          return !isEscape(event) ? HandlerResult.Nothing : keep || !insertLock ? HandlerResult.Prevent
+          return !VKey.isEscape_(key) ? HandlerResult.Nothing : keep || !insertLock ? HandlerResult.Prevent
             : pass ? HandlerResult.PassKey : HandlerResult.Nothing;
         }
         return HandlerResult.Nothing;
@@ -762,7 +764,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         insertLock = activeEl;
       }
     },
-    ExitGrab_: function (this: void, event?: Req.fg<kFgReq.exitGrab> | MouseEvent | KeyboardEvent
+    ExitGrab_: function (this: void, event?: Req.fg<kFgReq.exitGrab> | Event | HandlerNS.Event
         ): HandlerResult.Nothing | void {
       if (!InsertMode.grabBackFocus_) { return /* safer */ HandlerResult.Nothing; }
       InsertMode.grabBackFocus_ = false;
@@ -770,13 +772,13 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       setupEventListener(0, "mousedown", InsertMode.ExitGrab_, 1);
       // it's acceptable to not set the userActed flag if there's only the top frame;
       // when an iframe gets clicked, the events are mousedown and then focus, so SafePost_ is needed
-      !(event instanceof Event) || !frames.length && isTop ||
+      !((event && (event as HandlerNS.Event).e || event) instanceof Event) || !frames.length && isTop ||
       vPort.SafePost_({ H: kFgReq.exitGrab });
       return HandlerResult.Nothing;
     } as {
-      (this: void, event: KeyboardEvent): HandlerResult.Nothing;
+      (this: void, event: HandlerNS.Event): HandlerResult.Nothing;
       (this: void, request: Req.bg<kBgReq.exitGrab>): void;
-      (this: void, event?: MouseEvent): void;
+      (this: void, event?: Event): void;
     },
     isActive_ (): boolean {
       if (InsertMode.suppressType_) { return false; }
@@ -1170,7 +1172,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         D.notSafe_ = (_el): _el is HTMLFormElement => false;
         D.isHTML_ = (): boolean => document instanceof HTMLDocument;
       }
-      r[kBgReq.keyMap](request);
+      r[kBgReq.keyFSM](request);
       if (flags) {
         InsertMode.grabBackFocus_ = InsertMode.grabBackFocus_ && !(flags & Frames.Flags.userActed);
         isLocked = !!(flags & Frames.Flags.locked);
@@ -1274,12 +1276,12 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     },
     /* kBgReq.focusFrame: */ FrameMask.Focus_,
     /* kBgReq.exitGrab: */ InsertMode.ExitGrab_ as (this: void, request: Req.bg<kBgReq.exitGrab>) => void,
-    /* kBgReq.keyMap: */ function (request: BgReq[kBgReq.keyMap]): void {
-      const map = keyMap = request.k, func = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf
+    /* kBgReq.keyFSM: */ function (request: BgReq[kBgReq.keyFSM]): void {
+      const map = keyFSM = request.k, func = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf
         && Build.BTypes & BrowserType.Chrome && browserVer < BrowserVer.Min$Object$$setPrototypeOf
         ? K.safer_ : Object.setPrototypeOf;
       func(map, null);
-      function iter(obj: ReadonlyChildKeyMap): void {
+      function iter(obj: ReadonlyChildKeyFSM): void {
         func(obj, null);
         for (const key in obj) {
           type ObjItem = Exclude<NonNullable<(typeof obj)[string]>, KeyAction.cmd>;
@@ -1424,7 +1426,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       ? D.scrollIntoView_(box) : VFind.fixTabNav_(box);
     U.activeEl_ = box;
     K.pushHandler_(function (event) {
-      if (!insertLock && isEscape(event)) {
+      if (!insertLock && K.isEscape_(getMappedKey(event, kModeId.Normal))) {
         U.removeSelection_(U.root_) || hide();
         return HandlerResult.Prevent;
       }
@@ -1574,7 +1576,6 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         showBorder && FrameMask.show_(FrameMaskType.ForcedSelf);
       }
     },
-    mapKey_: mapKey,
     setupSuppress_ (this: void, onExit?: (this: void) => void): void {
       const f = InsertMode.onExitSuppress_;
       InsertMode.onExitSuppress_ = InsertMode.suppressType_ = null;
@@ -1661,7 +1662,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   }
 
   VHud = HUD;
-  K.isEscape_ = isEscape;
+  K.key_ = getMappedKey;
   if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
     (window as Writable<Window>).VOther = OnOther;
   }

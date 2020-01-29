@@ -315,11 +315,11 @@ var VOmni = {
     st < VomnibarNS.Status.Showing && st > VomnibarNS.Status.Inactive || VKey.removeHandler_(a);
     st > VomnibarNS.Status.ToShow && VKey.pushHandler_(a.onKeydown_, a);
   },
-  onKeydown_ (event: KeyboardEvent): HandlerResult {
+  onKeydown_ (event: HandlerNS.Event): HandlerResult {
     if (VApi.lock_()) { return HandlerResult.Nothing; }
-    if (VKey.isEscape_(event)) { this.hide_(); return HandlerResult.Prevent; }
-    const key = event.keyCode - kKeyCode.f1;
-    if (!key || key === 1) {
+    const key = VKey.key_(event, kModeId.Omni);
+    if (VKey.isEscape_(key)) { this.hide_(); return HandlerResult.Prevent; }
+    if (key === kChar.f1 || key === kChar.f2) {
       this.focus_();
       return HandlerResult.Prevent;
     }

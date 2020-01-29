@@ -376,14 +376,13 @@ function imgOnKeydown(event: KeyboardEventToPrevent): boolean {
   if (!window.VKey || !VKey.cache_) {
     return false;
   }
-  let ch = VKey.char_(event);
-  if (!ch) { return false; }
+  const eventWrapper: HandlerNS.Event = {c: kChar.INVALID, e: event, i: keyCode};
   let action: number = 0;
-  switch (VApi.mapKey_(ch, event)) {
-  case "<c-=>": case "+": case "=": case "<up>": action = 1; break;
-  case "<left>": action = -2; break;
-  case "<right>": action = 2; break;
-  case "<c-->": case "-": case "<down>": action = -1; break;
+  switch (VKey.key_(eventWrapper, kModeId.Show)) {
+  case "c-=": case "+": case "=": case "up": action = 1; break;
+  case "left": action = -2; break;
+  case "right": action = 2; break;
+  case "c--": case "-": case "down": action = -1; break;
   default: return false;
   }
   event.preventDefault();

@@ -9,11 +9,10 @@ declare const enum HandlerResult {
   MinStopOrPreventEvents = 1,
   MaxNotPrevent = 1,
   Prevent = 2,
-  Esc = 3,
-  ExitPassMode = 4,
+  ExitPassMode = 3,
   // for `<c-[>`, do nothing advanced; but treat any mapped `<esc>` as a plain `<esc>` (apply `AdvancedFlag`)
-  AdvancedEscFlag = 8,
-  AdvancedEscEnum = 11, // `Esc | 8`
+  PlainEsc = 4, MaxNotEsc = 3,
+  AdvancedEsc = 5,
 }
 declare const enum VisibilityType {
   Visible = 0,
@@ -21,7 +20,15 @@ declare const enum VisibilityType {
   NoSpace = 2,
 }
 declare namespace HandlerNS {
-  type Event = KeyboardEventToPrevent;
+  interface BaseUIEvent {
+    /** event */ e: Partial<EventControlKeys>;
+    /** keyCode */ i: kKeyCode;
+  }
+
+  interface Event extends BaseUIEvent {
+    /** raw char */ c: kChar;
+    /** event */ e: KeyboardEventToPrevent;
+  }
 
   interface Handler<T extends object> {
     (this: T, event: HandlerNS.Event): HandlerResult;
@@ -265,7 +272,7 @@ declare namespace VomnibarNS {
   interface FReq {
     [kFReq.hide]: {
     };
-    [kFReq.scroll]: Pick<KeyboardEvent, "keyCode">;
+    [kFReq.scroll]: HandlerNS.BaseUIEvent;
     [kFReq.style]: {
       // unit: physical pixel (if C<52)
       h: number;
@@ -354,7 +361,6 @@ interface VApiTy {
   focusAndRun_ (this: void, cmd: 0, count: never, options: never, showBorder: 1): void;
   onWndBlur_ (this: void, onWndBlur2: ((this: void) => void) | null): void;
   setupSuppress_ (this: void, onExit?: (this: void) => void): void;
-  mapKey_ (this: void, char: string, event: EventControlKeys, onlyChar?: string): string;
   /** return has_error */
   readonly keydownEvents_: {
     (this: void, srcFrame: Pick<VApiTy, "keydownEvents_"> | KeydownCacheArray): boolean;

@@ -520,7 +520,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     const char = key.length > 1 ? key.slice(key[2] === "-" ? 3 : 1, -1) : key,
     mainModifier = key.slice(1, 3) as "a-" | "c-" | "m-" | "s-" | "unknown" | "";
     if (mainModifier === "a-" || mainModifier === "m-") {
-      if (char === "f2") {
+      if (char === kChar.f2) {
         return a.onAction_(focused ? AllowedActions.blurInput : AllowedActions.focus);
       }
       else if (!focused) { /* empty */ }
@@ -548,7 +548,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         a.lastScrolling_ = Date.now();
         window.onkeyup = Vomnibar_.HandleKeydown_;
         VPort_.postToOwner_({ N: VomnibarNS.kFReq.scroll,
-          keyCode: char === kChar.up ? kKeyCode.up : char === kChar.down ? kKeyCode.down
+          e: {},
+          i: char === kChar.up ? kKeyCode.up : char === kChar.down ? kKeyCode.down
               : char === kChar.end ? kKeyCode.end : kKeyCode.home
         });
         return;

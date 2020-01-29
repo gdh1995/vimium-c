@@ -162,12 +162,12 @@ var Exclusions = {
 Exclusions.setRules_(Settings_.get_("exclusionRules"));
 
 Settings_.updateHooks_.exclusionRules = function (this: void, rules: ExclusionsNS.StoredRule[]): void {
-  const isEmpty = Exclusions.rules_.length <= 0, curKeyMap = CommandsData_.keyMap_;
+  const isEmpty = Exclusions.rules_.length <= 0, curKeyFSM = CommandsData_.keyFSM_;
   Exclusions.setRules_(rules);
   BgUtils_.GC_();
   setTimeout(function (): void {
     setTimeout(Exclusions.RefreshStatus_, 10, isEmpty);
-    if (CommandsData_.keyMap_ === curKeyMap) {
+    if (CommandsData_.keyFSM_ === curKeyFSM) {
       BgUtils_.require_("Commands").then(() => Settings_.postUpdate_("keyMappings", null));
     }
   }, 1);
