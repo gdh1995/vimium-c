@@ -256,7 +256,7 @@ var Settings_ = {
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             && !(Build.BTypes & ~BrowserType.ChromeOrFirefox))
           && !browserInfo.includes("s")) {
-        /** Note: {@link ../front/vimium.css}: this requires `:host{` is at the beginning */
+        /** Note: {@link ../front/vimium-c.css}: this requires `:host{` is at the beginning */
         const hostEnd = css.indexOf("}") + 1, secondEnd = css.indexOf("}", hostEnd) + 1,
         prefix = "#VimiumUI";
         let body = css.slice(secondEnd);
@@ -265,7 +265,7 @@ var Settings_ = {
         }
         body += `\n${prefix}:before,${prefix}:after,.R:before,.R:after{display:none!important}`;
         css = prefix + css.slice(5, hostEnd) +
-            /** Note: {@link ../front/vimium.css}: this requires no ID/attr selectors in "ui" styles */
+            /** Note: {@link ../front/vimium-c.css}: this requires no ID/attr selectors in "ui" styles */
             body.replace(<RegExpG> /\.[A-Z][^,{]*/g, prefix + " $&");
       }
       css = cacheId + css.length + "\n" + css;
@@ -576,7 +576,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     OverrideNewTab_: Build.MayOverrideNewTab ? true : false,
     OptionsUIOpenInTab_: Build.NoDialogUI ? true : false,
     OptionsPage_: "pages/options.html", Platform_: "browser",
-    baseCSS: "vimium.css",
+    baseCSS: "vimium-c.css",
     exclusionTemplate: "exclusions.html",
     helpDialog: "help_dialog.html",
     words: Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox

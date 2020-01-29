@@ -14,7 +14,6 @@
 *.rb linguist-vendored
 *.py linguist-detectable=false linguist-language=Python
 *.sh linguist-detectable=false linguist-language=Shell
-front/vimium.css linguist-generated=false linguist-language=CSS linguist-vendored=false
 lib/math_parser.js linguist-vendored
 lib/viewer.min.css  linguist-generated=true linguist-vendored=true linguist-language=CSS
 lib/viewer.min.js  linguist-generated=true linguist-vendored=true linguist-language=JavaScript

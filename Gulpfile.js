@@ -902,7 +902,7 @@ function copyByPath(path, mapFunc, pipe) {
     .pipe(newer(DEST))
     .pipe(gulpMap(mapFunc || function(file) {
       var fileName = file.history.join("|");
-      if (fileName.indexOf("vimium.css") >= 0) {
+      if (fileName.indexOf("vimium-c.css") >= 0) {
         file.contents = ToBuffer(ToString(file.contents).replace(/\r\n?/g, "\n"));
       } else if (fileName.indexOf("vomnibar.html") >= 0
           && getBuildItem("BTypes") === BrowserType.Firefox) {
