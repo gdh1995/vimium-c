@@ -20,7 +20,7 @@ html {
 }
 @media (prefers-color-scheme: dark) {
   .auto-dark {
-    --plain-color: #9aa0a6;
+    --plain-color: #abb0b5;
     --background-color: #000;
     --panel-background-color: #18191b;
     --heading-color: #c6cbd2;
@@ -28,7 +28,7 @@ html {
     --item-caption-color: #aab0b6;
     --deprecated-color: #888;
     --tip-color: pink;
-    --help-hover-color: #9aa0a6;
+    --help-hover-color: #abb0b5;
     --vim-color: #9bf;
     --c-char-color: #e6ccb3;
     --code-block-border-color: #666;
@@ -45,7 +45,7 @@ html {
     --error-background-color: #50140c;
     --input-focus-border-color: #004fa3;
     --button-color: #bdc2c7;
-    --button-disabled-color: #9aa0a6;
+    --button-disabled-color: #abb0b5;
     --button-background-color: #18191b;
     --button-border-color: #5f6368;
     --button-background-image: none;
