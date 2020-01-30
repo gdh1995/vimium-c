@@ -5,11 +5,12 @@ var Exclusions = {
   testers_: null as never as SafeDict<ExclusionsNS.Tester>,
   createRule_ (pattern: string, keys: string): ExclusionsNS.Tester {
     let cur: ExclusionsNS.Tester | undefined = this.testers_[pattern], re: RegExp | null | undefined;
+    keys = keys && keys.replace(<RegExpG> / <|>( |$)/g, " ").trimRight();
     if (cur) {
       return {
-        type_: cur.type_ as ExclusionsNS.TesterType.RegExp,
-        value_: (cur as ExclusionsNS.RegExpTester).value_,
-        keys_: keys
+        t: cur.t as ExclusionsNS.TesterType.RegExp,
+        v: (cur as ExclusionsNS.RegExpTester).v,
+        k: keys
       };
     }
     if (pattern[0] === "^") {
@@ -20,14 +21,14 @@ var Exclusions = {
       }
     }
     return this.testers_[pattern] = re ? {
-      type_: ExclusionsNS.TesterType.RegExp,
-      value_: re as RegExpOne,
-      keys_: keys
+      t: ExclusionsNS.TesterType.RegExp,
+      v: re as RegExpOne,
+      k: keys
     } : {
-      type_: ExclusionsNS.TesterType.StringPrefix,
-      value_: pattern.startsWith(":vimium://")
+      t: ExclusionsNS.TesterType.StringPrefix,
+      v: pattern.startsWith(":vimium://")
           ? BgUtils_.formatVimiumUrl_(pattern.slice(10), false, Urls.WorkType.ConvertKnown) : pattern.slice(1),
-      keys_: keys
+      k: keys
     };
   },
   _listening: false,
@@ -50,9 +51,9 @@ var Exclusions = {
   GetPassKeys_ (this: void, url: string, sender: Frames.Sender): string | null {
     let matchedKeys = "";
     for (const rule of Exclusions.rules_) {
-      if (rule.type_ === ExclusionsNS.TesterType.StringPrefix
-          ? url.startsWith(rule.value_) : rule.value_.test(url)) {
-        const str = rule.keys_;
+      if (rule.t === ExclusionsNS.TesterType.StringPrefix
+          ? url.startsWith(rule.v) : rule.v.test(url)) {
+        const str = rule.k;
         if (str.length === 0 || Exclusions.onlyFirstMatch_ || str[0] === "^" && str.length > 2) { return str; }
         matchedKeys += str;
       }
@@ -86,7 +87,7 @@ var Exclusions = {
   },
   getAllPassed_ (): SafeEnum | true | null {
     let all = BgUtils_.safeObj_() as SafeDict<1>, tick = 0;
-    for (const { keys_: passKeys } of this.rules_) {
+    for (const { k: passKeys } of this.rules_) {
       if (passKeys) {
         if (passKeys[0] === "^" && passKeys.length > 2) { return true; }
         for (const ch of passKeys.split(" ")) { all[ch] = 1; tick++; }

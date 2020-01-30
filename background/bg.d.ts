@@ -192,17 +192,17 @@ declare namespace ExclusionsNS {
   }
   const enum TesterType { RegExp = 0, StringPrefix = 1, _mask = "", }
   interface BaseTester {
-    readonly type_: TesterType & number;
-    readonly value_: RegExpOne | string;
-    readonly keys_: string;
+    /** type */ readonly t: TesterType & number;
+    /** value */ readonly v: RegExpOne | string;
+    /** passed keys */ readonly k: string;
   }
   interface RegExpTester extends BaseTester {
-    readonly type_: TesterType.RegExp,
-    readonly value_: RegExpOne;
+    /** type */ readonly t: TesterType.RegExp,
+    /** value */ readonly v: RegExpOne;
   }
   interface PrefixTester extends BaseTester {
-    readonly type_: TesterType.StringPrefix,
-    readonly value_: string;
+    /** type */ readonly t: TesterType.StringPrefix,
+    /** value */ readonly v: string;
   }
   type Tester = RegExpTester | PrefixTester;
   type Rules = Tester[];

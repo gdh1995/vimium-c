@@ -574,9 +574,9 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
     isPatternMatched_ (pattern: string) {
       if (!pattern) { return false; }
       const rule = bgExclusions.testers_[pattern] as NonNullable<(typeof bgExclusions.testers_)[string]>;
-      if (rule.type_ === ExclusionsNS.TesterType.StringPrefix
-          ? url.startsWith(rule.value_) && (!topUrl || topUrl.startsWith(rule.value_))
-          : rule.value_.test(url) && (!topUrl || rule.value_.test(topUrl))) {
+      if (rule.t === ExclusionsNS.TesterType.StringPrefix
+          ? url.startsWith(rule.v) && (!topUrl || topUrl.startsWith(rule.v))
+          : rule.v.test(url) && (!topUrl || rule.v.test(topUrl))) {
         return true;
       }
       return false;
@@ -607,8 +607,8 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
         return;
       }
       const parsedPattern = bgExclusions.createRule_(pattern, ""), patternElement = vnode.$pattern_;
-      if (parsedPattern.type_ === ExclusionsNS.TesterType.StringPrefix
-          ? url.startsWith(parsedPattern.value_) : parsedPattern.value_.test(url)) {
+      if (parsedPattern.t === ExclusionsNS.TesterType.StringPrefix
+          ? url.startsWith(parsedPattern.v) : parsedPattern.v.test(url)) {
         patternElement.title = patternElement.style.color = "";
       } else {
         patternElement.style.color = "red";
