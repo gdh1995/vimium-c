@@ -482,7 +482,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       key = isLong || mod ? mod + chLower : char;
       if (Vomnibar_.mappedKeyRegistry_) {
         mapped = Vomnibar_.mappedKeyRegistry_[key + GlobalConsts.DelimeterForKeyCharAndMode
-            + GlobalConsts.ModeIds[kModeId.Omni]] || Vomnibar_.mappedKeyRegistry_[key];
+            + GlobalConsts.OmniModeId] || Vomnibar_.mappedKeyRegistry_[key];
         key = mapped ? mapped : !isLong && (mapped = Vomnibar_.mappedKeyRegistry_[chLower]) && mapped.length < 2
             ? char === chLower ? mod + mapped : mod + mapped.toUpperCase() : key;
       }
