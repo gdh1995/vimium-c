@@ -46,6 +46,7 @@ let keyMappingChecker_ = {
     } catch {
       s2 && (value = s2);
     }
+    value = value && value.replace(<RegExpG & RegExpSearchable<1>> /\\(\\|s)/g, (_, i) => i === "s" ? " " : _);
     value = value && JSON.stringify(value).replace(<RegExpG & RegExpSearchable<0>> /\s/g, this.onToHex_);
     return "=" + value + tail;
   },
