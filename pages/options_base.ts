@@ -637,11 +637,9 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
     isReverted && (pass = pass.slice(1).trimLeft());
     const dict = Object.create<1>(null);
     for (let i of pass.split(" ")) {
-      const n = i.charCodeAt(0);
-      i = n === kCharCode.lt ? "&lt;" : n === kCharCode.gt ? "&gt;" : n === kCharCode.and ? "&amp;" : i;
       dict[i] = 1;
     }
-    return (isReverted ? "^ " : "") + Object.keys(dict).join(" ");
+    return (isReverted ? "^ " : "") + Object.keys(dict).sort().join(" ");
   }
   function updateState(updateOldPass: boolean): void {
     const isSaving = inited === 3;
