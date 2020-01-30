@@ -30,7 +30,6 @@ declare namespace HintsNS {
     toggle?: {
       [selector: string]: string;
     };
-    mapKey?: true | false;
     auto?: boolean;
     ctrlShiftForWindow?: boolean | null;
     noCtrlPlusShift?: boolean;
@@ -133,7 +132,6 @@ var VHints = {
   /** must be called from a master, required by {@link #VHints.delayToExecute_ } */
   _onTailEnter: null as ((this: unknown, event: HandlerNS.Event, key: string) => void) | null,
   _onWaitingKey: null as HandlerNS.VoidEventHandler | null,
-  doesMapKey_: false,
   keyCode_: kKeyCode.None,
   isActive_: false,
   hasExecuted_: 0 as BOOL,
@@ -220,7 +218,6 @@ var VHints = {
       }
       a.hints_ = a.keyStatus_.hints_ = allHints;
     }
-    a.doesMapKey_ = options.mapKey !== false;
     a.noHUD_ = !(useFilter || frameList[0].v[3] > 40 && frameList[0].v[2] > 320)
         || (options.hideHUD || options.hideHud) === true;
     useFilter ? a.filterEngine_.getMatchingHints_(a.keyStatus_, "", "", 0) : a.initAlphabetEngine_(allHints);
@@ -1046,7 +1043,7 @@ var VHints = {
       return HandlerResult.Suppress;
     } else if (a._onTailEnter && i !== kKeyCode.f12) {
       a._onTailEnter(event, key);
-    } else if (keybody = VKey.keybody(key), keybody > "f0" && keybody <= "f9" && key !== "f1") { // exclude <f1>
+    } else if (keybody = VKey.keybody_(key), keybody > "f0" && keybody < "f:" && key !== "f1") { // exclude <f1>
       if (keybody > "f1" && keybody !== "f2") { a.ResetMode_(); return HandlerResult.Nothing; }
       i = VKey.getKeyStat_(event);
       if (keybody < "f2") {
@@ -1349,7 +1346,7 @@ var VHints = {
     a.maxPrefixLen_ = a.hasExecuted_ = 0;
     a.keyCode_ = kKeyCode.None;
     a.useFilter_ =
-    a.isActive_ = a.noHUD_ = a.tooHigh_ = a.doesMapKey_ = false;
+    a.isActive_ = a.noHUD_ = a.tooHigh_ = false;
     a.chars_ = "";
     if (a.box_) {
       a.box_.remove();

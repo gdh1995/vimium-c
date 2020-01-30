@@ -206,7 +206,6 @@ interface CmdOptions {
     mode?: "create" | /* all others are treated as "goto"  */ "goto" | "goTo";
     prefix?: true | false;
     swap?: false | true;
-    mapKey?: true | false;
   };
   [kFgCmd.scroll]: {
     /** continuous */ $c?: BOOL;

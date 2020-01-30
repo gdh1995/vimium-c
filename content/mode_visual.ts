@@ -158,7 +158,7 @@ var VVisual = {
       // if doPass, then use nothing to bubble such an event, so handlers like LinkHints will also exit
       return key ? HandlerResult.Prevent : doPass ? HandlerResult.Nothing : HandlerResult.Suppress;
     }
-    if (VKey.keybody(key) === kChar.enter) {
+    if (VKey.keybody_(key) === kChar.enter) {
       a.resetKeys_();
       if (key.includes("s-") && a.mode_ !== VisualModeNS.Mode.Caret) { a.retainSelection_ = true; }
       "cm".includes(key[0]) ? a.deactivate_() : a.yank_(key[0] === "a" ? 9 : 8);

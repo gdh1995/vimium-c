@@ -469,26 +469,23 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     return key;
   },
-  key_ (event: EventControlKeys, ch: string): string {
-    if (!(Build.NDEBUG || ch.length === 1 || ch.length > 1 && ch === ch.toLowerCase())) {
-      console.error(`Assert error: Vomnibar_.key_ get an invalid char of "${ch}" !`);
-    }
-    let modifiers = `${event.altKey ? "a-" : ""}${event.ctrlKey ? "c-" : ""}${event.metaKey ? "m-" : ""}`
-      , isLong = ch.length > 1, chLower = ch.toLowerCase();
-    event.shiftKey && (isLong || modifiers && ch.toUpperCase() !== chLower) && (modifiers += "s-");
-    return isLong || modifiers ? `<${modifiers}${chLower}>` : ch;
-  },
   mappedKey_ (event: KeyboardEvent): string {
     const char = Vomnibar_.char_(event);
-    let key = char && Vomnibar_.key_(event, char), mapped: string | undefined, chLower: string;
-    if (!key || key.length < 2 && Vomnibar_.focused_) { return ""; }
-    if (Vomnibar_.mappedKeyRegistry_) {
-      key = Vomnibar_.mappedKeyRegistry_[key] || (
-        (mapped = Vomnibar_.mappedKeyRegistry_[chLower = char.toLowerCase()]) && mapped.length < 2 ? (
-          mapped = char === chLower ? mapped : mapped.toUpperCase(),
-          Vomnibar_.key_(event, mapped)
-        ) : key
-      );
+    let key: string = char, mapped: string | undefined;
+    if (char) {
+      const baseMod = `${event.altKey ? "a-" : ""}${event.ctrlKey ? "c-" : ""}${event.metaKey ? "m-" : ""}`,
+      chLower = char.toLowerCase(), isLong = char.length > 1,
+      mod = event.shiftKey && (isLong || baseMod && char.toUpperCase() !== chLower) ? baseMod + "s-" : baseMod;
+      if (!(Build.NDEBUG || char.length === 1 || char.length > 1 && char === char.toLowerCase())) {
+        console.error(`Assert error: Vomnibar_.key_ get an invalid char of "${char}" !`);
+      }
+      key = isLong || mod ? mod + chLower : char;
+      if (Vomnibar_.mappedKeyRegistry_) {
+        mapped = Vomnibar_.mappedKeyRegistry_[key + GlobalConsts.DelimeterForKeyCharAndMode
+            + GlobalConsts.ModeIds[kModeId.Omni]] || Vomnibar_.mappedKeyRegistry_[key];
+        key = mapped ? mapped : !isLong && (mapped = Vomnibar_.mappedKeyRegistry_[chLower]) && mapped.length < 2
+            ? char === chLower ? mod + mapped : mod + mapped.toUpperCase() : key;
+      }
     }
     return key;
   },
@@ -517,8 +514,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       return;
     }
     let action: AllowedActions = AllowedActions.nothing;
-    const char = key.length > 1 ? key.slice(key[2] === "-" ? 3 : 1, -1) : key,
-    mainModifier = key.slice(1, 3) as "a-" | "c-" | "m-" | "s-" | "unknown" | "";
+    const char = key.slice(key.slice(1, 2) === "-" ? 2 : 0),
+    mainModifier = key.slice(0, 2) as "a-" | "c-" | "m-" | "s-" | "unknown" | "";
     if (mainModifier === "a-" || mainModifier === "m-") {
       if (char === kChar.f2) {
         return a.onAction_(focused ? AllowedActions.blurInput : AllowedActions.focus);
@@ -555,7 +552,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         return;
       } else if (Build.BTypes & ~BrowserType.Firefox
           && (!(Build.BTypes & BrowserType.Firefox) || a.browser_ !== BrowserType.Firefox)
-          && key === `<c-${kChar.backspace}>` && !a.os_) {
+          && key === `c-${kChar.backspace}` && !a.os_) {
         return a.onBashAction_(-1);
       } else if (char === kChar.delete) {
         a.keyResult_ = HandlerResult.Suppress;

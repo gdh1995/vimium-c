@@ -335,7 +335,7 @@ var VFind = {
     if (n === kKeyCode.ime || VSc.keyIsDown_ && VSc.OnScrolls_(event) || event.type === "keyup") { return; }
     type Result = FindNS.Action;
     const eventWrapper: HandlerNS.Event = {c: kChar.INVALID, e: event, i: n},
-    key = VKey.key_(eventWrapper, kModeId.Find), keybody = VKey.keybody(key);
+    key = VKey.key_(eventWrapper, kModeId.Find), keybody = VKey.keybody_(key);
     let i: Result | KeyStat = key.startsWith("a-") && event.altKey ? FindNS.Action.DoNothing
       : keybody === kChar.enter
         ? key.includes("s-") ? FindNS.Action.PassDirectly : (a.saveQuery_(), FindNS.Action.ExitToPostMode)
@@ -348,7 +348,7 @@ var VFind = {
       : FindNS.Action.Exit;
     if (!i) {
       if (keybody !== key) {
-        if (key === "a-f1") {
+        if (key === `a-${kChar.f1}`) {
           VDom.prepareCrop_();
           VVisual.HighlightRange_(VCui.getSelected_()[0]);
         }
