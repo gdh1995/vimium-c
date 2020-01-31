@@ -25,11 +25,11 @@ A <span style="color: #a55e18;">C</span>ustomized
     and inje**c**tion functionality,
   in <span style="color: #a55e18;">**C**</span>-style code for qui**c**ker action and less resource **c**ost.
 
-[<span style="color: #2f508e;">Vim</span>ium](https://github.com/philc/vimium)的一款<span style="color: #a55e18;">
-修改版</span>（可以用键盘点击网页内容、操纵浏览器窗口），
-添加了完整的<span style="color: #a55e18;">中文</span>支持、<span style="color: #a55e18;">
-全局快捷键</span>功能，还能运行在某些接受Vimium C的扩展程序的私有页面里，并且对CPU和内存资源的<span style="color: #a55e18;">
-消耗很低</span>。
+[<span style="color: #2f508e;">Vim</span>ium](https://github.com/philc/vimium) 的一款<span
+  style="color: #a55e18;">修改版</span>（可以用键盘点击网页内容、操纵浏览器窗口），添加了完整的<span
+  style="color: #a55e18;">中文</span>支持、<span
+  style="color: #a55e18;">全局快捷键</span>功能，还能运行在某些接受Vimium C的扩展程序的私有页面里，并且对CPU和内存资源的<span
+  style="color: #a55e18;">消耗很低</span>。
 
 This project is developed by [gdh1995](https://github.com/gdh1995) and licensed under the [MIT license](LICENSE.txt).
 
