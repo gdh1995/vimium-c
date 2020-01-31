@@ -347,7 +347,7 @@ var VFind = {
         ? FindNS.Action.CtrlDelete
       : a.notEmpty_ || (n === kKeyCode.deleteKey && VDom.cache_.o || event.repeat) ? FindNS.Action.PassDirectly
       : FindNS.Action.Exit;
-    let h = HandlerResult.Prevent;
+    let h = HandlerResult.Prevent, scroll: number;
     if (!i) {
       if (keybody !== key) {
         if (key === `a-${kChar.f1}`) {
@@ -355,11 +355,11 @@ var VFind = {
           VVisual.HighlightRange_(VCui.getSelected_()[0]);
         }
         else if (key < "c-" || key > "m-") { h = HandlerResult.Suppress; }
-        else if (VKey.scrollDirectives_.indexOf(" " + keybody) > 25) {
+        else if (scroll = VKey.keyNames_.indexOf(keybody), scroll > 2 && scroll < 9 && (scroll & 5) - 5) {
           VSc.BeginScroll_(eventWrapper, key, keybody);
         }
-        else if (keybody === "j" || keybody === "k") {
-          a.execute_(null, { n: keybody > "j" ? -1 : 1 });
+        else if (keybody === kChar.j || keybody === kChar.k) {
+          a.execute_(null, { n: keybody > kChar.j ? -1 : 1 });
         }
         else { h = HandlerResult.Suppress; }
       }

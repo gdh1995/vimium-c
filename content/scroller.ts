@@ -242,18 +242,16 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       }
     }
   },
-  BeginScroll_ (eventWrapper: 0 | Pick<HandlerNS.Event, "e">, key: string, keybody: string): void {
+  BeginScroll_ (eventWrapper: 0 | Pick<HandlerNS.Event, "e">, key: string, keybody: kChar): void {
     if (key.includes("s-") || key.includes("a-")) { return; }
-    // const c = (keyCode & 1) as BOOL;
-    const index = VKey.scrollDirectives_.split(" ").indexOf(keybody),
-    work = index > 4 && index < 7 ? 2 : index > 2 ? 1 : key === keybody ? 3 : 0,
+    const index = VKey.keyNames_.indexOf(keybody) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8,
     Sc = VSc;
-    work && eventWrapper && VKey.prevent_(eventWrapper.e);
-    if (work === 1) {
-      Sc.scroll_(index > 4 ? 1 : 0, index & 1 ? -1 : 1, 0);
-    } else if (work === 2) {
-      Sc.scroll_(1, 0, 1, 0, index > 5);
-    } else if (work) {
+    (index > 2 || key === keybody) && eventWrapper && VKey.prevent_(eventWrapper.e);
+    if (index > 4) {
+      Sc.scroll_((~index & 1) as BOOL, index < 7 ? -1 : 1, 0);
+    } else if (index > 2) {
+      Sc.scroll_(1, 0, 1, 0, index < 4);
+    } else if (key === keybody) {
       Sc.scroll_(1, index - 1.5, 0, 2);
     }
   },

@@ -130,7 +130,7 @@ var VHints = {
   } as HintsNS.KeyStatus,
   _removeFlash: null as (() => void) | null,
   /** must be called from a master, required by {@link #VHints.delayToExecute_ } */
-  _onTailEnter: null as ((this: unknown, event: HandlerNS.Event, key: string, keybody: string) => void) | null,
+  _onTailEnter: null as ((this: unknown, event: HandlerNS.Event, key: string, keybody: kChar) => void) | null,
   _onWaitingKey: null as HandlerNS.VoidEventHandler | null,
   keyCode_: kKeyCode.None,
   isActive_: false,
@@ -1024,7 +1024,7 @@ var VHints = {
   },
   onKeydown_ (event: HandlerNS.Event): HandlerResult {
     const a = this;
-    let matchedHint: ReturnType<typeof VHints.matchHintsByKey_>, i: number = event.i, key: string, keybody: string;
+    let matchedHint: ReturnType<typeof VHints.matchHintsByKey_>, i: number = event.i, key: string, keybody: kChar;
     if (a._master) {
       VApi.keydownEvents_(Build.BTypes & BrowserType.Firefox ? (a._master as typeof a).api_.keydownEvents_()
           : (a._master as typeof a).api_);
@@ -1099,7 +1099,7 @@ var VHints = {
         i = VKey.getKeyStat_(event);
         (i & (i - 1)) || (a.lastMode_ = mode);
       }
-    } else if (VKey.scrollDirectives_.includes(" " + keybody)) {
+    } else if (i = VKey.keyNames_.indexOf(keybody), i > 0 && i < 9) {
       VSc.BeginScroll_(event, key, keybody);
       a.ResetMode_();
     } else if (keybody === kChar.tab && !a.useFilter_ && !a.keyStatus_.keySequence_) {
@@ -1746,7 +1746,7 @@ filterEngine_: {
     }
   },
   matchHintsByKey_ (keyStatus: HintsNS.KeyStatus
-      , event: HandlerNS.Event, key: string, keybody: string): HintsNS.HintItem | 0 | 2 {
+      , event: HandlerNS.Event, key: string, keybody: kChar): HintsNS.HintItem | 0 | 2 {
     const h = VHints, {useFilter_: useFilter, filterEngine_: filterEngine} = h;
     let {keySequence_: sequence, textSequence_: textSeq, tab_: oldTab, hints_: hints} = keyStatus
       , doesDetectMatchSingle: 0 | 1 | 2 = 0
@@ -1771,7 +1771,7 @@ filterEngine_: {
       textSeq = textSeq0 + " ";
     } else if (!(useFilter && key.includes("c-")) && event.c.length === 1
         && keybody.length === 1) {
-      keybody = useFilter ? keybody : keybody.toUpperCase();
+      keybody = useFilter ? keybody : keybody.toUpperCase() as kChar;
       useFilter && h.ResetMode_();
       if (h.chars_.includes(keybody)) {
         sequence += keybody;

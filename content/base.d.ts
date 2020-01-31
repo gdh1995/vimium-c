@@ -270,7 +270,7 @@ declare namespace VomnibarNS {
     };
     [kFReq.scroll]: {
       /** key */ k: string;
-      /** keybody */ b: string;
+      /** keybody */ b: kChar;
     };
     [kFReq.style]: {
       // unit: physical pixel (if C<52)

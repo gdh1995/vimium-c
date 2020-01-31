@@ -1,6 +1,6 @@
 declare var VOther: BrowserType;
 var VKey = {
-  _keyNames: [kChar.space, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
+  keyNames_: [kChar.space, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
     kChar.left, kChar.up, kChar.right, kChar.down,
     /* 41 */ "", "", "", "", kChar.insert, kChar.delete] as readonly kChar[],
   keyIdCorrectionOffset_: (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
@@ -13,13 +13,11 @@ var VKey = {
     __proto__: null as never,
     Alt: 1, AltGraph: 1, Control: 1, Meta: 1, OS: 1, Shift: 1
   } as SafeEnum,
-  scrollDirectives_: ` ${kChar.pageup} ${kChar.pagedown}`
-      + ` ${kChar.left} ${kChar.right} ${kChar.home} ${kChar.end} ${kChar.up} ${kChar.down}`,
   cache_: null as never as SettingsNS.FrontendSettingCache,
   /** only return lower-case long string */
   getKeyName_ (event: Pick<KeyboardEvent, "key" | "keyCode" | "location">): kChar {
     let {keyCode: i} = event, s: string | undefined;
-    return i > kKeyCode.space - 1 && i < kKeyCode.minNotDelete ? this._keyNames[i - kKeyCode.space]
+    return i > kKeyCode.space - 1 && i < kKeyCode.minNotDelete ? this.keyNames_[i - kKeyCode.space]
       : i < kKeyCode.minNotDelete || i === kKeyCode.osRightMac ? (i === kKeyCode.backspace ? kChar.backspace
           : i === kKeyCode.esc ? kChar.esc
           : i === kKeyCode.tab ? kChar.tab : i === kKeyCode.enter ? kChar.enter
@@ -98,7 +96,7 @@ var VKey = {
     }
     return eventWrapper.c = key as kChar;
   },
-  keybody_: (key: string): string => key.slice(key.lastIndexOf("-") + 1),
+  keybody_: (key: string): kChar => key.slice(key.lastIndexOf("-") + 1) as kChar,
   key_: null as never as (this: void, event: HandlerNS.Event, mode: kModeId) => string,
   getKeyStat_ ({e: event}: {e: EventControlKeys}): KeyStat {
     return <number> <boolean|number> event.altKey |
