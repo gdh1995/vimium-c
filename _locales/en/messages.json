@@ -728,7 +728,7 @@
 		"message": "Vimium C has been upgraded to v$1.\n"
 	},
 	"upgradeMsg2": {
-		"message": "LinkHints is enhanced and supports Filtered Hints!"
+		"message": "Now support pre-mode \"mapKey\"!"
 	},
 	"clickForMore": {
 		"message": "Click here for more information."

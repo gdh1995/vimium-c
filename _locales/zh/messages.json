@@ -1118,7 +1118,7 @@
 		"message": "您的 Vimium C 已经更新至 $1 版。\n"
 	},
 	"upgradeMsg2": {
-		"message": "重点增强了提示模式，支持按链接文字匹配"
+		"message": "支持针对单个模式的“mapKey”"
 	},
 	"clickForMore": {
 		"message": "点击阅读详细信息。"

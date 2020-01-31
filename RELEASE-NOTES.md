@@ -4,6 +4,17 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://github.com/gdh1995/vimium-c/blob/master/README_zh.md .
 
+#### 1.80.1
+* support pre-mode "`mapKey`" directive: ```mapKey <`:o> <f2>```
+* Vomnibar: always parse `vimium://` URLs, including `vimium://paste [...sed-rules]`
+* add `vimium://cd <level> [URL]`, and "level" can be `....` or `/...`
+* add `sed="s/_/_/g\nRule2..."` option to those commands which uses Clipboard
+* Chrome 55+: now recognize most elements with click listeners, even under Shadow DOM trees
+* `enterInsertMode` drops support for `code` and `stat` options, and turns to the `key` option
+* `goToRoot`: if repeats `N` times, then only select `N-1` section parts of URL path
+* Edge: fix support of `<c-[>`
+* some bug fixes
+
 #### 1.80.0
 * LinkHints: Firefox: fix broken Filtered Hints mode ([#108](https://github.com/gdh1995/vimium-c/issues/108))
 * LinkHints: change some behavior details

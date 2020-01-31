@@ -3,7 +3,7 @@
 ===========================================
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.80.0](https://img.shields.io/badge/release-1.80.0-orange.svg
+[![Version 1.80.1](https://img.shields.io/badge/release-1.80.1-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -86,6 +86,17 @@ __Other extensions supporting Vimium C:__
 
 
 # Release Notes
+
+### 1.80.1
+* support pre-mode "`mapKey`" directive: ```mapKey <`:o> <f2>```
+* Vomnibar: always parse `vimium://` URLs, including `vimium://paste [...sed-rules]`
+* add `vimium://cd <level> [URL]`, and "level" can be `....` or `/...`
+* add `sed="s/_/_/g\nRule2..."` option to those commands which uses Clipboard
+* Chrome 55+: now recognize most elements with click listeners, even under Shadow DOM trees
+* `enterInsertMode` drops support for `code` and `stat` options, and turns to the `key` option
+* `goToRoot`: if repeats `N` times, then only select `N-1` section parts of URL path
+* Edge: fix support of `<c-[>`
+* some bug fixes
 
 ### 1.80.0
 * LinkHints: Firefox: fix broken Filtered Hints mode
