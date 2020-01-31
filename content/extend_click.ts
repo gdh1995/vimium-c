@@ -29,7 +29,7 @@ if (VDom && VimiumInjector === undefined) {
     kCmd = "Vimium",
   }
   type ClickableEventDetail = [ /** inDocument */ number[], /** forDetached */ number[]
-          , /** fromAttrs */ BOOL ];
+          , /** fromAttrs */ BOOL ] | string;
 /** Note: on Firefox, a `[sec, cmd]` can not be visited by the main world:
  * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Sharing_objects_with_page_scripts#Constructors_from_the_page_context.
  */
@@ -41,7 +41,7 @@ if (VDom && VimiumInjector === undefined) {
       Type extends InnerConsts.kVOnClick ? ClickableEventDetail
         : Type extends InnerConsts.kCmd ? CommandEventDetail
         : never;
-    }): CustomEvent;
+      composed?: boolean}): CustomEvent;
   }
   interface VimiumDelegateEventCls {
     prototype: FocusEvent;
@@ -122,8 +122,10 @@ if (VDom && VimiumInjector === undefined) {
   function onClick(this: Element | Window, event: (VimiumCustomEventCls | VimiumDelegateEventCls)["prototype"]): void {
     if (!box) { return; }
     VKey.Stop_(event);
-    let detail = event.detail as ClickableEventDetail | null, fromAttrs: 1 | 2 = detail ? (detail[2] + 1) as 1 | 2 : 1,
-    path: typeof event.path,
+    const rawDetail = event.detail as ClickableEventDetail | null,
+    detail = rawDetail && typeof rawDetail !== "string" ? rawDetail : "",
+    fromAttrs: 1 | 2 = detail ? (detail[2] + 1) as 1 | 2 : 1;
+    let path: typeof event.path,
     target = detail ? null : (event as VimiumDelegateEventCls["prototype"]).relatedTarget as Element | null
         || (!(Build.BTypes & BrowserType.Edge)
             && Build.MinCVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
@@ -141,7 +143,7 @@ if (VDom && VimiumInjector === undefined) {
     }
     if (detail) {
       resolve(0, detail[0]); resolve(1, detail[1]);
-    } else if (/* safer */ target) {
+    } else if (/* safer */ target && (!rawDetail || target.tagName === rawDetail)) {
       VDom.clickable_.add(target);
     }
     if (isFirstResolve & fromAttrs) {
@@ -226,7 +228,7 @@ _apply = _listen.apply, _call = _listen.call,
 call = _call.bind(_call) as <T, A extends any[], R>(func: (this: T, ...args: A) => R, thisArg: T, ...args: A) => R,
 dispatch = _call.bind<(evt: Event) => boolean, [EventTarget, Event], boolean>(ETP.dispatchEvent),
 E = Element, EP = E.prototype, Append = EP.appendChild,
-GetRootNode = EP.getRootNode, composed = {composed: !0},
+GetRootNode = EP.getRootNode,
 Attr = EP.setAttribute, HasAttr = EP.hasAttribute, Remove = EP.remove,
 StopProp = Event.prototype.stopImmediatePropagation as (this: Event) => void,
 contains = EP.contains.bind(doc), // in fact, it is Node.prototype.contains
@@ -417,7 +419,7 @@ function prepareRegister(this: void, element: Element): void {
     parent = parent || curEl;
   }
   // Document::nodeType is not changable (except overridden by an element like <img>), so the comparsion below is safe
-  let type = parent.nodeType;
+  let type = parent.nodeType, s: Element["tagName"];
   // note: the below may change DOM trees,
   // so `dispatch` MUST NEVER throw. Otherwise a page might break
   if (type === kNode.ELEMENT_NODE) {
@@ -433,11 +435,12 @@ function prepareRegister(this: void, element: Element): void {
         && (tempParent = (parent as TypeToAssert<DocumentFragment, ShadowRoot, "host">).host)) {
       parent = (!(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.Min$Node$$getRootNode || GetRootNode)
           && (tempParent as NonNullable<ShadowRoot["host"]>).shadowRoot // an open shadow tree
-          && call(GetRootNode as NonNullable<typeof GetRootNode>, element, composed);
-      if (parent && (parent === doc || (<NodeToElement> parent).nodeType === kNode.ELEMENT_NODE)) {
+          && call(GetRootNode as NonNullable<typeof GetRootNode>, element, {composed: !0});
+      if (parent && (parent === doc || (<NodeToElement> parent).nodeType === kNode.ELEMENT_NODE)
+          && typeof (s = element.tagName) === "string") {
         parent !== doc && parent !== root && call(Append, root, parent);
         unsafeDispatchCounter++;
-        dispatch(element, new DE(kVOnClick, composed));
+        dispatch(element, new CE(kVOnClick, {detail: s, composed: !0}));
       }
     } else {
       unsafeDispatchCounter++;
