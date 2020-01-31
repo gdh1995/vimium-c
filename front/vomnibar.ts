@@ -469,7 +469,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     return key;
   },
-  mappedKey_ (event: KeyboardEvent): string {
+  getMappedKey_ (event: KeyboardEvent): string {
     const char = Vomnibar_.char_(event);
     let key: string = char, mapped: string | undefined;
     if (char) {
@@ -506,7 +506,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   } as Readonly<Dict<AllowedActions>>,
   onKeydown_ (event: KeyboardEventToPrevent): void {
     const a = Vomnibar_, n = event.keyCode, focused = a.focused_,
-    key = n !== kKeyCode.ime ? a.mappedKey_(event) : "";
+    key = n !== kKeyCode.ime ? a.getMappedKey_(event) : "";
     a.lastKey_ = n;
     if (!key) {
       a.keyResult_ = focused && !(n === kKeyCode.menuKey && a.os_) && n !== kKeyCode.ime
@@ -514,8 +514,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       return;
     }
     let action: AllowedActions = AllowedActions.nothing;
-    const char = key.slice(key.slice(1, 2) === "-" ? 2 : 0),
-    mainModifier = key.slice(0, 2) as "a-" | "c-" | "m-" | "s-" | "unknown" | "";
+    const char = key.slice(key.lastIndexOf("-") + 1),
+    mainModifier = key.slice(0, key.indexOf("-") + 1) as "a-" | "c-" | "m-" | "s-" | "";
     if (mainModifier === "a-" || mainModifier === "m-") {
       if (char === kChar.f2) {
         return a.onAction_(focused ? AllowedActions.blurInput : AllowedActions.focus);
@@ -528,7 +528,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
       if (mainModifier === "a-") { a.keyResult_ = HandlerResult.Nothing; return; }
     }
-    if ((char === kChar.enter || char.endsWith(`-${kChar.enter}`))) {
+    if (char === kChar.enter) {
       if (event.key === "Enter" || n === kKeyCode.enter) {
         window.onkeyup = a.OnEnterUp_;
       } else {
@@ -537,8 +537,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       return;
     }
     if (mainModifier === "c-" || mainModifier === "m-") {
-      if (char.startsWith("s-")) {
-        action = char === "s-f" ? AllowedActions.pagedown : char === "s-b" ? AllowedActions.pageup
+      if (key.includes("s-")) {
+        action = char === "f" ? AllowedActions.pagedown : char === "b" ? AllowedActions.pageup
           : AllowedActions.nothing;
       } else if (char === kChar.up || char === kChar.down || char === kChar.end || char === kChar.home) {
         event.preventDefault();
@@ -552,7 +552,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         return;
       } else if (Build.BTypes & ~BrowserType.Firefox
           && (!(Build.BTypes & BrowserType.Firefox) || a.browser_ !== BrowserType.Firefox)
-          && key === `c-${kChar.backspace}` && !a.os_) {
+          && char === kChar.backspace && !a.os_) {
         return a.onBashAction_(-1);
       } else if (char === kChar.delete) {
         a.keyResult_ = HandlerResult.Suppress;
@@ -565,7 +565,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       action = a.ctrlCharOrShiftKeyMap_[char] || AllowedActions.nothing;
     }
     else if (action = a.normalMap_[char] || AllowedActions.nothing) { /* empty */ }
-    else if (char > "f0" && char < "f:") { // "f" + N
+    else if (char > kChar.maxNotF_num && char < kChar.minNotF_num) { // "f" + N
       a.keyResult_ = HandlerResult.Nothing;
       return;
     }
@@ -573,7 +573,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       if (focused) { a.keyResult_ = HandlerResult.Suppress; }
       return;
     }
-    else if (n !== kKeyCode.space || char !== kChar.space) { /* empty */ }
+    else if (char !== kChar.space) { /* empty */ }
     else if (!focused) { action = AllowedActions.focus; }
     else if ((a.selection_ >= 0
         || a.completions_.length <= 1) && a.input_.value.endsWith("  ")) {

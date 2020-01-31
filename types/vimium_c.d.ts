@@ -523,6 +523,7 @@ declare const enum kChar {
   insert = "insert", delete = "delete",
   backspace = "backspace", esc = "esc", tab = "tab", enter = "enter",
   None = "", F_num = "f", f1 = "f1", f2 = "f2", f12 = "f12",
+  maxNotF_num = "f0", minNotF_num = "f:", maxF_num = "f9",
   CharCorrectionList = ";=,-./`[\\]'\\:+<_>?~{|}\"|", EnNumTrans = ")!@#$%^&*(",
   Modifier = "modifier",
 }

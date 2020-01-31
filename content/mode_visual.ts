@@ -150,9 +150,8 @@ var VVisual = {
   selType_: null as never as () => SelType,
   /** @unknown_di_result */
   onKeydown_ (event: HandlerNS.Event): HandlerResult {
-    const { i: keyCode } = event, a = this,
-    doPass = keyCode === kKeyCode.ime || keyCode === kKeyCode.menuKey && !!VDom.cache_.o,
-    key = doPass ? "" : VKey.key_(event, kModeId.Visual);
+    const a = this, doPass = event.i === kKeyCode.ime || event.i === kKeyCode.menuKey && VDom.cache_.o,
+    key = doPass ? "" : VKey.key_(event, kModeId.Visual), keybody = VKey.keybody_(key);
     if (!key || VKey.isEscape_(key)) {
       !key || a.currentCount_ || a.currentSeconds_ ? a.resetKeys_() : a.deactivate_(1);
       // if doPass, then use nothing to bubble such an event, so handlers like LinkHints will also exit
@@ -171,8 +170,8 @@ var VVisual = {
       a.currentCount_ = !newActions && key.length < 2 && +key < 10 ? a.currentSeconds_ ? +key : +key + count * 10 : 0;
       a.currentSeconds_ = newActions || null;
       return newActions ? HandlerResult.Prevent
-          : event.c.length > 1 || VKey.getKeyStat_(event) & KeyStat.ExceptShift
-          ? event.c < "f1" || event.c > "f9" ? HandlerResult.Suppress : HandlerResult.Nothing
+          : keybody.length > 1 || VKey.getKeyStat_(event) & KeyStat.ExceptShift
+          ? keybody < kChar.f1 || keybody > "f9" ? HandlerResult.Suppress : HandlerResult.Nothing
           : HandlerResult.Prevent;
     }
     a.resetKeys_();

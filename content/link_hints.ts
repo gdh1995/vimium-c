@@ -130,7 +130,7 @@ var VHints = {
   } as HintsNS.KeyStatus,
   _removeFlash: null as (() => void) | null,
   /** must be called from a master, required by {@link #VHints.delayToExecute_ } */
-  _onTailEnter: null as ((this: unknown, event: HandlerNS.Event, key: string) => void) | null,
+  _onTailEnter: null as ((this: unknown, event: HandlerNS.Event, key: string, keybody: string) => void) | null,
   _onWaitingKey: null as HandlerNS.VoidEventHandler | null,
   keyCode_: kKeyCode.None,
   isActive_: false,
@@ -1037,16 +1037,16 @@ var VHints = {
       a.clean_(1);
       VHud.tip_(kTip.exitForIME);
       return HandlerResult.Nothing;
-    } else if (key = VKey.key_(event, kModeId.Link), VKey.isEscape_(key)) {
+    } else if (key = VKey.key_(event, kModeId.Link), keybody = VKey.keybody_(key), VKey.isEscape_(key)) {
       a.clean_();
-    } else if (i === kKeyCode.esc && key.includes("esc")) {
+    } else if (i === kKeyCode.esc && keybody === kChar.esc) {
       return HandlerResult.Suppress;
-    } else if (a._onTailEnter && i !== kKeyCode.f12) {
-      a._onTailEnter(event, key);
-    } else if (keybody = VKey.keybody_(key), keybody > "f0" && keybody < "f:" && key !== "f1") { // exclude <f1>
-      if (keybody > "f1" && keybody !== "f2") { a.ResetMode_(); return HandlerResult.Nothing; }
+    } else if (a._onTailEnter && keybody !== kChar.f12) {
+      a._onTailEnter(event, key, keybody);
+    } else if (keybody > kChar.maxNotF_num && keybody < kChar.minNotF_num && key !== kChar.f1) { // exclude plain <f1>
+      if (keybody > kChar.f1 && keybody !== kChar.f2) { a.ResetMode_(); return HandlerResult.Nothing; }
       i = VKey.getKeyStat_(event);
-      if (keybody < "f2") {
+      if (keybody < kChar.f2) {
         a.ResetMode_();
         if (key[0] === "a" && a.useFilter_) {
           (a.locateHint_(a.filterEngine_.activeHint_ as HintsNS.HintItem) as typeof a)._highlightHint(
@@ -1147,7 +1147,7 @@ var VHints = {
   },
   delayToExecute_ (slave: HintsNS.BaseHinter, hint: HintsNS.HintItem, flashEl: SafeHTMLElement | null): void {
     const a = this, waitEnter = Build.BTypes & BrowserType.Chrome && VDom.cache_.w,
-    callback: (event?: HandlerNS.Event) => void = event => {
+    callback = (event?: HandlerNS.Event, key?: string, keybody?: string) => {
       let closed: void | 1 | 2 = 1;
       try {
         closed = (slave as typeof VHints).CheckLast_(1);
@@ -1157,11 +1157,10 @@ var VHints = {
         return;
       }
       if (event) {
-        const i = event.i, key = event.e.key;
-        tick = waitEnter && (i === kKeyCode.space || key === "Space") ? tick + 1 : 0;
-        tick === 3 || i === kKeyCode.enter || key === "Enter" ? slave.execute_(hint, event)
+        tick = waitEnter && keybody === kChar.space ? tick + 1 : 0;
+        tick === 3 || keybody === kChar.enter ? slave.execute_(hint, event)
         // tslint:disable-next-line: no-unused-expression
-        : (i === kKeyCode.f1 || key === "F1") && flashEl ? flashEl.classList.toggle("Sel") : 0;
+        : key === kChar.f1 && flashEl ? flashEl.classList.toggle("Sel") : 0;
       } else {
         slave.execute_(hint);
       }
@@ -1172,7 +1171,8 @@ var VHints = {
     a.box_ = null;
     Build.BTypes & BrowserType.Firefox && (slave = a._wrap(slave));
     if (Build.BTypes & BrowserType.Chrome && !waitEnter) {
-      a._onWaitingKey = VKey.suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents, callback);
+      a._onWaitingKey = VKey.suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents
+          , callback as (event?: undefined) => void);
       VKey.removeHandler_(a._onWaitingKey);
     } else {
       VHud.show_(kTip.waitEnter);
@@ -1748,8 +1748,7 @@ filterEngine_: {
   matchHintsByKey_ (keyStatus: HintsNS.KeyStatus
       , event: HandlerNS.Event, key: string, keybody: string): HintsNS.HintItem | 0 | 2 {
     const h = VHints, {useFilter_: useFilter, filterEngine_: filterEngine} = h;
-    let keyChar: string
-      , {keySequence_: sequence, textSequence_: textSeq, tab_: oldTab, hints_: hints} = keyStatus
+    let {keySequence_: sequence, textSequence_: textSeq, tab_: oldTab, hints_: hints} = keyStatus
       , doesDetectMatchSingle: 0 | 1 | 2 = 0
       , textSeq0 = textSeq, isSpace = keybody === kChar.space, isTab = keybody === kChar.tab;
     textSeq = textSeq && textSeq.replace("  ", " ");
@@ -1771,16 +1770,15 @@ filterEngine_: {
     } else if (isSpace) { // then useFilter is true
       textSeq = textSeq0 + " ";
     } else if (!(useFilter && key.includes("c-")) && event.c.length === 1
-        && (key.length === 1 || key.slice(-2, -1) === "-")) {
-      keyChar = key.length < 2 ? key : key.slice(-1);
-      keyChar = useFilter ? keyChar : keyChar.toUpperCase();
+        && keybody.length === 1) {
+      keybody = useFilter ? keybody : keybody.toUpperCase();
       useFilter && h.ResetMode_();
-      if (h.chars_.includes(keyChar)) {
-        sequence += keyChar;
+      if (h.chars_.includes(keybody)) {
+        sequence += keybody;
         doesDetectMatchSingle = useFilter || sequence.length < h.maxPrefixLen_ ? 1 : 2;
       } else if (useFilter) {
-        let lower = keyChar.toLowerCase();
-        if (keyChar !== lower && h.chars_ !== h.chars_.toLowerCase() // ignore {Lo} in h.chars_
+        let lower = keybody.toLowerCase();
+        if (keybody !== lower && h.chars_ !== h.chars_.toLowerCase() // ignore {Lo} in h.chars_
             /** this line requires lower.length must be 1 or 0 */
             || (filterEngine.reForMatch_ || (filterEngine.reForMatch_ = filterEngine.getRe_(1))).test(lower)) {
           return 2;

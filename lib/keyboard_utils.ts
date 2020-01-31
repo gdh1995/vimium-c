@@ -96,7 +96,7 @@ var VKey = {
     }
     return eventWrapper.c = key as kChar;
   },
-  keybody_: (key: string): string => key.slice(key.slice(1, 2) === "-" ? 2 : 0),
+  keybody_: (key: string): string => key.slice(key.lastIndexOf("-") + 1),
   key_: null as never as (this: void, event: HandlerNS.Event, mode: kModeId) => string,
   getKeyStat_ ({e: event}: {e: EventControlKeys}): KeyStat {
     return <number> <boolean|number> event.altKey |
@@ -129,9 +129,7 @@ var VKey = {
   },
   SuppressMost_ (this: object, event: HandlerNS.Event): HandlerResult {
     VKey.isEscape_(VKey.key_(event, kModeId.Normal)) && VKey.removeHandler_(this);
-    const key = event.i;
-    return key > kKeyCode.f10 && key < kKeyCode.f13 || key === kKeyCode.f5 ?
-      HandlerResult.Suppress : HandlerResult.Prevent;
+    return event.i === kKeyCode.f12 || event.i === kKeyCode.f5 ? HandlerResult.Suppress : HandlerResult.Prevent;
   },
   /**
    * if not timeout, then only suppress repeated keys

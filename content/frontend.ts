@@ -60,7 +60,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   }
 
   function getMappedKey(this: void, eventWrapper: HandlerNS.Event, mode: kModeId): string {
-    const char = eventWrapper.c !== kChar.INVALID ? eventWrapper.c : VKey.char_(eventWrapper), event = eventWrapper.e;
+    const char = eventWrapper.c !== kChar.INVALID ? eventWrapper.c : K.char_(eventWrapper), event = eventWrapper.e;
     let key: string = char, mapped: string | undefined;
     if (char) {
       const baseMod = `${event.altKey ? "a-" : ""}${event.ctrlKey ? "c-" : ""}${event.metaKey ? "m-" : ""}`,
@@ -439,7 +439,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
        * so, here ignores the 2nd path.
        */
       // during tests, an access key of ' ' (space) can be triggered on macOS (2019-10-20)
-      event.c === kChar.INVALID && VKey.char_(event);
+      event.c === kChar.INVALID && K.char_(event);
       if (isWaitingAccessKey !== (event.c.length === 1 || event.c === kChar.space)
           && (K.getKeyStat_(event) & KeyStat.ExceptShift /* Chrome ignore .shiftKey */) ===
               (fgCache.o ? KeyStat.altKey : KeyStat.altKey | KeyStat.ctrlKey)
@@ -674,7 +674,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
       hints[sel].m.className = "IH IHS";
       U.simulateSelect_(visibleInputs[sel][0], visibleInputs[sel][1], false, action, false);
-      U.ensureBorder_(D.wdZoom_ / VDom.dScale_);
+      U.ensureBorder_(D.wdZoom_ / D.dScale_);
       const box = U.addElementList_<false>(hints, arr), keep = !!options.keep, pass = !!options.passExitKey;
       // delay exiting the old to avoid some layout actions
       // although old elements can not be GC-ed before this line, it has little influence
@@ -682,10 +682,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       InsertMode.inputHint_ = { b: box, h: hints };
       K.pushHandler_(function (event) {
         const keyCode = event.i, isIME = keyCode === kKeyCode.ime, repeat = event.e.repeat,
-        key = isIME || repeat ? "" : VKey.key_(event, kModeId.Insert)
-        // keybody = VKey.keybody(key),
+        key = isIME || repeat ? "" : K.key_(event, kModeId.Insert)
         ;
-        if (key === kChar.tab || key === "s-tab") {
+        if (key === kChar.tab || key === `s-${kChar.tab}`) {
           const hints2 = this.h, oldSel = sel, len = hints2.length;
           sel = (oldSel + (key < "t" ? len - 1 : 1)) % len;
           InsertMode.hinting_ = true;
@@ -696,21 +695,18 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           InsertMode.hinting_ = false;
           return HandlerResult.Prevent;
         }
-        let keyStat: KeyStat;
         // check `!key` for mapModifier
         if (!key && (keyCode === kKeyCode.shiftKey || keep && (keyCode === kKeyCode.altKey
             || keyCode === kKeyCode.ctrlKey
             || keyCode > kKeyCode.maxNotMetaKey && keyCode < kKeyCode.minNotMetaKeyOrMenu))) { /* empty */ }
         else if (repeat) { return HandlerResult.Nothing; }
-        else if (keep ? VKey.isEscape_(key) || (
-            (keyCode === kKeyCode.enter || key === kChar.enter)
-            && (keyStat = K.getKeyStat_(event),
-              keyStat !== KeyStat.shiftKey
-              && (keyStat !== KeyStat.plain || this.h[sel].d.localName === "input" ))
+        else if (keep ? K.isEscape_(key) || (
+            K.keybody_(key) === kChar.enter
+            && (/* a?c?m?-enter */ key < "s" && (key[0] !== "e" || this.h[sel].d.localName === "input"))
           ) : !isIME && keyCode !== kKeyCode.f12
         ) {
           InsertMode.exitInputHint_();
-          return !VKey.isEscape_(key) ? HandlerResult.Nothing : keep || !insertLock ? HandlerResult.Prevent
+          return !K.isEscape_(key) ? HandlerResult.Nothing : keep || !insertLock ? HandlerResult.Prevent
             : pass ? HandlerResult.PassKey : HandlerResult.Nothing;
         }
         return HandlerResult.Nothing;
@@ -738,7 +734,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         let counter = 0, prompt = function (): void {
           counter++ || console.log("Vimium C blocks auto-focusing.");
         };
-        if (notBody = notBody && VDom.getEditableType_(activeEl)) {
+        if (notBody = notBody && D.getEditableType_(activeEl)) {
           InsertMode.last_ = null;
           prompt();
           (activeEl as LockableElement).blur();
@@ -887,7 +883,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     // Note: this traverser should not need a prepareCrop
     let links = Hints.traverse_(Hints.kSafeAllSelector_, Pagination.GetButtons_, true, true);
     const tryQuery = (selector: string): NodeListOf<Element> | void => {
-      try { return document.querySelectorAll(selector); } catch {}
+      try { return doc.querySelectorAll(selector); } catch {}
     }, wordRe = <RegExpOne> /\b/,
     quirk = isNext ? ">>" : "<<", quirkIdx = names.indexOf(quirk),
     rel = isNext ? "next" : "prev", relIdx = names.indexOf(rel),
@@ -899,7 +895,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     for (i = 0; i < count; i++) {
       if (GlobalConsts.SelectorPrefixesInPatterns.includes(names[i][0])) {
         const arr = tryQuery(names[i]);
-        if (arr && arr.length === 1 && VDom.htmlTag_(arr[0])) {
+        if (arr && arr.length === 1 && D.htmlTag_(arr[0])) {
           candidates.push([i << 23, "", arr[0] as SafeHTMLElement]);
           count = i + 1;
           break;

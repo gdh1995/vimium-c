@@ -336,31 +336,32 @@ var VFind = {
     type Result = FindNS.Action;
     const eventWrapper: HandlerNS.Event = {c: kChar.INVALID, e: event, i: n},
     key = VKey.key_(eventWrapper, kModeId.Find), keybody = VKey.keybody_(key);
-    let i: Result | KeyStat = key.startsWith("a-") && event.altKey ? FindNS.Action.DoNothing
+    const i: Result | KeyStat = key.includes("a-") && event.altKey ? FindNS.Action.DoNothing
       : keybody === kChar.enter
-        ? key.includes("s-") ? FindNS.Action.PassDirectly : (a.saveQuery_(), FindNS.Action.ExitToPostMode)
+        ? key[0] === "s" ? FindNS.Action.PassDirectly : (a.saveQuery_(), FindNS.Action.ExitToPostMode)
       : keybody !== kChar.delete && keybody !== kChar.backspace
         ? VKey.isEscape_(key) ? FindNS.Action.ExitAndReFocus : FindNS.Action.DoNothing
       : Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther & BrowserType.Firefox)
-        && VDom.cache_.o === kOS.linux && (key.includes("c-") || key.includes("s-")) ? FindNS.Action.CtrlDelete
+        && VDom.cache_.o === kOS.linux && "cs".includes(key[0])
+        ? FindNS.Action.CtrlDelete
       : a.notEmpty_ || (n === kKeyCode.deleteKey && VDom.cache_.o || event.repeat) ? FindNS.Action.PassDirectly
       : FindNS.Action.Exit;
+    let h = HandlerResult.Prevent;
     if (!i) {
       if (keybody !== key) {
         if (key === `a-${kChar.f1}`) {
           VDom.prepareCrop_();
           VVisual.HighlightRange_(VCui.getSelected_()[0]);
         }
-        else if (key < "c-" || key > "m-") { return; }
+        else if (key < "c-" || key > "m-") { h = HandlerResult.Suppress; }
         else if (keybody === kChar.up || keybody === kChar.down || keybody === kChar.end || keybody === kChar.home) {
           VSc.BeginScroll_(eventWrapper);
         }
         else if (keybody === "j" || keybody === "k") {
           a.execute_(null, { n: keybody > "j" ? -1 : 1 });
         }
-        else { return; }
-        i = FindNS.Action.DoNothing;
+        else { h = HandlerResult.Suppress; }
       }
       else if (keybody === kChar.f1) { a.innerDoc_.execCommand("delete"); }
       else if (keybody === kChar.f2) {
@@ -368,18 +369,18 @@ var VFind = {
         focus(); VApi.keydownEvents_()[n] = 1;
       }
       else if (keybody === kChar.up || keybody === kChar.down) { a.nextQuery_(keybody < kChar.up); }
-      else { return; }
+      else { h = HandlerResult.Suppress; }
     } else if (i === FindNS.Action.PassDirectly) {
-      return;
+      h = HandlerResult.Suppress;
     }
-    VKey.prevent_(event);
-    if (!i) { return; }
+    h < HandlerResult.Prevent || VKey.prevent_(event);
+    if (i < FindNS.Action.DoNothing + 1) { return; }
     VApi.keydownEvents_()[n] = 1;
     if (Build.BTypes & BrowserType.Firefox && i === FindNS.Action.CtrlDelete) {
       const sel = a.innerDoc_.getSelection();
       // on Chrome 79 + Win 10 / Firefox 69 + Ubuntu 18, delete a range itself
       // while on Firefox 70 + Win 10 it collapses first
-      sel.type === "Caret" && sel.modify("extend", n - kKeyCode.deleteKey ? "backward" : "forward", "word");
+      sel.type === "Caret" && sel.modify("extend", keybody[0] !== "d" ? "backward" : "forward", "word");
       a.innerDoc_.execCommand("delete");
       return;
     }
@@ -387,7 +388,7 @@ var VFind = {
   },
   onHostKeydown_ (event: HandlerNS.Event): HandlerResult {
     const key = VKey.key_(event, kModeId.Find), key2 = key.replace("m-", "c-"),  a = this;
-    if (key === "f2") {
+    if (key === kChar.f2) {
       a._onUnexpectedBlur && a._onUnexpectedBlur();
       a.focus_();
       return HandlerResult.Prevent;

@@ -362,27 +362,26 @@ function simulateClick(a: HTMLElement, event: MouseEvent | KeyboardEvent): boole
 }
 
 function imgOnKeydown(event: KeyboardEventToPrevent): boolean {
-  const { keyCode } = event;
   if (VData.error) { return false; }
-  if (keyCode === kKeyCode.space || keyCode === kKeyCode.enter) {
+  const {keyCode} = event,
+  key = window.VKey && VKey.cache_ ? VKey.key_({c: kChar.INVALID, e: event, i: keyCode}, kModeId.Show)
+      : keyCode === kKeyCode.space ? kChar.space : keyCode === kKeyCode.enter ? kChar.enter : "",
+  keybody = key.slice(key.lastIndexOf("-") + 1);
+  if (keybody === kChar.space || keybody === kChar.enter) {
     event.preventDefault();
-    if (keyCode === kKeyCode.enter && viewer_ && viewer_.isShown && !viewer_.played) {
+    if (keybody === kChar.enter && viewer_ && viewer_.isShown && !viewer_.played) {
       viewer_.play(true);
     } else if (!viewer_ || !viewer_.isShown) {
       simulateClick(VShown as ValidNodeTypes, event);
     }
     return true;
   }
-  if (!window.VKey || !VKey.cache_) {
-    return false;
-  }
-  const eventWrapper: HandlerNS.Event = {c: kChar.INVALID, e: event, i: keyCode};
   let action: number = 0;
-  switch (VKey.key_(eventWrapper, kModeId.Show)) {
-  case "c-=": case "+": case "=": case "up": action = 1; break;
+  switch (key) {
+  case "c-=": case "m-=": case "+": case "=": case "up": action = 1; break;
   case "left": action = -2; break;
   case "right": action = 2; break;
-  case "c--": case "-": case "down": action = -1; break;
+  case "c--": case "m--": case "-": case "down": action = -1; break;
   default: return false;
   }
   event.preventDefault();

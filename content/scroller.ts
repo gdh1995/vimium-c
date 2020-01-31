@@ -243,6 +243,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     }
   },
   BeginScroll_ (eventWrapper: HandlerNS.BaseUIEvent | HandlerNS.Event): void {
+    // todo:
     if (!eventWrapper || eventWrapper.e.shiftKey || eventWrapper.e.altKey) { return; }
     const {i: keyCode, e: event} = eventWrapper, c = (keyCode & 1) as BOOL;
     if (!(keyCode > kKeyCode.maxNotPageUp && keyCode < kKeyCode.minNotDown)) { return; }
