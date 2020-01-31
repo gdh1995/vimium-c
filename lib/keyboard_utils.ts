@@ -13,6 +13,8 @@ var VKey = {
     __proto__: null as never,
     Alt: 1, AltGraph: 1, Control: 1, Meta: 1, OS: 1, Shift: 1
   } as SafeEnum,
+  scrollDirectives_: ` ${kChar.pageup} ${kChar.pagedown}`
+      + ` ${kChar.left} ${kChar.right} ${kChar.home} ${kChar.end} ${kChar.up} ${kChar.down}`,
   cache_: null as never as SettingsNS.FrontendSettingCache,
   /** only return lower-case long string */
   getKeyName_ (event: Pick<KeyboardEvent, "key" | "keyCode" | "location">): kChar {

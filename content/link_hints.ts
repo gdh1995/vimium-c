@@ -1099,8 +1099,8 @@ var VHints = {
         i = VKey.getKeyStat_(event);
         (i & (i - 1)) || (a.lastMode_ = mode);
       }
-    } else if (i <= kKeyCode.down && i >= kKeyCode.pageup) {
-      VSc.BeginScroll_(event);
+    } else if (VKey.scrollDirectives_.includes(" " + keybody)) {
+      VSc.BeginScroll_(event, key, keybody);
       a.ResetMode_();
     } else if (keybody === kChar.tab && !a.useFilter_ && !a.keyStatus_.keySequence_) {
       a.tooHigh_ = null;

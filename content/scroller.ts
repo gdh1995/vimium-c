@@ -242,21 +242,19 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       }
     }
   },
-  BeginScroll_ (eventWrapper: HandlerNS.BaseUIEvent | HandlerNS.Event): void {
-    // todo:
-    if (!eventWrapper || eventWrapper.e.shiftKey || eventWrapper.e.altKey) { return; }
-    const {i: keyCode, e: event} = eventWrapper, c = (keyCode & 1) as BOOL;
-    if (!(keyCode > kKeyCode.maxNotPageUp && keyCode < kKeyCode.minNotDown)) { return; }
-    const work = keyCode > kKeyCode.maxNotLeft ? 1 : keyCode > kKeyCode.maxNotEnd ? 2
-      : !(event.ctrlKey || event.metaKey) ? 3 : 0,
+  BeginScroll_ (eventWrapper: 0 | Pick<HandlerNS.Event, "e">, key: string, keybody: string): void {
+    if (key.includes("s-") || key.includes("a-")) { return; }
+    // const c = (keyCode & 1) as BOOL;
+    const index = VKey.scrollDirectives_.split(" ").indexOf(keybody),
+    work = index > 4 && index < 7 ? 2 : index > 2 ? 1 : key === keybody ? 3 : 0,
     Sc = VSc;
-    work && event instanceof Event && VKey.prevent_(event);
+    work && eventWrapper && VKey.prevent_(eventWrapper.e);
     if (work === 1) {
-      Sc.scroll_((1 - c) as BOOL, keyCode < kKeyCode.minNotUp ? -1 : 1, 0);
+      Sc.scroll_(index > 4 ? 1 : 0, index & 1 ? -1 : 1, 0);
     } else if (work === 2) {
-      Sc.scroll_(1, 0, 1, 0, c > 0);
+      Sc.scroll_(1, 0, 1, 0, index > 5);
     } else if (work) {
-      Sc.scroll_(1, 0.5 - c, 0, 2);
+      Sc.scroll_(1, index - 1.5, 0, 2);
     }
   },
   OnScrolls_ (event: KeyboardEventToPrevent): boolean {

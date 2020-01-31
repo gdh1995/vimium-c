@@ -355,8 +355,8 @@ var VFind = {
           VVisual.HighlightRange_(VCui.getSelected_()[0]);
         }
         else if (key < "c-" || key > "m-") { h = HandlerResult.Suppress; }
-        else if (keybody === kChar.up || keybody === kChar.down || keybody === kChar.end || keybody === kChar.home) {
-          VSc.BeginScroll_(eventWrapper);
+        else if (VKey.scrollDirectives_.indexOf(" " + keybody) > 25) {
+          VSc.BeginScroll_(eventWrapper, key, keybody);
         }
         else if (keybody === "j" || keybody === "k") {
           a.execute_(null, { n: keybody > "j" ? -1 : 1 });
@@ -524,7 +524,7 @@ var VFind = {
     },
     exit_ (skip?: boolean | Event): void {
       // safe if destroyed, because `el.onblur = Exit`
-      if (skip instanceof Event
+      if (skip && skip !== !!skip
           && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
               ? !skip.isTrusted : skip.isTrusted === false)) { return; }
       const a = this;

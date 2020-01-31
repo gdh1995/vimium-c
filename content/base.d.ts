@@ -20,12 +20,8 @@ declare const enum VisibilityType {
   NoSpace = 2,
 }
 declare namespace HandlerNS {
-  interface BaseUIEvent {
-    /** event */ e: Partial<EventControlKeys>;
+  interface Event {
     /** keyCode */ i: kKeyCode;
-  }
-
-  interface Event extends BaseUIEvent {
     /** raw char */ c: kChar;
     /** event */ e: KeyboardEventToPrevent;
   }
@@ -272,7 +268,10 @@ declare namespace VomnibarNS {
   interface FReq {
     [kFReq.hide]: {
     };
-    [kFReq.scroll]: HandlerNS.BaseUIEvent;
+    [kFReq.scroll]: {
+      /** key */ k: string;
+      /** keybody */ b: string;
+    };
     [kFReq.style]: {
       // unit: physical pixel (if C<52)
       h: number;

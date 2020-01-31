@@ -151,13 +151,12 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     let action: HandlerResult;
     if (action = K.bubbleEvent_(eventWrapper)) { /* empty */ }
     else if (InsertMode.isActive_()) {
-      const g = InsertMode.global_,
-      pure = !g && !mappedKeys && (key < kKeyCode.f1 || key > kKeyCode.minNotFn - 1) && !event.ctrlKey,
-      keyStr = pure ? "" : getMappedKey(eventWrapper, kModeId.Insert);
+      const g = InsertMode.global_, isF_num = key > kKeyCode.maxNotFn && key < kKeyCode.minNotFn,
+      keyStr = mappedKeys || g || isF_num || event.ctrlKey
+          || key === kKeyCode.esc ? getMappedKey(eventWrapper, kModeId.Insert) : "";
       if (g ? !g.k ? K.isEscape_(keyStr) : keyStr === g.k
-          : key > kKeyCode.maxNotFn && key < kKeyCode.minNotFn
+          : isF_num
           ? (action = checkKey(eventWrapper, keyStr)) > HandlerResult.MaxNotEsc
-          : pure ? key === kKeyCode.esc && !K.getKeyStat_(eventWrapper)
           : K.isEscape_(keyStr)
       ) {
         if ((insertLock === doc.body && insertLock || !isTop && innerHeight < 3) && !g) {

@@ -170,8 +170,8 @@ var VVisual = {
       a.currentCount_ = !newActions && key.length < 2 && +key < 10 ? a.currentSeconds_ ? +key : +key + count * 10 : 0;
       a.currentSeconds_ = newActions || null;
       return newActions ? HandlerResult.Prevent
-          : keybody.length > 1 || VKey.getKeyStat_(event) & KeyStat.ExceptShift
-          ? keybody < kChar.f1 || keybody > "f9" ? HandlerResult.Suppress : HandlerResult.Nothing
+          : keybody.length > 1 || key !== keybody && key[0] !== "s"
+          ? keybody < kChar.f1 || keybody > kChar.maxF_num ? HandlerResult.Suppress : HandlerResult.Nothing
           : HandlerResult.Prevent;
     }
     a.resetKeys_();

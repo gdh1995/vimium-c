@@ -544,11 +544,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         event.preventDefault();
         a.lastScrolling_ = Date.now();
         window.onkeyup = Vomnibar_.HandleKeydown_;
-        VPort_.postToOwner_({ N: VomnibarNS.kFReq.scroll,
-          e: {},
-          i: char === kChar.up ? kKeyCode.up : char === kChar.down ? kKeyCode.down
-              : char === kChar.end ? kKeyCode.end : kKeyCode.home
-        });
+        VPort_.postToOwner_({ N: VomnibarNS.kFReq.scroll, k: key, b: char });
         return;
       } else if (Build.BTypes & ~BrowserType.Firefox
           && (!(Build.BTypes & BrowserType.Firefox) || a.browser_ !== BrowserType.Firefox)
