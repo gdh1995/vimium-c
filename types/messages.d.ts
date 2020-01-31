@@ -253,8 +253,6 @@ interface CmdOptions {
   };
   [kFgCmd.insertMode]: {
     k: string | null;
-    c: kKeyCode;
-    s: KeyStat;
     p: boolean;
     h: [string] | null;
   };

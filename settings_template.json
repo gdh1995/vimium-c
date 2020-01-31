@@ -11,7 +11,7 @@
 		"unmapAll",
 		"map ? showHelp",
 		"map <a-/> enterInsertMode",
-		"map <a-?> enterInsertMode stat=8",
+		"map <a-?> enterInsertMode key=\"<s-esc>\"",
 		"map <a-t> createTab",
 		"map <a-c> previousTab",
 		"map <a-v> nextTab",

@@ -231,7 +231,7 @@
 		"message": "Enter insert mode"
 	},
 	"enterInsertMode_p": {
-		"message": "code=27, stat=0"
+		"message": "key:string"
 	},
 	"enterVisualLineMode": {
 		"message": "Enter visual line mode"

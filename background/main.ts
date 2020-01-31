@@ -1159,19 +1159,19 @@
       });
     },
     /* kBgCmd.enterInsertMode: */ function (): void {
-      let code = cOptions.code | 0, stat: KeyStat = cOptions.stat | 0, key = cOptions.key,
+      let key = cOptions.key,
       hud = cOptions.hideHUD != null ? !cOptions.hideHUD : cOptions.hideHud != null ? !cOptions.hideHud
           : !Settings_.cache_.hideHud;
-      key = key && typeof key === "string" ? key : null;
-      code = key ? kKeyCode.True : stat !== KeyStat.plain ? code || kKeyCode.esc : code === kKeyCode.esc ? 0 : code;
+      key = key && typeof key === "string" ? key : "";
+      let k2 = BgUtils_.stripKey_(key);
       cPort.postMessage<1, kFgCmd.insertMode>({ N: kBgReq.execute,
         S: hud ? ensureInnerCSS(cPort) : null,
         c: kFgCmd.insertMode,
         n: 1,
         a: {
-          c: code, s: stat, k: key,
+          k: k2 || null,
           p: !!cOptions.passExitKey,
-          h: hud ? [trans_("" + kTip.globalInsertMode, [code ? ": " + (key || code + "/" + stat) : ""])] : null
+          h: hud ? [trans_("" + kTip.globalInsertMode, [k2 && ": " + key])] : null
         }
       });
     },
