@@ -217,7 +217,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     }
     if (isTo && element === a.top_) {
       amount && di && VMarks.setPreviousPosition_();
-      if (!a._joined && (options as Extract<typeof options, {dest: string}>).sel === "clear") {
+      if (!a._joined && options && (options as Extract<typeof options, {dest: string}>).sel === "clear") {
         VCui.resetSelectionToDocStart_();
       }
     }
