@@ -576,7 +576,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       let newEl = insertLock;
       if (newEl) {
         if ((options.act || options.action) === "backspace") {
-          if (D.view_(newEl)) { doc.execCommand("delete"); }
+          if (D.view_(newEl)) { VFind.exec_("delete", doc); }
         } else {
           InsertMode.last_ = newEl;
           InsertMode.mutable_ = false;
@@ -712,6 +712,21 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         }
         return HandlerResult.Nothing;
       }, InsertMode.inputHint_);
+    },
+    /* kFgCmd.editText: */ function (count: number, options: CmdOptions[kFgCmd.editText]) {
+      if (insertLock || options.dom) {
+        const isSel = options.sel, args = options.args,
+        sel = isSel && VCui.getSelected_()[0];
+        setTimeout((): void => {
+          while (0 < count--) {
+            if (sel) {
+              sel.modify.apply(sel, args);
+            } else {
+              VFind.exec_(args[0], doc, args[1]);
+            }
+          }
+        }, 0);
+      }
     }
   ],
 

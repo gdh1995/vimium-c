@@ -248,7 +248,7 @@ copy cut beforecopy beforecut paste".split(" ")) {
     a.query_ || a.SetQuery_(query);
     a.isQueryRichText_ = true;
     a.notEmpty_ = !!a.query_;
-    a.notEmpty_ && a.innerDoc_.execCommand("selectAll", false);
+    a.notEmpty_ && a.exec_("selectAll");
   },
   init_ (adjust: AdjustType): void {
     const ref = this.postMode_, UI = VCui,
@@ -327,7 +327,7 @@ copy cut beforecopy beforecut paste".split(" ")) {
     const d = event.clipboardData, text = d && typeof d.getData === "function" ? d.getData("text/plain") : "";
     VKey.prevent_(event);
     if (!text) { return; }
-    this.document.execCommand("insertText", false, text + "");
+    VFind.exec_("insertText", 0, text);
   } : 0 as never,
   onKeydown_ (event: KeyboardEventToPrevent): void {
     VKey.Stop_(event);
@@ -365,7 +365,7 @@ copy cut beforecopy beforecut paste".split(" ")) {
         }
         else { h = HandlerResult.Suppress; }
       }
-      else if (keybody === kChar.f1) { a.innerDoc_.execCommand("delete"); }
+      else if (keybody === kChar.f1) { a.exec_("delete"); }
       else if (keybody === kChar.f2) {
         Build.BTypes & BrowserType.Firefox && a.box_.blur();
         focus(); VApi.keydownEvents_()[n] = 1;
@@ -383,7 +383,7 @@ copy cut beforecopy beforecut paste".split(" ")) {
       // on Chrome 79 + Win 10 / Firefox 69 + Ubuntu 18, delete a range itself
       // while on Firefox 70 + Win 10 it collapses first
       sel.type === "Caret" && sel.modify("extend", keybody[0] !== "d" ? "backward" : "forward", "word");
-      a.innerDoc_.execCommand("delete");
+      a.exec_("delete");
       return;
     }
     a.deactivate_(i as FindNS.Action);
@@ -486,15 +486,15 @@ copy cut beforecopy beforecut paste".split(" ")) {
       VApi.send_(kFgReq.findQuery, { i: ind }, this.SetQuery_);
       return;
     }
-    this.innerDoc_.execCommand("undo", false);
+    this.exec_("undo");
     this.innerDoc_.getSelection().collapseToEnd();
   },
   SetQuery_ (this: void, query: string): void {
     let _this = VFind;
     if (query === _this.query_ || !_this.innerDoc_) { return; }
     if (!query && _this.historyIndex_ > 0) { --_this.historyIndex_; return; }
-    _this.innerDoc_.execCommand("selectAll", false);
-    _this.innerDoc_.execCommand("insertText", false, query.replace(<RegExpOne> /^ /, "\xa0"));
+    _this.exec_("selectAll");
+    _this.exec_("insertText", 0, query.replace(<RegExpOne> /^ /, "\xa0"));
     _this.OnInput_();
   },
   saveQuery_ (): void {
@@ -502,6 +502,9 @@ copy cut beforecopy beforecut paste".split(" ")) {
       H: kFgReq.findQuery,
       q: this.query0_
     });
+  },
+  exec_ (cmd: string, doc?: Document | 0, value?: string) {
+    (doc || this.innerDoc_).execCommand(cmd, false, value);
   },
   postMode_: {
     lock_: null as Element | null,

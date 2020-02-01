@@ -459,6 +459,7 @@ declare const enum kCName {
   debugBackground = "debugBackground",
   discardTab = "discardTab",
   duplicateTab = "duplicateTab",
+  editText = "editText",
   enableCSTemp = "enableCSTemp",
   enterFindMode = "enterFindMode",
   enterInsertMode = "enterInsertMode",
@@ -473,6 +474,7 @@ declare const enum kCName {
   goPrevious = "goPrevious",
   goToRoot = "goToRoot",
   goUp = "goUp",
+  joinTabs = "joinTabs",
   lastTab = "lastTab",
   mainFrame = "mainFrame",
   moveTabLeft = "moveTabLeft",
@@ -480,7 +482,6 @@ declare const enum kCName {
   moveTabToIncognito = "moveTabToIncognito",
   moveTabToNewWindow = "moveTabToNewWindow",
   moveTabToNextWindow = "moveTabToNextWindow",
-  joinTabs = "joinTabs",
   nextFrame = "nextFrame",
   nextTab = "nextTab",
   openCopiedUrlInCurrentTab = "openCopiedUrlInCurrentTab",
@@ -592,6 +593,7 @@ declare namespace CommandsNS {
     [kCName.debugBackground]: kBgCmd.openUrl;
     [kCName.discardTab]: kBgCmd.discardTab;
     [kCName.duplicateTab]: kBgCmd.duplicateTab;
+    [kCName.editText]: kFgCmd.editText;
     [kCName.enableCSTemp]: kBgCmd.toggleCS;
     [kCName.enterFindMode]: kBgCmd.performFind;
     [kCName.enterInsertMode]: kBgCmd.enterInsertMode;
@@ -606,6 +608,7 @@ declare namespace CommandsNS {
     [kCName.goPrevious]: kBgCmd.goNext;
     [kCName.goToRoot]: kBgCmd.goUp;
     [kCName.goUp]: kBgCmd.goUp;
+    [kCName.joinTabs]: kBgCmd.joinTabs;
     [kCName.lastTab]: kBgCmd.goToTab;
     [kCName.mainFrame]: kBgCmd.mainFrame;
     [kCName.moveTabLeft]: kBgCmd.moveTab;
@@ -613,7 +616,6 @@ declare namespace CommandsNS {
     [kCName.moveTabToIncognito]: kBgCmd.moveTabToNewWindow;
     [kCName.moveTabToNewWindow]: kBgCmd.moveTabToNewWindow;
     [kCName.moveTabToNextWindow]: kBgCmd.moveTabToNextWindow;
-    [kCName.joinTabs]: kBgCmd.joinTabs;
     [kCName.nextFrame]: kBgCmd.nextFrame;
     [kCName.nextTab]: kBgCmd.goToTab;
     [kCName.openCopiedUrlInCurrentTab]: kBgCmd.openUrl;

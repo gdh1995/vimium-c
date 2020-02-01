@@ -215,6 +215,12 @@
 	"debugBackground": {
 		"message": "Debug the background page"
 	},
+	"editText": {
+		"message": "Send editing action to browser"
+	},
+	"editText_p": {
+		"message": "args:string[], dom=false, sel=false"
+	},
 	"enableCSTemp": {
 		"message": "Enable the site's CS in incognito window"
 	},
@@ -281,6 +287,7 @@
 	"goUp_p": {
 		"message": "trailingSlash=null/true/false"
 	},
+	"joinTabs": { "message": "Collect all tabs into current window" },
 	"lastTab": {
 		"message": "Go to the last N-th tab"
 	},
@@ -302,7 +309,6 @@
 	"moveTabToNextWindow_p": {
 		"message": "right"
 	},
-	"joinTabs": { "message": "Collect all tabs into current window" },
 	"nextFrame": {
 		"message": "Cycle forward to the next frame on the page"
 	},

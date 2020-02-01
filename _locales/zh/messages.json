@@ -152,6 +152,9 @@
 	"debugBackground": {
 		"message": "打开 Vimium C 扩展程序的管理页"
 	},
+	"editText": {
+		"message": "向浏览器发送文本操作指令"
+	},
 	"enableCSTemp": {
 		"message": "在无痕窗口中赋予网站对一项功能的使用权限"
 	},
@@ -194,6 +197,7 @@
 	"goUp": {
 		"message": "访问当前网址的上一层"
 	},
+	"joinTabs": { "message": "合并所有窗口" },
 	"lastTab": {
 		"message": "切换到右数指定位置的标签页"
 	},
@@ -212,7 +216,6 @@
 	"moveTabToNextWindow": {
 		"message": "移动当前标签页到下一个窗口"
 	},
-	"joinTabs": { "message": "合并所有窗口" },
 	"nextFrame": {
 		"message": "移动键盘焦点到下一个子页面"
 	},

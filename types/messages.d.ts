@@ -191,7 +191,7 @@ declare const enum kFgCmd {
   goToMarks, scroll, visualMode, vomnibar,
   reset, toggle, insertMode, passNextKey, goNext,
   reload, switchFocus, showHelp, autoCopy,
-  autoOpen, searchAs, focusInput,
+  autoOpen, searchAs, focusInput, editText,
   END = "END",
 }
 type FgCmdAcrossFrames = kFgCmd.linkHints | kFgCmd.scroll | kFgCmd.vomnibar;
@@ -295,7 +295,12 @@ interface CmdOptions {
     select?: SelectActions;
     keep?: boolean;
     passExitKey?: boolean;
-  }
+  };
+  [kFgCmd.editText]: {
+    sel?: boolean;
+    dom?: boolean;
+    args: [/** alert */ string, /** direction */ string, /** granularity */ string?];
+  };
 }
 
 declare const enum kMarkAction {
