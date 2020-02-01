@@ -68,25 +68,22 @@ var VDom = {
     const desc = Object.getOwnPropertyDescriptor(Cls.prototype, property);
     return desc && desc.get ? desc.get.call(instance) : null;
   } : 0 as never,
-  notSafe_: (Build.BTypes & ~BrowserType.Firefox ? function (el: Node | null): el is HTMLFormElement {
-    let s: Node["nodeName"];
-    return !!el && (typeof (s = el.nodeName) !== "string" ||
+  notSafe_: (Build.BTypes & ~BrowserType.Firefox ? function (el: Element | null): el is HTMLFormElement {
+    let s: Element["localName"];
+    return !!el && (typeof (s = el.localName) !== "string" ||
       (Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter || !(Build.BTypes & BrowserType.Chrome)
-        ? s.toLowerCase() === "form"
-        : (s = s.toLowerCase()) === "form" || s === VDom.unsafeFramesetTag_)
+        ? s === "form" : s === "form" || s === VDom.unsafeFramesetTag_)
     );
-  } : 0 as never) as (el: Node | null) => el is HTMLFormElement,
+  } : 0 as never) as (el: Element | null) => el is HTMLFormElement,
   /** @safe_even_if_any_overridden_property */
-  SafeEl_: Build.BTypes & ~BrowserType.Firefox ? function (
-      this: void, el: Node | null, type?: PNType.DirectElement | undefined): Node | null {
+  SafeEl_: (Build.BTypes & ~BrowserType.Firefox ? function (
+      this: void, el: Element | null, type?: PNType.DirectElement | undefined): Node | null {
     return VDom.notSafe_(el)
       ? VDom.SafeEl_(VDom.GetParent_(el, type || PNType.RevealSlotAndGotoParent), type) : el;
-  } as {
-    (this: void, el: SafeHTMLElement | null): SafeHTMLElement | null;
-    (this: void, el: HTMLElement | null): SafeElement | null;
-    (this: void, el: Element | null, type?: PNType.DirectElement | undefined): SafeElement | null;
-    (this: void, el: Node | null): Node | null;
-  } : 0 as never,
+  } : 0 as never) as {
+    (this: void, el: SafeElement | null, type?: any): unknown;
+    (this: void, el: Element | null, type?: PNType.DirectElement): SafeElement | null;
+  },
   GetShadowRoot_ (el: Element): ShadowRoot | null {
     // check type of el to avoid exceptions
     if (!(Build.BTypes & ~BrowserType.Firefox)) {
@@ -109,7 +106,7 @@ var VDom = {
    * @safe_even_if_any_overridden_property
    * @UNSAFE_RETURNED
    */
-  GetParent_: function (this: void, el: Node
+  GetParent_: function (this: void, el: Node | Element
       , type: PNType.DirectNode | PNType.DirectElement | PNType.RevealSlot | PNType.RevealSlotAndGotoParent
       ): Node | null {
     /**
@@ -119,14 +116,17 @@ var VDom = {
     const a = Build.BTypes & ~BrowserType.Firefox ? VDom : 0 as never,
     kPN = "parentNode";
     if (type >= PNType.RevealSlot && Build.BTypes & ~BrowserType.Edge) {
+      const ElementCls = Build.MinCVer < BrowserVer.MinNoShadowDOMv0 && Build.BTypes & BrowserType.Chrome
+          ? Element : 0 as never;
       if (Build.MinCVer < BrowserVer.MinNoShadowDOMv0 && Build.BTypes & BrowserType.Chrome) {
-        const func = Element.prototype.getDestinationInsertionPoints,
-        arr = func ? func.call(el as Element) : [], len = arr.length;
+        const func = ElementCls.prototype.getDestinationInsertionPoints,
+        arr = func ? func.call(el) : [], len = arr.length;
         len > 0 && (el = arr[len - 1]);
       }
       let slot = (el as Element).assignedSlot;
-      Build.BTypes & ~BrowserType.Firefox && slot && a.notSafe_(el) &&
-      (slot = a.Getter_(Element, el, "assignedSlot"));
+      Build.BTypes & ~BrowserType.Firefox && slot && a.notSafe_(el as Element) &&
+      (slot = a.Getter_(Build.MinCVer < BrowserVer.MinNoShadowDOMv0 && Build.BTypes & BrowserType.Chrome
+          ? ElementCls : Element, el as HTMLFormElement, "assignedSlot"));
       if (slot) {
         if (type === PNType.RevealSlot) { return slot; }
         while (slot = slot.assignedSlot) { el = slot as HTMLSlotElement; }
