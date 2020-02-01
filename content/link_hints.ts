@@ -441,9 +441,13 @@ var VHints = {
     case "textarea":
       // on C75, a <textarea disabled> is still focusable
       if ((element as TextElement).disabled && _this.mode1_ < HintMode.max_mouse_events + 1) { return; }
-      if (!(element as TextElement).readOnly || _this.mode1_ > HintMode.min_job - 1
-          || tag === "input"
-              && VDom.uneditableInputs_[(element as HTMLInputElement).type]) {
+      if (tag === "input" && VDom.uneditableInputs_[(element as HTMLInputElement).type]) {
+        isClickable = <number> <string | number> getComputedStyle(element).opacity > 0;
+        if (!isClickable && (isClickable = !(element as HTMLInputElement).labels.length)) {
+          arr = VDom.getCroppedRect_(element, VDom.getVisibleClientRect_(element));
+        }
+        type = isClickable ? ClickType.edit : ClickType.Default;
+      } else if (!(element as TextElement).readOnly || _this.mode1_ > HintMode.min_job - 1) {
         type = ClickType.edit;
         isClickable = true;
       }
@@ -523,7 +527,7 @@ var VHints = {
     const tabIndex = (element as ElementToHTMLorSVG).tabIndex;
     { // not HTML*
       {
-        /** not use .codeListener, {@see #VHints.deduplicate_} */
+        /** not use .codeListener | .classname, {@see #VHints.deduplicate_} */
         type = VDom.clickable_.has(element)
             || tabIndex != null && (!(Build.BTypes & ~BrowserType.Firefox)
                 || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
@@ -719,15 +723,15 @@ var VHints = {
       (list as SafeElement[]).unshift(wholeDoc as unknown as SafeElement);
     }
     for (const tree_scopes: Array<[HintsNS.HintSources, number]> = [[list, 0]]; tree_scopes.length > 0; ) {
-      let cur_scope = tree_scopes[tree_scopes.length - 1], [cur_tree, i] = cur_scope, len = cur_tree.length
-        , el: SafeElement & {lang?: undefined} | SafeHTMLElement, shadowRoot: ShadowRoot | null | undefined;
+      let cur_scope = tree_scopes[tree_scopes.length - 1], [cur_tree, i] = cur_scope, len = cur_tree.length;
       for (; i < len; ) {
-        el = cur_tree[i++] as SafeElement & {lang?: undefined} | SafeHTMLElement;
+        const el = cur_tree[i++] as SafeElement & {lang?: undefined} | SafeHTMLElement;
         if (el.lang != null) {
           filter(output, el);
-          shadowRoot = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+          const shadowRoot = (Build.BTypes & BrowserType.Chrome
+                && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
                 && VDom.cache_.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-              ? el.webkitShadowRoot as ShadowRoot | null | undefined : el.shadowRoot as ShadowRoot | null | undefined;
+              ? el.webkitShadowRoot : el.shadowRoot) as ShadowRoot | null | undefined;
           if (shadowRoot) {
             let sub_tree: HintsNS.HintSources = shadowRoot.querySelectorAll(selector) as NodeListOf<SafeElement>;
             if (!matchAll) {
@@ -831,18 +835,20 @@ var VHints = {
   },
   deduplicate_ (list: Hint[]): void {
     let i = list.length, j: number, k: ClickType, s: string, notRemoveParents: boolean;
-    let element: Element, prect: Rect, crect: Rect | null;
+    let element: Element | null, prect: Rect, crect: Rect | null;
     while (0 <= --i) {
       k = list[i][2];
       notRemoveParents = k === ClickType.classname;
       if (!notRemoveParents) {
         if (k === ClickType.codeListener) {
-          if (s = ((element = list[i][0]) as SafeHTMLElement).localName, s === "i") {
+          if (s = ((element = list[i][0]) as SafeHTMLElement).localName, s === "i" || s === "div") {
             if (notRemoveParents
                 = i > 0 && (<RegExpOne> /\b(button|a$)/).test(list[i - 1][0].localName)
-                && !element.innerHTML.trim()
-                && this._isDescendant(element as SafeHTMLElement, list[i - 1][0], false) ) {
-              // icons: button > i
+                ? (s < "i" || !element.innerHTML.trim()) && this._isDescendant(element, list[i - 1][0], s < "i")
+                : !!(element = (element as SafeHTMLElement).parentElement)
+                  && VDom.htmlTag_(element) === "button" && (element as HTMLButtonElement).disabled
+                ) {
+              // icons: button > i; button > div@mousedown; (button[disabled] >) div@mousedown
               list.splice(i, 1);
             }
           } else if (s === "div"
@@ -1196,7 +1202,6 @@ var VHints = {
       // must get outline first, because clickEl may hide itself when activated
       // must use UI.getRect, so that VDom.zooms are updated, and prepareCrop is called
       rect = VCui.getRect_(clickEl, hint.r !== clickEl ? hint.r as HTMLElementUsingMap | null : null);
-      rect = VDom.getCroppedRect_(clickEl, rect);
       if (keyStatus.textSequence_ && !keyStatus.keySequence_ && !keyStatus.known_) {
         if ((!(Build.BTypes & BrowserType.Chrome)
               || Build.BTypes & ~BrowserType.Chrome && VOther !== BrowserType.Chrome
@@ -1485,16 +1490,16 @@ filterEngine_: {
       , localName = el.localName, isHTML = "lang" in el
       , ind: number;
     switch (isHTML ? localName : "") {
-    case "input": case "textarea": case "select":
+    case "input": case "select": case "textarea":
       let labels = (el as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement).labels;
-      if (labels && labels.length > 0
+      if (labels && labels.length
           && (text = (labels[0] as SafeHTMLElement).innerText).trim()) {
-        show = !0;
+        show = !(labels[0] as HTMLLabelElement).contains(el);
       } else if (localName[0] === "s") {
         const selected = (el as HTMLSelectElement).selectedOptions[0];
         text = selected ? selected.label : "";
       } else {
-        if (localName[0] === "i") {
+        if (localName < "s") {
           if ((el as HTMLInputElement).type === "file") {
             text = "Choose File";
           } else if ((el as HTMLInputElement).type === "password") {
@@ -1503,7 +1508,7 @@ filterEngine_: {
         }
         text = text || (el as HTMLInputElement | HTMLTextAreaElement).value
             || (el as HTMLInputElement | HTMLTextAreaElement).placeholder;
-        if (localName[0] === "t" && !(el as HTMLTextAreaElement).scrollTop) {
+        if (localName > "t" && !(el as HTMLTextAreaElement).scrollTop) {
           ind = text.indexOf("\n") + 1;
           // tslint:disable-next-line: no-unused-expression
           ind && (ind = text.indexOf("\n", ind)) > 0 ? text = text.slice(0, ind) : 0;

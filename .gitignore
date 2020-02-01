@@ -35,6 +35,6 @@ helpers/
 scripts/*public_suffix*
 package-lock.json
 scripts/*releases*
+icons/*.bin
 # just to make vscode ignore those on finding
 types/base/
-icons/*.bin

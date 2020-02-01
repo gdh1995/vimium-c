@@ -9069,8 +9069,10 @@ interface HTMLElementTagNameMap {
     "button": HTMLButtonElement;
     "canvas": HTMLCanvasElement;
     "caption": HTMLTableCaptionElement;
+    "code": HTMLElement;
     "col": HTMLTableColElement;
     "colgroup": HTMLTableColElement;
+    "details": HTMLDetailsElement;
     "datalist": HTMLDataListElement;
     "del": HTMLModElement;
     "dialog": HTMLDialogElement;

@@ -99,6 +99,7 @@ interface SafeHTMLElement extends BaseSafeHTMLElement {
   readonly innerText: string;
   readonly parentElement: Element | null;
   readonly parentNode: Node | null;
+  readonly localName: keyof HTMLElementTagNameMap;
 }
 interface LockableElement extends SafeHTMLElement {
 }

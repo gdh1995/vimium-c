@@ -449,12 +449,10 @@ var VCui = {
     }
     const rect = a.getVisibleClientRect_(clickEl),
     cr = a.getBoundingClientRect_(clickEl),
-    bcr = a.padClientRect_(cr, 8);
-    if (rect && a.htmlTag_(clickEl) === "img") {
-      return a.getCroppedRect_(clickEl as SafeHTMLElement, rect);
-    }
-    return rect && !a.isContaining_(bcr, rect) ? rect
+    bcr = a.padClientRect_(cr, 8),
+    rect2 = rect && !a.isContaining_(bcr, rect) ? rect
       : a.cropRectToVisible_(bcr.l, bcr.t, bcr.r, bcr.b) ? bcr : null;
+    return rect2 && VDom.getCroppedRect_(clickEl, rect2);
   },
   lastFlashEl_: null as SafeHTMLElement | null,
   flash_: function (this: {}, el: Element | null, rect?: Rect | null, lifeTime?: number, classNames?: string

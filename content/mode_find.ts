@@ -102,9 +102,10 @@ var VFind = {
     f("compositionend", Build.BTypes & BrowserType.Chrome
         && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)
         ? a.OnInput_ : s, t);
-    for (const i of ["compositionstart", "keypress", "mouseup", "click", "auxclick", "contextmenu", "copy", "cut", "paste"]) {
+    for (const i of "compositionstart keypress mouseup click auxclick contextmenu copy cut paste".split(" ")) {
       f(i, s, t);
     }
+    VKey.SetupEventListener_(wnd, "wheel");
     f("blur", a._onUnexpectedBlur = function (this: Window, event): void {
       const b = VFind, delta = Date.now() - now, wnd1 = this;
       if (event && b && b.isActive_ && delta < 500 && delta > -99 && event.target === wnd1) {
