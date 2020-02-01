@@ -102,7 +102,8 @@ var VFind = {
     f("compositionend", Build.BTypes & BrowserType.Chrome
         && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)
         ? a.OnInput_ : s, t);
-    for (const i of "compositionstart keypress mouseup click auxclick contextmenu copy cut paste".split(" ")) {
+    for (const i of "compositionstart keypress mouseup click auxclick contextmenu \
+copy cut beforecopy beforecut paste".split(" ")) {
       f(i, s, t);
     }
     VKey.SetupEventListener_(wnd, "wheel");
