@@ -934,6 +934,55 @@ var VHints = {
         ; c = c.lastElementChild as Element | null as Element) { /* empty */ }
     return i > 2;
   } as (c: Element, p: Hint[0], shouldBeSingleChild: boolean) => boolean,
+  filterOutCovered_ (list: Hint[]): void {
+    if (!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && VOther & BrowserType.Edge) { return; }
+    if (Build.BTypes & BrowserType.Chrome && (Build.MinCVer < BrowserVer.Min$Node$$getRootNode
+          || Build.MinCVer < BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint)
+        && VDom.cache_.v < (BrowserVer.Min$Node$$getRootNode > BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint
+            ? BrowserVer.Min$Node$$getRootNode : BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint)) {
+      return;
+    }
+    const zoom = Build.BTypes & BrowserType.Chrome ? VDom.docZoom_ * VDom.bZoom_ : 1,
+    zoomM2 = Build.BTypes & BrowserType.Chrome ? zoom * 2 : 2,
+    zoomD2 = Build.BTypes & BrowserType.Chrome ? zoom / 2 : 0.5,
+    body = document.body, docEl = document.documentElement;
+    let i = list.length, temp: Element | null;
+    while (0 <= --i) {
+      const ref = list[i], el = ref[0], {l, t, r, b} = ref[1],
+      root = (el as Ensure<Node, "getRootNode">).getRootNode(), nodeType = root.nodeType,
+      fromPoint = nodeType === kNode.DOCUMENT_NODE || nodeType === kNode.DOCUMENT_FRAGMENT_NODE
+          ? (root as Document | ShadowRoot).elementFromPoint((l + r) * zoomD2, (t + b) * zoomD2) : null;
+      if (!fromPoint || el.contains(fromPoint)) {
+        // note: exclude the case of `fromPoint.contains(el)`, to exclude invisible items in lists
+        continue;
+      }
+      if (nodeType === kNode.DOCUMENT_FRAGMENT_NODE
+          && (temp = (el as SafeElement).firstElementChild as Element | null)
+          && VDom.htmlTag_(temp) === "slot" && (root as ShadowRoot).host.contains(fromPoint)) {
+        continue;
+      }
+      const stack = (root as Document | ShadowRoot).elementsFromPoint((l + r) * zoomD2, (t + b) * zoomD2),
+      elPos = stack.indexOf(el);
+      if (elPos > 0 ? stack.lastIndexOf(fromPoint, elPos - 1) >= 0 : elPos < 0) {
+        if (!(Build.BTypes & BrowserType.Firefox) ? elPos < 0
+            : Build.BTypes & ~BrowserType.Firefox && VOther & ~BrowserType.Firefox && elPos < 0) {
+          for (temp = el; (temp = VDom.GetParent_(temp, PNType.RevealSlot)) && temp !== body && temp !== docEl; ) {
+            if (getComputedStyle(temp).zoom !== "1") { temp = el; break; }
+          }
+          if (temp === el) { continue; }
+        }
+        const func = (root as Document | ShadowRoot).elementFromPoint.bind(root as Document | ShadowRoot);
+        if (func(l * zoom + zoomM2, t * zoom + zoomM2) !== el // top-left
+            && func(l * zoom + zoomM2, (t + b) * zoomD2) !== el /* center-left: for circle buttons */
+            && func(l * zoom + zoomM2, b * zoom - zoomM2) !== el // bottom-left
+            && func(r * zoom - zoomM2, t * zoom + zoomM2) !== el // top-right
+            && func(r * zoom - zoomM2, b * zoom - zoomM2) !== el // bottom-right
+            && func((l + r) * zoomD2, t * zoom + zoomM2) !== el /* top-center */ ) {
+          list.splice(i, 1);
+        }
+      }
+    }
+  },
   frameNested_: false as HintsNS.NestedFrame,
   checkNestedFrame_ (output?: Hint[]): void {
     const res = output && output.length > 1 ? null : !frames.length ? false
@@ -977,6 +1026,9 @@ var VHints = {
       : _i - HintMode.FOCUS_EDITABLE ? a.traverse_(a.kSafeAllSelector_, a.GetClickable_)
       : a.traverse_(Build.BTypes & ~BrowserType.Firefox
             ? a.kEditableSelector_ + a.kSafeAllSelector_ : a.kEditableSelector_, a.GetEditable_);
+    if (visibleElements.length < GlobalConsts.MinElementCountToStopPointerDetection) {
+      a.filterOutCovered_(visibleElements);
+    }
     a.maxLeft_ = view[2], a.maxTop_ = view[3], a.maxRight_ = view[4];
     if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar)
         && a.maxRight_ > 0) {
@@ -1308,7 +1360,8 @@ var VHints = {
   resetHints_ (): void {
     // here should not consider about ._master
     const a = this;
-    a._onWaitingKey = a._onTailEnter =
+    if (Build.BTypes & BrowserType.Chrome) { a._onWaitingKey = null; }
+    a._onTailEnter =
     a.hints_ = a.zIndexes_ = a.filterEngine_.activeHint_ = a.filterEngine_.reForMatch_ = null as never;
     a.pTimer_ > 0 && (clearTimeout(a.pTimer_), a.pTimer_ = 0);
     a.hasExecuted_ = 0;

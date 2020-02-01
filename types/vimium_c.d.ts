@@ -431,6 +431,7 @@ declare const enum GlobalConsts {
   ThresholdToAutoLimitTabOperation = 2, // 2 * Tab[].length
   LinkHintTooHighThreshold = 20, // scrollHeight / innerHeight
   LinkHintPageHeightLimitToCheckViewportFirst = 15000,
+  MinElementCountToStopPointerDetection = 400,
   MinElementCountToStopScanOnClick = 5000,
   MaxScrollbarWidth = 24,
   MinScrollableAreaSizeForDetection = 50,
