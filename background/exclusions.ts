@@ -5,7 +5,7 @@ var Exclusions = {
   testers_: null as never as SafeDict<ExclusionsNS.Tester>,
   createRule_ (pattern: string, keys: string): ExclusionsNS.Tester {
     let cur: ExclusionsNS.Tester | undefined = this.testers_[pattern], re: RegExp | null | undefined;
-    keys = keys && keys.replace(<RegExpG> / <|>( |$)/g, " ").trimRight();
+    keys = keys && keys.replace(<RegExpG> /<(\S+)>/g, "$1").trimRight();
     if (cur) {
       return {
         t: cur.t as ExclusionsNS.TesterType.RegExp,

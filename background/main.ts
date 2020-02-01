@@ -3068,6 +3068,8 @@
       if (newPassedKeys && !newPassedKeys.startsWith("^ ")) {
         console.log('"vimium://status" only accepts a list of hooked keys');
         newPassedKeys = "";
+      } else {
+        newPassedKeys = newPassedKeys && newPassedKeys.replace(<RegExpG> /<(\S+)>/g, "$1").trimRight();
       }
       const always_enabled = Exclusions == null || Exclusions.rules_.length <= 0, oldStatus = ref[0].s.s,
       stat = act === "enable" ? Frames.Status.enabled : act === "disable" ? Frames.Status.disabled
