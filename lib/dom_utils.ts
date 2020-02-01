@@ -82,7 +82,8 @@ var VDom = {
     return VDom.notSafe_(el)
       ? VDom.SafeEl_(VDom.GetParent_(el, type || PNType.RevealSlotAndGotoParent), type) : el;
   } as {
-    (this: void, el: HTMLElement | null): SafeHTMLElement | null;
+    (this: void, el: SafeHTMLElement | null): SafeHTMLElement | null;
+    (this: void, el: HTMLElement | null): SafeElement | null;
     (this: void, el: Element | null, type?: PNType.DirectElement | undefined): SafeElement | null;
     (this: void, el: Node | null): Node | null;
   } : 0 as never,

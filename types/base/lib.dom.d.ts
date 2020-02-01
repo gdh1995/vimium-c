@@ -5564,7 +5564,6 @@ interface Node extends EventTarget {
     readonly childNodes: NodeList | Element | HTMLCollection | RadioNodeList | Window;
     readonly firstChild: Node | null;
     readonly lastChild: Node | null;
-    readonly localName: string | Element | RadioNodeList | Window | null;
     readonly namespaceURI: string | null;
     readonly nextSibling: Node | null;
     readonly nodeName: string | Element | HTMLCollection | RadioNodeList | Window;

@@ -914,12 +914,12 @@ var VHints = {
       list.shift();
     }
   },
-  _isDescendant: function (c: Element, p: Hint[0], shouldBeSingleChild: boolean): boolean {
+  _isDescendant: function (c: Element | null, p: Hint[0], shouldBeSingleChild: boolean): boolean {
     // Note: currently, not compute normal shadowDOMs / even <slot>s (too complicated)
     let i = 3, f: Node | null;
-    while (0 < i--
-        && (c = Build.BTypes & ~BrowserType.Firefox ? VDom.GetParent_(c, PNType.DirectElement) as Element
-                : c.parentElement as Element | null as Element)
+    while (0 < i-- && c
+        && (c = Build.BTypes & ~BrowserType.Firefox ? VDom.GetParent_(c, PNType.DirectElement)
+                : c.parentElement as Element | null)
         && c !== p
         && !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
               && VDom.unsafeFramesetTag_ && VDom.notSafe_(c))
