@@ -41,11 +41,12 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
 }
 var $ = <T extends HTMLElement>(selector: string): T => document.querySelector(selector) as T
   , BG_ = chrome.extension.getBackgroundPage() as Window as BgWindow
-  , bgOnOther_: BrowserType = Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox
-      && Build.BTypes & ~BrowserType.Edge ? BG_.OnOther as BrowserType : Build.BTypes as number
   , pTrans_: typeof chrome.i18n.getMessage = Build.BTypes & BrowserType.Firefox
-      && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)
+      && (!(Build.BTypes & ~BrowserType.Firefox) || BG_.OnOther === BrowserType.Firefox)
       ? (i, j) => BG_.trans_(i, j) : chrome.i18n.getMessage;
+if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
+  (window as any).bgOnOther_ = BG_.OnOther as BrowserType;
+}
 
 const $$ = document.querySelectorAll.bind(document) as <T extends HTMLElement>(selector: string) => NodeListOf<T>,
 lang_ = chrome.i18n.getMessage("lang1");

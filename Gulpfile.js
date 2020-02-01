@@ -261,6 +261,7 @@ var Tasks = {
       return cb();
     }
     var exArgs = { nameCache: loadNameCache("bg"), nameCachePath: getNameCacheFilePath("bg") };
+    var deepcopy = require("deepcopy");
     if (exArgs.nameCache.vars && exArgs.nameCache.props) {
       let {vars: {props: vars}, props: {props: props}} = exArgs.nameCache;
       var browser = getNonNullBuildItem("BTypes");
@@ -291,15 +292,17 @@ var Tasks = {
         "$destroy_": props["$destroy_"]
       };
       return uglifyJSFiles(["front/vomnibar*.js"], ".", "", {
+        passAll: null,
         nameCache: exArgs.nameCache && {
-          vars: exArgs.nameCache.vars,
+          vars: deepcopy(exArgs.nameCache.vars),
           props: { props: props }
         }
       });
     });
     gulp.task("min/others/options", function() {
       exArgs.passAll = null;
-      return uglifyJSFiles(["pages/options_base.js", "pages/options.js", "pages/options_*.js"], ".", "", exArgs);
+      return uglifyJSFiles(["pages/options_base.js", "pages/options.js", "pages/options_*.js"]
+          , ".", "", deepcopy(exArgs));
     });
     gulp.task("min/others/misc", function() {
       var oriManifest = readJSON("manifest.json", true);
@@ -315,7 +318,7 @@ var Tasks = {
         }
       }
       exArgs.passAll = false;
-      return uglifyJSFiles(res, ".", "", exArgs);
+      return uglifyJSFiles(res, ".", "", deepcopy(exArgs));
     });
     gulp.parallel("min/others/omni", "min/others/options", "min/others/misc")(function() {
       jsmin_status[2] = true;
@@ -733,7 +736,7 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
   var is_file = output.endsWith(ext);
 
   if (!exArgs.passAll) {
-    stream = stream.pipe(newer(is_file ? {
+    const newerTransform = newer(is_file ? {
       extra: exArgs.nameCachePath || null,
       dest: osPath.join(DEST, output)
     } : exArgs.nameCache ? {
@@ -745,7 +748,14 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
       dest: DEST,
       extra: exArgs.nameCachePath || null,
       ext: new_suffix + ext
-    }));
+    });
+    if (!is_file && exArgs.nameCachePath && exArgs.passAll !== false) {
+      if (!("_bufferedFiles" in newerTransform)) {
+        throw new Error("This version of `gulp-newer` is unsupported!");
+      }
+      newerTransform._bufferedFiles = [];
+    }
+    stream = stream.pipe(newerTransform);
   }
   let allPaths = null;
   if (enableSourceMap && !isJson) {
