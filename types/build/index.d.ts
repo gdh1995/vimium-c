@@ -2,17 +2,17 @@
 /// <reference path="../lib/index.d.ts" />
 
 declare const enum Build {
-  MinCVer = BrowserVer.MinSupported, // minimum Chrome version
+  MinCVer = 73, // minimum Chrome version
   MinFFVer = FirefoxBrowserVer.MinSupported, // minimum Firefox version
-  BTypes = BrowserType.Chrome | BrowserType.Firefox | BrowserType.Edge, // supported browser types
+  BTypes = BrowserType.Chrome | BrowserType.Firefox, // supported browser types
   EdgeC = 0,
   NDEBUG = 0,
-  NoDialogUI = 0,
+  NoDialogUI = 1,
   NativeWordMoveOnFirefox = 1,
   PContentSettings = 1,
   MayOverrideNewTab = 0,
   DetectAPIOnFirefox = 1,
-  CreateFakeIncognito = 1,
+  CreateFakeIncognito = 0,
 }
 // Note: one random value must be used only in one .ts file, to avoid issues caused by partly building
 declare const enum BuildStr {

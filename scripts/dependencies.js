@@ -31,7 +31,7 @@
  * } } FileSystem
  * 
  * @typedef { {
- *    compress: any; output: any; mangle: any;
+ *    compress: any; output: any; mangle: any; ecma?: 5 | 2015 | 2016 | 2017 | 2018;
  * } } TerserOptions
  */
 /** @type {FileSystem} */
@@ -173,7 +173,7 @@ function loadUglifyConfig(path, reload) {
     if (comments && typeof comments === "string") {
       o.comments = ToRegExp(comments);
     }
-    let ver = "", terser = null;
+    var ver = "", terser = null;
     try {
       // @ts-ignore
       ver = require("terser/package").version;
@@ -289,6 +289,47 @@ function getGitCommit() {
   return null;
 }
 
+/**
+ * 
+ * @param {string} source
+ * @param {boolean} locally
+ * @param {{ (...args: any[]): any; error(message: string): any; }} [logger]
+ */
+function patchExtendClick(source, locally, logger) {
+  logger && logger('Patch the extend_click module');
+  source = source.replace(/\b(addEventListener|toString) ?: ?function ?\w*/g, "$1");
+  var match = /\/: \?function \\w\+\/g, ?(""|'')/.exec(source);
+  if (match) {
+    var start = Math.max(0, match.index - 128), end = match.index;
+    var prefix = source.slice(0, start), suffix = source.slice(end);
+    source = source.slice(start, end).replace(/>= ?45/, "< 45").replace(/45 ?<=/, "45 >");
+    suffix = '/\\b(addEventListener|toString)\\(/g, "$1:function $1("' + suffix.slice(match[0].length);
+    source = prefix + source + suffix;
+  }
+  match = /' ?\+ ?\(?function VC ?\(/.exec(source);
+  if (match) {
+    var start = match.index;
+    var end1 = source.indexOf('}).toString()', start) + 1 || source.indexOf('}.toString()', start) + 1;
+    var end2 = source.indexOf('")();"', end1 + 2) + 1 || source.indexOf("')();'", end1 + 2) + 1;
+    if (end2 <= 0) {
+      throw new Error('Can not find the end ".toString() + \')();\'" around the injected function.');
+    }
+    var prefix = source.slice(0, start), suffix = source.slice(end2 + ")();'".length);
+    source = source.slice(start + match[0].length, end1).replace(/ \/\/[^\n]*?$/g, "").replace(/'/g, '"');
+    source = source.replace(/\\/g, "\\\\");
+    if (locally) {
+      source = source.replace(/([\r\n]) {4}/g, "$1").replace(/\r\n?|\n/g, "\\n\\\n");
+    } else {
+      source = source.replace(/[\r\n]\s*/g, "");
+    }
+    source = "function(" + source;
+    source = prefix + source + ")();'" + suffix;
+  } else if (! /= ?'"use strict";\(function\b/.test(source)) {
+    (logger || console).error("Error: can not wrap extend_click scripts!!!");
+  }
+  return source;
+}
+
 module.exports = {
   readFile: readFile,
   readJSON: readJSON,
@@ -297,4 +338,5 @@ module.exports = {
   compareFileTime: compareFileTime,
   extendIf: extendIf,
   getGitCommit: getGitCommit,
+  patchExtendClick: patchExtendClick,
 };

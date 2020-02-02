@@ -11,6 +11,7 @@ var osPath = require('path');
 var {
   getGitCommit, extendIf, readJSON, readFile,
   touchFileIfNeeded,
+  patchExtendClick: _patchExtendClick,
   loadUglifyConfig: _loadUglifyConfig
 } = require("./scripts/dependencies");
 
@@ -36,7 +37,6 @@ var doesMergeProjects = process.env.MERGE_TS_PROJECTS !== "0";
 var doesUglifyLocalFiles = process.env.UGLIFY_LOCAL !== "0";
 var gNoComments = process.env.NO_COMMENT === "1";
 var disableErrors = process.env.SHOW_ERRORS !== "1" && (process.env.SHOW_ERRORS === "0" || !compileInBatch);
-var forcedESTarget = (process.env.TARGET || "").toLowerCase();
 var ignoreHeaderChanges = process.env.IGNORE_HEADER_CHANGES !== "0";
 var manifest = readJSON("manifest.json", true);
 var compilerOptions = loadValidCompilerOptions("scripts/gulp.tsconfig.json", false);
@@ -1040,7 +1040,13 @@ function loadValidCompilerOptions(tsConfigFile, keepCustomOptions) {
       arr.splice(i, 1);
     }
   }
-  opts.target = forcedESTarget || locally && opts.target || "es5";
+  if (buildOptionCache) {
+    var btypes = getBuildItem("BTypes"), cver = getBuildItem("MinCVer");
+    outputES6 = !(btypes & BrowserType.Chrome && cver < /* MinTestedES6Environment */ 49);
+    opts.target = outputES6
+      ? !(btypes & BrowserType.Chrome && cver < /* MinEnsuredAsyncFunctions */ 57) ? "es2017"
+      : "es6" : "es5";
+  }
   var oldTS = gTypescript || compilerOptions && compilerOptions.typescript;
   if (oldTS && !opts.typescript) {
     opts.typescript = oldTS;
@@ -1313,38 +1319,7 @@ function gulpMerge() {
 function patchExtendClick(source) {
   if (locally && envLegacy) { return source; }
   if (!(getBuildItem("BTypes") & ~BrowserType.Firefox)) { return source; }
-  print('Patch the extend_click module');
-  source = source.replace(/\b(addEventListener|toString) ?: ?function ?\w*/g, "$1");
-  let match = /\/: \?function \\w\+\/g, ?(""|'')/.exec(source);
-  if (match) {
-    const start = Math.max(0, match.index - 128), end = match.index;
-    let prefix = source.slice(0, start), suffix = source.slice(end);
-    source = source.slice(start, end).replace(/>= ?45/, "< 45").replace(/45 ?<=/, "45 >");
-    suffix = '/\\b(addEventListener|toString)\\(/g, "$1:function $1("' + suffix.slice(match[0].length);
-    source = prefix + source + suffix;
-  }
-  match = /' ?\+ ?\(?function VC ?\(/.exec(source);
-  if (match) {
-    const start = match.index;
-    const end = source.indexOf('}).toString()', start) + 1 || source.indexOf('}.toString()', start) + 1;
-    let end2 = source.indexOf('")();"', end + 2) + 1 || source.indexOf("')();'", end + 2) + 1;
-    if (end2 <= 0) {
-      throw new Error('Can not find the end ".toString() + \')();\'" around the injected function.');
-    }
-    let prefix = source.slice(0, start), suffix = source.slice(end2 + ")();'".length);
-    source = source.slice(start + match[0].length, end).replace(/ \/\/[^\n]*?$/g, "").replace(/'/g, '"');
-    source = source.replace(/\\/g, "\\\\");
-    if (locally) {
-      source = source.replace(/([\r\n]) {4}/g, "$1").replace(/\r\n?|\n/g, "\\n\\\n");
-    } else {
-      source = source.replace(/[\r\n]\s*/g, "");
-    }
-    source = "function(" + source;
-    source = prefix + source + ")();'" + suffix;
-  } else if (! /= ?'"use strict";\(function\b/.test(source)) {
-    logger.error("Error: can not wrap extend_click scripts!!!");
-  }
-  return source;
+  _patchExtendClick(source, locally, logger);
 }
 
 function getGulpUglify() {
@@ -1369,6 +1344,8 @@ function loadUglifyConfig(reload) {
       a.ecma = 6;
       var c = a.compress || (a.compress = {});
       c.hoist_vars = false;
+    } else {
+      a.ecma = 5;
     }
   }
   if (gNoComments || !locally && getNonNullBuildItem("NDEBUG")) {

@@ -14,6 +14,7 @@
     "dead_code": true,
     "defaults": false,
     "evaluate": true,
+    "hoist_vars": false,
     "keep_fargs": false,
     "keep_fnames": true,
     "passes": 1,
@@ -31,5 +32,6 @@
     // `true` will remove `/a?/.test("")`
     // so "unsafe" is not what Vimium C needs
   },
+  "ecma": 2017,
   "mangle": false //*/
 }

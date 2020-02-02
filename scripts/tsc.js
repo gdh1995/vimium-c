@@ -106,6 +106,9 @@ ts.sys.writeFile = function(path, data, writeBom) {
   cache[path] === data;
   if (doesUglifyLocalFiles && isJS) {
     data = getUglifyJS()(data);
+    if (path.indexOf("extend_click") >= 0) {
+      data = lib.patchExtendClick(data, true);
+    }
   }
   if (fs.existsSync(path) && lib.readFile(path, {}) === data) {
     console.log("\tTOUCH:", path);
@@ -130,10 +133,9 @@ var getUglifyJS = function() {
     minify = function(data, config) {
       config || (config = getDefaultUglifyConfig());
       data = uglify.minify(data, config).code;
-      var old_mangle = config.mangle;
-      config.mangle = false;
-      data = uglify.minify(data, config).code;
-      config.mangle = old_mangle != null ? old_mangle : null;
+      if (config.ecma && config.ecma >= 2017) {
+        data = data.replace(/\bappendChild\b/g, "append");
+      }
       return data;
     };
   }
@@ -144,8 +146,6 @@ var getUglifyJS = function() {
 function getDefaultUglifyConfig() {
   if (!defaultUglifyConfig) {
     defaultUglifyConfig = lib.loadUglifyConfig("scripts/uglifyjs.local.json");
-    var compress = defaultUglifyConfig.compress || (defaultUglifyConfig.compress = {});
-    compress.passes = 1;
   }
   return defaultUglifyConfig;
 }
