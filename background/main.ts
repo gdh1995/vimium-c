@@ -3058,12 +3058,12 @@
     forceStatus_ (act: Frames.ForcedStatusText, tabId?: number): void {
       const ref = framesForTab[tabId || (tabId = TabRecency_.last_)];
       if (!ref) { return; }
-      act = act.toLowerCase() as Frames.ForcedStatusText;
       let spaceInd = act.indexOf(" "), newPassedKeys = spaceInd > 0 ? act.slice(spaceInd + 1) : "";
+      act = act.toLowerCase() as Frames.ForcedStatusText;
       if (spaceInd > 0) {
         act = act.slice(0, spaceInd) as Frames.ForcedStatusText;
       }
-      const silent = newPassedKeys.startsWith("silent");
+      const silent = !!newPassedKeys && (<RegExpOne> /^silent/i).test(newPassedKeys);
       newPassedKeys = (silent ? newPassedKeys.slice(7) : newPassedKeys).trimLeft();
       if (newPassedKeys && !newPassedKeys.startsWith("^ ")) {
         console.log('"vimium://status" only accepts a list of hooked keys');

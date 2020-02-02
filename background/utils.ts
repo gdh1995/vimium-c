@@ -125,7 +125,9 @@ var BgUtils_ = {
     // refer: https://cs.chromium.org/chromium/src/url/url_canon_etc.cc?type=cs&q=IsRemovableURLWhitespace&g=0&l=18
     // here's not its copy, but a more generalized strategy
     oldString = str.replace(<RegExpG> /[\n\r]+[\t \xa0]*/g, "").replace(a.A0Re_, " ");
-    str = oldString[0] === '"' && oldString.endsWith('"') ? oldString.slice(1, -1) : oldString;
+    const isQuoted = oldString[0] === '"' && oldString.endsWith('"'),
+    oldStrForSearch = oldString;
+    str = oldString = isQuoted ? oldString.slice(1, -1) : oldString;
     if ((<RegExpOne> /^[A-Za-z]:(?:[\\/][^:*?"<>|]*)?$|^\/(?:Users|home|root)\/[^:*?"<>|]+$/).test(str)) {
       str[1] === ":" && (str = str[0].toUpperCase() + ":/"
           + str.slice(3).replace(<RegExpG> /\\/g, "/"));
@@ -168,10 +170,11 @@ var BgUtils_ = {
     else if (str.startsWith("vimium:")) {
       type = Urls.Type.PlainVimium;
       vimiumUrlWork = (vimiumUrlWork as number) | 0;
-      if (vimiumUrlWork < Urls.WorkType.ConvertKnown || !(str = oldString.slice(9))) {
-        oldString = "vimium://" + oldString.slice(9);
+      str = oldString.slice(9);
+      if (vimiumUrlWork < Urls.WorkType.ConvertKnown || !str) {
+        oldString = "vimium://" + str;
       }
-      else if (vimiumUrlWork === Urls.WorkType.ConvertKnown
+      else if (vimiumUrlWork === Urls.WorkType.ConvertKnown || isQuoted
           || !(oldString = a.evalVimiumUrl_(str, vimiumUrlWork) as string)) {
         oldString = a.formatVimiumUrl_(str, false, vimiumUrlWork);
       } else if (typeof oldString !== "string") {
@@ -246,7 +249,7 @@ var BgUtils_ = {
     a.lastUrlType_ = type;
     return type === Urls.Type.Full ? oldString
       : type === Urls.Type.Search ?
-        a.createSearchUrl_(oldString.split(a.spacesRe_), keyword || "~", vimiumUrlWork)
+        a.createSearchUrl_(oldStrForSearch.split(a.spacesRe_), keyword || "~", vimiumUrlWork)
       : type <= Urls.Type.MaxOfInputIsPlainUrl ?
         (a.checkInDomain_(str, arr && arr[4]) === 2 ? "https:" : "http:")
         + (type === Urls.Type.NoSchema ? "//" : "") + oldString
@@ -305,7 +308,7 @@ var BgUtils_ = {
   isTld_ (tld: string, onlyEN?: boolean): Urls.TldType {
     return !onlyEN && (<RegExpOne> /[^a-z]/).test(tld) ? (this._nonENTlds.includes("." + tld + ".")
         ? Urls.TldType.NonENTld : Urls.TldType.NotTld)
-      : tld.length < this._tlds.length && this._tlds[tld.length].includes(tld) ? Urls.TldType.ENTld
+      : tld && tld.length < this._tlds.length && this._tlds[tld.length].includes(tld) ? Urls.TldType.ENTld
       : Urls.TldType.NotTld;
   },
   splitByPublicSuffix_ (host: string): [string[], /* partsNum */ 1 | 2 | 3] {
@@ -399,7 +402,7 @@ var BgUtils_ = {
     } }
     else if (workType >= Urls.WorkType.ActAnyway) { switch (cmd) {
     case "status": case "state":
-      return [path.toLowerCase(), Urls.kEval.status] as Urls.StatusEvalResult;
+      return [path, Urls.kEval.status] as Urls.StatusEvalResult;
     case "url-copy": case "search-copy": case "search.copy": case "copy-url":
       res = a.convertToUrl_(path, null, Urls.WorkType.ActIfNoSideEffects);
       if (res instanceof Promise) {
