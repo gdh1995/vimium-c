@@ -714,19 +714,19 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }, InsertMode.inputHint_);
     },
     /* kFgCmd.editText: */ function (count: number, options: CmdOptions[kFgCmd.editText]) {
-      if (insertLock || options.dom) {
-        const isSel = options.sel, args = options.args,
-        sel = isSel && VCui.getSelected_()[0];
-        setTimeout((): void => {
-          while (0 < count--) {
-            if (sel) {
-              sel.modify.apply(sel, args);
+      (insertLock || options.dom) && setTimeout((): void => {
+        let commands = options.run.split(","), sel: Selection | undefined;
+        while (0 < count--) {
+          for (let i = 0; i < commands.length; i += 3) {
+            if (commands[i] !== "exec") {
+              sel = sel || U.getSelected_()[0];
+              sel.modify(commands[i] as any, commands[i + 1] as any, commands[i + 2] as any);
             } else {
-              VFind.exec_(args[0], doc, args[1]);
+              VFind.exec_(commands[i + 1], doc, commands[i + 2]);
             }
           }
-        }, 0);
-      }
+        }
+      }, 0);
     }
   ],
 

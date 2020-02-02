@@ -297,9 +297,8 @@ interface CmdOptions {
     passExitKey?: boolean;
   };
   [kFgCmd.editText]: {
-    sel?: boolean;
     dom?: boolean;
-    args: [/** alert */ string, /** direction */ string, /** granularity */ string?];
+    run: string;
   };
 }
 
