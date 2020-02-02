@@ -353,7 +353,7 @@ interface Blob {
     readonly size: number;
     readonly type: string;
     slice(start?: number, end?: number, contentType?: string): Blob;
-    arrayBuffer(): ArrayBuffer;
+    arrayBuffer(): Promise<ArrayBuffer>;
 }
 
 declare var Blob: {

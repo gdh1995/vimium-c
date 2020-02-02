@@ -32,9 +32,11 @@
     "web-ext": "^4.0.0"
   },
   "scripts": {
-    "prepare": "node scripts/icons-to-blob.js -q",
     "tsc": "node scripts/tsc.js",
+    "watch": "node scripts/tsc.js --watch",
     "all": "gulp tsc",
+    "prepare": "node scripts/icons-to-blob.js -q",
+    "w": "node scripts/tsc.js --watch",
     "a": "gulp tsc",
     "b": "gulp bg",
     "c": "gulp content",

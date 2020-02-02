@@ -463,19 +463,27 @@ function copyThing(event: EventToPrevent): void {
   if ("" + sel) { return; }
   if (VData.type === "image" && VData.url) {
     const clipboard = navigator.clipboard;
-    if (clipboard && clipboard.write) {
+    if (Build.BTypes & BrowserType.Firefox || clipboard && clipboard.write) {
       const blobPromise = _shownBlob != null ? Promise.resolve(_shownBlob) : fetch(VData.url, {
         cache: "force-cache",
         referrer: "no-referrer"
       }).then(res => res.blob()).catch(() => (_copyStr(VData.url), 0 as const)
-      ).then(blob => _shownBlob = blob);
-      blobPromise.then<0 | void>(blob =>
-        blob && (clipboard as Ensure<typeof clipboard, "write">).write([new ClipboardItem({
+      ).then(blob => _shownBlob = blob),
+      navClipPromise = blobPromise.then<0 | void>(blob =>
+        blob && (clipboard as Ensure<NonNullable<typeof clipboard>, "write">).write([new ClipboardItem({
           // Chrome 79 refuses image/jpeg
           "image/png": new Blob([blob], {type: "image/png"}),
           "text/plain": new Blob([VData.url], {type: "text/plain"})
         })])
-      ).catch(ex => { console.log(ex); _copyStr(VData.url); });
+      ),
+      finalPromise = !(Build.BTypes & ~BrowserType.Firefox)
+          || Build.BTypes & BrowserType.Firefox && BG_.OnOther === BrowserType.Firefox
+          ? navClipPromise.catch(_ => {
+            const thisBrowser = typeof browser === "object" && _shownBlob ? browser as typeof chrome : 0,
+            clip = thisBrowser && (thisBrowser as any).clipboard;
+            return clip && (_shownBlob as Blob).arrayBuffer().then(arr => clip.setImageData(arr, "png"));
+          }) : navClipPromise;
+      finalPromise.catch(ex => { console.log(ex); _copyStr(VData.url); });
       return;
     }
   }

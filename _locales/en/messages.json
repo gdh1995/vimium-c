@@ -219,7 +219,7 @@
 		"message": "Send editing action to browser"
 	},
 	"editText_p": {
-		"message": "args:string[], dom=false, sel=false"
+		"message": "run:string, dom=false"
 	},
 	"enableCSTemp": {
 		"message": "Enable the site's CS in incognito window"

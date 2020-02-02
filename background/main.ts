@@ -2908,15 +2908,15 @@
   }
 
   async function _removeTempTab(tabId: number, windowId: number, url: string, selfLock: object): Promise<void> {
-    await (chrome.tabs.remove(tabId) as never as Promise<void>).catch(BgUtils_.blank_);
-    const sessions = await chrome.sessions.getRecentlyClosed({ maxResults: 1 }),
+    await ((browser as typeof chrome).tabs.remove(tabId) as never as Promise<void>).catch(BgUtils_.blank_);
+    const sessions = await (browser as typeof chrome).sessions.getRecentlyClosed({ maxResults: 1 }),
     tab = sessions && sessions[0] && sessions[0].tab;
     if (tab && tab.url === url) {
-      await chrome.sessions.forgetClosedTab(windowId, tab.sessionId as string).catch(BgUtils_.blank_);
+      await (browser as typeof chrome).sessions.forgetClosedTab(windowId
+          , tab.sessionId as string).catch(BgUtils_.blank_);
     }
     if (_lockToRemoveTempTab === selfLock) {
       _lockToRemoveTempTab = null;
-      return;
     }
   }
 
