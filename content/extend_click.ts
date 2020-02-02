@@ -126,14 +126,25 @@ if (VDom && VimiumInjector === undefined) {
     const rawDetail = (
         event as TypeToAssert<Event, (VimiumCustomEventCls | VimiumDelegateEventCls)["prototype"], "detail">
         ).detail as ClickableEventDetail | null | undefined,
-    detail = rawDetail && typeof rawDetail !== "string" ? rawDetail : "",
-    fromAttrs: 1 | 2 = detail ? (detail[2] + 1) as 1 | 2 : 1;
+    isSafe = this === box,
+    detail = rawDetail && typeof rawDetail === "object" && isSafe ? rawDetail : "",
+    fromAttrs: 0 | 1 | 2 = detail ? (detail[2] + 1) as 1 | 2 : 0;
     let path: typeof event.path,
     target = detail ? null : (event as VimiumDelegateEventCls["prototype"]).relatedTarget as Element | null
         || (!(Build.BTypes & BrowserType.Edge)
             && Build.MinCVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
           ? (event.path as NonNullable<typeof event.path>)[0] as Element
           : (path = event.path) && path.length > 1 ? path[0] as Element : null);
+    if (detail) {
+      resolve(0, detail[0]); resolve(1, detail[1]);
+    } else if (/* safer */ target && (isSafe && !rawDetail || secret + "" + target.tagName === rawDetail)) {
+      VDom.clickable_.add(target);
+    } else {
+      if (!Build.NDEBUG && !isSafe && target && secret + "" + target.tagName !== rawDetail) {
+        console.error("extend click: unexpected: detail =", rawDetail, target);
+        return;
+      }
+    }
     if (!Build.NDEBUG) {
       console.log(`Vimium C: extend click: resolve ${detail ? "[%o + %o]" : "<%o>%s"} in %o @t=%o .`
         , detail ? detail[0].length
@@ -143,11 +154,6 @@ if (VDom && VimiumInjector === undefined) {
           : this === window ? " (path on window)" : " (path on box)"
         , location.pathname.replace(<RegExpOne> /^.*(\/[^\/;]+\/?)(;[^\/]+)?$/, "$1")
         , Date.now() % 3600000);
-    }
-    if (detail) {
-      resolve(0, detail[0]); resolve(1, detail[1]);
-    } else if (/* safer */ target && (!rawDetail || target.tagName === rawDetail)) {
-      VDom.clickable_.add(target);
     }
     if (isFirstResolve & fromAttrs) {
       isFirstResolve ^= fromAttrs;
@@ -265,11 +271,10 @@ newFuncToString = function (a: FUNC, args: IArguments): string {
         : a === myToStr || a === anotherToStr ? _toString
         : 0,
     str = call(_apply as (this: (this: FUNC, ...args: any[]) => string, self: FUNC, args: IArguments) => string,
-              _toString, replaced || a, args),
-    expectedFunc = replaced ? 0 : str === sAEL ? _listen : str === sToStr ? _toString
-        : 0;
+              _toString, replaced || a, args);
     detectDisabled && str === detectDisabled && executeCmd();
-    return !expectedFunc ? call(StringIndexOf, str, kMarkToVerify) > 0 ? call(_toString, noop) : str
+    return replaced || str !== sAEL && str !== sToStr
+        ? call(StringIndexOf, str, kMarkToVerify) > 0 ? call(_toString, noop) : str
         : (
           noAbnormalVerifyingFound && (a as PublicFunction)(kMarkToVerify, verifier),
           a === anotherAEL ? call(_toString, _listen) : a === anotherToStr ? call(_toString, _toString)
@@ -446,7 +451,7 @@ function prepareRegister(this: void, element: Element): void {
           && typeof (s = element.tagName) === "string") {
         parent !== doc && parent !== root && call(Append, root, parent);
         unsafeDispatchCounter++;
-        dispatch(element, new CE(kVOnClick, {detail: s, composed: !0}));
+        dispatch(element, new CE(kVOnClick, {detail: sec + s, composed: !0}));
       }
     } else {
       unsafeDispatchCounter++;
