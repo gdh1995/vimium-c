@@ -120,11 +120,15 @@ var VKey = {
    * @param disable Default to `0`
    * @param activeMode Default to `{passive: true, capture: true}`; `1` means `passive: false`
    */
-  SetupEventListener_<T extends EventTarget, Active extends 1 | undefined = undefined> (this: void
-      , target: T | 0, eventType: string
-      , func?: ((this: T, e: Active extends 1 ? EventToPrevent : Event) => void) | null | EventListenerObject
+  SetupEventListener_<T extends EventTarget, Active extends 1 | undefined = undefined, E extends string = string> (
+      this: void
+      , target: T | 0, eventType: E
+      , func?: ((this: T, e: E extends keyof HTMLElementEventMap
+            ? Active extends 1 ? HTMLElementEventMap[E] & ToPrevent : HTMLElementEventMap[E]
+            : Active extends 1 ? EventToPrevent : Event) => void) | null | EventListenerObject
       , disable?: boolean | BOOL, activeMode?: Active): void {
-    (disable ? removeEventListener : addEventListener).call(target || window, eventType, func || VKey.Stop_,
+    (disable ? removeEventListener : addEventListener).call(target || window, eventType,
+        <(this: T, e: EventToPrevent) => void> func || VKey.Stop_,
         {passive: !activeMode, capture: true} as EventListenerOptions | boolean as boolean);
   },
   SuppressMost_ (this: object, event: HandlerNS.Event): HandlerResult {
@@ -136,9 +140,9 @@ var VKey = {
    *
    * @argument callback can be valid only if `BTypes & Chrome` and `timeout`
    */
-  suppressTail_: function (this: {}, timeout: number, callback?: HandlerNS.VoidHandler | 0): HandlerNS.Handler<{}> {
+  suppressTail_: function (this: {}, timeout: number, callback?: HandlerNS.VoidHandler | 0): HandlerNS.RefHandler {
     let timer = 0,
-    func: HandlerNS.Handler<{}> = event => {
+    func: HandlerNS.RefHandler = event => {
       if (!timeout) {
         if (event.e.repeat) { return HandlerResult.Prevent; }
         VKey.removeHandler_(func);
@@ -156,12 +160,12 @@ var VKey = {
       }, timeout);
       return HandlerResult.Prevent;
     };
-    timeout && (func as () => HandlerResult)();
+    timeout && (func as () => any)();
     (this as typeof VKey).pushHandler_(func, func);
     return func;
   } as {
-    (timeout: 0, callback?: undefined): HandlerNS.Handler<{}>;
-    (timeout: number, callback?: HandlerNS.VoidHandler): HandlerNS.Handler<{}>;
+    (timeout: 0, callback?: undefined): HandlerNS.RefHandler;
+    (timeout: number, callback?: HandlerNS.VoidHandler): HandlerNS.RefHandler;
   },
 
   /** handler section */

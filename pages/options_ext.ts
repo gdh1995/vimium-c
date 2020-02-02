@@ -334,15 +334,15 @@ function importSettings_(time: number | string | Date
     let arr = (<RegExpSearchable<2> & RegExpOne> /^(\d+):(\d+)$/).exec(err_msg);
     err_msg = !arr ? err_msg : pTrans_("JSONParseError", [arr[1], arr[2]]);
   }
-  if (new_data) {
+  if (!new_data) {
+    return alert(err_msg);
+  }
+  {
     time = +new Date(new_data && new_data.time || (typeof time === "object" ? +time : time)) || 0;
     if ((new_data.name !== "Vimium C" && new_data.name !== "Vimium++") || (time < 10000 && time > 0)) {
       err_msg = pTrans_("notVCJSON");
-      new_data = null;
+      return alert(err_msg);
     }
-  }
-  if (err_msg) {
-    return alert(err_msg);
   }
   const promisedChecker = Option_.all_.keyMappings.checker_ ? 1 : new Promise<1>(function (resolve): void {
     const element = $<HTMLScriptElement>("script[src*=options_checker]") || loadJS("options_checker.js"),
@@ -352,10 +352,10 @@ function importSettings_(time: number | string | Date
     };
     (loadChecker as CheckerLoader).info_ = "";
     element.addEventListener("load", cb);
-  });
+  }), t2 = time, d2 = new_data;
   Promise.all([BG_.BgUtils_.require_("Commands"), BG_.BgUtils_.require_("Exclusions"), promisedChecker]
       ).then(function (): void {
-    setTimeout(_importSettings, 17, time, new_data, is_recommended);
+    setTimeout(_importSettings, 17, t2, d2, is_recommended);
   });
 }
 

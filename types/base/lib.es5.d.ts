@@ -303,6 +303,14 @@ interface FunctionConstructor {
 }
 
 declare const Function: FunctionConstructor;
+/**
+ * Extracts the type of the 'this' parameter of a function type, or 'unknown' if the function type has no 'this' parameter.
+ */
+type ThisParameterType<T> = T extends (this: unknown, ...args: any[]) => any ? unknown : T extends (this: infer U, ...args: any[]) => any ? U : unknown;
+/**
+ * Removes the 'this' parameter from a function type.
+ */
+type OmitThisParameter<T> = unknown extends ThisParameterType<T> ? T : T extends (...args: infer A) => infer R ? (...args: A) => R : T;
 
 interface CallableFunction extends Function {
     /**
@@ -311,7 +319,9 @@ interface CallableFunction extends Function {
       * @param args An array of argument values to be passed to the function.
       */
     apply<T, R>(this: (this: T) => R, thisArg: T): R;
+    apply<A extends any[], R>(this: (this: void, ...args: A) => R, thisArg: null, args: A): R;
     apply<T, A extends any[], R>(this: (this: T, ...args: A) => R, thisArg: T, args: A): R;
+    apply<R>(this: (this: void, ...args: any[]) => R, thisArg: null, args: IArguments): R;
     apply<T, R>(this: (this: T, ...args: any[]) => R, thisArg: T, args: IArguments): R;
 
     /**
@@ -319,6 +329,8 @@ interface CallableFunction extends Function {
       * @param thisArg The object to be used as the this object.
       * @param args Argument values to be passed to the function.
       */
+    call<T, R>(this: (this: T) => R, thisArg: T): R;
+    call<A extends any[], R>(this: (this: void, ...args: A) => R, thisArg: null, ...args: A): R;
     call<T, A extends any[], R>(this: (this: T, ...args: A) => R, thisArg: T, ...args: A): R;
 
     /**
@@ -327,12 +339,12 @@ interface CallableFunction extends Function {
       * @param thisArg The object to be used as the this object.
       * @param args Arguments to bind to the parameters of the function.
       */
-    bind<T, A extends any[], R>(this: (this: T, ...args: A) => R, thisArg: T): (...args: A) => R;
-    bind<T, A0, A extends any[], R>(this: (this: T, arg0: A0, ...args: A) => R, thisArg: T, arg0: A0): (...args: A) => R;
-    bind<T, A0, A1, A extends any[], R>(this: (this: T, arg0: A0, arg1: A1, ...args: A) => R, thisArg: T, arg0: A0, arg1: A1): (...args: A) => R;
-    bind<T, A0, A1, A2, A extends any[], R>(this: (this: T, arg0: A0, arg1: A1, arg2: A2, ...args: A) => R, thisArg: T, arg0: A0, arg1: A1, arg2: A2): (...args: A) => R;
-    bind<T, A0, A1, A2, A3, A extends any[], R>(this: (this: T, arg0: A0, arg1: A1, arg2: A2, arg3: A3, ...args: A) => R, thisArg: T, arg0: A0, arg1: A1, arg2: A2, arg3: A3): (...args: A) => R;
-    bind<T, AX, R>(this: (this: T, ...args: AX[]) => R, thisArg: T, ...args: AX[]): (...args: AX[]) => R;
+    bind<T>(this: T, thisArg: ThisParameterType<T>): OmitThisParameter<T>;
+    bind<T, A0, A extends any[], R>(this: (this: T, arg0: A0, ...args: A) => R, thisArg: T extends void ? null : T, arg0: A0): (...args: A) => R;
+    bind<T, A0, A1, A extends any[], R>(this: (this: T, arg0: A0, arg1: A1, ...args: A) => R, thisArg: T extends void ? null : T, arg0: A0, arg1: A1): (...args: A) => R;
+    bind<T, A0, A1, A2, A extends any[], R>(this: (this: T, arg0: A0, arg1: A1, arg2: A2, ...args: A) => R, thisArg: T extends void ? null : T, arg0: A0, arg1: A1, arg2: A2): (...args: A) => R;
+    bind<T, A0, A1, A2, A3, A extends any[], R>(this: (this: T, arg0: A0, arg1: A1, arg2: A2, arg3: A3, ...args: A) => R, thisArg: T extends void ? null : T, arg0: A0, arg1: A1, arg2: A2, arg3: A3): (...args: A) => R;
+    bind<T, A0, A1, A2, A3, A4, A extends any[], R>(this: (this: T, arg0: A0, arg1: A1, arg2: A2, arg3: A3, arg4: A4, ...args: A) => R, thisArg: T extends void ? null : T, arg0: A0, arg1: A1, arg2: A2, arg3: A3, arg4: A4): (...args: A) => R;
 }
 
 interface NewableFunction extends Function {
@@ -357,7 +369,7 @@ interface NewableFunction extends Function {
       * @param thisArg The object to be used as the this object.
       * @param args Arguments to bind to the parameters of the function.
       */
-    bind<A extends any[], R>(this: new (...args: A) => R, thisArg: any): new (...args: A) => R;
+    bind<T>(this: T, thisArg: any): T;
     bind<A0, A extends any[], R>(this: new (arg0: A0, ...args: A) => R, thisArg: any, arg0: A0): new (...args: A) => R;
     bind<A0, A1, A extends any[], R>(this: new (arg0: A0, arg1: A1, ...args: A) => R, thisArg: any, arg0: A0, arg1: A1): new (...args: A) => R;
     bind<A0, A1, A2, A extends any[], R>(this: new (arg0: A0, arg1: A1, arg2: A2, ...args: A) => R, thisArg: any, arg0: A0, arg1: A1, arg2: A2): new (...args: A) => R;
@@ -1170,7 +1182,7 @@ interface ReadonlyArray<T> {
       * @param callbackfn A function that accepts up to three arguments. The every method calls the callbackfn function for each element in array1 until the callbackfn returns false, or until the end of the array.
       * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
       */
-    every(callbackfn: (this: undefined, value: T, index: number, array: ReadonlyArray<T>) => boolean): boolean;
+    every(callbackfn: (this: void, value: T, index: number, array: ReadonlyArray<T>) => boolean): boolean;
     every(callbackfn: (this: undefined, value: T, index: number, array: ReadonlyArray<T>) => boolean, thisArg: undefined): boolean;
     every<Z>(callbackfn: (this: Z, value: T, index: number, array: ReadonlyArray<T>) => boolean, thisArg: Z): boolean;
     /**
@@ -1178,7 +1190,7 @@ interface ReadonlyArray<T> {
       * @param callbackfn A function that accepts up to three arguments. The some method calls the callbackfn function for each element in array1 until the callbackfn returns true, or until the end of the array.
       * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
       */
-    some(callbackfn: (this: undefined, value: T, index: number, array: ReadonlyArray<T>) => boolean): boolean;
+    some(callbackfn: (this: void, value: T, index: number, array: ReadonlyArray<T>) => boolean): boolean;
     some(callbackfn: (this: undefined, value: T, index: number, array: ReadonlyArray<T>) => boolean, thisArg: undefined): boolean;
     some<Z>(callbackfn: (this: Z, value: T, index: number, array: ReadonlyArray<T>) => boolean, thisArg: Z): boolean;
     /**
@@ -1201,7 +1213,7 @@ interface ReadonlyArray<T> {
      * @param callbackfn A function that accepts up to three arguments. The filter method calls the callbackfn function one time for each element in the array.
      * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
      */
-    filter<S extends T>(callbackfn: (this: undefined, value: T, index: number, array: ReadonlyArray<T>) => value is S): S[];
+    filter<S extends T>(callbackfn: (this: void, value: T, index: number, array: ReadonlyArray<T>) => value is S): S[];
     filter<S extends T>(callbackfn: (this: undefined, value: T, index: number, array: ReadonlyArray<T>) => value is S, thisArg: undefined): S[];
     filter<Z, S extends T>(callbackfn: (this: Z, value: T, index: number, array: ReadonlyArray<T>) => value is S, thisArg: Z): S[];
     /**
@@ -1209,7 +1221,7 @@ interface ReadonlyArray<T> {
       * @param callbackfn A function that accepts up to three arguments. The filter method calls the callbackfn function one time for each element in the array.
       * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
       */
-    filter(callbackfn: (this: undefined, value: T, index: number, array: ReadonlyArray<T>) => any): T[];
+    filter(callbackfn: (this: void, value: T, index: number, array: ReadonlyArray<T>) => any): T[];
     filter(callbackfn: (this: undefined, value: T, index: number, array: ReadonlyArray<T>) => any, thisArg: undefined): T[];
     filter<Z>(callbackfn: (this: Z, value: T, index: number, array: ReadonlyArray<T>) => any, thisArg: Z): T[];
     /**
@@ -1311,10 +1323,7 @@ interface Array<T> {
       * @param searchElement The value to locate in the array.
       * @param fromIndex The array index at which to begin the search. If fromIndex is omitted, the search starts at index 0.
       */
-    indexOf: {
-      (this: { [ind: number]: T, length: number }, searchElement: T, fromIndex?: number): number;
-      call<T2> (self: { [ind: number]: T2, length: number }, searchElement: T2, fromIndex?: number): number;
-    };
+    indexOf(searchElement: T, fromIndex?: number): number;
     /**
       * Returns the index of the last occurrence of a specified value in an array.
       * @param searchElement The value to locate in the array.
@@ -1328,7 +1337,7 @@ interface Array<T> {
       * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
       */
     every(callbackfn: (this: void, value: T, index: number, array: T[]) => boolean): boolean;
-    every(callbackfn: (this: void, value: T, index: number, array: T[]) => boolean, thisArg: undefined): boolean;
+    every(callbackfn: (this: undefined, value: T, index: number, array: T[]) => boolean, thisArg: undefined): boolean;
     every<Z>(callbackfn: (this: Z, value: T, index: number, array: T[]) => boolean, thisArg: Z): boolean;
     /**
       * Determines whether the specified callback function returns true for any element of an array.
@@ -1336,7 +1345,7 @@ interface Array<T> {
       * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
       */
     some(callbackfn: (this: void, value: T, index: number, array: T[]) => boolean): boolean;
-    some(callbackfn: (this: void, value: T, index: number, array: T[]) => boolean, thisArg: undefined): boolean;
+    some(callbackfn: (this: undefined, value: T, index: number, array: T[]) => boolean, thisArg: undefined): boolean;
     some<Z>(callbackfn: (this: Z, value: T, index: number, array: T[]) => boolean, thisArg: Z): boolean;
     /**
       * Performs the specified action for each element in an array.
@@ -1390,8 +1399,11 @@ interface Array<T> {
       * @param callbackfn A function that accepts up to three arguments. The filter method calls the callbackfn function one time for each element in the array.
       * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
       */
+    filter<S extends T>(callbackfn: (this: void, value: T, index: number, array: T[]) => value is S): S[];
+    filter<S extends T>(callbackfn: (this: undefined, value: T, index: number, array: T[]) => value is S, thisArg: undefined): S[];
+    filter<Z, S extends T>(callbackfn: (this: Z, value: T, index: number, array: T[]) => value is S, thisArg: Z): S[];
     filter(callbackfn: (this: void, value: T, index: number, array: T[]) => any): T[];
-    filter(callbackfn: (this: void, value: T, index: number, array: T[]) => any, thisArg: undefined): T[];
+    filter(callbackfn: (this: undefined, value: T, index: number, array: T[]) => any, thisArg: undefined): T[];
     filter<Z>(callbackfn: (this: Z, value: T, index: number, array: T[]) => any, thisArg: Z): T[];
     /**
       * Calls the specified callback function for all the elements in an array. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.

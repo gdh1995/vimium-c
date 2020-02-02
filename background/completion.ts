@@ -628,7 +628,7 @@ historyEngine = {
     });
   },
   filterFinish_: function (historyArr: Array<BrowserUrlItem | Suggestion>): void {
-    historyArr.forEach(historyEngine.MakeSuggestion_);
+    (historyArr as BrowserUrlItem[]).forEach(historyEngine.MakeSuggestion_);
     offset = 0;
     Decoder.continueToWork_();
     Completers.next_(historyArr as Suggestion[], SugType.history);
@@ -1138,8 +1138,8 @@ Completers = {
   rSortQueryTerms_ (a: string, b: string): number {
     return b.length - a.length || (a < b ? -1 : a === b ? 0 : 1);
   },
-  requireNormalOrIncognito_<T> (
-      func: (this: T, query: CompletersNS.QueryStatus, tabs: chrome.tabs.Tab[]) => void
+  requireNormalOrIncognito_ (
+      func: (this: void, query: CompletersNS.QueryStatus, tabs: chrome.tabs.Tab[]) => void
       , query: CompletersNS.QueryStatus): 1 {
     const cb = func.bind(null, query);
     if (Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)) {

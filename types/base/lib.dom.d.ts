@@ -246,7 +246,7 @@ interface WheelEventInit extends MouseEventInit {
 
 type ELRet = void;
 interface EventListener {
-    (evt: Event): ELRet;
+    (evt: EventToPrevent): ELRet;
 }
 
 interface ANGLE_instanced_arrays {
@@ -2218,12 +2218,11 @@ interface ToPrevent {
   preventDefault(): void;
   stopImmediatePropagation(): void;
 }
-type __EventToPrevent = Event & ToPrevent;
-interface EventToPrevent extends __EventToPrevent {}
+interface EventToPrevent extends Event, ToPrevent {}
 type __KeyboardEventToPrevent = KeyboardEvent & ToPrevent;
-interface KeyboardEventToPrevent extends __KeyboardEventToPrevent {}
+interface KeyboardEventToPrevent extends KeyboardEvent, ToPrevent {}
 type __MouseEventToPrevent = MouseEvent & ToPrevent;
-interface MouseEventToPrevent extends __MouseEventToPrevent {}
+interface MouseEventToPrevent extends MouseEvent, ToPrevent {}
 
 interface TypedEvent<T extends string> extends Event {
     readonly type: T;
@@ -2238,9 +2237,11 @@ declare var Event: {
 }
 
 interface EventTarget {
-    addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
+    addEventListener(type: string, listener: EventListenerOrEventListenerObject
+        , useCapture?: EventListenerOptions | boolean): void;
     dispatchEvent(evt: Event): boolean;
-    removeEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
+    removeEventListener(type: string, listener: EventListenerOrEventListenerObject
+        , useCapture?: EventListenerOptions | boolean): void;
 }
 
 declare var EventTarget: {
@@ -8376,6 +8377,7 @@ interface WindowEventMap extends GlobalEventHandlersEventMap {
     "orientationchange": Event;
     "pagehide": PageTransitionEvent;
     "pageshow": PageTransitionEvent;
+    "paste": ClipboardEvent;
     "pause": Event;
     "play": Event;
     "playing": Event;
@@ -8447,9 +8449,9 @@ interface Window extends EventTarget, WindowSessionStorage, WindowLocalStorage, 
     onhashchange: (this: Window, ev: HashChangeEvent) => any;
     oninput: (this: Window, ev: Event) => any;
     oninvalid: (this: Window, ev: Event) => any;
-    onkeydown: (this: Window, ev: KeyboardEvent) => any;
+    onkeydown: (this: Window, ev: KeyboardEventToPrevent) => any;
     onkeypress: (this: Window, ev: KeyboardEvent) => any;
-    onkeyup: (this: Window, ev: KeyboardEvent) => any;
+    onkeyup: (this: Window, ev: KeyboardEventToPrevent) => any;
     onload: (this: Window, ev: Event) => any;
     onloadeddata: (this: Window, ev: Event) => any;
     onloadedmetadata: (this: Window, ev: Event) => any;
@@ -9022,7 +9024,7 @@ interface AssignedNodesOptions {
 }
 
 interface EventListenerObject {
-  handleEvent: (evt: Event) => ELRet;
+  handleEvent (evt: EventToPrevent): ELRet;
 }
 declare type EventListenerOrEventListenerObject = EventListener | null | EventListenerObject;
 declare type EventListenerOptions = boolean | {
@@ -9663,7 +9665,7 @@ declare function webkitRequestAnimationFrame(callback: FrameRequestCallback): nu
 // declare function toString(): string;
 declare function dispatchEvent(evt: Event): boolean;
 declare function removeEventListener<K extends keyof WindowEventMap>(type: K,
-  listener: (this: Window, ev: WindowEventMap[K]) => ELRet,
+  listener: (this: Window, ev: WindowEventMap[K] & ToPrevent) => ELRet,
   useCapture?: EventListenerOptions
   ): void;
 declare function removeEventListener(type: string, listener: EventListenerOrEventListenerObject,
@@ -9713,7 +9715,7 @@ declare function atob(encodedString: string): string;
 declare function btoa(rawString: string): string;
 declare var performance: Performance;
 declare function addEventListener<K extends keyof WindowEventMap>(type: K,
-  listener: (this: Window, ev: WindowEventMap[K]) => ELRet,
+  listener: (this: Window, ev: WindowEventMap[K] & ToPrevent) => ELRet,
   useCapture?: EventListenerOptions
   ): void;
 declare var close: unknown;

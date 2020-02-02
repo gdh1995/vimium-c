@@ -100,7 +100,8 @@ readValueFromElement_ (): number {
   return parseFloat(this.element_.value);
 }
 addWheelListener_ (): void {
-  const el = this.element_, func = (e: WheelEvent & ToPrevent): void => this.onWheel_(e), onBlur = (): void => {
+  const el = this.element_, func = (e: WheelEvent): void => this.onWheel_(e as WheelEvent & ToPrevent),
+  onBlur = (): void => {
     el.removeEventListener("wheel", func, {passive: false});
     el.removeEventListener("blur", onBlur);
     this.wheelTime_ = 0;
@@ -152,7 +153,7 @@ constructor (element: TextElement, onUpdated: (this: TextOption_<T>) => void) {
   this.converter_ = ops;
   this.needToCovertToCharsOnRead_ = false;
   if (ops.indexOf("chars") >= 0) {
-    (this as Option_<TextOptionNames>).checker_ = TextOption_.charsChecker_;
+    (this as any as TextOption_<TextOptionNames>).checker_ = TextOption_.charsChecker_;
   }
 }
 fetch_ (): void {
@@ -181,7 +182,7 @@ readValueFromElement_ (): AllowedOptions[T] {
   }
   return value as AllowedOptions[T];
 }
-static charsChecker_: Checker<TextOptionNames> = {
+static charsChecker_: BaseChecker<string> = {
   check_ (value: string): string {
     return TextOption_.toChars_(value);
   }
@@ -319,8 +320,8 @@ class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
     }
     return value;
   }
-  onTripleStatusesClicked (event: EventToPrevent): void {
-    event.preventDefault();
+  onTripleStatusesClicked (event: Event): void {
+    (event as EventToPrevent).preventDefault();
     const old = this.inner_status_;
     this.inner_status_ = old === 2 ? 1 : old ? 0 : 2;
     this.element_.indeterminate = old === 2;
@@ -488,7 +489,7 @@ let optionsInit1_ = function (): void {
     // tslint:disable-next-line: no-unused-expression
     const instance = new cls(_element as TextElement, onUpdated);
     instance.fetch_();
-    (Option_.all_ as SafeDict<Option_<keyof AllowedOptions>>)[instance.field_] = instance;
+    (Option_.all_ as any as SafeDict<Option_<keyof AllowedOptions>>)[instance.field_] = instance as any;
   }
   nextTick_(() => {
     const ref = Option_.all_;
@@ -532,7 +533,9 @@ let optionsInit1_ = function (): void {
     }
   });
 
-  let func: (this: HTMLElement, event: MouseEventToPrevent) => void = function (this: HTMLElement): void {
+  let func: {
+    (this: HTMLElement, event: MouseEventToPrevent): void;
+  } | ElementWithDelay["onclick"] = function (this: HTMLElement): void {
     const target = $("#" + this.dataset.autoResize as string);
     let height = target.scrollHeight, width = target.scrollWidth, dw = width - target.clientWidth;
     if (height <= target.clientHeight && dw <= 0) { return; }
@@ -613,7 +616,8 @@ let optionsInit1_ = function (): void {
       const ratio2 = Math.round(devicePixelRatio / zoom * 1024) / 1024;
       (document.body as HTMLBodyElement).style.width = ratio2 !== 1 ? 910 / ratio2 + "px" : "";
     });
-  }, opt: Option_<keyof AllowedOptions>;
+  },
+  opt: Option_<"keyMappings"> | Option_<"filterLinkHints"> | Option_<"vomnibarPage"> | Option_<"ignoreKeyboardLayout">;
   if (Build.NoDialogUI) { /* empty */ }
   else if (location.hash.toLowerCase() === "#dialog-ui") {
     setUI(null);
@@ -834,8 +838,8 @@ let optionsInit1_ = function (): void {
     }
   };
   for (let _i = _ref.length; 0 <= --_i; ) {
-    const name = _ref[_i].getAttribute("for") as string as PossibleOptionNames<boolean>;
-    opt = Option_.all_[name];
+    opt = Option_.all_[ _ref[_i].getAttribute("for"
+        ) as string as PossibleOptionNames<boolean> as "ignoreKeyboardLayout"];
     opt.onSave_ = updateRefStat;
     opt.onSave_();
     _ref[_i].onclick = onRefStatClick;

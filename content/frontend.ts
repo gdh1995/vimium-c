@@ -18,9 +18,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   interface Port extends chrome.runtime.Port {
     postMessage<k extends keyof FgRes>(request: Req.fgWithRes<k>): 1;
     postMessage<k extends keyof FgReq>(request: Req.fg<k>): 1;
+    onMessage: chrome.events.Event<(message: any, port: Port, exArg: FakeArg) => void>;
   }
   interface SpecialCommands {
-    [kFgCmd.reset] (this: void, isAlive: BOOL | CmdOptions[kFgCmd.reset]): void;
+    [kFgCmd.reset] (this: void, isAlive: BOOL | CmdOptions[kFgCmd.reset] & SafeObject): void;
     [kFgCmd.showHelp] (msg?: number | "e"): void;
   }
 
@@ -379,12 +380,13 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     }
   }
 
+  interface MouseEventListener extends EventListenerObject { handleEvent (evt: MouseEventToPrevent): ELRet; }
   const injector = VimiumInjector,
   doc = document, D = VDom, K = VKey, U = VCui, Hints = VHints,
   isTop = top === window,
   setupEventListener = K.SetupEventListener_,
   noopEventHandler = Object.is as any as EventListenerObject["handleEvent"],
-  anyClickHandler: EventListenerObject = { handleEvent: noopEventHandler },
+  anyClickHandler: MouseEventListener = { handleEvent: noopEventHandler },
   resetAnyClickHandler = function (): void {
     isWaitingAccessKey = false; anyClickHandler.handleEvent = noopEventHandler;
   },
@@ -412,13 +414,13 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   hookOnShadowRoot = function (path: ArrayLike<EventTarget | 0>, target: Node | 0, disable?: 1): void {
     for (let len = Build.MinCVer >= BrowserVer.Min$Event$$path$IsStdArrayAndIncludesWindow
           || !(Build.BTypes & BrowserType.Chrome)
-          ? (path as Array<EventTarget | 0>).indexOf(target) : [].indexOf.call(path as Array<EventTarget | 0>, target)
+          ? (path as Array<EventTarget | 0>).indexOf(target) : ([] as Array<EventTarget | 0>).indexOf.call(path, target)
         ; 0 <= --len; ) {
       const root = (path as EventPath)[len] as Node;
       // root is target or inside target, so always a Node
       if (root.nodeType === kNode.DOCUMENT_FRAGMENT_NODE) {
-        setupEventListener(root, "focus", onShadow, disable);
-        setupEventListener(root, "blur", onShadow, disable);
+        setupEventListener(root as ShadowRoot, "focus", onShadow, disable);
+        setupEventListener(root as ShadowRoot, "blur", onShadow, disable);
         disable ? domNodeMap.delete(root) : domNodeMap.set(root, kNodeInfo.ShadowFull);
       }
     }
@@ -453,7 +455,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   Commands: {
     [k in kFgCmd & number]:
       k extends keyof SpecialCommands ? SpecialCommands[k] :
-      (this: void, count: number, options: CmdOptions[k], key?: -42) => void;
+      (this: void, count: number, options: CmdOptions[k] & SafeObject, key?: -42) => void;
   } = [
     /* kFgCmd.framesGoBack: */ function (rawStep: number, options: CmdOptions[kFgCmd.framesGoBack]): void {
       const maxStep = Math.min(Math.abs(rawStep), history.length - 1),
@@ -479,7 +481,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     /* kFgCmd.goToMarks: */ VMarks.GoTo_,
     /* kFgCmd.scroll: */ VSc.activate_,
     /* kFgCmd.visualMode: */ VVisual.activate_,
-    /* kFgCmd.vomnibar: */ VOmni.activate_,
+    /* kFgCmd.vomnibar: */ VOmni.activate_ ,
     /* kFgCmd.reset: */ (isAlive): void => {
       const a = InsertMode;
       U.activeEl_ = D.lastHovered_ = a.last_ = insertLock = a.global_ = null;
@@ -867,7 +869,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   followLink_ (linkElement: SafeHTMLElement): boolean {
     let url = linkElement.localName === "link" && (linkElement as HTMLLinkElement).href;
     if (url) {
-      Commands[kFgCmd.reload](1, { url });
+      Commands[kFgCmd.reload](1, K.safer_({ url }));
     } else {
       D.view_(linkElement);
       // note: prepareCrop is called during UI.flash_
@@ -1269,7 +1271,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       request.u = location.href;
       post<T>(request);
     },
-    /* kBgReq.msg: */ function<k extends keyof FgRes> (response: Req.res<k>): void {
+    /* kBgReq.msg: */ function<k extends keyof FgRes> (response: Omit<Req.res<k>, "N">): void {
       const arr = vPort._callbacks, id = response.m, handler = arr[id];
       delete arr[id];
       handler(response.r);
@@ -1306,20 +1308,20 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
       (mappedKeys = request.m) && func(mappedKeys, null);
     },
-    /* kBgReq.execute: */ function<O extends keyof CmdOptions> (request: Req.FgCmd<O>): void {
+    /* kBgReq.execute: */ function<O extends keyof CmdOptions> (request: BaseExecute<CmdOptions[O], O>): void {
       if (request.S) { U.css_(request.S); }
       esc(HandlerResult.Nothing);
       const options: CmdOptions[O] | null = request.a;
       type Keys = keyof CmdOptions;
       type TypeToCheck = {
-        [key in Keys]: (this: void, count: number, options: CmdOptions[key]) => void;
+        [key in Keys]: (this: void, count: number, options: CmdOptions[key] & SafeObject) => void;
       };
       type TypeChecked = {
-        [key in Keys]: <T2 extends Keys>(this: void, count: number, options: CmdOptions[T2]) => void;
+        [key in Keys]: <T2 extends Keys>(this: void, count: number, options: CmdOptions[T2] & SafeObject) => void;
       };
       (Commands as TypeToCheck as TypeChecked)[request.c](request.n
-        , (options ? K.safer_(options) : safer(null)) as CmdOptions[O]);
-    },
+          , options ? K.safer_(options) : safer(null));
+    } as (req: BaseExecute<object, keyof CmdOptions>) => void,
     /* kBgReq.createMark: */ function (request: BgReq[kBgReq.createMark]): void { VMarks.createMark_(request.n); },
     /* kBgReq.showHUD: */ function (req: Req.bg<kBgReq.showHUD>): void {
       if (req.S) {
@@ -1348,7 +1350,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     },
     /* kBgReq.showHelpDialog: */
   function ({ h: html, c: shouldShowAdvanced, o: optionUrl, S: CSS
-      , e: exitOnClick }: Req.bg<kBgReq.showHelpDialog>): void {
+      , e: exitOnClick }: BgReq[kBgReq.showHelpDialog]): void {
     // Note: not suppress key on the top, because help dialog may need a while to render,
     // and then a keyup may occur before or after it
     if (CSS) { U.css_(CSS); }

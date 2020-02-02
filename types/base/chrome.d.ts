@@ -2823,7 +2823,7 @@ declare namespace chrome.webNavigation {
      * @param callback
      * Optional parameter details: A list of frames in the given tab, null if the specified tab ID is invalid.
      */
-    export function getAllFrames(details: GetAllFrameDetails, callback: (details: GetAllFrameResultDetails[] | null, exArg: FakeArg) => void): 1;
+    export function getAllFrames(details: GetAllFrameDetails, callback: (details: GetAllFrameResultDetails[], exArg: FakeArg) => void): 1;
 
     /** Fired when the reference fragment of a frame was updated. All future events for that frame will use the updated URL. */
     var onReferenceFragmentUpdated: WebNavigationTransitionalEvent;
@@ -3031,9 +3031,9 @@ declare namespace chrome.windows {
      * @since Chrome 18.
      */
     export function getCurrent(getInfo: GetInfo & { populate: true }
-        , callback: (window: (chrome.windows.Window & { tabs: chrome.tabs.Tab[] }) | null | undefined
+        , callback: (window: chrome.windows.Window & { tabs: chrome.tabs.Tab[] }
         , exArg: FakeArg) => void): 1;
-    export function getCurrent(getInfo: GetInfo, callback: (window: chrome.windows.Window | null | undefined
+    export function getCurrent(getInfo: GetInfo, callback: (window: chrome.windows.Window
         , exArg: FakeArg) => void): 1;
     /**
      * Creates (opens) a new browser with any optional sizing, position or default URL provided.
@@ -3046,7 +3046,7 @@ declare namespace chrome.windows {
      * @param callback
      * Optional parameter window: Contains details about the created window.
      */
-    export function create(createData: CreateData, callback?: ((window: chrome.windows.Window | undefined
+    export function create(createData: CreateData, callback?: ((window: chrome.windows.Window & {tabs: [chrome.tabs.Tab]}
         , exArg: FakeArg) => void) | null): 1;
     /**
      * Gets all windows.
@@ -3056,6 +3056,7 @@ declare namespace chrome.windows {
      * Gets all windows.
      * @since Chrome 18.
      */
+    export function getAll(getInfo: GetInfo & {populate: true}, callback: (windows: Array<chrome.windows.Window & {tabs: chrome.tabs.Tab[]}>, exArg: FakeArg) => void): 1;
     export function getAll(getInfo: GetInfo, callback: (windows: chrome.windows.Window[], exArg: FakeArg) => void): 1;
     /** Updates the properties of a window. Specify only the properties that you want to change; unspecified properties will be left unchanged. */
     export function update(windowId: number, updateInfo: UpdateInfo, callback?: (window: chrome.windows.Window, exArg: FakeArg) => void): 1;

@@ -29,7 +29,7 @@ var VOmni = {
   // unit: physical pixel (if C<52)
   screenHeight_: 0,
   canUseVW_: true,
-  activate_ (this: void, count: number, options: VomnibarNS.FullOptions): void {
+  activate_: function (this: void, count: number, options: VomnibarNS.FullOptions): void {
     const a = VOmni, dom = VDom;
     // hide all further key events to wait iframe loading and focus changing from JS
     VKey.removeHandler_(a);
@@ -133,7 +133,7 @@ var VOmni = {
       if (search != null) { options.url = ""; }
       VOmni.setOptions_(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront);
     });
-  },
+  } as (count: number, options: CmdOptions[kFgCmd.vomnibar]) => void,
   setOptions_ (options: VomnibarNS.FgOptionsToFront): void {
     this.status_ > VomnibarNS.Status.Initing ? this.port_.postMessage(options) : (this.options_ = options);
   },
@@ -182,7 +182,7 @@ var VOmni = {
       let opts = VOmni.options_; opts && (opts.t = type);
     }
     let loaded = false;
-    el.onload = function (this: typeof el): void {
+    el.onload = function (): void {
       const _this = VOmni;
       loaded = true;
       if (_this.onReset_) { return; }
@@ -190,7 +190,7 @@ var VOmni = {
         console.log("Vimium C: use the built-in Vomnibar page because the preferred is too old.");
         return reload();
       }
-      const wnd = this.contentWindow,
+      const wnd = (this as typeof el).contentWindow,
       sec: VomnibarNS.MessageData = [secret, _this.options_ as VomnibarNS.FgOptionsToFront],
       // tslint:disable-next-line: ban-types
       origin = (page as EnsureNonNull<String>).substring(0

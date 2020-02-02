@@ -10,6 +10,14 @@ declare namespace HintsNS {
     // tslint:disable-next-line: callable-types
     (this: void, linkEl: LinkEl, rect: Rect | null, hintEl: Pick<HintItem, "r">): void | boolean;
   }
+  interface HTMLExecutor extends Executor {
+    // tslint:disable-next-line: callable-types
+    (this: void, linkEl: SafeHTMLElement, rect: Rect | null): void | boolean;
+  }
+  interface AnchorExecutor {
+    // tslint:disable-next-line: callable-types
+    (this: void, linkEl: HTMLAnchorElement & SafeHTMLElement, rect: Rect | null): void | boolean;
+  }
   interface ModeOpt extends ReadonlyArray<Executor | HintMode> {
     [0]: Executor;
     [1]: HintMode;
@@ -131,7 +139,7 @@ var VHints = {
   _removeFlash: null as (() => void) | null,
   /** must be called from a master, required by {@link #VHints.delayToExecute_ } */
   _onTailEnter: null as ((this: unknown, event: HandlerNS.Event, key: string, keybody: kChar) => void) | null,
-  _onWaitingKey: null as HandlerNS.VoidEventHandler | null,
+  _onWaitingKey: null as HandlerNS.RefHandler | null,
   keyCode_: kKeyCode.None,
   isActive_: false,
   hasExecuted_: 0 as BOOL,
@@ -1230,7 +1238,7 @@ var VHints = {
     Build.BTypes & BrowserType.Firefox && (slave = a._wrap(slave));
     if (Build.BTypes & BrowserType.Chrome && !waitEnter) {
       a._onWaitingKey = VKey.suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents
-          , callback as (event?: undefined) => void);
+          , callback);
       VKey.removeHandler_(a._onWaitingKey);
     } else {
       VHud.show_(kTip.waitEnter);
@@ -1412,7 +1420,7 @@ var VHints = {
     }
     keepHudOrEvent === 1 || VHud.hide_();
   },
-  _CleanFrameInfo (this: number, frameInfo: HintsNS.FrameHintsInfo): void {
+  _CleanFrameInfo (this: number | undefined, frameInfo: HintsNS.FrameHintsInfo): void {
     try {
       let frame = frameInfo.s, hasMaster = (frame as typeof frame | typeof VHints)._master;
       (frame as typeof frame | typeof VHints)._master = null;
@@ -2002,7 +2010,7 @@ Modes_: [
 [
   (element, rect): void => {
     const a = VHints, type = VDom.getEditableType_<0>(element), toggleMap = a.options_.toggle;
-    const exit: HandlerNS.Handler<any> = event => {
+    const exit: HandlerNS.RefHandler = event => {
       VKey.removeHandler_(exit);
       if (VKey.isEscape_(VKey.key_(event, kModeId.Link)) && !VApi.lock_()) {
         VDom.hover_();
@@ -2157,12 +2165,12 @@ Modes_: [
   , HintMode.EDIT_TEXT
 ] as HintsNS.ModeOpt,
 [
-  (link: HTMLAnchorElement): void => {
+  ((link: HTMLAnchorElement): void => {
     const url = VHints.getUrlData_(link);
     if (!VApi.evalIfOK_(url)) {
       VHints.openUrl_(url, true);
     }
-  }
+  }) as HintsNS.AnchorExecutor as HintsNS.HTMLExecutor
   , HintMode.OPEN_INCOGNITO_LINK
   , HintMode.OPEN_INCOGNITO_LINK | HintMode.queue
 ] as HintsNS.ModeOpt,
@@ -2207,7 +2215,7 @@ Modes_: [
   , HintMode.OPEN_IMAGE | HintMode.queue
 ] as HintsNS.ModeOpt,
 [
-  (link: HTMLAnchorElement, rect): void => {
+  ((link: HTMLAnchorElement, rect): void => {
     let oldUrl: string | null = link.getAttribute("href"), changed = false;
     if (!oldUrl || oldUrl === "#") {
       let newUrl = link.dataset.vimUrl;
@@ -2235,7 +2243,7 @@ Modes_: [
     } else {
       link.removeAttribute("href");
     }
-  }
+  }) as HintsNS.AnchorExecutor as HintsNS.HTMLExecutor
   , HintMode.DOWNLOAD_LINK
   , HintMode.DOWNLOAD_LINK | HintMode.queue
 ] as HintsNS.ModeOpt,

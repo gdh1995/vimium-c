@@ -23,8 +23,8 @@
   }
   const enum UseTab { NoTab = 0, ActiveTab = 1, CurWndTabsIfRepeat = 2, CurWndTabs = 3, CurShownTabs = 4 }
   type BgCmdNoTab = (this: void, _fakeArg?: undefined) => void;
-  type BgCmdActiveTab = (this: void, tabs1: [Tab] | never[]) => void;
-  type BgCmdActiveTabOrNoTab = (this: void, tabs1?: [Tab] | never[]) => void;
+  type BgCmdActiveTab = (this: void, tabs1: [Tab]) => void;
+  type BgCmdActiveTabOrNoTab = (this: void, tabs1?: [Tab]) => void;
   type BgCmdCurWndTabs = (this: void, tabs1: Tab[]) => void;
   interface BgCmdInfoNS {
     [kBgCmd.createTab]: UseTab.ActiveTab | UseTab.NoTab;
@@ -214,7 +214,7 @@
       : undefined;
   }
   function makeWindow(this: void, option: chrome.windows.CreateData, state?: chrome.windows.ValidStates | ""
-      , callback?: ((wnd: Window) => void) | null): void {
+      , callback?: ((wnd: Window & {tabs: [Tab]}) => void) | null): void {
     const focused = option.focused !== false;
     if (!focused) {
       state !== "minimized" && (state = "normal");
@@ -232,7 +232,7 @@
     } else {
       option.focused = true;
     }
-    chrome.windows.create(option, state || !focused ? function (wnd: Window) {
+    chrome.windows.create(option, state || !focused ? function (wnd) {
       callback && callback(wnd);
       if (!wnd) { return; } // do not return lastError: just throw errors for easier debugging
       const opt: chrome.windows.UpdateInfo = focused ? {} : { focused: false };
@@ -441,7 +441,7 @@
     return abs(Date.now() - now) > 9 ? result ? count : 0
         : (Build.NDEBUG || console.log("A confirmation dialog may fail in showing."), 1);
   }
-  function onConfirm(response: Exclude<FgReq[kFgReq.cmd]["r"], null | undefined | 0>): void {
+  function onConfirm(response: Exclude<FgReq[kFgReq.cmd]["r"], null | undefined>): void {
     let callback = gOnConfirmCallback;
     gOnConfirmCallback = null;
     if (response > 1 && callback) {
@@ -619,7 +619,7 @@
       });
     });
   }]) as [
-    (this: string, wnd?: PopWindow) => void,
+    (this: string, wnd?: PopWindow | null) => void,
     (this: void, url: string, tab: Tab, repeat: ((this: void, tabId: number) => void) | null, allTabs: Tab[]) => void,
     (this: string, tab: Tab, repeat: ((this: void, tabId: number) => void) | null, wnds: Window[]) => void,
     (this: void, url: string, tab: Tab
@@ -817,7 +817,7 @@
       }
     } while (0 < --repeat);
   }
-  function removeAllTabsInWnd(this: void, tab: Tab, curTabs: Tab[], wnds: Window[]): void {
+  function removeAllTabsInWnd(this: void, tab: Tab, curTabs: readonly Tab[], wnds: Window[]): void {
     let url = false, windowId: number | undefined, wnd: Window;
     wnds = wnds.filter(wnd2 => wnd2.type === "normal");
     if (wnds.length <= 1) {
@@ -877,7 +877,7 @@
     return onRuntimeError();
   }, function (tabs) {
     // if `this.s`, then `typeof this` is `MarksNS.MarkToGo`
-    const callback = this.s ? focusOrLaunch[3].bind(this, 0) : null;
+    const callback = this.s ? focusOrLaunch[3].bind(this as MarksNS.MarkToGo, 0) : null;
     if (tabs.length <= 0 || TabRecency_.incognito_ === IncognitoType.true && !tabs[0].incognito) {
       chrome.windows.create({url: this.u}, callback && function (wnd: Window): void {
         if (wnd.tabs && wnd.tabs.length > 0) { return callback(wnd.tabs[0]); }
@@ -911,14 +911,14 @@
     chrome.tabs.update(tab.id, {
       url: tab.url === url || tab.url.startsWith(url) ? undefined : url,
       active: true
-    }, this.s ? focusOrLaunch[3].bind(this, 0) : null);
+    }, this.s ? focusOrLaunch[3].bind(this as MarksNS.MarkToGo, 0) : null);
     if (tab.windowId !== wndId) { return selectWnd(tab); }
   }, function (this: MarksNS.MarkToGo, tick: 0 | 1 | 2, tab: Tab): void {
     if (!tab) { return onRuntimeError(); }
     if (tab.status === "complete" || tick >= 2) {
       return Marks_.scrollTab_(this, tab);
     }
-    setTimeout(() => { tabsGet(tab.id, focusOrLaunch[3].bind(this, tick + 1)); }, 800);
+    setTimeout(() => { tabsGet(tab.id, focusOrLaunch[3].bind(this, (tick + 1) as 1 | 2)); }, 800);
   }] as [
     (this: MarksNS.FocusOrLaunch, tabs: Tab[]) => void,
     (this: MarksNS.FocusOrLaunch, tabs: [Tab] | never[]) => void,
@@ -2501,12 +2501,12 @@
       (port.s as Frames.Sender).f |= Frames.Flags.hasCSSAndActed;
       port.postMessage({ N: kBgReq.showHUD, S: Settings_.cache_.innerCSS });
     },
-    /** kFgReq.vomnibar: */ function (this: void, request: FgReq[kFgReq.vomnibar] & Req.baseFg<kFgReq.vomnibar>
+    /** kFgReq.vomnibar: */ function (this: void, request: FgReq[kFgReq.vomnibar]
         , port: Port): void {
       const { c: count, i: inner } = request;
       cKey = kKeyCode.None; // it's only from VHints' task / VOmni reloading, so no Key to suppress
       if (count != null) {
-        delete request.c, delete request.H, delete request.i;
+        delete request.c, delete (request as Req.fg<kFgReq.vomnibar>).H, delete request.i;
         cRepeat = +count || 1;
         cOptions = BgUtils_.safer_(request);
       } else if (request.r !== true) {
@@ -2845,8 +2845,9 @@
         if (Build.BTypes & ~BrowserType.Chrome) {
           (port as chrome.runtime.Port).sender.tab = null as never;
         }
-        port.onDisconnect.addListener(OnOmniDisconnect);
-        port.onMessage.addListener(OnMessage);
+        (port.onDisconnect as chrome.events.Event<(port: Port, exArg: FakeArg) => void>).addListener(OnOmniDisconnect);
+        (port.onMessage as chrome.events.Event<(message: any, port: Port, exArg: FakeArg) => void>
+            ).addListener(OnMessage);
         type === PortType.omnibar &&
         port.postMessage({
           N: kBgReq.omni_init,

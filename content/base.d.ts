@@ -27,15 +27,14 @@ declare namespace HandlerNS {
   }
 
   interface Handler<T extends object> {
-    (this: T, event: HandlerNS.Event): HandlerResult;
+    (this: T extends RefHandler ? any : T, event: HandlerNS.Event): HandlerResult;
   }
 
   interface VoidHandler {
     (this: unknown): void;
   }
 
-  interface VoidEventHandler {
-    (this: unknown, event: HandlerNS.Event): void;
+  interface RefHandler extends Handler<RefHandler> {
   }
 }
 interface KeydownCacheArray extends SafeObject {

@@ -2,7 +2,7 @@
   "compilerOptions": {
     "allowJs": false,
     "alwaysStrict": true,
-    "forceConsistentCasingInFileNames": false,
+    "forceConsistentCasingInFileNames": true,
     "incremental": true,
     "keyofStringsOnly": false,
     "listEmittedFiles": true,
@@ -23,9 +23,10 @@
     "preserveConstEnums": false,
     "removeComments": false,
     "rootDir": ".",
-    "skipDefaultLibCheck": false,
+    "skipDefaultLibCheck": true,
     "strict": true,
-    "strictFunctionTypes": false,
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
     "strictNullChecks": true,
     "strictPropertyInitialization": false,
     "target": "es2017",
@@ -36,7 +37,8 @@
   "exclude": [
     ".*",
     "dist",
-    "node_modules",
+    "**/node_modules",
+    "**/.*/",
     "scripts",
     "test*",
     "weidu"

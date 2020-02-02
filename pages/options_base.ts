@@ -106,7 +106,7 @@ nextTick_ = (function (): {<T>(task: (self: T) => void, context: T): void; (task
       tasks.length = 0;
     }
   };
-  return function <T> (task: ((self: T) => void) | ((this: void) => void), context?: T): void {
+  return function <T> (task: ((firstArg: T) => void) | ((this: void) => void), context?: T): void {
     if (tasks.length <= 0) {
       if ((Build.MinCVer >= BrowserVer.Min$queueMicrotask || !(Build.BTypes & BrowserType.Chrome))
           && (Build.MinFFVer >= FirefoxBrowserVer.Min$queueMicrotask || !(Build.BTypes & BrowserType.Firefox))
@@ -120,7 +120,7 @@ nextTick_ = (function (): {<T>(task: (self: T) => void, context: T): void; (task
       // here ignores the case of re-entry
       tasks.unshift(task as (this: void) => void);
     } else {
-      tasks.push(context ? task.bind(null, context) : task as (this: void) => void);
+      tasks.push(context ? (task as (firstArg: T) => void).bind(null, context) : task as (this: void) => void);
     }
   };
 })(),
@@ -172,7 +172,7 @@ abstract class Option_<T extends keyof AllowedOptions> {
   static syncToFrontend_: Array<keyof SettingsNS.FrontendSettings>;
   static suppressPopulate_ = true;
 
-constructor (element: HTMLElement, onUpdated: (this: Option_<T>) => void) {
+constructor (element: HTMLElement, onUpdated: () => void) {
   this.element_ = element;
   this.field_ = element.id as T;
   this.previous_ = this.onUpdated_ = null as never;
@@ -349,7 +349,8 @@ populateElement_ (rules: ExclusionsNS.StoredRule[]): void {
   return this.onRowChange_(rules.length);
 }
 isPatternMatched_ (_pattern: string) { return true; }
-appendRuleTo_ (list: HTMLTableSectionElement | DocumentFragment, { pattern, passKeys }: ExclusionsNS.StoredRule): void {
+appendRuleTo_ (this: ExclusionRulesOption_
+    , list: HTMLTableSectionElement | DocumentFragment, { pattern, passKeys }: ExclusionsNS.StoredRule): void {
   const vnode: ExclusionVisibleVirtualNode | ExclusionInvisibleVirtualNode = {
     // rebuild a rule, to ensure a consistent memory layout
     rule_: { pattern, passKeys },

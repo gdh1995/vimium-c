@@ -92,8 +92,9 @@ if (VDom && VimiumInjector === undefined) {
 
   let box: Element | undefined | 0, hookRetryTimes = 0,
   isFirstResolve: 0 | 1 | 2 | 3 | 4 = window === top ? 3 : 4,
-  hook = function (event: VimiumDelegateEventCls["prototype"] & ToPrevent): void {
-    const t = event.relatedTarget, attr = InnerConsts.kSecretAttr;
+  hook = function (event: Event): void {
+    const t = (event as TypeToAssert<Event, VimiumDelegateEventCls["prototype"], "relatedTarget">).relatedTarget,
+    attr = InnerConsts.kSecretAttr;
     // use `instanceof` to require the `t` element is a new instance which has never entered this extension world
     if (++hookRetryTimes > GlobalConsts.MaxRetryTimesForSecret
         || !(t instanceof Element)) { return; }
@@ -119,10 +120,12 @@ if (VDom && VimiumInjector === undefined) {
       isFirstResolve = 0;
     }, GlobalConsts.ExtendClick_DelayToFindAll);
   };
-  function onClick(this: Element | Window, event: (VimiumCustomEventCls | VimiumDelegateEventCls)["prototype"]): void {
+  function onClick(this: Element | Window, event: Event): void {
     if (!box) { return; }
     VKey.Stop_(event);
-    const rawDetail = event.detail as ClickableEventDetail | null,
+    const rawDetail = (
+        event as TypeToAssert<Event, (VimiumCustomEventCls | VimiumDelegateEventCls)["prototype"], "detail">
+        ).detail as ClickableEventDetail | null | undefined,
     detail = rawDetail && typeof rawDetail !== "string" ? rawDetail : "",
     fromAttrs: 1 | 2 = detail ? (detail[2] + 1) as 1 | 2 : 1;
     let path: typeof event.path,
@@ -225,8 +228,9 @@ sec: number = +<string> cs.dataset.vimium,
 ETP = EventTarget.prototype, _listen = ETP.addEventListener,
 toRegister: Element[] & { p (el: Element): void | 1; s: Element[]["splice"] } = [] as any,
 _apply = _listen.apply, _call = _listen.call,
-call = _call.bind(_call) as <T, A extends any[], R>(func: (this: T, ...args: A) => R, thisArg: T, ...args: A) => R,
-dispatch = _call.bind<(evt: Event) => boolean, [EventTarget, Event], boolean>(ETP.dispatchEvent),
+call = _call.bind(_call as any) as <T, A extends any[], R>(func: (this: T, ...a: A) => R, thisArg: T, ...args: A) => R,
+dispatch = _call.bind<(this: (this: EventTarget, ev: Event) => boolean
+    , self: EventTarget, evt: Event) => boolean>(ETP.dispatchEvent),
 E = Element, EP = E.prototype, Append = EP.appendChild,
 GetRootNode = EP.getRootNode,
 Attr = EP.setAttribute, HasAttr = EP.hasAttribute, Remove = EP.remove,
@@ -240,9 +244,12 @@ pushInDocument = push.bind(nodeIndexListInDocument), pushForDetached = push.bind
 CE = CustomEvent as VimiumCustomEventCls, HA = HTMLAnchorElement,
 DE = FocusEvent as VimiumDelegateEventCls,
 FP = Function.prototype, _toString = FP.toString,
-listen = _call.bind<(this: EventTarget,
-        type: string, listener: EventListenerOrEventListenerObject, useCapture?: EventListenerOptions) => any,
-    [EventTarget, string, EventListenerOrEventListenerObject, EventListenerOptions?], any>(_listen),
+listen = _call.bind<(this: (this: EventTarget,
+          type: string, listener: EventListenerOrEventListenerObject, useCapture?: EventListenerOptions | boolean
+        ) => 42 | void,
+        self: EventTarget, name: string, listener: EventListenerOrEventListenerObject,
+        opts?: EventListenerOptions | boolean
+    ) => 42 | void>(_listen),
 rEL = removeEventListener, clearTimeout_ = clearTimeout,
 kVOnClick = InnerConsts.kVOnClick,
 kEventName2 = kVOnClick + BuildStr.RandomName2,
@@ -257,7 +264,7 @@ newFuncToString = function (a: FUNC, args: IArguments): string {
     const replaced = a === myAEL || a === anotherAEL ? _listen
         : a === myToStr || a === anotherToStr ? _toString
         : 0,
-    str = call(_apply as (this: (this: FUNC, ...args: Array<{}>) => string, self: FUNC, args: IArguments) => string,
+    str = call(_apply as (this: (this: FUNC, ...args: any[]) => string, self: FUNC, args: IArguments) => string,
               _toString, replaced || a, args),
     expectedFunc = replaced ? 0 : str === sAEL ? _listen : str === sToStr ? _toString
         : 0;
@@ -293,9 +300,9 @@ hooks = {
       return;
     }
     len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2])
-      : call(_apply as (this: (this: EventTarget, ...args: Array<{}>) => void
+      : call(_apply as (this: (this: EventTarget, ...args: any[]) => void
                         , self: EventTarget, args: IArguments) => void,
-             _listen as (this: EventTarget, ...args: Array<{}>) => void, a, args);
+             _listen as (this: EventTarget, ...args: any[]) => void, a, args);
     if (type === "click" || type === "mousedown" || type === "dblclick"
         ? listener && !(a instanceof HA) && a instanceof E
         : type === kEventName2 && !isReRegistering
@@ -352,7 +359,7 @@ next = function (): void {
   delta = len - start;
   timer = start > 0 ? setTimeout_(next, InnerConsts.DelayForNext) : 0;
   if (!len) { return; }
-  call(Remove, root);
+  call(Remove, root); // just safer
   // skip some nodes if only crashing, so that there would be less crash logs in console
   const slice = toRegister.s(start, delta);
   // tslint:disable-next-line: prefer-for-of
@@ -422,7 +429,7 @@ function prepareRegister(this: void, element: Element): void {
   // note: the below may change DOM trees,
   // so `dispatch` MUST NEVER throw. Otherwise a page might break
   if (type === kNode.ELEMENT_NODE) {
-    parent !== root && call(Append, root, parent);
+    parent !== root && call(Append, root, parent as Element);
     pushForDetached(
       IndexOf(allNodesForDetached = allNodesForDetached || call(getElementsByTagNameInEP, root, "*")
         , element));
@@ -623,7 +630,9 @@ _listen(kOnDomReady, doInit, !0);
       , listener: EventListenerOrEventListenerObject): void {
     const a = this, args = arguments, len = args.length;
     len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2])
-      : apply.call(_listen as (this: EventTarget, ...args: Array<{}>) => void, a, args);
+      : (apply as (this: (this: EventTarget, ...args: any[]) => void
+            , self: EventTarget, args: IArguments) => void
+        ).call(_listen as (this: EventTarget, ...args: any[]) => void, a, args);
     if ((type === "click" || type === "mousedown" || type === "dblclick") && alive
         && listener && !(a instanceof HTMLAnchorElement) && a instanceof Element) {
       if (!Build.NDEBUG) {
@@ -633,10 +642,15 @@ _listen(kOnDomReady, doInit, !0);
       VDom.clickable_.add(a);
     }
   },
-  listen = newListen.call.bind(_listen), apply = newListen.apply,
-  resolve = Build.NDEBUG ? 0 as never : (fromAttr?: 1): void => {
-    console.log("Vimium C: extend click: resolve [%o+%o] in %o @t=%o ."
-        , fromAttr ? 0 : resolved, fromAttr ? resolved : 0
+  listen = newListen.call.bind<(this: (this: EventTarget,
+          type: string, listener: EventListenerOrEventListenerObject, useCapture?: EventListenerOptions | boolean
+        ) => 42 | void,
+        self: EventTarget, name: string, listener: EventListenerOrEventListenerObject,
+        opts?: EventListenerOptions | boolean
+    ) => 42 | void>(_listen as NonNullable<typeof _listen>), apply = newListen.apply,
+  resolve = Build.NDEBUG ? 0 as never : (): void => {
+    console.log("Vimium C: extend click: resolve %o in %o @t=%o ."
+        , resolved
         , location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1")
         , Date.now() % 3600000);
     timer && clearTimeout(timer);

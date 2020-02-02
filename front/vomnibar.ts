@@ -734,7 +734,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.onEnter_(<number> <boolean|number> event.altKey |
       (<number> <boolean|number> event.ctrlKey * 2) |
       (<number> <boolean|number> event.metaKey * 4) |
-      (<number> <boolean|number> event.shiftKey * 8), [].indexOf.call(a.list_.children, el));
+      (<number> <boolean|number> event.shiftKey * 8), ([] as Node[]).indexOf.call(a.list_.children, el));
   },
   OnMenu_ (this: void, event: Event): void {
     let el = event.target as SafeHTMLElement, item: Element | null, Anchor = HTMLAnchorElement;
@@ -744,7 +744,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           item = item.parentElement as SafeHTMLElement | null) {
       /* empty */
     }
-    const _i = [].indexOf.call(Vomnibar_.list_.children, item);
+    const _i = ([] as Array<Node | null>).indexOf.call(Vomnibar_.list_.children, item);
     _i >= 0 && (el.href = Vomnibar_.completions_[_i].u);
   },
   OnSelect_ (this: HTMLInputElement): void {
@@ -971,7 +971,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
     }
   },
-  blurred_ (this: void, blurred?: boolean): void {
+  blurred_ (this: void, blurred?: boolean | null): void {
     if (!Vomnibar_) { return; }
     const doc = document, a = (doc.body as HTMLBodyElement).classList, kTransparent = "transparent" as const;
     // Document.hidden is since C33, according to MDN

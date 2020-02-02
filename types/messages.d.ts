@@ -19,7 +19,7 @@ interface BgCSSReq {
   /** style (aka. CSS) */ S: string | null;
 }
 
-interface BaseExecute<T, C extends kFgCmd = kFgCmd> extends BgCSSReq {
+interface BaseExecute<T, C extends kFgCmd & number = kFgCmd & number> extends BgCSSReq {
   /** command */ c: C;
   /** count */ n: number;
   /** args (aka. options) */ a: T | null;
