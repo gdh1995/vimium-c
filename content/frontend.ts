@@ -1691,7 +1691,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         trustedRand += (unsafeRand >= 0 && unsafeRand < 1 ? unsafeRand : trustedRand);
         let a = (0x8000 * trustedRand) | 0,
         host = new URL((browser as typeof chrome).runtime.getURL("")).host.replace(<RegExpG> /-/g, "");
-        return ((host + (BuildStr.RandomReq as number | string as number).toString(16)
+        return ((host + (
+              typeof BuildStr.RandomReq === "number" ? (BuildStr.RandomReq as number | string as number).toString(16)
+              : BuildStr.RandomReq)
             ).match(<RegExpG> /[\da-f]{1,4}/gi) as string[]
             ).map((i, ind) => parseInt(i, 16) & (ind & 1 ? ~a : a)).join("");
       },

@@ -207,7 +207,7 @@ if (VDom && VimiumInjector === undefined) {
   let injected: string = isFirstTime ? '"use strict";(' + (function VC(this: void): void {
 
 function verifier(maybeSecret: string, maybeVerifierB?: InnerVerifier | unknown): ReturnType<InnerVerifier> {
-  if (maybeSecret === BuildStr.MarkForName3 + BuildStr.RandomName3
+  if (maybeSecret === GlobalConsts.MarkAcrossJSWorlds
       && noAbnormalVerifyingFound) {
     if (!maybeVerifierB) {
       return [myAEL, myToStr];
@@ -251,19 +251,18 @@ StringIndexOf = kOnDomReady.indexOf, StringSubstr = kOnDomReady.substr,
 decryptFromVerifier = (func: InnerVerifier | unknown): string => {
   const str = call(_toString, func as InnerVerifier), offset = call(StringIndexOf, str, kMarkToVerify);
   return call(StringSubstr, str, offset
-      , GlobalConsts.MarkForName3Length + GlobalConsts.SecretStringLength);
+      , GlobalConsts.LengthOfMarkAcrossJSWorlds + GlobalConsts.SecretStringLength);
 },
 newFuncToString = function (a: FUNC, args: IArguments): string {
-    const replaced = a === myAEL || BuildStr.RandomName3 && a === anotherAEL ? _listen
-        : a === myToStr || BuildStr.RandomName3 && a === anotherToStr ? _toString
+    const replaced = a === myAEL || a === anotherAEL ? _listen
+        : a === myToStr || a === anotherToStr ? _toString
         : 0,
     str = call(_apply as (this: (this: FUNC, ...args: Array<{}>) => string, self: FUNC, args: IArguments) => string,
               _toString, replaced || a, args),
-    expectedFunc = !BuildStr.RandomName3 || replaced ? 0 : str === sAEL ? _listen : str === sToStr ? _toString
+    expectedFunc = replaced ? 0 : str === sAEL ? _listen : str === sToStr ? _toString
         : 0;
     detectDisabled && str === detectDisabled && executeCmd();
-    return !BuildStr.RandomName3 ? str
-        : !expectedFunc ? call(StringIndexOf, str, kMarkToVerify) > 0 ? call(_toString, noop) : str
+    return !expectedFunc ? call(StringIndexOf, str, kMarkToVerify) > 0 ? call(_toString, noop) : str
         : (
           noAbnormalVerifyingFound && (a as PublicFunction)(kMarkToVerify, verifier),
           a === anotherAEL ? call(_toString, _listen) : a === anotherToStr ? call(_toString, _toString)
@@ -276,7 +275,7 @@ hooks = {
   /** Create */ C: doc.createElement as Document["createElement"],
   toString: function toString(this: FUNC): string {
     const args = arguments;
-    if (BuildStr.RandomName3 && args.length === 2 && (args[0] as any) === kMarkToVerify) {
+    if (args.length === 2 && (args[0] as any) === kMarkToVerify) {
       // randomize the body of this function
       (args[1] as InnerVerifier)(
           decryptFromVerifier(args[1] || BuildStr.RandomName3_public),
@@ -287,7 +286,7 @@ hooks = {
   addEventListener: function addEventListener(this: EventTarget, type: string
       , listener: EventListenerOrEventListenerObject): void {
     const a = this, args = arguments, len = args.length;
-    if (BuildStr.RandomName3 && type === kMarkToVerify) {
+    if (type === kMarkToVerify) {
       (listener as any as InnerVerifier)(
         decryptFromVerifier(listener || BuildStr.RandomName3_public),
         verifier);
@@ -332,7 +331,7 @@ let doInit = function (this: void): void {
     timer = toRegister.length > 0 ? setTimeout_(next, InnerConsts.DelayForNext) : 0;
   }
 },
-kMarkToVerify = BuildStr.MarkForName3 as const, // declare it later so that terser v3.10.3 won't embed it in 2-pass mode
+kMarkToVerify = GlobalConsts.MarkAcrossJSWorlds as const,
 detectDisabled: string | 0 = `Vimium${sec}=>9`,
 noAbnormalVerifyingFound: BOOL = 1,
 anotherAEL: typeof myAEL | undefined | 0, anotherToStr: typeof myToStr | undefined | 0,
@@ -533,10 +532,8 @@ _listen(kOnDomReady, doInit, !0);
         appVer >= BrowserVer.MinEnsuredES6MethodFunction) {
       injected = injected.replace(<RegExpG> /: ?function \w+/g, "");
     }
-    if (BuildStr.RandomName3) {
-      injected = injected.replace(BuildStr.RandomName3 + '"'
-          , ((Math.random() * GlobalConsts.SecretRange + GlobalConsts.SecretBase) | 0) + '"');
-    }
+    injected = injected.replace(GlobalConsts.MarkAcrossJSWorlds
+        , "$&" + ((Math.random() * GlobalConsts.SecretRange + GlobalConsts.SecretBase) | 0));
     VApi.execute_ = execute;
     setupEventListener(0, kHook, hook);
     setupEventListener(0, kVOnClick1, onClick);

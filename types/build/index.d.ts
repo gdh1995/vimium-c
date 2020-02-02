@@ -1,10 +1,7 @@
-/// <reference no-default-lib="true"/>
-/// <reference path="../lib/index.d.ts" />
-
 declare const enum Build {
   MinCVer = 73, // minimum Chrome version
-  MinFFVer = FirefoxBrowserVer.MinSupported, // minimum Firefox version
-  BTypes = BrowserType.Chrome | BrowserType.Firefox, // supported browser types
+  MinFFVer = 63, // minimum Firefox version
+  BTypes = 3, // supported browser types: BrowserType.Chrome | BrowserType.Firefox
   EdgeC = 0,
   NDEBUG = 0,
   NoDialogUI = 1,
@@ -21,9 +18,7 @@ declare const enum BuildStr {
   RandomName0 = 1000,
   RandomName1 = 1001,
   RandomName2 = 1002,
-  RandomName3 = 0, // for communication safely across unsafe frame worlds
-  RandomName3_public = 0,
-  MarkForName3 = "__VimiumC_", // .length should be {@link #GlobalConsts.MarkForName3Length}
+  RandomName3_public = 20200202,
   /** used by {@link ../../content/frontend.ts} */
   RandomReq = 2019070,
   CoreGetterFuncName = "__VimiumC_priv__",
