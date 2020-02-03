@@ -63,7 +63,8 @@ let keyMappingChecker_ = {
     return this.normalizeCmd_("", cmd, keys, options);
   },
   normalizeCmd_ (_0: string, cmd: string, name: string, options: string) {
-    if (options.includes("createTab") && (<RegExpOne> /^\s+createTab\s/).test(options)
+    if ((options.includes("createTab") || options.includes("openUrl"))
+        && (<RegExpOne> /^\s+(createTab|openUrl)\s/).test(options)
         && !(<RegExpI> /\surls?=/i).test(options)) {
       options = this.convertFromLegacyUrlList_(options);
     }
