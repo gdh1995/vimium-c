@@ -969,6 +969,12 @@ var VHints = {
           && VDom.htmlTag_(temp) === "slot" && (root as ShadowRoot).host.contains(fromPoint)) {
         continue;
       }
+      if (Build.BTypes & ~BrowserType.Firefox ? el.contains.call(fromPoint, el) : fromPoint.contains(el)) {
+        VDom.getCroppedRect_(el, )
+        if () {
+          continue;
+        }
+      }
       const stack = (root as Document | ShadowRoot).elementsFromPoint((l + r) * zoomD2, (t + b) * zoomD2),
       elPos = stack.indexOf(el);
       if (elPos > 0 ? stack.lastIndexOf(fromPoint, elPos - 1) >= 0 : elPos < 0) {
@@ -1034,7 +1040,8 @@ var VHints = {
       : _i - HintMode.FOCUS_EDITABLE ? a.traverse_(a.kSafeAllSelector_, a.GetClickable_)
       : a.traverse_(Build.BTypes & ~BrowserType.Firefox
             ? a.kEditableSelector_ + a.kSafeAllSelector_ : a.kEditableSelector_, a.GetEditable_);
-    if (visibleElements.length < GlobalConsts.MinElementCountToStopPointerDetection) {
+    if (_i < HintMode.max_mouse_events + 1
+        && visibleElements.length < GlobalConsts.MinElementCountToStopPointerDetection) {
       a.filterOutCovered_(visibleElements);
     }
     a.maxLeft_ = view[2], a.maxTop_ = view[3], a.maxRight_ = view[4];
