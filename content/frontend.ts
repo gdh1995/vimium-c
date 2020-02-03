@@ -1171,12 +1171,6 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           (D.editableTypes_ as Writable<typeof VDom.editableTypes_>).keygen = EditableType.Select;
         }
       }
-      if (Build.BTypes & BrowserType.Chrome
-          && (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl)) {
-        D.specialZoom_ = (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
-          && (Build.MinCVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl
-              || browserVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl);
-      }
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
           && browserVer < BrowserVer.MinFramesetHasNoNamedGetter) {
         Hints.kSafeAllSelector_ += ":not(" + (D.unsafeFramesetTag_ = "frameset") + ")";

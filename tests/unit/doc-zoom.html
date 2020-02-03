@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html spellcheck="false">
+  <head>
+    <title>docEl.zoom vs. devRatio</title>
+  </head>
+  <body>
+    <div>Browser: <span id="bver" style="color:#00f"></span></div>
+    <div>
+      <span>Top frame: </span><span id="test1"></span>
+    </div>
+    <div>Child frame:</div>
+    <iframe id="test2" src="about:blank" style="width:600px;border:1px solid gray;"></iframe>
+    <script>
+      window.onload = function() {
+        var innerEl = document.createElement("div");
+        test2.contentDocument.body.appendChild(innerEl);
+        bver.textContent = navigator.appVersion.match(/\bChrom(?:e|ium)\/([\d.]+)/)[0].replace("/", " ");
+        if (devicePixelRatio <= 1) {
+          test1.innerHTML = '<strong style="color:#f00">Please zoom in firstly!</strong>';
+          return;
+        }
+        test_wnd(window, test1);
+        test_wnd(test2.contentWindow, innerEl);
+      };
+      function test_wnd(wnd, resultEl) {
+        var doc = wnd.document, docEl = doc.documentElement, isCompat = doc.compatMode === "BackCompat",
+        ratio = wnd.devicePixelRatio, oldZoom = wnd.getComputedStyle(docEl).zoom,
+        scrollingEl = doc.scrollingElement || (isCompat ? doc.body : docEl),
+        visual = wnd.visualViewport,
+        oldClientWidth = scrollingEl.getBoundingClientRect().width;
+
+        visual = visual && visual.width ? visual : null;
+        var visualWidth = visual && visual.width;
+
+        docEl.style.zoom = ratio;
+        var newZoom = wnd.getComputedStyle(docEl).zoom, newClientWidth = scrollingEl.getBoundingClientRect().width;
+
+        var msg = "", oldCorrect = Math.abs(ratio - +oldZoom) > 0.005;
+        resultEl.innerHTML = [isCompat ? "Old CSS" : "HTML5", ": ",
+          'ratio = <strong style="color:#22f">', ratio, '</strong> , ',
+          'old-zoom = <strong style="color:#22f">', oldZoom, "</strong> , so: ",
+          oldCorrect ? '<strong style="color:#3b0">correct</strong>'
+              : '<strong style="color:#f00">buggy</strong>',
+          '<br/><span>&nbsp;&nbsp;&nbsp;&nbsp;</span>',
+          'new-zoom = <strong style="color:#22f">', newZoom, "</strong> , so: ",
+          Math.abs(ratio - +newZoom) < 0.005 ? '<span style="color:#3b0">same</span>'
+              : '<span style="color:#f00">diff</span>',
+          '<br/><span>&nbsp;&nbsp;&nbsp;&nbsp;</span>',
+          'width from <span style="color:#00f">', oldClientWidth, " / visual=", visualWidth,
+          '</span> to <span style="color:#00f">', newClientWidth, '</span> , so: ',
+          '<br/><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>',
+          (msg = Math.abs(newClientWidth - oldClientWidth) < 2
+              ? oldCorrect ? ".zoom has no effect" : "completely wrong"
+              : oldCorrect ? "correct" : "buggy .zoom but take effects",
+            msg === "correct" ? '<strong style="color:#3b0">' + msg + '</strong>'
+              : '<strong style="color:#f00">' + msg + '</strong>'),
+        ''].join(" ");
+      }
+    </script>
+  </body>
+</html>
