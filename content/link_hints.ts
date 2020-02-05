@@ -14,10 +14,6 @@ declare namespace HintsNS {
     // tslint:disable-next-line: callable-types
     (this: void, linkEl: SafeHTMLElement, rect: Rect | null): void | boolean;
   }
-  interface AnchorExecutor {
-    // tslint:disable-next-line: callable-types
-    (this: void, linkEl: HTMLAnchorElement & SafeHTMLElement, rect: Rect | null): void | boolean;
-  }
   interface ModeOpt extends ReadonlyArray<Executor | HintMode> {
     [0]: Executor;
     [1]: HintMode;
@@ -637,12 +633,11 @@ var VHints = {
     }
   },
   GetLinks_ (this: void, hints: Hint[], element: SafeHTMLElement): void {
-    let a: string | null, arr: Rect | null;
-    if (element.localName === "a" && ((a = element.getAttribute("href")) && a !== "#"
-        && !VDom.jsRe_.test(a)
-        || (element as HTMLAnchorElement).dataset.vimUrl != null)) {
+    let a: string | null | false, arr: Rect | null;
+    if ((a = element.dataset.vimUrl || element.localName === "a" && element.getAttribute("href")) && a !== "#"
+        && !VDom.jsRe_.test(a)) {
       if (arr = VDom.getVisibleClientRect_(element)) {
-        hints.push([element as HTMLAnchorElement, arr, ClickType.Default]);
+        hints.push([element, arr, ClickType.Default]);
       }
     }
   },
@@ -969,12 +964,6 @@ var VHints = {
           && VDom.htmlTag_(temp) === "slot" && (root as ShadowRoot).host.contains(fromPoint)) {
         continue;
       }
-      if (Build.BTypes & ~BrowserType.Firefox ? el.contains.call(fromPoint, el) : fromPoint.contains(el)) {
-        VDom.getCroppedRect_(el, )
-        if () {
-          continue;
-        }
-      }
       const stack = (root as Document | ShadowRoot).elementsFromPoint((l + r) * zoomD2, (t + b) * zoomD2),
       elPos = stack.indexOf(el);
       if (elPos > 0 ? stack.lastIndexOf(fromPoint, elPos - 1) >= 0 : elPos < 0) {
@@ -1036,7 +1025,8 @@ var VHints = {
       ? a.traverse_("a[href],img,div[style],span[style],[data-src]"
           + (Build.BTypes & ~BrowserType.Firefox ? a.kSafeAllSelector_ : "")
           + (_i - HintMode.DOWNLOAD_MEDIA ? "" : ",video,audio"), a.GetImages_, true)
-      : _i > HintMode.min_link_job - 1 && _i < HintMode.max_link_job + 1 ? a.traverse_("a", a.GetLinks_)
+      : _i > HintMode.min_link_job - 1 && _i < HintMode.max_link_job + 1
+      ? a.traverse_("a,[role=link]" + (Build.BTypes & ~BrowserType.Firefox ? a.kSafeAllSelector_ : ""), a.GetLinks_)
       : _i - HintMode.FOCUS_EDITABLE ? a.traverse_(a.kSafeAllSelector_, a.GetClickable_)
       : a.traverse_(Build.BTypes & ~BrowserType.Firefox
             ? a.kEditableSelector_ + a.kSafeAllSelector_ : a.kEditableSelector_, a.GetEditable_);
@@ -1908,14 +1898,13 @@ isImageUrl_ (str: string | null): boolean {
   str = (str as EnsureNonNull<String>).substring(str.lastIndexOf("/", str.lastIndexOf("?") + 1 || end), end);
   return (<RegExpI & RegExpOne> /\.(?:bmp|gif|icon?|jpe?g|a?png|svg|tiff?|webp)\b/i).test(str);
 },
-getUrlData_ (link: HTMLAnchorElement): string {
+getUrlData_ (link: SafeHTMLElement): string {
   const str = link.dataset.vimUrl;
   if (str) {
-    link = VDom.createElement_("a");
-    link.href = str.trim();
+    (link = VDom.createElement_("a")).href = str.trim();
   }
   // $1.href is ensured well-formed by @GetLinks_
-  return link.href;
+  return link.localName === "a" ? (link as HTMLAnchorElement).href : "";
 },
 /** return: img is HTMLImageElement | HTMLAnchorElement | HTMLElement[style={backgroundImage}] */
 _getImageUrl (img: SafeHTMLElement): string | void {
@@ -2090,7 +2079,7 @@ Modes_: [
     let isUrl = mode1 > HintMode.min_link_job - 1 && mode1 < HintMode.max_link_job + 1,
         str: string | null | undefined;
     if (isUrl) {
-      str = a.getUrlData_(link as HTMLAnchorElement);
+      str = a.getUrlData_(link as SafeHTMLElement);
       str && (<RegExpI> /^mailto:./).test(str) && (str = str.slice(7).trim());
     }
     else if ((str = link.getAttribute("data-vim-text"))
@@ -2172,12 +2161,12 @@ Modes_: [
   , HintMode.EDIT_TEXT
 ] as HintsNS.ModeOpt,
 [
-  ((link: HTMLAnchorElement): void => {
+  (link: SafeHTMLElement): void => {
     const url = VHints.getUrlData_(link);
     if (!VApi.evalIfOK_(url)) {
       VHints.openUrl_(url, true);
     }
-  }) as HintsNS.AnchorExecutor as HintsNS.HTMLExecutor
+  }
   , HintMode.OPEN_INCOGNITO_LINK
   , HintMode.OPEN_INCOGNITO_LINK | HintMode.queue
 ] as HintsNS.ModeOpt,
@@ -2222,13 +2211,16 @@ Modes_: [
   , HintMode.OPEN_IMAGE | HintMode.queue
 ] as HintsNS.ModeOpt,
 [
-  ((link: HTMLAnchorElement, rect): void => {
-    let oldUrl: string | null = link.getAttribute("href"), changed = false;
-    if (!oldUrl || oldUrl === "#") {
-      let newUrl = link.dataset.vimUrl;
-      if (newUrl && (newUrl = newUrl.trim())) {
-        link.href = newUrl;
-        changed = true;
+  (element: SafeHTMLElement, rect): void => {
+    let notAnchor = element.localName !== "a",
+    link = notAnchor ? VDom.createElement_("a") : element as HTMLAnchorElement,
+    oldUrl: string | null = notAnchor ? null : link.getAttribute("href"),
+    url = VHints.getUrlData_(element), changed = notAnchor || url !== link.href;
+    if (changed) {
+      link.href = url;
+      if (notAnchor) {
+        let top = VDom.scrollingEl_(1);
+        top && top.appendChild(link);
       }
     }
     const kDownload = "download", hadNoDownload = !link.hasAttribute(kDownload);
@@ -2245,12 +2237,15 @@ Modes_: [
       link.removeAttribute(kDownload);
     }
     if (!changed) { /* empty */ }
+    else if (notAnchor) {
+      link.remove();
+    }
     else if (oldUrl != null) {
       link.setAttribute("href", oldUrl);
     } else {
       link.removeAttribute("href");
     }
-  }) as HintsNS.AnchorExecutor as HintsNS.HTMLExecutor
+  }
   , HintMode.DOWNLOAD_LINK
   , HintMode.DOWNLOAD_LINK | HintMode.queue
 ] as HintsNS.ModeOpt,
