@@ -74,6 +74,14 @@ case "$1" in
     VER=$1
     shift
     ;;
+  zdsf)
+    OTHER_ARGS=$OTHER_ARGS" --enable-use-zoom-for-dsf"
+    shift
+    ;;
+  nozdsf|no-zdsf)
+    OTHER_ARGS=$OTHER_ARGS" --enable-use-zoom-for-dsf=false"
+    shift
+    ;;
   --*)
     OTHER_ARGS=$OTHER_ARGS" $1"
     shift

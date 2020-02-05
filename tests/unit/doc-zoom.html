@@ -34,6 +34,7 @@
 
         docEl.style.zoom = ratio;
         var newZoom = wnd.getComputedStyle(docEl).zoom, newClientWidth = scrollingEl.getBoundingClientRect().width;
+        docEl.style.zoom = "";
 
         var msg = "", oldCorrect = Math.abs(ratio - +oldZoom) > 0.005;
         resultEl.innerHTML = [isCompat ? "Old CSS" : "HTML5", ": ",

@@ -446,23 +446,16 @@ var VDom = {
   bScale_: 1, // <body>.transform:scale (ignore the case of sx != sy)
   /** zoom of <body> (if not fullscreen else 1) */
   bZoom_: 1,
-  _fixDocZoom: Build.BTypes & BrowserType.Chrome ? (zoom: number, ratio: number): number => {
+  _fixDocZoom: Build.BTypes & BrowserType.Chrome ? (zoom: number, docEl: Element): number => {
     let ver = Build.MinCVer < BrowserVer.MinASameZoomOfDocElAsdevPixRatioWorksAgain
         && (!(Build.BTypes & ~BrowserType.Chrome) || VOther & BrowserType.Chrome) ? VDom.cache_.v as BrowserVer : 0,
-    scrollingEl: Element | null
-    ;
-    return (Build.BTypes & ~BrowserType.Chrome && VOther & ~BrowserType.Chrome)
-          || zoom <= 1
+    style: CSSStyleDeclaration | false | undefined;
+    return Build.BTypes & ~BrowserType.Chrome && VOther & ~BrowserType.Chrome
           || Build.MinCVer < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl
               && ver < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl
-          || Math.abs(zoom - ratio) > 5e-4 ? zoom
-        : Build.MinCVer < BrowserVer.MinASameZoomOfDocElAsdevPixRatioWorksAgain
-          && ver < BrowserVer.MinASameZoomOfDocElAsdevPixRatioWorksAgain ? 1
-        : (scrollingEl = VDom.scrollingEl_(),
-            scrollingEl && scrollingEl === document.documentElement
-            && Math.abs((visualViewport as EnsureItemsNonNull<VisualViewport>).width
-                  - VDom.getBoundingClientRect_(scrollingEl).width * zoom) < 5e-4
-        ) ? zoom
+          || (style = !VDom.notSafe_(docEl) && (
+                docEl as TypeToAssert<Element, HTMLElement | SVGElement, "style">).style
+              ) && style.zoom ? zoom
         : 1;
   } : 0 as never,
   /**
@@ -474,7 +467,7 @@ var VDom = {
     let docEl = document.documentElement as Element, ratio = devicePixelRatio
       , gcs = getComputedStyle, st = gcs(docEl), zoom = +st.zoom || 1
       , el: Element | null = a.fullscreenEl_unsafe_();
-    Build.BTypes & BrowserType.Chrome && (zoom = a._fixDocZoom(zoom, ratio));
+    Build.BTypes & BrowserType.Chrome && (zoom = a._fixDocZoom(zoom, docEl));
     if (target) {
       const body = el ? null : document.body;
       // if fullscreen and there's nested "contain" styles,
@@ -521,7 +514,7 @@ var VDom = {
     // ignore the case that x != y in "transform: scale(x, y)""
     _tf = st.transform, scale = a.dScale_ = _tf && !_tf.startsWith(kMatrix) && float(_tf.slice(7)) || 1;
     a.bScale_ = box2 && (_tf = st2.transform) && !_tf.startsWith(kMatrix) && float(_tf.slice(7)) || 1;
-    Build.BTypes & BrowserType.Chrome && (zoom = a._fixDocZoom(zoom, ratio));
+    Build.BTypes & BrowserType.Chrome && (zoom = a._fixDocZoom(zoom, box));
     a.wdZoom_ = Math.round(zoom * ratio2 * 1000) / 1000;
     a.docZoom_ = Build.BTypes & ~BrowserType.Firefox ? zoom : 1;
     let x = !stacking ? float(st.marginLeft)
