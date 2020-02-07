@@ -831,10 +831,11 @@ interface CSSStyleDeclaration {
     [index: number]: string;
 }
 
-declare var CSSStyleDeclaration: {
-    prototype: CSSStyleDeclaration;
-    new(): CSSStyleDeclaration;
-}
+// useless on Firefox - it has CSS2Properties
+// declare var CSSStyleDeclaration: {
+//     prototype: CSSStyleDeclaration;
+//     new(): CSSStyleDeclaration;
+// }
 
 interface CSSStyleRule extends CSSRule {
     readonly readOnly: boolean;

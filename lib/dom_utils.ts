@@ -24,7 +24,7 @@ if (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinEnsured$
 declare var VOther: BrowserType;
 
 var VDom = {
-  cache_: null as never as EnsureItemsNonNull<SettingsNS.FrontendSettingCache>,
+  cache_: null as never as OnlyEnsureItemsNonNull<SettingsNS.FrontendSettingCache>,
   clickable_: null as never as { add(value: Element): object | void | number; has(value: Element): boolean; },
   // note: scripts always means allowing timers - vPort.ClearPort requires this assumption
   allowScripts_: 1 as 0 | 1 | 2,
@@ -261,7 +261,7 @@ var VDom = {
       d = document, visual = inVisual && visualViewport;
       let i: number, j: number, el: Element | null, doc: typeof d.documentElement;
       vleft = vtop = 0;
-      if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinUseful$visualViewport$ ? visual
+      if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$visualViewport$ ? visual
           : visual && visual.width) {
         vleft = (visual as VisualViewport).offsetLeft | 0, vtop = (visual as VisualViewport).offsetTop | 0;
         i = vleft + <number> (visual as VisualViewport).width | 0; j = vtop + (visual as VisualViewport).height | 0;

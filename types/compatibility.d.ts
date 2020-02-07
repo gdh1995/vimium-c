@@ -305,7 +305,6 @@ declare const enum BrowserVer {
   MinCorrectBoxWidthForOptionsUI = 61,
   MinInnerWidthKeepsTheSameWhenPinchZooming = 61, // on touch-screen devices
   // visualViewport.width/h, .pageL/T and .offsetL/T occurs, and `innerWidth` is not "scaled"
-  MinUseful$visualViewport$ = 61,
   MinEnsured$visualViewport$ = 61,
   MinScrollIntoViewOptions = 61,
   // also means ensured Element::scrollBy, Element::scrollTo and window.scrollTo/scrollBy({})

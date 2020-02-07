@@ -43,6 +43,18 @@ case "$1" in
     FLAGS=$FLAGS" --disable-javascript-harmony-shipping"
     shift
     ;;
+  enable|enable-blink)
+    FLAGS=$FLAGS" --enable-blink-features="$2
+    shift 2
+    ;;
+  disable|disable-blink)
+    FLAGS=$FLAGS" --disable-blink-features="$2
+    shift 2
+    ;;
+  dark)
+    FLAGS=$FLAGS" --force-dark-mode"
+    shift
+    ;;
   test|--test) # no the "Disable developer mode extensions" dialog, but add an extra infobar
     OTHER_ARGS=$OTHER_ARGS" --enable-automation"
     shift
@@ -100,7 +112,6 @@ case "$1" in
       shift
     else
       echo "Unknown arg: $1" >&2
-      break
     fi
     ;;
 esac

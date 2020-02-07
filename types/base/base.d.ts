@@ -14,6 +14,7 @@ interface EnsuredSafeDict<T> extends SafeDict<T> {
   [key: string]: T;
 }
 type EnsureItemsNonNull<T> = { [P in keyof T]-?: NonNullable<T[P]> };
+type OnlyEnsureItemsNonNull<T> = { [P in keyof T]: NonNullable<T[P]> }; // for lang server to show comments
 type EnsureNonNull<T> = EnsureItemsNonNull<NonNullable<T>>;
 type Ensure<T, K extends keyof T> = { -readonly [P in K]-?: NonNullable<T[P]> };
 

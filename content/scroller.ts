@@ -333,7 +333,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       : (visual = visualViewport,
           !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsured$visualViewport$
           || visual && (!(Build.BTypes & BrowserType.Chrome)
-              || Build.MinCVer >= BrowserVer.MinUseful$visualViewport$ || visual.width)
+              || Build.MinCVer >= BrowserVer.MinEnsured$visualViewport$ || visual.width)
           ? di ? (visual as VisualViewport).height : (visual as EnsureItemsNonNull<VisualViewport>).width
           : di ? innerHeight : innerWidth);
   },

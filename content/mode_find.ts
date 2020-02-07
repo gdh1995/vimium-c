@@ -160,7 +160,9 @@ copy cut beforecopy beforecut paste".split(" ")) {
     } else {
       el.contentEditable = "plaintext-only";
     }
-    if (Build.BTypes & BrowserType.Chrome && VDom.cache_.v < BrowserVer.MinEnsuredInputEventIsNotOnlyInShadowDOMV1) {
+    if (Build.BTypes & BrowserType.Chrome
+        && Build.MinCVer < BrowserVer.MinEnsuredInputEventIsNotOnlyInShadowDOMV1
+        && VDom.cache_.v < BrowserVer.MinEnsuredInputEventIsNotOnlyInShadowDOMV1) {
       // not check MinEnsuredShadowDOMV1 for smaller code
       VKey.SetupEventListener_(el, "input", a.OnInput_);
     }
@@ -548,7 +550,7 @@ copy cut beforecopy beforecut paste".split(" ")) {
           && (!(Build.BTypes & ~BrowserType.Chrome) || VOther & BrowserType.Chrome)
           && (Build.MinCVer >= BrowserVer.Min$compositionend$$isComposing$IsMistakenlyFalse
               || VDom.cache_.v > BrowserVer.Min$compositionend$$isComposing$IsMistakenlyFalse - 1)
-          && e.type[0] === "c")) {
+          && e.type < "i")) {
         if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
             ? !e.isTrusted : e.isTrusted === false) { return; }
       }
