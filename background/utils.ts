@@ -84,8 +84,8 @@ var BgUtils_ = {
     ".abc.art.bid.biz.cat.com.dev.edu.fit.fun.gov.ink.int.kim.law.lol.ltd.men.mil.moe.mom.mtn.net\
 .new.one.org.pro.pub.red.ren.run.tel.top.vip.win.xin.xxx.xyz"
     , ".aero.arpa.asia.auto.band.beer.chat.city.club.cool.coop.date.fund.game.gift.gold.guru.help.info.jobs.life\
-.link.live.loan.love.luxe.mobi.name.news.pics.plus.post.shop.show.site.sohu.team.tech.wang.wiki.work.yoga.zone"
-    , ".citic.click.cloud.email.games.group.local.onion.party.photo.press.rocks.space.store.today.trade.video.world"
+.link.live.loan.love.luxe.mobi.name.news.pics.plus.shop.show.site.sohu.team.tech.wang.wiki.work.yoga.zone"
+    , ".citic.cloud.email.games.group.local.onion.party.photo.press.rocks.space.store.today.trade.video.world"
     , ".center.design.lawyer.market.museum.online.social.studio.travel"
     , ".company.fashion.science.website"
     , ".engineer.software"
