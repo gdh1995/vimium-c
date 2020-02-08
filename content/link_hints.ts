@@ -446,11 +446,12 @@ var VHints = {
       // on C75, a <textarea disabled> is still focusable
       if ((element as TextElement).disabled && _this.mode1_ < HintMode.max_mouse_events + 1) { return; }
       if (tag === "input" && VDom.uneditableInputs_[(element as HTMLInputElement).type]) {
-        isClickable = <number> <string | number> getComputedStyle(element).opacity > 0;
-        if (!isClickable && (isClickable = !(element as HTMLInputElement).labels.length)) {
-          arr = VDom.getCroppedRect_(element, VDom.getVisibleClientRect_(element));
+        const st = getComputedStyle(element), visible = <number> <string | number> st.opacity > 0;
+        isClickable = visible || !(element as HTMLInputElement).labels.length;
+        if (isClickable) {
+          arr = VDom.getZoomedAndCroppedRect_(element, st, !visible);
+          type = arr ? ClickType.edit : ClickType.Default;
         }
-        type = isClickable ? ClickType.edit : ClickType.Default;
       } else if (!(element as TextElement).readOnly || _this.mode1_ > HintMode.min_job - 1) {
         type = ClickType.edit;
         isClickable = true;
@@ -518,12 +519,13 @@ var VHints = {
               || element.hasAttribute("aria-selected") ? ClickType.classname : ClickType.Default);
     }
     if ((isClickable || type !== ClickType.Default)
-        && (arr = arr || VDom.getVisibleClientRect_(element, null))
+        && (arr = tag === "img" ? VDom.getZoomedAndCroppedRect_(element, null, true)
+                : arr || VDom.getVisibleClientRect_(element, null))
         && (type < ClickType.scrollX
           || VSc.shouldScroll_need_safe_(element, type - ClickType.scrollX as ScrollByY, 0) > 0)
         && VDom.isAriaNotTrue_(element, kAria.hidden)
         && (_this.mode_ > HintMode.min_job - 1 || VDom.isAriaNotTrue_(element, kAria.disabled))
-    ) { hints.push([element, tag === "img" ? VDom.getCroppedRect_(element, arr) : arr, type]); }
+    ) { hints.push([element, arr, type]); }
   },
   _getClickableInMaybeSVG (hints: Hint[], element: SafeElement & { __other: 1 | 2; }): void {
     let anotherEl: SVGElement;
@@ -567,7 +569,9 @@ var VHints = {
     // for Google search result pages
     let mayBeSearchResult = !!(anchor.rel
           || (Build.BTypes & ~BrowserType.Chrome ? anchor.getAttribute("ping") : anchor.ping)),
-    el = mayBeSearchResult || anchor.childElementCount === 1 ? anchor.firstElementChild as Element | null : null,
+    el = mayBeSearchResult && anchor.querySelector("h3,h4")
+          || (mayBeSearchResult || anchor.childElementCount === 1) && anchor.firstElementChild as Element | null
+          || null,
     tag = el ? VDom.htmlTag_(el) : "";
     return el && (mayBeSearchResult
           // use `^...$` to exclude custom tags
@@ -890,9 +894,9 @@ var VHints = {
         }
         j = i;
       }
-      else if (i + 1 < list.length && list[j = i + 1][2] === ClickType.Default
-          && this._isDescendant(element = list[i + 1][0], list[i][0], false)
-          && (<RegExpOne> /\b(button|a$)/).test((element as Hint[0]).localName)) {
+      else if (i + 1 < list.length && list[j = i + 1][2] < ClickType.edit + 1
+          && this._isDescendant(element = list[j][0], list[i][0], false)
+          && (list[j][2] > ClickType.edit - 1 || (<RegExpOne> /\b(button|a$)/).test((element as Hint[0]).localName))) {
         list.splice(i, 1);
       }
       else if (j = i - 1, i < 1 || (k = list[j][2]) > ClickType.MaxWeak

@@ -890,6 +890,17 @@ var VDom = {
     padding = x || y ? padding : 0;
     return {l: x | 0, t: y | 0, r: (x + max(rect.width, padding)) | 0, b: (y + max(rect.height, padding)) | 0};
   },
+  getZoomedAndCroppedRect_ (element: Element, st: CSSStyleDeclaration | null, crop: boolean): Rect | null {
+    let zoom = Build.BTypes && ~BrowserType.Firefox && +(st || getComputedStyle(element)).zoom || 1,
+    cr: ClientRect = Build.BTypes && ~BrowserType.Firefox ? VDom.getBoundingClientRect_(element) : 0 as never,
+    arr: Rect | null = Build.BTypes && ~BrowserType.Firefox
+        ? VDom.cropRectToVisible_(cr.left * zoom, cr.top * zoom, cr.right * zoom, cr.bottom * zoom)
+        : VDom.getVisibleClientRect_(element);
+    if (crop) {
+      arr = VDom.getCroppedRect_(element, arr);
+    }
+    return arr;
+  },
   setBoundary_ (style: CSSStyleDeclaration, r: WritableRect, allow_abs?: boolean): void {
     if (allow_abs && (r.t < 0 || r.l < 0 || r.b > innerHeight || r.r > innerWidth)) {
       const arr: ViewOffset = this.getViewBox_();
