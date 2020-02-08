@@ -442,6 +442,7 @@ var VDom = {
   paintBox_: null as [number, number] | null, // it may need to use `paintBox[] / <body>.zoom`
   wdZoom_: 1, // <html>.zoom * min(devicePixelRatio, 1) := related to physical pixels
   docZoom_: 1, // zoom of <html>
+  isDocZoomStrange_: 0,
   dScale_: 1, // <html>.transform:scale (ignore the case of sx != sy)
   bScale_: 1, // <body>.transform:scale (ignore the case of sx != sy)
   /** zoom of <body> (if not fullscreen else 1) */
@@ -449,15 +450,41 @@ var VDom = {
   _fixDocZoom: Build.BTypes & BrowserType.Chrome ? (zoom: number, docEl: Element): number => {
     let ver = Build.MinCVer < BrowserVer.MinASameZoomOfDocElAsdevPixRatioWorksAgain
         && (!(Build.BTypes & ~BrowserType.Chrome) || VOther & BrowserType.Chrome) ? VDom.cache_.v as BrowserVer : 0,
+    rectWidth: number, viewportWidth: number,
     style: CSSStyleDeclaration | false | undefined;
+    if (BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl !== BrowserVer.MinEnsured$visualViewport$) {
+      console.log("Assert error: MinDevicePixelRatioImplyZoomOfDocEl should be equal with MinEnsured$visualViewport$");
+    }
+    VDom.isDocZoomStrange_ = 0;
     return Build.BTypes & ~BrowserType.Chrome && VOther & ~BrowserType.Chrome
-          || Build.MinCVer < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl
-              && ver < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl
-          || (style = !VDom.notSafe_(docEl) && (
-                docEl as TypeToAssert<Element, HTMLElement | SVGElement, "style">).style
-              ) && style.zoom ? zoom
-        : 1;
+        || zoom === 1
+        || Build.MinCVer < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl
+            && ver < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl
+        || (rectWidth = VDom.getBoundingClientRect_(docEl).width,
+            viewportWidth = (visualViewport as EnsureItemsNonNull<VisualViewport>).width,
+            Math.abs(rectWidth - viewportWidth) > 1e-3
+            && (Math.abs(rectWidth * zoom - viewportWidth) < 0.01
+              || (Build.MinCVer >= BrowserVer.MinASameZoomOfDocElAsdevPixRatioWorksAgain
+                    || ver > BrowserVer.MinASameZoomOfDocElAsdevPixRatioWorksAgain - 1)
+                  && (style = !VDom.notSafe_(docEl) && (
+                    docEl as TypeToAssert<Element, HTMLElement | SVGElement, "style">).style)
+                  && style.zoom && style.zoom)
+              || zoom !== VDom._getPageZoom(zoom, docEl))
+        ? zoom : 1;
   } : 0 as never,
+  _getPageZoom: Build.BTypes & BrowserType.Chrome ? function (docElZoom: number, docEl: Element | null): number {
+    // only detect once, so that its cost is not too big
+    let iframe: HTMLIFrameElement = VDom.createElement_("iframe"),
+    pageZoom: number | null | undefined, doc: Document | null;
+    try {
+      iframe.appendChild.call(docEl, iframe);
+      docEl = (doc = iframe.contentDocument) && doc.documentElement;
+      pageZoom = docEl && +getComputedStyle(docEl).zoom;
+    } catch {}
+    iframe.remove();
+    VDom._getPageZoom = (zoom2) => (VDom.isDocZoomStrange_ = 1, pageZoom || zoom2);
+    return pageZoom || docElZoom;
+  } as (docElZoom: number, docEl: Element) => number : 0 as never,
   /**
    * also update VDom.docZoom_
    * update VDom.bZoom_ if target
