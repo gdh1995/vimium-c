@@ -944,6 +944,7 @@ var VHints = {
   filterOutNonReachable_ (list: Hint[]): void {
     if (!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && VOther & BrowserType.Edge) { return; }
     const D = VDom;
+    if (!D.cache_.e) { return; }
     if (Build.BTypes & BrowserType.Chrome && (Build.MinCVer < BrowserVer.Min$Node$$getRootNode
           || Build.MinCVer < BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint)
         && D.cache_.v < (BrowserVer.Min$Node$$getRootNode > BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint
@@ -1133,7 +1134,9 @@ var VHints = {
         }
         return HandlerResult.Prevent;
       }
-      if (key[0] === "a") {
+      if (key.includes("-s")) {
+        VDom.cache_.e = !VDom.cache_.e;
+      } else if (key[0] === "a") {
         a.wantDialogMode_ = !a.wantDialogMode_;
       } else if ("cm".includes(key[0])) {
         a.options_.useFilter = VDom.cache_.f = !a.useFilter_;

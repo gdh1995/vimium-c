@@ -996,6 +996,8 @@ function (details: chrome.runtime.InstalledDetails): void {
     ref1.backupSettingsToLocal_ = true;
   }
 
+  if (!Settings_.get_("showNotification")) { return; }
+
   reason = "vimium_c-upgrade-notification";
   const args: chrome.notifications.NotificationOptions = {
     type: "basic",

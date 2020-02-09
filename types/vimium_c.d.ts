@@ -253,6 +253,7 @@ declare namespace SettingsNS {
     /** linkHintNumbers */ n: ["linkHintNumbers", string];
     /** filterLinkHints */ f: ["filterLinkHints", boolean];
     /** waitForEnter */ w: ["waitForEnter", boolean];
+    /** mouseReachable */ e: ["mouseReachable", boolean];
     /** regexFindMode */ r: ["regexFindMode", boolean];
     /** scrollStepSize */ t: ["scrollStepSize", number];
     /** smoothScroll */ s: ["smoothScroll", boolean];

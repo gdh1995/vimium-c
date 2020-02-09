@@ -465,13 +465,14 @@ shortcut-forwarding-tool@gdh1995.cn`
     hideHud: false,
     ignoreCapsLock: 0,
     ignoreKeyboardLayout: false,
-    mapModifier: 0,
     innerCSS: "",
     keyboard: [560, 33],
     keyMappings: "",
     linkHintCharacters: "sadjklewcmpgh",
     linkHintNumbers: "0123456789",
     localeEncoding: "gbk",
+    mapModifier: 0,
+    mouseReachable: true,
     newTabUrl: "",
     newTabUrl_f: "",
     nextPatterns: "\u4e0b\u4e00\u5c01,\u4e0b\u9875,\u4e0b\u4e00\u9875,\u4e0b\u4e00\u7ae0,\u540e\u4e00\u9875\
@@ -507,6 +508,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     showAdvancedCommands: false,
     showAdvancedOptions: false,
     showInIncognito: false,
+    showNotification: true,
     smoothScroll: true,
     vomnibarOptions: {
       maxMatches: 10,
@@ -546,6 +548,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     filterLinkHints: "f",
     ignoreKeyboardLayout: "l",
     mapModifier: "a",
+    mouseReachable: "e",
     keyboard: "k", linkHintCharacters: "c", linkHintNumbers: "n",
     regexFindMode: "r", smoothScroll: "s", scrollStepSize: "t", waitForEnter: "w"
   }),
