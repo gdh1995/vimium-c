@@ -73,7 +73,7 @@ var Commands = {
       , _len: number, details: CommandsNS.Description | undefined, errors = 0, ch: number
       , registry = BgUtils_.safeObj_<CommandsNS.Item>()
       , cmdMap = BgUtils_.safeObj_<CommandsNS.Item>() as Partial<ShortcutInfoMap>
-      , userDefinedKeys = BgUtils_.safeObj_<true>()
+      , builtinKeys: SafeDict<1> | null = null
       , regItem: CommandsNS.Item | null
       , mkReg = BgUtils_.safeObj_<string>();
     const a = this as typeof Commands, available = a.availableCommands_;
@@ -82,10 +82,12 @@ var Commands = {
     lines = line.replace(<RegExpSearchable<0>> /\\\\?\n/g, t => t.length === 3 ? "\\\n" : ""
                ).replace(<RegExpG> /[\t ]+/g, " ").split("\n");
     if (lines[0] !== "unmapAll" && lines[0] !== "unmapall") {
+      builtinKeys = BgUtils_.safeObj_<1>();
       const defaultMap = a.defaultKeyMappings_.split(" ");
       for (_i = defaultMap.length; 0 < _i; ) {
         _i -= 2;
         registry[defaultMap[_i]] = a.makeCommand_(defaultMap[_i + 1]) as NonNullable<ReturnType<typeof a.makeCommand_>>;
+        builtinKeys[defaultMap[_i]] = 1;
       }
     } else {
       _i = 1;
@@ -99,7 +101,7 @@ var Commands = {
         key = BgUtils_.formatKeys_(splitLine[1] || "");
         if (!key || key === "__proto__") {
           a.logError_("Unsupported key sequence %c%s", colorRed, key || '""', `for "${splitLine[2] || ""}"`);
-        } else if (key in userDefinedKeys) {
+        } else if (key in registry && !(builtinKeys && key in builtinKeys)) {
           a.logError_("Key %c%s", colorRed, key, "has been mapped to", (registry[key] as CommandsNS.Item).command_);
         } else if (splitLine.length < 3) {
           a.logError_("Lacking command when mapping %c%s", colorRed, key);
@@ -112,14 +114,14 @@ var Commands = {
           regItem = a.makeCommand_(splitLine[2], a.getOptions_(splitLine, 3), details);
           if (regItem) {
             registry[key] = regItem;
-            userDefinedKeys[key] = true;
+            builtinKeys && delete builtinKeys[key];
           }
           continue;
         }
       } else if (key === "unmapAll" || key === "unmapall") {
         registry = BgUtils_.safeObj_();
         cmdMap = BgUtils_.safeObj_<CommandsNS.Item>() as Partial<ShortcutInfoMap>;
-        userDefinedKeys = BgUtils_.safeObj_<true>();
+        builtinKeys = null;
         mkReg = BgUtils_.safeObj_<string>(), mk = 0;
         if (errors > 0) {
           a.logError_("All key mappings is unmapped, but there %s been %c%d error%s%c before this instruction"
@@ -159,7 +161,7 @@ var Commands = {
       } else if (splitLine.length !== 2) {
         a.logError_("Unmap needs one mapped key:", line);
       } else if ((key = BgUtils_.formatKeys_(splitLine[1])) in registry) {
-        delete userDefinedKeys[key];
+        builtinKeys && delete builtinKeys[key];
         delete registry[key];
         continue;
       } else {
@@ -175,6 +177,7 @@ var Commands = {
       }
     }
     CommandsData_.keyToCommandRegistry_ = registry;
+    CommandsData_.builtinKeys_ = builtinKeys;
     CommandsData_.shortcutRegistry_ = cmdMap as ShortcutInfoMap;
     CommandsData_.mappedKeyRegistry_ = Settings_.omniPayload_.k = mk > 0 ? mkReg : null;
     Settings_.temp_.cmdErrors_ = Settings_.temp_.cmdErrors_ > 0 ? ~errors : errors;
@@ -198,22 +201,35 @@ var Commands = {
     const d = CommandsData_, ref = d.keyFSM_ = BgUtils_.safeObj_<ValidKeyAction | ChildKeyFSM>(),
     keyRe = BgUtils_.keyRe_,
     strip = BgUtils_.stripKey_,
+    builtinKeys = d.builtinKeys_,
+    allKeys = Object.keys(d.keyToCommandRegistry_),
+    customKeys = builtinKeys ? allKeys.filter(i => !(i in builtinKeys)) : allKeys,
+    countOfCustomKeys = customKeys.length,
+    sortedKeys = builtinKeys ? customKeys.concat(Object.keys(builtinKeys)) : allKeys,
     C = Commands,
     d2 = Settings_.temp_, oldErrors = d2.cmdErrors_;
     if (oldErrors < 0) { d2.cmdErrors_ = ~oldErrors; }
     for (let ch = 10; 0 <= --ch; ) { ref[ch] = KeyAction.count; }
     ref["-"] = KeyAction.count;
-    for (let key in d.keyToCommandRegistry_) {
+    for (let index = 0; index < sortedKeys.length; index++) {
+      const key = sortedKeys[index];
       const arr = key.match(keyRe) as RegExpMatchArray, last = arr.length - 1;
       if (last === 0) {
         let key2 = strip(key);
-        detectNewError && (key2 in ref) && C.warnInactive_(ref[key2] as ReadonlyChildKeyFSM, key);
+        if (key2 in ref) {
+          if (index >= countOfCustomKeys) {
+            delete d.keyToCommandRegistry_[key];
+            continue;
+          }
+          detectNewError && C.warnInactive_(ref[key2] as ReadonlyChildKeyFSM, key);
+        }
         ref[key2] = KeyAction.cmd;
         continue;
       }
       let ref2 = ref as ChildKeyFSM, tmp: ChildKeyFSM | ValidChildKeyAction | undefined = ref2, j = 0;
       while ((tmp = ref2[strip(arr[j])]) && j < last) { j++; ref2 = tmp; }
-      if (tmp === KeyAction.cmd) {
+      if (tmp != null && (index >= countOfCustomKeys || tmp === KeyAction.cmd)) {
+        index >= countOfCustomKeys ? delete d.keyToCommandRegistry_[key] :
         detectNewError && C.warnInactive_(key, arr.slice(0, j + 1).join(""));
         continue;
       }
@@ -226,6 +242,7 @@ var Commands = {
     } else if (oldErrors < 0) {
       console.log("The new key mappings have no errors");
     }
+    CommandsData_.builtinKeys_ = null;
     const maybePassed = Exclusions ? Exclusions.getAllPassed_() : null;
     const func = function (obj: ChildKeyFSM): void {
       for (const key in obj) {
@@ -491,6 +508,7 @@ availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeO
 },
 CommandsData_: CommandsDataTy = CommandsData_ as never || {
   keyToCommandRegistry_: null as never as SafeDict<CommandsNS.Item>,
+  builtinKeys_: null,
   keyFSM_: null as never as KeyFSM,
   shortcutRegistry_: null as never as ShortcutInfoMap,
   mappedKeyRegistry_: null as SafeDict<string> | null

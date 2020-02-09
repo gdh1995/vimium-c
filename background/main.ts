@@ -2484,15 +2484,16 @@
         })
       ]).then(function (args): void {
         const port2 = request.w && indexFrame(port.s.t, 0) || port,
+        isOptionsPage = port2.s.u.startsWith(Settings_.CONST_.OptionsPage_),
         options = request.a || {};
         (port2.s as Frames.Sender).f |= Frames.Flags.hadHelpDialog;
         port2.postMessage({
           N: kBgReq.showHelpDialog,
           S: ensureInnerCSS(port2),
-          h: args[0].render_(port2.s.u.startsWith(Settings_.CONST_.OptionsPage_)),
+          h: args[0].render_(isOptionsPage),
           o: Settings_.CONST_.OptionsPage_,
           e: !!options.exitOnClick,
-          c: Settings_.get_("showAdvancedCommands", true) || Settings_.temp_.cmdErrors_ !== 0
+          c: Settings_.get_("showAdvancedCommands", true) || isOptionsPage && Settings_.temp_.cmdErrors_ !== 0
         });
       }, Build.NDEBUG ? null : function (args): void {
         console.error("Promises for initHelp failed:", args[0], ";", args[1]);
