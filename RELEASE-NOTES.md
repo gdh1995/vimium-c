@@ -4,6 +4,15 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://github.com/gdh1995/vimium-c/blob/master/README_zh.md .
 
+#### 1.80.2
+* `LinkHints` now *detects whether links are completely covered or not*, and an option can disable this feature
+* macOS: fix broken LinkHints when a page is zoomed in ([#119](https://github.com/gdh1995/vimium-c/issues/119))
+* fix a regression some keys were not excluded successfully ([#115](https://github.com/gdh1995/vimium-c/issues/115))
+* Chrome: fix a regression the hook for click listeners became unsafe in v1.80.1
+* fix some bugs when handling `vimium://***` URLs ([#113](https://github.com/gdh1995/vimium-c/issues/113))
+* add a new command of `editText` ([#114](https://github.com/gdh1995/vimium-c/issues/114))
+* add an option to stop to show notifications on updates ([#116](https://github.com/gdh1995/vimium-c/issues/116))
+
 #### 1.80.1
 * support pre-mode "`mapKey`" directive: ```mapKey <`:o> <f2>```
 * Vomnibar: always parse `vimium://` URLs, including `vimium://paste [...sed-rules]`

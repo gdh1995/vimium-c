@@ -3,7 +3,7 @@
 ===========================================
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.80.1](https://img.shields.io/badge/release-1.80.1-orange.svg
+[![Version 1.80.2](https://img.shields.io/badge/release-1.80.2-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -86,6 +86,15 @@ __Other extensions supporting Vimium C:__
 
 
 # Release Notes
+
+### 1.80.2
+* `LinkHints` now *detects whether links are completely covered or not*, and an option can disable this feature
+* macOS: fix broken LinkHints when a page is zoomed in ([#119](https://github.com/gdh1995/vimium-c/issues/119))
+* fix a regression some keys were not excluded successfully ([#115](https://github.com/gdh1995/vimium-c/issues/115))
+* Chrome: fix a regression the hook for click listeners became unsafe in v1.80.1
+* fix some bugs when handling `vimium://***` URLs
+* add a new command of `editText` ([#114](https://github.com/gdh1995/vimium-c/issues/114))
+* add an option to stop to show notifications on updates
 
 ### 1.80.1
 * support pre-mode "`mapKey`" directive: ```mapKey <`:o> <f2>```

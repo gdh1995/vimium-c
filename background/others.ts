@@ -986,8 +986,7 @@ function (details: chrome.runtime.InstalledDetails): void {
   }
 
   if (!reason) { return; }
-  const oldVer = parseFloat(reason), curVer = Settings_.CONST_.VerCode_;
-  if (parseFloat(curVer) <= oldVer && (curVer !== "1.80.1" || curVer <= reason)) { return; }
+  if (parseFloat(Settings_.CONST_.VerCode_) <= parseFloat(reason)) { return; }
 
   const ref1 = Settings_.temp_;
   if (ref1.backupSettingsToLocal_) {
