@@ -895,12 +895,12 @@ var VHints = {
         j = i;
       }
       else if (i + 1 < list.length && list[j = i + 1][2] < ClickType.edit + 1
-          && this._isDescendant(element = list[j][0], list[i][0], false)
+          && this._isDescendant(element = list[j][0], list[i][0], 0)
           && (list[j][2] > ClickType.edit - 1 || (<RegExpOne> /\b(button|a$)/).test((element as Hint[0]).localName))) {
         list.splice(i, 1);
       }
       else if (j = i - 1, i < 1 || (k = list[j][2]) > ClickType.MaxWeak
-          || !this._isDescendant(list[i][0], list[j][0], true)) {
+          || !this._isDescendant(list[i][0], list[j][0], 1)) {
         /* empty */
       } else if (VDom.isContaining_(list[j][1], list[i][1])) {
         list.splice(i, 1);
@@ -910,7 +910,7 @@ var VHints = {
       if (notRemoveParents) { continue; }
       for (; j > i - 3 && 0 < j
             && (k = list[j - 1][2]) > ClickType.MaxNotWeak && k < ClickType.MinNotWeak
-            && this._isDescendant(list[j][0], list[j - 1][0], true)
+            && this._isDescendant(list[j][0], list[j - 1][0], 1)
           ; j--) { /* empty */ }
       if (j < i) {
         list.splice(j, i - j);
@@ -921,7 +921,7 @@ var VHints = {
       list.shift();
     }
   },
-  _isDescendant: function (c: Element | null, p: Hint[0], shouldBeSingleChild: boolean): boolean {
+  _isDescendant: function (c: Element | null, p: Element, shouldBeSingleChild: BOOL | boolean): boolean {
     // Note: currently, not compute normal shadowDOMs / even <slot>s (too complicated)
     let i = 3, f: Node | null;
     while (0 < i-- && c
@@ -932,7 +932,7 @@ var VHints = {
               && VDom.unsafeFramesetTag_ && VDom.notSafe_(c))
         ) { /* empty */ }
     if (c !== p
-        || !shouldBeSingleChild || (<RegExpOne> /\b(button|a$)/).test(p.localName)) {
+        || !shouldBeSingleChild || (<RegExpOne> /\b(button|a$)/).test(p.localName as string)) {
       return c === p;
     }
     for (; c.childElementCount === 1
@@ -940,53 +940,61 @@ var VHints = {
           && ++i < 3
         ; c = c.lastElementChild as Element | null as Element) { /* empty */ }
     return i > 2;
-  } as (c: Element, p: Hint[0], shouldBeSingleChild: boolean) => boolean,
-  filterOutCovered_ (list: Hint[]): void {
+  } as (c: Element, p: Element, shouldBeSingleChild: BOOL | boolean) => boolean,
+  filterOutNonReachable_ (list: Hint[]): void {
     if (!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && VOther & BrowserType.Edge) { return; }
+    const D = VDom;
     if (Build.BTypes & BrowserType.Chrome && (Build.MinCVer < BrowserVer.Min$Node$$getRootNode
           || Build.MinCVer < BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint)
-        && VDom.cache_.v < (BrowserVer.Min$Node$$getRootNode > BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint
+        && D.cache_.v < (BrowserVer.Min$Node$$getRootNode > BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint
             ? BrowserVer.Min$Node$$getRootNode : BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint)) {
       return;
     }
-    const zoom = Build.BTypes & BrowserType.Chrome ? VDom.docZoom_ * VDom.bZoom_ : 1,
-    zoomM2 = Build.BTypes & BrowserType.Chrome ? zoom * 2 : 2,
+    if (Build.BTypes & BrowserType.Chrome && D.isDocZoomStrange_ && D.docZoom_ - 1) {
+      return;
+    }
+    let i = list.length, el: SafeElement, is_img: boolean, root: Document | ShadowRoot,
+    fromPoint: Element | null | undefined, temp: Element | null;
+    const zoom = Build.BTypes & BrowserType.Chrome ? D.docZoom_ * D.bZoom_ : 1,
     zoomD2 = Build.BTypes & BrowserType.Chrome ? zoom / 2 : 0.5,
-    body = document.body, docEl = document.documentElement;
-    let i = list.length, temp: Element | null;
+    body = document.body, docEl = document.documentElement,
+    // note: exclude the case of `fromPoint.contains(el)`, to exclude invisible items in lists
+    does_hit = (x: number, y: number): boolean => {
+      fromPoint = root.elementFromPoint(x, y);
+      return !fromPoint || el === fromPoint || el.contains(fromPoint)
+          || is_img && VHints._isDescendant(el, fromPoint, 0);
+    }
     while (0 <= --i) {
-      const ref = list[i], el = ref[0], {l, t, r, b} = ref[1],
-      root = (el as Ensure<Node, "getRootNode">).getRootNode(), nodeType = root.nodeType,
-      fromPoint = nodeType === kNode.DOCUMENT_NODE || nodeType === kNode.DOCUMENT_FRAGMENT_NODE
-          ? (root as Document | ShadowRoot).elementFromPoint((l + r) * zoomD2, (t + b) * zoomD2) : null;
-      if (!fromPoint || el.contains(fromPoint)) {
-        // note: exclude the case of `fromPoint.contains(el)`, to exclude invisible items in lists
+      el = list[i][0];
+      is_img = el.localName === "img" && !!D.htmlTag_(el);
+      root = (el as Ensure<Node, "getRootNode">).getRootNode() as Document | ShadowRoot;
+      const nodeType = root.nodeType, area = list[i][1],
+      cx = (area.l + area.r) * zoomD2, cy = (area.t + area.b) * zoomD2;
+      if (nodeType !== kNode.DOCUMENT_NODE && nodeType !== kNode.DOCUMENT_FRAGMENT_NODE
+          || does_hit(cx, cy)) {
         continue;
       }
       if (nodeType === kNode.DOCUMENT_FRAGMENT_NODE
           && (temp = (el as SafeElement).firstElementChild as Element | null)
-          && VDom.htmlTag_(temp) === "slot" && (root as ShadowRoot).host.contains(fromPoint)) {
+          && D.htmlTag_(temp) === "slot"
+          && (root as ShadowRoot).host.contains(fromPoint as NonNullable<typeof fromPoint>)) {
         continue;
       }
-      const stack = (root as Document | ShadowRoot).elementsFromPoint((l + r) * zoomD2, (t + b) * zoomD2),
+      const stack = root.elementsFromPoint(cx, cy),
       elPos = stack.indexOf(el);
-      if (elPos > 0 ? stack.lastIndexOf(fromPoint, elPos - 1) >= 0 : elPos < 0) {
+      if (elPos > 0 ? stack.lastIndexOf(fromPoint as NonNullable<typeof fromPoint>, elPos - 1) >= 0 : elPos < 0) {
         if (!(Build.BTypes & BrowserType.Firefox) ? elPos < 0
             : Build.BTypes & ~BrowserType.Firefox && VOther & ~BrowserType.Firefox && elPos < 0) {
-          for (temp = el; (temp = VDom.GetParent_(temp, PNType.RevealSlot)) && temp !== body && temp !== docEl; ) {
+          for (temp = el; (temp = D.GetParent_(temp, PNType.RevealSlot)) && temp !== body && temp !== docEl; ) {
             if (getComputedStyle(temp).zoom !== "1") { temp = el; break; }
           }
           if (temp === el) { continue; }
         }
-        const func = (root as Document | ShadowRoot).elementFromPoint.bind(root as Document | ShadowRoot);
-        if (func(l * zoom + zoomM2, t * zoom + zoomM2) !== el // top-left
-            && func(l * zoom + zoomM2, (t + b) * zoomD2) !== el /* center-left: for circle buttons */
-            && func(l * zoom + zoomM2, b * zoom - zoomM2) !== el // bottom-left
-            && func(r * zoom - zoomM2, t * zoom + zoomM2) !== el // top-right
-            && func(r * zoom - zoomM2, b * zoom - zoomM2) !== el // bottom-right
-            && func((l + r) * zoomD2, t * zoom + zoomM2) !== el /* top-center */ ) {
-          list.splice(i, 1);
-        }
+        does_hit(cx, Build.BTypes & BrowserType.Chrome ? (area.t + 2) * zoom : area.t + 2) // x=center, y=top
+        || does_hit(cx, Build.BTypes & BrowserType.Chrome ? (area.b - 4) * zoom : area.b - 4) // x=center, y=bottom
+        || does_hit(Build.BTypes & BrowserType.Chrome ? (area.l + 2) * zoom : area.l + 2, cy) // x=left, y=center
+        || does_hit(Build.BTypes & BrowserType.Chrome ? (area.r - 4) * zoom : area.r - 4, cy) // x=right, y=center
+        || list.splice(i, 1);
       }
     }
   },
@@ -1036,7 +1044,7 @@ var VHints = {
             ? a.kEditableSelector_ + a.kSafeAllSelector_ : a.kEditableSelector_, a.GetEditable_);
     if (_i < HintMode.max_mouse_events + 1
         && visibleElements.length < GlobalConsts.MinElementCountToStopPointerDetection) {
-      a.filterOutCovered_(visibleElements);
+      a.filterOutNonReachable_(visibleElements);
     }
     a.maxLeft_ = view[2], a.maxTop_ = view[3], a.maxRight_ = view[4];
     if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar)
