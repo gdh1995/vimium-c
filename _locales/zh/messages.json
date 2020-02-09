@@ -334,7 +334,7 @@
 		"message": "切换网页静音"
 	},
 	"toggleSwitchTemp": {
-		"message": "在当前页面临时切换任意设置"
+		"message": "在当前页面临时切换任意选项"
 	},
 	"toggleViewSource": {
 		"message": "显示当前页面的源代码"
@@ -392,7 +392,7 @@
 	},
 	"lang1": { "message": "zh" },
 	"NS": { "message": "" },
-	"noActiveState": { "message": "已配置不显示工作状态" },
+	"noActiveState": { "message": "已设置不显示工作状态" },
 	"period": {
 		"message": "。"
 	},
@@ -433,7 +433,7 @@
 		"message": "使文本框大小适合内容"
 	},
 	"nonEmpty": {
-		"message": "删除此设置的所有内容来恢复到默认"
+		"message": "删除此配置的所有内容来恢复到默认"
 	},
 	"Show": {
 		"message": "显示"
@@ -493,10 +493,10 @@
 		"message": "自定义快捷键"
 	},
 	"o16_2": {
-		"message": "设置“"
+		"message": "“"
 	},
 	"o16_3": {
-		"message": "”处于"
+		"message": "”选项处于"
 	},
 	"o16_4": {
 		"message": "状态"
@@ -626,7 +626,7 @@
 		"message": "始终按照英文"
 	},
 	"o52": {
-		"message": " QWERTY 键盘布局来识别按键并忽略大小写锁定，使用非英文的键盘布局时可能需要启用此设置。"
+		"message": " QWERTY 键盘布局来识别按键并忽略大小写锁定，使用非英文的键盘布局时可能需要启用此选项。"
 	},
 	"o53": {
 		"message": "映射键盘右侧（或左侧）的修饰键"
@@ -653,16 +653,16 @@
 		"message": "在暂停识别快捷键时隐藏右下角提示框"
 	},
 	"o58": {
-		"message": "启用此设置时，隐藏“Vimium C 已暂停”的提示框，和“enterInsertMode hideHUD=true”效果相同。"
+		"message": "启用此选项时，隐藏“Vimium C 已暂停”的提示框，和“enterInsertMode hideHUD=true”效果相同。"
 	},
 	"o59": {
 		"message": "自动切换浅色和深色模式"
 	},
 	"o60": {
-		"message": "启用此设置时，自动跟随系统的应用亮暗模式设置来启用深色模式。"
+		"message": "启用此选项时，自动跟随系统的应用亮暗模式配置来启用深色模式。"
 	},
 	"o61": {
-		"message": "自动跟随系统“减少动画”的设置"
+		"message": "自动跟随系统“减少动画”的配置"
 	},
 	"o62": {
 		"message": "将会影响搜索框和右下角提示框的动画。"
@@ -671,13 +671,13 @@
 		"message": "在浏览器右上角显示动态图标"
 	},
 	"o64": {
-		"message": "使用扩展程序图标反映 Vimium C 在当前页面的工作状态。禁用此设置可以小幅度减少资源消耗。"
+		"message": "使用扩展程序图标反映 Vimium C 在当前页面的工作状态。禁用此选项可以小幅度减少资源消耗。"
 	},
 	"o64_2": {
 		"message": "在展示页面上总是阻止浏览器缓存图片"
 	},
 	"o65": {
-		"message": "借助浏览器账号云服务来同步 Vimium C 设置"
+		"message": "借助浏览器账号云服务来同步 Vimium C 配置"
 	},
 	"o66": {
 		"message": "修改后建议立即重启浏览器或重新加载此扩展。"
@@ -713,10 +713,10 @@
 		"message": "此处定义的样式会覆盖默认样式，而且不会影响到正常网页内容。"
 	},
 	"o77": {
-		"message": "搜索框设置"
+		"message": "搜索框配置"
 	},
 	"o78": {
-		"message": "可以调整搜索框的部分细节设置："
+		"message": "可以调整搜索框的部分细节配置："
 	},
 	"o79": {
 		"message": "应当在"
@@ -806,10 +806,10 @@
 		"message": "编码包括了中文、日文、朝鲜语。"
 	},
 	"o104": {
-		"message": "当前设备键盘设置"
+		"message": "当前设备键盘配置"
 	},
 	"o105": {
-		"message": "在这台计算机上的键盘延迟相关设置。"
+		"message": "在这台计算机上的键盘延迟相关配置。"
 	},
 	"o106": {
 		"message": "格式："
@@ -821,10 +821,10 @@
 		"message": "重复间隔"
 	},
 	"o109": {
-		"message": "注：此设置始终不会被同步到浏览器账户设置中。"
+		"message": "注：此配置始终不会被同步到浏览器账户配置中。"
 	},
 	"o112": {
-		"message": "保存所有修改的设置；"
+		"message": "保存所有修改的配置；"
 	},
 	"o113": {
 		"message": "显示帮助。"
@@ -839,16 +839,16 @@
 		"message": "已保存"
 	},
 	"o116": {
-		"message": "导入设置"
+		"message": "导入配置"
 	},
 	"o117": {
-		"message": "\u00a0设置备份文件"
+		"message": "\u00a0配置备份文件"
 	},
 	"o118": {
-		"message": "\u00a0推荐的设置"
+		"message": "\u00a0推荐的配置"
 	},
 	"o119": {
-		"message": "导出设置"
+		"message": "导出配置"
 	},
 	"o120": {
 		"message": "禁用一次"
@@ -857,7 +857,7 @@
 		"message": "重置"
 	},
 	"o121_2": {
-		"message": "更多设置"
+		"message": "更多配置"
 	},
 	"o122": {
 		"message": "上表是适用于当前网页的规则。"
@@ -896,7 +896,7 @@
 		"message": "当前页面以重试。"
 	},
 	"o134": {
-		"message": "更多设置详见 "
+		"message": "更多配置详见 "
 	},
 	"o135": {
 		"message": "Vimium C 设置"
@@ -962,7 +962,7 @@
 		"message": "注意：扩展程序内置页面中不能访问普通网页，\n因此在这种情况下只会使用 Vimium C 内置的搜索框页面。"
 	},
 	"dirtyOptions": {
-		"message": "以下设置已经在其它地方被修改：\n      * $1\n    是否继续保存并覆盖这些改动？"
+		"message": "以下配置已经在其它地方被修改：\n      * $1\n    是否继续保存并覆盖这些改动？"
 	},
 	"clickToUnmask": {
 		"message": "# 点击显示隐藏内容"
@@ -983,7 +983,7 @@
 		"message": "$1，请打开扩展后台页面的调试控制台，以查看具体的错误信息。"
 	},
 	"ignoredNonEN": {
-		"message": "请留意“忽略键盘布局”这一设置已启用！也许需要禁用它后才能正确映射非英文的按键。"
+		"message": "请留意“忽略键盘布局”这一选项已启用！也许需要禁用它后才能正确映射非英文的按键。"
 	},
 	"hintCharsTooFew": {
 		"message": "序号字符数量太少，应至少有 4 个字符。"
@@ -1004,7 +1004,7 @@
 		"message": "缺少相关权限$1"
 	},
 	"invalidOption": {
-		"message": "此设置无效，因为$1"
+		"message": "此配置无效，因为$1"
 	},
 	"manageShortcut": {
 		"message": ""
@@ -1025,7 +1025,7 @@
 		"message": "NewTab Adapter"
 	},
 	"NewTabAdapterDesc": {
-		"message": "NewTab Adapter:\n接管并自定义浏览器的新标签页设置"
+		"message": "NewTab Adapter:\n自定义浏览器新标签页的网址"
 	},
 	"refusedURLs": {
 		"message": "Firefox 不允许扩展程序打开“$1”这个网址。"
@@ -1034,19 +1034,19 @@
 		"message": "“$1”不是一个合法的普通网址。"
 	},
 	"changedBeforeSync": {
-		"message": "        错误：\n您希望启用 同步Vimium C设置 这一功能，\n但是其它设置已经被修改且尚未保存。\n请在启用同步和保存其它设置之间做出选择！"
+		"message": "        错误：\n您希望启用 同步 Vimium C 配置 这一功能，\n但是其它配置已经被修改且尚未保存。\n请在启用同步和保存其它配置之间做出选择！"
 	},
 	"warningForSync": {
-		"message": "        警告：\n下次启动 Vimium C（即启动浏览器）时，当前所有设置会被覆盖成已同步的设置！\n请立即点击“导出设置”按钮备份您当前的设置\n!!!        立刻、马上        !!!"
+		"message": "        警告：\n下次启动 Vimium C（即启动浏览器）时，当前所有配置会被覆盖成已同步的配置！\n请立即点击“导出配置”按钮备份您当前的配置\n!!!        立刻、马上        !!!"
 	},
 	"confirmImport": {
 		"message": "您将要导入 $1:\n      * 创建于 $2Vimium C$3\n      * 适合$4\n      * 创建时间$5\n\n确定要继续导入吗?"
 	},
 	"backupFile": {
-		"message": "一份设置备份文件"
+		"message": "一份配置备份文件"
 	},
 	"recommendedFile": {
-		"message": "推荐的设置"
+		"message": "推荐的配置"
 	},
 	"fileVCVer": {
 		"message": ""
@@ -1070,7 +1070,7 @@
 		"message": "未知"
 	},
 	"keepSyncing": {
-		"message": "是否继续 借助浏览器账号云服务 来同步 Vimium C 设置？\n\n点击“取消”则表示停止同步设置。"
+		"message": "是否继续 借助浏览器账号云服务 来同步 Vimium C 配置？\n\n点击“取消”则表示停止同步配置。"
 	},
 	"notJSON": {
 		"message": "未找到 JSON 格式的数据！"
@@ -1079,7 +1079,7 @@
 		"message": "无法解析 JSON 文件：\n  在第 $1 行、第 $2 列发现错误字符！"
 	},
 	"notVCJSON": {
-		"message": "未找到 Vimium C 设置的相关数据！"
+		"message": "未找到 Vimium C 配置 的相关数据！"
 	},
 	"exc": {
 		"message": "错误："
@@ -1088,7 +1088,7 @@
 		"message": "（未知）"
 	},
 	"JSONTooLarge": {
-		"message": "    导入失败！\n\n指定的设置备份文件 “$1” 太大!\n\n受限于浏览器内部参数，支持导入的备份文件的大小不应超过 $2 KB。"
+		"message": "    导入失败！\n\n指定的配置备份文件 “$1” 太大!\n\n受限于浏览器内部参数，支持导入的备份文件的大小不应超过 $2 KB。"
 	},
 	"t_math": {
 		"message": "计算器"
@@ -1227,10 +1227,10 @@
 		"message": "“$1”"
 	},
 	"notFgOpt": {
-		"message": "$1不是合适的设置项"
+		"message": "$1不是合适的配置项"
 	},
 	"unknownA": {
-		"message": "$1不是一个设置项"
+		"message": "$1不是一个配置项"
 	},
 	"notBool": {
 		"message": "$1不是开关类型的"
@@ -1266,7 +1266,7 @@
 		"message": "需要参数“keyword”为某个已定义的搜索引擎"
 	},
 	"noMute": {
-		"message": "在 Chromium $1 之前扩展不能设置静音"
+		"message": "在 Chromium $1 之前扩展程序不能设置静音"
 	},
 	"muted": {
 		"message": "已静音"
@@ -1386,10 +1386,10 @@
 		"message": "显示一个扩展程序网页的源代码"
 	},
 	"notModify": {
-		"message": "修改设置“$1”"
+		"message": "修改“$1”选项"
 	},
 	"setFileCS": {
-		"message": "在Chromium $1+设置本地文件网页的功能权限"
+		"message": "在 Chromium $1+ 设置本地文件网页的功能权限"
 	},
 	"setFolderCS": {
 		"message": "设置本地文件夹网页的功能权限"
@@ -1497,10 +1497,10 @@
 		"message": "很抱歉，您的浏览器不允许扩展程序打开您设置的网址"
 	},
 	"97": {
-		"message": "设置导入操作已取消！"
+		"message": "配置导入操作已取消！"
 	},
 	"98": {
-		"message": "设置导入完成！"
+		"message": "配置导入完成！"
 	},
 	"4": {
 		"message": "模拟了鼠标从上次选中内容上移出"
