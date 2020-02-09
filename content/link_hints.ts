@@ -991,7 +991,8 @@ var VHints = {
           }
         } else {
           while (temp = stack[index2], index2++ < elPos
-              && !D.notSafe_(temp) && !D.isAriaNotTrue_(temp as SafeElement, kAria.hidden)) { /* empty */ }
+              && !(Build.BTypes & ~BrowserType.Firefox && D.notSafe_(temp))
+              && !D.isAriaNotTrue_(temp as SafeElement, kAria.hidden)) { /* empty */ }
         }
         if (temp === el) { continue; }
         does_hit(cx, Build.BTypes & BrowserType.Chrome ? (area.t + 2) * zoom : area.t + 2) // x=center, y=top
