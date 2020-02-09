@@ -1410,7 +1410,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     function toggleAdvanced(this: void): void {
       const el2 = advCmd.firstChild as HTMLElement;
       el2.innerText = el2.dataset[shouldShowAdvanced ? "h" : "s"] as string;
-      box.classList.toggle("HelpAdvanced");
+      box.classList.toggle("HelpDA");
     }
     advCmd.onclick = function (event) {
       K.prevent_(event);

@@ -508,7 +508,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     showAdvancedCommands: false,
     showAdvancedOptions: false,
     showInIncognito: false,
-    showNotification: true,
+    notifyUpdate: true,
     smoothScroll: true,
     vomnibarOptions: {
       maxMatches: 10,

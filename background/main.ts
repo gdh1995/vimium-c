@@ -2112,6 +2112,7 @@
         return Backend_.complain_(trans_("notModify", [k]));
       }
       const key = allowed[k], p = Settings_.restore_ && Settings_.restore_();
+      if (Settings_.get_(key) === request.v) { return; }
       p ? p.then(() => { Settings_.set_(key, request.v); }) : Settings_.set_(key, request.v);
       interface BaseCheck { key: 123; }
       type Map1<T> = T extends keyof SettingsNS.AutoItems ? T : 123;
@@ -2491,7 +2492,7 @@
           h: args[0].render_(port2.s.u.startsWith(Settings_.CONST_.OptionsPage_)),
           o: Settings_.CONST_.OptionsPage_,
           e: !!options.exitOnClick,
-          c: Settings_.get_("showAdvancedCommands", true)
+          c: Settings_.get_("showAdvancedCommands", true) || Settings_.temp_.cmdErrors_ !== 0
         });
       }, Build.NDEBUG ? null : function (args): void {
         console.error("Promises for initHelp failed:", args[0], ";", args[1]);
