@@ -468,8 +468,8 @@ var VDom = {
                     || ver > BrowserVer.MinASameZoomOfDocElAsdevPixRatioWorksAgain - 1)
                   && (style = !VDom.notSafe_(docEl) && (
                     docEl as TypeToAssert<Element, HTMLElement | SVGElement, "style">).style)
-                  && style.zoom && style.zoom)
-              || zoom !== VDom._getPageZoom(zoom, docEl))
+                  && style.zoom && style.zoom
+              || (VDom.isDocZoomStrange_ = 1, zoom !== VDom._getPageZoom(zoom, devRatio, docEl))))
         ? zoom : 1;
   } : 0 as never,
   _getPageZoom: Build.BTypes & BrowserType.Chrome ? function (docElZoom: number, docEl: Element | null): number {
