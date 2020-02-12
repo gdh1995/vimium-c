@@ -954,7 +954,7 @@ var VHints = {
     if (Build.BTypes & BrowserType.Chrome && D.isDocZoomStrange_ && D.docZoom_ - 1) {
       return;
     }
-    let i = list.length, el: SafeElement, root: Document | ShadowRoot,
+    let i = list.length, el: SafeElement, root: Document | ShadowRoot, localName: string,
     fromPoint: Element | null | undefined, temp: Element | null, index2: number = 0;
     const zoom = Build.BTypes & BrowserType.Chrome ? D.docZoom_ * D.bZoom_ : 1,
     zoomD2 = Build.BTypes & BrowserType.Chrome ? zoom / 2 : 0.5,
@@ -963,21 +963,26 @@ var VHints = {
     does_hit = (x: number, y: number): boolean => {
       fromPoint = root.elementFromPoint(x, y);
       return !fromPoint || el === fromPoint || el.contains(fromPoint);
-    }
+    };
     while (0 <= --i) {
       el = list[i][0];
       root = (el as Ensure<Node, "getRootNode">).getRootNode() as Document | ShadowRoot;
       const nodeType = root.nodeType, area = list[i][1],
       cx = (area.l + area.r) * zoomD2, cy = (area.t + area.b) * zoomD2;
       if (nodeType !== kNode.DOCUMENT_NODE && nodeType !== kNode.DOCUMENT_FRAGMENT_NODE
-          || does_hit(cx, cy)
-          || el.localName === "img" && VHints._isDescendant(el, fromPoint as NonNullable<typeof fromPoint>, 0)) {
+          || does_hit(cx, cy)) {
         continue;
       }
       if (nodeType === kNode.DOCUMENT_FRAGMENT_NODE
           && (temp = (el as SafeElement).lastElementChild as Element | null)
           && D.htmlTag_(temp) === "slot"
           && (root as ShadowRoot).host.contains(fromPoint as NonNullable<typeof fromPoint>)) {
+        continue;
+      }
+      localName = el.localName;
+      if (localName === "img"
+          ? VHints._isDescendant(el, fromPoint as NonNullable<typeof fromPoint>, 0)
+          : localName === "area" && fromPoint === list[i][4]) {
         continue;
       }
       const stack = root.elementsFromPoint(cx, cy),
@@ -993,9 +998,10 @@ var VHints = {
           while (temp = stack[index2], index2++ < elPos
               && !(Build.BTypes & ~BrowserType.Firefox && D.notSafe_(temp))
               && !D.isAriaNotTrue_(temp as SafeElement, kAria.hidden)) { /* empty */ }
+          temp = temp !== fromPoint && el.contains(temp) ? el : temp;
         }
-        if (temp === el) { continue; }
-        does_hit(cx, Build.BTypes & BrowserType.Chrome ? (area.t + 2) * zoom : area.t + 2) // x=center, y=top
+        temp === el
+        || does_hit(cx, Build.BTypes & BrowserType.Chrome ? (area.t + 2) * zoom : area.t + 2) // x=center, y=top
         || does_hit(cx, Build.BTypes & BrowserType.Chrome ? (area.b - 4) * zoom : area.b - 4) // x=center, y=bottom
         || does_hit(Build.BTypes & BrowserType.Chrome ? (area.l + 2) * zoom : area.l + 2, cy) // x=left, y=center
         || does_hit(Build.BTypes & BrowserType.Chrome ? (area.r - 4) * zoom : area.r - 4, cy) // x=right, y=center
