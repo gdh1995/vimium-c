@@ -233,10 +233,6 @@ var Settings_ = {
           && browserVer < BrowserVer.MinSpecCompliantShadowBlurRadius) {
         css = css.replace("3px 5px", "3px 7px");
       }
-      if (Build.MinCVer <= BrowserVer.BorderRadiusCauseBorderDisappearOnIFrame && Build.BTypes & BrowserType.Chrome
-          && browserVer === BrowserVer.BorderRadiusCauseBorderDisappearOnIFrame) {
-        css += ".HUD.UI{border-radius:0}";
-      }
       if ((Build.BTypes & (BrowserType.Chrome | BrowserType.Edge) && Build.MinCVer < BrowserVer.MinCSS$Color$$RRGGBBAA
           && ((!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && OnOther === BrowserType.Edge)
             || browserVer < BrowserVer.MinCSS$Color$$RRGGBBAA
@@ -274,7 +270,7 @@ var Settings_ = {
       if (Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
           && Build.BTypes & BrowserType.Chrome
           && browserVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo) {
-        css = css.replace(<RegExpG> /\b(border(?:-\w*-?width)?: ?)(0\.5px|\S+.\/\*!DPI\*\/)/g, "$11px \/\*!DPI\*\/");
+        css = css.replace(<RegExpG> /\b0\.5px|\/\*!DPI\*\/ ?[\w.]+/g, "/*!DPI*/1px");
       }
       a.storage_.setItem("findCSS", findCSS.length + "\n" + findCSS + (css2.find ? "\n" + css2.find : ""));
       a.storage_.setItem("omniCSS", css2.omni || "");

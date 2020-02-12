@@ -137,8 +137,7 @@ var VCui = {
       ;
     if (!patch) {
       patch = this.cssPatch_ = ["", function (this: NonNullable<typeof VCui["cssPatch_"]>, css) {
-        return css.replace(<RegExpG> /\b(border(?:-\w*-?width)?: ?)(0\.5px\b|[^;}]+\/\*!DPI\*\/)/g, "$1" + this[0]
-          + "px \/\*!DPI\*\/");
+        return css.replace(<RegExpG> /\b0\.5px|\/\*!DPI\*\/ ?[\w.]+/g, "/*!DPI*/" + this[0] + "px");
       }];
     }
     if (patch[0] === width) { return; }
