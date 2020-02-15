@@ -33,7 +33,7 @@ var VFind = {
     a.isQueryRichText_ = !query;
     query || (query = options.q);
     a.isActive_ || query === a.query_ && options.l || VMarks.setPreviousPosition_();
-    dom.docSelectable_ = UI.getDocSelectable_();
+    UI.checkDocSelectable_();
     UI.ensureBorder_();
     if (options.l) {
       return a.findAndFocus_(query || a.query_, options);

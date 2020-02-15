@@ -622,7 +622,7 @@ _listen(kOnDomReady, doInit, !0);
           ? rAF : requestAnimationFrame)(cb)
       ;
   } as any;
-})(VDom.docInitingWhenVimiumIniting_)
+})(VDom.readyState_ > "l")
 
 // #else: on Firefox
 
@@ -661,12 +661,11 @@ _listen(kOnDomReady, doInit, !0);
     timer && clearTimeout(timer);
     timer = resolved = 0;
   },
-  isFirstTime = VDom.docInitingWhenVimiumIniting_,
   doc = document;
 
   let alive = true, timer = 0, resolved = 0;
 
-  if (isFirstTime) {
+  if (VDom.readyState_ > "l") {
     if (typeof _listen === "function") {
       exportFunction(newListen, Cls as NonNullable<typeof Cls>, { defineAs: newListen.name });
     }

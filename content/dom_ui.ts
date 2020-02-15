@@ -161,20 +161,18 @@ var VCui = {
       }
     }
   },
-  getDocSelectable_ (): boolean {
-    let sout: HTMLStyleElement | null | HTMLBodyElement | HTMLFrameSetElement = this.styleOut_;
-    if (sout && sout.parentNode) { return false; }
-    let gcs = getComputedStyle, st: CSSStyleDeclaration;
-    if (sout = document.body) {
+  checkDocSelectable_ (): void {
+    let sout: HTMLStyleElement | null | HTMLBodyElement | HTMLFrameSetElement = this.styleOut_
+      , doc = document, gcs = getComputedStyle, st: CSSStyleDeclaration
+      , mayTrue = !sout || !sout.parentNode;
+    if (mayTrue && (sout = doc.body)) {
       st = gcs(sout);
-      if ((Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinUnprefixedUserSelect
+      mayTrue = (Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinUnprefixedUserSelect
             || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinUnprefixedUserSelect
-            ? st.userSelect || st.webkitUserSelect : st.userSelect) === "none") {
-        return false;
-      }
+            ? st.userSelect || st.webkitUserSelect : st.userSelect) !== "none";
     }
-    st = gcs(document.documentElement as HTMLHtmlElement);
-    return (Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinUnprefixedUserSelect
+    VDom.docSelectable_ = mayTrue && (st = gcs(doc.documentElement as HTMLHtmlElement),
+            Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinUnprefixedUserSelect
             || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinUnprefixedUserSelect
             ? st.userSelect || st.webkitUserSelect : st.userSelect) !== "none";
   },

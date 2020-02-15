@@ -40,7 +40,7 @@ var VOmni = {
       return VHud.tip_(kTip.omniFrameFail, 2000);
     }
     if (!options || !options.k || !options.v) { return; }
-    if (dom.OnDocLoaded_ !== dom.execute_) {
+    if (dom.readyState_ > "l") {
       if (!a._timer) {
         clearTimeout(timer1);
         a._timer = setTimeout(a.activate_.bind(a as never, count, options), 500);

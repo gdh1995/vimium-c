@@ -242,6 +242,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       }
     }
   },
+  oldScrollRestoration_: 0 as ScrollRestoration | 0,
   BeginScroll_ (eventWrapper: 0 | Pick<HandlerNS.Event, "e">, key: string, keybody: kChar): void {
     if (key.includes("s-") || key.includes("a-")) { return; }
     const index = VKey.keyNames_.indexOf(keybody) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8,

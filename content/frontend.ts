@@ -385,6 +385,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   doc = document, D = VDom, K = VKey, U = VCui, Hints = VHints,
   isTop = top === window,
   setupEventListener = K.SetupEventListener_,
+  _initialDocState = doc.readyState,
   noopEventHandler = Object.is as any as EventListenerObject["handleEvent"],
   anyClickHandler: MouseEventListener = { handleEvent: noopEventHandler },
   resetAnyClickHandler = function (): void {
@@ -405,11 +406,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     f("keyup", onKeyup, true);
     action !== HookAction.Suppress && f("focus", onFocus, true);
     f("blur", onBlur, true);
-    f(Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome
-        ? "click" : "DOMActivate", onActivate, true);
     if (!(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && OnOther === BrowserType.Chrome) {
       f("click", anyClickHandler, true);
     }
+    f(Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome
+        ? "click" : "DOMActivate", onActivate, true);
   }),
   hookOnShadowRoot = function (path: ArrayLike<EventTarget | 0>, target: Node | 0, disable?: 1): void {
     for (let len = Build.MinCVer >= BrowserVer.Min$Event$$path$IsStdArrayAndIncludesWindow
@@ -733,7 +734,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   ],
 
   InsertMode = {
-    grabBackFocus_: D.docInitingWhenVimiumIniting_ as boolean | (
+    grabBackFocus_: (_initialDocState > "l") as boolean | (
         (event: Event, target: LockableElement) => void),
     global_: null as CmdOptions[kFgCmd.insertMode] | null,
     hinting_: false,
@@ -1178,7 +1179,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (Build.BTypes & ~BrowserType.Firefox && Build.BTypes & BrowserType.Firefox
           && OnOther === BrowserType.Firefox) {
         D.notSafe_ = (_el): _el is HTMLFormElement => false;
-        D.isHTML_ = (): boolean => document instanceof HTMLDocument;
+        D.isHTML_ = (): boolean => doc instanceof HTMLDocument;
       }
       r[kBgReq.keyFSM](request);
       if (flags) {
@@ -1738,7 +1739,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     const parEl = D.frameElement_();
     if (!parEl) {
       if ((Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
-          || WeakSet) && D.docInitingWhenVimiumIniting_) {
+          || WeakSet) && <boolean> InsertMode.grabBackFocus_) {
         needToRetryParentClickable = 1;
         if (Build.MinCVer >= BrowserVer.MinES6$ForOf$Map$SetAnd$Symbol || !(Build.BTypes & BrowserType.Chrome)
             || Set) {
@@ -1777,7 +1778,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         }
       }
       if ((!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-          && D.docInitingWhenVimiumIniting_) {
+          && <boolean> InsertMode.grabBackFocus_) {
         // here the parent `core` is invalid - maybe from a fake provider
         D.parentCore_ = () => 0;
       }
@@ -1802,23 +1803,24 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       has (element: Element): boolean { return !!(element as ElementWithClickable).vimiumClick; }
     }) : /* now know it's on Firefox */
         D.clickable_ || new (WeakSet as WeakSetConstructor)<Element>();
-    if (!D.docInitingWhenVimiumIniting_) {
-      D.OnDocLoaded_ = D.execute_;
-    } else {
-      let listeners: Array<(this: void) => void> = [], Name = "DOMContentLoaded",
-      onLoad = function (): void {
-        // not need to check event.isTrusted
-        setupEventListener(0, Name, onLoad, 1);
-        if (VDom === D) { // check `a` for safety even if reloaded
-          D.OnDocLoaded_ = D.execute_;
-          listeners.forEach(D.execute_);
+    D.readyState_ = _initialDocState;
+    {
+      let execute = (callback: (this: void) => void): void => { callback(); },
+      listeners1: Array<(this: void) => void> = [], listeners2: Array<(this: void) => void> = [],
+      Name = "readystatechange",
+      onReadyStateChange = function (): void {
+        const stat = D.readyState_ = doc.readyState, loaded = stat < "i", arr = loaded ? listeners2 : listeners1;
+        if (loaded) {
+          setupEventListener(0, Name, onReadyStateChange, 1);
+          onReadyStateChange = (D.OnDocLoaded_ = execute) as any;
         }
-        if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinTestedES6Environment) {
-          onLoad = listeners = null as never;
-        }
+        arr.forEach(execute);
+        arr.length = 0;
       };
-      D.OnDocLoaded_ = listeners.push.bind(listeners);
-      setupEventListener(0, Name, onLoad);
+      D.OnDocLoaded_ = _initialDocState < "i" ? execute : (setupEventListener(0, Name, onReadyStateChange),
+          (callback, onloaded) => {
+        D.readyState_ < "l" && !onloaded ? callback() : (onloaded ? listeners2 : listeners1).push(callback);
+      });
     }
     // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
     hook(HookAction.Install);

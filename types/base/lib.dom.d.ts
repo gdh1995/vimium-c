@@ -1796,7 +1796,7 @@ interface Document extends Node, GlobalEventHandlers, NodeSelector, DocumentEven
     /**
       * Retrieves a value that indicates the current state of the object.
       */
-    readonly readyState: string;
+    readonly readyState: "loading" | "interactive" | "complete";
     /**
       * Gets the URL of the location that referred the user to the current page.
       */

@@ -29,10 +29,8 @@ var VDom = {
   // note: scripts always means allowing timers - vPort.ClearPort requires this assumption
   allowScripts_: 1 as 0 | 1 | 2,
   allowRAF_: 1 as BOOL,
-  specialZoom_: !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl
-    ? true : Build.BTypes & BrowserType.Chrome ? true : false,
   docSelectable_: true,
-  docInitingWhenVimiumIniting_: document.readyState === "loading",
+  readyState_: "" as never as Document["readyState"],
   unsafeFramesetTag_: (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
       ? "" : 0 as never) as "frameset" | "",
   jsRe_: <RegExpI & RegExpOne> /^javascript:/i,
@@ -708,7 +706,7 @@ var VDom = {
   /** action section */
 
   /** Note: won't call functions if Vimium C is destroyed */
-  OnDocLoaded_: null as never as (callback: (this: void) => void) => void | number,
+  OnDocLoaded_: null as never as (callback: (this: void) => void, onloaded?: 1) => void | number,
   createElement_: document.createElement.bind(document) as {
     // tslint:disable-next-line: callable-types
     <K extends VimiumContainerElementType> (this: void, tagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement;
@@ -729,7 +727,6 @@ var VDom = {
             || box.webkitCreateShadowRoot)
       ? (box as Ensure<typeof box, "webkitCreateShadowRoot">).webkitCreateShadowRoot() : box;
   },
-  execute_ (callback: (this: void) => void): void { callback(); },
   mouse_: function (this: {}, element: SafeElementForMouse
       , type: kMouseClickEvents | kMouseMoveEvents
       , center: Point2D, modifiers?: MyMouseControlKeys | null, relatedTarget?: SafeElementForMouse | null

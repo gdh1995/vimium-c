@@ -74,7 +74,7 @@ var VVisual = {
     const a = VVisual;
     a.init_ && a.init_(options.w as string);
     VKey.removeHandler_(a);
-    VDom.docSelectable_ = VCui.getDocSelectable_();
+    VCui.checkDocSelectable_();
     VSc.prepareTop_();
     a.diType_ = VisualModeNS.DiType.UnsafeUnknown;
     let theSelected = VCui.getSelected_(1),
@@ -189,7 +189,8 @@ var VVisual = {
   commandHandler_ (command: VisualAction, count: number): void {
     let movement = this, mode = movement.mode_;
     if (command > VisualAction.MaxNotScroll) {
-      return VSc.scroll_(1, command - VisualAction.ScrollDown ? -count : count, 0);
+      VSc.scroll_(1, command - VisualAction.ScrollDown ? -count : count, 0);
+      return;
     }
     if (command > VisualAction.MaxNotNewMode) {
       if (command === VisualAction.EmbeddedFindMode) {

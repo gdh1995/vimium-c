@@ -160,7 +160,7 @@ var VHints = {
     }
     if (document.body === null) {
       a.clean_();
-      if (!a.timer_ && VDom.OnDocLoaded_ !== VDom.execute_) {
+      if (!a.timer_ && VDom.readyState_ > "l") {
         VKey.pushHandler_(VKey.SuppressMost_, a);
         a.timer_ = setTimeout(a.activate_.bind(a as never, count, options), 300);
         return;
@@ -359,7 +359,7 @@ var VHints = {
     const core = a.detectUsableChild_(a.frameNested_);
     if (core) {
       core.VApi.focusAndRun_(cmd, count, options);
-      if (document.readyState !== "complete") { a.frameNested_ = false; }
+      if (VDom.readyState_ > "i") { a.frameNested_ = false; }
     } else {
       // It's cross-site, or Vimium C on the child is wholly disabled
       // * Cross-site: it's in an abnormal situation, so we needn't focus the child;
@@ -1014,7 +1014,7 @@ var VHints = {
     const res = output && output.length > 1 ? null : !frames.length ? false
       : VDom.fullscreenEl_unsafe_()
       ? 0 : this._getNestedFrame(output);
-    this.frameNested_ = res === false && document.readyState === "complete" ? null : res;
+    this.frameNested_ = res === false && VDom.readyState_ < "i" ? null : res;
   },
   _getNestedFrame (output?: Hint[]): HintsNS.NestedFrame {
     if (output == null) {
