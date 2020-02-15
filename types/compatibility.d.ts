@@ -135,9 +135,10 @@ declare const enum BrowserVer {
   MinFetchExtensionFiles = 47, // even if EXPERIMENTAL or LEGACY
   MinFetchDataURL = 48, // even if EXPERIMENTAL; test code: fetch('data:,abc').then(i=>i.text()).then(cb,cb)
   // even if EXPERIMENTAL or LEGACY
-  // before: real-width := Math.floor(width * zoom)
-  // after: real-width := Math.floor(width * zoom) || (width ? 1 : 0)
+  // before: real_width := Math.floor(width * zoom)
+  // after: real_width := Math.floor(width * zoom) || (width ? 1 : 0)
   MinEnsuredBorderWidthWithoutDeviceInfo = 48, // inc 0.0001px to the min "visible" width
+  FlooredBoxShadowSpreadWidth = 48, // real_width := Math.floor(width * zoom)
   // if LEGACY, arrow functions will be accepted only since C48,
   // but this flag will break the Developer Tools (can not open the window) on Chrome 46/47/48,
   // so Chrome can only debug arrow functions since 49
@@ -154,6 +155,7 @@ declare const enum BrowserVer {
   // and replaced by MinDOMActivateInClosedShadowRootHasNoShadowNodesInPathWhenOnDocument since C56
   MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument = 48, // if EXPERIMENTAL
   MinEnsuredTouchEventConstructor = 48, // even if LEGACY
+  MinEnsuredBorderAndBoxWidthWithoutDeviceInfo = 48, // inc 0.0001px to the min "visible" width
   MinEnsuredES6$Array$$Includes = 49, // even if LEGACY
   // the 2 below are correct even if EXPERIMENTAL or LEGACY
   MinSafeWndPostMessageAcrossProcesses = 49,
@@ -164,7 +166,7 @@ declare const enum BrowserVer {
   // by default, `noreferrer` can also make `opener` null, and it still works on C35
   // a single `noopener` only works since C49 even if EXPERIMENTAL or LEGACY
   MinLinkRelAcceptNoopener = 49,
-  MinSVG$Path$MayHave$d$CSSAttribute = 49, // if #enable-experimental-web-platform-features is on
+  MinSVG$Path$MayHave$d$CSSAttribute = 49, // if EXPERIMENTAL
   MinTestedES6Environment = 49, // must be <= MinEnsuredFullES6Environment
   // Object.observe is from C36 to C49 even if EXPERIMENTAL or LEGACY
   MinES6No$Object$$Observe = 50,
@@ -299,7 +301,7 @@ declare const enum BrowserVer {
   MinNoSelectionColorOnTextBoxWhenFindModeHUDIsFocused = 60,
   MinEnsuredInputEventIsNotOnlyInShadowDOMV1 = 60, // even if LEGACY; in ShadowDOMV0, "input" will also work on window
   MinTabsCreateRefuseOpenerTabIdIfNotOnCurrentWindow = 61,
-  MinRoundedBorderWidthIsNotEnsured = 61, // a border is only showing if `width * ratio * zoom >= 0.5`
+  MinRoundedBorderWidthIsNotEnsured = 61, // a border is only showing if `(real_width = width * ratio * zoom) >= 0.5`
   // a bug that special style.zoom may not work is fixed since MinASameZoomOfDocElAsdevPixRatioWorksAgain
   MinDevicePixelRatioImplyZoomOfDocEl = 61,
   MinCorrectBoxWidthForOptionsUI = 61,

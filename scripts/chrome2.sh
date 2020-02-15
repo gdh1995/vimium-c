@@ -112,6 +112,7 @@ case "$1" in
       shift
     else
       echo "Unknown arg: $1" >&2
+      shift
     fi
     ;;
 esac

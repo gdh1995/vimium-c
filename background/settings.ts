@@ -267,9 +267,8 @@ var Settings_ = {
       css = cacheId + css.length + "\n" + css;
       const css2 = a.parseCustomCSS_(a.get_("userDefinedCss"));
       css2.ui && (css += "\n" + css2.ui);
-      if (Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
-          && Build.BTypes & BrowserType.Chrome
-          && browserVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo) {
+      if (Build.MinCVer < BrowserVer.MinEnsuredBorderAndBoxWidthWithoutDeviceInfo && Build.BTypes & BrowserType.Chrome
+          && browserVer < BrowserVer.MinEnsuredBorderAndBoxWidthWithoutDeviceInfo) {
         css = css.replace(<RegExpG> /\b0\.5px|\/\*!DPI\*\/ ?[\w.]+/g, "/*!DPI*/1px");
       }
       a.storage_.setItem("findCSS", findCSS.length + "\n" + findCSS + (css2.find ? "\n" + css2.find : ""));
