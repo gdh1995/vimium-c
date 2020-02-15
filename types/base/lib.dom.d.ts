@@ -5243,7 +5243,7 @@ declare var HashChangeEvent: {
 interface History {
     readonly length: number;
     readonly state: any;
-    scrollRestoration: ScrollRestoration;
+    scrollRestoration?: ScrollRestoration;
     back(): void;
     forward(): void;
     go(delta?: number): void;

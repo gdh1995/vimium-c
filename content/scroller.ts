@@ -159,7 +159,6 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
   top_: null as SafeElement | null,
   keyIsDown_: 0,
   scale_: 1,
-  restorationNotPrevented_: 1,
   activate_ (this: void, count: number, options: CmdOptions[kFgCmd.scroll] & SafeObject): void {
     if (options.$c == null) {
       options.$c = VApi.isCmdTriggered_();
@@ -225,15 +224,8 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     a._innerScroll(element, di, amount);
     a.scrolled_ = 0;
     a.top_ = null;
-    if (amount && VDom.readyState_ > "i") {
-      const key = "scrollRestoration", h = history, old = h[key];
-      if (old && old < "m") {
-        a.restorationNotPrevented_ && VDom.OnDocLoaded_(() => {
-          h[key] = "manual";
-          VDom.OnDocLoaded_(() => { setTimeout(() => { h[key] = old; }, 1); }, 1);
-        });
-        a.restorationNotPrevented_ = 0 as never;
-      }
+    if (amount && VDom.readyState_ > "i" && VSc._overrideScrollRestoration) {
+      VSc._overrideScrollRestoration("scrollRestoration", "manual", "unload");
     }
   } as {
     (di: ScrollByY, amount: number, isTo: 0
@@ -243,6 +235,16 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       , factor?: undefined | 0, fromMax?: boolean, options?: CmdOptions[kFgCmd.scroll]): void;
   },
   _joined: null as unknown,
+  _overrideScrollRestoration: function (kScrollRestoration, kManual, kUnload): void {
+    const h = history, old = h[kScrollRestoration], listen = VKey.SetupEventListener_,
+    reset = () => { h[kScrollRestoration] = old; listen(0, kUnload, reset, 1); };
+    if (old && old !== kManual) {
+      h[kScrollRestoration] = kManual;
+      VSc._overrideScrollRestoration = 0 as never;
+      VDom.OnDocLoaded_(() => { setTimeout(reset, 1); }, 1);
+      listen(0, kUnload, reset);
+    }
+  } as ((key: "scrollRestoration", kManual: "manual", kUnload: "unload") => void) | 0,
   scrollTick_ (willContinue: BOOL | boolean): void {
     const a = this;
     a.keyIsDown_ = willContinue ? a.maxInterval_ : 0;
