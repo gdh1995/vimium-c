@@ -159,6 +159,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
   top_: null as SafeElement | null,
   keyIsDown_: 0,
   scale_: 1,
+  restorationNotPrevented_: 1,
   activate_ (this: void, count: number, options: CmdOptions[kFgCmd.scroll] & SafeObject): void {
     if (options.$c == null) {
       options.$c = VApi.isCmdTriggered_();
@@ -224,6 +225,16 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     a._innerScroll(element, di, amount);
     a.scrolled_ = 0;
     a.top_ = null;
+    if (amount && VDom.readyState_ > "i") {
+      const key = "scrollRestoration", h = history, old = h[key];
+      if (old && old < "m") {
+        a.restorationNotPrevented_ && VDom.OnDocLoaded_(() => {
+          h[key] = "manual";
+          VDom.OnDocLoaded_(() => { setTimeout(() => { h[key] = old; }, 1); }, 1);
+        });
+        a.restorationNotPrevented_ = 0 as never;
+      }
+    }
   } as {
     (di: ScrollByY, amount: number, isTo: 0
       , factor?: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined, fromMax?: false
@@ -242,7 +253,6 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       }
     }
   },
-  oldScrollRestoration_: 0 as ScrollRestoration | 0,
   BeginScroll_ (eventWrapper: 0 | Pick<HandlerNS.Event, "e">, key: string, keybody: kChar): void {
     if (key.includes("s-") || key.includes("a-")) { return; }
     const index = VKey.keyNames_.indexOf(keybody) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8,
