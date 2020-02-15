@@ -155,7 +155,7 @@ declare const enum BrowserVer {
   // and replaced by MinDOMActivateInClosedShadowRootHasNoShadowNodesInPathWhenOnDocument since C56
   MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument = 48, // if EXPERIMENTAL
   MinEnsuredTouchEventConstructor = 48, // even if LEGACY
-  MinEnsuredBorderAndBoxWidthWithoutDeviceInfo = 48, // inc 0.0001px to the min "visible" width
+  MinEnsuredBorderAndBoxWidthWithoutDeviceInfo = 49, // inc 0.0001px to the min "visible" width
   MinEnsuredES6$Array$$Includes = 49, // even if LEGACY
   // the 2 below are correct even if EXPERIMENTAL or LEGACY
   MinSafeWndPostMessageAcrossProcesses = 49,
