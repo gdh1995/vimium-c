@@ -108,17 +108,6 @@ if (VDom && VimiumInjector === undefined) {
       setupEventListener(t, kVOnClick1, onClick);
       box = t;
     }
-  },
-  delayFindAll = function (e: Event): void {
-    if (e && (e.target !== Doc
-            || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.ChromeOrFirefox)
-                ? !e.isTrusted : e.isTrusted === !1))) { return; }
-    setupEventListener(0, "load", delayFindAll, 1);
-    delayFindAll = null as never;
-    box && isFirstResolve && setTimeout(function (): void {
-      box && isFirstResolve && dispatchCmd(kContentCmd.AutoFindAllOnClick);
-      isFirstResolve = 0;
-    }, GlobalConsts.ExtendClick_DelayToFindAll);
   };
   function onClick(this: Element | Window, event: Event): void {
     if (!box) { return; }
@@ -582,9 +571,13 @@ _listen(kOnDomReady, doInit, !0);
       setTimeout(function (): void { // wait the inner listener of `start` to finish its work
         box || execute(kContentCmd.DestroyForCSP);
       }, 0);
+      isFirstTime && VDom.OnDocLoaded_((): void => {
+        box && isFirstResolve && setTimeout(function (): void {
+          box && isFirstResolve && dispatchCmd(kContentCmd.AutoFindAllOnClick);
+          isFirstResolve = 0;
+        }, GlobalConsts.ExtendClick_DelayToFindAll);
+      }, 1);
     });
-    isFirstTime &&
-    setupEventListener(0, "load", delayFindAll);
     return;
   }
   // else: CSP script-src before C68, CSP sandbox before C68 or JS-disabled-in-CS on C/E
