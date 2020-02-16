@@ -32,6 +32,7 @@ interface ElementScrollInfo {
   element_: SafeElement;
   height_: number; /* cropped visible */
 }
+// eslint-disable-next-line no-var
 var VSc = {
 _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
   let amount = 0, calibration = 1.0, di: ScrollByY = 0, duration = 0, element: SafeElement | null = null, //
@@ -237,7 +238,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
   _joined: null as unknown,
   _overrideScrollRestoration: function (kScrollRestoration, kManual, kUnload): void {
     const h = history, old = h[kScrollRestoration], listen = VKey.SetupEventListener_,
-    reset = () => { h[kScrollRestoration] = old; listen(0, kUnload, reset, 1); };
+    reset = (): void => { h[kScrollRestoration] = old; listen(0, kUnload, reset, 1); };
     if (old && old !== kManual) {
       h[kScrollRestoration] = kManual;
       VSc._overrideScrollRestoration = 0 as never;
@@ -388,7 +389,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     let children: ElementScrollInfo[] = [], child: ElementScrollInfo | null
       , _ref = element.children, _len = _ref.length;
     while (0 < _len--) {
-      element = _ref[_len] as Element as /** fake `as` */ SafeElement;
+      element = _ref[_len] as /** fake `as` */ SafeElement;
       // here assumes that a <form> won't be a main scrollable area
       if (Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_(element)) { continue; }
       const rect = VDom.getBoundingClientRect_(element),
@@ -416,7 +417,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     { bottom: b, top: t, right: r, left: l } = rect,
     hasY = b < ihm ? max(b - ih + ihm, t - ihm) : ih < t + ihm ? min(b - ih + ihm, t - ihm) : 0,
     hasX = r < 0 ? max(l - iwm, r - iw + iwm) : iw < l ? min(r - iw + iwm, l - iwm) : 0;
-    VCui.activeEl_ = el as SafeElement;
+    VCui.activeEl_ = el;
     if (hasX || hasY) {
       for (let el2: Element | null = el; el2; el2 = VDom.GetParent_(el2, PNType.RevealSlotAndGotoParent)) {
         const pos = getComputedStyle(el2).position;

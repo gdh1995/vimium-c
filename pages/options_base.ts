@@ -29,16 +29,19 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$Stri
     };
   }
   StringCls.includes = function (this: string, s: string, pos?: number): boolean {
+    // eslint-disable-next-line @typescript-eslint/prefer-includes
     return this.indexOf(s, pos) >= 0;
   };
 })();
 }
 
+// eslint-disable-next-line no-var
 declare var bgOnOther_: BrowserType;
 if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
     : typeof browser !== "undefined" && (browser && (browser as typeof chrome).runtime) != null) {
   window.chrome = browser as typeof chrome;
 }
+// eslint-disable-next-line no-var
 var $ = <T extends HTMLElement>(selector: string): T => document.querySelector(selector) as T
   , BG_ = chrome.extension.getBackgroundPage() as Window as BgWindow
   , pTrans_: typeof chrome.i18n.getMessage = Build.BTypes & BrowserType.Firefox
@@ -71,9 +74,9 @@ if (lang_) {
 
 const __extends = function<Child, Super, Base> (
     child: (new <Args extends any[]> (...args: Args) => Child) & {
-        prototype?: Super & { "constructor": new () => Child }
+        prototype?: Super & { "constructor": new () => Child };
     }, parent: (new <Args extends any[]> (...args: Args) => Super) & {
-        prototype: Base & { "constructor": new () => Super }
+        prototype: Base & { "constructor": new () => Super };
     }): void {
   interface Middle {
     prototype?: Base & { "constructor": new () => Super };
@@ -85,7 +88,7 @@ const __extends = function<Child, Super, Base> (
   __.prototype = parent.prototype;
   child.prototype = new __();
 },
-nextTick_ = (function (): {<T>(task: (self: T) => void, context: T): void; (task: (this: void) => void): void; } {
+nextTick_ = (function (): { <T>(task: (self: T) => void, context: T): void; (task: (this: void) => void): void } {
   type Callback = () => void;
   const tasks: Callback[] = [],
   ticked = function (): void {
@@ -128,7 +131,7 @@ debounce_ = function<T> (this: void, func: (this: T) => void
     , wait: number, bound_context: T, also_immediate: number
     ): (this: void) => void {
   let timeout = 0, timestamp: number;
-  const later = function () {
+  const later = function (): void {
     const last = Date.now() - timestamp; // safe for time changes
     if (last < wait - /* for resolution tolerance */ 4 && last >= 0) {
       timeout = setTimeout(later, wait - last);
@@ -348,7 +351,7 @@ populateElement_ (rules: ExclusionsNS.StoredRule[]): void {
   }
   return this.onRowChange_(rules.length);
 }
-isPatternMatched_ (_pattern: string) { return true; }
+isPatternMatched_ (_pattern: string): boolean { return true; }
 appendRuleTo_ (this: ExclusionRulesOption_
     , list: HTMLTableSectionElement | DocumentFragment, { pattern, passKeys }: ExclusionsNS.StoredRule): void {
   const vnode: ExclusionVisibleVirtualNode | ExclusionInvisibleVirtualNode = {
@@ -357,7 +360,7 @@ appendRuleTo_ (this: ExclusionRulesOption_
     changed_: false,
     visible_: false,
     $pattern_: null,
-    $keys_: null,
+    $keys_: null
   };
   if (!this.isPatternMatched_(pattern)) {
     this.list_.push(vnode);
@@ -420,18 +423,18 @@ readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"] {
       this.updateVNode_(vnode, "", passKeys);
       continue;
     }
-    let schemaLen = pattern[0] === ":" ? 0 : pattern.indexOf("://");
+    let schemaLen = pattern.startsWith(":") ? 0 : pattern.indexOf("://");
     if (!schemaLen) { /* empty */ }
     else if (!(<RegExpOne> /^[\^*]|[^\\][$()*+?\[\]{|}]/).test(pattern)) {
       fixTail = !pattern.includes("/", schemaLen + 3) && !pattern.startsWith("vimium:");
       pattern = pattern.replace(<RegExpG> /\\(.)/g, "$1");
       pattern = (schemaLen < 0 ? ":http://" : ":") + pattern;
-    } else if (pattern[0] !== "^") {
+    } else if (!pattern.startsWith("^")) {
       fixTail = !pattern.includes("/", schemaLen + 3);
       pattern = (schemaLen < 0 ? "^https?://" : "^") +
-          (pattern[0] !== "*" || pattern[1] === "."
+          (!pattern.startsWith("*") || pattern[1] === "."
             ? ((pattern = pattern.replace(<RegExpG> /\./g, "\\.")),
-              pattern[0] !== "*" ? pattern.replace("://*\\.", "://(?:[^./]+\\.)*?")
+              !pattern.startsWith("*") ? pattern.replace("://*\\.", "://(?:[^./]+\\.)*?")
                 : pattern.replace("*\\.", "(?:[^./]+\\.)*?"))
             : "[^/]" + pattern);
     }
@@ -458,7 +461,7 @@ readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"] {
   }
   return rules;
 }
-updateVNode_ (vnode: ExclusionVisibleVirtualNode, pattern: string, keys: string) {
+updateVNode_ (vnode: ExclusionVisibleVirtualNode, pattern: string, keys: string): void {
   const hasNewKeys = !vnode.rule_.passKeys && !!keys;
   vnode.rule_ = { pattern, passKeys: keys };
   vnode.changed_ = false;
@@ -573,7 +576,7 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
     addRule_ (_pattern: string, autoFocus?: false): void {
       super.addRule_(PopExclusionRulesOption.generateDefaultPattern_(), autoFocus);
     }
-    isPatternMatched_ (pattern: string) {
+    isPatternMatched_ (pattern: string): boolean {
       if (!pattern) { return false; }
       const rule = bgExclusions.testers_[pattern] as NonNullable<(typeof bgExclusions.testers_)[string]>;
       if (rule.t === ExclusionsNS.TesterType.StringPrefix
@@ -635,7 +638,7 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
   ;
   function collectPass(pass: string): string {
     pass = pass.trim();
-    const isReverted = pass && pass[0] === "^";
+    const isReverted = pass.startsWith("^");
     isReverted && (pass = pass.slice(1).trimLeft());
     const dict = Object.create<1>(null);
     for (let i of pass.split(" ")) {
@@ -750,7 +753,7 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
   exclusions = new PopExclusionRulesOption($("#exclusionRules"), onUpdated);
   exclusions.fetch_();
   if (!Build.NDEBUG) {
-    interface WindowEx extends Window { exclusions?: PopExclusionRulesOption; }
+    interface WindowEx extends Window { exclusions?: PopExclusionRulesOption }
     (window as WindowEx).exclusions = exclusions;
   }
   window.onunload = function (): void {

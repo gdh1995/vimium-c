@@ -95,7 +95,7 @@
   }
 
   /** any change to `cRepeat` should ensure it won't be `0` */
-  let cOptions: CommandsNS.Options = null as never, cPort: Frames.Port = null as never, cRepeat: number = 1,
+  let cOptions: CommandsNS.Options = null as never, cPort: Frames.Port = null as never, cRepeat = 1,
   cNeedConfirm: BOOL = 1, gOnConfirmCallback: ((arg: FakeArg) => void) | null = null,
   _fakeTabId: number = GlobalConsts.MaxImpossibleTabId,
   needIcon = false, cKey: kKeyCode = kKeyCode.None,
@@ -433,7 +433,7 @@
         N: kBgReq.count,
         c: "",
         i: gCmdTimer,
-        m: msg,
+        m: msg
       }) : onConfirm(1);
       return;
     }
@@ -482,14 +482,14 @@
     if (!Commands) { BgUtils_.require_("Commands").then(() => executeExternalCmd(message, sender)); return; }
     Commands.execute_(message, sender, executeCommand);
   }
-  function notifyCKey() {
+  function notifyCKey(): void {
     cPort && cPort.postMessage({ N: kBgReq.focusFrame,
       S: null, k: cKey, c: 0, m: FrameMaskType.NoMaskAndNoFocus
     });
   }
 
   const
-  getCurTab = chrome.tabs.query.bind<null, { active: true, currentWindow: true }
+  getCurTab = chrome.tabs.query.bind<null, { active: true; currentWindow: true }
       , [(result: [Tab], _ex: FakeArg) => void], 1>(null, { active: true, currentWindow: true }),
   getCurTabs = chrome.tabs.query.bind(null, {currentWindow: true}),
   getCurShownTabs = Build.BTypes & BrowserType.Firefox
@@ -515,6 +515,7 @@
     let oldWnd: Window | undefined, inCurWnd: boolean;
     oldWnd = wnds.filter(wnd => wnd.id === tab.windowId)[0];
     inCurWnd = oldWnd != null && oldWnd.incognito;
+    // eslint-disable-next-line arrow-body-style
     if (!opts.window && (inCurWnd || (wnds = wnds.filter((wnd: Window): wnd is IncNormalWnd => {
       return wnd.incognito && wnd.type === "normal";
     })).length > 0)) {
@@ -647,8 +648,7 @@
     cOptions = null as never;
     BgUtils_.resetRe_();
     typeof url !== "string"
-      ? /*#__NOINLINE__*/ onEvalUrl_(workType, options, tabs as [Tab] | undefined, url as Urls.SpecialUrl)
-      // tslint:disable-next-line: no-unused-expression
+      ? /*#__NOINLINE__*/ onEvalUrl_(workType, options, tabs as [Tab] | undefined, url)
       : openShowPage(url, reuse, options) ? 0
       : BgUtils_.isJSUrl_(url) ? /*#__NOINLINE__*/ openJSUrl(url)
       : reuse === ReuseType.reuse ? requestHandlers[kFgReq.focusOrLaunch]({ u: url })
@@ -791,7 +791,7 @@
   // use Urls.WorkType.Default
   function openUrls(tabs: [Tab]): void {
     const tab = tabs[0], { windowId } = tab;
-    interface OptionEx { formatted_?: 1; }
+    interface OptionEx { formatted_?: 1 }
     let urls: string[] = cOptions.urls, repeat = cRepeat;
     if (!(cOptions as OptionEx).formatted_) {
       for (let i = 0; i < urls.length; i++) {
@@ -843,7 +843,7 @@
     }
     removeTabsInOrder(tab, curTabs, 0, curTabs.length);
   }
-  function removeTabsInOrder(tab: Tab, tabs: ReadonlyArray<Tab>, start: number, end: number): void {
+  function removeTabsInOrder(tab: Tab, tabs: readonly Tab[], start: number, end: number): void {
     const browserTabs = chrome.tabs, i = tab.index;
     browserTabs.remove(tab.id, onRuntimeError);
     let parts1 = tabs.slice(i + 1, end), parts2 = tabs.slice(start, i);
@@ -1088,7 +1088,7 @@
       rel = rel ? rel + "" : "next";
       if (!(patterns instanceof Array)) {
         typeof patterns === "string" || (patterns = "");
-        patterns = (patterns as string)
+        patterns = patterns
             || (rel !== "next" ? Settings_.cache_.previousPatterns : Settings_.cache_.nextPatterns);
         patterns = patterns.split(",");
       }
@@ -1179,7 +1179,7 @@
       if (Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge)) {
         return Backend_.complain_("control selection on MS Edge");
       }
-      const flags = cPort.s.f, str = typeof cOptions.mode === "string" ? (cOptions.mode as string).toLowerCase() : "";
+      const flags = cPort.s.f, str = typeof cOptions.mode === "string" ? cOptions.mode.toLowerCase() : "";
       let words = "";
       if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
         || Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
@@ -1193,10 +1193,9 @@
       cPort.postMessage<1, kFgCmd.visualMode>({ N: kBgReq.execute,
         S: ensureInnerCSS(cPort), c: kFgCmd.visualMode, n: 1,
         a: {
-          m: (str === "caret" ? VisualModeNS.Mode.Caret
-              : str === "line" ? VisualModeNS.Mode.Line : VisualModeNS.Mode.Visual
-            ) as VisualModeNS.Mode.Visual | VisualModeNS.Mode.Line | VisualModeNS.Mode.Caret,
-          w: words,
+          m: str === "caret" ? VisualModeNS.Mode.Caret
+              : str === "line" ? VisualModeNS.Mode.Line : VisualModeNS.Mode.Visual,
+          w: words
         }
       });
     },
@@ -1249,7 +1248,7 @@
         i: useInner ? null : inner,
         t: useInner ? VomnibarNS.PageType.inner : preferWeb ? VomnibarNS.PageType.web : VomnibarNS.PageType.ext,
         s: useInner ? "" : Settings_.CONST_.VomnibarScript_f_,
-        k: getSecret(),
+        k: getSecret()
       }), cOptions as {} as CmdOptions[kFgCmd.vomnibar] & Partial<VomnibarNS.GlobalOptions>);
       if (options.mode === "bookmark") {
         options.mode = "bookm";
@@ -1390,6 +1389,7 @@
         (wnd as Window).tabs = undefined;
         chrome.windows.getAll(function (wnds): void {
           let tabId: number | undefined;
+          // eslint-disable-next-line arrow-body-style
           wnds = wnds.filter((wnd2: Window): wnd2 is IncNormalWnd => {
             return wnd2.incognito && wnd2.type === "normal";
           });
@@ -1489,7 +1489,7 @@
         const _cur0 = wnds.filter(wnd => wnd.id === curWndId), _curWnd = _cur0.length ? _cur0[0] : null;
         if (!_curWnd) { return; }
         const cb = (curWnd: typeof wnds[0]): void => {
-          const tabIds: number[] = [], push = (j: Tab) => tabIds.push(j.id);
+          const tabIds: number[] = [], push = (j: Tab): void => { tabIds.push(j.id); };
           wnds.sort((i, j) => i.id - j.id).forEach(i => i.tabs.forEach(push));
           if (!tabIds.length) { return; }
           if (!(Build.BTypes & ~BrowserType.Firefox)
@@ -1616,7 +1616,7 @@
     },
     /* kBgCmd.removeTabsR: */ function (this: void, tabs: Tab[]): void {
       /** `direction` is treated as limited; limited by pinned */
-      let activeTab: {index: number, pinned: boolean} = selectFrom(tabs), direction = cOptions.other ? 0 : cRepeat;
+      let activeTab: {index: number; pinned: boolean} = selectFrom(tabs), direction = cOptions.other ? 0 : cRepeat;
       let i = activeTab.index, noPinned = false;
       if (direction > 0) {
         ++i;
@@ -1947,6 +1947,7 @@
           tabs = tabs.filter(i => i.incognito === incognito);
           tabs.sort((a, b) => (a.windowId - b.windowId || a.index - b.index));
         }
+        // eslint-disable-next-line arrow-body-style
         const data: string[] = tabs.map(i => format.replace(nameRe, (_, s1): string => {
           return decoded && s1 === "url" ? BgUtils_.DecodeURLPart_(i.url, 1)
             : s1 !== "__proto__" && (i as Dict<any>)[s1] || "";
@@ -2001,7 +2002,7 @@
     /* kBgCmd.autoOpenFallback: */ function (this: void): void {
       cOptions = BgUtils_.safer_<OpenUrlOptionsInBgCmd>({
         copied: true,
-        keyword: cOptions.keyword,
+        keyword: cOptions.keyword
       });
       BackgroundCommands[kBgCmd.openUrl]();
     },
@@ -2041,12 +2042,12 @@
       });
     }
   ],
-  numHeadRe = <RegExpOne> /^-?\d+|^-/;
-  function onLargeCountConfirmed(this: CommandsNS.Item) {
+  numHeadRe = <RegExpOne> /^-?\d+|^-/,
+  onLargeCountConfirmed = function (this: CommandsNS.Item): void {
     executeCommand(this, 1, cKey, cPort, cRepeat);
-  }
-  function executeCommand(registryEntry: CommandsNS.Item
-      , count: number, lastKey: kKeyCode, port: Port, overriddenCount: number): void {
+  },
+  executeCommand = (registryEntry: CommandsNS.Item
+      , count: number, lastKey: kKeyCode, port: Port, overriddenCount: number): void => {
     const { options_: options, repeat_: repeat } = registryEntry;
     let scale: number | undefined;
     if (options && (scale = options.count)) { count = count * scale; }
@@ -2094,8 +2095,7 @@
     } else {
       getCurTabs(func as BgCmdCurWndTabs);
     }
-  }
-  const
+  },
   requestHandlers: {
     [K in keyof FgReqWithRes | keyof FgReq]:
       K extends keyof SpecialHandlers ? SpecialHandlers[K] :
@@ -2114,9 +2114,9 @@
       const key = allowed[k], p = Settings_.restore_ && Settings_.restore_();
       if (Settings_.get_(key) === request.v) { return; }
       p ? p.then(() => { Settings_.set_(key, request.v); }) : Settings_.set_(key, request.v);
-      interface BaseCheck { key: 123; }
+      interface BaseCheck { key: 123 }
       type Map1<T> = T extends keyof SettingsNS.AutoItems ? T : 123;
-      interface Check extends BaseCheck { key: Map1<keyof SettingsNS.FrontUpdateAllowedSettings>; }
+      interface Check extends BaseCheck { key: Map1<keyof SettingsNS.FrontUpdateAllowedSettings> }
       if (!Build.NDEBUG) { // just a type assertion
         let obj: Check = {
           key: key as keyof SettingsNS.FrontUpdateAllowedSettings & keyof SettingsNS.AutoItems
@@ -2294,7 +2294,7 @@
       doSearch(query);
       function doSearch(this: void, query2: string | null): void {
         let err = query2 === null ? "It's not allowed to read clipboard"
-          : (query2 = (query2 as string).trim()) ? "" : trans_("noSelOrCopied");
+          : (query2 = query2.trim()) ? "" : trans_("noSelOrCopied");
         if (err) {
           cPort = port;
           Backend_.showHUD_(err);
@@ -2329,7 +2329,7 @@
       tabId >= 0 || (tabId = TabRecency_.last_);
       if (tabId >= 0) { return selectTab(tabId); }
     },
-    /** kFgReq.openUrl: */ function (this: void, request: FgReq[kFgReq.openUrl] & { url_f?: Urls.Url, opener?: boolean }
+    /** kFgReq.openUrl: */ function (this: void, request: FgReq[kFgReq.openUrl] & { url_f?: Urls.Url; opener?: boolean }
         , port?: Port): void {
       BgUtils_.safer_(request);
       let unsafe = port != null && isNotVomnibarPage(port, true);
@@ -2457,9 +2457,9 @@
         focusAndRun(request, port, iport, 1);
       } else {
         const nav = chrome.webNavigation;
-        nav && nav.getAllFrames({tabId: port.s.t}, function (frames): void {
+        nav && nav.getAllFrames({tabId: port.s.t}, (frames): void => {
           let childId = 0, self = port.s.i;
-          for (const i1 of frames as NonNullable<typeof frames>) {
+          for (const i1 of frames) {
             if (i1.parentFrameId === self) {
               if (childId) { childId = 0; break; }
               childId = i1.frameId;
@@ -2528,10 +2528,10 @@
       return Completion_.filter_(request.q, request,
       PostCompletions.bind<Port, 0 | 1 | 2
           , Parameters<CompletersNS.Callback>, void>(port
-        , (<number> request.i | 0) as number as 0 | 1 | 2));
+        , (<number> request.i | 0) as 0 | 1 | 2));
     },
     /** kFgReq.copy: */ function (this: void, request: FgReq[kFgReq.copy], port: Port): void {
-      let str: string | string[] | undefined, hud: boolean = !0;
+      let str: string | string[] | undefined, hud = !0;
       if (str = request.u) {
         if (request.d) {
           str = BgUtils_.DecodeURLPart_(str, 1);
@@ -2596,7 +2596,7 @@
       chrome.tabs.query({ url, windowType: "normal" }, cb2);
     },
     /** kFgReq.cmd: */ function (this: void, request: FgReq[kFgReq.cmd], port: Port): void {
-      const cmd = request.c as keyof ShortcutInfoMap | "", id = request.i;
+      const cmd = request.c, id = request.i;
       if (id >= -1 && gCmdTimer !== id) { return; } // an old / aborted / test message
       setupSingletonCmdTimer(0);
       if (request.r) {
@@ -2712,7 +2712,7 @@
       function execGoBack(tab: Pick<Tab, "id">, goStep: number): void {
         chrome.tabs.executeScript(tab.id, {
           code: `history.go(${goStep})`,
-          runAt: "document_start",
+          runAt: "document_start"
         }, onRuntimeError);
       }
     },
@@ -2967,7 +2967,7 @@
         return null;
       }
       if (request.p) {
-        const obj = requestHandlers[kFgReq.parseUpperUrl](request as FgReqWithRes[kFgReq.parseUpperUrl]),
+        const obj = requestHandlers[kFgReq.parseUpperUrl](request),
         didSucceed = obj.p != null;
         return { k: "", s: 0, u: didSucceed ? obj.u : s0, e: didSucceed ? obj.p : obj.u };
       }
@@ -3042,7 +3042,7 @@
         url: tab.url,
         active: tab.active,
         pinned: tab.pinned,
-        openerTabId: tab.openerTabId,
+        openerTabId: tab.openerTabId
       });
       chrome.tabs.remove(tabId);
       // should never remove its session item - in case that goBack/goForward might be wanted
@@ -3053,7 +3053,7 @@
           N: kBgReq.showHUD,
           S: ensureInnerCSS(cPort),
           t: message,
-          c: isCopy as BgReq[kBgReq.showHUD]["c"] as undefined
+          c: isCopy as undefined
         })) {
         cPort = null as never;
       }
@@ -3115,7 +3115,7 @@
     ExecuteShortcut_ (this: void, cmd: string): void {
       const tabId = TabRecency_.last_, ports = framesForTab[tabId];
       if (cmd === <string> <unknown> kShortcutAliases.nextTab1) { cmd = kCName.nextTab; }
-      type NullableShortcutMap = ShortcutInfoMap & { [key: string]: CommandsNS.Item | null | undefined; };
+      type NullableShortcutMap = ShortcutInfoMap & { [key: string]: CommandsNS.Item | null | undefined };
       const map = CommandsData_.shortcutRegistry_ as NullableShortcutMap;
       if (!map || !map[cmd]) {
         // usually, only userCustomized* and those from 3rd-party extensions will enter this branch

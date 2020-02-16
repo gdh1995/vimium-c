@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-var
 declare var OnOther: BrowserType;
 if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
   (window as Writable<Window>).OnOther = Build.BTypes & BrowserType.Chrome &&
@@ -12,6 +13,7 @@ if (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) 
   window.chrome = browser as typeof chrome;
 }
 
+// eslint-disable-next-line no-var
 var BgUtils_ = {
   /**
    * both b and a must extend SafeObject
@@ -89,8 +91,8 @@ var BgUtils_ = {
     , ".center.design.lawyer.market.museum.online.social.studio.travel"
     , ".company.fashion.science.website"
     , ".engineer.software"
-  ] as ReadonlyArray<string>,
-  safeObj_: (() => Object.create(null)) as { (): any; <T>(): SafeDict<T>; },
+  ] as readonly string[],
+  safeObj_: (() => Object.create(null)) as { (): any; <T>(): SafeDict<T> },
   safer_: (Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && Build.BTypes & BrowserType.Chrome
       && !Object.setPrototypeOf ? function <T extends object> (obj: T): T & SafeObject {
         (obj as any).__proto__ = null; return obj as T & SafeObject; }
@@ -539,7 +541,7 @@ var BgUtils_ = {
         if (!Build.NDEBUG && window[name] instanceof Promise) {
           reject("ImportError: " + name);
         } else {
-          resolve(window[name] as Window[K] as T);
+          resolve(window[name] as T);
         }
       };
       (document.documentElement as HTMLHtmlElement).appendChild(script);
@@ -869,6 +871,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$Stri
     };
   }
   StringCls.includes = function (this: string, s: string, pos?: number): boolean {
+    // eslint-disable-next-line @typescript-eslint/prefer-includes
     return this.indexOf(s, pos) >= 0;
   };
 })();

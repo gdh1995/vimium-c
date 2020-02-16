@@ -5,22 +5,23 @@
   type primitiveObject = boolean | number | string;
   type primitive = primitiveObject | null | undefined;
   type ObjectCoercible = primitiveObject | {
-      toString: () => primitive,
+      toString (): primitive;
     } | {
-      valueOf: () => primitive,
+      valueOf (): primitive;
     };
   type anyNotSymbol = ObjectCoercible | null | undefined;
   interface StandardString {
-    endsWith(this: string, searchString: string, pos?: number | undefined): boolean;
-    endsWith(this: ObjectCoercible, searchString?: anyNotSymbol, pos?: anyNotSymbol): boolean;
-    includes(this: string, searchString: string, pos?: number | undefined): boolean;
-    includes(this: ObjectCoercible, searchString?: anyNotSymbol, pos?: anyNotSymbol): boolean;
-    startsWith(this: string, searchString: string, pos?: number | undefined): boolean;
-    startsWith(this: ObjectCoercible, searchString?: anyNotSymbol, pos?: anyNotSymbol): boolean;
+    endsWith (this: string, searchString: string, pos?: number | undefined): boolean;
+    endsWith (this: ObjectCoercible, searchString?: anyNotSymbol, pos?: anyNotSymbol): boolean;
+    includes (this: string, searchString: string, pos?: number | undefined): boolean;
+    includes (this: ObjectCoercible, searchString?: anyNotSymbol, pos?: anyNotSymbol): boolean;
+    startsWith (this: string, searchString: string, pos?: number | undefined): boolean;
+    startsWith (this: ObjectCoercible, searchString?: anyNotSymbol, pos?: anyNotSymbol): boolean;
   }
 
   const symMatch = typeof Symbol === "function" && typeof Symbol.match === "symbol" &&
                     Symbol.match as symbol | string | false as "Symbol(Symbol.match)" | false,
+  // eslint-disable-next-line id-blacklist
   S = String as StringConstructor & { readonly prototype: StandardString }, TE = TypeError,
   StringCls = S.prototype,
   toStr = Object.prototype.toString;
@@ -62,6 +63,7 @@
     let b = S(searchString), args = arguments, c = args.length > 1 ? +args[1] : 0;
     c = c > 0 ? c | 0 : 0;
     c > a.length && (c = a.length);
+    // eslint-disable-next-line @typescript-eslint/prefer-includes
     return a.indexOf(b, c) >= 0;
   });
 

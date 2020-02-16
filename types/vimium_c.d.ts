@@ -117,9 +117,9 @@ declare namespace MarksNS {
     /** local */ l: true;
     /** url */ u: string;
     /** old */ o?: {
-      /** scrollX */ x: number,
-      /** scrollY */ y: number,
-      /** hash */ h: string,
+      /** scrollX */ x: number;
+      /** scrollY */ y: number;
+      /** hash */ h: string;
     };
   }
   type FgQuery = FgGlobalQuery | FgLocalQuery;
@@ -246,7 +246,7 @@ declare namespace SettingsNS {
     darkMode = "darkMode",
     reduceMotion = "reduceMotion",
   }
-  type AutoItems = {
+  interface AutoItems {
     /** ignoreKeyboardLayout */ l: ["ignoreKeyboardLayout", boolean];
     /** keyboard */ k: ["keyboard", [number, number]];
     /** linkHintCharacters */ c: ["linkHintCharacters", string];
@@ -274,7 +274,7 @@ declare namespace SettingsNS {
   }
   type DeclaredConstValues = Readonly<SelectValueType<Pick<ConstItems, "v" | "o">>>;
   interface AllConstValues extends Readonly<SelectValueType<ConstItems>> {}
-  type VomnibarOptionItems = {
+  interface VomnibarOptionItems {
     /** maxMatchNumber */ n: ["maxMatches", number];
     /** queryInterval */ t: ["queryInterval", number];
     /** comma-joined size numbers */ l: ["sizes", string];

@@ -8,7 +8,7 @@ declare namespace VomnibarNS {
     close (this: Port): void | 1;
   }
   interface IFrameWindow extends Window {
-    onmessage: (this: void, ev: { source: Window, data: VomnibarNS.MessageData, ports: IframePort[] }) => void | 1;
+    onmessage: (this: void, ev: { source: Window; data: VomnibarNS.MessageData; ports: IframePort[] }) => void | 1;
   }
   type BaseFullOptions = CmdOptions[kFgCmd.vomnibar] & VomnibarNS.BaseFgOptions & Partial<ContentOptions>
       & SafeObject & OptionsWithForce;
@@ -17,8 +17,10 @@ declare namespace VomnibarNS {
     /** request Name */ N: VomnibarNS.kCReq.activate;
   }
 }
+// eslint-disable-next-line no-var
 declare var VData: VDataTy;
 
+// eslint-disable-next-line no-var
 var VOmni = {
   box_: null as never as HTMLIFrameElement & { contentWindow: VomnibarNS.IFrameWindow },
   port_: null as never as VomnibarNS.Port,
@@ -112,7 +114,7 @@ var VOmni = {
     VCui.setupExitOnClick_(0, options.exitOnClick ? a.hide_ : 0);
     let upper = 0;
     if (url != null) {
-      url = options.url = url || options.T as string;
+      url = options.url = url || options.T;
       upper = count > 1 ? 1 - count : count < 0 ? -count : 0;
     }
     options.k = 0; options.v = options.i = "";
@@ -192,7 +194,7 @@ var VOmni = {
       }
       const wnd = (this as typeof el).contentWindow,
       sec: VomnibarNS.MessageData = [secret, _this.options_ as VomnibarNS.FgOptionsToFront],
-      // tslint:disable-next-line: ban-types
+      // eslint-disable-next-line @typescript-eslint/ban-types
       origin = (page as EnsureNonNull<String>).substring(0
           , page.startsWith("file:") ? 7 : page.indexOf("/", page.indexOf("://") + 3)),
       checkBroken = function (i?: TimerType.fake | 1): void {
@@ -267,7 +269,7 @@ var VOmni = {
       let opt = a.options_;
       a.options_ = null;
       if (!data.o && opt) {
-        return a.port_.postMessage<VomnibarNS.kCReq.activate>(opt as VomnibarNS.FgOptionsToFront);
+        return a.port_.postMessage<VomnibarNS.kCReq.activate>(opt);
       }
       break;
     case VomnibarNS.kFReq.style:

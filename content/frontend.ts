@@ -1,8 +1,10 @@
+// eslint-disable-next-line no-var
 var VHud: VHUDTy, VApi: VApiTy, VTr: VTransType
   , VimiumInjector: VimiumInjectorTy | undefined | null;
+// eslint-disable-next-line no-var
 if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { var browser: unknown; }
 
-(function () {
+(function (): void {
   const enum kNodeInfo {
     NONE = 0,
     ShadowBlur = 1, ShadowFull = 2,
@@ -17,6 +19,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   }
   interface Port extends chrome.runtime.Port {
     postMessage<k extends keyof FgRes>(request: Req.fgWithRes<k>): 1;
+    // eslint-disable-next-line @typescript-eslint/unified-signatures
     postMessage<k extends keyof FgReq>(request: Req.fg<k>): 1;
     onMessage: chrome.events.Event<(message: any, port: Port, exArg: FakeArg) => void>;
   }
@@ -48,12 +51,12 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     /** its initial value should be 0, need by {@link #hook} */
     , browserVer: BrowserVer = 0 // should be used only if BTypes includes Chrome
     , isCmdTriggered: BOOL = 0
-    , isWaitingAccessKey: boolean = false
+    , isWaitingAccessKey = false
     , needToRetryParentClickable: BOOL = 0
-    , safer = Object.create as { (o: null): any; <T>(o: null): SafeDict<T>; }
-    , coreTester: { name_: string, rand_: number, recvTick_: number, sendTick_: number,
-        encrypt_ (trustedRand: number, unsafeRand: number): string,
-        compare_: Parameters<SandboxGetterFunc>[0] }
+    , safer = Object.create as { (o: null): any; <T>(o: null): SafeDict<T> }
+    , coreTester: { name_: string; rand_: number; recvTick_: number; sendTick_: number;
+        encrypt_ (trustedRand: number, unsafeRand: number): string;
+        compare_: Parameters<SandboxGetterFunc>[0]; }
     ;
 
   function post<k extends keyof FgReq>(this: void, request: FgReq[k] & Req.baseFg<k>): 1 | void {
@@ -380,7 +383,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     }
   }
 
-  interface MouseEventListener extends EventListenerObject { handleEvent (evt: MouseEventToPrevent): ELRet; }
+  interface MouseEventListener extends EventListenerObject { handleEvent (evt: MouseEventToPrevent): ELRet }
   const injector = VimiumInjector,
   doc = document, D = VDom, K = VKey, U = VCui, Hints = VHints,
   isTop = top === window,
@@ -494,7 +497,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     },
 
     /* kFgCmd.toggle: */ function (_0: number, options: CmdOptions[kFgCmd.toggle]): void {
-      const key = options.k, backupKey = "_" + key as string as typeof key,
+      const key = options.k, backupKey = "_" + key as typeof key,
       cache = K.safer_(fgCache), cur = cache[key];
       let val = options.v, u: undefined;
       if (val === null && (cur === !!cur)) {
@@ -616,7 +619,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         s: str as never as undefined,
         e: options.sed,
         u: (str ? "" : options.url ? location.href : doc.title) as "url",
-        d: options.decoded || options.decode,
+        d: options.decoded || options.decode
       });
     },
     /* kFgCmd.autoOpen: */ function (_0: number, options: CmdOptions[kFgCmd.autoOpen]): void {
@@ -640,7 +643,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       InsertMode.inputHint_ && (InsertMode.inputHint_.h = null as never);
       const arr: ViewOffset = D.getViewBox_();
       D.prepareCrop_(1);
-      interface InputHint extends Hint { [0]: HintsNS.InputHintItem["d"]; }
+      interface InputHint extends Hint { [0]: HintsNS.InputHintItem["d"] }
       // here those editable and inside UI root are always detected, in case that a user modifies the shadow DOM
       const visibleInputs = Hints.traverse_(Build.BTypes & ~BrowserType.Firefox
             ? Hints.kEditableSelector_ + Hints.kSafeAllSelector_ : Hints.kEditableSelector_, Hints.GetEditable_
@@ -738,7 +741,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         (event: Event, target: LockableElement) => void),
     global_: null as CmdOptions[kFgCmd.insertMode] | null,
     hinting_: false,
-    inputHint_: null as { /** box */ b: HTMLDivElement, /** hints */ h: HintsNS.InputHintItem[] } | null,
+    inputHint_: null as { /** box */ b: HTMLDivElement; /** hints */ h: HintsNS.InputHintItem[] } | null,
     suppressType_: null as string | null,
     last_: null as LockableElement | null,
     mutable_: true,
@@ -844,7 +847,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     },
     exit_ (target: Element): void {
       if (D.GetShadowRoot_(target)) {
-        if (target = insertLock as LockableElement | null as unknown as Element) {
+        if (target = insertLock as unknown as Element) {
           insertLock = null;
           (target as LockableElement).blur();
         }
@@ -894,11 +897,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     if (!D.isAriaNotTrue_(element, kAria.disabled)) { return; }
     const rect = D.getBoundingClientRect_(element);
     if (rect.width > 2 && rect.height > 2 && D.isStyleVisible_(element)) {
-      hints.push(element as SafeHTMLElement);
+      hints.push(element);
     }
   } as HintsNS.Filter<SafeHTMLElement>,
   findAndFollowLink_ (names: string[], isNext: boolean, lenLimit: number[], totalMax: number): boolean {
-    interface Candidate { [0]: number; [1]: string; [2]: Parameters<typeof Pagination.GetButtons_>[0][number]; }
+    interface Candidate { [0]: number; [1]: string; [2]: Parameters<typeof Pagination.GetButtons_>[0][number] }
     // Note: this traverser should not need a prepareCrop
     let links = Hints.traverse_(Hints.kSafeAllSelector_, Pagination.GetButtons_, true, true);
     const tryQuery = (selector: string): NodeListOf<Element> | void => {
@@ -1065,7 +1068,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         return HUD.tip_(e ? kTip.noUrlCopied : kTip.noTextCopied, 1000);
       }
       if (text.startsWith(!(Build.BTypes & ~BrowserType.Firefox) ? "moz-" : "chrome-") && text.includes("://")) {
-        // tslint:disable-next-line: ban-types
+        // eslint-disable-next-line @typescript-eslint/ban-types
         text = (text as EnsureNonNull<String>).substring(text.indexOf("/", text.indexOf("/") + 2)) || text;
       }
       text = (text.length > 41 ? text.slice(0, 41) + "\u2026" : text + ".");
@@ -1073,7 +1076,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     } as VHUDTy["copied_"],
     tip_ (tid: kTip | HintMode, duration?: number, args?: Array<string | number>): void {
       HUD.show_(tid, args);
-      HUD.t && ((HUD as typeof HUD)._timer = setTimeout(HUD.hide_, duration || 1500));
+      HUD.t && (HUD._timer = setTimeout(HUD.hide_, duration || 1500));
     },
     show_ (tid: kTip | HintMode, args?: Array<string | number>, embed?: boolean): void {
       if (!HUD.enabled_ || !D.isHTML_()) { return; }
@@ -1330,7 +1333,6 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         ? VVisual.mode_ ? VVisual.prompt_(kTip.copiedIs, 2000, [HUD.copied_(req.t, "", 1)])
           : HUD.copied_(req.t)
         : req.t ? HUD.tip_(kTip.raw, 0, [req.t])
-      // tslint:disable-next-line: no-unused-expression
       : 0;
     },
     /* kBgReq.count: */ function (request: BgReq[kBgReq.count]): void {
@@ -1429,7 +1431,6 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     exitOnClick && U.setupExitOnClick_(1, hide);
     doc.hasFocus() || events.focusAndRun_();
     // on FF66, `scrollIntoView` does not set tab-navigation node
-    // tslint:disable-next-line: no-unused-expression
     !(Build.BTypes & BrowserType.Chrome) ? 0
       : Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions
       ? D.scrollIntoView_(box) : VFind.fixTabNav_(box);
@@ -1636,7 +1637,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         safeDestroy();
       }, requestHandlers[kBgReq.init] ? 2000 : 5000);
     },
-    Connect_: (function (this: void): void {
+    Connect_: ((): void => {
       const api = Build.BTypes & ~BrowserType.Chrome
           && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)
           ? browser as typeof chrome : chrome,
@@ -1840,6 +1841,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       };
     }
     StringCls.includes = function (this: string, s: string, pos?: number): boolean {
+    // eslint-disable-next-line @typescript-eslint/prefer-includes
       return this.indexOf(s, pos) >= 0;
     };
   }

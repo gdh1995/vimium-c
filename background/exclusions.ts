@@ -1,6 +1,7 @@
 if (Settings_.get_("vimSync") || Settings_.temp_.hasEmptyLocalStorage_
     || ((!Backend_.onInit_ || localStorage.getItem("exclusionRules") !== "[]")
         && !Settings_.updateHooks_.exclusionRules)) {
+// eslint-disable-next-line no-var
 var Exclusions = {
   testers_: null as never as SafeDict<ExclusionsNS.Tester>,
   createRule_ (pattern: string, keys: string): ExclusionsNS.Tester {
@@ -180,5 +181,6 @@ Settings_.updateHooks_.exclusionOnlyFirstMatch = function (this: void, value: bo
 
 Settings_.updateHooks_.exclusionListenHash = Exclusions.updateListeners_;
 } else {
+  // eslint-disable-next-line no-var
   var Exclusions = null as never as typeof Exclusions;
 }

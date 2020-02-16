@@ -19,8 +19,8 @@ BgUtils_.timeout_(1000, function (): void {
     $_serialize: "single";
     d: any;
   }
-  type MultiLineSerialized = { [key: string]: SerializationMetaData | string | undefined; } & {
-      [key in keyof SettingsToUpdate]: SerializationMetaData; };
+  type MultiLineSerialized = { [key: string]: SerializationMetaData | string | undefined } & {
+      [key in keyof SettingsToUpdate]: SerializationMetaData };
   function storage(): chrome.storage.StorageArea { return chrome.storage && chrome.storage.sync; }
   let to_update: SettingsToUpdate | null = null, keyInDownloading: keyof SettingsWithDefaults | "" = "",
   changes_to_merge: { [key: string]: chrome.storage.StorageChange } | null = null,
@@ -70,7 +70,7 @@ BgUtils_.timeout_(1000, function (): void {
       }
     }
   }
-  function now() {
+  function now(): string {
     return new Date().toLocaleString();
   }
   /** return `8` only when expect a valid `map` */
@@ -138,7 +138,7 @@ BgUtils_.timeout_(1000, function (): void {
       Settings_.broadcast_(req);
     }
   }
-  function TrySet<K extends keyof SettingsToSync>(this: void, key: K, value: SettingsToSync[K] | null) {
+  function TrySet<K extends keyof SettingsToSync>(this: void, key: K, value: SettingsToSync[K] | null): void {
     if (!shouldSyncKey(key) || key === keyInDownloading) { return; }
     if (!to_update) {
       setTimeout(DoUpdate, 800);
@@ -166,7 +166,7 @@ BgUtils_.timeout_(1000, function (): void {
       return result != null ? result : val;
     };
   }
-  function SetLocal<K extends keyof SettingsToSync>(this: void, key: K, value: SettingsToSync[K] | null) {
+  function SetLocal<K extends keyof SettingsToSync>(this: void, key: K, value: SettingsToSync[K] | null): void {
     if (!storage()) {
       Settings_.sync_ = BgUtils_.blank_;
       return;
@@ -192,7 +192,7 @@ BgUtils_.timeout_(1000, function (): void {
   function escapeQuotes(text: string): string {
     return text.replace(<RegExpSearchable<0>> /"|\\[\\"]/g, s => s === '"' ? "`q" : s === '\\"' ? "`Q" : "`S");
   }
-  function revertEscaping(text: string) {
+  function revertEscaping(text: string): string {
     const map: Dict<string> = { Q: '\\"', S: "\\\\", d: "`", l: "<", n: "\u2029", q: '"', r: "\u2028" };
     return text.replace(<RegExpSearchable<0>> /`[QSdlnqr]/g, s => <string> map[s[1]]);
   }
@@ -203,7 +203,7 @@ BgUtils_.timeout_(1000, function (): void {
     switch (value.$_serialize) {
     case "split":
       // check whether changes are only synced partially
-      for (let { k: prefix, s: slice } = value as SerializationMetaData, i = 0; i < slice; i++) {
+      for (let { k: prefix, s: slice } = value, i = 0; i < slice; i++) {
         let part = (map as NonNullable<typeof map>)[key + ":" + i];
         if (!part || !part.startsWith(prefix)) { return 8; } // only parts
         serialized += part.slice(prefix.length);
@@ -480,6 +480,7 @@ BgUtils_.timeout_(1000, function (): void {
     if (restoringPromise) { /* empty */ }
     else if (!localStorage.length) {
       BgUtils_.GC_();
+      // eslint-disable-next-line arrow-body-style
       restoringPromise = Promise.all([BgUtils_.require_("Commands"), BgUtils_.require_("Exclusions")]).then(_ => {
         return new Promise<void>(resolve => {
           cachedSync ? storage().get(items => {
@@ -528,9 +529,9 @@ BgUtils_.timeout_(150, function (): void {
       Backend_.setIcon_ = BgUtils_.blank_;
       chrome.browserAction.setTitle({ title: "Vimium C\n\nFailed in showing dynamic icons." });
   },
-  loadBinaryImagesAndSetIcon = (type: Frames.ValidStatus) => {
+  loadBinaryImagesAndSetIcon = (type: Frames.ValidStatus): void => {
       const path = Settings_.icons_[type] as IconNS.BinaryPath;
-      const loadFromRawArray = (array: ArrayBuffer) => {
+      const loadFromRawArray = (array: ArrayBuffer): void => {
       const uint8Array = new Uint8ClampedArray(array), firstSize = array.byteLength / 5,
       small = (Math.sqrt(firstSize / 4) | 0) as IconNS.ValidSizes, large = (small + small) as IconNS.ValidSizes,
       cache = BgUtils_.safeObj_() as IconNS.IconBuffer;
@@ -548,7 +549,7 @@ BgUtils_.timeout_(150, function (): void {
         const p = fetch(path).then(r => r.arrayBuffer()).then(loadFromRawArray);
         if (!Build.NDEBUG) { p.catch(onerror); }
       } else {
-        var req = new XMLHttpRequest() as ArrayXHR;
+        const req = new XMLHttpRequest() as ArrayXHR;
         req.open("GET", path, true);
         req.responseType = "arraybuffer";
         if (!Build.NDEBUG) { req.onerror = onerror; }
@@ -652,7 +653,7 @@ BgUtils_.timeout_(600, function (): void {
   mayDelete = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeleting
       || (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox)
           && !!onDel && typeof onDel.addListener === "function";
-  let last: string | null = null, firstResultUrl: string = "", lastSuggest: SuggestCallback | null = null
+  let last: string | null = null, firstResultUrl = "", lastSuggest: SuggestCallback | null = null
     , timer = 0, subInfoMap: SubInfoMap | null = null
     , maxChars = OmniboxData.DefaultMaxChars
     , suggestions: chrome.omnibox.SuggestResult[] | null = null, cleanTimer = 0, inputTime: number
@@ -890,7 +891,7 @@ BgUtils_.timeout_(600, function (): void {
   (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeleting
     || (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox) && mayDelete) &&
   (onDel as NonNullable<typeof onDel>).addListener(function (text): void {
-    // tslint:disable-next-line: radix
+    // eslint-disable-next-line radix
     const ind = parseInt(text.slice(text.lastIndexOf("~", text.length - 2) + 1)) - 1;
     let url = suggestions && suggestions[ind].content, info = url && subInfoMap && subInfoMap[url],
     type = info && info.type_;
@@ -913,6 +914,7 @@ if (Build.BTypes & BrowserType.Firefox
 setTimeout(function (loadI18nPayload: () => void): void {
   const nativeTrans = trans_, lang2 = nativeTrans("lang2"), lang1 = trans_("lang1"),
   i18nVer = `${lang2 || lang1 || "en"},${Settings_.CONST_.VerCode_},`,
+  // eslint-disable-next-line arrow-body-style
   newTrans: typeof chrome.i18n.getMessage = (messageName: string, substitutions?: Array<string | number>): string => {
     return i18nKeys.has(messageName) ? nativeTrans(messageName, substitutions) : "";
   };
@@ -974,7 +976,7 @@ function (details: chrome.runtime.InstalledDetails): void {
       }
     }
   });
-  function now() {
+  function now(): string {
     return new Date(Date.now() - new Date().getTimezoneOffset() * 1000 * 60
       ).toJSON().slice(0, 19).replace("T", " ");
   }
@@ -1072,7 +1074,7 @@ BgUtils_.timeout_(1200, function (): void {
   (document.documentElement as HTMLHtmlElement).innerText = "";
   BgUtils_.resetRe_();
   if (!Build.NDEBUG) {
-    interface WindowExForDebug extends Window { a: unknown; cb: (i: any) => void; }
+    interface WindowExForDebug extends Window { a: unknown; cb: (i: any) => void }
     (window as WindowExForDebug).a = null;
     (window as WindowExForDebug).cb = function (b) { (window as WindowExForDebug).a = b; console.log("%o", b); };
   }

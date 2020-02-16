@@ -33,5 +33,7 @@ type Omit<T, K extends keyof T> = {
 
 type TypeToAssert<Parent, Child extends Parent, Key extends keyof Child, Others extends keyof Parent = never> =
     { readonly [P in Others]: unknown; } & { readonly [key in Key]?: Child[key]; };
+type TypeToPick<Parent, Child extends Parent, Key extends keyof Child> =
+    { readonly [key in Key]?: Child[key]; };
 
 type UnionToIntersection<U> = (U extends any ? (k: U)=>void : never) extends ((k: infer I)=>void) ? I : never;

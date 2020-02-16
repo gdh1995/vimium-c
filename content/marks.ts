@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-var
 var VMarks = {
   onKeyChar_: null as never as (event: HandlerNS.Event, keyChar: string) => void,
   prefix_: true,
@@ -86,7 +87,7 @@ var VMarks = {
   },
   ScrollTo_ (this: void, scroll: Readonly<MarksNS.FgMark>) {
     if (scroll[1] === 0 && scroll[2] && scroll[0] === 0) {
-      location.hash = scroll[2] as string;
+      location.hash = scroll[2];
     } else {
       scrollTo(scroll[0], scroll[1]);
     }

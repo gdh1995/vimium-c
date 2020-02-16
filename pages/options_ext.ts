@@ -104,9 +104,9 @@ $<ElementWithDelay>("#exportButton").onclick = function (event): void {
   storage = localStorage, all = bgSettings_.defaults_;
   for (let i = 0, len = storage.length; i < len; i++) {
     const key = storage.key(i) as string;
-    if (!key.includes("|") && key.slice(-2) !== "_f"
+    if (!key.includes("|") && !key.endsWith("_f")
         && key !== "findModeRawQueryList"
-        && key.slice(-3) !== "CSS" // ignore innerCSS, findCSS, omniCSS
+        && !key.endsWith("CSS") // ignore innerCSS, findCSS, omniCSS
     ) {
       storedKeys.push(key as keyof SettingsNS.PersistentSettings);
     }
@@ -138,7 +138,7 @@ $<ElementWithDelay>("#exportButton").onclick = function (event): void {
   const blob = new Blob([exported_data], {type: "application/json", endings: "native"});
 
   type BlobSaver = (blobData: Blob, fileName: string) => any;
-  interface NavigatorEx extends Navigator { msSaveOrOpenBlob?: BlobSaver; }
+  interface NavigatorEx extends Navigator { msSaveOrOpenBlob?: BlobSaver }
   if (Build.BTypes & BrowserType.Edge && (navigator as NavigatorEx).msSaveOrOpenBlob) {
     (navigator as NavigatorEx & {msSaveOrOpenBlob: BlobSaver}).msSaveOrOpenBlob(blob, file_name);
   } else {
@@ -320,9 +320,8 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
   if (window.VHud) { VHud.tip_(kTip.importOK, 1000); }
 }
 
-function importSettings_(time: number | string | Date
-    , data: string, is_recommended?: boolean): void {
-  let new_data: ExportedSettings | null = null, e: Error | null = null, err_msg: string = "";
+function importSettings_(time: number | string | Date, data: string, is_recommended?: boolean): void {
+  let new_data: ExportedSettings | null = null, e: Error | null = null, err_msg = "";
   try {
     let d = parseJSON_(is_recommended ? data : data.replace(<RegExpG> /\xa0/g, " "));
     if (d instanceof Error) { e = d; }

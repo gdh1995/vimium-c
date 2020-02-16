@@ -93,7 +93,7 @@ type HistoryCallback = (this: void, history: ReadonlyArray<Readonly<HistoryItem>
 type ItemToDecode = string | DecodedItem;
 
 type CompletersMap = {
-    [P in CompletersNS.ValidTypes]: ReadonlyArray<Completer>;
+    [P in CompletersNS.ValidTypes]: readonly Completer[];
 };
 type SearchSuggestion = CompletersNS.SearchSuggestion;
 
@@ -106,15 +106,15 @@ const enum kVisibility {
 type Visibility = kVisibility.hidden | kVisibility.visible;
 
 let queryType: FirstQuery = FirstQuery.nothing, matchType: MatchType = MatchType.plain,
-    inNormal: boolean | null = null, autoSelect: boolean = false, isForAddressBar: boolean = false,
+    inNormal: boolean | null = null, autoSelect = false, isForAddressBar = false,
     wantTreeMode = false,
-    maxChars: number = 0, maxResults: number = 0, maxTotal: number = 0, matchedTotal: number = 0, offset: number = 0,
-    queryTerms: string[] = [""], rawQuery: string = "", rawMore: string = "",
+    maxChars = 0, maxResults = 0, maxTotal = 0, matchedTotal = 0, offset = 0,
+    queryTerms: string[] = [""], rawQuery = "", rawMore = "",
     wantInCurrentWindow = false,
     hasOmniTypePrefix = false,
     domainToSkip = "",
     allExpectedTypes = SugType.Empty,
-    omniBlockList: string[] | null = null, showThoseInBlocklist: boolean = true;
+    omniBlockList: string[] | null = null, showThoseInBlocklist = true;
 
 const Suggestion: SuggestionConstructor = function (
     this: CompletersNS.WritableCoreSuggestion,
@@ -677,7 +677,7 @@ domainEngine = {
     if (result && !isMainPart) {
       if (!result.startsWith("www.") && !result.startsWith(word)) {
         let r2 = result.slice(result.indexOf(".") + 1);
-        if (r2.indexOf(word) !== -1) {
+        if (r2.includes(word)) {
           let d2: Domain | undefined;
           r2 = "www." + r2;
           if ((d2 = ref[r2]) && (showThoseInBlocklist || d2.count_ > 0)) { result = r2; matchedDomain = d2; }
@@ -764,7 +764,7 @@ tabEngine = {
       for (const tab of tabs0) { treeMap[tab.id] = tab; }
       if (tabs0.length > maxTotal) {
         let curTab = treeMap[curTabId], pId = curTab ? curTab.openerTabId : 0, pTab = pId ? treeMap[pId] : null,
-        start = pTab ? pTab.index : curTab ? <number> curTab.index - 1 : 0, i = pTab ? 0 : (maxTotal / 2) | 0;
+        start = pTab ? pTab.index : curTab ? curTab.index - 1 : 0, i = pTab ? 0 : (maxTotal / 2) | 0;
         for (; 1 < --i && start > 0 && tabs0[start - 1].openerTabId === pId; start--) { /* empty */ }
         if (start > 0) {
           let tabs1 = tabs0.splice(0, start);
@@ -772,7 +772,7 @@ tabEngine = {
         }
       }
     }
-    const tabs: Array<{t: Tab, s: string}> = [], wndIds: number[] = [];
+    const tabs: Array<{t: Tab; s: string}> = [], wndIds: number[] = [];
     for (const tab of tabs0) {
       if (!wantInCurrentWindow && inNormal && tab.incognito) { continue; }
       const u = tab.url, text = Decoder.decodeURL_(u, tab.incognito ? "" : u);
@@ -1583,7 +1583,7 @@ knownCs: CompletersMap & SafeObject = {
     IsExpectingHidden_ (query: string[]): boolean {
       if (!omniBlockList) { return true; }
       for (const word of query) {
-        for (let phrase of <string[]> omniBlockList) {
+        for (let phrase of omniBlockList) {
           phrase = phrase.trim();
           if (word.includes(phrase) || phrase.length > 9 && word.length + 2 >= phrase.length
               && phrase.includes(word)) {
@@ -1761,7 +1761,7 @@ Completion_ = {
     maxTotal = maxResults = Math.min(Math.max(3, ((options.r as number) | 0) || 10), 25);
     matchedTotal = 0;
     Completers.callback_ = callback;
-    let arr: ReadonlyArray<Completer> | null = knownCs[options.o], str = queryTerms.length >= 1 ? queryTerms[0] : ""
+    let arr: readonly Completer[] | null = knownCs[options.o], str = queryTerms.length >= 1 ? queryTerms[0] : ""
       , expectedTypes = options.t;
     if (arr === knownCs.tab) {
        wantInCurrentWindow = !!(flags & CompletersNS.QueryFlags.TabInCurrentWindow);
@@ -1831,6 +1831,7 @@ if (!Build.NDEBUG) {
 }
 });
 
+// eslint-disable-next-line no-var
 var Completion_ = { filter_ (a: string, b: CompletersNS.FullOptions, c: CompletersNS.Callback): void {
   BgUtils_.timeout_(210, function () {
     return Completion_.filter_(a, b, c);

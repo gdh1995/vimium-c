@@ -7,8 +7,8 @@ interface ImportBody {
   (id: "shownImage"): HTMLImageElement;
   (id: "shownText"): HTMLDivElement;
 }
-declare var VApi: VApiTy, VHud: VHUDTy,
-  Viewer: new (root: HTMLElement) => ViewerType;
+// eslint-disable-next-line no-var
+declare var VApi: VApiTy, VHud: VHUDTy, Viewer: new (root: HTMLElement) => ViewerType;
 interface Window {
   readonly VHud?: VHUDTy;
   readonly Viewer: typeof Viewer;
@@ -43,6 +43,7 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
     : typeof browser !== "undefined" && (browser && (browser as typeof chrome).runtime) != null) {
   window.chrome = browser as typeof chrome;
 }
+// eslint-disable-next-line no-var
 var $ = <T extends HTMLElement>(selector: string): T => document.querySelector(selector) as T,
 BG_ = chrome.extension && chrome.extension.getBackgroundPage() as Window as BgWindow,
 pTrans_: typeof chrome.i18n.getMessage = Build.BTypes & BrowserType.Firefox
@@ -56,6 +57,7 @@ let VShown: ValidNodeTypes | null = null;
 let bgLink = $<HTMLAnchorElement & SafeHTMLElement>("#bgLink");
 let tempEmit: ((succeed: boolean) => void) | null = null;
 let viewer_: ViewerType | null = null;
+// eslint-disable-next-line no-var
 var VData: VDataTy = null as never;
 let encryptKey = +window.name || 0;
 let ImageExtRe = <RegExpI> /\.(bmp|gif|icon?|jpe?g|a?png|tiff?|webp)(?=[.\-_]|\b)/i;
@@ -211,7 +213,7 @@ window.onhashchange = function (this: void): void {
       fetchImage_(url, VShown);
     } else {
       url = VData.url = "";
-      (VShown as HTMLImageElement).onerror(null as never);
+      VShown.onerror(null as never);
       VShown.alt = VData.error = pTrans_("none") || "\xa0(null)\xa0";
     }
     if (file) {
@@ -285,6 +287,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$Stri
     };
   }
   StringCls.includes = function (this: string, s: string, pos?: number): boolean {
+    // eslint-disable-next-line @typescript-eslint/prefer-includes
     return this.indexOf(s, pos) >= 0;
   };
 })();
@@ -317,11 +320,11 @@ document.addEventListener("keydown", function (this: void, event): void {
   }
 });
 
-function listenWheelForImage(doListen: boolean) {
+function listenWheelForImage(doListen: boolean): void {
   (doListen ? addEventListener : removeEventListener)("wheel", myOnWheel, { passive: false, capture: true } as const);
 }
 
-function myOnWheel(this: void, event: WheelEvent & ToPrevent) {
+function myOnWheel(this: void, event: WheelEvent & ToPrevent): void {
   if (event.ctrlKey) {
     event.preventDefault();
     event.stopImmediatePropagation();
@@ -336,7 +339,7 @@ function showBgLink(this: void): void {
   bgLink.style.display = "";
 }
 
-function clickLink(this: void, options: { [key: string]: string; }
+function clickLink(this: void, options: { [key: string]: string }
     , event: MouseEventToPrevent | KeyboardEventToPrevent): void {
   event.preventDefault();
   if (!VData.url) { return; }
@@ -376,7 +379,7 @@ function imgOnKeydown(event: KeyboardEventToPrevent): boolean {
     }
     return true;
   }
-  let action: number = 0;
+  let action = 0;
   switch (key) {
   case "c-=": case "m-=": case "+": case "=": case "up": action = 1; break;
   case "left": action = -2; break;
@@ -397,7 +400,7 @@ function imgOnKeydown(event: KeyboardEventToPrevent): boolean {
   return true;
 }
 
-function doImageAction(viewer: ViewerType, action: number) {
+function doImageAction(viewer: ViewerType, action: number): void {
   if (action === 2 || action === -2) {
     viewer.rotate(action * 45);
   } else {
@@ -582,7 +585,7 @@ function showSlide(ViewerModule: Window["Viewer"]): Promise<ViewerType> | Viewer
   });
 }
 
-function clean() {
+function clean(): void {
   destroyObject_();
   Promise.resolve().then(() => { _shownBlob = null; });
   if (VData.type === "image") {
@@ -641,7 +644,7 @@ function parseSmartImageUrl_(originUrl: string): string | null {
   if (found) {
     offset += index;
     search = search.slice(index);
-    let re = <RegExpG & RegExpI // tslint:disable-next-line: max-line-length
+    let re = <RegExpG & RegExpI // eslint-disable-next-line max-len
 > /(?:[.\-_]|\b)(?:[1-9]\d{2,3}[a-z]{1,3}[_\-]?|[1-9]\d?[a-z][_\-]?|0[a-z][_\-]?|[1-9]\d{1,3}[_\-]|[1-9]\d{1,2}(?=[.\-_]|\b)){2,6}(?=[.\-_]|\b)/gi;
     for (; arr2 = re.exec(search); arr1 = arr2) { /* empty */ }
     if (arr1 && (<RegExpI> /.[_\-].|\d\dx\d/i).test(arr1[0])) {
@@ -778,7 +781,7 @@ function disableAutoAndReload_(): void {
   (window.onhashchange as () => void)();
 }
 
-function resetOnceProperties_() {
+function resetOnceProperties_(): boolean {
   let changed = false;
   if (VData.auto === "once") {
     VData.auto = false;
@@ -806,7 +809,7 @@ function recoverHash_(notUpdateHistoryState?: 1): void {
 
 function encrypt_(message: string, password: number, doEncrypt: boolean): string {
   if (password === -1) { return message; }
-  let arr: number[] | Uint8Array = [] as number[];
+  const arr: number[] = [];
   if (doEncrypt) {
     message = encodeURIComponent(message);
   } else {
@@ -820,7 +823,7 @@ function encrypt_(message: string, password: number, doEncrypt: boolean): string
   for (let i = 0; i < arr.length; i++) {
     arr[i] = 0xff & (arr[i] ^ (password >>> (8 * (i & 3))));
   }
-  message = String.fromCharCode(... <number[]> arr);
+  message = String.fromCharCode(... arr);
   if (doEncrypt) {
     message = btoa(message);
   } else {
@@ -831,7 +834,7 @@ function encrypt_(message: string, password: number, doEncrypt: boolean): string
   return message;
 }
 
-function getOmni_(oldUrl: string) {
+function getOmni_(oldUrl: string): string {
   if (!VData.full) { return oldUrl; }
   return location.href.split("#", 1)[0] + VData.full;
 }

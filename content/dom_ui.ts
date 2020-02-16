@@ -2,6 +2,7 @@ interface ShadowRootWithSelection extends ShadowRoot {
   getSelection(): Selection | null;
 }
 
+// eslint-disable-next-line no-var
 var VCui = {
   box_: null as HTMLDivElement & SafeHTMLElement | null,
   styleIn_: null as HTMLStyleElement | string | null,
@@ -208,7 +209,6 @@ var VCui = {
       const SR = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
           ? window.ShadowRoot || HTMLElement.prototype.webkitCreateShadowRoot : 0;
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-          // tslint:disable-next-line: triple-equals
           ? typeof SR != "function" || kTagName in SR : typeof ShadowRoot != "function") {
         return [sel, null];
       }
@@ -462,7 +462,7 @@ var VCui = {
     a.add_(flashEl);
     a.lastFlashEl_ = flashEl;
     if (!Build.NDEBUG) {
-      type DomUIEx = typeof VCui & { flashTime: number | undefined; };
+      type DomUIEx = typeof VCui & { flashTime: number | undefined };
       lifeTime = lifeTime === -1 ? - 1 : Math.max(lifeTime || 0, <number> (VCui as DomUIEx).flashTime | 0);
     }
     const remove = function (): void {

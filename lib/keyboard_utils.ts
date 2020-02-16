@@ -1,4 +1,6 @@
+// eslint-disable-next-line no-var
 declare var VOther: BrowserType;
+// eslint-disable-next-line no-var
 var VKey = {
   keyNames_: [kChar.space, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
     kChar.left, kChar.up, kChar.right, kChar.down,
@@ -169,7 +171,7 @@ var VKey = {
   },
 
   /** handler section */
-  _handlers: [] as Array<{ func_: (event: HandlerNS.Event) => HandlerResult; env_: object; }>,
+  _handlers: [] as Array<{ func_: (event: HandlerNS.Event) => HandlerResult; env_: object }>,
   pushHandler_<T extends object> (func: HandlerNS.Handler<T>, env: T): void {
     this._handlers.push({ func_: func, env_: env });
   },

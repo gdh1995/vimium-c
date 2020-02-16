@@ -45,7 +45,7 @@ VDom.allowScripts_ = 0;
     func({ H: kFgReq.checkIfEnabled, u: location.href });
   }).bind(null, (injector.$p as NonNullable<VimiumInjectorTy["$p"]>)[0]);
   injector.getCommandCount = (function (this: null, func: (this: void) => string): number {
-    var currentKeys = func();
+    let currentKeys = func();
     return currentKeys !== "-" ? parseInt(currentKeys, 10) || 1 : -1;
   }).bind(null, (injector.$p as NonNullable<VimiumInjectorTy["$p"]>)[1]);
   injector.$p = null;
@@ -87,7 +87,7 @@ VDom.allowScripts_ = 0;
       return;
     }
   };
-  function onTimeout() {
+  function onTimeout(): void {
     if (Build.BTypes & BrowserType.Firefox) {
       VApi.destroy_(9); // note: here Firefox is just like a (9)
       VApi.OnWndFocus_();
@@ -95,7 +95,7 @@ VDom.allowScripts_ = 0;
   }
 })();
 
-VDom.OnDocLoaded_(function () {
+VDom.OnDocLoaded_(function (): void {
   const injector = VimiumInjector;
   injector && addEventListener("hashchange", injector.checkIfEnabled);
 });

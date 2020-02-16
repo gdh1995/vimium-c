@@ -41,7 +41,7 @@ if (VDom && VimiumInjector === undefined) {
       Type extends InnerConsts.kVOnClick ? ClickableEventDetail
         : Type extends InnerConsts.kCmd ? CommandEventDetail
         : never;
-      composed?: boolean}): CustomEvent;
+      composed?: boolean; }): CustomEvent;
   }
   interface VimiumDelegateEventCls {
     prototype: FocusEvent;
@@ -50,7 +50,7 @@ if (VDom && VimiumInjector === undefined) {
   }
 
   const kVOnClick1 = InnerConsts.kVOnClick
-    , kHook = (InnerConsts.kHook + BuildStr.RandomName0) as InnerConsts.kHook
+    , kHookRand = (InnerConsts.kHook + BuildStr.RandomName0) as InnerConsts.kHook
     , setupEventListener = VKey.SetupEventListener_
     , appInfo = Build.BTypes & BrowserType.Chrome
         && (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
@@ -101,7 +101,7 @@ if (VDom && VimiumInjector === undefined) {
     // it's unhooking is delayed, so here may no VKey
     event.stopImmediatePropagation();
     if (t.getAttribute(attr) !== "" + secret) { return; }
-    setupEventListener(0, kHook, hook, 1);
+    setupEventListener(0, kHookRand, hook, 1);
     hook = null as never;
     if (box == null) {
       t.removeAttribute(attr);
@@ -137,7 +137,7 @@ if (VDom && VimiumInjector === undefined) {
     if (!Build.NDEBUG) {
       console.log(`Vimium C: extend click: resolve ${detail ? "[%o + %o]" : "<%o>%s"} in %o @t=%o .`
         , detail ? detail[0].length
-          : target && (typeof target.localName !== "string" ? target + "" : target.localName as string)
+          : target && (typeof target.localName !== "string" ? target + "" : target.localName)
         , detail ? detail[2] ? -0 : detail[1].length
           : (event as FocusEvent).relatedTarget ? " (detached)"
           : this === window ? " (path on window)" : " (path on box)"
@@ -158,10 +158,10 @@ if (VDom && VimiumInjector === undefined) {
       el && VDom.clickable_.add(el);
     }
   }
-  function dispatchCmd(cmd: SecondLevelContentCmds) {
-    (box as Exclude<typeof box, 0 | undefined>).dispatchEvent(new CustomEvent(
+  function dispatchCmd(cmd: SecondLevelContentCmds): void {
+    (box as Exclude<typeof box, 0 | undefined>).dispatchEvent(new (CustomEvent as VimiumCustomEventCls)(
         (InnerConsts.kCmd + BuildStr.RandomName1) as InnerConsts.kCmd, {
-      detail: <CommandEventDetail> (secret << kContentCmd.MaskedBitNumber) | cmd
+      detail: (secret << kContentCmd.MaskedBitNumber) | cmd
     }));
   }
   function execute(cmd: ValidContentCommands): void {
@@ -177,7 +177,7 @@ if (VDom && VimiumInjector === undefined) {
       dispatchCmd(kContentCmd.Destroy);
     }
     if (box == null && isFirstTime) {
-      setupEventListener(0, kHook, hook, 1);
+      setupEventListener(0, kHookRand, hook, 1);
       if (cmd === kContentCmd.DestroyForCSP) {
         // normally, if here, must have: limited by CSP; not C or C >= MinEnsuredNewScriptsFromExtensionOnSandboxedPage
         // ignore the rare (unexpected) case that injected code breaks even when not limited by CSP,
@@ -198,7 +198,6 @@ if (VDom && VimiumInjector === undefined) {
    */
   interface InnerVerifier {
     (maybeSecret: string, maybeAnotherVerifierInner: InnerVerifier | unknown): void;
-    // tslint:disable-next-line: ban-types
     (maybeSecret: string): [EventTarget["addEventListener"], Function["toString"]] | void;
   }
   type PublicFunction = (maybeKNeedToVerify: string, verifierFunc: InnerVerifier | unknown) => void | string;
@@ -273,10 +272,10 @@ newFuncToString = function (a: FUNC, args: IArguments): string {
 hooks = {
   // the code below must include direct reference to at least one property in `hooks`
   // so that uglifyJS / terse won't remove the `hooks` variable
-  /** Create */ C: doc.createElement as Document["createElement"],
+  /** Create */ C: doc.createElement,
   toString: function toString(this: FUNC): string {
     const args = arguments;
-    if (args.length === 2 && (args[0] as any) === kMarkToVerify) {
+    if (args.length === 2 && args[0] === kMarkToVerify) {
       // randomize the body of this function
       (args[1] as InnerVerifier)(
           decryptFromVerifier(args[1] || BuildStr.RandomName3_public),
@@ -345,7 +344,7 @@ allNodesForDetached = null as HTMLCollectionOf<Element> | null,
 isReRegistering: BOOL | boolean = 0,
 // To avoid a host script detect Vimum C by code like:
 // ` a1 = setTimeout(()=>{}); $0.addEventListener('click', ()=>{}); a2=setTimeout(()=>{}); [a1, a2] `
-delayToStartIteration = () => { setTimeout_(next, GlobalConsts.ExtendClick_DelayToStartIteration); },
+delayToStartIteration = (): void => { setTimeout_(next, GlobalConsts.ExtendClick_DelayToStartIteration); },
 next = function (): void {
   const len = toRegister.length,
   start = len > (Build.NDEBUG ? InnerConsts.MaxElementsInOneTickRelease : InnerConsts.MaxElementsInOneTickDebug)
@@ -356,7 +355,6 @@ next = function (): void {
   call(Remove, root); // just safer
   // skip some nodes if only crashing, so that there would be less crash logs in console
   const slice = toRegister.s(start, delta);
-  // tslint:disable-next-line: prefer-for-of
   for (let i = unsafeDispatchCounter = 0; i < slice.length; i++) {
     prepareRegister(slice[i]); // avoid for-of, in case Array::[[Symbol.iterator]] was modified
   }
@@ -469,7 +467,6 @@ function doRegister(fromAttrs: BOOL): void {
 }
 function safeReRegister(element: Element, doc1: Document): void {
   const localAEL = doc1.addEventListener, localREL = doc1.removeEventListener;
-  // tslint:disable-next-line: triple-equals
   if (typeof localAEL == kFunc && typeof localREL == kFunc && localAEL !== myAEL) {
     isReRegistering = 1;
     try {
@@ -536,7 +533,7 @@ _listen(kOnDomReady, doInit, !0);
     injected = injected.replace(GlobalConsts.MarkAcrossJSWorlds
         , "$&" + ((Math.random() * GlobalConsts.SecretRange + GlobalConsts.SecretBase) | 0));
     VApi.execute_ = execute;
-    setupEventListener(0, kHook, hook);
+    setupEventListener(0, kHookRand, hook);
     setupEventListener(0, kVOnClick1, onClick);
   }
   /**
@@ -602,7 +599,7 @@ _listen(kOnDomReady, doInit, !0);
     return;
   }
   setTimeout = setInterval = function (func: (info?: TimerType.fake) => void, timeout: number): number {
-    const cb = () => func(TimerType.fake);
+    const cb = (): void => { func(TimerType.fake); };
     const rIC = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? requestIdleCallback : 0 as const;
     // in case there's `$("#requestIdleCallback")`
     return Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome && !VDom.allowRAF_

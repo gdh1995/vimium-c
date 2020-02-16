@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-var
 var Commands = {
   getOptions_ (item: string[], start: number): CommandsNS.Options | null {
     let opt: CommandsNS.RawOptions, i = start, len = item.length, ind: number, str: string | undefined, val: string;
@@ -68,6 +69,7 @@ var Commands = {
       repeat_: details[2]
     };
   },
+  // eslint-disable-next-line object-shorthand
   parseKeyMappings_: (function (this: {}, line: string): void {
     let key: string | undefined, lines: string[], splitLine: string[], mk = 0, _i: number
       , _len: number, details: CommandsNS.Description | undefined, errors = 0, ch: number
@@ -503,7 +505,7 @@ availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeO
   toggleVomnibarStyle: [ kBgCmd.toggleVomnibarStyle, 1, 1, { style: "dark" } ],
   visitPreviousTab: [ kBgCmd.visitPreviousTab, 1, 0 ],
   zoomIn: [ kBgCmd.toggleZoom, 1, 0 ],
-  zoomOut: [ kBgCmd.toggleZoom, 1, 0, { count: -1 } ],
+  zoomOut: [ kBgCmd.toggleZoom, 1, 0, { count: -1 } ]
 })
 },
 CommandsData_: CommandsDataTy = CommandsData_ as never || {

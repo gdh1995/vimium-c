@@ -60,6 +60,7 @@ declare const enum VisualAction {
   MaxNotScroll = 60, ScrollUp, ScrollDown,
 }
 
+// eslint-disable-next-line no-var
 var VVisual = {
   mode_: VisualModeNS.Mode.NotActive,
   modeName_: "",
@@ -343,8 +344,8 @@ var VVisual = {
   },
 
   _D: ["backward", "forward"] as const,
-  _G: ["character", "line", "lineboundary", /*3*/ "paragraph",
-      "sentence", /** VisualModeNS.VimG.vimWord */ "", /*6*/ "word",
+  _G: ["character", "line", "lineboundary", /* 3 */ "paragraph",
+      "sentence", /** VisualModeNS.VimG.vimWord */ "", /* 6 */ "word",
       "documentboundary"] as const,
   alterMethod_: "" as "move" | "extend",
   di_: VisualModeNS.kDir.unknown as VisualModeNS.ForwardDir | VisualModeNS.kDir.unknown,
@@ -463,7 +464,7 @@ var VVisual = {
    */
   _moveRightForSpaces (): void {
     const a = this, isMove = a.mode_ === VisualModeNS.Mode.Caret ? 1 : 0;
-    let ch: string = "1" /** a fake value */;
+    let ch: string;
     a.getDirection_("");
     a.oldLen_ = 1;
     do {

@@ -5,6 +5,7 @@ interface Window {
   readonly VHud?: VHUDTy;
   readonly VCui?: typeof VCui;
 }
+// eslint-disable-next-line no-var
 declare var VHud: VHUDTy, VApi: VApiTy;
 
 interface ElementWithHash extends HTMLElement {
@@ -367,7 +368,7 @@ TextOption_.prototype.showError_ = function<T extends TextualizedOptionNames>(th
 setupBorderWidth_ && nextTick_(setupBorderWidth_);
 nextTick_(versionEl => {
   const docCls = (document.documentElement as HTMLHtmlElement).classList;
-  const kEventName = "DOMContentLoaded", onload = () => {
+  const kEventName = "DOMContentLoaded", onload = (): void => {
     removeEventListener(kEventName, onload);
     bgSettings_.payload_.d && docCls.add("auto-dark");
     bgSettings_.payload_.m && docCls.add("less-motion");
@@ -473,7 +474,7 @@ let optionsInit1_ = function (): void {
     nextTick_(box => box.style.display = "", $("#dialogModeBox"));
   }
 
-  let _ref: {length: number, [index: number]: HTMLElement} = $$("[data-model]");
+  let _ref: { length: number; [index: number]: HTMLElement } = $$("[data-model]");
   const types = {
     Number: NumberOption_,
     Text: TextOption_,
@@ -481,12 +482,11 @@ let optionsInit1_ = function (): void {
     JSON: JSONOption_,
     MaskedText: MaskedText_,
     Boolean: BooleanOption_,
-    ExclusionRules: ExclusionRulesOption_,
+    ExclusionRules: ExclusionRulesOption_
   };
   for (let _i = _ref.length; 0 <= --_i; ) {
     _element = _ref[_i];
     const cls = types[_element.dataset.model as "Text"];
-    // tslint:disable-next-line: no-unused-expression
     const instance = new cls(_element as TextElement, onUpdated);
     instance.fetch_();
     (Option_.all_ as any as SafeDict<Option_<keyof AllowedOptions>>)[instance.field_] = instance as any;
@@ -536,7 +536,7 @@ let optionsInit1_ = function (): void {
   let func: {
     (this: HTMLElement, event: MouseEventToPrevent): void;
   } | ElementWithDelay["onclick"] = function (this: HTMLElement): void {
-    const target = $("#" + this.dataset.autoResize as string);
+    const target = $("#" + <string> this.dataset.autoResize);
     let height = target.scrollHeight, width = target.scrollWidth, dw = width - target.clientWidth;
     if (height <= target.clientHeight && dw <= 0) { return; }
     const maxWidth = Math.max(Math.min(innerWidth, 1024) - 120, 550);
@@ -977,7 +977,7 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
       let css = localStorage.getItem("innerCSS") as string, headEnd = css.indexOf("\n");
       css = css.substr(headEnd + 1, +css.slice(0, headEnd).split(",")[2]);
       VCui.css_(css);
-      (VCui.root_ as NonNullable<VUIRoot>).appendChild(styleDebug as HTMLStyleElement);
+      VCui.root_.appendChild(styleDebug as HTMLStyleElement);
     };
     if (root) {
       patch();
@@ -1079,7 +1079,7 @@ function loadJS(file: string): HTMLScriptElement {
   return script;
 }
 
-interface CheckerLoader { info_?: string; }
+interface CheckerLoader { info_?: string }
 function loadChecker(this: HTMLElement): void {
   if ((loadChecker as CheckerLoader).info_ != null) { return; }
   (loadChecker as CheckerLoader).info_ = this.id;
@@ -1165,7 +1165,7 @@ BG_.BgUtils_.GC_(1);
 function OnBgUnload(): void {
   BG_.removeEventListener("unload", OnBgUnload);
   setTimeout(function (): void {
-    BG_ = chrome.extension.getBackgroundPage() as Window | null as typeof BG_;
+    BG_ = chrome.extension.getBackgroundPage() as Window as typeof BG_;
     if (!BG_) { // a user may call `close()` in the console panel
       window.onbeforeunload = null as any;
       window.close();
@@ -1180,7 +1180,7 @@ function OnBgUnload(): void {
       setTimeout(callback, 100);
     }, true);
   }, 200);
-  function callback() {
+  function callback(): void {
     const ref = Option_.all_;
     for (const key in ref) {
       const opt = ref[key as keyof AllowedOptions], { previous_: previous } = opt;

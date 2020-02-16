@@ -5269,7 +5269,7 @@ declare var ImageData: {
 }
 
 interface InputEvent extends UIEvent {
-    readonly isComposing: boolean;
+    readonly isComposing?: boolean;
     readonly inputType?: string; // not on Firefox
 }
 

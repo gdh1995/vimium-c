@@ -102,7 +102,7 @@ interface BgReq {
   } | {
     /** text */ t: string;
     /** isCopy */ c: 1;
-  }) & {/** findCSS */ f?: FindCSS;} & Req.baseBg<kBgReq.showHUD> & Partial<BgCSSReq>;
+  }) & { /** findCSS */ f?: FindCSS } & Req.baseBg<kBgReq.showHUD> & Partial<BgCSSReq>;
   [kBgReq.focusFrame]: {
     /** mask */ m: FrameMaskType;
     /** key */ k: kKeyCode;
@@ -112,7 +112,7 @@ interface BgReq {
   [kBgReq.execute]: BaseExecute<object> & Req.baseBg<kBgReq.execute>;
   [kBgReq.exitGrab]: Req.baseBg<kBgReq.exitGrab>;
   [kBgReq.showHelpDialog]: {
-    /** html */ h: string | /** for Firefox */ { /** head->style */ h: string; /** body */ b: string; };
+    /** html */ h: string | /** for Firefox */ { /** head->style */ h: string; /** body */ b: string };
     /** optionUrl */ o: string;
     /** exitOnClick */ e: boolean;
     /** advanced */ c: boolean;
@@ -133,6 +133,7 @@ interface BgReq {
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface ShortcutInfoMap {}
 
 interface BgVomnibarSpecialReq {
@@ -161,7 +162,7 @@ interface BgVomnibarSpecialReq {
   };
   [kBgReq.omni_updateOptions]: {
     /** delta */ d: Partial<SelectValueType<SettingsNS.AllVomnibarItems>>;
-  }
+  };
 }
 type ValidBgVomnibarReq = keyof BgVomnibarSpecialReq | kBgReq.injectorRun;
 interface FullBgReq extends BgReq, BgVomnibarSpecialReq {}
@@ -261,11 +262,11 @@ interface CmdOptions {
     /** from_find */ r?: true;
     /** words */ w?: string;
   };
-  [kFgCmd.showHelp]: { exitOnClick?: boolean; };
-  [kFgCmd.reload]: { url: string, hard?: undefined } | { hard?: boolean, url?: undefined };
+  [kFgCmd.showHelp]: { exitOnClick?: boolean };
+  [kFgCmd.reload]: { url: string; hard?: undefined } | { hard?: boolean; url?: undefined };
   [kFgCmd.findMode]: {
     /** count */ n: number;
-    /** leave find mode */ l: boolean,
+    /** leave find mode */ l: boolean;
     /** query */ q: string;
     /* return to view port */ r: boolean;
     /* auto use selected text */ s: boolean;
@@ -317,7 +318,7 @@ interface FgRes {
     /** path */ p: string | null;
   };
   [kFgReq.execInChild]: boolean;
-  [kFgReq.i18n]: { /** rawMessages */ m: string[] | null; };
+  [kFgReq.i18n]: { /** rawMessages */ m: string[] | null };
 }
 interface FgReqWithRes {
   [kFgReq.findQuery]: {
@@ -431,7 +432,7 @@ interface FgReq {
     /** action */ a: kMarkAction.clear;
     /** url */ u: string;
   } | ({ /** action */ a: kMarkAction.goto } & MarksNS.FgQuery);
-  /** 
+  /**
    * .url is guaranteed to be well formatted by frontend
    */
   [kFgReq.focusOrLaunch]: MarksNS.FocusOrLaunch;
@@ -467,28 +468,28 @@ interface FgReq {
 }
 
 declare namespace Req {
-  type baseBg<K extends kBgReq> = {
+  interface baseBg<K extends kBgReq> {
     /** name */ N: K;
-  };
+  }
   type bg<K extends kBgReq> =
     K extends keyof BgReq ? BgReq[K] & baseBg<K> :
     K extends keyof BgVomnibarSpecialReq ? BgVomnibarSpecialReq[K] & baseBg<K> :
     never;
-  type baseFg<K extends kFgReq> = {
+  interface baseFg<K extends kFgReq> {
     /** handler */ H: K;
   }
   type fg<K extends keyof FgReq> = FgReq[K] & baseFg<K>;
 
-  type fgWithRes<K extends keyof FgRes> = baseFg<kFgReq.msg> & {
+  interface fgWithRes<K extends keyof FgRes> extends baseFg<kFgReq.msg> {
     /** msgId */ i: number;
     /** message */ readonly c: K;
     /** argument */ readonly a: FgReqWithRes[K];
   }
-  type res<K extends keyof FgRes> = bg<kBgReq.msg> & {
+  interface res<K extends keyof FgRes> extends bg<kBgReq.msg> {
     readonly r: FgRes[K];
   }
 
-  type FgCmd<O extends keyof CmdOptions> = BaseExecute<CmdOptions[O], O> & baseBg<kBgReq.execute>;
+  interface FgCmd<O extends keyof CmdOptions> extends BaseExecute<CmdOptions[O], O>, baseBg<kBgReq.execute> {}
 }
 
 interface SetSettingReq<T extends keyof SettingsNS.FrontUpdateAllowedSettings> extends Req.baseFg<kFgReq.setSetting> {
@@ -520,7 +521,7 @@ interface ExternalMsgs {
       /** the blow are only for inner usages  */
       /** scripts */ s: string[] | null;
       /** versionHash */ h: string;
-    }
+    };
   };
   [kFgReq.command]: {
     req: {

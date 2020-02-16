@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-var
 var HelpDialog = {
   html_: null as [string, string] | null,
   template_: null as HTMLTableDataCellElement | DOMParser | null,
@@ -53,7 +54,7 @@ var HelpDialog = {
       browserHelp: !(Build.BTypes & ~BrowserType.Firefox)
           || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox ? GlobalConsts.FirefoxHelp as string
           : Build.BTypes & BrowserType.Chrome && IsEdg_ ? GlobalConsts.EdgHelp
-          : GlobalConsts.ChromeHelp,
+          : GlobalConsts.ChromeHelp
       });
       body = body.replace(<RegExpSearchable<1>> /\{\{(\w+)}}/g, (_, group: string) => consts[group] || _);
       a.html_ = [head, body];
@@ -91,6 +92,7 @@ var HelpDialog = {
           && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
         ? { h: html[0], b: div } : html[0].replace("{{className}}", Settings_.payload_.d) + div;
   }) as BaseHelpDialog["render_"],
+  // eslint-disable-next-line object-shorthand
   groupHtml_: (function (this: {}, group: string, commandToKeys: SafeDict<Array<[string, CommandsNS.Item]>>
       , hideUnbound: boolean, showNames: boolean): string {
     const renderItem = (this as typeof HelpDialog).commandHtml_
@@ -140,8 +142,7 @@ var HelpDialog = {
     }
     return html;
   }),
-  commandHtml_: (function (this: void, isAdvanced: boolean, bindings: string
-      , description: string, command: string): string {
+  commandHtml_: ((isAdvanced: boolean, bindings: string, description: string, command: string): string => {
     let html = isAdvanced ? '<tr class="HelpAdv">\n\t' : "<tr>\n\t";
     if (description) {
       html += '<td class="HelpTd HelpKeys">';
@@ -253,7 +254,7 @@ var HelpDialog = {
     misc: [kCName.showHelp, kCName.autoCopy, kCName.autoOpen, kCName.searchAs, kCName.searchInAnother
       , kCName.toggleLinkHintCharacters
       , kCName.toggleSwitchTemp, kCName.passNextKey, kCName.debugBackground, kCName.closeDownloadBar, kCName.blank]
-  } as Readonly< EnsuredSafeDict<ReadonlyArray<kCName>> >,
+  } as { readonly [key: string]: readonly kCName[] } & SafeObject,
   advancedCommands_: As_<{ readonly [k in kCName]?: 1 | 0; } & SafeObject>({ __proto__: null as never,
     toggleViewSource: 1, clearFindHistory: 1
     , scrollToLeft: 1, scrollToRight: 1, moveTabToNextWindow: 1

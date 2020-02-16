@@ -1,7 +1,7 @@
 let keyMappingChecker_ = {
   normalizeKeys_: null as never as (this: void, s: string) => string,
   init_ (): void {
-    function sortModifiers(option: string) {
+    function sortModifiers(option: string): string {
       return option.length < 4 ? option : option.slice(0, -1).split("-").sort().join("-") + "-";
     }
     function func(_0: string, oldModifiers: string, ch: string): string {
@@ -33,7 +33,7 @@ let keyMappingChecker_ = {
       value = "\\";
     }
     let s3 = "";
-    if (value && value[0] === "{") {
+    if (value.startsWith("{")) {
       value = value.replace(<RegExpG> /([{,] ?)(\w+):/g, '$1"$2":');
       s3 = value;
     }
@@ -88,7 +88,7 @@ let keyMappingChecker_ = {
         this.normalizeCmd_);
     str = str.replace(<RegExpG & RegExpSearchable<0>> /\\\r/g, "\\\n").trim();
     return str;
-  },
+  }
 };
 Option_.all_.keyMappings.checker_ = keyMappingChecker_;
 keyMappingChecker_ = null as never;

@@ -13,7 +13,7 @@ declare namespace Search {
     (query: string[], url: string, blank: string, indexes: number[]): Result;
     (query: string[], url: string, blank: string): string;
   }
-  type TmpRule = { prefix_: string, matcher_: RegExpOne | RegExpI };
+  interface TmpRule { prefix_: string; matcher_: RegExpOne | RegExpI }
   interface Rule {
     readonly prefix_: string;
     readonly matcher_: RegExp;
@@ -67,8 +67,8 @@ declare namespace Urls {
     NoSchema = 2,
     MaxOfInputIsPlainUrl = NoSchema,
     PlainVimium = 3,
-    Search = 4,
-    Functional = 5
+    Search = 4, // eslint-disable-line no-shadow
+    Functional = 5,
   }
   const enum TempType {
     Unspecified = -1,
@@ -102,7 +102,6 @@ declare namespace Urls {
   interface Executor {
     (path: string, workType?: WorkType.ValidNormal): string | null;
     (path: string, workType: WorkType.KeepAll | WorkType.ConvertKnown): null;
-    (path: string, workType: WorkAllowEval, onlyOnce?: boolean): Url | null;
     (path: string, workType: WorkType, onlyOnce?: boolean): Url | null;
   }
   interface Searcher {
@@ -200,11 +199,11 @@ declare namespace ExclusionsNS {
     /** passed keys */ readonly k: string;
   }
   interface RegExpTester extends BaseTester {
-    /** type */ readonly t: TesterType.RegExp,
+    /** type */ readonly t: TesterType.RegExp;
     /** value */ readonly v: RegExpOne;
   }
   interface PrefixTester extends BaseTester {
-    /** type */ readonly t: TesterType.StringPrefix,
+    /** type */ readonly t: TesterType.StringPrefix;
     /** value */ readonly v: string;
   }
   type Tester = RegExpTester | PrefixTester;
@@ -261,7 +260,7 @@ declare namespace CompletersNS {
     https_: BOOL;
   }
 
-  type Callback = (this: void, sugs: Readonly<Suggestion>[],
+  type Callback = (this: void, sugs: Array<Readonly<Suggestion>>,
     newAutoSelect: boolean, newMatchType: MatchType, newMatchedSugTypes: SugType, newMatchedTotal: number) => void;
 
   type FullOptions = Options & {
@@ -547,7 +546,7 @@ declare namespace CommandsNS {
     userCustomized = "userCustomized",
   }
 
-  type CmdNameIds = {
+  interface CmdNameIds {
     [kCName.LinkHints_activate]: kFgCmd.linkHints;
     [kCName.LinkHints_activateMode]: kFgCmd.linkHints;
     [kCName.LinkHints_activateModeToCopyLinkText]: kFgCmd.linkHints;
@@ -696,7 +695,7 @@ interface ShortcutInfoMap {
   [kCName.goForward]: CommandsNS.Item;
   [kCName.previousTab]: CommandsNS.Item;
   [kCName.nextTab]: CommandsNS.Item;
-  [kCName.reloadTab]: CommandsNS.Item
+  [kCName.reloadTab]: CommandsNS.Item;
   [CommandsNS.OtherCNames.userCustomized]: CommandsNS.Item;
 }
 
@@ -704,8 +703,8 @@ declare namespace BackendHandlersNS {
   interface BackendHandlers {
     parse_ (this: void, request: FgReqWithRes[kFgReq.parseSearchUrl]): FgRes[kFgReq.parseSearchUrl];
     gotoSession_: {
-      (this: void, request: { s: string | number, a: false }, port: Port): void;
-      (this: void, request: { s: string | number, a?: true }): void;
+      (this: void, request: { s: string | number; a: false }, port: Port): void;
+      (this: void, request: { s: string | number; a?: true }): void;
     };
     /**
      * @returns "" - in a child frame, so need to send request to content
@@ -722,7 +721,7 @@ declare namespace BackendHandlersNS {
     removeSug_ (this: void, req: FgReq[kFgReq.removeSug], port?: Port): void;
     complain_ (this: BackendHandlers, message: string): void;
     showHUD_ (message: string, isCopy?: 1 | undefined): void;
-    getExcluded_: ExclusionsNS.GetExcluded,
+    getExcluded_: ExclusionsNS.GetExcluded;
     forceStatus_ (this: BackendHandlers, act: Frames.ForcedStatusText, tabId?: number): void;
     indexPorts_: {
       (this: void, tabId: number, frameId: number): Port | null;
@@ -771,8 +770,10 @@ declare const enum Consts {
   MaxLengthOfSearchKey = 50, MinInvalidLengthOfSearchKey = MaxLengthOfSearchKey + 1,
 }
 
+// eslint-disable-next-line no-var
 declare var Backend_: BackendHandlersNS.BackendHandlers, CommandsData_: CommandsDataTy;
 
+// eslint-disable-next-line no-var
 declare var setTimeout: SetTimeout;
 interface SetTimeout {
   <T1, T2, T3>(this: void, handler: (this: void, a1: T1, a2: T2, a3: T3) => void,

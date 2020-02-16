@@ -1,9 +1,11 @@
+/* eslint-disable no-var, @typescript-eslint/no-unused-vars */
 var VimiumInjector: VimiumInjectorTy | undefined | null = VimiumInjector || {
   id: "",
   alive: -1,
   host: "",
   version: "",
   cache: null,
+  // eslint-disable-next-line id-blacklist
   clickable: undefined,
   reload: null as never,
   checkIfEnabled: null as never,
@@ -22,8 +24,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$r
     || Build.BTypes & BrowserType.Edge) {
   var requestIdleCallback: RequestIdleCallback | undefined;
 }
+/* eslint-enable no-var, @typescript-eslint/no-unused-vars */
 
-(function (_a0: 1, injectorBuilder: (scriptSrc: string) => VimiumInjectorTy["reload"]) {
+(function (_a0: 1, injectorBuilder: (scriptSrc: string) => VimiumInjectorTy["reload"]): void {
 let runtime = ((!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
       : !!(browser && (browser as typeof chrome).runtime && (browser as typeof chrome).runtime.connect)
     ) ? browser as typeof chrome : chrome).runtime;
@@ -106,12 +109,12 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
     for (let i = scripts.length; 0 <= --i; ) { scripts[i].remove(); }
   });
 }
-function call() {
+function call(): void {
   runtime.sendMessage(extID, <ExternalMsgs[kFgReq.inject]["req"]> {
     handler: kFgReq.inject, scripts: true
   }, handler);
 }
-function start() {
+function start(): void {
   removeEventListener("DOMContentLoaded", start);
   (Build.MinCVer >= BrowserVer.MinEnsured$requestIdleCallback || !(Build.BTypes & BrowserType.Chrome))
     && !(Build.BTypes & BrowserType.Edge) || onIdle
@@ -154,7 +157,7 @@ if (document.readyState !== "loading") {
   || ((document.currentScript as HTMLScriptElement).dataset.vimiumHooks || "").toLowerCase() !== "false"
   ) && VimiumInjector.clickable !== null &&
 (function (): void {
-type ListenerEx = EventTarget["addEventListener"] & { vimiumHooked?: boolean; };
+type ListenerEx = EventTarget["addEventListener"] & { vimiumHooked?: boolean };
 type _EventTargetEx = typeof EventTarget;
 interface EventTargetEx extends _EventTargetEx {
   vimiumRemoveHooks: (this: void) => void;
@@ -183,7 +186,7 @@ const newListen: ListenerEx = cls.addEventListener =
 function addEventListener(this: EventTarget, type: string, listener: EventListenerOrEventListenerObject) {
   if (type === "click" && !(this instanceof HA) && listener && this instanceof E) {
     const injector = VimiumInjector;
-    injector && injector.clickable && injector.clickable.add(this as Element);
+    injector && injector.clickable && injector.clickable.add(this);
   }
   const args = arguments, len = args.length;
   return len === 2 ? _listen.call(this, type, listener) : len === 3 ? _listen.call(this, type, listener, args[2])

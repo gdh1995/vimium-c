@@ -1,3 +1,4 @@
+/* eslint-disable no-var */
 interface WindowWithTop extends Window {
   top: Window;
 }
@@ -89,10 +90,10 @@ interface SafeElement extends Element {
   nodeName: string;
   localName: string;
 }
-interface Element { __other: 0 | 1 | 2; }
-interface HTMLElement { __other: 0; }
-interface SVGElement extends SafeElement { __other: 1; }
-interface OtherSafeElement extends SafeElement { __other: 2; }
+interface Element { __other: 0 | 1 | 2 }
+interface HTMLElement { __other: 0 }
+interface SVGElement extends SafeElement { __other: 1 }
+interface OtherSafeElement extends SafeElement { __other: 2 }
 type BaseSafeHTMLElement = HTMLElement & SafeElement;
 interface SafeHTMLElement extends BaseSafeHTMLElement {
   readonly innerText: string;
@@ -187,7 +188,7 @@ declare const enum SelType {
 
 declare namespace HintsNS {
   interface MarkerElement extends HTMLSpanElement {
-    readonly childNodes: NodeListOf<HTMLSpanElement | Text>
+    readonly childNodes: NodeListOf<HTMLSpanElement | Text>;
   }
   interface BaseHintItem {
     /** marker */ m: MarkerElement;
@@ -249,7 +250,7 @@ declare namespace VomnibarNS {
     url?: string | null;
   }
   type MessageData = [number, FgOptions | null];
-  type Msg<T extends (kCReq | kFReq) & number> = { N: T };
+  interface Msg<T extends (kCReq | kFReq) & number> { N: T }
 
   const enum kCReq {
     activate, hide, focus,
@@ -277,7 +278,7 @@ declare namespace VomnibarNS {
       h: number;
       m?: number;
     };
-    [kFReq.hud]: { k: kTip; };
+    [kFReq.hud]: { k: kTip };
     [kFReq.focus]: {
       /** lastKey */ l: kKeyCode;
     };
@@ -334,13 +335,14 @@ type VimiumContainerElementType = "div" | "span" | "style" | "iframe" | "a" | "s
 /** ShadowRoot | HTMLDivElement */
 type VUIRoot = ShadowRoot | (HTMLDivElement & { mode?: undefined });
 
-interface MyMouseControlKeys { altKey_: boolean; ctrlKey_: boolean; metaKey_: boolean; shiftKey_: boolean; }
+interface MyMouseControlKeys { altKey_: boolean; ctrlKey_: boolean; metaKey_: boolean; shiftKey_: boolean }
 
 interface ComplicatedVPort extends VApiTy {
   post_<K extends keyof FgReq, T extends FgReq[K]>(this: void, req: T & Req.baseFg<K>): void | 1;
 }
 interface VApiTy {
   post_<K extends keyof SettingsNS.FrontUpdateAllowedSettings>(this: void, req: SetSettingReq<K>): void | 1;
+  // eslint-disable-next-line @typescript-eslint/unified-signatures
   post_<K extends keyof FgReq>(this: void, req: FgReq[K] & Req.baseFg<K>): void | 1;
   send_<K extends keyof FgRes>(this: void, cmd: K, args: Req.fgWithRes<K>["a"]
     , callback: (this: void, res: FgRes[K]) => void): void;
@@ -352,7 +354,7 @@ interface VApiTy {
   checkHidden_ (this: void): BOOL;
   /** may focus the parent frame before returning */
   checkHidden_ (this: void, cmd: FgCmdAcrossFrames
-      , count: number, opts: NonNullable<FgReq[kFgReq.gotoMainFrame]['a']>): BOOL;
+      , count: number, opts: NonNullable<FgReq[kFgReq.gotoMainFrame]["a"]>): BOOL;
   focusAndRun_ (this: void): void;
   focusAndRun_ (this: void, cmd: FgCmdAcrossFrames
       , count: number, options: FgOptions
@@ -422,12 +424,12 @@ interface SandboxGetterFunc {
   (comparer: (this: void, rand2: number, testEncrypted: string) => boolean,
     rand1: number): ContentWindowCore | 0 | null | undefined | void;
 }
-interface SandboxGetterWrapper { _get: SandboxGetterFunc; }
-declare var wrappedJSObject: { [key: string]: SandboxGetterWrapper; };
+interface SandboxGetterWrapper { _get: SandboxGetterFunc }
+declare var wrappedJSObject: { [key: string]: SandboxGetterWrapper };
 declare var XPCNativeWrapper: <T extends object> (wrapped: T) => XrayedObject<T>;
 type XrayedObject<T extends object> = T & {
   wrappedJSObject: T;
-}
+};
 
 interface Window extends ContentWindowCore {
   readonly VOther?: BrowserType;

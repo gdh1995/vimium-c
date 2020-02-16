@@ -5,6 +5,8 @@
 /// <reference path="../background/utils.ts" />
 /// <reference path="../background/settings.ts" />
 /// <reference path="../lib/dom_utils.ts" />
+/* eslint-disable @typescript-eslint/prefer-string-starts-ends-with, @typescript-eslint/prefer-includes */
+// eslint-disable-next-line no-var
 var VimiumInjector: VimiumInjectorTy | undefined | null = null;
 if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
     : typeof browser !== "undefined" && browser && (browser as typeof chrome).runtime) {
@@ -32,7 +34,7 @@ chrome.runtime && chrome.runtime.getManifest && (function () {
       }
     }, 100);
   }
-  interface BgWindow2 extends Window { Settings_: typeof Settings_; }
+  interface BgWindow2 extends Window { Settings_: typeof Settings_ }
   function onLastLoad(): void {
     for (let i = scripts.length; 0 <= --i; ) { scripts[i].remove(); }
     const dom = (window as {} as {VDom?: typeof VDom}).VDom;
@@ -75,7 +77,7 @@ chrome.runtime && chrome.runtime.getManifest && (function () {
         settings.postUpdate_("userDefinedCss");
       });
     };
-    interface WindowExForDebug extends Window { a: unknown; cb: (i: any) => void; }
+    interface WindowExForDebug extends Window { a: unknown; cb: (i: any) => void }
     (window as WindowExForDebug).a = null;
     (window as WindowExForDebug).cb = function (b) { (window as WindowExForDebug).a = b; console.log("%o", b); };
   }

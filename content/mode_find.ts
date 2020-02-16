@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-var
 var VFind = {
   isActive_: false,
   query_: "",
@@ -388,7 +389,7 @@ copy cut beforecopy beforecut paste".split(" ")) {
       a.exec_("delete");
       return;
     }
-    a.deactivate_(i as FindNS.Action);
+    a.deactivate_(i);
   },
   onHostKeydown_ (event: HandlerNS.Event): HandlerResult {
     const key = VKey.key_(event, kModeId.Find), key2 = key.replace("m-", "c-"),  a = this;
@@ -554,7 +555,7 @@ copy cut beforecopy beforecut paste".split(" ")) {
         if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
             ? !e.isTrusted : e.isTrusted === false) { return; }
       }
-      if ((e as InputEvent | Event & {isComposing?: boolean}).isComposing) { return; }
+      if ((e as TypeToPick<Event, InputEvent, "isComposing">).isComposing) { return; }
     }
     const _this = VFind, query = _this.input_.innerText.replace(<RegExpG> /\xa0/g, " ").replace(<RegExpOne> /\n$/, "");
     let s = _this.query_;
@@ -704,7 +705,7 @@ copy cut beforecopy beforecut paste".split(" ")) {
        */
       if (found && pR && (par = VCui.GetSelectionParent_unsafe_())) {
         pR.lastIndex = 0;
-        let text = (par as HTMLElement | Element & {innerText?: undefined}).innerText;
+        let text = (par as TypeToPick<Element, HTMLElement, "innerText">).innerText;
         if (text && !(Build.BTypes & ~BrowserType.Firefox && typeof text !== "string")
             && !(pR as RegExpG & RegExpSearchable<0>).test(text as string)
             && timesRegExpNotMatch++ < 9) {

@@ -11,8 +11,9 @@ interface SuggestionEx extends SuggestionE {
 }
 type Render = (this: void, list: ReadonlyArray<Readonly<SuggestionE>>, element: HTMLElement) => void;
 interface Post<R extends void | 1> {
-  postMessage<K extends keyof FgReq>(request: Req.fg<K>): R;
-  postMessage<K extends keyof FgRes>(request: Req.fgWithRes<K>): R;
+  postMessage<K extends keyof FgRes> (request: Req.fgWithRes<K>): R;
+  // eslint-disable-next-line @typescript-eslint/unified-signatures
+  postMessage<K extends keyof FgReq> (request: Req.fg<K>): R;
 }
 interface FgPort extends chrome.runtime.Port, Post<1> {
 }
@@ -22,7 +23,6 @@ declare const enum AllowedActions {
   nothing = Default,
   dismiss, focus, blurInput, backspace, blur, up, down = up + 2, toggle, pageup, pagedown, remove
 }
-declare var setTimeout: SetTimeout;
 interface SetTimeout {
   <T1, T2, T3>(this: void, handler: (this: void, a1: T1, a2: T2, a3: T3) => void,
     timeout: number, a1: T1, a2: T2, a3: T3): number;
@@ -34,16 +34,14 @@ interface SetTimeout {
 interface ConfigurableItems {
   VomnibarMaxPageNum?: number;
 }
-// tslint:disable-next-line: no-empty-interface
 interface Window extends ConfigurableItems {}
-declare var parent: unknown;
 import PixelData = VomnibarNS.PixelData;
 
-// tslint:disable-next-line: triple-equals
 if (typeof VApi == "object" && VApi && typeof VApi.destroy_ == "function") {
   VApi.destroy_(1);
 }
 
+// eslint-disable-next-line no-var
 var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_ || "", Vomnibar_ = {
   pageType_: VomnibarNS.PageType.Default,
   activate_ (options: Options): void {
@@ -894,7 +892,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         H: kFgReq.setOmniStyle,
         t: req.t,
         o: 1,
-        e: add,
+        e: add
       });
     }
   },
@@ -1117,7 +1115,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         : event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)) { return; }
     Vomnibar_.keyResult_ = HandlerResult.Prevent as HandlerResult;
     if (window.onkeyup) {
-      let stop = !event.repeat, now: number = 0;
+      let stop = !event.repeat, now = 0;
       if (!Vomnibar_.lastScrolling_) {
         // clear state, to avoid OnEnterUp receives unrelated keys
         stop = event.keyCode > kKeyCode.maxAcsKeys || event.keyCode < kKeyCode.minAcsKeys;
@@ -1144,11 +1142,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         : PixelData.MeanWidthOfNonMonoFont));
   },
   updateQueryFlag_ (flag: CompletersNS.QueryFlags, enable: boolean | BOOL | null): void {
-    let isFirst = enable == null;
+    const isFirst = enable == null;
     if (isFirst && flag === CompletersNS.QueryFlags.MonospaceURL) {
       enable = ` ${Vomnibar_.styles_} `.includes(" mono-url ");
     }
-    var newFlag = (Vomnibar_.mode_.f & ~flag) | (enable ? flag : 0);
+    const newFlag = (Vomnibar_.mode_.f & ~flag) | (enable ? flag : 0);
     if (Vomnibar_.mode_.f === newFlag) { return; }
     Vomnibar_.mode_.f = newFlag;
     if (flag === CompletersNS.QueryFlags.MonospaceURL && !isFirst) {
@@ -1375,7 +1373,6 @@ VPort_ = {
     name === kBgReq.omni_toggleStyle ? Vomnibar_.toggleStyle_(response as Req.bg<kBgReq.omni_toggleStyle>) :
     name === kBgReq.omni_updateOptions ? Vomnibar_.updateOptions_(response as Req.bg<kBgReq.omni_updateOptions>) :
     name === kBgReq.injectorRun ? 0 :
-    // tslint:disable-next-line: no-unused-expression
     0;
   },
   _OnOwnerMessage ({ data: data }: { data: VomnibarNS.CReq[keyof VomnibarNS.CReq] }): void {
@@ -1384,7 +1381,6 @@ VPort_ = {
     name === VomnibarNS.kCReq.activate ? Vomnibar_.activate_(data as VomnibarNS.CReq[VomnibarNS.kCReq.activate]) :
     name === VomnibarNS.kCReq.focus ? Vomnibar_.focus_() :
     name === VomnibarNS.kCReq.hide ? Vomnibar_.hide_(1) :
-    // tslint:disable-next-line: no-unused-expression
     0;
   },
   _ClearPort (this: void): void { VPort_._port = null; },
@@ -1410,6 +1406,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$Stri
   return i >= 0 && this.indexOf(s, i) === i;
 });
 "".includes || (String.prototype.includes = function (this: string, s: string, pos?: number): boolean {
+    // eslint-disable-next-line @typescript-eslint/prefer-includes
   return this.indexOf(s, pos) >= 0;
 });
 }
@@ -1433,7 +1430,7 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
     (VCID_ = VCID_ || "");
     VHost_ = VCID_;
     if (!(Build.BTypes & BrowserType.Chrome)
-        || Build.BTypes & ~BrowserType.Chrome && (VCID_ as string).includes("-")) {
+        || Build.BTypes & ~BrowserType.Chrome && (VCID_).includes("-")) {
       VCID_ = curEl.dataset.vimiumId || BuildStr.FirefoxID;
     }
   } else {

@@ -7,11 +7,9 @@ const enum ClickType {
 declare namespace HintsNS {
   type LinkEl = Hint[0];
   interface Executor {
-    // tslint:disable-next-line: callable-types
     (this: void, linkEl: LinkEl, rect: Rect | null, hintEl: Pick<HintItem, "r">): void | boolean;
   }
   interface HTMLExecutor extends Executor {
-    // tslint:disable-next-line: callable-types
     (this: void, linkEl: SafeHTMLElement, rect: Rect | null): void | boolean;
   }
   interface ModeOpt extends ReadonlyArray<Executor | HintMode> {
@@ -43,7 +41,6 @@ declare namespace HintsNS {
   }
   type NestedFrame = false | 0 | null | HTMLIFrameElement | HTMLFrameElement;
   interface Filter<T> {
-    // tslint:disable-next-line: callable-types
     (this: void, hints: T[], element: SafeHTMLElement): void;
   }
   type Stack = number[];
@@ -95,6 +92,7 @@ declare namespace HintsNS {
   }
 }
 
+// eslint-disable-next-line no-var
 var VHints = {
   CONST_: {
     focus: HintMode.FOCUS,
@@ -210,7 +208,7 @@ var VHints = {
                 , child.v, a as typeof a & { _master: null }, frameInfo, addChild);
           // ensure allHints always belong to the master frame
           allHints = frameInfo.h.length ? allHints.concat(frameInfo.h) : allHints;
-        } else if (child.s.isActive_ as typeof a.isActive_) {
+        } else if ((child.s as typeof a).isActive_) {
           toClean.push(child.s);
         }
       }
@@ -420,7 +418,7 @@ var VHints = {
    */
   GetClickable_ (this: void, hints: Hint[], element: SafeHTMLElement): void {
     let arr: Rect | null | undefined, isClickable = null as boolean | null, s: string | null
-      , type = ClickType.Default, anotherEl: Element | null, clientSize: number = 0;
+      , type = ClickType.Default, anotherEl: Element | null, clientSize = 0;
     const tag = element.localName, _this = VHints;
     switch (tag) {
     case "a":
@@ -527,7 +525,7 @@ var VHints = {
         && (_this.mode_ > HintMode.min_job - 1 || VDom.isAriaNotTrue_(element, kAria.disabled))
     ) { hints.push([element, arr, type]); }
   },
-  _getClickableInMaybeSVG (hints: Hint[], element: SafeElement & { __other: 1 | 2; }): void {
+  _getClickableInMaybeSVG (hints: Hint[], element: SafeElement & { __other: 1 | 2 }): void {
     let anotherEl: SVGElement;
     let arr: Rect | null | undefined, s: string | null , type = ClickType.Default;
     const tabIndex = (element as ElementToHTMLorSVG).tabIndex;
@@ -888,7 +886,7 @@ var VHints = {
         } else if (notRemoveParents
             = k === ClickType.edit && i > 0 && (element = list[i - 1][0]) === list[i][0].parentElement
             && element.childElementCount < 2 && element.localName === "a"
-            && !(element as HTMLElement | Element & { innerText?: undefined }).innerText) {
+            && !(element as TypeToPick<Element, HTMLElement, "innerText">).innerText) {
           // a rare case that <a> has only a clickable <input>
           list.splice(--i, 1);
         }
@@ -955,7 +953,7 @@ var VHints = {
       return;
     }
     let i = list.length, el: SafeElement, root: Document | ShadowRoot, localName: string,
-    fromPoint: Element | null | undefined, temp: Element | null, index2: number = 0;
+    fromPoint: Element | null | undefined, temp: Element | null, index2 = 0;
     const zoom = Build.BTypes & BrowserType.Chrome ? D.docZoom_ * D.bZoom_ : 1,
     zoomD2 = Build.BTypes & BrowserType.Chrome ? zoom / 2 : 0.5,
     body = document.body, docEl = document.documentElement,
@@ -974,7 +972,7 @@ var VHints = {
         continue;
       }
       if (nodeType === kNode.DOCUMENT_FRAGMENT_NODE
-          && (temp = (el as SafeElement).lastElementChild as Element | null)
+          && (temp = el.lastElementChild as Element | null)
           && D.htmlTag_(temp) === "slot"
           && (root as ShadowRoot).host.contains(fromPoint as NonNullable<typeof fromPoint>)) {
         continue;
@@ -1065,7 +1063,7 @@ var VHints = {
     }
     visibleElements.reverse();
 
-    const obj = {l: null as never, t: null as never} as {l: Rect[], t: Rect}, func = VDom.SubtractSequence_.bind(obj);
+    const obj = {l: null as never, t: null as never} as {l: Rect[]; t: Rect}, func = VDom.SubtractSequence_.bind(obj);
     let r2 = null as Rect[] | null, t: Rect, reason: ClickType, visibleElement: Hint;
     for (let _len = visibleElements.length, _j = Math.max(0, _len - 16); 0 < --_len; ) {
       _j > 0 && --_j;
@@ -1235,7 +1233,7 @@ var VHints = {
   },
   delayToExecute_ (slave: HintsNS.BaseHinter, hint: HintsNS.HintItem, flashEl: SafeHTMLElement | null): void {
     const a = this, waitEnter = Build.BTypes & BrowserType.Chrome && VDom.cache_.w,
-    callback = (event?: HandlerNS.Event, key?: string, keybody?: string) => {
+    callback = (event?: HandlerNS.Event, key?: string, keybody?: string): void => {
       let closed: void | 1 | 2 = 1;
       try {
         closed = (slave as typeof VHints).CheckLast_(1);
@@ -1247,7 +1245,6 @@ var VHints = {
       if (event) {
         tick = waitEnter && keybody === kChar.space ? tick + 1 : 0;
         tick === 3 || keybody === kChar.enter ? slave.execute_(hint, event)
-        // tslint:disable-next-line: no-unused-expression
         : key === kChar.f1 && flashEl ? flashEl.classList.toggle("Sel") : 0;
       } else {
         slave.execute_(hint);
@@ -1272,7 +1269,7 @@ var VHints = {
     if (master) {
       VApi.keydownEvents_(Build.BTypes & BrowserType.Firefox ? (master as typeof a).api_.keydownEvents_()
           : (master as typeof a).api_);
-      a.setMode_(master.mode_ as typeof a.mode_, 1);
+      a.setMode_((master as typeof a).mode_, 1);
     }
     if (event) {
       VKey.prevent_(event.e);
@@ -1376,7 +1373,7 @@ var VHints = {
     }
     if ((!r2 || r) && master.isActive_
         && (master.hints_ as NonNullable<typeof _this.hints_>).length < (
-              (master.frameList_ as typeof _this.frameList_).length > 1 ? 200 : 100)
+              ((master as typeof _this).frameList_).length > 1 ? 200 : 100)
         && !master.keyStatus_.keySequence_
         && (hidden || Math.abs((r2 as ClientRect).left - (r as Rect).l) > 100
             || Math.abs((r2 as ClientRect).top - (r as Rect).t) > 60)) {
@@ -1569,7 +1566,7 @@ filterEngine_: {
     }
   },
   generateHintText_ (hint: Hint): HintsNS.HintText {
-    let el = hint[0], text: string = "", show = false
+    let el = hint[0], text = "", show = false
       , localName = el.localName, isHTML = "lang" in el
       , ind: number;
     switch (isHTML ? localName : "") {
@@ -1577,7 +1574,7 @@ filterEngine_: {
       let labels = (el as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement).labels;
       if (labels && labels.length
           && (text = (labels[0] as SafeHTMLElement).innerText).trim()) {
-        show = !(labels[0] as HTMLLabelElement).contains(el);
+        show = !labels[0].contains(el);
       } else if (localName[0] === "s") {
         const selected = (el as HTMLSelectElement).selectedOptions[0];
         text = selected ? selected.label : "";
@@ -1593,7 +1590,6 @@ filterEngine_: {
             || (el as HTMLInputElement | HTMLTextAreaElement).placeholder;
         if (localName > "t" && !(el as HTMLTextAreaElement).scrollTop) {
           ind = text.indexOf("\n") + 1;
-          // tslint:disable-next-line: no-unused-expression
           ind && (ind = text.indexOf("\n", ind)) > 0 ? text = text.slice(0, ind) : 0;
         }
       }
@@ -1609,7 +1605,6 @@ filterEngine_: {
         text = hint[2] > ClickType.frame ? "Scroll" : "Frame";
       } else if (isHTML && (text = (el as SafeHTMLElement).innerText.trim())) {
         ind = text.indexOf("\n") + 1;
-        // tslint:disable-next-line: no-unused-expression
         ind && (ind = text.indexOf("\n", ind)) > 0 ? text = text.slice(0, ind) : 0;
       } else if (localName === "a" && isHTML) {
           let el2 = el.firstElementChild as Element | null;
@@ -1919,7 +1914,7 @@ isImageUrl_ (str: string | null): boolean {
     return false;
   }
   const end = str.lastIndexOf("#") + 1 || str.length;
-  // tslint:disable-next-line: ban-types
+  // eslint-disable-next-line @typescript-eslint/ban-types
   str = (str as EnsureNonNull<String>).substring(str.lastIndexOf("/", str.lastIndexOf("?") + 1 || end), end);
   return (<RegExpI & RegExpOne> /\.(?:bmp|gif|icon?|jpe?g|a?png|svg|tiff?|webp)\b/i).test(str);
 },

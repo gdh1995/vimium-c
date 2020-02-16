@@ -1,5 +1,6 @@
 import SettingsWithDefaults = SettingsNS.SettingsWithDefaults;
 const As_ = <T> (i: T): T => i;
+// eslint-disable-next-line no-var
 var Settings_ = {
   cache_: BgUtils_.safeObj_() as Readonly<SettingsNS.FullCache>,
   temp_: {
@@ -635,7 +636,6 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
     && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) {
   ( (Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox))
     ? !Build.NativeWordMoveOnFirefox
-      // tslint:disable-next-line: no-unused-expression
       && !BgUtils_.makeRegexp_("\\p{L}", "u", 0)
     : Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge) ? true
     : Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
@@ -645,7 +645,6 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
           BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
           ? BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp : BrowserVer.MinSelExtendForwardOnlySkipWhitespaces)
         : CurCVer_ < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
-          // tslint:disable-next-line: no-unused-expression
           || !BgUtils_.makeRegexp_("\\p{L}", "u", 0))
   ) ? Settings_.fetchFile_("words") : (Settings_.CONST_.words = "");
 }

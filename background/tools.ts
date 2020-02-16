@@ -31,7 +31,7 @@ const Clipboard_ = {
             : ClipAction.copy | ClipAction.paste,
         match_: matchRe,
         replaced_: body[2].replace(<RegExpG & RegExpSearchable<1>> /\\(x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|[^xu])/g,
-            (_, s: string): string => {
+            (_, s: string): string => { // eslint-disable-line arrow-body-style
           return s[0] === "x" || s[0] === "u"
               ? (s = String.fromCharCode(parseInt(s.slice(1), 16)), s === "$" ? s + s : s)
               : s === "t" ? "\t" : s === "r" ? "\r" : s === "n" ? "\n"
@@ -270,7 +270,7 @@ ContentSettings_ = Build.PContentSettings ? {
       } : cb);
   } as {
     (this: void, count: number, contentType: CSTypes, tab: Tab, pattern: string
-      // tslint:disable-next-line: unified-signatures
+      // eslint-disable-next-line @typescript-eslint/unified-signatures
       , wndId: number, syncState: boolean, callback?: (this: void) => void): void;
     (this: void, count: number, contentType: CSTypes, tab: Tab, pattern: string, wndId?: number): void;
   },
@@ -278,7 +278,7 @@ ContentSettings_ = Build.PContentSettings ? {
       , settings: Readonly<Pick<chrome.contentSettings.SetDetails, "scope" | "setting">>
       , callback: (this: void, has_err: boolean) => void): void {
     let left: number, has_err = false;
-    const ref = chrome.contentSettings[contentType], func = function () {
+    const ref = chrome.contentSettings[contentType], func = function (): void {
       const err = BgUtils_.runtimeError_();
       err && console.log("[%o]", Date.now(), err);
       if (has_err) { return err; }
@@ -351,11 +351,11 @@ Marks_ = { // NOTE: all public members should be static
   createMark_ (this: void, request: MarksNS.NewTopMark | MarksNS.NewMark, port: Port): void {
     let tabId = port.s.t;
     if (request.s) {
-      return Marks_._set(request as MarksNS.NewMark, port.s.a, tabId);
+      return Marks_._set(request, port.s.a, tabId);
     }
     (port = Backend_.indexPorts_(tabId, 0) || port) && port.postMessage({
       N: kBgReq.createMark,
-      n: request.n,
+      n: request.n
     });
   },
   gotoMark_ (this: void, request: MarksNS.FgQuery, port: Port): void {
@@ -380,7 +380,7 @@ Marks_ = { // NOTE: all public members should be static
     const stored = JSON.parse(str) as MarksNS.StoredGlobalMark;
     const tabId = +stored.tabId, markInfo: MarksNS.MarkToGo = {
       u: stored.url, s: stored.scroll, t: stored.tabId,
-      n: markName, p: true,
+      n: markName, p: true
     };
     markInfo.p = request.p !== false && markInfo.s[1] === 0 && markInfo.s[0] === 0 &&
         !!BgUtils_.IsURLHttp_(markInfo.u);
@@ -639,16 +639,16 @@ MediaWatcher_ = {
   }
 },
 TabRecency_ = {
-  tabs_: BgUtils_.safeObj_<number>() as SafeDict<number>,
+  tabs_: BgUtils_.safeObj_<number>(),
   last_: (chrome.tabs.TAB_ID_NONE || GlobalConsts.TabIdNone) as number,
-  lastWnd_: (chrome.windows.WINDOW_ID_NONE || GlobalConsts.WndIdNone) as number,
+  lastWnd_: chrome.windows.WINDOW_ID_NONE || GlobalConsts.WndIdNone,
   incognito_: Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
       ? IncognitoType.ensuredFalse : IncognitoType.mayFalse,
-  rCompare_: null as never as (a: {id: number}, b: {id: number}) => number,
+  rCompare_: null as never as (a: {id: number}, b: {id: number}) => number
 };
 
 BgUtils_.timeout_(120, function (): void {
-  const cache = TabRecency_.tabs_, noneWnd = chrome.windows.WINDOW_ID_NONE || GlobalConsts.WndIdNone;
+  const cache = TabRecency_.tabs_, noneWnd = TabRecency_.lastWnd_;
   let stamp = 1, time = 0;
   function clean(): void {
     const ref = cache;
@@ -666,7 +666,7 @@ BgUtils_.timeout_(120, function (): void {
     }
     TabRecency_.last_ = info.tabId; time = now;
   }
-  function onWndFocus(tabs: [chrome.tabs.Tab] | never[]) {
+  function onWndFocus(tabs: [chrome.tabs.Tab] | never[]): void {
     if (!tabs) { return BgUtils_.runtimeError_(); }
     let a = tabs[0];
     if (a) {

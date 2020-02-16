@@ -1,7 +1,8 @@
 /// <reference path="../content/base.d.ts" />
-interface ElementWithClickable { vimiumClick?: boolean; }
+interface ElementWithClickable { vimiumClick?: boolean }
 type kMouseMoveEvents = "mouseover" | "mouseenter" | "mousemove" | "mouseout" | "mouseleave";
 type kMouseClickEvents = "mousedown" | "mouseup" | "click" | "auxclick" | "dblclick";
+/* eslint-disable no-var, @typescript-eslint/no-unused-vars */
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6WeakMapAndWeakSet) {
   var WeakSet: WeakSetConstructor | undefined;
   var WeakMap: WeakMapConstructor | undefined;
@@ -24,8 +25,9 @@ if (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinEnsured$
 declare var VOther: BrowserType;
 
 var VDom = {
+/* eslint-enable no-var, @typescript-eslint/no-unused-vars */
   cache_: null as never as OnlyEnsureItemsNonNull<SettingsNS.FrontendSettingCache>,
-  clickable_: null as never as { add(value: Element): object | void | number; has(value: Element): boolean; },
+  clickable_: null as never as { add (value: Element): object | void | number; has (value: Element): boolean },
   // note: scripts always means allowing timers - vPort.ClearPort requires this assumption
   allowScripts_: 1 as 0 | 1 | 2,
   allowRAF_: 1 as BOOL,
@@ -58,7 +60,7 @@ var VDom = {
   /** refer to {@link #BrowserVer.MinParentNodeInNodePrototype } */
   Getter_: Build.BTypes & ~BrowserType.Firefox ? function <Ty extends Node, Key extends keyof Ty
             , ensured extends boolean = false>(this: void
-      , Cls: { prototype: Ty, new(): Ty; }, instance: Ty
+      , Cls: { prototype: Ty; new (): Ty }, instance: Ty
       , property: Key & (Ty extends Element ? "shadowRoot" | "assignedSlot" : "childNodes" | "parentNode")
       ): Exclude<NonNullable<Ty[Key]>, Window | RadioNodeList | HTMLCollection
             | (Key extends "parentNode" ? never : Element)>
@@ -127,7 +129,7 @@ var VDom = {
           ? ElementCls : Element, el as HTMLFormElement, "assignedSlot"));
       if (slot) {
         if (type === PNType.RevealSlot) { return slot; }
-        while (slot = slot.assignedSlot) { el = slot as HTMLSlotElement; }
+        while (slot = slot.assignedSlot) { el = slot; }
       }
     }
     type PN = Node["parentNode"]; type PE = Node["parentElement"];
@@ -368,9 +370,9 @@ var VDom = {
       if (!map || (map as ElementToHTML).lang == null) { return null; }
       areas = map.querySelectorAll("area");
     }
-    const toInt = (a: string) => (a as string | number as number) | 0;
-    for (let _i = 0, _len = (areas as NonNullable<typeof areas>).length; _i < _len; _i++) {
-      const area = (areas as NonNullable<typeof areas>)[_i] as HTMLAreaElement | Element;
+    const toInt = (a: string): number => (a as string | number as number) | 0;
+    for (let _i = 0, _len = areas.length; _i < _len; _i++) {
+      const area = areas[_i] as HTMLAreaElement | Element;
       if (!("lang" in area)) { continue; }
       let coords = area.coords.split(",").map(toInt);
       switch (area.shape.toLowerCase()) {
@@ -412,7 +414,7 @@ var VDom = {
     let a = this as typeof VDom, parent: Element | null = el, prect: Rect | null | undefined
       , i: number = crect ? 4 : 0, bcr: ClientRect;
     while (1 < i-- && (parent = a.GetParent_(parent, PNType.RevealSlotAndGotoParent))
-        && getComputedStyle(parent as Element).overflow !== "hidden"
+        && getComputedStyle(parent).overflow !== "hidden"
         ) { /* empty */ }
     if (i > 0 && parent) {
       bcr = a.getBoundingClientRect_(parent);
@@ -708,7 +710,6 @@ var VDom = {
   /** Note: won't call functions if Vimium C is destroyed */
   OnDocLoaded_: null as never as (callback: (this: void) => void, onloaded?: 1) => void | number,
   createElement_: document.createElement.bind(document) as {
-    // tslint:disable-next-line: callable-types
     <K extends VimiumContainerElementType> (this: void, tagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement;
   },
   createShadowRoot_<T extends HTMLDivElement | HTMLBodyElement> (box: T): ShadowRoot | T {
@@ -784,7 +785,7 @@ var VDom = {
     // if center is affected by zoom / transform, then still dispatch mousemove
     const elFromPoint = center && document.elementFromPoint(center[0], center[1]),
     canDispatchMove: boolean = !newEl || elFromPoint === newEl || !elFromPoint || !newEl.contains(elFromPoint),
-    a = VDom as typeof VDom, isInDOM = a.IsInDOM_, Null = null;
+    a = VDom, isInDOM = a.IsInDOM_, Null = null;
     let last = a.lastHovered_;
     if (last && isInDOM(last)) {
       const notSame = newEl !== last;
@@ -820,12 +821,12 @@ var VDom = {
       clientX: x, clientY: y,
       screenX: x, screenY: y,
       pageX: x + scrollX, pageY: y + scrollY,
-      radiusX: 8, radiusY: 8, force: 1,
+      radiusX: 8, radiusY: 8, force: 1
     }), touches = id ? [] : [touchObj],
     touchEvent = new TouchEvent(id ? "touchend" : "touchstart", {
       cancelable: true, bubbles: true,
       touches, targetTouches: touches,
-      changedTouches: [touchObj],
+      changedTouches: [touchObj]
     });
     element.dispatchEvent(touchEvent);
     return newId;
@@ -909,7 +910,7 @@ var VDom = {
     style.width = (r.r - r.l) + "px", style.height = (r.b - r.t) + "px";
   },
   cropRectToVisible_: null as never as (left: number, top: number, right: number, bottom: number) => Rect | null,
-  SubtractSequence_ (this: {l: Rect[], t: Rect}, rect1: Rect): void { // rect1 - rect2
+  SubtractSequence_ (this: {l: Rect[]; t: Rect}, rect1: Rect): void { // rect1 - rect2
     let rect2 = this.t, a = this.l, x1: number, x2: number
       , y1 = Math.max(rect1.t, rect2.t), y2 = Math.min(rect1.b, rect2.b);
     if (y1 >= y2 || ((x1 = Math.max(rect1.l, rect2.l)) >= (x2 = Math.min(rect1.r, rect2.r)))) {
