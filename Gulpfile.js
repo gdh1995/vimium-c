@@ -447,13 +447,12 @@ var Tasks = {
     ["background", "content", "vomnibar", "polyfill", "injector", "options", "show", "others"].forEach(makeWatchTask);
     done();
   }],
-  tslint: function (done) {
-    var node = process.argv[0];
-    process.argv = [node, ..."./node_modules/tslint/bin/tslint --project .".split(" ")];
-    require(process.argv[1]);
+  eslint: function (done) {
+    process.argv = process.argv.slice(0, 2);
+    require("./scripts/eslint");
     done();
   },
-  lint: ["tslint"],
+  lint: ["eslint"],
   local2: function(cb) {
     gNoComments = false;
     locally = true;
@@ -1128,7 +1127,7 @@ function getBuildConfigStream() {
   return gulp.src("types/build/index.d.ts").pipe(gulpMap(function(file) {
     if (debugging && !_buildConfigPrinted) {
       _buildConfigPrinted = true;
-      print("Current build config is:\n" + _buildConfigTSContent);
+      print("Current build config is:\n" + _buildConfigTSContent.trim());
     }
     file.contents = ToBuffer(_buildConfigTSContent);
     return file;

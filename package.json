@@ -13,6 +13,7 @@
   },
   "devDependencies": {
     "clean-css": "^4.2.1",
+    "eslint": "^6.8.0",
     "gulp": ">=4",
     "gulp-changed": "*",
     "gulp-clean": "*",
@@ -29,7 +30,9 @@
     "terser": "^4.6.3",
     "tslint": "^5.19.0",
     "typescript-tslint-plugin": "^0.5.4",
-    "web-ext": "^4.0.0"
+    "web-ext": "^4.0.0",
+    "@typescript-eslint/eslint-plugin": "^2.19.2",
+    "@typescript-eslint/parser": "^2.19.2"
   },
   "scripts": {
     "tsc": "node scripts/tsc.js",
@@ -43,7 +46,8 @@
     "f": "gulp front",
     "l": "gulp lib",
     "p": "gulp pages",
-    "lint": "./node_modules/.bin/tslint --project .",
+    "lint": "node ./scripts/eslint.js",
+    "eslint": "node ./scripts/eslint.js",
     "build": "gulp build",
     "dist": "npm run chrome-latest",
     "rebuild": "gulp rebuild",
