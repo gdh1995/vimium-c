@@ -28,8 +28,6 @@
     "gulp-uglify": ">=3.0.2",
     "seedrandom": ">=3.0.1",
     "terser": "^4.6.3",
-    "tslint": "^5.19.0",
-    "typescript-tslint-plugin": "^0.5.4",
     "web-ext": "^4.0.0",
     "@typescript-eslint/eslint-plugin": "^2.19.2",
     "@typescript-eslint/parser": "^2.19.2"

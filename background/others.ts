@@ -934,7 +934,7 @@ setTimeout(function (loadI18nPayload: () => void): void {
     return;
   }
   const onload = (messages: Dict<{ message: string }>): void => {
-    keyArrays = keyArrays.concat(Object.keys(messages).filter(i => !(parseInt(i, 10) >= 0)));
+    keyArrays = keyArrays.concat(Object.keys(messages));
     if (0 === --toDos) {
       fixTrans(1);
     }
