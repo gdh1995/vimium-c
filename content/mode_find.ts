@@ -20,6 +20,7 @@ var VFind = {
   regexMatches_: null as RegExpMatchArray | null,
   root_: null as ShadowRoot | null,
   box_: null as never as HTMLIFrameElement,
+  outerBox_: null as never as HTMLDivElement,
   innerDoc_: null as never as HTMLDocument,
   input_: null as never as SafeHTMLElement,
   countEl_: null as never as SafeHTMLElement,
@@ -56,24 +57,21 @@ var VFind = {
     a.parsedRegexp_ = a.regexMatches_ = null;
     a.activeRegexIndex_ = 0;
 
-    const el = a.box_ = dom.createElement_("iframe") as typeof VFind.box_, st = el.style;
-    el.className = "R HUD UI" + dom.cache_.d;
+    const outerBox = a.outerBox_ = dom.createElement_("div"),
+    el = a.box_ = dom.createElement_("iframe"), st = outerBox.style;
     st.display = "none"; st.width = "0";
     if (Build.BTypes & ~BrowserType.Firefox && dom.wdZoom_ !== 1) { st.zoom = "" + 1 / dom.wdZoom_; }
-    if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox) {
-      const ratio = devicePixelRatio, n = (4 - 1 / ratio) + "px ";
-      if (ratio > 1) {
-        st.padding = n + n + "0";
-      }
-    }
-    el.onmousedown = a.OnMousedown_;
+    outerBox.className = "R HUD UI" + dom.cache_.d;
+    outerBox.onmousedown = a.OnMousedown_;
+    el.className = "R Find UI";
     el.onload = function (this: HTMLIFrameElement): void { VFind.onLoad_(1); };
     VKey.pushHandler_(VKey.SuppressMost_, a);
     a.query_ || (a.query0_ = query);
     a.init_ && a.init_(AdjustType.NotAdjust);
     UI.toggleSelectStyle_(1);
     a.isActive_ = true;
-    UI.add_(el, AdjustType.DEFAULT, VHud.box_);
+    outerBox.appendChild(el);
+    UI.add_(outerBox, AdjustType.DEFAULT, VHud.box_);
   },
   notDisableScript_(): 1 | void {
     try {
@@ -223,7 +221,7 @@ copy cut beforecopy beforecut paste".split(" ")) {
     } else if (Build.BTypes & ~BrowserType.Firefox && zoom < 1) {
       docEl.style.zoom = "" + 1 / zoom;
     }
-    a.box_.style.display = "";
+    a.outerBox_.style.display = "";
     VKey.removeHandler_(a);
     VKey.pushHandler_(a.onHostKeydown_, a);
     // delay VHud.hide_, so that avoid flicker on Firefox
@@ -301,11 +299,12 @@ copy cut beforecopy beforecut paste".split(" ")) {
     _this.hasResults_ =
     _this.isActive_ = _this._small = _this._active = _this.notEmpty_ = _this.postOnEsc_ = false;
     VKey.removeHandler_(_this);
-    _this.box_ && _this.box_.remove();
+    _this.outerBox_ && _this.outerBox_.remove();
     if (_this.box_ === VDom.lastHovered_) { VDom.lastHovered_ = null; }
     _this.parsedQuery_ = _this.query_ = _this.query0_ = "";
     _this.historyIndex_ = _this.matchCount_ = 0;
     VCui.styleFind_ = _this._onUnexpectedBlur =
+    _this.outerBox_ =
     _this.box_ = _this.innerDoc_ = _this.root_ = _this.input_ = _this.countEl_ = _this.parsedRegexp_ =
     _this.initialRange_ = _this.regexMatches_ = _this.coords_ = null as never;
   },
@@ -582,7 +581,7 @@ copy cut beforecopy beforecut paste".split(" ")) {
     }
     count = (a.input_.scrollWidth + a.countEl_.offsetWidth + 35) & ~31;
     if (a._small && count < 152) { return; }
-    a.box_.style.width = ((a._small = count < 152) ? 0 as number | string as string : count + "px");
+    a.outerBox_.style.width = ((a._small = count < 152) ? 0 as number | string as string : count + "px");
   },
   updateQuery_ (query: string): void {
     const a = this;
