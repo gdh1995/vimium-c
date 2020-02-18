@@ -518,7 +518,7 @@ var BgUtils_ = {
         : str.split(<RegExpOne> (startsWithSlash ? /(\.+)/ : /\.(\.+)|./)).join(""
           ).length * (startsWithSlash ? 1 : -1);
   },
-  copy_: (() => "") as (this: void, text: string | string[], join?: FgReq[kFgReq.copy]["j"], sed?: string) => string,
+  copy_: (() => "") as (text: string | any[], join?: FgReq[kFgReq.copy]["j"], sed?: string) => string,
   paste_: (() => "") as (this: void, sed?: string) => string | Promise<string | null> | null,
   require_ <K extends SettingsNS.DynamicFiles> (name: K): Promise<NonNullable<Window[K]>> {
     type T = NonNullable<Window[K]>;

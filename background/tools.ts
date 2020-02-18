@@ -64,9 +64,9 @@ const Clipboard_ = {
       && (el.contentEditable = "true");
     return el;
   },
-  format_ (data: string | string[], join?: FgReq[kFgReq.copy]["j"], sed?: string): string {
+  format_ (data: string | any[], join?: FgReq[kFgReq.copy]["j"], sed?: string): string {
     if (typeof data !== "string") {
-      data = data.join(join !== !!join && (join as string) || "\n") +
+      data = join === "json" ? JSON.stringify(data, null, 2) : data.join(join !== !!join && (join as string) || "\n") +
           (data.length > 1 && (!join || join === !!join) ? "\n" : "");
     }
     data = data.replace(BgUtils_.A0Re_, " ").replace(<RegExpG & RegExpSearchable<0>> /[ \t]+(\r\n?|\n)|\r\n?/g, "\n");

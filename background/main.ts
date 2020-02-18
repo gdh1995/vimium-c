@@ -1938,7 +1938,8 @@
           return;
         }
         const incognito = cPort ? cPort.s.a : TabRecency_.incognito_ === IncognitoType.true,
-        format = "" + (cOptions.format || "${title}: ${url}"),
+        rawFormat = cOptions.format, format = "" + (rawFormat || "${title}: ${url}"),
+        join = cOptions.join, isPlainJSON = join === "json" && !rawFormat,
         nameRe = <RegExpG & RegExpSearchable<1>> /\$\{([^}]+)\}/g;
         if (type === "tab") {
           const ind = tabs.length < 2 ? 0 : selectFrom(tabs).index, range = getTabRange(ind, tabs.length);
@@ -1947,13 +1948,14 @@
           tabs = tabs.filter(i => i.incognito === incognito);
           tabs.sort((a, b) => (a.windowId - b.windowId || a.index - b.index));
         }
-        // eslint-disable-next-line arrow-body-style
-        const data: string[] = tabs.map(i => format.replace(nameRe, (_, s1): string => {
+        const data: any[] = tabs.map(i => isPlainJSON ? {
+          title: i.title, url: decoded ? BgUtils_.DecodeURLPart_(i.url, 1) : i.url
+        } : format.replace(nameRe, (_, s1): string => { // eslint-disable-line arrow-body-style
           return decoded && s1 === "url" ? BgUtils_.DecodeURLPart_(i.url, 1)
             : s1 !== "__proto__" && (i as Dict<any>)[s1] || "";
-        }));
-        data[0] = BgUtils_.copy_(data, cOptions.join, cOptions.sed);
-        Backend_.showHUD_(type === "tab" && data.length < 2 ? data[0] : trans_("copiedWndInfo"), 1);
+        })),
+        result = BgUtils_.copy_(data, join, cOptions.sed);
+        Backend_.showHUD_(type === "tab" && tabs.length < 2 ? result : trans_("copiedWndInfo"), 1);
       });
     },
     /* kBgCmd.clearFindHistory: */ function (this: void): void {
@@ -2531,7 +2533,7 @@
         , (<number> request.i | 0) as 0 | 1 | 2));
     },
     /** kFgReq.copy: */ function (this: void, request: FgReq[kFgReq.copy], port: Port): void {
-      let str: string | string[] | undefined, hud = !0;
+      let str: string | string[] | object[] | undefined, hud = !0;
       if (str = request.u) {
         if (request.d) {
           str = BgUtils_.DecodeURLPart_(str, 1);

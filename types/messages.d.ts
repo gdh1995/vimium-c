@@ -413,7 +413,7 @@ interface FgReq {
     /** favIcon */ i?: 0 | 1 | 2;
   } & CompletersNS.Options;
   [kFgReq.copy]: {
-    /** data */ s: string | string[];
+    /** data */ s: string | any[];
     /** [].join($j) */ j?: string | boolean;
     /** sed */ e?: string;
     u?: undefined | "";
