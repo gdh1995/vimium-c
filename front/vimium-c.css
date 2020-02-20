@@ -1,4 +1,4 @@
-:host{border:none!important;contain:unset!important;height:0!important;margin:0!important;
+:host{border:none!important;contain:none!important;height:0!important;margin:0!important;
 opacity:1!important;outline:none!important;padding:0!important;position:static!important;
 transform:none!important;width:0!important;display:contents!important}:host:before,:host:after{display:none!important}
 .R{background:none;border:none;box-sizing:content-box;cursor:auto;float:none;font-size-adjust:none;
@@ -24,10 +24,9 @@ text-overflow:ellipsis;white-space:nowrap}.HUD.UI{height:24px}
 /*#find*/
 ::selection { background: #ff9632 !important; }
 html, body, * { user-select: auto; }
-*{cursor:default;font:14px/16px "Helvetica Neue",Helvetica,Arial,sans-serif;
-height:16px;margin:0;outline:none;overflow:hidden;white-space:nowrap}
+*{cursor:default;font:14px/16px "Helvetica Neue",Helvetica,Arial,sans-serif;margin:0;outline:none;white-space:nowrap}
 .r{background:#fff;border-radius:3px 3px 0 0;box-shadow:inset 0 0 1.5px 1px #aaa;
 display:flex;height:21px;padding:4px 4px 0}
-#s{flex:0 0 4px;}#i{flex:0 1 auto;min-width:9px;margin:0 2px;padding:0 2px 0 0}#h{flex:1 0 auto}#c{flex:0 0 auto}
-.r.D{background:#1e1e1e;color:#d4d4d4}
-#i,#h{cursor:text}br{all:inherit!important;display:inline!important}:host{margin:0!important;overflow:hidden}
+.r.D{background:#1e1e1e;color:#d4d4d4}#c{flex:0 0 auto;margin-left:2px}
+#s{flex:0 0 4px;}#i{flex:0 1 auto;min-width:9px;margin-left:2px;overflow:hidden;padding:0 2px 0 0}#h{flex:1 0 auto}
+#i,#h{cursor:text;height:16px}br{all:inherit!important;display:inline!important}:host{margin:0!important;}

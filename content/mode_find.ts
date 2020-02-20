@@ -132,13 +132,13 @@ copy cut beforecopy beforecut paste".split(" ")) {
     if (!this.isActive_) { return; }
     const a = VFind, wnd: Window = a.box_.contentWindow, doc = a.innerDoc_,
     docEl = doc.documentElement as HTMLHtmlElement,
+    vDom = VDom, cache = vDom.cache_,
     body = doc.body as HTMLBodyElement,
     zoom = Build.BTypes & ~BrowserType.Firefox ? wnd.devicePixelRatio : 1,
     list = doc.createDocumentFragment(),
-    addElement = function (tag: 0 | "div" | "style", id?: string | 0): SafeHTMLElement {
+    addElement = function (tag: 0 | "div" | "style", id?: string): SafeHTMLElement {
       const newEl = doc.createElement(tag || "span") as SafeHTMLElement;
-      id && (newEl.id = id);
-      id !== 0 && list.appendChild(newEl);
+      id && (newEl.id = id, list.appendChild(newEl));
       return newEl;
     };
     addElement(0, "s").textContent = "/";
@@ -161,28 +161,25 @@ copy cut beforecopy beforecut paste".split(" ")) {
     }
     if (Build.BTypes & BrowserType.Chrome
         && Build.MinCVer < BrowserVer.MinEnsuredInputEventIsNotOnlyInShadowDOMV1
-        && VDom.cache_.v < BrowserVer.MinEnsuredInputEventIsNotOnlyInShadowDOMV1) {
+        && cache.v < BrowserVer.MinEnsuredInputEventIsNotOnlyInShadowDOMV1) {
       // not check MinEnsuredShadowDOMV1 for smaller code
       VKey.SetupEventListener_(el, "input", a.OnInput_);
     }
     (a.countEl_ = addElement(0, "c")).textContent = " ";
-    VCui.createStyle_(VCui.findCss_.i, VCui.styleFind_ = addElement("style") as HTMLStyleElement);
+    VCui.createStyle_(VCui.findCss_.i, VCui.styleFind_ = addElement("style", "c") as HTMLStyleElement);
+    // add `<div>` to fix that a body with backgroundColor doesn't follow border-radius on FF63; and on Linux
     // an extra <div> may be necessary for Ctrl+A: https://github.com/gdh1995/vimium-c/issues/79#issuecomment-540921532
     const box = Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
-        && (Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME
-            || !(Build.BTypes & BrowserType.Chrome)
-                && (!(Build.BTypes & ~BrowserType.Firefox) || VDom.cache_.v < FirefoxBrowserVer.assumedVer)
-                && VDom.cache_.v >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
-        && VDom.cache_.o === kOS.linux
-        ? addElement("div", 0) as HTMLDivElement : body,
-    root = !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
-        ? Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME
-          || !(Build.BTypes & BrowserType.Chrome)
-              && (!(Build.BTypes & ~BrowserType.Firefox) || VDom.cache_.v < FirefoxBrowserVer.assumedVer)
-              && VDom.cache_.v >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME
-          ? VDom.createShadowRoot_(box) as ShadowRoot : box
-        : VDom.createShadowRoot_(box),
+        && (Build.MinFFVer < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
+            && (Build.BTypes & BrowserType.Chrome || cache.v < FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
+            || cache.o === kOS.linux)
+        ? addElement("div") as HTMLDivElement : body,
+    root = Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
+        && (Build.MinFFVer < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
+            && (Build.BTypes & BrowserType.Chrome || cache.v < FirefoxBrowserVer.MinContentEditableInShadowSupportIME))
+        ? box : vDom.createShadowRoot_(box),
     inShadow = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
         && (!(Build.BTypes & BrowserType.Firefox)
             || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
@@ -194,8 +191,8 @@ copy cut beforecopy beforecut paste".split(" ")) {
             || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
                 && Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
         && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-        || inShadow ? addElement("div", 0) : box;
-    root2.className = "r" + VDom.cache_.d;
+        || inShadow ? addElement("div") : box;
+    root2.className = "r" + cache.d;
     root2.spellcheck = false;
     root2.appendChild(list);
     if ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
@@ -213,7 +210,7 @@ copy cut beforecopy beforecut paste".split(" ")) {
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)) {
       if (box !== body) {
-        const st = addElement("style", 0) as HTMLStyleElement;
+        const st = addElement("style") as HTMLStyleElement;
         st.textContent = "body{margin:0!important}";
         (doc.head as HTMLHeadElement).appendChild(st);
         body.appendChild(box);
