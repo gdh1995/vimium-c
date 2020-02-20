@@ -24,9 +24,9 @@ if (VDom && VimiumInjector === undefined) {
     TimeoutOf3rdPartyFunctionsCache = 1e4, // 10 seconds
     kSecretAttr = "data-vimium",
 
-    kVOnClick = "VimiumOnclick",
-    kHook = "VimiumHook",
-    kCmd = "Vimium",
+    kVOnClick = "VimiumC",
+    kHook = "VimiumC",
+    kCmd = "VC",
   }
   type ClickableEventDetail = [ /** inDocument */ number[], /** forDetached */ number[]
           , /** fromAttrs */ BOOL ] | string;
@@ -160,7 +160,7 @@ if (VDom && VimiumInjector === undefined) {
   }
   function dispatchCmd(cmd: SecondLevelContentCmds): void {
     (box as Exclude<typeof box, 0 | undefined>).dispatchEvent(new (CustomEvent as VimiumCustomEventCls)(
-        (InnerConsts.kCmd + BuildStr.RandomName1) as InnerConsts.kCmd, {
+        InnerConsts.kCmd, {
       detail: (secret << kContentCmd.MaskedBitNumber) | cmd
     }));
   }
@@ -322,7 +322,7 @@ let doInit = function (this: void): void {
   doInit = docChildren = null as never;
   if (!docEl2) { return executeCmd(); }
   call(Attr, el, key, "" + sec);
-  listen(el, (InnerConsts.kCmd + BuildStr.RandomName1) as InnerConsts.kCmd, executeCmd, !0);
+  listen(el, InnerConsts.kCmd, executeCmd, !0);
   dispatch(window, new DE((InnerConsts.kHook + BuildStr.RandomName0) as InnerConsts.kHook, {relatedTarget: el}));
   if (call(HasAttr, el, key)) {
     executeCmd();

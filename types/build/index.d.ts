@@ -16,7 +16,6 @@ declare const enum BuildStr {
   Commit = "dev",
   /** used by {@link ../../content/extend_click.ts} */
   RandomName0 = 1000,
-  RandomName1 = 1001,
   RandomName2 = 1002,
   RandomName3_public = 20200202,
   /** used by {@link ../../content/frontend.ts} */

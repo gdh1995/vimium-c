@@ -132,8 +132,8 @@ var VCui = {
     let patch = this.cssPatch_;
     if (!patch && zoom >= 1) { return; }
     let width = ("" + (
-        Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredBorderAndBoxWidthWithoutDeviceInfo
-        && VDom.cache_.v < BrowserVer.MinEnsuredBorderAndBoxWidthWithoutDeviceInfo
+        Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
+        && VDom.cache_.v < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
         ? 1.01 : 0.51) / zoom).slice(0, 5);
     if (!patch) {
       patch = this.cssPatch_ = ["", function (this: NonNullable<typeof VCui["cssPatch_"]>, css) {
