@@ -250,17 +250,17 @@ var VVisual = {
     if (!(Build.NDEBUG || VVisual.selection_ && VVisual.selection_.type === "None")) {
       console.log('Assert error: VVisual.selection_?.type === "None"');
     }
-    let node: Text | null, str: string | undefined, offset: number;
-    if (!VDom.isHTML_()) { return true; }
-    VDom.getZoom_(1);
-    VDom.prepareCrop_();
-    const nodes = document.createTreeWalker(sr || document.body || document.documentElement as Element
+    let node: Text | null, str: string | undefined, offset: number, D = VDom;
+    if (!D.isHTML_()) { return true; }
+    D.getZoom_(1);
+    D.prepareCrop_();
+    const nodes = document.createTreeWalker(sr || document.body || D.docEl_() as Element
             , NodeFilter.SHOW_TEXT);
     while (node = nodes.nextNode() as Text | null) {
       if (50 <= (str = node.data).length && 50 < str.trim().length) {
         const element = node.parentElement; // safe because node is Text
         // Note(gdh1995): I'm not sure whether element might be null
-        if (element && VDom.getVisibleClientRect_(element) && !VDom.getEditableType_(element)) {
+        if (element && D.getVisibleClientRect_(element) && !D.getEditableType_(element)) {
           break;
         }
       }

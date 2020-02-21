@@ -329,7 +329,7 @@ var VHints = {
   },
   getPreciseChildRect_ (frameEl: HTMLIFrameElement | HTMLElement, view: Rect): Rect | null {
     const max = Math.max, min = Math.min, kVisible = "visible", D = VDom, brect = D.getBoundingClientRect_(frameEl),
-    docEl = document.documentElement, body = document.body, inBody = !!body && VDom.IsInDOM_(frameEl, body, 1),
+    docEl = VDom.docEl_(), body = document.body, inBody = !!body && VDom.IsInDOM_(frameEl, body, 1),
     zoom = (Build.BTypes & BrowserType.Chrome ? D.docZoom_ * (inBody ? D.bZoom_ : 1) : 1
         ) / D.dScale_ / (inBody ? D.bScale_ : 1);
     let x0 = min(view.l, brect.left), y0 = min(view.t, brect.top), l = x0, t = y0, r = view.r, b = view.b;
@@ -915,7 +915,7 @@ var VHints = {
         i = j;
       }
     }
-    while (list.length && (list[0][0] === document.documentElement || list[0][0] === document.body)) {
+    while (list.length && ((element = list[0][0]) === VDom.docEl_() || element === document.body)) {
       list.shift();
     }
   },
@@ -956,7 +956,7 @@ var VHints = {
     fromPoint: Element | null | undefined, temp: Element | null, index2 = 0;
     const zoom = Build.BTypes & BrowserType.Chrome ? D.docZoom_ * D.bZoom_ : 1,
     zoomD2 = Build.BTypes & BrowserType.Chrome ? zoom / 2 : 0.5,
-    body = document.body, docEl = document.documentElement,
+    body = document.body, docEl = D.docEl_(),
     // note: exclude the case of `fromPoint.contains(el)`, to exclude invisible items in lists
     does_hit = (x: number, y: number): boolean => {
       fromPoint = root.elementFromPoint(x, y);
@@ -1030,7 +1030,7 @@ var VHints = {
     let rect: ClientRect | undefined, rect2: ClientRect, element = output[0][0];
     if ((<RegExpI> /^i?frame$/).test(VDom.htmlTag_(element))
         && (rect = element.getClientRects()[0])
-        && (rect2 = VDom.getBoundingClientRect_(document.documentElement as HTMLElement))
+        && (rect2 = VDom.getBoundingClientRect_(VDom.docEl_() as HTMLElement))
         && rect.top - rect2.top < 20 && rect.left - rect2.left < 20
         && rect2.right - rect.right < 20 && rect2.bottom - rect.bottom < 20
         && VDom.isStyleVisible_(element)

@@ -103,7 +103,7 @@ var VCui = {
     // so here should only use `VDom.fullscreenEl_unsafe_`
     const UI = VCui, el: Element | null = VDom.fullscreenEl_unsafe_(),
     box = UI.box_ as NonNullable<typeof UI.box_>,
-    el2 = el && !(UI.root_ as Node).contains(el) ? el : document.documentElement as Element;
+    el2 = el && !(UI.root_ as Node).contains(el) ? el : VDom.docEl_() as Element;
     // Chrome also always remove node from its parent since 58 (just like Firefox), which meets the specification
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
     //  -> #concept-node-append -> #concept-node-pre-insert -> #concept-node-adopt -> step 2
@@ -163,15 +163,15 @@ var VCui = {
   },
   checkDocSelectable_ (): void {
     let sout: HTMLStyleElement | null | HTMLBodyElement | HTMLFrameSetElement = this.styleOut_
-      , doc = document, gcs = getComputedStyle, st: CSSStyleDeclaration
+      , gcs = getComputedStyle, st: CSSStyleDeclaration
       , mayTrue = !sout || !sout.parentNode;
-    if (mayTrue && (sout = doc.body)) {
+    if (mayTrue && (sout = document.body)) {
       st = gcs(sout);
       mayTrue = (Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinUnprefixedUserSelect
             || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinUnprefixedUserSelect
             ? st.userSelect || st.webkitUserSelect : st.userSelect) !== "none";
     }
-    VDom.docSelectable_ = mayTrue && (st = gcs(doc.documentElement as HTMLHtmlElement),
+    VDom.docSelectable_ = mayTrue && (st = gcs(VDom.docEl_() as HTMLHtmlElement),
             Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinUnprefixedUserSelect
             || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinUnprefixedUserSelect
             ? st.userSelect || st.webkitUserSelect : st.userSelect) !== "none";
@@ -254,7 +254,7 @@ var VCui = {
         par = VDom.GetParent_(par as HTMLElement, PNType.DirectElement);
       }
     }
-    return par !== document.documentElement ? par as Element | null : null;
+    return par !== VDom.docEl_() ? par as Element | null : null;
   },
   getSelectionText_ (notTrim?: 1): string {
     let sel = getSelection(), s = "" + sel, el: Element | null, rect: ClientRect;

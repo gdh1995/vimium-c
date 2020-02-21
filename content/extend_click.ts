@@ -70,7 +70,7 @@ if (VDom && VimiumInjector === undefined) {
         ? 1 : 0
     , rAF = Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome
         ? requestAnimationFrame : 0 as never
-    , Doc = document, docEl = Doc.documentElement
+    , Doc = document, docEl = VDom.docEl_()
     , secret: number = (Math.random() * kContentCmd.SecretRange + 1) | 0
     , script = VDom.createElement_("script");
 /**
@@ -547,6 +547,7 @@ _listen(kOnDomReady, doInit, !0);
   script.textContent = injected;
   script.type = "text/javascript";
   script.dataset.vimium = secret as number | string as string;
+  // todo:
   docEl ? script.insertBefore.call(docEl, script, docEl.firstChild) : Doc.appendChild(script);
   isFirstTime ? (script.dataset.vimium = "") : script.remove();
   if (!(Build.NDEBUG

@@ -624,8 +624,8 @@ copy cut beforecopy beforecut paste".split(" ")) {
         el = VDom.GetParent_(el, PNType.DirectElement);
       }
       query = el && typeof (text = (el as HTMLElement).innerText) === "string" && text ||
-          (Build.BTypes & ~BrowserType.Firefox ? (document.documentElement as HTMLElement).innerText + ""
-            : (document.documentElement as HTMLElement).innerText as string);
+          (Build.BTypes & ~BrowserType.Firefox ? (VDom.docEl_() as HTMLElement).innerText + ""
+            : (VDom.docEl_() as HTMLElement).innerText as string);
       matches = query.match(re) || query.replace(<RegExpG> /\xa0/g, " ").match(re);
     }
     a.regexMatches_ = isRe ? matches : null;
@@ -761,7 +761,7 @@ copy cut beforecopy beforecut paste".split(" ")) {
     let sel = VCui.getSelected_()[0], range: Range, doc = document;
     if (!sel.rangeCount) {
       range = doc.createRange();
-      range.setStart(doc.body || doc.documentElement as Element, 0);
+      range.setStart(doc.body || VDom.docEl_() as Element, 0);
     } else {
       range = sel.getRangeAt(0);
       // Note: `range.collapse` doesn't work if selection is inside a ShadowRoot (tested on C72 stable)

@@ -750,7 +750,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       let activeEl = doc.activeElement as Element,
       notBody = activeEl !== doc.body && (!(Build.BTypes & BrowserType.Firefox)
             || Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox
-            || D.isHTML_() || activeEl !== doc.documentElement);
+            || D.isHTML_() || activeEl !== D.docEl_());
       KeydownEvents = safer(null);
       if (fgCache.g && InsertMode.grabBackFocus_) {
         let counter = 0, prompt = function (): void {
@@ -911,7 +911,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     rel = isNext ? "next" : "prev", relIdx = names.indexOf(rel),
     detectQuirk = quirkIdx > 0 ? names.lastIndexOf(isNext ? ">" : "<", quirkIdx) : -1,
     refusedStr = isNext ? "<" : ">";
-    links.push(doc.documentElement as never as SafeHTMLElement);
+    links.push(D.docEl_() as never as SafeHTMLElement);
     let candidates: Candidate[] = [], ch: string, s: string, maxLen = totalMax, len: number;
     let i: number, candInd = 0, count = names.length;
     for (i = 0; i < count; i++) {
@@ -1024,7 +1024,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     },
     show_ (mask: FrameMaskType): void {
       if (!isTop && mask === FrameMaskType.NormalNext) {
-        let docEl = doc.documentElement;
+        let docEl = D.docEl_();
         if (docEl) {
         Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
           && (!(Build.BTypes & ~BrowserType.Chrome) || browserVer < BrowserVer.MinScrollIntoViewOptions)
@@ -1516,7 +1516,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       // here should not use the cache frameElement, because `getComputedStyle(frameElement).***` might break
       const curFrameElement_ = !isTop && (Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
               || !(Build.BTypes & ~BrowserType.Firefox) ? frameElement : D.frameElement_()),
-      el = !isTop && (curFrameElement_ || doc.documentElement);
+      el = !isTop && (curFrameElement_ || D.docEl_());
       if (!el) { return 0; }
       let box = D.getBoundingClientRect_(el),
       par: ReturnType<typeof VDom.parentCore_> | undefined,

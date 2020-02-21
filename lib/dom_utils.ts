@@ -39,8 +39,9 @@ var VDom = {
 
   /** DOM-compatibility section */
 
+  docEl_: (): Element | null => document.documentElement,
   isHTML_: Build.BTypes & ~BrowserType.Firefox
-      ? (): boolean => "lang" in <ElementToHTML> (document.documentElement || {})
+      ? (): boolean => "lang" in <ElementToHTML> (VDom.docEl_() || {})
       : (): boolean => document instanceof HTMLDocument,
   htmlTag_: (Build.BTypes & ~BrowserType.Firefox ? function (element: Element | HTMLElement): string {
     let s: Element["localName"];
@@ -138,10 +139,9 @@ var VDom = {
     if (pe === pn /* normal pe or no parent */ || !pn /* indeed no par */) { return pn as Element | null; }
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
         && pe && a.unsafeFramesetTag_) { // may be [a <frameset> with pn or pe overridden], or a <form>
-      const action = +((pn as PN as WindowWithTop).top === top) + 2 * +((pe as PE as WindowWithTop).top === top)
-        , d = document;
+      const action = +((pn as PN as WindowWithTop).top === top) + 2 * +((pe as PE as WindowWithTop).top === top);
       if (action) { // indeed a <frameset>
-        return action < 2 ? pe as Element : action < 3 ? pn as Node : el === d.body ? d.documentElement
+        return action < 2 ? pe as Element : action < 3 ? pn as Node : el === document.body ? a.docEl_()
           : a.Getter_(Node, el, kPN);
       }
     }
@@ -166,7 +166,7 @@ var VDom = {
   },
   scrollingEl_ (fallback?: 1): SafeElement | null {
     // Both C73 and FF66 still supports the Quirk mode (entered by `document.open()`)
-    let d = document, el = d.scrollingElement, docEl = d.documentElement;
+    let d = document, el = d.scrollingElement, docEl = VDom.docEl_();
     if (Build.MinCVer < BrowserVer.Min$Document$$ScrollingElement && Build.BTypes & BrowserType.Chrome
         && el === undefined) {
       /**
@@ -259,14 +259,14 @@ var VDom = {
       fz = Build.BTypes & ~BrowserType.Firefox ? dz * a.bZoom_ : 1, b = a.paintBox_,
       max = Math.max, min = Math.min,
       d = document, visual = inVisual && visualViewport;
-      let i: number, j: number, el: Element | null, doc: typeof d.documentElement;
+      let i: number, j: number, el: Element | null, doc: Document["documentElement"];
       vleft = vtop = 0;
       if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$visualViewport$ ? visual
           : visual && visual.width) {
         vleft = (visual as VisualViewport).offsetLeft | 0, vtop = (visual as VisualViewport).offsetTop | 0;
         i = vleft + <number> (visual as VisualViewport).width | 0; j = vtop + (visual as VisualViewport).height | 0;
       }
-      else if (doc = d.documentElement,
+      else if (doc = a.docEl_(),
           el = Build.MinCVer >= BrowserVer.MinScrollTopLeftInteropIsAlwaysEnabled
               || !(Build.BTypes & BrowserType.Chrome) ? a.scrollingEl_() : d.compatMode === "BackCompat" ? d.body : doc,
           Build.MinCVer < BrowserVer.MinScrollTopLeftInteropIsAlwaysEnabled && Build.BTypes & BrowserType.Chrome
@@ -492,7 +492,7 @@ var VDom = {
    */
   getZoom_: Build.BTypes & ~BrowserType.Firefox ? function (this: {}, target?: 1 | Element): void {
     const a = this as typeof VDom;
-    let docEl = document.documentElement as Element, ratio = devicePixelRatio
+    let docEl = a.docEl_() as Element, ratio = devicePixelRatio
       , gcs = getComputedStyle, st = gcs(docEl), zoom = +st.zoom || 1
       , el: Element | null = a.fullscreenEl_unsafe_();
     Build.BTypes & BrowserType.Chrome && (zoom = a._fixDocZoom(zoom, docEl, ratio));
@@ -521,7 +521,7 @@ var VDom = {
   getViewBox_ (needBox?: 1): ViewBox | ViewOffset {
     let iw = innerWidth, ih = innerHeight;
     const a = this;
-    const ratio = devicePixelRatio, ratio2 = Math.min(ratio, 1), doc = document;
+    const ratio = devicePixelRatio, ratio2 = Math.min(ratio, 1);
     if (a.fullscreenEl_unsafe_()) {
       a.getZoom_(1);
       a.dScale_ = a.bScale_ = 1;
@@ -529,8 +529,8 @@ var VDom = {
       return [0, 0, (iw / zoom3) | 0, (ih / zoom3) | 0, 0];
     }
     const gcs = getComputedStyle, float = parseFloat,
-    box = doc.documentElement as Element, st = gcs(box),
-    box2 = doc.body, st2 = box2 ? gcs(box2) : st,
+    box = a.docEl_() as Element, st = gcs(box),
+    box2 = document.body, st2 = box2 ? gcs(box2) : st,
     zoom2 = a.bZoom_ = Build.BTypes & ~BrowserType.Firefox && box2 && +st2.zoom || 1,
     containHasPaint = (<RegExpOne> /content|paint|strict/).test(st.contain as string),
     kMatrix = "matrix(1,",
@@ -854,18 +854,18 @@ var VDom = {
     Element.prototype.scrollBy ? scrollBy({behavior: "instant", left, top}) : scrollBy(left, top);
   },
   runJS_ (code: string, returnEl?: 1): void | HTMLScriptElement {
-    const script = VDom.createElement_("script"), doc = document, docEl = doc.documentElement;
+    const script = VDom.createElement_("script"), docEl = VDom.docEl_();
     script.type = "text/javascript";
     script.textContent = code;
     if (Build.BTypes & ~BrowserType.Firefox) {
       /* {@link ../Gulpfile.js#postUglify} */
       if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$append) {
-        (docEl ? script : doc).appendChild.call(docEl || doc, script);
+        script.insertBefore.call(docEl || document, script, null);
       } else {
-        doc.appendChild.call(docEl || doc, script);
+        script.appendChild.call(docEl || document, script);
       }
     } else {
-      (docEl || doc).appendChild(script);
+      (docEl || document).appendChild(script);
     }
     script.remove();
     if (Build.BTypes & BrowserType.Firefox && returnEl) {
