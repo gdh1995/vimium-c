@@ -2163,6 +2163,7 @@
       }
       const enc = encodeURIComponent;
       let hash = "", str: string, arr: RegExpExecArray | null, startWithSlash = false, endSlash = false
+        , removeSlash = false
         , path: string | null = null, i: number, start = 0, end = 0, decoded = false, arr2: RegExpExecArray | null;
       if (i = url.lastIndexOf("#") + 1) {
         hash = url.slice(i + +(url.substr(i, 1) === "!"));
@@ -2264,6 +2265,7 @@
       {
         const arr3 = path.slice(+startWithSlash, path.length - +path.endsWith("/")).split("/");
         const len = arr3.length, level = i < 0 ? i + len : i;
+        removeSlash = len <= 1 && i <= -2 && url.lastIndexOf("#", start) > 0;
         i = level > len ? len : i > 0 ? level - 1 : level > 0 ? level : 0;
         {
           arr3.length = i;
@@ -2277,8 +2279,12 @@
       if (!end && url.lastIndexOf("git", start - 3) > 0) {
         path = /*#__NOINLINE__*/ upperGitUrls(url, path) || path;
       }
-      str = decoded ? enc(path) : path;
-      url = url.slice(0, start) + (end ? str + url.slice(end) : str);
+      if (removeSlash && (!path || path === "/")) {
+        url = url.split("#", 1)[0];
+      } else {
+        str = decoded ? enc(path) : path;
+        url = url.slice(0, start) + (end ? str + url.slice(end) : str);
+      }
       BgUtils_.resetRe_();
       return { u: url, p: path };
     } as SpecialHandlers[kFgReq.parseUpperUrl],
