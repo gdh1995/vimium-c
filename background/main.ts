@@ -2342,18 +2342,20 @@
       opts.reuse = request.r;
       opts.incognito = request.i;
       if (url) {
-        if (url[0] === ":" && request.o && (<RegExpOne> /^:[bdhostw]\s/).test(url)) {
-          url = url.slice(2).trim();
-          url || (unsafe = false);
-        }
-        url = BgUtils_.fixCharsInUrl_(url);
-        url = BgUtils_.convertToUrl_(url, request.k ? request.k + "" : ""
-            , unsafe ? Urls.WorkType.ConvertKnown : Urls.WorkType.EvenAffectStatus);
-        const type = BgUtils_.lastUrlType_;
-        if (request.h != null && (type === Urls.Type.NoSchema || type === Urls.Type.NoProtocolName)) {
-          url = (request.h ? "https" : "http") + (url as string).slice((url as string)[4] === "s" ? 5 : 4);
-        } else if (unsafe && type === Urls.Type.PlainVimium && (url as string).startsWith("vimium:")) {
-          url = BgUtils_.convertToUrl_(url as string);
+        if (!request.f) {
+          if (url[0] === ":" && request.o && (<RegExpOne> /^:[bdhostw]\s/).test(url)) {
+            url = url.slice(2).trim();
+            url || (unsafe = false);
+          }
+          url = BgUtils_.fixCharsInUrl_(url);
+          url = BgUtils_.convertToUrl_(url, request.k ? request.k + "" : ""
+              , unsafe ? Urls.WorkType.ConvertKnown : Urls.WorkType.EvenAffectStatus);
+          const type = BgUtils_.lastUrlType_;
+          if (request.h != null && (type === Urls.Type.NoSchema || type === Urls.Type.NoProtocolName)) {
+            url = (request.h ? "https" : "http") + (url as string).slice((url as string)[4] === "s" ? 5 : 4);
+          } else if (unsafe && type === Urls.Type.PlainVimium && (url as string).startsWith("vimium:")) {
+            url = BgUtils_.convertToUrl_(url as string);
+          }
         }
         opts.opener = unsafe && !request.n;
         opts.url_f = url;
