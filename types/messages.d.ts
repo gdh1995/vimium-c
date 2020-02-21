@@ -377,6 +377,7 @@ interface FgReq {
   [kFgReq.openUrl]: {
     // note: need to sync members to ReqH::openUrl in main.ts
     /** url */ u?: string;
+    /** formatted-by-<a>.href */ f?: boolean;
     /** copied */ c?: boolean;
     /** keyword */ k?: string | null;
     /** incognito */ i?: boolean;

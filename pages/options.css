@@ -39,7 +39,7 @@ html {
     --input-color: #d4d4d4;
     --read-only-color: #bbb;
     --read-only-background-color: #30343c;
-    --placeholder-color: #aaa;
+    --placeholder-color: #888;
     --input-border-color: #777;
     --highlight-background-color: #59594c;
     --error-background-color: #50140c;
@@ -488,7 +488,7 @@ label:active {
   outline: none;
 }
 .exclusionHeader {
-  color: #798086;
+  color: #444;
   display: inline-block;
   font: 14px/16px "Helvetica Neue",Helvetica,Arial,"PingFang SC","Hiragino Sans GB"
     ,"Microsoft YaHei","Heiti SC","WenQuanYi Micro Hei",sans-serif;

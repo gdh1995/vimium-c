@@ -425,7 +425,7 @@ var BgUtils_ = {
       return [path, Urls.kEval.copy];
     } }
     switch (cmd) {
-    case "cd":
+    case "cd": case "up":
       arr = (path + "  ").split(" ");
       if (!arr[2] || !Backend_) {
         if (workType < Urls.WorkType.ActIfNoSideEffects || !Backend_) { return null; }

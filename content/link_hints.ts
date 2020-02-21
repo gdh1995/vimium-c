@@ -1121,7 +1121,8 @@ var VHints = {
       a.clean_(1);
       VHud.tip_(kTip.exitForIME);
       return HandlerResult.Nothing;
-    } else if (key = VKey.key_(event, kModeId.Link), keybody = VKey.keybody_(key), VKey.isEscape_(key)) {
+    } else if (key = VKey.key_(event, kModeId.Link), keybody = VKey.keybody_(key),
+        VKey.isEscape_(key) || a._onTailEnter && keybody === kChar.backspace) {
       a.clean_();
     } else if (i === kKeyCode.esc && keybody === kChar.esc) {
       return HandlerResult.Suppress;
@@ -1961,14 +1962,14 @@ getImageName_: (img: SafeHTMLElement): string =>
   img.getAttribute("download") || img.getAttribute("alt") || img.title,
 
 openUrl_ (url: string, incognito?: boolean): void {
-  let opt: Req.fg<kFgReq.openUrl> = {
+  this.api_.post_({
     H: kFgReq.openUrl,
     r: this.mode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
     u: url,
+    f: incognito,
+    i: incognito,
     k: this.options_.keyword
-  };
-  incognito && (opt.i = incognito);
-  this.api_.post_(opt);
+  });
 },
 detectUsableChild_ (el: HTMLIFrameElement | HTMLFrameElement
     ): ContentWindowCore & Ensure<ContentWindowCore, "VApi"> | null {
@@ -2184,7 +2185,7 @@ Modes_: [
   (link: SafeHTMLElement): void => {
     const url = VHints.getUrlData_(link);
     if (!VApi.evalIfOK_(url)) {
-      VHints.openUrl_(url, true);
+      VHints.openUrl_(url, !0);
     }
   }
   , HintMode.OPEN_INCOGNITO_LINK

@@ -373,6 +373,7 @@ var VCui = {
       VApi.post_({
         H: kFgReq.openUrl,
         u: (element as HTMLAnchorElement).href,
+        f: !0,
         n: noopener,
         r: reuse
       });
