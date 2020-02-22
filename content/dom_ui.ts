@@ -78,13 +78,14 @@ var VCui = {
   addElementList_ <T extends boolean> (
       els: readonly HintsNS.BaseHintItem[], offset: ViewOffset, dialogContainer?: T
       ): (T extends true ? HTMLDialogElement : HTMLDivElement) & SafeElement {
-    const parent = VDom.createElement_(dialogContainer ? "dialog" : "div");
-    parent.className = "R HM" + (dialogContainer ? " DHM" : "") + VDom.cache_.d;
+    const parent = VDom.createElement_(Build.BTypes & BrowserType.Chrome && dialogContainer ? "dialog" : "div");
+    parent.className = "R HM" + (Build.BTypes & BrowserType.Chrome && dialogContainer ? " DHM" : "") + VDom.cache_.d;
     for (const el of els) {
       parent.appendChild(el.m);
     }
-    const style = parent.style, zoom = VDom.bZoom_ / (dialogContainer ? 1 : VDom.dScale_),
-    left = (dialogContainer ? 0 : offset[0]) + "px", top = (dialogContainer ? 0 : offset[1]) + "px";
+    const style = parent.style,
+    zoom = VDom.bZoom_ / (Build.BTypes & BrowserType.Chrome && dialogContainer ? 1 : VDom.dScale_),
+    left = offset[0] + "px", top = offset[1] + "px";
     if ((!(Build.BTypes & ~BrowserType.Firefox)
           || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox)
         && zoom - 1) {
@@ -95,7 +96,9 @@ var VCui = {
     }
     VDom.fullscreenEl_unsafe_() && (style.position = "fixed");
     this.add_(parent, AdjustType.DEFAULT, this.lastFlashEl_);
-    dialogContainer && (parent as HTMLDialogElement).showModal();
+    if (Build.BTypes & BrowserType.Chrome) {
+      dialogContainer && (parent as HTMLDialogElement).showModal();
+    }
     return parent as (T extends true ? HTMLDialogElement : HTMLDivElement) & SafeElement;
   },
   adjust_ (this: void, event?: Event | /* enable */ 1 | /* disable */ 2): void {

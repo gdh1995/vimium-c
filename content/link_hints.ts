@@ -179,9 +179,12 @@ var VHints = {
       a.clean_(1);
       return VHud.tip_(kTip.fewChars, 1000);
     }
-    a.dialogMode_ = !!(a.wantDialogMode_ != null ? a.wantDialogMode_ : document.querySelector("dialog[open]"))
+    if (Build.BTypes & BrowserType.Chrome) {
+      a.dialogMode_ && a.box_ && a.box_.remove();
+      a.dialogMode_ = !!(a.wantDialogMode_ != null ? a.wantDialogMode_ : document.querySelector("dialog[open]"))
         && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement
             || typeof HTMLDialogElement === "function");
+    }
     let allHints: readonly HintsNS.HintItem[], child: HintsNS.ChildFrame | undefined, insertPos = 0
       , frameInfo: HintsNS.FrameHintsInfo, total: number;
     {
@@ -266,7 +269,11 @@ var VHints = {
     a.api_ = Build.BTypes & BrowserType.Firefox ? a._wrap(api) : api;
     VCui.ensureBorder_(VDom.wdZoom_ / VDom.dScale_);
     if (hints.length) {
-      a.box_ = VCui.addElementList_(hints, arr, (master as typeof a).dialogMode_);
+      if (Build.BTypes & BrowserType.Chrome) {
+        a.box_ = VCui.addElementList_(hints, arr, (master as typeof a).dialogMode_);
+      } else {
+        a.box_ = VCui.addElementList_(hints, arr);
+      }
     } else if (a === master) {
       VCui.adjust_();
     }
@@ -320,7 +327,9 @@ var VHints = {
     }
     let msg = VTr(a.mode_), textSeq = a.keyStatus_.textSequence_;
     msg += a.useFilter_ ? ` [${textSeq}]` : "";
-    msg += a.dialogMode_ ? VTr(kTip.modalHints) : "";
+    if (Build.BTypes & BrowserType.Chrome) {
+      msg += a.dialogMode_ ? VTr(kTip.modalHints) : "";
+    }
     return a.hud_.show_(kTip.raw, [msg], true);
   },
   SetHUDLater_ (this: void): void {
@@ -1146,6 +1155,7 @@ var VHints = {
       if (key.includes("-s")) {
         VDom.cache_.e = !VDom.cache_.e;
       } else if (key[0] === "a") {
+        if (!(Build.BTypes & BrowserType.Chrome)) { a.ResetMode_(); return HandlerResult.Prevent; }
         a.wantDialogMode_ = !a.wantDialogMode_;
       } else if ("cm".includes(key[0])) {
         a.options_.useFilter = VDom.cache_.f = !a.useFilter_;
@@ -1433,6 +1443,7 @@ var VHints = {
     a.keyCode_ = kKeyCode.None;
     a.useFilter_ =
     a.isActive_ = a.noHUD_ = a.tooHigh_ = false;
+    if (Build.BTypes & BrowserType.Chrome) { a.dialogMode_ = false; }
     a.chars_ = "";
     if (a.box_) {
       a.box_.remove();
