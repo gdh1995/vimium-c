@@ -23,11 +23,11 @@ declare var VData: VDataTy;
 // eslint-disable-next-line no-var
 var VOmni = {
   box_: null as never as HTMLIFrameElement & { contentWindow: VomnibarNS.IFrameWindow },
-  port_: null as never as VomnibarNS.Port,
+  _port: null as never as VomnibarNS.Port,
   status_: VomnibarNS.Status.NotInited,
   options_: null as VomnibarNS.FgOptionsToFront | null,
   onReset_: null as (() => void) | null,
-  _timer: 0,
+  _timer: TimerID.None,
   // unit: physical pixel (if C<52)
   screenHeight_: 0,
   canUseVW_: true,
@@ -36,7 +36,7 @@ var VOmni = {
     // hide all further key events to wait iframe loading and focus changing from JS
     VKey.removeHandler_(a);
     VKey.pushHandler_(VKey.SuppressMost_, a);
-    let timer1 = setTimeout(a.RefreshKeyHandler_, GlobalConsts.TimeOfSuppressingTailKeydownEvents);
+    let timer1 = VKey.timeout_(a.RefreshKeyHandler_, GlobalConsts.TimeOfSuppressingTailKeydownEvents);
     if (VApi.checkHidden_(kFgCmd.vomnibar, count, options)) { return; }
     if (a.status_ === VomnibarNS.Status.KeepBroken) {
       return VHud.tip_(kTip.omniFrameFail, 2000);
@@ -44,12 +44,12 @@ var VOmni = {
     if (!options || !options.k || !options.v) { return; }
     if (dom.readyState_ > "l") {
       if (!a._timer) {
-        clearTimeout(timer1);
-        a._timer = setTimeout(a.activate_.bind(a as never, count, options), 500);
+        VKey.clear_(timer1);
+        a._timer = VKey.timeout_(a.activate_.bind(a as never, count, options), 500);
         return;
       }
     }
-    a._timer = 0;
+    a._timer = TimerID.None;
     let url = options.url, isTop = top === window;
     if (isTop || !options.T || typeof options.T !== "string") {
       options.T = location.href;
@@ -77,7 +77,7 @@ var VOmni = {
     a.canUseVW_ = (Build.MinCVer >= BrowserVer.MinCSSWidthUnit$vw$InCalc
             || !!(Build.BTypes & BrowserType.Chrome) && dom.cache_.v > BrowserVer.MinCSSWidthUnit$vw$InCalc - 1)
         && !dom.fullscreenEl_unsafe_() && dom.docZoom_ === 1 && dom.dScale_ === 1;
-    let scale = devicePixelRatio;
+    let scale = dom.devRatio_();
     let width = a.canUseVW_ ? innerWidth : !(Build.BTypes & ~BrowserType.Firefox) ? dom.prepareCrop_()
         : dom.prepareCrop_() * dom.docZoom_ * dom.bZoom_;
     if (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
@@ -137,7 +137,7 @@ var VOmni = {
     });
   } as (count: number, options: CmdOptions[kFgCmd.vomnibar]) => void,
   setOptions_ (options: VomnibarNS.FgOptionsToFront): void {
-    this.status_ > VomnibarNS.Status.Initing ? this.port_.postMessage(options) : (this.options_ = options);
+    this.status_ > VomnibarNS.Status.Initing ? this.post_(options) : (this.options_ = options);
   },
   hide_ (this: void, fromInner?: 1): void {
     const a = VOmni, active = a.status_ > VomnibarNS.Status.Inactive,
@@ -147,7 +147,7 @@ var VOmni = {
     a.screenHeight_ = 0; a.canUseVW_ = !0;
     VCui.setupExitOnClick_(0, 0);
     if (fromInner == null) {
-      active && a.port_.postMessage(VomnibarNS.kCReq.hide);
+      active && a.post_(VomnibarNS.kCReq.hide);
       return;
     }
     // needed, in case the iframe is focused and then a `<esc>` is pressed before removing suppressing
@@ -207,9 +207,9 @@ var VOmni = {
         a.activate_(1, {} as VomnibarNS.FullOptions);
       };
       if (location.origin !== origin || !origin || type === VomnibarNS.PageType.web) {
-        setTimeout(checkBroken, 600);
+        VKey.timeout_(checkBroken, 600);
         const channel = new MessageChannel();
-        _this.port_ = channel.port1;
+        _this._port = channel.port1;
         channel.port1.onmessage = _this.onMessage_.bind(_this);
         wnd.postMessage(sec, type !== VomnibarNS.PageType.web && origin || "*", [channel.port2]);
         return;
@@ -225,7 +225,7 @@ var VOmni = {
           return VOmni && VOmni.onMessage_<K>({ data });
         }
       };
-      _this.port_ = {
+      _this._port = {
         close (): void { port.postMessage = function () { /* empty */ }; },
         postMessage (data: CReq[keyof CReq]): void | 1 { return port.onmessage({ data }); }
       };
@@ -234,7 +234,7 @@ var VOmni = {
     };
     VCui.add_(this.box_ = el, AdjustType.MustAdjust, VHud.box_);
     type !== VomnibarNS.PageType.inner &&
-    setTimeout(function (i): void {
+    VKey.timeout_(function (i): void {
       loaded || (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i) ||
       VOmni.onReset_ || reload();
     }, 2000);
@@ -243,9 +243,9 @@ var VOmni = {
     const a = this, oldStatus = a.status_;
     if (oldStatus === VomnibarNS.Status.NotInited) { return; }
     a.status_ = VomnibarNS.Status.NotInited;
-    a.port_ && a.port_.close();
+    a._port && a._port.close();
     a.box_.remove();
-    a.port_ = a.box_ = null as never;
+    a._port = a.box_ = null as never;
     a.RefreshKeyHandler_(); // just for safer code
     a.options_ = null;
     if (a.onReset_) { return a.onReset_(); }
@@ -269,7 +269,7 @@ var VOmni = {
       let opt = a.options_;
       a.options_ = null;
       if (!data.o && opt) {
-        return a.port_.postMessage<VomnibarNS.kCReq.activate>(opt);
+        return a.post_<VomnibarNS.kCReq.activate>(opt);
       }
       break;
     case VomnibarNS.kFReq.style:
@@ -277,7 +277,7 @@ var VOmni = {
           / (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
               && (!(Build.BTypes & ~BrowserType.Chrome)
                   || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome)
-              ? devicePixelRatio : 1)) + "px";
+              ? VDom.devRatio_() : 1)) + "px";
       if (a.status_ === VomnibarNS.Status.ToShow) {
         a.onShown_(data.m as NonNullable<typeof data.m>);
       }
@@ -305,12 +305,12 @@ var VOmni = {
         (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
           && (!(Build.BTypes & ~BrowserType.Chrome)
               || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome)
-          ? devicePixelRatio : 1),
+          ? VDom.devRatio_() : 1),
     top = a.screenHeight_ > topHalfThreshold * 2 ? ((50 - maxBoxHeight * 0.6 / a.screenHeight_ * 100) | 0
         ) + (a.canUseVW_ ? "vh" : "%") : "";
     style.top = !Build.NoDialogUI && VimiumInjector === null && location.hash === "#dialog-ui" ? "8px" : top;
     style.display = "";
-    setTimeout(a.RefreshKeyHandler_, 160);
+    VKey.timeout_(a.RefreshKeyHandler_, 160);
   },
   RefreshKeyHandler_ (this: void): void {
     const a = VOmni, st = a.status_;
@@ -333,6 +333,9 @@ var VOmni = {
         && Build.BTypes & BrowserType.Chrome) {
       this.box_.contentWindow.focus();
     }
-    this.port_.postMessage(VomnibarNS.kCReq.focus);
+    this.post_(VomnibarNS.kCReq.focus);
+  },
+  post_ <K extends keyof VomnibarNS.CReq> (msg: VomnibarNS.CReq[K]): void {
+    this._port.postMessage(msg);
   }
 };

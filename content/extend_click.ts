@@ -51,7 +51,7 @@ if (VDom && VimiumInjector === undefined) {
 
   const kVOnClick1 = InnerConsts.kVOnClick
     , kHookRand = (InnerConsts.kHook + BuildStr.RandomName0) as InnerConsts.kHook
-    , setupEventListener = VKey.SetupEventListener_
+    , setupEventListener = VKey.SetupEventListener_, stopEvent = VKey.Stop_
     , appInfo = Build.BTypes & BrowserType.Chrome
         && (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
             || Build.MinCVer < BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
@@ -98,8 +98,8 @@ if (VDom && VimiumInjector === undefined) {
     // use `instanceof` to require the `t` element is a new instance which has never entered this extension world
     if (++hookRetryTimes > GlobalConsts.MaxRetryTimesForSecret
         || !(t instanceof Element)) { return; }
-    // it's unhooking is delayed, so here may no VKey
-    event.stopImmediatePropagation();
+    // its unhooking is delayed, so here may no VKey
+    stopEvent(event);
     if (t.getAttribute(attr) !== "" + secret) { return; }
     setupEventListener(0, kHookRand, hook, 1);
     hook = null as never;
@@ -111,7 +111,7 @@ if (VDom && VimiumInjector === undefined) {
   };
   function onClick(this: Element | Window, event: Event): void {
     if (!box) { return; }
-    VKey.Stop_(event);
+    stopEvent(event);
     const rawDetail = (
         event as TypeToAssert<Event, (VimiumCustomEventCls | VimiumDelegateEventCls)["prototype"], "detail">
         ).detail as ClickableEventDetail | null | undefined,
@@ -147,12 +147,12 @@ if (VDom && VimiumInjector === undefined) {
     if (isFirstResolve & fromAttrs) {
       isFirstResolve ^= fromAttrs;
       const a = VHints;
-      a.hints_ && !a.keyStatus_.keySequence_ && !a.keyStatus_.textSequence_ && setTimeout(a.CheckLast_, 34);
+      a.hints_ && !a.keyStatus_.keySequence_ && !a.keyStatus_.textSequence_ && VKey.timeout_(a.CheckLast_, 34);
     }
   }
   function resolve(isBox: BOOL, nodeIndexList: number[]): void {
     if (!nodeIndexList.length) { return; }
-    let list = isBox ? (box as Element).getElementsByTagName("*") : Doc.getElementsByTagName("*");
+    const list = (isBox ? box as Element : Doc).getElementsByTagName("*");
     for (const index of nodeIndexList) {
       let el = list[index];
       el && VDom.clickable_.add(el);
@@ -566,11 +566,11 @@ _listen(kOnDomReady, doInit, !0);
       // only for new versions of Chrome (and Edge);
       // CSP would block a <script> before MinEnsuredNewScriptsFromExtensionOnSandboxedPage
       // not check isFirstTime, to auto clean VApi.execute_
-      setTimeout(function (): void { // wait the inner listener of `start` to finish its work
+      VKey.timeout_(function (): void { // wait the inner listener of `start` to finish its work
         box || execute(kContentCmd.DestroyForCSP);
       }, 0);
       isFirstTime && VDom.OnDocLoaded_((): void => {
-        box && isFirstResolve && setTimeout(function (): void {
+        box && isFirstResolve && VKey.timeout_(function (): void {
           box && isFirstResolve && dispatchCmd(kContentCmd.AutoFindAllOnClick);
           isFirstResolve = 0;
         }, GlobalConsts.ExtendClick_DelayToFindAll);
@@ -633,7 +633,7 @@ _listen(kOnDomReady, doInit, !0);
         && listener && !(a instanceof HTMLAnchorElement) && a instanceof Element) {
       if (!Build.NDEBUG) {
         VDom.clickable_.has(a) || resolved++;
-        timer = timer || setTimeout(resolve, GlobalConsts.ExtendClick_DelayToStartIteration);
+        timer = timer || VKey.timeout_(resolve, GlobalConsts.ExtendClick_DelayToStartIteration);
       }
       VDom.clickable_.add(a);
     }
@@ -649,27 +649,25 @@ _listen(kOnDomReady, doInit, !0);
         , resolved
         , location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1")
         , Date.now() % 3600000);
-    timer && clearTimeout(timer);
+    timer && VKey.clear_(timer);
     timer = resolved = 0;
   },
   doc = document;
 
-  let alive = true, timer = 0, resolved = 0;
+  let alive = true, timer = TimerID.None, resolved = 0;
 
   if (VDom.readyState_ > "l") {
     if (typeof _listen === "function") {
       exportFunction(newListen, Cls as NonNullable<typeof Cls>, { defineAs: newListen.name });
     }
-    VKey.SetupEventListener_(0, "load", function delayFindAll(event?: Event): void {
-      if (event && (event.target !== doc || !event.isTrusted)) { return; }
-      removeEventListener("load", delayFindAll, !0);
-      event && VDom && setTimeout(function (): void {
+    VDom.OnDocLoaded_((): void => {
+      VKey && VKey.timeout_(function (): void {
         const a = VHints;
         if (a) {
-          a.hints_ && !a.keyStatus_.keySequence_ && !a.keyStatus_.textSequence_ && setTimeout(a.CheckLast_, 34);
+          a.hints_ && !a.keyStatus_.keySequence_ && !a.keyStatus_.textSequence_ && VKey.timeout_(a.CheckLast_, 34);
         }
       }, GlobalConsts.ExtendClick_DelayToFindAll);
-    }, 0, 1);
+    }, 1);
   }
   VApi.execute_ = (cmd: ValidContentCommands): void => {
     if (cmd > kContentCmd._minSuppressClickable - 1) {

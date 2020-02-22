@@ -37,9 +37,20 @@ var VDom = {
       ? "" : 0 as never) as "frameset" | "",
   jsRe_: <RegExpI & RegExpOne> /^javascript:/i,
 
-  /** DOM-compatibility section */
+  /** DOM-shortcut section */
 
   docEl_: (): Element | null => document.documentElement,
+  devRatio_: (): number => devicePixelRatio,
+  activeEl_: (): Element | null => document.activeElement,
+  querySelector_: (selector: string): Element | null => document.querySelector(selector),
+  querySelectorAll_: function (selector: string): NodeListOf<Element> | void {
+    try { return document.querySelectorAll(selector); } catch {}
+  } as <T extends BOOL = 0>(selector: string) => NodeListOf<Element> | (T extends 1 ? undefined : never),
+  getSelected_: (): Selection => getSelection(),
+  getComputedStyle_: (element: Element): CSSStyleDeclaration => getComputedStyle(element),
+
+  /** DOM-compatibility section */
+
   isHTML_: Build.BTypes & ~BrowserType.Firefox
       ? (): boolean => "lang" in <ElementToHTML> (VDom.docEl_() || {})
       : (): boolean => document instanceof HTMLDocument,
@@ -53,7 +64,7 @@ var VDom = {
   } : (element: Element): string => "lang" in element ? (element as SafeHTMLElement).localName as string : ""
   ) as (element: Element) => string, // duplicate the signature, for easier F12 in VS Code
   isInTouchMode_: Build.BTypes & BrowserType.Chrome ? function (): boolean {
-    const viewport = document.querySelector("meta[name=viewport]");
+    const viewport = VDom.querySelector_("meta[name=viewport]");
     return !!viewport &&
       (<RegExpI> /\b(device-width|initial-scale)\b/i).test(
           (viewport as HTMLMetaElement).content as string | undefined as /* safe even if undefined */ string);
@@ -355,8 +366,8 @@ var VDom = {
   getClientRectsForAreas_: function (this: {}, element: HTMLElementUsingMap, output: Hint5[]
       , areas?: NodeListOf<HTMLAreaElement | Element> | HTMLAreaElement[]): Rect | null {
     let diff: number, x1: number, x2: number, y1: number, y2: number, rect: Rect | null | undefined;
-    const cr = element.getClientRects()[0] as ClientRect | undefined;
-    if (!cr || cr.height < 3 || cr.width < 3) { return null; }
+    const cr = VDom.getBoundingClientRect_(element);
+    if (cr.height < 3 || cr.width < 3) { return null; }
     // replace is necessary: chrome allows "&quot;", and also allows no "#"
     let wantRet = areas;
     if (!areas) {
@@ -414,7 +425,7 @@ var VDom = {
     let a = this as typeof VDom, parent: Element | null = el, prect: Rect | null | undefined
       , i: number = crect ? 4 : 0, bcr: ClientRect;
     while (1 < i-- && (parent = a.GetParent_(parent, PNType.RevealSlotAndGotoParent))
-        && getComputedStyle(parent).overflow !== "hidden"
+        && a.getComputedStyle_(parent).overflow !== "hidden"
         ) { /* empty */ }
     if (i > 0 && parent) {
       bcr = a.getBoundingClientRect_(parent);
@@ -480,7 +491,7 @@ var VDom = {
     try {
       iframe.appendChild.call(docEl, iframe);
       docEl = (doc = iframe.contentDocument) && doc.documentElement;
-      pageZoom = docEl && +getComputedStyle(docEl).zoom;
+      pageZoom = docEl && +VDom.getComputedStyle_(docEl).zoom;
     } catch {}
     iframe.remove();
     VDom._getPageZoom = (zoom2, ratio2) => pageZoom ? ratio2 / devRatio * pageZoom : zoom2;
@@ -492,8 +503,8 @@ var VDom = {
    */
   getZoom_: Build.BTypes & ~BrowserType.Firefox ? function (this: {}, target?: 1 | Element): void {
     const a = this as typeof VDom;
-    let docEl = a.docEl_() as Element, ratio = devicePixelRatio
-      , gcs = getComputedStyle, st = gcs(docEl), zoom = +st.zoom || 1
+    let docEl = a.docEl_() as Element, ratio = a.devRatio_()
+      , gcs = a.getComputedStyle_, st = gcs(docEl), zoom = +st.zoom || 1
       , el: Element | null = a.fullscreenEl_unsafe_();
     Build.BTypes & BrowserType.Chrome && (zoom = a._fixDocZoom(zoom, docEl, ratio));
     if (target) {
@@ -516,21 +527,20 @@ var VDom = {
     a.paintBox_ = null;
     a.docZoom_ = a.bZoom_ = 1;
     /** the min() is required in {@link ../front/vomnibar.ts#Vomnibar_.activate_ } */
-    a.wdZoom_ = Math.min(devicePixelRatio, 1);
+    a.wdZoom_ = Math.min(a.devRatio_(), 1);
   } as never,
   getViewBox_ (needBox?: 1): ViewBox | ViewOffset {
-    let iw = innerWidth, ih = innerHeight;
-    const a = this;
-    const ratio = devicePixelRatio, ratio2 = Math.min(ratio, 1);
+    const a = this, ratio = a.devRatio_();
+    let iw = innerWidth, ih = innerHeight, ratio2 = Math.min(ratio, 1);
     if (a.fullscreenEl_unsafe_()) {
       a.getZoom_(1);
       a.dScale_ = a.bScale_ = 1;
-      const zoom3 = a.wdZoom_ / ratio2;
-      return [0, 0, (iw / zoom3) | 0, (ih / zoom3) | 0, 0];
+      ratio2 = a.wdZoom_ / ratio2;
+      return [0, 0, (iw / ratio2) | 0, (ih / ratio2) | 0, 0];
     }
-    const gcs = getComputedStyle, float = parseFloat,
-    box = a.docEl_() as Element, st = gcs(box),
-    box2 = document.body, st2 = box2 ? gcs(box2) : st,
+    const float = parseFloat,
+    box = a.docEl_() as Element, st = a.getComputedStyle_(box),
+    box2 = document.body, st2 = box2 ? a.getComputedStyle_(box2) : st,
     zoom2 = a.bZoom_ = Build.BTypes & ~BrowserType.Firefox && box2 && +st2.zoom || 1,
     containHasPaint = (<RegExpOne> /content|paint|strict/).test(st.contain as string),
     kMatrix = "matrix(1,",
@@ -634,7 +644,7 @@ var VDom = {
     // because .GetParent_ will only return a real parent, but not a fake <form>.parentNode
     return (pe || VDom.GetParent_(element, PNType.DirectNode)) === root;
   } as (this: void,  element: Element, root?: Element | Document, checkMouseEnter?: 1) => boolean,
-  isStyleVisible_: (element: Element): boolean => getComputedStyle(element).visibility === "visible",
+  isStyleVisible_: (element: Element): boolean => VDom.getComputedStyle_(element).visibility === "visible",
   isAriaNotTrue_ (element: SafeElement, ariaType: kAria): boolean {
     let s = element.getAttribute(ariaType ? "aria-disabled" : "aria-hidden");
     return s === null || (!!s && s.toLowerCase() !== "true");
@@ -672,7 +682,7 @@ var VDom = {
     } catch {}
   },
   isSelected_ (): boolean {
-    const element = document.activeElement as Element, sel = getSelection(), node = sel.anchorNode;
+    const element = VDom.activeEl_() as Element, sel = VDom.getSelected_(), node = sel.anchorNode;
     return !node ? false
       : (element as TypeToAssert<Element, HTMLElement, "isContentEditable">).isContentEditable === true
       ? (Build.BTypes & ~BrowserType.Firefox ? document.contains.call(element, node) : element.contains(node))
@@ -704,6 +714,7 @@ var VDom = {
         || (/* el is not Element */ el && el.parentElement as Element | null)
       , PNType.DirectElement);
   },
+  getSelectionBoundingBox_: (sel: Selection): ClientRect => sel.getRangeAt(0).getBoundingClientRect(),
 
   /** action section */
 
@@ -890,7 +901,7 @@ var VDom = {
     return {l: x | 0, t: y | 0, r: (x + max(rect.width, padding)) | 0, b: (y + max(rect.height, padding)) | 0};
   },
   getZoomedAndCroppedRect_ (element: Element, st: CSSStyleDeclaration | null, crop: boolean): Rect | null {
-    let zoom = Build.BTypes && ~BrowserType.Firefox && +(st || getComputedStyle(element)).zoom || 1,
+    let zoom = Build.BTypes && ~BrowserType.Firefox && +(st || VDom.getComputedStyle_(element)).zoom || 1,
     cr: ClientRect = Build.BTypes && ~BrowserType.Firefox ? VDom.getBoundingClientRect_(element) : 0 as never,
     arr: Rect | null = Build.BTypes && ~BrowserType.Firefox
         ? VDom.cropRectToVisible_(cr.left * zoom, cr.top * zoom, cr.right * zoom, cr.bottom * zoom)

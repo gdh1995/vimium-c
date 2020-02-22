@@ -109,7 +109,7 @@ copy cut beforecopy beforecut paste".split(" ")) {
     f("blur", a._onUnexpectedBlur = function (this: Window, event): void {
       const b = VFind, delta = Date.now() - now, wnd1 = this;
       if (event && b && b.isActive_ && delta < 500 && delta > -99 && event.target === wnd1) {
-        wnd1.closed || setTimeout(function (): void { VFind === b && b.isActive_ && b.focus_(); }, tick++ * 17);
+        wnd1.closed || VKey.timeout_(function (): void { VFind === b && b.isActive_ && b.focus_(); }, tick++ * 17);
       } else {
         VKey.SetupEventListener_(wnd1, "blur", b._onUnexpectedBlur, 1, 1);
         b._onUnexpectedBlur = null;
@@ -290,7 +290,7 @@ copy cut beforecopy beforecut paste".split(" ")) {
     a.focusFoundLinkIfAny_();
     return a.postMode_.activate_();
   },
-  clean_ (): void {
+  clear_ (): void {
     const _this = VFind;
     _this.coords_ && VMarks.ScrollTo_(_this.coords_);
     _this.hasResults_ =
@@ -414,7 +414,7 @@ copy cut beforecopy beforecut paste".split(" ")) {
       , maxNotRunPost = a.postOnEsc_ ? FindNS.Action.ExitAndReFocus - 1 : FindNS.Action.ExitToPostMode - 1
       , el: SafeElement | null | undefined, el2: Element | null;
     i === FindNS.Action.ExitNoAnyFocus || focus();
-    a.clean_();
+    a.clear_();
     if (i > FindNS.Action.MaxExitButNoWork) {
       el = VDom.getSelectionFocusEdge_(VCui.getSelected_()[0], 1);
       el && (Build.BTypes & ~BrowserType.Firefox ? (el as ElementToHTMLorSVG).tabIndex != null : el.focus) &&
@@ -433,7 +433,7 @@ copy cut beforecopy beforecut paste".split(" ")) {
     }
     if (i > FindNS.Action.MaxExitButNoWork && hasResult && (!el || el !== VApi.lock_())) {
       let container = a.focusFoundLinkIfAny_();
-      if (container && i === FindNS.Action.ExitAndReFocus && (el2 = document.activeElement)
+      if (container && i === FindNS.Action.ExitAndReFocus && (el2 = VDom.activeEl_())
           && VDom.getEditableType_<0>(el2) >= EditableType.TextBox && container.contains(el2)) {
         VDom.prepareCrop_();
         VCui.simulateSelect_(el2 as LockableElement);
@@ -649,7 +649,7 @@ copy cut beforecopy beforecut paste".split(" ")) {
     return "";
   },
   restoreSelection_ (isCur?: boolean): void {
-    const sel = getSelection(),
+    const sel = VDom.getSelected_(),
     range = !isCur ? this.initialRange_ : sel.isCollapsed ? null : sel.getRangeAt(0);
     if (!range) { return; }
     VCui.resetSelectionToDocStart_(sel);
@@ -714,7 +714,7 @@ copy cut beforecopy beforecut paste".split(" ")) {
       par = par || VCui.GetSelectionParent_unsafe_();
       par && VDom.view_(par);
     }
-    options.noColor || setTimeout(a.HookSel_, 0);
+    options.noColor || VKey.timeout_(a.HookSel_, 0);
     (el = VApi.lock_()) && !VDom.isSelected_() && el.blur();
     Build.BTypes & BrowserType.Firefox && focusHUD && a.focus_();
     a.hasResults_ = found;

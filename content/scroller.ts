@@ -37,7 +37,7 @@ var VSc = {
 _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
   let amount = 0, calibration = 1.0, di: ScrollByY = 0, duration = 0, element: SafeElement | null = null, //
   sign = 0, timestamp = 0, totalDelta = 0.0, totalElapsed = 0.0, //
-  running = 0 as number, next = requestAnimationFrame, timer = 0;
+  running = 0 as number, next = requestAnimationFrame, timer = TimerID.None;
   function animate(newTimestamp: number): void {
     const _this = VSc,
     // although timestamp is mono, Firefox adds too many limits to its precision
@@ -51,7 +51,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     if (amount < ScrollerNS.Consts.AmountLimitToScrollAndWaitRepeatedKeys
         && continuous && totalDelta >= amount && totalElapsed < _this.minDelay_ - 2) {
       running = 0;
-      timer = setTimeout(startAnimate, _this.minDelay_ - totalElapsed);
+      timer = VKey.timeout_(startAnimate, _this.minDelay_ - totalElapsed);
       return;
     }
     if (continuous) {
@@ -86,7 +86,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     }
   }
   function startAnimate(): void {
-    timer = 0;
+    timer = TimerID.None;
     running = running || next(animate);
   }
   this._animate = function (this: typeof VSc, newEl, newDi, newAmount): void {
@@ -98,7 +98,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     totalDelta = totalElapsed = 0.0;
     timestamp = 0;
     if (timer) {
-      clearTimeout(timer);
+      VKey.clear_(timer);
     }
     const keyboard = VDom.cache_.k;
     this.maxInterval_ = M.round(keyboard[1] / ScrollerNS.Consts.FrameIntervalMs) + ScrollerNS.Consts.MaxSkippedF;
@@ -242,7 +242,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     if (old && old !== kManual) {
       h[kScrollRestoration] = kManual;
       VSc._overrideScrollRestoration = 0 as never;
-      VDom.OnDocLoaded_(() => { setTimeout(reset, 1); }, 1);
+      VDom.OnDocLoaded_(() => { VKey.timeout_(reset, 1); }, 1);
       listen(0, kUnload, reset);
     }
   } as ((key: "scrollRestoration", kManual: "manual", kUnload: "unload") => void) | 0,
@@ -304,7 +304,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     if (!element) {
       // note: twitter auto focuses its dialog panel, so it's not needed to detect it here
       const candidate = (<RegExpOne> /^(new|www)?\.?reddit\.com$/).test(location.host)
-          ? document.querySelector("#overlayScrollContainer") : null;
+          ? VDom.querySelector_("#overlayScrollContainer") : null;
       element = Build.BTypes & ~BrowserType.Firefox ? VDom.SafeEl_(candidate) : candidate as SafeElement | null;
     }
     if (!element && top) {
@@ -352,7 +352,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
           : di ? innerHeight : innerWidth);
   },
   hasSpecialScrollSnap_ (el: SafeElement | null): boolean {
-    const scrollSnap: string | null | undefined = el && getComputedStyle(el).scrollSnapType;
+    const scrollSnap: string | null | undefined = el && VDom.getComputedStyle_(el).scrollSnapType;
     return !!scrollSnap && scrollSnap !== "none";
   },
   _doesScroll (el: SafeElement, di: ScrollByY, amount: number): boolean {
@@ -420,7 +420,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     VCui.activeEl_ = el;
     if (hasX || hasY) {
       for (let el2: Element | null = el; el2; el2 = VDom.GetParent_(el2, PNType.RevealSlotAndGotoParent)) {
-        const pos = getComputedStyle(el2).position;
+        const pos = VDom.getComputedStyle_(el2).position;
         if (pos === "fixed" || pos === "sticky") {
           hasX = hasY = 0;
           break;
@@ -439,7 +439,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
   scrolled_: 0,
   /** @NEED_SAFE_ELEMENTS */
   shouldScroll_need_safe_ (element: SafeElement, di: ScrollByY, amount: number): -1 | 0 | 1 {
-    const st = getComputedStyle(element);
+    const st = VDom.getComputedStyle_(element);
     return (di ? st.overflowY : st.overflowX) === "hidden" || st.display === "none" || st.visibility !== "visible" ? -1
       : <BOOL> +this._doesScroll(element, di
                   , amount || +!(di ? element.scrollTop : element.scrollLeft));

@@ -118,7 +118,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       ): HandlerResult.Default | HandlerResult.PassKey | HandlerResult.Prevent {
     let action: HandlerResult.Default | HandlerResult.PassKey | HandlerResult.Prevent = HandlerResult.Prevent
       , { repeat } = event
-      , { activeElement: activeEl, body } = doc;
+      , activeEl = D.activeEl_(), body = doc.body;
     /** if `notBody` then `activeEl` is not null */
     if (!repeat && U.removeSelection_()) {
       /* empty */
@@ -210,7 +210,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     if (Build.BTypes & BrowserType.Chrome) {
       isWaitingAccessKey && resetAnyClickHandler();
     }
-    if (InsertMode.suppressType_ && getSelection().type !== InsertMode.suppressType_) {
+    if (InsertMode.suppressType_ && D.getSelected_().type !== InsertMode.suppressType_) {
       events.setupSuppress_();
     }
     if (KeydownEvents[key]) {
@@ -243,7 +243,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
      *   `target !== doc.active` lets it mistakenly passes the case of `target === lock === doc.active`
      */
     const lock = insertLock;
-    if (lock !== null && lock === doc.activeElement) { return; }
+    if (lock && lock === D.activeEl_()) { return; }
     if (target === U.box_) { return K.Stop_(event); }
     const sr = D.GetShadowRoot_(target as Element);
     if (sr) {
@@ -281,7 +281,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       insertLock = target;
       if (InsertMode.mutable_) {
         // here ignore the rare case of an XMLDocument with a editable node on Firefox, for smaller code
-        if (doc.activeElement !== doc.body) {
+        if (D.activeEl_() !== doc.body) {
           InsertMode.last_ = target;
         }
       }
@@ -491,7 +491,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       U.activeEl_ = D.lastHovered_ = a.last_ = insertLock = a.global_ = null;
       a.mutable_ = true;
       a.ExitGrab_(); events.setupSuppress_();
-      Hints.clean_(isAlive ? 2 : 0); VVisual.deactivate_();
+      Hints.clear_(isAlive ? 2 : 0); VVisual.deactivate_();
       VFind.init_ || VFind.deactivate_(FindNS.Action.ExitNoAnyFocus);
       onWndBlur();
     },
@@ -574,7 +574,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
     },
     /* kFgCmd.reload: */ function (_0: number, options: CmdOptions[kFgCmd.reload]): void {
-      setTimeout(function () {
+      VKey.timeout_(function () {
         options.url ? (location.href = options.url) : location.reload(!!options.hard);
       }, 17);
     },
@@ -720,7 +720,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }, InsertMode.inputHint_);
     },
     /* kFgCmd.editText: */ function (count: number, options: CmdOptions[kFgCmd.editText]) {
-      (insertLock || options.dom) && setTimeout((): void => {
+      (insertLock || options.dom) && VKey.timeout_((): void => {
         let commands = options.run.split(","), sel: Selection | undefined;
         while (0 < count--) {
           for (let i = 0; i < commands.length; i += 3) {
@@ -747,25 +747,25 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     mutable_: true,
     init_ (): void {
       /** if `notBody` then `activeEl` is not null */
-      let activeEl = doc.activeElement as Element,
+      let activeEl = D.activeEl_(),
       notBody = activeEl !== doc.body && (!(Build.BTypes & BrowserType.Firefox)
             || Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox
-            || D.isHTML_() || activeEl !== D.docEl_());
+            || D.isHTML_() || activeEl !== D.docEl_()) && !!activeEl;
       KeydownEvents = safer(null);
       if (fgCache.g && InsertMode.grabBackFocus_) {
         let counter = 0, prompt = function (): void {
           counter++ || console.log("Vimium C blocks auto-focusing.");
         };
-        if (notBody = notBody && D.getEditableType_(activeEl)) {
+        if (notBody = notBody && D.getEditableType_(activeEl as Element)) {
           InsertMode.last_ = null;
           prompt();
           (activeEl as LockableElement).blur();
           // here ignore the rare case of an XMLDocument with a editable node on Firefox, for smaller code
-          notBody = (activeEl = doc.activeElement as Element) !== doc.body;
+          notBody = (activeEl = D.activeEl_() as Element) !== doc.body;
         }
         if (!notBody) {
           InsertMode.grabBackFocus_ = function (event: Event, target: LockableElement): void {
-            const activeEl1 = doc.activeElement;
+            const activeEl1 = D.activeEl_();
             if (activeEl1 === target || activeEl1 && D.GetShadowRoot_(activeEl1)) {
               K.Stop_(event);
               prompt();
@@ -778,8 +778,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         }
       }
       InsertMode.grabBackFocus_ = false;
-      if (notBody && D.getEditableType_(activeEl)) {
-        insertLock = activeEl;
+      if (notBody && D.getEditableType_(activeEl as Element)) {
+        insertLock = activeEl as LockableElement;
       }
     },
     ExitGrab_: function (this: void, event?: Req.fg<kFgReq.exitGrab> | Event | HandlerNS.Event
@@ -803,7 +803,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (insertLock || InsertMode.global_) {
         return true;
       }
-      const el: Element | null = doc.activeElement;
+      const el: Element | null = D.activeEl_();
 /** Ignore standalone usages of `{-webkit-user-modify:}` without `[contenteditable]`
  * On Chromestatus, this is tagged `WebKitUserModify{PlainText,ReadWrite,ReadOnly}Effective`
  * * https://www.chromestatus.com/metrics/css/timeline/popularity/338
@@ -878,7 +878,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       D.view_(linkElement);
       // note: prepareCrop is called during UI.flash_
       U.flash_(linkElement);
-      setTimeout(function () { U.click_(linkElement); }, 100);
+      VKey.timeout_(function () { U.click_(linkElement); }, 100);
     }
     return true;
   },
@@ -904,9 +904,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     interface Candidate { [0]: number; [1]: string; [2]: Parameters<typeof Pagination.GetButtons_>[0][number] }
     // Note: this traverser should not need a prepareCrop
     let links = Hints.traverse_(Hints.kSafeAllSelector_, Pagination.GetButtons_, true, true);
-    const tryQuery = (selector: string): NodeListOf<Element> | void => {
-      try { return doc.querySelectorAll(selector); } catch {}
-    }, wordRe = <RegExpOne> /\b/,
+    const wordRe = <RegExpOne> /\b/,
     quirk = isNext ? ">>" : "<<", quirkIdx = names.indexOf(quirk),
     rel = isNext ? "next" : "prev", relIdx = names.indexOf(rel),
     detectQuirk = quirkIdx > 0 ? names.lastIndexOf(isNext ? ">" : "<", quirkIdx) : -1,
@@ -916,7 +914,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     let i: number, candInd = 0, count = names.length;
     for (i = 0; i < count; i++) {
       if (GlobalConsts.SelectorPrefixesInPatterns.includes(names[i][0])) {
-        const arr = tryQuery(names[i]);
+        const arr = D.querySelectorAll_<1>(names[i]);
         if (arr && arr.length === 1 && D.htmlTag_(arr[0])) {
           candidates.push([i << 23, "", arr[0] as SafeHTMLElement]);
           count = i + 1;
@@ -976,7 +974,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     return false;
   },
   findAndFollowRel_ (relName: string): boolean {
-    const elements = doc.querySelectorAll("[rel]");
+    const elements = VDom.querySelectorAll_("[rel]");
     let s: string | null | undefined;
     type HTMLElementWithRel = HTMLAnchorElement | HTMLAreaElement | HTMLLinkElement;
     for (let _i = 0, _len = elements.length, re1 = <RegExpOne> /\s+/; _i < _len; _i++) {
@@ -993,7 +991,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   FrameMask = {
     more_: false,
     node_: null as HTMLDivElement | null,
-    timer_: 0,
+    _timer: 0,
     Focus_ (this: void, req: BgReq[kBgReq.focusFrame]): void {
       // Note: .c, .S are ensured to exist
       let mask = req.m, div;
@@ -1005,7 +1003,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
                 && D.unsafeFramesetTag_  // treat a doc.body of <form> as <frameset> to simplify logic
               ? D.notSafe_(doc.body)
               : doc.body && D.htmlTag_(doc.body) === "frameset")
-            && (div = doc.querySelector("div"), !div || div === U.box_ && !K._handlers.length)
+            && (div = D.querySelector_("div"), !div || div === U.box_ && !K._handlers.length)
       ) {
         post({
           H: kFgReq.nextFrame,
@@ -1013,7 +1011,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         });
         return;
       }
-      mask && setTimeout(() => events.focusAndRun_(), 1); // require FrameMaskType.NoMaskAndNoFocus is 0
+      mask && VKey.timeout_(() => events.focusAndRun_(), 1); // require FrameMaskType.NoMaskAndNoFocus is 0
       if (req.c) {
         type TypeChecked = { [key1 in FgCmdAcrossFrames]: <T2 extends FgCmdAcrossFrames>(this: void,
             count: number, options: CmdOptions[T2]) => void; };
@@ -1041,7 +1039,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         dom1 = D.createElement_("div");
         dom1.className = "R Frame" + (mask === FrameMaskType.OnlySelf ? " One" : "");
         _this.node_ = dom1;
-        _this.timer_ = setInterval(_this.Remove_, isTop ? 200 : 350);
+        _this._timer = setInterval(_this.Remove_, isTop ? 200 : 350);
       }
       U.add_(dom1);
     },
@@ -1051,7 +1049,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (more_ && !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake
                       && fake)) { return; }
       if (_this.node_) { _this.node_.remove(); _this.node_ = null; }
-      clearInterval(_this.timer_);
+      clearInterval(_this._timer);
     }
   },
   HUD = {
@@ -1061,7 +1059,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     t: "",
     opacity_: 0 as 0 | 0.25 | 0.5 | 0.75 | 1,
     enabled_: false,
-    _timer: 0,
+    _timer: TimerID.None,
     copied_: function (text: string, e?: "url" | "", virtual?: 1): string | void {
       if (!text) {
         if (virtual) { return text; }
@@ -1076,13 +1074,13 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     } as VHUDTy["copied_"],
     tip_ (tid: kTip | HintMode, duration?: number, args?: Array<string | number>): void {
       HUD.show_(tid, args);
-      HUD.t && (HUD._timer = setTimeout(HUD.hide_, duration || 1500));
+      HUD.t && (HUD._timer = VKey.timeout_(HUD.hide_, duration || 1500));
     },
     show_ (tid: kTip | HintMode, args?: Array<string | number>, embed?: boolean): void {
       if (!HUD.enabled_ || !D.isHTML_()) { return; }
       const text = HUD.t = VTr(tid, args);
       HUD.opacity_ = 1;
-      if (HUD._timer) { clearTimeout(HUD._timer); HUD._timer = 0; }
+      if (HUD._timer) { VKey.clear_(HUD._timer); HUD._timer = TimerID.None; }
       embed || HUD._tweenId || (HUD._tweenId = setInterval(HUD._tween, 40));
       let el = HUD.box_;
       if (el) {
@@ -1135,7 +1133,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     },
     hide_ (this: void, info?: TimerType): void {
       let i: number;
-      if (i = HUD._timer) { clearTimeout(i); HUD._timer = 0; }
+      if (i = HUD._timer) { K.clear_(i); HUD._timer = TimerID.None; }
       HUD.opacity_ = 0; HUD.t = "";
       if (!HUD.box_) { /* empty */ }
       else if (info === TimerType.noTimer || !isEnabled) {
@@ -1206,7 +1204,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       D.OnDocLoaded_(function (): void {
         HUD.enabled_ = true;
         onWndFocus = vPort.SafePost_.bind(vPort as never, <Req.fg<kFgReq.focus>> { H: kFgReq.focus });
-        setTimeout(function (): void {
+        VKey.timeout_(function (): void {
           const parentCore = !(Build.BTypes & ~BrowserType.Firefox)
               || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
               ? D.parentCore_() : D.allowScripts_ && D.frameElement_() && parent as Window,
@@ -1446,7 +1444,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       K.removeHandler_(VOmni);
       K.pushHandler_(VOmni.onKeydown_, VOmni);
     }
-    setTimeout((): void => box.focus(), 17); // since MinElement$Focus$MayMakeArrowKeySelectIt; also work on Firefox
+    VKey.timeout_((): void => box.focus(), 17); // since MinElement$Focus$MayMakeArrowKeySelectIt; also work on Firefox
   }
   ],
 
@@ -1497,7 +1495,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
             (D.allowScripts_ = (D.runJS_('document.currentScript.dataset.vimium="1"', 1) as HTMLScriptElement
                 ).dataset.vimium ? 2 : 0)
           : D.allowScripts_) {
-        setTimeout(function (): void {
+        VKey.timeout_(function (): void {
           D.runJS_(Hints.decodeURL_(url, decodeURIComponent));
         }, 0);
       } else {
@@ -1564,7 +1562,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         VOmni.box_.blur();
       } else {
         // cur is safe because on Firefox
-        const cur = doc.activeElement as SafeElement | null;
+        const cur = D.activeEl_() as SafeElement | null;
         cur && (<RegExpOne> /^i?frame$/).test(cur.localName) && cur.blur &&
         (cur as HTMLFrameElement | HTMLIFrameElement).blur();
       }
@@ -1590,7 +1588,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       const f = InsertMode.onExitSuppress_;
       InsertMode.onExitSuppress_ = InsertMode.suppressType_ = null;
       if (onExit) {
-        InsertMode.suppressType_ = getSelection().type;
+        InsertMode.suppressType_ = D.getSelected_().type;
         InsertMode.onExitSuppress_ = onExit;
       }
       if (f) { return f(); }
@@ -1613,7 +1611,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       try {
         if (!vPort._port) {
           vPort.Connect_();
-          injector && setTimeout(vPort.TestAlive_, 50);
+          injector && VKey.timeout_(vPort.TestAlive_, 50);
         } else if (Build.BTypes & BrowserType.Firefox && injector) {
           injector.$r(InjectorTask.recheckLiving);
         }
@@ -1630,7 +1628,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     TestAlive_ (): void { vPort._port || safeDestroy(); },
     ClearPort_ (this: void): void {
       vPort._port = null;
-      setTimeout(function (i): void {
+      VKey.timeout_(function (i): void {
         if (!(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i)) {
           try { vPort._port || !esc || vPort.Connect_(); return; } catch {}
         }

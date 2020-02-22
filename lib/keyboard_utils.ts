@@ -142,18 +142,18 @@ var VKey = {
    *
    * @argument callback can be valid only if `BTypes & Chrome` and `timeout`
    */
-  suppressTail_: function (this: {}, timeout: number, callback?: HandlerNS.VoidHandler | 0): HandlerNS.RefHandler {
-    let timer = 0,
+  suppressTail_: function (timeout: number, callback?: HandlerNS.VoidHandler | 0): HandlerNS.RefHandler {
+    let a = VKey, timer = 0,
     func: HandlerNS.RefHandler = event => {
       if (!timeout) {
         if (event.e.repeat) { return HandlerResult.Prevent; }
-        VKey.removeHandler_(func);
+        a.removeHandler_(func);
         return HandlerResult.Nothing;
       }
-      clearTimeout(timer);
-      timer = setTimeout(() => { // safe-interval
+      VKey.clear_(timer);
+      timer = a.timeout_(() => { // safe-interval
         if (VKey) {
-          VKey.removeHandler_(func); // safe enough even if reloaded;
+          a.removeHandler_(func); // safe enough even if reloaded;
           if (Build.BTypes & BrowserType.Chrome && callback) {
             callback();
             callback = 0; // in case that native `setTimeout` is broken and the current one is simulated
@@ -163,7 +163,7 @@ var VKey = {
       return HandlerResult.Prevent;
     };
     timeout && (func as () => any)();
-    (this as typeof VKey).pushHandler_(func, func);
+    a.pushHandler_(func, func);
     return func;
   } as {
     (timeout: 0, callback?: undefined): HandlerNS.RefHandler;
@@ -193,6 +193,9 @@ var VKey = {
       }
     }
   },
+  timeout_: (func: (this: void, fake?: TimerType.fake) => void, timeout: number
+      ): TimerID.Valid | TimerID.Others => setTimeout(func, timeout),
+  clear_ (timer: TimerID) { clearTimeout(timer); },
   /** misc section */
   safer_: (Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && Build.BTypes & BrowserType.Chrome
       && !Object.setPrototypeOf ? function <T extends object> (obj: T): T & SafeObject {

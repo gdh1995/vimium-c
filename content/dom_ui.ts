@@ -14,19 +14,23 @@ var VCui = {
   activeEl_: null as SafeElement | null,
   add_: (function <T extends HTMLElement> (this: void, element: T, adjust?: AdjustType): void {
     let a = VCui, box = a.box_ = VDom.createElement_("div"),
-    root: VUIRoot = a.root_ = VDom.createShadowRoot_(box);
+    root: VUIRoot = a.root_ = VDom.createShadowRoot_(box),
+    setupListen = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
+        && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+        && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+        ? 0 as never : VKey.SetupEventListener_;
     // listen "load" so that safer if shadowRoot is open
     // it doesn't matter to check `.mode == "closed"`, but not `.attachShadow`
     (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
       && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
       && !(Build.BTypes & ~BrowserType.ChromeOrFirefox) ||
     Build.BTypes & ~BrowserType.Edge && root.mode === "closed" ||
-    VKey.SetupEventListener_(
+    setupListen(
       !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
       || Build.BTypes & ~BrowserType.Edge && root !== box
       ? root as ShadowRoot : 0, "load",
     function Onload(this: ShadowRoot | Window, e: Event): void {
-      if (!VDom) { removeEventListener("load", Onload, true); return; } // safe enough even if reloaded
+      if (!VDom) { setupListen(0, "load", Onload, 1); return; } // safe enough even if reloaded
       const t = e.target as HTMLElement | Document;
       if (t.parentNode === VCui.root_) {
         VKey.Stop_(e); t.onload && t.onload(e);
@@ -166,7 +170,7 @@ var VCui = {
   },
   checkDocSelectable_ (): void {
     let sout: HTMLStyleElement | null | HTMLBodyElement | HTMLFrameSetElement = this.styleOut_
-      , gcs = getComputedStyle, st: CSSStyleDeclaration
+      , gcs = VDom.getComputedStyle_, st: CSSStyleDeclaration
       , mayTrue = !sout || !sout.parentNode;
     if (mayTrue && (sout = document.body)) {
       st = gcs(sout);
@@ -203,7 +207,7 @@ var VCui = {
         }
       }
     }
-    sel = getSelection();
+    sel = VDom.getSelected_();
     let offset: number, sr: ShadowRoot | null = null, sel2: Selection | null = sel
       , kTagName = "tagName" as const;
     if (!(  (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
@@ -260,9 +264,9 @@ var VCui = {
     return par !== VDom.docEl_() ? par as Element | null : null;
   },
   getSelectionText_ (notTrim?: 1): string {
-    let sel = getSelection(), s = "" + sel, el: Element | null, rect: ClientRect;
+    let sel = VDom.getSelected_(), s = "" + sel, el: Element | null, rect: ClientRect;
     if (s && !VApi.lock_() && (el = VCui.activeEl_) && VDom.getEditableType_<0>(el) === EditableType.TextBox
-        && (rect = sel.getRangeAt(0).getBoundingClientRect(), !rect.width || !rect.height)) {
+        && (rect = VDom.getSelectionBoundingBox_(sel), !rect.width || !rect.height)) {
       s = "";
     }
     return notTrim ? s : s.trim();
@@ -277,7 +281,7 @@ var VCui = {
     return true;
   } as (root?: VUIRoot, justTest?: 1) => boolean,
   resetSelectionToDocStart_ (sel?: Selection): void {
-    (sel || getSelection()).removeAllRanges();
+    (sel || VDom.getSelected_()).removeAllRanges();
   },
   click_ (element: SafeElementForMouse
       , rect?: Rect | null, addFocus?: boolean | BOOL, modifiers?: MyMouseControlKeys | null
@@ -314,7 +318,7 @@ var VCui = {
     a.mouse_(element, "mousedown", center, modifiers, null, button);
     if (!isInDom(element)) { return; }
     // Note: here we can check doc.activeEl only when @click is used on the current focused document
-    if (addFocus && element !== VApi.lock_() && element !== document.activeElement &&
+    if (addFocus && element !== VApi.lock_() && element !== a.activeEl_() &&
         !(element as Partial<HTMLInputElement>).disabled) {
       element.focus && element.focus();
       if (!isInDom(element)) { return; }
@@ -410,8 +414,8 @@ var VCui = {
       return;
     }
     // not need `this.getSelection_()`
+    const sel = VDom.getSelected_();
     try {
-      const sel = getSelection();
       if (type === EditableType.rich_) {
         const range = document.createRange();
         range.selectNodeContents(element);
@@ -473,7 +477,7 @@ var VCui = {
       a.lastFlashEl_ === flashEl && (a.lastFlashEl_ = null);
       flashEl.remove();
     };
-    lifeTime === -1 || setTimeout(remove, lifeTime || GlobalConsts.DefaultRectFlashTime);
+    lifeTime === -1 || VKey.timeout_(remove, lifeTime || GlobalConsts.DefaultRectFlashTime);
     return remove;
   } as {
     (el: null, rect: Rect, lifeTime?: number, classNames?: string): () => void;

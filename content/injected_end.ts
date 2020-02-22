@@ -19,7 +19,7 @@ VDom.allowScripts_ = 0;
   i18nCallback: ((res: FgRes[kFgReq.i18n]) => void) | null = res => {
     i18nMessages = res.m;
     if (!i18nMessages && i18nCallback) {
-      setTimeout(() => VApi.send_(kFgReq.i18n, {}, i18nCallback as NonNullable<typeof i18nCallback>), 150);
+      VKey.timeout_(() => VApi.send_(kFgReq.i18n, {}, i18nCallback as NonNullable<typeof i18nCallback>), 150);
     }
     i18nCallback = null;
   };
@@ -62,7 +62,7 @@ VDom.allowScripts_ = 0;
       , colorRed, colorAuto, colorRed, colorAuto, "color:#0c85e9"
       , runtime.id || location.host, ".");
   }
-  let livingCheckTimer = 0;
+  let livingCheckTimer = TimerID.None;
   injector.$r = function (task): void {
     if (task === InjectorTask.reload) {
       const injector1 = VimiumInjector;
@@ -73,11 +73,11 @@ VDom.allowScripts_ = 0;
         || (Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox)) {
       switch (task) {
       case InjectorTask.recheckLiving:
-        livingCheckTimer && clearTimeout(livingCheckTimer);
-        livingCheckTimer = setTimeout(onTimeout, GlobalConsts.FirefoxFocusResponseTimeout);
+        livingCheckTimer && VKey.clear_(livingCheckTimer);
+        livingCheckTimer = VKey.timeout_(onTimeout, GlobalConsts.FirefoxFocusResponseTimeout);
         return;
       case InjectorTask.reportLiving:
-        clearTimeout(livingCheckTimer);
+        VKey.clear_(livingCheckTimer);
         return;
       }
     }

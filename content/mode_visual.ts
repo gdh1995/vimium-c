@@ -64,7 +64,7 @@ declare const enum VisualAction {
 var VVisual = {
   mode_: VisualModeNS.Mode.NotActive,
   modeName_: "",
-  hudTimer_: 0,
+  hudTimer_: TimerID.None,
   currentCount_: 0,
   currentSeconds_: null as SafeDict<VisualAction> | null,
   retainSelection_: false,
@@ -85,7 +85,7 @@ var VVisual = {
     if (!a.mode_) { a.retainSelection_ = type === SelType.Range; }
     if (mode !== VisualModeNS.Mode.Caret) {
       if (!VApi.lock_() && /* (type === SelType.Caret || type === SelType.Range) */ type) {
-        const { left: l, top: t, right: r, bottom: b} = sel.getRangeAt(0).getBoundingClientRect();
+        const { left: l, top: t, right: r, bottom: b} = VDom.getSelectionBoundingBox_(sel);
         VDom.getZoom_(1);
         VDom.prepareCrop_();
         if (!VDom.cropRectToVisible_(l, t, (l || r) && r + 3, (t || b) && b + 3)) {
@@ -99,7 +99,7 @@ var VVisual = {
     }
     const isRange = type === SelType.Range, newMode = isRange ? mode : VisualModeNS.Mode.Caret,
     toCaret = newMode === VisualModeNS.Mode.Caret;
-    a.hudTimer_ && clearTimeout(a.hudTimer_);
+    a.hudTimer_ && VKey.clear_(a.hudTimer_);
     VHud.show_(kTip.visualMode,
         [a.modeName_ = VTr(toCaret ? "Caret" : newMode === VisualModeNS.Mode.Line ? "Line" : "Visual")],
         !!options.r);
@@ -135,7 +135,7 @@ var VVisual = {
       a.collapseToFocus_(isEsc && a.mode_ !== VisualModeNS.Mode.Caret ? 1 : 0);
     }
     a.mode_ = VisualModeNS.Mode.NotActive; a.modeName_ = "";
-    VFind.clean_();
+    VFind.clear_();
     const el = VApi.lock_();
     oldDiType & (VisualModeNS.DiType.TextBox | VisualModeNS.DiType.Complicated) ||
     el && el.blur();
@@ -195,7 +195,7 @@ var VVisual = {
     }
     if (command > VisualAction.MaxNotNewMode) {
       if (command === VisualAction.EmbeddedFindMode) {
-        clearTimeout(movement.hudTimer_);
+        VKey.clear_(movement.hudTimer_);
         VApi.post_({ H: kFgReq.findFromVisual });
         return;
       }
@@ -205,7 +205,7 @@ var VVisual = {
     }
     if (movement.scope_ && !movement.selection_.rangeCount) {
       movement.scope_ = null;
-      movement.selection_ = getSelection();
+      movement.selection_ = VDom.getSelected_();
       if (command < VisualAction.MaxNotFind + 1 && !movement.selection_.rangeCount) {
         movement.deactivate_();
         return VHud.tip_(kTip.loseSel);
@@ -268,7 +268,7 @@ var VVisual = {
     const a = this;
     if (!node) {
       if (sr) {
-        a.selection_ = getSelection();
+        a.selection_ = D.getSelected_();
         a.scope_ = null;
         return a.establishInitialSelectionAnchor_();
       }
@@ -281,15 +281,15 @@ var VVisual = {
   },
   /** @not_related_to_di */
   prompt_ (tid: kTip, duration: number, args?: string[]): void {
-    this.hudTimer_ && clearTimeout(this.hudTimer_);
-    this.hudTimer_ = setTimeout(this.ResetHUD_, duration);
+    this.hudTimer_ && VKey.clear_(this.hudTimer_);
+    this.hudTimer_ = VKey.timeout_(this.ResetHUD_, duration);
     return VHud.show_(tid, args);
   },
   /** @not_related_to_di */
   ResetHUD_ (i?: TimerType.fake): void {
     const a = VVisual;
     if (!a || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i) { return; }
-    a.hudTimer_ = 0;
+    a.hudTimer_ = TimerID.None;
     if (a.modeName_) { VHud.show_(kTip.visualMode, [a.modeName_]); }
   },
   find_ (count: number): void {
@@ -335,8 +335,7 @@ var VVisual = {
     VApi.post_(action < 8 ? { H: kFgReq.openUrl, u: str, r: action } : { H: kFgReq.copy, s: str });
   },
   HighlightRange_ (this: void, sel: Selection): void {
-    const range = sel.rangeCount > 0 ? sel.getRangeAt(0) : null,
-    br = range && range.getBoundingClientRect();
+    const br = sel.rangeCount > 0 ? VDom.getSelectionBoundingBox_(sel) : null;
     if (br && br.height > 0 && br.right > 0) { // width may be 0 in Caret mode
       let cr = VDom.cropRectToVisible_(br.left - 4, br.top - 5, br.right + 3, br.bottom + 4);
       cr && VCui.flash_(null, cr, 660, " Sel");
@@ -612,7 +611,7 @@ var VVisual = {
     }
     // editable text elements
     const lock = VApi.lock_();
-    if (lock && lock.parentElement === anchorNode) { // safe because lock is LockableElement
+    if (lock && lock.parentNode === anchorNode) { // safe because lock is LockableElement
       type TextModeElement = TextElement;
       if ((oldDiType & VisualModeNS.DiType.Unknown)
           && (VDom.editableTypes_[lock.localName] as EditableType) > EditableType.MaxNotTextModeElement) {
