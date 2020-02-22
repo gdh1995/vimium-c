@@ -3,7 +3,7 @@
 ===========================================
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.80.2](https://img.shields.io/badge/release-1.80.2-orange.svg
+[![Version 1.80.3](https://img.shields.io/badge/release-1.80.3-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -87,40 +87,13 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
-### 1.80.2
-* `LinkHints` now *detects whether links are completely covered or not*, and an option can disable this feature
-* macOS: fix broken LinkHints when a page is zoomed in ([#119](https://github.com/gdh1995/vimium-c/issues/119))
-* fix a regression some keys were not excluded successfully ([#115](https://github.com/gdh1995/vimium-c/issues/115))
-* Chrome: fix a regression the hook for click listeners became unsafe in v1.80.1
-* fix some bugs when handling `vimium://***` URLs
-* add a new command of `editText` ([#114](https://github.com/gdh1995/vimium-c/issues/114))
-* add an option to stop to show notifications on updates
-
-### 1.80.1
-* support pre-mode "`mapKey`" directive: ```mapKey <`:o> <f2>```
-* Vomnibar: always parse `vimium://` URLs, including `vimium://paste [...sed-rules]`
-* add `vimium://cd <level> [URL]`, and "level" can be `....` or `/...`
-* add `sed="s/_/_/g\nRule2..."` option to those commands which uses Clipboard
-* Chrome 55+: now recognize most elements with click listeners, even under Shadow DOM trees
-* `enterInsertMode` drops support for `code` and `stat` options, and turns to the `key` option
-* `goToRoot`: if repeats `N` times, then only select `N-1` section parts of URL path
-* Edge: fix support of `<c-[>`
-* some bug fixes
-
-### 1.80.0
-* LinkHints: Firefox: fix broken Filtered Hints mode
-* LinkHints: change some behavior details
-* LinkHints: click mode: check `[aria-hidden]` on SVG elements ([#98](https://github.com/gdh1995/vimium-c/issues/98))
-* LinkHints: click mode: support plain `Element` nodes
-* LinkHints: click mode: add `newtab="window"` to open URLs on a new window
-* LinkHints: hover mode: unhover on `<esc>`
-* add an advanced option: `Substitution for clipboard text` to replace text before copying and pasting
-* URL conversion: now auto replace `vimium://paste` with real text content in system clipboard
-* `copyWindowInfo`: add type=tab to copy info of N tabs
-* `goNext`: support id/class selectors
-* `enterInsertMode`: support `key: string` to declare a (mapped) key as the one to exit
-* Vomnibar: dark button: fix it will be overridden when "Auto switch between light and dark mode" is on
-* FindMode: apply a new appearance
+#### 1.80.3
+* macOS: LinkHints now works well even if a page zooms in/out many times
+* LinkHints: fix a regression some links were not clickable in v1.80.2 ([philc/vimium#3501](
+    https://github.com/philc/vimium/issues/3501))
+* Scroller: if needed, prevent annoying scroll restoration when a page is still loading
+* LinkHints: wait for enter: now can use <kbd>Backspace</kbd> to exit
+* `copyWindowInfo`: support `join="json"`
 
 See more on [RELEASE-NOTES.md](https://github.com/gdh1995/vimium-c/blob/master/RELEASE-NOTES.md).
 

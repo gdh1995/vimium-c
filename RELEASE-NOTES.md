@@ -4,6 +4,14 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://github.com/gdh1995/vimium-c/blob/master/README_zh.md .
 
+#### 1.80.3
+* macOS: LinkHints now works well even if a page zooms in/out many times
+* LinkHints: fix a regression some links were not clickable in v1.80.2 ([philc/vimium#3501](
+    https://github.com/philc/vimium/issues/3501))
+* Scroller: if needed, prevent annoying scroll restoration when a page is still loading
+* LinkHints: wait for enter: now can use <kbd>Backspace</kbd> to exit
+* `copyWindowInfo`: support `join="json"`
+
 #### 1.80.2
 * `LinkHints` now *detects whether links are completely covered or not*, and an option can disable this feature
 * macOS: fix broken LinkHints when a page is zoomed in ([#119](https://github.com/gdh1995/vimium-c/issues/119))
