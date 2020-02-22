@@ -452,6 +452,13 @@ var Tasks = {
     require("./scripts/eslint");
     done();
   },
+  "words": ["build/content", function (cb) {
+    gulp.series("min/content")(function () {
+      process.argv = process.argv.slice(0, 2);
+      require("./scripts/words-collect");
+      cb();
+    });
+  }],
   lint: ["eslint"],
   local2: function(cb) {
     gNoComments = false;

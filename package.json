@@ -46,6 +46,7 @@
     "p": "gulp pages",
     "lint": "node ./scripts/eslint.js",
     "eslint": "node ./scripts/eslint.js",
+    "words": "bash -c \"BUILD_MinCVer=${BUILD_MinCVer:-38} BUILD_BTypes=${BUILD_BTypes:-1}; gulp words",
     "build": "gulp build",
     "dist": "npm run chrome-latest",
     "rebuild": "gulp rebuild",
