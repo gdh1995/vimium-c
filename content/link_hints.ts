@@ -1788,6 +1788,7 @@ filterEngine_: {
             ? right.slice(0, GlobalConsts.MaxLengthOfShownText - 2).trimRight() + "\u2026" // the "\u2026" is wide
             : right;
         if (!right) { continue; }
+        marker.classList.add("TH");
         right = ": " + right;
       } else {
         right = hint.a.slice(-1);
