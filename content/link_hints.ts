@@ -965,9 +965,14 @@ var VHints = {
     fromPoint: Element | null | undefined, temp: Element | null, index2 = 0;
     const zoom = Build.BTypes & BrowserType.Chrome ? D.docZoom_ * D.bZoom_ : 1,
     zoomD2 = Build.BTypes & BrowserType.Chrome ? zoom / 2 : 0.5,
-    body = document.body, docEl = D.docEl_(),
+    doc = document, body = doc.body, docEl = D.docEl_(),
     // note: exclude the case of `fromPoint.contains(el)`, to exclude invisible items in lists
-    does_hit = (x: number, y: number): boolean => {
+    does_hit: (x: number, y: number) => boolean = !(Build.BTypes & ~BrowserType.Firefox)
+        || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
+        ? (x: number, y: number): boolean => {
+      fromPoint = root.elementFromPoint(x, y);
+      return fromPoint ? el === fromPoint || el.contains(fromPoint) : root === doc;
+    } : (x, y): boolean => {
       fromPoint = root.elementFromPoint(x, y);
       return !fromPoint || el === fromPoint || el.contains(fromPoint);
     };
@@ -978,6 +983,10 @@ var VHints = {
       cx = (area.l + area.r) * zoomD2, cy = (area.t + area.b) * zoomD2;
       if (nodeType !== kNode.DOCUMENT_NODE && nodeType !== kNode.DOCUMENT_FRAGMENT_NODE
           || does_hit(cx, cy)) {
+        continue;
+      }
+      if (Build.BTypes & BrowserType.Firefox && !fromPoint) {
+        list.splice(i, 1);
         continue;
       }
       if (nodeType === kNode.DOCUMENT_FRAGMENT_NODE
