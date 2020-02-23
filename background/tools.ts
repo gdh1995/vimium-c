@@ -674,6 +674,7 @@ BgUtils_.timeout_(120, function (): void {
       TabRecency_.incognito_ = a.incognito ? IncognitoType.true
         : Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
         ? IncognitoType.ensuredFalse : IncognitoType.mayFalse;
+      Completion_.onWndChange_();
       return listener({ tabId: a.id });
     }
   }

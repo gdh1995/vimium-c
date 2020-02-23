@@ -269,6 +269,7 @@ declare namespace CompletersNS {
   interface GlobalCompletersConstructor {
     filter_ (this: GlobalCompletersConstructor, query: string, options: FullOptions, callback: Callback): void;
     removeSug_ (url: string, type: FgReq[kFgReq.removeSug]["t"], callback: (succeed: boolean) => void): void;
+    onWndChange_ (): void;
   }
 }
 type Suggestion = CompletersNS.Suggestion;

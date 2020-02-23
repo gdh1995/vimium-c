@@ -105,6 +105,29 @@ const enum kVisibility {
 }
 type Visibility = kVisibility.hidden | kVisibility.visible;
 
+const enum MatchCacheType {
+  history = 1, bookmarks = 2, tabs = 3,
+}
+const enum TabCacheType {
+  none = 0, currentWindow = 1, onlyNormal = 2,
+}
+
+interface TabCacheData {
+  tabs_: readonly Tab[] | null;
+  type_: TabCacheType;
+}
+
+interface MatchCacheData {
+  history_: readonly HistoryItem[] | null;
+  bookmarks_: readonly Bookmark[] | null;
+}
+
+interface MatchCacheRecord extends MatchCacheData {
+  query_: string[];
+  showThoseInBlockList_: boolean;
+  time_: number;
+}
+
 let queryType: FirstQuery = FirstQuery.nothing, matchType: MatchType = MatchType.plain,
     inNormal: boolean | null = null, autoSelect = false, isForAddressBar = false,
     wantTreeMode = false,
@@ -300,16 +323,21 @@ bookmarkEngine = {
   },
   StartsWithSlash_ (str: string): boolean { return str.charCodeAt(0) === kCharCode.slash; },
   performSearch_ (completerIndex: number): void {
-    const isPath = queryTerms.some(this.StartsWithSlash_);
-    const arr = this.bookmarks_, len = arr.length;
+    const isPath = queryTerms.some(this.StartsWithSlash_),
+    buildCache = !!MatchCacheManager.newMatch_, newCache = [],
+    arr = MatchCacheManager.current_ && MatchCacheManager.current_.bookmarks_ || this.bookmarks_, len = arr.length;
     let results: Array<[number, number]> = [];
     for (let ind = 0; ind < len; ind++) {
       const i = arr[ind];
       const title = isPath ? i.path_ : i.title_;
       if (!RankingUtils.Match2_(i.text_, title)) { continue; }
       if (showThoseInBlocklist || i.visible_) {
+        buildCache && newCache.push(i);
         results.push([-RankingUtils.wordRelevancy_(i.text_, i.title_), ind]);
       }
+    }
+    if (buildCache) {
+      (MatchCacheManager.newMatch_ as NonNullable<typeof MatchCacheManager.newMatch_>).bookmarks_ = newCache;
     }
     matchedTotal += results.length;
     if (queryType === FirstQuery.waitFirst || offset === 0) {
@@ -373,6 +401,7 @@ bookmarkEngine = {
     bookmarkEngine.status_ = BookmarkStatus.inited;
     bookmarkEngine.bookmarks_ = [];
     bookmarkEngine.dirs_ = [];
+    MatchCacheManager.clear_(MatchCacheType.bookmarks);
     tree.forEach(bookmarkEngine.traverseBookmark_, bookmarkEngine);
     const query = bookmarkEngine.currentSearch_;
     bookmarkEngine.currentSearch_ = null;
@@ -421,6 +450,7 @@ bookmarkEngine = {
       bookmarkEngine.bookmarks_ = [];
       bookmarkEngine.dirs_ = [];
       bookmarkEngine._timer = setTimeout(bookmarkEngine.Later_, InnerConsts.bookmarkFurtherDelay);
+      MatchCacheManager.clear_(MatchCacheType.bookmarks);
     }
   },
   Delay_ (this: void): void {
@@ -528,6 +558,8 @@ historyEngine = {
       : (BgUtils_.convertToUrl_(queryTerms[0], null, Urls.WorkType.KeepAll),
         BgUtils_.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl)
     ),
+    noOldCache = !(MatchCacheManager.current_ && MatchCacheManager.current_.history_),
+    buildCache = !!MatchCacheManager.newMatch_, newCache = [],
     results = [-1.1, -1.1], sugs: Suggestion[] = [], Match2 = RankingUtils.Match2_,
     parts0 = RegExpCache.parts_[0];
     let maxNum = maxResults + ((queryType & FirstQuery.QueryTypeMask) === FirstQuery.history ? offset : 0)
@@ -535,10 +567,14 @@ historyEngine = {
     domainToSkip && maxNum++;
     for (j = maxNum; --j; ) { results.push(-1.1, -1.1); }
     maxNum = maxNum * 2 - 2;
+    if (!noOldCache) {
+      history = (MatchCacheManager.current_ as Ensure<MatchCacheData, "history_">).history_;
+    }
     for (const len = history.length; i < len; i++) {
       const item = history[i];
       if (onlyUseTime ? !parts0.test(item.text_) : !Match2(item.text_, item.title_)) { continue; }
       if (!(showThoseInBlocklist || item.visible_)) { continue; }
+      buildCache && newCache.push(item);
       const score = onlyUseTime ? ComputeRecency(item.time_) || /* < 0.0002 */ 1e-16 * item.time_
           : ComputeRelevancy(item.text_, item.title_, item.time_);
       matched++;
@@ -549,6 +585,9 @@ historyEngine = {
       results[j + 2] = score;
       results[j + 3] = i;
       curMinScore = results[maxNum];
+    }
+    if (buildCache) {
+      (MatchCacheManager.newMatch_ as NonNullable<typeof MatchCacheManager.newMatch_>).history_ = newCache;
     }
     matchedTotal += matched;
     if (queryType === FirstQuery.history) {
@@ -568,7 +607,8 @@ historyEngine = {
     Decoder.continueToWork_();
     return sugs;
   },
-  loadTabs_ (this: void, query: CompletersNS.QueryStatus, tabs: chrome.tabs.Tab[]): void {
+  loadTabs_ (this: void, query: CompletersNS.QueryStatus, tabs: readonly Tab[]): void {
+    MatchCacheManager.cacheTabs_(tabs);
     if (query.o) { return; }
     const arr: SafeDict<number> = BgUtils_.safeObj_();
     let count = 0;
@@ -752,7 +792,8 @@ tabEngine = {
     }
     Completers.requireNormalOrIncognito_(this.performSearch_, query);
   },
-  performSearch_ (this: void, query: CompletersNS.QueryStatus, tabs0: chrome.tabs.Tab[]): void {
+  performSearch_ (this: void, query: CompletersNS.QueryStatus, tabs0: readonly Tab[]): void {
+    MatchCacheManager.cacheTabs_(tabs0);
     if (query.o) { return; }
     if (queryType === FirstQuery.waitFirst) { queryType = FirstQuery.tabs; }
     const curTabId = TabRecency_.last_, noFilter = queryTerms.length <= 0,
@@ -765,10 +806,7 @@ tabEngine = {
         let curTab = treeMap[curTabId], pId = curTab ? curTab.openerTabId : 0, pTab = pId ? treeMap[pId] : null,
         start = pTab ? pTab.index : curTab ? curTab.index - 1 : 0, i = pTab ? 0 : (maxTotal / 2) | 0;
         for (; 1 < --i && start > 0 && tabs0[start - 1].openerTabId === pId; start--) { /* empty */ }
-        if (start > 0) {
-          let tabs1 = tabs0.splice(0, start);
-          tabs0 = tabs0.concat(tabs1);
-        }
+        tabs0 = start > 0 ? tabs0.slice(start).concat(tabs0.slice(0, start)) : tabs0;
       }
     }
     const tabs: Array<{t: Tab; s: string}> = [], wndIds: number[] = [];
@@ -1128,6 +1166,7 @@ Completers = {
     if (queryTerms.indexOf("__proto__") >= 0) {
       queryTerms = queryTerms.join(" ").replace(<RegExpG> /(^| )__proto__(?=$| )/g, " __proto_").trimLeft().split(" ");
     }
+    MatchCacheManager.update_();
     queryTerms.sort(Completers.rSortQueryTerms_);
     RegExpCache.buildParts_();
     for (; i < completers.length; i++) {
@@ -1138,31 +1177,37 @@ Completers = {
     return b.length - a.length || (a < b ? -1 : a === b ? 0 : 1);
   },
   requireNormalOrIncognito_ (
-      func: (this: void, query: CompletersNS.QueryStatus, tabs: chrome.tabs.Tab[]) => void
-      , query: CompletersNS.QueryStatus): 1 {
-    const cb = func.bind(null, query);
-    if (Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)) {
-      inNormal = TabRecency_.incognito_ !== IncognitoType.true;
-      return chrome.tabs.query(wantInCurrentWindow ? { currentWindow: true } : {}, cb);
-    }
-    if (inNormal === null) {
-      inNormal = TabRecency_.incognito_ !== IncognitoType.mayFalse
-        ? TabRecency_.incognito_ !== IncognitoType.true
+      func: (this: void, query: CompletersNS.QueryStatus, tabs: readonly Tab[]) => void
+      , query: CompletersNS.QueryStatus, tabs?: readonly Tab[] | null): 1 | void {
+    tabs = tabs || MatchCacheManager.tabs_.tabs_;
+    let wndIncognito = TabRecency_.incognito_;
+    if (Build.MinCVer < BrowserVer.MinNoAbnormalIncognito && Build.BTypes & BrowserType.Chrome && inNormal === null) {
+      wndIncognito = wndIncognito !== IncognitoType.mayFalse ? wndIncognito
         : CurCVer_ >= BrowserVer.MinNoAbnormalIncognito || Settings_.CONST_.DisallowIncognito_
-          || null;
+          || !!MatchCacheManager.tabs_.tabs_
+        ? (TabRecency_.incognito_ = IncognitoType.ensuredFalse) : IncognitoType.mayFalse;
     }
-    if (inNormal !== null) {
-      return chrome.tabs.query(wantInCurrentWindow ? { currentWindow: true } : {}, cb);
-    }
-    return chrome.windows.getCurrent({populate: wantInCurrentWindow}, function (wnd): void {
-      if (query.o) { return; }
-      inNormal = wnd ? !wnd.incognito : true;
-      TabRecency_.incognito_ = inNormal ? IncognitoType.ensuredFalse : IncognitoType.true;
-      if (wantInCurrentWindow) {
-        return cb((wnd as chrome.windows.Window & { tabs: chrome.tabs.Tab[] }).tabs);
+    if (Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
+        || wndIncognito !== IncognitoType.mayFalse) {
+      inNormal = wndIncognito !== IncognitoType.true;
+      const newType = (inNormal ? TabCacheType.onlyNormal : 0) | (wantInCurrentWindow ? TabCacheType.currentWindow : 0);
+      if (MatchCacheManager.tabs_.type_ !== newType) {
+        MatchCacheManager.tabs_ = { tabs_: null, type_: newType };
       }
-      chrome.tabs.query({}, cb);
-    });
+      if (tabs) {
+        func(query, tabs);
+      } else {
+        chrome.tabs.query(wantInCurrentWindow ? { currentWindow: true } : {}, func.bind(null, query));
+      }
+    } else {
+      chrome.windows.getCurrent({populate: wantInCurrentWindow}, function (wnd): void {
+        TabRecency_.incognito_ = inNormal ? IncognitoType.ensuredFalse : IncognitoType.true;
+        if (!query.o) {
+          Completers.requireNormalOrIncognito_(func, query
+              , wantInCurrentWindow ? (wnd as Ensure<chrome.windows.Window, "tabs">).tabs : null);
+        }
+      });
+    }
   },
   next_ (newSugs: Suggestion[], type: Exclude<SugType, SugType.Empty>): void {
     let arr = Completers.suggestions_;
@@ -1458,6 +1503,7 @@ knownCs: CompletersMap & SafeObject = {
         j.time_ = time;
         if (title && title !== j.title_) {
           j.title_ = title;
+          MatchCacheManager.timer_ && MatchCacheManager.clear_(MatchCacheType.history);
           if (omniBlockList) {
             const newVisible = BlockListFilter.TestNotMatched_(url, title);
             if (j.visible_ !== newVisible) {
@@ -1472,10 +1518,12 @@ knownCs: CompletersMap & SafeObject = {
       }
       j.text_ = Decoder.decodeURL_(url, j);
       (HistoryCache.history_ as HistoryItem[]).splice(~i, 0, j);
+      MatchCacheManager.timer_ && MatchCacheManager.clear_(MatchCacheType.history);
     },
     OnVisitRemoved_ (this: void, toRemove: chrome.history.RemovedResult): void {
       Decoder._jobs.length = 0;
       const d = Decoder.dict_;
+      MatchCacheManager.clear_(MatchCacheType.history);
       if (toRemove.allHistory) {
         HistoryCache.history_ = [];
         if (HistoryCache.domains_) {
@@ -1504,7 +1552,7 @@ knownCs: CompletersMap & SafeObject = {
         }
       }
     },
-    trimURLAndTitleWhenTooLong_ (url: string, history: chrome.history.HistoryItem | chrome.tabs.Tab): string {
+    trimURLAndTitleWhenTooLong_ (url: string, history: chrome.history.HistoryItem | Tab): string {
       // should be idempotent
       const colon = url.lastIndexOf(":", 9), hasHost = colon > 0 && url.substr(colon, 3) === "://",
       title = history.title;
@@ -1629,6 +1677,79 @@ knownCs: CompletersMap & SafeObject = {
       }
       omniBlockList = arr.length > 0 ? arr : null;
       (HistoryCache.history_ || bookmarkEngine.bookmarks_) && setTimeout(BlockListFilter.UpdateAll_, 100);
+    }
+  },
+
+  MatchCacheManager = {
+    current_: null as MatchCacheData | null,
+    newMatch_: null as MatchCacheRecord | null,
+    tabs_: { tabs_: null, type_: TabCacheType.none } as TabCacheData,
+    all_: [] as MatchCacheRecord[],
+    timer_: TimerID.None,
+    tabTimer_: TimerID.None,
+    update_ (): void {
+      let q2 = queryTerms, found: MatchCacheRecord | null = null, now = 0, full_query = q2.join(" ");
+      for (let records = MatchCacheManager.all_, ind = full_query ? records.length : 0; 0 <= --ind; ) {
+        if (!records[ind].showThoseInBlockList_ && showThoseInBlocklist) { continue; }
+        let q1 = records[ind].query_, i1 = 0, i2 = 0;
+        for (; i1 < q1.length && i2 < q2.length; i2++) {
+          if (q2[i2].includes(q1[i1])) { i1++; }
+        }
+        if (i1 >= q1.length) {
+          found = records[ind];
+          break;
+        }
+      }
+      MatchCacheManager.current_ = found;
+      if (found && (Settings_.omniPayload_.t < 200 || !found.history_ || found.history_.length > 1000)
+          && (now = perf.now()) - found.time_ < Math.max(300, Settings_.omniPayload_.t * 1.3)) {
+        MatchCacheManager.newMatch_ = found;
+        found.query_ = q2.slice(0);
+      }
+      else if (full_query && (!found || full_query !== found.query_.join(" "))
+          && (full_query.length > 4 || (<RegExpOne> /\w\S|[^\x00-\x80]/).test(full_query))) {
+        MatchCacheManager.newMatch_ = {
+          query_: q2.slice(0), showThoseInBlockList_: showThoseInBlocklist, time_: now || perf.now(),
+          history_: found && found.history_, bookmarks_: found && found.bookmarks_
+        };
+        MatchCacheManager.all_.push(MatchCacheManager.newMatch_);
+        if (!MatchCacheManager.timer_) {
+          MatchCacheManager.timer_ = setInterval(MatchCacheManager._didTimeout, GlobalConsts.MatchCacheLifeTime);
+        }
+      } else {
+        MatchCacheManager.newMatch_ = null;
+      }
+    },
+    _didTimeout (): void {
+      let records = MatchCacheManager.all_, ind = -1,
+      min_time = perf.now() - (GlobalConsts.MatchCacheLifeTime - 17);
+      while (++ind < records.length && records[ind].time_ < min_time) { /* empty */ }
+      ind++;
+      if (ind < records.length) {
+        records.splice(0, ind);
+      } else {
+        records.length = 0;
+        clearInterval(MatchCacheManager.timer_);
+        MatchCacheManager.timer_ = TimerID.None;
+      }
+    },
+    clear_ (type: MatchCacheType): void {
+      for (const record of MatchCacheManager.all_) {
+        type < MatchCacheType.bookmarks ? record.history_ = null
+        : type < MatchCacheType.tabs ? record.bookmarks_ = null
+        : MatchCacheManager.tabs_.tabs_ = null;
+      }
+    },
+    cacheTabs_ (tabs: readonly Tab[] | null): void {
+      if (MatchCacheManager.tabs_.tabs_ && tabs) { return; }
+      if (MatchCacheManager.tabTimer_) {
+        clearTimeout(MatchCacheManager.tabTimer_);
+        MatchCacheManager.tabTimer_ = TimerID.None;
+      }
+      MatchCacheManager.tabs_.tabs_ = tabs;
+      if (tabs) {
+        MatchCacheManager.tabTimer_ = setTimeout(MatchCacheManager.cacheTabs_, GlobalConsts.TabCacheLifeTime, null);
+      }
     }
   },
 
@@ -1791,6 +1912,7 @@ Completion_ = {
     case "tab":
       chrome.tabs.remove(+url, function (): void {
         const err = BgUtils_.runtimeError_();
+        err || MatchCacheManager.cacheTabs_(null);
         callback(!<boolean> <boolean | void> err);
         return err;
       });
@@ -1799,9 +1921,20 @@ Completion_ = {
       {
         const found = !HistoryCache.sorted_ || HistoryCache.binarySearch_(url) >= 0;
         chrome.history.deleteUrl({ url });
+        found && MatchCacheManager.clear_(MatchCacheType.history);
         callback(found);
       }
       break;
+    }
+  },
+  onWndChange_ (): void {
+    if (MatchCacheManager.tabs_.tabs_) {
+      if (MatchCacheManager.tabs_.type_ & TabCacheType.currentWindow
+          || !(MatchCacheManager.tabs_.type_ & TabCacheType.onlyNormal) /* old-in-incognito */
+              !== (TabRecency_.incognito_ === IncognitoType.true)) {
+        // ignore IncognitoType.mayFalse on old Chrome - the line below does not harm
+        MatchCacheManager.cacheTabs_(null);
+      }
     }
   }
 };
@@ -1824,13 +1957,14 @@ if (!Build.NDEBUG) {
   (window as any).knownCs = knownCs;
   (window as any).HistoryCache = HistoryCache;
   (window as any).Decoder = Decoder;
-  (window as any).HistoryCache = HistoryCache;
+  (window as any).BlockListFilter = BlockListFilter;
+  (window as any).MatchCacheManager = MatchCacheManager;
 }
 });
 
 // eslint-disable-next-line no-var
-var Completion_ = { filter_ (a: string, b: CompletersNS.FullOptions, c: CompletersNS.Callback): void {
+var Completion_: CompletersNS.GlobalCompletersConstructor = { filter_ (a, b, c): void {
   BgUtils_.timeout_(210, function () {
     return Completion_.filter_(a, b, c);
   });
-}, removeSug_ (): void { /* empty */ } } as CompletersNS.GlobalCompletersConstructor;
+}, removeSug_: BgUtils_.blank_, onWndChange_: BgUtils_.blank_ };

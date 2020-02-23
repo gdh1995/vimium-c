@@ -446,6 +446,8 @@ declare const enum GlobalConsts {
   MaxHistoryURLLength = 2_000, // to avoid data: URLs and malformed webpages
   TrimmedURLPathLengthWhenURLIsTooLong = 320,
   TrimmedTitleLengthWhenURLIsTooLong = 160,
+  MatchCacheLifeTime = 6000,
+  TabCacheLifeTime = 3000,
   // so that `P` = 89 / 9e6 < 1e-5
   SecretRange = 9e6,
   SecretBase = 1e6,
