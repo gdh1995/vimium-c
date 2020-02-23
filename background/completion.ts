@@ -109,9 +109,8 @@ let queryType: FirstQuery = FirstQuery.nothing, matchType: MatchType = MatchType
     inNormal: boolean | null = null, autoSelect = false, isForAddressBar = false,
     wantTreeMode = false,
     maxChars = 0, maxResults = 0, maxTotal = 0, matchedTotal = 0, offset = 0,
-    queryTerms: string[] = [""], rawQuery = "", rawMore = "",
+    queryTerms: string[] = [""], rawInput = "", rawQuery = "", rawMore = "",
     wantInCurrentWindow = false,
-    hasOmniTypePrefix = false,
     domainToSkip = "",
     allExpectedTypes = SugType.Empty,
     omniBlockList: string[] | null = null, showThoseInBlocklist = true;
@@ -280,7 +279,8 @@ function ComputeRelevancy(this: void, text: string, title: string, lastVisitTime
 }
 function get2ndArg(_s: CompletersNS.CoreSuggestion, score: number): number { return score; }
 
-const bookmarkEngine = {
+const perf = performance,
+bookmarkEngine = {
   bookmarks_: [] as Bookmark[],
   dirs_: [] as string[],
   currentSearch_: null as [CompletersNS.QueryStatus, number] | null,
@@ -411,7 +411,7 @@ const bookmarkEngine = {
   _stamp: 0,
   _expiredUrls: false,
   Later_ (this: void): void {
-    const last = performance.now() - bookmarkEngine._stamp;
+    const last = perf.now() - bookmarkEngine._stamp;
     if (bookmarkEngine.status_ !== BookmarkStatus.notInited) { return; }
     if (last >= InnerConsts.bookmarkBasicDelay || last < -GlobalConsts.ToleranceOfNegativeTimeDelta) {
       bookmarkEngine._timer = bookmarkEngine._stamp = 0;
@@ -424,7 +424,7 @@ const bookmarkEngine = {
     }
   },
   Delay_ (this: void): void {
-    bookmarkEngine._stamp = performance.now();
+    bookmarkEngine._stamp = perf.now();
     if (bookmarkEngine.status_ < BookmarkStatus.inited) { return; }
     bookmarkEngine._timer = setTimeout(bookmarkEngine.Later_, InnerConsts.bookmarkBasicDelay);
     bookmarkEngine.status_ = BookmarkStatus.notInited;
@@ -531,11 +531,10 @@ historyEngine = {
     results = [-1.1, -1.1], sugs: Suggestion[] = [], Match2 = RankingUtils.Match2_,
     parts0 = RegExpCache.parts_[0];
     let maxNum = maxResults + ((queryType & FirstQuery.QueryTypeMask) === FirstQuery.history ? offset : 0)
-      , i = 0, j = 0, matched = 0;
+      , curMinScore = -1.1, i = 0, j = 0, matched = 0;
     domainToSkip && maxNum++;
     for (j = maxNum; --j; ) { results.push(-1.1, -1.1); }
     maxNum = maxNum * 2 - 2;
-    let curMinScore = -1.1;
     for (const len = history.length; i < len; i++) {
       const item = history[i];
       if (onlyUseTime ? !parts0.test(item.text_) : !Match2(item.text_, item.title_)) { continue; }
@@ -940,10 +939,10 @@ searchEngine = {
     case Urls.kEval.plainUrl:
           let pasted = (ret as Urls.BasePlainEvalResult<Urls.kEval.plainUrl> | Urls.PasteEvalResult)[0];
           if (!pasted) { break; }
-          pasted = pasted.length > Consts.MaxCharsInQuery ? pasted.slice(0, Consts.MaxCharsInQuery).trim() : pasted;
           rawQuery = "\\ " + pasted;
           rawMore = "";
-          queryTerms = rawQuery.split(" ");
+          pasted = pasted.length > Consts.MaxCharsInQuery ? pasted.slice(0, Consts.MaxCharsInQuery).trim() : pasted;
+          queryTerms = pasted.split(" ");
           if (queryTerms.length > 1) {
             queryTerms[1] = BgUtils_.fixCharsInUrl_(queryTerms[1]);
           }
@@ -1198,7 +1197,7 @@ Completers = {
 
     const someMatches = suggestions.length > 0,
     newAutoSelect = autoSelect && someMatches, matched = matchedTotal,
-    mayGoToAnotherMode = rawQuery === ":" && !hasOmniTypePrefix,
+    mayGoToAnotherMode = rawInput === ":",
     newMatchType = matchType < MatchType.plain ? (matchType === MatchType.searching_
           && !someMatches ? MatchType.searchWanted : MatchType.Default)
         : !showThoseInBlocklist ? MatchType.Default
@@ -1214,14 +1213,14 @@ Completers = {
   cleanGlobals_ (): void {
     Completers.mostRecentQuery_ = Completers.callback_ = inNormal = null;
     queryTerms = [];
-    rawQuery = rawMore = domainToSkip = "";
+    rawInput = rawQuery = rawMore = domainToSkip = "";
     RegExpCache.parts_ = null as never;
     RankingUtils.maxScoreP_ = RankingEnums.maximumScore;
     RankingUtils.timeAgo_ = matchType =
     Completers.sugTypes_ =
     maxResults = maxTotal = matchedTotal = maxChars = 0;
     queryType = FirstQuery.nothing;
-    autoSelect = isForAddressBar = hasOmniTypePrefix = false;
+    autoSelect = isForAddressBar = false;
     wantInCurrentWindow = false;
     showThoseInBlocklist = true;
   },
@@ -1739,7 +1738,7 @@ Completion_ = {
   filter_ (this: void, query: string, options: CompletersNS.FullOptions
       , callback: CompletersNS.Callback): void {
     autoSelect = false;
-    rawQuery = (query = query.trim()) && query.replace(BgUtils_.spacesRe_, " ");
+    rawInput = rawQuery = (query = query.trim()) && query.replace(BgUtils_.spacesRe_, " ");
     Completers.getOffset_();
     query = rawQuery;
     queryTerms = query
@@ -1767,7 +1766,6 @@ Completion_ = {
        wantInCurrentWindow = !!(flags & CompletersNS.QueryFlags.TabInCurrentWindow);
     }
     autoSelect = arr != null && arr.length === 1;
-    hasOmniTypePrefix = false;
     if (str.length === 2 && str[0] === ":") {
       str = str[1];
       arr = str === "b" ? knownCs.bookm : str === "h" ? knownCs.history
@@ -1776,7 +1774,6 @@ Completion_ = {
         : str === "d" ? knownCs.domain : str === "s" ? knownCs.search : str === "o" ? knownCs.omni : null;
       if (arr) {
         autoSelect = arr.length === 1;
-        hasOmniTypePrefix = true;
         queryTerms.shift();
         rawQuery = rawQuery.slice(3);
         if (expectedTypes !== SugType.Empty) { arr = null; }

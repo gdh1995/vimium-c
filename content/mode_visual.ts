@@ -248,7 +248,7 @@ var VVisual = {
   /** @safe_di requires selection is None on called, and may change `selection_` */
   establishInitialSelectionAnchor_ (sr?: ShadowRoot | null): boolean {
     if (!(Build.NDEBUG || VVisual.selection_ && VVisual.selection_.type === "None")) {
-      console.log('Assert error: VVisual.selection_?.type === "None"');
+      console.log('Assert error: VVisual.selection_ && VVisual.selection_.type === "None"');
     }
     let node: Text | null, str: string | undefined, offset: number, D = VDom;
     if (!D.isHTML_()) { return true; }
