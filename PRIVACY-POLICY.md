@@ -10,7 +10,8 @@ advanced `Synchronize settings with your current account for this browser` setti
 
 All information handled by Vimium C, including history, bookmarks, page titles and URLs, will only be used locally.
 
-Your search history in `Vomnibar` and `Link Hints` modes will be purged immediately after use. Your keyword searches --
+Your search history in `Link Hints` modes will be purged immediately after use,
+and queries in `Vomnibar` and browser omnibox will be cleared in less than 20 seconds. Your keyword searches --
 entered when using `FindMode` -- are stored but never included in synced settings. Please note that your `FindMode`
 search keywords on Incognito windows are stored temporarily, and will remain in memory, until all of your Incognito
 windows have been destroyed.
