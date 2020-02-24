@@ -2158,7 +2158,7 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     scrollTo(x: number, y: number): void;
     scrollBy(options?: ScrollToOptions): void;
     scrollBy(x: number, y: number): void;
-    insertAdjacentElement(position: string, insertedElement: Element): Element | null;
+    insertAdjacentElement(position: 'afterbegin' | 'beforeend', insertedElement: Element): Element | null;
     insertAdjacentHTML(where: 'afterbegin' | 'beforeend', html: string): void;
     insertAdjacentText(where: 'afterbegin' | 'beforeend', text: string): void;
     createShadowRoot?(): ShadowRoot;

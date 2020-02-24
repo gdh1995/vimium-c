@@ -2,7 +2,7 @@
   "compilerOptions": {
     "listEmittedFiles": true,
     "listFiles": false,
-    "outDir": "./dist",
+    "outDir": ".",
     "skipLibCheck": true,
     "sourceMap": true,
     "target": "es5",

@@ -517,7 +517,6 @@ gulp.task("locally", function(done) {
   }
   JSDEST = process.env.LOCAL_DIST || ".";
   /[\/\\]$/.test(JSDEST) && (JSDEST = JSDEST.slice(0, -1));
-  compilerOptions.outDir = JSDEST;
   enableSourceMap = false;
   willListEmittedFiles = true;
   done();
@@ -880,16 +879,21 @@ function postUglify(file, allPaths) {
     toRemovedGlobal = new RegExp(`(const|let|var|,)\\s?(${toRemovedGlobal})[,;]`, "g");
   }
   if (toRemovedGlobal) {
+    const oldChanged = changed;
     get();
     let n = 0, remove = str => str[0] === "," ? str.slice(-1) : str.slice(-1) === "," ? str.split(/\s/)[0] + " " : "";
+    let s1 = contents.slice(0, 1000);
     for (; ; n++) {
-      let s1 = contents.slice(0, 1000), s2 = s1.replace(toRemovedGlobal, remove);
+      let s2 = s1.replace(toRemovedGlobal, remove);
       if (s2.length === s1.length) {
         break;
       }
-      contents = s2 + contents.slice(1000);
+      s1 = s2;
     }
-    changed = changed || n > 0;
+    if (n > 0) {
+      contents = s1 + contents.slice(1000);
+    }
+    changed = oldChanged || n > 0;
   }
   if (allPathStr.indexOf("viewer") >= 0) {
     get();
@@ -1057,10 +1061,9 @@ function loadValidCompilerOptions(tsConfigFile, keepCustomOptions) {
   if (oldTS && !opts.typescript) {
     opts.typescript = oldTS;
   }
-  DEST = opts.outDir;
-  DEST = process.env.LOCAL_DIST || DEST;
+  DEST = process.env.LOCAL_DIST || "";
   if (!DEST || DEST === ".") {
-    DEST = opts.outDir = "dist";
+    DEST = "dist";
   }
   JSDEST = osPath.join(DEST, ".build");
   enableSourceMap = !!opts.sourceMap && envSourceMap;
@@ -1325,7 +1328,7 @@ function gulpMerge() {
 function patchExtendClick(source) {
   if (locally && envLegacy) { return source; }
   if (!(getBuildItem("BTypes") & ~BrowserType.Firefox)) { return source; }
-  _patchExtendClick(source, locally, logger);
+  return _patchExtendClick(source, locally, logger);
 }
 
 function getGulpUglify() {

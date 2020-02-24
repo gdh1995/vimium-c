@@ -100,7 +100,7 @@ if (VDom && VimiumInjector === undefined) {
         || !(t instanceof Element)) { return; }
     // its unhooking is delayed, so here may no VKey
     stopEvent(event);
-    if (t.getAttribute(attr) !== "" + secret) { return; }
+    if (t.localName !== "div" || t.getAttribute(attr) !== "" + secret) { return; }
     setupEventListener(0, kHookRand, hook, 1);
     hook = null as never;
     if (box == null) {
@@ -261,8 +261,7 @@ newFuncToString = function (a: FUNC, args: IArguments): string {
     str = call(_apply as (this: (this: FUNC, ...args: any[]) => string, self: FUNC, args: IArguments) => string,
               _toString, replaced || a, args);
     detectDisabled && str === detectDisabled && executeCmd();
-    return replaced || str !== sAEL && str !== sToStr
-        ? call(StringIndexOf, str, kMarkToVerify) > 0 ? call(_toString, noop) : str
+    return replaced || str !== sAEL && str !== sToStr ? str
         : (
           noAbnormalVerifyingFound && (a as PublicFunction)(kMarkToVerify, verifier),
           a === anotherAEL ? call(_toString, _listen) : a === anotherToStr ? call(_toString, _toString)
@@ -544,7 +543,7 @@ _listen(kOnDomReady, doInit, !0);
   script.type = "text/javascript";
   script.dataset.vimium = secret as number | string as string;
   // todo:
-  docEl ? script.insertBefore.call(docEl, script, docEl.firstChild) : Doc.appendChild(script);
+  docEl ? script.insertAdjacentElement.call(docEl, "afterbegin", script) : Doc.appendChild(script);
   script.dataset.vimium = "";
   if (!(Build.NDEBUG
         || BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage <= BrowserVer.NoRAFOrRICOnSandboxedPage)) {
