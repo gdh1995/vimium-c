@@ -24,7 +24,7 @@ if (VDom && VimiumInjector === undefined) {
     TimeoutOf3rdPartyFunctionsCache = 1e4, // 10 seconds
     kSecretAttr = "data-vimium",
 
-    kVOnClick = "VimiumC",
+    kVOnClick = "VimiumCClickable",
     kHook = "VimiumC",
     kCmd = "VC",
   }
@@ -50,7 +50,7 @@ if (VDom && VimiumInjector === undefined) {
   }
 
   const kVOnClick1 = InnerConsts.kVOnClick
-    , kHookRand = (InnerConsts.kHook + BuildStr.RandomName0) as InnerConsts.kHook
+    , kHookRand = (InnerConsts.kHook + BuildStr.RandomClick) as InnerConsts.kHook
     , setupEventListener = VKey.SetupEventListener_, stopEvent = VKey.Stop_
     , appInfo = Build.BTypes & BrowserType.Chrome
         && (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
@@ -246,7 +246,7 @@ listen = _call.bind<(this: (this: EventTarget,
     ) => 42 | void>(_listen),
 rEL = removeEventListener, clearTimeout_ = clearTimeout,
 kVOnClick = InnerConsts.kVOnClick,
-kEventName2 = kVOnClick + BuildStr.RandomName2,
+kEventName2 = kVOnClick + BuildStr.RandomClick,
 kOnDomReady = "DOMContentLoaded", kFunc = "function",
 StringIndexOf = kOnDomReady.indexOf, StringSubstr = kOnDomReady.substr,
 decryptFromVerifier = (func: InnerVerifier | unknown): string => {
@@ -277,9 +277,7 @@ hooks = {
     const args = arguments;
     if (args.length === 2 && args[0] === kMarkToVerify) {
       // randomize the body of this function
-      (args[1] as InnerVerifier)(
-          decryptFromVerifier(args[1] || BuildStr.RandomName3_public),
-          verifier);
+      (args[1] as InnerVerifier)(decryptFromVerifier(args[1]), verifier);
     }
     return newFuncToString(this, args);
   },
@@ -287,9 +285,7 @@ hooks = {
       , listener: EventListenerOrEventListenerObject): void {
     const a = this, args = arguments, len = args.length;
     if (type === kMarkToVerify) {
-      (listener as any as InnerVerifier)(
-        decryptFromVerifier(listener || BuildStr.RandomName3_public),
-        verifier);
+      (listener as any as InnerVerifier)(decryptFromVerifier(listener), verifier);
       return;
     }
     len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2])
@@ -323,7 +319,7 @@ let doInit = function (this: void): void {
   if (!docEl2) { return executeCmd(); }
   call(Attr, el, key, "" + sec);
   listen(el, InnerConsts.kCmd, executeCmd, !0);
-  dispatch(window, new DE((InnerConsts.kHook + BuildStr.RandomName0) as InnerConsts.kHook, {relatedTarget: el}));
+  dispatch(window, new DE((InnerConsts.kHook + BuildStr.RandomClick) as InnerConsts.kHook, {relatedTarget: el}));
   if (call(HasAttr, el, key)) {
     executeCmd();
   } else {
@@ -521,7 +517,7 @@ FP.toString = myToStr;
 _listen(kOnDomReady, doInit, !0);
 
       }).toString() + ")();" /** need "toString()": {@see Gulpfile.js#patchExtendClick} */
-      : 'document.currentScript.dataset.vimium=""';
+      : 'document.currentScript.remove()';
 
 // #endregion injected code
 
@@ -549,7 +545,7 @@ _listen(kOnDomReady, doInit, !0);
   script.dataset.vimium = secret as number | string as string;
   // todo:
   docEl ? script.insertBefore.call(docEl, script, docEl.firstChild) : Doc.appendChild(script);
-  isFirstTime ? (script.dataset.vimium = "") : script.remove();
+  script.dataset.vimium = "";
   if (!(Build.NDEBUG
         || BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage <= BrowserVer.NoRAFOrRICOnSandboxedPage)) {
     console.log("Assert error: Warning: may no timer function on sandbox page!");
@@ -561,7 +557,7 @@ _listen(kOnDomReady, doInit, !0);
   }
   // not check MinEnsuredNewScriptsFromExtensionOnSandboxedPage
   // for the case JavaScript is disabled in CS: https://github.com/philc/vimium/issues/3187
-  if (isFirstTime ? !script.parentNode : !script.dataset.vimium) { // It succeeded to hook.
+  if (!script.parentNode) { // It succeeded to hook.
     VDom.OnDocLoaded_(function (): void {
       // only for new versions of Chrome (and Edge);
       // CSP would block a <script> before MinEnsuredNewScriptsFromExtensionOnSandboxedPage
