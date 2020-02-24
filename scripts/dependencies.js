@@ -324,7 +324,7 @@ function patchExtendClick(source, locally, logger) {
     }
     source = "function(" + source;
     source = prefix + source + ")();'" + suffix;
-  } else if (! /= ?'"use strict";\(function\b/.test(source)) {
+  } else if (! (/= ?'"use strict";\(function\b/).test(source)) {
     (logger || console).error("Error: can not wrap extend_click scripts!!!");
   }
   return source;

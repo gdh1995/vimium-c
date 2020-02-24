@@ -39,7 +39,7 @@ var gNoComments = process.env.NO_COMMENT === "1";
 var disableErrors = process.env.SHOW_ERRORS !== "1" && (process.env.SHOW_ERRORS === "0" || !compileInBatch);
 var ignoreHeaderChanges = process.env.IGNORE_HEADER_CHANGES !== "0";
 var manifest = readJSON("manifest.json", true);
-var compilerOptions = loadValidCompilerOptions("scripts/gulp.tsconfig.json", false);
+var compilerOptions = loadValidCompilerOptions("scripts/gulp.tsconfig.json");
 var has_dialog_ui = manifest.options_ui != null && manifest.options_ui.open_in_tab !== true;
 var jsmin_status = [false, false, false];
 var buildOptionCache = Object.create(null);
@@ -489,7 +489,7 @@ gulp.task("locally", function(done) {
   if (locally) { return done(); }
   locally = true;
   gTypescript = null;
-  compilerOptions = loadValidCompilerOptions("tsconfig.json", true);
+  compilerOptions = loadValidCompilerOptions("tsconfig.json");
   createBuildConfigCache();
   var old_has_polyfill = has_polyfill;
   has_polyfill = getBuildItem("MinCVer") < 44 /* MinSafe$String$$StartsWith */;
@@ -1031,7 +1031,7 @@ function readTSConfig(tsConfigFile, throwError) {
   return config;
 }
 
-function loadValidCompilerOptions(tsConfigFile, keepCustomOptions) {
+function loadValidCompilerOptions(tsConfigFile) {
   var tsconfig = readTSConfig(tsConfigFile, true);
   if (tsconfig.build) {
     buildConfig = tsconfig.build;
@@ -1372,8 +1372,18 @@ function getNameCacheFilePath(path) {
 
 function saveNameCacheIfNeeded(key, nameCache) {
   if (nameCache && cacheNames) {
-    nameCache.timestamp = Date.now(); // safe for (ignore) time changes
-    fs.writeFileSync(getNameCacheFilePath(key), JSON.stringify(nameCache));
+    nameCache.timestamp = 0;
+    const path = getNameCacheFilePath(key);
+    if (fs.existsSync(path)) {
+      const oldCache = readJSON(path);
+      oldCache.timestamp = 0;
+      if (JSON.stringify(oldCache) === JSON.stringify(nameCache)) {
+        print("NameCache for " + key.replace("min/", "") + " is unchanged");
+        return;
+      }
+    }
+    nameCache.timestamp = Date.now();
+    fs.writeFileSync(path, JSON.stringify(nameCache));
     print("Saved nameCache for " + key.replace("min/", ""));
   }
 }
