@@ -925,7 +925,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     for (let re1 = <RegExpOne> /\s+/, _len = links.length - 1; 0 <= --_len; ) {
       const link = links[_len];
       if (link.contains(links[_len + 1]) || (s = link.innerText).length > totalMax) { continue; }
-      if (s = s || (ch = (link as HTMLInputElement).value) && ch.toLowerCase && ch || link.title) {
+      if (s = s || (ch = (link as HTMLInputElement).value) && ch.toLowerCase && ch
+              || link.getAttribute("aria-label") || link.title) {
         if (s.length > totalMax) { continue; }
         s = s.toLowerCase();
         for (i = 0; i < count; i++) {
