@@ -108,28 +108,28 @@ var VCui = {
   adjust_ (this: void, event?: Event | /* enable */ 1 | /* disable */ 2): void {
     // Before Firefox 64, the mozFullscreenChangeEvent.target is document
     // so here should only use `VDom.fullscreenEl_unsafe_`
-    const UI = VCui, el: Element | null = VDom.fullscreenEl_unsafe_(),
-    box = UI.box_ as NonNullable<typeof UI.box_>,
-    el2 = el && !(UI.root_ as Node).contains(el) ? el : VDom.docEl_() as Element;
+    const vCui = VCui, el: Element | null = VDom.fullscreenEl_unsafe_(),
+    box = vCui.box_ as NonNullable<typeof vCui.box_>,
+    el2 = el && !(vCui.root_ as Node).contains(el) ? el : VDom.docEl_() as Element;
     // Chrome also always remove node from its parent since 58 (just like Firefox), which meets the specification
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
     //  -> #concept-node-append -> #concept-node-pre-insert -> #concept-node-adopt -> step 2
     event === 2 ? box.remove() : el2 !== box.parentNode &&
     (Build.BTypes & ~BrowserType.Firefox ? box.appendChild.call(el2, box) : el2.appendChild(box));
-    const sin = UI.styleIn_, s = sin && (sin as HTMLStyleElement).sheet;
+    const sin = vCui.styleIn_, s = sin && (sin as HTMLStyleElement).sheet;
     s && (s.disabled = false);
     if (el || event) {
       const removeEL = !el || event === 2, name = "fullscreenchange";
       if (Build.BTypes & BrowserType.Chrome
           && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)) {
-        VKey.SetupEventListener_(0, "webkit" + name, UI.adjust_, removeEL);
+        VKey.SetupEventListener_(0, "webkit" + name, vCui.adjust_, removeEL);
       } else if (!(Build.BTypes & ~BrowserType.Firefox)
           || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox) {
-        VKey.SetupEventListener_(0, "moz" + name, UI.adjust_, removeEL);
+        VKey.SetupEventListener_(0, "moz" + name, vCui.adjust_, removeEL);
       }
       if (!(Build.BTypes & BrowserType.Chrome)
           || VDom.cache_.v >= BrowserVer.MinMaybe$Document$$fullscreenElement) {
-        VKey.SetupEventListener_(0, name, UI.adjust_, removeEL);
+        VKey.SetupEventListener_(0, name, vCui.adjust_, removeEL);
       }
     }
   },
@@ -213,10 +213,9 @@ var VCui = {
     if (!(  (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             && !(Build.BTypes & ~BrowserType.ChromeOrFirefox) )) {
-      const SR = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-          ? window.ShadowRoot || HTMLElement.prototype.webkitCreateShadowRoot : 0;
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-          ? typeof SR != "function" || kTagName in SR : typeof ShadowRoot != "function") {
+          && VDom.cache_.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+          ? Image.prototype.webkitCreateShadowRoot : typeof ShadowRoot != "function") {
         return [sel, null];
       }
     }

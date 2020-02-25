@@ -148,7 +148,45 @@ declare namespace VisualModeNS {
     __mask = -1,
   }
   type ForwardDir = kDir.left | kDir.right;
+  interface KeyMap extends Dict<VisualAction | Dict<VisualAction>> {}
+  interface SafeKeyMap extends KeyMap, SafeObject {
+    [key: string]: VisualAction | SafeDict<VisualAction> | undefined;
+  }
 }
+declare const enum VisualAction {
+  MinNotNoop = 0, Noop = MinNotNoop - 1,
+
+  MinWrapSelectionModify = MinNotNoop,
+  char = VisualModeNS.G.character << 1, line = VisualModeNS.G.line << 1,
+  lineBoundary = VisualModeNS.G.lineBoundary << 1, paragraph = VisualModeNS.G.paragraph << 1,
+  sentence = VisualModeNS.G.sentence << 1, vimWord = VisualModeNS.VimG.vimWord << 1,
+  word = VisualModeNS.G.word << 1, documentBoundary = VisualModeNS.G.documentBoundary << 1,
+  dec = VisualModeNS.kDir.left, inc = VisualModeNS.kDir.right,
+
+  MinNotWrapSelectionModify = 20,
+  Reverse = MinNotWrapSelectionModify,
+
+  MaxNotLexical = MinNotWrapSelectionModify,
+  LexicalSentence = MaxNotLexical + VisualModeNS.G.sentence,
+  LexicalWord = MaxNotLexical + VisualModeNS.G.word,
+
+  MaxNotYank = 30, Yank, YankLine, YankWithoutExit, YankAndOpen, YankAndNewTab,
+
+  MaxNotFind = 45, PerformFind, FindPrevious = PerformFind | dec, FindNext = PerformFind | inc, HighlightRange,
+
+  MaxNotNewMode = 50,
+  VisualMode = MaxNotNewMode + VisualModeNS.Mode.Visual, VisualLineMode = MaxNotNewMode + VisualModeNS.Mode.Line,
+  CaretMode = MaxNotNewMode + VisualModeNS.Mode.Caret, EmbeddedFindMode = CaretMode + 2,
+
+  MaxNotScroll = 60, ScrollUp, ScrollDown,
+}
+
+declare const enum TimerID {
+  None = 0,
+  Valid = 42,
+  Others = 43,
+}
+
 declare const enum KeyAction {
   cmd = 0, count = 1,
   __mask = -1,

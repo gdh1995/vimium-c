@@ -13,9 +13,10 @@ declare namespace VomnibarNS {
   type BaseFullOptions = CmdOptions[kFgCmd.vomnibar] & VomnibarNS.BaseFgOptions & Partial<ContentOptions>
       & SafeObject & OptionsWithForce;
   interface FullOptions extends BaseFullOptions {
-    /** top URL */ T?: string;
+    /** top URL */ u?: string;
     /** request Name */ N: VomnibarNS.kCReq.activate;
   }
+  type a = keyof FullOptions;
 }
 // eslint-disable-next-line no-var
 declare var VData: VDataTy;
@@ -51,8 +52,8 @@ var VOmni = {
     }
     a._timer = TimerID.None;
     let url = options.url, isTop = top === window;
-    if (isTop || !options.T || typeof options.T !== "string") {
-      options.T = location.href;
+    if (isTop || !options.u || typeof options.u !== "string") {
+      options.u = location.href;
     }
     if (url === true || count !== 1 && url == null) {
       // update options.url to string, so that this block can only run once per command
@@ -114,12 +115,12 @@ var VOmni = {
     VCui.setupExitOnClick_(0, options.exitOnClick ? a.hide_ : 0);
     let upper = 0;
     if (url != null) {
-      url = options.url = url || options.T;
+      url = options.url = url || options.u;
       upper = count > 1 ? 1 - count : count < 0 ? -count : 0;
     }
     options.k = 0; options.v = options.i = "";
     options.N = VomnibarNS.kCReq.activate;
-    options.T = "";
+    options.u = "";
     if (!url || !url.includes("://")) {
       options.p = "";
       return a.setOptions_(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront);
@@ -127,10 +128,7 @@ var VOmni = {
     if (VimiumInjector === null && (window as Window & {VData?: Element | VDataTy}).VData) {
       url = VData.getOmni_(url);
     }
-    VApi.send_(kFgReq.parseSearchUrl, {
-      t: options.trailingSlash, s: options.trailing_slash,
-      p: upper, u: url
-    }, function (search): void {
+    VApi.send_(kFgReq.parseSearchUrl, { t: options.s, p: upper, u: url }, function (search): void {
       options.p = search;
       if (search != null) { options.url = ""; }
       VOmni.setOptions_(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront);

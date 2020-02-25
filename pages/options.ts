@@ -1027,7 +1027,7 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
     }
     styleDebug.textContent = isFind ? css2.find || ""
       : (isSame ? "" : "\n.transparent { opacity: 1; }\n") + (css2.omni && css2.omni + "\n" || "");
-    const UI = window.VCui, findCss = UI && UI.findCss_;
+    const vCui = window.VCui, findCss = vCui && vCui.findCss_;
     if (isFind && findCss) {
       /** Note: should keep the same as {@link ../background/settings.ts#Settings_.updateHooks_.userDefinedCss } */
       let css = localStorage.getItem("findCSS") as string, defaultLen = parseInt(css, 10);

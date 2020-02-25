@@ -513,7 +513,32 @@ CommandsData_: CommandsDataTy = CommandsData_ as never || {
   builtinKeys_: null,
   keyFSM_: null as never as KeyFSM,
   shortcutRegistry_: null as never as ShortcutInfoMap,
-  mappedKeyRegistry_: null as SafeDict<string> | null
+  mappedKeyRegistry_: null as SafeDict<string> | null,
+  visualKeys_: {
+    l: VisualAction.char | VisualAction.inc, h: VisualAction.char | VisualAction.dec,
+    j: VisualAction.line | VisualAction.inc, k: VisualAction.line | VisualAction.dec,
+    $: VisualAction.lineBoundary | VisualAction.inc, 0: VisualAction.lineBoundary | VisualAction.dec,
+    "}": VisualAction.paragraph | VisualAction.inc, "{": VisualAction.paragraph | VisualAction.dec,
+    ")": VisualAction.sentence | VisualAction.inc, "(": VisualAction.sentence | VisualAction.dec,
+    w: VisualAction.vimWord | VisualAction.inc, /* same as w */ W: VisualAction.vimWord | VisualAction.inc,
+    e: VisualAction.word | VisualAction.inc, b: VisualAction.word | VisualAction.dec,
+    /* same as b */ B: VisualAction.word | VisualAction.dec,
+    G: VisualAction.documentBoundary | VisualAction.inc, g: { g: VisualAction.documentBoundary | VisualAction.dec },
+  
+    o: VisualAction.Reverse, a: { w: VisualAction.LexicalWord, s: VisualAction.LexicalSentence },
+  
+    y: VisualAction.Yank, Y: VisualAction.YankLine, C: VisualAction.YankWithoutExit,
+    p: VisualAction.YankAndOpen, P: VisualAction.YankAndNewTab,
+  
+    n: VisualAction.FindNext, N: VisualAction.FindPrevious,
+    f1: VisualAction.HighlightRange, "a-f1": VisualAction.HighlightRange,
+  
+    v: VisualAction.VisualMode, V: VisualAction.VisualLineMode, c: VisualAction.CaretMode,
+    "/": VisualAction.EmbeddedFindMode,
+  
+    "c-e": VisualAction.ScrollDown, "c-y": VisualAction.ScrollUp,
+    "c-down": VisualAction.ScrollDown, "c-up": VisualAction.ScrollUp
+  } as { [key: string]: VisualAction | { [key: string]: VisualAction } } as VisualModeNS.KeyMap
 };
 
 if (!Build.NDEBUG) {

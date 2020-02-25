@@ -337,16 +337,17 @@ var VHints = {
     if (a && a.isActive_) { a.promptTimer_ = TimerID.None; a.setMode_(a.mode_); }
   },
   getPreciseChildRect_ (frameEl: HTMLIFrameElement | HTMLElement, view: Rect): Rect | null {
-    const max = Math.max, min = Math.min, kVisible = "visible", D = VDom, brect = D.getBoundingClientRect_(frameEl),
+    const max = Math.max, min = Math.min, kVisible = "visible", vDom = VDom,
+    brect = vDom.getBoundingClientRect_(frameEl),
     docEl = VDom.docEl_(), body = document.body, inBody = !!body && VDom.IsInDOM_(frameEl, body, 1),
-    zoom = (Build.BTypes & BrowserType.Chrome ? D.docZoom_ * (inBody ? D.bZoom_ : 1) : 1
-        ) / D.dScale_ / (inBody ? D.bScale_ : 1);
+    zoom = (Build.BTypes & BrowserType.Chrome ? vDom.docZoom_ * (inBody ? vDom.bZoom_ : 1) : 1
+        ) / vDom.dScale_ / (inBody ? vDom.bScale_ : 1);
     let x0 = min(view.l, brect.left), y0 = min(view.t, brect.top), l = x0, t = y0, r = view.r, b = view.b;
-    for (let el: Element | null = frameEl; el = D.GetParent_(el, PNType.RevealSlotAndGotoParent); ) {
-      const st = D.getComputedStyle_(el);
+    for (let el: Element | null = frameEl; el = vDom.GetParent_(el, PNType.RevealSlotAndGotoParent); ) {
+      const st = vDom.getComputedStyle_(el);
       if (st.overflow !== kVisible) {
-        let outer = D.getBoundingClientRect_(el), hx = st.overflowX !== kVisible, hy = st.overflowY !== kVisible,
-        scale = el !== docEl && inBody ? D.dScale_ * D.bScale_ : D.dScale_;
+        let outer = vDom.getBoundingClientRect_(el), hx = st.overflowX !== kVisible, hy = st.overflowY !== kVisible,
+        scale = el !== docEl && inBody ? vDom.dScale_ * vDom.bScale_ : vDom.dScale_;
         hx && (l = max(l, outer.left), r = l + min(r - l, outer.width , hy ? el.clientWidth * scale : r));
         hy && (t = max(t, outer.top ), b = t + min(b - t, outer.height, hx ? el.clientHeight * scale : b));
       }
@@ -703,26 +704,26 @@ var VHints = {
     if (!Build.NDEBUG && Build.BTypes & ~BrowserType.Firefox && selector === "*") {
       selector = VHints.kSafeAllSelector_; // for easier debugging
     }
-    const a = VHints, matchAll = selector === a.kSafeAllSelector_, D = document,
+    const a = VHints, matchAll = selector === a.kSafeAllSelector_, doc = document,
     output: Hint[] | SafeHTMLElement[] = [],
-    d = VDom, uiRoot = VCui.root_,
-    Sc = VSc,
+    vDom = VDom, uiRoot = VCui.root_,
+    vSc = VSc,
     wantClickable = filter === a.GetClickable_,
     isInAnElement = !Build.NDEBUG && !!wholeDoc && (wholeDoc as unknown) instanceof Element,
     box = !wholeDoc && VDom.fullscreenEl_unsafe_()
         || !Build.NDEBUG && isInAnElement && wholeDoc as unknown as Element
-        || D,
-    isD = box === D,
+        || doc,
+    isD = box === doc,
     querySelectorAll = Build.BTypes & ~BrowserType.Firefox
-      ? /* just smaller code */ (isD ? D : Element.prototype).querySelectorAll : box.querySelectorAll;
+      ? /* just smaller code */ (isD ? doc : Element.prototype).querySelectorAll : box.querySelectorAll;
     let list: HintsNS.HintSources | null = querySelectorAll.call(box, selector) as NodeListOf<SafeElement>;
-    wantClickable && Sc.getScale_();
+    wantClickable && vSc.getScale_();
     if (matchAll) {
       if (a.ngEnabled_ === null) {
-        a.ngEnabled_ = !!d.querySelector_(".ng-scope");
+        a.ngEnabled_ = !!vDom.querySelector_(".ng-scope");
       }
       if (a.jsaEnabled_ === null) {
-        a.jsaEnabled_ = !!d.querySelector_("[jsaction]");
+        a.jsaEnabled_ = !!vDom.querySelector_("[jsaction]");
       }
     }
     if (!matchAll) {
@@ -783,20 +784,20 @@ var VHints = {
         && (Build.NDEBUG && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
           || uiRoot.mode === "closed")
         ) {
-      const bz = d.bZoom_, notHookScroll = Sc.scrolled_ === 0;
+      const bz = vDom.bZoom_, notHookScroll = vSc.scrolled_ === 0;
       if (bz !== 1 && isD) {
-        d.bZoom_ = 1;
-        d.prepareCrop_(1);
+        vDom.bZoom_ = 1;
+        vDom.prepareCrop_(1);
       }
       for (const el of (<ShadowRoot> uiRoot).querySelectorAll(selector)) {
         filter(output, el as SafeHTMLElement);
       }
-      d.bZoom_ = bz;
+      vDom.bZoom_ = bz;
       if (notHookScroll) {
-        Sc.scrolled_ = 0;
+        vSc.scrolled_ = 0;
       }
     }
-    Sc.scrolled_ === 1 && Sc.suppressScroll_();
+    vSc.scrolled_ === 1 && vSc.suppressScroll_();
     if (wantClickable) { a.deduplicate_(output as Hint[]); }
     if (a.frameNested_ === null) { /* empty */ }
     else if (wantClickable) {
@@ -950,22 +951,22 @@ var VHints = {
   } as (c: Element, p: Element, shouldBeSingleChild: BOOL | boolean) => boolean,
   filterOutNonReachable_ (list: Hint[]): void {
     if (!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && VOther & BrowserType.Edge) { return; }
-    const D = VDom;
-    if (!D.cache_.e) { return; }
+    const vDom = VDom;
+    if (!vDom.cache_.e) { return; }
     if (Build.BTypes & BrowserType.Chrome && (Build.MinCVer < BrowserVer.Min$Node$$getRootNode
           || Build.MinCVer < BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint)
-        && D.cache_.v < (BrowserVer.Min$Node$$getRootNode > BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint
+        && vDom.cache_.v < (BrowserVer.Min$Node$$getRootNode > BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint
             ? BrowserVer.Min$Node$$getRootNode : BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint)) {
       return;
     }
-    if (Build.BTypes & BrowserType.Chrome && D.isDocZoomStrange_ && D.docZoom_ - 1) {
+    if (Build.BTypes & BrowserType.Chrome && vDom.isDocZoomStrange_ && vDom.docZoom_ - 1) {
       return;
     }
     let i = list.length, el: SafeElement, root: Document | ShadowRoot, localName: string,
     fromPoint: Element | null | undefined, temp: Element | null, index2 = 0;
-    const zoom = Build.BTypes & BrowserType.Chrome ? D.docZoom_ * D.bZoom_ : 1,
+    const zoom = Build.BTypes & BrowserType.Chrome ? vDom.docZoom_ * vDom.bZoom_ : 1,
     zoomD2 = Build.BTypes & BrowserType.Chrome ? zoom / 2 : 0.5,
-    doc = document, body = doc.body, docEl = D.docEl_(),
+    doc = document, body = doc.body, docEl = vDom.docEl_(),
     // note: exclude the case of `fromPoint.contains(el)`, to exclude invisible items in lists
     does_hit: (x: number, y: number) => boolean = !(Build.BTypes & ~BrowserType.Firefox)
         || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
@@ -991,7 +992,7 @@ var VHints = {
       }
       if (nodeType === kNode.DOCUMENT_FRAGMENT_NODE
           && (temp = el.lastElementChild as Element | null)
-          && D.htmlTag_(temp) === "slot"
+          && vDom.htmlTag_(temp) === "slot"
           && (root as ShadowRoot).host.contains(fromPoint as NonNullable<typeof fromPoint>)) {
         continue;
       }
@@ -1007,13 +1008,13 @@ var VHints = {
           : elPos < 0) {
         if (!(Build.BTypes & BrowserType.Firefox) ? elPos < 0
             : Build.BTypes & ~BrowserType.Firefox && VOther & ~BrowserType.Firefox && elPos < 0) {
-          for (temp = el; (temp = D.GetParent_(temp, PNType.RevealSlot)) && temp !== body && temp !== docEl; ) {
-            if (D.getComputedStyle_(temp).zoom !== "1") { temp = el; break; }
+          for (temp = el; (temp = vDom.GetParent_(temp, PNType.RevealSlot)) && temp !== body && temp !== docEl; ) {
+            if (vDom.getComputedStyle_(temp).zoom !== "1") { temp = el; break; }
           }
         } else {
           while (temp = stack[index2], index2++ < elPos
-              && !(Build.BTypes & ~BrowserType.Firefox && D.notSafe_(temp))
-              && !D.isAriaNotTrue_(temp as SafeElement, kAria.hidden)) { /* empty */ }
+              && !(Build.BTypes & ~BrowserType.Firefox && vDom.notSafe_(temp))
+              && !vDom.isAriaNotTrue_(temp as SafeElement, kAria.hidden)) { /* empty */ }
           temp = temp !== fromPoint && el.contains(temp) ? el : temp;
         }
         temp === el
@@ -1575,7 +1576,7 @@ filterEngine_: {
         ) as RegExpG & RegExpOne & RegExpSearchable<0>;
   },
   GenerateHintStrings_ (this: void, hints: readonly HintsNS.HintItem[]): void {
-    const H = VHints, chars = H.chars_, base = chars.length, is10Digits = chars === "0123456789",
+    const vHints = VHints, chars = vHints.chars_, base = chars.length, is10Digits = chars === "0123456789",
     count = hints.length;
     for (let i = 0; i < count; i++) {
       let hintString = "", num = is10Digits ? 0 : i + 1;
@@ -1649,7 +1650,7 @@ filterEngine_: {
   },
   getMatchingHints_ (keyStatus: HintsNS.KeyStatus, text: string, seq: string
       , inited: 0 | 1 | 2): HintsNS.HintItem | 2 | 0 {
-    const H = VHints, fullHints = H.hints_ as readonly HintsNS.FilteredHintItem[],
+    const vHints = VHints, fullHints = vHints.hints_ as readonly HintsNS.FilteredHintItem[],
     a = this,
     oldTextSeq = inited > 1 ? keyStatus.textSequence_ : "a";
     let hints = keyStatus.hints_ as HintsNS.FilteredHintItem[];
@@ -1657,7 +1658,7 @@ filterEngine_: {
       const t2 = text.trim(), t1 = oldTextSeq.trim();
       keyStatus.textSequence_ = text;
       if (t1 !== t2) {
-        H.zIndexes_ = H.zIndexes_ && null;
+        vHints.zIndexes_ = vHints.zIndexes_ && null;
         const search = t2.split(" "),
         oldKeySeq = keyStatus.keySequence_,
         oldHints = t2.startsWith(t1) ? hints : fullHints,
@@ -1723,13 +1724,13 @@ filterEngine_: {
           return 2;
         }
       }
-      inited && H.setMode_(H.mode_);
+      inited && vHints.setMode_(vHints.mode_);
     }
     if (keyStatus.keySequence_ !== seq) {
       keyStatus.keySequence_ = seq;
-      H.zIndexes_ = H.zIndexes_ && null;
-      let index = 0, base = H.chars_.length, last = hints.length;
-      for (const ch of seq) { index = index * base + H.chars_.indexOf(ch); }
+      vHints.zIndexes_ = vHints.zIndexes_ && null;
+      let index = 0, base = vHints.chars_.length, last = hints.length;
+      for (const ch of seq) { index = index * base + vHints.chars_.indexOf(ch); }
       if (index * base > last) { return index > last ? 0 : hints[index - 1]; }
       for (const { m: marker, a: key } of hints) {
         const match = key.startsWith(seq);
@@ -1826,11 +1827,11 @@ filterEngine_: {
   },
   maxPrefixLen_: 0,
   initAlphabetEngine_ (hintItems: readonly HintsNS.HintItem[]): void {
-    const M = Math, C = M.ceil, charSet = this.chars_, step = charSet.length,
+    const math = Math, ceil = math.ceil, charSet = this.chars_, step = charSet.length,
     chars2 = " " + charSet,
-    count = hintItems.length, start = (C((count - 1) / (step - 1)) | 0) || 1,
-    bitStep = C(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Math$$log2
-          ? M.log(step + 1) / M.LN2 : M.log2(step + 1)) | 0;
+    count = hintItems.length, start = (ceil((count - 1) / (step - 1)) | 0) || 1,
+    bitStep = ceil(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Math$$log2
+          ? math.log(step + 1) / math.LN2 : math.log2(step + 1)) | 0;
     let hints: number[] = [0], next = 1, bitOffset = 0;
     for (let offset = 0, hint = 0; offset < start; ) {
       if (next === offset) { next = next * step + 1, bitOffset += bitStep; }

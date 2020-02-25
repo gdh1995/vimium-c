@@ -225,19 +225,19 @@ _apply = _listen.apply, _call = _listen.call,
 call = _call.bind(_call as any) as <T, A extends any[], R>(func: (this: T, ...a: A) => R, thisArg: T, ...args: A) => R,
 dispatch = _call.bind<(this: (this: EventTarget, ev: Event) => boolean
     , self: EventTarget, evt: Event) => boolean>(ETP.dispatchEvent),
-E = Element, EP = E.prototype, Append = EP.appendChild,
-GetRootNode = EP.getRootNode,
-Attr = EP.setAttribute, HasAttr = EP.hasAttribute, Remove = EP.remove,
+ElCls = Element, ElProto = ElCls.prototype, Append = ElProto.appendChild,
+GetRootNode = ElProto.getRootNode,
+Attr = ElProto.setAttribute, HasAttr = ElProto.hasAttribute, Remove = ElProto.remove,
 StopProp = Event.prototype.stopImmediatePropagation as (this: Event) => void,
-contains = EP.contains.bind(doc), // in fact, it is Node.prototype.contains
+contains = ElProto.contains.bind(doc), // in fact, it is Node.prototype.contains
 nodeIndexListInDocument: number[] = [], nodeIndexListForDetached: number[] = [],
-getElementsByTagNameInDoc = doc.getElementsByTagName, getElementsByTagNameInEP = EP.getElementsByTagName,
+getElementsByTagNameInDoc = doc.getElementsByTagName, getElementsByTagNameInEP = ElProto.getElementsByTagName,
 IndexOf = _call.bind(toRegister.indexOf) as never as (list: HTMLCollectionOf<Element>, item: Element) => number,
 push = nodeIndexListInDocument.push,
 pushInDocument = push.bind(nodeIndexListInDocument), pushForDetached = push.bind(nodeIndexListForDetached),
-CE = CustomEvent as VimiumCustomEventCls, HA = HTMLAnchorElement,
-DE = FocusEvent as VimiumDelegateEventCls,
-FP = Function.prototype, _toString = FP.toString,
+CECls = CustomEvent as VimiumCustomEventCls, HACls = HTMLAnchorElement,
+DECls = FocusEvent as VimiumDelegateEventCls,
+FProto = Function.prototype, _toString = FProto.toString,
 listen = _call.bind<(this: (this: EventTarget,
           type: string, listener: EventListenerOrEventListenerObject, useCapture?: EventListenerOptions | boolean
         ) => 42 | void,
@@ -271,7 +271,7 @@ newFuncToString = function (a: FUNC, args: IArguments): string {
 hooks = {
   // the code below must include direct reference to at least one property in `hooks`
   // so that uglifyJS / terse won't remove the `hooks` variable
-  /** Create */ C: doc.createElement,
+  /** Create */ c: doc.createElement,
   toString: function toString(this: FUNC): string {
     const args = arguments;
     if (args.length === 2 && args[0] === kMarkToVerify) {
@@ -292,7 +292,7 @@ hooks = {
                         , self: EventTarget, args: IArguments) => void,
              _listen as (this: EventTarget, ...args: any[]) => void, a, args);
     if (type === "click" || type === "mousedown" || type === "dblclick"
-        ? listener && !(a instanceof HA) && a instanceof E
+        ? listener && !(a instanceof HACls) && a instanceof ElCls
         : type === kEventName2 && !isReRegistering
           // note: window.history is mutable on C35, so only these can be used: top,window,location,document
           && a && !(a as Window).window && (a as Node).nodeType === kNode.ELEMENT_NODE) {
@@ -307,18 +307,17 @@ myAEL = hooks.addEventListener, myToStr = hooks.toString,
 sAEL = myAEL + "", sToStr = myToStr + "";
 
 let doInit = function (this: void): void {
-  /** not check if a DOMReady event is trusted: keep the same as {@link frontend.ts#D.OnDocLoaded_ } */
   rEL(kOnDomReady, doInit, !0);
   clearTimeout_(timer);
   detectDisabled = 0;
   const docEl2 = docChildren[0] as Element | null,
-  el = call(hooks.C, doc, "div") as HTMLDivElement,
+  el = call(hooks.c, doc, "div") as HTMLDivElement,
   key = InnerConsts.kSecretAttr;
   doInit = docChildren = null as never;
   if (!docEl2) { return executeCmd(); }
   call(Attr, el, key, "" + sec);
   listen(el, InnerConsts.kCmd, executeCmd, !0);
-  dispatch(window, new DE((InnerConsts.kHook + BuildStr.RandomClick) as InnerConsts.kHook, {relatedTarget: el}));
+  dispatch(window, new DECls((InnerConsts.kHook + BuildStr.RandomClick) as InnerConsts.kHook, {relatedTarget: el}));
   if (call(HasAttr, el, key)) {
     executeCmd();
   } else {
@@ -433,11 +432,11 @@ function prepareRegister(this: void, element: Element): void {
           && typeof (s = element.tagName) === "string") {
         parent !== doc && parent !== root && call(Append, root, parent);
         unsafeDispatchCounter++;
-        dispatch(element, new CE(kVOnClick, {detail: sec + s, composed: !0}));
+        dispatch(element, new CECls(kVOnClick, {detail: sec + s, composed: !0}));
       }
     } else {
       unsafeDispatchCounter++;
-      dispatch(root, new DE(kVOnClick, {relatedTarget: element}));
+      dispatch(root, new DECls(kVOnClick, {relatedTarget: element}));
     }
   } else {
       toRegister.p(element);
@@ -451,7 +450,7 @@ function prepareRegister(this: void, element: Element): void {
 function doRegister(fromAttrs: BOOL): void {
   if (nodeIndexListInDocument.length || nodeIndexListForDetached.length) {
     unsafeDispatchCounter++;
-    dispatch(root, new CE(kVOnClick, {
+    dispatch(root, new CECls(kVOnClick, {
       detail: [nodeIndexListInDocument, nodeIndexListForDetached, fromAttrs]
     }));
     nodeIndexListInDocument.length = nodeIndexListForDetached.length = 0;
@@ -492,7 +491,7 @@ function executeCmd(eventOrDestroy?: Event): void {
     for (; i < len; i++) {
       const el: Element | HTMLElement = allNodesInDocument[i];
       if (((el as HTMLElement).onclick || (el as HTMLElement).onmousedown) && !call(HasAttr, el, "onclick")
-          && !(el instanceof HA)) { // ignore <button>s to iter faster
+          && !(el instanceof HACls)) { // ignore <button>s to iter faster
         pushInDocument(i);
       }
     }
@@ -512,11 +511,11 @@ toRegister.p = push as any, toRegister.s = toRegister.splice;
 // only the below can affect outsides
 cs.remove();
 ETP.addEventListener = myAEL;
-FP.toString = myToStr;
+FProto.toString = myToStr;
 _listen(kOnDomReady, doInit, !0);
 
       }).toString() + ")();" /** need "toString()": {@see Gulpfile.js#patchExtendClick} */
-      : 'document.currentScript.remove()';
+      : "document.currentScript.remove()";
 
 // #endregion injected code
 
@@ -653,7 +652,7 @@ _listen(kOnDomReady, doInit, !0);
       exportFunction(newListen, Cls as NonNullable<typeof Cls>, { defineAs: newListen.name });
     }
     VDom.OnDocLoaded_((): void => {
-      VKey && VKey.timeout_(function (): void {
+      VKey.timeout_(function (): void {
         const a = VHints;
         if (a) {
           a.hints_ && !a.keyStatus_.keySequence_ && !a.keyStatus_.textSequence_ && VKey.timeout_(a.CheckLast_, 34);

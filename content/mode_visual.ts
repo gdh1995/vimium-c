@@ -32,33 +32,6 @@ declare namespace VisualModeNS {
   type ValidDiTypes = DiType.Normal | DiType.UnsafeTextBox | DiType.SafeTextBox | DiType.Complicated
     | DiType.UnsafeComplicated;
 }
-declare const enum VisualAction {
-  MinNotNoop = 0, Noop = MinNotNoop - 1,
-
-  MinWrapSelectionModify = MinNotNoop,
-  char = VisualModeNS.G.character << 1, line = VisualModeNS.G.line << 1,
-  lineBoundary = VisualModeNS.G.lineBoundary << 1, paragraph = VisualModeNS.G.paragraph << 1,
-  sentence = VisualModeNS.G.sentence << 1, vimWord = VisualModeNS.VimG.vimWord << 1,
-  word = VisualModeNS.G.word << 1, documentBoundary = VisualModeNS.G.documentBoundary << 1,
-  dec = VisualModeNS.kDir.left, inc = VisualModeNS.kDir.right,
-
-  MinNotWrapSelectionModify = 20,
-  Reverse = MinNotWrapSelectionModify,
-
-  MaxNotLexical = MinNotWrapSelectionModify,
-  LexicalSentence = MaxNotLexical + VisualModeNS.G.sentence,
-  LexicalWord = MaxNotLexical + VisualModeNS.G.word,
-
-  MaxNotYank = 30, Yank, YankLine, YankWithoutExit, YankAndOpen, YankAndNewTab,
-
-  MaxNotFind = 45, PerformFind, FindPrevious = PerformFind | dec, FindNext = PerformFind | inc, HighlightRange,
-
-  MaxNotNewMode = 50,
-  VisualMode = MaxNotNewMode + VisualModeNS.Mode.Visual, VisualLineMode = MaxNotNewMode + VisualModeNS.Mode.Line,
-  CaretMode = MaxNotNewMode + VisualModeNS.Mode.Caret, EmbeddedFindMode = CaretMode + 2,
-
-  MaxNotScroll = 60, ScrollUp, ScrollDown,
-}
 
 // eslint-disable-next-line no-var
 var VVisual = {
@@ -73,7 +46,7 @@ var VVisual = {
   /** @safe_di */
   activate_ (this: void, _0: number, options: CmdOptions[kFgCmd.visualMode]): void {
     const a = VVisual;
-    a.init_ && a.init_(options.w as string);
+    a.init_ && a.init_(options.w as string, options.k as NonNullable<typeof options.k>);
     VKey.removeHandler_(a);
     VCui.checkDocSelectable_();
     VSc.prepareTop_();
@@ -250,17 +223,17 @@ var VVisual = {
     if (!(Build.NDEBUG || VVisual.selection_ && VVisual.selection_.type === "None")) {
       console.log('Assert error: VVisual.selection_ && VVisual.selection_.type === "None"');
     }
-    let node: Text | null, str: string | undefined, offset: number, D = VDom;
-    if (!D.isHTML_()) { return true; }
-    D.getZoom_(1);
-    D.prepareCrop_();
-    const nodes = document.createTreeWalker(sr || document.body || D.docEl_() as Element
+    let node: Text | null, str: string | undefined, offset: number, vDom = VDom;
+    if (!vDom.isHTML_()) { return true; }
+    vDom.getZoom_(1);
+    vDom.prepareCrop_();
+    const nodes = document.createTreeWalker(sr || document.body || vDom.docEl_() as Element
             , NodeFilter.SHOW_TEXT);
     while (node = nodes.nextNode() as Text | null) {
       if (50 <= (str = node.data).length && 50 < str.trim().length) {
         const element = node.parentElement; // safe because node is Text
         // Note(gdh1995): I'm not sure whether element might be null
-        if (element && D.getVisibleClientRect_(element) && !D.getEditableType_(element)) {
+        if (element && vDom.getVisibleClientRect_(element) && !vDom.getEditableType_(element)) {
           break;
         }
       }
@@ -268,7 +241,7 @@ var VVisual = {
     const a = this;
     if (!node) {
       if (sr) {
-        a.selection_ = D.getSelected_();
+        a.selection_ = vDom.getSelected_();
         a.scope_ = null;
         return a.establishInitialSelectionAnchor_();
       }
@@ -746,40 +719,12 @@ var VVisual = {
     return (di ? el.selectionEnd : el.selectionStart) as number;
   },
 
-keyMap_: {
-  l: VisualAction.char | VisualAction.inc, h: VisualAction.char | VisualAction.dec,
-  j: VisualAction.line | VisualAction.inc, k: VisualAction.line | VisualAction.dec,
-  $: VisualAction.lineBoundary | VisualAction.inc, 0: VisualAction.lineBoundary | VisualAction.dec,
-  "}": VisualAction.paragraph | VisualAction.inc, "{": VisualAction.paragraph | VisualAction.dec,
-  ")": VisualAction.sentence | VisualAction.inc, "(": VisualAction.sentence | VisualAction.dec,
-  w: VisualAction.vimWord | VisualAction.inc, /* same as w */ W: VisualAction.vimWord | VisualAction.inc,
-  e: VisualAction.word | VisualAction.inc, b: VisualAction.word | VisualAction.dec,
-  /* same as b */ B: VisualAction.word | VisualAction.dec,
-  G: VisualAction.documentBoundary | VisualAction.inc, g: { g: VisualAction.documentBoundary | VisualAction.dec },
-
-  o: VisualAction.Reverse, a: { w: VisualAction.LexicalWord, s: VisualAction.LexicalSentence },
-
-  y: VisualAction.Yank, Y: VisualAction.YankLine, C: VisualAction.YankWithoutExit,
-  p: VisualAction.YankAndOpen, P: VisualAction.YankAndNewTab,
-
-  n: VisualAction.FindNext, N: VisualAction.FindPrevious,
-  f1: VisualAction.HighlightRange, "a-f1": VisualAction.HighlightRange,
-
-  v: VisualAction.VisualMode, V: VisualAction.VisualLineMode, c: VisualAction.CaretMode,
-  "/": VisualAction.EmbeddedFindMode,
-
-  "c-e": VisualAction.ScrollDown, "c-y": VisualAction.ScrollUp,
-  "c-down": VisualAction.ScrollDown, "c-up": VisualAction.ScrollUp
-} as {
-  [key: string]: VisualAction | {
-    [key: string]: VisualAction;
-  };
-} as SafeDict<VisualAction | SafeDict<VisualAction>>,
+keyMap_: null as never as SafeDict<VisualAction | SafeDict<VisualAction>>,
 /** @not_related_to_di */
-init_ (words: string) {
-  const a = this;
+init_ (words: string, map: VisualModeNS.KeyMap) {
+  const a = this, func = VKey.safer_, typeIdx = { None: SelType.None, Caret: SelType.Caret, Range: SelType.Range };
   a.init_ = null as never;
-  const typeIdx = { None: SelType.None, Caret: SelType.Caret, Range: SelType.Range };
+  a.keyMap_ = map as VisualModeNS.SafeKeyMap;
   a.selType_ = Build.BTypes & BrowserType.Chrome
       && Build.MinCVer <= BrowserVer.$Selection$NotShowStatusInTextBox
       && VDom.cache_.v === BrowserVer.$Selection$NotShowStatusInTextBox
@@ -789,7 +734,6 @@ init_ (words: string) {
   } : function (this: typeof VVisual): SelType {
     return typeIdx[this.selection_.type];
   };
-  const map = a.keyMap_, func = VKey.safer_;
 /**
  * Call stack (Chromium > icu):
  * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/visible_units_word.cc?type=cs&q=NextWordPositionInternal&g=0&l=86

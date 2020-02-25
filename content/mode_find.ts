@@ -27,20 +27,20 @@ var VFind = {
   styleIn_: null as never as HTMLStyleElement,
   styleOut_: null as never as HTMLStyleElement,
   activate_ (this: void, _0: number, options: CmdOptions[kFgCmd.findMode]): void {
-    const a = VFind, dom = VDom, UI = VCui;
-    UI.findCss_ = options.f || UI.findCss_;
-    if (!dom.isHTML_()) { return; }
-    let query: string = options.s ? UI.getSelectionText_() : "";
+    const a = VFind, vDom = VDom, vCui = VCui;
+    vCui.findCss_ = options.f || vCui.findCss_;
+    if (!vDom.isHTML_()) { return; }
+    let query: string = options.s ? vCui.getSelectionText_() : "";
     (query.length > 99 || query.includes("\n")) && (query = "");
     a.isQueryRichText_ = !query;
     query || (query = options.q);
     a.isActive_ || query === a.query_ && options.l || VMarks.setPreviousPosition_();
-    UI.checkDocSelectable_();
-    UI.ensureBorder_();
+    vCui.checkDocSelectable_();
+    vCui.ensureBorder_();
     if (options.l) {
       return a.findAndFocus_(query || a.query_, options);
     }
-    a.isActive_ && UI.adjust_();
+    a.isActive_ && vCui.adjust_();
     if (!a.isActive_) {
       a.getCurrentRange_();
       if (options.r) {
@@ -57,21 +57,21 @@ var VFind = {
     a.parsedRegexp_ = a.regexMatches_ = null;
     a.activeRegexIndex_ = 0;
 
-    const outerBox = a.outerBox_ = dom.createElement_("div"),
-    el = a.box_ = dom.createElement_("iframe"), st = outerBox.style;
+    const outerBox = a.outerBox_ = vDom.createElement_("div"),
+    el = a.box_ = vDom.createElement_("iframe"), st = outerBox.style;
     st.display = "none"; st.width = "0";
-    if (Build.BTypes & ~BrowserType.Firefox && dom.wdZoom_ !== 1) { st.zoom = "" + 1 / dom.wdZoom_; }
-    outerBox.className = "R HUD UI" + dom.cache_.d;
+    if (Build.BTypes & ~BrowserType.Firefox && vDom.wdZoom_ !== 1) { st.zoom = "" + 1 / vDom.wdZoom_; }
+    outerBox.className = "R HUD UI" + vDom.cache_.d;
     outerBox.onmousedown = a.OnMousedown_;
     el.className = "R Find UI";
     el.onload = function (this: HTMLIFrameElement): void { VFind.onLoad_(1); };
     VKey.pushHandler_(VKey.SuppressMost_, a);
     a.query_ || (a.query0_ = query);
     a.init_ && a.init_(AdjustType.NotAdjust);
-    UI.toggleSelectStyle_(1);
+    vCui.toggleSelectStyle_(1);
     a.isActive_ = true;
     outerBox.appendChild(el);
-    UI.add_(outerBox, AdjustType.DEFAULT, VHud.box_);
+    vCui.add_(outerBox, AdjustType.DEFAULT, VHud.box_);
   },
   notDisableScript_(): 1 | void {
     try {
@@ -249,15 +249,15 @@ copy cut beforecopy beforecut paste".split(" ")) {
     a.notEmpty_ && a.exec_("selectAll");
   },
   init_ (adjust: AdjustType): void {
-    const ref = this.postMode_, UI = VCui,
-    css = UI.findCss_.c, sin = this.styleIn_ = UI.createStyle_(css);
+    const ref = this.postMode_, vCui = VCui,
+    css = vCui.findCss_.c, sin = this.styleIn_ = vCui.createStyle_(css);
     ref.exit_ = ref.exit_.bind(ref);
-    UI.box_ ? UI.adjust_() : UI.add_(sin, adjust, true);
+    vCui.box_ ? vCui.adjust_() : vCui.add_(sin, adjust, true);
     sin.remove();
     this.styleOut_ = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
           && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
           && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-        || Build.BTypes & ~BrowserType.Edge && UI.box_ !== UI.root_ ? UI.createStyle_(css) : sin;
+        || Build.BTypes & ~BrowserType.Edge && vCui.box_ !== vCui.root_ ? vCui.createStyle_(css) : sin;
     this.init_ = null as never;
   },
   findAndFocus_ (query: string, options: CmdOptions[kFgCmd.findMode]): void {
@@ -587,11 +587,11 @@ copy cut beforecopy beforecut paste".split(" ")) {
     a.isRegex_ = a.ignoreCase_ = null as boolean | null;
     query = a.isQueryRichText_ ? query.replace(<RegExpG & RegExpSearchable<0>> /\\[cirw\\]/gi, a.FormatQuery_)
         : query;
-    let isRe = a.isRegex_, ww = a.wholeWord_, B = "\\b", escapeAllRe = <RegExpG> /[$()*+.?\[\\\]\^{|}]/g;
+    let isRe = a.isRegex_, ww = a.wholeWord_, wordBoundary = "\\b", escapeAllRe = <RegExpG> /[$()*+.?\[\\\]\^{|}]/g;
     if (a.isQueryRichText_) {
     if (isRe === null && !ww) {
       isRe = VDom.cache_.r;
-      const info = 2 * +query.startsWith(B) + +query.endsWith(B);
+      const info = 2 * +query.startsWith(wordBoundary) + +query.endsWith(wordBoundary);
       if (info === 3 && !isRe && query.length > 3) {
         query = query.slice(2, -2);
         ww = true;
@@ -602,11 +602,12 @@ copy cut beforecopy beforecut paste".split(" ")) {
     if (ww && (!(Build.BTypes & BrowserType.Chrome) || isRe
               || ((Build.BTypes & ~BrowserType.Chrome) && VOther !== BrowserType.Chrome)
         )) {
-      query = B + query.replace(<RegExpG & RegExpSearchable<0>> /\\\\/g, "\\").replace(escapeAllRe, "\\$&") + B;
+      query = wordBoundary + query.replace(<RegExpG & RegExpSearchable<0>> /\\\\/g, "\\").replace(escapeAllRe, "\\$&")
+          + wordBoundary;
       ww = false;
       isRe = true;
     }
-    query = isRe ? query !== "\\b\\b" && query !== B ? query : ""
+    query = isRe ? query !== "\\b\\b" && query !== wordBoundary ? query : ""
         : query.replace(<RegExpG & RegExpSearchable<0>> /\\\\/g, "\\");
     }
     a.parsedQuery_ = query;
@@ -616,7 +617,8 @@ copy cut beforecopy beforecut paste".split(" ")) {
     a.ignoreCase_ !== null || (a.ignoreCase_ = query.toLowerCase() === query);
     isRe || (query = a.isActive_ ? query.replace(escapeAllRe, "\\$&") : "");
 
-    let re: RegExpG | null = query && a.safeCreateRe_(ww ? B + query + B : query, a.ignoreCase_ ? "gi" : "g") || null;
+    let re: RegExpG | null = query && a.safeCreateRe_(ww
+        ? wordBoundary + query + wordBoundary : query, a.ignoreCase_ ? "gi" : "g") || null;
     let matches: RegExpMatchArray | null = null;
     if (re) {
       let el = VDom.fullscreenEl_unsafe_(), text: HTMLElement["innerText"] | undefined;
@@ -736,23 +738,23 @@ copy cut beforecopy beforecut paste".split(" ")) {
   },
   /** must be called after initing */
   ToggleStyle_ (this: void, disable: BOOL | boolean | Event): void {
-    const a = VFind, sout = a.styleOut_, sin = a.styleIn_, UI = VCui, active = a.isActive_;
+    const a = VFind, sout = a.styleOut_, sin = a.styleIn_, vCui = VCui, active = a.isActive_;
     if (!sout) { return; }
     a.HookSel_(1);
     disable = !!disable;
     // Note: `<doc/root>.adoptedStyleSheets` should not be modified in an extension world
     if (!active && disable) {
-      UI.toggleSelectStyle_(0);
+      vCui.toggleSelectStyle_(0);
       sout.remove(); sin.remove();
       return;
     }
-    if (sout.parentNode !== UI.box_) {
-      (UI.box_ as HTMLDivElement).appendChild(sout);
+    if (sout.parentNode !== vCui.box_) {
+      (vCui.box_ as HTMLDivElement).appendChild(sout);
       !((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
         && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
         && !(Build.BTypes & ~BrowserType.ChromeOrFirefox))
       && (!(Build.BTypes & ~BrowserType.Edge) || sin === sout)
-      || UI.add_(sin, AdjustType.NotAdjust, true);
+      || vCui.add_(sin, AdjustType.NotAdjust, true);
     }
     sout.sheet && (sout.sheet.disabled = disable);
     sin.sheet && (sin.sheet.disabled = disable);

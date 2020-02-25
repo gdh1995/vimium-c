@@ -73,7 +73,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       next(animate);
     } else {
       if ((!(Build.BTypes & BrowserType.Chrome) || VDom.cache_.v >= BrowserVer.MinMaybeScrollEndAndOverScrollEvents)
-          && "onscrollend" in (Build.BTypes & ~BrowserType.Firefox ? HTMLElement.prototype : document)) {
+          && "onscrollend" in (Build.BTypes & ~BrowserType.Firefox ? Image.prototype : document)) {
         // according to tests on C75, no "scrollend" events if scrolling behavior is "instant";
         // the doc on Google Docs requires no "overscroll" events for programmatic scrolling
         const notEl: boolean = !element || element === VDom.scrollingEl_();
@@ -90,9 +90,9 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     running = running || next(animate);
   }
   this._animate = function (this: typeof VSc, newEl, newDi, newAmount): void {
-    const M = Math;
-    amount = M.max(1, M.abs(newAmount)); calibration = 1.0; di = newDi;
-    duration = M.max(ScrollerNS.Consts.minDuration, ScrollerNS.Consts.durationScaleForAmount * M.log(amount));
+    const math = Math, max = math.max;
+    amount = max(1, math.abs(newAmount)); calibration = 1.0; di = newDi;
+    duration = max(ScrollerNS.Consts.minDuration, ScrollerNS.Consts.durationScaleForAmount * math.log(amount));
     element = newEl;
     sign = newAmount < 0 ? -1 : 1;
     totalDelta = totalElapsed = 0.0;
@@ -101,8 +101,8 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       VKey.clear_(timer);
     }
     const keyboard = VDom.cache_.k;
-    this.maxInterval_ = M.round(keyboard[1] / ScrollerNS.Consts.FrameIntervalMs) + ScrollerNS.Consts.MaxSkippedF;
-    this.minDelay_ = (((keyboard[0] + M.max(keyboard[1], ScrollerNS.Consts.DelayMinDelta)
+    this.maxInterval_ = math.round(keyboard[1] / ScrollerNS.Consts.FrameIntervalMs) + ScrollerNS.Consts.MaxSkippedF;
+    this.minDelay_ = (((keyboard[0] + max(keyboard[1], ScrollerNS.Consts.DelayMinDelta)
           + ScrollerNS.Consts.DelayTolerance) / ScrollerNS.Consts.DelayUnitMs) | 0)
       * ScrollerNS.Consts.DelayUnitMs;
     startAnimate();
@@ -206,12 +206,12 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     if (element === a.top_ && element
         && (core = Build.BTypes & BrowserType.Firefox ? VDom.parentCore_()
                 : VDom.frameElement_() && parent as Window)) {
-      const Sc = core.VSc as typeof VSc;
-      if (Sc && !a._doesScroll(element, di, amount || (fromMax ? 1 : 0))) {
-        Sc.scroll_(di, amount0, isTo as 0, factor, fromMax as false);
-        if (Sc.keyIsDown_) {
+      const vSc = core.VSc as typeof VSc;
+      if (vSc && !a._doesScroll(element, di, amount || (fromMax ? 1 : 0))) {
+        vSc.scroll_(di, amount0, isTo as 0, factor, fromMax as false);
+        if (vSc.keyIsDown_) {
           a.scrollTick_(1);
-          a._joined = Sc;
+          a._joined = vSc;
         }
         amount = 0;
       }
@@ -259,14 +259,14 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
   BeginScroll_ (eventWrapper: 0 | Pick<HandlerNS.Event, "e">, key: string, keybody: kChar): void {
     if (key.includes("s-") || key.includes("a-")) { return; }
     const index = VKey.keyNames_.indexOf(keybody) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8,
-    Sc = VSc;
+    vSc = VSc;
     (index > 2 || key === keybody) && eventWrapper && VKey.prevent_(eventWrapper.e);
     if (index > 4) {
-      Sc.scroll_((~index & 1) as BOOL, index < 7 ? -1 : 1, 0);
+      vSc.scroll_((~index & 1) as BOOL, index < 7 ? -1 : 1, 0);
     } else if (index > 2) {
-      Sc.scroll_(1, 0, 1, 0, index < 4);
+      vSc.scroll_(1, 0, 1, 0, index < 4);
     } else if (key === keybody) {
-      Sc.scroll_(1, index - 1.5, 0, 2);
+      vSc.scroll_(1, index - 1.5, 0, 2);
     }
   },
   OnScrolls_ (event: KeyboardEventToPrevent): boolean {
@@ -427,7 +427,8 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
         }
       }
       if (hasX) {
-        (hasY ? a._performScroll : a._innerScroll).call(a, a.findScrollable_(0, hasX), 0, hasX);
+        (hasY ? a._performScroll : a._innerScroll).call<typeof a, [SafeElement | null, BOOL, number], number | void>(
+            a, a.findScrollable_(0, hasX), 0, hasX);
       }
       if (hasY) {
         a._innerScroll(a.findScrollable_(1, hasY), 1, hasY);

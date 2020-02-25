@@ -452,8 +452,3 @@ interface Window extends ContentWindowCore {
  * * when the page is loaded, the `parent` is still restricted and only `.focus` and `.location.href` can be accessed
  */
 declare var parent: unknown;
-declare const enum TimerID {
-  None = 0,
-  Valid = 42,
-  Others = 43,
-}

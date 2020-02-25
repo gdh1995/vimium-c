@@ -5,14 +5,14 @@
 /// <reference path="../background/settings.ts" />
 
 (function (): void {
-const BG = chrome.extension.getBackgroundPage() as Window as Window & { Settings_: typeof Settings_ };
-if (BG && !BG.Settings_.get_("dialogMode")) {
-  BG.Backend_.focus_({
-    u: BG.Settings_.CONST_.OptionsPage_,
+const BG_ = chrome.extension.getBackgroundPage() as Window as Window & { Settings_: typeof Settings_ };
+if (BG_ && !BG_.Settings_.get_("dialogMode")) {
+  BG_.Backend_.focus_({
+    u: BG_.Settings_.CONST_.OptionsPage_,
     r: ReuseType.reuse
   });
-} else if (BG) {
-  location.href = BG.Settings_.CONST_.OptionsPage_ + "#dialog-ui";
+} else if (BG_) {
+  location.href = BG_.Settings_.CONST_.OptionsPage_ + "#dialog-ui";
   return;
 } else {
   chrome.tabs.create({ url: "pages/options.html" });

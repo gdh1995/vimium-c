@@ -26,28 +26,28 @@ declare var VOther: BrowserType;
 
 var VDom = {
 /* eslint-enable no-var, @typescript-eslint/no-unused-vars */
+
+  /** data and DOM-shortcut section (sorted by reference numbers) */
+
   cache_: null as never as OnlyEnsureItemsNonNull<SettingsNS.FrontendSettingCache>,
   clickable_: null as never as { add (value: Element): object | void | number; has (value: Element): boolean },
-  // note: scripts always means allowing timers - vPort.ClearPort requires this assumption
-  allowScripts_: 1 as 0 | 1 | 2,
-  allowRAF_: 1 as BOOL,
-  docSelectable_: true,
+  docEl_: (): Element | null => document.documentElement,
+  getComputedStyle_: (element: Element): CSSStyleDeclaration => getComputedStyle(element),
+  activeEl_: (): Element | null => document.activeElement,
   readyState_: "" as never as Document["readyState"],
+  getSelected_: (): Selection => getSelection(),
   unsafeFramesetTag_: (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
       ? "" : 0 as never) as "frameset" | "",
-  jsRe_: <RegExpI & RegExpOne> /^javascript:/i,
-
-  /** DOM-shortcut section */
-
-  docEl_: (): Element | null => document.documentElement,
+  // note: scripts always means allowing timers - vPort.ClearPort requires this assumption
+  allowScripts_: 1 as 0 | 1 | 2,
   devRatio_: (): number => devicePixelRatio,
-  activeEl_: (): Element | null => document.activeElement,
   querySelector_: (selector: string): Element | null => document.querySelector(selector),
+  jsRe_: <RegExpI & RegExpOne> /^javascript:/i,
+  allowRAF_: 1 as BOOL,
   querySelectorAll_: function (selector: string): NodeListOf<Element> | void {
     try { return document.querySelectorAll(selector); } catch {}
   } as <T extends BOOL = 0>(selector: string) => NodeListOf<Element> | (T extends 1 ? undefined : never),
-  getSelected_: (): Selection => getSelection(),
-  getComputedStyle_: (element: Element): CSSStyleDeclaration => getComputedStyle(element),
+  docSelectable_: true,
 
   /** DOM-compatibility section */
 
@@ -144,13 +144,14 @@ var VDom = {
         while (slot = slot.assignedSlot) { el = slot; }
       }
     }
-    type PN = Node["parentNode"]; type PE = Node["parentElement"];
-    let pe = el.parentElement as Exclude<PE, Window>
-      , pn = el.parentNode as Exclude<PN, Window>;
+    type ParentNode = Node["parentNode"]; type ParentElement = Node["parentElement"];
+    let pe = el.parentElement as Exclude<ParentElement, Window>
+      , pn = el.parentNode as Exclude<ParentNode, Window>;
     if (pe === pn /* normal pe or no parent */ || !pn /* indeed no par */) { return pn as Element | null; }
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
         && pe && a.unsafeFramesetTag_) { // may be [a <frameset> with pn or pe overridden], or a <form>
-      const action = +((pn as PN as WindowWithTop).top === top) + 2 * +((pe as PE as WindowWithTop).top === top);
+      const action = +((pn as ParentNode as WindowWithTop).top === top)
+          + 2 * +((pe as ParentElement as WindowWithTop).top === top);
       if (action) { // indeed a <frameset>
         return action < 2 ? pe as Element : action < 3 ? pn as Node : el === document.body ? a.docEl_()
           : a.Getter_(Node, el, kPN);
@@ -578,9 +579,9 @@ var VDom = {
                                        ih - float(st.borderBottomWidth) * scale] : null;
     if (!needBox) { return [x, y]; }
     // here rect.right is not accurate because <html> may be smaller than <body>
-    const sEl = a.scrollingEl_(), H = "hidden",
-    xScrollable = st.overflowX !== H && st2.overflowX !== H,
-    yScrollable = st.overflowY !== H && st2.overflowY !== H;
+    const sEl = a.scrollingEl_(), kHidden = "hidden",
+    xScrollable = st.overflowX !== kHidden && st2.overflowX !== kHidden,
+    yScrollable = st.overflowY !== kHidden && st2.overflowY !== kHidden;
     if (xScrollable) {
       mw += 64 * zoom2;
       if (!containHasPaint) {
@@ -619,7 +620,7 @@ var VDom = {
       }
     }
     let f: Node["getRootNode"]
-      , NP = Node.prototype, pe: Element | null;
+      , NProto = Node.prototype, pe: Element | null;
     root = <Element | Document> root || (!(Build.BTypes & ~BrowserType.Firefox) ? element.ownerDocument as Document
         : (root = element.ownerDocument, Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter &&
             Build.BTypes & BrowserType.Chrome &&
@@ -628,14 +629,16 @@ var VDom = {
         ? document : root as Document));
     if (root.nodeType === kNode.DOCUMENT_NODE
         && (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
-          || !(Build.BTypes & ~BrowserType.Firefox) || (f = NP.getRootNode))) {
+          || !(Build.BTypes & ~BrowserType.Firefox) || (f = NProto.getRootNode))) {
       return !(Build.BTypes & ~BrowserType.Firefox)
         ? (element as EnsureNonNull<Element>).getRootNode({composed: true}) === root
         : (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
-        ? NP.getRootNode as NonNullable<typeof f> : f as NonNullable<typeof f>
+        ? NProto.getRootNode as NonNullable<typeof f> : f as NonNullable<typeof f>
         ).call(element, {composed: true}) === root;
     }
-    if (Build.BTypes & ~BrowserType.Firefox ? NP.contains.call(root, element) : root.contains(element)) { return true; }
+    if (Build.BTypes & ~BrowserType.Firefox ? NProto.contains.call(root, element) : root.contains(element)) {
+      return true;
+    }
     while ((pe = VDom.GetParent_(element, checkMouseEnter ? PNType.RevealSlotAndGotoParent : PNType.ResolveShadowHost))
             && pe !== root) {
       element = pe;

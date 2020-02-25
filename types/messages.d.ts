@@ -127,7 +127,7 @@ interface BgReq {
     /** url */ u: string; // a javascript: URL
   } & Req.baseBg<kBgReq.eval>;
   [kBgReq.count]: {
-    /** cmd */ c: keyof ShortcutInfoMap | "";
+    /** cmd */ c: string | "";
     /** id */ i: number;
     /** message-in-confirmation-dialog */ m: string;
   };
@@ -243,7 +243,8 @@ interface CmdOptions {
     /* vomnibar */ v: string;
     /* vomnibar2 */ i: string | null;
     /** pageType */ t: VomnibarNS.PageType;
-    /** script */ s: string;
+    /** trailingSlash */ s: boolean | null | undefined;
+    /** <script> */ j: string;
     /** secret */ k: number;
   };
   [kFgCmd.goNext]: {
@@ -260,6 +261,7 @@ interface CmdOptions {
   [kFgCmd.visualMode]: {
     /** mode */ m: VisualModeNS.Mode.Visual | VisualModeNS.Mode.Line | VisualModeNS.Mode.Caret;
     /** from_find */ r?: true;
+    /** keyMaps */ k?: VisualModeNS.KeyMap | null;
     /** words */ w?: string;
   };
   [kFgCmd.showHelp]: { exitOnClick?: boolean };

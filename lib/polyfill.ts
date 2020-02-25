@@ -1,4 +1,4 @@
-/// <reference no-default-lib="true"/>
+// /// <reference no-default-lib="true"/>
 /// <reference path="../types/base/es.d.ts" />
 
 (function (): void {
@@ -22,31 +22,31 @@
   const symMatch = typeof Symbol === "function" && typeof Symbol.match === "symbol" &&
                     Symbol.match as symbol | string | false as "Symbol(Symbol.match)" | false,
   // eslint-disable-next-line id-blacklist
-  S = String as StringConstructor & { readonly prototype: StandardString }, TE = TypeError,
-  StringCls = S.prototype,
+  StrCls = String as StringConstructor & { readonly prototype: StandardString }, TECls = TypeError,
+  StrProto = StrCls.prototype,
   toStr = Object.prototype.toString;
 
   "".startsWith || (
-  StringCls.startsWith = function startsWith(this: ObjectCoercible, searchString: anyNotSymbol): boolean {
-    const err = check(this, searchString), a = this != null && err !== 1 ? S(this) : "";
+  StrProto.startsWith = function startsWith(this: ObjectCoercible, searchString: anyNotSymbol): boolean {
+    const err = check(this, searchString), a = this != null && err !== 1 ? StrCls(this) : "";
     if (err !== 0) {
       if (err === 1 || err === 2) { return !((err < 2 ? this : searchString) + ""); }
-      throw new TE(err.replace("${func}", "startsWith"));
+      throw new TECls(err.replace("${func}", "startsWith"));
     }
-    let b = S(searchString), args = arguments, c = args.length > 1 ? +args[1] : 0;
+    let b = StrCls(searchString), args = arguments, c = args.length > 1 ? +args[1] : 0;
     c = c > 0 ? c | 0 : 0;
     c > a.length && (c = a.length);
     return a.lastIndexOf(b, c) === c;
   });
 
   "".endsWith || (
-  StringCls.endsWith = function endsWith(this: ObjectCoercible, searchString: anyNotSymbol): boolean {
-    const err = check(this, searchString), a = this != null && err !== 1 ? S(this) : "";
+  StrProto.endsWith = function endsWith(this: ObjectCoercible, searchString: anyNotSymbol): boolean {
+    const err = check(this, searchString), a = this != null && err !== 1 ? StrCls(this) : "";
     if (err !== 0) {
       if (err === 1 || err === 2) { return !((err < 2 ? this : searchString) + ""); }
-      throw new TE(err.replace("${func}", "endsWith"));
+      throw new TECls(err.replace("${func}", "endsWith"));
     }
-    let b = S(searchString), args = arguments, u: undefined, c: number
+    let b = StrCls(searchString), args = arguments, u: undefined, c: number
       , p: primitive | object = args.length > 1 ? args[1] : u, l = a.length;
     c = (p === u ? l : (c = +<number | string> p) > 0 ? c | 0 : 0) - b.length;
     c > l && (c = l);
@@ -54,13 +54,13 @@
   });
 
   "".includes || (
-  StringCls.includes = function includes(this: ObjectCoercible, searchString: anyNotSymbol): boolean {
-    const err = check(this, searchString), a = this != null && err !== 1 ? S(this) : "";
+  StrProto.includes = function includes(this: ObjectCoercible, searchString: anyNotSymbol): boolean {
+    const err = check(this, searchString), a = this != null && err !== 1 ? StrCls(this) : "";
     if (err !== 0) {
       if (err === 1 || err === 2) { return !((err < 2 ? this : searchString) + ""); }
-      throw new TE(err.replace("${func}", "includes"));
+      throw new TECls(err.replace("${func}", "includes"));
     }
-    let b = S(searchString), args = arguments, c = args.length > 1 ? +args[1] : 0;
+    let b = StrCls(searchString), args = arguments, c = args.length > 1 ? +args[1] : 0;
     c = c > 0 ? c | 0 : 0;
     c > a.length && (c = a.length);
     // eslint-disable-next-line @typescript-eslint/prefer-includes

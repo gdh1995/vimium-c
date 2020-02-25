@@ -180,11 +180,11 @@ VimiumInjector.clickable = VimiumInjector.clickable ? VimiumInjector.clickable
 const obj = EventTarget as EventTargetEx, cls = obj.prototype, _listen = cls.addEventListener as ListenerEx;
 if (_listen.vimiumHooked === true) { return; }
 
-const HA = HTMLAnchorElement, E = Element;
+const HACls = HTMLAnchorElement, ElCls = Element;
 
 const newListen: ListenerEx = cls.addEventListener =
 function addEventListener(this: EventTarget, type: string, listener: EventListenerOrEventListenerObject) {
-  if (type === "click" && !(this instanceof HA) && listener && this instanceof E) {
+  if (type === "click" && !(this instanceof HACls) && listener && this instanceof ElCls) {
     const injector = VimiumInjector;
     injector && injector.clickable && injector.clickable.add(this);
   }

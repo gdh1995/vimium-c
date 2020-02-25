@@ -429,8 +429,8 @@ function parseJSON_(text: string): any {
   if (match[2]) {
     err_line = +match[2]; err_offset = +match[3];
   } else if (+match[1] > 0) {
-    const LF = !text.includes("\r") ? "\n" : text.includes("\r\n") ? "\r\n" : "\r"
-      , arr = text.slice(0, +match[1]).split(LF);
+    const lineEnd = !text.includes("\r") ? "\n" : text.includes("\r\n") ? "\r\n" : "\r"
+      , arr = text.slice(0, +match[1]).split(lineEnd);
     err_line = arr.length; err_offset = arr[err_line - 1].length + 1;
   } else {
     err_line = err_offset = 1;

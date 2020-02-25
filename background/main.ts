@@ -342,7 +342,7 @@
     if (!noLog && !(f & Frames.Flags.sourceWarned)) {
       console.warn("Receive a request from %can unsafe source page%c (should be vomnibar) :\n %s @ tab %o",
         "color:red", "color:auto", info.u.slice(0, 128), info.t);
-      (info as Writable<Frames.Sender>).f = f | Frames.Flags.sourceWarned;
+      (info as Writable<Frames.Sender>).f |= f;
     }
     return true;
   }
@@ -1179,22 +1179,24 @@
       if (Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge)) {
         return Backend_.complain_("control selection on MS Edge");
       }
-      const flags = cPort.s.f, str = typeof cOptions.mode === "string" ? cOptions.mode.toLowerCase() : "";
-      let words = "";
-      if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
-        || Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
-          && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
-      ) {
-        if (~flags & Frames.Flags.hadVisualMode) {
+      const str = typeof cOptions.mode === "string" ? cOptions.mode.toLowerCase() : "";
+      let words = "", keyMap: CmdOptions[kFgCmd.visualMode]["k"] = null;
+      if (~cPort.s.f & Frames.Flags.hadVisualMode) {
+        if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
+          || Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+            && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
+        ) {
           words = Settings_.CONST_.words;
-          cPort.s.f = Frames.Flags.hadVisualMode | flags;
         }
+        keyMap = CommandsData_.visualKeys_;
+        cPort.s.f |= Frames.Flags.hadVisualMode;
       }
       cPort.postMessage<1, kFgCmd.visualMode>({ N: kBgReq.execute,
         S: ensureInnerCSS(cPort), c: kFgCmd.visualMode, n: 1,
         a: {
           m: str === "caret" ? VisualModeNS.Mode.Caret
               : str === "line" ? VisualModeNS.Mode.Line : VisualModeNS.Mode.Visual,
+          k: keyMap,
           w: words
         }
       });
@@ -1242,12 +1244,15 @@
           || page.startsWith("http:") && url.startsWith("https:")
         : port.s.a || isCurOnExt && !page.startsWith(url.slice(0, url.indexOf("/", url.indexOf("://") + 3) + 1));
       const useInner: boolean = forceInner || page === inner || port.s.t < 0,
+      trailingSlash0 = cOptions.trailingSlash,
+      trailingSlash: boolean | null | undefined = trailingSlash0 != null ? trailingSlash0 : cOptions.trailing_slash,
       options: CmdOptions[kFgCmd.vomnibar] & SafeObject & Partial<VomnibarNS.GlobalOptions> = BgUtils_.extendIf_(
           BgUtils_.safer_<CmdOptions[kFgCmd.vomnibar]>({
         v: useInner ? inner : page,
         i: useInner ? null : inner,
         t: useInner ? VomnibarNS.PageType.inner : preferWeb ? VomnibarNS.PageType.web : VomnibarNS.PageType.ext,
-        s: useInner ? "" : Settings_.CONST_.VomnibarScript_f_,
+        s: trailingSlash,
+        j: useInner ? "" : Settings_.CONST_.VomnibarScript_f_,
         k: getSecret()
       }), cOptions as {} as CmdOptions[kFgCmd.vomnibar] & Partial<VomnibarNS.GlobalOptions>);
       if (options.mode === "bookmark") {
@@ -2606,14 +2611,14 @@
       chrome.tabs.query({ url, windowType: "normal" }, cb2);
     },
     /** kFgReq.cmd: */ function (this: void, request: FgReq[kFgReq.cmd], port: Port): void {
-      const cmd = request.c, id = request.i;
+      const cmd = request.c as keyof ShortcutInfoMap, id = request.i;
       if (id >= -1 && gCmdTimer !== id) { return; } // an old / aborted / test message
       setupSingletonCmdTimer(0);
       if (request.r) {
         onConfirm(request.r);
         return;
       }
-      executeCommand(CommandsData_.shortcutRegistry_[cmd as Exclude<typeof cmd, "">]
+      executeCommand(CommandsData_.shortcutRegistry_[cmd]
           , request.n, kKeyCode.None, port, 0);
     },
     /** kFgReq.removeSug: */ function (this: void, req: FgReq[kFgReq.removeSug], port?: Port): void {
