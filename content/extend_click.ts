@@ -159,7 +159,7 @@ if (VDom && VimiumInjector === undefined) {
     }
   }
   function dispatchCmd(cmd: SecondLevelContentCmds): void {
-    (box as Exclude<typeof box, 0 | undefined>).dispatchEvent(new (CustomEvent as VimiumCustomEventCls)(
+    box && box.dispatchEvent(new (CustomEvent as VimiumCustomEventCls)(
         InnerConsts.kCmd, {
       detail: (secret << kContentCmd.MaskedBitNumber) | cmd
     }));
@@ -167,7 +167,7 @@ if (VDom && VimiumInjector === undefined) {
   function execute(cmd: ValidContentCommands): void {
     if (cmd < kContentCmd._minSuppressClickable) {
       isFirstResolve = 0;
-      box && dispatchCmd(cmd as ValidContentCommands & ContentCommandsNotSuppress);
+      dispatchCmd(cmd as ValidContentCommands & ContentCommandsNotSuppress);
       return;
     }
     /** this function should keep idempotent */
@@ -557,20 +557,17 @@ _listen(kOnDomReady, doInit, !0);
   // not check MinEnsuredNewScriptsFromExtensionOnSandboxedPage
   // for the case JavaScript is disabled in CS: https://github.com/philc/vimium/issues/3187
   if (!script.parentNode) { // It succeeded to hook.
-    VDom.OnDocLoaded_(function (): void {
+    // wait the inner listener of `start` to finish its work
+    VDom.OnDocLoaded_(VKey.timeout_.bind(1 as never as null, (): void => {
       // only for new versions of Chrome (and Edge);
       // CSP would block a <script> before MinEnsuredNewScriptsFromExtensionOnSandboxedPage
       // not check isFirstTime, to auto clean VApi.execute_
-      VKey.timeout_(function (): void { // wait the inner listener of `start` to finish its work
-        box || execute(kContentCmd.DestroyForCSP);
-      }, 0);
-      isFirstTime && VDom.OnDocLoaded_((): void => {
-        box && isFirstResolve && VKey.timeout_(function (): void {
-          box && isFirstResolve && dispatchCmd(kContentCmd.AutoFindAllOnClick);
-          isFirstResolve = 0;
-        }, GlobalConsts.ExtendClick_DelayToFindAll);
-      }, 1);
-    });
+      !box ? execute(kContentCmd.DestroyForCSP) : isFirstTime && VDom &&
+      VDom.OnDocLoaded_(VKey.timeout_.bind(1 as never as null, (): void => {
+        isFirstResolve && dispatchCmd(kContentCmd.AutoFindAllOnClick);
+        isFirstResolve = 0;
+      }, GlobalConsts.ExtendClick_DelayToFindAll), 1);
+    }, 0));
     return;
   }
   // else: CSP script-src before C68, CSP sandbox before C68 or JS-disabled-in-CS on C/E

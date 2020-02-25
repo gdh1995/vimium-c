@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "pngjs": "^3.4.0",
-    "typescript": "^3.7.4"
+    "typescript": "^3.8.2"
   },
   "devDependencies": {
     "clean-css": "^4.2.1",
@@ -80,7 +80,8 @@
     "chrome-extension",
     "chrome",
     "firefox",
-    "utility"
+    "shortcut",
+    "keyboard"
   ],
   "author": "gdh1995",
   "license": "MIT",

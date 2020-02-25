@@ -165,9 +165,15 @@ try {
 } catch (ex) {
   console.log("Failed to convert icons to binary data:", ex);
 }
-ts.executeCommandLine(ts.sys, {
+if (ts.version < '3.7') {
+  ts.executeCommandLine(real_args);
+} else if (ts.version < '3.8') {
+  ts.executeCommandLine(ts.sys, {
     onCompilerHostCreate: ts.noop,
     onCompilationComplete: ts.noop,
     onSolutionBuilderHostCreate: ts.noop,
     onSolutionBuildComplete: ts.noop
-}, real_args);
+  }, real_args);
+} else {
+  ts.executeCommandLine(ts.sys, ts.noop, real_args);
+}
