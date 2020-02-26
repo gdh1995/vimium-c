@@ -223,7 +223,7 @@ declare const enum BrowserVer {
   // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/extension/getViews
   Min$Extension$$GetView$AcceptsTabId = 54,
   Min$tabs$$discard = 54,
-  MinEnsured$ParentNode$$append = 54, // even if LEGACY
+  MinEnsured$ParentNode$$appendAndPrepend = 54, // even if LEGACY
   // the 7 below are correct even if EXPERIMENTAL or LEGACY
   MinUnprefixedUserSelect = 54,
   MinHighDPIOnWindows = 54, // replace MinPhysicalPixelOnWindows

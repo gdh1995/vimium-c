@@ -279,7 +279,7 @@ constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption_) => v
       container.innerHTML = bgSettings_.cache_.exclusionTemplate as string;
     } else {
       const parsed = new DOMParser().parseFromString(bgSettings_.cache_.exclusionTemplate as string, "text/html").body;
-      (container as NodeWithAppend).append(... <Element[]> <ArrayLike<Element>> parsed.children);
+      (container as Ensure<Element, "append">).append(... <Element[]> <ArrayLike<Element>> parsed.children);
     }
     this.template_ = (container.querySelector("#exclusionTemplate") as HTMLTemplateElement
         ).content.firstChild as HTMLTableRowElement;

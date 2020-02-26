@@ -1362,7 +1362,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       //   so need `doc.createElement('style').textContent = ...`
       box = new DOMParser().parseFromString((html as Exclude<typeof html, string>).b, "text/html"
           ).body.firstChild as SafeHTMLElement;
-      box.insertBefore(vCui.createStyle_((html as Exclude<typeof html, string>).h), box.firstChild);
+      (box as Ensure<Element, "prepend">).prepend(vCui.createStyle_((html as Exclude<typeof html, string>).h));
     } else {
       box = vDom.createElement_("div");
       box.innerHTML = html as string;

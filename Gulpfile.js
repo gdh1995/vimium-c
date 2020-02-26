@@ -853,7 +853,7 @@ function postUglify(file, allPaths) {
     contents = patchExtendClick(contents);
   }
   var btypes = getBuildItem("BTypes"), minCVer = getBuildItem("MinCVer");
-  var noAppendChild = !(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsured$ParentNode$$append */ 54;
+  var noAppendChild = !(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsured$ParentNode$$appendAndPrepend */ 54;
   if (toRemovedGlobal == null) {
     toRemovedGlobal = "";
     if (btypes === BrowserType.Chrome || !(btypes & BrowserType.Chrome)) {

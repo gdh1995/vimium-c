@@ -541,8 +541,11 @@ _listen(kOnDomReady, doInit, !0);
   script.textContent = injected;
   script.type = "text/javascript";
   script.dataset.vimium = secret as number | string as string;
-  // todo:
-  docEl ? script.insertAdjacentElement.call(docEl, "afterbegin", script) : Doc.appendChild(script);
+  if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
+    ((docEl || Doc) as Ensure<Element | Document, "prepend">).prepend(script);
+  } else {
+    docEl ? script.insertAdjacentElement.call(docEl, "afterbegin", script) : Doc.appendChild(script);
+  }
   script.dataset.vimium = "";
   if (!(Build.NDEBUG
         || BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage <= BrowserVer.NoRAFOrRICOnSandboxedPage)) {

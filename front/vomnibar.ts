@@ -1288,7 +1288,7 @@ VUtils_ = {
         element.innerHTML = html;
       } else {
         element.innerHTML = "";
-        (element as NodeWithAppend).append(
+        (element as Ensure<Element, "append">).append(
           ... <Element[]> <ArrayLike<Element>> parser.parseFromString(html, "text/html").body.children);
       }
     };

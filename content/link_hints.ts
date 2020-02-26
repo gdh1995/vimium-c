@@ -1792,8 +1792,9 @@ filterEngine_: {
 },
   renderMarkers_ (hintItems: readonly HintsNS.HintItem[]): void {
     const a = VHints, doc = document, useFilter = a.useFilter_,
-    noAppend = !!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$append
-        && VDom.cache_.v < BrowserVer.MinEnsured$ParentNode$$append;
+    noAppend = !!(Build.BTypes & BrowserType.Chrome)
+        && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
+        && VDom.cache_.v < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend;
     let exclusionRe: RegExpG | undefined;
     for (const hint of hintItems) {
       let right: string, marker = hint.m;
@@ -1818,7 +1819,8 @@ filterEngine_: {
           marker.appendChild(node);
         }
       }
-      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$append && noAppend) {
+      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
+          && noAppend) {
         marker.insertAdjacentText("beforeend", right);
       } else {
         (marker as Ensure<HTMLElement, "append">).append(right);

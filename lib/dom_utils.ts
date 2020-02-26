@@ -144,13 +144,13 @@ var VDom = {
         while (slot = slot.assignedSlot) { el = slot; }
       }
     }
-    type ParentNode = Node["parentNode"]; type ParentElement = Node["parentElement"];
+    type ParentNodeProp = Node["parentNode"]; type ParentElement = Node["parentElement"];
     let pe = el.parentElement as Exclude<ParentElement, Window>
-      , pn = el.parentNode as Exclude<ParentNode, Window>;
+      , pn = el.parentNode as Exclude<ParentNodeProp, Window>;
     if (pe === pn /* normal pe or no parent */ || !pn /* indeed no par */) { return pn as Element | null; }
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
         && pe && a.unsafeFramesetTag_) { // may be [a <frameset> with pn or pe overridden], or a <form>
-      const action = +((pn as ParentNode as WindowWithTop).top === top)
+      const action = +((pn as ParentNodeProp as WindowWithTop).top === top)
           + 2 * +((pe as ParentElement as WindowWithTop).top === top);
       if (action) { // indeed a <frameset>
         return action < 2 ? pe as Element : action < 3 ? pn as Node : el === document.body ? a.docEl_()
@@ -873,7 +873,7 @@ var VDom = {
     script.textContent = code;
     if (Build.BTypes & ~BrowserType.Firefox) {
       /* {@link ../Gulpfile.js#postUglify} */
-      if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$append) {
+      if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
         script.insertBefore.call(docEl || document, script, null);
       } else {
         script.appendChild.call(docEl || document, script);
