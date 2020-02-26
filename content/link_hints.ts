@@ -1726,12 +1726,12 @@ filterEngine_: {
       }
       inited && vHints.setMode_(vHints.mode_);
     }
+    const hintsUnderSeq = seq ? hints.filter(hint => hint.a.startsWith(seq)) : hints,
+    newUnerSeq = hintsUnderSeq.length;
     if (keyStatus.keySequence_ !== seq) {
       keyStatus.keySequence_ = seq;
       vHints.zIndexes_ = vHints.zIndexes_ && null;
-      let index = 0, base = vHints.chars_.length, last = hints.length;
-      for (const ch of seq) { index = index * base + vHints.chars_.indexOf(ch); }
-      if (index * base > last) { return index > last ? 0 : hints[index - 1]; }
+      if (newUnerSeq < 2) { return newUnerSeq ? hintsUnderSeq[0] : 0; }
       for (const { m: marker, a: key } of hints) {
         const match = key.startsWith(seq);
         marker.style.visibility = match ? "" : "hidden";
@@ -1749,9 +1749,9 @@ filterEngine_: {
         }
       }
     }
-    hints = seq ? hints.filter(hint => hint.a.startsWith(seq)) : hints;
+    hints = hintsUnderSeq;
     const oldActive = a.activeHint_;
-    const newActive = hints[(keyStatus.tab_ < 0 ? (keyStatus.tab_ += hints.length) : keyStatus.tab_) % hints.length];
+    const newActive = hints[(keyStatus.tab_ < 0 ? (keyStatus.tab_ += newUnerSeq) : keyStatus.tab_) % newUnerSeq];
     if (oldActive !== newActive) {
       if (oldActive) {
         oldActive.m.classList.remove("MH");
