@@ -72,12 +72,13 @@
   "mangle": {
     "properties": {
       "regex": "/^_|_$/",
+      "builtins": true,
+      "reserved": [ "__proto__", "$_" ],
       "undeclared": true
     },
     "reserved": [
       // # expected names in content
       "WeakMap", "WeakSet", "Set", "InputDeviceCapabilities", "visualViewport",
-      // # expected names in content of 3rd-party extensions
       "requestIdleCallback",
       // # content global names:
       "browser",
