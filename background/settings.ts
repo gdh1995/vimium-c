@@ -294,7 +294,7 @@ var Settings_ = {
       const cache = a.cache_;
       innerCSS = cache.innerCSS;
       const ref = Backend_.indexPorts_(), request: Req.bg<kBgReq.showHUD> = {
-        N: kBgReq.showHUD, S: innerCSS, f: cache.findCSS_
+        N: kBgReq.showHUD, H: innerCSS, f: cache.findCSS_
       };
       for (const tabId in ref) {
         const frames = ref[+tabId] as Frames.Frames;

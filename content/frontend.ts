@@ -996,7 +996,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     Focus_ (this: void, req: BgReq[kBgReq.focusFrame]): void {
       // Note: .c, .S are ensured to exist
       let mask = req.m, div;
-      req.S && vCui.css_(req.S);
+      req.H && vCui.css_(req.H);
       if (mask !== FrameMaskType.NormalNext) { /* empty */ }
       else if (events.checkHidden_()
         // check <div> to detect whether no other visible elements except <frame>s in this frame
@@ -1306,7 +1306,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       (mappedKeys = request.m) && func(mappedKeys, null);
     },
     /* kBgReq.execute: */ function<O extends keyof CmdOptions> (request: BaseExecute<CmdOptions[O], O>): void {
-      if (request.S) { vCui.css_(request.S); }
+      if (request.H) { vCui.css_(request.H); }
       esc(HandlerResult.Nothing);
       const options: CmdOptions[O] | null = request.a;
       type Keys = keyof CmdOptions;
@@ -1321,8 +1321,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     } as (req: BaseExecute<object, keyof CmdOptions>) => void,
     /* kBgReq.createMark: */ function (request: BgReq[kBgReq.createMark]): void { VMarks.createMark_(request.n); },
     /* kBgReq.showHUD: */ function (req: Req.bg<kBgReq.showHUD>): void {
-      if (req.S) {
-        vCui.css_(req.S);
+      if (req.H) {
+        vCui.css_(req.H);
         if (req.f) {
           vCui.findCss_ = req.f;
           vCui.styleFind_ && (vCui.styleFind_.textContent = req.f.i);
@@ -1345,7 +1345,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       post({ H: kFgReq.cmd, c: request.c, n, i: request.i, r: count2 });
     },
     /* kBgReq.showHelpDialog: */
-  function ({ h: html, c: shouldShowAdvanced, o: optionUrl, S: CSS
+  function ({ h: html, c: shouldShowAdvanced, o: optionUrl, H: CSS
       , e: exitOnClick }: BgReq[kBgReq.showHelpDialog]): void {
     // Note: not suppress key on the top, because help dialog may need a while to render,
     // and then a keyup may occur before or after it

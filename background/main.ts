@@ -484,7 +484,7 @@
   }
   function notifyCKey(): void {
     cPort && cPort.postMessage({ N: kBgReq.focusFrame,
-      S: null, k: cKey, c: 0, m: FrameMaskType.NoMaskAndNoFocus
+      H: null, k: cKey, c: 0, m: FrameMaskType.NoMaskAndNoFocus
     });
   }
 
@@ -930,7 +930,7 @@
     if (mainPort && mainPort.s.s !== Frames.Status.disabled) {
       mainPort.postMessage({
         N: kBgReq.focusFrame,
-        S: focusAndShowFrameBorder || req.c !== kFgCmd.scroll ? ensureInnerCSS(port) : null,
+        H: focusAndShowFrameBorder || req.c !== kFgCmd.scroll ? ensureInnerCSS(port) : null,
         m: focusAndShowFrameBorder ? FrameMaskType.ForcedSelf : FrameMaskType.NoMaskAndNoFocus,
         c: req.c, n: req.n,
         k: focusAndShowFrameBorder ? cKey : kKeyCode.None,
@@ -940,7 +940,7 @@
       req.a.$forced = true;
       port.postMessage({
         N: kBgReq.execute,
-        S: null,
+        H: null,
         c: req.c, n: req.n,
         a: req.a
       });
@@ -1036,7 +1036,7 @@
       }
       port.postMessage({
         N: kBgReq.focusFrame,
-        S: port.s.i === 0 ? ensureInnerCSS(port) : null,
+        H: port.s.i === 0 ? ensureInnerCSS(port) : null,
         k: cKey,
         c: 0,
         m: port !== cPort && frames && port !== frames[0] ? FrameMaskType.NormalNext : FrameMaskType.OnlySelf
@@ -1075,7 +1075,7 @@
         }
         port.postMessage({
           N: kBgReq.focusFrame,
-          S: ensureInnerCSS(port),
+          H: ensureInnerCSS(port),
           k: cKey,
           c: 0,
           m: FrameMaskType.ForcedSelf
@@ -1100,7 +1100,7 @@
       const maxLens: number[] = p2.map(i => Math.max(i.length + 12, i.length * 4)),
       totalMaxLen: number = Math.max.apply(Math, maxLens);
       cPort.postMessage<1, kFgCmd.goNext>({ N: kBgReq.execute,
-        S: null, c: kFgCmd.goNext, n: 1,
+        H: null, c: kFgCmd.goNext, n: 1,
         a: {
           r: rel,
           p: p2,
@@ -1136,7 +1136,7 @@
         for (let i = 1; i < ports.length; i++) {
           ports[i].postMessage<1, kFgCmd.toggle>({
             N: kBgReq.execute,
-            S: ports[i] === ports[0] ? ensureInnerCSS(cPort) : null,
+            H: ports[i] === ports[0] ? ensureInnerCSS(cPort) : null,
             c: kFgCmd.toggle, n: 1,
             a: { k: key2, n: ports[i] === ports[0] ? keyRepr : "", v: value }
           });
@@ -1152,7 +1152,7 @@
       }
       cPort.postMessage<1, kFgCmd.showHelp>({
         N: kBgReq.execute,
-        S: null,
+        H: null,
         c: kFgCmd.showHelp,
         n: 1,
         a: cOptions as {}
@@ -1165,7 +1165,7 @@
       key = key && typeof key === "string" ? key : "";
       let k2 = BgUtils_.stripKey_(key);
       cPort.postMessage<1, kFgCmd.insertMode>({ N: kBgReq.execute,
-        S: hud ? ensureInnerCSS(cPort) : null,
+        H: hud ? ensureInnerCSS(cPort) : null,
         c: kFgCmd.insertMode,
         n: 1,
         a: {
@@ -1192,7 +1192,7 @@
         cPort.s.f |= Frames.Flags.hadVisualMode;
       }
       cPort.postMessage<1, kFgCmd.visualMode>({ N: kBgReq.execute,
-        S: ensureInnerCSS(cPort), c: kFgCmd.visualMode, n: 1,
+        H: ensureInnerCSS(cPort), c: kFgCmd.visualMode, n: 1,
         a: {
           m: str === "caret" ? VisualModeNS.Mode.Caret
               : str === "line" ? VisualModeNS.Mode.Line : VisualModeNS.Mode.Visual,
@@ -1212,7 +1212,7 @@
         findCSS = Settings_.cache_.findCSS_;
       }
       cPort.postMessage<1, kFgCmd.findMode>({ N: kBgReq.execute
-          , S: ensureInnerCSS(cPort), c: kFgCmd.findMode, n: 1
+          , H: ensureInnerCSS(cPort), c: kFgCmd.findMode, n: 1
           , a: {
         n: nth > 0 ? cRepeat / absRepeat : cRepeat,
         l: leave,
@@ -1259,7 +1259,7 @@
         options.mode = "bookm";
       }
       port.postMessage<1, kFgCmd.vomnibar>({
-        N: kBgReq.execute, S: ensureInnerCSS(port),
+        N: kBgReq.execute, H: ensureInnerCSS(port),
         c: kFgCmd.vomnibar, n: cRepeat,
         a: options
       });
@@ -1912,7 +1912,7 @@
       if (!port) { return; }
       port.postMessage({
         N: kBgReq.focusFrame,
-        S: ensureInnerCSS(port),
+        H: ensureInnerCSS(port),
         k: cKey,
         c: 0,
         m: (framesForTab[tabId] as Frames.Frames)[0] === port ? FrameMaskType.OnlySelf : FrameMaskType.ForcedSelf
@@ -2083,7 +2083,7 @@
         (1 << kFgCmd.linkHints) | (1 << kFgCmd.unhoverLast) | (1 << kFgCmd.marks) |
         (1 << kFgCmd.passNextKey) | (1 << kFgCmd.autoCopy) | (1 << kFgCmd.focusInput)
       ) >> fgAlias) & 1;
-      port.postMessage({ N: kBgReq.execute, S: dot ? ensureInnerCSS(port) : null, c: fgAlias, n: count, a: options });
+      port.postMessage({ N: kBgReq.execute, H: dot ? ensureInnerCSS(port) : null, c: fgAlias, n: count, a: options });
       return;
     }
     const { alias_: alias } = registryEntry, func = BackgroundCommands[alias];
@@ -2154,7 +2154,7 @@
           Backend_.showHUD_(result.u);
         } else if (port) {
           port.postMessage<1, kFgCmd.reload>({ N: kBgReq.execute,
-            S: null, c: kFgCmd.reload, n: 1,
+            H: null, c: kFgCmd.reload, n: 1,
             a: { url: result.u } });
         } else {
           chrome.tabs.update({ url: result.u });
@@ -2434,7 +2434,7 @@
       if (ports) {
         ports[0].postMessage({
           N: kBgReq.focusFrame,
-          S: null,
+          H: null,
           k: cKey,
           c: 0,
           m: FrameMaskType.NoMask
@@ -2504,7 +2504,7 @@
         (port2.s as Frames.Sender).f |= Frames.Flags.hadHelpDialog;
         port2.postMessage({
           N: kBgReq.showHelpDialog,
-          S: ensureInnerCSS(port2),
+          H: ensureInnerCSS(port2),
           h: args[0].render_(isOptionsPage),
           o: Settings_.CONST_.OptionsPage_,
           e: !!options.exitOnClick,
@@ -2516,7 +2516,7 @@
     },
     /** kFgReq.css: */ function (this: void, _0: {}, port: Port): void {
       (port.s as Frames.Sender).f |= Frames.Flags.hasCSSAndActed;
-      port.postMessage({ N: kBgReq.showHUD, S: Settings_.cache_.innerCSS });
+      port.postMessage({ N: kBgReq.showHUD, H: Settings_.cache_.innerCSS });
     },
     /** kFgReq.vomnibar: */ function (this: void, request: FgReq[kFgReq.vomnibar]
         , port: Port): void {
@@ -3066,7 +3066,7 @@
     showHUD_ (message: string, isCopy?: 1): void {
       if (cPort && !safePost(cPort, {
           N: kBgReq.showHUD,
-          S: ensureInnerCSS(cPort),
+          H: ensureInnerCSS(cPort),
           t: message,
           c: isCopy as undefined
         })) {

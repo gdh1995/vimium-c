@@ -16,7 +16,7 @@ declare const enum kTip {
 }
 
 interface BgCSSReq {
-  /** style (aka. CSS) */ S: string | null;
+  /** style (aka. CSS) */ H: string | null;
 }
 
 interface BaseExecute<T, C extends kFgCmd & number = kFgCmd & number> extends BgCSSReq {
@@ -349,7 +349,7 @@ interface FgReqWithRes {
     /** url */ u: string;
     /** lastKey */ k: kKeyCode;
     /** ensured args */ a: FgOptions;
-  } & Omit<BaseExecute<FgOptions, FgCmdAcrossFrames>, "S">;
+  } & Omit<BaseExecute<FgOptions, FgCmdAcrossFrames>, "H">;
   [kFgReq.i18n]: {};
 }
 
