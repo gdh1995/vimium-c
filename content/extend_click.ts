@@ -542,7 +542,7 @@ _listen(kOnDomReady, doInit, !0);
   script.type = "text/javascript";
   script.dataset.vimium = secret as number | string as string;
   if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
-    ((docEl || Doc) as Ensure<Element | Document, "prepend">).prepend(script);
+    ((docEl ? script : Doc) as Ensure<ParentNode, "prepend">).prepend.call(docEl || Doc, script);
   } else {
     docEl ? script.insertAdjacentElement.call(docEl, "afterbegin", script) : Doc.appendChild(script);
   }
