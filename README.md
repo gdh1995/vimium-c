@@ -31,9 +31,10 @@ A <span style="color: #a55e18;">C</span>ustomized
   style="color: #a55e18;">全局快捷键</span>功能，还能运行在某些接受Vimium C的扩展程序的私有页面里，并且对CPU和内存资源的<span
   style="color: #a55e18;">消耗很低</span>。
 
-This project is developed by [gdh1995](https://github.com/gdh1995) and licensed under the [MIT license](LICENSE.txt).
+This project is mainly developed and maintained by [gdh1995](https://github.com/gdh1995),
+and licensed under the [MIT license](LICENSE.txt).
 
-本项目由 [gdh1995](https://github.com/gdh1995) 开发，且以 [MIT 许可协议](LICENSE.txt) 开源。
+本项目主要由 [gdh1995](https://github.com/gdh1995) 开发并维护，且以 [MIT 许可协议](LICENSE.txt) 开源。
 
 It (the version in Web Store) supports Chrome and other Chromium-based browsers whose core versions are >= 38,
   and supports almost all of the functionality on a recent Firefox (since version 63.0).

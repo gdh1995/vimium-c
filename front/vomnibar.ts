@@ -1275,16 +1275,17 @@ VUtils_ = {
     const parser = Build.BTypes & ~BrowserType.Firefox ? 0 as never : new DOMParser();
     return function (objectArray, element): void {
       let html = "", len = a.length - 1;
-      objectArray.forEach((o, idx) => {
+      for (let index = 0; index < objectArray.length; index++) {
         let j = 0;
         for (; j < len; j += 2) {
           html += a[j];
           const key = a[j + 1];
-          html += key === "typeIcon" ? Vomnibar_.getTypeIcon_(o) : o[key as keyof SuggestionE] || "";
-          html += key === "num" ? (idx + 1) : "";
+          html += key === "typeIcon" ? Vomnibar_.getTypeIcon_(objectArray[index])
+              : key === "index" ? index > 9 ? "" : (index + 1) % 10
+              : objectArray[index][key as keyof SuggestionE] || "";
         }
         html += a[len];
-      });
+      };
       if (Build.BTypes & ~BrowserType.Firefox) {
         element.innerHTML = html;
       } else {

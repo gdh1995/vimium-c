@@ -19,10 +19,12 @@ Vimium C 是一款开源、免费的键盘增强类浏览器扩展，支持为�
 只要有一个键盘，您就能自由点击网页中的链接和按钮、选择和复制文字和网址，也能轻松操纵浏览器标签页，
 还能在一个便捷的搜索框中随意搜索历史记录、收藏夹或打开的标签等等。
 
-本项目由 [gdh1995](https://github.com/gdh1995) 开发，且以 [MIT 许可协议](LICENSE.txt) 开源。
+本项目主要由 [gdh1995](https://github.com/gdh1995) 开发并维护，且以 [MIT 许可协议](LICENSE.txt) 开源。
 
 本项目地址是 https://github.com/gdh1995/vimium-c
 。本项目的前身是[<span style="color: #2f508e;">Vim</span>ium](https://github.com/philc/vimium)。
+
+[Here's its description in English](README.md)（点击查看英文介绍）。
 
 # 主要功能
 
