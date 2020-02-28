@@ -512,14 +512,14 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       return;
     }
     let action: AllowedActions = AllowedActions.nothing;
-    const char = key.slice(key.lastIndexOf("-") + 1),
-    mainModifier = key.slice(0, key.indexOf("-") + 1) as "a-" | "c-" | "m-" | "s-" | "";
+    const char = (key.slice(key.lastIndexOf("-") + 1) || key && kChar.minus) as kChar,
+    mainModifier = key === "-" ? "" : key.slice(0, key.indexOf("-") + 1) as "a-" | "c-" | "m-" | "s-" | "";
     if (mainModifier === "a-" || mainModifier === "m-") {
       if (char === kChar.f2) {
         return a.onAction_(focused ? AllowedActions.blurInput : AllowedActions.focus);
       }
       else if (!focused) { /* empty */ }
-      else if (char.length === 1 && char > "a" && char < "g" && char !== "c"
+      else if (char.length === 1 && char > kChar.a && char < kChar.g && char !== kChar.c
           || char === kChar.backspace && a.os_) {
         return a.onBashAction_(char.length === 1
             ? char.charCodeAt(0) - (kCharCode.maxNotAlphabet | kCharCode.CASE_DELTA) : -1);
@@ -536,7 +536,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     if (mainModifier === "c-" || mainModifier === "m-") {
       if (key.includes("s-")) {
-        action = char === "f" ? AllowedActions.pagedown : char === "b" ? AllowedActions.pageup
+        action = char === kChar.f ? AllowedActions.pagedown : char === kChar.b ? AllowedActions.pageup
           : AllowedActions.nothing;
       } else if (char === kChar.up || char === kChar.down || char === kChar.end || char === kChar.home) {
         event.preventDefault();
@@ -551,7 +551,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       } else if (char === kChar.delete) {
         a.keyResult_ = HandlerResult.Suppress;
       } else {
-        action = char === "[" ? AllowedActions.dismiss : char === "]" ? AllowedActions.toggle
+        action = char === kChar.bracketLeft ? AllowedActions.dismiss
+          : char === kChar.bracketRight ? AllowedActions.toggle
           : a.ctrlCharOrShiftKeyMap_[char] || AllowedActions.nothing;
       }
     }

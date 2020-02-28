@@ -565,6 +565,8 @@ declare const enum kChar {
   end = "end", home = "home", left = "left", up = "up", right = "right", down = "down",
   insert = "insert", delete = "delete",
   backspace = "backspace", esc = "esc", tab = "tab", enter = "enter",
+  minus = "-", bracketLeft = "[", bracketRight = "]",
+  a = "a", b = "b", c = "c", f = "f", g = "g",
   j = "j", k = "k",
   None = "", F_num = "f", f1 = "f1", f2 = "f2", f12 = "f12",
   maxNotF_num = "f0", minNotF_num = "f:", maxF_num = "f9",

@@ -98,7 +98,7 @@ var VKey = {
     }
     return eventWrapper.c = key as kChar;
   },
-  keybody_: (key: string): kChar => key.slice(key.lastIndexOf("-") + 1) as kChar,
+  keybody_: (key: string): kChar => (key.slice(key.lastIndexOf("-") + 1) || key && kChar.minus) as kChar,
   key_: null as never as (this: void, event: HandlerNS.Event, mode: kModeId) => string,
   getKeyStat_ ({e: event}: {e: EventControlKeys}): KeyStat {
     return <number> <boolean|number> event.altKey |
