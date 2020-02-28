@@ -75,6 +75,7 @@ const enum FirstQuery {
   searchEngines = 2,
   history = 3,
   tabs = 4,
+  bookmark = 5,
 
   QueryTypeMask = 0x3F,
   historyIncluded = QueryTypeMask + 1 + history,
@@ -314,12 +315,13 @@ bookmarkEngine = {
     if (queryTerms.length === 0 || !(allExpectedTypes & SugType.bookmark)) {
       Completers.next_([], SugType.bookmark);
       if (index !== 0) { return; }
-    } else if (bookmarkEngine.status_ === BookmarkStatus.inited) {
-      return bookmarkEngine.performSearch_(index);
+    }
+    if (bookmarkEngine.status_ === BookmarkStatus.inited) {
+      bookmarkEngine.performSearch_(index);
     } else {
       bookmarkEngine.currentSearch_ = [query, index];
+      if (bookmarkEngine.status_ === BookmarkStatus.notInited) { bookmarkEngine.refresh_(); }
     }
-    if (bookmarkEngine.status_ === BookmarkStatus.notInited) { return bookmarkEngine.refresh_(); }
   },
   StartsWithSlash_ (str: string): boolean { return str.charCodeAt(0) === kCharCode.slash; },
   performSearch_ (completerIndex: number): void {
@@ -327,6 +329,7 @@ bookmarkEngine = {
     buildCache = !!MatchCacheManager.newMatch_, newCache = [],
     arr = MatchCacheManager.current_ && MatchCacheManager.current_.bookmarks_ || this.bookmarks_, len = arr.length;
     let results: Array<[number, number]> = [];
+    queryType = queryType === FirstQuery.waitFirst && len > 0 ? FirstQuery.bookmark : queryType;
     for (let ind = 0; ind < len; ind++) {
       const i = arr[ind];
       const title = isPath ? i.path_ : i.title_;
@@ -340,7 +343,7 @@ bookmarkEngine = {
       (MatchCacheManager.newMatch_ as NonNullable<typeof MatchCacheManager.newMatch_>).bookmarks_ = newCache;
     }
     matchedTotal += results.length;
-    if (queryType === FirstQuery.waitFirst || offset === 0) {
+    if (queryType === FirstQuery.bookmark || offset === 0) {
       results.sort(sortBy0);
       if (offset > 0) {
         results = results.slice(offset, offset + maxResults);
@@ -787,15 +790,16 @@ domainEngine = {
 
 tabEngine = {
   filter_ (query: CompletersNS.QueryStatus): void {
-    if (!(allExpectedTypes & SugType.tab)) { // just in case of logic in the future
-      return Completers.next_([], SugType.tab);
+    if (!(allExpectedTypes & SugType.tab)) {
+      Completers.next_([], SugType.tab);
+    } else {
+      Completers.requireNormalOrIncognito_(this.performSearch_, query);
     }
-    Completers.requireNormalOrIncognito_(this.performSearch_, query);
   },
   performSearch_ (this: void, query: CompletersNS.QueryStatus, tabs0: readonly Tab[]): void {
     MatchCacheManager.cacheTabs_(tabs0);
     if (query.o) { return; }
-    if (queryType === FirstQuery.waitFirst) { queryType = FirstQuery.tabs; }
+    queryType = queryType === FirstQuery.waitFirst ? FirstQuery.tabs : queryType;
     const curTabId = TabRecency_.last_, noFilter = queryTerms.length <= 0,
     treeMode = wantTreeMode && wantInCurrentWindow && noFilter && !isForAddressBar;
     let suggestions: CompletersNS.TabSuggestion[] = [], treeMap: SafeDict<Tab> | undefined;
@@ -840,14 +844,14 @@ tabEngine = {
             ? pLevel < GlobalConsts.MaxTabTreeIndent ? pLevel + 1 : GlobalConsts.MaxTabTreeIndent : 1;
       }
     }
-    for (const {t: tab, s: text} of tabs) {
-      let id = "#";
+    for (const item of tabs) {
+      let id = "#", tab = item.t;
       curWndId && tab.windowId !== curWndId && (id += `${wndIds.indexOf(tab.windowId) + 1}:`);
       id += <string> <string | number> (tab.index + 1);
       if (!inNormal && tab.incognito) { id += "*"; }
       if (tab.discarded || Build.BTypes & BrowserType.Firefox && tab.hidden) { id += "~"; }
       const tabId = tab.id, level = treeMode ? treeLevels[tabId] as number : 1,
-      suggestion = new Suggestion("tab", tab.url, text, tab.title,
+      suggestion = new Suggestion("tab", tab.url, item.s, tab.title,
           c, treeMode ? ++ind : tabId) as CompletersNS.TabSuggestion;
       if (curTabId === tabId) {
         treeMode || (suggestion.r = 1);
@@ -1741,7 +1745,7 @@ knownCs: CompletersMap & SafeObject = {
       }
     },
     cacheTabs_ (tabs: readonly Tab[] | null): void {
-      if (MatchCacheManager.tabs_.tabs_ && tabs) { return; }
+      if (MatchCacheManager.tabs_.tabs_ === tabs) { return; }
       if (MatchCacheManager.tabTimer_) {
         clearTimeout(MatchCacheManager.tabTimer_);
         MatchCacheManager.tabTimer_ = TimerID.None;
