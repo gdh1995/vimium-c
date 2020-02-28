@@ -1275,15 +1275,16 @@ VUtils_ = {
     const parser = Build.BTypes & ~BrowserType.Firefox ? 0 as never : new DOMParser();
     return function (objectArray, element): void {
       let html = "", len = a.length - 1;
-      for (const o of objectArray) {
+      objectArray.forEach((o, idx) => {
         let j = 0;
         for (; j < len; j += 2) {
           html += a[j];
           const key = a[j + 1];
           html += key === "typeIcon" ? Vomnibar_.getTypeIcon_(o) : o[key as keyof SuggestionE] || "";
+          html += key === "num" ? (idx + 1) : "";
         }
         html += a[len];
-      }
+      });
       if (Build.BTypes & ~BrowserType.Firefox) {
         element.innerHTML = html;
       } else {
