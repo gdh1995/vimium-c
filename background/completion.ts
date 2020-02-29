@@ -578,9 +578,9 @@ historyEngine = {
       if (onlyUseTime ? !parts0.test(item.text_) : !Match2(item.text_, item.title_)) { continue; }
       if (!(showThoseInBlocklist || item.visible_)) { continue; }
       buildCache && newCache.push(item);
+      matched++;
       const score = onlyUseTime ? ComputeRecency(item.time_) || /* < 0.0002 */ 1e-16 * item.time_
           : ComputeRelevancy(item.text_, item.title_, item.time_);
-      matched++;
       if (curMinScore >= score) { continue; }
       for (j = maxNum - 2; 0 <= j && results[j] < score; j -= 2) {
         results[j + 2] = results[j], results[j + 3] = results[j + 1];
@@ -913,9 +913,6 @@ searchEngine = {
       }
       keyword = rawQuery.slice(1).trimLeft();
       sug = searchEngine.makeUrlSuggestion_(keyword);
-      autoSelect = true;
-      maxResults--;
-      matchedTotal++;
       showThoseInBlocklist = showThoseInBlocklist && BlockListFilter.IsExpectingHidden_([keyword]);
       return Completers.next_([sug], SugType.search);
     } else {
@@ -929,9 +926,6 @@ searchEngine = {
       }
       return Completers.next_([], SugType.search);
     } else {
-      autoSelect = true;
-      maxResults--;
-      matchedTotal++;
       if (queryType === FirstQuery.waitFirst && pattern) { q.push(rawMore); offset = 0; }
       q.length > 1 || !pattern ? (queryType = FirstQuery.searchEngines) : (matchType = MatchType.reset);
     }
@@ -1045,8 +1039,6 @@ searchEngine = {
     sug.textSplit = Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
         ? arr[2] : BgUtils_.escapeText_(arr[2]);
-    maxResults--;
-    matchedTotal++;
     return [stdSug, sug];
   },
   calcBestFaviconSource_: Build.BTypes & BrowserType.Chrome ? (url: string): string => {
@@ -1214,10 +1206,15 @@ Completers = {
     }
   },
   next_ (newSugs: Suggestion[], type: Exclude<SugType, SugType.Empty>): void {
-    let arr = Completers.suggestions_;
-    if (newSugs.length > 0) {
+    let arr = Completers.suggestions_, num = newSugs.length;
+    if (num > 0) {
       Completers.sugTypes_ |= type;
       Completers.suggestions_ = (arr as Suggestion[]).length === 0 ? newSugs : (arr as Suggestion[]).concat(newSugs);
+      if (type === SugType.search) {
+        autoSelect = !0;
+        maxResults -= num;
+        matchedTotal += num;
+      }
     }
     if (0 === --Completers.counter_) {
       arr = null;
