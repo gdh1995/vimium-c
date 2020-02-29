@@ -314,14 +314,13 @@ bookmarkEngine = {
   filter_ (query: CompletersNS.QueryStatus, index: number): void {
     if (queryTerms.length === 0 || !(allExpectedTypes & SugType.bookmark)) {
       Completers.next_([], SugType.bookmark);
-      if (index !== 0) { return; }
-    }
-    if (bookmarkEngine.status_ === BookmarkStatus.inited) {
+      if (index) { return; }
+    } else if (bookmarkEngine.status_ === BookmarkStatus.inited) {
       bookmarkEngine.performSearch_(index);
     } else {
       bookmarkEngine.currentSearch_ = [query, index];
-      if (bookmarkEngine.status_ === BookmarkStatus.notInited) { bookmarkEngine.refresh_(); }
     }
+    if (bookmarkEngine.status_ === BookmarkStatus.notInited) { bookmarkEngine.refresh_(); }
   },
   StartsWithSlash_ (str: string): boolean { return str.charCodeAt(0) === kCharCode.slash; },
   performSearch_ (completerIndex: number): void {
