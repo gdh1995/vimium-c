@@ -69,18 +69,6 @@ interface Completer {
   filter_ (query: CompletersNS.QueryStatus, index: number): void;
 }
 
-const enum FirstQuery {
-  nothing = 0,
-  waitFirst = 1,
-  searchEngines = 2,
-  history = 3,
-  tabs = 4,
-  bookmark = 5,
-
-  QueryTypeMask = 0x3F,
-  historyIncluded = QueryTypeMask + 1 + history,
-}
-
 type SuggestionConstructor =
   // pass enough arguments, so that it runs faster
   new (type: CompletersNS.ValidSugTypes, url: string, text: string, title: string,
@@ -129,7 +117,7 @@ interface MatchCacheRecord extends MatchCacheData {
   time_: number;
 }
 
-let queryType: FirstQuery = FirstQuery.nothing, matchType: MatchType = MatchType.plain,
+let matchType: MatchType = MatchType.plain,
     inNormal: boolean | null = null, autoSelect = false, isForAddressBar = false,
     wantTreeMode = false,
     maxChars = 0, maxResults = 0, maxTotal = 0, matchedTotal = 0, offset = 0,
@@ -327,8 +315,7 @@ bookmarkEngine = {
     const isPath = queryTerms.some(this.StartsWithSlash_),
     buildCache = !!MatchCacheManager.newMatch_, newCache = [],
     arr = MatchCacheManager.current_ && MatchCacheManager.current_.bookmarks_ || this.bookmarks_, len = arr.length;
-    let results: Array<[number, number]> = [];
-    queryType = queryType === FirstQuery.waitFirst && len > 0 ? FirstQuery.bookmark : queryType;
+    let results: Array<[number, number]> = [], resultLength: number;
     for (let ind = 0; ind < len; ind++) {
       const i = arr[ind];
       const title = isPath ? i.path_ : i.title_;
@@ -341,13 +328,17 @@ bookmarkEngine = {
     if (buildCache) {
       (MatchCacheManager.newMatch_ as NonNullable<typeof MatchCacheManager.newMatch_>).bookmarks_ = newCache;
     }
-    matchedTotal += results.length;
-    if (queryType === FirstQuery.bookmark || offset === 0) {
+    resultLength = results.length;
+    matchedTotal += resultLength;
+    if (!resultLength) {
+      allExpectedTypes ^= SugType.bookmark;
+    }
+    if (!(allExpectedTypes & (SugType.MultipleCandidates ^ SugType.bookmark)) || offset === 0) {
       results.sort(sortBy0);
       if (offset > 0) {
         results = results.slice(offset, offset + maxResults);
         offset = 0;
-      } else if (results.length > maxResults) {
+      } else if (resultLength > maxResults) {
         results.length = maxResults;
       }
     }
@@ -511,9 +502,6 @@ historyEngine = {
     if (Build.BTypes & BrowserType.Edge && !chrome.history
         || !(allExpectedTypes & SugType.history)) { return Completers.next_([], SugType.history); }
     const history = HistoryCache.history_, someQuery = queryTerms.length > 0;
-    if (queryType === FirstQuery.waitFirst) {
-      queryType = !someQuery || index === 0 ? FirstQuery.history : FirstQuery.historyIncluded;
-    }
     if (history) {
       if (someQuery) {
         return Completers.next_(historyEngine.quickSearch_(history), SugType.history);
@@ -564,7 +552,7 @@ historyEngine = {
     buildCache = !!MatchCacheManager.newMatch_, newCache = [],
     results = [-1.1, -1.1], sugs: Suggestion[] = [], Match2 = RankingUtils.Match2_,
     parts0 = RegExpCache.parts_[0];
-    let maxNum = maxResults + ((queryType & FirstQuery.QueryTypeMask) === FirstQuery.history ? offset : 0)
+    let maxNum = maxResults + offset
       , curMinScore = -1.1, i = 0, j = 0, matched = 0;
     domainToSkip && maxNum++;
     for (j = maxNum; --j; ) { results.push(-1.1, -1.1); }
@@ -592,7 +580,10 @@ historyEngine = {
       (MatchCacheManager.newMatch_ as NonNullable<typeof MatchCacheManager.newMatch_>).history_ = newCache;
     }
     matchedTotal += matched;
-    if (queryType === FirstQuery.history) {
+    if (!matched) {
+      allExpectedTypes ^= SugType.history;
+    }
+    if (!(allExpectedTypes & (SugType.MultipleCandidates ^ SugType.history))) {
       i = offset * 2;
       offset = 0;
     } else {
@@ -624,7 +615,7 @@ historyEngine = {
   loadSessions_ (query: CompletersNS.QueryStatus, sessions: chrome.sessions.Session[]): void {
     if (query.o) { return; }
     const historyArr: BrowserUrlItem[] = [], arr: Dict<number> = {};
-    let i = queryType === FirstQuery.history ? -offset : 0;
+    let i = -offset;
     return sessions.some(function (item): boolean {
       const entry = item.tab;
       if (!entry) { return false; }
@@ -685,7 +676,7 @@ historyEngine = {
 
 domainEngine = {
   filter_ (query: CompletersNS.QueryStatus, index: number): void {
-    if (queryTerms.length !== 1 || queryType === FirstQuery.searchEngines
+    if (queryTerms.length !== 1 || Completers.sugTypes_ & SugType.search
         || !(allExpectedTypes & SugType.domain)
         || queryTerms[0].lastIndexOf("/", queryTerms[0].length - 2) >= 0) {
       return Completers.next_([], SugType.domain);
@@ -798,10 +789,9 @@ tabEngine = {
   performSearch_ (this: void, query: CompletersNS.QueryStatus, tabs0: readonly Tab[]): void {
     MatchCacheManager.cacheTabs_(tabs0);
     if (query.o) { return; }
-    queryType = queryType === FirstQuery.waitFirst ? FirstQuery.tabs : queryType;
     const curTabId = TabRecency_.last_, noFilter = queryTerms.length <= 0,
     treeMode = wantTreeMode && wantInCurrentWindow && noFilter && !isForAddressBar;
-    let suggestions: CompletersNS.TabSuggestion[] = [], treeMap: SafeDict<Tab> | undefined;
+    let suggestions: CompletersNS.TabSuggestion[] = [], treeMap: SafeDict<Tab> | undefined, matched: number;
     if (treeMode && tabs0.length > offset) {
       treeMap = BgUtils_.safeObj_<Tab>();
       for (const tab of tabs0) { treeMap[tab.id] = tab; }
@@ -822,12 +812,16 @@ tabEngine = {
         tabs.push({t: tab, s: text});
       }
     }
-    matchedTotal += tabs.length;
-    if (offset >= tabs.length) {
-      if (queryType === FirstQuery.tabs) {
+    matched = tabs.length;
+    matchedTotal += matched;
+    if (!matched) {
+      allExpectedTypes ^= SugType.tab;
+    }
+    if (offset >= matched) {
+      if (!(allExpectedTypes & (SugType.MultipleCandidates ^ SugType.tab))) {
         offset = 0;
       } else {
-        offset -= tabs.length;
+        offset -= matched;
       }
       return Completers.next_(suggestions, SugType.tab);
     }
@@ -867,7 +861,7 @@ tabEngine = {
       }
       suggestions.push(suggestion);
     }
-    if (queryType !== FirstQuery.tabs && offset !== 0) { /* empty */ }
+    if ((allExpectedTypes & (SugType.MultipleCandidates ^ SugType.tab)) && offset !== 0) { /* empty */ }
     else if (suggestions.sort(Completers.rSortByRelevancy_).length > offset + maxResults || !noFilter) {
       if (offset > 0) {
         suggestions = suggestions.slice(offset, offset + maxResults);
@@ -925,8 +919,8 @@ searchEngine = {
       }
       return Completers.next_([], SugType.search);
     } else {
-      if (queryType === FirstQuery.waitFirst && pattern) { q.push(rawMore); offset = 0; }
-      q.length > 1 || !pattern ? (queryType = FirstQuery.searchEngines) : (matchType = MatchType.reset);
+      if (pattern && rawMore) { q.push(rawMore); offset = 0; }
+      q.length > 1 || !pattern ? 0 : (matchType = MatchType.reset);
     }
     if (q.length > 1 && pattern) {
       q.shift();
@@ -1264,14 +1258,14 @@ Completers = {
     RankingUtils.timeAgo_ = matchType =
     Completers.sugTypes_ =
     maxResults = maxTotal = matchedTotal = maxChars = 0;
-    queryType = FirstQuery.nothing;
+    allExpectedTypes = SugType.Empty;
     autoSelect = isForAddressBar = false;
     wantInCurrentWindow = false;
     showThoseInBlocklist = true;
   },
   getOffset_ (this: void): void {
     let str = rawQuery, ind: number, i: number;
-    offset = 0; queryType = FirstQuery.nothing; rawMore = "";
+    offset = 0; rawMore = "";
     if (str.length === 0 || (ind = (str = str.slice(-5)).lastIndexOf("+")) < 0
       || ind !== 0 && str.charCodeAt(ind - 1) !== kCharCode.space
     ) {
@@ -1286,7 +1280,6 @@ Completers = {
     }
     rawQuery = rawQuery.slice(0, ind && ind - 1);
     rawMore = str;
-    queryType = FirstQuery.waitFirst;
   },
   rSortByRelevancy_ (a: Suggestion, b: Suggestion): number { return b.r - a.r; }
 },

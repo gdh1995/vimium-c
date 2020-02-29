@@ -4,10 +4,11 @@ declare namespace CompletersNS {
     Empty = 0,
     bookmark = 1,
     history = 2,
-    domain = 4,
+    tab = 4,
     search = 8,
-    tab = 16,
+    domain = 16,
     Full = 0x3f,
+    /** bookmark | history | tab */ MultipleCandidates = 7,
   }
   /**
    * only those >= .Default can be used in content
