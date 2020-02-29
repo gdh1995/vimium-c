@@ -168,6 +168,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   selection_: -1,
   afterHideTimer_: 0,
   timer_: 0,
+  inAlt_: 0,
   wheelStart_: 0,
   wheelTime_: 0,
   wheelDelta_: 0,
@@ -217,6 +218,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.list_.style.height = "";
     a.barCls_.remove("empty");
     a.list_.classList.remove("no-favicon");
+    a.toggleAlt_(0);
     if (a.sameOrigin_) { return a.onHidden_(); }
     a.afterHideTimer_ = requestAnimationFrame(a.AfterHide_);
     a.timer_ = setTimeout(a.AfterHide_, 35);
@@ -517,6 +519,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (mainModifier === "a-" || mainModifier === "m-") {
       if (char === kChar.f2) {
         return a.onAction_(focused ? AllowedActions.blurInput : AllowedActions.focus);
+      }
+      else if (mainModifier === "a-" && (char === kChar.down || char === kChar.up)) {
+        return a.onAction_(char < "u" ? AllowedActions.down : AllowedActions.up);
       }
       else if (!focused) { /* empty */ }
       else if (char.length === 1 && char > kChar.a && char < kChar.g && char !== kChar.c
@@ -968,6 +973,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           VPort_ && !VPort_._port && VPort_.postToOwner_({ N: VomnibarNS.kFReq.broken });
         }, 50);
       }
+    } else {
+      Vomnibar_.toggleAlt_(0);
     }
   },
   blurred_ (this: void, blurred?: boolean | null): void {
@@ -1115,11 +1122,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
         : event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)) { return; }
     Vomnibar_.keyResult_ = HandlerResult.Prevent as HandlerResult;
+    let keyCode = event.keyCode, stop = !event.repeat, now = 0;
     if (window.onkeyup) {
-      let stop = !event.repeat, now = 0;
       if (!Vomnibar_.lastScrolling_) {
         // clear state, to avoid OnEnterUp receives unrelated keys
-        stop = event.keyCode > kKeyCode.maxAcsKeys || event.keyCode < kKeyCode.minAcsKeys;
+        stop = keyCode > kKeyCode.maxAcsKeys || keyCode < kKeyCode.minAcsKeys;
       } else if (stop || (now = Date.now()) - Vomnibar_.lastScrolling_ > 40 || now < Vomnibar_.lastScrolling_) {
         VPort_.postToOwner_({ N: stop ? VomnibarNS.kFReq.scrollEnd : VomnibarNS.kFReq.scrollGoing });
         Vomnibar_.lastScrolling_ = now;
@@ -1127,9 +1134,27 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       if (stop) { window.onkeyup = null as never; }
     } else if (Vomnibar_.isActive_) {
       Vomnibar_.onKeydown_(event);
+      if (keyCode === kKeyCode.altKey && stop) {
+        Vomnibar_.inAlt_ = Vomnibar_.inAlt_ || setTimeout(Vomnibar_.toggleAlt_, 240, -1);
+      }
     }
     if (Vomnibar_.keyResult_ === HandlerResult.Nothing) { return; }
     VUtils_.Stop_(event, Vomnibar_.keyResult_ === HandlerResult.Prevent);
+  },
+  toggleAlt_ (enable: /** disable */ 0 | /** enable */ -1 | KeyboardEvent): void {
+    const inAlt = Vomnibar_.inAlt_;
+    if (enable !== -1 && enable !== 0) {
+      if (enable.keyCode !== kKeyCode.altKey) { return; }
+      enable = 0;
+    }
+    if (inAlt !== enable) {
+      if (inAlt > 0 && !enable) { clearTimeout(inAlt); }
+      if ((inAlt === -1) !== !!enable) {
+        (document.body as HTMLBodyElement).classList.toggle("alt", !!enable);
+        (enable ? addEventListener : removeEventListener)("keyup", Vomnibar_.toggleAlt_, true);
+      }
+      Vomnibar_.inAlt_ = enable;
+    }
   },
   returnFocus_ (this: void, request: BgVomnibarSpecialReq[kBgReq.omni_returnFocus]): void {
     type VoidPost = <K extends keyof VomnibarNS.FReq> (this: void, msg: VomnibarNS.FReq[K] & VomnibarNS.Msg<K>) => void;
@@ -1282,7 +1307,8 @@ VUtils_ = {
           html += a[j];
           const key = a[j + 1];
           html += key === "typeIcon" ? Vomnibar_.getTypeIcon_(objectArray[index])
-              : key === "index" ? index > 9 ? "" : (index + 1) % 10
+              : key === "access" ? index > 9 ? "" : (index + 1) % 10
+              : key === "index" ? index + 1
               : objectArray[index][key as keyof SuggestionE] || "";
         }
         html += a[len];
