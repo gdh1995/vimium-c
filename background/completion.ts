@@ -68,6 +68,9 @@ interface UrlDomain {
 interface Completer {
   filter_ (query: CompletersNS.QueryStatus, index: number): void;
 }
+interface CompleterList extends ReadonlyArray<Completer> {
+  /** in fact, SugType */ readonly [0]: never;
+}
 
 type SuggestionConstructor =
   // pass enough arguments, so that it runs faster
@@ -81,9 +84,6 @@ type HistoryCallback = (this: void, history: ReadonlyArray<Readonly<HistoryItem>
 
 type ItemToDecode = string | DecodedItem;
 
-type CompletersMap = {
-    [P in CompletersNS.ValidTypes]: readonly Completer[];
-};
 type SearchSuggestion = CompletersNS.SearchSuggestion;
 
 const enum kVisibility {
@@ -1127,25 +1127,27 @@ Completers = {
   suggestions_: null as readonly Suggestion[] | null,
   mostRecentQuery_: null as CompletersNS.QueryStatus | null,
   callback_: null as CompletersNS.Callback | null,
-  filter_ (completers: readonly Completer[]): void {
+  filter_ (completers: CompleterList): void {
     if (Completers.mostRecentQuery_) { Completers.mostRecentQuery_.o = true; }
     const query: CompletersNS.QueryStatus = Completers.mostRecentQuery_ = {
       o: false
     };
     Completers.sugTypes_ = SugType.Empty;
-    let i = 0, l = Completers.counter_ = allExpectedTypes & ~SugType.search ? completers.length : 1;
+    allExpectedTypes &= completers[0] as SugType;
+    let i = 1, l = allExpectedTypes & ~SugType.search ? completers.length : 2;
     Completers.suggestions_ = [];
+    Completers.counter_ = l - 1;
     matchType = offset && MatchType.reset;
-    if (completers[0] === searchEngine) {
+    if (completers[1] === searchEngine) {
       const ret = searchEngine.preFilter_(query);
-      if (l < 2) {
+      if (l < 3) {
         return;
       }
       if (ret) {
         ret.then(Completers._filter2.bind(null, completers, query, i));
         return;
       }
-      i = 1;
+      i = 2;
     }
     Completers._filter2(completers, query, i);
   },
@@ -1159,7 +1161,7 @@ Completers = {
     queryTerms.sort(Completers.rSortQueryTerms_);
     RegExpCache.buildParts_();
     for (; i < completers.length; i++) {
-      completers[i].filter_(query, i);
+      completers[i].filter_(query, i - 1);
     }
   },
   rSortQueryTerms_ (a: string, b: string): number {
@@ -1283,15 +1285,15 @@ Completers = {
   },
   rSortByRelevancy_ (a: Suggestion, b: Suggestion): number { return b.r - a.r; }
 },
-knownCs: CompletersMap & SafeObject = {
+knownCs = {
   __proto__: null as never,
-  bookm: [bookmarkEngine],
-  domain: [domainEngine],
-  history: [historyEngine],
-  omni: [searchEngine, domainEngine, historyEngine, bookmarkEngine],
-  bomni: [searchEngine, domainEngine, bookmarkEngine, historyEngine],
-  search: [searchEngine],
-  tab: [tabEngine]
+  bookm: [SugType.bookmark as never, bookmarkEngine] as CompleterList,
+  domain: [SugType.domain as never, domainEngine] as CompleterList,
+  history: [SugType.history as never, historyEngine] as CompleterList,
+  omni: [SugType.Full as never, searchEngine, domainEngine, historyEngine, bookmarkEngine] as CompleterList,
+  bomni: [SugType.Full as never, searchEngine, domainEngine, bookmarkEngine, historyEngine] as CompleterList,
+  search: [SugType.search as never, searchEngine] as CompleterList,
+  tab: [SugType.tab as never, tabEngine] as CompleterList
 },
 
   RankingUtils = {
@@ -1874,7 +1876,7 @@ Completion_ = {
     maxTotal = maxResults = Math.min(Math.max(3, ((options.r as number) | 0) || 10), 25);
     matchedTotal = 0;
     Completers.callback_ = callback;
-    let arr: readonly Completer[] | null = knownCs[options.o], str = queryTerms.length >= 1 ? queryTerms[0] : ""
+    let arr: CompleterList | null = knownCs[options.o], str = queryTerms.length >= 1 ? queryTerms[0] : ""
       , expectedTypes = options.t;
     if (arr === knownCs.tab) {
        wantInCurrentWindow = !!(flags & CompletersNS.QueryFlags.TabInCurrentWindow);
