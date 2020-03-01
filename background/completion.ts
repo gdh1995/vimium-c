@@ -876,6 +876,9 @@ tabEngine = {
       } else if (resultLength > offset + maxResults) {
         suggestions.length = offset + maxResults;
       }
+      for (let i = hasOtherSuggestions ? 0 : resultLength; i < resultLength; i++) {
+        suggestions[i].r *= 8 / (i / 4 + 1);
+      }
     } else if (offset > 0) {
       suggestions = suggestions.slice(offset).concat(suggestions.slice(0, maxResults + offset - resultLength));
       resultLength = suggestions.length;
@@ -1298,8 +1301,8 @@ knownCs = {
   bookm: [SugType.bookmark as never, bookmarkEngine] as CompleterList,
   domain: [SugType.domain as never, domainEngine] as CompleterList,
   history: [SugType.history as never, historyEngine] as CompleterList,
-  omni: [SugType.Full as never, searchEngine, domainEngine, historyEngine, bookmarkEngine] as CompleterList,
-  bomni: [SugType.Full as never, searchEngine, domainEngine, bookmarkEngine, historyEngine] as CompleterList,
+  omni: [SugType.Full as never, searchEngine, domainEngine, historyEngine, bookmarkEngine, tabEngine] as CompleterList,
+  bomni: [SugType.Full as never, searchEngine, domainEngine, bookmarkEngine, historyEngine, tabEngine] as CompleterList,
   search: [SugType.search as never, searchEngine] as CompleterList,
   tab: [SugType.tab as never, tabEngine] as CompleterList
 },
