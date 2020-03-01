@@ -64,6 +64,12 @@ interface UrlDomain {
   domain_: string;
   schema_: Urls.SchemaId;
 }
+interface WritableTabEx extends Readonly<chrome.tabs.Tab> {
+  text?: string;
+}
+interface TabEx extends WritableTabEx {
+  readonly text: string;
+}
 
 interface Completer {
   filter_ (query: CompletersNS.QueryStatus, index: number): void;
@@ -102,7 +108,7 @@ const enum TabCacheType {
 }
 
 interface TabCacheData {
-  tabs_: readonly Tab[] | null;
+  tabs_: readonly WritableTabEx[] | null;
   type_: TabCacheType;
 }
 
@@ -600,7 +606,7 @@ historyEngine = {
     Decoder.continueToWork_();
     return sugs;
   },
-  loadTabs_ (this: void, query: CompletersNS.QueryStatus, tabs: readonly Tab[]): void {
+  loadTabs_ (this: void, query: CompletersNS.QueryStatus, tabs: readonly WritableTabEx[]): void {
     MatchCacheManager.cacheTabs_(tabs);
     if (query.o) { return; }
     const arr: SafeDict<number> = BgUtils_.safeObj_();
@@ -779,14 +785,14 @@ domainEngine = {
 },
 
 tabEngine = {
-  filter_ (query: CompletersNS.QueryStatus): void {
-    if (!(allExpectedTypes & SugType.tab)) {
+  filter_ (query: CompletersNS.QueryStatus, index: number): void {
+    if (!(allExpectedTypes & SugType.tab) || !queryTerms.length && index) {
       Completers.next_([], SugType.tab);
     } else {
       Completers.requireNormalOrIncognito_(this.performSearch_, query);
     }
   },
-  performSearch_ (this: void, query: CompletersNS.QueryStatus, tabs0: readonly Tab[]): void {
+  performSearch_ (this: void, query: CompletersNS.QueryStatus, tabs0: readonly WritableTabEx[]): void {
     MatchCacheManager.cacheTabs_(tabs0);
     if (query.o) { return; }
     const curTabId = TabRecency_.last_, noFilter = queryTerms.length <= 0,
@@ -802,14 +808,14 @@ tabEngine = {
         tabs0 = start > 0 ? tabs0.slice(start).concat(tabs0.slice(0, start)) : tabs0;
       }
     }
-    const tabs: Array<{t: Tab; s: string}> = [], wndIds: number[] = [];
+    const tabs: TabEx[] = [], wndIds: number[] = [];
     for (const tab of tabs0) {
       if (!wantInCurrentWindow && inNormal && tab.incognito) { continue; }
-      const u = tab.url, text = Decoder.decodeURL_(u, tab.incognito ? "" : u);
+      const u = tab.url, text = tab.text || (tab.text = Decoder.decodeURL_(u, tab.incognito ? "" : u));
       if (noFilter || RankingUtils.Match2_(text, tab.title)) {
         const wndId = tab.windowId;
         !wantInCurrentWindow && wndIds.lastIndexOf(wndId) < 0 && wndIds.push(wndId);
-        tabs.push({t: tab, s: text});
+        tabs.push(tab as TabEx);
       }
     }
     matched = tabs.length;
@@ -831,33 +837,33 @@ tabEngine = {
     curWndId = wndIds.length > 1 ? TabRecency_.lastWnd_ : 0;
     let ind = 0;
     if (treeMode) {
-      for (const {t: tab} of tabs) { // only from start to end, and should not execute nested queries
+      for (const tab of tabs) { // only from start to end, and should not execute nested queries
         const pid = tab.openerTabId, pLevel = pid && treeLevels[pid];
         treeLevels[tab.id] = pLevel
             ? pLevel < GlobalConsts.MaxTabTreeIndent ? pLevel + 1 : GlobalConsts.MaxTabTreeIndent : 1;
       }
     }
-    for (const item of tabs) {
-      let id = "#", tab = item.t;
+    for (const tab of tabs) {
+      let id = "#";
       curWndId && tab.windowId !== curWndId && (id += `${wndIds.indexOf(tab.windowId) + 1}:`);
       id += <string> <string | number> (tab.index + 1);
       if (!inNormal && tab.incognito) { id += "*"; }
       if (tab.discarded || Build.BTypes & BrowserType.Firefox && tab.hidden) { id += "~"; }
       const tabId = tab.id, level = treeMode ? treeLevels[tabId] as number : 1,
-      suggestion = new Suggestion("tab", tab.url, item.s, tab.title,
+      suggestion = new Suggestion("tab", tab.url, tab.text, tab.title,
           c, treeMode ? ++ind : tabId) as CompletersNS.TabSuggestion;
       if (curTabId === tabId) {
         treeMode || (suggestion.r = 1);
         id = `#(${id.slice(1)})`;
-      }
-      if (level > 1) {
-        suggestion.level = " level-" + level;
       }
       suggestion.s = tabId;
       suggestion.label = id;
       if (Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
         suggestion.favIcon = tab.favIconUrl;
+      }
+      if (level > 1) {
+        suggestion.level = " level-" + level;
       }
       suggestions.push(suggestion);
     }
@@ -1168,7 +1174,7 @@ Completers = {
     return b.length - a.length || (a < b ? -1 : a === b ? 0 : 1);
   },
   requireNormalOrIncognito_ (
-      func: (this: void, query: CompletersNS.QueryStatus, tabs: readonly Tab[]) => void
+      func: (this: void, query: CompletersNS.QueryStatus, tabs: readonly WritableTabEx[]) => void
       , query: CompletersNS.QueryStatus, tabs?: readonly Tab[] | null): 1 | void {
     tabs = tabs || MatchCacheManager.tabs_.tabs_;
     let wndIncognito = TabRecency_.incognito_;
