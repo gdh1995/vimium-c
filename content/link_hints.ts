@@ -457,7 +457,7 @@ var VHints = {
         const st = VDom.getComputedStyle_(element), visible = <number> <string | number> st.opacity > 0;
         isClickable = visible || !(element as HTMLInputElement).labels.length;
         if (isClickable) {
-          arr = VDom.getZoomedAndCroppedRect_(element, st, !visible);
+          arr = VDom.getZoomedAndCroppedRect_(element as HTMLInputElement, st, !visible);
           type = arr ? ClickType.edit : ClickType.Default;
         }
       } else if (!(element as TextElement).readOnly || _this.mode1_ > HintMode.min_job - 1) {
@@ -527,7 +527,7 @@ var VHints = {
               || element.hasAttribute("aria-selected") ? ClickType.classname : ClickType.Default);
     }
     if ((isClickable || type !== ClickType.Default)
-        && (arr = tag === "img" ? VDom.getZoomedAndCroppedRect_(element, null, true)
+        && (arr = tag === "img" ? VDom.getZoomedAndCroppedRect_(element as HTMLImageElement, null, true)
                 : arr || VDom.getVisibleClientRect_(element, null))
         && (type < ClickType.scrollX
           || VSc.shouldScroll_need_safe_(element, type - ClickType.scrollX as ScrollByY, 0) > 0)
@@ -584,9 +584,9 @@ var VHints = {
     return el && (mayBeSearchResult
           // use `^...$` to exclude custom tags
         ? (<RegExpOne> /^h\d$/).test(tag) && this.isNotReplacedBy_(el as HTMLHeadingElement & SafeHTMLElement)
-          ? VDom.getVisibleClientRect_(el) : null
+          ? VDom.getVisibleClientRect_(el as HTMLHeadingElement & SafeHTMLElement) : null
         : tag === "img" && !anchor.clientHeight
-          ? VDom.getCroppedRect_(el as HTMLImageElement, VDom.getVisibleClientRect_(el))
+          ? VDom.getCroppedRect_(el as HTMLImageElement, VDom.getVisibleClientRect_(el as HTMLImageElement))
         : null);
   },
   isNotReplacedBy_ (element: SafeHTMLElement | null, isExpected?: Hint[]): boolean | null {
@@ -884,7 +884,9 @@ var VHints = {
         } else if (k === ClickType.tabindex
             && (element = list[i][0]).childElementCount === 1 && i + 1 < list.length) {
           element = element.lastElementChild as Element;
-          prect = list[i][1]; crect = VDom.getVisibleClientRect_(element);
+          prect = list[i][1];
+          crect = Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_(element) ? null
+              : VDom.getVisibleClientRect_(element as SafeElement);
           if (crect && VDom.isContaining_(crect, prect) && VDom.htmlTag_(element)) {
             if (list[i + 1][0].parentNode !== element) {
               list[i] = [element as SafeHTMLElement, crect, ClickType.tabindex];

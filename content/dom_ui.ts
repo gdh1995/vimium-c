@@ -448,7 +448,8 @@ var VCui = {
     if (refer) {
       return a.getClientRectsForAreas_(refer, [], [clickEl as HTMLAreaElement]);
     }
-    const rect = a.getVisibleClientRect_(clickEl),
+    const rect = Build.BTypes & ~BrowserType.Firefox && a.notSafe_(clickEl) ? null
+        : a.getVisibleClientRect_(clickEl as SafeElement),
     cr = a.getBoundingClientRect_(clickEl),
     bcr = a.padClientRect_(cr, 8),
     rect2 = rect && !a.isContaining_(bcr, rect) ? rect

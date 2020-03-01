@@ -223,7 +223,7 @@ var VVisual = {
     if (!(Build.NDEBUG || VVisual.selection_ && VVisual.selection_.type === "None")) {
       console.log('Assert error: VVisual.selection_ && VVisual.selection_.type === "None"');
     }
-    let node: Text | null, str: string | undefined, offset: number, vDom = VDom;
+    let node: Text | null, str: string | undefined, offset: number, vDom = VDom, a = this;
     if (!vDom.isHTML_()) { return true; }
     vDom.getZoom_(1);
     vDom.prepareCrop_();
@@ -231,14 +231,13 @@ var VVisual = {
             , NodeFilter.SHOW_TEXT);
     while (node = nodes.nextNode() as Text | null) {
       if (50 <= (str = node.data).length && 50 < str.trim().length) {
-        const element = node.parentElement; // safe because node is Text
-        // Note(gdh1995): I'm not sure whether element might be null
-        if (element && vDom.getVisibleClientRect_(element) && !vDom.getEditableType_(element)) {
+        const element = node.parentElement;
+        if (element && (!(Build.BTypes & ~BrowserType.Firefox) || !vDom.notSafe_(element))
+            && vDom.getVisibleClientRect_(element as SafeElement) && !vDom.getEditableType_(element)) {
           break;
         }
       }
     }
-    const a = this;
     if (!node) {
       if (sr) {
         a.selection_ = vDom.getSelected_();

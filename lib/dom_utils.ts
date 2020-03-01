@@ -323,9 +323,8 @@ var VDom = {
     return Build.BTypes & ~BrowserType.Firefox ? Element.prototype.getBoundingClientRect.call(el)
       : el.getBoundingClientRect();
   },
-  getVisibleClientRect_ (element: Element, el_style?: CSSStyleDeclaration | null): Rect | null {
-    const arr = Build.BTypes & ~BrowserType.Firefox ? Element.prototype.getClientRects.call(element)
-                : element.getClientRects();
+  getVisibleClientRect_ (element: SafeElement, el_style?: CSSStyleDeclaration | null): Rect | null {
+    const arr = element.getClientRects();
     let cr: Rect | null, style: CSSStyleDeclaration | null, _ref: HTMLCollection | undefined
       , isVisible: boolean | undefined, notInline: boolean | undefined, str: string;
     for (let _i = 0, _len = arr.length; _i < _len; _i++) {
@@ -342,13 +341,12 @@ var VDom = {
       }
       // according to https://dom.spec.whatwg.org/#dom-parentnode-children
       // .children will always be a HTMLCollection even if element is SVGElement
-      if (_ref || Build.BTypes & ~BrowserType.Firefox && !((_ref = element.children) instanceof HTMLCollection)) {
+      if (_ref) {
         continue;
       }
-      Build.BTypes & ~BrowserType.Firefox || (_ref = element.children);
-      type EnsuredChildren = Exclude<Element["children"], Element | null | undefined>;
-      for (let _j = 0, _len1 = (_ref as EnsuredChildren).length, gCS = getComputedStyle; _j < _len1; _j++) {
-        style = gCS((_ref as EnsuredChildren)[_j]);
+      _ref = element.children;
+      for (let _j = 0, _len1 = _ref.length, gCS = getComputedStyle; _j < _len1; _j++) {
+        style = gCS(_ref[_j]);
         if (style.float !== "none" || ((str = style.position) !== "static" && str !== "relative")) { /* empty */ }
         else if (rect.height === 0) {
           if (notInline == null) {
@@ -358,7 +356,9 @@ var VDom = {
           }
           if (notInline || !style.display.startsWith("inline")) { continue; }
         } else { continue; }
-        if (cr = this.getVisibleClientRect_((_ref as EnsuredChildren)[_j], style)) { return cr; }
+        if (!this.notSafe_(_ref[_j]) && (cr = this.getVisibleClientRect_(_ref[_j] as SafeHTMLElement, style))) {
+          return cr;
+        }
       }
       style = null;
     }
@@ -903,7 +903,8 @@ var VDom = {
     padding = x || y ? padding : 0;
     return {l: x | 0, t: y | 0, r: (x + max(rect.width, padding)) | 0, b: (y + max(rect.height, padding)) | 0};
   },
-  getZoomedAndCroppedRect_ (element: Element, st: CSSStyleDeclaration | null, crop: boolean): Rect | null {
+  getZoomedAndCroppedRect_ (element: HTMLImageElement | HTMLInputElement
+      , st: CSSStyleDeclaration | null, crop: boolean): Rect | null {
     let zoom = Build.BTypes && ~BrowserType.Firefox && +(st || VDom.getComputedStyle_(element)).zoom || 1,
     cr: ClientRect = Build.BTypes && ~BrowserType.Firefox ? VDom.getBoundingClientRect_(element) : 0 as never,
     arr: Rect | null = Build.BTypes && ~BrowserType.Firefox
