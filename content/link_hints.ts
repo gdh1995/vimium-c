@@ -658,19 +658,15 @@ var VHints = {
     // <img>.currentSrc is since C45
     const src: string | null | undefined = element.getAttribute("src") || element.currentSrc || element.dataset.src;
     if (!src) { return; }
-    let rect: ClientRect | undefined, cr: Rect | null = null, w: number, h: number;
-    if ((w = element.width) < 8 && (h = element.height) < 8) {
-      if (w !== h || (w !== 0 && w !== 3)) { return; }
-      rect = VDom.getBoundingClientRect_(element);
-      if (rect) {
-        w = rect.left; h = rect.top;
-        cr = VDom.cropRectToVisible_(w, h, w + 8, h + 8);
-      }
-    } else if (rect = VDom.getBoundingClientRect_(element)) {
-      w = rect.right + (rect.width < 3 ? 3 : 0);
-      h = rect.bottom + (rect.height < 3 ? 3 : 0);
-      cr = VDom.cropRectToVisible_(rect.left, rect.top, w, h);
+    let rect = VDom.getBoundingClientRect_(element), cr: Rect | null = null
+      , l = rect.left, t = rect.top, w = rect.width, h = rect.height;
+    if (w < 8 && h < 8) {
+      w = h = w === h && (w ? w === 3 : l || t) ? 8 : 0;
+    } else {
+      w > 3 ? 0 : w = 3;
+      h > 3 ? 0 : h = 3;
     }
+    cr = VDom.cropRectToVisible_(l, t, l + w, t + h);
     if (cr && VDom.isStyleVisible_(element)) {
       hints.push([element, cr, ClickType.Default]);
     }
