@@ -338,14 +338,13 @@ bookmarkEngine = {
     matchedTotal += resultLength;
     if (!resultLength) {
       allExpectedTypes ^= SugType.bookmark;
-    }
-    if (!(allExpectedTypes & (SugType.MultipleCandidates ^ SugType.bookmark)) || offset === 0) {
+    } else {
       results.sort(sortBy0);
-      if (offset > 0) {
+      if (offset > 0 && !(allExpectedTypes & (SugType.MultipleCandidates ^ SugType.bookmark))) {
         results = results.slice(offset, offset + maxResults);
         offset = 0;
-      } else if (resultLength > maxResults) {
-        results.length = maxResults;
+      } else if (resultLength > offset + maxResults) {
+        results.length = offset + maxResults;
       }
     }
     const results2: Suggestion[] = [],
@@ -601,6 +600,8 @@ historyEngine = {
       const item = history[results[i + 1]];
       if (item.url_ !== domainToSkip) {
         sugs.push(new Suggestion("history", item.url_, item.text_, item.title_, get2ndArg, score));
+      } else {
+        maxNum--;
       }
     }
     Decoder.continueToWork_();
@@ -796,6 +797,7 @@ tabEngine = {
     MatchCacheManager.cacheTabs_(tabs0);
     if (query.o) { return; }
     const curTabId = TabRecency_.last_, noFilter = queryTerms.length <= 0,
+    hasOtherSuggestions = allExpectedTypes & (SugType.MultipleCandidates ^ SugType.tab),
     treeMode = wantTreeMode && wantInCurrentWindow && noFilter && !isForAddressBar;
     let suggestions: CompletersNS.TabSuggestion[] = [], treeMap: SafeDict<Tab> | undefined, matched: number;
     if (treeMode && tabs0.length > offset) {
@@ -823,12 +825,8 @@ tabEngine = {
     if (!matched) {
       allExpectedTypes ^= SugType.tab;
     }
-    if (offset >= matched) {
-      if (!(allExpectedTypes & (SugType.MultipleCandidates ^ SugType.tab))) {
-        offset = 0;
-      } else {
-        offset -= matched;
-      }
+    if (offset >= matched && !hasOtherSuggestions) {
+      offset = 0;
       return Completers.next_(suggestions, SugType.tab);
     }
     wndIds.sort(tabEngine.SortNumbers_);
@@ -867,18 +865,21 @@ tabEngine = {
       }
       suggestions.push(suggestion);
     }
-    if ((allExpectedTypes & (SugType.MultipleCandidates ^ SugType.tab)) && offset !== 0) { /* empty */ }
-    else if (suggestions.sort(Completers.rSortByRelevancy_).length > offset + maxResults || !noFilter) {
-      if (offset > 0) {
+    suggestions.sort(Completers.rSortByRelevancy_);
+    let resultLength = suggestions.length;
+    if (hasOtherSuggestions
+        || resultLength > offset + maxResults || !noFilter) {
+      if (offset > 0 && !hasOtherSuggestions) {
         suggestions = suggestions.slice(offset, offset + maxResults);
         offset = 0;
-      } else if (suggestions.length > maxResults) {
-        suggestions.length = maxResults;
+      } else if (resultLength > offset + maxResults) {
+        suggestions.length = offset + maxResults;
       }
     } else if (offset > 0) {
-      suggestions = suggestions.slice(offset).concat(suggestions.slice(0, maxResults + offset - suggestions.length));
-      for (let i = 0, len = suggestions.length, score = len; i < len; i++) {
-        suggestions[i].r = score--;
+      suggestions = suggestions.slice(offset).concat(suggestions.slice(0, maxResults + offset - resultLength));
+      resultLength = suggestions.length;
+      for (let i = 0; i < resultLength; i++) {
+        suggestions[i].r = resultLength - i;
       }
       offset = 0;
     }
