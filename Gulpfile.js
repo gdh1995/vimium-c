@@ -38,6 +38,7 @@ var doesUglifyLocalFiles = process.env.UGLIFY_LOCAL !== "0";
 var gNoComments = process.env.NO_COMMENT === "1";
 var disableErrors = process.env.SHOW_ERRORS !== "1" && (process.env.SHOW_ERRORS === "0" || !compileInBatch);
 var ignoreHeaderChanges = process.env.IGNORE_HEADER_CHANGES !== "0";
+var onlyTestSize = false;
 var manifest = readJSON("manifest.json", true);
 var compilerOptions = loadValidCompilerOptions("scripts/gulp.tsconfig.json");
 var has_dialog_ui = manifest.options_ui != null && manifest.options_ui.open_in_tab !== true;
@@ -175,7 +176,8 @@ var Tasks = {
   "build/_all": ["build/scripts", "build/options", "build/show"],
   "build/ts": function(cb) {
     var btypes = getBuildItem("BTypes");
-    var curConfig = [btypes, getBuildItem("MinCVer"), envSourceMap, envLegacy, compilerOptions.target];
+    var curConfig = [btypes, getBuildItem("MinCVer"), envSourceMap, envLegacy, compilerOptions.target
+          , /** 5 */ needCommitInfo && !onlyTestSize ? curConfig.push(getNonNullBuildItem("Commit")) : 0];
     var configFile = btypes === BrowserType.Chrome ? "chrome"
           : btypes === BrowserType.Firefox ? "firefox" : "browser-" + btypes;
     if (btypes === BrowserType.Firefox) {
@@ -183,16 +185,17 @@ var Tasks = {
       curConfig.push(getNonNullBuildItem("FirefoxID"));
       curConfig.push(getNonNullBuildItem("NativeWordMoveOnFirefox"));
     }
-    if (needCommitInfo) {
-      curConfig.push(getNonNullBuildItem("Commit"));
-    }
     curConfig.push(getNonNullBuildItem("NDEBUG"));
     curConfig.push(getNonNullBuildItem("MayOverrideNewTab"));
     curConfig = JSON.stringify(curConfig);
     configFile = osPath.join(JSDEST, "." + configFile + ".build");
     var needClean = true;
     try {
-      var oldConfig = readFile(configFile);
+      var oldConfig = readJSON(configFile);
+      if (onlyTestSize) {
+        oldConfig[5] = 0;
+      }
+      oldConfig = JSON.stringify(oldConfig);
       needClean = oldConfig !== curConfig;
     } catch (e) {}
     var hasLocal2 = false;
@@ -206,10 +209,10 @@ var Tasks = {
           fs.mkdirSync(JSDEST, {recursive: true});
         }
         fs.writeFileSync(configFile, curConfig);
-        gulp.series("build/_all")(cb);
+        (onlyTestSize ? gulp.series("build/content", "min/content") : gulp.series("build/_all"))(cb);
       });
     } else {
-      gulp.series("build/_all")(cb);
+      (onlyTestSize ? gulp.series("build/content", "min/content") : gulp.series("build/_all"))(cb);
     }
   },
 
@@ -452,6 +455,19 @@ var Tasks = {
     require("./scripts/eslint");
     done();
   },
+  "size/content": function (done) {
+    onlyTestSize = true;
+    print("Only build and minify content scripts");
+    gulp.series("build/ts")(() => {
+      const path = DEST + "/" + manifest.content_scripts[0].js[0],
+      fd = fs.openSync(path),
+      size = fs.fstatSync(fd).size;
+      fs.close(fd);
+      print("%o: %o bytes", path, size);
+      done();
+    });
+  },
+  "minc": ["size/content"],
   "words": ["build/content", function (cb) {
     gulp.series("min/content")(function () {
       process.argv = process.argv.slice(0, 2);
