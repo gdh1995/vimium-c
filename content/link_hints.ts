@@ -16,29 +16,6 @@ declare namespace HintsNS {
     [0]: Executor;
     [1]: HintMode;
   }
-  interface Options extends SafeObject {
-    action?: string;
-    characters?: string;
-    useFilter?: boolean;
-    mode?: string | number;
-    url?: boolean;
-    keyword?: string;
-    dblclick?: boolean;
-    newtab?: boolean | "force" | "window";
-    button?: "right";
-    touch?: null | boolean | "auto";
-    join?: FgReq[kFgReq.copy]["j"];
-    sed?: string;
-    toggle?: {
-      [selector: string]: string;
-    };
-    auto?: boolean;
-    ctrlShiftForWindow?: boolean | null;
-    noCtrlPlusShift?: boolean;
-    swapCtrlAndShift?: boolean;
-    hideHud?: boolean;
-    hideHUD?: boolean;
-  }
   type NestedFrame = false | 0 | null | HTMLIFrameElement | HTMLFrameElement;
   interface Filter<T> {
     (this: void, hints: T[], element: SafeHTMLElement): void;
@@ -94,17 +71,6 @@ declare namespace HintsNS {
 
 // eslint-disable-next-line no-var
 var VHints = {
-  CONST_: {
-    focus: HintMode.FOCUS,
-    hover: HintMode.HOVER,
-    input: HintMode.FOCUS_EDITABLE,
-    leave: HintMode.UNHOVER,
-    unhover: HintMode.UNHOVER,
-    text: HintMode.COPY_TEXT,
-    "copy-text": HintMode.COPY_TEXT,
-    url: HintMode.COPY_URL,
-    image: HintMode.OPEN_IMAGE
-  } as Dict<HintMode>,
   box_: null as HTMLDivElement | HTMLDialogElement | null,
   dialogMode_: false,
   wantDialogMode_: null as boolean | null,
@@ -234,7 +200,7 @@ var VHints = {
       (frame.s.render_ as typeof a.render_)(frame.h, frame.v, VHud, VApi);
     }
   },
-  collectFrameHints_ (count: number, options: FgOptions, chars: string, useFilter: boolean, outerView: Rect | null
+  collectFrameHints_ (count: number, options: HintsNS.Options, chars: string, useFilter: boolean, outerView: Rect | null
       , master: HintsNS.Master | null, frameInfo: HintsNS.FrameHintsInfo
       , addChildFrame: (this: {}, el: HTMLIFrameElement | HTMLFrameElement, rect: Rect | null) => boolean
       ): void {
@@ -288,28 +254,21 @@ var VHints = {
   setModeOpt_ (count: number, options: HintsNS.Options): void {
     const a = this;
     if (a.options_ === options) { return; }
-    let modeOpt: HintsNS.ModeOpt | undefined,
-    mode = (<number> options.mode > 0 ? + <number> options.mode
-      : a.CONST_[options.action || options.mode as string] as number | undefined | {} as number) | 0;
-    if (mode === HintMode.EDIT_TEXT && options.url) {
-      mode = HintMode.EDIT_LINK_URL;
-    }
-    if (mode === HintMode.COPY_TEXT && options.join) {
-      mode = HintMode.COPY_TEXT | HintMode.queue | HintMode.list;
-    }
-    count = Math.abs(count);
-    if (count > 1) { mode < HintMode.min_disable_queue ? (mode |= HintMode.queue) : (count = 1); }
+    /** ensured by {@link ../background.main.ts#BackgroundCommands[kBgCmd.linkHints]} */
+    let modeOpt: HintsNS.ModeOpt | undefined, mode = options.mode as number;
     for (let modes of a.Modes_) {
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
-          ? modes.indexOf(mode) > 0 : (modes as ReadonlyArrayWithIncludes<(typeof modes)[number]>).includes(mode)) {
+          ? modes.indexOf(mode & ~HintMode.queue) > 0
+          : (modes as Ensure<HintsNS.ModeOpt, "includes">).includes(mode & ~HintMode.queue)) {
         modeOpt = modes;
         break;
       }
     }
     if (!modeOpt) {
       modeOpt = a.Modes_[8];
-      mode = count > 1 ? HintMode.OPEN_WITH_QUEUE : HintMode.OPEN_IN_CURRENT_TAB;
+      mode = HintMode.DEFAULT;
     }
+    mode = count > 1 ? mode ? mode | HintMode.queue : HintMode.OPEN_WITH_QUEUE : mode;
     a.modeOpt_ = modeOpt;
     a.options_ = options;
     a.count_ = count;
@@ -2101,7 +2060,6 @@ Modes_: [
     }
   }
   , HintMode.HOVER
-  , HintMode.HOVER | HintMode.queue
 ] as HintsNS.ModeOpt,
 [
   (element: HintsNS.LinkEl): void => {
@@ -2113,7 +2071,7 @@ Modes_: [
     a.hover_();
     if (VDom.activeEl_() === element) { element.blur && element.blur(); }
   }
-  , HintMode.UNHOVER, HintMode.UNHOVER | HintMode.queue
+  , HintMode.UNHOVER
 ] as HintsNS.ModeOpt,
 [
   (link): boolean | void => {
@@ -2194,11 +2152,8 @@ Modes_: [
   , HintMode.SEARCH_TEXT
   , HintMode.COPY_TEXT
   , HintMode.COPY_URL
-  , HintMode.SEARCH_TEXT | HintMode.queue
-  , HintMode.COPY_TEXT | HintMode.queue
-  , HintMode.COPY_TEXT | HintMode.queue | HintMode.list
-  , HintMode.COPY_URL | HintMode.queue
-  , HintMode.COPY_URL | HintMode.queue | HintMode.list
+  , HintMode.COPY_TEXT | HintMode.list
+  , HintMode.COPY_URL | HintMode.list
   , HintMode.EDIT_LINK_URL
   , HintMode.EDIT_TEXT
 ] as HintsNS.ModeOpt,
@@ -2210,7 +2165,6 @@ Modes_: [
     }
   }
   , HintMode.OPEN_INCOGNITO_LINK
-  , HintMode.OPEN_INCOGNITO_LINK | HintMode.queue
 ] as HintsNS.ModeOpt,
 [
   (element: SafeHTMLElement): void => {
@@ -2235,7 +2189,6 @@ Modes_: [
     VHints.hud_.tip_(kTip.downloaded, 2000, [text]);
   }
   , HintMode.DOWNLOAD_MEDIA
-  , HintMode.DOWNLOAD_MEDIA | HintMode.queue
 ] as HintsNS.ModeOpt,
 [
   (img: SafeHTMLElement): void => {
@@ -2250,7 +2203,6 @@ Modes_: [
     });
   }
   , HintMode.OPEN_IMAGE
-  , HintMode.OPEN_IMAGE | HintMode.queue
 ] as HintsNS.ModeOpt,
 [
   (element: SafeHTMLElement, rect): void => {
@@ -2289,7 +2241,6 @@ Modes_: [
     }
   }
   , HintMode.DOWNLOAD_LINK
-  , HintMode.DOWNLOAD_LINK | HintMode.queue
 ] as HintsNS.ModeOpt,
 [
   (link, rect): void | false => {
@@ -2303,7 +2254,6 @@ Modes_: [
     return false;
   }
   , HintMode.FOCUS
-  , HintMode.FOCUS | HintMode.queue
   , HintMode.FOCUS_EDITABLE
 ] as HintsNS.ModeOpt,
 [
@@ -2362,9 +2312,6 @@ Modes_: [
   , HintMode.OPEN_IN_CURRENT_TAB
   , HintMode.OPEN_IN_NEW_BG_TAB
   , HintMode.OPEN_IN_NEW_FG_TAB
-  , HintMode.OPEN_IN_CURRENT_TAB | HintMode.queue
-  , HintMode.OPEN_IN_NEW_BG_TAB | HintMode.queue
-  , HintMode.OPEN_IN_NEW_FG_TAB | HintMode.queue
 ] as HintsNS.ModeOpt
 ] as const
 };

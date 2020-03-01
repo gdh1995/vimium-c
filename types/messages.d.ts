@@ -171,9 +171,10 @@ interface FullBgReq extends BgReq, BgVomnibarSpecialReq {}
 declare const enum kBgCmd {
   blank,
   // region: need cport
+  linkHints,
   nextFrame, parentFrame, goNext, toggle, showHelp,
   enterInsertMode, enterVisualMode, performFind, showVomnibar,
-  MIN_NEED_CPORT = nextFrame, MAX_NEED_CPORT = showVomnibar,
+  MIN_NEED_CPORT = linkHints, MAX_NEED_CPORT = showVomnibar,
   // endregion: need cport
   createTab,
   duplicateTab, moveTabToNewWindow, moveTabToNextWindow, joinTabs, toggleCS,
@@ -200,8 +201,34 @@ type FgCmdAcrossFrames = kFgCmd.linkHints | kFgCmd.scroll | kFgCmd.vomnibar;
 interface FgOptions extends SafeDict<any> {}
 type SelectActions = "" | "all" | "all-input" | "all-line" | "start" | "end";
 
+declare namespace HintsNS {
+  interface Options extends SafeObject {
+    action?: string;
+    characters?: string;
+    useFilter?: boolean;
+    mode?: string | number;
+    url?: boolean;
+    keyword?: string;
+    dblclick?: boolean;
+    newtab?: boolean | "force" | "window";
+    button?: "right";
+    touch?: null | boolean | "auto";
+    join?: FgReq[kFgReq.copy]["j"];
+    sed?: string;
+    toggle?: {
+      [selector: string]: string;
+    };
+    auto?: boolean;
+    ctrlShiftForWindow?: boolean | null;
+    noCtrlPlusShift?: boolean;
+    swapCtrlAndShift?: boolean;
+    hideHud?: boolean;
+    hideHUD?: boolean;
+  }
+}
+
 interface CmdOptions {
-  [kFgCmd.linkHints]: Dict<any>;
+  [kFgCmd.linkHints]: HintsNS.Options;
   [kFgCmd.unhoverLast]: Dict<any>;
   [kFgCmd.marks]: {
     mode?: "create" | /* all others are treated as "goto"  */ "goto" | "goTo";

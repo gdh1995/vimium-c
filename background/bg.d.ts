@@ -548,23 +548,23 @@ declare namespace CommandsNS {
   }
 
   interface CmdNameIds {
-    [kCName.LinkHints_activate]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateMode]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateModeToCopyLinkText]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateModeToCopyLinkUrl]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateModeToDownloadImage]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateModeToDownloadLink]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateModeToEdit]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateModeToHover]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateModeToLeave]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateModeToUnhover]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateModeToOpenImage]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateModeToOpenIncognito]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateModeToOpenInNewForegroundTab]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateModeToOpenInNewTab]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateModeToOpenVomnibar]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateModeToSearchLinkText]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateModeWithQueue]: kFgCmd.linkHints;
+    [kCName.LinkHints_activate]: kBgCmd.linkHints;
+    [kCName.LinkHints_activateMode]: kBgCmd.linkHints;
+    [kCName.LinkHints_activateModeToCopyLinkText]: kBgCmd.linkHints;
+    [kCName.LinkHints_activateModeToCopyLinkUrl]: kBgCmd.linkHints;
+    [kCName.LinkHints_activateModeToDownloadImage]: kBgCmd.linkHints;
+    [kCName.LinkHints_activateModeToDownloadLink]: kBgCmd.linkHints;
+    [kCName.LinkHints_activateModeToEdit]: kBgCmd.linkHints;
+    [kCName.LinkHints_activateModeToHover]: kBgCmd.linkHints;
+    [kCName.LinkHints_activateModeToLeave]: kBgCmd.linkHints;
+    [kCName.LinkHints_activateModeToUnhover]: kBgCmd.linkHints;
+    [kCName.LinkHints_activateModeToOpenImage]: kBgCmd.linkHints;
+    [kCName.LinkHints_activateModeToOpenIncognito]: kBgCmd.linkHints;
+    [kCName.LinkHints_activateModeToOpenInNewForegroundTab]: kBgCmd.linkHints;
+    [kCName.LinkHints_activateModeToOpenInNewTab]: kBgCmd.linkHints;
+    [kCName.LinkHints_activateModeToOpenVomnibar]: kBgCmd.linkHints;
+    [kCName.LinkHints_activateModeToSearchLinkText]: kBgCmd.linkHints;
+    [kCName.LinkHints_activateModeWithQueue]: kBgCmd.linkHints;
     [kCName.LinkHints_unhoverLast]: kFgCmd.unhoverLast;
     [kCName.Marks_activate]: kFgCmd.marks;
     [kCName.Marks_activateCreateMode]: kFgCmd.marks;
@@ -745,6 +745,7 @@ interface CommandsDataTy {
   keyFSM_: KeyFSM;
   shortcutRegistry_: ShortcutInfoMap;
   mappedKeyRegistry_: SafeDict<string> | null;
+  hintModes_: Dict<HintMode>,
   visualKeys_: VisualModeNS.KeyMap;
 }
 

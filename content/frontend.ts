@@ -136,11 +136,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   }
   function onKeydown(event: KeyboardEventToPrevent): void {
     const key = event.keyCode;
-    const eventWrapper: HandlerNS.Event = {c: kChar.INVALID, e: event, i: key};
     if (!isEnabled
         || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
             : event.isTrusted === false) // skip checks of `instanceof KeyboardEvent` if checking `!.keyCode`
         || !key) { return; }
+    const eventWrapper: HandlerNS.Event = {c: kChar.INVALID, e: event, i: key};
     if (VSc.keyIsDown_ && VSc.OnScrolls_(event)) {
       Build.BTypes & BrowserType.Chrome && checkPotentialAccessKey(eventWrapper);
       return;
