@@ -318,9 +318,10 @@ bookmarkEngine = {
   },
   StartsWithSlash_ (str: string): boolean { return str.charCodeAt(0) === kCharCode.slash; },
   performSearch_ (completerIndex: number): void {
-    const isPath = queryTerms.some(this.StartsWithSlash_),
+    const isPath = queryTerms.some(bookmarkEngine.StartsWithSlash_),
     buildCache = !!MatchCacheManager.newMatch_, newCache = [],
-    arr = MatchCacheManager.current_ && MatchCacheManager.current_.bookmarks_ || this.bookmarks_, len = arr.length;
+    arr = MatchCacheManager.current_ && MatchCacheManager.current_.bookmarks_ || bookmarkEngine.bookmarks_,
+    len = arr.length;
     let results: Array<[number, number]> = [], resultLength: number;
     for (let ind = 0; ind < len; ind++) {
       const i = arr[ind];
@@ -690,14 +691,14 @@ domainEngine = {
     }
     if (HistoryCache.domains_) { /* empty */ }
     else if (HistoryCache.history_) {
-      this.refresh_(HistoryCache.history_);
+      domainEngine.refresh_(HistoryCache.history_);
     } else {
       return index > 0 ? Completers.next_([], SugType.domain) : HistoryCache.use_(function () {
         if (query.o) { return; }
         return domainEngine.filter_(query, 0);
       });
     }
-    return this.performSearch_();
+    return domainEngine.performSearch_();
   } ,
   performSearch_ (): void {
     const ref = BgUtils_.domains_ as EnsuredSafeDict<Domain>, p = RankingUtils.maxScoreP_,
@@ -758,8 +759,8 @@ domainEngine = {
     Completers.next_(sug ? [sug] : [], SugType.domain);
   },
   refresh_ (history: HistoryItem[]): void {
-    this.refresh_ = null as never;
-    const parse = this.ParseDomainAndScheme_, d = HistoryCache.domains_ = BgUtils_.domains_;
+    domainEngine.refresh_ = null as never;
+    const parse = domainEngine.ParseDomainAndScheme_, d = HistoryCache.domains_ = BgUtils_.domains_;
     for (const { url_: url, time_: time, visible_: visible } of history) {
       const item = parse(url);
       if (!item) { continue; }
@@ -790,7 +791,7 @@ tabEngine = {
     if (!(allExpectedTypes & SugType.tab) || !queryTerms.length && index) {
       Completers.next_([], SugType.tab);
     } else {
-      Completers.requireNormalOrIncognito_(this.performSearch_, query);
+      Completers.requireNormalOrIncognito_(tabEngine.performSearch_, query);
     }
   },
   performSearch_ (this: void, query: CompletersNS.QueryStatus, tabs0: readonly WritableTabEx[]): void {
@@ -1316,7 +1317,7 @@ knownCs = {
     scoreTerm_ (term: number, str: string): [number, number] {
       let count = 0, score = 0;
       count = str.split(RegExpCache.parts_[term]).length;
-      if (count < 1) { return this._emptyScores; }
+      if (count < 1) { return RankingUtils._emptyScores; }
       score = RankingEnums.anywhere;
       if (RegExpCache.starts_[term].test(str)) {
         score += RankingEnums.startOfWord;
@@ -1330,18 +1331,18 @@ knownCs = {
       let titleCount = 0, titleScore = 0, urlCount = 0, urlScore = 0, useTitle = !!title;
       RegExpCache.starts_ || RegExpCache.buildOthers_();
       for (let term = 0, len = queryTerms.length; term < len; term++) {
-        let a = this.scoreTerm_(term, url);
+        let a = RankingUtils.scoreTerm_(term, url);
         urlScore += a[0]; urlCount += a[1];
         if (useTitle) {
-          a = this.scoreTerm_(term, title);
+          a = RankingUtils.scoreTerm_(term, title);
           titleScore += a[0]; titleCount += a[1];
         }
       }
-      urlScore = urlScore / this.maxScoreP_ * this.normalizeDifference_(urlCount, url.length);
+      urlScore = urlScore / RankingUtils.maxScoreP_ * RankingUtils.normalizeDifference_(urlCount, url.length);
       if (titleCount === 0) {
         return title ? urlScore / 2 : urlScore;
       }
-      titleScore = titleScore / this.maxScoreP_ * this.normalizeDifference_(titleCount, title.length);
+      titleScore = titleScore / RankingUtils.maxScoreP_ * RankingUtils.normalizeDifference_(titleCount, title.length);
       return (urlScore < titleScore) ? titleScore : ((urlScore + titleScore) / 2);
     },
     timeAgo_: 0,
@@ -1356,15 +1357,15 @@ knownCs = {
     starts_: null as never as CachedRegExp[],
     words_: null as never as CachedRegExp[],
     buildParts_ (): void {
-      const d: CachedRegExp[] = this.parts_ = [] as never;
-      this.starts_ = this.words_ = null as never;
+      const d: CachedRegExp[] = RegExpCache.parts_ = [] as never;
+      RegExpCache.starts_ = RegExpCache.words_ = null as never;
       for (const s of queryTerms) {
         d.push(new RegExp(s.replace(escapeAllRe, "\\$&"), BgUtils_.hasUpperCase_(s) ? "" : "i" as ""
           ) as CachedRegExp);
       }
     },
     buildOthers_ (): void {
-      const ss = this.starts_ = [] as CachedRegExp[], ws = this.words_ = [] as CachedRegExp[];
+      const ss = RegExpCache.starts_ = [] as CachedRegExp[], ws = RegExpCache.words_ = [] as CachedRegExp[];
       for (const s of queryTerms) {
         const start = "\\b" + s.replace(escapeAllRe, "\\$&"),
         flags = BgUtils_.hasUpperCase_(s) ? "" : "i" as "";
@@ -1373,9 +1374,9 @@ knownCs = {
       }
     },
     fixParts_ (): void {
-      if (!this.parts_) { return; }
+      if (!RegExpCache.parts_) { return; }
       let s = queryTerms[0];
-      this.parts_[0] = new RegExp(s.replace(escapeAllRe, "\\$&"), BgUtils_.hasUpperCase_(s) ? "" : "i" as ""
+      RegExpCache.parts_[0] = new RegExp(s.replace(escapeAllRe, "\\$&"), BgUtils_.hasUpperCase_(s) ? "" : "i" as ""
         ) as CachedRegExp;
     }
   },
@@ -1762,10 +1763,10 @@ knownCs = {
       try {
         return _decodeFunc(a);
       } catch {}
-      return this.dict_[a] || (o && this._jobs.push(o), a);
+      return Decoder.dict_[a] || (o && Decoder._jobs.push(o), a);
     },
     decodeList_ (a: DecodedItem[]): void {
-      const { dict_: m, _jobs: w } = this;
+      const { dict_: m, _jobs: w } = Decoder;
       let i = -1, j: DecodedItem | undefined, l = a.length, s: string | undefined;
       for (; ; ) {
         try {
@@ -1778,15 +1779,15 @@ knownCs = {
           (j as DecodedItem).text_ = m[s as string] || (w.push(j as DecodedItem), s as string);
         }
       }
-      return this.continueToWork_();
+      Decoder.continueToWork_();
     },
     dict_: BgUtils_.safeObj_<string>(),
     _jobs: [] as ItemToDecode[],
     _ind: -1,
     continueToWork_ (): void {
-      if (this._jobs.length === 0 || this._ind !== -1) { return; }
-      this._ind = 0;
-      setTimeout(this.Work_, 17, null);
+      if (Decoder._jobs.length === 0 || Decoder._ind !== -1) { return; }
+      Decoder._ind = 0;
+      setTimeout(Decoder.Work_, 17, null);
     },
     Work_ (xhr: XMLHttpRequest | null): void {
       let text: string | undefined;
@@ -1818,10 +1819,11 @@ knownCs = {
         Decoder.dict_[url] = text;
       }
       if (Decoder._ind < Decoder._jobs.length) {
-        return Decoder.Work_(this);
+        Decoder.Work_(this);
+      } else {
+        Decoder._jobs.length = 0;
+        Decoder._ind = -1;
       }
-      Decoder._jobs.length = 0;
-      Decoder._ind = -1;
     },
     enabled_: true,
     _dataUrl: "1",
