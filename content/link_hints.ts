@@ -83,7 +83,7 @@ var VHints = {
   count_: 0,
   lastMode_: 0 as HintMode,
   tooHigh_: false as null | boolean,
-  promptTimer_: TimerID.None | -1,
+  promptTimer_: TimerID.None as TimerID,
   isClickListened_: true,
   ngEnabled_: null as boolean | null,
   jsaEnabled_: null as boolean | null,
@@ -281,7 +281,7 @@ var VHints = {
     a.forHover_ = mode > HintMode.min_hovering - 1 && mode < HintMode.max_hovering + 1;
     if (silent || a.noHUD_) { return; }
     if (a.promptTimer_ < 0) {
-      a.promptTimer_ = VKey.timeout_(a.SetHUDLater_, 1000);
+      a.promptTimer_ = VKey.timeout_(a.SetHUDLater_, 1500);
       return;
     }
     let msg = VTr(a.mode_), textSeq = a.keyStatus_.textSequence_;
