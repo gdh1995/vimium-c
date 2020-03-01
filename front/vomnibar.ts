@@ -438,6 +438,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
             : i === kKeyCode.tab ? kChar.tab : i === kKeyCode.enter ? kChar.enter
             : (i === kKeyCode.osRightMac || i > kKeyCode.minAcsKeys - 1 && i < kKeyCode.maxAcsKeys + 1)
               && Vomnibar_.mapModifier_ && Vomnibar_.mapModifier_ === event.location ? kChar.Modifier
+            : i === kKeyCode.altKey ? kChar.Alt
             : kChar.None
         : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn ? "f" + (i - kKeyCode.maxNotFn)
         : (key = Build.BTypes & ~BrowserType.Chrome ? <string | undefined> event.keyIdentifier || ""
@@ -458,7 +459,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         key = code.length === 1
               ? !shiftKey || code < "0" || code > "9" ? code : enNumTrans[+code]
               : this._modifierKeys[key as string]
-                ? Vomnibar_.mapModifier_ && event.location === Vomnibar_.mapModifier_ ? kChar.Modifier : ""
+                ? Vomnibar_.mapModifier_ && event.location === Vomnibar_.mapModifier_ ? kChar.Modifier
+                : key === "Alt" ? key : ""
               : !code ? key
               : (mapped = this._codeCorrectionMap.indexOf(code)) < 0 ? code === "Escape" ? kChar.esc : code
               : charCorrectionList[mapped + 12 * +shiftKey]
@@ -513,17 +515,33 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           ? HandlerResult.Suppress : HandlerResult.Nothing;
       return;
     }
-    let action: AllowedActions = AllowedActions.nothing;
+    let action: AllowedActions = AllowedActions.nothing, ind: number;
     const char = (key.slice(key.lastIndexOf("-") + 1) || key && kChar.minus) as kChar,
-    mainModifier = key === "-" ? "" : key.slice(0, key.indexOf("-") + 1) as "a-" | "c-" | "m-" | "s-" | "";
+    mainModifier = key.length > 1 ? key.slice(0, key.indexOf("-") + 1) as "a-" | "c-" | "m-" | "s-" | "" : "";
     if (mainModifier === "a-" || mainModifier === "m-") {
       if (char === kChar.f2) {
         return a.onAction_(focused ? AllowedActions.blurInput : AllowedActions.focus);
       }
-      else if (mainModifier === "a-" && (char === kChar.down || char === kChar.up)) {
-        return a.onAction_(char < "u" ? AllowedActions.down : AllowedActions.up);
+      if (mainModifier === "a-") {
+        if (key === "a-" + kChar.Alt) {
+          // not set keyup listener by intent:
+          // so that a short Alt will only toggle inAlt, and a long Alt can show on keydown and hide on keyup
+          Vomnibar_.inAlt_ = Vomnibar_.inAlt_ || setTimeout(Vomnibar_.toggleAlt_, 260, -1);
+          return;
+        }
+        if (char === kChar.down || char === kChar.up) {
+          return a.onAction_(char < "u" ? AllowedActions.down : AllowedActions.up);
+        }
+        if (char >= "0" && char <= "9" && (a.os_ || key.includes("c-"))) {
+          ind = +char || 10;
+          if (ind <= a.completions_.length) {
+            a.onEnter_(true, ind - 1);
+          }
+          return;
+        }
       }
-      else if (!focused) { /* empty */ }
+      a.inAlt_ && a.toggleAlt_(0);
+      if (!focused) { /* empty */ }
       else if (char.length === 1 && char > kChar.a && char < kChar.g && char !== kChar.c
           || char === kChar.backspace && a.os_) {
         return a.onBashAction_(char.length === 1
@@ -583,7 +601,6 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       return a.onAction_(action);
     }
 
-    let ind: number;
     if (focused || char.length !== 1 || isNaN(ind = parseInt(char, 16))) {
       a.keyResult_ = focused && !(n === kKeyCode.menuKey && a.os_) ? HandlerResult.Suppress : HandlerResult.Nothing;
     } else {
@@ -1122,8 +1139,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
         : event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)) { return; }
     Vomnibar_.keyResult_ = HandlerResult.Prevent as HandlerResult;
-    let keyCode = event.keyCode, stop = !event.repeat, now = 0;
     if (window.onkeyup) {
+      let keyCode = event.keyCode, stop = !event.repeat, now = 0;
       if (!Vomnibar_.lastScrolling_) {
         // clear state, to avoid OnEnterUp receives unrelated keys
         stop = keyCode > kKeyCode.maxAcsKeys || keyCode < kKeyCode.minAcsKeys;
@@ -1134,9 +1151,6 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       if (stop) { window.onkeyup = null as never; }
     } else if (Vomnibar_.isActive_) {
       Vomnibar_.onKeydown_(event);
-      if (keyCode === kKeyCode.altKey && stop) {
-        Vomnibar_.inAlt_ = Vomnibar_.inAlt_ || setTimeout(Vomnibar_.toggleAlt_, 240, -1);
-      }
     }
     if (Vomnibar_.keyResult_ === HandlerResult.Nothing) { return; }
     VUtils_.Stop_(event, Vomnibar_.keyResult_ === HandlerResult.Prevent);
@@ -1307,7 +1321,6 @@ VUtils_ = {
           html += a[j];
           const key = a[j + 1];
           html += key === "typeIcon" ? Vomnibar_.getTypeIcon_(objectArray[index])
-              : key === "access" ? index > 9 ? "" : (index + 1) % 10
               : key === "index" ? index + 1
               : objectArray[index][key as keyof SuggestionE] || "";
         }
