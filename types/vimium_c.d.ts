@@ -503,6 +503,9 @@ declare const enum GlobalConsts {
   LOCAL_QUOTA_BYTES = 5_242_880, // 5MB ; no QUOTA_BYTES_PER_ITEM for local
   LOCAL_STORAGE_BYTES = 10_485_760, // 10MB
   MaxTabTreeIndent = 5,
+  MinStayTimeToRecordTabRecency = 666,
+  MaxTabRecency = 1023,
+  MaxTabsKeepingRecency = 127,
   FirefoxAddonPrefix = "https://addons.mozilla.org/firefox/addon/",
   FirefoxHelp = "https://support.mozilla.org/kb/keyboard-shortcuts-perform-firefox-tasks-quickly",
   ChromeWebStorePage = "https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/$id/reviews",

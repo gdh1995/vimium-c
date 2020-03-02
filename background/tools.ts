@@ -653,16 +653,16 @@ BgUtils_.timeout_(120, function (): void {
   function clean(): void {
     const ref = cache;
     for (const i in ref) {
-      if ((ref[i] as number) <= 896) { delete ref[i]; }
-      else { (ref as EnsuredSafeDict<number>)[i] -= 895; }
+      if ((ref[i] as number) < GlobalConsts.MaxTabRecency - GlobalConsts.MaxTabsKeepingRecency + 1) { delete ref[i]; }
+      else { (ref as EnsuredSafeDict<number>)[i] -= GlobalConsts.MaxTabRecency - GlobalConsts.MaxTabsKeepingRecency; }
     }
-    stamp = 128;
+    stamp = GlobalConsts.MaxTabsKeepingRecency + 1;
   }
   function listener(info: { tabId: number }): void {
     const now = performance.now();
-    if (now - time > 666) {
+    if (now - time > GlobalConsts.MinStayTimeToRecordTabRecency) {
       cache[TabRecency_.last_] = ++stamp;
-      if (stamp === 1023) { clean(); }
+      if (stamp >= GlobalConsts.MaxTabRecency) { clean(); }
     }
     TabRecency_.last_ = info.tabId; time = now;
   }

@@ -893,7 +893,7 @@ tabEngine = {
   },
   SortNumbers_ (this: void, a: number, b: number): number { return a - b; },
   computeRecency_ (_0: CompletersNS.CoreSuggestion, tabId: number): number {
-    return TabRecency_.tabs_[tabId] || -tabId;
+    return TabRecency_.tabs_[tabId] || GlobalConsts.MaxTabRecency + tabId;
   },
   computeIndex_ (_0: CompletersNS.CoreSuggestion, index: number): number {
     return 1 / index;
