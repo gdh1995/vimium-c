@@ -852,7 +852,7 @@ tabEngine = {
       suggestion = new Suggestion("tab", tab.url, tab.text, tab.title,
           c, treeMode ? ++ind : tabId) as CompletersNS.TabSuggestion;
       if (curTabId === tabId) {
-        treeMode || (suggestion.r = 1);
+        treeMode || (suggestion.r = 0);
         id = `#(${id.slice(1)})`;
       }
       suggestion.s = tabId;
@@ -872,9 +872,10 @@ tabEngine = {
         || resultLength > offset + maxResults || !noFilter) {
       if (offset > 0 && !hasOtherSuggestions) {
         suggestions = suggestions.slice(offset, offset + maxResults);
+        resultLength = maxResults;
         offset = 0;
       } else if (resultLength > offset + maxResults) {
-        suggestions.length = offset + maxResults;
+        suggestions.length = resultLength = offset + maxResults;
       }
       for (let i = hasOtherSuggestions ? 0 : resultLength; i < resultLength; i++) {
         suggestions[i].r *= 8 / (i / 4 + 1);
