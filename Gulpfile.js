@@ -12,7 +12,8 @@ var {
   getGitCommit, extendIf, readJSON, readFile,
   touchFileIfNeeded,
   patchExtendClick: _patchExtendClick,
-  loadUglifyConfig: _loadUglifyConfig
+  loadUglifyConfig: _loadUglifyConfig,
+  logFileSize: logFileSize,
 } = require("./scripts/dependencies");
 
 class BrowserType {}
@@ -229,7 +230,10 @@ var Tasks = {
     var maps = [
       [sources.slice(0), cs.js[0], null], [rest, ".", ""]
     ];
-    checkJSAndUglifyAll(0, maps, "min/content", exArgs, cb);
+    checkJSAndUglifyAll(0, maps, "min/content", exArgs, () => {
+      logFileSize(DEST + "/" + cs.js[0], logger);
+      cb();
+    });
   },
   "min/bg": ["min/content", function(cb) {
     if (jsmin_status[1]) {
@@ -458,14 +462,7 @@ var Tasks = {
   "size/content": function (done) {
     onlyTestSize = true;
     print("Only build and minify content scripts");
-    gulp.series("build/ts")(() => {
-      const path = DEST + "/" + manifest.content_scripts[0].js[0],
-      fd = fs.openSync(path),
-      size = fs.fstatSync(fd).size;
-      fs.close(fd);
-      print("%o: %o bytes", path, size);
-      done();
-    });
+    gulp.series("build/ts")(done);
   },
   "minc": ["size/content"],
   "words": ["build/content", function (cb) {

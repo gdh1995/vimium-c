@@ -13,6 +13,7 @@
  *    toString (encoding?: string, start?: number, end?: number): string;
  * } } Buffer
  * @typedef { {
+ *    size: number;
  *    mtime: Date; atime: Date;
  *    isDirectory (): boolean;
  * } } FileStat
@@ -20,6 +21,7 @@
  *    openSync (path: string, method: "a" | "r" | "w"): number;
  *    fstatSync (fd: number): FileStat;
  *    futimesSync (fd: number, atime: number, mtime: number): void;
+ *    close (fd: number): void;
  *    closeSync (fd: number): void;
  *    existsSync (path: string): boolean;
  *    statSync (path: string): FileStat;
@@ -330,6 +332,24 @@ function patchExtendClick(source, locally, logger) {
   return source;
 }
 
+/**
+ * @argument filePath {string}
+ * @argument {{ (...args: any[]): any; error(message: string): any; }} logger
+ * @returns {boolean} whether successful or not
+ */
+function logFileSize(filePath, logger) {
+  try {
+    var fd = fs.openSync(filePath, "r"),
+    size = fs.fstatSync(fd).size;
+    fs.close(fd);
+    logger("%o: %o bytes = %o KB", filePath, size, ((size / 1024 * 100 + 0.5) | 0) / 100);
+    return true;
+  } catch (e) {
+    logger.error('fail to read "' + filePath + '": ' + e);
+    return false;
+  }
+}
+
 module.exports = {
   readFile: readFile,
   readJSON: readJSON,
@@ -339,4 +359,5 @@ module.exports = {
   extendIf: extendIf,
   getGitCommit: getGitCommit,
   patchExtendClick: patchExtendClick,
+  logFileSize: logFileSize,
 };
