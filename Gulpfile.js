@@ -177,7 +177,7 @@ var Tasks = {
   "build/ts": function(cb) {
     var btypes = getBuildItem("BTypes");
     var curConfig = [btypes, getBuildItem("MinCVer"), envSourceMap, envLegacy, compilerOptions.target
-          , /** 5 */ needCommitInfo && !onlyTestSize ? curConfig.push(getNonNullBuildItem("Commit")) : 0];
+          , /** 5 */ needCommitInfo && !onlyTestSize ? getNonNullBuildItem("Commit") : 0];
     var configFile = btypes === BrowserType.Chrome ? "chrome"
           : btypes === BrowserType.Firefox ? "firefox" : "browser-" + btypes;
     if (btypes === BrowserType.Firefox) {
