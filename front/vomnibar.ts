@@ -532,6 +532,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         if (char === kChar.down || char === kChar.up) {
           return a.onAction_(char < "u" ? AllowedActions.down : AllowedActions.up);
         }
+        a.inAlt_ && a.toggleAlt_(0);
         if (char >= "0" && char <= "9" && (a.os_ || key.includes("c-"))) {
           ind = +char || 10;
           if (ind <= a.completions_.length) {
@@ -539,11 +540,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           }
           return;
         } else if (char === kChar.enter) {
-          a.onEnter_(key, -1);
+          a.onEnter_(key, !a.selection_ && a.isSelOriginal_ && a.completions_[0].e !== "domain"
+              ? -1 : a.selection_);
           return;
         }
       }
-      a.inAlt_ && a.toggleAlt_(0);
       if (!focused) { /* empty */ }
       else if (char.length === 1 && char > kChar.a && char < kChar.g && char !== kChar.c
           || char === kChar.backspace && a.os_) {
@@ -682,7 +683,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.isInputComposing_ = false;
     a.update_(0);
   },
-  onEnter_ (event?: KeyStat | true | string, newSel?: number): void {
+  onEnter_ (event?: KeyStat | true | string, newSel?: number | null): void {
     const a = Vomnibar_;
     let sel = newSel != null ? newSel : a.selection_;
     if (typeof event === "string") {
@@ -710,10 +711,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         : Vomnibar_.navigateToUrl_(item.u, action, https);
       (<RegExpOne> /a?/).test("");
     };
-    if (event && event !== !0 && event & KeyStat.altKey) {
-      if ((<RegExpOne> /^\w+(-\w+)?$/).test(item.u)) {
+    if (sel === -1 && event && event !== !0 && event & KeyStat.altKey && (<RegExpOne> /^\w+(-\w+)?$/).test(item.u)) {
         (item as UrlInfo).u = `www.${item.u}.com`;
-      }
     }
     if (a.actionType_ < ReuseType.newFg) { return func(); }
     a.doEnter_ = func;
