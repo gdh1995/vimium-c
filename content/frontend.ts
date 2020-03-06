@@ -146,12 +146,6 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       return;
     }
     if (Build.BTypes & BrowserType.Chrome) { isWaitingAccessKey && resetAnyClickHandler(); }
-    if (Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) ? insertLock
-          : insertLock && OnOther === BrowserType.Firefox)
-        && !vDom.IsInDOM_(insertLock as LockableElement, doc)) {
-      insertLock = null;
-    }
     let action: HandlerResult, tempStr: string;
     if (action = vKey.bubbleEvent_(eventWrapper)) { /* empty */ }
     else if (InsertMode.isActive_()) {
@@ -800,7 +794,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     },
     isActive_ (): boolean {
       if (InsertMode.suppressType_) { return false; }
-      if (insertLock || InsertMode.global_) {
+      if ((Build.BTypes & BrowserType.Firefox ? events.lock_() : insertLock) || InsertMode.global_) {
         return true;
       }
       const el: Element | null = vDom.activeEl_();
@@ -1505,7 +1499,16 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       return true;
     },
 
-    lock_: () => insertLock,
+    lock_ (): LockableElement | null {
+      if (Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
+          && insertLock) {
+        const root = (insertLock as Ensure<Element, "getRootNode">).getRootNode();
+        insertLock = root && (root as TypeToAssert<Node, DocumentOrShadowRoot, "activeElement">
+            ).activeElement === insertLock ? insertLock : null;
+      }
+      return insertLock;
+    },
     isCmdTriggered_: () => isCmdTriggered,
     onWndBlur_ (this: void, f): void { onWndBlur2 = f; },
     OnWndFocus_ (this: void): void { onWndFocus(); },

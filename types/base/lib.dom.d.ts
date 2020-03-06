@@ -8986,7 +8986,7 @@ interface ParentNode extends Node {
     prepend?(...nodeOrText: Array<Node | string>): void;
 }
 
-interface DocumentOrShadowRoot {
+interface DocumentOrShadowRootMixin {
     readonly activeElement: Element | null;
     readonly stylesheets: StyleSheetList;
     /** on Firefox, `getSelection` may be undefined */
@@ -8994,8 +8994,9 @@ interface DocumentOrShadowRoot {
     elementFromPoint(x: number, y: number): Element | null;
     elementsFromPoint(x: number, y: number): Element[];
 }
+interface DocumentOrShadowRoot extends Node, DocumentOrShadowRootMixin {}
 
-interface ShadowRoot extends DocumentOrShadowRoot, DocumentFragment {
+interface ShadowRoot extends DocumentFragment, DocumentOrShadowRootMixin {
     readonly mode?: 'open'|'closed';
     readonly host: Element;
     innerHTML: string;
