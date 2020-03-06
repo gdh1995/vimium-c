@@ -538,6 +538,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
             a.onEnter_(true, ind - 1);
           }
           return;
+        } else if (char === kChar.enter) {
+          a.onEnter_(key, -1);
+          return;
         }
       }
       a.inAlt_ && a.toggleAlt_(0);
@@ -690,9 +693,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       : event === true ? a.forceNewTab_ ? ReuseType.newFg : ReuseType.current
       : event & KeyStat.PrimaryModifier ? event & KeyStat.shiftKey ? ReuseType.newBg : ReuseType.newFg
       : event & KeyStat.shiftKey || !a.forceNewTab_ ? ReuseType.current : ReuseType.newFg;
-    if (newSel != null) { /* empty */ }
-    else if (sel === -1 && a.input_.value.length === 0) { return; }
-    else if (!a.timer_) { /* empty */ }
+    if (sel === -1 && a.input_.value.length === 0) { return; }
+    if (newSel != null || !a.timer_) { /* empty */ }
     else if (a.isEditing_) { sel = -1; }
     else if (a.timer_ > 0) {
       return a.update_(0, a.onEnter_);
@@ -700,7 +702,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       a.onUpdate_ = a.onEnter_;
       return;
     }
-    type UrlInfo = Pick<CompletersNS.Suggestion, "u"> & Partial<Pick<CompletersNS.Suggestion, "s">>;
+    type UrlInfo = Writable<Pick<CompletersNS.Suggestion, "u">> & Partial<Pick<CompletersNS.Suggestion, "s">>;
     const item: SuggestionE | UrlInfo = sel >= 0 ? a.completions_[sel] : { u: a.input_.value.trim() },
     action = a.actionType_, https = a.isHttps_,
     func = function (this: void): void {
@@ -708,6 +710,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         : Vomnibar_.navigateToUrl_(item.u, action, https);
       (<RegExpOne> /a?/).test("");
     };
+    if (event && event !== !0 && event & KeyStat.altKey) {
+      if ((<RegExpOne> /^\w+(-\w+)?$/).test(item.u)) {
+        (item as UrlInfo).u = `www.${item.u}.com`;
+      }
+    }
     if (a.actionType_ < ReuseType.newFg) { return func(); }
     a.doEnter_ = func;
     a.hide_();
