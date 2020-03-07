@@ -109,6 +109,7 @@ var VHints = {
   yankedList_: [] as string[],
   kSafeAllSelector_: Build.BTypes & ~BrowserType.Firefox ? ":not(form)" as const : "*" as const,
   kEditableSelector_: "input,textarea,[contenteditable]" as const,
+  kNumbers_: "0123456789" as const,
   _master: null as HintsNS.Master | null,
   hud_: null as never as VHUDTy,
   api_: null as never as VApiTy,
@@ -225,7 +226,7 @@ var VHints = {
     const elements = a.getVisibleElements_(view);
     const hintItems = elements.map(a.createHint_, a);
     a._addChildFrame = null as never;
-    VDom.bZoom_ !== 1 && a.adjustMarkers_(elements, hintItems);
+    VDom.bZoom_ !== 1 && a.adjustMarkers_(hintItems, elements);
     frameInfo.h = hintItems;
     frameInfo.v = view;
   },
@@ -364,16 +365,16 @@ var VHints = {
       r: link.length > 4 ? (link as Hint5)[4] : isBox ? link[0] : null
     };
   },
-  adjustMarkers_ (elements: readonly Hint[], arr: readonly HintsNS.HintItem[]): void {
+  adjustMarkers_ (arr: readonly HintsNS.HintItem[], elements: readonly Hint[]): void {
     const zi = VDom.bZoom_, root = VCui.root_;
-    let i = elements.length - 1;
-    if (!root || i < 0 || elements[i][0] !== VOmni.box_ && !root.querySelector("#HelpDialog")) { return; }
+    let i = arr.length - 1;
+    if (!root || i < 0 || arr[i].d !== VOmni.box_ && !root.querySelector("#HelpDialog")) { return; }
     const z = Build.BTypes & ~BrowserType.Firefox ? ("" + 1 / zi).slice(0, 5) : "",
     mr = Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar
         ? this.maxRight_ * zi : 0,
     mt = Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar
         ? this.maxTop_ * zi : 0;
-    while (0 <= i && root.contains(elements[i][0])) {
+    while (0 <= i && root.contains(arr[i].d)) {
       let st = arr[i--].m.style;
       Build.BTypes & ~BrowserType.Firefox && (st.zoom = z);
       if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinAbsolutePositionNotCauseScrollbar) {
@@ -1521,21 +1522,21 @@ filterEngine_: {
   activeHint_: null as HintsNS.FilteredHintItem | null,
   reForMatch_: null as never as RegExpG & RegExpOne & RegExpSearchable<0>,
   getRe_ (forMatch: BOOL): RegExpG & RegExpOne & RegExpSearchable<0> {
-    const chars = VHints.chars_, kNum = "0123456789",
-    accepted_numbers = !forMatch || chars === kNum ? ""
+    const a = VHints, chars = a.chars_,
+    accepted_numbers = !forMatch || chars === a.kNumbers_ ? ""
         : !(Build.BTypes & BrowserType.Chrome)
           || Build.MinCVer >= BrowserVer.MinTestedES6Environment
               && Build.MinCVer >= BrowserVer.MinEnsuredES6SpreadOperator
               && Build.MinCVer >= BrowserVer.MinEnsuredES6$String$$StartsWithEndsWithAndRepeatAndIncludes
-        ? [... <string[]> <unknown> kNum].filter(ch => !(chars as Ensure<string, "includes">).includes(ch)).join("")
-        : kNum.replace(new RegExp(`[${chars.replace(<RegExpG> /\D/g, "")}]`, "g"), ""),
+        ? [... <string[]> <any> a.kNumbers_].filter(ch => !(chars as Ensure<string, "includes">).includes(ch)).join("")
+        : a.kNumbers_.replace(new RegExp(`[${chars.replace(<RegExpG> /\D/g, "")}]`, "g"), ""),
     accepted_words = forMatch ? "[^" + GlobalConsts.KeyboardLettersLl + accepted_numbers
         : "[^" + GlobalConsts.LettersLlLuAndOtherASCII;
     return new RegExp(accepted_words + GlobalConsts.KeyboardLettersLo + "]+", "g"
         ) as RegExpG & RegExpOne & RegExpSearchable<0>;
   },
   GenerateHintStrings_ (this: void, hints: readonly HintsNS.HintItem[]): void {
-    const vHints = VHints, chars = vHints.chars_, base = chars.length, is10Digits = chars === "0123456789",
+    const vHints = VHints, chars = vHints.chars_, base = chars.length, is10Digits = chars === vHints.kNumbers_,
     count = hints.length;
     for (let i = 0; i < count; i++) {
       let hintString = "", num = is10Digits ? 0 : i + 1;
@@ -1664,6 +1665,14 @@ filterEngine_: {
             hints.sort((x1, x2) => x1.i - x2.i);
           } else {
             hints.sort((x1, x2) => x2.i - x1.i);
+          }
+          for (let i = 0, len = text || vHints.chars_ !== vHints.kNumbers_ ? 0 : hints.length; i < len; i++) {
+            const item = hints[i] as HintsNS.FilteredHintItem, text = item.h.t,
+            n = text.length === 1 ? text.charCodeAt(0) - kCharCode.N1 : 9;
+            if (n < 9 && n >= 0) {
+              hints[i] = hints[n];
+              hints[n] = item;
+            }
           }
           a.GenerateHintStrings_(hints);
         }
