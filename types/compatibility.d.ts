@@ -12,6 +12,7 @@ declare const enum BrowserVer {
   MinShadowDOMV0 = 31, // the real version is <= C31; it's prefixed
   // mouseEvent.buttons is since C43 but a `buttons` property does no harm on Chrome <= 42
   MinUsable$MouseEvent$$constructor = 31, // the real version is <= C31
+  MinEnsured$onwheel = 31, // even if LEGACY
   MinSupported = 32,
   MinEnsuredES6Promise = 32, // even if LEGACY
   // the 5 below are correct even if EXPERIMENTAL or LEGACY
@@ -117,6 +118,8 @@ declare const enum BrowserVer {
   // even if LEGACY
   MinEnsuredES6MethodFunction = 45, // e.g.: `a = { b() {} }`
   MinMuted = 45,
+  // https://www.chromestatus.com/features/5697181675683840
+  MinNoMousePositionUpdatesWhenScrolling = 45, // replaced by MinRuntimeFlag$UpdateHoverAtBeginFrame
   MinMutedInfo = 46,
   // even if EXPERIMENTAL or LEGACY
   MinAutoDecodeJSURL = 46,
@@ -435,6 +438,8 @@ declare const enum BrowserVer {
   // https://chromium.googlesource.com/chromium/src/+/5e84b7a819637ed4dd8f9c4d11288127663c8267
   MinBlockAutoFocusingInCrossOriginFrame = 75,
   MinMediaQuery$PrefersColorScheme = 76,
+  // https://bugs.chromium.org/p/chromium/issues/detail?id=877132
+  MinRuntimeFlag$UpdateHoverAtBeginFrame = 77, // #update-hover-at-begin-frame is enabled by default
   MinChromeFavicon2 = 77, // tested on 77.0.3865.90, chrome://favicon2/ is forbidden to use on extension pages
   // https://groups.google.com/a/chromium.org/forum/#!msg/blink-dev/h-JwMiPUnuU/sl79aLoLBQAJ
   // https://www.chromestatus.com/features/4507242028072960
