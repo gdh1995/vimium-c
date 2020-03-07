@@ -70,7 +70,7 @@ if (VDom && VimiumInjector === undefined) {
         ? 1 : 0
     , rAF = Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome
         ? requestAnimationFrame : 0 as never
-    , Doc = document, docEl = VDom.docEl_()
+    , Doc = document, docEl = VDom.docEl_unsafe_()
     , secret: number = (Math.random() * kContentCmd.SecretRange + 1) | 0
     , script = VDom.createElement_("script");
 /**

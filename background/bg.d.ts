@@ -745,7 +745,7 @@ interface CommandsDataTy {
   keyFSM_: KeyFSM;
   shortcutRegistry_: ShortcutInfoMap;
   mappedKeyRegistry_: SafeDict<string> | null;
-  hintModes_: Dict<HintMode>,
+  hintModes_: Dict<HintMode>;
   visualKeys_: VisualModeNS.KeyMap;
 }
 

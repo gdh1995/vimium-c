@@ -1043,7 +1043,7 @@
         count = 1;
       }
       cPort.postMessage<1, kFgCmd.linkHints>({ N: kBgReq.execute, H: ensureInnerCSS(cPort),
-        c: kFgCmd.linkHints, n: count, a: options as HintsNS.Options
+        c: kFgCmd.linkHints, n: count, a: options
       });
     },
     /* kBgCmd.nextFrame: */ function (this: void): void {

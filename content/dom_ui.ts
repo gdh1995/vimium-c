@@ -110,7 +110,7 @@ var VCui = {
     // so here should only use `VDom.fullscreenEl_unsafe_`
     const vCui = VCui, el: Element | null = VDom.fullscreenEl_unsafe_(),
     box = vCui.box_ as NonNullable<typeof vCui.box_>,
-    el2 = el && !(vCui.root_ as Node).contains(el) ? el : VDom.docEl_() as Element;
+    el2 = el && !(vCui.root_ as Node).contains(el) ? el : VDom.docEl_unsafe_() as Element;
     // Chrome also always remove node from its parent since 58 (just like Firefox), which meets the specification
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
     //  -> #concept-node-append -> #concept-node-pre-insert -> #concept-node-adopt -> step 2
@@ -178,7 +178,7 @@ var VCui = {
             || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinUnprefixedUserSelect
             ? st.userSelect || st.webkitUserSelect : st.userSelect) !== "none";
     }
-    VDom.docSelectable_ = mayTrue && (st = gcs(VDom.docEl_() as HTMLHtmlElement),
+    VDom.docSelectable_ = mayTrue && (st = gcs(VDom.docEl_unsafe_() as Element),
             Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinUnprefixedUserSelect
             || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinUnprefixedUserSelect
             ? st.userSelect || st.webkitUserSelect : st.userSelect) !== "none";
@@ -260,7 +260,7 @@ var VCui = {
         par = VDom.GetParent_(par as HTMLElement, PNType.DirectElement);
       }
     }
-    return par !== VDom.docEl_() ? par as Element | null : null;
+    return par !== VDom.docEl_unsafe_() ? par as Element | null : null;
   },
   getSelectionText_ (notTrim?: 1): string {
     let sel = VDom.getSelected_(), s = "" + sel, el: Element | null, rect: ClientRect;
@@ -317,7 +317,7 @@ var VCui = {
     a.mouse_(element, "mousedown", center, modifiers, null, button);
     if (!isInDom(element)) { return; }
     // Note: here we can check doc.activeEl only when @click is used on the current focused document
-    if (addFocus && element !== VApi.lock_() && element !== a.activeEl_() &&
+    if (addFocus && element !== VApi.lock_() && element !== a.activeEl_unsafe_() &&
         !(element as Partial<HTMLInputElement>).disabled) {
       element.focus && element.focus();
       if (!isInDom(element)) { return; }

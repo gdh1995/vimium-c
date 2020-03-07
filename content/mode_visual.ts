@@ -227,7 +227,7 @@ var VVisual = {
     if (!vDom.isHTML_()) { return true; }
     vDom.getZoom_(1);
     vDom.prepareCrop_();
-    const nodes = document.createTreeWalker(sr || document.body || vDom.docEl_() as Element
+    const nodes = document.createTreeWalker(sr || document.body || vDom.docEl_unsafe_() as Element
             , NodeFilter.SHOW_TEXT);
     while (node = nodes.nextNode() as Text | null) {
       if (50 <= (str = node.data).length && 50 < str.trim().length) {

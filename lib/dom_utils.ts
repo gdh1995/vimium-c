@@ -31,28 +31,32 @@ var VDom = {
 
   cache_: null as never as OnlyEnsureItemsNonNull<SettingsNS.FrontendSettingCache>,
   clickable_: null as never as { add (value: Element): object | void | number; has (value: Element): boolean },
-  docEl_: (): Element | null => document.documentElement,
-  getComputedStyle_: (element: Element): CSSStyleDeclaration => getComputedStyle(element),
-  activeEl_: (): Element | null => document.activeElement,
   readyState_: "" as never as Document["readyState"],
-  getSelected_: (): Selection => getSelection(),
   unsafeFramesetTag_: (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
       ? "" : 0 as never) as "frameset" | "",
   // note: scripts always means allowing timers - vPort.ClearPort requires this assumption
   allowScripts_: 1 as 0 | 1 | 2,
-  devRatio_: (): number => devicePixelRatio,
-  querySelector_: (selector: string): Element | null => document.querySelector(selector),
   jsRe_: <RegExpI & RegExpOne> /^javascript:/i,
   allowRAF_: 1 as BOOL,
-  querySelectorAll_: function (selector: string): NodeListOf<Element> | void {
+  docSelectable_: true,
+  devRatio_: (): number => devicePixelRatio,
+  getComputedStyle_: (element: Element): CSSStyleDeclaration => getComputedStyle(element),
+  getSelected_: (): Selection => getSelection(),
+  /** @UNSAFE_RETURNED */
+  docEl_unsafe_: (): Element | null => document.documentElement,
+  /** @UNSAFE_RETURNED */
+  activeEl_unsafe_: (): Element | null => document.activeElement,
+  /** @UNSAFE_RETURNED */
+  querySelector_unsafe_: (selector: string): Element | null => document.querySelector(selector),
+  /** @UNSAFE_RETURNED */
+  querySelectorAll_unsafe_: function (selector: string): NodeListOf<Element> | void {
     try { return document.querySelectorAll(selector); } catch {}
   } as <T extends BOOL = 0>(selector: string) => NodeListOf<Element> | (T extends 1 ? undefined : never),
-  docSelectable_: true,
 
   /** DOM-compatibility section */
 
   isHTML_: Build.BTypes & ~BrowserType.Firefox
-      ? (): boolean => "lang" in <ElementToHTML> (VDom.docEl_() || {})
+      ? (): boolean => "lang" in <ElementToHTML> (VDom.docEl_unsafe_() || {})
       : (): boolean => document instanceof HTMLDocument,
   htmlTag_: (Build.BTypes & ~BrowserType.Firefox ? function (element: Element | HTMLElement): string {
     let s: Element["localName"];
@@ -64,7 +68,7 @@ var VDom = {
   } : (element: Element): string => "lang" in element ? (element as SafeHTMLElement).localName as string : ""
   ) as (element: Element) => string, // duplicate the signature, for easier F12 in VS Code
   isInTouchMode_: Build.BTypes & BrowserType.Chrome ? function (): boolean {
-    const viewport = VDom.querySelector_("meta[name=viewport]");
+    const viewport = VDom.querySelector_unsafe_("meta[name=viewport]");
     return !!viewport &&
       (<RegExpI> /\b(device-width|initial-scale)\b/i).test(
           (viewport as HTMLMetaElement).content as string | undefined as /* safe even if undefined */ string);
@@ -153,7 +157,7 @@ var VDom = {
       const action = +((pn as ParentNodeProp as WindowWithTop).top === top)
           + 2 * +((pe as ParentElement as WindowWithTop).top === top);
       if (action) { // indeed a <frameset>
-        return action < 2 ? pe as Element : action < 3 ? pn as Node : el === document.body ? a.docEl_()
+        return action < 2 ? pe as Element : action < 3 ? pn as Node : el === document.body ? a.docEl_unsafe_()
           : a.Getter_(Node, el, kPN);
       }
     }
@@ -178,7 +182,7 @@ var VDom = {
   },
   scrollingEl_ (fallback?: 1): SafeElement | null {
     // Both C73 and FF66 still supports the Quirk mode (entered by `document.open()`)
-    let d = document, el = d.scrollingElement, docEl = VDom.docEl_();
+    let d = document, el = d.scrollingElement, docEl = VDom.docEl_unsafe_();
     if (Build.MinCVer < BrowserVer.Min$Document$$ScrollingElement && Build.BTypes & BrowserType.Chrome
         && el === undefined) {
       /**
@@ -278,7 +282,7 @@ var VDom = {
         vleft = (visual as VisualViewport).offsetLeft | 0, vtop = (visual as VisualViewport).offsetTop | 0;
         i = vleft + <number> (visual as VisualViewport).width | 0; j = vtop + (visual as VisualViewport).height | 0;
       }
-      else if (doc = a.docEl_(),
+      else if (doc = a.docEl_unsafe_(),
           el = Build.MinCVer >= BrowserVer.MinScrollTopLeftInteropIsAlwaysEnabled
               || !(Build.BTypes & BrowserType.Chrome) ? a.scrollingEl_() : d.compatMode === "BackCompat" ? d.body : doc,
           Build.MinCVer < BrowserVer.MinScrollTopLeftInteropIsAlwaysEnabled && Build.BTypes & BrowserType.Chrome
@@ -504,7 +508,7 @@ var VDom = {
    */
   getZoom_: Build.BTypes & ~BrowserType.Firefox ? function (this: {}, target?: 1 | Element): void {
     const a = this as typeof VDom;
-    let docEl = a.docEl_() as Element, ratio = a.devRatio_()
+    let docEl = a.docEl_unsafe_() as Element, ratio = a.devRatio_()
       , gcs = a.getComputedStyle_, st = gcs(docEl), zoom = +st.zoom || 1
       , el: Element | null = a.fullscreenEl_unsafe_();
     Build.BTypes & BrowserType.Chrome && (zoom = a._fixDocZoom(zoom, docEl, ratio));
@@ -540,7 +544,7 @@ var VDom = {
       return [0, 0, (iw / ratio2) | 0, (ih / ratio2) | 0, 0];
     }
     const float = parseFloat,
-    box = a.docEl_() as Element, st = a.getComputedStyle_(box),
+    box = a.docEl_unsafe_() as Element, st = a.getComputedStyle_(box),
     box2 = document.body, st2 = box2 ? a.getComputedStyle_(box2) : st,
     zoom2 = a.bZoom_ = Build.BTypes & ~BrowserType.Firefox && box2 && +st2.zoom || 1,
     containHasPaint = (<RegExpOne> /content|paint|strict/).test(st.contain as string),
@@ -688,7 +692,7 @@ var VDom = {
     } catch {}
   },
   isSelected_ (): boolean {
-    const element = VDom.activeEl_() as Element, sel = VDom.getSelected_(), node = sel.anchorNode;
+    const element = VDom.activeEl_unsafe_() as Element, sel = VDom.getSelected_(), node = sel.anchorNode;
     return !node ? false
       : (element as TypeToAssert<Element, HTMLElement, "isContentEditable">).isContentEditable === true
       ? (Build.BTypes & ~BrowserType.Firefox ? document.contains.call(element, node) : element.contains(node))
@@ -871,7 +875,7 @@ var VDom = {
     Element.prototype.scrollBy ? scrollBy({behavior: "instant", left, top}) : scrollBy(left, top);
   },
   runJS_ (code: string, returnEl?: 1): void | HTMLScriptElement {
-    const script = VDom.createElement_("script"), docEl = VDom.docEl_();
+    const script = VDom.createElement_("script"), docEl = VDom.docEl_unsafe_();
     script.type = "text/javascript";
     script.textContent = code;
     if (Build.BTypes & ~BrowserType.Firefox) {

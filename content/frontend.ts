@@ -118,7 +118,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       ): HandlerResult.Default | HandlerResult.PassKey | HandlerResult.Prevent {
     let action: HandlerResult.Default | HandlerResult.PassKey | HandlerResult.Prevent = HandlerResult.Prevent
       , { repeat } = event
-      , activeEl = vDom.activeEl_(), body = doc.body;
+      , activeEl = vDom.activeEl_unsafe_(), body = doc.body;
     /** if `notBody` then `activeEl` is not null */
     if (!repeat && vCui.removeSelection_()) {
       /* empty */
@@ -238,7 +238,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
      *   `target !== doc.active` lets it mistakenly passes the case of `target === lock === doc.active`
      */
     const lock = insertLock;
-    if (lock && lock === vDom.activeEl_()) { return; }
+    if (lock && lock === vDom.activeEl_unsafe_()) { return; }
     if (target === vCui.box_) { return vKey.Stop_(event); }
     const sr = vDom.GetShadowRoot_(target as Element);
     if (sr) {
@@ -276,7 +276,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       insertLock = target;
       if (InsertMode.mutable_) {
         // here ignore the rare case of an XMLDocument with a editable node on Firefox, for smaller code
-        if (vDom.activeEl_() !== doc.body) {
+        if (vDom.activeEl_unsafe_() !== doc.body) {
           InsertMode.last_ = target;
         }
       }
@@ -742,10 +742,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     mutable_: true,
     init_ (): void {
       /** if `notBody` then `activeEl` is not null */
-      let activeEl = vDom.activeEl_(),
+      let activeEl = vDom.activeEl_unsafe_(),
       notBody = activeEl !== doc.body && (!(Build.BTypes & BrowserType.Firefox)
             || Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox
-            || vDom.isHTML_() || activeEl !== vDom.docEl_()) && !!activeEl;
+            || vDom.isHTML_() || activeEl !== vDom.docEl_unsafe_()) && !!activeEl;
       KeydownEvents = safer(null);
       if (fgCache.g && InsertMode.grabBackFocus_) {
         let counter = 0, prompt = function (): void {
@@ -756,11 +756,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           prompt();
           (activeEl as LockableElement).blur();
           // here ignore the rare case of an XMLDocument with a editable node on Firefox, for smaller code
-          notBody = (activeEl = vDom.activeEl_() as Element) !== doc.body;
+          notBody = (activeEl = vDom.activeEl_unsafe_() as Element) !== doc.body;
         }
         if (!notBody) {
           InsertMode.grabBackFocus_ = function (event: Event, target: LockableElement): void {
-            const activeEl1 = vDom.activeEl_();
+            const activeEl1 = vDom.activeEl_unsafe_();
             if (activeEl1 === target || activeEl1 && vDom.GetShadowRoot_(activeEl1)) {
               vKey.Stop_(event);
               prompt();
@@ -798,7 +798,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (insertLock || InsertMode.global_) {
         return true;
       }
-      const el: Element | null = vDom.activeEl_();
+      const el: Element | null = vDom.activeEl_unsafe_();
 /** Ignore standalone usages of `{-webkit-user-modify:}` without `[contenteditable]`
  * On Chromestatus, this is tagged `WebKitUserModify{PlainText,ReadWrite,ReadOnly}Effective`
  * * https://www.chromestatus.com/metrics/css/timeline/popularity/338
@@ -904,12 +904,12 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     rel = isNext ? "next" : "prev", relIdx = names.indexOf(rel),
     detectQuirk = quirkIdx > 0 ? names.lastIndexOf(isNext ? ">" : "<", quirkIdx) : -1,
     refusedStr = isNext ? "<" : ">";
-    links.push(vDom.docEl_() as never as SafeHTMLElement);
+    links.push(vDom.docEl_unsafe_() as never as SafeHTMLElement);
     let candidates: Candidate[] = [], ch: string, s: string, maxLen = totalMax, len: number;
     let i: number, candInd = 0, count = names.length;
     for (i = 0; i < count; i++) {
       if (GlobalConsts.SelectorPrefixesInPatterns.includes(names[i][0])) {
-        const arr = vDom.querySelectorAll_<1>(names[i]);
+        const arr = vDom.querySelectorAll_unsafe_<1>(names[i]);
         if (arr && arr.length === 1 && vDom.htmlTag_(arr[0])) {
           candidates.push([i << 23, "", arr[0] as SafeHTMLElement]);
           count = i + 1;
@@ -970,7 +970,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     return false;
   },
   findAndFollowRel_ (relName: string): boolean {
-    const elements = VDom.querySelectorAll_("[rel]");
+    const elements = VDom.querySelectorAll_unsafe_("[rel]");
     let s: string | null | undefined;
     type HTMLElementWithRel = HTMLAnchorElement | HTMLAreaElement | HTMLLinkElement;
     for (let _i = 0, _len = elements.length, re1 = <RegExpOne> /\s+/; _i < _len; _i++) {
@@ -999,7 +999,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
                 && vDom.unsafeFramesetTag_  // treat a doc.body of <form> as <frameset> to simplify logic
               ? vDom.notSafe_(doc.body)
               : doc.body && vDom.htmlTag_(doc.body) === "frameset")
-            && (div = vDom.querySelector_("div"), !div || div === vCui.box_ && !vKey._handlers.length)
+            && (div = vDom.querySelector_unsafe_("div"), !div || div === vCui.box_ && !vKey._handlers.length)
       ) {
         post({
           H: kFgReq.nextFrame,
@@ -1018,7 +1018,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     },
     show_ (mask: FrameMaskType): void {
       if (!isTop && mask === FrameMaskType.NormalNext) {
-        let docEl = vDom.docEl_();
+        let docEl = vDom.docEl_unsafe_();
         if (docEl) {
         Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
           && (!(Build.BTypes & ~BrowserType.Chrome) || browserVer < BrowserVer.MinScrollIntoViewOptions)
@@ -1519,7 +1519,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       // here should not use the cache frameElement, because `getComputedStyle(frameElement).***` might break
       const curFrameElement_ = !isTop && (Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
               || !(Build.BTypes & ~BrowserType.Firefox) ? frameElement : vDom.frameElement_()),
-      el = !isTop && (curFrameElement_ || vDom.docEl_());
+      el = !isTop && (curFrameElement_ || vDom.docEl_unsafe_());
       if (!el) { return 0; }
       let box = vDom.getBoundingClientRect_(el),
       par: ReturnType<typeof VDom.parentCore_> | undefined,
@@ -1567,7 +1567,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         VOmni.box_.blur();
       } else {
         // cur is safe because on Firefox
-        const cur = vDom.activeEl_() as SafeElement | null;
+        const cur = vDom.activeEl_unsafe_() as SafeElement | null;
         cur && (<RegExpOne> /^i?frame$/).test(cur.localName) && cur.blur &&
         (cur as HTMLFrameElement | HTMLIFrameElement).blur();
       }

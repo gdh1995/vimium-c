@@ -304,7 +304,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     if (!element) {
       // note: twitter auto focuses its dialog panel, so it's not needed to detect it here
       const candidate = (<RegExpOne> /^(new|www)?\.?reddit\.com$/).test(location.host)
-          ? VDom.querySelector_("#overlayScrollContainer") : null;
+          ? VDom.querySelector_unsafe_("#overlayScrollContainer") : null;
       element = Build.BTypes & ~BrowserType.Firefox ? VDom.SafeEl_(candidate) : candidate as SafeElement | null;
     }
     if (!element && top) {

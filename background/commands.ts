@@ -535,18 +535,18 @@ CommandsData_: CommandsDataTy = CommandsData_ as never || {
     e: VisualAction.word | VisualAction.inc, b: VisualAction.word | VisualAction.dec,
     /* same as b */ B: VisualAction.word | VisualAction.dec,
     G: VisualAction.documentBoundary | VisualAction.inc, g: { g: VisualAction.documentBoundary | VisualAction.dec },
-  
+
     o: VisualAction.Reverse, a: { w: VisualAction.LexicalWord, s: VisualAction.LexicalSentence },
-  
+
     y: VisualAction.Yank, Y: VisualAction.YankLine, C: VisualAction.YankWithoutExit,
     p: VisualAction.YankAndOpen, P: VisualAction.YankAndNewTab,
-  
+
     n: VisualAction.FindNext, N: VisualAction.FindPrevious,
     f1: VisualAction.HighlightRange, "a-f1": VisualAction.HighlightRange,
-  
+
     v: VisualAction.VisualMode, V: VisualAction.VisualLineMode, c: VisualAction.CaretMode,
     "/": VisualAction.EmbeddedFindMode,
-  
+
     "c-e": VisualAction.ScrollDown, "c-y": VisualAction.ScrollUp,
     "c-down": VisualAction.ScrollDown, "c-up": VisualAction.ScrollUp
   } as { [key: string]: VisualAction | { [key: string]: VisualAction } } as VisualModeNS.KeyMap

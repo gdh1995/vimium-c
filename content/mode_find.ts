@@ -433,7 +433,7 @@ copy cut beforecopy beforecut paste".split(" ")) {
     }
     if (i > FindNS.Action.MaxExitButNoWork && hasResult && (!el || el !== VApi.lock_())) {
       let container = a.focusFoundLinkIfAny_();
-      if (container && i === FindNS.Action.ExitAndReFocus && (el2 = VDom.activeEl_())
+      if (container && i === FindNS.Action.ExitAndReFocus && (el2 = VDom.activeEl_unsafe_())
           && VDom.getEditableType_<0>(el2) >= EditableType.TextBox && container.contains(el2)) {
         VDom.prepareCrop_();
         VCui.simulateSelect_(el2 as LockableElement);
@@ -626,8 +626,8 @@ copy cut beforecopy beforecut paste".split(" ")) {
         el = VDom.GetParent_(el, PNType.DirectElement);
       }
       query = el && typeof (text = (el as HTMLElement).innerText) === "string" && text ||
-          (Build.BTypes & ~BrowserType.Firefox ? (VDom.docEl_() as HTMLElement).innerText + ""
-            : (VDom.docEl_() as HTMLElement).innerText as string);
+          (Build.BTypes & ~BrowserType.Firefox ? (VDom.docEl_unsafe_() as HTMLElement).innerText + ""
+            : (VDom.docEl_unsafe_() as HTMLElement).innerText as string);
       matches = query.match(re) || query.replace(<RegExpG> /\xa0/g, " ").match(re);
     }
     a.regexMatches_ = isRe ? matches : null;
@@ -763,7 +763,7 @@ copy cut beforecopy beforecut paste".split(" ")) {
     let sel = VCui.getSelected_()[0], range: Range, doc = document;
     if (!sel.rangeCount) {
       range = doc.createRange();
-      range.setStart(doc.body || VDom.docEl_() as Element, 0);
+      range.setStart(doc.body || VDom.docEl_unsafe_() as Element, 0);
     } else {
       range = sel.getRangeAt(0);
       // Note: `range.collapse` doesn't work if selection is inside a ShadowRoot (tested on C72 stable)
