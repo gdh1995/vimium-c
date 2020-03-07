@@ -530,7 +530,7 @@ var VDom = {
     /** the min() is required in {@link ../front/vomnibar.ts#Vomnibar_.activate_ } */
     a.wdZoom_ = Math.min(a.devRatio_(), 1);
   } as never,
-  getViewBox_ (needBox?: 1): ViewBox | ViewOffset {
+  getViewBox_ (needBox?: 1 | 2): ViewBox | ViewOffset {
     const a = this, ratio = a.devRatio_();
     let iw = innerWidth, ih = innerHeight, ratio2 = Math.min(ratio, 1);
     if (a.fullscreenEl_unsafe_()) {
@@ -545,7 +545,8 @@ var VDom = {
     zoom2 = a.bZoom_ = Build.BTypes & ~BrowserType.Firefox && box2 && +st2.zoom || 1,
     containHasPaint = (<RegExpOne> /content|paint|strict/).test(st.contain as string),
     kMatrix = "matrix(1,",
-    stacking = st.position !== "static" || containHasPaint || st.transform !== "none",
+    stacking = !(Build.BTypes & BrowserType.Chrome && needBox === 2)
+        && (st.position !== "static" || containHasPaint || st.transform !== "none"),
     // NOTE: if box.zoom > 1, although document.documentElement.scrollHeight is integer,
     //   its real rect may has a float width, such as 471.333 / 472
     rect = VDom.getBoundingClientRect_(box);
@@ -563,8 +564,10 @@ var VDom = {
       , y = !stacking ? float(st.marginTop)
           : !(Build.BTypes & ~BrowserType.Firefox)
             || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
-          ? -float(st.borderTopWidth ) : 0 | -box.clientTop;
-    x = x * scale - rect.left, y = y * scale - rect.top;
+          ? -float(st.borderTopWidth ) : 0 | -box.clientTop
+      , ltScale = Build.BTypes & BrowserType.Chrome ? needBox === 2 ? 1 : scale : 1;
+    x = x * (Build.BTypes & BrowserType.Chrome ? ltScale : scale) - rect.left;
+    y = y * (Build.BTypes & BrowserType.Chrome ? ltScale : scale) - rect.top;
     // note: `Math.abs(y) < 0.01` supports almost all `0.01 * N` (except .01, .26, .51, .76)
     x = Math.abs(x) < 0.01 ? 0 : Math.ceil(Math.round(x / zoom2 * 100) / 100);
     y = Math.abs(y) < 0.01 ? 0 : Math.ceil(Math.round(y / zoom2 * 100) / 100);

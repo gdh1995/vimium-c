@@ -214,7 +214,8 @@ var VHints = {
       return;
     }
 
-    const view = VDom.getViewBox_(1) as ViewBox;
+    const view = VDom.getViewBox_(Build.BTypes & BrowserType.Chrome && (master as typeof a || a
+        ).dialogMode_ ? 2 : 1) as ViewBox;
     VDom.prepareCrop_(1, outerView);
     if (a.tooHigh_ !== null) {
       a.tooHigh_ = (VDom.scrollingEl_(1) as HTMLElement).scrollHeight / innerHeight
