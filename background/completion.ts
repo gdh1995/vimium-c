@@ -684,7 +684,7 @@ historyEngine = {
 
 domainEngine = {
   filter_ (query: CompletersNS.QueryStatus, index: number): void {
-    if (queryTerms.length !== 1 || Completers.sugTypes_ & SugType.search
+    if (queryTerms.length !== 1
         || !(allExpectedTypes & SugType.domain)
         || queryTerms[0].lastIndexOf("/", queryTerms[0].length - 2) >= 0) {
       return Completers.next_([], SugType.domain);

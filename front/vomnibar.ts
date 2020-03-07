@@ -540,8 +540,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           }
           return;
         } else if (char === kChar.enter) {
-          a.onEnter_(key, !a.selection_ && a.isSelOriginal_ && a.completions_[0].e !== "domain"
-              ? -1 : a.selection_);
+          a.onEnter_(key, !a.selection_ && a.isSelOriginal_ ? -1 : a.selection_);
           return;
         }
       }
@@ -712,7 +711,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       (<RegExpOne> /a?/).test("");
     };
     if (sel === -1 && event && event !== !0 && event & KeyStat.altKey && (<RegExpOne> /^\w+(-\w+)?$/).test(item.u)) {
-        (item as UrlInfo).u = `www.${item.u}.com`;
+      const domains = a.completions_.filter(i => i.e === "domain");
+      (item as UrlInfo).u = domains.length ? domains[0].u : `www.${item.u}.com`;
     }
     if (a.actionType_ < ReuseType.newFg) { return func(); }
     a.doEnter_ = func;
