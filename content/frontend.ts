@@ -146,6 +146,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       return;
     }
     if (Build.BTypes & BrowserType.Chrome) { isWaitingAccessKey && resetAnyClickHandler(); }
+    if (Build.BTypes & BrowserType.Firefox) { insertLock && events.lock_(); }
     let action: HandlerResult, tempStr: string;
     if (action = vKey.bubbleEvent_(eventWrapper)) { /* empty */ }
     else if (InsertMode.isActive_()) {
@@ -794,7 +795,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     },
     isActive_ (): boolean {
       if (InsertMode.suppressType_) { return false; }
-      if ((Build.BTypes & BrowserType.Firefox ? events.lock_() : insertLock) || InsertMode.global_) {
+      if (insertLock || InsertMode.global_) {
         return true;
       }
       const el: Element | null = vDom.activeEl_();
