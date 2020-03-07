@@ -85,6 +85,7 @@
   "manifest_version": 2,
   "minimum_chrome_version": "32",
   "name": "__MSG_name__",
+  "offline_enabled": true,
   "omnibox": {
     "keyword": "v"
   },

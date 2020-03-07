@@ -358,6 +358,9 @@ var Tasks = {
     } else if (browser === BrowserType.Firefox) {
       manifest.permissions.splice(manifest.permissions.indexOf("contentSettings") || manifest.length, 1);
     }
+    if (!(browser & BrowserType.Chrome) || browser & ~BrowserType.Chrome && !locally || minVer < 35) {
+      delete manifest.offline_enabled;
+    }
     if (locally ? browser & BrowserType.Firefox : browser === BrowserType.Firefox) {
       if (!(browser & BrowserType.Edge)) {
         delete manifest.options_page;
