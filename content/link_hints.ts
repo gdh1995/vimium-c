@@ -192,7 +192,8 @@ var VHints = {
     }
     a.noHUD_ = !(useFilter || frameList[0].v[3] > 40 && frameList[0].v[2] > 320)
         || (options.hideHUD || options.hideHud) === true;
-    useFilter ? a.filterEngine_.getMatchingHints_(a.keyStatus_, "", "", 0) : a.initAlphabetEngine_(allHints);
+    useFilter ? a.filterEngine_.init_(allHints as readonly HintsNS.FilteredHintItem[])
+        : a.initAlphabetEngine_(allHints);
     a.renderMarkers_(allHints);
     a.hud_ = VHud;
     a.api_ = VApi;
@@ -1368,7 +1369,7 @@ var VHints = {
     // here should not consider about ._master
     const a = this;
     if (Build.BTypes & BrowserType.Chrome) { a._onWaitingKey = null; }
-    a._onTailEnter =
+    a._onTailEnter = a.filterEngine_.pageNumberHints_ =
     a.hints_ = a.zIndexes_ = a.filterEngine_.activeHint_ = a.filterEngine_.reForMatch_ = null as never;
     a.promptTimer_ > TimerID.None && (VKey.clear_(a.promptTimer_), a.promptTimer_ = TimerID.None);
     a.hasExecuted_ = 0;
@@ -1520,7 +1521,38 @@ var VHints = {
 
 filterEngine_: {
   activeHint_: null as HintsNS.FilteredHintItem | null,
+  pageNumberHints_: null as never as HintsNS.FilteredHintItem[],
   reForMatch_: null as never as RegExpG & RegExpOne & RegExpSearchable<0>,
+  init_ (hints: readonly HintsNS.FilteredHintItem[]): void {
+    const vHints = VHints, a = vHints.filterEngine_, len = vHints.chars_ !== vHints.kNumbers_ ? 0 : hints.length;
+    let i = 0, idxOfSecond = 0, lastPage = 0, curPage = 0, curRangeSecond = 0, curRangeCountS1 = 0;
+    for (; i < len; i++) {
+      const text = hints[i].h.t;
+      if (text < kChar.minNotNum && text > "0" && (curPage = +text) && curPage < len && curPage === (curPage | 0)) {
+        if (curPage - lastPage < 3 && curPage > lastPage && lastPage) {
+          lastPage = curPage;
+          idxOfSecond ? 0 : idxOfSecond = i;
+          continue;
+        }
+        lastPage = curPage;
+      } else {
+        lastPage = 0;
+      }
+      if (idxOfSecond) {
+        if (curRangeCountS1 < i - idxOfSecond) {
+          curRangeSecond = idxOfSecond;
+          curRangeCountS1 = i - idxOfSecond;
+        }
+        idxOfSecond = 0;
+      }
+    }
+    if (idxOfSecond && curRangeCountS1 < len - idxOfSecond) {
+      curRangeSecond = idxOfSecond;
+      curRangeCountS1 = len - idxOfSecond;
+    }
+    a.pageNumberHints_ = hints.slice(curRangeSecond - 1, curRangeSecond + curRangeCountS1);
+    a.getMatchingHints_(vHints.keyStatus_, "", "", 0);
+  },
   getRe_ (forMatch: BOOL): RegExpG & RegExpOne & RegExpSearchable<0> {
     const a = VHints, chars = a.chars_,
     accepted_numbers = !forMatch || chars === a.kNumbers_ ? ""
@@ -1666,11 +1698,10 @@ filterEngine_: {
           } else {
             hints.sort((x1, x2) => x2.i - x1.i);
           }
-          for (let i = 0, len = text || vHints.chars_ !== vHints.kNumbers_ ? 0 : hints.length; i < len; i++) {
-            const item = hints[i] as HintsNS.FilteredHintItem, text = item.h.t,
-            n = text.length === 1 ? text.charCodeAt(0) - kCharCode.N1 : 9;
-            if (n < 9 && n >= 0) {
-              hints[i] = hints[n];
+          if (!hasSearch) {
+            for (const item of a.pageNumberHints_) {
+              const n = +item.h.t - 1;
+              hints[hints.indexOf(item)] = hints[n];
               hints[n] = item;
             }
           }
