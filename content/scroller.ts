@@ -92,8 +92,9 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     running = running || next(animate);
   },
   toggleStyles = (scrolling: BOOL): void => {
-    const el = (scrolling ? top = VDom.SafeEl_(VDom.docEl_unsafe_()) : top
-        ) as TypeToAssert<Element, HTMLElement | SVGElement, "style"> | null;
+    const el = (scrolling ? VDom.SafeEl_(VDom.docEl_unsafe_()) : top
+        ) as SafeElement & TypeToAssert<Element, HTMLElement | SVGElement, "style"> | null;
+    top = scrolling ? el : null;
     el && el.style ? el.style.pointerEvents = scrolling ? "none" : "" : 0;
   };
   this._animate = function (this: typeof VSc, newEl, newDi, newAmount): void {
