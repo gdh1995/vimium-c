@@ -596,7 +596,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       InsertMode.mutable_ = true;
       vDom.getZoom_(newEl);
       vDom.prepareCrop_();
-      return vCui.simulateSelect_(newEl, null, false, "", true);
+      return vCui.simulateSelect_(newEl, null, !!options.flash, options.select, true);
     },
     /* kFgCmd.showHelp: */ function (msg?: number | "e", options?: CmdOptions[kFgCmd.showHelp]): void {
       if (msg === "e") { return; }

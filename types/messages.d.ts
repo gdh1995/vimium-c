@@ -261,6 +261,8 @@ interface CmdOptions {
   [kFgCmd.switchFocus]: {
     act?: "" | "backspace";
     action?: "" | "backspace";
+    select?: SelectActions;
+    flash?: boolean;
   };
   [kFgCmd.framesGoBack]: {
     reuse?: ReuseType;
