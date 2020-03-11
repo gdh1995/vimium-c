@@ -462,11 +462,12 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
                 ? Vomnibar_.mapModifier_ && event.location === Vomnibar_.mapModifier_ ? kChar.Modifier
                 : key === "Alt" ? key : ""
               : !code ? key
-              : (mapped = this._codeCorrectionMap.indexOf(code)) < 0 ? code === "Escape" ? kChar.esc : code
+              : (mapped = this._codeCorrectionMap.indexOf(code)) < 0 ? code
               : charCorrectionList[mapped + 12 * +shiftKey]
             ;
       }
       key = shiftKey && (key as string).length < 2 ? key as string
+          : key === "Escape" ? kChar.esc
           : key === "Unidentified" ? "" : (key as string).toLowerCase();
     }
     return key;

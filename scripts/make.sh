@@ -46,7 +46,7 @@ if [ -z "$output" -o -d "$output" ]; then
       ver=${ver}-chrome
       chrome_only=1
     elif test -f "$ZIP_BASE/.build/.firefox.build"; then
-      ver=${ver}-fx
+      ver=${ver}-firefox
       chrome_only=2
     else
       ver=${ver}-dist
