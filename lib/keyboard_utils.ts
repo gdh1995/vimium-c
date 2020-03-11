@@ -66,14 +66,14 @@ var VKey = {
       key = code.length === 1
             ? !shiftKey || code < "0" || code > "9" ? code : kChar.EnNumTrans[+code]
             : this._modifierKeys[key] ? this.cache_.a && event.location === this.cache_.a ? kChar.Modifier : ""
-            // e.g. https://github.com/philc/vimium/issues/3451#issuecomment-569124026
-            : !code ? key
+            : key === "Escape" ? kChar.esc // e.g. https://github.com/gdh1995/vimium-c/issues/129
+            : !code ? key // e.g. https://github.com/philc/vimium/issues/3451#issuecomment-569124026
             : (mapped = this._codeCorrectionMap.indexOf(code)) < 0 ? code
             : (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
                 ? this._charCorrectionList : kChar.CharCorrectionList)[mapped + 12 * +shiftKey]
           ;
     }
-    return shiftKey && key.length < 2 ? key : key === "Escape" ? kChar.esc : key.toLowerCase();
+    return shiftKey && key.length < 2 ? key : key.toLowerCase();
   },
   /**
    * * return `"space"` for the <Space> key - in most code it needs to be treated as a long key
