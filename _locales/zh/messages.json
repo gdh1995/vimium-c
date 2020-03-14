@@ -1127,7 +1127,7 @@
 		"message": "您的 Vimium C 已经更新至 $1 版。\n"
 	},
 	"upgradeMsg2": {
-		"message": "支持针对单个模式的“mapKey”"
+		"message": "隐私策略有更新！"
 	},
 	"clickForMore": {
 		"message": "点击阅读详细信息。"

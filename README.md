@@ -92,6 +92,7 @@ __Other extensions supporting Vimium C:__
 * fix that <kbd>-</kbd> or software-produced <kbd>Escape</kbd> can not be recognized
   ([#129](https://github.com/gdh1995/vimium-c/issues/129))
 * **Privacy Policy**: update to **allow short-term and in-memory cache** for Vomnibar suggestions
+  * Please see https://github.com/gdh1995/vimium-c/commit/240160ddb931c3fda545e8b7bd06f7c0bba0d56b
 * Vomnibar: also match queries in all tabs when in omni mode
 * Vomnibar: fix some edge cases and improve performance when matching queries
 * Vomnibar: show indexes on <kbd>Alt</kbd> and quickly access items with <kbd>Alt + Number</kbd>
