@@ -4,6 +4,26 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://github.com/gdh1995/vimium-c/blob/master/README_zh.md .
 
+#### 1.81.0
+* fix that <kbd>-</kbd> or software-produced <kbd>Escape</kbd> can not be recognized
+  ([#129](https://github.com/gdh1995/vimium-c/issues/129))
+* **Privacy Policy**: update to **allow short-term and in-memory cache** for Vomnibar suggestions
+* Vomnibar: also match queries in all tabs when in omni mode
+* Vomnibar: fix some edge cases and improve performance when matching queries
+* Vomnibar: show indexes on <kbd>Alt</kbd> and quickly access items with <kbd>Alt + Number</kbd>
+  * on macOs, use <kbd>Ctrl + Alt + Number</kbd> (`<a-c-N>`) instead
+  * keys can be re-mapped: see [#135 (comment)](https://github.com/gdh1995/vimium-c/issues/135#issuecomment-597649596)
+* LinkHints: Firefox: improve reachability detection for scrollable areas
+* LinkHints: Filtered Hints: make hint keys follow page numbers
+* Scroller: use a lightweight method to deactivate hover effects globally if smooth scrolling is enabled
+  ([#133](https://github.com/gdh1995/vimium-c/issues/133))
+* `goNext`: support aria-label
+* `switchFocus`: add 2 options of `select` and `flash` to work like `focusInput`
+  ([#127](https://github.com/gdh1995/vimium-c/issues/127))
+* hooked `Function::toString`: not convert those whose body includes `__VimiumC_` to `()=>1` any more
+  (influence [#130](https://github.com/gdh1995/vimium-c/issues/130))
+* Chrome release: mark itself offline-enabled
+
 #### 1.80.3
 * macOS: LinkHints now works well even if a page zooms in/out many times
 * LinkHints: fix a regression some links were not clickable in v1.80.2 ([philc/vimium#3501](
