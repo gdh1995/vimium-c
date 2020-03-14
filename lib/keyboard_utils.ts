@@ -107,7 +107,8 @@ var VKey = {
             (<number> <boolean|number> event.shiftKey * 8);
   },
   isEscape_ (key: string): HandlerResult.AdvancedEsc | HandlerResult.PlainEsc | HandlerResult.Nothing {
-    return key === "esc" ? HandlerResult.AdvancedEsc : key === "c-[" ? HandlerResult.PlainEsc : HandlerResult.Nothing;
+    return key === kChar.esc ? HandlerResult.AdvancedEsc
+        : key === "c-" + kChar.bracketLeft ? HandlerResult.PlainEsc : HandlerResult.Nothing;
   },
 
   /** event section */

@@ -1103,7 +1103,7 @@ var VHints = {
     } else if (key = VKey.key_(event, kModeId.Link), keybody = VKey.keybody_(key),
         VKey.isEscape_(key) || a._onTailEnter && keybody === kChar.backspace) {
       a.clear_();
-    } else if (i === kKeyCode.esc && keybody === kChar.esc) {
+    } else if (i === kKeyCode.esc && VKey.isEscape_(keybody)) {
       return HandlerResult.Suppress;
     } else if (a._onTailEnter && keybody !== kChar.f12) {
       a._onTailEnter(event, key, keybody);

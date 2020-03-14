@@ -137,10 +137,12 @@ var Commands = {
         } else if ((key = splitLine[1]).length > 1 && (key.match(re) as RegExpMatchArray).length > 1
           || splitLine[2].length > 1 && (splitLine[2].match(re) as RegExpMatchArray).length > 1) {
           a.logError_("MapKey: a source / target key should be a single key:", line);
-        } else if (strip(key) in mkReg) {
-          a.logError_("This key %c%s", colorRed, key, "has been mapped to another key:", mkReg[strip(key)]);
+        } else if ((key = strip(key)) in mkReg) {
+          key = mkReg[strip(key)] as string;
+          a.logError_("This key %c%s", colorRed, splitLine[1], "has been mapped to another key:"
+              , key.length > 1 ? `<${key}>` : key);
         } else {
-          mkReg[key === "<escape>" ? "esc" : strip(key)] = splitLine[2] === "<escape>" ? "esc" : strip(splitLine[2]);
+          mkReg[key] = strip(splitLine[2]);
           mk++;
           continue;
         }
