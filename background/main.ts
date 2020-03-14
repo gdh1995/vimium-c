@@ -1024,15 +1024,17 @@
     /* kBgCmd.blank: */ BgUtils_.blank_,
     /* kBgCmd.linkHints: */ function (this: void): void {
       let options = cOptions as HintsNS.Options
-        , mode = options.mode, count = cRepeat < 0 ? -cRepeat : cRepeat;
+        , rawMode = options.mode, mode = rawMode, count = cRepeat < 0 ? -cRepeat : cRepeat;
       if (typeof mode !== "number") {
         mode = (CommandsData_.hintModes_[options.action || mode || 0] as number | undefined | {} as number) | 0;
-        if (mode === HintMode.EDIT_TEXT && options.url) {
-          mode = HintMode.EDIT_LINK_URL;
-        }
-        if (mode === HintMode.COPY_TEXT && options.join) {
-          mode = HintMode.COPY_TEXT | HintMode.queue | HintMode.list;
-        }
+      }
+      if (mode === HintMode.EDIT_TEXT && options.url) {
+        mode = HintMode.EDIT_LINK_URL;
+      }
+      if (mode === HintMode.COPY_TEXT && options.join) {
+        mode = HintMode.COPY_TEXT | HintMode.queue | HintMode.list;
+      }
+      if (rawMode !== mode) {
         options.mode = mode;
       }
       if (mode > HintMode.min_disable_queue - 1) {
