@@ -360,7 +360,8 @@ var VDom = {
           }
           if (notInline || !style.display.startsWith("inline")) { continue; }
         } else { continue; }
-        if (!this.notSafe_(_ref[_j]) && (cr = this.getVisibleClientRect_(_ref[_j] as SafeHTMLElement, style))) {
+        if (!(Build.BTypes & ~BrowserType.Firefox && this.notSafe_(_ref[_j]))
+            && (cr = this.getVisibleClientRect_(_ref[_j] as SafeHTMLElement, style))) {
           return cr;
         }
       }
