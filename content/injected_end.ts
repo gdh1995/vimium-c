@@ -3,6 +3,8 @@
   ].forEach(Object.seal);
 VDom.allowScripts_ = 0;
 
+VHints.unwrap_ = (e: object): any => e;
+
 (function (): void {
   const OnOther: BrowserType = !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
         || !(Build.BTypes & ~BrowserType.Edge)

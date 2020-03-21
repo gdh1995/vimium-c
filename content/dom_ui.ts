@@ -343,17 +343,20 @@ var VCui = {
     if (specialAction) {
       // for forceToDblclick, element can be OtherSafeElement; for 1..MaxOpenForAnchor, element must be HTML <a>
       result = specialAction > kClickAction.MaxOpenForAnchor ? ActionType.DispatchAndCheckInDOM
-          : specialAction < kClickAction.MinNotPlainOpenManually && (element as HTMLAnchorElement).target !== "_blank"
+          : Build.BTypes & BrowserType.Firefox && specialAction < kClickAction.MinNotPlainOpenManually
+                && (element as HTMLAnchorElement).target !== "_blank"
             || !(url = element.getAttribute("href"))
-            || specialAction & kClickAction.forceToOpenInNewTab && url[0] === "#"
+            || (!(Build.BTypes & BrowserType.Firefox) || specialAction & kClickAction.forceToOpenInNewTab)
+                && url[0] === "#"
             || a.jsRe_.test(url)
           ? ActionType.OnlyDispatch
-          : specialAction & (kClickAction.plainMayOpenManually | kClickAction.openInNewWindow)
-            && (((element as XrayedObject<HTMLAnchorElement>).wrappedJSObject || element).onclick
+          : Build.BTypes & BrowserType.Firefox
+            && specialAction & (kClickAction.plainMayOpenManually | kClickAction.openInNewWindow)
+            && (VHints.unwrap_(element as HTMLAnchorElement).onclick
               || a.clickable_.has(element))
           ? ActionType.DispatchAndMayOpenTab : ActionType.OpenTabButNotDispatch;
     }
-    if ((result >= ActionType.OpenTabButNotDispatch || a.mouse_(element, "click", center, modifiers) && result)
+    if ((result > ActionType.OpenTabButNotDispatch - 1 || a.mouse_(element, "click", center, modifiers) && result)
         && a.getVisibleClientRect_(element)) {
       // require element is still visible
       if (specialAction === kClickAction.forceToDblclick) {

@@ -885,9 +885,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     const tag = element.localName, isClickable = tag === "a" || tag && (
       tag === "button" ? !(element as HTMLButtonElement).disabled
       : vDom.clickable_.has(element)
-      || ((!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
-          ? ((element as XrayedObject<SafeHTMLElement>).wrappedJSObject || element).onclick
-          : element.getAttribute("onclick")))
+      || (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
+          ? (vHints.unwrap_(element)).onclick : element.getAttribute("onclick"))
       || (
         (s = element.getAttribute("role")) ? (<RegExpI> /^(button|link)$/i).test(s)
         : vHints.ngEnabled_ && element.getAttribute("ng-click")));

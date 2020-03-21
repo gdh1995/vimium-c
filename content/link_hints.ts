@@ -113,8 +113,12 @@ var VHints = {
   _master: null as HintsNS.Master | null,
   hud_: null as never as VHUDTy,
   api_: null as never as VApiTy,
-  _wrap: !(Build.BTypes & BrowserType.Firefox) ? 0 as never
-      : <T extends object> (obj: T): T => (obj as XrayedObject<T>).wrappedJSObject || obj,
+  unwrap_: (!(Build.BTypes & BrowserType.Firefox) ? 0 as never
+      : <T extends object> (obj: T): T => (obj as XrayedObject<T>).wrappedJSObject || obj) as {
+    <T extends SafeElement>(obj: T): T;
+    (obj: Element): unknown;
+    <T extends object>(obj: T): T;
+  },
   /** return whether the element's VHints is not accessible */
   _addChildFrame: null as ((this: {}, el: HTMLIFrameElement | HTMLFrameElement, rect: Rect | null) => boolean) | null,
   activate_ (this: void, count: number, options: HintsNS.Options): void {
@@ -207,7 +211,7 @@ var VHints = {
       , addChildFrame: (this: {}, el: HTMLIFrameElement | HTMLFrameElement, rect: Rect | null) => boolean
       ): void {
     const a = this;
-    a._master = Build.BTypes & BrowserType.Firefox ? master && a._wrap(master) : master;
+    a._master = Build.BTypes & BrowserType.Firefox ? master && a.unwrap_(master) : master;
     a.resetHints_();
     a.setModeOpt_(count, options);
     a.chars_ = chars;
@@ -234,8 +238,8 @@ var VHints = {
   render_ (hints: readonly HintsNS.HintItem[], arr: ViewBox, hud: VHUDTy, api: VApiTy): void {
     const a = this, master = a._master || a;
     if (a.box_) { a.box_.remove(); a.box_ = null; }
-    a.hud_ = Build.BTypes & BrowserType.Firefox ? a._wrap(hud) : hud;
-    a.api_ = Build.BTypes & BrowserType.Firefox ? a._wrap(api) : api;
+    a.hud_ = Build.BTypes & BrowserType.Firefox ? a.unwrap_(hud) : hud;
+    a.api_ = Build.BTypes & BrowserType.Firefox ? a.unwrap_(api) : api;
     VCui.ensureBorder_(VDom.wdZoom_ / VDom.dScale_);
     if (hints.length) {
       if (Build.BTypes & BrowserType.Chrome) {
@@ -507,9 +511,9 @@ var VHints = {
         type = VDom.clickable_.has(element)
             || tabIndex != null && (!(Build.BTypes & ~BrowserType.Firefox)
                 || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
-                ? ((anotherEl = (element as XrayedObject<SVGElement>).wrappedJSObject || element as SVGElement)
+                ? ((anotherEl = this.unwrap_(element as SVGElement))
                     ).onclick || anotherEl.onmousedown
-                : element.getAttribute("onclick"))
+                : element.getAttribute("onclick") || element.getAttribute("onmousedown"))
             || (s = element.getAttribute("role")) && (<RegExpI> /^button$/i).test(s)
             || this.ngEnabled_ && element.getAttribute("ng-click")
             || this.jsaEnabled_ && (s = element.getAttribute("jsaction")) && this.checkJSAction_(s)
@@ -1235,7 +1239,7 @@ var VHints = {
     a._onTailEnter = callback;
     (a.box_ as NonNullable<typeof a.box_>).remove();
     a.box_ = null;
-    Build.BTypes & BrowserType.Firefox && (slave = a._wrap(slave));
+    Build.BTypes & BrowserType.Firefox && (slave = a.unwrap_(slave));
     if (Build.BTypes & BrowserType.Chrome && !waitEnter) {
       a._onWaitingKey = VKey.suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents
           , callback);
@@ -1328,7 +1332,7 @@ var VHints = {
       a._timer = TimerID.None;
       let reinit: BOOL | void = 0;
       try {
-        Build.BTypes & BrowserType.Firefox && (slave = a._wrap(slave as NonNullable<typeof slave>));
+        Build.BTypes & BrowserType.Firefox && (slave = a.unwrap_(slave as NonNullable<typeof slave>));
         Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i ||
         slave && (reinit = (slave as typeof VHints).CheckLast_(el, r));
       } catch {}
@@ -1430,7 +1434,7 @@ var VHints = {
   },
   onFrameUnload_ (slave: HintsNS.Slave): void {
     const a = this, frames = a.frameList_, len = frames.length;
-    const wrappedSlave = Build.BTypes & BrowserType.Firefox ? a._wrap(slave) : 0 as never;
+    const wrappedSlave = Build.BTypes & BrowserType.Firefox ? a.unwrap_(slave) : 0 as never;
     let i = 0, offset = 0;
     while (i < len && frames[i].s !== (Build.BTypes & BrowserType.Firefox ? wrappedSlave : slave)) {
       offset += frames[i++].h.length;
