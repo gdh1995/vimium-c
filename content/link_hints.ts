@@ -2052,7 +2052,7 @@ _highlightChild (el: HintsNS.LinkEl, tag: string): 0 | 1 | 2 {
     const exit: HandlerNS.RefHandler = event => {
       VKey.removeHandler_(exit);
       if (VKey.isEscape_(VKey.key_(event, kModeId.Link)) && !VApi.lock_()) {
-        VDom.hover_();
+        VDom.unhover_();
         return HandlerResult.Prevent;
       }
       return HandlerResult.Nothing;
@@ -2110,15 +2110,7 @@ Modes_: [
   , HintMode.HOVER
 ] as HintsNS.ModeOpt,
 [
-  (element: HintsNS.LinkEl): void => {
-    const a = VDom;
-    if (a.lastHovered_ !== element) {
-      a.hover_();
-    }
-    a.lastHovered_ = element;
-    a.hover_();
-    if (VDom.activeEl_unsafe_() === element) { element.blur && element.blur(); }
-  }
+  VDom.unhover_
   , HintMode.UNHOVER
 ] as HintsNS.ModeOpt,
 [
@@ -2356,7 +2348,7 @@ Modes_: [
         shiftKey_: shift
       }, specialActions, isRight ? kClickButton.second : kClickButton.none
       , !(Build.BTypes & BrowserType.Chrome) || otherActions || newTab ? 0 : a.options_.touch);
-    a.options_.autoUnhover ? VDom.hover_() : a.mode_ & HintMode.queue || ret && a._unhoverOnEsc();
+    a.options_.autoUnhover ? VDom.unhover_() : a.mode_ & HintMode.queue || ret && a._unhoverOnEsc();
   }
   , HintMode.OPEN_IN_CURRENT_TAB
   , HintMode.OPEN_IN_NEW_BG_TAB
