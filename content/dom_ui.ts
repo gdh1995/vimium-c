@@ -285,7 +285,7 @@ var VCui = {
   click_ (element: SafeElementForMouse
       , rect?: Rect | null, addFocus?: boolean | BOOL, modifiers?: MyMouseControlKeys | null
       , specialAction?: kClickAction, button?: AcceptableClickButtons
-      , /** default: false */ touchMode?: null | false | /** false */ 0 | true | "auto"): void {
+      , /** default: false */ touchMode?: null | false | /** false */ 0 | true | "auto"): void | 1 {
     if (!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && VOther === BrowserType.Edge) {
       if ((element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
         return;
@@ -383,6 +383,7 @@ var VCui = {
         n: noopener,
         r: reuse
       });
+      return 1;
     }
   },
   simulateSelect_ (element: LockableElement, rect?: Rect | null, flash?: boolean

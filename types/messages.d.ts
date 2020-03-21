@@ -224,6 +224,7 @@ declare namespace HintsNS {
     swapCtrlAndShift?: boolean;
     hideHud?: boolean;
     hideHUD?: boolean;
+    autoUnhover?: boolean;
   }
 }
 

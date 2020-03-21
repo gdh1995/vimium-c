@@ -2044,11 +2044,7 @@ _highlightChild (el: HintsNS.LinkEl, tag: string): 0 | 1 | 2 {
   }
   return 2;
 },
-
-Modes_: [
-[
-  (element, rect): void => {
-    const a = VHints, type = VDom.getEditableType_<0>(element), toggleMap = a.options_.toggle;
+  _unhoverOnEsc (): void {
     const exit: HandlerNS.RefHandler = event => {
       VKey.removeHandler_(exit);
       if (VKey.isEscape_(VKey.key_(event, kModeId.Link)) && !VApi.lock_()) {
@@ -2057,6 +2053,12 @@ Modes_: [
       }
       return HandlerResult.Nothing;
     };
+    VKey.pushHandler_(exit, exit);
+  },
+Modes_: [
+[
+  (element, rect): void => {
+    const a = VHints, type = VDom.getEditableType_<0>(element), toggleMap = a.options_.toggle;
     // here not check VDom.lastHovered on purpose
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
     VCui.activeEl_ = element;
@@ -2065,7 +2067,7 @@ Modes_: [
     if (a.mode1_ < HintMode.min_job) { // called from Modes[-1]
       return a.hud_.tip_(kTip.hoverScrollable, 1000);
     }
-    a.mode_ & HintMode.queue || VKey.pushHandler_(exit, exit);
+    a.mode_ & HintMode.queue || a._unhoverOnEsc();
     if (!toggleMap || typeof toggleMap !== "object") { return; }
     VKey.safer_(toggleMap);
     let ancestors: Element[] = [], top: Element | null = element, re = <RegExpOne> /^-?\d+/;
@@ -2343,13 +2345,14 @@ Modes_: [
           : newTab // need to work around Firefox's popup blocker
             ? kClickAction.plainMayOpenManually | kClickAction.newTabFromMode : kClickAction.plainMayOpenManually
         : kClickAction.none;
-    VCui.click_(link, rect, mask > 0 || <number> (link as ElementToHTMLorSVG).tabIndex >= 0, {
-      altKey_: !1,
-      ctrlKey_: ctrl && !isMac,
-      metaKey_: ctrl && isMac,
-      shiftKey_: shift
-    }, specialActions, isRight ? kClickButton.second : kClickButton.none
-    , !(Build.BTypes & BrowserType.Chrome) || otherActions || newTab ? 0 : a.options_.touch);
+    const ret = VCui.click_(link, rect, mask > 0 || <number> (link as ElementToHTMLorSVG).tabIndex >= 0, {
+        altKey_: !1,
+        ctrlKey_: ctrl && !isMac,
+        metaKey_: ctrl && isMac,
+        shiftKey_: shift
+      }, specialActions, isRight ? kClickButton.second : kClickButton.none
+      , !(Build.BTypes & BrowserType.Chrome) || otherActions || newTab ? 0 : a.options_.touch);
+    a.options_.autoUnhover ? VDom.hover_() : a.mode_ & HintMode.queue || ret && a._unhoverOnEsc();
   }
   , HintMode.OPEN_IN_CURRENT_TAB
   , HintMode.OPEN_IN_NEW_BG_TAB
