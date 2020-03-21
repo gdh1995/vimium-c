@@ -192,7 +192,7 @@ declare const enum kFgCmd {
   framesGoBack, findMode, linkHints, unhoverLast, marks,
   goToMarks, scroll, visualMode, vomnibar,
   reset, toggle, insertMode, passNextKey, goNext,
-  reload, switchFocus, showHelp, autoCopy,
+  reload, showHelp, autoCopy,
   autoOpen, searchAs, focusInput, editText,
   END = "END",
 }
@@ -258,12 +258,6 @@ interface CmdOptions {
   [kFgCmd.passNextKey]: {
     normal?: false | true;
   };
-  [kFgCmd.switchFocus]: {
-    act?: "" | "backspace";
-    action?: "" | "backspace";
-    select?: SelectActions;
-    flash?: boolean;
-  };
   [kFgCmd.framesGoBack]: {
     reuse?: ReuseType;
     count?: -1; // just for commands.ts
@@ -324,9 +318,12 @@ interface CmdOptions {
     /** sed rule */ sed?: string;
   };
   [kFgCmd.focusInput]: {
+    act?: "" | "backspace" | "switch" | "last" | "last-visible";
+    action?: "" | "backspace" | "switch" | "last" | "last-visible";
     select?: SelectActions;
     keep?: boolean;
     passExitKey?: boolean;
+    flash?: boolean;
   };
   [kFgCmd.editText]: {
     dom?: boolean;

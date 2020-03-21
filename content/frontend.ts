@@ -573,31 +573,6 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         options.url ? (location.href = options.url) : location.reload(!!options.hard);
       }, 17);
     },
-    /* kFgCmd.switchFocus: */ function (_0: number, options: CmdOptions[kFgCmd.switchFocus]): void {
-      let newEl = insertLock;
-      if (newEl) {
-        if ((options.act || options.action) === "backspace") {
-          if (vDom.view_(newEl)) { VFind.exec_("delete", doc); }
-        } else {
-          InsertMode.last_ = newEl;
-          InsertMode.mutable_ = false;
-          newEl.blur();
-        }
-        return;
-      }
-      newEl = InsertMode.last_;
-      if (!newEl) {
-        return HUD.tip_(kTip.noFocused, 1200);
-      }
-      if (!vDom.view_(newEl) && vDom.NotVisible_(newEl)) {
-        return HUD.tip_(kTip.focusedIsHidden, 2000);
-      }
-      InsertMode.last_ = null;
-      InsertMode.mutable_ = true;
-      vDom.getZoom_(newEl);
-      vDom.prepareCrop_();
-      return vCui.simulateSelect_(newEl, null, !!options.flash, options.select, true);
-    },
     /* kFgCmd.showHelp: */ function (msg?: number | "e", options?: CmdOptions[kFgCmd.showHelp]): void {
       if (msg === "e") { return; }
       let wantTop = innerWidth < 400 || innerHeight < 320;
@@ -635,6 +610,34 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       });
     },
     /* kFgCmd.focusInput: */ function (count: number, options: CmdOptions[kFgCmd.focusInput]): void {
+      const act = options.act || options.action;
+      if (act && (act[0] !== "l" || InsertMode.last_ && !insertLock)) {
+        let newEl = insertLock, ret: BOOL = 1;
+        if (newEl) {
+          if (act === "backspace") {
+            if (vDom.view_(newEl)) { VFind.exec_("delete", doc); }
+          } else {
+            InsertMode.last_ = newEl;
+            InsertMode.mutable_ = false;
+            newEl.blur();
+          }
+        } else if (!(newEl = InsertMode.last_)) {
+          HUD.tip_(kTip.noFocused, 1200);
+        } else if (act !== "last-visible" && vDom.view_(newEl) || !vDom.NotVisible_(newEl)) {
+          InsertMode.last_ = null;
+          InsertMode.mutable_ = true;
+          vDom.getZoom_(newEl);
+          vDom.prepareCrop_();
+          vCui.simulateSelect_(newEl, null, !!options.flash, options.select, true);
+        } else if (act[0] === "l") {
+          ret = 0;
+        } else {
+          HUD.tip_(kTip.focusedIsHidden, 2000);
+        }
+        if (ret) {
+          return;
+        }
+      }
       InsertMode.inputHint_ && (InsertMode.inputHint_.h = null as never);
       const arr: ViewOffset = vDom.getViewBox_();
       vDom.prepareCrop_(1);
