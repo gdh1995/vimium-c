@@ -511,6 +511,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     key = n !== kKeyCode.ime ? a.getMappedKey_(event) : "";
     a.lastKey_ = n;
     if (!key) {
+      a.inAlt_ && a.toggleAlt_(0);
       a.keyResult_ = focused && !(n === kKeyCode.menuKey && a.os_) && n !== kKeyCode.ime
           ? HandlerResult.Suppress : HandlerResult.Nothing;
       return;
@@ -523,7 +524,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         return a.onAction_(focused ? AllowedActions.blurInput : AllowedActions.focus);
       }
       if (mainModifier === "a-") {
-        if (key === "a-" + kChar.Alt) {
+        if (key === "a-" + kChar.Alt || key === "a-" + kChar.Modifier) {
           // not set keyup listener by intent:
           // so that a short Alt will only toggle inAlt, and a long Alt can show on keydown and hide on keyup
           Vomnibar_.inAlt_ = Vomnibar_.inAlt_ || setTimeout(Vomnibar_.toggleAlt_, 260, -1);
