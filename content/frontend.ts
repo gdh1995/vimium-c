@@ -159,7 +159,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           ? (action = checkKey(eventWrapper, keyStr)) > HandlerResult.MaxNotEsc
           : vKey.isEscape_(keyStr)
       ) {
-        if ((insertLock === doc.body && insertLock || !isTop && innerHeight < 3) && !g) {
+        if ((insertLock && insertLock === doc.body || !isTop && innerHeight < 5) && !g) {
           event.repeat && InsertMode.focusUpper_(key, true, event);
           action = /* the real is HandlerResult.PassKey; here's for smaller code */ HandlerResult.Nothing;
         } else {
@@ -823,7 +823,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
     },
     /** should only be called during keydown events */
-    focusUpper_ (this: void, key: kKeyCode, force: boolean, event: KeyboardEventToPrevent
+    focusUpper_ (this: void, key: kKeyCode, force: boolean, event: ToPrevent
         ): void | 1 {
       const parEl = vDom.frameElement_();
       if (!parEl && (!force || isTop)) { return; }
@@ -904,7 +904,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     const wordRe = <RegExpOne> /\b/,
     quirk = isNext ? ">>" : "<<", quirkIdx = names.indexOf(quirk),
     rel = isNext ? "next" : "prev", relIdx = names.indexOf(rel),
-    detectQuirk = quirkIdx > 0 ? names.lastIndexOf(isNext ? ">" : "<", quirkIdx) : -1,
+    detectQuirk = quirkIdx > 0 ? names.lastIndexOf(quirk[0], quirkIdx) : -1,
     refusedStr = isNext ? "<" : ">";
     links.push(vDom.docEl_unsafe_() as never as SafeHTMLElement);
     let candidates: Candidate[] = [], ch: string, s: string, maxLen = totalMax, len: number;
@@ -919,7 +919,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         }
       }
     }
-    for (let re1 = <RegExpOne> /\s+/, _len = links.length - 1; 0 <= --_len; ) {
+    for (let wsRe = <RegExpOne> /\s+/, _len = links.length - 1; 0 <= --_len; ) {
       const link = links[_len];
       if (link.contains(links[_len + 1]) || (s = link.innerText).length > totalMax) { continue; }
       if (s = s || (ch = (link as HTMLInputElement).value) && ch.toLowerCase && ch
@@ -928,10 +928,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         s = s.toLowerCase();
         for (i = 0; i < count; i++) {
           if (s.length < lenLimit[i] && s.includes(names[i])) {
-            if (!s.includes(refusedStr) && (len = (s = s.trim()).split(re1).length) <= maxLen) {
-              let i2 = detectQuirk - i ? names.indexOf(s, i + 1) : s.includes(quirk) ? quirkIdx : -1;
-              if (i2 >= 0) { i = i2; len = 2; }
+            if (!s.includes(refusedStr) && (len = (s = s.trim()).split(wsRe).length) <= maxLen) {
               maxLen > len && (maxLen = len + 1);
+              let i2 = names.indexOf(s, i);
+              if (i2 >= 0) { i = i2; len = 0; }
+              else if (detectQuirk === i && s.includes(quirk)) { i = quirkIdx; len = 1; }
               // requires GlobalConsts.MaxNumberOfNextPatterns <= 255
               candidates.push([
                     !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
