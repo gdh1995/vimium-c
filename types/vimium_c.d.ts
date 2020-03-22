@@ -519,13 +519,13 @@ declare const enum GlobalConsts {
 
   SelectorPrefixesInPatterns = ".#",
   DelimeterForKeyCharAndMode = ":",
-  ModeIds = "nilofvms",
+  ModeIds = "nilofvmes",
   OmniModeId = "o",
 }
 
 declare const enum kModeId {
   Normal = 0, Insert, Link, Omni, Find, Visual, Marks,
-  Show,
+  Next, Show,
   NO_MAP_KEY,
 }
 

@@ -278,9 +278,9 @@ interface CmdOptions {
     /** max of length limit list */ m: number;
   };
   [kFgCmd.insertMode]: {
-    k: string | null;
-    p: boolean;
-    h: [string] | null;
+    /** stripped key */ k: string | null;
+    /** passExitKey */ p: boolean;
+    /** hud message */ h: [string] | null;
   };
   [kFgCmd.visualMode]: {
     /** mode */ m: VisualModeNS.Mode.Visual | VisualModeNS.Mode.Line | VisualModeNS.Mode.Caret;

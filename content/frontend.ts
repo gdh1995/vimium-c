@@ -86,7 +86,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   function checkKey(event: HandlerNS.Event, key: string
       ): HandlerResult.Nothing | HandlerResult.Prevent | HandlerResult.PlainEsc | HandlerResult.AdvancedEsc {
     // when checkKey, Vimium C must be enabled, so passKeys won't be `""`
-    const key0 = passKeys && key && getMappedKey(event, kModeId.NO_MAP_KEY);
+    const key0 = passKeys && key ? mappedKeys ? getMappedKey(event, kModeId.NO_MAP_KEY) : key : "";
     if (!key || key0 && !currentKeys && (key0 in <SafeEnum> passKeys) !== isPassKeysReverted) {
       return key ? esc(HandlerResult.Nothing) : HandlerResult.Nothing;
     }
@@ -174,7 +174,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         : ((1 << kKeyCode.backspace | 1 << kKeyCode.tab | 1 << kKeyCode.esc | 1 << kKeyCode.enter
             | 1 << kKeyCode.altKey | 1 << kKeyCode.ctrlKey | 1 << kKeyCode.shiftKey
             ) >> key) & 1) {
-        action = checkKey(eventWrapper, getMappedKey(eventWrapper, kModeId.Normal));
+        action = checkKey(eventWrapper,
+              getMappedKey(eventWrapper, currentKeys ? kModeId.Next : kModeId.Normal));
         if (action > HandlerResult.MaxNotEsc) {
           action = action > HandlerResult.PlainEsc ? /*#__NOINLINE__*/ onEscDown(event, key)
               : HandlerResult.Nothing;
