@@ -980,7 +980,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     for (let _i = 0, _len = elements.length, re1 = <RegExpOne> /\s+/; _i < _len; _i++) {
       const element = elements[_i];
       if ((<RegExpI> /^(a|area|link)$/).test(vDom.htmlTag_(element))
-          && (s = (element as TypeToAssert<HTMLElement, HTMLElementWithRel, "rel">).rel)
+          && (s = (element as TypeToPick<HTMLElement, HTMLElementWithRel, "rel">).rel)
           && s.trim().toLowerCase().split(re1).indexOf(relName) >= 0) {
         return Pagination.followLink_(element as HTMLElementWithRel as SafeHTMLElement);
       }
@@ -1368,12 +1368,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       box = box.firstChild as SafeHTMLElement;
     }
     box.onclick = vKey.Stop_;
-    setupEventListener(box, "mousedown");
-    setupEventListener(box, "mouseup");
-    // note: if wheel is listened, then mousewheel won't be dispatched even on Chrome 35
-    setupEventListener(box, "wheel");
-    setupEventListener(box, "auxclick");
-    setupEventListener(box, "contextmenu");
+    VKey.suppressCommonEvents_(box, "mousedown");
     if (Build.MinCVer >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument
         || !(Build.BTypes & BrowserType.Chrome)
         || browserVer >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument) {
@@ -1444,7 +1439,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       vKey.removeHandler_(VOmni);
       vKey.pushHandler_(VOmni.onKeydown_, VOmni);
     }
-    VKey.timeout_((): void => box.focus(), 17); // since MinElement$Focus$MayMakeArrowKeySelectIt; also work on Firefox
+    // if no [tabindex=0], `.focus()` works if :exp and since MinElement$Focus$MayMakeArrowKeySelectIt or on Firefox
+    VKey.timeout_((): void => box.focus(), 17);
   }
   ],
 
@@ -1509,7 +1505,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
           && insertLock) {
         const root = (insertLock as Ensure<Element, "getRootNode">).getRootNode();
-        insertLock = root && (root as TypeToAssert<Node, DocumentOrShadowRoot, "activeElement">
+        insertLock = root && (root as TypeToPick<Node, DocumentOrShadowRoot, "activeElement">
             ).activeElement === insertLock ? insertLock : null;
       }
       return insertLock;

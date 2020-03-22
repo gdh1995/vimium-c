@@ -170,6 +170,13 @@ var VKey = {
     (timeout: 0, callback?: undefined): HandlerNS.RefHandler;
     (timeout: number, callback?: HandlerNS.VoidHandler): HandlerNS.RefHandler;
   },
+  suppressCommonEvents_ (target: Window | SafeHTMLElement, extraEvents: string): void {
+    // note: if wheel is listened, then mousewheel won't be dispatched even on Chrome 35
+    for (const i of ("auxclick beforecopy beforecut compositionend compositionstart contextmenu copy cut \
+keypress mouseup paste wheel " + extraEvents).split(" ")) {
+      VKey.SetupEventListener_(target, i);
+    }
+  },
 
   /** handler section */
   _handlers: [] as Array<{ func_: (event: HandlerNS.Event) => HandlerResult; env_: object }>,
