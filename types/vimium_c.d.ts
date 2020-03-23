@@ -410,10 +410,11 @@ declare namespace VomnibarNS {
   interface GlobalOptions {
     mode: string;
     currentWindow?: boolean;
-    newtab: boolean;
+    newtab: boolean | BOOL;
     keyword: string;
     url?: true | string | null;
     exitOnClick?: boolean;
+    autoSelect?: boolean | BOOL | null;
     tree?: boolean; // show tabs in tree mode
   }
 }

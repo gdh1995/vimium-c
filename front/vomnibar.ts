@@ -53,6 +53,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.updateQueryFlag_(CompletersNS.QueryFlags.TabTree, options.tree ? 1 : 0);
     a.updateQueryFlag_(CompletersNS.QueryFlags.MonospaceURL, null);
     a.forceNewTab_ = !!options.newtab;
+    a.selectFirst_ = options.autoSelect;
     a.baseHttps_ = null;
     let { url, keyword, p: search } = options, start: number | undefined;
     let scale = Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
@@ -148,6 +149,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   codeFocusReceived_: false,
   blurWanted_: false,
   forceNewTab_: false,
+  selectFirst_: false as VomnibarNS.GlobalOptions["autoSelect"],
   sameOrigin_: false,
   showFavIcon_: 0 as 0 | 1 | 2,
   showRelevancy_: false,
@@ -849,21 +851,16 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
   omni_ (response: BgVomnibarSpecialReq[kBgReq.omni_omni]): void {
     const a = Vomnibar_;
+    const completions = response.l, len = completions.length, notEmpty = len > 0, oldH = a.height_, list = a.list_;
     if (!a.isActive_) { return; }
-    const list = response.l, height = list.length;
     a.total_ = response.t;
     a.showFavIcon_ = response.i;
     a.matchType_ = response.m;
     a.sugTypes_ = response.s;
-    a.completions_ = list;
-    a.selection_ = response.a ? 0 : -1;
+    a.completions_ = completions;
+    a.isSearchOnTop_ = len > 0 && completions[0].e === "search";
+    a.selection_ = a.isSearchOnTop_ || (a.selectFirst_ == null ? response.a : a.selectFirst_ && notEmpty) ? 0 : -1;
     a.isSelOriginal_ = true;
-    a.isSearchOnTop_ = height > 0 && list[0].e === "search";
-    return a.populateUI_();
-  },
-  populateUI_ (): void {
-    const a = Vomnibar_;
-    const len = a.completions_.length, notEmpty = len > 0, oldH = a.height_, list = a.list_;
     const height = a.height_
       = Math.ceil(notEmpty ? len * a.itemHeight_ + a.baseHeightIfNotEmpty_ : a.heightIfEmpty_),
     needMsg = height !== oldH, earlyPost = height > oldH || a.sameOrigin_,
