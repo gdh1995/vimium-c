@@ -261,6 +261,7 @@ interface CmdOptions {
   };
   [kFgCmd.framesGoBack]: {
     reuse?: ReuseType;
+    local?: boolean;
     count?: -1; // just for commands.ts
   };
   [kFgCmd.vomnibar]: {

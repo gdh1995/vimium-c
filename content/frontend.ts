@@ -464,6 +464,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if ((!(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && OnOther === BrowserType.Chrome)
           && maxStep > 1
           && (Build.MinCVer >= BrowserVer.Min$Tabs$$goBack || browserVer >= BrowserVer.Min$Tabs$$goBack)
+          && !options.local
           || maxStep && reuse
       ) {
         post({ H: kFgReq.framesGoBack, s: realStep, r: reuse });
