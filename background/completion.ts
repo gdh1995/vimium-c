@@ -125,7 +125,7 @@ interface MatchCacheRecord extends MatchCacheData {
 
 let matchType: MatchType = MatchType.plain,
     inNormal: boolean | null = null, autoSelect = false, isForAddressBar = false,
-    wantTreeMode = false,
+    preferNewOpened = false, wantTreeMode = false,
     maxChars = 0, maxResults = 0, maxTotal = 0, matchedTotal = 0, offset = 0,
     queryTerms: string[] = [""], rawInput = "", rawQuery = "", rawMore = "",
     wantInCurrentWindow = false,
@@ -852,7 +852,7 @@ tabEngine = {
       suggestion = new Suggestion("tab", tab.url, tab.text, tab.title,
           c, treeMode ? ++ind : tabId) as CompletersNS.TabSuggestion;
       if (curTabId === tabId) {
-        treeMode || (suggestion.r = 0);
+        treeMode || (suggestion.r = noFilter ? 1<<31 : 0);
         id = `#(${id.slice(1)})`;
       }
       suggestion.s = tabId;
@@ -893,7 +893,7 @@ tabEngine = {
   },
   SortNumbers_ (this: void, a: number, b: number): number { return a - b; },
   computeRecency_ (_0: CompletersNS.CoreSuggestion, tabId: number): number {
-    return TabRecency_.tabs_[tabId] || GlobalConsts.MaxTabRecency + tabId;
+    return TabRecency_.tabs_[tabId] || (preferNewOpened ? GlobalConsts.MaxTabRecency + tabId : -tabId);
   },
   computeIndex_ (_0: CompletersNS.CoreSuggestion, index: number): number {
     return 1 / index;
@@ -1273,6 +1273,7 @@ Completers = {
     Completers.sugTypes_ =
     maxResults = maxTotal = matchedTotal = maxChars = 0;
     allExpectedTypes = SugType.Empty;
+    preferNewOpened = wantTreeMode =
     autoSelect = isForAddressBar = false;
     wantInCurrentWindow = false;
     showThoseInBlocklist = true;
@@ -1893,6 +1894,7 @@ Completion_ = {
       , expectedTypes = options.t;
     if (arr === knownCs.tab) {
        wantInCurrentWindow = !!(flags & CompletersNS.QueryFlags.TabInCurrentWindow);
+       preferNewOpened = !!(flags & CompletersNS.QueryFlags.PreferNewOpened);
     }
     autoSelect = arr != null && arr.length === 1;
     if (str.length === 2 && str[0] === ":") {

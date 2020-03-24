@@ -49,11 +49,13 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     const a = Vomnibar_;
     a.mode_.o = ((options.mode || "") + "") as CompletersNS.ValidTypes || "omni";
     a.mode_.t = CompletersNS.SugType.Empty;
-    a.updateQueryFlag_(CompletersNS.QueryFlags.TabInCurrentWindow, options.currentWindow ? 1 : 0);
-    a.updateQueryFlag_(CompletersNS.QueryFlags.TabTree, options.tree ? 1 : 0);
+    a.updateQueryFlag_(CompletersNS.QueryFlags.TabInCurrentWindow, !!options.currentWindow);
+    a.updateQueryFlag_(CompletersNS.QueryFlags.PreferNewOpened, (options.preferTabs || "").includes("new"));
+    a.updateQueryFlag_(CompletersNS.QueryFlags.TabTree, !!options.tree);
     a.updateQueryFlag_(CompletersNS.QueryFlags.MonospaceURL, null);
     a.forceNewTab_ = !!options.newtab;
     a.selectFirst_ = options.autoSelect;
+    a.notSearchInput_ = options.searchInput === false;
     a.baseHttps_ = null;
     let { url, keyword, p: search } = options, start: number | undefined;
     let scale = Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
@@ -150,6 +152,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   blurWanted_: false,
   forceNewTab_: false,
   selectFirst_: false as VomnibarNS.GlobalOptions["autoSelect"],
+  preferNewOpened_: false as VomnibarNS.GlobalOptions["autoSelect"],
+  notSearchInput_: false,
   sameOrigin_: false,
   showFavIcon_: 0 as 0 | 1 | 2,
   showRelevancy_: false,
@@ -696,7 +700,15 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       : event === true ? a.forceNewTab_ ? ReuseType.newFg : ReuseType.current
       : event & KeyStat.PrimaryModifier ? event & KeyStat.shiftKey ? ReuseType.newBg : ReuseType.newFg
       : event & KeyStat.shiftKey || !a.forceNewTab_ ? ReuseType.current : ReuseType.newFg;
-    if (sel === -1 && a.input_.value.length === 0) { return; }
+    if (sel === -1) {
+      const input = a.input_.value.trim();
+      if (!input) {
+        return;
+      }
+      if (a.notSearchInput_ && !event && !input.includes("://")) {
+        try { new URL(input) } catch { return; }
+      }
+    }
     if (newSel != null || !a.timer_) { /* empty */ }
     else if (a.isEditing_) { sel = -1; }
     else if (a.timer_ > 0) {
@@ -1185,7 +1197,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       / (Vomnibar_.mode_.f & CompletersNS.QueryFlags.MonospaceURL ? PixelData.MeanWidthOfMonoFont
         : PixelData.MeanWidthOfNonMonoFont));
   },
-  updateQueryFlag_ (flag: CompletersNS.QueryFlags, enable: boolean | BOOL | null): void {
+  updateQueryFlag_ (flag: CompletersNS.QueryFlags, enable: boolean | null): void {
     const isFirst = enable == null;
     if (isFirst && flag === CompletersNS.QueryFlags.MonospaceURL) {
       enable = ` ${Vomnibar_.styles_} `.includes(" mono-url ");
