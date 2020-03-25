@@ -39,8 +39,9 @@ declare namespace CompletersNS {
     None = 0,
     AddressBar = 1,
     TabInCurrentWindow = 2,
-    MonospaceURL = 4,
+    PreferNewOpened = 4,
     TabTree = 8,
+    MonospaceURL = 16,
   }
   interface Options {
     /** maxChars */ c?: number;
@@ -410,10 +411,13 @@ declare namespace VomnibarNS {
   interface GlobalOptions {
     mode: string;
     currentWindow?: boolean;
-    newtab: boolean;
+    newtab: boolean | BOOL;
     keyword: string;
     url?: true | string | null;
     exitOnClick?: boolean;
+    autoSelect?: boolean | null | BOOL;
+    preferTabs?: "new" | "new-opened" | "newOpened";
+    searchInput?: boolean;
     tree?: boolean; // show tabs in tree mode
   }
 }
@@ -442,6 +446,7 @@ interface VimiumInjectorTy {
   ] | null;
   reload (req?: boolean | InjectorTask.reload): void;
   destroy: ((this: void, silent?: boolean) => void) | null;
+  callback: ((this: void, code: number, error: string) => unknown) | null;
 }
 
 interface Document extends DocumentAttrsToBeDetected {}
@@ -519,13 +524,13 @@ declare const enum GlobalConsts {
 
   SelectorPrefixesInPatterns = ".#",
   DelimeterForKeyCharAndMode = ":",
-  ModeIds = "nilofvms",
+  ModeIds = "nilofvmes",
   OmniModeId = "o",
 }
 
 declare const enum kModeId {
   Normal = 0, Insert, Link, Omni, Find, Visual, Marks,
-  Show,
+  Next, Show,
   NO_MAP_KEY,
 }
 

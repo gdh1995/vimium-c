@@ -360,7 +360,8 @@ var VDom = {
           }
           if (notInline || !style.display.startsWith("inline")) { continue; }
         } else { continue; }
-        if (!this.notSafe_(_ref[_j]) && (cr = this.getVisibleClientRect_(_ref[_j] as SafeHTMLElement, style))) {
+        if (!(Build.BTypes & ~BrowserType.Firefox && this.notSafe_(_ref[_j]))
+            && (cr = this.getVisibleClientRect_(_ref[_j] as SafeHTMLElement, style))) {
           return cr;
         }
       }
@@ -832,7 +833,16 @@ var VDom = {
     // here always ensure lastHovered_ is "in DOM" or null
   } as {
     (newEl: SafeElementForMouse, center: Point2D): void;
-    (newEl?: null): void;
+    (_newEl?: null): void;
+  },
+  unhover_ (element?: SafeElementForMouse): void {
+    const a = VDom, old = a.lastHovered_, active = element || old;
+    if (old !== element) {
+      a.hover_();
+    }
+    a.lastHovered_ = element || null;
+    a.hover_();
+    if (active && a.activeEl_unsafe_() === active) { active.blur && active.blur(); }
   },
   touch_: Build.BTypes & BrowserType.Chrome ? function (this: {}, element: SafeElementForMouse
       , [x, y]: Point2D, id?: number): number {

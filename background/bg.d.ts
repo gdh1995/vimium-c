@@ -660,8 +660,8 @@ declare namespace CommandsNS {
     [kCName.searchAs]: kFgCmd.searchAs;
     [kCName.searchInAnother]: kBgCmd.searchInAnother;
     [kCName.showHelp]: kBgCmd.showHelp;
-    [kCName.simBackspace]: kFgCmd.switchFocus;
-    [kCName.switchFocus]: kFgCmd.switchFocus;
+    [kCName.simBackspace]: kFgCmd.focusInput;
+    [kCName.switchFocus]: kFgCmd.focusInput;
     [kCName.toggleCS]: kBgCmd.toggleCS;
     [kCName.toggleLinkHintCharacters]: kBgCmd.toggle;
     [kCName.toggleMuteTab]: kBgCmd.toggleMuteTab;

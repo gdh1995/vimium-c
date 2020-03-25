@@ -88,7 +88,7 @@ var VFind = {
     const a = this, box: HTMLIFrameElement = a.box_,
     wnd = box.contentWindow, f = wnd.addEventListener.bind(wnd) as typeof addEventListener,
     onKey = a.onKeydown_.bind(a),
-    now = Date.now(), s = VKey.Stop_, t = true;
+    now = Date.now(), t = true;
     let tick = 0;
     f("mousedown", a.OnMousedown_, t);
     f("keydown", onKey, t);
@@ -98,14 +98,11 @@ var VFind = {
       f("paste", a._OnPaste, t);
     }
     f("unload", a.OnUnload_, t);
-    f("compositionend", Build.BTypes & BrowserType.Chrome
-        && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)
-        ? a.OnInput_ : s, t);
-    for (const i of "compositionstart keypress mouseup click auxclick contextmenu \
-copy cut beforecopy beforecut paste".split(" ")) {
-      f(i, s, t);
+    if (Build.BTypes & BrowserType.Chrome
+        && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)) {
+      f("compositionend", a.OnInput_, t);
     }
-    VKey.SetupEventListener_(wnd, "wheel");
+    VKey.suppressCommonEvents_(wnd, "click");
     f("blur", a._onUnexpectedBlur = function (this: Window, event): void {
       const b = VFind, delta = Date.now() - now, wnd1 = this;
       if (event && b && b.isActive_ && delta < 500 && delta > -99 && event.target === wnd1) {

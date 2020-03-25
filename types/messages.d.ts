@@ -192,7 +192,7 @@ declare const enum kFgCmd {
   framesGoBack, findMode, linkHints, unhoverLast, marks,
   goToMarks, scroll, visualMode, vomnibar,
   reset, toggle, insertMode, passNextKey, goNext,
-  reload, switchFocus, showHelp, autoCopy,
+  reload, showHelp, autoCopy,
   autoOpen, searchAs, focusInput, editText,
   END = "END",
 }
@@ -224,6 +224,7 @@ declare namespace HintsNS {
     swapCtrlAndShift?: boolean;
     hideHud?: boolean;
     hideHUD?: boolean;
+    autoUnhover?: boolean;
   }
 }
 
@@ -258,14 +259,9 @@ interface CmdOptions {
   [kFgCmd.passNextKey]: {
     normal?: false | true;
   };
-  [kFgCmd.switchFocus]: {
-    act?: "" | "backspace";
-    action?: "" | "backspace";
-    select?: SelectActions;
-    flash?: boolean;
-  };
   [kFgCmd.framesGoBack]: {
     reuse?: ReuseType;
+    local?: boolean;
     count?: -1; // just for commands.ts
   };
   [kFgCmd.vomnibar]: {
@@ -283,9 +279,9 @@ interface CmdOptions {
     /** max of length limit list */ m: number;
   };
   [kFgCmd.insertMode]: {
-    k: string | null;
-    p: boolean;
-    h: [string] | null;
+    /** stripped key */ k: string | null;
+    /** passExitKey */ p: boolean;
+    /** hud message */ h: [string] | null;
   };
   [kFgCmd.visualMode]: {
     /** mode */ m: VisualModeNS.Mode.Visual | VisualModeNS.Mode.Line | VisualModeNS.Mode.Caret;
@@ -324,9 +320,12 @@ interface CmdOptions {
     /** sed rule */ sed?: string;
   };
   [kFgCmd.focusInput]: {
+    act?: "" | "backspace" | "switch" | "last" | "last-visible";
+    action?: "" | "backspace" | "switch" | "last" | "last-visible";
     select?: SelectActions;
     keep?: boolean;
     passExitKey?: boolean;
+    flash?: boolean;
   };
   [kFgCmd.editText]: {
     dom?: boolean;

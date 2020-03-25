@@ -3,6 +3,19 @@
   ].forEach(Object.seal);
 VDom.allowScripts_ = 0;
 
+VHints.unwrap_ = (e: object): any => e;
+
+VApi.execute_ = function (cmd): void {
+  const injector = VimiumInjector;
+  if (cmd === kContentCmd.Destroy && injector) {
+    removeEventListener("hashchange", injector.checkIfEnabled);
+    injector.alive = 0;
+    injector.destroy = injector.checkIfEnabled = injector.getCommandCount = null as never;
+    injector.$r = injector.$m = null as never;
+    injector.clickable = null;
+  }
+};
+
 (function (): void {
   const OnOther: BrowserType = !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
         || !(Build.BTypes & ~BrowserType.Edge)
@@ -83,7 +96,9 @@ VDom.allowScripts_ = 0;
     }
     switch (task) {
     case InjectorTask.extInited:
-      (VimiumInjector as VimiumInjectorTy).cache = VDom.cache_;
+      const injector1 = VimiumInjector as VimiumInjectorTy;
+      injector1.cache = VDom.cache_;
+      injector1.callback && injector1.callback(2, "complete");
       return;
     }
   };
@@ -93,23 +108,16 @@ VDom.allowScripts_ = 0;
       VApi.OnWndFocus_();
     }
   }
+
+  injector.cache = VDom.cache_;
+  injector.destroy = VApi.destroy_;
+  injector.callback && injector.callback(1, "initing");
+  if (VDom.cache_) { // has loaded before this script file runs
+    injector.$r(InjectorTask.extInited);
+  }
 })();
 
 VDom.OnDocLoaded_(function (): void {
   const injector = VimiumInjector;
   injector && addEventListener("hashchange", injector.checkIfEnabled);
 });
-
-VApi.execute_ = function (cmd): void {
-  const injector = VimiumInjector;
-  if (cmd === kContentCmd.Destroy && injector) {
-    removeEventListener("hashchange", injector.checkIfEnabled);
-    injector.alive = 0;
-    injector.destroy = injector.checkIfEnabled = injector.getCommandCount = null as never;
-    injector.$r = injector.$m = null as never;
-    injector.clickable = null;
-  }
-};
-
-(VimiumInjector as VimiumInjectorTy).cache = VDom.cache_;
-(VimiumInjector as VimiumInjectorTy).destroy = VApi.destroy_;

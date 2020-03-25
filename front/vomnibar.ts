@@ -49,10 +49,13 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     const a = Vomnibar_;
     a.mode_.o = ((options.mode || "") + "") as CompletersNS.ValidTypes || "omni";
     a.mode_.t = CompletersNS.SugType.Empty;
-    a.updateQueryFlag_(CompletersNS.QueryFlags.TabInCurrentWindow, options.currentWindow ? 1 : 0);
-    a.updateQueryFlag_(CompletersNS.QueryFlags.TabTree, options.tree ? 1 : 0);
+    a.updateQueryFlag_(CompletersNS.QueryFlags.TabInCurrentWindow, !!options.currentWindow);
+    a.updateQueryFlag_(CompletersNS.QueryFlags.PreferNewOpened, (options.preferTabs || "").includes("new"));
+    a.updateQueryFlag_(CompletersNS.QueryFlags.TabTree, !!options.tree);
     a.updateQueryFlag_(CompletersNS.QueryFlags.MonospaceURL, null);
     a.forceNewTab_ = !!options.newtab;
+    a.selectFirst_ = options.autoSelect;
+    a.notSearchInput_ = options.searchInput === false;
     a.baseHttps_ = null;
     let { url, keyword, p: search } = options, start: number | undefined;
     let scale = Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
@@ -148,6 +151,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   codeFocusReceived_: false,
   blurWanted_: false,
   forceNewTab_: false,
+  selectFirst_: false as VomnibarNS.GlobalOptions["autoSelect"],
+  preferNewOpened_: false as VomnibarNS.GlobalOptions["autoSelect"],
+  notSearchInput_: false,
   sameOrigin_: false,
   showFavIcon_: 0 as 0 | 1 | 2,
   showRelevancy_: false,
@@ -511,6 +517,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     key = n !== kKeyCode.ime ? a.getMappedKey_(event) : "";
     a.lastKey_ = n;
     if (!key) {
+      a.inAlt_ && a.toggleAlt_(0);
       a.keyResult_ = focused && !(n === kKeyCode.menuKey && a.os_) && n !== kKeyCode.ime
           ? HandlerResult.Suppress : HandlerResult.Nothing;
       return;
@@ -523,7 +530,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         return a.onAction_(focused ? AllowedActions.blurInput : AllowedActions.focus);
       }
       if (mainModifier === "a-") {
-        if (key === "a-" + kChar.Alt) {
+        if (key === "a-" + kChar.Alt || key === "a-" + kChar.Modifier) {
           // not set keyup listener by intent:
           // so that a short Alt will only toggle inAlt, and a long Alt can show on keydown and hide on keyup
           Vomnibar_.inAlt_ = Vomnibar_.inAlt_ || setTimeout(Vomnibar_.toggleAlt_, 260, -1);
@@ -693,7 +700,15 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       : event === true ? a.forceNewTab_ ? ReuseType.newFg : ReuseType.current
       : event & KeyStat.PrimaryModifier ? event & KeyStat.shiftKey ? ReuseType.newBg : ReuseType.newFg
       : event & KeyStat.shiftKey || !a.forceNewTab_ ? ReuseType.current : ReuseType.newFg;
-    if (sel === -1 && a.input_.value.length === 0) { return; }
+    if (sel === -1) {
+      const input = a.input_.value.trim();
+      if (!input) {
+        return;
+      }
+      if (a.notSearchInput_ && !event && !input.includes("://")) {
+        try { new URL(input) } catch { return; }
+      }
+    }
     if (newSel != null || !a.timer_) { /* empty */ }
     else if (a.isEditing_) { sel = -1; }
     else if (a.timer_ > 0) {
@@ -848,21 +863,16 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
   omni_ (response: BgVomnibarSpecialReq[kBgReq.omni_omni]): void {
     const a = Vomnibar_;
+    const completions = response.l, len = completions.length, notEmpty = len > 0, oldH = a.height_, list = a.list_;
     if (!a.isActive_) { return; }
-    const list = response.l, height = list.length;
     a.total_ = response.t;
     a.showFavIcon_ = response.i;
     a.matchType_ = response.m;
     a.sugTypes_ = response.s;
-    a.completions_ = list;
-    a.selection_ = response.a ? 0 : -1;
+    a.completions_ = completions;
+    a.isSearchOnTop_ = len > 0 && completions[0].e === "search";
+    a.selection_ = a.isSearchOnTop_ || (a.selectFirst_ == null ? response.a : a.selectFirst_ && notEmpty) ? 0 : -1;
     a.isSelOriginal_ = true;
-    a.isSearchOnTop_ = height > 0 && list[0].e === "search";
-    return a.populateUI_();
-  },
-  populateUI_ (): void {
-    const a = Vomnibar_;
-    const len = a.completions_.length, notEmpty = len > 0, oldH = a.height_, list = a.list_;
     const height = a.height_
       = Math.ceil(notEmpty ? len * a.itemHeight_ + a.baseHeightIfNotEmpty_ : a.heightIfEmpty_),
     needMsg = height !== oldH, earlyPost = height > oldH || a.sameOrigin_,
@@ -1187,7 +1197,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       / (Vomnibar_.mode_.f & CompletersNS.QueryFlags.MonospaceURL ? PixelData.MeanWidthOfMonoFont
         : PixelData.MeanWidthOfNonMonoFont));
   },
-  updateQueryFlag_ (flag: CompletersNS.QueryFlags, enable: boolean | BOOL | null): void {
+  updateQueryFlag_ (flag: CompletersNS.QueryFlags, enable: boolean | null): void {
     const isFirst = enable == null;
     if (isFirst && flag === CompletersNS.QueryFlags.MonospaceURL) {
       enable = ` ${Vomnibar_.styles_} `.includes(" mono-url ");

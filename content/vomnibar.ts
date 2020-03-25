@@ -58,7 +58,7 @@ var VOmni = {
     if (url === true || count !== 1 && url == null) {
       // update options.url to string, so that this block can only run once per command
       if (options.url = url = url ? VCui.getSelectionText_() : "") {
-        options.newtab = true;
+        options.newtab = 1;
       }
     }
     if (!isTop && !options.$forced) { // check $forced to avoid dead loops
