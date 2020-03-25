@@ -14,6 +14,7 @@ var VimiumInjector: VimiumInjectorTy | undefined | null = VimiumInjector || {
   $r: null as never,
   $p: null,
   getCommandCount: null as never,
+  callback: null,
   destroy: null
 };
 if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { var browser: unknown; }
@@ -44,6 +45,7 @@ VimiumInjector.id = extID;
 function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined | false): void {
   type LastError = chrome.runtime.LastError;
   let str: string | undefined, noBackend: boolean, err = runtime.lastError as void | LastError;
+  const _old = VimiumInjector, oldClickable = _old && _old.clickable, oldCallback = _old && _old.callback;
   if (!res) {
     const msg: string | void = err && err.message,
     host = runtime.id || location.host || location.protocol;
@@ -61,18 +63,19 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
       noBackend = true;
     }
     if (!noBackend) {
+      str = str || ` (${tick} retries).`;
       const colorRed = "color:red", colorAuto = "color:auto";
       console.log("%cVimium C%c: %cfail%c to inject into %c%s%c %s"
         , colorRed, colorAuto, colorRed, colorAuto, "color:#0c85e9"
-        , host, colorAuto, str ? str : ` (${tick} retries).`);
+        , host, colorAuto, str);
+      oldCallback && (_old as Ensure<VimiumInjectorTy, "callback">).callback(-1, str);
     }
   }
-  const oldClickable = VimiumInjector && VimiumInjector.clickable;
-  if (VimiumInjector && typeof VimiumInjector.destroy === "function") {
-    VimiumInjector.destroy(true);
+  if (_old && typeof _old.destroy === "function") {
+    _old.destroy(true);
   }
 
-  VimiumInjector = {
+  const _new = VimiumInjector = {
     id: extID,
     alive: 0,
     host: !(Build.BTypes & ~BrowserType.Chrome) ? extID : res ? res.host : "",
@@ -86,6 +89,7 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
     $r (): void { /* empty */ },
     $p: null,
     getCommandCount: null as never,
+    callback: oldCallback || null,
     destroy: null
   };
   const docEl = document.documentElement;
@@ -108,6 +112,7 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
     this.onload = null as never;
     for (let i = scripts.length; 0 <= --i; ) { scripts[i].remove(); }
   });
+  oldCallback && (_new as Ensure<VimiumInjectorTy, "callback">).callback(0, "loading");
 }
 function call(): void {
   runtime.sendMessage(extID, <ExternalMsgs[kFgReq.inject]["req"]> {
@@ -165,8 +170,8 @@ interface EventTargetEx extends _EventTargetEx {
 interface ElementWithClickable {
   vimiumClick?: boolean;
 }
-VimiumInjector.clickable = VimiumInjector.clickable ? VimiumInjector.clickable
-    : Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
+VimiumInjector.clickable = VimiumInjector.clickable
+    || ( Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
       || window.WeakSet ? new (WeakSet as WeakSetConstructor)<Element>() : {
   add (element: Element) { (element as ElementWithClickable).vimiumClick = true; return this; },
   has (element: Element): boolean { return !!(element as ElementWithClickable).vimiumClick; },
@@ -175,7 +180,7 @@ VimiumInjector.clickable = VimiumInjector.clickable ? VimiumInjector.clickable
     oldVal && ((element as ElementWithClickable).vimiumClick = false);
     return !!oldVal;
   }
-};
+});
 
 const obj = EventTarget as EventTargetEx, cls = obj.prototype, _listen = cls.addEventListener as ListenerEx;
 if (_listen.vimiumHooked === true) { return; }

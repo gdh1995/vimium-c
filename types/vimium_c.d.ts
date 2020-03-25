@@ -446,6 +446,7 @@ interface VimiumInjectorTy {
   ] | null;
   reload (req?: boolean | InjectorTask.reload): void;
   destroy: ((this: void, silent?: boolean) => void) | null;
+  callback: ((this: void, code: number, error: string) => unknown) | null;
 }
 
 interface Document extends DocumentAttrsToBeDetected {}
