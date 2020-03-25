@@ -1,6 +1,6 @@
 {
 	"createTab": {
-		"message": "Créer un nouvel / de nouveaux onglet(s)"
+		"message": "Créer un / de nouveaux onglet(s)"
 	},
 	"discardTab": {
 		"message": "Défausser un / d'autres onglet(s)"
@@ -27,7 +27,7 @@
 		"message": "Recharger N onglet(s)"
 	},
 	"reloadTab_p": {
-		"message": "hard (brut), bypassCache (court-circuite le cache)"
+		"message": "hard(brut), bypassCache(court-circuite le cache)"
 	},
 	"removeTab": {
 		"message": "Fermer N onglet(s)"
@@ -84,7 +84,7 @@
 		"message": "Ouvrir le lien dans une fenêtre incognito"
 	},
 	"LinkHints_activateModeToOpenInNewForegroundTab": {
-		"message": "Ouvrir un lien dans un nouvel onglet et changer vers celui-ci"
+		"message": "Ouvrir un lien dans un nouvel onglet et passer à celui-ci"
 	},
 	"LinkHints_activateModeToOpenInNewTab": {
 		"message": "Ouvrir un lien dans un nouvel onglet"
@@ -147,7 +147,7 @@
 		"message": "Ouvrir l'historique dans un nouvel onglet"
 	},
 	"Vomnibar_activateInNewTab": {
-		"message": "Ouvrir l'URL, l'historique, etc<br/> dans un nouvel onglet"
+		"message": "Ouvrir l'URL, l'historique, ..., dans un nouvel onglet"
 	},
 	"Vomnibar_activateInNewTab_p": {
 		"message": "keyword, url"
@@ -249,7 +249,7 @@
 		"message": "Aller au Nième onglet"
 	},
 	"focusInput": {
-		"message": "Mettre le focus sur la Nième zone de texte visible sur la page et alterner en utilisant TAB"
+		"message": "Mettre le focus sur la Nième zone de texte visible sur la page et parcourir en utilisant TAB"
 	},
 	"focusInput_p": {
 		"message": "keep, select=\"\"/all/all-line/start/end"
@@ -287,12 +287,12 @@
 	"goUp_p": {
 		"message": "trailingSlash(slash de fin)=null/true/false"
 	},
-	"joinTabs": { "message": "Collect all tabs into current window" },
+	"joinTabs": { "message": "Collecter tous les onglets dans la fenêtre courante" },
 	"lastTab": {
 		"message": "Aller au Nième dernier onglet"
 	},
 	"mainFrame": {
-		"message": "Sélectionner le cadre principale/supérieur de l'onglet"
+		"message": "Sélectionner la frame principale/supérieure de l'onglet"
 	},
 	"moveTabLeft": {
 		"message": "Déplacer l'onglet à gauche"
@@ -307,7 +307,7 @@
 		"message": "Déplacer l'onglet dans la fenêtre suivante"
 	},
 	"moveTabToNextWindow_p": {
-		"message": "right"
+		"message": "droite"
 	},
 	"nextFrame": {
 		"message": "Avancer jusqu'au prochain cadre de la page"
@@ -319,10 +319,10 @@
 		"message": "Ouvrir l'URL du presse-papiers dans l'onglet courant"
 	},
 	"parentFrame": {
-		"message": "Mettre le focus sur le cadre parent"
+		"message": "Mettre le focus sur la frame parent"
 	},
 	"passNextKey": {
-		"message": "Envoyer les prochaines touches à la page"
+		"message": "Envoyer les prochaines touches pressées à la page"
 	},
 	"passNextKey_p": {
 		"message": "normal"
@@ -343,16 +343,16 @@
 		"message": "Aller sur l'onglet de droite"
 	},
 	"reload": {
-		"message": "Recharger le cadre courant"
+		"message": "Recharger la frame courante"
 	},
 	"reload_p": {
-		"message": "hard"
+		"message": "brut"
 	},
 	"reloadGivenTab": {
 		"message": "Recharger le Nième onglet"
 	},
 	"reloadGivenTab_p": {
-		"message": "hard"
+		"message": "brut"
 	},
 	"removeRightTab": {
 		"message": "Fermer le Nième onglet à droite"
@@ -397,7 +397,7 @@
 		"message": "Défiler à droite"
 	},
 	"scrollTo": {
-		"message": "Défiler à une position personnalisée"
+		"message": "Défiler vers une position personnalisée"
 	},
 	"scrollToBottom": {
 		"message": "Défiler au bas de page"
@@ -433,13 +433,13 @@
 		"message": "Simuler RETOUR une fois s'il y a le focus"
 	},
 	"switchFocus": {
-		"message": "blur activeElement or refocus it"
+		"message": "floute l'élément actif ou remet le focus dessus"
 	},
 	"switchFocus_p": {
 		"message": "flash, select=\"\"/all/all-line/start/end"
 	},
 	"toggleCS": {
-		"message": "Permuter les feuilles de style du site"
+		"message": "Alterner les feuilles de style du site"
 	},
 	"toggleCS_p": {
 		"message": "type=images"
@@ -517,7 +517,7 @@
 		"message": "Vous avez demandé à Vimium C d'effectuer $1 répétitions de la commande:\n    $2\n\nÊtes-vous certain de vouloir continuer ?"
 	},
 	"name": {
-		"message": "Vimium C - Tout par clavier"
+		"message": "Vimium C - Tout par le clavier"
 	},
 	"description": {
 		"message": "Un outil de raccourcis clavier pour une navigation de page centrée sur l'usage du clavier, des opérations sur les onglets du navigateur avec une omnibar avancée ainsi que des raccourcis globaux"
@@ -569,19 +569,19 @@
 		"message": "Sauvegardé(es)"
 	},
 	"o137": {
-		"message": "becomes to "
+		"message": "commence à "
 	},
 	"o138": {
 		"message": "s'enclenche seulement"
 	},
 	"o139": {
-		"message": "exclue"
+		"message": "exclue "
 	},
 	"o140": {
-		"message": "devient"
+		"message": "devient "
 	},
 	"o141": {
-		"message": "keeps to "
+		"message": "garde "
 	},
 	"o142": {
 		"message": "va "
@@ -632,10 +632,10 @@
 		"message": "La configuration Clavier a été ignorée ! Merci de considérer de désactiver l'option."
 	},
 	"hintCharsTooFew": {
-		"message": "Les caractères pour LinkHints sont trop peu nombreux."
+		"message": "Les caractères pour les indices de liens sont trop peu nombreux."
 	},
 	"onlyExtVomnibar": {
-		"message": "Seules les pages d'extension de Vomnibar peuvent fonctionner sous Chromium $1"
+		"message": "Seules les pages d'extension de Vomnibar peuvent fonctionner avant Chromium $1"
 	},
 	"fileVomnibar" : {
 		"message": "Une page de fichier de Vomnibar est limitée par le navigateur pour fonctionner uniquement sur file://*pages."
@@ -665,7 +665,7 @@
 		"message": "Extensions Microsoft Edge"
 	},
 	"NewTabAdapter": {
-		"message": "Adapteur de nouvel onglet"
+		"message": "NewTab Adapter (Adaptateur de nouvel onglet)"
 	},
 	"refusedURLs": {
 		"message": "L'ouverture de l'URL \"$1\" par une WebExtension est refusée par le navigateur Firefox."
@@ -674,13 +674,13 @@
 		"message": "La valeur \"$1\" n'est pas une URL ordinaire valide"
 	},
 	"changedBeforeSync": {
-		"message": "        Erreur:\nPardon, mais vous êtes en train d'activer les options de \"Sync\"\n    tandis que d'autres options sont également modifiées.\nMerci d'effectuer une action à la fois!"
+		"message": "        Erreur:\nDésolé, mais vous êtes en train d'activer les options de \"Sync\"\n    tandis que d'autres options sont également modifiées.\nMerci d'effectuer une action à la fois!"
 	},
 	"warningForSync": {
-		"message": "        Attention:\nles paramètres courants seront REECRIS par la prochaine que Vimium C démarre !\nMerci de sauvegarder vos paramètres en utilisant le bouton \"Exporter les paramètres\"\n!!!        MAINTENANT        !!!"
+		"message": "        Attention:\nles paramètres courants seront RÉÉCRIS par la prochaine que Vimium C démarre !\nMerci de sauvegarder vos paramètres en utilisant le bouton \"Exporter les paramètres\"\n!!!        MAINTENANT        !!!"
 	},
 	"confirmImport": {
-		"message": "You are loading $1:\n      * from $2Vimium C$3\n      * for $4\n      * exported $5\n\nAre you sure you want to continue?"
+		"message": "Vous êtes en train de charger $1:\n      * depuis $2Vimium C$3\n      * pour $4\n      * exporté $5\n\nÊtes-vous sûr de vouloir continuer ?"
 	},
 	"backupFile": {
 		"message": "une copie des paramètres"
@@ -831,7 +831,7 @@
 		"message": "Rien ne se passe en déplacant les onglets de cette fenêtre"
 	},
 	"hasIncog": {
-		"message": "Cet onglet a été dans une fenêtre incognito"
+		"message": "Cet onglet provient d'une fenêtre incognito"
 	},
 	"notRestoreIfIncog": {
 		"message": "Ne peut pas restaurer un onglet de mode incognito !"
@@ -840,7 +840,7 @@
 		"message": "L'index de session fourni est hors de portée."
 	},
 	"noDiscardIfOld": {
-		"message": "Vimium C ne peut pas décharger les onglets sous Chromium $1"
+		"message": "Vimium C ne peut pas décharger les onglets avant Chromium $1"
 	},
 	"discardFail": {
 		"message": "Ne peut pas décharger l'onglet"
@@ -852,7 +852,7 @@
 		"message": "Cette commande manque l'argument \"mot-clé\""
 	},
 	"noMute": {
-		"message": "Vimium C ne peut pas contrôler l'état de sourdine sous Chromium $1"
+		"message": "Vimium C ne peut pas contrôler l'état de sourdine avant Chromium $1"
 	},
 	"muted": {
 		"message": "Mis en sourdine."
@@ -888,7 +888,7 @@
 		"message": "L'onglet cible a disparu !"
 	},
 	"noSessionItem": {
-		"message": "La session fermée peut être trop ancienne"
+		"message": "La session fermée semble être trop ancienne"
 	},
 	"invalidImg": {
 		"message": "L'URL de l'image sélectionnée est invalide"
@@ -954,7 +954,7 @@
 		"message": "global"
 	},
 	"have": {
-		"message": "s have"
+		"message": "s ont"
 	},
 	"has": {
 		"message": " a"
@@ -1095,10 +1095,10 @@
 		"message": "Le dernier élément est dé-survolé"
 	},
 	"5": {
-		"message": "Mode insertion$1"
+		"message": "Mode insertion $1"
 	},
 	"6": {
-		"message": "Aucune touches transmises"
+		"message": "Aucune touche transmise"
 	},
 	"7": {
 		"message": "Mode normal (touches transmises désactivées) $1"
@@ -1119,7 +1119,7 @@
 		"message": "précedent"
 	},
 	"11": {
-		"message": "Rien n'est en focus"
+		"message": "Rien n'a le focus"
 	},
 	"12": {
 		"message": "Le dernier élement en focus est caché"
@@ -1147,7 +1147,7 @@
 		"message": "Désormais $1 est activé"
 	},
 	"25": {
-		"message": "$1 a été désactivé"
+		"message": "$1 a été désactivée"
 	},
 	"26": {
 		"message": "($1 correspondances)"
