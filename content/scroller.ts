@@ -149,7 +149,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     }
     return newPos - before;
   },
-  _innerScroll (element: SafeElement | null, di: ScrollByY, amount: number): void {
+  $sc (element: SafeElement | null, di: ScrollByY, amount: number): void {
     if (this.hasSpecialScrollSnap_(element)) {
       while (Math.abs(amount) >= 1 && !this._performScroll(element, di, amount)) {
         amount /= 2;
@@ -232,7 +232,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
         VCui.resetSelectionToDocStart_();
       }
     }
-    a._innerScroll(element, di, amount);
+    a.$sc(element, di, amount);
     a.scrolled_ = 0;
     a.top_ = null;
     if (amount && VDom.readyState_ > "i" && VSc._overrideScrollRestoration) {
@@ -437,11 +437,11 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
         }
       }
       if (hasX) {
-        (hasY ? a._performScroll : a._innerScroll).call<typeof a, [SafeElement | null, BOOL, number], number | void>(
+        (hasY ? a._performScroll : a.$sc).call<typeof a, [SafeElement | null, BOOL, number], number | void>(
             a, a.findScrollable_(0, hasX), 0, hasX);
       }
       if (hasY) {
-        a._innerScroll(a.findScrollable_(1, hasY), 1, hasY);
+        a.$sc(a.findScrollable_(1, hasY), 1, hasY);
       }
     }
     a.scrolled_ = 0;
