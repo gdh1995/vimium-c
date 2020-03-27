@@ -53,6 +53,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.updateQueryFlag_(CompletersNS.QueryFlags.PreferNewOpened, (options.preferTabs || "").includes("new"));
     a.updateQueryFlag_(CompletersNS.QueryFlags.TabTree, !!options.tree);
     a.updateQueryFlag_(CompletersNS.QueryFlags.MonospaceURL, null);
+    a.updateQueryFlag_(CompletersNS.QueryFlags.NoTabEngine, !!options.noTabs);
     a.forceNewTab_ = !!options.newtab;
     a.selectFirst_ = options.autoSelect;
     a.notSearchInput_ = options.searchInput === false;

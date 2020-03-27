@@ -42,6 +42,8 @@ declare namespace CompletersNS {
     PreferNewOpened = 4,
     TabTree = 8,
     MonospaceURL = 16,
+    NoTabEngine = 32,
+    PreferBookmarks = 64,
   }
   interface Options {
     /** maxChars */ c?: number;
@@ -417,6 +419,7 @@ declare namespace VomnibarNS {
     exitOnClick?: boolean;
     autoSelect?: boolean | null | BOOL;
     preferTabs?: "new" | "new-opened" | "newOpened";
+    noTabs?: boolean;
     searchInput?: boolean;
     tree?: boolean; // show tabs in tree mode
   }

@@ -125,7 +125,7 @@ interface MatchCacheRecord extends MatchCacheData {
 
 let matchType: MatchType = MatchType.plain,
     inNormal: boolean | null = null, autoSelect = false, isForAddressBar = false,
-    preferNewOpened = false, wantTreeMode = false,
+    otherFlags = CompletersNS.QueryFlags.None,
     maxChars = 0, maxResults = 0, maxTotal = 0, matchedTotal = 0, offset = 0,
     queryTerms: string[] = [""], rawInput = "", rawQuery = "", rawMore = "",
     wantInCurrentWindow = false,
@@ -301,7 +301,7 @@ const perf = performance,
 bookmarkEngine = {
   bookmarks_: [] as Bookmark[],
   dirs_: [] as string[],
-  currentSearch_: null as [CompletersNS.QueryStatus, number] | null,
+  currentSearch_: null as CompletersNS.QueryStatus | null,
   path_: "",
   depth_: 0,
   status_: BookmarkStatus.notInited,
@@ -310,14 +310,14 @@ bookmarkEngine = {
       Completers.next_([], SugType.bookmark);
       if (index) { return; }
     } else if (bookmarkEngine.status_ === BookmarkStatus.inited) {
-      bookmarkEngine.performSearch_(index);
+      bookmarkEngine.performSearch_();
     } else {
-      bookmarkEngine.currentSearch_ = [query, index];
+      bookmarkEngine.currentSearch_ = query;
     }
     if (bookmarkEngine.status_ === BookmarkStatus.notInited) { bookmarkEngine.refresh_(); }
   },
   StartsWithSlash_ (str: string): boolean { return str.charCodeAt(0) === kCharCode.slash; },
-  performSearch_ (completerIndex: number): void {
+  performSearch_ (): void {
     const isPath = queryTerms.some(bookmarkEngine.StartsWithSlash_),
     buildCache = !!MatchCacheManager.newMatch_, newCache = [],
     arr = MatchCacheManager.current_ && MatchCacheManager.current_.bookmarks_ || bookmarkEngine.bookmarks_,
@@ -350,7 +350,7 @@ bookmarkEngine = {
     }
     const results2: Suggestion[] = [],
     /** inline of {@link #recencyScore_} */
-    fakeTimeScore = completerIndex !== 2 ? 0
+    fakeTimeScore = !(otherFlags & CompletersNS.QueryFlags.PreferBookmarks) ? 0
       : -1 * (1 - TimeEnums.bookmarkFakeVisitTime / TimeEnums.timeCalibrator)
         * (1 - TimeEnums.bookmarkFakeVisitTime / TimeEnums.timeCalibrator) * RankingEnums.recCalibrator;
     for (let [score, ind] of results) {
@@ -409,8 +409,8 @@ bookmarkEngine = {
       setTimeout(bookmarkEngine.Listen_, 0);
       bookmarkEngine.Listen_ = null;
     }
-    if (query && !query[0].o) {
-      return bookmarkEngine.performSearch_(query[1]);
+    if (query && !query.o) {
+      return bookmarkEngine.performSearch_();
     }
   },
   traverseBookmark_ (bookmark: chrome.bookmarks.BookmarkTreeNode): void {
@@ -788,7 +788,8 @@ domainEngine = {
 
 tabEngine = {
   filter_ (query: CompletersNS.QueryStatus, index: number): void {
-    if (!(allExpectedTypes & SugType.tab) || !queryTerms.length && index) {
+    if (!(allExpectedTypes & SugType.tab)
+        || index && (!queryTerms.length || otherFlags & CompletersNS.QueryFlags.NoTabEngine)) {
       Completers.next_([], SugType.tab);
     } else {
       Completers.requireNormalOrIncognito_(tabEngine.performSearch_, query);
@@ -799,7 +800,7 @@ tabEngine = {
     if (query.o) { return; }
     const curTabId = TabRecency_.last_, noFilter = queryTerms.length <= 0,
     hasOtherSuggestions = allExpectedTypes & (SugType.MultipleCandidates ^ SugType.tab),
-    treeMode = wantTreeMode && wantInCurrentWindow && noFilter && !isForAddressBar;
+    treeMode = !!(otherFlags & CompletersNS.QueryFlags.TabTree) && wantInCurrentWindow && noFilter && !isForAddressBar;
     let suggestions: CompletersNS.TabSuggestion[] = [], treeMap: SafeDict<Tab> | undefined, matched: number;
     if (treeMode && tabs0.length > offset) {
       treeMap = BgUtils_.safeObj_<Tab>();
@@ -893,7 +894,8 @@ tabEngine = {
   },
   SortNumbers_ (this: void, a: number, b: number): number { return a - b; },
   computeRecency_ (_0: CompletersNS.CoreSuggestion, tabId: number): number {
-    return TabRecency_.tabs_[tabId] || (preferNewOpened ? GlobalConsts.MaxTabRecency + tabId : -tabId);
+    return TabRecency_.tabs_[tabId] ||
+        (otherFlags & CompletersNS.QueryFlags.PreferNewOpened ? GlobalConsts.MaxTabRecency + tabId : -tabId);
   },
   computeIndex_ (_0: CompletersNS.CoreSuggestion, index: number): number {
     return 1 / index;
@@ -1270,10 +1272,9 @@ Completers = {
     RegExpCache.parts_ = null as never;
     RankingUtils.maxScoreP_ = RankingEnums.maximumScore;
     RankingUtils.timeAgo_ = matchType =
-    Completers.sugTypes_ =
+    Completers.sugTypes_ = otherFlags =
     maxResults = maxTotal = matchedTotal = maxChars = 0;
     allExpectedTypes = SugType.Empty;
-    preferNewOpened = wantTreeMode =
     autoSelect = isForAddressBar = false;
     wantInCurrentWindow = false;
     showThoseInBlocklist = true;
@@ -1304,7 +1305,6 @@ knownCs = {
   domain: [SugType.domain as never, domainEngine] as CompleterList,
   history: [SugType.history as never, historyEngine] as CompleterList,
   omni: [SugType.Full as never, searchEngine, domainEngine, historyEngine, bookmarkEngine, tabEngine] as CompleterList,
-  bomni: [SugType.Full as never, searchEngine, domainEngine, bookmarkEngine, historyEngine, tabEngine] as CompleterList,
   search: [SugType.search as never, searchEngine] as CompleterList,
   tab: [SugType.tab as never, tabEngine] as CompleterList
 },
@@ -1884,24 +1884,26 @@ Completion_ = {
     }
     maxChars = Math.max(Consts.LowerBoundOfMaxChars, Math.min(maxChars, Consts.UpperBoundOfMaxChars));
 
-    const flags = options.f;
-    isForAddressBar = !!(flags & CompletersNS.QueryFlags.AddressBar);
-    wantTreeMode = !!(flags & CompletersNS.QueryFlags.TabTree);
+    otherFlags = options.f;
+    isForAddressBar = !!(otherFlags & CompletersNS.QueryFlags.AddressBar);
     maxTotal = maxResults = Math.min(Math.max(3, ((options.r as number) | 0) || 10), 25);
     matchedTotal = 0;
     Completers.callback_ = callback;
-    let arr: CompleterList | null = knownCs[options.o], str = queryTerms.length >= 1 ? queryTerms[0] : ""
+    let arr: CompleterList | null | undefined =
+        options.o === "bomni" ? (otherFlags |= CompletersNS.QueryFlags.PreferBookmarks, knownCs.omni)
+        : knownCs[options.o]
+      , str = queryTerms.length >= 1 ? queryTerms[0] : ""
       , expectedTypes = options.t;
     if (arr === knownCs.tab) {
-       wantInCurrentWindow = !!(flags & CompletersNS.QueryFlags.TabInCurrentWindow);
-       preferNewOpened = !!(flags & CompletersNS.QueryFlags.PreferNewOpened);
+       wantInCurrentWindow = !!(otherFlags & CompletersNS.QueryFlags.TabInCurrentWindow);
     }
     autoSelect = arr != null && arr.length === 1;
     if (str.length === 2 && str[0] === ":") {
       str = str[1];
       arr = str === "b" ? knownCs.bookm : str === "h" ? knownCs.history
         : str === "t" || str === "w" ? (wantInCurrentWindow = str === "w", knownCs.tab)
-        : str === "B" ? knownCs.bomni
+        : str === "B" ? (otherFlags |= CompletersNS.QueryFlags.PreferBookmarks, knownCs.omni)
+        : str === "H" ? (otherFlags |= CompletersNS.QueryFlags.NoTabEngine, knownCs.omni)
         : str === "d" ? knownCs.domain : str === "s" ? knownCs.search : str === "o" ? knownCs.omni : null;
       if (arr) {
         autoSelect = arr.length === 1;
