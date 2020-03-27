@@ -992,7 +992,7 @@
   }
   const
   BgCmdInfo: { [K in kBgCmd & number]: K extends keyof BgCmdInfoNS ? BgCmdInfoNS[K] : UseTab.NoTab; } = [
-    UseTab.NoTab, UseTab.NoTab,
+    UseTab.NoTab,
     UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.NoTab,
     UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.NoTab,
     Build.MinCVer < BrowserVer.MinNoAbnormalIncognito && Build.BTypes & BrowserType.Chrome
@@ -1022,32 +1022,6 @@
       BgCmdNoTab;
   } = [
     /* kBgCmd.blank: */ BgUtils_.blank_,
-    /* kBgCmd.linkHints: */ function (this: void): void {
-      let options = cOptions as HintsNS.Options
-        , rawMode = options.mode, mode = rawMode, count = cRepeat < 0 ? -cRepeat : cRepeat;
-      if (typeof mode !== "number") {
-        mode = (CommandsData_.hintModes_[options.action || mode || 0] as number | undefined | {} as number) | 0;
-      }
-      if (mode === HintMode.EDIT_TEXT && options.url) {
-        mode = HintMode.EDIT_LINK_URL;
-      }
-      if (mode === HintMode.COPY_TEXT && options.join) {
-        mode = HintMode.COPY_TEXT | HintMode.queue | HintMode.list;
-      }
-      if (rawMode !== mode) {
-        options.mode = mode;
-      }
-      if (mode > HintMode.min_disable_queue - 1) {
-        if (mode > HintMode.min_disable_queue + HintMode.queue - 1) {
-          mode &= ~HintMode.queue;
-          options.mode = mode;
-        }
-        count = 1;
-      }
-      cPort.postMessage<1, kFgCmd.linkHints>({ N: kBgReq.execute, H: ensureInnerCSS(cPort),
-        c: kFgCmd.linkHints, n: count, a: options
-      });
-    },
     /* kBgCmd.nextFrame: */ function (this: void): void {
       let port = cPort, ind = -1;
       const frames = framesForTab[port.s.t];

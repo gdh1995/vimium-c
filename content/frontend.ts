@@ -1015,7 +1015,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       mask && VKey.timeout_(() => events.focusAndRun_(), 1); // require FrameMaskType.NoMaskAndNoFocus is 0
       if (req.c) {
         type TypeChecked = { [key1 in FgCmdAcrossFrames]: <T2 extends FgCmdAcrossFrames>(this: void,
-            count: number, options: CmdOptions[T2]) => void; };
+            count: number, options: CmdOptions[T2] & FgOptions) => void; };
         (Commands as TypeChecked)[req.c](req.n as number, req.a as FgOptions);
       }
       KeydownEvents[req.k] = 1;
@@ -1584,7 +1584,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         esc(HandlerResult.Nothing);
         if (cmd) {
           type TypeChecked = { [key in FgCmdAcrossFrames]: <T2 extends FgCmdAcrossFrames>(this: void,
-              count: number, options: CmdOptions[T2]) => void; };
+              count: number, options: CmdOptions[T2] & FgOptions) => void; };
           (Commands as TypeChecked)[cmd](count as number, options as FgOptions);
         }
         showBorder && FrameMask.show_(FrameMaskType.ForcedSelf);

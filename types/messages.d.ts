@@ -171,10 +171,9 @@ interface FullBgReq extends BgReq, BgVomnibarSpecialReq {}
 declare const enum kBgCmd {
   blank,
   // region: need cport
-  linkHints,
   nextFrame, parentFrame, goNext, toggle, showHelp,
   enterInsertMode, enterVisualMode, performFind, showVomnibar,
-  MIN_NEED_CPORT = linkHints, MAX_NEED_CPORT = showVomnibar,
+  MIN_NEED_CPORT = nextFrame, MAX_NEED_CPORT = showVomnibar,
   // endregion: need cport
   createTab,
   duplicateTab, moveTabToNewWindow, moveTabToNextWindow, joinTabs, toggleCS,
@@ -202,7 +201,7 @@ interface FgOptions extends SafeDict<any> {}
 type SelectActions = "" | "all" | "all-input" | "all-line" | "start" | "end";
 
 declare namespace HintsNS {
-  interface Options extends SafeObject {
+  interface Options {
     action?: string;
     characters?: string;
     useFilter?: boolean;

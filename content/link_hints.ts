@@ -6,6 +6,7 @@ const enum ClickType {
 }
 declare namespace HintsNS {
   type LinkEl = Hint[0];
+  interface ContentOptions extends Options, SafeObject {}
   interface Executor {
     (this: void, linkEl: LinkEl, rect: Rect | null, hintEl: Pick<HintItem, "r">): void | boolean;
   }
@@ -104,7 +105,7 @@ var VHints = {
   isActive_: false,
   hasExecuted_: 0 as BOOL,
   noHUD_: false,
-  options_: null as never as HintsNS.Options,
+  options_: null as never as HintsNS.ContentOptions,
   _timer: TimerID.None,
   yankedList_: [] as string[],
   kSafeAllSelector_: Build.BTypes & ~BrowserType.Firefox ? ":not(form)" as const : "*" as const,
@@ -121,7 +122,7 @@ var VHints = {
   },
   /** return whether the element's VHints is not accessible */
   _addChildFrame: null as ((this: {}, el: HTMLIFrameElement | HTMLFrameElement, rect: Rect | null) => boolean) | null,
-  activate_ (this: void, count: number, options: HintsNS.Options): void {
+  activate_ (this: void, count: number, options: HintsNS.ContentOptions): void {
     const a = VHints;
     if (a.isActive_) { return; }
     if (VApi.checkHidden_(kFgCmd.linkHints, count, options)) {
@@ -206,7 +207,8 @@ var VHints = {
       (frame.s.render_ as typeof a.render_)(frame.h, frame.v, VHud, VApi);
     }
   },
-  collectFrameHints_ (count: number, options: HintsNS.Options, chars: string, useFilter: boolean, outerView: Rect | null
+  collectFrameHints_ (count: number, options: HintsNS.ContentOptions
+      , chars: string, useFilter: boolean, outerView: Rect | null
       , master: HintsNS.Master | null, frameInfo: HintsNS.FrameHintsInfo
       , addChildFrame: (this: {}, el: HTMLIFrameElement | HTMLFrameElement, rect: Rect | null) => boolean
       ): void {
@@ -258,10 +260,10 @@ var VHints = {
     a._master && VKey.SetupEventListener_(0, "unload", a.clear_);
     a.isActive_ = true;
   },
-  setModeOpt_ (count: number, options: HintsNS.Options): void {
+  setModeOpt_ (count: number, options: HintsNS.ContentOptions): void {
     const a = this;
     if (a.options_ === options) { return; }
-    /** ensured by {@link ../background.main.ts#BackgroundCommands[kBgCmd.linkHints]} */
+    /** ensured by {@link ../background/commands.ts#Commands.makeCommand_} */
     let modeOpt: HintsNS.ModeOpt | undefined, mode = options.mode as number;
     for (let modes of a.Modes_) {
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
