@@ -36,7 +36,7 @@ var Settings_ = {
   }),
   i18nPayload_: null as string[] | null,
   newTabs_: BgUtils_.safeObj_() as ReadonlySafeDict<Urls.NewTabType>,
-  extAllowList_: null as never as SafeDict<boolean>,
+  extAllowList_: null as never as SafeDict<boolean | string>,
   storage_: localStorage,
   get_<K extends keyof SettingsWithDefaults> (key: K, forCache?: boolean): SettingsWithDefaults[K] {
     if (key in this.cache_) {

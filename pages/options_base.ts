@@ -511,10 +511,9 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
 ]).then((callback => () => {
     chrome.tabs.query({currentWindow: true as true, active: true as true}, callback);
 })(function (activeTabs: [chrome.tabs.Tab] | never[]): void {
-  const curTab = activeTabs[0];
+  const curTab = activeTabs[0], _url = curTab.url;
   let ref = BG_.Backend_.indexPorts_(curTab.id), blockedMsg = $("#blocked-msg");
-  const notRunnable = !ref && !(curTab && curTab.url && curTab.status === "loading"
-    && (<RegExpOne> /^(ht|s?f)tp/).test(curTab.url));
+  const notRunnable = !(ref || curTab && _url && curTab.status === "loading" && (<RegExpOne> /^(ht|s?f)tp/).test(_url));
   if (notRunnable) {
     const body = document.body as HTMLBodyElement, docEl = document.documentElement as HTMLHtmlElement;
     body.innerText = "";
@@ -523,7 +522,7 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
     const refreshTip = blockedMsg.querySelector("#refresh-after-install") as HTMLElement;
     if (!(Build.BTypes & ~BrowserType.Firefox)
         || Build.BTypes & BrowserType.Firefox && bgOnOther_ === BrowserType.Firefox
-        || !curTab || !curTab.url || !(<RegExpI> /^(ht|s?f)tp/i).test(curTab.url)
+        || !curTab || !_url || !(<RegExpI> /^(ht|s?f)tp/i).test(_url)
         ) {
       refreshTip.remove();
     } else if (Build.BTypes & BrowserType.Edge
@@ -532,6 +531,35 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
     }
     body.style.width = "auto";
     body.appendChild(blockedMsg);
+    const extHost = _url.startsWith(location.protocol) && !_url.startsWith(location.origin) ? new URL(_url).host : "",
+    extStat = extHost ? bgSettings_.extAllowList_[extHost] : null;
+    if (extStat != null && (Build.BTypes & ~BrowserType.Chrome ? !extStat || typeof extStat === "string" : !extStat)) {
+      const refusedEl = $<EnsuredMountedHTMLElement>("#injection-refused");
+      refusedEl.style.display = "";
+      refusedEl.nextElementSibling.remove();
+      $<HTMLAnchorElement>("#doAllowExt").onclick = function () {
+        let list = bgSettings_.get_("extAllowList"), old = list.split("\n"), extIdToAdd = extHost;
+        if (Build.BTypes & ~BrowserType.Chrome) {
+          let maybeId = bgSettings_.extAllowList_[extHost];
+          extIdToAdd = typeof maybeId === "string" && maybeId ? maybeId : extIdToAdd;
+        }
+        if (old.indexOf(extIdToAdd) < 0) {
+          const ind = old.indexOf("# " + extIdToAdd) + 1 || old.indexOf("#" + extIdToAdd) + 1;
+          old.splice(ind ? ind - 1 : old.length, ind ? 1 : 0, extIdToAdd);
+          list = old.join("\n");
+          bgSettings_.set_("extAllowList", list);
+        }
+        this.onclick = null as never;
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs1): void => {
+          const cb = () => {
+            setTimeout((): void => location.reload(), 500);
+            return chrome.runtime.lastError;
+          };
+          tabs1 && tabs1[0] ? chrome.tabs.reload(tabs1[0].id, cb) : chrome.tabs.reload(cb);
+          return chrome.runtime.lastError;
+        })
+      };
+    }
     docEl.classList.toggle("auto-dark", !!bgSettings_.payload_.d);
     docEl.style.height = "";
   } else {
@@ -565,7 +593,7 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
     s: Frames.Status.enabled, // not real
     f: Frames.Flags.blank,
     t: curTab.id,
-    u: curTab.url
+    u: _url
   },
   topUrl = frameInfo.i && ((BG_.Backend_.indexPorts_(curTab.id, 0)
       || {} as Frames.Port).s || {} as Frames.Sender).u || "",

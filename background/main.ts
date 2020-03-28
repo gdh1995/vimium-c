@@ -169,16 +169,18 @@
       && CurCVer_ < BrowserVer.MinWithFrameId;
   function isExtIdAllowed(this: void, extId: string | null | undefined, url: string | undefined): boolean {
     if (extId == null) { extId = "unknown_sender"; }
-    let list = Settings_.extAllowList_, stat = list[extId];
+    const list = Settings_.extAllowList_, stat = list[extId] as boolean | undefined;
     if (stat != null) { return stat; }
+    if (url === Settings_.cache_.vomnibarPage_f) { return true; }
     if (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)
         && stat == null && url) {
-      if (list[new URL(url).host]) {
+      url = new URL(url).host;
+      if (list[url] === true) {
         return list[extId] = true;
       }
-    }
-    if (url === Settings_.cache_.vomnibarPage_f) {
-      return true;
+      if (url !== extId) {
+        list[url] = extId;
+      }
     }
     const backgroundLightYellow = "background-color:#fffbe5";
     console.log("%cReceive message from an extension/sender not in the allow list: %c%s",
