@@ -1,9 +1,9 @@
 <span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span>
-![Icon](icons/icon32.png) - All by Keyboard
+![Icon](icons/icon32.png) - Everything by Keyboard
 ===========================================
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.81.0](https://img.shields.io/badge/release-1.81.0-orange.svg
+[![Version 1.81.4](https://img.shields.io/badge/release-1.81.4-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -87,6 +87,19 @@ __Other extensions supporting Vimium C:__
 
 
 # Release Notes
+
+#### 1.81.4
+* `Vomnibar`: roll back and prefer visited tabs to newly-opened ones
+* `mapKey`: support a new mode ID of `e` (NExt) and use it when a prefix sequence of count/key has been typed.
+* `LinkHints`: support `autoUnhover` to unhover a link node once it's clicked
+  * on Firefox: press <kbd>Esc</kbd> to auto unhover a link node after opening it in a new tab
+* `Vomnibar`: support `noTabs` or `":H"` to avoid searching opened tabs in omni mode
+* `focusInput`: support `act="last"|"last-visible"`
+  ([#127 (comments)](https://github.com/gdh1995/vimium-c/issues/127#issuecomment-602038442))
+* `goNext`: prefer completely matched text (e.g. `">"` is preferred to `">|"`)
+* `goBack`: add an option of `local` to always use `history.go`, instead of async going
+* popup page: if an extension wants to run Vimium C but not is allowed, show a button to auto allow it
+* some bug fixes
 
 #### 1.81.0
 * fix that <kbd>-</kbd> or software-produced <kbd>Escape</kbd> can not be recognized
