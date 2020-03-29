@@ -6,12 +6,16 @@ ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 
 #### 1.81.4
 * `Vomnibar`: roll back and prefer visited tabs to newly-opened ones
+  ([#60 (comment)](https://github.com/gdh1995/vimium-c/issues/60#issuecomment-603148180))
+  * support `noTabs` or `":H"` to avoid searching opened tabs in omni mode
+  * add `autoSelect` and enable it by default in history/bookmark/tabs mode
+    ([#144](https://github.com/gdh1995/vimium-c/issues/144))
+  * add `searchInput=false` to prevent default searching
 * `mapKey`: support a new mode ID of `e` (NExt) and use it when a prefix sequence of count/key has been typed.
 * `LinkHints`: support `autoUnhover` to unhover a link node once it's clicked
   * on Firefox: press <kbd>Esc</kbd> to auto unhover a link node after opening it in a new tab
-* `Vomnibar`: support `noTabs` or `":H"` to avoid searching opened tabs in omni mode
 * `focusInput`: support `act="last"|"last-visible"`
-  ([#127 (comments)](https://github.com/gdh1995/vimium-c/issues/127#issuecomment-602038442))
+  ([#127 (comment)](https://github.com/gdh1995/vimium-c/issues/127#issuecomment-602038442))
 * `goNext`: prefer completely matched text (e.g. `">"` is preferred to `">|"`)
 * `goBack`: add an option of `local` to always use `history.go`, instead of async going
 * popup page: if an extension wants to run Vimium C but not is allowed, show a button to auto allow it
@@ -100,7 +104,7 @@ ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 * `LinkHints`: merge logic from Vimium and add new options
   * add "Filtered Hints" mode
     * support filtering by some common non-English letters
-    * include a fix for https://github.com/philc/vimium/issues/3103
+    * include a fix for [philc/vimium#3103](https://github.com/philc/vimium/issues/3103)
   * use a new algorithm to assign letters in "Alphabet Hints" mode
   * support and simulate Vivaldi: add boolean options `noCtrlPlusShift` and `swapCtrlAndShift`
   * add `newtab="force"` to skip click and force openUrlInNewTab

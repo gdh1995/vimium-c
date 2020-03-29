@@ -535,7 +535,7 @@ availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeO
     "copy-text": HintMode.COPY_TEXT,
     url: HintMode.COPY_URL,
     image: HintMode.OPEN_IMAGE
-  }),
+  })
 },
 CommandsData_: CommandsDataTy = CommandsData_ as never || {
   keyToCommandRegistry_: null as never as SafeDict<CommandsNS.Item>,

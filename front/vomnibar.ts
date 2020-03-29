@@ -707,7 +707,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         return;
       }
       if (a.notSearchInput_ && !event && !input.includes("://")) {
-        try { new URL(input) } catch { return; }
+        try { new URL(input); } catch { return; }
       }
     }
     if (newSel != null || !a.timer_) { /* empty */ }

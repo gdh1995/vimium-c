@@ -551,13 +551,13 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
         }
         this.onclick = null as never;
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs1): void => {
-          const cb = () => {
+          const cb = (): void => {
             setTimeout((): void => location.reload(), 500);
             return chrome.runtime.lastError;
           };
           tabs1 && tabs1[0] ? chrome.tabs.reload(tabs1[0].id, cb) : chrome.tabs.reload(cb);
           return chrome.runtime.lastError;
-        })
+        });
       };
     }
     docEl.classList.toggle("auto-dark", !!bgSettings_.payload_.d);
