@@ -23,16 +23,16 @@ declare var VData: VDataTy;
 
 // eslint-disable-next-line no-var
 var VOmni = {
-  box_: null as never as HTMLIFrameElement & { contentWindow: VomnibarNS.IFrameWindow },
-  _port: null as never as VomnibarNS.Port,
+  boxO_: null as never as HTMLIFrameElement & { contentWindow: VomnibarNS.IFrameWindow },
+  _portO: null as never as VomnibarNS.Port,
   status_: VomnibarNS.Status.NotInited,
-  options_: null as VomnibarNS.FgOptionsToFront | null,
+  optionsO_: null as VomnibarNS.FgOptionsToFront | null,
   onReset_: null as (() => void) | null,
-  _timer: TimerID.None,
+  _timerO: TimerID.None,
   // unit: physical pixel (if C<52)
   screenHeight_: 0,
   canUseVW_: true,
-  activate_: function (this: void, count: number, options: VomnibarNS.FullOptions): void {
+  activateO_: function (this: void, count: number, options: VomnibarNS.FullOptions): void {
     const a = VOmni, dom = VDom;
     // hide all further key events to wait iframe loading and focus changing from JS
     VKey.removeHandler_(a);
@@ -44,13 +44,13 @@ var VOmni = {
     }
     if (!options || !options.k || !options.v) { return; }
     if (dom.readyState_ > "l") {
-      if (!a._timer) {
-        VKey.clear_(timer1);
-        a._timer = VKey.timeout_(a.activate_.bind(a as never, count, options), 500);
+      if (!a._timerO) {
+        VKey.clearTimeout_(timer1);
+        a._timerO = VKey.timeout_(a.activateO_.bind(a as never, count, options), 500);
         return;
       }
     }
-    a._timer = TimerID.None;
+    a._timerO = TimerID.None;
     let url = options.url, isTop = top === window;
     if (isTop || !options.u || typeof options.u !== "string") {
       options.u = location.href;
@@ -66,14 +66,14 @@ var VOmni = {
       if (p === top
           && (Build.BTypes & BrowserType.Firefox ? (p = dom.parentCore_()) : dom.frameElement_())
           && (p as ContentWindowCore).VOmni) {
-        ((p as ContentWindowCore).VOmni as typeof VOmni).activate_(count, options);
+        ((p as ContentWindowCore).VOmni as typeof VOmni).activateO_(count, options);
       } else {
         VApi.post_({ H: kFgReq.gotoMainFrame, f: 0, c: kFgCmd.vomnibar, n: count, a: options });
       }
       return;
     }
     if (!dom.isHTML_()) { return; }
-    a.options_ = null;
+    a.optionsO_ = null;
     dom.getViewBox_();
     a.canUseVW_ = (Build.MinCVer >= BrowserVer.MinCSSWidthUnit$vw$InCalc
             || !!(Build.BTypes & BrowserType.Chrome) && dom.cache_.v > BrowserVer.MinCSSWidthUnit$vw$InCalc - 1)
@@ -94,25 +94,25 @@ var VOmni = {
     if (!(Build.NDEBUG || VomnibarNS.Status.Inactive - VomnibarNS.Status.NotInited === 1)) {
       console.log("Assert error: VomnibarNS.Status.Inactive - VomnibarNS.Status.NotInited === 1");
     }
-    a.box_ && VCui.adjust_();
+    a.boxO_ && VCui.adjust_();
     if (a.status_ === VomnibarNS.Status.NotInited) {
       if (!options.$forced) { // re-check it for safety
         options.$forced = 1;
       }
       if (VHints.TryNestedFrame_(kFgCmd.vomnibar, count, options)) { return; }
       a.status_ = VomnibarNS.Status.Initing;
-      a.init_(options);
+      a.initO_(options);
     } else if (a.isABlank_()) {
-      a.onReset_ = function (): void { this.onReset_ = null; this.activate_(count, options); };
+      a.onReset_ = function (): void { this.onReset_ = null; this.activateO_(count, options); };
       return;
     } else if (a.status_ === VomnibarNS.Status.Inactive) {
       a.status_ = VomnibarNS.Status.ToShow;
     } else if (a.status_ > VomnibarNS.Status.ToShow) {
-      a.focus_();
+      a.focusO_();
       a.status_ = VomnibarNS.Status.ToShow;
     }
-    a.box_.classList.toggle("O2", !a.canUseVW_);
-    VCui.setupExitOnClick_(0, options.exitOnClick ? a.hide_ : 0);
+    a.boxO_.classList.toggle("O2", !a.canUseVW_);
+    VCui.setupExitOnClick_(0, options.exitOnClick ? a.hideO_ : 0);
     let upper = 0;
     if (url != null) {
       url = options.url = url || options.u;
@@ -135,17 +135,17 @@ var VOmni = {
     });
   } as (count: number, options: CmdOptions[kFgCmd.vomnibar]) => void,
   setOptions_ (options: VomnibarNS.FgOptionsToFront): void {
-    this.status_ > VomnibarNS.Status.Initing ? this.post_(options) : (this.options_ = options);
+    this.status_ > VomnibarNS.Status.Initing ? this.postO_(options) : (this.optionsO_ = options);
   },
-  hide_ (this: void, fromInner?: 1): void {
+  hideO_ (this: void, fromInner?: 1): void {
     const a = VOmni, active = a.status_ > VomnibarNS.Status.Inactive,
     style = Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval
-        && Build.BTypes & BrowserType.Chrome ? a.box_.style : 0 as never;
+        && Build.BTypes & BrowserType.Chrome ? a.boxO_.style : 0 as never;
     a.status_ = VomnibarNS.Status.Inactive;
     a.screenHeight_ = 0; a.canUseVW_ = !0;
     VCui.setupExitOnClick_(0, 0);
     if (fromInner == null) {
-      active && a.post_(VomnibarNS.kCReq.hide);
+      active && a.postO_(VomnibarNS.kCReq.hide);
       return;
     }
     // needed, in case the iframe is focused and then a `<esc>` is pressed before removing suppressing
@@ -154,11 +154,11 @@ var VOmni = {
     if (Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval && Build.BTypes & BrowserType.Chrome) {
       style.height = style.top = ""; style.display = "none";
     } else {
-      a.box_.style.cssText = "display:none";
+      a.boxO_.style.cssText = "display:none";
     }
   },
-  init_ ({k: secret, v: page, t: type, i: inner}: VomnibarNS.FullOptions): void {
-    const el = VDom.createElement_("iframe") as typeof VOmni.box_;
+  initO_ ({k: secret, v: page, t: type, i: inner}: VomnibarNS.FullOptions): void {
+    const el = VDom.createElement_("iframe") as typeof VOmni.boxO_;
     el.className = "R UI Omnibar";
     el.style.display = "none";
     if (type !== VomnibarNS.PageType.web) { /* empty */ }
@@ -179,7 +179,7 @@ var VOmni = {
       // not skip the line below: in case main world JS adds some sandbox attributes
       el.removeAttribute("sandbox");
       el.src = page = inner as string;
-      let opts = VOmni.options_; opts && (opts.t = type);
+      let opts = VOmni.optionsO_; opts && (opts.t = type);
     }
     let loaded = false;
     el.onload = function (): void {
@@ -191,23 +191,23 @@ var VOmni = {
         return reload();
       }
       const wnd = (this as typeof el).contentWindow,
-      sec: VomnibarNS.MessageData = [secret, _this.options_ as VomnibarNS.FgOptionsToFront],
+      sec: VomnibarNS.MessageData = [secret, _this.optionsO_ as VomnibarNS.FgOptionsToFront],
       // eslint-disable-next-line @typescript-eslint/ban-types
       origin = (page as EnsureNonNull<String>).substring(0
           , page.startsWith("file:") ? 7 : page.indexOf("/", page.indexOf("://") + 3)),
       checkBroken = function (i?: TimerType.fake | 1): void {
         const a = VOmni, ok = !a || a.status_ !== VomnibarNS.Status.Initing;
-        if (ok || i) { a && a.box_ && (a.box_.onload = a.options_ = null as never); return; }
+        if (ok || i) { a && a.boxO_ && (a.boxO_.onload = a.optionsO_ = null as never); return; }
         if (type !== VomnibarNS.PageType.inner) { return reload(); }
         a.reset_();
         focus();
         a.status_ = VomnibarNS.Status.KeepBroken;
-        a.activate_(1, {} as VomnibarNS.FullOptions);
+        a.activateO_(1, {} as VomnibarNS.FullOptions);
       };
       if (location.origin !== origin || !origin || type === VomnibarNS.PageType.web) {
         VKey.timeout_(checkBroken, 600);
         const channel = new MessageChannel();
-        _this._port = channel.port1;
+        _this._portO = channel.port1;
         channel.port1.onmessage = _this.onMessage_.bind(_this);
         wnd.postMessage(sec, type !== VomnibarNS.PageType.web && origin || "*", [channel.port2]);
         return;
@@ -223,14 +223,14 @@ var VOmni = {
           return VOmni && VOmni.onMessage_<K>({ data });
         }
       };
-      _this._port = {
+      _this._portO = {
         close (): void { port.postMessage = function () { /* empty */ }; },
         postMessage (data: CReq[keyof CReq]): void | 1 { return port.onmessage({ data }); }
       };
       wnd.onmessage({ source: window, data: sec, ports: [port] });
       checkBroken(1);
     };
-    VCui.add_(this.box_ = el, AdjustType.MustAdjust, VHud.box_);
+    VCui.add_(this.boxO_ = el, AdjustType.MustAdjust, VHud.boxH_);
     type !== VomnibarNS.PageType.inner &&
     VKey.timeout_(function (i): void {
       loaded || (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i) ||
@@ -241,18 +241,18 @@ var VOmni = {
     const a = this, oldStatus = a.status_;
     if (oldStatus === VomnibarNS.Status.NotInited) { return; }
     a.status_ = VomnibarNS.Status.NotInited;
-    a._port && a._port.close();
-    a.box_.remove();
-    a._port = a.box_ = null as never;
+    a._portO && a._portO.close();
+    a.boxO_.remove();
+    a._portO = a.boxO_ = null as never;
     a.RefreshKeyHandler_(); // just for safer code
-    a.options_ = null;
+    a.optionsO_ = null;
     if (a.onReset_) { return a.onReset_(); }
     if (!redo || oldStatus < VomnibarNS.Status.ToShow) { return; }
     return VApi.post_({ H: kFgReq.vomnibar, r: true, i: true });
   },
   isABlank_ (): boolean {
     try {
-      const doc = this.box_.contentDocument;
+      const doc = this.boxO_.contentDocument;
       if (doc && doc.URL === "about:blank") { return true; }
     } catch {}
     return false;
@@ -264,14 +264,14 @@ var VOmni = {
     switch (data.N) {
     case VomnibarNS.kFReq.iframeIsAlive:
       a.status_ = VomnibarNS.Status.ToShow;
-      let opt = a.options_;
-      a.options_ = null;
+      let opt = a.optionsO_;
+      a.optionsO_ = null;
       if (!data.o && opt) {
-        return a.post_<VomnibarNS.kCReq.activate>(opt);
+        return a.postO_<VomnibarNS.kCReq.activate>(opt);
       }
       break;
     case VomnibarNS.kFReq.style:
-      a.box_.style.height = Math.ceil(data.h / VDom.docZoom_
+      a.boxO_.style.height = Math.ceil(data.h / VDom.docZoom_
           / (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
               && (!(Build.BTypes & ~BrowserType.Chrome)
                   || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome)
@@ -283,7 +283,7 @@ var VOmni = {
     case VomnibarNS.kFReq.focus:
       focus();
       return VApi.keydownEvents_()[data.l] = 1;
-    case VomnibarNS.kFReq.hide: return a.hide_(1);
+    case VomnibarNS.kFReq.hide: return a.hideO_(1);
     case VomnibarNS.kFReq.scroll: return VSc.BeginScroll_(0, data.k, data.b);
     case VomnibarNS.kFReq.scrollGoing: // no break;
     case VomnibarNS.kFReq.scrollEnd: VSc.scrollTick_(data.N === VomnibarNS.kFReq.scrollGoing); break;
@@ -298,7 +298,7 @@ var VOmni = {
   onShown_ (maxBoxHeight: number): void {
     const a = this;
     a.status_ = VomnibarNS.Status.Showing;
-    const style = a.box_.style,
+    const style = a.boxO_.style,
     topHalfThreshold = maxBoxHeight * 0.6 + VomnibarNS.PixelData.MarginTop *
         (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
           && (!(Build.BTypes & ~BrowserType.Chrome)
@@ -313,27 +313,27 @@ var VOmni = {
   RefreshKeyHandler_ (this: void): void {
     const a = VOmni, st = a.status_;
     st < VomnibarNS.Status.Showing && st > VomnibarNS.Status.Inactive || VKey.removeHandler_(a);
-    st > VomnibarNS.Status.ToShow && VKey.pushHandler_(a.onKeydown_, a);
+    st > VomnibarNS.Status.ToShow && VKey.pushHandler_(a.onKeydownO_, a);
   },
-  onKeydown_ (event: HandlerNS.Event): HandlerResult {
+  onKeydownO_ (event: HandlerNS.Event): HandlerResult {
     if (VApi.lock_()) { return HandlerResult.Nothing; }
     const key = VKey.key_(event, kModeId.Omni);
-    if (VKey.isEscape_(key)) { this.hide_(); return HandlerResult.Prevent; }
+    if (VKey.isEscape_(key)) { this.hideO_(); return HandlerResult.Prevent; }
     if (key === kChar.f1 || key === kChar.f2) {
-      this.focus_();
+      this.focusO_();
       return HandlerResult.Prevent;
     }
     return HandlerResult.Nothing;
   },
-  focus_ (): void {
+  focusO_ (): void {
     if (this.status_ < VomnibarNS.Status.Showing) { return; }
     if (Build.MinCVer < BrowserVer.MinFocus3rdPartyIframeDirectly
         && Build.BTypes & BrowserType.Chrome) {
-      this.box_.contentWindow.focus();
+      this.boxO_.contentWindow.focus();
     }
-    this.post_(VomnibarNS.kCReq.focus);
+    this.postO_(VomnibarNS.kCReq.focus);
   },
-  post_ <K extends keyof VomnibarNS.CReq> (msg: VomnibarNS.CReq[K]): void {
-    this._port.postMessage(msg);
+  postO_ <K extends keyof VomnibarNS.CReq> (msg: VomnibarNS.CReq[K]): void {
+    this._portO.postMessage(msg);
   }
 };

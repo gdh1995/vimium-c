@@ -1088,7 +1088,7 @@ function loadChecker(this: HTMLElement): void {
 
 document.addEventListener("keydown", function (this: void, event): void {
   if (event.keyCode !== kKeyCode.space) {
-    if (!window.VKey || !VKey.cache_ || VApi.lock_()) { return; }
+    if (!window.VKey || !VKey.cacheK_ || VApi.lock_()) { return; }
     const eventWrapper: HandlerNS.Event = {c: kChar.INVALID, e: event, i: event.keyCode},
     ch = VKey.char_(eventWrapper).toLowerCase(),
     stat = VKey.getKeyStat_(eventWrapper);

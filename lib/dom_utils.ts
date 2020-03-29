@@ -41,7 +41,7 @@ var VDom = {
   docSelectable_: true,
   devRatio_: (): number => devicePixelRatio,
   getComputedStyle_: (element: Element): CSSStyleDeclaration => getComputedStyle(element),
-  getSelected_: (): Selection => getSelection(),
+  getSelection_: (): Selection => getSelection(),
   /** @UNSAFE_RETURNED */
   docEl_unsafe_: (): Element | null => document.documentElement,
   /** @UNSAFE_RETURNED */
@@ -532,7 +532,7 @@ var VDom = {
     const a = this as typeof VDom;
     a.paintBox_ = null;
     a.docZoom_ = a.bZoom_ = 1;
-    /** the min() is required in {@link ../front/vomnibar.ts#Vomnibar_.activate_ } */
+    /** the min() is required in {@link ../front/vomnibar.ts#Vomnibar_.activateO_ } */
     a.wdZoom_ = Math.min(a.devRatio_(), 1);
   } as never,
   getViewBox_ (needBox?: 1 | 2): ViewBox | ViewOffset {
@@ -693,7 +693,7 @@ var VDom = {
     } catch {}
   },
   isSelected_ (): boolean {
-    const element = VDom.activeEl_unsafe_() as Element, sel = VDom.getSelected_(), node = sel.anchorNode;
+    const element = VDom.activeEl_unsafe_() as Element, sel = VDom.getSelection_(), node = sel.anchorNode;
     return !node ? false
       : (element as TypeToAssert<Element, HTMLElement, "isContentEditable">).isContentEditable === true
       ? (Build.BTypes & ~BrowserType.Firefox ? document.contains.call(element, node) : element.contains(node))

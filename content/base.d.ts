@@ -371,7 +371,7 @@ interface VApiTy {
   destroy_: (this: void, silent?: boolean | BOOL | 9) => void;
 }
 interface VHUDTy {
-  readonly box_: HTMLDivElement | null;
+  readonly boxH_: HTMLDivElement | null;
   readonly t: string;
   readonly opacity_: 0 | 0.25 | 0.5 | 0.75 | 1;
   show_ (tid: kTip | HintMode, args?: Array<string | number>, embed?: boolean): void;

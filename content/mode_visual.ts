@@ -35,7 +35,7 @@ declare namespace VisualModeNS {
 
 // eslint-disable-next-line no-var
 var VVisual = {
-  mode_: VisualModeNS.Mode.NotActive,
+  modeV_: VisualModeNS.Mode.NotActive,
   modeName_: "",
   hudTimer_: TimerID.None,
   currentCount_: 0,
@@ -44,9 +44,9 @@ var VVisual = {
   scope_: null as ShadowRoot | null,
   selection_: null as never as Selection,
   /** @safe_di */
-  activate_ (this: void, _0: number, options: CmdOptions[kFgCmd.visualMode]): void {
+  activateV_ (this: void, _0: number, options: CmdOptions[kFgCmd.visualMode]): void {
     const a = VVisual;
-    a.init_ && a.init_(options.w as string, options.k as NonNullable<typeof options.k>);
+    a.initV_ && a.initV_(options.w as string, options.k as NonNullable<typeof options.k>);
     VKey.removeHandler_(a);
     VCui.checkDocSelectable_();
     VSc.prepareTop_();
@@ -55,7 +55,7 @@ var VVisual = {
     sel: Selection = a.selection_ = theSelected[0],
     type: SelType = a.selType_(), mode: CmdOptions[kFgCmd.visualMode]["m"] = options.m;
     a.scope_ = theSelected[1];
-    if (!a.mode_) { a.retainSelection_ = type === SelType.Range; }
+    if (!a.modeV_) { a.retainSelection_ = type === SelType.Range; }
     if (mode !== VisualModeNS.Mode.Caret) {
       if (!VApi.lock_() && /* (type === SelType.Caret || type === SelType.Range) */ type) {
         const { left: l, top: t, right: r, bottom: b} = VDom.getSelectionBoundingBox_(sel);
@@ -72,7 +72,7 @@ var VVisual = {
     }
     const isRange = type === SelType.Range, newMode = isRange ? mode : VisualModeNS.Mode.Caret,
     toCaret = newMode === VisualModeNS.Mode.Caret;
-    a.hudTimer_ && VKey.clear_(a.hudTimer_);
+    a.hudTimer_ && VKey.clearTimeout_(a.hudTimer_);
     VHud.show_(kTip.visualMode,
         [a.modeName_ = VTr(toCaret ? "Caret" : newMode === VisualModeNS.Mode.Line ? "Line" : "Visual")],
         !!options.r);
@@ -81,10 +81,10 @@ var VVisual = {
     }
     VCui.toggleSelectStyle_(1);
     a.di_ = isRange ? VisualModeNS.kDir.unknown : VisualModeNS.kDir.right;
-    a.mode_ = newMode;
+    a.modeV_ = newMode;
     a.alterMethod_ = toCaret ? "move" : "extend";
     if (/* type === SelType.None */ !type && a.establishInitialSelectionAnchor_(theSelected[1])) {
-      a.deactivate_();
+      a.deactivateV_();
       return VHud.tip_(kTip.needSel);
     }
     if (toCaret && isRange) {
@@ -93,22 +93,22 @@ var VVisual = {
       a.collapseToRight_((a.getDirection_() & +(mode > 1)) as BOOL);
     }
     a.commandHandler_(VisualAction.Noop, 1);
-    VKey.pushHandler_(a.onKeydown_, a);
+    VKey.pushHandler_(a.onKeydownV_, a);
   },
   /** @safe_di */
-  deactivate_ (isEsc?: 1): void {
+  deactivateV_ (isEsc?: 1): void {
     const a = this;
-    if (!a.mode_) { return; }
+    if (!a.modeV_) { return; }
     a.di_ = VisualModeNS.kDir.unknown;
     a.diType_ = VisualModeNS.DiType.UnsafeUnknown;
     a.getDirection_("");
     const oldDiType = a.diType_ as VisualModeNS.DiType;
     VKey.removeHandler_(a);
     if (!a.retainSelection_) {
-      a.collapseToFocus_(isEsc && a.mode_ !== VisualModeNS.Mode.Caret ? 1 : 0);
+      a.collapseToFocus_(isEsc && a.modeV_ !== VisualModeNS.Mode.Caret ? 1 : 0);
     }
-    a.mode_ = VisualModeNS.Mode.NotActive; a.modeName_ = "";
-    VFind.clear_();
+    a.modeV_ = VisualModeNS.Mode.NotActive; a.modeName_ = "";
+    VFind.fclear_();
     const el = VApi.lock_();
     oldDiType & (VisualModeNS.DiType.TextBox | VisualModeNS.DiType.Complicated) ||
     el && el.blur();
@@ -123,18 +123,18 @@ var VVisual = {
   /** need real diType */
   selType_: null as never as () => SelType,
   /** @unknown_di_result */
-  onKeydown_ (event: HandlerNS.Event): HandlerResult {
+  onKeydownV_ (event: HandlerNS.Event): HandlerResult {
     const a = this, doPass = event.i === kKeyCode.ime || event.i === kKeyCode.menuKey && VDom.cache_.o,
     key = doPass ? "" : VKey.key_(event, kModeId.Visual), keybody = VKey.keybody_(key);
     if (!key || VKey.isEscape_(key)) {
-      !key || a.currentCount_ || a.currentSeconds_ ? a.resetKeys_() : a.deactivate_(1);
+      !key || a.currentCount_ || a.currentSeconds_ ? a.resetKeys_() : a.deactivateV_(1);
       // if doPass, then use nothing to bubble such an event, so handlers like LinkHints will also exit
       return key ? HandlerResult.Prevent : doPass ? HandlerResult.Nothing : HandlerResult.Suppress;
     }
     if (VKey.keybody_(key) === kChar.enter) {
       a.resetKeys_();
-      if (key.includes("s-") && a.mode_ !== VisualModeNS.Mode.Caret) { a.retainSelection_ = true; }
-      "cm".includes(key[0]) ? a.deactivate_() : a.yank_(key[0] === "a" ? 9 : 8);
+      if (key.includes("s-") && a.modeV_ !== VisualModeNS.Mode.Caret) { a.retainSelection_ = true; }
+      "cm".includes(key[0]) ? a.deactivateV_() : a.yank_(key[0] === "a" ? 9 : 8);
       return HandlerResult.Prevent;
     }
     const count = a.currentCount_, childAction = a.currentSeconds_ && a.currentSeconds_[key],
@@ -161,26 +161,26 @@ var VVisual = {
   },
   /** @unknown_di_result */
   commandHandler_ (command: VisualAction, count: number): void {
-    let movement = this, mode = movement.mode_;
+    let movement = this, mode = movement.modeV_;
     if (command > VisualAction.MaxNotScroll) {
       VSc.scroll_(1, command - VisualAction.ScrollDown ? -count : count, 0);
       return;
     }
     if (command > VisualAction.MaxNotNewMode) {
       if (command === VisualAction.EmbeddedFindMode) {
-        VKey.clear_(movement.hudTimer_);
+        VKey.clearTimeout_(movement.hudTimer_);
         VApi.post_({ H: kFgReq.findFromVisual });
         return;
       }
-      return movement.activate_(1, VKey.safer_<CmdOptions[kFgCmd.visualMode]>({
+      return movement.activateV_(1, VKey.safer_<CmdOptions[kFgCmd.visualMode]>({
         m: command - VisualAction.MaxNotNewMode
       }));
     }
     if (movement.scope_ && !movement.selection_.rangeCount) {
       movement.scope_ = null;
-      movement.selection_ = VDom.getSelected_();
+      movement.selection_ = VDom.getSelection_();
       if (command < VisualAction.MaxNotFind + 1 && !movement.selection_.rangeCount) {
-        movement.deactivate_();
+        movement.deactivateV_();
         return VHud.tip_(kTip.loseSel);
       }
     }
@@ -189,7 +189,7 @@ var VVisual = {
     }
     mode === VisualModeNS.Mode.Caret && movement.collapseToFocus_(0);
     if (command > VisualAction.MaxNotFind) {
-      movement.find_(command - VisualAction.PerformFind ? count : -count);
+      movement.findV_(command - VisualAction.PerformFind ? count : -count);
       return;
     } else if (command > VisualAction.MaxNotYank) {
       command === VisualAction.YankLine && movement.selectLine_(count);
@@ -240,7 +240,7 @@ var VVisual = {
     }
     if (!node) {
       if (sr) {
-        a.selection_ = vDom.getSelected_();
+        a.selection_ = vDom.getSelection_();
         a.scope_ = null;
         return a.establishInitialSelectionAnchor_();
       }
@@ -253,7 +253,7 @@ var VVisual = {
   },
   /** @not_related_to_di */
   prompt_ (tid: kTip, duration: number, args?: string[]): void {
-    this.hudTimer_ && VKey.clear_(this.hudTimer_);
+    this.hudTimer_ && VKey.clearTimeout_(this.hudTimer_);
     this.hudTimer_ = VKey.timeout_(this.ResetHUD_, duration);
     return VHud.show_(tid, args);
   },
@@ -264,12 +264,12 @@ var VVisual = {
     a.hudTimer_ = TimerID.None;
     if (a.modeName_) { VHud.show_(kTip.visualMode, [a.modeName_]); }
   },
-  find_ (count: number): void {
+  findV_ (count: number): void {
     if (!VFind.query_) {
       VApi.send_(kFgReq.findQuery, {}, function (query): void {
         if (query) {
           VFind.updateQuery_(query);
-          VVisual.find_(count);
+          VVisual.findV_(count);
         } else {
           VVisual.prompt_(kTip.noOldQuery, 1000);
         }
@@ -279,11 +279,11 @@ var VVisual = {
     const a = this;
     const sel = a.selection_,
     range = sel.rangeCount && (a.getDirection_(""), !a.diType_) && sel.getRangeAt(0);
-    VFind.execute_(null, { noColor: true, n: count });
+    VFind.executeF_(null, { noColor: true, n: count });
     if (VFind.hasResults_) {
       a.diType_ = VisualModeNS.DiType.UnsafeUnknown;
-      if (a.mode_ === VisualModeNS.Mode.Caret && a.selType_() === SelType.Range) {
-        a.activate_(1, VKey.safer_<CmdOptions[kFgCmd.visualMode]>({
+      if (a.modeV_ === VisualModeNS.Mode.Caret && a.selType_() === SelType.Range) {
+        a.activateV_(1, VKey.safer_<CmdOptions[kFgCmd.visualMode]>({
           m: VisualModeNS.Mode.Visual
         }));
       } else {
@@ -302,7 +302,7 @@ var VVisual = {
   yank_ (action: /* copy but not exit */ 9 | /* copy&exit */ 8 | ReuseType.current | ReuseType.newFg): void {
     const str = "" + this.selection_;
     if (action < 9) {
-      this.deactivate_();
+      this.deactivateV_();
     }
     VApi.post_(action < 8 ? { H: kFgReq.openUrl, u: str, r: action } : { H: kFgReq.copy, s: str });
   },
@@ -403,7 +403,7 @@ var VVisual = {
     }
     // it's safe to remove `isUnsafe` here, because:
     // either `count > 0` or `fixWord && _moveRight***()`
-    a.mode_ !== VisualModeNS.Mode.Caret && (a.diType_ &= ~VisualModeNS.DiType.isUnsafe);
+    a.modeV_ !== VisualModeNS.Mode.Caret && (a.diType_ &= ~VisualModeNS.DiType.isUnsafe);
     a.di_ = direction === oldDi ? direction : VisualModeNS.kDir.unknown;
     if (granularity === VisualModeNS.G.lineBoundary) {
       a.prompt_(kTip.selectLineBoundary, 2000);
@@ -434,7 +434,7 @@ var VVisual = {
    *  rbbi_cache.cpp?type=cs&q=BreakCache::nextOL&g=0&l=278
    */
   _moveRightForSpaces (): void {
-    const a = this, isMove = a.mode_ === VisualModeNS.Mode.Caret ? 1 : 0;
+    const a = this, isMove = a.modeV_ === VisualModeNS.Mode.Caret ? 1 : 0;
     let ch: string;
     a.getDirection_("");
     a.oldLen_ = 1;
@@ -517,7 +517,7 @@ var VVisual = {
           , <VisualModeNS.ForwardDir> a.di_ ? "forward" : "backward");
       }
     }
-    a.mode_ === VisualModeNS.Mode.Caret && a.collapseToRight_(VisualModeNS.kDir.right);
+    a.modeV_ === VisualModeNS.Mode.Caret && a.collapseToRight_(VisualModeNS.kDir.right);
     return needBack;
   },
   /** @tolerate_di_if_caret */
@@ -675,7 +675,7 @@ var VVisual = {
   /** after called, VVisual must exit at once */
   selectLine_ (count: number): void {
     const a = this, oldDi = a.getDirection_();
-    a.mode_ = VisualModeNS.Mode.Visual; // safer
+    a.modeV_ = VisualModeNS.Mode.Visual; // safer
     a.alterMethod_ = "extend";
     {
       oldDi && a.reverseSelection_();
@@ -720,9 +720,9 @@ var VVisual = {
 
 keyMap_: null as never as SafeDict<VisualAction | SafeDict<VisualAction>>,
 /** @not_related_to_di */
-init_ (words: string, map: VisualModeNS.KeyMap) {
+initV_ (words: string, map: VisualModeNS.KeyMap) {
   const a = this, func = VKey.safer_, typeIdx = { None: SelType.None, Caret: SelType.Caret, Range: SelType.Range };
-  a.init_ = null as never;
+  a.initV_ = null as never;
   a.keyMap_ = map as VisualModeNS.SafeKeyMap;
   a.selType_ = Build.BTypes & BrowserType.Chrome
       && Build.MinCVer <= BrowserVer.$Selection$NotShowStatusInTextBox

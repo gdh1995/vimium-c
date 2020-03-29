@@ -107,7 +107,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     totalDelta = totalElapsed = 0.0;
     timestamp = 0;
     if (timer) {
-      VKey.clear_(timer);
+      VKey.clearTimeout_(timer);
     }
     const keyboard = VDom.cache_.k;
     this.maxInterval_ = math.round(keyboard[1] / ScrollerNS.Consts.FrameIntervalMs) + ScrollerNS.Consts.MaxSkippedF;
@@ -170,7 +170,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
   top_: null as SafeElement | null,
   keyIsDown_: 0,
   scale_: 1,
-  activate_ (this: void, count: number, options: CmdOptions[kFgCmd.scroll] & SafeObject): void {
+  activateS_ (this: void, count: number, options: CmdOptions[kFgCmd.scroll] & SafeObject): void {
     if (options.$c == null) {
       options.$c = VApi.isCmdTriggered_();
     }

@@ -224,7 +224,7 @@ var Tasks = {
       return cb();
     }
     cs.js = ["content/vimium-c.js"];
-    var exArgs = { nameCache: { vars: {}, props: {}, timestamp: 0 } };
+    var exArgs = { nameCache: { vars: {}, props: {}, timestamp: 0 }, aggressiveMangle: true };
     var rest = ["content/*.js"];
     for (var arr = sources, i = 0, len = arr.length; i < len; i++) { rest.push("!" + arr[i]); }
     var maps = [
@@ -805,7 +805,8 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
     stream = stream.pipe(gulpMap(uglifyJson));
   } else {
     const anno = !!config.output.preserve_annotations;
-    stream = stream.pipe(getGulpUglify()(anno ? {...config, output: {...config.output, comments: /^[!@#]/}} : config));
+    stream = stream.pipe(getGulpUglify(!!(exArgs.aggressiveMangle && config.mangle))(
+        anno ? {...config, output: {...config.output, comments: /^[!@#]/}} : config));
     stream = stream.pipe(getGulpUglify()({...config, mangle: null}));
   }
   if (!is_file && new_suffix !== "") {
@@ -1347,10 +1348,10 @@ function patchExtendClick(source) {
   return _patchExtendClick(source, locally, logger);
 }
 
-function getGulpUglify() {
+function getGulpUglify(aggressiveMangle) {
   var compose = require('gulp-uglify/composer');
   var logger = require('gulp-uglify/lib/log');
-  var uglify = require(LIB_UGLIFY_JS);
+  var uglify = aggressiveMangle ? require("./scripts/uglify-mangle") : require(LIB_UGLIFY_JS);
   return compose(
     uglify,
     logger

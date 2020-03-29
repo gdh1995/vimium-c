@@ -643,7 +643,7 @@ _listen(kOnDomReady, doInit, !0);
         , resolved
         , location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1")
         , Date.now() % 3600000);
-    timer && VKey.clear_(timer);
+    timer && VKey.clearTimeout_(timer);
     timer = resolved = 0;
   },
   doc = document;

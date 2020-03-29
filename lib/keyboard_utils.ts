@@ -15,7 +15,7 @@ var VKey = {
     __proto__: null as never,
     Alt: 1, AltGraph: 1, Control: 1, Meta: 1, OS: 1, Shift: 1
   } as SafeEnum,
-  cache_: null as never as SettingsNS.FrontendSettingCache,
+  cacheK_: null as never as SettingsNS.FrontendSettingCache,
   /** only return lower-case long string */
   getKeyName_ (event: Pick<KeyboardEvent, "key" | "keyCode" | "location">): kChar {
     let {keyCode: i} = event, s: string | undefined;
@@ -24,7 +24,7 @@ var VKey = {
           : i === kKeyCode.esc ? kChar.esc
           : i === kKeyCode.tab ? kChar.tab : i === kKeyCode.enter ? kChar.enter
           : (i === kKeyCode.osRightMac || i > kKeyCode.minAcsKeys - 1 && i < kKeyCode.maxAcsKeys + 1)
-            && this.cache_.a && this.cache_.a === event.location ? kChar.Modifier
+            && this.cacheK_.a && this.cacheK_.a === event.location ? kChar.Modifier
           : kChar.None
         )
       : ((s = event.key) ? (<RegExpOne> /^F\d\d?$/).test(s) : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn)
@@ -65,7 +65,7 @@ var VKey = {
       // https://github.com/philc/vimium/issues/2161#issuecomment-225813082
       key = code.length === 1
             ? !shiftKey || code < "0" || code > "9" ? code : kChar.EnNumTrans[+code]
-            : this._modifierKeys[key] ? this.cache_.a && event.location === this.cache_.a ? kChar.Modifier : ""
+            : this._modifierKeys[key] ? this.cacheK_.a && event.location === this.cacheK_.a ? kChar.Modifier : ""
             : key === "Escape" ? kChar.esc // e.g. https://github.com/gdh1995/vimium-c/issues/129
             : !code ? key // e.g. https://github.com/philc/vimium/issues/3451#issuecomment-569124026
             : (mapped = this._codeCorrectionMap.indexOf(code)) < 0 ? code
@@ -91,10 +91,10 @@ var VKey = {
         || this._getKeyCharUsingKeyIdentifier(event as Pick<OldKeyboardEvent, "keyIdentifier">, +shiftKey as BOOL);
     } else {
       key = (!(Build.BTypes & BrowserType.Edge) || Build.BTypes & ~BrowserType.Edge && VOther !== BrowserType.Edge)
-          && this.cache_.l
+          && this.cacheK_.l
         ? this._forceEnUSLayout(key as string, event, shiftKey)
         : (key as string).length > 1 || key === " " ? this.getKeyName_(event)
-        : this.cache_.i ? shiftKey ? (<string> key).toUpperCase() : (<string> key).toLowerCase() : <string> key;
+        : this.cacheK_.i ? shiftKey ? (<string> key).toUpperCase() : (<string> key).toLowerCase() : <string> key;
     }
     return eventWrapper.c = key as kChar;
   },
@@ -151,7 +151,7 @@ var VKey = {
         a.removeHandler_(func);
         return HandlerResult.Nothing;
       }
-      VKey.clear_(timer);
+      VKey.clearTimeout_(timer);
       timer = a.timeout_(() => { // safe-interval
         if (VKey) {
           a.removeHandler_(func); // safe enough even if reloaded;
@@ -203,7 +203,7 @@ keypress mouseup paste wheel " + extraEvents).split(" ")) {
   },
   timeout_: (func: (this: void, fake?: TimerType.fake) => void, timeout: number
       ): TimerID.Valid | TimerID.Others => setTimeout(func, timeout),
-  clear_ (timer: TimerID) { clearTimeout(timer); },
+  clearTimeout_ (timer: TimerID) { clearTimeout(timer); },
   /** misc section */
   safer_: (Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && Build.BTypes & BrowserType.Chrome
       && !Object.setPrototypeOf ? function <T extends object> (obj: T): T & SafeObject {

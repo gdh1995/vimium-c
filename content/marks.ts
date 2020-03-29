@@ -3,19 +3,19 @@ var VMarks = {
   onKeyChar_: null as never as (event: HandlerNS.Event, keyChar: string) => void,
   prefix_: true,
   swap_: true,
-  count_: 0,
-  activate_ (this: void, count: number, options: CmdOptions[kFgCmd.marks]): void {
+  mcount_: 0,
+  activateM_ (this: void, count: number, options: CmdOptions[kFgCmd.marks]): void {
     const a = VMarks;
     const isGo = options.mode !== "create";
     a.onKeyChar_ = isGo ? a._goto : a._create;
-    a.count_ = count < 0 || count > 9 ? 0 : count - 1;
+    a.mcount_ = count < 0 || count > 9 ? 0 : count - 1;
     a.prefix_ = options.prefix !== false;
     a.swap_ = !!options.swap;
     VKey.removeHandler_(a);
-    VKey.pushHandler_(a.onKeydown_, a);
+    VKey.pushHandler_(a.onKeydownM_, a);
     return VHud.show_(isGo ? kTip.nowGotoMark : kTip.nowCreateMark);
   },
-  onKeydown_ (event: HandlerNS.Event): HandlerResult {
+  onKeydownM_ (event: HandlerNS.Event): HandlerResult {
     if (event.i === kKeyCode.ime) { return HandlerResult.Nothing; }
     let key = VKey.key_(event, kModeId.Marks), notEsc = !VKey.isEscape_(key);
     if (notEsc && key.length !== 1) {
@@ -36,7 +36,7 @@ var VMarks = {
   },
   _create (event: HandlerNS.Event, keyChar: string): void {
     if (keyChar === "`" || keyChar === "'") {
-      this.setPreviousPosition_(this.count_);
+      this.setPreviousPosition_(this.mcount_);
       return VHud.tip_(kTip.didCreateLastMark, 1000);
     } else if (event.e.shiftKey !== this.swap_) {
       if (top === window) {
@@ -52,7 +52,7 @@ var VMarks = {
   _goto (event: HandlerNS.Event, keyChar: string): void {
     const a = this;
     if (keyChar === "`" || keyChar === "'") {
-      const count = a.count_, pos = a.previous_[count];
+      const count = a.mcount_, pos = a.previous_[count];
       a.setPreviousPosition_(pos ? 0 : count);
       if (pos) {
         a.ScrollTo_(pos);

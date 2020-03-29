@@ -24,7 +24,7 @@ declare namespace HintsNS {
   type Stack = number[];
   type Stacks = Stack[];
   interface KeyStatus {
-    hints_: readonly HintItem[];
+    curHints_: readonly HintItem[];
     keySequence_: string;
     textSequence_: string;
     known_: BOOL;
@@ -33,12 +33,12 @@ declare namespace HintsNS {
   type HintSources = readonly SafeElement[] | NodeListOf<SafeElement>;
 
   interface BaseHinter {
-    isActive_: boolean;
+    isInLH_: boolean;
     readonly hints_: unknown;
     keyCode_: kKeyCode;
     collectFrameHints_: unknown;
     render_ (hints: readonly HintItem[], arr: ViewBox, hud: VHUDTy, api: VApiTy): void;
-    execute_ (hint: HintItem, event?: HandlerNS.Event): void;
+    executeL_ (hint: HintItem, event?: HandlerNS.Event): void;
     clear_ (keepHudOrEvent?: BOOL | Event, suppressTimeout?: number): void;
   }
   interface Master extends BaseHinter {
@@ -46,7 +46,7 @@ declare namespace HintsNS {
     readonly frameList_: FrameHintsInfo[];
     mode_: HintMode;
     mode1_: HintMode;
-    box_: HTMLDivElement | HTMLDialogElement | null;
+    boxL_: HTMLDivElement | HTMLDialogElement | null;
     _master: null;
     setMode_ (mode: HintMode, silent?: 1): void;
     ResetMode_ (): void;
@@ -72,7 +72,7 @@ declare namespace HintsNS {
 
 // eslint-disable-next-line no-var
 var VHints = {
-  box_: null as HTMLDivElement | HTMLDialogElement | null,
+  boxL_: null as HTMLDivElement | HTMLDialogElement | null,
   dialogMode_: false,
   wantDialogMode_: null as boolean | null,
   hints_: null as readonly HintsNS.HintItem[] | null,
@@ -91,7 +91,7 @@ var VHints = {
   chars_: "",
   useFilter_: false,
   keyStatus_: {
-    hints_: null as never,
+    curHints_: null as never,
     keySequence_: "",
     textSequence_: "",
     known_: 0,
@@ -102,7 +102,7 @@ var VHints = {
   _onTailEnter: null as ((this: unknown, event: HandlerNS.Event, key: string, keybody: kChar) => void) | null,
   _onWaitingKey: null as HandlerNS.RefHandler | null,
   keyCode_: kKeyCode.None,
-  isActive_: false,
+  isInLH_: false,
   hasExecuted_: 0 as BOOL,
   noHUD_: false,
   options_: null as never as HintsNS.ContentOptions,
@@ -122,9 +122,9 @@ var VHints = {
   },
   /** return whether the element's VHints is not accessible */
   _addChildFrame: null as ((this: {}, el: HTMLIFrameElement | HTMLFrameElement, rect: Rect | null) => boolean) | null,
-  activate_ (this: void, count: number, options: HintsNS.ContentOptions): void {
+  activateL_ (this: void, count: number, options: HintsNS.ContentOptions): void {
     const a = VHints;
-    if (a.isActive_) { return; }
+    if (a.isInLH_) { return; }
     if (VApi.checkHidden_(kFgCmd.linkHints, count, options)) {
       return a.clear_();
     }
@@ -132,7 +132,7 @@ var VHints = {
       a.clear_();
       if (!a._timer && VDom.readyState_ > "l") {
         VKey.pushHandler_(VKey.SuppressMost_, a);
-        a._timer = VKey.timeout_(a.activate_.bind(a as never, count, options), 300);
+        a._timer = VKey.timeout_(a.activateL_.bind(a as never, count, options), 300);
         return;
       }
     }
@@ -140,7 +140,7 @@ var VHints = {
     if (upper && upper.VCui) {
       (upper.VCui as typeof VCui).learnCss_(VCui);
       // recursively go up and use the topest frame in a same origin
-      (upper.VHints as typeof VHints).activate_(count, options);
+      (upper.VHints as typeof VHints).activateL_(count, options);
       return;
     }
     const useFilter0 = options.useFilter, useFilter = useFilter0 != null ? !!useFilter0 : VDom.cache_.f,
@@ -152,7 +152,7 @@ var VHints = {
       return VHud.tip_(kTip.fewChars, 1000);
     }
     if (Build.BTypes & BrowserType.Chrome) {
-      a.dialogMode_ && a.box_ && a.box_.remove();
+      a.dialogMode_ && a.boxL_ && a.boxL_.remove();
       a.dialogMode_ = !!(a.wantDialogMode_ != null ? a.wantDialogMode_ : VDom.querySelector_unsafe_("dialog[open]"))
         && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement
             || typeof HTMLDialogElement === "function");
@@ -183,7 +183,7 @@ var VHints = {
                 , child.v, a as typeof a & { _master: null }, frameInfo, addChild);
           // ensure allHints always belong to the master frame
           allHints = frameInfo.h.length ? allHints.concat(frameInfo.h) : allHints;
-        } else if ((child.s as typeof a).isActive_) {
+        } else if ((child.s as typeof a).isInLH_) {
           toClean.push(child.s);
         }
       }
@@ -193,11 +193,11 @@ var VHints = {
         a.clear_(1);
         return VHud.tip_(total ? kTip.tooManyLinks : kTip.noLinks, 1000);
       }
-      a.hints_ = a.keyStatus_.hints_ = allHints;
+      a.hints_ = a.keyStatus_.curHints_ = allHints;
     }
     a.noHUD_ = !(useFilter || frameList[0].v[3] > 40 && frameList[0].v[2] > 320)
         || (options.hideHUD || options.hideHud) === true;
-    useFilter ? a.filterEngine_.init_(allHints as readonly HintsNS.FilteredHintItem[])
+    useFilter ? a.filterEngine_.initLF_(allHints as readonly HintsNS.FilteredHintItem[])
         : a.initAlphabetEngine_(allHints);
     a.renderMarkers_(allHints);
     a.hud_ = VHud;
@@ -239,15 +239,15 @@ var VHints = {
   },
   render_ (hints: readonly HintsNS.HintItem[], arr: ViewBox, hud: VHUDTy, api: VApiTy): void {
     const a = this, master = a._master || a;
-    if (a.box_) { a.box_.remove(); a.box_ = null; }
+    if (a.boxL_) { a.boxL_.remove(); a.boxL_ = null; }
     a.hud_ = Build.BTypes & BrowserType.Firefox ? a.unwrap_(hud) : hud;
     a.api_ = Build.BTypes & BrowserType.Firefox ? a.unwrap_(api) : api;
     VCui.ensureBorder_(VDom.wdZoom_ / VDom.dScale_);
     if (hints.length) {
       if (Build.BTypes & BrowserType.Chrome) {
-        a.box_ = VCui.addElementList_(hints, arr, (master as typeof a).dialogMode_);
+        a.boxL_ = VCui.addElementList_(hints, arr, (master as typeof a).dialogMode_);
       } else {
-        a.box_ = VCui.addElementList_(hints, arr);
+        a.boxL_ = VCui.addElementList_(hints, arr);
       }
     } else if (a === master) {
       VCui.adjust_();
@@ -258,7 +258,7 @@ var VHints = {
     VKey.removeHandler_(a);
     VKey.pushHandler_(a.onKeydown_, a);
     a._master && VKey.SetupEventListener_(0, "unload", a.clear_);
-    a.isActive_ = true;
+    a.isInLH_ = true;
   },
   setModeOpt_ (count: number, options: HintsNS.ContentOptions): void {
     const a = this;
@@ -302,7 +302,7 @@ var VHints = {
   },
   SetHUDLater_ (this: void): void {
     const a = VHints;
-    if (a && a.isActive_) { a.promptTimer_ = TimerID.None; a.setMode_(a.mode_); }
+    if (a && a.isInLH_) { a.promptTimer_ = TimerID.None; a.setMode_(a.mode_); }
   },
   getPreciseChildRect_ (frameEl: HTMLIFrameElement | HTMLElement, view: Rect): Rect | null {
     const max = Math.max, min = Math.min, kVisible = "visible", vDom = VDom,
@@ -375,7 +375,7 @@ var VHints = {
   adjustMarkers_ (arr: readonly HintsNS.HintItem[], elements: readonly Hint[]): void {
     const zi = VDom.bZoom_, root = VCui.root_;
     let i = arr.length - 1;
-    if (!root || i < 0 || arr[i].d !== VOmni.box_ && !root.querySelector("#HelpDialog")) { return; }
+    if (!root || i < 0 || arr[i].d !== VOmni.boxO_ && !root.querySelector("#HelpDialog")) { return; }
     const z = Build.BTypes & ~BrowserType.Firefox ? ("" + 1 / zi).slice(0, 5) : "",
     mr = Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar
         ? this.maxRight_ * zi : 0,
@@ -405,9 +405,9 @@ var VHints = {
       break;
     case "audio": case "video": isClickable = true; break;
     case "frame": case "iframe":
-      if (isClickable = element !== VFind.box_) {
+      if (isClickable = element !== VFind.boxF_) {
         arr = VDom.getVisibleClientRect_(element);
-        if (element !== VOmni.box_) {
+        if (element !== VOmni.boxO_) {
           isClickable = _this._addChildFrame ? _this._addChildFrame(
               element as HTMLIFrameElement | HTMLFrameElement, arr) : !!arr;
         } else if (arr) {
@@ -788,7 +788,7 @@ var VHints = {
         if ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-            || el !== VOmni.box_ && el !== VFind.box_) {
+            || el !== VOmni.boxO_ && el !== VFind.boxF_) {
           this._addChildFrame(el as HTMLIFrameElement | HTMLFrameElement, VDom.getVisibleClientRect_(el));
         }
       }
@@ -1100,7 +1100,7 @@ var VHints = {
       return (a._master.onKeydown_ as typeof a.onKeydown_)(event);
     } else if (Build.BTypes & BrowserType.Chrome && a._onWaitingKey) {
       a._onWaitingKey(event);
-    } else if (event.e.repeat || !a.isActive_) {
+    } else if (event.e.repeat || !a.isInLH_) {
       // NOTE: should always prevent repeated keys.
     } else if (i === kKeyCode.ime) {
       a.clear_(1);
@@ -1123,7 +1123,7 @@ var VHints = {
               a.filterEngine_.activeHint_ as HintsNS.HintItem);
         } else if (key[0] === "s") {
           for (const frame of this.frameList_) {
-            ((frame.s as typeof VHints).box_ as SafeHTMLElement).classList.toggle("HM1");
+            ((frame.s as typeof VHints).boxL_ as SafeHTMLElement).classList.toggle("HM1");
           }
         }
         return HandlerResult.Prevent;
@@ -1188,7 +1188,7 @@ var VHints = {
       a.clear_(0, a.keyStatus_.known_ ? 0 : VDom.cache_.k[0]);
     } else if (matchedHint !== 2) {
       a.lastMode_ = a.mode_;
-      a.locateHint_(matchedHint).execute_(matchedHint, event);
+      a.locateHint_(matchedHint).executeL_(matchedHint, event);
     }
     return HandlerResult.Prevent;
   },
@@ -1206,7 +1206,7 @@ var VHints = {
   },
   _highlightHint (hint: HintsNS.HintItem): void {
     VCui.flash_(hint.m, null, 660, " Sel");
-    (this.box_ as NonNullable<typeof VHints.box_>).classList.toggle("HMM");
+    (this.boxL_ as NonNullable<typeof VHints.boxL_>).classList.toggle("HMM");
   },
   ResetMode_ (silent?: 1): void {
     let a = VHints, d: KeydownCacheArray;
@@ -1226,21 +1226,21 @@ var VHints = {
         closed = (slave as typeof VHints).CheckLast_(1);
       } catch {}
       if (closed !== 2) {
-        a.isActive_ && (a.clear_(), VHud.tip_(kTip.linkRemoved));
+        a.isInLH_ && (a.clear_(), VHud.tip_(kTip.linkRemoved));
         return;
       }
       if (event) {
         tick = waitEnter && keybody === kChar.space ? tick + 1 : 0;
-        tick === 3 || keybody === kChar.enter ? slave.execute_(hint, event)
+        tick === 3 || keybody === kChar.enter ? slave.executeL_(hint, event)
         : key === kChar.f1 && flashEl ? flashEl.classList.toggle("Sel") : 0;
       } else {
-        slave.execute_(hint);
+        slave.executeL_(hint);
       }
     };
     let tick = 0;
     a._onTailEnter = callback;
-    (a.box_ as NonNullable<typeof a.box_>).remove();
-    a.box_ = null;
+    (a.boxL_ as NonNullable<typeof a.boxL_>).remove();
+    a.boxL_ = null;
     Build.BTypes & BrowserType.Firefox && (slave = a.unwrap_(slave));
     if (Build.BTypes & BrowserType.Chrome && !waitEnter) {
       a._onWaitingKey = VKey.suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents
@@ -1250,7 +1250,7 @@ var VHints = {
       VHud.show_(kTip.waitEnter);
     }
   },
-  execute_ (hint: HintsNS.HintItem, event?: HandlerNS.Event): void {
+  executeL_ (hint: HintsNS.HintItem, event?: HandlerNS.Event): void {
     const a = this, master = a._master, masterOrA = master || a, keyStatus = masterOrA.keyStatus_;
     let rect: Rect | null | undefined, clickEl: HintsNS.LinkEl | null = hint.d;
     if (master) {
@@ -1305,11 +1305,11 @@ var VHints = {
   },
   postExecute_ (slave: HintsNS.BaseHinter, clickEl: HintsNS.LinkEl | null, rect?: Rect | null): void {
     const a = this;
-    a.isActive_ = false;
+    a.isInLH_ = false;
     a._setupCheck();
     VKey.timeout_(function (): void {
       a._reinit(slave, clickEl, rect);
-      if (a.isActive_ && 1 === --a.count_) {
+      if (a.isInLH_ && 1 === --a.count_) {
         a.setMode_(a.mode1_);
       }
     }, a.frameList_.length > 1 ? 50 : 18);
@@ -1321,15 +1321,15 @@ var VHints = {
       events && a.clear_();
       return;
     }
-    a.isActive_ = false;
+    a.isInLH_ = false;
     a.resetHints_();
-    a.activate_(0, a.options_);
+    a.activateL_(0, a.options_);
     a._setupCheck(slave, lastEl, rect);
   },
   /** should only be called on master */
   _setupCheck (slave?: HintsNS.BaseHinter | null, el?: HintsNS.LinkEl | null, r?: Rect | null): void {
     const a = this;
-    a._timer && VKey.clear_(a._timer);
+    a._timer && VKey.clearTimeout_(a._timer);
     a._timer = slave && el && a.mode1_ < HintMode.min_job ? VKey.timeout_(function (i): void {
       a._timer = TimerID.None;
       let reinit: BOOL | void = 0;
@@ -1339,7 +1339,7 @@ var VHints = {
         slave && (reinit = (slave as typeof VHints).CheckLast_(el, r));
       } catch {}
       reinit && a._reinit();
-      for (const frame of a.isActive_ ? a.frameList_ : []) {
+      for (const frame of a.isInLH_ ? a.frameList_ : []) {
         (frame.s as typeof a).hasExecuted_ = 1;
       }
     }, a.frameList_.length > 1 ? 380 : 255) : TimerID.None;
@@ -1358,7 +1358,7 @@ var VHints = {
     if (hidden && VDom.lastHovered_ === el) {
       VDom.lastHovered_ = null;
     }
-    if ((!r2 || r) && master.isActive_
+    if ((!r2 || r) && master.isInLH_
         && (master.hints_ as NonNullable<typeof _this.hints_>).length < (
               ((master as typeof _this).frameList_).length > 1 ? 200 : 100)
         && !master.keyStatus_.keySequence_
@@ -1377,11 +1377,11 @@ var VHints = {
     if (Build.BTypes & BrowserType.Chrome) { a._onWaitingKey = null; }
     a._onTailEnter = a.filterEngine_.pageNumberHints_ =
     a.hints_ = a.zIndexes_ = a.filterEngine_.activeHint_ = a.filterEngine_.reForMatch_ = null as never;
-    a.promptTimer_ > TimerID.None && (VKey.clear_(a.promptTimer_), a.promptTimer_ = TimerID.None);
+    a.promptTimer_ > TimerID.None && (VKey.clearTimeout_(a.promptTimer_), a.promptTimer_ = TimerID.None);
     a.hasExecuted_ = 0;
-    a.keyStatus_.hints_ = null as never;
+    a.keyStatus_.curHints_ = null as never;
     a.keyStatus_ = {
-      hints_: null as never,
+      curHints_: null as never,
       keySequence_: "", textSequence_: "",
       known_: 0, tab_: 0
     };
@@ -1418,12 +1418,12 @@ var VHints = {
     a.maxPrefixLen_ = a.hasExecuted_ = 0;
     a.keyCode_ = kKeyCode.None;
     a.useFilter_ =
-    a.isActive_ = a.noHUD_ = a.tooHigh_ = false;
+    a.isInLH_ = a.noHUD_ = a.tooHigh_ = false;
     if (Build.BTypes & BrowserType.Chrome) { a.dialogMode_ = false; }
     a.chars_ = "";
-    if (a.box_) {
-      a.box_.remove();
-      a.box_ = null;
+    if (a.boxL_) {
+      a.boxL_.remove();
+      a.boxL_ = null;
     }
     keepHudOrEvent === 1 || VHud.hide_();
   },
@@ -1441,8 +1441,8 @@ var VHints = {
     while (i < len && frames[i].s !== (Build.BTypes & BrowserType.Firefox ? wrappedSlave : slave)) {
       offset += frames[i++].h.length;
     }
-    if (i >= len || !a.isActive_ || a._timer) { return; }
-    const keyStat = a.keyStatus_, hints = keyStat.hints_ = a.hints_ as NonNullable<typeof a.hints_>,
+    if (i >= len || !a.isInLH_ || a._timer) { return; }
+    const keyStat = a.keyStatus_, hints = keyStat.curHints_ = a.hints_ as NonNullable<typeof a.hints_>,
     deleteCount = frames[i].h.length;
     deleteCount && (hints as HintsNS.HintItem[]).splice(offset, deleteCount); // remove `readonly` by intent
     frames.splice(i, 1);
@@ -1529,7 +1529,7 @@ filterEngine_: {
   activeHint_: null as HintsNS.FilteredHintItem | null,
   pageNumberHints_: null as never as HintsNS.FilteredHintItem[],
   reForMatch_: null as never as RegExpG & RegExpOne & RegExpSearchable<0>,
-  init_ (hints: readonly HintsNS.FilteredHintItem[]): void {
+  initLF_ (hints: readonly HintsNS.FilteredHintItem[]): void {
     const vHints = VHints, a = vHints.filterEngine_, len = vHints.chars_ !== vHints.kNumbers_ ? 0 : hints.length;
     let i = 0, idxOfSecond = 0, lastPage = 0, curPage = 0, curRangeSecond = 0, curRangeCountS1 = 0;
     for (; i < len; i++) {
@@ -1651,7 +1651,7 @@ filterEngine_: {
     const vHints = VHints, fullHints = vHints.hints_ as readonly HintsNS.FilteredHintItem[],
     a = this,
     oldTextSeq = inited > 1 ? keyStatus.textSequence_ : "a";
-    let hints = keyStatus.hints_ as HintsNS.FilteredHintItem[];
+    let hints = keyStatus.curHints_ as HintsNS.FilteredHintItem[];
     if (oldTextSeq !== text) {
       const t2 = text.trim(), t1 = oldTextSeq.trim();
       keyStatus.textSequence_ = text;
@@ -1694,7 +1694,7 @@ filterEngine_: {
         }
         newLen = hints.length;
         if (newLen) {
-          keyStatus.hints_ = hasSearch ? hints : hints = oldHints.slice(0);
+          keyStatus.curHints_ = hasSearch ? hints : hints = oldHints.slice(0);
           if (hasSearch && newLen < 2) { // in case of only 1 hint in fullHints
             return hints[0];
           }
@@ -1860,7 +1860,7 @@ filterEngine_: {
   matchHintsByKey_ (keyStatus: HintsNS.KeyStatus
       , event: HandlerNS.Event, key: string, keybody: kChar): HintsNS.HintItem | 0 | 2 {
     const h = VHints, {useFilter_: useFilter, filterEngine_: filterEngine} = h;
-    let {keySequence_: sequence, textSequence_: textSeq, tab_: oldTab, hints_: hints} = keyStatus
+    let {keySequence_: sequence, textSequence_: textSeq, tab_: oldTab, curHints_: hints} = keyStatus
       , doesDetectMatchSingle: 0 | 1 | 2 = 0
       , textSeq0 = textSeq, isSpace = keybody === kChar.space, isTab = keybody === kChar.tab;
     textSeq = textSeq && textSeq.replace("  ", " ");
@@ -1877,7 +1877,7 @@ filterEngine_: {
       }
       sequence ? sequence = sequence.slice(0, -1) : textSeq = textSeq.slice(0, -1);
     } else if (useFilter && keybody === kChar.enter || isSpace && textSeq0 !== textSeq) {
-      // keep .known_ to be 1 - needed by .execute_
+      // keep .known_ to be 1 - needed by .executeL_
       return filterEngine.activeHint_ as NonNullable<typeof filterEngine.activeHint_>;
     } else if (isSpace) { // then useFilter is true
       textSeq = textSeq0 + " ";
@@ -1915,7 +1915,7 @@ filterEngine_: {
       h.zIndexes_ = h.zIndexes_ && null;
       keyStatus.keySequence_ = sequence;
       const notDoSubCheck = !keyStatus.tab_, wanted = notDoSubCheck ? sequence : sequence.slice(0, -1);
-      hints = keyStatus.hints_ = (doesDetectMatchSingle ? hints : h.hints_ as readonly HintsNS.HintItem[]
+      hints = keyStatus.curHints_ = (doesDetectMatchSingle ? hints : h.hints_ as readonly HintsNS.HintItem[]
           ).filter(hint => {
         const pass = hint.a.startsWith(wanted) && (notDoSubCheck || !hint.a.startsWith(sequence));
         hint.m.style.visibility = pass ? "" : "hidden";
@@ -2030,8 +2030,8 @@ _highlightChild (el: HintsNS.LinkEl, tag: string): 0 | 1 | 2 {
   const a = this, { count_: count, options_: options } = a;
   options.mode = a.mode_;
   (a._master || a).mode_ = a.mode_ = HintMode.DEFAULT;
-  if (el === VOmni.box_) {
-    VOmni.focus_();
+  if (el === VOmni.boxO_) {
+    VOmni.focusO_();
     return 1;
   }
   const core = a.detectUsableChild_(el as HTMLIFrameElement | HTMLFrameElement);

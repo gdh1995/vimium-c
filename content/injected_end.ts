@@ -86,11 +86,11 @@ VApi.execute_ = function (cmd): void {
         || (Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox)) {
       switch (task) {
       case InjectorTask.recheckLiving:
-        livingCheckTimer && VKey.clear_(livingCheckTimer);
+        livingCheckTimer && VKey.clearTimeout_(livingCheckTimer);
         livingCheckTimer = VKey.timeout_(onTimeout, GlobalConsts.FirefoxFocusResponseTimeout);
         return;
       case InjectorTask.reportLiving:
-        VKey.clear_(livingCheckTimer);
+        VKey.clearTimeout_(livingCheckTimer);
         return;
       }
     }

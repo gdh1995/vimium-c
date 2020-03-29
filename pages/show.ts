@@ -367,7 +367,7 @@ function simulateClick(a: HTMLElement, event: MouseEvent | KeyboardEvent): boole
 function imgOnKeydown(event: KeyboardEventToPrevent): boolean {
   if (VData.error) { return false; }
   const {keyCode} = event,
-  key = window.VKey && VKey.cache_ ? VKey.key_({c: kChar.INVALID, e: event, i: keyCode}, kModeId.Show)
+  key = window.VKey && VKey.cacheK_ ? VKey.key_({c: kChar.INVALID, e: event, i: keyCode}, kModeId.Show)
       : keyCode === kKeyCode.space ? kChar.space : keyCode === kKeyCode.enter ? kChar.enter : "",
   keybody = (key.slice(key.lastIndexOf("-") + 1) || key && kChar.minus) as kChar;
   if (keybody === kChar.space || keybody === kChar.enter) {

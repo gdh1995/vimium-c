@@ -207,7 +207,7 @@ var VCui = {
         }
       }
     }
-    sel = VDom.getSelected_();
+    sel = VDom.getSelection_();
     let offset: number, sr: ShadowRoot | null = null, sel2: Selection | null = sel
       , kTagName = "tagName" as const;
     if (!(  (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
@@ -263,7 +263,7 @@ var VCui = {
     return par !== VDom.docEl_unsafe_() ? par as Element | null : null;
   },
   getSelectionText_ (notTrim?: 1): string {
-    let sel = VDom.getSelected_(), s = "" + sel, el: Element | null, rect: ClientRect;
+    let sel = VDom.getSelection_(), s = "" + sel, el: Element | null, rect: ClientRect;
     if (s && !VApi.lock_() && (el = VCui.activeEl_) && VDom.getEditableType_<0>(el) === EditableType.TextBox
         && (rect = VDom.getSelectionBoundingBox_(sel), !rect.width || !rect.height)) {
       s = "";
@@ -280,7 +280,7 @@ var VCui = {
     return true;
   } as (root?: VUIRoot, justTest?: 1) => boolean,
   resetSelectionToDocStart_ (sel?: Selection): void {
-    (sel || VDom.getSelected_()).removeAllRanges();
+    (sel || VDom.getSelection_()).removeAllRanges();
   },
   click_ (element: SafeElementForMouse
       , rect?: Rect | null, addFocus?: boolean | BOOL, modifiers?: MyMouseControlKeys | null
@@ -417,7 +417,7 @@ var VCui = {
       return;
     }
     // not need `this.getSelection_()`
-    const sel = VDom.getSelected_();
+    const sel = VDom.getSelection_();
     try {
       if (type === EditableType.rich_) {
         const range = document.createRange();
