@@ -372,7 +372,7 @@ interface VApiTy {
 }
 interface VHUDTy {
   readonly boxH_: HTMLDivElement | null;
-  readonly t: string;
+  readonly text_: string;
   readonly opacity_: 0 | 0.25 | 0.5 | 0.75 | 1;
   show_ (tid: kTip | HintMode, args?: Array<string | number>, embed?: boolean): void;
   /** duration is default to 1500 */

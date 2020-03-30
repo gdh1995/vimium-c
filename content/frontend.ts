@@ -532,7 +532,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
             return oldEsc(HandlerResult.Prevent);
           }
           currentKeys = ""; nextKeys = keyFSM;
-          if (keyCount - count || !HUD.t) {
+          if (keyCount - count || !HUD.text_) {
             keyCount = count;
             HUD.show_(kTip.normalMode, [count > 1 ? VTr(kTip.nTimes, [count]) : ""]);
           }
@@ -1057,7 +1057,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     _tweenId: 0,
     boxH_: null as HTMLDivElement | null,
     _$text: null as never as Text,
-    t: "",
+    text_: "",
     opacity_: 0 as 0 | 0.25 | 0.5 | 0.75 | 1,
     enabled_: false,
     _timerH: TimerID.None,
@@ -1075,11 +1075,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     } as VHUDTy["copied_"],
     tip_ (tid: kTip | HintMode, duration?: number, args?: Array<string | number>): void {
       HUD.show_(tid, args);
-      HUD.t && (HUD._timerH = VKey.timeout_(HUD.hide_, duration || 1500));
+      HUD.text_ && (HUD._timerH = VKey.timeout_(HUD.hide_, duration || 1500));
     },
     show_ (tid: kTip | HintMode, args?: Array<string | number>, embed?: boolean): void {
       if (!HUD.enabled_ || !vDom.isHTML_()) { return; }
-      const text = HUD.t = VTr(tid, args);
+      const text = HUD.text_ = VTr(tid, args);
       HUD.opacity_ = 1;
       if (HUD._timerH) { VKey.clearTimeout_(HUD._timerH); HUD._timerH = TimerID.None; }
       embed || HUD._tweenId || (HUD._tweenId = setInterval(HUD._tween, 40));
@@ -1112,7 +1112,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
                     && fake ? 0 : +(st.opacity || 1);
       if (opacity === HUD.opacity_) { /* empty */ }
       else if (opacity === 0) {
-        HUD._$text.data = HUD.t;
+        HUD._$text.data = HUD.text_;
         st.opacity = fgCache.m
             || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && fake
             ? "" : "0.25";
@@ -1135,7 +1135,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     hide_ (this: void, info?: TimerType): void {
       let i: number;
       if (i = HUD._timerH) { vKey.clearTimeout_(i); HUD._timerH = TimerID.None; }
-      HUD.opacity_ = 0; HUD.t = "";
+      HUD.opacity_ = 0; HUD.text_ = "";
       if (!HUD.boxH_) { /* empty */ }
       else if (info === TimerType.noTimer || !isEnabled) {
         const box = HUD.boxH_, st = box.style;

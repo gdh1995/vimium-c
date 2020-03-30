@@ -1263,7 +1263,7 @@ var VHints = {
       VApi.keydownEvents_()[a.keyCode_ = event.i] = 1;
     }
     masterOrA.resetHints_(); // here .keyStatus_ is reset
-    (a.hud_ as Writable<VHUDTy>).t = "";
+    (a.hud_ as Writable<VHUDTy>).text_ = "";
     if (VDom.IsInDOM_(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
       // must use UI.getRect, so that VDom.zooms are updated, and prepareCrop is called
@@ -1294,7 +1294,7 @@ var VHints = {
     }
     a._removeFlash && a._removeFlash();
     a._removeFlash = null;
-    (masterOrA as typeof a).promptTimer_ = -!!a.hud_.t;
+    (masterOrA as typeof a).promptTimer_ = -!!a.hud_.text_;
     if (!(a.mode_ & HintMode.queue)) {
       masterOrA._setupCheck(a, clickEl);
       masterOrA.clear_(<1 | 0> -(masterOrA as typeof a).promptTimer_, 0);
