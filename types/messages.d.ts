@@ -241,6 +241,7 @@ interface CmdOptions {
     dir?: 1 | -1 | 0.5 | -0.5;
     view?: 0 | /** means 0 */ undefined | 1 | "max" | /* all others are treated as "view" */ 2 | "view";
     dest?: undefined;
+    keepHover?: boolean;
   } | {
     /** continuous */ $c?: BOOL;
     dest: "min" | "max";
@@ -248,6 +249,7 @@ interface CmdOptions {
     view?: undefined;
     sel?: "clear";
     dir?: undefined;
+    keepHover?: boolean;
   };
   [kFgCmd.reset]: Dict<any>;
   [kFgCmd.toggle]: {

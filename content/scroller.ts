@@ -39,25 +39,26 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
   sign = 0, timestamp = 0, totalDelta = 0.0, totalElapsed = 0.0, //
   running = 0 as number, next = requestAnimationFrame, timer = TimerID.None,
   top: SafeElement | null = null,
+  self = VSc,
   animate = (newTimestamp: number): void => {
     if (!VSc) { toggleStyles(0); return; }
-    const _this = VSc,
+    const
     // although timestamp is mono, Firefox adds too many limits to its precision
     elapsed = !timestamp ? (newTimestamp = performance.now(), ScrollerNS.Consts.firstTick)
               : newTimestamp > timestamp ? newTimestamp - timestamp
               : (newTimestamp += ScrollerNS.Consts.tickForUnexpectedTime, ScrollerNS.Consts.tickForUnexpectedTime),
-    continuous = _this.keyIsDown_ > 0;
+    continuous = self.keyIsDown_ > 0;
     timestamp = newTimestamp;
     totalElapsed += elapsed;
     if (amount < ScrollerNS.Consts.AmountLimitToScrollAndWaitRepeatedKeys
-        && continuous && totalDelta >= amount && totalElapsed < _this.minDelay_ - 2) {
+        && continuous && totalDelta >= amount && totalElapsed < self.minDelay_ - 2) {
       running = 0;
-      timer = VKey.timeout_(startAnimate, _this.minDelay_ - totalElapsed);
+      timer = VKey.timeout_(startAnimate, self.minDelay_ - totalElapsed);
       return;
     }
     if (continuous) {
       if (totalElapsed >= ScrollerNS.Consts.delayToChangeSpeed) {
-        if (totalElapsed > _this.minDelay_) { --_this.keyIsDown_; }
+        if (totalElapsed > self.minDelay_) { --self.keyIsDown_; }
         if (ScrollerNS.Consts.minCalibration <= calibration && calibration <= ScrollerNS.Consts.maxCalibration) {
           const calibrationScale = ScrollerNS.Consts.calibrationBoundary / amount / calibration;
           calibration *= calibrationScale > ScrollerNS.Consts.maxS ? ScrollerNS.Consts.maxS
@@ -68,7 +69,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     let delta = amount * (elapsed / duration) * calibration;
     continuous || (delta = Math.min(delta, amount - totalDelta));
     // not use `sign * _performScroll()`, so that the code is safer even though there're bounce effects
-    delta = delta > 0 ? Math.abs(_this._performScroll(element, di, sign * Math.ceil(delta))) : 0;
+    delta = delta > 0 ? Math.abs(self._performScroll(element, di, sign * Math.ceil(delta))) : 0;
     if (delta) {
       totalDelta += delta;
       next(animate);
@@ -82,7 +83,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
             new Event("scrollend", {cancelable: false, bubbles: notEl}));
       }
       toggleStyles(0);
-      _this._checkCurrent(element);
+      self._checkCurrent(element);
       element = null;
       running = 0;
     }
@@ -98,7 +99,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     top = scrolling ? el : null;
     el && el.style ? el.style.pointerEvents = scrolling ? "none" : "" : 0;
   };
-  this._animate = function (this: typeof VSc, newEl, newDi, newAmount): void {
+  self._animate = (newEl, newDi, newAmount): void => {
     const math = Math, max = math.max;
     amount = max(1, math.abs(newAmount)); calibration = 1.0; di = newDi;
     duration = max(ScrollerNS.Consts.minDuration, ScrollerNS.Consts.durationScaleForAmount * math.log(amount));
@@ -110,14 +111,14 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       VKey.clearTimeout_(timer);
     }
     const keyboard = VDom.cache_.k;
-    this.maxInterval_ = math.round(keyboard[1] / ScrollerNS.Consts.FrameIntervalMs) + ScrollerNS.Consts.MaxSkippedF;
-    this.minDelay_ = (((keyboard[0] + max(keyboard[1], ScrollerNS.Consts.DelayMinDelta)
+    self.maxInterval_ = math.round(keyboard[1] / ScrollerNS.Consts.FrameIntervalMs) + ScrollerNS.Consts.MaxSkippedF;
+    self.minDelay_ = (((keyboard[0] + max(keyboard[1], ScrollerNS.Consts.DelayMinDelta)
           + ScrollerNS.Consts.DelayTolerance) / ScrollerNS.Consts.DelayUnitMs) | 0)
       * ScrollerNS.Consts.DelayUnitMs;
-    toggleStyles(1);
+      self.preventPointEvents_ && toggleStyles(1);
     startAnimate();
   };
-  this._animate(e, d, a);
+  self._animate(e, d, a);
 },
   maxInterval_: ScrollerNS.Consts.DefaultMaxIntervalF as number,
   minDelay_: ScrollerNS.Consts.DefaultMinDelayMs as number,
@@ -169,6 +170,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
   /** @NEED_SAFE_ELEMENTS */
   top_: null as SafeElement | null,
   keyIsDown_: 0,
+  preventPointEvents_: 1 as BOOL | boolean,
   scale_: 1,
   activateS_ (this: void, count: number, options: CmdOptions[kFgCmd.scroll] & SafeObject): void {
     if (options.$c == null) {
@@ -232,7 +234,9 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
         VCui.resetSelectionToDocStart_();
       }
     }
+    a.preventPointEvents_ = !(options && options.keepHover);
     a.$sc(element, di, amount);
+    a.preventPointEvents_ = 1;
     a.scrolled_ = 0;
     a.top_ = null;
     if (amount && VDom.readyState_ > "i" && VSc._overrideScrollRestoration) {
