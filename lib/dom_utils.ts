@@ -932,14 +932,15 @@ var VDom = {
     }
     return arr;
   },
-  setBoundary_ (style: CSSStyleDeclaration, r: WritableRect, allow_abs?: boolean): void {
-    if (allow_abs && (r.t < 0 || r.l < 0 || r.b > innerHeight || r.r > innerWidth)) {
-      const arr: ViewOffset = this.getViewBox_();
+  setBoundary_ (style: CSSStyleDeclaration, r: WritableRect, allow_abs?: boolean): boolean | undefined {
+    const need_abs = allow_abs && (r.t < 0 || r.l < 0 || r.b > innerHeight || r.r > innerWidth),
+    arr: ViewOffset | false | undefined = need_abs && <ViewOffset> this.getViewBox_();
+    if (arr) {
       r.l += arr[0], r.r += arr[0], r.t += arr[1], r.b += arr[1];
-      style.position = "absolute";
     }
     style.left = r.l + "px", style.top = r.t + "px";
     style.width = (r.r - r.l) + "px", style.height = (r.b - r.t) + "px";
+    return need_abs;
   },
   cropRectToVisible_: null as never as (left: number, top: number, right: number, bottom: number) => Rect | null,
   SubtractSequence_ (this: {l: Rect[]; t: Rect}, rect1: Rect): void { // rect1 - rect2

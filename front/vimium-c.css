@@ -16,7 +16,7 @@ box-shadow:0 3px 5px #0000004d;overflow:hidden;padding:1.5px 3px 0.5px;position:
 position:absolute;z-index:-1}.Find{width:100%;position:static}.HUD{bottom:-1px;font-size:14px;
 height:20px;line-height:16px;max-width:336px;min-width:152px;overflow:hidden;padding:4px 4px 1px;right:152px;
 text-overflow:ellipsis;white-space:nowrap}.HUD.UI{height:24px}
-.Flash{box-shadow:0 0 4px 2px #4183c4;padding:1px}.Sel{box-shadow:0 0 4px 2px #ffa000}
+.Flash{box-shadow:0 0 4px 2px #4183c4;padding:1px}.AbsF{padding:0;position:absolute}.Sel{box-shadow:0 0 4px 2px #ffa000}
 .Frame{border:5px solid #ff0}.Frame,.HUD:after{box-sizing:border-box;height:100%;left:0;top:0;width:100%}
 .Omnibar{left:calc(10vw - 12px);top:64px;width:calc(80vw + 24px)}.O2{left:calc(10% - 12px);width:calc(80% + 24px)}
 .BH{color:#902809}.TH{padding-bottom:2px}.MC,.MH{color:#d4ac3a}.One{border-color:#ffa07a}.UI,.DHM{pointer-events:all}

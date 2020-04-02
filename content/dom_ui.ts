@@ -1,6 +1,7 @@
 interface ShadowRootWithSelection extends ShadowRoot {
   getSelection(): Selection | null;
 }
+type DomUIEx = typeof VCui & { flashTime: number | undefined };
 
 // eslint-disable-next-line no-var
 var VCui = {
@@ -467,14 +468,12 @@ var VCui = {
     rect || (rect = a.getRect_(el as Element));
     if (!rect) { return; }
     const flashEl = VDom.createElement_("div"), nfs = !VDom.fullscreenEl_unsafe_();
-    flashEl.className = "R Flash" + (classNames || "");
-    VDom.setBoundary_(flashEl.style, rect, nfs);
+    flashEl.className = "R Flash" + (classNames || "") + (VDom.setBoundary_(flashEl.style, rect, nfs) ? " AbsF" : "");
     Build.BTypes & ~BrowserType.Firefox &&
     VDom.bZoom_ !== 1 && nfs && (flashEl.style.zoom = "" + VDom.bZoom_);
     a.add_(flashEl);
     a.lastFlashEl_ = flashEl;
     if (!Build.NDEBUG) {
-      type DomUIEx = typeof VCui & { flashTime: number | undefined };
       lifeTime = lifeTime === -1 ? - 1 : Math.max(lifeTime || 0, <number> (VCui as DomUIEx).flashTime | 0);
     }
     const remove = function (): void {
@@ -520,3 +519,6 @@ var VCui = {
     VCui.setupExitOnClick_(0, 0);
   }
 };
+if (!Build.NDEBUG) {
+  (VCui as DomUIEx).flashTime = 0;
+}
