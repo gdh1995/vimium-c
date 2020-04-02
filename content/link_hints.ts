@@ -621,45 +621,38 @@ var VHints = {
       }
     }
   },
-  _getImagesInImg (hints: Hint[], element: HTMLImageElement): void {
-    // according to https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement#Browser_compatibility,
-    // <img>.currentSrc is since C45
-    const src: string | null | undefined = element.getAttribute("src") || element.currentSrc || element.dataset.src;
-    if (!src) { return; }
-    let rect = VDom.getBoundingClientRect_(element), cr: Rect | null = null
-      , l = rect.left, t = rect.top, w = rect.width, h = rect.height;
-    if (w < 8 && h < 8) {
-      w = h = w === h && (w ? w === 3 : l || t) ? 8 : 0;
-    } else {
-      w > 3 ? 0 : w = 3;
-      h > 3 ? 0 : h = 3;
-    }
-    cr = VDom.cropRectToVisible_(l, t, l + w, t + h);
-    if (cr && VDom.isStyleVisible_(element)) {
-      hints.push([element, cr, ClickType.Default]);
-    }
-  },
   GetImages_ (this: void, hints: Hint[], element: SafeHTMLElement): void {
     const tag = element.localName;
+    let str: string | null | undefined, cr: Rect | null | undefined;
     if (tag === "img") {
-      VHints._getImagesInImg(hints, element as HTMLImageElement);
-      return;
-    }
-    let str: string | null, cr: Rect | null;
-    if (VHints.mode1_ === HintMode.DOWNLOAD_MEDIA && (tag === "video" || tag === "audio")) {
-      str = (element as unknown as HTMLImageElement).currentSrc || (element as unknown as HTMLImageElement).src;
+      // according to https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement#Browser_compatibility,
+      // <img>.currentSrc is since C45
+      str = element.getAttribute("src") || (element as HTMLImageElement).currentSrc || element.dataset.src;
+      if (str) {
+        let rect = VDom.getBoundingClientRect_(element)
+          , l = rect.left, t = rect.top, w = rect.width, h = rect.height;
+        if (w < 8 && h < 8) {
+          w = h = w === h && (w ? w === 3 : l || t) ? 8 : 0;
+        } else {
+          w > 3 ? 0 : w = 3;
+          h > 3 ? 0 : h = 3;
+        }
+        cr = VDom.cropRectToVisible_(l, t, l + w, t + h);
+        cr = cr && VDom.isStyleVisible_(element) ? VDom.getCroppedRect_(element, cr) : null;
+      }
     } else {
-      str = element.dataset.src || element.getAttribute("href");
-      if (!VHints.isImageUrl_(str)) {
-        str = element.style.backgroundImage as string;
-        str = str && (<RegExpI> /^url\(/i).test(str) ? str : "";
+      if (VHints.mode1_ === HintMode.DOWNLOAD_MEDIA && (tag === "video" || tag === "audio")) {
+        str = (element as unknown as HTMLImageElement).currentSrc || (element as unknown as HTMLImageElement).src;
+      } else {
+        str = element.dataset.src || element.getAttribute("href");
+        if (!VHints.isImageUrl_(str)) {
+          str = element.style.backgroundImage as string;
+          str = str && (<RegExpI> /^url\(/i).test(str) ? str : "";
+        }
       }
+      cr = str ? VDom.getVisibleClientRect_(element) : cr;
     }
-    if (str) {
-      if (cr = VDom.getVisibleClientRect_(element)) {
-        hints.push([element, cr, ClickType.Default]);
-      }
-    }
+    cr && hints.push([element, cr, ClickType.Default]);
   },
   /** @safe_even_if_any_overridden_property */
   traverse_: function (selector: string
