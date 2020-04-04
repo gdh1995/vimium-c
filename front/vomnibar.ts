@@ -54,6 +54,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.updateQueryFlag_(CompletersNS.QueryFlags.TabTree, !!options.tree);
     a.updateQueryFlag_(CompletersNS.QueryFlags.MonospaceURL, null);
     a.updateQueryFlag_(CompletersNS.QueryFlags.NoTabEngine, !!options.noTabs);
+    a.caseInsensitive_ = !!options.icase;
     a.forceNewTab_ = !!options.newtab;
     a.selectFirst_ = options.autoSelect;
     a.notSearchInput_ = options.searchInput === false;
@@ -184,6 +185,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       ? Build.BTypes : BrowserType.Chrome,
   browserVer_: Build.BTypes & BrowserType.Chrome ? BrowserVer.assumedVer : BrowserVer.assumedVer,
   os_: kOS.win as SettingsNS.ConstItems["o"][1],
+  caseInsensitive_: false,
   mapModifier_: 0 as SettingsNS.AllVomnibarItems["a"][1],
   mappedKeyRegistry_: null as SettingsNS.AllVomnibarItems["k"][1],
   maxMatches_: 0,
@@ -1235,6 +1237,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         str = (isStart ? last : "") + (isStart ? str.slice(last.length) : str).replace(<RegExpG> /'/g, "");
       }
       str = str.replace(a.spacesRe_, " ");
+      if (a.caseInsensitive_) {
+        str = str.toLowerCase();
+      }
       if (str === mode.q) { return a.postUpdate_(); }
       mode.t = a.matchType_ < CompletersNS.MatchType.someMatches || !str.startsWith(mode.q) ? CompletersNS.SugType.Empty
         : a.matchType_ === CompletersNS.MatchType.searchWanted
@@ -1245,6 +1250,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       a.onInnerWidth_();
     } else {
       a.useInput_ = true;
+      if (a.caseInsensitive_) {
+        mode.q = mode.q.toLowerCase();
+      }
     }
     return VPort_.post_(mode);
   },

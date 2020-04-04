@@ -420,6 +420,7 @@ declare namespace VomnibarNS {
     autoSelect?: boolean | null | BOOL;
     preferTabs?: "new" | "new-opened" | "newOpened";
     noTabs?: boolean;
+    icase?: boolean;
     searchInput?: boolean;
     tree?: boolean; // show tabs in tree mode
   }
