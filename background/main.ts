@@ -1623,8 +1623,9 @@
     },
     /* kBgCmd.removeTabsR: */ function (this: void, tabs: Tab[]): void {
       /** `direction` is treated as limited; limited by pinned */
-      let activeTab: {index: number; pinned: boolean} = selectFrom(tabs), direction = cOptions.other ? 0 : cRepeat;
+      let activeTab = selectFrom(tabs), direction = cOptions.other ? 0 : cRepeat;
       let i = activeTab.index, noPinned = false;
+      const filter: string = cOptions.filter;
       if (direction > 0) {
         ++i;
         tabs = tabs.slice(i, i + direction);
@@ -1638,6 +1639,12 @@
       }
       if (noPinned) {
         tabs = tabs.filter(tab => !tab.pinned);
+      }
+      if (filter) {
+        const title = filter.includes("title") ? activeTab.title : "",
+        full = filter.includes("hash"),
+        u = full ? activeTab.url.split("#", 1)[0] : activeTab.url;
+        tabs = tabs.filter(tab => (full ? tab.url : tab.url.split("#", 1)[0]) === u && (!title || tab.title === title));
       }
       if (tabs.length > 0) {
         chrome.tabs.remove(tabs.map(tab => tab.id), onRuntimeError);

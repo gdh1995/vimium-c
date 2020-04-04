@@ -185,6 +185,9 @@
 	"closeOtherTabs": {
 		"message": "Close all other tabs"
 	},
+	"closeOtherTabs_p": {
+		"message": "filter=\"\"/url/url+hash/url+title"
+	},
 	"closeTabsOnLeft": {
 		"message": "Close all tabs on the left"
 	},
