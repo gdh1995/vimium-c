@@ -211,6 +211,7 @@ declare namespace HintsNS {
     dblclick?: boolean;
     newtab?: boolean | "force" | "window";
     button?: "right";
+    scroll?: "force";
     touch?: null | boolean | "auto";
     join?: FgReq[kFgReq.copy]["j"];
     sed?: string;

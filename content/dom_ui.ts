@@ -13,6 +13,7 @@ var VCui = {
   findCss_: null as never as FindCSS,
   /** @NEED_SAFE_ELEMENTS */
   activeEl_: null as SafeElement | null,
+  cachedScrollable_: 0 as SafeElement | 0 | null,
   add_: (function <T extends HTMLElement> (this: void, element: T, adjust?: AdjustType): void {
     let a = VCui, box = a.box_ = VDom.createElement_("div"),
     root: VUIRoot = a.root_ = VDom.createShadowRoot_(box),

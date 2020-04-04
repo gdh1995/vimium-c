@@ -266,6 +266,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     if (!lastWndFocusTime || Date.now() - lastWndFocusTime > 30) {
       vCui.activeEl_ = Build.BTypes & ~BrowserType.Firefox
           ? vDom.SafeEl_(target as Element) || vCui.activeEl_ : target as SafeElement;
+      vCui.cachedScrollable_ = 0;
     }
     lastWndFocusTime = 0;
     if (vDom.getEditableType_<2>(target)) {
@@ -331,6 +332,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
               ? path : path && (path as EventTarget[]).length > 1)
           ? (path as EventTarget[])[0] as Element : event.target as Element;
       vCui.activeEl_ = Build.BTypes & ~BrowserType.Firefox ? vDom.SafeEl_(el) : el as SafeElement | null;
+      vCui.cachedScrollable_ = 0;
     }
   }
   function onWndBlur(this: void): void {
@@ -485,7 +487,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     /* kFgCmd.vomnibar: */ VOmni.activateO_ ,
     /* kFgCmd.reset: */ (isAlive): void => {
       const a = InsertMode;
-      vCui.activeEl_ = vDom.lastHovered_ = a.last_ = insertLock = a.global_ = null;
+      vCui.activeEl_ = vCui.cachedScrollable_ = vDom.lastHovered_ = a.last_ = insertLock = a.global_ = null;
       a.mutable_ = true;
       a.ExitGrab_(); events.setupSuppress_();
       vHints.clear_(isAlive ? 2 : 0); VVisual.deactivateV_();

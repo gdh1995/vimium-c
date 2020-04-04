@@ -84,6 +84,7 @@ var VHints = {
   count_: 0,
   lastMode_: 0 as HintMode,
   tooHigh_: false as null | boolean,
+  forceToScroll_: 0,
   promptTimer_: TimerID.None as TimerID,
   isClickListened_: true,
   ngEnabled_: null as boolean | null,
@@ -215,9 +216,28 @@ var VHints = {
     const a = this;
     a._master = Build.BTypes & BrowserType.Firefox ? master && a.unwrap_(master) : master;
     a.resetHints_();
-    a.setModeOpt_(count, options);
+    if (a.options_ === options) { return; }
+    /** ensured by {@link ../background/commands.ts#Commands.makeCommand_} */
+    let modeOpt: HintsNS.ModeOpt | undefined, mode = options.mode as number;
+    for (let modes of a.Modes_) {
+      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
+          ? modes.indexOf(mode & ~HintMode.queue) > 0
+          : (modes as Ensure<HintsNS.ModeOpt, "includes">).includes(mode & ~HintMode.queue)) {
+        modeOpt = modes;
+        break;
+      }
+    }
+    if (!modeOpt) {
+      modeOpt = a.Modes_[8];
+      mode = HintMode.DEFAULT;
+    }
+    mode = count > 1 ? mode ? mode | HintMode.queue : HintMode.OPEN_WITH_QUEUE : mode;
+    a.modeOpt_ = modeOpt;
+    a.options_ = options;
+    a.count_ = count;
     a.chars_ = chars;
     a.useFilter_ = useFilter;
+    a.setMode_(mode, 1);
     if (!VDom.isHTML_()) {
       return;
     }
@@ -229,6 +249,7 @@ var VHints = {
       a.tooHigh_ = (VDom.scrollingEl_(1) as HTMLElement).scrollHeight / innerHeight
         > GlobalConsts.LinkHintTooHighThreshold;
     }
+    a.forceToScroll_ = options.scroll === "force" ? 2 : 0;
     a._addChildFrame = addChildFrame;
     const elements = a.getVisibleElements_(view);
     const hintItems = elements.map(a.createHint_, a);
@@ -259,29 +280,6 @@ var VHints = {
     VKey.pushHandler_(a.onKeydown_, a);
     a._master && VKey.SetupEventListener_(0, "unload", a.clear_);
     a.isInLH_ = true;
-  },
-  setModeOpt_ (count: number, options: HintsNS.ContentOptions): void {
-    const a = this;
-    if (a.options_ === options) { return; }
-    /** ensured by {@link ../background/commands.ts#Commands.makeCommand_} */
-    let modeOpt: HintsNS.ModeOpt | undefined, mode = options.mode as number;
-    for (let modes of a.Modes_) {
-      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
-          ? modes.indexOf(mode & ~HintMode.queue) > 0
-          : (modes as Ensure<HintsNS.ModeOpt, "includes">).includes(mode & ~HintMode.queue)) {
-        modeOpt = modes;
-        break;
-      }
-    }
-    if (!modeOpt) {
-      modeOpt = a.Modes_[8];
-      mode = HintMode.DEFAULT;
-    }
-    mode = count > 1 ? mode ? mode | HintMode.queue : HintMode.OPEN_WITH_QUEUE : mode;
-    a.modeOpt_ = modeOpt;
-    a.options_ = options;
-    a.count_ = count;
-    a.setMode_(mode, 1);
   },
   setMode_ (mode: HintMode, silent?: 1): void {
     const a = this;
@@ -498,7 +496,8 @@ var VHints = {
         && (arr = tag === "img" ? VDom.getZoomedAndCroppedRect_(element as HTMLImageElement, null, true)
                 : arr || VDom.getVisibleClientRect_(element, null))
         && (type < ClickType.scrollX
-          || VSc.shouldScroll_need_safe_(element, type - ClickType.scrollX as ScrollByY, 0) > 0)
+          || VSc.shouldScroll_need_safe_(element
+              , ((type - ClickType.scrollX as ScrollByY) + _this.forceToScroll_) as BOOL | 2 | 3, 0) > 0)
         && VDom.isAriaNotTrue_(element, kAria.hidden)
         && (_this.mode_ > HintMode.min_job - 1 || VDom.isAriaNotTrue_(element, kAria.disabled))
     ) { hints.push([element, arr, type]); }
@@ -1408,7 +1407,7 @@ var VHints = {
     a.options_ = a.modeOpt_ = null as never;
     a.lastMode_ = a.mode_ = a.mode1_ = a.count_ =
     a.maxLeft_ = a.maxTop_ = a.maxRight_ =
-    a.maxPrefixLen_ = a.hasExecuted_ = 0;
+    a.maxPrefixLen_ = a.hasExecuted_ = a.forceToScroll_ = 0;
     a.keyCode_ = kKeyCode.None;
     a.useFilter_ =
     a.isInLH_ = a.noHUD_ = a.tooHigh_ = false;
@@ -2058,11 +2057,13 @@ Modes_: [
 [
   (element, rect): void => {
     const a = VHints, type = VDom.getEditableType_<0>(element), toggleMap = a.options_.toggle;
+    const ui = VCui;
     // here not check VDom.lastHovered on purpose
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
-    VCui.activeEl_ = element;
+    ui.activeEl_ = element;
     VDom.hover_(element, VDom.center_(rect));
     type || element.focus && !(<RegExpI> /^i?frame$/).test(VDom.htmlTag_(element)) && element.focus();
+    ui.cachedScrollable_ = ui.activeEl_;
     if (a.mode1_ < HintMode.min_job) { // called from Modes[-1]
       return a.hud_.tip_(kTip.hoverScrollable, 1000);
     }

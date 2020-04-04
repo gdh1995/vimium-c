@@ -169,6 +169,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
 
   /** @NEED_SAFE_ELEMENTS */
   top_: null as SafeElement | null,
+  doseForceToScroll_: 0 as BOOL,
   keyIsDown_: 0,
   preventPointEvents_: 1 as BOOL | boolean,
   scale_: 1,
@@ -202,11 +203,10 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       , options?: CmdOptions[kFgCmd.scroll]): void {
     const a = this as typeof VSc;
     a.prepareTop_();
-    let amount = amount0;
-    const element = a.findScrollable_(di, isTo ? fromMax ? 1 : -1 : amount);
-    amount = !factor ? a._adjustAmount(di, amount, element)
-      : factor === 1 ? amount
-      : amount * a.getDimension_(element, di, factor === "max" ? kScrollDim.scrollSize : kScrollDim.viewSize);
+    const element = a.findScrollable_(di, isTo ? fromMax ? 1 : -1 : amount0);
+    let amount = !factor ? a._adjustAmount(di, amount0, element)
+      : factor === 1 ? amount0
+      : amount0 * a.getDimension_(element, di, factor === "max" ? kScrollDim.scrollSize : kScrollDim.viewSize);
     if (isTo) {
       const curPos = a.getDimension_(element, di, kScrollDim.position),
       viewSize = a.getDimension_(element, di, kScrollDim.viewSize),
@@ -299,12 +299,14 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
    * @param amount should not be 0
    */
   findScrollable_ (di: ScrollByY, amount: number): SafeElement | null {
-    const a = this, top = a.top_;
-    let element: SafeElement | null = VCui.activeEl_;
+    const a = this, top = a.top_, ui = VCui, activeEl: SafeElement | null = ui.activeEl_;
+    let element = activeEl;
     if (element) {
-      let reason, notNeedToRecheck = !di;
+      let reason: number, notNeedToRecheck = !di;
       type Element2 = NonNullable<typeof element>;
-      while (element !== top && (reason = a.shouldScroll_need_safe_(element as Element2, di, amount)) < 1) {
+      while (element !== top && (reason = a.shouldScroll_need_safe_(element as Element2
+              , element === ui.cachedScrollable_ ? (di + 2) as 2 | 3 : di
+              , amount)) < 1) {
         if (!reason) {
           notNeedToRecheck = notNeedToRecheck || a._doesScroll(element as Element2, 1, -amount);
         }
@@ -314,6 +316,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
           ) || top;
       }
       element = element !== top || notNeedToRecheck ? element : null;
+      ui.cachedScrollable_ = element;
     }
     if (!element) {
       // note: twitter auto focuses its dialog panel, so it's not needed to detect it here
@@ -324,11 +327,11 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     if (!element && top) {
       const candidate = a._selectFirst({ area_: 0, element_: top, height_: 0 });
       element = candidate && candidate.element_ !== top
-          && (!VCui.activeEl_ || candidate.height_ > innerHeight / 2)
+          && (!activeEl || candidate.height_ > innerHeight / 2)
           ? candidate.element_ : top;
       // if VCui.activeEl_, then delay update to VCui.activeEl_, until scrolling ends and ._checkCurrent is called;
       // otherwise, cache selected element for less further cost
-      VCui.activeEl_ || (VCui.activeEl_ = element);
+      activeEl || (ui.activeEl_ = element, ui.cachedScrollable_ = 0);
     }
     return element;
   },
@@ -347,8 +350,8 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     this.scale_ = (Build.BTypes & BrowserType.Firefox ? 2 : 1) / Math.min(1, VDom.wdZoom_) / Math.min(1, VDom.bZoom_);
   },
   _checkCurrent (el: SafeElement | null): void {
-    const cur = VCui.activeEl_;
-    if (cur !== el && cur && VDom.NotVisible_(cur)) { VCui.activeEl_ = el; }
+    const ui = VCui, cur = ui.activeEl_;
+    if (cur !== el && cur && VDom.NotVisible_(cur)) { ui.activeEl_ = el; ui.cachedScrollable_ = 0; }
   },
   /** if `el` is null, then return viewSize for `kScrollDim.scrollSize` */
   getDimension_ (el: SafeElement | null, di: ScrollByY, index: kScrollDim & number): number {
@@ -432,6 +435,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     hasY = b < ihm ? max(b - ih + ihm, t - ihm) : ih < t + ihm ? min(b - ih + ihm, t - ihm) : 0,
     hasX = r < 0 ? max(l - iwm, r - iw + iwm) : iw < l ? min(r - iw + iwm, l - iwm) : 0;
     VCui.activeEl_ = el;
+    VCui.cachedScrollable_ = 0;
     if (hasX || hasY) {
       for (let el2: Element | null = el; el2; el2 = VDom.GetParent_(el2, PNType.RevealSlotAndGotoParent)) {
         const pos = VDom.getComputedStyle_(el2).position;
@@ -453,10 +457,11 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
   },
   scrolled_: 0,
   /** @NEED_SAFE_ELEMENTS */
-  shouldScroll_need_safe_ (element: SafeElement, di: ScrollByY, amount: number): -1 | 0 | 1 {
+  shouldScroll_need_safe_ (element: SafeElement, di: BOOL | 2 | 3, amount: number): -1 | 0 | 1 {
     const st = VDom.getComputedStyle_(element);
-    return (di ? st.overflowY : st.overflowX) === "hidden" || st.display === "none" || st.visibility !== "visible" ? -1
-      : <BOOL> +this._doesScroll(element, di
+    return (di ? st.overflowY : st.overflowX) === "hidden" && di < 2
+      || st.display === "none" || st.visibility !== "visible" ? -1
+      : <BOOL> +this._doesScroll(element, (di & 1) as BOOL
                   , amount || +!(di ? element.scrollTop : element.scrollLeft));
   },
   suppressScroll_ (): void {
