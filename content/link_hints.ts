@@ -1369,7 +1369,7 @@ var VHints = {
     const a = this;
     if (Build.BTypes & BrowserType.Chrome) { a._onWaitingKey = null; }
     a._onTailEnter = a.filterEngine_.pageNumberHints_ =
-    a.hints_ = a.zIndexes_ = a.filterEngine_.activeHint_ = a.filterEngine_.reForMatch_ = null as never;
+    a.hints_ = a.zIndexes_ = a.filterEngine_.activeHint_ = null as never;
     a.promptTimer_ > TimerID.None && (VKey.clearTimeout_(a.promptTimer_), a.promptTimer_ = TimerID.None);
     a.hasExecuted_ = 0;
     a.keyStatus_.curHints_ = null as never;
@@ -1405,6 +1405,7 @@ var VHints = {
     VApi.onWndBlur_(null);
     a._removeFlash && a._removeFlash();
     a._removeFlash = a.hud_ = a.api_ =
+    a.filterEngine_.reForNonMatch_ =
     a.options_ = a.modeOpt_ = null as never;
     a.lastMode_ = a.mode_ = a.mode1_ = a.count_ =
     a.maxLeft_ = a.maxTop_ = a.maxRight_ =
@@ -1521,7 +1522,7 @@ var VHints = {
 filterEngine_: {
   activeHint_: null as HintsNS.FilteredHintItem | null,
   pageNumberHints_: null as never as HintsNS.FilteredHintItem[],
-  reForMatch_: null as never as RegExpG & RegExpOne & RegExpSearchable<0>,
+  reForNonMatch_: null as never as RegExpG & RegExpOne,
   initLF_ (hints: readonly HintsNS.FilteredHintItem[]): void {
     const vHints = VHints, a = vHints.filterEngine_, len = vHints.chars_ !== vHints.kNumbers_ ? 0 : hints.length;
     let i = 0, idxOfSecond = 0, lastPage = 0, curPage = 0, curRangeSecond = 0, curRangeCountS1 = 0;
@@ -1551,20 +1552,6 @@ filterEngine_: {
     }
     a.pageNumberHints_ = hints.slice(curRangeSecond - 1, curRangeSecond + curRangeCountS1);
     a.getMatchingHints_(vHints.keyStatus_, "", "", 0);
-  },
-  getRe_ (forMatch: BOOL): RegExpG & RegExpOne & RegExpSearchable<0> {
-    const a = VHints, chars = a.chars_,
-    accepted_numbers = !forMatch || chars === a.kNumbers_ ? ""
-        : !(Build.BTypes & BrowserType.Chrome)
-          || Build.MinCVer >= BrowserVer.MinTestedES6Environment
-              && Build.MinCVer >= BrowserVer.MinEnsuredES6SpreadOperator
-              && Build.MinCVer >= BrowserVer.MinEnsuredES6$String$$StartsWithEndsWithAndRepeatAndIncludes
-        ? [... <string[]> <any> a.kNumbers_].filter(ch => !(chars as Ensure<string, "includes">).includes(ch)).join("")
-        : a.kNumbers_.replace(new RegExp(`[${chars.replace(<RegExpG> /\D/g, "")}]`, "g"), ""),
-    accepted_words = forMatch ? "[^" + GlobalConsts.KeyboardLettersLl + accepted_numbers
-        : "[^" + GlobalConsts.LettersLlLuAndOtherASCII;
-    return new RegExp(accepted_words + GlobalConsts.KeyboardLettersLo + "]+", "g"
-        ) as RegExpG & RegExpOne & RegExpSearchable<0>;
   },
   GenerateHintStrings_ (this: void, hints: readonly HintsNS.HintItem[]): void {
     const vHints = VHints, chars = vHints.chars_, base = chars.length, is10Digits = chars === vHints.kNumbers_,
@@ -1665,7 +1652,7 @@ filterEngine_: {
         if (hasSearch && !fullHints[0].h.w) {
           for (const {h: textHint} of fullHints) {
             // cache lower-case versions for smaller memory usage
-            const words = textHint.w = (textHint.t = textHint.t.toLowerCase()).split(a.reForMatch_);
+            const words = textHint.w = (textHint.t = textHint.t.toLowerCase()).split(a.reForNonMatch_);
             words[0] || words.shift();
             words.length && (words[words.length - 1] || words.pop());
           }
@@ -1793,7 +1780,6 @@ filterEngine_: {
     noAppend = !!(Build.BTypes & BrowserType.Chrome)
         && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
         && VDom.cache_.v < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend;
-    let exclusionRe: RegExpG | undefined;
     for (const hint of hintItems) {
       let right: string, marker = hint.m;
       if (useFilter) {
@@ -1801,7 +1787,7 @@ filterEngine_: {
         right = (hint.h as HintsNS.HintText).t;
         if (!right || right[0] !== ":") { continue; }
         right = (hint.h as HintsNS.HintText).t = right.slice(1);
-        right = right.replace(exclusionRe = exclusionRe || a.filterEngine_.getRe_(0), " "
+        right = right.replace(<RegExpG> /[^!-~\xc0-\xfc\u0402"-\u045f\xba\u0621-\u064a]+/g, " "
             ).replace(<RegExpOne> /^[^\w\x80-\uffff]+|:[:\s]*$/, "").trim();
         right = right.length > GlobalConsts.MaxLengthOfShownText
             ? right.slice(0, GlobalConsts.MaxLengthOfShownText - 2).trimRight() + "\u2026" // the "\u2026" is wide
@@ -1874,18 +1860,21 @@ filterEngine_: {
       return filterEngine.activeHint_ as NonNullable<typeof filterEngine.activeHint_>;
     } else if (isSpace) { // then useFilter is true
       textSeq = textSeq0 + " ";
-    } else if (!(useFilter && key.includes("c-")) && event.c.length === 1
+    } else if (!(useFilter && (key.includes("c-") || key.includes("m-"))) && event.c.length === 1
         && keybody.length === 1) {
       keybody = useFilter ? keybody : keybody.toUpperCase() as kChar;
       useFilter && h.ResetMode_();
-      if (h.chars_.includes(keybody)) {
+      if (h.chars_.includes(keybody)
+          && !(useFilter && key === "a-" + keybody && keybody < kChar.minNotNum && keybody > kChar.maxNotNum)) {
         sequence += keybody;
         doesDetectMatchSingle = useFilter || sequence.length < h.maxPrefixLen_ ? 1 : 2;
       } else if (useFilter) {
         let lower = keybody.toLowerCase();
         if (keybody !== lower && h.chars_ !== h.chars_.toLowerCase() // ignore {Lo} in h.chars_
             /** this line requires lower.length must be 1 or 0 */
-            || (filterEngine.reForMatch_ || (filterEngine.reForMatch_ = filterEngine.getRe_(1))).test(lower)) {
+            || (filterEngine.reForNonMatch_ || (filterEngine.reForNonMatch_
+                  = <RegExpG & RegExpOne> /[^0-9a-z_\xdf-\xfc\u0430-\u045f\xba\u0621-\u064a]+/g)
+                ).test(lower)) {
           return 2;
         } else {
           sequence = "";
