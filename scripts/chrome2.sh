@@ -75,6 +75,11 @@ case "$1" in
     DIST=0
     shift
     ;;
+  vc|--vc)
+    wp deafault_vc_ext_w "$default_vc_root"
+    OTHER_EXT=${OTHER_EXT},${deafault_vc_ext_w}
+    shift
+    ;;
   ub|ubo)
     UBO=1
     shift

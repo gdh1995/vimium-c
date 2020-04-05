@@ -216,28 +216,29 @@ var VHints = {
     const a = this;
     a._master = Build.BTypes & BrowserType.Firefox ? master && a.unwrap_(master) : master;
     a.resetHints_();
-    if (a.options_ === options) { return; }
-    /** ensured by {@link ../background/commands.ts#Commands.makeCommand_} */
-    let modeOpt: HintsNS.ModeOpt | undefined, mode = options.mode as number;
-    for (let modes of a.Modes_) {
-      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
-          ? modes.indexOf(mode & ~HintMode.queue) > 0
-          : (modes as Ensure<HintsNS.ModeOpt, "includes">).includes(mode & ~HintMode.queue)) {
-        modeOpt = modes;
-        break;
+    if (a.options_ !== options) {
+      /** ensured by {@link ../background/commands.ts#Commands.makeCommand_} */
+      let modeOpt: HintsNS.ModeOpt | undefined, mode = options.mode as number;
+      for (let modes of a.Modes_) {
+        if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
+            ? modes.indexOf(mode & ~HintMode.queue) > 0
+            : (modes as Ensure<HintsNS.ModeOpt, "includes">).includes(mode & ~HintMode.queue)) {
+          modeOpt = modes;
+          break;
+        }
       }
+      if (!modeOpt) {
+        modeOpt = a.Modes_[8];
+        mode = HintMode.DEFAULT;
+      }
+      mode = count > 1 ? mode ? mode | HintMode.queue : HintMode.OPEN_WITH_QUEUE : mode;
+      a.modeOpt_ = modeOpt;
+      a.options_ = options;
+      a.count_ = count;
+      a.setMode_(mode, 1);
     }
-    if (!modeOpt) {
-      modeOpt = a.Modes_[8];
-      mode = HintMode.DEFAULT;
-    }
-    mode = count > 1 ? mode ? mode | HintMode.queue : HintMode.OPEN_WITH_QUEUE : mode;
-    a.modeOpt_ = modeOpt;
-    a.options_ = options;
-    a.count_ = count;
     a.chars_ = chars;
     a.useFilter_ = useFilter;
-    a.setMode_(mode, 1);
     if (!VDom.isHTML_()) {
       return;
     }
