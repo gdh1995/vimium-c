@@ -16,11 +16,10 @@ const Clipboard_ = {
     const result: ClipSubItem[] = [];
     for (let line of text.split("\n")) {
       line = line.trim();
-      const prefix = (<RegExpOne> /^(cp?|pc?|s)([^\x00- A-Za-z\x7f-\uffff\\])/).exec(line);
+      const prefix = (<RegExpOne> /^(cp?|pc?|s)([^\x00- A-Za-z\\])/).exec(line);
       if (!prefix) { continue; }
-      const sep = "\\x" + (prefix[2].charCodeAt(0) + 256).toString(16).slice(1),
-      exprAndSep = `((?:\\\\${sep}|[^${sep}])+)${sep}`,
-      body = (new RegExp(`^${exprAndSep + exprAndSep}([a-z]{0,9})$`)).exec(line.slice(prefix[0].length));
+      const sep = "\\u" + (prefix[2].charCodeAt(0) + 0x10000).toString(16).slice(1),
+      body = new RegExp(`^((?:\\\\${sep}|[^${sep}])+)${sep}(.*)${sep}([a-z]{0,9})$`).exec(line.slice(prefix[0].length));
       if (!body) { continue; }
       let matchRe: RegExpG | null = null;
       try {
