@@ -286,7 +286,7 @@ var VOmni = {
     case VomnibarNS.kFReq.hide: return a.hideO_(1);
     case VomnibarNS.kFReq.scroll: return VSc.BeginScroll_(0, data.k, data.b);
     case VomnibarNS.kFReq.scrollGoing: // no break;
-    case VomnibarNS.kFReq.scrollEnd: VSc.scrollTick_(data.N === VomnibarNS.kFReq.scrollGoing); break;
+    case VomnibarNS.kFReq.scrollEnd: VSc.scrollTick_((VomnibarNS.kFReq.scrollEnd - data.N) as BOOL); break;
     case VomnibarNS.kFReq.evalJS: VApi.evalIfOK_(data.u); break;
     case VomnibarNS.kFReq.broken: focus(); // no break;
     case VomnibarNS.kFReq.unload: return VOmni ? a.reset_(data.N === VomnibarNS.kFReq.broken) : undefined;

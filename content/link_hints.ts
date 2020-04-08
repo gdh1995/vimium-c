@@ -152,6 +152,7 @@ var VHints = {
       a.clear_(1);
       return VHud.tip_(kTip.fewChars, 1000);
     }
+    VSc.scrollTick_(2);
     if (Build.BTypes & BrowserType.Chrome) {
       a.dialogMode_ && a.boxL_ && a.boxL_.remove();
       a.dialogMode_ = !!(a.wantDialogMode_ != null ? a.wantDialogMode_ : VDom.querySelector_unsafe_("dialog[open]"))
@@ -488,7 +489,7 @@ var VHints = {
                 && clientSize + 5 < element.scrollWidth ? ClickType.scrollX
               : ClickType.Default)
           || ((s = element.className)
-                && (<RegExpOne> /\b(?:[Bb](?:utto|t)n|[Cc]lose|hate|like)(?:$|[-\s_])/).test(s)
+                && (<RegExpOne> /\b(?:[Bb](?:utto|t)n|[Cc]lose|hate|like)(?:$|[-\sA-Z_])/).test(s)
                 && (!(anotherEl = element.parentElement)
                     || (s = VDom.htmlTag_(anotherEl), !s.includes("button") && s !== "a"))
               || element.hasAttribute("aria-selected") ? ClickType.classname : ClickType.Default);

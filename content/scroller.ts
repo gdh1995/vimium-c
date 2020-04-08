@@ -41,7 +41,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
   top: SafeElement | null = null,
   self = VSc,
   animate = (newTimestamp: number): void => {
-    if (!VSc) { toggleStyles(0); return; }
+    if (!VSc || !running) { toggleRunning(); return; }
     const
     // although timestamp is mono, Firefox adds too many limits to its precision
     elapsed = !timestamp ? (newTimestamp = performance.now(), ScrollerNS.Consts.firstTick)
@@ -82,21 +82,19 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
         (notEl ? document : element as NonNullable<typeof element>).dispatchEvent(
             new Event("scrollend", {cancelable: false, bubbles: notEl}));
       }
-      toggleStyles(0);
       self._checkCurrent(element);
-      element = null;
-      running = 0;
+      toggleRunning();
     }
   },
   startAnimate = (): void => {
     timer = TimerID.None;
     running = running || next(animate);
   },
-  toggleStyles = (scrolling: BOOL): void => {
+  toggleRunning = self._toggleAnimation = (scrolling?: BOOL): void => {
     const el = (scrolling ? Build.BTypes & ~BrowserType.Firefox ? VDom.SafeEl_(VDom.docEl_unsafe_())
         : VDom.docEl_unsafe_() : top
         ) as SafeElement & TypeToAssert<Element, HTMLElement | SVGElement, "style"> | null;
-    top = scrolling ? el : null;
+    top = scrolling ? el : (running = 0, element = null);
     el && el.style ? el.style.pointerEvents = scrolling ? "none" : "" : 0;
   };
   self._animate = (newEl, newDi, newAmount): void => {
@@ -115,11 +113,12 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     self.minDelay_ = (((keyboard[0] + max(keyboard[1], ScrollerNS.Consts.DelayMinDelta)
           + ScrollerNS.Consts.DelayTolerance) / ScrollerNS.Consts.DelayUnitMs) | 0)
       * ScrollerNS.Consts.DelayUnitMs;
-      self.preventPointEvents_ && toggleStyles(1);
+    self.preventPointEvents_ && toggleRunning(1);
     startAnimate();
   };
   self._animate(e, d, a);
 },
+_toggleAnimation: 0 as 0 | (() => void),
   maxInterval_: ScrollerNS.Consts.DefaultMaxIntervalF as number,
   minDelay_: ScrollerNS.Consts.DefaultMinDelayMs as number,
   _performScroll (el: SafeElement | null, di: ScrollByY, amount: number, before?: number): number {
@@ -260,12 +259,14 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       listen(0, kUnload, reset);
     }
   } as ((key: "scrollRestoration", kManual: "manual", kUnload: "unload") => void) | 0,
-  scrollTick_ (willContinue: BOOL | boolean): void {
+  /** @argument willContinue 1: continue; 0: skip middle steps; 2: abort further actions */
+  scrollTick_ (willContinue: BOOL | 2): void {
     const a = this;
-    a.keyIsDown_ = willContinue ? a.maxInterval_ : 0;
+    a.keyIsDown_ = willContinue - 1 ? 0 : a.maxInterval_;
+    willContinue > 1 && a._toggleAnimation && a._toggleAnimation();
     if (a._joined) {
       (a._joined as typeof VSc).scrollTick_(willContinue);
-      if (!willContinue) {
+      if (willContinue - 1) {
         a._joined = null;
       }
     }
@@ -287,7 +288,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     let repeat = Build.MinCVer < BrowserVer.Min$KeyboardEvent$$Repeat$ExistsButNotWork
         && Build.BTypes & BrowserType.Chrome ? !!event.repeat : event.repeat;
     repeat && VKey.prevent_(event);
-    VSc.scrollTick_(repeat);
+    VSc.scrollTick_(<BOOL> +repeat);
     return repeat;
   },
   _adjustAmount (di: ScrollByY, amount: number, element: SafeElement | null): number {
