@@ -94,24 +94,18 @@ var cache = Object.create(null);
 ts.sys.writeFile = function(path, data, writeBom) {
   var isJS = path.slice(-3) === ".js";
   var srcPath = isJS ? path.slice(0, -3) + ".ts" : path;
-  if (cache[path] === data) {
-    if (fs.existsSync(path)) {
-      console.log("\tTOUCH:", path);
-      lib.touchFileIfNeeded(path, srcPath);
-    } else {
-      fs.closeSync(fs.openSync(path, "w"));
+  var same = fs.existsSync(path);
+  if (cache[path] !== data) {
+    if (doesUglifyLocalFiles && isJS) {
+      data = getUglifyJS()(data);
+      if (path.indexOf("extend_click") >= 0) {
+        data = lib.patchExtendClick(data, true);
+      }
     }
-    return;
+    same = same && lib.readFile(path, {}) === data;
   }
-  cache[path] === data;
-  if (doesUglifyLocalFiles && isJS) {
-    data = getUglifyJS()(data);
-    if (path.indexOf("extend_click") >= 0) {
-      data = lib.patchExtendClick(data, true);
-    }
-  }
-  if (fs.existsSync(path) && lib.readFile(path, {}) === data) {
-    console.log("\tTOUCH:", path);
+  console.log("\t%s:", same ? "TOUCH" : "TSFILE", path);
+  if (same) {
     lib.touchFileIfNeeded(path, srcPath);
   } else {
     return real_write(path, data, writeBom);

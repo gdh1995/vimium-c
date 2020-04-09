@@ -5,7 +5,7 @@
     "forceConsistentCasingInFileNames": true,
     "incremental": true,
     "keyofStringsOnly": false,
-    "listEmittedFiles": true,
+    "listEmittedFiles": false,
     "module": "system",
     "newLine": "lf",
     "noEmitHelpers": true,
