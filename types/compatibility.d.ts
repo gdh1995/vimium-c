@@ -437,6 +437,7 @@ declare const enum BrowserVer {
   MinMediaQuery$PrefersReducedMotion = 74,
   // https://chromium.googlesource.com/chromium/src/+/5e84b7a819637ed4dd8f9c4d11288127663c8267
   MinBlockAutoFocusingInCrossOriginFrame = 75,
+  FakeUAMajorWhenFreezeUserAgent = 75,
   MinMediaQuery$PrefersColorScheme = 76,
   // https://bugs.chromium.org/p/chromium/issues/detail?id=877132
   MinRuntimeFlag$UpdateHoverAtBeginFrame = 77, // #update-hover-at-begin-frame is enabled by default
@@ -446,8 +447,10 @@ declare const enum BrowserVer {
   MinNoShadowDOMv0 = 80,
   // https://github.com/philc/vimium/issues/3449#issuecomment-568248237
   FlagOutOfBlinkCorsMayCauseBug = 81,
+  // #freeze-user-agent: https://www.chromestatus.com/features/5704553745874944
+  FlagFreezeUserAgentGiveFakeUAMajor = 81, // FakeUAMajorWhenFreezeUserAgent
   /** @todo: trace https://bugs.chromium.org/p/chromium/issues/detail?id=968651&can=2&q=reduced-motion%20change */
-  MinMediaChangeEventsOnBackgroundPage = 99,
+  MinMediaChangeEventsOnBackgroundPage = 999,
   MinNo$TimerType$$Fake = 999,
   assumedVer = 998,
 }

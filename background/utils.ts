@@ -857,6 +857,13 @@ BrowserProtocol_ = Build.BTypes & ~BrowserType.Chrome
     && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge) ? "ms-browser" : "about"
   : "chrome";
 
+if (Build.BTypes & BrowserType.Chrome && Build.MinCVer <= BrowserVer.FlagFreezeUserAgentGiveFakeUAMajor
+    && CurCVer_ === BrowserVer.FakeUAMajorWhenFreezeUserAgent
+    && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
+    && matchMedia('(prefers-color-scheme)').matches) {
+  CurCVer_ = BrowserVer.FlagFreezeUserAgentGiveFakeUAMajor;
+}
+
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".includes) {
 (function (): void {
   const StringCls = String.prototype;
