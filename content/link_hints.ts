@@ -152,7 +152,6 @@ var VHints = {
       a.clear_(1);
       return VHud.tip_(kTip.fewChars, 1000);
     }
-    VSc.scrollTick_(2);
     if (Build.BTypes & BrowserType.Chrome) {
       a.dialogMode_ && a.boxL_ && a.boxL_.remove();
       a.dialogMode_ = !!(a.wantDialogMode_ != null ? a.wantDialogMode_ : VDom.querySelector_unsafe_("dialog[open]"))
@@ -217,6 +216,7 @@ var VHints = {
     const a = this;
     a._master = Build.BTypes & BrowserType.Firefox ? master && a.unwrap_(master) : master;
     a.resetHints_();
+    VSc.scrollTick_(2);
     if (a.options_ !== options) {
       /** ensured by {@link ../background/commands.ts#Commands.makeCommand_} */
       let modeOpt: HintsNS.ModeOpt | undefined, mode = options.mode as number;
@@ -1116,8 +1116,9 @@ var VHints = {
           (a.locateHint_(a.filterEngine_.activeHint_ as HintsNS.HintItem) as typeof a)._highlightHint(
               a.filterEngine_.activeHint_ as HintsNS.HintItem);
         } else if (key[0] === "s") {
+          // `/^s-(f1|f0[a-z0-9]+)$/`
           for (const frame of this.frameList_) {
-            ((frame.s as typeof VHints).boxL_ as SafeHTMLElement).classList.toggle("HM1");
+            ((frame.s as typeof VHints).boxL_ as SafeHTMLElement).classList.toggle("HM-" + keybody);
           }
         }
         return HandlerResult.Prevent;
