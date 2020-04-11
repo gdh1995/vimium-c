@@ -148,7 +148,7 @@ const Suggestion: SuggestionConstructor = function (
 function prepareHtml(sug: Suggestion): void {
   if (Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)) {
     if (!isForAddressBar && !sug.v) {
-      sug.v = searchEngine.calcBestFaviconSource_(sug.u);
+      sug.v = searchEngine.calcBestFaviconSource_only_cr_!(sug.u);
     }
   }
   if (sug.textSplit != null) {
@@ -333,7 +333,7 @@ bookmarkEngine = {
       }
     }
     if (buildCache) {
-      (MatchCacheManager.newMatch_ as NonNullable<typeof MatchCacheManager.newMatch_>).bookmarks_ = newCache;
+      MatchCacheManager.newMatch_!.bookmarks_ = newCache;
     }
     resultLength = results.length;
     matchedTotal += resultLength;
@@ -426,7 +426,7 @@ bookmarkEngine = {
       bookmarkEngine.path_ = oldPath;
       return;
     }
-    const url = bookmark.url as string, jsSchema = "javascript:", isJS = url.startsWith(jsSchema);
+    const url = bookmark.url!, jsSchema = "javascript:", isJS = url.startsWith(jsSchema);
     bookmarkEngine.bookmarks_.push({
       id_: id, path_: path, title_: title || id,
       text_: isJS ? jsSchema : url,
@@ -532,8 +532,8 @@ historyEngine = {
           }, someQuery ? 200 : 150);
         }
         if (someQuery) {
-          const curAll = Completers.suggestions_ as readonly Suggestion[], len = curAll.length, someMatches = len > 0;
-          (Completers.callback_ as CompletersNS.Callback)(someMatches && curAll[0].t === "search" ? [curAll[0]] : []
+          const curAll = Completers.suggestions_!, len = curAll.length, someMatches = len > 0;
+          Completers.callback_!(someMatches && curAll[0].t === "search" ? [curAll[0]] : []
               , autoSelect && someMatches, MatchType.Default, SugType.Empty, len);
         }
       }
@@ -564,7 +564,7 @@ historyEngine = {
     for (j = maxNum; --j; ) { results.push(-1.1, -1.1); }
     maxNum = maxNum * 2 - 2;
     if (!noOldCache) {
-      history = (MatchCacheManager.current_ as Ensure<MatchCacheData, "history_">).history_;
+      history = MatchCacheManager.current_!.history_!;
     }
     for (const len = history.length; i < len; i++) {
       const item = history[i];
@@ -583,7 +583,7 @@ historyEngine = {
       curMinScore = results[maxNum];
     }
     if (buildCache) {
-      (MatchCacheManager.newMatch_ as NonNullable<typeof MatchCacheManager.newMatch_>).history_ = newCache;
+      MatchCacheManager.newMatch_!.history_ = newCache;
     }
     matchedTotal += matched;
     if (!matched) {
@@ -701,13 +701,13 @@ domainEngine = {
     return domainEngine.performSearch_();
   } ,
   performSearch_ (): void {
-    const ref = BgUtils_.domains_ as EnsuredSafeDict<Domain>, p = RankingUtils.maxScoreP_,
+    const ref = BgUtils_.domains_, p = RankingUtils.maxScoreP_,
     word = queryTerms[0].replace("/", "").toLowerCase();
     let sug: Suggestion | undefined, result = "", matchedDomain: Domain | undefined, result_score = -1.1;
     RankingUtils.maxScoreP_ = RankingEnums.maximumScore;
     for (const domain in ref) {
       if (!domain.includes(word)) { continue; }
-      matchedDomain = ref[domain];
+      matchedDomain = ref[domain]!;
       if (showThoseInBlocklist || matchedDomain.count_ > 0) {
         const score = ComputeRelevancy(domain, "", matchedDomain.time_);
         if (score > result_score) { result_score = score; result = domain; }
@@ -736,7 +736,7 @@ domainEngine = {
     }
     if (result) {
       matchedTotal++;
-      const url = ((matchedDomain as Domain).https_ ? "https://" : "http://") + result + "/";
+      const url = (matchedDomain!.https_ ? "https://" : "http://") + result + "/";
       domainToSkip = url;
       if (offset > 0) {
         offset--;
@@ -746,7 +746,7 @@ domainEngine = {
             get2ndArg, 2);
         prepareHtml(sug);
         const ind = HistoryCache.sorted_ ? HistoryCache.binarySearch_(url) : -1,
-        item = ind > 0 ? (HistoryCache.history_ as HistoryItem[])[ind] : null;
+        item = ind > 0 ? HistoryCache.history_![ind] : null;
         if (item && (showThoseInBlocklist || item.visible_)) {
           sug.title = Build.BTypes & BrowserType.Firefox
               && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
@@ -849,7 +849,7 @@ tabEngine = {
       id += <string> <string | number> (tab.index + 1);
       if (!inNormal && tab.incognito) { id += "*"; }
       if (tab.discarded || Build.BTypes & BrowserType.Firefox && tab.hidden) { id += "~"; }
-      const tabId = tab.id, level = treeMode ? treeLevels[tabId] as number : 1,
+      const tabId = tab.id, level = treeMode ? treeLevels[tabId]! : 1,
       suggestion = new Suggestion("tab", tab.url, tab.text, tab.title,
           c, treeMode ? ++ind : tabId) as CompletersNS.TabSuggestion;
       if (curTabId === tabId) {
@@ -923,7 +923,7 @@ searchEngine = {
       showThoseInBlocklist = showThoseInBlocklist && BlockListFilter.IsExpectingHidden_([keyword]);
       return Completers.next_([sug], SugType.search);
     } else {
-      pattern = Settings_.cache_.searchEngineMap[keyword as "__proto__"] as Search.Engine | null | undefined;
+      pattern = Settings_.cache_.searchEngineMap[keyword];
     }
     if (failIfNull === true) {
       if (!pattern) { return true; }
@@ -1028,7 +1028,7 @@ searchEngine = {
     }
     if (Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
         && !isForAddressBar) {
-      sug.v = pattern && pattern.blank_ || searchEngine.calcBestFaviconSource_(url);
+      sug.v = pattern && pattern.blank_ || searchEngine.calcBestFaviconSource_only_cr_!(url);
     }
     if (Build.BTypes & BrowserType.Chrome || isForAddressBar) {
       sug.p = pattern ? pattern.name_ : "";
@@ -1048,10 +1048,11 @@ searchEngine = {
         ? arr[2] : BgUtils_.escapeText_(arr[2]);
     return [stdSug, sug];
   },
-  calcBestFaviconSource_: Build.BTypes & BrowserType.Chrome ? (url: string): string => {
+  calcBestFaviconSource_only_cr_: Build.BTypes & BrowserType.Chrome
+      && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome) ? (url: string): string => {
     const pos0 = HistoryCache.sorted_ && url.startsWith("http") ? HistoryCache.binarySearch_(url) : -1,
     mostHigh = pos0 < 0 ? ~pos0 - 1 : pos0,
-    arr = mostHigh < 0 ? [] as never : HistoryCache.history_ as HistoryItem[];
+    arr = mostHigh < 0 ? [] as never : HistoryCache.history_!;
     let slashInd = url.indexOf(":") + 3, low = 0, left = 0, u = "", e = "", m = 0, h = 0;
     for (
         ; low <= mostHigh
@@ -1072,7 +1073,7 @@ searchEngine = {
       }
     }
     return "";
-  } : 0 as never,
+  } : 0 as never as null,
   searchKeywordMaxLength_: 0,
   timer_: 0,
   calcNextMatchType_ (): MatchType {
@@ -1116,7 +1117,7 @@ searchEngine = {
         ? sug.t : BgUtils_.escapeText_(sug.t);
     if (Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
         && !isForAddressBar) {
-      sug.v = searchEngine.calcBestFaviconSource_(url);
+      sug.v = searchEngine.calcBestFaviconSource_only_cr_!(url);
     }
     if (Build.BTypes & BrowserType.Chrome || isForAddressBar) {
       sug.p = isSearch ? "~" : "";
@@ -1208,17 +1209,17 @@ Completers = {
       chrome.windows.getCurrent({populate: wantInCurrentWindow}, function (wnd): void {
         TabRecency_.incognito_ = inNormal ? IncognitoType.ensuredFalse : IncognitoType.true;
         if (!query.o) {
-          Completers.requireNormalOrIncognito_(func, query
-              , wantInCurrentWindow ? (wnd as Ensure<chrome.windows.Window, "tabs">).tabs : null);
+          Completers.requireNormalOrIncognito_(func, query, wantInCurrentWindow ? wnd.tabs : null);
         }
       });
     }
   },
   next_ (newSugs: Suggestion[], type: Exclude<SugType, SugType.Empty>): void {
-    let arr = Completers.suggestions_, num = newSugs.length;
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+    let arr: typeof Completers.suggestions_ = Completers.suggestions_!, num = newSugs.length;
     if (num > 0) {
       Completers.sugTypes_ |= type;
-      Completers.suggestions_ = (arr as Suggestion[]).length === 0 ? newSugs : (arr as Suggestion[]).concat(newSugs);
+      Completers.suggestions_ = arr.length === 0 ? newSugs : arr.concat(newSugs);
       if (type === SugType.search) {
         autoSelect = !0;
         maxResults -= num;
@@ -1261,7 +1262,7 @@ Completers = {
         : mayGoToAnotherMode ? MatchType.searchWanted
         : MatchType.emptyResult,
     newSugTypes = newMatchType === MatchType.someMatches && !mayGoToAnotherMode ? Completers.sugTypes_ : SugType.Empty,
-    func = Completers.callback_ as CompletersNS.Callback;
+    func = Completers.callback_!;
     Completers.cleanGlobals_();
     return func(suggestions, newAutoSelect, newMatchType, newSugTypes, matched);
   },
@@ -1362,7 +1363,7 @@ knownCs = {
     starts_: null as never as CachedRegExp[],
     words_: null as never as CachedRegExp[],
     buildParts_ (): void {
-      const d: CachedRegExp[] = RegExpCache.parts_ = [] as never;
+      const d: CachedRegExp[] = RegExpCache.parts_ = [];
       RegExpCache.starts_ = RegExpCache.words_ = null as never;
       for (const s of queryTerms) {
         d.push(new RegExp(s.replace(escapeAllRe, "\\$&"), BgUtils_.hasUpperCase_(s) ? "" : "i" as ""
@@ -1370,7 +1371,7 @@ knownCs = {
       }
     },
     buildOthers_ (): void {
-      const ss = RegExpCache.starts_ = [] as CachedRegExp[], ws = RegExpCache.words_ = [] as CachedRegExp[];
+      const ss: CachedRegExp[] = RegExpCache.starts_ = [], ws: CachedRegExp[] = RegExpCache.words_ = [];
       for (const s of queryTerms) {
         const start = "\\b" + s.replace(escapeAllRe, "\\$&"),
         flags = BgUtils_.hasUpperCase_(s) ? "" : "i" as "";
@@ -1409,7 +1410,7 @@ knownCs = {
         maxResults: InnerConsts.historyMaxSize,
         startTime: 0
       }, function (history: chrome.history.HistoryItem[]): void {
-        setTimeout(HistoryCache.Clean_ as (arr: chrome.history.HistoryItem[]) => void, 0, history);
+        setTimeout(HistoryCache.Clean_!, 0, history);
       });
     },
     Clean_: function (this: void, arr: Array<chrome.history.HistoryItem | HistoryItem>): void {
@@ -1421,7 +1422,7 @@ knownCs = {
         }
         (arr as HistoryItem[])[i] = {
           text_: url,
-          title_: Build.BTypes & ~BrowserType.Chrome ? j.title || "" : j.title as string,
+          title_: Build.BTypes & ~BrowserType.Chrome ? j.title || "" : j.title!,
           time_: j.lastVisitTime,
           visible_: kVisibility.visible,
           url_: url
@@ -1436,7 +1437,7 @@ knownCs = {
       }
       setTimeout(function (): void {
         setTimeout(function (): void {
-          const arr1 = HistoryCache.history_ as HistoryItem[];
+          const arr1 = HistoryCache.history_!;
           for (let i = arr1.length - 1; 0 < i; ) {
             const j = arr1[i], url = j.url_, text = j.text_ = Decoder.decodeURL_(url, j),
             isSame = text.length >= url.length;
@@ -1452,22 +1453,22 @@ knownCs = {
             }
           }
           HistoryCache.domains_ || setTimeout(function (): void {
-            domainEngine.refresh_ && domainEngine.refresh_(HistoryCache.history_ as HistoryItem[]);
+            domainEngine.refresh_ && domainEngine.refresh_(HistoryCache.history_!);
           }, 200);
         }, 100);
-        (HistoryCache.history_ as HistoryItem[]).sort((a, b) => a.url_ > b.url_ ? 1 : -1);
+        HistoryCache.history_!.sort((a, b) => a.url_ > b.url_ ? 1 : -1);
         HistoryCache.sorted_ = true;
         chrome.history.onVisitRemoved.addListener(HistoryCache.OnVisitRemoved_);
         chrome.history.onVisited.addListener(HistoryCache.OnPageVisited_);
       }, 100);
       HistoryCache.history_ = arr as HistoryItem[];
       HistoryCache.use_ = (callback): void => {
-        if (callback) { callback(HistoryCache.history_ as HistoryItem[]); }
+        if (callback) { callback(HistoryCache.history_!); }
       };
       HistoryCache._callbacks && HistoryCache._callbacks.length > 0 &&
       setTimeout(function (ref: HistoryCallback[]): void {
         for (const f of ref) {
-          f(HistoryCache.history_ as HistoryItem[]);
+          f(HistoryCache.history_!);
         }
       }, 1, HistoryCache._callbacks);
       HistoryCache._callbacks = null;
@@ -1478,7 +1479,7 @@ knownCs = {
         url = HistoryCache.trimURLAndTitleWhenTooLong_(url, newPage);
       }
       const time = newPage.lastVisitTime,
-      title = Build.BTypes & ~BrowserType.Chrome ? newPage.title || "" : newPage.title as string,
+      title = Build.BTypes & ~BrowserType.Chrome ? newPage.title || "" : newPage.title!,
       updateCount = ++HistoryCache.updateCount_,
       d = HistoryCache.domains_, i = HistoryCache.binarySearch_(url);
       if (i < 0) { HistoryCache.toRefreshCount_++; }
@@ -1486,7 +1487,7 @@ knownCs = {
           || (updateCount > 10 && Date.now() - HistoryCache.lastRefresh_ > 300000)) { // safe for time change
         HistoryCache.refreshInfo_();
       }
-      const j: HistoryItem = i >= 0 ? (HistoryCache.history_ as HistoryItem[])[i] : {
+      const j: HistoryItem = i >= 0 ? HistoryCache.history_![i] : {
         text_: "",
         title_: title,
         time_: time,
@@ -1525,7 +1526,7 @@ knownCs = {
         return;
       }
       j.text_ = Decoder.decodeURL_(url, j);
-      (HistoryCache.history_ as HistoryItem[]).splice(~i, 0, j);
+      HistoryCache.history_!.splice(~i, 0, j);
       MatchCacheManager.timer_ && MatchCacheManager.clear_(MatchCacheType.history);
     },
     OnVisitRemoved_ (this: void, toRemove: chrome.history.RemovedResult): void {
@@ -1544,18 +1545,18 @@ knownCs = {
         Decoder.dict_ = d2;
         return;
       }
-      const {binarySearch_: bs, history_: h, domains_: domains} = HistoryCache as EnsureNonNull<typeof HistoryCache>;
+      const {binarySearch_: bs, history_: h, domains_: domains} = HistoryCache;
       let entry: Domain | undefined;
       for (const j of toRemove.urls) {
         const i = bs(j);
         if (i >= 0) {
-          if (domains && h[i].visible_) {
+          if (domains && h![i].visible_) {
             const item = domainEngine.ParseDomainAndScheme_(j);
             if (item && (entry = domains[item.domain_]) && (--entry.count_) <= 0) {
               delete domains[item.domain_];
             }
           }
-          h.splice(i, 1);
+          h!.splice(i, 1);
           delete d[j];
         }
       }
@@ -1589,7 +1590,7 @@ knownCs = {
       return Decoder.continueToWork_();
     },
     OnInfo_ (history: chrome.history.HistoryItem[]): void {
-      const arr = HistoryCache.history_ as HistoryItem[], bs = HistoryCache.binarySearch_;
+      const arr = HistoryCache.history_!, bs = HistoryCache.binarySearch_;
       if (arr.length <= 0) { return; }
       for (const info of history) {
         let url = info.url;
@@ -1610,7 +1611,7 @@ knownCs = {
       }
     },
     binarySearch_ (this: void, u: string): number {
-      let e = "", a = HistoryCache.history_ as HistoryItem[], h = a.length - 1, l = 0, m = 0;
+      let e = "", a = HistoryCache.history_!, h = a.length - 1, l = 0, m = 0;
       while (l <= h) {
         m = (l + h) >>> 1;
         e = a[m].url_;
@@ -1691,7 +1692,7 @@ knownCs = {
   MatchCacheManager = {
     current_: null as MatchCacheData | null,
     newMatch_: null as MatchCacheRecord | null,
-    tabs_: { tabs_: null, type_: TabCacheType.none } as TabCacheData,
+    tabs_: As_<TabCacheData>({ tabs_: null, type_: TabCacheType.none }),
     all_: [] as MatchCacheRecord[],
     timer_: TimerID.None,
     tabTimer_: TimerID.None,
@@ -1781,7 +1782,7 @@ knownCs = {
           }
           break;
         } catch {
-          (j as DecodedItem).text_ = m[s as string] || (w.push(j as DecodedItem), s as string);
+          j!.text_ = m[s!] || (w.push(j!), s!);
         }
       }
       Decoder.continueToWork_();
@@ -1875,7 +1876,7 @@ Completion_ = {
       ? (query = query.length > Consts.MaxCharsInQuery ? query.slice(0, Consts.MaxCharsInQuery).trimRight()
           : query).split(" ")
       : [];
-    maxChars = (<number> options.c | 0) || 128;
+    maxChars = (options.c! | 0) || 128;
     if (maxChars) {
       // take CJK characters into consideration
       maxChars -= query.replace(<RegExpG>
@@ -1886,7 +1887,7 @@ Completion_ = {
 
     otherFlags = options.f;
     isForAddressBar = !!(otherFlags & CompletersNS.QueryFlags.AddressBar);
-    maxTotal = maxResults = Math.min(Math.max(3, ((options.r as number) | 0) || 10), 25);
+    maxTotal = maxResults = Math.min(Math.max(3, (options.r! | 0) || 10), 25);
     matchedTotal = 0;
     Completers.callback_ = callback;
     let arr: CompleterList | null | undefined =

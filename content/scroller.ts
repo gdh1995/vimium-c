@@ -37,7 +37,7 @@ var VSc = {
 _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
   let amount = 0, calibration = 1.0, di: ScrollByY = 0, duration = 0, element: SafeElement | null = null, //
   sign = 0, timestamp = 0, totalDelta = 0.0, totalElapsed = 0.0, //
-  running = 0 as number, next = requestAnimationFrame, timer = TimerID.None,
+  running = 0, next = requestAnimationFrame, timer = TimerID.None,
   top: SafeElement | null = null,
   self = VSc,
   animate = (newTimestamp: number): void => {
@@ -79,7 +79,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
         // according to tests on C75, no "scrollend" events if scrolling behavior is "instant";
         // the doc on Google Docs requires no "overscroll" events for programmatic scrolling
         const notEl: boolean = !element || element === VDom.scrollingEl_();
-        (notEl ? document : element as NonNullable<typeof element>).dispatchEvent(
+        (notEl ? document : element!).dispatchEvent(
             new Event("scrollend", {cancelable: false, bubbles: notEl}));
       }
       self._checkCurrent(element);
@@ -91,7 +91,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     running = running || next(animate);
   },
   toggleRunning = self._toggleAnimation = (scrolling?: BOOL): void => {
-    const el = (scrolling ? Build.BTypes & ~BrowserType.Firefox ? VDom.SafeEl_(VDom.docEl_unsafe_())
+    const el = (scrolling ? Build.BTypes & ~BrowserType.Firefox ? VDom.SafeEl_not_ff_!(VDom.docEl_unsafe_())
         : VDom.docEl_unsafe_() : top
         ) as SafeElement & TypeToAssert<Element, HTMLElement | SVGElement, "style"> | null;
     top = scrolling ? el : (running = 0, element = null);
@@ -185,7 +185,7 @@ _toggleAnimation: 0 as 0 | (() => void),
       if (count < 0) { fromMax = !fromMax; count = -count; }
       count--;
     } else {
-      count *= +<number> options.dir || 1;
+      count *= +(options.dir!) || 1;
     }
     a.scroll_(di, count, dest ? 1 as never : 0, options.view, fromMax as false, options);
     if (a.keyIsDown_ && !options.$c) {
@@ -213,9 +213,9 @@ _toggleAnimation: 0 as 0 | (() => void),
       amount = element ? Math.max(0, Math.min(fromMax ? max - amount : amount, max)) - curPos
           : fromMax ? viewSize : amount - curPos;
     }
-    let core: ReturnType<typeof VDom.parentCore_>;
+    let core: ReturnType<typeof VDom.parentCore_ff_>;
     if (element === a.top_ && element
-        && (core = Build.BTypes & BrowserType.Firefox ? VDom.parentCore_()
+        && (core = Build.BTypes & BrowserType.Firefox ? VDom.parentCore_ff_!()
                 : VDom.frameElement_() && parent as Window)) {
       const vSc = core.VSc as typeof VSc;
       if (vSc && !a._doesScroll(element, di, amount || (fromMax ? 1 : 0))) {
@@ -304,16 +304,15 @@ _toggleAnimation: 0 as 0 | (() => void),
     let element = activeEl;
     if (element) {
       let reason: number, notNeedToRecheck = !di;
-      type Element2 = NonNullable<typeof element>;
-      while (element !== top && (reason = a.shouldScroll_need_safe_(element as Element2
+      while (element !== top && (reason = a.shouldScroll_need_safe_(element!
               , element === ui.cachedScrollable_ ? (di + 2) as 2 | 3 : di
               , amount)) < 1) {
         if (!reason) {
-          notNeedToRecheck = notNeedToRecheck || a._doesScroll(element as Element2, 1, -amount);
+          notNeedToRecheck = notNeedToRecheck || a._doesScroll(element!, 1, -amount);
         }
         element = (Build.BTypes & ~BrowserType.Firefox
-            ? VDom.SafeEl_(VDom.GetParent_(element as Element, PNType.RevealSlotAndGotoParent))
-            : VDom.GetParent_(element as Element, PNType.RevealSlotAndGotoParent) as SafeElement | null
+            ? VDom.SafeEl_not_ff_!(VDom.GetParent_unsafe_(element!, PNType.RevealSlotAndGotoParent))
+            : VDom.GetParent_unsafe_(element!, PNType.RevealSlotAndGotoParent) as SafeElement | null
           ) || top;
       }
       element = element !== top || notNeedToRecheck ? element : null;
@@ -323,7 +322,7 @@ _toggleAnimation: 0 as 0 | (() => void),
       // note: twitter auto focuses its dialog panel, so it's not needed to detect it here
       const candidate = (<RegExpOne> /^(new|www)?\.?reddit\.com$/).test(location.host)
           ? VDom.querySelector_unsafe_("#overlayScrollContainer") : null;
-      element = Build.BTypes & ~BrowserType.Firefox ? VDom.SafeEl_(candidate) : candidate as SafeElement | null;
+      element = Build.BTypes & ~BrowserType.Firefox ? VDom.SafeEl_not_ff_!(candidate) : candidate as SafeElement | null;
     }
     if (!element && top) {
       const candidate = a._selectFirst({ area_: 0, element_: top, height_: 0 });
@@ -358,15 +357,15 @@ _toggleAnimation: 0 as 0 | (() => void),
   getDimension_ (el: SafeElement | null, di: ScrollByY, index: kScrollDim & number): number {
     let visual;
     return el !== this.top_ || index && el
-      ? !index ? di ? (el as SafeElement).clientHeight : (el as SafeElement).clientWidth
-        : index < kScrollDim.position ? di ? (el as SafeElement).scrollHeight : (el as SafeElement).scrollWidth
-        : di ? (el as SafeElement).scrollTop : (el as SafeElement).scrollLeft
+      ? !index ? di ? el!.clientHeight : el!.clientWidth
+        : index < kScrollDim.position ? di ? el!.scrollHeight : el!.scrollWidth
+        : di ? el!.scrollTop : el!.scrollLeft
       : index > kScrollDim.scrollSize ? di ? scrollY : scrollX
       : (visual = visualViewport,
           !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsured$visualViewport$
           || visual && (!(Build.BTypes & BrowserType.Chrome)
               || Build.MinCVer >= BrowserVer.MinEnsured$visualViewport$ || visual.width)
-          ? di ? (visual as VisualViewport).height : (visual as EnsureItemsNonNull<VisualViewport>).width
+          ? di ? visual!.height : visual!.width!
           : di ? innerHeight : innerWidth);
   },
   hasSpecialScrollSnap_ (el: SafeElement | null): boolean {
@@ -407,9 +406,9 @@ _toggleAnimation: 0 as 0 | (() => void),
     let children: ElementScrollInfo[] = [], child: ElementScrollInfo | null
       , _ref = element.children, _len = _ref.length;
     while (0 < _len--) {
-      element = _ref[_len] as /** fake `as` */ SafeElement;
+      element = _ref[_len]! as /** fake `as` */ SafeElement;
       // here assumes that a <form> won't be a main scrollable area
-      if (Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_(element)) { continue; }
+      if (Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_not_ff_!(element)) { continue; }
       const rect = VDom.getBoundingClientRect_(element),
       visible = rect.height > 0 ? VDom.cropRectToVisible_(rect.left, rect.top, rect.right, rect.bottom)
         : VDom.getVisibleClientRect_(element);
@@ -438,7 +437,7 @@ _toggleAnimation: 0 as 0 | (() => void),
     VCui.activeEl_ = el;
     VCui.cachedScrollable_ = 0;
     if (hasX || hasY) {
-      for (let el2: Element | null = el; el2; el2 = VDom.GetParent_(el2, PNType.RevealSlotAndGotoParent)) {
+      for (let el2: Element | null = el; el2; el2 = VDom.GetParent_unsafe_(el2, PNType.RevealSlotAndGotoParent)) {
         const pos = VDom.getComputedStyle_(el2).position;
         if (pos === "fixed" || pos === "sticky") {
           hasX = hasY = 0;

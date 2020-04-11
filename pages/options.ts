@@ -940,13 +940,13 @@ table.ondragover = event => event.preventDefault();
 table.ondrop = event => {
   event.preventDefault();
   const dragged = exclusionRules.dragged_;
-  let target = event.target as Element | null;
+  let target: Element | null = event.target as Element;
   if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest) {
     while (target && target.classList.contains("exclusionRule")) {
       target = target.parentElement as SafeHTMLElement | null;
     }
   } else {
-    target = (target as Ensure<Element, "closest">).closest(".exclusionRule");
+    target = target.closest!(".exclusionRule");
   }
   if (!dragged || !target || dragged === target) { return; }
   exclusionRules.$list_.insertBefore(dragged, target);
@@ -1095,7 +1095,7 @@ document.addEventListener("keydown", function (this: void, event): void {
     if (stat === KeyStat.altKey && ch === kChar.f12) {
       $<HTMLOptionElement>("#recommendedSettings").selected = true;
       let el2 = $<HTMLSelectElement>("#importOptions");
-      el2.onchange ? (el2 as any).onchange() : setTimeout(() => {
+      el2.onchange != null ? (el2 as any).onchange() : setTimeout(() => {
         el2.onchange && (el2 as any).onchange();
       }, 100) && el2.click();
     }
@@ -1152,7 +1152,7 @@ window.onhashchange = function (this: void): void {
 
 bgSettings_.restore_ && bgSettings_.restore_() ? (
   Build.NDEBUG || console.log("Now restore settings before page loading"),
-  (bgSettings_.restore_() as NonNullable<ReturnType<typeof bgSettings_.restore_>>).then(optionsInitAll_)
+  bgSettings_.restore_()!.then(optionsInitAll_)
 ) : optionsInitAll_();
 
 // below is for programmer debugging

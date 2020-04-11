@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "pngjs": "^3.4.0",
-    "typescript": "^3.8.2"
+    "typescript": "^3.9.0-dev.20200409"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^2.19.2",

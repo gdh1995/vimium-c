@@ -95,7 +95,7 @@ var VFind = {
     f("keyup", onKey, t);
     f("input", a.OnInput_, t);
     if (Build.BTypes & ~BrowserType.Chrome) {
-      f("paste", a._OnPaste, t);
+      f("paste", a._OnPaste_not_cr!, t);
     }
     f("unload", a.OnUnload_, t);
     if (Build.BTypes & BrowserType.Chrome
@@ -152,7 +152,7 @@ var VFind = {
         plain = false;
         el.contentEditable = "true";
       }
-      VKey.SetupEventListener_(wnd, "paste", plain ? a._OnPaste : null, 1, 1);
+      VKey.SetupEventListener_(wnd, "paste", plain ? a._OnPaste_not_cr! : null, 1, 1);
     } else {
       el.contentEditable = "plaintext-only";
     }
@@ -209,7 +209,7 @@ var VFind = {
       if (box !== body) {
         const st = addElement("style") as HTMLStyleElement;
         st.textContent = "body{margin:0!important}";
-        (doc.head as HTMLHeadElement).appendChild(st);
+        doc.head!.appendChild(st);
         body.appendChild(box);
       }
     } else if (Build.BTypes & ~BrowserType.Firefox && zoom < 1) {
@@ -271,7 +271,7 @@ var VFind = {
       }
     }
     a.isQueryRichText_ = true;
-    const style = a.isActive_ || VHud.opacity_ !== 1 ? null : (VHud.boxH_ as HTMLDivElement).style;
+    const style = a.isActive_ || VHud.opacity_ !== 1 ? null : VHud.boxH_!.style;
     style && (style.visibility = "hidden");
     VCui.toggleSelectStyle_(0);
     a.executeF_(null, options);
@@ -319,12 +319,13 @@ var VFind = {
       text && a.innerDoc_.getSelection().collapse(text, target !== a.input_.previousSibling ? text.data.length : 0);
     }
   },
-  _OnPaste: Build.BTypes & ~BrowserType.Chrome ? function (this: Window, event: ClipboardEvent & ToPrevent): void {
+  _OnPaste_not_cr: Build.BTypes & ~BrowserType.Chrome
+      ? function (this: Window, event: ClipboardEvent & ToPrevent): void {
     const d = event.clipboardData, text = d && typeof d.getData === "function" ? d.getData("text/plain") : "";
     VKey.prevent_(event);
     if (!text) { return; }
     VFind.exec_("insertText", 0, text);
-  } : 0 as never,
+  } : 0 as never as null,
   onKeydownF_ (event: KeyboardEventToPrevent): void {
     VKey.Stop_(event);
     const a = this, n = event.keyCode;
@@ -378,7 +379,7 @@ var VFind = {
       const sel = a.innerDoc_.getSelection();
       // on Chrome 79 + Win 10 / Firefox 69 + Ubuntu 18, delete a range itself
       // while on Firefox 70 + Win 10 it collapses first
-      sel.type === "Caret" && sel.modify("extend", keybody[0] !== "d" ? "backward" : "forward", "word");
+      sel.type === "Caret" && sel.modify("extend", VVisual._D[+(keybody > "d")], "word");
       a.exec_("delete");
       return;
     }
@@ -415,7 +416,7 @@ var VFind = {
     if (i > FindNS.Action.MaxExitButNoWork) {
       el = VDom.getSelectionFocusEdge_(VCui.getSelected_()[0], 1);
       el && (Build.BTypes & ~BrowserType.Firefox ? (el as ElementToHTMLorSVG).tabIndex != null : el.focus) &&
-      (el as Ensure<SafeElement, "focus">).focus();
+      el.focus!();
     }
     if ((i === FindNS.Action.ExitAndReFocus || !hasResult || visualMode) && !noStyle) {
       a.ToggleStyle_(1);
@@ -431,7 +432,7 @@ var VFind = {
     if (i > FindNS.Action.MaxExitButNoWork && hasResult && (!el || el !== VApi.lock_())) {
       let container = a.focusFoundLinkIfAny_();
       if (container && i === FindNS.Action.ExitAndReFocus && (el2 = VDom.activeEl_unsafe_())
-          && VDom.getEditableType_<0>(el2) >= EditableType.TextBox && container.contains(el2)) {
+          && VDom.getEditableType_<0>(el2) > EditableType.TextBox - 1 && container.contains(el2)) {
         VDom.prepareCrop_();
         VCui.simulateSelect_(el2 as LockableElement);
       } else if (el) {
@@ -463,16 +464,16 @@ var VFind = {
   },
   /** return an element if no <a> else null */
   focusFoundLinkIfAny_ (): SafeElement | null | void {
-    let cur = VCui.GetSelectionParent_unsafe_();
-    Build.BTypes & ~BrowserType.Firefox && (cur = VDom.SafeEl_(cur));
+    let cur = Build.BTypes & ~BrowserType.Firefox ? VDom.SafeEl_not_ff_!(VCui.GetSelectionParent_unsafe_())
+        : VCui.GetSelectionParent_unsafe_() as SafeElement | null;
     for (let i = 0, el: Element | null = cur; el && el !== document.body && i++ < 5;
-        el = VDom.GetParent_(el, PNType.RevealSlotAndGotoParent)) {
+        el = VDom.GetParent_unsafe_(el, PNType.RevealSlotAndGotoParent)) {
       if (VDom.htmlTag_(el) === "a") {
         (el as HTMLAnchorElement).focus();
         return;
       }
     }
-    return cur as SafeElement | null;
+    return cur;
   },
   nextQuery_ (back?: boolean): void {
     const ind = this.historyIndex_ + (back ? -1 : 1);
@@ -506,7 +507,7 @@ var VFind = {
     _lock: null as Element | null,
     activateFP_ (): void {
       const pm = this;
-      const el = VApi.lock_(), Exit = pm.exit_ as (this: void, a?: boolean | Event) => void;
+      const el = VApi.lock_(), Exit = pm.exit_;
       if (!el) { Exit(); return; }
       VKey.pushHandler_(pm.onKeydownFP_, pm);
       if (el === pm._lock) { return; }
@@ -620,11 +621,11 @@ var VFind = {
     if (re) {
       let el = VDom.fullscreenEl_unsafe_(), text: HTMLElement["innerText"] | undefined;
       while (el && (el as ElementToHTML).lang == null) { // in case of SVG elements
-        el = VDom.GetParent_(el, PNType.DirectElement);
+        el = VDom.GetParent_unsafe_(el, PNType.DirectElement);
       }
       query = el && typeof (text = (el as HTMLElement).innerText) === "string" && text ||
           (Build.BTypes & ~BrowserType.Firefox ? (VDom.docEl_unsafe_() as HTMLElement).innerText + ""
-            : (VDom.docEl_unsafe_() as HTMLElement).innerText as string);
+            : (VDom.docEl_unsafe_() as SafeHTMLElement).innerText);
       matches = query.match(re) || query.replace(<RegExpG> /\xa0/g, " ").match(re);
     }
     a.regexMatches_ = isRe ? matches : null;
@@ -666,7 +667,7 @@ var VFind = {
     options = options ? VKey.safer_(options) : Object.create(null) as FindNS.ExecuteOptions;
     const a = this;
     let el: LockableElement | null
-      , found: boolean, count = ((options.n as number) | 0) || 1, back = count < 0
+      , found: boolean, count = (options.n! | 0) || 1, back = count < 0
       , par: Element | null | undefined, timesRegExpNotMatch = 0
       , q: string, notSens = a.ignoreCase_ && !options.caseSensitive;
     /** Note: FirefoxBrowserVer.MinFollowSelectionColorOnInactiveFrame
@@ -685,13 +686,13 @@ var VFind = {
     do {
       q = query != null ? query : isRe ? a.getNextQueryFromRegexMatches_(back) : a.parsedQuery_;
       found = Build.BTypes & ~BrowserType.Chrome
-        ? a.find_(q, !notSens, back, true, a.wholeWord_, false, false)
+        ? a.find_not_cr_!(q, !notSens, back, true, a.wholeWord_, false, false)
         : window.find(q, !notSens, back, true, a.wholeWord_, false, false);
       if (Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
           && !found) {
         VCui.resetSelectionToDocStart_();
-        found = a.find_(q, !notSens, back, true, a.wholeWord_, false, false);
+        found = a.find_not_cr_!(q, !notSens, back, true, a.wholeWord_, false, false);
       }
       /**
        * Warning: on Firefox and before {@link #FirefoxBrowserVer.Min$find$NotReturnFakeTrueOnPlaceholderAndSoOn},
@@ -724,14 +725,14 @@ var VFind = {
  * so those in shadowDOM / ancestor tree scopes will still be found.
  * Therefore `@styleIn_` is always needed, and VFind may not need a sub-scope selection.
  */
-  find_: Build.BTypes & ~BrowserType.Chrome ? function (this: void): boolean {
+  find_not_cr_: Build.BTypes & ~BrowserType.Chrome ? function (this: void): boolean {
     // (string, caseSensitive, backwards, wrapAround, wholeWord, searchInFrames, showDialog);
     try {
       return window.find.apply(window, arguments);
     } catch { return false; }
-  } as Window["find"] : 0 as never,
+  } as Window["find"] : 0 as never as null,
   HookSel_ (t?: TimerType.fake | 1): void {
-    VFind && VKey.SetupEventListener_(0, "selectionchange", VFind.ToggleStyle_, <number> t > 0);
+    VFind && VKey.SetupEventListener_(0, "selectionchange", VFind.ToggleStyle_, t! > 0);
   },
   /** must be called after initing */
   ToggleStyle_ (this: void, disable: BOOL | boolean | Event): void {
@@ -746,7 +747,7 @@ var VFind = {
       return;
     }
     if (sout.parentNode !== vCui.box_) {
-      (vCui.box_ as HTMLDivElement).appendChild(sout);
+      vCui.box_!.appendChild(sout);
       !((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
         && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
         && !(Build.BTypes & ~BrowserType.ChromeOrFirefox))
@@ -760,7 +761,7 @@ var VFind = {
     let sel = VCui.getSelected_()[0], range: Range, doc = document;
     if (!sel.rangeCount) {
       range = doc.createRange();
-      range.setStart(doc.body || VDom.docEl_unsafe_() as Element, 0);
+      range.setStart(doc.body || VDom.docEl_unsafe_()!, 0);
     } else {
       range = sel.getRangeAt(0);
       // Note: `range.collapse` doesn't work if selection is inside a ShadowRoot (tested on C72 stable)

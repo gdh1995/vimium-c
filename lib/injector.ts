@@ -68,7 +68,7 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
       console.log("%cVimium C%c: %cfail%c to inject into %c%s%c %s"
         , colorRed, colorAuto, colorRed, colorAuto, "color:#0c85e9"
         , host, colorAuto, str);
-      oldCallback && (_old as Ensure<VimiumInjectorTy, "callback">).callback(-1, str);
+      oldCallback && _old!.callback!(-1, str);
     }
   }
   if (_old && typeof _old.destroy === "function") {
@@ -96,11 +96,11 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
   if (!res || !(docEl instanceof HTMLHtmlElement)) {
     return err as void;
   }
-  const insertAfter = document.contains(curEl) ? curEl : (document.head || docEl).lastChild as Node
+  const insertAfter = document.contains(curEl) ? curEl : (document.head || docEl).lastChild!
     , insertBefore = insertAfter.nextSibling
     , parentElement = insertAfter.parentElement as Element;
   let scripts: HTMLScriptElement[] = [];
-  for (const i of res.s as NonNullable<typeof res.s>) {
+  for (const i of res.s!) {
     const script = document.createElement("script");
     script.type = "text/javascript";
     script.async = false;
@@ -112,7 +112,7 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
     this.onload = null as never;
     for (let i = scripts.length; 0 <= --i; ) { scripts[i].remove(); }
   });
-  oldCallback && (_new as Ensure<VimiumInjectorTy, "callback">).callback(0, "loading");
+  oldCallback && _new.callback!(0, "loading");
 }
 function call(): void {
   runtime.sendMessage(extID, <ExternalMsgs[kFgReq.inject]["req"]> {
@@ -123,8 +123,8 @@ function start(): void {
   removeEventListener("DOMContentLoaded", start);
   (Build.MinCVer >= BrowserVer.MinEnsured$requestIdleCallback || !(Build.BTypes & BrowserType.Chrome))
     && !(Build.BTypes & BrowserType.Edge) || onIdle
-  ? (onIdle as Exclude<typeof onIdle, null | undefined>)(function (): void {
-    (onIdle as Exclude<typeof onIdle, null | undefined>)(function (): void { setTimeout(call, 0); }, {timeout: 67});
+  ? onIdle!((): void => {
+    onIdle!((): void => { setTimeout(call, 0); }, {timeout: 67});
   }, {timeout: 330}) : setTimeout(call, 67);
 }
 if (document.readyState !== "loading") {
@@ -172,7 +172,7 @@ interface ElementWithClickable {
 }
 VimiumInjector.clickable = VimiumInjector.clickable
     || ( Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
-      || window.WeakSet ? new (WeakSet as WeakSetConstructor)<Element>() : {
+      || window.WeakSet ? new WeakSet!<Element>() : {
   add (element: Element) { (element as ElementWithClickable).vimiumClick = true; return this; },
   has (element: Element): boolean { return !!(element as ElementWithClickable).vimiumClick; },
   delete (element: Element): boolean {

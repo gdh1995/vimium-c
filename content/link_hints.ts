@@ -34,7 +34,7 @@ declare namespace HintsNS {
 
   interface BaseHinter {
     isInLH_: boolean;
-    readonly hints_: unknown;
+    readonly hints_: readonly HintsNS.HintItem[] | null;
     keyCode_: kKeyCode;
     collectFrameHints_: unknown;
     render_ (hints: readonly HintItem[], arr: ViewBox, hud: VHUDTy, api: VApiTy): void;
@@ -137,7 +137,8 @@ var VHints = {
         return;
       }
     }
-    const upper = Build.BTypes & BrowserType.Firefox ? VDom.parentCore_() : VDom.frameElement_() && parent as Window;
+    const upper = Build.BTypes & BrowserType.Firefox ? VDom.parentCore_ff_!()
+        : VDom.frameElement_() && parent as Window;
     if (upper && upper.VCui) {
       (upper.VCui as typeof VCui).learnCss_(VCui);
       // recursively go up and use the topest frame in a same origin
@@ -166,7 +167,7 @@ var VHints = {
         const core = a.detectUsableChild_(el),
         slave: HintsNS.Slave | null | undefined = core && core.VHints as typeof VHints | undefined;
         if (slave) {
-          ((core as ContentWindowCore).VCui as typeof VCui).learnCss_(VCui);
+          (core!.VCui as typeof VCui).learnCss_(VCui);
           childFrames.splice(insertPos, 0, {
             v: rect && (this as typeof a).getPreciseChildRect_(el, rect),
             s: slave
@@ -222,8 +223,7 @@ var VHints = {
       let modeOpt: HintsNS.ModeOpt | undefined, mode = options.mode as number;
       for (let modes of a.Modes_) {
         if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
-            ? modes.indexOf(mode & ~HintMode.queue) > 0
-            : (modes as Ensure<HintsNS.ModeOpt, "includes">).includes(mode & ~HintMode.queue)) {
+            ? modes.indexOf(mode & ~HintMode.queue) > 0 : modes.includes!(mode & ~HintMode.queue)) {
           modeOpt = modes;
           break;
         }
@@ -244,11 +244,11 @@ var VHints = {
       return;
     }
 
-    const view = VDom.getViewBox_(Build.BTypes & BrowserType.Chrome && (master as typeof a || a
-        ).dialogMode_ ? 2 : 1) as ViewBox;
+    const view: ViewBox = VDom.getViewBox_(Build.BTypes & BrowserType.Chrome && (master as null | typeof a || a
+        ).dialogMode_ ? 2 : 1);
     VDom.prepareCrop_(1, outerView);
     if (a.tooHigh_ !== null) {
-      a.tooHigh_ = (VDom.scrollingEl_(1) as HTMLElement).scrollHeight / innerHeight
+      a.tooHigh_ = VDom.scrollingEl_(1)!.scrollHeight / innerHeight
         > GlobalConsts.LinkHintTooHighThreshold;
     }
     a.forceToScroll_ = options.scroll === "force" ? 2 : 0;
@@ -311,7 +311,7 @@ var VHints = {
     zoom = (Build.BTypes & BrowserType.Chrome ? vDom.docZoom_ * (inBody ? vDom.bZoom_ : 1) : 1
         ) / vDom.dScale_ / (inBody ? vDom.bScale_ : 1);
     let x0 = min(view.l, brect.left), y0 = min(view.t, brect.top), l = x0, t = y0, r = view.r, b = view.b;
-    for (let el: Element | null = frameEl; el = vDom.GetParent_(el, PNType.RevealSlotAndGotoParent); ) {
+    for (let el: Element | null = frameEl; el = vDom.GetParent_unsafe_(el, PNType.RevealSlotAndGotoParent); ) {
       const st = vDom.getComputedStyle_(el);
       if (st.overflow !== kVisible) {
         let outer = vDom.getBoundingClientRect_(el), hx = st.overflowX !== kVisible, hy = st.overflowY !== kVisible,
@@ -334,7 +334,7 @@ var VHints = {
     // let events: VApiTy | undefined, core: ContentWindowCore | null | 0 | void | undefined = null;
     const core = a.detectUsableChild_(a.frameNested_);
     if (core) {
-      core.VApi.focusAndRun_(cmd, count, options);
+      core.VApi!.focusAndRun_(cmd, count, options);
       if (VDom.readyState_ > "i") { a.frameNested_ = false; }
     } else {
       // It's cross-site, or Vimium C on the child is wholly disabled
@@ -401,7 +401,7 @@ var VHints = {
     switch (tag) {
     case "a":
       isClickable = true;
-      arr = _this.checkAnchor_(element as HTMLAnchorElement & EnsuredMountedHTMLElement);
+      arr = _this.checkAnchor_(element as HTMLAnchorElement);
       break;
     case "audio": case "video": isClickable = true; break;
     case "frame": case "iframe":
@@ -448,16 +448,16 @@ var VHints = {
       if (s && s.endsWith("x-shockwave-flash")) { isClickable = true; break; }
       if (tag !== "embed"
           && (element as HTMLObjectElement).useMap) {
-        VDom.getClientRectsForAreas_(element as HTMLObjectElement, hints as Hint5[]);
+        VDom.getClientRectsForAreas_(element as HTMLObjectElement, hints);
       }
       return;
     case "img":
       if ((element as HTMLImageElement).useMap) {
-        VDom.getClientRectsForAreas_(element as HTMLImageElement, hints as Hint5[]);
+        VDom.getClientRectsForAreas_(element as HTMLImageElement, hints);
       }
       if ((_this.forHover_ && (!(anotherEl = element.parentElement) || VDom.htmlTag_(anotherEl) !== "a"))
-          || ((s = (element as HTMLElement).style.cursor as string) ? s !== "default"
-              : (s = VDom.getComputedStyle_(element).cursor as string) && (s.includes("zoom") || s.startsWith("url"))
+          || ((s = element.style.cursor!) ? s !== "default"
+              : (s = VDom.getComputedStyle_(element).cursor!) && (s.includes("zoom") || s.startsWith("url"))
           )) {
         isClickable = true;
       }
@@ -470,7 +470,7 @@ var VHints = {
       type = (s = element.contentEditable) !== "inherit" && s && s !== "false" ? ClickType.edit
         : (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
             ? (anotherEl = (element as XrayedObject<SafeHTMLElement>).wrappedJSObject || element).onclick
-              || (anotherEl as TypeToAssert<Element, SafeHTMLElement, "onmousedown", "tagName">).onmousedown
+              || (anotherEl as TypeToAssert<Element, SafeHTMLElement, "onmousedown">).onmousedown
             : element.getAttribute("onclick"))
           || (s = element.getAttribute("role")) && (<RegExpI> /^(?:button|checkbox|link|radio|tab)$|^menuitem/i).test(s)
           || _this.ngEnabled_ && element.getAttribute("ng-click")
@@ -499,12 +499,12 @@ var VHints = {
                 : arr || VDom.getVisibleClientRect_(element, null))
         && (type < ClickType.scrollX
           || VSc.shouldScroll_need_safe_(element
-              , ((type - ClickType.scrollX as ScrollByY) + _this.forceToScroll_) as BOOL | 2 | 3, 0) > 0)
+              , (((type - ClickType.scrollX) as ScrollByY) + _this.forceToScroll_) as BOOL | 2 | 3, 0) > 0)
         && VDom.isAriaNotTrue_(element, kAria.hidden)
         && (_this.mode_ > HintMode.min_job - 1 || VDom.isAriaNotTrue_(element, kAria.disabled))
     ) { hints.push([element, arr, type]); }
   },
-  _getClickableInMaybeSVG (hints: Hint[], element: SafeElement & { __other: 1 | 2 }): void {
+  _getClickableInMaybeSVG (hints: Hint[], element: SVGElement | OtherSafeElement): void {
     let anotherEl: SVGElement;
     let arr: Rect | null | undefined, s: string | null , type = ClickType.Default;
     const tabIndex = (element as ElementToHTMLorSVG).tabIndex;
@@ -524,10 +524,10 @@ var VHints = {
           : tabIndex != null && tabIndex >= 0 ? element.localName === "a" ? ClickType.attrListener : ClickType.tabindex
           : ClickType.Default;
         if (type > ClickType.Default && (arr = VDom.getVisibleClientRect_(element, null))
-            && VDom.isAriaNotTrue_(element as SafeElement, kAria.hidden)
-            && (this.mode_ > HintMode.min_job - 1 || VDom.isAriaNotTrue_(element as SafeElement, kAria.disabled))
+            && VDom.isAriaNotTrue_(element, kAria.hidden)
+            && (this.mode_ > HintMode.min_job - 1 || VDom.isAriaNotTrue_(element, kAria.disabled))
             ) {
-          hints.push([element as SVGElement | OtherSafeElement, arr, type]);
+          hints.push([element, arr, type]);
         }
       }
     }
@@ -542,7 +542,7 @@ var VHints = {
     }
     return false;
   },
-  checkAnchor_ (anchor: HTMLAnchorElement & EnsuredMountedHTMLElement): Rect | null {
+  checkAnchor_ (anchor: HTMLAnchorElement): Rect | null {
     // for Google search result pages
     let mayBeSearchResult = !!(anchor.rel
           || (Build.BTypes & ~BrowserType.Chrome ? anchor.getAttribute("ping") : anchor.ping)),
@@ -587,7 +587,7 @@ var VHints = {
             || ((tag = VDom.htmlTag_(el2)) === "div" || tag === "span") && VDom.clickable_.has(el2)
                 && el2.getClientRects().length
             || ((tag !== "div"
-                  || !!(el2 = (el2 as HTMLHeadingElement).firstElementChild as Element | null,
+                  || !!(el2 = (el2 as HTMLDivElement).firstElementChild as Element | null,
                         tag = el2 ? VDom.htmlTag_(el2) : ""))
                 && (<RegExpOne> /^h\d$/).test(tag)
                 && (el2 = (el2 as HTMLHeadingElement).firstElementChild as Element | null)
@@ -612,7 +612,7 @@ var VHints = {
       break;
     }
     if (arr = VDom.getVisibleClientRect_(element)) {
-      hints.push([element as HintsNS.InputHintItem["d"], arr, ClickType.edit]);
+      hints.push([element as LockableElement, arr, ClickType.edit]);
     }
   },
   GetLinks_ (this: void, hints: Hint[], element: SafeHTMLElement): void {
@@ -649,7 +649,7 @@ var VHints = {
       } else {
         str = element.dataset.src || element.getAttribute("href");
         if (!VHints.isImageUrl_(str)) {
-          str = element.style.backgroundImage as string;
+          str = element.style.backgroundImage!;
           str = str && (<RegExpI> /^url\(/i).test(str) ? str : "";
         }
       }
@@ -660,7 +660,7 @@ var VHints = {
   /** @safe_even_if_any_overridden_property */
   traverse_: function (selector: string
       , filter: HintsNS.Filter<Hint | SafeHTMLElement>, notWantVUI?: boolean
-      , wholeDoc?: true): Hint[] | Element[] {
+      , wholeDoc?: true): Hint[] | SafeHTMLElement[] {
     if (!Build.NDEBUG && Build.BTypes & ~BrowserType.Firefox && selector === "*") {
       selector = VHints.kSafeAllSelector_; // for easier debugging
     }
@@ -719,7 +719,7 @@ var VHints = {
           }
         } else if (wantClickable) {
           a._getClickableInMaybeSVG(output as Exclude<typeof output, SafeHTMLElement[]>
-              , el as (typeof el) & { __other: 1 | 2 });
+              , el as SVGElement | OtherSafeElement);
         }
       }
       if (i >= len) {
@@ -765,7 +765,7 @@ var VHints = {
     } else if (output.length > 0) {
       a.frameNested_ = null;
     }
-    return output as Hint[];
+    return output;
   } as {
     (key: string, filter: HintsNS.Filter<SafeHTMLElement>, notWantVUI?: true, wholeDoc?: true): SafeHTMLElement[];
     (key: string, filter: HintsNS.Filter<Hint>, notWantVUI?: boolean): Hint[];
@@ -802,7 +802,7 @@ var VHints = {
       }
       const last = el.lastElementChild;
       if (!last) { continue; }
-      if (Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_(el)) { continue; }
+      if (Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_not_ff_!(el)) { continue; }
       while (list[++i] !== last) { /* empty */ }
       i--;
     }
@@ -845,7 +845,7 @@ var VHints = {
             && (element = list[i][0]).childElementCount === 1 && i + 1 < list.length) {
           element = element.lastElementChild as Element;
           prect = list[i][1];
-          crect = Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_(element) ? null
+          crect = Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_not_ff_!(element) ? null
               : VDom.getVisibleClientRect_(element as SafeElement);
           if (crect && VDom.isContaining_(crect, prect) && VDom.htmlTag_(element)) {
             if (list[i + 1][0].parentNode !== element) {
@@ -895,18 +895,18 @@ var VHints = {
     // Note: currently, not compute normal shadowDOMs / even <slot>s (too complicated)
     let i = 3, f: Node | null;
     while (0 < i-- && c
-        && (c = Build.BTypes & ~BrowserType.Firefox ? VDom.GetParent_(c, PNType.DirectElement)
+        && (c = Build.BTypes & ~BrowserType.Firefox ? VDom.GetParent_unsafe_(c, PNType.DirectElement)
                 : c.parentElement as Element | null)
         && c !== p
         && !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
-              && VDom.unsafeFramesetTag_ && VDom.notSafe_(c))
+              && VDom.unsafeFramesetTag_old_cr_ && VDom.notSafe_not_ff_!(c))
         ) { /* empty */ }
     if (c !== p
         || !shouldBeSingleChild || (<RegExpOne> /\b(button|a$)/).test(p.localName as string)) {
       return c === p;
     }
     for (; c.childElementCount === 1
-          && ((f = c.firstChild as Node).nodeType !== kNode.TEXT_NODE || !(f as Text).data.trim())
+          && ((f = c.firstChild!).nodeType !== kNode.TEXT_NODE || !(f as Text).data.trim())
           && ++i < 3
         ; c = c.lastElementChild as Element | null as Element) { /* empty */ }
     return i > 2;
@@ -941,7 +941,7 @@ var VHints = {
     };
     while (0 <= --i) {
       el = list[i][0];
-      root = (el as Ensure<Node, "getRootNode">).getRootNode() as Document | ShadowRoot;
+      root = el.getRootNode!() as Document | ShadowRoot;
       const nodeType = root.nodeType, area = list[i][1],
       cx = (area.l + area.r) * zoomD2, cy = (area.t + area.b) * zoomD2;
       if (nodeType !== kNode.DOCUMENT_NODE && nodeType !== kNode.DOCUMENT_FRAGMENT_NODE
@@ -955,27 +955,29 @@ var VHints = {
       if (nodeType === kNode.DOCUMENT_FRAGMENT_NODE
           && (temp = el.lastElementChild as Element | null)
           && vDom.htmlTag_(temp) === "slot"
-          && (root as ShadowRoot).host.contains(fromPoint as NonNullable<typeof fromPoint>)) {
+          && (root as ShadowRoot).host.contains(fromPoint!)) {
         continue;
       }
       localName = el.localName;
       if (localName === "img"
-          ? VHints._isDescendant(el, fromPoint as NonNullable<typeof fromPoint>, 0)
+          ? VHints._isDescendant(el, fromPoint!, 0)
           : localName === "area" && fromPoint === list[i][4]) {
         continue;
       }
       const stack = root.elementsFromPoint(cx, cy),
       elPos = stack.indexOf(el);
-      if (elPos > 0 ? (index2 = stack.lastIndexOf(fromPoint as NonNullable<typeof fromPoint>, elPos - 1)) >= 0
+      if (elPos > 0 ? (index2 = stack.lastIndexOf(fromPoint!, elPos - 1)) >= 0
           : elPos < 0) {
         if (!(Build.BTypes & BrowserType.Firefox) ? elPos < 0
             : Build.BTypes & ~BrowserType.Firefox && VOther & ~BrowserType.Firefox && elPos < 0) {
-          for (temp = el; (temp = vDom.GetParent_(temp, PNType.RevealSlot)) && temp !== body && temp !== docEl; ) {
+          for (temp = el
+              ; (temp = vDom.GetParent_unsafe_(temp, PNType.RevealSlot)) && temp !== body && temp !== docEl
+              ; ) {
             if (vDom.getComputedStyle_(temp).zoom !== "1") { temp = el; break; }
           }
         } else {
           while (temp = stack[index2], index2++ < elPos
-              && !(Build.BTypes & ~BrowserType.Firefox && vDom.notSafe_(temp))
+              && !(Build.BTypes & ~BrowserType.Firefox && vDom.notSafe_not_ff_!(temp))
               && !vDom.isAriaNotTrue_(temp as SafeElement, kAria.hidden)) { /* empty */ }
           temp = temp !== fromPoint && el.contains(temp) ? el : temp;
         }
@@ -996,10 +998,11 @@ var VHints = {
     this.frameNested_ = res === false && VDom.readyState_ < "i" ? null : res;
   },
   _getNestedFrame (output?: Hint[]): HintsNS.NestedFrame {
+    const vDom = VDom;
     if (output == null) {
-      if (!VDom.isHTML_()) { return false; }
+      if (!vDom.isHTML_()) { return false; }
       output = [];
-      for (let el of VDom.querySelectorAll_unsafe_("a,button,input,frame,iframe")) {
+      for (let el of vDom.querySelectorAll_unsafe_("a,button,input,frame,iframe")) {
         if ((el as ElementToHTML).lang != null) {
           this.GetClickable_(output, el as SafeHTMLElement);
         }
@@ -1009,12 +1012,12 @@ var VHints = {
       return output.length !== 0 && null;
     }
     let rect: ClientRect | undefined, rect2: ClientRect, element = output[0][0];
-    if ((<RegExpI> /^i?frame$/).test(VDom.htmlTag_(element))
-        && (rect = VDom.getBoundingClientRect_(element),
-            rect2 = VDom.getBoundingClientRect_(VDom.docEl_unsafe_() as Element),
+    if ((<RegExpI> /^i?frame$/).test(vDom.htmlTag_(element))
+        && (rect = vDom.getBoundingClientRect_(element),
+            rect2 = vDom.getBoundingClientRect_(vDom.docEl_unsafe_()!),
             rect.top - rect2.top < 20 && rect.left - rect2.left < 20
             && rect2.right - rect.right < 20 && rect2.bottom - rect.bottom < 20)
-        && VDom.isStyleVisible_(element)
+        && vDom.isStyleVisible_(element)
     ) {
       return element as HTMLFrameElement | HTMLIFrameElement;
     }
@@ -1072,9 +1075,8 @@ var VHints = {
         for (let _k = _len; _i <= --_k; ) {
           t = visibleElements[_k][1];
           if (r.l >= t.l && r.t >= t.t && r.l < t.l + 10 && r.t < t.t + 8) {
-            const offset: HintOffset = [r, visibleElement.length > 3 ? (visibleElement as Hint4)[3][1] + 13 : 13],
-            hint2 = visibleElements[_k] as Hint4;
-            hint2.length > 3 ? (hint2[3] = offset) : (hint2 as {} as HintOffset[]).push(offset);
+            const offset: HintOffset = [r, visibleElement.length > 3 ? (visibleElement as Hint4)[3][1] + 13 : 13];
+            (visibleElements[_k] as Hint4)[3] = offset;
             break;
           }
         }
@@ -1115,12 +1117,11 @@ var VHints = {
       if (keybody < kChar.f2) {
         a.ResetMode_();
         if (key[0] === "a" && a.useFilter_) {
-          (a.locateHint_(a.filterEngine_.activeHint_ as HintsNS.HintItem) as typeof a)._highlightHint(
-              a.filterEngine_.activeHint_ as HintsNS.HintItem);
+          (a.locateHint_(a.filterEngine_.activeHint_!) as typeof VHints)._highlightHint(a.filterEngine_.activeHint_!);
         } else if (key[0] === "s") {
           // `/^s-(f1|f0[a-z0-9]+)$/`
           for (const frame of this.frameList_) {
-            ((frame.s as typeof VHints).boxL_ as SafeHTMLElement).classList.toggle("HM-" + keybody);
+            (frame.s as typeof VHints).boxL_!.classList.toggle("HM-" + keybody);
           }
         }
         return HandlerResult.Prevent;
@@ -1143,7 +1144,7 @@ var VHints = {
         }
         a.isClickListened_ = true;
         if (Build.BTypes & ~BrowserType.Firefox) {
-          (VApi as EnsureNonNull<VApiTy>).execute_(kContentCmd.ManuallyFindAllOnClick);
+          VApi.execute_(kContentCmd.ManuallyFindAllOnClick);
         }
       }
       a.ResetMode_(1);
@@ -1194,8 +1195,7 @@ var VHints = {
     const arr = this.frameList_;
     for (const list of arr.length > 1 && matchedHint ? arr : []) {
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
-          ? list.h.indexOf(matchedHint) >= 0
-          : (list.h as ReadonlyArrayWithIncludes<HintsNS.HintItem>).includes(matchedHint)) {
+          ? list.h.indexOf(matchedHint) >= 0 : list.h.includes!(matchedHint)) {
         return list.s;
       }
     }
@@ -1203,7 +1203,7 @@ var VHints = {
   },
   _highlightHint (hint: HintsNS.HintItem): void {
     VCui.flash_(hint.m, null, 660, " Sel");
-    (this.boxL_ as NonNullable<typeof VHints.boxL_>).classList.toggle("HMM");
+    this.boxL_!.classList.toggle("HMM");
   },
   ResetMode_ (silent?: 1): void {
     let a = VHints, d: KeydownCacheArray;
@@ -1236,7 +1236,7 @@ var VHints = {
     };
     let tick = 0;
     a._onTailEnter = callback;
-    (a.boxL_ as NonNullable<typeof a.boxL_>).remove();
+    a.boxL_!.remove();
     a.boxL_ = null;
     Build.BTypes & BrowserType.Firefox && (slave = a.unwrap_(slave));
     if (Build.BTypes & BrowserType.Chrome && !waitEnter) {
@@ -1282,7 +1282,7 @@ var VHints = {
       const showRect = a.modeOpt_[0](clickEl, rect, hint);
       if (!a._removeFlash && showRect !== false && (rect || (rect = VDom.getVisibleClientRect_(clickEl)))) {
         VKey.timeout_(function (): void {
-          (showRect || document.hasFocus()) && VCui.flash_(null, rect as Rect);
+          (showRect || document.hasFocus()) && VCui.flash_(null, rect!);
         }, 17);
       }
     } else {
@@ -1331,7 +1331,7 @@ var VHints = {
       a._timer = TimerID.None;
       let reinit: BOOL | void = 0;
       try {
-        Build.BTypes & BrowserType.Firefox && (slave = a.unwrap_(slave as NonNullable<typeof slave>));
+        Build.BTypes & BrowserType.Firefox && (slave = a.unwrap_(slave!));
         Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i ||
         slave && (reinit = (slave as typeof VHints).CheckLast_(el, r));
       } catch {}
@@ -1349,18 +1349,22 @@ var VHints = {
     if (el === 1) { return 2; }
     const master = _this._master || _this;
     const r2 = el && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinNo$TimerType$$Fake
-                      || el !== TimerType.fake) ? VDom.getBoundingClientRect_(el as HintsNS.LinkEl) : 0,
+                      /** @todo: remove comments here, which was to work around a bug of TypeScript 3.9 beta */
+                      /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+                      // @ts-expect-error
+                      || el !== TimerType.fake
+                      ) ? VDom.getBoundingClientRect_(el as HintsNS.LinkEl) : null,
+                      /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
     hidden = !r2 || r2.width < 2 && r2.height < 2
         || !VDom.isStyleVisible_(el as HintsNS.LinkEl); // use 2px: may be safer
     if (hidden && VDom.lastHovered_ === el) {
       VDom.lastHovered_ = null;
     }
     if ((!r2 || r) && master.isInLH_
-        && (master.hints_ as NonNullable<typeof _this.hints_>).length < (
+        && master.hints_!.length < (
               ((master as typeof _this).frameList_).length > 1 ? 200 : 100)
         && !master.keyStatus_.keySequence_
-        && (hidden || Math.abs((r2 as ClientRect).left - (r as Rect).l) > 100
-            || Math.abs((r2 as ClientRect).top - (r as Rect).t) > 60)) {
+        && (hidden || Math.abs(r2!.left - r!.l) > 100 || Math.abs(r2!.top - r!.t) > 60)) {
       if (_this._master) { return 1; }
       master._reinit();
     }
@@ -1434,13 +1438,13 @@ var VHints = {
   },
   onFrameUnload_ (slave: HintsNS.Slave): void {
     const a = this, frames = a.frameList_, len = frames.length;
-    const wrappedSlave = Build.BTypes & BrowserType.Firefox ? a.unwrap_(slave) : 0 as never;
+    const wrappedSlave_ff = Build.BTypes & BrowserType.Firefox ? a.unwrap_(slave) : 0 as never as null;
     let i = 0, offset = 0;
-    while (i < len && frames[i].s !== (Build.BTypes & BrowserType.Firefox ? wrappedSlave : slave)) {
+    while (i < len && frames[i].s !== (Build.BTypes & BrowserType.Firefox ? wrappedSlave_ff! : slave)) {
       offset += frames[i++].h.length;
     }
     if (i >= len || !a.isInLH_ || a._timer) { return; }
-    const keyStat = a.keyStatus_, hints = keyStat.curHints_ = a.hints_ as NonNullable<typeof a.hints_>,
+    const keyStat = a.keyStatus_, hints = keyStat.curHints_ = a.hints_!,
     deleteCount = frames[i].h.length;
     deleteCount && (hints as HintsNS.HintItem[]).splice(offset, deleteCount); // remove `readonly` by intent
     frames.splice(i, 1);
@@ -1473,8 +1477,8 @@ var VHints = {
     const a = this;
     let stacks = a.zIndexes_;
     if (!stacks) {
-      stacks = [] as HintsNS.Stacks;
-      totalHints.forEach(a.MakeStacks_, [[], stacks] as [Array<ClientRect | null>, HintsNS.Stacks]);
+      stacks = [];
+      totalHints.forEach(a.MakeStacks_, [<Array<ClientRect | null>> [], stacks]);
       stacks = stacks.filter(stack => stack.length > 1);
       if (stacks.length <= 0) {
         a.zIndexes_ = saveIfNoOverlap ? 0 : null;
@@ -1485,9 +1489,9 @@ var VHints = {
     for (const stack of stacks) {
       for (let length = stack.length, j = reverse ? length - 1 : 0, end = reverse ? -1 : length
             , max = Math.max.apply(Math, stack)
-            , oldI: number = totalHints[stack[reverse ? 0 : length - 1]].z as number
+            , oldI: number = totalHints[stack[reverse ? 0 : length - 1]].z!
           ; j !== end; reverse ? j-- : j++) {
-        const hint = totalHints[stack[j]], { m: { style, classList } } = hint, newI = hint.z as number;
+        const hint = totalHints[stack[j]], { m: { style, classList } } = hint, newI = hint.z!;
         style.zIndex = (hint.z = oldI) as number | string as string;
         classList.toggle("OH", oldI < max); classList.toggle("SH", oldI >= max);
         oldI = newI;
@@ -1500,11 +1504,11 @@ var VHints = {
     hint.z = hint.z || i + 1;
     const stacks = this[1], m = VDom.getBoundingClientRect_(hint.m);
     rects.push(m);
-    let stackForThisMarker = null as HintsNS.Stack | null;
+    let stackForThisMarker: HintsNS.Stack | null = null;
     for (let j = 0, len2 = stacks.length; j < len2; ) {
       let stack = stacks[j], k = 0, len3 = stack.length;
       for (; k < len3; k++) {
-        const t = rects[stack[k]] as ClientRect;
+        const t = rects[stack[k]]!;
         if (m.bottom > t.top && m.top < t.bottom && m.right > t.left && m.left < t.right) {
           break;
         }
@@ -1725,9 +1729,9 @@ filterEngine_: {
         const match = key.startsWith(seq);
         marker.style.visibility = match ? "" : "hidden";
         if (match) {
-          let child = marker.firstChild as Text | HintsNS.MarkerElement, el: HintsNS.MarkerElement;
+          let child = marker.firstChild!, el: HTMLSpanElement;
           if (child.nodeType === kNode.TEXT_NODE) {
-            el = marker.insertBefore(VDom.createElement_("span") as HintsNS.MarkerElement, child);
+            el = marker.insertBefore(VDom.createElement_("span"), child);
             el.className = "MC";
           } else {
             el = child;
@@ -1760,7 +1764,7 @@ filterEngine_: {
    * so, use `~ * 1e4` to ensure delta > 1
    */
   scoreHint_ (textHint: HintsNS.HintText, searchWords: readonly string[]): number {
-    let words = textHint.w as NonNullable<HintsNS.HintText["w"]>, total = 0;
+    let words = textHint.w!, total = 0;
     if (!words.length) { return 0; }
     for (const search of searchWords) {
       let max = 0;
@@ -1788,9 +1792,9 @@ filterEngine_: {
       let right: string, marker = hint.m;
       if (useFilter) {
         marker.textContent = hint.a;
-        right = (hint.h as HintsNS.HintText).t;
+        right = hint.h!.t;
         if (!right || right[0] !== ":") { continue; }
-        right = (hint.h as HintsNS.HintText).t = right.slice(1);
+        right = hint.h!.t = right.slice(1);
         right = right.replace(<RegExpG> /[^!-~\xc0-\xfc\u0402"-\u045f\xba\u0621-\u064a]+/g, " "
             ).replace(<RegExpOne> /^[^\w\x80-\uffff]+|:[:\s]*$/, "").trim();
         right = right.length > GlobalConsts.MaxLengthOfShownText
@@ -1811,7 +1815,7 @@ filterEngine_: {
           && noAppend) {
         marker.insertAdjacentText("beforeend", right);
       } else {
-        (marker as Ensure<HTMLElement, "append">).append(right);
+        marker.append!(right);
       }
     }
   },
@@ -1861,7 +1865,7 @@ filterEngine_: {
       sequence ? sequence = sequence.slice(0, -1) : textSeq = textSeq.slice(0, -1);
     } else if (useFilter && keybody === kChar.enter || isSpace && textSeq0 !== textSeq) {
       // keep .known_ to be 1 - needed by .executeL_
-      return filterEngine.activeHint_ as NonNullable<typeof filterEngine.activeHint_>;
+      return filterEngine.activeHint_!;
     } else if (isSpace) { // then useFilter is true
       textSeq = textSeq0 + " ";
     } else if (!(useFilter && (key.includes("c-") || key.includes("m-"))) && event.c.length === 1
@@ -1901,19 +1905,19 @@ filterEngine_: {
       h.zIndexes_ = h.zIndexes_ && null;
       keyStatus.keySequence_ = sequence;
       const notDoSubCheck = !keyStatus.tab_, wanted = notDoSubCheck ? sequence : sequence.slice(0, -1);
-      hints = keyStatus.curHints_ = (doesDetectMatchSingle ? hints : h.hints_ as readonly HintsNS.HintItem[]
-          ).filter(hint => {
+      hints = keyStatus.curHints_ = (doesDetectMatchSingle ? hints : h.hints_!).filter(hint => {
         const pass = hint.a.startsWith(wanted) && (notDoSubCheck || !hint.a.startsWith(sequence));
         hint.m.style.visibility = pass ? "" : "hidden";
         return pass;
       });
       const limit = sequence.length - keyStatus.tab_;
+      type MarkerElementChild = Exclude<HintsNS.MarkerElement["firstChild"], Text | null>;
       for (const { m: { childNodes: ref } } of hints) {
 // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/dom_token_list.cc?q=DOMTokenList::setValue&g=0&l=258
 // shows that `.classList.add()` costs more
         for (let j = ref.length - 1; 0 <= --j; ) {
-          !(ref[j] as Exclude<HintsNS.MarkerElement, Text>).className !== (j < limit) ||
-          ((ref[j] as Exclude<HintsNS.MarkerElement, Text>).className = j < limit ? "MC" : "");
+          !(ref[j] as MarkerElementChild).className !== (j < limit) ||
+          ((ref[j] as MarkerElementChild).className = j < limit ? "MC" : "");
         }
       }
       return hints.length ? 2 : 0;
@@ -1930,7 +1934,7 @@ isImageUrl_ (str: string | null): boolean {
   }
   const end = str.lastIndexOf("#") + 1 || str.length;
   // eslint-disable-next-line @typescript-eslint/ban-types
-  str = (str as EnsureNonNull<String>).substring(str.lastIndexOf("/", str.lastIndexOf("?") + 1 || end), end);
+  str = str.substring!(str.lastIndexOf("/", str.lastIndexOf("?") + 1 || end), end);
   return (<RegExpI & RegExpOne> /\.(?:bmp|gif|icon?|jpe?g|a?png|svg|tiff?|webp)\b/i).test(str);
 },
 getUrlData_ (link: SafeHTMLElement): string {
@@ -1958,7 +1962,7 @@ _getImageUrl (img: SafeHTMLElement): string | void {
   if (notImg) {
     if (!this.isImageUrl_(text)) {
       let arr = (<RegExpI> /^url\(\s?['"]?((?:\\['"]|[^'"])+?)['"]?\s?\)/i).exec(
-        (notImg > 1 ? VDom.getComputedStyle_(img) : img.style).backgroundImage as string);
+        (notImg > 1 ? VDom.getComputedStyle_(img) : img.style).backgroundImage!);
       if (arr && arr[1]) {
         const a1 = VDom.createElement_("a");
         a1.href = arr[1].replace(<RegExpG> /\\(['"])/g, "$1");
@@ -1985,13 +1989,12 @@ openUrl_ (url: string, incognito?: boolean): void {
     k: this.options_.keyword
   });
 },
-detectUsableChild_ (el: HTMLIFrameElement | HTMLFrameElement
-    ): ContentWindowCore & Ensure<ContentWindowCore, "VApi"> | null {
+detectUsableChild_ (el: HTMLIFrameElement | HTMLFrameElement): ContentWindowCore | null {
   let err: boolean | null = true, childEvents: VApiTy | undefined,
   core: ContentWindowCore | void | undefined | 0;
   try {
     err = !el.contentDocument
-        || !(core = Build.BTypes & BrowserType.Firefox ? VDom.getWndCore_(el.contentWindow) : el.contentWindow)
+        || !(core = Build.BTypes & BrowserType.Firefox ? VDom.getWndCore_ff_(el.contentWindow) : el.contentWindow)
         || !(childEvents = core.VApi)
         || childEvents.keydownEvents_(Build.BTypes & BrowserType.Firefox ? VApi.keydownEvents_() : VApi);
   } catch (e) {
@@ -2007,7 +2010,7 @@ detectUsableChild_ (el: HTMLIFrameElement | HTMLFrameElement
       }
     }
   }
-  return err ? null : core as Exclude<typeof core, 0 | null | undefined | void> & Ensure<ContentWindowCore, "VApi">;
+  return err ? null : core as Exclude<typeof core, 0 | null | undefined | void>;
 },
 _highlightChild (el: HintsNS.LinkEl, tag: string): 0 | 1 | 2 {
   if (!(<RegExpOne> /^i?frame$/).test(tag)) {
@@ -2032,7 +2035,7 @@ _highlightChild (el: HintsNS.LinkEl, tag: string): 0 | 1 | 2 {
       }
     });
   } else {
-    core.VApi.focusAndRun_(kFgCmd.linkHints, count, options, 1);
+    core.VApi!.focusAndRun_(kFgCmd.linkHints, count, options, 1);
   }
   return 2;
 },
@@ -2078,7 +2081,7 @@ Modes_: [
       selector = selector.trim();
       while (up && up + 1 >= ancestors.length && top) {
         ancestors.push(top);
-        top = VDom.GetParent_(top, PNType.RevealSlotAndGotoParent);
+        top = VDom.GetParent_unsafe_(top, PNType.RevealSlotAndGotoParent);
       }
       try {
         if (selector && (selected = up
@@ -2086,7 +2089,7 @@ Modes_: [
                 ? Element.prototype.querySelector.call(ancestors[Math.max(0, Math.min(up + 1, ancestors.length - 1))]
                     , selector)
                 : (ancestors[Math.max(0, Math.min(up + 1, ancestors.length - 1))]).querySelector(selector)
-              : (element as EnsureNonNull<Element>).closest(selector))) {
+              : element.closest!(selector))) {
           for (const clsName of toggleMap[key].split(" ")) {
             clsName.trim() && selected.classList.toggle(clsName);
           }
@@ -2307,7 +2310,7 @@ Modes_: [
     } else if (hint.r && hint.r === link) {
       a.Modes_[0][0](link, rect, hint);
       return;
-    } else if (VDom.getEditableType_<0>(link) >= EditableType.TextBox) {
+    } else if (VDom.getEditableType_<0>(link) > EditableType.TextBox - 1) {
       VCui.simulateSelect_(link as LockableElement, rect, !a._removeFlash);
       return false;
     }
@@ -2331,7 +2334,7 @@ Modes_: [
           : newTab // need to work around Firefox's popup blocker
             ? kClickAction.plainMayOpenManually | kClickAction.newTabFromMode : kClickAction.plainMayOpenManually
         : kClickAction.none;
-    const ret = VCui.click_(link, rect, mask > 0 || <number> (link as ElementToHTMLorSVG).tabIndex >= 0, {
+    const ret = VCui.click_(link, rect, mask > 0 || (link as ElementToHTMLorSVG).tabIndex! >= 0, {
         altKey_: !1,
         ctrlKey_: ctrl && !isMac,
         metaKey_: ctrl && isMac,

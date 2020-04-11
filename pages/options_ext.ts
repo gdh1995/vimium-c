@@ -169,10 +169,10 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
     window.VHud && VHud.tip_(kTip.cancelImport, 1000);
     return;
   }
-  const setProto = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf
-      && Build.BTypes & BrowserType.Chrome ? Object.setPrototypeOf : 0 as never;
+  const setProto_old_cr = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf
+      && Build.BTypes & BrowserType.Chrome ? Object.setPrototypeOf : 0 as never as null;
   if (Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && Build.BTypes & BrowserType.Chrome) {
-    setProto ? setProto(new_data, null) : ((new_data as any).__proto__ = null);
+    setProto_old_cr ? setProto_old_cr(new_data, null) : ((new_data as any).__proto__ = null);
   } else {
     Object.setPrototypeOf(new_data, null);
   }

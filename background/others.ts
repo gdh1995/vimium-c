@@ -29,9 +29,9 @@ BgUtils_.timeout_(1000, function (): void {
   cachedSync = Settings_.get_("vimSync"),
   doNotSync: PartialTypedSafeEnum<SettingsToSync> = BgUtils_.safer_({
     // Note(gdh1995): need to keep synced with pages/options_ext.ts#_importSettings
-    findModeRawQueryList: 1 as 1, innerCSS: 1 as 1, keyboard: 1 as 1, newTabUrl_f: 1 as 1
-    , vomnibarPage_f: 1 as 1
-  });
+    findModeRawQueryList: 1, innerCSS: 1, keyboard: 1, newTabUrl_f: 1
+    , vomnibarPage_f: 1
+  } as const);
   function HandleStorageUpdate(changes: { [key: string]: chrome.storage.StorageChange }, area: string): void {
     if (area !== "sync") { return; }
     BgUtils_.safer_(changes);
@@ -194,7 +194,7 @@ BgUtils_.timeout_(1000, function (): void {
   }
   function revertEscaping(text: string): string {
     const map: Dict<string> = { Q: '\\"', S: "\\\\", d: "`", l: "<", n: "\u2029", q: '"', r: "\u2028" };
-    return text.replace(<RegExpSearchable<0>> /`[QSdlnqr]/g, s => <string> map[s[1]]);
+    return text.replace(<RegExpSearchable<0>> /`[QSdlnqr]/g, s => map[s[1]]!);
   }
   // Note: allow failures
   function deserialize(key: keyof SettingsToUpdate, value: SingleSerialized | SerializationMetaData
@@ -204,7 +204,7 @@ BgUtils_.timeout_(1000, function (): void {
     case "split":
       // check whether changes are only synced partially
       for (let { k: prefix, s: slice } = value, i = 0; i < slice; i++) {
-        let part = (map as NonNullable<typeof map>)[key + ":" + i];
+        let part = map![key + ":" + i];
         if (!part || !part.startsWith(prefix)) { return 8; } // only parts
         serialized += part.slice(prefix.length);
       }
@@ -234,7 +234,7 @@ BgUtils_.timeout_(1000, function (): void {
     if (jsonStr.length * /* utf-8 limit */ 4 < GlobalConsts.SYNC_QUOTA_BYTES_PER_ITEM - 99) { return jsonStr; }
     if ((Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !(Build.BTypes & BrowserType.Chrome))
         && !(Build.BTypes & BrowserType.Edge) || encoder) {
-      encoded = (encoder as TextEncoder).encode(jsonStr);
+      encoded = encoder!.encode(jsonStr);
     } else {
       encoded = jsonStr = jsonStr.replace(<RegExpG & RegExpSearchable<0>> /[^\x00-\xff]/g, s => {
         let ch = s.charCodeAt(0); return "\\u" + (ch > 0xfff ? "" : "0") + ch.toString(16);
@@ -246,7 +246,7 @@ BgUtils_.timeout_(1000, function (): void {
     if ((Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !(Build.BTypes & BrowserType.Chrome))
         && !(Build.BTypes & BrowserType.Edge) || encoder) {
       textDecoder || (textDecoder = new TextDecoder());
-      encoded = (encoder as TextEncoder).encode(jsonStr);
+      encoded = encoder!.encode(jsonStr);
     } else {
       encoded = jsonStr.replace(<RegExpG & RegExpSearchable<0>> /[^\x00-\xff]/g, s => {
         let ch = s.charCodeAt(0); return "\\u" + (ch > 0xfff ? "" : "0") + ch.toString(16);
@@ -259,7 +259,7 @@ BgUtils_.timeout_(1000, function (): void {
           && !(Build.BTypes & BrowserType.Edge) || encoder) {
         // find a boundary of char points
         for (; pos < end && ((encoded as Uint8Array)[pos] & 0xc0) === 0x80; pos--) { /* empty */ }
-        part = (textDecoder as TextDecoder).decode((encoded as Uint8Array).subarray(start, pos));
+        part = textDecoder!.decode((encoded as Uint8Array).subarray(start, pos));
       } else {
         part = (encoded as string).slice(start, pos);
       }
@@ -303,18 +303,18 @@ BgUtils_.timeout_(1000, function (): void {
     if (!items || Settings_.sync_ !== TrySet) { return; }
     let encoder = (Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !(Build.BTypes & BrowserType.Chrome))
         && !(Build.BTypes & BrowserType.Edge) || (window as any).TextEncoder ? new TextEncoder() : null;
-    for (const key in items) {
-      let value = items[key as keyof SettingsToUpdate],
-      defaultVal = Settings_.defaults_[key as keyof SettingsToUpdate],
+    for (const _key in items) {
+      const key = _key as keyof SettingsToUpdate;
+      let value = items[key],
+      defaultVal = Settings_.defaults_[key],
       startToResetList = typeof defaultVal === "string"
-          || typeof defaultVal === "object" && (key as keyof SettingsToUpdate) !== "vimSync"
+          || typeof defaultVal === "object" && key !== "vimSync"
           ? 0 : GlobalConsts.MaxSyncedSlices;
       if (value != null) {
-        let serialized = serialize(key as keyof SettingsToUpdate, value, encoder);
+        let serialized = serialize(key, value, encoder);
         if (serialized && typeof serialized === "object") {
           delayedSerializedItems[key] = serialized;
-          startToResetList = (serialized as EnsureItemsNonNull<typeof serialized>
-              )[key as keyof SettingsToUpdate].s;
+          startToResetList = serialized[key]!.s;
         } else {
           serializedDict[key] = serialized ? <SingleSerialized> {
               $_serialize: "single", d: JSON.parse(serialized) } : value;
@@ -361,7 +361,7 @@ BgUtils_.timeout_(1000, function (): void {
       console.log(now(), "storage.local: backup all settings from localStorage");
       BgUtils_.safer_(items);
       for (let i = 0, end = localStorage.length; i < end; i++) {
-        const key = localStorage.key(i) as string;
+        const key = localStorage.key(i)!;
         if (key in Settings_.defaults_ && (shouldSyncKey(key) || key === "keyboard")) {
           const defaultVal = Settings_.defaults_[key], value = items[key], curVal = Settings_.get_(key);
           let curJSON = curVal, jsonVal: string = value;
@@ -456,7 +456,7 @@ BgUtils_.timeout_(1000, function (): void {
       toReset.length = 0;
     }
     for (let i = 0, end = localStorage.length; i < end; i++) {
-      const key = localStorage.key(i) as string;
+      const key = localStorage.key(i)!;
       // although storeAndPropagate indeed checks @shouldSyncKey(key)
       // here check it for easier debugging
       if (!(key in items) && key in Settings_.defaults_ && shouldSyncKey(key)) {
@@ -518,8 +518,9 @@ BgUtils_.timeout_(1000, function (): void {
 });
 
 BgUtils_.timeout_(150, function (): void {
-  if (!chrome.browserAction) { return; }
-  let imageData: IconNS.StatusMap<IconNS.IconBuffer> | null, tabIds: IconNS.StatusMap<number[]> | null;
+  const browserAction = chrome.browserAction;
+  if (!browserAction) { return; }
+  let imageData: IconNS.StatusMap<IconNS.IconBuffer> | null, tabIds: IconNS.StatusMap<number[]> & SafeObject | null;
   let mayShowIcons = true;
   const func = Settings_.updateHooks_.showActionIcon,
   onerror = (err: any): void => {
@@ -527,7 +528,7 @@ BgUtils_.timeout_(150, function (): void {
       mayShowIcons = false;
       console.log("Can not access binary icon data:", err);
       Backend_.setIcon_ = BgUtils_.blank_;
-      chrome.browserAction.setTitle({ title: "Vimium C\n\nFailed in showing dynamic icons." });
+      browserAction.setTitle({ title: "Vimium C\n\nFailed in showing dynamic icons." });
   },
   loadBinaryImagesAndSetIcon = (type: Frames.ValidStatus): void => {
       const path = Settings_.icons_[type] as IconNS.BinaryPath;
@@ -537,9 +538,9 @@ BgUtils_.timeout_(150, function (): void {
       cache = BgUtils_.safeObj_() as IconNS.IconBuffer;
       cache[small] = new ImageData(uint8Array.subarray(0, firstSize), small, small);
       cache[large] = new ImageData(uint8Array.subarray(firstSize), large, large);
-      (imageData as Exclude<typeof imageData, null>)[type] = cache;
-      const arr = (tabIds as IconNS.StatusMap<number[]>)[type] as number[];
-      delete (tabIds as IconNS.StatusMap<number[]>)[type];
+      imageData![type] = cache;
+      const arr = tabIds![type]!;
+      delete tabIds![type];
       for (let w = 0, h = arr.length; w < h; w++) {
         Backend_.setIcon_(arr[w], type, true);
       }
@@ -568,7 +569,7 @@ BgUtils_.timeout_(150, function (): void {
             && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) {
           const ref2 = Backend_.indexPorts_();
           for (const tabId in ref2) {
-            if ((ref2[+tabId] as Frames.Frames)[0].s.s !== Frames.Status.enabled) {
+            if (ref2[+tabId]![0].s.s !== Frames.Status.enabled) {
               Backend_.setIcon_(+tabId, Frames.Status.enabled);
             }
           }
@@ -587,7 +588,7 @@ BgUtils_.timeout_(150, function (): void {
     // only do partly updates: ignore "rare" cases like `sender.s` is enabled but the real icon isn't
     const ref = Backend_.indexPorts_();
     for (const tabId in ref) {
-      const sender = (ref[+tabId] as Frames.Frames)[0].s;
+      const sender = ref[+tabId]![0].s;
       if (sender.s !== Frames.Status.enabled) {
         Backend_.setIcon_(sender.t, sender.s);
       }
@@ -603,29 +604,29 @@ BgUtils_.timeout_(150, function (): void {
      */
     if (Build.BTypes & ~BrowserType.Chrome
         && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) {
-      chrome.browserAction.setIcon({ tabId, path: Settings_.icons_[type] as IconNS.ImagePath });
+      browserAction.setIcon({ tabId, path: Settings_.icons_[type]! });
       return;
     }
-    let data: IconNS.IconBuffer | null;
-    if (data = (imageData as Exclude<typeof imageData, null>)[type]) {
-      const f = chrome.browserAction.setIcon, args: chrome.browserAction.TabIconDetails = {
+    let data: IconNS.IconBuffer | null | undefined;
+    if (data = imageData![type]) {
+      const f = browserAction.setIcon, args: chrome.browserAction.TabIconDetails = {
         tabId,
         imageData: data
       };
       isLater ? f(args, BgUtils_.runtimeError_) : f(args);
-    } else if ((tabIds as IconNS.StatusMap<number[]>)[type]) {
-      ((tabIds as IconNS.StatusMap<number[]>)[type] as number[]).push(tabId);
+    } else if (tabIds![type]) {
+      tabIds![type]!.push(tabId);
     } else {
       setTimeout(loadBinaryImagesAndSetIcon, 0, type);
-      (tabIds as IconNS.StatusMap<number[]>)[type] = [tabId];
+      tabIds![type] = [tabId];
     }
   };
   Settings_.updateHooks_.showActionIcon = function (value): void {
     func(value);
-    (Settings_.temp_.IconBuffer_ as IconNS.AccessIconBuffer)(value);
+    Settings_.temp_.IconBuffer_!(value);
     let title = trans_("name");
     value || (title += "\n\n" + trans_("noActiveState"));
-    chrome.browserAction.setTitle({ title });
+    browserAction.setTitle({ title });
   };
   Settings_.postUpdate_("showActionIcon");
 });
@@ -735,16 +736,16 @@ BgUtils_.timeout_(600, function (): void {
       }
       if (Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
-        tail = (sugItem.textSplit as string) + (title && " - " + title) + tail;
+        tail = sugItem.textSplit! + (title && " - " + title) + tail;
       } else {
         tail = title ? `</url><dim> - ${title}${tail}</dim>` : tail ? `</url><dim>${tail}</dim>` : "</url>";
-        tail = "<url>" + (sugItem.textSplit as string) + tail;
+        tail = "<url>" + sugItem.textSplit! + tail;
       }
       const msg: chrome.omnibox.SuggestResult = { content: url, description: tail };
       canBeDeleted && (msg.deletable = true);
-      hasSessionId && (info.sessionId_ = sugItem.s as string | number);
+      hasSessionId && (info.sessionId_ = sugItem.s!);
       if (canBeDeleted || hasSessionId) {
-        (subInfoMap as SubInfoMap)[url] = info;
+        subInfoMap![url] = info;
         info = {};
       }
       suggestions.push(msg);
@@ -762,7 +763,7 @@ BgUtils_.timeout_(600, function (): void {
       let text = (sug as CompletersNS.SearchSuggestion).p;
       if (Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
-        defaultDesc = (text && `${text} - `) + <string> sug.textSplit;
+        defaultDesc = (text && `${text} - `) + sug.textSplit!;
       } else {
         defaultDesc = (text && `<dim>${BgUtils_.escapeText_(text)} - </dim>`) + `<url>${sug.textSplit}</url>`;
       }
@@ -772,7 +773,7 @@ BgUtils_.timeout_(600, function (): void {
         case "math":
           suggestions[1].description = Build.BTypes & BrowserType.Firefox
                 && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-              ? <string> sug.textSplit + " = " + sug.t
+              ? sug.textSplit! + " = " + sug.t
               : `<dim>${sug.textSplit} = </dim><url><match>${sug.t}</match></url>`;
           break;
         }
@@ -803,7 +804,7 @@ BgUtils_.timeout_(600, function (): void {
       suggestions && suggest(suggestions);
       return;
     }
-    if (matchType === CompletersNS.MatchType.emptyResult && key.startsWith(last as string)) {
+    if (matchType === CompletersNS.MatchType.emptyResult && key.startsWith(last!)) {
       // avoid Chrome showing results from its inner search engine because of `suggest` being destroyed
       if (Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
@@ -827,7 +828,7 @@ BgUtils_.timeout_(600, function (): void {
     cleanTimer || (cleanTimer = setTimeout(tryClean, 30000));
     inputTime = now;
     subInfoMap = suggestions = null; firstResultUrl = "";
-    const type: SugType = matchType < MatchType.someMatches || !key.startsWith(last as string) ? SugType.Empty
+    const type: SugType = matchType < MatchType.someMatches || !key.startsWith(last!) ? SugType.Empty
       : matchType === MatchType.searchWanted ? !key.includes(" ") ? SugType.search : SugType.Empty
       : matchedSugTypes;
     Completion_.filter_(key
@@ -854,7 +855,7 @@ BgUtils_.timeout_(600, function (): void {
       });
     }
     if (firstResultUrl && text === last) { text = firstResultUrl; }
-    const sessionId = subInfoMap && subInfoMap[text] && (subInfoMap[text] as SubInfo).sessionId_;
+    const sessionId = subInfoMap && subInfoMap[text] && subInfoMap[text]!.sessionId_;
     clean();
     return open(text, disposition, sessionId);
   }
@@ -890,19 +891,19 @@ BgUtils_.timeout_(600, function (): void {
   omnibox.onInputEntered.addListener(onEnter);
   (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeleting
     || (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox) && mayDelete) &&
-  (onDel as NonNullable<typeof onDel>).addListener(function (text): void {
+  onDel!.addListener(function (text): void {
     // eslint-disable-next-line radix
     const ind = parseInt(text.slice(text.lastIndexOf("~", text.length - 2) + 1)) - 1;
-    let url = suggestions && suggestions[ind].content, info = url && subInfoMap && subInfoMap[url],
+    let url = suggestions && suggestions[ind].content, info = url && subInfoMap && subInfoMap[url] || null,
     type = info && info.type_;
     if (!type) {
       console.log("Error: want to delete a suggestion but no related info found (may spend too long before deleting).");
       return;
     }
-    if ((url as string)[0] === ":") {
-      url = (url as string).slice((url as string).indexOf(" ") + 1);
+    if (url![0] === ":") {
+      url = url!.slice(url!.indexOf(" ") + 1);
     }
-    return Backend_.removeSug_({ t: type, u: type === "tab" ? (info as SubInfo).sessionId_ as string : url as string });
+    return Backend_.removeSug_({ t: type, u: type === "tab" ? info!.sessionId_ as string : url! });
   });
 });
 
@@ -920,7 +921,7 @@ setTimeout(function (loadI18nPayload: () => void): void {
   };
   let oldStr = localStorage.getItem(I18nConsts.storageKey), keyArrays: string[] = [], i18nKeys: Set<string>, toDos = 0,
   fixTrans = (updateCache: BOOL): void => {
-    i18nKeys = new (Set as SetConstructor)<string>(keyArrays);
+    i18nKeys = new Set!<string>(keyArrays);
     trans_ = newTrans;
     keyArrays = fixTrans = null as never;
     if (updateCache) {
@@ -939,13 +940,13 @@ setTimeout(function (loadI18nPayload: () => void): void {
       fixTrans(1);
     }
   };
-  for (const langName of new (Set as SetConstructor)<string>(["en", lang1, lang2]) as any) {
+  for (const langName of new Set!<string>(["en", lang1, lang2]) as any) {
     if (langName) {
       fetch(`/_locales/${langName}/messages.json`).then(r => r.json<Dict<any>>()).then(onload);
       toDos++;
     }
   }
-}, 33, Settings_.temp_.loadI18nPayload_ as NonNullable<typeof Settings_.temp_.loadI18nPayload_>);
+}, 33, Settings_.temp_.loadI18nPayload_!);
 Settings_.temp_.loadI18nPayload_ = null;
 }
 
@@ -954,7 +955,7 @@ chrome.runtime.onInstalled.addListener(Settings_.temp_.onInstall_ =
 function (details: chrome.runtime.InstalledDetails): void {
   let reason = details.reason;
   if (reason === "install") { reason = ""; }
-  else if (reason === "update") { reason = details.previousVersion as string; }
+  else if (reason === "update") { reason = details.previousVersion!; }
   else { return; }
 
   setTimeout(function () {
@@ -1068,8 +1069,7 @@ BgUtils_.GC_ = function (inc0?: number): void {
 };
 
 BgUtils_.timeout_(1200, function (): void {
-  chrome.runtime.onInstalled.removeListener(
-      Settings_.temp_.onInstall_ as NonNullable<typeof Settings_.temp_.onInstall_>);
+  chrome.runtime.onInstalled.removeListener(Settings_.temp_.onInstall_!);
   Settings_.temp_.onInstall_ = null;
   (document.documentElement as HTMLHtmlElement).innerText = "";
   BgUtils_.resetRe_();

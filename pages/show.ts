@@ -343,10 +343,10 @@ function clickLink(this: void, options: { [key: string]: string }
     , event: MouseEventToPrevent | KeyboardEventToPrevent): void {
   event.preventDefault();
   if (!VData.url) { return; }
-  const a = document.createElement("a"), setProto = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf
-      && Build.BTypes & BrowserType.Chrome ? Object.setPrototypeOf : 0 as never;
+  const a = document.createElement("a"), setProto_old_cr = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf
+      && Build.BTypes & BrowserType.Chrome ? Object.setPrototypeOf : 0 as never as null;
   if (Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && Build.BTypes & BrowserType.Chrome) {
-    setProto ? setProto(options, null) : ((options as any).__proto__ = null);
+    setProto_old_cr ? setProto_old_cr(options, null) : ((options as any).__proto__ = null);
   } else {
     Object.setPrototypeOf(options, null);
   }

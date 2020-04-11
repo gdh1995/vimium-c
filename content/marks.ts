@@ -32,7 +32,7 @@ var VMarks = {
   },
   previous_: [] as MarksNS.FgMark[], // [0..8]
   setPreviousPosition_ (idx?: number): void {
-    this.previous_[<number> <number | string> idx | 0] = [ scrollX, scrollY, location.hash ];
+    this.previous_[idx! | 0] = [ scrollX, scrollY, location.hash ];
   },
   _create (event: HandlerNS.Event, keyChar: string): void {
     if (keyChar === "`" || keyChar === "'") {

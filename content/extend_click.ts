@@ -58,7 +58,7 @@ if (VDom && VimiumInjector === undefined) {
             || Build.MinCVer < BrowserVer.MinEnsuredES6MethodFunction
             || Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage)
         && (!(Build.BTypes & ~BrowserType.ChromeOrFirefox) || VOther === BrowserType.Chrome)
-        ? navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/) : 0 as 0
+        ? navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/) : 0 as const
     , appVer: BrowserVer | 1 | 0 = Build.BTypes & BrowserType.Chrome
         && (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
             || Build.MinCVer < BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
@@ -68,8 +68,8 @@ if (VDom && VimiumInjector === undefined) {
         : Build.BTypes & BrowserType.Chrome
           && (!(Build.BTypes & ~BrowserType.ChromeOrFirefox) || VOther === BrowserType.Chrome)
         ? 1 : 0
-    , rAF = Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome
-        ? requestAnimationFrame : 0 as never
+    , rAF_old_cr = Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome
+        ? requestAnimationFrame : 0 as never as null
     , Doc = document, docEl = VDom.docEl_unsafe_()
     , secret: number = (Math.random() * kContentCmd.SecretRange + 1) | 0
     , script = VDom.createElement_("script");
@@ -122,7 +122,7 @@ if (VDom && VimiumInjector === undefined) {
     target = detail ? null : (event as VimiumDelegateEventCls["prototype"]).relatedTarget as Element | null
         || (!(Build.BTypes & BrowserType.Edge)
             && Build.MinCVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
-          ? (event.path as NonNullable<typeof event.path>)[0] as Element
+          ? event.path![0] as Element
           : (path = event.path) && path.length > 1 ? path[0] as Element : null);
     if (detail) {
       resolve(0, detail[0]); resolve(1, detail[1]);
@@ -203,14 +203,13 @@ if (VDom && VimiumInjector === undefined) {
   type PublicFunction = (maybeKNeedToVerify: string, verifierFunc: InnerVerifier | unknown) => void | string;
   let injected: string = isFirstTime ? '"use strict";(' + (function VC(this: void): void {
 
-function verifier(maybeSecret: string, maybeVerifierB?: InnerVerifier | unknown): ReturnType<InnerVerifier> {
+function verifier(maybeSecret: string, maybeVerifierB?: InnerVerifier): ReturnType<InnerVerifier> {
   if (maybeSecret === GlobalConsts.MarkAcrossJSWorlds
       && noAbnormalVerifyingFound) {
     if (!maybeVerifierB) {
       return [myAEL, myToStr];
     } else {
-      [anotherAEL, anotherToStr] = (maybeVerifierB as InnerVerifier)(decryptFromVerifier(maybeVerifierB)
-          ) as NonNullable<ReturnType<InnerVerifier>>;
+      [anotherAEL, anotherToStr] = maybeVerifierB(decryptFromVerifier(maybeVerifierB))!;
     }
   } else {
     noAbnormalVerifyingFound = 0;
@@ -218,7 +217,7 @@ function verifier(maybeSecret: string, maybeVerifierB?: InnerVerifier | unknown)
 }
 type FUNC = (this: unknown, ...args: never[]) => unknown;
 const doc = document, cs = doc.currentScript as HTMLScriptElement,
-sec: number = +<string> cs.dataset.vimium,
+sec: number = +cs.dataset.vimium!,
 ETP = EventTarget.prototype, _listen = ETP.addEventListener,
 toRegister: Element[] & { p (el: Element): void | 1; s: Element[]["splice"] } = [] as any,
 _apply = _listen.apply, _call = _listen.call,
@@ -393,7 +392,7 @@ function prepareRegister(this: void, element: Element): void {
   }
   let parent: Node | RadioNodeList | null | undefined, tempParent: Node | RadioNodeList | null | undefined;
   if (!(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.Min$Node$$getRootNode || GetRootNode) {
-    parent = call(GetRootNode as NonNullable<typeof GetRootNode>, element);
+    parent = call(GetRootNode!, element);
   } else {
     // according to tests and source code, the named getter for <frameset> requires <frame>.contentDocument is valid
     // so here pe and pn will not be Window if only ignoring the case of `<div> -> #shadow-root -> <frameset>`
@@ -427,7 +426,7 @@ function prepareRegister(this: void, element: Element): void {
         && (tempParent = (parent as TypeToAssert<DocumentFragment, ShadowRoot, "host">).host)) {
       parent = (!(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.Min$Node$$getRootNode || GetRootNode)
           && (tempParent as NonNullable<ShadowRoot["host"]>).shadowRoot // an open shadow tree
-          && call(GetRootNode as NonNullable<typeof GetRootNode>, element, {composed: !0});
+          && call(GetRootNode!, element, {composed: !0});
       if (parent && (parent === doc || (<NodeToElement> parent).nodeType === kNode.ELEMENT_NODE)
           && typeof (s = element.tagName) === "string") {
         parent !== doc && parent !== root && call(Append, root, parent);
@@ -480,7 +479,7 @@ function executeCmd(eventOrDestroy?: Event): void {
         : kContentCmd._fake
       : eventOrDestroy ? kContentCmd._fake : kContentCmd.Destroy;
   // always stopProp even if the secret does not match, so that an attacker can not detect secret by enumerating numbers
-  detail && call(StopProp, eventOrDestroy as Event);
+  detail && call(StopProp, eventOrDestroy!);
   if (cmd < kContentCmd._minSuppressClickable) {
     if (!cmd || !root) { return; }
     call(Remove, root);
@@ -542,7 +541,7 @@ _listen(kOnDomReady, doInit, !0);
   script.type = "text/javascript";
   script.dataset.vimium = secret as number | string as string;
   if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
-    ((docEl ? script : Doc) as Ensure<ParentNode, "prepend">).prepend.call(docEl || Doc, script);
+    (docEl ? script : Doc).prepend!.call(docEl || Doc, script);
   } else {
     docEl ? script.insertAdjacentElement.call(docEl, "afterbegin", script) : Doc.appendChild(script);
   }
@@ -554,7 +553,7 @@ _listen(kOnDomReady, doInit, !0);
   if (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome
       && appVer === BrowserVer.NoRAFOrRICOnSandboxedPage) {
     VDom.allowRAF_ = 0;
-    rAF(() => { VDom.allowRAF_ = 1; });
+    rAF_old_cr!(() => { VDom.allowRAF_ = 1; });
   }
   // not check MinEnsuredNewScriptsFromExtensionOnSandboxedPage
   // for the case JavaScript is disabled in CS: https://github.com/philc/vimium/issues/3187
@@ -604,7 +603,7 @@ _listen(kOnDomReady, doInit, !0);
       ? ((Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? rIC : requestIdleCallback
           ) as RequestIdleCallback)(cb, { timeout })
       : (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome
-          ? rAF : requestAnimationFrame)(cb)
+          ? rAF_old_cr! : requestAnimationFrame)(cb)
       ;
   } as any;
 })(VDom.readyState_ > "l")
@@ -637,7 +636,7 @@ _listen(kOnDomReady, doInit, !0);
         ) => 42 | void,
         self: EventTarget, name: string, listener: EventListenerOrEventListenerObject,
         opts?: EventListenerOptions | boolean
-    ) => 42 | void>(_listen as NonNullable<typeof _listen>), apply = newListen.apply,
+    ) => 42 | void>(_listen!), apply = newListen.apply,
   resolve = Build.NDEBUG ? 0 as never : (): void => {
     console.log("Vimium C: extend click: resolve %o in %o @t=%o ."
         , resolved
@@ -652,7 +651,7 @@ _listen(kOnDomReady, doInit, !0);
 
   if (VDom.readyState_ > "l") {
     if (typeof _listen === "function") {
-      exportFunction(newListen, Cls as NonNullable<typeof Cls>, { defineAs: newListen.name });
+      exportFunction(newListen, Cls!, { defineAs: newListen.name });
     }
     VDom.OnDocLoaded_((): void => {
       VKey.timeout_(function (): void {

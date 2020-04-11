@@ -5,19 +5,21 @@ var VKey = {
   keyNames_: [kChar.space, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
     kChar.left, kChar.up, kChar.right, kChar.down,
     /* 41 */ "", "", "", "", kChar.insert, kChar.delete] as readonly kChar[],
-  keyIdCorrectionOffset_: (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
-      ? 185 : 0 as never) as 185 | 300,
+  keyIdCorrectionOffset_old_cr_: Build.BTypes & BrowserType.Chrome
+      && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
+      ? 185 as 185 | 300 : 0 as never as null,
   _codeCorrectionMap: ["Semicolon", "Equal", "Comma", "Minus", "Period", "Slash", "Backquote",
     "BracketLeft", "Backslash", "BracketRight", "Quote", "IntlBackslash"],
-  _charCorrectionList: Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
-      ? kChar.CharCorrectionList as kChar.CharCorrectionList : 0 as never,
+  _charCorrectionList_old_cr: Build.BTypes & BrowserType.Chrome
+      && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
+      ? kChar.CharCorrectionList as kChar.CharCorrectionList : 0 as never as null,
   _modifierKeys: {
     __proto__: null as never,
     Alt: 1, AltGraph: 1, Control: 1, Meta: 1, OS: 1, Shift: 1
   } as SafeEnum,
   cacheK_: null as never as SettingsNS.FrontendSettingCache,
   /** only return lower-case long string */
-  getKeyName_ (event: Pick<KeyboardEvent, "key" | "keyCode" | "location">): kChar {
+  _getKeyName (event: Pick<KeyboardEvent, "key" | "keyCode" | "location">): kChar {
     let {keyCode: i} = event, s: string | undefined;
     return i > kKeyCode.space - 1 && i < kKeyCode.minNotDelete ? this.keyNames_[i - kKeyCode.space]
       : i < kKeyCode.minNotDelete || i === kKeyCode.osRightMac ? (i === kKeyCode.backspace ? kChar.backspace
@@ -32,7 +34,7 @@ var VKey = {
       : kChar.None;
   },
   /** return single characters which only depend on `shiftKey` (CapsLock is ignored) */
-  _getKeyCharUsingKeyIdentifier: (!(Build.BTypes & BrowserType.Chrome)
+  _getKeyCharUsingKeyIdentifier_old_cr: (!(Build.BTypes & BrowserType.Chrome)
         || Build.MinCVer >= BrowserVer.MinEnsured$KeyboardEvent$$Key ? 0 as never
       : function (this: {}, event: Pick<OldKeyboardEvent, "keyIdentifier">, shiftKey: BOOL): string {
     let s: string | undefined = Build.BTypes & ~BrowserType.Chrome
@@ -45,16 +47,16 @@ var VKey = {
           : String.fromCharCode(keyId < kCharCode.minAlphabet || shiftKey ? keyId : keyId + kCharCode.CASE_DELTA);
     } else {
       // here omits a `(...)` after the first `&&`, since there has been `keyId >= kCharCode.minNotAlphabet`
-      return keyId > (this as typeof VKey).keyIdCorrectionOffset_
+      return keyId > (this as typeof VKey).keyIdCorrectionOffset_old_cr_!
           && (keyId -= 186) < 7 || (keyId -= 26) > 6 && keyId < 11
-          ? (this as typeof VKey)._charCorrectionList[keyId + shiftKey * 12]
+          ? (this as typeof VKey)._charCorrectionList_old_cr![keyId + shiftKey * 12]
           : "";
     }
   }) as (this: {}, event: Pick<OldKeyboardEvent, "keyIdentifier">, shiftKey: BOOL) => string,
   /** return strings of 1-N characters and CapsLock is ignored */
   _forceEnUSLayout (key: string, event: Pick<KeyboardEvent, "key" | "keyCode" | "code" | "location">
       , shiftKey: boolean): string {
-    let code = event.code as NonNullable<typeof event.code>, prefix = code.slice(0, 2), mapped: number | undefined;
+    let code = event.code!, prefix = code.slice(0, 2), mapped: number | undefined;
     if (prefix !== "Nu") { // not (Numpad* or NumLock)
       // https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code/code_values
       if (prefix === "Ke" || prefix === "Di" || prefix === "Ar") {
@@ -70,7 +72,7 @@ var VKey = {
             : !code ? key // e.g. https://github.com/philc/vimium/issues/3451#issuecomment-569124026
             : (mapped = this._codeCorrectionMap.indexOf(code)) < 0 ? code
             : (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
-                ? this._charCorrectionList : kChar.CharCorrectionList)[mapped + 12 * +shiftKey]
+                ? this._charCorrectionList_old_cr! : kChar.CharCorrectionList)[mapped + 12 * +shiftKey]
           ;
     }
     return shiftKey && key.length < 2 ? key : key.toLowerCase();
@@ -87,14 +89,15 @@ var VKey = {
       // since Browser.Min$KeyboardEvent$MayHas$$Key and before .MinEnsured$KeyboardEvent$$Key
       // event.key may be an empty string if some modifier keys are held on
       // it seems that KeyIdentifier doesn't follow keyboard layouts
-      key = this.getKeyName_(event) // it's safe to skip the check of `event.keyCode`
-        || this._getKeyCharUsingKeyIdentifier(event as Pick<OldKeyboardEvent, "keyIdentifier">, +shiftKey as BOOL);
+      key = this._getKeyName(event) // it's safe to skip the check of `event.keyCode`
+        || this._getKeyCharUsingKeyIdentifier_old_cr(event as Pick<OldKeyboardEvent, "keyIdentifier">
+            , +shiftKey as BOOL);
     } else {
       key = (!(Build.BTypes & BrowserType.Edge) || Build.BTypes & ~BrowserType.Edge && VOther !== BrowserType.Edge)
           && this.cacheK_.l
-        ? this._forceEnUSLayout(key as string, event, shiftKey)
-        : (key as string).length > 1 || key === " " ? this.getKeyName_(event)
-        : this.cacheK_.i ? shiftKey ? (<string> key).toUpperCase() : (<string> key).toLowerCase() : <string> key;
+        ? this._forceEnUSLayout(key!, event, shiftKey)
+        : key!.length > 1 || key === " " ? this._getKeyName(event)
+        : this.cacheK_.i ? shiftKey ? key!.toUpperCase() : key!.toLowerCase() : key!;
     }
     return eventWrapper.c = key as kChar;
   },

@@ -138,7 +138,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   useInput_: true,
   completions_: null as never as SuggestionE[],
   total_: 0,
-  maxPageNum_: Math.min(Math.max(3, (<number> window.VomnibarMaxPageNum | 0) || 10), 100),
+  maxPageNum_: Math.min(Math.max(3, (window.VomnibarMaxPageNum! | 0) || 10), 100),
   isEditing_: false,
   isInputComposing_: false,
   baseHttps_: null as boolean | null,
@@ -263,9 +263,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.height_ = 0;
     a.isActive_ = true;
     // also clear @timer
-    a.update_(0, (start as number) <= (end as number) ? function (): void {
+    a.update_(0, start! <= end! ? function (): void {
       if (Vomnibar_.input_.value === Vomnibar_.inputText_) {
-        Vomnibar_.input_.setSelectionRange(start as number, end as number);
+        Vomnibar_.input_.setSelectionRange(start!, end!);
       }
     } : null);
     if (a.init_) { a.init_(); }
@@ -342,7 +342,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       return;
     }
     blurred && focused && a.input_.blur();
-    const line: SuggestionEx = a.completions_[sel] as SuggestionEx;
+    const line = a.completions_[sel] as SuggestionEx;
     if (line.parsed_) {
       return a._updateInput(line, line.parsed_);
     }
@@ -380,7 +380,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     });
   },
   parsed_ ({ i: id, s: search }: BgVomnibarSpecialReq[kBgReq.omni_parsed]): void {
-    const line: SuggestionEx = Vomnibar_.completions_[id] as SuggestionEx;
+    const line = Vomnibar_.completions_[id] as SuggestionEx;
     line.parsed_ = search ? (Vomnibar_.mode_.o.endsWith("omni") ? "" : ":o ")
         + search.k + " " + search.u + " " : line.t;
     if (id === Vomnibar_.selection_) {
@@ -419,20 +419,21 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     sel >= 1 && _ref[sel - 1].classList.add("p");
     sel >= 0 && _ref[sel].classList.add("s");
   },
-  _keyNames: Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.BTypes & BrowserType.Chrome
+  _keyNames_old_cr_ee: Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.BTypes & BrowserType.Chrome
       || Build.BTypes & BrowserType.Edge
       ? [kChar.space, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
         kChar.left, kChar.up, kChar.right, kChar.down,
         /* 41 */ "", "", "", "", kChar.insert, kChar.delete] as readonly kChar[]
-      : 0 as never,
+      : 0 as never as null,
   _codeCorrectionMap: ["Semicolon", "Equal", "Comma", "Minus", "Period", "Slash", "Backquote",
     "BracketLeft", "Backslash", "BracketRight", "Quote", "IntlBackslash"],
   _modifierKeys: {
     __proto__: null as never,
     Alt: 1, AltGraph: 1, Control: 1, Meta: 1, OS: 1, Shift: 1
   } as SafeEnum,
-  keyIdCorrectionOffset_: (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
-      ? 185 : 0 as never) as 185 | 300,
+  keyIdCorrectionOffset_old_cr_: Build.BTypes & BrowserType.Chrome
+      && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
+      ? 185 as 185 | 300 : 0 as never as null,
   char_ (event: Pick<KeyboardEvent, "code" | "key" | "keyCode" | "keyIdentifier" | "location" | "shiftKey">): string {
     const charCorrectionList = kChar.CharCorrectionList, enNumTrans = kChar.EnNumTrans;
     let {key, shiftKey} = event;
@@ -441,7 +442,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         ? Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.BTypes & BrowserType.Chrome && !key
         : true) {
       let {keyCode: i} = event, keyId: kCharCode;
-      key = i > kKeyCode.space - 1 && i < kKeyCode.minNotDelete ? this._keyNames[i - kKeyCode.space]
+      key = i > kKeyCode.space - 1 && i < kKeyCode.minNotDelete ? this._keyNames_old_cr_ee![i - kKeyCode.space]
         : i < kKeyCode.minNotDelete || i === kKeyCode.osRightMac
         ? i === kKeyCode.backspace ? kChar.backspace
             : i === kKeyCode.esc ? kChar.esc
@@ -456,19 +457,19 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         ? keyId < kCharCode.minNotAlphabet && keyId > kCharCode.minNotSpace - 1
           ? shiftKey && keyId > kCharCode.maxNotNum && keyId < kCharCode.minNotNum ? enNumTrans[keyId - kCharCode.N0]
             : String.fromCharCode(keyId < kCharCode.minAlphabet || shiftKey ? keyId : keyId + kCharCode.CASE_DELTA)
-          : keyId > this.keyIdCorrectionOffset_ && ((keyId -= 186) < 7 || (keyId -= 26) > 6 && keyId < 11)
+          : keyId > this.keyIdCorrectionOffset_old_cr_! && ((keyId -= 186) < 7 || (keyId -= 26) > 6 && keyId < 11)
           ? charCorrectionList[keyId + 12 * +shiftKey]
           : ""
         : "";
     } else {
-      let code = event.code as string, prefix = code.slice(0, 2), mapped: number | undefined;
+      let code = event.code!, prefix = code.slice(0, 2), mapped: number | undefined;
       if (prefix !== "Nu") { // not (Numpad* or NumLock)
         if (prefix === "Ke" || prefix === "Di" || prefix === "Ar") {
           code = code.slice(code < "K" ? 5 : 3);
         }
         key = code.length === 1
               ? !shiftKey || code < "0" || code > "9" ? code : enNumTrans[+code]
-              : this._modifierKeys[key as string]
+              : this._modifierKeys[key!]
                 ? Vomnibar_.mapModifier_ && event.location === Vomnibar_.mapModifier_ ? kChar.Modifier
                 : key === "Alt" ? key : ""
               : key === "Escape" ? kChar.esc : !code ? key
@@ -476,8 +477,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
               : charCorrectionList[mapped + 12 * +shiftKey]
             ;
       }
-      key = shiftKey && (key as string).length < 2 ? key as string
-          : key === "Unidentified" ? "" : (key as string).toLowerCase();
+      key = shiftKey && key!.length < 2 ? key!
+          : key === "Unidentified" ? "" : key!.toLowerCase();
     }
     return key;
   },
@@ -861,7 +862,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       if (isComposing && !a.isInputComposing_) {
         a.lastNormalInput_ = a.input_.value.trim();
       }
-      a.isInputComposing_ = isComposing as NonNullable<typeof isComposing>;
+      a.isInputComposing_ = isComposing!;
     }
     a.update_(-1);
   },
@@ -949,7 +950,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     // https://html.spec.whatwg.org/multipage/semantics.html#the-style-element
     for (const style of (document.querySelectorAll("style[id]") as {} as HTMLStyleElement[])) {
       const key = " " + style.id + " ", found = key === " custom " || omniStyles.includes(key);
-      (style.sheet as CSSStyleSheet).disabled = !found;
+      style.sheet!.disabled = !found;
       if (found) {
         omniStyles = omniStyles.replace(key, " ");
       }
@@ -1016,7 +1017,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
   blurred_ (this: void, blurred?: boolean | null): void {
     if (!Vomnibar_) { return; }
-    const doc = document, a = (doc.body as HTMLBodyElement).classList, kTransparent = "transparent" as const;
+    const doc = document, a = (doc.body as HTMLBodyElement).classList, kTransparent = "transparent";
     // Document.hidden is since C33, according to MDN
     !Vomnibar_.isActive_ ||
       (blurred != null ? !blurred
@@ -1070,7 +1071,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo &&
           ver < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1 : 0.01}px; }`
         : "#input::-ms-clear { display: none; }";
-      (document.head as HTMLHeadElement).appendChild(css);
+      document.head!.appendChild(css);
     }
     if (Build.BTypes & ~BrowserType.Firefox
         && (!(Build.BTypes & BrowserType.Firefox) || a.browser_ !== BrowserType.Firefox)) {
@@ -1086,7 +1087,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       input.addEventListener("compositionstart", func);
       input.addEventListener("compositionend", func);
     }
-    a.styleEl_ && (document.head as HTMLElement).appendChild(a.styleEl_);
+    a.styleEl_ && document.head!.appendChild(a.styleEl_);
     a.darkBtn_ = document.querySelector("#toggle-dark") as HTMLElement | null;
     a.darkBtn_ && (a.darkBtn_.onclick = (event: MouseEvent): void => {
       Vomnibar_.toggleStyle_({ t: "dark", c: event.ctrlKey });
@@ -1129,7 +1130,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         || document.createElement("style");
       st.type = "text/css";
       st.id = "custom";
-      Vomnibar_.init_ || (document.head as HTMLElement).appendChild(st);
+      Vomnibar_.init_ || document.head!.appendChild(st);
     }
     st.textContent = css;
   },
@@ -1356,7 +1357,7 @@ VUtils_ = {
         element.innerHTML = html;
       } else {
         element.innerHTML = "";
-        (element as Ensure<Element, "append">).append(
+        element.append!(
           ... <Element[]> <ArrayLike<Element>> parser.parseFromString(html, "text/html").body.children);
       }
     };
@@ -1413,7 +1414,7 @@ VUtils_ = {
     return VUtils_.escapeCSSUrlInAttr_(s0);
   },
   Stop_: function (event: Event & Partial<ToPrevent>, prevent: boolean | BOOL): void {
-    prevent && (event as EventToPrevent).preventDefault();
+    prevent && event.preventDefault!();
     event.stopImmediatePropagation();
   } as {
     (event: EventToPrevent, prevent: boolean | BOOL): void;
@@ -1506,7 +1507,7 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
     return;
   }
 
-  const unsafeMsg = [] as Array<[number, VomnibarNS.IframePort, Options | null]>,
+  const unsafeMsg: Array<[number, VomnibarNS.IframePort, Options | null]> = [],
   isWeb = curEl === null;
   let _sec = 0 as number,
   handler = function (this: void, secret: number, port: VomnibarNS.IframePort, options: Options | null): void {
@@ -1534,13 +1535,13 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
   Vomnibar_.secret_ = function (this: void, {l: payload, s: secret}): void {
     Vomnibar_.secret_ = null;
     if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
-      Vomnibar_.browser_ = payload.b as BrowserType;
+      Vomnibar_.browser_ = payload.b!;
     }
     if (Build.BTypes & BrowserType.Chrome) {
       Vomnibar_.browserVer_ = payload.v as BrowserVer;
     }
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key) {
-      payload.o || (Vomnibar_.keyIdCorrectionOffset_ = 300);
+      payload.o || (Vomnibar_.keyIdCorrectionOffset_old_cr_ = 300);
     }
     Vomnibar_.os_ = payload.o;
     Vomnibar_.mappedKeyRegistry_ = payload.k;

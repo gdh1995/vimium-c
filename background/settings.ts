@@ -1,4 +1,5 @@
 import SettingsWithDefaults = SettingsNS.SettingsWithDefaults;
+type WritableSettingsCache = SettingsNS.FullCache;
 const As_ = <T> (i: T): T => i;
 // eslint-disable-next-line no-var
 var Settings_ = {
@@ -51,16 +52,16 @@ var Settings_ = {
   },
   set_<K extends keyof FullSettings> (key: K, value: FullSettings[K]): void {
     const a = this;
+    type PersistentKeys = keyof SettingsNS.PersistentSettings;
     (a.cache_ as Generalized<SettingsNS.FullCache>)[key] = value;
     if (!(key in a.nonPersistent_)) {
-      const initial = a.defaults_[key as keyof SettingsNS.PersistentSettings];
+      const initial = a.defaults_[key as PersistentKeys];
       if (value === initial) {
         a.storage_.removeItem(key);
-        a.sync_(key as keyof SettingsNS.PersistentSettings, null);
+        a.sync_(key as PersistentKeys, null);
       } else {
         a.storage_.setItem(key, typeof initial === "string" ? value as string : JSON.stringify(value));
-        a.sync_(key as keyof SettingsNS.PersistentSettings, value as
-          FullSettings[keyof SettingsNS.PersistentSettings]);
+        a.sync_(key as PersistentKeys, value as FullSettings[PersistentKeys]);
       }
       if (key in a.valuesToLoad_) {
         (a.payload_ as Generalized<typeof a.payload_>)[a.valuesToLoad_[key as keyof SettingsNS.FrontendSettings]] =
@@ -74,9 +75,9 @@ var Settings_ = {
   },
   postUpdate_: function<K extends keyof SettingsWithDefaults> (this: {}, key: K, value?: FullSettings[K]): void {
     type AllK = keyof SettingsWithDefaults;
-    return ((this as typeof Settings_).updateHooks_[key as AllK] as SettingsNS.SimpleUpdateHook<AllK>).call(
+    return (Settings_.updateHooks_[key as AllK] as SettingsNS.SimpleUpdateHook<AllK>).call(
       this as typeof Settings_,
-      value !== undefined ? value : (this as typeof Settings_).get_(key), key);
+      value !== undefined ? value : Settings_.get_(key), key);
   } as {
     <K extends SettingsNS.NullableUpdateHooks>(key: K, value?: FullSettings[K] | null): void;
     <K extends SettingsNS.EnsuredUpdateHooks | keyof SettingsWithDefaults>(key: K, value?: FullSettings[K]): void;
@@ -102,13 +103,12 @@ var Settings_ = {
   },
   _BroadcastSettingsUpdates<K extends keyof BgReq> (this: void, request: Req.bg<K>): void {
     if (request.N === kBgReq.settingsUpdate) {
-      (request as Req.bg<kBgReq.settingsUpdate>).d =
-        Settings_.temp_.newSettingsToBroadcast_ as NonNullable<typeof Settings_.temp_.newSettingsToBroadcast_>;
+      (request as Req.bg<kBgReq.settingsUpdate>).d = Settings_.temp_.newSettingsToBroadcast_!;
       Settings_.temp_.newSettingsToBroadcast_ = null;
     }
     const ref = Backend_.indexPorts_();
     for (const tabId in ref) {
-      const frames = ref[+tabId] as Frames.Frames;
+      const frames = ref[+tabId]!;
       for (let i = frames.length; 0 < --i; ) {
         frames[i].postMessage(request);
       }
@@ -133,8 +133,8 @@ var Settings_ = {
   updateHooks_: {
     __proto__: null as never,
     extAllowList (val): void {
-      const old = (this as typeof Settings_).extAllowList_;
-      const map = (this as typeof Settings_).extAllowList_ = BgUtils_.safeObj_<boolean>();
+      const old = Settings_.extAllowList_;
+      const map = Settings_.extAllowList_ = BgUtils_.safeObj_<boolean>();
       if (old && Build.BTypes & BrowserType.Chrome
           && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)) {
         for (const key in old) { if (old[key] === false) { map[key] = false; } }
@@ -147,18 +147,18 @@ var Settings_ = {
       }
     },
     grabBackFocus (this: {}, value: FullSettings["grabBackFocus"]): void {
-      (this as typeof Settings_).payload_.g = value;
+      Settings_.payload_.g = value;
     },
     newTabUrl (this: {}, url): void {
       url = (<RegExpI> /^\/?pages\/[a-z]+.html\b/i).test(url)
         ? chrome.runtime.getURL(url) : BgUtils_.convertToUrl_(url);
-      return (this as typeof Settings_).set_("newTabUrl_f", url);
+      return Settings_.set_("newTabUrl_f", url);
     },
     searchEngines (this: {}): void {
-      return (this as typeof Settings_).set_("searchEngineMap", BgUtils_.safeObj_<Search.Engine>());
+      return Settings_.set_("searchEngineMap", BgUtils_.safeObj_<Search.Engine>());
     },
     searchEngineMap (this: {}, value: FullSettings["searchEngineMap"]): void {
-      const a = this as typeof Settings_;
+      const a = Settings_;
       "searchKeywords" in a.cache_ && a.set_("searchKeywords", null);
       // Note: this requires `searchUrl` must be a valid URL
       if (!(Build.NDEBUG || BgUtils_.protocolRe_.test(a.get_("searchUrl")))) {
@@ -168,24 +168,24 @@ var Settings_ = {
       return a.set_("searchEngineRules", rules);
     },
     searchUrl (str): void {
-      const cache = (this as typeof Settings_).cache_ as Writable<typeof Settings_.cache_>;
+      const cache = Settings_.cache_ as WritableSettingsCache;
       if (str) {
         BgUtils_.parseSearchEngines_("~:" + str, cache.searchEngineMap);
       } else {
         const initialMap: { "~": Search.Engine } = {
-          "~": { name_: "~", blank_: "", url_: (this as typeof Settings_).get_("searchUrl").split(" ", 1)[0] }
+          "~": { name_: "~", blank_: "", url_: Settings_.get_("searchUrl").split(" ", 1)[0] }
         };
         cache.searchEngineMap = initialMap as SafeObject & typeof initialMap;
         cache.searchEngineRules = [];
-        Build.MayOverrideNewTab && (this as typeof Settings_).get_("focusNewTabContent", true);
-        if (str = (this as typeof Settings_).get_("newTabUrl_f", true)) {
-          return ((this as typeof Settings_).updateHooks_.newTabUrl_f as (this: void, url_f: string) => void)(str);
+        Build.MayOverrideNewTab && Settings_.get_("focusNewTabContent", true);
+        if (str = Settings_.get_("newTabUrl_f", true)) {
+          return (Settings_.updateHooks_.newTabUrl_f as (this: void, url_f: string) => void)(str);
         }
       }
-      return (this as typeof Settings_).postUpdate_("newTabUrl");
+      return Settings_.postUpdate_("newTabUrl");
     },
     baseCSS (this: {}, css): void {
-      const a = this as typeof Settings_, cacheId = a.CONST_.StyleCacheId_,
+      const a = Settings_, cacheId = a.CONST_.StyleCacheId_,
       browserVer = CurCVer_,
       browserInfo = cacheId.slice(cacheId.indexOf(",") + 1),
       hasAll = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinUsableCSS$All
@@ -277,13 +277,13 @@ var Settings_ = {
       return a.set_("innerCSS", css);
     },
     userDefinedCss (this: {}, css2Str): void {
-      const a = this as typeof Settings_;
-      let css = a.storage_.getItem("innerCSS") as string, headEnd = css.indexOf("\n");
+      const a = Settings_;
+      let css = a.storage_.getItem("innerCSS")!, headEnd = css.indexOf("\n");
       css = css.slice(0, headEnd + 1 + +css.slice(0, headEnd).split(",")[2]);
       const css2 = a.parseCustomCSS_(css2Str);
       let innerCSS = css2.ui ? css + "\n" + css2.ui : css;
       {
-        css = a.storage_.getItem("findCSS") as string;
+        css = a.storage_.getItem("findCSS")!;
         headEnd = css.indexOf("\n");
         css = css.slice(0, headEnd + 1 + +css.slice(0, headEnd));
         let find2 = css2.find;
@@ -297,7 +297,7 @@ var Settings_ = {
         N: kBgReq.showHUD, H: innerCSS, f: cache.findCSS_
       };
       for (const tabId in ref) {
-        const frames = ref[+tabId] as Frames.Frames;
+        const frames = ref[+tabId]!;
         for (let i = frames.length; 0 < --i; ) {
           const status = frames[i].s;
           if (status.f & Frames.Flags.hasCSS) {
@@ -318,7 +318,7 @@ var Settings_ = {
       Settings_.broadcast_({ N: kBgReq.settingsUpdate, d: { i: flag } });
     },
     innerCSS (this: {}, css): void {
-      const a = this as typeof Settings_, cache = a.cache_ as Writable<typeof Settings_.cache_>;
+      const a = Settings_, cache = a.cache_ as WritableSettingsCache;
       let findCSS = a.storage_.getItem("findCSS"), omniCSS = a.storage_.getItem("omniCSS");
       if (!findCSS || omniCSS == null) { a.fetchFile_("baseCSS"); return; }
       findCSS = findCSS.slice(findCSS.indexOf("\n") + 1);
@@ -330,9 +330,9 @@ var Settings_ = {
       a.omniPayload_.c = omniCSS;
     },
     vomnibarPage (this: {}, url): void {
-      const a = this as typeof Settings_, cur = localStorage.getItem("vomnibarPage_f");
+      const a = Settings_, cur = localStorage.getItem("vomnibarPage_f");
       if (cur && !url) {
-        (a.cache_ as Writable<typeof Settings_.cache_>).vomnibarPage_f = cur;
+        (a.cache_ as WritableSettingsCache).vomnibarPage_f = cur;
         return;
       }
       url = url || a.get_("vomnibarPage");
@@ -354,7 +354,7 @@ var Settings_ = {
       a.set_("vomnibarPage_f", url);
     },
     vomnibarOptions (this: {}, options: SettingsNS.BackendSettings["vomnibarOptions"] | null): void {
-      const a = this as typeof Settings_, defaultOptions = a.defaults_.vomnibarOptions,
+      const a = Settings_, defaultOptions = a.defaults_.vomnibarOptions,
       payload = a.omniPayload_;
       let isSame = true;
       let { maxMatches, queryInterval, styles, sizes } = defaultOptions;
@@ -380,8 +380,7 @@ var Settings_ = {
         options.sizes = newSizes;
         options.styles = newStyles;
       }
-      (a.cache_ as Writable<typeof a.cache_>).vomnibarOptions = options = isSame ? defaultOptions
-        : options as NonNullable<typeof options>;
+      (a.cache_ as WritableSettingsCache).vomnibarOptions = options = isSame ? defaultOptions : options!;
       payload.n = maxMatches;
       payload.t = queryInterval;
       payload.l = sizes;
@@ -531,7 +530,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     baseCSS: 1, exclusionTemplate: 1, helpDialog: 1,
     searchEngineMap: 1, searchEngineRules: 1, searchKeywords: 1
   }),
-  frontUpdateAllowed_: ["showAdvancedCommands"] as Array<keyof SettingsNS.FrontUpdateAllowedSettings>,
+  frontUpdateAllowed_: As_<ReadonlyArray<keyof SettingsNS.FrontUpdateAllowedSettings>>(["showAdvancedCommands"]),
   icons_: !(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && OnOther & BrowserType.Chrome
       ? As_<readonly [IconNS.BinaryPath, IconNS.BinaryPath, IconNS.BinaryPath]>([
     "icons/enabled.bin", "icons/partial.bin", "icons/disabled.bin"
@@ -612,7 +611,7 @@ if (!(Build.BTypes & BrowserType.Edge) || chrome.runtime.getPlatformInfo) {
 chrome.runtime.getPlatformInfo(function (info): void {
   const os = (Build.BTypes & ~BrowserType.Chrome ? info.os || "" : info.os).toLowerCase(),
   types = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinRuntimePlatformOs
-    ? chrome.runtime.PlatformOs as NonNullable<typeof chrome.runtime.PlatformOs>
+    ? chrome.runtime.PlatformOs!
     : chrome.runtime.PlatformOs || { MAC: "mac", WIN: "win" },
   osEnum = os === types.WIN ? kOS.win : os === types.MAC ? kOS.mac : kOS.linux,
   ignoreCapsLock = Settings_.get_(SettingsNS.kNames.ignoreCapsLock);
@@ -621,7 +620,7 @@ chrome.runtime.getPlatformInfo(function (info): void {
   (Settings_.payload_ as Writable<typeof Settings_.payload_>).o = osEnum;
   Settings_.payload_.i = ignoreCapsLock > 1 || ignoreCapsLock === 1 && !osEnum;
   Settings_.temp_.initing_ |= BackendHandlersNS.kInitStat.platformInfo;
-  Backend_ && (Backend_.onInit_ as NonNullable<typeof Backend_.onInit_>)();
+  Backend_ && Backend_.onInit_!();
 });
 } else {
   Settings_.CONST_.Platform_ = Build.BTypes & BrowserType.Edge
@@ -661,7 +660,7 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   CommonNewTab = Build.BTypes & BrowserType.Edge
       && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge)
     ? "about:home" : "about:newtab", ChromeNewTab = "chrome://newtab",
-  ref3 = settings.newTabs_ as SafeDict<Urls.NewTabType>;
+  ref3 = settings.newTabs_ as Writable<typeof settings.newTabs_>;
   function func(path: string): string {
     return (path.charCodeAt(0) === kCharCode.slash ? origin : path.startsWith(prefix) ? "" : prefix) + path;
   }

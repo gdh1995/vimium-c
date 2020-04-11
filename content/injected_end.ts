@@ -27,13 +27,13 @@ VApi.execute_ = function (cmd): void {
     if (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) {
       VDom.frameElement_ = () => frameElement;
     }
-    VDom.parentCore_ = () => VDom.frameElement_() && parent as Window;
+    VDom.parentCore_ff_ = () => VDom.frameElement_() && parent as Window;
   }
   let i18nMessages: FgRes[kFgReq.i18n]["m"] = null,
   i18nCallback: ((res: FgRes[kFgReq.i18n]) => void) | null = res => {
     i18nMessages = res.m;
     if (!i18nMessages && i18nCallback) {
-      VKey.timeout_(() => VApi.send_(kFgReq.i18n, {}, i18nCallback as NonNullable<typeof i18nCallback>), 150);
+      VKey.timeout_(() => VApi.send_(kFgReq.i18n, {}, i18nCallback!), 150);
     }
     i18nCallback = null;
   };
@@ -46,7 +46,7 @@ VApi.execute_ = function (cmd): void {
         : args ? i18nMessages[tid].replace(transArgsRe, s => <string> args[+s[1] - 1])
         : i18nMessages[tid];
   };
-  const injector = VimiumInjector as VimiumInjectorTy,
+  const injector = VimiumInjector!,
   parentInjector = top !== window
       && VDom.frameElement_()
       && (parent as Window & {VimiumInjector?: typeof VimiumInjector}).VimiumInjector,
@@ -57,11 +57,11 @@ VApi.execute_ = function (cmd): void {
   injector.checkIfEnabled = (function (this: null
       , func: <K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void): void {
     func({ H: kFgReq.checkIfEnabled, u: location.href });
-  }).bind(null, (injector.$p as NonNullable<VimiumInjectorTy["$p"]>)[0]);
+  }).bind(null, injector.$p![0]);
   injector.getCommandCount = (function (this: null, func: (this: void) => string): number {
     let currentKeys = func();
     return currentKeys !== "-" ? parseInt(currentKeys, 10) || 1 : -1;
-  }).bind(null, (injector.$p as NonNullable<VimiumInjectorTy["$p"]>)[1]);
+  }).bind(null, injector.$p![1]);
   injector.$p = null;
 
   const runtime: typeof chrome.runtime = (!(Build.BTypes & BrowserType.Chrome)
@@ -97,7 +97,7 @@ VApi.execute_ = function (cmd): void {
     }
     switch (task) {
     case InjectorTask.extInited:
-      const injector1 = VimiumInjector as VimiumInjectorTy;
+      const injector1 = VimiumInjector!;
       injector1.cache = VDom.cache_;
       injector1.callback && injector1.callback(2, "complete");
       return;

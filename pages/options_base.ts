@@ -278,8 +278,8 @@ constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption_) => v
     if (Build.BTypes & ~BrowserType.Firefox) {
       container.innerHTML = bgSettings_.cache_.exclusionTemplate as string;
     } else {
-      const parsed = new DOMParser().parseFromString(bgSettings_.cache_.exclusionTemplate as string, "text/html").body;
-      (container as Ensure<Element, "append">).append(... <Element[]> <ArrayLike<Element>> parsed.children);
+      const parsed = new DOMParser().parseFromString(bgSettings_.cache_.exclusionTemplate!, "text/html").body;
+      container.append!(... <Element[]> <ArrayLike<Element>> parsed.children);
     }
     this.template_ = (container.querySelector("#exclusionTemplate") as HTMLTemplateElement
         ).content.firstChild as HTMLTableRowElement;
@@ -606,7 +606,7 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
     }
     isPatternMatched_ (pattern: string): boolean {
       if (!pattern) { return false; }
-      const rule = bgExclusions.testers_[pattern] as NonNullable<(typeof bgExclusions.testers_)[string]>;
+      const rule = bgExclusions.testers_[pattern]!;
       if (rule.t === ExclusionsNS.TesterType.StringPrefix
           ? url.startsWith(rule.v) && (!topUrl || topUrl.startsWith(rule.v))
           : rule.v.test(url) && (!topUrl || rule.v.test(topUrl))) {

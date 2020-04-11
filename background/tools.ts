@@ -122,8 +122,8 @@ ContentSettings_ = Build.PContentSettings ? {
       Backend_.complain_(trans_("setFTPCS"));
       return [];
     }
-    let info: string[] = pattern.match(/^([^:]+:\/\/)([^\/]+)/) as RegExpMatchArray
-      , hosts = BgUtils_.hostRe_.exec(info[2]) as RegExpExecArray & string[4]
+    let info: string[] = pattern.match(/^([^:]+:\/\/)([^\/]+)/)!
+      , hosts = BgUtils_.hostRe_.exec(info[2])!
       , result: string[], host = hosts[3] + (hosts[4] || "");
     pattern = info[1];
     result = [pattern + host + "/*"];
@@ -230,7 +230,7 @@ ContentSettings_ = Build.PContentSettings ? {
             delete wndOpt.focused;
           }
           chrome.windows.create(wndOpt, function (wnd: chrome.windows.Window): void {
-            const leftTabId = (wnd.tabs as Tab[])[0].id;
+            const leftTabId = wnd.tabs![0].id;
             return ContentSettings_.setAndUpdate_(count, contentType, tab, pattern, wnd.id, true, function (): void {
               chrome.tabs.remove(leftTabId);
             });
@@ -262,7 +262,7 @@ ContentSettings_ = Build.PContentSettings ? {
     const cb = ContentSettings_.updateTabAndWindow_.bind(null, tab, wndId, callback);
     return ContentSettings_.setAllLevels_(contentType, pattern, count
       , { scope: "incognito_session_only", setting: "allow" }
-      , syncState && (wndId as number) !== tab.windowId
+      , syncState && wndId !== tab.windowId
       ? function (err): void {
         if (err) { return cb(err); }
         chrome.windows.get(tab.windowId, cb);
@@ -291,7 +291,7 @@ ContentSettings_ = Build.PContentSettings ? {
     if (left <= 0) { return callback(true); }
     BgUtils_.safer_(settings);
     for (const pattern of arr) {
-      const info = BgUtils_.extendIf_(BgUtils_.safeObj_() as chrome.contentSettings.SetDetails, settings);
+      const info = BgUtils_.extendIf_(BgUtils_.safeObj_() as any as chrome.contentSettings.SetDetails, settings);
       info.primaryPattern = pattern;
       ref.set(info, func);
     }
@@ -325,7 +325,7 @@ Marks_ = { // NOTE: all public members should be static
   cache_: localStorage,
   cacheI_: null as MarkStorage | null,
   _storage (): MarkStorage {
-    const map: MarkStorage = BgUtils_.safeObj_();
+    const map = BgUtils_.safeObj_() as MarkStorage;
     map.setItem = function (k: string, v: string): void { this[k] = v; };
     return map;
   },
@@ -342,7 +342,7 @@ Marks_ = { // NOTE: all public members should be static
     }
     storage.setItem(Marks_.getLocationKey_(markName, local ? url : "")
       , JSON.stringify<MarksNS.StoredGlobalMark | MarksNS.ScrollInfo>(local ? scroll
-        : { tabId: tabId as number, url, scroll }));
+        : { tabId: tabId!, url, scroll }));
   },
   _goto (port: Port, options: CmdOptions[kFgCmd.goToMarks]) {
     port.postMessage<1, kFgCmd.goToMarks>({ N: kBgReq.execute, H: null, c: kFgCmd.goToMarks, n: 1, a: options});
@@ -413,7 +413,7 @@ Marks_ = { // NOTE: all public members should be static
     const key_start = Marks_.getLocationKey_("", url);
     let toRemove: string[] = [], storage = Marks_.cache_;
     for (let i = 0, end = storage.length; i < end; i++) {
-      const key = storage.key(i) as string;
+      const key = storage.key(i)!;
       if (key.startsWith(key_start)) {
         toRemove.push(key);
       }
@@ -447,8 +447,7 @@ FindModeHistory_ = {
   query_: function (incognito: boolean, query?: string, nth?: number): string | void {
     const a = FindModeHistory_;
     a.init_ && a.init_();
-    const list = incognito ? a.listI_ || (IncognitoWatcher_.watch_(),
-                            a.listI_ = (a.list_ as string[]).slice(0)) : (a.list_ as string[]);
+    const list = incognito ? a.listI_ || (IncognitoWatcher_.watch_(), a.listI_ = a.list_!.slice(0)) : a.list_!;
     if (!query) {
       return list[list.length - (nth || 1)] || "";
     }
@@ -508,7 +507,7 @@ IncognitoWatcher_ = {
         || CurCVer_ >= BrowserVer.MinNoAbnormalIncognito) {
       let left = false, arr = Backend_.indexPorts_();
       for (const i in arr) {
-        if ((arr[+i] as Frames.Frames)[0].s.a) { left = true; break; }
+        if (arr[+i]![0].s.a) { left = true; break; }
       }
       if (left) { return; }
     }
@@ -585,18 +584,19 @@ MediaWatcher_ = {
     }
   },
   update_ (this: void, key: MediaNS.kName, embed?: 1 | 0): void {
+    type ObjWatcher = Exclude<typeof watcher, number>;
     let watcher = MediaWatcher_.watchers_[key], isObj = typeof watcher === "object";
     if ((!(Build.BTypes & ~BrowserType.Firefox)
           || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox)
         && embed == null && isObj) {
-      let watcher2 = matchMedia((watcher as Exclude<typeof watcher, number>).media);
-      watcher2.onchange = (watcher as Exclude<typeof watcher, number>).onchange;
-      (watcher as Exclude<typeof watcher, number>).onchange = null;
+      let watcher2 = matchMedia((watcher as ObjWatcher).media);
+      watcher2.onchange = (watcher as ObjWatcher).onchange;
+      (watcher as ObjWatcher).onchange = null;
       MediaWatcher_.watchers_[key] = watcher = watcher2;
     }
     const settings = Settings_, payload = settings.payload_,
     omniToggled = key ? "dark" : "less-motion",
-    bMatched: boolean = isObj ? (watcher as Exclude<typeof watcher, number>).matches : false;
+    bMatched: boolean = isObj ? (watcher as ObjWatcher).matches : false;
     if (!key) {
       if (payload.m !== bMatched) {
         payload.m = bMatched;
@@ -652,8 +652,8 @@ BgUtils_.timeout_(120, function (): void {
   function clean(): void {
     const ref = cache;
     for (const i in ref) {
-      if ((ref[i] as number) < GlobalConsts.MaxTabRecency - GlobalConsts.MaxTabsKeepingRecency + 1) { delete ref[i]; }
-      else { (ref as EnsuredSafeDict<number>)[i] -= GlobalConsts.MaxTabRecency - GlobalConsts.MaxTabsKeepingRecency; }
+      if (ref[i]! < GlobalConsts.MaxTabRecency - GlobalConsts.MaxTabsKeepingRecency + 1) { delete ref[i]; }
+      else { ref[i]! -= GlobalConsts.MaxTabRecency - GlobalConsts.MaxTabsKeepingRecency; }
     }
     stamp = GlobalConsts.MaxTabsKeepingRecency + 1;
   }
@@ -694,7 +694,7 @@ BgUtils_.timeout_(120, function (): void {
       ? IncognitoType.ensuredFalse : IncognitoType.mayFalse;
   });
   TabRecency_.rCompare_ = function (a, b): number {
-    return (cache[b.id] as number) - (cache[a.id] as number);
+    return cache[b.id]! - cache[a.id]!;
   };
 
   const settings = Settings_;
@@ -722,7 +722,7 @@ BgUtils_.copy_ = Build.BTypes & BrowserType.Firefox
 ? function (this: void, data, join, sed): string {
   data = Clipboard_.format_(data, join, sed);
   if (data) {
-    (navigator.clipboard as EnsureNonNull<Navigator["clipboard"]>).writeText(data);
+    navigator.clipboard!.writeText!(data);
   }
   return data;
 } : function (this: void, data, join, sed): string {
@@ -741,8 +741,8 @@ BgUtils_.copy_ = Build.BTypes & BrowserType.Firefox
 BgUtils_.paste_ = !Settings_.CONST_.AllowClipboardRead_ ? () => null
 : Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
 ? function (this: void, sed): Promise<string | null> | null {
-  const clipboard = navigator.clipboard as EnsureNonNull<Navigator["clipboard"]> | undefined;
-  return clipboard ? clipboard.readText().then(s => Clipboard_.reformat_(s, sed), () => null) : null;
+  const clipboard = navigator.clipboard;
+  return clipboard ? clipboard.readText!().then(s => Clipboard_.reformat_(s, sed), () => null) : null;
 } : function (this: void, sed): string {
   const textArea = Clipboard_.getTextArea_();
   textArea.maxLength = GlobalConsts.MaxBufferLengthForPasting;
@@ -768,7 +768,7 @@ Settings_.temp_.loadI18nPayload_ = function (): void {
 };
 
 Settings_.temp_.initing_ |= BackendHandlersNS.kInitStat.others;
-(Backend_.onInit_ as NonNullable<BackendHandlersNS.BackendHandlers["onInit_"]>)();
+Backend_.onInit_!();
 
 chrome.extension.isAllowedIncognitoAccess(function (isAllowedAccess): void {
   Settings_.CONST_.DisallowIncognito_ = isAllowedAccess === false;

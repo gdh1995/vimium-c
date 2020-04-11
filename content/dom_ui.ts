@@ -1,6 +1,3 @@
-interface ShadowRootWithSelection extends ShadowRoot {
-  getSelection(): Selection | null;
-}
 type DomUIEx = typeof VCui & { flashTime: number | undefined };
 
 // eslint-disable-next-line no-var
@@ -40,13 +37,13 @@ var VCui = {
     }, 0, 1); // should use a listener in active mode: https://www.chromestatus.com/features/5745543795965952
     a.add_ = (function<T2 extends HTMLElement> (this: typeof VCui, element2: T2, adjust2?: AdjustType
         , before?: Element | null | true): void {
-      const noPar = !(this.box_ as NonNullable<typeof this.box_>).parentNode;
+      const noPar = this.box_!.parentNode;
       adjust2 !== AdjustType.NotAdjust && !noPar && this.adjust_();
       this.root_.insertBefore(element2, before === true ? this.root_.firstChild : before || null);
       adjust2 !== AdjustType.NotAdjust && noPar && this.adjust_();
     });
     a.css_ = (function (innerCSS): void {
-      const a1 = VCui, box2 = a1.box_ as HTMLElement;
+      const a1 = VCui, box2 = a1.box_!;
       if (!((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)) &&
@@ -75,7 +72,7 @@ var VCui = {
       a.css_(a.styleIn_ as Exclude<typeof a.styleIn_, Element | null | undefined | "">);
     } else {
       box.style.display = "none";
-      if ((adjust as AdjustType) === AdjustType.MustAdjust) {
+      if (adjust === AdjustType.MustAdjust) {
         a.adjust_();
       }
       VApi.post_({ H: kFgReq.css });
@@ -111,8 +108,8 @@ var VCui = {
     // Before Firefox 64, the mozFullscreenChangeEvent.target is document
     // so here should only use `VDom.fullscreenEl_unsafe_`
     const vCui = VCui, el: Element | null = VDom.fullscreenEl_unsafe_(),
-    box = vCui.box_ as NonNullable<typeof vCui.box_>,
-    el2 = el && !(vCui.root_ as Node).contains(el) ? el : VDom.docEl_unsafe_() as Element;
+    box = vCui.box_!,
+    el2 = el && !vCui.root_.contains(el) ? el : VDom.docEl_unsafe_()!;
     // Chrome also always remove node from its parent since 58 (just like Firefox), which meets the specification
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
     //  -> #concept-node-append -> #concept-node-pre-insert -> #concept-node-adopt -> step 2
@@ -180,7 +177,7 @@ var VCui = {
             || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinUnprefixedUserSelect
             ? st.userSelect || st.webkitUserSelect : st.userSelect) !== "none";
     }
-    VDom.docSelectable_ = mayTrue && (st = gcs(VDom.docEl_unsafe_() as Element),
+    VDom.docSelectable_ = mayTrue && (st = gcs(VDom.docEl_unsafe_()!),
             Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinUnprefixedUserSelect
             || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinUnprefixedUserSelect
             ? st.userSelect || st.webkitUserSelect : st.userSelect) !== "none";
@@ -189,7 +186,7 @@ var VCui = {
     let a = VCui, sout = a.styleOut_;
     if (enable ? VDom.docSelectable_ : !sout || !sout.parentNode) { return; }
     sout || (a.styleOut_ = sout = a.createStyle_(a.findCss_.s));
-    enable ? (a.box_ as HTMLElement).appendChild(sout) : sout.remove();
+    enable ? a.box_!.appendChild(sout) : sout.remove();
   },
   getSelected_ (notExpectCount?: 1): [Selection, ShadowRoot | null] {
     let d = document, el: Node | null, sel: Selection | null;
@@ -197,13 +194,13 @@ var VCui = {
       if (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
           || !(Build.BTypes & ~BrowserType.Firefox)
           || el.getRootNode) {
-        el = (el as Ensure<Node, "getRootNode">).getRootNode();
+        el = el.getRootNode!();
       } else {
-        for (let pn: Node | null; pn = VDom.GetParent_(el, PNType.DirectNode); el = pn) { /* empty */ }
+        for (let pn: Node | null; pn = VDom.GetParent_unsafe_(el, PNType.DirectNode); el = pn) { /* empty */ }
       }
       if (el !== d && el.nodeType === kNode.DOCUMENT_FRAGMENT_NODE
           && typeof (el as ShadowRoot).getSelection === "function") {
-        sel = (el as ShadowRootWithSelection).getSelection();
+        sel = (el as ShadowRoot).getSelection!();
         if (sel && (notExpectCount || sel.rangeCount)) {
           return [sel, el as ShadowRoot];
         }
@@ -250,7 +247,7 @@ var VCui = {
     let sel = VCui.getSelected_()[0], range = sel.rangeCount ? sel.getRangeAt(0) : null
       , par: Node | null = range && range.commonAncestorContainer, p0 = par;
     while (par && (par as NodeToElement).tagName == null) {
-      par = Build.BTypes & ~BrowserType.Firefox ? VDom.GetParent_(par, PNType.DirectNode)
+      par = Build.BTypes & ~BrowserType.Firefox ? VDom.GetParent_unsafe_(par, PNType.DirectNode)
             : par.parentNode as Exclude<Node["parentNode"], Window | RadioNodeList | HTMLCollection>;
     }
     // now par is Element or null, and may be a <form> / <frameset>
@@ -259,7 +256,7 @@ var VCui = {
       while (par && (text = (par as TypeToAssert<Element, HTMLElement, "innerText">).innerText,
             !(Build.BTypes & ~BrowserType.Firefox) || typeof text === "string")
           && selected.length === (text as string).length) {
-        par = VDom.GetParent_(par as HTMLElement, PNType.DirectElement);
+        par = VDom.GetParent_unsafe_(par as HTMLElement, PNType.DirectElement);
       }
     }
     return par !== VDom.docEl_unsafe_() ? par as Element | null : null;
@@ -272,9 +269,8 @@ var VCui = {
     }
     return notTrim ? s : s.trim();
   },
-  removeSelection_: function (root?: VUIRoot & {getSelection?: ShadowRootWithSelection["getSelection"]}
-      , justTest?: 1): boolean {
-    const sel = (root && root.getSelection ? root as ShadowRootWithSelection : window).getSelection();
+  removeSelection_: function (root?: VUIRoot & Pick<DocumentOrShadowRoot, "getSelection">, justTest?: 1): boolean {
+    const sel = (root && root.getSelection ? root : window).getSelection!();
     if (!sel || sel.type !== "Range" || !sel.anchorNode) {
       return false;
     }
@@ -298,10 +294,10 @@ var VCui = {
         && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)
         && (Build.MinCVer >= BrowserVer.MinEnsuredTouchEventConstructor
             || a.cache_.v >= BrowserVer.MinEnsuredTouchEventConstructor)
-        && (touchMode === !0 || touchMode && a.isInTouchMode_())) {
-      let id = a.touch_(element, center);
+        && (touchMode === !0 || touchMode && a.isInTouchMode_cr_!())) {
+      let id = a.touch_cr_!(element, center);
       if (isInDom(element)) {
-        a.touch_(element, center, id);
+        a.touch_cr_!(element, center, id);
       }
       if (!isInDom(element)) { return; }
     }
@@ -375,9 +371,9 @@ var VCui = {
       /** {@link #FirefoxBrowserVer.Min$TargetIsBlank$Implies$Noopener}; here also apply on Chrome */
       noopener = relAttr == null ? isBlank
           : Build.MinCVer >= BrowserVer.MinEnsuredES6$Array$$Includes || !(Build.BTypes & BrowserType.Chrome)
-          ? (relAttr.split(<RegExpOne> /\s/) as ReadonlyArrayWithIncludes<string>).includes("noopener")
+          ? relAttr.split(<RegExpOne> /\s/).includes!("noopener")
           : relAttr.split(<RegExpOne> /\s/).indexOf("noopener") >= 0,
-      reuse = Build.BTypes & BrowserType.Firefox && (<kClickAction> specialAction) & kClickAction.openInNewWindow
+      reuse = Build.BTypes & BrowserType.Firefox && specialAction! & kClickAction.openInNewWindow
           ? ReuseType.newWindow
           : modifiers && modifiers.shiftKey_ || specialAction! < kClickAction.newTabFromMode
             ? ReuseType.newFg : ReuseType.newBg;
@@ -454,7 +450,7 @@ var VCui = {
     if (refer) {
       return a.getClientRectsForAreas_(refer, [], [clickEl as HTMLAreaElement]);
     }
-    const rect = Build.BTypes & ~BrowserType.Firefox && a.notSafe_(clickEl) ? null
+    const rect = Build.BTypes & ~BrowserType.Firefox && a.notSafe_not_ff_!(clickEl) ? null
         : a.getVisibleClientRect_(clickEl as SafeElement),
     cr = a.getBoundingClientRect_(clickEl),
     bcr = a.padClientRect_(cr, 8),
@@ -466,7 +462,7 @@ var VCui = {
   flash_: function (this: {}, el: Element | null, rect?: Rect | null, lifeTime?: number, classNames?: string
       ): (() => void) | void {
     const a = this as typeof VCui;
-    rect || (rect = a.getRect_(el as Element));
+    rect || (rect = a.getRect_(el!));
     if (!rect) { return; }
     const flashEl = VDom.createElement_("div"), nfs = !VDom.fullscreenEl_unsafe_();
     flashEl.className = "R Flash" + (classNames || "") + (VDom.setBoundary_(flashEl.style, rect, nfs) ? " AbsF" : "");
@@ -475,7 +471,7 @@ var VCui = {
     a.add_(flashEl);
     a.lastFlashEl_ = flashEl;
     if (!Build.NDEBUG) {
-      lifeTime = lifeTime === -1 ? - 1 : Math.max(lifeTime || 0, <number> (VCui as DomUIEx).flashTime | 0);
+      lifeTime = lifeTime === -1 ? - 1 : Math.max(lifeTime || 0, (VCui as DomUIEx).flashTime! | 0);
     }
     const remove = function (): void {
       a.lastFlashEl_ === flashEl && (a.lastFlashEl_ = null);
@@ -502,7 +498,7 @@ var VCui = {
           // simulated events generated by browser code
           || !(event as MouseEvent).detail && !(event as MouseEvent).clientY
           // Vimium C has been disabled
-          || !(VCui.box_ as NonNullable<typeof VCui.box_>).parentNode
+          || !VCui.box_!.parentNode
           // the click target is in Vimium C's UI
           || ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
               && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)

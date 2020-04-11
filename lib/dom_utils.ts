@@ -1,5 +1,4 @@
 /// <reference path="../content/base.d.ts" />
-interface ElementWithClickable { vimiumClick?: boolean }
 type kMouseMoveEvents = "mouseover" | "mouseenter" | "mousemove" | "mouseout" | "mouseleave";
 type kMouseClickEvents = "mousedown" | "mouseup" | "click" | "auxclick" | "dblclick";
 /* eslint-disable no-var, @typescript-eslint/no-unused-vars */
@@ -32,8 +31,8 @@ var VDom = {
   cache_: null as never as OnlyEnsureItemsNonNull<SettingsNS.FrontendSettingCache>,
   clickable_: null as never as { add (value: Element): object | void | number; has (value: Element): boolean },
   readyState_: "" as never as Document["readyState"],
-  unsafeFramesetTag_: (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
-      ? "" : 0 as never) as "frameset" | "",
+  unsafeFramesetTag_old_cr_: Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
+      ? "" as "frameset" | "" : 0 as never as null,
   // note: scripts always means allowing timers - vPort.ClearPort requires this assumption
   allowScripts_: 1 as 0 | 1 | 2,
   jsRe_: <RegExpI & RegExpOne> /^javascript:/i,
@@ -62,19 +61,19 @@ var VDom = {
     let s: Element["localName"];
     if ("lang" in element && typeof (s = element.localName) === "string") {
       return (Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter || !(Build.BTypes & BrowserType.Chrome)
-          ? s === "form" : s === "form" || s === VDom.unsafeFramesetTag_) ? "" : s;
+          ? s === "form" : s === "form" || s === VDom.unsafeFramesetTag_old_cr_) ? "" : s;
     }
     return "";
-  } : (element: Element): string => "lang" in element ? (element as SafeHTMLElement).localName as string : ""
+  } : (element: Element): string => "lang" in element ? (element as SafeHTMLElement).localName : ""
   ) as (element: Element) => string, // duplicate the signature, for easier F12 in VS Code
-  isInTouchMode_: Build.BTypes & BrowserType.Chrome ? function (): boolean {
+  isInTouchMode_cr_: Build.BTypes & BrowserType.Chrome ? function (): boolean {
     const viewport = VDom.querySelector_unsafe_("meta[name=viewport]");
     return !!viewport &&
       (<RegExpI> /\b(device-width|initial-scale)\b/i).test(
-          (viewport as HTMLMetaElement).content as string | undefined as /* safe even if undefined */ string);
-  } : 0 as never,
+          (viewport as TypeToAssert<Element, HTMLMetaElement, "content">).content! /* safe even if undefined */);
+  } : 0 as never as null,
   /** refer to {@link #BrowserVer.MinParentNodeInNodePrototype } */
-  Getter_: Build.BTypes & ~BrowserType.Firefox ? function <Ty extends Node, Key extends keyof Ty
+  Getter_not_ff_: Build.BTypes & ~BrowserType.Firefox ? function <Ty extends Node, Key extends keyof Ty
             , ensured extends boolean = false>(this: void
       , Cls: { prototype: Ty; new (): Ty }, instance: Ty
       , property: Key & (Ty extends Element ? "shadowRoot" | "assignedSlot" : "childNodes" | "parentNode")
@@ -83,23 +82,23 @@ var VDom = {
           | (ensured extends true ? never : null) {
     const desc = Object.getOwnPropertyDescriptor(Cls.prototype, property);
     return desc && desc.get ? desc.get.call(instance) : null;
-  } : 0 as never,
-  notSafe_: (Build.BTypes & ~BrowserType.Firefox ? function (el: Element | null): el is HTMLFormElement {
+  } : 0 as never as null,
+  notSafe_not_ff_: Build.BTypes & ~BrowserType.Firefox ? function (el: Element | null): el is HTMLFormElement {
     let s: Element["localName"];
     return !!el && (typeof (s = el.localName) !== "string" ||
       (Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter || !(Build.BTypes & BrowserType.Chrome)
-        ? s === "form" : s === "form" || s === VDom.unsafeFramesetTag_)
+        ? s === "form" : s === "form" || s === VDom.unsafeFramesetTag_old_cr_)
     );
-  } : 0 as never) as (el: Element | null) => el is HTMLFormElement,
+  } : 0 as never as null,
   /** @safe_even_if_any_overridden_property */
-  SafeEl_: (Build.BTypes & ~BrowserType.Firefox ? function (
+  SafeEl_not_ff_: Build.BTypes & ~BrowserType.Firefox ? function (
       this: void, el: Element | null, type?: PNType.DirectElement | undefined): Node | null {
-    return VDom.notSafe_(el)
-      ? VDom.SafeEl_(VDom.GetParent_(el, type || PNType.RevealSlotAndGotoParent), type) : el;
-  } : 0 as never) as {
+    return VDom.notSafe_not_ff_!(el)
+      ? VDom.SafeEl_not_ff_!(VDom.GetParent_unsafe_(el, type || PNType.RevealSlotAndGotoParent), type) : el;
+  } as {
     (this: void, el: SafeElement | null, type?: any): unknown;
     (this: void, el: Element | null, type?: PNType.DirectElement): SafeElement | null;
-  },
+  } : 0 as never as null,
   GetShadowRoot_ (el: Element): ShadowRoot | null {
     // check type of el to avoid exceptions
     if (!(Build.BTypes & ~BrowserType.Firefox)) {
@@ -114,35 +113,35 @@ var VDom = {
     return (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
         && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
         && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-      ? sr && VDom.notSafe_(el) ? null : sr as Exclude<typeof sr, undefined | Element | RadioNodeList | Window>
-      : sr && !VDom.notSafe_(el) && <Exclude<typeof sr, Element | RadioNodeList | Window>> sr || null;
+      ? sr && VDom.notSafe_not_ff_!(el) ? null : sr as Exclude<typeof sr, undefined | Element | RadioNodeList | Window>
+      : sr && !VDom.notSafe_not_ff_!(el) && <Exclude<typeof sr, Element | RadioNodeList | Window>> sr || null;
   },
   /**
    * Try its best to find a real parent
    * @safe_even_if_any_overridden_property
    * @UNSAFE_RETURNED
    */
-  GetParent_: function (this: void, el: Node | Element
+  GetParent_unsafe_: function (this: void, el: Node | Element
       , type: PNType.DirectNode | PNType.DirectElement | PNType.RevealSlot | PNType.RevealSlotAndGotoParent
       ): Node | null {
     /**
      * Known info about Chrome:
      * * a selection / range can only know nodes and text in a same tree scope
      */
-    const a = Build.BTypes & ~BrowserType.Firefox ? VDom : 0 as never,
+    const a_not_ff = Build.BTypes & ~BrowserType.Firefox ? VDom : 0 as never as null,
     kPN = "parentNode";
     if (type >= PNType.RevealSlot && Build.BTypes & ~BrowserType.Edge) {
-      const ElementCls = Build.MinCVer < BrowserVer.MinNoShadowDOMv0 && Build.BTypes & BrowserType.Chrome
-          ? Element : 0 as never;
+      const ElementCls_old_cr = Build.MinCVer < BrowserVer.MinNoShadowDOMv0 && Build.BTypes & BrowserType.Chrome
+          ? Element : 0 as never as null;
       if (Build.MinCVer < BrowserVer.MinNoShadowDOMv0 && Build.BTypes & BrowserType.Chrome) {
-        const func = ElementCls.prototype.getDestinationInsertionPoints,
+        const func = ElementCls_old_cr!.prototype.getDestinationInsertionPoints,
         arr = func ? func.call(el) : [], len = arr.length;
         len > 0 && (el = arr[len - 1]);
       }
       let slot = (el as Element).assignedSlot;
-      Build.BTypes & ~BrowserType.Firefox && slot && a.notSafe_(el as Element) &&
-      (slot = a.Getter_(Build.MinCVer < BrowserVer.MinNoShadowDOMv0 && Build.BTypes & BrowserType.Chrome
-          ? ElementCls : Element, el as HTMLFormElement, "assignedSlot"));
+      Build.BTypes & ~BrowserType.Firefox && slot && a_not_ff!.notSafe_not_ff_!(el as Element) &&
+      (slot = a_not_ff!.Getter_not_ff_!(Build.MinCVer < BrowserVer.MinNoShadowDOMv0 && Build.BTypes & BrowserType.Chrome
+          ? ElementCls_old_cr! : Element, el as HTMLFormElement, "assignedSlot"));
       if (slot) {
         if (type === PNType.RevealSlot) { return slot; }
         while (slot = slot.assignedSlot) { el = slot; }
@@ -153,18 +152,18 @@ var VDom = {
       , pn = el.parentNode as Exclude<ParentNodeProp, Window>;
     if (pe === pn /* normal pe or no parent */ || !pn /* indeed no par */) { return pn as Element | null; }
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
-        && pe && a.unsafeFramesetTag_) { // may be [a <frameset> with pn or pe overridden], or a <form>
+        && pe && a_not_ff!.unsafeFramesetTag_old_cr_!) { // may be [a <frameset> with pn or pe overridden], or a <form>
       const action = +((pn as ParentNodeProp as WindowWithTop).top === top)
           + 2 * +((pe as ParentElement as WindowWithTop).top === top);
       if (action) { // indeed a <frameset>
-        return action < 2 ? pe as Element : action < 3 ? pn as Node : el === document.body ? a.docEl_unsafe_()
-          : a.Getter_(Node, el, kPN);
+        return action < 2 ? pe as Element : action < 3 ? pn as Node : el === document.body ? a_not_ff!.docEl_unsafe_()
+          : a_not_ff!.Getter_not_ff_!(Node, el, kPN);
       }
     }
     // par exists but not in normal tree
     if (Build.BTypes & ~BrowserType.Firefox && !(pn.nodeType && pn.contains(el))) { // pn is overridden
       if (pe && pe.nodeType && pe.contains(el)) { /* pe is real */ return pe; }
-      pn = a.Getter_(Node, el, kPN);
+      pn = a_not_ff!.Getter_not_ff_!(Node, el, kPN);
     }
     // pn is real (if BrowserVer.MinParentNodeGetterInNodePrototype else) real or null
     return type === PNType.DirectNode ? pn as Node | null // may return a Node instance
@@ -193,7 +192,7 @@ var VDom = {
        */
       let body = d.body;
       el = d.compatMode === "BackCompat" || body && (
-              scrollY ? body.scrollTop : (docEl as HTMLHtmlElement).scrollHeight <= body.scrollHeight)
+              scrollY ? body.scrollTop : (docEl as HTMLElement).scrollHeight <= body.scrollHeight)
         ? body : body ? docEl : null;
       // If not fallback, then the task is to get an exact one in order to use `scEl.scrollHeight`,
       // but if body is null in the meanwhile, then docEl.scrollHeight is not reliable (scrollY neither)
@@ -204,15 +203,15 @@ var VDom = {
       console.log("Assert error: MinEnsured$ScrollingElement$CannotBeFrameset < MinFramesetHasNoNamedGetter");
     }
     if (Build.MinCVer < BrowserVer.MinEnsured$ScrollingElement$CannotBeFrameset && Build.BTypes & BrowserType.Chrome) {
-      el = this.notSafe_(el as Exclude<typeof el, undefined>) ? null : el;
+      el = this.notSafe_not_ff_!(el!) ? null : el;
     }
     if (!(Build.BTypes & ~BrowserType.Firefox)) {
       return el || !fallback ? el as SafeElement | null : docEl as SafeElement | null;
     }
     // here `el` may be `:root` / `:root > body` / null, but never `:root > frameset`
-    return this.notSafe_(el as Exclude<typeof el, undefined>) ? null // :root is unsafe
+    return this.notSafe_not_ff_!(el!) ? null // :root is unsafe
       : el || !fallback ? el as SafeElement | null // el is safe object or null
-      : this.notSafe_(docEl) ? null : docEl as SafeElement | null;
+      : this.notSafe_not_ff_!(docEl) ? null : docEl as SafeElement | null;
   },
   /** @UNSAFE_RETURNED */
   fullscreenEl_unsafe_ (): Element | null {
@@ -243,27 +242,27 @@ var VDom = {
     }
   },
   /** must be called only if having known anotherWindow is "in a same origin" */
-  getWndCore_: 0 as never as (anotherWindow: Window) => ContentWindowCore | 0 | void,
+  getWndCore_ff_: 0 as never as (anotherWindow: Window) => ContentWindowCore | 0 | void,
   /**
    * Return a valid `ContentWindowCore`
    * only if is a child which in fact has a same origin with its parent frame (ignore `document.domain`).
    *
    * So even if it returns a valid object, `parent.***` may still be blocked
    */
-  parentCore_: (Build.BTypes & BrowserType.Firefox ? function (): ContentWindowCore | 0 | void {
+  parentCore_ff_: Build.BTypes & BrowserType.Firefox ? function (): ContentWindowCore | 0 | void | null {
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement
         ? !VDom.frameElement_() : !frameElement) {
       // (in Firefox) not use the cached version of frameElement - for less exceptions in the below code
       return;
     }
     // Note: the functionality below should keep the same even if the cached version is used - for easier debugging
-    const core = VDom.getWndCore_(parent as Window);
+    const core = VDom.getWndCore_ff_(parent as Window);
     if ((!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox) && core) {
       /** the case of injector is handled in {@link ../content/injected_end.ts} */
-      VDom.parentCore_ = () => core;
+      VDom.parentCore_ff_ = () => core;
     }
     return core;
-  } : 0 as never) as () => ContentWindowCore | 0 | void | null,
+  } : 0 as never as null,
 
   /** computation section */
 
@@ -275,25 +274,26 @@ var VDom = {
       fz = Build.BTypes & ~BrowserType.Firefox ? dz * a.bZoom_ : 1, b = a.paintBox_,
       max = Math.max, min = Math.min,
       d = document, visual = inVisual && visualViewport;
-      let i: number, j: number, el: Element | null, doc: Document["documentElement"];
+      let i: number, j: number, el: Element | null, docEl: Document["documentElement"];
       vleft = vtop = 0;
       if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$visualViewport$ ? visual
           : visual && visual.width) {
-        vleft = (visual as VisualViewport).offsetLeft | 0, vtop = (visual as VisualViewport).offsetTop | 0;
-        i = vleft + <number> (visual as VisualViewport).width | 0; j = vtop + (visual as VisualViewport).height | 0;
+        vleft = visual!.offsetLeft | 0, vtop = visual!.offsetTop | 0;
+        i = vleft + visual!.width! | 0; j = vtop + visual!.height | 0;
       }
-      else if (doc = a.docEl_unsafe_(),
+      else if (docEl = a.docEl_unsafe_(),
           el = Build.MinCVer >= BrowserVer.MinScrollTopLeftInteropIsAlwaysEnabled
-              || !(Build.BTypes & BrowserType.Chrome) ? a.scrollingEl_() : d.compatMode === "BackCompat" ? d.body : doc,
+              || !(Build.BTypes & BrowserType.Chrome)
+              ? a.scrollingEl_() : d.compatMode === "BackCompat" ? d.body : docEl,
           Build.MinCVer < BrowserVer.MinScrollTopLeftInteropIsAlwaysEnabled && Build.BTypes & BrowserType.Chrome
-            ? el && !a.notSafe_(el) : el) {
-        i = (el as SafeElement).clientWidth, j = (el as SafeElement).clientHeight;
+            ? el && !a.notSafe_not_ff_!(el) : el) {
+        i = el!.clientWidth, j = el!.clientHeight;
       } else {
         i = innerWidth, j = innerHeight;
-        if (!doc) { return vbottom = j, vbottoms = j - 8, vright = i; }
+        if (!docEl) { return vbottom = j, vbottoms = j - 8, vright = i; }
         // the below is not reliable but safe enough, even when docEl is unsafe
-        i = min(max(i - GlobalConsts.MaxScrollbarWidth, (doc.clientWidth * dz) | 0), i);
-        j = min(max(j - GlobalConsts.MaxScrollbarWidth, (doc.clientHeight * dz) | 0), j);
+        i = min(max(i - GlobalConsts.MaxScrollbarWidth, (docEl.clientWidth * dz) | 0), i);
+        j = min(max(j - GlobalConsts.MaxScrollbarWidth, (docEl.clientHeight * dz) | 0), j);
       }
       if (b) {
         i = min(i, b[0] * dz); j = min(j, b[1] * dz);
@@ -360,8 +360,8 @@ var VDom = {
           }
           if (notInline || !style.display.startsWith("inline")) { continue; }
         } else { continue; }
-        if (!(Build.BTypes & ~BrowserType.Firefox && this.notSafe_(_ref[_j]))
-            && (cr = this.getVisibleClientRect_(_ref[_j] as SafeHTMLElement, style))) {
+        if (!(Build.BTypes & ~BrowserType.Firefox && this.notSafe_not_ff_!(_ref[_j]))
+            && (cr = this.getVisibleClientRect_(_ref[_j] as SafeElement, style))) {
           return cr;
         }
       }
@@ -369,20 +369,19 @@ var VDom = {
     }
     return null;
   },
-  getClientRectsForAreas_: function (this: {}, element: HTMLElementUsingMap, output: Hint5[]
+  getClientRectsForAreas_: function (this: {}, element: HTMLElementUsingMap, output: Hint[]
       , areas?: NodeListOf<HTMLAreaElement | Element> | HTMLAreaElement[]): Rect | null {
     let diff: number, x1: number, x2: number, y1: number, y2: number, rect: Rect | null | undefined;
     const cr = VDom.getBoundingClientRect_(element);
     if (cr.height < 3 || cr.width < 3) { return null; }
     // replace is necessary: chrome allows "&quot;", and also allows no "#"
-    let wantRet = areas;
     if (!areas) {
       const selector = `map[name="${element.useMap.replace(<RegExpOne> /^#/, "").replace(<RegExpG> /"/g, '\\"')}"]`;
       // on C73, if a <map> is moved outside from a #shadowRoot, then the relation of the <img> and it is kept;
       // while on F65 the relation will get lost.
       const root = (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
           || !(Build.BTypes & ~BrowserType.Firefox) || element.getRootNode)
-        ? (element as EnsureNonNull<typeof element>).getRootNode() as ShadowRoot | Document : document;
+        ? element.getRootNode!() as ShadowRoot | Document : document;
       const map = root.querySelector(selector);
       if (!map || (map as ElementToHTML).lang == null) { return null; }
       areas = map.querySelectorAll("area");
@@ -418,26 +417,25 @@ var VDom = {
       if (coords.length < diff) { continue; }
       rect = (this as typeof VDom).cropRectToVisible_(x1 + cr.left, y1 + cr.top, x2 + cr.left, y2 + cr.top);
       if (rect) {
-        output.push([area, rect, 0, [rect, 0], element]);
+        (output as Hint5[]).push([area, rect, 0, [rect, 0], element]);
       }
     }
-    return wantRet && output.length > 0 ? output[0][1] : null;
+    return output.length ? output[0][1] : null;
   } as {
-    (element: HTMLElementUsingMap, output: Hint5[], areas: HTMLCollectionOf<HTMLAreaElement> | HTMLAreaElement[]
+    (element: HTMLElementUsingMap, output: Hint[], areas?: HTMLCollectionOf<HTMLAreaElement> | HTMLAreaElement[]
       ): Rect | null;
-    (element: HTMLElementUsingMap, output: Hint5[]): null;
   },
   getCroppedRect_: function (this: {}, el: Element, crect: Rect | null): Rect | null {
     let a = this as typeof VDom, parent: Element | null = el, prect: Rect | null | undefined
       , i: number = crect ? 4 : 0, bcr: ClientRect;
-    while (1 < i-- && (parent = a.GetParent_(parent, PNType.RevealSlotAndGotoParent))
+    while (1 < i-- && (parent = a.GetParent_unsafe_(parent, PNType.RevealSlotAndGotoParent))
         && a.getComputedStyle_(parent).overflow !== "hidden"
         ) { /* empty */ }
     if (i > 0 && parent) {
       bcr = a.getBoundingClientRect_(parent);
       prect = a.cropRectToVisible_(bcr.left, bcr.top, bcr.right, bcr.bottom);
     }
-    return prect && a.isContaining_(crect as Rect, prect)
+    return prect && a.isContaining_(crect!, prect)
         ? prect : crect;
   } as {
     (el: Element, crect: Rect): Rect;
@@ -464,7 +462,7 @@ var VDom = {
   bScale_: 1, // <body>.transform:scale (ignore the case of sx != sy)
   /** zoom of <body> (if not fullscreen else 1) */
   bZoom_: 1,
-  _fixDocZoom: Build.BTypes & BrowserType.Chrome ? (zoom: number, docEl: Element, devRatio: number): number => {
+  _fixDocZoom_cr: Build.BTypes & BrowserType.Chrome ? (zoom: number, docEl: Element, devRatio: number): number => {
     let ver = Build.MinCVer < BrowserVer.MinASameZoomOfDocElAsdevPixRatioWorksAgain
         && (!(Build.BTypes & ~BrowserType.Chrome) || VOther & BrowserType.Chrome) ? VDom.cache_.v as BrowserVer : 0,
     rectWidth: number, viewportWidth: number,
@@ -478,18 +476,18 @@ var VDom = {
         || Build.MinCVer < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl
             && ver < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl
         || (rectWidth = VDom.getBoundingClientRect_(docEl).width,
-            viewportWidth = (visualViewport as EnsureItemsNonNull<VisualViewport>).width,
+            viewportWidth = visualViewport!.width!,
             Math.abs(rectWidth - viewportWidth) > 1e-3
             && (Math.abs(rectWidth * zoom - viewportWidth) < 0.01
               || (Build.MinCVer >= BrowserVer.MinASameZoomOfDocElAsdevPixRatioWorksAgain
                     || ver > BrowserVer.MinASameZoomOfDocElAsdevPixRatioWorksAgain - 1)
-                  && (style = !VDom.notSafe_(docEl) && (
+                  && (style = !VDom.notSafe_not_ff_!(docEl) && (
                     docEl as TypeToAssert<Element, HTMLElement | SVGElement, "style">).style)
                   && style.zoom && style.zoom
-              || (VDom.isDocZoomStrange_ = 1, zoom !== VDom._getPageZoom(zoom, devRatio, docEl))))
+              || (VDom.isDocZoomStrange_ = 1, zoom !== VDom._getPageZoom_cr!(zoom, devRatio, docEl))))
         ? zoom : 1;
-  } : 0 as never,
-  _getPageZoom: Build.BTypes & BrowserType.Chrome ? function (devRatio: number
+  } : 0 as never as null,
+  _getPageZoom_cr: Build.BTypes & BrowserType.Chrome ? function (devRatio: number
       , docElZoom: number, docEl: Element | null): number {
     // only detect once, so that its cost is not too big
     let iframe: HTMLIFrameElement = VDom.createElement_("iframe"),
@@ -500,19 +498,19 @@ var VDom = {
       pageZoom = docEl && +VDom.getComputedStyle_(docEl).zoom;
     } catch {}
     iframe.remove();
-    VDom._getPageZoom = (zoom2, ratio2) => pageZoom ? ratio2 / devRatio * pageZoom : zoom2;
+    VDom._getPageZoom_cr = (zoom2, ratio2) => pageZoom ? ratio2 / devRatio * pageZoom : zoom2;
     return pageZoom || docElZoom;
-  } as (devRatio: number, docElZoom: number, docEl: Element) => number : 0 as never,
+  } as (devRatio: number, docElZoom: number, docEl: Element) => number : 0 as never as null,
   /**
    * also update VDom.docZoom_
    * update VDom.bZoom_ if target
    */
   getZoom_: Build.BTypes & ~BrowserType.Firefox ? function (this: {}, target?: 1 | Element): void {
     const a = this as typeof VDom;
-    let docEl = a.docEl_unsafe_() as Element, ratio = a.devRatio_()
+    let docEl = a.docEl_unsafe_()!, ratio = a.devRatio_()
       , gcs = a.getComputedStyle_, st = gcs(docEl), zoom = +st.zoom || 1
       , el: Element | null = a.fullscreenEl_unsafe_();
-    Build.BTypes & BrowserType.Chrome && (zoom = a._fixDocZoom(zoom, docEl, ratio));
+    Build.BTypes & BrowserType.Chrome && (zoom = a._fixDocZoom_cr!(zoom, docEl, ratio));
     if (target) {
       const body = el ? null : document.body;
       // if fullscreen and there's nested "contain" styles,
@@ -520,7 +518,7 @@ var VDom = {
       a.bZoom_ = body && (target === 1 || a.IsInDOM_(target, body)) && +gcs(body).zoom || 1;
     }
     for (; el && el !== docEl;
-        el = a.GetParent_(el, Build.MinCVer < BrowserVer.MinSlotIsNotDisplayContents
+        el = a.GetParent_unsafe_(el, Build.MinCVer < BrowserVer.MinSlotIsNotDisplayContents
               && Build.BTypes & BrowserType.Chrome && a.cache_.v < BrowserVer.MinSlotIsNotDisplayContents
             ? PNType.RevealSlotAndGotoParent : PNType.RevealSlot)) {
       zoom *= +gcs(el).zoom || 1;
@@ -535,8 +533,8 @@ var VDom = {
     /** the min() is required in {@link ../front/vomnibar.ts#Vomnibar_.activateO_ } */
     a.wdZoom_ = Math.min(a.devRatio_(), 1);
   } as never,
-  getViewBox_ (needBox?: 1 | 2): ViewBox | ViewOffset {
-    const a = this, ratio = a.devRatio_();
+  getViewBox_: function (this: {}, needBox?: 1 | 2): ViewBox | ViewOffset {
+    const a = this as typeof VDom, ratio = a.devRatio_();
     let iw = innerWidth, ih = innerHeight, ratio2 = Math.min(ratio, 1);
     if (a.fullscreenEl_unsafe_()) {
       a.getZoom_(1);
@@ -545,10 +543,10 @@ var VDom = {
       return [0, 0, (iw / ratio2) | 0, (ih / ratio2) | 0, 0];
     }
     const float = parseFloat,
-    box = a.docEl_unsafe_() as Element, st = a.getComputedStyle_(box),
+    box = a.docEl_unsafe_()!, st = a.getComputedStyle_(box),
     box2 = document.body, st2 = box2 ? a.getComputedStyle_(box2) : st,
     zoom2 = a.bZoom_ = Build.BTypes & ~BrowserType.Firefox && box2 && +st2.zoom || 1,
-    containHasPaint = (<RegExpOne> /content|paint|strict/).test(st.contain as string),
+    containHasPaint = (<RegExpOne> /content|paint|strict/).test(st.contain!),
     kMatrix = "matrix(1,",
     stacking = !(Build.BTypes & BrowserType.Chrome && needBox === 2)
         && (st.position !== "static" || containHasPaint || st.transform !== "none"),
@@ -559,7 +557,7 @@ var VDom = {
     // ignore the case that x != y in "transform: scale(x, y)""
     _tf = st.transform, scale = a.dScale_ = _tf && !_tf.startsWith(kMatrix) && float(_tf.slice(7)) || 1;
     a.bScale_ = box2 && (_tf = st2.transform) && !_tf.startsWith(kMatrix) && float(_tf.slice(7)) || 1;
-    Build.BTypes & BrowserType.Chrome && (zoom = a._fixDocZoom(zoom, box, ratio));
+    Build.BTypes & BrowserType.Chrome && (zoom = a._fixDocZoom_cr!(zoom, box, ratio));
     a.wdZoom_ = Math.round(zoom * ratio2 * 1000) / 1000;
     a.docZoom_ = Build.BTypes & ~BrowserType.Firefox ? zoom : 1;
     let x = !stacking ? float(st.marginLeft)
@@ -607,10 +605,13 @@ var VDom = {
     iw = Math.min(iw, mw), ih = Math.min(ih, mh);
     iw = (iw / zoom2) | 0, ih = (ih / zoom2) | 0;
     return [x, y, iw, yScrollable ? ih - GlobalConsts.MaxHeightOfLinkHintMarker : ih, xScrollable ? iw : 0];
+  } as {
+    (needBox: 1 | 2): ViewBox;
+    (): ViewOffset;
   },
   NotVisible_: function (this: void, element: Element | null, rect?: ClientRect): VisibilityType {
     if (!rect) {
-      rect = VDom.getBoundingClientRect_(element as Element);
+      rect = VDom.getBoundingClientRect_(element!);
     }
     return rect.height < 0.5 || rect.width < 0.5 ? VisibilityType.NoSpace
       : rect.bottom <= 0 || rect.top >= innerHeight || rect.right <= 0 || rect.left >= innerWidth
@@ -624,7 +625,7 @@ var VDom = {
     if (!root) {
       const isConnected = element.isConnected; /** {@link #BrowserVer.Min$Node$$isConnected} */
       if (!(Build.BTypes & ~BrowserType.Firefox) || isConnected === !!isConnected) {
-        return isConnected as boolean; // is boolean : exists and is not overridden
+        return isConnected!; // is boolean : exists and is not overridden
       }
     }
     let f: Node["getRootNode"]
@@ -632,28 +633,28 @@ var VDom = {
     root = <Element | Document> root || (!(Build.BTypes & ~BrowserType.Firefox) ? element.ownerDocument as Document
         : (root = element.ownerDocument, Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter &&
             Build.BTypes & BrowserType.Chrome &&
-            VDom.unsafeFramesetTag_ && (root as WindowWithTop).top === top ||
+            VDom.unsafeFramesetTag_old_cr_ && (root as WindowWithTop).top === top ||
             (root as Document | RadioNodeList).nodeType !== kNode.DOCUMENT_NODE
         ? document : root as Document));
     if (root.nodeType === kNode.DOCUMENT_NODE
         && (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
           || !(Build.BTypes & ~BrowserType.Firefox) || (f = NProto.getRootNode))) {
       return !(Build.BTypes & ~BrowserType.Firefox)
-        ? (element as EnsureNonNull<Element>).getRootNode({composed: true}) === root
+        ? element.getRootNode!({composed: true}) === root
         : (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
-        ? NProto.getRootNode as NonNullable<typeof f> : f as NonNullable<typeof f>
-        ).call(element, {composed: true}) === root;
+            ? NProto.getRootNode : f)!.call(element, {composed: true}) === root;
     }
     if (Build.BTypes & ~BrowserType.Firefox ? NProto.contains.call(root, element) : root.contains(element)) {
       return true;
     }
-    while ((pe = VDom.GetParent_(element, checkMouseEnter ? PNType.RevealSlotAndGotoParent : PNType.ResolveShadowHost))
+    while ((pe = VDom.GetParent_unsafe_(element
+                  , checkMouseEnter ? PNType.RevealSlotAndGotoParent : PNType.ResolveShadowHost))
             && pe !== root) {
       element = pe;
     }
     // if not pe, then PNType.DirectNode won't return an Element
     // because .GetParent_ will only return a real parent, but not a fake <form>.parentNode
-    return (pe || VDom.GetParent_(element, PNType.DirectNode)) === root;
+    return (pe || VDom.GetParent_unsafe_(element, PNType.DirectNode)) === root;
   } as (this: void,  element: Element, root?: Element | Document, checkMouseEnter?: 1) => boolean,
   isStyleVisible_: (element: Element): boolean => VDom.getComputedStyle_(element).visibility === "visible",
   isAriaNotTrue_ (element: SafeElement, ariaType: kAria): boolean {
@@ -693,7 +694,7 @@ var VDom = {
     } catch {}
   },
   isSelected_ (): boolean {
-    const element = VDom.activeEl_unsafe_() as Element, sel = VDom.getSelection_(), node = sel.anchorNode;
+    const element = VDom.activeEl_unsafe_()!, sel = VDom.getSelection_(), node = sel.anchorNode;
     return !node ? false
       : (element as TypeToAssert<Element, HTMLElement, "isContentEditable">).isContentEditable === true
       ? (Build.BTypes & ~BrowserType.Firefox ? document.contains.call(element, node) : element.contains(node))
@@ -704,24 +705,23 @@ var VDom = {
   },
   getSelectionFocusEdge_ (sel: Selection, knownDi: VisualModeNS.ForwardDir): SafeElement | null {
     if (!sel.rangeCount) { return null; }
-    let el = sel.focusNode as NonNullable<Selection["focusNode"]>, nt: Node["nodeType"]
+    let el = sel.focusNode!, nt: Node["nodeType"]
       , o: Node | null, cn: Node["childNodes"] | null;
     if ("tagName" in <NodeToElement> el) {
       el = Build.BTypes & ~BrowserType.Firefox
         ? ((cn = (el as Element).childNodes) instanceof NodeList && !("value" in cn) // exclude RadioNodeList
-            || (cn = this.Getter_(Node, el, "childNodes")))
+            || (cn = this.Getter_not_ff_!(Node, el, "childNodes")))
           && cn[sel.focusOffset] || el
         : (el.childNodes as NodeList)[sel.focusOffset] || el;
     }
     for (o = el; !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
           ? o && <number> o.nodeType - kNode.ELEMENT_NODE
-          : o && (nt = o.nodeType, !(this.unsafeFramesetTag_ && (nt as WindowWithTop).top === top)
-                  && <number> nt - kNode.ELEMENT_NODE);
-        o = knownDi ? (o as Node).previousSibling : (o as Node).nextSibling) { /* empty */ }
+          : o && (nt = o.nodeType, typeof nt !== "number" || nt - kNode.ELEMENT_NODE);
+        o = knownDi ? o!.previousSibling : o!.nextSibling) { /* empty */ }
     if (!(Build.BTypes & ~BrowserType.Firefox)) {
       return (/* Element | null */ o || (/* el is not Element */ el && el.parentElement)) as SafeElement | null;
     }
-    return this.SafeEl_(<Element | null> o
+    return this.SafeEl_not_ff_!(<Element | null> o
         || (/* el is not Element */ el && el.parentElement as Element | null)
       , PNType.DirectElement);
   },
@@ -740,28 +740,28 @@ var VDom = {
         && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
         && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
         || box.attachShadow
-      ? (box as Ensure<typeof box, "attachShadow">).attachShadow({mode: "closed"})
+      ? box.attachShadow!({mode: "closed"})
       : Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredShadowDOMV1
         && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredUnprefixedShadowDOMV0
             || box.createShadowRoot)
-      ? (box as Ensure<typeof box, "createShadowRoot">).createShadowRoot()
+      ? box.createShadowRoot!()
       : Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
         && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer > BrowserVer.MinShadowDOMV0
             || box.webkitCreateShadowRoot)
-      ? (box as Ensure<typeof box, "webkitCreateShadowRoot">).webkitCreateShadowRoot() : box;
+      ? box.webkitCreateShadowRoot!() : box;
   },
   mouse_: function (this: {}, element: SafeElementForMouse
       , type: kMouseClickEvents | kMouseMoveEvents
       , center: Point2D, modifiers?: MyMouseControlKeys | null, relatedTarget?: SafeElementForMouse | null
       , button?: AcceptableClickButtons): boolean {
-    const doc = element.ownerDocument, view = (doc as Document).defaultView || window,
+    const doc = element.ownerDocument as Document, view = doc.defaultView || window,
     tyKey = type.slice(5, 6),
     // is: down | up | (click) | dblclick | auxclick
-    detail = !"dui".includes(tyKey) ? 0 : <number> button & kClickButton.primaryAndTwice ? 2 : 1,
+    detail = !"dui".includes(tyKey) ? 0 : button! & kClickButton.primaryAndTwice ? 2 : 1,
     x = center[0], y = center[1], ctrlKey = modifiers ? modifiers.ctrlKey_ : !1,
     altKey = modifiers ? modifiers.altKey_ : !1, shiftKey = modifiers ? modifiers.shiftKey_ : !1,
     metaKey = modifiers ? modifiers.metaKey_ : !1;
-    button = (<number> button & kClickButton.second) as kClickButton.none | kClickButton.second;
+    button = (button! & kClickButton.second) as kClickButton.none | kClickButton.second;
     relatedTarget = relatedTarget && relatedTarget.ownerDocument === doc ? relatedTarget : null;
     let mouseEvent: MouseEvent;
     // note: there seems no way to get correct screenX/Y of an element
@@ -782,12 +782,12 @@ var VDom = {
           && (Build.MinCVer >= BrowserVer.MinEnsured$InputDeviceCapabilities || IDC)
           ) {
         init.sourceCapabilities = (this as typeof VDom)._idc = (this as typeof VDom)._idc ||
-            new ((Build.MinCVer >= BrowserVer.MinEnsured$InputDeviceCapabilities ? InputDeviceCapabilities
-                  : IDC) as NonNullable<typeof IDC>)({fireTouchEvents: !1});
+            new (Build.MinCVer >= BrowserVer.MinEnsured$InputDeviceCapabilities ? InputDeviceCapabilities
+                  : IDC)!({fireTouchEvents: !1});
       }
       mouseEvent = new MouseEvent(type, init);
     } else {
-      mouseEvent = (doc as Document).createEvent("MouseEvents");
+      mouseEvent = doc.createEvent("MouseEvents");
       mouseEvent.initMouseEvent(type, !0, !0, view, detail, x, y, x, y
         , ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget);
     }
@@ -821,11 +821,11 @@ var VDom = {
     a.lastHovered_ = Null;
     if (newEl && isInDOM(newEl)) {
       // then center is not null
-      a.mouse_(newEl, "mouseover", center as Point2D, Null, last);
+      a.mouse_(newEl, "mouseover", center!, Null, last);
       if (isInDOM(newEl)) {
-        a.mouse_(newEl, "mouseenter", center as Point2D, Null, last);
+        a.mouse_(newEl, "mouseenter", center!, Null, last);
         if (canDispatchMove && isInDOM(newEl)) {
-          a.mouse_(newEl, "mousemove", center as Point2D);
+          a.mouse_(newEl, "mousemove", center!);
         }
         a.lastHovered_ = isInDOM(newEl) ? newEl : Null;
       }
@@ -844,7 +844,7 @@ var VDom = {
     a.hover_();
     if (active && a.activeEl_unsafe_() === active) { active.blur && active.blur(); }
   },
-  touch_: Build.BTypes & BrowserType.Chrome ? function (this: {}, element: SafeElementForMouse
+  touch_cr_: Build.BTypes & BrowserType.Chrome ? function (this: {}, element: SafeElementForMouse
       , [x, y]: Point2D, id?: number): number {
     const newId = id || Date.now(),
     touchObj = new Touch({
@@ -861,7 +861,7 @@ var VDom = {
     });
     element.dispatchEvent(touchEvent);
     return newId;
-  } : 0 as never,
+  } : 0 as never as null,
   scrollIntoView_ (el: Element, dir?: boolean): void {
     !(Build.BTypes & ~BrowserType.Firefox) ? el.scrollIntoView({ block: "nearest" })
       : Element.prototype.scrollIntoView.call(el,
@@ -875,7 +875,7 @@ var VDom = {
       const t = rect.top, ih = innerHeight, delta = t < 0 ? -1 : t > ih ? 1 : 0, f = oldY != null;
       Build.MinCVer < BrowserVer.MinScrollIntoViewOptions && Build.BTypes & BrowserType.Chrome
       ? this.scrollIntoView_(el, delta < 0) : this.scrollIntoView_(el);
-      (delta || f) && this.scrollWndBy_(0, f ? (oldY as number) - scrollY : delta * ih / 5);
+      (delta || f) && this.scrollWndBy_(0, f ? oldY! - scrollY : delta * ih / 5);
     }
     return ty === VisibilityType.Visible;
   },
@@ -884,7 +884,7 @@ var VDom = {
     !(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
     Element.prototype.scrollBy ? scrollBy({behavior: "instant", left, top}) : scrollBy(left, top);
   },
-  runJS_ (code: string, returnEl?: 1): void | HTMLScriptElement {
+  runJS_ (code: string, returnEl?: 1 | TimerType.fake): void | HTMLScriptElement {
     const script = VDom.createElement_("script"), docEl = VDom.docEl_unsafe_();
     script.type = "text/javascript";
     script.textContent = code;
@@ -935,7 +935,7 @@ var VDom = {
   },
   setBoundary_ (style: CSSStyleDeclaration, r: WritableRect, allow_abs?: boolean): boolean | undefined {
     const need_abs = allow_abs && (r.t < 0 || r.l < 0 || r.b > innerHeight || r.r > innerWidth),
-    arr: ViewOffset | false | undefined = need_abs && <ViewOffset> this.getViewBox_();
+    arr: ViewOffset | false | undefined = need_abs && this.getViewBox_();
     if (arr) {
       r.l += arr[0], r.r += arr[0], r.t += arr[1], r.b += arr[1];
     }

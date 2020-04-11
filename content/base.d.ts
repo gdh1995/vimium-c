@@ -188,6 +188,7 @@ declare const enum SelType {
 
 declare namespace HintsNS {
   interface MarkerElement extends HTMLSpanElement {
+    readonly firstChild: HTMLSpanElement | Text | null;
     readonly childNodes: NodeListOf<HTMLSpanElement | Text>;
   }
   interface BaseHintItem {

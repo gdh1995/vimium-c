@@ -10,13 +10,13 @@ var HelpDialog = {
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             && !(Build.BTypes & ~BrowserType.ChromeOrFirefox))
           && !Settings_.CONST_.StyleCacheId_.includes("s"),
-      template = Settings_.cache_.helpDialog as string,
+      template = Settings_.cache_.helpDialog!,
       noContain = Build.MinCVer <= BrowserVer.CSS$Contain$BreaksHelpDialogSize && Build.BTypes & BrowserType.Chrome
           && CurCVer_ === BrowserVer.CSS$Contain$BreaksHelpDialogSize;
       let pos = template.indexOf("</style>") + 8, head = template.slice(0, pos), body = template.slice(pos).trim();
       if (Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
-        const arr = head.match("<style.*?>") as RegExpMatchArray;
+        const arr = head.match("<style.*?>")!;
         body = head.slice(0, arr.index).trim() + body;
         head = head.slice(arr.index + arr[0].length, -8);
       }
@@ -62,7 +62,7 @@ var HelpDialog = {
     const commandToKeys = BgUtils_.safeObj_<Array<[string, CommandsNS.Item]>>(),
     ref = CommandsData_.keyToCommandRegistry_, hideUnbound = !isOptionsPage, showNames = isOptionsPage;
     for (const key in ref) {
-      const registry = ref[key] as NonNullable<(typeof ref)[string]>;
+      const registry = ref[key]!;
       let command: string = registry.command_;
       if (command.endsWith(".activateMode")) {
         command = command.slice(0, -4);
@@ -81,7 +81,7 @@ var HelpDialog = {
       tip: showNames ? trans_("tipClickToCopy")  : "",
       lbPad: showNames ? '\n\t\t<tr><td class="HelpTd TdBottom">&#160;</td></tr>' : ""
     });
-    const html = (a as Ensure<typeof a, "html_">).html_, div = html[1].replace(
+    const html = a.html_, div = html[1].replace(
         <RegExpSearchable<1>> /\{\{(\w+)}}/g, function (_, group: string) {
       let s = result[group];
       return s != null ? s
@@ -95,14 +95,15 @@ var HelpDialog = {
   // eslint-disable-next-line object-shorthand
   groupHtml_: (function (this: {}, group: string, commandToKeys: SafeDict<Array<[string, CommandsNS.Item]>>
       , hideUnbound: boolean, showNames: boolean): string {
-    const renderItem = (this as typeof HelpDialog).commandHtml_
+    const a = this as typeof HelpDialog;
+    const renderItem = a.commandHtml_
       , cmdParams = trans_("cmdParams")
-      , cachedDescriptions = (this as typeof HelpDialog).descriptions_;
+      , cachedDescriptions = a.descriptions_;
     let html = "";
-    for (const command of (this as typeof HelpDialog).commandGroups_[group]) {
+    for (const command of a.commandGroups_[group]) {
       let keys = commandToKeys[command];
       if (hideUnbound && !keys) { continue; }
-      const isAdvanced = (this as typeof HelpDialog).advancedCommands_[command] === 1;
+      const isAdvanced = a.advancedCommands_[command] === 1;
       let keyLen = -2, bindings = "", description = cachedDescriptions[command];
       if (!description) {
         let key = command.replace(".", "_"), params = trans_(key + "_p");
@@ -117,7 +118,7 @@ var HelpDialog = {
         bindings = '\n\t\t<span class="HelpKey">';
         for (const item of keys) {
           const help = item[1].help_ as Partial<CommandsNS.NormalizedCustomHelpInfo> | null;
-          help && (this as typeof HelpDialog).normalizeHelpInfo_(help);
+          help && a.normalizeHelpInfo_(help);
           const key = help && help.$key_ || BgUtils_.escapeText_(item[0]), desc2 = help && help.$desc_;
           if (desc2) {
             let singleBinding = `\n\t\t<span class="HelpKey">${key}</span>\n\t`;
@@ -203,7 +204,7 @@ var HelpDialog = {
         el.remove();
         continue;
       }
-      const attrsToRemove = [] as Attr[];
+      const attrsToRemove: Attr[] = [];
       for (let attrs = el.attributes, len2 = attrs.length, j = 0; j < len2; j++) {
         const attrName = attrs[j].name.toLowerCase();
         if ((<RegExpI> /^on|[^\w\-]|href$|^is/i).test(attrName)) {

@@ -28,10 +28,10 @@ var Commands = {
   },
   makeCommand_ (command: string, options?: CommandsNS.RawOptions | null, details?: CommandsNS.Description
       ): CommandsNS.Item | null {
-    if (!details) { details = this.availableCommands_[command] as CommandsNS.Description; }
+    if (!details) { details = this.availableCommands_[command]!; }
     let opt: CommandsNS.Options | null, help: CommandsNS.CustomHelpInfo | null = null, condition: any
       , repeat = details[2];
-    opt = details.length < 4 ? null : BgUtils_.safer_(details[3] as NonNullable<CommandsNS.Description[3]>);
+    opt = details.length < 4 ? null : BgUtils_.safer_(details[3]!);
     if (options) {
       if (options.$count) {
         let n = parseFloat(options.$count) || 1;
@@ -104,7 +104,7 @@ var Commands = {
       const defaultMap = a.defaultKeyMappings_.split(" ");
       for (_i = defaultMap.length; 0 < _i; ) {
         _i -= 2;
-        registry[defaultMap[_i]] = a.makeCommand_(defaultMap[_i + 1]) as NonNullable<ReturnType<typeof a.makeCommand_>>;
+        registry[defaultMap[_i]] = a.makeCommand_(defaultMap[_i + 1])!;
         builtinKeys[defaultMap[_i]] = 1;
       }
     } else {
@@ -120,7 +120,7 @@ var Commands = {
         if (!key || key === "__proto__") {
           a.logError_("Unsupported key sequence %c%s", colorRed, key || '""', `for "${splitLine[2] || ""}"`);
         } else if (key in registry && !(builtinKeys && key in builtinKeys)) {
-          a.logError_("Key %c%s", colorRed, key, "has been mapped to", (registry[key] as CommandsNS.Item).command_);
+          a.logError_("Key %c%s", colorRed, key, "has been mapped to", registry[key]!.command_);
         } else if (splitLine.length < 3) {
           a.logError_("Lacking command when mapping %c%s", colorRed, key);
         } else if (!(details = available[splitLine[2]])) {
@@ -150,11 +150,11 @@ var Commands = {
         const re = <RegExpG & RegExpSearchable<1>> /<(?!<[^:])([acms]-){0,4}.\w*?(:[a-z])?>|./g;
         if (splitLine.length !== 3) {
           a.logError_(`MapKey needs ${splitLine.length > 3 ? "only" : "both"} source and target keys`, line);
-        } else if ((key = splitLine[1]).length > 1 && (key.match(re) as RegExpMatchArray).length > 1
-          || splitLine[2].length > 1 && (splitLine[2].match(re) as RegExpMatchArray).length > 1) {
+        } else if ((key = splitLine[1]).length > 1 && key.match(re)!.length > 1
+          || splitLine[2].length > 1 && splitLine[2].match(re)!.length > 1) {
           a.logError_("MapKey: a source / target key should be a single key:", line);
         } else if ((key = strip(key)) in mkReg) {
-          key = mkReg[strip(key)] as string;
+          key = mkReg[strip(key)]!;
           a.logError_("This key %c%s", colorRed, splitLine[1], "has been mapped to another key:"
               , key.length > 1 ? `<${key}>` : key);
         } else {
@@ -233,7 +233,7 @@ var Commands = {
     ref["-"] = KeyAction.count;
     for (let index = 0; index < sortedKeys.length; index++) {
       const key = sortedKeys[index];
-      const arr = key.match(keyRe) as RegExpMatchArray, last = arr.length - 1;
+      const arr = key.match(keyRe)!, last = arr.length - 1;
       if (last === 0) {
         let key2 = strip(key);
         if (key2 in ref) {
@@ -266,7 +266,7 @@ var Commands = {
     const maybePassed = Exclusions ? Exclusions.getAllPassed_() : null;
     const func = function (obj: ChildKeyFSM): void {
       for (const key in obj) {
-        const val = obj[key] as NonNullable<ChildKeyFSM[string]>;
+        const val = obj[key]!;
         if (val !== KeyAction.cmd) { func(val); }
         else if (maybePassed !== true && ref[key] === KeyAction.cmd && !(maybePassed && key in maybePassed)) {
           delete obj[key];
@@ -274,7 +274,7 @@ var Commands = {
       }
     };
     for (const key in ref) {
-      const val = ref[key] as NonNullable<(typeof ref)[string]>;
+      const val = ref[key]!;
       if (val !== KeyAction.cmd && val !== KeyAction.count) { func(val); }
     }
   }) as (this: void, detectNewError: boolean) => void,
@@ -305,8 +305,8 @@ var Commands = {
     count = count !== "-" ? parseInt(count as string, 10) || 1 : -1;
     options && typeof options === "object" ?
         BgUtils_.safer_(options) : (options = null);
-    lastKey = 0 | <number> lastKey;
-    exec(regItem, count, lastKey, port as Port, 0);
+    lastKey = 0 | lastKey!;
+    exec(regItem, count, lastKey, port!, 0);
   },
 
 defaultKeyMappings_:

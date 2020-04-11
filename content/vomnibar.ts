@@ -64,7 +64,7 @@ var VOmni = {
     if (!isTop && !options.$forced) { // check $forced to avoid dead loops
       let p: ContentWindowCore | void | 0 | null = parent as Window;
       if (p === top
-          && (Build.BTypes & BrowserType.Firefox ? (p = dom.parentCore_()) : dom.frameElement_())
+          && (Build.BTypes & BrowserType.Firefox ? (p = dom.parentCore_ff_!()) : dom.frameElement_())
           && (p as ContentWindowCore).VOmni) {
         ((p as ContentWindowCore).VOmni as typeof VOmni).activateO_(count, options);
       } else {
@@ -139,8 +139,8 @@ var VOmni = {
   },
   hideO_ (this: void, fromInner?: 1): void {
     const a = VOmni, active = a.status_ > VomnibarNS.Status.Inactive,
-    style = Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval
-        && Build.BTypes & BrowserType.Chrome ? a.boxO_.style : 0 as never;
+    style_old_cr = Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval
+        && Build.BTypes & BrowserType.Chrome ? a.boxO_.style : 0 as never as null;
     a.status_ = VomnibarNS.Status.Inactive;
     a.screenHeight_ = 0; a.canUseVW_ = !0;
     VCui.setupExitOnClick_(0, 0);
@@ -152,7 +152,7 @@ var VOmni = {
     a.RefreshKeyHandler_();
     active || focus();
     if (Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval && Build.BTypes & BrowserType.Chrome) {
-      style.height = style.top = ""; style.display = "none";
+      style_old_cr!.height = style_old_cr!.top = ""; style_old_cr!.display = "none";
     } else {
       a.boxO_.style.cssText = "display:none";
     }
@@ -178,7 +178,7 @@ var VOmni = {
       el.removeAttribute("referrerPolicy");
       // not skip the line below: in case main world JS adds some sandbox attributes
       el.removeAttribute("sandbox");
-      el.src = page = inner as string;
+      el.src = page = inner!;
       let opts = VOmni.optionsO_; opts && (opts.t = type);
     }
     let loaded = false;
@@ -277,7 +277,7 @@ var VOmni = {
                   || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome)
               ? VDom.devRatio_() : 1)) + "px";
       if (a.status_ === VomnibarNS.Status.ToShow) {
-        a.onShown_(data.m as NonNullable<typeof data.m>);
+        a.onShown_(data.m!);
       }
       break;
     case VomnibarNS.kFReq.focus:

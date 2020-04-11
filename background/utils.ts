@@ -92,7 +92,7 @@ var BgUtils_ = {
     , ".company.fashion.science.website"
     , ".engineer.software"
   ] as readonly string[],
-  safeObj_: (() => Object.create(null)) as { (): any; <T>(): SafeDict<T> },
+  safeObj_: (() => Object.create(null)) as { (): SafeObject; <T>(): SafeDict<T> },
   safer_: (Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && Build.BTypes & BrowserType.Chrome
       && !Object.setPrototypeOf ? function <T extends object> (obj: T): T & SafeObject {
         (obj as any).__proto__ = null; return obj as T & SafeObject; }
@@ -105,8 +105,8 @@ var BgUtils_ = {
   protocolRe_: <RegExpOne> /^[a-z][\+\-\.\da-z]+:\/\//,
   quotedStringRe_: <RegExpOne> /^"[^"]*"$|^'[^']*'$|^\u201c[^\u201d]*\u201d$/,
   lastUrlType_: Urls.Type.Default,
-  convertToUrl_: function (this: {}, str: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkType): Urls.Url {
-    const a = this as typeof BgUtils_;
+  convertToUrl_: function (str: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkType): Urls.Url {
+    const a = BgUtils_;
     str = str.trim();
     a.lastUrlType_ = Urls.Type.Full;
     if (a.isJSUrl_(str)) {
@@ -171,7 +171,7 @@ var BgUtils_ = {
     }
     else if (str.startsWith("vimium:")) {
       type = Urls.Type.PlainVimium;
-      vimiumUrlWork = (vimiumUrlWork as number) | 0;
+      vimiumUrlWork = vimiumUrlWork! | 0;
       str = oldString.slice(9);
       if (vimiumUrlWork < Urls.WorkType.ConvertKnown || !str) {
         oldString = "vimium://" + str;
@@ -364,12 +364,12 @@ var BgUtils_ = {
     return path + (query && (path.includes("#") ? " " : "#!") + query);
   },
   _nestedEvalCounter: 0,
-  evalVimiumUrl_: function (this: {}, path: string, workType?: Urls.WorkType
+  evalVimiumUrl_: function (path: string, workType?: Urls.WorkType
       , onlyOnce?: boolean): Urls.Url | null {
-    const a = this as typeof BgUtils_;
+    const a = BgUtils_;
     let ind: number, cmd: string, arr: string[], obj: { u: string } | null
       , res: Urls.Url | string[] | Promise<string | null> | null;
-    workType = (workType as Urls.WorkType) | 0;
+    workType = workType! | 0;
     if (path === "paste") {
       path += " .";
     }
@@ -449,7 +449,7 @@ var BgUtils_ = {
           : startsWithSlash ? cmd.replace(<RegExpG> /(\.+)|./g, "$1").length + 1
           : -cmd.replace(<RegExpG> /\.(\.+)|./g, "$1").length || -1;
       let cdRes = Backend_.parse_({ u: arr[2], p: ind, t: null, f: 1, a: arr[1] !== "." ? arr[1] : "" });
-      return cdRes && cdRes.u || [cdRes ? cdRes.e as string : "No upper path", Urls.kEval.ERROR];
+      return cdRes && cdRes.u || [cdRes ? cdRes.e! : "No upper path", Urls.kEval.ERROR];
     case "parse": case "decode":
       cmd = path.split(" ", 1)[0];
       if (cmd.search(<RegExpI> /\/|%2f/i) < 0) {
@@ -549,11 +549,11 @@ var BgUtils_ = {
   },
   searchWordRe_: <RegExpG & RegExpSearchable<2>> /\$([sS])(?:\{([^}]*)})?/g,
   searchVariable_: <RegExpG & RegExpSearchable<1>> /\$([+-]?\d+)/g,
-  createSearchUrl_: function (this: {}, query: string[], keyword: string, vimiumUrlWork: Urls.WorkType): Urls.Url {
-    const a = this as typeof BgUtils_;
+  createSearchUrl_: function (query: string[], keyword: string, vimiumUrlWork: Urls.WorkType): Urls.Url {
+    const a = BgUtils_;
     let url: string, pattern: Search.Engine | undefined = Settings_.cache_.searchEngineMap[keyword || query[0]];
     if (pattern) {
-      if (!keyword) { keyword = query.shift() as string; }
+      if (!keyword) { keyword = query.shift()!; }
       url = a.createSearch_(query, pattern.url_, pattern.blank_);
     } else {
       url = query.join(" ");
@@ -564,9 +564,9 @@ var BgUtils_ = {
     a.lastUrlType_ = Urls.Type.Search;
     return url;
   } as Urls.Searcher,
-  createSearch_: function (this: {}, query: string[], url: string, blank: string, indexes?: number[]
+  createSearch_: function (query: string[], url: string, blank: string, indexes?: number[]
       ): string | Search.Result {
-    const a = this as typeof BgUtils_;
+    const a = BgUtils_;
     let q2: string[] | undefined, delta = 0;
     url = query.length === 0 && blank ? blank : url.replace(a.searchWordRe_,
     function (_s: string, s1: string | undefined, s2: string, ind: number): string {
@@ -664,7 +664,7 @@ var BgUtils_ = {
     const a = this;
     let ids: string[], tmpRule: Search.TmpRule | null, tmpKey: Search.Rule["delimiter_"],
     key: string, obj: Search.RawEngine,
-    ind: number, rules = [] as Search.Rule[],
+    ind: number, rules: Search.Rule[] = [],
     rSpace = <RegExpOne> /\s/, re = a.searchWordRe_,
     func = (function (k: string): boolean {
       return (k = k.trim()) && k !== "__proto__" && k.length < Consts.MinInvalidLengthOfSearchKey
@@ -860,7 +860,7 @@ BrowserProtocol_ = Build.BTypes & ~BrowserType.Chrome
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer <= BrowserVer.FlagFreezeUserAgentGiveFakeUAMajor
     && CurCVer_ === BrowserVer.FakeUAMajorWhenFreezeUserAgent
     && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
-    && matchMedia('(prefers-color-scheme)').matches) {
+    && matchMedia("(prefers-color-scheme)").matches) {
   CurCVer_ = BrowserVer.FlagFreezeUserAgentGiveFakeUAMajor;
 }
 

@@ -74,10 +74,10 @@ var Exclusions = {
       ? function (details): void { Backend_.checkIfEnabled_(details); }
       : function (details: chrome.webNavigation.WebNavigationCallbackDetails) {
         const ref = Backend_.indexPorts_(details.tabId),
-        msg: Req.bg<kBgReq.url> = { N: kBgReq.url, H: kFgReq.checkIfEnabled as kFgReq.checkIfEnabled };
+        msg: Req.bg<kBgReq.url> = { N: kBgReq.url, H: kFgReq.checkIfEnabled };
         // force the tab's ports to reconnect and refresh their pass keys
         for (let i = ref ? ref.length : 0; 0 < --i; ) {
-          (ref as Frames.Frames)[i].postMessage(msg);
+          ref![i].postMessage(msg);
         }
       };
     this.getOnURLChange_ = () => onURLChange;
@@ -109,17 +109,17 @@ var Exclusions = {
       p: null
     };
     if (old_is_empty) {
-      always_enabled || Settings_.broadcast_({
+      always_enabled || Settings_.broadcast_<kBgReq.url>({
         N: kBgReq.url,
         H: kFgReq.checkIfEnabled
-      } as Req.fg<kFgReq.checkIfEnabled> & Req.bg<kBgReq.url>);
+      });
       return;
     }
     const ref = Backend_.indexPorts_(),
     needIcon = !!Settings_.temp_.IconBuffer_ && (Settings_.temp_.IconBuffer_() || Settings_.get_("showActionIcon"));
     let pass: string | null = null, status: Frames.ValidStatus = Frames.Status.enabled;
     for (const tabId in ref) {
-      const frames = ref[+tabId] as Frames.Frames, status0 = frames[0].s.s;
+      const frames = ref[+tabId]!, status0 = frames[0].s.s;
       for (let i = frames.length; 0 < --i; ) {
         const port = frames[i];
         if (always_enabled) {

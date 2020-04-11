@@ -284,7 +284,7 @@ declare namespace IconNS {
     KnownRecommendedLargeSizeForFirefox = 32, // in fact, 32 * devicePixelRatio
   }
 
-  type StatusMap<T> = [T | null, T | null, T | null];
+  type StatusMap<T> = { [key in Frames.ValidStatus]?: T | null };
   type IconBuffer = {
     [size in ValidSizes]?: ImageData;
   };

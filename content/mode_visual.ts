@@ -46,7 +46,7 @@ var VVisual = {
   /** @safe_di */
   activateV_ (this: void, _0: number, options: CmdOptions[kFgCmd.visualMode]): void {
     const a = VVisual;
-    a.initV_ && a.initV_(options.w as string, options.k as NonNullable<typeof options.k>);
+    a.initV_ && a.initV_(options.w!, options.k!);
     VKey.removeHandler_(a);
     VCui.checkDocSelectable_();
     VSc.prepareTop_();
@@ -102,7 +102,7 @@ var VVisual = {
     a.di_ = VisualModeNS.kDir.unknown;
     a.diType_ = VisualModeNS.DiType.UnsafeUnknown;
     a.getDirection_("");
-    const oldDiType = a.diType_ as VisualModeNS.DiType;
+    const oldDiType: VisualModeNS.DiType = a.diType_;
     VKey.removeHandler_(a);
     if (!a.retainSelection_) {
       a.collapseToFocus_(isEsc && a.modeV_ !== VisualModeNS.Mode.Caret ? 1 : 0);
@@ -227,12 +227,12 @@ var VVisual = {
     if (!vDom.isHTML_()) { return true; }
     vDom.getZoom_(1);
     vDom.prepareCrop_();
-    const nodes = document.createTreeWalker(sr || document.body || vDom.docEl_unsafe_() as Element
+    const nodes = document.createTreeWalker(sr || document.body || vDom.docEl_unsafe_()!
             , NodeFilter.SHOW_TEXT);
     while (node = nodes.nextNode() as Text | null) {
       if (50 <= (str = node.data).length && 50 < str.trim().length) {
         const element = node.parentElement;
-        if (element && (!(Build.BTypes & ~BrowserType.Firefox) || !vDom.notSafe_(element))
+        if (element && (!(Build.BTypes & ~BrowserType.Firefox) || !vDom.notSafe_not_ff_!(element))
             && vDom.getVisibleClientRect_(element as SafeElement) && !vDom.getEditableType_(element)) {
           break;
         }
@@ -246,7 +246,7 @@ var VVisual = {
       }
       return true;
     }
-    offset = ((str as string).match(<RegExpOne> /^\s*/) as RegExpMatchArray)[0].length;
+    offset = str!.match(<RegExpOne> /^\s*/)![0].length;
     a.selection_.collapse(node, offset);
     a.di_ = VisualModeNS.kDir.right;
     return !a.selection_.rangeCount;
@@ -323,7 +323,7 @@ var VVisual = {
   diType_: VisualModeNS.DiType.UnsafeUnknown as
     VisualModeNS.ValidDiTypes | VisualModeNS.DiType.UnsafeUnknown | VisualModeNS.DiType.SafeUnknown,
   /** 0 means it's invalid; >=2 means real_length + 2; 1 means uninited */ oldLen_: 0,
-  WordsRe_: null as RegExpOne | RegExpU | null,
+  WordsRe_ff_old_cr_: null as RegExpOne | RegExpU | null,
   _rightWhiteSpaceRe: null as RegExpOne | null,
   /** @unknown_di_result */
   extend_ (d: VisualModeNS.ForwardDir, g?: VisualModeNS.G): void | 1 {
@@ -332,7 +332,7 @@ var VVisual = {
   },
   /** @unknown_di_result */
   modify_ (d: VisualModeNS.ForwardDir, g: VisualModeNS.G): void | 1 {
-    return this.selection_.modify(this.alterMethod_, this._D[d], this._G[g as 0 | 1 | 2]);
+    return this.selection_.modify(this.alterMethod_, this._D[d], this._G[g]);
   },
   /**
    * if `isMove`, then must has collapsed;
@@ -345,11 +345,11 @@ var VVisual = {
     if (diType & VisualModeNS.DiType.TextBox) {
       const el = VApi.lock_() as TextElement;
       return el.value.charAt(a.TextOffset_(el
-          , a.di_ === VisualModeNS.kDir.right || el.selectionDirection !== "backward"));
+          , a.di_ === VisualModeNS.kDir.right || el.selectionDirection !== a._D[0]));
     }
     const sel = a.selection_;
     if (!diType) {
-      let focusNode = sel.focusNode as NonNullable<Selection["focusNode"]>;
+      let focusNode = sel.focusNode!;
       if (focusNode.nodeType === kNode.TEXT_NODE) {
         const i = sel.focusOffset, str = (focusNode as Text).data;
         if (str.charAt(i).trim() || i && str.charAt(i - 1).trim() && str.slice(i).trimLeft()
@@ -412,14 +412,13 @@ var VVisual = {
       if (!shouldSkipSpaceWhenMovingRight) { // not shouldSkipSpace -> go left
         if (!(Build.BTypes & BrowserType.Firefox) || !Build.NativeWordMoveOnFirefox
             || Build.BTypes & ~BrowserType.Firefox && !isFirefox) {
-          (a as EnsureNonNull<typeof VVisual>)._moveRightByWordButNotSkipSpace();
+          a._moveRightByWordButNotSkipSpace!();
         }
         return;
       }
       !Build.NativeWordMoveOnFirefox &&
       (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && isFirefox) &&
-      (a as EnsureNonNull<typeof VVisual>)._moveRightByWordButNotSkipSpace() ||
-      a._moveRightForSpaces();
+      a._moveRightByWordButNotSkipSpace!() || a._moveRightForSpaces();
     }
   },
   /**
@@ -448,8 +447,7 @@ var VVisual = {
       // (t/b/r/c/e/) visible_units.cc?q=SkipWhitespaceAlgorithm&g=0&l=1191
     } while (ch && (
       !(Build.BTypes & ~BrowserType.Firefox) || Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
-      || a._rightWhiteSpaceRe ? (a._rightWhiteSpaceRe as RegExpOne).test(ch)
-          : !(a.WordsRe_ as RegExpOne | RegExpU).test(ch)
+      || a._rightWhiteSpaceRe ? a._rightWhiteSpaceRe!.test(ch) : !a.WordsRe_ff_old_cr_!.test(ch)
     ));
     if (ch && a.oldLen_) {
       const num1 = a.oldLen_ - 2, num2 = isMove || ("" + a.selection_).length;
@@ -476,13 +474,13 @@ var VVisual = {
     if (!di) { a.di_ = str2 ? VisualModeNS.kDir.unknown : VisualModeNS.kDir.right; }
     str = di ? str2.slice(len) : a.getDirection_() ? str + str2 : str.slice(0, len - str2.length);
     // now a.di_ is correct, and can be left / right
-    let match = ((!(Build.BTypes & BrowserType.Firefox)
+    let match = (!(Build.BTypes & BrowserType.Firefox)
         ? Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
-          ? a._rightWhiteSpaceRe : a._rightWhiteSpaceRe || a.WordsRe_
-        : !(Build.BTypes & ~BrowserType.Firefox) ? a.WordsRe_
+          ? a._rightWhiteSpaceRe! : (a._rightWhiteSpaceRe || a.WordsRe_ff_old_cr_)!
+        : !(Build.BTypes & ~BrowserType.Firefox) ? a.WordsRe_ff_old_cr_!
         : (Build.NativeWordMoveOnFirefox || VOther !== BrowserType.Firefox)
-          && a._rightWhiteSpaceRe || a.WordsRe_
-        ) as Exclude<typeof a._rightWhiteSpaceRe | typeof a.WordsRe_, null>).exec(str),
+          && a._rightWhiteSpaceRe || a.WordsRe_ff_old_cr_!
+        ).exec(str),
     toGoLeft = match ? (!(Build.BTypes & BrowserType.Firefox)
       ? Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
         || <Exclude<typeof a._rightWhiteSpaceRe, null>> a._rightWhiteSpaceRe
@@ -514,7 +512,7 @@ var VVisual = {
         di = di && start > end ? (a.di_ = VisualModeNS.kDir.left) : VisualModeNS.kDir.right;
         // di is BOOL := start < end; a.di_ will be correct
         el.setSelectionRange(di ? start : end, di ? end : start
-          , <VisualModeNS.ForwardDir> a.di_ ? "forward" : "backward");
+          , a._D[<VisualModeNS.ForwardDir> a.di_]);
       }
     }
     a.modeV_ === VisualModeNS.Mode.Caret && a.collapseToRight_(VisualModeNS.kDir.right);
@@ -532,7 +530,7 @@ var VVisual = {
       const el = VApi.lock_() as TextElement;
       // Note: on C72/60/35, it can trigger document.onselectionchange
       //      and on C72/60, it can trigger <input|textarea>.onselect
-      el.setSelectionRange(a.TextOffset_(el, 0), a.TextOffset_(el, 1), newDi ? "forward" : "backward");
+      el.setSelectionRange(a.TextOffset_(el, 0), a.TextOffset_(el, 1), a._D[newDi]);
     } else if (a.diType_ & VisualModeNS.DiType.Complicated) {
       let length = ("" + sel).length, i = 0;
       a.collapseToRight_(direction);
@@ -543,7 +541,7 @@ var VVisual = {
     } else {
       const { anchorNode, anchorOffset } = sel;
       a.collapseToRight_(direction);
-      sel.extend(anchorNode as Node, anchorOffset);
+      sel.extend(anchorNode!, anchorOffset);
     }
     a.di_ = newDi;
   },
@@ -565,8 +563,8 @@ var VVisual = {
       // common HTML nodes
       if (anchorNode !== focusNode) {
         num1 = Build.BTypes & ~BrowserType.Firefox
-          ? Node.prototype.compareDocumentPosition.call(anchorNode as Node, focusNode as Node)
-          : (anchorNode as Node).compareDocumentPosition(focusNode as Node);
+          ? Node.prototype.compareDocumentPosition.call(anchorNode!, focusNode!)
+          : anchorNode!.compareDocumentPosition(focusNode!);
         a.diType_ = VisualModeNS.DiType.Normal;
         return a.di_ = (
             num1 & (kNode.DOCUMENT_POSITION_CONTAINS | kNode.DOCUMENT_POSITION_CONTAINED_BY)
@@ -586,13 +584,13 @@ var VVisual = {
     if (lock && lock.parentNode === anchorNode) { // safe because lock is LockableElement
       type TextModeElement = TextElement;
       if ((oldDiType & VisualModeNS.DiType.Unknown)
-          && (VDom.editableTypes_[lock.localName] as EditableType) > EditableType.MaxNotTextModeElement) {
+          && VDom.editableTypes_[lock.localName]! > EditableType.MaxNotTextModeElement) {
         let cn: Node["childNodes"];
         const child = (!(Build.BTypes & ~BrowserType.Firefox) ? (anchorNode as Element).childNodes as NodeList
             : Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype
-            ? VDom.Getter_<Node, "childNodes", true>(Node, anchorNode as Element, "childNodes")
+            ? VDom.Getter_not_ff_!<Node, "childNodes", true>(Node, anchorNode as Element, "childNodes")
             : (cn = (anchorNode as Element).childNodes) instanceof NodeList && !("value" in cn) ? cn
-            : VDom.Getter_(Node, anchorNode as Element, "childNodes") || []
+            : VDom.Getter_not_ff_!(Node, anchorNode as Element, "childNodes") || []
             )[num1 >= 0 ? num1 : sel.anchorOffset] as Node | undefined;
         if (lock === child || /** tend to trust that the selected is a textbox */ !child) {
           if (Build.MinCVer >= BrowserVer.Min$selectionStart$MayBeNull || !(Build.BTypes & BrowserType.Chrome)
@@ -602,7 +600,7 @@ var VVisual = {
         }
       }
       if (a.diType_ & VisualModeNS.DiType.TextBox) {
-        return a.di_ = (lock as TextModeElement).selectionDirection !== "backward"
+        return a.di_ = (lock as TextModeElement).selectionDirection !== a._D[0]
           ? VisualModeNS.kDir.right : VisualModeNS.kDir.left;
       }
     }
@@ -715,7 +713,7 @@ var VVisual = {
   },
   /** @argument el must be in text mode  */
   TextOffset_ (this: void, el: TextElement, di: VisualModeNS.ForwardDir | boolean): number {
-    return (di ? el.selectionEnd : el.selectionStart) as number;
+    return (di ? el.selectionEnd : el.selectionStart)!;
   },
 
 keyMap_: null as never as SafeDict<VisualAction | SafeDict<VisualAction>>,
@@ -760,10 +758,10 @@ initV_ (words: string, map: VisualModeNS.KeyMap) {
       if (BrowserVer.MinSelExtendForwardOnlySkipWhitespaces <= BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
           && !(Build.BTypes & ~BrowserType.Chrome)
           ) {
-        a.WordsRe_ = new RegExp(words, "");
+        a.WordsRe_ff_old_cr_ = new RegExp(words, "");
       } else {
         // note: here thinks the `/[^]*[~~~]/` has acceptable performance
-        a.WordsRe_ = new RegExp(words || "[^]*[\\p{L}\\p{Nd}_]", words ? "" : "u");
+        a.WordsRe_ff_old_cr_ = new RegExp(words || "[^]*[\\p{L}\\p{Nd}_]", words ? "" : "u");
       }
     }
   }

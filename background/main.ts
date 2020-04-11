@@ -96,7 +96,7 @@
 
   /** any change to `cRepeat` should ensure it won't be `0` */
   let cOptions: CommandsNS.Options = null as never, cPort: Frames.Port = null as never, cRepeat = 1,
-  cNeedConfirm: BOOL = 1, gOnConfirmCallback: ((arg: FakeArg) => void) | null = null,
+  cNeedConfirm: BOOL = 1, gOnConfirmCallback: ((arg: FakeArg) => void) | null | undefined = null,
   _fakeTabId: number = GlobalConsts.MaxImpossibleTabId,
   needIcon = false, cKey: kKeyCode = kKeyCode.None,
   _lockToRemoveTempTab: {p: LatestPromise} | null | 0 = Build.BTypes & BrowserType.Firefox ? null : 0,
@@ -158,7 +158,7 @@
     if (count < 2) { return; }
     option.active = false;
     do {
-      hasIndex && ++(option as {index: number}).index;
+      hasIndex && ++option.index!;
       chrome.tabs.create(option);
     } while (--count > 1);
   }
@@ -187,16 +187,16 @@
       backgroundLightYellow, backgroundLightYellow + ";color:red", extId);
     return list[extId] = false;
   }
-  function selectFrom(this: void, tabs: Tab[], fixIndexes?: BOOL): ActiveTab {
+  function selectFrom(this: void, tabs: readonly Tab[], fixIndexes?: BOOL): ActiveTab {
     Build.BTypes & BrowserType.Firefox && fixIndexes && fixTabsIndexes(tabs);
     for (let i = tabs.length; 0 < --i; ) {
       if (tabs[i].active) {
-        return tabs[i] as ActiveTab;
+        return tabs[i]! as ActiveTab;
       }
     }
-    return tabs[0] as ActiveTab;
+    return tabs[0]! as ActiveTab;
   }
-  function fixTabsIndexes(tabs: Tab[]): void {
+  function fixTabsIndexes(tabs: readonly Tab[]): void {
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
       const len = tabs.length;
@@ -280,7 +280,7 @@
     }
     BgUtils_.resetRe_();
   }
-  function onEvalUrl_(this: void, workType: Urls.WorkType, options: OpenUrlOptions, tabs: [Tab] | undefined
+  function onEvalUrl_(this: void, workType: Urls.WorkType, options: OpenUrlOptions, tabs: [Tab] | [] | undefined
       , arr: Urls.SpecialUrl): void {
     if (arr instanceof Promise) { arr.then(onEvalUrl_.bind(null, workType, options, tabs)); return; }
     BgUtils_.resetRe_();
@@ -338,19 +338,19 @@
       f |= Frames.Flags.vomnibarChecked |
         (info.u === Settings_.cache_.vomnibarPage_f || info.u === Settings_.CONST_.VomnibarPageInner_
           ? Frames.Flags.isVomnibar : 0);
-      (info as Writable<Frames.Sender>).f = f;
+      info.f = f;
     }
     if (f & Frames.Flags.isVomnibar) { return false; }
     if (!noLog && !(f & Frames.Flags.sourceWarned)) {
       console.warn("Receive a request from %can unsafe source page%c (should be vomnibar) :\n %s @ tab %o",
         "color:red", "color:auto", info.u.slice(0, 128), info.t);
-      (info as Writable<Frames.Sender>).f |= f;
+      info.f |= f;
     }
     return true;
   }
   function PostCompletions(this: Port, favIcon0: 0 | 1 | 2, list: Array<Readonly<Suggestion>>
       , autoSelect: boolean, matchType: CompletersNS.MatchType, sugTypes: CompletersNS.SugType, total: number): void {
-    let { u: url } = this.s, favIcon = favIcon0 === 2 ? 2 : 0 as 0 | 1 | 2;
+    let { u: url } = this.s, favIcon: 0 | 1 | 2 = favIcon0 === 2 ? 2 : 0;
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
       favIcon = list.length > 0 && list[0].e === "tab" ? favIcon && 2 : 0;
@@ -374,7 +374,7 @@
       }
       if (!favIcon) {
       for (const tabId in map) {
-        let frames = map[+tabId] as Frames.Frames;
+        let frames = map[+tabId]!;
         for (let i = 1, len = frames.length; i < len; i++) {
           let { s: sender } = frames[i];
           if (sender.i === 0) {
@@ -429,7 +429,7 @@
     }
     let msg = trans_("cmdConfirm", [count, trans_(command)]);
     if (Build.BTypes & ~BrowserType.Chrome) {
-      gOnConfirmCallback = callback as NonNullable<typeof callback>;
+      gOnConfirmCallback = callback;
       setupSingletonCmdTimer(setTimeout(onConfirm, 3000, 0));
       cPort ? (indexFrame(cPort.s.t, 0) || cPort).postMessage({
         N: kBgReq.count,
@@ -494,9 +494,9 @@
   getCurTab = chrome.tabs.query.bind<null, { active: true; currentWindow: true }
       , [(result: [Tab], _ex: FakeArg) => void], 1>(null, { active: true, currentWindow: true }),
   getCurTabs = chrome.tabs.query.bind(null, {currentWindow: true}),
-  getCurShownTabs = Build.BTypes & BrowserType.Firefox
+  getCurShownTabs_ff_only = Build.BTypes & BrowserType.Firefox
       && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-    ? chrome.tabs.query.bind(null, { currentWindow: true, hidden: false }) : 0 as never,
+    ? chrome.tabs.query.bind(null, { currentWindow: true, hidden: false }) : 0 as never as null,
   getCurWnd = function (populate: boolean, callback: (window: Window, exArg: FakeArg) => void): 1 {
     const wndId = TabRecency_.lastWnd_, args = { populate };
     return wndId >= 0 ? chrome.windows.get(wndId, args, callback) : chrome.windows.getCurrent(args, callback);
@@ -513,21 +513,19 @@
 
   function openUrlInIncognito(this: void, url: string, active: boolean
       , opts: Readonly<Pick<OpenUrlOptions, "position" | "opener" | "window">>
-      , tab: Tab, wnds: Window[]): void {
-    let oldWnd: Window | undefined, inCurWnd: boolean;
-    oldWnd = wnds.filter(wnd => wnd.id === tab.windowId)[0];
-    inCurWnd = oldWnd != null && oldWnd.incognito;
+      , tab: Tab | undefined
+      , wnds: Array<Pick<Window, "id" | "focused" | "incognito" | "type" | "state">>): void {
+    let oldWnd = tab && wnds.filter(wnd => wnd.id === tab.windowId)[0]
+      , inCurWnd = oldWnd != null && oldWnd.incognito;
     // eslint-disable-next-line arrow-body-style
-    if (!opts.window && (inCurWnd || (wnds = wnds.filter((wnd: Window): wnd is IncNormalWnd => {
-      return wnd.incognito && wnd.type === "normal";
-    })).length > 0)) {
+    if (!opts.window && (inCurWnd || (wnds = wnds.filter(w => w.incognito && w.type === "normal")).length > 0)) {
       const options: InfoToCreateMultiTab & { windowId: number } = {
         url, active,
-        windowId: inCurWnd ? tab.windowId : wnds[wnds.length - 1].id
+        windowId: inCurWnd ? tab!.windowId : wnds[wnds.length - 1].id
       };
       if (inCurWnd) {
-        options.index = newTabIndex(tab, opts.position, opts.opener);
-        opts.opener && (options.openerTabId = tab.id);
+        options.index = newTabIndex(tab!, opts.position, opts.opener);
+        opts.opener && (options.openerTabId = tab!.id);
       }
       openMultiTab(options, cRepeat);
       return !inCurWnd && active ? selectWnd(options) : undefined;
@@ -563,7 +561,7 @@
         || !Build.CreateFakeIncognito || CurCVer_ >= BrowserVer.MinNoAbnormalIncognito
       ? null : [function (wnd): void {
     if (cOptions.url || cOptions.urls) {
-      return BackgroundCommands[kBgCmd.openUrl]([selectFrom((wnd as PopWindow).tabs)]);
+      return BackgroundCommands[kBgCmd.openUrl]([selectFrom(wnd!.tabs)]);
     }
     if (!wnd) {
       tabsCreate({url: this});
@@ -628,9 +626,9 @@
     (this: void, url: string, tab: Tab
       , callback: ((this: void, tabId: number, wndId: number) => void) | null, wnd: Window) => void,
   ];
-  function openUrl(url: Urls.Url, workType: Urls.WorkType, tabs?: [Tab] | never[]): void {
+  function openUrl(url: Urls.Url, workType: Urls.WorkType, tabs?: [Tab] | []): void {
     if (typeof url === "string") {
-      const tabUrl = tabs && (tabs as Tab[]).length > 0 ? (tabs as [Tab])[0].url : "";
+      const tabUrl = tabs && tabs.length > 0 ? tabs[0]!.url : "";
       let mask: string | undefined = cOptions.url_mask || cOptions.url_mark;
       if (mask) {
         url = url && url.replace(mask + "", (<RegExpOne> /^[%$]s/).test(mask) ? encodeURIComponent(tabUrl) : tabUrl);
@@ -650,16 +648,16 @@
     cOptions = null as never;
     BgUtils_.resetRe_();
     typeof url !== "string"
-      ? /*#__NOINLINE__*/ onEvalUrl_(workType, options, tabs as [Tab] | undefined, url)
+      ? /*#__NOINLINE__*/ onEvalUrl_(workType, options, tabs, url)
       : openShowPage(url, reuse, options) ? 0
       : BgUtils_.isJSUrl_(url) ? /*#__NOINLINE__*/ openJSUrl(url)
       : reuse === ReuseType.reuse ? requestHandlers[kFgReq.focusOrLaunch]({ u: url })
       : reuse === ReuseType.current ? safeUpdate(url)
-      : tabs ? openUrlInNewTab(url, reuse, options, tabs as [Tab])
+      : tabs ? openUrlInNewTab(url, reuse, options, tabs)
       : getCurTab(openUrlInNewTab.bind(null, url, reuse, options))
       ;
   }
-  function openCopiedUrl(this: void, tabs: [Tab] | never[] | undefined, url: string | null): void {
+  function openCopiedUrl(this: void, tabs: [Tab] | [] | undefined, url: string | null): void {
     if (url === null) { return Backend_.complain_("read clipboard"); }
     if (!(url = url.trim())) { return Backend_.showHUD_(trans_("noCopied")); }
     if (BgUtils_.quotedStringRe_.test(url)) {
@@ -685,8 +683,8 @@
   }
   function openUrlInNewTab(this: void, url: string, reuse: ReuseType
       , options: Readonly<Pick<OpenUrlOptions, "position" | "opener" | "window" | "incognito">>
-      , tabs: [Tab]): void {
-    const tab = tabs[0] as Tab | undefined, tabIncognito = tab ? tab.incognito : false,
+      , tabs: [Tab] | []): void {
+    const tab: Tab | undefined = tabs[0], tabIncognito = !!tab && tab.incognito,
     incognito = options.incognito, active = reuse !== ReuseType.newBg;
     let window = reuse === ReuseType.newWindow || options.window;
     if (BgUtils_.isRefusingIncognito_(url)) {
@@ -695,12 +693,12 @@
       }
     } else if (tabIncognito) {
       if (incognito !== false) {
-        return openUrlInIncognito(url, active, options, tab as Tab
-          , [{ id: (tab as Tab).windowId, incognito: true } as Window]);
+        return openUrlInIncognito(url, active, options, tab
+          , [{ id: tab!.windowId, incognito: true, type: "normal", state: "normal", focused: true }]);
       }
       window = true;
     } else if (incognito) {
-      chrome.windows.getAll(openUrlInIncognito.bind(null, url, active, options, tab as Tab));
+      chrome.windows.getAll(openUrlInIncognito.bind(null, url, active, options, tab));
       return;
     }
     if (window) {
@@ -791,8 +789,8 @@
     return true;
   };
   // use Urls.WorkType.Default
-  function openUrls(tabs: [Tab]): void {
-    const tab = tabs[0], { windowId } = tab;
+  function openUrls(tabs: [Tab] | [] | undefined): void {
+    const tab = tabs && tabs[0], windowId = tab && tab.windowId;
     interface OptionEx { formatted_?: 1 }
     let urls: string[] = cOptions.urls, repeat = cRepeat;
     if (!(cOptions as OptionEx).formatted_) {
@@ -805,7 +803,7 @@
     wndOpt: chrome.windows.CreateData | null = reuse === ReuseType.newWindow || cOptions.window ? {
       url: urls, incognito: !!cOptions.incognito
     } : null;
-    let active = !(reuse < ReuseType.newFg), index = newTabIndex(tab, cOptions.position);
+    let active = !(reuse < ReuseType.newFg), index = tab && newTabIndex(tab, cOptions.position);
     cOptions = null as never;
     do {
       if (wndOpt) {
@@ -818,6 +816,7 @@
         index != null && index++;
       }
     } while (0 < --repeat);
+    return onRuntimeError();
   }
   function removeAllTabsInWnd(this: void, tab: Tab, curTabs: readonly Tab[], wnds: Window[]): void {
     let url = false, windowId: number | undefined, wnd: Window;
@@ -1045,14 +1044,14 @@
       });
     },
     /* kBgCmd.parentFrame: */ function (): void {
-      const sender = cPort.s as typeof cPort.s | undefined,
+      const sender = cPort.s,
       msg = Build.MinCVer < BrowserVer.MinWithFrameId && Build.BTypes & BrowserType.Chrome && NoFrameId
         ? `Vimium C can not know parent frame before Chrome ${BrowserVer.MinWithFrameId}`
-        : !(sender && sender.t >= 0 && framesForTab[sender.t])
+        : !(sender.t >= 0 && framesForTab[sender.t])
           ? "Vimium C can not access frames in current tab"
         : null;
       msg && Backend_.showHUD_(msg);
-      if (!sender || !sender.i
+      if (!sender.i
           || Build.MinCVer < BrowserVer.MinWithFrameId && Build.BTypes & BrowserType.Chrome && NoFrameId
           || !chrome.webNavigation) {
         return BackgroundCommands[kBgCmd.mainFrame]();
@@ -1134,7 +1133,7 @@
       if (msg) {
         Backend_.showHUD_(msg);
       } else {
-        const ports = Backend_.indexPorts_(cPort.s.t) as Frames.Frames;
+        const ports = Backend_.indexPorts_(cPort.s.t)!;
         for (let i = 1; i < ports.length; i++) {
           ports[i].postMessage<1, kFgCmd.toggle>({
             N: kBgReq.execute,
@@ -1232,7 +1231,7 @@
         delete (cOptions as {} as VomnibarNS.GlobalOptions).url;
       }
       if (!port) {
-        port = cPort = indexFrame(TabRecency_.last_, 0) as Port;
+        port = cPort = indexFrame(TabRecency_.last_, 0)!;
         if (!port) { return; }
         // not go to the top frame here, so that a current frame can suppress keys for a while
       }
@@ -1324,7 +1323,7 @@
                 return;
               }
             } else {
-              if (!(count = confirm_("moveTabToNewWindow", count) as number)) { return; }
+              if (!(count = confirm_("moveTabToNewWindow", count)!)) { return; }
               if (count < 2) { range = [activeTabIndex, activeTabIndex + 1]; }
             }
           }
@@ -1393,7 +1392,7 @@
         } else {
           options.url = url;
         }
-        (wnd as Window).tabs = undefined;
+        wnd.tabs = null as never;
         chrome.windows.getAll(function (wnds): void {
           let tabId: number | undefined;
           // eslint-disable-next-line arrow-body-style
@@ -1402,7 +1401,7 @@
           });
           if (wnds.length) {
             chrome.tabs.query({ windowId: wnds[wnds.length - 1].id, active: true }, function ([tab2]): void {
-              const tabId2 = options.tabId as number;
+              const tabId2 = options.tabId!;
               if (Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
                   || !Build.CreateFakeIncognito || options.url) {
                 chrome.tabs.create({url: options.url, index: tab2.index + 1, windowId: tab2.windowId});
@@ -1563,7 +1562,7 @@
         return;
       }
       if (!tabs || !tabs.length) { return onRuntimeError(); }
-      const total = tabs.length, tab = selectFrom(tabs as Tab[]), i = tab.index;
+      const total = tabs.length, tab = selectFrom(tabs), i = tab.index;
       let count = 1, start = i, end = i + 1;
       if (abs(cRepeat) > 1 && total > 1) {
         const noPinned = tabs[0].pinned !== tab.pinned && !(cRepeat < 0 && tabs[i - 1].pinned);
@@ -1579,7 +1578,7 @@
               confirm_("removeTab", count, BackgroundCommands[kBgCmd.removeTab].bind(null, 2, tabs));
               return;
             }
-          } else if (!(count = confirm_("removeTab", count) as number)) {
+          } else if (!(count = confirm_("removeTab", count)!)) {
             return;
           }
         }
@@ -1706,7 +1705,7 @@
             return;
           }
         } else {
-          count = confirm_("removeTab", count) as number;
+          count = confirm_("removeTab", count)!;
         }
       }
       if (!count) {
@@ -1727,11 +1726,12 @@
         }
       }
     },
-    /* kBgCmd.openUrl: */ function (this: void, tabs?: [Tab] | never[]): void {
+    /* kBgCmd.openUrl: */ function (this: void, tabs?: [Tab] | []): void {
       if (cOptions.urls) {
-        if (!(cOptions.urls instanceof Array)) { cOptions = null as never; return; }
-        tabs && tabs.length > 0 ? openUrls(tabs as [Tab]) : getCurTab(openUrls);
-        return;
+        if (cOptions.urls instanceof Array) {
+          tabs && tabs.length > 0 ? openUrls(tabs) : getCurTab(openUrls);
+          return onRuntimeError();
+        }
       }
       if ((cOptions.url_mask || cOptions.url_mark || cOptions.host_mask || cOptions.host_mark) && !tabs) {
         return onRuntimeError() || <any> void getCurTab(BackgroundCommands[kBgCmd.openUrl]);
@@ -1772,7 +1772,7 @@
       }
       const range = getTabRange(tabs.length < 2 ? 0 : tab.index, tabs.length - skipped, tabs.length);
       let start = skipped + range[offset] - offset, end = skipped + range[1 - offset] - offset;
-      let wantedTabIds = [] as number[];
+      let wantedTabIds: number[] = [];
       for (; start !== end; start += pin ? 1 : -1) {
         if (pin || tabs[start].pinned) {
           wantedTabIds.push(tabs[start].id);
@@ -1786,7 +1786,7 @@
             return;
           }
         } else {
-          if (!(end = confirm_("togglePinTab", end) as number)) {
+          if (!(end = confirm_("togglePinTab", end)!)) {
             return;
           }
           if (end === 1) {
@@ -1865,7 +1865,7 @@
             return;
           }
         } else {
-          if (!(count = confirm_("reloadTab", count) as number)) {
+          if (!(count = confirm_("reloadTab", count)!)) {
             return;
           }
           if (count === 1) {
@@ -1924,7 +1924,7 @@
         H: ensureInnerCSS(port),
         k: cKey,
         c: 0,
-        m: (framesForTab[tabId] as Frames.Frames)[0] === port ? FrameMaskType.OnlySelf : FrameMaskType.ForcedSelf
+        m: framesForTab[tabId]![0] === port ? FrameMaskType.OnlySelf : FrameMaskType.ForcedSelf
       });
     },
     /* kBgCmd.visitPreviousTab: */ function (this: void, tabs: Tab[]): void {
@@ -2010,7 +2010,7 @@
     /* kBgCmd.goBackFallback: */ Build.BTypes & BrowserType.Chrome ? function (tabs: [Tab]): void {
       if (!tabs.length) { return onRuntimeError(); }
       requestHandlers[kFgReq.framesGoBack]({ s: cRepeat, r: cOptions.reuse }, null, tabs[0]);
-    } : BgUtils_.blank_ as never,
+    } : BgUtils_.blank_,
     /* kBgCmd.showTip: */ function (this: void): void {
       let text = cOptions.text;
       Backend_.showHUD_(text ? text + "" : trans_("needText"));
@@ -2082,7 +2082,7 @@
           return;
         }
       } else {
-        count = (confirm_(registryEntry.command_, abs(count)) as number) * (count < 0 ? -1 : 1);
+        count = confirm_(registryEntry.command_, abs(count))! * (count < 0 ? -1 : 1);
       }
       if (!count) { return; }
     } else { count = count || 1; }
@@ -2107,7 +2107,7 @@
     } else if (count < UseTab.CurWndTabsIfRepeat || count === UseTab.CurWndTabsIfRepeat && abs(cRepeat) < 2) {
       getCurTab(func as BgCmdActiveTab);
     } else if (Build.BTypes & BrowserType.Firefox && count > UseTab.CurWndTabs) {
-      getCurShownTabs(func as BgCmdCurWndTabs);
+      getCurShownTabs_ff_only!(func as BgCmdCurWndTabs);
     } else {
       getCurTabs(func as BgCmdCurWndTabs);
     }
@@ -2148,7 +2148,7 @@
         , port: Port): FgRes[kFgReq.parseSearchUrl] | void {
       let search = Backend_.parse_(request);
       if ("i" in request) {
-        port.postMessage({ N: kBgReq.omni_parsed, i: request.i as number, s: search });
+        port.postMessage({ N: kBgReq.omni_parsed, i: request.i!, s: search });
       } else {
         return search;
       }
@@ -2159,7 +2159,7 @@
         (request as FgReq[kFgReq.parseUpperUrl]).e = false;
         const result = requestHandlers[kFgReq.parseUpperUrl](request);
         if (result.p == null) {
-          cPort = port as Port;
+          cPort = port!;
           Backend_.showHUD_(result.u);
         } else if (port) {
           port.postMessage<1, kFgCmd.reload>({ N: kBgReq.execute,
@@ -2322,13 +2322,13 @@
           Backend_.showHUD_(err);
           return;
         }
-        query2 = BgUtils_.createSearchUrl_((query2 as string).split(BgUtils_.spacesRe_), (search as ParsedSearch).k);
+        query2 = BgUtils_.createSearchUrl_(query2!.split(BgUtils_.spacesRe_), search!.k);
         openShowPage(query2, ReuseType.current, {}) || safeUpdate(query2);
       }
     },
     /** kFgReq.gotoSession: */ function (this: void, request: FgReq[kFgReq.gotoSession], port?: Port): void {
       const id = request.s, active = request.a !== false;
-      cPort = findCPort(port) as Port;
+      cPort = findCPort(port)!;
       if (typeof id === "number") {
         chrome.tabs.update(id, {active: true}, function (tab): void {
           const err = onRuntimeError();
@@ -2347,7 +2347,7 @@
         return err;
       });
       if (active) { return; }
-      let tabId = (port as Port).s.t;
+      let tabId = port!.s.t;
       tabId >= 0 || (tabId = TabRecency_.last_);
       if (tabId >= 0) { return selectTab(tabId); }
     },
@@ -2355,7 +2355,7 @@
         , port?: Port): void {
       BgUtils_.safer_(request);
       let unsafe = port != null && isNotVomnibarPage(port, true);
-      cPort = unsafe ? port as Port : findCPort(port) || cPort;
+      cPort = unsafe ? port! : findCPort(port) || cPort;
       let url: Urls.Url | undefined = request.u;
       // { url_f: string, ... } | { copied: true, ... }
       const opts: OpenUrlOptionsInBgCmd & SafeObject = BgUtils_.safeObj_();
@@ -2394,18 +2394,18 @@
           port.postMessage({ N: kBgReq.injectorRun, t: InjectorTask.reportLiving });
         }
       }
-      let tabId = port.s.t, ref = framesForTab[tabId] as Frames.WritableFrames | undefined, status: Frames.ValidStatus;
+      let tabId = port.s.t, ref = framesForTab[tabId], status: Frames.ValidStatus;
       if (!ref) {
         needIcon && Backend_.setIcon_(tabId, port.s.s);
         return;
       }
       if (port === ref[0]) { return; }
       if (needIcon && (status = port.s.s) !== ref[0].s.s) {
-        ref[0] = port;
+        (ref as Writable<typeof ref>)[0] = port;
         Backend_.setIcon_(tabId, status);
         return;
       }
-      ref[0] = port;
+      (ref as Writable<typeof ref>)[0] = port;
     },
     /** kFgReq.checkIfEnabled: */ function (this: void, request: ExclusionsNS.Details | FgReq[kFgReq.checkIfEnabled]
         , from_content?: Frames.Port): void {
@@ -2423,7 +2423,7 @@
       if (sender.s !== status) {
         if (sender.f & Frames.Flags.locked) { return; }
         sender.s = status;
-        if (needIcon && (framesForTab[sender.t] as Frames.Frames)[0] === port) {
+        if (needIcon && framesForTab[sender.t]![0] === port) {
           Backend_.setIcon_(sender.t, status);
         }
       } else if (!pattern || pattern === Backend_.getExcluded_(oldUrl, sender)) {
@@ -2510,7 +2510,7 @@
         const port2 = request.w && indexFrame(port.s.t, 0) || port,
         isOptionsPage = port2.s.u.startsWith(Settings_.CONST_.OptionsPage_),
         options = request.a || {};
-        (port2.s as Frames.Sender).f |= Frames.Flags.hadHelpDialog;
+        (port2 as Frames.Port).s.f |= Frames.Flags.hadHelpDialog;
         port2.postMessage({
           N: kBgReq.showHelpDialog,
           H: ensureInnerCSS(port2),
@@ -2524,7 +2524,7 @@
       });
     },
     /** kFgReq.css: */ function (this: void, _0: {}, port: Port): void {
-      (port.s as Frames.Sender).f |= Frames.Flags.hasCSSAndActed;
+      (port as Frames.Port).s.f |= Frames.Flags.hasCSSAndActed;
       port.postMessage({ N: kBgReq.showHUD, H: Settings_.cache_.innerCSS });
     },
     /** kFgReq.vomnibar: */ function (this: void, request: FgReq[kFgReq.vomnibar]
@@ -2552,7 +2552,7 @@
       return Completion_.filter_(request.q, request,
       PostCompletions.bind<Port, 0 | 1 | 2
           , Parameters<CompletersNS.Callback>, void>(port
-        , (<number> request.i | 0) as 0 | 1 | 2));
+        , (request.i! | 0) as 0 | 1 | 2));
     },
     /** kFgReq.copy: */ function (this: void, request: FgReq[kFgReq.copy], port: Port): void {
       let str: string | string[] | object[] | undefined, hud = !0;
@@ -2574,7 +2574,7 @@
       hud && Backend_.showHUD_(str, 1);
     },
     /** kFgReq.key: */ function (this: void, request: FgReq[kFgReq.key], port: Port): void {
-      (port.s as Frames.Sender).f |= Frames.Flags.userActed;
+      (port as Frames.Port).s.f |= Frames.Flags.userActed;
       let key: string = request.k, count = 1
         , arr: null | string[] = numHeadRe.exec(key);
       if (arr != null) {
@@ -2584,11 +2584,11 @@
       }
       const ref = CommandsData_.keyToCommandRegistry_;
       if (!(key in ref)) {
-        arr = key.match(BgUtils_.keyRe_) as string[];
+        arr = key.match(BgUtils_.keyRe_)!;
         key = arr[arr.length - 1];
         count = 1;
       }
-      const registryEntry = ref[key] as CommandsNS.Item;
+      const registryEntry = ref[key]!;
       BgUtils_.resetRe_();
       executeCommand(registryEntry, count, request.l, port, 0);
     },
@@ -2683,7 +2683,7 @@
     },
     /** kFgReq.framesGoBack: */ function (this: void, req: FgReq[kFgReq.framesGoBack], port: Port | null
         , curTab?: Pick<Tab, "id" | "url">): void {
-      const tabID = Build.BTypes & BrowserType.Chrome && curTab ? curTab.id : (port as Port).s.t,
+      const tabID = Build.BTypes & BrowserType.Chrome && curTab ? curTab.id : port!.s.t,
       count = req.s, reuse = req.r;
       let needToExecCode: boolean = Build.BTypes & BrowserType.Chrome ? false : true;
       if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.Min$Tabs$$goBack)
@@ -2692,14 +2692,14 @@
               || CurCVer_ < BrowserVer.Min$Tabs$$goBack)) {
         // on old Chrome || on other browsers
         const url = Build.BTypes & BrowserType.Chrome && curTab ? curTab.url
-          : ((port as Port).s.i ? indexFrame(tabID, 0) as Port : port as Port).s.u;
+          : (port!.s.i ? indexFrame(tabID, 0)! : port!).s.u;
         if (!url.startsWith(BrowserProtocol_)
             || !!(Build.BTypes & BrowserType.Firefox)
                 && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
                 && url.startsWith(location.origin)) {
           /* empty */
         } else {
-          cPort = port as Port /* Port | null -> Port */;
+          cPort = port! /* Port | null -> Port */;
           Backend_.showHUD_(trans_("noTabHistory"));
           return;
         }
@@ -2725,9 +2725,9 @@
       } else {
         // Chrome + reuse=0: must be from a shortcut or Chrome is new enough
       }
-      const jump = (count > 0 ? chrome.tabs.goForward : chrome.tabs.goBack) as NonNullable<typeof chrome.tabs.goBack>;
+      const jump = count > 0 ? chrome.tabs.goForward : chrome.tabs.goBack;
       if (!jump) {
-        execGoBack(curTab as NonNullable<typeof curTab>, count);
+        execGoBack(curTab!, count);
         return;
       }
       for (let i = 0, end = count > 0 ? count : -count; i < end; i++) {
@@ -2772,7 +2772,7 @@
   }
   function OnConnect(this: void, port: Frames.Port, type: number): void {
     const sender = /*#__NOINLINE__*/ formatPortSender(port), { t: tabId, u: url } = sender
-      , ref = framesForTab[tabId] as Frames.WritableFrames | undefined
+      , ref = framesForTab[tabId]
       , isOmni = url === Settings_.cache_.vomnibarPage_f;
     let status: Frames.ValidStatus = Frames.Status.enabled;
     if (type >= PortType.omnibar || isOmni) {
@@ -2783,7 +2783,7 @@
         sender.f = Frames.Flags.userActed;
       } else if (type === PortType.CloseSelf) {
         if (Build.BTypes & ~BrowserType.Chrome && tabId >= 0 && !sender.i) {
-          removeTempTab(tabId, ((port as chrome.runtime.Port).sender.tab as Tab).windowId, sender.u);
+          removeTempTab(tabId, (port as chrome.runtime.Port).sender.tab!.windowId, sender.u);
         }
         return;
       } else {
@@ -2822,12 +2822,12 @@
     port.onDisconnect.addListener(OnDisconnect);
     port.onMessage.addListener(OnMessage);
     if (ref) {
-      ref.push(port);
+      (ref as Frames.WritableFrames).push(port);
       if (type & PortType.hasFocus) {
         if (needIcon && ref[0].s.s !== status) {
           Backend_.setIcon_(tabId, status);
         }
-        ref[0] = port;
+        (ref as Frames.WritableFrames)[0] = port;
       }
     } else {
       framesForTab[tabId] = [port, port];
@@ -2877,7 +2877,7 @@
         type === PortType.omnibar &&
         port.postMessage({
           N: kBgReq.omni_init,
-          l: Settings_.omniPayload_ as EnsureItemsNonNull<typeof Settings_.omniPayload_>,
+          l: Settings_.omniPayload_,
           s: getSecret()
         });
         return true;
@@ -2912,13 +2912,13 @@
       id: _fakeTabId--,
       url: "",
       incognito: false
-    }, url = Build.BTypes & BrowserType.Edge ? sender.url || tab.url || "" : sender.url as string;
+    }, url = Build.BTypes & BrowserType.Edge ? sender.url || tab.url || "" : sender.url!;
     if (!(Build.BTypes & ~BrowserType.Chrome)) {
       sender.tab = null as never;
     }
-    return (port as Writable<Port>).s = {
+    return (port as Frames.Port).s = {
       i: Build.MinCVer >= BrowserVer.MinWithFrameId || !(Build.BTypes & BrowserType.Chrome)
-          ? sender.frameId as number : sender.frameId || 0,
+          ? sender.frameId! : sender.frameId || 0,
       a: tab.incognito,
       s: Frames.Status.enabled,
       f: Frames.Flags.blank,
@@ -2940,7 +2940,7 @@
     tab = sessions && sessions[0] && sessions[0].tab;
     if (tab && tab.url === url) {
       await (browser as typeof chrome).sessions.forgetClosedTab(windowId
-          , tab.sessionId as string).catch(BgUtils_.blank_);
+          , tab.sessionId!).catch(BgUtils_.blank_);
     }
     if (_lockToRemoveTempTab === selfLock) {
       _lockToRemoveTempTab = null;
@@ -2971,7 +2971,7 @@
     },
     removeSug_ (this: void, { t: type, u: url }: FgReq[kFgReq.removeSug], port?: Port | null): void {
       const name = type === "tab" ? type : type + " item";
-      cPort = findCPort(port) as Port;
+      cPort = findCPort(port)!;
       if (type === "tab" && TabRecency_.last_ === +url) {
         return Backend_.showHUD_(trans_("notRemoveCur"));
       }
@@ -3077,7 +3077,7 @@
           N: kBgReq.showHUD,
           H: ensureInnerCSS(cPort),
           t: message,
-          c: isCopy as undefined
+          c: isCopy
         })) {
         cPort = null as never;
       }
@@ -3114,7 +3114,7 @@
         silent || oldStatus !== Frames.Status.disabled && Backend_.showHUD_(trans_("unknownStatAction", [act]));
         return;
       }
-      let pattern: string | null, newStatus = locked ? stat as Frames.ValidStatus : Frames.Status.enabled;
+      let pattern: string | null, newStatus: Frames.ValidStatus = locked ? stat! : Frames.Status.enabled;
       for (let i = ref.length; 1 <= --i; ) {
         const port = ref[i], sender = port.s;
         sender.f = locked ? sender.f | Frames.Flags.locked : sender.f & ~Frames.Flags.locked;
@@ -3225,7 +3225,7 @@
   };
 
   (!(Build.BTypes & BrowserType.Edge) || chrome.runtime.onMessageExternal) &&
-  ((chrome.runtime.onMessageExternal as chrome.runtime.ExtensionMessageEvent).addListener(function (this: void
+  (chrome.runtime.onMessageExternal!.addListener(function (this: void
       , message: boolean | number | string | null | undefined | ExternalMsgs[keyof ExternalMsgs]["req"]
       , sender, sendResponse): void {
     if (!isExtIdAllowed(sender.id, sender.url)) {
