@@ -420,6 +420,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     sel >= 0 && _ref[sel].classList.add("s");
   },
   _keyNames: Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.BTypes & BrowserType.Chrome
+      || Build.BTypes & BrowserType.Edge
       ? [kChar.space, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
         kChar.left, kChar.up, kChar.right, kChar.down,
         /* 41 */ "", "", "", "", kChar.insert, kChar.delete] as readonly kChar[]

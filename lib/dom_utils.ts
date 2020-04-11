@@ -922,10 +922,11 @@ var VDom = {
   },
   getZoomedAndCroppedRect_ (element: HTMLImageElement | HTMLInputElement
       , st: CSSStyleDeclaration | null, crop: boolean): Rect | null {
-    let zoom = Build.BTypes && ~BrowserType.Firefox && +(st || VDom.getComputedStyle_(element)).zoom || 1,
-    cr: ClientRect = Build.BTypes && ~BrowserType.Firefox ? VDom.getBoundingClientRect_(element) : 0 as never,
-    arr: Rect | null = Build.BTypes && ~BrowserType.Firefox
-        ? VDom.cropRectToVisible_(cr.left * zoom, cr.top * zoom, cr.right * zoom, cr.bottom * zoom)
+    let zoom = Build.BTypes & ~BrowserType.Firefox && +(st || VDom.getComputedStyle_(element)).zoom || 1,
+    cr_not_ff = Build.BTypes & ~BrowserType.Firefox ? VDom.getBoundingClientRect_(element) : 0 as never as null,
+    arr: Rect | null = Build.BTypes & ~BrowserType.Firefox
+        ? VDom.cropRectToVisible_(cr_not_ff!.left * zoom, cr_not_ff!.top * zoom
+            , cr_not_ff!.right * zoom, cr_not_ff!.bottom * zoom)
         : VDom.getVisibleClientRect_(element);
     if (crop) {
       arr = VDom.getCroppedRect_(element, arr);

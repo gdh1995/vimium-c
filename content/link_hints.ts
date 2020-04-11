@@ -578,7 +578,9 @@ var VHints = {
     // Note: should avoid nested calling to isNotReplacedBy_
     let el2: Element | null | undefined;
     return tag !== "div" && tag !== "li"
-        ? tag === "tr" ? !!this.isNotReplacedBy_(el.querySelector("input[type=checkbox]") as SafeHTMLElement | null)
+        ? tag === "tr"
+          ? (el2 = el.querySelector("input[type=checkbox]") as SafeElement | null,
+            !!(el2 && VDom.htmlTag_(el2) && this.isNotReplacedBy_(el2 as SafeHTMLElement)))
           : tag !== "table"
         : !(el2 = el.firstElementChild as Element | null) ||
           !(!el.className && !el.id && tag === "div"

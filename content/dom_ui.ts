@@ -379,7 +379,7 @@ var VCui = {
           : relAttr.split(<RegExpOne> /\s/).indexOf("noopener") >= 0,
       reuse = Build.BTypes & BrowserType.Firefox && (<kClickAction> specialAction) & kClickAction.openInNewWindow
           ? ReuseType.newWindow
-          : (modifiers as MyMouseControlKeys).shiftKey_ || (<kClickAction> specialAction) < kClickAction.newTabFromMode
+          : modifiers && modifiers.shiftKey_ || specialAction! < kClickAction.newTabFromMode
             ? ReuseType.newFg : ReuseType.newBg;
       VApi.post_({
         H: kFgReq.openUrl,

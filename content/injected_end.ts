@@ -2,6 +2,7 @@
   VHud, VApi
   ].forEach(Object.seal);
 VDom.allowScripts_ = 0;
+VDom.isHTML_ = () => document instanceof HTMLDocument;
 
 VHints.unwrap_ = (e: object): any => e;
 
