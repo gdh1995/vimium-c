@@ -16,6 +16,7 @@ const enum TimeEnums {
   futureTimeTolerance = 1.000165, // 1 + 5 * 60 * 1000 / timeCalibrator, // +5min
   futureTimeScore = 0.666446, // (1 - 5 * 60 * 1000 / timeCalibrator) ** 2 * RankingEnums.recCalibrator, // -5min
   bookmarkFakeVisitTime = 1000 * 60 * 5,
+  NegativeScoreForFakeBookmarkVisitTime = -futureTimeScore,
 }
 const enum InnerConsts {
   bookmarkBasicDelay = 1000 * 60, bookmarkFurtherDelay = bookmarkBasicDelay / 2,
@@ -351,13 +352,12 @@ bookmarkEngine = {
     const results2: Suggestion[] = [],
     /** inline of {@link #recencyScore_} */
     fakeTimeScore = !(otherFlags & CompletersNS.QueryFlags.PreferBookmarks) ? 0
-      : -1 * (1 - TimeEnums.bookmarkFakeVisitTime / TimeEnums.timeCalibrator)
-        * (1 - TimeEnums.bookmarkFakeVisitTime / TimeEnums.timeCalibrator) * RankingEnums.recCalibrator;
+        : TimeEnums.NegativeScoreForFakeBookmarkVisitTime;
     for (let [score, ind] of results) {
       const i = arr[ind];
       if (fakeTimeScore) {
         /** inline of {@link #ComputeRelevancy} */
-        score = fakeTimeScore > score ? score : (score + fakeTimeScore) / 2;
+        score = score < fakeTimeScore ? score : (score + fakeTimeScore) / 2;
       }
       const sug = new Suggestion("bookm", i.url_, i.text_, isPath ? i.path_ : i.title_, get2ndArg, -score);
       results2.push(sug);

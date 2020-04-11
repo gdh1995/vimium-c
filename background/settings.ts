@@ -260,7 +260,7 @@ var Settings_ = {
         if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinUsableCSS$All || hasAll) {
           body = body.replace(<RegExpG> /\b[IL]H\s?\{/g, "$&all:inherit;");
         }
-        body += `\n${prefix}:before,${prefix}:after,.R:before,.R:after{display:none!important}`;
+        body += `\n${prefix}:before,${prefix}:after,.R:before,.R:not(.HUD):after{display:none!important}`;
         css = prefix + css.slice(5, hostEnd) +
             /** Note: {@link ../front/vimium-c.css}: this requires no ID/attr selectors in "ui" styles */
             body.replace(<RegExpG> /\.[A-Z][^,{]*/g, prefix + " $&");

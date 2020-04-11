@@ -833,7 +833,7 @@ function beforeCompile(file) {
   var contents = null, changed = false, oldLen = 0;
   function get() { contents == null && (contents = ToString(file.contents), changed = true, oldLen = contents.length); }
   if (!locally && (allPathStr.includes("settings") || allPathStr.includes("commands")
-      || allPathStr.includes("help_dialog"))) {
+      || allPathStr.includes("help_dialog") || allPathStr.includes("completion"))) {
     get();
     contents = contents.replace(/\b(const|let|var)?\s?As_\s?=[^,;]+[,;]/g, "").replace(/\bAs_\b/g, "");
   }
