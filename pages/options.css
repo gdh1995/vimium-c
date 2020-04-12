@@ -167,7 +167,7 @@ select.right {
   -webkit-padding-end: 17px;
   -webkit-appearance: none;
   background: url(
-'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="7px" height="7px"><polygon points="0,1 6,1 3,7" fill="%23444"/></svg>'
+'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="7px" height="7px"><polygon points="0,1 6,1 3,7"/></svg>'
     ) 8px 8px / 7px 7px no-repeat border-box,
     linear-gradient(#ededed, #ededed 38%, #dedede) 0 / auto border-box;
   background-image: var(--select-shape), var(--button-background-image);
@@ -178,15 +178,9 @@ select.right {
   width: 22px;
 }
 select.right:hover {
-  background-image: url(
-'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="7px" height="7px"><polygon points="0,1 6,1 3,7"/></svg>'
-    ), linear-gradient(#f0f0f0, #f0f0f0 38%, #e0e0e0);
   background-image: var(--select-shape), var(--button-hover-background-image);
 }
 select.right:active {
-  background-image: url(
-'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="7px" height="7px"><polygon points="0,1 6,1 3,7"/></svg>'
-    ), linear-gradient(#e7e7e7, #e7e7e7 38%, #d7d7d7);
   background-image: var(--select-shape), var(--button-active-background-image);
 }
 button.left:hover+select.right {

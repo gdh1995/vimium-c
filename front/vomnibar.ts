@@ -942,8 +942,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
   onStyleUpdate_ (omniStyles: string): void {
     omniStyles = ` ${omniStyles} `;
+    const dark = omniStyles.includes(" dark ");
     if (Vomnibar_.darkBtn_) {
-      Vomnibar_.darkBtn_.textContent = omniStyles.includes(" dark ") ? "\u2600" : "\u263D";
+      Vomnibar_.darkBtn_.textContent = dark ? "\u2600" : "\u263D";
+      Vomnibar_.darkBtn_.classList.toggle("toggled", dark);
     }
     const monospaceURL = omniStyles.includes(" mono-url ");
     // Note: should not use style[title], because "title" on style/link has special semantics

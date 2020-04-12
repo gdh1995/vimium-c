@@ -137,6 +137,7 @@
 	all: initial;
 	background: none;
 	border: none;
+	box-shadow: none;
 	color: #15c;
 	cursor: pointer;
 	font: inherit;
@@ -159,9 +160,6 @@
 #HClose {
 	color: #555;
 	margin: 0 1px;
-	text-decoration: none;
-	-webkit-user-select: none;
-	user-select: none;
 }
 #HClose:hover {
 	color: black;
@@ -171,11 +169,7 @@
 	outline: none;
 }
 #HCloseT {
-	display: inline-block;
-	font: bold 24px/15px "Courier New", monospace;
-	overflow: hidden;
-	width: 14px;
-	vertical-align: text-bottom;
+	vertical-align: middle;
 }
 
 #HelpFooter {
@@ -266,7 +260,9 @@
 			<a class="VimL TopLink" id="OptionsPage">$Options</a>
 			<a class="VimL TopLink" target="_blank" rel="noopener noreferrer" href="{{homePage}}/wiki">$Wiki</a>
 			<button class="VimL TopLink" id="HClose" role="button" title="$Close"
-				><span id="HCloseT">&#215;</span></button>
+					><svg id="HCloseT" width="12px" height="12px" stroke="currentColor">
+				<path d="M2 2l8 8zM2 10L10 2" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+			</svg></button>
 		</span>
 	</div>
 	<div class="HDivider"></div>

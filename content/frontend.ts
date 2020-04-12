@@ -1388,7 +1388,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       advCmd.onclick = optLink.onclick = closeBtn.onclick = null as never;
       let i: Element | null = vDom.lastHovered_;
       i && box.contains(i) && (vDom.lastHovered_ = null);
-      (i = vCui.activeEl_) && box.contains(i) && (vCui.activeEl_ = null);
+      (i = vCui.activeEl_) && box.contains(i) && (vCui.activeEl_ = vCui.cachedScrollable_ = null);
       vKey.removeHandler_(box);
       box.remove();
       Commands[kFgCmd.showHelp] = oldShowHelp;
