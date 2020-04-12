@@ -4,6 +4,19 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://github.com/gdh1995/vimium-c/blob/master/README_zh.md .
 
+#### 1.81.5
+* `LinkHints`: Filtered hints: use <Kbd>Alt+N</Kbd> to filter by link text ([#122](
+  https://github.com/gdh1995/vimium-c/issues/122))
+* `LinkHints`: add `scroll="force"` to focus and then scroll some special boxes ([#147](
+  https://github.com/gdh1995/vimium-c/issues/147))
+* `Scroller`: add an option of `passPointer` to pass pointer events
+* `Vomnibar`: add an option of `icase` ([#131 (comment)](
+  https://github.com/gdh1995/vimium-c/issues/131#issuecomment-608532435))
+* `closeOtherTabs`: add `filter=""/url/url+hash/url+title` ([#148](
+  https://github.com/gdh1995/vimium-c/issues/148))
+* Clipboard text Substitution: now accept empty destination strings
+* better support for the flag `#freeze-user-agent` on Chrome 81
+
 #### 1.81.4
 * `Vomnibar`: roll back and prefer visited tabs to newly-opened ones
   ([#60 (comment)](https://github.com/gdh1995/vimium-c/issues/60#issuecomment-603148180))

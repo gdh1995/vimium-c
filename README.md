@@ -3,7 +3,7 @@
 ===========================================
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.81.4](https://img.shields.io/badge/release-1.81.4-orange.svg
+[![Version 1.81.5](https://img.shields.io/badge/release-1.81.5-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -87,6 +87,15 @@ __Other extensions supporting Vimium C:__
 
 
 # Release Notes
+
+#### 1.81.5
+* `LinkHints`: Filtered hints: use <Kbd>Alt+N</Kbd> to filter by link text (#122)
+* `LinkHints`: add `scroll="force"` to focus and then scroll some special boxes (#147)
+* `Scroller`: add an option of `passPointer` to pass pointer events
+* `Vomnibar`: add an option of `icase` (#131 (comment))
+* `closeOtherTabs`: add `filter=""/url/url+hash/url+title` (#148)
+* Clipboard text Substitution: now accept empty destination strings
+* better support for the flag `#freeze-user-agent` on Chrome 81
 
 #### 1.81.4
 * `Vomnibar`: roll back and prefer visited tabs to newly-opened ones

@@ -1,6 +1,6 @@
 {
   "name": "vimium-c",
-  "version": "1.81.4",
+  "version": "1.81.5",
   "description": "A keyboard shortcut tool for keyboard-based page navigation and browser tab operations with an advanced omnibar and global shortcuts",
   "private": true,
   "config": {
