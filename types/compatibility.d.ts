@@ -98,8 +98,8 @@ declare const enum BrowserVer {
   // since C42@exp, <option> is visible, but its text has a strange extra prefix of "A" - fixed on C43
   Min$Option$HasReliableFontSize = 43, // even if LEGACY
   Min$DocumentOrShadowRoot$$elementsFromPoint = 43, // even if EXPERIMENTAL or LEGACY
-  MinEnsuredES6$String$$StartsWithEndsWithAndRepeatAndIncludes = 43, // even if LEGACY
-  MinSafe$String$$StartsWith = MinEnsuredES6$String$$StartsWithEndsWithAndRepeatAndIncludes + 1, // add a margin
+  MinEnsuredES6$String$$StartsWithEndsWithRepeatAndIncludes = 43, // even if LEGACY
+  MinSafe$String$$StartsWith = MinEnsuredES6$String$$StartsWithEndsWithRepeatAndIncludes,
   MinRuntimePlatformOs = 44,
   MinCreateWndWithState = 44,
   // the 3 below are correct even if EXPERIMENTAL or LEGACY

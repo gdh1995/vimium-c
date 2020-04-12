@@ -36,14 +36,14 @@ and licensed under the [MIT license](LICENSE.txt).
 
 本项目主要由 [gdh1995](https://github.com/gdh1995) 开发并维护，且以 [MIT 许可协议](LICENSE.txt) 开源。
 
-It (the version in Web Store) supports Chrome and other Chromium-based browsers whose core versions are >= 38,
+It (the version in Web Store) supports Chrome and other Chromium-based browsers whose core versions are >= 43,
   and supports almost all of the functionality on a recent Firefox (since version 63.0).
 On MS Edge (Chromium), it works well, and it can even run on MS Edge (EdgeHTML), though there're still some errors.
-If re-compiled from the source code, Vimium C is able to support Chromium 32~37.
+If re-compiled from the source code, Vimium C is able to support Chromium 32~42.
 
-它支持内核版本不低于 38 的 Chrome 和其它以 Chromium 为内核的浏览器，也能运行在最近发布的 Firefox 63 和更高版本上。
+它支持内核版本不低于 43 的 Chrome 和其它以 Chromium 为内核的浏览器，也能运行在最近发布的 Firefox 63 和更高版本上。
 同时它完美支持了新版 Microsoft Edge (Chromium 内核) 浏览器，甚至在 Edge (EdgeHTML 内核) 上也能正常执行大部分命令。
-如果从源码重新编译，Vimum C 还可以支持 Chromium 32~37。
+如果从源码重新编译，Vimum C 还可以支持 Chromium 32~42。
 
 ![Usage Demo of Vimium C](https://gdh1995.cn/vimium-c/demo.gif)
 
