@@ -379,7 +379,7 @@ var VFind = {
       const sel = a.innerDoc_.getSelection();
       // on Chrome 79 + Win 10 / Firefox 69 + Ubuntu 18, delete a range itself
       // while on Firefox 70 + Win 10 it collapses first
-      sel.type === "Caret" && sel.modify("extend", VVisual._D[+(keybody > "d")], "word");
+      sel.type === "Caret" && sel.modify("extend", VVisual.kDir_[+(keybody > "d")], "word");
       a.exec_("delete");
       return;
     }

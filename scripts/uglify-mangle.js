@@ -3,6 +3,7 @@
 "use strict";
 
 const MIN_COMPLEX_OBJECT = 1;
+const MIN_ALLOWED_NAME_LENGTH = 3;
 // @ts-ignore
 const TEST = typeof require === "function" && require.main === module;
 
@@ -107,6 +108,24 @@ function findDuplicated(names, countsMap) {
 }
 
 /**
+ * @param { readonly string[][] } names
+ * @param { number } minAllowedLength
+ * @return { string[] }
+ */
+function findTooShort(names, minAllowedLength) {
+  /** @type { Set<string> } */
+  const dedup = new Set();
+  for (const arr of names) {
+    for (const name of arr) {
+      if (name.length < minAllowedLength) {
+        dedup.add(name);
+      }
+    }
+  }
+  return [...dedup];
+}
+
+/**
  * @argument { string | string[] | { [file: string]: string } } files
  * @argument { MinifyOptions | null | undefined } options
  * @returns { MinifyOutput }
@@ -120,6 +139,10 @@ function minify(files, options) {
       const duplicated = findDuplicated(names, countsMap);
       if (duplicated.length > 0) {
         throw Error("Find duplicated keys: " + JSON.stringify(duplicated, null, 2));
+      }
+      const tooShort = findTooShort(names, MIN_ALLOWED_NAME_LENGTH);
+      if (tooShort.length > 0) {
+        throw Error("Some keys are too short: " + JSON.stringify(tooShort, null, 2));
       }
       /** @type { NameCache } */
       // @ts-ignore

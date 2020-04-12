@@ -314,8 +314,8 @@ var VVisual = {
     }
   },
 
-  _D: ["backward", "forward"] as const,
-  _G: ["character", "line", "lineboundary", /* 3 */ "paragraph",
+  kDir_: ["backward", "forward"] as const,
+  _kGranularity: ["character", "line", "lineboundary", /* 3 */ "paragraph",
       "sentence", /** VisualModeNS.VimG.vimWord */ "", /* 6 */ "word",
       "documentboundary"] as const,
   alterMethod_: "" as "move" | "extend",
@@ -327,12 +327,12 @@ var VVisual = {
   _rightWhiteSpaceRe: null as RegExpOne | null,
   /** @unknown_di_result */
   extend_ (d: VisualModeNS.ForwardDir, g?: VisualModeNS.G): void | 1 {
-    this.selection_.modify("extend", this._D[d], this._G[g || VisualModeNS.G.character]);
+    this.selection_.modify("extend", this.kDir_[d], this._kGranularity[g || VisualModeNS.G.character]);
     this.diType_ &= ~VisualModeNS.DiType.isUnsafe;
   },
   /** @unknown_di_result */
   modify_ (d: VisualModeNS.ForwardDir, g: VisualModeNS.G): void | 1 {
-    return this.selection_.modify(this.alterMethod_, this._D[d], this._G[g]);
+    return this.selection_.modify(this.alterMethod_, this.kDir_[d], this._kGranularity[g]);
   },
   /**
    * if `isMove`, then must has collapsed;
@@ -345,7 +345,7 @@ var VVisual = {
     if (diType & VisualModeNS.DiType.TextBox) {
       const el = VApi.lock_() as TextElement;
       return el.value.charAt(a.TextOffset_(el
-          , a.di_ === VisualModeNS.kDir.right || el.selectionDirection !== a._D[0]));
+          , a.di_ === VisualModeNS.kDir.right || el.selectionDirection !== a.kDir_[0]));
     }
     const sel = a.selection_;
     if (!diType) {
@@ -399,7 +399,7 @@ var VVisual = {
     }
     const a = this, oldDi = a.di_;
     while (0 < count--) {
-      a.selection_.modify(a.alterMethod_, a._D[direction], a._G[granularity as VisualModeNS.G]);
+      a.selection_.modify(a.alterMethod_, a.kDir_[direction], a._kGranularity[granularity as VisualModeNS.G]);
     }
     // it's safe to remove `isUnsafe` here, because:
     // either `count > 0` or `fixWord && _moveRight***()`
@@ -512,7 +512,7 @@ var VVisual = {
         di = di && start > end ? (a.di_ = VisualModeNS.kDir.left) : VisualModeNS.kDir.right;
         // di is BOOL := start < end; a.di_ will be correct
         el.setSelectionRange(di ? start : end, di ? end : start
-          , a._D[<VisualModeNS.ForwardDir> a.di_]);
+          , a.kDir_[<VisualModeNS.ForwardDir> a.di_]);
       }
     }
     a.modeV_ === VisualModeNS.Mode.Caret && a.collapseToRight_(VisualModeNS.kDir.right);
@@ -530,7 +530,7 @@ var VVisual = {
       const el = VApi.lock_() as TextElement;
       // Note: on C72/60/35, it can trigger document.onselectionchange
       //      and on C72/60, it can trigger <input|textarea>.onselect
-      el.setSelectionRange(a.TextOffset_(el, 0), a.TextOffset_(el, 1), a._D[newDi]);
+      el.setSelectionRange(a.TextOffset_(el, 0), a.TextOffset_(el, 1), a.kDir_[newDi]);
     } else if (a.diType_ & VisualModeNS.DiType.Complicated) {
       let length = ("" + sel).length, i = 0;
       a.collapseToRight_(direction);
@@ -600,7 +600,7 @@ var VVisual = {
         }
       }
       if (a.diType_ & VisualModeNS.DiType.TextBox) {
-        return a.di_ = (lock as TextModeElement).selectionDirection !== a._D[0]
+        return a.di_ = (lock as TextModeElement).selectionDirection !== a.kDir_[0]
           ? VisualModeNS.kDir.right : VisualModeNS.kDir.left;
       }
     }
