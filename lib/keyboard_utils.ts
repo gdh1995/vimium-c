@@ -1,6 +1,4 @@
 // eslint-disable-next-line no-var
-declare var VOther: BrowserType;
-// eslint-disable-next-line no-var
 var VKey = {
   keyNames_: [kChar.space, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
     kChar.left, kChar.up, kChar.right, kChar.down,
@@ -119,24 +117,6 @@ var VKey = {
   prevent_ (this: object, event: ToPrevent): void {
     event.preventDefault(); (this as typeof VKey).Stop_(event);
   },
-  /**
-   * @param target Default to `window`
-   * @param eventType string
-   * @param func Default to `VKey.Stop_`
-   * @param disable Default to `0`
-   * @param activeMode Default to `{passive: true, capture: true}`; `1` means `passive: false`
-   */
-  SetupEventListener_<T extends EventTarget, Active extends 1 | undefined = undefined, E extends string = string> (
-      this: void
-      , target: T | 0, eventType: E
-      , func?: ((this: T, e: E extends keyof HTMLElementEventMap
-            ? Active extends 1 ? HTMLElementEventMap[E] & ToPrevent : HTMLElementEventMap[E]
-            : Active extends 1 ? EventToPrevent : Event) => void) | null | EventListenerObject
-      , disable?: boolean | BOOL, activeMode?: Active): void {
-    (disable ? removeEventListener : addEventListener).call(target || window, eventType,
-        <(this: T, e: EventToPrevent) => void> func || VKey.Stop_,
-        {passive: !activeMode, capture: true} as EventListenerOptions | boolean as boolean);
-  },
   SuppressMost_ (this: object, event: HandlerNS.Event): HandlerResult {
     VKey.isEscape_(VKey.key_(event, kModeId.Normal)) && VKey.removeHandler_(this);
     return event.i === kKeyCode.f12 || event.i === kKeyCode.f5 ? HandlerResult.Suppress : HandlerResult.Prevent;
@@ -172,13 +152,6 @@ var VKey = {
   } as {
     (timeout: 0, callback?: undefined): HandlerNS.RefHandler;
     (timeout: number, callback?: HandlerNS.VoidHandler): HandlerNS.RefHandler;
-  },
-  suppressCommonEvents_ (target: Window | SafeHTMLElement, extraEvents: string): void {
-    // note: if wheel is listened, then mousewheel won't be dispatched even on Chrome 35
-    for (const i of ("auxclick beforecopy beforecut compositionend compositionstart contextmenu copy cut \
-keypress mouseup paste wheel " + extraEvents).split(" ")) {
-      VKey.SetupEventListener_(target, i);
-    }
   },
 
   /** handler section */

@@ -1,23 +1,28 @@
-type DomUIEx = typeof VCui & { flashTime: number | undefined };
+import { setupEventListener, clickable_, isTop, keydownEvents_, VOther } from "../lib/utils.js"
+import { currentScrolling } from "./scroller.js"
+import { styleSelectable } from "./mode_find.js"
+import { unwrap_ff, tryDecodeURL } from "./link_hints.js"
+import { post_ } from "../lib/port.js"
+import { insert_Lock_ } from "./mode_insert.js"
+import { hudTip } from "./hud.js"
 
-// eslint-disable-next-line no-var
-var VCui = {
-  box_: null as HTMLDivElement & SafeHTMLElement | null,
-  styleIn_: null as HTMLStyleElement | string | null,
-  styleOut_: null as HTMLStyleElement | null,
-  styleFind_: null as HTMLStyleElement | null,
-  root_: null as never as VUIRoot,
-  findCss_: null as never as FindCSS,
-  /** @NEED_SAFE_ELEMENTS */
-  activeEl_: null as SafeElement | null,
-  cachedScrollable_: 0 as SafeElement | 0 | null,
-  add_: (function <T extends HTMLElement> (this: void, element: T, adjust?: AdjustType): void {
-    let a = VCui, box = a.box_ = VDom.createElement_("div"),
-    root: VUIRoot = a.root_ = VDom.createShadowRoot_(box),
+let box_: HTMLDivElement & SafeHTMLElement | null = null
+let styleIn_: HTMLStyleElement | string | null = null
+let root_: VUIRoot = null as never
+let cssPatch_: [string, (css: string) => string] | null = null
+let lastFlashEl: SafeHTMLElement | null = null
+let _toExit = [0, 0] as Array<((this: void) => void) | 0>
+let flashTime = 0;
+
+export { box_ as ui_box, root_ as ui_root, styleIn_ as style_ui, lastFlashEl }
+
+export let addUIElement = (<T extends HTMLElement> (element: T, adjust_type?: AdjustType): void => {
+    box_ = VDom.createElement_("div");
+    let root: VUIRoot = root_ = VDom.createShadowRoot_(box_),
     setupListen = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
         && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
         && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-        ? 0 as never : VKey.SetupEventListener_;
+        ? 0 as never : setupEventListener;
     // listen "load" so that safer if shadowRoot is open
     // it doesn't matter to check `.mode == "closed"`, but not `.attachShadow`
     (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
@@ -26,59 +31,58 @@ var VCui = {
     Build.BTypes & ~BrowserType.Edge && root.mode === "closed" ||
     setupListen(
       !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
-      || Build.BTypes & ~BrowserType.Edge && root !== box
+      || Build.BTypes & ~BrowserType.Edge && root !== box_
       ? root as ShadowRoot : 0, "load",
     function Onload(this: ShadowRoot | Window, e: Event): void {
       if (!VDom) { setupListen(0, "load", Onload, 1); return; } // safe enough even if reloaded
       const t = e.target as HTMLElement | Document;
-      if (t.parentNode === VCui.root_) {
+      if (t.parentNode === root_) {
         VKey.Stop_(e); t.onload && t.onload(e);
       }
     }, 0, 1); // should use a listener in active mode: https://www.chromestatus.com/features/5745543795965952
-    a.add_ = (function<T2 extends HTMLElement> (this: typeof VCui, element2: T2, adjust2?: AdjustType
-        , before?: Element | null | true): void {
-      const noPar = this.box_!.parentNode;
-      adjust2 !== AdjustType.NotAdjust && !noPar && this.adjust_();
-      this.root_.insertBefore(element2, before === true ? this.root_.firstChild : before || null);
-      adjust2 !== AdjustType.NotAdjust && noPar && this.adjust_();
+    addUIElement = (<T2 extends HTMLElement> (element2: T2, adjust2?: AdjustType, before?: Element | null | true): void => {
+      const noPar = box_!.parentNode
+      adjust2 !== AdjustType.NotAdjust && !noPar && adjustUI()
+      root_.insertBefore(element2, before === true ? root_.firstChild : before || null)
+      adjust2 !== AdjustType.NotAdjust && noPar && adjustUI()
     });
-    a.css_ = (function (innerCSS): void {
-      const a1 = VCui, box2 = a1.box_!;
+    setUICSS = ((innerCSS): void => {
       if (!((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)) &&
-          (!(Build.BTypes & ~BrowserType.Edge) || box2 === a1.root_)) {
-        box2.id = "VimiumUI";
+          (!(Build.BTypes & ~BrowserType.Edge) || box_ === root_)) {
+        box_!.id = "VimiumUI"
       }
-      let el: HTMLStyleElement | null = a1.styleIn_ = a1.createStyle_();
-      a1.css_ = function (css) {
-        (this.styleIn_ as HTMLStyleElement).textContent = this.cssPatch_ ? this.cssPatch_[1](css) : css;
+      let el: HTMLStyleElement | null = styleIn_ = createStyle()
+      setUICSS = (css) => {
+        (styleIn_ as HTMLStyleElement).textContent = cssPatch_ ? cssPatch_[1](css) : css
       };
-      a1.css_(innerCSS);
-      a1.root_.appendChild(el);
+      setUICSS(innerCSS)
+      root_.appendChild(el)
       /**
        * Note: Tests on C35, 38, 41, 44, 47, 50, 53, 57, 60, 63, 67, 71, 72 confirmed
        *        that el.sheet has been valid when promise.then, even on XML pages.
        * `AdjustType.NotAdjust` must be used before a certain, clear normal adjusting
        */
       // enforce webkit to build the style attribute node, and then we can remove it totally
-      box2.hasAttribute("style") && box2.removeAttribute("style");
-      if (adjust !== AdjustType.NotAdjust) {
-        a1.adjust_();
+      box_!.hasAttribute("style") && box_!.removeAttribute("style")
+      if (adjust_type !== AdjustType.NotAdjust) {
+        adjustUI()
       }
     });
     root.appendChild(element);
-    if (a.styleIn_) {
-      a.css_(a.styleIn_ as Exclude<typeof a.styleIn_, Element | null | undefined | "">);
+    if (styleIn_) {
+      setUICSS(styleIn_ as Exclude<typeof styleIn_, Element | null | undefined | "">)
     } else {
-      box.style.display = "none";
-      if (adjust === AdjustType.MustAdjust) {
-        a.adjust_();
+      box_.style.display = "none";
+      if (adjust_type === AdjustType.MustAdjust) {
+        adjustUI()
       }
-      VApi.post_({ H: kFgReq.css });
+      post_({ H: kFgReq.css });
     }
-  }) as <T extends HTMLElement> (element: T, adjust?: AdjustType, before?: Element | null | true) => void,
-  addElementList_ <T extends boolean> (
+}) as <T extends HTMLElement> (element: T, adjust?: AdjustType, before?: Element | null | true) => void
+
+export const addElementList = function <T extends boolean> (
       els: readonly HintsNS.BaseHintItem[], offset: ViewOffset, dialogContainer?: T
       ): (T extends true ? HTMLDialogElement : HTMLDivElement) & SafeElement {
     const parent = VDom.createElement_(Build.BTypes & BrowserType.Chrome && dialogContainer ? "dialog" : "div");
@@ -98,77 +102,80 @@ var VCui = {
       zoom - 1 && (style.zoom = zoom as number | string as string);
     }
     VDom.fullscreenEl_unsafe_() && (style.position = "fixed");
-    this.add_(parent, AdjustType.DEFAULT, this.lastFlashEl_);
+    addUIElement(parent, AdjustType.DEFAULT, lastFlashEl)
     if (Build.BTypes & BrowserType.Chrome) {
       dialogContainer && (parent as HTMLDialogElement).showModal();
     }
     return parent as (T extends true ? HTMLDialogElement : HTMLDivElement) & SafeElement;
-  },
-  adjust_ (this: void, event?: Event | /* enable */ 1 | /* disable */ 2): void {
+}
+
+export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void => {
     // Before Firefox 64, the mozFullscreenChangeEvent.target is document
     // so here should only use `VDom.fullscreenEl_unsafe_`
-    const vCui = VCui, el: Element | null = VDom.fullscreenEl_unsafe_(),
-    box = vCui.box_!,
-    el2 = el && !vCui.root_.contains(el) ? el : VDom.docEl_unsafe_()!;
+    const el: Element | null = VDom.fullscreenEl_unsafe_(),
+    el2 = el && !root_.contains(el) ? el : VDom.docEl_unsafe_()!
     // Chrome also always remove node from its parent since 58 (just like Firefox), which meets the specification
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
     //  -> #concept-node-append -> #concept-node-pre-insert -> #concept-node-adopt -> step 2
-    event === 2 ? box.remove() : el2 !== box.parentNode &&
-    (Build.BTypes & ~BrowserType.Firefox ? box.appendChild.call(el2, box) : el2.appendChild(box));
-    const sin = vCui.styleIn_, s = sin && (sin as HTMLStyleElement).sheet;
+    event === 2 ? box_!.remove() : el2 !== box_!.parentNode &&
+    (Build.BTypes & ~BrowserType.Firefox ? box_!.appendChild.call(el2, box_!) : el2.appendChild(box_!));
+    const sin = styleIn_, s = sin && (sin as HTMLStyleElement).sheet
     s && (s.disabled = false);
     if (el || event) {
       const removeEL = !el || event === 2, name = "fullscreenchange";
       if (Build.BTypes & BrowserType.Chrome
           && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)) {
-        VKey.SetupEventListener_(0, "webkit" + name, vCui.adjust_, removeEL);
+        setupEventListener(0, "webkit" + name, adjustUI, removeEL)
       } else if (!(Build.BTypes & ~BrowserType.Firefox)
           || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox) {
-        VKey.SetupEventListener_(0, "moz" + name, vCui.adjust_, removeEL);
+        setupEventListener(0, "moz" + name, adjustUI, removeEL)
       }
       if (!(Build.BTypes & BrowserType.Chrome)
           || VDom.cache_.v >= BrowserVer.MinMaybe$Document$$fullscreenElement) {
-        VKey.SetupEventListener_(0, name, vCui.adjust_, removeEL);
+        setupEventListener(0, name, adjustUI, removeEL)
       }
     }
-  },
-  cssPatch_: null as [string, (css: string) => string] | null,
-  ensureBorder_ (zoom?: number): void {
+}
+
+export const ensureBorder = (zoom?: number): void => {
     zoom || (VDom.getZoom_(), zoom = VDom.wdZoom_);
-    let patch = this.cssPatch_;
-    if (!patch && zoom >= 1) { return; }
+    if (!cssPatch_ && zoom >= 1) { return; }
     let width = ("" + (
         Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
         && VDom.cache_.v < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
         ? 1.01 : 0.51) / zoom).slice(0, 5);
-    if (!patch) {
-      patch = this.cssPatch_ = ["", function (this: NonNullable<typeof VCui["cssPatch_"]>, css) {
-        return css.replace(<RegExpG> /\b0\.5px|\/\*!DPI\*\/[\w.]+/g, "/*!DPI*/" + this[0] + "px");
+    if (!cssPatch_) {
+      cssPatch_ = ["", (css) => {
+        return css.replace(<RegExpG> /\b0\.5px|\/\*!DPI\*\/[\w.]+/g, "/*!DPI*/" + cssPatch_![0] + "px");
       }];
     }
-    if (patch[0] === width) { return; }
-    patch[0] = width;
-    this.learnCss_(this, 1);
-  },
-  createStyle_ (text?: string, css?: HTMLStyleElement): HTMLStyleElement {
+    if (cssPatch_[0] === width) { return; }
+    cssPatch_[0] = width;
+    learnCSS(styleIn_, 1)
+}
+
+export const createStyle = (text?: string, css?: HTMLStyleElement): HTMLStyleElement => {
     css = css || VDom.createElement_("style");
     css.type = "text/css";
     text && (css.textContent = text);
     return css;
-  },
-  css_ (innerCSS: string): void { this.styleIn_ = innerCSS; },
-  learnCss_ (src: { styleIn_: string | HTMLStyleElement | null }, force?: 1): void {
-    if (!this.styleIn_ || force) {
-      const srcStyleIn = (src as typeof VCui).styleIn_,
+}
+
+export let setUICSS = (innerCSS: string): void => { styleIn_ = innerCSS }
+
+export const learnCSS = (srcStyleIn: typeof styleIn_, force?: 1): void => {
+    if (!styleIn_ || force) {
+      const
       css = srcStyleIn && (typeof srcStyleIn === "string" ? srcStyleIn : srcStyleIn.textContent);
       if (css) {
-        this.css_(css);
-        force || VApi.post_({H: kFgReq.learnCSS});
+        setUICSS(css)
+        force || post_({H: kFgReq.learnCSS});
       }
     }
-  },
-  checkDocSelectable_ (): void {
-    let sout: HTMLStyleElement | null | HTMLBodyElement | HTMLFrameSetElement = this.styleOut_
+}
+
+export const checkDocSelectable = (): void => {
+    let sout: HTMLStyleElement | null | HTMLBodyElement | HTMLFrameSetElement = styleSelectable
       , gcs = VDom.getComputedStyle_, st: CSSStyleDeclaration
       , mayTrue = !sout || !sout.parentNode;
     if (mayTrue && (sout = document.body)) {
@@ -181,16 +188,11 @@ var VCui = {
             Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinUnprefixedUserSelect
             || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinUnprefixedUserSelect
             ? st.userSelect || st.webkitUserSelect : st.userSelect) !== "none";
-  },
-  toggleSelectStyle_ (enable: BOOL): void {
-    let a = VCui, sout = a.styleOut_;
-    if (enable ? VDom.docSelectable_ : !sout || !sout.parentNode) { return; }
-    sout || (a.styleOut_ = sout = a.createStyle_(a.findCss_.s));
-    enable ? a.box_!.appendChild(sout) : sout.remove();
-  },
-  getSelected_ (notExpectCount?: 1): [Selection, ShadowRoot | null] {
+}
+
+export const getSelected = (notExpectCount?: 1): [Selection, ShadowRoot | null] => {
     let d = document, el: Node | null, sel: Selection | null;
-    if (el = VCui.activeEl_) {
+    if (el = currentScrolling) {
       if (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
           || !(Build.BTypes & ~BrowserType.Firefox)
           || el.getRootNode) {
@@ -238,13 +240,14 @@ var VCui = {
       }
     }
     return [sel, sr];
-  },
+}
+
   /**
    * return HTMLElement if there's only Firefox
    * @UNSAFE_RETURNED
    */
-  GetSelectionParent_unsafe_ (selected?: string): Element | null {
-    let sel = VCui.getSelected_()[0], range = sel.rangeCount ? sel.getRangeAt(0) : null
+export const getSelectionParent_unsafe = (selected?: string): Element | null => {
+    let sel = getSelected()[0], range = sel.rangeCount ? sel.getRangeAt(0) : null
       , par: Node | null = range && range.commonAncestorContainer, p0 = par;
     while (par && (par as NodeToElement).tagName == null) {
       par = Build.BTypes & ~BrowserType.Firefox ? VDom.GetParent_unsafe_(par, PNType.DirectNode)
@@ -260,30 +263,36 @@ var VCui = {
       }
     }
     return par !== VDom.docEl_unsafe_() ? par as Element | null : null;
-  },
-  getSelectionText_ (notTrim?: 1): string {
+}
+
+export const getSelectionText = (notTrim?: 1): string => {
     let sel = VDom.getSelection_(), s = "" + sel, el: Element | null, rect: ClientRect;
-    if (s && !VApi.lock_() && (el = VCui.activeEl_) && VDom.getEditableType_<0>(el) === EditableType.TextBox
+    if (s && !insert_Lock_()
+        && (el = currentScrolling) && VDom.getEditableType_<0>(el) === EditableType.TextBox
         && (rect = VDom.getSelectionBoundingBox_(sel), !rect.width || !rect.height)) {
       s = "";
     }
     return notTrim ? s : s.trim();
-  },
-  removeSelection_: function (root?: VUIRoot & Pick<DocumentOrShadowRoot, "getSelection">, justTest?: 1): boolean {
+}
+
+export const removeSelection = function (root?: VUIRoot & Pick<DocumentOrShadowRoot, "getSelection">, justTest?: 1
+    ): boolean {
     const sel = (root && root.getSelection ? root : window).getSelection!();
     if (!sel || sel.type !== "Range" || !sel.anchorNode) {
       return false;
     }
     justTest || sel.collapseToStart();
     return true;
-  } as (root?: VUIRoot, justTest?: 1) => boolean,
-  resetSelectionToDocStart_ (sel?: Selection): void {
+} as (root?: VUIRoot, justTest?: 1) => boolean
+
+export const resetSelectionToDocStart = (sel?: Selection): void => {
     (sel || VDom.getSelection_()).removeAllRanges();
-  },
-  click_ (element: SafeElementForMouse
+}
+
+export const click_ = (element: SafeElementForMouse
       , rect?: Rect | null, addFocus?: boolean | BOOL, modifiers?: MyMouseControlKeys | null
       , specialAction?: kClickAction, button?: AcceptableClickButtons
-      , /** default: false */ touchMode?: null | false | /** false */ 0 | true | "auto"): void | 1 {
+      , /** default: false */ touchMode?: null | false | /** false */ 0 | true | "auto"): void | 1 => {
     if (!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && VOther === BrowserType.Edge) {
       if ((element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
         return;
@@ -315,7 +324,7 @@ var VCui = {
     a.mouse_(element, "mousedown", center, modifiers, null, button);
     if (!isInDom(element)) { return; }
     // Note: here we can check doc.activeEl only when @click is used on the current focused document
-    if (addFocus && element !== VApi.lock_() && element !== a.activeEl_unsafe_() &&
+    if (addFocus && element !== insert_Lock_() && element !== a.activeEl_unsafe_() &&
         !(element as Partial<HTMLInputElement>).disabled) {
       element.focus && element.focus();
       if (!isInDom(element)) { return; }
@@ -350,8 +359,8 @@ var VCui = {
           ? ActionType.OnlyDispatch
           : Build.BTypes & BrowserType.Firefox
             && specialAction & (kClickAction.plainMayOpenManually | kClickAction.openInNewWindow)
-            && (VHints.unwrap_(element as HTMLAnchorElement).onclick
-              || a.clickable_.has(element))
+            && (unwrap_ff(element as HTMLAnchorElement).onclick
+              || clickable_.has(element))
           ? ActionType.DispatchAndMayOpenTab : ActionType.OpenTabButNotDispatch;
     }
     if ((result > ActionType.OpenTabButNotDispatch - 1 || a.mouse_(element, "click", center, modifiers) && result)
@@ -360,7 +369,7 @@ var VCui = {
       if (specialAction === kClickAction.forceToDblclick) {
         if (!(element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
           // use old rect
-          VCui.click_(element, rect, 0, modifiers, kClickAction.none, kClickButton.primaryAndTwice);
+          click_(element, rect, 0, modifiers, kClickAction.none, kClickButton.primaryAndTwice)
           if (a.getVisibleClientRect_(element)) {
             a.mouse_(element, "dblclick", center, modifiers, null, kClickButton.primaryAndTwice);
           }
@@ -377,7 +386,7 @@ var VCui = {
           ? ReuseType.newWindow
           : modifiers && modifiers.shiftKey_ || specialAction! < kClickAction.newTabFromMode
             ? ReuseType.newFg : ReuseType.newBg;
-      VApi.post_({
+      post_({
         H: kFgReq.openUrl,
         u: (element as HTMLAnchorElement).href,
         f: !0,
@@ -386,21 +395,23 @@ var VCui = {
       });
       return 1;
     }
-  },
-  simulateSelect_ (element: LockableElement, rect?: Rect | null, flash?: boolean
-      , action?: SelectActions, suppressRepeated?: boolean): void {
+}
+
+export const select_ = (element: LockableElement, rect?: Rect | null, show_flash?: boolean
+      , action?: SelectActions, suppressRepeated?: boolean): void => {
     const y = scrollY;
-    this.click_(element, rect, 1);
+    click_(element, rect, 1)
     VDom.view_(element, y);
     // re-compute rect of element, in case that an input is resized when focused
-    flash && this.flash_(element);
-    if (element !== VApi.lock_()) { return; }
+    show_flash && flash_(element)
+    if (element !== insert_Lock_()) { return; }
     // then `element` is always safe
-    this._moveSel_need_safe(element, action);
+    moveSel_need_safe(element, action)
     if (suppressRepeated === true) { VKey.suppressTail_(0); }
-  },
+}
+
   /** @NEED_SAFE_ELEMENTS element is LockableElement */
-  _moveSel_need_safe (element: LockableElement, action: SelectActions | undefined): void {
+const moveSel_need_safe = (element: LockableElement, action: SelectActions | undefined): void => {
     const elTag = element.localName, type = elTag === "textarea" ? EditableType.TextBox
         : elTag === "input" ? EditableType.input_
         : element.isContentEditable ? EditableType.rich_
@@ -420,7 +431,7 @@ var VCui = {
       if (type === EditableType.rich_) {
         const range = document.createRange();
         range.selectNodeContents(element);
-        VCui.resetSelectionToDocStart_(sel);
+        resetSelectionToDocStart(sel)
         sel.addRange(range);
       } else {
         let len = (element as TextElement).value.length
@@ -442,8 +453,9 @@ var VCui = {
         sel.collapseToStart();
       }
     } catch {}
-  },
-  getRect_ (this: void, clickEl: Element, refer?: HTMLElementUsingMap | null): Rect | null {
+}
+
+export const getRect = (clickEl: Element, refer?: HTMLElementUsingMap | null): Rect | null => {
     const a = VDom;
     a.getZoom_(clickEl);
     a.prepareCrop_();
@@ -457,40 +469,40 @@ var VCui = {
     rect2 = rect && !a.isContaining_(bcr, rect) ? rect
       : a.cropRectToVisible_(bcr.l, bcr.t, bcr.r, bcr.b) ? bcr : null;
     return rect2 && VDom.getCroppedRect_(clickEl, rect2);
-  },
-  lastFlashEl_: null as SafeHTMLElement | null,
-  flash_: function (this: {}, el: Element | null, rect?: Rect | null, lifeTime?: number, classNames?: string
+}
+
+export const flash_ = function (el: Element | null, rect?: Rect | null, lifeTime?: number, classNames?: string
       ): (() => void) | void {
-    const a = this as typeof VCui;
-    rect || (rect = a.getRect_(el!));
+    rect || (rect = getRect(el!))
     if (!rect) { return; }
     const flashEl = VDom.createElement_("div"), nfs = !VDom.fullscreenEl_unsafe_();
     flashEl.className = "R Flash" + (classNames || "") + (VDom.setBoundary_(flashEl.style, rect, nfs) ? " AbsF" : "");
     Build.BTypes & ~BrowserType.Firefox &&
     VDom.bZoom_ !== 1 && nfs && (flashEl.style.zoom = "" + VDom.bZoom_);
-    a.add_(flashEl);
-    a.lastFlashEl_ = flashEl;
+    addUIElement(flashEl)
+    lastFlashEl = flashEl
     if (!Build.NDEBUG) {
-      lifeTime = lifeTime === -1 ? - 1 : Math.max(lifeTime || 0, (VCui as DomUIEx).flashTime! | 0);
+      lifeTime = lifeTime === -1 ? - 1 : Math.max(lifeTime || 0, flashTime! | 0);
     }
-    const remove = function (): void {
-      a.lastFlashEl_ === flashEl && (a.lastFlashEl_ = null);
+    const remove = (): void => {
+      lastFlashEl === flashEl && (lastFlashEl = null)
       flashEl.remove();
     };
     lifeTime === -1 || VKey.timeout_(remove, lifeTime || GlobalConsts.DefaultRectFlashTime);
     return remove;
-  } as {
+} as {
     (el: null, rect: Rect, lifeTime?: number, classNames?: string): () => void;
     (el: Element, rect?: null, lifeTime?: number, classNames?: string): (() => void) | void;
-  },
-  _toExit: [0, 0] as Array<((this: void) => void) | 0>,
+}
+
   /** key: 0 := vomnibar; 1 := help dialog */
-  setupExitOnClick_ (key: number, callback: ((this: void) => void) | 0): void {
-    const arr = this._toExit, diff = arr[key] !== callback;
+export const setupExitOnClick = (key: number, callback: ((this: void) => void) | 0): void => {
+    const arr = _toExit, diff = arr[key] !== callback;
     arr[key] = callback;
-    diff && VKey.SetupEventListener_(0, "click", this.DoExitOnClick_, !(arr[0] || arr[1]));
-  },
-  DoExitOnClick_ (event?: Event): void {
+    diff && setupEventListener(0, "click", doExitOnClick, !(arr[0] || arr[1]));
+}
+
+export const doExitOnClick = (event?: Event): void => {
     if (event) {
       if (// simulated events generated by page code
           (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
@@ -498,24 +510,106 @@ var VCui = {
           // simulated events generated by browser code
           || !(event as MouseEvent).detail && !(event as MouseEvent).clientY
           // Vimium C has been disabled
-          || !VCui.box_!.parentNode
+          || !box_!.parentNode
           // the click target is in Vimium C's UI
           || ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
               && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
               && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-              ? event.target === VCui.box_
-              : !(event.target instanceof Element) || VCui.root_.contains(event.target))
+              ? event.target === box_
+              : !(event.target instanceof Element) || root_.contains(event.target))
           // Vimium C's UI has a selection with type=Range
-          || VCui.removeSelection_(VCui.root_, 1)
+          || removeSelection(root_, 1)
           ) {
         return;
       }
     }
-    for (const i of VCui._toExit) { i && i(); }
-    VCui._toExit[1] = 0;
-    VCui.setupExitOnClick_(0, 0);
+  for (const i of _toExit) { i && i() }
+  _toExit[1] = 0
+  setupExitOnClick(0, 0)
+}
+
+/** must be called only if having known anotherWindow is "in a same origin" */
+export let getWndVApi_ff: ((anotherWindow: Window) => VApiTy | null | void) | undefined
+export const setGetWndVApi = (newGetWndVApi: typeof getWndVApi_ff): void => { getWndVApi_ff = newGetWndVApi }
+
+/**
+ * Return a valid `ContentWindowCore`
+ * only if is a child which in fact has a same origin with its parent frame (ignore `document.domain`).
+ *
+ * So even if it returns a valid object, `parent.***` may still be blocked
+ */
+export let getParentVApi = Build.BTypes & BrowserType.Firefox ? (): VApiTy | null | void => {
+  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement
+      ? !VDom.frameElement_() : !frameElement) {
+    // (in Firefox) not use the cached version of frameElement - for less exceptions in the below code
+    return;
   }
-};
-if (!Build.NDEBUG) {
-  (VCui as DomUIEx).flashTime = 0;
+  // Note: the functionality below should keep the same even if the cached version is used - for easier debugging
+  const core = getWndVApi_ff!(parent as Window);
+  if ((!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox) && core) {
+    /** the case of injector is handled in {@link ../content/injected_end.ts} */
+    getParentVApi = () => core;
+  }
+  return core;
+} : () => (parent as Window).VApi
+
+export const setParentVApiGetter = (getter: () => VApiTy | null | void): void => { getParentVApi = getter }
+
+export const evalIfOK = (url: Pick<BgReq[kBgReq.eval], "u"> | string): boolean => {
+  typeof url === "string" ? 0 : url = url.u
+  if (!VDom.jsRe_.test(url)) {
+    return false;
+  }
+  url = url.slice(11).trim();
+  if ((<RegExpOne> /^void\s*\( ?0 ?\)\s*;?$|^;?$/).test(url)) { /* empty */ }
+  else if (!(Build.BTypes & ~BrowserType.Firefox)
+      || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
+      ? VDom.allowScripts_ === 2 || VDom.allowScripts_ &&
+        (VDom.allowScripts_ = VDom.runJS_("document.currentScript.dataset.vimium=1", 1)!.dataset.vimium ? 2 : 0)
+      : VDom.allowScripts_) {
+    VKey.timeout_(VDom.runJS_.bind(VDom, tryDecodeURL(url, decodeURIComponent)), 0);
+  } else {
+    hudTip(kTip.failToEvalJS);
+  }
+  return true;
+}
+
+export const checkHidden = (cmd?: FgCmdAcrossFrames, count?: number, options?: OptionsWithForce): BOOL => {
+  if (innerHeight < 3 || innerWidth < 3) { return 1; }
+  // here should not use the cache frameElement, because `getComputedStyle(frameElement).***` might break
+  const curFrameElement_ = !isTop && (Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
+          || !(Build.BTypes & ~BrowserType.Firefox) ? frameElement : VDom.frameElement_()),
+  el = !isTop && (curFrameElement_ || VDom.docEl_unsafe_());
+  if (!el) { return 0; }
+  let box = VDom.getBoundingClientRect_(el),
+  parEvents: ReturnType<typeof getParentVApi> | undefined,
+  result: boolean | BOOL = !box.height && !box.width || !VDom.isStyleVisible_(el);
+  if (cmd) {
+    // if in a forced cross-origin env (by setting doc.domain),
+    // then par.self.innerHeight works, but this behavior is undocumented,
+    // so here only use `parApi.innerHeight_()` in case
+    if ((Build.BTypes & BrowserType.Firefox ? (parEvents = getParentVApi()) : curFrameElement_)
+        && (result || box.bottom <= 0
+            || (Build.BTypes & BrowserType.Firefox && parEvents !== parent
+                  ? box.top > parEvents!.innerHeight_ff_!()
+                  : box.top > (parent as Window).innerHeight))) {
+      Build.BTypes & BrowserType.Firefox || (parEvents = getParentVApi());
+      if (parEvents
+          && !parEvents.setupKeydownEvents_(keydownEvents_)) {
+        parEvents.focusAndRun_(cmd, count!, options!, 1);
+        result = 1;
+      }
+    }
+    if (result === true) { // if there's a same-origin parent, use it instead of top
+      // here not suppress current cmd, in case of malformed pages;
+      // the worst result is doing something in a hidden frame,
+      //   which is tolerable, since only few commands do check hidden)
+      options!.$forced ? (result = 0) : post_({
+        H: kFgReq.gotoMainFrame, f: 1,
+        c: cmd,
+        n: count!, a: options!
+      });
+    }
+  }
+  return +result as BOOL;
 }

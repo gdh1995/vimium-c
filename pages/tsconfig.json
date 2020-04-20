@@ -1,0 +1,8 @@
+{
+  "include": [
+    "loader.ts",
+    "options*.ts",
+    "show.ts"
+  ],
+  "extends": "../scripts/base.tsconfig.json"
+}

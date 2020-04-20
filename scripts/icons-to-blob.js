@@ -25,6 +25,18 @@ try {
   var lib = require("./dependencies");
 } catch (ex) { lib = null; }
 var destRoot = +(process.env["BUILD_NDEBUG"] || 0) > 0 ? "dist/" : process.env["LOCAL_DIST"] || "";
+if (!destRoot) {
+  var cwd = process.cwd().split(require("path").sep).slice(-1)[0];
+  if ("background content front lib pages".split(" ").includes(cwd)) {
+    for (const line of allIcons) {
+      for (let key in line) {
+        if (Object.prototype.hasOwnProperty.call(line, key)) {
+          line[key] = ".." + line[key];
+        }
+      }
+    }
+  }
+}
 
 /**
  * Convert a single image

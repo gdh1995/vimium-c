@@ -6,6 +6,7 @@
  *    argv: string[];
  *    env: {[key: string]: string | undefined};
  *    chdir (cwd: string): void;
+ *    cwd (): string;
  *    exit (err?: number): void;
  * } } ProcessType
  * @typedef { {

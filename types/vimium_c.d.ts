@@ -156,23 +156,30 @@ declare namespace VisualModeNS {
   interface SafeKeyMap extends KeyMap, SafeObject {
     [key: string]: VisualAction | SafeDict<VisualAction> | undefined;
   }
+  const enum kG {
+      character = 0, line = 1, lineBoundary = 2, paragraph = 3, sentence = 4, word = 6, documentBoundary = 7,
+  }
+  const enum kVimG {
+      vimWord = 5,
+      _mask = -1,
+  }
 }
 declare const enum VisualAction {
   MinNotNoop = 0, Noop = MinNotNoop - 1,
 
   MinWrapSelectionModify = MinNotNoop,
-  char = VisualModeNS.G.character << 1, line = VisualModeNS.G.line << 1,
-  lineBoundary = VisualModeNS.G.lineBoundary << 1, paragraph = VisualModeNS.G.paragraph << 1,
-  sentence = VisualModeNS.G.sentence << 1, vimWord = VisualModeNS.VimG.vimWord << 1,
-  word = VisualModeNS.G.word << 1, documentBoundary = VisualModeNS.G.documentBoundary << 1,
+  char = VisualModeNS.kG.character << 1, line = VisualModeNS.kG.line << 1,
+  lineBoundary = VisualModeNS.kG.lineBoundary << 1, paragraph = VisualModeNS.kG.paragraph << 1,
+  sentence = VisualModeNS.kG.sentence << 1, vimWord = VisualModeNS.kVimG.vimWord << 1,
+  word = VisualModeNS.kG.word << 1, documentBoundary = VisualModeNS.kG.documentBoundary << 1,
   dec = VisualModeNS.kDir.left, inc = VisualModeNS.kDir.right,
 
   MinNotWrapSelectionModify = 20,
   Reverse = MinNotWrapSelectionModify,
 
   MaxNotLexical = MinNotWrapSelectionModify,
-  LexicalSentence = MaxNotLexical + VisualModeNS.G.sentence,
-  LexicalWord = MaxNotLexical + VisualModeNS.G.word,
+  LexicalSentence = MaxNotLexical + VisualModeNS.kG.sentence,
+  LexicalWord = MaxNotLexical + VisualModeNS.kG.word,
 
   MaxNotYank = 30, Yank, YankLine, YankWithoutExit, YankAndOpen, YankAndNewTab,
 
@@ -426,6 +433,11 @@ declare namespace VomnibarNS {
   }
 }
 
+interface ElementSet {
+  add (value: Element): object | void | number;
+  has (value: Element): boolean
+}
+
 declare const enum InjectorTask {
   reload = 1,
   recheckLiving = 2,
@@ -447,6 +459,7 @@ interface VimiumInjectorTy {
   $p?: [
     <K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void
     , () => string
+    , (newClickable: ElementSet) => void
   ] | null;
   reload (req?: boolean | InjectorTask.reload): void;
   destroy: ((this: void, silent?: boolean) => void) | null;
@@ -460,7 +473,7 @@ declare const enum GlobalConsts {
   VomnibarFakeTabId = -3,
   MaxImpossibleTabId = -4,
   WndIdNone = -1,
-  MinHintCharSetSize = 4, // {@link ../_locales/*/messages.json#hintCharsTooFew */}
+  MinHintCharSetSize = 4,
   MaxCountToHint = 1e6,
   MaxLengthOfShownText = 35, // include the length of ": "
   MaxLengthOfHintText = 252, // [512 bytes - (sizeof(uchar*) = 8)] / sizeof(uchar) = 252

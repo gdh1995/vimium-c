@@ -9,7 +9,8 @@
   },
   "dependencies": {
     "pngjs": "^3.4.0",
-    "typescript": "^3.9.0-dev.20200409"
+    "rollup": "^2.6.1",
+    "typescript": "^3.8.3"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^2.19.2",
@@ -25,8 +26,7 @@
     "gulp-print": "*",
     "gulp-rename": "*",
     "gulp-some": "*",
-    "gulp-sourcemaps": "*",
-    "gulp-typescript": "*",
+    "gulp-typescript": "^5.0.1",
     "gulp-uglify": ">=3.0.2",
     "seedrandom": ">=3.0.1",
     "terser": "^4.6.3",

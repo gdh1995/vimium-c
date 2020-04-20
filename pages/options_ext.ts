@@ -166,7 +166,7 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
         plat ? pTrans_("filePlatform", [pTrans_(plat) || plat[0].toUpperCase() + plat.slice(1)])
           : pTrans_("commonPlatform"),
         time ? pTrans_("atTime", [formatDate_(time)]) : pTrans_("before")]))) {
-    window.VHud && VHud.tip_(kTip.cancelImport, 1000);
+    window.VHud && hudTip(kTip.cancelImport, 1000);
     return;
   }
   const setProto_old_cr = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf
@@ -317,7 +317,7 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
     node.click();
     $("#showCommands").click();
   }
-  if (window.VHud) { VHud.tip_(kTip.importOK, 1000); }
+  if (window.VHud) { hudTip(kTip.importOK, 1000); }
 }
 
 function importSettings_(time: number | string | Date, data: string, is_recommended?: boolean): void {

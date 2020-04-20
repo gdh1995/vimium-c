@@ -1,0 +1,8 @@
+{
+  "include": [
+    "*.ts",
+    "../lib/*.ts"
+  ],
+  "exclude": [ "../lib/injector.ts" ],
+  "extends": "../scripts/base.tsconfig.json"
+}

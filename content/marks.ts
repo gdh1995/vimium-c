@@ -1,116 +1,125 @@
-// eslint-disable-next-line no-var
-var VMarks = {
-  onKeyChar_: null as never as (event: HandlerNS.Event, keyChar: string) => void,
-  prefix_: true,
-  swap_: true,
-  mcount_: 0,
-  activateM_ (this: void, count: number, options: CmdOptions[kFgCmd.marks]): void {
-    const a = VMarks;
+import { VTr } from "../lib/utils.js"
+import { post_ } from "../lib/port.js"
+import { hudHide, hudShow, hudTip } from "./hud.js"
+
+let onKeyChar: ((event: HandlerNS.Event, keyChar: string) => void) | null = null
+let prefix = true
+let swap = true
+let mcount = 0
+// [0..8]
+let previous: MarksNS.FgMark[] = []
+
+export const activate = (count: number, options: CmdOptions[kFgCmd.marks]): void => {
     const isGo = options.mode !== "create";
-    a.onKeyChar_ = isGo ? a._goto : a._create;
-    a.mcount_ = count < 0 || count > 9 ? 0 : count - 1;
-    a.prefix_ = options.prefix !== false;
-    a.swap_ = !!options.swap;
-    VKey.removeHandler_(a);
-    VKey.pushHandler_(a.onKeydownM_, a);
-    return VHud.show_(isGo ? kTip.nowGotoMark : kTip.nowCreateMark);
-  },
-  onKeydownM_ (event: HandlerNS.Event): HandlerResult {
+    onKeyChar = isGo ? goto : create
+    mcount = count < 0 || count > 9 ? 0 : count - 1
+    prefix = options.prefix !== false
+    swap = !!options.swap
+    VKey.removeHandler_(activate)
+    VKey.pushHandler_(onKeydownM, activate)
+    hudShow(isGo ? kTip.nowGotoMark : kTip.nowCreateMark);
+}
+
+const onKeydownM = (event: HandlerNS.Event): HandlerResult => {
     if (event.i === kKeyCode.ime) { return HandlerResult.Nothing; }
     let key = VKey.key_(event, kModeId.Marks), notEsc = !VKey.isEscape_(key);
     if (notEsc && key.length !== 1) {
       return HandlerResult.Suppress;
     }
-    VKey.removeHandler_(this);
-    notEsc ? this.onKeyChar_(event, key) : VHud.hide_();
-    this.prefix_ = this.swap_ = true;
-    this.onKeyChar_ = null as never;
+    VKey.removeHandler_(activate)
+    notEsc ? onKeyChar!(event, key) : hudHide()
+    prefix = swap = true
+    onKeyChar = null
     return HandlerResult.Prevent;
-  },
-  getLocationKey_ (keyChar: string): string {
+}
+
+const getLocationKey = (keyChar: string): string => {
     return `vimiumMark|${location.href.split("#", 1)[0]}|${keyChar}`;
-  },
-  previous_: [] as MarksNS.FgMark[], // [0..8]
-  setPreviousPosition_ (idx?: number): void {
-    this.previous_[idx! | 0] = [ scrollX, scrollY, location.hash ];
-  },
-  _create (event: HandlerNS.Event, keyChar: string): void {
+}
+
+export const setPreviousMarkPosition = (idx?: number): void => {
+  previous[idx! | 0] = [ scrollX, scrollY, location.hash ]
+}
+
+const create = (event: HandlerNS.Event, keyChar: string): void => {
     if (keyChar === "`" || keyChar === "'") {
-      this.setPreviousPosition_(this.mcount_);
-      return VHud.tip_(kTip.didCreateLastMark, 1000);
-    } else if (event.e.shiftKey !== this.swap_) {
+      setPreviousMarkPosition(mcount)
+      hudTip(kTip.didCreateLastMark, 1000)
+    } else if (event.e.shiftKey !== swap) {
       if (top === window) {
-        return this.createMark_(keyChar);
+        createMark({n: keyChar})
       } else {
-        VApi.post_({H: kFgReq.marks, a: kMarkAction.create, n: keyChar});
-        return VHud.hide_();
+        post_({H: kFgReq.marks, a: kMarkAction.create, n: keyChar})
+        hudHide()
       }
     } else {
-      return this.createMark_(keyChar, "local");
+      createMark({n: keyChar}, "local")
     }
-  },
-  _goto (event: HandlerNS.Event, keyChar: string): void {
-    const a = this;
+}
+
+const goto = (event: HandlerNS.Event, keyChar: string): void => {
     if (keyChar === "`" || keyChar === "'") {
-      const count = a.mcount_, pos = a.previous_[count];
-      a.setPreviousPosition_(pos ? 0 : count);
+      const count = mcount, pos = previous[count]
+      setPreviousMarkPosition(pos ? 0 : count)
       if (pos) {
-        a.ScrollTo_(pos);
+        scrollToMark(pos)
       }
-      return VHud.tip_(kTip.didLocalMarkTask, 1000,
-          [VTr(pos ? kTip.didJumpTo : kTip.didCreate), count ? count + 1 : VTr(kTip.lastMark)]);
+      return hudTip(kTip.didLocalMarkTask, 1000,
+          [VTr(pos ? kTip.didJumpTo : kTip.didCreate), count ? count + 1 : VTr(kTip.lastMark)])
     }
     const req: Extract<Req.fg<kFgReq.marks>, { a: kMarkAction.goto }> = {
       H: kFgReq.marks, a: kMarkAction.goto,
-      p: a.prefix_,
+      p: prefix,
       n: keyChar
-    };
-    if (event.e.shiftKey !== a.swap_) {
-      VHud.hide_();
+    }
+    if (event.e.shiftKey !== swap) {
+      hudHide()
     } else {
       try {
-        let pos = null, key = a.getLocationKey_(keyChar), storage = localStorage, markString = storage.getItem(key);
+        let pos = null, key = getLocationKey(keyChar), storage = localStorage, markString = storage.getItem(key)
         if (markString && (pos = JSON.parse(markString)) && typeof pos === "object") {
-          const { scrollX, scrollY, hash } = VKey.safer_(pos);
+          const { scrollX, scrollY, hash } = VKey.safer_(pos)
           if (scrollX >= 0 && scrollY >= 0) {
             (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).o = {
               x: scrollX | 0, y: scrollY | 0, h: "" + (hash || "")
-            };
-            storage.removeItem(key);
+            }
+            storage.removeItem(key)
           }
         }
       } catch {}
       (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).l = true;
       (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).u = location.href;
     }
-    VApi.post_(req);
-  },
-  ScrollTo_ (this: void, scroll: Readonly<MarksNS.FgMark>) {
+    post_(req);
+}
+
+export const scrollToMark = (scroll: Readonly<MarksNS.FgMark>): void => {
     if (scroll[1] === 0 && scroll[2] && scroll[0] === 0) {
       location.hash = scroll[2];
     } else {
       scrollTo(scroll[0], scroll[1]);
     }
-  },
-  createMark_ (markName: string, local?: "local"): void {
-    VApi.post_<kFgReq.marks>({
+}
+
+export const createMark = (req: BgReq[kBgReq.createMark], local?: "local"): void => {
+    post_<kFgReq.marks>({
       H: kFgReq.marks,
       a: kMarkAction.create,
       l: !!local,
-      n: markName,
+      n: req.n,
       u: location.href,
       s: [scrollX | 0, scrollY | 0]
-    });
-    VHud.tip_(kTip.didNormalMarkTask, 1000,
-        [ VTr(kTip.didCreate), VTr(local || "global"), markName ]);
-  },
-  GoTo_ (this: void, _0: number, { n: a, s: scroll, k: typeKey, l: local }: CmdOptions[kFgCmd.goToMarks]): void {
-    a && VMarks.setPreviousPosition_();
-    VMarks.ScrollTo_(scroll);
-    local || VApi.focusAndRun_();
+    })
+    hudTip(kTip.didNormalMarkTask, 1000,
+        [ VTr(kTip.didCreate), VTr(local || "global"), req.n ])
+}
+
+export const gotoMark = (_0: number, { n: a, s: scroll, k: typeKey, l: local }: CmdOptions[kFgCmd.goToMarks]): void => {
+    a && setPreviousMarkPosition()
+    scrollToMark(scroll)
+    local || VApi.focusAndRun_()
     if (a) {
-      VHud.tip_(kTip.didNormalMarkTask, local ? 1000 : 2000,
+      hudTip(kTip.didNormalMarkTask, local ? 1000 : 2000,
           [ VTr(kTip.didJumpTo), VTr(typeKey), a ]);
     }
-  }
-};
+}

@@ -1,9 +1,14 @@
+import { clickable_, setupEventListener, VOther } from "../lib/utils.js"
+import { safeDestroy } from "../lib/port.js";
+import { allLinkHints, curKeyStatus, checkLast } from "./link_hints.js"
+import { grabBackFocus } from "./mode_insert.js";
+
 declare function exportFunction(this: void, func: (...args: any[]) => any, targetScope: object, options?: {
   defineAs: string;
   allowCrossOriginArguments?: boolean;
 }): void;
 
-if (VDom && VimiumInjector === undefined) {
+export default (): void => {
 !(Build.BTypes & BrowserType.Firefox)
 || Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox
 ?
@@ -51,7 +56,7 @@ if (VDom && VimiumInjector === undefined) {
 
   const kVOnClick1 = InnerConsts.kVOnClick
     , kHookRand = (InnerConsts.kHook + BuildStr.RandomClick) as InnerConsts.kHook
-    , setupEventListener = VKey.SetupEventListener_, stopEvent = VKey.Stop_
+    , stopEvent = VKey.Stop_
     , appInfo = Build.BTypes & BrowserType.Chrome
         && (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
             || Build.MinCVer < BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
@@ -127,7 +132,7 @@ if (VDom && VimiumInjector === undefined) {
     if (detail) {
       resolve(0, detail[0]); resolve(1, detail[1]);
     } else if (/* safer */ target && (isSafe && !rawDetail || secret + "" + target.tagName === rawDetail)) {
-      VDom.clickable_.add(target);
+      clickable_.add(target);
     } else {
       if (!Build.NDEBUG && !isSafe && target && secret + "" + target.tagName !== rawDetail) {
         console.error("extend click: unexpected: detail =", rawDetail, target);
@@ -146,8 +151,7 @@ if (VDom && VimiumInjector === undefined) {
     }
     if (isFirstResolve & fromAttrs) {
       isFirstResolve ^= fromAttrs;
-      const a = VHints;
-      a.hints_ && !a.keyStatus_.keySequence_ && !a.keyStatus_.textSequence_ && VKey.timeout_(a.CheckLast_, 34);
+      allLinkHints && !curKeyStatus.keySequence_ && !curKeyStatus.textSequence_ && VKey.timeout_(checkLast, 34);
     }
   }
   function resolve(isBox: BOOL, nodeIndexList: number[]): void {
@@ -155,7 +159,7 @@ if (VDom && VimiumInjector === undefined) {
     const list = (isBox ? box as Element : Doc).getElementsByTagName("*");
     for (const index of nodeIndexList) {
       let el = list[index];
-      el && VDom.clickable_.add(el);
+      el && clickable_.add(el);
     }
   }
   function dispatchCmd(cmd: SecondLevelContentCmds): void {
@@ -589,7 +593,7 @@ _listen(kOnDomReady, doInit, !0);
       + " not work because %o is sandboxed.",
     location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"));
   if (Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage && breakTotally) {
-    VApi.destroy_(1);
+    safeDestroy(1);
     return;
   }
   setTimeout = setInterval = function (func: (info?: TimerType.fake) => void, timeout: number): number {
@@ -606,7 +610,7 @@ _listen(kOnDomReady, doInit, !0);
           ? rAF_old_cr! : requestAnimationFrame)(cb)
       ;
   } as any;
-})(VDom.readyState_ > "l")
+})(grabBackFocus as boolean)
 
 // #else: on Firefox
 
@@ -625,10 +629,10 @@ _listen(kOnDomReady, doInit, !0);
     if ((type === "click" || type === "mousedown" || type === "dblclick") && alive
         && listener && !(a instanceof HTMLAnchorElement) && a instanceof Element) {
       if (!Build.NDEBUG) {
-        VDom.clickable_.has(a) || resolved++;
+        clickable_.has(a) || resolved++;
         timer = timer || VKey.timeout_(resolve, GlobalConsts.ExtendClick_DelayToStartIteration);
       }
-      VDom.clickable_.add(a);
+      clickable_.add(a);
     }
   },
   listen = newListen.call.bind<(this: (this: EventTarget,
@@ -649,16 +653,13 @@ _listen(kOnDomReady, doInit, !0);
 
   let alive = true, timer = TimerID.None, resolved = 0;
 
-  if (VDom.readyState_ > "l") {
+  if (grabBackFocus) {
     if (typeof _listen === "function") {
       exportFunction(newListen, Cls!, { defineAs: newListen.name });
     }
     VDom.OnDocLoaded_((): void => {
       VKey.timeout_(function (): void {
-        const a = VHints;
-        if (a) {
-          a.hints_ && !a.keyStatus_.keySequence_ && !a.keyStatus_.textSequence_ && VKey.timeout_(a.CheckLast_, 34);
-        }
+        allLinkHints && !curKeyStatus.keySequence_ && !curKeyStatus.textSequence_ && VKey.timeout_(checkLast, 34);
       }, GlobalConsts.ExtendClick_DelayToFindAll);
     }, 1);
   }

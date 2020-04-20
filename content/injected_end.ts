@@ -1,10 +1,6 @@
-[VDom, VKey, VCui, VHints, VSc, VOmni, VFind, VVisual, VMarks,
-  VHud, VApi
-  ].forEach(Object.seal);
+[VDom, VKey].forEach(Object.seal);
 VDom.allowScripts_ = 0;
 VDom.isHTML_ = () => document instanceof HTMLDocument;
-
-VHints.unwrap_ = (e: object): any => e;
 
 VApi.execute_ = function (cmd): void {
   const injector = VimiumInjector;
@@ -21,13 +17,14 @@ VApi.execute_ = function (cmd): void {
   const OnOther: BrowserType = !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
         || !(Build.BTypes & ~BrowserType.Edge)
       ? Build.BTypes as number
-      : VOther,
+      : Build.BTypes & BrowserType.Edge && !!(window as {} as {StyleMedia: unknown}).StyleMedia ? BrowserType.Edge
+      : Build.BTypes & BrowserType.Firefox && browser ? BrowserType.Firefox
+      : BrowserType.Chrome,
   transArgsRe = <RegExpSearchable<0>> /\$\d/g;
   if (Build.BTypes & BrowserType.Firefox) {
     if (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) {
       VDom.frameElement_ = () => frameElement;
     }
-    VDom.parentCore_ff_ = () => VDom.frameElement_() && parent as Window;
   }
   let i18nMessages: FgRes[kFgReq.i18n]["m"] = null,
   i18nCallback: ((res: FgRes[kFgReq.i18n]) => void) | null = res => {
@@ -38,7 +35,9 @@ VApi.execute_ = function (cmd): void {
     i18nCallback = null;
   };
   VApi.send_(kFgReq.i18n, {}, i18nCallback);
-  VTr = (tid, args): string => {
+  /** @todo: fix it */
+  // @ts-ignore
+  const VTr = (tid: any, args: any): string => {
     if (typeof tid === "string") {
       return tid;
     }
@@ -52,7 +51,7 @@ VApi.execute_ = function (cmd): void {
       && (parent as Window & {VimiumInjector?: typeof VimiumInjector}).VimiumInjector,
   // share the set of all clickable, if .dataset.vimiumHooks is not "false"
   clickable = injector.clickable = parentInjector && parentInjector.clickable || injector.clickable;
-  clickable && (VDom.clickable_ = clickable);
+  clickable && (injector.$p![2](clickable));
 
   injector.checkIfEnabled = (function (this: null
       , func: <K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void): void {

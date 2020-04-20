@@ -187,6 +187,8 @@ declare const enum SelType {
 }
 
 declare namespace HintsNS {
+  interface ContentOptions extends Options, SafeObject {}
+
   interface MarkerElement extends HTMLSpanElement {
     readonly firstChild: HTMLSpanElement | Text | null;
     readonly childNodes: NodeListOf<HTMLSpanElement | Text>;
@@ -213,6 +215,13 @@ declare namespace HintsNS {
   }
   interface FilteredHintItem extends HintItem {
     h: HintText;
+  }
+
+  interface Filter<T> {
+    (this: void, hints: T[], element: SafeHTMLElement): void
+  }
+
+  interface BaseHinter {
   }
 }
 
@@ -298,6 +307,11 @@ declare namespace VomnibarNS {
     onmessage (this: void, msg: { data: CReq[keyof CReq] }): void | 1;
   }
   type FgOptionsToFront = CReq[kCReq.activate];
+
+  interface ContentOptions extends GlobalOptions {
+    trailingSlash?: boolean;
+    trailing_slash?: boolean;
+  }
 }
 
 declare type ScrollByY = 0 | 1;
@@ -325,7 +339,7 @@ interface Hint5 extends Hint4 {
 }
 
 declare const enum AdjustType {
-  /** Note(gdh1995): NotAdjust must be used carefully: @see {@link dom_ui.ts#VCui.add_ : VCui.css_} */
+  /** Note(gdh1995): NotAdjust must be used carefully: @see {@link dom_ui.ts#addUIElement : setUICSS} */
   Normal = 0,
   MustAdjust = 1,
   NotAdjust = 2,
@@ -338,50 +352,54 @@ type VUIRoot = ShadowRoot | (HTMLDivElement & { mode?: undefined });
 
 interface MyMouseControlKeys { altKey_: boolean; ctrlKey_: boolean; metaKey_: boolean; shiftKey_: boolean }
 
-interface ComplicatedVPort extends VApiTy {
-  post_<K extends keyof FgReq, T extends FgReq[K]>(this: void, req: T & Req.baseFg<K>): void | 1;
+interface ComplicatedVPort {
+  <K extends keyof FgReq, T extends FgReq[K]>(this: void, req: T & Req.baseFg<K>): void | 1
 }
 interface VApiTy {
-  post_<K extends keyof SettingsNS.FrontUpdateAllowedSettings>(this: void, req: SetSettingReq<K>): void | 1;
-  // eslint-disable-next-line @typescript-eslint/unified-signatures
   post_<K extends keyof FgReq>(this: void, req: FgReq[K] & Req.baseFg<K>): void | 1;
   send_<K extends keyof FgRes>(this: void, cmd: K, args: Req.fgWithRes<K>["a"]
     , callback: (this: void, res: FgRes[K]) => void): void;
-  evalIfOK_ (url: string): boolean;
 
-  lock_(this: void): LockableElement | null;
-  isCmdTriggered_ (this: void): BOOL;
   OnWndFocus_ (this: void): void;
-  checkHidden_ (this: void): BOOL;
-  /** may focus the parent frame before returning */
-  checkHidden_ (this: void, cmd: FgCmdAcrossFrames
-      , count: number, opts: NonNullable<FgReq[kFgReq.gotoMainFrame]["a"]>): BOOL;
   focusAndRun_ (this: void): void;
   focusAndRun_ (this: void, cmd: FgCmdAcrossFrames
       , count: number, options: FgOptions
       , showBorder?: 1): void;
   focusAndRun_ (this: void, cmd: 0, count: never, options: never, showBorder: 1): void;
-  onWndBlur_ (this: void, onWndBlur2: ((this: void) => void) | null): void;
-  setupSuppress_ (this: void, onExit?: (this: void) => void): void;
   /** return has_error */
-  readonly keydownEvents_: {
-    (this: void, srcFrame: Pick<VApiTy, "keydownEvents_"> | KeydownCacheArray): boolean;
+  setupKeydownEvents_: {
+    (this: void, srcCacheArray: KeydownCacheArray): boolean
     (this: void): KeydownCacheArray;
   };
   execute_: ((this: void, cmd: ValidContentCommands) => void) | null;
   destroy_: (this: void, silent?: boolean | BOOL | 9) => void;
+
+  linkActivate_ (count: number, options: HintsNS.ContentOptions): void
+  omniActivate_ (count: number, options: CmdOptions[kFgCmd.vomnibar]): void
+  findBox_ (): HTMLIFrameElement
+  findOnLoad_ (later?: 1): void
+  scroll_: {
+    (di: ScrollByY, amount: number, isTo: 0
+      , factor?: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined, fromMax?: false
+      , options?: CmdOptions[kFgCmd.scroll]): void
+    (di: ScrollByY, amount: number, isTo: 1
+      , factor?: undefined | 0, fromMax?: boolean, options?: CmdOptions[kFgCmd.scroll]): void
+  }
+  scrollTick_ (willContinue: BOOL | 2): void
+  keyIsDown_ (): number
+  $sc (element: SafeElement | null, di: ScrollByY, amount: number): void
+
+  learnCSS_ (srcStyleUI: HTMLStyleElement | string | null, force?: 1): void
+  clickable_ (): ElementSet
+  suppressTailKeys_: {
+    (timeout: 0, callback?: undefined): HandlerNS.RefHandler
+    (timeout: number, callback?: HandlerNS.VoidHandler): HandlerNS.RefHandler
+  }
+  innerHeight_ff_? (): number
+  
+  readonly baseHinter_: HintsNS.BaseHinter
 }
-interface VHUDTy {
-  readonly boxH_: HTMLDivElement | null;
-  readonly text_: string;
-  readonly opacity_: 0 | 0.25 | 0.5 | 0.75 | 1;
-  show_ (tid: kTip | HintMode, args?: Array<string | number>, embed?: boolean): void;
-  /** duration is default to 1500 */
-  tip_ (tid: kTip, duration?: number, args?: Array<string | number>): void;
-  copied_ (text: string, type: string, virtual: 1): string;
-  copied_ (text: string, type?: "url" | ""): void;
-  hide_ (this: void, info?: TimerType): void;
-}
+
 declare var VimiumInjector: VimiumInjectorTy | undefined | null, VApi: VApiTy;
 
 interface VDataTy {
@@ -409,21 +427,10 @@ type ContentCommandsNotSuppress = kContentCmd.AutoFindAllOnClick | kContentCmd.M
 type SecondLevelContentCmds = kContentCmd.AutoFindAllOnClick | kContentCmd.ManuallyFindAllOnClick
     | kContentCmd.Destroy;
 
-interface ContentWindowCore {
-  readonly VDom?: object;
-  readonly VKey?: object;
-  readonly VHints?: object;
-  readonly VSc?: object;
-  readonly VOmni?: object;
-  readonly VFind?: object;
-  readonly VCui?: object;
-  readonly VApi?: VApiTy;
-  readonly VIh?: (this: void) => number;
-}
 
 interface SandboxGetterFunc {
   (comparer: (this: void, rand2: number, testEncrypted: string) => boolean,
-    rand1: number): ContentWindowCore | 0 | null | undefined | void;
+    rand1: number): VApiTy | 0 | null | undefined | void;
 }
 interface SandboxGetterWrapper { _get: SandboxGetterFunc }
 declare var wrappedJSObject: { [key: string]: SandboxGetterWrapper };
@@ -432,8 +439,8 @@ type XrayedObject<T extends object> = T & {
   wrappedJSObject: T;
 };
 
-interface Window extends ContentWindowCore {
-  readonly VOther?: BrowserType;
+interface Window {
+  readonly VApi?: VApiTy;
   wrappedJSObject: typeof wrappedJSObject;
 }
 

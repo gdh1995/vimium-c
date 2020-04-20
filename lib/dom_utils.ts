@@ -1,27 +1,9 @@
 /// <reference path="../content/base.d.ts" />
+
+const VOther = BrowserType.Chrome
+
 type kMouseMoveEvents = "mouseover" | "mouseenter" | "mousemove" | "mouseout" | "mouseleave";
 type kMouseClickEvents = "mousedown" | "mouseup" | "click" | "auxclick" | "dblclick";
-/* eslint-disable no-var, @typescript-eslint/no-unused-vars */
-if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6WeakMapAndWeakSet) {
-  var WeakSet: WeakSetConstructor | undefined;
-  var WeakMap: WeakMapConstructor | undefined;
-}
-if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinES6$ForOf$Map$SetAnd$Symbol) {
-  var Set: SetConstructor | undefined;
-}
-if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$InputDeviceCapabilities) {
-  var InputDeviceCapabilities: InputDeviceCapabilitiesVar | undefined;
-}
-if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback) {
-  // it's not needed to declare it on Edge: only be used in extend_click[Chrome] and injector
-  var requestIdleCallback: RequestIdleCallback | undefined;
-}
-interface VisualViewport { width?: number; height: number; offsetLeft: number; offsetTop: number;
-    pageLeft: number; pageTop: number; scale: number; }
-if (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinEnsured$visualViewport$) {
-  var visualViewport: VisualViewport | undefined;
-}
-declare var VOther: BrowserType;
 
 var VDom = {
 /* eslint-enable no-var, @typescript-eslint/no-unused-vars */
@@ -29,7 +11,6 @@ var VDom = {
   /** data and DOM-shortcut section (sorted by reference numbers) */
 
   cache_: null as never as OnlyEnsureItemsNonNull<SettingsNS.FrontendSettingCache>,
-  clickable_: null as never as { add (value: Element): object | void | number; has (value: Element): boolean },
   readyState_: "" as never as Document["readyState"],
   unsafeFramesetTag_old_cr_: Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
       ? "" as "frameset" | "" : 0 as never as null,
@@ -183,7 +164,7 @@ var VDom = {
     // Both C73 and FF66 still supports the Quirk mode (entered by `document.open()`)
     let d = document, el = d.scrollingElement, docEl = VDom.docEl_unsafe_();
     if (Build.MinCVer < BrowserVer.Min$Document$$ScrollingElement && Build.BTypes & BrowserType.Chrome
-        && el === undefined) {
+        && el === void 0) {
       /**
        * The code about `inQuirksMode` in `Element::scrollTop()` is wrapped by a flag #scrollTopLeftInterop
        * since [2013-11-18] https://github.com/chromium/chromium/commit/25aa0914121f94d2e2efbc4bf907f231afae8b51 ,
@@ -241,28 +222,6 @@ var VDom = {
       return el;
     }
   },
-  /** must be called only if having known anotherWindow is "in a same origin" */
-  getWndCore_ff_: 0 as never as (anotherWindow: Window) => ContentWindowCore | 0 | void,
-  /**
-   * Return a valid `ContentWindowCore`
-   * only if is a child which in fact has a same origin with its parent frame (ignore `document.domain`).
-   *
-   * So even if it returns a valid object, `parent.***` may still be blocked
-   */
-  parentCore_ff_: Build.BTypes & BrowserType.Firefox ? function (): ContentWindowCore | 0 | void | null {
-    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement
-        ? !VDom.frameElement_() : !frameElement) {
-      // (in Firefox) not use the cached version of frameElement - for less exceptions in the below code
-      return;
-    }
-    // Note: the functionality below should keep the same even if the cached version is used - for easier debugging
-    const core = VDom.getWndCore_ff_(parent as Window);
-    if ((!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox) && core) {
-      /** the case of injector is handled in {@link ../content/injected_end.ts} */
-      VDom.parentCore_ff_ = () => core;
-    }
-    return core;
-  } : 0 as never as null,
 
   /** computation section */
 

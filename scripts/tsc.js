@@ -26,11 +26,17 @@ if (cwd && fs.existsSync(cwd) && fs.statSync(cwd).isDirectory()) {
   // @ts-ignore
   return;
 }
-if (!fs.existsSync("tsconfig.json")) {
+if (cwd !== "-p" && !fs.existsSync("tsconfig.json")) {
   // @ts-ignore
   var parent = __dirname.replace(/[\\\/][^\\\/]+[\\\/]?$/, "");
-  if (fs.existsSync(parent + "/tsconfig.json")) {
+  if (fs.existsSync(parent + "/scripts/tsconfig.json")) {
     process.chdir(parent);
+  }
+}
+var root = "./";
+if (!fs.existsSync("package.json")) {
+  if (fs.existsSync("../package.json")) {
+    root = "../";
   }
 }
 
@@ -92,6 +98,7 @@ var real_write = ts.sys.writeFile;
 var cache = Object.create(null);
 
 ts.sys.writeFile = function(path, data, writeBom) {
+  try {
   var isJS = path.slice(-3) === ".js";
   var srcPath = isJS ? path.slice(0, -3) + ".ts" : path;
   var same = fs.existsSync(path);
@@ -109,6 +116,10 @@ ts.sys.writeFile = function(path, data, writeBom) {
     lib.touchFileIfNeeded(path, srcPath);
   } else {
     return real_write(path, data, writeBom);
+  }
+  }catch (ex) {
+    console.log(ex);
+    throw ex;
   }
 };
 
@@ -139,7 +150,7 @@ var getUglifyJS = function() {
 
 function getDefaultUglifyConfig() {
   if (!defaultUglifyConfig) {
-    defaultUglifyConfig = lib.loadUglifyConfig("scripts/uglifyjs.local.json");
+    defaultUglifyConfig = lib.loadUglifyConfig(root + "scripts/uglifyjs.local.json");
   }
   return defaultUglifyConfig;
 }

@@ -1,0 +1,13 @@
+{
+  "include": [
+    "*.ts",
+    "../lib/injector.ts",
+    "../pages/*.ts"
+  ],
+  "exclude": [
+    "../pages/loader.ts",
+    "../pages/options*.ts",
+    "../pages/show.ts"
+  ],
+  "extends": "../scripts/base.tsconfig.json"
+}
