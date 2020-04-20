@@ -36,7 +36,7 @@
       "Object.create", "Object.setPrototypeOf",
       "getAttribute", "hasAttribute", "querySelectorAll",
       "Math.max", "Math.min", "Math.floor", "Math.round", "Math.abs", "Math.random",
-      "VApi.lock_", "lock_", "VKey.safer_", "safer_", "safer",
+      "VApi.lock_", "lock_", "safeObj", "safeObj_",
       "onRuntimeError", "BgUtils_.runtimeError_",
       "trans_", "pTrans_", "sTrans_", "VTr",
       "readyState", "binarySearch_",
@@ -82,8 +82,7 @@
       "requestIdleCallback",
       // # content global names:
       "browser",
-      "VimiumInjector", "VDom", "VKey",
-      "VApi",
+      "VimiumInjector", "VApi",
       // # fixed background global names:
       "OnOther",
       "Commands", "Exclusions", "HelpDialog",

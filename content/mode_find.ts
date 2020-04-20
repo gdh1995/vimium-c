@@ -1,4 +1,8 @@
-import { setupEventListener, VTr, keydownEvents_, isAlive_, suppressCommonEvents, onWndFocus, VOther } from "../lib/utils.js"
+import {
+  setupEventListener, VTr, keydownEvents_, isAlive_, suppressCommonEvents, onWndFocus, VOther, timeout_, safer, fgCache, doc,
+} from "../lib/utils.js"
+import * as VKey from "../lib/keyboard_utils.js"
+import * as VDom from "../lib/dom_utils.js"
 import {
   ui_box, ui_root,
   createStyle, getSelectionText, checkDocSelectable, adjustUI, ensureBorder, addUIElement, getSelected,
@@ -45,7 +49,7 @@ let doesCheckAlive: BOOL = 0
 let isSmall = false
 let postLock: Element | null = null
 
-export { query_ as find_query, hasResults as find_hasResults, box_ as find_box, styleSelectable, styleInHUD }
+export { findCSS, query_ as find_query, hasResults as find_hasResults, box_ as find_box, styleSelectable, styleInHUD }
 export const setFindCSS = (newCSS: FindCSS): void => { findCSS = newCSS }
 
 export const activate = (_0: number, options: CmdOptions[kFgCmd.findMode]): void => {
@@ -83,7 +87,7 @@ export const activate = (_0: number, options: CmdOptions[kFgCmd.findMode]): void
     el = box_ = vDom.createElement_("iframe"), st = outerBox.style
     st.display = "none"; st.width = "0";
     if (Build.BTypes & ~BrowserType.Firefox && vDom.wdZoom_ !== 1) { st.zoom = "" + 1 / vDom.wdZoom_; }
-    outerBox.className = "R HUD UI" + vDom.cache_.d;
+    outerBox.className = "R HUD UI" + fgCache.d;
     outerBox.onmousedown = onMousedown
     el.className = "R Find UI";
     el.onload = function (this: HTMLIFrameElement): void { onLoad(1) }
@@ -132,7 +136,7 @@ export const onLoad = (later?: 1): void => {
     f("blur", onUnexpectedBlur = function (this: Window, event): void {
       const delta = Date.now() - now, wnd1 = this
       if (event && isActive && delta < 500 && delta > -99 && event.target === wnd1) {
-        wnd1.closed || VKey.timeout_((): void => { isActive && doFocus(); }, tick++ * 17)
+        wnd1.closed || timeout_((): void => { isActive && doFocus(); }, tick++ * 17)
       } else {
         setupEventListener(wnd1, "blur", onUnexpectedBlur, 1, 1)
         onUnexpectedBlur = null
@@ -156,7 +160,6 @@ const onLoad2 = (): void => {
     if (!isActive) { return; }
     const wnd: Window = box_.contentWindow, doc = innerDoc_,
     docEl = doc.documentElement as HTMLHtmlElement,
-    vDom = VDom, cache = vDom.cache_,
     body = doc.body as HTMLBodyElement,
     zoom = Build.BTypes & ~BrowserType.Firefox ? wnd.devicePixelRatio : 1,
     list = doc.createDocumentFragment(),
@@ -185,7 +188,7 @@ const onLoad2 = (): void => {
     }
     if (Build.BTypes & BrowserType.Chrome
         && Build.MinCVer < BrowserVer.MinEnsuredInputEventIsNotOnlyInShadowDOMV1
-        && cache.v < BrowserVer.MinEnsuredInputEventIsNotOnlyInShadowDOMV1) {
+        && fgCache.v < BrowserVer.MinEnsuredInputEventIsNotOnlyInShadowDOMV1) {
       // not check MinEnsuredShadowDOMV1 for smaller code
       setupEventListener(el, "input", onInput)
     }
@@ -196,14 +199,14 @@ const onLoad2 = (): void => {
     const box = Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
         && (Build.MinFFVer < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
-            && (Build.BTypes & BrowserType.Chrome || cache.v < FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
-            || cache.o === kOS.linux)
+            && (Build.BTypes & BrowserType.Chrome || fgCache.v < FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
+            || fgCache.o === kOS.linux)
         ? addElement("div") as HTMLDivElement : body,
     root = Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
         && (Build.MinFFVer < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
-            && (Build.BTypes & BrowserType.Chrome || cache.v < FirefoxBrowserVer.MinContentEditableInShadowSupportIME))
-        ? box : vDom.createShadowRoot_(box),
+            && (Build.BTypes & BrowserType.Chrome || fgCache.v < FirefoxBrowserVer.MinContentEditableInShadowSupportIME))
+        ? box : VDom.createShadowRoot_(box),
     inShadow = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
         && (!(Build.BTypes & BrowserType.Firefox)
             || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
@@ -216,7 +219,7 @@ const onLoad2 = (): void => {
                 && Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
         && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
         || inShadow ? addElement("div") : box;
-    root2.className = "r" + cache.d;
+    root2.className = "r" + fgCache.d;
     root2.spellcheck = false;
     root2.appendChild(list);
     if ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
@@ -317,7 +320,7 @@ export const clear = (): void => {
   hasResults = isActive = isSmall = notEmpty = postOnEsc = false
   VKey.removeHandler_(activate)
   outerBox_ && outerBox_.remove()
-  if (box_ === VDom.lastHovered_) { VDom.lastHovered_ = null }
+  if (box_ === VDom.lastHovered_) { /*#__INLINE__*/ VDom.setLastHovered(null) }
   parsedQuery_ = query_ = query0_ = ""
   historyIndex = matchCount = doesCheckAlive = 0;
   styleInHUD = onUnexpectedBlur = outerBox_ =
@@ -362,9 +365,9 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
         ? VKey.isEscape_(key) ? FindNS.Action.ExitAndReFocus : FindNS.Action.DoNothing
       : Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther & BrowserType.Firefox)
-        && VDom.cache_.o === kOS.linux && "cs".includes(key[0])
+        && fgCache.o === kOS.linux && "cs".includes(key[0])
         ? FindNS.Action.CtrlDelete
-      : notEmpty || (n === kKeyCode.deleteKey && VDom.cache_.o || event.repeat) ? FindNS.Action.PassDirectly
+      : notEmpty || (n === kKeyCode.deleteKey && fgCache.o || event.repeat) ? FindNS.Action.PassDirectly
       : FindNS.Action.Exit;
     let h = HandlerResult.Prevent, scroll: number;
     if (!i) {
@@ -444,7 +447,7 @@ export const deactivate = (i: FindNS.Action): void => {
       restoreSelection(true)
     }
     if (visual_mode) {
-      visualActivate(1, VKey.safer_<CmdOptions[kFgCmd.visualMode]>({
+      visualActivate(1, safer<CmdOptions[kFgCmd.visualMode]>({
         m: VisualModeNS.Mode.Visual,
         r: true
       }));
@@ -479,7 +482,7 @@ export const deactivate = (i: FindNS.Action): void => {
 const fixTabNav = !(Build.BTypes & BrowserType.Chrome) // firefox seems to have "focused" it
         || Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions ? 0 as never
       : (el: Element): void => {
-    let oldPos: MarksNS.ScrollInfo | 0 = VDom.cache_.v < BrowserVer.MinScrollIntoViewOptions
+    let oldPos: MarksNS.ScrollInfo | 0 = fgCache.v < BrowserVer.MinScrollIntoViewOptions
           ? [scrollX, scrollY] : 0;
     VDom.scrollIntoView_(el);
     oldPos && scrollToMark(oldPos)
@@ -489,7 +492,7 @@ const fixTabNav = !(Build.BTypes & BrowserType.Chrome) // firefox seems to have 
 const focusFoundLinkIfAny = (): SafeElement | null | void => {
     let cur = Build.BTypes & ~BrowserType.Firefox ? VDom.SafeEl_not_ff_!(getSelectionParent_unsafe())
         : getSelectionParent_unsafe() as SafeElement | null;
-    for (let i = 0, el: Element | null = cur; el && el !== document.body && i++ < 5;
+    for (let i = 0, el: Element | null = cur; el && el !== doc.body && i++ < 5;
         el = VDom.GetParent_unsafe_(el, PNType.RevealSlotAndGotoParent)) {
       if (VDom.htmlTag_(el) === "a") {
         (el as HTMLAnchorElement).focus();
@@ -562,7 +565,7 @@ const onInput = (e?: Event): void => {
       if (!(Build.BTypes & BrowserType.Chrome
           && (!(Build.BTypes & ~BrowserType.Chrome) || VOther & BrowserType.Chrome)
           && (Build.MinCVer >= BrowserVer.Min$compositionend$$isComposing$IsMistakenlyFalse
-              || VDom.cache_.v > BrowserVer.Min$compositionend$$isComposing$IsMistakenlyFalse - 1)
+              || fgCache.v > BrowserVer.Min$compositionend$$isComposing$IsMistakenlyFalse - 1)
           && e.type < "i")) {
         if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
             ? !e.isTrusted : e.isTrusted === false) { return; }
@@ -606,7 +609,7 @@ export const updateQuery = (query: string): void => {
   let isRe = isRegex, ww = wholeWord, wordBoundary = "\\b", escapeAllRe = <RegExpG> /[$()*+.?\[\\\]\^{|}]/g
   if (isQueryRichText_) {
     if (isRe === null && !ww) {
-      isRe = VDom.cache_.r;
+      isRe = fgCache.r;
       const info = 2 * +query.startsWith(wordBoundary) + +query.endsWith(wordBoundary);
       if (info === 3 && !isRe && query.length > 3) {
         query = query.slice(2, -2);
@@ -686,7 +689,7 @@ const getNextQueryFromRegexMatches = (back?: boolean): string => {
 }
 
 export const executeFind = (query?: string | null, options?: FindNS.ExecuteOptions): void => {
-    options = options ? VKey.safer_(options) : Object.create(null) as FindNS.ExecuteOptions;
+    options = options ? safer(options) : Object.create(null) as FindNS.ExecuteOptions;
     let el: LockableElement | null
       , found: boolean, count = (options.n! | 0) || 1, back = count < 0
       , par: Element | null | undefined, timesRegExpNotMatch = 0
@@ -735,7 +738,7 @@ export const executeFind = (query?: string | null, options?: FindNS.ExecuteOptio
       par = par || getSelectionParent_unsafe();
       par && VDom.view_(par);
     }
-    options.noColor || VKey.timeout_(hookSel, 0);
+    options.noColor || timeout_(hookSel, 0);
     (el = insert_Lock_()) && !VDom.isSelected_() && el.blur();
     Build.BTypes & BrowserType.Firefox && focusHUD && doFocus()
     hasResults = found
@@ -789,7 +792,7 @@ export const toggleSelectableStyle = (enable: BOOL): void => {
 }
 
 const getCurrentRange = (): void => {
-    let sel = getSelected()[0], range: Range, doc = document;
+    let sel = getSelected()[0], range: Range;
     if (!sel.rangeCount) {
       range = doc.createRange();
       range.setStart(doc.body || VDom.docEl_unsafe_()!, 0);

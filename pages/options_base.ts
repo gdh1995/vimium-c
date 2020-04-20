@@ -1,4 +1,4 @@
-/// <reference path="../content/base.d.ts" />
+/// <reference path="../lib/base.d.ts" />
 /// <reference path="../background/bg.d.ts" />
 /// <reference path="../background/utils.ts" />
 /// <reference path="../background/settings.ts" />

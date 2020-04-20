@@ -1,4 +1,4 @@
-import { clickable_, VOther } from "../lib/utils.js"
+import { clickable_, VOther, safer, timeout_ } from "../lib/utils.js"
 import {
   flash_, click_,
 } from "./dom_ui.js"
@@ -6,16 +6,17 @@ import {
   traverse, kSafeAllSelector, ngEnabled, unwrap_ff,
 } from "./link_hints.js"
 import { contentCommands_ } from "./commands.js"
+import * as VDom from "../lib/dom_utils.js"
 
 const followLink = (linkElement: SafeHTMLElement): boolean => {
   let url = linkElement.localName === "link" && (linkElement as HTMLLinkElement).href;
   if (url) {
-    contentCommands_[kFgCmd.reload](1, VKey.safer_({ url }));
+    contentCommands_[kFgCmd.reload](1, safer({ url }));
   } else {
     VDom.view_(linkElement);
     // note: prepareCrop is called during UI.flash_
     flash_(linkElement);
-    VKey.timeout_(function () { click_(linkElement); }, 100);
+    timeout_(function () { click_(linkElement); }, 100);
   }
   return true;
 }

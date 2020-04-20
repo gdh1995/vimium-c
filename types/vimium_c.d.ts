@@ -582,7 +582,7 @@ declare const enum KeyStat {
   ExceptShift = altKey | ctrlKey | metaKey, ExceptPrimaryModifier = altKey | shiftKey,
 }
 declare const enum kChar {
-  INVALID = " ",
+  INVALID = " ", EMPTY = "",
   space = "space", pageup = "pageup", pagedown = "pagedown",
   end = "end", home = "home", left = "left", up = "up", right = "right", down = "down",
   insert = "insert", delete = "delete",

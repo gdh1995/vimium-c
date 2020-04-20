@@ -1,4 +1,7 @@
-import { browserVer, doc, esc, EscF, fgCache, isTop, safer, setEsc, VOther, VTr } from "../lib/utils.js"
+import {
+  browserVer, doc, esc, EscF, fgCache, isTop, safeObj, setEsc, VOther, VTr, safer, timeout_,
+} from "../lib/utils.js"
+import * as VKey from "../lib/keyboard_utils.js"
 import { post_ } from "../lib/port.js"
 import { addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, select_ } from "./dom_ui.js"
 import { hudHide, hudShow, hudTip, hud_text } from "./hud.js"
@@ -18,6 +21,7 @@ import { activate as visualActivate, deactivate as visualDeactivate } from "./mo
 import { activate as scActivate, setCachedScrollable, setCurrentScrolling } from "./scroller.js"
 import { activate as omniActivate } from "./vomnibar.js"
 import { findAndFollowLink, findAndFollowRel } from "./pagination.js"
+import * as VDom from "../lib/dom_utils.js"
 
 interface SpecialCommands {
   [kFgCmd.reset] (this: void, isAlive: BOOL | CmdOptions[kFgCmd.reset] & SafeObject): void;
@@ -58,7 +62,7 @@ export const contentCommands_: {
   /* kFgCmd.reset: */ (isAlive): void => {
     /*#__INLINE__*/ setCurrentScrolling(null);
     /*#__INLINE__*/ setCachedScrollable(null);
-    VDom.lastHovered_ = null
+    /*#__INLINE__*/ VDom.setLastHovered(null)
     resetInsert()
     linkClear(isAlive ? 2 : 0); visualDeactivate();
     findInit || findDeactivate(FindNS.Action.ExitNoAnyFocus);
@@ -67,7 +71,7 @@ export const contentCommands_: {
 
   /* kFgCmd.toggle: */ function (_0: number, options: CmdOptions[kFgCmd.toggle]): void {
     const key = options.k, backupKey = "_" + key as typeof key,
-    cache = VKey.safer_(fgCache), cur = cache[key];
+    cache = safer(fgCache), cur = cache[key];
     let val = options.v, u: undefined;
     if (val === null && (cur === !!cur)) {
       val = !cur;
@@ -90,11 +94,11 @@ export const contentCommands_: {
   /* kFgCmd.passNextKey: */ function (count0: number, options: CmdOptions[kFgCmd.passNextKey]): void {
     let keyCount = 0, count = Math.abs(count0);
     if (!!options.normal === (count0 > 0)) {
-      esc(HandlerResult.ExitPassMode); // singleton
+      esc!(HandlerResult.ExitPassMode); // singleton
       if (!passKeys) {
         return hudTip(kTip.noPassKeys);
       }
-      const oldEsc = esc, oldPassKeys = passKeys;
+      const oldEsc = esc!, oldPassKeys = passKeys;
       /*#__INLINE__*/ setTempPassKeys(null)
       /*#__INLINE__*/ setEsc(function (i: HandlerResult): HandlerResult {
         if (i === HandlerResult.Prevent && 0 >= --count || i === HandlerResult.ExitPassMode) {
@@ -110,11 +114,11 @@ export const contentCommands_: {
         }
         return i;
       } as EscF);
-      esc(HandlerResult.Nothing);
+      esc!(HandlerResult.Nothing);
       return;
     }
     exitPassMode && exitPassMode();
-    const keys = safer<BOOL>(null);
+    const keys = safeObj<BOOL>(null);
     VKey.pushHandler_(function (event) {
       keyCount += +!keys[event.i];
       keys[event.i] = 1;
@@ -144,7 +148,7 @@ export const contentCommands_: {
     }
   },
   /* kFgCmd.reload: */ function (_0: number, options: CmdOptions[kFgCmd.reload]): void {
-    VKey.timeout_(function () {
+    timeout_(function () {
       options.url ? (location.href = options.url) : location.reload(!!options.hard);
     }, 17);
   },
@@ -290,7 +294,7 @@ export const contentCommands_: {
     }, insert_inputHint!);
   },
   /* kFgCmd.editText: */ function (count: number, options: CmdOptions[kFgCmd.editText]) {
-    (raw_insert_lock || options.dom) && VKey.timeout_((): void => {
+    (raw_insert_lock || options.dom) && timeout_((): void => {
       let commands = options.run.split(","), sel: Selection | undefined;
       while (0 < count--) {
         for (let i = 0; i < commands.length; i += 3) {

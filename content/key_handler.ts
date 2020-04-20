@@ -1,6 +1,8 @@
 import {
-  doc, esc, fgCache, isEnabled_, isTop, keydownEvents_, safer, setEsc, VOther,
+  doc, esc, fgCache, isEnabled_, isTop, keydownEvents_, safeObj, setEsc, VOther,
 } from "../lib/utils.js"
+import * as VKey from "../lib/keyboard_utils.js"
+import * as VDom from "../lib/dom_utils.js"
 import { post_ } from "../lib/port.js"
 import { removeSelection } from "./dom_ui.js"
 import {
@@ -37,7 +39,7 @@ export const setTempPassKeys = (newPassKeys: SafeEnum | null | ""): void => { pa
 export const setTempCurrentKeyStatus = (): void => { currentKeys = "", nextKeys = keyFSM }
 export const setOnKeyUp2 = (newOnKeyUp: typeof onKeyup2): void => { onKeyup2 = newOnKeyUp }
 
-export const getMappedKey = (eventWrapper: HandlerNS.Event, mode: kModeId): string => {
+VKey.setGetMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
   const char = eventWrapper.c !== kChar.INVALID ? eventWrapper.c : VKey.char_(eventWrapper), event = eventWrapper.e;
   let key: string = char, mapped: string | undefined;
   if (char) {
@@ -56,32 +58,32 @@ export const getMappedKey = (eventWrapper: HandlerNS.Event, mode: kModeId): stri
     }
   }
   return key;
-}
+})
 
 export const checkKey = (event: HandlerNS.Event, key: string
     ): HandlerResult.Nothing | HandlerResult.Prevent | HandlerResult.PlainEsc | HandlerResult.AdvancedEsc => {
   // when checkKey, Vimium C must be enabled, so passKeys won't be `""`
-  const key0 = passKeys && key ? mappedKeys ? getMappedKey(event, kModeId.NO_MAP_KEY) : key : "";
+  const key0 = passKeys && key ? mappedKeys ? VKey.key_(event, kModeId.NO_MAP_KEY) : key : "";
   if (!key || key0 && !currentKeys && (key0 in <SafeEnum> passKeys) !== isPassKeysReverted) {
-    return key ? esc(HandlerResult.Nothing) : HandlerResult.Nothing;
+    return key ? esc!(HandlerResult.Nothing) : HandlerResult.Nothing;
   }
   let j: ReadonlyChildKeyFSM | ValidKeyAction | undefined;
   if (VKey.isEscape_(key)) {
     Build.BTypes & BrowserType.Chrome && mappedKeys && checkPotentialAccessKey(event);
-    return nextKeys ? (esc(HandlerResult.ExitPassMode), HandlerResult.Prevent)
+    return nextKeys ? (esc!(HandlerResult.ExitPassMode), HandlerResult.Prevent)
         : VKey.isEscape_(key);
   }
   if (!nextKeys || (j = nextKeys[key]) == null) {
     j = keyFSM[key];
     if (j == null || nextKeys && key0 && (key0 in <SafeEnum> passKeys) !== isPassKeysReverted) {
-      return esc(HandlerResult.Nothing);
+      return esc!(HandlerResult.Nothing);
     }
     if (j !== KeyAction.cmd) { currentKeys = ""; }
   }
   currentKeys += key.length > 1 ? `<${key}>` : key;
   if (j === KeyAction.cmd) {
     post_({ H: kFgReq.key, k: currentKeys, l: event.i });
-    esc(HandlerResult.Prevent);
+    esc!(HandlerResult.Prevent);
     isCmdTriggered = 1;
   } else {
     nextKeys = j !== KeyAction.count ? j : keyFSM;
@@ -90,7 +92,7 @@ export const checkKey = (event: HandlerNS.Event, key: string
 }
 
 export const setPassKeys = (newPassKeys: BgReq[kBgReq.reset]["p"]): void => {
-  passKeys = newPassKeys && safer<1>(null);
+  passKeys = newPassKeys && safeObj<1>(null);
   if (newPassKeys) {
     isPassKeysReverted = newPassKeys[0] === "^" && newPassKeys.length > 2;
     for (const ch of (isPassKeysReverted ? newPassKeys.slice(2) : newPassKeys).split(" ")) {
@@ -174,7 +176,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
   else if (isInInsert()) {
     const g = insert_global, isF_num = key > kKeyCode.maxNotFn && key < kKeyCode.minNotFn,
     keyStr = mappedKeys || g || isF_num || event.ctrlKey
-        || key === kKeyCode.esc ? getMappedKey(eventWrapper, kModeId.Insert) : "";
+        || key === kKeyCode.esc ? VKey.key_(eventWrapper, kModeId.Insert) : "";
     if (g ? !g.k ? VKey.isEscape_(keyStr) : keyStr === g.k
         : (!mappedKeys ? isF_num
           : (tempStr = VKey.keybody_(keyStr)) > kChar.maxNotF_num && tempStr < kChar.minNotF_num)
@@ -197,7 +199,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
           | 1 << kKeyCode.altKey | 1 << kKeyCode.ctrlKey | 1 << kKeyCode.shiftKey
           ) >> key) & 1) {
       action = checkKey(eventWrapper,
-            getMappedKey(eventWrapper, currentKeys ? kModeId.Next : kModeId.Normal));
+            VKey.key_(eventWrapper, currentKeys ? kModeId.Next : kModeId.Normal));
       if (action > HandlerResult.MaxNotEsc) {
         action = action > HandlerResult.PlainEsc ? /*#__NOINLINE__*/ onEscDown(event, key)
             : HandlerResult.Nothing;

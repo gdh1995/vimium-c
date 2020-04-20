@@ -33,7 +33,9 @@ interface ElementScrollInfo {
   height_: number; /* cropped visible */
 }
 
-import { isAlive_, setupEventListener } from "../lib/utils.js"
+import { isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc } from "../lib/utils.js"
+import * as VKey from "../lib/keyboard_utils.js"
+import * as VDom from "../lib/dom_utils.js"
 import { getParentVApi, resetSelectionToDocStart, checkHidden } from "./dom_ui.js"
 import { isCmdTriggered } from "./key_handler.js"
 import { tryNestedFrame } from "./link_hints.js"
@@ -78,7 +80,7 @@ let performAnimate = (e: SafeElement | null, d: ScrollByY, a: number): void => {
     if (amount < ScrollerNS.Consts.AmountLimitToScrollAndWaitRepeatedKeys
         && continuous && totalDelta >= amount && totalElapsed < minDelay - 2) {
       running = 0;
-      timer = VKey.timeout_(startAnimate, minDelay - totalElapsed)
+      timer = timeout_(startAnimate, minDelay - totalElapsed)
       return;
     }
     if (continuous) {
@@ -99,12 +101,12 @@ let performAnimate = (e: SafeElement | null, d: ScrollByY, a: number): void => {
       totalDelta += delta;
       next(animate);
     } else {
-      if ((!(Build.BTypes & BrowserType.Chrome) || VDom.cache_.v >= BrowserVer.MinMaybeScrollEndAndOverScrollEvents)
-          && "onscrollend" in (Build.BTypes & ~BrowserType.Firefox ? Image.prototype : document)) {
+      if ((!(Build.BTypes & BrowserType.Chrome) || fgCache.v >= BrowserVer.MinMaybeScrollEndAndOverScrollEvents)
+          && "onscrollend" in (Build.BTypes & ~BrowserType.Firefox ? Image.prototype : doc)) {
         // according to tests on C75, no "scrollend" events if scrolling behavior is "instant";
         // the doc on Google Docs requires no "overscroll" events for programmatic scrolling
         const notEl: boolean = !element || element === VDom.scrollingEl_();
-        (notEl ? document : element!).dispatchEvent(
+        (notEl ? doc : element!).dispatchEvent(
             new Event("scrollend", {cancelable: false, bubbles: notEl}));
       }
       checkCurrent(element)
@@ -131,9 +133,9 @@ let performAnimate = (e: SafeElement | null, d: ScrollByY, a: number): void => {
     totalDelta = totalElapsed = 0.0;
     timestamp = 0;
     if (timer) {
-      VKey.clearTimeout_(timer);
+      clearTimeout_(timer);
     }
-    const keyboard = VDom.cache_.k;
+    const keyboard = fgCache.k;
     maxInterval = math.round(keyboard[1] / ScrollerNS.Consts.FrameIntervalMs) + ScrollerNS.Consts.MaxSkippedF
     minDelay = (((keyboard[0] + max(keyboard[1], ScrollerNS.Consts.DelayMinDelta)
           + ScrollerNS.Consts.DelayTolerance) / ScrollerNS.Consts.DelayUnitMs) | 0)
@@ -179,7 +181,7 @@ export const $sc = (element: SafeElement | null, di: ScrollByY, amount: number):
         amount /= 2;
       }
       checkCurrent(element)
-    } else if (VDom.cache_.s
+    } else if (fgCache.s
         && (Build.MinCVer > BrowserVer.NoRAFOrRICOnSandboxedPage || !(Build.BTypes & BrowserType.Chrome)
             || VDom.allowRAF_)) {
       amount && performAnimate(element, di, amount)
@@ -237,7 +239,7 @@ export const executeScroll = function (di: ScrollByY, amount0: number, isTo: BOO
               : VDom.frameElement_() && getParentVApi())
       && !doesScroll(element, di, amount || (fromMax ? 1 : 0))) {
         core.scroll_(di, amount0, isTo as 0, factor, fromMax as false);
-        if (core.keyIsDown_()) {
+        if (core.misc_().key_is_down_) {
           scrollTick(1)
           joined = core
         }
@@ -271,7 +273,7 @@ let overrideScrollRestoration = function (kScrollRestoration, kManual, kUnload):
     if (old && old !== kManual) {
       h[kScrollRestoration] = kManual;
       overrideScrollRestoration = 0 as never
-      VDom.OnDocLoaded_(() => { VKey.timeout_(reset, 1); }, 1);
+      VDom.OnDocLoaded_(() => { timeout_(reset, 1); }, 1);
       listen(0, kUnload, reset);
     }
 } as ((key: "scrollRestoration", kManual: "manual", kUnload: "unload") => void) | 0
@@ -310,7 +312,7 @@ export const onScrolls = (event: KeyboardEventToPrevent): boolean => {
 }
 
 const adjustAmount = (di: ScrollByY, amount: number, element: SafeElement | null): number => {
-    amount *= VDom.cache_.t;
+    amount *= fgCache.t;
     return !di && amount && element && element.scrollWidth <= element.scrollHeight * (element.scrollWidth < 720 ? 2 : 1)
       ? amount * 0.6 : amount;
 }

@@ -1,4 +1,5 @@
-import { VTr } from "../lib/utils.js"
+import { VTr, safer } from "../lib/utils.js"
+import * as VKey from "../lib/keyboard_utils.js"
 import { post_ } from "../lib/port.js"
 import { hudHide, hudShow, hudTip } from "./hud.js"
 
@@ -78,7 +79,7 @@ const goto = (event: HandlerNS.Event, keyChar: string): void => {
       try {
         let pos = null, key = getLocationKey(keyChar), storage = localStorage, markString = storage.getItem(key)
         if (markString && (pos = JSON.parse(markString)) && typeof pos === "object") {
-          const { scrollX, scrollY, hash } = VKey.safer_(pos)
+          const { scrollX, scrollY, hash } = safer(pos)
           if (scrollX >= 0 && scrollY >= 0) {
             (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).o = {
               x: scrollX | 0, y: scrollY | 0, h: "" + (hash || "")

@@ -1,4 +1,6 @@
-import { setupEventListener, clickable_, isTop, keydownEvents_, VOther } from "../lib/utils.js"
+import { setupEventListener, clickable_, isTop, keydownEvents_, VOther, timeout_, fgCache, doc } from "../lib/utils.js"
+import * as VKey from "../lib/keyboard_utils.js"
+import * as VDom from "../lib/dom_utils.js"
 import { currentScrolling } from "./scroller.js"
 import { styleSelectable } from "./mode_find.js"
 import { unwrap_ff, tryDecodeURL } from "./link_hints.js"
@@ -16,7 +18,7 @@ let flashTime = 0;
 
 export { box_ as ui_box, root_ as ui_root, styleIn_ as style_ui, lastFlashEl }
 
-export let addUIElement = (<T extends HTMLElement> (element: T, adjust_type?: AdjustType): void => {
+export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustType): void {
     box_ = VDom.createElement_("div");
     let root: VUIRoot = root_ = VDom.createShadowRoot_(box_),
     setupListen = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
@@ -40,12 +42,12 @@ export let addUIElement = (<T extends HTMLElement> (element: T, adjust_type?: Ad
         VKey.Stop_(e); t.onload && t.onload(e);
       }
     }, 0, 1); // should use a listener in active mode: https://www.chromestatus.com/features/5745543795965952
-    addUIElement = (<T2 extends HTMLElement> (element2: T2, adjust2?: AdjustType, before?: Element | null | true): void => {
+    addUIElement = (element2: HTMLElement, adjust2?: AdjustType, before?: Element | null | true): void => {
       const noPar = box_!.parentNode
       adjust2 !== AdjustType.NotAdjust && !noPar && adjustUI()
       root_.insertBefore(element2, before === true ? root_.firstChild : before || null)
       adjust2 !== AdjustType.NotAdjust && noPar && adjustUI()
-    });
+    };
     setUICSS = ((innerCSS): void => {
       if (!((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
@@ -80,13 +82,13 @@ export let addUIElement = (<T extends HTMLElement> (element: T, adjust_type?: Ad
       }
       post_({ H: kFgReq.css });
     }
-}) as <T extends HTMLElement> (element: T, adjust?: AdjustType, before?: Element | null | true) => void
+} as (element: HTMLElement, adjust?: AdjustType, before?: Element | null | true) => void
 
 export const addElementList = function <T extends boolean> (
       els: readonly HintsNS.BaseHintItem[], offset: ViewOffset, dialogContainer?: T
       ): (T extends true ? HTMLDialogElement : HTMLDivElement) & SafeElement {
     const parent = VDom.createElement_(Build.BTypes & BrowserType.Chrome && dialogContainer ? "dialog" : "div");
-    parent.className = "R HM" + (Build.BTypes & BrowserType.Chrome && dialogContainer ? " DHM" : "") + VDom.cache_.d;
+    parent.className = "R HM" + (Build.BTypes & BrowserType.Chrome && dialogContainer ? " DHM" : "") + fgCache.d;
     for (const el of els) {
       parent.appendChild(el.m);
     }
@@ -131,7 +133,7 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
         setupEventListener(0, "moz" + name, adjustUI, removeEL)
       }
       if (!(Build.BTypes & BrowserType.Chrome)
-          || VDom.cache_.v >= BrowserVer.MinMaybe$Document$$fullscreenElement) {
+          || fgCache.v >= BrowserVer.MinMaybe$Document$$fullscreenElement) {
         setupEventListener(0, name, adjustUI, removeEL)
       }
     }
@@ -142,7 +144,7 @@ export const ensureBorder = (zoom?: number): void => {
     if (!cssPatch_ && zoom >= 1) { return; }
     let width = ("" + (
         Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
-        && VDom.cache_.v < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
+        && fgCache.v < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
         ? 1.01 : 0.51) / zoom).slice(0, 5);
     if (!cssPatch_) {
       cssPatch_ = ["", (css) => {
@@ -178,20 +180,20 @@ export const checkDocSelectable = (): void => {
     let sout: HTMLStyleElement | null | HTMLBodyElement | HTMLFrameSetElement = styleSelectable
       , gcs = VDom.getComputedStyle_, st: CSSStyleDeclaration
       , mayTrue = !sout || !sout.parentNode;
-    if (mayTrue && (sout = document.body)) {
+    if (mayTrue && (sout = doc.body)) {
       st = gcs(sout);
       mayTrue = (Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinUnprefixedUserSelect
             || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinUnprefixedUserSelect
             ? st.userSelect || st.webkitUserSelect : st.userSelect) !== "none";
     }
-    VDom.docSelectable_ = mayTrue && (st = gcs(VDom.docEl_unsafe_()!),
+    VDom.markDocSelectable(mayTrue && (st = gcs(VDom.docEl_unsafe_()!),
             Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinUnprefixedUserSelect
             || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinUnprefixedUserSelect
-            ? st.userSelect || st.webkitUserSelect : st.userSelect) !== "none";
+            ? st.userSelect || st.webkitUserSelect : st.userSelect) !== "none")
 }
 
 export const getSelected = (notExpectCount?: 1): [Selection, ShadowRoot | null] => {
-    let d = document, el: Node | null, sel: Selection | null;
+    let el: Node | null, sel: Selection | null;
     if (el = currentScrolling) {
       if (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
           || !(Build.BTypes & ~BrowserType.Firefox)
@@ -200,7 +202,7 @@ export const getSelected = (notExpectCount?: 1): [Selection, ShadowRoot | null] 
       } else {
         for (let pn: Node | null; pn = VDom.GetParent_unsafe_(el, PNType.DirectNode); el = pn) { /* empty */ }
       }
-      if (el !== d && el.nodeType === kNode.DOCUMENT_FRAGMENT_NODE
+      if (el !== doc && el.nodeType === kNode.DOCUMENT_FRAGMENT_NODE
           && typeof (el as ShadowRoot).getSelection === "function") {
         sel = (el as ShadowRoot).getSelection!();
         if (sel && (notExpectCount || sel.rangeCount)) {
@@ -215,7 +217,7 @@ export const getSelected = (notExpectCount?: 1): [Selection, ShadowRoot | null] 
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             && !(Build.BTypes & ~BrowserType.ChromeOrFirefox) )) {
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-          && VDom.cache_.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+          && fgCache.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
           ? Image.prototype.webkitCreateShadowRoot : typeof ShadowRoot != "function") {
         return [sel, null];
       }
@@ -298,21 +300,21 @@ export const click_ = (element: SafeElementForMouse
         return;
       }
     }
-    const a = VDom, isInDom = a.IsInDOM_, center = a.center_(rect || (rect = a.getVisibleClientRect_(element)));
+    const center = VDom.center_(rect || (rect = VDom.getVisibleClientRect_(element)));
     if (Build.BTypes & BrowserType.Chrome
         && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)
         && (Build.MinCVer >= BrowserVer.MinEnsuredTouchEventConstructor
-            || a.cache_.v >= BrowserVer.MinEnsuredTouchEventConstructor)
-        && (touchMode === !0 || touchMode && a.isInTouchMode_cr_!())) {
-      let id = a.touch_cr_!(element, center);
-      if (isInDom(element)) {
-        a.touch_cr_!(element, center, id);
+            || fgCache.v >= BrowserVer.MinEnsuredTouchEventConstructor)
+        && (touchMode === !0 || touchMode && VDom.isInTouchMode_cr_!())) {
+      let id = VDom.touch_cr_!(element, center);
+      if (VDom.IsInDOM_(element)) {
+        VDom.touch_cr_!(element, center, id);
       }
-      if (!isInDom(element)) { return; }
+      if (!VDom.IsInDOM_(element)) { return; }
     }
-    if (element !== a.lastHovered_) {
-      a.hover_(element, center);
-      if (!a.lastHovered_) { return; }
+    if (element !== VDom.lastHovered_) {
+      VDom.hover_(element, center);
+      if (!VDom.lastHovered_) { return; }
     }
     if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox) {
       // https://bugzilla.mozilla.org/show_bug.cgi?id=329509 says this starts on FF65,
@@ -321,19 +323,19 @@ export const click_ = (element: SafeElementForMouse
         return;
       }
     }
-    a.mouse_(element, "mousedown", center, modifiers, null, button);
-    if (!isInDom(element)) { return; }
+    VDom.mouse_(element, "mousedown", center, modifiers, null, button);
+    if (!VDom.IsInDOM_(element)) { return; }
     // Note: here we can check doc.activeEl only when @click is used on the current focused document
-    if (addFocus && element !== insert_Lock_() && element !== a.activeEl_unsafe_() &&
+    if (addFocus && element !== insert_Lock_() && element !== VDom.activeEl_unsafe_() &&
         !(element as Partial<HTMLInputElement>).disabled) {
       element.focus && element.focus();
-      if (!isInDom(element)) { return; }
+      if (!VDom.IsInDOM_(element)) { return; }
     }
-    a.mouse_(element, "mouseup", center, modifiers, null, button);
-    if (!isInDom(element)) { return; }
+    VDom.mouse_(element, "mouseup", center, modifiers, null, button);
+    if (!VDom.IsInDOM_(element)) { return; }
     if (button === kClickButton.second) {
         // if button is the right, then auxclick can be triggered even if element.disabled
-        a.mouse_(element, "auxclick", center, modifiers, null, button);
+        VDom.mouse_(element, "auxclick", center, modifiers, null, button);
     }
     if (button === kClickButton.second /* is the right button */
         || Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || VOther & BrowserType.Chrome)
@@ -355,7 +357,7 @@ export const click_ = (element: SafeElementForMouse
             || !(url = element.getAttribute("href"))
             || (!(Build.BTypes & BrowserType.Firefox) || specialAction & kClickAction.forceToOpenInNewTab)
                 && url[0] === "#"
-            || a.jsRe_.test(url)
+            || VDom.jsRe_.test(url)
           ? ActionType.OnlyDispatch
           : Build.BTypes & BrowserType.Firefox
             && specialAction & (kClickAction.plainMayOpenManually | kClickAction.openInNewWindow)
@@ -363,15 +365,15 @@ export const click_ = (element: SafeElementForMouse
               || clickable_.has(element))
           ? ActionType.DispatchAndMayOpenTab : ActionType.OpenTabButNotDispatch;
     }
-    if ((result > ActionType.OpenTabButNotDispatch - 1 || a.mouse_(element, "click", center, modifiers) && result)
-        && a.getVisibleClientRect_(element)) {
+    if ((result > ActionType.OpenTabButNotDispatch - 1 || VDom.mouse_(element, "click", center, modifiers) && result)
+        && VDom.getVisibleClientRect_(element)) {
       // require element is still visible
       if (specialAction === kClickAction.forceToDblclick) {
         if (!(element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
           // use old rect
           click_(element, rect, 0, modifiers, kClickAction.none, kClickButton.primaryAndTwice)
-          if (a.getVisibleClientRect_(element)) {
-            a.mouse_(element, "dblclick", center, modifiers, null, kClickButton.primaryAndTwice);
+          if (VDom.getVisibleClientRect_(element)) {
+            VDom.mouse_(element, "dblclick", center, modifiers, null, kClickButton.primaryAndTwice);
           }
         }
         return;
@@ -429,7 +431,7 @@ const moveSel_need_safe = (element: LockableElement, action: SelectActions | und
     const sel = VDom.getSelection_();
     try {
       if (type === EditableType.rich_) {
-        const range = document.createRange();
+        const range = doc.createRange();
         range.selectNodeContents(element);
         resetSelectionToDocStart(sel)
         sel.addRange(range);
@@ -456,18 +458,17 @@ const moveSel_need_safe = (element: LockableElement, action: SelectActions | und
 }
 
 export const getRect = (clickEl: Element, refer?: HTMLElementUsingMap | null): Rect | null => {
-    const a = VDom;
-    a.getZoom_(clickEl);
-    a.prepareCrop_();
+    VDom.getZoom_(clickEl);
+    VDom.prepareCrop_();
     if (refer) {
-      return a.getClientRectsForAreas_(refer, [], [clickEl as HTMLAreaElement]);
+      return VDom.getClientRectsForAreas_(refer, [], [clickEl as HTMLAreaElement]);
     }
-    const rect = Build.BTypes & ~BrowserType.Firefox && a.notSafe_not_ff_!(clickEl) ? null
-        : a.getVisibleClientRect_(clickEl as SafeElement),
-    cr = a.getBoundingClientRect_(clickEl),
-    bcr = a.padClientRect_(cr, 8),
-    rect2 = rect && !a.isContaining_(bcr, rect) ? rect
-      : a.cropRectToVisible_(bcr.l, bcr.t, bcr.r, bcr.b) ? bcr : null;
+    const rect = Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_not_ff_!(clickEl) ? null
+        : VDom.getVisibleClientRect_(clickEl as SafeElement),
+    cr = VDom.getBoundingClientRect_(clickEl),
+    bcr = VDom.padClientRect_(cr, 8),
+    rect2 = rect && !VDom.isContaining_(bcr, rect) ? rect
+      : VDom.cropRectToVisible_(bcr.l, bcr.t, bcr.r, bcr.b) ? bcr : null;
     return rect2 && VDom.getCroppedRect_(clickEl, rect2);
 }
 
@@ -488,7 +489,7 @@ export const flash_ = function (el: Element | null, rect?: Rect | null, lifeTime
       lastFlashEl === flashEl && (lastFlashEl = null)
       flashEl.remove();
     };
-    lifeTime === -1 || VKey.timeout_(remove, lifeTime || GlobalConsts.DefaultRectFlashTime);
+    lifeTime === -1 || timeout_(remove, lifeTime || GlobalConsts.DefaultRectFlashTime);
     return remove;
 } as {
     (el: null, rect: Rect, lifeTime?: number, classNames?: string): () => void;
@@ -565,9 +566,10 @@ export const evalIfOK = (url: Pick<BgReq[kBgReq.eval], "u"> | string): boolean =
   else if (!(Build.BTypes & ~BrowserType.Firefox)
       || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
       ? VDom.allowScripts_ === 2 || VDom.allowScripts_ &&
-        (VDom.allowScripts_ = VDom.runJS_("document.currentScript.dataset.vimium=1", 1)!.dataset.vimium ? 2 : 0)
+        /*#__INLINE__*/ VDom.markAllowScripts(
+            VDom.runJS_("document.currentScript.dataset.vimium=1", 1)!.dataset.vimium ? 2 : 0)
       : VDom.allowScripts_) {
-    VKey.timeout_(VDom.runJS_.bind(VDom, tryDecodeURL(url, decodeURIComponent)), 0);
+    timeout_(VDom.runJS_.bind(VDom, tryDecodeURL(url, decodeURIComponent)), 0);
   } else {
     hudTip(kTip.failToEvalJS);
   }

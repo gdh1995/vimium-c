@@ -1,6 +1,5 @@
-[VDom, VKey].forEach(Object.seal);
-VDom.allowScripts_ = 0;
-VDom.isHTML_ = () => document instanceof HTMLDocument;
+/** @todo: */
+// VDom.isHTML_ = () => document instanceof HTMLDocument;
 
 VApi.execute_ = function (cmd): void {
   const injector = VimiumInjector;
@@ -21,33 +20,47 @@ VApi.execute_ = function (cmd): void {
       : Build.BTypes & BrowserType.Firefox && browser ? BrowserType.Firefox
       : BrowserType.Chrome,
   transArgsRe = <RegExpSearchable<0>> /\$\d/g;
+  let frameElement_ = (): Element | null | void => {
+    let el: typeof frameElement | undefined;
+    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement
+        || Build.BTypes & BrowserType.Edge) {
+      try {
+        if (!(Build.BTypes & BrowserType.Firefox)) { return frameElement; }
+        else { el = frameElement; }
+      } catch {}
+    } else {
+      if (!(Build.BTypes & BrowserType.Firefox)) { return frameElement; }
+      el = frameElement;
+    }
+    if (Build.BTypes & BrowserType.Firefox) {
+      return el;
+    }
+  }
   if (Build.BTypes & BrowserType.Firefox) {
     if (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) {
-      VDom.frameElement_ = () => frameElement;
+      // VDom.frameElement_ = () => frameElement;
     }
   }
   let i18nMessages: FgRes[kFgReq.i18n]["m"] = null,
   i18nCallback: ((res: FgRes[kFgReq.i18n]) => void) | null = res => {
     i18nMessages = res.m;
     if (!i18nMessages && i18nCallback) {
-      VKey.timeout_(() => VApi.send_(kFgReq.i18n, {}, i18nCallback!), 150);
+      setTimeout(() => VApi.send_(kFgReq.i18n, {}, i18nCallback!), 150);
     }
     i18nCallback = null;
   };
   VApi.send_(kFgReq.i18n, {}, i18nCallback);
-  /** @todo: fix it */
-  // @ts-ignore
-  const VTr = (tid: any, args: any): string => {
+  VApi.setTr_!((tid, args): string => {
     if (typeof tid === "string") {
       return tid;
     }
     return !i18nMessages ? args && args.length ? `T${tid}: ${args.join(", ")}` : "T" + tid
         : args ? i18nMessages[tid].replace(transArgsRe, s => <string> args[+s[1] - 1])
         : i18nMessages[tid];
-  };
+  })
   const injector = VimiumInjector!,
   parentInjector = top !== window
-      && VDom.frameElement_()
+      && frameElement_()
       && (parent as Window & {VimiumInjector?: typeof VimiumInjector}).VimiumInjector,
   // share the set of all clickable, if .dataset.vimiumHooks is not "false"
   clickable = injector.clickable = parentInjector && parentInjector.clickable || injector.clickable;
@@ -86,38 +99,34 @@ VApi.execute_ = function (cmd): void {
         || (Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox)) {
       switch (task) {
       case InjectorTask.recheckLiving:
-        livingCheckTimer && VKey.clearTimeout_(livingCheckTimer);
-        livingCheckTimer = VKey.timeout_(onTimeout, GlobalConsts.FirefoxFocusResponseTimeout);
+        livingCheckTimer && clearTimeout(livingCheckTimer);
+        livingCheckTimer = setTimeout(onTimeout, GlobalConsts.FirefoxFocusResponseTimeout);
         return;
       case InjectorTask.reportLiving:
-        VKey.clearTimeout_(livingCheckTimer);
+        clearTimeout(livingCheckTimer);
         return;
       }
     }
     switch (task) {
     case InjectorTask.extInited:
       const injector1 = VimiumInjector!;
-      injector1.cache = VDom.cache_;
+      injector1.cache = VApi.cache2_;
       injector1.callback && injector1.callback(2, "complete");
+      addEventListener("hashchange", injector1.checkIfEnabled);
       return;
     }
   };
   function onTimeout(): void {
     if (Build.BTypes & BrowserType.Firefox) {
       VApi.destroy_(9); // note: here Firefox is just like a (9)
-      VApi.OnWndFocus_();
+      VApi.misc_().on_wnd_focus_()
     }
   }
 
-  injector.cache = VDom.cache_;
+  injector.cache = VApi.cache2_;
   injector.destroy = VApi.destroy_;
   injector.callback && injector.callback(1, "initing");
-  if (VDom.cache_) { // has loaded before this script file runs
+  if (VApi.cache2_) { // has loaded before this script file runs
     injector.$r(InjectorTask.extInited);
   }
 })();
-
-VDom.OnDocLoaded_(function (): void {
-  const injector = VimiumInjector;
-  injector && addEventListener("hashchange", injector.checkIfEnabled);
-});

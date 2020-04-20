@@ -7,8 +7,11 @@ interface NodeWithInfo extends Node {
 }
 
 import {
-  doc, keydownEvents_, safer, fgCache, isTop, rawSetKeydownEvents, setupEventListener, VOther, esc, onWndFocus, isEnabled_, injector,
+  doc, keydownEvents_, safeObj, fgCache, isTop, rawSetKeydownEvents, setupEventListener, VOther,
+  esc, onWndFocus, isEnabled_, injector,
 } from "../lib/utils.js"
+import * as VKey from "../lib/keyboard_utils.js"
+import * as VDom from "../lib/dom_utils.js"
 import { post_, safePost } from "../lib/port.js"
 import { getParentVApi, ui_box } from "./dom_ui.js"
 import { hudHide } from "./hud.js"
@@ -56,7 +59,7 @@ export const insertInit = (): void => {
   notBody = activeEl !== doc.body && (!(Build.BTypes & BrowserType.Firefox)
         || Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox
         || VDom.isHTML_() || activeEl !== VDom.docEl_unsafe_()) && !!activeEl;
-  /*#__INLINE__*/ rawSetKeydownEvents(safer(null))
+  /*#__INLINE__*/ rawSetKeydownEvents(safeObj(null))
   if (fgCache.g && grabBackFocus) {
     let counter = 0, prompt = function (): void {
       counter++ || console.log("Vimium C blocks auto-focusing.");
@@ -135,7 +138,7 @@ export const isInInsert = (): boolean => {
 * * in slatejs.org, there's `[contenteditable=true]` and `{-webkit-user-modify:*plaintext*}` for browser compatibility
 */
   if (el && (el as TypeToAssert<Element, HTMLElement, "isContentEditable">).isContentEditable === true) {
-    esc(HandlerResult.Nothing);
+    esc!(HandlerResult.Nothing);
     lock_ = el as LockableElement;
     return true;
   } else {
@@ -258,7 +261,7 @@ export const onFocus = (event: Event | FocusEvent): void => {
       (grabBackFocus as Exclude<typeof grabBackFocus, boolean>)(event, target);
       return;
     }
-    esc(HandlerResult.Nothing)
+    esc!(HandlerResult.Nothing)
     lock_ = target;
     if (is_last_mutable) {
       // here ignore the rare case of an XMLDocument with a editable node on Firefox, for smaller code
@@ -337,11 +340,11 @@ export const onWndBlur = (): void => {
   scrollTick(0);
   onWndBlur2 && onWndBlur2();
   exitPassMode && exitPassMode();
-  /*#__INLINE__*/ rawSetKeydownEvents(safer(null))
+  /*#__INLINE__*/ rawSetKeydownEvents(safeObj(null))
   /*#__INLINE__*/ resetIsCmdTriggered();
   if (Build.BTypes & BrowserType.Chrome) {
     resetAnyClickHandler();
   }
   injector || (<RegExpOne> /a?/).test("");
-  esc(HandlerResult.ExitPassMode);
+  esc!(HandlerResult.ExitPassMode);
 }

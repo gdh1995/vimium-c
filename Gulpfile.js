@@ -506,7 +506,7 @@ gulp.task("locally", function(done) {
   if (locally) { return done(); }
   locally = true;
   gTypescript = null;
-  compilerOptions = loadValidCompilerOptions("scripts/base.tsconfig.json");
+  compilerOptions = loadValidCompilerOptions("scripts/tsconfig.json");
   createBuildConfigCache();
   var old_has_polyfill = has_polyfill;
   has_polyfill = getBuildItem("MinCVer") < 44 /* MinSafe$String$$StartsWith */;
@@ -1217,6 +1217,9 @@ function createBuildConfigCache() {
   compilerOptions.target = outputES6
     ? !(btypes & BrowserType.Chrome && cver < /* MinEnsuredAsyncFunctions */ 57) ? "es2017"
     : "es6" : "es5";
+  if (getBuildItem("NDEBUG")) {
+    compilerOptions.module = "es6";
+  }
 }
 
 function getNonNullBuildItem(key) {

@@ -1,8 +1,14 @@
 {
+  "compilerOptions": {
+    "incremental": true,
+    "outDir": "..",
+    "rootDir": "..",
+    "tsBuildInfoFile": "../scripts/.ts.content.build",
+  },
   "include": [
     "*.ts",
     "../lib/*.ts"
   ],
   "exclude": [ "../lib/injector.ts" ],
-  "extends": "../scripts/base.tsconfig.json"
+  "extends": "../scripts/tsconfig.json"
 }

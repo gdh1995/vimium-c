@@ -29,10 +29,10 @@ const enum ClickType {
   type HintSources = readonly SafeElement[] | NodeListOf<SafeElement>;
 interface MinimalHUDTy {
   accessText_ (beforeExecute?: 1): void;
-  show_ (tid: kTip | HintMode, args?: Array<string | number>, embed?: boolean): void;
+  hudShow_ (tid: kTip | HintMode, args?: Array<string | number>, embed?: boolean): void;
   /** duration is default to 1500 */
-  tip_ (tid: kTip, duration?: number, args?: Array<string | number>): void;
-  copied_ (text: string, type?: "url" | ""): void;
+  hudTip_ (tid: kTip, duration?: number, args?: Array<string | number>): void;
+  hudCopied_ (text: string, type?: "url" | ""): void;
 }
 interface BaseHinter extends HintsNS.BaseHinter {
   dialogMode_: boolean
@@ -80,9 +80,12 @@ interface BaseHinter extends HintsNS.BaseHinter {
   }
 
 import {
-  clickable_, VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, rawSetKeydownEvents,
+  clickable_, VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, rawSetKeydownEvents, timeout_,
+  clearTimeout_, safer, VOther, fgCache, doc,
 } from "../lib/utils.js"
 import { send_, post_ } from "../lib/port.js"
+import * as VKey from "../lib/keyboard_utils.js"
+import * as VDom from "../lib/dom_utils.js";
 import {
   style_ui, addElementList, ensureBorder, adjustUI, ui_root, ui_box, flash_, getRect, lastFlashEl, click_, select_,
   getParentVApi, getWndVApi_ff, evalIfOK, checkHidden,
@@ -160,11 +163,11 @@ export const activate = (count: number, options: HintsNS.ContentOptions): void =
     if (checkHidden(kFgCmd.linkHints, count, options)) {
       return clear()
     }
-    if (document.body === null) {
+    if (doc.body === null) {
       clear()
       if (!_timer && VDom.readyState_ > "l") {
         VKey.pushHandler_(VKey.SuppressMost_, activate)
-        _timer = VKey.timeout_(activate.bind(0 as never, count, options), 300)
+        _timer = timeout_(activate.bind(0 as never, count, options), 300)
         return;
       }
     }
@@ -176,11 +179,11 @@ export const activate = (count: number, options: HintsNS.ContentOptions): void =
       parApi.linkActivate_(count, options)
       return;
     }
-    const useFilter0 = options.useFilter, useFilter = useFilter0 != null ? !!useFilter0 : VDom.cache_.f,
+    const useFilter0 = options.useFilter, useFilter = useFilter0 != null ? !!useFilter0 : fgCache.f,
     frameList: FrameHintsInfo[] = (baseHinter as Writable<Master>).frameList_ = frameList_
         = [{h: [], v: null as never, s: baseHinter}],
     toClean: Slave[] = [],
-    s0 = options.characters, chars = (s0 ? s0 + "" : useFilter ? VDom.cache_.n : VDom.cache_.c).toUpperCase();
+    s0 = options.characters, chars = (s0 ? s0 + "" : useFilter ? fgCache.n : fgCache.c).toUpperCase();
     if (chars.length < GlobalConsts.MinHintCharSetSize) {
       clear(1)
       return hudTip(kTip.fewChars, 1000);
@@ -233,9 +236,9 @@ export const activate = (count: number, options: HintsNS.ContentOptions): void =
     useFilter ? initFilterEngine(allHints as readonly FilteredHintItem[]) : initAlphabetEngine(allHints)
     renderMarkers(allHints)
     hud_ = {
-      show_: hudShow,
-      tip_: hudTip,
-      copied_: hudCopied,
+      hudShow_: hudShow,
+      hudTip_: hudTip,
+      hudCopied_: hudCopied,
       accessText_: accessHudText,
     }
     setMode(mode_);
@@ -328,7 +331,7 @@ const setMode = (mode: HintMode, silent?: 1): void => {
     forHover_ = mode > HintMode.min_hovering - 1 && mode < HintMode.max_hovering + 1;
     if (silent || noHUD_) { return; }
     if (baseHinter.promptTimer_ < 0) {
-      baseHinter.promptTimer_ = VKey.timeout_(SetHUDLater, 1500);
+      baseHinter.promptTimer_ = timeout_(SetHUDLater, 1500);
       return;
     }
     let msg = VTr(mode_), textSeq = keyStatus_.textSequence_;
@@ -336,7 +339,7 @@ const setMode = (mode: HintMode, silent?: 1): void => {
     if (Build.BTypes & BrowserType.Chrome) {
       msg += (master_ || baseHinter).dialogMode_ ? VTr(kTip.modalHints) : "";
     }
-    return hud_.show_(kTip.raw, [msg], true);
+    return hud_.hudShow_(kTip.raw, [msg], true);
 }
 
 const SetHUDLater = (): void => {
@@ -344,17 +347,17 @@ const SetHUDLater = (): void => {
 }
 
 const getPreciseChildRect = (frameEl: HTMLIFrameElement | HTMLElement, view: Rect): Rect | null => {
-    const max = Math.max, min = Math.min, kVisible = "visible", vDom = VDom,
-    brect = vDom.getBoundingClientRect_(frameEl),
-    docEl = VDom.docEl_unsafe_(), body = document.body, inBody = !!body && VDom.IsInDOM_(frameEl, body, 1),
-    zoom = (Build.BTypes & BrowserType.Chrome ? vDom.docZoom_ * (inBody ? vDom.bZoom_ : 1) : 1
-        ) / vDom.dScale_ / (inBody ? vDom.bScale_ : 1);
+    const max = Math.max, min = Math.min, kVisible = "visible",
+    brect = VDom.getBoundingClientRect_(frameEl),
+    docEl = VDom.docEl_unsafe_(), body = doc.body, inBody = !!body && VDom.IsInDOM_(frameEl, body, 1),
+    zoom = (Build.BTypes & BrowserType.Chrome ? VDom.docZoom_ * (inBody ? VDom.bZoom_ : 1) : 1
+        ) / VDom.dScale_ / (inBody ? VDom.bScale_ : 1);
     let x0 = min(view.l, brect.left), y0 = min(view.t, brect.top), l = x0, t = y0, r = view.r, b = view.b;
-    for (let el: Element | null = frameEl; el = vDom.GetParent_unsafe_(el, PNType.RevealSlotAndGotoParent); ) {
-      const st = vDom.getComputedStyle_(el);
+    for (let el: Element | null = frameEl; el = VDom.GetParent_unsafe_(el, PNType.RevealSlotAndGotoParent); ) {
+      const st = VDom.getComputedStyle_(el);
       if (st.overflow !== kVisible) {
-        let outer = vDom.getBoundingClientRect_(el), hx = st.overflowX !== kVisible, hy = st.overflowY !== kVisible,
-        scale = el !== docEl && inBody ? vDom.dScale_ * vDom.bScale_ : vDom.dScale_;
+        let outer = VDom.getBoundingClientRect_(el), hx = st.overflowX !== kVisible, hy = st.overflowY !== kVisible,
+        scale = el !== docEl && inBody ? VDom.dScale_ * VDom.bScale_ : VDom.dScale_;
         hx && (l = max(l, outer.left), r = l + min(r - l, outer.width , hy ? el.clientWidth * scale : r));
         hy && (t = max(t, outer.top ), b = t + min(b - t, outer.height, hx ? el.clientHeight * scale : b));
       }
@@ -712,9 +715,8 @@ export const traverse = function (selector: string
     if (!Build.NDEBUG && Build.BTypes & ~BrowserType.Firefox && selector === "*") {
       selector = kSafeAllSelector; // for easier debugging
     }
-    const matchAll = selector === kSafeAllSelector, doc = document,
+    const matchAll = selector === kSafeAllSelector,
     output: Hint[] | SafeHTMLElement[] = [],
-    vDom = VDom,
     wantClickable = filter === getClickable,
     isInAnElement = !Build.NDEBUG && !!wholeDoc && (wholeDoc as unknown) instanceof Element,
     box = !wholeDoc && VDom.fullscreenEl_unsafe_()
@@ -727,10 +729,10 @@ export const traverse = function (selector: string
     wantClickable && getPixelScaleToScroll();
     if (matchAll) {
       if (ngEnabled === null) {
-        ngEnabled = !!vDom.querySelector_unsafe_(".ng-scope");
+        ngEnabled = !!VDom.querySelector_unsafe_(".ng-scope");
       }
       if (jsaEnabled_ === null) {
-        jsaEnabled_ = !!vDom.querySelector_unsafe_("[jsaction]");
+        jsaEnabled_ = !!VDom.querySelector_unsafe_("[jsaction]");
       }
     }
     if (!matchAll) {
@@ -752,7 +754,7 @@ export const traverse = function (selector: string
           filter(output, el);
           const shadowRoot = (Build.BTypes & BrowserType.Chrome
                 && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-                && VDom.cache_.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+                && fgCache.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
               ? el.webkitShadowRoot : el.shadowRoot) as ShadowRoot | null | undefined;
           if (shadowRoot) {
             let sub_tree: HintSources = shadowRoot.querySelectorAll(selector) as NodeListOf<SafeElement>;
@@ -791,15 +793,15 @@ export const traverse = function (selector: string
         && (Build.NDEBUG && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
           || ui_root.mode === "closed")
         ) {
-      const bz = vDom.bZoom_, notHookScroll = scrolled === 0;
+      const bz = VDom.bZoom_, notHookScroll = scrolled === 0;
       if (bz !== 1 && isD) {
-        vDom.bZoom_ = 1;
-        vDom.prepareCrop_(1);
+        /*#__INLINE__*/ VDom.setTempBodyZoom(1)
+        VDom.prepareCrop_(1);
       }
       for (const el of (<ShadowRoot> ui_root).querySelectorAll(selector)) {
         filter(output, el as SafeHTMLElement);
       }
-      vDom.bZoom_ = bz;
+      /*#__INLINE__*/ VDom.setTempBodyZoom(bz)
       if (notHookScroll) {
         /*#__INLINE__*/ resetScrolled()
       }
@@ -820,7 +822,7 @@ export const traverse = function (selector: string
 
 const addChildTrees = (list: HintSources, allNodes: NodeListOf<SafeElement>): HintSources => {
     let matchWebkit = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-                      && VDom.cache_.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0;
+                      && fgCache.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0;
     let hosts: SafeElement[] = [], matched: SafeElement | undefined;
     for (let i = 0, len = allNodes.length; i < len; i++) {
       let el = allNodes[i], tag: string;
@@ -937,7 +939,7 @@ const deduplicate = (list: Hint[]): void => {
         i = j;
       }
     }
-    while (list.length && ((element = list[0][0]) === VDom.docEl_unsafe_() || element === document.body)) {
+    while (list.length && ((element = list[0][0]) === VDom.docEl_unsafe_() || element === doc.body)) {
       list.shift();
     }
 }
@@ -965,22 +967,21 @@ const isDescendant = function (c: Element | null, p: Element, shouldBeSingleChil
 
 const filterOutNonReachable = (list: Hint[]): void => {
     if (!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && VOther & BrowserType.Edge) { return; }
-    const vDom = VDom;
-    if (!vDom.cache_.e) { return; }
+    if (!fgCache.e) { return; }
     if (Build.BTypes & BrowserType.Chrome && (Build.MinCVer < BrowserVer.Min$Node$$getRootNode
           || Build.MinCVer < BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint)
-        && vDom.cache_.v < (BrowserVer.Min$Node$$getRootNode > BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint
+        && fgCache.v < (BrowserVer.Min$Node$$getRootNode > BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint
             ? BrowserVer.Min$Node$$getRootNode : BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint)) {
       return;
     }
-    if (Build.BTypes & BrowserType.Chrome && vDom.isDocZoomStrange_ && vDom.docZoom_ - 1) {
+    if (Build.BTypes & BrowserType.Chrome && VDom.isDocZoomStrange_ && VDom.docZoom_ - 1) {
       return;
     }
     let i = list.length, el: SafeElement, root: Document | ShadowRoot, localName: string,
     fromPoint: Element | null | undefined, temp: Element | null, index2 = 0;
-    const zoom = Build.BTypes & BrowserType.Chrome ? vDom.docZoom_ * vDom.bZoom_ : 1,
+    const zoom = Build.BTypes & BrowserType.Chrome ? VDom.docZoom_ * VDom.bZoom_ : 1,
     zoomD2 = Build.BTypes & BrowserType.Chrome ? zoom / 2 : 0.5,
-    doc = document, body = doc.body, docEl = vDom.docEl_unsafe_(),
+    body = doc.body, docEl = VDom.docEl_unsafe_(),
     // note: exclude the case of `fromPoint.contains(el)`, to exclude invisible items in lists
     does_hit: (x: number, y: number) => boolean = !(Build.BTypes & ~BrowserType.Firefox)
         || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
@@ -1006,7 +1007,7 @@ const filterOutNonReachable = (list: Hint[]): void => {
       }
       if (nodeType === kNode.DOCUMENT_FRAGMENT_NODE
           && (temp = el.lastElementChild as Element | null)
-          && vDom.htmlTag_(temp) === "slot"
+          && VDom.htmlTag_(temp) === "slot"
           && (root as ShadowRoot).host.contains(fromPoint!)) {
         continue;
       }
@@ -1023,14 +1024,14 @@ const filterOutNonReachable = (list: Hint[]): void => {
         if (!(Build.BTypes & BrowserType.Firefox) ? elPos < 0
             : Build.BTypes & ~BrowserType.Firefox && VOther & ~BrowserType.Firefox && elPos < 0) {
           for (temp = el
-              ; (temp = vDom.GetParent_unsafe_(temp, PNType.RevealSlot)) && temp !== body && temp !== docEl
+              ; (temp = VDom.GetParent_unsafe_(temp, PNType.RevealSlot)) && temp !== body && temp !== docEl
               ; ) {
-            if (vDom.getComputedStyle_(temp).zoom !== "1") { temp = el; break; }
+            if (VDom.getComputedStyle_(temp).zoom !== "1") { temp = el; break; }
           }
         } else {
           while (temp = stack[index2], index2++ < elPos
-              && !(Build.BTypes & ~BrowserType.Firefox && vDom.notSafe_not_ff_!(temp))
-              && !vDom.isAriaNotTrue_(temp as SafeElement, kAria.hidden)) { /* empty */ }
+              && !(Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_not_ff_!(temp))
+              && !VDom.isAriaNotTrue_(temp as SafeElement, kAria.hidden)) { /* empty */ }
           temp = temp !== fromPoint && el.contains(temp) ? el : temp;
         }
         temp === el
@@ -1051,11 +1052,10 @@ const checkNestedFrame = (output?: Hint[]): void => {
 }
 
 const getNestedFrame = (output?: Hint[]): NestedFrame => {
-    const vDom = VDom;
     if (output == null) {
-      if (!vDom.isHTML_()) { return false; }
+      if (!VDom.isHTML_()) { return false; }
       output = [];
-      for (let el of vDom.querySelectorAll_unsafe_("a,button,input,frame,iframe")) {
+      for (let el of VDom.querySelectorAll_unsafe_("a,button,input,frame,iframe")) {
         if ((el as ElementToHTML).lang != null) {
           getClickable(output, el as SafeHTMLElement);
         }
@@ -1065,12 +1065,12 @@ const getNestedFrame = (output?: Hint[]): NestedFrame => {
       return output.length !== 0 && null;
     }
     let rect: ClientRect | undefined, rect2: ClientRect, element = output[0][0];
-    if ((<RegExpI> /^i?frame$/).test(vDom.htmlTag_(element))
-        && (rect = vDom.getBoundingClientRect_(element),
-            rect2 = vDom.getBoundingClientRect_(vDom.docEl_unsafe_()!),
+    if ((<RegExpI> /^i?frame$/).test(VDom.htmlTag_(element))
+        && (rect = VDom.getBoundingClientRect_(element),
+            rect2 = VDom.getBoundingClientRect_(VDom.docEl_unsafe_()!),
             rect.top - rect2.top < 20 && rect.left - rect2.left < 20
             && rect2.right - rect.right < 20 && rect2.bottom - rect.bottom < 20)
-        && vDom.isStyleVisible_(element)
+        && VDom.isStyleVisible_(element)
     ) {
       return element as HTMLFrameElement | HTMLIFrameElement;
     }
@@ -1180,12 +1180,12 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
         return HandlerResult.Prevent;
       }
       if (key.includes("-s")) {
-        VDom.cache_.e = !VDom.cache_.e;
+        fgCache.e = !fgCache.e;
       } else if (key[0] === "a") {
         if (!(Build.BTypes & BrowserType.Chrome)) { resetMode(); return HandlerResult.Prevent; }
         wantDialogMode_ = !wantDialogMode_;
       } else if ("cm".includes(key[0])) {
-        options_.useFilter = VDom.cache_.f = !useFilter_;
+        options_.useFilter = fgCache.f = !useFilter_;
       } else if (key !== keybody) { // <s-f2>
         isClickListened_ = !isClickListened_;
       } else {
@@ -1201,9 +1201,9 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
         }
       }
       resetMode(1);
-      VKey.timeout_(reinit.bind(0, null, null, null), 0);
+      timeout_(reinit.bind(0, null, null, null), 0);
     } else if ((i < kKeyCode.maxAcsKeys + 1 && i > kKeyCode.minAcsKeys - 1
-            || !VDom.cache_.o && (i > kKeyCode.maxNotMetaKey && i < kKeyCode.minNotMetaKeyOrMenu))
+            || !fgCache.o && (i > kKeyCode.maxNotMetaKey && i < kKeyCode.minNotMetaKeyOrMenu))
         && !key) {
       const mode = mode_, mode1 = mode1_,
       mode2 = mode1 > HintMode.min_copying - 1 && mode1 < HintMode.max_copying + 1
@@ -1229,14 +1229,14 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
     } else if (keybody === kChar.tab && !useFilter_ && !keyStatus_.keySequence_) {
       tooHigh_ = null;
       resetMode();
-      VKey.timeout_(reinit.bind(0, null, null, null), 0);
+      timeout_(reinit.bind(0, null, null, null), 0);
     } else if (keybody === kChar.space && (!useFilter_ || key !== keybody)) {
       keyStatus_.textSequence_ = keyStatus_.textSequence_.replace("  ", " ");
       zIndexes_ !== 0 && rotateHints(key === "s-" + keybody);
       resetMode();
     } else if (matchedHint = matchHintsByKey(keyStatus_, event, key, keybody), matchedHint === 0) {
       // then .keyStatus_.hintSequence_ is the last key char
-      clear(0, keyStatus_.known_ ? 0 : VDom.cache_.k[0]);
+      clear(0, keyStatus_.known_ ? 0 : fgCache.k[0]);
     } else if (matchedHint !== 2) {
       lastMode_ = mode_;
       locateHint(matchedHint).executeL_(matchedHint, event);
@@ -1272,7 +1272,7 @@ const resetMode = (silent?: 1): void => {
 }
 
 const delayToExecute = (slave: BaseHinter, hint: HintItem, flashEl: SafeHTMLElement | null): void => {
-    const waitEnter = Build.BTypes & BrowserType.Chrome && VDom.cache_.w,
+    const waitEnter = Build.BTypes & BrowserType.Chrome && fgCache.w,
     callback = (event?: HandlerNS.Event, key?: string, keybody?: string): void => {
       let closed: void | 1 | 2 = 1;
       try {
@@ -1324,8 +1324,8 @@ const executeHint = (hint: HintItem, event?: HandlerNS.Event): void => {
       if (keyStatus.textSequence_ && !keyStatus.keySequence_ && !keyStatus.known_) {
         if ((!(Build.BTypes & BrowserType.Chrome)
               || Build.BTypes & ~BrowserType.Chrome && VOther !== BrowserType.Chrome
-              || Build.MinCVer < BrowserVer.MinUserActivationV2 && VDom.cache_.v < BrowserVer.MinUserActivationV2)
-            && !VDom.cache_.w) {
+              || Build.MinCVer < BrowserVer.MinUserActivationV2 && fgCache.v < BrowserVer.MinUserActivationV2)
+            && !fgCache.w) {
           // e.g.: https://github.com/philc/vimium/issues/3103#issuecomment-552653871
           VKey.suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents);
         } else {
@@ -1337,13 +1337,13 @@ const executeHint = (hint: HintItem, event?: HandlerNS.Event): void => {
       // tolerate new rects in some cases
       const showRect = modeOpt_[0](clickEl, rect, hint);
       if (!removeFlash && showRect !== false && (rect || (rect = VDom.getVisibleClientRect_(clickEl)))) {
-        VKey.timeout_(function (): void {
-          (showRect || document.hasFocus()) && flash_(null, rect!);
+        timeout_(function (): void {
+          (showRect || doc.hasFocus()) && flash_(null, rect!);
         }, 17);
       }
     } else {
       clickEl = null;
-      hud_.tip_(kTip.linkRemoved, 2000);
+      hud_.hudTip_(kTip.linkRemoved, 2000);
     }
     removeFlash && removeFlash();
     removeFlash = null;
@@ -1368,7 +1368,7 @@ const accessHudText = (beforeExecute?: 1): void => {
 const postExecute = (slave: BaseHinter, clickEl: LinkEl | null, rect?: Rect | null): void => {
     baseHinter.isActive_ = isActive = 0;
     setupCheck();
-    VKey.timeout_(function (): void {
+    timeout_(function (): void {
       reinit(slave, clickEl, rect);
       if (isActive && 1 === --count_) {
         setMode(mode1_);
@@ -1390,8 +1390,8 @@ const reinit = (slave?: BaseHinter | null, lastEl?: LinkEl | null, rect?: Rect |
 
   /** should only be called on master */
 const setupCheck = (slave?: BaseHinter | null, el?: LinkEl | null, r?: Rect | null): void => {
-    _timer && VKey.clearTimeout_(_timer);
-    _timer = slave && el && mode1_ < HintMode.min_job ? VKey.timeout_((i): void => {
+    _timer && clearTimeout_(_timer);
+    _timer = slave && el && mode1_ < HintMode.min_job ? timeout_((i): void => {
       _timer = TimerID.None;
       let doesReinit: BOOL | void = 0;
       try {
@@ -1421,7 +1421,7 @@ export const checkLast = function (this: void, el?: LinkEl | TimerType.fake | 1,
     hidden = !r2 || r2.width < 2 && r2.height < 2
         || !VDom.isStyleVisible_(el as LinkEl); // use 2px: may be safer
     if (hidden && VDom.lastHovered_ === el) {
-      VDom.lastHovered_ = null;
+      /*#__INLINE__*/ VDom.setLastHovered(null)
     }
     if ((!r2 || r) && masterOrA.isActive_
         && masterOrA.hints_!.length < (
@@ -1442,7 +1442,7 @@ const resetHints = (): void => {
     onTailEnter = pageNumberHints_ =
     (baseHinter as Writable<BaseHinter>).hints_ = hints_ = zIndexes_ = activeHint_ = null as never;
     baseHinter.promptTimer_ > TimerID.None &&
-    (VKey.clearTimeout_(baseHinter.promptTimer_), baseHinter.promptTimer_ = TimerID.None);
+    (clearTimeout_(baseHinter.promptTimer_), baseHinter.promptTimer_ = TimerID.None);
     baseHinter.hasExecuted_ = 0;
     keyStatus_ && (keyStatus_.curHints_ = null as never);
     (baseHinter as Writable<Master>).keyStatus_ = keyStatus_ = {
@@ -1460,7 +1460,7 @@ export const clear = (keepHudOrEvent?: 0 | 1 | 2 | Event, suppressTimeout?: numb
     if (keepHudOrEvent === 2 || keepHudOrEvent && keepHudOrEvent !== 1
         && (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Event$$IsTrusted
             ? keepHudOrEvent.isTrusted !== !1 : keepHudOrEvent.isTrusted)
-        && keepHudOrEvent.target === document) {
+        && keepHudOrEvent.target === doc) {
       master_ && master_.onFrameUnload_(baseHinter);
       if (keepHudOrEvent !== 2) {
         return;
@@ -1851,10 +1851,9 @@ const scoreHint = (textHint: HintsNS.HintText, searchWords: readonly string[]): 
 }
 
 const renderMarkers = (hintItems: readonly HintItem[]): void => {
-    const doc = document,
-    noAppend = !!(Build.BTypes & BrowserType.Chrome)
+    const noAppend = !!(Build.BTypes & BrowserType.Chrome)
         && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
-        && VDom.cache_.v < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend;
+        && fgCache.v < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
     for (const hint of hintItems) {
       let right: string, marker = hint.m;
       if (useFilter_) {
@@ -2044,7 +2043,7 @@ const getImageUrl = (img: SafeHTMLElement): string | void => {
       || src.length > text.length + 7 && (text === (img as HTMLElement & {href?: string}).href)) {
     text = src;
   }
-  return text || hud_.tip_(kTip.notImg, 1000);
+  return text || hud_.hudTip_(kTip.notImg, 1000);
 }
 
 const getImageName_ = (img: SafeHTMLElement): string =>
@@ -2070,7 +2069,7 @@ const detectUsableChild = (el: HTMLIFrameElement | HTMLFrameElement): VApiTy | n
   } catch (e) {
     if (!Build.NDEBUG) {
       let notDocError = true;
-      if (Build.BTypes & BrowserType.Chrome && VDom.cache_.v < BrowserVer.Min$ContentDocument$NotThrow) {
+      if (Build.BTypes & BrowserType.Chrome && fgCache.v < BrowserVer.Min$ContentDocument$NotThrow) {
         try {
           notDocError = el.contentDocument !== void 0
         } catch { notDocError = false; }
@@ -2133,11 +2132,11 @@ const Modes_ = [
     type || element.focus && !(<RegExpI> /^i?frame$/).test(VDom.htmlTag_(element)) && element.focus();
     /*#__INLINE__*/ setCachedScrollable(currentScrolling);
     if (mode1_ < HintMode.min_job) { // called from Modes[-1]
-      return hud_.tip_(kTip.hoverScrollable, 1000);
+      return hud_.hudTip_(kTip.hoverScrollable, 1000);
     }
     mode_ & HintMode.queue || unhoverOnEsc();
     if (!toggleMap || typeof toggleMap !== "object") { return; }
-    VKey.safer_(toggleMap);
+    safer(toggleMap);
     let ancestors: Element[] = [], top: Element | null = element, re = <RegExpOne> /^-?\d+/;
     for (let key in toggleMap) {
       // if no Element::closest, go up by 6 levels and then query the selector
@@ -2194,7 +2193,7 @@ const Modes_ = [
       if (tag === "input") {
         let type = (link as HTMLInputElement).type, f: HTMLInputElement["files"];
         if (type === "password") {
-          return hud_.tip_(kTip.ignorePassword, 2000);
+          return hud_.hudTip_(kTip.ignorePassword, 2000);
         }
         if (!VDom.uneditableInputs_[type]) {
           str = (link as HTMLInputElement).value || (link as HTMLInputElement).placeholder;
@@ -2218,7 +2217,7 @@ const Modes_ = [
       }
     }
     if (!str) {
-      return hud_.copied_("", isUrl ? "url" : "");
+      return hud_.hudCopied_("", isUrl ? "url" : "");
     }
     if (mode1 > HintMode.min_edit - 1 && mode1 < HintMode.max_edit + 1) {
       let newtab = options_.newtab
@@ -2242,10 +2241,10 @@ const Modes_ = [
     let lastYanked = mode1 & HintMode.list ? (master_ || baseHinter).yankedList_ : 0 as const;
     if (lastYanked) {
       if (lastYanked.indexOf(str) >= 0) {
-        return hud_.show_(kTip.noNewToCopy);
+        return hud_.hudShow_(kTip.noNewToCopy);
       }
       lastYanked.push(str);
-      hud_.copied_(`[${lastYanked.length}] ` + str);
+      hud_.hudCopied_(`[${lastYanked.length}] ` + str);
     }
     api_.post_({
       H: kFgReq.copy,
@@ -2291,7 +2290,7 @@ const Modes_ = [
     a.download = getImageName_(element);
     /** @todo: how to trigger download */
     VDom.mouse_(a, "click", [0, 0], {altKey_: !0, ctrlKey_: !1, metaKey_: !1, shiftKey_: !1});
-    hud_.tip_(kTip.downloaded, 2000, [text]);
+    hud_.hudTip_(kTip.downloaded, 2000, [text]);
   }
   , HintMode.DOWNLOAD_MEDIA
 ] as ModeOpt,
@@ -2386,7 +2385,7 @@ const Modes_ = [
       select_(link as LockableElement, rect, !removeFlash);
       return false;
     }
-    const mask = mode_ & HintMode.mask_focus_new, isMac = !VDom.cache_.o,
+    const mask = mode_ & HintMode.mask_focus_new, isMac = !fgCache.o,
     isRight = options_.button === "right",
     dblClick = !!options_.dblclick && !isRight,
     newTabOption = options_.newtab,

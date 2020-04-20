@@ -1,14 +1,16 @@
-import { clickable_, setupEventListener, VOther } from "../lib/utils.js"
-import { safeDestroy } from "../lib/port.js";
+import { clickable_, setupEventListener, VOther, timeout_, clearTimeout_, doc } from "../lib/utils.js"
+import * as VKey from "../lib/keyboard_utils.js"
+import * as VDom from "../lib/dom_utils.js"
+import { safeDestroy } from "../lib/port.js"
 import { allLinkHints, curKeyStatus, checkLast } from "./link_hints.js"
-import { grabBackFocus } from "./mode_insert.js";
+import { grabBackFocus } from "./mode_insert.js"
 
 declare function exportFunction(this: void, func: (...args: any[]) => any, targetScope: object, options?: {
   defineAs: string;
   allowCrossOriginArguments?: boolean;
 }): void;
 
-export default (): void => {
+export const main = (): void => {
 !(Build.BTypes & BrowserType.Firefox)
 || Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox
 ?
@@ -56,7 +58,6 @@ export default (): void => {
 
   const kVOnClick1 = InnerConsts.kVOnClick
     , kHookRand = (InnerConsts.kHook + BuildStr.RandomClick) as InnerConsts.kHook
-    , stopEvent = VKey.Stop_
     , appInfo = Build.BTypes & BrowserType.Chrome
         && (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
             || Build.MinCVer < BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
@@ -75,7 +76,7 @@ export default (): void => {
         ? 1 : 0
     , rAF_old_cr = Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome
         ? requestAnimationFrame : 0 as never as null
-    , Doc = document, docEl = VDom.docEl_unsafe_()
+    , docEl = VDom.docEl_unsafe_()
     , secret: number = (Math.random() * kContentCmd.SecretRange + 1) | 0
     , script = VDom.createElement_("script");
 /**
@@ -90,7 +91,7 @@ export default (): void => {
  * Vimium issue: https://github.com/philc/vimium/pull/1797#issuecomment-135761835
  */
   if ((script as Element as ElementToHTML).lang == null) {
-    VDom.createElement_ = Doc.createElementNS.bind(Doc, "http://www.w3.org/1999/xhtml") as typeof VDom.createElement_;
+    VDom.setCreateElement(doc.createElementNS.bind(doc, "http://www.w3.org/1999/xhtml") as typeof VDom.createElement_)
     isFirstTime != null && VDom.OnDocLoaded_(extendClick); // retry after a while, using a real <script>
     return;
   }
@@ -103,8 +104,7 @@ export default (): void => {
     // use `instanceof` to require the `t` element is a new instance which has never entered this extension world
     if (++hookRetryTimes > GlobalConsts.MaxRetryTimesForSecret
         || !(t instanceof Element)) { return; }
-    // its unhooking is delayed, so here may no VKey
-    stopEvent(event);
+    VKey.Stop_(event);
     if (t.localName !== "div" || t.getAttribute(attr) !== "" + secret) { return; }
     setupEventListener(0, kHookRand, hook, 1);
     hook = null as never;
@@ -116,7 +116,7 @@ export default (): void => {
   };
   function onClick(this: Element | Window, event: Event): void {
     if (!box) { return; }
-    stopEvent(event);
+    VKey.Stop_(event);
     const rawDetail = (
         event as TypeToAssert<Event, (VimiumCustomEventCls | VimiumDelegateEventCls)["prototype"], "detail">
         ).detail as ClickableEventDetail | null | undefined,
@@ -151,12 +151,12 @@ export default (): void => {
     }
     if (isFirstResolve & fromAttrs) {
       isFirstResolve ^= fromAttrs;
-      allLinkHints && !curKeyStatus.keySequence_ && !curKeyStatus.textSequence_ && VKey.timeout_(checkLast, 34);
+      allLinkHints && !curKeyStatus.keySequence_ && !curKeyStatus.textSequence_ && timeout_(checkLast, 34);
     }
   }
   function resolve(isBox: BOOL, nodeIndexList: number[]): void {
     if (!nodeIndexList.length) { return; }
-    const list = (isBox ? box as Element : Doc).getElementsByTagName("*");
+    const list = (isBox ? box as Element : doc).getElementsByTagName("*");
     for (const index of nodeIndexList) {
       let el = list[index];
       el && clickable_.add(el);
@@ -220,7 +220,7 @@ function verifier(maybeSecret: string, maybeVerifierB?: InnerVerifier): ReturnTy
   }
 }
 type FUNC = (this: unknown, ...args: never[]) => unknown;
-const doc = document, cs = doc.currentScript as HTMLScriptElement,
+const doc0 = document, cs = doc0.currentScript as HTMLScriptElement,
 sec: number = +cs.dataset.vimium!,
 ETP = EventTarget.prototype, _listen = ETP.addEventListener,
 toRegister: Element[] & { p (el: Element): void | 1; s: Element[]["splice"] } = [] as any,
@@ -232,9 +232,9 @@ ElCls = Element, ElProto = ElCls.prototype, Append = ElProto.appendChild,
 GetRootNode = ElProto.getRootNode,
 Attr = ElProto.setAttribute, HasAttr = ElProto.hasAttribute, Remove = ElProto.remove,
 StopProp = Event.prototype.stopImmediatePropagation as (this: Event) => void,
-contains = ElProto.contains.bind(doc), // in fact, it is Node.prototype.contains
+contains = ElProto.contains.bind(doc0), // in fact, it is Node.prototype.contains
 nodeIndexListInDocument: number[] = [], nodeIndexListForDetached: number[] = [],
-getElementsByTagNameInDoc = doc.getElementsByTagName, getElementsByTagNameInEP = ElProto.getElementsByTagName,
+getElementsByTagNameInDoc = doc0.getElementsByTagName, getElementsByTagNameInEP = ElProto.getElementsByTagName,
 IndexOf = _call.bind(toRegister.indexOf) as never as (list: HTMLCollectionOf<Element>, item: Element) => number,
 push = nodeIndexListInDocument.push,
 pushInDocument = push.bind(nodeIndexListInDocument), pushForDetached = push.bind(nodeIndexListForDetached),
@@ -274,7 +274,7 @@ newFuncToString = function (a: FUNC, args: IArguments): string {
 hooks = {
   // the code below must include direct reference to at least one property in `hooks`
   // so that uglifyJS / terse won't remove the `hooks` variable
-  /** Create */ c: doc.createElement,
+  /** Create */ c: doc0.createElement,
   toString: function toString(this: FUNC): string {
     const args = arguments;
     if (args.length === 2 && args[0] === kMarkToVerify) {
@@ -314,7 +314,7 @@ let doInit = function (this: void): void {
   clearTimeout_(timer);
   detectDisabled = 0;
   const docEl2 = docChildren[0] as Element | null,
-  el = call(hooks.c, doc, "div") as HTMLDivElement,
+  el = call(hooks.c, doc0, "div") as HTMLDivElement,
   key = InnerConsts.kSecretAttr;
   doInit = docChildren = null as never;
   if (!docEl2) { return executeCmd(); }
@@ -334,7 +334,7 @@ noAbnormalVerifyingFound: BOOL = 1,
 anotherAEL: typeof myAEL | undefined | 0, anotherToStr: typeof myToStr | undefined | 0,
 // here `setTimeout` is normal and will not use TimerType.fake
 setTimeout_ = setTimeout as SafeSetTimeout,
-docChildren = doc.children,
+docChildren = doc0.children,
 unsafeDispatchCounter = 0,
 allNodesInDocument = null as HTMLCollectionOf<Element> | null,
 allNodesForDetached = null as HTMLCollectionOf<Element> | null,
@@ -372,14 +372,14 @@ if (!(Build.BTypes & ~BrowserType.Edge)
 function prepareRegister(this: void, element: Element): void {
   if (contains(element)) {
     pushInDocument(
-      IndexOf(allNodesInDocument = allNodesInDocument || call(getElementsByTagNameInDoc, doc, "*")
+      IndexOf(allNodesInDocument = allNodesInDocument || call(getElementsByTagNameInDoc, doc0, "*")
         , element));
     return;
   }
   // here element is inside a #shadow-root or not connected
   const doc1 = element.ownerDocument;
   // in case element is <form> / <frameset> / adopted into another document, or aEL is from another frame
-  if (doc1 !== doc) {
+  if (doc1 !== doc0) {
     // although on Firefox element.__proto__ is auto-updated when it is adopted
     // but aEl may be called before real insertion
     if ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
@@ -431,9 +431,9 @@ function prepareRegister(this: void, element: Element): void {
       parent = (!(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.Min$Node$$getRootNode || GetRootNode)
           && (tempParent as NonNullable<ShadowRoot["host"]>).shadowRoot // an open shadow tree
           && call(GetRootNode!, element, {composed: !0});
-      if (parent && (parent === doc || (<NodeToElement> parent).nodeType === kNode.ELEMENT_NODE)
+      if (parent && (parent === doc0 || (<NodeToElement> parent).nodeType === kNode.ELEMENT_NODE)
           && typeof (s = element.tagName) === "string") {
-        parent !== doc && parent !== root && call(Append, root, parent);
+        parent !== doc0 && parent !== root && call(Append, root, parent);
         unsafeDispatchCounter++;
         dispatch(element, new CECls(kVOnClick, {detail: sec + s, composed: !0}));
       }
@@ -487,7 +487,7 @@ function executeCmd(eventOrDestroy?: Event): void {
   if (cmd < kContentCmd._minSuppressClickable) {
     if (!cmd || !root) { return; }
     call(Remove, root);
-    allNodesInDocument = call(getElementsByTagNameInDoc, doc, "*");
+    allNodesInDocument = call(getElementsByTagNameInDoc, doc0, "*");
     let len = allNodesInDocument.length, i = unsafeDispatchCounter = 0;
     len = len < GlobalConsts.MinElementCountToStopScanOnClick || cmd === kContentCmd.ManuallyFindAllOnClick
         ? len : 0; // stop it
@@ -545,9 +545,9 @@ _listen(kOnDomReady, doInit, !0);
   script.type = "text/javascript";
   script.dataset.vimium = secret as number | string as string;
   if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
-    (docEl ? script : Doc).prepend!.call(docEl || Doc, script);
+    (docEl ? script : doc).prepend!.call(docEl || doc, script);
   } else {
-    docEl ? script.insertAdjacentElement.call(docEl, "afterbegin", script) : Doc.appendChild(script);
+    docEl ? script.insertAdjacentElement.call(docEl, "afterbegin", script) : doc.appendChild(script);
   }
   script.dataset.vimium = "";
   if (!(Build.NDEBUG
@@ -556,19 +556,19 @@ _listen(kOnDomReady, doInit, !0);
   }
   if (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome
       && appVer === BrowserVer.NoRAFOrRICOnSandboxedPage) {
-    VDom.allowRAF_ = 0;
-    rAF_old_cr!(() => { VDom.allowRAF_ = 1; });
+    /*#__INLINE__*/ VDom.markAllowRAF(0)
+    rAF_old_cr!(() => { /*#__INLINE__*/ VDom.markAllowRAF(1) });
   }
   // not check MinEnsuredNewScriptsFromExtensionOnSandboxedPage
   // for the case JavaScript is disabled in CS: https://github.com/philc/vimium/issues/3187
   if (!script.parentNode) { // It succeeded to hook.
     // wait the inner listener of `start` to finish its work
-    VDom.OnDocLoaded_(VKey.timeout_.bind(1 as never as null, (): void => {
+    VDom.OnDocLoaded_(timeout_.bind(1 as never as null, (): void => {
       // only for new versions of Chrome (and Edge);
       // CSP would block a <script> before MinEnsuredNewScriptsFromExtensionOnSandboxedPage
       // not check isFirstTime, to auto clean VApi.execute_
       !box ? execute(kContentCmd.DestroyForCSP) : isFirstTime && VDom &&
-      VDom.OnDocLoaded_(VKey.timeout_.bind(1 as never as null, (): void => {
+      VDom.OnDocLoaded_(timeout_.bind(1 as never as null, (): void => {
         isFirstResolve && dispatchCmd(kContentCmd.AutoFindAllOnClick);
         isFirstResolve = 0;
       }, GlobalConsts.ExtendClick_DelayToFindAll), 1);
@@ -576,7 +576,7 @@ _listen(kOnDomReady, doInit, !0);
     return;
   }
   // else: CSP script-src before C68, CSP sandbox before C68 or JS-disabled-in-CS on C/E
-  VDom.allowScripts_ = 0;
+  VDom.markAllowScripts(0)
   script.remove();
   execute(kContentCmd.Destroy);
   if (!(Build.BTypes & BrowserType.Chrome)
@@ -630,7 +630,7 @@ _listen(kOnDomReady, doInit, !0);
         && listener && !(a instanceof HTMLAnchorElement) && a instanceof Element) {
       if (!Build.NDEBUG) {
         clickable_.has(a) || resolved++;
-        timer = timer || VKey.timeout_(resolve, GlobalConsts.ExtendClick_DelayToStartIteration);
+        timer = timer || timeout_(resolve, GlobalConsts.ExtendClick_DelayToStartIteration);
       }
       clickable_.add(a);
     }
@@ -646,10 +646,9 @@ _listen(kOnDomReady, doInit, !0);
         , resolved
         , location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1")
         , Date.now() % 3600000);
-    timer && VKey.clearTimeout_(timer);
+    timer && clearTimeout_(timer);
     timer = resolved = 0;
-  },
-  doc = document;
+  }
 
   let alive = true, timer = TimerID.None, resolved = 0;
 
@@ -658,8 +657,8 @@ _listen(kOnDomReady, doInit, !0);
       exportFunction(newListen, Cls!, { defineAs: newListen.name });
     }
     VDom.OnDocLoaded_((): void => {
-      VKey.timeout_(function (): void {
-        allLinkHints && !curKeyStatus.keySequence_ && !curKeyStatus.textSequence_ && VKey.timeout_(checkLast, 34);
+      timeout_(function (): void {
+        allLinkHints && !curKeyStatus.keySequence_ && !curKeyStatus.textSequence_ && timeout_(checkLast, 34);
       }, GlobalConsts.ExtendClick_DelayToFindAll);
     }, 1);
   }
@@ -670,7 +669,7 @@ _listen(kOnDomReady, doInit, !0);
   };
   if (Build.BTypes & ~BrowserType.Firefox ? !(doc instanceof HTMLDocument) : !VDom.isHTML_()) {
     // for <script>
-    VDom.createElement_ = doc.createElementNS.bind(doc, "http://www.w3.org/1999/xhtml") as typeof VDom.createElement_;
+    VDom.setCreateElement(doc.createElementNS.bind(doc, "http://www.w3.org/1999/xhtml") as typeof VDom.createElement_)
   }
 })();
 }

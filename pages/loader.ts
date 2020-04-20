@@ -4,7 +4,6 @@
 /// <reference path="../background/bg.d.ts" />
 /// <reference path="../background/utils.ts" />
 /// <reference path="../background/settings.ts" />
-/// <reference path="../lib/dom_utils.ts" />
 /* eslint-disable @typescript-eslint/prefer-string-starts-ends-with, @typescript-eslint/prefer-includes */
 // eslint-disable-next-line no-var
 var VimiumInjector: VimiumInjectorTy | undefined | null = null;
@@ -37,16 +36,14 @@ chrome.runtime && chrome.runtime.getManifest && (function () {
   interface BgWindow2 extends Window { Settings_: typeof Settings_ }
   function onLastLoad(): void {
     for (let i = scripts.length; 0 <= --i; ) { scripts[i].remove(); }
-    const dom = (window as {} as {VDom?: typeof VDom}).VDom;
-    dom && (dom.allowScripts_ = 0);
     let bg: BgWindow2;
     if (Build.BTypes & BrowserType.Firefox && Build.MayOverrideNewTab
         && (bg = chrome.extension.getBackgroundPage() as BgWindow2)
         && bg.Settings_ && bg.Settings_.CONST_.OverrideNewTab_
         && curPath.indexOf("newtab") >= 0) {
       setTimeout(function (): void {
-        const hud = (window as {} as {VHud?: VHUDTy}).VHud;
-        hud && hud.tip_(kTip.firefoxRefuseURL, 2560);
+        const api = (window as {} as {VApi?: VApiTy}).VApi;
+        api && api.tip_(kTip.firefoxRefuseURL, 2560);
       }, 100);
     }
   }

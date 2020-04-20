@@ -1,5 +1,3 @@
-/// <reference path="../content/base.d.ts" />
-/// <reference path="../lib/keyboard_utils.ts" />
 /// <reference path="../background/bg.d.ts" />
 /// <reference path="../background/utils.ts" />
 /// <reference path="../background/settings.ts" />
@@ -8,9 +6,8 @@ interface ImportBody {
   (id: "shownText"): HTMLDivElement;
 }
 // eslint-disable-next-line no-var
-declare var VApi: VApiTy, VHud: VHUDTy, Viewer: new (root: HTMLElement) => ViewerType;
+declare var Viewer: new (root: HTMLElement) => ViewerType;
 interface Window {
-  readonly VHud?: VHUDTy;
   readonly Viewer: typeof Viewer;
 }
 interface BgWindow extends Window {
@@ -367,7 +364,7 @@ function simulateClick(a: HTMLElement, event: MouseEvent | KeyboardEvent): boole
 function imgOnKeydown(event: KeyboardEventToPrevent): boolean {
   if (VData.error) { return false; }
   const {keyCode} = event,
-  key = window.VKey && VKey.cacheK_ ? VKey.key_({c: kChar.INVALID, e: event, i: keyCode}, kModeId.Show)
+  key = window.VApi && VApi.cache2_ ? VApi.key_({c: kChar.INVALID, e: event, i: keyCode}, kModeId.Show)
       : keyCode === kKeyCode.space ? kChar.space : keyCode === kKeyCode.enter ? kChar.enter : "",
   keybody = (key.slice(key.lastIndexOf("-") + 1) || key && kChar.minus) as kChar;
   if (keybody === kChar.space || keybody === kChar.enter) {

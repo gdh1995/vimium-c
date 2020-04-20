@@ -1,13 +1,3 @@
-/// <reference path="../lib/dom_utils.ts" />
-/// <reference path="../lib/keyboard_utils.ts" />
-/// <reference path="../content/dom_ui.ts" />
-interface Window {
-  readonly VHud?: VHUDTy;
-  // readonly VCui?: typeof VCui;
-}
-// eslint-disable-next-line no-var
-declare var VHud: VHUDTy, VApi: VApiTy;
-
 interface ElementWithHash extends HTMLElement {
   onclick (this: ElementWithHash, event: MouseEventToPrevent | null, hash?: "hash"): void;
 }
@@ -23,8 +13,8 @@ Option_.syncToFrontend_ = [];
 Option_.prototype._onCacheUpdated = function<T extends keyof SettingsNS.FrontendSettings
     > (this: Option_<T>, func: (this: Option_<T>) => void): void {
   func.call(this);
-  if (window.VDom) {
-    (VDom.cache_ as Generalized<typeof VDom.cache_>
+  if (window.VApi) {
+    (VApi.cache2_ as Generalized<SettingsNS.FrontendSettingCache>
         )[bgSettings_.valuesToLoad_[this.field_]] = this.readValueFromElement_();
   }
 };
@@ -316,8 +306,8 @@ class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
   }
   readValueFromElement_ (): FullSettings[T] {
     let value = this.element_.indeterminate ? this.map_[1] : this.map_[this.element_.checked ? this.true_index_ : 0];
-    if (this.field_ === "ignoreCapsLock" && window.VDom && VDom.cache_) {
-      VDom.cache_.i = value > 1 || value === 1 && !bgSettings_.payload_.o;
+    if (this.field_ === "ignoreCapsLock" && window.VApi && VApi.cache2_) {
+      VApi.cache2_!.i = value > 1 || value === 1 && !bgSettings_.payload_.o;
     }
     return value;
   }
@@ -790,7 +780,7 @@ let optionsInit1_ = function (): void {
     event.preventDefault();
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
-      window.VHud ? hudTip(kTip.haveToOpenManually) : alert(pTrans_("" + kTip.haveToOpenManually));
+      window.VApi ? VApi.tip_(kTip.haveToOpenManually) : alert(pTrans_("" + kTip.haveToOpenManually));
     } else {
       BG_.Backend_.focus_({ u: this.href, r: ReuseType.reuse, p: true });
     }
@@ -828,13 +818,13 @@ let optionsInit1_ = function (): void {
     {
       Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
         && bgBrowserVer_ < BrowserVer.MinScrollIntoViewOptions
-      ? window.VDom ? VDom.view_(node2) : (node2 as EnsureItemsNonNull<SafeHTMLElement>).scrollIntoViewIfNeeded()
+      ? node2.scrollIntoViewIfNeeded!()
       : node2.scrollIntoView({ block: "center" });
       node2.focus();
     }
-    if (window.VCui) {
-      VDom.prepareCrop_();
-      VCui.flash_((node2 as EnsuredMountedHTMLElement).parentElement.parentElement);
+    if (window.VApi) {
+      VApi.prepareCrop2_();
+      VApi.flash_((node2 as EnsuredMountedHTMLElement).parentElement.parentElement);
     }
   };
   for (let _i = _ref.length; 0 <= --_i; ) {
@@ -886,13 +876,13 @@ ignoreKeyboardLayoutOption.element_.addEventListener("change",
     ignoreKeyboardLayoutOption.onSave_.bind(ignoreKeyboardLayoutOption), true);
 
 Option_.all_.userDefinedCss.onSave_ = function () {
-  if (!window.VDom || !VDom.cache_) { return; }
-  const root = VCui.root_;
+  if (!window.VApi || !VApi.cache2_) { return; }
+  const root = VApi.misc_().ui_root_;
   let debuggedStyle = root && root.querySelector("style.debugged") as HTMLStyleElement | null;
   if (!debuggedStyle) { return; }
   setTimeout(function () {
     (debuggedStyle as HTMLStyleElement).remove();
-    const iframes = VCui.root_.querySelectorAll("iframe");
+    const iframes = root!.querySelectorAll("iframe");
     for (let i = 0, end = iframes.length; i < end; i++) {
       const frame = iframes[i], isFind = frame.classList.contains("HUD"),
       doc = frame.contentDocument as HTMLDocument,
@@ -959,8 +949,8 @@ table.ondrop = event => {
 }
 
 $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
-  if (!window.VDom || !VDom.cache_) { return; }
-  const root = VCui.root_ as VUIRoot | null, self = Option_.all_.userDefinedCss;
+  if (!window.VApi || !VApi.cache2_) { return; }
+  const root = VApi.misc_().ui_root_, self = Option_.all_.userDefinedCss;
   let styleDebug = root && root.querySelector("style.debugged") as HTMLStyleElement | null;
   if (styleDebug) {
     if (styleDebug.nextElementSibling) {
@@ -976,13 +966,13 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
       /** Note: should keep the same as {@link ../background/settings.ts#Settings_.updateHooks_.userDefinedCss } */
       let css = localStorage.getItem("innerCSS") as string, headEnd = css.indexOf("\n");
       css = css.substr(headEnd + 1, +css.slice(0, headEnd).split(",")[2]);
-      VCui.css_(css);
-      VCui.root_.appendChild(styleDebug as HTMLStyleElement);
+      VApi.setUICSS_(css);
+      VApi.misc_().ui_root_!.appendChild(styleDebug as HTMLStyleElement);
     };
     if (root) {
       patch();
     } else {
-      VCui.add_(styleDebug);
+      VApi.addUIElement_(styleDebug);
       styleDebug.remove();
       setTimeout(patch, 200);
     }
@@ -998,17 +988,17 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
   styleDebug.textContent = css2.ui || "";
   const iframes = root ? root.querySelectorAll("iframe") : [];
   for (let i = 0, end = iframes.length; i < end; i++) {
-    type StyleEl = HTMLStyleElement;
     const frame = iframes[i], isFind = frame.classList.contains("HUD"),
     doc = frame.contentDocument as HTMLDocument,
-    root2 = isFind ? (VCui.styleFind_ as StyleEl).parentNode as HTMLElement : doc;
+    api = window.VApi, misc = api && api.misc_(), findCss = misc && misc.find_css_,
+    root2 = isFind ? misc!.style_in_find_hud_!.parentNode as HTMLElement : doc;
     styleDebug = root2.querySelector("style.debugged") as HTMLStyleElement | null;
     if (!styleDebug) {
       if (isFind) {
         const oldCSS2 = bgSettings_.parseCustomCSS_(bgSettings_.get_("userDefinedCss")).find || "";
         if (oldCSS2) {
           const str = bgSettings_.cache_.findCSS_.i;
-          (VCui.styleFind_ as StyleEl).textContent = str.slice(0, -oldCSS2.length - 1);
+          misc!.style_in_find_hud_!.textContent = str.slice(0, -oldCSS2.length - 1);
         }
         styleDebug = doc.createElement("style");
         styleDebug.type = "text/css";
@@ -1027,7 +1017,6 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
     }
     styleDebug.textContent = isFind ? css2.find || ""
       : (isSame ? "" : "\n.transparent { opacity: 1; }\n") + (css2.omni && css2.omni + "\n" || "");
-    const vCui = window.VCui, findCss = vCui && vCui.findCss_;
     if (isFind && findCss) {
       /** Note: should keep the same as {@link ../background/settings.ts#Settings_.updateHooks_.userDefinedCss } */
       let css = localStorage.getItem("findCSS") as string, defaultLen = parseInt(css, 10);
@@ -1088,18 +1077,16 @@ function loadChecker(this: HTMLElement): void {
 
 document.addEventListener("keydown", function (this: void, event): void {
   if (event.keyCode !== kKeyCode.space) {
-    if (!window.VKey || !VKey.cacheK_ || VApi.lock_()) { return; }
-    const eventWrapper: HandlerNS.Event = {c: kChar.INVALID, e: event, i: event.keyCode},
-    ch = VKey.char_(eventWrapper).toLowerCase(),
-    stat = VKey.getKeyStat_(eventWrapper);
-    if (stat === KeyStat.altKey && ch === kChar.f12) {
+    if (!window.VApi || !VApi.cache2_ || VApi.lock_()) { return; }
+    const key = VApi.key_({c: kChar.INVALID, e: event, i: event.keyCode}, kModeId.NO_MAP_KEY)
+    if (key === "a-" + kChar.f12) {
       $<HTMLOptionElement>("#recommendedSettings").selected = true;
       let el2 = $<HTMLSelectElement>("#importOptions");
       el2.onchange != null ? (el2 as any).onchange() : setTimeout(() => {
         el2.onchange && (el2 as any).onchange();
       }, 100) && el2.click();
     }
-    if (!stat && ch === "?") {
+    else if (key === "?") {
       if (!Build.NDEBUG) {
         console.log('The document receives a "?" key which has been passed (excluded) by Vimium C,',
           "so open the help dialog.");
@@ -1140,8 +1127,7 @@ window.onhashchange = function (this: void): void {
         window.scrollTo(0, 0);
       }
       const node2 = node as Element;
-      window.VDom ? VDom.view_(node2)
-        : (Build.BTypes & BrowserType.Chrome && node2.scrollIntoViewIfNeeded || node2.scrollIntoView).call(node2);
+      Build.BTypes & BrowserType.Chrome ? node2.scrollIntoViewIfNeeded!() : node2.scrollIntoView();
     };
     if (document.readyState === "complete") { return callback(); }
     window.scrollTo(0, 0);
@@ -1217,9 +1203,10 @@ if (!cmdRegistry || cmdRegistry.alias_ !== kBgCmd.showHelp) { (function (): void
 })(); }
 
 document.addEventListener("click", function onClickOnce(): void {
-  if (!window.VDom || !VCui.root_) { return; }
+  const api = window.VApi, misc = api && api.misc_()
+  if (!misc || !misc.ui_root_) { return; }
   document.removeEventListener("click", onClickOnce, true);
-  (VCui.root_ as Node).addEventListener("click", function (event): void {
+  misc.ui_root_.addEventListener("click", function (event): void {
     let target = event.target as HTMLElement, str: string;
     if (VApi && target.classList.contains("HelpCommandName")) {
       str = target.textContent.slice(1, -1);

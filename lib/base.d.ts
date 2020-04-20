@@ -360,7 +360,6 @@ interface VApiTy {
   send_<K extends keyof FgRes>(this: void, cmd: K, args: Req.fgWithRes<K>["a"]
     , callback: (this: void, res: FgRes[K]) => void): void;
 
-  OnWndFocus_ (this: void): void;
   focusAndRun_ (this: void): void;
   focusAndRun_ (this: void, cmd: FgCmdAcrossFrames
       , count: number, options: FgOptions
@@ -371,12 +370,12 @@ interface VApiTy {
     (this: void, srcCacheArray: KeydownCacheArray): boolean
     (this: void): KeydownCacheArray;
   };
+  setTr_: ((newTr: VTransType) => void) | null | undefined;
   execute_: ((this: void, cmd: ValidContentCommands) => void) | null;
   destroy_: (this: void, silent?: boolean | BOOL | 9) => void;
 
   linkActivate_ (count: number, options: HintsNS.ContentOptions): void
   omniActivate_ (count: number, options: CmdOptions[kFgCmd.vomnibar]): void
-  findBox_ (): HTMLIFrameElement
   findOnLoad_ (later?: 1): void
   scroll_: {
     (di: ScrollByY, amount: number, isTo: 0
@@ -386,18 +385,36 @@ interface VApiTy {
       , factor?: undefined | 0, fromMax?: boolean, options?: CmdOptions[kFgCmd.scroll]): void
   }
   scrollTick_ (willContinue: BOOL | 2): void
-  keyIsDown_ (): number
   $sc (element: SafeElement | null, di: ScrollByY, amount: number): void
 
   learnCSS_ (srcStyleUI: HTMLStyleElement | string | null, force?: 1): void
-  clickable_ (): ElementSet
   suppressTailKeys_: {
     (timeout: 0, callback?: undefined): HandlerNS.RefHandler
     (timeout: number, callback?: HandlerNS.VoidHandler): HandlerNS.RefHandler
   }
   innerHeight_ff_? (): number
-  
+
+  tip_ (tid: kTip | HintMode, duration?: number, args?: Array<string | number>): void
+  lock_ (): LockableElement | null
+  key_ (eventWrapper: HandlerNS.Event, mode: kModeId): string
   readonly baseHinter_: HintsNS.BaseHinter
+  setUICSS_ (innerCSS: string): void
+  addUIElement_ (element: HTMLElement, adjust_type?: AdjustType, before?: Element | null | true): void
+  prepareCrop2_ (inVisualViewport?: 1, limitedView?: Rect | null): number
+  flash_: {
+    (el: null, rect: Rect, lifeTime?: number, classNames?: string): () => void
+    (el: Element, rect?: null, lifeTime?: number, classNames?: string): (() => void) | void
+  }
+  cache2_: SettingsNS.FrontendSettingCache | null,
+  misc_ (): {
+    on_wnd_focus_ (this: void): void,
+    find_box_: HTMLIFrameElement | null,
+    key_is_down_: number,
+    clickable_: ElementSet,
+    ui_root_: VUIRoot | null,
+    find_css_: FindCSS,
+    style_in_find_hud_: HTMLStyleElement | null
+  }
 }
 
 declare var VimiumInjector: VimiumInjectorTy | undefined | null, VApi: VApiTy;

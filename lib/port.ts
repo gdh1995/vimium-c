@@ -1,4 +1,4 @@
-import { injector, safer } from "./utils.js"
+import { injector, safeObj, timeout_ } from "./utils.js"
 
 export interface Port extends chrome.runtime.Port {
   postMessage<k extends keyof FgRes>(request: Req.fgWithRes<k>): 1;
@@ -8,7 +8,7 @@ export interface Port extends chrome.runtime.Port {
 }
 export type SafeDestoryF = (silent?: boolean | BOOL | 9) => void
 
-const port_callbacks: { [msgId: number]: <k extends keyof FgRes>(this: void, res: FgRes[k]) => void } = safer(null)
+const port_callbacks: { [msgId: number]: <k extends keyof FgRes>(this: void, res: FgRes[k]) => void } = safeObj(null)
 let port_: Port | null = null
 let tick = 1
 let runtimeConnect: (this: void) => void
@@ -34,7 +34,7 @@ export const safePost = <k extends keyof FgReq> (request: FgReq[k] & Req.baseFg<
   try {
     if (!port_) {
       runtimeConnect();
-      injector && VKey.timeout_((): void => { port_ || safeDestroy(); }, 50);
+      injector && timeout_((): void => { port_ || safeDestroy(); }, 50);
     } else if (Build.BTypes & BrowserType.Firefox && injector) {
       injector.$r(InjectorTask.recheckLiving);
     }

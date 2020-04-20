@@ -19,5 +19,5 @@
     "CreateFakeIncognito": [0, 0],
     "NDEBUG": [ 0, 1 ]
   },
-  "extends": "./base.tsconfig"
+  "extends": "./tsconfig"
 }

@@ -9,7 +9,6 @@
   },
   "dependencies": {
     "pngjs": "^3.4.0",
-    "rollup": "^2.6.1",
     "typescript": "^3.8.3"
   },
   "devDependencies": {
@@ -28,6 +27,7 @@
     "gulp-some": "*",
     "gulp-typescript": "^5.0.1",
     "gulp-uglify": ">=3.0.2",
+    "rollup": "^2.6.1",
     "seedrandom": ">=3.0.1",
     "terser": "^4.6.3",
     "web-ext": "^4.1.0"
@@ -57,7 +57,7 @@
     "latest-edge": "bash -c \"BUILD_MinCVer=53 BUILD_BTypes=4 LOCAL_DIST=${LOCAL_DIST:-dist} BUILD_NDEBUG=0 gulp local2\"",
     "chrome": "bash -c \"BUILD_MinCVer=43 BUILD_BTypes=1 NEED_COMMIT=1 gulp dist && IN_DIST=1 CHROME_ONLY=1 ./scripts/make.sh\"",
     "csize": "bash -c \"BUILD_MinCVer=43 BUILD_BTypes=${BUILD_BTypes:-1} gulp size/content\"",
-    "chrome-latest": "bash -c \"BUILD_MinCVer=73 BUILD_BTypes=1 BUILD_NDEBUG=1 gulp dist\"",
+    "chrome-latest": "bash -c \"BUILD_MinCVer=73 BUILD_BTypes=1 gulp dist\"",
     "chromium": "npm run chrome",
     "firefox": "bash -c \"BUILD_MinFFVer=63 BUILD_PContentSettings=0 BUILD_BTypes=2 NEED_COMMIT=1 gulp dist && IN_DIST=1 ./scripts/make.sh\"",
     "edge-c": "bash -c \"BUILD_MinCVer=73 BUILD_BTypes=1 BUILD_EdgeC=1 NEED_COMMIT=1 gulp dist && IN_DIST=1 BUILD_EdgeC=1 ./scripts/make.sh\"",

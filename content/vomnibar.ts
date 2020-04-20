@@ -15,6 +15,9 @@ interface FullOptions extends BaseFullOptions {
 // eslint-disable-next-line no-var
 declare var VData: VDataTy
 
+import { injector, isAlive_, keydownEvents_, VOther, timeout_, clearTimeout_, fgCache } from "../lib/utils.js"
+import * as VKey from "../lib/keyboard_utils.js";
+import * as VDom from "../lib/dom_utils.js";
 import { beginScroll, scrollTick } from "./scroller.js"
 import {
   getSelectionText, adjustUI, setupExitOnClick, addUIElement, getParentVApi, evalIfOK, checkHidden,
@@ -23,7 +26,6 @@ import { tryNestedFrame } from "./link_hints.js"
 import { insert_Lock_ } from "./mode_insert.js"
 import { hudTip, hud_box } from "./hud.js"
 import { post_, send_ } from "../lib/port.js"
-import { injector, isAlive_, keydownEvents_, VOther } from "../lib/utils.js"
 
 let box: HTMLIFrameElement & { contentWindow: IFrameWindow } = null as never
 let portToOmni: OmniPort = null as never
@@ -42,7 +44,7 @@ export const activate = function (count: number, options: FullOptions): void {
     // hide all further key events to wait iframe loading and focus changing from JS
     VKey.removeHandler_(activate)
     VKey.pushHandler_(VKey.SuppressMost_, activate)
-    let timer1 = VKey.timeout_(refreshKeyHandler, GlobalConsts.TimeOfSuppressingTailKeydownEvents)
+    let timer1 = timeout_(refreshKeyHandler, GlobalConsts.TimeOfSuppressingTailKeydownEvents)
     if (checkHidden(kFgCmd.vomnibar, count, options)) { return; }
     if (status === VomnibarNS.Status.KeepBroken) {
       return hudTip(kTip.omniFrameFail, 2000)
@@ -50,8 +52,8 @@ export const activate = function (count: number, options: FullOptions): void {
     if (!options || !options.k || !options.v) { return; }
     if (dom.readyState_ > "l") {
       if (!timer) {
-        VKey.clearTimeout_(timer1);
-        timer = VKey.timeout_(activate.bind(0, count, options), 500)
+        clearTimeout_(timer1);
+        timer = timeout_(activate.bind(0, count, options), 500)
         return;
       }
     }
@@ -80,7 +82,7 @@ export const activate = function (count: number, options: FullOptions): void {
     omniOptions = null
     dom.getViewBox_();
     canUseVW = (Build.MinCVer >= BrowserVer.MinCSSWidthUnit$vw$InCalc
-            || !!(Build.BTypes & BrowserType.Chrome) && dom.cache_.v > BrowserVer.MinCSSWidthUnit$vw$InCalc - 1)
+            || !!(Build.BTypes & BrowserType.Chrome) && fgCache.v > BrowserVer.MinCSSWidthUnit$vw$InCalc - 1)
         && !dom.fullscreenEl_unsafe_() && dom.docZoom_ === 1 && dom.dScale_ === 1;
     let scale = dom.devRatio_();
     let width = canUseVW ? innerWidth : !(Build.BTypes & ~BrowserType.Firefox) ? dom.prepareCrop_()
@@ -210,7 +212,7 @@ export const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void
         activate(1, {} as FullOptions)
       }
       if (location.origin !== origin || !origin || type === VomnibarNS.PageType.web) {
-        VKey.timeout_(checkBroken, 600)
+        timeout_(checkBroken, 600)
         const channel = new MessageChannel();
         portToOmni = channel.port1
         channel.port1.onmessage = onOmniMessage
@@ -237,7 +239,7 @@ export const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void
     };
     addUIElement(box = el, AdjustType.MustAdjust, hud_box)
     type !== VomnibarNS.PageType.inner &&
-    VKey.timeout_(function (i): void {
+    timeout_(function (i): void {
       loaded || (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i) ||
       onReset || reload()
     }, 2000);
@@ -317,7 +319,7 @@ const onShown = (maxBoxHeight: number): void => {
         ) + (canUseVW ? "vh" : "%") : ""
     style.top = !Build.NoDialogUI && VimiumInjector === null && location.hash === "#dialog-ui" ? "8px" : top;
     style.display = "";
-    VKey.timeout_(refreshKeyHandler, 160)
+    timeout_(refreshKeyHandler, 160)
 }
 
 const refreshKeyHandler = (): void => {

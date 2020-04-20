@@ -2,11 +2,12 @@
   "compilerOptions": {
     "allowJs": false,
     "alwaysStrict": true,
+    "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "incremental": true,
     "keyofStringsOnly": false,
     "listEmittedFiles": false,
-    "module": "es6",
+    "module": "amd",
     "newLine": "lf",
     "noEmitHelpers": true,
     "noFallthroughCasesInSwitch": false,

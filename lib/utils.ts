@@ -1,3 +1,5 @@
+import { Stop_ } from "./keyboard_utils"
+
 export interface EscF {
   <T extends Exclude<HandlerResult, HandlerResult.ExitPassMode>> (this: void, i: T): T;
   (this: void, i: HandlerResult.ExitPassMode): unknown;
@@ -24,7 +26,7 @@ export const initialDocState = doc.readyState
 export let VTr: VTransType
 export const setTr = (newTr: VTransType): void => { VTr = newTr }
 
-let esc: EscF
+let esc: EscF | null
 
 /** ==== Status ==== */
 
@@ -38,8 +40,8 @@ export const setStatusLocked = (newLocked: boolean): void => { isLocked_ = newLo
 
 /** ==== Cache ==== */
 
-export let fgCache: SettingsNS.FrontendSettingCache = null as never
-export const setFgCache = (newCache: SettingsNS.FrontendSettingCache): void => { fgCache = newCache }
+export let fgCache: OnlyEnsureItemsNonNull<SettingsNS.FrontendSettingCache> = null as never
+export const setFgCache = (newCache: SettingsNS.FrontendSettingCache): void => { fgCache = newCache as typeof fgCache }
 
 export let clickable_: ElementSet = null as never
 export const setClickable = (newClickable: ElementSet): void => { clickable_ = newClickable }
@@ -62,12 +64,23 @@ export const setEsc = (newEsc: EscF): void => { esc = newEsc }
 export let onWndFocus = function (this: void): void { /* empty */ }
 export const setOnWndFocus = (f: ((this: void) => void)): void => { onWndFocus = f; }
 
-export const safer = Object.create as { (o: null): any; <T>(o: null): SafeDict<T> }
+export const safeObj = Object.create as { (o: null): any; <T>(o: null): SafeDict<T> }
+
+export const safer: <T extends object> (opt: T) => T & SafeObject
+    = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && Build.BTypes & BrowserType.Chrome
+        && !Object.setPrototypeOf
+      ? <T extends object> (obj: T): T & SafeObject => { (obj as any).__proto__ = null; return obj as T & SafeObject; }
+      : <T extends object> (opt: T): T & SafeObject => Object.setPrototypeOf(opt, null);
+
+export const timeout_ = (func: (this: void, fake?: TimerType.fake) => void, timeout: number
+    ): TimerID.Valid | TimerID.Others => setTimeout(func, timeout)
+
+export const clearTimeout_ = (timer: TimerID) => { clearTimeout(timer); }
 
 /**
  * @param target Default to `window`
  * @param eventType string
- * @param func Default to `VKey.Stop_`
+ * @param func Default to `Stop_`
  * @param disable Default to `0`
  * @param activeMode Default to `{passive: true, capture: true}`; `1` means `passive: false`
  */
@@ -79,7 +92,7 @@ export const setupEventListener =
       : Active extends 1 ? EventToPrevent : Event) => void) | null | EventListenerObject
     , disable?: boolean | BOOL, activeMode?: Active): void => {
   (disable ? removeEventListener : addEventListener).call(target || window, eventType,
-    <(this: T, e: EventToPrevent) => void> func || VKey.Stop_,
+    <(this: T, e: EventToPrevent) => void> func || Stop_,
     {passive: !activeMode, capture: true} as EventListenerOptions | boolean as boolean);
 }
 

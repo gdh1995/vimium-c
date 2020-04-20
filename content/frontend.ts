@@ -1,27 +1,24 @@
+/// <reference path="../lib/base.d.ts" />
+
 import {
-  doc, isTop, isEnabled_, injector, VOther, initialDocState, setupKeydownEvents,
-  setEsc, esc, setupEventListener, setVEnabled,
-  setClickable, clickable_, isLocked_, isAlive_, setTr, onWndFocus,
+  doc, isTop, isEnabled_, injector, VOther, initialDocState, setEsc, esc, setupEventListener, setVEnabled,
+  setClickable, clickable_, isLocked_, isAlive_, setTr, timeout_,
 } from "../lib/utils.js"
 import {
-  post_, send_, safePost, setRuntimePort, runtime_port, Port, SafeDestoryF, setSafeDestroy,
+  safePost, setRuntimePort, runtime_port, Port, SafeDestoryF, setSafeDestroy,
   setRuntimeConnect, runtimeConnect,
 } from "../lib/port.js"
-import { keyIsDown as scroll_keyIsDown, scrollTick, executeScroll, $sc } from "./scroller.js"
-import { onLoad as findOnLoad, find_box } from "./mode_find.js"
-import { activate as linkActivate, coreHints } from "./link_hints.js"
-import { activate as omniActivate } from "./vomnibar.js"
 import {
-  ui_box, adjustUI, learnCSS, doExitOnClick, getParentVApi, setParentVApiGetter, style_ui, setGetWndVApi,
+  ui_box, adjustUI, doExitOnClick, getParentVApi, setParentVApiGetter, style_ui, setGetWndVApi,
 } from "./dom_ui.js"
 import { grabBackFocus } from "./mode_insert.js"
-import { getMappedKey, currentKeys, passKeys } from "./key_handler.js"
+import { currentKeys, passKeys } from "./key_handler.js"
 import { contentCommands_ } from "./commands.js"
-import { requestHandlers, hook, focusAndRun, enableNeedToRetryParentClickable } from "./request_handler.js"
+import { requestHandlers, hook, enableNeedToRetryParentClickable } from "./request_handler.js"
 
-import extend_click from  "./extend_click.js"
+import { main as extend_click } from  "./extend_click.js"
+import * as VDom from "../lib/dom_utils.js"
 
-  const vDom = VDom
   let coreTester: { name_: string; rand_: number; recvTick_: number; sendTick_: number;
         encrypt_ (trustedRand: number, unsafeRand: number): string;
         compare_: Parameters<SandboxGetterFunc>[0]; }
@@ -56,37 +53,14 @@ function safeDestroy (silent?: Parameters<SafeDestoryF>[0]): void {
 
   if (injector) {
     injector.$p = [safePost, function () {
-      let keys = currentKeys; esc(HandlerResult.Nothing); return keys;
+      let keys = currentKeys; esc!(HandlerResult.Nothing); return keys;
     }, setClickable];
-  }
-
-  VKey.key_ = getMappedKey;
-
-  VApi = {
-    post_, send_,
-    OnWndFocus_ (): void { onWndFocus() },
-    setupKeydownEvents_: setupKeydownEvents, focusAndRun_: focusAndRun,
-    destroy_: safeDestroy,
-    linkActivate_: linkActivate,
-    omniActivate_: omniActivate,
-    findBox_: () => find_box,
-    findOnLoad_: findOnLoad,
-    scroll_: executeScroll,
-    scrollTick_: scrollTick,
-    keyIsDown_: () => scroll_keyIsDown,
-    $sc: $sc,
-    learnCSS_: learnCSS,
-    clickable_: () => clickable_,
-    suppressTailKeys_: VKey.suppressTail_,
-    baseHinter_: coreHints,
-    innerHeight_ff_: Build.BTypes & BrowserType.Firefox ? () => innerHeight : 0 as never,
-    execute_: null
   }
 
   if (!(Build.BTypes & BrowserType.Firefox)) { /* empty */ }
   else if (Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox || injector !== void 0) {
     /*#__INLINE__*/ setGetWndVApi(wnd => wnd.VApi);
-    /*#__INLINE__*/ setParentVApiGetter(() => vDom.frameElement_() && (parent as Window).VApi)
+    /*#__INLINE__*/ setParentVApiGetter(() => VDom.frameElement_() && (parent as Window).VApi)
   } else {
     coreTester = {
       name_: BuildStr.CoreGetterFuncName as const,
@@ -140,7 +114,7 @@ function safeDestroy (silent?: Parameters<SafeDestoryF>[0]): void {
   }
   isTop || injector ||
   function (): void { // if injected, `parentFrame_` still needs a value
-    const parEl = vDom.frameElement_();
+    const parEl = VDom.frameElement_();
     if (!parEl) {
       if ((Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
           || WeakSet) && <boolean> grabBackFocus) {
@@ -162,13 +136,14 @@ function safeDestroy (silent?: Parameters<SafeDestoryF>[0]): void {
     const parApi = getParentVApi();
     if (Build.BTypes & BrowserType.Firefox) {
       try { // `vApi` is still unsafe
-        if (parApi) {
+      if (parApi) {
+          const state = parApi.misc_()
           if ((!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox
-                ? parApi.findBox_() && XPCNativeWrapper(parApi.findBox_()) : parApi.findBox_()) === parEl) {
+                ? state.find_box_ && XPCNativeWrapper(state.find_box_) : state.find_box_) === parEl) {
             safeDestroy(1);
             parApi.findOnLoad_()
           } else {
-            /*#__INLINE__*/ setClickable(parApi.clickable_())
+            /*#__INLINE__*/ setClickable(state.clickable_)
           }
           return;
         }
@@ -184,15 +159,16 @@ function safeDestroy (silent?: Parameters<SafeDestoryF>[0]): void {
       }
     } else {
       // if not `vfind`, then a parent may have destroyed for unknown reasons
-      if (parApi && parApi.findBox_() === parEl) {
+      const state = parApi && parApi.misc_()
+      if (state && state.find_box_ === parEl) {
         safeDestroy(1);
-        parApi.findOnLoad_();
+        parApi!.findOnLoad_();
       } else {
-        /*#__INLINE__*/ setClickable(parApi as never && parApi!.clickable_())
+        /*#__INLINE__*/ setClickable(parApi as never && state!.clickable_)
       }
     }
   }();
-  if (isAlive_ as any) {
+  if (isAlive_) {
     interface ElementWithClickable { vimiumClick?: boolean }
     /*#__INLINE__*/ setClickable(!(Build.BTypes & BrowserType.Firefox)
         || Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox
@@ -203,27 +179,29 @@ function safeDestroy (silent?: Parameters<SafeDestoryF>[0]): void {
       has (element: Element): boolean { return !!(element as ElementWithClickable).vimiumClick; }
     }) : /* now know it's on Firefox */
         clickable_ || new WeakSet!<Element>())
-    vDom.readyState_ = initialDocState;
+    // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
+    hook(HookAction.Install);
     {
       let execute = (callback: (this: void) => void): void => { callback(); },
       listeners1: Array<(this: void) => void> = [], listeners2: Array<(this: void) => void> = [],
       Name = "readystatechange",
       onReadyStateChange = function (): void {
-        const stat = vDom.readyState_ = doc.readyState, loaded = stat < "i", arr = loaded ? listeners2 : listeners1;
+        const stat = doc.readyState, loaded = stat < "i", arr = loaded ? listeners2 : listeners1;
+        VDom.setReadyState(stat)
         if (loaded) {
           setupEventListener(0, Name, onReadyStateChange, 1);
-          onReadyStateChange = (vDom.OnDocLoaded_ = execute) as any;
+          /*#__INLINE__*/ VDom.setOnDocLoaded(execute)
+          onReadyStateChange = execute as any
         }
         arr.forEach(execute);
         arr.length = 0;
       };
-      vDom.OnDocLoaded_ = initialDocState < "i" ? execute : (setupEventListener(0, Name, onReadyStateChange),
+      /*#__INLINE__*/ VDom.setOnDocLoaded(initialDocState < "i" ? execute : (
+      setupEventListener(0, Name, onReadyStateChange),
           (callback, onloaded) => {
-        vDom.readyState_ < "l" && !onloaded ? callback() : (onloaded ? listeners2 : listeners1).push(callback);
-      });
+        VDom.readyState_ < "l" && !onloaded ? callback() : (onloaded ? listeners2 : listeners1).push(callback);
+      }))
     }
-    // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
-    hook(HookAction.Install);
     
     /*#__INLINE__*/ setRuntimeConnect((function (this: void): void {
       const api = Build.BTypes & ~BrowserType.Chrome
@@ -243,7 +221,7 @@ function safeDestroy (silent?: Parameters<SafeDestoryF>[0]): void {
       /*#__INLINE__*/ setRuntimePort(port)
       port.onDisconnect.addListener((): void => {
         /*#__INLINE__*/ setRuntimePort(null)
-        VKey.timeout_(function (i): void {
+        timeout_(function (i): void {
           if (!(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i)) {
             try { runtime_port || !isAlive_ || runtimeConnect(); return; } catch {}
           }

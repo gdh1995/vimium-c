@@ -1,6 +1,6 @@
 $<ElementWithDelay>("#showCommands").onclick = function (event): void {
-  if (!window.VDom || !VDom.cache_) { return; }
-  let node: HTMLElement | null, root = VCui.root_;
+  if (!window.VApi || !VApi.cache2_) { return; }
+  let node: HTMLElement | null, root = VApi.misc_().ui_root_;
   event && event.preventDefault();
   if (!root) { /* empty */ }
   else if (node = root.querySelector("#HClose") as HTMLElement | null) {
@@ -11,7 +11,8 @@ $<ElementWithDelay>("#showCommands").onclick = function (event): void {
   VApi.post_({ H: kFgReq.initHelp });
   if (event) { return; }
   setTimeout(function (): void {
-    const node2 = VCui.root_ && VCui.root_.querySelector("#HelpDialog") as HTMLElement;
+    const misc = VApi.misc_()
+    const node2 = misc.ui_root_ && misc.ui_root_.querySelector("#HelpDialog") as HTMLElement;
     if (!node2) { return; }
     (node2.querySelector("#HClose") as HTMLElement).addEventListener("click", function (): void {
       location.hash = "";
@@ -166,7 +167,7 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
         plat ? pTrans_("filePlatform", [pTrans_(plat) || plat[0].toUpperCase() + plat.slice(1)])
           : pTrans_("commonPlatform"),
         time ? pTrans_("atTime", [formatDate_(time)]) : pTrans_("before")]))) {
-    window.VHud && hudTip(kTip.cancelImport, 1000);
+    window.VApi && VApi.tip_(kTip.cancelImport, 1000);
     return;
   }
   const setProto_old_cr = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf
@@ -312,12 +313,13 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
     $<AdvancedOptBtn>("#advancedOptionsButton").onclick(null, true);
   }
   console.info("IMPORT settings: finished.");
-  const node = window.VDom && VCui.root_ && VCui.root_.querySelector("#HClose") as HTMLElement;
+  const root = window.VApi && VApi.misc_().ui_root_
+  const node = root && root.querySelector("#HClose") as HTMLElement;
   if (node) { // reload help dialog
     node.click();
     $("#showCommands").click();
   }
-  if (window.VHud) { hudTip(kTip.importOK, 1000); }
+  if (window.VApi) { VApi.tip_(kTip.importOK, 1000); }
 }
 
 function importSettings_(time: number | string | Date, data: string, is_recommended?: boolean): void {

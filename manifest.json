@@ -52,9 +52,9 @@
     "js": [
       "lib/env.js",
       "lib/utils.js",
+      "lib/keyboard_utils.js",
       "lib/port.js",
       "lib/dom_utils.js",
-      "lib/keyboard_utils.js",
       "content/dom_ui.js",
       "content/hud.js",
       "content/mode_insert.js",
@@ -68,8 +68,8 @@
       "content/scroller.js",
       "content/commands.js",
       "content/request_handler.js",
-      "content/frontend.js",
-      "content/extend_click.js"
+      "content/extend_click.js",
+      "content/frontend.js"
     ],
     "match_about_blank": true,
     "matches": [ "<all_urls>" ],

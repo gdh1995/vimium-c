@@ -1,6 +1,7 @@
-import { fgCache, doc, isEnabled_, VTr, isAlive_ } from "../lib/utils.js"
+import { fgCache, doc, isEnabled_, VTr, isAlive_, timeout_, clearTimeout_ } from "../lib/utils.js"
 import { ui_box, ensureBorder, addUIElement, adjustUI } from "./dom_ui.js"
 import { allLinkHints } from "./link_hints.js"
+import * as VDom from "../lib/dom_utils.js"
 
 let tweenId = 0
 let box: HTMLDivElement | null = null
@@ -32,13 +33,13 @@ export const hudCopied = function (text: string, e?: "url" | "", virtual?: 1): s
 
 export const hudTip = (tid: kTip | HintMode, duration?: number, args?: Array<string | number>): void => {
   hudShow(tid, args);
-  text && (timer = VKey.timeout_(hudHide, duration || 1500));
+  text && (timer = timeout_(hudHide, duration || 1500));
 }
 export const hudShow = (tid: kTip | HintMode, args?: Array<string | number>, embed?: boolean): void => {
   if (!enabled || !VDom.isHTML_()) { return; }
   text = VTr(tid, args);
   opacity_ = 1;
-  if (timer) { VKey.clearTimeout_(timer); timer = TimerID.None; }
+  if (timer) { clearTimeout_(timer); timer = TimerID.None; }
   embed || tweenId || (tweenId = setInterval(tween, 40));
   let el = box;
   if (el) {
@@ -92,7 +93,7 @@ const tween = (fake?: TimerType.fake): void => { // safe-interval
 
 export const hudHide = (info?: TimerType): void => {
   let i: number;
-  if (i = timer) { VKey.clearTimeout_(i); timer = TimerID.None; }
+  if (i = timer) { clearTimeout_(i); timer = TimerID.None; }
   opacity_ = 0; text = "";
   if (!box) { /* empty */ }
   else if (info === TimerType.noTimer || !isEnabled_) {

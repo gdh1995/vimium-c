@@ -29,7 +29,9 @@ declare const enum DiType {
 type ValidDiTypes = DiType.Normal | DiType.UnsafeTextBox | DiType.SafeTextBox | DiType.Complicated
     | DiType.UnsafeComplicated;
 
-import { VTr, isAlive_, VOther } from "../lib/utils.js"
+import { VTr, isAlive_, VOther, clearTimeout_, safer, timeout_, fgCache, doc } from "../lib/utils.js"
+import * as VKey from "../lib/keyboard_utils.js"
+import * as VDom from "../lib/dom_utils.js"
 import { checkDocSelectable, getSelected, resetSelectionToDocStart, flash_ } from "./dom_ui.js"
 import { prepareTop, clearTop, executeScroll, scrollIntoView_need_safe } from "./scroller.js"
 import {
@@ -94,7 +96,7 @@ export const activate = (_0: number, options: CmdOptions[kFgCmd.visualMode]): vo
     }
     const isRange = type === SelType.Range, newMode = isRange ? mode : Mode.Caret,
     toCaret = newMode === Mode.Caret;
-    hudTimer && VKey.clearTimeout_(hudTimer)
+    hudTimer && clearTimeout_(hudTimer)
     hudShow(kTip.visualMode,
         [modeName = VTr(toCaret ? "Caret" : newMode === Mode.Line ? "Line" : "Visual")],
         !!options.r);
@@ -145,7 +147,7 @@ export const deactivate = (isEsc?: 1): void => {
 
   /** @unknown_di_result */
 const onKeydown = (event: HandlerNS.Event): HandlerResult => {
-    const doPass = event.i === kKeyCode.ime || event.i === kKeyCode.menuKey && VDom.cache_.o,
+    const doPass = event.i === kKeyCode.ime || event.i === kKeyCode.menuKey && fgCache.o,
     key = doPass ? "" : VKey.key_(event, kModeId.Visual), keybody = VKey.keybody_(key);
     if (!key || VKey.isEscape_(key)) {
       !key || currentCount || currentSeconds ? resetKeys() : deactivate(1)
@@ -191,11 +193,11 @@ const commandHandler = (command: VisualAction, count: number): void => {
     }
     if (command > VisualAction.MaxNotNewMode) {
       if (command === VisualAction.EmbeddedFindMode) {
-        VKey.clearTimeout_(hudTimer)
+        clearTimeout_(hudTimer)
         post_({ H: kFgReq.findFromVisual });
         return;
       }
-      return activate(1, VKey.safer_<CmdOptions[kFgCmd.visualMode]>({
+      return activate(1, safer<CmdOptions[kFgCmd.visualMode]>({
         m: command - VisualAction.MaxNotNewMode
       }));
     }
@@ -251,7 +253,7 @@ const establishInitialSelectionAnchor = (sr?: ShadowRoot | null): boolean => {
     if (!vDom.isHTML_()) { return true; }
     vDom.getZoom_(1);
     vDom.prepareCrop_();
-    const nodes = document.createTreeWalker(sr || document.body || vDom.docEl_unsafe_()!
+    const nodes = doc.createTreeWalker(sr || doc.body || vDom.docEl_unsafe_()!
             , NodeFilter.SHOW_TEXT);
     while (node = nodes.nextNode() as Text | null) {
       if (50 <= (str = node.data).length && 50 < str.trim().length) {
@@ -278,8 +280,8 @@ const establishInitialSelectionAnchor = (sr?: ShadowRoot | null): boolean => {
 
   /** @not_related_to_di */
 export const prompt = (tid: kTip, duration: number, args?: string[]): void => {
-  hudTimer && VKey.clearTimeout_(hudTimer)
-  hudTimer = VKey.timeout_(ResetHUD, duration)
+  hudTimer && clearTimeout_(hudTimer)
+  hudTimer = timeout_(ResetHUD, duration)
   hudShow(tid, args)
 }
 
@@ -309,7 +311,7 @@ const findV = (count: number): void => {
     if (find_hasResults) {
       diType_ = DiType.UnsafeUnknown
       if (mode_ === Mode.Caret && selType() === SelType.Range) {
-        activate(1, VKey.safer_<CmdOptions[kFgCmd.visualMode]>({
+        activate(1, safer<CmdOptions[kFgCmd.visualMode]>({
           m: Mode.Visual
         }));
       } else {
@@ -408,7 +410,7 @@ const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord
       if (direction &&
           (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && isFirefox
             ? !Build.NativeWordMoveOnFirefox || shouldSkipSpaceWhenMovingRight
-            : (VDom.cache_.o > kOS.MAX_NOT_WIN) !== shouldSkipSpaceWhenMovingRight)) {
+            : (fgCache.o > kOS.MAX_NOT_WIN) !== shouldSkipSpaceWhenMovingRight)) {
         fixWord = 1;
         if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && isFirefox
             ? !Build.NativeWordMoveOnFirefox : !shouldSkipSpaceWhenMovingRight) {
@@ -744,12 +746,12 @@ const TextOffset = (el: TextElement, di: ForwardDir | boolean): number => {
 
 /** @not_related_to_di */
 let init = (words: string, map: VisualModeNS.KeyMap) => {
-  const func = VKey.safer_, typeIdx = { None: SelType.None, Caret: SelType.Caret, Range: SelType.Range }
+  const func = safer, typeIdx = { None: SelType.None, Caret: SelType.Caret, Range: SelType.Range }
   init = null as never
   keyMap = map as VisualModeNS.SafeKeyMap
   selType = Build.BTypes & BrowserType.Chrome
       && Build.MinCVer <= BrowserVer.$Selection$NotShowStatusInTextBox
-      && VDom.cache_.v === BrowserVer.$Selection$NotShowStatusInTextBox
+      && fgCache.v === BrowserVer.$Selection$NotShowStatusInTextBox
   ? (): SelType => {
     let type = typeIdx[curSelection.type];
     return type === SelType.Caret && diType_ && ("" + curSelection) ? SelType.Range : type;
@@ -776,7 +778,7 @@ let init = (words: string, map: VisualModeNS.KeyMap) => {
       || Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) {
     if (!(Build.BTypes & ~BrowserType.Firefox)
         || Build.BTypes & BrowserType.Chrome
-            && VDom.cache_.v < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
+            && fgCache.v < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
         || Build.BTypes & BrowserType.Firefox && Build.BTypes & BrowserType.Edge
             && VOther === BrowserType.Firefox) {
       // Firefox && not native || Chrome && not only white spaces
@@ -815,7 +817,7 @@ let init = (words: string, map: VisualModeNS.KeyMap) => {
   (!(Build.BTypes & BrowserType.Chrome)
     || Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
     || (Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox)
-    || VDom.cache_.v >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) &&
+    || fgCache.v >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) &&
   // on Firefox 65 stable, Win 10 x64, there're '\r\n' parts in Selection.toString()
   (rightWhiteSpaceRe = <RegExpOne> (Build.BTypes & BrowserType.Firefox
       ? /[^\S\n\r\u2029\u202f\ufeff]+$/ : /[^\S\n\u2029\u202f\ufeff]+$/));

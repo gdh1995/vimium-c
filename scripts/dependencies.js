@@ -40,6 +40,8 @@
 /** @type {FileSystem} */
 // @ts-ignore
 var fs = require("fs");
+var fsPath = require("path");
+var projectRoot = fsPath.dirname(fsPath.dirname(__filename)).replace(/\\/g, "/");
 
 /**
  * Read file to string and remember info like BOM (support utf-8 / utf16le)
@@ -334,7 +336,7 @@ function patchExtendClick(source, locally, logger) {
 }
 
 /**
- * @argument filePath {string}
+ * @argument {string} filePath
  * @argument {{ (...args: any[]): any; error(message: string): any; }} logger
  * @returns {boolean} whether successful or not
  */
@@ -351,6 +353,19 @@ function logFileSize(filePath, logger) {
   }
 }
 
+/**
+ * @param {string} path
+ * @param {string} data
+ * @return {string}
+ */
+function addMetaData(path, data) {
+  const isAMDModule = data.startsWith("define");
+  if (!isAMDModule) { return data; }
+  path = path.replace(/\\/g, "/").replace(projectRoot, "").replace(/^\//, "")
+  var banner = "var __filename = " + JSON.stringify(path) + ";\n";
+  return banner + data;
+}
+
 module.exports = {
   readFile: readFile,
   readJSON: readJSON,
@@ -360,5 +375,6 @@ module.exports = {
   extendIf: extendIf,
   getGitCommit: getGitCommit,
   patchExtendClick: patchExtendClick,
+  addMetaData: addMetaData,
   logFileSize: logFileSize,
 };

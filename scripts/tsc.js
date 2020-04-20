@@ -97,7 +97,13 @@ argv.length = 2;
 var real_write = ts.sys.writeFile;
 var cache = Object.create(null);
 
-ts.sys.writeFile = function(path, data, writeBom) {
+ts.sys.writeFile =
+/**
+ * @param {string} path
+ * @param {string} data
+ * @param {unknown} writeBom
+ */
+function(path, data, writeBom) {
   try {
   var isJS = path.slice(-3) === ".js";
   var srcPath = isJS ? path.slice(0, -3) + ".ts" : path;
@@ -109,6 +115,7 @@ ts.sys.writeFile = function(path, data, writeBom) {
         data = lib.patchExtendClick(data, true);
       }
     }
+    data = lib.addMetaData(path, data);
     same = same && lib.readFile(path, {}) === data;
   }
   console.log("\t%s:", same ? "TOUCH" : "TSFILE", path);
@@ -151,6 +158,11 @@ var getUglifyJS = function() {
 function getDefaultUglifyConfig() {
   if (!defaultUglifyConfig) {
     defaultUglifyConfig = lib.loadUglifyConfig(root + "scripts/uglifyjs.local.json");
+    var tsconfig = lib.readJSON(root + "scripts/tsconfig.json");
+    var target = tsconfig.compilerOptions.target;
+    defaultUglifyConfig.ecma = ({
+      es5: 5, es6: 6, es2015: 6, es2017: 2017, es2018: 2018
+    })[target] || defaultUglifyConfig.ecma
   }
   return defaultUglifyConfig;
 }
