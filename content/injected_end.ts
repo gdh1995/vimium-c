@@ -1,5 +1,5 @@
 /** @todo: */
-// VDom.isHTML_ = () => document instanceof HTMLDocument;
+// isHTML_ = () => document instanceof HTMLDocument;
 
 VApi.execute_ = function (cmd): void {
   const injector = VimiumInjector;
@@ -38,7 +38,7 @@ VApi.execute_ = function (cmd): void {
   }
   if (Build.BTypes & BrowserType.Firefox) {
     if (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) {
-      // VDom.frameElement_ = () => frameElement;
+      // frameElement_ = () => frameElement;
     }
   }
   let i18nMessages: FgRes[kFgReq.i18n]["m"] = null,

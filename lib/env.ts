@@ -23,6 +23,7 @@ var VApi: VApiTy, VimiumInjector: VimiumInjectorTy | undefined | null;
 if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { var browser: unknown; }
 
 declare var define: any
+declare var __importStar: any
 
 Build.NDEBUG || (function (): void {
   type ModuleTy = Dict<any> & { __esModule: boolean }
@@ -34,11 +35,12 @@ Build.NDEBUG || (function (): void {
   const oldDefine: DefineTy = typeof define !== "undefined" ? define : null
   let modules: Dict<ModuleTy> = {}
   const myDefine: DefineTy = (deps, factory): void => {
-    const filename = (window as any).__filename as string | undefined
+    let filename = (window as any).__filename as string | undefined
     (window as any).__filename = null
     if (!filename) {
       return oldDefine(deps, factory)
     }
+    filename = filename.replace(".js", "")
     const exports = modules[filename] || (modules[filename] = {} as ModuleTy)
     const ind = filename.lastIndexOf("/")
     const base = ind > 0 ? filename.slice(0, ind) : filename
@@ -56,9 +58,10 @@ Build.NDEBUG || (function (): void {
       }
       target = target.slice(i + 1)
     }
-    target = base + "/" + target
+    target = base + "/" + target.replace(".js", "")
     return modules[target] || (modules[target] = {} as ModuleTy)
   }
   myDefine.amd = true;
+  (window as any).__importStar = (i: any): any => i;
   (window as any).define = myDefine
 })()

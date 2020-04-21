@@ -53,6 +53,7 @@ function readFile(fileName, info) {
   info == null && (info = {});
   var buffer = fs.readFileSync(fileName);
   var len = buffer.length;
+  // console.log("[DEBUG] read %o (%o bytes)", fileName, len);
   if (len >= 2 && buffer[0] === 0xFE && buffer[1] === 0xFF) {
       // Big endian UTF-16 byte order mark detected. Since big endian is not supported by node.js,
       // flip all byte pairs and treat as little endian.
@@ -104,6 +105,8 @@ function readJSON(fileName, throwError) {
 function _makeJSONReader() {
   var stringOrComment = /"(?:\\[\\\"]|[^"])*"|'(?:\\[\\\']|[^'])*'|\/\/[^\r\n]*|\/\*[^]*?\*\//g
     , notLF = /[^\r\n]+/g, notWhiteSpace = /\S/;
+  /** @type { {[path: string]: string} } */
+  var cached = {};
   /** @param {string} str */
   function spaceN(str) {
     return ' '.repeat(str.length);
@@ -124,8 +127,14 @@ function _makeJSONReader() {
   }
   /** @type {ReadJson} */
   function readJSON1(fileName, throwError) {
-    var text = readFile(fileName);
-    text = text.replace(stringOrComment, onReplace);
+    fileName = fileName.replace(/\\/g, "/");
+    /** @type string | undefined */
+    var text = cached[fileName];
+    if (text == null) {
+      text = readFile(fileName);
+      text = text.replace(stringOrComment, onReplace);
+      cached[fileName] = text;
+    }
     try {
       return notWhiteSpace.test(text) ? JSON.parse(text) : {};
     } catch (e) {
@@ -359,7 +368,8 @@ function logFileSize(filePath, logger) {
  * @return {string}
  */
 function addMetaData(path, data) {
-  const isAMDModule = data.startsWith("define");
+  const isAMDModule = data.startsWith("define") || data.startsWith("(factory")
+      || data.startsWith("(function(factory)") || data.startsWith("(function (factory)");
   if (!isAMDModule) { return data; }
   path = path.replace(/\\/g, "/").replace(projectRoot, "").replace(/^\//, "")
   var banner = "var __filename = " + JSON.stringify(path) + ";\n";

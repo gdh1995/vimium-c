@@ -10,13 +10,13 @@ import {
   doc, keydownEvents_, safeObj, fgCache, isTop, rawSetKeydownEvents, setupEventListener, VOther,
   esc, onWndFocus, isEnabled_, injector,
 } from "../lib/utils.js"
-import * as VKey from "../lib/keyboard_utils.js"
-import * as VDom from "../lib/dom_utils.js"
 import { post_, safePost } from "../lib/port.js"
 import { getParentVApi, ui_box } from "./dom_ui.js"
 import { hudHide } from "./hud.js"
-import { setCurrentScrolling, currentScrolling, setCachedScrollable, scrollTick } from "./scroller.js"
+import { setCurrentScrolling, currentScrolling, scrollTick, clearCachedScrollable } from "./scroller.js"
 import { resetIsCmdTriggered, resetAnyClickHandler } from "./key_handler.js"
+import { readyState_, activeEl_unsafe_, isHTML_, docEl_unsafe_, getEditableType_, GetShadowRoot_, getSelection_, frameElement_, SafeEl_not_ff_ } from "../lib/dom_utils.js"
+import { Stop_, pushHandler_, removeHandler_, prevent_ } from "../lib/keyboard_utils.js"
 
 const domNodeMap = Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
     || WeakMap ? new WeakMap!<Node, kNodeInfo>() as never : {
@@ -33,7 +33,7 @@ let suppressType: string | null = null
 let last: LockableElement | null = null
 let is_last_mutable: BOOL = 1
 let lastWndFocusTime = 0
-let grabBackFocus: boolean | ((event: Event, target: LockableElement) => void) = VDom.readyState_ > "l"
+let grabBackFocus: boolean | ((event: Event, target: LockableElement) => void) = readyState_ > "l"
 let exitPassMode: ((this: void) => void) | undefined | null
 let onExitSuppress: ((this: void) => void) | null = null
 let onWndBlur2: ((this: void) => void) | undefined | null
@@ -43,50 +43,50 @@ export {
   last as insert_last, is_last_mutable as insert_last_mutable,
   grabBackFocus, suppressType, inputHint as insert_inputHint, onWndBlur2, exitPassMode,
 }
-export const setInsertGlobal = (global: CmdOptions[kFgCmd.insertMode]): void => { global_ = global }
-export const setInsertLast = (newLast: LockableElement | null, newMutable: BOOL): void => {
+export function setInsertGlobal (global: CmdOptions[kFgCmd.insertMode]): void { global_ = global }
+export function setInsertLast (newLast: LockableElement | null, newMutable: BOOL): void {
   last = newLast; is_last_mutable = newMutable
 }
-export const setInputHint = (newHint: typeof inputHint): void => { inputHint = newHint }
-export const setInsertHinting = (newHinting: BOOL): void => { hinting = newHinting }
-export const setGrabBackFocus = (newGrab: typeof grabBackFocus) => { grabBackFocus = newGrab }
-export const setOnWndBlur2 = (f: ((this: void) => void) | undefined | null): void => { onWndBlur2 = f; }
-export const setExitPassMode = (f: ((this: void) => void) | undefined | null): void => { exitPassMode = f; }
+export function setInputHint (newHint: typeof inputHint): void { inputHint = newHint }
+export function setInsertHinting (newHinting: BOOL): void { hinting = newHinting }
+export function setGrabBackFocus (newGrab: typeof grabBackFocus): void { grabBackFocus = newGrab }
+export function setOnWndBlur2 (f: ((this: void) => void) | undefined | null): void { onWndBlur2 = f; }
+export function setExitPassMode (f: ((this: void) => void) | undefined | null): void { exitPassMode = f; }
 
 export const insertInit = (): void => {
   /** if `notBody` then `activeEl` is not null */
-  let activeEl = VDom.activeEl_unsafe_(),
+  let activeEl = activeEl_unsafe_(),
   notBody = activeEl !== doc.body && (!(Build.BTypes & BrowserType.Firefox)
         || Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox
-        || VDom.isHTML_() || activeEl !== VDom.docEl_unsafe_()) && !!activeEl;
+        || isHTML_() || activeEl !== docEl_unsafe_()) && !!activeEl;
   /*#__INLINE__*/ rawSetKeydownEvents(safeObj(null))
   if (fgCache.g && grabBackFocus) {
     let counter = 0, prompt = function (): void {
       counter++ || console.log("Vimium C blocks auto-focusing.");
     };
-    if (notBody = notBody && VDom.getEditableType_(activeEl!)) {
+    if (notBody = notBody && getEditableType_(activeEl!)) {
       last = null;
       prompt();
       (activeEl as LockableElement).blur();
       // here ignore the rare case of an XMLDocument with a editable node on Firefox, for smaller code
-      notBody = (activeEl = VDom.activeEl_unsafe_()) !== doc.body;
+      notBody = (activeEl = activeEl_unsafe_()) !== doc.body;
     }
     if (!notBody) {
       grabBackFocus = function (event: Event, target: LockableElement): void {
-        const activeEl1 = VDom.activeEl_unsafe_();
-        if (activeEl1 === target || activeEl1 && VDom.GetShadowRoot_(activeEl1)) {
-          VKey.Stop_(event);
+        const activeEl1 = activeEl_unsafe_();
+        if (activeEl1 === target || activeEl1 && GetShadowRoot_(activeEl1)) {
+          Stop_(event);
           prompt();
           target.blur();
         }
       };
-      VKey.pushHandler_(exitGrab, exitGrab);
+      pushHandler_(exitGrab, exitGrab);
       setupEventListener(0, "mousedown", exitGrab);
       return;
     }
   }
   grabBackFocus = false;
-  if (notBody && VDom.getEditableType_(activeEl!)) {
+  if (notBody && getEditableType_(activeEl!)) {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     lock_ = activeEl as LockableElement;
   }
@@ -96,7 +96,7 @@ export const exitGrab = function (this: void, event?: Req.fg<kFgReq.exitGrab> | 
     ): HandlerResult.Nothing | void {
   if (!grabBackFocus) { return /* safer */ HandlerResult.Nothing; }
   grabBackFocus = false;
-  VKey.removeHandler_(exitGrab);
+  removeHandler_(exitGrab);
   setupEventListener(0, "mousedown", exitGrab, 1);
   // it's acceptable to not set the userActed flag if there's only the top frame;
   // when an iframe gets clicked, the events are mousedown and then focus, so safePost is needed
@@ -124,7 +124,7 @@ export const isInInsert = (): boolean => {
   if (suppressType || lock_ || global_) {
     return !suppressType;
   }
-  const el: Element | null = VDom.activeEl_unsafe_();
+  const el: Element | null = activeEl_unsafe_();
 /** Ignore standalone usages of `{-webkit-user-modify:}` without `[contenteditable]`
 * On Chromestatus, this is tagged `WebKitUserModify{PlainText,ReadWrite,ReadOnly}Effective`
 * * https://www.chromestatus.com/metrics/css/timeline/popularity/338
@@ -150,7 +150,7 @@ export const setupSuppress = (onExit?: (this: void) => void): void => {
   const f = onExitSuppress;
   onExitSuppress = suppressType = null;
   if (onExit) {
-    suppressType = VDom.getSelection_().type;
+    suppressType = getSelection_().type;
     onExitSuppress = onExit;
   }
   if (f) { return f(); }
@@ -158,9 +158,9 @@ export const setupSuppress = (onExit?: (this: void) => void): void => {
 
 /** should only be called during keydown events */
 export const focusUpper = (key: kKeyCode, force: boolean, event: ToPrevent): void | 1 => {
-  const parEl = VDom.frameElement_();
+  const parEl = frameElement_();
   if (!parEl && (!force || isTop)) { return; }
-  VKey.prevent_(event); // safer
+  prevent_(event); // safer
   if (parEl) {
     keydownEvents_[key] = 1;
     const parApi = getParentVApi()
@@ -177,12 +177,12 @@ export const focusUpper = (key: kKeyCode, force: boolean, event: ToPrevent): voi
 }
 
 export const exitInsertMode = (target: Element): void => {
-  if (VDom.GetShadowRoot_(target)) {
+  if (GetShadowRoot_(target)) {
     if (target = lock_ as unknown as Element) {
       lock_ = null;
       (target as LockableElement).blur();
     }
-  } else if (target === lock_ ? (lock_ = null, 1) : VDom.getEditableType_(target)) {
+  } else if (target === lock_ ? (lock_ = null, 1) : getEditableType_(target)) {
     (target as LockableElement).blur();
   }
   if (global_) {
@@ -196,10 +196,10 @@ export const exitInputHint = (): void => {
   if (!hint) { return; }
   inputHint = null;
   hint.b.remove();
-  VKey.removeHandler_(hint);
+  removeHandler_(hint);
 }
 
-export const resetInsert = (): void => {
+export function resetInsert (): void {
   last = lock_ = global_ = null;
   is_last_mutable = 1;
   exitGrab(); setupSuppress();
@@ -226,9 +226,9 @@ export const onFocus = (event: Event | FocusEvent): void => {
    *   `lock !== target` ignores the case a blur event is missing or not captured;
    *   `target !== doc.active` lets it mistakenly passes the case of `target === lock === doc.active`
    */
-  if (lock_ && lock_ === VDom.activeEl_unsafe_()) { return; }
-  if (target === ui_box) { return VKey.Stop_(event); }
-  const sr = VDom.GetShadowRoot_(target as Element);
+  if (lock_ && lock_ === activeEl_unsafe_()) { return; }
+  if (target === ui_box) { return Stop_(event); }
+  const sr = GetShadowRoot_(target as Element);
   if (sr) {
     let path = !(Build.BTypes & ~BrowserType.Firefox)
         || Build.BTypes & BrowserType.Firefox && !(Build.BTypes & BrowserType.Edge)
@@ -252,11 +252,11 @@ export const onFocus = (event: Event | FocusEvent): void => {
   }
   if (!lastWndFocusTime || Date.now() - lastWndFocusTime > 30) {
     /*#__INLINE__*/ setCurrentScrolling(Build.BTypes & ~BrowserType.Firefox
-        ? VDom.SafeEl_not_ff_!(target as Element) || currentScrolling : target as SafeElement);
-    /*#__INLINE__*/ setCachedScrollable(0);
+        ? SafeEl_not_ff_!(target as Element) || currentScrolling : target as SafeElement);
+    /*#__INLINE__*/ clearCachedScrollable();
   }
   lastWndFocusTime = 0;
-  if (VDom.getEditableType_<2>(target)) {
+  if (getEditableType_<2>(target)) {
     if (grabBackFocus) {
       (grabBackFocus as Exclude<typeof grabBackFocus, boolean>)(event, target);
       return;
@@ -265,7 +265,7 @@ export const onFocus = (event: Event | FocusEvent): void => {
     lock_ = target;
     if (is_last_mutable) {
       // here ignore the rare case of an XMLDocument with a editable node on Firefox, for smaller code
-      if (VDom.activeEl_unsafe_() !== doc.body) {
+      if (activeEl_unsafe_() !== doc.body) {
         last = target;
       }
     }
@@ -291,7 +291,7 @@ export const onBlur = (event: Event | FocusEvent): void => {
             && Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
         ? (top = path![0]) === target
         : !(top = path && path[0]) || top === window || top === target
-    , sr = VDom.GetShadowRoot_(target as Element);
+    , sr = GetShadowRoot_(target as Element);
   if (lock_ === (same ? target : top)) {
     lock_ = null;
     if (inputHint && !hinting && doc.hasFocus()) {
@@ -343,7 +343,7 @@ export const onWndBlur = (): void => {
   /*#__INLINE__*/ rawSetKeydownEvents(safeObj(null))
   /*#__INLINE__*/ resetIsCmdTriggered();
   if (Build.BTypes & BrowserType.Chrome) {
-    resetAnyClickHandler();
+    /*#__INLINE__*/ resetAnyClickHandler();
   }
   injector || (<RegExpOne> /a?/).test("");
   esc!(HandlerResult.ExitPassMode);

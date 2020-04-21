@@ -29,7 +29,7 @@ if (cwd && fs.existsSync(cwd) && fs.statSync(cwd).isDirectory()) {
 if (cwd !== "-p" && !fs.existsSync("tsconfig.json")) {
   // @ts-ignore
   var parent = __dirname.replace(/[\\\/][^\\\/]+[\\\/]?$/, "");
-  if (fs.existsSync(parent + "/scripts/tsconfig.json")) {
+  if (fs.existsSync(parent + "/tsconfig.json")) {
     process.chdir(parent);
   }
 }
@@ -158,7 +158,7 @@ var getUglifyJS = function() {
 function getDefaultUglifyConfig() {
   if (!defaultUglifyConfig) {
     defaultUglifyConfig = lib.loadUglifyConfig(root + "scripts/uglifyjs.local.json");
-    var tsconfig = lib.readJSON(root + "scripts/tsconfig.json");
+    var tsconfig = lib.readJSON(root + "tsconfig.json");
     var target = tsconfig.compilerOptions.target;
     defaultUglifyConfig.ecma = ({
       es5: 5, es6: 6, es2015: 6, es2017: 2017, es2018: 2018

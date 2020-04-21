@@ -30,8 +30,6 @@ type ValidDiTypes = DiType.Normal | DiType.UnsafeTextBox | DiType.SafeTextBox | 
     | DiType.UnsafeComplicated;
 
 import { VTr, isAlive_, VOther, clearTimeout_, safer, timeout_, fgCache, doc } from "../lib/utils.js"
-import * as VKey from "../lib/keyboard_utils.js"
-import * as VDom from "../lib/dom_utils.js"
 import { checkDocSelectable, getSelected, resetSelectionToDocStart, flash_ } from "./dom_ui.js"
 import { prepareTop, clearTop, executeScroll, scrollIntoView_need_safe } from "./scroller.js"
 import {
@@ -41,6 +39,8 @@ import {
 import { insert_Lock_ } from "./mode_insert.js"
 import { hudShow, hudTip, hudHide } from "./hud.js"
 import { post_, send_ } from "../lib/port.js"
+import { removeHandler_, pushHandler_, key_, keybody_, isEscape_, prevent_ } from "../lib/keyboard_utils.js"
+import { getSelectionBoundingBox_, getZoom_, prepareCrop_, cropRectToVisible_, getSelection_, getSelectionFocusEdge_, editableTypes_, Getter_not_ff_, isInputInTextMode_, isHTML_, docEl_unsafe_, notSafe_not_ff_, getVisibleClientRect_, getEditableType_ } from "../lib/dom_utils.js"
 
 export const kDir = ["backward", "forward"] as const
 const kGranularity = ["character", "line", "lineboundary", /* 3 */ "paragraph",
@@ -71,7 +71,7 @@ export { mode_ as visual_mode }
   /** @safe_di */
 export const activate = (_0: number, options: CmdOptions[kFgCmd.visualMode]): void => {
     init && init(options.w!, options.k!)
-    VKey.removeHandler_(activate)
+    removeHandler_(activate)
     checkDocSelectable();
     prepareTop()
     diType_ = DiType.UnsafeUnknown
@@ -82,10 +82,10 @@ export const activate = (_0: number, options: CmdOptions[kFgCmd.visualMode]): vo
     if (!mode_) { retainSelection = type === SelType.Range }
     if (mode !== Mode.Caret) {
       if (!insert_Lock_() && /* (type === SelType.Caret || type === SelType.Range) */ type) {
-        const { left: l, top: t, right: r, bottom: b} = VDom.getSelectionBoundingBox_(sel);
-        VDom.getZoom_(1);
-        VDom.prepareCrop_();
-        if (!VDom.cropRectToVisible_(l, t, (l || r) && r + 3, (t || b) && b + 3)) {
+        const { left: l, top: t, right: r, bottom: b} = getSelectionBoundingBox_(sel);
+        getZoom_(1);
+        prepareCrop_();
+        if (!cropRectToVisible_(l, t, (l || r) && r + 3, (t || b) && b + 3)) {
           resetSelectionToDocStart(sel);
         } else if (type === SelType.Caret) {
           extend(kDirTy.right)
@@ -117,7 +117,7 @@ export const activate = (_0: number, options: CmdOptions[kFgCmd.visualMode]): vo
       collapseToRight((getDirection() & +(mode > 1)) as BOOL)
     }
     commandHandler(VisualAction.Noop, 1)
-    VKey.pushHandler_(onKeydown, activate)
+    pushHandler_(onKeydown, activate)
 }
 
   /** @safe_di */
@@ -127,7 +127,7 @@ export const deactivate = (isEsc?: 1): void => {
     diType_ = DiType.UnsafeUnknown
     getDirection("")
     const oldDiType: DiType = diType_
-    VKey.removeHandler_(activate)
+    removeHandler_(activate)
     if (!retainSelection) {
       collapseToFocus(isEsc && mode_ !== Mode.Caret ? 1 : 0)
     }
@@ -148,13 +148,13 @@ export const deactivate = (isEsc?: 1): void => {
   /** @unknown_di_result */
 const onKeydown = (event: HandlerNS.Event): HandlerResult => {
     const doPass = event.i === kKeyCode.ime || event.i === kKeyCode.menuKey && fgCache.o,
-    key = doPass ? "" : VKey.key_(event, kModeId.Visual), keybody = VKey.keybody_(key);
-    if (!key || VKey.isEscape_(key)) {
+    key = doPass ? "" : key_(event, kModeId.Visual), keybody = keybody_(key);
+    if (!key || isEscape_(key)) {
       !key || currentCount || currentSeconds ? resetKeys() : deactivate(1)
       // if doPass, then use nothing to bubble such an event, so handlers like LinkHints will also exit
       return key ? HandlerResult.Prevent : doPass ? HandlerResult.Nothing : HandlerResult.Suppress;
     }
-    if (VKey.keybody_(key) === kChar.enter) {
+    if (keybody_(key) === kChar.enter) {
       resetKeys()
       if (key.includes("s-") && mode_ !== Mode.Caret) { retainSelection = true }
       "cm".includes(key[0]) ? deactivate() : yank(key[0] === "a" ? 9 : 8)
@@ -172,7 +172,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
           : HandlerResult.Prevent;
     }
     resetKeys()
-    VKey.prevent_(event.e);
+    prevent_(event.e);
     di_ = kDirTy.unknown // make @di safe even when a user modifies the selection
     diType_ = DiType.UnsafeUnknown
     commandHandler(newActions, count || 1)
@@ -203,7 +203,7 @@ const commandHandler = (command: VisualAction, count: number): void => {
     }
     if (scope && !curSelection.rangeCount) {
       scope = null
-      curSelection = VDom.getSelection_()
+      curSelection = getSelection_()
       if (command < VisualAction.MaxNotFind + 1 && !curSelection.rangeCount) {
         deactivate()
         return hudTip(kTip.loseSel);
@@ -238,7 +238,7 @@ const commandHandler = (command: VisualAction, count: number): void => {
     }
     getDirection("")
     if (diType_ & DiType.Complicated) { return }
-    const focused = VDom.getSelectionFocusEdge_(curSelection, di_ as ForwardDir)
+    const focused = getSelectionFocusEdge_(curSelection, di_ as ForwardDir)
     if (focused) {
       scrollIntoView_need_safe(focused)
     }
@@ -249,24 +249,24 @@ const establishInitialSelectionAnchor = (sr?: ShadowRoot | null): boolean => {
     if (!(Build.NDEBUG || curSelection && curSelection.type === "None")) {
       console.log('Assert error: VVisual.selection_ && VVisual.selection_.type === "None"');
     }
-    let node: Text | null, str: string | undefined, offset: number, vDom = VDom
-    if (!vDom.isHTML_()) { return true; }
-    vDom.getZoom_(1);
-    vDom.prepareCrop_();
-    const nodes = doc.createTreeWalker(sr || doc.body || vDom.docEl_unsafe_()!
+    let node: Text | null, str: string | undefined, offset: number
+    if (!isHTML_()) { return true; }
+    getZoom_(1);
+    prepareCrop_();
+    const nodes = doc.createTreeWalker(sr || doc.body || docEl_unsafe_()!
             , NodeFilter.SHOW_TEXT);
     while (node = nodes.nextNode() as Text | null) {
       if (50 <= (str = node.data).length && 50 < str.trim().length) {
         const element = node.parentElement;
-        if (element && (!(Build.BTypes & ~BrowserType.Firefox) || !vDom.notSafe_not_ff_!(element))
-            && vDom.getVisibleClientRect_(element as SafeElement) && !vDom.getEditableType_(element)) {
+        if (element && (!(Build.BTypes & ~BrowserType.Firefox) || !notSafe_not_ff_!(element))
+            && getVisibleClientRect_(element as SafeElement) && !getEditableType_(element)) {
           break;
         }
       }
     }
     if (!node) {
       if (sr) {
-        curSelection = vDom.getSelection_()
+        curSelection = getSelection_()
         scope = null
         return establishInitialSelectionAnchor()
       }
@@ -337,9 +337,9 @@ const yank = (action: /* copy but not exit */ 9 | /* copy&exit */ 8 | ReuseType.
 }
 
 export const highlightRange = (sel: Selection): void => {
-    const br = sel.rangeCount > 0 ? VDom.getSelectionBoundingBox_(sel) : null;
+    const br = sel.rangeCount > 0 ? getSelectionBoundingBox_(sel) : null;
     if (br && br.height > 0 && br.right > 0) { // width may be 0 in Caret mode
-      let cr = VDom.cropRectToVisible_(br.left - 4, br.top - 5, br.right + 3, br.bottom + 4);
+      let cr = cropRectToVisible_(br.left - 4, br.top - 5, br.right + 3, br.bottom + 4);
       cr && flash_(null, cr, 660, " Sel");
     }
 }
@@ -608,17 +608,17 @@ const getDirection = function (magic?: string
     if (lock && lock.parentNode === anchorNode) { // safe because lock is LockableElement
       type TextModeElement = TextElement;
       if ((oldDiType & DiType.Unknown)
-          && VDom.editableTypes_[lock.localName]! > EditableType.MaxNotTextModeElement) {
+          && editableTypes_[lock.localName]! > EditableType.MaxNotTextModeElement) {
         let cn: Node["childNodes"];
         const child = (!(Build.BTypes & ~BrowserType.Firefox) ? (anchorNode as Element).childNodes as NodeList
             : Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype
-            ? VDom.Getter_not_ff_!<Node, "childNodes", true>(Node, anchorNode as Element, "childNodes")
+            ? Getter_not_ff_!<Node, "childNodes", true>(Node, anchorNode as Element, "childNodes")
             : (cn = (anchorNode as Element).childNodes) instanceof NodeList && !("value" in cn) ? cn
-            : VDom.Getter_not_ff_!(Node, anchorNode as Element, "childNodes") || []
+            : Getter_not_ff_!(Node, anchorNode as Element, "childNodes") || []
             )[num1 >= 0 ? num1 : sel.anchorOffset] as Node | undefined;
         if (lock === child || /** tend to trust that the selected is a textbox */ !child) {
           if (Build.MinCVer >= BrowserVer.Min$selectionStart$MayBeNull || !(Build.BTypes & BrowserType.Chrome)
-              ? (lock as TextModeElement).selectionEnd != null : VDom.isInputInTextMode_(lock as TextModeElement)) {
+              ? (lock as TextModeElement).selectionEnd != null : isInputInTextMode_(lock as TextModeElement)) {
             diType_ = DiType.TextBox | (oldDiType & DiType.isUnsafe)
           }
         }

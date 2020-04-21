@@ -1,7 +1,7 @@
 import { fgCache, doc, isEnabled_, VTr, isAlive_, timeout_, clearTimeout_ } from "../lib/utils.js"
 import { ui_box, ensureBorder, addUIElement, adjustUI } from "./dom_ui.js"
 import { allLinkHints } from "./link_hints.js"
-import * as VDom from "../lib/dom_utils.js"
+import { isHTML_, createElement_ } from "../lib/dom_utils.js"
 
 let tweenId = 0
 let box: HTMLDivElement | null = null
@@ -13,8 +13,8 @@ let timer = TimerID.None
 let st: CSSStyleDeclaration
 
 export { box as hud_box, text as hud_text, opacity_ as hud_opacity }
-export const hudResetTextProp = (): void => { text = "" }
-export const enableHUD = (): void => { enabled = true }
+export function hudResetTextProp (): void { text = "" }
+export function enableHUD (): void { enabled = true }
 
 export const hudCopied = function (text: string, e?: "url" | "", virtual?: 1): string | void {
   if (!text) {
@@ -36,7 +36,7 @@ export const hudTip = (tid: kTip | HintMode, duration?: number, args?: Array<str
   text && (timer = timeout_(hudHide, duration || 1500));
 }
 export const hudShow = (tid: kTip | HintMode, args?: Array<string | number>, embed?: boolean): void => {
-  if (!enabled || !VDom.isHTML_()) { return; }
+  if (!enabled || !isHTML_()) { return; }
   text = VTr(tid, args);
   opacity_ = 1;
   if (timer) { clearTimeout_(timer); timer = TimerID.None; }
@@ -52,7 +52,7 @@ export const hudShow = (tid: kTip | HintMode, args?: Array<string | number>, emb
     embed && (el.style.cssText = "");
     return;
   }
-  el = VDom.createElement_("div");
+  el = createElement_("div");
   el.className = "R HUD" + fgCache.d;
   el.textContent = text;
   $text = el.firstChild as Text;

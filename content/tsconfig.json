@@ -10,5 +10,5 @@
     "../lib/*.ts"
   ],
   "exclude": [ "../lib/injector.ts" ],
-  "extends": "../scripts/tsconfig.json"
+  "extends": "../tsconfig.json"
 }

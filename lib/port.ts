@@ -1,4 +1,7 @@
-import { injector, safeObj, timeout_ } from "./utils.js"
+import { injector, safeObj, timeout_, isAlive_, setTr, VOther, isEnabled_, isLocked_, isTop, doc } from "./utils.js"
+import { passKeys } from "../content/key_handler.js"
+import { style_ui } from "../content/dom_ui.js"
+import { loc_ } from "./dom_utils.js"
 
 export interface Port extends chrome.runtime.Port {
   postMessage<k extends keyof FgRes>(request: Req.fgWithRes<k>): 1;
@@ -11,13 +14,14 @@ export type SafeDestoryF = (silent?: boolean | BOOL | 9) => void
 const port_callbacks: { [msgId: number]: <k extends keyof FgRes>(this: void, res: FgRes[k]) => void } = safeObj(null)
 let port_: Port | null = null
 let tick = 1
-let runtimeConnect: (this: void) => void
 let safeDestroy: SafeDestoryF
+let requestHandlers: { [k in keyof BgReq]: (this: void, request: BgReq[k]) => void }
 
-export { port_ as runtime_port, port_callbacks, runtimeConnect, safeDestroy }
-export const setRuntimePort = (newPort: Port | null) => { port_ = newPort }
-export const setRuntimeConnect = (connector: (this: void) => void): void => { runtimeConnect = connector }
-export const setSafeDestroy = (newDestroy: SafeDestoryF): void => { safeDestroy = newDestroy }
+export { port_ as runtime_port, port_callbacks, safeDestroy, requestHandlers }
+
+export function setRuntimePort (newPort: Port | null): void { port_ = newPort }
+export function setSafeDestroy (newDestroy: SafeDestoryF): void { safeDestroy = newDestroy }
+export function setRequestHandlers (newHandlers: typeof requestHandlers): void { requestHandlers = newHandlers }
 
 export const post_ = <k extends keyof FgReq>(request: FgReq[k] & Req.baseFg<k>): 1 | void => {
   port_!.postMessage(request);
@@ -43,3 +47,36 @@ export const safePost = <k extends keyof FgReq> (request: FgReq[k] & Req.baseFg<
     safeDestroy();
   }
 }
+
+export const runtimeConnect = (function (this: void): void {
+  const api = Build.BTypes & ~BrowserType.Chrome
+      && (!(Build.BTypes & BrowserType.Chrome) || VOther !== BrowserType.Chrome)
+      ? browser as typeof chrome : chrome,
+  status = requestHandlers[kBgReq.init] ? PortType.initing
+    : (isEnabled_ ? passKeys ? PortType.knownPartial : PortType.knownEnabled : PortType.knownDisabled)
+    + (isLocked_ ? PortType.isLocked : 0) + (style_ui ? PortType.hasCSS : 0),
+  name = PortType.isTop * +isTop + PortType.hasFocus * +doc.hasFocus() + status,
+  data = { name: injector ? PortNameEnum.Prefix + name + injector.$h
+      : !(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && VOther & BrowserType.Edge
+      ? name + PortNameEnum.Delimiter + loc_.href
+      : "" + name
+  },
+  connect = api.runtime.connect, trans = api.i18n.getMessage,
+  port = port_ = injector ? connect(injector.id, data) as Port : connect(data) as Port
+  port.onDisconnect.addListener((): void => {
+    port_ = null
+    timeout_(function (i): void {
+      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i) {
+        safeDestroy()
+      } else {
+        try { port_ || !isAlive_ || runtimeConnect() } catch { safeDestroy() }
+      }
+    }, requestHandlers[kBgReq.init] ? 2000 : 5000);
+  });
+  port.onMessage.addListener(<T extends keyof BgReq> (response: Req.bg<T>): void => {
+    type TypeToCheck = { [k in keyof BgReq]: (this: void, request: BgReq[k]) => void };
+    type TypeChecked = { [k in keyof BgReq]: <T2 extends keyof BgReq>(this: void, request: BgReq[T2]) => void };
+    (requestHandlers as TypeToCheck as TypeChecked)[response.N](response);
+  });
+  /*#__INLINE__*/ setTr((tid, args) => trans("" + tid, args));
+})

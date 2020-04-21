@@ -1,6 +1,9 @@
-import { clickable_, setupEventListener, VOther, timeout_, clearTimeout_, doc } from "../lib/utils.js"
-import * as VKey from "../lib/keyboard_utils.js"
-import * as VDom from "../lib/dom_utils.js"
+import { clickable_, setupEventListener, VOther, timeout_, clearTimeout_, doc, isAlive_ } from "../lib/utils.js"
+import {
+  docEl_unsafe_, createElement_, setCreateElement, OnDocLoaded_, runJS_, markAllowRAF, markAllowScripts,
+  allowRAF_, isHTML_, rAF_, loc_,
+} from "../lib/dom_utils.js"
+import { Stop_ } from "../lib/keyboard_utils.js"
 import { safeDestroy } from "../lib/port.js"
 import { allLinkHints, curKeyStatus, checkLast } from "./link_hints.js"
 import { grabBackFocus } from "./mode_insert.js"
@@ -74,11 +77,9 @@ export const main = (): void => {
         : Build.BTypes & BrowserType.Chrome
           && (!(Build.BTypes & ~BrowserType.ChromeOrFirefox) || VOther === BrowserType.Chrome)
         ? 1 : 0
-    , rAF_old_cr = Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome
-        ? requestAnimationFrame : 0 as never as null
-    , docEl = VDom.docEl_unsafe_()
+    , docEl = docEl_unsafe_()
     , secret: number = (Math.random() * kContentCmd.SecretRange + 1) | 0
-    , script = VDom.createElement_("script");
+    , script = createElement_("script");
 /**
  * Note:
  *   should not create HTML/SVG elements before document gets ready,
@@ -91,8 +92,8 @@ export const main = (): void => {
  * Vimium issue: https://github.com/philc/vimium/pull/1797#issuecomment-135761835
  */
   if ((script as Element as ElementToHTML).lang == null) {
-    VDom.setCreateElement(doc.createElementNS.bind(doc, "http://www.w3.org/1999/xhtml") as typeof VDom.createElement_)
-    isFirstTime != null && VDom.OnDocLoaded_(extendClick); // retry after a while, using a real <script>
+    setCreateElement(doc.createElementNS.bind(doc, "http://www.w3.org/1999/xhtml") as typeof createElement_)
+    isFirstTime != null && OnDocLoaded_(extendClick); // retry after a while, using a real <script>
     return;
   }
 
@@ -104,7 +105,7 @@ export const main = (): void => {
     // use `instanceof` to require the `t` element is a new instance which has never entered this extension world
     if (++hookRetryTimes > GlobalConsts.MaxRetryTimesForSecret
         || !(t instanceof Element)) { return; }
-    VKey.Stop_(event);
+    Stop_(event);
     if (t.localName !== "div" || t.getAttribute(attr) !== "" + secret) { return; }
     setupEventListener(0, kHookRand, hook, 1);
     hook = null as never;
@@ -116,7 +117,7 @@ export const main = (): void => {
   };
   function onClick(this: Element | Window, event: Event): void {
     if (!box) { return; }
-    VKey.Stop_(event);
+    Stop_(event);
     const rawDetail = (
         event as TypeToAssert<Event, (VimiumCustomEventCls | VimiumDelegateEventCls)["prototype"], "detail">
         ).detail as ClickableEventDetail | null | undefined,
@@ -146,7 +147,7 @@ export const main = (): void => {
         , detail ? detail[2] ? -0 : detail[1].length
           : (event as FocusEvent).relatedTarget ? " (detached)"
           : this === window ? " (path on window)" : " (path on box)"
-        , location.pathname.replace(<RegExpOne> /^.*(\/[^\/;]+\/?)(;[^\/]+)?$/, "$1")
+        , loc_.pathname.replace(<RegExpOne> /^.*(\/[^\/;]+\/?)(;[^\/]+)?$/, "$1")
         , Date.now() % 3600000);
     }
     if (isFirstResolve & fromAttrs) {
@@ -186,7 +187,7 @@ export const main = (): void => {
         // normally, if here, must have: limited by CSP; not C or C >= MinEnsuredNewScriptsFromExtensionOnSandboxedPage
         // ignore the rare (unexpected) case that injected code breaks even when not limited by CSP,
         //     which might mean curCVer has no ES6...
-        VDom.runJS_("`${Vimium" + secret + "=>9}`");
+        runJS_("`${Vimium" + secret + "=>9}`");
       }
     }
     box = 0;
@@ -297,7 +298,7 @@ hooks = {
     if (type === "click" || type === "mousedown" || type === "dblclick"
         ? listener && !(a instanceof HACls) && a instanceof ElCls
         : type === kEventName2 && !isReRegistering
-          // note: window.history is mutable on C35, so only these can be used: top,window,location,document
+          // note: window.history is mutable on C35, so only these can be used: top,window,loc_.document
           && a && !(a as Window).window && (a as Node).nodeType === kNode.ELEMENT_NODE) {
       toRegister.p(a as Element);
       timer = timer || (queueMicroTask_(delayToStartIteration), 1);
@@ -556,19 +557,19 @@ _listen(kOnDomReady, doInit, !0);
   }
   if (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome
       && appVer === BrowserVer.NoRAFOrRICOnSandboxedPage) {
-    /*#__INLINE__*/ VDom.markAllowRAF(0)
-    rAF_old_cr!(() => { /*#__INLINE__*/ VDom.markAllowRAF(1) });
+    /*#__INLINE__*/ markAllowRAF(0)
+    rAF_!(() => { /*#__INLINE__*/ markAllowRAF(1) });
   }
   // not check MinEnsuredNewScriptsFromExtensionOnSandboxedPage
   // for the case JavaScript is disabled in CS: https://github.com/philc/vimium/issues/3187
   if (!script.parentNode) { // It succeeded to hook.
     // wait the inner listener of `start` to finish its work
-    VDom.OnDocLoaded_(timeout_.bind(1 as never as null, (): void => {
+    OnDocLoaded_(timeout_.bind(1 as never as null, (): void => {
       // only for new versions of Chrome (and Edge);
       // CSP would block a <script> before MinEnsuredNewScriptsFromExtensionOnSandboxedPage
       // not check isFirstTime, to auto clean VApi.execute_
-      !box ? execute(kContentCmd.DestroyForCSP) : isFirstTime && VDom &&
-      VDom.OnDocLoaded_(timeout_.bind(1 as never as null, (): void => {
+      !box ? execute(kContentCmd.DestroyForCSP) : isFirstTime && isAlive_ &&
+      OnDocLoaded_(timeout_.bind(1 as never as null, (): void => {
         isFirstResolve && dispatchCmd(kContentCmd.AutoFindAllOnClick);
         isFirstResolve = 0;
       }, GlobalConsts.ExtendClick_DelayToFindAll), 1);
@@ -576,7 +577,7 @@ _listen(kOnDomReady, doInit, !0);
     return;
   }
   // else: CSP script-src before C68, CSP sandbox before C68 or JS-disabled-in-CS on C/E
-  VDom.markAllowScripts(0)
+  markAllowScripts(0)
   script.remove();
   execute(kContentCmd.Destroy);
   if (!(Build.BTypes & BrowserType.Chrome)
@@ -591,7 +592,7 @@ _listen(kOnDomReady, doInit, !0);
   console.info((Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage && breakTotally
                 ? "Vimium C can" : "Some functions of Vimium C may")
       + " not work because %o is sandboxed.",
-    location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"));
+    loc_.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"));
   if (Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage && breakTotally) {
     safeDestroy(1);
     return;
@@ -600,14 +601,13 @@ _listen(kOnDomReady, doInit, !0);
     const cb = (): void => { func(TimerType.fake); };
     const rIC = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? requestIdleCallback : 0 as const;
     // in case there's `$("#requestIdleCallback")`
-    return Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome && !VDom.allowRAF_
+    return Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome && !allowRAF_
       ? (Promise.resolve().then(cb), 1)
       : timeout > 19
       && (Build.MinCVer >= BrowserVer.MinEnsured$requestIdleCallback || rIC)
       ? ((Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? rIC : requestIdleCallback
           ) as RequestIdleCallback)(cb, { timeout })
-      : (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome
-          ? rAF_old_cr! : requestAnimationFrame)(cb)
+      : rAF_(cb)
       ;
   } as any;
 })(grabBackFocus as boolean)
@@ -644,7 +644,7 @@ _listen(kOnDomReady, doInit, !0);
   resolve = Build.NDEBUG ? 0 as never : (): void => {
     console.log("Vimium C: extend click: resolve %o in %o @t=%o ."
         , resolved
-        , location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1")
+        , loc_.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1")
         , Date.now() % 3600000);
     timer && clearTimeout_(timer);
     timer = resolved = 0;
@@ -656,7 +656,7 @@ _listen(kOnDomReady, doInit, !0);
     if (typeof _listen === "function") {
       exportFunction(newListen, Cls!, { defineAs: newListen.name });
     }
-    VDom.OnDocLoaded_((): void => {
+    OnDocLoaded_((): void => {
       timeout_(function (): void {
         allLinkHints && !curKeyStatus.keySequence_ && !curKeyStatus.textSequence_ && timeout_(checkLast, 34);
       }, GlobalConsts.ExtendClick_DelayToFindAll);
@@ -667,9 +667,9 @@ _listen(kOnDomReady, doInit, !0);
       alive = false;
     }
   };
-  if (Build.BTypes & ~BrowserType.Firefox ? !(doc instanceof HTMLDocument) : !VDom.isHTML_()) {
+  if (Build.BTypes & ~BrowserType.Firefox ? !(doc instanceof HTMLDocument) : !isHTML_()) {
     // for <script>
-    VDom.setCreateElement(doc.createElementNS.bind(doc, "http://www.w3.org/1999/xhtml") as typeof VDom.createElement_)
+    setCreateElement(doc.createElementNS.bind(doc, "http://www.w3.org/1999/xhtml") as typeof createElement_)
   }
 })();
 }

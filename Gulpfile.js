@@ -13,7 +13,7 @@ var {
   touchFileIfNeeded,
   patchExtendClick: _patchExtendClick,
   loadUglifyConfig: _loadUglifyConfig,
-  logFileSize: logFileSize,
+  logFileSize, addMetaData,
 } = require("./scripts/dependencies");
 
 class BrowserType {}
@@ -506,7 +506,7 @@ gulp.task("locally", function(done) {
   if (locally) { return done(); }
   locally = true;
   gTypescript = null;
-  compilerOptions = loadValidCompilerOptions("scripts/tsconfig.json");
+  compilerOptions = loadValidCompilerOptions("scripts/gulp.tsconfig.json");
   createBuildConfigCache();
   var old_has_polyfill = has_polyfill;
   has_polyfill = getBuildItem("MinCVer") < 44 /* MinSafe$String$$StartsWith */;
@@ -798,7 +798,12 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
     const anno = !!config.output.preserve_annotations;
     stream = stream.pipe(getGulpUglify(!!(exArgs.aggressiveMangle && config.mangle))(
         anno ? {...config, output: {...config.output, comments: /^[!@#]/}} : config));
-    stream = stream.pipe(getGulpUglify()({...config, mangle: null}));
+    if (0) {
+      stream = stream.pipe(getGulpUglify()({...config, mangle: null, output: {...config.output, comments: /^[!@#]/} }));
+      stream = stream.pipe(getGulpUglify()({...config, compress: {...config.compress, passes: 2}, mangle: null}));
+    } else {
+      stream = stream.pipe(getGulpUglify()({...config, mangle: null}));
+    }
   }
   if (!is_file && new_suffix !== "") {
      stream = stream.pipe(require('gulp-rename')({ suffix: new_suffix }));
@@ -847,7 +852,8 @@ function rollupContent(stream) {
     .then(result => {
       if (result === undefined) {
         print("Rollup: no output!")
-        return
+        for (const i of others) { this.push(i) }
+        return done();
       }
       var output = result.output[0]
       file.contents = Buffer.from(output.code)
@@ -890,14 +896,10 @@ function beforeUglify(file) {
   if (changed || oldLen > 0 && contents.length !== oldLen) {
     file.contents = ToBuffer(contents);
   }
-  var new_path = "R:\\working\\" + file.relative.split("\\").slice(-1)[0] + "-test.js"
-  fs.writeFileSync(new_path, ToString(file.contents), {
-    flag: "w"
-  });
 }
 
 function postUglify(file, allPaths) {
-  var allPathStr = (allPaths || file.history).join("|");
+  var allPathStr = (allPaths || file.history).join("|").replace(/\\/g, "/");
   var contents = null, changed = false, oldLen = 0;
   function get() { contents == null && (contents = ToString(file.contents), changed = true, oldLen = contents.length); }
   if (allPathStr.indexOf("extend_click") >= 0) {
@@ -928,9 +930,9 @@ function postUglify(file, allPaths) {
       toRemovedGlobal += "visualViewport|";
     }
     toRemovedGlobal = toRemovedGlobal.slice(0, -1);
-    toRemovedGlobal = new RegExp(`(const|let|var|,)\\s?(${toRemovedGlobal})[,;]`, "g");
+    toRemovedGlobal = toRemovedGlobal && new RegExp(`(const|let|var|,)\\s?(${toRemovedGlobal})[,;]\n?\n?`, "g");
   }
-  if (toRemovedGlobal) {
+  if (allPathStr.includes("/env.js") && toRemovedGlobal) {
     const oldChanged = changed;
     get();
     let n = 0, remove = str => str[0] === "," ? str.slice(-1) : str.slice(-1) === "," ? str.split(/\s/)[0] + " " : "";
@@ -954,6 +956,10 @@ function postUglify(file, allPaths) {
   if (noAppendChild) {
     get();
     contents = contents.replace(/\bappendChild\b/g, "append");
+  }
+  if (allPathStr.includes("content/") || allPathStr.includes("lib/") && !allPathStr.includes("/env.js")) {
+    get();
+    contents = addMetaData(file.relative, contents)
   }
   if (changed || oldLen > 0 && contents.length !== oldLen) {
     file.contents = ToBuffer(contents);

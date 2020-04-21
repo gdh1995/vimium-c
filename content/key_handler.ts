@@ -1,14 +1,14 @@
 import {
   doc, esc, fgCache, isEnabled_, isTop, keydownEvents_, safeObj, setEsc, VOther,
 } from "../lib/utils.js"
-import * as VKey from "../lib/keyboard_utils.js"
-import * as VDom from "../lib/dom_utils.js"
 import { post_ } from "../lib/port.js"
 import { removeSelection } from "./dom_ui.js"
 import {
   exitInsertMode, focusUpper, insert_global, insert_Lock_, isInInsert, raw_insert_lock, setupSuppress, suppressType,
 } from "./mode_insert.js"
 import { keyIsDown as scroll_keyIsDown, onScrolls, scrollTick } from "./scroller.js"
+import { setGetMappedKey, char_, key_, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_, Stop_ } from "../lib/keyboard_utils.js"
+import { activeEl_unsafe_, getSelection_ } from "../lib/dom_utils.js"
 
 let passKeys: SafeEnum | null | "" = null
 let isPassKeysReverted = false
@@ -34,13 +34,13 @@ export {
   isWaitingAccessKey, isCmdTriggered, anyClickHandler,
   onKeyup2
 }
-export const resetIsCmdTriggered = (): void => { isCmdTriggered = 0 }
-export const setTempPassKeys = (newPassKeys: SafeEnum | null | ""): void => { passKeys = newPassKeys }
-export const setTempCurrentKeyStatus = (): void => { currentKeys = "", nextKeys = keyFSM }
-export const setOnKeyUp2 = (newOnKeyUp: typeof onKeyup2): void => { onKeyup2 = newOnKeyUp }
+export function resetIsCmdTriggered (): void { isCmdTriggered = 0 }
+export function setTempPassKeys (newPassKeys: SafeEnum | null | ""): void { passKeys = newPassKeys }
+export function setTempCurrentKeyStatus (): void { currentKeys = "", nextKeys = keyFSM }
+export function setOnKeyUp2 (newOnKeyUp: typeof onKeyup2): void { onKeyup2 = newOnKeyUp }
 
-VKey.setGetMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
-  const char = eventWrapper.c !== kChar.INVALID ? eventWrapper.c : VKey.char_(eventWrapper), event = eventWrapper.e;
+setGetMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
+  const char = eventWrapper.c !== kChar.INVALID ? eventWrapper.c : char_(eventWrapper), event = eventWrapper.e;
   let key: string = char, mapped: string | undefined;
   if (char) {
     const baseMod = `${event.altKey ? "a-" : ""}${event.ctrlKey ? "c-" : ""}${event.metaKey ? "m-" : ""}`,
@@ -63,15 +63,15 @@ VKey.setGetMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
 export const checkKey = (event: HandlerNS.Event, key: string
     ): HandlerResult.Nothing | HandlerResult.Prevent | HandlerResult.PlainEsc | HandlerResult.AdvancedEsc => {
   // when checkKey, Vimium C must be enabled, so passKeys won't be `""`
-  const key0 = passKeys && key ? mappedKeys ? VKey.key_(event, kModeId.NO_MAP_KEY) : key : "";
+  const key0 = passKeys && key ? mappedKeys ? key_(event, kModeId.NO_MAP_KEY) : key : "";
   if (!key || key0 && !currentKeys && (key0 in <SafeEnum> passKeys) !== isPassKeysReverted) {
     return key ? esc!(HandlerResult.Nothing) : HandlerResult.Nothing;
   }
   let j: ReadonlyChildKeyFSM | ValidKeyAction | undefined;
-  if (VKey.isEscape_(key)) {
+  if (isEscape_(key)) {
     Build.BTypes & BrowserType.Chrome && mappedKeys && checkPotentialAccessKey(event);
     return nextKeys ? (esc!(HandlerResult.ExitPassMode), HandlerResult.Prevent)
-        : VKey.isEscape_(key);
+        : isEscape_(key);
   }
   if (!nextKeys || (j = nextKeys[key]) == null) {
     j = keyFSM[key];
@@ -91,7 +91,7 @@ export const checkKey = (event: HandlerNS.Event, key: string
   return HandlerResult.Prevent;
 }
 
-export const setPassKeys = (newPassKeys: BgReq[kBgReq.reset]["p"]): void => {
+export function setPassKeys (newPassKeys: BgReq[kBgReq.reset]["p"]): void {
   passKeys = newPassKeys && safeObj<1>(null);
   if (newPassKeys) {
     isPassKeysReverted = newPassKeys[0] === "^" && newPassKeys.length > 2;
@@ -101,7 +101,7 @@ export const setPassKeys = (newPassKeys: BgReq[kBgReq.reset]["p"]): void => {
   }
 }
 
-export const setKeyFSM = (newFSM: BgReq[kBgReq.keyFSM]["k"], maps: BgReq[kBgReq.keyFSM]["m"]): void => {
+export function setKeyFSM (newFSM: BgReq[kBgReq.keyFSM]["k"], maps: BgReq[kBgReq.keyFSM]["m"]): void {
   keyFSM = newFSM
   mappedKeys = maps
 }
@@ -123,9 +123,9 @@ export const checkPotentialAccessKey = (event: HandlerNS.Event): void => {
      * so, here ignores the 2nd path.
      */
     // during tests, an access key of ' ' (space) can be triggered on macOS (2019-10-20)
-    event.c === kChar.INVALID && VKey.char_(event);
+    event.c === kChar.INVALID && char_(event);
     if (isWaitingAccessKey !== (event.c.length === 1 || event.c === kChar.space)
-        && (VKey.getKeyStat_(event) & KeyStat.ExceptShift /* Chrome ignore .shiftKey */) ===
+        && (getKeyStat_(event) & KeyStat.ExceptShift /* Chrome ignore .shiftKey */) ===
             (fgCache.o ? KeyStat.altKey : KeyStat.altKey | KeyStat.ctrlKey)
         ) {
       isWaitingAccessKey = !isWaitingAccessKey;
@@ -134,7 +134,7 @@ export const checkPotentialAccessKey = (event: HandlerNS.Event): void => {
   }
 }
 
-export const resetAnyClickHandler = (): void => {
+export function resetAnyClickHandler (): void {
   isWaitingAccessKey = false; anyClickHandler.handleEvent = noopEventHandler;
 }
 
@@ -152,8 +152,8 @@ const onAnyClick = (event: MouseEventToPrevent): void => {
         ? path![0] as Element : event.target as Element;
     if (Element.prototype.getAttribute.call(t, "accesskey")) {
       // if a script has modified [accesskey], then do nothing on - just in case.
-      resetAnyClickHandler();
-      VKey.prevent_(event);
+      /*#__INLINE__*/ resetAnyClickHandler();
+      prevent_(event);
     }
   }
 }
@@ -169,19 +169,25 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
     Build.BTypes & BrowserType.Chrome && checkPotentialAccessKey(eventWrapper);
     return;
   }
-  if (Build.BTypes & BrowserType.Chrome) { isWaitingAccessKey && resetAnyClickHandler(); }
+  if (Build.BTypes & BrowserType.Chrome) { isWaitingAccessKey && /*#__INLINE__*/ resetAnyClickHandler(); }
   if (Build.BTypes & BrowserType.Firefox) { raw_insert_lock && insert_Lock_(); }
-  let action: HandlerResult, tempStr: string;
-  if (action = VKey.bubbleEvent_(eventWrapper)) { /* empty */ }
-  else if (isInInsert()) {
+  let action = HandlerResult.Default, tempStr: string;
+  for (const item of handler_stack) {
+    action = item.func_.call(item.env_, eventWrapper);
+    if (action !== HandlerResult.Nothing) {
+      break;
+    }
+  }
+  if (action) { /* empty */ }
+  else if (/*#__NOINLINE__*/ isInInsert()) {
     const g = insert_global, isF_num = key > kKeyCode.maxNotFn && key < kKeyCode.minNotFn,
     keyStr = mappedKeys || g || isF_num || event.ctrlKey
-        || key === kKeyCode.esc ? VKey.key_(eventWrapper, kModeId.Insert) : "";
-    if (g ? !g.k ? VKey.isEscape_(keyStr) : keyStr === g.k
+        || key === kKeyCode.esc ? key_(eventWrapper, kModeId.Insert) : "";
+    if (g ? !g.k ? isEscape_(keyStr) : keyStr === g.k
         : (!mappedKeys ? isF_num
-          : (tempStr = VKey.keybody_(keyStr)) > kChar.maxNotF_num && tempStr < kChar.minNotF_num)
+          : (tempStr = keybody_(keyStr)) > kChar.maxNotF_num && tempStr < kChar.minNotF_num)
         ? (action = checkKey(eventWrapper, keyStr)) > HandlerResult.MaxNotEsc
-        : VKey.isEscape_(keyStr)
+        : isEscape_(keyStr)
     ) {
       if ((raw_insert_lock && raw_insert_lock === doc.body || !isTop && innerHeight < 5) && !g) {
         event.repeat && focusUpper(key, true, event);
@@ -199,13 +205,13 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
           | 1 << kKeyCode.altKey | 1 << kKeyCode.ctrlKey | 1 << kKeyCode.shiftKey
           ) >> key) & 1) {
       action = checkKey(eventWrapper,
-            VKey.key_(eventWrapper, currentKeys ? kModeId.Next : kModeId.Normal));
+            key_(eventWrapper, currentKeys ? kModeId.Next : kModeId.Normal));
       if (action > HandlerResult.MaxNotEsc) {
         action = action > HandlerResult.PlainEsc ? /*#__NOINLINE__*/ onEscDown(event, key)
             : HandlerResult.Nothing;
       }
       if (action === HandlerResult.Nothing
-          && suppressType && eventWrapper.c.length === 1 && !VKey.getKeyStat_(eventWrapper)) {
+          && suppressType && eventWrapper.c.length === 1 && !getKeyStat_(eventWrapper)) {
         // not suppress ' ', so that it's easier to exit this mode
         action = HandlerResult.Prevent;
       }
@@ -213,19 +219,19 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
   if (action < HandlerResult.MinStopOrPreventEvents) { return; }
   if (action > HandlerResult.MaxNotPrevent) {
     Build.BTypes & BrowserType.Chrome && checkPotentialAccessKey(eventWrapper);
-    VKey.prevent_(event);
+    prevent_(event);
   } else {
-    VKey.Stop_(event);
+    Stop_(event);
   }
   keydownEvents_[key] = 1;
 }
 
 /** @param key should be valid */
-function onEscDown(event: KeyboardEventToPrevent, key: kKeyCode
-  ): HandlerResult.Default | HandlerResult.PassKey | HandlerResult.Prevent {
+const onEscDown = (event: KeyboardEventToPrevent, key: kKeyCode
+  ): HandlerResult.Default | HandlerResult.PassKey | HandlerResult.Prevent => {
   let action: HandlerResult.Default | HandlerResult.PassKey | HandlerResult.Prevent = HandlerResult.Prevent
   let { repeat } = event
-  let activeEl = VDom.activeEl_unsafe_(), body = doc.body;
+  let activeEl = activeEl_unsafe_(), body = doc.body;
   /** if `notBody` then `activeEl` is not null */
   if (!repeat && removeSelection()) {
     /* empty */
@@ -251,14 +257,14 @@ export const onKeyup = (event: KeyboardEventToPrevent): void => {
   scrollTick(0);
   /*#__INLINE__*/ resetIsCmdTriggered();
   if (Build.BTypes & BrowserType.Chrome) {
-    isWaitingAccessKey && resetAnyClickHandler();
+    isWaitingAccessKey && /*#__INLINE__*/ resetAnyClickHandler();
   }
-  if (suppressType && VDom.getSelection_().type !== suppressType) {
+  if (suppressType && getSelection_().type !== suppressType) {
     setupSuppress();
   }
   if (keydownEvents_[key]) {
     keydownEvents_[key] = 0;
-    VKey.prevent_(event);
+    prevent_(event);
   } else if (onKeyup2) {
     onKeyup2(event);
   }

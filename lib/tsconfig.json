@@ -3,10 +3,8 @@
     "incremental": true,
     "outDir": "..",
     "rootDir": "..",
-    "tsBuildInfoFile": "../scripts/.ts.background.build",
+    "tsBuildInfoFile": "../scripts/.ts.lib.build",
   },
-  "include": [
-    "*.ts"
-  ],
+  "include": [ "*.ts" ],
   "extends": "../tsconfig.json"
 }

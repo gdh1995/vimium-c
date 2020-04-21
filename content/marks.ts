@@ -1,7 +1,8 @@
 import { VTr, safer } from "../lib/utils.js"
-import * as VKey from "../lib/keyboard_utils.js"
 import { post_ } from "../lib/port.js"
 import { hudHide, hudShow, hudTip } from "./hud.js"
+import { removeHandler_, pushHandler_, key_, isEscape_ } from "../lib/keyboard_utils.js"
+import { loc_ } from "../lib/dom_utils.js"
 
 let onKeyChar: ((event: HandlerNS.Event, keyChar: string) => void) | null = null
 let prefix = true
@@ -16,30 +17,26 @@ export const activate = (count: number, options: CmdOptions[kFgCmd.marks]): void
     mcount = count < 0 || count > 9 ? 0 : count - 1
     prefix = options.prefix !== false
     swap = !!options.swap
-    VKey.removeHandler_(activate)
-    VKey.pushHandler_(onKeydownM, activate)
+    removeHandler_(activate)
+    pushHandler_(onKeydownM, activate)
     hudShow(isGo ? kTip.nowGotoMark : kTip.nowCreateMark);
 }
 
 const onKeydownM = (event: HandlerNS.Event): HandlerResult => {
     if (event.i === kKeyCode.ime) { return HandlerResult.Nothing; }
-    let key = VKey.key_(event, kModeId.Marks), notEsc = !VKey.isEscape_(key);
+    let key = key_(event, kModeId.Marks), notEsc = !isEscape_(key);
     if (notEsc && key.length !== 1) {
       return HandlerResult.Suppress;
     }
-    VKey.removeHandler_(activate)
+    removeHandler_(activate)
     notEsc ? onKeyChar!(event, key) : hudHide()
     prefix = swap = true
     onKeyChar = null
     return HandlerResult.Prevent;
 }
 
-const getLocationKey = (keyChar: string): string => {
-    return `vimiumMark|${location.href.split("#", 1)[0]}|${keyChar}`;
-}
-
 export const setPreviousMarkPosition = (idx?: number): void => {
-  previous[idx! | 0] = [ scrollX, scrollY, location.hash ]
+  previous[idx! | 0] = [ scrollX, scrollY, loc_.hash ]
 }
 
 const create = (event: HandlerNS.Event, keyChar: string): void => {
@@ -77,7 +74,8 @@ const goto = (event: HandlerNS.Event, keyChar: string): void => {
       hudHide()
     } else {
       try {
-        let pos = null, key = getLocationKey(keyChar), storage = localStorage, markString = storage.getItem(key)
+        let pos = null, key = `vimiumMark|${loc_.href.split("#", 1)[0]}|${keyChar}`
+        let storage = localStorage, markString = storage.getItem(key)
         if (markString && (pos = JSON.parse(markString)) && typeof pos === "object") {
           const { scrollX, scrollY, hash } = safer(pos)
           if (scrollX >= 0 && scrollY >= 0) {
@@ -89,14 +87,14 @@ const goto = (event: HandlerNS.Event, keyChar: string): void => {
         }
       } catch {}
       (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).l = true;
-      (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).u = location.href;
+      (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).u = loc_.href;
     }
     post_(req);
 }
 
 export const scrollToMark = (scroll: Readonly<MarksNS.FgMark>): void => {
     if (scroll[1] === 0 && scroll[2] && scroll[0] === 0) {
-      location.hash = scroll[2];
+      loc_.hash = scroll[2];
     } else {
       scrollTo(scroll[0], scroll[1]);
     }
@@ -108,7 +106,7 @@ export const createMark = (req: BgReq[kBgReq.createMark], local?: "local"): void
       a: kMarkAction.create,
       l: !!local,
       n: req.n,
-      u: location.href,
+      u: loc_.href,
       s: [scrollX | 0, scrollY | 0]
     })
     hudTip(kTip.didNormalMarkTask, 1000,

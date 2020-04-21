@@ -1,33 +1,37 @@
 import {
-  browserVer, clickable_, doc, esc, fgCache, injector, isEnabled_, isLocked_, isAlive_, setTr,
-  isTop, keydownEvents_, safeObj, setChromeVer, setClickable, setFgCache, setOnOther, setStatusLocked,
-  setupEventListener, setVEnabled, suppressCommonEvents, setOnWndFocus, VOther, onWndFocus, setupKeydownEvents,
-  timeout_, safer,
+  browserVer, clickable_, doc, esc, fgCache, injector, isEnabled_, isLocked_, isAlive_, isTop,
+  keydownEvents_, safeObj, setChromeVer, setClickable, setFgCache, setOnOther, setStatusLocked,
+  setupEventListener, setVEnabled, suppressCommonEvents, setOnWndFocus, VOther, onWndFocus, timeout_, safer,
 } from "../lib/utils.js"
-import { port_callbacks, post_, safePost, safeDestroy, send_ } from "../lib/port.js"
-import * as VKey from "../lib/keyboard_utils.js"
-import * as VDom from "../lib/dom_utils.js"
+import { port_callbacks, post_, safePost, setRequestHandlers, requestHandlers } from "../lib/port.js"
 import {
   addUIElement, adjustUI, createStyle, ensureBorder, getParentVApi,
-  removeSelection, setUICSS, setupExitOnClick, ui_box, ui_root, evalIfOK, checkHidden, learnCSS, flash_,
+  removeSelection, setUICSS, setupExitOnClick, ui_box, ui_root, evalIfOK, checkHidden,
 } from "./dom_ui.js"
 import { enableHUD, hudCopied, hudTip, hud_box } from "./hud.js"
 import {
   currentKeys, mappedKeys, setKeyFSM, setPassKeys, anyClickHandler, onKeydown, onKeyup,
 } from "./key_handler.js"
-import { activate as linkActivate, HintMaster, kSafeAllSelector, setkSafeAllSelector, coreHints } from "./link_hints.js"
+import { HintMaster, kSafeAllSelector, setkSafeAllSelector } from "./link_hints.js"
 import { createMark } from "./marks.js"
-import { onLoad as findOnLoad, setFindCSS, styleInHUD, find_box, findCSS } from "./mode_find.js"
+import { setFindCSS, styleInHUD } from "./mode_find.js"
 import {
-  exitGrab, grabBackFocus, insertInit, raw_insert_lock, setGrabBackFocus, onFocus, onBlur, insert_Lock_,
+  exitGrab, grabBackFocus, insertInit, raw_insert_lock, setGrabBackFocus, onFocus, onBlur,
 } from "./mode_insert.js"
 import { prompt as visualPrompt, visual_mode } from "./mode_visual.js"
 import {
-  currentScrolling, onActivate, setCachedScrollable, setCurrentScrolling, executeScroll, scrollTick, $sc,
-  keyIsDown as scroll_keyIsDown,
+  currentScrolling, onActivate, setCurrentScrolling, clearCachedScrollable, clearCurrentScrolling,
 } from "./scroller.js"
 import { activate as omniActivate, omni_status, onKeydown as omniOnKeydown, omni_box } from "./vomnibar.js"
 import { contentCommands_ } from "./commands.js"
+import {
+  setKeyIdCorrectionOffset_old_cr, handler_stack, Stop_, prevent_, removeHandler_, pushHandler_, isEscape_, key_,
+} from "../lib/keyboard_utils.js"
+import {
+  editableTypes_, markFramesetTagUnsafe, setNotSafe_not_ff, setIsHTML, OnDocLoaded_, allowScripts_, frameElement_,
+  notSafe_not_ff_, htmlTag_, querySelector_unsafe_, isHTML_, createElement_, lastHovered_, setLastHovered,
+  docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, loc_,
+} from "../lib/dom_utils.js"
 
 let framemask_more = false
 let framemask_node: HTMLDivElement | null = null
@@ -36,9 +40,9 @@ let needToRetryParentClickable: BOOL = 0
 
 export const enableNeedToRetryParentClickable = (): void => { needToRetryParentClickable = 1 }
 
-export const requestHandlers: { [k in keyof BgReq]: (this: void, request: BgReq[k]) => void } = [
+setRequestHandlers([
   /* kBgReq.init: */ function (request: BgReq[kBgReq.init]): void {
-    const r = requestHandlers, {c: load, s: flags} = request;
+    const {c: load, s: flags} = request;
     if (Build.BTypes & BrowserType.Chrome) {
       /*#__INLINE__*/ setChromeVer(load.v as BrowserVer);
     }
@@ -48,7 +52,7 @@ export const requestHandlers: { [k in keyof BgReq]: (this: void, request: BgReq[
     }
     /*#__INLINE__*/ setFgCache(VApi.cache2_ = load)
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key) {
-      load.o || /*#__INLINE__*/ VKey.setKeyIdCorrectionOffset_old_cr(300);
+      load.o || /*#__INLINE__*/ setKeyIdCorrectionOffset_old_cr(300);
     }
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNoKeygenElement
         || Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinNoKeygenElement) {
@@ -59,24 +63,24 @@ export const requestHandlers: { [k in keyof BgReq]: (this: void, request: BgReq[
           ? Build.MinFFVer < FirefoxBrowserVer.MinNoKeygenElement
             && <FirefoxBrowserVer | 0> load.v < FirefoxBrowserVer.MinNoKeygenElement
           : false) {
-        (VDom.editableTypes_ as Writable<typeof VDom.editableTypes_>).keygen = EditableType.Select;
+        (editableTypes_ as Writable<typeof editableTypes_>).keygen = EditableType.Select;
       }
     }
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
         && browserVer < BrowserVer.MinFramesetHasNoNamedGetter) {
-      setkSafeAllSelector(kSafeAllSelector + ":not(" + (/*#__INLINE__*/ VDom.markFramesetTagUnsafe()) + ")");
+      setkSafeAllSelector(kSafeAllSelector + ":not(" + (/*#__INLINE__*/ markFramesetTagUnsafe()) + ")");
     }
     if (Build.BTypes & ~BrowserType.Firefox && Build.BTypes & BrowserType.Firefox
         && VOther === BrowserType.Firefox) {
-      VDom.setNotSafe_not_ff((_el): _el is HTMLFormElement => false)
-      VDom.setIsHTML((): boolean => doc instanceof HTMLDocument)
+      setNotSafe_not_ff((_el): _el is HTMLFormElement => false)
+      setIsHTML((): boolean => doc instanceof HTMLDocument)
     }
-    r[kBgReq.keyFSM](request);
+    requestHandlers[kBgReq.keyFSM](request);
     if (flags) {
-      setGrabBackFocus(grabBackFocus && !(flags & Frames.Flags.userActed))
+      /*#__INLINE__*/ setGrabBackFocus(grabBackFocus && !(flags & Frames.Flags.userActed))
       /*#__INLINE__*/ setStatusLocked(!!(flags & Frames.Flags.locked))
     }
-    (r[kBgReq.reset] as (request: BgReq[kBgReq.reset], initing?: 1) => void)(request, 1);
+    (requestHandlers[kBgReq.reset] as (request: BgReq[kBgReq.reset], initing?: 1) => void)(request, 1);
     if (isEnabled_) {
       insertInit();
       if (Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
@@ -85,18 +89,18 @@ export const requestHandlers: { [k in keyof BgReq]: (this: void, request: BgReq[
         hook(HookAction.SuppressListenersOnDocument);
       }
     } else {
-      setGrabBackFocus(false)
+      /*#__INLINE__*/ setGrabBackFocus(false)
       hook(HookAction.Suppress);
       VApi.execute_ && VApi.execute_(kContentCmd.SuppressClickable);
     }
-    r[kBgReq.init] = null as never;
-    VDom.OnDocLoaded_(function (): void {
+    requestHandlers[kBgReq.init] = null as never;
+    OnDocLoaded_(function (): void {
       /*#__INLINE__*/ enableHUD()
       /*#__INLINE__*/ setOnWndFocus(safePost.bind(0, <Req.fg<kFgReq.focus>> { H: kFgReq.focus }))
       timeout_(function (): void {
         const parApi = !(Build.BTypes & ~BrowserType.Firefox)
             || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
-            ? getParentVApi() : VDom.allowScripts_ && VDom.frameElement_() && getParentVApi(),
+            ? getParentVApi() : allowScripts_ && frameElement_() && getParentVApi(),
         parHints = parApi && parApi.baseHinter_ as HintMaster;
         if (needToRetryParentClickable) {
         const oldSet = clickable_ as any as Element[] & Set<Element>
@@ -146,7 +150,7 @@ export const requestHandlers: { [k in keyof BgReq]: (this: void, request: BgReq[
   /* kBgReq.injectorRun: */ injector ? injector.$m : null as never,
   /* kBgReq.url: */ function<T extends keyof FgReq> (this: void, request: BgReq[kBgReq.url] & Req.fg<T>): void {
     delete (request as Req.bg<kBgReq.url>).N;
-    request.u = location.href;
+    request.u = loc_.href;
     post_<T>(request);
   },
   /* kBgReq.msg: */ function<k extends keyof FgRes> (response: Omit<Req.res<k>, "N">): void {
@@ -175,9 +179,9 @@ export const requestHandlers: { [k in keyof BgReq]: (this: void, request: BgReq[
       // check <div> to detect whether no other visible elements except <frame>s in this frame
       || (Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter && Build.BTypes & BrowserType.Chrome
             // treat a doc.body of <form> as <frameset> to simplify logic
-            ? VDom.notSafe_not_ff_!(body = doc.body) || body && VDom.htmlTag_(body) === "frameset"
-            : doc.body && VDom.htmlTag_(doc.body) === "frameset")
-          && (div = VDom.querySelector_unsafe_("div"), !div || div === ui_box && !VKey.handler_stack.length)
+            ? notSafe_not_ff_!(body = doc.body) || body && htmlTag_(body) === "frameset"
+            : doc.body && htmlTag_(doc.body) === "frameset")
+          && (div = querySelector_unsafe_("div"), !div || div === ui_box && !handler_stack.length)
     ) {
       post_({
         H: kFgReq.nextFrame,
@@ -259,7 +263,7 @@ export const requestHandlers: { [k in keyof BgReq]: (this: void, request: BgReq[
     if (CSS) { setUICSS(CSS); }
     const oldShowHelp = contentCommands_[kFgCmd.showHelp];
     oldShowHelp("e");
-    if (!VDom.isHTML_()) { return; }
+    if (!isHTML_()) { return; }
     if (oldShowHelp !== contentCommands_[kFgCmd.showHelp]) { return; } // an old dialog exits
     let box: SafeHTMLElement;
     if (Build.BTypes & BrowserType.Firefox
@@ -271,11 +275,11 @@ export const requestHandlers: { [k in keyof BgReq]: (this: void, request: BgReq[
           ).body.firstChild as SafeHTMLElement;
       box.prepend!(createStyle((html as Exclude<typeof html, string>).h));
     } else {
-      box = VDom.createElement_("div");
+      box = createElement_("div");
       box.innerHTML = html as string;
       box = box.firstChild as SafeHTMLElement;
     }
-    box.onclick = VKey.Stop_;
+    box.onclick = Stop_;
     suppressCommonEvents(box, "mousedown");
     if (Build.MinCVer >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument
         || !(Build.BTypes & BrowserType.Chrome)
@@ -290,22 +294,22 @@ export const requestHandlers: { [k in keyof BgReq]: (this: void, request: BgReq[
     optLink = query("#OptionsPage") as HTMLAnchorElement, advCmd = query("#AdvancedCommands") as HTMLElement,
     hide: (this: void, e?: (EventToPrevent) | number | "e") => void = function (event): void {
       if (event instanceof Event) {
-        VKey.prevent_(event);
+        prevent_(event);
       }
       advCmd.onclick = optLink.onclick = closeBtn.onclick = null as never;
-      let i: Element | null = VDom.lastHovered_;
-      i && box.contains(i) && /*#__INLINE__*/ VDom.setLastHovered(null);
+      let i: Element | null = lastHovered_;
+      i && box.contains(i) && /*#__INLINE__*/ setLastHovered(null);
       if ((i = currentScrolling) && box.contains(i)) {
-        /*#__INLINE__*/ setCurrentScrolling(null);
-        /*#__INLINE__*/ setCachedScrollable(null);
+        /*#__INLINE__*/ clearCurrentScrolling();
+        /*#__INLINE__*/ clearCachedScrollable();
       }
-      VKey.removeHandler_(box);
+      removeHandler_(box);
       box.remove();
       contentCommands_[kFgCmd.showHelp] = oldShowHelp;
       setupExitOnClick(1, 0);
     };
     closeBtn.onclick = contentCommands_[kFgCmd.showHelp] = hide;
-    if (! location.href.startsWith(optionUrl)) {
+    if (! loc_.href.startsWith(optionUrl)) {
       optLink.href = optionUrl;
       optLink.onclick = function (event) {
         post_({ H: kFgReq.focusOrLaunch, u: optionUrl });
@@ -320,7 +324,7 @@ export const requestHandlers: { [k in keyof BgReq]: (this: void, request: BgReq[
       box.classList.toggle("HelpDA");
     }
     advCmd.onclick = function (event) {
-      VKey.prevent_(event);
+      prevent_(event);
       shouldShowAdvanced = !shouldShowAdvanced;
       toggleAdvanced();
       post_({
@@ -334,38 +338,38 @@ export const requestHandlers: { [k in keyof BgReq]: (this: void, request: BgReq[
     addUIElement(box, AdjustType.Normal, true)
     exitOnClick && setupExitOnClick(1, hide)
     doc.hasFocus() || focusAndRun();
-    setCurrentScrolling(box)
-    VKey.pushHandler_(function (event) {
-      if (!raw_insert_lock && VKey.isEscape_(VKey.key_(event, kModeId.Normal))) {
+    /*#__INLINE__*/ setCurrentScrolling(box)
+    pushHandler_(function (event) {
+      if (!raw_insert_lock && isEscape_(key_(event, kModeId.Normal))) {
         removeSelection(ui_root) || hide();
         return HandlerResult.Prevent;
       }
       return HandlerResult.Nothing;
     }, box);
     if (omni_status >= VomnibarNS.Status.Showing) {
-      VKey.removeHandler_(omniActivate);
-      VKey.pushHandler_(omniOnKeydown, omniActivate);
+      removeHandler_(omniActivate);
+      pushHandler_(omniOnKeydown, omniActivate);
     }
     // if no [tabindex=0], `.focus()` works if :exp and since MinElement$Focus$MayMakeArrowKeySelectIt or on Firefox
     timeout_((): void => box.focus(), 17);
   }
-]
+])
 
 export const showFrameMask = (mask: FrameMaskType): void => {
   if (!isTop && mask === FrameMaskType.NormalNext) {
-    let docEl = VDom.docEl_unsafe_();
+    let docEl = docEl_unsafe_();
     if (docEl) {
     Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
       && (!(Build.BTypes & ~BrowserType.Chrome) || browserVer < BrowserVer.MinScrollIntoViewOptions)
     ? Element.prototype.scrollIntoViewIfNeeded!.call(docEl)
-    : VDom.scrollIntoView_(docEl);
+    : scrollIntoView_(docEl);
     }
   }
-  if (mask < FrameMaskType.minWillMask || !VDom.isHTML_()) { return; }
+  if (mask < FrameMaskType.minWillMask || !isHTML_()) { return; }
   if (framemask_node) {
     framemask_more = true;
   } else {
-    framemask_node = VDom.createElement_("div");
+    framemask_node = createElement_("div");
     framemask_node.className = "R Frame" + (mask === FrameMaskType.OnlySelf ? " One" : "");
     framemask_fmTimer = setInterval((fake?: TimerType.fake): void => { // safe-interval
       const more_ = framemask_more;
@@ -412,7 +416,7 @@ export const focusAndRun = (cmd?: FgCmdAcrossFrames, count?: number, options?: F
     omni_box.blur();
   } else {
     // cur is safe because on Firefox
-    const cur = VDom.activeEl_unsafe_() as SafeElement | null;
+    const cur = activeEl_unsafe_() as SafeElement | null;
     cur && (<RegExpOne> /^i?frame$/).test(cur.localName) && cur.blur && cur.blur();
   }
   focus();
@@ -432,26 +436,5 @@ export const focusAndRun = (cmd?: FgCmdAcrossFrames, count?: number, options?: F
       (contentCommands_ as TypeChecked)[cmd](count!, options!);
     }
     showBorder && showFrameMask(FrameMaskType.ForcedSelf);
-  }
-}
-
-VApi = {
-  baseHinter_: coreHints, execute_: null, cache2_: null,
-  post_, send_, setupKeydownEvents_: setupKeydownEvents, focusAndRun_: focusAndRun, destroy_: safeDestroy,
-  linkActivate_: linkActivate, omniActivate_: omniActivate, findOnLoad_: findOnLoad, scroll_: executeScroll,
-  scrollTick_: scrollTick, $sc: $sc, learnCSS_: learnCSS, suppressTailKeys_: VKey.suppressTail_,
-  innerHeight_ff_: Build.BTypes & BrowserType.Firefox ? () => innerHeight : 0 as never,
-  setTr_: injector && setTr, tip_: hudTip, key_: VKey.key_, lock_: insert_Lock_,
-  setUICSS_: setUICSS, addUIElement_: addUIElement, prepareCrop2_: VDom.prepareCrop_, flash_,
-  misc_ () {
-    return {
-      on_wnd_focus_: onWndFocus,
-      find_box_: find_box,
-      key_is_down_: scroll_keyIsDown,
-      clickable_: clickable_,
-      ui_root_: ui_root,
-      find_css_: findCSS,
-      style_in_find_hud_: styleInHUD
-    }
   }
 }

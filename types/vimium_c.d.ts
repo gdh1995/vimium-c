@@ -450,7 +450,7 @@ interface VimiumInjectorTy {
   host: string;
   version: string;
   $h: ExternalMsgs[kFgReq.inject]["res"]["h"];
-  clickable: WeakSet<Element> | null | undefined;
+  clickable: ElementSet | null | undefined;
   cache: Dict<any> | null;
   getCommandCount: (this: void) => number;
   checkIfEnabled: (this: void) => void;

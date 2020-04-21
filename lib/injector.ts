@@ -1,3 +1,7 @@
+/// <reference path="../types/base/index.d.ts" />
+/// <reference path="../types/lib/index.d.ts" />
+/// <reference path="../types/build/index.d.ts" />
+
 /* eslint-disable no-var, @typescript-eslint/no-unused-vars */
 var VimiumInjector: VimiumInjectorTy | undefined | null = VimiumInjector || {
   id: "",
@@ -172,7 +176,7 @@ interface ElementWithClickable {
 }
 VimiumInjector.clickable = VimiumInjector.clickable
     || ( Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
-      || window.WeakSet ? new WeakSet!<Element>() : {
+        || window.WeakSet ? new WeakSet!<Element>() : <WeakSet<Element>> {
   add (element: Element) { (element as ElementWithClickable).vimiumClick = true; return this; },
   has (element: Element): boolean { return !!(element as ElementWithClickable).vimiumClick; },
   delete (element: Element): boolean {

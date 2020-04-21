@@ -3,7 +3,6 @@
     "listEmittedFiles": true,
     "listFiles": false,
     "outDir": ".",
-    "rootDir": ".",
     "skipLibCheck": true,
     "sourceMap": true,
     "target": "es5",
@@ -19,5 +18,5 @@
     "CreateFakeIncognito": [0, 0],
     "NDEBUG": [ 0, 1 ]
   },
-  "extends": "./tsconfig"
+  "extends": "../tsconfig"
 }

@@ -6,7 +6,7 @@
   ],
   "ignorePatterns": ["dist/", "helpers/", "node_modules/", "test*/", "types/base/", "weidu/", "*.js"],
   "parser": "@typescript-eslint/parser",
-  "parserOptions": { "project": "scripts/tsconfig.json", "sourceType": "script" },
+  "parserOptions": { "project": "tsconfig.json", "sourceType": "script" },
   "plugins": [ "@typescript-eslint" ],
   "rules": {
     "@typescript-eslint/adjacent-overload-signatures": "error",

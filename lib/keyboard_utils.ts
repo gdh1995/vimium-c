@@ -1,4 +1,4 @@
-import { fgCache, clearTimeout_, timeout_, isAlive_, VOther } from "./utils"
+import { fgCache, clearTimeout_, timeout_, isAlive_, VOther } from "./utils.js"
 
 const keyNames_: readonly kChar[] = [kChar.space, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
     kChar.left, kChar.up, kChar.right, kChar.down,
@@ -16,13 +16,17 @@ const _modifierKeys: SafeEnum = {
     Alt: 1, AltGraph: 1, Control: 1, Meta: 1, OS: 1, Shift: 1
 }
 
+interface HandlerItem {
+  /** function */ func_: (event: HandlerNS.Event) => HandlerResult
+  /** bounding this */ env_: object
+}
+
 let key_: (this: void, event: HandlerNS.Event, mode: kModeId) => string
-const handlers_ = [] as Array<{ func_: (event: HandlerNS.Event) => HandlerResult; env_: object }>
+const handlers_: HandlerItem[] = []
 
 export { keyNames_, key_, handlers_ as handler_stack }
-
-export const setGetMappedKey = (newGetMappedKey: typeof key_): void => { key_: key_ = newGetMappedKey }
-export const setKeyIdCorrectionOffset_old_cr = (newVal: 185 | 300 | null): void => {
+export function setGetMappedKey (newGetMappedKey: typeof key_): void { key_: key_ = newGetMappedKey }
+export function setKeyIdCorrectionOffset_old_cr (newVal: 185 | 300 | null): void {
   keyIdCorrectionOffset_old_cr_ = newVal
 }
 
@@ -177,17 +181,6 @@ export const suppressTail_ = function (timeout: number, callback?: HandlerNS.Voi
 
 export const pushHandler_ = <T extends object> (func: HandlerNS.Handler<T>, env: T): void => {
     handlers_.push({ func_: func, env_: env });
-}
-
-export const bubbleEvent_ = (event: HandlerNS.Event): HandlerResult => {
-    for (let ref = handlers_, i = ref.length; 0 <= --i; ) {
-      const item = ref[i],
-      result = item.func_.call(item.env_, event);
-      if (result !== HandlerResult.Nothing) {
-        return result;
-      }
-    }
-    return HandlerResult.Default;
 }
 
 export const removeHandler_ = (env: object): void => {

@@ -34,12 +34,16 @@ interface ElementScrollInfo {
 }
 
 import { isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc } from "../lib/utils.js"
-import * as VKey from "../lib/keyboard_utils.js"
-import * as VDom from "../lib/dom_utils.js"
 import { getParentVApi, resetSelectionToDocStart, checkHidden } from "./dom_ui.js"
 import { isCmdTriggered } from "./key_handler.js"
 import { tryNestedFrame } from "./link_hints.js"
 import { setPreviousMarkPosition } from "./marks.js"
+import {
+  scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, scrollWndBy_, allowRAF_, frameElement_, readyState_, rAF_,
+  OnDocLoaded_, GetParent_unsafe_, querySelector_unsafe_, getZoom_, wdZoom_, bZoom_, NotVisible_, getComputedStyle_,
+  prepareCrop_, notSafe_not_ff_, getBoundingClientRect_, cropRectToVisible_, getVisibleClientRect_, loc_,
+} from "../lib/dom_utils.js"
+import { keyNames_, prevent_ } from "../lib/keyboard_utils.js"
 
 let toggleAnimation: ((scrolling?: BOOL) => void) | null = null
 let maxInterval = ScrollerNS.Consts.DefaultMaxIntervalF as number
@@ -57,15 +61,17 @@ let joined: VApiTy | null = null
 let scrolled = 0
 
 export { current_ as currentScrolling, cachedScrollable, keyIsDown, scrolled }
-export const clearTop = (): void => { scrollingTop = null }
-export const resetScrolled = (): void => { scrolled = 0 }
-export const setCurrentScrolling = (element: SafeElement | null): void => { current_ = element }
-export const setCachedScrollable = (element: SafeElement | null | 0): void => { cachedScrollable = element }
+export function clearTop (): void { scrollingTop = null }
+export function resetScrolled (): void { scrolled = 0 }
+export function setCurrentScrolling (element: SafeElement | null): void { current_ = element }
+export function clearCurrentScrolling (): void { current_ = null }
+export function clearCachedScrollable (): void { cachedScrollable = 0 }
+export function syncCachedScrollable (): void { cachedScrollable = current_ }
 
 let performAnimate = (e: SafeElement | null, d: ScrollByY, a: number): void => {
   let amount = 0, calibration = 1.0, di: ScrollByY = 0, duration = 0, element: SafeElement | null = null, //
   sign = 0, timestamp = 0, totalDelta = 0.0, totalElapsed = 0.0, //
-  running = 0, next = requestAnimationFrame, timer = TimerID.None,
+  running = 0, timer = TimerID.None,
   top: SafeElement | null = null,
   animate = (newTimestamp: number): void => {
     if (!isAlive_ || !running) { toggleAnimation!(); return; }
@@ -99,13 +105,13 @@ let performAnimate = (e: SafeElement | null, d: ScrollByY, a: number): void => {
     delta = delta > 0 ? Math.abs(performScroll(element, di, sign * Math.ceil(delta))) : 0
     if (delta) {
       totalDelta += delta;
-      next(animate);
+      rAF_(animate);
     } else {
       if ((!(Build.BTypes & BrowserType.Chrome) || fgCache.v >= BrowserVer.MinMaybeScrollEndAndOverScrollEvents)
           && "onscrollend" in (Build.BTypes & ~BrowserType.Firefox ? Image.prototype : doc)) {
         // according to tests on C75, no "scrollend" events if scrolling behavior is "instant";
         // the doc on Google Docs requires no "overscroll" events for programmatic scrolling
-        const notEl: boolean = !element || element === VDom.scrollingEl_();
+        const notEl: boolean = !element || element === scrollingEl_();
         (notEl ? doc : element!).dispatchEvent(
             new Event("scrollend", {cancelable: false, bubbles: notEl}));
       }
@@ -115,11 +121,11 @@ let performAnimate = (e: SafeElement | null, d: ScrollByY, a: number): void => {
   },
   startAnimate = (): void => {
     timer = TimerID.None;
-    running = running || next(animate);
+    running = running || rAF_(animate);
   };
   toggleAnimation = (scrolling?: BOOL): void => {
-    const el = (scrolling ? Build.BTypes & ~BrowserType.Firefox ? VDom.SafeEl_not_ff_!(VDom.docEl_unsafe_())
-        : VDom.docEl_unsafe_() : top
+    const el = (scrolling ? Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(docEl_unsafe_())
+        : docEl_unsafe_() : top
         ) as SafeElement & TypeToAssert<Element, HTMLElement | SVGElement, "style"> | null;
     top = scrolling ? el : (running = 0, element = null);
     el && el.style ? el.style.pointerEvents = scrolling ? "none" : "" : 0;
@@ -158,7 +164,7 @@ const performScroll = (el: SafeElement | null, di: ScrollByY, amount: number, be
       } else {
         before = scrollY;
         // avoid using `Element`, so that users may override it
-        VDom.scrollWndBy_(0, amount);
+        scrollWndBy_(0, amount);
         newPos = scrollY;
       }
     } else if (el) {
@@ -169,7 +175,7 @@ const performScroll = (el: SafeElement | null, di: ScrollByY, amount: number, be
       newPos = el.scrollLeft;
     } else {
       before = scrollX;
-      VDom.scrollWndBy_(amount, 0);
+      scrollWndBy_(amount, 0);
       newPos = scrollX;
     }
     return newPos - before;
@@ -183,7 +189,7 @@ export const $sc = (element: SafeElement | null, di: ScrollByY, amount: number):
       checkCurrent(element)
     } else if (fgCache.s
         && (Build.MinCVer > BrowserVer.NoRAFOrRICOnSandboxedPage || !(Build.BTypes & BrowserType.Chrome)
-            || VDom.allowRAF_)) {
+            || allowRAF_)) {
       amount && performAnimate(element, di, amount)
       scrollTick(1)
     } else if (amount) {
@@ -236,7 +242,7 @@ export const executeScroll = function (di: ScrollByY, amount0: number, isTo: BOO
     let core: ReturnType<typeof getParentVApi>;
     if (element === scrollingTop && element
       && (core = Build.BTypes & BrowserType.Firefox ? getParentVApi()
-              : VDom.frameElement_() && getParentVApi())
+              : frameElement_() && getParentVApi())
       && !doesScroll(element, di, amount || (fromMax ? 1 : 0))) {
         core.scroll_(di, amount0, isTo as 0, factor, fromMax as false);
         if (core.misc_().key_is_down_) {
@@ -256,7 +262,7 @@ export const executeScroll = function (di: ScrollByY, amount0: number, isTo: BOO
     preventPointEvents = 1
     scrolled = 0
     scrollingTop = null
-    if (amount && VDom.readyState_ > "i" && overrideScrollRestoration) {
+    if (amount && readyState_ > "i" && overrideScrollRestoration) {
       overrideScrollRestoration("scrollRestoration", "manual", "unload")
     }
 } as {
@@ -273,7 +279,7 @@ let overrideScrollRestoration = function (kScrollRestoration, kManual, kUnload):
     if (old && old !== kManual) {
       h[kScrollRestoration] = kManual;
       overrideScrollRestoration = 0 as never
-      VDom.OnDocLoaded_(() => { timeout_(reset, 1); }, 1);
+      OnDocLoaded_(() => { timeout_(reset, 1); }, 1);
       listen(0, kUnload, reset);
     }
 } as ((key: "scrollRestoration", kManual: "manual", kUnload: "unload") => void) | 0
@@ -292,8 +298,8 @@ export const scrollTick = (willContinue: BOOL | 2): void => {
 
 export const beginScroll = (eventWrapper: 0 | Pick<HandlerNS.Event, "e">, key: string, keybody: kChar): void => {
     if (key.includes("s-") || key.includes("a-")) { return; }
-    const index = VKey.keyNames_.indexOf(keybody) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8
-    (index > 2 || key === keybody) && eventWrapper && VKey.prevent_(eventWrapper.e);
+    const index = keyNames_.indexOf(keybody) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8
+    (index > 2 || key === keybody) && eventWrapper && prevent_(eventWrapper.e);
     if (index > 4) {
       executeScroll((~index & 1) as BOOL, index < 7 ? -1 : 1, 0)
     } else if (index > 2) {
@@ -304,9 +310,9 @@ export const beginScroll = (eventWrapper: 0 | Pick<HandlerNS.Event, "e">, key: s
 }
 
 export const onScrolls = (event: KeyboardEventToPrevent): boolean => {
-    let repeat = Build.MinCVer < BrowserVer.Min$KeyboardEvent$$Repeat$ExistsButNotWork
+    const repeat = Build.MinCVer < BrowserVer.Min$KeyboardEvent$$Repeat$ExistsButNotWork
         && Build.BTypes & BrowserType.Chrome ? !!event.repeat : event.repeat;
-    repeat && VKey.prevent_(event);
+    repeat && prevent_(event);
     scrollTick(<BOOL> +repeat)
     return repeat;
 }
@@ -332,8 +338,8 @@ const findScrollable = (di: ScrollByY, amount: number): SafeElement | null => {
           notNeedToRecheck = notNeedToRecheck || doesScroll(element!, 1, -amount)
         }
         element = (Build.BTypes & ~BrowserType.Firefox
-            ? VDom.SafeEl_not_ff_!(VDom.GetParent_unsafe_(element!, PNType.RevealSlotAndGotoParent))
-            : VDom.GetParent_unsafe_(element!, PNType.RevealSlotAndGotoParent) as SafeElement | null
+            ? SafeEl_not_ff_!(GetParent_unsafe_(element!, PNType.RevealSlotAndGotoParent))
+            : GetParent_unsafe_(element!, PNType.RevealSlotAndGotoParent) as SafeElement | null
           ) || top;
       }
       element = element !== top || notNeedToRecheck ? element : null
@@ -341,9 +347,9 @@ const findScrollable = (di: ScrollByY, amount: number): SafeElement | null => {
     }
     if (!element) {
       // note: twitter auto focuses its dialog panel, so it's not needed to detect it here
-      const candidate = (<RegExpOne> /^(new|www)?\.?reddit\.com$/).test(location.host)
-          ? VDom.querySelector_unsafe_("#overlayScrollContainer") : null;
-      element = Build.BTypes & ~BrowserType.Firefox ? VDom.SafeEl_not_ff_!(candidate) : candidate as SafeElement | null;
+      const candidate = (<RegExpOne> /^(new|www)?\.?reddit\.com$/).test(loc_.host)
+          ? querySelector_unsafe_("#overlayScrollContainer") : null;
+      element = Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(candidate) : candidate as SafeElement | null;
     }
     if (!element && top) {
       const candidate = selectFirst({ area_: 0, element_: top, height_: 0 })
@@ -358,9 +364,9 @@ const findScrollable = (di: ScrollByY, amount: number): SafeElement | null => {
 }
 
 export const prepareTop = (): void => {
-  scrollingTop = VDom.scrollingEl_(1)
+  scrollingTop = scrollingEl_(1)
   if (scrollingTop) {
-      VDom.getZoom_(1);
+      getZoom_(1);
     getPixelScaleToScroll()
   }
 }
@@ -370,11 +376,11 @@ export const getPixelScaleToScroll = (): void => {
      * Imported on 2013-05-15 by https://github.com/w3c/csswg-drafts/commit/ad01664359641f791d99f0b3fce545b55579acdc
      * Firefox is still using `int`: https://bugzilla.mozilla.org/show_bug.cgi?id=1217330 (filed on 2015-10-22)
      */
-  scale = (Build.BTypes & BrowserType.Firefox ? 2 : 1) / Math.min(1, VDom.wdZoom_) / Math.min(1, VDom.bZoom_)
+  scale = (Build.BTypes & BrowserType.Firefox ? 2 : 1) / Math.min(1, wdZoom_) / Math.min(1, bZoom_)
 }
 
 const checkCurrent = (el: SafeElement | null): void => {
-    if (current_ !== el && current_ && VDom.NotVisible_(current_)) { current_ = el; cachedScrollable = 0; }
+    if (current_ !== el && current_ && NotVisible_(current_)) { current_ = el; cachedScrollable = 0; }
 }
 
   /** if `el` is null, then return viewSize for `kScrollDim.scrollSize` */
@@ -394,7 +400,7 @@ const getDimension = (el: SafeElement | null, di: ScrollByY, index: kScrollDim &
 }
 
 const hasSpecialScrollSnap = (el: SafeElement | null): boolean => {
-    const scrollSnap: string | null | undefined = el && VDom.getComputedStyle_(el).scrollSnapType;
+    const scrollSnap: string | null | undefined = el && getComputedStyle_(el).scrollSnapType;
     return !!scrollSnap && scrollSnap !== "none";
 }
 
@@ -429,22 +435,22 @@ const selectFirst = (info: ElementScrollInfo, skipPrepare?: 1): ElementScrollInf
         (doesScroll(element, 1, 1) || element.scrollTop > 0 && doesScroll(element, 1, 0))) {
       return info;
     }
-    skipPrepare || VDom.prepareCrop_();
+    skipPrepare || prepareCrop_();
     let children: ElementScrollInfo[] = [], child: ElementScrollInfo | null
       , _ref = element.children, _len = _ref.length;
     while (0 < _len--) {
       element = _ref[_len]! as /** fake `as` */ SafeElement;
       // here assumes that a <form> won't be a main scrollable area
-      if (Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_not_ff_!(element)) { continue; }
-      const rect = VDom.getBoundingClientRect_(element),
-      visible = rect.height > 0 ? VDom.cropRectToVisible_(rect.left, rect.top, rect.right, rect.bottom)
-        : VDom.getVisibleClientRect_(element);
+      if (Build.BTypes & ~BrowserType.Firefox && notSafe_not_ff_!(element)) { continue; }
+      const rect = getBoundingClientRect_(element),
+      visible = rect.height > 0 ? cropRectToVisible_(rect.left, rect.top, rect.right, rect.bottom)
+        : getVisibleClientRect_(element);
       if (visible) {
         let height_ = visible.b - visible.t;
         children.push({ area_: (visible.r - visible.l) * height_, element_: element, height_});
       }
     }
-    children.sort(sortByArea)
+    children.sort((a, b) => b.area_ - a.area_)
     for (const info1 of children) {
       if (child = selectFirst(info1, 1)) {
         return child;
@@ -465,8 +471,8 @@ export const scrollIntoView_need_safe = (el: SafeElement): void => {
     current_ = el
     cachedScrollable = 0
     if (hasX || hasY) {
-      for (let el2: Element | null = el; el2; el2 = VDom.GetParent_unsafe_(el2, PNType.RevealSlotAndGotoParent)) {
-        const pos = VDom.getComputedStyle_(el2).position;
+      for (let el2: Element | null = el; el2; el2 = GetParent_unsafe_(el2, PNType.RevealSlotAndGotoParent)) {
+        const pos = getComputedStyle_(el2).position;
         if (pos === "fixed" || pos === "sticky") {
           hasX = hasY = 0;
           break;
@@ -485,7 +491,7 @@ export const scrollIntoView_need_safe = (el: SafeElement): void => {
 
   /** @NEED_SAFE_ELEMENTS */
 export const shouldScroll_need_safe = (element: SafeElement, di: BOOL | 2 | 3, amount: number): -1 | 0 | 1 => {
-    const st = VDom.getComputedStyle_(element);
+    const st = getComputedStyle_(element);
     return (di ? st.overflowY : st.overflowX) === "hidden" && di < 2
       || st.display === "none" || st.visibility !== "visible" ? -1
       : <BOOL> +doesScroll(element, (di & 1) as BOOL
@@ -494,20 +500,16 @@ export const shouldScroll_need_safe = (element: SafeElement, di: BOOL | 2 | 3, a
 
 export const suppressScroll = (): void => {
     if (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome
-        && !VDom.allowRAF_) {
+        && !allowRAF_) {
       scrolled = 0
       return;
     }
     scrolled = 2
     setupEventListener(0, "scroll");
-    requestAnimationFrame(function (): void {
+    rAF_(function (): void {
       scrolled = 0
       setupEventListener(0, "scroll", null, 1);
     });
-}
-
-const sortByArea = (a: ElementScrollInfo, b: ElementScrollInfo): number => {
-    return b.area_ - a.area_;
 }
 
 export const onActivate = (event: Event): void => {
@@ -526,8 +528,7 @@ export const onActivate = (event: Event): void => {
               || !(Build.BTypes & BrowserType.Chrome)
             ? path : path && path.length > 1)
         ? path![0] as Element : event.target as Element;
-    /*#__INLINE__*/ setCurrentScrolling(Build.BTypes & ~BrowserType.Firefox
-        ? VDom.SafeEl_not_ff_!(el) : el as SafeElement | null);
-    /*#__INLINE__*/ setCachedScrollable(0);
+    current_ = Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(el) : el as SafeElement | null
+    cachedScrollable = 0
   }
 }

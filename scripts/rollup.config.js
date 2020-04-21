@@ -9,6 +9,7 @@ module.exports = {
   },
   output: {
     file: "dist/content/vimium-c.js",
+    freeze: false,
     format: "iife",
     esModule: false,
     exports: "none",

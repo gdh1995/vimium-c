@@ -1,31 +1,36 @@
 /// <reference path="../lib/base.d.ts" />
 
 import {
-  doc, isTop, isEnabled_, injector, VOther, initialDocState, setEsc, esc, setupEventListener, setVEnabled,
-  setClickable, clickable_, isLocked_, isAlive_, setTr, timeout_,
+  doc, isTop, injector, VOther, initialDocState, setEsc, esc, setupEventListener, setVEnabled,
+  setClickable, clickable_, isAlive_, setTr, setupKeydownEvents, onWndFocus, setClickableForInjector,
 } from "../lib/utils.js"
+import { suppressTail_, key_ } from "../lib/keyboard_utils.js"
+import { prepareCrop_, frameElement_, setReadyState, setOnDocLoaded, readyState_, loc_ } from "../lib/dom_utils.js"
 import {
-  safePost, setRuntimePort, runtime_port, Port, SafeDestoryF, setSafeDestroy,
-  setRuntimeConnect, runtimeConnect,
+  safePost, setRuntimePort, runtime_port, SafeDestoryF, setSafeDestroy,
+  runtimeConnect, safeDestroy, post_, send_,
 } from "../lib/port.js"
 import {
-  ui_box, adjustUI, doExitOnClick, getParentVApi, setParentVApiGetter, style_ui, setGetWndVApi,
+  ui_box, adjustUI, doExitOnClick, getParentVApi, setParentVApiGetter, setGetWndVApi, learnCSS,
+  setUICSS, addUIElement, ui_root, flash_,
 } from "./dom_ui.js"
-import { grabBackFocus } from "./mode_insert.js"
-import { currentKeys, passKeys } from "./key_handler.js"
+import { grabBackFocus, insert_Lock_ } from "./mode_insert.js"
+import { currentKeys } from "./key_handler.js"
 import { contentCommands_ } from "./commands.js"
-import { requestHandlers, hook, enableNeedToRetryParentClickable } from "./request_handler.js"
+import { hook, enableNeedToRetryParentClickable, focusAndRun } from "./request_handler.js"
 
 import { main as extend_click } from  "./extend_click.js"
-import * as VDom from "../lib/dom_utils.js"
+import { activate as linkActivate, coreHints } from "./link_hints.js"
+import { executeScroll, scrollTick, $sc, keyIsDown as scroll_keyIsDown } from "./scroller.js"
+import { hudTip } from "./hud.js"
+import { onLoad as findOnLoad, find_box, findCSS, styleInHUD } from "./mode_find.js"
+import { activate as omniActivate } from "./vomnibar.js"
 
   let coreTester: { name_: string; rand_: number; recvTick_: number; sendTick_: number;
         encrypt_ (trustedRand: number, unsafeRand: number): string;
         compare_: Parameters<SandboxGetterFunc>[0]; }
 
-setSafeDestroy(safeDestroy)
-
-function safeDestroy (silent?: Parameters<SafeDestoryF>[0]): void {
+setSafeDestroy((silent?: Parameters<SafeDestoryF>[0]): void => {
     if (!isAlive_) { return; }
     if (Build.BTypes & BrowserType.Firefox && silent === 9) {
       /*#__INLINE__*/ setRuntimePort(null)
@@ -44,23 +49,44 @@ function safeDestroy (silent?: Parameters<SafeDestoryF>[0]): void {
 
     silent || console.log("%cVimium C%c in %o has been destroyed at %o."
       , "color:red", "color:auto"
-      , location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1")
+      , loc_.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1")
       , Date.now());
 
     if (runtime_port) { try { runtime_port.disconnect(); } catch {} }
     injector || (<RegExpOne> /a?/).test("");
+})
+
+VApi = {
+  baseHinter_: coreHints, execute_: null, cache2_: null,
+  post_, send_, setupKeydownEvents_: setupKeydownEvents, focusAndRun_: focusAndRun, destroy_: safeDestroy,
+  linkActivate_: linkActivate, omniActivate_: omniActivate, findOnLoad_: findOnLoad, scroll_: executeScroll,
+  scrollTick_: scrollTick, $sc: $sc, learnCSS_: learnCSS, suppressTailKeys_: suppressTail_,
+  innerHeight_ff_: Build.BTypes & BrowserType.Firefox ? () => innerHeight : 0 as never,
+  setTr_: injector && setTr, tip_: hudTip, key_: key_, lock_: insert_Lock_,
+  setUICSS_: setUICSS, addUIElement_: addUIElement, prepareCrop2_: prepareCrop_, flash_,
+  misc_ () {
+    return {
+      on_wnd_focus_: onWndFocus,
+      find_box_: find_box,
+      key_is_down_: scroll_keyIsDown,
+      clickable_: clickable_,
+      ui_root_: ui_root,
+      find_css_: findCSS,
+      style_in_find_hud_: styleInHUD
+    }
+  }
 }
 
   if (injector) {
     injector.$p = [safePost, function () {
       let keys = currentKeys; esc!(HandlerResult.Nothing); return keys;
-    }, setClickable];
+    }, setClickableForInjector];
   }
 
   if (!(Build.BTypes & BrowserType.Firefox)) { /* empty */ }
   else if (Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox || injector !== void 0) {
     /*#__INLINE__*/ setGetWndVApi(wnd => wnd.VApi);
-    /*#__INLINE__*/ setParentVApiGetter(() => VDom.frameElement_() && (parent as Window).VApi)
+    /*#__INLINE__*/ setParentVApiGetter(() => frameElement_() && (parent as Window).VApi)
   } else {
     coreTester = {
       name_: BuildStr.CoreGetterFuncName as const,
@@ -114,7 +140,7 @@ function safeDestroy (silent?: Parameters<SafeDestoryF>[0]): void {
   }
   isTop || injector ||
   function (): void { // if injected, `parentFrame_` still needs a value
-    const parEl = VDom.frameElement_();
+    const parEl = frameElement_();
     if (!parEl) {
       if ((Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
           || WeakSet) && <boolean> grabBackFocus) {
@@ -187,55 +213,24 @@ function safeDestroy (silent?: Parameters<SafeDestoryF>[0]): void {
       Name = "readystatechange",
       onReadyStateChange = function (): void {
         const stat = doc.readyState, loaded = stat < "i", arr = loaded ? listeners2 : listeners1;
-        VDom.setReadyState(stat)
+        /*#__INLINE__*/ setReadyState(stat)
         if (loaded) {
           setupEventListener(0, Name, onReadyStateChange, 1);
-          /*#__INLINE__*/ VDom.setOnDocLoaded(execute)
+          /*#__INLINE__*/ setOnDocLoaded(execute)
           onReadyStateChange = execute as any
         }
         arr.forEach(execute);
         arr.length = 0;
       };
-      /*#__INLINE__*/ VDom.setOnDocLoaded(initialDocState < "i" ? execute : (
+      /*#__INLINE__*/ setOnDocLoaded(initialDocState < "i" ? execute : (
       setupEventListener(0, Name, onReadyStateChange),
           (callback, onloaded) => {
-        VDom.readyState_ < "l" && !onloaded ? callback() : (onloaded ? listeners2 : listeners1).push(callback);
+        readyState_ < "l" && !onloaded ? callback() : (onloaded ? listeners2 : listeners1).push(callback);
       }))
     }
-    
-    /*#__INLINE__*/ setRuntimeConnect((function (this: void): void {
-      const api = Build.BTypes & ~BrowserType.Chrome
-          && (!(Build.BTypes & BrowserType.Chrome) || VOther !== BrowserType.Chrome)
-          ? browser as typeof chrome : chrome,
-      status = requestHandlers[0] ? PortType.initing
-        : (isEnabled_ ? passKeys ? PortType.knownPartial : PortType.knownEnabled : PortType.knownDisabled)
-        + (isLocked_ ? PortType.isLocked : 0) + (style_ui ? PortType.hasCSS : 0),
-      name = PortType.isTop * +isTop + PortType.hasFocus * +doc.hasFocus() + status,
-      data = { name: injector ? PortNameEnum.Prefix + name + injector.$h
-          : !(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && VOther & BrowserType.Edge
-          ? name + PortNameEnum.Delimiter + location.href
-          : "" + name
-      },
-      connect = api.runtime.connect, trans = api.i18n.getMessage,
-      port = injector ? connect(injector.id, data) as Port : connect(data) as Port
-      /*#__INLINE__*/ setRuntimePort(port)
-      port.onDisconnect.addListener((): void => {
-        /*#__INLINE__*/ setRuntimePort(null)
-        timeout_(function (i): void {
-          if (!(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i)) {
-            try { runtime_port || !isAlive_ || runtimeConnect(); return; } catch {}
-          }
-          safeDestroy();
-        }, requestHandlers[kBgReq.init] ? 2000 : 5000);
-      });
-      port.onMessage.addListener(<T extends keyof BgReq> (response: Req.bg<T>): void => {
-        type TypeToCheck = { [k in keyof BgReq]: (this: void, request: BgReq[k]) => void };
-        type TypeChecked = { [k in keyof BgReq]: <T2 extends keyof BgReq>(this: void, request: BgReq[T2]) => void };
-        (requestHandlers as TypeToCheck as TypeChecked)[response.N](response);
-      });
-      setTr((tid, args) => trans("" + tid, args));
-    }))
+
     runtimeConnect();
+
     if (injector === void 0) {
       /*#__INLINE__*/ extend_click();
     }

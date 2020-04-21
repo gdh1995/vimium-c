@@ -1,6 +1,13 @@
-import { setupEventListener, clickable_, isTop, keydownEvents_, VOther, timeout_, fgCache, doc } from "../lib/utils.js"
-import * as VKey from "../lib/keyboard_utils.js"
-import * as VDom from "../lib/dom_utils.js"
+import { setupEventListener, clickable_, isTop, keydownEvents_, VOther, timeout_, fgCache, doc, isAlive_ } from "../lib/utils.js"
+import {
+  createElement_, createShadowRoot_, bZoom_, dScale_, fullscreenEl_unsafe_, docEl_unsafe_, getZoom_, wdZoom_,
+  getComputedStyle_, markDocSelectable, GetParent_unsafe_, getSelection_, GetShadowRoot_, getEditableType_,
+  getSelectionBoundingBox_, center_, getVisibleClientRect_, isInTouchMode_cr_, touch_cr_, IsInDOM_, lastHovered_,
+  hover_, mouse_, activeEl_unsafe_, jsRe_, view_, prepareCrop_, getClientRectsForAreas_, notSafe_not_ff_,
+  getBoundingClientRect_, padClientRect_, isContaining_, cropRectToVisible_, getCroppedRect_, setBoundary_,
+  frameElement_, allowScripts_, markAllowScripts, runJS_, isStyleVisible_
+} from "../lib/dom_utils.js"
+import { Stop_, suppressTail_ } from "../lib/keyboard_utils.js"
 import { currentScrolling } from "./scroller.js"
 import { styleSelectable } from "./mode_find.js"
 import { unwrap_ff, tryDecodeURL } from "./link_hints.js"
@@ -19,8 +26,8 @@ let flashTime = 0;
 export { box_ as ui_box, root_ as ui_root, styleIn_ as style_ui, lastFlashEl }
 
 export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustType): void {
-    box_ = VDom.createElement_("div");
-    let root: VUIRoot = root_ = VDom.createShadowRoot_(box_),
+    box_ = createElement_("div");
+    let root: VUIRoot = root_ = createShadowRoot_(box_),
     setupListen = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
         && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
         && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
@@ -36,10 +43,10 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
       || Build.BTypes & ~BrowserType.Edge && root !== box_
       ? root as ShadowRoot : 0, "load",
     function Onload(this: ShadowRoot | Window, e: Event): void {
-      if (!VDom) { setupListen(0, "load", Onload, 1); return; } // safe enough even if reloaded
+      if (!isAlive_) { setupListen(0, "load", Onload, 1); return; } // safe enough even if reloaded
       const t = e.target as HTMLElement | Document;
       if (t.parentNode === root_) {
-        VKey.Stop_(e); t.onload && t.onload(e);
+        Stop_(e); t.onload && t.onload(e);
       }
     }, 0, 1); // should use a listener in active mode: https://www.chromestatus.com/features/5745543795965952
     addUIElement = (element2: HTMLElement, adjust2?: AdjustType, before?: Element | null | true): void => {
@@ -87,13 +94,13 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
 export const addElementList = function <T extends boolean> (
       els: readonly HintsNS.BaseHintItem[], offset: ViewOffset, dialogContainer?: T
       ): (T extends true ? HTMLDialogElement : HTMLDivElement) & SafeElement {
-    const parent = VDom.createElement_(Build.BTypes & BrowserType.Chrome && dialogContainer ? "dialog" : "div");
+    const parent = createElement_(Build.BTypes & BrowserType.Chrome && dialogContainer ? "dialog" : "div");
     parent.className = "R HM" + (Build.BTypes & BrowserType.Chrome && dialogContainer ? " DHM" : "") + fgCache.d;
     for (const el of els) {
       parent.appendChild(el.m);
     }
     const style = parent.style,
-    zoom = VDom.bZoom_ / (Build.BTypes & BrowserType.Chrome && dialogContainer ? 1 : VDom.dScale_),
+    zoom = bZoom_ / (Build.BTypes & BrowserType.Chrome && dialogContainer ? 1 : dScale_),
     left = offset[0] + "px", top = offset[1] + "px";
     if ((!(Build.BTypes & ~BrowserType.Firefox)
           || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox)
@@ -103,7 +110,7 @@ export const addElementList = function <T extends boolean> (
       style.left = left; style.top = top;
       zoom - 1 && (style.zoom = zoom as number | string as string);
     }
-    VDom.fullscreenEl_unsafe_() && (style.position = "fixed");
+    fullscreenEl_unsafe_() && (style.position = "fixed");
     addUIElement(parent, AdjustType.DEFAULT, lastFlashEl)
     if (Build.BTypes & BrowserType.Chrome) {
       dialogContainer && (parent as HTMLDialogElement).showModal();
@@ -113,9 +120,9 @@ export const addElementList = function <T extends boolean> (
 
 export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void => {
     // Before Firefox 64, the mozFullscreenChangeEvent.target is document
-    // so here should only use `VDom.fullscreenEl_unsafe_`
-    const el: Element | null = VDom.fullscreenEl_unsafe_(),
-    el2 = el && !root_.contains(el) ? el : VDom.docEl_unsafe_()!
+    // so here should only use `fullscreenEl_unsafe_`
+    const el: Element | null = fullscreenEl_unsafe_(),
+    el2 = el && !root_.contains(el) ? el : docEl_unsafe_()!
     // Chrome also always remove node from its parent since 58 (just like Firefox), which meets the specification
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
     //  -> #concept-node-append -> #concept-node-pre-insert -> #concept-node-adopt -> step 2
@@ -140,7 +147,7 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
 }
 
 export const ensureBorder = (zoom?: number): void => {
-    zoom || (VDom.getZoom_(), zoom = VDom.wdZoom_);
+    zoom || (getZoom_(), zoom = wdZoom_);
     if (!cssPatch_ && zoom >= 1) { return; }
     let width = ("" + (
         Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
@@ -157,7 +164,7 @@ export const ensureBorder = (zoom?: number): void => {
 }
 
 export const createStyle = (text?: string, css?: HTMLStyleElement): HTMLStyleElement => {
-    css = css || VDom.createElement_("style");
+    css = css || createElement_("style");
     css.type = "text/css";
     text && (css.textContent = text);
     return css;
@@ -178,7 +185,7 @@ export const learnCSS = (srcStyleIn: typeof styleIn_, force?: 1): void => {
 
 export const checkDocSelectable = (): void => {
     let sout: HTMLStyleElement | null | HTMLBodyElement | HTMLFrameSetElement = styleSelectable
-      , gcs = VDom.getComputedStyle_, st: CSSStyleDeclaration
+      , gcs = getComputedStyle_, st: CSSStyleDeclaration
       , mayTrue = !sout || !sout.parentNode;
     if (mayTrue && (sout = doc.body)) {
       st = gcs(sout);
@@ -186,7 +193,7 @@ export const checkDocSelectable = (): void => {
             || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinUnprefixedUserSelect
             ? st.userSelect || st.webkitUserSelect : st.userSelect) !== "none";
     }
-    VDom.markDocSelectable(mayTrue && (st = gcs(VDom.docEl_unsafe_()!),
+    markDocSelectable(mayTrue && (st = gcs(docEl_unsafe_()!),
             Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinUnprefixedUserSelect
             || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinUnprefixedUserSelect
             ? st.userSelect || st.webkitUserSelect : st.userSelect) !== "none")
@@ -200,7 +207,7 @@ export const getSelected = (notExpectCount?: 1): [Selection, ShadowRoot | null] 
           || el.getRootNode) {
         el = el.getRootNode!();
       } else {
-        for (let pn: Node | null; pn = VDom.GetParent_unsafe_(el, PNType.DirectNode); el = pn) { /* empty */ }
+        for (let pn: Node | null; pn = GetParent_unsafe_(el, PNType.DirectNode); el = pn) { /* empty */ }
       }
       if (el !== doc && el.nodeType === kNode.DOCUMENT_FRAGMENT_NODE
           && typeof (el as ShadowRoot).getSelection === "function") {
@@ -210,7 +217,7 @@ export const getSelected = (notExpectCount?: 1): [Selection, ShadowRoot | null] 
         }
       }
     }
-    sel = VDom.getSelection_();
+    sel = getSelection_();
     let offset: number, sr: ShadowRoot | null = null, sel2: Selection | null = sel
       , kTagName = "tagName" as const;
     if (!(  (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
@@ -231,7 +238,7 @@ export const getSelected = (notExpectCount?: 1): [Selection, ShadowRoot | null] 
                 || (el as Element).childNodes instanceof NodeList && !("value" in (el as Element).childNodes)
             )) {
           el = (el.childNodes as NodeList | RadioNodeList)[offset];
-          if (el && kTagName in <NodeToElement> el && (sr = VDom.GetShadowRoot_(el as Element))) {
+          if (el && kTagName in <NodeToElement> el && (sr = GetShadowRoot_(el as Element))) {
             if (sr.getSelection && (sel2 = sr.getSelection())) {
               sel = sel2;
             } else {
@@ -252,7 +259,7 @@ export const getSelectionParent_unsafe = (selected?: string): Element | null => 
     let sel = getSelected()[0], range = sel.rangeCount ? sel.getRangeAt(0) : null
       , par: Node | null = range && range.commonAncestorContainer, p0 = par;
     while (par && (par as NodeToElement).tagName == null) {
-      par = Build.BTypes & ~BrowserType.Firefox ? VDom.GetParent_unsafe_(par, PNType.DirectNode)
+      par = Build.BTypes & ~BrowserType.Firefox ? GetParent_unsafe_(par, PNType.DirectNode)
             : par.parentNode as Exclude<Node["parentNode"], Window | RadioNodeList | HTMLCollection>;
     }
     // now par is Element or null, and may be a <form> / <frameset>
@@ -261,17 +268,17 @@ export const getSelectionParent_unsafe = (selected?: string): Element | null => 
       while (par && (text = (par as TypeToAssert<Element, HTMLElement, "innerText">).innerText,
             !(Build.BTypes & ~BrowserType.Firefox) || typeof text === "string")
           && selected.length === (text as string).length) {
-        par = VDom.GetParent_unsafe_(par as HTMLElement, PNType.DirectElement);
+        par = GetParent_unsafe_(par as HTMLElement, PNType.DirectElement);
       }
     }
-    return par !== VDom.docEl_unsafe_() ? par as Element | null : null;
+    return par !== docEl_unsafe_() ? par as Element | null : null;
 }
 
 export const getSelectionText = (notTrim?: 1): string => {
-    let sel = VDom.getSelection_(), s = "" + sel, el: Element | null, rect: ClientRect;
+    let sel = getSelection_(), s = "" + sel, el: Element | null, rect: ClientRect;
     if (s && !insert_Lock_()
-        && (el = currentScrolling) && VDom.getEditableType_<0>(el) === EditableType.TextBox
-        && (rect = VDom.getSelectionBoundingBox_(sel), !rect.width || !rect.height)) {
+        && (el = currentScrolling) && getEditableType_<0>(el) === EditableType.TextBox
+        && (rect = getSelectionBoundingBox_(sel), !rect.width || !rect.height)) {
       s = "";
     }
     return notTrim ? s : s.trim();
@@ -288,7 +295,7 @@ export const removeSelection = function (root?: VUIRoot & Pick<DocumentOrShadowR
 } as (root?: VUIRoot, justTest?: 1) => boolean
 
 export const resetSelectionToDocStart = (sel?: Selection): void => {
-    (sel || VDom.getSelection_()).removeAllRanges();
+    (sel || getSelection_()).removeAllRanges();
 }
 
 export const click_ = (element: SafeElementForMouse
@@ -300,21 +307,21 @@ export const click_ = (element: SafeElementForMouse
         return;
       }
     }
-    const center = VDom.center_(rect || (rect = VDom.getVisibleClientRect_(element)));
+    const center = center_(rect || (rect = getVisibleClientRect_(element)));
     if (Build.BTypes & BrowserType.Chrome
         && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)
         && (Build.MinCVer >= BrowserVer.MinEnsuredTouchEventConstructor
             || fgCache.v >= BrowserVer.MinEnsuredTouchEventConstructor)
-        && (touchMode === !0 || touchMode && VDom.isInTouchMode_cr_!())) {
-      let id = VDom.touch_cr_!(element, center);
-      if (VDom.IsInDOM_(element)) {
-        VDom.touch_cr_!(element, center, id);
+        && (touchMode === !0 || touchMode && isInTouchMode_cr_!())) {
+      let id = touch_cr_!(element, center);
+      if (IsInDOM_(element)) {
+        touch_cr_!(element, center, id);
       }
-      if (!VDom.IsInDOM_(element)) { return; }
+      if (!IsInDOM_(element)) { return; }
     }
-    if (element !== VDom.lastHovered_) {
-      VDom.hover_(element, center);
-      if (!VDom.lastHovered_) { return; }
+    if (element !== lastHovered_) {
+      hover_(element, center);
+      if (!lastHovered_) { return; }
     }
     if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox) {
       // https://bugzilla.mozilla.org/show_bug.cgi?id=329509 says this starts on FF65,
@@ -323,19 +330,19 @@ export const click_ = (element: SafeElementForMouse
         return;
       }
     }
-    VDom.mouse_(element, "mousedown", center, modifiers, null, button);
-    if (!VDom.IsInDOM_(element)) { return; }
+    mouse_(element, "mousedown", center, modifiers, null, button);
+    if (!IsInDOM_(element)) { return; }
     // Note: here we can check doc.activeEl only when @click is used on the current focused document
-    if (addFocus && element !== insert_Lock_() && element !== VDom.activeEl_unsafe_() &&
+    if (addFocus && element !== insert_Lock_() && element !== activeEl_unsafe_() &&
         !(element as Partial<HTMLInputElement>).disabled) {
       element.focus && element.focus();
-      if (!VDom.IsInDOM_(element)) { return; }
+      if (!IsInDOM_(element)) { return; }
     }
-    VDom.mouse_(element, "mouseup", center, modifiers, null, button);
-    if (!VDom.IsInDOM_(element)) { return; }
+    mouse_(element, "mouseup", center, modifiers, null, button);
+    if (!IsInDOM_(element)) { return; }
     if (button === kClickButton.second) {
         // if button is the right, then auxclick can be triggered even if element.disabled
-        VDom.mouse_(element, "auxclick", center, modifiers, null, button);
+        mouse_(element, "auxclick", center, modifiers, null, button);
     }
     if (button === kClickButton.second /* is the right button */
         || Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || VOther & BrowserType.Chrome)
@@ -357,7 +364,7 @@ export const click_ = (element: SafeElementForMouse
             || !(url = element.getAttribute("href"))
             || (!(Build.BTypes & BrowserType.Firefox) || specialAction & kClickAction.forceToOpenInNewTab)
                 && url[0] === "#"
-            || VDom.jsRe_.test(url)
+            || jsRe_.test(url)
           ? ActionType.OnlyDispatch
           : Build.BTypes & BrowserType.Firefox
             && specialAction & (kClickAction.plainMayOpenManually | kClickAction.openInNewWindow)
@@ -365,15 +372,15 @@ export const click_ = (element: SafeElementForMouse
               || clickable_.has(element))
           ? ActionType.DispatchAndMayOpenTab : ActionType.OpenTabButNotDispatch;
     }
-    if ((result > ActionType.OpenTabButNotDispatch - 1 || VDom.mouse_(element, "click", center, modifiers) && result)
-        && VDom.getVisibleClientRect_(element)) {
+    if ((result > ActionType.OpenTabButNotDispatch - 1 || mouse_(element, "click", center, modifiers) && result)
+        && getVisibleClientRect_(element)) {
       // require element is still visible
       if (specialAction === kClickAction.forceToDblclick) {
         if (!(element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
           // use old rect
           click_(element, rect, 0, modifiers, kClickAction.none, kClickButton.primaryAndTwice)
-          if (VDom.getVisibleClientRect_(element)) {
-            VDom.mouse_(element, "dblclick", center, modifiers, null, kClickButton.primaryAndTwice);
+          if (getVisibleClientRect_(element)) {
+            mouse_(element, "dblclick", center, modifiers, null, kClickButton.primaryAndTwice);
           }
         }
         return;
@@ -403,13 +410,13 @@ export const select_ = (element: LockableElement, rect?: Rect | null, show_flash
       , action?: SelectActions, suppressRepeated?: boolean): void => {
     const y = scrollY;
     click_(element, rect, 1)
-    VDom.view_(element, y);
+    view_(element, y);
     // re-compute rect of element, in case that an input is resized when focused
     show_flash && flash_(element)
     if (element !== insert_Lock_()) { return; }
     // then `element` is always safe
     moveSel_need_safe(element, action)
-    if (suppressRepeated === true) { VKey.suppressTail_(0); }
+    if (suppressRepeated === true) { suppressTail_(0); }
 }
 
   /** @NEED_SAFE_ELEMENTS element is LockableElement */
@@ -428,7 +435,7 @@ const moveSel_need_safe = (element: LockableElement, action: SelectActions | und
       return;
     }
     // not need `this.getSelection_()`
-    const sel = VDom.getSelection_();
+    const sel = getSelection_();
     try {
       if (type === EditableType.rich_) {
         const range = doc.createRange();
@@ -458,28 +465,28 @@ const moveSel_need_safe = (element: LockableElement, action: SelectActions | und
 }
 
 export const getRect = (clickEl: Element, refer?: HTMLElementUsingMap | null): Rect | null => {
-    VDom.getZoom_(clickEl);
-    VDom.prepareCrop_();
+    getZoom_(clickEl);
+    prepareCrop_();
     if (refer) {
-      return VDom.getClientRectsForAreas_(refer, [], [clickEl as HTMLAreaElement]);
+      return getClientRectsForAreas_(refer, [], [clickEl as HTMLAreaElement]);
     }
-    const rect = Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_not_ff_!(clickEl) ? null
-        : VDom.getVisibleClientRect_(clickEl as SafeElement),
-    cr = VDom.getBoundingClientRect_(clickEl),
-    bcr = VDom.padClientRect_(cr, 8),
-    rect2 = rect && !VDom.isContaining_(bcr, rect) ? rect
-      : VDom.cropRectToVisible_(bcr.l, bcr.t, bcr.r, bcr.b) ? bcr : null;
-    return rect2 && VDom.getCroppedRect_(clickEl, rect2);
+    const rect = Build.BTypes & ~BrowserType.Firefox && notSafe_not_ff_!(clickEl) ? null
+        : getVisibleClientRect_(clickEl as SafeElement),
+    cr = getBoundingClientRect_(clickEl),
+    bcr = padClientRect_(cr, 8),
+    rect2 = rect && !isContaining_(bcr, rect) ? rect
+      : cropRectToVisible_(bcr.l, bcr.t, bcr.r, bcr.b) ? bcr : null;
+    return rect2 && getCroppedRect_(clickEl, rect2);
 }
 
 export const flash_ = function (el: Element | null, rect?: Rect | null, lifeTime?: number, classNames?: string
       ): (() => void) | void {
     rect || (rect = getRect(el!))
     if (!rect) { return; }
-    const flashEl = VDom.createElement_("div"), nfs = !VDom.fullscreenEl_unsafe_();
-    flashEl.className = "R Flash" + (classNames || "") + (VDom.setBoundary_(flashEl.style, rect, nfs) ? " AbsF" : "");
+    const flashEl = createElement_("div"), nfs = !fullscreenEl_unsafe_();
+    flashEl.className = "R Flash" + (classNames || "") + (setBoundary_(flashEl.style, rect, nfs) ? " AbsF" : "");
     Build.BTypes & ~BrowserType.Firefox &&
-    VDom.bZoom_ !== 1 && nfs && (flashEl.style.zoom = "" + VDom.bZoom_);
+    bZoom_ !== 1 && nfs && (flashEl.style.zoom = "" + bZoom_);
     addUIElement(flashEl)
     lastFlashEl = flashEl
     if (!Build.NDEBUG) {
@@ -531,7 +538,7 @@ export const doExitOnClick = (event?: Event): void => {
 
 /** must be called only if having known anotherWindow is "in a same origin" */
 export let getWndVApi_ff: ((anotherWindow: Window) => VApiTy | null | void) | undefined
-export const setGetWndVApi = (newGetWndVApi: typeof getWndVApi_ff): void => { getWndVApi_ff = newGetWndVApi }
+export function setGetWndVApi (newGetWndVApi: typeof getWndVApi_ff): void { getWndVApi_ff = newGetWndVApi }
 
 /**
  * Return a valid `ContentWindowCore`
@@ -541,7 +548,7 @@ export const setGetWndVApi = (newGetWndVApi: typeof getWndVApi_ff): void => { ge
  */
 export let getParentVApi = Build.BTypes & BrowserType.Firefox ? (): VApiTy | null | void => {
   if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement
-      ? !VDom.frameElement_() : !frameElement) {
+      ? !frameElement_() : !frameElement) {
     // (in Firefox) not use the cached version of frameElement - for less exceptions in the below code
     return;
   }
@@ -554,22 +561,22 @@ export let getParentVApi = Build.BTypes & BrowserType.Firefox ? (): VApiTy | nul
   return core;
 } : () => (parent as Window).VApi
 
-export const setParentVApiGetter = (getter: () => VApiTy | null | void): void => { getParentVApi = getter }
+export function setParentVApiGetter (getter: () => VApiTy | null | void): void { getParentVApi = getter }
 
 export const evalIfOK = (url: Pick<BgReq[kBgReq.eval], "u"> | string): boolean => {
   typeof url === "string" ? 0 : url = url.u
-  if (!VDom.jsRe_.test(url)) {
+  if (!jsRe_.test(url)) {
     return false;
   }
   url = url.slice(11).trim();
   if ((<RegExpOne> /^void\s*\( ?0 ?\)\s*;?$|^;?$/).test(url)) { /* empty */ }
   else if (!(Build.BTypes & ~BrowserType.Firefox)
       || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
-      ? VDom.allowScripts_ === 2 || VDom.allowScripts_ &&
-        /*#__INLINE__*/ VDom.markAllowScripts(
-            VDom.runJS_("document.currentScript.dataset.vimium=1", 1)!.dataset.vimium ? 2 : 0)
-      : VDom.allowScripts_) {
-    timeout_(VDom.runJS_.bind(VDom, tryDecodeURL(url, decodeURIComponent)), 0);
+      ? allowScripts_ === 2 || allowScripts_ &&
+        /*#__INLINE__*/ markAllowScripts(
+            runJS_("document.currentScript.dataset.vimium=1", 1)!.dataset.vimium ? 2 : 0)
+      : allowScripts_) {
+    timeout_(runJS_.bind(0, tryDecodeURL(url, decodeURIComponent)), 0);
   } else {
     hudTip(kTip.failToEvalJS);
   }
@@ -580,12 +587,12 @@ export const checkHidden = (cmd?: FgCmdAcrossFrames, count?: number, options?: O
   if (innerHeight < 3 || innerWidth < 3) { return 1; }
   // here should not use the cache frameElement, because `getComputedStyle(frameElement).***` might break
   const curFrameElement_ = !isTop && (Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
-          || !(Build.BTypes & ~BrowserType.Firefox) ? frameElement : VDom.frameElement_()),
-  el = !isTop && (curFrameElement_ || VDom.docEl_unsafe_());
+          || !(Build.BTypes & ~BrowserType.Firefox) ? frameElement : frameElement_()),
+  el = !isTop && (curFrameElement_ || docEl_unsafe_());
   if (!el) { return 0; }
-  let box = VDom.getBoundingClientRect_(el),
+  let box = getBoundingClientRect_(el),
   parEvents: ReturnType<typeof getParentVApi> | undefined,
-  result: boolean | BOOL = !box.height && !box.width || !VDom.isStyleVisible_(el);
+  result: boolean | BOOL = !box.height && !box.width || !isStyleVisible_(el);
   if (cmd) {
     // if in a forced cross-origin env (by setting doc.domain),
     // then par.self.innerHeight works, but this behavior is undocumented,

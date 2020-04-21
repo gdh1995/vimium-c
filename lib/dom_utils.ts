@@ -1,10 +1,11 @@
-import { VOther, initialDocState, fgCache, doc } from "./utils";
+import { VOther, initialDocState, fgCache, doc } from "./utils.js";
 
 type kMouseMoveEvents = "mouseover" | "mouseenter" | "mousemove" | "mouseout" | "mouseleave";
 type kMouseClickEvents = "mousedown" | "mouseup" | "click" | "auxclick" | "dblclick";
 
   /** data and DOM-shortcut section (sorted by reference numbers) */
 
+const loc_ = location
 const jsRe_ = <RegExpI & RegExpOne> /^javascript:/i
 let readyState_: Document["readyState"] = initialDocState
 let unsafeFramesetTag_old_cr_: "frameset" | "" | null =
@@ -16,18 +17,20 @@ let allowScripts_: 0 | 1 | 2 = 0
 let allowRAF_: BOOL = 1
 let docSelectable_ = true
 
-export { readyState_, unsafeFramesetTag_old_cr_, allowScripts_, jsRe_, allowRAF_, docSelectable_ }
-export const setReadyState = (state: Document["readyState"]): void => { readyState_ = state }
-export const markFramesetTagUnsafe = (): "frameset" => unsafeFramesetTag_old_cr_ = "frameset"
-export const markAllowScripts = (stat: 0 | 1 | 2): void => { allowScripts_ = stat }
-export const markAllowRAF = (rAF: BOOL): void => { allowRAF_ = rAF }
-export const markDocSelectable = (selectable: boolean): void => { docSelectable_ = selectable }
+export { loc_, readyState_, unsafeFramesetTag_old_cr_, allowScripts_, jsRe_, allowRAF_, docSelectable_ }
+export function setReadyState (state: Document["readyState"]): void { readyState_ = state }
+export function markFramesetTagUnsafe (): "frameset" { return unsafeFramesetTag_old_cr_ = "frameset" }
+export function markAllowScripts (stat: 0 | 1 | 2): void { allowScripts_ = stat }
+export function markAllowRAF (rAF: BOOL): void { allowRAF_ = rAF }
+export function markDocSelectable (selectable: boolean): void { docSelectable_ = selectable }
 
 export const devRatio_ = (): number => devicePixelRatio
 
-export const getComputedStyle_ = (element: Element): CSSStyleDeclaration => getComputedStyle(element)
+export const rAF_: (callback: FrameRequestCallback) => number = requestAnimationFrame
 
-export const getSelection_ = (): Selection => getSelection()
+export const getComputedStyle_: (element: Element) => CSSStyleDeclaration = getComputedStyle
+
+export const getSelection_: () => Selection = getSelection
 
   /** @UNSAFE_RETURNED */
 export const docEl_unsafe_ = (): Element | null => doc.documentElement
@@ -48,7 +51,7 @@ export const querySelectorAll_unsafe_ = function (selector: string): NodeListOf<
 export let isHTML_ = Build.BTypes & ~BrowserType.Firefox
       ? (): boolean => "lang" in <ElementToHTML> (docEl_unsafe_() || {})
       : (): boolean => doc instanceof HTMLDocument
-export const setIsHTML = (f: typeof isHTML_): void => { isHTML_ = f } 
+export function setIsHTML (f: typeof isHTML_): void { isHTML_ = f } 
 
 export const htmlTag_ = (Build.BTypes & ~BrowserType.Firefox ? function (element: Element | HTMLElement): string {
     let s: Element["localName"];
@@ -450,7 +453,7 @@ let bScale_ = 1 // <body>.transform:scale (ignore the case of sx != sy)
 let bZoom_ = 1
 
 export { paintBox_, wdZoom_, docZoom_, isDocZoomStrange_, dScale_, bScale_, bZoom_ }
-export const setTempBodyZoom = (zoom: number) => { bZoom_ = zoom }
+export function setTempBodyZoom (zoom: number): void { bZoom_ = zoom }
 
 const _fixDocZoom_cr = Build.BTypes & BrowserType.Chrome ? (zoom: number, docEl: Element, devRatio: number): number => {
     let ver = Build.MinCVer < BrowserVer.MinASameZoomOfDocElAsdevPixRatioWorksAgain
@@ -736,12 +739,12 @@ export const getSelectionBoundingBox_ = (sel: Selection): ClientRect => sel.getR
 let OnDocLoaded_: (callback: (this: void) => void, onloaded?: 1) => void | number = null as never
 
 export { OnDocLoaded_ }
-export const setOnDocLoaded = (f: typeof OnDocLoaded_): void => { OnDocLoaded_ = f }
+export function setOnDocLoaded (f: typeof OnDocLoaded_): void { OnDocLoaded_ = f }
 
 export let createElement_ = doc.createElement.bind(doc) as {
     <K extends VimiumContainerElementType> (this: void, tagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement;
 }
-export const setCreateElement = (f: typeof createElement_): void => { createElement_ = f }
+export function setCreateElement (f: typeof createElement_): void { createElement_ = f }
 
 export const createShadowRoot_ = <T extends HTMLDivElement | HTMLBodyElement> (box: T): ShadowRoot | T => {
     return !(Build.BTypes & ~BrowserType.Edge) ? box
@@ -815,7 +818,7 @@ let _idc: InputDeviceCapabilities | undefined
 let lastHovered_: SafeElementForMouse | null = null
 
 export { lastHovered_ }
-export const setLastHovered = (el: SafeElementForMouse | null): void => { lastHovered_ = el }
+export function setLastHovered (el: SafeElementForMouse | null): void { lastHovered_ = el }
 
   /** note: will NOT skip even if newEl == @lastHovered */
 export const hover_ = function (this: {}, newEl?: SafeElementForMouse | null, center?: Point2D): void {

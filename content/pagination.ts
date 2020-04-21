@@ -6,14 +6,14 @@ import {
   traverse, kSafeAllSelector, ngEnabled, unwrap_ff,
 } from "./link_hints.js"
 import { contentCommands_ } from "./commands.js"
-import * as VDom from "../lib/dom_utils.js"
+import { view_, isAriaNotTrue_, getBoundingClientRect_, isStyleVisible_, docEl_unsafe_, querySelectorAll_unsafe_, htmlTag_ } from "../lib/dom_utils.js"
 
 const followLink = (linkElement: SafeHTMLElement): boolean => {
   let url = linkElement.localName === "link" && (linkElement as HTMLLinkElement).href;
   if (url) {
     contentCommands_[kFgCmd.reload](1, safer({ url }));
   } else {
-    VDom.view_(linkElement);
+    view_(linkElement);
     // note: prepareCrop is called during UI.flash_
     flash_(linkElement);
     timeout_(function () { click_(linkElement); }, 100);
@@ -32,9 +32,9 @@ const GetButtons = function (this: void, hints, element): void {
       (s = element.getAttribute("role")) ? (<RegExpI> /^(button|link)$/i).test(s)
       : ngEnabled && element.getAttribute("ng-click")));
   if (!isClickable) { return; }
-  if (!VDom.isAriaNotTrue_(element, kAria.disabled)) { return; }
-  const rect = VDom.getBoundingClientRect_(element);
-  if (rect.width > 2 && rect.height > 2 && VDom.isStyleVisible_(element)) {
+  if (!isAriaNotTrue_(element, kAria.disabled)) { return; }
+  const rect = getBoundingClientRect_(element);
+  if (rect.width > 2 && rect.height > 2 && isStyleVisible_(element)) {
     hints.push(element);
   }
 } as HintsNS.Filter<SafeHTMLElement>
@@ -49,13 +49,13 @@ export const findAndFollowLink = (names: string[], isNext: boolean, lenLimit: nu
   rel = isNext ? "next" : "prev", relIdx = names.indexOf(rel),
   detectQuirk = quirkIdx > 0 ? names.lastIndexOf(quirk[0], quirkIdx) : -1,
   refusedStr = isNext ? "<" : ">";
-  links.push(VDom.docEl_unsafe_() as never);
+  links.push(docEl_unsafe_() as never);
   let candidates: Candidate[] = [], ch: string, s: string, maxLen = totalMax, len: number;
   let i: number, candInd = 0, count = names.length;
   for (i = 0; i < count; i++) {
     if (GlobalConsts.SelectorPrefixesInPatterns.includes(names[i][0])) {
-      const arr = VDom.querySelectorAll_unsafe_<1>(names[i]);
-      if (arr && arr.length === 1 && VDom.htmlTag_(arr[0])) {
+      const arr = querySelectorAll_unsafe_<1>(names[i]);
+      if (arr && arr.length === 1 && htmlTag_(arr[0])) {
         candidates.push([i << 23, "", arr[0] as SafeHTMLElement]);
         count = i + 1;
         break;
@@ -117,12 +117,12 @@ export const findAndFollowLink = (names: string[], isNext: boolean, lenLimit: nu
 }
 
 export const findAndFollowRel = (relName: string): boolean => {
-  const elements = VDom.querySelectorAll_unsafe_("[rel]");
+  const elements = querySelectorAll_unsafe_("[rel]");
   let s: string | null | undefined;
   type HTMLElementWithRel = HTMLAnchorElement | HTMLAreaElement | HTMLLinkElement;
   for (let _i = 0, _len = elements.length, re1 = <RegExpOne> /\s+/; _i < _len; _i++) {
     const element = elements[_i];
-    if ((<RegExpI> /^(a|area|link)$/).test(VDom.htmlTag_(element))
+    if ((<RegExpI> /^(a|area|link)$/).test(htmlTag_(element))
         && (s = (element as TypeToPick<HTMLElement, HTMLElementWithRel, "rel">).rel)
         && s.trim().toLowerCase().split(re1).indexOf(relName) >= 0) {
       return followLink(element as HTMLElementWithRel as SafeHTMLElement);

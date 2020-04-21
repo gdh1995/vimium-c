@@ -1,7 +1,11 @@
 import {
   browserVer, doc, esc, EscF, fgCache, isTop, safeObj, setEsc, VOther, VTr, safer, timeout_,
 } from "../lib/utils.js"
-import * as VKey from "../lib/keyboard_utils.js"
+import {
+  unhover_, setLastHovered, isHTML_, view_, NotVisible_, getZoom_, prepareCrop_, getViewBox_, createElement_,
+  padClientRect_, getBoundingClientRect_, setBoundary_, wdZoom_, dScale_, loc_
+} from "../lib/dom_utils.js"
+import { pushHandler_, removeHandler_, key_, prevent_, isEscape_, keybody_ } from "../lib/keyboard_utils.js"
 import { post_ } from "../lib/port.js"
 import { addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, select_ } from "./dom_ui.js"
 import { hudHide, hudShow, hudTip, hud_text } from "./hud.js"
@@ -18,10 +22,9 @@ import {
   setInputHint, setInsertGlobal, setInsertHinting, setInsertLast, onWndBlur, exitPassMode, setExitPassMode,
 } from "./mode_insert.js"
 import { activate as visualActivate, deactivate as visualDeactivate } from "./mode_visual.js"
-import { activate as scActivate, setCachedScrollable, setCurrentScrolling } from "./scroller.js"
+import { activate as scActivate, clearCachedScrollable } from "./scroller.js"
 import { activate as omniActivate } from "./vomnibar.js"
 import { findAndFollowLink, findAndFollowRel } from "./pagination.js"
-import * as VDom from "../lib/dom_utils.js"
 
 interface SpecialCommands {
   [kFgCmd.reset] (this: void, isAlive: BOOL | CmdOptions[kFgCmd.reset] & SafeObject): void;
@@ -51,7 +54,7 @@ export const contentCommands_: {
   /* kFgCmd.findMode: */ findActivate,
   /* kFgCmd.linkHints: */ linkActivate,
   /* kFgCmd.unhoverLast: */ function (this: void): void {
-    VDom.unhover_();
+    unhover_();
     hudTip(kTip.didUnHoverLast);
   },
   /* kFgCmd.marks: */ markActivate,
@@ -60,10 +63,9 @@ export const contentCommands_: {
   /* kFgCmd.visualMode: */ visualActivate,
   /* kFgCmd.vomnibar: */ omniActivate ,
   /* kFgCmd.reset: */ (isAlive): void => {
-    /*#__INLINE__*/ setCurrentScrolling(null);
-    /*#__INLINE__*/ setCachedScrollable(null);
-    /*#__INLINE__*/ VDom.setLastHovered(null)
-    resetInsert()
+    /*#__INLINE__*/ clearCachedScrollable()
+    /*#__INLINE__*/ setLastHovered(null)
+    /*#__INLINE__*/ resetInsert()
     linkClear(isAlive ? 2 : 0); visualDeactivate();
     findInit || findDeactivate(FindNS.Action.ExitNoAnyFocus);
     onWndBlur();
@@ -119,7 +121,7 @@ export const contentCommands_: {
     }
     exitPassMode && exitPassMode();
     const keys = safeObj<BOOL>(null);
-    VKey.pushHandler_(function (event) {
+    pushHandler_(function (event) {
       keyCount += +!keys[event.i];
       keys[event.i] = 1;
       return HandlerResult.PassKey;
@@ -135,13 +137,13 @@ export const contentCommands_: {
     /*#__INLINE__*/ setExitPassMode((): void => {
       /*#__INLINE__*/ setExitPassMode(null)
       /*#__INLINE__*/ setOnKeyUp2(null)
-      VKey.removeHandler_(keys);
+      removeHandler_(keys);
       hudHide();
     })
     onKeyup2!();
   },
   /* kFgCmd.goNext: */ function (_0: number, {r: rel, p: patterns, l, m }: CmdOptions[kFgCmd.goNext]): void {
-    if (!VDom.isHTML_() || findAndFollowRel(rel)) { return; }
+    if (!isHTML_() || findAndFollowRel(rel)) { return; }
     const isNext = rel === "next";
     if (patterns.length <= 0 || !findAndFollowLink(patterns, isNext, l, m)) {
       return hudTip(kTip.noLinksToGo, 0, [VTr(rel)]);
@@ -149,13 +151,13 @@ export const contentCommands_: {
   },
   /* kFgCmd.reload: */ function (_0: number, options: CmdOptions[kFgCmd.reload]): void {
     timeout_(function () {
-      options.url ? (location.href = options.url) : location.reload(!!options.hard);
+      options.url ? (loc_.href = options.url) : loc_.reload(!!options.hard);
     }, 17);
   },
   /* kFgCmd.showHelp: */ function (msg?: number | "e", options?: CmdOptions[kFgCmd.showHelp]): void {
     if (msg === "e") { return; }
     let wantTop = innerWidth < 400 || innerHeight < 320;
-    if (!VDom.isHTML_()) {
+    if (!isHTML_()) {
       if (isTop) { return; }
       wantTop = true;
     }
@@ -167,7 +169,7 @@ export const contentCommands_: {
       H: kFgReq.copy,
       s: str as never as undefined,
       e: options.sed,
-      u: (str ? "" : options.url ? location.href : doc.title) as "url",
+      u: (str ? "" : options.url ? loc_.href : doc.title) as "url",
       d: options.decoded || options.decode
     });
   },
@@ -182,7 +184,7 @@ export const contentCommands_: {
   /* kFgCmd.searchAs: */ function (_0: number, options: CmdOptions[kFgCmd.searchAs]): void {
     post_({
       H: kFgReq.searchAs,
-      u: location.href,
+      u: loc_.href,
       c: options.copied,
       s: options.sed,
       t: options.selected ? getSelectionText() : ""
@@ -194,17 +196,17 @@ export const contentCommands_: {
       let newEl = raw_insert_lock, ret: BOOL = 1;
       if (newEl) {
         if (act === "backspace") {
-          if (VDom.view_(newEl)) { execCommand("delete", doc); }
+          if (view_(newEl)) { execCommand("delete", doc); }
         } else {
-          setInsertLast(newEl, 0)
+          /*#__INLINE__*/ setInsertLast(newEl, 0)
           newEl.blur();
         }
       } else if (!(newEl = insert_last)) {
         hudTip(kTip.noFocused, 1200);
-      } else if (act !== "last-visible" && VDom.view_(newEl) || !VDom.NotVisible_(newEl)) {
-        setInsertLast(null, 1)
-        VDom.getZoom_(newEl);
-        VDom.prepareCrop_();
+      } else if (act !== "last-visible" && view_(newEl) || !NotVisible_(newEl)) {
+        /*#__INLINE__*/ setInsertLast(null, 1)
+        getZoom_(newEl);
+        prepareCrop_();
         select_(newEl, null, !!options.flash, options.select, true);
       } else if (act[0] === "l") {
         ret = 0;
@@ -216,8 +218,8 @@ export const contentCommands_: {
       }
     }
     insert_inputHint && (insert_inputHint.h = null as never);
-    const arr: ViewOffset = VDom.getViewBox_();
-    VDom.prepareCrop_(1);
+    const arr: ViewOffset = getViewBox_();
+    prepareCrop_(1);
     interface InputHint extends Hint { [0]: HintsNS.InputHintItem["d"] }
     // here those editable and inside UI root are always detected, in case that a user modifies the shadow DOM
     const visibleInputs = traverse(Build.BTypes & ~BrowserType.Firefox
@@ -242,11 +244,11 @@ export const contentCommands_: {
     const hints: HintsNS.InputHintItem[] = visibleInputs.sort(
         (a, b) => a[2] < 1 || b[2] < 1 ? b[2] - a[2] : a[2] - b[2]).map(
         function (link): HintsNS.InputHintItem {
-      const marker = VDom.createElement_("span") as HintsNS.BaseHintItem["m"],
-      rect = VDom.padClientRect_(VDom.getBoundingClientRect_(link[0]), 3);
+      const marker = createElement_("span") as HintsNS.BaseHintItem["m"],
+      rect = padClientRect_(getBoundingClientRect_(link[0]), 3);
       rect.l--, rect.t--, rect.r--, rect.b--;
       marker.className = "IH";
-      VDom.setBoundary_(marker.style, rect);
+      setBoundary_(marker.style, rect);
       return {m: marker, d: link[0]};
     });
     if (count === 1 && insert_last) {
@@ -256,24 +258,24 @@ export const contentCommands_: {
     }
     hints[sel].m.className = "IH IHS";
     select_(visibleInputs[sel][0], visibleInputs[sel][1], false, action, false);
-    ensureBorder(VDom.wdZoom_ / VDom.dScale_);
+    ensureBorder(wdZoom_ / dScale_);
     const box = addElementList<false>(hints, arr), keep = !!options.keep, pass = !!options.passExitKey;
     // delay exiting the old to avoid some layout actions
     // although old elements can not be GC-ed before this line, it has little influence
     exitInputHint();
     /*#__INLINE__*/ setInputHint({ b: box, h: hints });
-    VKey.pushHandler_(function (event) {
+    pushHandler_(function (event) {
       const keyCode = event.i, isIME = keyCode === kKeyCode.ime, repeat = event.e.repeat,
-      key = isIME || repeat ? "" : VKey.key_(event, kModeId.Insert)
+      key = isIME || repeat ? "" : key_(event, kModeId.Insert)
       if (key === kChar.tab || key === `s-${kChar.tab}`) {
         const hints2 = this.h, oldSel = sel, len = hints2.length;
         sel = (oldSel + (key < "t" ? len - 1 : 1)) % len;
-        setInsertHinting(1);
-        VKey.prevent_(event.e); // in case that selecting is too slow
+        /*#__INLINE__*/ setInsertHinting(1);
+        prevent_(event.e); // in case that selecting is too slow
         select_(hints2[sel].d, null, false, action);
         hints2[oldSel].m.className = "IH";
         hints2[sel].m.className = "IH IHS";
-        setInsertHinting(0);
+        /*#__INLINE__*/ setInsertHinting(0);
         return HandlerResult.Prevent;
       }
       // check `!key` for mapModifier
@@ -281,13 +283,13 @@ export const contentCommands_: {
           || keyCode === kKeyCode.ctrlKey
           || keyCode > kKeyCode.maxNotMetaKey && keyCode < kKeyCode.minNotMetaKeyOrMenu))) { /* empty */ }
       else if (repeat) { return HandlerResult.Nothing; }
-      else if (keep ? VKey.isEscape_(key) || (
-          VKey.keybody_(key) === kChar.enter
+      else if (keep ? isEscape_(key) || (
+          keybody_(key) === kChar.enter
           && (/* a?c?m?-enter */ key < "s" && (key[0] !== "e" || this.h[sel].d.localName === "input"))
         ) : !isIME && keyCode !== kKeyCode.f12
       ) {
         exitInputHint();
-        return !VKey.isEscape_(key) ? HandlerResult.Nothing : keep || !raw_insert_lock ? HandlerResult.Prevent
+        return !isEscape_(key) ? HandlerResult.Nothing : keep || !raw_insert_lock ? HandlerResult.Prevent
           : pass ? HandlerResult.PassKey : HandlerResult.Nothing;
       }
       return HandlerResult.Nothing;
