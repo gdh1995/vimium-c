@@ -36,6 +36,7 @@ var needCommitInfo = process.env.NEED_COMMIT === "1";
 var envSourceMap = process.env.ENABLE_SOURCE_MAP === "1";
 var doesMergeProjects = process.env.MERGE_TS_PROJECTS !== "0";
 var doesUglifyLocalFiles = process.env.UGLIFY_LOCAL !== "0";
+var uglifyDistPasses = +process.env.UGLIFY_DIST_PASSES || 2;
 var gNoComments = process.env.NO_COMMENT === "1";
 var disableErrors = process.env.SHOW_ERRORS !== "1" && (process.env.SHOW_ERRORS === "0" || !compileInBatch);
 var ignoreHeaderChanges = process.env.IGNORE_HEADER_CHANGES !== "0";
@@ -794,16 +795,8 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
   const config = stdConfig;
   if (isJson) {
     stream = stream.pipe(gulpMap(uglifyJson));
-  } else {
-    const anno = !!config.output.preserve_annotations;
-    stream = stream.pipe(getGulpUglify(!!(exArgs.aggressiveMangle && config.mangle))(
-        anno ? {...config, output: {...config.output, comments: /^[!@#]/}} : config));
-    if (0) {
-      stream = stream.pipe(getGulpUglify()({...config, mangle: null, output: {...config.output, comments: /^[!@#]/} }));
-      stream = stream.pipe(getGulpUglify()({...config, compress: {...config.compress, passes: 2}, mangle: null}));
-    } else {
-      stream = stream.pipe(getGulpUglify()({...config, mangle: null}));
-    }
+  } else if (uglifyDistPasses > 0) {
+    stream = stream.pipe(getGulpUglify(!!(exArgs.aggressiveMangle && config.mangle), uglifyDistPasses)(config));
   }
   if (!is_file && new_suffix !== "") {
      stream = stream.pipe(require('gulp-rename')({ suffix: new_suffix }));
@@ -1391,12 +1384,33 @@ function patchExtendClick(source) {
   return _patchExtendClick(source, locally, logger);
 }
 
-function getGulpUglify(aggressiveMangle) {
+function getGulpUglify(aggressiveMangle, unique_passes) {
   var compose = require('gulp-uglify/composer');
   var logger = require('gulp-uglify/lib/log');
-  var uglify = aggressiveMangle ? require("./scripts/uglify-mangle") : require(LIB_UGLIFY_JS);
+  var uglify = require(LIB_UGLIFY_JS);
+  var aggressive = aggressiveMangle && require("./scripts/uglify-mangle")
+  const passes = unique_passes && unique_passes > 1 ? unique_passes : 0
+  if (passes) {
+    var multipleUglify = {
+      minify: function (files, config) {
+        let ast = (aggressive || uglify).minify(files, { ...config,
+          output: { ...config.output, comments: /^[!@#]/, preserve_annotations: true, ast: true, code: false },
+        }).ast;
+        for (let i = 1; i < multipleUglify - 1; i++) {
+          ast = uglify.minify(ast, { ...config,
+            output: { ...config.output, comments: /^[!@#]/, preserve_annotations: true, ast: true, code: false },
+            mangle: null,
+          }).ast
+        }
+        return uglify.minify(ast, { ...config,
+          output: { ...config.output, comments: gNoComments ? false : /^!/,
+            preserve_annotations: false, ast: false, code: true },
+        })
+      }
+    }
+  }
   return compose(
-    uglify,
+    passes ? multipleUglify : aggressive || uglify,
     logger
   );
 }
