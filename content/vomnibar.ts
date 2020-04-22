@@ -138,7 +138,7 @@ export const activate = function (count: number, options: FullOptions): void {
       return;
     }
     if (injector === null && (window as Window & {VData?: Element | VDataTy}).VData) {
-      url = VData.getOmni_(url);
+      url = VData.o(url);
     }
     send_(kFgReq.parseSearchUrl, { t: options.s, p: upper, u: url }, function (search): void {
       options.p = search;

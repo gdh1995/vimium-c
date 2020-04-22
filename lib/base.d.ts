@@ -421,7 +421,7 @@ declare var VimiumInjector: VimiumInjectorTy | undefined | null, VApi: VApiTy;
 
 interface VDataTy {
   full: string;
-  getOmni_ (oldUrl: string): string;
+  o (oldUrl: string): string;
 }
 
 type VTransType = (tid: kTip | HintMode | string, args?: Array<string | number>) => string;

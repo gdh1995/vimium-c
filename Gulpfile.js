@@ -296,9 +296,7 @@ var Tasks = {
     }
     gulp.task("min/others/omni", function() {
       var props = exArgs.nameCache.props && exArgs.nameCache.props.props || null;
-      props = props && {
-        "$destroy_": props["$destroy_"]
-      };
+      props = props && {};
       return uglifyJSFiles(["front/vomnibar*.js"], ".", "", {
         passAll: null,
         nameCache: exArgs.nameCache && {

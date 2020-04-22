@@ -74,7 +74,7 @@ window.onhashchange = function (this: void): void {
   }
 
   VData = Object.create(null);
-  VData.getOmni_ = getOmni_;
+  VData.o = getOmni_;
   let url = location.hash, type: ValidShowTypes = "", file = "";
   if (!url && BG_ && BG_.Settings_ && BG_.Settings_.temp_.shownHash_) {
     url = BG_.Settings_.temp_.shownHash_();

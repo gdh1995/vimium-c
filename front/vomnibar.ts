@@ -37,8 +37,8 @@ interface ConfigurableItems {
 interface Window extends ConfigurableItems {}
 import PixelData = VomnibarNS.PixelData;
 
-if (typeof VApi == "object" && VApi && typeof VApi.destroy_ == "function") {
-  VApi.destroy_(1);
+if (typeof VApi == "object" && VApi && typeof VApi.d == "function") {
+  VApi.d(1);
 }
 
 // eslint-disable-next-line no-var
