@@ -1753,7 +1753,7 @@
       let keyword = (cOptions.keyword || "") + "";
       const query = Backend_.parse_({ u: tabs[0].url });
       if (!query || !keyword) {
-        Backend_.showHUD_(trans_(keyword ? "notEngine" : "noKw"));
+        Backend_.showHUD_(trans_(keyword ? "noQueryFound" : "noKw"));
         return;
       }
       let url_f = BgUtils_.createSearchUrl_(query.u.split(" "), keyword, Urls.WorkType.ActAnyway);
@@ -2306,7 +2306,7 @@
       let search = Backend_.parse_(request), query: string | null | Promise<string | null>;
       if (!search || !search.k) {
         cPort = port;
-        return Backend_.showHUD_(trans_("noEngineFind"));
+        return Backend_.showHUD_(trans_("noEngineFound"));
       }
       query = request.t.trim() || (request.c ? BgUtils_.paste_(request.s) : "");
       if (query instanceof Promise) {

@@ -848,8 +848,8 @@
 	"discardFail": {
 		"message": "Can not discard the tab"
 	},
-	"notEngine": {
-		"message": "No search engine found!"
+	"noQueryFound": {
+		"message": "No query words recognized!"
 	},
 	"noKw": {
 		"message": "This command lacks an arg \"keyword\""
@@ -881,7 +881,7 @@
 	"needText": {
 		"message": "\"showTip\" needs a \"text\" option"
 	},
-	"noEngineFind": {
+	"noEngineFound": {
 		"message": "No search engine found!"
 	},
 	"noSelOrCopied": {

@@ -1265,8 +1265,8 @@
 	"discardFail": {
 		"message": "无法丢弃此网页"
 	},
-	"notEngine": {
-		"message": "未找到此名称的自定义搜索引擎"
+	"noQueryFound": {
+		"message": "未能识别搜索词"
 	},
 	"noKw": {
 		"message": "需要参数“keyword”为某个已定义的搜索引擎"
@@ -1298,7 +1298,7 @@
 	"needText": {
 		"message": "需要“text”参数为提示文字"
 	},
-	"noEngineFind": {
+	"noEngineFound": {
 		"message": "未能识别所属的搜索引擎"
 	},
 	"noSelOrCopied": {
