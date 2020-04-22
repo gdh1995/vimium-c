@@ -81,23 +81,33 @@ interface BaseHinter extends HintsNS.BaseHinter {
 
 import {
   clickable_, VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, rawSetKeydownEvents, timeout_,
-  clearTimeout_, safer, VOther, fgCache, doc,
-} from "../lib/utils.js"
-import { send_, post_ } from "../lib/port.js"
+  clearTimeout_, safer, VOther, fgCache, jsRe_, doc, readyState_,
+} from "../lib/utils"
+import { frameElement_, querySelector_unsafe_, isHTML_, getViewBox_, prepareCrop_, scrollingEl_, bZoom_, wdZoom_,
+  dScale_, getBoundingClientRect_, docEl_unsafe_, IsInDOM_, docZoom_, bScale_, GetParent_unsafe_, getComputedStyle_,
+  createElement_, getVisibleClientRect_, uneditableInputs_, getZoomedAndCroppedRect_, findMainSummary_,
+  getClientRectsForAreas_, htmlTag_, isAriaNotTrue_, getCroppedRect_, cropRectToVisible_, isStyleVisible_,
+  fullscreenEl_unsafe_, setTempBodyZoom, notSafe_not_ff_, isContaining_, unsafeFramesetTag_old_cr_, isDocZoomStrange_,
+  querySelectorAll_unsafe_, SubtractSequence_, lastHovered_, resetLastHovered, unhover_, getEditableType_, hover_,
+  center_, mouse_, view_,
+} from "../lib/dom_utils";
+import {
+  pushHandler_, SuppressMost_, removeHandler_, key_, keybody_, isEscape_, getKeyStat_, keyNames_, suppressTail_,
+  prevent_, kBackspace, kDelete,
+} from "../lib/keyboard_utils";
+import { send_, post_ } from "./port"
 import {
   style_ui, addElementList, ensureBorder, adjustUI, ui_root, ui_box, flash_, getRect, lastFlashEl, click_, select_,
   getParentVApi, getWndVApi_ff, evalIfOK, checkHidden,
-} from "./dom_ui.js"
+} from "./dom_ui"
 import {
   scrollTick, shouldScroll_need_safe, getPixelScaleToScroll, scrolled, resetScrolled,
   suppressScroll, beginScroll, setCurrentScrolling, syncCachedScrollable,
-} from "./scroller.js"
-import { omni_box, focusOmni } from "./vomnibar.js"
-import { find_box } from "./mode_find.js"
-import { hudTip, hudShow, hudCopied, hudResetTextProp, hudHide, hud_text } from "./hud.js"
-import { insert_Lock_, setOnWndBlur2 } from "./mode_insert.js"
-import { readyState_, frameElement_, querySelector_unsafe_, isHTML_, getViewBox_, prepareCrop_, scrollingEl_, bZoom_, wdZoom_, dScale_, getBoundingClientRect_, docEl_unsafe_, IsInDOM_, docZoom_, bScale_, GetParent_unsafe_, getComputedStyle_, createElement_, getVisibleClientRect_, uneditableInputs_, getZoomedAndCroppedRect_, findMainSummary_, getClientRectsForAreas_, htmlTag_, isAriaNotTrue_, getCroppedRect_, jsRe_, cropRectToVisible_, isStyleVisible_, fullscreenEl_unsafe_, setTempBodyZoom, notSafe_not_ff_, isContaining_, unsafeFramesetTag_old_cr_, isDocZoomStrange_, querySelectorAll_unsafe_, SubtractSequence_, lastHovered_, setLastHovered, unhover_, getEditableType_, hover_, center_, mouse_, view_ } from "../lib/dom_utils.js";
-import { pushHandler_, SuppressMost_, removeHandler_, key_, keybody_, isEscape_, getKeyStat_, keyNames_, suppressTail_, prevent_ } from "../lib/keyboard_utils.js";
+} from "./scroller"
+import { omni_box, focusOmni } from "./vomnibar"
+import { find_box } from "./mode_find"
+import { hudTip, hudShow, hudCopied, hudResetTextProp, hudHide, hud_text } from "./hud"
+import { insert_Lock_, setOnWndBlur2 } from "./mode_insert"
 
 let box_: HTMLDivElement | HTMLDialogElement | null = null
 let wantDialogMode_: boolean | null = null
@@ -1158,7 +1168,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
       hudTip(kTip.exitForIME);
       return HandlerResult.Nothing;
     } else if (key = key_(event, kModeId.Link), keybody = keybody_(key),
-        isEscape_(key) || onTailEnter && keybody === kChar.backspace) {
+        isEscape_(key) || onTailEnter && keybody === kBackspace) {
       clear();
     } else if (i === kKeyCode.esc && isEscape_(keybody)) {
       return HandlerResult.Suppress;
@@ -1201,7 +1211,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
         }
       }
       resetMode(1);
-      timeout_(reinit.bind(0, null, null, null), 0);
+      /*#__NOINLINE__*/ reinitInNextTick()
     } else if ((i < kKeyCode.maxAcsKeys + 1 && i > kKeyCode.minAcsKeys - 1
             || !fgCache.o && (i > kKeyCode.maxNotMetaKey && i < kKeyCode.minNotMetaKeyOrMenu))
         && !key) {
@@ -1229,7 +1239,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
     } else if (keybody === kChar.tab && !useFilter_ && !keyStatus_.keySequence_) {
       tooHigh_ = null;
       resetMode();
-      timeout_(reinit.bind(0, null, null, null), 0);
+      /*#__NOINLINE__*/ reinitInNextTick()
     } else if (keybody === kChar.space && (!useFilter_ || key !== keybody)) {
       keyStatus_.textSequence_ = keyStatus_.textSequence_.replace("  ", " ");
       zIndexes_ !== 0 && rotateHints(key === "s-" + keybody);
@@ -1376,6 +1386,8 @@ const postExecute = (slave: BaseHinter, clickEl: LinkEl | null, rect?: Rect | nu
     }, frameList_.length > 1 ? 50 : 18);
 }
 
+const reinitInNextTick = (): void => { timeout_((): void => { reinit() }, 0) }
+
   /** should only be called on master */
 const reinit = (slave?: BaseHinter | null, lastEl?: LinkEl | null, rect?: Rect | null): void => {
     if (!isEnabled_) {
@@ -1421,7 +1433,7 @@ export const checkLast = function (this: void, el?: LinkEl | TimerType.fake | 1,
     hidden = !r2 || r2.width < 2 && r2.height < 2
         || !isStyleVisible_(el as LinkEl); // use 2px: may be safer
     if (hidden && lastHovered_ === el) {
-      /*#__INLINE__*/ setLastHovered(null)
+      /*#__INLINE__*/ resetLastHovered()
     }
     if ((!r2 || r) && masterOrA.isActive_
         && masterOrA.hints_!.length < (
@@ -1924,7 +1936,7 @@ const matchHintsByKey = (keyStatus: KeyStatus
     if (isTab) {
       resetMode()
     }
-    else if (keybody === kChar.backspace || keybody === kChar.delete || keybody === kChar.f1) {
+    else if (keybody === kBackspace || keybody === kDelete || keybody === kChar.f1) {
       if (!sequence && !textSeq) {
         return 0;
       }

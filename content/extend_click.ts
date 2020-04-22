@@ -1,12 +1,14 @@
-import { clickable_, setupEventListener, VOther, timeout_, clearTimeout_, doc, isAlive_ } from "../lib/utils.js"
 import {
-  docEl_unsafe_, createElement_, setCreateElement, OnDocLoaded_, runJS_, markAllowRAF, markAllowScripts,
-  allowRAF_, isHTML_, rAF_, loc_,
-} from "../lib/dom_utils.js"
-import { Stop_ } from "../lib/keyboard_utils.js"
-import { safeDestroy } from "../lib/port.js"
-import { allLinkHints, curKeyStatus, checkLast } from "./link_hints.js"
-import { grabBackFocus } from "./mode_insert.js"
+  clickable_, setupEventListener, VOther, timeout_, clearTimeout_, doc, isAlive_, enableAllowRAF, markAllowScripts,
+  loc_, replaceBrokenTimerFunc, allowRAF_, disableAllowRAF,
+} from "../lib/utils"
+import {
+  docEl_unsafe_, createElement_, setCreateElement, OnDocLoaded_, runJS_, isHTML_, rAF_,
+} from "../lib/dom_utils"
+import { Stop_ } from "../lib/keyboard_utils"
+import { safeDestroy } from "./port"
+import { allLinkHints, curKeyStatus, checkLast } from "./link_hints"
+import { grabBackFocus } from "./mode_insert"
 
 declare function exportFunction(this: void, func: (...args: any[]) => any, targetScope: object, options?: {
   defineAs: string;
@@ -17,7 +19,7 @@ export const main = (): void => {
 !(Build.BTypes & BrowserType.Firefox)
 || Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox
 ?
-(function extendClick(this: void, isFirstTime?: boolean): void {
+(function extendClick(this: void, isFirstTime?: boolean): void | false {
 /** Note(gdh1995):
  * According to source code of C72,
  *     getElementsByTagName has a special cache (per container node) for tag name queries,
@@ -93,8 +95,7 @@ export const main = (): void => {
  */
   if ((script as Element as ElementToHTML).lang == null) {
     setCreateElement(doc.createElementNS.bind(doc, "http://www.w3.org/1999/xhtml") as typeof createElement_)
-    isFirstTime != null && OnDocLoaded_(extendClick); // retry after a while, using a real <script>
-    return;
+    return isFirstTime != null && OnDocLoaded_(extendClick); // retry after a while, using a real <script>
   }
 
   let box: Element | undefined | 0, hookRetryTimes = 0,
@@ -248,7 +249,7 @@ listen = _call.bind<(this: (this: EventTarget,
         self: EventTarget, name: string, listener: EventListenerOrEventListenerObject,
         opts?: EventListenerOptions | boolean
     ) => 42 | void>(_listen),
-rEL = removeEventListener, clearTimeout_ = clearTimeout,
+rEL = removeEventListener, clearTimeout1 = clearTimeout,
 kVOnClick = InnerConsts.kVOnClick,
 kEventName2 = kVOnClick + BuildStr.RandomClick,
 kOnDomReady = "DOMContentLoaded", kFunc = "function",
@@ -312,7 +313,7 @@ sAEL = myAEL + "", sToStr = myToStr + "";
 
 let doInit = function (this: void): void {
   rEL(kOnDomReady, doInit, !0);
-  clearTimeout_(timer);
+  clearTimeout1(timer);
   detectDisabled = 0;
   const docEl2 = docChildren[0] as Element | null,
   el = call(hooks.c, doc0, "div") as HTMLDivElement,
@@ -446,7 +447,7 @@ function prepareRegister(this: void, element: Element): void {
       toRegister.p(element);
       if (unsafeDispatchCounter < InnerConsts.MaxUnsafeEventsInOneTick + 1) {
         unsafeDispatchCounter = InnerConsts.MaxUnsafeEventsInOneTick + 1; // a fake value to run it only once a tick
-        clearTimeout_(timer);
+        clearTimeout1(timer);
         timer = setTimeout_(next, InnerConsts.DelayForNextComplicatedCase);
       }
   }
@@ -506,7 +507,7 @@ function executeCmd(eventOrDestroy?: Event): void {
   toRegister.length = detectDisabled = 0;
   toRegister.p = setTimeout_ = noop;
   root = null as never;
-  clearTimeout_(timer);
+  clearTimeout1(timer);
   timer = 1;
   rEL(kOnDomReady, doInit, !0);
 }
@@ -557,27 +558,26 @@ _listen(kOnDomReady, doInit, !0);
   }
   if (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome
       && appVer === BrowserVer.NoRAFOrRICOnSandboxedPage) {
-    /*#__INLINE__*/ markAllowRAF(0)
-    rAF_!(() => { /*#__INLINE__*/ markAllowRAF(1) });
+    /*#__INLINE__*/ disableAllowRAF()
+    rAF_!(() => { /*#__INLINE__*/ enableAllowRAF() });
   }
   // not check MinEnsuredNewScriptsFromExtensionOnSandboxedPage
   // for the case JavaScript is disabled in CS: https://github.com/philc/vimium/issues/3187
   if (!script.parentNode) { // It succeeded to hook.
+    /*#__INLINE__*/ markAllowScripts(1)
     // wait the inner listener of `start` to finish its work
-    OnDocLoaded_(timeout_.bind(1 as never as null, (): void => {
+    return OnDocLoaded_(timeout_.bind(null, (): void => {
       // only for new versions of Chrome (and Edge);
       // CSP would block a <script> before MinEnsuredNewScriptsFromExtensionOnSandboxedPage
       // not check isFirstTime, to auto clean VApi.execute_
       !box ? execute(kContentCmd.DestroyForCSP) : isFirstTime && isAlive_ &&
-      OnDocLoaded_(timeout_.bind(1 as never as null, (): void => {
+      OnDocLoaded_(timeout_.bind(null, (): void => {
         isFirstResolve && dispatchCmd(kContentCmd.AutoFindAllOnClick);
         isFirstResolve = 0;
       }, GlobalConsts.ExtendClick_DelayToFindAll), 1);
     }, 0));
-    return;
   }
   // else: CSP script-src before C68, CSP sandbox before C68 or JS-disabled-in-CS on C/E
-  markAllowScripts(0)
   script.remove();
   execute(kContentCmd.Destroy);
   if (!(Build.BTypes & BrowserType.Chrome)
@@ -594,10 +594,10 @@ _listen(kOnDomReady, doInit, !0);
       + " not work because %o is sandboxed.",
     loc_.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"));
   if (Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage && breakTotally) {
-    safeDestroy(1);
-    return;
+    return safeDestroy(1)
   }
-  setTimeout = setInterval = function (func: (info?: TimerType.fake) => void, timeout: number): number {
+  /*#__INLINE__*/
+  replaceBrokenTimerFunc(function (func: (info?: TimerType.fake) => void, timeout: number): number {
     const cb = (): void => { func(TimerType.fake); };
     const rIC = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? requestIdleCallback : 0 as const;
     // in case there's `$("#requestIdleCallback")`
@@ -609,7 +609,7 @@ _listen(kOnDomReady, doInit, !0);
           ) as RequestIdleCallback)(cb, { timeout })
       : rAF_(cb)
       ;
-  } as any;
+  } as any)
 })(grabBackFocus as boolean)
 
 // #else: on Firefox

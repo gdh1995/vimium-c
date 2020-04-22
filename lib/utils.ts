@@ -1,4 +1,4 @@
-import { Stop_ } from "./keyboard_utils.js"
+import { Stop_ } from "./keyboard_utils"
 
 export interface EscF {
   <T extends Exclude<HandlerResult, HandlerResult.ExitPassMode>> (this: void, i: T): T;
@@ -18,10 +18,11 @@ export let browserVer: BrowserVer = 0 // should be used only if BTypes includes 
 export function setChromeVer (realVer: BrowserVer): void { browserVer = realVer }
 
 export const isTop = top === window
-
 export const injector = VimiumInjector
 export const doc = document
+export const loc_ = location
 export const initialDocState = doc.readyState
+export const jsRe_ = <RegExpI & RegExpOne> /^javascript:/i
 
 export let VTr: VTransType
 export function setTr (newTr: VTransType): void { VTr = newTr }
@@ -37,6 +38,18 @@ export function setVEnabled (newEnabled: boolean): void { isEnabled_ = newEnable
 
 export let isLocked_ = false
 export function setStatusLocked (newLocked: boolean): void { isLocked_ = newLocked }
+
+export let readyState_: Document["readyState"] = initialDocState
+export function setReadyState (state: Document["readyState"]): void { readyState_ = state }
+
+// note: scripts always means allowing timers - vPort.ClearPort requires this assumption
+/** @todo: fix it */
+export let allowScripts_: 0 | 1 | 2 = 0
+export function markAllowScripts (stat: 0 | 1 | 2): void { allowScripts_ = stat }
+
+export let allowRAF_: BOOL = 1
+export function enableAllowRAF (): void { allowRAF_ = 1 }
+export function disableAllowRAF (): void { allowRAF_ = 0 }
 
 /** ==== Cache ==== */
 
@@ -73,10 +86,12 @@ export const safer: <T extends object> (opt: T) => T & SafeObject
       ? <T extends object> (obj: T): T & SafeObject => { (obj as any).__proto__ = null; return obj as T & SafeObject; }
       : <T extends object> (opt: T): T & SafeObject => Object.setPrototypeOf(opt, null);
 
-export const timeout_: (func: (this: void, fake?: TimerType.fake) => void, timeout: number
-    ) => TimerID.Valid | TimerID.Others = setTimeout
+type TimerFunc = (func: (this: void, fake?: TimerType.fake) => void, time: number) => TimerID.Valid | TimerID.Others
+export let timeout_: TimerFunc = Build.NDEBUG ? setTimeout : (func, timeout) => setTimeout(func, timeout)
+export let interval_: TimerFunc = Build.NDEBUG ? setInterval : (func, period) => setInterval(func, period)
+export let clearTimeout_: (timer: TimerID) => void = Build.NDEBUG ? clearTimeout : (timer) => clearTimeout(timer)
 
-export const clearTimeout_: (timer: TimerID) => void = clearTimeout
+export function replaceBrokenTimerFunc (func: TimerFunc): void { timeout_ = interval_ = func }
 
 /**
  * @param target Default to `window`

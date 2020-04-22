@@ -1,19 +1,22 @@
-import { setupEventListener, clickable_, isTop, keydownEvents_, VOther, timeout_, fgCache, doc, isAlive_ } from "../lib/utils.js"
+import {
+  setupEventListener, clickable_, isTop, keydownEvents_, VOther, timeout_, fgCache, doc, isAlive_, allowScripts_,
+  markAllowScripts, jsRe_,
+} from "../lib/utils"
 import {
   createElement_, createShadowRoot_, bZoom_, dScale_, fullscreenEl_unsafe_, docEl_unsafe_, getZoom_, wdZoom_,
-  getComputedStyle_, markDocSelectable, GetParent_unsafe_, getSelection_, GetShadowRoot_, getEditableType_,
+  getComputedStyle_, GetParent_unsafe_, getSelection_, GetShadowRoot_, getEditableType_,
   getSelectionBoundingBox_, center_, getVisibleClientRect_, isInTouchMode_cr_, touch_cr_, IsInDOM_, lastHovered_,
-  hover_, mouse_, activeEl_unsafe_, jsRe_, view_, prepareCrop_, getClientRectsForAreas_, notSafe_not_ff_,
+  hover_, mouse_, activeEl_unsafe_, view_, prepareCrop_, getClientRectsForAreas_, notSafe_not_ff_,
   getBoundingClientRect_, padClientRect_, isContaining_, cropRectToVisible_, getCroppedRect_, setBoundary_,
-  frameElement_, allowScripts_, markAllowScripts, runJS_, isStyleVisible_
-} from "../lib/dom_utils.js"
-import { Stop_, suppressTail_ } from "../lib/keyboard_utils.js"
-import { currentScrolling } from "./scroller.js"
-import { styleSelectable } from "./mode_find.js"
-import { unwrap_ff, tryDecodeURL } from "./link_hints.js"
-import { post_ } from "../lib/port.js"
-import { insert_Lock_ } from "./mode_insert.js"
-import { hudTip } from "./hud.js"
+  frameElement_, runJS_, isStyleVisible_, markDocSelectable,
+} from "../lib/dom_utils"
+import { Stop_, suppressTail_ } from "../lib/keyboard_utils"
+import { currentScrolling } from "./scroller"
+import { styleSelectable } from "./mode_find"
+import { unwrap_ff, tryDecodeURL } from "./link_hints"
+import { post_ } from "./port"
+import { insert_Lock_ } from "./mode_insert"
+import { hudTip } from "./hud"
 
 let box_: HTMLDivElement & SafeHTMLElement | null = null
 let styleIn_: HTMLStyleElement | string | null = null
@@ -286,7 +289,7 @@ export const getSelectionText = (notTrim?: 1): string => {
 
 export const removeSelection = function (root?: VUIRoot & Pick<DocumentOrShadowRoot, "getSelection">, justTest?: 1
     ): boolean {
-    const sel = (root && root.getSelection ? root : window).getSelection!();
+    const sel = root && root.getSelection ? root.getSelection() : getSelection_();
     if (!sel || sel.type !== "Range" || !sel.anchorNode) {
       return false;
     }

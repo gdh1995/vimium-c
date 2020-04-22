@@ -1,36 +1,27 @@
-import { VOther, initialDocState, fgCache, doc } from "./utils.js";
+import { VOther, fgCache, doc } from "./utils";
 
 type kMouseMoveEvents = "mouseover" | "mouseenter" | "mousemove" | "mouseout" | "mouseleave";
 type kMouseClickEvents = "mousedown" | "mouseup" | "click" | "auxclick" | "dblclick";
 
   /** data and DOM-shortcut section (sorted by reference numbers) */
 
-const loc_ = location
-const jsRe_ = <RegExpI & RegExpOne> /^javascript:/i
-let readyState_: Document["readyState"] = initialDocState
 let unsafeFramesetTag_old_cr_: "frameset" | "" | null =
     Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
     ? "" : 0 as never as null
-  // note: scripts always means allowing timers - vPort.ClearPort requires this assumption
-  /** @todo: fix it */
-let allowScripts_: 0 | 1 | 2 = 0
-let allowRAF_: BOOL = 1
 let docSelectable_ = true
-
-export { loc_, readyState_, unsafeFramesetTag_old_cr_, allowScripts_, jsRe_, allowRAF_, docSelectable_ }
-export function setReadyState (state: Document["readyState"]): void { readyState_ = state }
+export { unsafeFramesetTag_old_cr_, docSelectable_ }
 export function markFramesetTagUnsafe (): "frameset" { return unsafeFramesetTag_old_cr_ = "frameset" }
-export function markAllowScripts (stat: 0 | 1 | 2): void { allowScripts_ = stat }
-export function markAllowRAF (rAF: BOOL): void { allowRAF_ = rAF }
 export function markDocSelectable (selectable: boolean): void { docSelectable_ = selectable }
 
 export const devRatio_ = (): number => devicePixelRatio
 
-export const rAF_: (callback: FrameRequestCallback) => number = requestAnimationFrame
+export const rAF_: (callback: FrameRequestCallback) => number =
+    Build.NDEBUG ? requestAnimationFrame : f => requestAnimationFrame(f)
 
-export const getComputedStyle_: (element: Element) => CSSStyleDeclaration = getComputedStyle
+export const getComputedStyle_: (element: Element) => CSSStyleDeclaration =
+    Build.NDEBUG ? getComputedStyle : el => getComputedStyle(el)
 
-export const getSelection_: () => Selection = getSelection
+export const getSelection_: () => Selection = Build.NDEBUG ? getSelection : () => getSelection()
 
   /** @UNSAFE_RETURNED */
 export const docEl_unsafe_ = (): Element | null => doc.documentElement
@@ -736,7 +727,7 @@ export const getSelectionBoundingBox_ = (sel: Selection): ClientRect => sel.getR
   /** action section */
 
   /** Note: won't call functions if Vimium C is destroyed */
-let OnDocLoaded_: (callback: (this: void) => void, onloaded?: 1) => void | number = null as never
+let OnDocLoaded_: (callback: (this: void) => any, onloaded?: 1) => void = null as never
 
 export { OnDocLoaded_ }
 export function setOnDocLoaded (f: typeof OnDocLoaded_): void { OnDocLoaded_ = f }
@@ -818,7 +809,8 @@ let _idc: InputDeviceCapabilities | undefined
 let lastHovered_: SafeElementForMouse | null = null
 
 export { lastHovered_ }
-export function setLastHovered (el: SafeElementForMouse | null): void { lastHovered_ = el }
+export function setLastHovered (el: SafeElementForMouse): void { lastHovered_ = el }
+export function resetLastHovered (): void { lastHovered_ = null }
 
   /** note: will NOT skip even if newEl == @lastHovered */
 export const hover_ = function (this: {}, newEl?: SafeElementForMouse | null, center?: Point2D): void {

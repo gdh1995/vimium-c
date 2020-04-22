@@ -1,7 +1,8 @@
-import { injector, safeObj, timeout_, isAlive_, setTr, VOther, isEnabled_, isLocked_, isTop, doc } from "./utils.js"
-import { passKeys } from "../content/key_handler.js"
-import { style_ui } from "../content/dom_ui.js"
-import { loc_ } from "./dom_utils.js"
+import {
+  loc_, injector, safeObj, timeout_, isAlive_, setTr, VOther, isEnabled_, isLocked_, isTop, doc,
+} from "../lib/utils"
+import { passKeys } from "../content/key_handler"
+import { style_ui } from "../content/dom_ui"
 
 export interface Port extends chrome.runtime.Port {
   postMessage<k extends keyof FgRes>(request: Req.fgWithRes<k>): 1;
@@ -19,7 +20,7 @@ let requestHandlers: { [k in keyof BgReq]: (this: void, request: BgReq[k]) => vo
 
 export { port_ as runtime_port, port_callbacks, safeDestroy, requestHandlers }
 
-export function setRuntimePort (newPort: Port | null): void { port_ = newPort }
+export function clearRuntimePort (): void { port_ = null }
 export function setSafeDestroy (newDestroy: SafeDestoryF): void { safeDestroy = newDestroy }
 export function setRequestHandlers (newHandlers: typeof requestHandlers): void { requestHandlers = newHandlers }
 

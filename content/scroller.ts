@@ -33,17 +33,19 @@ interface ElementScrollInfo {
   height_: number; /* cropped visible */
 }
 
-import { isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc } from "../lib/utils.js"
-import { getParentVApi, resetSelectionToDocStart, checkHidden } from "./dom_ui.js"
-import { isCmdTriggered } from "./key_handler.js"
-import { tryNestedFrame } from "./link_hints.js"
-import { setPreviousMarkPosition } from "./marks.js"
 import {
-  scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, scrollWndBy_, allowRAF_, frameElement_, readyState_, rAF_,
+  isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, allowRAF_, readyState_, loc_,
+} from "../lib/utils"
+import { getParentVApi, resetSelectionToDocStart, checkHidden } from "./dom_ui"
+import { isCmdTriggered } from "./key_handler"
+import { tryNestedFrame } from "./link_hints"
+import { setPreviousMarkPosition } from "./marks"
+import {
+  scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, scrollWndBy_, frameElement_, rAF_, getVisibleClientRect_,
   OnDocLoaded_, GetParent_unsafe_, querySelector_unsafe_, getZoom_, wdZoom_, bZoom_, NotVisible_, getComputedStyle_,
-  prepareCrop_, notSafe_not_ff_, getBoundingClientRect_, cropRectToVisible_, getVisibleClientRect_, loc_,
-} from "../lib/dom_utils.js"
-import { keyNames_, prevent_ } from "../lib/keyboard_utils.js"
+  prepareCrop_, notSafe_not_ff_, getBoundingClientRect_, cropRectToVisible_,
+} from "../lib/dom_utils"
+import { keyNames_, prevent_ } from "../lib/keyboard_utils"
 
 let toggleAnimation: ((scrolling?: BOOL) => void) | null = null
 let maxInterval = ScrollerNS.Consts.DefaultMaxIntervalF as number

@@ -29,7 +29,7 @@
     "gulp-uglify": ">=3.0.2",
     "rollup": "^2.6.1",
     "seedrandom": ">=3.0.1",
-    "terser": "^4.6.3",
+    "terser": "^4.6.11",
     "web-ext": "^4.1.0"
   },
   "scripts": {

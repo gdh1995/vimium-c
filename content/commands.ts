@@ -1,30 +1,34 @@
 import {
-  browserVer, doc, esc, EscF, fgCache, isTop, safeObj, setEsc, VOther, VTr, safer, timeout_,
-} from "../lib/utils.js"
+  browserVer, doc, esc, EscF, fgCache, isTop, safeObj, setEsc, VOther, VTr, safer, timeout_, loc_,
+} from "../lib/utils"
 import {
-  unhover_, setLastHovered, isHTML_, view_, NotVisible_, getZoom_, prepareCrop_, getViewBox_, createElement_,
-  padClientRect_, getBoundingClientRect_, setBoundary_, wdZoom_, dScale_, loc_
-} from "../lib/dom_utils.js"
-import { pushHandler_, removeHandler_, key_, prevent_, isEscape_, keybody_ } from "../lib/keyboard_utils.js"
-import { post_ } from "../lib/port.js"
-import { addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, select_ } from "./dom_ui.js"
-import { hudHide, hudShow, hudTip, hud_text } from "./hud.js"
-import { onKeyup2, passKeys, setOnKeyUp2, setTempCurrentKeyStatus, setTempPassKeys } from "./key_handler.js"
+  unhover_, resetLastHovered, isHTML_, view_, NotVisible_, getZoom_, prepareCrop_, getViewBox_, createElement_,
+  padClientRect_, getBoundingClientRect_, setBoundary_, wdZoom_, dScale_,
+} from "../lib/dom_utils"
+import {
+  pushHandler_, removeHandler_, key_, prevent_, isEscape_, keybody_, kDelete, kBackspace
+} from "../lib/keyboard_utils"
+import { post_ } from "./port"
+import { addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, select_ } from "./dom_ui"
+import { hudHide, hudShow, hudTip, hud_text } from "./hud"
+import {
+  onKeyup2, setOnKeyUp2, resetOnKeyUp2, passKeys, setTempCurrentKeyStatus, setTempPassKeys,
+} from "./key_handler"
 import {
   activate as linkActivate, clear as linkClear,
   getEditable, kEditableSelector, kSafeAllSelector, traverse,
-} from "./link_hints.js"
-import { activate as markActivate, gotoMark } from "./marks.js"
-import { activate as findActivate, deactivate as findDeactivate, execCommand, init as findInit } from "./mode_find.js"
+} from "./link_hints"
+import { activate as markActivate, gotoMark } from "./marks"
+import { activate as findActivate, deactivate as findDeactivate, execCommand, init as findInit } from "./mode_find"
 import {
-  exitInputHint,
-  insert_inputHint, insert_last, raw_insert_lock, resetInsert,
-  setInputHint, setInsertGlobal, setInsertHinting, setInsertLast, onWndBlur, exitPassMode, setExitPassMode,
-} from "./mode_insert.js"
-import { activate as visualActivate, deactivate as visualDeactivate } from "./mode_visual.js"
-import { activate as scActivate, clearCachedScrollable } from "./scroller.js"
-import { activate as omniActivate } from "./vomnibar.js"
-import { findAndFollowLink, findAndFollowRel } from "./pagination.js"
+  exitInputHint, insert_inputHint, insert_last, raw_insert_lock, resetInsert,
+  setInputHint, setInsertGlobal, enterInsertHinting, setInsertLast, onWndBlur, exitPassMode, setExitPassMode,
+  disableInsertLastMutable, enableInsertLastMutable, resetInsertLast, exitInsertHinting,
+} from "./mode_insert"
+import { activate as visualActivate, deactivate as visualDeactivate } from "./mode_visual"
+import { activate as scActivate, clearCachedScrollable } from "./scroller"
+import { activate as omniActivate } from "./vomnibar"
+import { findAndFollowLink, findAndFollowRel } from "./pagination"
 
 interface SpecialCommands {
   [kFgCmd.reset] (this: void, isAlive: BOOL | CmdOptions[kFgCmd.reset] & SafeObject): void;
@@ -64,7 +68,7 @@ export const contentCommands_: {
   /* kFgCmd.vomnibar: */ omniActivate ,
   /* kFgCmd.reset: */ (isAlive): void => {
     /*#__INLINE__*/ clearCachedScrollable()
-    /*#__INLINE__*/ setLastHovered(null)
+    /*#__INLINE__*/ resetLastHovered()
     /*#__INLINE__*/ resetInsert()
     linkClear(isAlive ? 2 : 0); visualDeactivate();
     findInit || findDeactivate(FindNS.Action.ExitNoAnyFocus);
@@ -136,7 +140,7 @@ export const contentCommands_: {
     })
     /*#__INLINE__*/ setExitPassMode((): void => {
       /*#__INLINE__*/ setExitPassMode(null)
-      /*#__INLINE__*/ setOnKeyUp2(null)
+      /*#__INLINE__*/ resetOnKeyUp2()
       removeHandler_(keys);
       hudHide();
     })
@@ -195,16 +199,18 @@ export const contentCommands_: {
     if (act && (act[0] !== "l" || insert_last && !raw_insert_lock)) {
       let newEl = raw_insert_lock, ret: BOOL = 1;
       if (newEl) {
-        if (act === "backspace") {
-          if (view_(newEl)) { execCommand("delete", doc); }
+        if (act === kBackspace) {
+          if (view_(newEl)) { execCommand(kDelete, doc); }
         } else {
-          /*#__INLINE__*/ setInsertLast(newEl, 0)
+          /*#__INLINE__*/ setInsertLast(newEl)
+          /*#__INLINE__*/ disableInsertLastMutable()
           newEl.blur();
         }
       } else if (!(newEl = insert_last)) {
         hudTip(kTip.noFocused, 1200);
       } else if (act !== "last-visible" && view_(newEl) || !NotVisible_(newEl)) {
-        /*#__INLINE__*/ setInsertLast(null, 1)
+        /*#__INLINE__*/ resetInsertLast()
+        /*#__INLINE__*/ enableInsertLastMutable()
         getZoom_(newEl);
         prepareCrop_();
         select_(newEl, null, !!options.flash, options.select, true);
@@ -270,12 +276,12 @@ export const contentCommands_: {
       if (key === kChar.tab || key === `s-${kChar.tab}`) {
         const hints2 = this.h, oldSel = sel, len = hints2.length;
         sel = (oldSel + (key < "t" ? len - 1 : 1)) % len;
-        /*#__INLINE__*/ setInsertHinting(1);
+        /*#__INLINE__*/ enterInsertHinting();
         prevent_(event.e); // in case that selecting is too slow
         select_(hints2[sel].d, null, false, action);
         hints2[oldSel].m.className = "IH";
         hints2[sel].m.className = "IH IHS";
-        /*#__INLINE__*/ setInsertHinting(0);
+        /*#__INLINE__*/ exitInsertHinting();
         return HandlerResult.Prevent;
       }
       // check `!key` for mapModifier

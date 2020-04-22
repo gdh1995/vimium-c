@@ -3,37 +3,38 @@
 import {
   doc, isTop, injector, VOther, initialDocState, setEsc, esc, setupEventListener, setVEnabled,
   setClickable, clickable_, isAlive_, setTr, setupKeydownEvents, onWndFocus, setClickableForInjector,
-} from "../lib/utils.js"
-import { suppressTail_, key_ } from "../lib/keyboard_utils.js"
-import { prepareCrop_, frameElement_, setReadyState, setOnDocLoaded, readyState_, loc_ } from "../lib/dom_utils.js"
+  setReadyState, readyState_, loc_,
+} from "../lib/utils"
+import { suppressTail_, key_ } from "../lib/keyboard_utils"
+import { prepareCrop_, frameElement_, setOnDocLoaded } from "../lib/dom_utils"
 import {
-  safePost, setRuntimePort, runtime_port, SafeDestoryF, setSafeDestroy,
+  safePost, clearRuntimePort, runtime_port, SafeDestoryF, setSafeDestroy,
   runtimeConnect, safeDestroy, post_, send_,
-} from "../lib/port.js"
+} from "./port"
 import {
   ui_box, adjustUI, doExitOnClick, getParentVApi, setParentVApiGetter, setGetWndVApi, learnCSS,
   setUICSS, addUIElement, ui_root, flash_,
-} from "./dom_ui.js"
-import { grabBackFocus, insert_Lock_ } from "./mode_insert.js"
-import { currentKeys } from "./key_handler.js"
-import { contentCommands_ } from "./commands.js"
-import { hook, enableNeedToRetryParentClickable, focusAndRun } from "./request_handler.js"
+} from "./dom_ui"
+import { grabBackFocus, insert_Lock_ } from "./mode_insert"
+import { currentKeys } from "./key_handler"
+import { contentCommands_ } from "./commands"
+import { hook, enableNeedToRetryParentClickable, focusAndRun } from "./request_handler"
 
 import { main as extend_click } from  "./extend_click.js"
-import { activate as linkActivate, coreHints } from "./link_hints.js"
-import { executeScroll, scrollTick, $sc, keyIsDown as scroll_keyIsDown } from "./scroller.js"
-import { hudTip } from "./hud.js"
-import { onLoad as findOnLoad, find_box, findCSS, styleInHUD } from "./mode_find.js"
-import { activate as omniActivate } from "./vomnibar.js"
+import { activate as linkActivate, coreHints } from "./link_hints"
+import { executeScroll, scrollTick, $sc, keyIsDown as scroll_keyIsDown } from "./scroller"
+import { hudTip } from "./hud"
+import { onLoad as findOnLoad, find_box, findCSS, styleInHUD } from "./mode_find"
+import { activate as omniActivate } from "./vomnibar"
 
-  let coreTester: { name_: string; rand_: number; recvTick_: number; sendTick_: number;
+let coreTester: { name_: string; rand_: number; recvTick_: number; sendTick_: number;
         encrypt_ (trustedRand: number, unsafeRand: number): string;
         compare_: Parameters<SandboxGetterFunc>[0]; }
 
 setSafeDestroy((silent?: Parameters<SafeDestoryF>[0]): void => {
     if (!isAlive_) { return; }
     if (Build.BTypes & BrowserType.Firefox && silent === 9) {
-      /*#__INLINE__*/ setRuntimePort(null)
+      /*#__INLINE__*/ clearRuntimePort()
       return;
     }
     /*#__INLINE__*/ setVEnabled(!1)
@@ -77,17 +78,11 @@ VApi = {
   }
 }
 
-  if (injector) {
-    injector.$p = [safePost, function () {
-      let keys = currentKeys; esc!(HandlerResult.Nothing); return keys;
-    }, setClickableForInjector];
-  }
-
-  if (!(Build.BTypes & BrowserType.Firefox)) { /* empty */ }
-  else if (Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox || injector !== void 0) {
+if (!(Build.BTypes & BrowserType.Firefox)) { /* empty */ }
+else if (Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox || injector !== void 0) {
     /*#__INLINE__*/ setGetWndVApi(wnd => wnd.VApi);
     /*#__INLINE__*/ setParentVApiGetter(() => frameElement_() && (parent as Window).VApi)
-  } else {
+} else {
     coreTester = {
       name_: BuildStr.CoreGetterFuncName as const,
       rand_: 0,
@@ -137,11 +132,10 @@ VApi = {
       }
       return VApi;
     }});
-  }
-  isTop || injector ||
-  function (): void { // if injected, `parentFrame_` still needs a value
-    const parEl = frameElement_();
-    if (!parEl) {
+}
+if (!(isTop || injector)) {
+  const parApi = frameElement_() && getParentVApi();
+  if (!parApi) {
       if ((Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
           || WeakSet) && <boolean> grabBackFocus) {
         /*#__INLINE__*/ enableNeedToRetryParentClickable()
@@ -149,30 +143,27 @@ VApi = {
             || Set) {
           /*#__INLINE__*/ setClickable(new Set!<Element>())
         } else {
-          let arr: Element[] & ElementSet = [] as any;
-          /*#__INLINE__*/ setClickable(arr)
-          arr.add = arr.push;
+          type ElementArraySet = Element[] & ElementSet
+          /*#__INLINE__*/ setClickable([] as any as ElementArraySet)
+          clickable_.add = (clickable_ as ElementArraySet).push;
           // a temp collection, so it's okay just to ignore its elements
-          arr.has = Build.MinCVer >= BrowserVer.MinEnsuredES6$Array$$Includes || !(Build.BTypes & BrowserType.Chrome)
-              ? arr.includes! : () => !1;
+          clickable_.has =
+              Build.MinCVer >= BrowserVer.MinEnsuredES6$Array$$Includes || !(Build.BTypes & BrowserType.Chrome)
+              ? (clickable_ as ElementArraySet).includes! : () => !1;
         }
       }
-      return;
-    }
-    const parApi = getParentVApi();
-    if (Build.BTypes & BrowserType.Firefox) {
+  } else if (Build.BTypes & BrowserType.Firefox) {
+    /*#__NOINLINE__*/ (function (): void {
       try { // `vApi` is still unsafe
-      if (parApi) {
           const state = parApi.misc_()
           if ((!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox
-                ? state.find_box_ && XPCNativeWrapper(state.find_box_) : state.find_box_) === parEl) {
+                ? state.find_box_ && XPCNativeWrapper(state.find_box_) : state.find_box_) === frameElement_()) {
             safeDestroy(1);
             parApi.findOnLoad_()
           } else {
             /*#__INLINE__*/ setClickable(state.clickable_)
           }
           return;
-        }
       } catch (e) {
         if (!Build.NDEBUG) {
           console.log("Assert error: Parent frame check breaks:", e);
@@ -183,18 +174,19 @@ VApi = {
         // here the parent `core` is invalid - maybe from a fake provider
         /*#__INLINE__*/ setParentVApiGetter(() => null);
       }
-    } else {
+    })()
+  } else {
       // if not `vfind`, then a parent may have destroyed for unknown reasons
-      const state = parApi && parApi.misc_()
-      if (state && state.find_box_ === parEl) {
+      if (parApi.misc_().find_box_ === frameElement_()) {
         safeDestroy(1);
-        parApi!.findOnLoad_();
+        parApi.findOnLoad_();
       } else {
-        /*#__INLINE__*/ setClickable(parApi as never && state!.clickable_)
+        /*#__INLINE__*/ setClickable(parApi.misc_().clickable_)
       }
-    }
-  }();
-  if (isAlive_) {
+  }
+}
+
+if (isAlive_) {
     interface ElementWithClickable { vimiumClick?: boolean }
     /*#__INLINE__*/ setClickable(!(Build.BTypes & BrowserType.Firefox)
         || Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox
@@ -208,7 +200,7 @@ VApi = {
     // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
     hook(HookAction.Install);
     {
-      let execute = (callback: (this: void) => void): void => { callback(); },
+      let execute = (callback: (this: void) => any): void => { callback(); },
       listeners1: Array<(this: void) => void> = [], listeners2: Array<(this: void) => void> = [],
       Name = "readystatechange",
       onReadyStateChange = function (): void {
@@ -231,12 +223,16 @@ VApi = {
 
     runtimeConnect();
 
-    if (injector === void 0) {
+  if (injector === void 0) {
       /*#__INLINE__*/ extend_click();
-    }
+  } else if (injector) {
+    injector.$p = [safePost, function () {
+      let keys = currentKeys; esc!(HandlerResult.Nothing); return keys;
+    }, setClickableForInjector];
   }
+}
 
-  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".includes) {
+if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".includes) {
     const StringCls = String.prototype;
     /** startsWith may exist - {@see #BrowserVer.Min$String$$StartsWithEndsWithAndIncludes$ByDefault} */
     if (!"".startsWith) {
@@ -252,7 +248,7 @@ VApi = {
     // eslint-disable-next-line @typescript-eslint/prefer-includes
       return this.indexOf(s, pos) >= 0;
     };
-  }
+}
 
 if (!(Build.NDEBUG || GlobalConsts.MaxNumberOfNextPatterns <= 255)) {
   console.log("Assert error: GlobalConsts.MaxNumberOfNextPatterns <= 255");

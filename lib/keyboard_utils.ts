@@ -1,8 +1,10 @@
-import { fgCache, clearTimeout_, timeout_, isAlive_, VOther } from "./utils.js"
+import { fgCache, clearTimeout_, timeout_, isAlive_, VOther } from "./utils"
 
+let kDelete = kChar.delete as const
+let kBackspace = kChar.backspace as const
 const keyNames_: readonly kChar[] = [kChar.space, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
     kChar.left, kChar.up, kChar.right, kChar.down,
-    /* 41 */ kChar.EMPTY, kChar.EMPTY, kChar.EMPTY, kChar.EMPTY, kChar.insert, kChar.delete]
+    /* 41 */ kChar.EMPTY, kChar.EMPTY, kChar.EMPTY, kChar.EMPTY, kChar.insert, kDelete]
 let keyIdCorrectionOffset_old_cr_: 185 | 300 | null = Build.BTypes & BrowserType.Chrome
       && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
       ? 185 : 0 as never as null
@@ -24,7 +26,7 @@ interface HandlerItem {
 let key_: (this: void, event: HandlerNS.Event, mode: kModeId) => string
 const handlers_: HandlerItem[] = []
 
-export { keyNames_, key_, handlers_ as handler_stack }
+export { keyNames_, key_, handlers_ as handler_stack, kDelete, kBackspace }
 export function setGetMappedKey (newGetMappedKey: typeof key_): void { key_: key_ = newGetMappedKey }
 export function setKeyIdCorrectionOffset_old_cr (newVal: 185 | 300 | null): void {
   keyIdCorrectionOffset_old_cr_ = newVal
@@ -34,7 +36,7 @@ export function setKeyIdCorrectionOffset_old_cr (newVal: 185 | 300 | null): void
 const _getKeyName = (event: Pick<KeyboardEvent, "key" | "keyCode" | "location">): kChar => {
     let {keyCode: i} = event, s: string | undefined;
     return i > kKeyCode.space - 1 && i < kKeyCode.minNotDelete ? keyNames_[i - kKeyCode.space]
-      : i < kKeyCode.minNotDelete || i === kKeyCode.osRightMac ? (i === kKeyCode.backspace ? kChar.backspace
+      : i < kKeyCode.minNotDelete || i === kKeyCode.osRightMac ? (i === kKeyCode.backspace ? kBackspace
           : i === kKeyCode.esc ? kChar.esc
           : i === kKeyCode.tab ? kChar.tab : i === kKeyCode.enter ? kChar.enter
           : (i === kKeyCode.osRightMac || i > kKeyCode.minAcsKeys - 1 && i < kKeyCode.maxAcsKeys + 1)

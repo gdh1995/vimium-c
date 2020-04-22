@@ -1,14 +1,14 @@
 import {
-  doc, esc, fgCache, isEnabled_, isTop, keydownEvents_, safeObj, setEsc, VOther,
-} from "../lib/utils.js"
-import { post_ } from "../lib/port.js"
-import { removeSelection } from "./dom_ui.js"
+  doc, esc, fgCache, isEnabled_, isTop, keydownEvents_, setEsc, VOther,
+} from "../lib/utils"
+import { post_ } from "./port"
+import { removeSelection } from "./dom_ui"
 import {
   exitInsertMode, focusUpper, insert_global, insert_Lock_, isInInsert, raw_insert_lock, setupSuppress, suppressType,
-} from "./mode_insert.js"
-import { keyIsDown as scroll_keyIsDown, onScrolls, scrollTick } from "./scroller.js"
-import { setGetMappedKey, char_, key_, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_, Stop_ } from "../lib/keyboard_utils.js"
-import { activeEl_unsafe_, getSelection_ } from "../lib/dom_utils.js"
+} from "./mode_insert"
+import { keyIsDown as scroll_keyIsDown, onScrolls, scrollTick } from "./scroller"
+import { setGetMappedKey, char_, key_, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_, Stop_ } from "../lib/keyboard_utils"
+import { activeEl_unsafe_, getSelection_ } from "../lib/dom_utils"
 
 let passKeys: SafeEnum | null | "" = null
 let isPassKeysReverted = false
@@ -32,12 +32,15 @@ let onKeyup2: ((this: void, event?: Pick<KeyboardEvent, "keyCode">) => void) | n
 export {
   passKeys, mappedKeys, currentKeys,
   isWaitingAccessKey, isCmdTriggered, anyClickHandler,
-  onKeyup2
+  onKeyup2, isPassKeysReverted,
 }
 export function resetIsCmdTriggered (): void { isCmdTriggered = 0 }
 export function setTempPassKeys (newPassKeys: SafeEnum | null | ""): void { passKeys = newPassKeys }
 export function setTempCurrentKeyStatus (): void { currentKeys = "", nextKeys = keyFSM }
 export function setOnKeyUp2 (newOnKeyUp: typeof onKeyup2): void { onKeyup2 = newOnKeyUp }
+export function resetOnKeyUp2 (): void { onKeyup2 = null }
+export function setPassKeys (val: typeof passKeys): void { passKeys = val }
+export function setIsPassKeysReverted (reverted: boolean): void { isPassKeysReverted = reverted }
 
 setGetMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
   const char = eventWrapper.c !== kChar.INVALID ? eventWrapper.c : char_(eventWrapper), event = eventWrapper.e;
@@ -89,16 +92,6 @@ export const checkKey = (event: HandlerNS.Event, key: string
     nextKeys = j !== KeyAction.count ? j : keyFSM;
   }
   return HandlerResult.Prevent;
-}
-
-export function setPassKeys (newPassKeys: BgReq[kBgReq.reset]["p"]): void {
-  passKeys = newPassKeys && safeObj<1>(null);
-  if (newPassKeys) {
-    isPassKeysReverted = newPassKeys[0] === "^" && newPassKeys.length > 2;
-    for (const ch of (isPassKeysReverted ? newPassKeys.slice(2) : newPassKeys).split(" ")) {
-      (passKeys as SafeDict<1>)[ch] = 1;
-    }
-  }
 }
 
 export function setKeyFSM (newFSM: BgReq[kBgReq.keyFSM]["k"], maps: BgReq[kBgReq.keyFSM]["m"]): void {

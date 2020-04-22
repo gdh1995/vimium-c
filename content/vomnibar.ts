@@ -15,17 +15,22 @@ interface FullOptions extends BaseFullOptions {
 // eslint-disable-next-line no-var
 declare var VData: VDataTy
 
-import { injector, isAlive_, keydownEvents_, VOther, timeout_, clearTimeout_, fgCache } from "../lib/utils.js"
-import { beginScroll, scrollTick } from "./scroller.js"
+import {
+  injector, isAlive_, keydownEvents_, readyState_, VOther, timeout_, clearTimeout_, fgCache, loc_,
+} from "../lib/utils"
+import { removeHandler_, pushHandler_, SuppressMost_, key_, isEscape_ } from "../lib/keyboard_utils";
+import {
+  createElement_, docZoom_, devRatio_, frameElement_, isHTML_, getViewBox_, fullscreenEl_unsafe_, dScale_,
+  prepareCrop_, bZoom_,
+} from "../lib/dom_utils";
+import { beginScroll, scrollTick } from "./scroller"
 import {
   getSelectionText, adjustUI, setupExitOnClick, addUIElement, getParentVApi, evalIfOK, checkHidden,
-} from "./dom_ui.js"
-import { tryNestedFrame } from "./link_hints.js"
-import { insert_Lock_ } from "./mode_insert.js"
-import { hudTip, hud_box } from "./hud.js"
-import { post_, send_ } from "../lib/port.js"
-import { removeHandler_, pushHandler_, SuppressMost_, key_, isEscape_ } from "../lib/keyboard_utils.js";
-import { createElement_, docZoom_, devRatio_, readyState_, frameElement_, isHTML_, getViewBox_, fullscreenEl_unsafe_, dScale_, prepareCrop_, bZoom_, loc_ } from "../lib/dom_utils.js";
+} from "./dom_ui"
+import { tryNestedFrame } from "./link_hints"
+import { insert_Lock_ } from "./mode_insert"
+import { hudTip, hud_box } from "./hud"
+import { post_, send_ } from "./port"
 
 let box: HTMLIFrameElement & { contentWindow: IFrameWindow } = null as never
 let portToOmni: OmniPort = null as never

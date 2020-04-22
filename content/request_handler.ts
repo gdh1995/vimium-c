@@ -2,36 +2,38 @@ import {
   browserVer, clickable_, doc, esc, fgCache, injector, isEnabled_, isLocked_, isAlive_, isTop,
   keydownEvents_, safeObj, setChromeVer, setClickable, setFgCache, setOnOther, setStatusLocked,
   setupEventListener, setVEnabled, suppressCommonEvents, setOnWndFocus, VOther, onWndFocus, timeout_, safer,
-} from "../lib/utils.js"
-import { port_callbacks, post_, safePost, setRequestHandlers, requestHandlers } from "../lib/port.js"
+  allowScripts_, loc_, interval_,
+} from "../lib/utils"
+import { port_callbacks, post_, safePost, setRequestHandlers, requestHandlers } from "./port"
 import {
   addUIElement, adjustUI, createStyle, ensureBorder, getParentVApi,
   removeSelection, setUICSS, setupExitOnClick, ui_box, ui_root, evalIfOK, checkHidden,
-} from "./dom_ui.js"
-import { enableHUD, hudCopied, hudTip, hud_box } from "./hud.js"
+} from "./dom_ui"
+import { enableHUD, hudCopied, hudTip, hud_box } from "./hud"
 import {
-  currentKeys, mappedKeys, setKeyFSM, setPassKeys, anyClickHandler, onKeydown, onKeyup,
-} from "./key_handler.js"
-import { HintMaster, kSafeAllSelector, setkSafeAllSelector } from "./link_hints.js"
-import { createMark } from "./marks.js"
-import { setFindCSS, styleInHUD } from "./mode_find.js"
+  currentKeys, mappedKeys, setKeyFSM, setPassKeys, anyClickHandler, onKeydown, onKeyup, passKeys,
+  setIsPassKeysReverted, isPassKeysReverted,
+} from "./key_handler"
+import { HintMaster, kSafeAllSelector, setkSafeAllSelector } from "./link_hints"
+import { createMark } from "./marks"
+import { setFindCSS, styleInHUD } from "./mode_find"
 import {
   exitGrab, grabBackFocus, insertInit, raw_insert_lock, setGrabBackFocus, onFocus, onBlur,
-} from "./mode_insert.js"
-import { prompt as visualPrompt, visual_mode } from "./mode_visual.js"
+} from "./mode_insert"
+import { prompt as visualPrompt, visual_mode } from "./mode_visual"
 import {
   currentScrolling, onActivate, setCurrentScrolling, clearCachedScrollable, clearCurrentScrolling,
-} from "./scroller.js"
-import { activate as omniActivate, omni_status, onKeydown as omniOnKeydown, omni_box } from "./vomnibar.js"
-import { contentCommands_ } from "./commands.js"
+} from "./scroller"
+import { activate as omniActivate, omni_status, onKeydown as omniOnKeydown, omni_box } from "./vomnibar"
+import { contentCommands_ } from "./commands"
 import {
   setKeyIdCorrectionOffset_old_cr, handler_stack, Stop_, prevent_, removeHandler_, pushHandler_, isEscape_, key_,
-} from "../lib/keyboard_utils.js"
+} from "../lib/keyboard_utils"
 import {
-  editableTypes_, markFramesetTagUnsafe, setNotSafe_not_ff, setIsHTML, OnDocLoaded_, allowScripts_, frameElement_,
-  notSafe_not_ff_, htmlTag_, querySelector_unsafe_, isHTML_, createElement_, lastHovered_, setLastHovered,
-  docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, loc_,
-} from "../lib/dom_utils.js"
+  editableTypes_, markFramesetTagUnsafe, setNotSafe_not_ff, setIsHTML, OnDocLoaded_, frameElement_,
+  notSafe_not_ff_, htmlTag_, querySelector_unsafe_, isHTML_, createElement_, lastHovered_, resetLastHovered,
+  docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, 
+} from "../lib/dom_utils"
 
 let framemask_more = false
 let framemask_node: HTMLDivElement | null = null
@@ -129,7 +131,13 @@ setRequestHandlers([
   },
   /* kBgReq.reset: */ function (request: BgReq[kBgReq.reset], initing?: 1): void {
     const newPassKeys = request.p, newEnabled = newPassKeys !== "", old = isEnabled_;
-    /*#__INLINE__*/ setPassKeys(newPassKeys);
+    /*#__INLINE__*/ setPassKeys(newPassKeys && safeObj<1>(null))
+    if (newPassKeys) {
+      /*#__INLINE__*/ setIsPassKeysReverted(newPassKeys[0] === "^" && newPassKeys.length > 2);
+      for (const ch of (isPassKeysReverted ? newPassKeys.slice(2) : newPassKeys).split(" ")) {
+        (passKeys as SafeDict<1>)[ch] = 1;
+      }
+    }
     /*#__INLINE__*/ setVEnabled(newEnabled);
     if (initing) {
       return;
@@ -298,7 +306,7 @@ setRequestHandlers([
       }
       advCmd.onclick = optLink.onclick = closeBtn.onclick = null as never;
       let i: Element | null = lastHovered_;
-      i && box.contains(i) && /*#__INLINE__*/ setLastHovered(null);
+      i && box.contains(i) && /*#__INLINE__*/ resetLastHovered();
       if ((i = currentScrolling) && box.contains(i)) {
         /*#__INLINE__*/ clearCurrentScrolling();
         /*#__INLINE__*/ clearCachedScrollable();
@@ -371,7 +379,7 @@ export const showFrameMask = (mask: FrameMaskType): void => {
   } else {
     framemask_node = createElement_("div");
     framemask_node.className = "R Frame" + (mask === FrameMaskType.OnlySelf ? " One" : "");
-    framemask_fmTimer = setInterval((fake?: TimerType.fake): void => { // safe-interval
+    framemask_fmTimer = interval_((fake?: TimerType.fake): void => { // safe-interval
       const more_ = framemask_more;
       framemask_more = false;
       if (more_ && !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake

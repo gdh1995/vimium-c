@@ -1,7 +1,7 @@
-import { fgCache, doc, isEnabled_, VTr, isAlive_, timeout_, clearTimeout_ } from "../lib/utils.js"
-import { ui_box, ensureBorder, addUIElement, adjustUI } from "./dom_ui.js"
-import { allLinkHints } from "./link_hints.js"
-import { isHTML_, createElement_ } from "../lib/dom_utils.js"
+import { fgCache, doc, isEnabled_, VTr, isAlive_, timeout_, clearTimeout_, interval_ } from "../lib/utils"
+import { ui_box, ensureBorder, addUIElement, adjustUI } from "./dom_ui"
+import { allLinkHints } from "./link_hints"
+import { isHTML_, createElement_ } from "../lib/dom_utils"
 
 let tweenId = 0
 let box: HTMLDivElement | null = null
@@ -40,7 +40,7 @@ export const hudShow = (tid: kTip | HintMode, args?: Array<string | number>, emb
   text = VTr(tid, args);
   opacity_ = 1;
   if (timer) { clearTimeout_(timer); timer = TimerID.None; }
-  embed || tweenId || (tweenId = setInterval(tween, 40));
+  embed || tweenId || (tweenId = interval_(tween, 40));
   let el = box;
   if (el) {
     $text.data = text;
@@ -102,6 +102,6 @@ export const hudHide = (info?: TimerType): void => {
     $text.data = "";
   }
   else if (!tweenId && isAlive_) {
-    tweenId = setInterval(tween, 40);
+    tweenId = interval_(tween, 40);
   }
 }

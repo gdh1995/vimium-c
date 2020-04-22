@@ -29,20 +29,24 @@ declare const enum DiType {
 type ValidDiTypes = DiType.Normal | DiType.UnsafeTextBox | DiType.SafeTextBox | DiType.Complicated
     | DiType.UnsafeComplicated;
 
-import { VTr, isAlive_, VOther, clearTimeout_, safer, timeout_, fgCache, doc } from "../lib/utils.js"
-import { checkDocSelectable, getSelected, resetSelectionToDocStart, flash_ } from "./dom_ui.js"
-import { prepareTop, clearTop, executeScroll, scrollIntoView_need_safe } from "./scroller.js"
+import { VTr, isAlive_, VOther, clearTimeout_, safer, timeout_, fgCache, doc } from "../lib/utils"
+import {
+  getSelectionBoundingBox_, getZoom_, prepareCrop_, cropRectToVisible_, getSelection_, getSelectionFocusEdge_,
+  editableTypes_, Getter_not_ff_, isInputInTextMode_, isHTML_, docEl_unsafe_, notSafe_not_ff_, getVisibleClientRect_,
+  getEditableType_,
+} from "../lib/dom_utils"
+import { checkDocSelectable, getSelected, resetSelectionToDocStart, flash_ } from "./dom_ui"
+import { prepareTop, clearTop, executeScroll, scrollIntoView_need_safe } from "./scroller"
 import {
   toggleSelectableStyle, find_query, executeFind, find_hasResults,
   updateQuery as findUpdateQuery, clear as findClear
-} from "./mode_find.js"
-import { insert_Lock_ } from "./mode_insert.js"
-import { hudShow, hudTip, hudHide } from "./hud.js"
-import { post_, send_ } from "../lib/port.js"
-import { removeHandler_, pushHandler_, key_, keybody_, isEscape_, prevent_ } from "../lib/keyboard_utils.js"
-import { getSelectionBoundingBox_, getZoom_, prepareCrop_, cropRectToVisible_, getSelection_, getSelectionFocusEdge_, editableTypes_, Getter_not_ff_, isInputInTextMode_, isHTML_, docEl_unsafe_, notSafe_not_ff_, getVisibleClientRect_, getEditableType_ } from "../lib/dom_utils.js"
+} from "./mode_find"
+import { insert_Lock_ } from "./mode_insert"
+import { hudShow, hudTip, hudHide } from "./hud"
+import { post_, send_ } from "./port"
+import { removeHandler_, pushHandler_, key_, keybody_, isEscape_, prevent_ } from "../lib/keyboard_utils"
 
-export const kDir = ["backward", "forward"] as const
+const kDir = ["backward", "forward"] as const
 const kGranularity = ["character", "line", "lineboundary", /* 3 */ "paragraph",
       "sentence", /** VimG.vimWord */ "", /* 6 */ "word",
       "documentboundary"] as const
@@ -65,8 +69,9 @@ let diType_: ValidDiTypes | DiType.UnsafeUnknown | DiType.SafeUnknown = DiType.U
 let oldLen_ = 0
 let WordsRe_ff_old_cr: RegExpOne | RegExpU | null = null
 let rightWhiteSpaceRe: RegExpOne | null = null
+let kExtend = "extend" as const
 
-export { mode_ as visual_mode }
+export { mode_ as visual_mode, kDir, kExtend }
 
   /** @safe_di */
 export const activate = (_0: number, options: CmdOptions[kFgCmd.visualMode]): void => {
@@ -106,7 +111,7 @@ export const activate = (_0: number, options: CmdOptions[kFgCmd.visualMode]): vo
     toggleSelectableStyle(1);
     di_ = isRange ? kDirTy.unknown : kDirTy.right
     mode_ = newMode
-    alterMethod = toCaret ? "move" : "extend"
+    alterMethod = toCaret ? "move" : kExtend
     if (/* type === SelType.None */ !type && establishInitialSelectionAnchor(theSelected[1])) {
       deactivate()
       return hudTip(kTip.needSel)
@@ -346,7 +351,7 @@ export const highlightRange = (sel: Selection): void => {
 
   /** @unknown_di_result */
 const extend = (d: ForwardDir, g?: kG): void | 1 => {
-  curSelection.modify("extend", kDir[d], kGranularity[g || kG.character])
+  curSelection.modify(kExtend, kDir[d], kGranularity[g || kG.character])
   diType_ &= ~DiType.isUnsafe
 }
 
@@ -701,13 +706,13 @@ const selectLexicalEntity = (entity: kG.sentence | kG.word, count: number): void
 const selectLine = (count: number): void => {
   const oldDi = getDirection()
   mode_ = Mode.Visual // safer
-  alterMethod = "extend"
-    {
+  alterMethod = kExtend
+  {
     oldDi && reverseSelection()
     modify(kDirTy.left, kG.lineBoundary)
     di_ = kDirTy.left // safe
     reverseSelection()
-    }
+  }
   while (0 < --count) { modify(kDirTy.right, kG.line) }
   modify(kDirTy.right, kG.lineBoundary)
   const ch = getNextRightCharacter(0)

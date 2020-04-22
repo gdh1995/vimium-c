@@ -1,19 +1,27 @@
 import {
-  setupEventListener, VTr, keydownEvents_, isAlive_, suppressCommonEvents, onWndFocus, VOther, timeout_, safer, fgCache, doc, safeObj,
-} from "../lib/utils.js"
+  setupEventListener, VTr, keydownEvents_, isAlive_, suppressCommonEvents, onWndFocus, VOther, timeout_, safer, fgCache,
+  doc, safeObj,
+} from "../lib/utils"
+import {
+  pushHandler_, SuppressMost_, Stop_, removeHandler_, prevent_, key_, keybody_, isEscape_, keyNames_,
+  kDelete, kBackspace,
+} from "../lib/keyboard_utils"
+import {
+  createShadowRoot_, lastHovered_, resetLastHovered, prepareCrop_, getSelectionFocusEdge_, activeEl_unsafe_,
+  getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, htmlTag_, fullscreenEl_unsafe_, docEl_unsafe_,
+  getSelection_, view_, isSelected_, docSelectable_, isHTML_, createElement_, wdZoom_,
+} from "../lib/dom_utils"
 import {
   ui_box, ui_root,
   createStyle, getSelectionText, checkDocSelectable, adjustUI, ensureBorder, addUIElement, getSelected,
   select_, getSelectionParent_unsafe, resetSelectionToDocStart,
-} from "./dom_ui.js"
-import { visual_mode, prompt, highlightRange, kDir, activate as visualActivate } from "./mode_visual.js"
-import { keyIsDown as scroll_keyIsDown, beginScroll, onScrolls } from "./scroller.js"
-import { scrollToMark, setPreviousMarkPosition } from "./marks.js"
-import { hudHide, hud_box, hudTip, hud_opacity } from "./hud.js"
-import { post_, send_ } from "../lib/port.js"
-import { insert_Lock_, setupSuppress } from "./mode_insert.js"
-import { pushHandler_, SuppressMost_, Stop_, removeHandler_, prevent_, key_, keybody_, isEscape_, keyNames_ } from "../lib/keyboard_utils.js"
-import { createShadowRoot_, lastHovered_, setLastHovered, prepareCrop_, getSelectionFocusEdge_, activeEl_unsafe_, getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, htmlTag_, fullscreenEl_unsafe_, docEl_unsafe_, getSelection_, view_, isSelected_, docSelectable_, isHTML_, createElement_, wdZoom_ } from "../lib/dom_utils.js"
+} from "./dom_ui"
+import { visual_mode, prompt, highlightRange, kDir, activate as visualActivate, kExtend } from "./mode_visual"
+import { keyIsDown as scroll_keyIsDown, beginScroll, onScrolls } from "./scroller"
+import { scrollToMark, setPreviousMarkPosition } from "./marks"
+import { hudHide, hud_box, hudTip, hud_opacity } from "./hud"
+import { post_, send_ } from "./port"
+import { insert_Lock_, setupSuppress } from "./mode_insert"
 
 let isActive = false
 let query_ = ""
@@ -319,7 +327,7 @@ export const clear = (): void => {
   hasResults = isActive = isSmall = notEmpty = postOnEsc = false
   removeHandler_(activate)
   outerBox_ && outerBox_.remove()
-  if (box_ === lastHovered_) { /*#__INLINE__*/ setLastHovered(null) }
+  if (box_ === lastHovered_) { /*#__INLINE__*/ resetLastHovered() }
   parsedQuery_ = query_ = query0_ = ""
   historyIndex = matchCount = doesCheckAlive = 0;
   styleInHUD = onUnexpectedBlur = outerBox_ =
@@ -360,7 +368,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
       : keybody === kChar.enter
         ? key[0] === "s" ? FindNS.Action.PassDirectly
           : (query_ && post_({ H: kFgReq.findQuery, q: query0_ }), FindNS.Action.ExitToPostMode)
-      : keybody !== kChar.delete && keybody !== kChar.backspace
+      : keybody !== kDelete && keybody !== kBackspace
         ? isEscape_(key) ? FindNS.Action.ExitAndReFocus : FindNS.Action.DoNothing
       : Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther & BrowserType.Firefox)
@@ -384,7 +392,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
         }
         else { h = HandlerResult.Suppress; }
       }
-      else if (keybody === kChar.f1) { execCommand("delete") }
+      else if (keybody === kChar.f1) { execCommand(kDelete) }
       else if (keybody === kChar.f2) {
         Build.BTypes & BrowserType.Firefox && box_.blur()
         focus(); keydownEvents_[n] = 1;
@@ -401,8 +409,8 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
       const sel = innerDoc_.getSelection()
       // on Chrome 79 + Win 10 / Firefox 69 + Ubuntu 18, delete a range itself
       // while on Firefox 70 + Win 10 it collapses first
-      sel.type === "Caret" && sel.modify("extend", kDir[+(keybody > "d")], "word");
-      execCommand("delete")
+      sel.type === "Caret" && sel.modify(kExtend, kDir[+(keybody > "d")], "word")
+      execCommand(kDelete)
       return;
     }
     deactivate(i)

@@ -1,12 +1,12 @@
-import { clickable_, VOther, safer, timeout_ } from "../lib/utils.js"
+import { clickable_, VOther, safer, timeout_ } from "../lib/utils"
 import {
   flash_, click_,
-} from "./dom_ui.js"
+} from "./dom_ui"
 import {
   traverse, kSafeAllSelector, ngEnabled, unwrap_ff,
-} from "./link_hints.js"
-import { contentCommands_ } from "./commands.js"
-import { view_, isAriaNotTrue_, getBoundingClientRect_, isStyleVisible_, docEl_unsafe_, querySelectorAll_unsafe_, htmlTag_ } from "../lib/dom_utils.js"
+} from "./link_hints"
+import { contentCommands_ } from "./commands"
+import { view_, isAriaNotTrue_, getBoundingClientRect_, isStyleVisible_, docEl_unsafe_, querySelectorAll_unsafe_, htmlTag_ } from "../lib/dom_utils"
 
 const followLink = (linkElement: SafeHTMLElement): boolean => {
   let url = linkElement.localName === "link" && (linkElement as HTMLLinkElement).href;

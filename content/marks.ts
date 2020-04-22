@@ -1,8 +1,7 @@
-import { VTr, safer } from "../lib/utils.js"
-import { post_ } from "../lib/port.js"
-import { hudHide, hudShow, hudTip } from "./hud.js"
-import { removeHandler_, pushHandler_, key_, isEscape_ } from "../lib/keyboard_utils.js"
-import { loc_ } from "../lib/dom_utils.js"
+import { VTr, safer, loc_ } from "../lib/utils"
+import { post_ } from "./port"
+import { hudHide, hudShow, hudTip } from "./hud"
+import { removeHandler_, pushHandler_, key_, isEscape_ } from "../lib/keyboard_utils"
 
 let onKeyChar: ((event: HandlerNS.Event, keyChar: string) => void) | null = null
 let prefix = true
