@@ -9,24 +9,14 @@ var fs = require("fs");
 var process = require("process");
 var lib = require("./dependencies");
 
-var argv = process.argv, argi = 0;
+var argv = process.argv, argi = 0, cmd = argv[0];
 if (/\bnode\b/i.test(argv[argi])) {
   argi++;
 }
 if (/\btsc(\.\b|$)/i.test(argv[argi])) {
   argi++;
 }
-var cwd = argv[argi];
-if (cwd && fs.existsSync(cwd) && fs.statSync(cwd).isDirectory()) {
-  process.chdir(cwd);
-  cwd = null;
-  argv.length = argi;
-} else if (cwd && cwd[0] !== "-") {
-  console.error("No such command or directory:", cwd);
-  // @ts-ignore
-  return;
-}
-if (cwd !== "-p" && !fs.existsSync("tsconfig.json")) {
+if (argv.indexOf("-p") < 0 && argv.indexOf("--project") < 0 && !fs.existsSync("tsconfig.json")) {
   // @ts-ignore
   var parent = __dirname.replace(/[\\\/][^\\\/]+[\\\/]?$/, "");
   if (fs.existsSync(parent + "/tsconfig.json")) {
@@ -34,9 +24,11 @@ if (cwd !== "-p" && !fs.existsSync("tsconfig.json")) {
   }
 }
 var root = "./";
+var logPrefix = "";
 if (!fs.existsSync("package.json")) {
   if (fs.existsSync("../package.json")) {
     root = "../";
+    logPrefix = require("path").basename(process.cwd());
   }
 }
 
@@ -87,28 +79,23 @@ var LIB_UGLIFY_JS = 'terser';
 var real_proc_exit = process.exit;
 process.exit = function(){};
 var real_args = argv.length > 2 ? argv.splice(2, argv.length - 2) : [];
-
-argv.length = 2;
-argv.push(fakeArg);
-// @ts-ignore
-var ts = require("typescript/lib/tsc");
 argv.length = 2;
 
-var real_write = ts.sys.writeFile;
+var real_write;
 var cache = Object.create(null);
 
-ts.sys.writeFile =
 /**
  * @param {string} path
  * @param {string} data
  * @param {unknown} writeBom
  */
-function(path, data, writeBom) {
+var writeFile = function(path, data, writeBom) {
   try {
   var isJS = path.slice(-3) === ".js";
   var srcPath = isJS ? path.slice(0, -3) + ".ts" : path;
   var same = fs.existsSync(path);
-  if (cache[path] !== data) {
+  var skip = logPrefix !== "background" && path.indexOf("background/") >= 0;
+  if (!skip && cache[path] !== data) {
     if (doesUglifyLocalFiles && isJS) {
       data = getUglifyJS()(data);
       if (path.indexOf("extend_click") >= 0) {
@@ -118,7 +105,9 @@ function(path, data, writeBom) {
     data = lib.addMetaData(path, data);
     same = same && lib.readFile(path, {}) === data;
   }
-  console.log("\t%s:", same ? "TOUCH" : "TSFILE", path);
+  var prefix = logPrefix && "[" + logPrefix + "]";
+  prefix += " ".repeat(12 - prefix.length);
+  console.log("%s %s: %s", prefix, skip ? " SKIP" : same ? "TOUCH" : "WRITE", path.replace(root, ""));
   if (same) {
     lib.touchFileIfNeeded(path, srcPath);
   } else {
@@ -167,30 +156,123 @@ function getDefaultUglifyConfig() {
   return defaultUglifyConfig;
 }
 
-var iconsDone = null, tsDone = null;
+/** @type { number | null } */
+var iconsDone = null;
 
-process.exit = function (exit_code) {
-  tsDone = exit_code;
-  if (iconsDone != null) { real_proc_exit(tsDone || iconsDone); }
-};
-
-try {
-  require("./icons-to-blob").main(function (err) {
-    iconsDone = err ? 1 : 0;
-    if (tsDone != null) { real_proc_exit(tsDone || iconsDone); }
-  });
-} catch (ex) {
-  console.log("Failed to convert icons to binary data:", ex);
+if (typeof module !== "undefined") {
+  module.exports = {
+    executeTS: executeTS,
+    main: main,
+  }
 }
-if (ts.version < '3.7') {
-  ts.executeCommandLine(real_args);
-} else if (ts.version < '3.8') {
-  ts.executeCommandLine(ts.sys, {
-    onCompilerHostCreate: ts.noop,
-    onCompilationComplete: ts.noop,
-    onSolutionBuilderHostCreate: ts.noop,
-    onSolutionBuildComplete: ts.noop
-  }, real_args);
-} else {
-  ts.executeCommandLine(ts.sys, ts.noop, real_args);
+// @ts-ignore
+if (typeof require === "function" && require.main === module) {
+  try {
+    require("./icons-to-blob").main(function (err) {
+      var curIconsDone = iconsDone;
+      iconsDone = err ? 1 : curIconsDone || 0;
+      if (curIconsDone == null) {
+        main(real_args);
+      }
+    });
+  } catch (ex) {
+    console.log("Failed to convert icons to binary data:", ex);
+    if (iconsDone == null) {
+      iconsDone = 2;
+      main(real_args);
+    }
+  }
+}
+
+/** @param {string[]} args */
+function main(args) {
+  var useDefaultConfigFile = args.indexOf("-p") < 0 && args.indexOf("--project") < 0;
+  var destDirs = [];
+  for (var i = useDefaultConfigFile ? 0 : args.length; i < args.length; ) {
+    var cwd = args[i];
+    if (cwd[0] === "-") {
+      i += cwd === "-p" || cwd === "--project" ? 2 : 1;
+    } else if (/^\w+$/.test(cwd) && fs.existsSync(cwd) && fs.statSync(cwd).isDirectory()) {
+      destDirs.push(cwd);
+      args.splice(i, 1);
+    } else {
+      i++;
+    }
+  }
+  if (destDirs.length === 0 && useDefaultConfigFile && fs.existsSync("./package.json")) {
+    destDirs.push("front", "background", "content", "pages");
+  }
+  if (destDirs.length === 0) {
+    destDirs.push(".");
+  }
+  var child_process = require('child_process');
+  /** @type Array<Promise<number>> */
+  var promises = [];
+  for (var i = 1; i < destDirs.length; i++) {
+    promises.push(new Promise(function (resolve) {
+      var child = child_process.spawn(cmd, argv.slice(1).concat(args), {
+        cwd: destDirs[i],
+        // @ts-ignore
+        stdio: ["ignore", process.stdout, process.stderr]
+      });
+      child.on("close", function (code) {
+        resolve(code);
+      })
+    }));
+  }
+  root = require("path").resolve(root).replace(/\\/g, "/") + "/";
+  var firstTS = destDirs[0];
+  if (firstTS !== ".") {
+    logPrefix = firstTS;
+    process.chdir(firstTS);
+  }
+  promises.push(executeTS(args));
+  Promise.all(promises).then(function(results) {
+    var err = results.reduce(function (prev, cur) { return prev || cur; }, 0);
+    err && console.log("[ERROR] result code is %d", err);
+    real_proc_exit(err);
+  });
+}
+
+/**
+ * @argument { string[] } args
+ * @returns { Promise<number> }
+ */
+function executeTS(args) {
+  return new Promise(function (resolve) {
+    process.exit = function (exit_code) {
+      resolve(exit_code);
+    };
+    try {
+      _executeTS(args);
+    } catch (e) {
+      console.log("[ERROR] Unexpected:", e);
+      resolve(-1);
+    }
+  });
+}
+
+/** @argument { string[] } args */
+function _executeTS(args) {
+  process.argv.length = 2;
+  process.argv.push(fakeArg);
+  // @ts-ignore
+  var ts = require("typescript/lib/tsc");
+  process.argv.length = 2;
+
+  real_write = ts.sys.writeFile;
+  ts.sys.writeFile = writeFile;
+
+  if (ts.version < '3.7') {
+    ts.executeCommandLine(args);
+  } else if (ts.version < '3.8') {
+    ts.executeCommandLine(ts.sys, {
+      onCompilerHostCreate: ts.noop,
+      onCompilationComplete: ts.noop,
+      onSolutionBuilderHostCreate: ts.noop,
+      onSolutionBuildComplete: ts.noop
+    }, args);
+  } else {
+    ts.executeCommandLine(ts.sys, ts.noop, args);
+  }
 }
