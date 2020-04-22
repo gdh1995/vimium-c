@@ -14,7 +14,7 @@ Option_.prototype._onCacheUpdated = function<T extends keyof SettingsNS.Frontend
     > (this: Option_<T>, func: (this: Option_<T>) => void): void {
   func.call(this);
   if (window.VApi) {
-    (VApi.cache2_ as Generalized<SettingsNS.FrontendSettingCache>
+    (VApi.z as Generalized<SettingsNS.FrontendSettingCache>
         )[bgSettings_.valuesToLoad_[this.field_]] = this.readValueFromElement_();
   }
 };
@@ -306,8 +306,8 @@ class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
   }
   readValueFromElement_ (): FullSettings[T] {
     let value = this.element_.indeterminate ? this.map_[1] : this.map_[this.element_.checked ? this.true_index_ : 0];
-    if (this.field_ === "ignoreCapsLock" && window.VApi && VApi.cache2_) {
-      VApi.cache2_!.i = value > 1 || value === 1 && !bgSettings_.payload_.o;
+    if (this.field_ === "ignoreCapsLock" && window.VApi && VApi.z) {
+      VApi.z!.i = value > 1 || value === 1 && !bgSettings_.payload_.o;
     }
     return value;
   }
@@ -780,7 +780,7 @@ let optionsInit1_ = function (): void {
     event.preventDefault();
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
-      window.VApi ? VApi.tip_(kTip.haveToOpenManually) : alert(pTrans_("" + kTip.haveToOpenManually));
+      window.VApi ? VApi.t(kTip.haveToOpenManually) : alert(pTrans_("" + kTip.haveToOpenManually));
     } else {
       BG_.Backend_.focus_({ u: this.href, r: ReuseType.reuse, p: true });
     }
@@ -823,8 +823,8 @@ let optionsInit1_ = function (): void {
       node2.focus();
     }
     if (window.VApi) {
-      VApi.prepareCrop2_();
-      VApi.flash_((node2 as EnsuredMountedHTMLElement).parentElement.parentElement);
+      VApi.v();
+      VApi.x((node2 as EnsuredMountedHTMLElement).parentElement.parentElement);
     }
   };
   for (let _i = _ref.length; 0 <= --_i; ) {
@@ -876,8 +876,8 @@ ignoreKeyboardLayoutOption.element_.addEventListener("change",
     ignoreKeyboardLayoutOption.onSave_.bind(ignoreKeyboardLayoutOption), true);
 
 Option_.all_.userDefinedCss.onSave_ = function () {
-  if (!window.VApi || !VApi.cache2_) { return; }
-  const root = VApi.misc_().ui_root_;
+  if (!window.VApi || !VApi.z) { return; }
+  const root = VApi.y().r;
   let debuggedStyle = root && root.querySelector("style.debugged") as HTMLStyleElement | null;
   if (!debuggedStyle) { return; }
   setTimeout(function () {
@@ -949,8 +949,8 @@ table.ondrop = event => {
 }
 
 $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
-  if (!window.VApi || !VApi.cache2_) { return; }
-  const root = VApi.misc_().ui_root_, self = Option_.all_.userDefinedCss;
+  if (!window.VApi || !VApi.z) { return; }
+  const root = VApi.y().r, self = Option_.all_.userDefinedCss;
   let styleDebug = root && root.querySelector("style.debugged") as HTMLStyleElement | null;
   if (styleDebug) {
     if (styleDebug.nextElementSibling) {
@@ -966,13 +966,13 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
       /** Note: should keep the same as {@link ../background/settings.ts#Settings_.updateHooks_.userDefinedCss } */
       let css = localStorage.getItem("innerCSS") as string, headEnd = css.indexOf("\n");
       css = css.substr(headEnd + 1, +css.slice(0, headEnd).split(",")[2]);
-      VApi.setUICSS_(css);
-      VApi.misc_().ui_root_!.appendChild(styleDebug as HTMLStyleElement);
+      VApi.g(css);
+      VApi.y().r!.appendChild(styleDebug as HTMLStyleElement);
     };
     if (root) {
       patch();
     } else {
-      VApi.addUIElement_(styleDebug);
+      VApi.w(styleDebug);
       styleDebug.remove();
       setTimeout(patch, 200);
     }
@@ -990,15 +990,15 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
   for (let i = 0, end = iframes.length; i < end; i++) {
     const frame = iframes[i], isFind = frame.classList.contains("HUD"),
     doc = frame.contentDocument as HTMLDocument,
-    api = window.VApi, misc = api && api.misc_(), findCss = misc && misc.find_css_,
-    root2 = isFind ? misc!.style_in_find_hud_!.parentNode as HTMLElement : doc;
+    api = window.VApi, misc = api && api.y(), findCss = misc && misc.f,
+    root2 = isFind ? misc!.s!.parentNode as HTMLElement : doc;
     styleDebug = root2.querySelector("style.debugged") as HTMLStyleElement | null;
     if (!styleDebug) {
       if (isFind) {
         const oldCSS2 = bgSettings_.parseCustomCSS_(bgSettings_.get_("userDefinedCss")).find || "";
         if (oldCSS2) {
           const str = bgSettings_.cache_.findCSS_.i;
-          misc!.style_in_find_hud_!.textContent = str.slice(0, -oldCSS2.length - 1);
+          misc!.s!.textContent = str.slice(0, -oldCSS2.length - 1);
         }
         styleDebug = doc.createElement("style");
         styleDebug.type = "text/css";
@@ -1077,8 +1077,8 @@ function loadChecker(this: HTMLElement): void {
 
 document.addEventListener("keydown", function (this: void, event): void {
   if (event.keyCode !== kKeyCode.space) {
-    if (!window.VApi || !VApi.cache2_ || VApi.lock_()) { return; }
-    const key = VApi.key_({c: kChar.INVALID, e: event, i: event.keyCode}, kModeId.NO_MAP_KEY)
+    if (!window.VApi || !VApi.z || VApi.q()) { return; }
+    const key = VApi.m({c: kChar.INVALID, e: event, i: event.keyCode}, kModeId.NO_MAP_KEY)
     if (key === "a-" + kChar.f12) {
       $<HTMLOptionElement>("#recommendedSettings").selected = true;
       let el2 = $<HTMLSelectElement>("#importOptions");
@@ -1203,14 +1203,14 @@ if (!cmdRegistry || cmdRegistry.alias_ !== kBgCmd.showHelp) { (function (): void
 })(); }
 
 document.addEventListener("click", function onClickOnce(): void {
-  const api = window.VApi, misc = api && api.misc_()
-  if (!misc || !misc.ui_root_) { return; }
+  const api = window.VApi, misc = api && api.y()
+  if (!misc || !misc.r) { return; }
   document.removeEventListener("click", onClickOnce, true);
-  misc.ui_root_.addEventListener("click", function (event): void {
+  misc.r.addEventListener("click", function (event): void {
     let target = event.target as HTMLElement, str: string;
     if (VApi && target.classList.contains("HelpCommandName")) {
       str = target.textContent.slice(1, -1);
-      VApi.post_({
+      VApi.p({
         H: kFgReq.copy,
         s: str
       });

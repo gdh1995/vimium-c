@@ -76,7 +76,7 @@ export const activate = function (count: number, options: FullOptions): void {
     if (!isTop && !options.$forced) { // check $forced to avoid dead loops
       if (parent === top
           && (parApi = Build.BTypes & BrowserType.Firefox ? getParentVApi() : frameElement_() && getParentVApi())) {
-        parApi.omniActivate_(count, options)
+        parApi.o(count, options)
       } else {
         post_({ H: kFgReq.gotoMainFrame, f: 0, c: kFgCmd.vomnibar, n: count, a: options })
       }

@@ -41,7 +41,7 @@ setSafeDestroy((silent?: Parameters<SafeDestoryF>[0]): void => {
     hook(HookAction.Destroy);
 
     contentCommands_[kFgCmd.reset](0);
-    VApi.execute_ && VApi.execute_(kContentCmd.Destroy);
+    VApi.e && VApi.e(kContentCmd.Destroy);
     ui_box && adjustUI(2);
     doExitOnClick();
 
@@ -58,22 +58,22 @@ setSafeDestroy((silent?: Parameters<SafeDestoryF>[0]): void => {
 })
 
 VApi = {
-  baseHinter_: coreHints, execute_: null, cache2_: null,
-  post_, send_, setupKeydownEvents_: setupKeydownEvents, focusAndRun_: focusAndRun, destroy_: safeDestroy,
-  linkActivate_: linkActivate, omniActivate_: omniActivate, findOnLoad_: findOnLoad, scroll_: executeScroll,
-  scrollTick_: scrollTick, $sc: $sc, learnCSS_: learnCSS, suppressTailKeys_: suppressTail_,
-  innerHeight_ff_: Build.BTypes & BrowserType.Firefox ? () => innerHeight : 0 as never,
-  setTr_: injector && setTr, tip_: hudTip, key_: key_, lock_: insert_Lock_,
-  setUICSS_: setUICSS, addUIElement_: addUIElement, prepareCrop2_: prepareCrop_, flash_,
-  misc_ () {
+  b: coreHints, e: null, z: null,
+  p: post_, s: send_, a: setupKeydownEvents, f: focusAndRun, d: safeDestroy,
+  h: linkActivate, o: omniActivate, n: findOnLoad, c: executeScroll,
+  k: scrollTick, $: $sc, l: learnCSS, u: suppressTail_,
+  i: Build.BTypes & BrowserType.Firefox ? () => innerHeight : 0 as never,
+  r: injector && setTr, t: hudTip, m: key_, q: insert_Lock_,
+  g: setUICSS, w: addUIElement, v: prepareCrop_, x: flash_,
+  y () {
     return {
-      on_wnd_focus_: onWndFocus,
-      find_box_: find_box,
-      key_is_down_: scroll_keyIsDown,
-      clickable_: clickable_,
-      ui_root_: ui_root,
-      find_css_: findCSS,
-      style_in_find_hud_: styleInHUD
+      w: onWndFocus,
+      b: find_box,
+      k: scroll_keyIsDown,
+      c: clickable_,
+      r: ui_root,
+      f: findCSS,
+      s: styleInHUD
     }
   }
 }
@@ -155,13 +155,13 @@ if (!(isTop || injector)) {
   } else if (Build.BTypes & BrowserType.Firefox) {
     /*#__NOINLINE__*/ (function (): void {
       try { // `vApi` is still unsafe
-          const state = parApi.misc_()
+          const state = parApi.y()
           if ((!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox
-                ? state.find_box_ && XPCNativeWrapper(state.find_box_) : state.find_box_) === frameElement_()) {
+                ? state.b && XPCNativeWrapper(state.b) : state.b) === frameElement_()) {
             safeDestroy(1);
-            parApi.findOnLoad_()
+            parApi.n()
           } else {
-            /*#__INLINE__*/ setClickable(state.clickable_)
+            /*#__INLINE__*/ setClickable(state.c)
           }
           return;
       } catch (e) {
@@ -177,11 +177,11 @@ if (!(isTop || injector)) {
     })()
   } else {
       // if not `vfind`, then a parent may have destroyed for unknown reasons
-      if (parApi.misc_().find_box_ === frameElement_()) {
+      if (parApi.y().b === frameElement_()) {
         safeDestroy(1);
-        parApi.findOnLoad_();
+        parApi.n();
       } else {
-        /*#__INLINE__*/ setClickable(parApi.misc_().clickable_)
+        /*#__INLINE__*/ setClickable(parApi.y().c)
       }
   }
 }

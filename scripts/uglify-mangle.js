@@ -32,7 +32,7 @@ function collectWords(text, options) {
   /** @type { RegExp } */
   // @ts-ignore
   const propRe = props0 && props0.regex || /^_|_$/;
-  const reservedProps = new Set(props0 && props0.reserved || [ "__proto__", "$_" ]);
+  const reservedProps = new Set(props0 && props0.reserved || [ "__proto__", "$_", "_" ]);
   terser.minify(text, { ...options,
     sourceMap: false, mangle: null, nameCache: null,
     // @ts-ignore
@@ -144,6 +144,10 @@ function minify(files, options) {
       if (tooShort.length > 0) {
         throw Error("Some keys are too short: " + JSON.stringify(tooShort, null, 2));
       }
+      if (names.length > 1) {
+        throw Error("Too many groups of keys:" + names);
+      }
+      // console.log("Find one group:", names);
       /** @type { NameCache } */
       // @ts-ignore
       const nameCache = options.nameCache || { vars: { props: {} }, props: { props: {} } };

@@ -1,7 +1,7 @@
 /** @todo: */
 // isHTML_ = () => document instanceof HTMLDocument;
 
-VApi.execute_ = function (cmd): void {
+VApi.e = function (cmd): void {
   const injector = VimiumInjector;
   if (cmd === kContentCmd.Destroy && injector) {
     removeEventListener("hashchange", injector.checkIfEnabled);
@@ -45,12 +45,12 @@ VApi.execute_ = function (cmd): void {
   i18nCallback: ((res: FgRes[kFgReq.i18n]) => void) | null = res => {
     i18nMessages = res.m;
     if (!i18nMessages && i18nCallback) {
-      setTimeout(() => VApi.send_(kFgReq.i18n, {}, i18nCallback!), 150);
+      setTimeout(() => VApi.s(kFgReq.i18n, {}, i18nCallback!), 150);
     }
     i18nCallback = null;
   };
-  VApi.send_(kFgReq.i18n, {}, i18nCallback);
-  VApi.setTr_!((tid, args): string => {
+  VApi.s(kFgReq.i18n, {}, i18nCallback);
+  VApi.r!((tid, args): string => {
     if (typeof tid === "string") {
       return tid;
     }
@@ -110,7 +110,7 @@ VApi.execute_ = function (cmd): void {
     switch (task) {
     case InjectorTask.extInited:
       const injector1 = VimiumInjector!;
-      injector1.cache = VApi.cache2_;
+      injector1.cache = VApi.z;
       injector1.callback && injector1.callback(2, "complete");
       addEventListener("hashchange", injector1.checkIfEnabled);
       return;
@@ -118,15 +118,15 @@ VApi.execute_ = function (cmd): void {
   };
   function onTimeout(): void {
     if (Build.BTypes & BrowserType.Firefox) {
-      VApi.destroy_(9); // note: here Firefox is just like a (9)
-      VApi.misc_().on_wnd_focus_()
+      VApi.d(9); // note: here Firefox is just like a (9)
+      VApi.y().w()
     }
   }
 
-  injector.cache = VApi.cache2_;
-  injector.destroy = VApi.destroy_;
+  injector.cache = VApi.z;
+  injector.destroy = VApi.d;
   injector.callback && injector.callback(1, "initing");
-  if (VApi.cache2_) { // has loaded before this script file runs
+  if (VApi.z) { // has loaded before this script file runs
     injector.$r(InjectorTask.extInited);
   }
 })();

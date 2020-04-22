@@ -762,9 +762,9 @@ export const mouse_ = function (this: {}, element: SafeElementForMouse
     tyKey = type.slice(5, 6),
     // is: down | up | (click) | dblclick | auxclick
     detail = !"dui".includes(tyKey) ? 0 : button! & kClickButton.primaryAndTwice ? 2 : 1,
-    x = center[0], y = center[1], ctrlKey = modifiers ? modifiers.ctrlKey_ : !1,
-    altKey = modifiers ? modifiers.altKey_ : !1, shiftKey = modifiers ? modifiers.shiftKey_ : !1,
-    metaKey = modifiers ? modifiers.metaKey_ : !1;
+    x = center[0], y = center[1],
+    altKey = modifiers ? modifiers[0] : !1, ctrlKey = modifiers ? modifiers[1] : !1,
+    metaKey = modifiers ? modifiers[2] : !1, shiftKey = modifiers ? modifiers[3] : !1;
     button = (button! & kClickButton.second) as kClickButton.none | kClickButton.second;
     relatedTarget = relatedTarget && relatedTarget.ownerDocument === doc ? relatedTarget : null;
     let mouseEvent: MouseEvent;

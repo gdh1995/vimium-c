@@ -396,7 +396,7 @@ export const click_ = (element: SafeElementForMouse
           : relAttr.split(<RegExpOne> /\s/).indexOf("noopener") >= 0,
       reuse = Build.BTypes & BrowserType.Firefox && specialAction! & kClickAction.openInNewWindow
           ? ReuseType.newWindow
-          : modifiers && modifiers.shiftKey_ || specialAction! < kClickAction.newTabFromMode
+          : modifiers && modifiers[3] || specialAction! < kClickAction.newTabFromMode
             ? ReuseType.newFg : ReuseType.newBg;
       post_({
         H: kFgReq.openUrl,
@@ -603,12 +603,12 @@ export const checkHidden = (cmd?: FgCmdAcrossFrames, count?: number, options?: O
     if ((Build.BTypes & BrowserType.Firefox ? (parEvents = getParentVApi()) : curFrameElement_)
         && (result || box.bottom <= 0
             || (Build.BTypes & BrowserType.Firefox && parEvents !== parent
-                  ? box.top > parEvents!.innerHeight_ff_!()
+                  ? box.top > parEvents!.i!()
                   : box.top > (parent as Window).innerHeight))) {
       Build.BTypes & BrowserType.Firefox || (parEvents = getParentVApi());
       if (parEvents
-          && !parEvents.setupKeydownEvents_(keydownEvents_)) {
-        parEvents.focusAndRun_(cmd, count!, options!, 1);
+          && !parEvents.a(keydownEvents_)) {
+        parEvents.f(cmd, count!, options!, 1);
         result = 1;
       }
     }

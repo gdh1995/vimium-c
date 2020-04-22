@@ -52,7 +52,7 @@ setRequestHandlers([
         && <number> Build.BTypes !== BrowserType.Edge) {
       /*#__INLINE__*/ setOnOther(load.b!)
     }
-    /*#__INLINE__*/ setFgCache(VApi.cache2_ = load)
+    /*#__INLINE__*/ setFgCache(VApi.z = load)
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key) {
       load.o || /*#__INLINE__*/ setKeyIdCorrectionOffset_old_cr(300);
     }
@@ -93,7 +93,7 @@ setRequestHandlers([
     } else {
       /*#__INLINE__*/ setGrabBackFocus(false)
       hook(HookAction.Suppress);
-      VApi.execute_ && VApi.execute_(kContentCmd.SuppressClickable);
+      VApi.e && VApi.e(kContentCmd.SuppressClickable);
     }
     requestHandlers[kBgReq.init] = null as never;
     OnDocLoaded_(function (): void {
@@ -103,10 +103,10 @@ setRequestHandlers([
         const parApi = !(Build.BTypes & ~BrowserType.Firefox)
             || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
             ? getParentVApi() : allowScripts_ && frameElement_() && getParentVApi(),
-        parHints = parApi && parApi.baseHinter_ as HintMaster;
+        parHints = parApi && parApi.b as HintMaster;
         if (needToRetryParentClickable) {
         const oldSet = clickable_ as any as Element[] & Set<Element>
-        /*#__INLINE__*/ setClickable(parApi ? parApi.misc_().clickable_ : new WeakSet!<Element>())
+        /*#__INLINE__*/ setClickable(parApi ? parApi.y().c : new WeakSet!<Element>())
         if (!Build.NDEBUG && parApi) {
           // here assumes that `set` is not a temp array but a valid WeakSet / Set
           let count: number;
@@ -122,8 +122,8 @@ setRequestHandlers([
           oldSet.forEach(el => clickable_.add(el));
         }
         }
-        if (parHints && (parHints._master || parHints).hasExecuted_) {
-          (parHints._master || parHints).reinit_();
+        if (parHints && (parHints.p || parHints).h) {
+          (parHints.p || parHints).i();
         }
       }, 330);
     });

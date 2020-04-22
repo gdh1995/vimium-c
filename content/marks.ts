@@ -115,7 +115,7 @@ export const createMark = (req: BgReq[kBgReq.createMark], local?: "local"): void
 export const gotoMark = (_0: number, { n: a, s: scroll, k: typeKey, l: local }: CmdOptions[kFgCmd.goToMarks]): void => {
     a && setPreviousMarkPosition()
     scrollToMark(scroll)
-    local || VApi.focusAndRun_()
+    local || VApi.f()
     if (a) {
       hudTip(kTip.didNormalMarkTask, local ? 1000 : 2000,
           [ VTr(kTip.didJumpTo), VTr(typeKey), a ]);

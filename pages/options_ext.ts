@@ -1,6 +1,6 @@
 $<ElementWithDelay>("#showCommands").onclick = function (event): void {
-  if (!window.VApi || !VApi.cache2_) { return; }
-  let node: HTMLElement | null, root = VApi.misc_().ui_root_;
+  if (!window.VApi || !VApi.z) { return; }
+  let node: HTMLElement | null, root = VApi.y().r;
   event && event.preventDefault();
   if (!root) { /* empty */ }
   else if (node = root.querySelector("#HClose") as HTMLElement | null) {
@@ -8,11 +8,11 @@ $<ElementWithDelay>("#showCommands").onclick = function (event): void {
     click(node);
     if (isCommand) { return; }
   }
-  VApi.post_({ H: kFgReq.initHelp });
+  VApi.p({ H: kFgReq.initHelp });
   if (event) { return; }
   setTimeout(function (): void {
-    const misc = VApi.misc_()
-    const node2 = misc.ui_root_ && misc.ui_root_.querySelector("#HelpDialog") as HTMLElement;
+    const misc = VApi.y()
+    const node2 = misc.r && misc.r.querySelector("#HelpDialog") as HTMLElement;
     if (!node2) { return; }
     (node2.querySelector("#HClose") as HTMLElement).addEventListener("click", function (): void {
       location.hash = "";
@@ -167,7 +167,7 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
         plat ? pTrans_("filePlatform", [pTrans_(plat) || plat[0].toUpperCase() + plat.slice(1)])
           : pTrans_("commonPlatform"),
         time ? pTrans_("atTime", [formatDate_(time)]) : pTrans_("before")]))) {
-    window.VApi && VApi.tip_(kTip.cancelImport, 1000);
+    window.VApi && VApi.t(kTip.cancelImport, 1000);
     return;
   }
   const setProto_old_cr = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf
@@ -313,13 +313,13 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
     $<AdvancedOptBtn>("#advancedOptionsButton").onclick(null, true);
   }
   console.info("IMPORT settings: finished.");
-  const root = window.VApi && VApi.misc_().ui_root_
+  const root = window.VApi && VApi.y().r
   const node = root && root.querySelector("#HClose") as HTMLElement;
   if (node) { // reload help dialog
     node.click();
     $("#showCommands").click();
   }
-  if (window.VApi) { VApi.tip_(kTip.importOK, 1000); }
+  if (window.VApi) { VApi.t(kTip.importOK, 1000); }
 }
 
 function importSettings_(time: number | string | Date, data: string, is_recommended?: boolean): void {

@@ -43,7 +43,7 @@ chrome.runtime && chrome.runtime.getManifest && (function () {
         && curPath.indexOf("newtab") >= 0) {
       setTimeout(function (): void {
         const api = (window as {} as {VApi?: VApiTy}).VApi;
-        api && api.tip_(kTip.firefoxRefuseURL, 2560);
+        api && api.t(kTip.firefoxRefuseURL, 2560);
       }, 100);
     }
   }

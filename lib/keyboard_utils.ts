@@ -19,8 +19,8 @@ const _modifierKeys: SafeEnum = {
 }
 
 interface HandlerItem {
-  /** function */ func_: (event: HandlerNS.Event) => HandlerResult
-  /** bounding this */ env_: object
+  /** function */ f: (event: HandlerNS.Event) => HandlerResult
+  /** bounding this */ e: object
 }
 
 let key_: (this: void, event: HandlerNS.Event, mode: kModeId) => string
@@ -182,12 +182,12 @@ export const suppressTail_ = function (timeout: number, callback?: HandlerNS.Voi
   /** handler section */
 
 export const pushHandler_ = <T extends object> (func: HandlerNS.Handler<T>, env: T): void => {
-    handlers_.push({ func_: func, env_: env });
+    handlers_.push({ f: func, e: env });
 }
 
 export const removeHandler_ = (env: object): void => {
     for (let ref = handlers_, i = ref.length; 0 <= --i; ) {
-      if (ref[i].env_ === env) {
+      if (ref[i].e === env) {
         i === ref.length - 1 ? ref.length-- : ref.splice(i, 1);
         break;
       }

@@ -166,7 +166,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
   if (Build.BTypes & BrowserType.Firefox) { raw_insert_lock && insert_Lock_(); }
   let action = HandlerResult.Default, tempStr: string;
   for (const item of handler_stack) {
-    action = item.func_.call(item.env_, eventWrapper);
+    action = item.f.call(item.e, eventWrapper);
     if (action !== HandlerResult.Nothing) {
       break;
     }

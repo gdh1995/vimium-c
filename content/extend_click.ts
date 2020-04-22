@@ -153,7 +153,7 @@ export const main = (): void => {
     }
     if (isFirstResolve & fromAttrs) {
       isFirstResolve ^= fromAttrs;
-      allLinkHints && !curKeyStatus.keySequence_ && !curKeyStatus.textSequence_ && timeout_(checkLast, 34);
+      allLinkHints && !curKeyStatus.k && !curKeyStatus.t && timeout_(checkLast, 34);
     }
   }
   function resolve(isBox: BOOL, nodeIndexList: number[]): void {
@@ -192,7 +192,7 @@ export const main = (): void => {
       }
     }
     box = 0;
-    VApi.execute_ = null;
+    VApi.e = null;
   }
 
 // #region injected code
@@ -531,7 +531,7 @@ _listen(kOnDomReady, doInit, !0);
     }
     injected = injected.replace(GlobalConsts.MarkAcrossJSWorlds
         , "$&" + ((Math.random() * GlobalConsts.SecretRange + GlobalConsts.SecretBase) | 0));
-    VApi.execute_ = execute;
+    VApi.e = execute;
     setupEventListener(0, kHookRand, hook);
     setupEventListener(0, kVOnClick1, onClick);
   }
@@ -658,11 +658,11 @@ _listen(kOnDomReady, doInit, !0);
     }
     OnDocLoaded_((): void => {
       timeout_(function (): void {
-        allLinkHints && !curKeyStatus.keySequence_ && !curKeyStatus.textSequence_ && timeout_(checkLast, 34);
+        allLinkHints && !curKeyStatus.k && !curKeyStatus.t && timeout_(checkLast, 34);
       }, GlobalConsts.ExtendClick_DelayToFindAll);
     }, 1);
   }
-  VApi.execute_ = (cmd: ValidContentCommands): void => {
+  VApi.e = (cmd: ValidContentCommands): void => {
     if (cmd > kContentCmd._minSuppressClickable - 1) {
       alive = false;
     }

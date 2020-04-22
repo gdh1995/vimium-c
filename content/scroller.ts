@@ -28,9 +28,9 @@ declare const enum kScrollDim {
   position = 2,
 }
 interface ElementScrollInfo {
-  area_: number;
-  element_: SafeElement;
-  height_: number; /* cropped visible */
+  /** area */ a: number;
+  /** element */ e: SafeElement;
+  /** height (cropped) */ h: number;
 }
 
 import {
@@ -246,8 +246,8 @@ export const executeScroll = function (di: ScrollByY, amount0: number, isTo: BOO
       && (core = Build.BTypes & BrowserType.Firefox ? getParentVApi()
               : frameElement_() && getParentVApi())
       && !doesScroll(element, di, amount || (fromMax ? 1 : 0))) {
-        core.scroll_(di, amount0, isTo as 0, factor, fromMax as false);
-        if (core.misc_().key_is_down_) {
+        core.c(di, amount0, isTo as 0, factor, fromMax as false);
+        if (core.y().k) {
           scrollTick(1)
           joined = core
         }
@@ -291,7 +291,7 @@ export const scrollTick = (willContinue: BOOL | 2): void => {
     keyIsDown = willContinue - 1 ? 0 : maxInterval
     willContinue > 1 && toggleAnimation && toggleAnimation()
     if (joined) {
-      joined.scrollTick_(willContinue)
+      joined.k(willContinue)
       if (willContinue - 1) {
         joined = null
       }
@@ -354,10 +354,10 @@ const findScrollable = (di: ScrollByY, amount: number): SafeElement | null => {
       element = Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(candidate) : candidate as SafeElement | null;
     }
     if (!element && top) {
-      const candidate = selectFirst({ area_: 0, element_: top, height_: 0 })
-      element = candidate && candidate.element_ !== top
-          && (!activeEl || candidate.height_ > innerHeight / 2)
-          ? candidate.element_ : top;
+      const candidate = selectFirst({ a: 0, e: top, h: 0 })
+      element = candidate && candidate.e !== top
+          && (!activeEl || candidate.h > innerHeight / 2)
+          ? candidate.e : top;
       // if current_, then delay update to current_, until scrolling ends and ._checkCurrent is called;
       // otherwise, cache selected element for less further cost
       activeEl || (current_ = element, cachedScrollable = 0);
@@ -432,7 +432,7 @@ const doesScroll = (el: SafeElement, di: ScrollByY, amount: number): boolean => 
 }
 
 const selectFirst = (info: ElementScrollInfo, skipPrepare?: 1): ElementScrollInfo | null => {
-    let element = info.element_;
+    let element = info.e;
     if (element.clientHeight + 3 < element.scrollHeight &&
         (doesScroll(element, 1, 1) || element.scrollTop > 0 && doesScroll(element, 1, 0))) {
       return info;
@@ -449,10 +449,10 @@ const selectFirst = (info: ElementScrollInfo, skipPrepare?: 1): ElementScrollInf
         : getVisibleClientRect_(element);
       if (visible) {
         let height_ = visible.b - visible.t;
-        children.push({ area_: (visible.r - visible.l) * height_, element_: element, height_});
+        children.push({ a: (visible.r - visible.l) * height_, e: element, h: height_});
       }
     }
-    children.sort((a, b) => b.area_ - a.area_)
+    children.sort((a, b) => b.a - a.a)
     for (const info1 of children) {
       if (child = selectFirst(info1, 1)) {
         return child;
