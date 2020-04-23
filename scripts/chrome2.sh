@@ -158,6 +158,7 @@ if test $DIST -gt 0; then
   wp vc_ext_w "$dir"
   if ! test -f ${dir}/manifest.json; then
     echo -e "No dist extension: "$vc_ext_w >&2
+    exit 1
   fi
 else
   VC_EXT="$VC_ROOT"

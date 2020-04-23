@@ -898,17 +898,30 @@ Option_.all_.userDefinedCss.onSave_ = function () {
   }, 500);
 };
 
-Option_.all_.autoDarkMode.onSave_ = function (): void {
+const autoDarkMode = Option_.all_.autoDarkMode, autoReduceMotion = Option_.all_.autoReduceMotion;
+autoDarkMode.onSave_ = function (): void {
   (document.documentElement as HTMLHtmlElement).classList.toggle("auto-dark", this.previous_);
 };
-Option_.all_.autoReduceMotion.onSave_ = function (): void {
+autoReduceMotion.onSave_ = function (): void {
   (document.documentElement as HTMLHtmlElement).classList.toggle("less-motion", this.previous_);
 };
+autoDarkMode.onSave_()
+autoReduceMotion.onSave_();
 
 (Option_.all_.exclusionRules as ExclusionRulesOption_).onInited_ = onExclusionRulesInited;
 
 optionsInit1_ = optionsInitAll_ = null as never;
 (window.onhashchange as () => void)();
+
+if (Build.BTypes & BrowserType.ChromeOrFirefox
+    && (Build.BTypes & BrowserType.Chrome && bgBrowserVer_ > BrowserVer.MinMediaQuery$PrefersColorScheme
+      || Build.BTypes & BrowserType.Firefox && BG_.CurFFVer_ > FirefoxBrowserVer.MinMediaQuery$PrefersColorScheme
+      )) {
+  const media = matchMedia("(prefers-color-scheme: dark)");
+  media.onchange = (): void => {
+    bgSettings_.updateMediaQueries_();
+  }
+}
 };
 
 function onExclusionRulesInited(this: ExclusionRulesOption_): void {

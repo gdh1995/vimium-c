@@ -150,6 +150,7 @@ if test ${DIST:-0} -gt 0; then
   wp vc_ext_w "$VC_EXT"
   if ! test -f ${VC_EXT}/manifest.json; then
     echo -e "No dist extension: "$vc_ext_w >&2
+    exit 1
   fi
 else
   VC_EXT="$VC_ROOT"
