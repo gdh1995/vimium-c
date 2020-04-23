@@ -6,7 +6,7 @@ import {
   set$readyState_, readyState_, loc_, set$allowScripts_, callFunc,
 } from "../lib/utils"
 import { suppressTail_, key_ } from "../lib/keyboard_utils"
-import { prepareCrop_, frameElement_, set$OnDocLoaded_ } from "../lib/dom_utils"
+import { frameElement_, set$OnDocLoaded_ } from "../lib/dom_utils"
 import {
   safePost, clearRuntimePort, runtime_port, SafeDestoryF, set$safeDestroy,
   runtimeConnect, safeDestroy, post_, send_,
@@ -68,7 +68,7 @@ VApi = {
   k: scrollTick, $: $sc, l: learnCSS, u: suppressTail_,
   i: Build.BTypes & BrowserType.Firefox ? () => innerHeight : 0 as never,
   r: injector && set$VTr, t: hudTip, m: key_, q: insert_Lock_,
-  g: setUICSS, w: addUIElement, v: prepareCrop_, x: flash_,
+  g: setUICSS, w: addUIElement, x: flash_,
   y () {
     return {
       w: onWndFocus,

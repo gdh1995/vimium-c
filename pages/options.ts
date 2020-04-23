@@ -823,7 +823,6 @@ let optionsInit1_ = function (): void {
       node2.focus();
     }
     if (window.VApi) {
-      VApi.v();
       VApi.x((node2 as EnsuredMountedHTMLElement).parentElement.parentElement);
     }
   };

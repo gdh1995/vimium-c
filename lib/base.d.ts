@@ -398,7 +398,6 @@ interface VApiTy {
     (timeout: 0, callback?: undefined): HandlerNS.RefHandler
     (timeout: number, callback?: HandlerNS.VoidHandler): HandlerNS.RefHandler
   }
-  /** prepareCrop */ v (inVisualViewport?: 1, limitedView?: Rect | null): number
   /** add UI element */ w (element: HTMLElement, adjust_type?: AdjustType, before?: Element | null | true): void
   /** flash */ x: {
     (el: null, rect: Rect, lifeTime?: number, classNames?: string): () => void

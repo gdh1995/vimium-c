@@ -892,6 +892,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (needMsg && earlyPost) { VPort_.postToOwner_(msg); }
     a.completions_.forEach(a.Parse_);
     a.renderItems_(a.completions_, list);
+    a.toggleAttr_("inputmode", a.isSearchOnTop_ ? "search" : "url")
+    a.toggleAttr_("enterkeyhint", a.isSearchOnTop_ ? "search" : "go")
     if (!oldH) {
       (Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || a.browser_ === BrowserType.Firefox)
@@ -923,6 +925,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (func = a.onUpdate_) {
       a.onUpdate_ = null;
       return func.call(a);
+    }
+  },
+  toggleAttr_ (attr: string, value: string) {
+    if (Vomnibar_.input_.getAttribute(attr) !== value) {
+      Vomnibar_.input_.setAttribute(attr, value);
     }
   },
   toggleStyle_ (req: BgVomnibarSpecialReq[kBgReq.omni_toggleStyle]): void {
