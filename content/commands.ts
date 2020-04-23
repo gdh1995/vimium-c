@@ -184,6 +184,7 @@ export const contentCommands_: {
       c: !url,
       k: options.keyword, u: url
     });
+    url && options.copy && contentCommands_[kFgCmd.autoCopy](1, options as typeof options & SafeObject);
   },
   /* kFgCmd.searchAs: */ function (_0: number, options: CmdOptions[kFgCmd.searchAs]): void {
     post_({

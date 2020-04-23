@@ -309,13 +309,14 @@ interface CmdOptions {
     /** scroll */ s: MarksNS.FgMark;
   };
   [kFgCmd.autoCopy]: {
-    url: boolean; decoded: boolean;
-    decode?: boolean;
+    url: boolean;
+    decoded: boolean; decode?: boolean;
     sed?: string;
   };
   [kFgCmd.autoOpen]: {
     keyword?: string;
-  };
+    copy?: boolean;
+  } & CmdOptions[kFgCmd.autoCopy];
   [kFgCmd.searchAs]: {
     /** default to true */ copied?: boolean;
     /** default to true */ selected?: boolean;
