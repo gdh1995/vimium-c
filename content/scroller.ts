@@ -199,7 +199,7 @@ export const $sc = (element: SafeElement | null, di: ScrollByY, amount: number):
     }
 }
 
-export const activate = (count: number, options: CmdOptions[kFgCmd.scroll] & SafeObject): void => {
+export const activate = (options: CmdOptions[kFgCmd.scroll] & SafeObject, count: number): void => {
     if (options.$c == null) {
       options.$c = isCmdTriggered
     }

@@ -32,15 +32,16 @@ import { findAndFollowLink, findAndFollowRel } from "./pagination"
 
 interface SpecialCommands {
   [kFgCmd.reset] (this: void, isAlive: BOOL | CmdOptions[kFgCmd.reset] & SafeObject): void;
-  [kFgCmd.showHelp] (msg?: number | "e"): void;
+  [kFgCmd.showHelp] (msg: CmdOptions[kFgCmd.showHelp] | "e"): void;
 }
 
 export const contentCommands_: {
   [k in kFgCmd & number]:
     k extends keyof SpecialCommands ? SpecialCommands[k] :
-    (this: void, count: number, options: CmdOptions[k] & SafeObject, key?: -42) => void;
+    k extends kFgCmd.reload | kFgCmd.autoCopy ? (options: CmdOptions[k]) => void :
+    (this: void, options: CmdOptions[k] & SafeObject, count: number, key?: -42) => void;
 } = [
-  /* kFgCmd.framesGoBack: */ function (rawStep: number, options: CmdOptions[kFgCmd.framesGoBack]): void {
+  /* kFgCmd.framesGoBack: */ function (options: CmdOptions[kFgCmd.framesGoBack], rawStep: number): void {
     const maxStep = Math.min(Math.abs(rawStep), history.length - 1),
     reuse = options.reuse,
     realStep = rawStep < 0 ? -maxStep : maxStep;
@@ -65,7 +66,7 @@ export const contentCommands_: {
   /* kFgCmd.goToMarks: */ gotoMark,
   /* kFgCmd.scroll: */ scActivate,
   /* kFgCmd.visualMode: */ visualActivate,
-  /* kFgCmd.vomnibar: */ omniActivate ,
+  /* kFgCmd.vomnibar: */ omniActivate,
   /* kFgCmd.reset: */ (isAlive): void => {
     /*#__INLINE__*/ clearCachedScrollable()
     /*#__INLINE__*/ set$lastHovered_(null)
@@ -75,7 +76,7 @@ export const contentCommands_: {
     onWndBlur();
   },
 
-  /* kFgCmd.toggle: */ function (_0: number, options: CmdOptions[kFgCmd.toggle]): void {
+  /* kFgCmd.toggle: */ function (options: CmdOptions[kFgCmd.toggle]): void {
     const key = options.k, backupKey = "_" + key as typeof key,
     cache = safer(fgCache), cur = cache[key];
     let val = options.v, u: undefined;
@@ -93,11 +94,11 @@ export const contentCommands_: {
     options.n && hudTip(notBool ? kTip.useVal : val ? kTip.turnOn : kTip.turnOff,
         1000, [options.n, notBool ? JSON.stringify(val) : ""]);
   },
-  /* kFgCmd.insertMode: */ function (_0: number, opt: CmdOptions[kFgCmd.insertMode]): void {
+  /* kFgCmd.insertMode: */ function (opt: CmdOptions[kFgCmd.insertMode]): void {
     /*#__INLINE__*/ set$insert_global_(opt)
     if (opt.h) { hudShow(kTip.raw, opt.h); }
   },
-  /* kFgCmd.passNextKey: */ function (count0: number, options: CmdOptions[kFgCmd.passNextKey]): void {
+  /* kFgCmd.passNextKey: */ function (options: CmdOptions[kFgCmd.passNextKey], count0: number): void {
     let keyCount = 0, count = Math.abs(count0);
     if (!!options.normal === (count0 > 0)) {
       esc!(HandlerResult.ExitPassMode); // singleton
@@ -146,20 +147,20 @@ export const contentCommands_: {
     })
     onKeyup2!();
   },
-  /* kFgCmd.goNext: */ function (_0: number, {r: rel, p: patterns, l, m }: CmdOptions[kFgCmd.goNext]): void {
+  /* kFgCmd.goNext: */ function ({r: rel, p: patterns, l, m }: CmdOptions[kFgCmd.goNext]): void {
     if (!isHTML_() || findAndFollowRel(rel)) { return; }
     const isNext = rel === "next";
     if (patterns.length <= 0 || !findAndFollowLink(patterns, isNext, l, m)) {
       return hudTip(kTip.noLinksToGo, 0, [VTr(rel)]);
     }
   },
-  /* kFgCmd.reload: */ function (_0: number, options: CmdOptions[kFgCmd.reload]): void {
+  /* kFgCmd.reload: */ function (options: CmdOptions[kFgCmd.reload]): void {
     timeout_(function () {
       options.url ? (loc_.href = options.url) : loc_.reload(!!options.hard);
     }, 17);
   },
-  /* kFgCmd.showHelp: */ function (msg?: number | "e", options?: CmdOptions[kFgCmd.showHelp]): void {
-    if (msg === "e") { return; }
+  /* kFgCmd.showHelp: */ function (options: CmdOptions[kFgCmd.showHelp] | "e"): void {
+    if (options === "e") { return; }
     let wantTop = innerWidth < 400 || innerHeight < 320;
     if (!isHTML_()) {
       if (isTop) { return; }
@@ -167,7 +168,7 @@ export const contentCommands_: {
     }
     post_({ H: kFgReq.initHelp, w: wantTop, a: options });
   },
-  /* kFgCmd.autoCopy: */ function (_0: number, options: CmdOptions[kFgCmd.autoCopy]): void {
+  /* kFgCmd.autoCopy: */ function (options: CmdOptions[kFgCmd.autoCopy]): void {
     let str = getSelectionText(1);
     post_({
       H: kFgReq.copy,
@@ -177,16 +178,16 @@ export const contentCommands_: {
       d: options.decoded || options.decode
     });
   },
-  /* kFgCmd.autoOpen: */ function (_0: number, options: CmdOptions[kFgCmd.autoOpen]): void {
+  /* kFgCmd.autoOpen: */ function (options: CmdOptions[kFgCmd.autoOpen]): void {
     let url = getSelectionText();
     url && evalIfOK(url) || post_({
       H: kFgReq.openUrl,
       c: !url,
       k: options.keyword, u: url
     });
-    url && options.copy && contentCommands_[kFgCmd.autoCopy](1, options as typeof options & SafeObject);
+    url && options.copy && contentCommands_[kFgCmd.autoCopy](options);
   },
-  /* kFgCmd.searchAs: */ function (_0: number, options: CmdOptions[kFgCmd.searchAs]): void {
+  /* kFgCmd.searchAs: */ function (options: CmdOptions[kFgCmd.searchAs]): void {
     post_({
       H: kFgReq.searchAs,
       u: loc_.href,
@@ -195,7 +196,7 @@ export const contentCommands_: {
       t: options.selected ? getSelectionText() : ""
     });
   },
-  /* kFgCmd.focusInput: */ function (count: number, options: CmdOptions[kFgCmd.focusInput]): void {
+  /* kFgCmd.focusInput: */ function (options: CmdOptions[kFgCmd.focusInput], count: number): void {
     const act = options.act || options.action;
     if (act && (act[0] !== "l" || insert_last && !raw_insert_lock)) {
       let newEl = raw_insert_lock, ret: BOOL = 1;
@@ -302,7 +303,7 @@ export const contentCommands_: {
       return HandlerResult.Nothing;
     }, insert_inputHint!);
   },
-  /* kFgCmd.editText: */ function (count: number, options: CmdOptions[kFgCmd.editText]) {
+  /* kFgCmd.editText: */ function (options: CmdOptions[kFgCmd.editText], count: number) {
     (raw_insert_lock || options.dom) && timeout_((): void => {
       let commands = options.run.split(","), sel: Selection | undefined;
       while (0 < count--) {

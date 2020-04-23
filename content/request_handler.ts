@@ -199,8 +199,8 @@ set$requestHandlers([
     mask && timeout_((): void => { focusAndRun() }, 1); // require FrameMaskType.NoMaskAndNoFocus is 0
     if (req.c) {
       type TypeChecked = { [key1 in FgCmdAcrossFrames]: <T2 extends FgCmdAcrossFrames>(this: void,
-          count: number, options: CmdOptions[T2] & FgOptions) => void; };
-      (contentCommands_ as TypeChecked)[req.c](req.n!, req.a!);
+          options: CmdOptions[T2] & FgOptions, count: number) => void; };
+      (contentCommands_ as TypeChecked)[req.c](req.a!, req.n!);
     }
     keydownEvents_[req.k] = 1;
     showFrameMask(mask);
@@ -232,12 +232,12 @@ set$requestHandlers([
     const options: CmdOptions[O] | null = request.a;
     type Keys = keyof CmdOptions;
     type TypeToCheck = {
-      [key in Keys]: (this: void, count: number, options: CmdOptions[key] & SafeObject) => void;
+      [key in Keys]: (this: void, options: CmdOptions[key] & SafeObject, count: number) => void;
     };
     type TypeChecked = {
-      [key in Keys]: <T2 extends Keys>(this: void, count: number, options: CmdOptions[T2] & SafeObject) => void;
+      [key in Keys]: <T2 extends Keys>(this: void, options: CmdOptions[T2] & SafeObject, count: number) => void;
     };
-    (contentCommands_ as TypeToCheck as TypeChecked)[request.c](request.n, options ? safer(options) : safeObj(null));
+    (contentCommands_ as TypeToCheck as TypeChecked)[request.c](options ? safer(options) : safeObj(null), request.n);
   } as (req: BaseExecute<object, keyof CmdOptions>) => void,
   /* kBgReq.createMark: */ createMark,
   /* kBgReq.showHUD: */ function (req: Req.bg<kBgReq.showHUD>): void {
@@ -300,7 +300,7 @@ set$requestHandlers([
 
     const query = box.querySelector.bind(box), closeBtn = query("#HClose") as HTMLElement,
     optLink = query("#OptionsPage") as HTMLAnchorElement, advCmd = query("#AdvancedCommands") as HTMLElement,
-    hide: (this: void, e?: (EventToPrevent) | number | "e") => void = function (event): void {
+    hide: (this: void, e?: (EventToPrevent) | CmdOptions[kFgCmd.showHelp] | "e") => void = function (event): void {
       if (event instanceof Event) {
         prevent_(event);
       }
@@ -440,8 +440,8 @@ export const focusAndRun = (cmd?: FgCmdAcrossFrames, count?: number, options?: F
     esc!(HandlerResult.Nothing);
     if (cmd) {
       type TypeChecked = { [key in FgCmdAcrossFrames]: <T2 extends FgCmdAcrossFrames>(this: void,
-          count: number, options: CmdOptions[T2] & FgOptions) => void; };
-      (contentCommands_ as TypeChecked)[cmd](count!, options!);
+          options: CmdOptions[T2] & FgOptions, count: number) => void; };
+      (contentCommands_ as TypeChecked)[cmd](options!, count!);
     }
     showBorder && showFrameMask(FrameMaskType.ForcedSelf);
   }

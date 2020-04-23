@@ -74,7 +74,7 @@ let kExtend = "extend" as const
 export { mode_ as visual_mode, kDir, kExtend }
 
   /** @safe_di */
-export const activate = (_0: number, options: CmdOptions[kFgCmd.visualMode]): void => {
+export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     init && init(options.w!, options.k!)
     removeHandler_(activate)
     checkDocSelectable();
@@ -202,9 +202,10 @@ const commandHandler = (command: VisualAction, count: number): void => {
         post_({ H: kFgReq.findFromVisual });
         return;
       }
-      return activate(1, safer<CmdOptions[kFgCmd.visualMode]>({
+      activate(safer<CmdOptions[kFgCmd.visualMode]>({
         m: command - VisualAction.MaxNotNewMode
       }));
+      return
     }
     if (scope && !curSelection.rangeCount) {
       scope = null
@@ -316,7 +317,7 @@ const findV = (count: number): void => {
     if (find_hasResults) {
       diType_ = DiType.UnsafeUnknown
       if (mode_ === Mode.Caret && selType() === SelType.Range) {
-        activate(1, safer<CmdOptions[kFgCmd.visualMode]>({
+        activate(safer<CmdOptions[kFgCmd.visualMode]>({
           m: Mode.Visual
         }));
       } else {

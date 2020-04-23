@@ -60,7 +60,7 @@ let postLock: Element | null = null
 export { findCSS, query_ as find_query, hasResults as find_hasResults, box_ as find_box, styleSelectable, styleInHUD }
 export function set$findCSS (newCSS: FindCSS): void { findCSS = newCSS }
 
-export const activate = (_0: number, options: CmdOptions[kFgCmd.findMode]): void => {
+export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     findCSS = options.f || findCSS;
     if (!isHTML_()) { return; }
     let query: string = options.s ? getSelectionText() : "";
@@ -454,10 +454,10 @@ export const deactivate = (i: FindNS.Action): void => {
       restoreSelection(true)
     }
     if (visual_mode) {
-      visualActivate(1, safer<CmdOptions[kFgCmd.visualMode]>({
+      visualActivate(safer<CmdOptions[kFgCmd.visualMode]>({
         m: VisualModeNS.Mode.Visual,
         r: true
-      }));
+      }))
       return;
     }
     if (i > FindNS.Action.MaxExitButNoWork && hasResult && (!el || el !== insert_Lock_())) {

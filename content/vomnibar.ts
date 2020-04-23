@@ -44,7 +44,7 @@ let canUseVW = true
 
 export { box as omni_box, status as omni_status }
 
-export const activate = function (count: number, options: FullOptions): void {
+export const activate = function (options: FullOptions, count: number): void {
     // hide all further key events to wait iframe loading and focus changing from JS
     removeHandler_(activate)
     pushHandler_(SuppressMost_, activate)
@@ -57,7 +57,7 @@ export const activate = function (count: number, options: FullOptions): void {
     if (readyState_ > "l") {
       if (!timer) {
         clearTimeout_(timer1);
-        timer = timeout_(activate.bind(0, count, options), 500)
+        timer = timeout_(activate.bind(0, options, count), 500)
         return;
       }
     }
@@ -76,7 +76,7 @@ export const activate = function (count: number, options: FullOptions): void {
     if (!isTop && !options.$forced) { // check $forced to avoid dead loops
       if (parent === top
           && (parApi = Build.BTypes & BrowserType.Firefox ? getParentVApi() : frameElement_() && getParentVApi())) {
-        parApi.o(count, options)
+        parApi.o(options, count)
       } else {
         post_({ H: kFgReq.gotoMainFrame, f: 0, c: kFgCmd.vomnibar, n: count, a: options })
       }
@@ -113,7 +113,7 @@ export const activate = function (count: number, options: FullOptions): void {
       status = VomnibarNS.Status.Initing
       init(options)
     } else if (isAboutBlank()) {
-      onReset = function (): void { onReset = null; activate(count, options); }
+      onReset = function (): void { onReset = null; activate(options, count); }
       return;
     } else if (status === VomnibarNS.Status.Inactive) {
       status = VomnibarNS.Status.ToShow
@@ -146,7 +146,7 @@ export const activate = function (count: number, options: FullOptions): void {
       status > VomnibarNS.Status.Initing ? postToOmni(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront)
           : (omniOptions = options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront)
     });
-} as (count: number, options: CmdOptions[kFgCmd.vomnibar]) => void
+} as (options: CmdOptions[kFgCmd.vomnibar], count: number) => void
 
 export const hide = (fromInner?: 1): void => {
     const active = status > VomnibarNS.Status.Inactive,
@@ -213,7 +213,7 @@ export const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void
         reset()
         focus();
         status = VomnibarNS.Status.KeepBroken
-        activate(1, {} as FullOptions)
+        activate({} as FullOptions, 1)
       }
       if (loc_.origin !== origin || !origin || type === VomnibarNS.PageType.web) {
         timeout_(checkBroken, 600)

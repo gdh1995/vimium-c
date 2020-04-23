@@ -381,13 +381,13 @@ interface VApiTy {
     (this: void, cmd: 0, count: never, options: never, showBorder: 1): void
   }
   /** setUICSS */ g: (innerCSS: string) => void
-  /** linkActivate */ h: (count: number, options: HintsNS.ContentOptions) => void
+  /** linkActivate */ h: (options: HintsNS.ContentOptions, count: number) => void
   /** innerHeight_ff */ i?: () => number
   /** learnCSS */ l: (srcStyleUI: HTMLStyleElement | string | null, force?: 1) => void
   /** scrollTick */ k: (willContinue: BOOL | 2) => void
   /** getMappedKey */ m: (eventWrapper: HandlerNS.Event, mode: kModeId) => string
   /** findOnLoad */ n: (later?: 1) => void
-  /** omniActivate */ o: (count: number, options: CmdOptions[kFgCmd.vomnibar]) => void
+  /** omniActivate */ o: (options: CmdOptions[kFgCmd.vomnibar], count: number) => void
   /** query insert lock */ q: () => LockableElement | null
   /** post */ p: <K extends keyof FgReq>(this: void, req: FgReq[K] & Req.baseFg<K>) => void | 1;
   /** setzVTr */ r: ((newTr: VTransType) => void) | null | undefined;

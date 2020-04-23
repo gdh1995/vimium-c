@@ -168,7 +168,7 @@ export {
 }
 export function set$kSafeAllSelector (selector: string): void { kSafeAllSelector = selector as any; }
 
-export const activate = (count: number, options: HintsNS.ContentOptions): void => {
+export const activate = (options: HintsNS.ContentOptions, count: number): void => {
     if (isActive) { return; }
     if (checkHidden(kFgCmd.linkHints, count, options)) {
       return clear()
@@ -177,7 +177,7 @@ export const activate = (count: number, options: HintsNS.ContentOptions): void =
       clear()
       if (!_timer && readyState_ > "l") {
         pushHandler_(SuppressMost_, activate)
-        _timer = timeout_(activate.bind(0 as never, count, options), 300)
+        _timer = timeout_(activate.bind(0 as never, options, count), 300)
         return;
       }
     }
@@ -186,7 +186,7 @@ export const activate = (count: number, options: HintsNS.ContentOptions): void =
     if (parApi) {
       parApi.l(style_ui)
       // recursively go up and use the topest frame in a same origin
-      parApi.h(count, options)
+      parApi.h(options, count)
       return;
     }
     const useFilter0 = options.useFilter, useFilter = useFilter0 != null ? !!useFilter0 : fgCache.f,
@@ -1396,7 +1396,7 @@ const reinit = (slave?: BaseHinter | null, lastEl?: LinkEl | null, rect?: Rect |
     }
     baseHinter.a = isActive = 0;
     resetHints();
-    activate(0, options_);
+    activate(options_, 0);
     setupCheck(slave, lastEl, rect);
 }
 

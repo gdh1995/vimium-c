@@ -10,7 +10,7 @@ let mcount = 0
 // [0..8]
 let previous: MarksNS.FgMark[] = []
 
-export const activate = (count: number, options: CmdOptions[kFgCmd.marks]): void => {
+export const activate = (options: CmdOptions[kFgCmd.marks], count: number): void => {
     const isGo = options.mode !== "create";
     onKeyChar = isGo ? goto : create
     mcount = count < 0 || count > 9 ? 0 : count - 1
@@ -112,7 +112,7 @@ export const createMark = (req: BgReq[kBgReq.createMark], local?: "local"): void
         [ VTr(kTip.didCreate), VTr(local || "global"), req.n ])
 }
 
-export const gotoMark = (_0: number, { n: a, s: scroll, k: typeKey, l: local }: CmdOptions[kFgCmd.goToMarks]): void => {
+export const gotoMark = ({ n: a, s: scroll, k: typeKey, l: local }: CmdOptions[kFgCmd.goToMarks]): void => {
     a && setPreviousMarkPosition()
     scrollToMark(scroll)
     local || VApi.f()

@@ -13,7 +13,7 @@ const followLink = (linkElement: SafeHTMLElement): boolean => {
   view_(linkElement);
   flash_(linkElement);
   if (url) {
-    contentCommands_[kFgCmd.reload](1, safer({ url }));
+    contentCommands_[kFgCmd.reload](safer({ url }));
   } else {
     timeout_(function () { click_(linkElement); }, 100);
   }
