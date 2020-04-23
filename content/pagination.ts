@@ -10,12 +10,11 @@ import { view_, isAriaNotTrue_, getBoundingClientRect_, isStyleVisible_, docEl_u
 
 const followLink = (linkElement: SafeHTMLElement): boolean => {
   let url = linkElement.localName === "link" && (linkElement as HTMLLinkElement).href;
+  view_(linkElement);
+  flash_(linkElement);
   if (url) {
     contentCommands_[kFgCmd.reload](1, safer({ url }));
   } else {
-    view_(linkElement);
-    // note: prepareCrop is called during UI.flash_
-    flash_(linkElement);
     timeout_(function () { click_(linkElement); }, 100);
   }
   return true;
@@ -120,13 +119,20 @@ export const findAndFollowRel = (relName: string): boolean => {
   const elements = querySelectorAll_unsafe_("[rel]");
   let s: string | null | undefined;
   type HTMLElementWithRel = HTMLAnchorElement | HTMLAreaElement | HTMLLinkElement;
+  let matched: HTMLElementWithRel | undefined;
   for (let _i = 0, _len = elements.length, re1 = <RegExpOne> /\s+/; _i < _len; _i++) {
     const element = elements[_i];
     if ((<RegExpI> /^(a|area|link)$/).test(htmlTag_(element))
         && (s = (element as TypeToPick<HTMLElement, HTMLElementWithRel, "rel">).rel)
-        && s.trim().toLowerCase().split(re1).indexOf(relName) >= 0) {
-      return followLink(element as HTMLElementWithRel as SafeHTMLElement);
+        && s.trim().toLowerCase().split(re1).indexOf(relName) >= 0
+        && (element as HTMLElementWithRel).href) {
+      if (matched) {
+        if ((element as HTMLElementWithRel).href.split("#")[0] !== matched.href.split("#")[0]) {
+          return false;
+        }
+      }
+      matched = element as HTMLElementWithRel;
     }
   }
-  return false;
+  return !!matched && followLink(matched as SafeHTMLElement);
 }
