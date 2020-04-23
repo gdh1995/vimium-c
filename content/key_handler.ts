@@ -162,12 +162,9 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
   }
   if (Build.BTypes & BrowserType.Chrome) { isWaitingAccessKey && /*#__INLINE__*/ resetAnyClickHandler(); }
   if (Build.BTypes & BrowserType.Firefox) { raw_insert_lock && insert_Lock_(); }
-  let action = HandlerResult.Default, tempStr: string;
-  for (const item of handler_stack) {
-    action = item.f.call(item.e, eventWrapper);
-    if (action !== HandlerResult.Nothing) {
-      break;
-    }
+  let action = HandlerResult.Nothing, tempStr: string;
+  for (let ind = handler_stack.length; 0 <= --ind && action === HandlerResult.Nothing; ) {
+    action = handler_stack[ind].f.call(handler_stack[ind].e, eventWrapper);
   }
   if (action) { /* empty */ }
   else if (/*#__NOINLINE__*/ isInInsert()) {
