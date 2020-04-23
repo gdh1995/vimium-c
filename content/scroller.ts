@@ -53,7 +53,7 @@ let minDelay = ScrollerNS.Consts.DefaultMinDelayMs as number
 /** @NEED_SAFE_ELEMENTS */
 let scrollingTop: SafeElement | null = null
 /** @NEED_SAFE_ELEMENTS */
-let current_: SafeElement | null = null
+let currentScrolling: SafeElement | null = null
 /** @NEED_SAFE_ELEMENTS */
 let cachedScrollable: SafeElement | 0 | null = 0
 let keyIsDown = 0
@@ -62,13 +62,12 @@ let scale = 1
 let joined: VApiTy | null = null
 let scrolled = 0
 
-export { current_ as currentScrolling, cachedScrollable, keyIsDown, scrolled }
+export { currentScrolling, cachedScrollable, keyIsDown, scrolled }
 export function clearTop (): void { scrollingTop = null }
 export function resetScrolled (): void { scrolled = 0 }
-export function setCurrentScrolling (element: SafeElement | null): void { current_ = element }
-export function clearCurrentScrolling (): void { current_ = null }
+export function set$currentScrolling (el: SafeElement | null): void { currentScrolling = el }
 export function clearCachedScrollable (): void { cachedScrollable = 0 }
-export function syncCachedScrollable (): void { cachedScrollable = current_ }
+export function syncCachedScrollable (): void { cachedScrollable = currentScrolling }
 
 let performAnimate = (e: SafeElement | null, d: ScrollByY, a: number): void => {
   let amount = 0, calibration = 1.0, di: ScrollByY = 0, duration = 0, element: SafeElement | null = null, //
@@ -329,7 +328,7 @@ const adjustAmount = (di: ScrollByY, amount: number, element: SafeElement | null
    * @param amount should not be 0
    */
 const findScrollable = (di: ScrollByY, amount: number): SafeElement | null => {
-    const top = scrollingTop, activeEl: SafeElement | null = current_
+    const top = scrollingTop, activeEl: SafeElement | null = currentScrolling
     let element = activeEl;
     if (element) {;
       let reason: number, notNeedToRecheck = !di
@@ -360,7 +359,7 @@ const findScrollable = (di: ScrollByY, amount: number): SafeElement | null => {
           ? candidate.e : top;
       // if current_, then delay update to current_, until scrolling ends and ._checkCurrent is called;
       // otherwise, cache selected element for less further cost
-      activeEl || (current_ = element, cachedScrollable = 0);
+      activeEl || (currentScrolling = element, cachedScrollable = 0);
     }
     return element;
 }
@@ -382,7 +381,7 @@ export const getPixelScaleToScroll = (): void => {
 }
 
 const checkCurrent = (el: SafeElement | null): void => {
-    if (current_ !== el && current_ && NotVisible_(current_)) { current_ = el; cachedScrollable = 0; }
+    if (currentScrolling !== el && currentScrolling && NotVisible_(currentScrolling)) { currentScrolling = el; cachedScrollable = 0; }
 }
 
   /** if `el` is null, then return viewSize for `kScrollDim.scrollSize` */
@@ -470,7 +469,7 @@ export const scrollIntoView_need_safe = (el: SafeElement): void => {
     { bottom: b, top: t, right: r, left: l } = rect,
     hasY = b < ihm ? max(b - ih + ihm, t - ihm) : ih < t + ihm ? min(b - ih + ihm, t - ihm) : 0,
     hasX = r < 0 ? max(l - iwm, r - iw + iwm) : iw < l ? min(r - iw + iwm, l - iwm) : 0;
-    current_ = el
+    currentScrolling = el
     cachedScrollable = 0
     if (hasX || hasY) {
       for (let el2: Element | null = el; el2; el2 = GetParent_unsafe_(el2, PNType.RevealSlotAndGotoParent)) {
@@ -530,7 +529,7 @@ export const onActivate = (event: Event): void => {
               || !(Build.BTypes & BrowserType.Chrome)
             ? path : path && path.length > 1)
         ? path![0] as Element : event.target as Element;
-    current_ = Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(el) : el as SafeElement | null
+    currentScrolling = Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(el) : el as SafeElement | null
     cachedScrollable = 0
   }
 }

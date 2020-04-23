@@ -1,8 +1,8 @@
 import {
-  browserVer, doc, esc, EscF, fgCache, isTop, safeObj, setEsc, VOther, VTr, safer, timeout_, loc_,
+  browserVer, doc, esc, EscF, fgCache, isTop, safeObj, set$esc, VOther, VTr, safer, timeout_, loc_,
 } from "../lib/utils"
 import {
-  unhover_, resetLastHovered, isHTML_, view_, NotVisible_, getZoom_, prepareCrop_, getViewBox_, createElement_,
+  unhover_, set$lastHovered_, isHTML_, view_, NotVisible_, getZoom_, prepareCrop_, getViewBox_, createElement_,
   padClientRect_, getBoundingClientRect_, setBoundary_, wdZoom_, dScale_,
 } from "../lib/dom_utils"
 import {
@@ -12,7 +12,7 @@ import { post_ } from "./port"
 import { addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, select_ } from "./dom_ui"
 import { hudHide, hudShow, hudTip, hud_text } from "./hud"
 import {
-  onKeyup2, setOnKeyUp2, resetOnKeyUp2, passKeys, setTempCurrentKeyStatus, setTempPassKeys,
+  onKeyup2, set$onKeyup2, passKeys, setTempCurrentKeyStatus, set$passKeys,
 } from "./key_handler"
 import {
   activate as linkActivate, clear as linkClear,
@@ -22,8 +22,8 @@ import { activate as markActivate, gotoMark } from "./marks"
 import { activate as findActivate, deactivate as findDeactivate, execCommand, init as findInit } from "./mode_find"
 import {
   exitInputHint, insert_inputHint, insert_last, raw_insert_lock, resetInsert,
-  setInputHint, setInsertGlobal, enterInsertHinting, setInsertLast, onWndBlur, exitPassMode, setExitPassMode,
-  disableInsertLastMutable, enableInsertLastMutable, resetInsertLast, exitInsertHinting,
+  set$inputHint, set$insert_global_, set$isHintingInput, set$insert_last_, onWndBlur, exitPassMode, set$exitPassMode,
+  set$is_last_mutable,
 } from "./mode_insert"
 import { activate as visualActivate, deactivate as visualDeactivate } from "./mode_visual"
 import { activate as scActivate, clearCachedScrollable } from "./scroller"
@@ -68,7 +68,7 @@ export const contentCommands_: {
   /* kFgCmd.vomnibar: */ omniActivate ,
   /* kFgCmd.reset: */ (isAlive): void => {
     /*#__INLINE__*/ clearCachedScrollable()
-    /*#__INLINE__*/ resetLastHovered()
+    /*#__INLINE__*/ set$lastHovered_(null)
     /*#__INLINE__*/ resetInsert()
     linkClear(isAlive ? 2 : 0); visualDeactivate();
     findInit || findDeactivate(FindNS.Action.ExitNoAnyFocus);
@@ -94,7 +94,7 @@ export const contentCommands_: {
         1000, [options.n, notBool ? JSON.stringify(val) : ""]);
   },
   /* kFgCmd.insertMode: */ function (_0: number, opt: CmdOptions[kFgCmd.insertMode]): void {
-    /*#__INLINE__*/ setInsertGlobal(opt)
+    /*#__INLINE__*/ set$insert_global_(opt)
     if (opt.h) { hudShow(kTip.raw, opt.h); }
   },
   /* kFgCmd.passNextKey: */ function (count0: number, options: CmdOptions[kFgCmd.passNextKey]): void {
@@ -105,12 +105,12 @@ export const contentCommands_: {
         return hudTip(kTip.noPassKeys);
       }
       const oldEsc = esc!, oldPassKeys = passKeys;
-      /*#__INLINE__*/ setTempPassKeys(null)
-      /*#__INLINE__*/ setEsc(function (i: HandlerResult): HandlerResult {
+      /*#__INLINE__*/ set$passKeys(null)
+      /*#__INLINE__*/ set$esc(function (i: HandlerResult): HandlerResult {
         if (i === HandlerResult.Prevent && 0 >= --count || i === HandlerResult.ExitPassMode) {
           hudHide();
-          /*#__INLINE__*/ setTempPassKeys(oldPassKeys)
-          /*#__INLINE__*/ setEsc(oldEsc)
+          /*#__INLINE__*/ set$passKeys(oldPassKeys)
+          /*#__INLINE__*/ set$esc(oldEsc)
           return oldEsc(HandlerResult.Prevent);
         }
         setTempCurrentKeyStatus()
@@ -130,7 +130,7 @@ export const contentCommands_: {
       keys[event.i] = 1;
       return HandlerResult.PassKey;
     }, keys);
-    /*#__INLINE__*/ setOnKeyUp2((event): void => {
+    /*#__INLINE__*/ set$onKeyup2((event): void => {
       if (keyCount === 0 || --keyCount || --count) {
         keys[event ? event.keyCode : kKeyCode.None] = 0;
         hudShow(kTip.passNext, [count > 1 ? VTr(kTip.nTimes, [count]) : ""]);
@@ -138,9 +138,9 @@ export const contentCommands_: {
         exitPassMode!();
       }
     })
-    /*#__INLINE__*/ setExitPassMode((): void => {
-      /*#__INLINE__*/ setExitPassMode(null)
-      /*#__INLINE__*/ resetOnKeyUp2()
+    /*#__INLINE__*/ set$exitPassMode((): void => {
+      /*#__INLINE__*/ set$exitPassMode(null)
+      /*#__INLINE__*/ set$onKeyup2(null)
       removeHandler_(keys);
       hudHide();
     })
@@ -202,15 +202,15 @@ export const contentCommands_: {
         if (act === kBackspace) {
           if (view_(newEl)) { execCommand(kDelete, doc); }
         } else {
-          /*#__INLINE__*/ setInsertLast(newEl)
-          /*#__INLINE__*/ disableInsertLastMutable()
+          /*#__INLINE__*/ set$insert_last_(newEl)
+          /*#__INLINE__*/ set$is_last_mutable(0)
           newEl.blur();
         }
       } else if (!(newEl = insert_last)) {
         hudTip(kTip.noFocused, 1200);
       } else if (act !== "last-visible" && view_(newEl) || !NotVisible_(newEl)) {
-        /*#__INLINE__*/ resetInsertLast()
-        /*#__INLINE__*/ enableInsertLastMutable()
+        /*#__INLINE__*/ set$insert_last_(null)
+        /*#__INLINE__*/ set$is_last_mutable(1)
         getZoom_(newEl);
         prepareCrop_();
         select_(newEl, null, !!options.flash, options.select, true);
@@ -269,19 +269,19 @@ export const contentCommands_: {
     // delay exiting the old to avoid some layout actions
     // although old elements can not be GC-ed before this line, it has little influence
     exitInputHint();
-    /*#__INLINE__*/ setInputHint({ b: box, h: hints });
+    /*#__INLINE__*/ set$inputHint({ b: box, h: hints });
     pushHandler_(function (event) {
       const keyCode = event.i, isIME = keyCode === kKeyCode.ime, repeat = event.e.repeat,
       key = isIME || repeat ? "" : key_(event, kModeId.Insert)
       if (key === kChar.tab || key === `s-${kChar.tab}`) {
         const hints2 = this.h, oldSel = sel, len = hints2.length;
         sel = (oldSel + (key < "t" ? len - 1 : 1)) % len;
-        /*#__INLINE__*/ enterInsertHinting();
+        /*#__INLINE__*/ set$isHintingInput(1);
         prevent_(event.e); // in case that selecting is too slow
         select_(hints2[sel].d, null, false, action);
         hints2[oldSel].m.className = "IH";
         hints2[sel].m.className = "IH IHS";
-        /*#__INLINE__*/ exitInsertHinting();
+        /*#__INLINE__*/ set$isHintingInput(0);
         return HandlerResult.Prevent;
       }
       // check `!key` for mapModifier

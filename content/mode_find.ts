@@ -7,7 +7,7 @@ import {
   kDelete, kBackspace,
 } from "../lib/keyboard_utils"
 import {
-  createShadowRoot_, lastHovered_, resetLastHovered, prepareCrop_, getSelectionFocusEdge_, activeEl_unsafe_,
+  createShadowRoot_, lastHovered_, set$lastHovered_, prepareCrop_, getSelectionFocusEdge_, activeEl_unsafe_,
   getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, htmlTag_, fullscreenEl_unsafe_, docEl_unsafe_,
   getSelection_, view_, isSelected_, docSelectable_, isHTML_, createElement_, wdZoom_,
 } from "../lib/dom_utils"
@@ -58,7 +58,7 @@ let isSmall = false
 let postLock: Element | null = null
 
 export { findCSS, query_ as find_query, hasResults as find_hasResults, box_ as find_box, styleSelectable, styleInHUD }
-export function setFindCSS (newCSS: FindCSS): void { findCSS = newCSS }
+export function set$findCSS (newCSS: FindCSS): void { findCSS = newCSS }
 
 export const activate = (_0: number, options: CmdOptions[kFgCmd.findMode]): void => {
     findCSS = options.f || findCSS;
@@ -327,7 +327,7 @@ export const clear = (): void => {
   hasResults = isActive = isSmall = notEmpty = postOnEsc = false
   removeHandler_(activate)
   outerBox_ && outerBox_.remove()
-  if (box_ === lastHovered_) { /*#__INLINE__*/ resetLastHovered() }
+  if (box_ === lastHovered_) { /*#__INLINE__*/ set$lastHovered_(null) }
   parsedQuery_ = query_ = query0_ = ""
   historyIndex = matchCount = doesCheckAlive = 0;
   styleInHUD = onUnexpectedBlur = outerBox_ =

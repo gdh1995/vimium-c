@@ -1,13 +1,15 @@
 import {
-  doc, esc, fgCache, isEnabled_, isTop, keydownEvents_, setEsc, VOther,
+  doc, esc, fgCache, isEnabled_, isTop, keydownEvents_, set$esc, VOther,
 } from "../lib/utils"
+import {
+  set$key_, char_, key_, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_, Stop_,
+} from "../lib/keyboard_utils"
 import { post_ } from "./port"
 import { removeSelection } from "./dom_ui"
 import {
-  exitInsertMode, focusUpper, insert_global, insert_Lock_, isInInsert, raw_insert_lock, setupSuppress, suppressType,
+  exitInsertMode, focusUpper, insert_global_, insert_Lock_, isInInsert, raw_insert_lock, setupSuppress, suppressType,
 } from "./mode_insert"
 import { keyIsDown as scroll_keyIsDown, onScrolls, scrollTick } from "./scroller"
-import { setGetMappedKey, char_, key_, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_, Stop_ } from "../lib/keyboard_utils"
 import { activeEl_unsafe_, getSelection_ } from "../lib/dom_utils"
 
 let passKeys: SafeEnum | null | "" = null
@@ -25,7 +27,7 @@ let anyClickHandler: MouseEventListener = { handleEvent: noopEventHandler }
 
 let onKeyup2: ((this: void, event?: Pick<KeyboardEvent, "keyCode">) => void) | null | undefined
 
-/*#__INLINE__*/ setEsc(function<T extends Exclude<HandlerResult, HandlerResult.ExitPassMode>> (i: T): T {
+/*#__INLINE__*/ set$esc(function<T extends Exclude<HandlerResult, HandlerResult.ExitPassMode>> (i: T): T {
   currentKeys = ""; nextKeys = null; return i;
 })
 
@@ -35,14 +37,15 @@ export {
   onKeyup2, isPassKeysReverted,
 }
 export function resetIsCmdTriggered (): void { isCmdTriggered = 0 }
-export function setTempPassKeys (newPassKeys: SafeEnum | null | ""): void { passKeys = newPassKeys }
+export function set$passKeys (newPassKeysVal: SafeEnum | null | ""): void { passKeys = newPassKeysVal }
 export function setTempCurrentKeyStatus (): void { currentKeys = "", nextKeys = keyFSM }
-export function setOnKeyUp2 (newOnKeyUp: typeof onKeyup2): void { onKeyup2 = newOnKeyUp }
-export function resetOnKeyUp2 (): void { onKeyup2 = null }
-export function setPassKeys (val: typeof passKeys): void { passKeys = val }
-export function setIsPassKeysReverted (reverted: boolean): void { isPassKeysReverted = reverted }
+export function set$onKeyup2 (newOnKeyUp: typeof onKeyup2): void { onKeyup2 = newOnKeyUp }
+export function set$isPassKeysReverted (reverted: boolean): void { isPassKeysReverted = reverted }
+export function set$keyFSM (newFSM: BgReq[kBgReq.keyFSM]["k"]) { keyFSM = newFSM }
+export function set$mappedKeys (maps: BgReq[kBgReq.keyFSM]["m"]): void { mappedKeys = maps }
 
-setGetMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
+
+set$key_((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
   const char = eventWrapper.c !== kChar.INVALID ? eventWrapper.c : char_(eventWrapper), event = eventWrapper.e;
   let key: string = char, mapped: string | undefined;
   if (char) {
@@ -92,11 +95,6 @@ export const checkKey = (event: HandlerNS.Event, key: string
     nextKeys = j !== KeyAction.count ? j : keyFSM;
   }
   return HandlerResult.Prevent;
-}
-
-export function setKeyFSM (newFSM: BgReq[kBgReq.keyFSM]["k"], maps: BgReq[kBgReq.keyFSM]["m"]): void {
-  keyFSM = newFSM
-  mappedKeys = maps
 }
 
 export const checkPotentialAccessKey = (event: HandlerNS.Event): void => {
@@ -173,7 +171,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
   }
   if (action) { /* empty */ }
   else if (/*#__NOINLINE__*/ isInInsert()) {
-    const g = insert_global, isF_num = key > kKeyCode.maxNotFn && key < kKeyCode.minNotFn,
+    const g = insert_global_, isF_num = key > kKeyCode.maxNotFn && key < kKeyCode.minNotFn,
     keyStr = mappedKeys || g || isF_num || event.ctrlKey
         || key === kKeyCode.esc ? key_(eventWrapper, kModeId.Insert) : "";
     if (g ? !g.k ? isEscape_(keyStr) : keyStr === g.k

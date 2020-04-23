@@ -1,6 +1,3 @@
-/** @todo: */
-// isHTML_ = () => document instanceof HTMLDocument;
-
 VApi.e = function (cmd): void {
   const injector = VimiumInjector;
   if (cmd === kContentCmd.Destroy && injector) {

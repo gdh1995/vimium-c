@@ -376,6 +376,36 @@ function addMetaData(path, data) {
   return banner + data;
 }
 
+/**
+ * @param { string } code 
+ * @returns { string }
+ */
+function inlineAllSetters (code) {
+  const allNames = code.match(/\bset\$\w+\b/g);
+  for (let i = 0; i < allNames.length; i++) {
+    const name = allNames[i].slice(4);
+    if (!new RegExp("\\b" + name + " ?=").test(code)) {
+      throw new Error('Can not find symbol "' + name + '"');
+    }
+  }
+  return code.replace(/\bset\$(\w+)\(([^\n]+)/g, function (fullStr, name, data, ind) {
+    var parenthesis = 1;
+    if (code.slice(ind - 16, ind).trim().endsWith("function")) {
+      return fullStr;
+    }
+    for (var i = 0; i < data.length; i++) {
+      if (data[i] === "(") { parenthesis++; }
+      else if (data[i] === ")") {
+        parenthesis--;
+        if (parenthesis === 0) {
+          break;
+        }
+      }
+    }
+    return "(" + name + " = " + data;
+  });
+}
+
 module.exports = {
   readFile: readFile,
   readJSON: readJSON,
@@ -387,4 +417,5 @@ module.exports = {
   patchExtendClick: patchExtendClick,
   addMetaData: addMetaData,
   logFileSize: logFileSize,
+  inlineAllSetters: inlineAllSetters,
 };

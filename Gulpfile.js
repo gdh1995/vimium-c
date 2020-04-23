@@ -13,7 +13,7 @@ var {
   touchFileIfNeeded,
   patchExtendClick: _patchExtendClick,
   loadUglifyConfig: _loadUglifyConfig,
-  logFileSize, addMetaData,
+  logFileSize, addMetaData, inlineAllSetters,
 } = require("./scripts/dependencies");
 
 class BrowserType {}
@@ -36,6 +36,7 @@ var needCommitInfo = process.env.NEED_COMMIT === "1";
 var envSourceMap = process.env.ENABLE_SOURCE_MAP === "1";
 var doesMergeProjects = process.env.MERGE_TS_PROJECTS !== "0";
 var doesUglifyLocalFiles = process.env.UGLIFY_LOCAL !== "0";
+var FORCED_NO_UGLIFY = process.env.FORCED_NO_UGLIFY === "1";
 var uglifyDistPasses = +process.env.UGLIFY_DIST_PASSES || 2;
 var gNoComments = process.env.NO_COMMENT === "1";
 var disableErrors = process.env.SHOW_ERRORS !== "1" && (process.env.SHOW_ERRORS === "0" || !compileInBatch);
@@ -847,7 +848,8 @@ function rollupContent(stream) {
         return done();
       }
       var output = result.output[0]
-      file.contents = Buffer.from(output.code)
+      var code = inlineAllSetters(output.code)
+      file.contents = Buffer.from(code)
       this.push(file)
     })
     // pass file to gulp and end stream
@@ -1416,7 +1418,7 @@ function getGulpUglify(aggressiveMangle, unique_passes) {
 function loadUglifyConfig(reload) {
   var a = _loadUglifyConfig(locally ? "scripts/uglifyjs.local.json" : "scripts/uglifyjs.dist.json", reload);
   {
-    if (!getNonNullBuildItem("NDEBUG")) {
+    if (FORCED_NO_UGLIFY || !getNonNullBuildItem("NDEBUG")) {
       a.mangle = false;
       a.output.beautify = true;
       a.output.indent_level = 2;

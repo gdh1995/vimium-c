@@ -1,37 +1,37 @@
 import {
   browserVer, clickable_, doc, esc, fgCache, injector, isEnabled_, isLocked_, isAlive_, isTop,
-  keydownEvents_, safeObj, setChromeVer, setClickable, setFgCache, setOnOther, setStatusLocked,
-  setupEventListener, setVEnabled, suppressCommonEvents, setOnWndFocus, VOther, onWndFocus, timeout_, safer,
+  keydownEvents_, safeObj, set$browserVer, set$clickable_, set$fgCache, set$VOther, set$isLocked_,
+  setupEventListener, set$isEnabled_, suppressCommonEvents, set$onWndFocus, VOther, onWndFocus, timeout_, safer,
   allowScripts_, loc_, interval_,
 } from "../lib/utils"
-import { port_callbacks, post_, safePost, setRequestHandlers, requestHandlers } from "./port"
+import { port_callbacks, post_, safePost, set$requestHandlers, requestHandlers } from "./port"
 import {
   addUIElement, adjustUI, createStyle, ensureBorder, getParentVApi,
   removeSelection, setUICSS, setupExitOnClick, ui_box, ui_root, evalIfOK, checkHidden,
 } from "./dom_ui"
 import { enableHUD, hudCopied, hudTip, hud_box } from "./hud"
 import {
-  currentKeys, mappedKeys, setKeyFSM, setPassKeys, anyClickHandler, onKeydown, onKeyup, passKeys,
-  setIsPassKeysReverted, isPassKeysReverted,
+  currentKeys, mappedKeys, set$keyFSM, anyClickHandler, onKeydown, onKeyup, passKeys,
+  set$isPassKeysReverted, isPassKeysReverted, set$passKeys, set$mappedKeys,
 } from "./key_handler"
-import { HintMaster, kSafeAllSelector, setkSafeAllSelector } from "./link_hints"
+import { HintMaster, kSafeAllSelector, set$kSafeAllSelector } from "./link_hints"
 import { createMark } from "./marks"
-import { setFindCSS, styleInHUD } from "./mode_find"
+import { set$findCSS, styleInHUD } from "./mode_find"
 import {
-  exitGrab, grabBackFocus, insertInit, raw_insert_lock, setGrabBackFocus, onFocus, onBlur,
+  exitGrab, grabBackFocus, insertInit, raw_insert_lock, set$grabBackFocus, onFocus, onBlur,
 } from "./mode_insert"
 import { prompt as visualPrompt, visual_mode } from "./mode_visual"
 import {
-  currentScrolling, onActivate, setCurrentScrolling, clearCachedScrollable, clearCurrentScrolling,
+  currentScrolling, onActivate, set$currentScrolling, clearCachedScrollable,
 } from "./scroller"
 import { activate as omniActivate, omni_status, onKeydown as omniOnKeydown, omni_box } from "./vomnibar"
 import { contentCommands_ } from "./commands"
 import {
-  setKeyIdCorrectionOffset_old_cr, handler_stack, Stop_, prevent_, removeHandler_, pushHandler_, isEscape_, key_,
+  set$keyIdCorrectionOffset_old_cr_, handler_stack, Stop_, prevent_, removeHandler_, pushHandler_, isEscape_, key_,
 } from "../lib/keyboard_utils"
 import {
-  editableTypes_, markFramesetTagUnsafe, setNotSafe_not_ff, setIsHTML, OnDocLoaded_, frameElement_,
-  notSafe_not_ff_, htmlTag_, querySelector_unsafe_, isHTML_, createElement_, lastHovered_, resetLastHovered,
+  editableTypes_, markFramesetTagUnsafe, setNotSafe_not_ff, OnDocLoaded_, frameElement_,
+  notSafe_not_ff_, htmlTag_, querySelector_unsafe_, isHTML_, createElement_, lastHovered_, set$lastHovered_,
   docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, 
 } from "../lib/dom_utils"
 
@@ -42,19 +42,19 @@ let needToRetryParentClickable: BOOL = 0
 
 export const enableNeedToRetryParentClickable = (): void => { needToRetryParentClickable = 1 }
 
-setRequestHandlers([
+set$requestHandlers([
   /* kBgReq.init: */ function (request: BgReq[kBgReq.init]): void {
     const {c: load, s: flags} = request;
     if (Build.BTypes & BrowserType.Chrome) {
-      /*#__INLINE__*/ setChromeVer(load.v as BrowserVer);
+      /*#__INLINE__*/ set$browserVer(load.v as BrowserVer);
     }
     if (<number> Build.BTypes !== BrowserType.Chrome && <number> Build.BTypes !== BrowserType.Firefox
         && <number> Build.BTypes !== BrowserType.Edge) {
-      /*#__INLINE__*/ setOnOther(load.b!)
+      /*#__INLINE__*/ set$VOther(load.b!)
     }
-    /*#__INLINE__*/ setFgCache(VApi.z = load)
+    /*#__INLINE__*/ set$fgCache(VApi.z = load)
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key) {
-      load.o || /*#__INLINE__*/ setKeyIdCorrectionOffset_old_cr(300);
+      load.o || /*#__INLINE__*/ set$keyIdCorrectionOffset_old_cr_(300);
     }
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNoKeygenElement
         || Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinNoKeygenElement) {
@@ -70,17 +70,16 @@ setRequestHandlers([
     }
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
         && browserVer < BrowserVer.MinFramesetHasNoNamedGetter) {
-      setkSafeAllSelector(kSafeAllSelector + ":not(" + (/*#__INLINE__*/ markFramesetTagUnsafe()) + ")");
+      set$kSafeAllSelector(kSafeAllSelector + ":not(" + (/*#__INLINE__*/ markFramesetTagUnsafe()) + ")");
     }
     if (Build.BTypes & ~BrowserType.Firefox && Build.BTypes & BrowserType.Firefox
         && VOther === BrowserType.Firefox) {
       setNotSafe_not_ff((_el): _el is HTMLFormElement => false)
-      setIsHTML((): boolean => doc instanceof HTMLDocument)
     }
     requestHandlers[kBgReq.keyFSM](request);
     if (flags) {
-      /*#__INLINE__*/ setGrabBackFocus(grabBackFocus && !(flags & Frames.Flags.userActed))
-      /*#__INLINE__*/ setStatusLocked(!!(flags & Frames.Flags.locked))
+      /*#__INLINE__*/ set$grabBackFocus(grabBackFocus && !(flags & Frames.Flags.userActed))
+      /*#__INLINE__*/ set$isLocked_(!!(flags & Frames.Flags.locked))
     }
     (requestHandlers[kBgReq.reset] as (request: BgReq[kBgReq.reset], initing?: 1) => void)(request, 1);
     if (isEnabled_) {
@@ -91,14 +90,14 @@ setRequestHandlers([
         hook(HookAction.SuppressListenersOnDocument);
       }
     } else {
-      /*#__INLINE__*/ setGrabBackFocus(false)
+      /*#__INLINE__*/ set$grabBackFocus(false)
       hook(HookAction.Suppress);
       VApi.e && VApi.e(kContentCmd.SuppressClickable);
     }
     requestHandlers[kBgReq.init] = null as never;
     OnDocLoaded_(function (): void {
       /*#__INLINE__*/ enableHUD()
-      /*#__INLINE__*/ setOnWndFocus(safePost.bind(0, <Req.fg<kFgReq.focus>> { H: kFgReq.focus }))
+      /*#__INLINE__*/ set$onWndFocus(safePost.bind(0, <Req.fg<kFgReq.focus>> { H: kFgReq.focus }))
       timeout_(function (): void {
         const parApi = !(Build.BTypes & ~BrowserType.Firefox)
             || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
@@ -106,7 +105,7 @@ setRequestHandlers([
         parHints = parApi && parApi.b as HintMaster;
         if (needToRetryParentClickable) {
         const oldSet = clickable_ as any as Element[] & Set<Element>
-        /*#__INLINE__*/ setClickable(parApi ? parApi.y().c : new WeakSet!<Element>())
+        /*#__INLINE__*/ set$clickable_(parApi ? parApi.y().c : new WeakSet!<Element>())
         if (!Build.NDEBUG && parApi) {
           // here assumes that `set` is not a temp array but a valid WeakSet / Set
           let count: number;
@@ -131,18 +130,18 @@ setRequestHandlers([
   },
   /* kBgReq.reset: */ function (request: BgReq[kBgReq.reset], initing?: 1): void {
     const newPassKeys = request.p, newEnabled = newPassKeys !== "", old = isEnabled_;
-    /*#__INLINE__*/ setPassKeys(newPassKeys && safeObj<1>(null))
+    /*#__INLINE__*/ set$passKeys(newPassKeys && safeObj<1>(null))
     if (newPassKeys) {
-      /*#__INLINE__*/ setIsPassKeysReverted(newPassKeys[0] === "^" && newPassKeys.length > 2);
+      /*#__INLINE__*/ set$isPassKeysReverted(newPassKeys[0] === "^" && newPassKeys.length > 2);
       for (const ch of (isPassKeysReverted ? newPassKeys.slice(2) : newPassKeys).split(" ")) {
         (passKeys as SafeDict<1>)[ch] = 1;
       }
     }
-    /*#__INLINE__*/ setVEnabled(newEnabled);
+    /*#__INLINE__*/ set$isEnabled_(newEnabled);
     if (initing) {
       return;
     }
-    /*#__INLINE__*/ setStatusLocked(!!request.f)
+    /*#__INLINE__*/ set$isLocked_(!!request.f)
     // if true, recover listeners on shadow roots;
     // otherwise listeners on shadow roots will be removed on next blur events
     if (newEnabled) {
@@ -223,7 +222,8 @@ setRequestHandlers([
       const sec = map[key]!;
       sec && sec !== KeyAction.count && iter(sec);
     }
-    /*#__INLINE__*/ setKeyFSM(map, request.m)
+    /*#__INLINE__*/ set$keyFSM(map)
+    /*#__INLINE__*/ set$mappedKeys(request.m)
     mappedKeys && func(mappedKeys, null);
   },
   /* kBgReq.execute: */ function<O extends keyof CmdOptions> (request: BaseExecute<CmdOptions[O], O>): void {
@@ -244,7 +244,7 @@ setRequestHandlers([
     if (req.H) {
       setUICSS(req.H);
       if (req.f) {
-        /*#__INLINE__*/ setFindCSS(req.f)
+        /*#__INLINE__*/ set$findCSS(req.f)
         styleInHUD && (styleInHUD.textContent = req.f.i);
       }
     }
@@ -306,9 +306,9 @@ setRequestHandlers([
       }
       advCmd.onclick = optLink.onclick = closeBtn.onclick = null as never;
       let i: Element | null = lastHovered_;
-      i && box.contains(i) && /*#__INLINE__*/ resetLastHovered();
+      i && box.contains(i) && /*#__INLINE__*/ set$lastHovered_(null);
       if ((i = currentScrolling) && box.contains(i)) {
-        /*#__INLINE__*/ clearCurrentScrolling();
+        /*#__INLINE__*/ set$currentScrolling(null);
         /*#__INLINE__*/ clearCachedScrollable();
       }
       removeHandler_(box);
@@ -346,7 +346,7 @@ setRequestHandlers([
     addUIElement(box, AdjustType.Normal, true)
     exitOnClick && setupExitOnClick(1, hide)
     doc.hasFocus() || focusAndRun();
-    /*#__INLINE__*/ setCurrentScrolling(box)
+    /*#__INLINE__*/ set$currentScrolling(box)
     pushHandler_(function (event) {
       if (!raw_insert_lock && isEscape_(key_(event, kModeId.Normal))) {
         removeSelection(ui_root) || hide();
@@ -415,8 +415,8 @@ export const hook = (function (action: HookAction): void {
 
 export const focusAndRun = (cmd?: FgCmdAcrossFrames, count?: number, options?: FgOptions, showBorder?: 1): void => {
   exitGrab();
-  let old = onWndFocus, failed = true;
-  /*#__INLINE__*/ setOnWndFocus((): void => { failed = false; })
+  let oldOnWndFocus = onWndFocus, failed = true;
+  /*#__INLINE__*/ set$onWndFocus((): void => { failed = false; })
   if (!(Build.BTypes & BrowserType.Firefox)
       || (Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox)) {
     /* empty */
@@ -434,8 +434,8 @@ export const focusAndRun = (cmd?: FgCmdAcrossFrames, count?: number, options?: F
    */
   failed && isEnabled_ && hook(HookAction.Install);
   // the line below is always necessary: see https://github.com/philc/vimium/issues/2551#issuecomment-316113725
-  /*#__INLINE__*/ setOnWndFocus(old)
-  old()
+  /*#__INLINE__*/ set$onWndFocus(oldOnWndFocus)
+  oldOnWndFocus()
   if (isAlive_) {
     esc!(HandlerResult.Nothing);
     if (cmd) {

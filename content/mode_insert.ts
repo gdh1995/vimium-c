@@ -7,13 +7,13 @@ interface NodeWithInfo extends Node {
 }
 
 import {
-  doc, keydownEvents_, safeObj, fgCache, isTop, rawSetKeydownEvents, setupEventListener, VOther,
+  doc, keydownEvents_, safeObj, fgCache, isTop, set$keydownEvents_, setupEventListener, VOther,
   esc, onWndFocus, isEnabled_, readyState_, injector,
 } from "../lib/utils"
 import { post_, safePost } from "./port"
 import { getParentVApi, ui_box } from "./dom_ui"
 import { hudHide } from "./hud"
-import { setCurrentScrolling, currentScrolling, scrollTick, clearCachedScrollable } from "./scroller"
+import { set$currentScrolling, currentScrolling, scrollTick, clearCachedScrollable } from "./scroller"
 import { resetIsCmdTriggered, resetAnyClickHandler } from "./key_handler"
 import {
   activeEl_unsafe_, isHTML_, docEl_unsafe_, getEditableType_, GetShadowRoot_, getSelection_, frameElement_,
@@ -29,11 +29,11 @@ const domNodeMap = Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet ||
 }
 
 let lock_ = null as LockableElement | null
-let global_: CmdOptions[kFgCmd.insertMode] | null = null
-let hinting: BOOL = 0
+let insert_global_: CmdOptions[kFgCmd.insertMode] | null = null
+let isHintingInput: BOOL = 0
 let inputHint: { /** box */ b: HTMLDivElement; /** hints */ h: HintsNS.InputHintItem[] } | null = null
 let suppressType: string | null = null
-let last_: LockableElement | null = null
+let insert_last_: LockableElement | null = null
 let is_last_mutable: BOOL = 1
 let lastWndFocusTime = 0
 let grabBackFocus: boolean | ((event: Event, target: LockableElement) => void) = readyState_ > "l"
@@ -42,21 +42,18 @@ let onExitSuppress: ((this: void) => void) | null = null
 let onWndBlur2: ((this: void) => void) | undefined | null
 
 export {
-  lock_ as raw_insert_lock, global_ as insert_global,
-  last_ as insert_last, is_last_mutable as insert_last_mutable,
+  lock_ as raw_insert_lock, insert_global_,
+  insert_last_ as insert_last, is_last_mutable as insert_last_mutable,
   grabBackFocus, suppressType, inputHint as insert_inputHint, onWndBlur2, exitPassMode,
 }
-export function setInsertGlobal (global: CmdOptions[kFgCmd.insertMode]): void { global_ = global }
-export function setInsertLast (newLast: LockableElement): void { last_ = newLast }
-export function resetInsertLast (): void { last_ = null }
-export function enableInsertLastMutable (): void { is_last_mutable = 1 }
-export function disableInsertLastMutable (): void { is_last_mutable = 0 }
-export function setInputHint (newHint: typeof inputHint): void { inputHint = newHint }
-export function enterInsertHinting (): void { hinting = 1 }
-export function exitInsertHinting (): void { hinting = 0 }
-export function setGrabBackFocus (newGrab: typeof grabBackFocus): void { grabBackFocus = newGrab }
-export function setOnWndBlur2 (f: ((this: void) => void) | undefined | null): void { onWndBlur2 = f; }
-export function setExitPassMode (f: ((this: void) => void) | undefined | null): void { exitPassMode = f; }
+export function set$insert_global_ (global: CmdOptions[kFgCmd.insertMode]): void { insert_global_ = global }
+export function set$insert_last_ (newLast: LockableElement | null): void { insert_last_ = newLast }
+export function set$is_last_mutable (val: BOOL): void { is_last_mutable = val }
+export function set$inputHint (newHint: typeof inputHint): void { inputHint = newHint }
+export function set$isHintingInput (val: BOOL): void { isHintingInput = val }
+export function set$grabBackFocus (newGrab: typeof grabBackFocus): void { grabBackFocus = newGrab }
+export function set$onWndBlur2 (f: ((this: void) => void) | undefined | null): void { onWndBlur2 = f }
+export function set$exitPassMode (f: ((this: void) => void) | undefined | null): void { exitPassMode = f }
 
 export const insertInit = (): void => {
   /** if `notBody` then `activeEl` is not null */
@@ -64,13 +61,13 @@ export const insertInit = (): void => {
   notBody = activeEl !== doc.body && (!(Build.BTypes & BrowserType.Firefox)
         || Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox
         || isHTML_() || activeEl !== docEl_unsafe_()) && !!activeEl;
-  /*#__INLINE__*/ rawSetKeydownEvents(safeObj(null))
+  /*#__INLINE__*/ set$keydownEvents_(safeObj(null))
   if (fgCache.g && grabBackFocus) {
     let counter = 0, prompt = function (): void {
       counter++ || console.log("Vimium C blocks auto-focusing.");
     };
     if (notBody = notBody && getEditableType_(activeEl!)) {
-      last_ = null;
+      insert_last_ = null;
       prompt();
       (activeEl as LockableElement).blur();
       // here ignore the rare case of an XMLDocument with a editable node on Firefox, for smaller code
@@ -126,7 +123,7 @@ export const insert_Lock_ = (): LockableElement | null => {
 }
 
 export const isInInsert = (): boolean => {
-  if (suppressType || lock_ || global_) {
+  if (suppressType || lock_ || insert_global_) {
     return !suppressType;
   }
   const el: Element | null = activeEl_unsafe_();
@@ -190,8 +187,8 @@ export const exitInsertMode = (target: Element): void => {
   } else if (target === lock_ ? (lock_ = null, 1) : getEditableType_(target)) {
     (target as LockableElement).blur();
   }
-  if (global_) {
-    lock_ = null; global_ = null;
+  if (insert_global_) {
+    lock_ = null; insert_global_ = null;
     hudHide();
   }
 }
@@ -205,7 +202,7 @@ export const exitInputHint = (): void => {
 }
 
 export function resetInsert (): void {
-  last_ = lock_ = global_ = null;
+  insert_last_ = lock_ = insert_global_ = null;
   is_last_mutable = 1;
   exitGrab(); setupSuppress();
 }
@@ -256,7 +253,7 @@ export const onFocus = (event: Event | FocusEvent): void => {
     target = isNormalHost ? top as Element : target;
   }
   if (!lastWndFocusTime || Date.now() - lastWndFocusTime > 30) {
-    /*#__INLINE__*/ setCurrentScrolling(Build.BTypes & ~BrowserType.Firefox
+    /*#__INLINE__*/ set$currentScrolling(Build.BTypes & ~BrowserType.Firefox
         ? SafeEl_not_ff_!(target as Element) || currentScrolling : target as SafeElement);
     /*#__INLINE__*/ clearCachedScrollable();
   }
@@ -271,7 +268,7 @@ export const onFocus = (event: Event | FocusEvent): void => {
     if (is_last_mutable) {
       // here ignore the rare case of an XMLDocument with a editable node on Firefox, for smaller code
       if (activeEl_unsafe_() !== doc.body) {
-        last_ = target;
+        insert_last_ = target;
       }
     }
   }
@@ -299,7 +296,7 @@ export const onBlur = (event: Event | FocusEvent): void => {
     , sr = GetShadowRoot_(target as Element);
   if (lock_ === (same ? target : top)) {
     lock_ = null;
-    if (inputHint && !hinting && doc.hasFocus()) {
+    if (inputHint && !isHintingInput && doc.hasFocus()) {
       exitInputHint();
     }
   }
@@ -345,7 +342,7 @@ export const onWndBlur = (): void => {
   scrollTick(0);
   onWndBlur2 && onWndBlur2();
   exitPassMode && exitPassMode();
-  /*#__INLINE__*/ rawSetKeydownEvents(safeObj(null))
+  /*#__INLINE__*/ set$keydownEvents_(safeObj(null))
   /*#__INLINE__*/ resetIsCmdTriggered();
   if (Build.BTypes & BrowserType.Chrome) {
     /*#__INLINE__*/ resetAnyClickHandler();
