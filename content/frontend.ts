@@ -1,18 +1,18 @@
 /// <reference path="../lib/base.d.ts" />
 
 import {
-  doc, isTop, injector, VOther, initialDocState, set$esc, esc, setupEventListener, set$isEnabled_,
-  set$clickable_, clickable_, isAlive_, set$VTr, setupKeydownEvents, onWndFocus,
-  set$readyState_, readyState_, loc_, set$allowScripts_, callFunc,
+  doc, isTop, injector, VOther, initialDocState, set_esc, esc, setupEventListener, set_isEnabled_,
+  set_clickable_, clickable_, isAlive_, set_VTr, setupKeydownEvents, onWndFocus,
+  set_readyState_, readyState_, loc_, set_allowScripts_, callFunc,
 } from "../lib/utils"
 import { suppressTail_, key_ } from "../lib/keyboard_utils"
-import { frameElement_, set$OnDocLoaded_ } from "../lib/dom_utils"
+import { frameElement_, set_OnDocLoaded_ } from "../lib/dom_utils"
 import {
-  safePost, clearRuntimePort, runtime_port, SafeDestoryF, set$safeDestroy,
+  safePost, clearRuntimePort, runtime_port, SafeDestoryF, set_safeDestroy,
   runtimeConnect, safeDestroy, post_, send_,
 } from "./port"
 import {
-  ui_box, adjustUI, doExitOnClick, getParentVApi, set$getParentVApi, set$getWndVApi_ff, learnCSS,
+  ui_box, adjustUI, doExitOnClick, getParentVApi, set_getParentVApi, set_getWndVApi_ff, learnCSS,
   setUICSS, addUIElement, ui_root, flash_,
 } from "./dom_ui"
 import { grabBackFocus, insert_Lock_ } from "./mode_insert"
@@ -35,13 +35,13 @@ let coreTester: { name_: string; rand_: number; recvTick_: number; sendTick_: nu
         compare_: Parameters<SandboxGetterFunc>[0]; }
   
 
-set$safeDestroy((silent?: Parameters<SafeDestoryF>[0]): void => {
+set_safeDestroy((silent?: Parameters<SafeDestoryF>[0]): void => {
     if (!isAlive_) { return; }
     if (Build.BTypes & BrowserType.Firefox && silent === 9) {
       /*#__INLINE__*/ clearRuntimePort()
       return;
     }
-    /*#__INLINE__*/ set$isEnabled_(!1)
+    /*#__INLINE__*/ set_isEnabled_(!1)
     hook(HookAction.Destroy);
 
     contentCommands_[kFgCmd.reset](0);
@@ -49,7 +49,7 @@ set$safeDestroy((silent?: Parameters<SafeDestoryF>[0]): void => {
     ui_box && adjustUI(2);
     doExitOnClick();
 
-    /*#__INLINE__*/ set$esc(null as never)
+    /*#__INLINE__*/ set_esc(null as never)
     VApi = null as never;
 
     silent || console.log("%cVimium C%c in %o has been destroyed at %o."
@@ -67,7 +67,7 @@ VApi = {
   h: linkActivate, o: omniActivate, n: findOnLoad, c: executeScroll,
   k: scrollTick, $: $sc, l: learnCSS, u: suppressTail_,
   i: Build.BTypes & BrowserType.Firefox ? () => innerHeight : 0 as never,
-  r: injector && set$VTr, t: hudTip, m: key_, q: insert_Lock_,
+  r: injector && set_VTr, t: hudTip, m: key_, q: insert_Lock_,
   g: setUICSS, w: addUIElement, x: flash_,
   y () {
     return {
@@ -84,8 +84,8 @@ VApi = {
 
 if (!(Build.BTypes & BrowserType.Firefox)) { /* empty */ }
 else if (Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox || injector !== void 0) {
-    /*#__INLINE__*/ set$getWndVApi_ff(wnd => wnd.VApi);
-    /*#__INLINE__*/ set$getParentVApi(() => frameElement_() && (parent as Window).VApi)
+    /*#__INLINE__*/ set_getWndVApi_ff(wnd => wnd.VApi);
+    /*#__INLINE__*/ set_getParentVApi(() => frameElement_() && (parent as Window).VApi)
 } else {
     coreTester = {
       name_: BuildStr.CoreGetterFuncName as const,
@@ -109,7 +109,7 @@ else if (Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox |
       }
     };
     /** Note: this function needs to be safe enough */
-    /*#__INLINE__*/ set$getWndVApi_ff((anotherWnd: Window): VApiTy | null | void => {
+    /*#__INLINE__*/ set_getWndVApi_ff((anotherWnd: Window): VApiTy | null | void => {
       coreTester.recvTick_ = -1;
       try {
         let core: ReturnType<SandboxGetterFunc>,
@@ -145,10 +145,10 @@ if (!(isTop || injector)) {
         /*#__INLINE__*/ enableNeedToRetryParentClickable()
         if (Build.MinCVer >= BrowserVer.MinES6$ForOf$Map$SetAnd$Symbol || !(Build.BTypes & BrowserType.Chrome)
             || Set) {
-          /*#__INLINE__*/ set$clickable_(new Set!<Element>())
+          /*#__INLINE__*/ set_clickable_(new Set!<Element>())
         } else {
           type ElementArraySet = Element[] & ElementSet
-          /*#__INLINE__*/ set$clickable_([] as any as ElementArraySet)
+          /*#__INLINE__*/ set_clickable_([] as any as ElementArraySet)
           clickable_.add = (clickable_ as ElementArraySet).push;
           // a temp collection, so it's okay just to ignore its elements
           clickable_.has =
@@ -165,7 +165,7 @@ if (!(isTop || injector)) {
             safeDestroy(1);
             parApi.n()
           } else {
-            /*#__INLINE__*/ set$clickable_(state.c)
+            /*#__INLINE__*/ set_clickable_(state.c)
           }
           return;
       } catch (e) {
@@ -176,7 +176,7 @@ if (!(isTop || injector)) {
       if ((!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
           && <boolean> /** is_readyState_loading */ grabBackFocus) {
         // here the parent `core` is invalid - maybe from a fake provider
-        /*#__INLINE__*/ set$getParentVApi(() => null);
+        /*#__INLINE__*/ set_getParentVApi(() => null);
       }
     })()
   } else {
@@ -185,14 +185,14 @@ if (!(isTop || injector)) {
         safeDestroy(1);
         parApi.n();
       } else {
-        /*#__INLINE__*/ set$clickable_(parApi.y().c)
+        /*#__INLINE__*/ set_clickable_(parApi.y().c)
       }
   }
 }
 
 if (isAlive_) {
     interface ElementWithClickable { vimiumClick?: boolean }
-    /*#__INLINE__*/ set$clickable_(!(Build.BTypes & BrowserType.Firefox)
+    /*#__INLINE__*/ set_clickable_(!(Build.BTypes & BrowserType.Firefox)
         || Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox
         ? clickable_ ||
         ( Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
@@ -204,19 +204,19 @@ if (isAlive_) {
     // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
     hook(HookAction.Install);
     if (initialDocState < "i") {
-      /*#__INLINE__*/ set$OnDocLoaded_(callFunc)
+      /*#__INLINE__*/ set_OnDocLoaded_(callFunc)
     } else {
       setupEventListener(0, kReadystatechange, function onReadyStateChange(): void {
         const stat = doc.readyState, loaded = stat < "i", arr = loaded ? completeListeners : docReadyListeners;
-        /*#__INLINE__*/ set$readyState_(stat)
+        /*#__INLINE__*/ set_readyState_(stat)
         if (loaded) {
           setupEventListener(0, kReadystatechange, onReadyStateChange, 1);
-          /*#__INLINE__*/ set$OnDocLoaded_(callFunc)
+          /*#__INLINE__*/ set_OnDocLoaded_(callFunc)
         }
         arr.forEach(callFunc);
         arr.length = 0;
       })
-      /*#__INLINE__*/ set$OnDocLoaded_((callback, onloaded) => {
+      /*#__INLINE__*/ set_OnDocLoaded_((callback, onloaded) => {
         readyState_ < "l" && !onloaded ? callback() : (onloaded ? completeListeners : docReadyListeners).push(callback)
       })
     }
@@ -225,10 +225,10 @@ if (isAlive_) {
 
   if (injector === void 0) {
       /*#__INLINE__*/ extend_click();
-  } else if (/*#__INLINE__*/ set$allowScripts_(0), injector) {
+  } else if (/*#__INLINE__*/ set_allowScripts_(0), injector) {
     injector.$p = [safePost, function () {
       let keys = currentKeys; esc!(HandlerResult.Nothing); return keys;
-    }, set$clickable_];
+    }, set_clickable_];
   }
 }
 

@@ -27,8 +27,8 @@ let key_: (this: void, event: HandlerNS.Event, mode: kModeId) => string
 const handlers_: HandlerItem[] = []
 
 export { keyNames_, key_, handlers_ as handler_stack, kDelete, kBackspace }
-export function set$key_ (newGetMappedKey: typeof key_): void { key_: key_ = newGetMappedKey }
-export function set$keyIdCorrectionOffset_old_cr_ (newVal: 185 | 300 | null): void {
+export function set_key_ (newGetMappedKey: typeof key_): void { key_: key_ = newGetMappedKey }
+export function set_keyIdCorrectionOffset_old_cr_ (newVal: 185 | 300 | null): void {
   keyIdCorrectionOffset_old_cr_ = newVal
 }
 

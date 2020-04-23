@@ -1,5 +1,5 @@
 import {
-  loc_, injector, safeObj, timeout_, isAlive_, set$VTr, VOther, isEnabled_, isLocked_, isTop, doc,
+  loc_, injector, safeObj, timeout_, isAlive_, set_VTr, VOther, isEnabled_, isLocked_, isTop, doc,
 } from "../lib/utils"
 import { passKeys } from "../content/key_handler"
 import { style_ui } from "../content/dom_ui"
@@ -21,8 +21,8 @@ let requestHandlers: { [k in keyof BgReq]: (this: void, request: BgReq[k]) => vo
 export { port_ as runtime_port, port_callbacks, safeDestroy, requestHandlers }
 
 export function clearRuntimePort (): void { port_ = null }
-export function set$safeDestroy (newDestroy: SafeDestoryF): void { safeDestroy = newDestroy }
-export function set$requestHandlers (newHandlers: typeof requestHandlers): void { requestHandlers = newHandlers }
+export function set_safeDestroy (newDestroy: SafeDestoryF): void { safeDestroy = newDestroy }
+export function set_requestHandlers (newHandlers: typeof requestHandlers): void { requestHandlers = newHandlers }
 
 export const post_ = <k extends keyof FgReq>(request: FgReq[k] & Req.baseFg<k>): 1 | void => {
   port_!.postMessage(request);
@@ -79,5 +79,5 @@ export const runtimeConnect = (function (this: void): void {
     type TypeChecked = { [k in keyof BgReq]: <T2 extends keyof BgReq>(this: void, request: BgReq[T2]) => void };
     (requestHandlers as TypeToCheck as TypeChecked)[response.N](response);
   });
-  /*#__INLINE__*/ set$VTr((tid, args) => trans("" + tid, args));
+  /*#__INLINE__*/ set_VTr((tid, args) => trans("" + tid, args));
 })

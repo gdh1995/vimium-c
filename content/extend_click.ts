@@ -1,9 +1,9 @@
 import {
-  clickable_, setupEventListener, VOther, timeout_, clearTimeout_, doc, isAlive_, set$allowRAF_, set$allowScripts_,
+  clickable_, setupEventListener, VOther, timeout_, clearTimeout_, doc, isAlive_, set_allowRAF_, set_allowScripts_,
   loc_, replaceBrokenTimerFunc, allowRAF_,
 } from "../lib/utils"
 import {
-  docEl_unsafe_, createElement_, set$createElement_, OnDocLoaded_, runJS_, isHTML_, rAF_,
+  docEl_unsafe_, createElement_, set_createElement_, OnDocLoaded_, runJS_, isHTML_, rAF_,
 } from "../lib/dom_utils"
 import { Stop_ } from "../lib/keyboard_utils"
 import { safeDestroy } from "./port"
@@ -94,7 +94,7 @@ export const main = (): void => {
  * Vimium issue: https://github.com/philc/vimium/pull/1797#issuecomment-135761835
  */
   if ((script as Element as ElementToHTML).lang == null) {
-    set$createElement_(doc.createElementNS.bind(doc, "http://www.w3.org/1999/xhtml") as typeof createElement_)
+    set_createElement_(doc.createElementNS.bind(doc, "http://www.w3.org/1999/xhtml") as typeof createElement_)
     return isFirstTime != null && OnDocLoaded_(extendClick); // retry after a while, using a real <script>
   }
 
@@ -558,8 +558,8 @@ _listen(kOnDomReady, doInit, !0);
   }
   if (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome
       && appVer === BrowserVer.NoRAFOrRICOnSandboxedPage) {
-    /*#__INLINE__*/ set$allowRAF_(0)
-    rAF_!(() => { /*#__INLINE__*/ set$allowRAF_(1) });
+    /*#__INLINE__*/ set_allowRAF_(0)
+    rAF_!(() => { /*#__INLINE__*/ set_allowRAF_(1) });
   }
   // not check MinEnsuredNewScriptsFromExtensionOnSandboxedPage
   // for the case JavaScript is disabled in CS: https://github.com/philc/vimium/issues/3187
@@ -577,7 +577,7 @@ _listen(kOnDomReady, doInit, !0);
     }, 0));
   }
   // else: CSP script-src before C68, CSP sandbox before C68 or JS-disabled-in-CS on C/E
-  /*#__INLINE__*/ set$allowScripts_(0)
+  /*#__INLINE__*/ set_allowScripts_(0)
   script.remove();
   execute(kContentCmd.Destroy);
   if (!(Build.BTypes & BrowserType.Chrome)
@@ -669,7 +669,7 @@ _listen(kOnDomReady, doInit, !0);
   };
   if (Build.BTypes & ~BrowserType.Firefox ? !(doc instanceof HTMLDocument) : !isHTML_()) {
     // for <script>
-    set$createElement_(doc.createElementNS.bind(doc, "http://www.w3.org/1999/xhtml") as typeof createElement_)
+    set_createElement_(doc.createElementNS.bind(doc, "http://www.w3.org/1999/xhtml") as typeof createElement_)
   }
 })();
 }

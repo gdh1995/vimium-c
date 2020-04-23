@@ -1,6 +1,6 @@
 import {
   setupEventListener, clickable_, isTop, keydownEvents_, VOther, timeout_, fgCache, doc, isAlive_, allowScripts_,
-  set$allowScripts_, jsRe_,
+  set_allowScripts_, jsRe_,
 } from "../lib/utils"
 import {
   createElement_, createShadowRoot_, bZoom_, dScale_, fullscreenEl_unsafe_, docEl_unsafe_, getZoom_, wdZoom_,
@@ -8,7 +8,7 @@ import {
   getSelectionBoundingBox_, center_, getVisibleClientRect_, isInTouchMode_cr_, touch_cr_, IsInDOM_, lastHovered_,
   hover_, mouse_, activeEl_unsafe_, view_, prepareCrop_, getClientRectsForAreas_, notSafe_not_ff_,
   getBoundingClientRect_, padClientRect_, isContaining_, cropRectToVisible_, getCroppedRect_, setBoundary_,
-  frameElement_, runJS_, isStyleVisible_, set$docSelectable_,
+  frameElement_, runJS_, isStyleVisible_, set_docSelectable_,
 } from "../lib/dom_utils"
 import { Stop_, suppressTail_ } from "../lib/keyboard_utils"
 import { currentScrolling } from "./scroller"
@@ -196,7 +196,7 @@ export const checkDocSelectable = (): void => {
             || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinUnprefixedUserSelect
             ? st.userSelect || st.webkitUserSelect : st.userSelect) !== "none";
     }
-    set$docSelectable_(mayTrue && (st = gcs(docEl_unsafe_()!),
+    set_docSelectable_(mayTrue && (st = gcs(docEl_unsafe_()!),
             Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinUnprefixedUserSelect
             || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinUnprefixedUserSelect
             ? st.userSelect || st.webkitUserSelect : st.userSelect) !== "none")
@@ -541,7 +541,7 @@ export const doExitOnClick = (event?: Event): void => {
 
 /** must be called only if having known anotherWindow is "in a same origin" */
 export let getWndVApi_ff: ((anotherWindow: Window) => VApiTy | null | void) | undefined
-export function set$getWndVApi_ff (newGetWndVApi: typeof getWndVApi_ff): void { getWndVApi_ff = newGetWndVApi }
+export function set_getWndVApi_ff (newGetWndVApi: typeof getWndVApi_ff): void { getWndVApi_ff = newGetWndVApi }
 
 /**
  * Return a valid `ContentWindowCore`
@@ -564,7 +564,7 @@ export let getParentVApi = Build.BTypes & BrowserType.Firefox ? (): VApiTy | nul
   return core;
 } : () => (parent as Window).VApi
 
-export function set$getParentVApi (getter: () => VApiTy | null | void): void { getParentVApi = getter }
+export function set_getParentVApi (getter: () => VApiTy | null | void): void { getParentVApi = getter }
 
 export const evalIfOK = (url: Pick<BgReq[kBgReq.eval], "u"> | string): boolean => {
   typeof url === "string" ? 0 : url = url.u
@@ -576,7 +576,7 @@ export const evalIfOK = (url: Pick<BgReq[kBgReq.eval], "u"> | string): boolean =
   else if (!(Build.BTypes & ~BrowserType.Firefox)
       || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
       ? allowScripts_ === 2 || allowScripts_ &&
-        /*#__INLINE__*/ set$allowScripts_(
+        /*#__INLINE__*/ set_allowScripts_(
             runJS_("document.currentScript.dataset.vimium=1", 1)!.dataset.vimium ? 2 : 0)
       : allowScripts_) {
     timeout_(runJS_.bind(0, tryDecodeURL(url, decodeURIComponent)), 0);

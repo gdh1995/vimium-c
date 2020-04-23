@@ -80,15 +80,15 @@ interface BaseHinter extends HintsNS.BaseHinter {
   }
 
 import {
-  clickable_, VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set$keydownEvents_, timeout_,
+  clickable_, VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_,
   clearTimeout_, safer, VOther, fgCache, jsRe_, doc, readyState_,
 } from "../lib/utils"
 import { frameElement_, querySelector_unsafe_, isHTML_, getViewBox_, prepareCrop_, scrollingEl_, bZoom_, wdZoom_,
   dScale_, getBoundingClientRect_, docEl_unsafe_, IsInDOM_, docZoom_, bScale_, GetParent_unsafe_, getComputedStyle_,
   createElement_, getVisibleClientRect_, uneditableInputs_, getZoomedAndCroppedRect_, findMainSummary_,
   getClientRectsForAreas_, htmlTag_, isAriaNotTrue_, getCroppedRect_, cropRectToVisible_, isStyleVisible_,
-  fullscreenEl_unsafe_, set$bZoom_, notSafe_not_ff_, isContaining_, unsafeFramesetTag_old_cr_, isDocZoomStrange_,
-  querySelectorAll_unsafe_, SubtractSequence_, lastHovered_, set$lastHovered_, unhover_, getEditableType_, hover_,
+  fullscreenEl_unsafe_, set_bZoom_, notSafe_not_ff_, isContaining_, unsafeFramesetTag_old_cr_, isDocZoomStrange_,
+  querySelectorAll_unsafe_, SubtractSequence_, lastHovered_, set_lastHovered_, unhover_, getEditableType_, hover_,
   center_, mouse_, view_,
 } from "../lib/dom_utils";
 import {
@@ -102,12 +102,12 @@ import {
 } from "./dom_ui"
 import {
   scrollTick, shouldScroll_need_safe, getPixelScaleToScroll, scrolled, resetScrolled,
-  suppressScroll, beginScroll, set$currentScrolling, syncCachedScrollable,
+  suppressScroll, beginScroll, set_currentScrolling, syncCachedScrollable,
 } from "./scroller"
 import { omni_box, focusOmni } from "./vomnibar"
 import { find_box } from "./mode_find"
 import { hudTip, hudShow, hudCopied, hudResetTextProp, hudHide, hud_text } from "./hud"
-import { insert_Lock_, set$onWndBlur2 } from "./mode_insert"
+import { insert_Lock_, set_onWndBlur2 } from "./mode_insert"
 
 let box_: HTMLDivElement | HTMLDialogElement | null = null
 let wantDialogMode_: boolean | null = null
@@ -166,7 +166,7 @@ export {
   hints_ as allLinkHints, keyStatus_ as curKeyStatus, ngEnabled,
   kSafeAllSelector, kEditableSelector, unwrap_ff
 }
-export function set$kSafeAllSelector (selector: string): void { kSafeAllSelector = selector as any; }
+export function set_kSafeAllSelector (selector: string): void { kSafeAllSelector = selector as any; }
 
 export const activate = (options: HintsNS.ContentOptions, count: number): void => {
     if (isActive) { return; }
@@ -327,8 +327,8 @@ const render = (hints: readonly HintItem[], arr: ViewBox, hud: MinimalHUDTy, raw
       adjustUI();
     }
     baseHinter.b = box_;
-    /*#__INLINE__*/ set$keydownEvents_((Build.BTypes & BrowserType.Firefox ? api_ : raw_apis).a())
-    /*#__INLINE__*/ set$onWndBlur2(masterOrA.s);
+    /*#__INLINE__*/ set_keydownEvents_((Build.BTypes & BrowserType.Firefox ? api_ : raw_apis).a())
+    /*#__INLINE__*/ set_onWndBlur2(masterOrA.s);
     removeHandler_(activate);
     pushHandler_(onKeydown, activate);
     master_ && setupEventListener(0, "unload", clear);
@@ -805,13 +805,13 @@ export const traverse = function (selector: string
         ) {
       const bz = bZoom_, notHookScroll = scrolled === 0;
       if (bz !== 1 && isD) {
-        /*#__INLINE__*/ set$bZoom_(1)
+        /*#__INLINE__*/ set_bZoom_(1)
         prepareCrop_(1);
       }
       for (const el of (<ShadowRoot> ui_root).querySelectorAll(selector)) {
         filter(output, el as SafeHTMLElement);
       }
-      /*#__INLINE__*/ set$bZoom_(bz)
+      /*#__INLINE__*/ set_bZoom_(bz)
       if (notHookScroll) {
         /*#__INLINE__*/ resetScrolled()
       }
@@ -1157,7 +1157,7 @@ const getVisibleElements = (view: ViewBox): readonly Hint[] => {
 const onKeydown = (event: HandlerNS.Event): HandlerResult => {
     let matchedHint: ReturnType<typeof matchHintsByKey>, i: number = event.i, key: string, keybody: kChar;
     if (master_) {
-      /*#__INLINE__*/ set$keydownEvents_(api_.a());
+      /*#__INLINE__*/ set_keydownEvents_(api_.a());
       return master_.n(event);
     } else if (Build.BTypes & BrowserType.Chrome && onWaitingKey) {
       onWaitingKey(event);
@@ -1318,7 +1318,7 @@ const executeHint = (hint: HintItem, event?: HandlerNS.Event): void => {
     const masterOrA = master_ || baseHinter, keyStatus = masterOrA.k;
     let rect: Rect | null | undefined, clickEl: LinkEl | null = hint.d;
     if (master_) {
-      /*#__INLINE__*/ set$keydownEvents_(api_.a());
+      /*#__INLINE__*/ set_keydownEvents_(api_.a());
       setMode(master_.m, 1);
     }
     if (event) {
@@ -1433,7 +1433,7 @@ export const checkLast = function (this: void, el?: LinkEl | TimerType.fake | 1,
     hidden = !r2 || r2.width < 2 && r2.height < 2
         || !isStyleVisible_(el as LinkEl); // use 2px: may be safer
     if (hidden && lastHovered_ === el) {
-      /*#__INLINE__*/ set$lastHovered_(null)
+      /*#__INLINE__*/ set_lastHovered_(null)
     }
     if ((!r2 || r) && masterOrA.a
         && masterOrA.l!.length < (
@@ -1487,7 +1487,7 @@ export const clear = (keepHudOrEvent?: 0 | 1 | 2 | Event, suppressTimeout?: numb
     resetHints();
     removeHandler_(activate);
     suppressTimeout != null && suppressTail_(suppressTimeout);
-    /*#__INLINE__*/ set$onWndBlur2(null);
+    /*#__INLINE__*/ set_onWndBlur2(null);
     removeFlash && removeFlash();
     removeFlash = hud_ = api_ =
     reForNonMatch_ =
@@ -2139,7 +2139,7 @@ const Modes_ = [
     const type = getEditableType_<0>(element), toggleMap = options_.toggle;
     // here not check lastHovered on purpose
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
-    /*#__INLINE__*/ set$currentScrolling(element);
+    /*#__INLINE__*/ set_currentScrolling(element);
     hover_(element, center_(rect));
     type || element.focus && !(<RegExpI> /^i?frame$/).test(htmlTag_(element)) && element.focus();
     /*#__INLINE__*/ syncCachedScrollable();

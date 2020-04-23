@@ -65,7 +65,7 @@ let scrolled = 0
 export { currentScrolling, cachedScrollable, keyIsDown, scrolled }
 export function clearTop (): void { scrollingTop = null }
 export function resetScrolled (): void { scrolled = 0 }
-export function set$currentScrolling (el: SafeElement | null): void { currentScrolling = el }
+export function set_currentScrolling (el: SafeElement | null): void { currentScrolling = el }
 export function clearCachedScrollable (): void { cachedScrollable = 0 }
 export function syncCachedScrollable (): void { cachedScrollable = currentScrolling }
 

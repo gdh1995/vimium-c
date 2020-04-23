@@ -7,13 +7,13 @@ interface NodeWithInfo extends Node {
 }
 
 import {
-  doc, keydownEvents_, safeObj, fgCache, isTop, set$keydownEvents_, setupEventListener, VOther,
+  doc, keydownEvents_, safeObj, fgCache, isTop, set_keydownEvents_, setupEventListener, VOther,
   esc, onWndFocus, isEnabled_, readyState_, injector,
 } from "../lib/utils"
 import { post_, safePost } from "./port"
 import { getParentVApi, ui_box } from "./dom_ui"
 import { hudHide } from "./hud"
-import { set$currentScrolling, currentScrolling, scrollTick, clearCachedScrollable } from "./scroller"
+import { set_currentScrolling, currentScrolling, scrollTick, clearCachedScrollable } from "./scroller"
 import { resetIsCmdTriggered, resetAnyClickHandler } from "./key_handler"
 import {
   activeEl_unsafe_, isHTML_, docEl_unsafe_, getEditableType_, GetShadowRoot_, getSelection_, frameElement_,
@@ -46,14 +46,14 @@ export {
   insert_last_ as insert_last, is_last_mutable as insert_last_mutable,
   grabBackFocus, suppressType, inputHint as insert_inputHint, onWndBlur2, exitPassMode,
 }
-export function set$insert_global_ (global: CmdOptions[kFgCmd.insertMode]): void { insert_global_ = global }
-export function set$insert_last_ (newLast: LockableElement | null): void { insert_last_ = newLast }
-export function set$is_last_mutable (val: BOOL): void { is_last_mutable = val }
-export function set$inputHint (newHint: typeof inputHint): void { inputHint = newHint }
-export function set$isHintingInput (val: BOOL): void { isHintingInput = val }
-export function set$grabBackFocus (newGrab: typeof grabBackFocus): void { grabBackFocus = newGrab }
-export function set$onWndBlur2 (f: ((this: void) => void) | undefined | null): void { onWndBlur2 = f }
-export function set$exitPassMode (f: ((this: void) => void) | undefined | null): void { exitPassMode = f }
+export function set_insert_global_ (global: CmdOptions[kFgCmd.insertMode]): void { insert_global_ = global }
+export function set_insert_last_ (newLast: LockableElement | null): void { insert_last_ = newLast }
+export function set_is_last_mutable (val: BOOL): void { is_last_mutable = val }
+export function set_inputHint (newHint: typeof inputHint): void { inputHint = newHint }
+export function set_isHintingInput (val: BOOL): void { isHintingInput = val }
+export function set_grabBackFocus (newGrab: typeof grabBackFocus): void { grabBackFocus = newGrab }
+export function set_onWndBlur2 (f: ((this: void) => void) | undefined | null): void { onWndBlur2 = f }
+export function set_exitPassMode (f: ((this: void) => void) | undefined | null): void { exitPassMode = f }
 
 export const insertInit = (): void => {
   /** if `notBody` then `activeEl` is not null */
@@ -61,7 +61,7 @@ export const insertInit = (): void => {
   notBody = activeEl !== doc.body && (!(Build.BTypes & BrowserType.Firefox)
         || Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox
         || isHTML_() || activeEl !== docEl_unsafe_()) && !!activeEl;
-  /*#__INLINE__*/ set$keydownEvents_(safeObj(null))
+  /*#__INLINE__*/ set_keydownEvents_(safeObj(null))
   if (fgCache.g && grabBackFocus) {
     let counter = 0, prompt = function (): void {
       counter++ || console.log("Vimium C blocks auto-focusing.");
@@ -253,7 +253,7 @@ export const onFocus = (event: Event | FocusEvent): void => {
     target = isNormalHost ? top as Element : target;
   }
   if (!lastWndFocusTime || Date.now() - lastWndFocusTime > 30) {
-    /*#__INLINE__*/ set$currentScrolling(Build.BTypes & ~BrowserType.Firefox
+    /*#__INLINE__*/ set_currentScrolling(Build.BTypes & ~BrowserType.Firefox
         ? SafeEl_not_ff_!(target as Element) || currentScrolling : target as SafeElement);
     /*#__INLINE__*/ clearCachedScrollable();
   }
@@ -342,7 +342,7 @@ export const onWndBlur = (): void => {
   scrollTick(0);
   onWndBlur2 && onWndBlur2();
   exitPassMode && exitPassMode();
-  /*#__INLINE__*/ set$keydownEvents_(safeObj(null))
+  /*#__INLINE__*/ set_keydownEvents_(safeObj(null))
   /*#__INLINE__*/ resetIsCmdTriggered();
   if (Build.BTypes & BrowserType.Chrome) {
     /*#__INLINE__*/ resetAnyClickHandler();

@@ -1,8 +1,8 @@
 import {
-  doc, esc, fgCache, isEnabled_, isTop, keydownEvents_, set$esc, VOther,
+  doc, esc, fgCache, isEnabled_, isTop, keydownEvents_, set_esc, VOther,
 } from "../lib/utils"
 import {
-  set$key_, char_, key_, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_, Stop_,
+  set_key_, char_, key_, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_, Stop_,
 } from "../lib/keyboard_utils"
 import { post_ } from "./port"
 import { removeSelection } from "./dom_ui"
@@ -27,7 +27,7 @@ let anyClickHandler: MouseEventListener = { handleEvent: noopEventHandler }
 
 let onKeyup2: ((this: void, event?: Pick<KeyboardEvent, "keyCode">) => void) | null | undefined
 
-/*#__INLINE__*/ set$esc(function<T extends Exclude<HandlerResult, HandlerResult.ExitPassMode>> (i: T): T {
+/*#__INLINE__*/ set_esc(function<T extends Exclude<HandlerResult, HandlerResult.ExitPassMode>> (i: T): T {
   currentKeys = ""; nextKeys = null; return i;
 })
 
@@ -37,15 +37,15 @@ export {
   onKeyup2, isPassKeysReverted,
 }
 export function resetIsCmdTriggered (): void { isCmdTriggered = 0 }
-export function set$passKeys (newPassKeysVal: SafeEnum | null | ""): void { passKeys = newPassKeysVal }
+export function set_passKeys (newPassKeysVal: SafeEnum | null | ""): void { passKeys = newPassKeysVal }
 export function setTempCurrentKeyStatus (): void { currentKeys = "", nextKeys = keyFSM }
-export function set$onKeyup2 (newOnKeyUp: typeof onKeyup2): void { onKeyup2 = newOnKeyUp }
-export function set$isPassKeysReverted (reverted: boolean): void { isPassKeysReverted = reverted }
-export function set$keyFSM (newFSM: BgReq[kBgReq.keyFSM]["k"]) { keyFSM = newFSM }
-export function set$mappedKeys (maps: BgReq[kBgReq.keyFSM]["m"]): void { mappedKeys = maps }
+export function set_onKeyup2 (newOnKeyUp: typeof onKeyup2): void { onKeyup2 = newOnKeyUp }
+export function set_isPassKeysReverted (reverted: boolean): void { isPassKeysReverted = reverted }
+export function set_keyFSM (newFSM: BgReq[kBgReq.keyFSM]["k"]) { keyFSM = newFSM }
+export function set_mappedKeys (maps: BgReq[kBgReq.keyFSM]["m"]): void { mappedKeys = maps }
 
 
-set$key_((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
+set_key_((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
   const char = eventWrapper.c !== kChar.INVALID ? eventWrapper.c : char_(eventWrapper), event = eventWrapper.e;
   let key: string = char, mapped: string | undefined;
   if (char) {

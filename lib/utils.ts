@@ -11,11 +11,11 @@ export let VOther: BrowserType = !(Build.BTypes & ~BrowserType.Chrome) || !(Buil
     : Build.BTypes & BrowserType.Edge && !!(window as {} as {StyleMedia: unknown}).StyleMedia ? BrowserType.Edge
     : Build.BTypes & BrowserType.Firefox && browser ? BrowserType.Firefox
     : BrowserType.Chrome
-export function set$VOther (realBrowser: BrowserType): void { VOther = realBrowser }
+export function set_VOther (realBrowser: BrowserType): void { VOther = realBrowser }
 
 /** its initial value should be 0, need by {@link #hook} */
 export let browserVer: BrowserVer = 0 // should be used only if BTypes includes Chrome
-export function set$browserVer (realVer: BrowserVer): void { browserVer = realVer }
+export function set_browserVer (realVer: BrowserVer): void { browserVer = realVer }
 
 export const isTop = top === window
 export const injector = VimiumInjector
@@ -25,7 +25,7 @@ export const initialDocState = doc.readyState
 export const jsRe_ = <RegExpI & RegExpOne> /^javascript:/i
 
 export let VTr: VTransType
-export function set$VTr (newTr: VTransType): void { VTr = newTr }
+export function set_VTr (newTr: VTransType): void { VTr = newTr }
 
 let esc: EscF | null
 
@@ -34,31 +34,31 @@ let esc: EscF | null
 export { esc as isAlive_ }
 
 export let isEnabled_ = false
-export function set$isEnabled_ (newEnabledVal: boolean): void { isEnabled_ = newEnabledVal }
+export function set_isEnabled_ (newEnabledVal: boolean): void { isEnabled_ = newEnabledVal }
 
 export let isLocked_ = false
-export function set$isLocked_ (newLocked: boolean): void { isLocked_ = newLocked }
+export function set_isLocked_ (newLocked: boolean): void { isLocked_ = newLocked }
 
 export let readyState_: Document["readyState"] = initialDocState
-export function set$readyState_ (state: Document["readyState"]): void { readyState_ = state }
+export function set_readyState_ (state: Document["readyState"]): void { readyState_ = state }
 
 // note: scripts always means allowing timers - vPort.ClearPort requires this assumption
 export let allowScripts_: 0 | 1 | 2 = 1
-export function set$allowScripts_ (stat: 0 | 1 | 2): void { allowScripts_ = stat }
+export function set_allowScripts_ (stat: 0 | 1 | 2): void { allowScripts_ = stat }
 
 export let allowRAF_: BOOL = 1
-export function set$allowRAF_ (stat: BOOL): void { allowRAF_ = stat }
+export function set_allowRAF_ (stat: BOOL): void { allowRAF_ = stat }
 
 /** ==== Cache ==== */
 
 export let fgCache: OnlyEnsureItemsNonNull<SettingsNS.FrontendSettingCache> = null as never
-export function set$fgCache (newCache: SettingsNS.FrontendSettingCache): void { fgCache = newCache as typeof fgCache }
+export function set_fgCache (newCache: SettingsNS.FrontendSettingCache): void { fgCache = newCache as typeof fgCache }
 
 export let clickable_: ElementSet = null as never
-export function set$clickable_ (newClickable: ElementSet): void { clickable_ = newClickable }
+export function set_clickable_ (newClickable: ElementSet): void { clickable_ = newClickable }
 
 export let keydownEvents_: KeydownCacheArray;
-export const set$keydownEvents_ = (arr: KeydownCacheArray): void => { keydownEvents_ = arr }
+export const set_keydownEvents_ = (arr: KeydownCacheArray): void => { keydownEvents_ = arr }
 export const setupKeydownEvents = function (arr?: KeydownCacheArray): KeydownCacheArray | boolean {
   if (!arr) { return keydownEvents_; }
   return !isEnabled_ || !(keydownEvents_ = arr);
@@ -70,12 +70,12 @@ export const setupKeydownEvents = function (arr?: KeydownCacheArray): KeydownCac
 /** ==== util functions ==== */
 
 export { esc }
-export function set$esc (newEsc: EscF): void { esc = newEsc }
+export function set_esc (newEsc: EscF): void { esc = newEsc }
 
 export const callFunc = (callback: (this: void) => any): void => { callback(); }
 
 export let onWndFocus = function (this: void): void { /* empty */ }
-export function set$onWndFocus (f: (this: void) => void): void { onWndFocus = f; }
+export function set_onWndFocus (f: (this: void) => void): void { onWndFocus = f; }
 
 export const safeObj = Object.create as { (o: null): any; <T>(o: null): SafeDict<T> }
 
