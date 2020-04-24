@@ -66,7 +66,7 @@ set_key_((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
   return key;
 })
 
-export const checkKey = (event: HandlerNS.Event, key: string
+const checkKey = (event: HandlerNS.Event, key: string
     ): HandlerResult.Nothing | HandlerResult.Prevent | HandlerResult.PlainEsc | HandlerResult.AdvancedEsc => {
   // when checkKey, Vimium C must be enabled, so passKeys won't be `""`
   const key0 = passKeys && key ? mappedKeys ? key_(event, kModeId.NO_MAP_KEY) : key : "";
@@ -97,7 +97,7 @@ export const checkKey = (event: HandlerNS.Event, key: string
   return HandlerResult.Prevent;
 }
 
-export const checkPotentialAccessKey = (event: HandlerNS.Event): void => {
+const checkPotentialAccessKey = (event: HandlerNS.Event): void => {
   /** On Firefox, access keys are only handled during keypress events, so it has been "hooked" well:
    * https://dxr.mozilla.org/mozilla/source/content/events/src/nsEventStateManager.cpp#960 .
    * And the modifier stat for access keys is user-configurable: `ui.key.generalAccessKey`
@@ -125,7 +125,7 @@ export const checkPotentialAccessKey = (event: HandlerNS.Event): void => {
   }
 }
 
-export function resetAnyClickHandler (): void {
+export const resetAnyClickHandler = (): void => {
   isWaitingAccessKey = false; anyClickHandler.handleEvent = noopEventHandler;
 }
 
@@ -143,7 +143,7 @@ const onAnyClick = (event: MouseEventToPrevent): void => {
         ? path![0] as Element : event.target as Element;
     if (Element.prototype.getAttribute.call(t, "accesskey")) {
       // if a script has modified [accesskey], then do nothing on - just in case.
-      /*#__INLINE__*/ resetAnyClickHandler();
+      /*#__NOINLINE__*/ resetAnyClickHandler();
       prevent_(event);
     }
   }
@@ -160,7 +160,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
     Build.BTypes & BrowserType.Chrome && checkPotentialAccessKey(eventWrapper);
     return;
   }
-  if (Build.BTypes & BrowserType.Chrome) { isWaitingAccessKey && /*#__INLINE__*/ resetAnyClickHandler(); }
+  if (Build.BTypes & BrowserType.Chrome) { isWaitingAccessKey && /*#__NOINLINE__*/ resetAnyClickHandler(); }
   if (Build.BTypes & BrowserType.Firefox) { raw_insert_lock && insert_Lock_(); }
   let action = HandlerResult.Nothing, tempStr: string;
   for (let ind = handler_stack.length; 0 <= --ind && action === HandlerResult.Nothing; ) {
@@ -245,7 +245,7 @@ export const onKeyup = (event: KeyboardEventToPrevent): void => {
   scrollTick(0);
   /*#__INLINE__*/ resetIsCmdTriggered();
   if (Build.BTypes & BrowserType.Chrome) {
-    isWaitingAccessKey && /*#__INLINE__*/ resetAnyClickHandler();
+    isWaitingAccessKey && /*#__NOINLINE__*/ resetAnyClickHandler();
   }
   if (suppressType && getSelection_().type !== suppressType) {
     setupSuppress();

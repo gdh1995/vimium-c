@@ -345,7 +345,7 @@ export const onWndBlur = (): void => {
   /*#__INLINE__*/ set_keydownEvents_(safeObj(null))
   /*#__INLINE__*/ resetIsCmdTriggered();
   if (Build.BTypes & BrowserType.Chrome) {
-    /*#__INLINE__*/ resetAnyClickHandler();
+    /*#__NOINLINE__*/ resetAnyClickHandler();
   }
   injector || (<RegExpOne> /a?/).test("");
   esc!(HandlerResult.ExitPassMode);
