@@ -262,7 +262,7 @@ const collectFrameHints = (count: number, options: HintsNS.ContentOptions
       , master: Master | null, frameInfo: FrameHintsInfo
       , newAddChildFrame: NonNullable<typeof addChildFrame>
       ): void => {
-    master_ = Build.BTypes & BrowserType.Firefox ? master && unwrap_ff(master) : master;
+    (baseHinter as BaseHinter).p = master_ = Build.BTypes & BrowserType.Firefox ? master && unwrap_ff(master) : master
     resetHints();
     scrollTick(2);
     if (options_ !== options) {
