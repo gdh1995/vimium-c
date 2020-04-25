@@ -11,7 +11,7 @@ let text = ""
 let opacity_: 0 | 0.25 | 0.5 | 0.75 | 1 = 0
 let enabled = false
 let timer = TimerID.None
-let st: CSSStyleDeclaration
+let style: CSSStyleDeclaration
 
 export { box as hud_box, text as hud_text, opacity_ as hud_opacity }
 export function hudResetTextProp (): void { text = "" }
@@ -57,10 +57,10 @@ export const hudShow = (tid: kTip | HintMode, args?: Array<string | number>, emb
   el.className = "R HUD" + fgCache.d;
   el.textContent = text;
   $text = el.firstChild as Text;
-  st = el.style;
+  style = el.style;
   if (!embed) {
-    st.opacity = "0";
-    st.visibility = "hidden";
+    style.opacity = "0";
+    style.visibility = "hidden";
     ui_box || ensureBorder();
   }
   addUIElement(box = el, allHints ? AdjustType.NotAdjust : AdjustType.DEFAULT, );
@@ -68,24 +68,24 @@ export const hudShow = (tid: kTip | HintMode, args?: Array<string | number>, emb
 
 const tween = (fake?: TimerType.fake): void => { // safe-interval
   let opacity = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake
-                && fake ? 0 : +(st.opacity || 1);
+                && fake ? 0 : +(style.opacity || 1);
   if (opacity === opacity_) { /* empty */ }
   else if (opacity === 0) {
     $text.data = text;
-    st.opacity = fgCache.m
+    style.opacity = fgCache.m
         || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && fake
         ? "" : "0.25";
-    st.visibility = "";
+    style.visibility = "";
     return adjustUI();
   } else if (!fgCache.m && doc.hasFocus()) {
     opacity += opacity < opacity_ ? 0.25 : -0.25;
   } else {
     opacity = opacity_;
   }
-  st.opacity = opacity < 1 ? "" + opacity : "";
+  style.opacity = opacity < 1 ? "" + opacity : "";
   if (opacity !== opacity_) { return; }
   if (opacity === 0) {
-    st.visibility = "hidden";
+    style.visibility = "hidden";
     $text.data = "";
   }
   clearInterval(tweenId);
@@ -101,8 +101,8 @@ export let hudHide = (info?: TimerType): void => {
   opacity_ = 0; text = "";
   if (!box) { /* empty */ }
   else if (info === TimerType.noTimer || !isEnabled_) {
-    st.opacity = "0";
-    st.visibility = "hidden";
+    style.opacity = "0";
+    style.visibility = "hidden";
     $text.data = "";
   }
   else if (!tweenId && isAlive_) {

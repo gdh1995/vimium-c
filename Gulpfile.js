@@ -875,7 +875,7 @@ function beforeCompile(file) {
 var toRemovedGlobal = null;
 
 function beforeUglify(file) {
-  var allPathStr = file.history.join("|");
+  var allPathStr = file.history.join("|").replace(/\\/g, "/");
   var contents = null, changed = false, oldLen = 0;
   function get() { contents == null && (contents = ToString(file.contents), changed = true, oldLen = contents.length); }
   if (!locally && outputES6) {
@@ -886,22 +886,8 @@ function beforeUglify(file) {
     get();
     contents = contents.replace(/\.offsetWidth\b/g, ".$offsetWidth()");
   }
-  if (changed || oldLen > 0 && contents.length !== oldLen) {
-    file.contents = ToBuffer(contents);
-  }
-}
-
-function postUglify(file, allPaths) {
-  var allPathStr = (allPaths || file.history).join("|").replace(/\\/g, "/");
-  var contents = null, changed = false, oldLen = 0;
-  function get() { contents == null && (contents = ToString(file.contents), changed = true, oldLen = contents.length); }
-  if (allPathStr.indexOf("extend_click") >= 0) {
-    get();
-    contents = patchExtendClick(contents);
-  }
-  var btypes = getBuildItem("BTypes"), minCVer = getBuildItem("MinCVer");
-  var noAppendChild = !(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsured$ParentNode$$appendAndPrepend */ 54;
-  if (toRemovedGlobal == null) {
+  if (allPathStr.includes("/env.js")) {
+    var btypes = getBuildItem("BTypes"), minCVer = getBuildItem("MinCVer");
     toRemovedGlobal = "";
     if (btypes === BrowserType.Chrome || !(btypes & BrowserType.Chrome)) {
       toRemovedGlobal += "browser|";
@@ -927,8 +913,6 @@ function postUglify(file, allPaths) {
     }
     toRemovedGlobal = toRemovedGlobal.slice(0, -1);
     toRemovedGlobal = toRemovedGlobal && new RegExp(`(const|let|var|,)\\s?(${toRemovedGlobal})[,;]\n?\n?`, "g");
-  }
-  if (allPathStr.includes("/env.js") && toRemovedGlobal) {
     const oldChanged = changed;
     get();
     let n = 0, remove = str => str[0] === "," ? str.slice(-1) : str.slice(-1) === "," ? str.split(/\s/)[0] + " " : "";
@@ -945,6 +929,21 @@ function postUglify(file, allPaths) {
     }
     changed = oldChanged || n > 0;
   }
+  if (changed || oldLen > 0 && contents.length !== oldLen) {
+    file.contents = ToBuffer(contents);
+  }
+}
+
+function postUglify(file, allPaths) {
+  var allPathStr = (allPaths || file.history).join("|").replace(/\\/g, "/");
+  var contents = null, changed = false, oldLen = 0;
+  function get() { contents == null && (contents = ToString(file.contents), changed = true, oldLen = contents.length); }
+  if (allPathStr.indexOf("extend_click") >= 0) {
+    get();
+    contents = patchExtendClick(contents);
+  }
+  var btypes = getBuildItem("BTypes"), minCVer = getBuildItem("MinCVer");
+  var noAppendChild = !(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsured$ParentNode$$appendAndPrepend */ 54;
   if (allPathStr.indexOf("viewer") >= 0) {
     get();
     contents = contents.replace(/\.\$offsetWidth\(\)/g, ".offsetWidth");

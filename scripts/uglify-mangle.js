@@ -2,8 +2,10 @@
 // @ts-check
 "use strict";
 
+const MAX_ALLOWED_PROPERTY_GROUPS = 0;
 const MIN_COMPLEX_OBJECT = 1;
 const MIN_ALLOWED_NAME_LENGTH = 3;
+
 // @ts-ignore
 const TEST = typeof require === "function" && require.main === module;
 
@@ -114,15 +116,15 @@ function findDuplicated(names, countsMap) {
  */
 function findTooShort(names, minAllowedLength) {
   /** @type { Set<string> } */
-  const dedup = new Set();
+  const short = new Set();
   for (const arr of names) {
     for (const name of arr) {
       if (name.length < minAllowedLength) {
-        dedup.add(name);
+        short.add(name);
       }
     }
   }
-  return [...dedup];
+  return [...short];
 }
 
 /**
@@ -144,16 +146,19 @@ function minify(files, options) {
       if (tooShort.length > 0) {
         throw Error("Some keys are too short: " + JSON.stringify(tooShort, null, 2));
       }
-      if (names.length > 1) {
-        throw Error("Too many groups of keys:" + names);
+      const properties = names.filter(arr => arr[0][0] !== ":");
+      if (properties.length > MAX_ALLOWED_PROPERTY_GROUPS) {
+        throw Error("Too many property groups to mangle: " + JSON.stringify(properties));
       }
-      // console.log("Find one group:", names);
+      if (properties.length < 5 && properties.length > 0) {
+        console.log("Find some property groups to mangle:", properties);
+      }
       /** @type { NameCache } */
       // @ts-ignore
       const nameCache = options.nameCache || { vars: { props: {} }, props: { props: {} } };
       if (!nameCache.props) { nameCache.props = { props: {} }; }
       const props = nameCache.props.props || (nameCache.props.props = {});
-      for (const arr of names) {
+      for (const arr of properties) {
         const next = createMangler();
         for (const name of arr) {
           if (countsMap.has(name)) {

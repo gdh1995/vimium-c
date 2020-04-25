@@ -112,11 +112,17 @@ set_requestHandlers([
           if (Build.MinCVer >= BrowserVer.MinES6$ForOf$Map$SetAnd$Symbol || !(Build.BTypes & BrowserType.Chrome)
               || oldSet.size != null) {
             count = oldSet.size;
-            oldSet.forEach(el => clickable_.add(el));
+            if (Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)) {
+              oldSet.forEach(clickable_.add, clickable_);
+            } else {
+              oldSet.forEach(el => clickable_.add(el));
+            }
           } else {
             count = oldSet.filter(el => clickable_.add(el)).length;
           }
           console.log(`Vimium C: extend click: ${count ? "add " + count : "no"} local items to the parent's set.`);
+        } else if (Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)) {
+          oldSet.forEach(clickable_.add, clickable_);
         } else {
           oldSet.forEach(el => clickable_.add(el));
         }

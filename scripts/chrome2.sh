@@ -8,6 +8,7 @@ GUD=${GUD:-/r/TEMP/GUD}
 WORKING_DIR=${WORKING_DIR:-/r/working}
 VC_ROOT=
 DIST=0
+ALSO_VC=0
 UBO=0
 HOME_PAGE=
 default_vc_root=/e/Git/weidu+vim/vimium-c
@@ -76,8 +77,7 @@ case "$1" in
     shift
     ;;
   vc|--vc)
-    wp deafault_vc_ext_w "$default_vc_root"
-    OTHER_EXT=${OTHER_EXT},${deafault_vc_ext_w}
+    ALSO_VC=1
     shift
     ;;
   ub|ubo)
@@ -123,6 +123,13 @@ case "$1" in
     ;;
 esac
 done
+
+if test $DIST -gt 0; then
+  wp deafault_vc_ext_w "$default_vc_root/dist"
+else
+  wp deafault_vc_ext_w "$default_vc_root"
+fi
+OTHER_EXT=${OTHER_EXT},${deafault_vc_ext_w}
 
 if test -f "/usr/bin/env.exe"; then
   RUN=/usr/bin/start2.exe
