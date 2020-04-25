@@ -118,3 +118,18 @@ export const suppressCommonEvents = (target: Window | SafeHTMLElement, extraEven
     setupEventListener(target, i);
   }
 }
+
+export const tryDecodeURL = (url: string, decode?: (this: void, url: string) => string): string => {
+  try { url = (decode || decodeURI)(url); } catch {}
+  return url;
+}
+
+export const isImageUrl = (str: string | null): boolean => {
+  if (!str || str[0] === "#" || str.length < 5 || jsRe_.test(str)) {
+    return false;
+  }
+  const end = str.lastIndexOf("#") + 1 || str.length;
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  str = str.substring!(str.lastIndexOf("/", str.lastIndexOf("?") + 1 || end), end);
+  return (<RegExpI & RegExpOne> /\.(?:bmp|gif|icon?|jpe?g|a?png|svg|tiff?|webp)\b/i).test(str);
+}

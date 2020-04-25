@@ -15,8 +15,7 @@ import {
   onKeyup2, set_onKeyup2, passKeys, setTempCurrentKeyStatus, set_passKeys,
 } from "./key_handler"
 import {
-  activate as linkActivate, clear as linkClear,
-  getEditable, kEditableSelector, kSafeAllSelector, traverse,
+  activate as linkActivate, clear as linkClear, kEditableSelector, kSafeAllSelector,
 } from "./link_hints"
 import { activate as markActivate, gotoMark } from "./marks"
 import { activate as findActivate, deactivate as findDeactivate, execCommand, init as findInit } from "./mode_find"
@@ -29,6 +28,7 @@ import { activate as visualActivate, deactivate as visualDeactivate } from "./mo
 import { activate as scActivate, clearCachedScrollable } from "./scroller"
 import { activate as omniActivate } from "./vomnibar"
 import { findAndFollowLink, findAndFollowRel } from "./pagination"
+import { traverse, getEditable } from "./local_link"
 
 interface SpecialCommands {
   [kFgCmd.reset] (this: void, isAlive: BOOL | CmdOptions[kFgCmd.reset] & SafeObject): void;

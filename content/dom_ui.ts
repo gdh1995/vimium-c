@@ -1,6 +1,6 @@
 import {
   setupEventListener, clickable_, isTop, keydownEvents_, VOther, timeout_, fgCache, doc, isAlive_, allowScripts_,
-  set_allowScripts_, jsRe_,
+  set_allowScripts_, jsRe_, tryDecodeURL,
 } from "../lib/utils"
 import {
   createElement_, createShadowRoot_, bZoom_, dScale_, fullscreenEl_unsafe_, docEl_unsafe_, getZoom_, wdZoom_,
@@ -13,7 +13,7 @@ import {
 import { Stop_, suppressTail_ } from "../lib/keyboard_utils"
 import { currentScrolling } from "./scroller"
 import { styleSelectable } from "./mode_find"
-import { unwrap_ff, tryDecodeURL } from "./link_hints"
+import { unwrap_ff } from "./link_hints"
 import { post_ } from "./port"
 import { insert_Lock_ } from "./mode_insert"
 import { hudTip } from "./hud"

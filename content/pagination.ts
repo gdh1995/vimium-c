@@ -6,10 +6,9 @@ import {
 import {
   flash_, click_,
 } from "./dom_ui"
-import {
-  traverse, kSafeAllSelector, ngEnabled, unwrap_ff,
-} from "./link_hints"
+import { kSafeAllSelector, unwrap_ff } from "./link_hints"
 import { contentCommands_ } from "./commands"
+import { traverse, ngEnabled } from "./local_link"
 
 const followLink = (linkElement: SafeHTMLElement): boolean => {
   let url = linkElement.localName === "link" && (linkElement as HTMLLinkElement).href;

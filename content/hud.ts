@@ -1,6 +1,6 @@
 import { fgCache, doc, isEnabled_, VTr, isAlive_, timeout_, clearTimeout_, interval_ } from "../lib/utils"
 import { ui_box, ensureBorder, addUIElement, adjustUI } from "./dom_ui"
-import { allLinkHints } from "./link_hints"
+import { allHints } from "./link_hints"
 import { isHTML_, createElement_ } from "../lib/dom_utils"
 import { insert_global_ } from "./mode_insert"
 
@@ -63,7 +63,7 @@ export const hudShow = (tid: kTip | HintMode, args?: Array<string | number>, emb
     st.visibility = "hidden";
     ui_box || ensureBorder();
   }
-  addUIElement(box = el, allLinkHints ? AdjustType.NotAdjust : AdjustType.DEFAULT, );
+  addUIElement(box = el, allHints ? AdjustType.NotAdjust : AdjustType.DEFAULT, );
 }
 
 const tween = (fake?: TimerType.fake): void => { // safe-interval

@@ -188,6 +188,7 @@ declare const enum SelType {
 
 declare namespace HintsNS {
   interface ContentOptions extends Options, SafeObject {}
+  type LinkEl = Hint[0];
 
   interface MarkerElement extends HTMLSpanElement {
     readonly firstChild: HTMLSpanElement | Text | null;
@@ -195,7 +196,7 @@ declare namespace HintsNS {
   }
   interface BaseHintItem {
     /** marker */ m: MarkerElement;
-    /** dest */ d: Hint[0];
+    /** dest */ d: LinkEl;
   }
 
   interface HintText {
@@ -222,6 +223,13 @@ declare namespace HintsNS {
   }
 
   interface BaseHinter {
+  }
+
+  const enum ClickType {
+    Default = 0, edit,
+    MaxNotWeak = edit, attrListener, MinWeak = attrListener, codeListener, classname, tabindex, MaxWeak = tabindex,
+    MinNotWeak, // should <= MaxNotBox
+    MaxNotBox = 6, frame, scrollX, scrollY,
   }
 }
 

@@ -1,4 +1,4 @@
-import { VOther, fgCache, doc } from "./utils";
+import { VOther, fgCache, doc } from "./utils"
 
 type kMouseMoveEvents = "mouseover" | "mouseenter" | "mousemove" | "mouseout" | "mouseleave";
 type kMouseClickEvents = "mousedown" | "mouseup" | "click" | "auxclick" | "dblclick";
