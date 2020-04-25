@@ -16,7 +16,6 @@ var VimiumInjector: VimiumInjectorTy | undefined | null = VimiumInjector || {
   $h: "",
   $m: null as never,
   $r: null as never,
-  $p: null,
   getCommandCount: null as never,
   callback: null,
   destroy: null
@@ -91,7 +90,6 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
     $h: res ? res.h : "",
     $m (task): void { VimiumInjector && VimiumInjector.$r(task.t); },
     $r (): void { /* empty */ },
-    $p: null,
     getCommandCount: null as never,
     callback: oldCallback || null,
     destroy: null

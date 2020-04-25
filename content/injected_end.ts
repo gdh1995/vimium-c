@@ -43,12 +43,13 @@ VApi.e = function (cmd): void {
   i18nCallback: ((res: FgRes[kFgReq.i18n]) => void) | null = res => {
     i18nMessages = res.m;
     if (!i18nMessages && i18nCallback) {
-      setTimeout(() => VApi.s(kFgReq.i18n, {}, i18nCallback!), 150);
+      setTimeout(() => VApi.r![0](kFgReq.i18n, {}, i18nCallback!), 150);
     }
     i18nCallback = null;
   };
-  VApi.s(kFgReq.i18n, {}, i18nCallback);
-  VApi.r!((tid, args): string => {
+  const thisApi = VApi;
+  thisApi.r![0](kFgReq.i18n, {}, i18nCallback);
+  thisApi.r![4]((tid, args): string => {
     if (typeof tid === "string") {
       return tid;
     }
@@ -62,17 +63,17 @@ VApi.e = function (cmd): void {
       && (parent as Window & {VimiumInjector?: typeof VimiumInjector}).VimiumInjector,
   // share the set of all clickable, if .dataset.vimiumHooks is not "false"
   clickable = injector.clickable = parentInjector && parentInjector.clickable || injector.clickable;
-  clickable && (injector.$p![2](clickable));
+  clickable && (thisApi.r![3](clickable));
 
   injector.checkIfEnabled = (function (this: null
-      , func: <K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void): void {
-    func({ H: kFgReq.checkIfEnabled, u: location.href });
-  }).bind(null, injector.$p![0]);
+    , func: <K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void): void {
+  func({ H: kFgReq.checkIfEnabled, u: location.href });
+}).bind(null, thisApi.r![1]);
   injector.getCommandCount = (function (this: null, func: (this: void) => string): number {
     let currentKeys = func();
     return currentKeys !== "-" ? parseInt(currentKeys, 10) || 1 : -1;
-  }).bind(null, injector.$p![1]);
-  injector.$p = null;
+  }).bind(null, thisApi.r![2]);
+  thisApi.r = [thisApi.r![0]] as any;
 
   const runtime: typeof chrome.runtime = (!(Build.BTypes & BrowserType.Chrome)
         || Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome
@@ -117,7 +118,7 @@ VApi.e = function (cmd): void {
   function onTimeout(): void {
     if (Build.BTypes & BrowserType.Firefox) {
       VApi.d(9); // note: here Firefox is just like a (9)
-      VApi.y().w()
+      VApi.y().w!()
     }
   }
 

@@ -398,9 +398,13 @@ interface VApiTy {
   /** omniActivate */ o: (options: CmdOptions[kFgCmd.vomnibar], count: number) => void
   /** query insert lock */ q: () => LockableElement | null
   /** post */ p: <K extends keyof FgReq>(this: void, req: FgReq[K] & Req.baseFg<K>) => void | 1;
-  /** setzVTr */ r: ((newTr: VTransType) => void) | null | undefined;
-  /** send */ s: <K extends keyof FgRes>(this: void, cmd: K, args: Req.fgWithRes<K>["a"]
-    , callback: (this: void, res: FgRes[K]) => void) => void;
+  /** for injector */ r: [
+    <k extends keyof FgRes> (cmd: k, args: Req.fgWithRes<k>["a"], callback: (this: void, res: FgRes[k]) => void) => void
+    , <K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void
+    , () => string
+    , (newClickable: ElementSet) => void
+    , (newTr: VTransType) => void
+  ] | null | undefined;
   /** tip */ t (tid: kTip | HintMode, duration?: number, args?: Array<string | number>): void
   /** suppressTailKeys */ u: {
     (timeout: 0, callback?: undefined): HandlerNS.RefHandler
@@ -412,7 +416,7 @@ interface VApiTy {
     (el: Element, rect?: null, lifeTime?: number, classNames?: string): (() => void) | void
   }
   /** misc */ y (): {
-    /** onWndFocus */ w (this: void): void,
+    /** onWndFocus */ w?: (this: void) => void,
     /** find box */ b: HTMLIFrameElement | null,
     /** VScroller.keyIsDown */ k: number,
     /** clickable */ c: ElementSet,

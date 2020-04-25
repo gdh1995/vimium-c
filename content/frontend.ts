@@ -63,22 +63,18 @@ set_safeDestroy((silent?: Parameters<SafeDestoryF>[0]): void => {
 
 VApi = {
   b: coreHints, e: null, z: null,
-  p: post_, s: send_, a: setupKeydownEvents, f: focusAndRun, d: safeDestroy,
+  p: post_, a: setupKeydownEvents, f: focusAndRun, d: safeDestroy,
   h: linkActivate, o: omniActivate, n: findOnLoad, c: executeScroll,
   k: scrollTick, $: $sc, l: learnCSS, u: suppressTail_,
   i: Build.BTypes & BrowserType.Firefox ? () => innerHeight : 0 as never,
-  r: injector && set_VTr, t: hudTip, m: key_, q: insert_Lock_,
+  r: injector && [send_, safePost, (): string => {
+    let keys = currentKeys; esc!(HandlerResult.Nothing); return keys;
+  }, set_clickable_, set_VTr], t: hudTip, m: key_, q: insert_Lock_,
   g: setUICSS, w: addUIElement, x: flash_,
   y () {
-    return {
-      w: onWndFocus,
-      b: find_box,
-      k: scroll_keyIsDown,
-      c: clickable_,
-      r: ui_root,
-      f: findCSS,
-      s: styleInHUD
-    }
+    return Build.BTypes & BrowserType.Firefox ? {
+      w: onWndFocus, b: find_box, k: scroll_keyIsDown, c: clickable_, r: ui_root, f: findCSS, s: styleInHUD
+    } : { b: find_box, k: scroll_keyIsDown, c: clickable_, r: ui_root, f: findCSS, s: styleInHUD }
   }
 }
 
@@ -227,11 +223,9 @@ if (isAlive_) {
     runtimeConnect();
 
   if (injector === void 0) {
-      /*#__INLINE__*/ extend_click();
-  } else if (/*#__INLINE__*/ set_allowScripts_(0), injector) {
-    injector.$p = [safePost, function () {
-      let keys = currentKeys; esc!(HandlerResult.Nothing); return keys;
-    }, set_clickable_];
+    /*#__INLINE__*/ extend_click()
+  } else {
+    /*#__INLINE__*/ set_allowScripts_(0)
   }
 }
 

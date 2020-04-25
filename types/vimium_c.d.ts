@@ -456,11 +456,6 @@ interface VimiumInjectorTy {
   checkIfEnabled: (this: void) => void;
   /** on message to run */ $m (taskType: BgReq[kBgReq.injectorRun]): void;
   $r (taskType: InjectorTask): void;
-  $p?: [
-    <K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void
-    , () => string
-    , (newClickable: ElementSet) => void
-  ] | null;
   reload (req?: boolean | InjectorTask.reload): void;
   destroy: ((this: void, silent?: boolean) => void) | null;
   callback: ((this: void, code: number, error: string) => unknown) | null;
