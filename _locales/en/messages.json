@@ -995,6 +995,8 @@
 	"Toggle_Dark": {
 		"message": ""
 	},
+	"Search": { "message": "" },
+	"Go": { "message": "" },
 	"69": {
 		"message": "$1"
 	},

@@ -1412,6 +1412,8 @@
 	"Toggle_Dark": {
 		"message": "切换深色模式"
 	},
+	"Search": { "message": "搜索" },
+	"Go": { "message": "前往" },
 	"70": {
 		"message": "用于定位链接的序号字符过少"
 	},

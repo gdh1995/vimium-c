@@ -893,7 +893,12 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.completions_.forEach(a.Parse_);
     a.renderItems_(a.completions_, list);
     a.toggleAttr_("inputmode", a.isSearchOnTop_ ? "search" : "url")
-    a.toggleAttr_("enterkeyhint", a.isSearchOnTop_ ? "search" : "go")
+    if (!(Build.BTypes & ~BrowserType.Firefox)
+        || Build.BTypes & BrowserType.Firefox && a.browser_ & BrowserType.Firefox) {
+      a.toggleAttr_("mozactionhint", a.isSearchOnTop_ ? "Search" : "Go", 1)
+    } else {
+      a.toggleAttr_("enterkeyhint", a.isSearchOnTop_ ? "Search" : "Go")
+    }
     if (!oldH) {
       (Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || a.browser_ === BrowserType.Firefox)
@@ -927,7 +932,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       return func.call(a);
     }
   },
-  toggleAttr_ (attr: string, value: string) {
+  toggleAttr_ (attr: string, value: string, trans?: BOOL) {
+    if (trans && Vomnibar_.pageType_ === VomnibarNS.PageType.inner) {
+      value = chrome.i18n.getMessage(value) || value;
+    }
     if (Vomnibar_.input_.getAttribute(attr) !== value) {
       Vomnibar_.input_.setAttribute(attr, value);
     }
