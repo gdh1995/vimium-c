@@ -934,7 +934,7 @@ searchEngine = {
       return Completers.next_([], SugType.search);
     } else {
       if (pattern && rawMore) { q.push(rawMore); offset = 0; }
-      q.length > 1 || !pattern ? 0 : (matchType = MatchType.reset);
+      q.length > 1 ? 0 : (matchType = MatchType.reset);
     }
     if (q.length > 1 && pattern) {
       q.shift();
@@ -977,15 +977,19 @@ searchEngine = {
   onEvalUrl_ (query: CompletersNS.QueryStatus
       , getSug: (this: void) => SearchSuggestion, ret: Urls.BaseEvalResult): void | Promise<void> {
     let sugs: Suggestion[] | undefined;
-    switch (query.o ? "" : ret[1]) {
+    if (query.o) { return; }
+    switch (ret[1]) {
     case Urls.kEval.paste:
     case Urls.kEval.plainUrl:
           let pasted = (ret as Urls.BasePlainEvalResult<Urls.kEval.plainUrl> | Urls.PasteEvalResult)[0];
-          if (!pasted) { break; }
+          matchType = ret[1] === Urls.kEval.plainUrl && queryTerms.length > 1 ? matchType : MatchType.reset;
+          if (!pasted) {
+            break;
+          }
           rawQuery = "\\ " + pasted;
           rawMore = "";
-          pasted = pasted.length > Consts.MaxCharsInQuery ? pasted.slice(0, Consts.MaxCharsInQuery).trim() : pasted;
-          queryTerms = pasted.split(" ");
+          queryTerms = (rawQuery.length < Consts.MaxCharsInQuery + 1 ? rawQuery
+              : BgUtils_.unicodeSubstring_(rawQuery, 0, Consts.MaxCharsInQuery).trim()).split(" ");
           if (queryTerms.length > 1) {
             queryTerms[1] = BgUtils_.fixCharsInUrl_(queryTerms[1]);
           }
@@ -998,6 +1002,7 @@ searchEngine = {
           const subVal = searchEngine.preFilter_(query, true);
           if (counter <= 0) { searchEngine._nestedEvalCounter = 0; }
           if (subVal !== true) { return subVal; }
+          break;
     case Urls.kEval.math:
           if (ret[0]) {
             sugs = searchEngine.mathResult_(getSug(), ret as Urls.MathEvalResult);
@@ -1873,8 +1878,8 @@ Completion_ = {
     Completers.getOffset_();
     query = rawQuery;
     queryTerms = query
-      ? (query = query.length > Consts.MaxCharsInQuery ? query.slice(0, Consts.MaxCharsInQuery).trimRight()
-          : query).split(" ")
+      ? (query = query.length < Consts.MaxCharsInQuery + 1 ? query
+          : BgUtils_.unicodeSubstring_(query, 0, Consts.MaxCharsInQuery).trimRight()).split(" ")
       : [];
     maxChars = (options.c! | 0) || 128;
     if (maxChars) {
