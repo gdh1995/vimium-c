@@ -8,6 +8,7 @@ VApi.e = function (cmd): void {
     injector.clickable = null;
   }
 };
+(window as Writable<Window>).VApi = VApi;
 
 (function (): void {
   const OnOther: BrowserType = !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)

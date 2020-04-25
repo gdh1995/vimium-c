@@ -19,6 +19,10 @@ if (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinEnsured$
   var visualViewport: VisualViewport | undefined;
 }
 
+if (!Build.NDEBUG) {
+  var __filename: string | null | undefined;
+}
+
 var VApi: VApiTy, VimiumInjector: VimiumInjectorTy | undefined | null;
 if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { var browser: unknown; }
 
@@ -35,8 +39,8 @@ Build.NDEBUG || (function (): void {
   const oldDefine: DefineTy = typeof define !== "undefined" ? define : null
   let modules: Dict<ModuleTy> = {}
   const myDefine: DefineTy = (deps, factory): void => {
-    let filename = (window as any).__filename as string | undefined
-    (window as any).__filename = null
+    let filename = __filename
+    __filename = null
     if (!filename) {
       return oldDefine(deps, factory)
     }

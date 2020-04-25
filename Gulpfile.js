@@ -922,6 +922,9 @@ function postUglify(file, allPaths) {
     if (!(btypes & ~BrowserType.Chrome) && minCVer >= /* MinEnsured$visualViewport$ */ 61) {
       toRemovedGlobal += "visualViewport|";
     }
+    if (getNonNullBuildItem("NDEBUG")) {
+      toRemovedGlobal += "__filename|";
+    }
     toRemovedGlobal = toRemovedGlobal.slice(0, -1);
     toRemovedGlobal = toRemovedGlobal && new RegExp(`(const|let|var|,)\\s?(${toRemovedGlobal})[,;]\n?\n?`, "g");
   }

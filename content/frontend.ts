@@ -30,9 +30,9 @@ import { activate as omniActivate } from "./vomnibar"
 const docReadyListeners: Array<(this: void) => void> = [], completeListeners: Array<(this: void) => void> = []
 const kReadystatechange = "readystatechange"
 
-let coreTester: { name_: string; rand_: number; recvTick_: number; sendTick_: number;
-        encrypt_ (trustedRand: number, unsafeRand: number): string;
-        compare_: Parameters<SandboxGetterFunc>[0]; }
+let coreTester: { /** name */ n: BuildStr.CoreGetterFuncName; /** recvTick */ r: number; /** sendTick */ s: number;
+    /** random key */ k: number; /** encrypt */ e (trustedRand: number, unsafeRand: number): string;
+    /** compare_ */ c: Parameters<SandboxGetterFunc>[0]; }
   
 
 set_safeDestroy((silent?: Parameters<SafeDestoryF>[0]): void => {
@@ -88,11 +88,11 @@ else if (Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox |
     /*#__INLINE__*/ set_getParentVApi(() => frameElement_() && (parent as Window).VApi)
 } else {
     coreTester = {
-      name_: BuildStr.CoreGetterFuncName as const,
-      rand_: 0,
-      recvTick_: 0,
-      sendTick_: 0,
-      encrypt_ (trustedRand: number, unsafeRand: number): string {
+      n: BuildStr.CoreGetterFuncName,
+      k: 0,
+      r: 0,
+      s: 0,
+      e (trustedRand: number, unsafeRand: number): string {
         trustedRand += (unsafeRand >= 0 && unsafeRand < 1 ? unsafeRand : trustedRand);
         let a = (0x8000 * trustedRand) | 0,
         host = new URL((browser as typeof chrome).runtime.getURL("")).host.replace(<RegExpG> /-/g, "");
@@ -102,35 +102,38 @@ else if (Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox |
             ).match(<RegExpG> /[\da-f]{1,4}/gi)!
             ).map((i, ind) => parseInt(i, 16) & (ind & 1 ? ~a : a)).join("");
       },
-      compare_ (rand2: number, testEncrypted: string): boolean {
-        const diff = coreTester.encrypt_(coreTester.rand_, +rand2) !== testEncrypted, d2 = coreTester.recvTick_ > 64;
-        coreTester.recvTick_ += d2 ? 0 : diff ? 2 : 1;
+      c (rand2: number, testEncrypted: string): boolean {
+        const diff = coreTester.e(coreTester.k, +rand2) !== testEncrypted, d2 = coreTester.r > 64;
+        coreTester.r += d2 ? 0 : diff ? 2 : 1;
         return diff || d2; // hide the real result if too many errors
       }
     };
     /** Note: this function needs to be safe enough */
     /*#__INLINE__*/ set_getWndVApi_ff((anotherWnd: Window): VApiTy | null | void => {
-      coreTester.recvTick_ = -1;
+      coreTester.r = -1;
+      // Sometimes a `anotherWnd` has neither `.wrappedJSObject` nor `coreTester`,
+      // usually when a child frame is hidden. Tested on QQMail (destkop version) on Firefox 74.
+      // So add `|| anotherWnd` for less exceptions
       try {
         let core: ReturnType<SandboxGetterFunc>,
-        wrapper = anotherWnd.wrappedJSObject[coreTester.name_], getter = wrapper && wrapper._get;
-        return getter && (core = getter(coreTester.compare_, coreTester.rand_ = Math.random())) &&
-          !coreTester.recvTick_ ? core : null;
+        wrapper = (anotherWnd.wrappedJSObject || anotherWnd)[coreTester.n], getter = wrapper && wrapper._get;
+        return getter && (core = getter(coreTester.c, coreTester.k = Math.random())) &&
+          !coreTester.r ? core : null;
       } catch {}
     })
     // on Firefox, such a exported function can only be called from privileged environments
-    wrappedJSObject[coreTester.name_] = Object.defineProperty<SandboxGetterFunc>(
+    wrappedJSObject[coreTester.n] = Object.defineProperty<SandboxGetterFunc>(
         (new window.Object() as any).wrappedJSObject as object,
         "_get", { configurable: false, enumerable: false, writable: false,
                   value (comparer, rand1) {
       let rand2 = Math.random();
       // an ES6 method function is always using the strict mode, so the arguments are inaccessible outside it
-      if (coreTester.sendTick_ > GlobalConsts.MaxRetryTimesForSecret
+      if (coreTester.s > GlobalConsts.MaxRetryTimesForSecret
           // if `comparer` is a Proxy, then `toString` returns "[native code]", so the line below is safe
-          || hook.toString.call(comparer) !== coreTester.compare_ + ""
-          || comparer(rand2, coreTester.encrypt_(rand2, +rand1))) {
-        if (coreTester.sendTick_ <= GlobalConsts.MaxRetryTimesForSecret) {
-          coreTester.sendTick_++;
+          || hook.toString.call(comparer) !== coreTester.c + ""
+          || comparer(rand2, coreTester.e(rand2, +rand1))) {
+        if (coreTester.s <= GlobalConsts.MaxRetryTimesForSecret) {
+          coreTester.s++;
         }
         return;
       }
