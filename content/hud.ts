@@ -2,6 +2,7 @@ import { fgCache, doc, isEnabled_, VTr, isAlive_, timeout_, clearTimeout_, inter
 import { ui_box, ensureBorder, addUIElement, adjustUI } from "./dom_ui"
 import { allLinkHints } from "./link_hints"
 import { isHTML_, createElement_ } from "../lib/dom_utils"
+import { insert_global_ } from "./mode_insert"
 
 let tweenId = 0
 let box: HTMLDivElement | null = null
@@ -91,9 +92,12 @@ const tween = (fake?: TimerType.fake): void => { // safe-interval
   tweenId = 0;
 }
 
-export const hudHide = (info?: TimerType): void => {
-  let i: number;
-  if (i = timer) { clearTimeout_(i); timer = TimerID.None; }
+export let hudHide = (info?: TimerType): void => {
+  if (timer) { clearTimeout_(timer); timer = TimerID.None; }
+  if (insert_global_ && insert_global_.h) {
+    hudShow(kTip.raw, insert_global_.h)
+    return;
+  }
   opacity_ = 0; text = "";
   if (!box) { /* empty */ }
   else if (info === TimerType.noTimer || !isEnabled_) {
