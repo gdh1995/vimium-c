@@ -3,6 +3,7 @@
 "use strict";
 
 const MAX_ALLOWED_PROPERTY_GROUPS = 0;
+const MIN_COMPLEX_CLOSURE = 300;
 const MIN_COMPLEX_OBJECT = 1;
 const MIN_ALLOWED_NAME_LENGTH = 3;
 
@@ -13,6 +14,8 @@ const terser = require("terser");
 /**
  * @typedef { import("terser").MinifyOptions } MinifyOptions
  * @typedef { import("terser").MinifyOutput } MinifyOutput
+ * @typedef { import("terser").AST_Scope } AST_Scope
+ * @typedef { Map<string, { references: object[]; mangled_name: string | null }> } VariableMap
  * @typedef { {
  *   vars?: { props?: { [oldName: string]: string } };
  *   props?: { props?: { [oldName: string]: string } };
@@ -41,6 +44,26 @@ function collectWords(text, options) {
     output: { ast: true, code: false  }
   }).ast.walk(new terser.TreeWalker((node) => {
     switch (node.TYPE) {
+    case "Function": case "Lambda":
+      /** @type { AST_Scope } */
+      // @ts-ignore
+      const closure = node;
+      /** @type { VariableMap } */
+      // @ts-ignore
+      const variables = closure.variables;
+      if (variables.size < MIN_COMPLEX_CLOSURE) { break; }
+      const names = [];
+      for (const [key, node] of closure.variables) {
+        const ref_count = node.references.length;
+        if (ref_count === 0) { continue; }
+        const id = ":" + key;
+        names.push(id);
+        map.set(id, (map.get(id) || 0) + ref_count);
+      }
+      if (names.length > 0) {
+        namesToMangle.push(names)
+      }
+      break;
     case "Object":
       /** @type { import("terser").AST_Object } */
       // @ts-ignore
@@ -100,7 +123,8 @@ function findDuplicated(names, countsMap) {
   /** @type { Map<string, number> } */
   const dedup = new Map();
   for (const arr of names) {
-    for (const name of arr) {
+    for (let name of arr) {
+      name = name[0] === ":" ? name.slice(1) : name;
       if (!countsMap.has(name)) { continue; }
       dedup.set(name, (dedup.get(name) || 0) + 1);
     }
@@ -119,7 +143,7 @@ function findTooShort(names, minAllowedLength) {
   const short = new Set();
   for (const arr of names) {
     for (const name of arr) {
-      if (name.length < minAllowedLength) {
+      if ((name[0] === ":" ? name.length - 1 : name.length) < minAllowedLength) {
         short.add(name);
       }
     }
@@ -146,6 +170,13 @@ function minify(files, options) {
       if (tooShort.length > 0) {
         throw Error("Some keys are too short: " + JSON.stringify(tooShort, null, 2));
       }
+      const variables = names.filter(arr => arr[0][0] === ":");
+      if (variables.length > 1) {
+        throw Error("Too many big closures to mangle: " + JSON.stringify(variables.slice(0, 16).concat(["..."])));
+      }
+      if (variables.length < 1) {
+        throw Error("No big closure found");
+      }
       const properties = names.filter(arr => arr[0][0] !== ":");
       if (properties.length > MAX_ALLOWED_PROPERTY_GROUPS) {
         throw Error("Too many property groups to mangle: " + JSON.stringify(properties));
@@ -158,6 +189,10 @@ function minify(files, options) {
       const nameCache = options.nameCache || { vars: { props: {} }, props: { props: {} } };
       if (!nameCache.props) { nameCache.props = { props: {} }; }
       const props = nameCache.props.props || (nameCache.props.props = {});
+      // @ts-ignore
+      if (options.output && options.output.code) {
+        hookMangleNamesOnce(variables[0], countsMap);
+      }
       for (const arr of properties) {
         const next = createMangler();
         for (const name of arr) {
@@ -171,6 +206,50 @@ function minify(files, options) {
     }
   }
   return terser.minify(ast, options);
+}
+
+/**
+ * @param { readonly string[] } variableNames
+ * @param { ReadonlyMap<string, number> } countsMap
+ * @returns { void }
+ */
+function hookMangleNamesOnce(variableNames, countsMap) {
+  const AST_Toplevel = require("terser").AST_Toplevel;
+  // @ts-ignore
+  const oldMangle = AST_Toplevel.prototype.mangle_names;
+  /** @type { (this: AST_Scope, options: import("terser").MangleOptions) => any } */
+  const myMangle = function (options) {
+    const mainClosure = this.body ? this.body.filter(i => i.TYPE.includes("Statement"))[0] : null;
+    /** @type { VariableMap } */
+    // @ts-ignore
+    const body = mainClosure && mainClosure.body, expression = body && body.expression,
+    astVariables = expression && expression.variables;
+    if (!astVariables || astVariables.size < MIN_COMPLEX_CLOSURE) { return; }
+    const next = createMangler();
+    /** @type {string[]} */
+    const missing = [];
+    const reserved = new Set([...(options.reserved || [])].concat([
+      "do", "for", "if", "in", "new", "try", "var", "let"
+    ]));
+    for (const name of variableNames) {
+      if (countsMap.has(name)) {
+        let newName = next();
+        for (; variableNames.includes(newName) || reserved.has(newName); newName = next()) { /* empty */ }
+        const varDef = astVariables.get(name.slice(1));
+        if (varDef) {
+          varDef.mangled_name = newName;
+        } else {
+          missing.push(name.slice(1));
+        }
+      }
+    }
+  // @ts-ignore
+    AST_Toplevel.prototype.mangle_names = oldMangle;
+    // @ts-ignore
+    return this.mangle_names(options);
+  };
+  // @ts-ignore
+  AST_Toplevel.prototype.mangle_names = myMangle;
 }
 
 /** @type { () => () => string } */

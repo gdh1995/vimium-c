@@ -720,7 +720,11 @@ function checkJSAndUglifyAll(taskOrder, maps, key, exArgs, cb) {
       const rollup = taskOrder === 0 && i === 0
       tasks.push(name);
       gulp.task(name, function() {
-          return uglifyJSFiles(map[0], map[1], map[2], {...exArgs, rollup});
+          const newExArgs = {...exArgs, rollup};
+          if (exArgs.aggressiveMangle) {
+            exArgs.aggressiveMangle = false;
+          }
+          return uglifyJSFiles(map[0], map[1], map[2], newExArgs);
       });
     }
     gulp.series(...tasks)(function(err) {
@@ -796,6 +800,9 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
     stream = stream.pipe(gulpMap(uglifyJson));
   } else if (uglifyDistPasses > 0) {
     stream = stream.pipe(getGulpUglify(!!(exArgs.aggressiveMangle && config.mangle), uglifyDistPasses)(config));
+    if (exArgs.aggressiveMangle) {
+      exArgs.aggressiveMangle = false;
+    }
   }
   if (!is_file && new_suffix !== "") {
      stream = stream.pipe(require('gulp-rename')({ suffix: new_suffix }));
@@ -1395,16 +1402,19 @@ function getGulpUglify(aggressiveMangle, unique_passes) {
   if (passes) {
     var multipleUglify = {
       minify: function (files, config) {
-        let ast = (aggressive || uglify).minify(files, { ...config,
-          output: { ...config.output, comments: /^[!@#]/, preserve_annotations: true, ast: true, code: false },
-        }).ast;
+        let firstOut = (aggressive || uglify).minify(files, { ...config,
+          mangle: aggressive ? config.mangle : null,
+          output: { ...config.output, comments: /^[!@#]/, preserve_annotations: true,
+              ast: !aggressive, code: !!aggressive },
+        }), ast = aggressive ? firstOut.code : firstOut.ast;
+        if (firstOut.error) { return firstOut; }
         for (let i = 1; i < multipleUglify - 1; i++) {
           ast = uglify.minify(ast, { ...config,
             output: { ...config.output, comments: /^[!@#]/, preserve_annotations: true, ast: true, code: false },
             mangle: null,
           }).ast
         }
-        return uglify.minify(ast, { ...config,
+        return uglify.minify(ast, { ...config, mangle: aggressive ? null : config.mangle,
           output: { ...config.output, comments: gNoComments ? false : /^!/,
             preserve_annotations: false, ast: false, code: true },
         })
