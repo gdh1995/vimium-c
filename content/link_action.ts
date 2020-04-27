@@ -136,6 +136,7 @@ const openUrl = (url: string, incognito?: boolean): void => {
     r: mode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
     u: url,
     f: incognito,
+    e: hintOptions.sed,
     i: incognito,
     k: hintOptions.keyword
   });
@@ -334,6 +335,7 @@ export const linkActions: readonly LinkAction[] = [
       H: kFgReq.openImage,
       r: mode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
       f: getImageName_(img),
+      e: hintOptions.sed,
       u: text,
       a: hintOptions.auto
     });

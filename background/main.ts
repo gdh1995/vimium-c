@@ -58,6 +58,7 @@
     /* pasted */ $p?: 1;
     position?: "start" | "begin" | "end" | "before" | "after";
     window?: boolean;
+    sed?: string | boolean;
   }
   interface OpenUrlOptionsInBgCmd extends OpenUrlOptions {
     url_f?: Urls.Url;
@@ -1736,17 +1737,26 @@
       if ((cOptions.url_mask || cOptions.url_mark || cOptions.host_mask || cOptions.host_mark) && !tabs) {
         return onRuntimeError() || <any> void getCurTab(BackgroundCommands[kBgCmd.openUrl]);
       }
+      const sed = (cOptions as OpenUrlOptions).sed;
       if (cOptions.url) {
-        openUrl(cOptions.url + "", Urls.WorkType.EvenAffectStatus, tabs);
+        let url = cOptions.url + "";
+        if (sed) {
+          url = Clipboard_.substitute_(url, ClipAction.paste, sed);
+        }
+        openUrl(url, Urls.WorkType.EvenAffectStatus, tabs);
       } else if (cOptions.copied) {
-        const url = BgUtils_.paste_(cOptions.sed);
+        const url = BgUtils_.paste_(sed);
         if (url instanceof Promise) {
           url.then(openCopiedUrl.bind(null, tabs));
           return;
         }
         openCopiedUrl(tabs, url);
       } else {
-        openUrl((cOptions.url_f as Urls.Url) || "", Urls.WorkType.FakeType, tabs);
+        let url_f = cOptions.url_f as Urls.Url;
+        if (sed && typeof url_f === "string" && url_f) {
+          url_f = Clipboard_.substitute_(url_f, ClipAction.paste, sed);
+        }
+        openUrl(url_f || "", Urls.WorkType.FakeType, tabs);
       }
     },
     /* kBgCmd.searchInAnother: */ function (this: void, tabs: [Tab]): void {
@@ -2361,6 +2371,7 @@
       const opts: OpenUrlOptionsInBgCmd & SafeObject = BgUtils_.safeObj_();
       opts.reuse = request.r;
       opts.incognito = request.i;
+      opts.sed = request.e;
       if (url) {
         if (!request.f) {
           if (url[0] === ":" && request.o && (<RegExpOne> /^:[bdhostw]\s/).test(url)) {
@@ -2634,7 +2645,8 @@
       return Backend_.removeSug_(req, port);
     },
     /** kFgReq.openImage: */ function (this: void, req: FgReq[kFgReq.openImage], port: Port) {
-      if (!BgUtils_.safeParseURL_(req.u)) {
+      let url = req.u
+      if (!BgUtils_.safeParseURL_(url)) {
         cPort = port;
         Backend_.showHUD_(trans_("invalidImg"));
         return;
@@ -2646,7 +2658,10 @@
       if (req.a !== false) {
         prefix += "auto=once&";
       }
-      openShowPage(prefix + req.u, req.r, { opener: true });
+      if (req.e) {
+        url = Clipboard_.substitute_(url, ClipAction.paste, req.e);
+      }
+      openShowPage(prefix + url, req.r, { opener: true });
     },
     /** kFgReq.gotoMainFrame: */ function (this: void, req: FgReq[kFgReq.gotoMainFrame], port: Port): void {
       // Now that content scripts always auto-reconnect, it's not needed to find a parent frame.

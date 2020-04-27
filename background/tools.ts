@@ -1,12 +1,11 @@
 type CSTypes = chrome.contentSettings.ValidTypes;
 type Tab = chrome.tabs.Tab;
 type MarkStorage = Pick<Storage, "setItem"> & SafeDict<string>;
-declare const enum ClipAction {
-  copy = 1, paste = 2,
-}
 interface ClipSubItem {
-  action_: ClipAction;
+  action_: ClipAction & number;
   match_: RegExp;
+  revertResult_: BOOL;
+  /** 0: not; 1: decode escaped URL; 2: decode any */ decode_: 0 | 1 | 2;
   replaced_: string;
 }
 
@@ -16,19 +15,24 @@ const Clipboard_ = {
     const result: ClipSubItem[] = [];
     for (let line of text.split("\n")) {
       line = line.trim();
-      const prefix = (<RegExpOne> /^(cp?|pc?|s)([^\x00- A-Za-z\\])/).exec(line);
+      const prefix = (<RegExpOne> /^(cp?|pc?|is?|si?)([^\x00- A-Za-z\\])/).exec(line);
       if (!prefix) { continue; }
       const sep = "\\u" + (prefix[2].charCodeAt(0) + 0x10000).toString(16).slice(1),
-      body = new RegExp(`^((?:\\\\${sep}|[^${sep}])+)${sep}(.*)${sep}([a-z]{0,9})$`).exec(line.slice(prefix[0].length));
+      body = new RegExp(`^((?:\\\\${sep}|[^${sep}])+)${sep}(.*)${sep}([a-zD]{0,9})$`).exec(line.slice(prefix[0].length))
       if (!body) { continue; }
-      let matchRe: RegExpG | null = null;
+      let matchRe: RegExpG | null = null, suffix = body[3]
+      let flags = suffix.replace(<RegExpG> /[dDr]/g, "");
       try {
-        matchRe = new RegExp(body[1], body[3] as "");
+        matchRe = new RegExp(body[1], flags as "");
       } catch { continue; }
       result.push({
-        action_: prefix[1] === "c" ? ClipAction.copy : prefix[1] === "p" ? ClipAction.paste
+        action_: prefix[1].includes("i")
+            ? prefix[1].includes("s") ? ClipAction.image | ClipAction.copy | ClipAction.paste : ClipAction.image
+            : prefix[1] === "c" ? ClipAction.copy : prefix[1] === "p" ? ClipAction.paste
             : ClipAction.copy | ClipAction.paste,
         match_: matchRe,
+        revertResult_: suffix.includes("r") && !flags.includes("g") ? 1 : 0,
+        decode_: suffix.includes("d") ? 2 : suffix.includes("D") ? 1 : 0,
         replaced_: body[2].replace(<RegExpG & RegExpSearchable<1>> /\\(x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|[^xu])/g,
             (_, s: string): string => { // eslint-disable-line arrow-body-style
           return s[0] === "x" || s[0] === "u"
@@ -41,14 +45,33 @@ const Clipboard_ = {
     }
     return result;
   },
-  substitute_ (text: string, action: ClipAction.copy | ClipAction.paste, sed?: string): string {
+  substitute_ (text: string, action: ClipAction & number, sed?: string | boolean): string {
+    if (sed === false) { return text; }
     let arr = Clipboard_.staticSeds_
         || (Clipboard_.staticSeds_ = Clipboard_.parseSeds_(Settings_.get_("clipSub")));
     // note: `sed` may come from options of key mappings, so here always convert it to a string
-    sed && (arr = arr.concat(Clipboard_.parseSeds_(sed + "")));
+    if (sed && sed !== true) {
+      sed = (sed + "").replace(<RegExpG> /(?!\\) (cp?|pc?|is?|si?)(?![\x00- A-Za-z\\])/g, "\n$1")
+      arr = arr.concat(Clipboard_.parseSeds_(sed))
+    }
     for (const item of arr) {
       if (item.action_ & action) {
-        text = text.replace(item.match_ as RegExpG, item.replaced_);
+        if (item.revertResult_) {
+          let start = 0, end = 0, first_group: string | undefined;
+          text.replace(item.match_ as RegExpOne & RegExpSearchable<0>, function (matched_text): string {
+            const args = arguments
+            start = args[args.length - 2]; end = start + matched_text.length
+            first_group = args.length > 3 ? args[1] : ""
+            return ""
+          });
+          const newText = text.replace(item.match_ as RegExpOne, item.replaced_)
+          text = newText.slice(start, newText.length - (text.length - end)) || first_group || text.slice(start, end)
+        } else {
+          text = text.replace(item.match_ as RegExpG, item.replaced_);
+        }
+        if (item.decode_) {
+          text = item.decode_ > 1 ? BgUtils_.DecodeURLPart_(text) : BgUtils_.decodeEscapedURL_(text)
+        }
       }
     }
     BgUtils_.resetRe_();
@@ -63,7 +86,7 @@ const Clipboard_ = {
       && (el.contentEditable = "true");
     return el;
   },
-  format_ (data: string | any[], join?: FgReq[kFgReq.copy]["j"], sed?: string): string {
+  format_ (data: string | any[], join?: FgReq[kFgReq.copy]["j"], sed?: string | boolean): string {
     if (typeof data !== "string") {
       data = join === "json" ? JSON.stringify(data, null, 2) : data.join(join !== !!join && (join as string) || "\n") +
           (data.length > 1 && (!join || join === !!join) ? "\n" : "");
@@ -79,7 +102,7 @@ const Clipboard_ = {
     data = Clipboard_.substitute_(data, ClipAction.copy, sed);
     return data;
   },
-  reformat_ (copied: string, sed?: string): string {
+  reformat_ (copied: string, sed?: string | boolean): string {
     if (copied) {
     copied = copied.replace(BgUtils_.A0Re_, " ");
     copied = Clipboard_.substitute_(copied, ClipAction.paste, sed);
@@ -755,6 +778,7 @@ BgUtils_.paste_ = !Settings_.CONST_.AllowClipboardRead_ ? () => null
   textArea.removeAttribute("maxlength");
   return Clipboard_.reformat_(value, sed);
 };
+BgUtils_.sed_ = Clipboard_.substitute_;
 
 Settings_.updateHooks_.clipSub = (): void => { Clipboard_.staticSeds_ = null; };
 

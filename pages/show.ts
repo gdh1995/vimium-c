@@ -596,6 +596,8 @@ function clean(): void {
 }
 
 function parseSmartImageUrl_(originUrl: string): string | null {
+  const stdUrl = originUrl;
+  originUrl = BG_ && BG_.BgUtils_.sed_(originUrl, ClipAction.image) || originUrl;
   function safeParseURL(url1: string): URL | null { try { return new URL(url1); } catch {} return null; }
   const parsed = safeParseURL(originUrl);
   if (!parsed || !(<RegExpI> /^(ht|s?f)tp/i).test(parsed.protocol)) { return null; }
@@ -681,7 +683,8 @@ function parseSmartImageUrl_(originUrl: string): string | null {
   } else {
     found = 0;
   }
-  return found !== 0 ? origin + path.slice(0, offset) + search : null;
+  return found !== 0 ? origin + path.slice(0, offset) + search
+      : stdUrl !== originUrl ? originUrl : null;
 }
 
 function tryToFixFileExt_(file: string): string | void {

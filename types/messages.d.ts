@@ -214,7 +214,7 @@ declare namespace HintsNS {
     scroll?: "force";
     touch?: null | boolean | "auto";
     join?: FgReq[kFgReq.copy]["j"];
-    sed?: string;
+    sed?: string | boolean;
     toggle?: {
       [selector: string]: string;
     };
@@ -343,6 +343,11 @@ declare const enum kMarkAction {
   _mask = "mask",
 }
 
+declare const enum ClipAction {
+  _mask = "mask",
+  copy = 1, paste = 2, image = 4,
+}
+
 interface FgRes {
   [kFgReq.findQuery]: string;
   [kFgReq.parseSearchUrl]: ParsedSearch | null;
@@ -410,6 +415,7 @@ interface FgReq {
   [kFgReq.openUrl]: {
     // note: need to sync members to ReqH::openUrl in main.ts
     /** url */ u?: string;
+    /** sed */ e?: string | boolean;
     /** formatted-by-<a>.href */ f?: boolean;
     /** copied */ c?: boolean;
     /** keyword */ k?: string | null;
@@ -449,13 +455,13 @@ interface FgReq {
   [kFgReq.copy]: {
     /** data */ s: string | any[];
     /** [].join($j) */ j?: string | boolean;
-    /** sed */ e?: string;
+    /** sed */ e?: string | boolean;
     u?: undefined | "";
   } | {
     /** url */ u: "url";
     /** data */ s?: undefined | "";
     j?: undefined;
-    /** sed */ e?: string;
+    /** sed */ e?: string | boolean;
     /** decode */ d?: boolean;
   };
   [kFgReq.key]: {
@@ -481,6 +487,7 @@ interface FgReq {
   [kFgReq.openImage]: {
     /** file */ f: string | null;
     /** url */ u: string;
+    /** sed */ e: string | boolean | undefined;
     /** reuse */ r: ReuseType;
     /** auto: default to true */ a?: boolean;
   };
