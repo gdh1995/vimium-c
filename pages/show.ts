@@ -1,19 +1,24 @@
+/// <reference path="../lib/base.d.ts" />
 /// <reference path="../background/bg.d.ts" />
 /// <reference path="../background/utils.ts" />
 /// <reference path="../background/settings.ts" />
-interface ImportBody {
-  (id: "shownImage"): HTMLImageElement;
-  (id: "shownText"): HTMLDivElement;
+interface VDataTy {
+  type: "image" | "url" | "";
+  original: string;
+  url: string;
+  file?: string;
+  auto?: boolean | "once";
+  incognito?: boolean;
+  error?: string;
 }
+
 // eslint-disable-next-line no-var
-declare var Viewer: new (root: HTMLElement) => ViewerType;
-interface Window {
-  readonly Viewer: typeof Viewer;
+var VData: VDataTy = null as never;
+if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
+    : typeof browser !== "undefined" && (browser && (browser as typeof chrome).runtime) != null) {
+  window.chrome = browser as typeof chrome;
 }
-interface BgWindow extends Window {
-  BgUtils_: typeof BgUtils_;
-  Settings_: typeof Settings_;
-}
+(function (): void {
 interface ViewerType {
   readonly isShown: boolean;
   readonly played: boolean;
@@ -24,38 +29,32 @@ interface ViewerType {
   zoom(ratio: number, hasTooltip: boolean): ViewerType;
   rotate(degree: number): any;
 }
-type ValidShowTypes = "image" | "url" | "";
+interface ImportBody {
+  (id: "shownImage"): HTMLImageElement;
+  (id: "shownText"): HTMLDivElement;
+}
+interface CurWnd extends Window {
+  Viewer: new (root: HTMLElement) => ViewerType
+}
+interface BgWindow extends Window {
+  BgUtils_: typeof BgUtils_;
+  Settings_: typeof Settings_;
+}
 type ValidNodeTypes = HTMLImageElement | HTMLDivElement;
-interface VDataTy {
-  type: ValidShowTypes;
-  original: string;
-  url: string;
-  file?: string;
-  auto?: boolean | "once";
-  incognito?: boolean;
-  error?: string;
-}
 
-if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
-    : typeof browser !== "undefined" && (browser && (browser as typeof chrome).runtime) != null) {
-  window.chrome = browser as typeof chrome;
-}
-// eslint-disable-next-line no-var
-var $ = <T extends HTMLElement>(selector: string): T => document.querySelector(selector) as T,
-BG_ = chrome.extension && chrome.extension.getBackgroundPage() as Window as BgWindow,
-pTrans_: typeof chrome.i18n.getMessage = Build.BTypes & BrowserType.Firefox
-      && (!(Build.BTypes & ~BrowserType.Firefox) || BG_.OnOther === BrowserType.Firefox)
-      ? (i, j) => BG_.trans_(i, j) : chrome.i18n.getMessage;
+let BG_ = chrome.extension && chrome.extension.getBackgroundPage() as Window as BgWindow
 if (!(BG_ && BG_.BgUtils_ && BG_.BgUtils_.convertToUrl_)) {
   BG_ = null as never;
 }
+const $ = <T extends HTMLElement>(selector: string): T => document.querySelector(selector) as T,
+pTrans_: typeof chrome.i18n.getMessage = Build.BTypes & BrowserType.Firefox
+    && BG_ && (!(Build.BTypes & ~BrowserType.Firefox) || BG_.OnOther === BrowserType.Firefox)
+    ? (i, j) => BG_.trans_(i, j) : chrome.i18n.getMessage;
 
 let VShown: ValidNodeTypes | null = null;
 let bgLink = $<HTMLAnchorElement & SafeHTMLElement>("#bgLink");
 let tempEmit: ((succeed: boolean) => void) | null = null;
 let viewer_: ViewerType | null = null;
-// eslint-disable-next-line no-var
-var VData: VDataTy = null as never;
 let encryptKey = +window.name || 0;
 let ImageExtRe = <RegExpI> /\.(bmp|gif|icon?|jpe?g|a?png|tiff?|webp)(?=[.\-_]|\b)/i;
 let _shownBlobURL = "", _shownBlob: Blob | null | 0 = null;
@@ -75,7 +74,7 @@ window.onhashchange = function (this: void): void {
 
   VData = Object.create(null);
   VData.o = getOmni_;
-  let url = location.hash, type: ValidShowTypes = "", file = "";
+  let url = location.hash, type: VDataTy["type"] = "", file = "";
   if (!url && BG_ && BG_.Settings_ && BG_.Settings_.temp_.shownHash_) {
     url = BG_.Settings_.temp_.shownHash_();
     if ((<RegExpI> /^[^:]+[ &]data:/i).test(url)) {
@@ -544,12 +543,13 @@ function defaultOnError(err: any): void {
   err && console.log("%o", err);
 }
 
-function loadViewer(): Promise<Window["Viewer"]> {
-  if (window.Viewer) {
-    return Promise.resolve(Viewer);
+function loadViewer(): Promise<CurWnd["Viewer"]> {
+  const viewer = (window as CurWnd).Viewer
+  if (viewer) {
+    return Promise.resolve(viewer)
   }
   loadCSS("../lib/viewer.min.css");
-  return requireJS("Viewer", "../lib/viewer.min.js").then<Window["Viewer"]>(function (ViewerModule): Window["Viewer"] {
+  return requireJS("Viewer", "../lib/viewer.min.js").then<CurWnd["Viewer"]>(function (ViewerModule): CurWnd["Viewer"] {
     ViewerModule.setDefaults({
       navbar: false,
       shown (this: void) {
@@ -566,7 +566,7 @@ function loadViewer(): Promise<Window["Viewer"]> {
   });
 }
 
-function showSlide(ViewerModule: Window["Viewer"]): Promise<ViewerType> | ViewerType {
+function showSlide(ViewerModule: CurWnd["Viewer"]): Promise<ViewerType> | ViewerType {
   const needToScroll = scrollX || scrollY;
   const sel = getSelection();
   sel.type === "Range" && sel.collapseToStart();
@@ -835,3 +835,17 @@ function getOmni_(oldUrl: string): string {
   if (!VData.full) { return oldUrl; }
   return location.href.split("#", 1)[0] + VData.full;
 }
+
+if (!Build.NDEBUG) {
+  const exported: Dict<any> = {
+    listenWheelForImage, myOnWheel, showBgLink, clickLink, simulateClick, imgOnKeydown, doImageAction, decodeURLPart_,
+    importBody, defaultOnClick, clickShownNode, showText, copyThing, _copyStr, toggleInvert, requireJS, loadCSS,
+    defaultOnError, loadViewer, showSlide, clean, parseSmartImageUrl_, tryToFixFileExt_, fetchImage_,
+    destroyObject_, tryDecryptUrl, disableAutoAndReload_, resetOnceProperties_, recoverHash_, encrypt_, getOmni_,
+  };
+  for (let key in exported) { if (exported.hasOwnProperty(key)) { (window as any)[key] = exported[key]; } }
+  (window as any).VShown = () => ({
+    VShown, bgLink, tempEmit, viewer_, encryptKey, ImageExtRe, _shownBlobURL,
+  })
+}
+})();
