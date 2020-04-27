@@ -42,13 +42,20 @@ Build.NDEBUG || (function (): void {
     let filename = __filename
     __filename = null
     if (!filename) {
+      if (!oldDefine) {
+        const name = (document.currentScript as HTMLScriptElement).src.split("/")
+        const fileName = name[name.length - 1].replace(<RegExpG> /\.js|\.min/g, "")
+            .replace(<RegExpG & RegExpSearchable<0>> /\b[a-z]/g, (i) => i.toUpperCase());
+        (window as any)[fileName] = (factory as any || deps as any)()
+        return
+      }
       return oldDefine(deps, factory)
     }
     filename = filename.replace(".js", "")
     const exports = modules[filename] || (modules[filename] = {} as ModuleTy)
     const ind = filename.lastIndexOf("/")
     const base = ind > 0 ? filename.slice(0, ind) : filename
-    return factory(require.bind(null, base), exports)
+    return (factory || deps as never as typeof factory)(require.bind(null, base), exports)
   }
   const require = (base: string, target: string): ModuleTy => {
     let i: number
