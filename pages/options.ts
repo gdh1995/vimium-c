@@ -643,7 +643,7 @@ let optionsInit1_ = function (): void {
   opt = optFilter;
   optChars.onSave_ = optNums.onSave_ = function (this: Option_<"linkHintCharacters" | "linkHintNumbers">): void {
     this.showError_(!this.element_.style.display && this.previous_.length < GlobalConsts.MinHintCharSetSize
-        ? pTrans_("hintCharsTooFew") : "");
+        ? pTrans_("" + kTip.fewChars) : "");
   };
   opt.onSave_ = function (): void {
     nextTick_(el => {

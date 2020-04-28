@@ -304,7 +304,7 @@
 		"message": "Move tab to the right"
 	},
 	"moveTabToIncognito": {
-		"message": "Move tab to incognito window"
+		"message": "Make tab in incognito window"
 	},
 	"moveTabToNextWindow": {
 		"message": "Move tab to next window"
@@ -433,16 +433,16 @@
 		"message": "Show help"
 	},
 	"simBackspace": {
-		"message": "simulate backspace once if focused"
+		"message": "Simulate backspace once if focused"
 	},
 	"switchFocus": {
-		"message": "blur activeElement or refocus it"
+		"message": "Blur activeElement or refocus it"
 	},
 	"switchFocus_p": {
 		"message": "flash, select=\"\"/all/all-line/start/end"
 	},
 	"toggleCS": {
-		"message": "turn on/off the site's CS"
+		"message": "Toggle the site's content settings"
 	},
 	"toggleCS_p": {
 		"message": "type=images"
@@ -634,26 +634,23 @@
 	"ignoredNonEN": {
 		"message": "Keyboard layout has been ignored! Please consider disabling the option."
 	},
-	"hintCharsTooFew": {
-		"message": "Too few characters for LinkHints."
-	},
 	"onlyExtVomnibar": {
 		"message": "Extension vomnibar pages can only work before Chromium $1."
 	},
 	"fileVomnibar" : {
-		"message": "A file page of vomnibar is limited by the browser to only work on file://* pages."
+		"message": "A file vomnibar is limited by browser to only work on file://* pages."
 	},
 	"httpVomnibar" : {
-		"message": "An HTTP page of vomnibar is limited by the browser and doesn't work on HTTPS pages."
+		"message": "An HTTP vomnibar is limited by browser and doesn't work on HTTPS pages."
 	},
 	"beforeChromium": {
 		"message": "on Chromium browsers before v$1"
 	},
 	"lackPermission": {
-		"message": "for lacking permission $1"
+		"message": "for lacking permission$1"
 	},
 	"invalidOption": {
-		"message": "This option is invalid: $1"
+		"message": "This option is invalid $1"
 	},
 	"manageShortcut": {
 		"message": "\"Manage Shortcuts\" in \"Tools Menu\" of "
@@ -740,7 +737,7 @@
 		"message": "Vimium C has been upgraded to v$1.\n"
 	},
 	"upgradeMsg2": {
-		"message": "Privacy Policy got updated!"
+		"message": ""
 	},
 	"clickForMore": {
 		"message": "Click here for more information."
@@ -840,7 +837,7 @@
 		"message": "Cannot restore a tab in incognito mode!"
 	},
 	"indexOOR": {
-		"message": "The session index provided is out of range."
+		"message": "The session index provided is out of range"
 	},
 	"noDiscardIfOld": {
 		"message": "Vimium C cannot discard tabs before Chromium $1"
@@ -858,19 +855,19 @@
 		"message": "Vimium C cannot control mute state before Chromium $1"
 	},
 	"muted": {
-		"message": "Muted."
+		"message": "Muted"
 	},
 	"unmuted": {
-		"message": "Unmuted."
+		"message": "Unmuted"
 	},
 	"mute": {
-		"message": "$1 tab(s) are muted."
+		"message": "$1 tab(s) are muted"
 	},
 	"unmute": {
-		"message": "$1 tab(s) are unmuted."
+		"message": "$1 tab(s) are unmuted"
 	},
 	"fhCleared": {
-		"message": "$1 find history has been cleared."
+		"message": "$1find history has been cleared"
 	},
 	"incog": {
 		"message": "incognito "
@@ -888,7 +885,7 @@
 		"message": "No selected nor copied text found"
 	},
 	"noTabItem": {
-		"message": "The target tab has dissapeared!"
+		"message": "The target tab has disappeared!"
 	},
 	"noSessionItem": {
 		"message": "The closed session may be too old"
@@ -912,7 +909,7 @@
 		"message": "It's not allowed to $1"
 	},
 	"unknownStatAction": {
-		"message": "Got an unknown action status: $1"
+		"message": "Got an unknown status action: $1"
 	},
 	"newStat": {
 		"message": "The page status is now $1"
@@ -930,7 +927,7 @@
 		"message": "change its content settings"
 	},
 	"csCleared": {
-		"message": "$1 content settings have been cleared."
+		"message": "$1 content settings have been cleared"
 	},
 	"images": {
 		"message": "Image"
@@ -939,7 +936,7 @@
 		"message": "JavaScript"
 	},
 	"noMark": {
-		"message": "$1 mark not set : ' $2 '."
+		"message": "$1 mark not set : ' $2 '"
 	},
 	"Local_": {
 		"message": "Local"
@@ -948,7 +945,7 @@
 		"message": "Global"
 	},
 	"markRemoved": {
-		"message": "$1 $2 mark $3 has been removed."
+		"message": "$1 $2 mark$3 been removed"
 	},
 	"local": {
 		"message": "local"
@@ -1019,7 +1016,7 @@
 		"message": "Hover to scroll"
 	},
 	"76": {
-		"message": "Sorry, Vimium C won't copy no password."
+		"message": "Sorry, Vimium C won't copy any password"
 	},
 	"77": {
 		"message": "Nothing new to copy"
@@ -1034,7 +1031,7 @@
 		"message": "Create mark\u2026"
 	},
 	"81": {
-		"message": "Created local mark [last]."
+		"message": "Created local mark [last]"
 	},
 	"82": {
 		"message": "$1 local mark [ $2 ]"
@@ -1049,13 +1046,13 @@
 		"message": "last"
 	},
 	"86": {
-		"message": "$1 $2 mark : ' $3 '."
+		"message": "$1 $2 mark : ' $3 '"
 	},
 	"87": {
 		"message": "Sorry, Vimium C cannot open a HUD on this page"
 	},
 	"88": {
-		"message": "No old queries to find."
+		"message": "No old queries to find"
 	},
 	"89": {
 		"message": "No matches for \"$1\""
@@ -1076,22 +1073,22 @@
 		"message": "No usable selection, entering caret mode\u2026"
 	},
 	"92": {
-		"message": "Selection has been lost."
+		"message": "Selection has been lost"
 	},
 	"93": {
-		"message": "Create a selection before entering visual mode."
+		"message": "Create a selection before entering visual mode"
 	},
 	"94": {
-		"message": "Sorry, Vomnibar page seems to fail to load."
+		"message": "Sorry, Vomnibar page seems to fail to load"
 	},
 	"95": {
-		"message": "This item cannot be deleted."
+		"message": "This item cannot be deleted"
 	},
 	"96": {
 		"message": "Not allowed to open the target new tab URL"
 	},
 	"97": {
-		"message": "You cancelled importing."
+		"message": "You cancelled importing"
 	},
 	"98": {
 		"message": "Import settings data: OK!"
@@ -1100,10 +1097,10 @@
 		"message": "The last element is unhovered"
 	},
 	"5": {
-		"message": "Insert mode $1"
+		"message": "Insert mode$1"
 	},
 	"6": {
-		"message": "No pass keys."
+		"message": "No pass keys"
 	},
 	"7": {
 		"message": "Normal mode (pass keys disabled)$1"
@@ -1112,7 +1109,7 @@
 		"message": ": $1 times"
 	},
 	"9": {
-		"message": "Pass next keys $1"
+		"message": "Pass next keys$1"
 	},
 	"10": {
 		"message": "No links to go $1"
@@ -1130,7 +1127,7 @@
 		"message": "The last focused is hidden"
 	},
 	"13": {
-		"message": "There are no inputs to focus on."
+		"message": "There are no inputs to focus on"
 	},
 	"14": {
 		"message": "No URL found!"

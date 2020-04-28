@@ -433,13 +433,13 @@
 		"message": "Simuler RETOUR une fois s'il y a le focus"
 	},
 	"switchFocus": {
-		"message": "floute l'élément actif ou remet le focus dessus"
+		"message": "Floute l'élément actif ou remet le focus dessus"
 	},
 	"switchFocus_p": {
 		"message": "flash, select=\"\"/all/all-line/start/end"
 	},
 	"toggleCS": {
-		"message": "Alterner les feuilles de style du site"
+		"message": "Paramètres de contenu du site de basculement"
 	},
 	"toggleCS_p": {
 		"message": "type=images"
@@ -631,9 +631,6 @@
 	"ignoredNonEN": {
 		"message": "La configuration Clavier a été ignorée ! Merci de considérer de désactiver l'option."
 	},
-	"hintCharsTooFew": {
-		"message": "Les caractères pour les indices de liens sont trop peu nombreux."
-	},
 	"onlyExtVomnibar": {
 		"message": "Seules les pages d'extension de Vomnibar peuvent fonctionner avant Chromium $1"
 	},
@@ -647,7 +644,7 @@
 		"message": "sur navigateurs Chromium avant v$1"
 	},
 	"lackPermission": {
-		"message": "pour manquer de permissions $1"
+		"message": "pour manquer de permissions$1"
 	},
 	"invalidOption": {
 		"message": "Cette option est invalide $1"
@@ -734,10 +731,10 @@
 		"message": "Mise à jour"
 	},
 	"upgradeMsg": {
-		"message": "Vimium C a été mise à jour vers  la v$1.\n"
+		"message": "Vimium C a été mise à jour vers la v$1.\n"
 	},
 	"upgradeMsg2": {
-		"message": "La Politique de Vie Privée a des mises à jour !"
+		"message": ""
 	},
 	"clickForMore": {
 		"message": "Cliquez ici pour plus d'informations."
@@ -837,7 +834,7 @@
 		"message": "Ne peut pas restaurer un onglet de mode incognito !"
 	},
 	"indexOOR": {
-		"message": "L'index de session fourni est hors de portée."
+		"message": "L'index de session fourni est hors de portée"
 	},
 	"noDiscardIfOld": {
 		"message": "Vimium C ne peut pas décharger les onglets avant Chromium $1"
@@ -855,19 +852,19 @@
 		"message": "Vimium C ne peut pas contrôler l'état de sourdine avant Chromium $1"
 	},
 	"muted": {
-		"message": "Mis en sourdine."
+		"message": "Mis en sourdine"
 	},
 	"unmuted": {
-		"message": "Sourdine désactivée."
+		"message": "Sourdine désactivée"
 	},
 	"mute": {
-		"message": "$1 onglet(s) sont mis en sourdine."
+		"message": "$1 onglet(s) sont mis en sourdine"
 	},
 	"unmute": {
-		"message": "$1 onglet(s) ont leurs sourdines désactivées."
+		"message": "$1 onglet(s) ont leurs sourdines désactivées"
 	},
 	"fhCleared": {
-		"message": "$1 historique de recherche nettoyé."
+		"message": "$1 historique de recherche nettoyé"
 	},
 	"incog": {
 		"message": "incognito "
@@ -909,7 +906,7 @@
 		"message": "Il est interdit de $1"
 	},
 	"unknownStatAction": {
-		"message": "Il est survenu un statut d'action inconnu : $1"
+		"message": "Il est survenu un action de statut inconnu: $1"
 	},
 	"newStat": {
 		"message": "Désormais le statut de la page est $1"
@@ -936,7 +933,7 @@
 		"message": "JavaScript"
 	},
 	"noMark": {
-		"message": "$1 marqueur non-défini : ' $2 '."
+		"message": "$1 marqueur non-défini : ' $2 '"
 	},
 	"Local_": {
 		"message": "Local"
@@ -945,7 +942,7 @@
 		"message": "Global"
 	},
 	"markRemoved": {
-		"message": "$1 $2 marqueur $3 a été supprimé."
+		"message": "$1 $2 marqueur$3 été supprimé"
 	},
 	"local": {
 		"message": "local"
@@ -1014,7 +1011,7 @@
 		"message": "Survole pour dérouler"
 	},
 	"76": {
-		"message": "Désolé, Vimium C ne copiera pas de mot de passe"
+		"message": "Désolé, Vimium C ne copiera aucun mot de passe"
 	},
 	"77": {
 		"message": "Rien de nouveau à copier"
@@ -1029,7 +1026,7 @@
 		"message": "Crée un marqueur\u2026"
 	},
 	"81": {
-		"message": "Créé un marqueur local (dernier)"
+		"message": "Créé un marqueur local [dernier]"
 	},
 	"82": {
 		"message": "$1 local marqueur [ $2 ]"
@@ -1044,7 +1041,7 @@
 		"message": "dernier"
 	},
 	"86": {
-		"message": "$1 $2 marqueur : ' $3 '."
+		"message": "$1 $2 marqueur : ' $3 '"
 	},
 	"87": {
 		"message": "Désolé, Vimium C ne peut pas ouvrir de HUD sur cette page"
@@ -1095,19 +1092,19 @@
 		"message": "Le dernier élément est dé-survolé"
 	},
 	"5": {
-		"message": "Mode insertion $1"
+		"message": "Mode insertion$1"
 	},
 	"6": {
 		"message": "Aucune touche transmise"
 	},
 	"7": {
-		"message": "Mode normal (touches transmises désactivées) $1"
+		"message": "Mode normal (touches transmises désactivées)$1"
 	},
 	"8": {
 		"message": ": $1 fois"
 	},
 	"9": {
-		"message": "Envoyez les prochaines touches $1"
+		"message": "Envoyez les prochaines touches$1"
 	},
 	"10": {
 		"message": "Aucun lien pour aller $1"
