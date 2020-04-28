@@ -21,8 +21,8 @@ let requestHandlers: { [k in keyof BgReq]: (this: void, request: BgReq[k]) => vo
 export { port_ as runtime_port, port_callbacks, safeDestroy, requestHandlers }
 
 export function clearRuntimePort (): void { port_ = null }
-export function set_safeDestroy (newDestroy: SafeDestoryF): void { safeDestroy = newDestroy }
-export function set_requestHandlers (newHandlers: typeof requestHandlers): void { requestHandlers = newHandlers }
+export function set_safeDestroy (_newSafeDestroy: SafeDestoryF): void { safeDestroy = _newSafeDestroy }
+export function set_requestHandlers (_newHandlers: typeof requestHandlers): void { requestHandlers = _newHandlers }
 
 export const post_ = <k extends keyof FgReq>(request: FgReq[k] & Req.baseFg<k>): 1 | void => {
   port_!.postMessage(request);

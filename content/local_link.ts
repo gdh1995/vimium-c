@@ -28,7 +28,7 @@ let maxRight_ = 0
 
 export { frameNested_, ngEnabled, maxLeft_, maxTop_, maxRight_ }
 export const localLinkClear = (): void => { maxLeft_ = maxTop_ = maxRight_ = 0 }
-export function set_frameNested_ (nested: NestedFrame): void { frameNested_ = nested }
+export function set_frameNested_ (_newNestedFrame: NestedFrame): void { frameNested_ = _newNestedFrame }
 
 /**
  * Must ensure only call {@link scroller.ts#VSc.shouldScroll_need_safe_} during {@link #getVisibleElements_}

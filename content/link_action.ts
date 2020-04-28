@@ -29,7 +29,7 @@ let keyCode_ = kKeyCode.None
 let removeFlash = null as (() => void) | null
 
 export { removeFlash, keyCode_ as hintKeyCode }
-export function set_hintModeAction (action: LinkAction | null): void { hintModeAction = action }
+export function set_hintModeAction (_newHintModeAction: LinkAction | null): void { hintModeAction = _newHintModeAction }
 export const resetRemoveFlash = (): void => { removeFlash = null }
 export const resetHintKeyCode = (): void => { keyCode_ = kKeyCode.None }
 

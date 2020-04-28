@@ -37,12 +37,12 @@ export {
   onKeyup2, isPassKeysReverted,
 }
 export function resetIsCmdTriggered (): void { isCmdTriggered = 0 }
-export function set_passKeys (newPassKeysVal: SafeEnum | null | ""): void { passKeys = newPassKeysVal }
+export function set_passKeys (_newPassKeys: SafeEnum | null | ""): void { passKeys = _newPassKeys }
 export function setTempCurrentKeyStatus (): void { currentKeys = "", nextKeys = keyFSM }
-export function set_onKeyup2 (newOnKeyUp: typeof onKeyup2): void { onKeyup2 = newOnKeyUp }
-export function set_isPassKeysReverted (reverted: boolean): void { isPassKeysReverted = reverted }
-export function set_keyFSM (newFSM: BgReq[kBgReq.keyFSM]["k"]) { keyFSM = newFSM }
-export function set_mappedKeys (maps: BgReq[kBgReq.keyFSM]["m"]): void { mappedKeys = maps }
+export function set_onKeyup2 (_newOnKeyUp: typeof onKeyup2): void { onKeyup2 = _newOnKeyUp }
+export function set_isPassKeysReverted (_newPKReverted: boolean): void { isPassKeysReverted = _newPKReverted }
+export function set_keyFSM (_newKeyFSM: BgReq[kBgReq.keyFSM]["k"]) { keyFSM = _newKeyFSM }
+export function set_mappedKeys (_newMappedKeys: BgReq[kBgReq.keyFSM]["m"]): void { mappedKeys = _newMappedKeys }
 
 
 set_key_((eventWrapper: HandlerNS.Event, mode: kModeId): string => {

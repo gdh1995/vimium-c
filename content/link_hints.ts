@@ -140,8 +140,8 @@ export {
   kSafeAllSelector, kEditableSelector, unwrap_ff, addChildFrame,
   hud_ as hintHUD, api_ as hintApi, master_ as hintMaster,
 }
-export function set_kSafeAllSelector (selector: string): void { kSafeAllSelector = selector as any; }
-export function set_isClickListened_ (val: boolean): void { isClickListened_ = val }
+export function set_kSafeAllSelector (_newKSafeAll: string): void { kSafeAllSelector = _newKSafeAll as any }
+export function set_isClickListened_ (_newIsClickListened: boolean): void { isClickListened_ = _newIsClickListened }
 
 export const activate = (options: HintsNS.ContentOptions, count: number): void => {
     if (isActive || !isEnabled_) { return; }

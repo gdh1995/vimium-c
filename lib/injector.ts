@@ -78,7 +78,7 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
     _old.destroy(true);
   }
 
-  const _new = VimiumInjector = {
+  const newInjector = VimiumInjector = {
     id: extID,
     alive: 0,
     host: !(Build.BTypes & ~BrowserType.Chrome) ? extID : res ? res.host : "",
@@ -114,7 +114,7 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
     this.onload = null as never;
     for (let i = scripts.length; 0 <= --i; ) { scripts[i].remove(); }
   });
-  oldCallback && _new.callback!(0, "loading");
+  oldCallback && newInjector.callback!(0, "loading");
 }
 function call(): void {
   runtime.sendMessage(extID, <ExternalMsgs[kFgReq.inject]["req"]> {

@@ -850,17 +850,14 @@ function rollupContent(stream) {
     .then(builder => builder.generate(outputOptions))
     .then(result => {
       if (result === undefined) {
-        print("Rollup: no output!")
-        for (const i of others) { this.push(i) }
-        return done();
+        return done("No rollup.js found");
       }
-      var output = result.output[0]
-      var code = inlineAllSetters(output.code)
+      var code = result.output[0].code
+      code = inlineAllSetters(output.code)
       file.contents = Buffer.from(code)
       this.push(file)
+      done()
     })
-    // pass file to gulp and end stream
-    .then(() => done())
   };
   return stream.pipe(transformer)
 }
@@ -1408,7 +1405,7 @@ function getGulpUglify(aggressiveMangle, unique_passes) {
               ast: !aggressive, code: !!aggressive },
         }), ast = aggressive ? firstOut.code : firstOut.ast;
         if (firstOut.error) { return firstOut; }
-        for (let i = 1; i < multipleUglify - 1; i++) {
+        for (let i = 1; i < unique_passes - 1; i++) {
           ast = uglify.minify(ast, { ...config,
             output: { ...config.output, comments: /^[!@#]/, preserve_annotations: true, ast: true, code: false },
             mangle: null,

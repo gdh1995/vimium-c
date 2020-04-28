@@ -11,7 +11,7 @@ let unsafeFramesetTag_old_cr_: "frameset" | "" | null =
 let docSelectable_ = true
 export { unsafeFramesetTag_old_cr_, docSelectable_ }
 export function markFramesetTagUnsafe (): "frameset" { return unsafeFramesetTag_old_cr_ = "frameset" }
-export function set_docSelectable_ (selectable: boolean): void { docSelectable_ = selectable }
+export function set_docSelectable_ (_newDocSelectable: boolean): void { docSelectable_ = _newDocSelectable }
 
 export const devRatio_ = (): number => devicePixelRatio
 
@@ -444,7 +444,7 @@ let bScale_ = 1 // <body>.transform:scale (ignore the case of sx != sy)
 let bZoom_ = 1
 
 export { paintBox_, wdZoom_, docZoom_, isDocZoomStrange_, dScale_, bScale_, bZoom_ }
-export function set_bZoom_ (newZoomVal: number): void { bZoom_ = newZoomVal }
+export function set_bZoom_ (_newBZoom: number): void { bZoom_ = _newBZoom }
 
 const _fixDocZoom_cr = Build.BTypes & BrowserType.Chrome ? (zoom: number, docEl: Element, devRatio: number): number => {
     let ver = Build.MinCVer < BrowserVer.MinASameZoomOfDocElAsdevPixRatioWorksAgain
@@ -730,12 +730,12 @@ export const getSelectionBoundingBox_ = (sel: Selection): ClientRect => sel.getR
 let OnDocLoaded_: (callback: (this: void) => any, onloaded?: 1) => void
 
 export { OnDocLoaded_ }
-export function set_OnDocLoaded_ (f: typeof OnDocLoaded_): void { OnDocLoaded_ = f }
+export function set_OnDocLoaded_ (_newOnDocLoaded: typeof OnDocLoaded_): void { OnDocLoaded_ = _newOnDocLoaded }
 
 export let createElement_ = doc.createElement.bind(doc) as {
     <K extends VimiumContainerElementType> (this: void, tagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement;
 }
-export function set_createElement_ (f: typeof createElement_): void { createElement_ = f }
+export function set_createElement_ (_newCreateEl: typeof createElement_): void { createElement_ = _newCreateEl }
 
 export const createShadowRoot_ = <T extends HTMLDivElement | HTMLBodyElement> (box: T): ShadowRoot | T => {
     return !(Build.BTypes & ~BrowserType.Edge) ? box
@@ -809,7 +809,7 @@ let _idc: InputDeviceCapabilities | undefined
 let lastHovered_: SafeElementForMouse | null = null
 
 export { lastHovered_ }
-export function set_lastHovered_ (el: SafeElementForMouse | null): void { lastHovered_ = el }
+export function set_lastHovered_ (_newLastHovered: SafeElementForMouse | null): void { lastHovered_ = _newLastHovered }
 
   /** note: will NOT skip even if newEl == @lastHovered */
 export const hover_ = function (this: {}, newEl?: SafeElementForMouse | null, center?: Point2D): void {
@@ -842,7 +842,7 @@ export const hover_ = function (this: {}, newEl?: SafeElementForMouse | null, ce
     // here always ensure lastHovered_ is "in DOM" or null
 } as {
     (newEl: SafeElementForMouse, center: Point2D): void;
-    (_newEl?: null): void;
+    (newEl?: null): void;
 }
 
 export const unhover_ = (element?: SafeElementForMouse): void => {

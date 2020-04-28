@@ -58,7 +58,7 @@ let isSmall = false
 let postLock: Element | null = null
 
 export { findCSS, query_ as find_query, hasResults as find_hasResults, box_ as find_box, styleSelectable, styleInHUD }
-export function set_findCSS (newCSS: FindCSS): void { findCSS = newCSS }
+export function set_findCSS (_newFindCSS: FindCSS): void { findCSS = _newFindCSS }
 
 export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     findCSS = options.f || findCSS;

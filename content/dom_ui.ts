@@ -541,7 +541,7 @@ export const doExitOnClick = (event?: Event): void => {
 
 /** must be called only if having known anotherWindow is "in a same origin" */
 export let getWndVApi_ff: ((anotherWindow: Window) => VApiTy | null | void) | undefined
-export function set_getWndVApi_ff (newGetWndVApi: typeof getWndVApi_ff): void { getWndVApi_ff = newGetWndVApi }
+export function set_getWndVApi_ff (_newGetWndVApi: typeof getWndVApi_ff): void { getWndVApi_ff = _newGetWndVApi }
 
 /**
  * Return a valid `ContentWindowCore`
@@ -564,7 +564,7 @@ export let getParentVApi = Build.BTypes & BrowserType.Firefox ? (): VApiTy | nul
   return core;
 } : () => (parent as Window).VApi
 
-export function set_getParentVApi (getter: () => VApiTy | null | void): void { getParentVApi = getter }
+export function set_getParentVApi (_newGetParVApi: () => VApiTy | null | void): void { getParentVApi = _newGetParVApi }
 
 export const evalIfOK = (url: Pick<BgReq[kBgReq.eval], "u"> | string): boolean => {
   typeof url === "string" ? 0 : url = url.u

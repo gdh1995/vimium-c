@@ -46,14 +46,14 @@ export {
   insert_last_ as insert_last, is_last_mutable as insert_last_mutable,
   grabBackFocus, suppressType, inputHint as insert_inputHint, onWndBlur2, exitPassMode,
 }
-export function set_insert_global_ (global: CmdOptions[kFgCmd.insertMode]): void { insert_global_ = global }
-export function set_insert_last_ (newLast: LockableElement | null): void { insert_last_ = newLast }
-export function set_is_last_mutable (val: BOOL): void { is_last_mutable = val }
-export function set_inputHint (newHint: typeof inputHint): void { inputHint = newHint }
-export function set_isHintingInput (val: BOOL): void { isHintingInput = val }
-export function set_grabBackFocus (newGrab: typeof grabBackFocus): void { grabBackFocus = newGrab }
-export function set_onWndBlur2 (f: ((this: void) => void) | undefined | null): void { onWndBlur2 = f }
-export function set_exitPassMode (f: ((this: void) => void) | undefined | null): void { exitPassMode = f }
+export function set_insert_global_ (_newIGlobal: CmdOptions[kFgCmd.insertMode]): void { insert_global_ = _newIGlobal }
+export function set_insert_last_ (_newILast: LockableElement | null): void { insert_last_ = _newILast }
+export function set_is_last_mutable (_newIsLastMutable: BOOL): void { is_last_mutable = _newIsLastMutable }
+export function set_inputHint (_newIHint: typeof inputHint): void { inputHint = _newIHint }
+export function set_isHintingInput (_newIsHintingInput: BOOL): void { isHintingInput = _newIsHintingInput }
+export function set_grabBackFocus (_newGrabBackFocus: typeof grabBackFocus): void { grabBackFocus = _newGrabBackFocus }
+export function set_onWndBlur2 (_newOnBlur: typeof onWndBlur2): void { onWndBlur2 = _newOnBlur }
+export function set_exitPassMode (_newExitPassMode: typeof exitPassMode): void { exitPassMode = _newExitPassMode }
 
 export const insertInit = (): void => {
   /** if `notBody` then `activeEl` is not null */
