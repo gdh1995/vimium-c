@@ -178,10 +178,13 @@ const generateHintStrings = (hints: readonly HintItem[]): void => {
 }
 
 export const generateHintText = (hint: Hint): HintsNS.HintText => {
-  let el = hint[0], text = "", show = false
-    , localName = el.localName, isHTML = "lang" in el
-    , ind: number;
-  switch (isHTML ? localName : "") {
+  const el = hint[0], localName = el.localName
+  let text = "", show = false, ind: number;
+  if (!("lang" in el)) { // SVG elements or plain `Element` nodes
+    // SVG: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/text
+    // demo: https://developer.mozilla.org/en-US/docs/Web/MathML/Element/mfrac on Firefox
+    text = el.textContent.replace(<RegExpG> /\s{2,}/g, " ");
+  } else switch (localName) {
   case "input": case "select": case "textarea":
     let labels = (el as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement).labels;
     if (labels && labels.length
@@ -207,7 +210,7 @@ export const generateHintText = (hint: Hint): HintsNS.HintText => {
     }
     break;
   case "img":
-    text = (el as HTMLImageElement).alt || (el as HTMLImageElement).title;
+    text = (el as HTMLImageElement).alt || el.title;
     break;
   case "details":
     text = "Open"; show = !0;
@@ -215,20 +218,18 @@ export const generateHintText = (hint: Hint): HintsNS.HintText => {
   default: // include SVGElement and OtherSafeElement
     if (show = hint[2] > ClickType.MaxNotBox) {
       text = hint[2] > ClickType.frame ? "Scroll" : "Frame";
-    } else if (isHTML && (text = (el as SafeHTMLElement).innerText.trim())) {
+    } else if (text = el.innerText.trim()) {
       ind = text.indexOf("\n") + 1;
       ind && (ind = text.indexOf("\n", ind)) > 0 ? text = text.slice(0, ind) : 0;
-    } else if (localName === "a" && isHTML) {
-        let el2 = el.firstElementChild as Element | null;
-        text = el2 && htmlTag_(el2) === "img"
-            ? (el2 as HTMLImageElement).alt || (el2 as HTMLImageElement).title : "";
-        show = !0;
-    } else if (!isHTML) { // SVG elements or plain `Element` nodes
-      // SVG: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/text
-      // demo: https://developer.mozilla.org/en-US/docs/Web/MathML/Element/mfrac on Firefox
-      text = el.textContent.replace(<RegExpG> /\s{2,}/g, " ");
+    } else if (localName === "a") {
+      let el2 = el.firstElementChild as Element | null;
+      text = el2 && htmlTag_(el2) === "img"
+          ? (el2 as HTMLImageElement).alt || (el2 as HTMLImageElement).title : "";
+      show = !0;
     }
-    text = isHTML ? text || (el as SafeHTMLElement).title : text;
+    text = text || el.title || (
+        (text = el.className) && (<RegExpOne> /\b(?:[Cc]lose)(?:$|[-\sA-Z_])/).test(text) ? "Close"
+        : "")
     break;
   }
   if (text) {
