@@ -28,7 +28,7 @@ import { activate as visualActivate, deactivate as visualDeactivate } from "./mo
 import { activate as scActivate, clearCachedScrollable } from "./scroller"
 import { activate as omniActivate } from "./vomnibar"
 import { findAndFollowLink, findAndFollowRel } from "./pagination"
-import { traverse, getEditable } from "./local_link"
+import { traverse, getEditable } from "./local_links"
 
 interface SpecialCommands {
   [kFgCmd.reset] (this: void, isAlive: BOOL | CmdOptions[kFgCmd.reset] & SafeObject): void;

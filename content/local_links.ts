@@ -8,7 +8,8 @@ import {
   getVisibleClientRect_, uneditableInputs_, getComputedStyle_, getZoomedAndCroppedRect_, findMainSummary_,
   getClientRectsForAreas_, htmlTag_, isAriaNotTrue_, getCroppedRect_, getBoundingClientRect_, cropRectToVisible_,
   isStyleVisible_, fullscreenEl_unsafe_, querySelector_unsafe_, bZoom_, set_bZoom_, prepareCrop_, notSafe_not_ff_,
-  isContaining_, docEl_unsafe_, GetParent_unsafe_, unsafeFramesetTag_old_cr_, isDocZoomStrange_, docZoom_, SubtractSequence_, isHTML_, querySelectorAll_unsafe_,
+  isContaining_, docEl_unsafe_, GetParent_unsafe_, unsafeFramesetTag_old_cr_, isDocZoomStrange_, docZoom_,
+  SubtractSequence_, isHTML_, querySelectorAll_unsafe_,
 } from "../lib/dom_utils"
 import { find_box } from "./mode_find"
 import { omni_box } from "./vomnibar"
@@ -146,11 +147,11 @@ export const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
 
 const getClickableInMaybeSVG = (hints: Hint[], element: SVGElement | OtherSafeElement): void => {
   let anotherEl: SVGElement;
-  let arr: Rect | null | undefined, s: string | null , type = ClickType.Default;
+  let arr: Rect | null | undefined, s: string | null
+  let type: ClickType.Default | HintsNS.AllowedClickTypeForNonHTML = ClickType.Default;
   const tabIndex = (element as ElementToHTMLorSVG).tabIndex;
-  { // not HTML*
+  {
     {
-      /** not use .codeListener | .classname, {@see #VHints.deduplicate_} */
       type = clickable_.has(element)
           || tabIndex != null && (!(Build.BTypes & ~BrowserType.Firefox)
               || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
@@ -163,7 +164,7 @@ const getClickableInMaybeSVG = (hints: Hint[], element: SVGElement | OtherSafeEl
         ? ClickType.attrListener
         : tabIndex != null && tabIndex >= 0 ? element.localName === "a" ? ClickType.attrListener : ClickType.tabindex
         : ClickType.Default;
-      if (type > ClickType.Default && (arr = getVisibleClientRect_(element, null))
+      if (type && (arr = getVisibleClientRect_(element, null))
           && isAriaNotTrue_(element, kAria.hidden)
           && (mode_ > HintMode.min_job - 1 || isAriaNotTrue_(element, kAria.disabled))
           ) {
@@ -463,6 +464,7 @@ const deduplicate = (list: Hint[]): void => {
   while (0 <= --i) {
     k = list[i][2];
     notRemoveParents = k === ClickType.classname;
+    /** {@see #HintsNS.AllowedClickTypeForNonHTML} */
     if (!notRemoveParents) {
       if (k === ClickType.codeListener) {
         if (s = ((element = list[i][0]) as SafeHTMLElement).localName, s === "i" || s === "div") {

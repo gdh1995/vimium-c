@@ -853,7 +853,7 @@ function rollupContent(stream) {
         return done("No rollup.js found");
       }
       var code = result.output[0].code
-      code = inlineAllSetters(output.code)
+      code = inlineAllSetters(code)
       file.contents = Buffer.from(code)
       this.push(file)
       done()

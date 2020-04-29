@@ -14,7 +14,7 @@ import {
   currentKeys, mappedKeys, set_keyFSM, anyClickHandler, onKeydown, onKeyup, passKeys,
   set_isPassKeysReverted, isPassKeysReverted, set_passKeys, set_mappedKeys,
 } from "./key_handler"
-import { HintMaster, kSafeAllSelector, set_kSafeAllSelector } from "./link_hints"
+import { HintManager, kSafeAllSelector, set_kSafeAllSelector } from "./link_hints"
 import { createMark } from "./marks"
 import { set_findCSS, styleInHUD } from "./mode_find"
 import {
@@ -102,7 +102,7 @@ set_requestHandlers([
         const parApi = !(Build.BTypes & ~BrowserType.Firefox)
             || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
             ? getParentVApi() : allowScripts_ && frameElement_() && getParentVApi(),
-        parHints = parApi && parApi.b as HintMaster;
+        parHints = parApi && parApi.b as HintManager;
         if (needToRetryParentClickable) {
         const oldSet = clickable_ as any as Element[] & Set<Element>
         /*#__INLINE__*/ set_clickable_(parApi ? parApi.y().c : new WeakSet!<Element>())

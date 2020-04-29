@@ -18,7 +18,7 @@ import {
 import { grabBackFocus, insert_Lock_ } from "./mode_insert"
 import { currentKeys } from "./key_handler"
 import { contentCommands_ } from "./commands"
-import { hook, enableNeedToRetryParentClickable, focusAndRun } from "./request_handler"
+import { hook, enableNeedToRetryParentClickable, focusAndRun } from "./request_handlers"
 
 import { main as extend_click } from  "./extend_click.js"
 import { activate as linkActivate, coreHints } from "./link_hints"

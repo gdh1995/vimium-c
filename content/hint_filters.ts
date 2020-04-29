@@ -9,7 +9,7 @@ import {
 import { getBoundingClientRect_, htmlTag_, createElement_, bZoom_ } from "../lib/dom_utils"
 import { fgCache, doc } from "../lib/utils"
 import { kBackspace, kDelete } from "../lib/keyboard_utils"
-import { maxLeft_, maxRight_, maxTop_ } from "./local_link"
+import { maxLeft_, maxRight_, maxTop_ } from "./local_links"
 import { ui_root } from "./dom_ui"
 import { omni_box } from "./vomnibar"
 

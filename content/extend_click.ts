@@ -7,7 +7,7 @@ import {
 } from "../lib/dom_utils"
 import { Stop_ } from "../lib/keyboard_utils"
 import { safeDestroy } from "./port"
-import { allHints, hintKeyStatus, checkLast } from "./link_hints"
+import { allHints, hintKeyStatus, coreHints } from "./link_hints"
 import { grabBackFocus } from "./mode_insert"
 
 declare function exportFunction(this: void, func: (...args: any[]) => any, targetScope: object, options?: {
@@ -153,7 +153,7 @@ export const main = (): void => {
     }
     if (isFirstResolve & fromAttrs) {
       isFirstResolve ^= fromAttrs;
-      allHints && !hintKeyStatus.k && !hintKeyStatus.t && timeout_(checkLast, 34);
+      allHints && !hintKeyStatus.k && !hintKeyStatus.t && timeout_(coreHints.x, 34);
     }
   }
   function resolve(isBox: BOOL, nodeIndexList: number[]): void {
@@ -658,7 +658,7 @@ _listen(kOnDomReady, doInit, !0);
     }
     OnDocLoaded_((): void => {
       timeout_(function (): void {
-        allHints && !hintKeyStatus.k && !hintKeyStatus.t && timeout_(checkLast, 34);
+        allHints && !hintKeyStatus.k && !hintKeyStatus.t && timeout_(coreHints.x, 34);
       }, GlobalConsts.ExtendClick_DelayToFindAll);
     }, 1);
   }

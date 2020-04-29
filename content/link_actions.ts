@@ -7,7 +7,7 @@ import {
   mouse_, scrollingEl_, view_, findMainSummary_, getVisibleClientRect_, getComputedStyle_, IsInDOM_
 } from "../lib/dom_utils"
 import {
-  hintOptions, mode1_, mode_, hintHUD, hintApi, hintMaster, coreHints,
+  hintOptions, mode1_, mode_, hintHUD, hintApi, hintManager, coreHints,
   highlightChild, setMode,
 } from "./link_hints"
 import { set_currentScrolling, syncCachedScrollable } from "./scroller"
@@ -34,11 +34,11 @@ export const resetRemoveFlash = (): void => { removeFlash = null }
 export const resetHintKeyCode = (): void => { keyCode_ = kKeyCode.None }
 
 export const executeHint = (hint: HintItem, event?: HandlerNS.Event): void => {
-  const masterOrA = hintMaster || coreHints, keyStatus = masterOrA.k;
+  const masterOrA = hintManager || coreHints, keyStatus = masterOrA.$().k;
   let rect: Rect | null | undefined, clickEl: LinkEl | null = hint.d;
-  if (hintMaster) {
+  if (hintManager) {
     /*#__INLINE__*/ set_keydownEvents_(hintApi.a());
-    setMode(hintMaster.m, 1);
+    setMode(masterOrA.$().m, 1);
   }
   if (event) {
     prevent_(event.e);
@@ -62,7 +62,7 @@ export const executeHint = (hint: HintItem, event?: HandlerNS.Event): void => {
         return masterOrA.j(coreHints, hint, rect && lastFlashEl);
       }
     }
-    hintMaster && focus();
+    hintManager && focus();
     // tolerate new rects in some cases
     const showRect = hintModeAction![0](clickEl, rect, hint);
     if (!removeFlash && showRect !== false && (rect || (rect = getVisibleClientRect_(clickEl)))) {
@@ -271,7 +271,7 @@ export const linkActions: readonly LinkAction[] = [
     // NOTE: url should not be modified
     // although BackendUtils.convertToUrl does replace '\u3000' with ' '
     str = isUrl ? tryDecodeURL(str) : str;
-    let lastYanked = mode1 & HintMode.list ? (hintMaster || coreHints).y : 0 as const;
+    let lastYanked = mode1 & HintMode.list ? (hintManager || coreHints).y : 0 as const;
     if (lastYanked) {
       if (lastYanked.indexOf(str) >= 0) {
         return hintHUD.s(kTip.noNewToCopy);

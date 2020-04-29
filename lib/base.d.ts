@@ -226,11 +226,12 @@ declare namespace HintsNS {
   }
 
   const enum ClickType {
-    Default = 0, edit,
-    MaxNotWeak = edit, attrListener, MinWeak = attrListener, codeListener, classname, tabindex, MaxWeak = tabindex,
-    MinNotWeak, // should <= MaxNotBox
-    MaxNotBox = 6, frame, scrollX, scrollY,
+    Default = 0, edit = 1,
+    MaxNotWeak = 1, attrListener = 2, MinWeak = 2, codeListener = 3, classname = 4, tabindex = 5, MaxWeak = 5,
+    MinNotWeak = 6, // should <= MaxNotBox
+    MaxNotBox = 6, frame = 7, scrollX = 8, scrollY = 9,
   }
+  type AllowedClickTypeForNonHTML = ClickType.attrListener | ClickType.tabindex
 }
 
 declare namespace FindNS {
