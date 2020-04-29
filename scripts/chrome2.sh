@@ -68,6 +68,10 @@ case "$1" in
     FLAGS=$FLAGS" --lang=en-US"
     shift
     ;;
+  fr|fr-fr|fr-FR|--fr|--fr-fr|--fr-FR)
+    FLAGS=$FLAGS" --lang=fr"
+    shift
+    ;;
   dist|--dist)
     DIST=1
     shift

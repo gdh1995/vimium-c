@@ -58,6 +58,10 @@ case "$1" in
     FLAGS=$FLAGS" --pref general.useragent.locale=en-US"
     shift
     ;;
+  fr|fr-fr|fr-FR|--fr|--fr-fr|--fr-FR)
+    FLAGS=$FLAGS" --pref general.useragent.locale=fr-FR"
+    shift
+    ;;
   dist|--dist)
     DIST=1
     shift

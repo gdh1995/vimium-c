@@ -1,9 +1,9 @@
 <span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span>
-![Icon](icons/icon32.png) - Everything by Keyboard
+![Icon](icons/icon32.png) - All by Keyboard
 ===========================================
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.81.5](https://img.shields.io/badge/release-1.81.5-orange.svg
+[![Version 1.83.0](https://img.shields.io/badge/release-1.83.0-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -88,6 +88,9 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
+#### 1.83.0
+* Not released yet
+
 #### 1.81.5
 * `LinkHints`: Filtered hints: use <Kbd>Alt+N</Kbd> to filter by link text (#122)
 * `LinkHints`: add `scroll="force"` to focus and then scroll some special boxes (#147)
@@ -96,40 +99,6 @@ __Other extensions supporting Vimium C:__
 * `closeOtherTabs`: add `filter=""/url/url+hash/url+title` (#148)
 * Clipboard text Substitution: now accept empty destination strings
 * better support for the flag `#freeze-user-agent` on Chrome 81
-
-#### 1.81.4
-* `Vomnibar`: roll back and prefer visited tabs to newly-opened ones
-* `mapKey`: support a new mode ID of `e` (NExt) and use it when a prefix sequence of count/key has been typed.
-* `LinkHints`: support `autoUnhover` to unhover a link node once it's clicked
-  * on Firefox: press <kbd>Esc</kbd> to auto unhover a link node after opening it in a new tab
-* `Vomnibar`: support `noTabs` or `":H"` to avoid searching opened tabs in omni mode
-* `focusInput`: support `act="last"|"last-visible"`
-  ([#127 (comments)](https://github.com/gdh1995/vimium-c/issues/127#issuecomment-602038442))
-* `goNext`: prefer completely matched text (e.g. `">"` is preferred to `">|"`)
-* `goBack`: add an option of `local` to always use `history.go`, instead of async going
-* popup page: if an extension wants to run Vimium C but not is allowed, show a button to auto allow it
-* some bug fixes
-
-#### 1.81.0
-* fix that <kbd>-</kbd> or software-produced <kbd>Escape</kbd> can not be recognized
-  ([#129](https://github.com/gdh1995/vimium-c/issues/129))
-* **Privacy Policy**: update to **allow short-term and in-memory cache** for Vomnibar suggestions
-  * Please see https://github.com/gdh1995/vimium-c/commit/240160ddb931c3fda545e8b7bd06f7c0bba0d56b
-* Vomnibar: also match queries in all tabs when in omni mode
-* Vomnibar: fix some edge cases and improve performance when matching queries
-* Vomnibar: show indexes on <kbd>Alt</kbd> and quickly access items with <kbd>Alt + Number</kbd>
-  * on macOs, use <kbd>Ctrl + Alt + Number</kbd> (`<a-c-N>`) instead
-  * keys can be re-mapped: see [#135 (comment)](https://github.com/gdh1995/vimium-c/issues/135#issuecomment-597649596)
-* LinkHints: Firefox: improve reachability detection for scrollable areas
-* LinkHints: Filtered Hints: make hint keys follow page numbers
-* Scroller: use a lightweight method to deactivate hover effects globally if smooth scrolling is enabled
-  ([#133](https://github.com/gdh1995/vimium-c/issues/133))
-* `goNext`: support aria-label
-* `switchFocus`: add 2 options of `select` and `flash` to work like `focusInput`
-  ([#127](https://github.com/gdh1995/vimium-c/issues/127))
-* hooked `Function::toString`: not convert those whose body includes `__VimiumC_` to `()=>1` any more
-  (influence [#130](https://github.com/gdh1995/vimium-c/issues/130))
-* Chrome release: mark itself offline-enabled
 
 See more on [RELEASE-NOTES.md](https://github.com/gdh1995/vimium-c/blob/master/RELEASE-NOTES.md).
 

@@ -414,10 +414,10 @@ label:active {
   margin-left: 0;
 }
 .break-all {
+  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
   white-space: normal;
   word-break: break-all;
-  word-wrap: break-word;
-  word-wrap: anywhere;
 }
 .deprecated {
   color: darkgray;
