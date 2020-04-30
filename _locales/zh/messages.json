@@ -959,7 +959,7 @@
 		"message": "Shortcut Forwarding Tool 提供了 32 个可配置的快捷键栏位"
 	},
 	"twoS": {
-		"message": "%s 和 $s 的用法作用完全相同"
+		"message": "%s 和 $$s 的用法作用完全相同"
 	},
 	"needToInstallExt": {
 		"message": "使用此页面需要先安装相应的扩展程序"

@@ -9,7 +9,7 @@ import {
   getClientRectsForAreas_, htmlTag_, isAriaNotTrue_, getCroppedRect_, getBoundingClientRect_, cropRectToVisible_,
   isStyleVisible_, fullscreenEl_unsafe_, querySelector_unsafe_, bZoom_, set_bZoom_, prepareCrop_, notSafe_not_ff_,
   isContaining_, docEl_unsafe_, GetParent_unsafe_, unsafeFramesetTag_old_cr_, isDocZoomStrange_, docZoom_,
-  SubtractSequence_, isHTML_, querySelectorAll_unsafe_, getInnerHeight,
+  SubtractSequence_, isHTML_, querySelectorAll_unsafe_, getInnerHeight, getInputType,
 } from "../lib/dom_utils"
 import { find_box } from "./mode_find"
 import { omni_box } from "./vomnibar"
@@ -57,11 +57,11 @@ export const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
     type = isClickable ? ClickType.frame : ClickType.Default;
     break;
   case "input":
-    if ((element as HTMLInputElement).type === "hidden") { return; } // no break;
+    if (getInputType(element as HTMLInputElement) === "hi") { return; } // no break;
   case "textarea":
     // on C75, a <textarea disabled> is still focusable
     if ((element as TextElement).disabled && mode1_ < HintMode.max_mouse_events + 1) { return; }
-    if (tag === "input" && uneditableInputs_[(element as HTMLInputElement).type]) {
+    if (tag === "input" && uneditableInputs_[getInputType(element as HTMLInputElement)]) {
       const st = getComputedStyle_(element), visible = <number> <string | number> st.opacity > 0;
       isClickable = visible || !(element as HTMLInputElement).labels.length;
       if (isClickable) {
@@ -245,7 +245,7 @@ export const getEditable = (hints: Hint[], element: SafeHTMLElement): void => {
   let arr: Rect | null, s: string;
   switch (element.localName) {
   case "input":
-    if (uneditableInputs_[(element as HTMLInputElement).type]) {
+    if (uneditableInputs_[getInputType(element as HTMLInputElement)]) {
       return;
     } // no break;
   case "textarea":

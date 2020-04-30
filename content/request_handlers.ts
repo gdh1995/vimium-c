@@ -305,7 +305,7 @@ set_requestHandlers([
     }
 
     const query = box.querySelector.bind(box), closeBtn = query("#HClose") as HTMLElement,
-    optLink = query("#OptionsPage") as HTMLAnchorElement, advCmd = query("#AdvancedCommands") as HTMLElement,
+    optLink = query("#HOpt") as HTMLAnchorElement, advCmd = query("#HAdv") as HTMLElement,
     hide: (this: void, e?: (EventToPrevent) | CmdOptions[kFgCmd.showHelp] | "e") => void = function (event): void {
       if (event instanceof Event) {
         prevent_(event);

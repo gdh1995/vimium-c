@@ -32,7 +32,7 @@
     "strictPropertyInitialization": false,
     "target": "es2017",
     "tsBuildInfoFile": "scripts/.ts.build",
-    "typeRoots": ["types"],
+    "typeRoots": ["typings"],
     "types": ["base", "lib", "build"]
   },
   "exclude": [

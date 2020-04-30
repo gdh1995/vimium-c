@@ -1,6 +1,6 @@
 import {
   clickable_, setupEventListener, VOther, timeout_, clearTimeout_, doc, isAlive_, set_allowRAF_, set_allowScripts_,
-  loc_, replaceBrokenTimerFunc, allowRAF_, getTime,
+  loc_, replaceBrokenTimerFunc, allowRAF_, getTime, recordLog, VTr,
 } from "../lib/utils"
 import {
   docEl_unsafe_, createElement_, set_createElement_, OnDocLoaded_, runJS_, isHTML_, rAF_,
@@ -207,7 +207,8 @@ export const main = (): void => {
     (maybeSecret: string): [EventTarget["addEventListener"], Function["toString"]] | void;
   }
   type PublicFunction = (maybeKNeedToVerify: string, verifierFunc: InnerVerifier | unknown) => void | string;
-  let injected: string = isFirstTime ? '"use strict";(' + (function VC(this: void): void {
+  let injected: string = isFirstTime ? Build.NDEBUG && VTr(kTip.extendClick)
+        || '"use strict";(' + (function VC(this: void): void {
 
 function verifier(maybeSecret: string, maybeVerifierB?: InnerVerifier): ReturnType<InnerVerifier> {
   if (maybeSecret === GlobalConsts.MarkAcrossJSWorlds
@@ -519,7 +520,7 @@ ETP.addEventListener = myAEL;
 FProto.toString = myToStr;
 _listen(kOnDomReady, doInit, !0);
 
-      }).toString() + ")();" /** need "toString()": {@see Gulpfile.js#patchExtendClick} */
+      }).toString() + ")();" /** need "toString()": {@link ../scripts/dependencies.js#patchExtendClick} */
       : "document.currentScript.remove()";
 
 // #endregion injected code
@@ -589,10 +590,7 @@ _listen(kOnDomReady, doInit, !0);
   const breakTotally = Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage
       // still check appVer, so that treat it as a latest version if appVer parsing is failed
       && appVer && appVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage;
-  console.info((Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage && breakTotally
-                ? "Vimium C can" : "Some functions of Vimium C may")
-      + " not work because %o is sandboxed.",
-    loc_.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"));
+  recordLog(kTip.logNotWorkOnSandboxed)
   if (Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage && breakTotally) {
     return safeDestroy(1)
   }

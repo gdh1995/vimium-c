@@ -16,7 +16,7 @@ interface FullOptions extends BaseFullOptions {
 declare var VData: VDataTy
 
 import {
-  injector, isAlive_, keydownEvents_, readyState_, VOther, timeout_, clearTimeout_, fgCache, loc_, VTr,
+  injector, isAlive_, keydownEvents_, readyState_, VOther, timeout_, clearTimeout_, fgCache, loc_, recordLog,
 } from "../lib/utils"
 import { removeHandler_, pushHandler_, SuppressMost_, key_, isEscape_ } from "../lib/keyboard_utils";
 import {
@@ -198,7 +198,7 @@ export const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void
       loaded = true;
       if (onReset) { return; }
       if (type !== VomnibarNS.PageType.inner && isAboutBlank()) {
-        console.log(VTr(kTip.omniFallback));
+        recordLog(kTip.logOmniFallback)
         return reload();
       }
       const wnd = (this as typeof el).contentWindow,

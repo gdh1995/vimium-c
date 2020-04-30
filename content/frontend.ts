@@ -3,7 +3,7 @@
 import {
   doc, isTop, injector, VOther, initialDocState, set_esc, esc, setupEventListener, set_isEnabled_,
   set_clickable_, clickable_, isAlive_, set_VTr, setupKeydownEvents, onWndFocus,
-  set_readyState_, readyState_, loc_, set_allowScripts_, callFunc, VTr, getTime,
+  set_readyState_, readyState_, set_allowScripts_, callFunc, recordLog,
 } from "../lib/utils"
 import { suppressTail_, key_ } from "../lib/keyboard_utils"
 import { frameElement_, set_OnDocLoaded_, getInnerHeight } from "../lib/dom_utils"
@@ -51,10 +51,7 @@ set_safeDestroy((silent?: Parameters<SafeDestoryF>[0]): void => {
 
     /*#__INLINE__*/ set_esc(null as never)
     VApi = null as never;
-
-    silent || console.log(VTr(kTip.destroyed)
-      , loc_.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1")
-      , getTime());
+    silent || recordLog(kTip.logDestroyed)
 
     if (runtime_port) { try { runtime_port.disconnect(); } catch {} }
     injector || (<RegExpOne> /a?/).test("");

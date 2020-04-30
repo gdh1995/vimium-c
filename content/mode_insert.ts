@@ -8,7 +8,7 @@ interface NodeWithInfo extends Node {
 
 import {
   doc, keydownEvents_, safeObj, fgCache, isTop, set_keydownEvents_, setupEventListener, VOther,
-  esc, onWndFocus, isEnabled_, readyState_, injector, VTr, getTime,
+  esc, onWndFocus, isEnabled_, readyState_, injector, getTime, recordLog,
 } from "../lib/utils"
 import { post_, safePost } from "./port"
 import { getParentVApi, ui_box } from "./dom_ui"
@@ -64,7 +64,7 @@ export const insertInit = (): void => {
   /*#__INLINE__*/ set_keydownEvents_(safeObj(null))
   if (fgCache.g && grabBackFocus) {
     let counter = 0, prompt = function (): void {
-      counter++ || console.log(VTr(kTip.grabFocus));
+      counter++ || recordLog(kTip.logGrabFocus)
     };
     if (notBody = notBody && getEditableType_(activeEl!)) {
       insert_last_ = null;

@@ -11,29 +11,17 @@
 	"moveTabToNewWindow": {
 		"message": "Déplacer N onglet(s) dans une nouvelle fenêtre"
 	},
-	"moveTabToNewWindow_p": {
-		"message": "limited=null/true/false (limité=rien/vrai/faux)"
-	},
 	"openCopiedUrlInNewTab": {
 		"message": "Ouvrir l'URL du presse-papiers dans N nouveaux onglets"
 	},
 	"openUrl": {
 		"message": "Ouvrir l'URL"
 	},
-	"openUrl_p": {
-		"message": "url:string, urls:string[], reuse=-1/0/1/-2, incognito, window, position"
-	},
 	"reloadTab": {
 		"message": "Recharger N onglet(s)"
 	},
-	"reloadTab_p": {
-		"message": "hard(brut), bypassCache(court-circuite le cache)"
-	},
 	"removeTab": {
 		"message": "Fermer N onglet(s)"
-	},
-	"removeTab_p": {
-		"message": "mayClose (peut fermer), goto(aller vers)=\"\"/left/right/previous(gauche/droite/précédent)"
 	},
 	"restoreTab": {
 		"message": "Restaurer des onglets fermés"
@@ -44,17 +32,8 @@
 	"LinkHints_activate": {
 		"message": "Ouvrir un lien dans l'onglet courant"
 	},
-	"LinkHints_activate_p": {
-		"message": "button=\"\"/right, touch=false/true/\"auto\""
-	},
-	"LinkHints_activateMode": {
-		"message": "Ouvrir un lien dans l'onglet courant"
-	},
 	"LinkHints_activateModeToCopyLinkText": {
 		"message": "Copier un lien dans le presse-papiers"
-	},
-	"LinkHints_activateModeToCopyLinkText_p": {
-		"message": "join:boolean/string"
 	},
 	"LinkHints_activateModeToCopyLinkUrl": {
 		"message": "Copier un lien dans le presse-papiers"
@@ -77,9 +56,6 @@
 	"LinkHints_activateModeToOpenImage": {
 		"message": "Montrer l'image dans un nouvel onglet"
 	},
-	"LinkHints_activateModeToOpenImage_p": {
-		"message": "auto=true"
-	},
 	"LinkHints_activateModeToOpenIncognito": {
 		"message": "Ouvrir le lien dans une fenêtre incognito"
 	},
@@ -91,9 +67,6 @@
 	},
 	"LinkHints_activateModeToOpenVomnibar": {
 		"message": "Editer un lien sur Vomnibar"
-	},
-	"LinkHints_activateModeToOpenVomnibar_p": {
-		"message": "url, newtab"
 	},
 	"LinkHints_activateModeToSearchLinkText": {
 		"message": "Ouvrir ou chercher le texte d'un lien"
@@ -107,14 +80,8 @@
 	"Marks_activate": {
 		"message": "Aller à un marqueur"
 	},
-	"Marks_activate_p": {
-		"message": "prefix=true, swap, mapKey (vrai, permute, map une clef)"
-	},
 	"Marks_activateCreateMode": {
 		"message": "Créer un nouveau marqueur"
-	},
-	"Marks_activateCreateMode_p": {
-		"message": "swap (permute)"
 	},
 	"Marks_clearGlobal": {
 		"message": "Retirer tous les marqueurs globaux"
@@ -125,20 +92,11 @@
 	"Vomnibar_activate": {
 		"message": "Ouvrir l'URL, le marque-page, ou l'entrée d'historique"
 	},
-	"Vomnibar_activate_p": {
-		"message": "keyword=\"\", url:boolean/string"
-	},
 	"Vomnibar_activateBookmarks": {
 		"message": "Ouvrir un marque-page"
 	},
 	"Vomnibar_activateBookmarksInNewTab": {
 		"message": "Ouvrir un marque-page dans un nouvel onglet"
-	},
-	"Vomnibar_activateEditUrl": {
-		"message": "Editer l'URL courante"
-	},
-	"Vomnibar_activateEditUrlInNewTab": {
-		"message": "Editer l'URL courante et l'ouvrir dans un nouvel onglet"
 	},
 	"Vomnibar_activateHistory": {
 		"message": "Ouvrir l'historique"
@@ -148,9 +106,6 @@
 	},
 	"Vomnibar_activateInNewTab": {
 		"message": "Ouvrir l'URL, l'historique, ..., dans un nouvel onglet"
-	},
-	"Vomnibar_activateInNewTab_p": {
-		"message": "keyword, url"
 	},
 	"Vomnibar_activateTabSelection": {
 		"message": "Chercher dans les onglets ouverts"
@@ -164,9 +119,6 @@
 	"autoCopy": {
 		"message": "Copier le texte sélectionné ou le titre du cadre courant ou l'URL"
 	},
-	"autoCopy_p": {
-		"message": "url, decoded"
-	},
 	"autoOpen": {
 		"message": "Ouvrir le texte sélectionné ou copié dans un nouvel onglet"
 	},
@@ -175,9 +127,6 @@
 	},
 	"clearCS": {
 		"message": "Nettoyer les paramètres du contenu de l'extension"
-	},
-	"clearCS_p": {
-		"message": "type=images"
 	},
 	"clearFindHistory": {
 		"message": "Nettoyer l'historique du mode recherhe"
@@ -188,14 +137,8 @@
 	"closeTabsOnLeft": {
 		"message": "Fermer tous les onglets sur la gauche"
 	},
-	"closeTabsOnLeft_p": {
-		"message": "$count=0"
-	},
 	"closeTabsOnRight": {
 		"message": "Fermer tous les onglets sur la droite"
-	},
-	"closeTabsOnRight_p": {
-		"message": "$count=0"
 	},
 	"copyCurrentTitle": {
 		"message": "Copier le titre de l'onglet courant"
@@ -203,14 +146,8 @@
 	"copyCurrentUrl": {
 		"message": "Copier les informations de la page"
 	},
-	"copyCurrentUrl_p": {
-		"message": "type=url/title/frame, decoded"
-	},
 	"copyWindowInfo": {
 		"message": "Copier le titre/l'URL de la fenêtre courante"
-	},
-	"copyWindowInfo_p": {
-		"message": "format=\"${title}: ${url}\", join=true/string, decoded"
 	},
 	"debugBackground": {
 		"message": "Débugger le fond de la page"
@@ -218,26 +155,14 @@
 	"editText": {
 		"message": "Envoyer l'action d'édition au navigateur"
 	},
-	"editText_p": {
-		"message": "run:string, dom=false"
-	},
 	"enableCSTemp": {
 		"message": "Activer les feuilles de style du site en fenêtre incognito"
-	},
-	"enableCSTemp_p": {
-		"message": "type=images"
 	},
 	"enterFindMode": {
 		"message": "Passer en mode recherche"
 	},
-	"enterFindMode_p": {
-		"message": "last, selected=true"
-	},
 	"enterInsertMode": {
 		"message": "Passer en mode insertion"
-	},
-	"enterInsertMode_p": {
-		"message": "key:string"
 	},
 	"enterVisualLineMode": {
 		"message": "Passer en mode visuel-ligne"
@@ -251,26 +176,14 @@
 	"focusInput": {
 		"message": "Mettre le focus sur la Nième zone de texte visible sur la page et parcourir en utilisant TAB"
 	},
-	"focusInput_p": {
-		"message": "keep, select=\"\"/all/all-line/start/end"
-	},
 	"focusOrLaunch": {
 		"message": "Mettre le focus sur un onglet avec l'URL donnée et l'ouvrir"
-	},
-	"focusOrLaunch_p": {
-		"message": "url:string, prefix"
 	},
 	"goBack": {
 		"message": "Remonter dans l'historique"
 	},
-	"goBack_p": {
-		"message": "reuse=-2/-1"
-	},
 	"goForward": {
 		"message": "Avancer dans l'historique"
-	},
-	"goForward_p": {
-		"message": "reuse=-2/-1"
 	},
 	"goNext": {
 		"message": "Suivre le lien etiquetté next ou \">\""
@@ -283,9 +196,6 @@
 	},
 	"goUp": {
 		"message": "Remonter la hiérarchie de l'URL"
-	},
-	"goUp_p": {
-		"message": "trailingSlash(slash de fin)=null/true/false"
 	},
 	"joinTabs": { "message": "Collecter tous les onglets dans la fenêtre courante" },
 	"lastTab": {
@@ -306,9 +216,6 @@
 	"moveTabToNextWindow": {
 		"message": "Déplacer l'onglet dans la fenêtre suivante"
 	},
-	"moveTabToNextWindow_p": {
-		"message": "droite"
-	},
 	"nextFrame": {
 		"message": "Avancer jusqu'au prochain cadre de la page"
 	},
@@ -324,9 +231,6 @@
 	"passNextKey": {
 		"message": "Envoyer les prochaines touches pressées à la page"
 	},
-	"passNextKey_p": {
-		"message": "normal"
-	},
 	"performAnotherFind": {
 		"message": "Chercher les seconds voire plus récents, mots de recherche"
 	},
@@ -339,20 +243,11 @@
 	"previousTab": {
 		"message": "Aller sur l'onglet de gauche"
 	},
-	"quickNext": {
-		"message": "Aller sur l'onglet de droite"
-	},
 	"reload": {
 		"message": "Recharger la frame courante"
 	},
-	"reload_p": {
-		"message": "brut"
-	},
 	"reloadGivenTab": {
 		"message": "Recharger le Nième onglet"
-	},
-	"reloadGivenTab_p": {
-		"message": "brut"
 	},
 	"removeRightTab": {
 		"message": "Fermer le Nième onglet à droite"
@@ -417,14 +312,8 @@
 	"searchAs": {
 		"message": "Chercher le texte sélectionné ou copié avec le moteur de recherche courant"
 	},
-	"searchAs_p": {
-		"message": "copied=true, selected=true"
-	},
 	"searchInAnother": {
 		"message": "Re-effectuer la recherche dans un autre moteur de recherche"
-	},
-	"searchInAnother_p": {
-		"message": "keyword, reuse=0/-1/1/-2"
 	},
 	"showHelp": {
 		"message": "Montrer l'aide"
@@ -435,32 +324,17 @@
 	"switchFocus": {
 		"message": "Floute l'élément actif ou remet le focus dessus"
 	},
-	"switchFocus_p": {
-		"message": "flash, select=\"\"/all/all-line/start/end"
-	},
 	"toggleCS": {
 		"message": "Paramètres de contenu du site de basculement"
-	},
-	"toggleCS_p": {
-		"message": "type=images"
 	},
 	"toggleLinkHintCharacters": {
 		"message": "Permuter les autres indices du lien"
 	},
-	"toggleLinkHintCharacters_p": {
-		"message": "value:string"
-	},
 	"toggleMuteTab": {
 		"message": "Permuter le son de l'onglet courant"
 	},
-	"toggleMuteTab_p": {
-		"message": "all, other"
-	},
 	"toggleSwitchTemp": {
 		"message": "Activer temporairement"
-	},
-	"toggleSwitchTemp_p": {
-		"message": "key:string [, value:any]"
 	},
 	"toggleViewSource": {
 		"message": "Voir la source de la page"
@@ -468,17 +342,11 @@
 	"toggleVomnibarStyle": {
 		"message": "Alterner les styles de la page Vomnibar"
 	},
-	"toggleVomnibarStyle_p": {
-		"message": "style=dark, current"
-	},
 	"closeDownloadBar": {
 		"message": "Fermer la barre de téléchargement du bas de façon élégante"
 	},
 	"showTip": {
 		"message": "Montrer un indice sur le HUD"
-	},
-	"showTip_p": {
-		"message": "text:string"
 	},
 	"visitPreviousTab": {
 		"message": "Aller à l'onglet précédemment visité sur la fenêtre courante"
@@ -522,37 +390,8 @@
 	"description": {
 		"message": "Un outil de raccourcis clavier pour une navigation de page centrée sur l'usage du clavier, des opérations sur les onglets du navigateur avec une omnibar avancée ainsi que des raccourcis globaux"
 	},
-	"lang1": { "message": "" },
-	"lang2": { "message": "" },
-	"NS": { "message": " " },
+	"lang1": { "message": "fr" },
 	"noActiveState": { "message": "Tel que configuré, pas d'état actif présent" },
-	"period": {
-		"message": "."
-	},
-	"colon": {
-		"message": ":"
-	},
-	"semicolon": {
-		"message": ";"
-	},
-	"question": {
-		"message": "?"
-	},
-	"period2": {
-		"message": ". "
-	},
-	"semicolon2": {
-		"message": "; "
-	},
-	"question2": {
-		"message": "? "
-	},
-	"win": {
-		"message": "Windows"
-	},
-	"mac": {
-		"message": "macOS"
-	},
 	"o3_2": {
 		"message": "(Rangé)"
 	},
@@ -616,9 +455,6 @@
 	"beforeUnload": {
 		"message": "Vous avez des modifications non-sauvegardées dans les options"
 	},
-	"comma": {
-		"message": ", "
-	},
 	"error": {
 		"message": "Il y a $1 erreur trouvée"
 	},
@@ -654,9 +490,6 @@
 	},
 	"addons": {
 		"message": "Extensions Firefox"
-	},
-	"webstore": {
-		"message": "Chrome Web Store"
 	},
 	"edgestore": {
 		"message": "Extensions Microsoft Edge"
@@ -733,9 +566,6 @@
 	"upgradeMsg": {
 		"message": "Vimium C a été mise à jour vers la v$1.\n"
 	},
-	"upgradeMsg2": {
-		"message": ""
-	},
 	"clickForMore": {
 		"message": "Cliquez ici pour plus d'informations."
 	},
@@ -770,12 +600,6 @@
 	"advCmd": {
 		"message": " commandes avancées"
 	},
-	"ext": {
-		"message": ""
-	},
-	"VerIs": {
-		"message": "Version "
-	},
 	"HStar": {
 		"message": "Activez l'étoile Github pour mettre en favori"
 	},
@@ -800,14 +624,8 @@
 	"HAnd": {
 		"message": " et "
 	},
-	"HEnd": {
-		"message": "."
-	},
 	"noCopied": {
 		"message": "Aucun texte copié !"
-	},
-	"quoteA": {
-		"message": "\"$1\""
 	},
 	"notFgOpt": {
 		"message": "$1 n'est pas un changement valide"
@@ -866,9 +684,6 @@
 	"fhCleared": {
 		"message": "$1 historique de recherche nettoyé"
 	},
-	"incog": {
-		"message": "incognito "
-	},
 	"noStyleName": {
 		"message": "Aucun nom de style de Vomnibar n'est donné"
 	},
@@ -926,29 +741,11 @@
 	"csCleared": {
 		"message": "Les paramètres du contenu $1 ont été effacés"
 	},
-	"images": {
-		"message": "Image"
-	},
-	"javascript": {
-		"message": "JavaScript"
-	},
 	"noMark": {
 		"message": "$1 marqueur non-défini : ' $2 '"
 	},
-	"Local_": {
-		"message": "Local"
-	},
-	"Global_": {
-		"message": "Global"
-	},
 	"markRemoved": {
 		"message": "$1 $2 marqueur$3 été supprimé"
-	},
-	"local": {
-		"message": "local"
-	},
-	"global": {
-		"message": "global"
 	},
 	"have": {
 		"message": "s ont"
@@ -984,14 +781,13 @@
 		"message": "(info des onglets)"
 	},
 	"Close": {
-		"message": ""
+		"message": "Cacher"
 	},
 	"Toggle_Dark": {
-		"message": ""
+		"message": "Basculez le mode sombre"
 	},
-	"69": {
-		"message": "$1"
-	},
+	"Search": { "message": "Rechercher" },
+	"Go": { "message": "Aller" },
 	"70": {
 		"message": "Caractères pour les LinkHints trop peu nombreux"
 	},
@@ -1051,9 +847,6 @@
 	},
 	"89": {
 		"message": "Aucune correspondance pour \"$1\""
-	},
-	"90": {
-		"message": "$1 mode"
 	},
 	"Caret": {
 		"message": "Curseur"

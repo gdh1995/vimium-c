@@ -654,8 +654,7 @@ export const isAriaNotTrue_ = (element: SafeElement, ariaType: kAria): boolean =
 }
 
 export const uneditableInputs_: SafeEnum = { __proto__: null as never,
-    button: 1, checkbox: 1, color: 1, file: 1, hidden: 1, //
-    image: 1, radio: 1, range: 1, reset: 1, submit: 1
+    bu: 1, ch: 1, co: 1, fi: 1, hi: 1, im: 1, ra: 1, re: 1, su: 1
 }
 
 export const editableTypes_: ReadonlySafeDict<EditableType> = { __proto__: null as never,
@@ -663,6 +662,8 @@ export const editableTypes_: ReadonlySafeDict<EditableType> = { __proto__: null 
     select: EditableType.Select,
     embed: EditableType.Embed, object: EditableType.Embed
 }
+
+export const getInputType = (el: HTMLInputElement): string => el.type.slice(0, 2)
 
   /**
    * if true, then `element` is `LockableElement`,
@@ -674,7 +675,7 @@ export const getEditableType_ = function (element: Element): EditableType {
         ((element as HTMLElement).isContentEditable !== true
         ? EditableType.NotEditable : EditableType.TextBox)
       )
-      : uneditableInputs_[(element as HTMLInputElement).type] ? EditableType.NotEditable : EditableType.TextBox;
+      : uneditableInputs_[getInputType(element as HTMLInputElement)] ? EditableType.NotEditable : EditableType.TextBox
 } as {
     (element: Element): element is LockableElement;
     <Ty extends 0>(element: Element): EditableType;

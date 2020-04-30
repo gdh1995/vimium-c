@@ -4,7 +4,7 @@ import {
 } from "../lib/utils"
 import {
   getEditableType_, hover_, center_, htmlTag_, GetParent_unsafe_, unhover_, uneditableInputs_, createElement_,
-  mouse_, scrollingEl_, view_, findMainSummary_, getVisibleClientRect_, getComputedStyle_, IsInDOM_
+  mouse_, scrollingEl_, view_, findMainSummary_, getVisibleClientRect_, getComputedStyle_, IsInDOM_, getInputType
 } from "../lib/dom_utils"
 import {
   hintOptions, mode1_, mode_, hintHUD, hintApi, hintManager, coreHints,
@@ -224,15 +224,15 @@ export const linkActions: readonly LinkAction[] = [
       const tag = htmlTag_(link), isChild = highlightChild(link, tag);
       if (isChild) { return isChild > 1; }
       if (tag === "input") {
-        let type = (link as HTMLInputElement).type, f: HTMLInputElement["files"];
-        if (type === "password") {
+        let type = getInputType(link as HTMLInputElement), f: HTMLInputElement["files"];
+        if (type === "pa") {
           return hintHUD.t(kTip.ignorePassword, 2000);
         }
         if (!uneditableInputs_[type]) {
           str = (link as HTMLInputElement).value || (link as HTMLInputElement).placeholder;
-        } else if (type === "file") {
+        } else if (type === "fi") {
           str = (f = (link as HTMLInputElement).files) && f.length > 0 ? f[0].name : "";
-        } else if ("button image submit reset".includes(type)) {
+        } else if ("buimsure".includes(type)) {
           str = (link as HTMLInputElement).value;
         }
       } else {
@@ -288,8 +288,8 @@ export const linkActions: readonly LinkAction[] = [
   }
   , HintMode.SEARCH_TEXT
   , HintMode.COPY_TEXT
-  , HintMode.COPY_URL
   , HintMode.COPY_TEXT | HintMode.list
+  , HintMode.COPY_URL
   , HintMode.COPY_URL | HintMode.list
   , HintMode.EDIT_LINK_URL
   , HintMode.EDIT_TEXT

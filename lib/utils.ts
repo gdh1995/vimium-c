@@ -115,8 +115,7 @@ export const setupEventListener =
 
 export const suppressCommonEvents = (target: Window | SafeHTMLElement, extraEvents: string): void => {
     // note: if wheel is listened, then mousewheel won't be dispatched even on Chrome 35
-  for (const i of ("auxclick beforecopy beforecut compositionend compositionstart contextmenu copy cut "
-        + "keypress mouseup paste wheel " + extraEvents).split(" ")) {
+  for (const i of (VTr(kTip.kCommonEvents) + extraEvents).split(" ")) {
     setupEventListener(target, i);
   }
 }
@@ -134,4 +133,8 @@ export const isImageUrl = (str: string | null): boolean => {
   // eslint-disable-next-line @typescript-eslint/ban-types
   str = str.substring!(str.lastIndexOf("/", str.lastIndexOf("?") + 1 || end), end);
   return (<RegExpI & RegExpOne> /\.(?:bmp|gif|icon?|jpe?g|a?png|svg|tiff?|webp)\b/i).test(str);
+}
+
+export const recordLog = (tip: kTip): void => {
+  console.log(VTr(tip), loc_.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"), getTime())
 }

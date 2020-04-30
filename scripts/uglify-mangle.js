@@ -6,6 +6,7 @@ const MAX_ALLOWED_PROPERTY_GROUPS = 0;
 const MIN_COMPLEX_CLOSURE = 300;
 const MIN_COMPLEX_OBJECT = 1;
 const MIN_ALLOWED_NAME_LENGTH = 3;
+const MIN_LONG_STRING = 20;
 
 // @ts-ignore
 const TEST = typeof require === "function" && require.main === module;
@@ -25,7 +26,7 @@ const terser = require("terser");
 /**
  * @param { string | import("terser").AST_Node } text
  * @param { MinifyOptions } options
- * @returns { [string[][], ReadonlyMap<string, number>] }
+ * @returns { [string[][], ReadonlyMap<string, number>, string[]] }
  */
 function collectWords(text, options) {
   /** @type { Map<string, number> } */
@@ -38,6 +39,8 @@ function collectWords(text, options) {
   // @ts-ignore
   const propRe = props0 && props0.regex || /^_|_$/;
   const reservedProps = new Set(props0 && props0.reserved || [ "__proto__", "$_", "_" ]);
+  /** @type { string[] } */
+  const stringsTooLong = [];
   terser.minify(text, { ...options,
     sourceMap: false, mangle: null, nameCache: null,
     // @ts-ignore
@@ -96,6 +99,10 @@ function collectWords(text, options) {
         map.set(prop, (map.get(prop) || 0) + 1);
       }
       break;
+    case "String":
+      // @ts-ignore
+      if (node.value.length >= MIN_LONG_STRING) { stringsTooLong.push(node.value) }
+      break;
     default:
       break;
     }
@@ -111,7 +118,7 @@ function collectWords(text, options) {
       namesToMangle.splice(i, 1);
     }
   }
-  return [namesToMangle, map];
+  return [namesToMangle, map, stringsTooLong];
 }
 
 /**
@@ -160,7 +167,7 @@ function minify(files, options) {
   const sources = typeof files === "object" ? files instanceof Array ? files : Object.values(files) : [files];
   const ast = sources.length === 1 ? terser.parse(sources[0], options && options.parse) : sources.join("\n");
   if (options && options.mangle) {
-    const [names, countsMap] = collectWords(ast, options);
+    const [names, countsMap, stringsTooLong] = collectWords(ast, options);
     if (names.length > 0) {
       const duplicated = findDuplicated(names, countsMap);
       if (duplicated.length > 0) {
@@ -202,6 +209,13 @@ function minify(files, options) {
             props["$" + name] = newName;
           }
         }
+      }
+    }
+    if (process.env.CHECK_WORDS && stringsTooLong.length > 0) {
+      console.log("Some strings are too long:")
+      stringsTooLong.sort((i, j) => j.length - i.length)
+      for (const str of stringsTooLong) {
+        console.log("  (%s) %s", ("" + str.length).padStart(3, " "), str.length > 64 ? str.slice(0, 61) + "..." : str)
       }
     }
   }

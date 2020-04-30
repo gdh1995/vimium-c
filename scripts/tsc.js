@@ -99,7 +99,8 @@ var writeFile = function(path, data, writeBom) {
     if (doesUglifyLocalFiles && isJS) {
       data = getUglifyJS()(data);
       if (path.indexOf("extend_click") >= 0) {
-        data = lib.patchExtendClick(data, true);
+        var patched = lib.patchExtendClick(data, true);
+        data = typeof patched === "string" ? patched : patched[0] + patched[1] + patched[2];
       }
     }
     data = lib.addMetaData(path, data);

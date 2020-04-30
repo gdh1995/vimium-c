@@ -219,7 +219,7 @@ var Tasks = {
     }
   },
 
-  "min/content": function(cb) {
+  "min/content": ["static/json", function(cb) {
     var cs = manifest.content_scripts[0], sources = cs.js;
     if (sources.length <= 1 || jsmin_status[0]) {
       jsmin_status[0] = true;
@@ -232,11 +232,12 @@ var Tasks = {
     var maps = [
       [sources.slice(0), cs.js[0], null], [rest, ".", ""]
     ];
+    if (onlyTestSize) { debugging = 1 }
     checkJSAndUglifyAll(0, maps, "min/content", exArgs, (err) => {
       err || logFileSize(DEST + "/" + cs.js[0], logger);
       cb(err);
     });
-  },
+  }],
   "min/bg": ["min/content", function(cb) {
     if (jsmin_status[1]) {
       return cb();
@@ -471,6 +472,7 @@ var Tasks = {
   "minc": ["size/content"],
   "content/size": ["size/content"],
   "words": ["build/content", function (cb) {
+    process.env.CHECK_WORDS = "1";
     gulp.series("min/content")(function () {
       process.argv = process.argv.slice(0, 2);
       require("./scripts/words-collect");
@@ -1386,9 +1388,40 @@ function gulpMerge() {
 }
 
 function patchExtendClick(source) {
+  //@ts-check
   if (locally && envLegacy) { return source; }
   if (!(getBuildItem("BTypes") & ~BrowserType.Firefox)) { return source; }
-  return _patchExtendClick(source, locally, logger);
+  const patched = _patchExtendClick(source, locally, logger);
+  if (typeof patched === "string") { return patched; }
+  let inCode, inJSON;
+  if (getNonNullBuildItem("NDEBUG")) {
+    const n1 = patched[0].endsWith("||'") ? 3 : patched[0].endsWith("|| '") ? 4 : 0;
+    if (!n1 || patched[2][0] !== "'") {
+      throw Error("Error: can not extract extend_click from the target code file!!!");
+    }
+    inCode = patched[0].slice(0, -n1) + patched[2].slice(1);
+    inJSON = patched[1];
+  } else {
+    inCode = patched.join(""); inJSON = "";
+  }
+  if (inJSON) {
+    if (inJSON.includes("'")) { throw Error("Error: extend_click should not include `'`"); }
+    if (inJSON.includes('\\"')) { throw Error('Error: extend_click should not include `\\"`'); }
+    inJSON = inJSON.replace(/"/g, "'");
+    if (inJSON.includes("$")) {
+      if (!/\bzz\b/.test(inJSON)) {
+        inJSON = inJSON.replace(/\$/g, "zz");
+      } else {
+        throw Error('Error: can not escape `$` in extend_click');
+      }
+    }
+  }
+  const jsonPath = DEST + "/_locales/en/messages.json";
+  print("Save extend_click into en/messages.json")
+  const json = JSON.parse(readFile(jsonPath));
+  json[/** kTip.extendClick */ "99"] = { message: inJSON };
+  fs.writeFileSync(jsonPath, JSON.stringify(json));
+  return inCode;
 }
 
 function getGulpUglify(aggressiveMangle, unique_passes) {

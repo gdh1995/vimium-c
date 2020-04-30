@@ -47,9 +47,6 @@
 	"LinkHints_activate_p": {
 		"message": "button=\"\"/right, touch=false/true/\"auto\""
 	},
-	"LinkHints_activateMode": {
-		"message": "Open a link in the current tab"
-	},
 	"LinkHints_activateModeToCopyLinkText": {
 		"message": "Copy a link text to the clipboard"
 	},
@@ -192,13 +189,13 @@
 		"message": "Close all tabs on the left"
 	},
 	"closeTabsOnLeft_p": {
-		"message": "$count=0"
+		"message": "$$count=0"
 	},
 	"closeTabsOnRight": {
 		"message": "Close all tabs on the right"
 	},
 	"closeTabsOnRight_p": {
-		"message": "$count=0"
+		"message": "$$count=0"
 	},
 	"copyCurrentTitle": {
 		"message": "Copy current tab's title"
@@ -213,7 +210,7 @@
 		"message": "Copy title/URL info of a current window"
 	},
 	"copyWindowInfo_p": {
-		"message": "format=\"${title}: ${url}\", join=true/string, decoded"
+		"message": "format=\"$${title}: $${url}\", join=true/string, decoded"
 	},
 	"debugBackground": {
 		"message": "Debug the background page"
@@ -341,9 +338,6 @@
 	},
 	"previousTab": {
 		"message": "Go one tab left"
-	},
-	"quickNext": {
-		"message": "Go one tab right"
 	},
 	"reload": {
 		"message": "Reload current frame"
@@ -994,7 +988,7 @@
 	},
 	"Search": { "message": "" },
 	"Go": { "message": "" },
-	"69": {
+	"67": {
 		"message": "$1"
 	},
 	"70": {
@@ -1093,7 +1087,6 @@
 	"98": {
 		"message": "Import settings data: OK!"
 	},
-	"99": { "message": "Vimium C uses the built-in Vomnibar page because the preferred is too old." },
 	"4": {
 		"message": "The last element is unhovered"
 	},
@@ -1136,6 +1129,8 @@
 	"15": {
 		"message": "No text found!"
 	},
+	"17":{"message":
+		"auxclick beforecopy beforecut compositionend compositionstart contextmenu copy cut keypress mouseup paste wheel "},
 	"20": {
 		"message": "Copied: $1"
 	},
@@ -1175,11 +1170,13 @@
 	},
 	"45": { "message": "A child frame just got updated" },
 	"46": { "message": "Hit <Enter> to proceed\u2026" },
-	"47": { "message": "Vimium C blocks auto-focusing." },
+	"47": { "message": "Vimium C blocks auto-focusing on %s at %o." },
+	"60": { "message": "Vimium C uses the built-in Vomnibar page because the preferred is too old." },
+	"61": { "message": "Some functions of Vimium C may not work because %o is sandboxed at %o." },
 	"0": {
 		"message": "Open link in current tab"
 	},
-	"1": { "message": "Vimium C in %o has been destroyed at %o." },
+	"1": { "message": "Vimium C on %o has been destroyed at %o." },
 	"2": {
 		"message": "Open link in new tab"
 	},

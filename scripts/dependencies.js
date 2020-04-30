@@ -308,6 +308,7 @@ function getGitCommit() {
  * @param {string} source
  * @param {boolean} locally
  * @param {{ (...args: any[]): any; error(message: string): any; }} [logger]
+ * @returns { [string, string, string] | string }
  */
 function patchExtendClick(source, locally, logger) {
   logger && logger('Patch the extend_click module');
@@ -328,7 +329,7 @@ function patchExtendClick(source, locally, logger) {
     if (end2 <= 0) {
       throw new Error('Can not find the end ".toString() + \')();\'" around the injected function.');
     }
-    var prefix = source.slice(0, start), suffix = source.slice(end2 + ")();'".length);
+    var prefix = source.slice(0, start), suffix = "'" + source.slice(end2 + ")();'".length);
     source = source.slice(start + match[0].length, end1).replace(/ \/\/[^\n]*?$/g, "").replace(/'/g, '"');
     source = source.replace(/\\/g, "\\\\");
     if (locally) {
@@ -336,10 +337,15 @@ function patchExtendClick(source, locally, logger) {
     } else {
       source = source.replace(/[\r\n]\s*/g, "");
     }
-    source = "function(" + source;
-    source = prefix + source + ")();'" + suffix;
-  } else if (! (/= ?'"use strict";\(function\b/).test(source)) {
-    (logger || console).error("Error: can not wrap extend_click scripts!!!");
+    source = "function(" + source + ")();";
+    const sourceHead = '"use strict";(';
+    if (prefix.endsWith(sourceHead)) {
+      prefix = prefix.slice(0, -sourceHead.length);
+      source = sourceHead + source;
+    }
+    return [prefix, source, suffix];
+  } else if (! (/(=|\?|:|\|\|) ?'"use strict";\(function\b/).test(source)) {
+    throw Error("Error: can not wrap extend_click scripts!!!");
   }
   return source;
 }

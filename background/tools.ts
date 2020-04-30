@@ -786,7 +786,7 @@ Settings_.temp_.loadI18nPayload_ = function (): void {
   Settings_.temp_.loadI18nPayload_ = null;
   const arr: string[] = Settings_.i18nPayload_ = [],
   args = ["$1", "$2", "$3", "$4"];
-  for (let i = 0; i < kTip.END; i++) {
+  for (let i = 0; i < kTip.INJECTED_CONTENT_END; i++) {
     arr.push(trans_("" + i, args));
   }
 };

@@ -6,7 +6,7 @@ import ClickType = HintsNS.ClickType
 import {
   frameList_, mode_, useFilter_, coreHints, hintKeyStatus, KeyStatus, hintChars, allHints, setMode, resetMode,
 } from "./link_hints"
-import { getBoundingClientRect_, htmlTag_, createElement_, bZoom_ } from "../lib/dom_utils"
+import { getBoundingClientRect_, htmlTag_, createElement_, bZoom_, getInputType } from "../lib/dom_utils"
 import { fgCache, doc } from "../lib/utils"
 import { kBackspace, kDelete } from "../lib/keyboard_utils"
 import { maxLeft_, maxRight_, maxTop_ } from "./local_links"
@@ -195,9 +195,9 @@ export const generateHintText = (hint: Hint): HintsNS.HintText => {
       text = selected ? selected.label : "";
     } else {
       if (localName < "s") {
-        if ((el as HTMLInputElement).type === "file") {
+        if (getInputType(el as HTMLInputElement) === "fi") {
           text = "Choose File";
-        } else if ((el as HTMLInputElement).type === "password") {
+        } else if (getInputType(el as HTMLInputElement) === "pa") {
           break;
         }
       }
