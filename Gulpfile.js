@@ -313,7 +313,8 @@ var Tasks = {
     });
     gulp.task("min/others/misc", function() {
       var oriManifest = readJSON("manifest.json", true);
-      var res = ["**/*.js", "!background/*.js", "!content/*.js", "!front/vomnibar*", "!helpers/*/*.js", "!pages/options*"];
+      var res = ["**/*.js", "!background/*.js", "!content/*.js", "!front/vomnibar*", "!helpers/*/*.js"
+          , "!pages/options*"];
       has_polyfill || res.push("!" + POLYFILL_FILE.replace(".ts", ".*"));
       may_have_newtab || res.push("!" + NEWTAB_FILE.replace(".ts", ".*"));
       if (!has_dialog_ui) {
@@ -566,7 +567,7 @@ function makeWatchTask(taskName) {
   typeof glob === "string" && (glob = [glob]);
   if (!debugging) {
     glob.push("!background/*.d.ts", "!content/*.d.ts", "!pages/*.d.ts",
-      "!types/**/*.ts", "!types/*.d.ts", "!node_modules/**/*.ts");
+      "!typings/**/*.ts", "!typings/*.d.ts", "!node_modules/**/*.ts");
   }
   gulp.watch(glob, function() {
     if (_notifiedTasks.indexOf(taskName) < 0) { _notifiedTasks.push(taskName); }
@@ -626,12 +627,12 @@ function compile(pathOrStream, header_files, done, options) {
     pathOrStream = [pathOrStream];
   }
   if (pathOrStream instanceof Array) {
-    pathOrStream.push("!types/**/*.ts");
-    pathOrStream.push("!types/*.ts");
+    pathOrStream.push("!typings/**/*.ts");
+    pathOrStream.push("!typings/*.ts");
   }
   var stream = pathOrStream instanceof Array ? gulp.src(pathOrStream, { base: "." }) : pathOrStream;
   var extra = ignoreHeaderChanges || header_files === false ? undefined
-    : ["types/**/*.d.ts", "types/*.d.ts", "!types/build/*.ts"].concat(header_files
+    : ["typings/**/*.d.ts", "typings/*.d.ts", "!typings/build/*.ts"].concat(header_files
         ).concat(buildConfig ? ["scripts/gulp.tsconfig.json"] : []);
   var allIfNotEmpty = gulpAllIfNotEmpty();
   var localCompileInBatch = options && options.inBatch != null ? options.inBatch : compileInBatch;
@@ -1190,7 +1191,7 @@ function removeSomeTypeScriptOptions() {
 
 var _buildConfigPrinted = false;
 function getBuildConfigStream() {
-  return gulp.src("types/build/index.d.ts").pipe(gulpMap(function(file) {
+  return gulp.src("typings/build/index.d.ts").pipe(gulpMap(function(file) {
     if (debugging && !_buildConfigPrinted) {
       _buildConfigPrinted = true;
       print("Current build config is:\n" + _buildConfigTSContent.trim());
@@ -1209,7 +1210,7 @@ function ToString(buffer) {
 
 var _buildConfigTSContent;
 function createBuildConfigCache() {
-  _buildConfigTSContent = _buildConfigTSContent || readFile("types/build/index.d.ts");
+  _buildConfigTSContent = _buildConfigTSContent || readFile("typings/build/index.d.ts");
   _buildConfigTSContent = _buildConfigTSContent.replace(/\b([A-Z]\w+)\s?=\s?([^,}]+)/g, function(_, key, literalVal) {
     var newVal = getBuildItem(key, literalVal);
     return key + " = " + (newVal != null ? JSON.stringify(newVal) : buildOptionCache[key][0]);

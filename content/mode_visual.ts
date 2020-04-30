@@ -47,9 +47,7 @@ import { post_, send_ } from "./port"
 import { removeHandler_, pushHandler_, key_, keybody_, isEscape_, prevent_ } from "../lib/keyboard_utils"
 
 const kDir = ["backward", "forward"] as const
-const kGranularity = ["character", "line", "lineboundary", /* 3 */ "paragraph",
-      "sentence", /** VimG.vimWord */ "", /* 6 */ "word",
-      "documentboundary"] as const
+let _kGranularity: GranularityNames
 
 let mode_ = Mode.NotActive
 let modeName = ""
@@ -75,7 +73,7 @@ export { mode_ as visual_mode, kDir, kExtend }
 
   /** @safe_di */
 export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
-    init && init(options.w!, options.k!)
+    init && init(options.w!, options.k!, _kGranularity = options.g!)
     removeHandler_(activate)
     checkDocSelectable();
     prepareTop()
@@ -325,7 +323,7 @@ const findV = (count: number): void => {
         commandHandler(VisualAction.Noop, 1)
       }
     } else {
-    range && !sel.rangeCount && sel.addRange(range);
+      range && !sel.rangeCount && sel.addRange(range)
       prompt(kTip.noMatchFor, 1000, [find_query])
     }
 }
@@ -352,13 +350,13 @@ export const highlightRange = (sel: Selection): void => {
 
   /** @unknown_di_result */
 const extend = (d: ForwardDir, g?: kG): void | 1 => {
-  curSelection.modify(kExtend, kDir[d], kGranularity[g || kG.character])
+  curSelection.modify(kExtend, kDir[d], _kGranularity[g || kG.character])
   diType_ &= ~DiType.isUnsafe
 }
 
   /** @unknown_di_result */
 const modify = (d: ForwardDir, g: kG): void => {
-  curSelection.modify(alterMethod, kDir[d], kGranularity[g])
+  curSelection.modify(alterMethod, kDir[d], _kGranularity[g])
 }
 
   /**
@@ -427,7 +425,7 @@ const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord
     }
     const oldDi = di_
     while (0 < count--) {
-      curSelection.modify(alterMethod, kDir[direction], kGranularity[granularity as kG])
+      curSelection.modify(alterMethod, kDir[direction], _kGranularity[granularity as kG])
     }
     // it's safe to remove `isUnsafe` here, because:
     // either `count > 0` or `fixWord && _moveRight***()`
@@ -751,10 +749,9 @@ const TextOffset = (el: TextElement, di: ForwardDir | boolean): number => {
 }
 
 /** @not_related_to_di */
-let init = (words: string, map: VisualModeNS.KeyMap) => {
+let init = (words: string, map: VisualModeNS.KeyMap, _g: any) => {
   const func = safer, typeIdx = { None: SelType.None, Caret: SelType.Caret, Range: SelType.Range }
   init = null as never
-  keyMap = map as VisualModeNS.SafeKeyMap
   selType = Build.BTypes & BrowserType.Chrome
       && Build.MinCVer <= BrowserVer.$Selection$NotShowStatusInTextBox
       && fgCache.v === BrowserVer.$Selection$NotShowStatusInTextBox
@@ -827,5 +824,6 @@ let init = (words: string, map: VisualModeNS.KeyMap) => {
   // on Firefox 65 stable, Win 10 x64, there're '\r\n' parts in Selection.toString()
   (rightWhiteSpaceRe = <RegExpOne> (Build.BTypes & BrowserType.Firefox
       ? /[^\S\n\r\u2029\u202f\ufeff]+$/ : /[^\S\n\u2029\u202f\ufeff]+$/));
-  func(map); func(map.a as Dict<VisualAction>); func(map.g as Dict<VisualAction>);
+  func(keyMap = map as VisualModeNS.SafeKeyMap)
+  func(map.a as Dict<VisualAction>); func(map.g as Dict<VisualAction>)
 }

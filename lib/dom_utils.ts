@@ -1,4 +1,4 @@
-import { VOther, fgCache, doc } from "./utils"
+import { VOther, fgCache, doc, getTime } from "./utils"
 
 type kMouseMoveEvents = "mouseover" | "mouseenter" | "mousemove" | "mouseout" | "mouseleave";
 type kMouseClickEvents = "mousedown" | "mouseup" | "click" | "auxclick" | "dblclick";
@@ -14,6 +14,8 @@ export function markFramesetTagUnsafe (): "frameset" { return unsafeFramesetTag_
 export function set_docSelectable_ (_newDocSelectable: boolean): void { docSelectable_ = _newDocSelectable }
 
 export const devRatio_ = (): number => devicePixelRatio
+
+export const getInnerHeight = (): number => innerHeight as number
 
 export const rAF_: (callback: FrameRequestCallback) => number =
     Build.NDEBUG ? requestAnimationFrame : f => requestAnimationFrame(f)
@@ -263,7 +265,7 @@ export let prepareCrop_ = (inVisualViewport?: 1, limitedView?: Rect | null): num
             ? el && !notSafe_not_ff_!(el) : el) {
         i = el!.clientWidth, j = el!.clientHeight;
       } else {
-        i = innerWidth, j = innerHeight;
+        i = innerWidth, j = getInnerHeight();
         if (!docEl) { return vbottom = j, vbottoms = j - 8, vright = i; }
         // the below is not reliable but safe enough, even when docEl is unsafe
         i = min(max(i - GlobalConsts.MaxScrollbarWidth, (docEl.clientWidth * dz) | 0), i);
@@ -520,7 +522,7 @@ export const getZoom_ = Build.BTypes & ~BrowserType.Firefox ? function (target?:
 
 export const getViewBox_ = function (this: {}, needBox?: 1 | 2): ViewBox | ViewOffset {
     const ratio = devRatio_();
-    let iw = innerWidth, ih = innerHeight, ratio2 = Math.min(ratio, 1);
+    let iw = innerWidth, ih = getInnerHeight(), ratio2 = Math.min(ratio, 1);
     if (fullscreenEl_unsafe_()) {
       getZoom_(1);
       dScale_ = bScale_ = 1;
@@ -600,7 +602,7 @@ export const NotVisible_ = function (this: void, element: Element | null, rect?:
       rect = getBoundingClientRect_(element!);
     }
     return rect.height < 0.5 || rect.width < 0.5 ? VisibilityType.NoSpace
-      : rect.bottom <= 0 || rect.top >= innerHeight || rect.right <= 0 || rect.left >= innerWidth
+      : rect.bottom <= 0 || rect.top >= getInnerHeight() || rect.right <= 0 || rect.left >= innerWidth
         ? VisibilityType.OutOfView : VisibilityType.Visible;
 } as {
     (element: Element): VisibilityType;
@@ -857,7 +859,7 @@ export const unhover_ = (element?: SafeElementForMouse): void => {
 
 export const touch_cr_ = Build.BTypes & BrowserType.Chrome ? (element: SafeElementForMouse
       , [x, y]: Point2D, id?: number): number => {
-    const newId = id || Date.now(),
+    const newId = id || getTime(),
     touchObj = new Touch({
       identifier: newId, target: element,
       clientX: x, clientY: y,
@@ -885,7 +887,7 @@ export const view_ = (el: Element, oldY?: number): boolean => {
     const rect = getBoundingClientRect_(el),
     ty = NotVisible_(null, rect);
     if (ty === VisibilityType.OutOfView) {
-      const t = rect.top, ih = innerHeight, delta = t < 0 ? -1 : t > ih ? 1 : 0, f = oldY != null;
+      const t = rect.top, ih = getInnerHeight(), delta = t < 0 ? -1 : t > ih ? 1 : 0, f = oldY != null;
       Build.MinCVer < BrowserVer.MinScrollIntoViewOptions && Build.BTypes & BrowserType.Chrome
       ? scrollIntoView_(el, delta < 0) : scrollIntoView_(el);
       (delta || f) && scrollWndBy_(0, f ? oldY! - scrollY : delta * ih / 5);
@@ -953,7 +955,7 @@ export const getZoomedAndCroppedRect_ = (element: HTMLImageElement | HTMLInputEl
 }
 
 export const setBoundary_ = (style: CSSStyleDeclaration, r: WritableRect, allow_abs?: boolean): boolean | undefined => {
-    const need_abs = allow_abs && (r.t < 0 || r.l < 0 || r.b > innerHeight || r.r > innerWidth),
+    const need_abs = allow_abs && (r.t < 0 || r.l < 0 || r.b > getInnerHeight() || r.r > innerWidth),
     arr: ViewOffset | false | undefined = need_abs && getViewBox_();
     if (arr) {
       r.l += arr[0], r.r += arr[0], r.t += arr[1], r.b += arr[1];

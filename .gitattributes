@@ -19,6 +19,6 @@ lib/viewer.min.css  linguist-generated=true linguist-vendored=true linguist-lang
 lib/viewer.min.js  linguist-generated=true linguist-vendored=true linguist-language=JavaScript
 tests/*.html linguist-detectable=false linguist-language=HTML
 tests/**/*.html linguist-detectable=false linguist-language=HTML
-types/base/* linguist-vendored
-types/base/base.d.ts linguist-vendored=false
-types/lib/* linguist-detectable=false
+typings/base/* linguist-vendored
+typings/base/base.d.ts linguist-vendored=false
+typings/lib/* linguist-detectable=false

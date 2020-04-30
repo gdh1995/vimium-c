@@ -8,7 +8,7 @@ import {
   getSelectionBoundingBox_, center_, getVisibleClientRect_, isInTouchMode_cr_, touch_cr_, IsInDOM_, lastHovered_,
   hover_, mouse_, activeEl_unsafe_, view_, prepareCrop_, getClientRectsForAreas_, notSafe_not_ff_,
   getBoundingClientRect_, padClientRect_, isContaining_, cropRectToVisible_, getCroppedRect_, setBoundary_,
-  frameElement_, runJS_, isStyleVisible_, set_docSelectable_,
+  frameElement_, runJS_, isStyleVisible_, set_docSelectable_, getInnerHeight,
 } from "../lib/dom_utils"
 import { Stop_, suppressTail_ } from "../lib/keyboard_utils"
 import { currentScrolling } from "./scroller"
@@ -587,7 +587,7 @@ export const evalIfOK = (url: Pick<BgReq[kBgReq.eval], "u"> | string): boolean =
 }
 
 export const checkHidden = (cmd?: FgCmdAcrossFrames, count?: number, options?: OptionsWithForce): BOOL => {
-  if (innerHeight < 3 || innerWidth < 3) { return 1; }
+  if (getInnerHeight() < 3 || innerWidth < 3) { return 1; }
   // here should not use the cache frameElement, because `getComputedStyle(frameElement).***` might break
   const curFrameElement_ = !isTop && (Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
           || !(Build.BTypes & ~BrowserType.Firefox) ? frameElement : frameElement_()),

@@ -37,4 +37,5 @@ package-lock.json
 scripts/*releases*
 icons/*.bin
 # just to make vscode ignore those on finding
-types/base/
+typings/base/
+!typings/base/base.d.ts

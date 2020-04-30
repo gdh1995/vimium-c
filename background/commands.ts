@@ -543,6 +543,7 @@ CommandsData_: CommandsDataTy = CommandsData_ as never || {
   keyFSM_: null as never as KeyFSM,
   shortcutRegistry_: null as never as ShortcutInfoMap,
   mappedKeyRegistry_: null as SafeDict<string> | null,
+  visualGranularities_: ["character", "line", "lineboundary", "paragraph", "sentence", "", "word", "documentboundary"],
   visualKeys_: {
     l: VisualAction.char | VisualAction.inc, h: VisualAction.char | VisualAction.dec,
     j: VisualAction.line | VisualAction.inc, k: VisualAction.line | VisualAction.dec,

@@ -65,6 +65,7 @@ case "$1" in
     shift
     ;;
   en|en-us|en-US|--en|--en-us|--en-US)
+    # https://developer.chrome.com/webstore/i18n#localeTable
     FLAGS=$FLAGS" --lang=en-US"
     shift
     ;;

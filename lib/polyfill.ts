@@ -1,5 +1,5 @@
 // /// <reference no-default-lib="true"/>
-/// <reference path="../types/base/es.d.ts" />
+/// <reference path="../typings/base/es.d.ts" />
 
 (function (): void {
   type primitiveObject = boolean | number | string;

@@ -8,7 +8,7 @@ interface NodeWithInfo extends Node {
 
 import {
   doc, keydownEvents_, safeObj, fgCache, isTop, set_keydownEvents_, setupEventListener, VOther,
-  esc, onWndFocus, isEnabled_, readyState_, injector,
+  esc, onWndFocus, isEnabled_, readyState_, injector, VTr, getTime,
 } from "../lib/utils"
 import { post_, safePost } from "./port"
 import { getParentVApi, ui_box } from "./dom_ui"
@@ -64,7 +64,7 @@ export const insertInit = (): void => {
   /*#__INLINE__*/ set_keydownEvents_(safeObj(null))
   if (fgCache.g && grabBackFocus) {
     let counter = 0, prompt = function (): void {
-      counter++ || console.log("Vimium C blocks auto-focusing.");
+      counter++ || console.log(VTr(kTip.grabFocus));
     };
     if (notBody = notBody && getEditableType_(activeEl!)) {
       insert_last_ = null;
@@ -213,7 +213,7 @@ export const onFocus = (event: Event | FocusEvent): void => {
   // on Firefox, target may also be `document`
   let target: EventTarget | Element | Window | Document = event.target;
   if (target === window) {
-    lastWndFocusTime = Date.now();
+    lastWndFocusTime = getTime();
     return onWndFocus();
   }
   if (!isEnabled_ || Build.BTypes & BrowserType.Firefox && target === doc) { return; }
@@ -252,7 +252,7 @@ export const onFocus = (event: Event | FocusEvent): void => {
     hookOnShadowRoot(isNormalHost ? path! : [sr, target], target as Element);
     target = isNormalHost ? top as Element : target;
   }
-  if (!lastWndFocusTime || Date.now() - lastWndFocusTime > 30) {
+  if (!lastWndFocusTime || getTime() - lastWndFocusTime > 30) {
     /*#__INLINE__*/ set_currentScrolling(Build.BTypes & ~BrowserType.Firefox
         ? SafeEl_not_ff_!(target as Element) || currentScrolling : target as SafeElement);
     /*#__INLINE__*/ clearCachedScrollable();

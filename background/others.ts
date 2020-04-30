@@ -70,8 +70,8 @@ BgUtils_.timeout_(1000, function (): void {
       }
     }
   }
-  function now(): string {
-    return new Date().toLocaleString();
+  function log(... _: any[]): void {
+    console.log.apply(console, [new Date().toLocaleString()].concat.call([].slice.call(arguments as any, 0)) as any)
   }
   /** return `8` only when expect a valid `map` */
   function storeAndPropagate(key: string, value: any, map?: Dict<any>): void | 8 {
@@ -89,7 +89,7 @@ BgUtils_.timeout_(1000, function (): void {
     if (value == null) {
       if (localStorage.getItem(key) != null) {
         restoringPromise ||
-        console.log(now(), "sync.this: reset", key);
+        log("sync.this: reset", key);
         doSet(key, defaultVal);
       }
       return;
@@ -110,7 +110,7 @@ BgUtils_.timeout_(1000, function (): void {
       value = defaultVal;
     }
     restoringPromise ||
-    console.log(now(), "sync.this: update", key,
+    log("sync.this: update", key,
       typeof value === "string"
       ? (value.length > 32 ? value.slice(0, 30) + "..." : value).replace(<RegExpG> /\n/g, "\\n")
       : value);
@@ -174,7 +174,7 @@ BgUtils_.timeout_(1000, function (): void {
     chrome.storage.local.set({ [key]: value }, () => {
       const err = BgUtils_.runtimeError_();
       if (err) {
-        console.log(now(), "storage.local: Failed to update", key, ":", err.message || err);
+        log("storage.local: Failed to update", key, ":", err.message || err);
         return err;
       }
     });
@@ -212,7 +212,7 @@ BgUtils_.timeout_(1000, function (): void {
     case "single":
       return JSON.parse(revertEscaping(JSON.stringify(value.d)));
     default: // in case of methods in newer versions
-      console.log(now(), "Error: can not support the data format in synced settings data:"
+      log("Error: can not support the data format in synced settings data:"
           , key, ":"
           , (value as unknown as SerializationMetaData | SingleSerialized).$_serialize);
       return null;
@@ -330,22 +330,22 @@ BgUtils_.timeout_(1000, function (): void {
     }
     textDecoder = encoder = null as never;
     if (removed.length > 0) {
-      console.log(now(), "sync.cloud: reset", removed.join(", "));
+      log("sync.cloud: reset", removed.join(", "));
     }
     if (reset.length > 0) {
       storage().remove(reset);
     }
     if (updated.length > 0) {
-      console.log(now(), "sync.cloud: update", updated.join(", "));
+      log("sync.cloud: update", updated.join(", "));
       storage().set(serializedDict);
     }
     for (let key in delayedSerializedItems) {
       storage().set(delayedSerializedItems[key], (): void => {
         const err = BgUtils_.runtimeError_();
         if (err) {
-          console.log(now(), "Failed to update", key, ":", err.message || err);
+          log("Failed to update", key, ":", err.message || err);
         } else {
-          console.log(now(), "sync.cloud: update (serialized) " + key);
+          log("sync.cloud: update (serialized) " + key);
         }
         return err;
       });
@@ -358,7 +358,7 @@ BgUtils_.timeout_(1000, function (): void {
     Settings_.temp_.backupSettingsToLocal_ = null;
     BgUtils_.timeout_(timeout, () => { chrome.storage.local.get((items): void => {
       if (Settings_.get_("vimSync") || !localStorage.length) { return; }
-      console.log(now(), "storage.local: backup all settings from localStorage");
+      log("storage.local: backup all settings from localStorage");
       BgUtils_.safer_(items);
       for (let i = 0, end = localStorage.length; i < end; i++) {
         const key = localStorage.key(i)!;
@@ -405,7 +405,7 @@ BgUtils_.timeout_(1000, function (): void {
       let vimSync2 = items2.vimSync, nowDoRestore = vimSync2 !== undefined || Object.keys(items2).length > 0;
       delete items2.vimSync;
       if (nowDoRestore) {
-        console.log(now(), "storage.local: restore settings to localStorage");
+        log("storage.local: restore settings to localStorage");
       }
       for (let key in items2) {
         if (key in Settings_.defaults_) {
@@ -432,7 +432,7 @@ BgUtils_.timeout_(1000, function (): void {
       return; // no settings have been modified
     } else if (!items.vimSync) {
       // cloud may be empty, but the local computer wants to sync, so enable it
-      console.log(now(), "sync.cloud: enable vimSync");
+      log("sync.cloud: enable vimSync");
       items.vimSync = vimSync;
       storage().set({ vimSync });
     }
@@ -474,7 +474,7 @@ BgUtils_.timeout_(1000, function (): void {
     Settings_.postUpdate_("vimSync");
     BgUtils_.timeout_(4, () => { --kSources || resolve(); });
     restoringPromise &&
-    console.log(now(), "sync.cloud: download settings to localStorage");
+    log("sync.cloud: download settings to localStorage");
   }
   Settings_.restore_ = () => {
     if (restoringPromise) { /* empty */ }
@@ -507,7 +507,7 @@ BgUtils_.timeout_(1000, function (): void {
   storage().get(items => {
     const err = BgUtils_.runtimeError_();
     if (err) {
-      console.log(now(), "Error: failed to get storage:", err, "\n\tSo disable syncing temporarily.");
+      log("Error: failed to get storage:", err, "\n\tSo disable syncing temporarily.");
       Settings_.updateHooks_.vimSync = Settings_.sync_ = BgUtils_.blank_;
       Settings_.restore_ = null;
       return err;

@@ -4,7 +4,7 @@
     "plugin:@typescript-eslint/recommended",
     "plugin:@typescript-eslint/recommended-requiring-type-checking"
   ],
-  "ignorePatterns": ["dist/", "helpers/", "node_modules/", "test*/", "types/base/", "weidu/", "*.js"],
+  "ignorePatterns": ["dist/", "helpers/", "node_modules/", "test*/", "typings/base/", "weidu/", "*.js"],
   "parser": "@typescript-eslint/parser",
   "parserOptions": { "project": "tsconfig.json", "sourceType": "script" },
   "plugins": [ "@typescript-eslint" ],

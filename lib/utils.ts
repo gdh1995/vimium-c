@@ -24,9 +24,6 @@ export const loc_ = location
 export const initialDocState = doc.readyState
 export const jsRe_ = <RegExpI & RegExpOne> /^javascript:/i
 
-export let VTr: VTransType
-export function set_VTr (_newVTr: VTransType): void { VTr = _newVTr }
-
 let esc: EscF | null
 
 /** ==== Status ==== */
@@ -72,7 +69,12 @@ export const setupKeydownEvents = function (arr?: KeydownCacheArray): KeydownCac
 export { esc }
 export function set_esc (_newEsc: EscF): void { esc = _newEsc }
 
+export let VTr: VTransType
+export function set_VTr (_newVTr: VTransType): void { VTr = _newVTr }
+
 export const callFunc = (callback: (this: void) => any): void => { callback(); }
+
+export const getTime = Date.now
 
 export let onWndFocus = function (this: void): void { /* empty */ }
 export function set_onWndFocus (_newOnWndFocus: (this: void) => void): void { onWndFocus = _newOnWndFocus; }

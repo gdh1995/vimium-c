@@ -3,7 +3,7 @@ import {
 } from "../lib/utils"
 import {
   unhover_, set_lastHovered_, isHTML_, view_, NotVisible_, getZoom_, prepareCrop_, getViewBox_, createElement_,
-  padClientRect_, getBoundingClientRect_, setBoundary_, wdZoom_, dScale_,
+  padClientRect_, getBoundingClientRect_, setBoundary_, wdZoom_, dScale_, getInnerHeight,
 } from "../lib/dom_utils"
 import {
   pushHandler_, removeHandler_, key_, prevent_, isEscape_, keybody_, kDelete, kBackspace
@@ -161,7 +161,7 @@ export const contentCommands_: {
   },
   /* kFgCmd.showHelp: */ function (options: CmdOptions[kFgCmd.showHelp] | "e"): void {
     if (options === "e") { return; }
-    let wantTop = innerWidth < 400 || innerHeight < 320;
+    let wantTop = innerWidth < 400 || getInnerHeight() < 320;
     if (!isHTML_()) {
       if (isTop) { return; }
       wantTop = true;

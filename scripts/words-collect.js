@@ -26,7 +26,7 @@ const targetFile = argv[argi] && fs.existsSync(argv[argi]) ? argv[argi++] : "dis
 const contentText = lib.readFile(targetFile);
 const minWordLen = argv[argi] && !isNaN(+argv[argi]) ? +argv[argi++] : 8;
 const order = argv[argi] && "occurrence".includes(argv[argi]) ? (argi++, "occ") : "gain";
-const minShownVal = argv[argi] && !isNaN(+argv[argi]) ? +argv[argi++] : 12;
+const minShownVal = argv[argi] && !isNaN(+argv[argi]) ? +argv[argi++] : 24;
 
 const wordRe = /(["'])(?:\\.|)+?\1|\w+/g;
 const stopWords = `
@@ -41,8 +41,8 @@ allLongWords.sort(order === "occ" ? (a, b) => b.occurrence - a.occurrence : (a, 
 logger.info("Here're potential gains in %o bytes of %o:", contentText.length, targetFile);
 console.table(allLongWords);
 
-const tsFiles = glob.sync("content/*.ts").concat(glob.sync("lib/*.ts"));
-const tsContent = tsFiles.map(file => lib.readFile(file)).join("\n");
+const tsFiles = glob.sync("content/*.ts").concat(glob.sync("lib/*.ts")).filter(i => !i.includes("inject"));
+const tsContent = tsFiles.map(file => lib.readFile(file)).join("\n").replace(/\/\/[^\r\n]+|\/\*[^]*\*\//, "");
 const allSimilarWords = getSimilarWords(tsContent);
 if (allSimilarWords.length > 0) {
   logger.info("Found similar words:\n", allSimilarWords)
@@ -69,7 +69,7 @@ function getLongWords(text, min_len = 8) {
   /** @type {WordItem[]} */
   const longWords = [];
   for (const [word, v] of wordMap) {
-    const gain = word.length * v - (/** definition */ (word.length + 4) + /** reference */ 7 * v);
+    const gain = word.length * v - (/** definition */ (word.length + 4) + /** reference */ 4 * v);
     if (gain > 0) {
       longWords.push({ word, occurrence: v, gain });
     }

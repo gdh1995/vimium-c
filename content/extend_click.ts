@@ -1,6 +1,6 @@
 import {
   clickable_, setupEventListener, VOther, timeout_, clearTimeout_, doc, isAlive_, set_allowRAF_, set_allowScripts_,
-  loc_, replaceBrokenTimerFunc, allowRAF_,
+  loc_, replaceBrokenTimerFunc, allowRAF_, getTime,
 } from "../lib/utils"
 import {
   docEl_unsafe_, createElement_, set_createElement_, OnDocLoaded_, runJS_, isHTML_, rAF_,
@@ -149,7 +149,7 @@ export const main = (): void => {
           : (event as FocusEvent).relatedTarget ? " (detached)"
           : this === window ? " (path on window)" : " (path on box)"
         , loc_.pathname.replace(<RegExpOne> /^.*(\/[^\/;]+\/?)(;[^\/]+)?$/, "$1")
-        , Date.now() % 3600000);
+        , getTime() % 3600000);
     }
     if (isFirstResolve & fromAttrs) {
       isFirstResolve ^= fromAttrs;
@@ -645,7 +645,7 @@ _listen(kOnDomReady, doInit, !0);
     console.log("Vimium C: extend click: resolve %o in %o @t=%o ."
         , resolved
         , loc_.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1")
-        , Date.now() % 3600000);
+        , getTime() % 3600000);
     timer && clearTimeout_(timer);
     timer = resolved = 0;
   }

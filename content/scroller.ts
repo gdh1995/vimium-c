@@ -43,7 +43,7 @@ import { setPreviousMarkPosition } from "./marks"
 import {
   scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, scrollWndBy_, frameElement_, rAF_, getVisibleClientRect_,
   OnDocLoaded_, GetParent_unsafe_, querySelector_unsafe_, getZoom_, wdZoom_, bZoom_, NotVisible_, getComputedStyle_,
-  prepareCrop_, notSafe_not_ff_, getBoundingClientRect_, cropRectToVisible_,
+  prepareCrop_, notSafe_not_ff_, getBoundingClientRect_, cropRectToVisible_, getInnerHeight,
 } from "../lib/dom_utils"
 import { keyNames_, prevent_ } from "../lib/keyboard_utils"
 
@@ -355,7 +355,7 @@ const findScrollable = (di: ScrollByY, amount: number): SafeElement | null => {
     if (!element && top) {
       const candidate = selectFirst({ a: 0, e: top, h: 0 })
       element = candidate && candidate.e !== top
-          && (!activeEl || candidate.h > innerHeight / 2)
+          && (!activeEl || candidate.h > getInnerHeight() / 2)
           ? candidate.e : top;
       // if current_, then delay update to current_, until scrolling ends and ._checkCurrent is called;
       // otherwise, cache selected element for less further cost
@@ -397,7 +397,7 @@ const getDimension = (el: SafeElement | null, di: ScrollByY, index: kScrollDim &
           || visual && (!(Build.BTypes & BrowserType.Chrome)
               || Build.MinCVer >= BrowserVer.MinEnsured$visualViewport$ || visual.width)
           ? di ? visual!.height : visual!.width!
-          : di ? innerHeight : innerWidth);
+          : di ? getInnerHeight() : innerWidth);
 }
 
 const hasSpecialScrollSnap = (el: SafeElement | null): boolean => {
@@ -464,7 +464,7 @@ const selectFirst = (info: ElementScrollInfo, skipPrepare?: 1): ElementScrollInf
 export const scrollIntoView_need_safe = (el: SafeElement): void => {
     const rect = el.getClientRects()[0] as ClientRect | undefined;
     if (!rect) { return; }
-    let { innerWidth: iw, innerHeight: ih} = window,
+    let iw = innerWidth, ih = getInnerHeight(),
     { min, max } = Math, ihm = min(96, ih / 2), iwm = min(64, iw / 2),
     { bottom: b, top: t, right: r, left: l } = rect,
     hasY = b < ihm ? max(b - ih + ihm, t - ihm) : ih < t + ihm ? min(b - ih + ihm, t - ihm) : 0,

@@ -9,7 +9,7 @@ import {
   getClientRectsForAreas_, htmlTag_, isAriaNotTrue_, getCroppedRect_, getBoundingClientRect_, cropRectToVisible_,
   isStyleVisible_, fullscreenEl_unsafe_, querySelector_unsafe_, bZoom_, set_bZoom_, prepareCrop_, notSafe_not_ff_,
   isContaining_, docEl_unsafe_, GetParent_unsafe_, unsafeFramesetTag_old_cr_, isDocZoomStrange_, docZoom_,
-  SubtractSequence_, isHTML_, querySelectorAll_unsafe_,
+  SubtractSequence_, isHTML_, querySelectorAll_unsafe_, getInnerHeight,
 } from "../lib/dom_utils"
 import { find_box } from "./mode_find"
 import { omni_box } from "./vomnibar"
@@ -441,7 +441,7 @@ const addChildTrees = (list: HintSources, allNodes: NodeListOf<SafeElement>): Hi
 }
 
 const getElementsInViewport = (list: HintSources): HintSources => {
-  const result: SafeElement[] = [], height = innerHeight;
+  const result: SafeElement[] = [], height = getInnerHeight();
   for (let i = 1, len = list.length; i < len; i++) { // skip docEl
     const el = list[i];
     const cr = getBoundingClientRect_(el);

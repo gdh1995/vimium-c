@@ -27,7 +27,7 @@ interface HinterStatus {
   /** box */ b: HTMLDivElement | HTMLDialogElement | null
   /** keyStatus */ k: Readonly<KeyStatus>
   /** mode */ m: HintMode
-  /** is newly activated */ n: boolean | BOOL
+  /** is newly activated */ n: boolean | BOOL | null
 }
 interface BaseHinter extends HintsNS.BaseHinter {
   /** get stat */ $ (): Readonly<HinterStatus>
@@ -46,8 +46,8 @@ interface BaseHinter extends HintsNS.BaseHinter {
   /** yankedList */ y: string[]
 }
 interface HintManager extends BaseHinter {
+    /** get stat (also reset mode if needed) */ $ (resetMode?: 1): Readonly<HinterStatus>
     /** reinit */ i: typeof reinit
-    /** reset mode */ m (): void
     /** onKeydown */ n: typeof onKeydown
     p: null;
     /** promptTimer */ q: TimerID
@@ -76,7 +76,7 @@ import {
 } from "../lib/utils"
 import { frameElement_, querySelector_unsafe_, isHTML_, getViewBox_, prepareCrop_, scrollingEl_, bZoom_, wdZoom_,
   dScale_, getBoundingClientRect_, docEl_unsafe_, IsInDOM_, docZoom_, bScale_, GetParent_unsafe_, getComputedStyle_,
-  isStyleVisible_, lastHovered_, set_lastHovered_,
+  isStyleVisible_, lastHovered_, set_lastHovered_, getInnerHeight,
 } from "../lib/dom_utils"
 import {
   pushHandler_, SuppressMost_, removeHandler_, key_, keybody_, isEscape_, getKeyStat_, keyNames_, suppressTail_,
@@ -276,8 +276,7 @@ const collectFrameHints = (count: number, options: HintsNS.ContentOptions
         ).d ? 2 : 1);
     prepareCrop_(1, outerView);
     if (tooHigh_ !== null) {
-      tooHigh_ = scrollingEl_(1)!.scrollHeight / innerHeight
-        > GlobalConsts.LinkHintTooHighThreshold;
+      tooHigh_ = scrollingEl_(1)!.scrollHeight / getInnerHeight() > GlobalConsts.LinkHintTooHighThreshold
     }
     forceToScroll_ = options.scroll === "force" ? 2 : 0;
     addChildFrame = newAddChildFrame;
@@ -621,7 +620,7 @@ const checkLast = function (this: void, el?: LinkEl | TimerType.fake | 1, r?: Re
 }
 
 const resetHints = (): void => {
-    // here should not consider about ._manager
+    // here should not consider about .manager_
     if (Build.BTypes & BrowserType.Chrome) { onWaitingKey = null; }
     onTailEnter = hints_ = null as never;
     /*#__INLINE__*/ hintFilterReset();
@@ -746,7 +745,7 @@ export const highlightChild = (el: LinkEl, tag: string): 0 | 1 | 2 => {
     return 0;
   }
   options_.mode = mode_;
-  (manager_ || coreHints).m()
+  (manager_ || coreHints).$(1)
   if (el === omni_box) {
     focusOmni();
     return 1;
@@ -769,12 +768,14 @@ export const highlightChild = (el: LinkEl, tag: string): 0 | 1 | 2 => {
 }
 
 const coreHints: HintManager = {
-  $: (): HinterStatus => ({ a: isActive, b: box_, k: keyStatus_, m: mode_,
-      n: isActive && hints_!.length < (frameList_.length > 1 ? 200 : 100) && !keyStatus_.k }),
+  $: (resetMode?: 1): HinterStatus => {
+    return { a: isActive, b: box_, k: keyStatus_, m: resetMode ? mode_ = HintMode.DEFAULT : mode_,
+      n: isActive && hints_ && hints_.length < (frameList_.length > 1 ? 200 : 100) && !keyStatus_.k }
+  },
   d: Build.BTypes & BrowserType.Chrome ? false : 0 as never, h: 0, y: [],
   x: checkLast, c: clear, o: collectFrameHints, j: delayToExecute, e: executeHint, g: getPreciseChildRect,
   l: highlightHint, r: render, t: rotate1,
-  p: null, m (): void { mode_ = HintMode.DEFAULT }, q: TimerID.None,
+  p: null, q: TimerID.None,
   n: onKeydown, s: resetMode, i: reinit, v: resetHints, u: onFrameUnload, w: setupCheck, z: postExecute
 }
 

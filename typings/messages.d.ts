@@ -1,17 +1,18 @@
 declare const enum kTip {
+  destroyed = 1,
   /* 4..15 is not used by HintMode */
   /* 4..9 */ didUnHoverLast = 4, globalInsertMode, noPassKeys, normalMode, nTimes, passNext,
   /* 10..15 */ noLinksToGo, noFocused, focusedIsHidden, noInputToFocus, noUrlCopied, noTextCopied,
   /* 20..25 */ copiedIs = 20, failToEvalJS, tooManyLinks, useVal, turnOn, turnOff,
   /* 26..31 */ nMatches, oneMatch, someMatches, noMatches, modalHints, haveToOpenManually,
-  /* 44..47 */ selectLineBoundary = 44, frameUnloaded, waitEnter,
+  /* 44..47 */ selectLineBoundary = 44, frameUnloaded, waitEnter, grabFocus,
   raw = 69, START_FOR_OTHERS = raw,
   /* 70: */ fewChars = 70, noLinks, exitForIME, linkRemoved, notImg,
   /* 75: */ hoverScrollable, ignorePassword, noNewToCopy, downloaded, nowGotoMark,
   /* 80: */ nowCreateMark, didCreateLastMark, didLocalMarkTask, didJumpTo, didCreate,
   /* 85: */ lastMark, didNormalMarkTask, findFrameFail, noOldQuery, noMatchFor,
   /* 90: */ visualMode, noUsableSel, loseSel, needSel, omniFrameFail,
-  /* 95: */ failToDelSug, firefoxRefuseURL, cancelImport, importOK,
+  /* 95: */ failToDelSug, firefoxRefuseURL, cancelImport, importOK, omniFallback,
   END,
 }
 
@@ -288,6 +289,7 @@ interface CmdOptions {
   [kFgCmd.visualMode]: {
     /** mode */ m: VisualModeNS.Mode.Visual | VisualModeNS.Mode.Line | VisualModeNS.Mode.Caret;
     /** from_find */ r?: true;
+    /** kGranularity[] */ g?: GranularityNames | null;
     /** keyMaps */ k?: VisualModeNS.KeyMap | null;
     /** words */ w?: string;
   };

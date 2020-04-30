@@ -2,7 +2,7 @@ import {
   browserVer, clickable_, doc, esc, fgCache, injector, isEnabled_, isLocked_, isAlive_, isTop,
   keydownEvents_, safeObj, set_browserVer, set_clickable_, set_fgCache, set_VOther, set_isLocked_,
   setupEventListener, set_isEnabled_, suppressCommonEvents, set_onWndFocus, VOther, onWndFocus, timeout_, safer,
-  allowScripts_, loc_, interval_,
+  allowScripts_, loc_, interval_, getTime,
 } from "../lib/utils"
 import { port_callbacks, post_, safePost, set_requestHandlers, requestHandlers } from "./port"
 import {
@@ -265,8 +265,8 @@ set_requestHandlers([
     esc!(HandlerResult.Nothing);
     exitGrab();
     if (Build.BTypes & ~BrowserType.Chrome && request.m) {
-      const now = Date.now(), result = confirm(request.m);
-      count2 = Math.abs(Date.now() - now) > 9 ? result ? 3 : 1 : 2;
+      const now = getTime(), result = confirm(request.m);
+      count2 = Math.abs(getTime() - now) > 9 ? result ? 3 : 1 : 2;
     }
     post_({ H: kFgReq.cmd, c: request.c, n, i: request.i, r: count2 });
   },

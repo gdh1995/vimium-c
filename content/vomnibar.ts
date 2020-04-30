@@ -16,12 +16,12 @@ interface FullOptions extends BaseFullOptions {
 declare var VData: VDataTy
 
 import {
-  injector, isAlive_, keydownEvents_, readyState_, VOther, timeout_, clearTimeout_, fgCache, loc_,
+  injector, isAlive_, keydownEvents_, readyState_, VOther, timeout_, clearTimeout_, fgCache, loc_, VTr,
 } from "../lib/utils"
 import { removeHandler_, pushHandler_, SuppressMost_, key_, isEscape_ } from "../lib/keyboard_utils";
 import {
   createElement_, docZoom_, devRatio_, frameElement_, isHTML_, getViewBox_, fullscreenEl_unsafe_, dScale_,
-  prepareCrop_, bZoom_,
+  prepareCrop_, bZoom_, getInnerHeight,
 } from "../lib/dom_utils";
 import { beginScroll, scrollTick } from "./scroller"
 import {
@@ -39,7 +39,7 @@ let omniOptions: VomnibarNS.FgOptionsToFront | null = null
 let onReset: (() => void) | null = null
 let timer = TimerID.None
   // unit: physical pixel (if C<52)
-let screenHeight = 0
+let screenHeight_ = 0
 let canUseVW = true
 
 export { box as omni_box, status as omni_status }
@@ -95,10 +95,10 @@ export const activate = function (options: FullOptions, count: number): void {
         && (!(Build.BTypes & ~BrowserType.Chrome)
             || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome)) {
       options.w = width * scale;
-      options.h = screenHeight = innerHeight * scale;
+      options.h = screenHeight_ = getInnerHeight() * scale;
     } else {
       options.w = width;
-      options.h = screenHeight = innerHeight
+      options.h = screenHeight_ = getInnerHeight()
     }
     options.z = scale;
     if (!(Build.NDEBUG || VomnibarNS.Status.Inactive - VomnibarNS.Status.NotInited === 1)) {
@@ -153,7 +153,7 @@ export const hide = (fromInner?: 1): void => {
     style_old_cr = Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval
         && Build.BTypes & BrowserType.Chrome ? box.style : 0 as never as null;
     status = VomnibarNS.Status.Inactive
-    screenHeight = 0; canUseVW = !0
+    screenHeight_ = 0; canUseVW = !0
     setupExitOnClick(0, 0)
     if (fromInner == null) {
       active && postToOmni(VomnibarNS.kCReq.hide)
@@ -198,7 +198,7 @@ export const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void
       loaded = true;
       if (onReset) { return; }
       if (type !== VomnibarNS.PageType.inner && isAboutBlank()) {
-        console.log("Vimium C: use the built-in Vomnibar page because the preferred is too old.");
+        console.log(VTr(kTip.omniFallback));
         return reload();
       }
       const wnd = (this as typeof el).contentWindow,
@@ -319,7 +319,7 @@ const onShown = (maxBoxHeight: number): void => {
           && (!(Build.BTypes & ~BrowserType.Chrome)
               || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome)
           ? devRatio_() : 1),
-    top = screenHeight > topHalfThreshold * 2 ? ((50 - maxBoxHeight * 0.6 / screenHeight * 100) | 0
+    top = screenHeight_ > topHalfThreshold * 2 ? ((50 - maxBoxHeight * 0.6 / screenHeight_ * 100) | 0
         ) + (canUseVW ? "vh" : "%") : ""
     style.top = !Build.NoDialogUI && VimiumInjector === null && loc_.hash === "#dialog-ui" ? "8px" : top;
     style.display = "";

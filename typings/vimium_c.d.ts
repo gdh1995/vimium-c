@@ -156,9 +156,6 @@ declare namespace VisualModeNS {
   interface SafeKeyMap extends KeyMap, SafeObject {
     [key: string]: VisualAction | SafeDict<VisualAction> | undefined;
   }
-  const enum kG {
-      character = 0, line = 1, lineBoundary = 2, paragraph = 3, sentence = 4, word = 6, documentBoundary = 7,
-  }
   const enum kVimG {
       vimWord = 5,
       _mask = -1,

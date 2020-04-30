@@ -9526,7 +9526,7 @@ declare var external: External;
 declare var frameElement: Element | null;
 declare var frames: Window[];
 declare var history: History;
-declare var innerHeight: number;
+declare var innerHeight: unknown;
 declare var innerWidth: number;
 // declare var length: number;
 declare var location: Location;

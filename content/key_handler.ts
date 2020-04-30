@@ -10,7 +10,7 @@ import {
   exitInsertMode, focusUpper, insert_global_, insert_Lock_, isInInsert, raw_insert_lock, setupSuppress, suppressType,
 } from "./mode_insert"
 import { keyIsDown as scroll_keyIsDown, onScrolls, scrollTick } from "./scroller"
-import { activeEl_unsafe_, getSelection_ } from "../lib/dom_utils"
+import { activeEl_unsafe_, getSelection_, getInnerHeight } from "../lib/dom_utils"
 
 let passKeys: SafeEnum | null | "" = null
 let isPassKeysReverted = false
@@ -177,7 +177,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
         ? (action = checkKey(eventWrapper, keyStr)) > HandlerResult.MaxNotEsc
         : isEscape_(keyStr)
     ) {
-      if ((raw_insert_lock && raw_insert_lock === doc.body || !isTop && innerHeight < 5) && !g) {
+      if ((raw_insert_lock && raw_insert_lock === doc.body || !isTop && getInnerHeight() < 5) && !g) {
         event.repeat && focusUpper(key, true, event);
         action = /* the real is HandlerResult.PassKey; here's for smaller code */ HandlerResult.Nothing;
       } else {

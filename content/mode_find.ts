@@ -1,6 +1,6 @@
 import {
   setupEventListener, VTr, keydownEvents_, isAlive_, suppressCommonEvents, onWndFocus, VOther, timeout_, safer, fgCache,
-  doc, safeObj,
+  doc, safeObj, getTime,
 } from "../lib/utils"
 import {
   pushHandler_, SuppressMost_, Stop_, removeHandler_, prevent_, key_, keybody_, isEscape_, keyNames_,
@@ -121,7 +121,7 @@ export const onLoad = (later?: 1): void => {
     if (!isActive || !notDisableScript()) { return; }
     const box: HTMLIFrameElement = box_,
     wnd = box.contentWindow, f = wnd.addEventListener.bind(wnd) as typeof addEventListener,
-    now = Date.now(), t = true;
+    now = getTime(), t = true;
     let tick = 0;
     f("mousedown", onMousedown, t)
     f("keydown", onIFrameKeydown, t)
@@ -141,7 +141,7 @@ export const onLoad = (later?: 1): void => {
     }
     suppressCommonEvents(wnd, "click");
     f("blur", onUnexpectedBlur = function (this: Window, event): void {
-      const delta = Date.now() - now, wnd1 = this
+      const delta = getTime() - now, wnd1 = this
       if (event && isActive && delta < 500 && delta > -99 && event.target === wnd1) {
         wnd1.closed || timeout_((): void => { isActive && doFocus(); }, tick++ * 17)
       } else {

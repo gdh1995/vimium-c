@@ -1093,6 +1093,7 @@
 	"98": {
 		"message": "Import settings data: OK!"
 	},
+	"99": { "message": "Vimium C uses the built-in Vomnibar page because the preferred is too old." },
 	"4": {
 		"message": "The last element is unhovered"
 	},
@@ -1174,9 +1175,11 @@
 	},
 	"45": { "message": "A child frame just got updated" },
 	"46": { "message": "Hit <Enter> to proceed\u2026" },
+	"47": { "message": "Vimium C blocks auto-focusing." },
 	"0": {
 		"message": "Open link in current tab"
 	},
+	"1": { "message": "Vimium C in %o has been destroyed at %o." },
 	"2": {
 		"message": "Open link in new tab"
 	},

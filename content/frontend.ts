@@ -3,10 +3,10 @@
 import {
   doc, isTop, injector, VOther, initialDocState, set_esc, esc, setupEventListener, set_isEnabled_,
   set_clickable_, clickable_, isAlive_, set_VTr, setupKeydownEvents, onWndFocus,
-  set_readyState_, readyState_, loc_, set_allowScripts_, callFunc,
+  set_readyState_, readyState_, loc_, set_allowScripts_, callFunc, VTr, getTime,
 } from "../lib/utils"
 import { suppressTail_, key_ } from "../lib/keyboard_utils"
-import { frameElement_, set_OnDocLoaded_ } from "../lib/dom_utils"
+import { frameElement_, set_OnDocLoaded_, getInnerHeight } from "../lib/dom_utils"
 import {
   safePost, clearRuntimePort, runtime_port, SafeDestoryF, set_safeDestroy,
   runtimeConnect, safeDestroy, post_, send_,
@@ -52,10 +52,9 @@ set_safeDestroy((silent?: Parameters<SafeDestoryF>[0]): void => {
     /*#__INLINE__*/ set_esc(null as never)
     VApi = null as never;
 
-    silent || console.log("%cVimium C%c in %o has been destroyed at %o."
-      , "color:red", "color:auto"
+    silent || console.log(VTr(kTip.destroyed)
       , loc_.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1")
-      , Date.now());
+      , getTime());
 
     if (runtime_port) { try { runtime_port.disconnect(); } catch {} }
     injector || (<RegExpOne> /a?/).test("");
@@ -66,7 +65,7 @@ VApi = {
   p: post_, a: setupKeydownEvents, f: focusAndRun, d: safeDestroy,
   h: linkActivate, o: omniActivate, n: findOnLoad, c: executeScroll,
   k: scrollTick, $: $sc, l: learnCSS, u: suppressTail_,
-  i: Build.BTypes & BrowserType.Firefox ? () => innerHeight : 0 as never,
+  i: Build.BTypes & BrowserType.Firefox ? getInnerHeight : 0 as never,
   r: injector && [send_, safePost, (): string => {
     let keys = currentKeys; esc!(HandlerResult.Nothing); return keys;
   }, set_clickable_, set_VTr], t: hudTip, m: key_, q: insert_Lock_,

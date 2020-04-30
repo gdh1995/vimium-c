@@ -1,6 +1,6 @@
-/// <reference path="../types/base/index.d.ts" />
-/// <reference path="../types/lib/index.d.ts" />
-/// <reference path="../types/build/index.d.ts" />
+/// <reference path="../typings/base/index.d.ts" />
+/// <reference path="../typings/lib/index.d.ts" />
+/// <reference path="../typings/build/index.d.ts" />
 
 /* eslint-disable no-var, @typescript-eslint/no-unused-vars */
 var VimiumInjector: VimiumInjectorTy | undefined | null = VimiumInjector || {

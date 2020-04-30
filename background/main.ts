@@ -1183,6 +1183,7 @@
       }
       const str = typeof cOptions.mode === "string" ? cOptions.mode.toLowerCase() : "";
       let words = "", keyMap: CmdOptions[kFgCmd.visualMode]["k"] = null;
+      let granularities: CmdOptions[kFgCmd.visualMode]["g"] = null;
       if (~cPort.s.f & Frames.Flags.hadVisualMode) {
         if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
           || Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
@@ -1191,6 +1192,7 @@
           words = Settings_.CONST_.words;
         }
         keyMap = CommandsData_.visualKeys_;
+        granularities = CommandsData_.visualGranularities_
         cPort.s.f |= Frames.Flags.hadVisualMode;
       }
       cPort.postMessage<1, kFgCmd.visualMode>({ N: kBgReq.execute,
@@ -1198,6 +1200,7 @@
         a: {
           m: str === "caret" ? VisualModeNS.Mode.Caret
               : str === "line" ? VisualModeNS.Mode.Line : VisualModeNS.Mode.Visual,
+          g: granularities,
           k: keyMap,
           w: words
         }
