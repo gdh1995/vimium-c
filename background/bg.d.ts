@@ -341,7 +341,6 @@ declare namespace SettingsNS {
   }
   interface CachedFiles {
     baseCSS: string;
-    exclusionTemplate: string;
     helpDialog: string;
   }
   interface OtherSettingsWithDefaults {

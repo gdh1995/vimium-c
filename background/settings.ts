@@ -527,7 +527,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
   // not set localStorage, neither sync, if key in @nonPersistent
   // not clean if exists (for simpler logic)
   nonPersistent_: As_<TypedSafeEnum<SettingsNS.NonPersistentSettings>>({ __proto__: null as never,
-    baseCSS: 1, exclusionTemplate: 1, helpDialog: 1,
+    baseCSS: 1, helpDialog: 1,
     searchEngineMap: 1, searchEngineRules: 1, searchKeywords: 1
   }),
   frontUpdateAllowed_: As_<ReadonlyArray<keyof SettingsNS.FrontUpdateAllowedSettings>>(["showAdvancedCommands"]),
@@ -575,7 +575,6 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     OptionsUIOpenInTab_: Build.NoDialogUI ? true : false,
     OptionsPage_: "pages/options.html", Platform_: "browser",
     baseCSS: "vimium-c.css",
-    exclusionTemplate: "exclusions.html",
     helpDialog: "help_dialog.html",
     words: Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
       || Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp

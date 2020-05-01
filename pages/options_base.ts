@@ -268,24 +268,15 @@ class ExclusionRulesOption_ extends Option_<"exclusionRules"> {
   list_: Array<ExclusionVisibleVirtualNode | ExclusionInvisibleVirtualNode>;
   $list_: HTMLTableSectionElement;
   dragged_: HTMLTableRowElement | null;
-  inited_: boolean;
   onInited_?: () => void;
 constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption_) => void) {
   super(element, onUpdated);
-  this.inited_ = false;
-  bgSettings_.fetchFile_("exclusionTemplate", (): void => {
-    const container = document.createElement("div");
-    if (Build.BTypes & ~BrowserType.Firefox) {
-      container.innerHTML = bgSettings_.cache_.exclusionTemplate as string;
-    } else {
-      const parsed = new DOMParser().parseFromString(bgSettings_.cache_.exclusionTemplate!, "text/html").body;
-      container.append!(... <Element[]> <ArrayLike<Element>> parsed.children);
-    }
-    this.template_ = (container.querySelector("#exclusionTemplate") as HTMLTemplateElement
+  {
+    this.template_ = (element.querySelector("#exclusionTemplate") as HTMLTemplateElement
         ).content.firstChild as HTMLTableRowElement;
     if (lang_) {
       let el: HTMLElement, t: string;
-      for (el of container.querySelectorAll("[data-i]") as ArrayLike<Element> as Element[] as HTMLElement[]) {
+      for (el of element.querySelectorAll("[data-i]") as ArrayLike<Element> as Element[] as HTMLElement[]) {
         t = pTrans_(el.dataset.i as string);
         t && (el.innerText = t);
       }
@@ -294,25 +285,17 @@ constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption_) => v
         t && (el.title = t);
       }
     }
-    this.$list_ = container.querySelector("tbody") as HTMLTableSectionElement;
+    this.$list_ = element.querySelector("tbody") as HTMLTableSectionElement;
     this.list_ = [];
     this.$list_.addEventListener("input", ExclusionRulesOption_.MarkChanged_);
     this.$list_.addEventListener("input", this.onUpdated_);
     this.$list_.addEventListener("click", e => this.onRemoveRow_(e));
     $("#exclusionAddButton").onclick = () => this.addRule_("");
-    let table = container.firstElementChild as HTMLElement;
-    table.remove();
-    this.template_.remove();
     if (Option_.syncToFrontend_) { // is on options page
       this.template_.draggable = true;
     }
-    this.inited_ = true;
-    if (this.saved_) { // async and .fetch called
-      nextTick_(() => this.populateElement_(this.previous_));
-    }
-    nextTick_(table1 => this.element_.appendChild(table1), table);
     nextTick_(() => this.onInited_ && this.onInited_());
-  });
+  };
 }
 onRowChange_ (_isInc: number): void { /* empty */ }
 static MarkChanged_ (this: void, event: Event): void {
@@ -334,7 +317,6 @@ addRule_ (pattern: string, autoFocus?: false | undefined): void {
   this.onRowChange_(1);
 }
 populateElement_ (rules: ExclusionsNS.StoredRule[]): void {
-  if (!this.inited_) { return; }
   if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinTbodyAcceptInnerTextSetter) {
     this.$list_.textContent = "";
   } else {
@@ -617,7 +599,6 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
     populateElement_ (rules1: ExclusionsNS.StoredRule[]): void {
       super.populateElement_(rules1);
       const a = this;
-      if (!a.inited_) { return; }
       a.populateElement_ = null as never; // ensure .populateElement_ is only executed for once
       (document.documentElement as HTMLHtmlElement).style.height = "";
       PopExclusionRulesOption.prototype.isPatternMatched_ = ExclusionRulesOption_.prototype.isPatternMatched_;

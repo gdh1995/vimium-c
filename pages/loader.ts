@@ -69,7 +69,6 @@ chrome.runtime && chrome.runtime.getManifest && (function () {
     (window as {} as {updateUI(): void}).updateUI = function (): void {
       const settings = (chrome.extension.getBackgroundPage() as BgWindow2).Settings_;
       delete (settings.cache_ as FullSettings).helpDialog;
-      delete (settings.cache_ as FullSettings).exclusionTemplate;
       settings.fetchFile_("baseCSS", function (): void {
         settings.postUpdate_("userDefinedCss");
       });

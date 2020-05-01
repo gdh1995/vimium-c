@@ -88,7 +88,26 @@ a.decorate-none {
     </div>
 
     <div id="exclusionRules">
-      <!-- Populated from exclusions.html by options_base.js. -->
+      <table id="exclusionTable" class="code">
+        <thead><tr>
+          <td><span class="exclusionHeader" data-i="Patterns">Patterns</span></td>
+          <td class="exclusionPassKeysTd"><span class="exclusionHeader" data-i="Keys">Keys</span></td>
+          <td class="exclusionRemoveTd"></td>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+      <template id="exclusionTemplate"><tr class="exclusionRule">
+          <td>
+            <input type="text" class="pattern" placeholder=":https://mail.google.com/" spellcheck="false" />
+          </td>
+          <td>
+            <input type="text" class="passKeys" placeholder="f j &lt;c-j&gt; K" spellcheck="false" />
+          </td>
+          <td>
+            <input type="button" class="exclusionRemove" title="Remove" value="&#x2716;" />
+          </td>
+        </tr>
+      </template>
     </div>
 
     <div id="footer">
