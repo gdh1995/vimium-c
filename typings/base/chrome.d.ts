@@ -1967,8 +1967,11 @@ declare namespace chrome.tabs {
         title: string;
         /**
          * The URL the tab is displaying. This property is only present if the extension's manifest includes the "tabs" permission.
+         * If .url is empty, then .pendingUrl may work
          */
         url: string;
+        /** https://developer.chrome.com/extensions/tabs#property-Tab-pendingUrl */
+        pendingUrl: string;
         /**
          * Whether the tab is pinned.
          * @since Chrome 9.

@@ -413,7 +413,7 @@ Marks_ = { // NOTE: all public members should be static
     }
   },
   checkTab_ (this: 0, mark: MarksNS.MarkToGo, tab: chrome.tabs.Tab): void {
-    const url = tab.url.split("#", 1)[0];
+    const url = (Build.BTypes & BrowserType.Chrome ? tab.url || tab.pendingUrl : tab.url).split("#", 1)[0]
     if (url === mark.u || mark.p && mark.u.startsWith(url)) {
       Backend_.gotoSession_({ s: tab.id });
       return Marks_.scrollTab_(mark, tab);

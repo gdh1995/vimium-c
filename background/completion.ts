@@ -613,8 +613,9 @@ historyEngine = {
     if (query.o) { return; }
     const arr: SafeDict<number> = BgUtils_.safeObj_();
     let count = 0;
-    for (const { url, incognito } of tabs) {
-      if (incognito && inNormal) { continue; }
+    for (const tab of tabs) {
+      if (tab.incognito && inNormal) { continue; }
+      let url = Build.BTypes & BrowserType.Chrome ? tab.url || tab.pendingUrl : tab.url;
       if (url in arr) { continue; }
       arr[url] = 1; count++;
     }
@@ -815,7 +816,8 @@ tabEngine = {
     const tabs: TabEx[] = [], wndIds: number[] = [];
     for (const tab of tabs0) {
       if (!wantInCurrentWindow && inNormal && tab.incognito) { continue; }
-      const u = tab.url, text = tab.text || (tab.text = Decoder.decodeURL_(u, tab.incognito ? "" : u));
+      const url = Build.BTypes & BrowserType.Chrome ? tab.url || tab.pendingUrl : tab.url
+      const text = tab.text || (tab.text = Decoder.decodeURL_(url, tab.incognito ? "" : url))
       if (noFilter || RankingUtils.Match2_(text, tab.title)) {
         const wndId = tab.windowId;
         !wantInCurrentWindow && wndIds.lastIndexOf(wndId) < 0 && wndIds.push(wndId);
@@ -850,7 +852,8 @@ tabEngine = {
       if (!inNormal && tab.incognito) { id += "*"; }
       if (tab.discarded || Build.BTypes & BrowserType.Firefox && tab.hidden) { id += "~"; }
       const tabId = tab.id, level = treeMode ? treeLevels[tabId]! : 1,
-      suggestion = new Suggestion("tab", tab.url, tab.text, tab.title,
+      url = Build.BTypes & BrowserType.Chrome ? tab.url || tab.pendingUrl : tab.url,
+      suggestion = new Suggestion("tab", url, tab.text, tab.title,
           c, treeMode ? ++ind : tabId) as CompletersNS.TabSuggestion;
       if (curTabId === tabId) {
         treeMode || (suggestion.r = noFilter ? 1<<31 : 0);

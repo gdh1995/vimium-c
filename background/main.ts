@@ -88,7 +88,7 @@
     [kFgReq.setOmniStyle]: (this: void, request: FgReq[kFgReq.setOmniStyle], _port?: Port) => void;
     [kFgReq.framesGoBack]: {
       (this: void, req: FgReq[kFgReq.framesGoBack], port: Port): void;
-      (this: void, req: FgReq[kFgReq.framesGoBack], port: null, tabId: Pick<Tab, "id" | "url">): void;
+      (this: void, req: FgReq[kFgReq.framesGoBack], port: null, tabId: Pick<Tab, "id" | "url" | "pendingUrl">): void
     };
   }
   interface SpecialCommands {
@@ -490,6 +490,9 @@
       H: null, k: cKey, c: 0, m: FrameMaskType.NoMaskAndNoFocus
     });
   }
+  function getTabUrl(tab_may_pending: Pick<Tab, "url" | "pendingUrl">): string {
+    return Build.BTypes & BrowserType.Chrome ? tab_may_pending.url || tab_may_pending.pendingUrl : tab_may_pending.url
+  }
 
   const
   getCurTab = chrome.tabs.query.bind<null, { active: true; currentWindow: true }
@@ -629,7 +632,7 @@
   ];
   function openUrl(url: Urls.Url, workType: Urls.WorkType, tabs?: [Tab] | []): void {
     if (typeof url === "string") {
-      const tabUrl = tabs && tabs.length > 0 ? tabs[0]!.url : "";
+      const tabUrl = tabs && tabs.length > 0 ? getTabUrl(tabs[0]!) : "";
       let mask: string | undefined = cOptions.url_mask || cOptions.url_mark;
       if (mask) {
         url = url && url.replace(mask + "", (<RegExpOne> /^[%$]s/).test(mask) ? encodeURIComponent(tabUrl) : tabUrl);
@@ -1298,7 +1301,7 @@
       }
       function fallback(tab: Tab): void {
         return openMultiTab({
-          url: tab.url, active: false, windowId: tab.windowId,
+          url: getTabUrl(tab), active: false, windowId: tab.windowId,
           pinned: tab.pinned,
           index: tab.index + 2 , openerTabId: tab.id
         }, cRepeat - 1);
@@ -1378,7 +1381,8 @@
       function moveTabToIncognito(wnd: PopWindow): void {
         const tab = selectFrom(wnd.tabs);
         if (wnd.incognito && tab.incognito) { return reportNoop(); }
-        const options: chrome.windows.CreateData & {url?: string} = {tabId: tab.id, incognito: true}, url = tab.url;
+        const options: chrome.windows.CreateData & {url?: string} = {tabId: tab.id, incognito: true},
+        url = getTabUrl(tab);
         if (tab.incognito) { /* empty */ }
         else if (Build.MinCVer < BrowserVer.MinNoAbnormalIncognito && Build.BTypes & BrowserType.Chrome
             && wnd.incognito) {
@@ -1645,9 +1649,12 @@
       }
       if (filter) {
         const title = filter.includes("title") ? activeTab.title : "",
-        full = filter.includes("hash"),
-        u = full ? activeTab.url.split("#", 1)[0] : activeTab.url;
-        tabs = tabs.filter(tab => (full ? tab.url : tab.url.split("#", 1)[0]) === u && (!title || tab.title === title));
+        full = filter.includes("hash"), activeTabUrl = getTabUrl(activeTab),
+        u = full ? activeTabUrl : activeTabUrl.split("#", 1)[0];
+        tabs = tabs.filter(tab => {
+          let url = getTabUrl(tab);
+          return (full ? url : url.split("#", 1)[0]) === u && (!title || tab.title === title)
+        });
       }
       if (tabs.length > 0) {
         chrome.tabs.remove(tabs.map(tab => tab.id), onRuntimeError);
@@ -1764,7 +1771,7 @@
     },
     /* kBgCmd.searchInAnother: */ function (this: void, tabs: [Tab]): void {
       let keyword = (cOptions.keyword || "") + "";
-      const query = Backend_.parse_({ u: tabs[0].url });
+      const query = Backend_.parse_({ u: getTabUrl(tabs[0]) });
       if (!query || !keyword) {
         Backend_.showHUD_(trans_(keyword ? "noQueryFound" : "noKw"));
         return;
@@ -1899,7 +1906,7 @@
           || CurCVer_ >= BrowserVer.MinNoAbnormalIncognito
           || TabRecency_.incognito_ === IncognitoType.ensuredFalse
           || Settings_.CONST_.DisallowIncognito_
-          || !BgUtils_.isRefusingIncognito_(tab.url)) {
+          || !BgUtils_.isRefusingIncognito_(getTabUrl(tab))) {
         return Backend_.reopenTab_(tab);
       }
       chrome.windows.get(tab.windowId, function (wnd): void {
@@ -1960,7 +1967,7 @@
               currentWindow: true }, (tabs): void => {
         if (!type || type === "title" || type === "frame" || type === "url") {
           requestHandlers[kFgReq.copy]({
-            u: (type === "title" ? tabs[0].title : tabs[0].url) as "url", d: decoded, e: cOptions.sed
+            u: (type === "title" ? tabs[0].title : getTabUrl(tabs[0])) as "url", d: decoded, e: cOptions.sed
           }, cPort);
           return;
         }
@@ -1976,9 +1983,9 @@
           tabs.sort((a, b) => (a.windowId - b.windowId || a.index - b.index));
         }
         const data: any[] = tabs.map(i => isPlainJSON ? {
-          title: i.title, url: decoded ? BgUtils_.DecodeURLPart_(i.url, 1) : i.url
+          title: i.title, url: decoded ? BgUtils_.DecodeURLPart_(getTabUrl(i), 1) : getTabUrl(i)
         } : format.replace(nameRe, (_, s1): string => { // eslint-disable-line arrow-body-style
-          return decoded && s1 === "url" ? BgUtils_.DecodeURLPart_(i.url, 1)
+          return decoded && s1 === "url" ? BgUtils_.DecodeURLPart_(getTabUrl(i), 1)
             : s1 !== "__proto__" && (i as Dict<any>)[s1] || "";
         })),
         result = BgUtils_.copy_(data, join, cOptions.sed);
@@ -1991,7 +1998,7 @@
       return Backend_.showHUD_(trans_("fhCleared", [incognito ? trans_("incog") : ""]));
     },
     /* kBgCmd.toggleViewSource: */ function (this: void, tabs: [Tab]): void {
-      let tab = tabs[0], url = tab.url;
+      let tab = tabs[0], url = getTabUrl(tab);
       if (url.startsWith(BrowserProtocol_)) {
         return Backend_.complain_(trans_("openExtSrc"));
       }
@@ -2700,7 +2707,7 @@
       BackgroundCommands[kBgCmd.performFind]();
     },
     /** kFgReq.framesGoBack: */ function (this: void, req: FgReq[kFgReq.framesGoBack], port: Port | null
-        , curTab?: Pick<Tab, "id" | "url">): void {
+        , curTab?: Pick<Tab, "id" | "url" | "pendingUrl">): void {
       const tabID = Build.BTypes & BrowserType.Chrome && curTab ? curTab.id : port!.s.t,
       count = req.s, reuse = req.r;
       let needToExecCode: boolean = Build.BTypes & BrowserType.Chrome ? false : true;
@@ -2709,7 +2716,7 @@
               || Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome
               || CurCVer_ < BrowserVer.Min$Tabs$$goBack)) {
         // on old Chrome || on other browsers
-        const url = Build.BTypes & BrowserType.Chrome && curTab ? curTab.url
+        const url = Build.BTypes & BrowserType.Chrome && curTab ? getTabUrl(curTab)
           : (port!.s.i ? indexFrame(tabID, 0)! : port!).s.u;
         if (!url.startsWith(BrowserProtocol_)
             || !!(Build.BTypes & BrowserType.Firefox)
@@ -2982,7 +2989,7 @@
           resolve(tab ? tab.url : "");
           return onRuntimeError();
         }) : getCurTab(tabs => {
-          resolve(tabs && tabs.length ? tabs[0].url : "");
+          resolve(tabs && tabs.length ? getTabUrl(tabs[0]) : "");
           return onRuntimeError();
         });
       });
@@ -3081,7 +3088,7 @@
       tabsCreate({
         windowId: tab.windowId,
         index: tab.index,
-        url: tab.url,
+        url: getTabUrl(tab),
         active: tab.active,
         pinned: tab.pinned,
         openerTabId: tab.openerTabId
