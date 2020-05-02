@@ -1650,10 +1650,12 @@
       if (filter) {
         const title = filter.includes("title") ? activeTab.title : "",
         full = filter.includes("hash"), activeTabUrl = getTabUrl(activeTab),
-        u = full ? activeTabUrl : activeTabUrl.split("#", 1)[0];
+        onlyHost = filter.includes("host") ? BgUtils_.safeParseURL_(activeTabUrl) : null,
+        urlToFilter = full ? activeTabUrl : onlyHost ? onlyHost.host : activeTabUrl.split("#", 1)[0];
         tabs = tabs.filter(tab => {
-          let url = getTabUrl(tab);
-          return (full ? url : url.split("#", 1)[0]) === u && (!title || tab.title === title)
+          const tabUrl = getTabUrl(tab), parsed = onlyHost ? BgUtils_.safeParseURL_(activeTabUrl) : null
+          const url = parsed ? parsed.host : full ? tabUrl : tabUrl.split("#", 1)[0]
+          return url === urlToFilter && (!title || tab.title === title)
         });
       }
       if (tabs.length > 0) {
@@ -2983,12 +2985,18 @@
       const excl = Exclusions;
       port = port || indexFrame(TabRecency_.last_, 0);
       return port && excl && excl.rules_.length > 0 && (ignoreHash || excl._listeningHash) ? port.s.u
-          : port && port.s.i ? ""
-          : new Promise<string>(resolve => {
-        port ? tabsGet(port.s.t, tab => {
+          : new Promise<string>((resolve): void => {
+        let webNav = Build.BTypes & BrowserType.Chrome
+            && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
+            && CurCVer_ > BrowserVer.Min$webNavigation$$getFrame$IgnoreProcessId - 1
+            && port && port.s.i ? chrome.webNavigation : null;
+        port ? (webNav ? webNav.getFrame : tabsGet as never as typeof chrome.webNavigation.getFrame)(
+            webNav ? {tabId: port.s.t, frameId: port.s.i}
+              : port.s.t as Parameters<typeof chrome.tabs.get>[0] as never,
+            (tab?: chrome.webNavigation.GetFrameResultDetails | chrome.tabs.Tab | null): void => {
           resolve(tab ? tab.url : "");
           return onRuntimeError();
-        }) : getCurTab(tabs => {
+        }) : getCurTab((tabs): void => {
           resolve(tabs && tabs.length ? getTabUrl(tabs[0]) : "");
           return onRuntimeError();
         });

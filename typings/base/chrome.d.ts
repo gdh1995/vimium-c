@@ -2699,7 +2699,8 @@ declare namespace chrome.webNavigation {
          * The ID of the process runs the renderer for this tab.
          * @since Chrome 22.
          */
-        processId: number;
+        // processId: number;
+
         /** The ID of the tab in which the frame is. */
         tabId: number;
         /** The ID of the frame in the given tab. */

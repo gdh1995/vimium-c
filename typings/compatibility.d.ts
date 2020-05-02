@@ -169,6 +169,7 @@ declare const enum BrowserVer {
   // by default, `noreferrer` can also make `opener` null, and it still works on C35
   // a single `noopener` only works since C49 even if EXPERIMENTAL or LEGACY
   MinLinkRelAcceptNoopener = 49,
+  Min$webNavigation$$getFrame$IgnoreProcessId = 49,
   MinSVG$Path$MayHave$d$CSSAttribute = 49, // if EXPERIMENTAL
   MinTestedES6Environment = 49, // must be <= MinEnsuredFullES6Environment
   // Object.observe is from C36 to C49 even if EXPERIMENTAL or LEGACY
