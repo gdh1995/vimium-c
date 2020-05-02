@@ -1300,7 +1300,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         ? chrome.runtime.getURL(optionsPage) : location.protocol + "//" + VHost_ + optionsPage
       : url.length > 512 || str === "javascript:" || str.startsWith("data:") ? ""
       : item.v
-        || item.e === "history" && url
+        || (item.e === "history" || item.e === "tab") && url
         || (str.startsWith("http")
               || str.lastIndexOf("-", str.indexOf(":") + 1 || 8) > 0 && url.lastIndexOf("://", 21) > 0
             ? (i = url.indexOf("/", url.indexOf("://") + 3), i > 0 ? url.slice(0, i + 1) : url + "/") : url);

@@ -13,7 +13,7 @@ var Commands = {
       ind = str.indexOf("=");
       if (ind === 0 || str === "__proto__"
           || str[0] === "$" && !"$if=$key=$desc=$count=".includes(str.slice(0, ind + 1))) {
-        this.logError_(ind === 0 ? "Missing" : "Unsupported", "option key:", str);
+        this.logError_("%s option key:", ind === 0 ? "Missing" : "Unsupported", str);
       } else if (ind < 0) {
         opt[str] = true;
       } else {
@@ -106,6 +106,7 @@ var Commands = {
     const a = this as typeof Commands, available = a.availableCommands_;
     const strip = BgUtils_.stripKey_;
     const colorRed = "color:red", shortcutLogPrefix = "Shortcut %c%s";
+    CommandsData_.errors_ = null
     lines = line.replace(<RegExpSearchable<0>> /\\\\?\n/g, t => t.length === 3 ? "\\\n" : ""
                ).replace(<RegExpG> /[\t ]+/g, " ").split("\n");
     if (lines[0] !== "unmapAll" && lines[0] !== "unmapall") {
@@ -165,10 +166,10 @@ var Commands = {
           }
         }
         if (splitLine.length !== 3) {
-          a.logError_(`MapKey needs ${splitLine.length > 3 ? "only" : "both"} source and target keys:`, line);
+          a.logError_(`mapKey: need %s source and target keys:`, splitLine.length > 3 ? "only" : "both", line);
         } else if ((key = splitLine[1]).length > 1 && key.match(re)!.length > 1
           || splitLine[2].length > 1 && splitLine[2].match(re)!.length > 1) {
-          a.logError_("MapKey: a source / target key should be a single key:", line);
+          a.logError_("mapKey: a source / target key should be a single key:", line);
         } else if ((key = strip(key)) in mkReg) {
           key = mkReg[strip(key)]!;
           a.logError_("This key %c%s", colorRed, splitLine[1], "has been mapped to another key:"
@@ -274,11 +275,14 @@ var Commands = {
       ref2[strip(arr[last])] = KeyAction.cmd;
     }
     if (detectNewError && d2.cmdErrors_) {
-      console.log("%cKey Mappings: %o errors found.", "background-color:#fffbe5", d2.cmdErrors_);
+      console.log("%c%o errors found.", "background-color:#fffbe5", d2.cmdErrors_);
     } else if (oldErrors < 0) {
       console.log("The new key mappings have no errors");
     }
     CommandsData_.builtinKeys_ = null;
+    if (detectNewError && CommandsData_.errors_) {
+      console.groupEnd();
+    }
     const maybePassed = Exclusions ? Exclusions.getAllPassed_() : null;
     const func = function (obj: ChildKeyFSM): void {
       for (const key in obj) {
@@ -295,10 +299,15 @@ var Commands = {
     }
   }) as (this: void, detectNewError: boolean) => void,
   logError_: function (): void {
+    if (!CommandsData_.errors_) {
+      console.group("Errors in custom Key mappings:");
+      CommandsData_.errors_ = [];
+    }
+    CommandsData_.errors_.push([].slice.call(arguments, 0))
     console.log.apply(console, arguments);
   } as (firstMsg: string, ...args: any[]) => void ,
   warnInactive_ (obj: ReadonlyChildKeyFSM | string, newKey: string): void {
-    console.log("inactive key:", obj, "with", newKey);
+    this.logError_("inactive key:", obj, "with", newKey);
     ++Settings_.temp_.cmdErrors_;
   },
   execute_ (message: Partial<ExternalMsgs[kFgReq.command]["req"]> , sender: chrome.runtime.MessageSender
@@ -554,11 +563,12 @@ availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeO
   })
 },
 CommandsData_: CommandsDataTy = CommandsData_ as never || {
+  keyFSM_: null as never as KeyFSM,
+  mappedKeyRegistry_: null as SafeDict<string> | null,
   keyToCommandRegistry_: null as never as SafeDict<CommandsNS.Item>,
   builtinKeys_: null,
-  keyFSM_: null as never as KeyFSM,
+  errors_: null,
   shortcutRegistry_: null as never as ShortcutInfoMap,
-  mappedKeyRegistry_: null as SafeDict<string> | null,
   visualGranularities_: ["character", "line", "lineboundary", "paragraph", "sentence", "", "word", "documentboundary"],
   visualKeys_: {
     l: VisualAction.char | VisualAction.inc, h: VisualAction.char | VisualAction.dec,

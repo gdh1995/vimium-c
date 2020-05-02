@@ -373,6 +373,7 @@ label:active {
   color: darkred;
   color: var(--tip-color, darkred);
   height: unset;
+  white-space: pre-line;
 }
 .help {
   padding-left: 20px;

@@ -616,15 +616,6 @@
 	"comma": {
 		"message": ", "
 	},
-	"error": {
-		"message": "There's $1 error found"
-	},
-	"errors": {
-		"message": "There're $1 errors found"
-	},
-	"openBgLogs": {
-		"message": "$1. Please see the logs of background page for more details."
-	},
 	"ignoredNonEN": {
 		"message": "Keyboard layout has been ignored! Please consider disabling the option."
 	},

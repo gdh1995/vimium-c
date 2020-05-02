@@ -624,8 +624,8 @@ let optionsInit1_ = function (): void {
   }
   opt = Option_.all_.keyMappings;
   opt.onSave_ = function (): void {
-    const errors = bgSettings_.temp_.cmdErrors_,
-    msg = !errors ? "" : pTrans_("openBgLogs", [pTrans_(errors === 1 ? "error" : "errors", [errors])]);
+    const errors = BG_.CommandsData_.errors_,
+    msg = errors ? formatCmdErrors_(errors) : errors;
     if (bgSettings_.payload_.l && !msg) {
       let str = Object.keys(BG_.CommandsData_.keyFSM_).join(""), mapKey = BG_.CommandsData_.mappedKeyRegistry_;
       str += mapKey ? Object.keys(mapKey).join("") : "";
@@ -1235,4 +1235,19 @@ function click(a: Element): boolean {
   mouseEvent.initMouseEvent("click", true, true, window, 1, 0, 0, 0, 0
     , false, false, false, false, 0, null);
   return a.dispatchEvent(mouseEvent);
+}
+
+function formatCmdErrors_(errors: string[][]): string {
+  let i: number, line: string[], output = ""
+  for (line of errors) {
+    i = 0
+    output += line[0].replace(<RegExpG & RegExpSearchable<1>>/%([a-z])/g, (_, s: string): string => {
+      ++i
+      return s === "c" ? "" : s === "s" || s === "d" ? line[i] : JSON.stringify(line[i])
+    })
+    if (i + 1 < line.length) {
+      output += ` ${line.slice(i + 1).join(" ")}\n`
+    }
+  }
+  return output
 }

@@ -979,15 +979,6 @@
 	"comma": {
 		"message": "，"
 	},
-	"error": {
-		"message": "发现了 $1 处错误"
-	},
-	"errors": {
-		"message": "发现了 $1 处错误"
-	},
-	"openBgLogs": {
-		"message": "$1，请打开扩展后台页面的调试控制台，以查看具体的错误信息。"
-	},
 	"ignoredNonEN": {
 		"message": "请留意“忽略键盘布局”这一选项已启用！也许需要禁用它后才能正确映射非英文的按键。"
 	},

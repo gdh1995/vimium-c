@@ -455,15 +455,6 @@
 	"beforeUnload": {
 		"message": "Vous avez des modifications non-sauvegardées dans les options"
 	},
-	"error": {
-		"message": "Il y a $1 erreur trouvée"
-	},
-	"errors": {
-		"message": "Il y a $1 erreurs trouvées"
-	},
-	"openBgLogs": {
-		"message": "$1. Merci de lire les journaux de fond de page pour plus de détails."
-	},
 	"ignoredNonEN": {
 		"message": "La configuration Clavier a été ignorée ! Merci de considérer de désactiver l'option."
 	},
