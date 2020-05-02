@@ -28,6 +28,7 @@ declare const enum BrowserVer {
   MinMultipleBackgroundImagesNotShareSizePart = 34,
   // on C34 and if EXPERIMENTAL, then it's not implied; before C37, `'unsafe-inline'` is necessary in CSP
   StyleSrc$UnsafeInline$MayNotImply$UnsafeEval = 34,
+  Min$String$$Normalize = 34, // even if EXPERIMENTAL or LEGACY
   MinEnsuredUnprefixedShadowDOMV0 = 35, // even if LEGACY
   MinEnsured$Event$$Path = 35, // = MinEnsuredUnprefixedShadowDOMV0
   // there're WeakMap, WeakSet, Map, Set and Symbols on C35 if #enable-javascript-harmony

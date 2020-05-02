@@ -9,7 +9,7 @@ color:#000;contain:layout style;direction:ltr;font:12px/1 "Helvetica Neue",Helve
 pointer-events:none;position:fixed;user-select:none;z-index:2147483647}
 .HM{font-weight:bold;position:absolute;white-space:nowrap}.DHM::backdrop{background:#00000000}
 .LH{background:linear-gradient(#fff785,#ffc542);border:0.5px solid #e3be23;border-radius:3px;
-box-shadow:0 3px 5px #0000004d;overflow:hidden;padding:1.5px 3px 0.5px;position:absolute}
+box-shadow:0 3px 5px #0000004d;overflow:hidden;padding:2.5px 3px 2px;position:absolute}
 .IH{background:#fff7854d;border:0.5px solid #c38a22;position:absolute}
 .IHS{background:#ff66664d;border-color:#933}
 .HUD:after{background:#eee;border-radius:4px 4px 0 0;border:0.5px solid #bbb;content:" ";
@@ -19,7 +19,7 @@ text-overflow:ellipsis;white-space:nowrap}.HUD.UI{height:24px}
 .Flash{box-shadow:0 0 4px 2px #4183c4;padding:1px}.AbsF{padding:0;position:absolute}.Sel{box-shadow:0 0 4px 2px #ffa000}
 .Frame{border:5px solid #ff0}.Frame,.HUD:after{box-sizing:border-box;height:100%;left:0;top:0;width:100%}
 .Omnibar{left:calc(10vw - 12px);top:64px;width:calc(80vw + 24px)}.O2{left:calc(10% - 12px);width:calc(80% + 24px)}
-.BH{color:#902809}.TH{padding-bottom:2px}.MC,.MH{color:#d4ac3a}.One{border-color:#ffa07a}.UI,.DHM{pointer-events:all}
+.BH{color:#902809}.MC,.MH{color:#d4ac3a}.One{border-color:#ffa07a}.UI,.DHM{pointer-events:all}
 .D>.LH{background:linear-gradient(#ccbe00,#cc8f00)}.HUD.D{color:#ccc}.HUD.D:after{background:#222}
 /*#find*/
 ::selection { background: #ff9632 !important; }

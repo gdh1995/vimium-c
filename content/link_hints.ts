@@ -170,7 +170,7 @@ export const activate = (options: HintsNS.ContentOptions, count: number): void =
     const useFilter0 = options.useFilter, useFilter = useFilter0 != null ? !!useFilter0 : fgCache.f,
     frameList: FrameHintsInfo[] = frameList_ = [{h: [], v: null as never, s: coreHints}],
     toClean: HintOfficer[] = [],
-    s0 = options.characters, chars = (s0 ? s0 + "" : useFilter ? fgCache.n : fgCache.c).toUpperCase();
+    s0 = options.characters, chars = (s0 ? s0 + "" : useFilter ? fgCache.n : fgCache.c).toLocaleUpperCase!();
     if (chars.length < GlobalConsts.MinHintCharSetSize) {
       clear(1)
       return hudTip(kTip.fewChars, 1000);
