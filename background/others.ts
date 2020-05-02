@@ -957,8 +957,14 @@ function (details: chrome.runtime.InstalledDetails): void {
   if (reason === "install") { reason = ""; }
   else if (reason === "update") { reason = details.previousVersion!; }
   else { return; }
+  if (Settings_.temp_.onInstall_) {
+    chrome.runtime.onInstalled.removeListener(Settings_.temp_.onInstall_)
+    Settings_.temp_.onInstall_ = null
+  } else {
+    return
+  }
 
-  setTimeout(function () {
+  BgUtils_.timeout_(500, function (): void {
   Build.BTypes & ~BrowserType.Firefox &&
   (!(Build.BTypes & BrowserType.Firefox) || OnOther !== BrowserType.Firefox) &&
   chrome.tabs.query({
@@ -1029,7 +1035,7 @@ function (details: chrome.runtime.InstalledDetails): void {
       });
     });
   });
-  }, 500);
+  });
 });
 
 BgUtils_.GC_ = function (inc0?: number): void {
@@ -1069,7 +1075,7 @@ BgUtils_.GC_ = function (inc0?: number): void {
 };
 
 BgUtils_.timeout_(1200, function (): void {
-  chrome.runtime.onInstalled.removeListener(Settings_.temp_.onInstall_!);
+  Settings_.temp_.onInstall_ && chrome.runtime.onInstalled.removeListener(Settings_.temp_.onInstall_);
   Settings_.temp_.onInstall_ = null;
   (document.documentElement as HTMLHtmlElement).innerText = "";
   BgUtils_.resetRe_();

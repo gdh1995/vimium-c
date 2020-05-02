@@ -625,7 +625,7 @@ let optionsInit1_ = function (): void {
   opt = Option_.all_.keyMappings;
   opt.onSave_ = function (): void {
     const errors = BG_.CommandsData_.errors_,
-    msg = errors ? formatCmdErrors_(errors) : errors;
+    msg = errors ? formatCmdErrors_(errors) : "";
     if (bgSettings_.payload_.l && !msg) {
       let str = Object.keys(BG_.CommandsData_.keyFSM_).join(""), mapKey = BG_.CommandsData_.mappedKeyRegistry_;
       str += mapKey ? Object.keys(mapKey).join("") : "";

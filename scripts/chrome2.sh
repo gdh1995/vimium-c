@@ -129,12 +129,14 @@ case "$1" in
 esac
 done
 
-if test $DIST -gt 0; then
-  wp deafault_vc_ext_w "$default_vc_root/dist"
-else
-  wp deafault_vc_ext_w "$default_vc_root"
+if test $ALSO_VC -gt 0; then
+  if test $DIST -gt 0; then
+    wp deafault_vc_ext_w "$default_vc_root/dist"
+  else
+    wp deafault_vc_ext_w "$default_vc_root"
+  fi
+  OTHER_EXT=${OTHER_EXT},${deafault_vc_ext_w}
 fi
-OTHER_EXT=${OTHER_EXT},${deafault_vc_ext_w}
 
 if test -f "/usr/bin/env.exe"; then
   RUN=/usr/bin/start2.exe
