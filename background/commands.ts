@@ -1,3 +1,7 @@
+interface EnvCond {
+  sys?: string
+  browser?: BrowserType
+}
 // eslint-disable-next-line no-var
 var Commands = {
   getOptions_ (item: string[], start: number): CommandsNS.Options | null {
@@ -29,7 +33,7 @@ var Commands = {
   makeCommand_ (command: string, options?: CommandsNS.RawOptions | null, details?: CommandsNS.Description
       ): CommandsNS.Item | null {
     if (!details) { details = this.availableCommands_[command]!; }
-    let opt: CommandsNS.Options | null, help: CommandsNS.CustomHelpInfo | null = null, condition: any
+    let opt: CommandsNS.Options | null, help: CommandsNS.CustomHelpInfo | null = null
       , repeat = details[2];
     opt = details.length < 4 ? null : BgUtils_.safer_(details[3]!);
     if (options) {
@@ -45,12 +49,8 @@ var Commands = {
         delete options.$key;
         delete options.$desc;
       }
-      if (condition = options.$if) {
-        if (condition.sys && condition.sys !== Settings_.CONST_.Platform_
-            || condition.browser && ! (condition.browser & (Build.BTypes & ~BrowserType.Chrome
-                    && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge
-                  ? OnOther : Build.BTypes & BrowserType._mask))
-            ) {
+      if (options.$if) {
+        if (this.doesNotMatchEnv_(options)) {
           return null;
         }
         delete options.$if;
@@ -84,6 +84,15 @@ var Commands = {
       options_: options,
       repeat_: repeat
     };
+  },
+  doesNotMatchEnv_ (options: CommandsNS.RawOptions | null): boolean | null {
+    const condition: EnvCond | null | undefined = options && options.$if;
+    return condition ? !!condition.sys && condition.sys !== Settings_.CONST_.Platform_
+        || !!condition.browser
+          && !(condition.browser & (Build.BTypes & ~BrowserType.Chrome
+                  && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge
+                ? OnOther : Build.BTypes & BrowserType._mask))
+        : null
   },
   // eslint-disable-next-line object-shorthand
   parseKeyMappings_: (function (this: {}, line: string): void {
@@ -148,8 +157,15 @@ var Commands = {
         continue;
       } else if (key === "mapkey" || key === "mapKey") {
         const re = <RegExpG & RegExpSearchable<1>> /<(?!<[^:])([acms]-){0,4}.\w*?(:[a-z])?>|./g;
+        if (splitLine.length === 4) {
+          const doesNotMatchEnv = a.doesNotMatchEnv_(a.getOptions_(splitLine, 3));
+          if (doesNotMatchEnv != null) {
+            if (doesNotMatchEnv) { continue }
+            splitLine.length = 3;
+          }
+        }
         if (splitLine.length !== 3) {
-          a.logError_(`MapKey needs ${splitLine.length > 3 ? "only" : "both"} source and target keys`, line);
+          a.logError_(`MapKey needs ${splitLine.length > 3 ? "only" : "both"} source and target keys:`, line);
         } else if ((key = splitLine[1]).length > 1 && key.match(re)!.length > 1
           || splitLine[2].length > 1 && splitLine[2].match(re)!.length > 1) {
           a.logError_("MapKey: a source / target key should be a single key:", line);
