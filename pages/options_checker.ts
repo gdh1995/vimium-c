@@ -54,11 +54,21 @@ let keyMappingChecker_ = {
     const hex = s.charCodeAt(0) + 0x100000;
     return "\\u" + hex.toString(16).slice(2);
   },
-  normalizeMap_ (_0: string, cmd: string, keys: string, options: string) {
+  normalizeMap_ (_0: string, cmd: string, keys: string, options: string): string {
     const keys2 = this.normalizeKeys_(keys);
     if (keys2 !== keys) {
       console.log("KeyMappings Checker:", keys, "is corrected into", keys2);
       keys = keys2;
+    }
+    if (cmd.replace("#", "").trim().toLowerCase() === "mapkey") {
+      const destKeyArr = options.match(/^\s*\S+/)
+      let destKey = destKeyArr && destKeyArr[0].trim()
+      const destKey2 = destKey && this.normalizeKeys_(destKey)
+      if (destKey2 !== destKey) {
+        console.log("KeyMappings Checker:", destKey, "is corrected into", destKey2)
+        options = options.replace(destKey!, destKey2!)
+        destKey = destKey2
+      }
     }
     return this.normalizeCmd_("", cmd, keys, options);
   },
@@ -83,8 +93,9 @@ let keyMappingChecker_ = {
     if (!str) { return str; }
     this.init_ && this.init_();
     str = "\n" + str.replace(<RegExpG & RegExpSearchable<0>> /\\\\?\n/g, i => i.length === 3 ? i : "\\\r");
-    str = str.replace(<RegExpG & RegExpSearchable<3>> /(\n[ \t]*#?(?:un)?map\s+)(\S+)([^\n]*)/g, this.normalizeMap_);
-    str = str.replace(<RegExpG & RegExpSearchable<3>> /(\n[ \t]*#?(?:command|shortcut)\s+)(\S+)([^\n]*)/g,
+    str = str.replace(<RegExpG & RegExpSearchable<3>> /(\n[ \t]*(?:#\s?)?(?:un)?map(?:[kK]ey)?\s+)(\S+)([^\n]*)/g
+        , this.normalizeMap_);
+    str = str.replace(<RegExpG & RegExpSearchable<3>> /(\n[ \t]*(?:#\s?)?(?:command|shortcut)\s+)(\S+)([^\n]*)/g,
         this.normalizeCmd_);
     str = str.replace(<RegExpG & RegExpSearchable<0>> /\\\r/g, "\\\n").trim();
     return str;
