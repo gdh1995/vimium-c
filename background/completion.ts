@@ -57,9 +57,10 @@ interface HistoryItem extends DecodedItem {
   visible_: Visibility;
 }
 interface BrowserUrlItem {
-  url: string;
-  title?: string | null;
-  sessionId?: string | number;
+  url_: string;
+  title_: string | null;
+  sessionId_: string | number | null | undefined;
+  visit_: number
 }
 interface UrlDomain {
   domain_: string;
@@ -600,7 +601,9 @@ historyEngine = {
       if (score <= 0) { break; }
       const item = history[results[i + 1]];
       if (item.url_ !== domainToSkip) {
-        sugs.push(new Suggestion("history", item.url_, item.text_, item.title_, get2ndArg, score));
+        const sug = new Suggestion("history", item.url_, item.text_, item.title_, get2ndArg, score)
+        sug.visit = item.time_
+        sugs.push(sug)
       } else {
         maxNum--;
       }
@@ -626,7 +629,7 @@ historyEngine = {
     const historyArr: BrowserUrlItem[] = [], arr: Dict<number> = {};
     let i = -offset;
     return sessions.some(function (item): boolean {
-      const entry = item.tab;
+      const entry = item.tab as chrome.sessions.Session["tab"] & BrowserUrlItem
       if (!entry) { return false; }
       let url = entry.url;
       if (url.length > GlobalConsts.MaxHistoryURLLength) {
@@ -636,7 +639,9 @@ historyEngine = {
       const key = url + "\n" + entry.title;
       if (key in arr) { return false; }
       arr[key] = 1; arr[url] = 1;
-      ++i > 0 && historyArr.push(entry);
+      ++i > 0 && historyArr.push({
+        url_: entry.url, title_: entry.title, visit_: item.lastModified, sessionId_: entry.sessionId
+      });
       return historyArr.length >= maxResults;
     }) ? historyEngine.filterFinish_(historyArr) : historyEngine.filterFill_(historyArr, query, arr, -i, 0);
   },
@@ -645,9 +650,9 @@ historyEngine = {
     chrome.history.search({
       text: "",
       maxResults: offset + maxResults * (showThoseInBlocklist ? 1 : 2) + neededMore
-    }, function (historyArr2: chrome.history.HistoryItem[] | BrowserUrlItem[]): void {
+    }, function (rawArr2: chrome.history.HistoryItem[]): void {
       if (query.o) { return; }
-      historyArr2 = (historyArr2 as chrome.history.HistoryItem[]).filter(function (this: Dict<number>, i) {
+      rawArr2 = rawArr2.filter(function (this: Dict<number>, i): boolean {
         let url = i.url;
         if (url.length > GlobalConsts.MaxHistoryURLLength) {
           i.url = url = HistoryCache.trimURLAndTitleWhenTooLong_(url, i);
@@ -655,17 +660,20 @@ historyEngine = {
         return !(url in this);
       }, arr);
       if (!showThoseInBlocklist) {
-        historyArr2 = (historyArr2 as chrome.history.HistoryItem[]).filter(function (entry) {
+        rawArr2 = rawArr2.filter(function (entry): boolean | BOOL {
           return BlockListFilter.TestNotMatched_(entry.url, entry.title || "");
         });
       }
+      let historyArr2 = rawArr2.map((i): BrowserUrlItem => ({
+          url_: i.url, title_: i.title, visit_: i.lastVisitTime, sessionId_: null
+      }))
       if (cut < 0) {
         historyArr2.length = Math.min(historyArr2.length, maxResults - historyArr.length);
         historyArr2 = historyArr.concat(historyArr2);
       } else if (cut > 0) {
         historyArr2 = historyArr2.slice(cut, cut + maxResults);
       }
-      return historyEngine.filterFinish_(historyArr2);
+      historyEngine.filterFinish_(historyArr2);
     });
   },
   filterFinish_: function (historyArr: Array<BrowserUrlItem | Suggestion>): void {
@@ -675,9 +683,10 @@ historyEngine = {
     Completers.next_(historyArr as Suggestion[], SugType.history);
   } as (historyArr: BrowserUrlItem[]) => void,
   MakeSuggestion_ (e: BrowserUrlItem, i: number, arr: Array<BrowserUrlItem | Suggestion>): void {
-    const u = e.url, o = new Suggestion("history", u, Decoder.decodeURL_(u, u), e.title || "",
+    const u = e.url_, o = new Suggestion("history", u, Decoder.decodeURL_(u, u), e.title_ || "",
       get2ndArg, (99 - i) / 100),
-    sessionId = e.sessionId;
+    sessionId = e.sessionId_
+    o.visit = e.visit_
     sessionId && (o.s = sessionId, o.label = "&#8617;");
     arr[i] = o;
   }
@@ -694,7 +703,7 @@ domainEngine = {
     else if (HistoryCache.history_) {
       domainEngine.refresh_(HistoryCache.history_);
     } else {
-      return index > 0 ? Completers.next_([], SugType.domain) : HistoryCache.use_(function () {
+      return index > 0 ? Completers.next_([], SugType.domain) : HistoryCache.use_(function (): void {
         if (query.o) { return; }
         return domainEngine.filter_(query, 0);
       });
@@ -745,9 +754,10 @@ domainEngine = {
         autoSelect = isMainPart || autoSelect;
         sug = new Suggestion("domain", url, word === queryTerms[0] ? result : result + "/", "",
             get2ndArg, 2);
-        prepareHtml(sug);
         const ind = HistoryCache.sorted_ ? HistoryCache.binarySearch_(url) : -1,
         item = ind > 0 ? HistoryCache.history_![ind] : null;
+        item ? sug.visit = item.time_ : 0
+        prepareHtml(sug);
         if (item && (showThoseInBlocklist || item.visible_)) {
           sug.title = Build.BTypes & BrowserType.Firefox
               && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
@@ -859,6 +869,7 @@ tabEngine = {
         treeMode || (suggestion.r = noFilter ? 1<<31 : 0);
         id = `#(${id.slice(1)})`;
       }
+      suggestion.visit = TabRecency_.tabs_[tabId];
       suggestion.s = tabId;
       suggestion.label = id;
       if (Build.BTypes & BrowserType.Firefox

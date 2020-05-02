@@ -66,6 +66,7 @@ declare namespace CompletersNS {
     t: string;
     textSplit?: string;
     title: string;
+    visit?: number;
     /** sessionId */ s?: string | number;
     label?: string;
     /** source page of favIcon */ v?: string;
