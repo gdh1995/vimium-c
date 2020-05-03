@@ -366,13 +366,13 @@ declare namespace SettingsNS {
     (this: void, value: FullSettings[K]): void;
   }
 
-  type NullableUpdateHooks = "searchEngines" | "searchEngineMap" | "searchUrl" | "keyMappings" | "vomnibarPage";
+  type NullableUpdateHooks = "searchEngines" | "searchUrl" | "keyMappings" | "vomnibarPage";
   type WoThisUpdateHooks = "showActionIcon";
   type SpecialUpdateHooks = "newTabUrl_f";
 
   type DeclaredUpdateHooks = "newTabUrl" | "searchEngines" | "searchEngineMap" | "searchUrl"
         | "baseCSS" | "userDefinedCss" | "innerCSS" | "vomnibarPage"
-        | "extAllowList";
+        | "extAllowList" | "grabBackFocus" | "mapModifier" | "vomnibarOptions";
   type EnsuredUpdateHooks = DeclaredUpdateHooks | WoThisUpdateHooks | SpecialUpdateHooks;
   type UpdateHook<key extends keyof FullSettings> =
         key extends NullableUpdateHooks ? NullableUpdateHook<key>

@@ -623,12 +623,12 @@ MediaWatcher_ = {
     if (!key) {
       if (payload.m !== bMatched) {
         payload.m = bMatched;
-        embed || settings.broadcast_({ N: kBgReq.settingsUpdate, d: { m: bMatched } });
+        embed || settings.broadcast_({ N: kBgReq.settingsUpdate, d: ["m"] });
       }
     } else {
       if (!!payload.d !== bMatched) {
         payload.d = bMatched ? " D" : "";
-        embed || settings.broadcast_({ N: kBgReq.settingsUpdate, d: { d: payload.d } });
+        embed || settings.broadcast_({ N: kBgReq.settingsUpdate, d: ["d"] });
       }
     }
     Backend_.setOmniStyle_({
@@ -722,13 +722,13 @@ BgUtils_.timeout_(120, function (): void {
 
   const settings = Settings_;
   settings.updateHooks_.autoDarkMode = settings.updateHooks_.autoReduceMotion = (value: boolean
-      , keyName: SettingsNS.kNames.autoReduceMotion | "autoDarkMode"): void => {
+      , keyName: "autoReduceMotion" | "autoDarkMode"): void => {
     const key = keyName.length > 12 ? MediaNS.kName.PrefersReduceMotion
         : MediaNS.kName.PrefersColorScheme;
     MediaWatcher_.listen_(key, value);
   };
   settings.postUpdate_("autoDarkMode");
-  settings.postUpdate_(SettingsNS.kNames.autoReduceMotion);
+  settings.postUpdate_("autoReduceMotion");
   settings.updateOmniStyles_ = MediaWatcher_.update_;
   settings.updateMediaQueries_ = MediaWatcher_.RefreshAll_;
 

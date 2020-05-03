@@ -10,12 +10,11 @@ interface OptionWindow extends Window {
 
 Option_.syncToFrontend_ = [];
 
-Option_.prototype._onCacheUpdated = function<T extends keyof SettingsNS.FrontendSettings
+Option_.prototype._onCacheUpdated = function<T extends keyof SettingsNS.AutoSyncedNameMap
     > (this: Option_<T>, func: (this: Option_<T>) => void): void {
   func.call(this);
   if (window.VApi) {
-    (VApi.z as Generalized<SettingsNS.FrontendSettingCache>
-        )[bgSettings_.valuesToLoad_[this.field_]] = this.readValueFromElement_();
+    bgSettings_.updatePayload_(bgSettings_.valuesToLoad_[this.field_], this.readValueFromElement_() as any, VApi.z!)
   }
 };
 
@@ -308,9 +307,6 @@ class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
   }
   readValueFromElement_ (): FullSettings[T] {
     let value = this.element_.indeterminate ? this.map_[1] : this.map_[this.element_.checked ? this.true_index_ : 0];
-    if (this.field_ === "ignoreCapsLock" && window.VApi && VApi.z) {
-      VApi.z!.i = value > 1 || value === 1 && !bgSettings_.payload_.o;
-    }
     return value;
   }
   onTripleStatusesClicked (event: Event): void {
@@ -429,12 +425,7 @@ let optionsInit1_ = function (): void {
     setTimeout(doSyncToFrontend, 100, toSync);
   };
   function doSyncToFrontend(toSync: typeof Option_.syncToFrontend_): void {
-    const delta: BgReq[kBgReq.settingsUpdate]["d"] = Object.create(null),
-    req: Req.bg<kBgReq.settingsUpdate> = { N: kBgReq.settingsUpdate, d: delta };
-    for (const key of toSync) {
-      (delta as Generalized<typeof delta>)[bgSettings_.valuesToLoad_[key]] = bgSettings_.get_(key);
-    }
-    bgSettings_.broadcast_(req);
+    bgSettings_.broadcast_({ N: kBgReq.settingsUpdate, d: toSync.map(key => bgSettings_.valuesToLoad_[key]) });
   }
 
   let advancedMode = false, _element: HTMLElement = $<AdvancedOptBtn>("#advancedOptionsButton");

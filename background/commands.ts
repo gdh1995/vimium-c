@@ -59,17 +59,24 @@ var Commands = {
         BgUtils_.extendIf_(options, opt);
       }
       if (details[0] === kFgCmd.linkHints && !details[1]) {
-        let rawMode = options.mode, mode = rawMode;
+        let rawMode = (options as HintsNS.Options).mode, mode = rawMode
+        const rawChars = (options as HintsNS.Options).characters
+        const chars = rawChars && Settings_.updatePayload_<"c" | "n">("c", rawChars)
         if (typeof mode !== "number") {
-          mode = (this.hintModes_[options.action || mode || 0] as number | undefined | {} as number) | 0;
+          mode = (this.hintModes_[(options as HintsNS.Options).action || mode || 0
+              ] as number | undefined | {} as number) | 0;
         }
         if (mode > HintMode.max_mouse_events) {
-          mode = mode === HintMode.EDIT_TEXT ? options.url ? HintMode.EDIT_LINK_URL : mode
-              : mode === HintMode.COPY_TEXT ? options.join ? HintMode.COPY_TEXT | HintMode.queue | HintMode.list : mode
+          mode = mode === HintMode.EDIT_TEXT ? (options as HintsNS.Options).url ? HintMode.EDIT_LINK_URL : mode
+              : mode === HintMode.COPY_TEXT
+                ? (options as HintsNS.Options).join ? HintMode.COPY_TEXT | HintMode.queue | HintMode.list : mode
               : mode > HintMode.min_disable_queue + HintMode.queue - 1 ? mode - HintMode.queue : mode;
         }
         if (rawMode !== mode) {
-          options.mode = mode;
+          (options as HintsNS.Options).mode = mode;
+        }
+        if (rawChars !== chars) {
+          (options as HintsNS.Options).characters = chars
         }
         repeat = mode > HintMode.min_disable_queue - 1 ? 1 : repeat;
       }

@@ -263,7 +263,7 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
       logUpdate("import", key, new_value);
       bgSettings_.set_(key, new_value);
       if (key in bgSettings_.valuesToLoad_) {
-        Option_.syncToFrontend_.push(key as keyof SettingsNS.FrontendSettings);
+        Option_.syncToFrontend_.push(key as keyof typeof bgSettings_.valuesToLoad_);
       }
       item.fetch_();
       item.onSave_ && item.onSave_();

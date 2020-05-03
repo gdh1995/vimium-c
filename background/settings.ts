@@ -1,5 +1,11 @@
 import SettingsWithDefaults = SettingsNS.SettingsWithDefaults;
 type WritableSettingsCache = SettingsNS.FullCache;
+type SettingsUpdateMsg = {
+  [K in keyof Req.bg<kBgReq.settingsUpdate>]: K extends "d"
+      ? Array<keyof SettingsNS.FrontendSettingsSyncingItems> | SettingsNS.FrontendSettingCache
+      : Req.bg<kBgReq.settingsUpdate>[K]
+}
+
 const As_ = <T> (i: T): T => i;
 // eslint-disable-next-line no-var
 var Settings_ = {
@@ -10,7 +16,7 @@ var Settings_ = {
     onInstall_: null as Parameters<chrome.runtime.RuntimeInstalledEvent["addListener"]>[0] | null,
     initing_: BackendHandlersNS.kInitStat.START,
     cmdErrors_: 0,
-    newSettingsToBroadcast_: null as BgReq[kBgReq.settingsUpdate]["d"] | null,
+    newSettingsToBroadcast_: null as Extract<SettingsUpdateMsg["d"], string[]> | null,
     IconBuffer_: null as IconNS.AccessIconBuffer | null,
     loadI18nPayload_: null as (() => void) | null,
     omniStyleOverridden_: false,
@@ -19,7 +25,6 @@ var Settings_ = {
   payload_: <SettingsNS.FrontendSettingCache> As_<SettingsNS.DeclaredFrontendValues>({
     v: Build.BTypes & BrowserType.Chrome ? CurCVer_ : Build.BTypes & BrowserType.Firefox ? CurFFVer_ : 0,
     d: "",
-    i: false,
     m: false,
     g: false,
     o: kOS.win
@@ -64,8 +69,8 @@ var Settings_ = {
         a.sync_(key as PersistentKeys, value as FullSettings[PersistentKeys]);
       }
       if (key in a.valuesToLoad_) {
-        (a.payload_ as Generalized<typeof a.payload_>)[a.valuesToLoad_[key as keyof SettingsNS.FrontendSettings]] =
-          value as FullSettings[keyof SettingsNS.FrontendSettings];
+        a.updatePayload_(a.valuesToLoad_[key as keyof typeof a.valuesToLoad_]
+            , value as FullSettings[keyof typeof a.valuesToLoad_], a.payload_)
       }
     }
     let ref: SettingsNS.SimpleUpdateHook<K> | undefined;
@@ -82,12 +87,17 @@ var Settings_ = {
     <K extends SettingsNS.NullableUpdateHooks>(key: K, value?: FullSettings[K] | null): void;
     <K extends SettingsNS.EnsuredUpdateHooks | keyof SettingsWithDefaults>(key: K, value?: FullSettings[K]): void;
   },
-  broadcast_<K extends kBgReq.settingsUpdate | kBgReq.url | kBgReq.keyFSM> (request: Req.bg<K>): void {
-    if (request.N === kBgReq.settingsUpdate) {
-      const cur = BgUtils_.safer_((request as Req.bg<kBgReq.settingsUpdate>).d)
-        , old = Settings_.temp_.newSettingsToBroadcast_;
+  broadcast_<K extends kBgReq.settingsUpdate | kBgReq.url | kBgReq.keyFSM> (
+      request: K extends kBgReq.settingsUpdate ? SettingsUpdateMsg : Req.bg<K>): void {
+    if (request.N !== kBgReq.settingsUpdate) {
+      Settings_._BroadcastSettingsUpdates(request);
+    } else if (((request as SettingsUpdateMsg).d as Extract<SettingsUpdateMsg["d"], string[]>).length == null) {
+      Settings_._BroadcastSettingsUpdates(request)
+    } else {
+      let cur = (request as SettingsUpdateMsg).d as Extract<SettingsUpdateMsg["d"], string[]>,
+      old = Settings_.temp_.newSettingsToBroadcast_
       if (old) {
-        BgUtils_.extendIf_(cur, old);
+        cur = cur.concat(old)
       } else if ((Build.MinCVer >= BrowserVer.Min$queueMicrotask || !(Build.BTypes & BrowserType.Chrome))
           && (Build.MinFFVer >= FirefoxBrowserVer.Min$queueMicrotask || !(Build.BTypes & BrowserType.Firefox))
           && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)) {
@@ -96,21 +106,24 @@ var Settings_ = {
         Promise.resolve(request).then(Settings_._BroadcastSettingsUpdates);
       }
       Settings_.temp_.newSettingsToBroadcast_ = cur;
-      return;
-    } else {
-      Settings_._BroadcastSettingsUpdates(request);
+      (request as SettingsUpdateMsg).d = null as never
     }
   },
-  _BroadcastSettingsUpdates<K extends keyof BgReq> (this: void, request: Req.bg<K>): void {
-    if (request.N === kBgReq.settingsUpdate) {
-      (request as Req.bg<kBgReq.settingsUpdate>).d = Settings_.temp_.newSettingsToBroadcast_!;
+  _BroadcastSettingsUpdates<K extends keyof BgReq> (this: void
+      , request: K extends kBgReq.settingsUpdate ? SettingsUpdateMsg : Req.bg<K>): void {
+    if (request.N === kBgReq.settingsUpdate && !(request as SettingsUpdateMsg).d) {
+      const obj = Settings_.temp_.newSettingsToBroadcast_!
+      const d: BgReq[kBgReq.settingsUpdate]["d"] = (request as Req.bg<kBgReq.settingsUpdate>).d = {}
+      for (const key of obj) {
+        (d as Generalized<typeof d>)[key] = Settings_.payload_[key]
+      }
       Settings_.temp_.newSettingsToBroadcast_ = null;
     }
     const ref = Backend_.indexPorts_();
     for (const tabId in ref) {
       const frames = ref[+tabId]!;
       for (let i = frames.length; 0 < --i; ) {
-        frames[i].postMessage(request);
+        frames[i].postMessage(request as Req.baseBg<K> as Req.bg<K>);
       }
     }
   },
@@ -119,6 +132,25 @@ var Settings_ = {
       frame.postMessage(request);
     }
   },
+  updatePayload_: function (shortKey: keyof SettingsNS.AutoSyncedItems, value: any
+      , obj?: Partial<SettingsNS.FrontendSettingCache>
+      ): SettingsNS.AutoSyncedItems[keyof SettingsNS.AutoSyncedItems][1] {
+    type SettingType<T> = T extends keyof SettingsNS.FullSettings ? SettingsNS.FullSettings[T] : never
+    type ValType<T extends keyof SettingsNS.AutoSyncedItems> = SettingType<SettingsNS.AutoSyncedItems[T][0]>;
+    switch (shortKey) {
+    case "c": case "n": value = (value as ValType<"c" | "n">).toLocaleUpperCase!(); break
+    case "i":
+      value = value === !!value ? value
+        : (value as ValType<"i">) > 1 || (value as ValType<"i">) > 0 && !Settings_.payload_.o; break
+    // no default:
+    }
+    return obj ? (obj as Generalized<SettingsNS.FrontendSettingCache>)[shortKey] = value : value
+  } as <T extends keyof (SettingsNS.AutoSyncedItems & SettingsNS.ManuallySyncedItems)>
+      (shortKey: T
+      , value: T extends keyof SettingsNS.AutoSyncedItems ? FullSettings[SettingsNS.AutoSyncedItems[T][0]]
+          : T extends keyof SettingsNS.ManuallySyncedItems ? SettingsNS.ManuallySyncedItems[T][1] : never
+      , obj?: Partial<SettingsNS.FrontendSettingCache>
+      ) => (SettingsNS.AutoSyncedItems & SettingsNS.ManuallySyncedItems)[T][1],
   updateOmniStyles_: BgUtils_.blank_ as (key: MediaNS.kName, embed?: 1 | undefined) => void,
   updateMediaQueries_: BgUtils_.blank_ as (this: void) => void,
   parseCustomCSS_ (css: string): SettingsNS.ParsedCustomCSS {
@@ -130,7 +162,7 @@ var Settings_ = {
     }
     return map;
   },
-  updateHooks_: {
+  updateHooks_: As_<{ [key in SettingsNS.DeclaredUpdateHooks]: SettingsNS.UpdateHook<key>; } & SafeObject>({
     __proto__: null as never,
     extAllowList (val): void {
       const old = Settings_.extAllowList_;
@@ -309,13 +341,10 @@ var Settings_ = {
       a.broadcastOmni_({ N: kBgReq.omni_updateOptions, d: { c: a.omniPayload_.c } });
     },
     mapModifier (this: {}, value: FullSettings["mapModifier"]): void {
-      Settings_.broadcastOmni_({ N: kBgReq.omni_updateOptions, d: { a: value } });
-    },
-    ignoreCapsLock (this: {}, value: FullSettings["ignoreCapsLock"]): void {
-      const flag = value > 1 || value === 1 && !Settings_.payload_.o;
-      if (Settings_.payload_.i === flag) { return; }
-      Settings_.payload_.i = flag;
-      Settings_.broadcast_({ N: kBgReq.settingsUpdate, d: { i: flag } });
+      type DeltaType = BgVomnibarSpecialReq[kBgReq.omni_updateOptions]["d"]
+      Settings_.broadcastOmni_({ N: kBgReq.omni_updateOptions, d:
+        As_<Pick<DeltaType, SelectNameToKey<SettingsNS.AllVomnibarItems>["mapModifier"]>>({ a: value })
+      })
     },
     innerCSS (this: {}, css): void {
       const a = Settings_, cache = a.cache_ as WritableSettingsCache;
@@ -394,7 +423,7 @@ var Settings_ = {
         s: payload.s
       } });
     }
-  } as { [key in SettingsNS.DeclaredUpdateHooks]: SettingsNS.UpdateHook<key>; } as SettingsNS.FullUpdateHookMap,
+  }) as { [key in SettingsNS.DeclaredUpdateHooks]: SettingsNS.UpdateHook<key>; } as SettingsNS.FullUpdateHookMap,
   /** can only fetch files in the `[ROOT]/front` folder */
   fetchFile_ (file: "words" | keyof SettingsNS.CachedFiles, callback?: (this: void) => any): void {
     if (callback && file in this.cache_) { callback(); return; }
@@ -539,8 +568,10 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     { 19: "/icons/partial_19.png", 38: "/icons/partial_38.png" },
     { 19: "/icons/disabled_19.png", 38: "/icons/disabled_38.png" }
   ]),
-  valuesToLoad_: As_<SelectNameToKey<SettingsNS.AutoItems> & SafeObject>({ __proto__: null as never,
+  valuesToLoad_: <SettingsNS.AutoSyncedNameMap> As_<SettingsNS.AutoSyncedNameMap & SafeObject>({
+    __proto__: null as never,
     filterLinkHints: "f",
+    ignoreCapsLock: "i",
     ignoreKeyboardLayout: "l",
     mapModifier: "a",
     mouseReachable: "e",
@@ -613,18 +644,18 @@ chrome.runtime.getPlatformInfo(function (info): void {
     ? chrome.runtime.PlatformOs!
     : chrome.runtime.PlatformOs || { MAC: "mac", WIN: "win" },
   osEnum = os === types.WIN ? kOS.win : os === types.MAC ? kOS.mac : kOS.linux,
-  ignoreCapsLock = Settings_.get_(SettingsNS.kNames.ignoreCapsLock);
+  ignoreCapsLock = Settings_.get_("ignoreCapsLock");
   Settings_.CONST_.Platform_ = os;
   (Settings_.omniPayload_ as Writable<typeof Settings_.omniPayload_>).o =
   (Settings_.payload_ as Writable<typeof Settings_.payload_>).o = osEnum;
-  Settings_.payload_.i = ignoreCapsLock > 1 || ignoreCapsLock === 1 && !osEnum;
+  Settings_.updatePayload_("i", ignoreCapsLock, Settings_.payload_)
   Settings_.temp_.initing_ |= BackendHandlersNS.kInitStat.platformInfo;
   Backend_ && Backend_.onInit_!();
 });
 } else {
   Settings_.CONST_.Platform_ = Build.BTypes & BrowserType.Edge
     && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge) ? "win" : "unknown";
-  Settings_.payload_.i = Settings_.get_(SettingsNS.kNames.ignoreCapsLock) > 1;
+  Settings_.updatePayload_("i", Settings_.get_("ignoreCapsLock"), Settings_.payload_)
   Settings_.temp_.initing_ |= BackendHandlersNS.kInitStat.platformInfo;
 }
 
@@ -712,11 +743,10 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   }
   obj.ContentScripts_ = ref2.map(func);
 
-  payload_.g = settings.get_(SettingsNS.kNames.grabBackFocus);
-  type AutoNames = SettingsNS.AutoItems[keyof SettingsNS.AutoItems][0];
+  payload_.g = settings.get_("grabBackFocus");
+  type PayloadNames = keyof typeof valuesToLoad_;
   for (let _i in valuesToLoad_) {
-    const key = valuesToLoad_[_i as AutoNames];
-    (payload_ as Generalized<typeof payload_>)[key] = settings.get_(_i as AutoNames);
+    settings.updatePayload_(valuesToLoad_[_i as PayloadNames], settings.get_(_i as PayloadNames), payload_)
   }
 
   for (let oldKey in settings.legacyNames_) {

@@ -132,10 +132,9 @@ BgUtils_.timeout_(1000, function (): void {
     Settings_.set_(key, value);
     keyInDownloading = "";
     if (key in Settings_.valuesToLoad_) {
-      const req: Req.bg<kBgReq.settingsUpdate> = { N: kBgReq.settingsUpdate, d: {
-        [key as keyof SettingsNS.FrontendSettings]: Settings_.get_(key as keyof SettingsNS.FrontendSettings)
-      } };
-      Settings_.broadcast_(req);
+      Settings_.broadcast_({ N: kBgReq.settingsUpdate, d: [
+        Settings_.valuesToLoad_[key as keyof typeof Settings_.valuesToLoad_]
+      ] });
     }
   }
   function TrySet<K extends keyof SettingsToSync>(this: void, key: K, value: SettingsToSync[K] | null): void {

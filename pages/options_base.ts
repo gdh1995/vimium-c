@@ -172,7 +172,7 @@ abstract class Option_<T extends keyof AllowedOptions> {
   static all_ = Object.create(null) as {
     [T in keyof AllowedOptions]: Option_<T>;
   } & SafeObject;
-  static syncToFrontend_: Array<keyof SettingsNS.FrontendSettings>;
+  static syncToFrontend_: Array<keyof SettingsNS.AutoSyncedNameMap>;
   static suppressPopulate_ = true;
 
 constructor (element: HTMLElement, onUpdated: () => void) {
@@ -222,7 +222,7 @@ save_ (): void {
     this.populateElement_(value, true);
   }
   if (this.field_ in bgSettings_.valuesToLoad_) {
-    Option_.syncToFrontend_.push(this.field_ as keyof SettingsNS.FrontendSettings);
+    Option_.syncToFrontend_.push(this.field_ as keyof typeof bgSettings_.valuesToLoad_);
   }
   this.onSave_();
 }

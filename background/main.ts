@@ -1116,11 +1116,10 @@
     },
     /* kBgCmd.toggle: */ function (this: void): void {
       type Keys = SettingsNS.FrontendSettingsSyncingItems[keyof SettingsNS.FrontendSettingsSyncingItems][0];
-      type ManualNamesMap = SelectNameToKey<SettingsNS.ManualItems>;
+      type ManualNamesMap = SelectNameToKey<SettingsNS.ManuallySyncedItems>;
       const all = Settings_.payload_, key: Keys = (cOptions.key || "") + "" as Keys,
-      key2 = key === SettingsNS.kNames.ignoreCapsLock ? "i" as ManualNamesMap[SettingsNS.kNames.ignoreCapsLock]
-          : key === SettingsNS.kNames.darkMode ? "d" as ManualNamesMap[SettingsNS.kNames.darkMode]
-          : key === SettingsNS.kNames.reduceMotion ? "m" as ManualNamesMap[SettingsNS.kNames.reduceMotion]
+      key2 = key === "darkMode" ? "d" as ManualNamesMap["darkMode"]
+          : key === "reduceMotion" ? "m" as ManualNamesMap["reduceMotion"]
           : Settings_.valuesToLoad_[key],
       old = key2 ? all[key2] : 0, keyRepr = trans_("quoteA", [key]);
       let value = cOptions.value, isBool = typeof value === "boolean", msg = "";
@@ -1137,6 +1136,7 @@
       if (msg) {
         Backend_.showHUD_(msg);
       } else {
+        value = Settings_.updatePayload_(key2, value)
         const ports = Backend_.indexPorts_(cPort.s.t)!;
         for (let i = 1; i < ports.length; i++) {
           ports[i].postMessage<1, kFgCmd.toggle>({
@@ -2153,11 +2153,11 @@
       if (Settings_.get_(key) === request.v) { return; }
       p ? p.then(() => { Settings_.set_(key, request.v); }) : Settings_.set_(key, request.v);
       interface BaseCheck { key: 123 }
-      type Map1<T> = T extends keyof SettingsNS.AutoItems ? T : 123;
+      type Map1<T> = T extends keyof SettingsNS.DirectlySyncedItems ? T : 123;
       interface Check extends BaseCheck { key: Map1<keyof SettingsNS.FrontUpdateAllowedSettings> }
       if (!Build.NDEBUG) { // just a type assertion
         let obj: Check = {
-          key: key as keyof SettingsNS.FrontUpdateAllowedSettings & keyof SettingsNS.AutoItems
+          key: key as keyof SettingsNS.FrontUpdateAllowedSettings & keyof SettingsNS.DirectlySyncedItems
         };
         console.log("updated from content scripts:", obj);
       }

@@ -286,14 +286,7 @@ declare const enum PortType {
 }
 
 declare namespace SettingsNS {
-  const enum kNames {
-    autoReduceMotion = "autoReduceMotion",
-    ignoreCapsLock = "ignoreCapsLock",
-    grabBackFocus = "grabBackFocus",
-    darkMode = "darkMode",
-    reduceMotion = "reduceMotion",
-  }
-  interface AutoItems {
+  interface DirectlySyncedItems {
     /** ignoreKeyboardLayout */ l: ["ignoreKeyboardLayout", boolean];
     /** keyboard */ k: ["keyboard", [number, number]];
     /** linkHintCharacters */ c: ["linkHintCharacters", string];
@@ -306,13 +299,15 @@ declare namespace SettingsNS {
     /** smoothScroll */ s: ["smoothScroll", boolean];
     /** mapModifier */ a: ["mapModifier", 0 | 1 | 2];
   }
-  interface ManualItems {
-    /** darkMode */ d: [kNames.darkMode, " D" | ""];
-    /** ignoreCapsLock */ i: [kNames.ignoreCapsLock, boolean];
-    /** reduceMotion */ m: [kNames.reduceMotion, BaseBackendSettings["autoReduceMotion"]];
+  interface TransformedAndSyncedItems {
+    /** ignoreCapsLock */ i: ["ignoreCapsLock", boolean];
+  }
+  interface ManuallySyncedItems {
+    /** darkMode */ d: ["darkMode", " D" | ""];
+    /** reduceMotion */ m: ["reduceMotion", BaseBackendSettings["autoReduceMotion"]];
   }
   interface OneTimeItems {
-    /** grabBackFocus */ g: [kNames.grabBackFocus, BaseBackendSettings[kNames.grabBackFocus]];
+    /** grabBackFocus */ g: ["grabBackFocus", BaseBackendSettings["grabBackFocus"]];
   }
   interface ConstItems {
     /** browser */ b: ["browser", BrowserType | undefined];
@@ -333,11 +328,11 @@ declare namespace SettingsNS {
   }
 
   interface BaseBackendSettings {
-    [kNames.autoReduceMotion]: boolean;
+    autoReduceMotion: boolean;
     focusNewTabContent: boolean;
-    [kNames.grabBackFocus]: boolean;
+    grabBackFocus: boolean;
     /** if want to rework it, must search it in all files and take care */
-    [kNames.ignoreCapsLock]: 0 | 1 | 2;
+    ignoreCapsLock: 0 | 1 | 2;
     newTabUrl_f: string;
     showAdvancedCommands: boolean;
     vomnibarOptions: SelectNVType<VomnibarOptionItems>;
@@ -346,10 +341,12 @@ declare namespace SettingsNS {
     showAdvancedCommands: 0;
   }
 
-  interface FrontendSettingsSyncingItems extends AutoItems, ManualItems {}
-  interface DeclaredFrontendValues extends SelectValueType<ManualItems & OneTimeItems>, DeclaredConstValues {
+  interface AutoSyncedItems extends DirectlySyncedItems, TransformedAndSyncedItems {}
+  interface FrontendSettingsSyncingItems extends AutoSyncedItems, ManuallySyncedItems {}
+  interface DeclaredFrontendValues extends SelectValueType<ManuallySyncedItems & OneTimeItems>, DeclaredConstValues {
   }
-  type FrontendSettings = SelectNVType<AutoItems>;
+  type AutoSyncedNameMap = SelectNameToKey<AutoSyncedItems>
+  type FrontendSettings = SelectNVType<DirectlySyncedItems>;
 
   /** Note: should have NO names which may be uglified */
   interface FrontendSettingCache extends AllConstValues
@@ -358,7 +355,7 @@ declare namespace SettingsNS {
 
   /** Note: should have NO names which may be uglified */
   interface AllVomnibarItems extends VomnibarOptionItems, OtherVomnibarItems
-      , Pick<AutoItems, "a"> {
+      , Pick<DirectlySyncedItems, "a"> {
   }
   interface VomnibarPayload extends AllConstValues, SelectValueType<AllVomnibarItems> {
   }
