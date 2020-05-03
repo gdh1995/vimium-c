@@ -48,10 +48,10 @@ export function set_allowRAF_ (_newAllowRAF: BOOL): void { allowRAF_ = _newAllow
 
 /** ==== Cache ==== */
 
-export let fgCache: OnlyEnsureItemsNonNull<SettingsNS.FrontendSettingCache> = null as never
+export let fgCache: OnlyEnsureItemsNonNull<SettingsNS.FrontendSettingCache>
 export function set_fgCache (_newCache: SettingsNS.FrontendSettingCache): void { fgCache = _newCache as typeof fgCache }
 
-export let clickable_: ElementSet = null as never
+export let clickable_: ElementSet
 export function set_clickable_ (_newClickable: ElementSet): void { clickable_ = _newClickable }
 
 export let keydownEvents_: KeydownCacheArray;

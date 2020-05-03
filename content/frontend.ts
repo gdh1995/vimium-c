@@ -139,13 +139,13 @@ if (!(isTop || injector)) {
           || WeakSet) && <boolean> grabBackFocus) {
         /*#__INLINE__*/ enableNeedToRetryParentClickable()
         if (Build.MinCVer >= BrowserVer.MinES6$ForOf$Map$SetAnd$Symbol || !(Build.BTypes & BrowserType.Chrome)
-            || Set) {
+            || (Build.MinCVer >= BrowserVer.Min$Set$Has$$forEach ? Set : Set && Set.prototype.forEach)) {
           /*#__INLINE__*/ set_clickable_(new Set!<Element>())
         } else {
           type ElementArraySet = Element[] & ElementSet
           /*#__INLINE__*/ set_clickable_([] as any as ElementArraySet)
           clickable_.add = (clickable_ as ElementArraySet).push;
-          // a temp collection, so it's okay just to ignore its elements
+          // a temp collection on a very old Chrome, so it's okay just to ignore its elements
           clickable_.has =
               Build.MinCVer >= BrowserVer.MinEnsuredES6$Array$$Includes || !(Build.BTypes & BrowserType.Chrome)
               ? (clickable_ as ElementArraySet).includes! : () => !1;
@@ -190,12 +190,12 @@ if (isAlive_) {
     /*#__INLINE__*/ set_clickable_(!(Build.BTypes & BrowserType.Firefox)
         || Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox
         ? clickable_ ||
-        ( Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
-            || WeakSet ? new WeakSet!<Element>() as never : {
-      add (element: Element): any { (element as ElementWithClickable).vimiumClick = true; },
-      has (element: Element): boolean { return !!(element as ElementWithClickable).vimiumClick; }
-    }) : /* now know it's on Firefox */
-        clickable_ || new WeakSet!<Element>())
+          (Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
+              || WeakSet ? new WeakSet!<Element>() as never : {
+            add (element: Element): any { (element as ElementWithClickable).vimiumClick = true; },
+            has (element: Element): boolean { return !!(element as ElementWithClickable).vimiumClick; }
+          })
+        : /* now know it's on Firefox */ clickable_ || new WeakSet!<Element>())
     // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
     hook(HookAction.Install);
     if (initialDocState < "i") {
@@ -245,4 +245,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$Stri
 
 if (!(Build.NDEBUG || GlobalConsts.MaxNumberOfNextPatterns <= 255)) {
   console.log("Assert error: GlobalConsts.MaxNumberOfNextPatterns <= 255");
+}
+
+if (!(Build.NDEBUG || BrowserVer.Min$Set$Has$$forEach <= BrowserVer.MinES6$ForOf$Map$SetAnd$Symbol)) {
+  console.log("Assert error: BrowserVer.Min$Set$Has$$forEach <= BrowserVer.MinES6$ForOf$Map$SetAnd$Symbol");
 }

@@ -31,8 +31,9 @@ declare const enum BrowserVer {
   Min$String$$Normalize = 34, // even if EXPERIMENTAL or LEGACY
   MinEnsuredUnprefixedShadowDOMV0 = 35, // even if LEGACY
   MinEnsured$Event$$Path = 35, // = MinEnsuredUnprefixedShadowDOMV0
-  // there're WeakMap, WeakSet, Map, Set and Symbols on C35 if #enable-javascript-harmony
+  // there're WeakMap, WeakSet, Map, Set and Symbol on C31, if #enable-javascript-harmony
   MinEnsuredES6WeakMapAndWeakSet = 36,
+  Min$Set$Has$$forEach = 36, // if #enable-javascript-harmony
   // but shadowRoot.getElementById still exists on C31
   Min$DocumentFragment$$getElementById = 36, // even if EXPERIMENTAL or LEGACY
   MinPhysicalPixelOnWindows = 37, // even if EXPERIMENTAL or LEGACY; replaced by MinHighDPIOnWindows
@@ -56,14 +57,15 @@ declare const enum BrowserVer {
    */
   MinCSS$All$MayMistakenlyResetFixedPosition = 37,
   MinEnsuredHTMLDialogElement = 37, // not on Edge; under a flag since FF53; still exists on C31 if EXPERIMENTAL
-  // even if EXPERIMENTAL or LEGACY
-  MinES6$ForOf$Map$SetAnd$Symbol = 38,
+  // for-of is only for generators before C38, so an array can not be iterated on C37 even if EXPERIMENTAL
+  MinEnsuredES6$ForOf$Map$SetAnd$Symbol = 38, // even if LEGACY; still exists on C31 if EXPERIMENTAL
   // .repeat exists since C32, but only works since C38, even if EXPERIMENTAL
   // because there seems no simple fix, just ignore it
   // https://bugs.chromium.org/p/chromium/issues/detail?id=394907
   MinCorrect$KeyboardEvent$$Repeat = 38,
   MinEnsuredTextEncoderAndDecoder = 38, // even if LEGACY; still exists on C31 if EXPERIMENTAL
-  Min$Math$$log2 = 38, // even if EXPERIMENTAL or LEGACY
+  MinEnsured$Math$$log2 = 38, // even if LEGACY; exists on C34 if EXPERIMENTAL
+  MinCmdArg$__javascript_harmony = 39, // before C39, it's not `--javascript-harmony` but `--js-flags=--harmony`
   MinWithFrameIdInArg = 39,
   MinMaybe$String$$StartsWithAndEndsWith = 39, // if EXPERIMENTAL
   // only cause event#load even if failing in decoding its data. Test code:

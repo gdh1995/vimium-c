@@ -37,7 +37,8 @@ case "$1" in
     shift
     ;;
   exp|--exp)
-    FLAGS=$FLAGS" --enable-experimental-web-platform-features --javascript-harmony --enable-experimental-canvas-features"
+    FLAGS=$FLAGS" --enable-experimental-web-platform-features --enable-experimental-canvas-features"
+    FLAGS=$FLAGS" --javascript-harmony --js-flags=--harmony" # "--js-flags=--harmony" is used before C39
     shift
     ;;
   leg|legacy|leagcy|--legacy|--leagcy)

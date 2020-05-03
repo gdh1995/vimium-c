@@ -40,6 +40,7 @@ let framemask_node: HTMLDivElement | null = null
 let framemask_fmTimer = TimerID.None
 let needToRetryParentClickable: BOOL = 0
 
+/** require `WeakSet` MUST exist; should ensure `clickable_.forEach` MUST exist */
 export const enableNeedToRetryParentClickable = (): void => { needToRetryParentClickable = 1 }
 
 set_requestHandlers([
@@ -107,24 +108,14 @@ set_requestHandlers([
         const oldSet = clickable_ as any as Element[] & Set<Element>
         /*#__INLINE__*/ set_clickable_(parApi ? parApi.y().c : new WeakSet!<Element>())
         if (!Build.NDEBUG && parApi) {
-          // here assumes that `set` is not a temp array but a valid WeakSet / Set
-          let count: number;
-          if (Build.MinCVer >= BrowserVer.MinES6$ForOf$Map$SetAnd$Symbol || !(Build.BTypes & BrowserType.Chrome)
-              || oldSet.size != null) {
-            count = oldSet.size;
-            if (Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)) {
-              oldSet.forEach(clickable_.add, clickable_);
-            } else {
-              oldSet.forEach(el => clickable_.add(el));
-            }
-          } else {
-            count = oldSet.filter(el => clickable_.add(el)).length;
-          }
+          let count = 0;
+          oldSet.forEach(el => { clickable_.has(el) || (clickable_.add(el), count++) })
           console.log(`Vimium C: extend click: ${count ? "add " + count : "no"} local items to the parent's set.`);
-        } else if (Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)) {
+        } else if (Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet
+            && Build.MinCVer >= BrowserVer.Min$Set$Has$$forEach || !(Build.BTypes & BrowserType.Chrome)) {
           oldSet.forEach(clickable_.add, clickable_);
         } else {
-          oldSet.forEach(el => clickable_.add(el));
+          oldSet.forEach(el => { clickable_.add(el) })
         }
         }
         if (parHints && (parHints.p || parHints).h) {
@@ -175,11 +166,10 @@ set_requestHandlers([
   /* kBgReq.settingsUpdate: */function ({ d: delta }: BgReq[kBgReq.settingsUpdate]): void {
     type Keys = keyof typeof delta;
     safer(delta);
-    const cache = fgCache;
     for (const i in delta) {
-      (cache as Generalized<typeof cache>)[i as Keys] = (delta as EnsureItemsNonNull<typeof delta>)[i as Keys];
+      (fgCache as Generalized<typeof fgCache>)[i as Keys] = (delta as EnsureItemsNonNull<typeof delta>)[i as Keys];
       const i2 = "_" + i as Keys;
-      (i2 in cache) && (safer(cache)[i2] = undefined as never);
+      (i2 in fgCache) && (safer(fgCache)[i2] = void 0 as never);
     }
     delta.d != null && hud_box && hud_box.classList.toggle("D", !!delta.d);
   },
