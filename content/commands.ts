@@ -1,5 +1,5 @@
 import {
-  browserVer, doc, esc, EscF, fgCache, isTop, safeObj, set_esc, VOther, VTr, safer, timeout_, loc_,
+  chromeVer_, doc, esc, EscF, fgCache, isTop, safeObj, set_esc, VOther, VTr, safer, timeout_, loc_,
 } from "../lib/utils"
 import {
   unhover_, set_lastHovered_, isHTML_, view_, NotVisible_, getZoom_, prepareCrop_, getViewBox_, createElement_,
@@ -47,7 +47,7 @@ export const contentCommands_: {
     realStep = rawStep < 0 ? -maxStep : maxStep;
     if ((!(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome)
         && maxStep > 1
-        && (Build.MinCVer >= BrowserVer.Min$Tabs$$goBack || browserVer >= BrowserVer.Min$Tabs$$goBack)
+        && (Build.MinCVer >= BrowserVer.Min$Tabs$$goBack || chromeVer_ >= BrowserVer.Min$Tabs$$goBack)
         && !options.local
         || maxStep && reuse
     ) {

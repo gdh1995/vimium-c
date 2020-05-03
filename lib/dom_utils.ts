@@ -1,4 +1,4 @@
-import { VOther, fgCache, doc, getTime } from "./utils"
+import { VOther, chromeVer_, doc, getTime } from "./utils"
 
 type kMouseMoveEvents = "mouseover" | "mouseenter" | "mousemove" | "mouseout" | "mouseleave";
 type kMouseClickEvents = "mousedown" | "mouseup" | "click" | "auxclick" | "dblclick";
@@ -102,7 +102,7 @@ export const GetShadowRoot_ = (el: Element): ShadowRoot | null => {
     }
     // Note: .webkitShadowRoot and .shadowRoot share a same object
     const sr = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-        && fgCache.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0 ? el.webkitShadowRoot : el.shadowRoot;
+        && chromeVer_ < BrowserVer.MinEnsuredUnprefixedShadowDOMV0 ? el.webkitShadowRoot : el.shadowRoot;
     // according to https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow,
     // <form> and <frameset> can not have shadowRoot
     return (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
@@ -450,7 +450,7 @@ export function set_bZoom_ (_newBZoom: number): void { bZoom_ = _newBZoom }
 
 const _fixDocZoom_cr = Build.BTypes & BrowserType.Chrome ? (zoom: number, docEl: Element, devRatio: number): number => {
     let ver = Build.MinCVer < BrowserVer.MinASameZoomOfDocElAsdevPixRatioWorksAgain
-        && (!(Build.BTypes & ~BrowserType.Chrome) || VOther & BrowserType.Chrome) ? fgCache.v as BrowserVer : 0,
+        && (!(Build.BTypes & ~BrowserType.Chrome) || VOther & BrowserType.Chrome) ? chromeVer_ as BrowserVer : 0,
     rectWidth: number, viewportWidth: number,
     style: CSSStyleDeclaration | false | undefined;
     if (BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl !== BrowserVer.MinEnsured$visualViewport$) {
@@ -506,7 +506,7 @@ export const getZoom_ = Build.BTypes & ~BrowserType.Firefox ? function (target?:
     }
     for (; el && el !== docEl;
         el = GetParent_unsafe_(el, Build.MinCVer < BrowserVer.MinSlotIsNotDisplayContents
-              && Build.BTypes & BrowserType.Chrome && fgCache.v < BrowserVer.MinSlotIsNotDisplayContents
+              && Build.BTypes & BrowserType.Chrome && chromeVer_ < BrowserVer.MinSlotIsNotDisplayContents
             ? PNType.RevealSlotAndGotoParent : PNType.RevealSlot)) {
       zoom *= +gcs(el).zoom || 1;
     }
@@ -774,7 +774,7 @@ export const mouse_ = function (this: {}, element: SafeElementForMouse
     // note: there seems no way to get correct screenX/Y of an element
     if (!(Build.BTypes & BrowserType.Chrome)
         || Build.MinCVer >= BrowserVer.MinUsable$MouseEvent$$constructor
-        || fgCache.v >= BrowserVer.MinUsable$MouseEvent$$constructor) {
+        || chromeVer_ >= BrowserVer.MinUsable$MouseEvent$$constructor) {
       // Note: The `composed` here may require Shadow DOM support
       const init: ValidMouseEventInit = {
         bubbles: !0, cancelable: !0, composed: !0, detail, view,

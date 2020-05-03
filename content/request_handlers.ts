@@ -1,6 +1,6 @@
 import {
-  browserVer, clickable_, doc, esc, fgCache, injector, isEnabled_, isLocked_, isAlive_, isTop,
-  keydownEvents_, safeObj, set_browserVer, set_clickable_, set_fgCache, set_VOther, set_isLocked_,
+  chromeVer_, clickable_, doc, esc, fgCache, injector, isEnabled_, isLocked_, isAlive_, isTop,
+  keydownEvents_, safeObj, set_chromeVer_, set_clickable_, set_fgCache, set_VOther, set_isLocked_,
   setupEventListener, set_isEnabled_, suppressCommonEvents, set_onWndFocus, VOther, onWndFocus, timeout_, safer,
   allowScripts_, loc_, interval_, getTime,
 } from "../lib/utils"
@@ -47,7 +47,7 @@ set_requestHandlers([
   /* kBgReq.init: */ function (request: BgReq[kBgReq.init]): void {
     const {c: load, s: flags} = request;
     if (Build.BTypes & BrowserType.Chrome) {
-      /*#__INLINE__*/ set_browserVer(load.v as BrowserVer);
+      /*#__INLINE__*/ set_chromeVer_(load.v as BrowserVer);
     }
     if (<number> Build.BTypes !== BrowserType.Chrome && <number> Build.BTypes !== BrowserType.Firefox
         && <number> Build.BTypes !== BrowserType.Edge) {
@@ -61,7 +61,7 @@ set_requestHandlers([
         || Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinNoKeygenElement) {
       /** here should keep the same as {@link ../background/settings.ts#Settings_.payload_} */
       if (Build.BTypes & BrowserType.Chrome
-          ? Build.MinCVer < BrowserVer.MinNoKeygenElement && browserVer < BrowserVer.MinNoKeygenElement
+          ? Build.MinCVer < BrowserVer.MinNoKeygenElement && chromeVer_ < BrowserVer.MinNoKeygenElement
           : Build.BTypes & BrowserType.Firefox
           ? Build.MinFFVer < FirefoxBrowserVer.MinNoKeygenElement
             && <FirefoxBrowserVer | 0> load.v < FirefoxBrowserVer.MinNoKeygenElement
@@ -70,7 +70,7 @@ set_requestHandlers([
       }
     }
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
-        && browserVer < BrowserVer.MinFramesetHasNoNamedGetter) {
+        && chromeVer_ < BrowserVer.MinFramesetHasNoNamedGetter) {
       set_kSafeAllSelector(kSafeAllSelector + ":not(" + (/*#__INLINE__*/ markFramesetTagUnsafe()) + ")");
     }
     if (Build.BTypes & ~BrowserType.Firefox && Build.BTypes & BrowserType.Firefox
@@ -87,7 +87,7 @@ set_requestHandlers([
       insertInit();
       if (Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
           && Build.BTypes & BrowserType.Chrome
-          && browserVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow) {
+          && chromeVer_ >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow) {
         hook(HookAction.SuppressListenersOnDocument);
       }
     } else {
@@ -204,7 +204,7 @@ set_requestHandlers([
   /* kBgReq.exitGrab: */ exitGrab as (this: void, request: Req.bg<kBgReq.exitGrab>) => void,
   /* kBgReq.keyFSM: */ function (request: BgReq[kBgReq.keyFSM]): void {
     const map = request.k, func = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf
-      && Build.BTypes & BrowserType.Chrome && browserVer < BrowserVer.Min$Object$$setPrototypeOf
+      && Build.BTypes & BrowserType.Chrome && chromeVer_ < BrowserVer.Min$Object$$setPrototypeOf
       ? safer : Object.setPrototypeOf;
     func(map, null);
     function iter(obj: ReadonlyChildKeyFSM): void {
@@ -287,7 +287,7 @@ set_requestHandlers([
     suppressCommonEvents(box, "mousedown");
     if (Build.MinCVer >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument
         || !(Build.BTypes & BrowserType.Chrome)
-        || browserVer >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument) {
+        || chromeVer_ >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument) {
       setupEventListener(box,
         (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
           : VOther !== BrowserType.Chrome)
@@ -364,7 +364,7 @@ export const showFrameMask = (mask: FrameMaskType): void => {
     let docEl = docEl_unsafe_();
     if (docEl) {
     Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
-      && (!(Build.BTypes & ~BrowserType.Chrome) || browserVer < BrowserVer.MinScrollIntoViewOptions)
+      && (!(Build.BTypes & ~BrowserType.Chrome) || chromeVer_ < BrowserVer.MinScrollIntoViewOptions)
     ? Element.prototype.scrollIntoViewIfNeeded!.call(docEl)
     : scrollIntoView_(docEl);
     }
@@ -392,7 +392,7 @@ export const hook = (function (action: HookAction): void {
   if (Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
       && Build.BTypes & BrowserType.Chrome) {
     if (!(Build.BTypes & ~BrowserType.Chrome && VOther !== BrowserType.Chrome)
-        && (action || browserVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow)) {
+        && (action || chromeVer_ < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow)) {
       f.call(doc, "DOMActivate", onActivate, true);
       f.call(doc, "click", anyClickHandler, true);
     }

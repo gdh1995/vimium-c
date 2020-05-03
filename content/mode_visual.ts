@@ -29,7 +29,7 @@ declare const enum DiType {
 type ValidDiTypes = DiType.Normal | DiType.UnsafeTextBox | DiType.SafeTextBox | DiType.Complicated
     | DiType.UnsafeComplicated;
 
-import { VTr, isAlive_, VOther, clearTimeout_, safer, timeout_, fgCache, doc } from "../lib/utils"
+import { VTr, isAlive_, VOther, clearTimeout_, safer, timeout_, fgCache, doc, chromeVer_ } from "../lib/utils"
 import {
   getSelectionBoundingBox_, getZoom_, prepareCrop_, cropRectToVisible_, getSelection_, getSelectionFocusEdge_,
   editableTypes_, Getter_not_ff_, isInputInTextMode_, isHTML_, docEl_unsafe_, notSafe_not_ff_, getVisibleClientRect_,
@@ -754,7 +754,7 @@ let init = (words: string, map: VisualModeNS.KeyMap, _g: any) => {
   init = null as never
   selType = Build.BTypes & BrowserType.Chrome
       && Build.MinCVer <= BrowserVer.$Selection$NotShowStatusInTextBox
-      && fgCache.v === BrowserVer.$Selection$NotShowStatusInTextBox
+      && chromeVer_ === BrowserVer.$Selection$NotShowStatusInTextBox
   ? (): SelType => {
     let type = typeIdx[curSelection.type];
     return type === SelType.Caret && diType_ && ("" + curSelection) ? SelType.Range : type;
@@ -781,7 +781,7 @@ let init = (words: string, map: VisualModeNS.KeyMap, _g: any) => {
       || Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) {
     if (!(Build.BTypes & ~BrowserType.Firefox)
         || Build.BTypes & BrowserType.Chrome
-            && fgCache.v < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
+            && chromeVer_ < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
         || Build.BTypes & BrowserType.Firefox && Build.BTypes & BrowserType.Edge
             && VOther === BrowserType.Firefox) {
       // Firefox && not native || Chrome && not only white spaces
@@ -820,7 +820,7 @@ let init = (words: string, map: VisualModeNS.KeyMap, _g: any) => {
   (!(Build.BTypes & BrowserType.Chrome)
     || Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
     || (Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox)
-    || fgCache.v >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) &&
+    || chromeVer_ >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) &&
   // on Firefox 65 stable, Win 10 x64, there're '\r\n' parts in Selection.toString()
   (rightWhiteSpaceRe = <RegExpOne> (Build.BTypes & BrowserType.Firefox
       ? /[^\S\n\r\u2029\u202f\ufeff]+$/ : /[^\S\n\u2029\u202f\ufeff]+$/));

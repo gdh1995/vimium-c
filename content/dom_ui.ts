@@ -1,6 +1,6 @@
 import {
   setupEventListener, clickable_, isTop, keydownEvents_, VOther, timeout_, fgCache, doc, isAlive_, allowScripts_,
-  set_allowScripts_, jsRe_, tryDecodeURL,
+  set_allowScripts_, jsRe_, tryDecodeURL, chromeVer_,
 } from "../lib/utils"
 import {
   createElement_, createShadowRoot_, bZoom_, dScale_, fullscreenEl_unsafe_, docEl_unsafe_, getZoom_, wdZoom_,
@@ -143,7 +143,7 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
         setupEventListener(0, "moz" + name, adjustUI, removeEL)
       }
       if (!(Build.BTypes & BrowserType.Chrome)
-          || fgCache.v >= BrowserVer.MinMaybe$Document$$fullscreenElement) {
+          || chromeVer_ >= BrowserVer.MinMaybe$Document$$fullscreenElement) {
         setupEventListener(0, name, adjustUI, removeEL)
       }
     }
@@ -154,7 +154,7 @@ export const ensureBorder = (zoom?: number): void => {
     if (!cssPatch_ && zoom >= 1) { return; }
     let width = ("" + (
         Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
-        && fgCache.v < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
+        && chromeVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
         ? 1.01 : 0.51) / zoom).slice(0, 5);
     if (!cssPatch_) {
       cssPatch_ = ["", (css) => {
@@ -227,7 +227,7 @@ export const getSelected = (notExpectCount?: 1): [Selection, ShadowRoot | null] 
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             && !(Build.BTypes & ~BrowserType.ChromeOrFirefox) )) {
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-          && fgCache.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+          && chromeVer_ < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
           ? Image.prototype.webkitCreateShadowRoot : typeof ShadowRoot != "function") {
         return [sel, null];
       }
@@ -314,7 +314,7 @@ export const click_ = (element: SafeElementForMouse
     if (Build.BTypes & BrowserType.Chrome
         && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)
         && (Build.MinCVer >= BrowserVer.MinEnsuredTouchEventConstructor
-            || fgCache.v >= BrowserVer.MinEnsuredTouchEventConstructor)
+            || chromeVer_ >= BrowserVer.MinEnsuredTouchEventConstructor)
         && (touchMode === !0 || touchMode && isInTouchMode_cr_!())) {
       let id = touch_cr_!(element, center);
       if (IsInDOM_(element)) {

@@ -34,7 +34,7 @@ interface ElementScrollInfo {
 }
 
 import {
-  isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, allowRAF_, readyState_, loc_,
+  isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, allowRAF_, readyState_, loc_, chromeVer_,
 } from "../lib/utils"
 import { getParentVApi, resetSelectionToDocStart, checkHidden } from "./dom_ui"
 import { isCmdTriggered } from "./key_handler"
@@ -108,7 +108,7 @@ let performAnimate = (e: SafeElement | null, d: ScrollByY, a: number): void => {
       totalDelta += delta;
       rAF_(animate);
     } else {
-      if ((!(Build.BTypes & BrowserType.Chrome) || fgCache.v >= BrowserVer.MinMaybeScrollEndAndOverScrollEvents)
+      if ((!(Build.BTypes & BrowserType.Chrome) || chromeVer_ >= BrowserVer.MinMaybeScrollEndAndOverScrollEvents)
           && "onscrollend" in (Build.BTypes & ~BrowserType.Firefox ? Image.prototype : doc)) {
         // according to tests on C75, no "scrollend" events if scrolling behavior is "instant";
         // the doc on Google Docs requires no "overscroll" events for programmatic scrolling

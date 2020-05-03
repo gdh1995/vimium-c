@@ -16,7 +16,7 @@ interface FullOptions extends BaseFullOptions {
 declare var VData: VDataTy
 
 import {
-  injector, isAlive_, keydownEvents_, readyState_, VOther, timeout_, clearTimeout_, fgCache, loc_, recordLog,
+  injector, isAlive_, keydownEvents_, readyState_, VOther, timeout_, clearTimeout_, loc_, recordLog, chromeVer_,
 } from "../lib/utils"
 import { removeHandler_, pushHandler_, SuppressMost_, key_, isEscape_ } from "../lib/keyboard_utils";
 import {
@@ -86,7 +86,7 @@ export const activate = function (options: FullOptions, count: number): void {
     omniOptions = null
     getViewBox_();
     canUseVW = (Build.MinCVer >= BrowserVer.MinCSSWidthUnit$vw$InCalc
-            || !!(Build.BTypes & BrowserType.Chrome) && fgCache.v > BrowserVer.MinCSSWidthUnit$vw$InCalc - 1)
+            || !!(Build.BTypes & BrowserType.Chrome) && chromeVer_ > BrowserVer.MinCSSWidthUnit$vw$InCalc - 1)
         && !fullscreenEl_unsafe_() && docZoom_ === 1 && dScale_ === 1;
     let scale = devRatio_();
     let width = canUseVW ? innerWidth : !(Build.BTypes & ~BrowserType.Firefox) ? prepareCrop_()

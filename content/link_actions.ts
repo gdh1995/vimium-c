@@ -1,6 +1,7 @@
 import HintItem = HintsNS.HintItem
 import {
   safer, fgCache, VOther, isImageUrl, jsRe_, set_keydownEvents_, keydownEvents_, timeout_, doc, tryDecodeURL,
+  chromeVer_,
 } from "../lib/utils"
 import {
   getEditableType_, hover_, center_, htmlTag_, GetParent_unsafe_, unhover_, uneditableInputs_, createElement_,
@@ -53,7 +54,7 @@ export const executeHint = (hint: HintItem, event?: HandlerNS.Event): void => {
     if (keyStatus.t && !keyStatus.k && !keyStatus.n) {
       if ((!(Build.BTypes & BrowserType.Chrome)
             || Build.BTypes & ~BrowserType.Chrome && VOther !== BrowserType.Chrome
-            || Build.MinCVer < BrowserVer.MinUserActivationV2 && fgCache.v < BrowserVer.MinUserActivationV2)
+            || Build.MinCVer < BrowserVer.MinUserActivationV2 && chromeVer_ < BrowserVer.MinUserActivationV2)
           && !fgCache.w) {
         // e.g.: https://github.com/philc/vimium/issues/3103#issuecomment-552653871
         suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents);

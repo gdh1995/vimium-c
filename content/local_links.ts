@@ -3,7 +3,7 @@ import ClickType = HintsNS.ClickType
 type HintSources = readonly SafeElement[] | NodeListOf<SafeElement>;
 type NestedFrame = false | 0 | null | HTMLIFrameElement | HTMLFrameElement;
 
-import { VOther, clickable_, jsRe_, doc, isImageUrl, fgCache, readyState_ } from "../lib/utils"
+import { VOther, clickable_, jsRe_, doc, isImageUrl, fgCache, readyState_, chromeVer_ } from "../lib/utils"
 import {
   getVisibleClientRect_, uneditableInputs_, getComputedStyle_, getZoomedAndCroppedRect_, findMainSummary_,
   getClientRectsForAreas_, htmlTag_, isAriaNotTrue_, getCroppedRect_, getBoundingClientRect_, cropRectToVisible_,
@@ -352,7 +352,7 @@ export const traverse = function (selector: string
         filter(output, el);
         const shadowRoot = (Build.BTypes & BrowserType.Chrome
               && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-              && fgCache.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+              && chromeVer_ < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
             ? el.webkitShadowRoot : el.shadowRoot) as ShadowRoot | null | undefined;
         if (shadowRoot) {
           let sub_tree: HintSources = shadowRoot.querySelectorAll(selector) as NodeListOf<SafeElement>;
@@ -420,7 +420,7 @@ export const traverse = function (selector: string
 
 const addChildTrees = (list: HintSources, allNodes: NodeListOf<SafeElement>): HintSources => {
   let matchWebkit = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-                    && fgCache.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0;
+                    && chromeVer_ < BrowserVer.MinEnsuredUnprefixedShadowDOMV0;
   let hosts: SafeElement[] = [], matched: SafeElement | undefined;
   for (let i = 0, len = allNodes.length; i < len; i++) {
     let el = allNodes[i], tag: string;
@@ -569,7 +569,7 @@ const filterOutNonReachable = (list: Hint[]): void => {
   if (!fgCache.e) { return; }
   if (Build.BTypes & BrowserType.Chrome && (Build.MinCVer < BrowserVer.Min$Node$$getRootNode
         || Build.MinCVer < BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint)
-      && fgCache.v < (BrowserVer.Min$Node$$getRootNode > BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint
+      && chromeVer_ < (BrowserVer.Min$Node$$getRootNode > BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint
           ? BrowserVer.Min$Node$$getRootNode : BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint)) {
     return;
   }

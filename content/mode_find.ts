@@ -1,6 +1,6 @@
 import {
   setupEventListener, VTr, keydownEvents_, isAlive_, suppressCommonEvents, onWndFocus, VOther, timeout_, safer, fgCache,
-  doc, safeObj, getTime,
+  doc, safeObj, getTime, chromeVer_,
 } from "../lib/utils"
 import {
   pushHandler_, SuppressMost_, Stop_, removeHandler_, prevent_, key_, keybody_, isEscape_, keyNames_,
@@ -195,7 +195,7 @@ const onLoad2 = (): void => {
     }
     if (Build.BTypes & BrowserType.Chrome
         && Build.MinCVer < BrowserVer.MinEnsuredInputEventIsNotOnlyInShadowDOMV1
-        && fgCache.v < BrowserVer.MinEnsuredInputEventIsNotOnlyInShadowDOMV1) {
+        && chromeVer_ < BrowserVer.MinEnsuredInputEventIsNotOnlyInShadowDOMV1) {
       // not check MinEnsuredShadowDOMV1 for smaller code
       setupEventListener(el, "input", onInput)
     }
@@ -206,13 +206,13 @@ const onLoad2 = (): void => {
     const box = Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
         && (Build.MinFFVer < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
-            && (Build.BTypes & BrowserType.Chrome || fgCache.v < FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
+            && (Build.BTypes & BrowserType.Chrome || chromeVer_ < FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
             || fgCache.o === kOS.linux)
         ? addElement("div") as HTMLDivElement : body,
     root = Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
         && (Build.MinFFVer < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
-            && (Build.BTypes & BrowserType.Chrome || fgCache.v < FirefoxBrowserVer.MinContentEditableInShadowSupportIME))
+            && (Build.BTypes & BrowserType.Chrome || chromeVer_ < FirefoxBrowserVer.MinContentEditableInShadowSupportIME))
         ? box : createShadowRoot_(box),
     inShadow = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
         && (!(Build.BTypes & BrowserType.Firefox)
@@ -489,7 +489,7 @@ export const deactivate = (i: FindNS.Action): void => {
 const fixTabNav = !(Build.BTypes & BrowserType.Chrome) // firefox seems to have "focused" it
         || Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions ? 0 as never
       : (el: Element): void => {
-    let oldPos: MarksNS.ScrollInfo | 0 = fgCache.v < BrowserVer.MinScrollIntoViewOptions
+    let oldPos: MarksNS.ScrollInfo | 0 = chromeVer_ < BrowserVer.MinScrollIntoViewOptions
           ? [scrollX, scrollY] : 0;
     scrollIntoView_(el);
     oldPos && scrollToMark(oldPos)
@@ -572,7 +572,7 @@ const onInput = (e?: Event): void => {
       if (!(Build.BTypes & BrowserType.Chrome
           && (!(Build.BTypes & ~BrowserType.Chrome) || VOther & BrowserType.Chrome)
           && (Build.MinCVer >= BrowserVer.Min$compositionend$$isComposing$IsMistakenlyFalse
-              || fgCache.v > BrowserVer.Min$compositionend$$isComposing$IsMistakenlyFalse - 1)
+              || chromeVer_ > BrowserVer.Min$compositionend$$isComposing$IsMistakenlyFalse - 1)
           && e.type < "i")) {
         if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
             ? !e.isTrusted : e.isTrusted === false) { return; }

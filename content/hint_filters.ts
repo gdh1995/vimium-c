@@ -7,7 +7,7 @@ import {
   frameList_, mode_, useFilter_, coreHints, hintKeyStatus, KeyStatus, hintChars, allHints, setMode, resetMode,
 } from "./link_hints"
 import { getBoundingClientRect_, htmlTag_, createElement_, bZoom_, getInputType } from "../lib/dom_utils"
-import { fgCache, doc } from "../lib/utils"
+import { chromeVer_, doc } from "../lib/utils"
 import { kBackspace, kDelete } from "../lib/keyboard_utils"
 import { maxLeft_, maxRight_, maxTop_ } from "./local_links"
 import { ui_root } from "./dom_ui"
@@ -393,7 +393,7 @@ const scoreHint = (textHint: HintsNS.HintText, searchWords: readonly string[]): 
 export const renderMarkers = (hintItems: readonly HintItem[]): void => {
   const noAppend = !!(Build.BTypes & BrowserType.Chrome)
       && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
-      && fgCache.v < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
+      && chromeVer_ < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
   for (const hint of hintItems) {
     let right: string, marker = hint.m;
     if (useFilter_) {
@@ -430,7 +430,7 @@ export const initAlphabetEngine = (hintItems: readonly HintItem[]): void => {
   const math = Math, ceil = math.ceil, charSet = hintChars, step = charSet.length,
   chars2 = " " + charSet,
   count = hintItems.length, start = (ceil((count - 1) / (step - 1)) | 0) || 1,
-  bitStep = ceil(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Math$$log2
+  bitStep = ceil(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$Math$$log2
         ? math.log(step + 1) / math.LN2 : math.log2(step + 1)) | 0;
   let hints: number[] = [0], next = 1, bitOffset = 0;
   for (let offset = 0, hint = 0; offset < start; ) {

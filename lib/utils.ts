@@ -14,8 +14,8 @@ export let VOther: BrowserType = !(Build.BTypes & ~BrowserType.Chrome) || !(Buil
 export function set_VOther (_newRealBrowser: BrowserType): void { VOther = _newRealBrowser }
 
 /** its initial value should be 0, need by {@link #hook} */
-export let browserVer: BrowserVer = 0 // should be used only if BTypes includes Chrome
-export function set_browserVer (_newRealChromeVer: BrowserVer): void { browserVer = _newRealChromeVer }
+export let chromeVer_: BrowserVer = 0 // should be used only if BTypes includes Chrome
+export function set_chromeVer_ (_newRealChromeVer: BrowserVer): void { chromeVer_ = _newRealChromeVer }
 
 export const isTop = top === window
 export const injector = VimiumInjector

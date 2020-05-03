@@ -72,7 +72,7 @@ interface FrameHintsInfo {
 
 import {
   VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_,
-  clearTimeout_, VOther, fgCache, doc, readyState_,
+  clearTimeout_, VOther, fgCache, doc, readyState_, chromeVer_,
 } from "../lib/utils"
 import { frameElement_, querySelector_unsafe_, isHTML_, getViewBox_, prepareCrop_, scrollingEl_, bZoom_, wdZoom_,
   dScale_, getBoundingClientRect_, docEl_unsafe_, IsInDOM_, docZoom_, bScale_, GetParent_unsafe_, getComputedStyle_,
@@ -727,7 +727,7 @@ const detectUsableChild = (el: HTMLIFrameElement | HTMLFrameElement): VApiTy | n
   } catch (e) {
     if (!Build.NDEBUG) {
       let notDocError = true;
-      if (Build.BTypes & BrowserType.Chrome && fgCache.v < BrowserVer.Min$ContentDocument$NotThrow) {
+      if (Build.BTypes & BrowserType.Chrome && chromeVer_ < BrowserVer.Min$ContentDocument$NotThrow) {
         try {
           notDocError = el.contentDocument !== void 0
         } catch { notDocError = false; }
