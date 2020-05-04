@@ -153,7 +153,7 @@ set_requestHandlers([
   },
   /* kBgReq.injectorRun: */ injector ? injector.$m : null as never,
   /* kBgReq.url: */ function<T extends keyof FgReq> (this: void, request: BgReq[kBgReq.url] & Req.fg<T>): void {
-    delete (request as Req.bg<kBgReq.url>).N;
+    delete request.N
     request.u = loc_.href;
     post_<T>(request);
   },

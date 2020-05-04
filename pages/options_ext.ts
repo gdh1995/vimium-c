@@ -239,7 +239,7 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
   { // delay the update of keyMappings
     const tmp1 = _ref.keyMappings;
     if (tmp1 !== undefined) {
-      delete _ref.keyMappings;
+      delete (_ref as Partial<typeof _ref>).keyMappings;
       _ref.keyMappings = tmp1;
     }
   }
@@ -405,7 +405,7 @@ _el = null;
 
 (window as OptionWindow)._delayed && (function () {
   const arr = (window as OptionWindow)._delayed;
-  delete (window as OptionWindow)._delayed;
+  delete (window as Partial<OptionWindow>)._delayed;
   const node = $<ElementWithDelay>(arr[0]), event = arr[1];
   node.onclick && node.onclick(event);
 })();

@@ -205,7 +205,7 @@ newToString = funcCls.toString = function toString(this: (this: unknown, ...args
 };
 newListen.vimiumHooked = true;
 obj.vimiumRemoveHooks = function () {
-  delete obj.vimiumRemoveHooks;
+  delete (obj as Partial<EventTargetEx>).vimiumRemoveHooks
   cls.addEventListener === newListen && (cls.addEventListener = _listen);
   funcCls.toString === newToString && (funcCls.toString = funcToString);
 };

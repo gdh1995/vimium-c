@@ -1240,7 +1240,7 @@ function formatCmdErrors_(errors: string[][]): string {
     })
     if (i + 1 < line.length) {
       output += ` ${
-          line.slice(i + 1).map(x => typeof x === "object" && x && !(x as any).length ? JSON.stringify(x) : x
+          line.slice(i + 1).map(x => typeof x === "object" && x ? JSON.stringify(x) : x
           ).join(" ") }.\n`
     }
   }

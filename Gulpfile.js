@@ -889,10 +889,6 @@ function beforeUglify(file) {
     get();
     contents = contents.replace(/\bconst([\s{\[])/g, "let$1");
   }
-  if (allPathStr.indexOf("viewer") >= 0) {
-    get();
-    contents = contents.replace(/\.offsetWidth\b/g, ".$offsetWidth()");
-  }
   if (allPathStr.includes("/env.js")) {
     var btypes = getBuildItem("BTypes"), minCVer = getBuildItem("MinCVer");
     toRemovedGlobal = "";
@@ -951,10 +947,6 @@ function postUglify(file, allPaths) {
   }
   var btypes = getBuildItem("BTypes"), minCVer = getBuildItem("MinCVer");
   var noAppendChild = !(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsured$ParentNode$$appendAndPrepend */ 54;
-  if (allPathStr.indexOf("viewer") >= 0) {
-    get();
-    contents = contents.replace(/\.\$offsetWidth\(\)/g, ".offsetWidth");
-  }
   if (noAppendChild) {
     get();
     contents = contents.replace(/\bappendChild\b/g, "append");

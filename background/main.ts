@@ -2555,7 +2555,7 @@
       const { c: count, i: inner } = request;
       cKey = kKeyCode.None; // it's only from VHints' task / VOmni reloading, so no Key to suppress
       if (count != null) {
-        delete request.c, delete (request as Req.fg<kFgReq.vomnibar>).H, delete request.i;
+        delete request.c, delete (request as Partial<Req.baseFg<kFgReq.vomnibar>>).H, delete request.i;
         cRepeat = +count || 1;
         cOptions = BgUtils_.safer_(request);
       } else if (request.r !== true) {

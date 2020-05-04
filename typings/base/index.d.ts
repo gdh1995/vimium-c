@@ -15,7 +15,6 @@ type TypeName<T> =
     T extends Function ? "function" :
     "object";
 type Parameters<F extends Function> = F extends (...args: infer A) => any ? A : never;
-type ThisParameter<F extends Function> = F extends (this: infer T, ...args: any) => any ? T : never;
 type ConstructorParameters<T extends new (...args: any[]) => any> = T extends new (...args: infer P) => any ? P : never;
 type ReturnType<T> = T extends (...args: any[]) => infer R ? R : never;
 type InstanceType<T extends new (...args: any[]) => any> = T extends new (...args: any[]) => infer R ? R : any;
@@ -24,8 +23,6 @@ type Unpacked<T> =
     T extends (...args: any[]) => infer U ? U :
     T extends Promise<infer U> ? U :
     T;
-
-interface ThisType<T> {}
 
 type Omit<T, K extends keyof T> = {
     [P in Exclude<keyof T, K>]: T[P];
