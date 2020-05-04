@@ -1,6 +1,6 @@
 import {
   setupEventListener, clickable_, isTop, keydownEvents_, VOther, timeout_, fgCache, doc, isAlive_, allowScripts_,
-  set_allowScripts_, jsRe_, tryDecodeURL, chromeVer_,
+  set_allowScripts_, jsRe_, tryDecodeURL, chromeVer_, VTr,
 } from "../lib/utils"
 import {
   createElement_, createShadowRoot_, bZoom_, dScale_, fullscreenEl_unsafe_, docEl_unsafe_, getZoom_, wdZoom_,
@@ -8,7 +8,7 @@ import {
   getSelectionBoundingBox_, center_, getVisibleClientRect_, isInTouchMode_cr_, touch_cr_, IsInDOM_, lastHovered_,
   hover_, mouse_, activeEl_unsafe_, view_, prepareCrop_, getClientRectsForAreas_, notSafe_not_ff_,
   getBoundingClientRect_, padClientRect_, isContaining_, cropRectToVisible_, getCroppedRect_, setBoundary_,
-  frameElement_, runJS_, isStyleVisible_, set_docSelectable_, getInnerHeight,
+  frameElement_, runJS_, isStyleVisible_, set_docSelectable_, getInnerHeight, CLK, MDW, NONE,
 } from "../lib/dom_utils"
 import { Stop_, suppressTail_ } from "../lib/keyboard_utils"
 import { currentScrolling } from "./scroller"
@@ -86,7 +86,7 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
     if (styleIn_) {
       setUICSS(styleIn_ as Exclude<typeof styleIn_, Element | null | undefined | "">)
     } else {
-      box_.style.display = "none";
+      box_.style.display = NONE
       if (adjust_type === AdjustType.MustAdjust) {
         adjustUI()
       }
@@ -194,12 +194,12 @@ export const checkDocSelectable = (): void => {
       st = gcs(sout);
       mayTrue = (Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinUnprefixedUserSelect
             || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinUnprefixedUserSelect
-            ? st.userSelect || st.webkitUserSelect : st.userSelect) !== "none";
+            ? st.userSelect || st.webkitUserSelect : st.userSelect) !== NONE;
     }
     set_docSelectable_(mayTrue && (st = gcs(docEl_unsafe_()!),
             Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinUnprefixedUserSelect
             || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinUnprefixedUserSelect
-            ? st.userSelect || st.webkitUserSelect : st.userSelect) !== "none")
+            ? st.userSelect || st.webkitUserSelect : st.userSelect) !== NONE)
 }
 
 export const getSelected = (notExpectCount?: 1): [Selection, ShadowRoot | null] => {
@@ -333,7 +333,7 @@ export const click_ = (element: SafeElementForMouse
         return;
       }
     }
-    mouse_(element, "mousedown", center, modifiers, null, button);
+    mouse_(element, MDW, center, modifiers, null, button);
     if (!IsInDOM_(element)) { return; }
     // Note: here we can check doc.activeEl only when @click is used on the current focused document
     if (addFocus && element !== insert_Lock_() && element !== activeEl_unsafe_() &&
@@ -375,7 +375,7 @@ export const click_ = (element: SafeElementForMouse
               || clickable_.has(element))
           ? ActionType.DispatchAndMayOpenTab : ActionType.OpenTabButNotDispatch;
     }
-    if ((result > ActionType.OpenTabButNotDispatch - 1 || mouse_(element, "click", center, modifiers) && result)
+    if ((result > ActionType.OpenTabButNotDispatch - 1 || mouse_(element, CLK, center, modifiers) && result)
         && getVisibleClientRect_(element)) {
       // require element is still visible
       if (specialAction === kClickAction.forceToDblclick) {
@@ -510,7 +510,7 @@ export const flash_ = function (el: Element | null, rect?: Rect | null, lifeTime
 export const setupExitOnClick = (key: number, callback: ((this: void) => void) | 0): void => {
     const arr = _toExit, diff = arr[key] !== callback;
     arr[key] = callback;
-    diff && setupEventListener(0, "click", doExitOnClick, !(arr[0] || arr[1]));
+    diff && setupEventListener(0, CLK, doExitOnClick, !(arr[0] || arr[1]));
 }
 
 export const doExitOnClick = (event?: Event): void => {
@@ -572,14 +572,16 @@ export const evalIfOK = (url: Pick<BgReq[kBgReq.eval], "u"> | string): boolean =
     return false;
   }
   url = url.slice(11).trim();
+  let el: HTMLScriptElement | undefined
   if ((<RegExpOne> /^void\s*\( ?0 ?\)\s*;?$|^;?$/).test(url)) { /* empty */ }
   else if (!(Build.BTypes & ~BrowserType.Firefox)
       || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
       ? allowScripts_ === 2 || allowScripts_ &&
         /*#__INLINE__*/ set_allowScripts_(
-            runJS_("document.currentScript.dataset.vimium=1", 1)!.dataset.vimium ? 2 : 0)
+            (el = runJS_(VTr(kTip.removeCurScript), 1)!).parentNode ? (el.remove(), 0) : 2)
       : allowScripts_) {
-    timeout_(runJS_.bind(0, tryDecodeURL(url, decodeURIComponent)), 0);
+    timeout_(Build.BTypes & BrowserType.Firefox ? runJS_.bind(0, tryDecodeURL(url, decodeURIComponent), 1)
+        : runJS_.bind(0, tryDecodeURL(url, decodeURIComponent)) as () => void, 0);
   } else {
     hudTip(kTip.failToEvalJS);
   }

@@ -1,7 +1,7 @@
 import { VTr, safer, loc_ } from "../lib/utils"
 import { post_ } from "./port"
 import { hudHide, hudShow, hudTip } from "./hud"
-import { removeHandler_, pushHandler_, key_, isEscape_ } from "../lib/keyboard_utils"
+import { removeHandler_, pushHandler_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
 
 let onKeyChar: ((event: HandlerNS.Event, keyChar: string) => void) | null = null
 let prefix = true
@@ -23,7 +23,7 @@ export const activate = (options: CmdOptions[kFgCmd.marks], count: number): void
 
 const onKeydownM = (event: HandlerNS.Event): HandlerResult => {
     if (event.i === kKeyCode.ime) { return HandlerResult.Nothing; }
-    let key = key_(event, kModeId.Marks), notEsc = !isEscape_(key);
+    let key = getMappedKey(event, kModeId.Marks), notEsc = !isEscape_(key);
     if (notEsc && key.length !== 1) {
       return HandlerResult.Suppress;
     }

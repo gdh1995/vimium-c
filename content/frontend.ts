@@ -5,7 +5,7 @@ import {
   set_clickable_, clickable_, isAlive_, set_VTr, setupKeydownEvents, onWndFocus,
   set_readyState_, readyState_, set_allowScripts_, callFunc, recordLog,
 } from "../lib/utils"
-import { suppressTail_, key_ } from "../lib/keyboard_utils"
+import { suppressTail_, getMappedKey } from "../lib/keyboard_utils"
 import { frameElement_, set_OnDocLoaded_, getInnerHeight } from "../lib/dom_utils"
 import {
   safePost, clearRuntimePort, runtime_port, SafeDestoryF, set_safeDestroy,
@@ -28,7 +28,7 @@ import { onLoad as findOnLoad, find_box, findCSS, styleInHUD } from "./mode_find
 import { activate as omniActivate } from "./vomnibar"
 
 const docReadyListeners: Array<(this: void) => void> = [], completeListeners: Array<(this: void) => void> = []
-const kReadystatechange = "readystatechange"
+const RSC = "readystatechange"
 
 let coreTester: { /** name */ n: BuildStr.CoreGetterFuncName; /** recvTick */ r: number; /** sendTick */ s: number;
     /** random key */ k: number; /** encrypt */ e (trustedRand: number, unsafeRand: number): string;
@@ -65,7 +65,7 @@ VApi = {
   i: Build.BTypes & BrowserType.Firefox ? getInnerHeight : 0 as never,
   r: injector && [send_, safePost, (): string => {
     let keys = currentKeys; esc!(HandlerResult.Nothing); return keys;
-  }, set_clickable_, set_VTr], t: hudTip, m: key_, q: insert_Lock_,
+  }, set_clickable_, set_VTr], t: hudTip, m: getMappedKey, q: insert_Lock_,
   g: setUICSS, w: addUIElement, x: flash_,
   y () {
     return Build.BTypes & BrowserType.Firefox ? {
@@ -201,11 +201,11 @@ if (isAlive_) {
     if (initialDocState < "i") {
       /*#__INLINE__*/ set_OnDocLoaded_(callFunc)
     } else {
-      setupEventListener(0, kReadystatechange, function onReadyStateChange(): void {
+      setupEventListener(0, RSC, function onReadyStateChange(): void {
         const stat = doc.readyState, loaded = stat < "i", arr = loaded ? completeListeners : docReadyListeners;
         /*#__INLINE__*/ set_readyState_(stat)
         if (loaded) {
-          setupEventListener(0, kReadystatechange, onReadyStateChange, 1);
+          setupEventListener(0, RSC, onReadyStateChange, 1);
           /*#__INLINE__*/ set_OnDocLoaded_(callFunc)
         }
         arr.forEach(callFunc);

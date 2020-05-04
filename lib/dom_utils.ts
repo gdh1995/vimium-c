@@ -2,6 +2,7 @@ import { VOther, chromeVer_, doc, getTime } from "./utils"
 
 type kMouseMoveEvents = "mouseover" | "mouseenter" | "mousemove" | "mouseout" | "mouseleave";
 type kMouseClickEvents = "mousedown" | "mouseup" | "click" | "auxclick" | "dblclick";
+export const MDW = "mousedown", CLK = "click", HDN = "hidden", NONE = "none"
 
   /** data and DOM-shortcut section (sorted by reference numbers) */
 
@@ -329,7 +330,7 @@ export const getVisibleClientRect_ = (element: SafeElement, el_style?: CSSStyleD
       _ref = element.children;
       for (let _j = 0, _len1 = _ref.length, gCS = getComputedStyle; _j < _len1; _j++) {
         style = gCS(_ref[_j]);
-        if (style.float !== "none" || ((str = style.position) !== "static" && str !== "relative")) { /* empty */ }
+        if (style.float !== NONE || ((str = style.position) !== "static" && str !== "relative")) { /* empty */ }
         else if (rect.height === 0) {
           if (notInline == null) {
             el_style || (el_style = gCS(element));
@@ -409,7 +410,7 @@ export const getCroppedRect_ = function (this: {}, el: Element, crect: Rect | nu
     let parent: Element | null = el, prect: Rect | null | undefined
       , i: number = crect ? 4 : 0, bcr: ClientRect;
     while (1 < i-- && (parent = GetParent_unsafe_(parent, PNType.RevealSlotAndGotoParent))
-        && getComputedStyle_(parent).overflow !== "hidden"
+        && getComputedStyle_(parent).overflow !== HDN
         ) { /* empty */ }
     if (i > 0 && parent) {
       bcr = getBoundingClientRect_(parent);
@@ -534,16 +535,16 @@ export const getViewBox_ = function (this: {}, needBox?: 1 | 2): ViewBox | ViewO
     box2 = doc.body, st2 = box2 ? getComputedStyle_(box2) : st,
     zoom2 = bZoom_ = Build.BTypes & ~BrowserType.Firefox && box2 && +st2.zoom || 1,
     containHasPaint = (<RegExpOne> /content|paint|strict/).test(st.contain!),
-    kMatrix = "matrix(1,",
+    M = "matrix(1,",
     stacking = !(Build.BTypes & BrowserType.Chrome && needBox === 2)
-        && (st.position !== "static" || containHasPaint || st.transform !== "none"),
+        && (st.position !== "static" || containHasPaint || st.transform !== NONE),
     // NOTE: if box.zoom > 1, although doc.documentElement.scrollHeight is integer,
     //   its real rect may has a float width, such as 471.333 / 472
     rect = getBoundingClientRect_(box);
     let zoom = Build.BTypes & ~BrowserType.Firefox && +st.zoom || 1,
     // ignore the case that x != y in "transform: scale(x, y)""
-    _tf = st.transform, scale = dScale_ = _tf && !_tf.startsWith(kMatrix) && float(_tf.slice(7)) || 1;
-    bScale_ = box2 && (_tf = st2.transform) && !_tf.startsWith(kMatrix) && float(_tf.slice(7)) || 1;
+    _tf = st.transform, scale = dScale_ = _tf && !_tf.startsWith(M) && float(_tf.slice(7)) || 1;
+    bScale_ = box2 && (_tf = st2.transform) && !_tf.startsWith(M) && float(_tf.slice(7)) || 1;
     Build.BTypes & BrowserType.Chrome && (zoom = _fixDocZoom_cr!(zoom, box, ratio));
     wdZoom_ = Math.round(zoom * ratio2 * 1000) / 1000;
     docZoom_ = Build.BTypes & ~BrowserType.Firefox ? zoom : 1;
@@ -572,9 +573,9 @@ export const getViewBox_ = function (this: {}, needBox?: 1 | 2): ViewBox | ViewO
                                        ih - float(st.borderBottomWidth) * scale] : null;
     if (!needBox) { return [x, y]; }
     // here rect.right is not accurate because <html> may be smaller than <body>
-    const sEl = scrollingEl_(), kHidden = "hidden",
-    xScrollable = st.overflowX !== kHidden && st2.overflowX !== kHidden,
-    yScrollable = st.overflowY !== kHidden && st2.overflowY !== kHidden;
+    const sEl = scrollingEl_(),
+    xScrollable = st.overflowX !== HDN && st2.overflowX !== HDN,
+    yScrollable = st.overflowY !== HDN && st2.overflowY !== HDN;
     if (xScrollable) {
       mw += 64 * zoom2;
       if (!containHasPaint) {
@@ -902,7 +903,7 @@ export const scrollWndBy_ = (left: number, top: number): void => {
     Element.prototype.scrollBy ? scrollBy({behavior: "instant", left, top}) : scrollBy(left, top);
 }
 
-export const runJS_ = (code: string, returnEl?: 1 | TimerType.fake): void | HTMLScriptElement => {
+export const runJS_ = (code: string, returnEl?: 1): void | HTMLScriptElement => {
     const script = createElement_("script"), docEl = docEl_unsafe_();
     script.type = "text/javascript";
     script.textContent = code;
@@ -916,10 +917,10 @@ export const runJS_ = (code: string, returnEl?: 1 | TimerType.fake): void | HTML
     } else {
       (docEl || doc).appendChild(script);
     }
-    script.remove();
-    if (Build.BTypes & BrowserType.Firefox && returnEl) {
-      return script;
+    if (Build.BTypes & BrowserType.Firefox) {
+      return returnEl ? script : script.remove();
     }
+    script.remove();
 }
 
   /** rect section */
@@ -957,12 +958,12 @@ export const getZoomedAndCroppedRect_ = (element: HTMLImageElement | HTMLInputEl
 
 export const setBoundary_ = (style: CSSStyleDeclaration, r: WritableRect, allow_abs?: boolean): boolean | undefined => {
     const need_abs = allow_abs && (r.t < 0 || r.l < 0 || r.b > getInnerHeight() || r.r > innerWidth),
-    arr: ViewOffset | false | undefined = need_abs && getViewBox_();
+    P = "px", arr: ViewOffset | false | undefined = need_abs && getViewBox_();
     if (arr) {
       r.l += arr[0], r.r += arr[0], r.t += arr[1], r.b += arr[1];
     }
-    style.left = r.l + "px", style.top = r.t + "px";
-    style.width = (r.r - r.l) + "px", style.height = (r.b - r.t) + "px";
+    style.left = r.l + P, style.top = r.t + P;
+    style.width = (r.r - r.l) + P, style.height = (r.b - r.t) + P;
     return need_abs;
 }
 

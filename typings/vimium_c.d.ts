@@ -487,7 +487,7 @@ declare const enum GlobalConsts {
   MinElementCountToStopScanOnClick = 5000,
   MaxScrollbarWidth = 24,
   MinScrollableAreaSizeForDetection = 50,
-  MaxHeightOfLinkHintMarker = 18,
+  MaxHeightOfLinkHintMarker = 24,
   FirefoxFocusResponseTimeout = 340,
   MaxLimitOfVomnibarMatches = 25,
   MaxFindHistory = 50,

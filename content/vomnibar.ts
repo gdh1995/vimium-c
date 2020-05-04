@@ -18,10 +18,10 @@ declare var VData: VDataTy
 import {
   injector, isAlive_, keydownEvents_, readyState_, VOther, timeout_, clearTimeout_, loc_, recordLog, chromeVer_,
 } from "../lib/utils"
-import { removeHandler_, pushHandler_, SuppressMost_, key_, isEscape_ } from "../lib/keyboard_utils";
+import { removeHandler_, pushHandler_, SuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils";
 import {
   createElement_, docZoom_, devRatio_, frameElement_, isHTML_, getViewBox_, fullscreenEl_unsafe_, dScale_,
-  prepareCrop_, bZoom_, getInnerHeight,
+  prepareCrop_, bZoom_, getInnerHeight, NONE,
 } from "../lib/dom_utils";
 import { beginScroll, scrollTick } from "./scroller"
 import {
@@ -163,7 +163,7 @@ export const hide = (fromInner?: 1): void => {
     refreshKeyHandler()
     active || focus();
     if (Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval && Build.BTypes & BrowserType.Chrome) {
-      style_old_cr!.height = style_old_cr!.top = ""; style_old_cr!.display = "none";
+      style_old_cr!.height = style_old_cr!.top = ""; style_old_cr!.display = NONE;
     } else {
       box.style.cssText = "display:none"
     }
@@ -172,7 +172,7 @@ export const hide = (fromInner?: 1): void => {
 export const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
     const el = createElement_("iframe") as typeof box
     el.className = "R UI Omnibar";
-    el.style.display = "none";
+    el.style.display = NONE;
     if (type !== VomnibarNS.PageType.web) { /* empty */ }
     else if (page.startsWith("http:") && loc_.origin.startsWith("https:")) {
       // not allowed by Chrome; recheck because of `tryNestedFrame`
@@ -333,7 +333,7 @@ const refreshKeyHandler = (): void => {
 
 export const onKeydown = (event: HandlerNS.Event): HandlerResult => {
     if (insert_Lock_()) { return HandlerResult.Nothing; }
-    const key = key_(event, kModeId.Omni)
+    const key = getMappedKey(event, kModeId.Omni)
     if (isEscape_(key)) { hide(); return HandlerResult.Prevent; }
     if (key === kChar.f1 || key === kChar.f2) {
       focusOmni()

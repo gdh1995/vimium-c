@@ -9,7 +9,7 @@ import {
   getClientRectsForAreas_, htmlTag_, isAriaNotTrue_, getCroppedRect_, getBoundingClientRect_, cropRectToVisible_,
   isStyleVisible_, fullscreenEl_unsafe_, querySelector_unsafe_, bZoom_, set_bZoom_, prepareCrop_, notSafe_not_ff_,
   isContaining_, docEl_unsafe_, GetParent_unsafe_, unsafeFramesetTag_old_cr_, isDocZoomStrange_, docZoom_,
-  SubtractSequence_, isHTML_, querySelectorAll_unsafe_, getInnerHeight, getInputType,
+  SubtractSequence_, isHTML_, querySelectorAll_unsafe_, getInnerHeight, getInputType, NONE,
 } from "../lib/dom_utils"
 import { find_box } from "./mode_find"
 import { omni_box } from "./vomnibar"
@@ -178,7 +178,7 @@ const checkJSAction = (str: string): boolean => {
   for (let s of str.split(";")) {
     s = s.trim();
     const t = s.startsWith("click:") ? (s = s.slice(6)) : s && !s.includes(":") ? s : null;
-    if (t && t !== "none" && !(<RegExpOne> /\._\b(?![\$\.])/).test(t)) {
+    if (t && t !== NONE && !(<RegExpOne> /\._\b(?![\$\.])/).test(t)) {
       return true;
     }
   }
@@ -221,17 +221,17 @@ const isNotReplacedBy = (element: SafeHTMLElement | null, isExpected?: Hint[]): 
 
 const inferTypeOfListener = (el: SafeHTMLElement, tag: string): boolean => {
   // Note: should avoid nested calling to isNotReplacedBy_
-  let el2: Element | null | undefined;
-  return tag !== "div" && tag !== "li"
+  let el2: Element | null | undefined, D = "div";
+  return tag !== D && tag !== "li"
       ? tag === "tr"
         ? (el2 = el.querySelector("input[type=checkbox]") as SafeElement | null,
           !!(el2 && htmlTag_(el2) && isNotReplacedBy(el2 as SafeHTMLElement)))
         : tag !== "table"
       : !(el2 = el.firstElementChild as Element | null) ||
-        !(!el.className && !el.id && tag === "div"
-          || ((tag = htmlTag_(el2)) === "div" || tag === "span") && clickable_.has(el2)
+        !(!el.className && !el.id && tag === D
+          || ((tag = htmlTag_(el2)) === D || tag === "span") && clickable_.has(el2)
               && el2.getClientRects().length
-          || ((tag !== "div"
+          || ((tag !== D
                 || !!(el2 = (el2 as HTMLDivElement).firstElementChild as Element | null,
                       tag = el2 ? htmlTag_(el2) : ""))
               && (<RegExpOne> /^h\d$/).test(tag)
@@ -459,6 +459,7 @@ const getElementsInViewport = (list: HintSources): HintSources => {
 }
 
 const deduplicate = (list: Hint[]): void => {
+  const D = "div"
   let i = list.length, j: number, k: ClickType, s: string, notRemoveParents: boolean;
   let element: Element | null, prect: Rect, crect: Rect | null;
   while (0 <= --i) {
@@ -467,7 +468,7 @@ const deduplicate = (list: Hint[]): void => {
     /** {@see #HintsNS.AllowedClickTypeForNonHTML} */
     if (!notRemoveParents) {
       if (k === ClickType.codeListener) {
-        if (s = ((element = list[i][0]) as SafeHTMLElement).localName, s === "i" || s === "div") {
+        if (s = ((element = list[i][0]) as SafeHTMLElement).localName, s === "i" || s === D) {
           if (notRemoveParents
               = i > 0 && (<RegExpOne> /\b(button|a$)/).test(list[i - 1][0].localName)
               ? (s < "i" || !element.innerHTML.trim()) && isDescendant(element, list[i - 1][0], s < "i")
@@ -477,9 +478,9 @@ const deduplicate = (list: Hint[]): void => {
             // icons: button > i; button > div@mousedown; (button[disabled] >) div@mousedown
             list.splice(i, 1);
           }
-        } else if (s === "div"
+        } else if (s === D
             && (j = i + 1) < list.length
-            && (s = list[j][0].localName, s === "div" || s === "a")) {
+            && (s = list[j][0].localName, s === D || s === "a")) {
           prect = list[i][1]; crect = list[j][1];
           if (notRemoveParents
               = crect.l < prect.l + /* icon_16 */ 19 && crect.t < prect.t + 9

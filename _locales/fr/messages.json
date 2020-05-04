@@ -863,13 +863,13 @@
 	"95": {
 		"message": "Cet élément ne peut être supprimé"
 	},
-	"96": {
+	"100": {
 		"message": "Non-autorisé à ouvrir l'URL de la cible du nouvel onglet"
 	},
-	"97": {
+	"101": {
 		"message": "Vous avez annulé l'importation"
 	},
-	"98": {
+	"102": {
 		"message": "Import des données de paramétrage : OK!"
 	},
 	"4": {

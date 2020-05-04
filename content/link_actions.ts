@@ -5,7 +5,8 @@ import {
 } from "../lib/utils"
 import {
   getEditableType_, hover_, center_, htmlTag_, GetParent_unsafe_, unhover_, uneditableInputs_, createElement_,
-  mouse_, scrollingEl_, view_, findMainSummary_, getVisibleClientRect_, getComputedStyle_, IsInDOM_, getInputType
+  mouse_, scrollingEl_, view_, findMainSummary_, getVisibleClientRect_, getComputedStyle_, IsInDOM_, getInputType,
+  CLK,
 } from "../lib/dom_utils"
 import {
   hintOptions, mode1_, mode_, hintHUD, hintApi, hintManager, coreHints,
@@ -14,7 +15,7 @@ import {
 import { set_currentScrolling, syncCachedScrollable } from "./scroller"
 import { post_ } from "./port"
 import { evalIfOK, click_, flash_, select_, getRect, lastFlashEl } from "./dom_ui"
-import { pushHandler_, removeHandler_, isEscape_, key_, prevent_, suppressTail_ } from "../lib/keyboard_utils"
+import { pushHandler_, removeHandler_, isEscape_, getMappedKey, prevent_, suppressTail_ } from "../lib/keyboard_utils"
 import { insert_Lock_ } from "./mode_insert"
 type LinkEl = Hint[0];
 interface Executor {
@@ -146,7 +147,7 @@ const openUrl = (url: string, incognito?: boolean): void => {
 const unhoverOnEsc = (): void => {
   const exit: HandlerNS.RefHandler = event => {
     removeHandler_(exit);
-    if (isEscape_(key_(event, kModeId.Link)) && !insert_Lock_()) {
+    if (isEscape_(getMappedKey(event, kModeId.Link)) && !insert_Lock_()) {
       unhover_();
       return HandlerResult.Prevent;
     }
@@ -323,7 +324,7 @@ export const linkActions: readonly LinkAction[] = [
     a.href = url;
     a.download = getImageName_(element);
     /** @todo: how to trigger download */
-    mouse_(a, "click", [0, 0], [!0, !1, !1, !1]);
+    mouse_(a, CLK, [0, 0], [!0, !1, !1, !1]);
     hintHUD.t(kTip.downloaded, 2000, [text]);
   }
   , HintMode.DOWNLOAD_MEDIA
@@ -345,9 +346,9 @@ export const linkActions: readonly LinkAction[] = [
 ] as LinkAction,
 [
   (element: SafeHTMLElement, rect): void => {
-    let notAnchor = element.localName !== "a",
+    let notAnchor = element.localName !== "a", H = "href",
     link = notAnchor ? createElement_("a") : element as HTMLAnchorElement,
-    oldUrl: string | null = notAnchor ? null : link.getAttribute("href"),
+    oldUrl: string | null = notAnchor ? null : link.getAttribute(H),
     url = getUrlData(element), changed = notAnchor || url !== link.href;
     if (changed) {
       link.href = url;
@@ -369,9 +370,9 @@ export const linkActions: readonly LinkAction[] = [
       link.remove();
     }
     else if (oldUrl != null) {
-      link.setAttribute("href", oldUrl);
+      link.setAttribute(H, oldUrl);
     } else {
-      link.removeAttribute("href");
+      link.removeAttribute(H);
     }
   }
   , HintMode.DOWNLOAD_LINK

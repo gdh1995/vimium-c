@@ -1,16 +1,16 @@
 import { fgCache, clearTimeout_, timeout_, isAlive_, VOther } from "./utils"
 
-let kDelete = kChar.delete as const
-let kBackspace = kChar.backspace as const
+const DEL = kChar.delete, BSP = kChar.backspace
+export const ENT = kChar.enter
 const keyNames_: readonly kChar[] = [kChar.space, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
     kChar.left, kChar.up, kChar.right, kChar.down,
-    /* 41 */ kChar.EMPTY, kChar.EMPTY, kChar.EMPTY, kChar.EMPTY, kChar.insert, kDelete]
+    /* 41 */ kChar.EMPTY, kChar.EMPTY, kChar.EMPTY, kChar.EMPTY, kChar.insert, DEL]
 let keyIdCorrectionOffset_old_cr_: 185 | 300 | null = Build.BTypes & BrowserType.Chrome
       && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
       ? 185 : 0 as never as null
 const _codeCorrectionMap = ["Semicolon", "Equal", "Comma", "Minus", "Period", "Slash", "Backquote",
     "BracketLeft", "Backslash", "BracketRight", "Quote", "IntlBackslash"]
-const _charCorrectionList_old_cr = Build.BTypes & BrowserType.Chrome
+const kCrct = Build.BTypes & BrowserType.Chrome
       && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
       ? kChar.CharCorrectionList : 0 as never as null
 const _modifierKeys: SafeEnum = {
@@ -23,11 +23,11 @@ interface HandlerItem {
   /** bounding this */ e: object
 }
 
-let key_: (this: void, event: HandlerNS.Event, mode: kModeId) => string
+let getMappedKey: (this: void, event: HandlerNS.Event, mode: kModeId) => string
 const handlers_: HandlerItem[] = []
 
-export { keyNames_, key_, handlers_ as handler_stack, kDelete, kBackspace }
-export function set_key_ (_newGetMappedKey: typeof key_): void { key_: key_ = _newGetMappedKey }
+export { keyNames_, getMappedKey, handlers_ as handler_stack, DEL, BSP }
+export function set_getMappedKey (_newGetMappedKey: typeof getMappedKey): void { getMappedKey = _newGetMappedKey }
 export function set_keyIdCorrectionOffset_old_cr_ (_newKeyIdCorrectionOffset: 185 | 300 | null): void {
   keyIdCorrectionOffset_old_cr_ = _newKeyIdCorrectionOffset
 }
@@ -36,9 +36,9 @@ export function set_keyIdCorrectionOffset_old_cr_ (_newKeyIdCorrectionOffset: 18
 const _getKeyName = (event: Pick<KeyboardEvent, "key" | "keyCode" | "location">): kChar => {
     let {keyCode: i} = event, s: string | undefined;
     return i > kKeyCode.space - 1 && i < kKeyCode.minNotDelete ? keyNames_[i - kKeyCode.space]
-      : i < kKeyCode.minNotDelete || i === kKeyCode.osRightMac ? (i === kKeyCode.backspace ? kBackspace
+      : i < kKeyCode.minNotDelete || i === kKeyCode.osRightMac ? (i === kKeyCode.backspace ? BSP
           : i === kKeyCode.esc ? kChar.esc
-          : i === kKeyCode.tab ? kChar.tab : i === kKeyCode.enter ? kChar.enter
+          : i === kKeyCode.tab ? kChar.tab : i === kKeyCode.enter ? ENT
           : (i === kKeyCode.osRightMac || i > kKeyCode.minAcsKeys - 1 && i < kKeyCode.maxAcsKeys + 1)
             && fgCache.a && fgCache.a === event.location ? kChar.Modifier
           : kChar.None
@@ -64,7 +64,7 @@ const _getKeyCharUsingKeyIdentifier_old_cr = !(Build.BTypes & BrowserType.Chrome
       // here omits a `(...)` after the first `&&`, since there has been `keyId >= kCharCode.minNotAlphabet`
       return keyId > keyIdCorrectionOffset_old_cr_!
           && (keyId -= 186) < 7 || (keyId -= 26) > 6 && keyId < 11
-          ? _charCorrectionList_old_cr![keyId + shiftKey * 12]
+          ? kCrct![keyId + shiftKey * 12]
           : "";
     }
 } as (event: Pick<OldKeyboardEvent, "keyIdentifier">, shiftKey: BOOL) => string
@@ -88,7 +88,7 @@ const _forceEnUSLayout = (key: string, event: Pick<KeyboardEvent, "key" | "keyCo
             : !code ? key // e.g. https://github.com/philc/vimium/issues/3451#issuecomment-569124026
             : (mapped = _codeCorrectionMap.indexOf(code)) < 0 ? code
             : (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
-                ? _charCorrectionList_old_cr! : kChar.CharCorrectionList)[mapped + 12 * +shiftKey]
+                ? kCrct! : kChar.CharCorrectionList)[mapped + 12 * +shiftKey]
           ;
     }
     return shiftKey && key.length < 2 ? key : key.toLowerCase();
@@ -142,7 +142,7 @@ export const prevent_ = (event: ToPrevent): void => {
 }
 
 export const SuppressMost_ = function (this: {}, event: HandlerNS.Event): HandlerResult {
-    isEscape_(key_(event, kModeId.Normal)) && removeHandler_(this);
+    isEscape_(getMappedKey(event, kModeId.Normal)) && removeHandler_(this);
     return event.i === kKeyCode.f12 || event.i === kKeyCode.f5 ? HandlerResult.Suppress : HandlerResult.Prevent;
 }
 

@@ -3,7 +3,7 @@ import {
   loc_, replaceBrokenTimerFunc, allowRAF_, getTime, recordLog, VTr,
 } from "../lib/utils"
 import {
-  docEl_unsafe_, createElement_, set_createElement_, OnDocLoaded_, runJS_, isHTML_, rAF_,
+  docEl_unsafe_, createElement_, set_createElement_, OnDocLoaded_, runJS_, isHTML_, rAF_, CLK, MDW,
 } from "../lib/dom_utils"
 import { Stop_ } from "../lib/keyboard_utils"
 import { safeDestroy } from "./port"
@@ -102,16 +102,16 @@ export const main = (): void => {
   isFirstResolve: 0 | 1 | 2 | 3 | 4 = window === top ? 3 : 4,
   hook = function (event: Event): void {
     const t = (event as TypeToAssert<Event, VimiumDelegateEventCls["prototype"], "relatedTarget">).relatedTarget,
-    attr = InnerConsts.kSecretAttr;
+    S = InnerConsts.kSecretAttr;
     // use `instanceof` to require the `t` element is a new instance which has never entered this extension world
     if (++hookRetryTimes > GlobalConsts.MaxRetryTimesForSecret
         || !(t instanceof Element)) { return; }
     Stop_(event);
-    if (t.localName !== "div" || t.getAttribute(attr) !== "" + secret) { return; }
+    if (t.localName !== "div" || t.getAttribute(S) !== "" + secret) { return; }
     setupEventListener(0, kHookRand, hook, 1);
     hook = null as never;
     if (box == null) {
-      t.removeAttribute(attr);
+      t.removeAttribute(S);
       setupEventListener(t, kVOnClick1, onClick);
       box = t;
     }
@@ -223,8 +223,8 @@ function verifier(maybeSecret: string, maybeVerifierB?: InnerVerifier): ReturnTy
   }
 }
 type FUNC = (this: unknown, ...args: never[]) => unknown;
-const doc0 = document, cs = doc0.currentScript as HTMLScriptElement,
-sec: number = +cs.dataset.vimium!,
+const doc0 = document, curScript = doc0.currentScript as HTMLScriptElement,
+sec: number = +curScript.dataset.vimium!,
 ETP = EventTarget.prototype, _listen = ETP.addEventListener,
 toRegister: Element[] & { p (el: Element): void | 1; s: Element[]["splice"] } = [] as any,
 _apply = _listen.apply, _call = _listen.call,
@@ -318,13 +318,13 @@ let doInit = function (this: void): void {
   detectDisabled = 0;
   const docEl2 = docChildren[0] as Element | null,
   el = call(hooks.c, doc0, "div") as HTMLDivElement,
-  key = InnerConsts.kSecretAttr;
+  S = InnerConsts.kSecretAttr;
   doInit = docChildren = null as never;
   if (!docEl2) { return executeCmd(); }
-  call(Attr, el, key, "" + sec);
+  call(Attr, el, S, "" + sec);
   listen(el, InnerConsts.kCmd, executeCmd, !0);
   dispatch(window, new DECls((InnerConsts.kHook + BuildStr.RandomClick) as InnerConsts.kHook, {relatedTarget: el}));
-  if (call(HasAttr, el, key)) {
+  if (call(HasAttr, el, S)) {
     executeCmd();
   } else {
     root = el;
@@ -515,13 +515,13 @@ function executeCmd(eventOrDestroy?: Event): void {
 
 toRegister.p = push as any, toRegister.s = toRegister.splice;
 // only the below can affect outsides
-cs.remove();
+curScript.remove();
 ETP.addEventListener = myAEL;
 FProto.toString = myToStr;
 _listen(kOnDomReady, doInit, !0);
 
       }).toString() + ")();" /** need "toString()": {@link ../scripts/dependencies.js#patchExtendClick} */
-      : "document.currentScript.remove()";
+      : VTr(kTip.removeCurScript);
 
 // #endregion injected code
 
@@ -624,7 +624,7 @@ _listen(kOnDomReady, doInit, !0);
       : (apply as (this: (this: EventTarget, ...args: any[]) => void
             , self: EventTarget, args: IArguments) => void
         ).call(_listen as (this: EventTarget, ...args: any[]) => void, a, args);
-    if ((type === "click" || type === "mousedown" || type === "dblclick") && alive
+    if ((type === CLK || type === MDW || type === "dblclick") && alive
         && listener && !(a instanceof HTMLAnchorElement) && a instanceof Element) {
       if (!Build.NDEBUG) {
         clickable_.has(a) || resolved++;

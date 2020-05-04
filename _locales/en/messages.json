@@ -1069,13 +1069,14 @@
 	"95": {
 		"message": "This item cannot be deleted"
 	},
-	"96": {
+	"96": { "message": "document.currentScript.remove()" },
+	"100": {
 		"message": "Not allowed to open the target new tab URL"
 	},
-	"97": {
+	"101": {
 		"message": "You cancelled importing"
 	},
-	"98": {
+	"102": {
 		"message": "Import settings data: OK!"
 	},
 	"4": {

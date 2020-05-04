@@ -12,8 +12,9 @@ declare const enum kTip {
   /* 80: */ nowCreateMark, didCreateLastMark, didLocalMarkTask, didJumpTo, didCreate,
   /* 85: */ lastMark, didNormalMarkTask, findFrameFail, noOldQuery, noMatchFor,
   /* 90: */ visualMode, noUsableSel, loseSel, needSel, omniFrameFail,
-  /* 95: */ failToDelSug, INJECTED_CONTENT_END = failToDelSug, firefoxRefuseURL, cancelImport, importOK,
-  /** 99: used by {@link ../Gulpfile.js} */ extendClick,
+  /* 95: */ failToDelSug, INJECTED_CONTENT_END = failToDelSug, removeCurScript,
+  /** 99: used by {@link ../Gulpfile.js} */ extendClick = 99,
+  /* 100: */ firefoxRefuseURL, cancelImport, importOK,
   END,
 }
 

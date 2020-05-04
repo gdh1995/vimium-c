@@ -44,7 +44,7 @@ import {
 import { insert_Lock_ } from "./mode_insert"
 import { hudShow, hudTip, hudHide } from "./hud"
 import { post_, send_ } from "./port"
-import { removeHandler_, pushHandler_, key_, keybody_, isEscape_, prevent_ } from "../lib/keyboard_utils"
+import { removeHandler_, pushHandler_, getMappedKey, keybody_, isEscape_, prevent_, ENT } from "../lib/keyboard_utils"
 
 const kDir = ["backward", "forward"] as const
 let _kGranularity: GranularityNames
@@ -151,13 +151,13 @@ export const deactivate = (isEsc?: 1): void => {
   /** @unknown_di_result */
 const onKeydown = (event: HandlerNS.Event): HandlerResult => {
     const doPass = event.i === kKeyCode.ime || event.i === kKeyCode.menuKey && fgCache.o,
-    key = doPass ? "" : key_(event, kModeId.Visual), keybody = keybody_(key);
+    key = doPass ? "" : getMappedKey(event, kModeId.Visual), keybody = keybody_(key);
     if (!key || isEscape_(key)) {
       !key || currentCount || currentSeconds ? resetKeys() : deactivate(1)
       // if doPass, then use nothing to bubble such an event, so handlers like LinkHints will also exit
       return key ? HandlerResult.Prevent : doPass ? HandlerResult.Nothing : HandlerResult.Suppress;
     }
-    if (keybody_(key) === kChar.enter) {
+    if (keybody_(key) === ENT) {
       resetKeys()
       if (key.includes("s-") && mode_ !== Mode.Caret) { retainSelection = true }
       "cm".includes(key[0]) ? deactivate() : yank(key[0] === "a" ? 9 : 8)

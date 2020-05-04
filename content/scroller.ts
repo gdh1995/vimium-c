@@ -43,7 +43,7 @@ import { setPreviousMarkPosition } from "./marks"
 import {
   scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, scrollWndBy_, frameElement_, rAF_, getVisibleClientRect_,
   OnDocLoaded_, GetParent_unsafe_, querySelector_unsafe_, getZoom_, wdZoom_, bZoom_, NotVisible_, getComputedStyle_,
-  prepareCrop_, notSafe_not_ff_, getBoundingClientRect_, cropRectToVisible_, getInnerHeight,
+  prepareCrop_, notSafe_not_ff_, getBoundingClientRect_, cropRectToVisible_, getInnerHeight, HDN, NONE,
 } from "../lib/dom_utils"
 import { keyNames_, prevent_ } from "../lib/keyboard_utils"
 
@@ -129,7 +129,7 @@ let performAnimate = (e: SafeElement | null, d: ScrollByY, a: number): void => {
         : docEl_unsafe_() : top
         ) as SafeElement & TypeToAssert<Element, HTMLElement | SVGElement, "style"> | null;
     top = scrolling ? el : (running = 0, element = null);
-    el && el.style ? el.style.pointerEvents = scrolling ? "none" : "" : 0;
+    el && el.style ? el.style.pointerEvents = scrolling ? NONE : "" : 0;
   };
   performAnimate = (newEl, newDi, newAmount): void => {
     const math = Math, max = math.max;
@@ -154,13 +154,13 @@ let performAnimate = (e: SafeElement | null, d: ScrollByY, a: number): void => {
 }
 
 const performScroll = (el: SafeElement | null, di: ScrollByY, amount: number, before?: number): number => {
-    let newPos: number, kInstant = "instant" as const;
+    let newPos: number, I = "instant" as const;
     if (di) {
       if (el) {
         before = before == null ? el.scrollTop : before;
         !(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
         !(Build.BTypes & ~BrowserType.Firefox) ||
-        el.scrollBy ? el.scrollBy({behavior: kInstant, top: amount}) : (el.scrollTop += amount);
+        el.scrollBy ? el.scrollBy({behavior: I, top: amount}) : (el.scrollTop += amount);
         newPos = el.scrollTop;
       } else {
         before = scrollY;
@@ -172,7 +172,7 @@ const performScroll = (el: SafeElement | null, di: ScrollByY, amount: number, be
       before = before == null ? el.scrollLeft : before;
       !(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
       !(Build.BTypes & ~BrowserType.Firefox) ||
-      el.scrollBy ? el.scrollBy({behavior: kInstant, left: amount}) : (el.scrollLeft += amount);
+      el.scrollBy ? el.scrollBy({behavior: I, left: amount}) : (el.scrollLeft += amount);
       newPos = el.scrollLeft;
     } else {
       before = scrollX;
@@ -400,9 +400,9 @@ const getDimension = (el: SafeElement | null, di: ScrollByY, index: kScrollDim &
           : di ? getInnerHeight() : innerWidth);
 }
 
-const hasSpecialScrollSnap = (el: SafeElement | null): boolean => {
+const hasSpecialScrollSnap = (el: SafeElement | null): boolean | string | null | undefined => {
     const scrollSnap: string | null | undefined = el && getComputedStyle_(el).scrollSnapType;
-    return !!scrollSnap && scrollSnap !== "none";
+    return scrollSnap !== NONE && scrollSnap;
 }
 
 const doesScroll = (el: SafeElement, di: ScrollByY, amount: number): boolean => {
@@ -493,8 +493,8 @@ export const scrollIntoView_need_safe = (el: SafeElement): void => {
   /** @NEED_SAFE_ELEMENTS */
 export const shouldScroll_need_safe = (element: SafeElement, di: BOOL | 2 | 3, amount: number): -1 | 0 | 1 => {
     const st = getComputedStyle_(element);
-    return (di ? st.overflowY : st.overflowX) === "hidden" && di < 2
-      || st.display === "none" || st.visibility !== "visible" ? -1
+    return (di ? st.overflowY : st.overflowX) === HDN && di < 2
+      || st.display === NONE || st.visibility !== "visible" ? -1
       : <BOOL> +doesScroll(element, (di & 1) as BOOL
                   , amount || +!(di ? element.scrollTop : element.scrollLeft));
 }

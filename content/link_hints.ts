@@ -79,8 +79,9 @@ import { frameElement_, querySelector_unsafe_, isHTML_, getViewBox_, prepareCrop
   isStyleVisible_, lastHovered_, set_lastHovered_, getInnerHeight,
 } from "../lib/dom_utils"
 import {
-  pushHandler_, SuppressMost_, removeHandler_, key_, keybody_, isEscape_, getKeyStat_, keyNames_, suppressTail_,
-  kBackspace,
+  pushHandler_, SuppressMost_, removeHandler_, getMappedKey, keybody_, isEscape_, getKeyStat_, keyNames_, suppressTail_,
+  BSP,
+  ENT,
 } from "../lib/keyboard_utils"
 import { send_ } from "./port"
 import {
@@ -333,7 +334,7 @@ const SetHUDLater = (): void => {
 }
 
 const getPreciseChildRect = (frameEl: HTMLIFrameElement | HTMLElement, view: Rect): Rect | null => {
-    const max = Math.max, min = Math.min, kVisible = "visible",
+    const max = Math.max, min = Math.min, V = "visible",
     brect = getBoundingClientRect_(frameEl),
     docEl = docEl_unsafe_(), body = doc.body, inBody = !!body && IsInDOM_(frameEl, body, 1),
     zoom = (Build.BTypes & BrowserType.Chrome ? docZoom_ * (inBody ? bZoom_ : 1) : 1
@@ -341,8 +342,8 @@ const getPreciseChildRect = (frameEl: HTMLIFrameElement | HTMLElement, view: Rec
     let x0 = min(view.l, brect.left), y0 = min(view.t, brect.top), l = x0, t = y0, r = view.r, b = view.b;
     for (let el: Element | null = frameEl; el = GetParent_unsafe_(el, PNType.RevealSlotAndGotoParent); ) {
       const st = getComputedStyle_(el);
-      if (st.overflow !== kVisible) {
-        let outer = getBoundingClientRect_(el), hx = st.overflowX !== kVisible, hy = st.overflowY !== kVisible,
+      if (st.overflow !== V) {
+        let outer = getBoundingClientRect_(el), hx = st.overflowX !== V, hy = st.overflowY !== V,
         scale = el !== docEl && inBody ? dScale_ * bScale_ : dScale_;
         hx && (l = max(l, outer.left), r = l + min(r - l, outer.width , hy ? el.clientWidth * scale : r));
         hy && (t = max(t, outer.top ), b = t + min(b - t, outer.height, hx ? el.clientHeight * scale : b));
@@ -386,8 +387,8 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
       clear(1);
       hudTip(kTip.exitForIME);
       return HandlerResult.Nothing;
-    } else if (key = key_(event, kModeId.Link), keybody = keybody_(key),
-        isEscape_(key) || onTailEnter && keybody === kBackspace) {
+    } else if (key = getMappedKey(event, kModeId.Link), keybody = keybody_(key),
+        isEscape_(key) || onTailEnter && keybody === BSP) {
       clear();
     } else if (i === kKeyCode.esc && isEscape_(keybody)) {
       return HandlerResult.Suppress;
@@ -523,7 +524,7 @@ const delayToExecute = (officer: BaseHinter, hint: HintItem, flashEl: SafeHTMLEl
       }
       if (event) {
         tick = waitEnter && keybody === kChar.space ? tick + 1 : 0;
-        tick === 3 || keybody === kChar.enter ? officer.e(hint, event)
+        tick === 3 || keybody === ENT ? officer.e(hint, event)
         : key === kChar.f1 && flashEl ? flashEl.classList.toggle("Sel") : 0;
       } else {
         officer.e(hint);

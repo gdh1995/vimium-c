@@ -3,13 +3,13 @@ import {
   doc, safeObj, getTime, chromeVer_,
 } from "../lib/utils"
 import {
-  pushHandler_, SuppressMost_, Stop_, removeHandler_, prevent_, key_, keybody_, isEscape_, keyNames_,
-  kDelete, kBackspace,
+  pushHandler_, SuppressMost_, Stop_, removeHandler_, prevent_, getMappedKey, keybody_, isEscape_, keyNames_,
+  DEL, BSP, ENT,
 } from "../lib/keyboard_utils"
 import {
   createShadowRoot_, lastHovered_, set_lastHovered_, prepareCrop_, getSelectionFocusEdge_, activeEl_unsafe_,
   getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, htmlTag_, fullscreenEl_unsafe_, docEl_unsafe_,
-  getSelection_, view_, isSelected_, docSelectable_, isHTML_, createElement_, wdZoom_,
+  getSelection_, view_, isSelected_, docSelectable_, isHTML_, createElement_, wdZoom_, CLK, MDW, HDN, NONE,
 } from "../lib/dom_utils"
 import {
   ui_box, ui_root,
@@ -92,7 +92,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
 
     const outerBox = outerBox_ = createElement_("div"),
     el = box_ = createElement_("iframe"), st = outerBox.style
-    st.display = "none"; st.width = "0";
+    st.display = NONE; st.width = "0";
     if (Build.BTypes & ~BrowserType.Firefox && wdZoom_ !== 1) { st.zoom = "" + 1 / wdZoom_; }
     outerBox.className = "R HUD UI" + fgCache.d;
     outerBox.onmousedown = onMousedown
@@ -123,7 +123,7 @@ export const onLoad = (later?: 1): void => {
     wnd = box.contentWindow, f = wnd.addEventListener.bind(wnd) as typeof addEventListener,
     now = getTime(), t = true;
     let tick = 0;
-    f("mousedown", onMousedown, t)
+    f(MDW, onMousedown, t)
     f("keydown", onIFrameKeydown, t)
     f("keyup", onIFrameKeydown, t)
     f("input", onInput, t)
@@ -139,7 +139,7 @@ export const onLoad = (later?: 1): void => {
         && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)) {
       f("compositionend", onInput, t)
     }
-    suppressCommonEvents(wnd, "click");
+    suppressCommonEvents(wnd, CLK);
     f("blur", onUnexpectedBlur = function (this: Window, event): void {
       const delta = getTime() - now, wnd1 = this
       if (event && isActive && delta < 500 && delta > -99 && event.target === wnd1) {
@@ -238,7 +238,7 @@ const onLoad2 = (): void => {
       root_ = root as ShadowRoot
       // here can not use `box.contentEditable = "true"`, otherwise Backspace will break on Firefox, Win
       box.setAttribute("role", "textbox");
-      setupEventListener(root2, "mousedown", onMousedown, 0, 1)
+      setupEventListener(root2, MDW, onMousedown, 0, 1)
       root.appendChild(root2);
     }
     if (Build.BTypes & BrowserType.Firefox
@@ -306,7 +306,7 @@ const findAndFocus = (query: string, options: CmdOptions[kFgCmd.findMode]): void
     }
     isQueryRichText_ = true
     const style = isActive || hud_opacity !== 1 ? null : hud_box!.style
-    style && (style.visibility = "hidden");
+    style ? style.visibility = HDN : 0;
     toggleSelectableStyle(0);
     executeFind(null, options)
     style && (style.visibility = "");
@@ -363,12 +363,12 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
     if (n === kKeyCode.ime || scroll_keyIsDown && onScrolls(event) || event.type === "keyup") { return; }
     type Result = FindNS.Action;
     const eventWrapper: HandlerNS.Event = {c: kChar.INVALID, e: event, i: n},
-    key = key_(eventWrapper, kModeId.Find), keybody = keybody_(key);
+    key = getMappedKey(eventWrapper, kModeId.Find), keybody = keybody_(key);
     const i: Result | KeyStat = key.includes("a-") && event.altKey ? FindNS.Action.DoNothing
-      : keybody === kChar.enter
+      : keybody === ENT
         ? key[0] === "s" ? FindNS.Action.PassDirectly
           : (query_ && post_({ H: kFgReq.findQuery, q: query0_ }), FindNS.Action.ExitToPostMode)
-      : keybody !== kDelete && keybody !== kBackspace
+      : keybody !== DEL && keybody !== BSP
         ? isEscape_(key) ? FindNS.Action.ExitAndReFocus : FindNS.Action.DoNothing
       : Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther & BrowserType.Firefox)
@@ -392,7 +392,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
         }
         else { h = HandlerResult.Suppress; }
       }
-      else if (keybody === kChar.f1) { execCommand(kDelete) }
+      else if (keybody === kChar.f1) { execCommand(DEL) }
       else if (keybody === kChar.f2) {
         Build.BTypes & BrowserType.Firefox && box_.blur()
         focus(); keydownEvents_[n] = 1;
@@ -410,14 +410,14 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
       // on Chrome 79 + Win 10 / Firefox 69 + Ubuntu 18, delete a range itself
       // while on Firefox 70 + Win 10 it collapses first
       sel.type === "Caret" && sel.modify(kExtend, kDir[+(keybody > "d")], "word")
-      execCommand(kDelete)
+      execCommand(DEL)
       return;
     }
     deactivate(i)
 }
 
 const onHostKeydown = (event: HandlerNS.Event): HandlerResult => {
-    const key = key_(event, kModeId.Find), key2 = key.replace("m-", "c-")
+    const key = getMappedKey(event, kModeId.Find), key2 = key.replace("m-", "c-")
     if (key === kChar.f2) {
       onUnexpectedBlur && onUnexpectedBlur()
       doFocus()
@@ -539,13 +539,13 @@ const postActivate = (): void => {
   const el = insert_Lock_()
   if (!el) { postExit(); return }
   pushHandler_((event: HandlerNS.Event): HandlerResult => {
-    const exit = isEscape_(key_(event, kModeId.Insert));
+    const exit = isEscape_(getMappedKey(event, kModeId.Insert));
     exit ? postExit() : removeHandler_(postActivate)
     return exit ? HandlerResult.Prevent : HandlerResult.Nothing;
   }, postActivate)
   if (el === postLock) { return }
   if (!postLock) {
-    setupEventListener(0, "click", postExit)
+    setupEventListener(0, CLK, postExit)
     setupSuppress(postExit)
   }
   postExit(true)
@@ -561,7 +561,7 @@ const postExit = (skip?: boolean | Event): void => {
       postLock && setupEventListener(postLock, "blur", postExit, 1)
       if (!postLock || skip === true) { return }
       postLock = null
-      setupEventListener(0, "click", postExit, 1)
+      setupEventListener(0, CLK, postExit, 1)
       removeHandler_(postActivate)
       setupSuppress();
 }
@@ -613,11 +613,11 @@ export const updateQuery = (query: string): void => {
   isRegex = ignoreCase = null as boolean | null
   query = isQueryRichText_ ? query.replace(<RegExpG & RegExpSearchable<0>> /\\[cirw\\]/gi, FormatQuery)
         : query;
-  let isRe = isRegex, ww = wholeWord, wordBoundary = "\\b", escapeAllRe = <RegExpG> /[$()*+.?\[\\\]\^{|}]/g
+  let isRe = isRegex, ww = wholeWord, WB = "\\b", escapeAllRe = <RegExpG> /[$()*+.?\[\\\]\^{|}]/g
   if (isQueryRichText_) {
     if (isRe === null && !ww) {
       isRe = fgCache.r;
-      const info = 2 * +query.startsWith(wordBoundary) + +query.endsWith(wordBoundary);
+      const info = 2 * +query.startsWith(WB) + +query.endsWith(WB);
       if (info === 3 && !isRe && query.length > 3) {
         query = query.slice(2, -2);
         ww = true;
@@ -628,12 +628,12 @@ export const updateQuery = (query: string): void => {
     if (ww && (!(Build.BTypes & BrowserType.Chrome) || isRe
               || ((Build.BTypes & ~BrowserType.Chrome) && VOther !== BrowserType.Chrome)
         )) {
-      query = wordBoundary + query.replace(<RegExpG & RegExpSearchable<0>> /\\\\/g, "\\").replace(escapeAllRe, "\\$&")
-          + wordBoundary;
+      query = WB + query.replace(<RegExpG & RegExpSearchable<0>> /\\\\/g, "\\").replace(escapeAllRe, "\\$&")
+          + WB;
       ww = false;
       isRe = true;
     }
-    query = isRe ? query !== "\\b\\b" && query !== wordBoundary ? query : ""
+    query = isRe ? query !== "\\b\\b" && query !== WB ? query : ""
         : query.replace(<RegExpG & RegExpSearchable<0>> /\\\\/g, "\\");
   }
   parsedQuery_ = query
@@ -644,7 +644,7 @@ export const updateQuery = (query: string): void => {
   isRe || (query = isActive ? query.replace(escapeAllRe, "\\$&") : "")
 
     let re: RegExpG | null = query && tryCreateRegExp(ww
-        ? wordBoundary + query + wordBoundary : query, ignoreCase ? "gi" : "g") || null;
+        ? WB + query + WB : query, ignoreCase ? "gi" : "g") || null;
     let matches: RegExpMatchArray | null = null;
     if (re) {
       let el = fullscreenEl_unsafe_(), text: HTMLElement["innerText"] | undefined;

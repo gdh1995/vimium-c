@@ -27,14 +27,15 @@ import {
 import { activate as omniActivate, omni_status, onKeydown as omniOnKeydown, omni_box } from "./vomnibar"
 import { contentCommands_ } from "./commands"
 import {
-  set_keyIdCorrectionOffset_old_cr_, handler_stack, Stop_, prevent_, removeHandler_, pushHandler_, isEscape_, key_,
+  set_keyIdCorrectionOffset_old_cr_, handler_stack, Stop_, prevent_, removeHandler_, pushHandler_, isEscape_, getMappedKey,
 } from "../lib/keyboard_utils"
 import {
   editableTypes_, markFramesetTagUnsafe, setNotSafe_not_ff, OnDocLoaded_, frameElement_,
   notSafe_not_ff_, htmlTag_, querySelector_unsafe_, isHTML_, createElement_, lastHovered_, set_lastHovered_,
-  docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, 
+  docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, CLK, MDW,
 } from "../lib/dom_utils"
 
+const DAC = "DOMActivate"
 let framemask_more = false
 let framemask_node: HTMLDivElement | null = null
 let framemask_fmTimer = TimerID.None
@@ -284,14 +285,14 @@ set_requestHandlers([
       box = box.firstChild as SafeHTMLElement;
     }
     box.onclick = Stop_;
-    suppressCommonEvents(box, "mousedown");
+    suppressCommonEvents(box, MDW);
     if (Build.MinCVer >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument
         || !(Build.BTypes & BrowserType.Chrome)
         || chromeVer_ >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument) {
       setupEventListener(box,
         (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
           : VOther !== BrowserType.Chrome)
-        ? "click" : "DOMActivate", onActivate);
+        ? CLK : DAC, onActivate);
     }
 
     const query = box.querySelector.bind(box), closeBtn = query("#HClose") as HTMLElement,
@@ -344,7 +345,7 @@ set_requestHandlers([
     doc.hasFocus() || focusAndRun();
     /*#__INLINE__*/ set_currentScrolling(box)
     pushHandler_(function (event) {
-      if (!raw_insert_lock && isEscape_(key_(event, kModeId.Normal))) {
+      if (!raw_insert_lock && isEscape_(getMappedKey(event, kModeId.Normal))) {
         removeSelection(ui_root) || hide();
         return HandlerResult.Prevent;
       }
@@ -388,13 +389,13 @@ export const showFrameMask = (mask: FrameMaskType): void => {
 }
 
 export const hook = (function (action: HookAction): void {
-  let f = action ? removeEventListener : addEventListener;
+  let f = action ? removeEventListener : addEventListener
   if (Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
       && Build.BTypes & BrowserType.Chrome) {
     if (!(Build.BTypes & ~BrowserType.Chrome && VOther !== BrowserType.Chrome)
         && (action || chromeVer_ < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow)) {
-      f.call(doc, "DOMActivate", onActivate, true);
-      f.call(doc, "click", anyClickHandler, true);
+      f.call(doc, DAC, onActivate, true)
+      f.call(doc, CLK, anyClickHandler, true);
     }
     if (action === HookAction.SuppressListenersOnDocument) { return; }
   }
@@ -403,10 +404,10 @@ export const hook = (function (action: HookAction): void {
   action !== HookAction.Suppress && f("focus", onFocus, true);
   f("blur", onBlur, true);
   if (!(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome) {
-    f("click", anyClickHandler, true);
+    f(CLK, anyClickHandler, true);
   }
   f(Build.BTypes & ~BrowserType.Chrome && VOther !== BrowserType.Chrome
-      ? "click" : "DOMActivate", onActivate, true);
+      ? CLK : DAC, onActivate, true)
 })
 
 export const focusAndRun = (cmd?: FgCmdAcrossFrames, count?: number, options?: FgOptions, showBorder?: 1): void => {

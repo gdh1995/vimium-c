@@ -17,7 +17,7 @@ import { set_currentScrolling, currentScrolling, scrollTick, clearCachedScrollab
 import { resetIsCmdTriggered, resetAnyClickHandler } from "./key_handler"
 import {
   activeEl_unsafe_, isHTML_, docEl_unsafe_, getEditableType_, GetShadowRoot_, getSelection_, frameElement_,
-  SafeEl_not_ff_,
+  SafeEl_not_ff_, MDW,
 } from "../lib/dom_utils"
 import { Stop_, pushHandler_, removeHandler_, prevent_ } from "../lib/keyboard_utils"
 
@@ -83,7 +83,7 @@ export const insertInit = (): void => {
         }
       };
       pushHandler_(exitGrab, exitGrab);
-      setupEventListener(0, "mousedown", exitGrab);
+      setupEventListener(0, MDW, exitGrab);
       return;
     }
   }
@@ -99,7 +99,7 @@ export const exitGrab = function (this: void, event?: Req.fg<kFgReq.exitGrab> | 
   if (!grabBackFocus) { return /* safer */ HandlerResult.Nothing; }
   grabBackFocus = false;
   removeHandler_(exitGrab);
-  setupEventListener(0, "mousedown", exitGrab, 1);
+  setupEventListener(0, MDW, exitGrab, 1);
   // it's acceptable to not set the userActed flag if there's only the top frame;
   // when an iframe gets clicked, the events are mousedown and then focus, so safePost is needed
   !((event && (event as HandlerNS.Event).e || event) instanceof Event) || !frames.length && isTop ||

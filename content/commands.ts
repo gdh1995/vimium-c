@@ -6,7 +6,7 @@ import {
   padClientRect_, getBoundingClientRect_, setBoundary_, wdZoom_, dScale_, getInnerHeight,
 } from "../lib/dom_utils"
 import {
-  pushHandler_, removeHandler_, key_, prevent_, isEscape_, keybody_, kDelete, kBackspace
+  pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENT
 } from "../lib/keyboard_utils"
 import { post_ } from "./port"
 import { addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, select_ } from "./dom_ui"
@@ -201,8 +201,8 @@ export const contentCommands_: {
     if (act && (act[0] !== "l" || insert_last && !raw_insert_lock)) {
       let newEl = raw_insert_lock, ret: BOOL = 1;
       if (newEl) {
-        if (act === kBackspace) {
-          if (view_(newEl)) { execCommand(kDelete, doc); }
+        if (act === BSP) {
+          if (view_(newEl)) { execCommand(DEL, doc); }
         } else {
           /*#__INLINE__*/ set_insert_last_(newEl)
           /*#__INLINE__*/ set_is_last_mutable(0)
@@ -274,7 +274,7 @@ export const contentCommands_: {
     /*#__INLINE__*/ set_inputHint({ b: box, h: hints });
     pushHandler_(function (event) {
       const keyCode = event.i, isIME = keyCode === kKeyCode.ime, repeat = event.e.repeat,
-      key = isIME || repeat ? "" : key_(event, kModeId.Insert)
+      key = isIME || repeat ? "" : getMappedKey(event, kModeId.Insert)
       if (key === kChar.tab || key === `s-${kChar.tab}`) {
         const hints2 = this.h, oldSel = sel, len = hints2.length;
         sel = (oldSel + (key < "t" ? len - 1 : 1)) % len;
@@ -292,7 +292,7 @@ export const contentCommands_: {
           || keyCode > kKeyCode.maxNotMetaKey && keyCode < kKeyCode.minNotMetaKeyOrMenu))) { /* empty */ }
       else if (repeat) { return HandlerResult.Nothing; }
       else if (keep ? isEscape_(key) || (
-          keybody_(key) === kChar.enter
+          keybody_(key) === ENT
           && (/* a?c?m?-enter */ key < "s" && (key[0] !== "e" || this.h[sel].d.localName === "input"))
         ) : !isIME && keyCode !== kKeyCode.f12
       ) {

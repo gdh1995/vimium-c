@@ -6,9 +6,9 @@ import ClickType = HintsNS.ClickType
 import {
   frameList_, mode_, useFilter_, coreHints, hintKeyStatus, KeyStatus, hintChars, allHints, setMode, resetMode,
 } from "./link_hints"
-import { getBoundingClientRect_, htmlTag_, createElement_, bZoom_, getInputType } from "../lib/dom_utils"
+import { getBoundingClientRect_, htmlTag_, createElement_, bZoom_, getInputType, HDN } from "../lib/dom_utils"
 import { chromeVer_, doc } from "../lib/utils"
-import { kBackspace, kDelete } from "../lib/keyboard_utils"
+import { BSP, DEL, ENT } from "../lib/keyboard_utils"
 import { maxLeft_, maxRight_, maxTop_ } from "./local_links"
 import { ui_root } from "./dom_ui"
 import { omni_box } from "./vomnibar"
@@ -31,18 +31,18 @@ export const hintFilterClear = (): void => { reForNonMatch_ = null; maxPrefixLen
 export const createHint = (link: Hint): HintItem => {
   let i: number = link.length < 4 ? link[1].l : (link as Hint4)[3][0].l + (link as Hint4)[3][1];
   const marker = createElement_("span") as MarkerElement, st = marker.style,
-  isBox = link[2] > ClickType.MaxNotBox;
+  isBox = link[2] > ClickType.MaxNotBox, P = "px";
   marker.className = isBox ? "LH BH" : "LH";
-  st.left = i + "px";
+  st.left = i + P;
   if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar)
       && i > maxLeft_ && maxRight_) {
-    st.maxWidth = maxRight_ - i + "px";
+    st.maxWidth = maxRight_ - i + P;
   }
   i = link[1].t;
-  st.top = i + "px";
+  st.top = i + P;
   if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar)
       && i > maxTop_) {
-    st.maxHeight = maxTop_ - i + GlobalConsts.MaxHeightOfLinkHintMarker + "px";
+    st.maxHeight = maxTop_ - i + GlobalConsts.MaxHeightOfLinkHintMarker + P;
   }
   return { // the order of keys is for easier debugging
     a: "",
@@ -315,7 +315,7 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
         (hint.m.firstChild as Text).data = hint.a;
       }
       for (const hint of oldHints) {
-        hint.m.style.visibility = hint.i !== 0 ? "" : "hidden";
+        hint.m.style.visibility = hint.i !== 0 ? "" : HDN
       }
       }
       if (!newLen) {
@@ -333,7 +333,7 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
     if (newUnerSeq < 2) { return newUnerSeq ? hintsUnderSeq[0] : 0; }
     for (const { m: marker, a: key } of hints) {
       const match = key.startsWith(seq);
-      marker.style.visibility = match ? "" : "hidden";
+      marker.style.visibility = match ? "" : HDN
       if (match) {
         let child = marker.firstChild!, el: HTMLSpanElement;
         if (child.nodeType === kNode.TEXT_NODE) {
@@ -464,12 +464,12 @@ export const matchHintsByKey = (keyStatus: KeyStatus
   if (isTab) {
     resetMode()
   }
-  else if (keybody === kBackspace || keybody === kDelete || keybody === kChar.f1) {
+  else if (keybody === BSP || keybody === DEL || keybody === kChar.f1) {
     if (!sequence && !textSeq) {
       return 0;
     }
     sequence ? sequence = sequence.slice(0, -1) : textSeq = textSeq.slice(0, -1);
-  } else if (useFilter_ && keybody === kChar.enter || isSpace && textSeq0 !== textSeq) {
+  } else if (useFilter_ && keybody === ENT || isSpace && textSeq0 !== textSeq) {
     // keep .known_ to be 1 - needed by .executeL_
     return activeHint_!;
   } else if (isSpace) { // then useFilter is true
@@ -513,7 +513,7 @@ export const matchHintsByKey = (keyStatus: KeyStatus
     const notDoSubCheck = !keyStatus.b, wanted = notDoSubCheck ? sequence : sequence.slice(0, -1);
     hints = keyStatus.c = (doesDetectMatchSingle ? hints : allHints!).filter(hint => {
       const pass = hint.a.startsWith(wanted) && (notDoSubCheck || !hint.a.startsWith(sequence));
-      hint.m.style.visibility = pass ? "" : "hidden";
+      hint.m.style.visibility = pass ? "" : HDN
       return pass;
     });
     const limit = sequence.length - keyStatus.b;

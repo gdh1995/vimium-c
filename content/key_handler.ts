@@ -2,7 +2,7 @@ import {
   doc, esc, fgCache, isEnabled_, isTop, keydownEvents_, set_esc, VOther,
 } from "../lib/utils"
 import {
-  set_key_, char_, key_, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_, Stop_,
+  set_getMappedKey, char_, getMappedKey, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_, Stop_,
 } from "../lib/keyboard_utils"
 import { post_ } from "./port"
 import { removeSelection } from "./dom_ui"
@@ -45,7 +45,7 @@ export function set_keyFSM (_newKeyFSM: BgReq[kBgReq.keyFSM]["k"]) { keyFSM = _n
 export function set_mappedKeys (_newMappedKeys: BgReq[kBgReq.keyFSM]["m"]): void { mappedKeys = _newMappedKeys }
 
 
-set_key_((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
+set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
   const char = eventWrapper.c !== kChar.INVALID ? eventWrapper.c : char_(eventWrapper), event = eventWrapper.e;
   let key: string = char, mapped: string | undefined;
   if (char) {
@@ -69,7 +69,7 @@ set_key_((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
 const checkKey = (event: HandlerNS.Event, key: string
     ): HandlerResult.Nothing | HandlerResult.Prevent | HandlerResult.PlainEsc | HandlerResult.AdvancedEsc => {
   // when checkKey, Vimium C must be enabled, so passKeys won't be `""`
-  const key0 = passKeys && key ? mappedKeys ? key_(event, kModeId.NO_MAP_KEY) : key : "";
+  const key0 = passKeys && key ? mappedKeys ? getMappedKey(event, kModeId.NO_MAP_KEY) : key : "";
   if (!key || key0 && !currentKeys && (key0 in <SafeEnum> passKeys) !== isPassKeysReverted) {
     return key ? esc!(HandlerResult.Nothing) : HandlerResult.Nothing;
   }
@@ -170,7 +170,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
   else if (/*#__NOINLINE__*/ isInInsert()) {
     const g = insert_global_, isF_num = key > kKeyCode.maxNotFn && key < kKeyCode.minNotFn,
     keyStr = mappedKeys || g || isF_num || event.ctrlKey
-        || key === kKeyCode.esc ? key_(eventWrapper, kModeId.Insert) : "";
+        || key === kKeyCode.esc ? getMappedKey(eventWrapper, kModeId.Insert) : "";
     if (g ? !g.k ? isEscape_(keyStr) : keyStr === g.k
         : (!mappedKeys ? isF_num
           : (tempStr = keybody_(keyStr)) > kChar.maxNotF_num && tempStr < kChar.minNotF_num)
@@ -193,7 +193,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
           | 1 << kKeyCode.altKey | 1 << kKeyCode.ctrlKey | 1 << kKeyCode.shiftKey
           ) >> key) & 1) {
       action = checkKey(eventWrapper,
-            key_(eventWrapper, currentKeys ? kModeId.Next : kModeId.Normal));
+            getMappedKey(eventWrapper, currentKeys ? kModeId.Next : kModeId.Normal));
       if (action > HandlerResult.MaxNotEsc) {
         action = action > HandlerResult.PlainEsc ? /*#__NOINLINE__*/ onEscDown(event, key)
             : HandlerResult.Nothing;

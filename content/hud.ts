@@ -1,7 +1,7 @@
 import { fgCache, doc, isEnabled_, VTr, isAlive_, timeout_, clearTimeout_, interval_ } from "../lib/utils"
 import { ui_box, ensureBorder, addUIElement, adjustUI } from "./dom_ui"
 import { allHints } from "./link_hints"
-import { isHTML_, createElement_ } from "../lib/dom_utils"
+import { isHTML_, createElement_, HDN } from "../lib/dom_utils"
 import { insert_global_ } from "./mode_insert"
 
 let tweenId = 0
@@ -60,7 +60,7 @@ export const hudShow = (tid: kTip | HintMode, args?: Array<string | number>, emb
   style = el.style;
   if (!embed) {
     style.opacity = "0";
-    style.visibility = "hidden";
+    style.visibility = HDN;
     ui_box || ensureBorder();
   }
   addUIElement(box = el, allHints ? AdjustType.NotAdjust : AdjustType.DEFAULT, );
@@ -85,7 +85,7 @@ const tween = (fake?: TimerType.fake): void => { // safe-interval
   style.opacity = opacity < 1 ? "" + opacity : "";
   if (opacity !== opacity_) { return; }
   if (opacity === 0) {
-    style.visibility = "hidden";
+    style.visibility = HDN;
     $text.data = "";
   }
   clearInterval(tweenId);
@@ -102,7 +102,7 @@ export let hudHide = (info?: TimerType): void => {
   if (!box) { /* empty */ }
   else if (info === TimerType.noTimer || !isEnabled_) {
     style.opacity = "0";
-    style.visibility = "hidden";
+    style.visibility = HDN;
     $text.data = "";
   }
   else if (!tweenId && isAlive_) {
