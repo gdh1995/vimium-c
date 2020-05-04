@@ -165,6 +165,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   input_: null as never as HTMLInputElement & Ensure<HTMLInputElement
       , "selectionDirection" | "selectionEnd" | "selectionStart">,
   bodySt_: null as never as CSSStyleDeclaration,
+  inputBar_: null as never as HTMLElement,
   barCls_: null as never as DOMTokenList,
   isSelOriginal_: true,
   lastKey_: kKeyCode.None,
@@ -201,13 +202,13 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     const a = Vomnibar_;
     a.showing_ = true;
     setTimeout(a.focus_, 34);
-    addEventListener("wheel", a.onWheel_, a.wheelOptions_);
+    ((document.body as Element).addEventListener as typeof addEventListener)("wheel", a.onWheel_, a.wheelOptions_)
   },
   hide_ (fromContent?: BOOL): void {
     const a = Vomnibar_, el = a.input_;
     a.isActive_ = a.showing_ = a.isEditing_ = a.isInputComposing_ = a.blurWanted_ = a.codeFocusReceived_ = false;
     a.codeFocusTime_ = 0;
-    removeEventListener("wheel", a.onWheel_, a.wheelOptions_);
+    ((document.body as Element).removeEventListener as typeof removeEventListener)("wheel", a.onWheel_, a.wheelOptions_)
     a.timer_ > 0 && clearTimeout(a.timer_);
     window.onkeyup = null as never;
     el.blur();
@@ -810,9 +811,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (event.ctrlKey || event.metaKey
         || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
             ? !event.isTrusted : event.isTrusted === false)) { return; }
-    VUtils_.Stop_(event, 1);
     const a = Vomnibar_, deltaY = event.deltaY, now = Date.now(), mode = event.deltaMode;
-    if (event.deltaX || !deltaY || !a.isActive_ || a.isSearchOnTop_) { return; }
+    if (a.isActive_ && a.inputBar_.contains(event.target as Element)) { return }
+    VUtils_.Stop_(event, 1);
+    if (event.deltaX || !deltaY || !a.isActive_ || a.isSearchOnTop_) { return }
     if (now - a.wheelTime_ > (!mode /* WheelEvent.DOM_DELTA_PIXEL */
                               ? GlobalConsts.TouchpadTimeout : GlobalConsts.WheelTimeout)
         || now + 33 < a.wheelTime_) {
@@ -1054,6 +1056,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     const ver: BrowserVer = Build.BTypes & BrowserType.Chrome ? a.browserVer_ : BrowserVer.assumedVer,
     listen = addEventListener,
     input = a.input_ = document.getElementById("input") as typeof Vomnibar_.input_;
+    a.inputBar_ = document.getElementById("bar") as HTMLElement
     a.barCls_ = (input.parentElement as HTMLElement).classList;
     list.onmouseover = list.oncontextmenu = a.OnMenu_;
     (document.getElementById("close") as HTMLElement).onclick = function (): void { return Vomnibar_.hide_(); };
