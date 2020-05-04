@@ -112,7 +112,7 @@ var Commands = {
       , mkReg = BgUtils_.safeObj_<string>();
     const a = this as typeof Commands, available = a.availableCommands_;
     const strip = BgUtils_.stripKey_;
-    const colorRed = "color:red", shortcutLogPrefix = "Shortcut %c%s";
+    const colorRed = "color:red", shortcutLogPrefix = 'Shortcut %c"%s"';
     CommandsData_.errors_ = null
     lines = line.replace(<RegExpSearchable<0>> /\\\\?\n/g, t => t.length === 3 ? "\\\n" : ""
                ).replace(<RegExpG> /[\t ]+/g, " ").split("\n");
@@ -135,16 +135,16 @@ var Commands = {
       if (key === "map") {
         key = BgUtils_.formatKeys_(splitLine[1] || "");
         if (!key || key === "__proto__") {
-          a.logError_("Unsupported key sequence %c%s", colorRed, key || '""', `for "${splitLine[2] || ""}"`);
+          a.logError_('Unsupported key sequence %c"%s"', colorRed, key || '""', `for "${splitLine[2] || ""}"`);
         } else if (key in registry && !(builtinKeys && key in builtinKeys)) {
-          a.logError_("Key %c%s", colorRed, key, "has been mapped to", registry[key]!.command_);
+          a.logError_('Key %c"%s"', colorRed, key, "has been mapped to", registry[key]!.command_);
         } else if (splitLine.length < 3) {
-          a.logError_("Lacking command when mapping %c%s", colorRed, key);
+          a.logError_('Lacking command when mapping %c"%s"', colorRed, key);
         } else if (!(details = available[splitLine[2]])) {
-          a.logError_("Command %c%s", colorRed, splitLine[2], "doesn't exist!");
+          a.logError_('Command %c"%s"', colorRed, splitLine[2], "doesn't exist!");
         } else if ((ch = key.charCodeAt(0)) > kCharCode.maxNotNum && ch < kCharCode.minNotNum
             || ch === kCharCode.dash) {
-              a.logError_("Invalid key: %c%s", colorRed, key, "(the first char can not be '-' or number)");
+          a.logError_('Invalid key: %c"%s"', colorRed, key, "(the first char can not be '-' or number)");
         } else {
           regItem = a.makeCommand_(splitLine[2], a.getOptions_(splitLine, 3), details);
           if (regItem) {
@@ -179,7 +179,7 @@ var Commands = {
           a.logError_("mapKey: a source / target key should be a single key:", line);
         } else if ((key = strip(key)) in mkReg) {
           key = mkReg[strip(key)]!;
-          a.logError_("This key %c%s", colorRed, splitLine[1], "has been mapped to another key:"
+          a.logError_('The key %c"%s"', colorRed, splitLine[1], "has been mapped to another key:"
               , key.length > 1 ? `<${key}>` : key);
         } else {
           mkReg[key] = strip(splitLine[2]);
@@ -201,7 +201,7 @@ var Commands = {
           a.logError_(shortcutLogPrefix, colorRed, splitLine[1], key);
         }
       } else if (key !== "unmap") {
-        a.logError_("Unknown mapping command: %c%s", colorRed, key, "in", line);
+        a.logError_('Unknown mapping command: %c"%s"', colorRed, key, "in", line);
       } else if (splitLine.length !== 2) {
         a.logError_("Unmap needs one mapped key:", line);
       } else if ((key = BgUtils_.formatKeys_(splitLine[1])) in registry) {
@@ -209,7 +209,7 @@ var Commands = {
         delete registry[key];
         continue;
       } else {
-        a.logError_("Unmapping: %c%s", colorRed, key, "has not been mapped");
+        a.logError_('Unmapping: %c"%s"', colorRed, key, "has not been mapped");
       }
       ++errors;
     }
@@ -314,7 +314,7 @@ var Commands = {
     console.log.apply(console, arguments);
   } as (firstMsg: string, ...args: any[]) => void ,
   warnInactive_ (obj: ReadonlyChildKeyFSM | string, newKey: string): void {
-    this.logError_("inactive key:", obj, "with", newKey);
+    this.logError_('Inactive key: %o with "%s"', obj, newKey);
     ++Settings_.temp_.cmdErrors_;
   },
   execute_ (message: Partial<ExternalMsgs[kFgReq.command]["req"]> , sender: chrome.runtime.MessageSender

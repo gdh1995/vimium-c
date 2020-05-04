@@ -1231,7 +1231,7 @@ function click(a: Element): boolean {
 }
 
 function formatCmdErrors_(errors: string[][]): string {
-  let i: number, line: string[], output = ""
+  let i: number, line: string[], output = errors.length > 1 ? "Errors:\n" : "Error: "
   for (line of errors) {
     i = 0
     output += line[0].replace(<RegExpG & RegExpSearchable<1>>/%([a-z])/g, (_, s: string): string => {
@@ -1239,7 +1239,9 @@ function formatCmdErrors_(errors: string[][]): string {
       return s === "c" ? "" : s === "s" || s === "d" ? line[i] : JSON.stringify(line[i])
     })
     if (i + 1 < line.length) {
-      output += ` ${line.slice(i + 1).join(" ")}\n`
+      output += ` ${
+          line.slice(i + 1).map(x => typeof x === "object" && x && !(x as any).length ? JSON.stringify(x) : x
+          ).join(" ") }.\n`
     }
   }
   return output

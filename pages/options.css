@@ -374,6 +374,7 @@ label:active {
   color: var(--tip-color, darkred);
   height: unset;
   white-space: pre-line;
+  word-break: break-all;
 }
 .help {
   padding-left: 20px;
