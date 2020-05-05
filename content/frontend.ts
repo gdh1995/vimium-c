@@ -201,16 +201,6 @@ if (isAlive_) {
     if (initialDocState < "i") {
       /*#__INLINE__*/ set_OnDocLoaded_(callFunc)
     } else {
-      setupEventListener(0, RSC, function onReadyStateChange(): void {
-        const stat = doc.readyState, loaded = stat < "i", arr = loaded ? completeListeners : docReadyListeners;
-        /*#__INLINE__*/ set_readyState_(stat)
-        if (loaded) {
-          setupEventListener(0, RSC, onReadyStateChange, 1);
-          /*#__INLINE__*/ set_OnDocLoaded_(callFunc)
-        }
-        arr.forEach(callFunc);
-        arr.length = 0;
-      })
       /*#__INLINE__*/ set_OnDocLoaded_((callback, onloaded) => {
         readyState_ < "l" && !onloaded ? callback() : (onloaded ? completeListeners : docReadyListeners).push(callback)
       })
@@ -223,6 +213,17 @@ if (isAlive_) {
   } else {
     /*#__INLINE__*/ set_allowScripts_(0)
   }
+
+  initialDocState < "i" || setupEventListener(0, RSC, function _onReadyStateChange(): void {
+    set_readyState_(doc.readyState)
+    const loaded = readyState_ < "i", arr = loaded ? completeListeners : docReadyListeners
+    if (loaded) {
+      set_OnDocLoaded_(callFunc)
+      setupEventListener(0, RSC, _onReadyStateChange, 1)
+    }
+    arr.forEach(callFunc)
+    arr.length = 0
+  })
 }
 
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".includes) {

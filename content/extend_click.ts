@@ -3,7 +3,7 @@ import {
   loc_, replaceBrokenTimerFunc, allowRAF_, getTime, recordLog, VTr,
 } from "../lib/utils"
 import {
-  docEl_unsafe_, createElement_, set_createElement_, OnDocLoaded_, runJS_, isHTML_, rAF_, CLK, MDW,
+  createElement_, set_createElement_, OnDocLoaded_, runJS_, isHTML_, rAF_, CLK, MDW,
 } from "../lib/dom_utils"
 import { Stop_ } from "../lib/keyboard_utils"
 import { safeDestroy } from "./port"
@@ -79,7 +79,7 @@ export const main = (): void => {
         : Build.BTypes & BrowserType.Chrome
           && (!(Build.BTypes & ~BrowserType.ChromeOrFirefox) || VOther === BrowserType.Chrome)
         ? 1 : 0
-    , docEl = docEl_unsafe_()
+    , docEl = doc.documentElement
     , secret: number = (Math.random() * kContentCmd.SecretRange + 1) | 0
     , script = createElement_("script");
 /**
@@ -207,7 +207,8 @@ export const main = (): void => {
     (maybeSecret: string): [EventTarget["addEventListener"], Function["toString"]] | void;
   }
   type PublicFunction = (maybeKNeedToVerify: string, verifierFunc: InnerVerifier | unknown) => void | string;
-  let injected: string = isFirstTime ? Build.NDEBUG && VTr(kTip.extendClick)
+  let injected: string = (Build.NDEBUG ? VTr(isFirstTime ? kTip.extendClick : kTip.removeCurScript)
+          : !isFirstTime && VTr(kTip.removeCurScript))
         || '"use strict";(' + (function VC(this: void): void {
 
 function verifier(maybeSecret: string, maybeVerifierB?: InnerVerifier): ReturnType<InnerVerifier> {
@@ -241,7 +242,7 @@ getElementsByTagNameInDoc = doc0.getElementsByTagName, getElementsByTagNameInEP 
 IndexOf = _call.bind(toRegister.indexOf) as never as (list: HTMLCollectionOf<Element>, item: Element) => number,
 push = nodeIndexListInDocument.push,
 pushInDocument = push.bind(nodeIndexListInDocument), pushForDetached = push.bind(nodeIndexListForDetached),
-CECls = CustomEvent as VimiumCustomEventCls, HACls = HTMLAnchorElement,
+CECls = CustomEvent as VimiumCustomEventCls,
 DECls = FocusEvent as VimiumDelegateEventCls,
 FProto = Function.prototype, _toString = FProto.toString,
 listen = _call.bind<(this: (this: EventTarget,
@@ -253,7 +254,7 @@ listen = _call.bind<(this: (this: EventTarget,
 rEL = removeEventListener, clearTimeout1 = clearTimeout,
 kVOnClick = InnerConsts.kVOnClick,
 kEventName2 = kVOnClick + BuildStr.RandomClick,
-kOnDomReady = "DOMContentLoaded", kFunc = "function",
+kOnDomReady = "readystatechange", kFunc = "function",
 StringIndexOf = kOnDomReady.indexOf, StringSubstr = kOnDomReady.substr,
 decryptFromVerifier = (func: InnerVerifier | unknown): string => {
   const str = call(_toString, func as InnerVerifier), offset = call(StringIndexOf, str, kMarkToVerify);
@@ -267,7 +268,9 @@ newFuncToString = function (a: FUNC, args: IArguments): string {
     str = call(_apply as (this: (this: FUNC, ...args: any[]) => string, self: FUNC, args: IArguments) => string,
               _toString, replaced || a, args);
     detectDisabled && str === detectDisabled && executeCmd();
-    return replaced || str !== sAEL && str !== sToStr ? str
+    return replaced || str !== (myAELStr || (myAELStr = call(_toString as (this: Function, ...args: any[]) => string
+              , myAEL, myToStrStr = call(_toString, myToStr)))
+            ) && str !== myToStrStr ? str
         : (
           noAbnormalVerifyingFound && (a as PublicFunction)(kMarkToVerify, verifier),
           a === anotherAEL ? call(_toString, _listen) : a === anotherToStr ? call(_toString, _toString)
@@ -298,9 +301,9 @@ hooks = {
                         , self: EventTarget, args: IArguments) => void,
              _listen as (this: EventTarget, ...args: any[]) => void, a, args);
     if (type === "click" || type === "mousedown" || type === "dblclick"
-        ? listener && !(a instanceof HACls) && a instanceof ElCls
+        ? listener && a instanceof ElCls && a.tagName !== "a"
         : type === kEventName2 && !isReRegistering
-          // note: window.history is mutable on C35, so only these can be used: top,window,loc_.document
+          // note: window.history is mutable on C35, so only these can be used: top,window,location,document
           && a && !(a as Window).window && (a as Node).nodeType === kNode.ELEMENT_NODE) {
       toRegister.p(a as Element);
       timer = timer || (queueMicroTask_(delayToStartIteration), 1);
@@ -309,8 +312,7 @@ hooks = {
   }
 },
 noop = (): 1 => 1,
-myAEL = hooks.addEventListener, myToStr = hooks.toString,
-sAEL = myAEL + "", sToStr = myToStr + "";
+myAEL = hooks.addEventListener, myToStr = hooks.toString;
 
 let doInit = function (this: void): void {
   rEL(kOnDomReady, doInit, !0);
@@ -332,6 +334,7 @@ let doInit = function (this: void): void {
   }
 },
 kMarkToVerify = GlobalConsts.MarkAcrossJSWorlds as const,
+myAELStr: string | undefined, myToStrStr: string | undefined,
 detectDisabled: string | 0 = `Vimium${sec}=>9`,
 noAbnormalVerifyingFound: BOOL = 1,
 anotherAEL: typeof myAEL | undefined | 0, anotherToStr: typeof myToStr | undefined | 0,
@@ -487,17 +490,18 @@ function executeCmd(eventOrDestroy?: Event): void {
       : eventOrDestroy ? kContentCmd._fake : kContentCmd.Destroy;
   // always stopProp even if the secret does not match, so that an attacker can not detect secret by enumerating numbers
   detail && call(StopProp, eventOrDestroy!);
+  let len: number, i: number, tag: Element["tagName"]
   if (cmd < kContentCmd._minSuppressClickable) {
     if (!cmd || !root) { return; }
     call(Remove, root);
     allNodesInDocument = call(getElementsByTagNameInDoc, doc0, "*");
-    let len = allNodesInDocument.length, i = unsafeDispatchCounter = 0;
+    len = allNodesInDocument.length, i = unsafeDispatchCounter = 0
     len = len < GlobalConsts.MinElementCountToStopScanOnClick || cmd === kContentCmd.ManuallyFindAllOnClick
         ? len : 0; // stop it
     for (; i < len; i++) {
       const el: Element | HTMLElement = allNodesInDocument[i];
       if (((el as HTMLElement).onclick || (el as HTMLElement).onmousedown) && !call(HasAttr, el, "onclick")
-          && !(el instanceof HACls)) { // ignore <button>s to iter faster
+          && (tag = el.tagName) !== "a" && tag !== "button") { // ignore <button>s to iter faster
         pushInDocument(i);
       }
     }
@@ -521,7 +525,6 @@ FProto.toString = myToStr;
 _listen(kOnDomReady, doInit, !0);
 
       }).toString() + ")();" /** need "toString()": {@link ../scripts/dependencies.js#patchExtendClick} */
-      : VTr(kTip.removeCurScript);
 
 // #endregion injected code
 
@@ -550,7 +553,8 @@ _listen(kOnDomReady, doInit, !0);
   if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
     (docEl ? script : doc).prepend!.call(docEl || doc, script);
   } else {
-    docEl ? script.insertAdjacentElement.call(docEl, "afterbegin", script) : doc.appendChild(script);
+    /** `appendChild` must be followed by /[\w.]*doc/: {@link ../Gulpfile.js#postUglify} */
+    script.appendChild.call(docEl || doc, script)
   }
   script.dataset.vimium = "";
   if (!(Build.NDEBUG
@@ -566,7 +570,7 @@ _listen(kOnDomReady, doInit, !0);
   // for the case JavaScript is disabled in CS: https://github.com/philc/vimium/issues/3187
   if (!script.parentNode) { // It succeeded to hook.
     // wait the inner listener of `start` to finish its work
-    return OnDocLoaded_(timeout_.bind(null, (): void => {
+    return OnDocLoaded_((): void => {
       // only for new versions of Chrome (and Edge);
       // CSP would block a <script> before MinEnsuredNewScriptsFromExtensionOnSandboxedPage
       // not check isFirstTime, to auto clean VApi.execute_
@@ -575,7 +579,7 @@ _listen(kOnDomReady, doInit, !0);
         isFirstResolve && dispatchCmd(kContentCmd.AutoFindAllOnClick);
         isFirstResolve = 0;
       }, GlobalConsts.ExtendClick_DelayToFindAll), 1);
-    }, 0));
+    });
   }
   // else: CSP script-src before C68, CSP sandbox before C68 or JS-disabled-in-CS on C/E
   /*#__INLINE__*/ set_allowScripts_(0)

@@ -337,7 +337,13 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
       if (match) {
         let child = marker.firstChild!, el: HTMLSpanElement;
         if (child.nodeType === kNode.TEXT_NODE) {
-          el = marker.insertBefore(createElement_("span"), child);
+          el = createElement_("span")
+          if (!(Build.BTypes & BrowserType.Chrome)
+              || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
+            marker.prepend!(el)
+          } else {
+            marker.insertBefore(el, child)
+          }
           el.className = "MC";
         } else {
           el = child;
@@ -401,7 +407,7 @@ export const renderMarkers = (hintItems: readonly HintItem[]): void => {
       right = hint.h!.t;
       if (!right || right[0] !== ":") { continue; }
       right = hint.h!.t = right.slice(1);
-      right = right.replace(<RegExpG> /[^!-~\xc0-\xfc\u0402"-\u045f\xba\u0621-\u064a]+/g, " "
+      right = right.replace(<RegExpG> /[^!-~\xc0-\xfc\u0402-\u045f\xba\u0621-\u064a]+/g, " "
           ).replace(<RegExpOne> /^[^\w\x80-\uffff]+|:[:\s]*$/, "").trim();
       right = right.length > GlobalConsts.MaxLengthOfShownText
           ? right.slice(0, GlobalConsts.MaxLengthOfShownText - 2).trimRight() + "\u2026" // the "\u2026" is wide
@@ -419,7 +425,7 @@ export const renderMarkers = (hintItems: readonly HintItem[]): void => {
     }
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
         && noAppend) {
-      marker.insertAdjacentText("beforeend", right);
+      marker.appendChild(new Text(right));
     } else {
       marker.append!(right);
     }

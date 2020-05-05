@@ -476,14 +476,15 @@ const _fixDocZoom_cr = Build.BTypes & BrowserType.Chrome ? (zoom: number, docEl:
 } : 0 as never as null
 
 let _getPageZoom_cr = Build.BTypes & BrowserType.Chrome ? function (devRatio: number
-      , docElZoom: number, docEl: Element | null): number {
+      , docElZoom: number, _testEl: Element | null): number {
     // only detect once, so that its cost is not too big
     let iframe: HTMLIFrameElement = createElement_("iframe"),
     pageZoom: number | null | undefined, doc: Document | null;
     try {
-      iframe.appendChild.call(docEl, iframe);
-      docEl = (doc = iframe.contentDocument) && doc.documentElement;
-      pageZoom = docEl && +getComputedStyle_(docEl).zoom;
+      /** `_testEl` must not start with /[\w.]*doc/: {@link ../Gulpfile.js#postUglify} */
+      iframe.appendChild.call(_testEl, iframe)
+      _testEl = (doc = iframe.contentDocument) && doc.documentElement
+      pageZoom = _testEl && +getComputedStyle_(_testEl).zoom
     } catch {}
     iframe.remove();
     _getPageZoom_cr = (zoom2, ratio2) => pageZoom ? ratio2 / devRatio * pageZoom : zoom2;
@@ -904,18 +905,14 @@ export const scrollWndBy_ = (left: number, top: number): void => {
 }
 
 export const runJS_ = (code: string, returnEl?: 1): void | HTMLScriptElement => {
-    const script = createElement_("script"), docEl = docEl_unsafe_();
+    const script = createElement_("script");
     script.type = "text/javascript";
     script.textContent = code;
     if (Build.BTypes & ~BrowserType.Firefox) {
-      /* {@link ../Gulpfile.js#postUglify} */
-      if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
-        script.insertBefore.call(docEl || doc, script, null);
-      } else {
-        script.appendChild.call(docEl || doc, script);
-      }
+      /** `appendChild` must be followed by /[\w.]*doc/: {@link ../Gulpfile.js#postUglify} */
+      script.appendChild.call(docEl_unsafe_() || doc, script);
     } else {
-      (docEl || doc).appendChild(script);
+      (docEl_unsafe_() || doc).appendChild(script);
     }
     if (Build.BTypes & BrowserType.Firefox) {
       return returnEl ? script : script.remove();

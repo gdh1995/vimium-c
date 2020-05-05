@@ -99,8 +99,13 @@ export const addElementList = function <T extends boolean> (
       ): (T extends true ? HTMLDialogElement : HTMLDivElement) & SafeElement {
     const parent = createElement_(Build.BTypes & BrowserType.Chrome && dialogContainer ? "dialog" : "div");
     parent.className = "R HM" + (Build.BTypes & BrowserType.Chrome && dialogContainer ? " DHM" : "") + fgCache.d;
-    for (const el of els) {
-      parent.appendChild(el.m);
+    if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredES6ArrowFunction
+          && Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
+      parent.append!(...els.map(el => el.m))
+    } else {
+      for (const el of els) {
+        parent.appendChild(el.m);
+      }
     }
     const style = parent.style,
     zoom = bZoom_ / (Build.BTypes & BrowserType.Chrome && dialogContainer ? 1 : dScale_),
@@ -130,6 +135,7 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
     //  -> #concept-node-append -> #concept-node-pre-insert -> #concept-node-adopt -> step 2
     event === 2 ? box_!.remove() : el2 !== box_!.parentNode &&
+    /** `appendChild` should not be followed by /[\w.]*doc/: {@link ../Gulpfile.js#postUglify} */
     (Build.BTypes & ~BrowserType.Firefox ? box_!.appendChild.call(el2, box_!) : el2.appendChild(box_!));
     const sin = styleIn_, s = sin && (sin as HTMLStyleElement).sheet
     s && (s.disabled = false);

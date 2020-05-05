@@ -234,7 +234,9 @@ var Tasks = {
     ];
     if (onlyTestSize) { debugging = 1 }
     checkJSAndUglifyAll(0, maps, "min/content", exArgs, (err) => {
-      err || logFileSize(DEST + "/" + cs.js[0], logger);
+      if (!err) {
+        logFileSize(DEST + "/" + cs.js[0], logger);
+      }
       cb(err);
     });
   }],
@@ -949,7 +951,7 @@ function postUglify(file, allPaths) {
   var noAppendChild = !(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsured$ParentNode$$appendAndPrepend */ 54;
   if (noAppendChild) {
     get();
-    contents = contents.replace(/\bappendChild\b/g, "append");
+    contents = contents.replace(/\bappendChild\b(?!\.call\([\w.]*doc)/g, "append");
   }
   if (allPathStr.includes("content/") || allPathStr.includes("lib/") && !allPathStr.includes("/env.js")) {
     get();
@@ -1386,7 +1388,7 @@ function patchExtendClick(source) {
   const patched = _patchExtendClick(source, locally, logger);
   if (typeof patched === "string") { return patched; }
   let inCode, inJSON;
-  if (getNonNullBuildItem("NDEBUG")) {
+  if (getNonNullBuildItem("NDEBUG") && !+(process.env.EMBED_EXTEND_CLICK || 0)) {
     const n1 = patched[0].endsWith("||'") ? 3 : patched[0].endsWith("|| '") ? 4 : 0;
     if (!n1 || patched[2][0] !== "'") {
       throw Error("Error: can not extract extend_click from the target code file!!!");
@@ -1411,8 +1413,13 @@ function patchExtendClick(source) {
   const jsonPath = DEST + "/_locales/en/messages.json";
   print("Save extend_click into en/messages.json")
   const json = JSON.parse(readFile(jsonPath));
-  json[/** kTip.extendClick */ "99"] = { message: inJSON };
+  if (inJSON) {
+    json[/** kTip.extendClick */ "99"] = { message: inJSON };
+  } else {
+    delete json[99];
+  }
   fs.writeFileSync(jsonPath, JSON.stringify(json));
+  logger("%o: %o %s", ":extend_click", inJSON.length, inJSON ? "bytes" : "(embeded)");
   return inCode;
 }
 

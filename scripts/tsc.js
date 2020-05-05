@@ -136,7 +136,7 @@ var getUglifyJS = function() {
       config || (config = getDefaultUglifyConfig());
       data = uglify.minify(data, config).code;
       if (config.ecma && config.ecma >= 2017) {
-        data = data.replace(/\bappendChild\b/g, "append");
+        data = data.replace(/\bappendChild\b(?!`|\.call\([\w.]*doc)/g, "append");
       }
       return data;
     };

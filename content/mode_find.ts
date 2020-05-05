@@ -244,9 +244,7 @@ const onLoad2 = (): void => {
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)) {
       if (box !== body) {
-        const st = addElement("style") as HTMLStyleElement;
-        st.textContent = "body{margin:0!important}";
-        doc.head!.appendChild(st);
+        doc.head!.appendChild(createStyle("body{margin:0!important}", addElement("style") as HTMLStyleElement))
         body.appendChild(box);
       }
     } else if (Build.BTypes & ~BrowserType.Firefox && zoom < 1) {
