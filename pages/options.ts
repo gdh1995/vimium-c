@@ -910,9 +910,23 @@ if (Build.BTypes & BrowserType.ChromeOrFirefox
       || Build.BTypes & BrowserType.Firefox && BG_.CurFFVer_ > FirefoxBrowserVer.MinMediaQuery$PrefersColorScheme
       )) {
   const media = matchMedia("(prefers-color-scheme: dark)");
-  media.onchange = (): void => {
+  media.onchange = function (): void {
     bgSettings_.updateMediaQueries_();
+    useLocalStyle()
+    setTimeout(useLocalStyle, 34)
   }
+  const useLocalStyle = () => {
+    const darkOpt = Option_.all_.autoDarkMode
+    if (darkOpt.previous_ && darkOpt.saved_ && window.VApi && VApi.z) {
+      const val = media.matches
+      const root = VApi.y().r, hud_box = root && root.querySelector(".HUD:not(.UI)")
+      bgSettings_.updatePayload_("d", val, VApi.z)
+      hud_box && hud_box.classList.toggle("D", val);
+    }
+  }
+  // As https://bugzilla.mozilla.org/show_bug.cgi?id=1550804 said, to simulate color schemes, enable
+  // https://developer.mozilla.org/en-US/docs/Mozilla/Firefox/Experimental_features#Color_scheme_simulation
+  setTimeout(useLocalStyle, 800)
 }
 };
 

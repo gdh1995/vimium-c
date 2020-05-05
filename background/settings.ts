@@ -132,9 +132,9 @@ var Settings_ = {
       frame.postMessage(request);
     }
   },
-  updatePayload_: function (shortKey: keyof SettingsNS.AutoSyncedItems, value: any
+  updatePayload_: function (shortKey: keyof SettingsNS.FrontendSettingsSyncingItems , value: any
       , obj?: Partial<SettingsNS.FrontendSettingCache>
-      ): SettingsNS.AutoSyncedItems[keyof SettingsNS.AutoSyncedItems][1] {
+      ): SettingsNS.FrontendSettingsSyncingItems[keyof SettingsNS.FrontendSettingsSyncingItems][1] {
     type SettingType<T> = T extends keyof SettingsNS.FullSettings ? SettingsNS.FullSettings[T] : never
     type ValType<T extends keyof SettingsNS.AutoSyncedItems> = SettingType<SettingsNS.AutoSyncedItems[T][0]>;
     switch (shortKey) {
@@ -142,15 +142,18 @@ var Settings_ = {
     case "i":
       value = value === !!value ? value
         : (value as ValType<"i">) > 1 || (value as ValType<"i">) > 0 && !Settings_.payload_.o; break
+    case "d": value = value ? " D" : ""; break
     // no default:
     }
     return obj ? (obj as Generalized<SettingsNS.FrontendSettingCache>)[shortKey] = value : value
-  } as <T extends keyof (SettingsNS.AutoSyncedItems & SettingsNS.ManuallySyncedItems)>
+  } as <T extends keyof (SettingsNS.FrontendSettingsSyncingItems)>
       (shortKey: T
       , value: T extends keyof SettingsNS.AutoSyncedItems ? FullSettings[SettingsNS.AutoSyncedItems[T][0]]
-          : T extends keyof SettingsNS.ManuallySyncedItems ? SettingsNS.ManuallySyncedItems[T][1] : never
+          : T extends keyof SettingsNS.ManuallySyncedItems
+            ? T extends "d" ? FullSettings["autoDarkMode"] : SettingsNS.ManuallySyncedItems[T][1]
+          : never
       , obj?: Partial<SettingsNS.FrontendSettingCache>
-      ) => (SettingsNS.AutoSyncedItems & SettingsNS.ManuallySyncedItems)[T][1],
+      ) => (SettingsNS.FrontendSettingsSyncingItems)[T][1],
   updateOmniStyles_: BgUtils_.blank_ as (key: MediaNS.kName, embed?: 1 | undefined) => void,
   updateMediaQueries_: BgUtils_.blank_ as (this: void) => void,
   parseCustomCSS_ (css: string): SettingsNS.ParsedCustomCSS {

@@ -620,16 +620,10 @@ MediaWatcher_ = {
     const settings = Settings_, payload = settings.payload_,
     omniToggled = key ? "dark" : "less-motion",
     bMatched: boolean = isObj ? (watcher as ObjWatcher).matches : false;
-    if (!key) {
-      if (payload.m !== bMatched) {
-        payload.m = bMatched;
-        embed || settings.broadcast_({ N: kBgReq.settingsUpdate, d: ["m"] });
-      }
-    } else {
-      if (!!payload.d !== bMatched) {
-        payload.d = bMatched ? " D" : "";
-        embed || settings.broadcast_({ N: kBgReq.settingsUpdate, d: ["d"] });
-      }
+    const payloadKey = key ? "d" : "m", newPayloadVal = settings.updatePayload_(payloadKey, bMatched)
+    if (payload[payloadKey] !== newPayloadVal) {
+      (payload as Generalized<Pick<typeof payload, typeof payloadKey>>)[payloadKey] = newPayloadVal;
+      embed || settings.broadcast_({ N: kBgReq.settingsUpdate, d: [payloadKey] });
     }
     Backend_.setOmniStyle_({
       t: omniToggled,
