@@ -38,8 +38,7 @@ import {
 import { checkDocSelectable, getSelected, resetSelectionToDocStart, flash_ } from "./dom_ui"
 import { prepareTop, clearTop, executeScroll, scrollIntoView_need_safe } from "./scroller"
 import {
-  toggleSelectableStyle, find_query, executeFind, find_hasResults,
-  updateQuery as findUpdateQuery, clear as findClear
+  toggleSelectableStyle, find_query, executeFind, find_hasResults, updateQuery as findUpdateQuery,
 } from "./mode_find"
 import { insert_Lock_ } from "./mode_insert"
 import { hudShow, hudTip, hudHide } from "./hud"
@@ -135,7 +134,6 @@ export const deactivate = (isEsc?: 1): void => {
       collapseToFocus(isEsc && mode_ !== Mode.Caret ? 1 : 0)
     }
     mode_ = Mode.NotActive; modeName = ""
-    findClear();
     const el = insert_Lock_();
     oldDiType & (DiType.TextBox | DiType.Complicated) ||
     el && el.blur();

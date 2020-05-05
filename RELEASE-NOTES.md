@@ -4,6 +4,22 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://github.com/gdh1995/vimium-c/blob/master/README_zh.md .
 
+#### 1.83.0
+* i18n: support French when showing tips
+* releases on the store: increase the required *minimum Chrome version* to 43
+* Vomnibar: fix some bugs when a query starts with `vimium://cd`
+* options page: if there're errors in custom key mappings, show them directly
+* `mapkey`: support `$if={os: "win"|"mac"|"linux", browser: int}`, just like `map`
+* text substitution: add a prefix of `i` and two suffixes of `r` and `d`
+  * `i` is for `vimium://show image` to parse high-resolution image URLs
+  * `r` means "revert", and treats a first matched group as the result
+  * `d` means "decode URL", and it will try to decode result URLs
+* LinkHints: show indigenized upper-case characters (experimentally)
+* Vomnibar: now expose visit time for customized Vomnibar page [(#154)](https://github.com/gdh1995/vimium-c/issues/154)
+* `autoOpen`: add an option of `copy` [(#159)](https://github.com/gdh1995/vimium-c/issues/159)
+* fix an error on iframes before Chrome 36 and when `#enable-javascript-harmony` is on
+
+
 #### 1.81.5
 * `LinkHints`: Filtered hints: use <Kbd>Alt+N</Kbd> to filter by link text ([#122](
   https://github.com/gdh1995/vimium-c/issues/122))

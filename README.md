@@ -89,16 +89,14 @@ __Other extensions supporting Vimium C:__
 # Release Notes
 
 #### 1.83.0
-* Not released yet
-
-#### 1.81.5
-* `LinkHints`: Filtered hints: use <Kbd>Alt+N</Kbd> to filter by link text (#122)
-* `LinkHints`: add `scroll="force"` to focus and then scroll some special boxes (#147)
-* `Scroller`: add an option of `passPointer` to pass pointer events
-* `Vomnibar`: add an option of `icase` (#131 (comment))
-* `closeOtherTabs`: add `filter=""/url/url+hash/url+title` (#148)
-* Clipboard text Substitution: now accept empty destination strings
-* better support for the flag `#freeze-user-agent` on Chrome 81
+* i18n: support French when showing tips
+* releases on the store: increase the required *minimum Chrome version* to 43
+* Vomnibar: fix some bugs when a query starts with `vimium://cd`
+* options page: if there're errors in custom key mappings, show them directly
+* `mapkey`: support `$if={...}`, just like `map`
+* text substitution: add a prefix of `i` for `vimium://show image` and two suffixes of `r` and `d` for URLs
+* LinkHints: show indigenized upper-case characters (experimentally)
+* `autoOpen`: add an option of `copy` [(#159)](https://github.com/gdh1995/vimium-c/issues/159)
 
 See more on [RELEASE-NOTES.md](https://github.com/gdh1995/vimium-c/blob/master/RELEASE-NOTES.md).
 
