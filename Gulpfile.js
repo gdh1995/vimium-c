@@ -97,7 +97,7 @@ var Tasks = {
   "static/uglify-js": function() {
     const path = ["lib/math_parser*.js"];
     uglify_viewer && path.push(VIEWER_JS);
-    if (!getNonNullBuildItem("NDEBUG") || getBuildItem("BTypes") === BrowserType.Firefox) {
+    if (!getNonNullBuildItem("NDEBUG")) {
       return copyByPath(path);
     }
     return uglifyJSFiles(path, ".", "", { base: "." });
