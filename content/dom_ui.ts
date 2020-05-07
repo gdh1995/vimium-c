@@ -13,7 +13,7 @@ import {
 import { Stop_, suppressTail_ } from "../lib/keyboard_utils"
 import { currentScrolling } from "./scroller"
 import { styleSelectable } from "./mode_find"
-import { unwrap_ff } from "./link_hints"
+import { unwrap_ff, isHintsActive, reinitHintsIgnoringArgs } from "./link_hints"
 import { post_ } from "./port"
 import { insert_Lock_ } from "./mode_insert"
 import { hudTip } from "./hud"
@@ -140,17 +140,20 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
     const sin = styleIn_, s = sin && (sin as HTMLStyleElement).sheet
     s && (s.disabled = false);
     if (el || event) {
-      const removeEL = !el || event === 2, name = "fullscreenchange";
+      const removeEL = !el || event === 2, FS = "fullscreenchange";
       if (Build.BTypes & BrowserType.Chrome
           && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)) {
-        setupEventListener(0, "webkit" + name, adjustUI, removeEL)
+        setupEventListener(0, "webkit" + FS, adjustUI, removeEL)
       } else if (!(Build.BTypes & ~BrowserType.Firefox)
           || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox) {
-        setupEventListener(0, "moz" + name, adjustUI, removeEL)
+        setupEventListener(0, "moz" + FS, adjustUI, removeEL)
       }
       if (!(Build.BTypes & BrowserType.Chrome)
           || chromeVer_ >= BrowserVer.MinMaybe$Document$$fullscreenElement) {
-        setupEventListener(0, name, adjustUI, removeEL)
+        setupEventListener(0, FS, adjustUI, removeEL)
+      }
+      if (isHintsActive && removeEL) { // not need to check isAlive_
+        timeout_(/*#__NOINLINE__*/ reinitHintsIgnoringArgs, 17)
       }
     }
 }

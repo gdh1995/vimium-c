@@ -138,6 +138,7 @@ let addChildFrame: ((child: BaseHinter
       , el: HTMLIFrameElement | HTMLFrameElement, rect: Rect | null) => boolean) | null = null
 
 export {
+  isActive as isHintsActive,
   hints_ as allHints, keyStatus_ as hintKeyStatus, useFilter_, frameList_, chars_ as hintChars,
   mode_, mode1_, options_ as hintOptions,
   forHover_, isClickListened_, forceToScroll_, tooHigh_,
@@ -432,7 +433,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
       }
       resetMode(1);
       if (Build.MinCVer < BrowserVer.MinEnsuredES6ArrowFunction && Build.BTypes & BrowserType.Chrome) {
-        timeout_(/*#__NOINLINE__*/ _reinitInNextTick, 0)
+        timeout_(/*#__NOINLINE__*/ reinitHintsIgnoringArgs, 0)
       } else {
         timeout_((): void => reinit(), 0)
       }
@@ -464,7 +465,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
       tooHigh_ = null;
       resetMode();
       if (Build.MinCVer < BrowserVer.MinEnsuredES6ArrowFunction && Build.BTypes & BrowserType.Chrome) {
-        timeout_(/*#__NOINLINE__*/ _reinitInNextTick, 0)
+        timeout_(/*#__NOINLINE__*/ reinitHintsIgnoringArgs, 0)
       } else {
         timeout_((): void => reinit(), 0)
       }
@@ -482,7 +483,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
     return HandlerResult.Prevent;
 }
 
-const _reinitInNextTick = (): void => { reinit() }
+export const reinitHintsIgnoringArgs = (): void => { reinit() }
 
 const locateHint = (matchedHint: HintItem): BaseHinter => {
     /** safer; necessary since {@link #_highlightChild} calls {@link #detectUsableChild_} */
