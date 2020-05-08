@@ -3,7 +3,7 @@
 ============================================
 
 [![MIT 许可协议](https://img.shields.io/badge/许可协议-MIT-blue.svg)](LICENSE.txt)
-[![版本：1.83.0](https://img.shields.io/badge/版本-1.83.0-orange.svg
+[![版本：1.83.1](https://img.shields.io/badge/版本-1.83.1-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 **在 [Chrome 网上应用店](
   https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg

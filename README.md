@@ -3,7 +3,7 @@
 ===========================================
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.83.0](https://img.shields.io/badge/release-1.83.0-orange.svg
+[![Version 1.83.1](https://img.shields.io/badge/release-1.83.1-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -30,6 +30,8 @@ A <span style="color: #a55e18;">C</span>ustomized
   style="color: #a55e18;">中文</span>支持、<span
   style="color: #a55e18;">全局快捷键</span>功能，还能运行在某些接受Vimium C的扩展程序的私有页面里，并且对CPU和内存资源的<span
   style="color: #a55e18;">消耗很低</span>。
+
+[阅读中文介绍 (description in Chinese) 。](README_zh.md)
 
 This project is mainly developed and maintained by [gdh1995](https://github.com/gdh1995),
 and licensed under the [MIT license](LICENSE.txt).
@@ -88,7 +90,7 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
-#### 1.83.0
+#### 1.83.1
 * i18n: support French when showing tips
 * releases on the store: increase the required *minimum Chrome version* to 43
 * Vomnibar: fix some bugs when a query starts with `vimium://cd`

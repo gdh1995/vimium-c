@@ -4,7 +4,7 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://github.com/gdh1995/vimium-c/blob/master/README_zh.md .
 
-#### 1.83.0
+#### 1.83.1
 * i18n: support French when showing tips
 * releases on the store: increase the required *minimum Chrome version* to 43
 * Vomnibar: fix some bugs when a query starts with `vimium://cd`
