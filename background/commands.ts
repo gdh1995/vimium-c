@@ -111,7 +111,6 @@ var Commands = {
       , regItem: CommandsNS.Item | null
       , mkReg = BgUtils_.safeObj_<string>();
     const a = this as typeof Commands, available = a.availableCommands_;
-    const strip = BgUtils_.stripKey_;
     const colorRed = "color:red", shortcutLogPrefix = 'Shortcut %c"%s"';
     CommandsData_.errors_ = null
     lines = line.replace(<RegExpSearchable<0>> /\\\\?\n/g, t => t.length === 3 ? "\\\n" : ""
@@ -177,12 +176,12 @@ var Commands = {
         } else if ((key = splitLine[1]).length > 1 && key.match(re)!.length > 1
           || splitLine[2].length > 1 && splitLine[2].match(re)!.length > 1) {
           a.logError_("mapKey: a source / target key should be a single key:", line);
-        } else if ((key = strip(key)) in mkReg) {
-          key = mkReg[strip(key)]!;
+        } else if (key = BgUtils_.stripKey_(key), key in mkReg) {
+          key = mkReg[key]!;
           a.logError_('The key %c"%s"', colorRed, splitLine[1], "has been mapped to another key:"
               , key.length > 1 ? `<${key}>` : key);
         } else {
-          mkReg[key] = strip(splitLine[2]);
+          mkReg[key] = BgUtils_.stripKey_(splitLine[2]);
           mk++;
           continue;
         }
