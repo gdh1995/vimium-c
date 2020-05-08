@@ -612,8 +612,17 @@ var BgUtils_ = {
     } catch {}
     return url;
   },
+  decodeUrlForCopy_ (url: string): string {
+    const ori = url.replace(<RegExpG> /%25/g, "%2525").replace(<RegExpG> /%(?![\da-zA-Z]{2})/g, "%25")
+    let str = BgUtils_.DecodeURLPart_(ori, 1)
+    str = str.length !== ori.length ? str : url
+    str = str.replace(<RegExpG & RegExpSearchable<0>> /\s+/g, encodeURIComponent)
+    return str
+  },
   decodeEscapedURL_ (url: string): string {
-    return !url.includes("://") && (<RegExpI> /%(?:2[36f]|3[adf])/i).test(url) ? this.DecodeURLPart_(url).trim() : url;
+    url = !url.includes("://") && (<RegExpI> /%(?:2[36f]|3[adf])/i).test(url)
+        ? BgUtils_.DecodeURLPart_(url).trim() : url
+    return BgUtils_.decodeUrlForCopy_(url)
   },
   fixCharsInUrl_ (url: string): string {
     let type = +url.includes("\u3002") + 2 * +url.includes("\uff1a");

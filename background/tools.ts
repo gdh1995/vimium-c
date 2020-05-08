@@ -5,7 +5,7 @@ interface ClipSubItem {
   action_: ClipAction & number;
   match_: RegExp;
   revertResult_: BOOL;
-  /** 0: not; 1: decode escaped URL; 2: decode any */ decode_: 0 | 1 | 2;
+  /** 0: not; 1: decode for copy; 2: maybe escaped */ decode_: 0 | 1 | 2;
   replaced_: string;
 }
 
@@ -70,7 +70,7 @@ const Clipboard_ = {
           text = text.replace(item.match_ as RegExpG, item.replaced_);
         }
         if (item.decode_) {
-          text = item.decode_ > 1 ? BgUtils_.DecodeURLPart_(text) : BgUtils_.decodeEscapedURL_(text)
+          text = item.decode_ > 1 ? BgUtils_.decodeEscapedURL_(text) : BgUtils_.decodeUrlForCopy_(text)
         }
       }
     }

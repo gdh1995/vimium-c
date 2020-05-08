@@ -1,6 +1,6 @@
 import HintItem = HintsNS.HintItem
 import {
-  safer, fgCache, VOther, isImageUrl, jsRe_, set_keydownEvents_, keydownEvents_, timeout_, doc, tryDecodeURL,
+  safer, fgCache, VOther, isImageUrl, jsRe_, set_keydownEvents_, keydownEvents_, timeout_, doc,
   chromeVer_,
 } from "../lib/utils"
 import {
@@ -269,10 +269,7 @@ export const linkActions: readonly LinkAction[] = [
     } else if (mode1 === HintMode.SEARCH_TEXT) {
       return openUrl(str);
     }
-    // then mode1 can only be copy
-    // NOTE: url should not be modified
-    // although BackendUtils.convertToUrl does replace '\u3000' with ' '
-    str = isUrl ? tryDecodeURL(str) : str;
+    // then mode1 can only be HintMode.COPY_*
     let lastYanked = mode1 & HintMode.list ? (hintManager || coreHints).y : 0 as const;
     if (lastYanked) {
       if (lastYanked.indexOf(str) >= 0) {
@@ -285,6 +282,7 @@ export const linkActions: readonly LinkAction[] = [
       H: kFgReq.copy,
       j: hintOptions.join,
       e: hintOptions.sed,
+      d: isUrl && hintOptions.decoded !== !1,
       s: lastYanked || str
     });
   }

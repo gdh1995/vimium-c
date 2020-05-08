@@ -218,6 +218,7 @@ declare namespace HintsNS {
     touch?: null | boolean | "auto";
     join?: FgReq[kFgReq.copy]["j"];
     sed?: string | boolean;
+    decoded?: boolean;
     toggle?: {
       [selector: string]: string;
     };
@@ -461,6 +462,7 @@ interface FgReq {
     /** [].join($j) */ j?: string | boolean;
     /** sed */ e?: string | boolean;
     u?: undefined | "";
+    /** decode (not in use) */ d?: boolean;
   } | {
     /** url */ u: "url";
     /** data */ s?: undefined | "";

@@ -1,6 +1,6 @@
 import {
   setupEventListener, clickable_, isTop, keydownEvents_, VOther, timeout_, fgCache, doc, isAlive_, allowScripts_,
-  set_allowScripts_, jsRe_, tryDecodeURL, chromeVer_, VTr,
+  set_allowScripts_, jsRe_, chromeVer_, VTr,
 } from "../lib/utils"
 import {
   createElement_, createShadowRoot_, bZoom_, dScale_, fullscreenEl_unsafe_, docEl_unsafe_, getZoom_, wdZoom_,
@@ -589,8 +589,8 @@ export const evalIfOK = (url: Pick<BgReq[kBgReq.eval], "u"> | string): boolean =
         /*#__INLINE__*/ set_allowScripts_(
             (el = runJS_(VTr(kTip.removeCurScript), 1)!).parentNode ? (el.remove(), 0) : 2)
       : allowScripts_) {
-    timeout_(Build.BTypes & BrowserType.Firefox ? runJS_.bind(0, tryDecodeURL(url, decodeURIComponent), 1)
-        : runJS_.bind(0, tryDecodeURL(url, decodeURIComponent)) as () => void, 0);
+    try { url = decodeURIComponent(url); } catch {}
+    timeout_(Build.BTypes & BrowserType.Firefox ? runJS_.bind(0, url, 1) : runJS_.bind(0, url) as () => void, 0);
   } else {
     hudTip(kTip.failToEvalJS);
   }

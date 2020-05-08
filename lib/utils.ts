@@ -120,11 +120,6 @@ export const suppressCommonEvents = (target: Window | SafeHTMLElement, extraEven
   }
 }
 
-export const tryDecodeURL = (url: string, decode?: (this: void, url: string) => string): string => {
-  try { url = (decode || decodeURI)(url); } catch {}
-  return url;
-}
-
 export const isImageUrl = (str: string | null): boolean => {
   if (!str || str[0] === "#" || str.length < 5 || jsRe_.test(str)) {
     return false;

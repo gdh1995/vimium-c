@@ -1985,9 +1985,9 @@
           tabs.sort((a, b) => (a.windowId - b.windowId || a.index - b.index));
         }
         const data: any[] = tabs.map(i => isPlainJSON ? {
-          title: i.title, url: decoded ? BgUtils_.DecodeURLPart_(getTabUrl(i), 1) : getTabUrl(i)
+          title: i.title, url: decoded ? BgUtils_.decodeUrlForCopy_(getTabUrl(i)) : getTabUrl(i)
         } : format.replace(nameRe, (_, s1): string => { // eslint-disable-line arrow-body-style
-          return decoded && s1 === "url" ? BgUtils_.DecodeURLPart_(getTabUrl(i), 1)
+          return decoded && s1 === "url" ? BgUtils_.decodeUrlForCopy_(getTabUrl(i))
             : s1 !== "__proto__" && (i as Dict<any>)[s1] || "";
         })),
         result = BgUtils_.copy_(data, join, cOptions.sed);
@@ -2579,14 +2579,16 @@
     },
     /** kFgReq.copy: */ function (this: void, request: FgReq[kFgReq.copy], port: Port): void {
       let str: string | string[] | object[] | undefined, hud = !0;
-      if (str = request.u) {
-        if (request.d) {
-          str = BgUtils_.DecodeURLPart_(str, 1);
-          // not append "%20", so that "\x20" and "%20" won't exist simultaneously - avoid "%25%20"
-          str = str.endsWith(" ") ? str : request.u;
+      str = request.u || request.s;
+      if (request.d) {
+        if (typeof str !== "string") {
+          for (let i = str.length; 0 <= --i; ) {
+            str[i] = BgUtils_.decodeUrlForCopy_(str[i] + "")
+          }
+        } else {
+          str = BgUtils_.decodeUrlForCopy_(str)
         }
       } else {
-        str = request.s;
         hud = typeof str === "string";
         if (hud && str.length < 4 && !(str as string).trim() && str[0] === " ") {
           str = "";
@@ -2594,7 +2596,8 @@
       }
       str = str && BgUtils_.copy_(str, request.j, request.e);
       cPort = port;
-      hud && Backend_.showHUD_(str, 1);
+      hud && Backend_.showHUD_(request.d
+          ? str.replace(<RegExpG & RegExpSearchable<0>> /%(20|0[9ADad])/g, decodeURIComponent) : str, 1);
     },
     /** kFgReq.key: */ function (this: void, request: FgReq[kFgReq.key], port: Port): void {
       (port as Frames.Port).s.f |= Frames.Flags.userActed;
