@@ -27,6 +27,7 @@ interface ViewerType {
   show(): any;
   play(fullscreen: true): any;
   zoom(ratio: number, hasTooltip: boolean): ViewerType;
+  zoomTo(ratio: number): ViewerType;
   rotate(degree: number): any;
 }
 interface ImportBody {
@@ -555,7 +556,7 @@ function loadViewer(): Promise<CurWnd["Viewer"]> {
       shown (this: void) {
         bgLink.style.display = "none";
       },
-      viewed (): void { if (tempEmit) {  listenWheelForImage(false); tempEmit(true); } },
+      viewed (): void { viewer_ && viewer_.zoomTo(1); if (tempEmit) { listenWheelForImage(false); tempEmit(true); } },
       hide (this: void) {
         bgLink.style.display = "";
         listenWheelForImage(true);
