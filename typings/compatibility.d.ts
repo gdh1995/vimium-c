@@ -72,6 +72,7 @@ declare const enum BrowserVer {
   // var a=new XMLHttpRequest();a.open("GET","data:text/plain;charset=utf-8,%E9%9A",!0);
   // a.onerror=a.onload=function(i){console.log(i.type,i)};a.responseType='text';a.send();
   MinRequestDataURLOnBackgroundPage = 39, // even if EXPERIMENTAL or LEGACY
+  Min$Set$accept$Symbol$$Iterator = 39, // even if EXPERIMENTAL or LEGACY; test code: new Set('foo')
   MinOptionsUI = 40,
   MinDisableMoveTabAcrossIncognito = 40,
   // even if EXPERIMENTAL or LEGACY

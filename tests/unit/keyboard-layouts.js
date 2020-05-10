@@ -77,6 +77,17 @@ zxcvbnm,.;
 qwertyuiop[]\
 asdfghjkl;'
 zxcvbnm,./
+
+# Turkish
+1234567890*-
+qwertyuıopğü,
+asdfghjklşi
+zxcvbnmöç.
+
+!'^+%&/()=?_
+QWERTYUIOPĞÜ;
+ASDFGHJKLŞİ
+ZXCVBNMÖÇ:
 `
     ].join("\n").split("\n").filter(
     line => !(line[0] === "#" || line[0] === "(" && line.slice(-1) === ")")

@@ -164,8 +164,8 @@ populateElement_ (value: AllowedOptions[T] | string, enableUndo?: boolean): void
 readValueFromElement_ (): AllowedOptions[T] {
   let value = this.element_.value.trim().replace(<RegExpG> /\xa0/g, " "), ops = this.converter_;
   if (value && ops.length > 0) {
-    ops.indexOf("lower") >= 0 ? value = value.toLocaleLowerCase!()
-    : ops.indexOf("upper") >= 0 ? (value = value.toLocaleUpperCase!()) : 0
+    ops.indexOf("lower") >= 0 ? value = value.toUpperCase().toLowerCase()
+    : ops.indexOf("upper") >= 0 ? (value = value.toLowerCase().toUpperCase()) : 0
     if (this.needToCovertToCharsOnRead_) {
       value = TextOption_.toChars_(value);
     }
