@@ -62,7 +62,7 @@ function collectWords(text, options) {
       for (const [key, node] of closure.variables) {
         const ref_count = node.references.length;
         if (ref_count === 0) { continue; }
-        const id = ":" + key;
+        const id = ":" + key + ":" + namesToMangle.length;
         names.push(id);
         map.set(id, (map.get(id) || 0) + ref_count);
       }
@@ -178,7 +178,7 @@ function findDuplicated(names, countsMap) {
   const dedup = new Map();
   for (const arr of names) {
     for (let name of arr) {
-      name = name[0] === ":" ? name.slice(1) : name;
+      name = name[0] === ":" ? name.split(":")[1] : name;
       if (!countsMap.has(name)) { continue; }
       dedup.set(name, (dedup.get(name) || 0) + 1);
     }
@@ -197,7 +197,7 @@ function findTooShort(names, minAllowedLength) {
   const short = new Set();
   for (const arr of names) {
     for (const name of arr) {
-      if ((name[0] === ":" ? name.length - 1 : name.length) < minAllowedLength) {
+      if ((name[0] === ":" ? name.split(":")[1].length : name.length) < minAllowedLength) {
         short.add(name);
       }
     }
@@ -228,7 +228,8 @@ function minify(files, options) {
       }
       const variables = names.filter(arr => arr[0][0] === ":");
       if (variables.length > 2) {
-        throw Error("Too many big closures to mangle: " + JSON.stringify(variables.slice(0, 16).concat(["..."])));
+        throw Error("Too many big closures to mangle: "
+            + JSON.stringify(variables.map(list => list.slice(0, 16).map(i => i.split(":")[1]).concat(["..."]))));
       }
       if (variables.length < 1) {
         throw Error("No big closure found");
@@ -296,34 +297,39 @@ function hookMangleNamesOnce(mainVariableNames, extendClickValiables, countsMap)
   const AST_Toplevel = require("terser").AST_Toplevel;
   // @ts-ignore
   const oldMangle = AST_Toplevel.prototype.mangle_names;
+  const varCountMap = new Map([...countsMap].filter(i => i[0][0] === ":").map(([k, v]) => [k.split(":")[1], v]));
   /** @type { (this: AST_Scope, options: import("terser").MangleOptions) => any } */
   const myMangle = function (options) {
     const mainClosure = this.body ? this.body.filter(i => i.TYPE.includes("Statement"))[0] : null;
     /** @type { VariableMap } */
     // @ts-ignore
     const body = mainClosure && mainClosure.body, expression = body && body.expression,
-    isVC = this.name && this.name.name === "VC",
-    astVariables = isVC ? this.variables : expression && expression.variables;
+    isVC = this.name && this.name.name === "VC"
+    /** @type {Map<string, any>} */
+    const astVariables = isVC ? this.variables : expression && expression.variables;
     if (!astVariables || !isVC && astVariables.size < MIN_COMPLEX_CLOSURE) { return; }
     const next = createMangler();
-    /** @type {string[]} */
-    const missing = [];
     const reserved = new Set([...(options.reserved || [])].concat([
       "do", "for", "if", "in", "new", "try", "var", "let"
     ]));
     const vars = isVC ? extendClickValiables : mainVariableNames
-    for (const name of vars) {
-      if (countsMap.has(name)) {
+    for (const id of vars) {
+      const name = id.split(":")[1]
+      if (varCountMap.has(name)) {
         let newName = next();
         for (; vars.includes(newName) || reserved.has(newName); newName = next()) { /* empty */ }
-        const varDef = astVariables.get(name.slice(1));
+        const varDef = astVariables.get(name);
         if (varDef) {
           varDef.mangled_name = newName;
-        } else {
-          missing.push(name.slice(1));
         }
       }
     }
+    const astVariableNameList = [...astVariables.keys()]
+    const unknownVars = astVariableNameList.filter(k => !varCountMap.has(k) && k !== "arguments" && k !== "VC")
+    if (unknownVars.length > 0) {
+      console.log("Warning: some unknown variables in a closure:", unknownVars)
+    }
+    // const rareVars = astVariableNameList.filter(k => varCountMap.get(k) && varCountMap.get(k) <= 1)
     if (isVC) { return; }
     this.walk(new terser.TreeWalker(function (node) {
       switch (node.TYPE) {

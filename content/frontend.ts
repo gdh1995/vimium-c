@@ -3,7 +3,7 @@
 import {
   doc, isTop, injector, VOther, initialDocState, set_esc, esc, setupEventListener, set_isEnabled_,
   set_clickable_, clickable_, isAlive_, set_VTr, setupKeydownEvents, onWndFocus,
-  set_readyState_, readyState_, set_allowScripts_, callFunc, recordLog,
+  set_readyState_, readyState_, set_allowScripts_, callFunc, recordLog, set_vApi, vApi,
 } from "../lib/utils"
 import { suppressTail_, getMappedKey } from "../lib/keyboard_utils"
 import { frameElement_, set_OnDocLoaded_, getInnerHeight } from "../lib/dom_utils"
@@ -45,7 +45,7 @@ set_safeDestroy((silent?: Parameters<SafeDestoryF>[0]): void => {
     hook(HookAction.Destroy);
 
     contentCommands_[kFgCmd.reset](0);
-    VApi.e && VApi.e(kContentCmd.Destroy);
+    vApi.e && vApi.e(kContentCmd.Destroy);
     ui_box && adjustUI(2);
     doExitOnClick();
 
@@ -57,14 +57,14 @@ set_safeDestroy((silent?: Parameters<SafeDestoryF>[0]): void => {
     injector || (<RegExpOne> /a?/).test("");
 })
 
-VApi = {
+set_vApi(VApi = {
   b: coreHints, e: null, z: null,
   p: post_, a: setupKeydownEvents, f: focusAndRun, d: safeDestroy,
   h: linkActivate, o: omniActivate, n: findOnLoad, c: executeScroll,
   k: scrollTick, $: $sc, l: learnCSS, u: suppressTail_,
   i: Build.BTypes & BrowserType.Firefox ? getInnerHeight : 0 as never,
-  r: injector && [send_, safePost, (): string => {
-    let keys = currentKeys; esc!(HandlerResult.Nothing); return keys;
+  r: injector && [send_, safePost, (keys?: string): string => {
+    keys = currentKeys; esc!(HandlerResult.Nothing); return keys;
   }, set_clickable_, set_VTr], t: hudTip, m: getMappedKey, q: insert_Lock_,
   g: setUICSS, w: addUIElement, x: flash_,
   y () {
@@ -72,7 +72,7 @@ VApi = {
       w: onWndFocus, b: find_box, k: scroll_keyIsDown, c: clickable_, r: ui_root, f: findCSS, s: styleInHUD
     } : { b: find_box, k: scroll_keyIsDown, c: clickable_, r: ui_root, f: findCSS, s: styleInHUD }
   }
-}
+})
 
 if (!(Build.BTypes & BrowserType.Firefox)) { /* empty */ }
 else if (Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox || injector !== void 0) {
@@ -129,7 +129,7 @@ else if (Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox |
         }
         return;
       }
-      return VApi;
+      return vApi;
     }});
 }
 if (!(isTop || injector)) {

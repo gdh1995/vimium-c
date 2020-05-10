@@ -1,6 +1,6 @@
 import {
   clickable_, setupEventListener, VOther, timeout_, clearTimeout_, doc, isAlive_, set_allowRAF_, set_allowScripts_,
-  loc_, replaceBrokenTimerFunc, allowRAF_, getTime, recordLog, VTr,
+  loc_, replaceBrokenTimerFunc, allowRAF_, getTime, recordLog, VTr, vApi,
 } from "../lib/utils"
 import {
   createElement_, set_createElement_, OnDocLoaded_, runJS_, isHTML_, rAF_, CLK, MDW,
@@ -192,7 +192,7 @@ export const main = (): void => {
       }
     }
     box = 0;
-    VApi.e = null;
+    vApi.e = null;
   }
 
 // #region injected code
@@ -535,7 +535,7 @@ _listen(kOnDomReady, doInit, !0);
     }
     injected = injected.replace(GlobalConsts.MarkAcrossJSWorlds
         , "$&" + ((Math.random() * GlobalConsts.SecretRange + GlobalConsts.SecretBase) | 0));
-    VApi.e = execute;
+    vApi.e = execute;
     setupEventListener(0, kHookRand, hook);
     setupEventListener(0, kVOnClick1, onClick);
   }
@@ -664,7 +664,7 @@ _listen(kOnDomReady, doInit, !0);
       }, GlobalConsts.ExtendClick_DelayToFindAll);
     }, 1);
   }
-  VApi.e = (cmd: ValidContentCommands): void => {
+  vApi.e = (cmd: ValidContentCommands): void => {
     if (cmd > kContentCmd._minSuppressClickable - 1) {
       alive = false;
     }

@@ -72,7 +72,7 @@ interface FrameHintsInfo {
 
 import {
   VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_,
-  clearTimeout_, VOther, fgCache, doc, readyState_, chromeVer_,
+  clearTimeout_, VOther, fgCache, doc, readyState_, chromeVer_, vApi,
 } from "../lib/utils"
 import { frameElement_, querySelector_unsafe_, isHTML_, getViewBox_, prepareCrop_, scrollingEl_, bZoom_, wdZoom_,
   dScale_, getBoundingClientRect_, docEl_unsafe_, IsInDOM_, docZoom_, bScale_, GetParent_unsafe_, getComputedStyle_,
@@ -188,10 +188,10 @@ export const activate = (options: HintsNS.ContentOptions, count: number): void =
     {
       const childFrames: ChildFrame[] = [],
       addChild: typeof addChildFrame = function (child, el, rect) {
-        const core = detectUsableChild(el),
-        officer: HintOfficer | null | undefined = core && (core.b as HintOfficer)
+        const childApi = detectUsableChild(el),
+        officer: HintOfficer | null | undefined = childApi && (childApi.b as HintOfficer)
         if (officer) {
-          core!.l(style_ui)
+          childApi!.l(style_ui)
           childFrames.splice(insertPos, 0, {
             v: rect && child.g(el, rect),
             s: officer
@@ -232,7 +232,7 @@ export const activate = (options: HintsNS.ContentOptions, count: number): void =
     }
     setMode(mode_);
     for (const frame of frameList) {
-      frame.s.r(frame.h, frame.v, hud_, VApi);
+      frame.s.r(frame.h, frame.v, hud_, vApi);
     }
 }
 
@@ -363,16 +363,16 @@ export const tryNestedFrame = (
     }
     if (!frameNested_) { return false; }
     // let events: VApiTy | undefined, core: ContentWindowCore | null | 0 | void | undefined = null;
-    const core = detectUsableChild(frameNested_);
-    if (core) {
-      core.f(cmd, count, options);
+    const childApi = detectUsableChild(frameNested_);
+    if (childApi) {
+      childApi.f(cmd, count, options);
       if (readyState_ > "i") { set_frameNested_(false) }
     } else {
       // It's cross-site, or Vimium C on the child is wholly disabled
       // * Cross-site: it's in an abnormal situation, so we needn't focus the child;
       set_frameNested_(null)
     }
-    return !!core;
+    return !!childApi;
 }
 
 const onKeydown = (event: HandlerNS.Event): HandlerResult => {
@@ -423,12 +423,12 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
         if (Build.BTypes & BrowserType.Firefox
               && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
               && isClickListened_
-            || !VApi.e) {
+            || !vApi.e) {
           resetMode(); return HandlerResult.Prevent;
         }
         isClickListened_ = true;
         if (Build.BTypes & ~BrowserType.Firefox) {
-          VApi.e(kContentCmd.ManuallyFindAllOnClick);
+          vApi.e(kContentCmd.ManuallyFindAllOnClick);
         }
       }
       resetMode(1);
@@ -752,9 +752,9 @@ export const highlightChild = (el: LinkEl, tag: string): 0 | 1 | 2 => {
     focusOmni();
     return 1;
   }
-  const core = detectUsableChild(el as HTMLIFrameElement | HTMLFrameElement);
+  const childApi = detectUsableChild(el as HTMLIFrameElement | HTMLFrameElement);
   (el as HTMLIFrameElement | HTMLFrameElement).focus();
-  if (!core) {
+  if (!childApi) {
     send_(kFgReq.execInChild, {
       u: (el as HTMLIFrameElement | HTMLFrameElement).src,
       c: kFgCmd.linkHints, n: count_, k: hintKeyCode, a: options_
@@ -764,7 +764,7 @@ export const highlightChild = (el: LinkEl, tag: string): 0 | 1 | 2 => {
       }
     });
   } else {
-    core.f(kFgCmd.linkHints, count_, options_, 1);
+    childApi.f(kFgCmd.linkHints, count_, options_, 1);
   }
   return 2;
 }

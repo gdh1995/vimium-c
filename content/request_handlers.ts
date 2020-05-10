@@ -2,7 +2,7 @@ import {
   chromeVer_, clickable_, doc, esc, fgCache, injector, isEnabled_, isLocked_, isAlive_, isTop,
   keydownEvents_, safeObj, set_chromeVer_, set_clickable_, set_fgCache, set_VOther, set_isLocked_,
   setupEventListener, set_isEnabled_, suppressCommonEvents, set_onWndFocus, VOther, onWndFocus, timeout_, safer,
-  allowScripts_, loc_, interval_, getTime,
+  allowScripts_, loc_, interval_, getTime, vApi,
 } from "../lib/utils"
 import { port_callbacks, post_, safePost, set_requestHandlers, requestHandlers } from "./port"
 import {
@@ -54,7 +54,7 @@ set_requestHandlers([
         && <number> Build.BTypes !== BrowserType.Edge) {
       /*#__INLINE__*/ set_VOther(load.b!)
     }
-    /*#__INLINE__*/ set_fgCache(VApi.z = load)
+    /*#__INLINE__*/ set_fgCache(vApi.z = load)
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key) {
       load.o || /*#__INLINE__*/ set_keyIdCorrectionOffset_old_cr_(300);
     }
@@ -94,7 +94,7 @@ set_requestHandlers([
     } else {
       /*#__INLINE__*/ set_grabBackFocus(false)
       hook(HookAction.Suppress);
-      VApi.e && VApi.e(kContentCmd.SuppressClickable);
+      vApi.e && vApi.e(kContentCmd.SuppressClickable);
     }
     requestHandlers[kBgReq.init] = null as never;
     OnDocLoaded_(function (): void {
@@ -193,7 +193,7 @@ set_requestHandlers([
       });
       return;
     }
-    mask && timeout_((): void => { focusAndRun() }, 1); // require FrameMaskType.NoMaskAndNoFocus is 0
+    mask && timeout_((): void => { vApi.f() }, 1); // require FrameMaskType.NoMaskAndNoFocus is 0
     if (req.c) {
       type TypeChecked = { [key1 in FgCmdAcrossFrames]: <T2 extends FgCmdAcrossFrames>(this: void,
           options: CmdOptions[T2] & FgOptions, count: number) => void; };
@@ -342,7 +342,7 @@ set_requestHandlers([
     ensureBorder()
     addUIElement(box, AdjustType.Normal, true)
     exitOnClick && setupExitOnClick(1, hide)
-    doc.hasFocus() || focusAndRun();
+    doc.hasFocus() || vApi.f();
     /*#__INLINE__*/ set_currentScrolling(box)
     pushHandler_(function (event) {
       if (!raw_insert_lock && isEscape_(getMappedKey(event, kModeId.Normal))) {

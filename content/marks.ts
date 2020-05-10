@@ -1,4 +1,4 @@
-import { VTr, safer, loc_ } from "../lib/utils"
+import { VTr, safer, loc_, vApi } from "../lib/utils"
 import { post_ } from "./port"
 import { hudHide, hudShow, hudTip } from "./hud"
 import { removeHandler_, pushHandler_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
@@ -115,7 +115,7 @@ export const createMark = (req: BgReq[kBgReq.createMark], local?: "local"): void
 export const gotoMark = ({ n: a, s: scroll, k: typeKey, l: local }: CmdOptions[kFgCmd.goToMarks]): void => {
     a && setPreviousMarkPosition()
     scrollToMark(scroll)
-    local || VApi.f()
+    local || vApi.f()
     if (a) {
       hudTip(kTip.didNormalMarkTask, local ? 1000 : 2000,
           [ VTr(kTip.didJumpTo), VTr(typeKey), a ]);

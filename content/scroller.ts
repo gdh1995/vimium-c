@@ -34,7 +34,7 @@ interface ElementScrollInfo {
 }
 
 import {
-  isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, allowRAF_, readyState_, loc_, chromeVer_,
+  isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, allowRAF_, readyState_, loc_, chromeVer_, vApi,
 } from "../lib/utils"
 import { getParentVApi, resetSelectionToDocStart, checkHidden } from "./dom_ui"
 import { isCmdTriggered } from "./key_handler"
@@ -259,7 +259,7 @@ export const executeScroll = function (di: ScrollByY, amount0: number, isTo: BOO
       }
     }
     preventPointEvents = !(options && options.keepHover)
-    $sc(element, di, amount)
+    vApi.$(element, di, amount)
     preventPointEvents = 1
     scrolled = 0
     scrollingTop = null
@@ -480,10 +480,10 @@ export const scrollIntoView_need_safe = (el: SafeElement): void => {
         }
       }
       if (hasX) {
-        (hasY ? performScroll : $sc)(findScrollable(0, hasX), 0, hasX);
+        (hasY ? performScroll : vApi.$)(findScrollable(0, hasX), 0, hasX);
       }
       if (hasY) {
-        $sc(findScrollable(1, hasY), 1, hasY)
+        vApi.$(findScrollable(1, hasY), 1, hasY)
       }
     }
     scrolled = 0

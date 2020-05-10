@@ -69,6 +69,9 @@ export const setupKeydownEvents = function (arr?: KeydownCacheArray): KeydownCac
 export { esc }
 export function set_esc (_newEsc: EscF): void { esc = _newEsc }
 
+export let vApi: VApiTy
+export function set_vApi (_newVApi: VApiTy): void { vApi = _newVApi }
+
 export let VTr: VTransType
 export function set_VTr (_newVTr: VTransType): void { VTr = _newVTr }
 
