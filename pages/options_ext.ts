@@ -122,6 +122,13 @@ $<ElementWithDelay>("#exportButton").onclick = function (event): void {
     } else {
       exported_object[key] = storedVal;
     }
+    if (key === "omniBlockList" && exported_object[key]) {
+      if (typeof exported_object[key] === "string") {
+        exported_object[key] = maskStr(exported_object[key])
+      } else {
+        exported_object[key] = (exported_object[key] as string[]).map(maskStr)
+      }
+    }
   }
   let exported_data = JSON.stringify(exported_object, null, "\t"), d_s = formatDate_(d);
   if (exported_object.environment.platform === "win") {
@@ -154,6 +161,21 @@ $<ElementWithDelay>("#exportButton").onclick = function (event): void {
   console.info("EXPORT settings to %c%s%c at %c%s%c."
     , "color:darkred", file_name, "color:auto", "color:darkblue", d_s, "color:auto");
 };
+
+function maskStr (str: string): string { return str && "$base64:" + btoa(str); }
+
+function decodeStrOption (new_value: string | string[]): string {
+  if (new_value instanceof Array) {
+    new_value = new_value.join("\n").trimRight();
+  }
+  new_value = new_value.replace(<RegExpG> /\r\n?/g, "\n");
+  return new_value.replace(<RegExpG & RegExpSearchable<2>> /(^|\n)\$base64:(.*)/g, (f, lf, masked) => {
+    try {
+      return lf + atob(masked)
+    } catch {}
+    return f
+  })
+}
 
 function _importSettings(time: number, new_data: ExportedSettings, is_recommended?: boolean): void {
   let env = new_data.environment, plat = env && env.platform || ""
@@ -212,8 +234,7 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
     }
   }
 
-  const storage = localStorage, all = bgSettings_.defaults_, _ref = Option_.all_,
-  otherLineEndRe = <RegExpG> /\r\n?/g;
+  const storage = localStorage, all = bgSettings_.defaults_, _ref = Option_.all_
   for (let i = storage.length; 0 <= --i; ) {
     const key = storage.key(i) as string;
     if (key.includes("|")) { continue; }
@@ -252,10 +273,7 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
       new_value = all[key];
     } else {
       if (typeof all[key] === "string") {
-        if (new_value instanceof Array) {
-          new_value = new_value.join("\n").trimRight();
-        }
-        new_value = new_value.replace(otherLineEndRe, "\n");
+        new_value = decodeStrOption(new_value)
       }
       new_value = item.normalize_(new_value, typeof all[key] === "object");
     }
@@ -293,10 +311,7 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
       continue;
     }
     if (typeof all[key as SettingKeys] === "string") {
-      if (new_value instanceof Array) {
-        new_value = new_value.join("\n").trimRight();
-      }
-      new_value = new_value.replace(otherLineEndRe, "\n");
+      new_value = decodeStrOption(new_value)
     }
     if (key in all) {
       if (bgSettings_.get_(key as SettingKeys) !== new_value) {
