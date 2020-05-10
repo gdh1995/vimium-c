@@ -284,6 +284,12 @@ var Settings_ = {
               && browserVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar)) {
         css = css.replace(".LH{", ".LH{box-sizing:border-box;");
       }
+      if (!(Build.BTypes & ~BrowserType.Firefox)
+          || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox) {
+        const ind1 = css.indexOf(".LH{"), ind2 = css.indexOf("}", ind1)
+        css = css.slice(0, ind1) + css.slice(ind1, ind2).replace("2.5px 3px 2px", "3px").replace("0.5px", "1px")
+            + css.slice(ind2)
+      }
       if (!((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             && !(Build.BTypes & ~BrowserType.ChromeOrFirefox))
