@@ -134,23 +134,28 @@ type TextualizedOptionNames = PossibleOptionNames<string | object>;
 type TextOptionNames = PossibleOptionNames<string>;
 class TextOption_<T extends TextualizedOptionNames> extends Option_<T> {
 readonly element_: TextElement;
-readonly converter_: string[];
-needToCovertToCharsOnRead_: boolean;
+checker_?: Checker<T> & { ops_: string[], status_: 0 | 1 | 2 | 3 }
 constructor (element: TextElement, onUpdated: (this: TextOption_<T>) => void) {
   super(element, onUpdated);
   const converter = this.element_.dataset.converter || "", ops = converter ? converter.split(" ") : [];
   this.element_.oninput = this.onUpdated_;
-  this.converter_ = ops;
-  this.needToCovertToCharsOnRead_ = false;
-  if (ops.indexOf("chars") >= 0) {
-    (this as any as TextOption_<TextOptionNames>).checker_ = TextOption_.charsChecker_;
+  if (ops.length > 0) {
+    (this as any as TextOption_<TextOptionNames>).checker_ = {
+      ops_: ops,
+      status_: 0,
+      check_: TextOption_.normalizeByOps_
+    };
   }
 }
 fetch_ (): void {
   super.fetch_();
-  // allow old users to correct mistaken chars and save
-  this.needToCovertToCharsOnRead_ = this.converter_.indexOf("chars") >= 0
-    && TextOption_.charsChecker_.check_(this.previous_ as AllowedOptions[TextOptionNames]) === this.previous_;
+  const checker = (this as any as TextOption_<TextOptionNames>).checker_
+  if (checker) {
+    // allow old users to correct mistaken chars and save
+    checker.status_ = 0
+    checker.status_ = checker!.check_(this.previous_ as AllowedOptions[TextOptionNames]) === this.previous_
+        ? 1 : 0
+  }
 }
 populateElement_ (value: AllowedOptions[T] | string, enableUndo?: boolean): void {
   const value2 = (value as string).replace(<RegExpG> / /g, "\xa0");
@@ -160,27 +165,29 @@ populateElement_ (value: AllowedOptions[T] | string, enableUndo?: boolean): void
     this.atomicUpdate_(value2, true, true);
   }
 }
+readRaw_ (): string { return this.element_.value.trim().replace(<RegExpG> /\xa0/g, " ") }
 /** @returns `string` in fact */
 readValueFromElement_ (): AllowedOptions[T] {
-  let value = this.element_.value.trim().replace(<RegExpG> /\xa0/g, " "), ops = this.converter_;
-  if (value && ops.length > 0) {
-    ops.indexOf("lower") >= 0 ? value = value.toUpperCase().toLowerCase()
-    : ops.indexOf("upper") >= 0 ? (value = value.toLowerCase().toUpperCase()) : 0
-    if (this.needToCovertToCharsOnRead_) {
-      value = TextOption_.toChars_(value);
-    }
+  let value = this.readRaw_()
+  const checker = (this as any as TextOption_<TextOptionNames>).checker_
+  if (value && checker) {
+    checker.status_ |= 2
+    value = checker.check_(value)
+    checker.status_ &= ~2
   }
   return value as AllowedOptions[T];
 }
-static charsChecker_: BaseChecker<string> = {
-  check_ (value: string): string {
-    return TextOption_.toChars_(value);
-  }
-};
-static toChars_ (value: string): string {
-  let str2 = "";
+doesPopulateOnSave_ (val: any): boolean { return val !== this.readRaw_() }
+static normalizeByOps_ (this: NonNullable<TextOption_<TextOptionNames>["checker_"]>, value: string): string {
+  const ops = this.ops_
+  ops.indexOf("lower") >= 0 ? value = value.toUpperCase().toLowerCase()
+  : ops.indexOf("upper") >= 0 ? (value = value.toLowerCase().toUpperCase()) : 0
   value = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$String$$Normalize
       && !value.normalize ? value : value.normalize()
+  if (ops.indexOf("chars") < 0 || this.status_ & 2 && !(this.status_ & 1)) {
+    return value
+  }
+  let str2 = "";
   for (let ch of value.replace(<RegExpG> /\s/g, "")) {
     if (!str2.includes(ch)) {
       str2 += ch;

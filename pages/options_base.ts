@@ -218,7 +218,7 @@ save_ (): void {
   bgSettings_.set_<keyof AllowedOptions>(this.field_, value);
   this.previous_ = value = bgSettings_.get_(this.field_);
   this.saved_ = true;
-  if (previous !== (isJSON ? JSON.stringify(value) : value)) {
+  if (previous !== (isJSON ? JSON.stringify(value) : value) || this.doesPopulateOnSave_(value)) {
     this.populateElement_(value, true);
   }
   if (this.field_ in bgSettings_.valuesToLoad_) {
@@ -228,6 +228,7 @@ save_ (): void {
 }
 abstract readValueFromElement_ (): AllowedOptions[T];
 abstract populateElement_ (value: AllowedOptions[T], enableUndo?: boolean): void;
+doesPopulateOnSave_ (_val: AllowedOptions[T]): boolean { return false }
 _onCacheUpdated: (this: Option_<T>, onUpdated: (this: Option_<T>) => void) => void;
 areEqual_: (this: Option_<T>, a: AllowedOptions[T], b: AllowedOptions[T]) => boolean;
 atomicUpdate_: (this: Option_<T> & {element_: TextElement}, value: string, undo: boolean, locked: boolean) => void;
