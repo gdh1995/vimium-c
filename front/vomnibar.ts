@@ -617,8 +617,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       return a.onAction_(action);
     }
 
-    if (focused || char.length !== 1 || isNaN(ind = parseInt(char, 16))) {
-      a.keyResult_ = focused && !(n === kKeyCode.menuKey && a.os_) ? HandlerResult.Suppress : HandlerResult.Nothing;
+    if (focused || char.length !== 1 || isNaN(ind = parseInt(char, 10))) {
+      a.keyResult_ = (focused ? !(n === kKeyCode.menuKey && a.os_) : key.length > 1)
+          ? HandlerResult.Suppress : HandlerResult.Nothing;
     } else {
       ind = ind || 10;
       if (ind <= a.completions_.length) {

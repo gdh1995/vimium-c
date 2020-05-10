@@ -973,7 +973,7 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
   let styleDebug = root && root.querySelector("style.debugged") as HTMLStyleElement | null;
   if (styleDebug) {
     if (styleDebug.nextElementSibling) {
-      (root as VUIRoot).appendChild(styleDebug);
+      root!.appendChild(styleDebug)
     }
   } else {
     if (self.saved_) {
@@ -985,14 +985,14 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
       /** Note: should keep the same as {@link ../background/settings.ts#Settings_.updateHooks_.userDefinedCss } */
       let css = localStorage.getItem("innerCSS") as string, headEnd = css.indexOf("\n");
       css = css.substr(headEnd + 1, +css.slice(0, headEnd).split(",")[2]);
-      VApi.g(css);
+      VApi.y().g(css)
       VApi.y().r!.appendChild(styleDebug as HTMLStyleElement);
     };
     if (root) {
       patch();
     } else {
-      VApi.w(styleDebug);
-      styleDebug.remove();
+      VApi.t(kTip.raw, 0, ["Debugging CSS\u2026"])
+      VApi.y().r!.appendChild(styleDebug)
       setTimeout(patch, 200);
     }
   }
@@ -1096,7 +1096,7 @@ function loadChecker(this: HTMLElement): void {
 
 document.addEventListener("keydown", function (this: void, event): void {
   if (event.keyCode !== kKeyCode.space) {
-    if (!window.VApi || !VApi.z || VApi.q()) { return; }
+    if (!window.VApi || !VApi.z || "input textarea".includes(document.activeElement!.tagName as string)) { return; }
     const key = VApi.m({c: kChar.INVALID, e: event, i: event.keyCode}, kModeId.NO_MAP_KEY)
     if (key === "a-" + kChar.f12) {
       $<HTMLOptionElement>("#recommendedSettings").selected = true;

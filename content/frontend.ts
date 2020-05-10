@@ -13,9 +13,9 @@ import {
 } from "./port"
 import {
   ui_box, adjustUI, doExitOnClick, getParentVApi, set_getParentVApi, set_getWndVApi_ff, learnCSS,
-  setUICSS, addUIElement, ui_root, flash_,
+  setUICSS, ui_root, flash_,
 } from "./dom_ui"
-import { grabBackFocus, insert_Lock_ } from "./mode_insert"
+import { grabBackFocus } from "./mode_insert"
 import { currentKeys } from "./key_handler"
 import { contentCommands_ } from "./commands"
 import { hook, enableNeedToRetryParentClickable, focusAndRun } from "./request_handlers"
@@ -65,13 +65,11 @@ set_vApi(VApi = {
   i: Build.BTypes & BrowserType.Firefox ? getInnerHeight : 0 as never,
   r: injector && [send_, safePost, (keys?: string): string => {
     keys = currentKeys; esc!(HandlerResult.Nothing); return keys;
-  }, set_clickable_, set_VTr], t: hudTip, m: getMappedKey, q: insert_Lock_,
-  g: setUICSS, w: addUIElement, x: flash_,
-  y () {
-    return Build.BTypes & BrowserType.Firefox ? {
-      w: onWndFocus, b: find_box, k: scroll_keyIsDown, c: clickable_, r: ui_root, f: findCSS, s: styleInHUD
-    } : { b: find_box, k: scroll_keyIsDown, c: clickable_, r: ui_root, f: findCSS, s: styleInHUD }
-  }
+  }, set_clickable_, set_VTr], t: hudTip, m: getMappedKey,
+  x: flash_,
+  y: () => (Build.BTypes & BrowserType.Firefox ? {
+    w: onWndFocus, b: find_box, c: clickable_, f: findCSS, g: setUICSS, k: scroll_keyIsDown, r: ui_root, s: styleInHUD
+  } : { b: find_box, c: clickable_, f: findCSS, g: setUICSS, k: scroll_keyIsDown, r: ui_root, s: styleInHUD })
 })
 
 if (!(Build.BTypes & BrowserType.Firefox)) { /* empty */ }

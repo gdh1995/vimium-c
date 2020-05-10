@@ -232,7 +232,7 @@ var Tasks = {
     var maps = [
       [sources.slice(0), cs.js[0], null], [rest, ".", ""]
     ];
-    if (onlyTestSize) { debugging = 1 }
+    if (onlyTestSize) { debugging = 1; maps.length = 1 }
     checkJSAndUglifyAll(0, maps, "min/content", exArgs, (err) => {
       if (!err) {
         logFileSize(DEST + "/" + cs.js[0], logger);
@@ -827,12 +827,14 @@ function rollupContent(stream) {
   var Transform = require('stream').Transform;
   var transformer = new Transform({objectMode: true});
   var others = []
+  var historys = []
   transformer._transform = function(srcFile, encoding, done) {
     if (/[\\\/]env./.test(srcFile.history.join(";"))) { // env.js
       this.push(srcFile);
     } else {
       others.push(srcFile)
     }
+    historys = historys.concat(srcFile.history)
     done();
   };
   transformer._flush = function(done) {
@@ -860,6 +862,7 @@ function rollupContent(stream) {
       var code = result.output[0].code
       code = inlineAllSetters(code)
       file.contents = Buffer.from(code)
+      file.history = historys
       this.push(file)
       done()
     })

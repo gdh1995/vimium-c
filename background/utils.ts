@@ -616,7 +616,9 @@ var BgUtils_ = {
     const ori = url.replace(<RegExpG> /%25/g, "%2525").replace(<RegExpG> /%(?![\da-zA-Z]{2})/g, "%25")
     let str = BgUtils_.DecodeURLPart_(ori, 1)
     str = str.length !== ori.length ? str : url
-    str = str.replace(<RegExpG & RegExpSearchable<0>> /\s+/g, encodeURIComponent)
+    if (BgUtils_.protocolRe_.test(str) || str.startsWith("data:") || BgUtils_.isJSUrl_(str)) {
+      str = str.replace(<RegExpG & RegExpSearchable<0>> /\s+/g, encodeURIComponent)
+    }
     return str
   },
   decodeEscapedURL_ (url: string): string {

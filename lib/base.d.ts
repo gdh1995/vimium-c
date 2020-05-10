@@ -389,7 +389,6 @@ interface VApiTy {
     (this: void, cmd: FgCmdAcrossFrames, count: number, options: FgOptions, showBorder?: 1): void
     (this: void, cmd: 0, count: never, options: never, showBorder: 1): void
   }
-  /** setUICSS */ g: (innerCSS: string) => void
   /** linkActivate */ h: (options: HintsNS.ContentOptions, count: number) => void
   /** innerHeight_ff */ i?: () => number
   /** learnCSS */ l: (srcStyleUI: HTMLStyleElement | string | null, force?: 1) => void
@@ -397,7 +396,6 @@ interface VApiTy {
   /** getMappedKey */ m: (eventWrapper: HandlerNS.Event, mode: kModeId) => string
   /** findOnLoad */ n: (later?: 1) => void
   /** omniActivate */ o: (options: CmdOptions[kFgCmd.vomnibar], count: number) => void
-  /** query insert lock */ q: () => LockableElement | null
   /** post */ p: <K extends keyof FgReq>(this: void, req: FgReq[K] & Req.baseFg<K>) => void | 1;
   /** for injector */ r: [
     <k extends keyof FgRes> (cmd: k, args: Req.fgWithRes<k>["a"], callback: (this: void, res: FgRes[k]) => void) => void
@@ -411,18 +409,18 @@ interface VApiTy {
     (timeout: 0, callback?: undefined): HandlerNS.RefHandler
     (timeout: number, callback?: HandlerNS.VoidHandler): HandlerNS.RefHandler
   }
-  /** add UI element */ w (element: HTMLElement, adjust_type?: AdjustType, before?: Element | null | true): void
   /** flash */ x: {
     (el: null, rect: Rect, lifeTime?: number, classNames?: string): () => void
     (el: Element, rect?: null, lifeTime?: number, classNames?: string): (() => void) | void
   }
   /** misc */ y (): {
-    /** onWndFocus */ w?: (this: void) => void,
-    /** find box */ b: HTMLIFrameElement | null,
-    /** VScroller.keyIsDown */ k: number,
-    /** clickable */ c: ElementSet,
-    /** UI root */ r: VUIRoot | null,
-    /** find CSS */ f: FindCSS,
+    /** onWndFocus */ w?: (this: void) => void
+    /** find box */ b: HTMLIFrameElement | null
+    /** clickable */ c: ElementSet
+    /** find CSS */ f: FindCSS
+    /** setUICSS */ g: (innerCSS: string) => void
+    /** Scroller::keyIsDown */ k: number
+    /** UI root */ r: VUIRoot | null
     /** style in find HUD */ s: HTMLStyleElement | null
   }
   /** VScroller.$sc */ $: (element: SafeElement | null, di: ScrollByY, amount: number) => void

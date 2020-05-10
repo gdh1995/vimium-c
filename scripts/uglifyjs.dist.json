@@ -81,7 +81,7 @@
       "WeakMap", "WeakSet", "Set", "InputDeviceCapabilities", "visualViewport",
       "requestIdleCallback",
       // # content global names:
-      "browser",
+      "__filename", "browser",
       "VimiumInjector", "VApi",
       // # fixed background global names:
       "OnOther",
