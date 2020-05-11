@@ -51,6 +51,7 @@ const $ = <T extends HTMLElement>(selector: string): T => document.querySelector
 pTrans_: typeof chrome.i18n.getMessage = Build.BTypes & BrowserType.Firefox
     && BG_ && (!(Build.BTypes & ~BrowserType.Firefox) || BG_.OnOther === BrowserType.Firefox)
     ? (i, j) => BG_.trans_(i, j) : chrome.i18n.getMessage;
+const blobCache: Dict<Blob> = {}
 
 let VShown: ValidNodeTypes | null = null;
 let bgLink = $<HTMLAnchorElement & SafeHTMLElement>("#bgLink");
@@ -729,11 +730,13 @@ function fetchImage_(url: string, element: HTMLImageElement): void {
   } else {
     destroyObject_();
     body.replaceChild(text, element);
-    fetch(url, {
+    Promise.resolve(blobCache[url] || fetch(url, {
       cache: "no-store",
       referrer: "no-referrer"
-    }).then(res => res.blob()).then(blob => _shownBlobURL = URL.createObjectURL(_shownBlob = blob), () => url
-    ).then(newUrl => {
+    }).then(res => res.blob())).then(blob => {
+      blobCache[url] = blob
+      return _shownBlobURL = URL.createObjectURL(_shownBlob = blob)
+    }, () => url).then(newUrl => {
       element.src = newUrl;
       body.replaceChild(element, text);
     });
