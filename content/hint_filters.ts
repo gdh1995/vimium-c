@@ -210,10 +210,9 @@ export const generateHintText = (hint: Hint): HintsNS.HintText => {
     }
     break;
   case "img":
-    text = (el as HTMLImageElement).alt || el.title;
-    break;
   case "details":
-    text = "Open"; show = !0;
+    text = localName > "i" ? (el as HTMLImageElement).complete && (el as HTMLImageElement).alt || el.title : "Open"
+    show = !0
     break;
   default: // include SVGElement and OtherSafeElement
     if (show = hint[2] > ClickType.MaxNotBox) {
@@ -224,8 +223,8 @@ export const generateHintText = (hint: Hint): HintsNS.HintText => {
     } else if (localName === "a") {
       let el2 = el.firstElementChild as Element | null;
       text = el2 && htmlTag_(el2) === "img"
-          ? (el2 as HTMLImageElement).alt || (el2 as HTMLImageElement).title : "";
-      show = !0;
+          ? (el2 as HTMLImageElement).complete && (el2 as HTMLImageElement).alt || (el2 as HTMLImageElement).title : ""
+      show = !!text
     }
     text = text || el.title || (
         (text = el.className) && (<RegExpOne> /\b(?:[Cc]lose)(?:$|[-\sA-Z_])/).test(text) ? "Close"

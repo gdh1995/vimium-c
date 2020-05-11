@@ -132,7 +132,8 @@ export const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
               && (<RegExpOne> /\b(?:[Bb](?:utto|t)n|[Cc]lose|hate|like)(?:$|[-\sA-Z_])/).test(s)
               && (!(anotherEl = element.parentElement)
                   || (s = htmlTag_(anotherEl), !s.includes("button") && s !== "a"))
-            || element.hasAttribute("aria-selected") ? ClickType.classname : ClickType.Default);
+            || element.hasAttribute("aria-selected")
+            || element.getAttribute("data-tab") ? ClickType.classname : ClickType.Default);
   }
   if ((isClickable || type !== ClickType.Default)
       && (arr = tag === "img" ? getZoomedAndCroppedRect_(element as HTMLImageElement, null, true)
