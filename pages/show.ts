@@ -23,6 +23,11 @@ interface ViewerType {
   readonly isShown: boolean;
   readonly played: boolean;
   readonly viewed: boolean;
+  readonly imageData: {
+    naturalWidth: number, naturalHeight: number, aspectRatio: number
+    ratio: number, width: number, height: number
+    left: number, top: number
+  }
   destroy(): any;
   show(): any;
   play(fullscreen: true): any;
@@ -57,6 +62,7 @@ let VShown: ValidNodeTypes | null = null;
 let bgLink = $<HTMLAnchorElement & SafeHTMLElement>("#bgLink");
 let tempEmit: ((succeed: boolean) => void) | null = null;
 let viewer_: ViewerType | null = null;
+let _initialViewerData: any = null;
 let encryptKey = +window.name || 0;
 let ImageExtRe = <RegExpI> /\.(bmp|gif|icon?|jpe?g|a?png|tiff?|webp)(?=[.\-_]|\b)/i;
 let _shownBlobURL = "", _shownBlob: Blob | null | 0 = null;
@@ -557,7 +563,7 @@ function loadViewer(): Promise<CurWnd["Viewer"]> {
       shown (this: void) {
         bgLink.style.display = "none";
       },
-      viewed (): void { viewer_ && viewer_.zoomTo(1); if (tempEmit) { listenWheelForImage(false); tempEmit(true); } },
+      viewed (): void { if (tempEmit) { listenWheelForImage(false); tempEmit(true); } },
       hide (this: void) {
         bgLink.style.display = "";
         listenWheelForImage(true);
@@ -575,7 +581,27 @@ function showSlide(ViewerModule: CurWnd["Viewer"]): Promise<ViewerType> | Viewer
   const v = viewer_ = viewer_ || new ViewerModule(VShown as HTMLImageElement);
   v.isShown || v.show();
   needToScroll && scrollTo(0, 0);
-  if (v.viewed) { return v; }
+  if (v.viewed) { v.zoomTo(1); return v; }
+  Object.defineProperty(v, "initialImageData", {
+    get: () => _initialViewerData,
+    set (val: any): void {
+      _initialViewerData = val
+      if (viewer_) {
+        const imageData = viewer_.imageData
+        const ratio = 1
+        // the following lines are from viewer.js:src/js/methods.js#zoomTo
+        const newWidth = imageData.naturalWidth * ratio
+        const newHeight = imageData.naturalHeight * ratio
+        const offsetWidth = newWidth - imageData.width
+        const offsetHeight = newHeight - imageData.height
+        imageData.left -= offsetWidth / 2
+        imageData.top -= offsetHeight / 2
+        imageData.width = newWidth
+        imageData.height = newHeight
+        imageData.ratio = ratio
+      }
+    }
+  })
   return new Promise<ViewerType>(function (resolve, reject): void {
     tempEmit = function (succeed): void {
       tempEmit = null;
