@@ -95,6 +95,7 @@ import { getVisibleElements, localLinkClear, frameNested_, checkNestedFrame, set
 import {
   rotateHints, matchHintsByKey, zIndexes_, rotate1, initFilterEngine, initAlphabetEngine, renderMarkers,
   getMatchingHints, activeHint_, hintFilterReset, hintFilterClear, resetZIndexes, adjustMarkers, createHint,
+  generateHintText,
 } from "./hint_filters"
 import {
   linkActions, executeHint, removeFlash, set_hintModeAction, resetRemoveFlash, resetHintKeyCode, hintKeyCode,
@@ -245,9 +246,10 @@ const collectFrameHints = (count: number, options: HintsNS.ContentOptions
         Build.BTypes & BrowserType.Firefox ? manager && unwrap_ff(manager) : manager
     resetHints();
     scrollTick(2);
+    let modeAction: ModeOpt | undefined;
     if (options_ !== options) {
       /** ensured by {@link ../background/commands.ts#Commands.makeCommand_} */
-      let modeAction: ModeOpt | undefined, mode = options.mode as number;
+      let mode = options.mode as number;
       for (let modes of linkActions) {
         if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
             ? modes.indexOf(mode & ~HintMode.queue) > 0 : modes.includes!(mode & ~HintMode.queue)) {
@@ -286,6 +288,9 @@ const collectFrameHints = (count: number, options: HintsNS.ContentOptions
     const hintItems = elements.map(createHint);
     addChildFrame = null as never;
     bZoom_ !== 1 && adjustMarkers(hintItems, elements);
+    for (let i = useFilter_ ? hintItems.length : 0; 0 <= --i; ) {
+      hintItems[i].h = generateHintText(elements[i], i, hintItems)
+    }
     frameInfo.h = hintItems;
     frameInfo.v = view;
 }

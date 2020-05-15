@@ -47,7 +47,7 @@ export const createHint = (link: Hint): HintItem => {
   return { // the order of keys is for easier debugging
     a: "",
     d: link[0],
-    h: useFilter_ ? generateHintText(link) : null,
+    h: null,
     i: 0,
     m: marker,
     r: link.length > 4 ? (link as Hint5)[4] : isBox ? link[0] : null
@@ -177,9 +177,9 @@ const generateHintStrings = (hints: readonly HintItem[]): void => {
   }
 }
 
-export const generateHintText = (hint: Hint): HintsNS.HintText => {
+export const generateHintText = (hint: Hint, hintInd: number, allItems: readonly HintItem[]): HintsNS.HintText => {
   const el = hint[0], localName = el.localName
-  let text = "", show = false, ind: number;
+  let text = "", show: 0 | 1 | 2 = 0, ind: number;
   if (!("lang" in el)) { // SVG elements or plain `Element` nodes
     // SVG: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/text
     // demo: https://developer.mozilla.org/en-US/docs/Web/MathML/Element/mfrac on Firefox
@@ -189,7 +189,7 @@ export const generateHintText = (hint: Hint): HintsNS.HintText => {
     let labels = (el as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement).labels;
     if (labels && labels.length
         && (text = (labels[0] as SafeHTMLElement).innerText).trim()) {
-      show = !labels[0].contains(el);
+      show = <BOOL> +!labels[0].contains(el);
     } else if (localName[0] === "s") {
       const selected = (el as HTMLSelectElement).selectedOptions[0];
       text = selected ? selected.label : "";
@@ -209,22 +209,22 @@ export const generateHintText = (hint: Hint): HintsNS.HintText => {
       }
     }
     break;
+  case "details": text = "Open"; show = 1; break
   case "img":
-  case "details":
-    text = localName > "i" ? (el as HTMLImageElement).complete && (el as HTMLImageElement).alt || el.title : "Open"
-    show = !0
+    text = (el as HTMLImageElement).complete && (el as HTMLImageElement).alt || el.title
+    show = 2
     break;
   default: // include SVGElement and OtherSafeElement
-    if (show = hint[2] > ClickType.MaxNotBox) {
+    if (show = <BOOL> +(hint[2] > ClickType.MaxNotBox)) {
       text = hint[2] > ClickType.frame ? "Scroll" : "Frame";
     } else if (text = el.innerText.trim()) {
       ind = text.indexOf("\n") + 1;
       ind && (ind = text.indexOf("\n", ind)) > 0 ? text = text.slice(0, ind) : 0;
     } else if (localName === "a") {
       let el2 = el.firstElementChild as Element | null;
-      text = el2 && htmlTag_(el2) === "img"
-          ? (el2 as HTMLImageElement).complete && (el2 as HTMLImageElement).alt || (el2 as HTMLImageElement).title : ""
-      show = !!text
+      text = el2 && htmlTag_(el2) === "img" && !(hintInd + 1 < allItems.length && el2 === allItems[hintInd + 1].d)
+          ? generateHintText([el2 as SafeHTMLElement] as {[0]: SafeHTMLElement} as Hint, hintInd, allItems).t : ""
+      show = text ? 2 : 0
     }
     text = text || el.title || (
         (text = el.className) && (<RegExpOne> /\b(?:[Cc]lose)(?:$|[-\sA-Z_])/).test(text) ? "Close"
@@ -237,7 +237,10 @@ export const generateHintText = (hint: Hint): HintsNS.HintText => {
       text = text.replace(<RegExpOne> /^[:\s]+/, "");
     }
   }
-  return { t: show && text ? ":" + text : text, w: null };
+  text = show && text && !(
+      show > 1 && ++hintInd < allItems.length && allItems[hintInd].h!.t.replace(":", "") === text
+    ) ? ":" + text : text
+  return { t: text, w: null };
 }
 
 export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
