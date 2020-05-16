@@ -32,8 +32,10 @@ if (!fs.existsSync("package.json")) {
   }
 }
 
-var _tscPatched = false;
+var _WORKER_ENV_KEY = "__VIMIUM_C_TSC_WORKER__";
+var IN_WORKER = +(process.env[_WORKER_ENV_KEY] || 0) > 0;
 var fakeArg = "--vimium-c-fake-arg";
+var _tscPatched = IN_WORKER;
 
 function patchTSC() {
   if (_tscPatched) { return; }
@@ -157,7 +159,7 @@ function getDefaultUglifyConfig() {
   return defaultUglifyConfig;
 }
 
-/** @type { number | null } */
+/** @type { 0 | 1 | 2 | null } */
 var iconsDone = null;
 
 if (typeof module !== "undefined") {
@@ -169,19 +171,20 @@ if (typeof module !== "undefined") {
 // @ts-ignore
 if (typeof require === "function" && require.main === module) {
   try {
-    require("./icons-to-blob").main(function (err) {
+    IN_WORKER || require("./icons-to-blob").main(function (err) {
       var curIconsDone = iconsDone;
       iconsDone = err ? 1 : curIconsDone || 0;
       if (curIconsDone == null) {
+        curIconsDone = 2;
         main(real_args);
       }
     });
   } catch (ex) {
     console.log("Failed to convert icons to binary data:", ex);
-    if (iconsDone == null) {
-      iconsDone = 2;
-      main(real_args);
-    }
+  }
+  if (iconsDone == null) {
+    iconsDone = 2;
+    main(real_args);
   }
 }
 
@@ -189,13 +192,22 @@ if (typeof require === "function" && require.main === module) {
 function main(args) {
   var useDefaultConfigFile = args.indexOf("-p") < 0 && args.indexOf("--project") < 0;
   var destDirs = [];
-  for (var i = useDefaultConfigFile ? 0 : args.length; i < args.length; ) {
-    var cwd = args[i];
-    if (cwd[0] === "-") {
-      i += cwd === "-p" || cwd === "--project" ? 2 : 1;
-    } else if (/^\w+$/.test(cwd) && fs.existsSync(cwd) && fs.statSync(cwd).isDirectory()) {
-      destDirs.push(cwd);
-      args.splice(i, 1);
+  for (var i = !IN_WORKER && useDefaultConfigFile ? 0 : args.length; i < args.length; ) {
+    var argi = args[i];
+    if (argi[0] === "-") {
+      i += argi === "-p" || argi === "--project" || argi === "--outDir" ? 2 : 1;
+    } else if (/^([a-zA-Z]:)?[\w\\\/]+$/.test(argi) && fs.existsSync(argi) && fs.statSync(argi).isDirectory()) {
+      "/\\".indexOf(argi[argi.length - 1]) >= 0 && (argi = argi.slice(0, -1));
+      if (fs.existsSync(argi + "/tsconfig.json")) {
+        destDirs.push(argi);
+        args.splice(i, 1);
+      } else if ((args[i - 1] || "a")[0] !== "-"
+        && (fs.existsSync(argi + "/lib") || fs.existsSync(argi + "/manifest.json"))) {
+        args.splice(i - 1, 0, "--outDir");
+        i += 2;
+      } else {
+        i++;
+      }
     } else {
       i++;
     }
@@ -209,16 +221,35 @@ function main(args) {
   var child_process = require('child_process');
   /** @type Array<Promise<number>> */
   var promises = [];
+  var env = process.env;
+  env[_WORKER_ENV_KEY] = "1";
+
+  var outDirArgIdx = args.indexOf("--outDir");
+  var gulp_cmd = "./node_modules/gulp/bin/gulp.js";
+  if (!IN_WORKER && outDirArgIdx >= 0 && outDirArgIdx + 1 < args.length
+      && args[outDirArgIdx + 1] && args[outDirArgIdx + 1] !== "." && fs.existsSync(gulp_cmd)) {
+    env["BUILD_NDEBUG"] = "0";
+    env["BUILD_CopyManifest"] = "1";
+    env["LOCAL_SILENT"] = "1";
+    env["LOCAL_DIST"] = args[outDirArgIdx + 1];
+    promises.push(new Promise(function (resolve) {
+      var child = child_process.spawn(cmd, [gulp_cmd, "--silent", "static"], { env: env,
+        // @ts-ignore
+        stdio: ["ignore", process.stdout, process.stderr]
+      });
+      child.on("close", function (code) { resolve(code); });
+    }));
+  }
   for (var i = 1; i < destDirs.length; i++) {
     promises.push(new Promise(function (resolve) {
       var child = child_process.spawn(cmd, argv.slice(1).concat(args), {
-        cwd: destDirs[i],
+        cwd: destDirs[i], env: env,
         // @ts-ignore
         stdio: ["ignore", process.stdout, process.stderr]
       });
       child.on("close", function (code) {
         resolve(code);
-      })
+      });
     }));
   }
   root = require("path").resolve(root).replace(/\\/g, "/") + "/";

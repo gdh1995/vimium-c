@@ -11,7 +11,9 @@
     "../pages/*.ts"
   ],
   "exclude": [
+    "../pages/dialog_ui*.ts",
     "../pages/loader.ts",
+    "../pages/newtab*.ts",
     "../pages/options*.ts",
     "../pages/show.ts"
   ],

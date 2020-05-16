@@ -37,6 +37,7 @@ var envSourceMap = process.env.ENABLE_SOURCE_MAP === "1";
 var doesMergeProjects = process.env.MERGE_TS_PROJECTS !== "0";
 var doesUglifyLocalFiles = process.env.UGLIFY_LOCAL !== "0";
 var FORCED_NO_UGLIFY = process.env.FORCED_NO_UGLIFY === "1";
+var LOCAL_SILENT = process.env.LOCAL_SILENT === "1";
 var uglifyDistPasses = +process.env.UGLIFY_DIST_PASSES || 2;
 var gNoComments = process.env.NO_COMMENT === "1";
 var disableErrors = process.env.SHOW_ERRORS !== "1" && (process.env.SHOW_ERRORS === "0" || !compileInBatch);
@@ -141,13 +142,18 @@ var Tasks = {
   },
   static: ["static/special", "static/uglify", function() {
     var arr = ["front/*", "pages/*", "icons/*", "lib/*"
-      , "*.txt", "*.md", "!**/*.json", "!**/*.bin"
-      , "!**/manifest*.json", "!**/*.min.*"
+      , "*.txt", "*.md", "!**/[a-ln-z.]*.json", "!**/*.bin"
+      , "!**/*.min.*"
       , "!pages/*.css", "!front/[a-u]*.html", "!front/[w-z]*.html", "!pages/*.html", "!REL*.md", "!README_*.md"
       , "!**/*.log", "!**/*.psd", "!**/*.zip", "!**/*.tar", "!**/*.tgz", "!**/*.gz"
       , '!**/*.ts', "!**/*.js", "!**/tsconfig*.json"
       , "!test*", "!todo*"
     ];
+    if (!+(process.env.BUILD_CopyManifest || "0") || fs.existsSync(DEST + "/manifest.json")) {
+      arr.push("!**/manifest*.json");
+    } else {
+      arr.push("manifest.json");
+    }
     may_have_newtab || arr.push("!" + NEWTAB_FILE.replace(".ts", ".*"));
     var btypes = getBuildItem("BTypes");
     btypes & BrowserType.Chrome || arr.push("!" + FILE_URLS_CSS);
@@ -1264,7 +1270,7 @@ function getBuildItem(key, literalVal) {
   if (newVal) {
     newVal = safeJSONParse(newVal);
     if (newVal != null) {
-      print("Use env:", "BUILD_" + key, "=", newVal);
+      LOCAL_SILENT || print("Use env:", "BUILD_" + key, "=", newVal);
       buildOptionCache[key] = [literalVal, newVal];
       return parseBuildItem(key, newVal);
     }
