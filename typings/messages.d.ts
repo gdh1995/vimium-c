@@ -5,9 +5,10 @@ declare const enum kTip {
   /* 17: */ kCommonEvents = 17,
   /* 20..25 */ copiedIs = 20, failToEvalJS, tooManyLinks, useVal, turnOn, turnOff,
   /* 26..31 */ nMatches, oneMatch, someMatches, noMatches, modalHints, haveToOpenManually,
+  /* 39, 41: */ global = 39, local = 41, // neither 39 nor 41 is in HintMode
   /* 44..47 */ selectLineBoundary = 44, frameUnloaded, waitEnter, logGrabFocus,
-  /* 60..63 */ logOmniFallback, logNotWorkOnSandboxed,
-  /* 67..69 */ START_FOR_OTHERS = 67, OFFSET_VISUAL_MODE = START_FOR_OTHERS - 1, visual, line, caret,
+  /* 60..63 */ logOmniFallback = 60, logNotWorkOnSandboxed, prev, next,
+  /* 67..69 */ START_FOR_OTHERS = 67, OFFSET_VISUAL_MODE = 66, visual, line, caret,
   /* 70: */ fewChars = 70, noLinks, exitForIME, linkRemoved, notImg,
   /* 75: */ hoverScrollable, ignorePassword, noNewToCopy, downloaded, nowGotoMark,
   /* 80: */ nowCreateMark, didCreateLastMark, didLocalMarkTask, didJumpTo, didCreate,
@@ -309,8 +310,7 @@ interface CmdOptions {
     /** use post mode on esc */ p: boolean;
   };
   [kFgCmd.goToMarks]: {
-    /** local */ l?: true;
-    /** local-i18n-key */ k: "local" | "global";
+    /** local */ l: 0 | /** kTip.local - kTip.global */ 2
     /** markName */ n?: string | undefined;
     /** scroll */ s: MarksNS.FgMark;
   };

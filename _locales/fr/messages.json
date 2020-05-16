@@ -887,12 +887,6 @@
 	"10": {
 		"message": "Aucun lien pour aller $1"
 	},
-	"next": {
-		"message": "suivant"
-	},
-	"prev": {
-		"message": "précedent"
-	},
 	"11": {
 		"message": "Rien n'a le focus"
 	},
@@ -942,6 +936,8 @@
 	"31": {
 		"message": "Sur Firefox vous devez visiter cette URL manuellement"
 	},
+	"39": { "message": "globaux" },
+	"41": { "message": "local" },
 	"44": {
 		"message": "Ligne de bordure sélectionnée"
 	},
@@ -1031,6 +1027,8 @@
 	"57": {
 		"message": "Copie la liste d'URL du lien"
 	},
+	"62": { "message": "précedent" },
+	"63": { "message": "suivant" },
 	"64": {
 		"message": "Edite l'URL du lien dans la Vomnibar"
 	},

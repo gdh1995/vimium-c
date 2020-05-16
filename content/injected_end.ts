@@ -50,9 +50,6 @@ VApi.e = function (cmd): void {
   const thisApi = VApi;
   thisApi.r![0](kFgReq.i18n, {}, i18nCallback);
   thisApi.r![4]((tid, args): string => {
-    if (typeof tid === "string") {
-      return tid;
-    }
     return !i18nMessages ? args && args.length ? `T${tid}: ${args.join(", ")}` : "T" + tid
         : args ? i18nMessages[tid].replace(transArgsRe, s => <string> args[+s[1] - 1])
         : i18nMessages[tid];

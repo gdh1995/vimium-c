@@ -932,12 +932,6 @@
 	"markRemoved": {
 		"message": "$1 $2 mark$3 been removed"
 	},
-	"local": {
-		"message": "local"
-	},
-	"global": {
-		"message": "global"
-	},
 	"have": {
 		"message": "s have"
 	},
@@ -1091,12 +1085,6 @@
 	"10": {
 		"message": "No links to go $1"
 	},
-	"next": {
-		"message": "next"
-	},
-	"prev": {
-		"message": "prev"
-	},
 	"11": {
 		"message": "Nothing was focused"
 	},
@@ -1148,6 +1136,8 @@
 	"31": {
 		"message": "On Firefox you have to visit this URL manually"
 	},
+	"39": { "message": "global" },
+	"41": { "message": "local" },
 	"44": {
 		"message": "Selected line boundary"
 	},
@@ -1241,6 +1231,8 @@
 	"57": {
 		"message": "Copy link URL list"
 	},
+	"62": { "message": "prev" },
+	"63": { "message": "next" },
 	"64": {
 		"message": "Edit link URL on Vomnibar"
 	},

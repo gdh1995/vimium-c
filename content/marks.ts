@@ -50,7 +50,7 @@ const create = (event: HandlerNS.Event, keyChar: string): void => {
         hudHide()
       }
     } else {
-      createMark({n: keyChar}, "local")
+      createMark({n: keyChar}, 2)
     }
 }
 
@@ -85,7 +85,7 @@ const goto = (event: HandlerNS.Event, keyChar: string): void => {
           }
         }
       } catch {}
-      (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).l = true;
+      (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).l = 2;
       (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).u = loc_.href;
     }
     post_(req);
@@ -99,25 +99,25 @@ export const scrollToMark = (scroll: Readonly<MarksNS.FgMark>): void => {
     }
 }
 
-export const createMark = (req: BgReq[kBgReq.createMark], local?: "local"): void => {
+export const createMark = (req: BgReq[kBgReq.createMark], local?: 0 | 2): void => {
     post_<kFgReq.marks>({
       H: kFgReq.marks,
       a: kMarkAction.create,
-      l: !!local,
+      l: local,
       n: req.n,
       u: loc_.href,
       s: [scrollX | 0, scrollY | 0]
     })
     hudTip(kTip.didNormalMarkTask, 1000,
-        [ VTr(kTip.didCreate), VTr(local || "global"), req.n ])
+        [ VTr(kTip.didCreate), VTr(local ? kTip.local : kTip.global), req.n ])
 }
 
-export const gotoMark = ({ n: a, s: scroll, k: typeKey, l: local }: CmdOptions[kFgCmd.goToMarks]): void => {
+export const gotoMark = ({ n: a, s: scroll, l: local }: CmdOptions[kFgCmd.goToMarks]): void => {
     a && setPreviousMarkPosition()
     scrollToMark(scroll)
     local || vApi.f()
     if (a) {
       hudTip(kTip.didNormalMarkTask, local ? 1000 : 2000,
-          [ VTr(kTip.didJumpTo), VTr(typeKey), a ]);
+          [ VTr(kTip.didJumpTo), VTr(kTip.global + local), a ])
     }
 }

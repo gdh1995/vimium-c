@@ -109,17 +109,17 @@ declare namespace MarksNS {
     /** scroll */ s?: undefined;
   }
   interface NewMark extends Mark {
-    /** local */ l?: boolean; /** default to false */
+    /** local */ l?: 0 | 2; /** default to false */
   }
 
   interface FgGlobalQuery extends BaseMark {
     /** prefix */ p?: boolean; /** default to false */
-    /** local */ l?: false; /** default to false */
+    /** local */ l?: 0; /** default to false */
     /** url */ u?: undefined;
   }
   interface FgLocalQuery extends BaseMark {
     /** prefix */ p?: undefined;
-    /** local */ l: true;
+    /** local */ l: 2;
     /** url */ u: string;
     /** old */ o?: {
       /** scrollX */ x: number;

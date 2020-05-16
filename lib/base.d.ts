@@ -434,7 +434,7 @@ interface VDataTy {
   o (oldUrl: string): string;
 }
 
-type VTransType = (tid: kTip | HintMode | string, args?: Array<string | number>) => string;
+type VTransType = (tid: kTip | HintMode, args?: Array<string | number>) => string;
 
 declare const enum kContentCmd {
   _fake = 0,

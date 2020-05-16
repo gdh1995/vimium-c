@@ -393,7 +393,7 @@ Marks_ = { // NOTE: all public members should be static
         }
       }
       if (scroll) {
-        return Marks_._goto(port, { n: markName, s: scroll, k: "local", l: true });
+        return Marks_._goto(port, { n: markName, s: scroll, l: 2 });
       }
     }
     if (!str) {
@@ -427,7 +427,7 @@ Marks_ = { // NOTE: all public members should be static
   },
   scrollTab_ (this: void, markInfo: MarksNS.InfoToGo, tab: chrome.tabs.Tab): void {
     const tabId = tab.id, port = Backend_.indexPorts_(tabId, 0);
-    port && Marks_._goto(port, { n: markInfo.n, s: markInfo.s, k: "global" });
+    port && Marks_._goto(port, { n: markInfo.n, s: markInfo.s, l: 0 });
     if (markInfo.t !== tabId && markInfo.n) {
       return Marks_._set(markInfo as MarksNS.MarkToGo, TabRecency_.incognito_ === IncognitoType.true, tabId);
     }
@@ -453,7 +453,7 @@ Marks_ = { // NOTE: all public members should be static
       }
     }
     return Backend_.showHUD_(trans_("markRemoved", [
-      num, trans_(url ? "local" : "global"), trans_(num !== 1 ? "have" : "has")
+      num, trans_(url ? kTip.local + "" : kTip.global + ""), trans_(num !== 1 ? "have" : "has")
     ]));
   }
 },

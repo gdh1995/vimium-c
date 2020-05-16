@@ -291,7 +291,7 @@ const ResetHUD = (i?: TimerType.fake): void => {
     return
   }
   hudTimer = TimerID.None
-  if (modeName) { hudShow(kTip.visualMode, [modeName]) }
+  if (modeName) { hudShow(kTip.inVisualMode, [modeName]) }
 }
 
 const findV = (count: number): void => {

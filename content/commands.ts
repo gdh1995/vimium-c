@@ -149,9 +149,9 @@ export const contentCommands_: {
   },
   /* kFgCmd.goNext: */ function ({r: rel, p: patterns, l, m }: CmdOptions[kFgCmd.goNext]): void {
     if (!isHTML_() || findAndFollowRel(rel)) { return; }
-    const isNext = rel === "next";
+    const isNext = !rel.includes("prev");
     if (patterns.length <= 0 || !findAndFollowLink(patterns, isNext, l, m)) {
-      return hudTip(kTip.noLinksToGo, 0, [VTr(rel)]);
+      hudTip(kTip.noLinksToGo, 0, [VTr(kTip.prev + <number> <boolean | number> isNext)]);
     }
   },
   /* kFgCmd.reload: */ function (options: CmdOptions[kFgCmd.reload]): void {
