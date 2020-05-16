@@ -96,12 +96,10 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
         type = selType()
       }
     }
-    const isRange = type === SelType.Range, newMode = isRange ? mode : Mode.Caret,
+    const isRange = type === SelType.Range, newMode: CmdOptions[kFgCmd.visualMode]["m"] = isRange ? mode : Mode.Caret,
     toCaret = newMode === Mode.Caret;
     hudTimer && clearTimeout_(hudTimer)
-    hudShow(kTip.visualMode,
-        [modeName = VTr(toCaret ? "Caret" : newMode === Mode.Line ? "Line" : "Visual")],
-        !!options.r);
+    hudShow(kTip.inVisualMode, [modeName = VTr(kTip.OFFSET_VISUAL_MODE + newMode)], !!options.r);
     if (newMode !== mode) {
       prompt(kTip.noUsableSel, 1000)
     }

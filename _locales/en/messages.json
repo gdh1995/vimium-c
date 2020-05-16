@@ -979,9 +979,9 @@
 	},
 	"Search": { "message": "" },
 	"Go": { "message": "" },
-	"67": {
-		"message": "$1"
-	},
+	"67": { "message": "Visual" },
+	"68": { "message": "Line" },
+	"69": { "message": "Caret" },
 	"70": {
 		"message": "Too few characters for LinkHints"
 	},
@@ -1044,15 +1044,6 @@
 	},
 	"90": {
 		"message": "$1 mode"
-	},
-	"Caret": {
-		"message": "Caret"
-	},
-	"Line": {
-		"message": "Line"
-	},
-	"Visual": {
-		"message": "Visual"
 	},
 	"91": {
 		"message": "No usable selection, entering caret mode\u2026"
@@ -1168,6 +1159,7 @@
 	"0": {
 		"message": "Open link in current tab"
 	},
+	"1": { "message": "$1" },
 	"2": {
 		"message": "Open link in new tab"
 	},

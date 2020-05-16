@@ -1,5 +1,5 @@
 declare const enum kTip {
-  /* 1: */
+  /* 1: */ raw = 1,
   /* 4..9 */ didUnHoverLast = 4, globalInsertMode, noPassKeys, normalMode, nTimes, passNext,
   /* 10..15 */ noLinksToGo, noFocused, focusedIsHidden, noInputToFocus, noUrlCopied, noTextCopied,
   /* 17: */ kCommonEvents = 17,
@@ -7,12 +7,12 @@ declare const enum kTip {
   /* 26..31 */ nMatches, oneMatch, someMatches, noMatches, modalHints, haveToOpenManually,
   /* 44..47 */ selectLineBoundary = 44, frameUnloaded, waitEnter, logGrabFocus,
   /* 60..63 */ logOmniFallback, logNotWorkOnSandboxed,
-  /* 67..69 */ raw = 67, START_FOR_OTHERS = raw,
+  /* 67..69 */ START_FOR_OTHERS = 67, OFFSET_VISUAL_MODE = START_FOR_OTHERS - 1, visual, line, caret,
   /* 70: */ fewChars = 70, noLinks, exitForIME, linkRemoved, notImg,
   /* 75: */ hoverScrollable, ignorePassword, noNewToCopy, downloaded, nowGotoMark,
   /* 80: */ nowCreateMark, didCreateLastMark, didLocalMarkTask, didJumpTo, didCreate,
   /* 85: */ lastMark, didNormalMarkTask, findFrameFail, noOldQuery, noMatchFor,
-  /* 90: */ visualMode, noUsableSel, loseSel, needSel, omniFrameFail,
+  /* 90: */ inVisualMode, noUsableSel, loseSel, needSel, omniFrameFail,
   /* 95: */ failToDelSug, INJECTED_CONTENT_END = failToDelSug, removeCurScript,
   /** 99: used by {@link ../Gulpfile.js} */ extendClick = 99,
   /* 100: */ firefoxRefuseURL, cancelImport, importOK,

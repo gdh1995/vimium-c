@@ -779,6 +779,9 @@
 	},
 	"Search": { "message": "Rechercher" },
 	"Go": { "message": "Aller" },
+	"67": { "message": "Visuel" },
+	"68": { "message": "Ligne" },
+	"69": { "message": "Curseur" },
 	"70": {
 		"message": "Caractères pour les LinkHints trop peu nombreux"
 	},
@@ -838,15 +841,6 @@
 	},
 	"89": {
 		"message": "Aucune correspondance pour \"$1\""
-	},
-	"Caret": {
-		"message": "Curseur"
-	},
-	"Line": {
-		"message": "Ligne"
-	},
-	"Visual": {
-		"message": "Visuel"
 	},
 	"91": {
 		"message": "Aucune sélection utilisable, entrée en mode curseur\u2026"
