@@ -133,6 +133,6 @@ export const isImageUrl = (str: string | null): boolean => {
   return (<RegExpI & RegExpOne> /\.(?:bmp|gif|icon?|jpe?g|a?png|svg|tiff?|webp)\b/i).test(str);
 }
 
-export const recordLog = (tip: kTip): void => {
-  console.log(VTr(tip), loc_.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"), getTime())
+export const recordLog = (tip: kTip | string): void => {
+  console.log(tip > 0 ? VTr(<kTip> tip) : tip, loc_.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"), getTime())
 }

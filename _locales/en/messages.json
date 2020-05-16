@@ -1168,7 +1168,6 @@
 	"0": {
 		"message": "Open link in current tab"
 	},
-	"1": { "message": "Vimium C on %o has been destroyed at %o." },
 	"2": {
 		"message": "Open link in new tab"
 	},

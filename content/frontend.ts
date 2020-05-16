@@ -51,9 +51,9 @@ set_safeDestroy((silent?: Parameters<SafeDestoryF>[0]): void => {
 
     /*#__INLINE__*/ set_esc(null as never)
     VApi = null as never;
-    silent || recordLog(kTip.logDestroyed)
 
     if (runtime_port) { try { runtime_port.disconnect(); } catch {} }
+    silent || recordLog("Vimium C on %o has been destroyed at %o.")
     injector || (<RegExpOne> /a?/).test("");
 })
 

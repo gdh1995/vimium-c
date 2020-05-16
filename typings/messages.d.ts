@@ -1,7 +1,8 @@
 declare const enum kTip {
-  logDestroyed = 1, kCommonEvents = 17,
+  /* 1: */
   /* 4..9 */ didUnHoverLast = 4, globalInsertMode, noPassKeys, normalMode, nTimes, passNext,
   /* 10..15 */ noLinksToGo, noFocused, focusedIsHidden, noInputToFocus, noUrlCopied, noTextCopied,
+  /* 17: */ kCommonEvents = 17,
   /* 20..25 */ copiedIs = 20, failToEvalJS, tooManyLinks, useVal, turnOn, turnOff,
   /* 26..31 */ nMatches, oneMatch, someMatches, noMatches, modalHints, haveToOpenManually,
   /* 44..47 */ selectLineBoundary = 44, frameUnloaded, waitEnter, logGrabFocus,
