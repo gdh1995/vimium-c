@@ -214,6 +214,7 @@ ContentSettings_ = Build.PContentSettings ? {
         }
         let arr: Frames.Frames | null,
         couldNotRefresh = !!(Build.BTypes & BrowserType.Edge
+                || Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox
                 || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSessions) && !chrome.sessions
             || !!(Build.BTypes & BrowserType.Chrome)
                 // work around a bug of Chrome
@@ -657,7 +658,8 @@ MediaWatcher_ = {
 TabRecency_ = {
   tabs_: BgUtils_.safeObj_<number>(),
   last_: (chrome.tabs.TAB_ID_NONE || GlobalConsts.TabIdNone) as number,
-  lastWnd_: chrome.windows.WINDOW_ID_NONE || GlobalConsts.WndIdNone,
+  lastWnd_: (!(Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox) || chrome.windows)
+      && chrome.windows.WINDOW_ID_NONE || GlobalConsts.WndIdNone,
   incognito_: Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
       ? IncognitoType.ensuredFalse : IncognitoType.mayFalse,
   rCompare_: null as never as (a: {id: number}, b: {id: number}) => number
@@ -695,6 +697,7 @@ BgUtils_.timeout_(120, function (): void {
     }
   }
   chrome.tabs.onActivated.addListener(listener);
+  (!(Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox) || chrome.windows) &&
   chrome.windows.onFocusChanged.addListener(function (windowId): void {
     if (windowId === noneWnd) { return; }
     // here windowId may pointer to a devTools window on C45 - see BrowserVer.Min$windows$APIsFilterOutDevToolsByDefault

@@ -8,6 +8,7 @@ declare const enum Build {
   NativeWordMoveOnFirefox = 1,
   PContentSettings = 1,
   MayOverrideNewTab = 0,
+  MayAndroidOnFirefox = 1,
   DetectAPIOnFirefox = 1,
   CreateFakeIncognito = 0,
 }

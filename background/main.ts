@@ -1681,8 +1681,8 @@
       chrome.tabs.remove(tabs[ind + 1 === end || cRepeat > 0 && start !== ind ? start : end - 1].id);
     },
     /* kBgCmd.restoreTab: */ function (this: void): void {
-      if ((Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Chrome
-          && Build.MinCVer < BrowserVer.MinSessions) && !chrome.sessions) {
+      if ((Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox
+            || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSessions) && !chrome.sessions) {
         return complainNoSession();
       }
       let count = cRepeat;
@@ -1696,8 +1696,8 @@
       } while (0 < --count);
     },
     /* kBgCmd.restoreGivenTab: */ function (): void {
-      if ((Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Chrome
-          && Build.MinCVer < BrowserVer.MinSessions) && !chrome.sessions) {
+      if ((Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox
+            || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSessions) && !chrome.sessions) {
         return complainNoSession();
       }
       function doRestore(this: void, list: chrome.sessions.Session[]): void {
@@ -2080,7 +2080,8 @@
       BackgroundCommands[kBgCmd.openUrl]();
     },
     /* kBgCmd.toggleZoom: */ function (this: void): void {
-      if (Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge)) {
+      if (Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge)
+          || Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox && !chrome.tabs.getZoom) {
         Backend_.complain_("control zoom settings of tabs");
         return;
       }
@@ -2394,8 +2395,8 @@
         });
         return;
       }
-      if ((Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Chrome
-          && Build.MinCVer < BrowserVer.MinSessions) && !chrome.sessions) {
+      if ((Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox
+            || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSessions) && !chrome.sessions) {
         return complainNoSession();
       }
       chrome.sessions.restore(id, function (): void {
@@ -3105,7 +3106,9 @@
     },
     reopenTab_ (this: void, tab: Tab, refresh, exProps): void {
       const tabId = tab.id, needTempBlankTab = refresh === 1;
-      if (refresh) {
+      if (Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox
+            || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSessions
+          ? refresh && chrome.sessions : refresh) {
         let step = RefreshTabStep.start,
         tempTabId = -1,
         onRefresh = function (this: void): void {

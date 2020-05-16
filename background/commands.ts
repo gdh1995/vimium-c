@@ -618,7 +618,8 @@ if (Backend_.onInit_) {
       Commands = null as never;
     }
   }
-  Build.BTypes & BrowserType.Edge && !chrome.commands ||
+  (Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox)
+      && !chrome.commands ||
   (chrome.commands.onCommand as chrome.events.Event<
         (command: keyof ShortcutInfoMap | kShortcutAliases & string, exArg: FakeArg) => void
       >).addListener(Backend_.ExecuteShortcut_);

@@ -308,6 +308,10 @@ bookmarkEngine = {
   depth_: 0,
   status_: BookmarkStatus.notInited,
   filter_ (query: CompletersNS.QueryStatus, index: number): void {
+    if (Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox && !chrome.bookmarks) {
+      Completers.next_([], SugType.bookmark)
+      return
+    }
     if (queryTerms.length === 0 || !(allExpectedTypes & SugType.bookmark)) {
       Completers.next_([], SugType.bookmark);
       if (index) { return; }
@@ -506,7 +510,8 @@ bookmarkEngine = {
 
 historyEngine = {
   filter_ (query: CompletersNS.QueryStatus, index: number): void {
-    if (Build.BTypes & BrowserType.Edge && !chrome.history
+    if ((Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox)
+        && !chrome.history
         || !(allExpectedTypes & SugType.history)) { return Completers.next_([], SugType.history); }
     const history = HistoryCache.history_, someQuery = queryTerms.length > 0;
     if (history) {
@@ -1416,7 +1421,8 @@ knownCs = {
     _callbacks: null as HistoryCallback[] | null,
     domains_: null as typeof BgUtils_.domains_ | null,
     use_ (this: void, callback?: HistoryCallback | null): void {
-      if (Build.BTypes & BrowserType.Edge && !chrome.history) { callback && callback([]); return; }
+      if ((Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox)
+          && !chrome.history) { callback && callback([]); return; }
       if (HistoryCache._callbacks) {
         callback && HistoryCache._callbacks.push(callback);
         return;
