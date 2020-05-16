@@ -21,7 +21,8 @@ BgUtils_.timeout_(1000, function (): void {
   }
   type MultiLineSerialized = { [key: string]: SerializationMetaData | string | undefined } & {
       [key in keyof SettingsToUpdate]: SerializationMetaData };
-  function storage(): chrome.storage.StorageArea { return chrome.storage && chrome.storage.sync; }
+  const storage = (): chrome.storage.StorageArea => __sync || (__sync = chrome.storage && chrome.storage.sync)
+  let __sync: chrome.storage.StorageArea | undefined
   let to_update: SettingsToUpdate | null = null, keyInDownloading: keyof SettingsWithDefaults | "" = "",
   changes_to_merge: { [key: string]: chrome.storage.StorageChange } | null = null,
   textDecoder: TextDecoder | null = null,
@@ -170,13 +171,15 @@ BgUtils_.timeout_(1000, function (): void {
       Settings_.sync_ = BgUtils_.blank_;
       return;
     }
-    chrome.storage.local.set({ [key]: value }, () => {
+    const local_ = chrome.storage.local
+    const cb = () => {
       const err = BgUtils_.runtimeError_();
       if (err) {
         log("storage.local: Failed to update", key, ":", err.message || err);
         return err;
       }
-    });
+    }
+    value == null ? local_.remove(key, cb) : local_.set({ [key]: value }, cb);
   }
 
 /** Chromium's base::JsonWriter will translate all "<" to "\u003C"
@@ -408,8 +411,10 @@ BgUtils_.timeout_(1000, function (): void {
       }
       for (let key in items2) {
         if (key in Settings_.defaults_) {
+          let val = items2[key]
           keyInDownloading = key as keyof SettingsWithDefaults;
-          Settings_.set_(key as keyof SettingsWithDefaults, items2[key]);
+          val = val == null ? Settings_.defaults_[key as keyof SettingsWithDefaults] : val
+          Settings_.set_(key as keyof SettingsWithDefaults, val);
         }
       }
       keyInDownloading = "";
