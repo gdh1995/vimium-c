@@ -453,6 +453,7 @@
 	"toggleMuteTab_p": {
 		"message": "all, other"
 	},
+	"toggleReaderMode": { "message": "Toggle Reader mode" },
 	"toggleSwitchTemp": {
 		"message": "Toggle switch only on current page"
 	},

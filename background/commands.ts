@@ -551,6 +551,7 @@ availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeO
   togglePinTab: [ kBgCmd.togglePinTab, 1, /** 30 in main.ts */ 0 ],
   toggleSwitchTemp: [ kBgCmd.toggle, 1, 1 ],
   toggleViewSource: [ kBgCmd.toggleViewSource, 1, 1 ],
+  toggleReaderMode: [ kBgCmd.toggleViewSource, 1, 1, { reader: true } ],
   toggleVomnibarStyle: [ kBgCmd.toggleVomnibarStyle, 1, 1, { style: "dark" } ],
   visitPreviousTab: [ kBgCmd.visitPreviousTab, 1, 0 ],
   zoomIn: [ kBgCmd.toggleZoom, 1, 0 ],

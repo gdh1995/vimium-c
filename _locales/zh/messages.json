@@ -333,6 +333,7 @@
 	"toggleMuteTab": {
 		"message": "切换网页静音"
 	},
+	"toggleReaderMode": { "message": "切换阅读器模式" },
 	"toggleSwitchTemp": {
 		"message": "在当前页面临时切换任意选项"
 	},

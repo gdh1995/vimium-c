@@ -263,9 +263,7 @@
   function safeUpdate(this: void, url: string, secondTimes?: true, tabs1?: [Tab]): void {
     if (!tabs1) {
       if (BgUtils_.isRefusingIncognito_(url) && secondTimes !== true) {
-        getCurTab(function (tabs2: [Tab]): void {
-          return safeUpdate(url, true, tabs2);
-        });
+        getCurTab(safeUpdate.bind(null, url, true))
         return;
       }
     } else if (tabs1.length > 0 && tabs1[0].incognito && BgUtils_.isRefusingIncognito_(url)) {
@@ -647,10 +645,14 @@
         url = BgUtils_.convertToUrl_(url + "", (cOptions.keyword || "") + "", workType);
       }
     }
-    const reuse: ReuseType = cOptions.reuse == null ? ReuseType.newFg : (cOptions.reuse | 0),
+    let reuse: ReuseType = cOptions.reuse == null ? ReuseType.newFg : (cOptions.reuse | 0),
     options = cOptions as OpenUrlOptions;
     cOptions = null as never;
     BgUtils_.resetRe_();
+    if (Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)
+        && typeof url === "string" && url.startsWith("about:reader?url=")) {
+      reuse = reuse !== ReuseType.newBg ? ReuseType.newFg : reuse
+    }
     typeof url !== "string"
       ? /*#__NOINLINE__*/ onEvalUrl_(workType, options, tabs, url)
       : openShowPage(url, reuse, options) ? 0
@@ -691,6 +693,12 @@
     const tab: Tab | undefined = tabs[0], tabIncognito = !!tab && tab.incognito,
     incognito = options.incognito, active = reuse !== ReuseType.newBg;
     let window = reuse === ReuseType.newWindow || options.window;
+    let inReader: boolean | undefined
+    if (Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)
+        && url.startsWith("about:reader?url=")) {
+      url = BgUtils_.decodeEscapedURL_(url.slice(17))
+      inReader = true
+    }
     if (BgUtils_.isRefusingIncognito_(url)) {
       if (tabIncognito || TabRecency_.incognito_ === IncognitoType.true) {
         window = true;
@@ -712,11 +720,16 @@
       return;
     }
     let openerTabId = options.opener && tab ? tab.id : undefined;
-    return openMultiTab({
+    const args: Parameters<BackendHandlersNS.BackendHandlers["reopenTab_"]>[2] & { url: string, active: boolean } = {
       url, active, windowId: tab ? tab.windowId : undefined,
       openerTabId,
       index: tab ? newTabIndex(tab, options.position, openerTabId != null) : undefined
-    }, cRepeat);
+    }
+    if (Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox) && inReader) {
+      args.openInReaderMode = inReader
+    }
+    openMultiTab(args, cRepeat);
   }
   function openJSUrl(url: string): void {
     if ("void 0;void(0);".includes(url.slice(11).trim())) {
@@ -2001,8 +2014,30 @@
     },
     /* kBgCmd.toggleViewSource: */ function (this: void, tabs: [Tab]): void {
       let tab = tabs[0], url = getTabUrl(tab);
+      const reader = cOptions.reader, keyword = cOptions.keyword
       if (url.startsWith(BrowserProtocol_)) {
-        return Backend_.complain_(trans_("openExtSrc"));
+        Backend_.complain_(trans_("openExtSrc"))
+        return
+      }
+      if (reader && keyword) {
+        const query = Backend_.parse_({ u: url });
+        if (query && query.k === keyword) {
+          url = query.u
+        } else {
+          url = BgUtils_.convertToUrl_(url, keyword)
+        }
+        chrome.tabs.update(tab.id, { url }, onRuntimeError)
+        return
+      }
+      if (Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)
+          && reader) {
+        (browser as typeof chrome & {
+          tabs: typeof chrome.tabs & { toggleReaderMode? (tabId: number): Promise<void> }
+        }).tabs.toggleReaderMode!(tab.id).catch((): void => {
+          Backend_.reopenTab_(tab, 0, { openInReaderMode: true })
+        });
+        return;
       }
       url = url.startsWith("view-source:") ? url.slice(12) : ("view-source:" + url);
       tabsCreate({
@@ -3068,7 +3103,7 @@
         s: selectLast ? url.lastIndexOf(" ") + 1 : 0
       };
     },
-    reopenTab_ (this: void, tab: Tab, refresh?: 0 | 1 | 2): void {
+    reopenTab_ (this: void, tab: Tab, refresh, exProps): void {
       const tabId = tab.id, needTempBlankTab = refresh === 1;
       if (refresh) {
         let step = RefreshTabStep.start,
@@ -3096,14 +3131,27 @@
         tabsGet(tabId, onRefresh);
         return;
       }
-      tabsCreate({
+      let callback: ((this: void, tab: Tab) => void) | null | undefined
+      if (!(Build.BTypes & ~BrowserType.Edge)
+          || (Build.BTypes & BrowserType.Edge && OnOther === BrowserType.Edge)
+          || Build.MinCVer < BrowserVer.MinMuted && Build.BTypes & BrowserType.Chrome
+              && CurCVer_ < BrowserVer.MinMuted) {
+      } else {
+        callback = (tab2: Tab): void => { chrome.tabs.update(tab2.id, { muted: tab.muted }) }
+      }
+      const args: Parameters<BackendHandlersNS.BackendHandlers["reopenTab_"]>[2] = {
         windowId: tab.windowId,
         index: tab.index,
         url: getTabUrl(tab),
         active: tab.active,
         pinned: tab.pinned,
         openerTabId: tab.openerTabId
-      });
+      }
+      if (Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox) && exProps) {
+        BgUtils_.extendIf_(args, exProps)
+      }
+      tabsCreate(args, callback);
       chrome.tabs.remove(tabId);
       // should never remove its session item - in case that goBack/goForward might be wanted
       // not seems to need to restore muted status

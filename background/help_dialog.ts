@@ -279,3 +279,8 @@ var HelpDialog = {
   }),
   descriptions_: BgUtils_.safeObj_<string>()
 };
+if (Build.BTypes & BrowserType.Firefox
+    && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)) {
+  (HelpDialog.commandGroups_.tabManipulation as Writable<typeof HelpDialog.commandGroups_.tabManipulation>
+      ).push(kCName.toggleReaderMode)
+}

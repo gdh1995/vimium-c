@@ -330,9 +330,11 @@
 	"toggleLinkHintCharacters": {
 		"message": "Permuter les autres indices du lien"
 	},
+	
 	"toggleMuteTab": {
 		"message": "Permuter le son de l'onglet courant"
 	},
+	"toggleReaderMode": { "message": "Permuter le mode lecteur" },
 	"toggleSwitchTemp": {
 		"message": "Activer temporairement"
 	},

@@ -531,6 +531,7 @@ declare const enum kCName {
   toggleLinkHintCharacters = "toggleLinkHintCharacters",
   toggleMuteTab = "toggleMuteTab",
   togglePinTab = "togglePinTab",
+  toggleReaderMode = "toggleReaderMode",
   toggleSwitchTemp = "toggleSwitchTemp",
   toggleViewSource = "toggleViewSource",
   toggleVomnibarStyle = "toggleVomnibarStyle",
@@ -665,6 +666,7 @@ declare namespace CommandsNS {
     [kCName.toggleLinkHintCharacters]: kBgCmd.toggle;
     [kCName.toggleMuteTab]: kBgCmd.toggleMuteTab;
     [kCName.togglePinTab]: kBgCmd.togglePinTab;
+    [kCName.toggleReaderMode]: kBgCmd.toggleViewSource;
     [kCName.toggleSwitchTemp]: kBgCmd.toggle;
     [kCName.toggleViewSource]: kBgCmd.toggleViewSource;
     [kCName.toggleVomnibarStyle]: kBgCmd.toggleVomnibarStyle;
@@ -716,7 +718,8 @@ declare namespace BackendHandlersNS {
     checkIfEnabled_: ExclusionsNS.Listener;
     focus_ (this: void, request: MarksNS.FocusOrLaunch): void;
     setOmniStyle_ (this: void, request: FgReq[kFgReq.setOmniStyle], port?: Port): void;
-    reopenTab_ (tab: chrome.tabs.Tab, refresh?: /* false */ 0 | /* a temp blank tab */ 1 | /* directly */ 2): void;
+    reopenTab_ (tab: chrome.tabs.Tab, refresh?: /* false */ 0 | /* a temp blank tab */ 1 | /* directly */ 2,
+        exProps?: chrome.tabs.CreateProperties & {openInReaderMode?: boolean}): void;
     setIcon_ (tabId: number, type: Frames.ValidStatus, isLater?: true): void;
     removeSug_ (this: void, req: FgReq[kFgReq.removeSug], port?: Port): void;
     complain_ (this: BackendHandlers, message: string): void;
