@@ -838,14 +838,6 @@ optionsInitAll_ = function (): void {
 
 optionsInit1_();
 
-if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && bgOnOther_ & BrowserType.Firefox) {
-  const iconLink = document.createElement("link")
-  iconLink.rel = "icon"
-  iconLink.href = "../icons/icon128.png"
-  iconLink.type = "image/png"
-  nextTick_(el => { document.head!.appendChild(el) }, iconLink)
-}
-
 if (!bgSettings_.payload_.o) {
   nextTick_(el => { el.textContent = "Cmd"; }, $("#Ctrl"));
 }

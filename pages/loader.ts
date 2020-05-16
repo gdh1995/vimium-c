@@ -1,6 +1,7 @@
 /// <reference path="../typings/base/index.d.ts" />
 /// <reference path="../typings/lib/index.d.ts" />
 /// <reference path="../typings/build/index.d.ts" />
+/// <reference path="../lib/base.d.ts" />
 /// <reference path="../background/bg.d.ts" />
 /// <reference path="../background/utils.ts" />
 /// <reference path="../background/settings.ts" />
@@ -86,6 +87,14 @@ chrome.runtime && chrome.runtime.getManifest && (function () {
     scriptElement.onload = () => next(index + 1);
     scripts.push(scriptElement);
     head.appendChild(scriptElement);
+  }
+  if (!(Build.BTypes & ~BrowserType.Firefox)
+      || Build.BTypes & BrowserType.Firefox && bg0 && bg0.OnOther === BrowserType.Firefox) {
+    const iconLink = document.createElement("link")
+    iconLink.rel = "icon"
+    iconLink.href = "../icons/icon128.png"
+    iconLink.type = "image/png"
+    document.head!.appendChild(iconLink)
   }
   if (Build.BTypes & BrowserType.Edge) {
     setTimeout(function (): void {
