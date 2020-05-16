@@ -33,6 +33,7 @@ vertical-align:top;}.tab,.math{stroke:#999;stroke-width:4;fill:none;}
 a{color:#3b517d;cursor:text;font:14px/18px "Helvetica Neue",Helvetica,Arial,sans-serif;text-decoration:none;}
 .mono-url a{font-family:Consolas,"Liberation Mono","Courier New",monospace;}
 match{color:#000;font-weight:bold;}.title>match{text-decoration:underline;}
+#closeSvg{width:14px;height:12px;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:2.4;}
 .level-2{padding-right:32px;}.level-3{padding-right:48px;}.level-4{padding-right:60px;}.level-5{padding-right:72px;}
 .less-motion .transparent, .less-motion #toolbar{transition:none;}
 .tab{d:path("M2 22v36h44V22zm8 0v-8h44v36h-6m8 -8h6V6H18v6");}
@@ -58,9 +59,7 @@ match{color:#000;font-weight:bold;}.title>match{text-decoration:underline;}
 	<div id="toolbar">
 		<span role="button" class="button" id="toggle-dark" title="Toggle Dark">&#9789;
 		</span><span role="button" class="button" id="close" title="Close"><svg
-				width="12" height="12" stroke="currentColor">
-			<path d="M2 2l8 8zM2 10L10 2" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
-		</svg></span>
+				id="closeSvg" viewBox="0 0 12 12"><path d="M2 2l8 8zM2 10L10 2" /></svg></span>
 	</div>
 </div>
 <div id="list">
