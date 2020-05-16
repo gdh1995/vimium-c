@@ -566,7 +566,7 @@ const isDescendant = function (c: Element | null, p: Element, shouldBeSingleChil
   return i > 2;
 } as (c: Element, p: Element, shouldBeSingleChild: BOOL | boolean) => boolean
 
-const filterOutNonReachable = (list: Hint[]): void => {
+export const filterOutNonReachable = (list: Hint[]): void => {
   if (!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && VOther & BrowserType.Edge) { return; }
   if (!fgCache.e) { return; }
   if (Build.BTypes & BrowserType.Chrome && (Build.MinCVer < BrowserVer.Min$Node$$getRootNode

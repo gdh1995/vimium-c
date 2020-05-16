@@ -91,7 +91,9 @@ import { scrollTick, beginScroll } from "./scroller"
 import { omni_box, focusOmni } from "./vomnibar"
 import { hudTip, hudShow, hudCopied, hudResetTextProp, hudHide, hud_text } from "./hud"
 import { set_onWndBlur2 } from "./mode_insert"
-import { getVisibleElements, localLinkClear, frameNested_, checkNestedFrame, set_frameNested_ } from "./local_links"
+import {
+  getVisibleElements, localLinkClear, frameNested_, checkNestedFrame, set_frameNested_, filterOutNonReachable,
+} from "./local_links"
 import {
   rotateHints, matchHintsByKey, zIndexes_, rotate1, initFilterEngine, initAlphabetEngine, renderMarkers,
   getMatchingHints, activeHint_, hintFilterReset, hintFilterClear, resetZIndexes, adjustMarkers, createHint,
@@ -339,7 +341,7 @@ const SetHUDLater = (): void => {
     if (isAlive_ && isActive) { coreHints.q = TimerID.None; setMode(mode_); }
 }
 
-const getPreciseChildRect = (frameEl: HTMLIFrameElement | HTMLElement, view: Rect): Rect | null => {
+const getPreciseChildRect = (frameEl: HTMLIFrameElement | HTMLFrameElement, view: Rect): Rect | null => {
     const max = Math.max, min = Math.min, V = "visible",
     brect = getBoundingClientRect_(frameEl),
     docEl = docEl_unsafe_(), body = doc.body, inBody = !!body && IsInDOM_(frameEl, body, 1),
@@ -356,8 +358,12 @@ const getPreciseChildRect = (frameEl: HTMLIFrameElement | HTMLElement, view: Rec
       }
     }
     l = max(l, view.l), t = max(t, view.t);
-    return l + 7 < r && t + 7 < b ? {
+    const cropped = l + 7 < r && t + 7 < b ? {
         l: (l - x0) * zoom, t: (t - y0) * zoom, r: (r - x0) * zoom, b: (b - y0) * zoom} : null;
+    let hints: Hint[] | null;
+    return cropped && (
+        filterOutNonReachable(hints = [[frameEl as SafeHTMLElement, cropped, HintsNS.ClickType.frame]]),
+        hints.length) ? cropped : null
 }
 
 export const tryNestedFrame = (
