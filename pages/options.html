@@ -34,10 +34,10 @@
             </table>
             <template id="exclusionTemplate"><tr class="exclusionRule">
                 <td>
-                  <input type="text" class="pattern" placeholder=":https://mail.google.com/" spellcheck="false" />
+                  <input autocomplete="off" type="text" class="pattern" placeholder=":https://example.net/" />
                 </td>
                 <td>
-                  <input type="text" class="passKeys" placeholder="f j &lt;c-j&gt; K" spellcheck="false" />
+                  <input autocomplete="off" type="text" class="passKeys" placeholder="f j &lt;c-j&gt; K" />
                 </td>
                 <td>
                   <input type="button" class="exclusionRemove" title="Remove" value="&#x2716;" />
@@ -95,9 +95,9 @@
           <div data-i="o17">Remap keys and commands. Some examples:</div>
           <code>
           <pre>
-map &lt;f1&gt; LinkHints.activate
-unmap &lt;a-s-f&gt;
-mapKey &lt;a-e&gt; &lt;esc&gt; 
+map f LinkHints.activate
+unmap &lt;a-f1&gt;
+mapKey &lt;c-s-e&gt; &lt;esc&gt;
 <span class="require-shortcuts">shortcut createTab position="end"</span>
 <span class="require-shortcuts">shortcut userCustomized1 command="goBack"</span>
 # "unmapAll" <span data-i="o18">unmaps all above and default</span></pre>

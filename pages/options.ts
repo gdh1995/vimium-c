@@ -82,6 +82,7 @@ constructor (element: HTMLInputElement, onUpdated: (this: NumberOption_<T>) => v
   };
   this.element_.oninput = this.onUpdated_;
   this.element_.onfocus = this.addWheelListener_.bind(this);
+  this.element_.setAttribute("autocomplete", "off")
 }
 populateElement_ (value: number): void {
   this.element_.value = "" + value;
@@ -146,6 +147,7 @@ constructor (element: TextElement, onUpdated: (this: TextOption_<T>) => void) {
       check_: TextOption_.normalizeByOps_
     };
   }
+  this.element_.setAttribute("autocomplete", "off")
 }
 fetch_ (): void {
   super.fetch_();
