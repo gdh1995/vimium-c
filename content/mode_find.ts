@@ -712,6 +712,8 @@ export const executeFind = (query?: string | null, options?: FindNS.ExecuteOptio
     const focusHUD = !!(Build.BTypes & BrowserType.Firefox)
       && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
       && isActive && innerDoc_.hasFocus()
+    const wndSel = getSelection_()
+    let skipped: BOOL = 0
     do {
       q = query != null ? query : isRe ? getNextQueryFromRegexMatches(back) : parsedQuery_
       found = Build.BTypes & ~BrowserType.Chrome
@@ -723,12 +725,16 @@ export const executeFind = (query?: string | null, options?: FindNS.ExecuteOptio
         resetSelectionToDocStart();
         found = _do_find_not_cr!(q, !notSens, back, true, wholeWord, false, false)
       }
+      if (found && !(skipped || wndSel + "")) { // the matched text may have `user-select: none`
+        count++, skipped = 1
+        wndSel.modify("move", kDir[1 - <number> <number | boolean>back], "character")
+      }
       /**
        * Warning: on Firefox and before {@link #FirefoxBrowserVer.Min$find$NotReturnFakeTrueOnPlaceholderAndSoOn},
        * `found` may be unreliable,
        * because Firefox may "match" a placeholder and cause `getSelection().type` to be `"None"`
        */
-      if (found && pR && (par = getSelectionParent_unsafe())) {
+      else if (found && pR && (par = getSelectionParent_unsafe())) {
         pR.lastIndex = 0;
         let text = (par as TypeToPick<Element, HTMLElement, "innerText">).innerText;
         if (text && !(Build.BTypes & ~BrowserType.Firefox && typeof text !== "string")
