@@ -1208,8 +1208,7 @@ Completers = {
   },
   requireNormalOrIncognito_ (
       func: (this: void, query: CompletersNS.QueryStatus, tabs: readonly WritableTabEx[]) => void
-      , query: CompletersNS.QueryStatus, tabs?: readonly Tab[] | null): 1 | void {
-    tabs = tabs || MatchCacheManager.tabs_.tabs_;
+      , query: CompletersNS.QueryStatus, __tabs?: readonly Tab[] | null): 1 | void {
     let wndIncognito = TabRecency_.incognito_;
     if (Build.MinCVer < BrowserVer.MinNoAbnormalIncognito && Build.BTypes & BrowserType.Chrome && inNormal === null) {
       wndIncognito = wndIncognito !== IncognitoType.mayFalse ? wndIncognito
@@ -1224,8 +1223,9 @@ Completers = {
       if (MatchCacheManager.tabs_.type_ !== newType) {
         MatchCacheManager.tabs_ = { tabs_: null, type_: newType };
       }
-      if (tabs) {
-        func(query, tabs);
+      __tabs = __tabs || MatchCacheManager.tabs_.tabs_;
+      if (__tabs) {
+        func(query, __tabs);
       } else {
         chrome.tabs.query(wantInCurrentWindow ? { currentWindow: true } : {}, func.bind(null, query));
       }

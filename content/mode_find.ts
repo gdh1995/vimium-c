@@ -713,7 +713,7 @@ export const executeFind = (query?: string | null, options?: FindNS.ExecuteOptio
       && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
       && isActive && innerDoc_.hasFocus()
     const wndSel = getSelection_()
-    let skipped: BOOL = 0
+    let dedupID = count + 1
     do {
       q = query != null ? query : isRe ? getNextQueryFromRegexMatches(back) : parsedQuery_
       found = Build.BTypes & ~BrowserType.Chrome
@@ -725,8 +725,9 @@ export const executeFind = (query?: string | null, options?: FindNS.ExecuteOptio
         resetSelectionToDocStart();
         found = _do_find_not_cr!(q, !notSens, back, true, wholeWord, false, false)
       }
-      if (found && !(skipped || wndSel + "")) { // the matched text may have `user-select: none`
-        count++, skipped = 1
+      if (found && dedupID > count && !(wndSel + "")) { // the matched text may have `user-select: none`
+        dedupID = count
+        count++
         wndSel.modify("move", kDir[1 - <number> <number | boolean>back], "character")
       }
       /**
