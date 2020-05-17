@@ -487,7 +487,13 @@ let optionsInit1_ = function (): void {
     const ref = Option_.all_;
     Option_.suppressPopulate_ = false;
     for (let key in ref) {
-      ref[key as "vimSync"].populateElement_(ref[key as "vimSync"].previous_);
+      const obj = ref[key as "vimSync"];
+      if (Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ & BrowserType.Firefox)
+          && bgSettings_.payload_.o === kOS.linux && obj instanceof BooleanOption_) {
+        obj.element_.classList.add("text-bottom");
+      }
+      obj.populateElement_(obj.previous_);
     }
   });
   if (Option_.all_.exclusionRules.previous_.length > 0) {

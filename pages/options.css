@@ -639,6 +639,9 @@ select:-moz-focusring {
   #keyMappings {
     min-height: 166px;
   }
+  input.text-bottom[type=checkbox] {
+    vertical-align: text-bottom;
+  }
 }
 @supports (display: -ms-grid) {
   option:hover {
