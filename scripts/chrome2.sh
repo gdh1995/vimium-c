@@ -4,7 +4,12 @@ VER=
 FLAGS=
 OTHER_EXT=
 OTHER_ARGS=
-GUD=${GUD:-/r/TEMP/GUD}
+GUD=
+DO_CLEAN=0
+IS_EDGE=0
+EDGE_VER=
+CHROME_ROOT=
+EXE=
 WORKING_DIR=${WORKING_DIR:-/r/working}
 VC_ROOT=
 DIST=0
@@ -29,11 +34,7 @@ function wp() {
 while [[ $# -gt 0 ]]; do
 case "$1" in
   clean|ckean|--clean)
-    if test -e "$GUD"; then
-      rm -rf "$GUD" || exit $?
-      wp gud_w "$GUD"
-      echo -E "Clean ${gud_w} : done."
-    fi
+    DO_CLEAN=1
     shift
     ;;
   exp|--exp)
@@ -91,10 +92,19 @@ case "$1" in
     shift
     ;;
   only|--only)
-    exit 0
+    if test $DO_CLEAN -eq 1; then DO_CLEAN=2; fi
+    shift
     ;;
   [3-9][0-9]|cur|wo|prev|[1-9a-f][1-9a-f][1-9a-f][1-9a-f][1-9a-f][1-9a-f]*) # ver
     VER=$1
+    shift
+    ;;
+  edge-dev|--edge-dev)
+    IS_EDGE=3
+    shift
+    ;;
+  edge|--edge)
+    IS_EDGE=1
     shift
     ;;
   zdsf)
@@ -130,6 +140,24 @@ case "$1" in
 esac
 done
 
+if test $IS_EDGE -gt 0; then
+  case "$IS_EDGE" in
+  3) EDGE_VER=" Dev" ;;
+  2) EDGE_VER=" Beta" ;;
+  esac
+  CHROME_ROOT="/c/Program Files (x86)/Microsoft/Edge${EDGE_VER}/Application"
+  test -e "$CHROME_ROOT" || CHROME_ROOT="/c/Program Files (x86)/Microsoft/Edge Dev/Application"
+  EXE=$CHROME_ROOT/msedge.exe
+  GUD=${GUD:-/r/TEMP/EUD}
+fi
+GUD=${GUD:-/r/TEMP/GUD}
+if test $DO_CLEAN -gt 0 -a -e "$GUD"; then
+  rm -rf "$GUD" || exit $?
+  wp gud_w "$GUD"
+  echo -E "Clean ${gud_w} : done."
+fi
+if test $DO_CLEAN -eq 2; then exit 0; fi
+
 if test $ALSO_VC -gt 0; then
   if test $DIST -gt 0; then
     wp deafault_vc_ext_w "$default_vc_root/dist"
@@ -153,14 +181,15 @@ if test -f "$dir"/Chrome/chrome.exe; then
   CHROME_ROOT=$dir
   VC_ROOT=${VC_ROOT:-$default_vc_root}
 else
-  CHROME_ROOT='/d/Program Files/Google'
+  CHROME_ROOT=${CHROME_ROOT:-/d/Program Files/Google}
   VC_ROOT=${VC_ROOT:-${dir%/*}}
 fi
 if test -z "$VER" && test -f "$WORKING_DIR"/Chrome-bin/chrome.exe; then
   VER=wo
 fi
 test "$VER" == cur && VER=
-if test "$VER" == wo; then
+if test -n "$EXE"; then :
+elif test "$VER" == wo; then
   EXE=$WORKING_DIR/Chrome-bin/chrome.exe
 else
   EXE=$WORKING_DIR/${VER:-cur}/chrome.exe
@@ -207,6 +236,7 @@ test -d "$WORKING_DIR" && cd "$WORKING_DIR" 2>/dev/null || cd "${EXE%/*}"
 echo -E Run: "${exe_w}" at ${gud_w} with "${vc_ext_w}"
 $RUN "$EXE" \
   --user-data-dir=${gud_w} \
+  --no-first-run --disable-default-apps\
   --load-extension=${vc_ext_w}${OTHER_EXT} \
   --homepage ${HOME_PAGE:-chrome-extension://hfjbmagddngcpeloejdejnfgbamkjaeg/pages/options.html} \
   --disable-office-editing-component-extension \
