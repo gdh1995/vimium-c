@@ -3,7 +3,7 @@
 ===========================================
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.83.1](https://img.shields.io/badge/release-1.83.1-orange.svg
+[![Version 1.83.2](https://img.shields.io/badge/release-1.83.2-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -89,6 +89,16 @@ __Other extensions supporting Vimium C:__
 
 
 # Release Notes
+
+#### 1.83.2
+* LinkHints: no hint links on an iframe if it's wholly covered
+* FindMode: fix an edge case <kbd>Ctrl+J</kbd> may hang at a place
+* Vomnibar: fix a bug the `currentWindow` option may affect a next `activateTabSelection` command
+* settings: fix a crash during auto-recovering when `localStorage` got cleared
+* copy to clipboard: avoid spaces occur in URLs
+* export settings: encode the block list of words using base64
+* Firefox on Android: highly experimental support
+* fix some other bugs
 
 #### 1.83.1
 * i18n: support French when showing tips

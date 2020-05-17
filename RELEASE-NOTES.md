@@ -4,6 +4,16 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://github.com/gdh1995/vimium-c/blob/master/README_zh.md .
 
+#### 1.83.2
+* LinkHints: no hint links on an iframe if it's wholly covered
+* FindMode: fix an edge case <kbd>Ctrl+J</kbd> may hang at a place
+* Vomnibar: fix a bug the `currentWindow` option may affect a next `activateTabSelection` command
+* settings: fix a crash during auto-recovering when `localStorage` got cleared
+* copy to clipboard: avoid spaces occur in URLs
+* export settings: encode the block list of words using base64
+* Firefox on Android: highly experimental support
+* fix some other bugs
+
 #### 1.83.1
 * i18n: support French when showing tips
 * releases on the store: increase the required *minimum Chrome version* to 43

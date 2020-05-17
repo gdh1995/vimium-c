@@ -79,7 +79,7 @@
     "reserved": [
       // # expected names in content
       "WeakMap", "WeakSet", "Set", "InputDeviceCapabilities", "visualViewport",
-      "requestIdleCallback",
+      "requestIdleCallback", "WeakRef",
       // # content global names:
       "__filename", "browser",
       "VimiumInjector", "VApi",
