@@ -36,7 +36,7 @@
       "Object.create", "Object.setPrototypeOf",
       "getAttribute", "hasAttribute", "querySelectorAll",
       "Math.max", "Math.min", "Math.floor", "Math.round", "Math.abs", "Math.random",
-      "VApi.lock_", "lock_", "safeObj", "safeObj_",
+      "safeObj", "safeObj_", "weakRef_", "deref_",
       "onRuntimeError", "BgUtils_.runtimeError_",
       "trans_", "pTrans_", "sTrans_", "VTr",
       "readyState", "binarySearch_",

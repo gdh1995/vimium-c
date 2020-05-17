@@ -1,6 +1,6 @@
 import {
   setupEventListener, clickable_, isTop, keydownEvents_, VOther, timeout_, fgCache, doc, isAlive_, allowScripts_,
-  set_allowScripts_, jsRe_, chromeVer_, VTr,
+  set_allowScripts_, jsRe_, chromeVer_, VTr, deref_,
 } from "../lib/utils"
 import {
   createElement_, createShadowRoot_, bZoom_, dScale_, fullscreenEl_unsafe_, docEl_unsafe_, getZoom_, wdZoom_,
@@ -212,8 +212,8 @@ export const checkDocSelectable = (): void => {
 }
 
 export const getSelected = (notExpectCount?: 1): [Selection, ShadowRoot | null] => {
-    let el: Node | null, sel: Selection | null;
-    if (el = currentScrolling) {
+    let el: Node | null | undefined, sel: Selection | null;
+    if (el = deref_(currentScrolling)) {
       if (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
           || !(Build.BTypes & ~BrowserType.Firefox)
           || el.getRootNode) {
@@ -287,9 +287,9 @@ export const getSelectionParent_unsafe = (selected?: string): Element | null => 
 }
 
 export const getSelectionText = (notTrim?: 1): string => {
-    let sel = getSelection_(), s = "" + sel, el: Element | null, rect: ClientRect;
+    let sel = getSelection_(), s = "" + sel, el: Element | null | undefined, rect: ClientRect;
     if (s && !insert_Lock_()
-        && (el = currentScrolling) && getEditableType_<0>(el) === EditableType.TextBox
+        && (el = deref_(currentScrolling)) && getEditableType_<0>(el) === EditableType.TextBox
         && (rect = getSelectionBoundingBox_(sel), !rect.width || !rect.height)) {
       s = "";
     }
@@ -331,7 +331,7 @@ export const click_ = (element: SafeElementForMouse
       }
       if (!IsInDOM_(element)) { return; }
     }
-    if (element !== lastHovered_) {
+    if (element !== deref_(lastHovered_)) {
       hover_(element, center);
       if (!lastHovered_) { return; }
     }

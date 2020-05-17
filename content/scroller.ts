@@ -34,7 +34,7 @@ interface ElementScrollInfo {
 }
 
 import {
-  isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, allowRAF_, readyState_, loc_, chromeVer_, vApi,
+  isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, allowRAF_, readyState_, loc_, chromeVer_, vApi, deref_, weakRef_,
 } from "../lib/utils"
 import { getParentVApi, resetSelectionToDocStart, checkHidden } from "./dom_ui"
 import { isCmdTriggered } from "./key_handler"
@@ -53,9 +53,9 @@ let minDelay = ScrollerNS.Consts.DefaultMinDelayMs as number
 /** @NEED_SAFE_ELEMENTS */
 let scrollingTop: SafeElement | null = null
 /** @NEED_SAFE_ELEMENTS */
-let currentScrolling: SafeElement | null = null
+let currentScrolling: WeakRef<SafeElement> | null = null
 /** @NEED_SAFE_ELEMENTS */
-let cachedScrollable: SafeElement | 0 | null = 0
+let cachedScrollable: WeakRef<SafeElement> | 0 | null = 0
 let keyIsDown = 0
 let preventPointEvents: BOOL | boolean = 1
 let scale = 1
@@ -65,7 +65,8 @@ let scrolled = 0
 export { currentScrolling, cachedScrollable, keyIsDown, scrolled }
 export function clearTop (): void { scrollingTop = null }
 export function resetScrolled (): void { scrolled = 0 }
-export function set_currentScrolling (_newCurSc: SafeElement | null): void { currentScrolling = _newCurSc }
+export function set_currentScrolling (_newCurSc: WeakRef<SafeElement> | null): void { currentScrolling = _newCurSc }
+export function resetCurrentScrolling (): void { currentScrolling = null }
 export function clearCachedScrollable (): void { cachedScrollable = 0 }
 export function syncCachedScrollable (): void { cachedScrollable = currentScrolling }
 
@@ -328,7 +329,7 @@ const adjustAmount = (di: ScrollByY, amount: number, element: SafeElement | null
    * @param amount should not be 0
    */
 const findScrollable = (di: ScrollByY, amount: number): SafeElement | null => {
-    const top = scrollingTop, activeEl: SafeElement | null = currentScrolling
+    const top = scrollingTop, activeEl: SafeElement | null | undefined = deref_(currentScrolling)
     let element = activeEl;
     if (element) {;
       let reason: number, notNeedToRecheck = !di
@@ -344,7 +345,7 @@ const findScrollable = (di: ScrollByY, amount: number): SafeElement | null => {
           ) || top;
       }
       element = element !== top || notNeedToRecheck ? element : null
-      cachedScrollable = element
+      cachedScrollable = weakRef_(element)
     }
     if (!element) {
       // note: twitter auto focuses its dialog panel, so it's not needed to detect it here
@@ -359,7 +360,7 @@ const findScrollable = (di: ScrollByY, amount: number): SafeElement | null => {
           ? candidate.e : top;
       // if current_, then delay update to current_, until scrolling ends and ._checkCurrent is called;
       // otherwise, cache selected element for less further cost
-      activeEl || (currentScrolling = element, cachedScrollable = 0);
+      activeEl || (currentScrolling = weakRef_(element), cachedScrollable = 0);
     }
     return element;
 }
@@ -381,7 +382,10 @@ export const getPixelScaleToScroll = (): void => {
 }
 
 const checkCurrent = (el: SafeElement | null): void => {
-    if (currentScrolling !== el && currentScrolling && NotVisible_(currentScrolling)) { currentScrolling = el; cachedScrollable = 0; }
+  let cur = deref_(currentScrolling)
+  if (cur ? cur !== el && NotVisible_(cur) : currentScrolling) {
+    currentScrolling = weakRef_(el), cachedScrollable = 0
+  }
 }
 
   /** if `el` is null, then return viewSize for `kScrollDim.scrollSize` */
@@ -469,7 +473,7 @@ export const scrollIntoView_need_safe = (el: SafeElement): void => {
     { bottom: b, top: t, right: r, left: l } = rect,
     hasY = b < ihm ? max(b - ih + ihm, t - ihm) : ih < t + ihm ? min(b - ih + ihm, t - ihm) : 0,
     hasX = r < 0 ? max(l - iwm, r - iw + iwm) : iw < l ? min(r - iw + iwm, l - iwm) : 0;
-    currentScrolling = el
+    currentScrolling = weakRef_(el)
     cachedScrollable = 0
     if (hasX || hasY) {
       for (let el2: Element | null = el; el2; el2 = GetParent_unsafe_(el2, PNType.RevealSlotAndGotoParent)) {
@@ -529,7 +533,7 @@ export const onActivate = (event: Event): void => {
               || !(Build.BTypes & BrowserType.Chrome)
             ? path : path && path.length > 1)
         ? path![0] as Element : event.target as Element;
-    currentScrolling = Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(el) : el as SafeElement | null
+    currentScrolling = weakRef_(Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(el) : el as SafeElement | null)
     cachedScrollable = 0
   }
 }

@@ -922,6 +922,9 @@ function beforeUglify(file) {
     if (!(btypes & ~BrowserType.Chrome) && minCVer >= /* MinEnsured$visualViewport$ */ 61) {
       toRemovedGlobal += "visualViewport|";
     }
+    if (!(btypes & BrowserType.Chrome)) {
+      toRemovedGlobal += "WeakRef|";
+    }
     if (getNonNullBuildItem("NDEBUG")) {
       toRemovedGlobal += "__filename|";
     }

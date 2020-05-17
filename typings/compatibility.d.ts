@@ -454,6 +454,7 @@ declare const enum BrowserVer {
   FlagOutOfBlinkCorsMayCauseBug = 81,
   // #freeze-user-agent: https://www.chromestatus.com/features/5704553745874944
   FlagFreezeUserAgentGiveFakeUAMajor = 81, // FakeUAMajorWhenFreezeUserAgent
+  MinMaybe$WeakRef = 83, // no `WeakRef` if LEGACY
   /** @todo: trace https://bugs.chromium.org/p/chromium/issues/detail?id=968651&can=2&q=reduced-motion%20change */
   MinMediaChangeEventsOnBackgroundPage = 999,
   MinNo$TimerType$$Fake = 999,

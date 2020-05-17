@@ -8,12 +8,12 @@ interface NodeWithInfo extends Node {
 
 import {
   doc, keydownEvents_, safeObj, fgCache, isTop, set_keydownEvents_, setupEventListener, VOther,
-  esc, onWndFocus, isEnabled_, readyState_, injector, getTime, recordLog,
+  esc, onWndFocus, isEnabled_, readyState_, injector, getTime, recordLog, weakRef_,
 } from "../lib/utils"
 import { post_, safePost } from "./port"
 import { getParentVApi, ui_box } from "./dom_ui"
 import { hudHide } from "./hud"
-import { set_currentScrolling, currentScrolling, scrollTick, clearCachedScrollable } from "./scroller"
+import { set_currentScrolling, scrollTick, clearCachedScrollable } from "./scroller"
 import { resetIsCmdTriggered, resetAnyClickHandler } from "./key_handler"
 import {
   activeEl_unsafe_, isHTML_, docEl_unsafe_, getEditableType_, GetShadowRoot_, getSelection_, frameElement_,
@@ -33,7 +33,7 @@ let insert_global_: CmdOptions[kFgCmd.insertMode] | null = null
 let isHintingInput: BOOL = 0
 let inputHint: { /** box */ b: HTMLDivElement; /** hints */ h: HintsNS.InputHintItem[] } | null = null
 let suppressType: string | null = null
-let insert_last_: LockableElement | null = null
+let insert_last_: WeakRef<LockableElement> | null | undefined
 let is_last_mutable: BOOL = 1
 let lastWndFocusTime = 0
 let grabBackFocus: boolean | ((event: Event, target: LockableElement) => void) = readyState_ > "l"
@@ -43,11 +43,11 @@ let onWndBlur2: ((this: void) => void) | undefined | null
 
 export {
   lock_ as raw_insert_lock, insert_global_,
-  insert_last_ as insert_last, is_last_mutable as insert_last_mutable,
+  insert_last_, is_last_mutable as insert_last_mutable,
   grabBackFocus, suppressType, inputHint as insert_inputHint, onWndBlur2, exitPassMode,
 }
 export function set_insert_global_ (_newIGlobal: CmdOptions[kFgCmd.insertMode]): void { insert_global_ = _newIGlobal }
-export function set_insert_last_ (_newILast: LockableElement | null): void { insert_last_ = _newILast }
+export function set_insert_last_ (_newILast: WeakRef<LockableElement> | null): void { insert_last_ = _newILast }
 export function set_is_last_mutable (_newIsLastMutable: BOOL): void { is_last_mutable = _newIsLastMutable }
 export function set_inputHint (_newIHint: typeof inputHint): void { inputHint = _newIHint }
 export function set_isHintingInput (_newIsHintingInput: BOOL): void { isHintingInput = _newIsHintingInput }
@@ -253,8 +253,12 @@ export const onFocus = (event: Event | FocusEvent): void => {
     target = isNormalHost ? top as Element : target;
   }
   if (!lastWndFocusTime || getTime() - lastWndFocusTime > 30) {
-    /*#__INLINE__*/ set_currentScrolling(Build.BTypes & ~BrowserType.Firefox
-        ? SafeEl_not_ff_!(target as Element) || currentScrolling : target as SafeElement);
+    if (Build.BTypes & ~BrowserType.Firefox) {
+      let el: SafeElement | null = SafeEl_not_ff_!(target as Element)
+      el && /*#__INLINE__*/ set_currentScrolling(weakRef_(el));
+    } else {
+      /*#__INLINE__*/ set_currentScrolling(weakRef_(target as SafeElement));
+    }
     /*#__INLINE__*/ clearCachedScrollable();
   }
   lastWndFocusTime = 0;
@@ -268,7 +272,7 @@ export const onFocus = (event: Event | FocusEvent): void => {
     if (is_last_mutable) {
       // here ignore the rare case of an XMLDocument with a editable node on Firefox, for smaller code
       if (activeEl_unsafe_() !== doc.body) {
-        insert_last_ = target;
+        insert_last_ = weakRef_(target);
       }
     }
   }

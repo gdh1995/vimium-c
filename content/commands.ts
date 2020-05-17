@@ -1,8 +1,8 @@
 import {
-  chromeVer_, doc, esc, EscF, fgCache, isTop, safeObj, set_esc, VOther, VTr, safer, timeout_, loc_,
+  chromeVer_, doc, esc, EscF, fgCache, isTop, safeObj, set_esc, VOther, VTr, safer, timeout_, loc_, weakRef_, deref_,
 } from "../lib/utils"
 import {
-  unhover_, set_lastHovered_, isHTML_, view_, NotVisible_, getZoom_, prepareCrop_, getViewBox_, createElement_,
+  unhover_, resetLastHovered, isHTML_, view_, NotVisible_, getZoom_, prepareCrop_, getViewBox_, createElement_,
   padClientRect_, getBoundingClientRect_, setBoundary_, wdZoom_, dScale_, getInnerHeight,
 } from "../lib/dom_utils"
 import {
@@ -20,7 +20,7 @@ import {
 import { activate as markActivate, gotoMark } from "./marks"
 import { activate as findActivate, deactivate as findDeactivate, execCommand, init as findInit } from "./mode_find"
 import {
-  exitInputHint, insert_inputHint, insert_last, raw_insert_lock, resetInsert,
+  exitInputHint, insert_inputHint, insert_last_, raw_insert_lock, resetInsert,
   set_inputHint, set_insert_global_, set_isHintingInput, set_insert_last_, onWndBlur, exitPassMode, set_exitPassMode,
   set_is_last_mutable,
 } from "./mode_insert"
@@ -69,7 +69,7 @@ export const contentCommands_: {
   /* kFgCmd.vomnibar: */ omniActivate,
   /* kFgCmd.reset: */ (isAlive): void => {
     /*#__INLINE__*/ clearCachedScrollable()
-    /*#__INLINE__*/ set_lastHovered_(null)
+    /*#__INLINE__*/ resetLastHovered()
     /*#__INLINE__*/ resetInsert()
     linkClear(isAlive ? 2 : 0); visualDeactivate();
     findInit || findDeactivate(FindNS.Action.ExitNoAnyFocus);
@@ -197,18 +197,18 @@ export const contentCommands_: {
     });
   },
   /* kFgCmd.focusInput: */ function (options: CmdOptions[kFgCmd.focusInput], count: number): void {
-    const act = options.act || options.action;
-    if (act && (act[0] !== "l" || insert_last && !raw_insert_lock)) {
-      let newEl = raw_insert_lock, ret: BOOL = 1;
+    const act = options.act || options.action, known_last = deref_(insert_last_);
+    if (act && (act[0] !== "l" || known_last && !raw_insert_lock)) {
+      let newEl: LockableElement | null | undefined = raw_insert_lock, ret: BOOL = 1;
       if (newEl) {
         if (act === BSP) {
           if (view_(newEl)) { execCommand(DEL, doc); }
         } else {
-          /*#__INLINE__*/ set_insert_last_(newEl)
+          /*#__INLINE__*/ set_insert_last_(weakRef_(newEl))
           /*#__INLINE__*/ set_is_last_mutable(0)
           newEl.blur();
         }
-      } else if (!(newEl = insert_last)) {
+      } else if (!(newEl = known_last)) {
         hudTip(kTip.noFocused, 1200);
       } else if (act !== "last-visible" && view_(newEl) || !NotVisible_(newEl)) {
         /*#__INLINE__*/ set_insert_last_(null)
@@ -258,9 +258,9 @@ export const contentCommands_: {
       marker.className = "IH";
       setBoundary_(marker.style, rect);
       return {m: marker, d: link[0]};
-    });
-    if (count === 1 && insert_last) {
-      sel = Math.max(0, visibleInputs.map(link => link[0]).indexOf(insert_last));
+    }), known_last2 = deref_(insert_last_)
+    if (count === 1 && known_last2) {
+      sel = Math.max(0, visibleInputs.map(link => link[0]).indexOf(known_last2));
     } else {
       sel = count > 0 ? Math.min(count, sel) - 1 : Math.max(0, sel + count);
     }

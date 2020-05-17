@@ -72,11 +72,11 @@ interface FrameHintsInfo {
 
 import {
   VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_,
-  clearTimeout_, VOther, fgCache, doc, readyState_, chromeVer_, vApi,
+  clearTimeout_, VOther, fgCache, doc, readyState_, chromeVer_, vApi, deref_,
 } from "../lib/utils"
 import { frameElement_, querySelector_unsafe_, isHTML_, getViewBox_, prepareCrop_, scrollingEl_, bZoom_, wdZoom_,
   dScale_, getBoundingClientRect_, docEl_unsafe_, IsInDOM_, docZoom_, bScale_, GetParent_unsafe_, getComputedStyle_,
-  isStyleVisible_, lastHovered_, set_lastHovered_, getInnerHeight,
+  isStyleVisible_, lastHovered_, resetLastHovered, getInnerHeight,
 } from "../lib/dom_utils"
 import {
   pushHandler_, SuppressMost_, removeHandler_, getMappedKey, keybody_, isEscape_, getKeyStat_, keyNames_, suppressTail_,
@@ -619,8 +619,8 @@ const checkLast = function (this: void, el?: LinkEl | TimerType.fake | 1, r?: Re
                       /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
     hidden = !r2 || r2.width < 2 && r2.height < 2
         || !isStyleVisible_(el as LinkEl); // use 2px: may be safer
-    if (hidden && lastHovered_ === el) {
-      /*#__INLINE__*/ set_lastHovered_(null)
+    if (hidden && deref_(lastHovered_) === el) {
+      /*#__INLINE__*/ resetLastHovered()
     }
     if ((!r2 || r) && managerOrA.$().n
         && (hidden || Math.abs(r2!.left - r!.l) > 100 || Math.abs(r2!.top - r!.t) > 60)) {

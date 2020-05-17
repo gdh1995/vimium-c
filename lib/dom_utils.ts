@@ -1,4 +1,4 @@
-import { VOther, chromeVer_, doc, getTime } from "./utils"
+import { VOther, chromeVer_, doc, getTime, weakRef_, deref_ } from "./utils"
 
 type kMouseMoveEvents = "mouseover" | "mouseenter" | "mousemove" | "mouseout" | "mouseleave";
 type kMouseClickEvents = "mousedown" | "mouseup" | "click" | "auxclick" | "dblclick";
@@ -811,37 +811,37 @@ export const mouse_ = function (this: {}, element: SafeElementForMouse
 }
 
 let _idc: InputDeviceCapabilities | undefined
-let lastHovered_: SafeElementForMouse | null = null
+let lastHovered_: WeakRef<SafeElementForMouse> | null | undefined
 
 export { lastHovered_ }
-export function set_lastHovered_ (_newLastHovered: SafeElementForMouse | null): void { lastHovered_ = _newLastHovered }
+export function resetLastHovered (): void { lastHovered_ = null }
 
   /** note: will NOT skip even if newEl == @lastHovered */
 export const hover_ = function (this: {}, newEl?: SafeElementForMouse | null, center?: Point2D): void {
     // if center is affected by zoom / transform, then still dispatch mousemove
     const elFromPoint = center && doc.elementFromPoint(center[0], center[1]),
     canDispatchMove: boolean = !newEl || elFromPoint === newEl || !elFromPoint || !newEl.contains(elFromPoint),
-    isInDOM = IsInDOM_, Null = null;
-    let last = lastHovered_;
+    isInDOM = IsInDOM_, N = null;
+    let last = deref_(lastHovered_);
     if (last && isInDOM(last)) {
       const notSame = newEl !== last;
-      mouse_(last, "mouseout", [0, 0], Null, notSame ? newEl : Null);
+      mouse_(last, "mouseout", [0, 0], N, notSame ? newEl : N);
       if (!newEl || notSame && !isInDOM(newEl, last, 1)) {
-        mouse_(last, "mouseleave", [0, 0], Null, newEl);
+        mouse_(last, "mouseleave", [0, 0], N, newEl);
       }
     } else {
-      last = Null;
+      last = N;
     }
-    lastHovered_ = Null;
+    lastHovered_ = N;
     if (newEl && isInDOM(newEl)) {
       // then center is not null
-      mouse_(newEl, "mouseover", center!, Null, last);
+      mouse_(newEl, "mouseover", center!, N, last);
       if (isInDOM(newEl)) {
-        mouse_(newEl, "mouseenter", center!, Null, last);
+        mouse_(newEl, "mouseenter", center!, N, last);
         if (canDispatchMove && isInDOM(newEl)) {
           mouse_(newEl, "mousemove", center!);
         }
-        lastHovered_ = isInDOM(newEl) ? newEl : Null;
+        lastHovered_ = isInDOM(newEl) ? weakRef_(newEl) : N;
       }
     }
     // here always ensure lastHovered_ is "in DOM" or null
@@ -851,11 +851,11 @@ export const hover_ = function (this: {}, newEl?: SafeElementForMouse | null, ce
 }
 
 export const unhover_ = (element?: SafeElementForMouse): void => {
-    const old = lastHovered_, active = element || old;
+    const old = deref_(lastHovered_), active = element || old;
     if (old !== element) {
       hover_();
     }
-    lastHovered_ = element || null;
+    lastHovered_ = weakRef_(element);
     hover_();
     if (active && activeEl_unsafe_() === active) { active.blur && active.blur(); }
 }

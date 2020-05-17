@@ -1,13 +1,13 @@
 import {
   setupEventListener, VTr, keydownEvents_, isAlive_, suppressCommonEvents, onWndFocus, VOther, timeout_, safer, fgCache,
-  doc, safeObj, getTime, chromeVer_,
+  doc, safeObj, getTime, chromeVer_, deref_,
 } from "../lib/utils"
 import {
   pushHandler_, SuppressMost_, Stop_, removeHandler_, prevent_, getMappedKey, keybody_, isEscape_, keyNames_,
   DEL, BSP, ENT,
 } from "../lib/keyboard_utils"
 import {
-  createShadowRoot_, lastHovered_, set_lastHovered_, prepareCrop_, getSelectionFocusEdge_, activeEl_unsafe_,
+  createShadowRoot_, lastHovered_, resetLastHovered, prepareCrop_, getSelectionFocusEdge_, activeEl_unsafe_,
   getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, htmlTag_, fullscreenEl_unsafe_, docEl_unsafe_,
   getSelection_, view_, isSelected_, docSelectable_, isHTML_, createElement_, wdZoom_, CLK, MDW, HDN, NONE,
 } from "../lib/dom_utils"
@@ -325,7 +325,7 @@ export const clear = (): void => {
   hasResults = isActive = isSmall = notEmpty = postOnEsc = false
   removeHandler_(activate)
   outerBox_ && outerBox_.remove()
-  if (box_ === lastHovered_) { /*#__INLINE__*/ set_lastHovered_(null) }
+  if (box_ === deref_(lastHovered_)) { /*#__INLINE__*/ resetLastHovered() }
   parsedQuery_ = query_ = query0_ = ""
   historyIndex = matchCount = doesCheckAlive = 0;
   styleInHUD = onUnexpectedBlur = outerBox_ =

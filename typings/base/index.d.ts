@@ -25,7 +25,7 @@ type Unpacked<T> =
     T;
 
 type Omit<T, K extends keyof T> = {
-    [P in Exclude<keyof T, K>]: T[P];
+  [P in Exclude<keyof T, K>]: T[P];
 };
 
 type TypeToAssert<Parent, Child extends Parent, Key extends keyof Child, Others extends keyof Parent = never> =
@@ -34,3 +34,11 @@ type TypeToPick<Parent, Child extends Parent, Key extends keyof Child> =
     { readonly [key in Key]?: Child[key]; };
 
 type UnionToIntersection<U> = (U extends any ? (k: U)=>void : never) extends ((k: infer I)=>void) ? I : never;
+
+interface WeakRef<V extends object> { deref (): V | undefined }
+interface WeakRefConstructor {
+  new <V extends object = object>(entries: V): WeakRef<V>
+  readonly prototype: WeakRef<object>
+}
+/** WeakRefConstructor | undefined */
+declare var WeakRef: unknown

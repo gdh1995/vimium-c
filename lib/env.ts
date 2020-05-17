@@ -19,6 +19,10 @@ if (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinEnsured$
   var visualViewport: VisualViewport | undefined;
 }
 
+if (Build.BTypes & BrowserType.Chrome) {
+  var WeakRef: unknown;
+}
+
 if (!Build.NDEBUG) {
   var __filename: string | null | undefined;
 }

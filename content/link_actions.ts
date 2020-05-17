@@ -2,6 +2,7 @@ import HintItem = HintsNS.HintItem
 import {
   safer, fgCache, VOther, isImageUrl, jsRe_, set_keydownEvents_, keydownEvents_, timeout_, doc,
   chromeVer_,
+  weakRef_,
 } from "../lib/utils"
 import {
   getEditableType_, hover_, center_, htmlTag_, GetParent_unsafe_, unhover_, uneditableInputs_, createElement_,
@@ -162,7 +163,7 @@ export const linkActions: readonly LinkAction[] = [
     const type = getEditableType_<0>(element), toggleMap = hintOptions.toggle;
     // here not check lastHovered on purpose
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
-    /*#__INLINE__*/ set_currentScrolling(element);
+    /*#__INLINE__*/ set_currentScrolling(weakRef_(element));
     hover_(element, center_(rect));
     type || element.focus && !(<RegExpI> /^i?frame$/).test(htmlTag_(element)) && element.focus();
     /*#__INLINE__*/ syncCachedScrollable();

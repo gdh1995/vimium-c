@@ -90,6 +90,17 @@ export const safer: <T extends object> (opt: T) => T & SafeObject
       ? <T extends object> (obj: T): T & SafeObject => { (obj as any).__proto__ = null; return obj as T & SafeObject; }
       : <T extends object> (opt: T): T & SafeObject => Object.setPrototypeOf(opt, null);
 
+export let weakRef_ = (Build.BTypes & BrowserType.Chrome ? <T extends object>(val: T | null | undefined
+      ): WeakRef<T> | null | undefined => val && new (WeakRef as WeakRefConstructor)(val)
+    : (_newObj: object) => _newObj) as {
+  <T extends object>(val: T): WeakRef<T>
+  <T extends object>(val: T | null): WeakRef<T> | null
+  <T extends object>(val: T | null | undefined): WeakRef<T> | null | undefined
+}
+export const deref_ = !(Build.BTypes & BrowserType.Chrome) ? weakRef_ as any
+    :  WeakRef ? <T extends object>(val: WeakRef<T> | null | undefined
+      ): T | null | undefined => val && val.deref() : (weakRef_ = ((val: object) => val) as any) as never
+
 type TimerFunc = (func: (this: void, fake?: TimerType.fake) => void, time: number) => TimerID.Valid | TimerID.Others
 export let timeout_: TimerFunc = Build.NDEBUG ? setTimeout : (func, timeout) => setTimeout(func, timeout)
 export let interval_: TimerFunc = Build.NDEBUG ? setInterval : (func, period) => setInterval(func, period)

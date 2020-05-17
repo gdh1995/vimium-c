@@ -2,7 +2,7 @@ import {
   chromeVer_, clickable_, doc, esc, fgCache, injector, isEnabled_, isLocked_, isAlive_, isTop,
   keydownEvents_, safeObj, set_chromeVer_, set_clickable_, set_fgCache, set_VOther, set_isLocked_,
   setupEventListener, set_isEnabled_, suppressCommonEvents, set_onWndFocus, VOther, onWndFocus, timeout_, safer,
-  allowScripts_, loc_, interval_, getTime, vApi,
+  allowScripts_, loc_, interval_, getTime, vApi, deref_, weakRef_,
 } from "../lib/utils"
 import { port_callbacks, post_, safePost, set_requestHandlers, requestHandlers } from "./port"
 import {
@@ -22,7 +22,7 @@ import {
 } from "./mode_insert"
 import { prompt as visualPrompt, visual_mode } from "./mode_visual"
 import {
-  currentScrolling, onActivate, set_currentScrolling, clearCachedScrollable,
+  currentScrolling, onActivate, set_currentScrolling, clearCachedScrollable, resetCurrentScrolling,
 } from "./scroller"
 import { activate as omniActivate, omni_status, onKeydown as omniOnKeydown, omni_box } from "./vomnibar"
 import { contentCommands_ } from "./commands"
@@ -31,7 +31,7 @@ import {
 } from "../lib/keyboard_utils"
 import {
   editableTypes_, markFramesetTagUnsafe, setNotSafe_not_ff, OnDocLoaded_, frameElement_,
-  notSafe_not_ff_, htmlTag_, querySelector_unsafe_, isHTML_, createElement_, lastHovered_, set_lastHovered_,
+  notSafe_not_ff_, htmlTag_, querySelector_unsafe_, isHTML_, createElement_, lastHovered_, resetLastHovered,
   docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, CLK, MDW,
 } from "../lib/dom_utils"
 
@@ -302,10 +302,10 @@ set_requestHandlers([
         prevent_(event);
       }
       advCmd.onclick = optLink.onclick = closeBtn.onclick = null as never;
-      let i: Element | null = lastHovered_;
-      i && box.contains(i) && /*#__INLINE__*/ set_lastHovered_(null);
-      if ((i = currentScrolling) && box.contains(i)) {
-        /*#__INLINE__*/ set_currentScrolling(null);
+      let i: Element | null | undefined = deref_(lastHovered_);
+      i && box.contains(i) && /*#__INLINE__*/ resetLastHovered();
+      if ((i = deref_(currentScrolling)) && box.contains(i)) {
+        /*#__INLINE__*/ resetCurrentScrolling();
         /*#__INLINE__*/ clearCachedScrollable();
       }
       removeHandler_(box);
@@ -343,7 +343,7 @@ set_requestHandlers([
     addUIElement(box, AdjustType.Normal, true)
     exitOnClick && setupExitOnClick(1, hide)
     doc.hasFocus() || vApi.f();
-    /*#__INLINE__*/ set_currentScrolling(box)
+    /*#__INLINE__*/ set_currentScrolling(weakRef_(box))
     pushHandler_(function (event) {
       if (!raw_insert_lock && isEscape_(getMappedKey(event, kModeId.Normal))) {
         removeSelection(ui_root) || hide();
