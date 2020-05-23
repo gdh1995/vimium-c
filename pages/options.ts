@@ -685,7 +685,7 @@ let optionsInit1_ = function (): void {
     // Note: the old code here thought on Firefox web pages couldn't be used, but it was just because of wrappedJSObject
     else if (url.startsWith("file://")) {
       return this.showError_(pTrans_("fileVomnibar"), "highlight");
-    } else if (url.startsWith("http://")) {
+    } else if ((<RegExpI> /^http:\/\/(?!localhost[:/])/i).test(url)) {
       return this.showError_(pTrans_("httpVomnibar"), "highlight");
     }
     return this.showError_("");

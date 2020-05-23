@@ -1266,7 +1266,8 @@
         : preferWeb ? isCurOnExt || page.startsWith("file:") && !url.startsWith("file:")
           // it has occurred since Chrome 50 (BrowserVer.Min$tabs$$executeScript$hasFrameIdArg)
           // that HTTPS refusing HTTP iframes.
-          || page.startsWith("http:") && url.startsWith("https:")
+          || page.startsWith("http:") && !(<RegExpOne> /^http:/).test(url)
+             && !(<RegExpOne>/^http:\/\/localhost[:/]/i).test(page)
         : port.s.a || isCurOnExt && !page.startsWith(url.slice(0, url.indexOf("/", url.indexOf("://") + 3) + 1));
       const useInner: boolean = forceInner || page === inner || port.s.t < 0,
       trailingSlash0 = cOptions.trailingSlash,

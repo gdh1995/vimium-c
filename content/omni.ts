@@ -170,26 +170,26 @@ export const hide = (fromInner?: 1): void => {
 }
 
 export const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
-    const el = createElement_("iframe") as typeof box
+    const el = createElement_("iframe") as typeof box, kRef = "referrerPolicy", kS = "sandbox"
     el.className = "R UI Omnibar";
     el.style.display = NONE;
     if (type !== VomnibarNS.PageType.web) { /* empty */ }
-    else if (page.startsWith("http:") && loc_.origin.startsWith("https:")) {
+    else if ((<RegExpI> /^http:\/\/(?!localhost[:/])/i).test(page) && !(<RegExpOne> /^http:/).test(loc_.href)) {
       // not allowed by Chrome; recheck because of `tryNestedFrame`
       reload();
     } else {
-      el.referrerPolicy = "no-referrer";
+      el[kRef] = "no-referrer";
       if (!(Build.BTypes & ~BrowserType.Chrome)
           || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome) {
-        el.sandbox = "allow-scripts";
+        // el[kS] = "allow-scripts";
       }
     }
     el.src = page;
     function reload(): void {
       type = VomnibarNS.PageType.inner;
-      el.removeAttribute("referrerPolicy");
+      el.removeAttribute(kRef);
       // not skip the line below: in case main world JS adds some sandbox attributes
-      el.removeAttribute("sandbox");
+      el.removeAttribute(kS);
       el.src = page = inner!;
       omniOptions && (omniOptions.t = type)
     }
@@ -261,11 +261,8 @@ const onOmniMessage = function (msg: { data: any }): void {
     switch (data.N) {
     case VomnibarNS.kFReq.iframeIsAlive:
       status = VomnibarNS.Status.ToShow
-      let opt = omniOptions
+      !data.o && omniOptions && postToOmni<VomnibarNS.kCReq.activate>(omniOptions)
       omniOptions = null
-      if (!data.o && opt) {
-        postToOmni<VomnibarNS.kCReq.activate>(opt)
-      }
       break;
     case VomnibarNS.kFReq.style:
       box.style.height = Math.ceil(data.h / docZoom_
@@ -277,19 +274,15 @@ const onOmniMessage = function (msg: { data: any }): void {
         onShown(data.m!)
       }
       break;
-    case VomnibarNS.kFReq.focus:
-      focus();
-      keydownEvents_[data.l] = 1
-      break
-    case VomnibarNS.kFReq.hide: return hide(1)
-    case VomnibarNS.kFReq.scroll: return beginScroll(0, data.k, data.b)
+    case VomnibarNS.kFReq.focus: focus(); keydownEvents_[data.l] = 1; break
+    case VomnibarNS.kFReq.hide: hide(1); break
+    case VomnibarNS.kFReq.scroll: beginScroll(0, data.k, data.b); break
     case VomnibarNS.kFReq.scrollGoing: // no break;
-    case VomnibarNS.kFReq.scrollEnd: return scrollTick((VomnibarNS.kFReq.scrollEnd - data.N) as BOOL)
+    case VomnibarNS.kFReq.scrollEnd: scrollTick((VomnibarNS.kFReq.scrollEnd - data.N) as BOOL); break
     case VomnibarNS.kFReq.evalJS: evalIfOK(data); break
     case VomnibarNS.kFReq.broken: focus(); // no break;
     case VomnibarNS.kFReq.unload: isAlive_ && reset(data.N === VomnibarNS.kFReq.broken); break
-    case VomnibarNS.kFReq.hud:
-      return hudTip(data.k)
+    case VomnibarNS.kFReq.hud: hudTip(data.k); break
     }
 } as <K extends keyof VomnibarNS.FReq> ({ data }: { data: VomnibarNS.FReq[K] & VomnibarNS.Msg<K> }) => void | 1
 

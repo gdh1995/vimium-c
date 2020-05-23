@@ -418,6 +418,7 @@ declare const enum BrowserVer {
   MinSpecCompliantShadowBlurRadius = 73,
   // re-implement extension APIs into C++ bindings: @see https://bugs.chromium.org/p/chromium/issues/detail?id=763564
   MinEnsuredNativeCrxBindings = 73, // even if LEGACY
+  MinCrossOriginResourcePolicy = 73, // before C75 break file downloading
   /** Related: https://chromium.googlesource.com/chromium/src/+/0146a7468d623a36bcb55fc6ae69465702bae7fa%5E%21/#F18
    * Stack Trace:
    * * an `<iframe>` has `embedded_content_view_` member, and has `.IsDisplayNone: () => !embedded_content_view_`
@@ -450,11 +451,18 @@ declare const enum BrowserVer {
   // https://groups.google.com/a/chromium.org/forum/#!msg/blink-dev/h-JwMiPUnuU/sl79aLoLBQAJ
   // https://www.chromestatus.com/features/4507242028072960
   MinNoShadowDOMv0 = 80,
+  Min$CrossOriginIsolation$Flag = 80, // #cross-origin-isolation; will break Vomnibar; included by EXPERIMENTAL on C81
   // https://github.com/philc/vimium/issues/3449#issuecomment-568248237
   FlagOutOfBlinkCorsMayCauseBug = 81,
   // #freeze-user-agent: https://www.chromestatus.com/features/5704553745874944
   FlagFreezeUserAgentGiveFakeUAMajor = 81, // FakeUAMajorWhenFreezeUserAgent
   MinMaybe$WeakRef = 83, // no `WeakRef` if LEGACY
+  /** @see #Min$CrossOriginIsolation$Flag; @todo: trace https://bugs.chromium.org/p/chromium/issues/detail?id=1085915 */
+  MinEnsuredCrossOriginEmbedderPolicy = 83, // https://www.chromestatus.com/features/5642721685405696
+  // require special CSP; not applied to extension contexts; seems to begin from C73 if EXPERIMENTAL
+  MinEnsuredTrustedTypes = 83, // https://www.chromestatus.com/features/5650088592408576
+  // #strict-origin-isolation; prevent LinkHints from getting child coreHints
+  MinOriginIsolation = 84, // https://www.chromestatus.com/features/5683766104162304
   /** @todo: trace https://bugs.chromium.org/p/chromium/issues/detail?id=968651&can=2&q=reduced-motion%20change */
   MinMediaChangeEventsOnBackgroundPage = 999,
   MinNo$TimerType$$Fake = 999,
@@ -485,6 +493,7 @@ declare const enum FirefoxBrowserVer {
   // but doesn't support code changes focus during input events when is composing
   // tested on Win 10 + MS PinYin and Ubuntu 18 + an inner PinYin IME
   MinContentEditableInShadowSupportIME = 69,
+  MinCrossOriginResourcePolicy = 74, // not break Vomnibar
   /** @todo: trace https://bugzilla.mozilla.org/show_bug.cgi?id=1587723 */
   MinMediaChangeEventsOnBackgroundPage = 99,
   // members of a Selection are never updated when an <input> gets focused, so no work-around
