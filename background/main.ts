@@ -65,6 +65,7 @@
     reuse?: ReuseType;
     copied?: boolean;
     keyword?: string | null;
+    testUrl?: boolean | null
   }
   type ShowPageData = [string, typeof Settings_.temp_.shownHash_, number];
 
@@ -631,6 +632,8 @@
   function openUrl(url: Urls.Url, workType: Urls.WorkType, tabs?: [Tab] | []): void {
     if (typeof url === "string") {
       const tabUrl = tabs && tabs.length > 0 ? getTabUrl(tabs[0]!) : "";
+      const _rawKey = (cOptions as OpenUrlOptionsInBgCmd).keyword, keyword = (_rawKey || "") + ""
+      const _rawTest = (cOptions as OpenUrlOptionsInBgCmd).testUrl, testUrl = _rawTest != null ? _rawTest : !keyword
       let mask: string | undefined = cOptions.url_mask || cOptions.url_mark;
       if (mask) {
         url = url && url.replace(mask + "", (<RegExpOne> /^[%$]s/).test(mask) ? encodeURIComponent(tabUrl) : tabUrl);
@@ -642,7 +645,8 @@
         url = url && url.replace(mask + "", chrome.runtime.id);
       }
       if (workType !== Urls.WorkType.FakeType) {
-        url = BgUtils_.convertToUrl_(url + "", (cOptions.keyword || "") + "", workType);
+        url = testUrl ? BgUtils_.convertToUrl_(url, keyword, workType)
+            : BgUtils_.createSearchUrl_(url.trim().split(BgUtils_.spacesRe_), keyword || "~")
       }
     }
     let reuse: ReuseType = cOptions.reuse == null ? ReuseType.newFg : (cOptions.reuse | 0),
@@ -669,8 +673,8 @@
     if (BgUtils_.quotedStringRe_.test(url)) {
       url = url.slice(1, -1);
     } else {
-      const kw: any = cOptions.keyword;
-      if (!kw || kw === "~") {
+      const keyword = (cOptions as OpenUrlOptionsInBgCmd).keyword;
+      if (!keyword || keyword === "~" || (cOptions as OpenUrlOptionsInBgCmd).testUrl) {
         url = BgUtils_.detectLinkDeclaration_(url);
       }
     }
@@ -2417,17 +2421,20 @@
       let url: Urls.Url | undefined = request.u;
       // { url_f: string, ... } | { copied: true, ... }
       const opts: OpenUrlOptionsInBgCmd & SafeObject = BgUtils_.safeObj_();
+      const _rawKey = request.k, keyword = (_rawKey || "") + ""
+      const _rawTest = request.t, testUrl = _rawTest != null ? _rawTest : !keyword
       opts.reuse = request.r;
       opts.incognito = request.i;
       opts.sed = request.e;
       if (url) {
-        if (!request.f) {
-          if (url[0] === ":" && request.o && (<RegExpOne> /^:[bdhostw]\s/).test(url)) {
-            url = url.slice(2).trim();
-            url || (unsafe = false);
-          }
+        if (url[0] === ":" && request.o && (<RegExpOne> /^:[bdhostw]\s/).test(url)) {
+          url = url.slice(2).trim();
+          url || (unsafe = false);
+        }
+        if (request.f) { /* empty */ }
+        else if (testUrl) {
           url = BgUtils_.fixCharsInUrl_(url);
-          url = BgUtils_.convertToUrl_(url, request.k ? request.k + "" : ""
+          url = BgUtils_.convertToUrl_(url, keyword
               , unsafe ? Urls.WorkType.ConvertKnown : Urls.WorkType.EvenAffectStatus);
           const type = BgUtils_.lastUrlType_;
           if (request.h != null && (type === Urls.Type.NoSchema || type === Urls.Type.NoProtocolName)) {
@@ -2435,12 +2442,13 @@
           } else if (unsafe && type === Urls.Type.PlainVimium && (url as string).startsWith("vimium:")) {
             url = BgUtils_.convertToUrl_(url as string);
           }
+        } else {
+          url = BgUtils_.createSearchUrl_(url.trim().split(BgUtils_.spacesRe_), keyword || "~")
         }
         opts.opener = unsafe && !request.n;
         opts.url_f = url;
       } else {
-        opts.copied = request.c;
-        opts.keyword = request.k ? request.k + "" : "";
+        opts.copied = request.c; opts.keyword = keyword; opts.testUrl = _rawTest
       }
       cRepeat = 1;
       cOptions = opts;

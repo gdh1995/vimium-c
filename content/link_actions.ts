@@ -142,7 +142,7 @@ const openUrl = (url: string, incognito?: boolean): void => {
     f: incognito,
     e: hintOptions.sed,
     i: incognito,
-    k: hintOptions.keyword
+    k: hintOptions.keyword, t: hintOptions.testUrl
   });
 }
 

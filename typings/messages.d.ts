@@ -213,6 +213,7 @@ declare namespace HintsNS {
     mode?: string | number;
     url?: boolean;
     keyword?: string;
+    testUrl?: boolean
     dblclick?: boolean;
     newtab?: boolean | "force" | "window";
     button?: "right";
@@ -321,6 +322,7 @@ interface CmdOptions {
   };
   [kFgCmd.autoOpen]: {
     keyword?: string;
+    testUrl?: boolean
     copy?: boolean;
   } & CmdOptions[kFgCmd.autoCopy];
   [kFgCmd.searchAs]: {
@@ -421,6 +423,7 @@ interface FgReq {
   [kFgReq.openUrl]: {
     // note: need to sync members to ReqH::openUrl in main.ts
     /** url */ u?: string;
+    /** test-URL */ t?: boolean;
     /** sed */ e?: string | boolean;
     /** formatted-by-<a>.href */ f?: boolean;
     /** copied */ c?: boolean;
