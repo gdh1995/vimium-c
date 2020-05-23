@@ -206,7 +206,7 @@ export const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void
       // eslint-disable-next-line @typescript-eslint/ban-types
       origin = (page as EnsureNonNull<String>).substring(0
           , page.startsWith("file:") ? 7 : page.indexOf("/", page.indexOf("://") + 3)),
-      checkBroken = function (i?: TimerType.fake | 1): void {
+      checkBroken = function (i?: TimerType.fake): void {
         const ok = !isAlive_ || status !== VomnibarNS.Status.Initing
         if (ok || i) { isAlive_ && box && (box.onload = omniOptions = null as never); return; }
         if (type !== VomnibarNS.PageType.inner) { return reload(); }
@@ -215,31 +215,13 @@ export const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void
         status = VomnibarNS.Status.KeepBroken
         activate({} as FullOptions, 1)
       }
-      if (loc_.origin !== origin || !origin || type === VomnibarNS.PageType.web) {
+      {
         timeout_(checkBroken, 600)
         const channel = new MessageChannel();
         portToOmni = channel.port1
         channel.port1.onmessage = onOmniMessage
         wnd.postMessage(sec, type !== VomnibarNS.PageType.web && origin || "*", [channel.port2]);
-        return;
       }
-      // check it to make "debugging VOmni on options page" easier
-      if (!Build.NDEBUG && !wnd.onmessage) { return checkBroken(); }
-      type FReq = VomnibarNS.FReq;
-      type CReq = VomnibarNS.CReq;
-      const port: IframePort = {
-        sameOrigin: true,
-        onmessage: null as never,
-        postMessage<K extends keyof FReq> (data: FReq[K] & VomnibarNS.Msg<K>): void | 1 {
-          isAlive_ && onOmniMessage<K>({ data })
-        }
-      };
-      portToOmni = {
-        close (): void { port.postMessage = function () { /* empty */ }; },
-        postMessage (data: CReq[keyof CReq]): void | 1 { return port.onmessage({ data }); }
-      }
-      wnd.onmessage({ source: window, data: sec, ports: [port] });
-      checkBroken(1);
     };
     addUIElement(box = el, AdjustType.MustAdjust, hud_box)
     type !== VomnibarNS.PageType.inner &&

@@ -311,7 +311,6 @@ declare namespace VomnibarNS {
     [kFReq.iframeIsAlive]: { /** hasOptionsPassed */ o: BOOL };
   }
   interface IframePort {
-    sameOrigin?: true;
     postMessage<K extends keyof FReq> (this: IframePort, msg: FReq[K] & Msg<K>): void | 1;
     onmessage (this: void, msg: { data: CReq[keyof CReq] }): void | 1;
   }

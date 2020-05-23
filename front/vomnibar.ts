@@ -156,7 +156,6 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   selectFirst_: false as VomnibarNS.GlobalOptions["autoSelect"],
   preferNewOpened_: false as VomnibarNS.GlobalOptions["autoSelect"],
   notSearchInput_: false,
-  sameOrigin_: false,
   showFavIcon_: 0 as 0 | 1 | 2,
   showRelevancy_: false,
   docZoom_: 1,
@@ -229,7 +228,6 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.barCls_.remove("empty");
     a.list_.classList.remove("no-favicon");
     a.toggleAlt_(0);
-    if (a.sameOrigin_) { return a.onHidden_(); }
     a.afterHideTimer_ = requestAnimationFrame(a.AfterHide_);
     a.timer_ = setTimeout(a.AfterHide_, 35);
   },
@@ -883,7 +881,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.isSelOriginal_ = true;
     const height = a.height_
       = Math.ceil(notEmpty ? len * a.itemHeight_ + a.baseHeightIfNotEmpty_ : a.heightIfEmpty_),
-    needMsg = height !== oldH, earlyPost = height > oldH || a.sameOrigin_,
+    needMsg = height !== oldH, earlyPost = height > oldH,
     wdZoom = Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
           && (!(Build.BTypes & ~BrowserType.Chrome)
               || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome)
@@ -1168,12 +1166,12 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (type === VomnibarNS.PageType.web
         || !location.origin.includes("-")) { /* empty */ }
     else if (type === VomnibarNS.PageType.inner) {
-      fav = canShowOnExtOrWeb || a.sameOrigin_ ? 2 : 0;
-    } else if ((canShowOnExtOrWeb || a.sameOrigin_) && (str = docEl.dataset.favicons) != null) {
+      fav = canShowOnExtOrWeb ? 2 : 0;
+    } else if (canShowOnExtOrWeb && (str = docEl.dataset.favicons) != null) {
       fav = !str || str.toLowerCase() === "true" ? 2 : 0;
-    } else if ((canShowOnExtOrWeb || a.sameOrigin_) && (f = chrome.runtime.getManifest) && (manifest = f())) {
+    } else if (canShowOnExtOrWeb && (f = chrome.runtime.getManifest) && (manifest = f())) {
       const arr = manifest.permissions || [];
-      fav = arr.indexOf("<all_urls>") >= 0 || arr.indexOf("chrome://favicon/") >= 0 ? a.sameOrigin_ ? 2 : 1 : 0;
+      fav = arr.indexOf("<all_urls>") >= 0 || arr.indexOf("chrome://favicon/") >= 0 ? 1 : 0;
     }
     a.mode_.i = fav;
   },
@@ -1543,7 +1541,6 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
     } else {
       window.onmessage = null as never;
     }
-    Vomnibar_.sameOrigin_ = !!port.sameOrigin;
     VPort_.postToOwner_ = port.postMessage.bind(port);
     port.onmessage = VPort_._OnOwnerMessage;
     window.onunload = Vomnibar_.OnUnload_;
