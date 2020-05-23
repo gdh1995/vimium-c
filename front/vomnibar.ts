@@ -341,6 +341,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (sel === -1) {
       a.isHttps_ = a.baseHttps_; a.isEditing_ = false;
       a.input_.value = a.inputText_;
+      let arr = a._pageNumRe.exec(a.inputText_)
+      if (arr && (!a.completions_.length || a.completions_[0].e !== "search")) {
+        let i = a.inputText_.length - arr[0].length
+        a.input_.setSelectionRange(i, i)
+      }
       if (!focused) { a.focus_(); a.blurWanted_ = blurred; }
       return;
     }
@@ -1512,6 +1517,9 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
 }
 (function (): void {
   if ((document.documentElement as HTMLHtmlElement).dataset.version !== "1.73") {
+    if (!Build.NDEBUG) {
+      console.log("Error: Vomnibar page version dismatches:", (document.documentElement as HTMLElement).dataset.version)
+    }
     location.href = "about:blank";
     return;
   }
@@ -1519,7 +1527,8 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
   if (location.pathname.startsWith("/front/") || !(curEl = document.currentScript as HTMLScriptElement | null)) {
     /* is inner or web */
   }
-  else if (curEl.src.endsWith("/front/vomnibar.js") && !(<RegExpOne> /^(ht|s?f)tp/).test(curEl.src)) {
+  else if (curEl.src.endsWith("/front/vomnibar.js") && !(<RegExpOne> /^(ht|s?f)tp/).test(curEl.src)
+      && !(<RegExpOne> /^(ht|s?f)tp/).test(location.origin)) {
     VCID_ = new URL(curEl.src).host;
     Build.MinCVer < BrowserVer.Min$URL$NewableAndInstancesHaveProperties && Build.BTypes & BrowserType.Chrome &&
     (VCID_ = VCID_ || "");
@@ -1535,14 +1544,14 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
 
   const unsafeMsg: Array<[number, VomnibarNS.IframePort, Options | null]> = [],
   isWeb = curEl === null;
-  let _sec = 0 as number,
-  handler = function (this: void, secret: number, port: VomnibarNS.IframePort, options: Options | null): void {
+  let _sec = 0 as number
+  const handler = function (this: void, secret: number, port: VomnibarNS.IframePort, options: Options | null): void {
     if (_sec < 1 || secret !== _sec) {
       _sec || unsafeMsg.push([secret, port, options]);
       return;
     }
     _sec = -1;
-    clearTimeout(timer);
+    clearTimeout(autoUnloadTimer);
     if (isWeb) {
       removeEventListener("message", onUnknownMsg, true);
     } else {
@@ -1556,7 +1565,13 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
       Vomnibar_.activate_(options);
     }
   },
-  timer = setTimeout(function () { location.href = "about:blank"; }, 700);
+  autoUnloadTimer = setTimeout(function (): void {
+    if (!Build.NDEBUG) {
+      console.log("Error: Vomnibar page hadn't received a valid secret")
+      debugger
+    }
+    location.href = "about:blank"
+  }, 700)
   Vomnibar_.secret_ = function (this: void, {l: payload, s: secret}): void {
     Vomnibar_.secret_ = null;
     if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
