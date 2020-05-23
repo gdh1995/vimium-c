@@ -57,7 +57,7 @@ let currentScrolling: WeakRef<SafeElement> | null = null
 /** @NEED_SAFE_ELEMENTS */
 let cachedScrollable: WeakRef<SafeElement> | 0 | null = 0
 let keyIsDown = 0
-let preventPointEvents: BOOL | boolean = 1
+let preventPointEvents: BOOL | boolean | undefined
 let scale = 1
 let joined: VApiTy | null = null
 let scrolled = 0
@@ -259,9 +259,9 @@ export const executeScroll = function (di: ScrollByY, amount0: number, isTo: BOO
         resetSelectionToDocStart()
       }
     }
-    preventPointEvents = !(options && options.keepHover)
+    preventPointEvents = options && options.keepHover === !1
     vApi.$(element, di, amount)
-    preventPointEvents = 1
+    preventPointEvents = 0
     scrolled = 0
     scrollingTop = null
     if (amount && readyState_ > "i" && overrideScrollRestoration) {
