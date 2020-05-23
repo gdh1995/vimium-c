@@ -20,7 +20,7 @@ interface MinimalHUDTy {
   /** show */ s (tid: kTip | HintMode, args?: Array<string | number>, embed?: boolean): void;
   /** duration is default to 1500 */
   /** tip */ t (tid: kTip, duration?: number, args?: Array<string | number>): void;
-  /** copied */ c (text: string, type?: "url" | ""): void;
+  /** copied */ c (text: string, isUrl?: BOOL | boolean): void;
 }
 interface HinterStatus {
   /** isActive */ a: BOOL

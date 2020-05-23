@@ -246,7 +246,7 @@ set_requestHandlers([
       }
     }
     req.c
-      ? visual_mode ? visualPrompt(kTip.copiedIs, 2000, [hudCopied(req.t, "", 1)])
+      ? visual_mode ? visualPrompt(kTip.copiedIs, 2000, [hudCopied(req.t, 0, 1)])
         : hudCopied(req.t)
       : req.t ? hudTip(kTip.raw, 0, [req.t])
     : 0;

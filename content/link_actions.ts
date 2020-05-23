@@ -254,7 +254,7 @@ export const linkActions: readonly LinkAction[] = [
       }
     }
     if (!str) {
-      return hintHUD.c("", isUrl ? "url" : "");
+      return hintHUD.c("", isUrl);
     }
     if (mode1 > HintMode.min_edit - 1 && mode1 < HintMode.max_edit + 1) {
       let newtab = hintOptions.newtab

@@ -17,10 +17,10 @@ export { box as hud_box, text as hud_text, opacity_ as hud_opacity }
 export function hudResetTextProp (): void { text = "" }
 export function enableHUD (): void { enabled = true }
 
-export const hudCopied = function (text: string, e?: "url" | "", virtual?: 1): string | void {
+export const hudCopied = function (text: string, isUrl?: BOOL | boolean, virtual?: 1): string | void {
   if (!text) {
     if (virtual) { return text; }
-    return hudTip(e ? kTip.noUrlCopied : kTip.noTextCopied, 1000);
+    return hudTip(isUrl ? kTip.noUrlCopied : kTip.noTextCopied, 1000);
   }
   if (text.startsWith(!(Build.BTypes & ~BrowserType.Firefox) ? "moz-" : "chrome-") && text.includes("://")) {
     text = text.slice(text.indexOf("/", text.indexOf("/") + 2) + 1) || text;
@@ -28,8 +28,8 @@ export const hudCopied = function (text: string, e?: "url" | "", virtual?: 1): s
   text = (text.length > 41 ? text.slice(0, 41) + "\u2026" : text + ".");
   return virtual ? text : hudTip(kTip.copiedIs, 2000, [text]);
 } as {
-(text: string, type: string, virtual: 1): string
-(text: string, type?: "url" | ""): void
+(text: string, isUrl: BOOL, virtual: 1): string
+(text: string, isUrl?: BOOL | boolean): void
 }
 
 export const hudTip = (tid: kTip | HintMode, duration?: number, args?: Array<string | number>): void => {
