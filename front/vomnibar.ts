@@ -42,6 +42,8 @@ if (typeof VApi == "object" && VApi && typeof VApi.d == "function") {
 }
 
 // eslint-disable-next-line no-var
+var As_ = <T> (i: T): T => i;
+// eslint-disable-next-line no-var
 var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_ || "", Vomnibar_ = {
   pageType_: VomnibarNS.PageType.Default,
   activate_ (options: Options): void {
@@ -54,6 +56,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.updateQueryFlag_(CompletersNS.QueryFlags.TabTree, !!options.tree);
     a.updateQueryFlag_(CompletersNS.QueryFlags.MonospaceURL, null);
     a.updateQueryFlag_(CompletersNS.QueryFlags.NoTabEngine, !!options.noTabs);
+    a.allowedEngines_ = (options.engines || CompletersNS.SugType.Empty) | 0;
     a.caseInsensitive_ = !!options.icase;
     a.forceNewTab_ = !!options.newtab;
     a.selectFirst_ = options.autoSelect;
@@ -156,6 +159,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   selectFirst_: false as VomnibarNS.GlobalOptions["autoSelect"],
   preferNewOpened_: false as VomnibarNS.GlobalOptions["autoSelect"],
   notSearchInput_: false,
+  allowedEngines_: CompletersNS.SugType.Empty,
   showFavIcon_: 0 as 0 | 1 | 2,
   showRelevancy_: false,
   docZoom_: 1,
@@ -1235,7 +1239,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
   secret_: null as ((request: BgVomnibarSpecialReq[kBgReq.omni_init]) => void) | null,
 
-  mode_: {
+  mode_: As_<EnsureItemsNonNull<Req.fg<kFgReq.omni>>>({
     H: kFgReq.omni as kFgReq.omni,
     o: "omni" as CompletersNS.ValidTypes,
     t: CompletersNS.SugType.Empty,
@@ -1244,7 +1248,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     f: CompletersNS.QueryFlags.None,
     i: 0 as 0 | 1 | 2,
     q: ""
-  },
+  }),
   spacesRe_: <RegExpG> /\s+/g,
   fetch_ (): void {
     const a = Vomnibar_;
@@ -1266,6 +1270,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         : a.matchType_ === CompletersNS.MatchType.searchWanted
         ? !str.includes(" ") ? CompletersNS.SugType.search : CompletersNS.SugType.Empty
         : (newMatchType = a.matchType_, a.sugTypes_);
+      if (a.allowedEngines_) {
+        mode.t = (mode.t || CompletersNS.SugType.Full) & a.allowedEngines_
+      }
       mode.q = str;
       a.matchType_ = newMatchType;
       a.onInnerWidth_();
