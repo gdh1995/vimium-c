@@ -157,7 +157,7 @@ var Settings_ = {
   updateOmniStyles_: BgUtils_.blank_ as (key: MediaNS.kName, embed?: 1 | undefined) => void,
   updateMediaQueries_: BgUtils_.blank_ as (this: void) => void,
   parseCustomCSS_ (css: string): SettingsNS.ParsedCustomCSS {
-    const arr = css ? css.split(<RegExpG & RegExpSearchable<1>> /^\/\*\s?#!?([A-Za-z]+)\s?\*\//g) : [""];
+    const arr = css ? css.split(<RegExpG & RegExpSearchable<1>> /(?:^|\n)\/\*\s?#!?([A-Za-z]+)\s?\*\//g) : [""];
     const map: SettingsNS.ParsedCustomCSS = { ui: arr[0].trim() };
     for (let i = 1; i < arr.length; i += 2) {
       let key = arr[i].toLowerCase() as "ui" | "find" | "omni";
