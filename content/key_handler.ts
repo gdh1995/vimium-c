@@ -20,7 +20,7 @@ let currentKeys = ""
 let nextKeys: KeyFSM | ReadonlyChildKeyFSM | null = null
 
 let isWaitingAccessKey = false
-let isCmdTriggered: BOOL = 0
+let isCmdTriggered: kKeyCode = kKeyCode.None
 let noopEventHandler: EventListenerObject["handleEvent"] = Object.is as any
 interface MouseEventListener extends EventListenerObject { handleEvent (evt: MouseEventToPrevent): ELRet }
 let anyClickHandler: MouseEventListener = { handleEvent: noopEventHandler }
@@ -36,7 +36,7 @@ export {
   isWaitingAccessKey, isCmdTriggered, anyClickHandler,
   onKeyup2, isPassKeysReverted,
 }
-export function resetIsCmdTriggered (): void { isCmdTriggered = 0 }
+export function resetIsCmdTriggered (): void { isCmdTriggered = kKeyCode.None }
 export function set_passKeys (_newPassKeys: SafeEnum | null | ""): void { passKeys = _newPassKeys }
 export function setTempCurrentKeyStatus (): void { currentKeys = "", nextKeys = keyFSM }
 export function set_onKeyup2 (_newOnKeyUp: typeof onKeyup2): void { onKeyup2 = _newOnKeyUp }
@@ -90,7 +90,7 @@ const checkKey = (event: HandlerNS.Event, key: string
   if (j === KeyAction.cmd) {
     post_({ H: kFgReq.key, k: currentKeys, l: event.i });
     esc!(HandlerResult.Prevent);
-    isCmdTriggered = 1;
+    isCmdTriggered = event.i || kKeyCode.True
   } else {
     nextKeys = j !== KeyAction.count ? j : keyFSM;
   }
@@ -242,7 +242,9 @@ export const onKeyup = (event: KeyboardEventToPrevent): void => {
       || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
           : event.isTrusted === false) // skip checks of `instanceof KeyboardEvent` if checking `!.keyCode`
       || !key) { return; }
-  scrollTick(0);
+  if (scroll_keyIsDown && (key || kKeyCode.True) === isCmdTriggered) {
+    scrollTick(0);
+  }
   /*#__INLINE__*/ resetIsCmdTriggered();
   if (Build.BTypes & BrowserType.Chrome) {
     isWaitingAccessKey && /*#__NOINLINE__*/ resetAnyClickHandler();
