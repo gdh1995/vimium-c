@@ -8,6 +8,7 @@ import {
   getEditableType_, hover_, center_, htmlTag_, GetParent_unsafe_, unhover_, uneditableInputs_, createElement_,
   mouse_, scrollingEl_, view_, findMainSummary_, getVisibleClientRect_, getComputedStyle_, IsInDOM_, getInputType,
   CLK,
+  elementProto,
 } from "../lib/dom_utils"
 import {
   hintOptions, mode1_, mode_, hintHUD, hintApi, hintManager, coreHints,
@@ -192,7 +193,7 @@ export const linkActions: readonly LinkAction[] = [
       try {
         if (selector && (selected = up
               ? Build.BTypes & ~BrowserType.Firefox
-                ? Element.prototype.querySelector.call(ancestors[Math.max(0, Math.min(up + 1, ancestors.length - 1))]
+                ? elementProto().querySelector.call(ancestors[Math.max(0, Math.min(up + 1, ancestors.length - 1))]
                     , selector)
                 : (ancestors[Math.max(0, Math.min(up + 1, ancestors.length - 1))]).querySelector(selector)
               : element.closest!(selector))) {

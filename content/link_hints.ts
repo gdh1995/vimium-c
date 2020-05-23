@@ -37,15 +37,16 @@ interface BaseHinter extends HintsNS.BaseHinter {
   /** getPreciseChildRect */ g: typeof getPreciseChildRect
   /** hasExecuted */ h: BOOL
   /** delayToExecute */ j: typeof delayToExecute
+  /** highlightHint */ l: typeof highlightHint
   /** collectFrameHints */ o: typeof collectFrameHints
   /** manager */ p: HintManager | null
-  /** highlightHint */ l: typeof highlightHint
   /** render */ r: typeof render
   /** rotate1 */ t: typeof rotate1
   /** checkLast_ */ x: typeof checkLast
   /** yankedList */ y: string[]
 }
 interface HintManager extends BaseHinter {
+    hints_?: readonly HintItem[] | null
     /** get stat (also reset mode if needed) */ $ (resetMode?: 1): Readonly<HinterStatus>
     /** reinit */ i: typeof reinit
     /** onKeydown */ n: typeof onKeydown
@@ -222,6 +223,7 @@ export const activate = (options: HintsNS.ContentOptions, count: number): void =
         return hudTip(total ? kTip.tooManyLinks : kTip.noLinks, 1000);
       }
       hints_ = keyStatus_.c = allHints
+      if (!Build.NDEBUG) { coreHints.hints_ = hints_ }
     }
     noHUD_ = !(useFilter || frameList[0].v[3] > 40 && frameList[0].v[2] > 320)
         || (options.hideHUD || options.hideHud) === true;
@@ -636,6 +638,7 @@ const resetHints = (): void => {
     // here should not consider about .manager_
     if (Build.BTypes & BrowserType.Chrome) { onWaitingKey = null; }
     onTailEnter = hints_ = null as never;
+    if (!Build.NDEBUG) { coreHints.hints_ = null }
     /*#__INLINE__*/ hintFilterReset();
     coreHints.q > TimerID.None &&
     (clearTimeout_(coreHints.q), coreHints.q = TimerID.None);
@@ -791,6 +794,7 @@ const coreHints: HintManager = {
   p: null, q: TimerID.None,
   n: onKeydown, s: resetMode, i: reinit, v: resetHints, u: onFrameUnload, w: setupCheck, z: postExecute
 }
+if (!Build.NDEBUG) { coreHints.hints_ = null }
 
 export { HintManager, coreHints }
 

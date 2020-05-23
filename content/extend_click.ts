@@ -547,8 +547,7 @@ _listen(kOnDomReady, doInit, !0);
    * inlined script are not cached for `v8::ScriptCompiler::kNoCacheBecauseInlineScript`.
    * But here it still uses the same script, just for my personal preference.
    */
-  script.textContent = injected;
-  script.type = "text/javascript";
+  runJS_(injected, script)
   script.dataset.vimium = secret as number | string as string;
   if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
     (docEl ? script : doc).prepend!.call(docEl || doc, script);

@@ -587,10 +587,10 @@ export const evalIfOK = (url: Pick<BgReq[kBgReq.eval], "u"> | string): boolean =
       || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
       ? allowScripts_ === 2 || allowScripts_ &&
         /*#__INLINE__*/ set_allowScripts_(
-            (el = runJS_(VTr(kTip.removeCurScript), 1)!).parentNode ? (el.remove(), 0) : 2)
+            (el = runJS_(VTr(kTip.removeCurScript), 0)!).parentNode ? (el.remove(), 0) : 2)
       : allowScripts_) {
     try { url = decodeURIComponent(url); } catch {}
-    timeout_(Build.BTypes & BrowserType.Firefox ? runJS_.bind(0, url, 1) : runJS_.bind(0, url) as () => void, 0);
+    timeout_(Build.BTypes & BrowserType.Firefox ? runJS_.bind(0, url, 0) : runJS_.bind(0, url) as () => void, 0);
   } else {
     hudTip(kTip.failToEvalJS);
   }

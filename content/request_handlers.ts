@@ -32,7 +32,7 @@ import {
 import {
   editableTypes_, markFramesetTagUnsafe, setNotSafe_not_ff, OnDocLoaded_, frameElement_,
   notSafe_not_ff_, htmlTag_, querySelector_unsafe_, isHTML_, createElement_, lastHovered_, resetLastHovered,
-  docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, CLK, MDW,
+  docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, CLK, MDW, elementProto,
 } from "../lib/dom_utils"
 
 const DAC = "DOMActivate"
@@ -366,7 +366,7 @@ export const showFrameMask = (mask: FrameMaskType): void => {
     if (docEl) {
     Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
       && (!(Build.BTypes & ~BrowserType.Chrome) || chromeVer_ < BrowserVer.MinScrollIntoViewOptions)
-    ? Element.prototype.scrollIntoViewIfNeeded!.call(docEl)
+    ? elementProto().scrollIntoViewIfNeeded!.call(docEl)
     : scrollIntoView_(docEl);
     }
   }

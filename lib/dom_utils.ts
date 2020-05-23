@@ -113,6 +113,8 @@ export const GetShadowRoot_ = (el: Element): ShadowRoot | null => {
       : sr && !notSafe_not_ff_!(el) && <Exclude<typeof sr, Element | RadioNodeList | Window>> sr || null;
 }
 
+export const elementProto = (): Element => Element.prototype
+
   /**
    * Try its best to find a real parent
    * @safe_even_if_any_overridden_property
@@ -127,17 +129,15 @@ export const GetParent_unsafe_ = function (this: void, el: Node | Element
      */
     const kPN = "parentNode"
     if (type >= PNType.RevealSlot && Build.BTypes & ~BrowserType.Edge) {
-      const ElementCls_old_cr = Build.MinCVer < BrowserVer.MinNoShadowDOMv0 && Build.BTypes & BrowserType.Chrome
-          ? Element : 0 as never as null;
-      if (Build.MinCVer < BrowserVer.MinNoShadowDOMv0 && Build.BTypes & BrowserType.Chrome) {
-        const func = ElementCls_old_cr!.prototype.getDestinationInsertionPoints,
+      if (Build.MinCVer < BrowserVer.MinNoShadowDOMv0 && Build.BTypes & BrowserType.Chrome
+          && chromeVer_ < BrowserVer.MinNoShadowDOMv0) {
+        const func = elementProto().getDestinationInsertionPoints,
         arr = func ? func.call(el) : [], len = arr.length;
         len > 0 && (el = arr[len - 1]);
       }
       let slot = (el as Element).assignedSlot;
       Build.BTypes & ~BrowserType.Firefox && slot && notSafe_not_ff_!(el as Element) &&
-      (slot = Getter_not_ff_!(Build.MinCVer < BrowserVer.MinNoShadowDOMv0 && Build.BTypes & BrowserType.Chrome
-          ? ElementCls_old_cr! : Element, el as HTMLFormElement, "assignedSlot"));
+      (slot = Getter_not_ff_!(Element, el as HTMLFormElement, "assignedSlot"));
       if (slot) {
         if (type === PNType.RevealSlot) { return slot; }
         while (slot = slot.assignedSlot) { el = slot; }
@@ -301,10 +301,12 @@ export let prepareCrop_ = (inVisualViewport?: 1, limitedView?: Rect | null): num
     return prepareCrop_(inVisualViewport, limitedView);
 }
 
-export const getBoundingClientRect_ = (el: Element): ClientRect => {
-    return Build.BTypes & ~BrowserType.Firefox ? Element.prototype.getBoundingClientRect.call(el)
-      : el.getBoundingClientRect();
-}
+export let getBoundingClientRect_: (el: Element) => ClientRect = Build.BTypes & ~BrowserType.Firefox ? (el) => {
+  type ClientRectGetter = (this: Element) => ClientRect
+  const func = elementProto().getBoundingClientRect as ClientRectGetter
+  getBoundingClientRect_ = func.call.bind<(this: ClientRectGetter, self: Element) => ClientRect>(func)
+  return getBoundingClientRect_(el)
+} : el => el.getBoundingClientRect()
 
 export const getVisibleClientRect_ = (element: SafeElement, el_style?: CSSStyleDeclaration | null): Rect | null => {
     const arr = element.getClientRects();
@@ -881,7 +883,7 @@ export const touch_cr_ = Build.BTypes & BrowserType.Chrome ? (element: SafeEleme
 
 export const scrollIntoView_ = (el: Element, dir?: boolean): void => {
     !(Build.BTypes & ~BrowserType.Firefox) ? el.scrollIntoView({ block: "nearest" })
-      : Element.prototype.scrollIntoView.call(el,
+      : elementProto().scrollIntoView.call(el,
           Build.MinCVer < BrowserVer.MinScrollIntoViewOptions && Build.BTypes & BrowserType.Chrome &&
           dir != null ? dir : { block: "nearest" });
 }
@@ -901,21 +903,22 @@ export const view_ = (el: Element, oldY?: number): boolean => {
 export const scrollWndBy_ = (left: number, top: number): void => {
     !(Build.BTypes & ~BrowserType.Firefox) ||
     !(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
-    Element.prototype.scrollBy ? scrollBy({behavior: "instant", left, top}) : scrollBy(left, top);
+    elementProto().scrollBy ? scrollBy({behavior: "instant", left, top}) : scrollBy(left, top);
 }
 
-export const runJS_ = (code: string, returnEl?: 1): void | HTMLScriptElement => {
-    const script = createElement_("script");
+export const runJS_ = (code: string, returnEl?: HTMLScriptElement | 0): void | HTMLScriptElement => {
+    const script = returnEl || createElement_("script");
     script.type = "text/javascript";
     script.textContent = code;
     if (Build.BTypes & ~BrowserType.Firefox) {
+      if (returnEl) { return; }
       /** `appendChild` must be followed by /[\w.]*doc/: {@link ../Gulpfile.js#postUglify} */
       script.appendChild.call(docEl_unsafe_() || doc, script);
     } else {
       (docEl_unsafe_() || doc).appendChild(script);
     }
     if (Build.BTypes & BrowserType.Firefox) {
-      return returnEl ? script : script.remove();
+      return returnEl === 0 ? script : script.remove();
     }
     script.remove();
 }

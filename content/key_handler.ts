@@ -10,7 +10,7 @@ import {
   exitInsertMode, focusUpper, insert_global_, insert_Lock_, isInInsert, raw_insert_lock, setupSuppress, suppressType,
 } from "./mode_insert"
 import { keyIsDown as scroll_keyIsDown, onScrolls, scrollTick } from "./scroller"
-import { activeEl_unsafe_, getSelection_, getInnerHeight } from "../lib/dom_utils"
+import { activeEl_unsafe_, getSelection_, getInnerHeight, elementProto } from "../lib/dom_utils"
 
 let passKeys: SafeEnum | null | "" = null
 let isPassKeysReverted = false
@@ -141,7 +141,7 @@ const onAnyClick = (event: MouseEventToPrevent): void => {
          ? Build.MinCVer >= BrowserVer.MinEnsured$Event$$Path || path
          : (Build.MinCVer >= BrowserVer.MinEnsured$Event$$Path || path) && path!.length > 1)
         ? path![0] as Element : event.target as Element;
-    if (Element.prototype.getAttribute.call(t, "accesskey")) {
+    if (elementProto().getAttribute.call(t, "accesskey")) {
       // if a script has modified [accesskey], then do nothing on - just in case.
       /*#__NOINLINE__*/ resetAnyClickHandler();
       prevent_(event);

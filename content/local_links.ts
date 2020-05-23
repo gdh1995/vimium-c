@@ -9,7 +9,7 @@ import {
   getClientRectsForAreas_, htmlTag_, isAriaNotTrue_, getCroppedRect_, getBoundingClientRect_, cropRectToVisible_,
   isStyleVisible_, fullscreenEl_unsafe_, querySelector_unsafe_, bZoom_, set_bZoom_, prepareCrop_, notSafe_not_ff_,
   isContaining_, docEl_unsafe_, GetParent_unsafe_, unsafeFramesetTag_old_cr_, isDocZoomStrange_, docZoom_,
-  SubtractSequence_, isHTML_, querySelectorAll_unsafe_, getInnerHeight, getInputType, NONE,
+  SubtractSequence_, isHTML_, querySelectorAll_unsafe_, getInnerHeight, getInputType, NONE, elementProto,
 } from "../lib/dom_utils"
 import { find_box } from "./mode_find"
 import { omni_box } from "./vomnibar"
@@ -317,13 +317,13 @@ export const traverse = function (selector: string
   const matchAll = selector === kSafeAllSelector,
   output: Hint[] | SafeHTMLElement[] = [],
   wantClickable = filter === getClickable,
-  isInAnElement = !Build.NDEBUG && !!wholeDoc && (wholeDoc as unknown) instanceof Element,
+  isInAnElement = !Build.NDEBUG && !!wholeDoc && (wholeDoc as unknown as Node).nodeType === kNode.ELEMENT_NODE,
   box = !wholeDoc && fullscreenEl_unsafe_()
       || !Build.NDEBUG && isInAnElement && wholeDoc as unknown as Element
       || doc,
   isD = box === doc,
   querySelectorAll = Build.BTypes & ~BrowserType.Firefox
-    ? /* just smaller code */ (isD ? doc : Element.prototype).querySelectorAll : box.querySelectorAll;
+    ? /* just smaller code */ (isD ? doc : elementProto()).querySelectorAll : box.querySelectorAll;
   let list: HintSources | null = querySelectorAll.call(box, selector) as NodeListOf<SafeElement>;
   wantClickable && getPixelScaleToScroll();
   if (matchAll) {
