@@ -6,7 +6,7 @@ import ClickType = HintsNS.ClickType
 import {
   frameList_, mode_, useFilter_, coreHints, hintKeyStatus, KeyStatus, hintChars, allHints, setMode, resetMode,
 } from "./link_hints"
-import { getBoundingClientRect_, htmlTag_, createElement_, bZoom_, getInputType, HDN } from "../lib/dom_utils"
+import { getBoundingClientRect_, htmlTag_, createElement_, bZoom_, getInputType, HDN, docEl_unsafe_, elementProto } from "../lib/dom_utils"
 import { chromeVer_, doc } from "../lib/utils"
 import { BSP, DEL, ENT } from "../lib/keyboard_utils"
 import { maxLeft_, maxRight_, maxTop_ } from "./local_links"
@@ -226,7 +226,7 @@ export const generateHintText = (hint: Hint, hintInd: number, allItems: readonly
           ? generateHintText([el2 as SafeHTMLElement] as {[0]: SafeHTMLElement} as Hint, hintInd, allItems).t : ""
       show = text ? 2 : 0
     }
-    text = text || el.title || (
+    text = text || el.title || el.getAttribute("aria-label") || (
         (text = el.className) && (<RegExpOne> /\b(?:[Cc]lose)(?:$|[-\sA-Z_])/).test(text) ? "Close"
         : "")
     break;
@@ -294,7 +294,13 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
         if (hasSearch && newLen < 2) { // in case of only 1 hint in fullHints
           return hints[0];
         }
-        if (!(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+        if (!hasSearch
+            && ((!(Build.BTypes & ~BrowserType.Firefox) ? docEl_unsafe_()!.getAttribute("data-vimium-hints")
+                  : elementProto().getAttribute.call(docEl_unsafe_()!, "data-vimium-hints"))
+                || "").includes("ordinal")) {
+          /* empty */
+        }
+        else if (!(Build.BTypes & ~BrowserType.ChromeOrFirefox)
             && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)) {
           hints.sort((x1, x2) => x1.i - x2.i);
         } else {
