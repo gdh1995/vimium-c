@@ -483,7 +483,7 @@ let _getPageZoom_cr = Build.BTypes & BrowserType.Chrome ? function (devRatio: nu
     let iframe: HTMLIFrameElement = createElement_("iframe"),
     pageZoom: number | null | undefined, doc: Document | null;
     try {
-      /** `_testEl` must not start with /[\w.]*doc/: {@link ../Gulpfile.js#postUglify} */
+      /** `_testEl` must not start with /[\w.]*doc/: {@link ../Gulpfile.js#beforeUglify} */
       iframe.appendChild.call(_testEl, iframe)
       _testEl = (doc = iframe.contentDocument) && doc.documentElement
       pageZoom = _testEl && +getComputedStyle_(_testEl).zoom
@@ -912,7 +912,7 @@ export const runJS_ = (code: string, returnEl?: HTMLScriptElement | 0): void | H
     script.textContent = code;
     if (Build.BTypes & ~BrowserType.Firefox) {
       if (returnEl) { return; }
-      /** `appendChild` must be followed by /[\w.]*doc/: {@link ../Gulpfile.js#postUglify} */
+      /** `appendChild` must be followed by /[\w.]*doc/: {@link ../Gulpfile.js#beforeUglify} */
       script.appendChild.call(docEl_unsafe_() || doc, script);
     } else {
       (docEl_unsafe_() || doc).appendChild(script);

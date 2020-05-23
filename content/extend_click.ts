@@ -552,7 +552,7 @@ _listen(kOnDomReady, doInit, !0);
   if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
     (docEl ? script : doc).prepend!.call(docEl || doc, script);
   } else {
-    /** `appendChild` must be followed by /[\w.]*doc/: {@link ../Gulpfile.js#postUglify} */
+    /** `appendChild` must be followed by /[\w.]*doc/: {@link ../Gulpfile.js#beforeUglify} */
     script.appendChild.call(docEl || doc, script)
   }
   script.dataset.vimium = "";

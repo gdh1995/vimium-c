@@ -881,9 +881,10 @@ function beforeCompile(file) {
   var contents = null, changed = false, oldLen = 0;
   function get() { contents == null && (contents = ToString(file.contents), changed = true, oldLen = contents.length); }
   if (!locally && (allPathStr.includes("settings") || allPathStr.includes("commands")
+      || allPathStr.includes("vomnibar")
       || allPathStr.includes("help_dialog") || allPathStr.includes("completion"))) {
     get();
-    contents = contents.replace(/\b(const|let|var)?\s?As_\s?=[^,;]+[,;]/g, "").replace(/\bAs_\b/g, "");
+    contents = contents.replace(/\b(const|let|var)?\s?As_\s?=[^,;\n]+[,;\n]/g, "").replace(/\bAs_\b/g, "");
   }
   if (changed || oldLen > 0 && contents.length !== oldLen) {
     file.contents = ToBuffer(contents);
@@ -900,8 +901,8 @@ function beforeUglify(file) {
     get();
     contents = contents.replace(/\bconst([\s{\[])/g, "let$1");
   }
+  var btypes = getBuildItem("BTypes"), minCVer = getBuildItem("MinCVer");
   if (allPathStr.includes("/env.js")) {
-    var btypes = getBuildItem("BTypes"), minCVer = getBuildItem("MinCVer");
     toRemovedGlobal = "";
     if (btypes === BrowserType.Chrome || !(btypes & BrowserType.Chrome)) {
       toRemovedGlobal += "browser|";
@@ -946,6 +947,11 @@ function beforeUglify(file) {
     }
     changed = oldChanged || n > 0;
   }
+  var noAppendChild = !(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsured$ParentNode$$appendAndPrepend */ 54;
+  if (noAppendChild) {
+    get();
+    contents = contents.replace(/\bappendChild\b(?!\.call\([\w.]*doc)/g, "append");
+  }
   if (changed || oldLen > 0 && contents.length !== oldLen) {
     file.contents = ToBuffer(contents);
   }
@@ -958,12 +964,6 @@ function postUglify(file, allPaths) {
   if (allPathStr.indexOf("extend_click") >= 0) {
     get();
     contents = patchExtendClick(contents);
-  }
-  var btypes = getBuildItem("BTypes"), minCVer = getBuildItem("MinCVer");
-  var noAppendChild = !(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsured$ParentNode$$appendAndPrepend */ 54;
-  if (noAppendChild) {
-    get();
-    contents = contents.replace(/\bappendChild\b(?!\.call\([\w.]*doc)/g, "append");
   }
   if (allPathStr.includes("content/") || allPathStr.includes("lib/") && !allPathStr.includes("/env.js")) {
     get();
