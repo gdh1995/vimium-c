@@ -122,12 +122,14 @@
   }
 
   /* if not args.url, then "openerTabId" must not in args */
-  function tabsCreate(args: chrome.tabs.CreateProperties, callback?: ((this: void, tab: Tab) => void) | null): 1 {
+  function tabsCreate(args: chrome.tabs.CreateProperties, callback?: ((this: void, tab: Tab) => void) | null
+      , evenIncognito?: boolean | -1): 1 {
     let { url } = args, type: Urls.NewTabType | undefined;
     if (!url) {
       url = Settings_.cache_.newTabUrl_f;
-      if (TabRecency_.incognito_ === IncognitoType.true && url.endsWith(Settings_.CONST_.BlankNewTab_)
-          && url.startsWith(location.origin)) { /* empty */ }
+      if (TabRecency_.incognito_ === IncognitoType.true
+          && (evenIncognito == -1 ? url.endsWith(Settings_.CONST_.BlankNewTab_) && url.startsWith(location.origin)
+              : !evenIncognito && url.startsWith(location.protocol))) { /* empty */ }
       else if (Build.MayOverrideNewTab && Settings_.CONST_.OverrideNewTab_
           ? Settings_.cache_.focusNewTabContent
           : !(Build.BTypes & BrowserType.Firefox)
@@ -152,11 +154,11 @@
     return chrome.tabs.create(args, callback);
   }
   /** if count <= 1, only open once; option.url should not be required for kBgCmd.createTab */
-  function openMultiTab(this: void, option: InfoToCreateMultiTab, count: number): void {
+  function openMultiTab(this: void, option: InfoToCreateMultiTab, count: number, evenIncognito?: boolean | -1): void {
     const wndId = option.windowId, hasIndex = option.index != null;
     tabsCreate(option, option.active ? function (tab) {
       tab && tab.windowId !== wndId && selectWnd(tab);
-    } : null);
+    } : null, evenIncognito);
     if (count < 2) { return; }
     option.active = false;
     do {
@@ -555,7 +557,7 @@
     openMultiTab((tab ? {
       active: tab.active, windowId: tab.windowId,
       index: newTabIndex(tab, cOptions.position)
-    } : {active: true}) as InfoToCreateMultiTab, cRepeat);
+    } : {active: true}) as InfoToCreateMultiTab, cRepeat, cOptions.evenIncognito);
     return onRuntimeError();
   }
 
