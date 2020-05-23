@@ -490,14 +490,14 @@ export const matchHintsByKey = (keyStatus: KeyStatus
     textSeq = textSeq0 + " ";
   } else if (!(useFilter_ && (key.includes("c-") || key.includes("m-"))) && event.c.length === 1
       && keybody.length === 1) {
-    keybody = useFilter_ ? keybody : keybody.toLowerCase().toUpperCase() as kChar;
+    let lower = keybody.toLowerCase();
+    keybody = useFilter_ ? keybody : lower.toUpperCase() as kChar;
     useFilter_ && resetMode();
     if (hintChars.includes(keybody)
         && !(useFilter_ && key === "a-" + keybody && keybody < kChar.minNotNum && keybody > kChar.maxNotNum)) {
       sequence += keybody;
       doesDetectMatchSingle = useFilter_ || sequence.length < maxPrefixLen_ ? 1 : 2;
     } else if (useFilter_) {
-      let lower = keybody.toLowerCase();
       if (keybody !== lower && hintChars !== hintChars.toLowerCase() // ignore {Lo} in chars_
           /** this line requires lower.length must be 1 or 0 */
           || (reForNonMatch_ || (reForNonMatch_
