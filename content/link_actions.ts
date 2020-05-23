@@ -18,7 +18,7 @@ import { set_currentScrolling, syncCachedScrollable } from "./scroller"
 import { post_ } from "./port"
 import { evalIfOK, click_, flash_, select_, getRect, lastFlashEl } from "./dom_ui"
 import { pushHandler_, removeHandler_, isEscape_, getMappedKey, prevent_, suppressTail_ } from "../lib/keyboard_utils"
-import { insert_Lock_ } from "./mode_insert"
+import { insert_Lock_ } from "./insert"
 type LinkEl = Hint[0];
 interface Executor {
   (this: void, linkEl: LinkEl, rect: Rect | null, hintEl: Pick<HintItem, "r">): void | boolean;

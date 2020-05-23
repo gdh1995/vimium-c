@@ -8,7 +8,7 @@ import { post_ } from "./port"
 import { removeSelection } from "./dom_ui"
 import {
   exitInsertMode, focusUpper, insert_global_, insert_Lock_, isInInsert, raw_insert_lock, setupSuppress, suppressType,
-} from "./mode_insert"
+} from "./insert"
 import { keyIsDown as scroll_keyIsDown, onScrolls, scrollTick } from "./scroller"
 import { activeEl_unsafe_, getSelection_, getInnerHeight, elementProto } from "../lib/dom_utils"
 

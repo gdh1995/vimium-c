@@ -12,7 +12,7 @@ import {
   SubtractSequence_, isHTML_, querySelectorAll_unsafe_, getInnerHeight, getInputType, NONE, elementProto,
 } from "../lib/dom_utils"
 import { find_box } from "./mode_find"
-import { omni_box } from "./vomnibar"
+import { omni_box } from "./omni"
 import {
   unwrap_ff, kSafeAllSelector, kEditableSelector, coreHints, addChildFrame, mode1_, forHover_,
   isClickListened_, forceToScroll_, mode_, set_isClickListened_, tooHigh_, useFilter_, hintChars,

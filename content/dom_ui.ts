@@ -15,7 +15,7 @@ import { currentScrolling } from "./scroller"
 import { styleSelectable } from "./mode_find"
 import { unwrap_ff, isHintsActive, reinitHintsIgnoringArgs } from "./link_hints"
 import { post_ } from "./port"
-import { insert_Lock_ } from "./mode_insert"
+import { insert_Lock_ } from "./insert"
 import { hudTip } from "./hud"
 
 let box_: HTMLDivElement & SafeHTMLElement | null = null

@@ -11,7 +11,7 @@ import { chromeVer_, doc } from "../lib/utils"
 import { BSP, DEL, ENT } from "../lib/keyboard_utils"
 import { maxLeft_, maxRight_, maxTop_ } from "./local_links"
 import { ui_root } from "./dom_ui"
-import { omni_box } from "./vomnibar"
+import { omni_box } from "./omni"
 
 type Stack = number[];
 type Stacks = Stack[];

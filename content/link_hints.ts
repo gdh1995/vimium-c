@@ -89,9 +89,9 @@ import {
   style_ui, addElementList, ensureBorder, adjustUI, flash_, getParentVApi, getWndVApi_ff, checkHidden,
 } from "./dom_ui"
 import { scrollTick, beginScroll } from "./scroller"
-import { omni_box, focusOmni } from "./vomnibar"
+import { omni_box, focusOmni } from "./omni"
 import { hudTip, hudShow, hudCopied, hudResetTextProp, hudHide, hud_text } from "./hud"
-import { set_onWndBlur2 } from "./mode_insert"
+import { set_onWndBlur2 } from "./insert"
 import {
   getVisibleElements, localLinkClear, frameNested_, checkNestedFrame, set_frameNested_, filterOutNonReachable,
 } from "./local_links"

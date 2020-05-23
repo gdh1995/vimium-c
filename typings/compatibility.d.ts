@@ -287,7 +287,7 @@ declare const enum BrowserVer {
   Min$selectionStart$MayBeNull = 58,
   // .type is always 'Caret'
   $Selection$NotShowStatusInTextBox = 58, // Now only version 81-110 of Chrome 58 stable have such a problem
-  /** @see {@link content/mode_visual.ts#VVisual.init_ } */
+  /** @see {@link content/visual.ts#VVisual.init_ } */
   MinSelExtendForwardOnlySkipWhitespaces = 59,
   Min$Space$NotMatch$U180e$InRegExp = 59,
   MinMaybeUnicodePropertyEscapesInRegExp = 59, // only if EXPERIMENTAL

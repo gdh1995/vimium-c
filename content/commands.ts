@@ -23,10 +23,10 @@ import {
   exitInputHint, insert_inputHint, insert_last_, raw_insert_lock, resetInsert,
   set_inputHint, set_insert_global_, set_isHintingInput, set_insert_last_, onWndBlur, exitPassMode, set_exitPassMode,
   set_is_last_mutable,
-} from "./mode_insert"
-import { activate as visualActivate, deactivate as visualDeactivate } from "./mode_visual"
+} from "./insert"
+import { activate as visualActivate, deactivate as visualDeactivate } from "./visual"
 import { activate as scActivate, clearCachedScrollable } from "./scroller"
-import { activate as omniActivate } from "./vomnibar"
+import { activate as omniActivate } from "./omni"
 import { findAndFollowLink, findAndFollowRel } from "./pagination"
 import { traverse, getEditable } from "./local_links"
 

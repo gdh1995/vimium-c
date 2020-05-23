@@ -8,7 +8,7 @@ import {
 import { Stop_ } from "../lib/keyboard_utils"
 import { safeDestroy } from "./port"
 import { allHints, hintKeyStatus, coreHints } from "./link_hints"
-import { grabBackFocus } from "./mode_insert"
+import { grabBackFocus } from "./insert"
 
 declare function exportFunction(this: void, func: (...args: any[]) => any, targetScope: object, options?: {
   defineAs: string;

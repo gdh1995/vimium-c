@@ -40,7 +40,7 @@ import { prepareTop, clearTop, executeScroll, scrollIntoView_need_safe } from ".
 import {
   toggleSelectableStyle, find_query, executeFind, find_hasResults, updateQuery as findUpdateQuery,
 } from "./mode_find"
-import { insert_Lock_ } from "./mode_insert"
+import { insert_Lock_ } from "./insert"
 import { hudShow, hudTip, hudHide } from "./hud"
 import { post_, send_ } from "./port"
 import { removeHandler_, pushHandler_, getMappedKey, keybody_, isEscape_, prevent_, ENT } from "../lib/keyboard_utils"

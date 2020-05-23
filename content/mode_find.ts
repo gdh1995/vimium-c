@@ -16,12 +16,12 @@ import {
   createStyle, getSelectionText, checkDocSelectable, adjustUI, ensureBorder, addUIElement, getSelected,
   select_, getSelectionParent_unsafe, resetSelectionToDocStart,
 } from "./dom_ui"
-import { visual_mode, prompt, highlightRange, kDir, activate as visualActivate, kExtend } from "./mode_visual"
+import { visual_mode, prompt, highlightRange, kDir, activate as visualActivate, kExtend } from "./visual"
 import { keyIsDown as scroll_keyIsDown, beginScroll, onScrolls } from "./scroller"
 import { scrollToMark, setPreviousMarkPosition } from "./marks"
 import { hudHide, hud_box, hudTip, hud_opacity } from "./hud"
 import { post_, send_ } from "./port"
-import { insert_Lock_, setupSuppress } from "./mode_insert"
+import { insert_Lock_, setupSuppress } from "./insert"
 
 let isActive = false
 let query_ = ""

@@ -19,12 +19,12 @@ import { createMark } from "./marks"
 import { set_findCSS, styleInHUD } from "./mode_find"
 import {
   exitGrab, grabBackFocus, insertInit, raw_insert_lock, set_grabBackFocus, onFocus, onBlur,
-} from "./mode_insert"
-import { prompt as visualPrompt, visual_mode } from "./mode_visual"
+} from "./insert"
+import { prompt as visualPrompt, visual_mode } from "./visual"
 import {
   currentScrolling, onActivate, set_currentScrolling, clearCachedScrollable, resetCurrentScrolling,
 } from "./scroller"
-import { activate as omniActivate, omni_status, onKeydown as omniOnKeydown, omni_box } from "./vomnibar"
+import { activate as omniActivate, omni_status, onKeydown as omniOnKeydown, omni_box } from "./omni"
 import { contentCommands_ } from "./commands"
 import {
   set_keyIdCorrectionOffset_old_cr_, handler_stack, Stop_, prevent_, removeHandler_, pushHandler_, isEscape_, getMappedKey,

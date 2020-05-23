@@ -15,7 +15,7 @@ import {
   ui_box, adjustUI, doExitOnClick, getParentVApi, set_getParentVApi, set_getWndVApi_ff, learnCSS,
   setUICSS, ui_root, flash_,
 } from "./dom_ui"
-import { grabBackFocus } from "./mode_insert"
+import { grabBackFocus } from "./insert"
 import { currentKeys } from "./key_handler"
 import { contentCommands_ } from "./commands"
 import { hook, enableNeedToRetryParentClickable, focusAndRun } from "./request_handlers"
@@ -25,7 +25,7 @@ import { activate as linkActivate, coreHints } from "./link_hints"
 import { executeScroll, scrollTick, $sc, keyIsDown as scroll_keyIsDown } from "./scroller"
 import { hudTip } from "./hud"
 import { onLoad as findOnLoad, find_box, findCSS, styleInHUD } from "./mode_find"
-import { activate as omniActivate } from "./vomnibar"
+import { activate as omniActivate } from "./omni"
 
 const docReadyListeners: Array<(this: void) => void> = [], completeListeners: Array<(this: void) => void> = []
 const RSC = "readystatechange"

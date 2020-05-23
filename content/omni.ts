@@ -28,7 +28,7 @@ import {
   getSelectionText, adjustUI, setupExitOnClick, addUIElement, getParentVApi, evalIfOK, checkHidden,
 } from "./dom_ui"
 import { tryNestedFrame } from "./link_hints"
-import { insert_Lock_ } from "./mode_insert"
+import { insert_Lock_ } from "./insert"
 import { hudTip, hud_box } from "./hud"
 import { post_, send_ } from "./port"
 
