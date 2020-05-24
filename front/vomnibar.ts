@@ -969,7 +969,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     omniStyles = ` ${omniStyles} `;
     const dark = omniStyles.includes(" dark ");
     if (Vomnibar_.darkBtn_) {
-      Vomnibar_.darkBtn_.textContent = dark ? "\u2600" : "\u263D";
+      if (!Vomnibar_.darkBtn_.childElementCount) {
+        Vomnibar_.darkBtn_.textContent = dark ? "\u2600" : "\u263D";
+      }
       Vomnibar_.darkBtn_.classList.toggle("toggled", dark);
     }
     const monospaceURL = omniStyles.includes(" mono-url ");
@@ -1170,10 +1172,13 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     let fav: 0 | 1 | 2 = 0, f: () => chrome.runtime.Manifest, manifest: chrome.runtime.Manifest
       , str: string | undefined;
     const canShowOnExtOrWeb = Build.MinCVer >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon
-          || Build.BTypes & BrowserType.Chrome
+          || !!(Build.BTypes & BrowserType.Chrome)
               && a.browserVer_ >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon;
-    if (type === VomnibarNS.PageType.web
-        || !location.origin.includes("-")) { /* empty */ }
+    if (!(Build.BTypes & ~BrowserType.Firefox)
+        || Build.BTypes & BrowserType.Firefox && a.browser_ & BrowserType.Firefox) {
+      // we know that Firefox uses `data:...` as icons
+      fav = 2;
+    } else if (type === VomnibarNS.PageType.web) { /* empty */ }
     else if (type === VomnibarNS.PageType.inner) {
       fav = canShowOnExtOrWeb ? 2 : 0;
     } else if (canShowOnExtOrWeb && (str = docEl.dataset.favicons) != null) {

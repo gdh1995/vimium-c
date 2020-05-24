@@ -355,7 +355,7 @@
     let { u: url } = this.s, favIcon: 0 | 1 | 2 = favIcon0 === 2 ? 2 : 0;
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
-      favIcon = list.length > 0 && list[0].e === "tab" ? favIcon && 2 : 0;
+      favIcon = list.some(i => i.e === "tab") ? favIcon && 2 : 0;
     }
     else if (Build.BTypes & BrowserType.Edge
         && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge)) {
