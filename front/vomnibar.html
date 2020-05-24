@@ -10,11 +10,10 @@ overflow:hidden;padding:0;position:relative;white-space:nowrap;}
 .transparent{opacity:0.66;transition:opacity 167ms 33ms;}
 #bar{background:#f1f1f1;border-bottom:1px dashed #ccc;border-radius:4px 4px 0 0;
 contain:strict;font-size:0;height:34px;padding:10px;}#bar.empty{border-radius:4px;border:none;}
-#toolbar{color:#999;font:bold 21px/23px "Courier New",monospace;height:20px;opacity:0;position:absolute;
-right:17px;text-align:center;top:17px;transition:opacity 120ms 80ms;}
+#toolbar{color:#999;opacity:0;position:absolute;right:17px;top:17px;transition:opacity 120ms 80ms;}
 #toolbar,.label{-webkit-user-select:none;user-select:none;}#toolbar:hover,.transparent #toolbar{opacity:1;}
-.button{contain:strict;cursor:default;display:inline-block;height:21px;margin-left:4px;width:20px;}
-.button:hover{border-radius:2px;background:rgba(255,255,255,0.8);color:#666;}
+.button{contain:strict;cursor:default;display:inline-block;fill:currentColor;height:20px;margin-left:4px;
+stroke:currentColor;width:20px;}.button:hover{border-radius:5px;background:rgba(255,255,255,0.8);color:#666;}
 #input{background:#fff;border:0.5px solid #e8e8e8;border-radius:3px;box-shadow:0 0 1.5px #444;box-sizing:border-box;
 color:#000;contain:strict;font-size:20px;height:34px;outline:none;padding:4px 9.5px;width:100%;}
 #list{background:#fff;border-radius:0 0 4px 4px;contain:content;}
@@ -33,7 +32,9 @@ vertical-align:top;}.tab,.math{stroke:#999;stroke-width:4;fill:none;}
 a{color:#3b517d;cursor:text;font:14px/18px "Helvetica Neue",Helvetica,Arial,sans-serif;text-decoration:none;}
 .mono-url a{font-family:Consolas,"Liberation Mono","Courier New",monospace;}
 match{color:#000;font-weight:bold;}.title>match{text-decoration:underline;}
-#closeSvg{width:14px;height:12px;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:2.4;}
+#toggle-dark{stroke-linecap:round;stroke-linejoin:bevel;}.i-moon{fill:none;stroke-width:1.4;}
+.i-sun{stroke-width:2.1}#toggle-dark:not(.toggled) .i-sun,#toggle-dark.toggled .i-moon{visibility:hidden;}
+#close{stroke-linecap:round;stroke-linejoin:round;stroke-width:2.4;}
 .level-2{padding-right:32px;}.level-3{padding-right:48px;}.level-4{padding-right:60px;}.level-5{padding-right:72px;}
 .less-motion .transparent, .less-motion #toolbar{transition:none;}
 .tab{d:path("M2 22v36h44V22zm8 0v-8h44v36h-6m8 -8h6V6H18v6");}
@@ -57,9 +58,12 @@ match{color:#000;font-weight:bold;}.title>match{text-decoration:underline;}
 	<input type="text" id="input" spellcheck="false" autocomplete="off" autocapitalize="off"
 			inputmode="url" enterkeyhint="Go" />
 	<div id="toolbar">
-		<span role="button" class="button" id="toggle-dark" title="Toggle Dark">&#9789;
-		</span><span role="button" class="button" id="close" title="Close"><svg
-				id="closeSvg" viewBox="0 0 12 12"><path d="M2 2l8 8zM2 10L10 2" /></svg></span>
+		<span role="button" class="button" id="toggle-dark" title="Toggle Dark"><svg viewBox="0 0 20 20">
+			<path class="i-moon" d="M5.4 3A7.2 7.3 0 1 1 5.4 17A6.4 7 0 1 0 5.4 3z" />
+			<circle class="i-sun" cx="10" cy="10" r="3.2" /><path class="i-sun"
+					d="M2 10h2m6 6v2m6-8h2M10 2v2M4.3 4.3l1.4 1.4M15.7 4.3l-1.4 1.4M4.3 15.7l1.4-1.4M14.3 14.3l1.4 1.4" />
+		</svg></span><span role="button" class="button" id="close" title="Close"><svg viewBox="0 0 20 20">
+			<path d="M6 6l8 8zM6 14L14 6" /></svg></span>
 	</div>
 </div>
 <div id="list">
