@@ -104,7 +104,8 @@ export const deref_ = !(Build.BTypes & BrowserType.Chrome) ? weakRef_ as any
 type TimerFunc = (func: (this: void, fake?: TimerType.fake) => void, time: number) => TimerID.Valid | TimerID.Others
 export let timeout_: TimerFunc = Build.NDEBUG ? setTimeout : (func, timeout) => setTimeout(func, timeout)
 export let interval_: TimerFunc = Build.NDEBUG ? setInterval : (func, period) => setInterval(func, period)
-export let clearTimeout_: (timer: TimerID) => void = Build.NDEBUG ? clearTimeout : (timer) => clearTimeout(timer)
+export const clearTimeout_: (timer: TimerID) => void = clearTimeout
+export const clearInterval_: (timer: TimerID) => void = clearInterval
 
 export function replaceBrokenTimerFunc (_newTimerFunc: TimerFunc): void { timeout_ = interval_ = _newTimerFunc }
 

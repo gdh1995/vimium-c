@@ -1,4 +1,4 @@
-import { fgCache, doc, isEnabled_, VTr, isAlive_, timeout_, clearTimeout_, interval_ } from "../lib/utils"
+import { fgCache, doc, isEnabled_, VTr, isAlive_, timeout_, clearTimeout_, interval_, clearInterval_ } from "../lib/utils"
 import { ui_box, ensureBorder, addUIElement, adjustUI } from "./dom_ui"
 import { allHints } from "./link_hints"
 import { isHTML_, createElement_, HDN } from "../lib/dom_utils"
@@ -88,7 +88,7 @@ const tween = (fake?: TimerType.fake): void => { // safe-interval
     style.visibility = HDN;
     $text.data = "";
   }
-  clearInterval(tweenId);
+  clearInterval_(tweenId);
   tweenId = 0;
 }
 

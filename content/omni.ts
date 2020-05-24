@@ -16,7 +16,7 @@ interface FullOptions extends BaseFullOptions {
 declare var VData: VDataTy
 
 import {
-  injector, isAlive_, keydownEvents_, readyState_, VOther, timeout_, clearTimeout_, loc_, recordLog, chromeVer_,
+  injector, isAlive_, keydownEvents_, readyState_, VOther, timeout_, clearTimeout_, loc_, recordLog, chromeVer_, interval_, clearInterval_,
 } from "../lib/utils"
 import { removeHandler_, pushHandler_, SuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils";
 import {
@@ -201,7 +201,8 @@ export const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void
         recordLog(kTip.logOmniFallback)
         return reload();
       }
-      const checkBroken = (i?: TimerType.fake): void => {
+      timeout_((i?: TimerType.fake): void => {
+        clearInterval_(msgInterval)
         const ok = !isAlive_ || status !== VomnibarNS.Status.Initing
         if (Build.BTypes & ~BrowserType.Firefox ? ok || i : ok) {
           isAlive_ && box && (box.onload = omniOptions = null as never); return
@@ -211,8 +212,7 @@ export const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void
         focus();
         status = VomnibarNS.Status.KeepBroken
         activate({} as FullOptions, 1)
-      }
-      timeout_(checkBroken, 600)
+      }, 600)
       const doPostMsg = (stat?: TimerType.fake | 1): void => {
         const wnd = el.contentWindow
         if (!wnd || stat !== 1 && isAboutBlank()) { return }
@@ -222,7 +222,7 @@ export const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void
         const sec: VomnibarNS.MessageData = [secret, omniOptions as VomnibarNS.FgOptionsToFront]
         wnd.postMessage(sec, type !== VomnibarNS.PageType.web ? new URL(page).origin : "*", [channel.port2]);
       }
-      type === VomnibarNS.PageType.web ? timeout_(doPostMsg, 66) : doPostMsg(1)
+      let msgInterval = type === VomnibarNS.PageType.web ? interval_(doPostMsg, 66) : (doPostMsg(1), TimerID.None)
     };
     addUIElement(box = el, AdjustType.MustAdjust, hud_box)
     type !== VomnibarNS.PageType.inner &&

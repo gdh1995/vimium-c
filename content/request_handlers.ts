@@ -2,7 +2,7 @@ import {
   chromeVer_, clickable_, doc, esc, fgCache, injector, isEnabled_, isLocked_, isAlive_, isTop,
   keydownEvents_, safeObj, set_chromeVer_, set_clickable_, set_fgCache, set_VOther, set_isLocked_,
   setupEventListener, set_isEnabled_, suppressCommonEvents, set_onWndFocus, VOther, onWndFocus, timeout_, safer,
-  allowScripts_, loc_, interval_, getTime, vApi, deref_, weakRef_,
+  allowScripts_, loc_, interval_, getTime, vApi, deref_, weakRef_, clearInterval_,
 } from "../lib/utils"
 import { port_callbacks, post_, safePost, set_requestHandlers, requestHandlers } from "./port"
 import {
@@ -382,7 +382,7 @@ export const showFrameMask = (mask: FrameMaskType): void => {
       if (more_ && !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake
                       && fake)) { return; }
       if (framemask_node) { framemask_node.remove(); framemask_node = null; }
-      clearInterval(framemask_fmTimer);
+      clearInterval_(framemask_fmTimer);
     }, isTop ? 200 : 350);
   }
   addUIElement(framemask_node);
