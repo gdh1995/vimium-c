@@ -181,7 +181,7 @@ export const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void
       el[kRef] = "no-referrer";
       if (!(Build.BTypes & ~BrowserType.Chrome)
           || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome) {
-        // el[kS] = "allow-scripts";
+        el[kS] = "allow-scripts";
       }
     }
     el.src = page;
@@ -201,14 +201,11 @@ export const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void
         recordLog(kTip.logOmniFallback)
         return reload();
       }
-      const
-      sec: VomnibarNS.MessageData = [secret, omniOptions as VomnibarNS.FgOptionsToFront],
-      // eslint-disable-next-line @typescript-eslint/ban-types
-      origin = (page as EnsureNonNull<String>).substring(0
-          , page.startsWith("file:") ? 7 : page.indexOf("/", page.indexOf("://") + 3)),
-      checkBroken = function (i?: TimerType.fake): void {
+      const checkBroken = (i?: TimerType.fake): void => {
         const ok = !isAlive_ || status !== VomnibarNS.Status.Initing
-        if (ok || i) { isAlive_ && box && (box.onload = omniOptions = null as never); return; }
+        if (Build.BTypes & ~BrowserType.Firefox ? ok || i : ok) {
+          isAlive_ && box && (box.onload = omniOptions = null as never); return
+        }
         if (type !== VomnibarNS.PageType.inner) { reload(); return }
         reset()
         focus();
@@ -222,7 +219,8 @@ export const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void
         const channel = new MessageChannel();
         portToOmni = channel.port1
         channel.port1.onmessage = onOmniMessage
-        wnd.postMessage(sec, type !== VomnibarNS.PageType.web && origin || "*", [channel.port2]);
+        const sec: VomnibarNS.MessageData = [secret, omniOptions as VomnibarNS.FgOptionsToFront]
+        wnd.postMessage(sec, type !== VomnibarNS.PageType.web ? new URL(page).origin : "*", [channel.port2]);
       }
       type === VomnibarNS.PageType.web ? timeout_(doPostMsg, 66) : doPostMsg(1)
     };
