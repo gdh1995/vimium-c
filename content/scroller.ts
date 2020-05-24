@@ -36,7 +36,7 @@ interface ElementScrollInfo {
 import {
   isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, allowRAF_, readyState_, loc_, chromeVer_, vApi, deref_, weakRef_,
 } from "../lib/utils"
-import { getParentVApi, resetSelectionToDocStart, checkHidden } from "./dom_ui"
+import { getParentVApi, resetSelectionToDocStart, checkHidden, addElementList, curModalElement } from "./dom_ui"
 import { isCmdTriggered } from "./key_handler"
 import { tryNestedFrame } from "./link_hints"
 import { setPreviousMarkPosition } from "./marks"
@@ -74,7 +74,7 @@ let performAnimate = (e: SafeElement | null, d: ScrollByY, a: number): void => {
   let amount = 0, calibration = 1.0, di: ScrollByY = 0, duration = 0, element: SafeElement | null = null, //
   sign = 0, timestamp = 0, totalDelta = 0.0, totalElapsed = 0.0, //
   running = 0, timer = TimerID.None,
-  top: SafeElement | null = null,
+  styleTop: SafeElement | null = null, maskTop: HTMLDialogElement | null = styleTop,
   animate = (newTimestamp: number): void => {
     if (!isAlive_ || !running) { toggleAnimation!(); return; }
     const
@@ -121,15 +121,23 @@ let performAnimate = (e: SafeElement | null, d: ScrollByY, a: number): void => {
       toggleAnimation!();
     }
   },
+  hasDialog = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement
+      || !!(Build.BTypes & BrowserType.ChromeOrFirefox) && typeof HTMLDialogElement === "function",
   startAnimate = (): void => {
     timer = TimerID.None;
     running = running || rAF_(animate);
   };
   toggleAnimation = (scrolling?: BOOL): void => {
+    if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement
+        || Build.BTypes & BrowserType.ChromeOrFirefox && hasDialog) {
+      scrolling ? curModalElement ? 0 : maskTop = addElementList([], [0, 0], true)
+      : (maskTop && maskTop.remove(), maskTop = null, running = 0)
+      return
+    }
     const el = (scrolling ? Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(docEl_unsafe_())
-        : docEl_unsafe_() : top
+        : docEl_unsafe_() : styleTop
         ) as SafeElement & TypeToAssert<Element, HTMLElement | SVGElement, "style"> | null;
-    top = scrolling ? el : (running = 0, element = null);
+    styleTop = scrolling ? el : (running = 0, element = null);
     el && el.style ? el.style.pointerEvents = scrolling ? NONE : "" : 0;
   };
   performAnimate = (newEl, newDi, newAmount): void => {
