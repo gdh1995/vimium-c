@@ -1265,7 +1265,7 @@
       isCurOnExt = url.startsWith(BrowserProtocol_),
       inner = forceInner || !page.startsWith(location.origin) ? Settings_.CONST_.VomnibarPageInner_ : page;
       forceInner = forceInner ? forceInner
-        : preferWeb ? isCurOnExt || page.startsWith("file:") && !url.startsWith("file:")
+        : preferWeb ? isCurOnExt || page.startsWith("file:") && !url.startsWith("file:///")
           // it has occurred since Chrome 50 (BrowserVer.Min$tabs$$executeScript$hasFrameIdArg)
           // that HTTPS refusing HTTP iframes.
           || page.startsWith("http:") && !(<RegExpOne> /^http:/).test(url)
