@@ -201,7 +201,7 @@ export const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void
         recordLog(kTip.logOmniFallback)
         return reload();
       }
-      const wnd = (this as typeof el).contentWindow,
+      const
       sec: VomnibarNS.MessageData = [secret, omniOptions as VomnibarNS.FgOptionsToFront],
       // eslint-disable-next-line @typescript-eslint/ban-types
       origin = (page as EnsureNonNull<String>).substring(0
@@ -209,19 +209,22 @@ export const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void
       checkBroken = function (i?: TimerType.fake): void {
         const ok = !isAlive_ || status !== VomnibarNS.Status.Initing
         if (ok || i) { isAlive_ && box && (box.onload = omniOptions = null as never); return; }
-        if (type !== VomnibarNS.PageType.inner) { return reload(); }
+        if (type !== VomnibarNS.PageType.inner) { reload(); return }
         reset()
         focus();
         status = VomnibarNS.Status.KeepBroken
         activate({} as FullOptions, 1)
       }
-      {
-        timeout_(checkBroken, 600)
+      timeout_(checkBroken, 600)
+      const doPostMsg = (stat?: TimerType.fake | 1): void => {
+        const wnd = el.contentWindow
+        if (!wnd || stat !== 1 && isAboutBlank()) { return }
         const channel = new MessageChannel();
         portToOmni = channel.port1
         channel.port1.onmessage = onOmniMessage
         wnd.postMessage(sec, type !== VomnibarNS.PageType.web && origin || "*", [channel.port2]);
       }
+      type === VomnibarNS.PageType.web ? timeout_(doPostMsg, 66) : doPostMsg(1)
     };
     addUIElement(box = el, AdjustType.MustAdjust, hud_box)
     type !== VomnibarNS.PageType.inner &&
