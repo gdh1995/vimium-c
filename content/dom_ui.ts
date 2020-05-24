@@ -25,8 +25,12 @@ let cssPatch_: [string, (css: string) => string] | null = null
 let lastFlashEl: SafeHTMLElement | null = null
 let _toExit = [0, 0] as Array<((this: void) => void) | 0>
 let flashTime = 0;
+let curModalElement: HTMLDialogElement | null | undefined
 
-export { box_ as ui_box, root_ as ui_root, styleIn_ as style_ui, lastFlashEl }
+export { box_ as ui_box, root_ as ui_root, styleIn_ as style_ui, lastFlashEl, curModalElement }
+export const removeModal = Build.BTypes & BrowserType.ChromeOrFirefox ? (): void => {
+  curModalElement && curModalElement.remove(), curModalElement = null
+} : (): void => {}
 
 export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustType): void {
     box_ = createElement_("div");
@@ -97,8 +101,8 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
 export const addElementList = function <T extends boolean> (
       els: readonly HintsNS.BaseHintItem[], offset: ViewOffset, dialogContainer?: T
       ): (T extends true ? HTMLDialogElement : HTMLDivElement) & SafeElement {
-    const parent = createElement_(Build.BTypes & BrowserType.Chrome && dialogContainer ? "dialog" : "div");
-    parent.className = "R HM" + (Build.BTypes & BrowserType.Chrome && dialogContainer ? " DHM" : "") + fgCache.d;
+    const parent = createElement_(Build.BTypes & BrowserType.ChromeOrFirefox && dialogContainer ? "dialog" : "div");
+    parent.className = `R HM${Build.BTypes & BrowserType.ChromeOrFirefox && dialogContainer ? " DHM" : ""}${fgCache.d}`
     if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredES6ArrowFunction
           && Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
       parent.append!(...els.map(el => el.m))
@@ -108,7 +112,7 @@ export const addElementList = function <T extends boolean> (
       }
     }
     const style = parent.style,
-    zoom = bZoom_ / (Build.BTypes & BrowserType.Chrome && dialogContainer ? 1 : dScale_),
+    zoom = bZoom_ / (Build.BTypes & BrowserType.ChromeOrFirefox && dialogContainer ? 1 : dScale_),
     left = offset[0] + "px", top = offset[1] + "px";
     if ((!(Build.BTypes & ~BrowserType.Firefox)
           || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox)
@@ -119,10 +123,10 @@ export const addElementList = function <T extends boolean> (
       zoom - 1 && (style.zoom = zoom as number | string as string);
     }
     fullscreenEl_unsafe_() && (style.position = "fixed");
-    addUIElement(parent, AdjustType.DEFAULT, lastFlashEl)
-    if (Build.BTypes & BrowserType.Chrome) {
-      dialogContainer && (parent as HTMLDialogElement).showModal();
+    if (Build.BTypes & BrowserType.ChromeOrFirefox && dialogContainer) {
+      curModalElement = parent as HTMLDialogElement
     }
+    addUIElement(parent, AdjustType.DEFAULT, lastFlashEl)
     return parent as (T extends true ? HTMLDialogElement : HTMLDivElement) & SafeElement;
 }
 
@@ -139,6 +143,7 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
     (Build.BTypes & ~BrowserType.Firefox ? box_!.appendChild.call(el2, box_!) : el2.appendChild(box_!));
     const sin = styleIn_, s = sin && (sin as HTMLStyleElement).sheet
     s && (s.disabled = false);
+    Build.BTypes & BrowserType.ChromeOrFirefox && curModalElement && curModalElement.showModal();
     if (el || event) {
       const removeEL = !el || event === 2, FS = "fullscreenchange";
       if (Build.BTypes & BrowserType.Chrome

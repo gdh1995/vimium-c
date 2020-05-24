@@ -86,7 +86,7 @@ import {
 } from "../lib/keyboard_utils"
 import { send_ } from "./port"
 import {
-  style_ui, addElementList, ensureBorder, adjustUI, flash_, getParentVApi, getWndVApi_ff, checkHidden,
+  style_ui, addElementList, ensureBorder, adjustUI, flash_, getParentVApi, getWndVApi_ff, checkHidden, removeModal,
 } from "./dom_ui"
 import { scrollTick, beginScroll } from "./scroller"
 import { omni_box, focusOmni } from "./omni"
@@ -181,11 +181,15 @@ export const activate = (options: HintsNS.ContentOptions, count: number): void =
       clear(1)
       return hudTip(kTip.fewChars, 1000);
     }
-    if (Build.BTypes & BrowserType.Chrome) {
-      coreHints.d && box_ && box_.remove()
-      coreHints.d = !!(wantDialogMode_ != null ? wantDialogMode_ : querySelector_unsafe_("dialog[open]"))
-        && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement
-            || typeof HTMLDialogElement === "function");
+    if (Build.BTypes & BrowserType.ChromeOrFirefox) {
+      if (Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredShadowDOMV1
+          || BrowserVer.MinEnsuredHTMLDialogElement < BrowserVer.MinShadowDOMV0
+              && Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinShadowDOMV0) {
+        removeModal()
+      }
+      coreHints.d = (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement
+            || typeof HTMLDialogElement === "function")
+        && !!(wantDialogMode_ != null ? wantDialogMode_ : querySelector_unsafe_("dialog[open]"))
     }
     let allHints: readonly HintItem[], child: ChildFrame | undefined, insertPos = 0
       , frameInfo: FrameHintsInfo, total: number
@@ -276,16 +280,13 @@ const collectFrameHints = (count: number, options: HintsNS.ContentOptions
     if (!isHTML_()) {
       return;
     }
-    if ((manager || coreHints).d  && box_) {
-      box_.remove()
-      box_ = null
-    }
     const view: ViewBox = getViewBox_(Build.BTypes & BrowserType.Chrome && (manager || coreHints
         ).d ? 2 : 1);
     prepareCrop_(1, outerView);
     if (tooHigh_ !== null) {
       tooHigh_ = scrollingEl_(1)!.scrollHeight / getInnerHeight() > GlobalConsts.LinkHintTooHighThreshold
     }
+    removeModal()
     forceToScroll_ = options.scroll === "force" ? 2 : 0;
     addChildFrame = newAddChildFrame;
     const elements = getVisibleElements(view);
@@ -302,6 +303,7 @@ const collectFrameHints = (count: number, options: HintsNS.ContentOptions
 const render = (hints: readonly HintItem[], arr: ViewBox, hud: MinimalHUDTy, raw_apis: VApiTy): void => {
     const managerOrA = manager_ || coreHints;
     if (box_) { box_.remove(); box_ = null; }
+    removeModal()
     hud_ = Build.BTypes & BrowserType.Firefox && manager_ ? unwrap_ff(hud) : hud;
     api_ = Build.BTypes & BrowserType.Firefox && manager_ ? unwrap_ff(raw_apis) : raw_apis;
     ensureBorder(wdZoom_ / dScale_);
@@ -687,12 +689,13 @@ export const clear = (keepHudOrEvent?: 0 | 1 | 2 | Event, suppressTimeout?: numb
     /*#__INLINE__*/ resetHintKeyCode()
     useFilter_ =
     noHUD_ = tooHigh_ = false;
-    if (Build.BTypes & BrowserType.Chrome) { coreHints.d = false; }
+    if (Build.BTypes & BrowserType.ChromeOrFirefox) { coreHints.d = false; }
     chars_ = "";
     if (box_) {
       box_.remove();
       box_ = null;
     }
+    removeModal()
     keepHudOrEvent === 1 || hudHide();
 }
 
