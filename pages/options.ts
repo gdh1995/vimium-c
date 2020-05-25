@@ -683,7 +683,7 @@ let optionsInit1_ = function (): void {
     url = bgSettings_.cache_.vomnibarPage_f || url; // for the case Chrome is initing
     if (isExtPage) { /* empty */ }
     // Note: the old code here thought on Firefox web pages couldn't be used, but it was just because of wrappedJSObject
-    else if (url.startsWith("file://")) {
+    else if (url.startsWith("file:")) {
       return this.showError_(pTrans_("fileVomnibar"), "highlight");
     } else if ((<RegExpI> /^http:\/\/(?!localhost[:/])/i).test(url)) {
       return this.showError_(pTrans_("httpVomnibar"), "highlight");

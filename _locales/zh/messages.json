@@ -987,7 +987,7 @@
 		"message": "在 Chromium $1 之前，只有扩展程序内的搜索框页面才可用。"
 	},
 	"fileVomnibar" : {
-		"message": "本地文件的页面会被限制，只能在网址是 file://* 的页面上打开"
+		"message": "本地文件的页面会被限制，只能在网址是 file:///* 的页面上打开"
 	},
 	"httpVomnibar" : {
 		"message": "HTTP 网站上的页面会被限制，不能在 HTTPS 网站上打开"
