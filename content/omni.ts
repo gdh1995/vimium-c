@@ -170,7 +170,7 @@ export const hide = (fromInner?: 1): void => {
 }
 
 export const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
-    const el = createElement_("iframe") as typeof box, kRef = "referrerPolicy", kS = "sandbox"
+    const el = createElement_("iframe") as typeof box, kRef = "referrerPolicy"
     el.className = "R UI Omnibar";
     el.style.display = NONE;
     if (type !== VomnibarNS.PageType.web) { /* empty */ }
@@ -179,30 +179,28 @@ export const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void
       reload();
     } else {
       el[kRef] = "no-referrer";
-      if (!(Build.BTypes & ~BrowserType.Chrome)
-          || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome) {
-        el[kS] = "allow-scripts";
-      }
+      // if set .sandbox to "allow-scripts", then wnd.postMessage(msg, origin, [channel]) fails silently
     }
     el.src = page;
     function reload(): void {
       type = VomnibarNS.PageType.inner;
       el.removeAttribute(kRef);
       // not skip the line below: in case main world JS adds some sandbox attributes
-      el.removeAttribute(kS);
+      el.removeAttribute("sandbox")
       el.src = page = inner!;
       omniOptions && (omniOptions.t = type)
     }
-    let loaded = false;
+    let loaded: BOOL = 0, initMsgInterval = TimerID.None
     el.onload = function (): void {
-      loaded = true;
+      loaded = 1
       if (onReset) { return; }
+      clearTimeout_(slowLoadTimer)
       if (type !== VomnibarNS.PageType.inner && isAboutBlank()) {
         recordLog(kTip.logOmniFallback)
         return reload();
       }
       timeout_((i?: TimerType.fake): void => {
-        clearInterval_(msgInterval)
+        clearInterval_(initMsgInterval)
         const ok = !isAlive_ || status !== VomnibarNS.Status.Initing
         if (Build.BTypes & ~BrowserType.Firefox ? ok || i : ok) {
           isAlive_ && box && (box.onload = omniOptions = null as never); return
@@ -212,24 +210,25 @@ export const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void
         focus();
         status = VomnibarNS.Status.KeepBroken
         activate({} as FullOptions, 1)
-      }, 600)
-      const doPostMsg = (stat?: TimerType.fake | 1): void => {
-        const wnd = el.contentWindow
-        if (!wnd || stat !== 1 && isAboutBlank()) { return }
+      }, 400)
+      const doPostMsg = (postMsgStat?: TimerType.fake | 1): void => {
+        const wnd = el.contentWindow, isFile = page.startsWith("file:")
+        if (status !== VomnibarNS.Status.Initing || !wnd
+            || postMsgStat !== 1 && isAboutBlank() || isFile && el.src !== page) { return }
         const channel = new MessageChannel();
-        portToOmni = channel.port1
-        channel.port1.onmessage = onOmniMessage
+        portToOmni = channel.port1;
+        (portToOmni as typeof channel.port1).onmessage = onOmniMessage
         const sec: VomnibarNS.MessageData = [secret, omniOptions as VomnibarNS.FgOptionsToFront]
-        wnd.postMessage(sec, !page.startsWith("file:") ? new URL(page).origin : "*", [channel.port2]);
+        wnd.postMessage(sec, !isFile ? new URL(page).origin : "*", [channel.port2])
       }
-      let msgInterval = type === VomnibarNS.PageType.web ? interval_(doPostMsg, 66) : (doPostMsg(1), TimerID.None)
+      type === VomnibarNS.PageType.web ? initMsgInterval = interval_(doPostMsg, 66) : doPostMsg(1)
     };
     addUIElement(box = el, AdjustType.MustAdjust, hud_box)
-    type !== VomnibarNS.PageType.inner &&
-    timeout_(function (i): void {
+    const slowLoadTimer = type !== VomnibarNS.PageType.inner ? timeout_(function (i): void {
+      clearInterval_(initMsgInterval)
       loaded || (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i) ||
       onReset || reload()
-    }, 2000);
+    }, 2000) : TimerID.None
 }
 
 export const reset = (redo?: boolean): void | 1 => {
@@ -255,13 +254,14 @@ export const isAboutBlank = (): boolean => {
     return false;
 }
 
-const onOmniMessage = function (msg: { data: any }): void {
+const onOmniMessage = function (this: OmniPort, msg: { data: any }): void {
     type Req = VomnibarNS.FReq;
     type ReqTypes<K> = K extends keyof Req ? Req[K] & VomnibarNS.Msg<K> : never;
     const data = msg.data as ReqTypes<keyof Req>
     switch (data.N) {
     case VomnibarNS.kFReq.iframeIsAlive:
       status = VomnibarNS.Status.ToShow
+      portToOmni = this;
       !data.o && omniOptions && postToOmni<VomnibarNS.kCReq.activate>(omniOptions)
       omniOptions = null
       break;
