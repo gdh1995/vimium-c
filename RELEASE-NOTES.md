@@ -4,6 +4,16 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://github.com/gdh1995/vimium-c/blob/master/README_zh.md .
 
+#### 1.83.3
+* createTab: in an incognito window, now don't open extension pages by default, unless `evenIncognito`
+* Scroller: make `keepHover` enabled by default; also use a cheaper way to prevent hover effects
+* `autoOpen`/`openUrl`: add an option `testUrl`, which is default to `false` if the option `keyword` is not empty
+* LinkHints: use `[aria-label]` and support `html[data-vimium-hints=ordinal]`
+* Vomnibar: fix bugs when preferring a web page as the Vomnibar page; fix no favicons on Firefox
+* Vomnibar: add an option `engines: enum` to filter out any engines
+* scroller: continue scrolling when irrelevant keys get released
+* fix some other bugs
+
 #### 1.83.2
 * LinkHints: no hint links on an iframe if it's wholly covered
 * FindMode: fix an edge case <kbd>Ctrl+J</kbd> may hang at a place

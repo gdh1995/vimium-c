@@ -90,6 +90,16 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
+#### 1.83.3
+* createTab: in an incognito window, now don't open extension pages by default, unless `evenIncognito`
+* Scroller: make `keepHover` enabled by default; also use a cheaper way to prevent hover effects
+* `autoOpen`/`openUrl`: add an option `testUrl`, which is default to `false` if the option `keyword` is not empty
+* LinkHints: use `[aria-label]` and support `html[data-vimium-hints=ordinal]`
+* Vomnibar: fix bugs when preferring a web page as the Vomnibar page; fix no favicons on Firefox
+* Vomnibar: add an option `engines: enum` to filter out any engines
+* scroller: continue scrolling when irrelevant keys get released
+* fix some other bugs
+
 #### 1.83.2
 * LinkHints: no hint links on an iframe if it's wholly covered
 * FindMode: fix an edge case <kbd>Ctrl+J</kbd> may hang at a place
@@ -163,25 +173,25 @@ See the [MIT LICENSE](LICENSE.txt) for details.
 * [Vimium](https://github.com/philc/vimium):
   Copyright (c) 2010 Phil Crosby, Ilya Sukhar.
   [MIT-licensed](https://github.com/philc/vimium/blob/master/MIT-LICENSE.txt).
-* [微度新标签页](http://www.weidunewtab.com/):
-  (c) 2012 杭州佐拉网络有限公司 保留所有权利.
-* [JavaScript Expression Evaluator](https://github.com/silentmatt/expr-eval)
-  ([Modified](https://github.com/gdh1995/js-expression-eval)):
-  Copyright (c) 2015 Matthew Crumley.
-  [MIT-licensed](https://github.com/silentmatt/expr-eval/blob/master/LICENSE.txt).
-* [Viewer.js](https://github.com/fengyuanchen/viewerjs)
-  ([Modified](https://github.com/gdh1995/viewerjs)):
-  Copyright (c) 2015-present Chen Fengyuan.
-  [MIT-licensed](https://github.com/fengyuanchen/viewerjs/blob/master/LICENSE).
 * [TypeScript](https://github.com/Microsoft/TypeScript):
     and modified `es.d.ts`, `es/*`, `dom.d.ts` and `chrome.d.ts` in `types/`:
   Copyright (c) Microsoft Corporation (All rights reserved).
   Licensed under the Apache License, Version 2.0.
   See more on [www.typescriptlang.org](http://www.typescriptlang.org/).
+* [Viewer.js](https://github.com/fengyuanchen/viewerjs)
+  ([Modified](https://github.com/gdh1995/viewerjs)):
+  Copyright (c) 2015-present Chen Fengyuan.
+  [MIT-licensed](https://github.com/fengyuanchen/viewerjs/blob/master/LICENSE).
+* [JavaScript Expression Evaluator](https://github.com/silentmatt/expr-eval)
+  ([Modified](https://github.com/gdh1995/js-expression-eval)):
+  Copyright (c) 2015 Matthew Crumley.
+  [MIT-licensed](https://github.com/silentmatt/expr-eval/blob/master/LICENSE.txt).
+* The orange picture in the icon is from https://pixabay.com/vectors/orange-fruit-mandarin-citrus-fruit-158258/
+* [微度新标签页](http://www.weidunewtab.com/):
+  (c) 2012 杭州佐拉网络有限公司 保留所有权利.
 * [PDF.js](https://github.com/mozilla/pdf.js/):
   Copyright (c) Mozilla and individual contributors.
   Licensed under the Apache License, Version 2.0.
-* The orange picture in the icon is from https://pixabay.com/vectors/orange-fruit-mandarin-citrus-fruit-158258/
 
 # Declaration for Applicable Regions
 
