@@ -648,7 +648,7 @@
 		"message": "Chrome Web Store"
 	},
 	"edgestore": {
-		"message": "Microsoft Edge Addons"
+		"message": "Microsoft Edge Add-ons"
 	},
 	"NewTabAdapter": {
 		"message": "NewTab Adapter"
@@ -722,9 +722,7 @@
 	"upgradeMsg": {
 		"message": "Vimium C has been upgraded to v$1.\n"
 	},
-	"upgradeMsg2": {
-		"message": ""
-	},
+	"upgradeMsg2": { "message": "" },
 	"clickForMore": {
 		"message": "Click here for more information."
 	},

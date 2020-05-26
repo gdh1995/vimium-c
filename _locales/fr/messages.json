@@ -464,7 +464,7 @@
 		"message": "Seules les pages d'extension de Vomnibar peuvent fonctionner avant Chromium $1"
 	},
 	"fileVomnibar" : {
-		"message": "Une page de fichier de Vomnibar est limitée par le navigateur pour fonctionner uniquement sur file:///*pages."
+		"message": "Une page de fichier de Vomnibar est limitée par le navigateur pour fonctionner uniquement sur file:///* pages."
 	},
 	"httpVomnibar" : {
 		"message": "Une page HTTP de Vomnibar est limitée par le navigateur et ne fonctionne pas sur les pages HTTPS."

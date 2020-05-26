@@ -713,6 +713,7 @@
 	"o76": {
 		"message": "此处定义的样式会覆盖默认样式，而且不会影响到正常网页内容。"
 	},
+	"o76_2": { "message": "如何为各部分界面元素分别指定样式？" },
 	"o77": {
 		"message": "搜索框配置"
 	},
@@ -1121,9 +1122,7 @@
 	"upgradeMsg": {
 		"message": "您的 Vimium C 已经更新至 $1 版。\n"
 	},
-	"upgradeMsg2": {
-		"message": "隐私策略有更新！"
-	},
+	"upgradeMsg2": { "message": "" },
 	"clickForMore": {
 		"message": "点击阅读详细信息。"
 	},
