@@ -3,7 +3,7 @@
 ============================================
 
 [![MIT 许可协议](https://img.shields.io/badge/许可协议-MIT-blue.svg)](LICENSE.txt)
-[![版本：1.83.2](https://img.shields.io/badge/版本-1.83.2-orange.svg
+[![版本：1.83.3](https://img.shields.io/badge/版本-1.83.3-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 **在 [Chrome 网上应用店](
   https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg
@@ -11,13 +11,15 @@
 [Firefox 附加组件](
   https://addons.mozilla.org/zh-CN/firefox/addon/vimium-c/
   ) /
-[MS Edge 插件商店](
+[MS Edge 外接程序](
   https://microsoftedge.microsoft.com/addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo
   ) 中查看**
 
 Vimium C 是一款开源、免费的键盘增强类浏览器扩展，支持为多种多样的命令任意设置快捷键。
 只要有一个键盘，您就能自由点击网页中的链接和按钮、选择和复制文字和网址，也能轻松操作浏览器标签页，
 还能在一个便捷的搜索框中随意搜索历史记录、收藏夹或打开的标签等等。
+
+Vimium C 支持 Chrome、Firefox 和 微软 Edge (Chromium) 等现代浏览器。
 
 本项目主要由 [gdh1995](https://github.com/gdh1995) 开发并维护，并且以 [MIT 许可协议](LICENSE.txt) 开源。
 
@@ -87,23 +89,23 @@ Vimium C 具有完善的安全机制：
 Vimium C 是一款开源的浏览器扩展程序，任何人都可以安装使用它而无需支付任何费用。
 如果您确实想要资助它的开发者（[gdh1995](https://gdh1995.cn/)），
 可以通过[支付宝](https://www.alipay.com/)或 [PayPal](https://www.paypal.com/)
-无偿赠与他一小笔钱。谢谢您的支持！
+(https://www.paypal.me/gdh1995) 无偿赠与他一小笔钱。谢谢您的支持！
 
 Vimium C is an open-source browser extension, and everyone can install and use it free of charge.
 If you indeed want to give its author ([gdh1995](https://gdh1995.cn/)) financial support,
 you may donate any small amount of money to him through [PayPal](https://www.paypal.com/)
-  or [Alipay](https://intl.alipay.com/). Thanks a lot!
+  (https://www.paypal.me/gdh1995) or [Alipay](https://intl.alipay.com/). Thanks a lot!
 
-支付宝（Alipay）：<br/>
+捐赠列表详见 / A donation list is in : https://github.com/gdh1995/vimium-c/wiki/Donation-List .
+
 ![gdh1995 的支付宝二维码](https://gdh1995.cn/alipay-recv-money.png)
-
-PayPal: https://www.paypal.me/gdh1995 (accout: gdh1995@qq.com)
+![PayPal QRCode of gdh1995](https://gdh1995.cn/paypal-recv-money.png)
 
 # 关于适用区域的声明
 
 [Vimium C](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
-和 [gdh1995](https://github.com/gdh1995) 发布的其他扩展，在被发布到“Chrome 网上应用店”和“微软 Edge
-浏览器插件商店”等商店上时，均已向*所有地区*的所有人公开。
+和 [gdh1995](https://github.com/gdh1995) 发布的其他扩展，在被发布到“Chrome 网上应用店”和“Microsoft Edge
+外接程序”等商店上时，均已向*所有地区*的所有人公开。
 但这个行为只是为了让这些插件更容易使用，**并不代表或者暗示**作者 gdh1995 “同意或者不反对”“台湾”一词可以同“中国”并列。
 虽然并列显示这一现状的确**不正确地出现**在了这些商店的页面中（2019年11月16日确认）。
 

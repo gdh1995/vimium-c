@@ -3,7 +3,7 @@
 ===========================================
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.83.2](https://img.shields.io/badge/release-1.83.2-orange.svg
+[![Version 1.83.3](https://img.shields.io/badge/release-1.83.3-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -13,7 +13,7 @@
 [Firefox Add-ons](
   https://addons.mozilla.org/firefox/addon/vimium-c/
   ) /
-[MS Edge Addons](
+[MS Edge Add-ons](
   https://microsoftedge.microsoft.com/addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo
   )**
 
@@ -141,20 +141,19 @@ The options including `MinCVer` and `BTypes` in [gulp.tsconfig.json](scripts/gul
 
 <a name="donate"></a>
 Vimium C is an open-source browser extension, and everyone can install and use it free of charge.
-If you indeed want to give its author ([gdh1995](https://gdh1995.cn/)) financial support,
+If you indeed want to give its author ([gdh1995@qq.com](https://gdh1995.cn/)) financial support,
 you may donate any small amount of money to him through [PayPal](https://www.paypal.com/)
-  or [Alipay](https://intl.alipay.com/). Thanks a lot!
+  (https://www.paypal.me/gdh1995) or [Alipay](https://intl.alipay.com/). Thanks a lot!
 
 Vimium C 是一款开源的浏览器扩展程序，任何人都可以安装使用它而无需支付任何费用。
 如果您确实想要资助它的开发者（[gdh1995](https://gdh1995.cn/)），
 可以通过[支付宝](https://www.alipay.com/)或 [PayPal](https://www.paypal.com/)
-无偿赠与他一小笔钱。谢谢您的支持！
+(https://www.paypal.me/gdh1995) 无偿赠与他一小笔钱。谢谢您的支持！
 
-PayPal: https://www.paypal.me/gdh1995 (accout: gdh1995@qq.com)
+A donation list is in / 捐赠列表详见: https://github.com/gdh1995/vimium-c/wiki/Donation-List .
 
-Alipay / 支付宝 : <br/>
-![Alipay QRCode of gdh1995](https://gdh1995.cn/alipay-recv-money.png)
-
+![gdh1995 的支付宝二维码](https://gdh1995.cn/alipay-recv-money.png)
+![PayPal QRCode of gdh1995](https://gdh1995.cn/paypal-recv-money.png)
 
 # Thanks & Licenses
 
@@ -171,7 +170,7 @@ See the [MIT LICENSE](LICENSE.txt) for details.
   Copyright (c) 2015 Matthew Crumley.
   [MIT-licensed](https://github.com/silentmatt/expr-eval/blob/master/LICENSE.txt).
 * [Viewer.js](https://github.com/fengyuanchen/viewerjs)
-  ([Modified by gdh1995](https://github.com/gdh1995/viewerjs)):
+  ([Modified](https://github.com/gdh1995/viewerjs)):
   Copyright (c) 2015-present Chen Fengyuan.
   [MIT-licensed](https://github.com/fengyuanchen/viewerjs/blob/master/LICENSE).
 * [TypeScript](https://github.com/Microsoft/TypeScript):
@@ -189,7 +188,7 @@ See the [MIT LICENSE](LICENSE.txt) for details.
 The [Vimium C](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
     and other extensions published by [gdh1995](https://github.com/gdh1995)
     are available for all people in *"all regions"*
-    of Chrome Web Store, Microsoft Edge Addons and some other markets.
+    of Chrome Web Store, Microsoft Edge Add-ons and some other markets.
 This behavior is only to make these extensions easier to use, but<br>
 **DOES NOT EXPRESS OR IMPLIED** the author (gdh1995) "agrees or has no objection to"
     that "Taiwan" can be parallel to "China",
