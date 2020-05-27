@@ -132,13 +132,14 @@ var Settings_ = {
       frame.postMessage(request);
     }
   },
-  updatePayload_: function (shortKey: keyof SettingsNS.FrontendSettingsSyncingItems , value: any
+  /** @argument value may come from `LinkHints.*::characters` and `kBgCmd.toggle::value` */
+  updatePayload_: function (shortKey: keyof SettingsNS.FrontendSettingsSyncingItems, value: any
       , obj?: Partial<SettingsNS.FrontendSettingCache>
       ): SettingsNS.FrontendSettingsSyncingItems[keyof SettingsNS.FrontendSettingsSyncingItems][1] {
     type SettingType<T> = T extends keyof SettingsNS.FullSettings ? SettingsNS.FullSettings[T] : never
     type ValType<T extends keyof SettingsNS.AutoSyncedItems> = SettingType<SettingsNS.AutoSyncedItems[T][0]>;
     switch (shortKey) {
-    case "c": case "n": value = (value as ValType<"c" | "n">).toUpperCase!(); break
+    case "c": case "n": value = (value as ValType<"c" | "n">).toLowerCase().toUpperCase!(); break
     case "i":
       value = value === !!value ? value
         : (value as ValType<"i">) > 1 || (value as ValType<"i">) > 0 && !Settings_.payload_.o; break

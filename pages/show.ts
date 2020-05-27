@@ -77,7 +77,6 @@ window.onhashchange = function (this: void): void {
     bgLink.style.display = "none";
     VShown.remove();
     VShown = null;
-    listenWheelForImage(false);
   }
 
   VData = Object.create(null);
@@ -614,8 +613,10 @@ function clean(): void {
   destroyObject_();
   Promise.resolve().then(() => { _shownBlob = null; });
   if (VData.type === "image") {
+    listenWheelForImage(false);
     (document.body as HTMLBodyElement).classList.remove("filled");
     (VShown as HTMLImageElement).removeAttribute("src");
+    (VShown as HTMLImageElement).onerror = (VShown as HTMLImageElement).onload = null as never
     if (viewer_) {
       viewer_.destroy();
       viewer_ = null;
@@ -768,7 +769,7 @@ function fetchImage_(url: string, element: HTMLImageElement): void {
     });
   }
   let timer = setInterval(() => {
-    if (element.scrollHeight >= 24 || element.scrollWidth >= 80) { // some pixels drawn
+    if (!element.parentNode || element.scrollHeight >= 24 || element.scrollWidth >= 80) { // some pixels drawn
       clearTimer();
     } else if (!text.parentNode) {
       body.insertBefore(text, element);
