@@ -63,9 +63,9 @@ VApi.e = function (cmd): void {
   clickable && (thisApi.r![3](clickable));
 
   injector.checkIfEnabled = (function (this: null
-    , func: <K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void): void {
-  func({ H: kFgReq.checkIfEnabled, u: location.href });
-}).bind(null, thisApi.r![1]);
+      , func: <K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void): void {
+    func({ H: kFgReq.checkIfEnabled, u: location.href });
+  }).bind(null, thisApi.r![1]);
   injector.getCommandCount = (function (this: null, func: (this: void) => string): number {
     let currentKeys = func();
     return currentKeys !== "-" ? parseInt(currentKeys, 10) || 1 : -1;

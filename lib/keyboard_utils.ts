@@ -1,7 +1,8 @@
 import { fgCache, clearTimeout_, timeout_, isAlive_, VOther } from "./utils"
 
 const DEL = kChar.delete, BSP = kChar.backspace
-export const ENT = kChar.enter
+const ENT = kChar.enter
+export { ENT as ENTER }
 const keyNames_: readonly kChar[] = [kChar.space, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
     kChar.left, kChar.up, kChar.right, kChar.down,
     /* 41 */ kChar.EMPTY, kChar.EMPTY, kChar.EMPTY, kChar.EMPTY, kChar.insert, DEL]

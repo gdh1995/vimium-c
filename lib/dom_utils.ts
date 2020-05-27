@@ -909,7 +909,8 @@ export const scrollWndBy_ = (left: number, top: number): void => {
 export const runJS_ = (code: string, returnEl?: HTMLScriptElement | 0): void | HTMLScriptElement => {
     const script = returnEl || createElement_("script");
     script.type = "text/javascript";
-    script.textContent = code;
+    !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
+      ? script.append!(code) : script.textContent = code
     if (Build.BTypes & ~BrowserType.Firefox) {
       if (returnEl) { return; }
       /** `appendChild` must be followed by /[\w.]*doc/: {@link ../Gulpfile.js#beforeUglify} */

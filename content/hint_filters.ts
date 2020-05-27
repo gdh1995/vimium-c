@@ -8,7 +8,7 @@ import {
 } from "./link_hints"
 import { getBoundingClientRect_, htmlTag_, createElement_, bZoom_, getInputType, HDN, docEl_unsafe_, elementProto } from "../lib/dom_utils"
 import { chromeVer_, doc } from "../lib/utils"
-import { BSP, DEL, ENT } from "../lib/keyboard_utils"
+import { BSP, DEL, ENTER } from "../lib/keyboard_utils"
 import { maxLeft_, maxRight_, maxTop_ } from "./local_links"
 import { ui_root } from "./dom_ui"
 import { omni_box } from "./omni"
@@ -483,7 +483,7 @@ export const matchHintsByKey = (keyStatus: KeyStatus
       return 0;
     }
     sequence ? sequence = sequence.slice(0, -1) : textSeq = textSeq.slice(0, -1);
-  } else if (useFilter_ && keybody === ENT || isSpace && textSeq0 !== textSeq) {
+  } else if (useFilter_ && keybody === ENTER || isSpace && textSeq0 !== textSeq) {
     // keep .known_ to be 1 - needed by .executeL_
     return activeHint_!;
   } else if (isSpace) { // then useFilter is true

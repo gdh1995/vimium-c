@@ -183,7 +183,8 @@ export const ensureBorder = (zoom?: number): void => {
 export const createStyle = (text?: string, css?: HTMLStyleElement): HTMLStyleElement => {
     css = css || createElement_("style");
     css.type = "text/css";
-    text && (css.textContent = text);
+    !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
+      ? text && css.append!(text) : text && (css.textContent = text)
     return css;
 }
 
