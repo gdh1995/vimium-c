@@ -11,7 +11,7 @@ import {
   elementProto,
 } from "../lib/dom_utils"
 import {
-  hintOptions, mode1_, mode_, hintHUD, hintApi, hintManager, coreHints,
+  hintOptions, mode1_, mode_, hintApi, hintManager, coreHints,
   highlightChild, setMode,
 } from "./link_hints"
 import { set_currentScrolling, syncCachedScrollable } from "./scroller"
@@ -49,7 +49,6 @@ export const executeHint = (hint: HintItem, event?: HandlerNS.Event): void => {
     keydownEvents_[keyCode_ = event.i] = 1;
   }
   masterOrA.v(); // here .keyStatus_ is reset
-  hintHUD.a(1);
   if (IsInDOM_(clickEl)) {
     // must get outline first, because clickEl may hide itself when activated
     // must use UI.getRect, so that zooms are updated, and prepareCrop is called
@@ -76,14 +75,13 @@ export const executeHint = (hint: HintItem, event?: HandlerNS.Event): void => {
     }
   } else {
     clickEl = null;
-    hintHUD.t(kTip.linkRemoved, 2000);
+    hintApi.t(kTip.linkRemoved, 2000)
   }
   removeFlash && removeFlash();
   removeFlash = null;
-  hintHUD.a();
   if (!(mode_ & HintMode.queue)) {
     masterOrA.w(coreHints, clickEl);
-    masterOrA.c(<1 | 0> -masterOrA.q, 0);
+    masterOrA.c(0, 0);
     (<RegExpOne> /0?/).test("");
     return;
   }
@@ -128,7 +126,7 @@ const getImageUrl = (img: SafeHTMLElement): string | void => {
       || src.length > text.length + 7 && (text === (img as HTMLElement & {href?: string}).href)) {
     text = src;
   }
-  return text || hintHUD.t(kTip.notImg, 1000);
+  return text || hintApi.t(kTip.notImg, 1000)
 }
 
 const getImageName_ = (img: SafeHTMLElement): string =>
@@ -169,7 +167,8 @@ export const linkActions: readonly LinkAction[] = [
     type || element.focus && !(<RegExpI> /^i?frame$/).test(htmlTag_(element)) && element.focus();
     /*#__INLINE__*/ syncCachedScrollable();
     if (mode1_ < HintMode.min_job) { // called from Modes[-1]
-      return hintHUD.t(kTip.hoverScrollable, 1000);
+      hintApi.t(kTip.hoverScrollable, 1000)
+      return
     }
     mode_ & HintMode.queue || unhoverOnEsc();
     if (!toggleMap || typeof toggleMap !== "object") { return; }
@@ -230,7 +229,7 @@ export const linkActions: readonly LinkAction[] = [
       if (tag === "input") {
         let type = getInputType(link as HTMLInputElement), f: HTMLInputElement["files"];
         if (type === "pa") {
-          return hintHUD.t(kTip.ignorePassword, 2000);
+          return hintApi.t(kTip.ignorePassword, 2000)
         }
         if (!uneditableInputs_[type]) {
           str = (link as HTMLInputElement).value || (link as HTMLInputElement).placeholder;
@@ -254,7 +253,7 @@ export const linkActions: readonly LinkAction[] = [
       }
     }
     if (!str) {
-      return hintHUD.c("", isUrl);
+      return hintApi.s("", isUrl)
     }
     if (mode1 > HintMode.min_edit - 1 && mode1 < HintMode.max_edit + 1) {
       let newtab = hintOptions.newtab
@@ -275,10 +274,10 @@ export const linkActions: readonly LinkAction[] = [
     let lastYanked = mode1 & HintMode.list ? (hintManager || coreHints).y : 0 as const;
     if (lastYanked) {
       if (lastYanked.indexOf(str) >= 0) {
-        return hintHUD.s(kTip.noNewToCopy);
+        return hintApi.t(kTip.noNewToCopy)
       }
       lastYanked.push(str);
-      hintHUD.c(`[${lastYanked.length}] ` + str);
+      hintApi.s(`[${lastYanked.length}] ` + str)
     }
     hintApi.p({
       H: kFgReq.copy,
@@ -325,7 +324,7 @@ export const linkActions: readonly LinkAction[] = [
     a.download = getImageName_(element);
     /** @todo: how to trigger download */
     mouse_(a, CLK, [0, 0], [!0, !1, !1, !1]);
-    hintHUD.t(kTip.downloaded, 2000, [text]);
+    hintApi.t(kTip.downloaded, 2000, [text])
   }
   , HintMode.DOWNLOAD_MEDIA
 ] as LinkAction,
@@ -357,13 +356,13 @@ export const linkActions: readonly LinkAction[] = [
         top && top.appendChild(link);
       }
     }
-    const kDownload = "download", hadNoDownload = !link.hasAttribute(kDownload);
+    const kD = "download", hadNoDownload = !link.hasAttribute(kD);
     if (hadNoDownload) {
-      link[kDownload] = "";
+      link[kD] = "";
     }
     click_(link, rect, 0, [!0, !1, !1, !1])
     if (hadNoDownload) {
-      link.removeAttribute(kDownload);
+      link.removeAttribute(kD);
     }
     if (!changed) { /* empty */ }
     else if (notAnchor) {

@@ -23,7 +23,7 @@ import { hook, enableNeedToRetryParentClickable, focusAndRun } from "./request_h
 import { main as extend_click } from  "./extend_click.js"
 import { activate as linkActivate, coreHints } from "./link_hints"
 import { executeScroll, scrollTick, $sc, keyIsDown as scroll_keyIsDown } from "./scroller"
-import { hudTip } from "./hud"
+import { hudTip, hudCopied } from "./hud"
 import { onLoad as findOnLoad, find_box, findCSS, styleInHUD } from "./mode_find"
 import { activate as omniActivate } from "./omni"
 
@@ -65,7 +65,7 @@ set_vApi(VApi = {
   i: Build.BTypes & BrowserType.Firefox ? getInnerHeight : 0 as never,
   r: injector && [send_, safePost, (keys?: string): string => {
     keys = currentKeys; esc!(HandlerResult.Nothing); return keys;
-  }, set_clickable_, set_VTr], t: hudTip, m: getMappedKey,
+  }, set_clickable_, set_VTr], s: hudCopied, t: hudTip, m: getMappedKey,
   x: flash_,
   y: () => (Build.BTypes & BrowserType.Firefox ? {
     w: onWndFocus, b: find_box, c: clickable_, f: findCSS, g: setUICSS, k: scroll_keyIsDown, r: ui_root, s: styleInHUD

@@ -29,7 +29,7 @@ declare const enum DiType {
 type ValidDiTypes = DiType.Normal | DiType.UnsafeTextBox | DiType.SafeTextBox | DiType.Complicated
     | DiType.UnsafeComplicated;
 
-import { VTr, isAlive_, VOther, clearTimeout_, safer, timeout_, fgCache, doc, chromeVer_ } from "../lib/utils"
+import { VTr, VOther, safer, fgCache, doc, chromeVer_ } from "../lib/utils"
 import {
   getSelectionBoundingBox_, getZoom_, prepareCrop_, cropRectToVisible_, getSelection_, getSelectionFocusEdge_,
   editableTypes_, Getter_not_ff_, isInputInTextMode_, isHTML_, docEl_unsafe_, notSafe_not_ff_, getVisibleClientRect_,
@@ -43,14 +43,13 @@ import {
 import { insert_Lock_ } from "./insert"
 import { hudShow, hudTip, hudHide } from "./hud"
 import { post_, send_ } from "./port"
-import { removeHandler_, pushHandler_, getMappedKey, keybody_, isEscape_, prevent_, ENT } from "../lib/keyboard_utils"
+import { removeHandler_, pushHandler_, getMappedKey, keybody_, isEscape_, prevent_, ENTER } from "../lib/keyboard_utils"
 
 const kDir = ["backward", "forward"] as const
 let _kGranularity: GranularityNames
 
 let mode_ = Mode.NotActive
 let modeName = ""
-let hudTimer = TimerID.None
 let currentCount = 0
 let currentSeconds: SafeDict<VisualAction> | null = null
 let retainSelection = false
@@ -68,7 +67,7 @@ let WordsRe_ff_old_cr: RegExpOne | RegExpU | null = null
 let rightWhiteSpaceRe: RegExpOne | null = null
 let kExtend = "extend" as const
 
-export { mode_ as visual_mode, kDir, kExtend }
+export { mode_ as visual_mode, modeName as visual_mode_name, kDir, kExtend }
 
   /** @safe_di */
 export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
@@ -98,10 +97,9 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     }
     const isRange = type === SelType.Range, newMode: CmdOptions[kFgCmd.visualMode]["m"] = isRange ? mode : Mode.Caret,
     toCaret = newMode === Mode.Caret;
-    hudTimer && clearTimeout_(hudTimer)
     hudShow(kTip.inVisualMode, [modeName = VTr(kTip.OFFSET_VISUAL_MODE + newMode)], !!options.r);
     if (newMode !== mode) {
-      prompt(kTip.noUsableSel, 1000)
+      hudTip(kTip.noUsableSel, 1000)
     }
     toggleSelectableStyle(1);
     di_ = isRange ? kDirTy.unknown : kDirTy.right
@@ -153,7 +151,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
       // if doPass, then use nothing to bubble such an event, so handlers like LinkHints will also exit
       return key ? HandlerResult.Prevent : doPass ? HandlerResult.Nothing : HandlerResult.Suppress;
     }
-    if (keybody_(key) === ENT) {
+    if (keybody_(key) === ENTER) {
       resetKeys()
       if (key.includes("s-") && mode_ !== Mode.Caret) { retainSelection = true }
       "cm".includes(key[0]) ? deactivate() : yank(key[0] === "a" ? 9 : 8)
@@ -192,7 +190,7 @@ const commandHandler = (command: VisualAction, count: number): void => {
     }
     if (command > VisualAction.MaxNotNewMode) {
       if (command === VisualAction.EmbeddedFindMode) {
-        clearTimeout_(hudTimer)
+        hudHide() // it should auto keep HUD showing the mode text
         post_({ H: kFgReq.findFromVisual });
         return;
       }
@@ -278,22 +276,6 @@ const establishInitialSelectionAnchor = (sr?: ShadowRoot | null): boolean => {
     return !curSelection.rangeCount
 }
 
-  /** @not_related_to_di */
-export const prompt = (tid: kTip, duration: number, args?: string[]): void => {
-  hudTimer && clearTimeout_(hudTimer)
-  hudTimer = timeout_(ResetHUD, duration)
-  hudShow(tid, args)
-}
-
-  /** @not_related_to_di */
-const ResetHUD = (i?: TimerType.fake): void => {
-  if (!isAlive_ || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i) {
-    return
-  }
-  hudTimer = TimerID.None
-  if (modeName) { hudShow(kTip.inVisualMode, [modeName]) }
-}
-
 const findV = (count: number): void => {
     if (!find_query) {
       send_(kFgReq.findQuery, {}, function (query): void {
@@ -301,7 +283,7 @@ const findV = (count: number): void => {
           findUpdateQuery(query);
           findV(count)
         } else {
-          prompt(kTip.noOldQuery, 1000)
+          hudTip(kTip.noOldQuery, 1000)
         }
       });
       return;
@@ -320,7 +302,7 @@ const findV = (count: number): void => {
       }
     } else {
       range && !sel.rangeCount && sel.addRange(range)
-      prompt(kTip.noMatchFor, 1000, [find_query])
+      hudTip(kTip.noMatchFor, 1000, [find_query])
     }
 }
 
@@ -428,7 +410,7 @@ const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord
     mode_ !== Mode.Caret && (diType_ &= ~DiType.isUnsafe)
     di_ = direction === oldDi ? direction : kDirTy.unknown
     if (granularity === kG.lineBoundary) {
-      prompt(kTip.selectLineBoundary, 2000)
+      hudTip(kTip.selectLineBoundary, 2000)
     }
     if (fixWord) {
       if (!shouldSkipSpaceWhenMovingRight) { // not shouldSkipSpace -> go left

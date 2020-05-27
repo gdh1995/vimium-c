@@ -6,7 +6,7 @@ import {
   padClientRect_, getBoundingClientRect_, setBoundary_, wdZoom_, dScale_, getInnerHeight,
 } from "../lib/dom_utils"
 import {
-  pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENT
+  pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER
 } from "../lib/keyboard_utils"
 import { post_ } from "./port"
 import { addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, select_ } from "./dom_ui"
@@ -71,7 +71,7 @@ export const contentCommands_: {
     /*#__INLINE__*/ clearCachedScrollable()
     /*#__INLINE__*/ resetLastHovered()
     /*#__INLINE__*/ resetInsert()
-    linkClear(isAlive ? 2 : 0); visualDeactivate();
+    linkClear(<BOOL> +!!isAlive); visualDeactivate();
     findInit || findDeactivate(FindNS.Action.ExitNoAnyFocus);
     onWndBlur();
   },
@@ -288,7 +288,7 @@ export const contentCommands_: {
           || keyCode > kKeyCode.maxNotMetaKey && keyCode < kKeyCode.minNotMetaKeyOrMenu))) { /* empty */ }
       else if (repeat) { return HandlerResult.Nothing; }
       else if (keep ? isEscape_(key) || (
-          keybody_(key) === ENT
+          keybody_(key) === ENTER
           && (/* a?c?m?-enter */ key < "s" && (key[0] !== "e" || this.h[sel].d.localName === "input"))
         ) : !isIME && keyCode !== kKeyCode.f12
       ) {

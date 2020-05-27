@@ -15,13 +15,6 @@ export interface KeyStatus {
     /** known */ n: BOOL;
     /** tab */ b: number;
 }
-interface MinimalHUDTy {
-  /** accessText */ a (beforeExecute?: 1): void;
-  /** show */ s (tid: kTip | HintMode, args?: Array<string | number>, embed?: boolean): void;
-  /** duration is default to 1500 */
-  /** tip */ t (tid: kTip, duration?: number, args?: Array<string | number>): void;
-  /** copied */ c (text: string, isUrl?: BOOL | boolean): void;
-}
 interface HinterStatus {
   /** isActive */ a: BOOL
   /** box */ b: HTMLDivElement | HTMLDialogElement | null
@@ -51,7 +44,6 @@ interface HintManager extends BaseHinter {
     /** reinit */ i: typeof reinit
     /** onKeydown */ n: typeof onKeydown
     p: null;
-    /** promptTimer */ q: TimerID
     /** resetMode */ s: typeof resetMode
     /** onFrameUnload */ u: typeof onFrameUnload
     /** resetHints */ v (): void;
@@ -82,7 +74,7 @@ import { frameElement_, querySelector_unsafe_, isHTML_, getViewBox_, prepareCrop
 import {
   pushHandler_, SuppressMost_, removeHandler_, getMappedKey, keybody_, isEscape_, getKeyStat_, keyNames_, suppressTail_,
   BSP,
-  ENT,
+  ENTER,
 } from "../lib/keyboard_utils"
 import { send_ } from "./port"
 import {
@@ -90,7 +82,7 @@ import {
 } from "./dom_ui"
 import { scrollTick, beginScroll } from "./scroller"
 import { omni_box, focusOmni } from "./omni"
-import { hudTip, hudShow, hudCopied, hudResetTextProp, hudHide, hud_text } from "./hud"
+import { hudTip, hudShow, hudHide, hud_tipTimer } from "./hud"
 import { set_onWndBlur2 } from "./insert"
 import {
   getVisibleElements, localLinkClear, frameNested_, checkNestedFrame, set_frameNested_, filterOutNonReachable,
@@ -129,7 +121,6 @@ let _timer = TimerID.None
 let kSafeAllSelector = Build.BTypes & ~BrowserType.Firefox ? ":not(form)" as const : "*" as const
 const kEditableSelector = "input,textarea,[contenteditable]" as const
 let manager_: HintManager | null = null
-let hud_: MinimalHUDTy = null as never
 let api_: VApiTy = null as never
 const unwrap_ff = (!(Build.BTypes & BrowserType.Firefox) ? 0 as never
       : <T extends object> (obj: T): T => (obj as XrayedObject<T>).wrappedJSObject || obj) as {
@@ -147,7 +138,7 @@ export {
   mode_, mode1_, options_ as hintOptions,
   forHover_, isClickListened_, forceToScroll_, tooHigh_,
   kSafeAllSelector, kEditableSelector, unwrap_ff, addChildFrame,
-  hud_ as hintHUD, api_ as hintApi, manager_ as hintManager,
+  api_ as hintApi, manager_ as hintManager,
 }
 export function set_kSafeAllSelector (_newKSafeAll: string): void { kSafeAllSelector = _newKSafeAll as any }
 export function set_isClickListened_ (_newIsClickListened: boolean): void { isClickListened_ = _newIsClickListened }
@@ -178,8 +169,8 @@ export const activate = (options: HintsNS.ContentOptions, count: number): void =
     toClean: HintOfficer[] = [],
     s0 = options.characters, chars = s0 ? s0 + "" : useFilter ? fgCache.n : fgCache.c;
     if (chars.length < GlobalConsts.MinHintCharSetSize) {
-      clear(1)
-      return hudTip(kTip.fewChars, 1000);
+      hudTip(kTip.fewChars, 1000)
+      return clear()
     }
     if (Build.BTypes & BrowserType.ChromeOrFirefox) {
       if (Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredShadowDOMV1
@@ -223,8 +214,8 @@ export const activate = (options: HintsNS.ContentOptions, count: number): void =
       for (const i of toClean) { i.p = null; i.c() }
       total = allHints.length;
       if (!total || total > GlobalConsts.MaxCountToHint) {
-        clear(1)
-        return hudTip(total ? kTip.tooManyLinks : kTip.noLinks, 1000);
+        hudTip(total ? kTip.tooManyLinks : kTip.noLinks, 1000)
+        return clear()
       }
       hints_ = keyStatus_.c = allHints
       if (!Build.NDEBUG) { coreHints.hints_ = hints_ }
@@ -233,15 +224,9 @@ export const activate = (options: HintsNS.ContentOptions, count: number): void =
         || (options.hideHUD || options.hideHud) === true;
     useFilter ? initFilterEngine(allHints as readonly FilteredHintItem[]) : initAlphabetEngine(allHints)
     renderMarkers(allHints)
-    hud_ = {
-      s: hudShow,
-      t: hudTip,
-      c: hudCopied,
-      a: accessHudText,
-    }
     setMode(mode_);
     for (const frame of frameList) {
-      frame.s.r(frame.h, frame.v, hud_, vApi);
+      frame.s.r(frame.h, frame.v, vApi);
     }
 }
 
@@ -300,11 +285,10 @@ const collectFrameHints = (count: number, options: HintsNS.ContentOptions
     frameInfo.v = view;
 }
 
-const render = (hints: readonly HintItem[], arr: ViewBox, hud: MinimalHUDTy, raw_apis: VApiTy): void => {
+const render = (hints: readonly HintItem[], arr: ViewBox, raw_apis: VApiTy): void => {
     const managerOrA = manager_ || coreHints;
     if (box_) { box_.remove(); box_ = null; }
     removeModal()
-    hud_ = Build.BTypes & BrowserType.Firefox && manager_ ? unwrap_ff(hud) : hud;
     api_ = Build.BTypes & BrowserType.Firefox && manager_ ? unwrap_ff(raw_apis) : raw_apis;
     ensureBorder(wdZoom_ / dScale_);
     if (hints.length) {
@@ -324,25 +308,18 @@ const render = (hints: readonly HintItem[], arr: ViewBox, hud: MinimalHUDTy, raw
     isActive = 1;
 }
 
+/** must be called from the manager context, or be used to sync mode from the manager */
 export const setMode = (mode: HintMode, silent?: 1): void => {
-    lastMode_ = mode_ = mode;
-    mode1_ = mode = mode & ~HintMode.queue;
-    forHover_ = mode > HintMode.min_hovering - 1 && mode < HintMode.max_hovering + 1;
-    if (silent || noHUD_) { return; }
-    if (coreHints.q < 0) {
-      coreHints.q = timeout_(SetHUDLater, 1500);
-      return;
-    }
+    mode_ - mode ? lastMode_ = mode_ = mode : 0
+    mode1_ = mode & ~HintMode.queue;
+    forHover_ = mode1_ > HintMode.min_hovering - 1 && mode1_ < HintMode.max_hovering + 1;
+    if (silent || noHUD_ || hud_tipTimer) { return }
     let msg = VTr(mode_), textSeq = keyStatus_.t;
     msg += useFilter_ ? ` [${textSeq}]` : "";
     if (Build.BTypes & BrowserType.Chrome) {
       msg += (manager_ || coreHints).d ? VTr(kTip.modalHints) : "";
     }
-    return hud_.s(kTip.raw, [msg], true);
-}
-
-const SetHUDLater = (): void => {
-    if (isAlive_ && isActive) { coreHints.q = TimerID.None; setMode(mode_); }
+    hudShow(kTip.raw, [msg], true)
 }
 
 const getPreciseChildRect = (frameEl: HTMLIFrameElement | HTMLFrameElement, view: Rect): Rect | null => {
@@ -400,8 +377,8 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
     } else if (event.e.repeat || !isActive) {
       // NOTE: should always prevent repeated keys.
     } else if (i === kKeyCode.ime) {
-      clear(1);
-      hudTip(kTip.exitForIME);
+      hudTip(kTip.exitForIME)
+      clear()
       return HandlerResult.Nothing;
     } else if (key = getMappedKey(event, kModeId.Link), keybody = keybody_(key),
         isEscape_(key) || onTailEnter && keybody === BSP) {
@@ -535,12 +512,11 @@ const delayToExecute = (officer: BaseHinter, hint: HintItem, flashEl: SafeHTMLEl
         closed = officer.x(1);
       } catch {}
       if (closed !== 2) {
-        isActive && (clear(), hudTip(kTip.linkRemoved));
-        return;
-      }
-      if (event) {
+        hudTip(kTip.linkRemoved)
+        isActive && clear()
+      } else if (event) {
         tick = waitEnter && keybody === kChar.space ? tick + 1 : 0;
-        tick === 3 || keybody === ENT ? officer.e(hint, event)
+        tick === 3 || keybody === ENTER ? officer.e(hint, event)
         : key === kChar.f1 && flashEl ? flashEl.classList.toggle("Sel") : 0;
       } else {
         officer.e(hint);
@@ -558,14 +534,6 @@ const delayToExecute = (officer: BaseHinter, hint: HintItem, flashEl: SafeHTMLEl
     } else {
       hudShow(kTip.waitEnter);
     }
-}
-
-const accessHudText = (beforeExecute?: 1): void => {
-  if (beforeExecute) {
-    hudResetTextProp()
-  } else {
-    coreHints.q = -!!hud_text
-  }
 }
 
 const postExecute = (officer: BaseHinter, clickEl: LinkEl | null, rect?: Rect | null): void => {
@@ -642,8 +610,6 @@ const resetHints = (): void => {
     onTailEnter = hints_ = null as never;
     if (!Build.NDEBUG) { coreHints.hints_ = null }
     /*#__INLINE__*/ hintFilterReset();
-    coreHints.q > TimerID.None &&
-    (clearTimeout_(coreHints.q), coreHints.q = TimerID.None);
     coreHints.h = 0;
     keyStatus_ && (keyStatus_.c = null as never);
     keyStatus_ = {
@@ -656,18 +622,19 @@ const resetHints = (): void => {
     }
 }
 
-export const clear = (keepHudOrEvent?: 0 | 1 | 2 | Event, suppressTimeout?: number): void => {
+export const clear = (keepHudOrEvent?: 0 | 1 | Event, suppressTimeout?: number): void => {
     if (!isAlive_) { return; }
-    if (keepHudOrEvent === 2 || keepHudOrEvent && keepHudOrEvent !== 1
+    if (keepHudOrEvent === 1 || keepHudOrEvent
         && (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Event$$IsTrusted
             ? keepHudOrEvent.isTrusted !== !1 : keepHudOrEvent.isTrusted)
         && keepHudOrEvent.target === doc) {
       manager_ && manager_.u(coreHints);
-      if (keepHudOrEvent !== 2) {
+      if (keepHudOrEvent !== 1) {
         return;
       }
     }
     const manager = manager_;
+    isActive = 0
     manager_ = null;
     manager && manager.c(keepHudOrEvent, suppressTimeout);
     frameList_.forEach(cleanFrameInfo, suppressTimeout);
@@ -678,14 +645,13 @@ export const clear = (keepHudOrEvent?: 0 | 1 | 2 | Event, suppressTimeout?: numb
     suppressTimeout != null && suppressTail_(suppressTimeout);
     /*#__INLINE__*/ set_onWndBlur2(null);
     removeFlash && removeFlash();
-    hud_ = api_ =
-    options_ = null as never
+    api_ = options_ = null as never
     /*#__INLINE__*/ set_hintModeAction(null)
     /*#__INLINE__*/ resetRemoveFlash()
     /*#__INLINE__*/ localLinkClear()
     /*#__INLINE__*/ hintFilterClear()
     lastMode_ = mode_ = mode1_ = count_ =
-    isActive = coreHints.h = forceToScroll_ = 0;
+    coreHints.h = forceToScroll_ = 0;
     /*#__INLINE__*/ resetHintKeyCode()
     useFilter_ =
     noHUD_ = tooHigh_ = false;
@@ -696,14 +662,14 @@ export const clear = (keepHudOrEvent?: 0 | 1 | 2 | Event, suppressTimeout?: numb
       box_ = null;
     }
     removeModal()
-    keepHudOrEvent === 1 || hudHide();
+    hud_tipTimer || hudHide()
 }
 
 const cleanFrameInfo = function (this: number | undefined, frameInfo: FrameHintsInfo): void {
     try {
       let frame = frameInfo.s, hasManager = frame.p;
       frame.p = null;
-      hasManager && frame.c(1, this);
+      hasManager && frame.c(0, this);
     } catch { /* empty */ }
 }
 
@@ -722,9 +688,9 @@ const onFrameUnload = (officer: HintOfficer): void => {
     if (!deleteCount) { return; }
     suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents);
     if (!hints.length) {
-      clear(1);
-      hudTip(kTip.frameUnloaded);
-      return;
+      hudTip(kTip.frameUnloaded)
+      clear()
+      return
     }
     resetZIndexes()
     keyStat.n = keyStat.b = 0;
@@ -794,7 +760,7 @@ const coreHints: HintManager = {
   d: Build.BTypes & BrowserType.Chrome ? false : 0 as never, h: 0, y: [],
   x: checkLast, c: clear, o: collectFrameHints, j: delayToExecute, e: executeHint, g: getPreciseChildRect,
   l: highlightHint, r: render, t: rotate1,
-  p: null, q: TimerID.None,
+  p: null,
   n: onKeydown, s: resetMode, i: reinit, v: resetHints, u: onFrameUnload, w: setupCheck, z: postExecute
 }
 if (!Build.NDEBUG) { coreHints.hints_ = null }

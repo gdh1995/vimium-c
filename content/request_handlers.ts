@@ -20,7 +20,6 @@ import { set_findCSS, styleInHUD } from "./mode_find"
 import {
   exitGrab, grabBackFocus, insertInit, raw_insert_lock, set_grabBackFocus, onFocus, onBlur,
 } from "./insert"
-import { prompt as visualPrompt, visual_mode } from "./visual"
 import {
   currentScrolling, onActivate, set_currentScrolling, clearCachedScrollable, resetCurrentScrolling,
 } from "./scroller"
@@ -245,10 +244,7 @@ set_requestHandlers([
         styleInHUD && (styleInHUD.textContent = req.f.i);
       }
     }
-    req.c
-      ? visual_mode ? visualPrompt(kTip.copiedIs, 2000, [hudCopied(req.t, 0, 1)])
-        : hudCopied(req.t)
-      : req.t ? hudTip(kTip.raw, 0, [req.t])
+    req.c ? hudCopied(req.t) : req.t ? hudTip(kTip.raw, 0, [req.t])
     : 0;
   },
   /* kBgReq.count: */ function (request: BgReq[kBgReq.count]): void {

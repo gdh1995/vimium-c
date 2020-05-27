@@ -403,6 +403,7 @@ interface VApiTy {
     , (newClickable: ElementSet) => void
     , (newTr: VTransType) => void
   ] | null | undefined;
+  /** copied */ s (text: string, isUrl?: BOOL | boolean): void
   /** tip */ t (tid: kTip | HintMode, duration?: number, args?: Array<string | number>): void
   /** suppressTailKeys */ u: {
     (timeout: 0, callback?: undefined): HandlerNS.RefHandler

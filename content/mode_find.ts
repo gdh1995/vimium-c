@@ -4,7 +4,7 @@ import {
 } from "../lib/utils"
 import {
   pushHandler_, SuppressMost_, Stop_, removeHandler_, prevent_, getMappedKey, keybody_, isEscape_, keyNames_,
-  DEL, BSP, ENT,
+  DEL, BSP, ENTER,
 } from "../lib/keyboard_utils"
 import {
   createShadowRoot_, lastHovered_, resetLastHovered, prepareCrop_, getSelectionFocusEdge_, activeEl_unsafe_,
@@ -16,7 +16,7 @@ import {
   createStyle, getSelectionText, checkDocSelectable, adjustUI, ensureBorder, addUIElement, getSelected,
   select_, getSelectionParent_unsafe, resetSelectionToDocStart,
 } from "./dom_ui"
-import { visual_mode, prompt, highlightRange, kDir, activate as visualActivate, kExtend } from "./visual"
+import { visual_mode, highlightRange, kDir, activate as visualActivate, kExtend } from "./visual"
 import { keyIsDown as scroll_keyIsDown, beginScroll, onScrolls } from "./scroller"
 import { scrollToMark, setPreviousMarkPosition } from "./marks"
 import { hudHide, hud_box, hudTip, hud_opacity } from "./hud"
@@ -114,7 +114,7 @@ const notDisableScript = (): 1 | void => {
       }
     } catch {}
     deactivate(FindNS.Action.ExitUnexpectedly)
-    visual_mode ? prompt(kTip.findFrameFail, 2000) : hudTip(kTip.findFrameFail)
+    hudTip(kTip.findFrameFail, 2000)
 }
 
 export const onLoad = (later?: 1): void => {
@@ -175,7 +175,8 @@ const onLoad2 = (): void => {
       id && (newEl.id = id, list.appendChild(newEl));
       return newEl;
     };
-    addElement(0, "s").textContent = "/";
+    !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
+      ? addElement(0, "s").append!("/") : addElement(0, "s").textContent = "/"
     const el = input_ = addElement(0, "i")
     addElement(0, "h");
     if (!(Build.BTypes & ~BrowserType.Firefox) && !Build.DetectAPIOnFirefox) {
@@ -199,7 +200,8 @@ const onLoad2 = (): void => {
       // not check MinEnsuredShadowDOMV1 for smaller code
       setupEventListener(el, "input", onInput)
     }
-    (countEl = addElement(0, "c")).textContent = " "
+    !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
+      ? (countEl = addElement(0, "c")).append!(" ") : (countEl = addElement(0, "c")).textContent = " "
     createStyle(findCSS.i, styleInHUD = addElement("style", "c") as HTMLStyleElement);
     // add `<div>` to fix that a body with backgroundColor doesn't follow border-radius on FF63; and on Linux
     // an extra <div> may be necessary for Ctrl+A: https://github.com/gdh1995/vimium-c/issues/79#issuecomment-540921532
@@ -363,7 +365,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
     const eventWrapper: HandlerNS.Event = {c: kChar.INVALID, e: event, i: n},
     key = getMappedKey(eventWrapper, kModeId.Find), keybody = keybody_(key);
     const i: Result | KeyStat = key.includes("a-") && event.altKey ? FindNS.Action.DoNothing
-      : keybody === ENT
+      : keybody === ENTER
         ? key[0] === "s" ? FindNS.Action.PassDirectly
           : (query_ && post_({ H: kFgReq.findQuery, q: query0_ }), FindNS.Action.ExitToPostMode)
       : keybody !== DEL && keybody !== BSP
