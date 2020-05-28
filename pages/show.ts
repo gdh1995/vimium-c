@@ -740,9 +740,8 @@ function fetchImage_(url: string, element: HTMLImageElement): void {
   clearTimer = (): void => {
     element.removeEventListener("load", clearTimer);
     element.removeEventListener("error", clearTimer);
-    clearInterval(timer);
+    clearTimeout(timer);
     text.remove();
-    timer = 0;
   };
   element.addEventListener("load", clearTimer, true);
   element.addEventListener("error", clearTimer, true);
@@ -768,7 +767,7 @@ function fetchImage_(url: string, element: HTMLImageElement): void {
       body.replaceChild(element, text);
     });
   }
-  let timer = setInterval(() => {
+  const timer = setTimeout(() => {
     if (!element.parentNode || element.scrollHeight >= 24 || element.scrollWidth >= 80) { // some pixels drawn
       clearTimer();
     } else if (!text.parentNode) {
