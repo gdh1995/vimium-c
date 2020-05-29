@@ -202,7 +202,7 @@ const onLoad2 = (): void => {
     }
     !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
       ? (countEl = addElement(0, "c")).append!(" ") : (countEl = addElement(0, "c")).textContent = " "
-    createStyle(findCSS.i, styleInHUD = addElement("style", "c") as HTMLStyleElement);
+    createStyle(findCSS.i, styleInHUD = addElement("style", "a") as HTMLStyleElement);
     // add `<div>` to fix that a body with backgroundColor doesn't follow border-radius on FF63; and on Linux
     // an extra <div> may be necessary for Ctrl+A: https://github.com/gdh1995/vimium-c/issues/79#issuecomment-540921532
     const box = Build.BTypes & BrowserType.Firefox

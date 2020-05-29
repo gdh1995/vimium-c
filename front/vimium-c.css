@@ -29,4 +29,5 @@ html, body, * { user-select: auto; }
 display:flex;height:21px;padding:4px 4px 0}
 .r.D{background:#1e1e1e;color:#d4d4d4}#c{flex:0 0 auto;margin-left:2px}
 #s{flex:0 0 4px;}#i{flex:0 1 auto;min-width:9px;margin-left:2px;overflow:hidden;padding:0 2px 0 0}#h{flex:1 0 auto}
-#i,#h{cursor:text;height:16px}br{all:inherit!important;display:inline!important}:host{margin:0!important;}
+#i,#h{cursor:text;height:16px}br{all:inherit!important;display:inline!important}
+:host{background-color:#eee!important;margin:0!important}

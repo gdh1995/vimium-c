@@ -143,7 +143,8 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
     (Build.BTypes & ~BrowserType.Firefox ? box_!.appendChild.call(el2, box_!) : el2.appendChild(box_!));
     const sin = styleIn_, s = sin && (sin as HTMLStyleElement).sheet
     s && (s.disabled = false);
-    Build.BTypes & BrowserType.ChromeOrFirefox && curModalElement && curModalElement.showModal();
+    Build.BTypes & BrowserType.ChromeOrFirefox &&
+    curModalElement && !curModalElement.open && curModalElement.showModal()
     if (el || event) {
       const removeEL = !el || event === 2, FS = "fullscreenchange";
       if (Build.BTypes & BrowserType.Chrome
@@ -403,7 +404,8 @@ export const click_ = (element: SafeElementForMouse
         }
         return;
       }
-      const isBlank = (element as HTMLAnchorElement).target !== "blank", relAttr = element.getAttribute("rel"),
+      // use latest attributes
+      const isBlank = (element as HTMLAnchorElement).target === "_blank", relAttr = element.getAttribute("rel"),
       /** {@link #FirefoxBrowserVer.Min$TargetIsBlank$Implies$Noopener}; here also apply on Chrome */
       noopener = relAttr == null ? isBlank
           : Build.MinCVer >= BrowserVer.MinEnsuredES6$Array$$Includes || !(Build.BTypes & BrowserType.Chrome)
