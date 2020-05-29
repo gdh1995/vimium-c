@@ -375,20 +375,24 @@ export const click_ = (element: SafeElementForMouse
       OpenTabButNotDispatch = 3,
     }
     let result: ActionType = ActionType.OnlyDispatch, url: string | null;
+    let parentAnchor: Partial<Pick<HTMLAnchorElement, "target" | "href">> & Element | null | undefined
     if (specialAction) {
-      // for forceToDblclick, element can be OtherSafeElement; for 1..MaxOpenForAnchor, element must be HTML <a>
+      // for forceToDblclick, element can be OtherSafeElement; for 1..MaxOpenForAnchor, element must be in <html:a>
       result = specialAction > kClickAction.MaxOpenForAnchor ? ActionType.DispatchAndCheckInDOM
-          : Build.BTypes & BrowserType.Firefox && specialAction < kClickAction.MinNotPlainOpenManually
-                && (element as HTMLAnchorElement).target !== "_blank"
-            || !(url = element.getAttribute("href"))
+          : !(parentAnchor = Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest
+                && Build.BTypes & BrowserType.Chrome && !element.closest ? element
+                : (parentAnchor = element.closest!("a")) && htmlTag_(parentAnchor) ? parentAnchor : null)
+            || Build.BTypes & BrowserType.Firefox && specialAction < kClickAction.MinNotPlainOpenManually
+                && parentAnchor.target !== "_blank"
+            || !(url = parentAnchor.getAttribute("href"))
             || (!(Build.BTypes & BrowserType.Firefox) || specialAction & kClickAction.forceToOpenInNewTab)
                 && url[0] === "#"
             || jsRe_.test(url)
           ? ActionType.OnlyDispatch
           : Build.BTypes & BrowserType.Firefox
             && specialAction & (kClickAction.plainMayOpenManually | kClickAction.openInNewWindow)
-            && (unwrap_ff(element as HTMLAnchorElement).onclick
-              || clickable_.has(element))
+            && (unwrap_ff(parentAnchor as SafeHTMLElement).onclick
+              || clickable_.has(element) || clickable_.has(parentAnchor))
           ? ActionType.DispatchAndMayOpenTab : ActionType.OpenTabButNotDispatch;
     }
     if ((result > ActionType.OpenTabButNotDispatch - 1 || mouse_(element, CLK, center, modifiers) && result)
@@ -405,7 +409,7 @@ export const click_ = (element: SafeElementForMouse
         return;
       }
       // use latest attributes
-      const isBlank = (element as HTMLAnchorElement).target === "_blank", relAttr = element.getAttribute("rel"),
+      const isBlank = parentAnchor!.target === "_blank", relAttr = parentAnchor!.getAttribute("rel"),
       /** {@link #FirefoxBrowserVer.Min$TargetIsBlank$Implies$Noopener}; here also apply on Chrome */
       noopener = relAttr == null ? isBlank
           : Build.MinCVer >= BrowserVer.MinEnsuredES6$Array$$Includes || !(Build.BTypes & BrowserType.Chrome)
@@ -417,7 +421,7 @@ export const click_ = (element: SafeElementForMouse
             ? ReuseType.newFg : ReuseType.newBg;
       post_({
         H: kFgReq.openUrl,
-        u: (element as HTMLAnchorElement).href,
+        u: parentAnchor!.href,
         f: !0,
         n: noopener,
         r: reuse

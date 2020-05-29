@@ -427,7 +427,9 @@ export const linkActions: readonly LinkAction[] = [
     noCtrlPlusShiftForActive: boolean | undefined = cnsForWin != null ? cnsForWin : hintOptions.noCtrlPlusShift,
     ctrl = newTab && !(newtab_n_active && noCtrlPlusShiftForActive) || newWindow && !!noCtrlPlusShiftForActive,
     shift = newWindow || newtab_n_active,
-    specialActions = dblClick ? kClickAction.forceToDblclick : otherActions || tag !== "a" ? kClickAction.none
+    specialActions = dblClick ? kClickAction.forceToDblclick : otherActions
+        || (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$Element$$Closest
+            || link.closest ? !link.closest!("a") : tag !== "a") ? kClickAction.none
         : newTabOption === "force" ? newTab
             ? kClickAction.forceToOpenInNewTab | kClickAction.newTabFromMode : kClickAction.forceToOpenInNewTab
         : !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
