@@ -272,6 +272,7 @@ interface CmdOptions {
     reuse?: ReuseType;
     local?: boolean;
     count?: -1; // just for commands.ts
+    position?: OpenUrlOptions["position"]
   };
   [kFgCmd.vomnibar]: {
     /* vomnibar */ v: string;
@@ -514,8 +515,21 @@ interface FgReq {
     /** broadcast, default to true */ b?: boolean;
   };
   [kFgReq.findFromVisual]: {};
-  [kFgReq.framesGoBack]: { /** step */ s: number; /** reuse */ r: ReuseType | undefined };
+  [kFgReq.framesGoBack]: {
+    /** step */ s: number
+    /** reuse */ r?: ReuseType
+    /** position */ p?: OpenUrlOptions["position"]
+  }
   [kFgReq.learnCSS]: {};
+}
+
+interface OpenUrlOptions {
+  incognito?: boolean
+  /** default to false */ opener?: boolean
+  /* pasted */ $p?: 1
+  position?: "start" | "begin" | "end" | "before" | "after"
+  window?: boolean
+  sed?: string | boolean
 }
 
 declare namespace Req {

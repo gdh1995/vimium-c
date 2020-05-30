@@ -52,14 +52,6 @@
     id: number;
     url: string;
   }
-  interface OpenUrlOptions {
-    incognito?: boolean;
-    /** default to false */ opener?: boolean;
-    /* pasted */ $p?: 1;
-    position?: "start" | "begin" | "end" | "before" | "after";
-    window?: boolean;
-    sed?: string | boolean;
-  }
   interface OpenUrlOptionsInBgCmd extends OpenUrlOptions {
     url_f?: Urls.Url;
     reuse?: ReuseType;
@@ -89,7 +81,8 @@
     [kFgReq.setOmniStyle]: (this: void, request: FgReq[kFgReq.setOmniStyle], _port?: Port) => void;
     [kFgReq.framesGoBack]: {
       (this: void, req: FgReq[kFgReq.framesGoBack], port: Port): void;
-      (this: void, req: FgReq[kFgReq.framesGoBack], port: null, tabId: Pick<Tab, "id" | "url" | "pendingUrl">): void
+      (this: void, req: FgReq[kFgReq.framesGoBack], port: null
+          , tabId: Pick<Tab, "id" | "url" | "pendingUrl" | "index">): void
     };
   }
   interface SpecialCommands {
@@ -108,7 +101,7 @@
     return function (this: void): number {
       const now = Date.now(); // safe for time changes
       if (now - time > GlobalConsts.VomnibarSecretTimeout) {
-        secret = 1 + (0 | (Math.random() * 0x6fffffff));
+        secret = 1 + (0 | (Math.random() * 0x6fffffff)) + (now & 0xfff)
       }
       time = now;
       return secret;
@@ -211,7 +204,7 @@
       }
     }
   }
-  function newTabIndex(this: void, tab: Readonly<Tab>, pos: OpenUrlOptions["position"]
+  function newTabIndex(this: void, tab: Readonly<Pick<Tab, "index">>, pos: OpenUrlOptions["position"]
       , openerTabId?: boolean): number | undefined {
     return pos === "before" ? tab.index : pos === "start" || pos === "begin" ? 0
       : pos !== "end" ? tab.index + 1
@@ -2759,7 +2752,7 @@
       BackgroundCommands[kBgCmd.performFind]();
     },
     /** kFgReq.framesGoBack: */ function (this: void, req: FgReq[kFgReq.framesGoBack], port: Port | null
-        , curTab?: Pick<Tab, "id" | "url" | "pendingUrl">): void {
+        , curTab?: Pick<Tab, "id" | "url" | "pendingUrl" | "index">): void {
       const tabID = Build.BTypes & BrowserType.Chrome && curTab ? curTab.id : port!.s.t,
       count = req.s, reuse = req.r;
       let needToExecCode: boolean = Build.BTypes & BrowserType.Chrome ? false : true;
@@ -2785,6 +2778,7 @@
         }
       }
       if (!(Build.BTypes & BrowserType.Chrome) || reuse) {
+        const position = req.p
         chrome.tabs.duplicate(tabID, function (tab): void {
           if (!tab) { return onRuntimeError(); }
           if (reuse === ReuseType.newBg) {
@@ -2796,6 +2790,11 @@
             execGoBack(tab, count);
           } else {
             requestHandlers[kFgReq.framesGoBack]({ s: count, r: ReuseType.current }, null, tab);
+          }
+          const newTabIdx = tab.index--
+          const wantedIdx = position === "end" ? 3e4 : newTabIndex(tab, position)
+          if (wantedIdx != null && wantedIdx !== newTabIdx) {
+            chrome.tabs.move(tab.id, { index: wantedIdx }, onRuntimeError)
           }
         });
         return;

@@ -51,7 +51,7 @@ export const contentCommands_: {
         && !options.local
         || maxStep && reuse
     ) {
-      post_({ H: kFgReq.framesGoBack, s: realStep, r: reuse });
+      post_({ H: kFgReq.framesGoBack, s: realStep, r: reuse, p: options.position });
     } else {
       maxStep && history.go(realStep);
     }
