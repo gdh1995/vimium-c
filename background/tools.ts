@@ -56,6 +56,7 @@ const Clipboard_ = {
     }
     for (const item of arr) {
       if (item.action_ & action) {
+        const old = text
         if (item.revertResult_) {
           let start = 0, end = 0, first_group: string | undefined;
           text.replace(item.match_ as RegExpOne & RegExpSearchable<0>, function (matched_text): string {
@@ -69,7 +70,7 @@ const Clipboard_ = {
         } else {
           text = text.replace(item.match_ as RegExpG, item.replaced_);
         }
-        if (item.decode_) {
+        if (item.decode_ && text !== old) {
           text = item.decode_ > 1 ? BgUtils_.decodeEscapedURL_(text) : BgUtils_.decodeUrlForCopy_(text)
         }
       }
