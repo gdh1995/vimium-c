@@ -1,7 +1,6 @@
 import { clickable_, VOther, safer, timeout_ } from "../lib/utils"
 import {
-  docEl_unsafe_, getBoundingClientRect_, htmlTag_, isAriaNotTrue_, isStyleVisible_, querySelectorAll_unsafe_,
-  view_,
+  docEl_unsafe_, getBoundingClientRect_, htmlTag_, isAriaNotTrue_, isStyleVisible_, querySelectorAll_unsafe_, view_,
 } from "../lib/dom_utils"
 import {
   flash_, click_,
@@ -32,13 +31,16 @@ const GetButtons = function (this: void, hints, element): void {
     || (
       (s = element.getAttribute("role")) ? (<RegExpI> /^(button|link)$/i).test(s)
       : ngEnabled && element.getAttribute("ng-click")));
-  if (!isClickable) { return; }
-  if (!isAriaNotTrue_(element, kAria.disabled)) { return; }
-  const rect = getBoundingClientRect_(element);
-  if (rect.width > 2 && rect.height > 2 && isStyleVisible_(element)) {
-    hints.push(element);
+  if (isClickable && isVisibleInPage(element)) {
+    hints.push(element)
   }
 } as HintsNS.Filter<SafeHTMLElement>
+
+const isVisibleInPage = (element: SafeHTMLElement): boolean => {
+  let rect: ClientRect
+  return isAriaNotTrue_(element, kAria.disabled)
+      && (rect = getBoundingClientRect_(element)).width > 2 && rect.height > 2 && isStyleVisible_(element)
+}
 
 export const findAndFollowLink = (names: string[], isNext: boolean, lenLimit: number[], totalMax: number
   ): boolean => {
@@ -132,6 +134,7 @@ export const findAndFollowRel = (relName: string): boolean => {
         if ((element as HTMLElementWithRel).href.split("#")[0] !== matched.href.split("#")[0]) {
           return false;
         }
+        if (!isVisibleInPage(element as SafeHTMLElement)) { continue }
       }
       matched = element as HTMLElementWithRel;
     }
