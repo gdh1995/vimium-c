@@ -73,7 +73,7 @@
     "properties": {
       "regex": "/^_|_$/",
       "builtins": true,
-      "reserved": [ "__proto__", "$_", "_" ],
+      "reserved": [ "__proto__", "$_", "_", "_get" ],
       "undeclared": true
     },
     "reserved": [
