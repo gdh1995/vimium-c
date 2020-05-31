@@ -145,6 +145,7 @@ var Tasks = {
       , "*.txt", "*.md", "!**/[a-ln-z.]*.json", "!**/*.bin"
       , "!**/*.min.*"
       , "!pages/*.css", "!front/[a-u]*.html", "!front/[w-z]*.html", "!pages/*.html", "!REL*.md", "!README*.md"
+      , "!PRIVACY*"
       , "!**/*.log", "!**/*.psd", "!**/*.zip", "!**/*.tar", "!**/*.tgz", "!**/*.gz"
       , '!**/*.ts', "!**/*.js", "!**/tsconfig*.json"
       , "!test*", "!todo*"
@@ -250,7 +251,7 @@ var Tasks = {
     if (jsmin_status[1]) {
       return cb();
     }
-    var exArgs = { nameCache: loadNameCache("content") };
+    var exArgs = { nameCache: { vars: {}, props: {}, timestamp: 0 } };
     var config = loadUglifyConfig(!!exArgs.nameCache);
     config.nameCache = exArgs.nameCache;
     require(LIB_UGLIFY_JS).minify("var " + KnownBackendGlobals.join(" = {},\n") + " = {};", config);
