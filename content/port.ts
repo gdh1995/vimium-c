@@ -1,5 +1,5 @@
 import {
-  loc_, injector, safeObj, timeout_, isAlive_, set_VTr, VOther, isEnabled_, isLocked_, isTop, doc,
+  loc_, injector, safeObj, timeout_, isAlive_, VOther, isEnabled_, isLocked_, isTop, doc, set_i18n_getMsg,
 } from "../lib/utils"
 import { passKeys } from "../content/key_handler"
 import { style_ui } from "../content/dom_ui"
@@ -62,9 +62,9 @@ export const runtimeConnect = (function (this: void): void {
       ? name + PortNameEnum.Delimiter + loc_.href
       : "" + name
   },
-  connect = api.runtime.connect, trans = api.i18n.getMessage,
-  port = port_ = injector ? connect(injector.id, data) as Port : connect(data) as Port
-  port.onDisconnect.addListener((): void => {
+  connect = api.runtime.connect
+  port_ = injector ? connect(injector.id, data) as Port : connect(data) as Port
+  port_.onDisconnect.addListener((): void => {
     port_ = null
     timeout_(function (i): void {
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i) {
@@ -74,10 +74,10 @@ export const runtimeConnect = (function (this: void): void {
       }
     }, requestHandlers[kBgReq.init] ? 2000 : 5000);
   });
-  port.onMessage.addListener(<T extends keyof BgReq> (response: Req.bg<T>): void => {
+  port_.onMessage.addListener(<T extends keyof BgReq> (response: Req.bg<T>): void => {
     type TypeToCheck = { [k in keyof BgReq]: (this: void, request: BgReq[k]) => void };
     type TypeChecked = { [k in keyof BgReq]: <T2 extends keyof BgReq>(this: void, request: BgReq[T2]) => void };
     (requestHandlers as TypeToCheck as TypeChecked)[response.N](response);
   });
-  /*#__INLINE__*/ set_VTr((tid, args) => trans("" + tid, args));
+  /*#__INLINE__*/ set_i18n_getMsg(api.i18n.getMessage)
 })

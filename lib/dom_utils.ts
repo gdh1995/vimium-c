@@ -756,7 +756,7 @@ export const createShadowRoot_ = <T extends HTMLDivElement | HTMLBodyElement> (b
             || box.createShadowRoot)
       ? box.createShadowRoot!()
       : Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-        && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer > BrowserVer.MinShadowDOMV0
+        && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
             || box.webkitCreateShadowRoot)
       ? box.webkitCreateShadowRoot!() : box;
 }

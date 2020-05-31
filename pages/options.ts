@@ -1022,7 +1022,7 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
   styleDebug.textContent = css2.ui || "";
   const iframes = root ? root.querySelectorAll("iframe") : [];
   for (let i = 0, end = iframes.length; i < end; i++) {
-    const frame = iframes[i], isFind = frame.classList.contains("HUD"),
+    const frame = iframes[i], isFind = frame.classList.contains("Find"),
     doc = frame.contentDocument as HTMLDocument,
     api = window.VApi, misc = api && api.y(), findCss = misc && misc.f,
     root2 = isFind ? misc!.s!.parentNode as HTMLElement : doc;

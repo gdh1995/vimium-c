@@ -8,7 +8,7 @@ import {
   getSelectionBoundingBox_, center_, getVisibleClientRect_, isInTouchMode_cr_, touch_cr_, IsInDOM_, lastHovered_,
   hover_, mouse_, activeEl_unsafe_, view_, prepareCrop_, getClientRectsForAreas_, notSafe_not_ff_,
   getBoundingClientRect_, padClientRect_, isContaining_, cropRectToVisible_, getCroppedRect_, setBoundary_,
-  frameElement_, runJS_, isStyleVisible_, set_docSelectable_, getInnerHeight, CLK, MDW, NONE,
+  frameElement_, runJS_, isStyleVisible_, set_docSelectable_, getInnerHeight, CLK, MDW, NONE, htmlTag_,
 } from "../lib/dom_utils"
 import { Stop_, suppressTail_ } from "../lib/keyboard_utils"
 import { currentScrolling } from "./scroller"

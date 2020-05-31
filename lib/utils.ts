@@ -72,8 +72,10 @@ export function set_esc (_newEsc: EscF): void { esc = _newEsc }
 export let vApi: VApiTy
 export function set_vApi (_newVApi: VApiTy): void { vApi = _newVApi }
 
-export let VTr: VTransType
+let i18n_getMsg: typeof chrome.i18n.getMessage
+export let VTr: VTransType = (tid, args) => i18n_getMsg("" + tid, args)
 export function set_VTr (_newVTr: VTransType): void { VTr = _newVTr }
+export function set_i18n_getMsg (_newGetMsg: typeof i18n_getMsg): void { i18n_getMsg = _newGetMsg }
 
 export const callFunc = (callback: (this: void) => any): void => { callback(); }
 
