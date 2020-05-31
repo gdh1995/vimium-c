@@ -63,9 +63,12 @@ set_vApi(VApi = {
   h: linkActivate, o: omniActivate, n: findOnLoad, c: executeScroll,
   k: scrollTick, $: $sc, l: learnCSS, u: suppressTail_,
   i: Build.BTypes & BrowserType.Firefox ? getInnerHeight : 0 as never,
-  r: injector && [send_, safePost, (keys?: string): string => {
-    keys = currentKeys; esc!(HandlerResult.Nothing); return keys;
-  }, set_clickable_, set_VTr], s: hudCopied, t: hudTip, m: getMappedKey,
+  r: injector && [send_, safePost, (task: 0 | 1 | 2, arg?: string | ElementSet | VTransType): any => {
+    task < 1 ? (arg = currentKeys, /*#__NOINLINE__*/ esc!(HandlerResult.Nothing))
+      : task < 2 ? /*#__INLINE__*/ set_clickable_(arg as ElementSet)
+      : /*#__INLINE__*/ set_VTr(arg as VTransType)
+    return arg
+  }], s: hudCopied, t: hudTip, m: getMappedKey,
   x: flash_,
   y: () => (Build.BTypes & BrowserType.Firefox ? {
     w: onWndFocus, b: find_box, c: clickable_, f: findCSS, g: setUICSS, k: scroll_keyIsDown, r: ui_root, s: styleInHUD

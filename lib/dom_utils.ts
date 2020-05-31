@@ -17,6 +17,7 @@ export function set_docSelectable_ (_newDocSelectable: boolean): void { docSelec
 export const devRatio_ = (): number => devicePixelRatio
 
 export const getInnerHeight = (): number => innerHeight as number
+export const getInnerWidth = (): number => innerWidth as number
 
 export const rAF_: (callback: FrameRequestCallback) => number =
     Build.NDEBUG ? requestAnimationFrame : f => requestAnimationFrame(f)
@@ -33,12 +34,17 @@ export const docEl_unsafe_ = (): Element | null => doc.documentElement
 export const activeEl_unsafe_ = (): Element | null => doc.activeElement
 
   /** @UNSAFE_RETURNED */
-export const querySelector_unsafe_ = (selector: string): Element | null => doc.querySelector(selector)
+export const querySelector_unsafe_ = (selector: string
+    , scope?: SafeElement | ShadowRoot | Document | HTMLDivElement | HTMLDetailsElement
+    ): Element | null => (scope || doc).querySelector(selector)
 
   /** @UNSAFE_RETURNED */
-export const querySelectorAll_unsafe_ = function (selector: string): NodeListOf<Element> | void {
-    try { return doc.querySelectorAll(selector); } catch {}
-} as <T extends BOOL = 0>(selector: string) => NodeListOf<Element> | (T extends 1 ? undefined : never)
+export const querySelectorAll_unsafe_ = ((scope: Document | SafeElement, selector: string
+      ): NodeListOf<Element> | void => {
+    try { return scope.querySelectorAll(selector); } catch {}
+}) as {
+  (scope: Document | SafeElement, selector: string): NodeListOf<Element> | void
+}
 
   /** DOM-compatibility section */
 
@@ -64,11 +70,11 @@ export const isInTouchMode_cr_ = Build.BTypes & BrowserType.Chrome ? (): boolean
           (viewport as TypeToAssert<Element, HTMLMetaElement, "content">).content! /* safe even if undefined */);
 } : 0 as never as null
 
-  /** refer to {@link #BrowserVer.MinParentNodeInNodePrototype } */
+/** refer to {@link #BrowserVer.MinParentNodeGetterInNodePrototype } */
 export const Getter_not_ff_ = Build.BTypes & ~BrowserType.Firefox ? function <Ty extends Node, Key extends keyof Ty
             , ensured extends boolean = false>(this: void
       , Cls: { prototype: Ty; new (): Ty }, instance: Ty
-      , property: Key & (Ty extends Element ? "shadowRoot" | "assignedSlot" : "childNodes" | "parentNode")
+      , property: Key & (Ty extends Element ? "assignedSlot" : "childNodes" | "parentNode")
       ): Exclude<NonNullable<Ty[Key]>, Window | RadioNodeList | HTMLCollection
             | (Key extends "parentNode" ? never : Element)>
           | (ensured extends true ? never : null) {
@@ -112,6 +118,16 @@ export const GetShadowRoot_ = (el: Element): ShadowRoot | null => {
       ? sr && notSafe_not_ff_!(el) ? null : sr as Exclude<typeof sr, undefined | Element | RadioNodeList | Window>
       : sr && !notSafe_not_ff_!(el) && <Exclude<typeof sr, Element | RadioNodeList | Window>> sr || null;
 }
+
+export const GetChildNodes_not_ff = Build.BTypes & ~BrowserType.Firefox ? (el: Element): NodeList => {
+  if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype) {
+    return Getter_not_ff_!(Node, el, "childNodes")!
+  } else {
+    let cn = (el as Element).childNodes
+    return cn instanceof NodeList && !("value" in cn) ? cn
+        : Getter_not_ff_!(Node, el, "childNodes") || <NodeList> <{[index: number]: Node}> []
+  }
+} : 0 as never as null
 
 export const elementProto = (): Element => Element.prototype
 
@@ -266,7 +282,7 @@ export let prepareCrop_ = (inVisualViewport?: 1, limitedView?: Rect | null): num
             ? el && !notSafe_not_ff_!(el) : el) {
         i = el!.clientWidth, j = el!.clientHeight;
       } else {
-        i = innerWidth, j = getInnerHeight();
+        i = getInnerWidth(), j = getInnerHeight()
         if (!docEl) { return vbottom = j, vbottoms = j - 8, vright = i; }
         // the below is not reliable but safe enough, even when docEl is unsafe
         i = min(max(i - GlobalConsts.MaxScrollbarWidth, (docEl.clientWidth * dz) | 0), i);
@@ -309,44 +325,36 @@ export let getBoundingClientRect_: (el: Element) => ClientRect = Build.BTypes & 
 } : el => el.getBoundingClientRect()
 
 export const getVisibleClientRect_ = (element: SafeElement, el_style?: CSSStyleDeclaration | null): Rect | null => {
-    const arr = element.getClientRects();
-    let cr: Rect | null, style: CSSStyleDeclaration | null, _ref: HTMLCollection | undefined
-      , isVisible: boolean | undefined, notInline: boolean | undefined, str: string;
-    for (let _i = 0, _len = arr.length; _i < _len; _i++) {
-      const rect = arr[_i];
+    let cr: Rect | null, I: "inline" | undefined, useChild: boolean, isInline: boolean | undefined, str: string
+    for (const rect of <ClientRect[]> <{[i: number]: ClientRect}> element.getClientRects()) {
       if (rect.height > 0 && rect.width > 0) {
         if (cr = cropRectToVisible_(rect.left, rect.top, rect.right, rect.bottom)) {
-          if (isVisible == null) {
-            el_style || (el_style = getComputedStyle(element));
-            isVisible = el_style.visibility === "visible";
-          }
-          return isVisible ? cr : null;
+          return isRawStyleVisible(el_style || getComputedStyle_(element)) ? cr : null
         }
         continue;
       }
       // according to https://dom.spec.whatwg.org/#dom-parentnode-children
       // .children will always be a HTMLCollection even if element is SVGElement
-      if (_ref) {
+      if (I) {
         continue;
       }
-      _ref = element.children;
-      for (let _j = 0, _len1 = _ref.length, gCS = getComputedStyle; _j < _len1; _j++) {
-        style = gCS(_ref[_j]);
-        if (style.float !== NONE || ((str = style.position) !== "static" && str !== "relative")) { /* empty */ }
+      I = "inline"
+      for (const el2 of <Element[]> <{[index: number]: Element}> element.children) {
+        const st = getComputedStyle_(el2)
+        if (useChild = st.float !== NONE || ((str = st.position) !== "static" && str !== "relative")) { /* empty */ }
         else if (rect.height === 0) {
-          if (notInline == null) {
-            el_style || (el_style = gCS(element));
-            notInline = (el_style.fontSize !== "0px" && el_style.lineHeight !== "0px")
-              || !el_style.display.startsWith("inline");
+          if (isInline == null) {
+            el_style || (el_style = getComputedStyle_(element))
+            isInline = (el_style.fontSize === "0px" || el_style.lineHeight === "0px")
+              && el_style.display.startsWith(I)
           }
-          if (notInline || !style.display.startsWith("inline")) { continue; }
-        } else { continue; }
-        if (!(Build.BTypes & ~BrowserType.Firefox && notSafe_not_ff_!(_ref[_j]))
-            && (cr = getVisibleClientRect_(_ref[_j] as SafeElement, style))) {
+          useChild = isInline && st.display.startsWith(I)
+        }
+        if (useChild && !(Build.BTypes & ~BrowserType.Firefox && notSafe_not_ff_!(el2))
+            && (cr = getVisibleClientRect_(el2 as SafeElement, st))) {
           return cr;
         }
       }
-      style = null;
     }
     return null;
 }
@@ -354,8 +362,8 @@ export const getVisibleClientRect_ = (element: SafeElement, el_style?: CSSStyleD
 export const getClientRectsForAreas_ = function (this: {}, element: HTMLElementUsingMap, output: Hint[]
       , areas?: NodeListOf<HTMLAreaElement | Element> | HTMLAreaElement[]): Rect | null {
     let diff: number, x1: number, x2: number, y1: number, y2: number, rect: Rect | null | undefined;
-    const cr = getBoundingClientRect_(element);
-    if (cr.height < 3 || cr.width < 3) { return null; }
+    const cr = padClientRect_(getBoundingClientRect_(element)), crWidth = cr.r - cr.l, crHeight = cr.b - cr.t
+    if (crHeight < 3 || crWidth < 3) { return null }
     // replace is necessary: chrome allows "&quot;", and also allows no "#"
     if (!areas) {
       const selector = `map[name="${element.useMap.replace(<RegExpOne> /^#/, "").replace(<RegExpG> /"/g, '\\"')}"]`;
@@ -364,9 +372,9 @@ export const getClientRectsForAreas_ = function (this: {}, element: HTMLElementU
       const root = (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
           || !(Build.BTypes & ~BrowserType.Firefox) || element.getRootNode)
         ? element.getRootNode!() as ShadowRoot | Document : doc;
-      const map = root.querySelector(selector);
+      const map = querySelector_unsafe_(selector, root)
       if (!map || (map as ElementToHTML).lang == null) { return null; }
-      areas = map.querySelectorAll("area");
+      areas = querySelectorAll_unsafe_(map as SafeHTMLElement, "area")!
     }
     const toInt = (a: string): number => (a as string | number as number) | 0;
     for (let _i = 0, _len = areas.length; _i < _len; _i++) {
@@ -379,10 +387,7 @@ export const getClientRectsForAreas_ = function (this: {}, element: HTMLElementU
         x1 = x2 - diff; x2 += diff; y1 = y2 - diff; y2 += diff;
         diff = 3;
         break;
-      case "default":
-        x1 = 0; y1 = 0; x2 = cr.width; y2 = cr.height;
-        diff = 0;
-        break;
+      case "default": x1 = y1 = diff = 0, x2 = crWidth, y2 = crHeight; break
       case "poly": case "polygon": // note: "polygon" is non-conforming
         y1 = coords[0], y2 = coords[2], diff = coords[4];
         x1 = Math.min(y1, y2, diff); x2 = Math.max(y1, y2, diff);
@@ -397,7 +402,7 @@ export const getClientRectsForAreas_ = function (this: {}, element: HTMLElementU
         break;
       }
       if (coords.length < diff) { continue; }
-      rect = cropRectToVisible_(x1 + cr.left, y1 + cr.top, x2 + cr.left, y2 + cr.top);
+      rect = cropRectToVisible_(x1 + cr.l, y1 + cr.t, x2 + cr.l, y2 + cr.t)
       if (rect) {
         (output as Hint5[]).push([area, rect, 0, [rect, 0], element]);
       }
@@ -409,14 +414,13 @@ export const getClientRectsForAreas_ = function (this: {}, element: HTMLElementU
 }
 
 export const getCroppedRect_ = function (this: {}, el: Element, crect: Rect | null): Rect | null {
-    let parent: Element | null = el, prect: Rect | null | undefined
-      , i: number = crect ? 4 : 0, bcr: ClientRect;
+    let parent: Element | null = el, prect: Rect | null | undefined, i: number = crect ? 4 : 0, bcr: Rect
     while (1 < i-- && (parent = GetParent_unsafe_(parent, PNType.RevealSlotAndGotoParent))
         && getComputedStyle_(parent).overflow !== HDN
         ) { /* empty */ }
     if (i > 0 && parent) {
-      bcr = getBoundingClientRect_(parent);
-      prect = cropRectToVisible_(bcr.left, bcr.top, bcr.right, bcr.bottom);
+      bcr = padClientRect_(getBoundingClientRect_(parent))
+      prect = cropRectToVisible_(bcr.l, bcr.t, bcr.r, bcr.b)
     }
     return prect && isContaining_(crect!, prect)
         ? prect : crect;
@@ -425,11 +429,15 @@ export const getCroppedRect_ = function (this: {}, el: Element, crect: Rect | nu
     (el: Element, crect: Rect | null): Rect | null;
 }
 
-export const findMainSummary_ = (details: HTMLDetailsElement): SafeHTMLElement | null => {
+export const findMainSummary_ = ((details: HTMLDetailsElement | Element | null): SafeHTMLElement | null => {
+    if (!(Build.BTypes & BrowserType.Edge)) { // https://developer.mozilla.org/en-US/docs/Web/CSS/:scope
+      details = querySelector_unsafe_(':scope>summary', details as HTMLDetailsElement)
+      return details && htmlTag_(details) ? details as SafeHTMLElement : null
+    }
     // Specification: https://html.spec.whatwg.org/multipage/interactive-elements.html#the-summary-element
     // `HTMLDetailsElement::FindMainSummary()` in
     // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_details_element.cc?g=0&l=101
-    for (let summaries = details.children, i = 0, len = summaries.length; i < len; i++) {
+    for (let summaries = details!.children, i = 0, len = summaries.length; i < len; i++) {
       const summary = summaries[i];
       // there's no window.HTMLSummaryElement on C70
       if (htmlTag_(summary) === "summary") {
@@ -437,7 +445,7 @@ export const findMainSummary_ = (details: HTMLDetailsElement): SafeHTMLElement |
       }
     }
     return null;
-}
+}) as (details: HTMLDetailsElement) => SafeHTMLElement | null
 
 let paintBox_: [number, number] | null = null // it may need to use `paintBox[] / <body>.zoom`
 let wdZoom_ = 1 // <html>.zoom * min(devicePixelRatio, 1) := related to physical pixels
@@ -516,7 +524,7 @@ export const getZoom_ = Build.BTypes & ~BrowserType.Firefox ? function (target?:
     }
     paintBox_ = null; // it's not so necessary to get a new paintBox here
     docZoom_ = zoom;
-    wdZoom_ = Math.round(zoom * Math.min(ratio, 1) * 1000) / 1000;
+    wdZoom_ = Math.round(zoom * (ratio < 1 ? ratio : 1) * 1000) / 1000
 } : function (): void {
     paintBox_ = null;
     docZoom_ = bZoom_ = 1;
@@ -525,8 +533,8 @@ export const getZoom_ = Build.BTypes & ~BrowserType.Firefox ? function (target?:
 } as never
 
 export const getViewBox_ = function (this: {}, needBox?: 1 | 2): ViewBox | ViewOffset {
-    const ratio = devRatio_();
-    let iw = innerWidth, ih = getInnerHeight(), ratio2 = Math.min(ratio, 1);
+    const ratio = devRatio_(), M = Math, round = M.round
+    let iw = getInnerWidth(), ih = getInnerHeight(), ratio2 = ratio < 1 ? ratio : 1
     if (fullscreenEl_unsafe_()) {
       getZoom_(1);
       dScale_ = bScale_ = 1;
@@ -538,18 +546,18 @@ export const getViewBox_ = function (this: {}, needBox?: 1 | 2): ViewBox | ViewO
     box2 = doc.body, st2 = box2 ? getComputedStyle_(box2) : st,
     zoom2 = bZoom_ = Build.BTypes & ~BrowserType.Firefox && box2 && +st2.zoom || 1,
     containHasPaint = (<RegExpOne> /content|paint|strict/).test(st.contain!),
-    M = "matrix(1,",
+    kM = "matrix(1,",
     stacking = !(Build.BTypes & BrowserType.Chrome && needBox === 2)
         && (st.position !== "static" || containHasPaint || st.transform !== NONE),
     // NOTE: if box.zoom > 1, although doc.documentElement.scrollHeight is integer,
     //   its real rect may has a float width, such as 471.333 / 472
-    rect = getBoundingClientRect_(box);
+    rect = padClientRect_(getBoundingClientRect_(box))
     let zoom = Build.BTypes & ~BrowserType.Firefox && +st.zoom || 1,
     // ignore the case that x != y in "transform: scale(x, y)""
-    _tf = st.transform, scale = dScale_ = _tf && !_tf.startsWith(M) && float(_tf.slice(7)) || 1;
-    bScale_ = box2 && (_tf = st2.transform) && !_tf.startsWith(M) && float(_tf.slice(7)) || 1;
+    _trans = st.transform, scale = dScale_ = _trans && !_trans.startsWith(kM) && float(_trans.slice(7)) || 1
+    bScale_ = box2 && (_trans = st2.transform) && !_trans.startsWith(kM) && float(_trans.slice(7)) || 1
     Build.BTypes & BrowserType.Chrome && (zoom = _fixDocZoom_cr!(zoom, box, ratio));
-    wdZoom_ = Math.round(zoom * ratio2 * 1000) / 1000;
+    wdZoom_ = round(zoom * ratio2 * 1000) / 1000
     docZoom_ = Build.BTypes & ~BrowserType.Firefox ? zoom : 1;
     let x = !stacking ? float(st.marginLeft)
           : !(Build.BTypes & ~BrowserType.Firefox)
@@ -560,17 +568,17 @@ export const getViewBox_ = function (this: {}, needBox?: 1 | 2): ViewBox | ViewO
             || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
           ? -float(st.borderTopWidth ) : 0 | -box.clientTop
       , ltScale = Build.BTypes & BrowserType.Chrome ? needBox === 2 ? 1 : scale : 1;
-    x = x * (Build.BTypes & BrowserType.Chrome ? ltScale : scale) - rect.left;
-    y = y * (Build.BTypes & BrowserType.Chrome ? ltScale : scale) - rect.top;
+    x = x * (Build.BTypes & BrowserType.Chrome ? ltScale : scale) - rect.l
+    y = y * (Build.BTypes & BrowserType.Chrome ? ltScale : scale) - rect.t
     // note: `Math.abs(y) < 0.01` supports almost all `0.01 * N` (except .01, .26, .51, .76)
-    x = Math.abs(x) < 0.01 ? 0 : Math.ceil(Math.round(x / zoom2 * 100) / 100);
-    y = Math.abs(y) < 0.01 ? 0 : Math.ceil(Math.round(y / zoom2 * 100) / 100);
+    x = x * x < 1e-4 ? 0 : M.ceil(round(x / zoom2 * 100) / 100)
+    y = y * y < 1e-4 ? 0 : M.ceil(round(y / zoom2 * 100) / 100)
     if (Build.BTypes & ~BrowserType.Firefox) {
       iw /= zoom, ih /= zoom;
     }
     let mw = iw, mh = ih;
     if (containHasPaint) { // ignore the area on the block's left
-      iw = rect.right, ih = rect.bottom;
+      iw = rect.r, ih = rect.b
     }
     paintBox_ = containHasPaint ? [iw - float(st.borderRightWidth ) * scale,
                                        ih - float(st.borderBottomWidth) * scale] : null;
@@ -581,19 +589,15 @@ export const getViewBox_ = function (this: {}, needBox?: 1 | 2): ViewBox | ViewO
     yScrollable = st.overflowY !== HDN && st2.overflowY !== HDN;
     if (xScrollable) {
       mw += 64 * zoom2;
-      if (!containHasPaint) {
-        iw = sEl ? (sEl.scrollWidth - scrollX) / zoom : Math.max((iw - GlobalConsts.MaxScrollbarWidth) / zoom
-          , rect.right);
-      }
+      iw = containHasPaint ? iw : sEl ? (sEl.scrollWidth - scrollX) / zoom
+          : M.max((iw - GlobalConsts.MaxScrollbarWidth) / zoom, rect.r)
     }
     if (yScrollable) {
       mh += 20 * zoom2;
-      if (!containHasPaint) {
-        ih = sEl ? (sEl.scrollHeight - scrollY) / zoom : Math.max((ih - GlobalConsts.MaxScrollbarWidth) / zoom
-          , rect.bottom);
-      }
+      ih = containHasPaint ? ih : sEl ? (sEl.scrollHeight - scrollY) / zoom
+          : M.max((ih - GlobalConsts.MaxScrollbarWidth) / zoom, rect.b)
     }
-    iw = Math.min(iw, mw), ih = Math.min(ih, mh);
+    iw = iw < mw ? iw : mw, ih = ih < mh ? ih : mh
     iw = (iw / zoom2) | 0, ih = (ih / zoom2) | 0;
     return [x, y, iw, yScrollable ? ih - GlobalConsts.MaxHeightOfLinkHintMarker : ih, xScrollable ? iw : 0];
 } as {
@@ -601,16 +605,16 @@ export const getViewBox_ = function (this: {}, needBox?: 1 | 2): ViewBox | ViewO
     (): ViewOffset;
 }
 
-export const NotVisible_ = function (this: void, element: Element | null, rect?: ClientRect): VisibilityType {
+export const isNotInViewport = function (this: void, element: Element | null, rect?: Rect): VisibilityType {
     if (!rect) {
-      rect = getBoundingClientRect_(element!);
+      rect = padClientRect_(getBoundingClientRect_(element!))
     }
-    return rect.height < 0.5 || rect.width < 0.5 ? VisibilityType.NoSpace
-      : rect.bottom <= 0 || rect.top >= getInnerHeight() || rect.right <= 0 || rect.left >= innerWidth
+    return rect.b - rect.t < 1 || rect.r - rect.l < 1 ? VisibilityType.NoSpace
+      : rect.b <= 0 || rect.t >= getInnerHeight() || rect.r <= 0 || rect.l >= getInnerWidth()
         ? VisibilityType.OutOfView : VisibilityType.Visible;
 } as {
     (element: Element): VisibilityType;
-    (element: null, rect: ClientRect): VisibilityType;
+    (element: null, rect: Rect): VisibilityType
 }
 
 export const IsInDOM_ = function (this: void, element: Element, root?: Element | Document | Window | RadioNodeList
@@ -650,7 +654,8 @@ export const IsInDOM_ = function (this: void, element: Element, root?: Element |
     return (pe || GetParent_unsafe_(element, PNType.DirectNode)) === root;
 } as (this: void,  element: Element, root?: Element | Document, checkMouseEnter?: 1) => boolean
 
-export const isStyleVisible_ = (element: Element): boolean => getComputedStyle_(element).visibility === "visible"
+export const isStyleVisible_ = (element: Element): boolean => isRawStyleVisible(getComputedStyle_(element))
+export const isRawStyleVisible = (style: CSSStyleDeclaration): boolean => style.visibility === "visible"
 
 export const isAriaNotTrue_ = (element: SafeElement, ariaType: kAria): boolean => {
     let s = element.getAttribute(ariaType ? "aria-disabled" : "aria-hidden");
@@ -687,9 +692,8 @@ export const getEditableType_ = function (element: Element): EditableType {
     (element: Element): element is LockableElement; // this line is just to avoid a warning on VS Code
 }
 
-export const isInputInTextMode_ = Build.MinCVer >= BrowserVer.Min$selectionStart$MayBeNull
-    || !(Build.BTypes & BrowserType.Chrome)
-      ? 0 as never : function (el: TextElement): boolean | void {
+export const isInputInTextMode_cr_old = Build.MinCVer >= BrowserVer.Min$selectionStart$MayBeNull
+      || !(Build.BTypes & BrowserType.Chrome) ? 0 as never : (el: TextElement): boolean | void => {
     try {
       return el.selectionEnd != null;
     } catch {}
@@ -700,22 +704,17 @@ export const isSelected_ = (): boolean => {
     return !node ? false
       : (element as TypeToAssert<Element, HTMLElement, "isContentEditable">).isContentEditable === true
       ? (Build.BTypes & ~BrowserType.Firefox ? doc.contains.call(element, node) : element.contains(node))
-      : element === node || "tagName" in <NodeToElement> node
-        && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
-              || node.childNodes instanceof NodeList)
-        && element === (node.childNodes as NodeList | RadioNodeList)[sel.anchorOffset];
+      : element === node || !!(node as NodeToElement).tagName
+        && element === (Build.BTypes & ~BrowserType.Firefox ? GetChildNodes_not_ff!(node as Element)
+            : node.childNodes as NodeList)[sel.anchorOffset]
 }
 
 export const getSelectionFocusEdge_ = (sel: Selection, knownDi: VisualModeNS.ForwardDir): SafeElement | null => {
     if (!sel.rangeCount) { return null; }
-    let el = sel.focusNode!, nt: Node["nodeType"]
-      , o: Node | null, cn: Node["childNodes"] | null;
-    if ("tagName" in <NodeToElement> el) {
-      el = Build.BTypes & ~BrowserType.Firefox
-        ? ((cn = (el as Element).childNodes) instanceof NodeList && !("value" in cn) // exclude RadioNodeList
-            || (cn = Getter_not_ff_!(Node, el, "childNodes")))
-          && cn[sel.focusOffset] || el
-        : (el.childNodes as NodeList)[sel.focusOffset] || el;
+    let el = sel.focusNode!, nt: Node["nodeType"], o: Node | null
+    if ((el as NodeToElement).tagName) {
+      el = (Build.BTypes & ~BrowserType.Firefox ? GetChildNodes_not_ff!(el as Element)[sel.focusOffset]
+            : (el.childNodes as NodeList)[sel.focusOffset]) || el
     }
     for (o = el; !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
           ? o && <number> o.nodeType - kNode.ELEMENT_NODE
@@ -889,10 +888,10 @@ export const scrollIntoView_ = (el: Element, dir?: boolean): void => {
 }
 
 export const view_ = (el: Element, oldY?: number): boolean => {
-    const rect = getBoundingClientRect_(el),
-    ty = NotVisible_(null, rect);
+    const rect = padClientRect_(getBoundingClientRect_(el)),
+    ty = isNotInViewport(null, rect);
     if (ty === VisibilityType.OutOfView) {
-      const t = rect.top, ih = getInnerHeight(), delta = t < 0 ? -1 : t > ih ? 1 : 0, f = oldY != null;
+      const ih = getInnerHeight(), delta = rect.t < 0 ? -1 : rect.t > ih ? 1 : 0, f = oldY != null
       Build.MinCVer < BrowserVer.MinScrollIntoViewOptions && Build.BTypes & BrowserType.Chrome
       ? scrollIntoView_(el, delta < 0) : scrollIntoView_(el);
       (delta || f) && scrollWndBy_(0, f ? oldY! - scrollY : delta * ih / 5);
@@ -932,24 +931,27 @@ export const center_ = (rect: Rect | null): Point2D => {
     return rect ? [((rect.l + rect.r) * zoom) | 0, ((rect.t + rect.b) * zoom) | 0] : [0, 0];
 }
 
-  /** still return `true` if `paddings <= 4px` */
+/** still return `true` if `paddings <= 4px` */
 export const isContaining_ = (a: Rect, b: Rect): boolean => {
     return b.b - 5 < a.b && b.r - 5 < a.r && b.t > a.t - 5 && b.l > a.l - 5;
 }
 
-export const padClientRect_ = (rect: ClientRect, padding: number): WritableRect => {
+export const padClientRect_ = function (rect: ClientRect, padding?: number): WritableRect {
     const x = rect.left, y = rect.top, max = Math.max;
-    padding = x || y ? padding : 0;
+    padding = x || y ? padding || 0 : 0
     return {l: x | 0, t: y | 0, r: (x + max(rect.width, padding)) | 0, b: (y + max(rect.height, padding)) | 0};
+} as {
+  (rect: ClientRect, padding: number): WritableRect
+  (rect: ClientRect): Rect
 }
 
 export const getZoomedAndCroppedRect_ = (element: HTMLImageElement | HTMLInputElement
       , st: CSSStyleDeclaration | null, crop: boolean): Rect | null => {
     let zoom = Build.BTypes & ~BrowserType.Firefox && +(st || getComputedStyle_(element)).zoom || 1,
-    cr_not_ff = Build.BTypes & ~BrowserType.Firefox ? getBoundingClientRect_(element) : 0 as never as null,
+    cr_not_ff = Build.BTypes & ~BrowserType.Firefox ? padClientRect_(getBoundingClientRect_(element))
+        : 0 as never as null,
     arr: Rect | null = Build.BTypes & ~BrowserType.Firefox
-        ? cropRectToVisible_(cr_not_ff!.left * zoom, cr_not_ff!.top * zoom
-            , cr_not_ff!.right * zoom, cr_not_ff!.bottom * zoom)
+        ? cropRectToVisible_(cr_not_ff!.l * zoom, cr_not_ff!.t * zoom, cr_not_ff!.r * zoom, cr_not_ff!.b * zoom)
         : getVisibleClientRect_(element);
     if (crop) {
       arr = getCroppedRect_(element, arr);
@@ -958,7 +960,7 @@ export const getZoomedAndCroppedRect_ = (element: HTMLImageElement | HTMLInputEl
 }
 
 export const setBoundary_ = (style: CSSStyleDeclaration, r: WritableRect, allow_abs?: boolean): boolean | undefined => {
-    const need_abs = allow_abs && (r.t < 0 || r.l < 0 || r.b > getInnerHeight() || r.r > innerWidth),
+    const need_abs = allow_abs && (r.t < 0 || r.l < 0 || r.b > getInnerHeight() || r.r > getInnerWidth()),
     P = "px", arr: ViewOffset | false | undefined = need_abs && getViewBox_();
     if (arr) {
       r.l += arr[0], r.r += arr[0], r.t += arr[1], r.b += arr[1];
@@ -972,8 +974,8 @@ export let cropRectToVisible_: (left: number, top: number, right: number, bottom
 
 export const SubtractSequence_ = function (this: {l: Rect[]; t: Rect}, rect1: Rect): void { // rect1 - rect2
     let rect2 = this.t, a = this.l, x1: number, x2: number
-      , y1 = Math.max(rect1.t, rect2.t), y2 = Math.min(rect1.b, rect2.b);
-    if (y1 >= y2 || ((x1 = Math.max(rect1.l, rect2.l)) >= (x2 = Math.min(rect1.r, rect2.r)))) {
+      , y1 = rect1.t > rect2.t ? rect1.t : rect2.t, y2 = rect1.b < rect2.b ? rect1.b : rect2.b
+    if (y1 >= y2 || ((x1 = rect1.l > rect2.l ? rect1.l : rect2.l) >= (x2 = rect1.r < rect2.r ? rect1.r : rect2.r))) {
       a.push(rect1);
       return;
     }

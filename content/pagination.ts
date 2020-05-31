@@ -1,25 +1,9 @@
-import { clickable_, VOther, safer, timeout_ } from "../lib/utils"
+import { clickable_, VOther, doc } from "../lib/utils"
 import {
-  docEl_unsafe_, getBoundingClientRect_, htmlTag_, isAriaNotTrue_, isStyleVisible_, querySelectorAll_unsafe_, view_,
+  docEl_unsafe_, getBoundingClientRect_, htmlTag_, isAriaNotTrue_, isStyleVisible_, querySelectorAll_unsafe_,
 } from "../lib/dom_utils"
-import {
-  flash_, click_,
-} from "./dom_ui"
 import { kSafeAllSelector, unwrap_ff } from "./link_hints"
-import { contentCommands_ } from "./commands"
 import { traverse, ngEnabled } from "./local_links"
-
-const followLink = (linkElement: SafeHTMLElement): boolean => {
-  let url = linkElement.localName === "link" && (linkElement as HTMLLinkElement).href;
-  view_(linkElement);
-  flash_(linkElement);
-  if (url) {
-    contentCommands_[kFgCmd.reload](safer({ url }));
-  } else {
-    timeout_(function () { click_(linkElement); }, 100);
-  }
-  return true;
-}
 
 const GetButtons = function (this: void, hints, element): void {
   let s: string | null;
@@ -43,7 +27,7 @@ const isVisibleInPage = (element: SafeHTMLElement): boolean => {
 }
 
 export const findAndFollowLink = (names: string[], isNext: boolean, lenLimit: number[], totalMax: number
-  ): boolean => {
+    ): SafeHTMLElement | null => {
   interface Candidate { [0]: number; [1]: string; [2]: Parameters<typeof GetButtons>[0][number] }
   // Note: this traverser should not need a prepareCrop
   let links = traverse(kSafeAllSelector, GetButtons, true, true);
@@ -57,7 +41,7 @@ export const findAndFollowLink = (names: string[], isNext: boolean, lenLimit: nu
   let i: number, candInd = 0, count = names.length;
   for (i = 0; i < count; i++) {
     if (GlobalConsts.SelectorPrefixesInPatterns.includes(names[i][0])) {
-      const arr = querySelectorAll_unsafe_<1>(names[i]);
+      const arr = querySelectorAll_unsafe_(doc, names[i]);
       if (arr && arr.length === 1 && htmlTag_(arr[0])) {
         candidates.push([i << 23, "", arr[0] as SafeHTMLElement]);
         count = i + 1;
@@ -102,8 +86,8 @@ export const findAndFollowLink = (names: string[], isNext: boolean, lenLimit: nu
   }
   if (!(Build.BTypes & ~BrowserType.ChromeOrFirefox)
       && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)
-      ? candidates.length <= 0 : candInd <= 0) {
-    return false;
+      ? !candidates.length : !candInd) {
+    return null;
   }
   links = [];
   maxLen = (maxLen + 1) << 16;
@@ -113,31 +97,33 @@ export const findAndFollowLink = (names: string[], isNext: boolean, lenLimit: nu
     const re = new RegExp(wordRe.test(s[0]) || wordRe.test(s.slice(-1)) ? `\\b${s}\\b` : s, ""), j = i << 23;
     for (const candidate of candidates) {
       if (candidate[0] > j) { break; }
-      if (!candidate[1] || re.test(candidate[1])) { return followLink(candidate[2]); }
+      if (!candidate[1] || re.test(candidate[1])) { return candidate[2]; }
     }
   }
-  return false;
+  return null;
 }
 
-export const findAndFollowRel = (relName: string): boolean => {
-  const elements = querySelectorAll_unsafe_("[rel]");
+export const findAndFollowRel = (relName: string): SafeHTMLElement | null | undefined => {
+  const elements = querySelectorAll_unsafe_(doc, Build.BTypes & BrowserType.Edge ? "[rel]" : `[rel]:-${
+      !(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && VOther & BrowserType.Chrome
+      ? "webkit" : "moz"}-any(a,area,link)`)!
   let s: string | null | undefined;
   type HTMLElementWithRel = HTMLAnchorElement | HTMLAreaElement | HTMLLinkElement;
   let matched: HTMLElementWithRel | undefined;
-  for (let _i = 0, _len = elements.length, re1 = <RegExpOne> /\s+/; _i < _len; _i++) {
-    const element = elements[_i];
-    if ((<RegExpI> /^(a|area|link)$/).test(htmlTag_(element))
+  const re1 = <RegExpOne> /\s+/
+  for (const element of elements as { [i: number]: Element } as Element[]) {
+    if ((!(Build.BTypes & BrowserType.Edge) ? htmlTag_(element) : (<RegExpI> /^(a|area|link)$/).test(htmlTag_(element)))
         && (s = (element as TypeToPick<HTMLElement, HTMLElementWithRel, "rel">).rel)
         && s.trim().toLowerCase().split(re1).indexOf(relName) >= 0
         && (element as HTMLElementWithRel).href) {
       if (matched) {
         if ((element as HTMLElementWithRel).href.split("#")[0] !== matched.href.split("#")[0]) {
-          return false;
+          return null;
         }
         if (!isVisibleInPage(element as SafeHTMLElement)) { continue }
       }
       matched = element as HTMLElementWithRel;
     }
   }
-  return !!matched && followLink(matched as SafeHTMLElement);
+  return matched as SafeHTMLElement | undefined;
 }

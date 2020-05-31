@@ -30,9 +30,8 @@ export const post_ = <k extends keyof FgReq>(request: FgReq[k] & Req.baseFg<k>):
 
 export const send_  = <k extends keyof FgRes> (cmd: k, args: Req.fgWithRes<k>["a"]
     , callback: (this: void, res: FgRes[k]) => void): void => {
-  let id = ++tick;
-  (post_ as Port["postMessage"])({ H: kFgReq.msg, i: id, c: cmd, a: args });
-  port_callbacks[id] = callback as <K2 extends keyof FgRes>(this: void, res: FgRes[K2]) => void;
+  (post_ as Port["postMessage"])({ H: kFgReq.msg, i: ++tick, c: cmd, a: args })
+  port_callbacks[tick] = callback as <K2 extends keyof FgRes>(this: void, res: FgRes[K2]) => void
 }
 
 export const safePost = <k extends keyof FgReq> (request: FgReq[k] & Req.baseFg<k>): void => {
@@ -74,10 +73,12 @@ export const runtimeConnect = (function (this: void): void {
       }
     }, requestHandlers[kBgReq.init] ? 2000 : 5000);
   });
-  port_.onMessage.addListener(<T extends keyof BgReq> (response: Req.bg<T>): void => {
+  port_.onMessage.addListener(/*#__NOINLINE__*/ onBgReq)
+  /*#__INLINE__*/ set_i18n_getMsg(api.i18n.getMessage)
+})
+
+const onBgReq = <T extends keyof BgReq> (response: Req.bg<T>): void => {
     type TypeToCheck = { [k in keyof BgReq]: (this: void, request: BgReq[k]) => void };
     type TypeChecked = { [k in keyof BgReq]: <T2 extends keyof BgReq>(this: void, request: BgReq[T2]) => void };
     (requestHandlers as TypeToCheck as TypeChecked)[response.N](response);
-  });
-  /*#__INLINE__*/ set_i18n_getMsg(api.i18n.getMessage)
-})
+}

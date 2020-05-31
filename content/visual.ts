@@ -32,8 +32,8 @@ type ValidDiTypes = DiType.Normal | DiType.UnsafeTextBox | DiType.SafeTextBox | 
 import { VTr, VOther, safer, fgCache, doc, chromeVer_ } from "../lib/utils"
 import {
   getSelectionBoundingBox_, getZoom_, prepareCrop_, cropRectToVisible_, getSelection_, getSelectionFocusEdge_,
-  editableTypes_, Getter_not_ff_, isInputInTextMode_, isHTML_, docEl_unsafe_, notSafe_not_ff_, getVisibleClientRect_,
-  getEditableType_,
+  editableTypes_, isInputInTextMode_cr_old, isHTML_, docEl_unsafe_, notSafe_not_ff_, getVisibleClientRect_,
+  getEditableType_, padClientRect_, GetChildNodes_not_ff,
 } from "../lib/dom_utils"
 import { checkDocSelectable, getSelected, resetSelectionToDocStart, flash_ } from "./dom_ui"
 import { prepareTop, clearTop, executeScroll, scrollIntoView_need_safe } from "./scroller"
@@ -83,10 +83,10 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     if (!mode_) { retainSelection = type === SelType.Range }
     if (mode !== Mode.Caret) {
       if (!insert_Lock_() && /* (type === SelType.Caret || type === SelType.Range) */ type) {
-        const { left: l, top: t, right: r, bottom: b} = getSelectionBoundingBox_(sel);
+        const r = padClientRect_(getSelectionBoundingBox_(sel))
         getZoom_(1);
         prepareCrop_();
-        if (!cropRectToVisible_(l, t, (l || r) && r + 3, (t || b) && b + 3)) {
+        if (!cropRectToVisible_(r.l, r.t, (r.l || r.r) && r.r + 3, (r.t || r.b) && r.b + 3)) {
           resetSelectionToDocStart(sel);
         } else if (type === SelType.Caret) {
           extend(kDirTy.right)
@@ -319,9 +319,9 @@ const yank = (action: /* copy but not exit */ 9 | /* copy&exit */ 8 | ReuseType.
 }
 
 export const highlightRange = (sel: Selection): void => {
-    const br = sel.rangeCount > 0 ? getSelectionBoundingBox_(sel) : null;
-    if (br && br.height > 0 && br.right > 0) { // width may be 0 in Caret mode
-      let cr = cropRectToVisible_(br.left - 4, br.top - 5, br.right + 3, br.bottom + 4);
+    const br = sel.rangeCount > 0 ? padClientRect_(getSelectionBoundingBox_(sel)) : null
+    if (br && br.b > br.t && br.r > 0) { // width may be 0 in Caret mode
+      let cr = cropRectToVisible_(br.l - 4, br.t - 5, br.r + 3, br.b + 4)
       cr && flash_(null, cr, 660, " Sel");
     }
 }
@@ -504,7 +504,7 @@ const moveRightByWordButNotSkipSpace = !(Build.BTypes & ~BrowserType.Firefox) &&
           extend(kDirTy.left)
           len || (di_ = kDirTy.left)
           const reduced = len - ("" + sel).length;
-          toGoLeft -= Math.abs(reduced) || toGoLeft;
+          toGoLeft -= reduced > 0 ? reduced : -reduced || toGoLeft
           len -= reduced;
         }
         if (toGoLeft < 0) { // may be a "user-select: all"
@@ -591,16 +591,12 @@ const getDirection = function (magic?: string
       type TextModeElement = TextElement;
       if ((oldDiType & DiType.Unknown)
           && editableTypes_[lock.localName]! > EditableType.MaxNotTextModeElement) {
-        let cn: Node["childNodes"];
         const child = (!(Build.BTypes & ~BrowserType.Firefox) ? (anchorNode as Element).childNodes as NodeList
-            : Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype
-            ? Getter_not_ff_!<Node, "childNodes", true>(Node, anchorNode as Element, "childNodes")
-            : (cn = (anchorNode as Element).childNodes) instanceof NodeList && !("value" in cn) ? cn
-            : Getter_not_ff_!(Node, anchorNode as Element, "childNodes") || []
+            : GetChildNodes_not_ff!(anchorNode as Element)
             )[num1 >= 0 ? num1 : sel.anchorOffset] as Node | undefined;
         if (lock === child || /** tend to trust that the selected is a textbox */ !child) {
           if (Build.MinCVer >= BrowserVer.Min$selectionStart$MayBeNull || !(Build.BTypes & BrowserType.Chrome)
-              ? (lock as TextModeElement).selectionEnd != null : isInputInTextMode_(lock as TextModeElement)) {
+              ? (lock as TextModeElement).selectionEnd != null : isInputInTextMode_cr_old(lock as TextModeElement)) {
             diType_ = DiType.TextBox | (oldDiType & DiType.isUnsafe)
           }
         }

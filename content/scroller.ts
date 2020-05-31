@@ -34,7 +34,8 @@ interface ElementScrollInfo {
 }
 
 import {
-  isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, allowRAF_, readyState_, loc_, chromeVer_, vApi, deref_, weakRef_,
+  isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, allowRAF_, readyState_, loc_, chromeVer_,
+  vApi, deref_, weakRef_,
 } from "../lib/utils"
 import { getParentVApi, resetSelectionToDocStart, checkHidden, addElementList, curModalElement } from "./dom_ui"
 import { isCmdTriggered } from "./key_handler"
@@ -42,8 +43,9 @@ import { tryNestedFrame } from "./link_hints"
 import { setPreviousMarkPosition } from "./marks"
 import {
   scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, scrollWndBy_, frameElement_, rAF_, getVisibleClientRect_,
-  OnDocLoaded_, GetParent_unsafe_, querySelector_unsafe_, getZoom_, wdZoom_, bZoom_, NotVisible_, getComputedStyle_,
-  prepareCrop_, notSafe_not_ff_, getBoundingClientRect_, cropRectToVisible_, getInnerHeight, HDN, NONE,
+  OnDocLoaded_, GetParent_unsafe_, querySelector_unsafe_, getZoom_, wdZoom_, bZoom_, isNotInViewport, getComputedStyle_,
+  prepareCrop_, notSafe_not_ff_, getBoundingClientRect_, getInnerHeight, HDN, NONE, getInnerWidth, padClientRect_,
+  cropRectToVisible_, isRawStyleVisible,
 } from "../lib/dom_utils"
 import { keyNames_, prevent_ } from "../lib/keyboard_utils"
 
@@ -142,7 +144,7 @@ let performAnimate = (e: SafeElement | null, d: ScrollByY, a: number): void => {
   };
   performAnimate = (newEl, newDi, newAmount): void => {
     const math = Math, max = math.max;
-    amount = max(1, math.abs(newAmount)); calibration = 1.0; di = newDi;
+    amount = max(1, newAmount > 0 ? newAmount : -newAmount); calibration = 1.0; di = newDi
     duration = max(ScrollerNS.Consts.minDuration, ScrollerNS.Consts.durationScaleForAmount * math.log(amount));
     element = newEl;
     sign = newAmount < 0 ? -1 : 1;
@@ -193,7 +195,7 @@ const performScroll = (el: SafeElement | null, di: ScrollByY, amount: number, be
 
 export const $sc = (element: SafeElement | null, di: ScrollByY, amount: number): void => {
     if (hasSpecialScrollSnap(element)) {
-      while (Math.abs(amount) >= 1 && !performScroll(element, di, amount)) {
+      while (amount * amount >= 1 && !performScroll(element, di, amount)) {
         amount /= 2;
       }
       checkCurrent(element)
@@ -391,7 +393,7 @@ export const getPixelScaleToScroll = (): void => {
 
 const checkCurrent = (el: SafeElement | null): void => {
   let cur = deref_(currentScrolling)
-  if (cur ? cur !== el && NotVisible_(cur) : currentScrolling) {
+  if (cur ? cur !== el && isNotInViewport(cur) : currentScrolling) {
     currentScrolling = weakRef_(el), cachedScrollable = 0
   }
 }
@@ -409,7 +411,7 @@ const getDimension = (el: SafeElement | null, di: ScrollByY, index: kScrollDim &
           || visual && (!(Build.BTypes & BrowserType.Chrome)
               || Build.MinCVer >= BrowserVer.MinEnsured$visualViewport$ || visual.width)
           ? di ? visual!.height : visual!.width!
-          : di ? getInnerHeight() : innerWidth);
+          : di ? getInnerHeight() : getInnerWidth())
 }
 
 const hasSpecialScrollSnap = (el: SafeElement | null): boolean | string | null | undefined => {
@@ -430,7 +432,7 @@ const doesScroll = (el: SafeElement, di: ScrollByY, amount: number): boolean => 
          * Tested on https://developer.mozilla.org/en-US/docs/Web/CSS/scroll-snap-type .
          */
         let changed2 = performScroll(el, 0, -changed, before)
-        Math.abs(changed2) > 0.2 && performScroll(el, 0, -changed2, before)
+        changed2 * changed2 > 0.1 && performScroll(el, 0, -changed2, before)
       } else if (!(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior
           || !(Build.BTypes & ~BrowserType.Firefox) || el.scrollTo) {
         el.scrollTo({behavior: "instant", [di ? "top" : "left"]: before });
@@ -455,9 +457,9 @@ const selectFirst = (info: ElementScrollInfo, skipPrepare?: 1): ElementScrollInf
       element = _ref[_len]! as /** fake `as` */ SafeElement;
       // here assumes that a <form> won't be a main scrollable area
       if (Build.BTypes & ~BrowserType.Firefox && notSafe_not_ff_!(element)) { continue; }
-      const rect = getBoundingClientRect_(element),
-      visible = rect.height > 0 ? cropRectToVisible_(rect.left, rect.top, rect.right, rect.bottom)
-        : getVisibleClientRect_(element);
+      const rect = padClientRect_(getBoundingClientRect_(element))
+      const visible = rect.b > rect.t ? cropRectToVisible_(rect.l, rect.t, rect.r, rect.b)
+          : getVisibleClientRect_(element)
       if (visible) {
         let height_ = visible.b - visible.t;
         children.push({ a: (visible.r - visible.l) * height_, e: element, h: height_});
@@ -476,11 +478,10 @@ const selectFirst = (info: ElementScrollInfo, skipPrepare?: 1): ElementScrollInf
 export const scrollIntoView_need_safe = (el: SafeElement): void => {
     const rect = el.getClientRects()[0] as ClientRect | undefined;
     if (!rect) { return; }
-    let iw = innerWidth, ih = getInnerHeight(),
+    let r = padClientRect_(rect), iw = getInnerWidth(), ih = getInnerHeight(),
     { min, max } = Math, ihm = min(96, ih / 2), iwm = min(64, iw / 2),
-    { bottom: b, top: t, right: r, left: l } = rect,
-    hasY = b < ihm ? max(b - ih + ihm, t - ihm) : ih < t + ihm ? min(b - ih + ihm, t - ihm) : 0,
-    hasX = r < 0 ? max(l - iwm, r - iw + iwm) : iw < l ? min(r - iw + iwm, l - iwm) : 0;
+    hasY = r.b < ihm ? max(r.b - ih + ihm, r.t - ihm) : ih < r.t + ihm ? min(r.b - ih + ihm, r.t - ihm) : 0,
+    hasX = r.r < 0 ? max(r.l - iwm, r.r - iw + iwm) : iw < r.l ? min(r.r - iw + iwm, r.l - iwm) : 0
     currentScrolling = weakRef_(el)
     cachedScrollable = 0
     if (hasX || hasY) {
@@ -506,7 +507,7 @@ export const scrollIntoView_need_safe = (el: SafeElement): void => {
 export const shouldScroll_need_safe = (element: SafeElement, di: BOOL | 2 | 3, amount: number): -1 | 0 | 1 => {
     const st = getComputedStyle_(element);
     return (di ? st.overflowY : st.overflowX) === HDN && di < 2
-      || st.display === NONE || st.visibility !== "visible" ? -1
+      || st.display === NONE || !isRawStyleVisible(st) ? -1
       : <BOOL> +doesScroll(element, (di & 1) as BOOL
                   , amount || +!(di ? element.scrollTop : element.scrollLeft));
 }

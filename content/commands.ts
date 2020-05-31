@@ -2,14 +2,16 @@ import {
   chromeVer_, doc, esc, EscF, fgCache, isTop, safeObj, set_esc, VOther, VTr, safer, timeout_, loc_, weakRef_, deref_,
 } from "../lib/utils"
 import {
-  unhover_, resetLastHovered, isHTML_, view_, NotVisible_, getZoom_, prepareCrop_, getViewBox_, createElement_,
-  padClientRect_, getBoundingClientRect_, setBoundary_, wdZoom_, dScale_, getInnerHeight,
+  unhover_, resetLastHovered, isHTML_, view_, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, createElement_,
+  padClientRect_, getBoundingClientRect_, setBoundary_, wdZoom_, dScale_, getInnerHeight, getInnerWidth, htmlTag_,
 } from "../lib/dom_utils"
 import {
   pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER
 } from "../lib/keyboard_utils"
 import { post_ } from "./port"
-import { addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, select_ } from "./dom_ui"
+import {
+  addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, select_, flash_, click_,
+} from "./dom_ui"
 import { hudHide, hudShow, hudTip, hud_text } from "./hud"
 import {
   onKeyup2, set_onKeyup2, passKeys, setTempCurrentKeyStatus, set_passKeys,
@@ -42,7 +44,7 @@ export const contentCommands_: {
     (this: void, options: CmdOptions[k] & SafeObject, count: number, key?: -42) => void;
 } = [
   /* kFgCmd.framesGoBack: */ function (options: CmdOptions[kFgCmd.framesGoBack], rawStep: number): void {
-    const maxStep = Math.min(Math.abs(rawStep), history.length - 1),
+    const maxStep = Math.min(rawStep > 0 ? rawStep : -rawStep, history.length - 1),
     reuse = options.reuse,
     realStep = rawStep < 0 ? -maxStep : maxStep;
     if ((!(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome)
@@ -99,7 +101,7 @@ export const contentCommands_: {
     if (opt.h) { hudShow(kTip.raw, opt.h); }
   },
   /* kFgCmd.passNextKey: */ function (options: CmdOptions[kFgCmd.passNextKey], count0: number): void {
-    let keyCount = 0, count = Math.abs(count0);
+    let keyCount = 0, count = count0 > 0 ? count0 : -count0
     if (!!options.normal === (count0 > 0)) {
       esc!(HandlerResult.ExitPassMode); // singleton
       if (!passKeys) {
@@ -148,9 +150,19 @@ export const contentCommands_: {
     onKeyup2!();
   },
   /* kFgCmd.goNext: */ function ({r: rel, p: patterns, l, m }: CmdOptions[kFgCmd.goNext]): void {
-    if (!isHTML_() || findAndFollowRel(rel)) { return; }
-    const isNext = !rel.includes("prev");
-    if (patterns.length <= 0 || !findAndFollowLink(patterns, isNext, l, m)) {
+    const isNext = !rel.includes("prev")
+    const linkElement: SafeHTMLElement | false | null = isHTML_() && findAndFollowRel(rel)
+        || patterns.length > 0 && findAndFollowLink(patterns, isNext, l, m)
+    if (linkElement) {
+      let url = htmlTag_(linkElement) === "link" && (linkElement as HTMLLinkElement).href
+      view_(linkElement)
+      flash_(linkElement)
+      if (url) {
+        contentCommands_[kFgCmd.reload](safer({ url }))
+      } else {
+        timeout_((): void => { click_(linkElement); }, 100)
+      }
+    } else {
       hudTip(kTip.noLinksToGo, 0, [VTr(kTip.prev + <number> <boolean | number> isNext)]);
     }
   },
@@ -161,7 +173,7 @@ export const contentCommands_: {
   },
   /* kFgCmd.showHelp: */ function (options: CmdOptions[kFgCmd.showHelp] | "e"): void {
     if (options === "e") { return; }
-    let wantTop = innerWidth < 400 || getInnerHeight() < 320;
+    let wantTop = getInnerWidth() < 400 || getInnerHeight() < 320
     if (!isHTML_()) {
       if (isTop) { return; }
       wantTop = true;
@@ -193,6 +205,7 @@ export const contentCommands_: {
     });
   },
   /* kFgCmd.focusInput: */ function (options: CmdOptions[kFgCmd.focusInput], count: number): void {
+    const S = "IH IHS"
     const act = options.act || options.action, known_last = deref_(insert_last_);
     if (act && (act[0] !== "l" || known_last && !raw_insert_lock)) {
       let newEl: LockableElement | null | undefined = raw_insert_lock, ret: BOOL = 1;
@@ -206,7 +219,7 @@ export const contentCommands_: {
         }
       } else if (!(newEl = known_last)) {
         hudTip(kTip.noFocused, 1200);
-      } else if (act !== "last-visible" && view_(newEl) || !NotVisible_(newEl)) {
+      } else if (act !== "last-visible" && view_(newEl) || !isNotInViewport(newEl)) {
         /*#__INLINE__*/ set_insert_last_(null)
         /*#__INLINE__*/ set_is_last_mutable(1)
         getZoom_(newEl);
@@ -260,10 +273,10 @@ export const contentCommands_: {
     } else {
       sel = count > 0 ? Math.min(count, sel) - 1 : Math.max(0, sel + count);
     }
-    hints[sel].m.className = "IH IHS";
+    hints[sel].m.className = S
     select_(visibleInputs[sel][0], visibleInputs[sel][1], false, action, false);
     ensureBorder(wdZoom_ / dScale_);
-    const box = addElementList<false>(hints, arr), keep = !!options.keep, pass = !!options.passExitKey;
+    const box = addElementList<false>(hints, arr), keep = options.keep, pass = options.passExitKey;
     // delay exiting the old to avoid some layout actions
     // although old elements can not be GC-ed before this line, it has little influence
     exitInputHint();
@@ -278,7 +291,7 @@ export const contentCommands_: {
         prevent_(event.e); // in case that selecting is too slow
         select_(hints2[sel].d, null, false, action);
         hints2[oldSel].m.className = "IH";
-        hints2[sel].m.className = "IH IHS";
+        hints2[sel].m.className = S
         /*#__INLINE__*/ set_isHintingInput(0);
         return HandlerResult.Prevent;
       }
@@ -289,7 +302,7 @@ export const contentCommands_: {
       else if (repeat) { return HandlerResult.Nothing; }
       else if (keep ? isEscape_(key) || (
           keybody_(key) === ENTER
-          && (/* a?c?m?-enter */ key < "s" && (key[0] !== "e" || this.h[sel].d.localName === "input"))
+          && (/* a?c?m?-enter */ key < "s" && (key[0] !== "e" || htmlTag_(this.h[sel].d) === "input"))
         ) : !isIME && keyCode !== kKeyCode.f12
       ) {
         exitInputHint();

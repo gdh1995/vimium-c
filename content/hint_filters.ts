@@ -6,7 +6,10 @@ import ClickType = HintsNS.ClickType
 import {
   frameList_, mode_, useFilter_, coreHints, hintKeyStatus, KeyStatus, hintChars, allHints, setMode, resetMode,
 } from "./link_hints"
-import { getBoundingClientRect_, htmlTag_, createElement_, bZoom_, getInputType, HDN, docEl_unsafe_, elementProto } from "../lib/dom_utils"
+import {
+  getBoundingClientRect_, htmlTag_, createElement_, bZoom_, getInputType, HDN, docEl_unsafe_, elementProto,
+  padClientRect_, querySelector_unsafe_,
+} from "../lib/dom_utils"
 import { chromeVer_, doc } from "../lib/utils"
 import { BSP, DEL, ENTER } from "../lib/keyboard_utils"
 import { maxLeft_, maxRight_, maxTop_ } from "./local_links"
@@ -57,7 +60,7 @@ export const createHint = (link: Hint): HintItem => {
 export const adjustMarkers = (arr: readonly HintItem[], elements: readonly Hint[]): void => {
   const zi = bZoom_;
   let i = arr.length - 1;
-  if (!ui_root || i < 0 || arr[i].d !== omni_box && !ui_root.querySelector("#HelpDialog")) { return; }
+  if (!ui_root || i < 0 || arr[i].d !== omni_box && !querySelector_unsafe_("#HDlg", ui_root)) { return }
   const z = Build.BTypes & ~BrowserType.Firefox ? ("" + 1 / zi).slice(0, 5) : "",
   mr = Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar
       ? maxRight_ * zi : 0,
@@ -85,19 +88,19 @@ export const rotateHints = (reverse?: boolean) => {
 
 export const rotate1 = (totalHints: readonly HintItem[], reverse?: boolean, saveIfNoOverlap?: boolean): void => {
   if (!zIndexes_) {
-    const rects: Array<ClientRect | null> = []
+    const rects: Array<Rect | null> = []
     let stacks: Stacks = []
     totalHints.forEach((hint: HintItem, i: number): void => {
       if (hint.m.style.visibility) { rects.push(null); return; }
       hint.z = hint.z || i + 1;
-      const m = getBoundingClientRect_(hint.m);
+      const m = padClientRect_(getBoundingClientRect_(hint.m))
       let stackForThisMarker: Stack | undefined;
       rects.push(m);
       for (let j = 0, len2 = stacks.length; j < len2; ) {
         let stack = stacks[j], k = 0, len3 = stack.length;
         for (; k < len3; k++) {
           const t = rects[stack[k]]!;
-          if (m.bottom > t.top && m.top < t.bottom && m.right > t.left && m.left < t.right) {
+          if (m.b > t.t && m.t < t.b && m.r > t.l && m.l < t.r) {
             break;
           }
         }

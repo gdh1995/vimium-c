@@ -9,6 +9,7 @@ import {
   mouse_, scrollingEl_, view_, findMainSummary_, getVisibleClientRect_, getComputedStyle_, IsInDOM_, getInputType,
   CLK,
   elementProto,
+  querySelector_unsafe_,
 } from "../lib/dom_utils"
 import {
   hintOptions, mode1_, mode_, hintApi, hintManager, coreHints,
@@ -94,12 +95,12 @@ const getUrlData = (link: SafeHTMLElement): string => {
     (link = createElement_("a")).href = str.trim();
   }
   // $1.href is ensured well-formed by @GetLinks_
-  return link.localName === "a" ? (link as HTMLAnchorElement).href : "";
+  return htmlTag_(link) === "a" ? (link as HTMLAnchorElement).href : "";
 }
 
 /** return: img is HTMLImageElement | HTMLAnchorElement | HTMLElement[style={backgroundImage}] */
 const getImageUrl = (img: SafeHTMLElement): string | void => {
-  let text: string | null, src = img.dataset.src || "", elTag = img.localName, n: number,
+  let text: string | null, src = img.dataset.src || "", elTag = htmlTag_(img), n: number,
   notImg: 0 | 1 | 2 = elTag !== "img" ? 1 : 0;
   if (!notImg) {
     text = (img as HTMLImageElement).currentSrc || img.getAttribute("src") && (img as HTMLImageElement).src;
@@ -194,7 +195,8 @@ export const linkActions: readonly LinkAction[] = [
               ? Build.BTypes & ~BrowserType.Firefox
                 ? elementProto().querySelector.call(ancestors[Math.max(0, Math.min(up + 1, ancestors.length - 1))]
                     , selector)
-                : (ancestors[Math.max(0, Math.min(up + 1, ancestors.length - 1))]).querySelector(selector)
+                : querySelector_unsafe_(selector, ancestors[Math.max(0, Math.min(up + 1, ancestors.length - 1))
+                    ] as SafeElement)
               : element.closest!(selector))) {
           for (const clsName of toggleMap[key].split(" ")) {
             clsName.trim() && selected.classList.toggle(clsName);
@@ -306,7 +308,7 @@ export const linkActions: readonly LinkAction[] = [
 ] as LinkAction,
 [
   (element: SafeHTMLElement): void => {
-    let tag = element.localName, text: string | void;
+    let tag = htmlTag_(element), text: string | void;
     if (tag === "video" || tag === "audio") {
       text = (element as HTMLImageElement).currentSrc || (element as HTMLImageElement).src;
     } else {
@@ -345,7 +347,7 @@ export const linkActions: readonly LinkAction[] = [
 ] as LinkAction,
 [
   (element: SafeHTMLElement, rect): void => {
-    let notAnchor = element.localName !== "a", H = "href",
+    let notAnchor = htmlTag_(element) !== "a", H = "href",
     link = notAnchor ? createElement_("a") : element as HTMLAnchorElement,
     oldUrl: string | null = notAnchor ? null : link.getAttribute(H),
     url = getUrlData(element), changed = notAnchor || url !== link.href;

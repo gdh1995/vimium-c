@@ -96,7 +96,8 @@ declare const enum BrowserVer {
   Min$Tabs$$getZoom = 42,
   Min$Tabs$$setZoom = 42,
   Min$EnableSitePerProcess$Flag = 42,
-  MinParentNodeGetterInNodePrototype = 42, // also .childNodes; even if even if EXPERIMENTAL or LEGACY
+  // 'shadowRoot' in Element.prototype since C43, and 'assignedSlot' since C53, even if EXPERIMENTAL or LEGACY
+  MinParentNodeGetterInNodePrototype = 42, // also .childNodes; even if EXPERIMENTAL or LEGACY
   MinEnsured$fetch = 42, // even if LEGACY; can not fetch chrome-extension:// before C47
   // before C43, "font-size: ***" of <select> overrides those of its <options>s'
   // since C42@exp, <option> is visible, but its text has a strange extra prefix of "A" - fixed on C43

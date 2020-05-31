@@ -10,6 +10,7 @@ import {
   isStyleVisible_, fullscreenEl_unsafe_, querySelector_unsafe_, bZoom_, set_bZoom_, prepareCrop_, notSafe_not_ff_,
   isContaining_, docEl_unsafe_, GetParent_unsafe_, unsafeFramesetTag_old_cr_, isDocZoomStrange_, docZoom_,
   SubtractSequence_, isHTML_, querySelectorAll_unsafe_, getInnerHeight, getInputType, NONE, elementProto,
+  padClientRect_,
 } from "../lib/dom_utils"
 import { find_box } from "./mode_find"
 import { omni_box } from "./omni"
@@ -61,7 +62,7 @@ export const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
   case "textarea":
     // on C75, a <textarea disabled> is still focusable
     if ((element as TextElement).disabled && mode1_ < HintMode.max_mouse_events + 1) { return; }
-    if (tag === "input" && uneditableInputs_[getInputType(element as HTMLInputElement)]) {
+    if (tag < "t" && uneditableInputs_[getInputType(element as HTMLInputElement)]) {
       const st = getComputedStyle_(element), visible = <number> <string | number> st.opacity > 0;
       isClickable = visible || !(element as HTMLInputElement).labels.length;
       if (isClickable) {
@@ -190,7 +191,7 @@ const checkAnchor = (anchor: HTMLAnchorElement): Rect | null => {
   // for Google search result pages
   let mayBeSearchResult = !!(anchor.rel
         || (Build.BTypes & ~BrowserType.Chrome ? anchor.getAttribute("ping") : anchor.ping)),
-  el = mayBeSearchResult && anchor.querySelector("h3,h4")
+  el = mayBeSearchResult && querySelector_unsafe_("h3,h4", anchor)
         || (mayBeSearchResult || anchor.childElementCount === 1) && anchor.firstElementChild as Element | null
         || null,
   tag = el ? htmlTag_(el) : "";
@@ -225,7 +226,7 @@ const inferTypeOfListener = (el: SafeHTMLElement, tag: string): boolean => {
   let el2: Element | null | undefined, D = "div";
   return tag !== D && tag !== "li"
       ? tag === "tr"
-        ? (el2 = el.querySelector("input[type=checkbox]") as SafeElement | null,
+        ? (el2 = querySelector_unsafe_("input[type=checkbox]", el) as SafeElement | null,
           !!(el2 && htmlTag_(el2) && isNotReplacedBy(el2 as SafeHTMLElement)))
         : tag !== "table"
       : !(el2 = el.firstElementChild as Element | null) ||
@@ -281,8 +282,7 @@ const getImages = (hints: Hint[], element: SafeHTMLElement): void => {
     // <img>.currentSrc is since C45
     str = element.getAttribute("src") || (element as HTMLImageElement).currentSrc || element.dataset.src;
     if (str) {
-      let rect = getBoundingClientRect_(element)
-        , l = rect.left, t = rect.top, w = rect.width, h = rect.height;
+      let r = padClientRect_(getBoundingClientRect_(element)), l = r.l, t = r.t, w = r.r - l, h = r.b - t
       if (w < 8 && h < 8) {
         w = h = w === h && (w ? w === 3 : l || t) ? 8 : 0;
       } else {
@@ -322,9 +322,9 @@ export const traverse = function (selector: string
       || !Build.NDEBUG && isInAnElement && wholeDoc as unknown as Element
       || doc,
   isD = box === doc,
-  querySelectorAll = Build.BTypes & ~BrowserType.Firefox
-    ? /* just smaller code */ (isD ? doc : elementProto()).querySelectorAll : box.querySelectorAll;
-  let list: HintSources | null = querySelectorAll.call(box, selector) as NodeListOf<SafeElement>;
+  localQuerySelectorAll = Build.BTypes & ~BrowserType.Firefox
+    ? /* just smaller code */ (isD ? doc : elementProto()).querySelectorAll : box.querySelectorAll
+  let list: HintSources | null = localQuerySelectorAll.call(box, selector) as NodeListOf<SafeElement>
   wantClickable && getPixelScaleToScroll();
   if (matchAll) {
     if (ngEnabled == null) {
@@ -335,7 +335,7 @@ export const traverse = function (selector: string
     }
   }
   if (!matchAll) {
-    list = addChildTrees(list, querySelectorAll.call(box, kSafeAllSelector) as NodeListOf<SafeElement>);
+    list = addChildTrees(list, localQuerySelectorAll.call(box, kSafeAllSelector) as NodeListOf<SafeElement>);
   }
   if (!wholeDoc && tooHigh_ && isD && list.length >= GlobalConsts.LinkHintPageHeightLimitToCheckViewportFirst) {
     list = getElementsInViewport(list);
@@ -646,10 +646,10 @@ export const filterOutNonReachable = (list: Hint[]): void => {
 }
 
 export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
-  let _i: number = mode1_,
+  let _i: number = mode1_, B = "[style*=background]",
   visibleElements = _i > HintMode.min_media - 1 && _i < HintMode.max_media + 1
     // not check `img[src]` in case of `<img srcset=... >`
-    ? traverse("a[href],img,div[style],span[style],[data-src]"
+    ? traverse(`a[href],img,div${B},span${B},[data-src]`
         + (Build.BTypes & ~BrowserType.Firefox ? kSafeAllSelector : "")
         + (_i - HintMode.DOWNLOAD_MEDIA ? "" : ",video,audio"), getImages, true)
     : _i > HintMode.min_link_job - 1 && _i < HintMode.max_link_job + 1
@@ -713,7 +713,7 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
 }
 
 export const checkNestedFrame = (output?: Hint[]): void => {
-  let res: NestedFrame, rect: ClientRect | undefined, rect2: ClientRect, element: Hint[0]
+  let res: NestedFrame, rect: Rect | undefined, rect2: Rect, element: Hint[0]
   if (output && output.length > 1) {
     res = null
   } else if (!frames.length || !isHTML_()) {
@@ -723,7 +723,7 @@ export const checkNestedFrame = (output?: Hint[]): void => {
   } else {
     if (output == null) {
       output = [];
-      for (let el of querySelectorAll_unsafe_("a,button,input,frame,iframe")) {
+      for (let el of querySelectorAll_unsafe_(doc, "a,button,input,frame,iframe")!) {
         if ((el as ElementToHTML).lang != null) {
           getClickable(output, el as SafeHTMLElement);
         }
@@ -731,10 +731,10 @@ export const checkNestedFrame = (output?: Hint[]): void => {
     }
     res = output.length !== 1 ? output.length !== 0 && null
         : (<RegExpI> /^i?frame$/).test(htmlTag_(element = output[0][0]))
-          && (rect = getBoundingClientRect_(element),
-              rect2 = getBoundingClientRect_(docEl_unsafe_()!),
-              rect.top - rect2.top < 20 && rect.left - rect2.left < 20
-              && rect2.right - rect.right < 20 && rect2.bottom - rect.bottom < 20)
+          && (rect = padClientRect_(getBoundingClientRect_(element)),
+              rect2 = padClientRect_(getBoundingClientRect_(docEl_unsafe_()!)),
+              rect.t - rect2.t < 20 && rect.l - rect2.l < 20
+              && rect2.r - rect.r < 20 && rect2.b - rect.b < 20)
           && isStyleVisible_(element) ? element as HTMLFrameElement | HTMLIFrameElement
         : null
   }

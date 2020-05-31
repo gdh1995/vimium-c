@@ -8,7 +8,6 @@ VApi.e = function (cmd): void {
     injector.clickable = null;
   }
 };
-(window as Writable<Window>).VApi = VApi;
 
 (function (): void {
   const OnOther: BrowserType = !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
@@ -18,6 +17,9 @@ VApi.e = function (cmd): void {
       : Build.BTypes & BrowserType.Firefox && browser ? BrowserType.Firefox
       : BrowserType.Chrome,
   transArgsRe = <RegExpSearchable<0>> /\$\d/g;
+  if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox) {
+    (window as Writable<Window>).VApi = VApi
+  }
   let frameElement_ = (): Element | null | void => {
     let el: typeof frameElement | undefined;
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement
@@ -49,7 +51,7 @@ VApi.e = function (cmd): void {
   };
   const thisApi = VApi;
   thisApi.r![0](kFgReq.i18n, {}, i18nCallback);
-  thisApi.r![4]((tid, args): string => {
+  thisApi.r![2]!(2, (tid, args): string => {
     return !i18nMessages ? args && args.length ? `T${tid}: ${args.join(", ")}` : "T" + tid
         : args ? i18nMessages[tid].replace(transArgsRe, s => <string> args[+s[1] - 1])
         : i18nMessages[tid];
@@ -60,17 +62,17 @@ VApi.e = function (cmd): void {
       && (parent as Window & {VimiumInjector?: typeof VimiumInjector}).VimiumInjector,
   // share the set of all clickable, if .dataset.vimiumHooks is not "false"
   clickable = injector.clickable = parentInjector && parentInjector.clickable || injector.clickable;
-  clickable && (thisApi.r![3](clickable));
+  clickable && (thisApi.r![2]!(1, clickable));
 
   injector.checkIfEnabled = (function (this: null
       , func: <K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void): void {
     func({ H: kFgReq.checkIfEnabled, u: location.href });
-  }).bind(null, thisApi.r![1]);
-  injector.getCommandCount = (function (this: null, func: (this: void) => string): number {
-    let currentKeys = func();
+  }).bind(null, thisApi.r![1]!);
+  injector.getCommandCount = ((func: NonNullable<VApiTy["r"]>[2]): number => {
+    let currentKeys = func!(0)
     return currentKeys !== "-" ? parseInt(currentKeys, 10) || 1 : -1;
-  }).bind(null, thisApi.r![2]);
-  thisApi.r = [thisApi.r![0]] as any;
+  }).bind(null, thisApi.r![2]!);
+  thisApi.r!.length = 1;
 
   const runtime: typeof chrome.runtime = (!(Build.BTypes & BrowserType.Chrome)
         || Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome

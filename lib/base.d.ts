@@ -398,10 +398,12 @@ interface VApiTy {
   /** post */ p: <K extends keyof FgReq>(this: void, req: FgReq[K] & Req.baseFg<K>) => void | 1;
   /** for injector */ r: [
     <k extends keyof FgRes> (cmd: k, args: Req.fgWithRes<k>["a"], callback: (this: void, res: FgRes[k]) => void) => void
-    , <K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void
-    , () => string
-    , (newClickable: ElementSet) => void
-    , (newTr: VTransType) => void
+    , (<K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void)?
+    , {
+      (task: 0, args?: string): string
+      (task: 1, newClickable: ElementSet): unknown
+      (task: 2, newTr: VTransType): unknown
+    }?
   ] | null | undefined;
   /** copied */ s (text: string, isUrl?: BOOL | boolean): void
   /** tip */ t (tid: kTip | HintMode, duration?: number, args?: Array<string | number>): void

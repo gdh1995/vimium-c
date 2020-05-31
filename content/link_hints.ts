@@ -69,7 +69,7 @@ import {
 } from "../lib/utils"
 import { frameElement_, querySelector_unsafe_, isHTML_, getViewBox_, prepareCrop_, scrollingEl_, bZoom_, wdZoom_,
   dScale_, getBoundingClientRect_, docEl_unsafe_, IsInDOM_, docZoom_, bScale_, GetParent_unsafe_, getComputedStyle_,
-  isStyleVisible_, lastHovered_, resetLastHovered, getInnerHeight,
+  isStyleVisible_, lastHovered_, resetLastHovered, getInnerHeight, padClientRect_,
 } from "../lib/dom_utils"
 import {
   pushHandler_, SuppressMost_, removeHandler_, getMappedKey, keybody_, isEscape_, getKeyStat_, keyNames_, suppressTail_,
@@ -324,18 +324,18 @@ export const setMode = (mode: HintMode, silent?: 1): void => {
 
 const getPreciseChildRect = (frameEl: HTMLIFrameElement | HTMLFrameElement, view: Rect): Rect | null => {
     const max = Math.max, min = Math.min, V = "visible",
-    brect = getBoundingClientRect_(frameEl),
+    brect = padClientRect_(getBoundingClientRect_(frameEl)),
     docEl = docEl_unsafe_(), body = doc.body, inBody = !!body && IsInDOM_(frameEl, body, 1),
     zoom = (Build.BTypes & BrowserType.Chrome ? docZoom_ * (inBody ? bZoom_ : 1) : 1
         ) / dScale_ / (inBody ? bScale_ : 1);
-    let x0 = min(view.l, brect.left), y0 = min(view.t, brect.top), l = x0, t = y0, r = view.r, b = view.b;
+    let x0 = min(view.l, brect.l), y0 = min(view.t, brect.t), l = x0, t = y0, r = view.r, b = view.b
     for (let el: Element | null = frameEl; el = GetParent_unsafe_(el, PNType.RevealSlotAndGotoParent); ) {
       const st = getComputedStyle_(el);
       if (st.overflow !== V) {
-        let outer = getBoundingClientRect_(el), hx = st.overflowX !== V, hy = st.overflowY !== V,
+        let outer = padClientRect_(getBoundingClientRect_(el)), hx = st.overflowX !== V, hy = st.overflowY !== V,
         scale = el !== docEl && inBody ? dScale_ * bScale_ : dScale_;
-        hx && (l = max(l, outer.left), r = l + min(r - l, outer.width , hy ? el.clientWidth * scale : r));
-        hy && (t = max(t, outer.top ), b = t + min(b - t, outer.height, hx ? el.clientHeight * scale : b));
+        hx && (l = max(l, outer.l), r = l + min(r - l, outer.r - outer.l, hy ? el.clientWidth * scale : r))
+        hy && (t = max(t, outer.t), b = t + min(b - t, outer.b - outer.t, hx ? el.clientHeight * scale : b))
       }
     }
     l = max(l, view.l), t = max(t, view.t);
@@ -587,15 +587,15 @@ const checkLast = function (this: void, el?: LinkEl | TimerType.fake | 1, r?: Re
                       /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
                       // @ts-expect-error
                       || el !== TimerType.fake
-                      ) ? getBoundingClientRect_(el as LinkEl) : null,
+                      ) ? padClientRect_(getBoundingClientRect_(el as LinkEl)) : null,
                       /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
-    hidden = !r2 || r2.width < 2 && r2.height < 2
+    hidden = !r2 || r2.r - r2.l < 2 && r2.b - r2.t < 2
         || !isStyleVisible_(el as LinkEl); // use 2px: may be safer
     if (hidden && deref_(lastHovered_) === el) {
       /*#__INLINE__*/ resetLastHovered()
     }
     if ((!r2 || r) && managerOrA.$().n
-        && (hidden || Math.abs(r2!.left - r!.l) > 100 || Math.abs(r2!.top - r!.t) > 60)) {
+        && (hidden || Math.abs(r2!.l - r!.l) > 100 || Math.abs(r2!.t - r!.t) > 60)) {
       if (manager_) { return 1; }
       managerOrA.i();
     }

@@ -257,8 +257,8 @@ set_requestHandlers([
     }
     post_({ H: kFgReq.cmd, c: request.c, n, i: request.i, r: count2 });
   },
-  /* kBgReq.showHelpDialog: */ ({ h: html, c: shouldShowAdvanced, o: optionUrl, H: CSS
-      , e: exitOnClick }: BgReq[kBgReq.showHelpDialog]): void => {
+  /* kBgReq.showHelpDialog: */ function ({ h: html, c: shouldShowAdvanced, o: optionUrl, H: CSS
+      , e: exitOnClick }: BgReq[kBgReq.showHelpDialog]): void {
     // Note: not suppress key on the top, because help dialog may need a while to render,
     // and then a keyup may occur before or after it
     if (CSS) { setUICSS(CSS); }
@@ -291,8 +291,9 @@ set_requestHandlers([
         ? CLK : DAC, onActivate);
     }
 
-    const query = box.querySelector.bind(box), closeBtn = query("#HClose") as HTMLElement,
-    optLink = query("#HOpt") as HTMLAnchorElement, advCmd = query("#HAdv") as HTMLElement,
+    const closeBtn = querySelector_unsafe_("#HCls", box) as HTMLElement,
+    optLink = querySelector_unsafe_("#HOpt", box) as HTMLAnchorElement,
+    advCmd = querySelector_unsafe_("#HAdv", box) as HTMLElement,
     hide: (this: void, e?: (EventToPrevent) | CmdOptions[kFgCmd.showHelp] | "e") => void = function (event): void {
       if (event instanceof Event) {
         prevent_(event);
@@ -418,7 +419,7 @@ export const focusAndRun = (cmd?: FgCmdAcrossFrames, count?: number, options?: F
   } else {
     // cur is safe because on Firefox
     const cur = activeEl_unsafe_() as SafeElement | null;
-    cur && (<RegExpOne> /^i?frame$/).test(cur.localName) && cur.blur && cur.blur();
+    cur && (<RegExpOne> /^i?frame$/).test(htmlTag_(cur)) && cur.blur && cur.blur()
   }
   focus();
   /** Maybe a `doc.open()` has been called

@@ -1,6 +1,6 @@
-<div class="R Scroll UI{{className}}" id="HelpDialog" tabindex="0">
+<div class="R Scroll UI{{className}}" id="HDlg" tabindex="0">
 <style type="text/css">
-#HelpDialog {
+#HDlg {
 	background: white;
 	border: 1px solid #b3b3b3;
 	border-radius: 8px;
@@ -19,14 +19,14 @@
 	user-select: auto;
 	width: 838px;
 }
-#HelpDialog:focus {
+#HDlg:focus {
 	outline: none;
 }
 #HelpContent {
 	width: 800px;
 }
 @media (max-width: 837px) {
-	#HelpDialog {
+	#HDlg {
 		left: 0;
 		right: 0;
 		width: auto;
@@ -159,14 +159,14 @@
 	font-size: 14px;
 	margin-right: 14px;
 }
-#HClose {
+#HCls {
 	color: #555;
 	margin: 0 1px;
 }
-#HClose:hover {
+#HCls:hover {
 	color: black;
 }
-#HClose:active, #HClose:focus {
+#HCls:active, #HCls:focus {
 	color: #4d90fe;
 	outline: none;
 }
@@ -194,7 +194,7 @@
 	text-decoration: underline;
 }
 
-#HelpDialog.D {
+#HDlg.D {
 	background: #000;
 	border-color: #555;
 	color: #aab0b6;
@@ -202,8 +202,8 @@
 .D .Vim { color: #9bf; }
 .D .VimC { color: #e6ccb3; }
 .D .VimL { color: #5b96f5; }
-.D .VimL:active, .D #HClose:hover { color: #8ab4f8; }
-.D #HClose:hover { color: #888; }
+.D .VimL:active, .D #HCls:hover { color: #8ab4f8; }
+.D #HCls:hover { color: #888; }
 .D .HDivider { border-color: #555; }
 .D .HelpKey {
 	background: #18191b;
@@ -246,10 +246,10 @@
 .Scroll::-webkit-scrollbar-thumb:horizontal {
 	border-radius: 0 0 6px 6px;
 }
-#HelpDialog.Scroll::-webkit-scrollbar-thumb:hover {
+#HDlg.Scroll::-webkit-scrollbar-thumb:hover {
 	background: #929292;
 }
-#HelpDialog.Scroll::-webkit-scrollbar-thumb:active {
+#HDlg.Scroll::-webkit-scrollbar-thumb:active {
 	background: #666;
 }
 </style>
@@ -261,7 +261,7 @@
 			<a class="VimL TopLink" target="_blank" rel="noopener noreferrer" href="{{browserHelp}}">$browserHelp</a>
 			<a class="VimL TopLink" id="HOpt">$Options</a>
 			<a class="VimL TopLink" target="_blank" rel="noopener noreferrer" href="{{homePage}}/wiki">$Wiki</a>
-			<button class="VimL TopLink" id="HClose" role="button" title="$Close"
+			<button class="VimL TopLink" id="HCls" role="button" title="$Close"
 					><svg id="HCloseT" width="12px" height="12px" stroke="currentColor">
 				<path d="M2 2l8 8zM2 10L10 2" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
 			</svg></button>

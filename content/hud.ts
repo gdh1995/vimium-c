@@ -44,13 +44,8 @@ export const hudShow = (tid: kTip | HintMode, args?: Array<string | number>, emb
   let el = box;
   if (el) {
     $text.data = text;
-    if (Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval
-        && Build.BTypes & BrowserType.Chrome) {
-      embed && (el.style.opacity = el.style.visibility = "");
-      return;
-    }
-    embed && (el.style.cssText = "");
-    return;
+    embed && toggleOpacity("")
+    return
   }
   el = createElement_("div");
   el.className = "R HUD" + fgCache.d;
@@ -59,11 +54,10 @@ export const hudShow = (tid: kTip | HintMode, args?: Array<string | number>, emb
   $text = el.firstChild as Text;
   style = el.style;
   if (!embed) {
-    style.opacity = "0";
-    style.visibility = HDN;
+    toggleOpacity("0")
     ui_box || ensureBorder();
   }
-  addUIElement(box = el, allHints ? AdjustType.NotAdjust : AdjustType.DEFAULT, );
+  addUIElement(box = el, allHints ? AdjustType.NotAdjust : AdjustType.DEFAULT)
 }
 
 const tween = (fake?: TimerType.fake): void => { // safe-interval
@@ -72,22 +66,22 @@ const tween = (fake?: TimerType.fake): void => { // safe-interval
   if (opacity === opacity_) { /* empty */ }
   else if (opacity === 0) {
     $text.data = text;
-    style.opacity = fgCache.m
+    toggleOpacity(fgCache.m
         || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && fake
-        ? "" : "0.25";
-    style.visibility = "";
+        ? "" : "0.25")
     return adjustUI();
   } else if (!fgCache.m && doc.hasFocus()) {
     opacity += opacity < opacity_ ? 0.25 : -0.25;
   } else {
     opacity = opacity_;
   }
-  style.opacity = opacity < 1 ? "" + opacity : "";
-  if (opacity !== opacity_) { return; }
-  if (opacity === 0) {
-    style.visibility = HDN;
+  if (opacity) {
+    style.opacity = opacity < 1 ? "" + opacity : ""
+  } else {
+    toggleOpacity("0")
     $text.data = "";
   }
+  if (opacity !== opacity_) { return }
   clearInterval_(tweenId);
   tweenId = 0;
 }
@@ -109,11 +103,15 @@ export const hudHide = (info?: TimerType): void => {
   opacity_ = 0; text = "";
   if (!box) { /* empty */ }
   else if (info === TimerType.noTimer || !isEnabled_) {
-    style.opacity = "0";
-    style.visibility = HDN;
+    toggleOpacity("0")
     $text.data = "";
   }
   else if (!tweenId && isAlive_) {
     tweenId = interval_(tween, 40);
   }
+}
+
+const toggleOpacity = (opacity: string) => {
+  style.opacity = opacity
+  style.visibility = opacity !== "0" ? "" : HDN
 }

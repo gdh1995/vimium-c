@@ -9,6 +9,7 @@ import {
   hover_, mouse_, activeEl_unsafe_, view_, prepareCrop_, getClientRectsForAreas_, notSafe_not_ff_,
   getBoundingClientRect_, padClientRect_, isContaining_, cropRectToVisible_, getCroppedRect_, setBoundary_,
   frameElement_, runJS_, isStyleVisible_, set_docSelectable_, getInnerHeight, CLK, MDW, NONE, htmlTag_,
+  getInnerWidth, elementProto, GetChildNodes_not_ff,
 } from "../lib/dom_utils"
 import { Stop_, suppressTail_ } from "../lib/keyboard_utils"
 import { currentScrolling } from "./scroller"
@@ -219,7 +220,7 @@ export const checkDocSelectable = (): void => {
 }
 
 export const getSelected = (notExpectCount?: 1): [Selection, ShadowRoot | null] => {
-    let el: Node | null | undefined, sel: Selection | null;
+    let el: Node | null | undefined, sel: Selection | null, func: ShadowRoot["getSelection"]
     if (el = deref_(currentScrolling)) {
       if (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
           || !(Build.BTypes & ~BrowserType.Firefox)
@@ -229,8 +230,8 @@ export const getSelected = (notExpectCount?: 1): [Selection, ShadowRoot | null] 
         for (let pn: Node | null; pn = GetParent_unsafe_(el, PNType.DirectNode); el = pn) { /* empty */ }
       }
       if (el !== doc && el.nodeType === kNode.DOCUMENT_FRAGMENT_NODE
-          && typeof (el as ShadowRoot).getSelection === "function") {
-        sel = (el as ShadowRoot).getSelection!();
+          && typeof (func = (el as ShadowRoot).getSelection) === "function") {
+        sel = func.call(el as ShadowRoot);
         if (sel && (notExpectCount || sel.rangeCount)) {
           return [sel, el as ShadowRoot];
         }
@@ -238,13 +239,13 @@ export const getSelected = (notExpectCount?: 1): [Selection, ShadowRoot | null] 
     }
     sel = getSelection_();
     let offset: number, sr: ShadowRoot | null = null, sel2: Selection | null = sel
-      , kTagName = "tagName" as const;
     if (!(  (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             && !(Build.BTypes & ~BrowserType.ChromeOrFirefox) )) {
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
           && chromeVer_ < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-          ? Image.prototype.webkitCreateShadowRoot : typeof ShadowRoot != "function") {
+          ? Build.MinCVer >= BrowserVer.MinShadowDOMV0 || elementProto().webkitCreateShadowRoot
+          : typeof ShadowRoot != "function") {
         return [sel, null];
       }
     }
@@ -252,14 +253,13 @@ export const getSelected = (notExpectCount?: 1): [Selection, ShadowRoot | null] 
       sel2 = null;
       el = sel.anchorNode;
       if (el && el === sel.focusNode && (offset = sel.anchorOffset) === sel.focusOffset) {
-        if (kTagName in <NodeToElement> el
-            && (!(Build.BTypes & ~BrowserType.Firefox)
-                || (el as Element).childNodes instanceof NodeList && !("value" in (el as Element).childNodes)
-            )) {
-          el = (el.childNodes as NodeList | RadioNodeList)[offset];
-          if (el && kTagName in <NodeToElement> el && (sr = GetShadowRoot_(el as Element))) {
-            if (sr.getSelection && (sel2 = sr.getSelection())) {
-              sel = sel2;
+        if ((el as NodeToElement).tagName) {
+          el = (Build.BTypes & ~BrowserType.Firefox ? GetChildNodes_not_ff!(el as Element)
+              : el.childNodes as NodeList)[offset]
+          if (el && (el as NodeToElement).tagName && (sr = GetShadowRoot_(el as Element))) {
+            if (!(Build.BTypes & ~BrowserType.Chrome) ? (sel2 = sr.getSelection!())
+                : (func = sr.getSelection) && (sel2 = func.call(sr))) {
+              sel = sel2!;
             } else {
               sr = null;
             }
@@ -277,7 +277,7 @@ export const getSelected = (notExpectCount?: 1): [Selection, ShadowRoot | null] 
 export const getSelectionParent_unsafe = (selected?: string): Element | null => {
     let sel = getSelected()[0], range = sel.rangeCount ? sel.getRangeAt(0) : null
       , par: Node | null = range && range.commonAncestorContainer, p0 = par;
-    while (par && (par as NodeToElement).tagName == null) {
+    while (par && !(par as NodeToElement).tagName) {
       par = Build.BTypes & ~BrowserType.Firefox ? GetParent_unsafe_(par, PNType.DirectNode)
             : par.parentNode as Exclude<Node["parentNode"], Window | RadioNodeList | HTMLCollection>;
     }
@@ -305,7 +305,8 @@ export const getSelectionText = (notTrim?: 1): string => {
 
 export const removeSelection = function (root?: VUIRoot & Pick<DocumentOrShadowRoot, "getSelection">, justTest?: 1
     ): boolean {
-    const sel = root && root.getSelection ? root.getSelection() : getSelection_();
+    const sel = (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+        ? root : root && root.getSelection) ? root!.getSelection!() : getSelection_()
     if (!sel || sel.type !== "Range" || !sel.anchorNode) {
       return false;
     }
@@ -440,12 +441,12 @@ export const select_ = (element: LockableElement, rect?: Rect | null, show_flash
     if (element !== insert_Lock_()) { return; }
     // then `element` is always safe
     moveSel_need_safe(element, action)
-    if (suppressRepeated === true) { suppressTail_(0); }
+    if (suppressRepeated) { suppressTail_(0) }
 }
 
   /** @NEED_SAFE_ELEMENTS element is LockableElement */
 const moveSel_need_safe = (element: LockableElement, action: SelectActions | undefined): void => {
-    const elTag = element.localName, type = elTag === "textarea" ? EditableType.TextBox
+    const elTag = htmlTag_(element), type = elTag === "textarea" ? EditableType.TextBox
         : elTag === "input" ? EditableType.input_
         : element.isContentEditable ? EditableType.rich_
         : EditableType.Default;
@@ -610,24 +611,23 @@ export const evalIfOK = (url: Pick<BgReq[kBgReq.eval], "u"> | string): boolean =
 }
 
 export const checkHidden = (cmd?: FgCmdAcrossFrames, count?: number, options?: OptionsWithForce): BOOL => {
-  if (getInnerHeight() < 3 || innerWidth < 3) { return 1; }
+  if (getInnerHeight() < 3 || getInnerWidth() < 3) { return 1 }
   // here should not use the cache frameElement, because `getComputedStyle(frameElement).***` might break
   const curFrameElement_ = !isTop && (Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
           || !(Build.BTypes & ~BrowserType.Firefox) ? frameElement : frameElement_()),
   el = !isTop && (curFrameElement_ || docEl_unsafe_());
   if (!el) { return 0; }
-  let box = getBoundingClientRect_(el),
+  let box = padClientRect_(getBoundingClientRect_(el)),
   parEvents: ReturnType<typeof getParentVApi> | undefined,
-  result: boolean | BOOL = !box.height && !box.width || !isStyleVisible_(el);
+  result: boolean | BOOL = box.b <= box.t && box.r <= box.l || !isStyleVisible_(el)
   if (cmd) {
     // if in a forced cross-origin env (by setting doc.domain),
     // then par.self.innerHeight works, but this behavior is undocumented,
     // so here only use `parApi.innerHeight_()` in case
     if ((Build.BTypes & BrowserType.Firefox ? (parEvents = getParentVApi()) : curFrameElement_)
-        && (result || box.bottom <= 0
+        && (result || box.b <= 0
             || (Build.BTypes & BrowserType.Firefox && parEvents !== parent
-                  ? box.top > parEvents!.i!()
-                  : box.top > (parent as Window).innerHeight))) {
+                  ? box.t > parEvents!.i!() : box.t > (parent as Window).innerHeight))) {
       Build.BTypes & BrowserType.Firefox || (parEvents = getParentVApi());
       if (parEvents
           && !parEvents.a(keydownEvents_)) {
