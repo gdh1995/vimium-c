@@ -254,7 +254,7 @@ var Settings_ = {
         css = css.slice(0, ind1 + 1) + css.slice(ind2, ind3 + 1)
             + css.slice(css.indexOf("\n", ind3) + 1 || css.length);
       } else {
-        css = css.replace(<RegExpOne> /all:\s?\w+;?\n?/, "");
+        css = css.replace(<RegExpOne> /all:\s?\w+;?/, "");
       }
       if ((Build.MinCVer >= BrowserVer.MinEnsuredDisplayContents || !(Build.BTypes & BrowserType.Chrome)
             || browserVer >= BrowserVer.MinEnsuredDisplayContents)
@@ -302,12 +302,13 @@ var Settings_ = {
         if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinUsableCSS$All || hasAll) {
           body = body.replace(<RegExpG> /\b[IL]H\s?\{/g, "$&all:inherit;");
         }
-        body += `\n${prefix}:before,${prefix}:after,.R:before,.R:not(.HUD):after{display:none!important}`;
+        body += `${prefix}:before,${prefix}:after,.R:before,.R:not(.HUD):after{display:none!important}`;
         css = prefix + css.slice(5, hostEnd) +
             /** Note: {@link ../front/vimium-c.css}: this requires no ID/attr selectors in "ui" styles */
             body.replace(<RegExpG> /\.[A-Z][^,{]*/g, prefix + " $&");
       }
-      css = cacheId + css.length + "\n" + css;
+      css = css.replace(<RegExpG> /\n/g, "")
+      css = cacheId + ";" + css;
       const css2 = a.parseCustomCSS_(a.get_("userDefinedCss"));
       css2.ui && (css += "\n" + css2.ui);
       if (Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo && Build.BTypes & BrowserType.Chrome
@@ -320,13 +321,13 @@ var Settings_ = {
     },
     userDefinedCss (this: {}, css2Str): void {
       const a = Settings_;
-      let css = a.storage_.getItem("innerCSS")!, headEnd = css.indexOf("\n");
-      css = css.slice(0, headEnd + 1 + +css.slice(0, headEnd).split(",")[2]);
+      let css = a.storage_.getItem("innerCSS")!
+      css = css.slice(0, css.indexOf("\n"))
       const css2 = a.parseCustomCSS_(css2Str);
       let innerCSS = css2.ui ? css + "\n" + css2.ui : css;
       {
         css = a.storage_.getItem("findCSS")!;
-        headEnd = css.indexOf("\n");
+        let headEnd = css.indexOf("\n")
         css = css.slice(0, headEnd + 1 + +css.slice(0, headEnd));
         let find2 = css2.find;
         a.storage_.setItem("findCSS", find2 ? css + "\n" + find2 : css);
@@ -363,7 +364,7 @@ var Settings_ = {
       findCSS = findCSS.slice(findCSS.indexOf("\n") + 1);
       const index = findCSS.indexOf("\n") + 1, index2 = findCSS.indexOf("\n", index);
       // Note: The lines below are allowed as a special use case
-      cache.innerCSS = css.slice(css.indexOf("\n") + 1);
+      cache.innerCSS = css.slice(a.CONST_.StyleCacheId_.length + 1);
       cache.findCSS_ = { c: findCSS.slice(0, index - 1), s: findCSS.slice(index, index2),
           i: findCSS.slice(index2 + 1) };
       a.omniPayload_.c = omniCSS;
@@ -786,9 +787,8 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
         && (!(Build.BTypes & BrowserType.Edge) || Build.BTypes & ~BrowserType.Edge && OnOther !== BrowserType.Edge
           || "all" in (document.documentElement as HTMLHtmlElement).style)
       ? "a" : "")
-    + ",";
   const innerCSS = settings.storage_.getItem("innerCSS");
-  if (innerCSS && innerCSS.startsWith(obj.StyleCacheId_)) {
+  if (innerCSS && innerCSS.startsWith(obj.StyleCacheId_ + ";")) {
     settings.postUpdate_("innerCSS", innerCSS);
     return;
   }
