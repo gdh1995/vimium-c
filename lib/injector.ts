@@ -135,7 +135,7 @@ if (document.readyState !== "loading") {
   addEventListener("DOMContentLoaded", start, true);
 }
 })(1, function (scriptSrc): VimiumInjectorTy["reload"] {
-  return function (async): void {
+  return function (do_async): void {
     const injector = VimiumInjector;
     if (injector) {
       const oldClickable = injector.clickable;
@@ -153,10 +153,10 @@ if (document.readyState !== "loading") {
       script.src = scriptSrc;
       console.log("%cVimium C%c begins to reload%s."
         , "color:red", "color:auto"
-        , async === InjectorTask.reload ? " because it has been updated." : "");
+        , do_async === InjectorTask.reload ? " because it has been updated." : "");
       (document.head || document.body || docEl).appendChild(script);
     }
-    async ? setTimeout(doReload, 200) : doReload();
+    do_async ? setTimeout(doReload, 200) : doReload();
   };
 });
 

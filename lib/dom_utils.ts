@@ -359,7 +359,7 @@ export const getVisibleClientRect_ = (element: SafeElement, el_style?: CSSStyleD
     return null;
 }
 
-export const getClientRectsForAreas_ = function (this: {}, element: HTMLElementUsingMap, output: Hint[]
+export const getClientRectsForAreas_ = function (element: HTMLElementUsingMap, output: Hint[]
       , areas?: NodeListOf<HTMLAreaElement | Element> | HTMLAreaElement[]): Rect | null {
     let diff: number, x1: number, x2: number, y1: number, y2: number, rect: Rect | null | undefined;
     const cr = padClientRect_(getBoundingClientRect_(element)), crWidth = cr.r - cr.l, crHeight = cr.b - cr.t
@@ -413,7 +413,7 @@ export const getClientRectsForAreas_ = function (this: {}, element: HTMLElementU
       ): Rect | null;
 }
 
-export const getCroppedRect_ = function (this: {}, el: Element, crect: Rect | null): Rect | null {
+export const getCroppedRect_ = function (el: Element, crect: Rect | null): Rect | null {
     let parent: Element | null = el, prect: Rect | null | undefined, i: number = crect ? 4 : 0, bcr: Rect
     while (1 < i-- && (parent = GetParent_unsafe_(parent, PNType.RevealSlotAndGotoParent))
         && getComputedStyle_(parent).overflow !== HDN
@@ -532,7 +532,7 @@ export const getZoom_ = Build.BTypes & ~BrowserType.Firefox ? function (target?:
     wdZoom_ = Math.min(devRatio_(), 1);
 } as never
 
-export const getViewBox_ = function (this: {}, needBox?: 1 | 2): ViewBox | ViewOffset {
+export const getViewBox_ = function (needBox?: 1 | 2): ViewBox | ViewOffset {
     const ratio = devRatio_(), M = Math, round = M.round
     let iw = getInnerWidth(), ih = getInnerHeight(), ratio2 = ratio < 1 ? ratio : 1
     if (fullscreenEl_unsafe_()) {
@@ -760,7 +760,7 @@ export const createShadowRoot_ = <T extends HTMLDivElement | HTMLBodyElement> (b
       ? box.webkitCreateShadowRoot!() : box;
 }
 
-export const mouse_ = function (this: {}, element: SafeElementForMouse
+export const mouse_ = function (element: SafeElementForMouse
       , type: kMouseClickEvents | kMouseMoveEvents
       , center: Point2D, modifiers?: MyMouseControlKeys | null, relatedTarget?: SafeElementForMouse | null
       , button?: AcceptableClickButtons): boolean {

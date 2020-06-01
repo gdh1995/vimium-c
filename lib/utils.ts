@@ -99,9 +99,10 @@ export let weakRef_ = (Build.BTypes & BrowserType.Chrome ? <T extends object>(va
   <T extends object>(val: T | null): WeakRef<T> | null
   <T extends object>(val: T | null | undefined): WeakRef<T> | null | undefined
 }
-export const deref_ = !(Build.BTypes & BrowserType.Chrome) ? weakRef_ as any
-    :  WeakRef ? <T extends object>(val: WeakRef<T> | null | undefined
-      ): T | null | undefined => val && val.deref() : (weakRef_ = ((val: object) => val) as any) as never
+export const deref_ = !(Build.BTypes & BrowserType.Chrome) ? weakRef_ as any as never
+    : WeakRef ? <T extends object>(val: WeakRef<T> | null | undefined
+      ): T | null | undefined => val && val.deref()
+    : (weakRef_ = ((val: object) => val) as any) as never
 
 type TimerFunc = (func: (this: void, fake?: TimerType.fake) => void, time: number) => TimerID.Valid | TimerID.Others
 export let timeout_: TimerFunc = Build.NDEBUG ? setTimeout : (func, timeout) => setTimeout(func, timeout)
