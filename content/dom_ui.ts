@@ -58,10 +58,10 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
       }
     }, 0, 1); // should use a listener in active mode: https://www.chromestatus.com/features/5745543795965952
     addUIElement = (element2: HTMLElement, adjust2?: AdjustType, before?: Element | null | true): void => {
-      const noPar = box_!.parentNode
-      adjust2 !== AdjustType.NotAdjust && !noPar && adjustUI()
+      const hasPar = box_!.parentNode
+      adjust2 !== AdjustType.NotAdjust && hasPar && adjustUI()
       root_.insertBefore(element2, before === true ? root_.firstChild : before || null)
-      adjust2 !== AdjustType.NotAdjust && noPar && adjustUI()
+      adjust2 !== AdjustType.NotAdjust && !hasPar && adjustUI()
     };
     setUICSS = ((innerCSS): void => {
       if (!((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
@@ -71,7 +71,7 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
         box_!.id = "VimiumUI"
       }
       let el: HTMLStyleElement | null = styleIn_ = createStyle()
-      setUICSS = (css) => {
+      setUICSS = (css): void => {
         (styleIn_ as HTMLStyleElement).textContent = cssPatch_ ? cssPatch_[1](css) : css
       };
       setUICSS(innerCSS)
