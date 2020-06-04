@@ -1,5 +1,5 @@
-// /// <reference no-default-lib="true"/>
-/// <reference path="../typings/base/es.d.ts" />
+/// <reference no-default-lib="true"/>
+/// <reference lib="es6" />
 
 (function (): void {
   type primitiveObject = boolean | number | string;
@@ -11,16 +11,16 @@
     };
   type anyNotSymbol = ObjectCoercible | null | undefined;
   interface StandardString {
-    endsWith (this: string, searchString: string, pos?: number | undefined): boolean;
-    endsWith (this: ObjectCoercible, searchString?: anyNotSymbol, pos?: anyNotSymbol): boolean;
-    includes (this: string, searchString: string, pos?: number | undefined): boolean;
-    includes (this: ObjectCoercible, searchString?: anyNotSymbol, pos?: anyNotSymbol): boolean;
-    startsWith (this: string, searchString: string, pos?: number | undefined): boolean;
-    startsWith (this: ObjectCoercible, searchString?: anyNotSymbol, pos?: anyNotSymbol): boolean;
+    endsWith? (this: string, searchString: string, pos?: number | undefined): boolean;
+    endsWith? (this: ObjectCoercible, searchString?: anyNotSymbol, pos?: anyNotSymbol): boolean;
+    includes? (this: string, searchString: string, pos?: number | undefined): boolean;
+    includes? (this: ObjectCoercible, searchString?: anyNotSymbol, pos?: anyNotSymbol): boolean;
+    startsWith? (this: string, searchString: string, pos?: number | undefined): boolean;
+    startsWith? (this: ObjectCoercible, searchString?: anyNotSymbol, pos?: anyNotSymbol): boolean;
   }
 
   const symMatch = typeof Symbol === "function" && typeof Symbol.match === "symbol" &&
-                    Symbol.match as symbol | string | false as "Symbol(Symbol.match)" | false,
+                    (Symbol.match as symbol | string as "Symbol(Symbol.match)"),
   // eslint-disable-next-line id-blacklist
   StrCls = String as StringConstructor & { readonly prototype: StandardString }, TECls = TypeError,
   StrProto = StrCls.prototype,

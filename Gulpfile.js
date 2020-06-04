@@ -53,7 +53,7 @@ gulpPrint = gulpPrint.default || gulpPrint;
 
 createBuildConfigCache();
 var has_polyfill = !!(getBuildItem("BTypes") & BrowserType.Chrome)
-    && getBuildItem("MinCVer") < 44 /* MinSafe$String$$StartsWith */;
+    && getBuildItem("MinCVer") < 43 /* MinSafe$String$$StartsWith */;
 var may_have_newtab = getNonNullBuildItem("MayOverrideNewTab") > 0;
 var uglify_viewer = false;
 uglify_viewer = !(getBuildItem("BTypes") & BrowserType.Chrome)
@@ -521,7 +521,7 @@ gulp.task("locally", function(done) {
   compilerOptions = loadValidCompilerOptions("scripts/gulp.tsconfig.json");
   createBuildConfigCache();
   var old_has_polyfill = has_polyfill;
-  has_polyfill = getBuildItem("MinCVer") < 44 /* MinSafe$String$$StartsWith */;
+  has_polyfill = getBuildItem("MinCVer") < 43 /* MinSafe$String$$StartsWith */;
   if (has_polyfill != old_has_polyfill) {
     CompileTasks.front[0][1] = has_polyfill ? POLYFILL_FILE : "!" + POLYFILL_FILE;
     CompileTasks.lib.length = 1;
