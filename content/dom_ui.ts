@@ -58,10 +58,10 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
       }
     }, 0, 1); // should use a listener in active mode: https://www.chromestatus.com/features/5745543795965952
     addUIElement = (element2: HTMLElement, adjust2?: AdjustType, before?: Element | null | true): void => {
-      const hasPar = box_!.parentNode
-      adjust2 !== AdjustType.NotAdjust && hasPar && adjustUI()
+      const doesAdjustFirst = box_!.parentNode && element2 !== curModalElement
+      adjust2 !== AdjustType.NotAdjust && doesAdjustFirst && adjustUI()
       root_.insertBefore(element2, before === true ? root_.firstChild : before || null)
-      adjust2 !== AdjustType.NotAdjust && !hasPar && adjustUI()
+      adjust2 !== AdjustType.NotAdjust && !doesAdjustFirst && adjustUI()
     };
     setUICSS = ((innerCSS): void => {
       if (!((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
