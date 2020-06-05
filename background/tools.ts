@@ -15,9 +15,10 @@ const Clipboard_ = {
     const result: ClipSubItem[] = [];
     for (let line of text.split("\n")) {
       line = line.trim();
-      const prefix = (<RegExpOne> /^(cp?|pc?|is?|si?)([^\x00- A-Za-z\\])/).exec(line);
+      const prefix = (<RegExpOne> /^([cgips]{1,4})([^\x00- A-Za-z\\])/).exec(line);
       if (!prefix) { continue; }
       const sep = "\\u" + (prefix[2].charCodeAt(0) + 0x10000).toString(16).slice(1),
+      head = prefix[1],
       body = new RegExp(`^((?:\\\\${sep}|[^${sep}])+)${sep}(.*)${sep}([a-zD]{0,9})$`).exec(line.slice(prefix[0].length))
       if (!body) { continue; }
       let matchRe: RegExpG | null = null, suffix = body[3]
@@ -26,10 +27,9 @@ const Clipboard_ = {
         matchRe = new RegExp(body[1], flags as "");
       } catch { continue; }
       result.push({
-        action_: prefix[1].includes("i")
-            ? prefix[1].includes("s") ? ClipAction.image | ClipAction.copy | ClipAction.paste : ClipAction.image
-            : prefix[1] === "c" ? ClipAction.copy : prefix[1] === "p" ? ClipAction.paste
-            : ClipAction.copy | ClipAction.paste,
+        action_: +head.includes("s") * (ClipAction.copy | ClipAction.paste)
+            + +head.includes("c") * ClipAction.copy + +head.includes("p") * ClipAction.paste
+            + +head.includes("g") * ClipAction.gotoUrl + +head.includes("i") * ClipAction.image,
         match_: matchRe,
         revertResult_: suffix.includes("r") && !flags.includes("g") ? 1 : 0,
         decode_: suffix.includes("d") ? 2 : suffix.includes("D") ? 1 : 0,

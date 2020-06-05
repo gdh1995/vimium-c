@@ -354,7 +354,7 @@ declare const enum kMarkAction {
 
 declare const enum ClipAction {
   _mask = "mask",
-  copy = 1, paste = 2, image = 4,
+  copy = 1, paste = 2, image = 4, gotoUrl = 8,
 }
 
 interface FgRes {

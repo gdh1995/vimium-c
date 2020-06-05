@@ -2357,6 +2357,7 @@
         str = decoded ? enc(path) : path;
         url = url.slice(0, start) + (end ? str + url.slice(end) : str);
       }
+      url = Clipboard_.substitute_(url, ClipAction.gotoUrl)
       BgUtils_.resetRe_();
       return { u: url, p: path };
     } as SpecialHandlers[kFgReq.parseUpperUrl],
