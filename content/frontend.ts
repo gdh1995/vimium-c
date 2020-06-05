@@ -1,5 +1,3 @@
-/// <reference path="../lib/base.d.ts" />
-
 import {
   doc, isTop, injector, VOther, initialDocState, set_esc, esc, setupEventListener, set_isEnabled_,
   set_clickable_, clickable_, isAlive_, set_VTr, setupKeydownEvents, onWndFocus,

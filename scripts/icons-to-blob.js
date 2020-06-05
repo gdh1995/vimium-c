@@ -25,18 +25,14 @@ try {
   var lib = require("./dependencies");
 } catch (ex) { lib = null; }
 var destRoot = +(process.env["BUILD_NDEBUG"] || 0) > 0 ? "dist/" : process.env["LOCAL_DIST"] || "";
-if (!destRoot) {
-  var cwd = process.cwd().split(require("path").sep).slice(-1)[0];
+var srcRoot = process.cwd();
+{
+  var cwd = srcRoot.split(require("path").sep).slice(-1)[0];
   if ("background content front lib pages".split(" ").includes(cwd)) {
-    for (const line of allIcons) {
-      for (let key in line) {
-        if (Object.prototype.hasOwnProperty.call(line, key)) {
-          line[key] = ".." + line[key];
-        }
-      }
-    }
+    srcRoot = srcRoot + "/..";
   }
 }
+destRoot = require("path").resolve(destRoot || srcRoot);
 
 /**
  * Convert a single image
@@ -90,13 +86,14 @@ function main(callback = null
     sublist = Object.keys(submap).sort().map(i => submap[i].replace(/^\//, ""));
     let dest = getDest ? getDest(sublist[0]) : destRoot + sublist[0].split("_", 1)[0] + ".bin"
       , islatest = 0;
-    checkLatest && sublist.forEach(filePath => checkLatest(filePath, dest) && islatest++);
-    if (islatest === sublist.length) { continue; }
+    const srcList = sublist.map(i => srcRoot + "/" + i);
+    checkLatest && srcList.forEach(filePath => checkLatest(filePath, dest) && islatest++);
+    if (islatest === srcList.length) { continue; }
     const destFolder = dest.split("/").slice(0, -1).join("/");
     if (destFolder && !fs.existsSync(destFolder)) {
       fs.mkdirSync(destFolder, {recursive: true});
     }
-    allPromises.push(Promise.all(sublist.map(readPNGImage)).then(([img1, img2]) => {
+    allPromises.push(Promise.all(srcList.map(readPNGImage)).then(([img1, img2]) => {
       const imagesData = [img1.data, img2.data];
       // @ts-ignore
       const allBuffer = Buffer.concat(imagesData);
