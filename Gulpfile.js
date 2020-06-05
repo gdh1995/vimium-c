@@ -31,7 +31,6 @@ var compileInBatch = true;
 var gTypescript = null, tsOptionsCleaned = false;
 var buildConfig = null;
 var cacheNames = process.env.ENABLE_NAME_CACHE !== "0";
-var envLegacy = process.env.SUPPORT_LEGACY === "1";
 var needCommitInfo = process.env.NEED_COMMIT === "1";
 var envSourceMap = process.env.ENABLE_SOURCE_MAP === "1";
 var doesMergeProjects = process.env.MERGE_TS_PROJECTS !== "0";
@@ -186,7 +185,7 @@ var Tasks = {
   "build/_all": ["build/scripts", "build/options", "build/show"],
   "build/ts": function(cb) {
     var btypes = getBuildItem("BTypes");
-    var curConfig = [btypes, getBuildItem("MinCVer"), envSourceMap, envLegacy, compilerOptions.target
+    var curConfig = [btypes, getBuildItem("MinCVer"), envSourceMap, compilerOptions.target
           , /** 5 */ needCommitInfo && !onlyTestSize ? getNonNullBuildItem("Commit") : 0];
     var configFile = btypes === BrowserType.Chrome ? "chrome"
           : btypes === BrowserType.Firefox ? "firefox" : "browser-" + btypes;
@@ -903,6 +902,10 @@ function beforeUglify(file) {
     contents = contents.replace(/\bconst([\s{\[])/g, "let$1");
   }
   var btypes = getBuildItem("BTypes"), minCVer = getBuildItem("MinCVer");
+  if (!locally && (allPathStr.includes("/vimium-c") || allPathStr.includes("/async"))) {
+    get();
+    contents = contents.replace(/\breturn _?_?generator\(/g, "return (");
+  }
   if (allPathStr.includes("/env.js")) {
     toRemovedGlobal = "";
     if (btypes === BrowserType.Chrome || !(btypes & BrowserType.Chrome)) {
@@ -1396,7 +1399,6 @@ function gulpMerge() {
 
 function patchExtendClick(source) {
   //@ts-check
-  if (locally && envLegacy) { return source; }
   if (!(getBuildItem("BTypes") & ~BrowserType.Firefox)) { return source; }
   const patched = _patchExtendClick(source, locally, logger);
   if (typeof patched === "string") { return patched; }
@@ -1423,6 +1425,7 @@ function patchExtendClick(source) {
       }
     }
   }
+  if (inJSON || !locally) {
   const jsonPath = DEST + "/_locales/en/messages.json";
   print("Save extend_click into en/messages.json")
   const json = JSON.parse(readFile(jsonPath));
@@ -1432,6 +1435,8 @@ function patchExtendClick(source) {
     delete json[99];
   }
   fs.writeFileSync(jsonPath, JSON.stringify(json));
+  }
+  inJSON &&
   logger("%o: %o %s", ":extend_click", inJSON.length, inJSON ? "bytes" : "(embeded)");
   return inCode;
 }
