@@ -215,7 +215,7 @@ var BgUtils_ = {
       }
     } else if ((str = arr[3]).endsWith("]")) {
       type = a.isIPHost_(str, 6) ? expected : Urls.Type.Search;
-    } else if (str.endsWith("localhost") || a.isIPHost_(str, 4) || arr[4] && hasPath) {
+    } else if (str === "localhost" || str.endsWith(".localhost") || a.isIPHost_(str, 4) || arr[4] && hasPath) {
       type = expected;
     } else if ((index = str.lastIndexOf(".")) < 0
         || (type = a.isTld_(str.slice(index + 1))) === Urls.TldType.NotTld) {
@@ -225,16 +225,16 @@ var BgUtils_ = {
       // https://en.wikipedia.org/wiki/Generic_top-level_domain#New_top-level_domains
       type = expected !== Urls.Type.NoSchema && (index < 0 || index2 >= 3 && index2 <= 5)
         || a.checkInDomain_(str, arr[4]) > 0 ? expected : Urls.Type.Search;
-    } else if (str.length !== index + 3 && type === Urls.TldType.ENTld
-        && (<RegExpOne> /[^.\da-z\-]|^-/).test(str)) {
-      // `notEnglish-domain.English-notCC-TLD`
-      type = Urls.Type.Search;
+    } else if ((<RegExpOne> /[^.\da-z\-]|^-/).test(str)) {
+      // non-English domain, maybe with an English but non-CC TLD
+      type = (str.length === index + 3 || type !== Urls.TldType.ENTld ? !expected
+          : a.checkInDomain_(str, arr[4])) ? expected : Urls.Type.Search;
     } else if (expected !== Urls.Type.NoSchema || hasPath) {
       type = expected;
     } else if (str.endsWith(".so") && str.startsWith("lib") && str.indexOf(".") === str.length - 3) {
       type = Urls.Type.Search;
     // the below check the username field
-    } else if (arr[2] || arr[4] || !arr[1] || str.startsWith("ftp")) {
+    } else if (arr[2] || arr[4] || !arr[1] || (<RegExpOne> /^ftps?(\b|_)/).test(str)) {
       type = Urls.Type.NoSchema;
     // the below means string is like "(?<=abc@)(uvw.)*xyz.tld"
     } else if (str.startsWith("mail") || str.indexOf(".mail") > 0
