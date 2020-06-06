@@ -225,7 +225,7 @@ var BgUtils_ = {
       // https://en.wikipedia.org/wiki/Generic_top-level_domain#New_top-level_domains
       type = expected !== Urls.Type.NoSchema && (index < 0 || index2 >= 3 && index2 <= 5)
         || a.checkInDomain_(str, arr[4]) > 0 ? expected : Urls.Type.Search;
-    } else if ((<RegExpOne> /[^.\da-z\-]|^-/).test(str)) {
+    } else if ((<RegExpOne> /[^.\da-z\-]|^xn--|^-/).test(str)) {
       // non-English domain, maybe with an English but non-CC TLD
       type = (str.length === index + 3 || type !== Urls.TldType.ENTld ? !expected
           : a.checkInDomain_(str, arr[4])) ? expected : Urls.Type.Search;
