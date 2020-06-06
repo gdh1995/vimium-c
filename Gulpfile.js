@@ -887,7 +887,8 @@ function beforeCompile(file) {
       || allPathStr.includes("vomnibar")
       || allPathStr.includes("help_dialog") || allPathStr.includes("completion"))) {
     get();
-    contents = contents.replace(/\b(const|let|var)?\s?As_\s?=[^,;\n]+[,;\n]/g, "").replace(/\bAs_\b/g, "");
+    contents = contents.replace(/\b(const|let|var)?\s?As[a-zA-Z]*_\s?=[^,;\n]+[,;\n]/g, ""
+        ).replace(/\bAs[a-zA-Z]*_\b/g, "");
   }
   if (changed || oldLen > 0 && contents.length !== oldLen) {
     file.contents = ToBuffer(contents);

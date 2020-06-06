@@ -42,7 +42,7 @@ if (typeof VApi == "object" && VApi && typeof VApi.d == "function") {
 }
 
 // eslint-disable-next-line no-var
-var As_ = <T> (i: T): T => i;
+var AsOmni_ = <T> (i: T): T => i;
 // eslint-disable-next-line no-var
 var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_ || "", Vomnibar_ = {
   pageType_: VomnibarNS.PageType.Default,
@@ -1249,7 +1249,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
   secret_: null as ((request: BgVomnibarSpecialReq[kBgReq.omni_init]) => void) | null,
 
-  mode_: As_<EnsureItemsNonNull<Req.fg<kFgReq.omni>>>({
+  mode_: AsOmni_<EnsureItemsNonNull<Req.fg<kFgReq.omni>>>({
     H: kFgReq.omni as kFgReq.omni,
     o: "omni" as CompletersNS.ValidTypes,
     t: CompletersNS.SugType.Empty,
