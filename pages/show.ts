@@ -764,7 +764,7 @@ function fetchImage_(url: string, element: HTMLImageElement): void {
       return _shownBlobURL = URL.createObjectURL(_shownBlob = blob)
     }, () => url).then(newUrl => {
       element.src = newUrl;
-      body.replaceChild(element, text);
+      text.parentNode ? body.replaceChild(element, text) : body.appendChild(element)
     });
   }
   const timer = setTimeout(() => {
