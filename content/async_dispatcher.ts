@@ -30,6 +30,7 @@ const __generator = (_generator_noop_0: void | undefined, sourcebranchedFunc: Yi
 
 const __myAwaiter = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredGeneratorFunction
 ? (branchedFunc: () => YieldableFunction): Promise<any> => new Promise ((resolve): void => {
+  const resolveVoid = resolve.bind(0, void 0)
   const generator = branchedFunc()
   let value_: YieldedValue | undefined, async_pos_: YieldedPos = { label: 0, sent: () => value_ }
   resume_()
@@ -50,30 +51,33 @@ const __myAwaiter = Build.BTypes & BrowserType.Chrome && Build.MinCVer < Browser
     if (nextInst < Instruction.return + 1) {
       resolve(value_)
     } else {
-      (value_ instanceof Promise ? value_ as unknown as Promise<YieldedValue> : Promise.resolve(value_))
-      .then(resume_).catch(Build.NDEBUG ? resolve : logAndReject)
+      Promise.resolve(value_).then(resume_).catch(Build.NDEBUG ? resolveVoid : logAndResolve)
     }
   }
-  function logAndReject (err: any): void {
+  function logAndResolve(err: any): void {
     if (!Build.NDEBUG) { console.log("Vimium C: an async function fails:", err) }
     resolve()
   }
 })
 : Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredAsyncFunctions
 ? <TNext, TReturn> (generatorFunction: () => Generator<TNext | TReturn | Promise<TNext | TReturn>, TReturn, TNext>
-    ): Promise<TReturn | void> => {
-  const promisify = <TNext, TReturn> (generator: Generator<TNext | TReturn | Promise<TNext | TReturn>, TReturn, TNext>
-      , lastVal?: TNext): Promise<TReturn | void> => {
+    ): Promise<TReturn | void> => new Promise<TReturn> ((resolve): void => {
+  const resolveVoid = Build.MinCVer < BrowserVer.MinTestedES6Environment ? resolve.bind(0, void 0) : () => resolve()
+  const generator = generatorFunction()
+  const resume_ = (lastVal?: TNext): void => {
     let yielded = generator.next(lastVal), value = yielded.value
-    value = value instanceof Promise ? value : Promise.resolve(value)
-    return yielded.done ? value as Promise<TReturn>
-        : (value as Promise<TNext>)
-            .then(promisify.bind<void, typeof generator, [], Promise<TReturn | void>>(0, generator))
-            .catch(logError)
-  },
-  logError = (err: any): void => { if (!Build.NDEBUG) { console.log("Vimium C: an async function fails:", err) } }
-  return promisify(generatorFunction())
-}
+    if (yielded.done) {
+      resolve(value as TReturn | Promise<TReturn>)
+    } else {
+      Promise.resolve(value as TNext | Promise<TNext>).then(resume_).catch(Build.NDEBUG ? resolveVoid : logAndResolve)
+    }
+  }
+  resume_()
+  function logAndResolve(err: any): void {
+    if (!Build.NDEBUG) { console.log("Vimium C: an async function fails:", err) }
+    resolve()
+  }
+})
 : 0 as never
 
 const __awaiter = (_aw_self: void | 0 | undefined, _aw_args: unknown, _aw_p: PromiseConstructor | 0 | undefined
