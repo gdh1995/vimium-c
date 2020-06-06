@@ -1,5 +1,3 @@
-import { Stop_ } from "./keyboard_utils"
-
 export interface EscF {
   <T extends Exclude<HandlerResult, HandlerResult.ExitPassMode>> (this: void, i: T): T;
   (this: void, i: HandlerResult.ExitPassMode): unknown;
@@ -137,6 +135,8 @@ export const suppressCommonEvents = (target: Window | SafeHTMLElement, extraEven
     setupEventListener(target, i);
   }
 }
+
+export const Stop_ = (event: Pick<Event, "stopImmediatePropagation">): void => { event.stopImmediatePropagation(); }
 
 export const isImageUrl = (str: string | null): boolean => {
   if (!str || str[0] === "#" || str.length < 5 || jsRe_.test(str)) {

@@ -7,14 +7,13 @@ import {
   DEL, BSP, ENTER,
 } from "../lib/keyboard_utils"
 import {
-  createShadowRoot_, lastHovered_, resetLastHovered, prepareCrop_, getSelectionFocusEdge_, activeEl_unsafe_,
+  createShadowRoot_, prepareCrop_, getSelectionFocusEdge_, activeEl_unsafe_,
   getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, htmlTag_, fullscreenEl_unsafe_, docEl_unsafe_,
   getSelection_, view_, isSelected_, docSelectable_, isHTML_, createElement_, wdZoom_, CLK, MDW, HDN, NONE,
 } from "../lib/dom_utils"
 import {
-  ui_box, ui_root,
+  ui_box, ui_root, getSelectionParent_unsafe, resetSelectionToDocStart,
   createStyle, getSelectionText, checkDocSelectable, adjustUI, ensureBorder, addUIElement, getSelected,
-  select_, getSelectionParent_unsafe, resetSelectionToDocStart,
 } from "./dom_ui"
 import { visual_mode, highlightRange, kDir, activate as visualActivate, kExtend } from "./visual"
 import { keyIsDown as scroll_keyIsDown, beginScroll, onScrolls } from "./scroller"
@@ -22,6 +21,7 @@ import { scrollToMark, setPreviousMarkPosition } from "./marks"
 import { hudHide, hud_box, hudTip, hud_opacity } from "./hud"
 import { post_, send_ } from "./port"
 import { insert_Lock_, setupSuppress } from "./insert"
+import { lastHovered_, resetLastHovered, select_ } from "./async_dispatcher"
 
 let isActive = false
 let query_ = ""

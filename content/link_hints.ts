@@ -26,7 +26,7 @@ interface BaseHinter extends HintsNS.BaseHinter {
   /** get stat */ $ (): Readonly<HinterStatus>
   /** clear */ c: typeof clear
   /** dialogMode */ d: boolean
-  /** executeHint */ e: typeof executeHint
+  /** executeHint */ e: typeof executeHintInOfficer
   /** getPreciseChildRect */ g: typeof getPreciseChildRect
   /** hasExecuted */ h: BOOL
   /** delayToExecute */ j: typeof delayToExecute
@@ -48,7 +48,6 @@ interface HintManager extends BaseHinter {
     /** onFrameUnload */ u: typeof onFrameUnload
     /** resetHints */ v (): void;
     /** setupCheck */ w (officer?: BaseHinter | null, el?: LinkEl | null, r?: Rect | null): void
-    /** postExecute_ */ z: typeof postExecute
 }
 interface HintOfficer extends BaseHinter {
     p: HintManager | null
@@ -69,7 +68,7 @@ import {
 } from "../lib/utils"
 import { frameElement_, querySelector_unsafe_, isHTML_, getViewBox_, prepareCrop_, scrollingEl_, bZoom_, wdZoom_,
   dScale_, getBoundingClientRect_, docEl_unsafe_, IsInDOM_, docZoom_, bScale_, GetParent_unsafe_, getComputedStyle_,
-  isStyleVisible_, lastHovered_, resetLastHovered, getInnerHeight, padClientRect_,
+  isStyleVisible_, getInnerHeight, padClientRect_,
 } from "../lib/dom_utils"
 import {
   pushHandler_, SuppressMost_, removeHandler_, getMappedKey, keybody_, isEscape_, getKeyStat_, keyNames_, suppressTail_,
@@ -93,8 +92,9 @@ import {
   generateHintText,
 } from "./hint_filters"
 import {
-  linkActions, executeHint, removeFlash, set_hintModeAction, resetRemoveFlash, resetHintKeyCode, hintKeyCode,
+  linkActions, executeHintInOfficer, removeFlash, set_hintModeAction, resetRemoveFlash, resetHintKeyCode, hintKeyCode,
 } from "./link_actions"
+import { lastHovered_, resetLastHovered } from "./async_dispatcher"
 
 let box_: HTMLDivElement | HTMLDialogElement | null = null
 let wantDialogMode_: boolean | null = null
@@ -470,12 +470,27 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
       clear(0, keyStatus_.n ? 0 : fgCache.k[0]);
     } else if (matchedHint !== 2) {
       lastMode_ = mode_;
-      locateHint(matchedHint).e(matchedHint, event);
+      callExecuteHint(matchedHint, event)
     }
     return HandlerResult.Prevent;
 }
 
 export const reinitHintsIgnoringArgs = (): void => { reinit() }
+
+const callExecuteHint = (hint: HintItem, event?: HandlerNS.Event): void => {
+  const selectedHinter = locateHint(hint), clickEl = hint.d,
+  result = selectedHinter.e(hint, event)
+  result !== 0 && timeout_((): void => {
+    removeFlash && removeFlash()
+    resetRemoveFlash()
+    if (!(mode_ & HintMode.queue)) {
+      setupCheck(selectedHinter, clickEl)
+      clear(0, 0)
+    } else {
+      postExecute(selectedHinter, clickEl, result);
+    }
+  }, 0)
+}
 
 const locateHint = (matchedHint: HintItem): BaseHinter => {
     /** safer; necessary since {@link #_highlightChild} calls {@link #detectUsableChild_} */
@@ -516,10 +531,10 @@ const delayToExecute = (officer: BaseHinter, hint: HintItem, flashEl: SafeHTMLEl
         isActive && clear()
       } else if (event) {
         tick = waitEnter && keybody === kChar.space ? tick + 1 : 0;
-        tick === 3 || keybody === ENTER ? officer.e(hint, event)
+        tick === 3 || keybody === ENTER ? callExecuteHint(hint, event)
         : key === kChar.f1 && flashEl ? flashEl.classList.toggle("Sel") : 0;
       } else {
-        officer.e(hint);
+        callExecuteHint(hint);
       }
     };
     let tick = 0;
@@ -758,10 +773,10 @@ const coreHints: HintManager = {
       n: isActive && hints_ && hints_.length < (frameList_.length > 1 ? 200 : 100) && !keyStatus_.k }
   },
   d: Build.BTypes & BrowserType.Chrome ? false : 0 as never, h: 0, y: [],
-  x: checkLast, c: clear, o: collectFrameHints, j: delayToExecute, e: executeHint, g: getPreciseChildRect,
+  x: checkLast, c: clear, o: collectFrameHints, j: delayToExecute, e: executeHintInOfficer, g: getPreciseChildRect,
   l: highlightHint, r: render, t: rotate1,
   p: null,
-  n: onKeydown, s: resetMode, i: reinit, v: resetHints, u: onFrameUnload, w: setupCheck, z: postExecute
+  n: onKeydown, s: resetMode, i: reinit, v: resetHints, u: onFrameUnload, w: setupCheck
 }
 if (!Build.NDEBUG) { coreHints.hints_ = null }
 

@@ -412,6 +412,30 @@ function inlineAllSetters (code) {
   });
 }
 
+/**
+ * @argument {any} ts
+ * @param {{ (...args: any[]): any; error(message: string): any; }} [logger]
+ * @argument {boolean} [noGenerator]
+ */
+function patchTSNamespace (ts, logger, noGenerator) {
+  var key = "transformGenerators", bak = "_bak_"
+  var logged1 = false
+  var notTransformgenerator = function (_context) {
+    if (!logged1) {
+      logged1 = true;
+      (logger || console.log)("Not transform ES6 generators");
+    }
+    return function (node) { return node; };
+  }
+  if (noGenerator) {
+    ts[bak + key] = ts[key]
+    ts[key] = notTransformgenerator
+  } else if (ts[bak + key]) {
+    ts[key] = ts[bak + key]
+    ts[bak + key] = notTransformgenerator
+  }
+}
+
 module.exports = {
   readFile: readFile,
   readJSON: readJSON,
@@ -424,4 +448,5 @@ module.exports = {
   addMetaData: addMetaData,
   logFileSize: logFileSize,
   inlineAllSetters: inlineAllSetters,
+  patchTSNamespace: patchTSNamespace,
 };

@@ -76,7 +76,8 @@ const goto = (event: HandlerNS.Event, keyChar: string): void => {
         let pos = null, key = `vimiumMark|${loc_.href.split("#", 1)[0]}|${keyChar}`
         let storage = localStorage, markString = storage.getItem(key)
         if (markString && (pos = JSON.parse(markString)) && typeof pos === "object") {
-          const { scrollX, scrollY, hash } = safer(pos)
+          safer(pos)
+          const scrollX = pos.scrollX, scrollY = pos.scrollY, hash = pos.hash
           if (scrollX >= 0 && scrollY >= 0) {
             (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).o = {
               x: scrollX | 0, y: scrollY | 0, h: "" + (hash || "")

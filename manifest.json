@@ -55,6 +55,7 @@
       "lib/keyboard_utils.js",
       "lib/dom_utils.js",
       "content/dom_ui.js",
+      "content/async_dispatcher.js",
       "content/hud.js",
       "content/insert.js",
       "content/key_handler.js",

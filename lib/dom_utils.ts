@@ -1,7 +1,5 @@
-import { VOther, chromeVer_, doc, getTime, weakRef_, deref_ } from "./utils"
+import { VOther, chromeVer_, doc } from "./utils"
 
-type kMouseMoveEvents = "mouseover" | "mouseenter" | "mousemove" | "mouseout" | "mouseleave";
-type kMouseClickEvents = "mousedown" | "mouseup" | "click" | "auxclick" | "dblclick";
 export const MDW = "mousedown", CLK = "click", HDN = "hidden", NONE = "none"
 
   /** data and DOM-shortcut section (sorted by reference numbers) */
@@ -64,10 +62,10 @@ export const htmlTag_ = (Build.BTypes & ~BrowserType.Firefox ? function (element
 ) as (element: Element) => string // duplicate the signature, for easier F12 in VS Code
 
 export const isInTouchMode_cr_ = Build.BTypes & BrowserType.Chrome ? (): boolean => {
-    const viewport = querySelector_unsafe_("meta[name=viewport]");
-    return !!viewport &&
+    const viewport_meta = querySelector_unsafe_("meta[name=viewport]")
+    return !!viewport_meta &&
       (<RegExpI> /\b(device-width|initial-scale)\b/i).test(
-          (viewport as TypeToAssert<Element, HTMLMetaElement, "content">).content! /* safe even if undefined */);
+          (viewport_meta as TypeToAssert<Element, HTMLMetaElement, "content">).content! /* safe even if undefined */)
 } : 0 as never as null
 
 /** refer to {@link #BrowserVer.MinParentNodeGetterInNodePrototype } */
@@ -759,126 +757,6 @@ export const createShadowRoot_ = <T extends HTMLDivElement | HTMLBodyElement> (b
             || box.webkitCreateShadowRoot)
       ? box.webkitCreateShadowRoot!() : box;
 }
-
-export const mouse_ = function (element: SafeElementForMouse
-      , type: kMouseClickEvents | kMouseMoveEvents
-      , center: Point2D, modifiers?: MyMouseControlKeys | null, relatedTarget?: SafeElementForMouse | null
-      , button?: AcceptableClickButtons): boolean {
-    const doc = element.ownerDocument as Document, view = doc.defaultView || window,
-    tyKey = type.slice(5, 6),
-    // is: down | up | (click) | dblclick | auxclick
-    detail = !"dui".includes(tyKey) ? 0 : button! & kClickButton.primaryAndTwice ? 2 : 1,
-    x = center[0], y = center[1],
-    altKey = modifiers ? modifiers[0] : !1, ctrlKey = modifiers ? modifiers[1] : !1,
-    metaKey = modifiers ? modifiers[2] : !1, shiftKey = modifiers ? modifiers[3] : !1;
-    button = (button! & kClickButton.second) as kClickButton.none | kClickButton.second;
-    relatedTarget = relatedTarget && relatedTarget.ownerDocument === doc ? relatedTarget : null;
-    let mouseEvent: MouseEvent;
-    // note: there seems no way to get correct screenX/Y of an element
-    if (!(Build.BTypes & BrowserType.Chrome)
-        || Build.MinCVer >= BrowserVer.MinUsable$MouseEvent$$constructor
-        || chromeVer_ >= BrowserVer.MinUsable$MouseEvent$$constructor) {
-      // Note: The `composed` here may require Shadow DOM support
-      const init: ValidMouseEventInit = {
-        bubbles: !0, cancelable: !0, composed: !0, detail, view,
-        screenX: x, screenY: y, clientX: x, clientY: y, ctrlKey, shiftKey, altKey, metaKey,
-        button, buttons: tyKey === "d" ? button || 1 : 0,
-        relatedTarget
-      },
-      IDC = Build.MinCVer >= BrowserVer.MinEnsured$InputDeviceCapabilities || !(Build.BTypes & BrowserType.Chrome)
-          ? null : InputDeviceCapabilities;
-      if (Build.BTypes & BrowserType.Chrome
-          && (!(Build.BTypes & ~BrowserType.Chrome) || VOther & BrowserType.Chrome)
-          && (Build.MinCVer >= BrowserVer.MinEnsured$InputDeviceCapabilities || IDC)
-          ) {
-        init.sourceCapabilities = _idc = _idc ||
-            new (Build.MinCVer >= BrowserVer.MinEnsured$InputDeviceCapabilities ? InputDeviceCapabilities
-                  : IDC)!({fireTouchEvents: !1});
-      }
-      mouseEvent = new MouseEvent(type, init);
-    } else {
-      mouseEvent = doc.createEvent("MouseEvents");
-      mouseEvent.initMouseEvent(type, !0, !0, view, detail, x, y, x, y
-        , ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget);
-    }
-    return element.dispatchEvent(mouseEvent);
-} as {
-    (element: SafeElementForMouse, type: kMouseClickEvents
-      , center: Point2D
-      , modifiers?: MyMouseControlKeys | null, related?: SafeElementForMouse | null
-      , button?: AcceptableClickButtons): boolean;
-    (element: SafeElementForMouse, type: kMouseMoveEvents, center: Point2D
-      , modifiers?: null, related?: SafeElementForMouse | null): boolean;
-}
-
-let _idc: InputDeviceCapabilities | undefined
-let lastHovered_: WeakRef<SafeElementForMouse> | null | undefined
-
-export { lastHovered_ }
-export function resetLastHovered (): void { lastHovered_ = null }
-
-  /** note: will NOT skip even if newEl == @lastHovered */
-export const hover_ = function (this: {}, newEl?: SafeElementForMouse | null, center?: Point2D): void {
-    // if center is affected by zoom / transform, then still dispatch mousemove
-    const elFromPoint = center && doc.elementFromPoint(center[0], center[1]),
-    canDispatchMove: boolean = !newEl || elFromPoint === newEl || !elFromPoint || !newEl.contains(elFromPoint),
-    isInDOM = IsInDOM_, N = null;
-    let last = deref_(lastHovered_);
-    if (last && isInDOM(last)) {
-      const notSame = newEl !== last;
-      mouse_(last, "mouseout", [0, 0], N, notSame ? newEl : N);
-      if (!newEl || notSame && !isInDOM(newEl, last, 1)) {
-        mouse_(last, "mouseleave", [0, 0], N, newEl);
-      }
-    } else {
-      last = N;
-    }
-    lastHovered_ = N;
-    if (newEl && isInDOM(newEl)) {
-      // then center is not null
-      mouse_(newEl, "mouseover", center!, N, last);
-      if (isInDOM(newEl)) {
-        mouse_(newEl, "mouseenter", center!, N, last);
-        if (canDispatchMove && isInDOM(newEl)) {
-          mouse_(newEl, "mousemove", center!);
-        }
-        lastHovered_ = isInDOM(newEl) ? weakRef_(newEl) : N;
-      }
-    }
-    // here always ensure lastHovered_ is "in DOM" or null
-} as {
-    (newEl: SafeElementForMouse, center: Point2D): void;
-    (newEl?: null): void;
-}
-
-export const unhover_ = (element?: SafeElementForMouse): void => {
-    const old = deref_(lastHovered_), active = element || old;
-    if (old !== element) {
-      hover_();
-    }
-    lastHovered_ = weakRef_(element);
-    hover_();
-    if (active && activeEl_unsafe_() === active) { active.blur && active.blur(); }
-}
-
-export const touch_cr_ = Build.BTypes & BrowserType.Chrome ? (element: SafeElementForMouse
-      , [x, y]: Point2D, id?: number): number => {
-    const newId = id || getTime(),
-    touchObj = new Touch({
-      identifier: newId, target: element,
-      clientX: x, clientY: y,
-      screenX: x, screenY: y,
-      pageX: x + scrollX, pageY: y + scrollY,
-      radiusX: 8, radiusY: 8, force: 1
-    }), touches = id ? [] : [touchObj],
-    touchEvent = new TouchEvent(id ? "touchend" : "touchstart", {
-      cancelable: true, bubbles: true,
-      touches, targetTouches: touches,
-      changedTouches: [touchObj]
-    });
-    element.dispatchEvent(touchEvent);
-    return newId;
-} : 0 as never as null
 
 export const scrollIntoView_ = (el: Element, dir?: boolean): void => {
     !(Build.BTypes & ~BrowserType.Firefox) ? el.scrollIntoView({ block: "nearest" })

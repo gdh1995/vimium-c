@@ -1,20 +1,19 @@
 import {
-  setupEventListener, clickable_, isTop, keydownEvents_, VOther, timeout_, fgCache, doc, isAlive_, allowScripts_,
+  setupEventListener, isTop, keydownEvents_, VOther, timeout_, fgCache, doc, isAlive_, allowScripts_,
   set_allowScripts_, jsRe_, chromeVer_, VTr, deref_,
 } from "../lib/utils"
 import {
   createElement_, createShadowRoot_, bZoom_, dScale_, fullscreenEl_unsafe_, docEl_unsafe_, getZoom_, wdZoom_,
   getComputedStyle_, GetParent_unsafe_, getSelection_, GetShadowRoot_, getEditableType_,
-  getSelectionBoundingBox_, center_, getVisibleClientRect_, isInTouchMode_cr_, touch_cr_, IsInDOM_, lastHovered_,
-  hover_, mouse_, activeEl_unsafe_, view_, prepareCrop_, getClientRectsForAreas_, notSafe_not_ff_,
+  getSelectionBoundingBox_, getVisibleClientRect_, prepareCrop_, getClientRectsForAreas_, notSafe_not_ff_,
   getBoundingClientRect_, padClientRect_, isContaining_, cropRectToVisible_, getCroppedRect_, setBoundary_,
-  frameElement_, runJS_, isStyleVisible_, set_docSelectable_, getInnerHeight, CLK, MDW, NONE, htmlTag_,
+  frameElement_, runJS_, isStyleVisible_, set_docSelectable_, getInnerHeight, CLK, NONE, htmlTag_,
   getInnerWidth, elementProto, GetChildNodes_not_ff,
 } from "../lib/dom_utils"
-import { Stop_, suppressTail_ } from "../lib/keyboard_utils"
+import { Stop_ } from "../lib/keyboard_utils"
 import { currentScrolling } from "./scroller"
 import { styleSelectable } from "./mode_find"
-import { unwrap_ff, isHintsActive, reinitHintsIgnoringArgs } from "./link_hints"
+import { isHintsActive, reinitHintsIgnoringArgs } from "./link_hints"
 import { post_ } from "./port"
 import { insert_Lock_ } from "./insert"
 import { hudTip } from "./hud"
@@ -318,134 +317,8 @@ export const resetSelectionToDocStart = (sel?: Selection): void => {
     (sel || getSelection_()).removeAllRanges();
 }
 
-export const click_ = (element: SafeElementForMouse
-      , rect?: Rect | null, addFocus?: boolean | BOOL, modifiers?: MyMouseControlKeys | null
-      , specialAction?: kClickAction, button?: AcceptableClickButtons
-      , /** default: false */ touchMode?: null | false | /** false */ 0 | true | "auto"): void | 1 => {
-    if (!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && VOther === BrowserType.Edge) {
-      if ((element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
-        return;
-      }
-    }
-    const center = center_(rect || (rect = getVisibleClientRect_(element)));
-    if (Build.BTypes & BrowserType.Chrome
-        && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)
-        && (Build.MinCVer >= BrowserVer.MinEnsuredTouchEventConstructor
-            || chromeVer_ >= BrowserVer.MinEnsuredTouchEventConstructor)
-        && (touchMode === !0 || touchMode && isInTouchMode_cr_!())) {
-      let id = touch_cr_!(element, center);
-      if (IsInDOM_(element)) {
-        touch_cr_!(element, center, id);
-      }
-      if (!IsInDOM_(element)) { return; }
-    }
-    if (element !== deref_(lastHovered_)) {
-      hover_(element, center);
-      if (!lastHovered_) { return; }
-    }
-    if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox) {
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=329509 says this starts on FF65,
-      // but tests also confirmed it on Firefox 63.0.3 x64, Win10
-      if ((element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
-        return;
-      }
-    }
-    mouse_(element, MDW, center, modifiers, null, button);
-    if (!IsInDOM_(element)) { return; }
-    // Note: here we can check doc.activeEl only when @click is used on the current focused document
-    if (addFocus && element !== insert_Lock_() && element !== activeEl_unsafe_() &&
-        !(element as Partial<HTMLInputElement>).disabled) {
-      element.focus && element.focus();
-      if (!IsInDOM_(element)) { return; }
-    }
-    mouse_(element, "mouseup", center, modifiers, null, button);
-    if (!IsInDOM_(element)) { return; }
-    if (button === kClickButton.second) {
-        // if button is the right, then auxclick can be triggered even if element.disabled
-        mouse_(element, "auxclick", center, modifiers, null, button);
-    }
-    if (button === kClickButton.second /* is the right button */
-        || Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || VOther & BrowserType.Chrome)
-            && (element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
-      return;
-    }
-    const enum ActionType {
-      OnlyDispatch = 0,
-      DispatchAndCheckInDOM = 1,
-      DispatchAndMayOpenTab = 2,
-      OpenTabButNotDispatch = 3,
-    }
-    let result: ActionType = ActionType.OnlyDispatch, url: string | null;
-    let parentAnchor: Partial<Pick<HTMLAnchorElement, "target" | "href">> & Element | null | undefined
-    if (specialAction) {
-      // for forceToDblclick, element can be OtherSafeElement; for 1..MaxOpenForAnchor, element must be in <html:a>
-      result = specialAction > kClickAction.MaxOpenForAnchor ? ActionType.DispatchAndCheckInDOM
-          : !(parentAnchor = Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest
-                && Build.BTypes & BrowserType.Chrome && !element.closest ? element
-                : (parentAnchor = element.closest!("a")) && htmlTag_(parentAnchor) ? parentAnchor : null)
-            || Build.BTypes & BrowserType.Firefox && specialAction < kClickAction.MinNotPlainOpenManually
-                && parentAnchor.target !== "_blank"
-            || !(url = parentAnchor.getAttribute("href"))
-            || (!(Build.BTypes & BrowserType.Firefox) || specialAction & kClickAction.forceToOpenInNewTab)
-                && url[0] === "#"
-            || jsRe_.test(url)
-          ? ActionType.OnlyDispatch
-          : Build.BTypes & BrowserType.Firefox
-            && specialAction & (kClickAction.plainMayOpenManually | kClickAction.openInNewWindow)
-            && (unwrap_ff(parentAnchor as SafeHTMLElement).onclick
-              || clickable_.has(element) || clickable_.has(parentAnchor))
-          ? ActionType.DispatchAndMayOpenTab : ActionType.OpenTabButNotDispatch;
-    }
-    if ((result > ActionType.OpenTabButNotDispatch - 1 || mouse_(element, CLK, center, modifiers) && result)
-        && getVisibleClientRect_(element)) {
-      // require element is still visible
-      if (specialAction === kClickAction.forceToDblclick) {
-        if (!(element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
-          // use old rect
-          click_(element, rect, 0, modifiers, kClickAction.none, kClickButton.primaryAndTwice)
-          if (getVisibleClientRect_(element)) {
-            mouse_(element, "dblclick", center, modifiers, null, kClickButton.primaryAndTwice);
-          }
-        }
-        return;
-      }
-      // use latest attributes
-      const isBlank = parentAnchor!.target === "_blank", relAttr = parentAnchor!.getAttribute("rel"),
-      /** {@link #FirefoxBrowserVer.Min$TargetIsBlank$Implies$Noopener}; here also apply on Chrome */
-      noopener = relAttr == null ? isBlank
-          : Build.MinCVer >= BrowserVer.MinEnsuredES6$Array$$Includes || !(Build.BTypes & BrowserType.Chrome)
-          ? relAttr.split(<RegExpOne> /\s/).includes!("noopener")
-          : relAttr.split(<RegExpOne> /\s/).indexOf("noopener") >= 0,
-      reuse = Build.BTypes & BrowserType.Firefox && specialAction! & kClickAction.openInNewWindow
-          ? ReuseType.newWindow
-          : modifiers && modifiers[3] || specialAction! < kClickAction.newTabFromMode
-            ? ReuseType.newFg : ReuseType.newBg;
-      post_({
-        H: kFgReq.openUrl,
-        u: parentAnchor!.href,
-        f: !0,
-        n: noopener,
-        r: reuse
-      });
-      return 1;
-    }
-}
-
-export const select_ = (element: LockableElement, rect?: Rect | null, show_flash?: boolean
-      , action?: SelectActions, suppressRepeated?: boolean): void => {
-    const y = scrollY;
-    click_(element, rect, 1)
-    view_(element, y);
-    // re-compute rect of element, in case that an input is resized when focused
-    show_flash && flash_(element)
-    if (element !== insert_Lock_()) { return; }
-    // then `element` is always safe
-    moveSel_need_safe(element, action)
-    if (suppressRepeated) { suppressTail_(0) }
-}
-
   /** @NEED_SAFE_ELEMENTS element is LockableElement */
-const moveSel_need_safe = (element: LockableElement, action: SelectActions | undefined): void => {
+export const moveSel_need_safe = (element: LockableElement, action: SelectActions | undefined): void => {
     const elTag = htmlTag_(element), type = elTag === "textarea" ? EditableType.TextBox
         : elTag === "input" ? EditableType.input_
         : element.isContentEditable ? EditableType.rich_

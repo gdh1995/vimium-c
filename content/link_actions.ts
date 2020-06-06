@@ -5,11 +5,9 @@ import {
   weakRef_,
 } from "../lib/utils"
 import {
-  getEditableType_, hover_, center_, htmlTag_, GetParent_unsafe_, unhover_, uneditableInputs_, createElement_,
-  mouse_, scrollingEl_, view_, findMainSummary_, getVisibleClientRect_, getComputedStyle_, IsInDOM_, getInputType,
-  CLK,
-  elementProto,
-  querySelector_unsafe_,
+  getEditableType_, center_, htmlTag_, GetParent_unsafe_, uneditableInputs_, createElement_,
+  scrollingEl_, view_, findMainSummary_, getVisibleClientRect_, getComputedStyle_, IsInDOM_, getInputType,
+  CLK, elementProto, querySelector_unsafe_,
 } from "../lib/dom_utils"
 import {
   hintOptions, mode1_, mode_, hintApi, hintManager, coreHints,
@@ -17,9 +15,10 @@ import {
 } from "./link_hints"
 import { set_currentScrolling, syncCachedScrollable } from "./scroller"
 import { post_ } from "./port"
-import { evalIfOK, click_, flash_, select_, getRect, lastFlashEl } from "./dom_ui"
+import { evalIfOK, flash_, getRect, lastFlashEl } from "./dom_ui"
 import { pushHandler_, removeHandler_, isEscape_, getMappedKey, prevent_, suppressTail_ } from "../lib/keyboard_utils"
 import { insert_Lock_ } from "./insert"
+import { unhover_, hover_, click_, select_, mouse_, catchAsyncErrorSilently } from "./async_dispatcher"
 type LinkEl = Hint[0];
 interface Executor {
   (this: void, linkEl: LinkEl, rect: Rect | null, hintEl: Pick<HintItem, "r">): void | boolean;
@@ -38,7 +37,7 @@ export function set_hintModeAction (_newHintModeAction: LinkAction | null): void
 export const resetRemoveFlash = (): void => { removeFlash = null }
 export const resetHintKeyCode = (): void => { keyCode_ = kKeyCode.None }
 
-export const executeHint = (hint: HintItem, event?: HandlerNS.Event): void => {
+export const executeHintInOfficer = (hint: HintItem, event?: HandlerNS.Event): Rect | null | undefined | 0 => {
   const masterOrA = hintManager || coreHints, keyStatus = masterOrA.$().k;
   let rect: Rect | null | undefined, clickEl: LinkEl | null = hint.d;
   if (hintManager) {
@@ -63,7 +62,8 @@ export const executeHint = (hint: HintItem, event?: HandlerNS.Event): void => {
         suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents);
       } else {
         removeFlash = rect && flash_(null, rect, -1);
-        return masterOrA.j(coreHints, hint, rect && lastFlashEl);
+        masterOrA.j(coreHints, hint, rect && lastFlashEl)
+        return 0
       }
     }
     hintManager && focus();
@@ -78,15 +78,8 @@ export const executeHint = (hint: HintItem, event?: HandlerNS.Event): void => {
     clickEl = null;
     hintApi.t(kTip.linkRemoved, 2000)
   }
-  removeFlash && removeFlash();
-  removeFlash = null;
-  if (!(mode_ & HintMode.queue)) {
-    masterOrA.w(coreHints, clickEl);
-    masterOrA.c(0, 0);
-    (<RegExpOne> /0?/).test("");
-    return;
-  }
-  masterOrA.z(coreHints, clickEl, rect);
+  (<RegExpOne> /0?/).test("");
+  return rect
 }
 
 const getUrlData = (link: SafeHTMLElement): string => {
@@ -164,7 +157,7 @@ export const linkActions: readonly LinkAction[] = [
     // here not check lastHovered on purpose
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
     /*#__INLINE__*/ set_currentScrolling(weakRef_(element));
-    hover_(element, center_(rect));
+    catchAsyncErrorSilently(hover_(element, center_(rect))).then((): void => {
     type || element.focus && !(<RegExpI> /^i?frame$/).test(htmlTag_(element)) && element.focus();
     /*#__INLINE__*/ syncCachedScrollable();
     if (mode1_ < HintMode.min_job) { // called from Modes[-1]
@@ -207,11 +200,12 @@ export const linkActions: readonly LinkAction[] = [
         break;
       }
     }
+    })
   }
   , HintMode.HOVER
 ],
 [
-  unhover_
+  (el): void => { unhover_(el) }
   , HintMode.UNHOVER
 ],
 [
@@ -362,7 +356,7 @@ export const linkActions: readonly LinkAction[] = [
     if (hadNoDownload) {
       link[kD] = "";
     }
-    click_(link, rect, 0, [!0, !1, !1, !1])
+    catchAsyncErrorSilently(click_(link, rect, 0, [!0, !1, !1, !1])).then((): void => {
     if (hadNoDownload) {
       link.removeAttribute(kD);
     }
@@ -375,6 +369,7 @@ export const linkActions: readonly LinkAction[] = [
     } else {
       link.removeAttribute(H);
     }
+    })
   }
   , HintMode.DOWNLOAD_LINK
 ] as LinkAction,
@@ -404,8 +399,8 @@ export const linkActions: readonly LinkAction[] = [
           // `HTMLSummaryElement::DefaultEventHandler(event)` in
           // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_summary_element.cc?l=109
           rect = (link as HTMLDetailsElement).open || !rect ? getVisibleClientRect_(summary) : rect;
-          click_(summary, rect, 1);
-          removeFlash || rect && flash_(null, rect);
+          catchAsyncErrorSilently(click_(summary, rect, 1))
+          .then((): void => { removeFlash || rect && flash_(null, rect) })
           return false;
       }
       (link as HTMLDetailsElement).open = !(link as HTMLDetailsElement).open;
@@ -426,6 +421,8 @@ export const linkActions: readonly LinkAction[] = [
     newtab_n_active = newTab && mask > HintMode.newtab_n_active - 1,
     newWindow = newTabOption === "window" && !otherActions,
     cnsForWin = hintOptions.ctrlShiftForWindow,
+    autoUnhover = hintOptions.autoUnhover,
+    isQueue = mode_ & HintMode.queue,
     noCtrlPlusShiftForActive: boolean | undefined = cnsForWin != null ? cnsForWin : hintOptions.noCtrlPlusShift,
     ctrl = newTab && !(newtab_n_active && noCtrlPlusShiftForActive) || newWindow && !!noCtrlPlusShiftForActive,
     shift = newWindow || newtab_n_active,
@@ -439,14 +436,14 @@ export const linkActions: readonly LinkAction[] = [
           : newTab // need to work around Firefox's popup blocker
             ? kClickAction.plainMayOpenManually | kClickAction.newTabFromMode : kClickAction.plainMayOpenManually
         : kClickAction.none;
-    const ret = click_(link, rect, mask > 0 || (link as ElementToHTMLorSVG).tabIndex! >= 0, [
-        !1,
-        ctrl && !isMac,
-        ctrl && isMac,
-        shift
-      ], specialActions, isRight ? kClickButton.second : kClickButton.none
-      , !(Build.BTypes & BrowserType.Chrome) || otherActions || newTab ? 0 : hintOptions.touch);
-    hintOptions.autoUnhover ? unhover_() : mode_ & HintMode.queue || ret && unhoverOnEsc();
+    catchAsyncErrorSilently(click_(link
+        , rect, mask > 0 || (link as ElementToHTMLorSVG).tabIndex! >= 0
+        , [!1, ctrl && !isMac, ctrl && isMac, shift]
+        , specialActions, isRight ? kClickButton.second : kClickButton.none
+        , !(Build.BTypes & BrowserType.Chrome) || otherActions || newTab ? 0 : hintOptions.touch))
+    .then((ret): void => {
+      autoUnhover ? unhover_() : isQueue || ret && unhoverOnEsc()
+    })
   }
   , HintMode.OPEN_IN_CURRENT_TAB
   , HintMode.OPEN_IN_NEW_BG_TAB

@@ -136,10 +136,11 @@ export const isEscape_ = (key: string): HandlerResult.AdvancedEsc | HandlerResul
 
   /** event section */
 
-export const Stop_ = (event: Pick<Event, "stopImmediatePropagation">): void => { event.stopImmediatePropagation(); }
+export { Stop_ } from "./utils"
+import { Stop_ as stopEvent } from "./utils"
 
 export const prevent_ = (event: ToPrevent): void => {
-    event.preventDefault(); Stop_(event);
+    event.preventDefault(); stopEvent(event);
 }
 
 export const SuppressMost_ = function (this: {}, event: HandlerNS.Event): HandlerResult {

@@ -2,35 +2,29 @@ import {
   chromeVer_, doc, esc, EscF, fgCache, isTop, safeObj, set_esc, VOther, VTr, safer, timeout_, loc_, weakRef_, deref_,
 } from "../lib/utils"
 import {
-  unhover_, resetLastHovered, isHTML_, view_, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, createElement_,
+  isHTML_, view_, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, createElement_,
   padClientRect_, getBoundingClientRect_, setBoundary_, wdZoom_, dScale_, getInnerHeight, getInnerWidth, htmlTag_,
 } from "../lib/dom_utils"
 import {
-  pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER
+  pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER,
 } from "../lib/keyboard_utils"
 import { post_ } from "./port"
-import {
-  addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, select_, flash_, click_,
-} from "./dom_ui"
+import { addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, flash_ } from "./dom_ui"
 import { hudHide, hudShow, hudTip, hud_text } from "./hud"
-import {
-  onKeyup2, set_onKeyup2, passKeys, setTempCurrentKeyStatus, set_passKeys,
-} from "./key_handler"
-import {
-  activate as linkActivate, clear as linkClear, kEditableSelector, kSafeAllSelector,
-} from "./link_hints"
+import { onKeyup2, set_onKeyup2, passKeys, setTempCurrentKeyStatus, set_passKeys } from "./key_handler"
+import { activate as linkActivate, clear as linkClear, kEditableSelector, kSafeAllSelector } from "./link_hints"
 import { activate as markActivate, gotoMark } from "./marks"
 import { activate as findActivate, deactivate as findDeactivate, execCommand, init as findInit } from "./mode_find"
 import {
-  exitInputHint, insert_inputHint, insert_last_, raw_insert_lock, resetInsert,
+  exitInputHint, insert_inputHint, insert_last_, raw_insert_lock, resetInsert, set_is_last_mutable,
   set_inputHint, set_insert_global_, set_isHintingInput, set_insert_last_, onWndBlur, exitPassMode, set_exitPassMode,
-  set_is_last_mutable,
 } from "./insert"
 import { activate as visualActivate, deactivate as visualDeactivate } from "./visual"
 import { activate as scActivate, clearCachedScrollable } from "./scroller"
 import { activate as omniActivate } from "./omni"
 import { findAndFollowLink, findAndFollowRel } from "./pagination"
 import { traverse, getEditable } from "./local_links"
+import { click_, select_, unhover_, resetLastHovered } from "./async_dispatcher"
 
 interface SpecialCommands {
   [kFgCmd.reset] (this: void, isAlive: BOOL | CmdOptions[kFgCmd.reset] & SafeObject): void;
@@ -156,7 +150,7 @@ export const contentCommands_: {
     if (linkElement) {
       let url = htmlTag_(linkElement) === "link" && (linkElement as HTMLLinkElement).href
       view_(linkElement)
-      flash_(linkElement)
+      flash_(linkElement) // here calls getRect -> preparCrop_
       if (url) {
         contentCommands_[kFgCmd.reload](safer({ url }))
       } else {
@@ -249,7 +243,8 @@ export const contentCommands_: {
       return hudTip(kTip.noInputToFocus, 1000);
     } else if (sel === 1) {
       exitInputHint();
-      return select_(visibleInputs[0][0], visibleInputs[0][1], true, action, true);
+      select_(visibleInputs[0][0], visibleInputs[0][1], true, action, true)
+      return
     }
     for (let ind = 0; ind < sel; ind++) {
       const hint = visibleInputs[ind], j = hint[0].tabIndex;

@@ -30,9 +30,10 @@ import {
 } from "../lib/keyboard_utils"
 import {
   editableTypes_, markFramesetTagUnsafe, setNotSafe_not_ff, OnDocLoaded_, frameElement_,
-  notSafe_not_ff_, htmlTag_, querySelector_unsafe_, isHTML_, createElement_, lastHovered_, resetLastHovered,
+  notSafe_not_ff_, htmlTag_, querySelector_unsafe_, isHTML_, createElement_,
   docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, CLK, MDW, elementProto,
 } from "../lib/dom_utils"
+import { lastHovered_, resetLastHovered } from "./async_dispatcher"
 
 const DAC = "DOMActivate"
 let framemask_more = false

@@ -73,6 +73,7 @@ declare const enum BrowserVer {
   // a.onerror=a.onload=function(i){console.log(i.type,i)};a.responseType='text';a.send();
   MinRequestDataURLOnBackgroundPage = 39, // even if EXPERIMENTAL or LEGACY
   Min$Set$accept$Symbol$$Iterator = 39, // even if EXPERIMENTAL or LEGACY; test code: new Set('foo')
+  MinEnsuredGeneratorFunction = 39, // even if LEGACY; exists on C31 if EXPERIMENTAL
   MinOptionsUI = 40,
   MinDisableMoveTabAcrossIncognito = 40,
   // even if EXPERIMENTAL or LEGACY

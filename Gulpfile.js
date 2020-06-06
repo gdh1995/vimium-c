@@ -10,7 +10,7 @@ var gulpSome = require('gulp-some');
 var osPath = require('path');
 var {
   getGitCommit, extendIf, readJSON, readFile,
-  touchFileIfNeeded,
+  touchFileIfNeeded, patchTSNamespace,
   patchExtendClick: _patchExtendClick,
   loadUglifyConfig: _loadUglifyConfig,
   logFileSize, addMetaData, inlineAllSetters,
@@ -628,6 +628,9 @@ function makeTasks() {
 function tsProject() {
   loadTypeScriptCompiler();
   removeSomeTypeScriptOptions();
+  var btypes = getBuildItem("BTypes"), cver = getBuildItem("MinCVer");
+  var noGenerator = !(btypes & BrowserType.Chrome && cver < /* MinEnsuredGeneratorFunction */ 39);
+  patchTSNamespace(gTypescript, logger, noGenerator);
   return disableErrors ? ts(compilerOptions, ts.reporter.nullReporter()) : ts(compilerOptions);
 }
 
@@ -902,9 +905,18 @@ function beforeUglify(file) {
     contents = contents.replace(/\bconst([\s{\[])/g, "let$1");
   }
   var btypes = getBuildItem("BTypes"), minCVer = getBuildItem("MinCVer");
-  if (!locally && (allPathStr.includes("/vimium-c") || allPathStr.includes("/async"))) {
+  if (btypes & BrowserType.Chrome && minCVer < /* MinEnsuredAsyncFunctions */ 57
+      && (allPathStr.includes("/vimium-c") || allPathStr.includes("/async"))) {
     get();
-    contents = contents.replace(/\breturn _?_?generator\(/g, "return (");
+    if (contents.includes("__awaiter(this")) {
+      print("Warning: should avoid using `this` in async functions")
+    }
+    if (btypes & BrowserType.Chrome && minCVer < /* MinEnsuredGeneratorFunction */ 39) {
+      contents = contents.replace(/\breturn __generator\(/g, "return (");
+    }
+    if (contents.includes("__myAwaiter")) {
+      contents = contents.replace(/\b__awaiter\(void 0,[^,]+,[^,]+,\s?(?=\(?function|\(\(?\))/g, "__myAwaiter(");
+    }
   }
   if (allPathStr.includes("/env.js")) {
     toRemovedGlobal = "";
