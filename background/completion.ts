@@ -939,7 +939,7 @@ searchEngine = {
       }
       keyword = rawQuery.slice(1).trimLeft();
       sug = searchEngine.makeUrlSuggestion_(keyword);
-      showThoseInBlocklist = showThoseInBlocklist && BlockListFilter.IsExpectingHidden_([keyword]);
+      showThoseInBlocklist = !omniBlockList || showThoseInBlocklist && BlockListFilter.IsExpectingHidden_([keyword]);
       return Completers.next_([sug], SugType.search);
     } else {
       pattern = Settings_.cache_.searchEngineMap[keyword];
@@ -964,7 +964,7 @@ searchEngine = {
     } else if (pattern) {
       q = [];
     }
-    showThoseInBlocklist = showThoseInBlocklist && BlockListFilter.IsExpectingHidden_([keyword]);
+    showThoseInBlocklist = !omniBlockList || showThoseInBlocklist && BlockListFilter.IsExpectingHidden_([keyword]);
 
     let url: string, indexes: number[], text: string;
     if (pattern) {
@@ -1662,7 +1662,7 @@ knownCs = {
       return kVisibility.visible;
     },
     IsExpectingHidden_ (query: string[]): boolean {
-      if (!omniBlockList) { return true; }
+      if (omniBlockList) {
       for (const word of query) {
         for (let phrase of omniBlockList) {
           phrase = phrase.trim();
@@ -1671,6 +1671,7 @@ knownCs = {
             return true;
           }
         }
+      }
       }
       return false;
     },
@@ -1704,8 +1705,7 @@ knownCs = {
     OnUpdate_ (this: void, newList: string): void {
       const arr: string[] = [];
       for (let line of newList.split("\n")) {
-        if (!(line && line.trimLeft().charCodeAt(0) > kCharCode.maxCommentHead)) { continue; } // mask: /[!"#]/
-        if (line.trim()) {
+        if (line.trim() && line[0] !== "#") {
           arr.push(line);
         }
       }
@@ -1941,7 +1941,7 @@ Completion_ = {
     if (queryTerms.length > 0) {
       queryTerms[0] = BgUtils_.fixCharsInUrl_(queryTerms[0]);
     }
-    showThoseInBlocklist = BlockListFilter.IsExpectingHidden_(queryTerms);
+    showThoseInBlocklist = !omniBlockList || BlockListFilter.IsExpectingHidden_(queryTerms);
     allExpectedTypes = expectedTypes !== SugType.Empty ? expectedTypes : SugType.Full;
     Completers.filter_(arr || knownCs.omni);
   },
@@ -1974,7 +1974,8 @@ Completion_ = {
         MatchCacheManager.cacheTabs_(null);
       }
     }
-  }
+  },
+  isExpectingHidden_: BlockListFilter.IsExpectingHidden_
 };
 
 Settings_.updateHooks_.omniBlockList = BlockListFilter.OnUpdate_;

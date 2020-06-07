@@ -270,6 +270,7 @@ declare namespace CompletersNS {
     filter_ (this: GlobalCompletersConstructor, query: string, options: FullOptions, callback: Callback): void;
     removeSug_ (url: string, type: FgReq[kFgReq.removeSug]["t"], callback: (succeed: boolean) => void): void;
     onWndChange_ (): void;
+    isExpectingHidden_? (queries: string[]): boolean | void
   }
 }
 type Suggestion = CompletersNS.Suggestion;
@@ -760,6 +761,7 @@ interface Window {
   readonly MathParser?: object;
   readonly Commands?: object;
   readonly CommandsData_: CommandsDataTy;
+  readonly Completion_: CompletersNS.GlobalCompletersConstructor;
   readonly Exclusions?: object;
   readonly HelpDialog?: BaseHelpDialog;
   readonly OnOther?: BrowserType;
