@@ -51,7 +51,7 @@ const Clipboard_ = {
         || (Clipboard_.staticSeds_ = Clipboard_.parseSeds_(Settings_.get_("clipSub")));
     // note: `sed` may come from options of key mappings, so here always convert it to a string
     if (sed && sed !== true) {
-      sed = (sed + "").replace(<RegExpG> /(?!\\) (cp?|pc?|is?|si?)(?![\x00- A-Za-z\\])/g, "\n$1")
+      sed = (sed + "").replace(<RegExpG> /(?!\\) ([cgips]{1,4})(?![\x00- A-Za-z\\])/g, "\n$1")
       arr = arr.concat(Clipboard_.parseSeds_(sed))
     }
     for (const item of arr) {
