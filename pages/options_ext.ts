@@ -122,11 +122,11 @@ $<ElementWithDelay>("#exportButton").onclick = function (event): void {
     } else {
       exported_object[key] = storedVal;
     }
-    if (key === "omniBlockList" && exported_object[key]) {
+    if (typeof all[key] === "string") {
       if (typeof exported_object[key] === "string") {
-        exported_object[key] = maskStr(exported_object[key])
+        exported_object[key] = maskStr(key, exported_object[key])
       } else {
-        exported_object[key] = (exported_object[key] as string[]).map(maskStr)
+        exported_object[key] = (exported_object[key] as string[]).map(line => maskStr(key, line))
       }
     }
   }
@@ -162,16 +162,25 @@ $<ElementWithDelay>("#exportButton").onclick = function (event): void {
     , "color:darkred", file_name, "color:auto", "color:darkblue", d_s, "color:auto");
 };
 
-function maskStr (str: string): string { return str && "$base64:" + btoa(str); }
+function maskStr (key: keyof SettingsNS.PersistentSettings, str: string): string {
+  // this solution is from https://stackoverflow.com/a/30106551/5789722
+  return str && (key === "omniBlockList" || BG_.Completion_.isExpectingHidden_!([str]))
+      ? "$base64:" + btoa(encodeURIComponent(str).replace(<RegExpG & RegExpSearchable<1>> /%([0-9A-F]{2})/g,
+          (_s, hex): string => String.fromCharCode(parseInt(hex, 16))
+      )) : str
+}
 
 function decodeStrOption (new_value: string | string[]): string {
   if (new_value instanceof Array) {
     new_value = new_value.join("\n").trimRight();
   }
   new_value = new_value.replace(<RegExpG> /\r\n?/g, "\n");
-  return new_value.replace(<RegExpG & RegExpSearchable<2>> /(^|\n)\$base64:(.*)/g, (f, lf, masked) => {
+  return new_value.replace(<RegExpG & RegExpSearchable<1>> /^\$base64:(.*)/gm, (f, masked) => {
     try {
-      return lf + atob(masked)
+      return decodeURIComponent(([] as string[]).map.call<string[], [(s: string) => string], string[]>(
+          atob(masked) as string | string[] as string[],
+          (ch): string => "%" + ("00" + ch.charCodeAt(0).toString(16)).slice(-2)
+      ).join(""))
     } catch {}
     return f
   })
