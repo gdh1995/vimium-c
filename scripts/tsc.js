@@ -294,7 +294,7 @@ function _executeTS(args) {
 
   real_write = ts.sys.writeFile;
   ts.sys.writeFile = writeFile;
-  lib.patchTSNamespace(ts, true); // when MinCVer >= 39 or not Chrome
+  lib.patchTSNamespace(ts, null, true); // when MinCVer >= 39 or not Chrome
 
   if (ts.version < '3.7') {
     ts.executeCommandLine(args);

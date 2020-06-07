@@ -415,25 +415,35 @@ function inlineAllSetters (code) {
 /**
  * @argument {any} ts
  * @param {{ (...args: any[]): any; error(message: string): any; }} [logger]
- * @argument {boolean} [noGenerator]
+ * @argument {boolean | 0 | 1 | -1} [noGenerator]
  */
 function patchTSNamespace (ts, logger, noGenerator) {
   var key = "transformGenerators", bak = "_bak_"
   var logged1 = false
-  var notTransformgenerator = function (_context) {
+  var notTransformGenerator = function (_context) {
     if (!logged1) {
       logged1 = true;
       (logger || console.log)("Not transform ES6 generators");
     }
     return function (node) { return node; };
   }
-  if (noGenerator) {
-    ts[bak + key] = ts[key]
-    ts[key] = notTransformgenerator
-  } else if (ts[bak + key]) {
-    ts[key] = ts[bak + key]
-    ts[bak + key] = notTransformgenerator
+  var transformGeneratorAndAddUnderline = function (_context) {
+    const transformer = originalTransGen.apply(this, arguments)
+    return function (originalNode) {
+      var node = transformer.apply(this, arguments)
+      if (node !== originalNode) {
+        for (var child of node.statements) {
+
+        }
+        console.log("new node found")
+      }
+      return node
+    }
   }
+  var originalTransGen = ts[bak + key] || ts[key]
+  ts[bak + key] = noGenerator ? originalTransGen : null
+  ts[key] = noGenerator === -1 ? notTransformGenerator
+      : noGenerator ? notTransformGenerator : originalTransGen
 }
 
 module.exports = {

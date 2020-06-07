@@ -208,7 +208,7 @@ export const unhover_ = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >
 : (el?: NullableSafeElForM, step?: 1 | 2, old?: NullableSafeElForM): Promise<0> | 0 => {
   if (!step) {
     old = deref_(lastHovered_)
-    return (old !== el ? hover_() : Promise.resolve()).then(unhover_
+    return Promise.resolve<void | false>(old !== el && hover_()).then(unhover_
         .bind<void, NullableSafeElForM, 1, NullableSafeElForM, [], Promise<0>>(0, el, 1, el || old))
   } else if (step < 2) {
     lastHovered_ = weakRef_(el)
