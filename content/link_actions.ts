@@ -7,7 +7,7 @@ import {
 import {
   getEditableType_, center_, htmlTag_, GetParent_unsafe_, uneditableInputs_, createElement_,
   scrollingEl_, view_, findMainSummary_, getVisibleClientRect_, getComputedStyle_, IsInDOM_, getInputType,
-  CLK, elementProto, querySelector_unsafe_,
+  CLK, elementProto, querySelector_unsafe_, GetShadowRoot_,
 } from "../lib/dom_utils"
 import {
   hintOptions, mode1_, mode_, hintApi, hintManager, coreHints,
@@ -212,6 +212,7 @@ export const linkActions: readonly LinkAction[] = [
   (link): boolean | void => {
     const mode1 = mode1_;
     let isUrl = mode1 > HintMode.min_link_job - 1 && mode1 < HintMode.max_link_job + 1,
+        childEl: Element | null,
         str: string | null | undefined;
     if (isUrl) {
       str = getUrlData(link as SafeHTMLElement);
@@ -239,9 +240,12 @@ export const linkActions: readonly LinkAction[] = [
           : tag === "select" ? ((link as HTMLSelectElement).selectedIndex < 0
               ? "" : (link as HTMLSelectElement).options[(link as HTMLSelectElement).selectedIndex].text)
           : tag && (str = (link as SafeHTMLElement).innerText.trim(),
-              (<RegExpI> /^mailto:./).test(str) ? str.slice(7).trim() : str)
+              (<RegExpI> /^mailto:./i).test(str) ? str.slice(7)
+              : str
+                || GetShadowRoot_(link) && (childEl = GetShadowRoot_(link)!.querySelector("div,span"))
+                    && htmlTag_(childEl) && (childEl as SafeHTMLElement).innerText
+                || str).trim()
             || (str = link.textContent.trim()) && str.replace(<RegExpG> /\s+/g, " ")
-          ;
       }
       str = str && str.trim();
       if (!str && tag) {

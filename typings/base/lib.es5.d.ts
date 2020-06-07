@@ -330,8 +330,7 @@ interface CallableFunction extends Function {
       * @param args Argument values to be passed to the function.
       */
     call<T, R>(this: (this: T) => R, thisArg: T): R;
-    call<A extends any[], R>(this: (this: void, ...args: A) => R, thisArg: null, ...args: A): R;
-    call<T, A extends any[], R>(this: (this: T, ...args: A) => R, thisArg: T, ...args: A): R;
+    call<T, A extends any[], R>(this: (this: T, ...args: A) => R, thisArg: T extends void ? null | 0 : T, ...args: A): R;
 
     /**
       * For a given function, creates a bound function that has the same body as the original function.

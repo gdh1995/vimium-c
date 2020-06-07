@@ -124,7 +124,7 @@ export const setupEventListener =
       ? Active extends 1 ? HTMLElementEventMap[E] & ToPrevent : HTMLElementEventMap[E]
       : Active extends 1 ? EventToPrevent : Event) => void) | null | EventListenerObject
     , disable?: boolean | BOOL, activeMode?: Active): void => {
-  (disable ? removeEventListener : addEventListener).call(target || window, eventType,
+  (disable ? removeEventListener : addEventListener).call(target as unknown as Window || window, eventType,
     <(this: T, e: EventToPrevent) => void> func || Stop_,
     {passive: !activeMode, capture: true} as EventListenerOptions | boolean as boolean);
 }

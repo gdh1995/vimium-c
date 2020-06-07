@@ -244,20 +244,12 @@ const inferTypeOfListener = (el: SafeHTMLElement, tag: string): boolean => {
 
 /** Note: required by {@link #kFgCmd.focusInput}, should only add LockableElement instances */
 export const getEditable = (hints: Hint[], element: SafeHTMLElement): void => {
-  let arr: Rect | null, s: string;
-  switch (element.localName) {
-  case "input":
-    if (uneditableInputs_[getInputType(element as HTMLInputElement)]) {
-      return;
-    } // no break;
-  case "textarea":
-    if ((element as TextElement).disabled || (element as TextElement).readOnly) { return; }
-    break;
-  default:
-    if ((s = element.contentEditable) === "inherit" || s === "false" || !s) {
-      return;
-    }
-    break;
+  let arr: Rect | null, s: string = element.localName;
+  if ((s === "input" || s === "textarea")
+      ? s < "t" && uneditableInputs_[getInputType(element as HTMLInputElement)]
+        || (element as TextElement).disabled || (element as TextElement).readOnly
+      : (s = element.contentEditable) === "inherit" || s === "false" || !s) {
+    return
   }
   if (arr = getVisibleClientRect_(element)) {
     hints.push([element as LockableElement, arr, ClickType.edit]);
@@ -452,9 +444,8 @@ const getElementsInViewport = (list: HintSources): HintSources => {
     }
     const last = el.lastElementChild;
     if (!last) { continue; }
-    if (Build.BTypes & ~BrowserType.Firefox && notSafe_not_ff_!(el)) { continue; }
-    while (list[++i] !== last) { /* empty */ }
-    i--;
+    const j2 = ([] as readonly Element[]).indexOf.call(list as readonly Element[], last as unknown as Element, i)
+    i = j2 > 0 ? j2 - 1 : i // keep the last element, to iter deeply into boxes
   }
   return result.length > 12 ? result : list;
 }
