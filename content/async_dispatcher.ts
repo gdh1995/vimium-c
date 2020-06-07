@@ -13,7 +13,7 @@ type kMouseClickEvents = "mousedown" | "mouseup" | "click" | "auxclick" | "dblcl
 type NullableSafeElForM = SafeElementForMouse | null | undefined
 
 type YieldedValue = { 42: true }
-type YieldedPos = { label: number; sent (): YieldedValue | undefined }
+type YieldedPos = { label_: number; sent_ (): YieldedValue | undefined }
 type YieldableFunction = (pos: YieldedPos) => [/** step */ number, /** returned */ YieldedValue?]
 declare const enum Instruction { next = 0, return = 2, /** aka. "goto" */ break = 3, yield = 4 }
 
@@ -32,7 +32,7 @@ const __myAwaiter = Build.BTypes & BrowserType.Chrome && Build.MinCVer < Browser
 ? (branchedFunc: () => YieldableFunction): Promise<any> => new Promise ((resolve): void => {
   const resolveVoid = resolve.bind(0, void 0)
   const generator = branchedFunc()
-  let value_: YieldedValue | undefined, async_pos_: YieldedPos = { label: 0, sent: () => value_ }
+  let value_: YieldedValue | undefined, async_pos_: YieldedPos = { label_: 0, sent_: () => value_ }
   resume_()
   function resume_(newValue?: YieldedValue): void {
     value_ = newValue
@@ -41,9 +41,9 @@ const __myAwaiter = Build.BTypes & BrowserType.Chrome && Build.MinCVer < Browser
       let tmp = generator(async_pos_)
       nextInst = tmp[0], value_ = tmp.length > 1 ? tmp[1] : void 0
       if (Build.NDEBUG ? nextInst > Instruction.yield - 1 : nextInst === Instruction.yield) {
-        async_pos_.label++; nextInst = Instruction.yield | Instruction.return
+        async_pos_.label_++; nextInst = Instruction.yield | Instruction.return
       } else if (Build.NDEBUG ? nextInst > Instruction.break - 1 : nextInst === Instruction.break) {
-        async_pos_.label = value_ as unknown as number
+        async_pos_.label_ = value_ as unknown as number
       } else if (!(Build.NDEBUG || nextInst === Instruction.next || nextInst === Instruction.return)) {
         throw Error("Assert error: unsupported async status: " + nextInst)
       }
@@ -355,4 +355,10 @@ export const select_ = (element: LockableElement, rect?: Rect | null, show_flash
     moveSel_need_safe(element, action)
     if (suppressRepeated) { suppressTail_(0) }
   })
+}
+
+if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredGeneratorFunction) {
+  if (!(Build.NDEBUG || !(<RegExpOne> /\.label_\b/).test(click_ + ""))) {
+    console.log("Assert error: async functions should have used `label_` and `sent_`")
+  }
 }

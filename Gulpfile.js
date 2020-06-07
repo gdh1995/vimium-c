@@ -629,8 +629,9 @@ function tsProject() {
   loadTypeScriptCompiler();
   removeSomeTypeScriptOptions();
   var btypes = getBuildItem("BTypes"), cver = getBuildItem("MinCVer");
-  var noGenerator = !(btypes & BrowserType.Chrome && cver < /* MinEnsuredGeneratorFunction */ 39) || -1;
-  patchTSNamespace(gTypescript, logger, noGenerator);
+  var noGenerator = !(btypes & BrowserType.Chrome) || cver >= /* MinEnsuredGeneratorFunction */ 39;
+  var wrapGeneratorToken = !!(btypes & BrowserType.Chrome) && cver < /* MinEnsuredGeneratorFunction */ 39;
+  patchTSNamespace(gTypescript, logger, noGenerator, wrapGeneratorToken);
   return disableErrors ? ts(compilerOptions, ts.reporter.nullReporter()) : ts(compilerOptions);
 }
 

@@ -415,11 +415,15 @@ function inlineAllSetters (code) {
 /**
  * @argument {any} ts
  * @param {{ (...args: any[]): any; error(message: string): any; }} [logger]
- * @argument {boolean | 0 | 1 | -1} [noGenerator]
+ * @argument {boolean} [noGenerator]
+ * @argument {boolean} [wrapGeneratorToken]
  */
-function patchTSNamespace (ts, logger, noGenerator) {
-  var key = "transformGenerators", bak = "_bak_"
+function patchTSNamespace (ts, logger, noGenerator, wrapGeneratorToken) {
+  var key, bak = "_bak_"
+
+  key = "transformGenerators"
   var logged1 = false
+  var originalTransGen = ts[bak + key] || ts[key]
   var notTransformGenerator = function (_context) {
     if (!logged1) {
       logged1 = true;
@@ -427,23 +431,18 @@ function patchTSNamespace (ts, logger, noGenerator) {
     }
     return function (node) { return node; };
   }
-  var transformGeneratorAndAddUnderline = function (_context) {
-    const transformer = originalTransGen.apply(this, arguments)
-    return function (originalNode) {
-      var node = transformer.apply(this, arguments)
-      if (node !== originalNode) {
-        for (var child of node.statements) {
-
-        }
-        console.log("new node found")
-      }
-      return node
-    }
-  }
-  var originalTransGen = ts[bak + key] || ts[key]
   ts[bak + key] = noGenerator ? originalTransGen : null
-  ts[key] = noGenerator === -1 ? notTransformGenerator
-      : noGenerator ? notTransformGenerator : originalTransGen
+  ts[key] = noGenerator ? notTransformGenerator : originalTransGen
+
+  key = "createPropertyAccess"
+  var originalAccessProp = ts[bak + key] || ts[key]
+  var wrappedAccessProp = function (_expression, name) {
+    var args = [].slice.call(arguments, 0)
+    args[1] = name === "label" ? "label_" : name === "sent" ? "sent_" : name
+    return originalAccessProp.apply(this, args)
+  }
+  ts[bak + key] = wrapGeneratorToken ? originalAccessProp : null
+  ts[key] = wrapGeneratorToken ? wrappedAccessProp : originalAccessProp
 }
 
 module.exports = {
