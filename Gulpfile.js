@@ -186,7 +186,7 @@ var Tasks = {
   "build/ts": function(cb) {
     var btypes = getBuildItem("BTypes");
     var curConfig = [btypes, getBuildItem("MinCVer"), envSourceMap, compilerOptions.target
-          , /** 5 */ needCommitInfo && !onlyTestSize ? getNonNullBuildItem("Commit") : 0];
+          , /** 4 */ needCommitInfo && !onlyTestSize ? getNonNullBuildItem("Commit") : 0];
     var configFile = btypes === BrowserType.Chrome ? "chrome"
           : btypes === BrowserType.Firefox ? "firefox" : "browser-" + btypes;
     if (btypes === BrowserType.Firefox) {
@@ -201,9 +201,7 @@ var Tasks = {
     var needClean = true;
     try {
       var oldConfig = readJSON(configFile);
-      if (onlyTestSize) {
-        oldConfig[5] = 0;
-      }
+      if (onlyTestSize) { oldConfig[4] = 0; }
       oldConfig = JSON.stringify(oldConfig);
       needClean = oldConfig !== curConfig;
     } catch (e) {}
