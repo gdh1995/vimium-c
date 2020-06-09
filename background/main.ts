@@ -2357,7 +2357,12 @@
         str = decoded ? enc(path) : path;
         url = url.slice(0, start) + (end ? str + url.slice(end) : str);
       }
-      url = Clipboard_.substitute_(url, ClipAction.gotoUrl)
+      let substituted = Clipboard_.substitute_(url, ClipAction.gotoUrl) || url
+      if (substituted !== url) {
+        // if substitution returns an invalid URL, then refuse it
+        BgUtils_.convertToUrl_(substituted, null, Urls.WorkType.KeepAll)
+        url = BgUtils_.lastUrlType_ === Urls.Type.Full ? substituted : url
+      }
       BgUtils_.resetRe_();
       return { u: url, p: path };
     } as SpecialHandlers[kFgReq.parseUpperUrl],

@@ -65,8 +65,10 @@ const Clipboard_ = {
             first_group = args.length > 3 ? args[1] : ""
             return ""
           });
-          const newText = text.replace(item.match_ as RegExpOne, item.replaced_)
-          text = newText.slice(start, newText.length - (text.length - end)) || first_group || text.slice(start, end)
+          if (end) {
+            const newText = text.replace(item.match_ as RegExpOne, item.replaced_)
+            text = newText.slice(start, newText.length - (text.length - end)) || first_group || text.slice(start, end)
+          }
         } else {
           text = text.replace(item.match_ as RegExpG, item.replaced_);
         }
