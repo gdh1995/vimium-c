@@ -120,7 +120,7 @@ __Other extensions supporting Vimium C:__
 * LinkHints: show indigenized upper-case characters (experimentally)
 * `autoOpen`: add an option of `copy` [(#159)](https://github.com/gdh1995/vimium-c/issues/159)
 
-See more on [RELEASE-NOTES.md](https://github.com/gdh1995/vimium-c/blob/master/RELEASE-NOTES.md).
+See more on [RELEASE-NOTES.md](RELEASE-NOTES.md).
 
 ### Known Issues
 

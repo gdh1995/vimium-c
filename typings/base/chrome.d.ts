@@ -1456,9 +1456,6 @@ declare namespace chrome.runtime {
             id: string;
             minimum_version?: string
         }[];
-        export?: {
-            whitelist?: string[]
-        };
         incognito?: string;
         input_components?: {
             name?: string;
