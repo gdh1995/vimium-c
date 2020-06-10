@@ -9,7 +9,7 @@ import {
   addUIElement, adjustUI, createStyle, ensureBorder, getParentVApi,
   removeSelection, setUICSS, setupExitOnClick, ui_box, ui_root, evalIfOK, checkHidden,
 } from "./dom_ui"
-import { enableHUD, hudCopied, hudTip, hud_box } from "./hud"
+import { hudCopied, hudTip, hud_box } from "./hud"
 import {
   currentKeys, mappedKeys, set_keyFSM, anyClickHandler, onKeydown, onKeyup, passKeys,
   set_isPassKeysReverted, isPassKeysReverted, set_passKeys, set_mappedKeys,
@@ -98,7 +98,6 @@ set_requestHandlers([
     }
     requestHandlers[kBgReq.init] = null as never;
     OnDocLoaded_(function (): void {
-      /*#__INLINE__*/ enableHUD()
       /*#__INLINE__*/ set_onWndFocus(safePost.bind(0, <Req.fg<kFgReq.focus>> { H: kFgReq.focus }))
       timeout_(function (): void {
         const parApi = !(Build.BTypes & ~BrowserType.Firefox)

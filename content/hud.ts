@@ -12,12 +12,10 @@ let box: HTMLDivElement | null = null
 let $text: Text = null as never
 let text = ""
 let opacity_: 0 | 0.25 | 0.5 | 0.75 | 1 = 0
-let enabled = false
 let timer = TimerID.None
 let style: CSSStyleDeclaration
 
 export { box as hud_box, text as hud_text, opacity_ as hud_opacity, timer as hud_tipTimer }
-export function enableHUD (): void { enabled = true }
 
 export const hudCopied = (text: string, isUrl?: BOOL | boolean): void => {
   if (!text) {
@@ -36,7 +34,7 @@ export const hudTip = (tid: kTip | HintMode, duration?: number, args?: Array<str
   text && (timer = timeout_(hudHide, duration || 1500));
 }
 export const hudShow = (tid: kTip | HintMode, args?: Array<string | number>, embed?: boolean): void => {
-  if (!enabled || !isHTML_()) { return; }
+  if (!isHTML_()) { return; }
   text = VTr(tid, args);
   opacity_ = 1;
   if (timer) { clearTimeout_(timer); timer = TimerID.None; }
