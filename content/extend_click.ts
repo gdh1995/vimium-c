@@ -301,7 +301,7 @@ hooks = {
                         , self: EventTarget, args: IArguments) => void,
              _listen as (this: EventTarget, ...args: any[]) => void, a, args);
     if (type === "click" || type === "mousedown" || type === "dblclick"
-        ? listener && a instanceof ElCls && a.tagName !== "a"
+        ? listener && a instanceof ElCls && a.localName !== "a"
         : type === kEventName2 && !isReRegistering
           // note: window.history is mutable on C35, so only these can be used: top,window,location,document
           && a && !(a as Window).window && (a as Node).nodeType === kNode.ELEMENT_NODE) {
@@ -490,7 +490,7 @@ function executeCmd(eventOrDestroy?: Event): void {
       : eventOrDestroy ? kContentCmd._fake : kContentCmd.Destroy;
   // always stopProp even if the secret does not match, so that an attacker can not detect secret by enumerating numbers
   detail && call(StopProp, eventOrDestroy!);
-  let len: number, i: number, tag: Element["tagName"]
+  let len: number, i: number, tag: Element["localName"]
   if (cmd < kContentCmd._minSuppressClickable) {
     if (!cmd || !root) { return; }
     call(Remove, root);
@@ -501,7 +501,7 @@ function executeCmd(eventOrDestroy?: Event): void {
     for (; i < len; i++) {
       const el: Element | HTMLElement = allNodesInDocument[i];
       if (((el as HTMLElement).onclick || (el as HTMLElement).onmousedown) && !call(HasAttr, el, "onclick")
-          && (tag = el.tagName) !== "a" && tag !== "button") { // ignore <button>s to iter faster
+          && (tag = el.localName) !== "a" && tag !== "button") { // ignore <button>s to iter faster
         pushInDocument(i);
       }
     }

@@ -184,6 +184,7 @@ var HelpDialog = {
     ins: 1, kbd: 1, li: 1, ol: 1, p: 1, pre: 1, samp: 1, small: 1, span: 1,
     strong: 1, sub: 1, sup: 1, table: 1, tbody: 1, td: 1, tfoot: 1, th: 1,
     thead: 1, tr: 1, tt: 1, u: 1, ul: 1, var: 1,
+    svg: 1, path: 1,
     __proto__: null as never
   } as SafeEnum,
   safeHTML_ (raw: string, root: HTMLTableDataCellElement | HTMLBodyElement | DOMParser): string {
@@ -198,8 +199,8 @@ var HelpDialog = {
     for (let arr = (root as RootElement).querySelectorAll("*"), i = 0, end = arr.length; i < end; i++) {
       const el = arr[i];
       // here force to match ignoring cases - safer
-      if (!((Build.BTypes & ~BrowserType.Firefox ? el.tagName + "" : el.tagName as string
-            ).toLowerCase() in this._safeTags)
+      if (!((Build.BTypes & ~BrowserType.Firefox ? el.localName + "" : el.localName as string
+            ) in this._safeTags)
           && !(el instanceof HTMLUnknownElement)) {
         el.remove();
         continue;

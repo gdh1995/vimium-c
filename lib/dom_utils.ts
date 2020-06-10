@@ -182,7 +182,7 @@ export const GetParent_unsafe_ = function (this: void, el: Node | Element
         && (pn as Node).nodeType === kNode.DOCUMENT_FRAGMENT_NODE
       ? (pn as DocumentFragment as ShadowRoot).host || null // shadow root or other type of doc fragment
       : (!(Build.BTypes & ~BrowserType.Firefox) || Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype || pn)
-        && "tagName" in (pn as Node) ? pn as Element /* in doc and .pN+.pE are overridden */
+        && "tagName" in (pn as Node as NodeToElement) ? pn as Element /* in doc and .pN+.pE are overridden */
       : null /* pn is null, or some unknown type ... */;
 } as {
     (this: void, el: Element, type: PNType.DirectElement
@@ -737,7 +737,7 @@ export { OnDocLoaded_ }
 export function set_OnDocLoaded_ (_newOnDocLoaded: typeof OnDocLoaded_): void { OnDocLoaded_ = _newOnDocLoaded }
 
 export let createElement_ = doc.createElement.bind(doc) as {
-    <K extends VimiumContainerElementType> (this: void, tagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement;
+    <K extends VimiumContainerElementType> (this: void, htmlTagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement;
 }
 export function set_createElement_ (_newCreateEl: typeof createElement_): void { createElement_ = _newCreateEl }
 

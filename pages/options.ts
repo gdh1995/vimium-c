@@ -1111,7 +1111,7 @@ function loadChecker(this: HTMLElement): void {
 
 document.addEventListener("keydown", function (this: void, event): void {
   if (event.keyCode !== kKeyCode.space) {
-    if (!window.VApi || !VApi.z || "input textarea".includes(document.activeElement!.tagName as string)) { return; }
+    if (!window.VApi || !VApi.z || "input textarea".includes(document.activeElement!.localName as string)) { return; }
     const key = VApi.m({c: kChar.INVALID, e: event, i: event.keyCode}, kModeId.NO_MAP_KEY)
     if (key === "a-" + kChar.f12) {
       $<HTMLOptionElement>("#recommendedSettings").selected = true;
@@ -1130,7 +1130,7 @@ document.addEventListener("keydown", function (this: void, event): void {
     return;
   }
   const el = event.target as Element;
-  if (el.tagName === "span" && (el as EnsuredMountedHTMLElement).parentElement.tagName === "label") {
+  if (el.localName === "span" && (el as EnsuredMountedHTMLElement).parentElement.localName === "label") {
     event.preventDefault();
   }
 });
