@@ -136,7 +136,11 @@ var getUglifyJS = function() {
   } else {
     minify = function(data, config) {
       config || (config = getDefaultUglifyConfig());
-      data = uglify.minify(data, config).code;
+      var output = uglify.minify(data, config);
+      if (output.error) {
+        throw output.error;
+      }
+      data = output.code;
       if (config.ecma && config.ecma >= 2017) {
         data = data.replace(/\bappendChild\b(?!`|\.call\([\w.]*doc)/g, "append");
       }
@@ -155,6 +159,8 @@ function getDefaultUglifyConfig() {
     defaultUglifyConfig.ecma = ({
       es5: 5, es6: 6, es2015: 6, es2017: 2017, es2018: 2018
     })[target] || defaultUglifyConfig.ecma
+    var out = defaultUglifyConfig.output || (defaultUglifyConfig.output = {});
+    out.code = true; out.ast = false;
   }
   return defaultUglifyConfig;
 }
