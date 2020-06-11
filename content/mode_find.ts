@@ -253,6 +253,7 @@ const onLoad2 = (): void => {
     } else if (Build.BTypes & ~BrowserType.Firefox && zoom < 1) {
       docEl.style.zoom = "" + 1 / zoom;
     }
+    body.className = fgCache.d.trim()
     outerBox_.style.display = ""
     removeHandler_(activate);
     pushHandler_(onHostKeydown, activate)
