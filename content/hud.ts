@@ -2,7 +2,7 @@ import {
   fgCache, doc, isEnabled_, VTr, isAlive_, timeout_, clearTimeout_, interval_, clearInterval_,
 } from "../lib/utils"
 import { ui_box, ensureBorder, addUIElement, adjustUI } from "./dom_ui"
-import { allHints, isHintsActive, hintManager, setMode as setHintMode, mode_ as hintMode_ } from "./link_hints"
+import { allHints, isHintsActive, hintManager, setMode as setHintMode, hintMode_ } from "./link_hints"
 import { isHTML_, createElement_, HDN } from "../lib/dom_utils"
 import { insert_global_ } from "./insert"
 import { visual_mode, visual_mode_name } from "./visual"

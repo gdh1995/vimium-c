@@ -4,12 +4,12 @@ import MarkerElement = HintsNS.MarkerElement
 import ClickType = HintsNS.ClickType
 
 import {
-  frameList_, mode_, useFilter_, coreHints, hintKeyStatus, KeyStatus, hintChars, allHints, setMode, resetMode,
+  frameList_, hintMode_, useFilter_, coreHints, hintKeyStatus, KeyStatus, hintChars, allHints, setMode, resetMode,
 } from "./link_hints"
 import {
-  getBoundingClientRect_, htmlTag_, createElement_, bZoom_, getInputType, HDN, docEl_unsafe_, elementProto,
-  padClientRect_, querySelector_unsafe_,
+  createElement_, querySelector_unsafe_, getInputType, htmlTag_, docEl_unsafe_, elementProto, HDN,
 } from "../lib/dom_utils"
+import { bZoom_, padClientRect_, getBoundingClientRect_ } from "../lib/rect"
 import { chromeVer_, doc } from "../lib/utils"
 import { BSP, DEL, ENTER } from "../lib/keyboard_utils"
 import { maxLeft_, maxRight_, maxTop_ } from "./local_links"
@@ -334,7 +334,7 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
         return 2;
       }
     }
-    inited && setMode(mode_);
+    inited && setMode(hintMode_)
   }
   const hintsUnderSeq = seq ? hints.filter(hint => hint.a.startsWith(seq)) : hints,
   newUnerSeq = hintsUnderSeq.length;

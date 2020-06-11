@@ -1,7 +1,8 @@
 import { clickable_, VOther, doc } from "../lib/utils"
 import {
-  docEl_unsafe_, getBoundingClientRect_, htmlTag_, isAriaNotTrue_, isStyleVisible_, querySelectorAll_unsafe_,
+  docEl_unsafe_, htmlTag_, isAriaNotTrue_, isStyleVisible_, querySelectorAll_unsafe_,
 } from "../lib/dom_utils"
+import { getBoundingClientRect_ } from "../lib/rect"
 import { kSafeAllSelector, unwrap_ff } from "./link_hints"
 import { traverse, ngEnabled } from "./local_links"
 

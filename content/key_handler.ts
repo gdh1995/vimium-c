@@ -4,13 +4,14 @@ import {
 import {
   set_getMappedKey, char_, getMappedKey, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_, Stop_,
 } from "../lib/keyboard_utils"
+import { activeEl_unsafe_, getSelection_, elementProto } from "../lib/dom_utils"
+import { getInnerHeight } from "../lib/rect"
 import { post_ } from "./port"
 import { removeSelection } from "./dom_ui"
 import {
   exitInsertMode, focusUpper, insert_global_, insert_Lock_, isInInsert, raw_insert_lock, setupSuppress, suppressType,
 } from "./insert"
 import { keyIsDown as scroll_keyIsDown, onScrolls, scrollTick } from "./scroller"
-import { activeEl_unsafe_, getSelection_, getInnerHeight, elementProto } from "../lib/dom_utils"
 
 let passKeys: SafeEnum | null | "" = null
 let isPassKeysReverted = false

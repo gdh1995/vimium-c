@@ -1,7 +1,6 @@
 import { doc, deref_, weakRef_, VOther, chromeVer_, jsRe_, clickable_, getTime } from "../lib/utils"
-import {
-  IsInDOM_, activeEl_unsafe_, center_, getVisibleClientRect_, isInTouchMode_cr_, MDW, htmlTag_, CLK, view_,
-} from "../lib/dom_utils"
+import { IsInDOM_, activeEl_unsafe_, isInTouchMode_cr_, MDW, htmlTag_, CLK } from "../lib/dom_utils"
+import { center_, getVisibleClientRect_, view_ } from "../lib/rect"
 import { insert_Lock_ } from "./insert"
 import { unwrap_ff } from "./link_hints"
 import { post_ } from "./port"

@@ -1,22 +1,24 @@
 import Filter = HintsNS.Filter
 import ClickType = HintsNS.ClickType
 type HintSources = readonly SafeElement[] | NodeListOf<SafeElement>;
-type NestedFrame = false | 0 | null | HTMLIFrameElement | HTMLFrameElement;
+type NestedFrame = false | 0 | null | KnownIFrameElement
 
 import { VOther, clickable_, jsRe_, doc, isImageUrl, fgCache, readyState_, chromeVer_ } from "../lib/utils"
 import {
-  getVisibleClientRect_, uneditableInputs_, getComputedStyle_, getZoomedAndCroppedRect_, findMainSummary_,
-  getClientRectsForAreas_, htmlTag_, isAriaNotTrue_, getCroppedRect_, getBoundingClientRect_, cropRectToVisible_,
-  isStyleVisible_, fullscreenEl_unsafe_, querySelector_unsafe_, bZoom_, set_bZoom_, prepareCrop_, notSafe_not_ff_,
-  isContaining_, docEl_unsafe_, GetParent_unsafe_, unsafeFramesetTag_old_cr_, isDocZoomStrange_, docZoom_,
-  SubtractSequence_, isHTML_, querySelectorAll_unsafe_, getInnerHeight, getInputType, NONE, elementProto,
-  padClientRect_,
+  isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, findMainSummary_, htmlTag_, isAriaNotTrue_,
+  NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, elementProto, notSafe_not_ff_, docEl_unsafe_,
+  GetParent_unsafe_, unsafeFramesetTag_old_cr_, isHTML_, querySelectorAll_unsafe_,
 } from "../lib/dom_utils"
+import {
+  getVisibleClientRect_, getZoomedAndCroppedRect_, getClientRectsForAreas_, getCroppedRect_, padClientRect_,
+  getBoundingClientRect_, cropRectToVisible_, bZoom_, set_bZoom_, prepareCrop_, getInnerHeight, isContaining_,
+  isDocZoomStrange_, docZoom_, SubtractSequence_,
+} from "../lib/rect"
 import { find_box } from "./mode_find"
 import { omni_box } from "./omni"
 import {
-  unwrap_ff, kSafeAllSelector, kEditableSelector, coreHints, addChildFrame, mode1_, forHover_,
-  isClickListened_, forceToScroll_, mode_, set_isClickListened_, tooHigh_, useFilter_, hintChars,
+  unwrap_ff, kSafeAllSelector, kEditableSelector, coreHints, addChildFrame_, mode1_, forHover_,
+  isClickListened_, forceToScroll_, hintMode_, set_isClickListened_, tooHigh_, useFilter_, hintChars,
 } from "./link_hints"
 import { shouldScroll_need_safe, getPixelScaleToScroll, scrolled, resetScrolled, suppressScroll } from "./scroller"
 import { ui_root, ui_box } from "./dom_ui"
@@ -49,8 +51,7 @@ export const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
     if (isClickable = element !== find_box) {
       arr = getVisibleClientRect_(element);
       if (element !== omni_box) {
-        isClickable = addChildFrame ? addChildFrame(coreHints,
-            element as HTMLIFrameElement | HTMLFrameElement, arr) : !!arr;
+        isClickable = addChildFrame_ ? addChildFrame_(coreHints, element as KnownIFrameElement, arr) : !!arr
       } else if (arr) {
         (arr as WritableRect).l += 12; (arr as WritableRect).t += 9;
       }
@@ -143,7 +144,7 @@ export const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
         || shouldScroll_need_safe(element
             , (((type - ClickType.scrollX) as ScrollByY) + forceToScroll_) as BOOL | 2 | 3, 0) > 0)
       && isAriaNotTrue_(element, kAria.hidden)
-      && (mode_ > HintMode.min_job - 1 || isAriaNotTrue_(element, kAria.disabled))
+      && (hintMode_ > HintMode.min_job - 1 || isAriaNotTrue_(element, kAria.disabled))
   ) { hints.push([element, arr, type]); }
 }
 
@@ -168,7 +169,7 @@ const getClickableInMaybeSVG = (hints: Hint[], element: SVGElement | OtherSafeEl
         : ClickType.Default;
       if (type && (arr = getVisibleClientRect_(element, null))
           && isAriaNotTrue_(element, kAria.hidden)
-          && (mode_ > HintMode.min_job - 1 || isAriaNotTrue_(element, kAria.disabled))
+          && (hintMode_ > HintMode.min_job - 1 || isAriaNotTrue_(element, kAria.disabled))
           ) {
         hints.push([element, arr, type]);
       }
@@ -416,17 +417,16 @@ const addChildTrees = (list: HintSources, allNodes: NodeListOf<SafeElement>): Hi
                     && chromeVer_ < BrowserVer.MinEnsuredUnprefixedShadowDOMV0;
   let hosts: SafeElement[] = [], matched: SafeElement | undefined;
   for (let i = 0, len = allNodes.length; i < len; i++) {
-    let el = allNodes[i], tag: string;
+    let el = allNodes[i]
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
           && matchWebkit ? el.webkitShadowRoot : el.shadowRoot) {
       hosts.push(matched = el);
-    } else if (((tag = el.localName) === "iframe" || tag === "frame") && addChildFrame
-        && htmlTag_(el)) {
+    } else if (el.localName.endsWith("me") && addChildFrame_ && isIFrameElement(el)) {
       if ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
           && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
           && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
           || el !== omni_box && el !== find_box) {
-        addChildFrame(coreHints, el as HTMLIFrameElement | HTMLFrameElement, getVisibleClientRect_(el));
+        addChildFrame_(coreHints, el, getVisibleClientRect_(el))
       }
     }
   }
@@ -720,13 +720,13 @@ export const checkNestedFrame = (output?: Hint[]): void => {
         }
       }
     }
-    res = output.length !== 1 ? output.length !== 0 && null
-        : (<RegExpI> /^i?frame$/).test(htmlTag_(element = output[0][0]))
+    res = output.length !== 1 ? output.length > 0 && null
+        : isIFrameElement(element = output[0][0])
           && (rect = padClientRect_(getBoundingClientRect_(element)),
               rect2 = padClientRect_(getBoundingClientRect_(docEl_unsafe_()!)),
               rect.t - rect2.t < 20 && rect.l - rect2.l < 20
               && rect2.r - rect.r < 20 && rect2.b - rect.b < 20)
-          && isStyleVisible_(element) ? element as HTMLFrameElement | HTMLIFrameElement
+          && isStyleVisible_(element) ? element as KnownIFrameElement
         : null
   }
   frameNested_ = res === false && readyState_ < "i" ? null : res;

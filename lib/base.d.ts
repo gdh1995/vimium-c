@@ -354,6 +354,8 @@ declare const enum AdjustType {
   DEFAULT = Normal,
 }
 
+type KnownIFrameElement = HTMLIFrameElement | HTMLFrameElement
+
 type VimiumContainerElementType = "div" | "span" | "style" | "iframe" | "a" | "script" | "dialog";
 /** ShadowRoot | HTMLDivElement */
 type VUIRoot = ShadowRoot | (HTMLDivElement & { mode?: undefined });

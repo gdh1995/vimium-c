@@ -1,24 +1,23 @@
 import HintItem = HintsNS.HintItem
 import {
-  safer, fgCache, VOther, isImageUrl, jsRe_, set_keydownEvents_, keydownEvents_, timeout_, doc,
-  chromeVer_,
-  weakRef_,
+  safer, fgCache, VOther, isImageUrl, jsRe_, set_keydownEvents_, keydownEvents_, timeout_, doc, chromeVer_, weakRef_,
 } from "../lib/utils"
+import { getVisibleClientRect_, center_, view_ } from "../lib/rect"
 import {
-  getEditableType_, center_, htmlTag_, GetParent_unsafe_, uneditableInputs_, createElement_,
-  scrollingEl_, view_, findMainSummary_, getVisibleClientRect_, getComputedStyle_, IsInDOM_, getInputType,
-  CLK, elementProto, querySelector_unsafe_, GetShadowRoot_,
+  IsInDOM_, createElement_, htmlTag_, getComputedStyle_, getEditableType_, isIFrameElement, GetParent_unsafe_,
+  elementProto, querySelector_unsafe_, getInputType, uneditableInputs_, GetShadowRoot_, CLK, scrollingEl_,
+  findMainSummary_,
 } from "../lib/dom_utils"
 import {
-  hintOptions, mode1_, mode_, hintApi, hintManager, coreHints,
-  highlightChild, setMode,
+  hintOptions, mode1_, hintMode_, hintApi, hintManager, coreHints, setMode, detectUsableChild, hintCount_,
 } from "./link_hints"
 import { set_currentScrolling, syncCachedScrollable } from "./scroller"
-import { post_ } from "./port"
+import { post_, send_ } from "./port"
 import { evalIfOK, flash_, getRect, lastFlashEl } from "./dom_ui"
 import { pushHandler_, removeHandler_, isEscape_, getMappedKey, prevent_, suppressTail_ } from "../lib/keyboard_utils"
 import { insert_Lock_ } from "./insert"
 import { unhover_, hover_, click_, select_, mouse_, catchAsyncErrorSilently } from "./async_dispatcher"
+import { omni_box, focusOmni } from "./omni"
 type LinkEl = Hint[0];
 interface Executor {
   (this: void, linkEl: LinkEl, rect: Rect | null, hintEl: Pick<HintItem, "r">): void | boolean;
@@ -129,7 +128,7 @@ const getImageName_ = (img: SafeHTMLElement): string =>
 const openUrl = (url: string, incognito?: boolean): void => {
   hintApi.p({
     H: kFgReq.openUrl,
-    r: mode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
+    r: hintMode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
     u: url,
     f: incognito,
     e: hintOptions.sed,
@@ -150,6 +149,31 @@ const unhoverOnEsc = (): void => {
   pushHandler_(exit, exit);
 }
 
+const focusIFrame = (el: KnownIFrameElement): BOOL => {
+  hintOptions.mode = hintMode_;
+  (hintManager || coreHints).$(1)
+  if (el === omni_box) {
+    focusOmni()
+    return 1
+  }
+  el.focus()
+  // focus first, so that childApi is up-to-date (in case <iframe> was removed on focus)
+  const childApi = detectUsableChild(el)
+  if (!childApi) {
+    send_(kFgReq.execInChild, {
+      u: el.src,
+      c: kFgCmd.linkHints, n: hintCount_, k: keyCode_, a: hintOptions
+    }, (res): void => {
+      if (!res) {
+        el.contentWindow.focus()
+      }
+    })
+  } else {
+    childApi.f(kFgCmd.linkHints, hintCount_, hintOptions, 1)
+  }
+  return 0
+}
+
 export const linkActions: readonly LinkAction[] = [
 [
   (element, rect): void => {
@@ -158,13 +182,13 @@ export const linkActions: readonly LinkAction[] = [
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
     /*#__INLINE__*/ set_currentScrolling(weakRef_(element));
     catchAsyncErrorSilently(hover_(element, center_(rect))).then((): void => {
-    type || element.focus && !(<RegExpI> /^i?frame$/).test(htmlTag_(element)) && element.focus();
+    type || element.focus && !isIFrameElement(element) && element.focus()
     /*#__INLINE__*/ syncCachedScrollable();
     if (mode1_ < HintMode.min_job) { // called from Modes[-1]
       hintApi.t(kTip.hoverScrollable, 1000)
       return
     }
-    mode_ & HintMode.queue || unhoverOnEsc();
+    hintMode_ & HintMode.queue || unhoverOnEsc()
     if (!toggleMap || typeof toggleMap !== "object") { return; }
     safer(toggleMap);
     let ancestors: Element[] = [], top: Element | null = element, re = <RegExpOne> /^-?\d+/;
@@ -220,9 +244,9 @@ export const linkActions: readonly LinkAction[] = [
     }
     else if ((str = link.getAttribute("data-vim-text"))
         && (str = str.trim())) { /* empty */ }
+    else if (isIFrameElement(link)) { return !focusIFrame(link) }
     else {
-      const tag = htmlTag_(link), isChild = highlightChild(link, tag);
-      if (isChild) { return isChild > 1; }
+      const tag = htmlTag_(link)
       if (tag === "input") {
         let type = getInputType(link as HTMLInputElement), f: HTMLInputElement["files"];
         if (type === "pa") {
@@ -334,7 +358,7 @@ export const linkActions: readonly LinkAction[] = [
     if (!text) { return; }
     post_({
       H: kFgReq.openImage,
-      r: mode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
+      r: hintMode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
       f: getImageName_(img),
       e: hintOptions.sed,
       u: text,
@@ -379,7 +403,7 @@ export const linkActions: readonly LinkAction[] = [
 ] as LinkAction,
 [
   (link, rect): void | false => {
-    if (mode_ < HintMode.min_disable_queue) {
+    if (hintMode_ < HintMode.min_disable_queue) {
       view_(link);
       link.focus && link.focus();
       removeFlash || flash_(link)
@@ -393,11 +417,9 @@ export const linkActions: readonly LinkAction[] = [
 ],
 [
   (link, rect, hint): void | boolean => {
-    const tag = htmlTag_(link), isChild = highlightChild(link, tag);
-    if (isChild) {
-      return isChild > 1;
-    }
-    if (tag === "details") {
+    const tag = htmlTag_(link)
+    if (isIFrameElement(link)) { return !focusIFrame(link) }
+    else if (tag === "details") {
       const summary = findMainSummary_(link as HTMLDetailsElement);
       if (summary) {
           // `HTMLSummaryElement::DefaultEventHandler(event)` in
@@ -416,7 +438,7 @@ export const linkActions: readonly LinkAction[] = [
       select_(link as LockableElement, rect, !removeFlash);
       return false;
     }
-    const mask = mode_ & HintMode.mask_focus_new, isMac = !fgCache.o,
+    const mask = hintMode_ & HintMode.mask_focus_new, isMac = !fgCache.o,
     isRight = hintOptions.button === "right",
     dblClick = !!hintOptions.dblclick && !isRight,
     newTabOption = hintOptions.newtab,
@@ -426,7 +448,7 @@ export const linkActions: readonly LinkAction[] = [
     newWindow = newTabOption === "window" && !otherActions,
     cnsForWin = hintOptions.ctrlShiftForWindow,
     autoUnhover = hintOptions.autoUnhover,
-    isQueue = mode_ & HintMode.queue,
+    isQueue = hintMode_ & HintMode.queue,
     noCtrlPlusShiftForActive: boolean | undefined = cnsForWin != null ? cnsForWin : hintOptions.noCtrlPlusShift,
     ctrl = newTab && !(newtab_n_active && noCtrlPlusShiftForActive) || newWindow && !!noCtrlPlusShiftForActive,
     shift = newWindow || newtab_n_active,

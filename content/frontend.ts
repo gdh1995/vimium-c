@@ -4,7 +4,8 @@ import {
   set_readyState_, readyState_, set_allowScripts_, callFunc, recordLog, set_vApi, vApi,
 } from "../lib/utils"
 import { suppressTail_, getMappedKey } from "../lib/keyboard_utils"
-import { frameElement_, set_OnDocLoaded_, getInnerHeight } from "../lib/dom_utils"
+import { frameElement_, set_OnDocLoaded_ } from "../lib/dom_utils"
+import { getInnerHeight } from "../lib/rect"
 import {
   safePost, clearRuntimePort, runtime_port, SafeDestoryF, set_safeDestroy,
   runtimeConnect, safeDestroy, post_, send_,

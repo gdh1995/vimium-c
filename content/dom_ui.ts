@@ -2,15 +2,17 @@ import {
   setupEventListener, isTop, keydownEvents_, VOther, timeout_, fgCache, doc, isAlive_, allowScripts_,
   set_allowScripts_, jsRe_, chromeVer_, VTr, deref_,
 } from "../lib/utils"
-import {
-  createElement_, createShadowRoot_, bZoom_, dScale_, fullscreenEl_unsafe_, docEl_unsafe_, getZoom_, wdZoom_,
-  getComputedStyle_, GetParent_unsafe_, getSelection_, GetShadowRoot_, getEditableType_,
-  getSelectionBoundingBox_, getVisibleClientRect_, prepareCrop_, getClientRectsForAreas_, notSafe_not_ff_,
-  getBoundingClientRect_, padClientRect_, isContaining_, cropRectToVisible_, getCroppedRect_, setBoundary_,
-  frameElement_, runJS_, isStyleVisible_, set_docSelectable_, getInnerHeight, CLK, NONE, htmlTag_,
-  getInnerWidth, elementProto, GetChildNodes_not_ff,
-} from "../lib/dom_utils"
 import { Stop_ } from "../lib/keyboard_utils"
+import {
+  createElement_, createShadowRoot_, NONE, fullscreenEl_unsafe_, docEl_unsafe_, getComputedStyle_, set_docSelectable_,
+  GetParent_unsafe_, getSelection_, elementProto, GetChildNodes_not_ff, GetShadowRoot_, getEditableType_, htmlTag_,
+  notSafe_not_ff_, CLK, frameElement_, runJS_, isStyleVisible_,
+} from "../lib/dom_utils"
+import {
+  bZoom_, dScale_, getZoom_, wdZoom_, getSelectionBoundingBox_, prepareCrop_, getClientRectsForAreas_,
+  getVisibleClientRect_, getBoundingClientRect_, padClientRect_, isContaining_, cropRectToVisible_, getCroppedRect_,
+  setBoundary_, getInnerHeight, getInnerWidth,
+} from "../lib/rect"
 import { currentScrolling } from "./scroller"
 import { styleSelectable } from "./mode_find"
 import { isHintsActive, reinitHintsIgnoringArgs } from "./link_hints"

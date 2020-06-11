@@ -31,7 +31,7 @@ import {
 import {
   editableTypes_, markFramesetTagUnsafe, setNotSafe_not_ff, OnDocLoaded_, frameElement_,
   notSafe_not_ff_, htmlTag_, querySelector_unsafe_, isHTML_, createElement_,
-  docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, CLK, MDW, elementProto,
+  docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, CLK, MDW, elementProto, isIFrameElement
 } from "../lib/dom_utils"
 import { lastHovered_, resetLastHovered } from "./async_dispatcher"
 
@@ -419,7 +419,7 @@ export const focusAndRun = (cmd?: FgCmdAcrossFrames, count?: number, options?: F
   } else {
     // cur is safe because on Firefox
     const cur = activeEl_unsafe_() as SafeElement | null;
-    cur && (<RegExpOne> /^i?frame$/).test(htmlTag_(cur)) && cur.blur && cur.blur()
+    cur && isIFrameElement(cur) && cur.blur()
   }
   focus();
   /** Maybe a `doc.open()` has been called

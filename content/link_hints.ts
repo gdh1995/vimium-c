@@ -66,21 +66,23 @@ import {
   VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_,
   clearTimeout_, VOther, fgCache, doc, readyState_, chromeVer_, vApi, deref_,
 } from "../lib/utils"
-import { frameElement_, querySelector_unsafe_, isHTML_, getViewBox_, prepareCrop_, scrollingEl_, bZoom_, wdZoom_,
-  dScale_, getBoundingClientRect_, docEl_unsafe_, IsInDOM_, docZoom_, bScale_, GetParent_unsafe_, getComputedStyle_,
-  isStyleVisible_, getInnerHeight, padClientRect_,
+import {
+  frameElement_, querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_,
+  getComputedStyle_, isStyleVisible_,
 } from "../lib/dom_utils"
+import {
+  getViewBox_, prepareCrop_, getInnerHeight, bZoom_, wdZoom_, dScale_, padClientRect_, getBoundingClientRect_,
+  docZoom_, bScale_,
+} from "../lib/rect"
 import {
   pushHandler_, SuppressMost_, removeHandler_, getMappedKey, keybody_, isEscape_, getKeyStat_, keyNames_, suppressTail_,
   BSP,
   ENTER,
 } from "../lib/keyboard_utils"
-import { send_ } from "./port"
 import {
   style_ui, addElementList, ensureBorder, adjustUI, flash_, getParentVApi, getWndVApi_ff, checkHidden, removeModal,
 } from "./dom_ui"
 import { scrollTick, beginScroll } from "./scroller"
-import { omni_box, focusOmni } from "./omni"
 import { hudTip, hudShow, hudHide, hud_tipTimer } from "./hud"
 import { set_onWndBlur2 } from "./insert"
 import {
@@ -92,7 +94,7 @@ import {
   generateHintText,
 } from "./hint_filters"
 import {
-  linkActions, executeHintInOfficer, removeFlash, set_hintModeAction, resetRemoveFlash, resetHintKeyCode, hintKeyCode,
+  linkActions, executeHintInOfficer, removeFlash, set_hintModeAction, resetRemoveFlash, resetHintKeyCode,
 } from "./link_actions"
 import { lastHovered_, resetLastHovered } from "./async_dispatcher"
 
@@ -129,15 +131,15 @@ const unwrap_ff = (!(Build.BTypes & BrowserType.Firefox) ? 0 as never
     <T extends object>(obj: T): T;
 }
   /** return whether the element's VHints is not accessible */
-let addChildFrame: ((child: BaseHinter
-      , el: HTMLIFrameElement | HTMLFrameElement, rect: Rect | null) => boolean) | null = null
+let addChildFrame_: ((child: BaseHinter
+      , el: KnownIFrameElement, rect: Rect | null) => boolean) | null | undefined
 
 export {
   isActive as isHintsActive,
   hints_ as allHints, keyStatus_ as hintKeyStatus, useFilter_, frameList_, chars_ as hintChars,
-  mode_, mode1_, options_ as hintOptions,
+  mode_ as hintMode_, mode1_, options_ as hintOptions, count_ as hintCount_,
   forHover_, isClickListened_, forceToScroll_, tooHigh_,
-  kSafeAllSelector, kEditableSelector, unwrap_ff, addChildFrame,
+  kSafeAllSelector, kEditableSelector, unwrap_ff, addChildFrame_,
   api_ as hintApi, manager_ as hintManager,
 }
 export function set_kSafeAllSelector (_newKSafeAll: string): void { kSafeAllSelector = _newKSafeAll as any }
@@ -186,7 +188,7 @@ export const activate = (options: HintsNS.ContentOptions, count: number): void =
       , frameInfo: FrameHintsInfo, total: number
     {
       const childFrames: ChildFrame[] = [],
-      addChild: typeof addChildFrame = function (child, el, rect) {
+      addChild: typeof addChildFrame_ = (child, el, rect): boolean => {
         const childApi = detectUsableChild(el),
         officer: HintOfficer | null | undefined = childApi && (childApi.b as HintOfficer)
         if (officer) {
@@ -233,7 +235,7 @@ export const activate = (options: HintsNS.ContentOptions, count: number): void =
 const collectFrameHints = (count: number, options: HintsNS.ContentOptions
       , chars: string, useFilter: boolean, outerView: Rect | null
       , manager: HintManager | null, frameInfo: FrameHintsInfo
-      , newAddChildFrame: NonNullable<typeof addChildFrame>
+      , newAddChildFrame: NonNullable<typeof addChildFrame_>
       ): void => {
     (coreHints as BaseHinter).p = manager_ =
         Build.BTypes & BrowserType.Firefox ? manager && unwrap_ff(manager) : manager
@@ -273,10 +275,10 @@ const collectFrameHints = (count: number, options: HintsNS.ContentOptions
     }
     removeModal()
     forceToScroll_ = options.scroll === "force" ? 2 : 0;
-    addChildFrame = newAddChildFrame;
+    addChildFrame_ = newAddChildFrame
     const elements = getVisibleElements(view);
     const hintItems = elements.map(createHint);
-    addChildFrame = null as never;
+    addChildFrame_ = null
     bZoom_ !== 1 && adjustMarkers(hintItems, elements);
     for (let i = useFilter_ ? hintItems.length : 0; 0 <= --i; ) {
       hintItems[i].h = generateHintText(elements[i], i, hintItems)
@@ -322,7 +324,7 @@ export const setMode = (mode: HintMode, silent?: 1): void => {
     hudShow(kTip.raw, [msg], true)
 }
 
-const getPreciseChildRect = (frameEl: HTMLIFrameElement | HTMLFrameElement, view: Rect): Rect | null => {
+const getPreciseChildRect = (frameEl: KnownIFrameElement, view: Rect): Rect | null => {
     const max = Math.max, min = Math.min, V = "visible",
     brect = padClientRect_(getBoundingClientRect_(frameEl)),
     docEl = docEl_unsafe_(), body = doc.body, inBody = !!body && IsInDOM_(frameEl, body, 1),
@@ -493,7 +495,7 @@ const callExecuteHint = (hint: HintItem, event?: HandlerNS.Event): void => {
 }
 
 const locateHint = (matchedHint: HintItem): BaseHinter => {
-    /** safer; necessary since {@link #_highlightChild} calls {@link #detectUsableChild_} */
+    /** safer; necessary since {@link #highlightChild} calls {@link #detectUsableChild} */
     const arr = frameList_;
     for (const list of arr.length > 1 && matchedHint ? arr : []) {
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
@@ -556,7 +558,7 @@ const postExecute = (officer: BaseHinter, clickEl: LinkEl | null, rect?: Rect | 
     coreHints.w();
     timeout_(function (): void {
       reinit(officer, clickEl, rect);
-      if (isActive && 1 === --count_) {
+      if (isActive && 1 === (--count_)) {
         setMode(mode1_);
       }
     }, frameList_.length > 1 ? 50 : 18);
@@ -718,7 +720,7 @@ const onFrameUnload = (officer: HintOfficer): void => {
     }
 }
 
-const detectUsableChild = (el: HTMLIFrameElement | HTMLFrameElement): VApiTy | null => {
+export const detectUsableChild = (el: KnownIFrameElement): VApiTy | null => {
   let err: boolean | null = true, childEvents: VApiTy | null | void | undefined
   try {
     err = !el.contentDocument
@@ -738,33 +740,6 @@ const detectUsableChild = (el: HTMLIFrameElement | HTMLFrameElement): VApiTy | n
     }
   }
   return err ? null : childEvents || null;
-}
-
-export const highlightChild = (el: LinkEl, tag: string): 0 | 1 | 2 => {
-  if (!(<RegExpOne> /^i?frame$/).test(tag)) {
-    return 0;
-  }
-  options_.mode = mode_;
-  (manager_ || coreHints).$(1)
-  if (el === omni_box) {
-    focusOmni();
-    return 1;
-  }
-  const childApi = detectUsableChild(el as HTMLIFrameElement | HTMLFrameElement);
-  (el as HTMLIFrameElement | HTMLFrameElement).focus();
-  if (!childApi) {
-    send_(kFgReq.execInChild, {
-      u: (el as HTMLIFrameElement | HTMLFrameElement).src,
-      c: kFgCmd.linkHints, n: count_, k: hintKeyCode, a: options_
-    }, function (res): void {
-      if (!res) {
-        (el as HTMLIFrameElement | HTMLFrameElement).contentWindow.focus();
-      }
-    });
-  } else {
-    childApi.f(kFgCmd.linkHints, count_, options_, 1);
-  }
-  return 2;
 }
 
 const coreHints: HintManager = {

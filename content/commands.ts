@@ -1,13 +1,14 @@
 import {
   chromeVer_, doc, esc, EscF, fgCache, isTop, safeObj, set_esc, VOther, VTr, safer, timeout_, loc_, weakRef_, deref_,
 } from "../lib/utils"
-import {
-  isHTML_, view_, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, createElement_,
-  padClientRect_, getBoundingClientRect_, setBoundary_, wdZoom_, dScale_, getInnerHeight, getInnerWidth, htmlTag_,
-} from "../lib/dom_utils"
+import { isHTML_, htmlTag_, createElement_ } from "../lib/dom_utils"
 import {
   pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER,
 } from "../lib/keyboard_utils"
+import {
+  view_, getInnerWidth, getInnerHeight, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, padClientRect_,
+  getBoundingClientRect_, setBoundary_, wdZoom_, dScale_,
+} from "../lib/rect"
 import { post_ } from "./port"
 import { addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, flash_ } from "./dom_ui"
 import { hudHide, hudShow, hudTip, hud_text } from "./hud"

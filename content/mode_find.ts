@@ -7,10 +7,11 @@ import {
   DEL, BSP, ENTER,
 } from "../lib/keyboard_utils"
 import {
-  createShadowRoot_, prepareCrop_, getSelectionFocusEdge_, activeEl_unsafe_,
+  createShadowRoot_, getSelectionFocusEdge_, activeEl_unsafe_,
   getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, htmlTag_, fullscreenEl_unsafe_, docEl_unsafe_,
-  getSelection_, view_, isSelected_, docSelectable_, isHTML_, createElement_, wdZoom_, CLK, MDW, HDN, NONE,
+  getSelection_, isSelected_, docSelectable_, isHTML_, createElement_, CLK, MDW, HDN, NONE,
 } from "../lib/dom_utils"
+import { wdZoom_, prepareCrop_, view_ } from "../lib/rect"
 import {
   ui_box, ui_root, getSelectionParent_unsafe, resetSelectionToDocStart,
   createStyle, getSelectionText, checkDocSelectable, adjustUI, ensureBorder, addUIElement, getSelected,
@@ -208,13 +209,13 @@ const onLoad2 = (): void => {
     const box = Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
         && (Build.MinFFVer < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
-            && (Build.BTypes & BrowserType.Chrome || chromeVer_ < FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
+          && (Build.BTypes & BrowserType.Chrome || chromeVer_ < FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
             || fgCache.o === kOS.linux)
         ? addElement("div") as HTMLDivElement : body,
     root = Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
         && (Build.MinFFVer < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
-            && (Build.BTypes & BrowserType.Chrome || chromeVer_ < FirefoxBrowserVer.MinContentEditableInShadowSupportIME))
+          && (Build.BTypes & BrowserType.Chrome || chromeVer_ < FirefoxBrowserVer.MinContentEditableInShadowSupportIME))
         ? box : createShadowRoot_(box),
     inShadow = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
         && (!(Build.BTypes & BrowserType.Firefox)

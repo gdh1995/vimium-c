@@ -19,10 +19,8 @@ import {
   injector, isAlive_, keydownEvents_, readyState_, VOther, timeout_, clearTimeout_, loc_, recordLog, chromeVer_, interval_, clearInterval_,
 } from "../lib/utils"
 import { removeHandler_, pushHandler_, SuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils";
-import {
-  createElement_, docZoom_, devRatio_, frameElement_, isHTML_, getViewBox_, fullscreenEl_unsafe_, dScale_,
-  prepareCrop_, bZoom_, getInnerHeight, NONE,
-} from "../lib/dom_utils";
+import { frameElement_, isHTML_, fullscreenEl_unsafe_, NONE, createElement_ } from "../lib/dom_utils"
+import { getViewBox_, docZoom_, dScale_, devRatio_, prepareCrop_, bZoom_, getInnerHeight } from "../lib/rect"
 import { beginScroll, scrollTick } from "./scroller"
 import {
   getSelectionText, adjustUI, setupExitOnClick, addUIElement, getParentVApi, evalIfOK, checkHidden,

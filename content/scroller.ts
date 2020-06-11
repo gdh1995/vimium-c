@@ -37,16 +37,18 @@ import {
   isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, allowRAF_, readyState_, loc_, chromeVer_,
   vApi, deref_, weakRef_,
 } from "../lib/utils"
+import {
+  rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_,
+  querySelector_unsafe_, getComputedStyle_, notSafe_not_ff_, HDN, isRawStyleVisible,
+} from "../lib/dom_utils"
+import {
+  scrollWndBy_, getInnerHeight, getZoom_, wdZoom_, bZoom_, isNotInViewport, getInnerWidth, prepareCrop_, padClientRect_,
+  getBoundingClientRect_, cropRectToVisible_, getVisibleClientRect_,
+} from "../lib/rect"
 import { getParentVApi, resetSelectionToDocStart, checkHidden, addElementList, curModalElement } from "./dom_ui"
 import { isCmdTriggered } from "./key_handler"
 import { tryNestedFrame } from "./link_hints"
 import { setPreviousMarkPosition } from "./marks"
-import {
-  scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, scrollWndBy_, frameElement_, rAF_, getVisibleClientRect_,
-  OnDocLoaded_, GetParent_unsafe_, querySelector_unsafe_, getZoom_, wdZoom_, bZoom_, isNotInViewport, getComputedStyle_,
-  prepareCrop_, notSafe_not_ff_, getBoundingClientRect_, getInnerHeight, HDN, NONE, getInnerWidth, padClientRect_,
-  cropRectToVisible_, isRawStyleVisible,
-} from "../lib/dom_utils"
 import { keyNames_, prevent_ } from "../lib/keyboard_utils"
 
 let toggleAnimation: ((scrolling?: BOOL) => void) | null = null

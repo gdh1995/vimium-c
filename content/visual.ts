@@ -31,10 +31,12 @@ type ValidDiTypes = DiType.Normal | DiType.UnsafeTextBox | DiType.SafeTextBox | 
 
 import { VTr, VOther, safer, fgCache, doc, chromeVer_ } from "../lib/utils"
 import {
-  getSelectionBoundingBox_, getZoom_, prepareCrop_, cropRectToVisible_, getSelection_, getSelectionFocusEdge_,
-  editableTypes_, isInputInTextMode_cr_old, isHTML_, docEl_unsafe_, notSafe_not_ff_, getVisibleClientRect_,
-  getEditableType_, padClientRect_, GetChildNodes_not_ff,
+  getSelection_, getSelectionFocusEdge_, isHTML_, docEl_unsafe_, notSafe_not_ff_, getEditableType_, editableTypes_,
+  GetChildNodes_not_ff, isInputInTextMode_cr_old,
 } from "../lib/dom_utils"
+import {
+  padClientRect_, getSelectionBoundingBox_, getZoom_, prepareCrop_, cropRectToVisible_, getVisibleClientRect_,
+} from "../lib/rect"
 import { checkDocSelectable, getSelected, resetSelectionToDocStart, flash_ } from "./dom_ui"
 import { prepareTop, clearTop, executeScroll, scrollIntoView_need_safe } from "./scroller"
 import {
