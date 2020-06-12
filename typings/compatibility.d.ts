@@ -249,11 +249,12 @@ declare const enum BrowserVer {
   MinSomeDocumentListenersArePassiveByDefault = 56,
   // not need if LEGACY or EMPTY (even on Chrome 66)
   MinMayNeedCSPForScriptsFromOtherExtensions = 56, // if EXPERIMENTAL
-  // the 3 below are correct even if EXPERIMENTAL or LEGACY
+  // the 4 below are correct even if EXPERIMENTAL or LEGACY
   MinDOMActivateInClosedShadowRootHasNoShadowNodesInPathWhenOnDocument = 56,
   MinFailToToggleImageOnFileURL = 56,
   // note: an "input" event is not KeyboardEvent: {@see Min$InputEvent$$isComposing}
   Min$KeyboardEvent$$isComposing = 56,
+  Min$addEventListener$support$once = 56,
   // the static selector `>>>` is not supported since MinNoSelector$GtGtGt
   // `>>>` can only match those under "open"-mode shadow roots
   MinStaticSelector$GtGtGt$IfFlag$ExperimentalWebPlatformFeatures$Enabled = 56,
@@ -459,12 +460,14 @@ declare const enum BrowserVer {
   // #freeze-user-agent: https://www.chromestatus.com/features/5704553745874944
   FlagFreezeUserAgentGiveFakeUAMajor = 81, // FakeUAMajorWhenFreezeUserAgent
   MinMaybe$WeakRef = 83, // no `WeakRef` if LEGACY
-  /** @see #Min$CrossOriginIsolation$Flag; @todo: trace https://bugs.chromium.org/p/chromium/issues/detail?id=1085915 */
+  /** @see #Min$CrossOriginIsolation$Flag */
   MinEnsuredCrossOriginEmbedderPolicy = 83, // https://www.chromestatus.com/features/5642721685405696
   // require special CSP; not applied to extension contexts; seems to begin from C73 if EXPERIMENTAL
   MinEnsuredTrustedTypes = 83, // https://www.chromestatus.com/features/5650088592408576
   // #strict-origin-isolation; prevent LinkHints from getting child coreHints
   MinOriginIsolation = 84, // https://www.chromestatus.com/features/5683766104162304
+  /** This fixes that {@see #Min$CrossOriginIsolation$Flag} would break Vomnibar */
+  MinExtensionResourcesHaveCOEP = 84, // https://bugs.chromium.org/p/chromium/issues/detail?id=1085915
   /** @todo: trace https://bugs.chromium.org/p/chromium/issues/detail?id=968651&can=2&q=reduced-motion%20change */
   MinMediaChangeEventsOnBackgroundPage = 999,
   MinNo$TimerType$$Fake = 999,

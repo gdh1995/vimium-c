@@ -337,7 +337,7 @@ function patchExtendClick(source, locally, logger) {
     } else {
       source = source.replace(/[\r\n]\s*/g, "");
     }
-    source = "function(" + source + ")();";
+    source = "function(" + source + ")()";
     const sourceHead = '"use strict";(';
     if (prefix.endsWith(sourceHead)) {
       prefix = prefix.slice(0, -sourceHead.length);

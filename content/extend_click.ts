@@ -41,7 +41,7 @@ export const main = (): void => {
     kCmd = "VC",
   }
   type ClickableEventDetail = [ /** inDocument */ number[], /** forDetached */ number[]
-          , /** fromAttrs */ BOOL ] | string;
+          , /** fromAttrs */ BOOL, /** _noop */ number ] | string;
 /** Note: on Firefox, a `[sec, cmd]` can not be visited by the main world:
  * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Sharing_objects_with_page_scripts#Constructors_from_the_page_context.
  */
@@ -226,36 +226,38 @@ function verifier(maybeSecret: string, maybeVerifierB?: InnerVerifier): ReturnTy
 type FUNC = (this: unknown, ...args: never[]) => unknown;
 const doc0 = document, curScript = doc0.currentScript as HTMLScriptElement,
 sec: number = +curScript.dataset.vimium!,
-ETP = EventTarget.prototype, _listen = ETP.addEventListener,
+kAEL = "addEventListener", kToS = "toString", kProto = "prototype", kByTag = "getElementsByTagName",
+ETP = EventTarget[kProto], _listen = ETP[kAEL],
 toRegister: Element[] & { p (el: Element): void | 1; s: Element[]["splice"] } = [] as any,
 _apply = _listen.apply, _call = _listen.call,
 call = _call.bind(_call as any) as <T, A extends any[], R>(func: (this: T, ...a: A) => R, thisArg: T, ...args: A) => R,
 dispatch = _call.bind<(this: (this: EventTarget, ev: Event) => boolean
     , self: EventTarget, evt: Event) => boolean>(ETP.dispatchEvent),
-ElCls = Element, ElProto = ElCls.prototype, Append = ElProto.appendChild,
+ElCls = Element, ElProto = ElCls[kProto], Append = ElProto.appendChild,
 GetRootNode = ElProto.getRootNode,
 Attr = ElProto.setAttribute, HasAttr = ElProto.hasAttribute, Remove = ElProto.remove,
-StopProp = Event.prototype.stopImmediatePropagation as (this: Event) => void,
-contains = ElProto.contains.bind(doc0), // in fact, it is Node.prototype.contains
+StopProp = Event[kProto].stopImmediatePropagation as (this: Event) => void,
+contains = ElProto.contains.bind(doc0), // in fact, it is Node::contains
 nodeIndexListInDocument: number[] = [], nodeIndexListForDetached: number[] = [],
-getElementsByTagNameInDoc = doc0.getElementsByTagName, getElementsByTagNameInEP = ElProto.getElementsByTagName,
+getElementsByTagNameInDoc = doc0[kByTag], getElementsByTagNameInEP = ElProto[kByTag],
 IndexOf = _call.bind(toRegister.indexOf) as never as (list: HTMLCollectionOf<Element>, item: Element) => number,
-push = nodeIndexListInDocument.push,
+push = (toRegister as { p (el: Element | number): void | number}).p = nodeIndexListInDocument.push,
 pushInDocument = push.bind(nodeIndexListInDocument), pushForDetached = push.bind(nodeIndexListForDetached),
 CECls = CustomEvent as VimiumCustomEventCls,
 DECls = FocusEvent as VimiumDelegateEventCls,
-FProto = Function.prototype, _toString = FProto.toString,
+FProto = Function[kProto], _toString = FProto[kToS],
 listen = _call.bind<(this: (this: EventTarget,
           type: string, listener: EventListenerOrEventListenerObject, useCapture?: EventListenerOptions | boolean
         ) => 42 | void,
         self: EventTarget, name: string, listener: EventListenerOrEventListenerObject,
         opts?: EventListenerOptions | boolean
     ) => 42 | void>(_listen),
-rEL = removeEventListener, clearTimeout1 = clearTimeout,
+rEL = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once
+    ? removeEventListener : 0 as never as null, clearTimeout1 = clearTimeout,
 kVOnClick = InnerConsts.kVOnClick,
 kEventName2 = kVOnClick + BuildStr.RandomClick,
-kOnDomReady = "readystatechange", kFunc = "function",
-StringIndexOf = kOnDomReady.indexOf, StringSubstr = kOnDomReady.substr,
+kReady = "readystatechange", kFunc = "function",
+StringIndexOf = kReady.indexOf, StringSubstr = kReady.substr,
 decryptFromVerifier = (func: InnerVerifier | unknown): string => {
   const str = call(_toString, func as InnerVerifier), offset = call(StringIndexOf, str, kMarkToVerify);
   return call(StringSubstr, str, offset
@@ -312,16 +314,23 @@ hooks = {
   }
 },
 noop = (): 1 => 1,
-myAEL = hooks.addEventListener, myToStr = hooks.toString;
+myAEL = hooks[kAEL], myToStr = hooks[kToS];
 
 let doInit = function (this: void): void {
-  rEL(kOnDomReady, doInit, !0);
-  clearTimeout1(timer);
+  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once) {
+    doInit && rEL!(kReady, doInit, !0)
+  }
+  if (!detectDisabled) { return }
   detectDisabled = 0;
-  const docEl2 = docChildren[0] as Element | null,
+  // note: `HTMLCollection::operator []` can not be overridden by `Object.defineProperty` on C32/83
+  const docEl2 = Build.BTypes & BrowserType.Edge ? (docChildren as Extract<typeof docChildren, Function>)(0)
+      : (docChildren as Exclude<typeof docChildren, Function>)[0] as Element | null,
   el = call(hooks.c, doc0, "div") as HTMLDivElement,
   S = InnerConsts.kSecretAttr;
-  doInit = docChildren = null as never;
+  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once) {
+    doInit = null as never
+  }
+  docChildren = null as never;
   if (!docEl2) { return executeCmd(); }
   call(Attr, el, S, "" + sec);
   listen(el, InnerConsts.kCmd, executeCmd, !0);
@@ -340,7 +349,7 @@ noAbnormalVerifyingFound: BOOL = 1,
 anotherAEL: typeof myAEL | undefined | 0, anotherToStr: typeof myToStr | undefined | 0,
 // here `setTimeout` is normal and will not use TimerType.fake
 setTimeout_ = setTimeout as SafeSetTimeout,
-docChildren = doc0.children,
+docChildren: Document["children"] | ((index: number) => Element | null) = doc0.children,
 unsafeDispatchCounter = 0,
 allNodesInDocument = null as HTMLCollectionOf<Element> | null,
 allNodesForDetached = null as HTMLCollectionOf<Element> | null,
@@ -374,6 +383,9 @@ if (!(Build.BTypes & ~BrowserType.Edge)
         && typeof queueMicroTask_ !== kFunc) {
   queueMicroTask_ = Promise.resolve() as any;
   queueMicroTask_ = (queueMicroTask_ as any as Promise<void>).then.bind(queueMicroTask_ as any as Promise<void>);
+}
+if (Build.BTypes & BrowserType.Edge) {
+  docChildren = docChildren.item.bind(docChildren)
 }
 function prepareRegister(this: void, element: Element): void {
   if (contains(element)) {
@@ -457,19 +469,18 @@ function prepareRegister(this: void, element: Element): void {
   }
 }
 function doRegister(fromAttrs: BOOL): void {
-  if (nodeIndexListInDocument.length || nodeIndexListForDetached.length) {
-    unsafeDispatchCounter++;
+  if (nodeIndexListInDocument.length + nodeIndexListForDetached.length) {
     dispatch(root, new CECls(kVOnClick, {
-      detail: [nodeIndexListInDocument, nodeIndexListForDetached, fromAttrs]
+      detail: [nodeIndexListInDocument, nodeIndexListForDetached, fromAttrs, unsafeDispatchCounter++]
     }));
-    nodeIndexListInDocument.length = nodeIndexListForDetached.length = 0;
   }
+  nodeIndexListInDocument.length = nodeIndexListForDetached.length = 0
 // check lastChild, so avoid a mutation scope created in
 // https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/core/dom/node.cc;l=2117;drc=06e052d21baaa5afc7c851ed43c6a90e53dc6156
-  root.lastChild && (root.textContent = "");
+  root.textContent = "";
 }
 function safeReRegister(element: Element, doc1: Document): void {
-  const localAEL = doc1.addEventListener, localREL = doc1.removeEventListener;
+  const localAEL = doc1[kAEL], localREL = doc1.removeEventListener;
   if (typeof localAEL == kFunc && typeof localREL == kFunc && localAEL !== myAEL) {
     isReRegistering = 1;
     try {
@@ -514,15 +525,18 @@ function executeCmd(eventOrDestroy?: Event): void {
   root = null as never;
   clearTimeout1(timer);
   timer = 1;
-  rEL(kOnDomReady, doInit, !0);
 }
 
-toRegister.p = push as any, toRegister.s = toRegister.splice;
+toRegister.s = toRegister.splice;
 // only the below can affect outsides
 curScript.remove();
-ETP.addEventListener = myAEL;
-FProto.toString = myToStr;
-_listen(kOnDomReady, doInit, !0);
+ETP[kAEL] = myAEL;
+FProto[kToS] = myToStr;
+if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once) {
+  _listen(kReady, doInit, !0);
+} else {
+  _listen(kReady, doInit, {capture: !0, once: !0});
+}
 
       }).toString() + ")();" /** need "toString()": {@link ../scripts/dependencies.js#patchExtendClick} */
 
