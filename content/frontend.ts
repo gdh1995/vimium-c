@@ -5,7 +5,7 @@ import {
 } from "../lib/utils"
 import { suppressTail_, getMappedKey } from "../lib/keyboard_utils"
 import { frameElement_, set_OnDocLoaded_ } from "../lib/dom_utils"
-import { getInnerHeight } from "../lib/rect"
+import { wndSize_ } from "../lib/rect"
 import {
   safePost, clearRuntimePort, runtime_port, SafeDestoryF, set_safeDestroy,
   runtimeConnect, safeDestroy, post_, send_,
@@ -61,7 +61,7 @@ set_vApi(VApi = {
   p: post_, a: setupKeydownEvents, f: focusAndRun, d: safeDestroy,
   h: linkActivate, o: omniActivate, n: findOnLoad, c: executeScroll,
   k: scrollTick, $: $sc, l: learnCSS, u: suppressTail_,
-  i: Build.BTypes & BrowserType.Firefox ? getInnerHeight : 0 as never,
+  i: Build.BTypes & BrowserType.Firefox ? wndSize_ : 0 as never,
   r: injector && [send_, safePost, (task: 0 | 1 | 2, arg?: string | ElementSet | VTransType): any => {
     task < 1 ? (arg = currentKeys, /*#__NOINLINE__*/ esc!(HandlerResult.Nothing))
       : task < 2 ? /*#__INLINE__*/ set_clickable_(arg as ElementSet)

@@ -6,13 +6,13 @@ import {
   pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER,
 } from "../lib/keyboard_utils"
 import {
-  view_, getInnerWidth, getInnerHeight, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, padClientRect_,
+  view_, wndSize_, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, padClientRect_,
   getBoundingClientRect_, setBoundary_, wdZoom_, dScale_,
 } from "../lib/rect"
 import { post_ } from "./port"
 import { addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, flash_ } from "./dom_ui"
 import { hudHide, hudShow, hudTip, hud_text } from "./hud"
-import { onKeyup2, set_onKeyup2, passKeys, setTempCurrentKeyStatus, set_passKeys } from "./key_handler"
+import { onKeyup2, set_onKeyup2, passKeys, installTempCurrentKeyStatus, set_passKeys } from "./key_handler"
 import { activate as linkActivate, clear as linkClear, kEditableSelector, kSafeAllSelector } from "./link_hints"
 import { activate as markActivate, gotoMark } from "./marks"
 import { activate as findActivate, deactivate as findDeactivate, execCommand, init as findInit } from "./mode_find"
@@ -111,7 +111,7 @@ export const contentCommands_: {
           /*#__INLINE__*/ set_esc(oldEsc)
           return oldEsc(HandlerResult.Prevent);
         }
-        setTempCurrentKeyStatus()
+        installTempCurrentKeyStatus()
         if (keyCount - count || !hud_text) {
           keyCount = count;
           hudShow(kTip.normalMode, [count > 1 ? VTr(kTip.nTimes, [count]) : ""]);
@@ -168,7 +168,7 @@ export const contentCommands_: {
   },
   /* kFgCmd.showHelp: */ function (options: CmdOptions[kFgCmd.showHelp] | "e"): void {
     if (options === "e") { return; }
-    let wantTop = getInnerWidth() < 400 || getInnerHeight() < 320
+    let wantTop = wndSize_(1) < 400 || wndSize_() < 320
     if (!isHTML_()) {
       if (isTop) { return; }
       wantTop = true;

@@ -5,7 +5,7 @@ import {
 import { getVisibleClientRect_, center_, view_ } from "../lib/rect"
 import {
   IsInDOM_, createElement_, htmlTag_, getComputedStyle_, getEditableType_, isIFrameElement, GetParent_unsafe_,
-  elementProto, querySelector_unsafe_, getInputType, uneditableInputs_, GetShadowRoot_, CLK, scrollingEl_,
+  ElementProto, querySelector_unsafe_, getInputType, uneditableInputs_, GetShadowRoot_, CLK, scrollingEl_,
   findMainSummary_,
 } from "../lib/dom_utils"
 import {
@@ -210,7 +210,7 @@ export const linkActions: readonly LinkAction[] = [
       try {
         if (selector && (selected = up
               ? Build.BTypes & ~BrowserType.Firefox
-                ? elementProto().querySelector.call(ancestors[Math.max(0, Math.min(up + 1, ancestors.length - 1))]
+                ? ElementProto().querySelector.call(ancestors[Math.max(0, Math.min(up + 1, ancestors.length - 1))]
                     , selector)
                 : querySelector_unsafe_(selector, ancestors[Math.max(0, Math.min(up + 1, ancestors.length - 1))
                     ] as SafeElement)

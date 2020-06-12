@@ -7,9 +7,9 @@ import {
   frameList_, hintMode_, useFilter_, coreHints, hintKeyStatus, KeyStatus, hintChars, allHints, setMode, resetMode,
 } from "./link_hints"
 import {
-  createElement_, querySelector_unsafe_, getInputType, htmlTag_, docEl_unsafe_, elementProto, HDN,
+  createElement_, querySelector_unsafe_, getInputType, htmlTag_, docEl_unsafe_, ElementProto, HDN,
 } from "../lib/dom_utils"
-import { bZoom_, padClientRect_, getBoundingClientRect_ } from "../lib/rect"
+import { bZoom_, padClientRect_, getBoundingClientRect_, dimSize_ } from "../lib/rect"
 import { chromeVer_, doc } from "../lib/utils"
 import { BSP, DEL, ENTER } from "../lib/keyboard_utils"
 import { maxLeft_, maxRight_, maxTop_ } from "./local_links"
@@ -206,7 +206,7 @@ export const generateHintText = (hint: Hint, hintInd: number, allItems: readonly
       }
       text = text || (el as HTMLInputElement | HTMLTextAreaElement).value
           || (el as HTMLInputElement | HTMLTextAreaElement).placeholder;
-      if (localName > "t" && !(el as HTMLTextAreaElement).scrollTop) {
+      if (localName > "t" && !dimSize_(el, kDim.positionY)) {
         ind = text.indexOf("\n") + 1;
         ind && (ind = text.indexOf("\n", ind)) > 0 ? text = text.slice(0, ind) : 0;
       }
@@ -299,7 +299,7 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
         }
         if (!hasSearch
             && ((!(Build.BTypes & ~BrowserType.Firefox) ? docEl_unsafe_()!.getAttribute("data-vimium-hints")
-                  : elementProto().getAttribute.call(docEl_unsafe_()!, "data-vimium-hints"))
+                  : ElementProto().getAttribute.call(docEl_unsafe_()!, "data-vimium-hints"))
                 || "").includes("ordinal")) {
           /* empty */
         }

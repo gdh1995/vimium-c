@@ -354,6 +354,8 @@ declare const enum AdjustType {
   DEFAULT = Normal,
 }
 
+declare const enum kDim { viewW, viewH, elClientW, elClientH, scrollW, scrollH, positionX, positionY, byX = 0, byY = 1 }
+
 type KnownIFrameElement = HTMLIFrameElement | HTMLFrameElement
 
 type VimiumContainerElementType = "div" | "span" | "style" | "iframe" | "a" | "script" | "dialog";
@@ -391,7 +393,7 @@ interface VApiTy {
     (this: void, cmd: 0, count: never, options: never, showBorder: 1): void
   }
   /** linkActivate */ h: (options: HintsNS.ContentOptions, count: number) => void
-  /** innerHeight_ff */ i?: () => number
+  /** innerHeight_ff */ i?: (type?: undefined) => number
   /** learnCSS */ l: (srcStyleUI: HTMLStyleElement | string | null, force?: 1) => void
   /** scrollTick */ k: (willContinue: BOOL | 2) => void
   /** getMappedKey */ m: (eventWrapper: HandlerNS.Event, mode: kModeId) => string

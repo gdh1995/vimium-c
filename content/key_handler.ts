@@ -4,8 +4,8 @@ import {
 import {
   set_getMappedKey, char_, getMappedKey, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_, Stop_,
 } from "../lib/keyboard_utils"
-import { activeEl_unsafe_, getSelection_, elementProto } from "../lib/dom_utils"
-import { getInnerHeight } from "../lib/rect"
+import { activeEl_unsafe_, getSelection_, ElementProto } from "../lib/dom_utils"
+import { wndSize_ } from "../lib/rect"
 import { post_ } from "./port"
 import { removeSelection } from "./dom_ui"
 import {
@@ -39,7 +39,7 @@ export {
 }
 export function resetIsCmdTriggered (): void { isCmdTriggered = kKeyCode.None }
 export function set_passKeys (_newPassKeys: SafeEnum | null | ""): void { passKeys = _newPassKeys }
-export function setTempCurrentKeyStatus (): void { currentKeys = "", nextKeys = keyFSM }
+export function installTempCurrentKeyStatus (): void { currentKeys = "", nextKeys = keyFSM }
 export function set_onKeyup2 (_newOnKeyUp: typeof onKeyup2): void { onKeyup2 = _newOnKeyUp }
 export function set_isPassKeysReverted (_newPKReverted: boolean): void { isPassKeysReverted = _newPKReverted }
 export function set_keyFSM (_newKeyFSM: BgReq[kBgReq.keyFSM]["k"]) { keyFSM = _newKeyFSM }
@@ -142,7 +142,7 @@ const onAnyClick = (event: MouseEventToPrevent): void => {
          ? Build.MinCVer >= BrowserVer.MinEnsured$Event$$Path || path
          : (Build.MinCVer >= BrowserVer.MinEnsured$Event$$Path || path) && path!.length > 1)
         ? path![0] as Element : event.target as Element;
-    if (elementProto().getAttribute.call(t, "accesskey")) {
+    if (ElementProto().getAttribute.call(t, "accesskey")) {
       // if a script has modified [accesskey], then do nothing on - just in case.
       /*#__NOINLINE__*/ resetAnyClickHandler();
       prevent_(event);
@@ -178,7 +178,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
         ? (action = checkKey(eventWrapper, keyStr)) > HandlerResult.MaxNotEsc
         : isEscape_(keyStr)
     ) {
-      if ((raw_insert_lock && raw_insert_lock === doc.body || !isTop && getInnerHeight() < 5) && !g) {
+      if ((raw_insert_lock && raw_insert_lock === doc.body || !isTop && wndSize_() < 5) && !g) {
         event.repeat && focusUpper(key, true, event);
         action = /* the real is HandlerResult.PassKey; here's for smaller code */ HandlerResult.Nothing;
       } else {

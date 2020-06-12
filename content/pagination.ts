@@ -1,10 +1,12 @@
 import { clickable_, VOther, doc } from "../lib/utils"
 import {
-  docEl_unsafe_, htmlTag_, isAriaNotTrue_, isStyleVisible_, querySelectorAll_unsafe_,
+  docEl_unsafe_, htmlTag_, isAriaNotTrue_, isStyleVisible_, querySelectorAll_unsafe_, isIFrameElement,
 } from "../lib/dom_utils"
 import { getBoundingClientRect_ } from "../lib/rect"
-import { kSafeAllSelector, unwrap_ff } from "./link_hints"
+import { kSafeAllSelector, unwrap_ff, detectUsableChild } from "./link_hints"
 import { traverse, ngEnabled } from "./local_links"
+import { find_box } from "./mode_find"
+import { omni_box } from "./omni"
 
 const GetButtons = function (this: void, hints, element): void {
   let s: string | null;
@@ -18,6 +20,17 @@ const GetButtons = function (this: void, hints, element): void {
       : ngEnabled && element.getAttribute("ng-click")));
   if (isClickable && isVisibleInPage(element)) {
     hints.push(element)
+  }
+  if (isIFrameElement(element)) {
+    if (element !== find_box && element !== omni_box) {
+      const rect = getBoundingClientRect_(element)
+      if (rect.width > 99 && rect.height > 15) {
+        const childApi = detectUsableChild(element),
+        officer: HintsNS.BaseHinter | null | undefined = childApi && childApi.b
+        if (officer) {
+        }
+      }
+    }
   }
 } as HintsNS.Filter<SafeHTMLElement>
 

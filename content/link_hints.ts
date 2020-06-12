@@ -71,8 +71,8 @@ import {
   getComputedStyle_, isStyleVisible_,
 } from "../lib/dom_utils"
 import {
-  getViewBox_, prepareCrop_, getInnerHeight, bZoom_, wdZoom_, dScale_, padClientRect_, getBoundingClientRect_,
-  docZoom_, bScale_,
+  getViewBox_, prepareCrop_, wndSize_, bZoom_, wdZoom_, dScale_, padClientRect_, getBoundingClientRect_,
+  docZoom_, bScale_, dimSize_,
 } from "../lib/rect"
 import {
   pushHandler_, SuppressMost_, removeHandler_, getMappedKey, keybody_, isEscape_, getKeyStat_, keyNames_, suppressTail_,
@@ -271,7 +271,9 @@ const collectFrameHints = (count: number, options: HintsNS.ContentOptions
         ).d ? 2 : 1);
     prepareCrop_(1, outerView);
     if (tooHigh_ !== null) {
-      tooHigh_ = scrollingEl_(1)!.scrollHeight / getInnerHeight() > GlobalConsts.LinkHintTooHighThreshold
+      const scrolling = scrollingEl_(1)
+      tooHigh_ = !!scrolling
+          && dimSize_(scrolling, kDim.scrollH) / wndSize_() > GlobalConsts.LinkHintTooHighThreshold
     }
     removeModal()
     forceToScroll_ = options.scroll === "force" ? 2 : 0;
@@ -336,8 +338,11 @@ const getPreciseChildRect = (frameEl: KnownIFrameElement, view: Rect): Rect | nu
       if (st.overflow !== V) {
         let outer = padClientRect_(getBoundingClientRect_(el)), hx = st.overflowX !== V, hy = st.overflowY !== V,
         scale = el !== docEl && inBody ? dScale_ * bScale_ : dScale_;
-        hx && (l = max(l, outer.l), r = l + min(r - l, outer.r - outer.l, hy ? el.clientWidth * scale : r))
-        hy && (t = max(t, outer.t), b = t + min(b - t, outer.b - outer.t, hx ? el.clientHeight * scale : b))
+        // @todo: unsafe?
+        hx && (l = max(l, outer.l), r = l + min(r - l, outer.r - outer.l
+              , hy ? dimSize_(el as SafeElement, kDim.elClientW) * scale : r))
+        hy && (t = max(t, outer.t), b = t + min(b - t, outer.b - outer.t
+              , hx ? dimSize_(el as SafeElement, kDim.elClientH) * scale : b))
       }
     }
     l = max(l, view.l), t = max(t, view.t);

@@ -20,7 +20,7 @@ import {
 } from "../lib/utils"
 import { removeHandler_, pushHandler_, SuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils";
 import { frameElement_, isHTML_, fullscreenEl_unsafe_, NONE, createElement_ } from "../lib/dom_utils"
-import { getViewBox_, docZoom_, dScale_, devRatio_, prepareCrop_, bZoom_, getInnerHeight } from "../lib/rect"
+import { getViewBox_, docZoom_, dScale_, prepareCrop_, bZoom_, wndSize_ } from "../lib/rect"
 import { beginScroll, scrollTick } from "./scroller"
 import {
   getSelectionText, adjustUI, setupExitOnClick, addUIElement, getParentVApi, evalIfOK, checkHidden,
@@ -86,17 +86,17 @@ export const activate = function (options: FullOptions, count: number): void {
     canUseVW = (Build.MinCVer >= BrowserVer.MinCSSWidthUnit$vw$InCalc
             || !!(Build.BTypes & BrowserType.Chrome) && chromeVer_ > BrowserVer.MinCSSWidthUnit$vw$InCalc - 1)
         && !fullscreenEl_unsafe_() && docZoom_ === 1 && dScale_ === 1;
-    let scale = devRatio_();
+    let scale = wndSize_(2);
     let width = canUseVW ? innerWidth : !(Build.BTypes & ~BrowserType.Firefox) ? prepareCrop_()
         : prepareCrop_() * docZoom_ * bZoom_;
     if (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
         && (!(Build.BTypes & ~BrowserType.Chrome)
             || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome)) {
       options.w = width * scale;
-      options.h = screenHeight_ = getInnerHeight() * scale;
+      options.h = screenHeight_ = wndSize_() * scale;
     } else {
       options.w = width;
-      options.h = screenHeight_ = getInnerHeight()
+      options.h = screenHeight_ = wndSize_()
     }
     options.z = scale;
     if (!(Build.NDEBUG || VomnibarNS.Status.Inactive - VomnibarNS.Status.NotInited === 1)) {
@@ -268,7 +268,7 @@ const onOmniMessage = function (this: OmniPort, msg: { data: any }): void {
           / (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
               && (!(Build.BTypes & ~BrowserType.Chrome)
                   || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome)
-              ? devRatio_() : 1)) + "px"
+              ? wndSize_(2) : 1)) + "px"
       if (status === VomnibarNS.Status.ToShow) {
         onShown(data.m!)
       }
@@ -292,7 +292,7 @@ const onShown = (maxBoxHeight: number): void => {
         (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
           && (!(Build.BTypes & ~BrowserType.Chrome)
               || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome)
-          ? devRatio_() : 1),
+          ? wndSize_(2) : 1),
     top = screenHeight_ > topHalfThreshold * 2 ? ((50 - maxBoxHeight * 0.6 / screenHeight_ * 100) | 0
         ) + (canUseVW ? "vh" : "%") : ""
     style.top = !Build.NoDialogUI && VimiumInjector === null && loc_.hash === "#dialog-ui" ? "8px" : top;

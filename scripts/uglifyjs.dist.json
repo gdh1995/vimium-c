@@ -37,6 +37,7 @@
       "getAttribute", "hasAttribute", "querySelectorAll",
       "Math.max", "Math.min", "Math.floor", "Math.round", "Math.abs", "Math.random",
       "safeObj", "safeObj_", "weakRef_", "deref_",
+      "docEl_unsafe_",
       "__awaiter", "__generator", "sent", "_a.sent", "_b.sent", "_c.sent",
       "onRuntimeError", "BgUtils_.runtimeError_",
       "trans_", "pTrans_", "sTrans_", "VTr",

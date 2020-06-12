@@ -1,4 +1,5 @@
 import { VOther, chromeVer_, doc } from "./utils"
+import { dimSize_ } from "./rect"
 
 export const MDW = "mousedown", CLK = "click", HDN = "hidden", NONE = "none"
 
@@ -39,7 +40,10 @@ export const querySelectorAll_unsafe_ = ((scope: Document | SafeElement, selecto
   (scope: Document | SafeElement, selector: string): NodeListOf<Element> | void
 }
 
-export const isIFrameElement = (el: Element): el is KnownIFrameElement => (<RegExpOne> /^i?frame$/).test(htmlTag_(el))
+export const isIFrameElement = (el: Element): el is KnownIFrameElement => {
+  const tag = el.localName
+  return (tag === "iframe" || tag === "frame") && "lang" in el
+}
 
   /** DOM-compatibility section */
 
@@ -77,19 +81,18 @@ export const Getter_not_ff_ = Build.BTypes & ~BrowserType.Firefox ? function <Ty
     return desc && desc.get ? desc.get.call(instance) : null;
 } : 0 as never as null
 
-export let notSafe_not_ff_ = Build.BTypes & ~BrowserType.Firefox ? (el: Element | null): el is HTMLFormElement => {
-    let s: Element["localName"];
-    return !!el && (typeof (s = el.localName) !== "string" ||
+export let notSafe_not_ff_ = Build.BTypes & ~BrowserType.Firefox ? (el: Element): el is HTMLFormElement => {
+  let s: Element["localName"]
+  return typeof (s = el.localName) !== "string" ||
       (Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter || !(Build.BTypes & BrowserType.Chrome)
         ? s === "form" : s === "form" || s === unsafeFramesetTag_old_cr_)
-    );
 } : 0 as never as null
 export const setNotSafe_not_ff = (f: typeof notSafe_not_ff_): void => { notSafe_not_ff_ = f }
 
   /** @safe_even_if_any_overridden_property */
 export const SafeEl_not_ff_ = Build.BTypes & ~BrowserType.Firefox ? function (
       this: void, el: Element | null, type?: PNType.DirectElement | undefined): Node | null {
-  return notSafe_not_ff_!(el)
+  return el && notSafe_not_ff_!(el)
     ? SafeEl_not_ff_!(GetParent_unsafe_(el, type || PNType.RevealSlotAndGotoParent), type) : el
 } as {
     (this: void, el: SafeElement | null, type?: any): unknown;
@@ -124,7 +127,7 @@ export const GetChildNodes_not_ff = Build.BTypes & ~BrowserType.Firefox ? (el: E
   }
 } : 0 as never as null
 
-export const elementProto = (): Element => Element.prototype
+export const ElementProto = (): Element => Element.prototype
 
   /**
    * Try its best to find a real parent
@@ -142,7 +145,7 @@ export const GetParent_unsafe_ = function (this: void, el: Node | Element
     if (type >= PNType.RevealSlot && Build.BTypes & ~BrowserType.Edge) {
       if (Build.MinCVer < BrowserVer.MinNoShadowDOMv0 && Build.BTypes & BrowserType.Chrome
           && chromeVer_ < BrowserVer.MinNoShadowDOMv0) {
-        const func = elementProto().getDestinationInsertionPoints,
+        const func = ElementProto().getDestinationInsertionPoints,
         arr = func ? func.call(el) : [], len = arr.length;
         len > 0 && (el = arr[len - 1]);
       }
@@ -190,6 +193,9 @@ export const GetParent_unsafe_ = function (this: void, el: Node | Element
 export const scrollingEl_ = (fallback?: 1): SafeElement | null => {
     // Both C73 and FF66 still supports the Quirk mode (entered by `doc.open()`)
     let el = doc.scrollingElement, docEl = docEl_unsafe_();
+    if (!(Build.BTypes & ~BrowserType.Firefox)) {
+      return el || !fallback ? el as SafeElement | null : docEl as SafeElement | null;
+    }
     if (Build.MinCVer < BrowserVer.Min$Document$$ScrollingElement && Build.BTypes & BrowserType.Chrome
         && el === void 0) {
       /**
@@ -199,27 +205,17 @@ export const scrollingEl_ = (fallback?: 1): SafeElement | null => {
        * But the flag is under the control of #enable-experimental-web-platform-features
        */
       let body = doc.body;
-      el = doc.compatMode === "BackCompat" || body && (
-              scrollY ? body.scrollTop : (docEl as HTMLElement).scrollHeight <= body.scrollHeight)
+      el = doc.compatMode === "BackCompat" || body && (scrollY ? dimSize_(body as SafeElement, kDim.positionY)
+            : dimSize_(docEl as SafeElement, kDim.scrollW) <= dimSize_(body as SafeElement, kDim.scrollH))
         ? body : body ? docEl : null;
       // If not fallback, then the task is to get an exact one in order to use `scEl.scrollHeight`,
       // but if body is null in the meanwhile, then docEl.scrollHeight is not reliable (scrollY neither)
       //   when it's real scroll height is not larger than innerHeight
     }
-    if (!(Build.NDEBUG
-          || BrowserVer.MinEnsured$ScrollingElement$CannotBeFrameset < BrowserVer.MinFramesetHasNoNamedGetter)) {
-      console.log("Assert error: MinEnsured$ScrollingElement$CannotBeFrameset < MinFramesetHasNoNamedGetter");
-    }
-    if (Build.MinCVer < BrowserVer.MinEnsured$ScrollingElement$CannotBeFrameset && Build.BTypes & BrowserType.Chrome) {
-      el = notSafe_not_ff_!(el!) ? null : el;
-    }
-    if (!(Build.BTypes & ~BrowserType.Firefox)) {
-      return el || !fallback ? el as SafeElement | null : docEl as SafeElement | null;
-    }
-    // here `el` may be `:root` / `:root > body` / null, but never `:root > frameset`
-    return notSafe_not_ff_!(el!) ? null // :root is unsafe
-      : el || !fallback ? el as SafeElement | null // el is safe object or null
-      : notSafe_not_ff_!(docEl) ? null : docEl as SafeElement | null;
+    // here `el` may be `:root, :root > body, :root > frameset` or `null`
+    return el && !notSafe_not_ff_!(el) ? el as SafeElement
+        : fallback && docEl && !notSafe_not_ff_!(docEl) ? docEl as SafeElement
+        : null
 }
 
   /** @UNSAFE_RETURNED */
@@ -415,7 +411,7 @@ export const createShadowRoot_ = <T extends HTMLDivElement | HTMLBodyElement> (b
 
 export const scrollIntoView_ = (el: Element, dir?: boolean): void => {
     !(Build.BTypes & ~BrowserType.Firefox) ? el.scrollIntoView({ block: "nearest" })
-      : elementProto().scrollIntoView.call(el,
+      : ElementProto().scrollIntoView.call(el,
           Build.MinCVer < BrowserVer.MinScrollIntoViewOptions && Build.BTypes & BrowserType.Chrome &&
           dir != null ? dir : { block: "nearest" });
 }

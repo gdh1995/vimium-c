@@ -30,8 +30,8 @@ import {
 } from "../lib/keyboard_utils"
 import {
   editableTypes_, markFramesetTagUnsafe, setNotSafe_not_ff, OnDocLoaded_, frameElement_,
-  notSafe_not_ff_, htmlTag_, querySelector_unsafe_, isHTML_, createElement_,
-  docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, CLK, MDW, elementProto, isIFrameElement
+  htmlTag_, querySelector_unsafe_, isHTML_, createElement_,
+  docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, CLK, MDW, ElementProto, isIFrameElement
 } from "../lib/dom_utils"
 import { lastHovered_, resetLastHovered } from "./async_dispatcher"
 
@@ -175,15 +175,12 @@ set_requestHandlers([
   },
   /* kBgReq.focusFrame: */ (req: BgReq[kBgReq.focusFrame]): void => {
     // Note: .c, .S are ensured to exist
-    let mask = req.m, div: Element | null, body: Element | null;
+    let mask = req.m, div: Element | null;
     req.H && setUICSS(req.H);
     if (mask !== FrameMaskType.NormalNext) { /* empty */ }
     else if (checkHidden()
       // check <div> to detect whether no other visible elements except <frame>s in this frame
-      || (Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter && Build.BTypes & BrowserType.Chrome
-            // treat a doc.body of <form> as <frameset> to simplify logic
-            ? notSafe_not_ff_!(body = doc.body) || body && htmlTag_(body) === "frameset"
-            : doc.body && htmlTag_(doc.body) === "frameset")
+      || (doc.body && htmlTag_(doc.body) === "frameset")
           && (div = querySelector_unsafe_("div"), !div || div === ui_box && !handler_stack.length)
     ) {
       post_({
@@ -363,7 +360,7 @@ export const showFrameMask = (mask: FrameMaskType): void => {
     if (docEl) {
     Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
       && (!(Build.BTypes & ~BrowserType.Chrome) || chromeVer_ < BrowserVer.MinScrollIntoViewOptions)
-    ? elementProto().scrollIntoViewIfNeeded!.call(docEl)
+    ? ElementProto().scrollIntoViewIfNeeded!.call(docEl)
     : scrollIntoView_(docEl);
     }
   }

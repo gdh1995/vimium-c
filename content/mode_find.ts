@@ -11,7 +11,7 @@ import {
   getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, htmlTag_, fullscreenEl_unsafe_, docEl_unsafe_,
   getSelection_, isSelected_, docSelectable_, isHTML_, createElement_, CLK, MDW, HDN, NONE,
 } from "../lib/dom_utils"
-import { wdZoom_, prepareCrop_, view_ } from "../lib/rect"
+import { wdZoom_, prepareCrop_, view_, dimSize_ } from "../lib/rect"
 import {
   ui_box, ui_root, getSelectionParent_unsafe, resetSelectionToDocStart,
   createStyle, getSelectionText, checkDocSelectable, adjustUI, ensureBorder, addUIElement, getSelected,
@@ -603,7 +603,7 @@ const showCount = (changed: BOOL): void => {
           [count]
       );
     }
-  count = (input_.scrollWidth + countEl.offsetWidth + 35) & ~31
+  count = (dimSize_(input_, kDim.scrollW) + countEl.offsetWidth + 35) & ~31
   if (!isSmall || count > 151) {
     outerBox_.style.width = ((isSmall = count < 152) ? 0 as number | string as string : count + "px")
   }

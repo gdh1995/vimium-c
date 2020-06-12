@@ -5,13 +5,13 @@ import {
 import { Stop_ } from "../lib/keyboard_utils"
 import {
   createElement_, createShadowRoot_, NONE, fullscreenEl_unsafe_, docEl_unsafe_, getComputedStyle_, set_docSelectable_,
-  GetParent_unsafe_, getSelection_, elementProto, GetChildNodes_not_ff, GetShadowRoot_, getEditableType_, htmlTag_,
+  GetParent_unsafe_, getSelection_, ElementProto, GetChildNodes_not_ff, GetShadowRoot_, getEditableType_, htmlTag_,
   notSafe_not_ff_, CLK, frameElement_, runJS_, isStyleVisible_,
 } from "../lib/dom_utils"
 import {
   bZoom_, dScale_, getZoom_, wdZoom_, getSelectionBoundingBox_, prepareCrop_, getClientRectsForAreas_,
   getVisibleClientRect_, getBoundingClientRect_, padClientRect_, isContaining_, cropRectToVisible_, getCroppedRect_,
-  setBoundary_, getInnerHeight, getInnerWidth,
+  setBoundary_, wndSize_, dimSize_,
 } from "../lib/rect"
 import { currentScrolling } from "./scroller"
 import { styleSelectable } from "./mode_find"
@@ -245,7 +245,7 @@ export const getSelected = (notExpectCount?: 1): [Selection, ShadowRoot | null] 
             && !(Build.BTypes & ~BrowserType.ChromeOrFirefox) )) {
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
           && chromeVer_ < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-          ? Build.MinCVer >= BrowserVer.MinShadowDOMV0 || elementProto().webkitCreateShadowRoot
+          ? Build.MinCVer >= BrowserVer.MinShadowDOMV0 || ElementProto().webkitCreateShadowRoot
           : typeof ShadowRoot != "function") {
         return [sel, null];
       }
@@ -331,7 +331,7 @@ export const moveSel_need_safe = (element: LockableElement, action: SelectAction
     lineAllAndBoxEnd = action === "all-input" || action === "all-line",
     gotoStart = action === "start",
     gotoEnd = !action || action === "end" || isBox && lineAllAndBoxEnd;
-    if (isBox && gotoEnd && element.clientHeight + 12 < element.scrollHeight) {
+    if (isBox && gotoEnd && dimSize_(element, kDim.elClientH) + 12 < dimSize_(element, kDim.scrollH)) {
       return;
     }
     // not need `this.getSelection_()`
@@ -486,7 +486,7 @@ export const evalIfOK = (url: Pick<BgReq[kBgReq.eval], "u"> | string): boolean =
 }
 
 export const checkHidden = (cmd?: FgCmdAcrossFrames, count?: number, options?: OptionsWithForce): BOOL => {
-  if (getInnerHeight() < 3 || getInnerWidth() < 3) { return 1 }
+  if (wndSize_() < 3 || wndSize_(1) < 3) { return 1 }
   // here should not use the cache frameElement, because `getComputedStyle(frameElement).***` might break
   const curFrameElement_ = !isTop && (Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
           || !(Build.BTypes & ~BrowserType.Firefox) ? frameElement : frameElement_()),

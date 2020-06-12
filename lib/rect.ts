@@ -1,13 +1,42 @@
 import { doc, VOther, chromeVer_ } from "./utils"
 import {
-  docEl_unsafe_, scrollingEl_, notSafe_not_ff_, elementProto, isRawStyleVisible, getComputedStyle_, NONE,
+  docEl_unsafe_, scrollingEl_, notSafe_not_ff_, ElementProto, isRawStyleVisible, getComputedStyle_, NONE,
   querySelector_unsafe_, querySelectorAll_unsafe_, GetParent_unsafe_, HDN, createElement_, fullscreenEl_unsafe_,
   IsInDOM_, scrollIntoView_,
 } from "./dom_utils"
 
-export const devRatio_ = (): number => devicePixelRatio
-export const getInnerHeight = (): number => innerHeight as number
-export const getInnerWidth = (): number => innerWidth as number
+let paintBox_: [number, number] | null = null // it may need to use `paintBox[] / <body>.zoom`
+let wdZoom_ = 1 // <html>.zoom * min(devicePixelRatio, 1) := related to physical pixels
+let docZoom_ = 1 // zoom of <html>
+let isDocZoomStrange_: BOOL = 0
+let dScale_ = 1 // <html>.transform:scale (ignore the case of sx != sy)
+let bScale_ = 1 // <body>.transform:scale (ignore the case of sx != sy)
+  /** zoom of <body> (if not fullscreen else 1) */
+let bZoom_ = 1
+/** @NEED_SAFE_ELEMENTS */
+let scrollingTop: SafeElement | null = null
+
+export { paintBox_, wdZoom_, docZoom_, isDocZoomStrange_, dScale_, bScale_, bZoom_, scrollingTop }
+export function set_bZoom_ (_newBZoom: number): void { bZoom_ = _newBZoom }
+export function set_scrollingTop (newScrollingTop: SafeElement | null): void { scrollingTop = newScrollingTop }
+
+export const wndSize_ = (id?: 1 | 2): number => id ? id < 2 ? innerWidth : devicePixelRatio : innerHeight as number
+
+/** if `el` is null, then return viewSize for `kDim.scrollSize` */
+export const dimSize_ = (el: SafeElement | null, index: kDim | ScrollByY): number => {
+  let visual, byY = index & kDim.byY;
+  return el !== scrollingTop || index > kDim.elClientW - 1 && el
+      ? index < kDim.scrollW ? byY ? el!.clientHeight : el!.clientWidth
+        : index < kDim.positionX ? byY ? el!.scrollHeight : el!.scrollWidth
+        : byY ? el!.scrollTop : el!.scrollLeft
+      : index > kDim.positionX - 1 ? byY ? scrollY : scrollX
+      : (visual = visualViewport,
+          !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsured$visualViewport$
+          || (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$visualViewport$
+              ? visual : visual && visual.width)
+          ? byY ? visual!.height : visual!.width!
+          : byY ? wndSize_() : wndSize_(1))
+}
 
 /** depends on .docZoom_, .bZoom_, .paintBox_ */
 export let prepareCrop_ = (inVisualViewport?: 1, limitedView?: Rect | null): number => {
@@ -30,13 +59,13 @@ export let prepareCrop_ = (inVisualViewport?: 1, limitedView?: Rect | null): num
             ? scrollingEl_() : d.compatMode === "BackCompat" ? d.body : docEl,
         Build.MinCVer < BrowserVer.MinScrollTopLeftInteropIsAlwaysEnabled && Build.BTypes & BrowserType.Chrome
           ? el && !notSafe_not_ff_!(el) : el) {
-      i = el!.clientWidth, j = el!.clientHeight
+      i = dimSize_(el as SafeElement, kDim.elClientW), j = dimSize_(el as SafeElement, kDim.elClientH)
     } else {
-      i = getInnerWidth(), j = getInnerHeight()
+      i = wndSize_(1), j = wndSize_()
       if (!docEl) { return vbottom = j, vbottoms = j - 8, vright = i; }
       // the below is not reliable but safe enough, even when docEl is unsafe
-      i = min(max(i - GlobalConsts.MaxScrollbarWidth, (docEl.clientWidth * dz) | 0), i)
-      j = min(max(j - GlobalConsts.MaxScrollbarWidth, (docEl.clientHeight * dz) | 0), j)
+      i = min(max(i - GlobalConsts.MaxScrollbarWidth, (dimSize_(docEl as SafeElement, kDim.elClientW) * dz) | 0), i)
+      j = min(max(j - GlobalConsts.MaxScrollbarWidth, (dimSize_(docEl as SafeElement, kDim.elClientH) * dz) | 0), j)
     }
     if (b) {
       i = min(i, b[0] * dz); j = min(j, b[1] * dz)
@@ -69,7 +98,7 @@ export let prepareCrop_ = (inVisualViewport?: 1, limitedView?: Rect | null): num
 
 export let getBoundingClientRect_: (el: Element) => ClientRect = Build.BTypes & ~BrowserType.Firefox ? (el) => {
   type ClientRectGetter = (this: Element) => ClientRect
-  const func = elementProto().getBoundingClientRect as ClientRectGetter
+  const func = ElementProto().getBoundingClientRect as ClientRectGetter
   getBoundingClientRect_ = func.call.bind<(this: ClientRectGetter, self: Element) => ClientRect>(func)
   return getBoundingClientRect_(el)
 } : el => el.getBoundingClientRect()
@@ -177,19 +206,6 @@ export const getCroppedRect_ = function (el: Element, crect: Rect | null): Rect 
   (el: Element, crect: Rect | null): Rect | null
 }
 
-
-let paintBox_: [number, number] | null = null // it may need to use `paintBox[] / <body>.zoom`
-let wdZoom_ = 1 // <html>.zoom * min(devicePixelRatio, 1) := related to physical pixels
-let docZoom_ = 1 // zoom of <html>
-let isDocZoomStrange_: BOOL = 0
-let dScale_ = 1 // <html>.transform:scale (ignore the case of sx != sy)
-let bScale_ = 1 // <body>.transform:scale (ignore the case of sx != sy)
-  /** zoom of <body> (if not fullscreen else 1) */
-let bZoom_ = 1
-
-export { paintBox_, wdZoom_, docZoom_, isDocZoomStrange_, dScale_, bScale_, bZoom_ }
-export function set_bZoom_ (_newBZoom: number): void { bZoom_ = _newBZoom }
-
 const _fixDocZoom_cr = Build.BTypes & BrowserType.Chrome ? (zoom: number, docEl: Element, devRatio: number): number => {
   let ver = Build.MinCVer < BrowserVer.MinASameZoomOfDocElAsdevPixRatioWorksAgain
       && (!(Build.BTypes & ~BrowserType.Chrome) || VOther & BrowserType.Chrome) ? chromeVer_ as BrowserVer : 0,
@@ -237,7 +253,7 @@ let _getPageZoom_cr = Build.BTypes & BrowserType.Chrome ? function (devRatio: nu
  * update bZoom_ if target
  */
 export const getZoom_ = Build.BTypes & ~BrowserType.Firefox ? function (target?: 1 | Element): void {
-  let docEl = docEl_unsafe_()!, ratio = devRatio_()
+  let docEl = docEl_unsafe_()!, ratio = wndSize_(2)
     , gcs = getComputedStyle_, st = gcs(docEl), zoom = +st.zoom || 1
     , el: Element | null = fullscreenEl_unsafe_()
   Build.BTypes & BrowserType.Chrome && (zoom = _fixDocZoom_cr!(zoom, docEl, ratio))
@@ -260,12 +276,12 @@ export const getZoom_ = Build.BTypes & ~BrowserType.Firefox ? function (target?:
   paintBox_ = null
   docZoom_ = bZoom_ = 1
   /** the min() is required in {@link ../front/vomnibar.ts#Vomnibar_.activateO_ } */
-  wdZoom_ = Math.min(devRatio_(), 1)
+  wdZoom_ = Math.min(wndSize_(2), 1)
 } as never
 
 export const getViewBox_ = function (needBox?: 1 | 2): ViewBox | ViewOffset {
-  const ratio = devRatio_(), M = Math, round = M.round
-  let iw = getInnerWidth(), ih = getInnerHeight(), ratio2 = ratio < 1 ? ratio : 1
+  const ratio = wndSize_(2), M = Math, round = M.round
+  let iw = wndSize_(1), ih = wndSize_(), ratio2 = ratio < 1 ? ratio : 1
   if (fullscreenEl_unsafe_()) {
     getZoom_(1)
     dScale_ = bScale_ = 1
@@ -320,13 +336,13 @@ export const getViewBox_ = function (needBox?: 1 | 2): ViewBox | ViewOffset {
   yScrollable = st.overflowY !== HDN && st2.overflowY !== HDN
   if (xScrollable) {
     mw += 64 * zoom2
-    iw = containHasPaint ? iw : sEl ? (sEl.scrollWidth - scrollX) / zoom
-        : M.max((iw - GlobalConsts.MaxScrollbarWidth) / zoom, rect.r)
+    iw = containHasPaint ? iw : sEl && (dimSize_(sEl, kDim.scrollW) - scrollX) / zoom
+          || M.max((iw - GlobalConsts.MaxScrollbarWidth) / zoom, rect.r)
   }
   if (yScrollable) {
     mh += 20 * zoom2
-    ih = containHasPaint ? ih : sEl ? (sEl.scrollHeight - scrollY) / zoom
-        : M.max((ih - GlobalConsts.MaxScrollbarWidth) / zoom, rect.b)
+    ih = containHasPaint ? ih : sEl && (dimSize_(sEl, kDim.scrollH) - scrollY) / zoom
+          || M.max((ih - GlobalConsts.MaxScrollbarWidth) / zoom, rect.b)
   }
   iw = iw < mw ? iw : mw, ih = ih < mh ? ih : mh
   iw = (iw / zoom2) | 0, ih = (ih / zoom2) | 0
@@ -341,7 +357,7 @@ export const isNotInViewport = function (this: void, element: Element | null, re
     rect = padClientRect_(getBoundingClientRect_(element!))
   }
   return rect.b - rect.t < 1 || rect.r - rect.l < 1 ? VisibilityType.NoSpace
-      : rect.b <= 0 || rect.t >= getInnerHeight() || rect.r <= 0 || rect.l >= getInnerWidth()
+      : rect.b <= 0 || rect.t >= wndSize_() || rect.r <= 0 || rect.l >= wndSize_(1)
       ? VisibilityType.OutOfView : VisibilityType.Visible
 } as {
   (element: Element): VisibilityType
@@ -354,7 +370,7 @@ export const view_ = (el: Element, oldY?: number): boolean => {
   const rect = padClientRect_(getBoundingClientRect_(el)),
   ty = isNotInViewport(null, rect)
   if (ty === VisibilityType.OutOfView) {
-    const ih = getInnerHeight(), delta = rect.t < 0 ? -1 : rect.t > ih ? 1 : 0, f = oldY != null
+    const ih = wndSize_(), delta = rect.t < 0 ? -1 : rect.t > ih ? 1 : 0, f = oldY != null
     Build.MinCVer < BrowserVer.MinScrollIntoViewOptions && Build.BTypes & BrowserType.Chrome
     ? scrollIntoView_(el, delta < 0) : scrollIntoView_(el);
     (delta || f) && scrollWndBy_(0, f ? oldY! - scrollY : delta * ih / 5)
@@ -365,7 +381,7 @@ export const view_ = (el: Element, oldY?: number): boolean => {
 export const scrollWndBy_ = (left: number, top: number): void => {
   !(Build.BTypes & ~BrowserType.Firefox) ||
   !(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
-  elementProto().scrollBy ? scrollBy({behavior: "instant", left, top}) : scrollBy(left, top)
+  ElementProto().scrollBy ? scrollBy({behavior: "instant", left, top}) : scrollBy(left, top)
 }
 
 export const center_ = (rect: Rect | null): Point2D => {
@@ -403,7 +419,7 @@ export const getZoomedAndCroppedRect_ = (element: HTMLImageElement | HTMLInputEl
 }
 
 export const setBoundary_ = (style: CSSStyleDeclaration, r: WritableRect, allow_abs?: boolean): boolean | undefined => {
-  const need_abs = allow_abs && (r.t < 0 || r.l < 0 || r.b > getInnerHeight() || r.r > getInnerWidth()),
+  const need_abs = allow_abs && (r.t < 0 || r.l < 0 || r.b > wndSize_() || r.r > wndSize_(1)),
   P = "px", arr: ViewOffset | false | undefined = need_abs && getViewBox_()
   if (arr) {
     r.l += arr[0], r.r += arr[0], r.t += arr[1], r.b += arr[1]

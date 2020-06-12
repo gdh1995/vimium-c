@@ -21,12 +21,6 @@ declare namespace ScrollerNS {
     AmountLimitToScrollAndWaitRepeatedKeys = 20,
   }
 }
-declare const enum kScrollDim {
-  _mask = "",
-  viewSize = 0,
-  scrollSize = 1,
-  position = 2,
-}
 interface ElementScrollInfo {
   /** area */ a: number;
   /** element */ e: SafeElement;
@@ -42,8 +36,8 @@ import {
   querySelector_unsafe_, getComputedStyle_, notSafe_not_ff_, HDN, isRawStyleVisible,
 } from "../lib/dom_utils"
 import {
-  scrollWndBy_, getInnerHeight, getZoom_, wdZoom_, bZoom_, isNotInViewport, getInnerWidth, prepareCrop_, padClientRect_,
-  getBoundingClientRect_, cropRectToVisible_, getVisibleClientRect_,
+  scrollWndBy_, wndSize_, getZoom_, wdZoom_, bZoom_, isNotInViewport, prepareCrop_, padClientRect_,
+  getBoundingClientRect_, cropRectToVisible_, getVisibleClientRect_, dimSize_, scrollingTop, set_scrollingTop,
 } from "../lib/rect"
 import { getParentVApi, resetSelectionToDocStart, checkHidden, addElementList, curModalElement } from "./dom_ui"
 import { isCmdTriggered } from "./key_handler"
@@ -55,8 +49,6 @@ let toggleAnimation: ((scrolling?: BOOL) => void) | null = null
 let maxInterval = ScrollerNS.Consts.DefaultMaxIntervalF as number
 let minDelay = ScrollerNS.Consts.DefaultMinDelayMs as number
 /** @NEED_SAFE_ELEMENTS */
-let scrollingTop: SafeElement | null = null
-/** @NEED_SAFE_ELEMENTS */
 let currentScrolling: WeakRef<SafeElement> | null = null
 /** @NEED_SAFE_ELEMENTS */
 let cachedScrollable: WeakRef<SafeElement> | 0 | null = 0
@@ -67,7 +59,6 @@ let joined: VApiTy | null = null
 let scrolled = 0
 
 export { currentScrolling, cachedScrollable, keyIsDown, scrolled }
-export function clearTop (): void { scrollingTop = null }
 export function resetScrolled (): void { scrolled = 0 }
 export function set_currentScrolling (_newCurSc: WeakRef<SafeElement> | null): void { currentScrolling = _newCurSc }
 export function resetCurrentScrolling (): void { currentScrolling = null }
@@ -170,11 +161,11 @@ const performScroll = (el: SafeElement | null, di: ScrollByY, amount: number, be
     let newPos: number, I = "instant" as const;
     if (di) {
       if (el) {
-        before = before == null ? el.scrollTop : before;
+        before = before == null ? dimSize_(el, kDim.positionY) : before;
         !(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
         !(Build.BTypes & ~BrowserType.Firefox) ||
         el.scrollBy ? el.scrollBy({behavior: I, top: amount}) : (el.scrollTop += amount);
-        newPos = el.scrollTop;
+        newPos = dimSize_(el, kDim.positionY);
       } else {
         before = scrollY;
         // avoid using `Element`, so that users may override it
@@ -182,11 +173,11 @@ const performScroll = (el: SafeElement | null, di: ScrollByY, amount: number, be
         newPos = scrollY;
       }
     } else if (el) {
-      before = before == null ? el.scrollLeft : before;
+      before = before == null ? dimSize_(el, kDim.positionX) : before;
       !(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
       !(Build.BTypes & ~BrowserType.Firefox) ||
       el.scrollBy ? el.scrollBy({behavior: I, left: amount}) : (el.scrollLeft += amount);
-      newPos = el.scrollLeft;
+      newPos = dimSize_(el, kDim.positionX);
     } else {
       before = scrollX;
       scrollWndBy_(amount, 0);
@@ -245,11 +236,11 @@ export const executeScroll = function (di: ScrollByY, amount0: number, isTo: BOO
     const element = findScrollable(di, isTo ? fromMax ? 1 : -1 : amount0)
     let amount = !factor ? adjustAmount(di, amount0, element)
       : factor === 1 ? amount0
-      : amount0 * getDimension(element, di, factor === "max" ? kScrollDim.scrollSize : kScrollDim.viewSize)
+      : amount0 * dimSize_(element, di + (factor === "max" ? kDim.scrollW : kDim.viewW))
     if (isTo) {
-      const curPos = getDimension(element, di, kScrollDim.position),
-      viewSize = getDimension(element, di, kScrollDim.viewSize),
-      max = (fromMax || amount) && getDimension(element, di, kScrollDim.scrollSize) - viewSize
+      const curPos = dimSize_(element, di + kDim.positionX),
+      viewSize = dimSize_(element, di + kDim.viewW),
+      max = (fromMax || amount) && dimSize_(element, di + kDim.scrollW) - viewSize
       amount = element ? Math.max(0, Math.min(fromMax ? max - amount : amount, max)) - curPos
           : fromMax ? viewSize : amount - curPos;
     }
@@ -275,7 +266,7 @@ export const executeScroll = function (di: ScrollByY, amount0: number, isTo: BOO
     vApi.$(element, di, amount)
     preventPointEvents = 0
     scrolled = 0
-    scrollingTop = null
+    set_scrollingTop(null)
     if (amount && readyState_ > "i" && overrideScrollRestoration) {
       overrideScrollRestoration("scrollRestoration", "manual", "unload")
     }
@@ -333,7 +324,8 @@ export const onScrolls = (event: KeyboardEventToPrevent): boolean => {
 
 const adjustAmount = (di: ScrollByY, amount: number, element: SafeElement | null): number => {
     amount *= fgCache.t;
-    return !di && amount && element && element.scrollWidth <= element.scrollHeight * (element.scrollWidth < 720 ? 2 : 1)
+    return !di && amount && element && dimSize_(element, kDim.scrollW)
+        <= dimSize_(element, kDim.scrollH) * (dimSize_(element, kDim.scrollW) < 720 ? 2 : 1)
       ? amount * 0.6 : amount;
 }
 
@@ -368,7 +360,7 @@ const findScrollable = (di: ScrollByY, amount: number): SafeElement | null => {
     if (!element && top) {
       const candidate = selectFirst({ a: 0, e: top, h: 0 })
       element = candidate && candidate.e !== top
-          && (!activeEl || candidate.h > getInnerHeight() / 2)
+          && (!activeEl || candidate.h > wndSize_() / 2)
           ? candidate.e : top;
       // if current_, then delay update to current_, until scrolling ends and ._checkCurrent is called;
       // otherwise, cache selected element for less further cost
@@ -378,7 +370,7 @@ const findScrollable = (di: ScrollByY, amount: number): SafeElement | null => {
 }
 
 export const prepareTop = (): void => {
-  scrollingTop = scrollingEl_(1)
+  set_scrollingTop(scrollingEl_(1))
   if (scrollingTop) {
       getZoom_(1);
     getPixelScaleToScroll()
@@ -400,22 +392,6 @@ const checkCurrent = (el: SafeElement | null): void => {
   }
 }
 
-  /** if `el` is null, then return viewSize for `kScrollDim.scrollSize` */
-const getDimension = (el: SafeElement | null, di: ScrollByY, index: kScrollDim & number): number => {
-    let visual;
-    return el !== scrollingTop || index && el
-      ? !index ? di ? el!.clientHeight : el!.clientWidth
-        : index < kScrollDim.position ? di ? el!.scrollHeight : el!.scrollWidth
-        : di ? el!.scrollTop : el!.scrollLeft
-      : index > kScrollDim.scrollSize ? di ? scrollY : scrollX
-      : (visual = visualViewport,
-          !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsured$visualViewport$
-          || visual && (!(Build.BTypes & BrowserType.Chrome)
-              || Build.MinCVer >= BrowserVer.MinEnsured$visualViewport$ || visual.width)
-          ? di ? visual!.height : visual!.width!
-          : di ? getInnerHeight() : getInnerWidth())
-}
-
 const hasSpecialScrollSnap = (el: SafeElement | null): boolean | string | null | undefined => {
     const scrollSnap: string | null | undefined = el && getComputedStyle_(el).scrollSnapType;
     return scrollSnap !== NONE && scrollSnap;
@@ -425,7 +401,7 @@ const doesScroll = (el: SafeElement, di: ScrollByY, amount: number): boolean => 
     /** @todo: re-check whether it's scrollable when hasSpecialScrollSnap_ on Firefox */
     // Currently, Firefox corrects positions before .scrollBy returns,
     // so it always fails if amount < next-box-size
-    const before = getDimension(el, di, kScrollDim.position),
+    const before = dimSize_(el, di + kDim.positionX),
     changed = performScroll(el, di, (amount > 0 ? 1 : -1) * scale, before)
     if (changed) {
       if (!di && hasSpecialScrollSnap(el)) {
@@ -448,8 +424,8 @@ const doesScroll = (el: SafeElement, di: ScrollByY, amount: number): boolean => 
 
 const selectFirst = (info: ElementScrollInfo, skipPrepare?: 1): ElementScrollInfo | null => {
     let element = info.e;
-    if (element.clientHeight + 3 < element.scrollHeight &&
-        (doesScroll(element, 1, 1) || element.scrollTop > 0 && doesScroll(element, 1, 0))) {
+    if (dimSize_(element, kDim.elClientH) + 3 < dimSize_(element, kDim.scrollH) &&
+        (doesScroll(element, 1, 1) || dimSize_(element, kDim.positionY) > 0 && doesScroll(element, 1, 0))) {
       return info;
     }
     skipPrepare || prepareCrop_();
@@ -480,7 +456,7 @@ const selectFirst = (info: ElementScrollInfo, skipPrepare?: 1): ElementScrollInf
 export const scrollIntoView_need_safe = (el: SafeElement): void => {
     const rect = el.getClientRects()[0] as ClientRect | undefined;
     if (!rect) { return; }
-    let r = padClientRect_(rect), iw = getInnerWidth(), ih = getInnerHeight(),
+    let r = padClientRect_(rect), iw = wndSize_(1), ih = wndSize_(),
     { min, max } = Math, ihm = min(96, ih / 2), iwm = min(64, iw / 2),
     hasY = r.b < ihm ? max(r.b - ih + ihm, r.t - ihm) : ih < r.t + ihm ? min(r.b - ih + ihm, r.t - ihm) : 0,
     hasX = r.r < 0 ? max(r.l - iwm, r.r - iw + iwm) : iw < r.l ? min(r.r - iw + iwm, r.l - iwm) : 0
@@ -510,8 +486,7 @@ export const shouldScroll_need_safe = (element: SafeElement, di: BOOL | 2 | 3, a
     const st = getComputedStyle_(element);
     return (di ? st.overflowY : st.overflowX) === HDN && di < 2
       || st.display === NONE || !isRawStyleVisible(st) ? -1
-      : <BOOL> +doesScroll(element, (di & 1) as BOOL
-                  , amount || +!(di ? element.scrollTop : element.scrollLeft));
+      : <BOOL> +doesScroll(element, (di & 1) as BOOL, amount || +!dimSize_(element, kDim.positionX + di))
 }
 
 export const suppressScroll = (): void => {

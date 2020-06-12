@@ -35,10 +35,10 @@ import {
   GetChildNodes_not_ff, isInputInTextMode_cr_old,
 } from "../lib/dom_utils"
 import {
-  padClientRect_, getSelectionBoundingBox_, getZoom_, prepareCrop_, cropRectToVisible_, getVisibleClientRect_,
+  padClientRect_, getSelectionBoundingBox_, getZoom_, prepareCrop_, cropRectToVisible_, getVisibleClientRect_, set_scrollingTop,
 } from "../lib/rect"
 import { checkDocSelectable, getSelected, resetSelectionToDocStart, flash_ } from "./dom_ui"
-import { prepareTop, clearTop, executeScroll, scrollIntoView_need_safe } from "./scroller"
+import { prepareTop, executeScroll, scrollIntoView_need_safe } from "./scroller"
 import {
   toggleSelectableStyle, find_query, executeFind, find_hasResults, updateQuery as findUpdateQuery,
 } from "./mode_find"
@@ -136,7 +136,7 @@ export const deactivate = (isEsc?: 1): void => {
     oldDiType & (DiType.TextBox | DiType.Complicated) ||
     el && el.blur();
     toggleSelectableStyle(0);
-    /*#__INLINE__*/ clearTop()
+    /*#__INLINE__*/ set_scrollingTop(null)
     retainSelection = false
     resetKeys()
     curSelection = null as never

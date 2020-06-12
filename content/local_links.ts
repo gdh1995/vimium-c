@@ -6,13 +6,13 @@ type NestedFrame = false | 0 | null | KnownIFrameElement
 import { VOther, clickable_, jsRe_, doc, isImageUrl, fgCache, readyState_, chromeVer_ } from "../lib/utils"
 import {
   isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, findMainSummary_, htmlTag_, isAriaNotTrue_,
-  NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, elementProto, notSafe_not_ff_, docEl_unsafe_,
+  NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, ElementProto, notSafe_not_ff_, docEl_unsafe_,
   GetParent_unsafe_, unsafeFramesetTag_old_cr_, isHTML_, querySelectorAll_unsafe_,
 } from "../lib/dom_utils"
 import {
   getVisibleClientRect_, getZoomedAndCroppedRect_, getClientRectsForAreas_, getCroppedRect_, padClientRect_,
-  getBoundingClientRect_, cropRectToVisible_, bZoom_, set_bZoom_, prepareCrop_, getInnerHeight, isContaining_,
-  isDocZoomStrange_, docZoom_, SubtractSequence_,
+  getBoundingClientRect_, cropRectToVisible_, bZoom_, set_bZoom_, prepareCrop_, wndSize_, isContaining_,
+  isDocZoomStrange_, docZoom_, SubtractSequence_, dimSize_,
 } from "../lib/rect"
 import { find_box } from "./mode_find"
 import { omni_box } from "./omni"
@@ -200,7 +200,7 @@ const checkAnchor = (anchor: HTMLAnchorElement): Rect | null => {
         // use `^...$` to exclude custom tags
       ? (<RegExpOne> /^h\d$/).test(tag) && isNotReplacedBy(el as HTMLHeadingElement & SafeHTMLElement)
         ? getVisibleClientRect_(el as HTMLHeadingElement & SafeHTMLElement) : null
-      : tag === "img" && !anchor.clientHeight
+      : tag === "img" && !dimSize_(anchor, kDim.elClientH)
         ? getCroppedRect_(el as HTMLImageElement, getVisibleClientRect_(el as HTMLImageElement))
       : null);
 }
@@ -316,7 +316,7 @@ export const traverse = function (selector: string
       || doc,
   isD = box === doc,
   localQuerySelectorAll = Build.BTypes & ~BrowserType.Firefox
-    ? /* just smaller code */ (isD ? doc : elementProto()).querySelectorAll : box.querySelectorAll
+    ? /* just smaller code */ (isD ? doc : ElementProto()).querySelectorAll : box.querySelectorAll
   let list: HintSources | null = localQuerySelectorAll.call(box, selector) as NodeListOf<SafeElement>
   wantClickable && getPixelScaleToScroll();
   if (matchAll) {
@@ -421,7 +421,7 @@ const addChildTrees = (list: HintSources, allNodes: NodeListOf<SafeElement>): Hi
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
           && matchWebkit ? el.webkitShadowRoot : el.shadowRoot) {
       hosts.push(matched = el);
-    } else if (el.localName.endsWith("me") && addChildFrame_ && isIFrameElement(el)) {
+    } else if (addChildFrame_ && isIFrameElement(el)) {
       if ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
           && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
           && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
@@ -434,7 +434,7 @@ const addChildTrees = (list: HintSources, allNodes: NodeListOf<SafeElement>): Hi
 }
 
 const getElementsInViewport = (list: HintSources): HintSources => {
-  const result: SafeElement[] = [], height = getInnerHeight();
+  const result: SafeElement[] = [], height = wndSize_();
   for (let i = 1, len = list.length; i < len; i++) { // skip docEl
     const el = list[i];
     const cr = getBoundingClientRect_(el);
@@ -704,8 +704,9 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
 }
 
 export const checkNestedFrame = (output?: Hint[]): void => {
+  let len = output ? output.length : 0
   let res: NestedFrame, rect: Rect | undefined, rect2: Rect, element: Hint[0]
-  if (output && output.length > 1) {
+  if (len > 1) {
     res = null
   } else if (!frames.length || !isHTML_()) {
     res = false
@@ -714,13 +715,14 @@ export const checkNestedFrame = (output?: Hint[]): void => {
   } else {
     if (output == null) {
       output = [];
-      for (let el of querySelectorAll_unsafe_(doc, "a,button,input,frame,iframe")!) {
-        if ((el as ElementToHTML).lang != null) {
-          getClickable(output, el as SafeHTMLElement);
+      for (let arr = querySelectorAll_unsafe_(doc, "a,button,input,frame,iframe")! as ArrayLike<ElementToHTML>
+              , i = arr.length; (len = output.length) < 2 && i-- > 0; ) {
+        if (arr[i].lang != null) {
+          getClickable(output, arr[i] as SafeHTMLElement)
         }
       }
     }
-    res = output.length !== 1 ? output.length > 0 && null
+    res = len - 1 ? len > 0 && null
         : isIFrameElement(element = output[0][0])
           && (rect = padClientRect_(getBoundingClientRect_(element)),
               rect2 = padClientRect_(getBoundingClientRect_(docEl_unsafe_()!)),
