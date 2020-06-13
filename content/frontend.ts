@@ -25,6 +25,7 @@ import { executeScroll, scrollTick, $sc, keyIsDown as scroll_keyIsDown } from ".
 import { hudTip, hudCopied } from "./hud"
 import { onLoad as findOnLoad, find_box, findCSS, styleInHUD } from "./mode_find"
 import { activate as omniActivate } from "./omni"
+import { filterTextToGoNext, jumpToNextLink } from "./pagination"
 
 const docReadyListeners: Array<(this: void) => void> = [], completeListeners: Array<(this: void) => void> = []
 const RSC = "readystatechange"
@@ -32,7 +33,6 @@ const RSC = "readystatechange"
 let coreTester: { /** name */ n: BuildStr.CoreGetterFuncName; /** recvTick */ r: number; /** sendTick */ s: number;
     /** random key */ k: number; /** encrypt */ e (trustedRand: number, unsafeRand: number): string;
     /** compare_ */ c: Parameters<SandboxGetterFunc>[0]; }
-  
 
 set_safeDestroy((silent?: Parameters<SafeDestoryF>[0]): void => {
     if (!isAlive_) { return; }
@@ -58,7 +58,7 @@ set_safeDestroy((silent?: Parameters<SafeDestoryF>[0]): void => {
 
 set_vApi(VApi = {
   b: coreHints, e: null, z: null,
-  p: post_, a: setupKeydownEvents, f: focusAndRun, d: safeDestroy,
+  p: post_, a: setupKeydownEvents, f: focusAndRun, d: safeDestroy, g: filterTextToGoNext, j: jumpToNextLink,
   h: linkActivate, o: omniActivate, n: findOnLoad, c: executeScroll,
   k: scrollTick, $: $sc, l: learnCSS, u: suppressTail_,
   i: Build.BTypes & BrowserType.Firefox ? wndSize_ : 0 as never,

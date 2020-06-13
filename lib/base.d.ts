@@ -346,6 +346,9 @@ interface Hint5 extends Hint4 {
   [4]: HTMLElementUsingMap; // fixed rect
 }
 
+interface GoNextBaseCandidate { [0]: SafeHTMLElement; [1]: VApiTy }
+interface GoNextCandidate extends GoNextBaseCandidate { [2]: number; [3]: string }
+
 declare const enum AdjustType {
   /** Note(gdh1995): NotAdjust must be used carefully: @see {@link dom_ui.ts#addUIElement : setUICSS} */
   Normal = 0,
@@ -392,8 +395,11 @@ interface VApiTy {
     (this: void, cmd: FgCmdAcrossFrames, count: number, options: FgOptions, showBorder?: 1): void
     (this: void, cmd: 0, count: never, options: never, showBorder: 1): void
   }
+  /** filterTextToGoNext */ g: (candidates: GoNextCandidate[], names: string[], isNext: boolean, lenLimit: number[]
+      , totalMax: number, maxLen: number) => number
   /** linkActivate */ h: (options: HintsNS.ContentOptions, count: number) => void
   /** innerHeight_ff */ i?: (type?: undefined) => number
+  /** jumpToNext */ j: (nextLink: SafeHTMLElement) => void
   /** learnCSS */ l: (srcStyleUI: HTMLStyleElement | string | null, force?: 1) => void
   /** scrollTick */ k: (willContinue: BOOL | 2) => void
   /** getMappedKey */ m: (eventWrapper: HandlerNS.Event, mode: kModeId) => string
