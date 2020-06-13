@@ -487,8 +487,8 @@ export const evalIfOK = (url: Pick<BgReq[kBgReq.eval], "u"> | string): boolean =
 export const checkHidden = (cmd?: FgCmdAcrossFrames, count?: number, options?: OptionsWithForce): BOOL => {
   if (wndSize_() < 3 || wndSize_(1) < 3) { return 1 }
   // here should not use the cache frameElement, because `getComputedStyle(frameElement).***` might break
-  const curFrameElement_ = !isTop && (Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
-          || !(Build.BTypes & ~BrowserType.Firefox) ? frameElement : frameElement_()),
+  const curFrameElement_ = !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox
+      && VOther === BrowserType.Firefox ? !isTop && frameElement : !isTop && frameElement_(),
   el = !isTop && (curFrameElement_ || docEl_unsafe_());
   if (!el) { return 0; }
   let box = padClientRect_(getBoundingClientRect_(el)),
