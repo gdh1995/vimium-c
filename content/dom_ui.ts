@@ -447,9 +447,8 @@ export function set_getWndVApi_ff (_newGetWndVApi: typeof getWndVApi_ff): void {
  * So even if it returns a valid object, `parent.***` may still be blocked
  */
 export let getParentVApi = Build.BTypes & BrowserType.Firefox ? (): VApiTy | null | void => {
-  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement
-      ? !frameElement_() : !frameElement) {
-    // (in Firefox) not use the cached version of frameElement - for less exceptions in the below code
+  if (Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox ? !frameElement_() : !frameElement) {
+    // in Firefox, not use the cached version of frameElement - for less exceptions in the below code
     return;
   }
   // Note: the functionality below should keep the same even if the cached version is used - for easier debugging
