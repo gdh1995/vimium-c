@@ -494,7 +494,13 @@ const callExecuteHint = (hint: HintItem, event?: HandlerNS.Event): void => {
       setupCheck(selectedHinter, clickEl)
       clear(0, 0)
     } else {
-      postExecute(selectedHinter, clickEl, result);
+      timeout_((): void => {
+        reinit(selectedHinter, clickEl, result)
+        if (isActive && 1 === (--count_)) {
+          setMode(mode1_)
+        }
+      }, frameList_.length > 1 ? 50 : 18)
+      coreHints.w()
     }
   }, isActive = 0)
 }
@@ -529,7 +535,7 @@ export const resetMode = (silent?: 1): void => {
 const delayToExecute = (officer: BaseHinter, hint: HintItem, flashEl: SafeHTMLElement | null): void => {
     const waitEnter = Build.BTypes & BrowserType.Chrome && fgCache.w,
     callback = (event?: HandlerNS.Event, key?: string, keybody?: string): void => {
-      let closed: void | 1 | 2 = 1;
+      let closed: void | 1 | 2
       try {
         closed = officer.x(1);
       } catch {}
@@ -558,17 +564,6 @@ const delayToExecute = (officer: BaseHinter, hint: HintItem, flashEl: SafeHTMLEl
     }
 }
 
-const postExecute = (officer: BaseHinter, clickEl: LinkEl | null, rect?: Rect | null): void => {
-    isActive = 0;
-    coreHints.w();
-    timeout_(function (): void {
-      reinit(officer, clickEl, rect);
-      if (isActive && 1 === (--count_)) {
-        setMode(mode1_);
-      }
-    }, frameList_.length > 1 ? 50 : 18);
-}
-
   /** should only be called on manager */
 const reinit = (officer?: BaseHinter | null, lastEl?: LinkEl | null, rect?: Rect | null): void => {
     if (!isEnabled_) {
@@ -586,11 +581,10 @@ const setupCheck: HintManager["w"] = (officer?: BaseHinter | null, el?: LinkEl |
     _timer && clearTimeout_(_timer);
     _timer = officer && el && mode1_ < HintMode.min_job ? timeout_((i): void => {
       _timer = TimerID.None;
-      let doesReinit: BOOL | void = 0;
+      let doesReinit: BOOL | boolean | void | undefined
       try {
-        Build.BTypes & BrowserType.Firefox && (officer = unwrap_ff(officer!));
-        Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i ||
-        officer && (doesReinit = officer.x(el, r));
+        doesReinit = !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i)
+            && officer && (Build.BTypes & BrowserType.Firefox ? unwrap_ff(officer!) : officer).x(el, r)
       } catch {}
       doesReinit && reinit();
       for (const frame of isActive ? frameList_ : []) {

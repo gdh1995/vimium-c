@@ -327,9 +327,8 @@ export const traverse = function (selector: string
       jsaEnabled_ = !!querySelector_unsafe_("[jsaction]");
     }
   }
-  if (!matchAll) {
-    list = addChildTrees(list, localQuerySelectorAll.call(box, kSafeAllSelector) as NodeListOf<SafeElement>);
-  }
+  list = matchAll ? list
+      : addChildTrees(list, localQuerySelectorAll.call(box, kSafeAllSelector) as NodeListOf<SafeElement>)
   if (!wholeDoc && tooHigh_ && isD && list.length >= GlobalConsts.LinkHintPageHeightLimitToCheckViewportFirst) {
     list = getElementsInViewport(list);
   }
@@ -338,9 +337,9 @@ export const traverse = function (selector: string
     list = [].slice.call(list);
     (list as SafeElement[]).unshift(wholeDoc as unknown as SafeElement);
   }
-  for (const tree_scopes: Array<[HintSources, number]> = [[list, 0]]; tree_scopes.length > 0; ) {
-    let cur_scope = tree_scopes[tree_scopes.length - 1], [cur_tree, i] = cur_scope, len = cur_tree.length;
-    for (; i < len; ) {
+  let cur_scope: [HintSources, number] | undefined
+  for (const tree_scopes: Array<typeof cur_scope> = [[list, 0]]; cur_scope = tree_scopes.pop(); ) {
+    for (let cur_tree = cur_scope[0], i = cur_scope[1]; i < cur_tree.length; ) {
       const el = cur_tree[i++] as SafeElement & {lang?: undefined} | SafeHTMLElement;
       if (el.lang != null) {
         filter(output, el);
@@ -349,22 +348,16 @@ export const traverse = function (selector: string
               && chromeVer_ < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
             ? el.webkitShadowRoot : el.shadowRoot) as ShadowRoot | null | undefined;
         if (shadowRoot) {
-          let sub_tree: HintSources = shadowRoot.querySelectorAll(selector) as NodeListOf<SafeElement>;
-          if (!matchAll) {
-            sub_tree = addChildTrees(sub_tree,
-                shadowRoot.querySelectorAll(kSafeAllSelector) as NodeListOf<SafeElement>);
-          }
-          cur_scope[1] = i;
-          tree_scopes.push([sub_tree, i = 0]);
-          break;
+          tree_scopes.push([cur_tree, i])
+          cur_tree = shadowRoot.querySelectorAll(selector) as NodeListOf<SafeElement>
+          cur_tree = matchAll ? cur_tree
+              : addChildTrees(cur_tree, shadowRoot.querySelectorAll(kSafeAllSelector) as NodeListOf<SafeElement>)
+          i = 0
         }
       } else if (wantClickable) {
         /*#__NOINLINE__*/ getClickableInMaybeSVG(output as Exclude<typeof output, SafeHTMLElement[]>
             , el as SVGElement | OtherSafeElement);
       }
-    }
-    if (i >= len) {
-      tree_scopes.pop();
     }
   }
   if (wholeDoc && (Build.NDEBUG || !isInAnElement)) {
@@ -374,7 +367,7 @@ export const traverse = function (selector: string
     }
     return output;
   }
-  list = null;
+  list = cur_scope = null as never
   if (Build.BTypes & ~BrowserType.Edge && ui_root
       && ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
           && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
@@ -453,7 +446,7 @@ const getElementsInViewport = (list: HintSources): HintSources => {
 const deduplicate = (list: Hint[]): void => {
   const D = "div"
   let i = list.length, j: number, k: ClickType, s: string, notRemoveParents: boolean;
-  let element: Element | null, prect: Rect, crect: Rect | null;
+  let element: Element | null, prect: Rect, crect: Rect | null, splice: BOOL = 0
   while (0 <= --i) {
     k = list[i][2];
     notRemoveParents = k === ClickType.classname;
@@ -468,7 +461,7 @@ const deduplicate = (list: Hint[]): void => {
                 && htmlTag_(element) === "button" && (element as HTMLButtonElement).disabled
               ) {
             // icons: button > i; button > div@mousedown; (button[disabled] >) div@mousedown
-            list.splice(i, 1);
+            ++splice
           }
         } else if (s === D
             && (j = i + 1) < list.length
@@ -482,7 +475,7 @@ const deduplicate = (list: Hint[]): void => {
             // so think the box is just a layout container
             // for [i] is `<div>`, not limit the height of parent `<div>`,
             // if there's more content, it should have hints for itself
-            list.splice(i, 1);
+            ++splice
           }
         }
       } else if (k === ClickType.tabindex
@@ -496,7 +489,7 @@ const deduplicate = (list: Hint[]): void => {
             list[i] = [element as SafeHTMLElement, crect, ClickType.tabindex];
           } else if (list[i + 1][2] === ClickType.codeListener) {
             // [tabindex] > :listened, then [i] is only a layout container
-            list.splice(i, 1);
+            ++splice
           }
         }
       } else if (notRemoveParents
@@ -504,23 +497,25 @@ const deduplicate = (list: Hint[]): void => {
           && element.childElementCount < 2 && element.localName === "a"
           && !(element as TypeToPick<Element, HTMLElement, "innerText">).innerText) {
         // a rare case that <a> has only a clickable <input>
-        list.splice(--i, 1);
+        --i
+        ++splice
       }
       j = i;
     }
     else if (i + 1 < list.length && list[j = i + 1][2] < ClickType.edit + 1
         && isDescendant(element = list[j][0], list[i][0], 0)
         && (list[j][2] > ClickType.edit - 1 || (<RegExpOne> /\b(button|a$)/).test((element as Hint[0]).localName))) {
-      list.splice(i, 1);
+      ++splice
     }
     else if (j = i - 1, i < 1 || (k = list[j][2]) > ClickType.MaxWeak
         || !isDescendant(list[i][0], list[j][0], 1)) {
       /* empty */
     } else if (isContaining_(list[j][1], list[i][1])) {
-      list.splice(i, 1);
+      ++splice
     } else {
       notRemoveParents = k < ClickType.MinWeak;
     }
+    splice && (list.splice(i, 1), splice = 0)
     if (notRemoveParents) { continue; }
     for (; j > i - 3 && 0 < j
           && (k = list[j - 1][2]) > ClickType.MaxNotWeak && k < ClickType.MinNotWeak
