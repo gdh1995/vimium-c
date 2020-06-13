@@ -350,7 +350,7 @@ const getPreciseChildRect = (frameEl: KnownIFrameElement, view: Rect): Rect | nu
         l: (l - x0) * zoom, t: (t - y0) * zoom, r: (r - x0) * zoom, b: (b - y0) * zoom} : null;
     let hints: Hint[] | null;
     return cropped && (
-        filterOutNonReachable(hints = [[frameEl as SafeHTMLElement, cropped, HintsNS.ClickType.frame]]),
+        filterOutNonReachable(hints = [[frameEl as SafeHTMLElement, {l, t, r, b}, HintsNS.ClickType.frame]]),
         hints.length) ? cropped : null
 }
 
@@ -496,7 +496,7 @@ const callExecuteHint = (hint: HintItem, event?: HandlerNS.Event): void => {
     } else {
       postExecute(selectedHinter, clickEl, result);
     }
-  }, 0)
+  }, isActive = 0)
 }
 
 const locateHint = (matchedHint: HintItem): BaseHinter => {
