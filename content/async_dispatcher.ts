@@ -343,9 +343,9 @@ export const click_ = async (element: SafeElementForMouse
 }
 
 export const select_ = (element: LockableElement, rect?: Rect | null, show_flash?: boolean
-    , action?: SelectActions, suppressRepeated?: boolean): void => {
+    , action?: SelectActions, suppressRepeated?: boolean): Promise<void> => {
   const y = scrollY
-  catchAsyncErrorSilently(click_(element, rect, 1)).then((): void => {
+  return catchAsyncErrorSilently(click_(element, rect, 1)).then((): void => {
     view_(element, y)
     // re-compute rect of element, in case that an input is resized when focused
     show_flash && flash_(element)

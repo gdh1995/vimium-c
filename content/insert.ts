@@ -31,7 +31,7 @@ const domNodeMap = Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet ||
 let lock_ = null as LockableElement | null
 let insert_global_: CmdOptions[kFgCmd.insertMode] | null = null
 let isHintingInput: BOOL = 0
-let inputHint: { /** box */ b: HTMLDivElement; /** hints */ h: HintsNS.InputHintItem[] } | null = null
+let inputHint: { /** box */ b: HTMLDivElement | null; /** hints */ h: HintsNS.InputHintItem[] } | null = null
 let suppressType: string | null = null
 let insert_last_: WeakRef<LockableElement> | null | undefined
 let is_last_mutable: BOOL = 1
@@ -194,11 +194,11 @@ export const exitInsertMode = (target: Element): void => {
 }
 
 export const exitInputHint = (): void => {
-  const hint = inputHint;
-  if (!hint) { return; }
-  inputHint = null;
-  hint.b.remove();
-  removeHandler_(hint);
+  if (inputHint) {
+    inputHint.b && inputHint.b.remove()
+    removeHandler_(inputHint)
+    inputHint = null;
+  }
 }
 
 export function resetInsert (): void {

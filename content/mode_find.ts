@@ -467,7 +467,11 @@ export const deactivate = (i: FindNS.Action): void => {
       if (container && i === FindNS.Action.ExitAndReFocus && (el2 = activeEl_unsafe_())
           && getEditableType_<0>(el2) > EditableType.TextBox - 1 && container.contains(el2)) {
         prepareCrop_();
-        select_(el2 as LockableElement);
+        select_(el2 as LockableElement).then((): void => {
+          toggleSelectableStyle(0)
+          i > maxNotRunPost && postActivate()
+        })
+        return
       } else if (el) {
         // always call scrollIntoView if only possible, to keep a consistent behavior
         !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions

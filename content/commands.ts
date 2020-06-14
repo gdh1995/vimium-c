@@ -233,12 +233,12 @@ export const contentCommands_: {
     const visibleInputs = traverse(Build.BTypes & ~BrowserType.Firefox
           ? kEditableSelector + kSafeAllSelector : kEditableSelector, getEditable
         ) as InputHint[],
-    action = options.select;
+    action = options.select, keep = options.keep, pass = options.passExitKey;
     let sel = visibleInputs.length;
-    if (sel === 0) {
+    if (!sel) {
       exitInputHint();
       return hudTip(kTip.noInputToFocus, 1000);
-    } else if (sel === 1) {
+    } else if (sel < 2) {
       exitInputHint();
       select_(visibleInputs[0][0], visibleInputs[0][1], true, action, true)
       return
@@ -266,24 +266,24 @@ export const contentCommands_: {
       sel = count > 0 ? Math.min(count, sel) - 1 : Math.max(0, sel + count);
     }
     hints[sel].m.className = S
-    select_(visibleInputs[sel][0], visibleInputs[sel][1], false, action, false);
     ensureBorder(wdZoom_ / dScale_);
-    const box = addElementList<false>(hints, arr), keep = options.keep, pass = options.passExitKey;
-    // delay exiting the old to avoid some layout actions
-    // although old elements can not be GC-ed before this line, it has little influence
+    select_(hints[sel].d, visibleInputs[sel][1], false, action, false).then((): void => {
+      insert_inputHint!.b = addElementList<false>(hints, arr)
+    })
     exitInputHint();
-    /*#__INLINE__*/ set_inputHint({ b: box, h: hints });
-    pushHandler_(function (event) {
+    /*#__INLINE__*/ set_inputHint({ b: null, h: hints })
+    pushHandler_((event) => {
       const keyCode = event.i, isIME = keyCode === kKeyCode.ime, repeat = event.e.repeat,
       key = isIME || repeat ? "" : getMappedKey(event, kModeId.Insert)
       if (key === kChar.tab || key === `s-${kChar.tab}`) {
-        const hints2 = this.h, oldSel = sel, len = hints2.length;
+        const hints2 = insert_inputHint!.h, oldSel = sel, len = hints2.length;
         sel = (oldSel + (key < "t" ? len - 1 : 1)) % len;
         /*#__INLINE__*/ set_isHintingInput(1);
         prevent_(event.e); // in case that selecting is too slow
-        select_(hints2[sel].d, null, false, action);
+        select_(hints2[sel].d, null, false, action).then((): void => {
         hints2[oldSel].m.className = "IH";
         hints2[sel].m.className = S
+        })
         /*#__INLINE__*/ set_isHintingInput(0);
         return HandlerResult.Prevent;
       }
@@ -294,7 +294,7 @@ export const contentCommands_: {
       else if (repeat) { return HandlerResult.Nothing; }
       else if (keep ? isEscape_(key) || (
           keybody_(key) === ENTER
-          && (/* a?c?m?-enter */ key < "s" && (key[0] !== "e" || htmlTag_(this.h[sel].d) === "input"))
+          && (/* a?c?m?-enter */ key < "s" && (key[0] !== "e" || htmlTag_(insert_inputHint!.h[sel].d) === "input"))
         ) : !isIME && keyCode !== kKeyCode.f12
       ) {
         exitInputHint();
