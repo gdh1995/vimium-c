@@ -367,13 +367,19 @@ export const isNotInViewport = function (this: void, element: Element | null, re
 export const getSelectionBoundingBox_ = (sel: Selection): ClientRect => sel.getRangeAt(0).getBoundingClientRect()
 
 export const view_ = (el: Element, oldY?: number): boolean => {
-  const rect = padClientRect_(getBoundingClientRect_(el)),
+  let rect = padClientRect_(getBoundingClientRect_(el)), secondScroll: number,
   ty = isNotInViewport(null, rect)
   if (ty === VisibilityType.OutOfView) {
-    const ih = wndSize_(), delta = rect.t < 0 ? -1 : rect.t > ih ? 1 : 0, f = oldY != null
+    let ih = wndSize_(), delta = rect.t < 0 ? -1 : rect.t > ih ? 1 : 0, f = oldY != null,
+    elHeight = rect.b - rect.t
     Build.MinCVer < BrowserVer.MinScrollIntoViewOptions && Build.BTypes & BrowserType.Chrome
     ? scrollIntoView_(el, delta < 0) : scrollIntoView_(el);
-    (delta || f) && scrollWndBy_(0, f ? oldY! - scrollY : delta * ih / 5)
+    if (f) {
+      secondScroll = elHeight < ih ? oldY! - scrollY : 0
+      // required range of wanted: delta > 0 ? [-limit, 0] : [0, limit]
+      f = delta * secondScroll <= 0 && delta * secondScroll >= elHeight - ih
+    }
+    (delta || f) && scrollWndBy_(0, f ? secondScroll! * secondScroll! < 4 ? 0 : secondScroll! : delta * ih / 5)
   }
   return ty === VisibilityType.Visible
 }
