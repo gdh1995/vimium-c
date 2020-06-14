@@ -709,6 +709,10 @@ function parseSmartImageUrl_(originUrl: string): string | null {
   } else if ((<RegExpOne> /^[1-9]\d+$/).test(search) && +search > 0 && +search < 640) {
     offset--;
     search = "";
+  } else if (ImageExtRe.test(search) && (<RegExpOne> /^\/(small|(thumb|mw|orj)[1-9]\d{2,3})\//).test(path)) {
+    found = true
+    search = "/large" + path.slice(path.indexOf("/", 1))
+    offset = 0
   } else {
     found = 0;
   }
