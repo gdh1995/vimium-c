@@ -3,7 +3,7 @@
 ===========================================
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.83.3](https://img.shields.io/badge/release-1.83.3-orange.svg
+[![Version 1.83.4](https://img.shields.io/badge/release-1.83.4-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -90,6 +90,17 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
+#### 1.83.4
+* **better simulating of mouse events**: wait for 1~2 microticks, so that work better with modern frameworks
+* fix some bugs about `LinkHints` and the Display page
+* `focusInput`: follow "Detect whether links are completely covered or not"
+  * support an option `reachable: boolean` to override this behavior
+* `goNext`: now find links in all same-origin frames
+* `goUp`: support an option `sed` to use substitution rules with prefix=`g`
+* Block list of words: a small change to how to detect comments
+* settings: show advanced options and command items by default
+* export settings: now support non-English characters in block list of words
+
 #### 1.83.3
 * createTab: in an incognito window, now don't open extension pages by default, unless `evenIncognito`
 * Scroller: make `keepHover` enabled by default; also use a cheaper way to prevent hover effects
@@ -99,26 +110,6 @@ __Other extensions supporting Vimium C:__
 * Vomnibar: add an option `engines: enum` to filter out any engines
 * scroller: continue scrolling when irrelevant keys get released
 * fix some other bugs
-
-#### 1.83.2
-* LinkHints: no hint links on an iframe if it's wholly covered
-* FindMode: fix an edge case <kbd>Ctrl+J</kbd> may hang at a place
-* Vomnibar: fix a bug the `currentWindow` option may affect a next `activateTabSelection` command
-* settings: fix a crash during auto-recovering when `localStorage` got cleared
-* copy to clipboard: avoid spaces occur in URLs
-* export settings: encode the block list of words using base64
-* Firefox on Android: highly experimental support
-* fix some other bugs
-
-#### 1.83.1
-* i18n: support French when showing tips
-* releases on the store: increase the required *minimum Chrome version* to 43
-* Vomnibar: fix some bugs when a query starts with `vimium://cd`
-* options page: if there're errors in custom key mappings, show them directly
-* `mapkey`: support `$if={...}`, just like `map`
-* text substitution: add a prefix of `i` for `vimium://show image` and two suffixes of `r` and `d` for URLs
-* LinkHints: show indigenized upper-case characters (experimentally)
-* `autoOpen`: add an option of `copy` [(#159)](https://github.com/gdh1995/vimium-c/issues/159)
 
 See more on [RELEASE-NOTES.md](RELEASE-NOTES.md).
 

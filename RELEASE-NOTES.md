@@ -4,6 +4,17 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://github.com/gdh1995/vimium-c/blob/master/README_zh.md .
 
+#### 1.83.4
+* **better simulating of mouse events**: wait for 1~2 microticks, so that work better with modern frameworks
+* fix some bugs about `LinkHints` and the Display page
+* `focusInput`: follow "Detect whether links are completely covered or not"
+  * support an option `reachable: boolean` to override this behavior
+* `goNext`: now find links in all same-origin frames
+* `goUp`: support an option `sed` to use substitution rules with prefix=`g`
+* Block list of words: a small change to how to detect comments
+* settings: show advanced options and command items by default
+* export settings: now support non-English characters in block list of words
+
 #### 1.83.3
 * createTab: in an incognito window, now don't open extension pages by default, unless `evenIncognito`
 * Scroller: make `keepHover` enabled by default; also use a cheaper way to prevent hover effects
