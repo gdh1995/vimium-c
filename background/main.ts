@@ -785,13 +785,14 @@
     }, 1200);
     cRepeat = 1;
     if (reuse === ReuseType.current && !incognito) {
-      let views = Build.BTypes & BrowserType.Chrome
-            && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
-            && !tab.url.split("#", 2)[1] && (
-          Build.MinCVer >= BrowserVer.Min$Extension$$GetView$AcceptsTabId ||
-          CurCVer_ >= BrowserVer.Min$Extension$$GetView$AcceptsTabId)
+      let views = Build.BTypes & BrowserType.ChromeOrFirefox
+            && (!(Build.BTypes & ~BrowserType.ChromeOrFirefox) || OnOther & BrowserType.ChromeOrFirefox)
+            && (!(Build.BTypes & ~BrowserType.Firefox)
+                || Build.MinCVer >= BrowserVer.Min$Extension$$GetView$AcceptsTabId
+                || CurCVer_ >= BrowserVer.Min$Extension$$GetView$AcceptsTabId)
+            && !tab.url.split("#", 2)[1]
         ? chrome.extension.getViews({ tabId: tab.id }) : [];
-      if (Build.BTypes & BrowserType.Chrome && views.length > 0
+      if (Build.BTypes & BrowserType.ChromeOrFirefox && views.length > 0
           && views[0].location.href.startsWith(prefix) && views[0].onhashchange) {
         (views[0].onhashchange as () => void)();
       } else {
