@@ -20,11 +20,11 @@ export { paintBox_, wdZoom_, docZoom_, isDocZoomStrange_, dScale_, bScale_, bZoo
 export function set_bZoom_ (_newBZoom: number): void { bZoom_ = _newBZoom }
 export function set_scrollingTop (newScrollingTop: SafeElement | null): void { scrollingTop = newScrollingTop }
 
-export const wndSize_ = (id?: 1 | 2): number => id ? id < 2 ? innerWidth : devicePixelRatio : innerHeight as number
+export const wndSize_ = (id?: 0 | 1 | 2): number => id ? id < 2 ? innerWidth : devicePixelRatio : innerHeight as number
 
 /** if `el` is null, then return viewSize for `kDim.scrollSize` */
 export const dimSize_ = (el: SafeElement | null, index: kDim | ScrollByY): number => {
-  let visual, byY = index & kDim.byY;
+  let visual, byY = (index & kDim.byY) as BOOL;
   return el !== scrollingTop || index > kDim.elClientW - 1 && el
       ? index < kDim.scrollW ? byY ? el!.clientHeight : el!.clientWidth
         : index < kDim.positionX ? byY ? el!.scrollHeight : el!.scrollWidth
@@ -35,7 +35,7 @@ export const dimSize_ = (el: SafeElement | null, index: kDim | ScrollByY): numbe
           || (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$visualViewport$
               ? visual : visual && visual.width)
           ? byY ? visual!.height : visual!.width!
-          : byY ? wndSize_() : wndSize_(1))
+          : wndSize_((1 - byY) as BOOL))
 }
 
 /** depends on .docZoom_, .bZoom_, .paintBox_ */

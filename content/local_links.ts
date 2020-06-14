@@ -554,7 +554,6 @@ const isDescendant = function (c: Element | null, p: Element, shouldBeSingleChil
 
 export const filterOutNonReachable = (list: Hint[]): void => {
   if (!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && VOther & BrowserType.Edge) { return; }
-  if (!fgCache.e) { return; }
   if (Build.BTypes & BrowserType.Chrome && (Build.MinCVer < BrowserVer.Min$Node$$getRootNode
         || Build.MinCVer < BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint)
       && chromeVer_ < (BrowserVer.Min$Node$$getRootNode > BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint
@@ -564,7 +563,7 @@ export const filterOutNonReachable = (list: Hint[]): void => {
   if (Build.BTypes & BrowserType.Chrome && isDocZoomStrange_ && docZoom_ - 1) {
     return;
   }
-  let i = list.length, el: SafeElement, root: Document | ShadowRoot, localName: string,
+  let i = list.length, el: SafeElement, root: Document | ShadowRoot, tag: string,
   fromPoint: Element | null | undefined, temp: Element | null, index2 = 0;
   const zoom = Build.BTypes & BrowserType.Chrome ? docZoom_ * bZoom_ : 1,
   zoomD2 = Build.BTypes & BrowserType.Chrome ? zoom / 2 : 0.5,
@@ -598,10 +597,9 @@ export const filterOutNonReachable = (list: Hint[]): void => {
         && (root as ShadowRoot).host.contains(fromPoint!)) {
       continue;
     }
-    localName = el.localName;
-    if (localName === "img"
+    if ((tag = el.localName) === "img"
         ? isDescendant(el, fromPoint!, 0)
-        : localName === "area" && fromPoint === list[i][4]) {
+        : tag === "area" && fromPoint === list[i][4]) {
       continue;
     }
     const stack = root.elementsFromPoint(cx, cy),
@@ -645,7 +643,7 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
           ? kEditableSelector + kSafeAllSelector : kEditableSelector, getEditable);
   if (_i < HintMode.max_mouse_events + 1
       && visibleElements.length < GlobalConsts.MinElementCountToStopPointerDetection) {
-    filterOutNonReachable(visibleElements);
+    fgCache.e && filterOutNonReachable(visibleElements);
   }
   maxLeft_ = view[2], maxTop_ = view[3], maxRight_ = view[4];
   if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar)
@@ -685,7 +683,7 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
         if (r.l >= t.l && r.t >= t.t && r.l < t.l + 10 && r.t < t.t + 8) {
           const offset: HintOffset = [r, visibleElement.length > 3 ? (visibleElement as Hint4)[3][1] + 13 : 13];
           (visibleElements[_k] as Hint4)[3] = offset;
-          break;
+          _k = 0
         }
       }
     }

@@ -338,20 +338,20 @@ const getPreciseChildRect = (frameEl: KnownIFrameElement, view: Rect): Rect | nu
       if (st.overflow !== V) {
         let outer = padClientRect_(getBoundingClientRect_(el)), hx = st.overflowX !== V, hy = st.overflowY !== V,
         scale = el !== docEl && inBody ? dScale_ * bScale_ : dScale_;
-        // @todo: unsafe?
+        /** Note: since `el` is not safe, `dimSize_(el, *)` may returns `NaN` */
         hx && (l = max(l, outer.l), r = l + min(r - l, outer.r - outer.l
-              , hy ? dimSize_(el as SafeElement, kDim.elClientW) * scale : r))
+              , hy && dimSize_(el as SafeElement, kDim.elClientW) * scale || r))
         hy && (t = max(t, outer.t), b = t + min(b - t, outer.b - outer.t
-              , hx ? dimSize_(el as SafeElement, kDim.elClientH) * scale : b))
+              , hx && dimSize_(el as SafeElement, kDim.elClientH) * scale || b))
       }
     }
     l = max(l, view.l), t = max(t, view.t);
     const cropped = l + 7 < r && t + 7 < b ? {
         l: (l - x0) * zoom, t: (t - y0) * zoom, r: (r - x0) * zoom, b: (b - y0) * zoom} : null;
     let hints: Hint[] | null;
-    return cropped && (
+    return !cropped || fgCache.e && !(
         filterOutNonReachable(hints = [[frameEl as SafeHTMLElement, {l, t, r, b}, HintsNS.ClickType.frame]]),
-        hints.length) ? cropped : null
+        hints.length) ? null : cropped
 }
 
 export const tryNestedFrame = (
@@ -599,7 +599,6 @@ const checkLast = function (this: void, el?: LinkEl | TimerType.fake | 1, r?: Re
     if (el === 1) { return 2; }
     const managerOrA = manager_ || coreHints;
     const r2 = el && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinNo$TimerType$$Fake
-                      /** @todo: remove comments here, which was to work around a bug of TypeScript 3.9 beta */
                       /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
                       // @ts-expect-error
                       || el !== TimerType.fake

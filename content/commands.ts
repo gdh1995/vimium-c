@@ -25,7 +25,7 @@ import { activate as visualActivate, deactivate as visualDeactivate } from "./vi
 import { activate as scActivate, clearCachedScrollable } from "./scroller"
 import { activate as omniActivate } from "./omni"
 import { findNextInText, findNextInRel } from "./pagination"
-import { traverse, getEditable } from "./local_links"
+import { traverse, getEditable, filterOutNonReachable } from "./local_links"
 import { select_, unhover_, resetLastHovered } from "./async_dispatcher"
 
 interface SpecialCommands {
@@ -233,7 +233,10 @@ export const contentCommands_: {
     const visibleInputs = traverse(Build.BTypes & ~BrowserType.Firefox
           ? kEditableSelector + kSafeAllSelector : kEditableSelector, getEditable
         ) as InputHint[],
-    action = options.select, keep = options.keep, pass = options.passExitKey;
+    action = options.select, keep = options.keep, pass = options.passExitKey, reachable = options.reachable;
+    if (reachable != null ? reachable : fgCache.e) {
+      filterOutNonReachable(visibleInputs)
+    }
     let sel = visibleInputs.length;
     if (!sel) {
       exitInputHint();
@@ -259,9 +262,9 @@ export const contentCommands_: {
       marker.className = "IH";
       setBoundary_(marker.style, rect);
       return {m: marker, d: link[0]};
-    }), known_last2 = deref_(insert_last_)
-    if (count === 1 && known_last2) {
-      sel = Math.max(0, visibleInputs.map(link => link[0]).indexOf(known_last2));
+    })
+    if (count === 1 && known_last) {
+      sel = Math.max(0, hints.map(link => link.d).indexOf(known_last))
     } else {
       sel = count > 0 ? Math.min(count, sel) - 1 : Math.max(0, sel + count);
     }
