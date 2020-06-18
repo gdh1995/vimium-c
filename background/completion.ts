@@ -1390,15 +1390,14 @@ knownCs = {
       const d: CachedRegExp[] = RegExpCache.parts_ = [];
       RegExpCache.starts_ = RegExpCache.words_ = null as never;
       for (const s of queryTerms) {
-        d.push(new RegExp(s.replace(escapeAllRe, "\\$&"), BgUtils_.hasUpperCase_(s) ? "" : "i" as ""
-          ) as CachedRegExp);
+        d.push(new RegExp(s.replace(escapeAllRe, "\\$&"), /** has lower */ s !== s.toUpperCase()
+            && /** no upper */ s.toLowerCase() === s ? "i" as "" : "") as CachedRegExp)
       }
     },
     buildOthers_ (): void {
       const ss: CachedRegExp[] = RegExpCache.starts_ = [], ws: CachedRegExp[] = RegExpCache.words_ = [];
-      for (const s of queryTerms) {
-        const start = "\\b" + s.replace(escapeAllRe, "\\$&"),
-        flags = BgUtils_.hasUpperCase_(s) ? "" : "i" as "";
+      for (const partRe of RegExpCache.parts_) {
+        const start = "\\b" + partRe.source, flags = partRe.flags as "";
         ss.push(new RegExp(start, flags) as CachedRegExp);
         ws.push(new RegExp(start + "\\b", flags) as CachedRegExp);
       }
@@ -1406,7 +1405,7 @@ knownCs = {
     fixParts_ (): void {
       if (!RegExpCache.parts_) { return; }
       let s = queryTerms[0];
-      RegExpCache.parts_[0] = new RegExp(s.replace(escapeAllRe, "\\$&"), BgUtils_.hasUpperCase_(s) ? "" : "i" as ""
+      RegExpCache.parts_[0] = new RegExp(s.replace(escapeAllRe, "\\$&"), RegExpCache.parts_[0].flags as ""
         ) as CachedRegExp;
     }
   },

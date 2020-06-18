@@ -1114,11 +1114,13 @@ document.addEventListener("keydown", function (this: void, event): void {
     if (!window.VApi || !VApi.z || "input textarea".includes(document.activeElement!.localName as string)) { return; }
     const key = VApi.m({c: kChar.INVALID, e: event, i: event.keyCode}, kModeId.NO_MAP_KEY)
     if (key === "a-" + kChar.f12) {
-      $<HTMLOptionElement>("#recommendedSettings").selected = true;
       let el2 = $<HTMLSelectElement>("#importOptions");
-      el2.onchange != null ? (el2 as any).onchange() : setTimeout(() => {
-        el2.onchange && (el2 as any).onchange();
-      }, 100) && el2.click();
+      const oldSelected = el2.selectedIndex, callback = (): void => {
+        el2.onchange && (el2 as any).onchange()
+        el2.selectedIndex = oldSelected
+      }
+      $<HTMLOptionElement>("#recommendedSettings").selected = true;
+      el2.onchange != null ? callback() : setTimeout(callback, 100) && el2.click()
     }
     else if (key === "?") {
       if (!Build.NDEBUG) {

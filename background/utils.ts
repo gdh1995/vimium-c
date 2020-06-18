@@ -846,8 +846,7 @@ var BgUtils_ = {
   timeout_ (timeout: number, callback: (this: void, fakeArgs?: TimerType.fake) => void): void {
     setTimeout(callback, timeout);
   },
-  GC_: function (this: void): void { /* empty */ } as (this: void, inc?: number) => void,
-  hasUpperCase_ (this: void, s: string): boolean { return s.toLowerCase() !== s; }
+  GC_: function (this: void): void { /* empty */ } as (this: void, inc?: number) => void
 },
 Backend_: BackendHandlersNS.BackendHandlers,
 trans_ = chrome.i18n.getMessage,
