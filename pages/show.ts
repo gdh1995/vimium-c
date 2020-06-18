@@ -20,6 +20,8 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
 }
 (function (): void {
 interface ViewerType {
+  scrollbarWidth: number
+  readonly hiding: boolean
   readonly isShown: boolean;
   readonly played: boolean;
   readonly viewed: boolean;
@@ -375,9 +377,9 @@ function imgOnKeydown(event: KeyboardEventToPrevent): boolean {
   keybody = (key.slice(key.lastIndexOf("-") + 1) || key && kChar.minus) as kChar;
   if (keybody === kChar.space || keybody === kChar.enter) {
     event.preventDefault();
-    if (keybody === kChar.enter && viewer_ && viewer_.isShown && !viewer_.played) {
+    if (keybody === kChar.enter && viewer_ && viewer_.isShown && !viewer_.hiding && !viewer_.played) {
       viewer_.play(true);
-    } else if (!viewer_ || !viewer_.isShown) {
+    } else if (!viewer_ || !viewer_.isShown || viewer_.hiding) {
       simulateClick(VShown as ValidNodeTypes, event);
     }
     return true;
@@ -434,7 +436,8 @@ function defaultOnClick(event: MouseEventToPrevent): void {
   case "url": clickLink({ target: "_blank" }, event); break;
   case "image":
     if (VData.error) { return; }
-    loadViewer().then(showSlide).catch(defaultOnError);
+    const isCtrl = event.ctrlKey || event.metaKey
+    loadViewer().then(module => showSlide(module, isCtrl)).catch(defaultOnError);
     break;
   default: break;
   } }
@@ -508,7 +511,7 @@ function _copyStr(str: string, event?: EventToPrevent): void {
 
 function toggleInvert(event: EventToPrevent): void {
   if (VData.type === "image") {
-    if (VData.error || viewer_ && viewer_.isShown) {
+    if (VData.error || viewer_ && viewer_.isShown && !viewer_.hiding) {
       event.preventDefault();
     } else {
       (VShown as ValidNodeTypes).classList.toggle("invert");
@@ -573,19 +576,23 @@ function loadViewer(): Promise<CurWnd["Viewer"]> {
   });
 }
 
-function showSlide(ViewerModule: CurWnd["Viewer"]): Promise<ViewerType> | ViewerType {
+function showSlide(ViewerModule: CurWnd["Viewer"], zoomToFit?: boolean): Promise<ViewerType> | ViewerType {
   const needToScroll = scrollX || scrollY;
   const sel = getSelection();
   sel.type === "Range" && sel.collapseToStart();
   const v = viewer_ = viewer_ || new ViewerModule(VShown as HTMLImageElement);
-  v.isShown || v.show();
+  v.scrollbarWidth = 0
+  v.isShown && !v.hiding || v.show();
   needToScroll && scrollTo(0, 0);
   if (v.viewed) { v.zoomTo(1); return v; }
   Object.defineProperty(v, "initialImageData", {
+    configurable: true,
+    enumerable: true,
     get: () => _initialViewerData,
     set (val: any): void {
       _initialViewerData = val
-      if (viewer_) {
+      if (viewer_ && !zoomToFit) {
+        zoomToFit = true
         const imageData = viewer_.imageData
         const ratio = 1
         // the following lines are from viewer.js:src/js/methods.js#zoomTo
