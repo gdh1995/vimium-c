@@ -386,7 +386,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
           highlightRange(getSelected()[0]);
         }
         else if (key < "c-" || key > "m-") { h = HandlerResult.Suppress; }
-        else if (scroll = keyNames_.indexOf(keybody), scroll > 2 && scroll < 9 && (scroll & 5) - 5) {
+        else if (scroll = keyNames_.indexOf(keybody), scroll > 2 && scroll & 5 ^ 5) {
           beginScroll(eventWrapper, key, keybody);
         }
         else if (keybody === kChar.j || keybody === kChar.k) {

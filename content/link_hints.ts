@@ -84,7 +84,7 @@ import {
 } from "./dom_ui"
 import { scrollTick, beginScroll } from "./scroller"
 import { hudTip, hudShow, hudHide, hud_tipTimer } from "./hud"
-import { set_onWndBlur2 } from "./insert"
+import { set_onWndBlur2, insert_Lock_ } from "./insert"
 import {
   getVisibleElements, localLinkClear, frameNested_, checkNestedFrame, set_frameNested_, filterOutNonReachable,
 } from "./local_links"
@@ -457,8 +457,8 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
         i = getKeyStat_(event);
         (i & (i - 1)) || (lastMode_ = mode);
       }
-    } else if (i = keyNames_.indexOf(keybody), i > 0 && i < 9) {
-      beginScroll(event, key, keybody);
+    } else if (i = keyNames_.indexOf(keybody), i > 0) {
+      i > 2 && insert_Lock_ || beginScroll(event, key, keybody);
       resetMode();
     } else if (keybody === kChar.tab && !useFilter_ && !keyStatus_.k) {
       tooHigh_ = null;

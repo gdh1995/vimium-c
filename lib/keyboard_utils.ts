@@ -4,8 +4,7 @@ const DEL = kChar.delete, BSP = kChar.backspace
 const ENT = kChar.enter
 export { ENT as ENTER }
 const keyNames_: readonly kChar[] = [kChar.space, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
-    kChar.left, kChar.up, kChar.right, kChar.down,
-    /* 41 */ kChar.EMPTY, kChar.EMPTY, kChar.EMPTY, kChar.EMPTY, kChar.insert, DEL]
+    kChar.left, kChar.up, kChar.right, kChar.down]
 let keyIdCorrectionOffset_old_cr_: 185 | 300 | null = Build.BTypes & BrowserType.Chrome
       && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
       ? 185 : 0 as never as null
@@ -36,7 +35,8 @@ export function set_keyIdCorrectionOffset_old_cr_ (_newKeyIdCorrectionOffset: 18
 /** only return lower-case long string */
 const _getKeyName = (event: Pick<KeyboardEvent, "key" | "keyCode" | "location">): kChar => {
     let {keyCode: i} = event, s: string | undefined;
-    return i > kKeyCode.space - 1 && i < kKeyCode.minNotDelete ? keyNames_[i - kKeyCode.space]
+    return i > kKeyCode.space - 1 && i < kKeyCode.minNotDelete
+      ? i < kKeyCode.insert ? keyNames_[i - kKeyCode.space] : i > kKeyCode.insert ? DEL : kChar.insert
       : i < kKeyCode.minNotDelete || i === kKeyCode.osRightMac ? (i === kKeyCode.backspace ? BSP
           : i === kKeyCode.esc ? kChar.esc
           : i === kKeyCode.tab ? kChar.tab : i === kKeyCode.enter ? ENT
