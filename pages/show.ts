@@ -21,8 +21,8 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
 (function (): void {
 interface ViewerType {
   scrollbarWidth: number
-  readonly hiding: boolean
-  readonly isShown: boolean;
+  hiding: boolean
+  isShown: boolean
   readonly played: boolean;
   readonly viewed: boolean;
   readonly imageData: {
@@ -582,7 +582,11 @@ function showSlide(ViewerModule: CurWnd["Viewer"], zoomToFit?: boolean): Promise
   sel.type === "Range" && sel.collapseToStart();
   const v = viewer_ = viewer_ || new ViewerModule(VShown as HTMLImageElement);
   v.scrollbarWidth = 0
-  v.isShown && !v.hiding || v.show();
+  if (v.hiding) {
+    v.isShown = false
+  }
+  v.isShown || v.show();
+  v.hiding = false
   needToScroll && scrollTo(0, 0);
   if (v.viewed) { v.zoomTo(1); return v; }
   Object.defineProperty(v, "initialImageData", {
