@@ -313,7 +313,7 @@ const render = (hints: readonly HintItem[], arr: ViewBox, raw_apis: VApiTy): voi
 }
 
 /** must be called from the manager context, or be used to sync mode from the manager */
-export const setMode = (mode: HintMode, silent?: 1): void => {
+export const setMode = (mode: HintMode, silent?: BOOL): void => {
     mode_ - mode ? lastMode_ = mode_ = mode : 0
     mode1_ = mode & ~HintMode.queue;
     forHover_ = mode1_ > HintMode.min_hovering - 1 && mode1_ < HintMode.max_hovering + 1;
@@ -376,9 +376,10 @@ export const tryNestedFrame = (
 
 const onKeydown = (event: HandlerNS.Event): HandlerResult => {
     let matchedHint: ReturnType<typeof matchHintsByKey>, i: number = event.i, key: string, keybody: kChar;
+    let ret = HandlerResult.Prevent, num1: number | undefined, mode = mode_, mode1 = mode1_
     if (manager_) {
       /*#__INLINE__*/ set_keydownEvents_(api_.a());
-      return manager_.n(event);
+      ret = manager_.n(event)
     } else if (Build.BTypes & BrowserType.Chrome && onWaitingKey) {
       onWaitingKey(event);
     } else if (event.e.repeat || !isActive) {
@@ -386,61 +387,51 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
     } else if (i === kKeyCode.ime) {
       hudTip(kTip.exitForIME)
       clear()
-      return HandlerResult.Nothing;
+      ret = HandlerResult.Nothing
     } else if (key = getMappedKey(event, kModeId.Link), keybody = keybody_(key),
         isEscape_(key) || onTailEnter && keybody === BSP) {
       clear();
     } else if (i === kKeyCode.esc && isEscape_(keybody)) {
-      return HandlerResult.Suppress;
+      ret = HandlerResult.Suppress
     } else if (onTailEnter && keybody !== kChar.f12) {
       onTailEnter(event, key, keybody);
     } else if (keybody > kChar.maxNotF_num && keybody < kChar.minNotF_num && key !== kChar.f1) { // exclude plain <f1>
-      if (keybody > kChar.f1 && keybody !== kChar.f2) { resetMode(); return HandlerResult.Nothing; }
-      i = getKeyStat_(event);
-      if (keybody < kChar.f2) {
-        resetMode();
+      if (keybody > kChar.f1 && keybody !== kChar.f2) { ret = HandlerResult.Nothing }
+      else if (keybody < kChar.f2) {
         if (key[0] === "a" && useFilter_) {
           locateHint(activeHint_!).l(activeHint_!);
         } else if (key[0] === "s") {
           // `/^s-(f1|f0[a-z0-9]+)$/`
-          for (const frame of frameList_) {
-            frame.s.$().b!.classList.toggle("HM-" + keybody);
-          }
+          /*#__NOINLINE__*/ addClassName(keybody)
         }
-        return HandlerResult.Prevent;
-      }
-      if (key.includes("-s")) {
+      } // the below mens f2, f0***
+      else if (num1 = 1, key.includes("-s")) {
         fgCache.e = !fgCache.e;
       } else if (key[0] === "a") {
-        if (!(Build.BTypes & BrowserType.Chrome)) { resetMode(); return HandlerResult.Prevent; }
+        !(Build.BTypes & BrowserType.Chrome) ? num1 = 0 :
         wantDialogMode_ = !wantDialogMode_;
       } else if ("cm".includes(key[0])) {
         options_.useFilter = fgCache.f = !useFilter_;
       } else if (key !== keybody) { // <s-f2>
         isClickListened_ = !isClickListened_;
-      } else {
-        if (Build.BTypes & BrowserType.Firefox
+      } else if (Build.BTypes & BrowserType.Firefox
               && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
               && isClickListened_
             || !vApi.e) {
-          resetMode(); return HandlerResult.Prevent;
-        }
+        num1 = 0
+      } else {
         isClickListened_ = true;
         if (Build.BTypes & ~BrowserType.Firefox) {
           vApi.e(kContentCmd.ManuallyFindAllOnClick);
         }
       }
-      resetMode(1);
-      if (Build.MinCVer < BrowserVer.MinEnsuredES6ArrowFunction && Build.BTypes & BrowserType.Chrome) {
-        timeout_(/*#__NOINLINE__*/ reinitHintsIgnoringArgs, 0)
-      } else {
-        timeout_((): void => reinit(), 0)
-      }
+      resetMode(num1 as BOOL | undefined)
+      num1 && timeout_(Build.MinCVer < BrowserVer.MinEnsuredES6ArrowFunction && Build.BTypes & BrowserType.Chrome
+          ? /*#__NOINLINE__*/ reinitHintsIgnoringArgs : (): void => reinit(), 0)
     } else if ((i < kKeyCode.maxAcsKeys + 1 && i > kKeyCode.minAcsKeys - 1
             || !fgCache.o && (i > kKeyCode.maxNotMetaKey && i < kKeyCode.minNotMetaKeyOrMenu))
         && !key) {
-      const mode = mode_, mode1 = mode1_,
-      mode2 = mode1 > HintMode.min_copying - 1 && mode1 < HintMode.max_copying + 1
+      num1 = mode1 > HintMode.min_copying - 1 && mode1 < HintMode.max_copying + 1
         ? i === kKeyCode.ctrlKey || i > kKeyCode.maxNotMetaKey ? (mode1 | HintMode.queue) ^ HintMode.list
           : i === kKeyCode.altKey ? (mode & ~HintMode.list) ^ HintMode.queue
           : mode
@@ -452,14 +443,15 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
           ? (mode | HintMode.focused) ^ HintMode.mask_focus_new
           : (mode | HintMode.newTab) ^ HintMode.focused
         : mode;
-      if (mode2 !== mode) {
-        setMode(mode2);
+      if (num1 !== mode) {
+        setMode(num1);
         i = getKeyStat_(event);
         (i & (i - 1)) || (lastMode_ = mode);
       }
     } else if (i = keyNames_.indexOf(keybody), i > 0) {
       i > 2 && insert_Lock_ || beginScroll(event, key, keybody);
       resetMode();
+      ret = i > 2 && insert_Lock_ ? HandlerResult.Suppress : HandlerResult.Prevent
     } else if (keybody === kChar.tab && !useFilter_ && !keyStatus_.k) {
       tooHigh_ = null;
       resetMode();
@@ -470,16 +462,22 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
       }
     } else if (keybody === kChar.space && (!useFilter_ || key !== keybody)) {
       keyStatus_.t = keyStatus_.t.replace("  ", " ");
-      zIndexes_ !== 0 && rotateHints(key === "s-" + keybody);
+      zIndexes_ !== 0 && /*#__NOINLINE__*/ rotateHints(key === "s-" + keybody);
       resetMode();
-    } else if (matchedHint = matchHintsByKey(keyStatus_, event, key, keybody), matchedHint === 0) {
+    } else if (matchedHint = /*#__NOINLINE__*/ matchHintsByKey(keyStatus_, event, key, keybody), matchedHint === 0) {
       // then .keyStatus_.hintSequence_ is the last key char
       clear(0, keyStatus_.n ? 0 : fgCache.k[0]);
     } else if (matchedHint !== 2) {
       lastMode_ = mode_;
       callExecuteHint(matchedHint, event)
     }
-    return HandlerResult.Prevent;
+    return ret;
+}
+
+const addClassName = (name: string): void => {
+  for (const frame of frameList_) {
+    frame.s.$().b!.classList.toggle("HM-" + name)
+  }
 }
 
 export const reinitHintsIgnoringArgs = (): void => { reinit() }
@@ -491,16 +489,16 @@ const callExecuteHint = (hint: HintItem, event?: HandlerNS.Event): void => {
     removeFlash && removeFlash()
     resetRemoveFlash()
     if (!(mode_ & HintMode.queue)) {
-      setupCheck(selectedHinter, clickEl)
+      coreHints.w(selectedHinter, clickEl)
       clear(0, 0)
     } else {
+      clearTimeout_(_timer)
       timeout_((): void => {
         reinit(selectedHinter, clickEl, result)
         if (isActive && 1 === (--count_)) {
           setMode(mode1_)
         }
       }, frameList_.length > 1 ? 50 : 18)
-      coreHints.w()
     }
   }, isActive = 0)
 }
@@ -522,7 +520,7 @@ const highlightHint = (hint: HintItem): void => {
   box_!.classList.toggle("HMM")
 }
 
-export const resetMode = (silent?: 1): void => {
+export const resetMode = (silent?: BOOL): void => {
     if (lastMode_ !== mode_ && mode_ < HintMode.min_disable_queue) {
       let d = keydownEvents_;
       if (d[kKeyCode.ctrlKey] || d[kKeyCode.metaKey] || d[kKeyCode.shiftKey] || d[kKeyCode.altKey]
@@ -593,16 +591,18 @@ const setupCheck: HintManager["w"] = (officer?: BaseHinter | null, el?: LinkEl |
     }, frameList_.length > 1 ? 380 : 255) : TimerID.None;
 }
   // if not el, then reinit if only no key stroke and hints.length < 64
-const checkLast = function (this: void, el?: LinkEl | TimerType.fake | 1, r?: Rect | null): void | BOOL | 2 {
-    if (!isAlive_) { return; }
-    if (window.closed) { return 1; }
-    if (el === 1) { return 2; }
-    const managerOrA = manager_ || coreHints;
-    const r2 = el && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinNo$TimerType$$Fake
+const checkLast = function (this: void, el?: LinkEl | TimerType.fake | 1, r?: Rect | null): BOOL | 2 {
+  let managerOrA: HintManager, r2: Rect | null, hidden: boolean
+  if (!isAlive_) { return 0 }
+  else if (window.closed) { return 1 }
+  else if (el === 1) { return 2 }
+  else {
+    managerOrA = manager_ || coreHints
+    r2 = el && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinNo$TimerType$$Fake
                       /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
                       // @ts-expect-error
                       || el !== TimerType.fake
-                      ) ? padClientRect_(getBoundingClientRect_(el as LinkEl)) : null,
+                      ) ? padClientRect_(getBoundingClientRect_(el as LinkEl)) : null
                       /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
     hidden = !r2 || r2.r - r2.l < 2 && r2.b - r2.t < 2
         || !isStyleVisible_(el as LinkEl); // use 2px: may be safer
@@ -611,9 +611,11 @@ const checkLast = function (this: void, el?: LinkEl | TimerType.fake | 1, r?: Re
     }
     if ((!r2 || r) && managerOrA.$().n
         && (hidden || Math.abs(r2!.l - r!.l) > 100 || Math.abs(r2!.t - r!.t) > 60)) {
-      if (manager_) { return 1; }
-      managerOrA.i();
+      return manager_ ? 1 : (managerOrA.i(), 0)
+    } else {
+      return 0
     }
+  }
 } as {
     (el?: LinkEl | TimerType.fake, r?: Rect | null): void | BOOL;
     (el: 1, r?: Rect | null): void | 1 | 2;
@@ -649,7 +651,7 @@ export const clear = (keepHudOrEvent?: 0 | 1 | Event, suppressTimeout?: number):
       }
     }
     const manager = manager_;
-    isActive = 0
+    isActive = _timer = 0
     manager_ = null;
     manager && manager.c(keepHudOrEvent, suppressTimeout);
     frameList_.forEach(cleanFrameInfo, suppressTimeout);

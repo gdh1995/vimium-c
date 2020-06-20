@@ -163,13 +163,8 @@ export const suppressTail_ = function (timeout: number, callback?: HandlerNS.Voi
       }
       clearTimeout_(timer);
       timer = timeout_(() => { // safe-interval
-        if (isAlive_) {
-          removeHandler_(func); // safe enough even if reloaded;
-          if (Build.BTypes & BrowserType.Chrome && callback) {
-            callback();
-            callback = 0; // in case that native `setTimeout` is broken and the current one is simulated
-          }
-        }
+        removeHandler_(func)
+        Build.BTypes & BrowserType.Chrome && isAlive_ && callback && callback()
       }, timeout);
       return HandlerResult.Prevent;
     };

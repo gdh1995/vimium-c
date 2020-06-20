@@ -291,10 +291,12 @@ export const contentCommands_: {
         return HandlerResult.Prevent;
       }
       // check `!key` for mapModifier
-      if (!key && (keyCode === kKeyCode.shiftKey || keep && (keyCode === kKeyCode.altKey
-          || keyCode === kKeyCode.ctrlKey
-          || keyCode > kKeyCode.maxNotMetaKey && keyCode < kKeyCode.minNotMetaKeyOrMenu))) { /* empty */ }
-      else if (repeat) { return HandlerResult.Nothing; }
+      else if (!key && (keyCode === kKeyCode.shiftKey || keep && (keyCode === kKeyCode.altKey
+                        || keyCode === kKeyCode.ctrlKey
+                        || keyCode > kKeyCode.maxNotMetaKey && keyCode < kKeyCode.minNotMetaKeyOrMenu))
+              || repeat) {
+        return HandlerResult.Nothing;
+      }
       else if (keep ? isEscape_(key) || (
           keybody_(key) === ENTER
           && (/* a?c?m?-enter */ key < "s" && (key[0] !== "e" || htmlTag_(insert_inputHint!.h[sel].d) === "input"))
@@ -303,8 +305,9 @@ export const contentCommands_: {
         exitInputHint();
         return !isEscape_(key) ? HandlerResult.Nothing : keep || !raw_insert_lock ? HandlerResult.Prevent
           : pass ? HandlerResult.PassKey : HandlerResult.Nothing;
+      } else {
+        return HandlerResult.Nothing;
       }
-      return HandlerResult.Nothing;
     }, insert_inputHint!);
   },
   /* kFgCmd.editText: */ function (options: CmdOptions[kFgCmd.editText], count: number) {

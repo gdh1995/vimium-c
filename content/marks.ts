@@ -17,21 +17,20 @@ export const activate = (options: CmdOptions[kFgCmd.marks], count: number): void
     prefix = options.prefix !== false
     swap = !!options.swap
     removeHandler_(activate)
-    pushHandler_(onKeydownM, activate)
     hudShow(isGo ? kTip.nowGotoMark : kTip.nowCreateMark);
-}
-
-const onKeydownM = (event: HandlerNS.Event): HandlerResult => {
+  pushHandler_((event: HandlerNS.Event): HandlerResult => {
+    let key: string
     if (event.i === kKeyCode.ime) { return HandlerResult.Nothing; }
-    let key = getMappedKey(event, kModeId.Marks), notEsc = !isEscape_(key);
-    if (notEsc && key.length !== 1) {
+    key = getMappedKey(event, kModeId.Marks)
+    if (key.length !== 1 && !isEscape_(key)) {
       return HandlerResult.Suppress;
     }
     removeHandler_(activate)
-    notEsc ? onKeyChar!(event, key) : hudHide()
+    isEscape_(key) ? hudHide() : onKeyChar!(event, key)
     prefix = swap = true
     onKeyChar = null
     return HandlerResult.Prevent;
+  }, activate)
 }
 
 export const setPreviousMarkPosition = (idx?: number): void => {

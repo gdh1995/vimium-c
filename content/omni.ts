@@ -306,9 +306,9 @@ const refreshKeyHandler = (): void => {
 }
 
 export const onKeydown = (event: HandlerNS.Event): HandlerResult => {
+    let key: string
     if (insert_Lock_()) { return HandlerResult.Nothing; }
-    const key = getMappedKey(event, kModeId.Omni)
-    if (isEscape_(key)) { hide(); return HandlerResult.Prevent; }
+    if (isEscape_(key = getMappedKey(event, kModeId.Omni))) { hide(); return HandlerResult.Prevent; }
     if (key === kChar.f1 || key === kChar.f2) {
       focusOmni()
       return HandlerResult.Prevent;
