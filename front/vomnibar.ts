@@ -530,7 +530,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     key = n !== kKeyCode.ime ? a.getMappedKey_(event) : "";
     a.lastKey_ = n;
     if (!key) {
-      a.inAlt_ && a.toggleAlt_(0);
+      a.inAlt_ && !a._modifierKeys[Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
+            && Build.BTypes & BrowserType.Chrome ? event.key || "" : event.key!] && a.toggleAlt_(0);
       a.keyResult_ = focused && !(n === kKeyCode.menuKey && a.os_) && n !== kKeyCode.ime
           ? HandlerResult.Suppress : HandlerResult.Nothing;
       return;
@@ -549,20 +550,21 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           Vomnibar_.inAlt_ = Vomnibar_.inAlt_ || setTimeout(Vomnibar_.toggleAlt_, 260, -1);
           return;
         }
-        if (char === kChar.down || char === kChar.up) {
-          return a.onAction_(char < "u" ? AllowedActions.down : AllowedActions.up);
+        if (char === kChar.down || char === kChar.up || (<RegExpOne> /^[jknp]$/).test(char)) {
+          return a.onAction_(char < "o" && char !== "k" ? AllowedActions.down : AllowedActions.up);
         }
         a.inAlt_ && a.toggleAlt_(0);
-        if (char >= "0" && char <= "9" && (a.os_ || key.includes("c-"))) {
+      }
+      if (char >= "0" && char <= "9" && (a.os_ || (<RegExpOne> /[cm]-/).test(key))) {
           ind = +char || 10;
           if (ind <= a.completions_.length) {
             a.onEnter_(true, ind - 1);
           }
           return;
-        } else if (char === kChar.enter) {
+      }
+      if (mainModifier === "a-" && char === kChar.enter) {
           a.onEnter_(key, !a.selection_ && a.isSelOriginal_ ? -1 : a.selection_);
           return;
-        }
       }
       if (!focused) { /* empty */ }
       else if (char.length === 1 && char > kChar.a && char < kChar.g && char !== kChar.c
