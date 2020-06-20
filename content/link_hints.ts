@@ -584,9 +584,12 @@ const setupCheck: HintManager["w"] = (officer?: BaseHinter | null, el?: LinkEl |
         doesReinit = !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i)
             && officer && (Build.BTypes & BrowserType.Firefox ? unwrap_ff(officer!) : officer).x(el, r)
       } catch {}
-      doesReinit && reinit();
-      for (const frame of isActive ? frameList_ : []) {
-        frame.s.h = 1;
+      if (doesReinit) {
+        reinit();
+        for (const frame of frameList_) {
+          frame.s.h = 1;
+        }
+        suppressTail_(220)
       }
     }, frameList_.length > 1 ? 380 : 255) : TimerID.None;
 }
