@@ -321,14 +321,14 @@ var Settings_ = {
     },
     userDefinedCss (this: {}, css2Str): void {
       const a = Settings_;
-      let css = a.storage_.getItem("innerCSS")!
-      css = css.slice(0, css.indexOf("\n"))
+      let css = a.storage_.getItem("innerCSS")!, idx = css.indexOf("\n")
+      css = idx > 0 ? css.slice(0, idx) : css
       const css2 = a.parseCustomCSS_(css2Str);
       let innerCSS = css2.ui ? css + "\n" + css2.ui : css;
       {
         css = a.storage_.getItem("findCSS")!;
-        let headEnd = css.indexOf("\n")
-        css = css.slice(0, headEnd + 1 + +css.slice(0, headEnd));
+        idx = css.indexOf("\n")
+        css = css.slice(0, idx + 1 + +css.slice(0, idx));
         let find2 = css2.find;
         a.storage_.setItem("findCSS", find2 ? css + "\n" + find2 : css);
         a.storage_.setItem("omniCSS", css2.omni || "");

@@ -999,7 +999,7 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
     const patch = function (): void {
       /** Note: should keep the same as {@link ../background/settings.ts#Settings_.updateHooks_.userDefinedCss } */
       let css = localStorage.getItem("innerCSS") as string;
-      css = css.slice(css.indexOf(";") + 1, css.indexOf("\n"))
+      css = css.slice(css.indexOf(";") + 1, css.indexOf("\n") + 1 || css.length)
       VApi.y().g(css)
       VApi.y().r!.appendChild(styleDebug as HTMLStyleElement);
     };
