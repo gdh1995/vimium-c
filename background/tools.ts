@@ -1,15 +1,31 @@
 type CSTypes = chrome.contentSettings.ValidTypes;
 type Tab = chrome.tabs.Tab;
 type MarkStorage = Pick<Storage, "setItem"> & SafeDict<string>;
+declare const enum SedAction {
+  NONE = 0, retainMatched = 1, decodeForCopy = 2, decodeMaybeEscaped = 4, unescape = 8,
+  upper = 16, lower = 32, normalize = 64, reverseText = 128,
+}
 interface ClipSubItem {
   contexts_: SedContext & number;
+  actions_: SedAction;
   match_: RegExp;
-  revertResult_: BOOL;
-  /** 0: not; 1: decode for copy; 2: maybe escaped */ decode_: 0 | 1 | 2;
   replaced_: string;
 }
 
 const Clipboard_ = {
+  SedActionMap_: <Dict<SedAction> & SafeObject> {
+    __proto__: null as never,
+    decode: SedAction.decodeForCopy,
+    decodeuri: SedAction.decodeForCopy,
+    decodeurl: SedAction.decodeForCopy,
+    decodecomp: SedAction.decodeMaybeEscaped,
+    matched: SedAction.retainMatched,
+    unescape: SedAction.unescape,
+    upper: SedAction.upper,
+    lower: SedAction.lower,
+    normalize: SedAction.normalize,
+    reverse: SedAction.reverseText
+  },
   staticSeds_: null as null | ClipSubItem[],
   parseSeds_ (text: string): ClipSubItem[] {
     const result: ClipSubItem[] = [];
@@ -19,32 +35,37 @@ const Clipboard_ = {
       if (!prefix) { continue; }
       const sep = "\\u" + (prefix[2].charCodeAt(0) + 0x10000).toString(16).slice(1),
       head = prefix[1],
-      body = new RegExp(`^((?:\\\\${sep}|[^${sep}])+)${sep}(.*)${sep}([a-zD]{0,9})$`).exec(line.slice(prefix[0].length))
+      body = new RegExp(`^((?:\\\\${sep}|[^${sep}])+)${sep}(.*)${sep}([a-zD]{0,9})((,[A-Za-z]+)*)$`
+          ).exec(line.slice(prefix[0].length))
       if (!body) { continue; }
-      let matchRe: RegExpG | null = null, suffix = body[3]
+      let suffix = body[3]
       let flags = suffix.replace(<RegExpG> /[dDr]/g, "");
-      try {
-        matchRe = new RegExp(body[1], flags as "");
-      } catch { continue; }
+      let matchRe: RegExp | null = BgUtils_.makeRegexp_(body[1], flags)
+      if (!matchRe) { continue }
+      let actions: SedAction = SedAction.NONE
+      for (const i of body[4].toLowerCase().split(",")) {
+        actions |= Clipboard_.SedActionMap_[i] || 0
+      }
       result.push({
         contexts_: +head.includes("s") * (SedContext.copy | SedContext.paste)
             + +head.includes("c") * SedContext.copy + +head.includes("p") * SedContext.paste
             + +head.includes("g") * SedContext.gotoUrl + +head.includes("i") * SedContext.image,
+        actions_: actions + +(suffix.includes("r") && !flags.includes("g")) * SedAction.retainMatched
+            + +suffix.includes("d") * SedAction.decodeMaybeEscaped + +suffix.includes("D") * SedAction.decodeForCopy,
         match_: matchRe,
-        revertResult_: suffix.includes("r") && !flags.includes("g") ? 1 : 0,
-        decode_: suffix.includes("d") ? 2 : suffix.includes("D") ? 1 : 0,
-        replaced_: body[2].replace(<RegExpG & RegExpSearchable<1>> /\\(x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|[^xu])/g,
-            (_, s: string): string => { // eslint-disable-line arrow-body-style
-          return s[0] === "x" || s[0] === "u"
-              ? (s = String.fromCharCode(parseInt(s.slice(1), 16)), s === "$" ? s + s : s)
-              : s === "t" ? "\t" : s === "r" ? "\r" : s === "n" ? "\n"
-              : s === "0" ? "$&" : s >= "1" && s <= "9" ? "$" + s // like r"\1" in sed
-              : s; // like r"abc\.def" / r"abc\\def"
-        })
+        replaced_: Clipboard_.decodeSlash_(body[2])
       });
     }
     return result;
   },
+  decodeSlash_: (text: string): string => text.replace(<RegExpSearchable<1>> /\\(x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|.)/g, 
+      (_, s: string): string => { // eslint-disable-line arrow-body-style
+    return s[0] === "x" || s[0] === "u"
+        ? (s = String.fromCharCode(parseInt(s.slice(1), 16)), s === "$" ? s + s : s)
+        : s === "t" ? "\t" : s === "r" ? "\r" : s === "n" ? "\n"
+        : s === "0" ? "$&" : s >= "1" && s <= "9" ? "$" + s // like r"\1" in sed
+        : s // like r"abc\.def" / r"abc\\def"
+  }),
   substitute_ (text: string, context: SedContext & number, sed?: string | boolean): string {
     if (sed === false) { return text; }
     let arr = Clipboard_.staticSeds_
@@ -54,11 +75,10 @@ const Clipboard_ = {
       sed = (sed + "").replace(<RegExpG> /(?!\\) ([cgips]{1,4})(?![\x00- A-Za-z\\])/g, "\n$1")
       arr = arr.concat(Clipboard_.parseSeds_(sed))
     }
+    let start: SedAction = 0, end = 0, first_group: string | undefined
     for (const item of arr) {
       if (item.contexts_ & context) {
-        const old = text
-        if (item.revertResult_) {
-          let start = 0, end = 0, first_group: string | undefined;
+        if (item.actions_ & SedAction.retainMatched) {
           text.replace(item.match_ as RegExpOne & RegExpSearchable<0>, function (matched_text): string {
             const args = arguments
             start = args[args.length - 2]; end = start + matched_text.length
@@ -70,10 +90,26 @@ const Clipboard_ = {
             text = newText.slice(start, newText.length - (text.length - end)) || first_group || text.slice(start, end)
           }
         } else {
+          end = +(item.match_ as RegExpOne).test(text);
+          (item.match_ as RegExpG).lastIndex = 0
           text = text.replace(item.match_ as RegExpG, item.replaced_);
         }
-        if (item.decode_ && text !== old) {
-          text = item.decode_ > 1 ? BgUtils_.decodeEscapedURL_(text) : BgUtils_.decodeUrlForCopy_(text)
+        if (end) {
+          start = item.actions_
+          text = start & SedAction.decodeForCopy ? BgUtils_.decodeUrlForCopy_(text)
+              : start & SedAction.decodeMaybeEscaped ? BgUtils_.decodeEscapedURL_(text) : text
+          text = start & SedAction.unescape ? Clipboard_.decodeSlash_(text) : text
+          text = start & SedAction.unescape ? Clipboard_.decodeSlash_(text) : text
+          text = start & SedAction.upper ? text.toLocaleUpperCase!() : text
+          text = start & SedAction.lower ? text.toLocaleLowerCase!() : text
+          if (start & (SedAction.normalize | SedAction.reverseText)) {
+            text = Build.MinCVer < BrowserVer.Min$String$$Normalize && Build.BTypes & BrowserType.Chrome
+                && !text.normalize ? text : text.normalize()
+          }
+          if (start & SedAction.reverseText) {
+            text = (Build.MinCVer < BrowserVer.Min$Array$$From && Build.BTypes & BrowserType.Chrome
+                && !Array.from ? text.split("") : Array.from(text)).reverse().join("")
+          }
         }
       }
     }
