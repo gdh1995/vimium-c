@@ -28,7 +28,7 @@ interface BaseHinter extends HintsNS.BaseHinter {
   /** dialogMode */ d: boolean
   /** executeHint */ e: typeof executeHintInOfficer
   /** getPreciseChildRect */ g: typeof getPreciseChildRect
-  /** hasExecuted */ h: BOOL
+  /** has just started */ h: number
   /** delayToExecute */ j: typeof delayToExecute
   /** highlightHint */ l: typeof highlightHint
   /** collectFrameHints */ o: typeof collectFrameHints
@@ -64,7 +64,7 @@ interface FrameHintsInfo {
 
 import {
   VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_,
-  clearTimeout_, VOther, fgCache, doc, readyState_, chromeVer_, vApi, deref_,
+  clearTimeout_, VOther, fgCache, doc, readyState_, chromeVer_, vApi, deref_, getTime,
 } from "../lib/utils"
 import {
   frameElement_, querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_,
@@ -228,6 +228,7 @@ export const activate = (options: HintsNS.ContentOptions, count: number): void =
     useFilter ? initFilterEngine(allHints as readonly FilteredHintItem[]) : initAlphabetEngine(allHints)
     renderMarkers(allHints)
     setMode(mode_);
+    coreHints.h = 1
     for (const frame of frameList) {
       frame.s.r(frame.h, frame.v, vApi);
     }
@@ -429,8 +430,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
         }
       }
       resetMode(num1 as BOOL | undefined)
-      num1 && timeout_(Build.MinCVer < BrowserVer.MinEnsuredES6ArrowFunction && Build.BTypes & BrowserType.Chrome
-          ? /*#__NOINLINE__*/ reinitHintsIgnoringArgs : (): void => reinit(), 0)
+      num1 && timeout_(reinit, 0)
     } else if ((i < kKeyCode.maxAcsKeys + 1 && i > kKeyCode.minAcsKeys - 1
             || !fgCache.o && (i > kKeyCode.maxNotMetaKey && i < kKeyCode.minNotMetaKeyOrMenu))
         && !key) {
@@ -458,11 +458,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
     } else if (keybody === kChar.tab && !useFilter_ && !keyStatus_.k) {
       tooHigh_ = null;
       resetMode();
-      if (Build.MinCVer < BrowserVer.MinEnsuredES6ArrowFunction && Build.BTypes & BrowserType.Chrome) {
-        timeout_(/*#__NOINLINE__*/ reinitHintsIgnoringArgs, 0)
-      } else {
-        timeout_((): void => reinit(), 0)
-      }
+      timeout_(reinit, 0)
     } else if (keybody === kChar.space && (!useFilter_ || key !== keybody)) {
       keyStatus_.t = keyStatus_.t.replace("  ", " ");
       zIndexes_ !== 0 && /*#__NOINLINE__*/ rotateHints(key === "s-" + keybody);
@@ -483,8 +479,6 @@ const addClassName = (name: string): void => {
   }
 }
 
-export const reinitHintsIgnoringArgs = (): void => { reinit() }
-
 const callExecuteHint = (hint: HintItem, event?: HandlerNS.Event): void => {
   const selectedHinter = locateHint(hint), clickEl = hint.d,
   result = selectedHinter.e(hint, event)
@@ -497,7 +491,7 @@ const callExecuteHint = (hint: HintItem, event?: HandlerNS.Event): void => {
     } else {
       clearTimeout_(_timer)
       timeout_((): void => {
-        reinit(selectedHinter, clickEl, result)
+        reinit(0, selectedHinter, clickEl, result)
         if (isActive && 1 === (--count_)) {
           setMode(mode1_)
         }
@@ -565,19 +559,20 @@ const delayToExecute = (officer: BaseHinter, hint: HintItem, flashEl: SafeHTMLEl
     }
 }
 
-  /** should only be called on manager */
-const reinit = (officer?: BaseHinter | null, lastEl?: LinkEl | null, rect?: Rect | null): void => {
-    if (!isEnabled_) {
-      isAlive_ && clear();
-      return;
-    }
+/** reinit: should only be called on manager */
+const reinit = (auto?: BOOL | TimerType.fake, officer?: BaseHinter | null
+    , lastEl?: LinkEl | null, rect?: Rect | null): void => {
+  if (!isEnabled_) { isAlive_ && clear() }
+  else {
     isActive = 0;
     resetHints();
     activate(options_, 0);
     coreHints.w(officer, lastEl, rect);
+    auto && suppressTail_(220)
+  }
 }
 
-  /** should only be called on manager */
+/** setupCheck: should only be called on manager */
 const setupCheck: HintManager["w"] = (officer?: BaseHinter | null, el?: LinkEl | null, r?: Rect | null): void => {
     _timer && clearTimeout_(_timer);
     _timer = officer && el && mode1_ < HintMode.min_job ? timeout_((i): void => {
@@ -585,25 +580,20 @@ const setupCheck: HintManager["w"] = (officer?: BaseHinter | null, el?: LinkEl |
       let doesReinit: BOOL | boolean | void | undefined
       try {
         doesReinit = !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i)
-            && officer && (Build.BTypes & BrowserType.Firefox ? unwrap_ff(officer!) : officer).x(el, r)
+            && (Build.BTypes & BrowserType.Firefox ? unwrap_ff(officer!) : officer).x(el, r)
       } catch {}
-      if (doesReinit) {
-        reinit();
-        for (const frame of frameList_) {
-          frame.s.h = 1;
-        }
-        suppressTail_(220)
-      }
+      doesReinit && reinit(1)
+      coreHints.h = isActive && getTime()
     }, frameList_.length > 1 ? 380 : 255) : TimerID.None;
 }
-  // if not el, then reinit if only no key stroke and hints.length < 64
+
+// checkLast: if not el, then reinit if only no key stroke and hints.length < 64
 const checkLast = function (this: void, el?: LinkEl | TimerType.fake | 1, r?: Rect | null): BOOL | 2 {
-  let managerOrA: HintManager, r2: Rect | null, hidden: boolean
+  let r2: Rect | null, hidden: boolean
   if (!isAlive_) { return 0 }
   else if (window.closed) { return 1 }
   else if (el === 1) { return 2 }
   else {
-    managerOrA = manager_ || coreHints
     r2 = el && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinNo$TimerType$$Fake
                       /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
                       // @ts-expect-error
@@ -615,9 +605,9 @@ const checkLast = function (this: void, el?: LinkEl | TimerType.fake | 1, r?: Re
     if (hidden && deref_(lastHovered_) === el) {
       /*#__INLINE__*/ resetLastHovered()
     }
-    if ((!r2 || r) && managerOrA.$().n
+    if ((!r2 || r) && (manager_ || coreHints).$().n
         && (hidden || Math.abs(r2!.l - r!.l) > 100 || Math.abs(r2!.t - r!.t) > 60)) {
-      return manager_ ? 1 : (managerOrA.i(), 0)
+      return manager_ ? 1 : (reinit(1), 0)
     } else {
       return 0
     }
@@ -633,7 +623,6 @@ const resetHints = (): void => {
     onTailEnter = hints_ = null as never;
     if (!Build.NDEBUG) { coreHints.hints_ = null }
     /*#__INLINE__*/ hintFilterReset();
-    coreHints.h = 0;
     keyStatus_ && (keyStatus_.c = null as never);
     keyStatus_ = {
       c: null as never,
@@ -673,11 +662,9 @@ export const clear = (keepHudOrEvent?: 0 | 1 | Event, suppressTimeout?: number):
     /*#__INLINE__*/ resetRemoveFlash()
     /*#__INLINE__*/ localLinkClear()
     /*#__INLINE__*/ hintFilterClear()
-    lastMode_ = mode_ = mode1_ = count_ =
-    coreHints.h = forceToScroll_ = 0;
+    lastMode_ = mode_ = mode1_ = count_ = forceToScroll_ = coreHints.h = 0
     /*#__INLINE__*/ resetHintKeyCode()
-    useFilter_ =
-    noHUD_ = tooHigh_ = false;
+    useFilter_ = noHUD_ = tooHigh_ = false
     if (Build.BTypes & BrowserType.ChromeOrFirefox) { coreHints.d = false; }
     chars_ = "";
     if (box_) {

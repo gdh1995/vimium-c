@@ -118,9 +118,8 @@ set_requestHandlers([
           oldSet.forEach(el => { clickable_.add(el) })
         }
         }
-        if (parHints && (parHints.p || parHints).h) {
-          (parHints.p || parHints).i();
-        }
+        const manager = parHints && parHints.p || parHints
+        manager && manager.h > 1 && getTime() - manager.h < 800 && manager.i(1)
       }, 330);
     });
     injector && injector.$r(InjectorTask.extInited);

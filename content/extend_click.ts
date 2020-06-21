@@ -7,7 +7,7 @@ import {
 } from "../lib/dom_utils"
 import { Stop_ } from "../lib/keyboard_utils"
 import { safeDestroy } from "./port"
-import { allHints, hintKeyStatus, coreHints } from "./link_hints"
+import { coreHints } from "./link_hints"
 import { grabBackFocus } from "./insert"
 
 declare function exportFunction(this: void, func: (...args: any[]) => any, targetScope: object, options?: {
@@ -153,7 +153,7 @@ export const main = (): void => {
     }
     if (isFirstResolve & fromAttrs) {
       isFirstResolve ^= fromAttrs;
-      allHints && !hintKeyStatus.k && !hintKeyStatus.t && timeout_(coreHints.x, 34);
+      coreHints.h - 1 || timeout_(coreHints.x, 34);
     }
   }
   function resolve(isBox: BOOL, nodeIndexList: number[]): void {
@@ -673,7 +673,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$addEvent
     }
     OnDocLoaded_((): void => {
       timeout_(function (): void {
-        allHints && !hintKeyStatus.k && !hintKeyStatus.t && timeout_(coreHints.x, 34);
+        coreHints.h - 1 || timeout_(coreHints.x, 34);
       }, GlobalConsts.ExtendClick_DelayToFindAll);
     }, 1);
   }

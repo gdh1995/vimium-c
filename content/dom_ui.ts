@@ -15,7 +15,7 @@ import {
 } from "../lib/rect"
 import { currentScrolling } from "./scroller"
 import { styleSelectable } from "./mode_find"
-import { isHintsActive, reinitHintsIgnoringArgs } from "./link_hints"
+import { isHintsActive, hintManager, coreHints } from "./link_hints"
 import { post_ } from "./port"
 import { insert_Lock_ } from "./insert"
 import { hudTip } from "./hud"
@@ -161,7 +161,7 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
         setupEventListener(0, FS, adjustUI, removeEL)
       }
       if (isHintsActive && removeEL) { // not need to check isAlive_
-        timeout_(/*#__NOINLINE__*/ reinitHintsIgnoringArgs, 17)
+        hintManager || timeout_(coreHints.x, 17)
       }
     }
 }
