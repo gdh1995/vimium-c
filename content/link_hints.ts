@@ -68,7 +68,7 @@ import {
 } from "../lib/utils"
 import {
   frameElement_, querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_,
-  getComputedStyle_, isStyleVisible_,
+  getComputedStyle_, isStyleVisible_, htmlTag_,
 } from "../lib/dom_utils"
 import {
   getViewBox_, prepareCrop_, wndSize_, bZoom_, wdZoom_, dScale_, padClientRect_, getBoundingClientRect_,
@@ -97,6 +97,7 @@ import {
   linkActions, executeHintInOfficer, removeFlash, set_hintModeAction, resetRemoveFlash, resetHintKeyCode,
 } from "./link_actions"
 import { lastHovered_, resetLastHovered } from "./async_dispatcher"
+import { hook } from "./request_handlers"
 
 let box_: HTMLDivElement | HTMLDialogElement | null = null
 let wantDialogMode_: boolean | null = null
@@ -291,6 +292,8 @@ const collectFrameHints = (count: number, options: HintsNS.ContentOptions
 
 const render = (hints: readonly HintItem[], arr: ViewBox, raw_apis: VApiTy): void => {
     const managerOrA = manager_ || coreHints;
+    let body = doc.body
+    manager_ && body && htmlTag_(body) && body.isContentEditable && hook(HookAction.Install)
     if (box_) { box_.remove(); box_ = null; }
     removeModal()
     api_ = Build.BTypes & BrowserType.Firefox && manager_ ? unwrap_ff(raw_apis) : raw_apis;

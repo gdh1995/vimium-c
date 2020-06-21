@@ -18,7 +18,7 @@ import { find_box } from "./mode_find"
 import { omni_box } from "./omni"
 import {
   unwrap_ff, kSafeAllSelector, kEditableSelector, coreHints, addChildFrame_, mode1_, forHover_,
-  isClickListened_, forceToScroll_, hintMode_, set_isClickListened_, tooHigh_, useFilter_, hintChars,
+  isClickListened_, forceToScroll_, hintMode_, set_isClickListened_, tooHigh_, useFilter_, hintChars, hintManager,
 } from "./link_hints"
 import { shouldScroll_need_safe, getPixelScaleToScroll, scrolled, resetScrolled, suppressScroll } from "./scroller"
 import { ui_root, ui_box } from "./dom_ui"
@@ -526,7 +526,7 @@ const deduplicate = (list: Hint[]): void => {
       i = j;
     }
   }
-  while (list.length && ((element = list[0][0]) === docEl_unsafe_() || element === doc.body)) {
+  while (list.length && ((element = list[0][0]) === docEl_unsafe_() || !hintManager && element === doc.body)) {
     list.shift();
   }
 }
