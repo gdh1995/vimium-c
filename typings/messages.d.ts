@@ -354,7 +354,7 @@ declare const enum kMarkAction {
   _mask = "mask",
 }
 
-declare const enum ClipAction {
+declare const enum SedContext {
   _mask = "mask",
   copy = 1, paste = 2, image = 4, gotoUrl = 8,
 }

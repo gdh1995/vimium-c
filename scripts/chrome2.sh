@@ -4,6 +4,7 @@ VER=
 FLAGS=
 OTHER_EXT=
 OTHER_ARGS=
+USE_INSTALLED=0
 GUD=
 DO_CLEAN=0
 IS_EDGE=0
@@ -83,6 +84,10 @@ case "$1" in
     DIST=0
     shift
     ;;
+  installed|--installed)
+    USE_INSTALLED=1
+    shift
+    ;;
   vc|--vc)
     ALSO_VC=1
     shift
@@ -152,6 +157,10 @@ if test $IS_EDGE -gt 0; then
 fi
 GUD=${GUD:-/r/TEMP/GUD}
 if test $DO_CLEAN -gt 0 -a -e "$GUD"; then
+  if test $USE_INSTALLED -gt 0; then
+    echo -E "MUST NOT clean the default UserData folder"
+    exit 1
+  fi
   rm -rf "$GUD" || exit $?
   wp gud_w "$GUD"
   echo -E "Clean ${gud_w} : done."
@@ -226,6 +235,20 @@ if test -n "$VER" -o "$CHROME_ROOT" == '/d/Program Files/Google'; then
   rm -f "${EXE%/*}/default_apps/"* "${EXE%/*}/"[0-9]*"/default_apps/"*
 fi
 
+if test $USE_INSTALLED -gt 0; then
+  GUD=
+  gud_w=
+  UD_DESC="(installed)"
+  UD_ARG=
+  test -d "$WORKING_DIR" && cd "$WORKING_DIR" 2>/dev/null || cd "${EXE%/*}"
+  echo -E Run: installed "${exe_w}" with "${vc_ext_w}"
+  exec $RUN "$EXE" \
+    --load-extension=${vc_ext_w}${OTHER_EXT} \
+    --homepage ${HOME_PAGE:-chrome-extension://hfjbmagddngcpeloejdejnfgbamkjaeg/pages/options.html} \
+    $OTHER_ARGS \
+    --start-maximized $FLAGS "$@"
+  exit 0
+fi
 dir=${GUD}; dir=${dir#/}; gud_w=${dir%%/*}; dir=${dir#[a-z]}
 gud_w=${gud_w^}:${dir}
 
@@ -237,6 +260,7 @@ echo -E Run: "${exe_w}" at ${gud_w} with "${vc_ext_w}"
 $RUN "$EXE" \
   --user-data-dir=${gud_w} \
   --no-first-run --disable-default-apps\
+   --disable-sync --no-default-browser-check \
   --load-extension=${vc_ext_w}${OTHER_EXT} \
   --homepage ${HOME_PAGE:-chrome-extension://hfjbmagddngcpeloejdejnfgbamkjaeg/pages/options.html} \
   --disable-office-editing-component-extension \

@@ -2,7 +2,7 @@ type CSTypes = chrome.contentSettings.ValidTypes;
 type Tab = chrome.tabs.Tab;
 type MarkStorage = Pick<Storage, "setItem"> & SafeDict<string>;
 interface ClipSubItem {
-  action_: ClipAction & number;
+  contexts_: SedContext & number;
   match_: RegExp;
   revertResult_: BOOL;
   /** 0: not; 1: decode for copy; 2: maybe escaped */ decode_: 0 | 1 | 2;
@@ -27,9 +27,9 @@ const Clipboard_ = {
         matchRe = new RegExp(body[1], flags as "");
       } catch { continue; }
       result.push({
-        action_: +head.includes("s") * (ClipAction.copy | ClipAction.paste)
-            + +head.includes("c") * ClipAction.copy + +head.includes("p") * ClipAction.paste
-            + +head.includes("g") * ClipAction.gotoUrl + +head.includes("i") * ClipAction.image,
+        contexts_: +head.includes("s") * (SedContext.copy | SedContext.paste)
+            + +head.includes("c") * SedContext.copy + +head.includes("p") * SedContext.paste
+            + +head.includes("g") * SedContext.gotoUrl + +head.includes("i") * SedContext.image,
         match_: matchRe,
         revertResult_: suffix.includes("r") && !flags.includes("g") ? 1 : 0,
         decode_: suffix.includes("d") ? 2 : suffix.includes("D") ? 1 : 0,
@@ -45,7 +45,7 @@ const Clipboard_ = {
     }
     return result;
   },
-  substitute_ (text: string, action: ClipAction & number, sed?: string | boolean): string {
+  substitute_ (text: string, context: SedContext & number, sed?: string | boolean): string {
     if (sed === false) { return text; }
     let arr = Clipboard_.staticSeds_
         || (Clipboard_.staticSeds_ = Clipboard_.parseSeds_(Settings_.get_("clipSub")));
@@ -55,7 +55,7 @@ const Clipboard_ = {
       arr = arr.concat(Clipboard_.parseSeds_(sed))
     }
     for (const item of arr) {
-      if (item.action_ & action) {
+      if (item.contexts_ & context) {
         const old = text
         if (item.revertResult_) {
           let start = 0, end = 0, first_group: string | undefined;
@@ -102,13 +102,13 @@ const Clipboard_ = {
     } else if ((i = data.charCodeAt(0)) !== kCharCode.space && i !== kCharCode.tab) {
       data = data.trimRight();
     }
-    data = Clipboard_.substitute_(data, ClipAction.copy, sed);
+    data = Clipboard_.substitute_(data, SedContext.copy, sed);
     return data;
   },
   reformat_ (copied: string, sed?: string | boolean): string {
     if (copied) {
     copied = copied.replace(BgUtils_.A0Re_, " ");
-    copied = Clipboard_.substitute_(copied, ClipAction.paste, sed);
+    copied = Clipboard_.substitute_(copied, SedContext.paste, sed);
     }
     return copied;
   }

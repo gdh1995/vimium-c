@@ -708,7 +708,7 @@ export const checkNestedFrame = (output?: Hint[]): void => {
   } else {
     if (output == null) {
       output = [];
-      for (let arr = querySelectorAll_unsafe_(doc, "a,button,input,frame,iframe")! as ArrayLike<ElementToHTML>
+      for (let arr = querySelectorAll_unsafe_("a,button,input,frame,iframe")! as ArrayLike<ElementToHTML>
               , i = arr.length; (len = output.length) < 2 && i-- > 0; ) {
         if (arr[i].lang != null) {
           getClickable(output, arr[i] as SafeHTMLElement)

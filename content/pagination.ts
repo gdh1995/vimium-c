@@ -1,4 +1,4 @@
-import { clickable_, VOther, doc, vApi, isAlive_, safer, timeout_ } from "../lib/utils"
+import { clickable_, VOther, vApi, isAlive_, safer, timeout_ } from "../lib/utils"
 import {
   docEl_unsafe_, htmlTag_, isAriaNotTrue_, isStyleVisible_, querySelectorAll_unsafe_, isIFrameElement,
 } from "../lib/dom_utils"
@@ -53,7 +53,7 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, isNext, lenLi
   let ch: string, s: string, len: number, i = 0, candInd = 0
   for (; i < names.length; i++) {
     if (GlobalConsts.SelectorPrefixesInPatterns.includes(names[i][0])) {
-      const arr = querySelectorAll_unsafe_(doc, names[i]);
+      const arr = querySelectorAll_unsafe_(names[i]);
       if (arr && arr.length === 1 && htmlTag_(arr[0])) {
         candidates.push([arr[0] as SafeHTMLElement, vApi, i << 23, ""])
         names.length = i + 1
@@ -124,7 +124,7 @@ export const findNextInText = (names: string[], isNext: boolean, lenLimits: numb
 }
 
 export const findNextInRel = (relName: string): GoNextBaseCandidate | null | undefined => {
-  const elements = querySelectorAll_unsafe_(doc, Build.BTypes & BrowserType.Edge ? "[rel]" : `[rel]:-${
+  const elements = querySelectorAll_unsafe_(Build.BTypes & BrowserType.Edge ? "[rel]" : `[rel]:-${
       !(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && VOther & BrowserType.Chrome
       ? "webkit" : "moz"}-any(a,area,link)`)!
   let s: string | null | undefined;

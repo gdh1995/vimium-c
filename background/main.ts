@@ -1767,7 +1767,7 @@
       if (cOptions.url) {
         let url = cOptions.url + "";
         if (sed) {
-          url = Clipboard_.substitute_(url, ClipAction.paste, sed);
+          url = Clipboard_.substitute_(url, SedContext.paste, sed);
         }
         openUrl(url, Urls.WorkType.EvenAffectStatus, tabs);
       } else if (cOptions.copied) {
@@ -1780,7 +1780,7 @@
       } else {
         let url_f = cOptions.url_f as Urls.Url;
         if (sed && typeof url_f === "string" && url_f) {
-          url_f = Clipboard_.substitute_(url_f, ClipAction.paste, sed);
+          url_f = Clipboard_.substitute_(url_f, SedContext.paste, sed);
         }
         openUrl(url_f || "", Urls.WorkType.FakeType, tabs);
       }
@@ -2358,7 +2358,7 @@
         str = decoded ? enc(path) : path;
         url = url.slice(0, start) + (end ? str + url.slice(end) : str);
       }
-      let substituted = Clipboard_.substitute_(url, ClipAction.gotoUrl) || url
+      let substituted = Clipboard_.substitute_(url, SedContext.gotoUrl) || url
       if (substituted !== url) {
         // if substitution returns an invalid URL, then refuse it
         BgUtils_.convertToUrl_(substituted, null, Urls.WorkType.KeepAll)
@@ -2721,7 +2721,7 @@
         prefix += "auto=once&";
       }
       if (req.e) {
-        url = Clipboard_.substitute_(url, ClipAction.paste, req.e);
+        url = Clipboard_.substitute_(url, SedContext.paste, req.e);
       }
       openShowPage(prefix + url, req.r, { opener: true });
     },

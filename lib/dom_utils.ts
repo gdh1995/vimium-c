@@ -33,11 +33,10 @@ export const querySelector_unsafe_ = (selector: string
     ): Element | null => (scope || doc).querySelector(selector)
 
   /** @UNSAFE_RETURNED */
-export const querySelectorAll_unsafe_ = ((scope: Document | SafeElement, selector: string
-      ): NodeListOf<Element> | void => {
-    try { return scope.querySelectorAll(selector); } catch {}
+export const querySelectorAll_unsafe_ = ((selector: string, scope?: SafeElement): NodeListOf<Element> | void => {
+    try { return (scope || doc).querySelectorAll(selector) } catch {}
 }) as {
-  (scope: Document | SafeElement, selector: string): NodeListOf<Element> | void
+  (selector: string, scope?: SafeElement): NodeListOf<Element> | void
 }
 
 export const isIFrameElement = (el: Element): el is KnownIFrameElement => {
@@ -151,7 +150,7 @@ export const GetParent_unsafe_ = function (this: void, el: Node | Element
       }
       let slot = (el as Element).assignedSlot;
       Build.BTypes & ~BrowserType.Firefox && slot && notSafe_not_ff_!(el as Element) &&
-      (slot = Getter_not_ff_!(Element, el as HTMLFormElement, "assignedSlot"));
+      (slot = Getter_not_ff_!(Element, el as Element, "assignedSlot"));
       if (slot) {
         if (type === PNType.RevealSlot) { return slot; }
         while (slot = slot.assignedSlot) { el = slot; }

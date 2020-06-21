@@ -153,7 +153,7 @@ export const getClientRectsForAreas_ = function (element: HTMLElementUsingMap, o
       ? element.getRootNode!() as ShadowRoot | Document : doc
     const map = querySelector_unsafe_(selector, root)
     if (!map || (map as ElementToHTML).lang == null) { return null; }
-    areas = querySelectorAll_unsafe_(map as SafeHTMLElement, "area")!
+    areas = querySelectorAll_unsafe_("area", map as SafeHTMLElement)!
   }
   const toInt = (a: string): number => (a as string | number as number) | 0
   for (let _i = 0, _len = areas.length; _i < _len; _i++) {
