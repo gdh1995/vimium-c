@@ -1,11 +1,8 @@
 html {
   --panel-background-color: #f3f3f3;
   --input-focus-border-color: #4d90fe;
-  --button-background-image: linear-gradient(#ededed, #ededed 38%, #dedede);
   --button-hover-color: black;
-  --button-hover-background-image: linear-gradient(#f0f0f0, #f0f0f0 38%, #e0e0e0);
   --button-hover-border-color: rgba(0, 0, 0, 0.3);
-  --button-active-background-image: linear-gradient(#e7e7e7, #e7e7e7 38%, #d7d7d7);
   --select-shape: url(
       'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="7px" height="7px"><polygon points="0,1 6,1 3,7"/></svg>'
       );
@@ -48,12 +45,10 @@ html {
     --button-disabled-color: #abb0b5;
     --button-background-color: #18191b;
     --button-border-color: #5f6368;
-    --button-background-image: none;
     --button-hover-color: #bdc2c7;
     --button-hover-background-color: #30343c;
-    --button-hover-background-image: none;
+    --button-active-background-color: #0c0c0e;
     --button-hover-border-color: #84878b;
-    --button-active-background-image: none;
     --icon-button-hover-color: #8ab4f8;
     --icon-button-active-color: #5b96f5;
     --select-shape: url(
@@ -109,15 +104,9 @@ header {
   padding: 0 0 3px 0;
 }
 button, select {
-  background-color: /* buttonface */ #ddd;
-  background-color: var(--button-background-color, #ddd);
-  background-image: linear-gradient(#ededed, #ededed 38%, #dedede);
-  background-image: var(--button-background-image);
-  background-origin: border-box;
   border: 0.5px solid rgba(0, 0, 0, 0.25);
   border-color: var(--button-border-color, rgba(0, 0, 0, 0.25));
   border-radius: 2px;
-  box-shadow: 0 1px rgba(0, 0, 0, 0.08), inset 0 1px 2px rgba(255, 255, 255, 0.75);
   box-sizing: border-box;
   color: #444;
   color: var(--button-color, #444);
@@ -126,7 +115,9 @@ button, select {
   outline: none;
   padding: 0 10px;
   text-align: center;
-  text-shadow: 0 1px #f0f0f0;
+}
+button { 
+  background-image: none;
 }
 button.fixed-size {
   padding: 0;
@@ -136,21 +127,6 @@ button:lang(zh), select:lang(zh) {
 }
 .dialog-ui button {
   margin-right: 0;
-}
-button:hover:not(:disabled), select:hover {
-  background-color: var(--button-hover-background-color, #ddd);
-  background-image: linear-gradient(#f0f0f0, #f0f0f0 38%, #e0e0e0);
-  background-image: var(--button-hover-background-image);
-  border-color: rgba(0, 0, 0, 0.3);
-  border-color: var(--button-hover-border-color);
-  color: black;
-  color: var(--button-hover-color);
-}
-button:active:hover, select:active {
-  background-image: linear-gradient(#e7e7e7, #e7e7e7 38%, #d7d7d7);
-  background-image: var(--button-active-background-image);
-  box-shadow: none;
-  text-shadow: none;
 }
 button:disabled {
   color: #888;
@@ -169,19 +145,31 @@ select.right {
   background: url(
 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="7px" height="7px"><polygon points="0,1 6,1 3,7"/></svg>'
     ) 8px 8px / 7px 7px no-repeat border-box,
-    linear-gradient(#ededed, #ededed 38%, #dedede) 0 / auto border-box;
-  background-image: var(--select-shape), var(--button-background-image);
+    #efefef 0 / auto border-box;
+  background-image: var(--select-shape);
   border-bottom-left-radius: 0;
   border-top-left-radius: 0;
   font-size: 0 !important;
   vertical-align: top;
   width: 22px;
 }
-select.right:hover {
-  background-image: var(--select-shape), var(--button-hover-background-image);
+button, select, select.right {
+  background-color: #efefef;
+  background-color: var(--button-background-color, #efefef);
 }
-select.right:active {
-  background-image: var(--select-shape), var(--button-active-background-image);
+button:hover:not(:disabled), select:hover {
+  background-color: #e5e5e5;
+  background-color: var(--button-hover-background-color, #e5e5e5);
+  border-color: rgba(0, 0, 0, 0.3);
+  border-color: var(--button-hover-border-color);
+  color: black;
+  color: var(--button-hover-color);
+}
+button:active:hover, select:active {
+  background-color: #f5f5f5;
+  background-color: var(--button-active-background-color, #f5f5f5);
+  box-shadow: none;
+  text-shadow: none;
 }
 button.left:hover+select.right {
   border-left-color: rgba(0, 0, 0, 0.3);
