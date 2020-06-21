@@ -68,7 +68,7 @@ import {
 } from "../lib/utils"
 import {
   frameElement_, querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_,
-  getComputedStyle_, isStyleVisible_, htmlTag_,
+  getComputedStyle_, isStyleVisible_, htmlTag_, fullscreenEl_unsafe_,
 } from "../lib/dom_utils"
 import {
   getViewBox_, prepareCrop_, wndSize_, bZoom_, wdZoom_, dScale_, padClientRect_, getBoundingClientRect_,
@@ -154,18 +154,16 @@ export const activate = (options: HintsNS.ContentOptions, count: number): void =
     if (doc.body === null) {
       clear()
       if (!_timer && readyState_ > "l") {
-        pushHandler_(SuppressMost_, coreHints)
         _timer = timeout_(activate.bind(0 as never, options, count), 300)
-        return;
+        return pushHandler_(SuppressMost_, coreHints)
       }
     }
-    const parApi = Build.BTypes & BrowserType.Firefox ? getParentVApi()
-        : frameElement_() && getParentVApi();
+    const parApi = Build.BTypes & BrowserType.Firefox ? !fullscreenEl_unsafe_() && getParentVApi()
+        : frameElement_() && !fullscreenEl_unsafe_() && getParentVApi();
     if (parApi) {
       parApi.l(style_ui)
       // recursively go up and use the topest frame in a same origin
-      parApi.h(options, count)
-      return;
+      return parApi.h(options, count)
     }
     const useFilter0 = options.useFilter, useFilter = useFilter0 != null ? !!useFilter0 : fgCache.f,
     frameList: FrameHintsInfo[] = frameList_ = [{h: [], v: null as never, s: coreHints}],
@@ -318,12 +316,12 @@ const render = (hints: readonly HintItem[], arr: ViewBox, raw_apis: VApiTy): voi
 
 /** must be called from the manager context, or be used to sync mode from the manager */
 export const setMode = (mode: HintMode, silent?: BOOL): void => {
+    let msg: string
     mode_ - mode ? lastMode_ = mode_ = mode : 0
     mode1_ = mode & ~HintMode.queue;
     forHover_ = mode1_ > HintMode.min_hovering - 1 && mode1_ < HintMode.max_hovering + 1;
     if (silent || noHUD_ || hud_tipTimer) { return }
-    let msg = VTr(mode_), textSeq = keyStatus_.t;
-    msg += useFilter_ ? ` [${textSeq}]` : "";
+    msg = VTr(mode_) + (useFilter_ ? ` [${keyStatus_.t}]` : "")
     if (Build.BTypes & BrowserType.Chrome) {
       msg += (manager_ || coreHints).d ? VTr(kTip.modalHints) : "";
     }
@@ -360,13 +358,13 @@ const getPreciseChildRect = (frameEl: KnownIFrameElement, view: Rect): Rect | nu
 
 export const tryNestedFrame = (
       cmd: Exclude<FgCmdAcrossFrames, kFgCmd.linkHints>, count: number, options: SafeObject): boolean => {
+    let childApi: VApiTy | null
     if (frameNested_ !== null) {
       prepareCrop_();
       checkNestedFrame();
     }
     if (!frameNested_) { return false; }
-    // let events: VApiTy | undefined, core: ContentWindowCore | null | 0 | void | undefined = null;
-    const childApi = detectUsableChild(frameNested_);
+    childApi = detectUsableChild(frameNested_);
     if (childApi) {
       childApi.f(cmd, count, options);
       if (readyState_ > "i") { set_frameNested_(false) }

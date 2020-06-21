@@ -17,7 +17,7 @@ import { set_currentScrolling, scrollTick, clearCachedScrollable } from "./scrol
 import { resetIsCmdTriggered, resetAnyClickHandler } from "./key_handler"
 import {
   activeEl_unsafe_, isHTML_, docEl_unsafe_, getEditableType_, GetShadowRoot_, getSelection_, frameElement_,
-  SafeEl_not_ff_, MDW,
+  SafeEl_not_ff_, MDW, fullscreenEl_unsafe_,
 } from "../lib/dom_utils"
 import { Stop_, pushHandler_, removeHandler_, prevent_ } from "../lib/keyboard_utils"
 
@@ -160,7 +160,7 @@ export const setupSuppress = (onExit?: (this: void) => void): void => {
 
 /** should only be called during keydown events */
 export const focusUpper = (key: kKeyCode, force: boolean, event: ToPrevent): void | 1 => {
-  const parEl = frameElement_();
+  const parEl = frameElement_() && !fullscreenEl_unsafe_();
   if (!parEl && (!force || isTop)) { return; }
   prevent_(event); // safer
   if (parEl) {

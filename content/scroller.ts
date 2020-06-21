@@ -33,7 +33,7 @@ import {
 } from "../lib/utils"
 import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_,
-  querySelector_unsafe_, getComputedStyle_, notSafe_not_ff_, HDN, isRawStyleVisible,
+  querySelector_unsafe_, getComputedStyle_, notSafe_not_ff_, HDN, isRawStyleVisible, fullscreenEl_unsafe_,
 } from "../lib/dom_utils"
 import {
   scrollWndBy_, wndSize_, getZoom_, wdZoom_, bZoom_, isNotInViewport, prepareCrop_, padClientRect_,
@@ -244,10 +244,10 @@ export const executeScroll = function (di: ScrollByY, amount0: number, isTo: BOO
       amount = element ? Math.max(0, Math.min(fromMax ? max - amount : amount, max)) - curPos
           : fromMax ? viewSize : amount - curPos;
     }
-    let core: ReturnType<typeof getParentVApi>;
+    let core: ReturnType<typeof getParentVApi> | false;
     if (element === scrollingTop && element
-      && (core = Build.BTypes & BrowserType.Firefox ? getParentVApi()
-              : frameElement_() && getParentVApi())
+      && (core = Build.BTypes & BrowserType.Firefox ? !fullscreenEl_unsafe_() && getParentVApi()
+              : frameElement_() && !fullscreenEl_unsafe_() && getParentVApi())
       && !doesScroll(element, di, amount || (fromMax ? 1 : 0))) {
         core.c(di, amount0, isTo as 0, factor, fromMax as false);
         if (core.y().k) {

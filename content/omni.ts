@@ -72,7 +72,7 @@ export const activate = function (options: FullOptions, count: number): void {
     }
     let parApi: ReturnType<typeof getParentVApi>;
     if (!isTop && !options.$forced) { // check $forced to avoid dead loops
-      if (parent === top
+      if (parent === top && !fullscreenEl_unsafe_()
           && (parApi = Build.BTypes & BrowserType.Firefox ? getParentVApi() : frameElement_() && getParentVApi())) {
         parApi.o(options, count)
       } else {
