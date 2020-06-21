@@ -340,6 +340,7 @@ interface CmdOptions {
     passExitKey?: boolean;
     flash?: boolean;
     reachable?: boolean; // default to true
+    prefer?: string;
   };
   [kFgCmd.editText]: {
     dom?: boolean;

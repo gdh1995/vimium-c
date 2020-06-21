@@ -2,7 +2,7 @@ import {
   chromeVer_, doc, esc, EscF, fgCache, isTop, safeObj, set_esc, VOther, VTr, safer, timeout_, loc_, weakRef_, deref_,
   keydownEvents_,
 } from "../lib/utils"
-import { isHTML_, htmlTag_, createElement_, frameElement_ } from "../lib/dom_utils"
+import { isHTML_, htmlTag_, createElement_, frameElement_, querySelectorAll_unsafe_ } from "../lib/dom_utils"
 import {
   pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER,
 } from "../lib/keyboard_utils"
@@ -246,9 +246,11 @@ export const contentCommands_: {
       select_(visibleInputs[0][0], visibleInputs[0][1], true, action, true)
       return
     }
+    const preferredSelector = options.prefer
+    const preferred: Element[] = [].slice.call(preferredSelector && querySelectorAll_unsafe_(preferredSelector) || [])
     for (let ind = 0; ind < sel; ind++) {
       const hint = visibleInputs[ind], j = hint[0].tabIndex;
-      hint[2] = j < 1 ? -ind
+      hint[2] = preferred.indexOf(hint[0]) >= 0 ? 0.5 : j < 1 ? -ind
           : !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
             && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)
           ? j : j + ind / 8192;
