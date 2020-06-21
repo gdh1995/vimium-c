@@ -69,7 +69,7 @@ var BgUtils_ = {
       : !(Build.BTypes & BrowserType.Chrome) ? url.startsWith(BrowserProtocol_)
       : url.startsWith("chrome:") ? !url.startsWith("chrome://downloads")
       : url.startsWith(BrowserProtocol_) && !url.startsWith(Settings_.CONST_.NtpNewTab_)
-        || IsEdg_ && url.startsWith("edge");
+        || IsEdg_ && (<RegExpOne> /^(edge|extension):/).test(url) && !url.startsWith("edge://downloads");
   },
   _nonENTlds: ".\u4e2d\u4fe1.\u4e2d\u56fd.\u4e2d\u570b.\u4e2d\u6587\u7f51.\u4f01\u4e1a.\u4f5b\u5c71.\u4fe1\u606f\
 .\u516c\u53f8.\u516c\u76ca.\u5546\u57ce.\u5546\u5e97.\u5546\u6807.\u5728\u7ebf.\u5a31\u4e50.\u5e7f\u4e1c\
@@ -249,7 +249,8 @@ var BgUtils_ = {
     }
     a.resetRe_();
     a.lastUrlType_ = type;
-    return type === Urls.Type.Full ? oldString
+    return type === Urls.Type.Full
+      ? Build.BTypes & BrowserType.Chrome && oldString.startsWith("extension://") ? "chrome-" + oldString : oldString
       : type === Urls.Type.Search ?
         a.createSearchUrl_(oldStrForSearch.split(a.spacesRe_), keyword || "~", vimiumUrlWork)
       : type <= Urls.Type.MaxOfInputIsPlainUrl ?
