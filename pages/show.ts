@@ -68,6 +68,7 @@ let _initialViewerData: any = null;
 let encryptKey = +window.name || 0;
 let ImageExtRe = <RegExpI> /\.(bmp|gif|icon?|jpe?g|a?png|tiff?|webp)(?=[.\-_]|\b)/i;
 let _shownBlobURL = "", _shownBlob: Blob | null | 0 = null;
+let loadingTimer: (() => void) | null | undefined
 
 if (chrome.i18n.getMessage("lang1")) {
   document.title = pTrans_("vDisplay") || document.title;
@@ -622,7 +623,11 @@ function showSlide(ViewerModule: CurWnd["Viewer"], zoomToFit?: boolean): Promise
 
 function clean(): void {
   destroyObject_();
-  Promise.resolve().then(() => { _shownBlob = null; });
+  _shownBlob = null
+  if (loadingTimer) {
+    loadingTimer()
+    loadingTimer = null
+  }
   if (VData.type === "image") {
     listenWheelForImage(false);
     (document.body as HTMLBodyElement).classList.remove("filled");
@@ -752,11 +757,12 @@ function tryToFixFileExt_(file: string): string | void {
 
 function fetchImage_(url: string, element: HTMLImageElement): void {
   const text = new Text(), body = document.body as HTMLBodyElement,
-  clearTimer = (): void => {
+  clearTimer = loadingTimer = (): void => {
     element.removeEventListener("load", clearTimer);
     element.removeEventListener("error", clearTimer);
     clearTimeout(timer);
     text.remove();
+    loadingTimer === clearTimer && (loadingTimer = null)
   };
   element.addEventListener("load", clearTimer, true);
   element.addEventListener("error", clearTimer, true);
