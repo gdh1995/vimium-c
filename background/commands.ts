@@ -587,8 +587,10 @@ CommandsData_: CommandsDataTy = CommandsData_ as never || {
     e: VisualAction.word | VisualAction.inc, b: VisualAction.word | VisualAction.dec,
     /* same as b */ B: VisualAction.word | VisualAction.dec,
     G: VisualAction.documentBoundary | VisualAction.inc, g: { g: VisualAction.documentBoundary | VisualAction.dec },
+    gg: VisualAction.documentBoundary | VisualAction.dec,
 
     o: VisualAction.Reverse, a: { w: VisualAction.LexicalWord, s: VisualAction.LexicalSentence },
+    aw: VisualAction.LexicalWord, as: VisualAction.LexicalSentence,
 
     y: VisualAction.Yank, Y: VisualAction.YankLine, C: VisualAction.YankWithoutExit,
     p: VisualAction.YankAndOpen, P: VisualAction.YankAndNewTab,
