@@ -1009,13 +1009,13 @@
 		"message": " 上“工具”按钮的“管理扩展快捷键”"
 	},
 	"addons": {
-		"message": "Firefox 扩展"
+		"message": "Firefox 附加组件"
 	},
 	"webstore": {
 		"message": "Chrome 网上应用店"
 	},
 	"edgestore": {
-		"message": "微软 Edge 扩展"
+		"message": "Microsoft Edge 加载项"
 	},
 	"NewTabAdapter": {
 		"message": "NewTab Adapter"

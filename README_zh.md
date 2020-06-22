@@ -3,23 +3,31 @@
 ============================================
 
 [![MIT 许可协议](https://img.shields.io/badge/许可协议-MIT-blue.svg)](LICENSE.txt)
-[![版本：1.83.4](https://img.shields.io/badge/版本-1.83.4-orange.svg
+[![版本](https://img.shields.io/github/v/release/gdh1995/vimium-c?color=critical&label=gdh1995%2Fvimium-c&logo=GitHub
   )](https://github.com/gdh1995/vimium-c/releases)
-**在 [Chrome 网上应用店](
-  https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg
-  ) /
-[Firefox 附加组件](
-  https://addons.mozilla.org/zh-CN/firefox/addon/vimium-c/
-  ) /
-[MS Edge 外接程序](
-  https://microsoftedge.microsoft.com/addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo
+[![GitHub 收藏](https://img.shields.io/github/stars/gdh1995/vimium-c?logo=GitHub&labelColor=181717&color=orange
+  )](https://github.com/gdh1995/vimium-c/stargazers)
+[![Gitee 收藏](https://gitee.com/gdh1995/vimium-c/badge/star.svg?theme=dark
+  )](https://gitee.com/gdh1995/vimium-c/stargazers)
+[![Firefox 附加组件](https://img.shields.io/amo/rating/vimium-c@gdh1995.cn?logo=Mozilla%20Firefox&labelColor=FF7139&logoColor=white&color=blue
+  )](https://addons.mozilla.org/firefox/addon/vimium-c/)
+[![Chrome 网上应用店](https://img.shields.io/chrome-web-store/rating/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&labelColor=4285F4&logoColor=white&color=critical
+  )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
+[![Chrome 网上应用店](https://img.shields.io/chrome-web-store/rating-count/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&labelColor=4285F4&logoColor=white&color=critical
+  )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg/reviews)
+[![构建状态](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
+  )](https://travis-ci.org/gdh1995/vimium-c)
+
+**在 [Firefox 附加组件](https://addons.mozilla.org/zh-CN/firefox/addon/vimium-c/) /
+[Microsoft Edge 加载项](https://microsoftedge.microsoft.com/addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo) /
+[Chrome 网上应用店](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg
   ) 中查看**
 
 Vimium C 是一款开源、免费的键盘增强类浏览器扩展，支持为多种多样的命令任意设置快捷键。
 只要有键盘，您就能自由点击网页中的链接和按钮、选择和复制文字和网址，也能轻松操作浏览器标签页，
 还能在一个便捷的搜索框中随意搜索历史记录、收藏夹或打开的标签等等。
 
-Vimium C 支持 Chrome、Firefox 和 微软 Edge (Chromium) 等现代浏览器。
+Vimium C 支持 新版 Microsoft Edge、Firefox 63+ 和 Chrome 43+ 等现代浏览器。
 
 本项目主要由 [gdh1995](https://github.com/gdh1995) 开发并维护，并且以 [MIT 许可协议](LICENSE.txt) 开源。
 
@@ -39,7 +47,7 @@ Vimium C 支持 Chrome、Firefox 和 微软 Edge (Chromium) 等现代浏览器�
 * 按 J/K/H/L 来像 VIM 里移动光标一样滚动屏幕内容
 * 按 “/” 显示页内查找浮层，输入“\r”可以做正则查找，“\w”会执行整词匹配，还有\R、\W、\i和\I等多种用法
 * 按 V 进入自由选择模式后，能像 VIM 一样用 J/K/H/L等快捷键 修改文字的选择范围
-* 按 “？”显示帮助对话框，快速查看所有设置过的快捷键
+* 按 “?” 显示帮助对话框，快速查看所有设置过的快捷键
 
 当需要操作浏览器标签页时，它可以：
 * 按 Shift+J、Shift+K、“g0” 或 “g$” 来切换到左侧、右侧、最左或最右的标签页
@@ -103,9 +111,9 @@ you may donate any small amount of money to him through [PayPal](https://www.pay
 
 # 关于适用区域的声明
 
-[Vimium C](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
-和 [gdh1995](https://github.com/gdh1995) 发布的其他扩展，在被发布到“Chrome 网上应用店”和“Microsoft Edge
-外接程序”等商店上时，均已向*所有地区*的所有人公开。
+[Vimium C](https://microsoftedge.microsoft.com/addons/detail/vimium-c/aibcglbfblnogfjhbcmmpobjhnomhcdo)
+和 [gdh1995](https://github.com/gdh1995) 发布的其他扩展，在被发布到“Microsoft Edge 加载项”和“Chrome
+网上应用店”等商店上时，均已向*所有地区*的所有人公开。
 但这个行为只是为了让这些插件更容易使用，**并不代表或者暗示**作者 gdh1995 “同意或者不反对”“台湾”一词可以同“中国”并列。
 虽然并列显示这一现状的确**不正确地出现**在了这些商店的页面中（2019年11月16日确认）。
 

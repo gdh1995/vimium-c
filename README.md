@@ -2,19 +2,25 @@
 ![Icon](icons/icon32.png) - All by Keyboard
 ===========================================
 
-[![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.83.4](https://img.shields.io/badge/release-1.83.4-orange.svg
+[![MIT license](https://img.shields.io/badge/license-MIT-blue)](LICENSE.txt)
+[![Version](https://img.shields.io/github/v/release/gdh1995/vimium-c?color=critical&label=gdh1995%2Fvimium-c&logo=GitHub
   )](https://github.com/gdh1995/vimium-c/releases)
+[![GitHub stars](https://img.shields.io/github/stars/gdh1995/vimium-c?logo=GitHub&labelColor=181717&color=orange
+  )](https://github.com/gdh1995/vimium-c/stargazers)
+[![Gitee star](https://gitee.com/gdh1995/vimium-c/badge/star.svg?theme=dark
+  )](https://gitee.com/gdh1995/vimium-c/stargazers)
+[![Firefox Add-ons](https://img.shields.io/amo/rating/vimium-c@gdh1995.cn?logo=Mozilla%20Firefox&labelColor=FF7139&logoColor=white&color=blue
+  )](https://addons.mozilla.org/firefox/addon/vimium-c/)
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/rating/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&labelColor=4285F4&logoColor=white&color=critical
+  )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/rating-count/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&labelColor=4285F4&logoColor=white&color=critical
+  )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg/reviews)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
-**Visit on [Chrome Web Store](
-  https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg
-  ) /
-[Firefox Add-ons](
-  https://addons.mozilla.org/firefox/addon/vimium-c/
-  ) /
-[MS Edge Add-ons](
-  https://microsoftedge.microsoft.com/addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo
+
+**Visit on [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/vimium-c/) /
+[Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo) /
+[Chrome Web Store](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg
   )**
 
 A <span style="color: #a55e18;">C</span>ustomized
@@ -38,13 +44,13 @@ and licensed under the [MIT license](LICENSE.txt).
 
 本项目主要由 [gdh1995](https://github.com/gdh1995) 开发并维护，且以 [MIT 许可协议](LICENSE.txt) 开源。
 
-It (the version in Web Store) supports Chrome and other Chromium-based browsers whose core versions are >= 43,
-  and supports almost all of the functionality on a recent Firefox (since version 63.0).
-On MS Edge (Chromium), it works well, and it can even run on MS Edge (EdgeHTML), though there're still some errors.
+It (the released version) supports the new MS Edge, Chrome and other Chromium-based browsers
+  whose core versions are >= 43, and has a prefect support for a recent Firefox (since version 63.0).
+It can even run on MS Edge (EdgeHTML), though there're still some errors.
 If re-compiled from the source code, Vimium C is able to support Chromium 32~42.
 
-它支持内核版本不低于 43 的 Chrome 和其它以 Chromium 为内核的浏览器，也能运行在最近发布的 Firefox 63 和更高版本上。
-同时它完美支持了新版 Microsoft Edge (Chromium 内核) 浏览器，甚至在 Edge (EdgeHTML 内核) 上也能正常执行大部分命令。
+它支持内核版本不低于 43 的新版 Microsoft Edge、Chrome 和其它以 Chromium 为内核的浏览器，
+同时也能完美运行在近些年发布的 Firefox 63 和更高版本上，甚至在 Edge (EdgeHTML 内核) 上也能正常执行大部分命令。
 如果从源码重新编译，Vimum C 还可以支持 Chromium 32~42。
 
 ![Usage Demo of Vimium C](https://gdh1995.cn/vimium-c/demo.gif)
@@ -67,20 +73,20 @@ __<span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</s
 __Other extensions supporting Vimium C:__
 
 * PDF Viewer for Vimium C
-  : a modified version of [PDF Viewer](https://chrome.google.com/webstore/detail/pdf-viewer/oemmndcbldboiebfnladdacbdfmadadm)
+  : a modified version of [PDF Viewer](
+      https://chrome.google.com/webstore/detail/pdf-viewer/oemmndcbldboiebfnladdacbdfmadadm)
     from [PDF.js](https://github.com/mozilla/pdf.js/)
   * Visit it on [Chrome Web Store](
       https://chrome.google.com/webstore/detail/pdf-viewer-for-vimium-c/nacjakoppgmdcpemlfnfegmlhipddanj)
 * Shortcut Forwarding Tool
   * Provide 32 configurable shortcuts and forward them to another extension like Vimium C
-  * Visit it on [Chrome Web Store](
-      https://chrome.google.com/webstore/detail/shortcut-forwarding-tool/clnalilglegcjmlgenoppklmfppddien) /
-    [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/shortcut-forwarding-tool/)
+  * Visit it on [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/shortcut-forwarding-tool/) /
+    [Chrome Web Store](
+      https://chrome.google.com/webstore/detail/shortcut-forwarding-tool/clnalilglegcjmlgenoppklmfppddien)
 * NewTab Adapter
   * Take over browser's new tab settings and open another configurable URL
-  * Visit it on [Chrome Web Store](
-      https://chrome.google.com/webstore/detail/newtab-adapter/cglpcedifkgalfdklahhcchnjepcckfn) /
-    [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/newtab-adapter/)
+  * Visit it on [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/newtab-adapter/) /
+    [Chrome Web Store](https://chrome.google.com/webstore/detail/newtab-adapter/cglpcedifkgalfdklahhcchnjepcckfn)
 * Modified Weidu New Tab (微度新标签页修改版)
   : a modified and lite version of [www.weidunewtab.com](http://www.weidunewtab.com/) (or
       [www.newtabplus.com](http://www.newtabplus.com/) )
@@ -186,10 +192,10 @@ See the [MIT LICENSE](LICENSE.txt) for details.
 
 # Declaration for Applicable Regions
 
-The [Vimium C](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
+The [Vimium C](https://microsoftedge.microsoft.com/addons/detail/vimium-c/aibcglbfblnogfjhbcmmpobjhnomhcdo)
     and other extensions published by [gdh1995](https://github.com/gdh1995)
     are available for all people in *"all regions"*
-    of Chrome Web Store, Microsoft Edge Add-ons and some other markets.
+    of Microsoft Edge Add-ons, Chrome Web Store and some other markets.
 This behavior is only to make these extensions easier to use, but<br>
 **DOES NOT EXPRESS OR IMPLIED** the author (gdh1995) "agrees or has no objection to"
     that "Taiwan" can be parallel to "China",

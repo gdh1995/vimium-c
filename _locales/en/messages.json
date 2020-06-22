@@ -648,7 +648,7 @@
 		"message": "Chrome Web Store"
 	},
 	"edgestore": {
-		"message": "Microsoft Edge Add-ons"
+		"message": "MS Edge Add-ons"
 	},
 	"NewTabAdapter": {
 		"message": "NewTab Adapter"
@@ -773,7 +773,7 @@
 		"message": "Found a bug? "
 	},
 	"HReport": {
-		"message": "Report it here."
+		"message": "Report it here"
 	},
 	"HCredits": {
 		"message": "Credits: "

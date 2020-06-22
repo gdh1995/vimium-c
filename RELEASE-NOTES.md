@@ -5,6 +5,7 @@ ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://github.com/gdh1995/vimium-c/blob/master/README_zh.md .
 
 #### 1.83.4
+(the current published version on Firefox Add-ons, Microsoft Edge Add-ons and Chrome Web Store)
 * **better simulating of mouse events**: wait for 1~2 microticks, so that work better with modern frameworks
 * fix some bugs about `LinkHints` and the Display page
 * `focusInput`: follow "Detect whether links are completely covered or not"
@@ -160,7 +161,6 @@ ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 * fix some bugs (including some on Edge)
 
 #### 1.79.1
-(the current published version on Chrome Web Store and Firefox Add-ons)
 * `LinkHints`: merge logic from Vimium and add new options
   * add "Filtered Hints" mode
     * support filtering by some common non-English letters

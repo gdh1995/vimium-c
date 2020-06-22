@@ -485,7 +485,7 @@
 		"message": "Extensions Firefox"
 	},
 	"edgestore": {
-		"message": "Extensions Microsoft Edge"
+		"message": "Extensions MS Edge"
 	},
 	"NewTabAdapter": {
 		"message": "NewTab Adapter (Adaptateur de nouvel onglet)"
@@ -594,7 +594,7 @@
 		"message": " commandes avancées"
 	},
 	"HStar": {
-		"message": "Activez l'étoile Github pour mettre en favori"
+		"message": "Activez l'étoile GitHub pour mettre en favori"
 	},
 	"HReview": {
 		"message": "Ecrire une revue sur "
@@ -603,7 +603,7 @@
 		"message": "Vous avez trouvé un Bug ? "
 	},
 	"HReport": {
-		"message": "Rapportez-le ici."
+		"message": "Rapportez-le ici"
 	},
 	"HCredits": {
 		"message": "Crédits: "
