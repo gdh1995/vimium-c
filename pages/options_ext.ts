@@ -3,7 +3,7 @@ $<ElementWithDelay>("#showCommands").onclick = function (event): void {
   let node: HTMLElement | null, root = VApi.y().r;
   event && event.preventDefault();
   if (!root) { /* empty */ }
-  else if (node = root.querySelector("#HClose") as HTMLElement | null) {
+  else if (node = root.querySelector("#HCls") as HTMLElement | null) {
     const isCommand = root.querySelector(".HelpCommandName") != null;
     click(node);
     if (isCommand) { return; }
@@ -12,9 +12,9 @@ $<ElementWithDelay>("#showCommands").onclick = function (event): void {
   if (event) { return; }
   setTimeout(function (): void {
     const misc = VApi.y()
-    const node2 = misc.r && misc.r.querySelector("#HelpDialog") as HTMLElement;
+    const node2 = misc.r && misc.r.querySelector("#HDlg") as HTMLElement;
     if (!node2) { return; }
-    (node2.querySelector("#HClose") as HTMLElement).addEventListener("click", function (): void {
+    (node2.querySelector("#HCls") as HTMLElement).addEventListener("click", function (): void {
       location.hash = "";
     });
   }, 100);
@@ -338,7 +338,7 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
   }
   console.info("IMPORT settings: finished.");
   const root = window.VApi && VApi.y().r
-  const node = root && root.querySelector("#HClose") as HTMLElement;
+  const node = root && root.querySelector("#HCls") as HTMLElement;
   if (node) { // reload help dialog
     node.click();
     $("#showCommands").click();
