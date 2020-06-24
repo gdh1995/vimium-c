@@ -242,7 +242,11 @@ var Settings_ = {
         css = css.replace(<RegExpG> /\r\n?/g, "\n");
       }
       const findOffset = css.lastIndexOf("/*#find*/");
+      const isHighContrast_ff = !!(Build.BTypes & BrowserType.Firefox)
+          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
+          && Settings_.storage_.getItem(GlobalConsts.kIsHighContrast) == "1"
       let findCSS = css.slice(findOffset + /* '/*#find*\/\n' */ 10);
+      let omniCSS = "";
       css = css.slice(0, findOffset - /* `\n` */ 1);
       if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinUsableCSS$All || hasAll) {
         // Note: must not move "all:" into ":host" even when "s" and >= MinSelector$deep$InDynamicCssMeansNothing
@@ -287,9 +291,12 @@ var Settings_ = {
       }
       if (!(Build.BTypes & ~BrowserType.Firefox)
           || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox) {
-        const ind1 = css.indexOf(".LH{"), ind2 = css.indexOf("}", ind1)
-        css = css.slice(0, ind1) + css.slice(ind1, ind2).replace("2.5px 3px 2px", "3px").replace("0.5px", "1px")
-            + css.slice(ind2)
+        const ind1 = css.indexOf(".LH{") + 4, ind2 = css.indexOf("}", ind1)
+        let items = css.slice(ind1, ind2).replace("2.5px 3px 2px", "3px").replace("0.5px", "1px")
+        if (isHighContrast_ff) {
+          items = items.replace(<RegExpOne> /\bbackground:[^;}]+/, "background:#000")
+        }
+        css = css.slice(0, ind1) + items + css.slice(ind2)
       }
       if (!((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
@@ -307,16 +314,34 @@ var Settings_ = {
             /** Note: {@link ../front/vimium-c.css}: this requires no ID/attr selectors in "ui" styles */
             body.replace(<RegExpG> /\.[A-Z][^,{]*/g, prefix + " $&");
       }
+      if (!(Build.BTypes & BrowserType.Chrome) || !IsEdg_) {
+        findCSS = findCSS.replace("@media(-ms-high-contrast:active){", "").slice(0, -1)
+      }
+      if (Build.BTypes & BrowserType.Chrome && IsEdg_
+         || !!(Build.BTypes & BrowserType.Firefox)
+            && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isHighContrast_ff) {
+        css = css.split(".D>", 1)[0]
+        findCSS = findCSS.replace(<RegExpG> /\.HC\b/g, "")
+      } else {
+        findCSS = findCSS.replace(<RegExpG> /\.HC\b[^]+?}\s?/g, "").trim()
+      }
+      if (Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isHighContrast_ff) {
+        omniCSS = 'body:after{content:"";}#toggle-dark{display:none;}.s,.item:hover{border-bottom-style:solid;}'
+                + '.s .title,.item:hover .title{font-weight:bold;}.s .icon,.item:hover .icon{fill:currentColor;}'
+      }
       css = css.replace(<RegExpG> /\n/g, "")
       css = cacheId + ";" + css;
+      if (Build.BTypes && BrowserType.Firefox) { omniCSS = omniCSS && omniCSS.replace(<RegExpG> /\n/g, "") }
       const css2 = a.parseCustomCSS_(a.get_("userDefinedCss"));
+      let find2 = css2.find, omni2 = css2.omni, F = "findCSS", O = "omniCSS"
       css2.ui && (css += "\n" + css2.ui);
       if (Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo && Build.BTypes & BrowserType.Chrome
           && browserVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo) {
         css = css.replace(<RegExpG> /\b0\.5px|\/\*!DPI\*\/ ?[\w.]+/g, "/*!DPI*/1px");
       }
-      a.storage_.setItem("findCSS", findCSS.length + "\n" + findCSS + (css2.find ? "\n" + css2.find : ""));
-      a.storage_.setItem("omniCSS", css2.omni || "");
+      a.storage_.setItem("findCSS", findCSS.length + "\n" + findCSS + (find2 ? "\n" + find2 : ""));
+      omniCSS || omni2 ? a.storage_.setItem(O,  omni2 ? omniCSS + "\n" + omni2 : omniCSS) : a.storage_.removeItem(O)
       return a.set_("innerCSS", css);
     },
     userDefinedCss (this: {}, css2Str): void {
@@ -326,12 +351,13 @@ var Settings_ = {
       const css2 = a.parseCustomCSS_(css2Str);
       let innerCSS = css2.ui ? css + "\n" + css2.ui : css;
       {
-        css = a.storage_.getItem("findCSS")!;
+        let find2 = css2.find, omni2 = css2.omni, F = "findCSS", O = "omniCSS"
+        css = a.storage_.getItem(F)!
         idx = css.indexOf("\n")
         css = css.slice(0, idx + 1 + +css.slice(0, idx));
-        let find2 = css2.find;
-        a.storage_.setItem("findCSS", find2 ? css + "\n" + find2 : css);
-        a.storage_.setItem("omniCSS", css2.omni || "");
+        a.storage_.setItem(F, find2 ? css + "\n" + find2 : css)
+        css = (a.storage_.getItem(O) || "").split("\n", 1)[0]
+        css || omni2 ? a.storage_.setItem(O, omni2 ? css + "\n" + omni2 : css) : a.storage_.removeItem(O)
       }
       a.set_("innerCSS", innerCSS);
       const cache = a.cache_;
@@ -360,14 +386,14 @@ var Settings_ = {
     innerCSS (this: {}, css): void {
       const a = Settings_, cache = a.cache_ as WritableSettingsCache;
       let findCSS = a.storage_.getItem("findCSS"), omniCSS = a.storage_.getItem("omniCSS");
-      if (!findCSS || omniCSS == null) { a.fetchFile_("baseCSS"); return; }
+      if (!findCSS) { a.fetchFile_("baseCSS"); return; }
       findCSS = findCSS.slice(findCSS.indexOf("\n") + 1);
       const index = findCSS.indexOf("\n") + 1, index2 = findCSS.indexOf("\n", index);
       // Note: The lines below are allowed as a special use case
       cache.innerCSS = css.slice(a.CONST_.StyleCacheId_.length + 1);
       cache.findCSS_ = { c: findCSS.slice(0, index - 1), s: findCSS.slice(index, index2),
           i: findCSS.slice(index2 + 1) };
-      a.omniPayload_.c = omniCSS;
+      a.omniPayload_.c = omniCSS || "";
     },
     vomnibarPage (this: {}, url): void {
       const a = Settings_, cur = localStorage.getItem("vomnibarPage_f");

@@ -943,6 +943,26 @@ if (Build.BTypes & BrowserType.ChromeOrFirefox
   // https://developer.mozilla.org/en-US/docs/Mozilla/Firefox/Experimental_features#Color_scheme_simulation
   setTimeout(useLocalStyle, 800)
 }
+
+if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && bgOnOther_ & BrowserType.Firefox) {
+  nextTick_((): void => {
+    const test = document.createElement("div")
+    test.style.display = "none"
+    test.style.color = "#543";
+    (document.body as HTMLBodyElement).append!(test)
+    requestIdleCallback!(() => {
+      const K = GlobalConsts.kIsHighContrast, storage = localStorage
+      const isHC = getComputedStyle(test).color?.replace(<RegExpG> / /g, '') != "rgb(85,68,51)"
+      test.remove()
+      const oldIsHC = storage.getItem(K) == "1"
+      if (isHC != oldIsHC) {
+        isHC ? storage.setItem(K, "1") : storage.removeItem(K);
+        delete (bgSettings_.cache_ as Partial<SettingsNS.FullCache>).helpDialog
+        bgSettings_.fetchFile_("baseCSS", bgSettings_.postUpdate_.bind(bgSettings_, "userDefinedCss"))
+      }
+    }, { timeout: 1e3 })
+  }, 34)
+}
 };
 
 function onExclusionRulesInited(this: ExclusionRulesOption_): void {
@@ -1050,7 +1070,8 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
       styleDebug.classList.add("debugged");
     }
     styleDebug.textContent = isFind ? css2.find || ""
-      : (isSame ? "" : "\n.transparent { opacity: 1; }\n") + (css2.omni && css2.omni + "\n" || "");
+      : styleDebug.textContent.split("\n", 1)[0]
+        + (isSame ? "\n" : "\n.transparent { opacity: 1; }\n") + (css2.omni && css2.omni + "\n" || "");
     if (isFind && findCss) {
       /** Note: should keep the same as {@link ../background/settings.ts#Settings_.updateHooks_.userDefinedCss } */
       let css = localStorage.getItem("findCSS") as string, defaultLen = parseInt(css, 10);

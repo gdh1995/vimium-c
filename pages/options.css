@@ -2,7 +2,7 @@ html {
   --panel-background-color: #f3f3f3;
   --input-focus-border-color: #4d90fe;
   --button-hover-color: black;
-  --button-hover-border-color: rgba(0, 0, 0, 0.3);
+  --button-hover-border-color: #a0a0a0;
   --select-shape: url(
       'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="7px" height="7px"><polygon points="0,1 6,1 3,7"/></svg>'
       );
@@ -104,8 +104,8 @@ header {
   padding: 0 0 3px 0;
 }
 button, select {
-  border: 0.5px solid rgba(0, 0, 0, 0.25);
-  border-color: var(--button-border-color, rgba(0, 0, 0, 0.25));
+  border: 0.5px solid #b3b3b3;
+  border-color: var(--button-border-color, #b3b3b3);
   border-radius: 2px;
   box-sizing: border-box;
   color: #444;
@@ -160,7 +160,7 @@ button, select, select.right {
 button:hover:not(:disabled), select:hover {
   background-color: #e5e5e5;
   background-color: var(--button-hover-background-color, #e5e5e5);
-  border-color: rgba(0, 0, 0, 0.3);
+  border-color: #a0a0a0;
   border-color: var(--button-hover-border-color);
   color: black;
   color: var(--button-hover-color);
@@ -168,11 +168,9 @@ button:hover:not(:disabled), select:hover {
 button:active:hover, select:active {
   background-color: #f5f5f5;
   background-color: var(--button-active-background-color, #f5f5f5);
-  box-shadow: none;
-  text-shadow: none;
 }
 button.left:hover+select.right {
-  border-left-color: rgba(0, 0, 0, 0.3);
+  border-left-color: #a0a0a0;
   border-left-color: var(--button-hover-border-color);
 }
 button.left:focus+select.right {
@@ -647,11 +645,11 @@ select:-moz-focusring {
   .icon, input[type=checkbox] {
     filter: var(--darker-filter, none);
   }
-  .auto-dark button, .auto-dark select {
-    box-shadow: none;
-    text-shadow: none;
+  button:disabled {
+    background: linear-gradient(var(--button-background-color),var(--button-background-color)) !important;
   }
   .exclusionHeader {
     color: var(--item-caption-color);
   }
 }
+@media(-ms-high-contrast:active){*{border-radius:0 !important;}}

@@ -526,6 +526,8 @@ declare const enum GlobalConsts {
   EdgStorePage = "https://microsoftedge.microsoft.com/addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo",
   EdgHelp = "https://microsoftedgesupport.microsoft.com/hc",
 
+  kIsHighContrast = "isHC_f",
+
   SelectorPrefixesInPatterns = ".#[",
   DelimeterForKeyCharAndMode = ":",
   ModeIds = "nilofvmes",
