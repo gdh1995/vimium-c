@@ -286,10 +286,10 @@ export const contentCommands_: {
         /*#__INLINE__*/ set_isHintingInput(1);
         prevent_(event.e); // in case that selecting is too slow
         select_(hints2[sel].d, null, false, action).then((): void => {
-        hints2[oldSel].m.className = "IH";
-        hints2[sel].m.className = S
+          /*#__INLINE__*/ set_isHintingInput(0)
+          hints2[oldSel].m.className = "IH"
+          hints2[sel].m.className = S
         })
-        /*#__INLINE__*/ set_isHintingInput(0);
         return HandlerResult.Prevent;
       }
       // check `!key` for mapModifier
