@@ -317,24 +317,24 @@ var Settings_ = {
       if (!(Build.BTypes & BrowserType.Chrome) || !IsEdg_) {
         findCSS = findCSS.replace("@media(-ms-high-contrast:active){", "").slice(0, -1)
       }
-      if (Build.BTypes & BrowserType.Chrome && IsEdg_
-         || !!(Build.BTypes & BrowserType.Firefox)
-            && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isHighContrast_ff) {
+      if (Build.BTypes & BrowserType.Firefox && isHighContrast_ff) {
         css = css.split(".D>", 1)[0]
-        findCSS = findCSS.replace(<RegExpG> /\.HC\b/g, "")
-      } else {
-        findCSS = findCSS.replace(<RegExpG> /\.HC\b[^]+?}\s?/g, "").trim()
       }
-      if (Build.BTypes & BrowserType.Firefox
-          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isHighContrast_ff) {
-        omniCSS = 'body:after{content:"";}#toggle-dark{display:none;}.s,.item:hover{border-bottom-style:solid;}'
-                + '.s .title,.item:hover .title{font-weight:bold;}.s .icon,.item:hover .icon{fill:currentColor;}'
+      if (Build.BTypes & BrowserType.ChromeOrFirefox) {
+        findCSS = findCSS.replace((Build.BTypes & BrowserType.Firefox
+              ? isHighContrast_ff || Build.BTypes & BrowserType.Chrome && IsEdg_ : IsEdg_)
+            ? <RegExpG> /\.HC\b/g : <RegExpG> /\.HC\b[^]+?}\s?/g, "").trim()
+      }
+      if (Build.BTypes & BrowserType.Firefox && isHighContrast_ff) {
+        omniCSS = 'body:after{content:"";}#toolbar{opacity:1;}#toggle-dark{display:none;}.btn_svg{stroke:#999;}'
+                + ":hover>.btn_svg{stroke:currentColor;}.s,.item:hover{border-bottom-style:solid;}"
+                + '.s>.top,:hover>.top{font-weight:bold;--svg-color:currentColor;}'
       }
       css = css.replace(<RegExpG> /\n/g, "")
       css = cacheId + ";" + css;
       if (Build.BTypes && BrowserType.Firefox) { omniCSS = omniCSS && omniCSS.replace(<RegExpG> /\n/g, "") }
       const css2 = a.parseCustomCSS_(a.get_("userDefinedCss"));
-      let find2 = css2.find, omni2 = css2.omni, F = "findCSS", O = "omniCSS"
+      let find2 = css2.find, omni2 = css2.omni, O = "omniCSS"
       css2.ui && (css += "\n" + css2.ui);
       if (Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo && Build.BTypes & BrowserType.Chrome
           && browserVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo) {
