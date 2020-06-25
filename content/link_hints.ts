@@ -97,7 +97,7 @@ import {
   linkActions, executeHintInOfficer, removeFlash, set_hintModeAction, resetRemoveFlash, resetHintKeyCode,
 } from "./link_actions"
 import { lastHovered_, resetLastHovered } from "./async_dispatcher"
-import { hook } from "./request_handlers"
+import { hookOnWnd } from "./port"
 
 let box_: HTMLDivElement | HTMLDialogElement | null = null
 let wantDialogMode_: boolean | null = null
@@ -292,7 +292,7 @@ const collectFrameHints = (count: number, options: HintsNS.ContentOptions
 const render = (hints: readonly HintItem[], arr: ViewBox, raw_apis: VApiTy): void => {
     const managerOrA = manager_ || coreHints;
     let body = doc.body
-    manager_ && body && htmlTag_(body) && body.isContentEditable && hook(HookAction.Install)
+    manager_ && body && htmlTag_(body) && body.isContentEditable && hookOnWnd(HookAction.Install)
     if (box_) { box_.remove(); box_ = null; }
     removeModal()
     api_ = Build.BTypes & BrowserType.Firefox && manager_ ? unwrap_ff(raw_apis) : raw_apis;

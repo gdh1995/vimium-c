@@ -8,7 +8,7 @@ import { frameElement_, set_OnDocLoaded_ } from "../lib/dom_utils"
 import { wndSize_ } from "../lib/rect"
 import {
   safePost, clearRuntimePort, runtime_port, SafeDestoryF, set_safeDestroy,
-  runtimeConnect, safeDestroy, post_, send_,
+  runtimeConnect, safeDestroy, post_, send_, hookOnWnd,
 } from "./port"
 import {
   ui_box, adjustUI, doExitOnClick, getParentVApi, set_getParentVApi, set_getWndVApi_ff, learnCSS,
@@ -17,7 +17,7 @@ import {
 import { grabBackFocus } from "./insert"
 import { currentKeys } from "./key_handler"
 import { contentCommands_ } from "./commands"
-import { hook, enableNeedToRetryParentClickable, focusAndRun } from "./request_handlers"
+import { enableNeedToRetryParentClickable, focusAndRun } from "./request_handlers"
 
 import { main as extend_click } from  "./extend_click.js"
 import { activate as linkActivate, coreHints } from "./link_hints"
@@ -41,7 +41,7 @@ set_safeDestroy((silent?: Parameters<SafeDestoryF>[0]): void => {
       return;
     }
     /*#__INLINE__*/ set_isEnabled_(!1)
-    hook(HookAction.Destroy);
+    hookOnWnd(HookAction.Destroy);
 
     contentCommands_[kFgCmd.reset](0);
     vApi.e && vApi.e(kContentCmd.Destroy);
@@ -122,7 +122,7 @@ else if (Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox |
       // an ES6 method function is always using the strict mode, so the arguments are inaccessible outside it
       if (coreTester.s > GlobalConsts.MaxRetryTimesForSecret
           // if `comparer` is a Proxy, then `toString` returns "[native code]", so the line below is safe
-          || hook.toString.call(comparer) !== coreTester.c + ""
+          || hookOnWnd.toString.call(comparer) !== coreTester.c + ""
           || comparer(rand2, coreTester.e(rand2, +rand1))) {
         if (coreTester.s <= GlobalConsts.MaxRetryTimesForSecret) {
           coreTester.s++;
@@ -197,7 +197,7 @@ if (isAlive_) {
           })
         : /* now know it's on Firefox */ clickable_ || new WeakSet!<Element>())
     // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
-    hook(HookAction.Install);
+    hookOnWnd(HookAction.Install);
     if (initialDocState < "i") {
       /*#__INLINE__*/ set_OnDocLoaded_(callFunc)
     } else {

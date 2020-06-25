@@ -8,8 +8,8 @@ import { traverse, ngEnabled } from "./local_links"
 import { find_box } from "./mode_find"
 import { omni_box } from "./omni"
 import { flash_ } from "./dom_ui"
-import { contentCommands_ } from "./commands"
 import { click_ } from "./async_dispatcher"
+import { contentCommands_ } from "./commands"
 
 let iframesToSearchForNext: VApiTy[] | null
 

@@ -4,7 +4,16 @@ import {
   setupEventListener, set_isEnabled_, suppressCommonEvents, set_onWndFocus, VOther, onWndFocus, timeout_, safer,
   allowScripts_, loc_, interval_, getTime, vApi, deref_, weakRef_, clearInterval_,
 } from "../lib/utils"
-import { port_callbacks, post_, safePost, set_requestHandlers, requestHandlers } from "./port"
+import {
+  set_keyIdCorrectionOffset_old_cr_, handler_stack, Stop_, prevent_, removeHandler_, pushHandler_, isEscape_,
+  getMappedKey,
+} from "../lib/keyboard_utils"
+import {
+  editableTypes_, markFramesetTagUnsafe, setNotSafe_not_ff, OnDocLoaded_, frameElement_,
+  htmlTag_, querySelector_unsafe_, isHTML_, createElement_,
+  docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, CLK, MDW, ElementProto, isIFrameElement,
+} from "../lib/dom_utils"
+import { port_callbacks, post_, safePost, set_requestHandlers, requestHandlers, hookOnWnd, set_hookOnWnd } from "./port"
 import {
   addUIElement, adjustUI, createStyle, ensureBorder, getParentVApi, getBoxTagName_cr_,
   removeSelection, setUICSS, setupExitOnClick, ui_box, ui_root, evalIfOK, checkHidden,
@@ -17,24 +26,13 @@ import {
 import { HintManager, kSafeAllSelector, set_kSafeAllSelector } from "./link_hints"
 import { createMark } from "./marks"
 import { set_findCSS, styleInHUD } from "./mode_find"
-import {
-  exitGrab, grabBackFocus, insertInit, raw_insert_lock, set_grabBackFocus, onFocus, onBlur,
-} from "./insert"
+import { exitGrab, grabBackFocus, insertInit, raw_insert_lock, set_grabBackFocus, onFocus, onBlur } from "./insert"
 import {
   currentScrolling, onActivate, set_currentScrolling, clearCachedScrollable, resetCurrentScrolling,
 } from "./scroller"
 import { activate as omniActivate, omni_status, onKeydown as omniOnKeydown, omni_box } from "./omni"
-import { contentCommands_ } from "./commands"
-import {
-  set_keyIdCorrectionOffset_old_cr_, handler_stack, Stop_, prevent_, removeHandler_, pushHandler_, isEscape_,
-  getMappedKey,
-} from "../lib/keyboard_utils"
-import {
-  editableTypes_, markFramesetTagUnsafe, setNotSafe_not_ff, OnDocLoaded_, frameElement_,
-  htmlTag_, querySelector_unsafe_, isHTML_, createElement_,
-  docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, CLK, MDW, ElementProto, isIFrameElement
-} from "../lib/dom_utils"
 import { lastHovered_, resetLastHovered } from "./async_dispatcher"
+import { contentCommands_ } from "./commands"
 
 const DAC = "DOMActivate"
 let framemask_more = false
@@ -90,11 +88,11 @@ set_requestHandlers([
       if (Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
           && Build.BTypes & BrowserType.Chrome
           && chromeVer_ > BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow - 1) {
-        hook(HookAction.SuppressListenersOnDocument);
+        hookOnWnd(HookAction.SuppressListenersOnDocument);
       }
     } else {
       /*#__INLINE__*/ set_grabBackFocus(false)
-      hook(HookAction.Suppress);
+      hookOnWnd(HookAction.Suppress);
       vApi.e && vApi.e(kContentCmd.SuppressClickable);
     }
     requestHandlers[kBgReq.init] = null as never;
@@ -144,7 +142,7 @@ set_requestHandlers([
     if (newEnabled) {
       esc!(HandlerResult.Nothing); // for passNextKey#normal
       old || insertInit();
-      (old && !isLocked_) || hook(HookAction.Install);
+      (old && !isLocked_) || hookOnWnd(HookAction.Install);
       // here should not return even if old - a url change may mean the fullscreen mode is changed
     } else {
       contentCommands_[kFgCmd.reset](1);
@@ -383,7 +381,7 @@ export const showFrameMask = (mask: FrameMaskType): void => {
   addUIElement(framemask_node);
 }
 
-export const hook = (function (action: HookAction): void {
+set_hookOnWnd(((action: HookAction): void => {
   let f = action ? removeEventListener : addEventListener
   if (Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
       && Build.BTypes & BrowserType.Chrome) {
@@ -403,7 +401,7 @@ export const hook = (function (action: HookAction): void {
   }
   f(Build.BTypes & ~BrowserType.Chrome && VOther !== BrowserType.Chrome
       ? CLK : DAC, onActivate, true)
-})
+}))
 
 export const focusAndRun = (cmd?: FgCmdAcrossFrames, count?: number, options?: FgOptions, showBorder?: 1): void => {
   exitGrab();
@@ -420,7 +418,7 @@ export const focusAndRun = (cmd?: FgCmdAcrossFrames, count?: number, options?: F
    * Step 8 of https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#document-open-steps
    * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/doc.cc?q=Document::open&l=3107
    */
-  failed && isEnabled_ && hook(HookAction.Install);
+  failed && isEnabled_ && hookOnWnd(HookAction.Install);
   // the line below is always necessary: see https://github.com/philc/vimium/issues/2551#issuecomment-316113725
   /*#__INLINE__*/ set_onWndFocus(oldOnWndFocus)
   oldOnWndFocus()

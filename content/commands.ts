@@ -11,7 +11,9 @@ import {
   getBoundingClientRect_, setBoundary_, wdZoom_, dScale_,
 } from "../lib/rect"
 import { post_ } from "./port"
-import { addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, getParentVApi, curModalElement } from "./dom_ui"
+import {
+  addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, getParentVApi, curModalElement
+} from "./dom_ui"
 import { hudHide, hudShow, hudTip, hud_text } from "./hud"
 import { onKeyup2, set_onKeyup2, passKeys, installTempCurrentKeyStatus, set_passKeys } from "./key_handler"
 import { activate as linkActivate, clear as linkClear, kEditableSelector, kSafeAllSelector } from "./link_hints"

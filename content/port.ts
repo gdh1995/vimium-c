@@ -1,8 +1,8 @@
 import {
   loc_, injector, safeObj, timeout_, isAlive_, VOther, isEnabled_, isLocked_, isTop, doc, set_i18n_getMsg,
 } from "../lib/utils"
-import { passKeys } from "../content/key_handler"
-import { style_ui } from "../content/dom_ui"
+import { passKeys } from "./key_handler"
+import { style_ui } from "./dom_ui"
 
 export interface Port extends chrome.runtime.Port {
   postMessage<k extends keyof FgRes>(request: Req.fgWithRes<k>): 1;
@@ -17,12 +17,14 @@ let port_: Port | null = null
 let tick = 1
 let safeDestroy: SafeDestoryF
 let requestHandlers: { [k in keyof BgReq]: (this: void, request: BgReq[k]) => void }
+let hookOnWnd: (action: HookAction) => void
 
-export { port_ as runtime_port, port_callbacks, safeDestroy, requestHandlers }
+export { port_ as runtime_port, port_callbacks, safeDestroy, requestHandlers, hookOnWnd }
 
 export function clearRuntimePort (): void { port_ = null }
 export function set_safeDestroy (_newSafeDestroy: SafeDestoryF): void { safeDestroy = _newSafeDestroy }
 export function set_requestHandlers (_newHandlers: typeof requestHandlers): void { requestHandlers = _newHandlers }
+export function set_hookOnWnd (_newHookOnWnd: typeof hookOnWnd): void { hookOnWnd = _newHookOnWnd }
 
 export const post_ = <k extends keyof FgReq>(request: FgReq[k] & Req.baseFg<k>): 1 | void => {
   port_!.postMessage(request);

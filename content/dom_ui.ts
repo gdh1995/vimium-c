@@ -469,7 +469,7 @@ export let getParentVApi = Build.BTypes & BrowserType.Firefox ? (): VApiTy | nul
   // Note: the functionality below should keep the same even if the cached version is used - for easier debugging
   const core = getWndVApi_ff!(parent as Window);
   if ((!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox) && core) {
-    /** the case of injector is handled in {@link ../content/injected_end.ts} */
+    /** the case of injector is handled in {@link ./injected_end.ts} */
     getParentVApi = () => core;
   }
   return core;
