@@ -1,5 +1,5 @@
 declare const enum Build {
-  MinCVer = 73, // minimum Chrome version
+  MinCVer = 77, // minimum Chrome version
   MinFFVer = 63, // minimum Firefox version
   BTypes = 3, // supported browser types: BrowserType.Chrome | BrowserType.Firefox
   NDEBUG = 0,
