@@ -100,17 +100,31 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
     }
 } as (element: HTMLElement, adjust?: AdjustType, before?: Element | null | true) => void
 
+export const getBoxTagName_cr_ = Build.BTypes & BrowserType.Chrome ? function (): "div" {
+  return (!(Build.BTypes & ~BrowserType.Chrome) || VOther & BrowserType.Chrome)
+        && (Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1 || chromeVer_ > BrowserVer.MinEnsuredShadowDOMV1 - 1)
+        && matchMedia(VTr(kTip.highContrast_WOB)).matches ? "body" as never as "div" : "div"
+} : 0 as never
+
 export const addElementList = function <T extends boolean> (
       els: readonly HintsNS.BaseHintItem[], offset: ViewOffset, dialogContainer?: T
       ): (T extends true ? HTMLDialogElement : HTMLDivElement) & SafeElement {
-    const parent = createElement_(Build.BTypes & BrowserType.ChromeOrFirefox && dialogContainer ? "dialog" : "div");
-    parent.className = `R HM${Build.BTypes & BrowserType.ChromeOrFirefox && dialogContainer ? " DHM" : ""}${fgCache.d}`
+    const parent = createElement_(Build.BTypes & BrowserType.ChromeOrFirefox && dialogContainer ? "dialog"
+        : Build.BTypes & BrowserType.Chrome ? getBoxTagName_cr_() :  "div");
+    let cls = `R HM${Build.BTypes & BrowserType.ChromeOrFirefox && dialogContainer ? " DHM" : ""}${fgCache.d}`
+    let innerBox: HTMLDivElement | HTMLDialogElement | undefined = parent
+    parent.className = cls
+    if (Build.BTypes & BrowserType.Chrome && dialogContainer && els.length && getBoxTagName_cr_() < "d") { // <body>
+      innerBox = createElement_(getBoxTagName_cr_())
+      parent.appendChild(innerBox)
+      innerBox.className = cls
+    }
     if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredES6ArrowFunction
           && Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
-      parent.append!(...els.map(el => el.m))
+      (Build.BTypes &BrowserType.Chrome ? innerBox : parent).append!(...els.map(el => el.m))
     } else {
       for (const el of els) {
-        parent.appendChild(el.m);
+        (Build.BTypes &BrowserType.Chrome ? innerBox : parent).appendChild(el.m)
       }
     }
     const style = parent.style,
@@ -383,7 +397,8 @@ export const flash_ = function (el: Element | null, rect?: Rect | null, lifeTime
       ): (() => void) | void {
     rect || (rect = getRect(el!))
     if (!rect) { return; }
-    const flashEl = createElement_("div"), nfs = !fullscreenEl_unsafe_();
+    const flashEl = createElement_(Build.BTypes & BrowserType.Chrome ? getBoxTagName_cr_() : "div"),
+    nfs = !fullscreenEl_unsafe_()
     flashEl.className = "R Flash" + (classNames || "") + (setBoundary_(flashEl.style, rect, nfs) ? " AbsF" : "");
     Build.BTypes & ~BrowserType.Firefox &&
     bZoom_ !== 1 && nfs && (flashEl.style.zoom = "" + bZoom_);

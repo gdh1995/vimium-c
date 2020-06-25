@@ -13,7 +13,7 @@ import {
 } from "../lib/dom_utils"
 import { wdZoom_, prepareCrop_, view_, dimSize_ } from "../lib/rect"
 import {
-  ui_box, ui_root, getSelectionParent_unsafe, resetSelectionToDocStart,
+  ui_box, ui_root, getSelectionParent_unsafe, resetSelectionToDocStart, getBoxTagName_cr_,
   createStyle, getSelectionText, checkDocSelectable, adjustUI, ensureBorder, addUIElement, getSelected,
 } from "./dom_ui"
 import { visual_mode, highlightRange, kDir, activate as visualActivate, kExtend } from "./visual"
@@ -91,7 +91,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     parsedRegexp_ = regexMatches = null
     activeRegexIndex = 0
 
-    const outerBox = outerBox_ = createElement_("div"),
+    const outerBox = outerBox_ = createElement_(Build.BTypes & BrowserType.Chrome ? getBoxTagName_cr_() : "div"),
     el = box_ = createElement_("iframe"), st = outerBox.style
     st.display = NONE; st.width = "0";
     if (Build.BTypes & ~BrowserType.Firefox && wdZoom_ !== 1) { st.zoom = "" + 1 / wdZoom_; }

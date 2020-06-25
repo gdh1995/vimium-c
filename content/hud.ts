@@ -1,7 +1,7 @@
 import {
   fgCache, doc, isEnabled_, VTr, isAlive_, timeout_, clearTimeout_, interval_, clearInterval_,
 } from "../lib/utils"
-import { ui_box, ensureBorder, addUIElement, adjustUI } from "./dom_ui"
+import { ui_box, ensureBorder, addUIElement, adjustUI, getBoxTagName_cr_ } from "./dom_ui"
 import { allHints, isHintsActive, hintManager, setMode as setHintMode, hintMode_ } from "./link_hints"
 import { isHTML_, createElement_, HDN } from "../lib/dom_utils"
 import { insert_global_ } from "./insert"
@@ -45,7 +45,7 @@ export const hudShow = (tid: kTip | HintMode, args?: Array<string | number>, emb
     embed && toggleOpacity("")
     return
   }
-  el = createElement_("div");
+  el = createElement_(Build.BTypes & BrowserType.Chrome ? getBoxTagName_cr_() : "div")
   el.className = "R HUD" + fgCache.d;
   !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
     ? el.append!(text) : el.textContent = text

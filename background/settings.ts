@@ -319,7 +319,9 @@ var Settings_ = {
         findCSS = findCSS.replace("@media(-ms-high-contrast:active){", "").slice(0, -1)
       }
       if (Build.BTypes & BrowserType.Firefox && isHighContrast_ff) {
-        css = css.split(".D>", 1)[0]
+        css = css.split("\n.D", 1)[0]
+      } else if (!(Build.BTypes & BrowserType.Chrome) || !IsEdg_) {
+        css = css.split("\nbody", 1)[0]
       }
       if (Build.BTypes & BrowserType.ChromeOrFirefox) {
         findCSS = findCSS.replace((Build.BTypes & BrowserType.Firefox

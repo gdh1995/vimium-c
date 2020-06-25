@@ -6,7 +6,7 @@ import {
 } from "../lib/utils"
 import { port_callbacks, post_, safePost, set_requestHandlers, requestHandlers } from "./port"
 import {
-  addUIElement, adjustUI, createStyle, ensureBorder, getParentVApi,
+  addUIElement, adjustUI, createStyle, ensureBorder, getParentVApi, getBoxTagName_cr_,
   removeSelection, setUICSS, setupExitOnClick, ui_box, ui_root, evalIfOK, checkHidden,
 } from "./dom_ui"
 import { hudCopied, hudTip, hud_box } from "./hud"
@@ -26,7 +26,8 @@ import {
 import { activate as omniActivate, omni_status, onKeydown as omniOnKeydown, omni_box } from "./omni"
 import { contentCommands_ } from "./commands"
 import {
-  set_keyIdCorrectionOffset_old_cr_, handler_stack, Stop_, prevent_, removeHandler_, pushHandler_, isEscape_, getMappedKey,
+  set_keyIdCorrectionOffset_old_cr_, handler_stack, Stop_, prevent_, removeHandler_, pushHandler_, isEscape_,
+  getMappedKey,
 } from "../lib/keyboard_utils"
 import {
   editableTypes_, markFramesetTagUnsafe, setNotSafe_not_ff, OnDocLoaded_, frameElement_,
@@ -88,7 +89,7 @@ set_requestHandlers([
       insertInit();
       if (Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
           && Build.BTypes & BrowserType.Chrome
-          && chromeVer_ >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow) {
+          && chromeVer_ > BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow - 1) {
         hook(HookAction.SuppressListenersOnDocument);
       }
     } else {
@@ -262,7 +263,7 @@ set_requestHandlers([
     oldShowHelp("e");
     if (!isHTML_()) { return; }
     if (oldShowHelp !== contentCommands_[kFgCmd.showHelp]) { return; } // an old dialog exits
-    let box: SafeHTMLElement;
+    let box: SafeHTMLElement, outerBox: SafeHTMLElement | undefined;
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)) {
       // on FF66, if a page is limited by "script-src 'self'; style-src 'self'"
@@ -272,15 +273,16 @@ set_requestHandlers([
           ).body.firstChild as SafeHTMLElement;
       box.prepend!(createStyle((html as Exclude<typeof html, string>).h));
     } else {
-      box = createElement_("div");
-      box.innerHTML = html as string;
-      box = box.firstChild as SafeHTMLElement;
+      outerBox = createElement_(Build.BTypes & BrowserType.Chrome ? getBoxTagName_cr_() : "div")
+      outerBox.className = "R H"
+      outerBox.innerHTML = html as string
+      box = outerBox.lastChild as SafeHTMLElement
     }
     box.onclick = Stop_;
     suppressCommonEvents(box, MDW);
     if (Build.MinCVer >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument
         || !(Build.BTypes & BrowserType.Chrome)
-        || chromeVer_ >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument) {
+        || chromeVer_ > BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument - 1) {
       setupEventListener(box,
         (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
           : VOther !== BrowserType.Chrome)
@@ -333,7 +335,7 @@ set_requestHandlers([
     };
     shouldShowAdvanced && toggleAdvanced();
     ensureBorder()
-    addUIElement(box, AdjustType.Normal, true)
+    addUIElement(outerBox || box, AdjustType.Normal, true)
     exitOnClick && setupExitOnClick(1, hide)
     doc.hasFocus() || vApi.f();
     /*#__INLINE__*/ set_currentScrolling(weakRef_(box))
@@ -367,7 +369,7 @@ export const showFrameMask = (mask: FrameMaskType): void => {
   if (framemask_node) {
     framemask_more = true;
   } else {
-    framemask_node = createElement_("div");
+    framemask_node = createElement_(Build.BTypes & BrowserType.Chrome ? getBoxTagName_cr_() : "div")
     framemask_node.className = "R Frame" + (mask === FrameMaskType.OnlySelf ? " One" : "");
     framemask_fmTimer = interval_((fake?: TimerType.fake): void => { // safe-interval
       const more_ = framemask_more;
