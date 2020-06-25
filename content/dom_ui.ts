@@ -157,7 +157,7 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
         setupEventListener(0, "moz" + FS, adjustUI, removeEL)
       }
       if (!(Build.BTypes & BrowserType.Chrome)
-          || chromeVer_ >= BrowserVer.MinMaybe$Document$$fullscreenElement) {
+          || chromeVer_ > BrowserVer.MinMaybe$Document$$fullscreenElement - 1) {
         setupEventListener(0, FS, adjustUI, removeEL)
       }
       if (isHintsActive && removeEL) { // not need to check isAlive_
@@ -396,7 +396,7 @@ export const flash_ = function (el: Element | null, rect?: Rect | null, lifeTime
       lastFlashEl === flashEl && (lastFlashEl = null)
       flashEl.remove();
     };
-    lifeTime === -1 || timeout_(remove, lifeTime || GlobalConsts.DefaultRectFlashTime);
+    lifeTime === -1 || timeout_(remove, (lifeTime || GlobalConsts.DefaultRectFlashTime) * (1 + +fgCache.m))
     return remove;
 } as {
     (el: null, rect: Rect, lifeTime?: number, classNames?: string): () => void;
