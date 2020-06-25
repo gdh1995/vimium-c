@@ -278,7 +278,8 @@ var Settings_ = {
           && ((!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && OnOther === BrowserType.Edge)
             || browserVer < BrowserVer.MinCSS$Color$$RRGGBBAA
           ))) {
-        css = css.replace(<RegExpG & RegExpSearchable<0>> /#[\da-f]{8}/gi, function (s: string): string {
+        css = css.replace(<RegExpG & RegExpSearchable<0>> /#[\da-f]{4}([\da-f]{4})?\b/gi, function (s: string): string {
+          s = s.length === 5 ? "#" + s[1] + s[1] + s[2] + s[2] + s[3] + s[3] + s[4] + s[4] : s
           const color = parseInt(s.slice(1), 16),
           r = color >>> 24, g = (color >> 16) & 0xff, b = (color >> 8) & 0xff, alpha = (color & 0xff) / 255 + "";
           return `rgba(${r},${g},${b},${alpha.slice(0, 4)})`;
