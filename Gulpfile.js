@@ -315,7 +315,8 @@ var Tasks = {
     });
     gulp.task("min/others/options", function() {
       exArgs.passAll = null;
-      return uglifyJSFiles(["pages/options_base.js", "pages/options.js", "pages/options_*.js"]
+      return uglifyJSFiles(["pages/options_base.js", "pages/options.js"
+      , "pages/options_ext.js", "pages/options_checker.js"]
           , ".", "", deepcopy(exArgs));
     });
     gulp.task("min/others/misc", function() {
@@ -422,7 +423,17 @@ var Tasks = {
     print("Save manifest file: " + file);
   },
   manifest: [["min/bg"], "_manifest"],
-  dist: [["build/ts"], ["static", "manifest", "min/others"]],
+  dist: [["build/ts"], ["static", "manifest", "min/others", function (done) {
+    const rands = Object.setPrototypeOf(randMap || {}, null), names = Object.keys(rands)
+    let cmd = "", isEdge = getBuildItem("EdgeC") == 1;
+    Object.keys(process.env).filter(i => i.startsWith("BUILD_")).filter(i => i.toLowerCase().startsWith("build_random"))
+        .forEach(key => { cmd += `${key}=${process.env[key]} ` })
+    for (const key of names) { cmd += `BUILD_${key}=${rands[key]} ` }
+    cmd += `npm run ${isEdge ? "edge-c" : getBuildItem("BTypes") === BrowserType.Firefox ? "firefox" : "chrome"}`
+    fs.writeFileSync(osPath.join(JSDEST, ".rands.cache"), cmd)
+    print("Reproduce: %o", ` ${cmd} `)
+    done()
+  }]],
   "dist/": ["dist"],
 
   build: ["dist"],
@@ -853,11 +864,6 @@ function rollupContent(stream) {
     }
     const inputOptions = require("./scripts/rollup.config.js")
     inputOptions.input = require("path").relative(file.cwd, file.path)
-    inputOptions.onwarn = (warning, rollupWarn) => {
-      if (warning.code !== 'CIRCULAR_DEPENDENCY') {
-        rollupWarn(warning);
-      }
-    }
     const outputOptions = inputOptions.output
     inputOptions.output = null
     outputOptions.file = null
@@ -1273,18 +1279,16 @@ function getBuildItem(key, literalVal) {
       if (!manifest.chrome_url_overrides || !manifest.chrome_url_overrides.newtab) {
         cached = buildOptionCache[key] = ["0", 0];
       }
-    } else if (key.startsWith("Random")) {
-      cached = [literalVal, getRandom];
     }
     cached && (buildOptionCache[key] = cached);
   }
   if (cached != null) {
     return parseBuildItem(key, cached[1]);
   }
-  var env_key = key.replace(/[A-Z]+[a-z\d]*/g, word => "_" + word.toUpperCase()).replace(/^_/, "");
-  var newVal = process.env["BUILD_" + env_key];
+  var newVal = process.env["BUILD_" + key];
   if (!newVal) {
-    newVal = process.env["BUILD_" + key];
+    let env_key = key.replace(/[A-Z]+[a-z\d]*/g, word => "_" + word.toUpperCase()).replace(/^_/, "");
+    newVal = process.env["BUILD_" + env_key];
   }
   if (newVal) {
     newVal = safeJSONParse(newVal);
@@ -1293,6 +1297,10 @@ function getBuildItem(key, literalVal) {
       buildOptionCache[key] = [literalVal, newVal];
       return parseBuildItem(key, newVal);
     }
+  } else if (key.startsWith("Random")) {
+    cached = [literalVal, getRandom];
+    buildOptionCache[key] = cached;
+    return parseBuildItem(key, cached[1]);
   }
   newVal = buildConfig && buildConfig[key];
   buildOptionCache[key] = [literalVal, newVal != null ? newVal : null];
@@ -1457,7 +1465,7 @@ function getGulpUglify(aggressiveMangle, unique_passes) {
   var compose = require('gulp-uglify/composer');
   var logger = require('gulp-uglify/lib/log');
   var uglify = require(LIB_UGLIFY_JS);
-  var aggressive = aggressiveMangle && require("./scripts/uglify-mangle")
+  var aggressive = aggressiveMangle && require("./scripts/uglifyjs-mangle")
   const passes = unique_passes && unique_passes > 1 ? unique_passes : 0
   if (passes) {
     var multipleUglify = {
@@ -1542,16 +1550,16 @@ function loadNameCache(path) {
   return nameCache || { vars: {}, props: {}, timestamp: 0 };
 }
 
-var _randMap, _randSeed;
+var randMap, _randSeed;
 function getRandom(id) {
-  var rand = _randMap ? _randMap[id] : 0;
+  var rand = randMap ? randMap[id] : 0;
   if (rand) {
     if ((typeof rand === "string") === locally) {
       return rand;
     }
   }
-  if (!_randMap) {
-    _randMap = {};
+  if (!randMap) {
+    randMap = {};
     _randSeed = `${osPath.resolve(__dirname).replace(/\\/g, "/")}@${parseInt(fs.statSync("manifest.json").mtimeMs)}/`;
     var rng;
     if (!locally) {
@@ -1564,7 +1572,7 @@ function getRandom(id) {
     }
   }
   if (!locally) {
-    while (!rand || Object.values(_randMap).includes(rand)) {
+    while (!rand || Object.values(randMap).includes(rand)) {
       /** {@see #GlobalConsts.SecretRange} */
       rand = 1e6 + (0 | ((typeof _randSeed === "function" ? _randSeed() : Math.random()) * 9e6));
     }
@@ -1574,7 +1582,7 @@ function getRandom(id) {
     hash = hash.slice(0, 7);
     rand = hash;
   }
-  _randMap[id] = rand;
+  randMap[id] = rand;
   return rand;
 }
 

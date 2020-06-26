@@ -55,7 +55,7 @@
     "latest-ff": "bash -c \"BUILD_BTypes=2 LOCAL_DIST=${LOCAL_DIST:-dist} BUILD_NDEBUG=0 gulp local2\"",
     "latest-fx": "npm run latest-ff",
     "latest-edge": "bash -c \"BUILD_MinCVer=53 BUILD_BTypes=4 LOCAL_DIST=${LOCAL_DIST:-dist} BUILD_NDEBUG=0 gulp local2\"",
-    "chrome": "bash -c \"BUILD_MinCVer=43 BUILD_BTypes=1 NEED_COMMIT=1 gulp dist && IN_DIST=1 CHROME_ONLY=1 ./scripts/make.sh\"",
+    "chrome": "bash -c \"BUILD_MinCVer=43 BUILD_BTypes=1 NEED_COMMIT=1 gulp dist && IN_DIST=1 ./scripts/make.sh\"",
     "csize": "bash -c \"BUILD_MinCVer=${BUILD_MinCVer:-43} BUILD_BTypes=${BUILD_BTypes:-1} gulp size/content\"",
     "chrome-latest": "bash -c \"BUILD_MinCVer=77 BUILD_BTypes=1 gulp dist\"",
     "chrome-legacy": "bash -c \"BUILD_MinCVer=32 BUILD_BTypes=1 gulp dist\"",

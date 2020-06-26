@@ -29,8 +29,8 @@ set -o noglob
 ver=$(grep -m1 -o '"version":\s*"[0-9\.]*"' ${ZIP_BASE}manifest.json | awk -F '"' '{print $4;}')
 output=$1
 ori_output=$output
-chrome_only=${CHROME_ONLY:-0} # 0: may be; 1: is indeed; 2: is not
-chrome_only=${BUILD_EdgeC:-$chrome_only}
+# 0: may be; 1: is Chromium; 2: is Firefox
+chrome_only=0
 if [ -z "$output" -o -d "$output" ]; then
   output=${output%/}
   [ -z "${output#.}" ] && output=
@@ -42,6 +42,7 @@ if [ -z "$output" -o -d "$output" ]; then
       ver=${ver}-debug
     elif test "$BUILD_EdgeC" == 1; then
       ver=${ver}-edge
+      chrome_only=1
     elif test -f "$ZIP_BASE/.build/.chrome.build"; then
       ver=${ver}-chrome
       chrome_only=1
