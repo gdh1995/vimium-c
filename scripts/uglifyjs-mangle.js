@@ -18,6 +18,7 @@ const terser = require("terser");
  * @typedef { import("terser").MinifyOptions } MinifyOptions
  * @typedef { import("terser").MinifyOutput } MinifyOutput
  * @typedef { import("terser").AST_Scope } AST_Scope
+ * @typedef { import("terser").AST_Lambda } AST_Lambda
  * @typedef { Map<string, { references: object[]; mangled_name: string | null }> } VariableMap
  * @typedef { {
  *   vars?: { props?: { [oldName: string]: string } };
@@ -51,7 +52,7 @@ function collectWords(text, options) {
   }).ast.walk(new terser.TreeWalker((node) => {
     switch (node.TYPE) {
     case "Function": case "Lambda":
-      /** @type { AST_Scope } */
+      /** @type { AST_Lambda } */
       // @ts-ignore
       const closure = node;
       /** @type { VariableMap } */
@@ -251,12 +252,10 @@ function minify(files, options) {
         disposeNameMangler = hookMangleNamesOnce(variables[0], variables.length > 1 ? variables[1] : null, countsMap)
       }
       for (const arr of properties) {
-        const next = createMangler();
+        const next = createMangler(arr);
         for (const name of arr) {
           if (countsMap.has(name)) {
-            let newName = next();
-            for (; arr.includes(newName); newName = next()) { /* empty */ }
-            props["$" + name] = newName;
+            props["$" + name] = next(name)
           }
         }
       }
@@ -298,7 +297,7 @@ function hookMangleNamesOnce(mainVariableNames, extendClickValiables, countsMap)
   // @ts-ignore
   const oldMangle = AST_Toplevel.prototype.mangle_names;
   const varCountMap = new Map([...countsMap].filter(i => i[0][0] === ":").map(([k, v]) => [k.split(":")[1], v]));
-  /** @type { (this: AST_Scope, options: import("terser").MangleOptions) => any } */
+  /** @type { (this: AST_Lambda, options: import("terser").MangleOptions) => any } */
   const myMangle = function (options) {
     const mainClosure = this.body ? this.body.filter(i => i.TYPE.includes("Statement"))[0] : null;
     /** @type { VariableMap } */
@@ -308,19 +307,15 @@ function hookMangleNamesOnce(mainVariableNames, extendClickValiables, countsMap)
     /** @type {Map<string, any>} */
     const astVariables = isVC ? this.variables : expression && expression.variables;
     if (!astVariables || !isVC && astVariables.size < MIN_COMPLEX_CLOSURE) { return; }
-    const next = createMangler();
-    const reserved = new Set([...(options.reserved || [])].concat([
-      "do", "for", "if", "in", "new", "try", "var", "let"
-    ]));
     const vars = isVC ? extendClickValiables : mainVariableNames
+    const next = createMangler(["do", "for", "if", "in", "new", "try", "var", "let",
+        ...vars, ...(options.reserved || [])]);
     for (const id of vars) {
       const name = id.split(":")[1]
       if (varCountMap.has(name)) {
-        let newName = next();
-        for (; vars.includes(newName) || reserved.has(newName); newName = next()) { /* empty */ }
         const varDef = astVariables.get(name);
         if (varDef) {
-          varDef.mangled_name = newName;
+          varDef.mangled_name = next(name);
         }
       }
     }
@@ -331,6 +326,7 @@ function hookMangleNamesOnce(mainVariableNames, extendClickValiables, countsMap)
     }
     // const rareVars = astVariableNameList.filter(k => varCountMap.get(k) && varCountMap.get(k) <= 1)
     if (isVC) { return; }
+    succeed = true;
     this.walk(new terser.TreeWalker(function (node) {
       switch (node.TYPE) {
       case "Function": case "Lambda":
@@ -348,14 +344,18 @@ function hookMangleNamesOnce(mainVariableNames, extendClickValiables, countsMap)
   };
   // @ts-ignore
   AST_Toplevel.prototype.mangle_names = myMangle;
+  let succeed = false;
   const dispose = () => {
     // @ts-ignore
     AST_Toplevel.prototype.mangle_names = oldMangle;
+    if (!succeed) {
+      throw TypeError('Can not hook the "mangle_names" member function of terser')
+    }
   }
   return dispose
 }
 
-/** @type { () => () => string } */
+/** @type { (reserved?: Set<string> | Array<string>) => (originalName: string) => string } */
 const createMangler = (function (doesTest) {
   /** @type { string[] } */
   const mangledNamesList = [];
@@ -364,23 +364,84 @@ const createMangler = (function (doesTest) {
   firstChars = doesTest ? _chars2 : _chars1 + _chars3 + _chars4,
   suffixChars = doesTest ? _chars2 + _chars4 : _chars1 + _chars2 + _chars3 + _chars4,
   n1 = firstChars.length, n2 = suffixChars.length;
-  return () => {
-    let counter = -1;
-    return function nextName() {
-      counter++;
-      if (counter < mangledNamesList.length) {
-        return mangledNamesList[counter];
+
+  mangledNamesList.push(...firstChars)
+  const fillNext = () => {
+    const size = mangledNamesList.length
+    let suffixWidth = 0
+    for (let subSize = n1; subSize < size; ) {
+      subSize += n1 * Math.pow(n2, ++suffixWidth)
+      if (subSize > size) { throw Error("`mangledNamesList` is being updated from a wrong state") }
+    }
+    const curWidth = suffixWidth + 1
+    const lastStart = size - n1 * Math.pow(n2, curWidth - 1)
+    for (let i = lastStart; i < size; i++) {
+      for (let oldName = mangledNamesList[i], j = 0; j < n2; j++) {
+        mangledNamesList.push(oldName + suffixChars[j])
       }
-      let name = firstChars[counter % n1];
-      for (let idx = (counter / n1) | 0; idx > 0; idx = (idx / n2) | 0) {
-        idx--;
-        name += suffixChars[idx % n2];
+    }
+  }
+
+  const firstCharInWordRe = /(\b|[$_])[a-zA-Z]|[^A-Z][A-Z]/g;
+  /** @type { (reserved?: Set<string> | Array<string>) => (originalName: string) => string } */
+  const getIterator = (reserved) => {
+    const usedMaps = new Set(reserved)
+    let width = 1;
+    /**
+     * @argument {string} name
+     * @returns { boolean } whether add it successfully or not
+     */
+    const tryAddUnique = (name) => usedMaps.has(name) ? false : (usedMaps.add(name), true)
+    return function nextName(originalName) {
+      let shorter = originalName.match(firstCharInWordRe).map(i => i.slice(-1)).join("")
+      shorter = shorter.length >= width ? shorter : originalName.slice(0, width)
+      while (shorter.length < width) { shorter += suffixChars[0] }
+      const lower = shorter.toLowerCase(), upper = lower.toUpperCase()
+      /** @type { number[] } */
+      const candidateIndexes = []
+      for (let part = 0; part <= width; part++) {
+        for (let partEnd = lower.length; 0 <= partEnd - part; partEnd--) {
+          const lowUp = lower.slice(0, partEnd - part) + upper.slice(partEnd - part, partEnd) + lower.slice(partEnd)
+          for (let i = 0; i + width <= lowUp.length; i++) {
+            const newName = lowUp.slice(i, i + width)
+            if (tryAddUnique(newName)) { return newName }
+            candidateIndexes.push(mangledNamesList.indexOf(newName))
+          }
+        }
       }
-      mangledNamesList.push(name);
-      return name;
+      for (let i = 1; i < 4; i++) {
+        for (let ind of candidateIndexes) {
+          const j = ind + i < mangledNamesList.length ? mangledNamesList[ind + i] : ""
+          if (j && j.slice(0, -1) === mangledNamesList[ind].slice(0, -1) && tryAddUnique(j)) {
+            return j
+          }
+        }
+      }
+      const lookupSize = n1 * Math.pow(n2, width - 1), lookupStart = mangledNamesList.length - lookupSize
+      const lookupOffset = lookupStart + (hashCode(lower) % lookupSize)
+      for (let i = lookupOffset; i < mangledNamesList.length; i++) {
+        if (tryAddUnique(mangledNamesList[i])) { return mangledNamesList[i] }
+      }
+      for (let i = lookupStart; i < lookupOffset; i++) {
+        if (tryAddUnique(mangledNamesList[i])) { return mangledNamesList[i] }
+      }
+      fillNext(); width++
+      return nextName(originalName)
     }
   };
+  return getIterator
 })(TEST);
+
+/** @type { (str: string) => number } */
+const hashCode = (str) => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const chr = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + chr;
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash;
+}
 
 if (typeof module !== "undefined") {
   module.exports = { minify };
@@ -389,7 +450,7 @@ if (typeof module !== "undefined") {
 if (TEST) {
   const next = createMangler(), arr = {};
   for (let i = 0; i < 300; i++) {
-    arr[i] = next();
+    arr[i] = next("a");
   }
   console.log(arr);
 }
