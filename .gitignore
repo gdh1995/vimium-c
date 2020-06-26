@@ -8,14 +8,15 @@
 *.gz
 *.js
 *.log
+*.mp4
 *.old
 *.psd
-*.sh
 *.swp
 *.tar
 *.tgz
 *.tsbuild*
 .ts*
+*.wmv
 *.zip
 dist
 dist/
@@ -25,7 +26,6 @@ test.*
 !/tests/**
 todo*
 !Gulpfile.js
-!make.sh
 !tsc.js
 !/lib/math_parser.js
 !/lib/viewer.min.js
@@ -33,7 +33,6 @@ todo*
 weidu/
 helpers/
 scripts/*public_suffix*
-package-lock.json
 scripts/*releases*
 icons/*.bin
 # just to make vscode ignore those on finding
