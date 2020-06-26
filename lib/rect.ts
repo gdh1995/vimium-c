@@ -193,14 +193,15 @@ export const getClientRectsForAreas_ = function (element: HTMLElementUsingMap, o
 }
 
 export const getCroppedRect_ = function (el: Element, crect: Rect | null): Rect | null {
-  let parent: Element | null = el, prect: Rect | null | undefined, i: number = crect ? 4 : 0, bcr: Rect
-  while (1 < i-- && (parent = GetParent_unsafe_(parent, PNType.RevealSlotAndGotoParent))
-      && getComputedStyle_(parent).overflow !== HDN) { /* empty */ }
-  if (i > 0 && parent) {
-    bcr = padClientRect_(getBoundingClientRect_(parent))
-    prect = cropRectToVisible_(bcr.l, bcr.t, bcr.r, bcr.b)
+  let parent: Element | null = el, prect: Rect | null | undefined, i: number = crect ? 3 : 0, bcr: Rect
+  while (0 < i-- && (parent = GetParent_unsafe_(parent, PNType.RevealSlotAndGotoParent))) {
+    if (getComputedStyle_(parent).overflow === HDN) {
+      bcr = padClientRect_(getBoundingClientRect_(parent))
+      prect = cropRectToVisible_(bcr.l, bcr.t, bcr.r, bcr.b)
+      crect = prect && isContaining_(crect!, prect) ? prect : crect
+    }
   }
-  return prect && isContaining_(crect!, prect) ? prect : crect
+  return crect
 } as {
   (el: Element, crect: Rect): Rect
   (el: Element, crect: Rect | null): Rect | null

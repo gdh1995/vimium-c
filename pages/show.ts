@@ -674,6 +674,10 @@ function parseSmartImageUrl_(originUrl: string): string | null {
           return origin + path + "?id=" + val0;
         }
       }
+      if (key === "name" && (<RegExpOne> /^(\d{2,4}x\d{2,4}|small)$/i).test(val0)
+          && search.toLowerCase().includes("format=")) {
+        return origin + path + search.replace(val, "large")
+      }
     }
   }
   let arr1: RegExpExecArray | null = null;
