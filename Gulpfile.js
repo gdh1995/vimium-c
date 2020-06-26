@@ -130,11 +130,11 @@ var Tasks = {
     const arr = ["front/*.html", "pages/*.html", "!*/vomnibar.html"];
     may_have_newtab || arr.push("!" + NEWTAB_FILE.replace(".ts", ".*"));
     if (!getNonNullBuildItem("NDEBUG")) { return copyByPath(arr); }
-    return copyByPath(arr, null, require('gulp-htmlmin')({
+    return copyByPath(arr, file => file.contents = ToBuffer(require('html-minifier').minify(ToString(file.contents), {
       collapseWhitespace: true,
       minifyCSS: true,
       maxLineLength: 4096
-    }));
+    })))
   },
   "static/uglify": function(cb) {
     gulp.parallel("static/uglify-js", "static/json", "minify-css", "minify-html")(cb);
@@ -1005,10 +1005,10 @@ function uglifyJson(file) {
   }
 }
 
-function copyByPath(path, mapFunc, pipe) {
+function copyByPath(path, mapFuncOrPipe) {
   var stream = gulp.src(path, { base: "." })
     .pipe(newer(DEST))
-    .pipe(gulpMap(mapFunc || function(file) {
+    .pipe(gulpMap(function(file) {
       var fileName = file.history.join("|");
       if (fileName.indexOf("vimium-c.css") >= 0) {
         file.contents = ToBuffer(ToString(file.contents).replace(/\r\n?/g, "\n"));
@@ -1023,7 +1023,8 @@ function copyByPath(path, mapFunc, pipe) {
         file.contents = ToBuffer(str.slice(0, start + 1) + str.slice(end));
       }
     }));
-  stream = pipe ? stream.pipe(pipe) : stream;
+  stream = mapFuncOrPipe instanceof require("stream").Transform ? stream.pipe(mapFuncOrPipe)
+      : typeof mapFuncOrPipe === "function" ? stream.pipe(gulpMap(mapFuncOrPipe)) : stream
   stream = stream
     .pipe(gulpChanged(DEST, {
       hasChanged: compareContentAndTouch
@@ -1381,7 +1382,7 @@ function gulpMap(map) {
   var transformer = new Transform({objectMode: true});
   transformer._transform = function(srcFile, encoding, done) {
     var dest = map(srcFile);
-    this.push(dest || srcFile);
+    this.push(dest !== srcFile.contents && dest || srcFile);
     done();
   };
   transformer._flush = function(done) { done(); };
