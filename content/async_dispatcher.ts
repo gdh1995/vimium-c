@@ -1,11 +1,11 @@
-import { doc, deref_, weakRef_, VOther, chromeVer_, jsRe_, clickable_, getTime } from "../lib/utils"
+import { doc, deref_, weakRef_, VOther, chromeVer_, jsRe_, getTime } from "../lib/utils"
 import { IsInDOM_, activeEl_unsafe_, isInTouchMode_cr_, MDW, htmlTag_, CLK } from "../lib/dom_utils"
 import { center_, getVisibleClientRect_, view_ } from "../lib/rect"
 import { insert_Lock_ } from "./insert"
-import { unwrap_ff } from "./link_hints"
 import { post_ } from "./port"
 import { flash_, moveSel_need_safe } from "./dom_ui"
 import { suppressTail_ } from "../lib/keyboard_utils"
+import { beginToPreventClick_ff, wrappedDispatchMouseEvent_ff } from "./extend_click_ff"
 
 type kMouseMoveEvents = "mouseover" | "mouseenter" | "mousemove" | "mouseout" | "mouseleave"
 type kMouseClickEvents = "mousedown" | "mouseup" | "click" | "auxclick" | "dblclick"
@@ -130,6 +130,10 @@ export const mouse_ = function (element: SafeElementForMouse
     mouseEvent = doc.createEvent("MouseEvents")
     mouseEvent.initMouseEvent(type, !0, !0, view, detail, x, y, x, y
       , ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget)
+  }
+  if (!(Build.BTypes & ~BrowserType.Firefox)
+      || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox) {
+    return /*#__INLINE__*/ wrappedDispatchMouseEvent_ff(element, mouseEvent)
   }
   return element.dispatchEvent(mouseEvent)
 } as {
@@ -302,12 +306,14 @@ export const click_ = async (element: SafeElementForMouse
           || jsRe_.test(url)
         ? ActionType.OnlyDispatch
         : Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
           && specialAction & (kClickAction.plainMayOpenManually | kClickAction.openInNewWindow)
-          && (unwrap_ff(parentAnchor as SafeHTMLElement).onclick
-            || clickable_.has(element) || clickable_.has(parentAnchor))
         ? ActionType.DispatchAndMayOpenTab : ActionType.OpenTabButNotDispatch
   }
-  if ((result > ActionType.OpenTabButNotDispatch - 1 || await await mouse_(element, CLK, center, modifiers) && result)
+  if ((result > ActionType.OpenTabButNotDispatch - 1
+        || (Build.BTypes & BrowserType.Firefox
+              && /*#__INLINE__*/ beginToPreventClick_ff(result === ActionType.DispatchAndMayOpenTab),
+            await await mouse_(element, CLK, center, modifiers) && result))
       && getVisibleClientRect_(element)) {
     // require element is still visible
     if (specialAction === kClickAction.forceToDblclick) {

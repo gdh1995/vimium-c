@@ -100,7 +100,7 @@ var writeFile = function(path, data, writeBom) {
   if (!skip && cache[path] !== data) {
     if (doesUglifyLocalFiles && isJS) {
       data = getUglifyJS()(data);
-      if (path.indexOf("extend_click") >= 0) {
+      if (path.indexOf("extend_click.") >= 0) {
         var patched = lib.patchExtendClick(data, true);
         data = typeof patched === "string" ? patched : patched[0] + patched[1] + patched[2];
       }

@@ -115,10 +115,11 @@ export function replaceBrokenTimerFunc (_newTimerFunc: TimerFunc): void { timeou
  * @param eventType string
  * @param func Default to `Stop_`
  * @param disable Default to `0`
- * @param activeMode Default to `{passive: true, capture: true}`; `1` means `passive: false`
+ * @param activeMode Default to `{passive: true, capture: true}`; `1` means `passive: false`;
+ *        on Firefox, `3` means "on bubbling and not passive"
  */
 export const setupEventListener =
-  <T extends EventTarget, Active extends 1 | undefined = undefined, E extends string = string> (
+  <T extends EventTarget, Active extends 3 | 1 | 0 | undefined = undefined, E extends string = string> (
     target: T | 0, eventType: E
     , func?: ((this: T, e: E extends keyof HTMLElementEventMap
       ? Active extends 1 ? HTMLElementEventMap[E] & ToPrevent : HTMLElementEventMap[E]
@@ -126,7 +127,8 @@ export const setupEventListener =
     , disable?: boolean | BOOL, activeMode?: Active): void => {
   (disable ? removeEventListener : addEventListener).call(target as unknown as Window || window, eventType,
     <(this: T, e: EventToPrevent) => void> func || Stop_,
-    {passive: !activeMode, capture: true} as EventListenerOptions | boolean as boolean);
+    Build.BTypes & BrowserType.Firefox && activeMode === 3 ? !1
+    : {passive: !activeMode, capture: true} as EventListenerOptions | boolean as boolean)
 }
 
 export const suppressCommonEvents = (target: Window | SafeHTMLElement, extraEvents: string): void => {

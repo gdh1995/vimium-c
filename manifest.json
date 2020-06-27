@@ -74,6 +74,7 @@
       "content/commands.js",
       "content/request_handlers.js",
       "content/extend_click.js",
+      "content/extend_click_ff.js",
       "content/frontend.js"
     ],
     "match_about_blank": true,

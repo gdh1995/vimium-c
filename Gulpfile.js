@@ -983,7 +983,7 @@ function postUglify(file, allPaths) {
   var allPathStr = (allPaths || file.history).join("|").replace(/\\/g, "/");
   var contents = null, changed = false, oldLen = 0;
   function get() { contents == null && (contents = ToString(file.contents), changed = true, oldLen = contents.length); }
-  if (allPathStr.indexOf("extend_click") >= 0) {
+  if (allPathStr.indexOf("extend_click.") >= 0) {
     get();
     contents = patchExtendClick(contents);
   }
