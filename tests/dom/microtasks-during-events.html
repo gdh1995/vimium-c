@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html spellcheck="false">
+  <head>
+    <meta charset="utf-8">
+    <title>Test microtasks during dispatching events</title>
+  </head>
+  <body>
+    <div id="test">
+      <p>Test how microtasks go during JavaScript code dispatching events</p>
+      <button id="testBtn">click me to test</button>
+    </div>
+    <script>
+      //@ts-check
+      let events = `mouseover mouseenter mousedown mouseup click mouseout`
+      /** @type {(e: Event) => Promise<any>} */
+      const testPromise = async (event) => {
+        console.log('on', event.type, 'realtime', event.eventPhase === event.CAPTURING_PHASE ? "capturing" : "bubbling")
+        await 1
+        console.log('on', event.type, 'after 1 tick')
+        await 2
+        console.log('on', event.type, 'after 2 tick')
+      }
+      var test = document.querySelector("#test")
+      for (const i of events.trim().split(/\s+/)) {
+        test.addEventListener(i, testPromise, true)
+        test.addEventListener(i, testPromise, false)
+      }
+    </script>
+  </body>
+</html>

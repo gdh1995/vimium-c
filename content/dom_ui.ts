@@ -36,23 +36,19 @@ export const removeModal = Build.BTypes & BrowserType.ChromeOrFirefox ? (): void
 
 export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustType): void {
     box_ = createElement_("div");
-    let root: VUIRoot = root_ = createShadowRoot_(box_),
-    setupListen = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
-        && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
-        && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-        ? 0 as never : setupEventListener;
+    let root: VUIRoot = root_ = createShadowRoot_(box_);
     // listen "load" so that safer if shadowRoot is open
     // it doesn't matter to check `.mode == "closed"`, but not `.attachShadow`
     (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
       && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
       && !(Build.BTypes & ~BrowserType.ChromeOrFirefox) ||
     Build.BTypes & ~BrowserType.Edge && root.mode === "closed" ||
-    setupListen(
+    setupEventListener(
       !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
       || Build.BTypes & ~BrowserType.Edge && root !== box_
       ? root as ShadowRoot : 0, "load",
     function Onload(this: ShadowRoot | Window, e: Event): void {
-      if (!isAlive_) { setupListen(0, "load", Onload, 1); return; } // safe enough even if reloaded
+      if (!isAlive_) { setupEventListener(0, "load", Onload, 1); return; } // safe enough even if reloaded
       const t = e.target as HTMLElement | Document;
       if (t.parentNode === root_) {
         Stop_(e); t.onload && t.onload(e);
