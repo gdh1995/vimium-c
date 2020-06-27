@@ -19,13 +19,14 @@ import { currentKeys } from "./key_handler"
 import { contentCommands_ } from "./commands"
 import { enableNeedToRetryParentClickable, focusAndRun } from "./request_handlers"
 
-import { main as extend_click } from  "./extend_click.js"
 import { activate as linkActivate, coreHints } from "./link_hints"
 import { executeScroll, scrollTick, $sc, keyIsDown as scroll_keyIsDown } from "./scroller"
 import { hudTip, hudCopied } from "./hud"
 import { onLoad as findOnLoad, find_box, findCSS, styleInHUD } from "./mode_find"
 import { activate as omniActivate } from "./omni"
 import { filterTextToGoNext, jumpToNextLink } from "./pagination"
+import { main_not_ff as extend_click_not_ff } from  "./extend_click.js"
+import { main_ff as extend_click_ff } from  "./extend_click_ff.js"
 
 const docReadyListeners: Array<(this: void) => void> = [], completeListeners: Array<(this: void) => void> = []
 const RSC = "readystatechange"
@@ -209,7 +210,12 @@ if (isAlive_) {
     runtimeConnect();
 
   if (injector === void 0) {
-    /*#__INLINE__*/ extend_click()
+    if (!(Build.BTypes & BrowserType.Firefox)
+        || Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox) {
+      /*#__INLINE__*/ extend_click_not_ff()
+    } else {
+      /*#__INLINE__*/ extend_click_ff()
+    }
   } else {
     /*#__INLINE__*/ set_allowScripts_(0)
   }

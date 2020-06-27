@@ -1,24 +1,14 @@
 import {
-  clickable_, setupEventListener, VOther, timeout_, clearTimeout_, doc, isAlive_, set_allowRAF_, set_allowScripts_,
+  clickable_, setupEventListener, VOther, timeout_, doc, isAlive_, set_allowRAF_, set_allowScripts_,
   loc_, replaceBrokenTimerFunc, allowRAF_, getTime, recordLog, VTr, vApi,
 } from "../lib/utils"
-import {
-  createElement_, set_createElement_, OnDocLoaded_, runJS_, isHTML_, rAF_, CLK, MDW,
-} from "../lib/dom_utils"
+import { createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, } from "../lib/dom_utils"
 import { Stop_ } from "../lib/keyboard_utils"
 import { safeDestroy } from "./port"
 import { coreHints } from "./link_hints"
 import { grabBackFocus } from "./insert"
 
-declare function exportFunction(this: void, func: (...args: any[]) => any, targetScope: object, options?: {
-  defineAs: string;
-  allowCrossOriginArguments?: boolean;
-}): void;
-
-export const main = (): void => {
-!(Build.BTypes & BrowserType.Firefox)
-|| Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox
-?
+export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
 (function extendClick(this: void, isFirstTime?: boolean): void | false {
 /** Note(gdh1995):
  * According to source code of C72,
@@ -626,65 +616,4 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$addEvent
       ;
   } as any)
 })(grabBackFocus as boolean)
-
-// #else: on Firefox
-
-: (function (): void {
-  const PEventTarget = (window as any).EventTarget as typeof EventTarget | undefined,
-  Cls = PEventTarget && PEventTarget.prototype,
-  wrappedCls = Cls && (Cls as any).wrappedJSObject as typeof Cls | undefined,
-  _listen = wrappedCls && wrappedCls.addEventListener,
-  newListen = function addEventListener(this: EventTarget, type: string
-      , listener: EventListenerOrEventListenerObject): void {
-    const a = this, args = arguments, len = args.length;
-    len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2])
-      : (apply as (this: (this: EventTarget, ...args: any[]) => void
-            , self: EventTarget, args: IArguments) => void
-        ).call(_listen as (this: EventTarget, ...args: any[]) => void, a, args);
-    if ((type === CLK || type === MDW || type === "dblclick") && alive
-        && listener && !(a instanceof HTMLAnchorElement) && a instanceof Element) {
-      if (!Build.NDEBUG) {
-        clickable_.has(a) || resolved++;
-        timer = timer || timeout_(resolve, GlobalConsts.ExtendClick_DelayToStartIteration);
-      }
-      clickable_.add(a);
-    }
-  },
-  listen = newListen.call.bind<(this: (this: EventTarget,
-          type: string, listener: EventListenerOrEventListenerObject, useCapture?: EventListenerOptions | boolean
-        ) => 42 | void,
-        self: EventTarget, name: string, listener: EventListenerOrEventListenerObject,
-        opts?: EventListenerOptions | boolean
-    ) => 42 | void>(_listen!), apply = newListen.apply,
-  resolve = Build.NDEBUG ? 0 as never : (): void => {
-    console.log("Vimium C: extend click: resolve %o in %o @t=%o ."
-        , resolved
-        , loc_.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1")
-        , getTime() % 3600000);
-    timer && clearTimeout_(timer);
-    timer = resolved = 0;
-  }
-
-  let alive = true, timer = TimerID.None, resolved = 0;
-
-  if (grabBackFocus) {
-    if (typeof _listen === "function") {
-      exportFunction(newListen, Cls!, { defineAs: newListen.name });
-    }
-    OnDocLoaded_((): void => {
-      timeout_(function (): void {
-        coreHints.h - 1 || timeout_(coreHints.x, 34);
-      }, GlobalConsts.ExtendClick_DelayToFindAll);
-    }, 1);
-  }
-  vApi.e = (cmd: ValidContentCommands): void => {
-    if (cmd > kContentCmd._minSuppressClickable - 1) {
-      alive = false;
-    }
-  };
-  if (Build.BTypes & ~BrowserType.Firefox ? !(doc instanceof HTMLDocument) : !isHTML_()) {
-    // for <script>
-    set_createElement_(doc.createElementNS.bind(doc, "http://www.w3.org/1999/xhtml") as typeof createElement_)
-  }
-})();
-}
+} : 0 as never) as () => void
