@@ -105,11 +105,11 @@ export const main_ff = (Build.BTypes & BrowserType.Firefox ? (): void => {
       await phase > /** Event.CAPTURING_PHASE */ 1 && localSetupListener(0, 3)
       localSetupListener(1, 1), localSetupListener(1, 3)
     }
-    preventEventOnWindow = async (wnd: Window): Promise<void> => {
-      isHandingTheSecondTime = 1
-      await setupEventListener(wnd, CLK, tryToPreventClick, 0, 3)
+    preventEventOnWindow = async (wnd: Window): Promise<void> => (
+      isHandingTheSecondTime = 1,
+      await setupEventListener(wnd, CLK, tryToPreventClick, 0, 3),
       setupEventListener(wnd, CLK, tryToPreventClick, 1, 3)
-    }
+    )
     let isHandingTheSecondTime: BOOL
 
     for (const [stdFunc, idx] of stdMembers.every(i => typeof i[1] === "function") ? stdMembers : [] as never) {
