@@ -68,6 +68,10 @@ export const main_ff = (Build.BTypes & BrowserType.Firefox ? (): void => {
     // for <script>
     set_createElement_(doc.createElementNS.bind(doc, "http://www.w3.org/1999/xhtml") as typeof createElement_)
   }
+  /**
+   * This idea of hooking and appending `preventDefault` is from lydell's `LinkHints`:
+   * https://github.com/lydell/LinkHints/blob/efa18fdfbf95016bd706b83a2d51545cb157b440/src/worker/Program.js#L1337-L1631
+   */
   try {
     const enum kAct { prevent = 0, stopImm = 1, stopProp = 2 }
     type Pair<Key extends kAct> = readonly [() => void, Key]
@@ -83,7 +87,7 @@ export const main_ff = (Build.BTypes & BrowserType.Firefox ? (): void => {
       else if (event.defaultPrevented) {
         clickEventToPrevent_ = 0
       } else if (isHandingTheSecondTime) { // MUST NOT clear `clickEventToPrevent_` here
-        call.call(stdMembers[kAct.prevent][0], event)
+        /*#__NOINLINE__*/ callPreviousPreventSafely(event)
         if (!Build.NDEBUG) {
           console.log("Vimium C: event#click calls .prevetDefault at %o on %o"
               , event.eventPhase > 2 ? "bubble" : event.eventPhase > 1 ? "target" : "capture"
@@ -92,6 +96,14 @@ export const main_ff = (Build.BTypes & BrowserType.Firefox ? (): void => {
       } else {
         listenToPreventClick(event)
         isHandingTheSecondTime = 1
+      }
+    },
+    callPreviousPreventSafely = (event: Event): void => {
+      // avoid re-entry during calling the previous `preventDefault`
+      if (notDuringAct) {
+        notDuringAct = 0
+        try { call.call(stdMembers[kAct.prevent][0], event) } catch (e) {}
+        notDuringAct = 1
       }
     },
     listenToPreventClick = async (event: Event): Promise<void> => {
@@ -106,11 +118,11 @@ export const main_ff = (Build.BTypes & BrowserType.Firefox ? (): void => {
       localSetupListener(1, 1), localSetupListener(1, 3)
     }
     preventEventOnWindow = async (wnd: Window): Promise<void> => (
-      isHandingTheSecondTime = 1,
+      notDuringAct = isHandingTheSecondTime = 1,
       await setupEventListener(wnd, CLK, tryToPreventClick, 0, 3),
       setupEventListener(wnd, CLK, tryToPreventClick, 1, 3)
     )
-    let isHandingTheSecondTime: BOOL
+    let isHandingTheSecondTime: BOOL, notDuringAct: BOOL
 
     for (const [stdFunc, idx] of stdMembers.every(i => typeof i[1] === "function") ? stdMembers : [] as never) {
       exportFunction(function (this: EventToPrevent): any {
@@ -118,7 +130,7 @@ export const main_ff = (Build.BTypes & BrowserType.Firefox ? (): void => {
         self !== clickEventToPrevent_ ? 0
         : idx < kAct.stopImm || self.defaultPrevented ? /*#__INLINE__*/ clickEventToPrevent_ = 0 // idx === kAct.prevent
         : idx > kAct.stopImm ? /*#__NOINLINE__*/ listenToPreventClick(self) // idx === kAct.stopProp
-        : call.call(stdMembers[kAct.prevent][0], self) // idx === kAct.stopImm
+        : /*#__NOINLINE__*/ callPreviousPreventSafely(self) // idx === kAct.stopImm
         return ret
       }, EventCls!, { defineAs: stdFunc.name as "preventDefault" | "stopPropagation" });
     }
