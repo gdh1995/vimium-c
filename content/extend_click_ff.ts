@@ -146,13 +146,15 @@ export const beginToPreventClick_ff = (doesBeginPrevent: boolean): void => {
 }
 
 export const wrappedDispatchMouseEvent_ff = (targetElement: Element, mouseEventMayBePrevented: MouseEvent): boolean => {
-  clickEventToPrevent_ = clickEventToPrevent_ && mouseEventMayBePrevented.type === CLK && mouseEventMayBePrevented
-  if (!(Build.NDEBUG || mouseEventMayBePrevented.type !== CLK
-        || (targetElement.ownerDocument as Document).defaultView === window)) {
-    console.log("Assert error: a target element is bound to a different window instance");
-  }
-  if (clickEventToPrevent_) {
-    preventEventOnWindow!((targetElement.ownerDocument as Document).defaultView)
+  if (clickEventToPrevent_ = clickEventToPrevent_ && mouseEventMayBePrevented.type === CLK) {
+    const view = (targetElement.ownerDocument as Document).defaultView
+    if (!(Build.NDEBUG || mouseEventMayBePrevented.type !== CLK || view !== (window as any).wrappedJSObject)) {
+      console.log("Assert error: a target element is bound to window.wrappedJSObject");
+    }
+    clickEventToPrevent_ = view === window && mouseEventMayBePrevented
+    if (clickEventToPrevent_) {
+      preventEventOnWindow!(view)
+    }
   }
   const rawDispatchRetVal = targetElement.dispatchEvent(mouseEventMayBePrevented),
   wrappedRetVal = rawDispatchRetVal || !!clickEventToPrevent_
