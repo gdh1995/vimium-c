@@ -459,6 +459,7 @@ export const linkActions: readonly LinkAction[] = [
             ? kClickAction.forceToOpenInNewTab | kClickAction.newTabFromMode : kClickAction.forceToOpenInNewTab
         : !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
         ? newWindow ? kClickAction.openInNewWindow
+          : newTabOption === "no-prevent" ? newTab ? kClickAction.newTabFromMode : kClickAction.none
           : newTab // need to work around Firefox's popup blocker
             ? kClickAction.plainMayOpenManually | kClickAction.newTabFromMode : kClickAction.plainMayOpenManually
         : kClickAction.none;
