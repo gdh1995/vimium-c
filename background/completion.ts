@@ -861,22 +861,24 @@ tabEngine = {
       }
     }
     for (const tab of tabs) {
-      let id = "#";
-      curWndId && tab.windowId !== curWndId && (id += `${wndIds.indexOf(tab.windowId) + 1}:`);
-      id += <string> <string | number> (tab.index + 1);
-      if (!inNormal && tab.incognito) { id += "*"; }
-      if (tab.discarded || Build.BTypes & BrowserType.Firefox && tab.hidden) { id += "~"; }
       const tabId = tab.id, level = treeMode ? treeLevels[tabId]! : 1,
       url = Build.BTypes & BrowserType.Chrome ? tab.url || tab.pendingUrl : tab.url,
+      visit = TabRecency_.tabs_[tabId],
       suggestion = new Suggestion("tab", url, tab.text, tab.title,
           c, treeMode ? ++ind : tabId) as CompletersNS.TabSuggestion;
+      let id = curWndId && tab.windowId !== curWndId ? `${wndIds.indexOf(tab.windowId) + 1}:` : "", label = ""
+      id += <string> <string | number> (tab.index + 1)
       if (curTabId === tabId) {
         treeMode || (suggestion.r = noFilter ? 1<<31 : 0);
-        id = `#(${id.slice(1)})`;
+        id = `(${id})`
+      } else if (!visit) {
+        id = `**${id}**`
       }
-      suggestion.visit = TabRecency_.tabs_[tabId];
+      if (!inNormal && tab.incognito) { label += "*" }
+      if (tab.discarded || Build.BTypes & BrowserType.Firefox && tab.hidden) { label += "~" }
+      suggestion.visit = visit
       suggestion.s = tabId;
-      suggestion.label = id;
+      suggestion.label = `#${id}${label && " " + label}`
       if (Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
         suggestion.favIcon = tab.favIconUrl;
