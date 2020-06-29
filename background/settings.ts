@@ -236,7 +236,9 @@ var Settings_ = {
             && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
           ? browserVer < BrowserVer.MinUnprefixedUserSelect
           : false) {
-        css = css.replace(<RegExpG> /user-select\b/g, "-webkit-$&");
+        // on Firefox, the `-webkit` prefix is in the control of `layout.css.prefixes.webkit`
+        css = css.replace(<RegExpG> /user-select\b/g, Build.BTypes & BrowserType.Firefox
+            && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) ? "-moz-$&" : "-webkit-$&")
       }
       if (!Build.NDEBUG) {
         css = css.replace(<RegExpG> /\r\n?/g, "\n");

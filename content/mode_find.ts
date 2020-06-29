@@ -166,18 +166,17 @@ export const onLoad = (later?: 1): void => {
 
 const onLoad2 = (): void => {
     if (!isActive) { return; }
-    const wnd: Window = box_.contentWindow, doc = innerDoc_,
-    docEl = doc.documentElement as HTMLHtmlElement,
-    body = doc.body as HTMLBodyElement,
+    const wnd: Window = box_.contentWindow,
+    docEl = innerDoc_.documentElement as HTMLHtmlElement,
+    body = innerDoc_.body as HTMLBodyElement,
     zoom = Build.BTypes & ~BrowserType.Firefox ? wnd.devicePixelRatio : 1,
-    list = doc.createDocumentFragment(),
+    list = innerDoc_.createDocumentFragment(),
     addElement = function (tag: 0 | "div" | "style", id?: string): SafeHTMLElement {
-      const newEl = doc.createElement(tag || "span") as SafeHTMLElement;
+      const newEl = innerDoc_.createElement(tag || "span") as SafeHTMLElement;
       id && (newEl.id = id, list.appendChild(newEl));
       return newEl;
     };
-    !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
-      ? addElement(0, "s").append!("/") : addElement(0, "s").textContent = "/"
+    addElement(0, "s").dataset.vimium = "/"
     const el = input_ = addElement(0, "i")
     addElement(0, "h");
     if (!(Build.BTypes & ~BrowserType.Firefox) && !Build.DetectAPIOnFirefox) {
@@ -201,9 +200,8 @@ const onLoad2 = (): void => {
       // not check MinEnsuredShadowDOMV1 for smaller code
       setupEventListener(el, "input", onInput)
     }
-    !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
-      ? (countEl = addElement(0, "c")).append!(" ") : (countEl = addElement(0, "c")).textContent = " "
-    createStyle(findCSS.i, styleInHUD = addElement("style", "a") as HTMLStyleElement);
+    countEl = addElement(0, "c")
+    createStyle(findCSS.i, styleInHUD = addElement("style") as HTMLStyleElement);
     // add `<div>` to fix that a body with backgroundColor doesn't follow border-radius on FF63; and on Linux
     // an extra <div> may be necessary for Ctrl+A: https://github.com/gdh1995/vimium-c/issues/79#issuecomment-540921532
     const box = Build.BTypes & BrowserType.Firefox
@@ -242,12 +240,19 @@ const onLoad2 = (): void => {
       // here can not use `box.contentEditable = "true"`, otherwise Backspace will break on Firefox, Win
       box.setAttribute("role", "textbox");
       setupEventListener(root2, MDW, onMousedown, 0, 1)
-      root.appendChild(root2);
+      if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
+        root.append!(root2, styleInHUD)
+      } else {
+        root.appendChild(root2)
+        root.appendChild(styleInHUD)
+      }
+    } else {
+      docEl.appendChild(styleInHUD)
     }
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)) {
       if (box !== body) {
-        doc.head!.appendChild(createStyle("body{margin:0!important}", addElement("style") as HTMLStyleElement))
+        innerDoc_.head!.appendChild(createStyle("body{margin:0!important}", addElement("style") as HTMLStyleElement))
         body.appendChild(box);
       }
     } else if (Build.BTypes & ~BrowserType.Firefox && zoom < 1) {
@@ -602,7 +607,7 @@ const onInput = (e?: Event): void => {
 const showCount = (changed: BOOL): void => {
     let count = matchCount
     if (changed) {
-      (countEl.firstChild as Text).data = !parsedQuery_ ? "" : VTr(
+      countEl.dataset.vimium = !parsedQuery_ ? "" : VTr(
           count > 1 ? kTip.nMatches : count ? kTip.oneMatch : hasResults ? kTip.someMatches : kTip.noMatches,
           [count]
       );
