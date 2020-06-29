@@ -9,7 +9,7 @@ declare function exportFunction<T extends object, K extends keyof T>(this: void,
   , options?: { defineAs: K; allowCrossOriginArguments?: boolean }): void
 
 /** `null`: disabled; `false`: nothing to do; `true`: begin to watch; `Event`: watching; `0`: page prevented */
-let clickEventToPrevent_: boolean | Event | null | 0 = null
+let clickEventToPrevent_: BOOL | Event | null = null
 let preventEventOnWindow: ((wnd: Window) => Promise<void>) | undefined
 
 export const main_ff = (Build.BTypes & BrowserType.Firefox ? (): void => {
@@ -101,6 +101,7 @@ export const main_ff = (Build.BTypes & BrowserType.Firefox ? (): void => {
     callPreviousPreventSafely = (event: Event): void => {
       // avoid re-entry during calling the previous `preventDefault`
       if (notDuringAct) {
+        clickEventToPrevent_ = 1
         notDuringAct = 0
         try { call.call(stdMembers[kAct.prevent][0], event) } catch (e) {}
         notDuringAct = 1
@@ -134,7 +135,7 @@ export const main_ff = (Build.BTypes & BrowserType.Firefox ? (): void => {
         return ret
       }, EventCls!, { defineAs: stdFunc.name as "preventDefault" | "stopPropagation" });
     }
-    clickEventToPrevent_ = false
+    clickEventToPrevent_ = 0
   } catch (e) {
     Build.NDEBUG || (recordLog("Vimium C: hooking Event::preventDefault crashed in %o @t=%o ."), console.log(e))
   }
@@ -142,22 +143,22 @@ export const main_ff = (Build.BTypes & BrowserType.Firefox ? (): void => {
 } : 0 as never) as () => void
 
 export const beginToPreventClick_ff = (doesBeginPrevent: boolean): void => {
-  clickEventToPrevent_ = clickEventToPrevent_ != null ? doesBeginPrevent : clickEventToPrevent_
+  clickEventToPrevent_ = clickEventToPrevent_ != null ? <BOOL> +doesBeginPrevent : clickEventToPrevent_
 }
 
 export const wrappedDispatchMouseEvent_ff = (targetElement: Element, mouseEventMayBePrevented: MouseEvent): boolean => {
-  if (clickEventToPrevent_ = clickEventToPrevent_ && mouseEventMayBePrevented.type === CLK) {
-    const view = (targetElement.ownerDocument as Document).defaultView
-    if (!(Build.NDEBUG || mouseEventMayBePrevented.type !== CLK || view !== (window as any).wrappedJSObject)) {
-      console.log("Assert error: a target element is bound to window.wrappedJSObject");
-    }
-    clickEventToPrevent_ = view === window && mouseEventMayBePrevented
-    if (clickEventToPrevent_) {
-      preventEventOnWindow!(view)
-    }
+  let view: Window | undefined
+  clickEventToPrevent_ = clickEventToPrevent_ && (mouseEventMayBePrevented.type === CLK
+      && (view = (targetElement.ownerDocument as Document).defaultView) === window
+      && mouseEventMayBePrevented || 0)
+  if (!(Build.NDEBUG || !view || view !== (window as any).wrappedJSObject)) {
+    console.log("Assert error: a target element is bound to window.wrappedJSObject");
+  }
+  if (clickEventToPrevent_) {
+    preventEventOnWindow!(view!)
   }
   const rawDispatchRetVal = targetElement.dispatchEvent(mouseEventMayBePrevented),
-  wrappedRetVal = rawDispatchRetVal || !!clickEventToPrevent_
+  wrappedRetVal = rawDispatchRetVal || <any> clickEventToPrevent_ === 1
   if (!Build.NDEBUG && mouseEventMayBePrevented.type === CLK) {
     console.log("Vimium C: dispatch a click event and returned is %o, %s %o, so return %o"
         , rawDispatchRetVal, "clickEventToPrevent_ is"
