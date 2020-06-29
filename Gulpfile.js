@@ -1037,9 +1037,12 @@ function copyByPath(path, mapFuncOrPipe) {
 
 function cleanByPath(path) {
   path = formatPath(path, DEST);
+  var rimraf = require("rimraf");
   return gulp.src(path, {
       base: ".", read: false, dot: true, allowEmpty: true, nodir: true
-    }).pipe(require('gulp-clean')());
+  }).pipe(gulpMap(file => {
+    rimraf.sync(file.path, { disableGlob: true });
+  }));
 }
 
 function formatPath(path, base) {

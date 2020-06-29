@@ -35,6 +35,7 @@ helpers/
 scripts/*public_suffix*
 scripts/*releases*
 icons/*.bin
+package-lock.json
 # just to make vscode ignore those on finding
 typings/base/
 !typings/base/base.d.ts

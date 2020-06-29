@@ -122,7 +122,7 @@ zip -rX -MM $args "$output_for_zip" ${input[@]} -x 'weidu*' 'helpers*' 'test*' '
   'dist*' 'node_modules*' 'script*' '*tsconfig*' 'type*' \
   'pages/dialog_ui*' 'GUD*' 'Gulp*' 'gulp*' 'package*' 'todo*' 'tsc.*' \
   '*tslint*' '*.dll' '*.so' '*.lib' '*.exp' '*.a' '*.pdb' '*.py' \
-  '[a-hj-z]*.bin' '*_*.bin' \
+  '[a-hj-z]*.bin' '*_*.bin' '*.mp3' '*.mp4' \
   '*.coffee' '*.crx' '*.enc' '*.log' '*.psd' '*.sh' '*.ts' '*.zip' $ZIP_IGNORE $4
 err=$?
 [ $pushd_err -eq 0 ] && popd >/dev/null 2>&1
