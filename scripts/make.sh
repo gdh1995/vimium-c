@@ -5,6 +5,15 @@ function bool() {
     [ "$1" != FALSE -a "$1" != false ] && [ "${1:-0}" -gt 0 ]
   )
 }
+function confirm() {
+  echo -n -e "${1:-Are you sure} (y/[N])?\e[0m "
+  local response; shift
+  read -r "$@" -p "" response || echo
+  case "$response" in
+  [yY][eE][sS]|[yY]) return 0 ;;
+  *) return 1 ;;
+  esac
+}
 
 input=
 [ -z "$ZIP_BASE" -a -f "make.sh" ] && [ "${PWD##*/}" = scripts ] && ZIP_BASE=$(exec dirname "$PWD")
@@ -13,7 +22,17 @@ if bool "$IN_DIST" && [ -d "${ZIP_BASE}dist" -a -f "${ZIP_BASE}dist/manifest.jso
   ZIP_BASE=${ZIP_BASE}dist/
 elif [ -n "$ZIP_INPUT" ]; then
   input=($ZIP_INPUT)
+elif bool "$IN_DIST"; then
+  echo "No generator extension in ./dist !" 1>&2
+  exit 1
 fi
+if bool "$IN_DIST" && test -d .git && which git >/dev/null 2>&1 && ! git diff-index --quiet HEAD --; then
+  if ! confirm $'\n''\e[1;33mERROR: Some files have not been committed. Do continue'; then
+    echo $'\n'Aborted.
+    exit 0
+  fi
+fi
+
 if [ -n "$input" ]; then :
 else
   NEED_POP=0
@@ -138,16 +157,25 @@ else
   echo "$0: exit because the zip file \"$output\" is not found" 1>&2
   exit 1
 fi
-echo ""
 echo "$action_name $output"
 
+function print_reproduce() {
+  if bool "$IN_DIST" && test -f "$ZIP_BASE/.snapshot.sh"; then
+    echo $'\n''>>> 'Reproduce:
+    cat "$ZIP_BASE/.snapshot.sh"
+    echo
+  fi
+}
+
 if test -f "$ZIP_BASE/.build/.firefox.build"; then
+  print_reproduce
   exit
 fi
 
 key="$2"
 if [ -z "$key" ]; then
-  echo "No crx key info. Exit"
+  echo $'\n'No crx key info.
+  print_reproduce
   exit
 fi
 for i in openssl xxd; do
@@ -181,3 +209,5 @@ sig_len_hex=$(byte_swap $sig_len_hex)
 ) > "$crx"
 echo "Wrote $crx"
 rm -f "$crx.sig" "$crx.pub" 2>/dev/null
+
+print_reproduce

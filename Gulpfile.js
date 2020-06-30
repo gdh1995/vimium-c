@@ -430,8 +430,17 @@ var Tasks = {
         .forEach(key => { cmd += `${key}=${process.env[key]} ` })
     for (const key of names) { cmd += `BUILD_${key}=${rands[key]} ` }
     cmd += `npm run ${isEdge ? "edge-c" : getBuildItem("BTypes") === BrowserType.Firefox ? "firefox" : "chrome"}`
-    fs.writeFileSync(osPath.join(JSDEST, ".rands.cache"), cmd)
-    print("Reproduce: %o", ` ${cmd} `)
+    let checkout = getBuildItem("Commit") && `git checkout ${getGitCommit(-1)}`
+    let install_deps = `npm ci`
+    let fullCmds = [checkout, install_deps, cmd].map(i => i.trim()).filter(i => i)
+    try {
+      fs.writeFileSync(osPath.join(DEST, ".snapshot.sh"), fullCmds.concat("").join("\n"))
+    } catch (e) {
+      print("Reproduce:")
+      for (let i of fullCmds) {
+        print("%o", ` ${i} `)
+      }
+    }
     done()
   }]],
   "dist/": ["dist"],
@@ -440,7 +449,7 @@ var Tasks = {
   rebuild: [["clean"], "dist"],
   all: ["build"],
   clean: function() {
-    return cleanByPath([".build/**", "**/*.js", "!helpers/*/*.js"
+    return cleanByPath([".build/**", ".snapshot.sh", "**/*.js", "!helpers/*/*.js"
       , "front/help_dialog.html", "front/vomnibar.html", "front/words.txt"]);
   },
 

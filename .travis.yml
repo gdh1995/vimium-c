@@ -1,7 +1,7 @@
 language: node_js
 node_js: node
 install:
-  - npm install --dev
+  - npm install --no-optional
   - npm install -g gulp-cli
 script:
   - npm run chrome
