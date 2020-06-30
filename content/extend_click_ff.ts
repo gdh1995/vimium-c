@@ -10,6 +10,7 @@ declare function exportFunction<T extends object, K extends keyof T>(this: void,
 
 /** `null`: disabled; `false`: nothing to do; `true`: begin to watch; `Event`: watching; `0`: page prevented */
 let clickEventToPrevent_: BOOL | Event | null = null
+let isClickEventPreventedByPage: BOOL = 0
 let preventEventOnWindow: ((wnd: Window) => Promise<void>) | undefined
 
 export const main_ff = (Build.BTypes & BrowserType.Firefox ? (): void => {
@@ -85,7 +86,7 @@ export const main_ff = (Build.BTypes & BrowserType.Firefox ? (): void => {
     tryToPreventClick = (event: Event): void => {
       if (event !== clickEventToPrevent_) { /* empty */ }
       else if (event.defaultPrevented) {
-        clickEventToPrevent_ = 0
+        isClickEventPreventedByPage = 1
       } else if (isHandingTheSecondTime) { // MUST NOT clear `clickEventToPrevent_` here
         /*#__NOINLINE__*/ callPreviousPreventSafely(event)
         if (!Build.NDEBUG) {
@@ -101,7 +102,7 @@ export const main_ff = (Build.BTypes & BrowserType.Firefox ? (): void => {
     callPreviousPreventSafely = (event: Event): void => {
       // avoid re-entry during calling the previous `preventDefault`
       if (notDuringAct) {
-        clickEventToPrevent_ = 1
+        isClickEventPreventedByPage = 0
         notDuringAct = 0
         try { call.call(stdMembers[kAct.prevent][0], event) } catch (e) {}
         notDuringAct = 1
@@ -119,7 +120,7 @@ export const main_ff = (Build.BTypes & BrowserType.Firefox ? (): void => {
       localSetupListener(1, 1), localSetupListener(1, 3)
     }
     preventEventOnWindow = async (wnd: Window): Promise<void> => (
-      notDuringAct = isHandingTheSecondTime = 1,
+      isClickEventPreventedByPage = notDuringAct = isHandingTheSecondTime = 1,
       await setupEventListener(wnd, CLK, tryToPreventClick, 0, 3),
       setupEventListener(wnd, CLK, tryToPreventClick, 1, 3)
     )
@@ -129,7 +130,7 @@ export const main_ff = (Build.BTypes & BrowserType.Firefox ? (): void => {
       exportFunction(function (this: EventToPrevent): any {
         const self = this, ret = apply.call(stdFunc, self, arguments)
         self !== clickEventToPrevent_ ? 0
-        : idx < kAct.stopImm || self.defaultPrevented ? /*#__INLINE__*/ clickEventToPrevent_ = 0 // idx === kAct.prevent
+        : idx < kAct.stopImm || self.defaultPrevented ? isClickEventPreventedByPage = 1 // idx === kAct.prevent
         : idx > kAct.stopImm ? /*#__NOINLINE__*/ listenToPreventClick(self) // idx === kAct.stopProp
         : /*#__NOINLINE__*/ callPreviousPreventSafely(self) // idx === kAct.stopImm
         return ret
@@ -158,7 +159,7 @@ export const wrappedDispatchMouseEvent_ff = (targetElement: Element, mouseEventM
     preventEventOnWindow!(view!)
   }
   const rawDispatchRetVal = targetElement.dispatchEvent(mouseEventMayBePrevented),
-  wrappedRetVal = rawDispatchRetVal || <any> clickEventToPrevent_ === 1
+  wrappedRetVal = rawDispatchRetVal || !!clickEventToPrevent_ && !isClickEventPreventedByPage
   if (!Build.NDEBUG && mouseEventMayBePrevented.type === CLK) {
     console.log("Vimium C: dispatch a click event and returned is %o, %s %o, so return %o"
         , rawDispatchRetVal, "clickEventToPrevent_ is"
