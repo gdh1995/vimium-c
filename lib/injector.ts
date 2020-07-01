@@ -3,24 +3,6 @@
 /// <reference path="../typings/build/index.d.ts" />
 
 /* eslint-disable no-var, @typescript-eslint/no-unused-vars */
-var VimiumInjector: VimiumInjectorTy | undefined | null = VimiumInjector || {
-  id: "",
-  alive: -1,
-  host: "",
-  version: "",
-  cache: null,
-  // eslint-disable-next-line id-blacklist
-  clickable: undefined,
-  reload: null as never,
-  checkIfEnabled: null as never,
-  $: null as never,
-  $h: "",
-  $m: null as never,
-  $r: null as never,
-  getCommandCount: null as never,
-  callback: null,
-  destroy: null
-};
 if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { var browser: unknown; }
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6WeakMapAndWeakSet) {
   var WeakSet: WeakSetConstructor | undefined;
@@ -29,9 +11,26 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$r
     || Build.BTypes & BrowserType.Edge) {
   var requestIdleCallback: RequestIdleCallback | undefined;
 }
+var VimiumInjector: VimiumInjectorTy | undefined | null
 /* eslint-enable no-var, @typescript-eslint/no-unused-vars */
+((): void => {
+  const old = VimiumInjector, cur: VimiumInjectorTy = {
+    id: "", alive: -1, host: "", version: "", cache: null,
+    clickable: undefined, reload: null as never, checkIfEnabled: null as never,
+    $: null as never, $h: "", $m: null as never, $r: null as never,
+    getCommandCount: null as never, callback: null, destroy: null
+  };
+  if (old) {
+    for (let key of <Array<keyof VimiumInjectorTy>> Object.keys(old)) {
+      (cur as Generalized<VimiumInjectorTy>)[key] = old[key]
+    }
+  }
+  cur.alive = -1
+  VimiumInjector = cur
+})();
 
 (function (_a0: 1, injectorBuilder: (scriptSrc: string) => VimiumInjectorTy["reload"]): void {
+
 let runtime = ((!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
       : !!(browser && (browser as typeof chrome).runtime && (browser as typeof chrome).runtime.connect)
     ) ? browser as typeof chrome : chrome).runtime;
