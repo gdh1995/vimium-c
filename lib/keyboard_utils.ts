@@ -153,7 +153,8 @@ export const SuppressMost_ = function (this: {}, event: HandlerNS.Event): Handle
    *
    * @argument callback can be valid only if `BTypes & Chrome` and `timeout`
    */
-export const suppressTail_ = function (timeout: number, callback?: HandlerNS.VoidHandler | 0): HandlerNS.RefHandler {
+export const suppressTail_ = <T extends number = 0> (timeout?: T
+      , callback?: T extends 0 ? 0 : HandlerNS.VoidHandler | 0, notInHandlerStack?: 1): HandlerNS.RefHandler => {
     let timer = 0,
     func: HandlerNS.RefHandler = event => {
       if (!timeout) {
@@ -164,16 +165,13 @@ export const suppressTail_ = function (timeout: number, callback?: HandlerNS.Voi
       clearTimeout_(timer);
       timer = timeout_(() => { // safe-interval
         removeHandler_(func)
-        Build.BTypes & BrowserType.Chrome && isAlive_ && callback && callback()
+        Build.BTypes & BrowserType.Chrome && isAlive_ && callback && (callback as Exclude<typeof callback, 0>)!()
       }, timeout);
       return HandlerResult.Prevent;
     };
     timeout && (func as () => any)();
-    pushHandler_(func, func);
+    notInHandlerStack || pushHandler_(func, func);
     return func;
-} as {
-    (timeout: 0, callback?: undefined): HandlerNS.RefHandler;
-    (timeout: number, callback?: HandlerNS.VoidHandler): HandlerNS.RefHandler;
 }
 
   /** handler section */

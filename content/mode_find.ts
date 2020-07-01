@@ -449,7 +449,7 @@ export const deactivate = (i: FindNS.Action): void => {
     let sin = styleIn, noStyle = !sin || !sin.parentNode, hasResult = hasResults
       , maxNotRunPost = postOnEsc ? FindNS.Action.ExitAndReFocus - 1 : FindNS.Action.ExitToPostMode - 1
       , el: SafeElement | null | undefined, el2: Element | null;
-    i === FindNS.Action.ExitNoAnyFocus || focus();
+    i === FindNS.Action.ExitNoAnyFocus ? hookSel(1) : focus()
     clear()
     if (i > FindNS.Action.MaxExitButNoWork) {
       el = getSelectionFocusEdge_(getSelected()[0], 1);
@@ -783,7 +783,7 @@ const _do_find_not_cr = Build.BTypes & ~BrowserType.Chrome ? function (this: voi
 } as Window["find"] : 0 as never as null
 
 const hookSel = (t?: TimerType.fake | 1): void => {
-  isAlive_ && setupEventListener(0, "selectionchange", toggleStyle, t! > 0)
+  setupEventListener(0, "selectionchange", toggleStyle, t! > 0)
 }
 
   /** must be called after initing */

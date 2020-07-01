@@ -146,8 +146,8 @@ export {
 export function set_kSafeAllSelector (_newKSafeAll: string): void { kSafeAllSelector = _newKSafeAll as any }
 export function set_isClickListened_ (_newIsClickListened: boolean): void { isClickListened_ = _newIsClickListened }
 
-export const activate = (options: HintsNS.ContentOptions, count: number): void => {
-    if (isActive || !isEnabled_) { return; }
+export const activate = (options: HintsNS.ContentOptions, count: number, force?: 1 | TimerType.fake): void => {
+    if (isActive && !force || !isEnabled_) { return; }
     if (checkHidden(kFgCmd.linkHints, count, options)) {
       return clear()
     }
@@ -163,7 +163,7 @@ export const activate = (options: HintsNS.ContentOptions, count: number): void =
     if (parApi) {
       parApi.l(style_ui)
       // recursively go up and use the topest frame in a same origin
-      return parApi.h(options, count)
+      return parApi.h(options, count, 1)
     }
     const useFilter0 = options.useFilter, useFilter = useFilter0 != null ? !!useFilter0 : fgCache.f,
     frameList: FrameHintsInfo[] = frameList_ = [{h: [], v: null as never, s: coreHints}],
@@ -219,7 +219,7 @@ export const activate = (options: HintsNS.ContentOptions, count: number): void =
         return clear()
       }
       hints_ = keyStatus_.c = allHints
-      if (!Build.NDEBUG) { coreHints.hints_ = hints_ }
+      if (!Build.NDEBUG) { coreHints.hints_ = allHints }
     }
     noHUD_ = !(useFilter || frameList[0].v[3] > 40 && frameList[0].v[2] > 320)
         || (options.hideHUD || options.hideHud) === true;
@@ -293,8 +293,7 @@ const render = (hints: readonly HintItem[], arr: ViewBox, raw_apis: VApiTy): voi
     const managerOrA = manager_ || coreHints;
     let body = doc.body
     manager_ && body && htmlTag_(body) && body.isContentEditable && hookOnWnd(HookAction.Install)
-    if (box_) { box_.remove(); box_ = null; }
-    removeModal()
+    removeBox()
     api_ = Build.BTypes & BrowserType.Firefox && manager_ ? unwrap_ff(raw_apis) : raw_apis;
     ensureBorder(wdZoom_ / dScale_);
     if (hints.length) {
@@ -382,7 +381,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
     if (manager_) {
       /*#__INLINE__*/ set_keydownEvents_(api_.a());
       ret = manager_.n(event)
-    } else if (Build.BTypes & BrowserType.Chrome && onWaitingKey) {
+    } else if (onWaitingKey) {
       onWaitingKey(event);
     } else if (event.e.repeat || !isActive) {
       // NOTE: should always prevent repeated keys.
@@ -545,13 +544,10 @@ const delayToExecute = (officer: BaseHinter, hint: HintItem, flashEl: SafeHTMLEl
     };
     let tick = 0;
     onTailEnter = callback;
-    box_!.remove();
-    box_ = null;
+    removeBox()
     Build.BTypes & BrowserType.Firefox && (officer = unwrap_ff(officer));
     if (Build.BTypes & BrowserType.Chrome && !waitEnter) {
-      onWaitingKey = suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents
-          , callback);
-      removeHandler_(onWaitingKey);
+      onWaitingKey = suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents, callback, 1)
     } else {
       hudShow(kTip.waitEnter);
     }
@@ -566,9 +562,12 @@ const reinit = (auto?: BOOL | TimerType.fake, officer?: BaseHinter | null
     resetHints();
     activate(options_, 0);
     coreHints.w(officer, lastEl, rect);
-    auto && suppressTail_(220)
+    onWaitingKey = auto ? suppressTail_(GlobalConsts.TimeOfSuppressingUnexpectedKeydownEvents
+        , /*#__NOINLINE__*/ resetOnWaitKey, 1) : onWaitingKey
   }
 }
+
+const resetOnWaitKey = (): void => { onWaitingKey = null }
 
 /** setupCheck: should only be called on manager */
 const setupCheck: HintManager["w"] = (officer?: BaseHinter | null, el?: LinkEl | null, r?: Rect | null): void => {
@@ -617,8 +616,7 @@ const checkLast = function (this: void, el?: LinkEl | TimerType.fake | 1, r?: Re
 
 const resetHints = (): void => {
     // here should not consider about .manager_
-    if (Build.BTypes & BrowserType.Chrome) { onWaitingKey = null; }
-    onTailEnter = hints_ = null as never;
+    onWaitingKey = onTailEnter = hints_ = null as never;
     if (!Build.NDEBUG) { coreHints.hints_ = null }
     /*#__INLINE__*/ hintFilterReset();
     keyStatus_ && (keyStatus_.c = null as never);
@@ -639,6 +637,7 @@ export const clear = (keepHudOrEvent?: 0 | 1 | Event, suppressTimeout?: number):
             ? keepHudOrEvent.isTrusted !== !1 : keepHudOrEvent.isTrusted)
         && keepHudOrEvent.target === doc) {
       manager_ && manager_.u(coreHints);
+      manager_ = null
       if (keepHudOrEvent !== 1) {
         return;
       }
@@ -665,12 +664,16 @@ export const clear = (keepHudOrEvent?: 0 | 1 | Event, suppressTimeout?: number):
     useFilter_ = noHUD_ = tooHigh_ = false
     if (Build.BTypes & BrowserType.ChromeOrFirefox) { coreHints.d = false; }
     chars_ = "";
+    removeBox()
+    hud_tipTimer || hudHide()
+}
+
+const removeBox = (): void => {
     if (box_) {
       box_.remove();
       box_ = null;
     }
     removeModal()
-    hud_tipTimer || hudHide()
 }
 
 const cleanFrameInfo = function (this: number | undefined, frameInfo: FrameHintsInfo): void {
@@ -683,31 +686,30 @@ const cleanFrameInfo = function (this: number | undefined, frameInfo: FrameHints
 
 const onFrameUnload = (officer: HintOfficer): void => {
     const frames = frameList_, len = frames.length;
-    const wrappedofficer_ff = Build.BTypes & BrowserType.Firefox ? unwrap_ff(officer) : 0 as never as null;
+    const wrappedOfficer_ff = Build.BTypes & BrowserType.Firefox ? unwrap_ff(officer) : 0 as never as null
     let i = 0, offset = 0;
-    while (i < len && frames[i].s !== (Build.BTypes & BrowserType.Firefox ? wrappedofficer_ff! : officer)) {
+    while (i < len && frames[i].s !== (Build.BTypes & BrowserType.Firefox ? wrappedOfficer_ff! : officer)) {
       offset += frames[i++].h.length;
     }
     if (i >= len || !isActive || _timer) { return; }
-    const keyStat = keyStatus_, hints = keyStat.c = hints_!,
-    deleteCount = frames[i].h.length;
-    deleteCount && (hints as HintItem[]).splice(offset, deleteCount); // remove `readonly` by intent
+    const deleteCount = frames[i].h.length
+    deleteCount && (hints_ as HintItem[]).splice(offset, deleteCount) // remove `readonly` by intent
     frames.splice(i, 1);
     if (!deleteCount) { return; }
-    suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents);
-    if (!hints.length) {
+    onWaitingKey = onTailEnter ? onWaitingKey
+        : suppressTail_(GlobalConsts.TimeOfSuppressingUnexpectedKeydownEvents, /*#__NOINLINE__*/ resetOnWaitKey, 1)
+    resetZIndexes()
+    keyStatus_.c = hints_!
+    keyStatus_.n = keyStatus_.b = 0
+    if (!hints_!.length) {
       hudTip(kTip.frameUnloaded)
       clear()
-      return
-    }
-    resetZIndexes()
-    keyStat.n = keyStat.b = 0;
-    if (useFilter_) {
-      getMatchingHints(keyStat, "", "", 1);
+    } else if (useFilter_) {
+      getMatchingHints(keyStatus_, "", "", 1)
     } else {
-      for (const link of hints) { link.m.innerText = ""; }
-      initAlphabetEngine(hints);
-      renderMarkers(hints);
+      hints_!.forEach(i => { i.m.innerText = "" })
+      initAlphabetEngine(hints_!)
+      renderMarkers(hints_!)
     }
 }
 

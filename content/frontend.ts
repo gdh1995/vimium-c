@@ -257,3 +257,7 @@ if (!(Build.NDEBUG || GlobalConsts.MaxNumberOfNextPatterns <= 255)) {
 if (!(Build.NDEBUG || BrowserVer.Min$Set$Has$$forEach <= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol)) {
   console.log("Assert error: BrowserVer.Min$Set$Has$$forEach <= BrowserVer.MinES6$ForOf$Map$SetAnd$Symbol");
 }
+
+if (!Build.NDEBUG) {
+  define.noConflict()
+}

@@ -495,6 +495,7 @@ declare const enum GlobalConsts {
   MaxLimitOfVomnibarMatches = 25,
   MaxFindHistory = 50,
   TimeOfSuppressingTailKeydownEvents = 200,
+  TimeOfSuppressingUnexpectedKeydownEvents = 220,
   CommandCountLimit = 9999,
   MediaWatchInterval = 60_000, // 60 seconds - chrome.alarms only accepts an interval >= 1min, so do us
   MaxHistoryURLLength = 2_000, // to avoid data: URLs and malformed webpages

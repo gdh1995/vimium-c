@@ -31,7 +31,6 @@ var VApi: VApiTy, VimiumInjector: VimiumInjectorTy | undefined | null;
 if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { var browser: unknown; }
 
 declare var define: any
-declare var __importStar: any
 
 Build.NDEBUG || (function (): void {
   type ModuleTy = Dict<any> & { __esModule: boolean }
@@ -39,8 +38,9 @@ Build.NDEBUG || (function (): void {
   interface DefineTy {
     (deps: string[], factory: (require: RequireTy, exports: ModuleTy) => any): any
     amd?: boolean
+    noConflict (): void
   }
-  const oldDefine: DefineTy = typeof define !== "undefined" ? define : null
+  const oldDefine: DefineTy = typeof define !== "undefined" ? define : void 0
   let modules: Dict<ModuleTy> = {}
   const myDefine: DefineTy = (deps, factory): void => {
     let filename = __filename
@@ -77,6 +77,6 @@ Build.NDEBUG || (function (): void {
     return modules[target] || (modules[target] = {} as ModuleTy)
   }
   myDefine.amd = true;
-  (window as any).__importStar = (i: any): any => i;
+  myDefine.noConflict = (): void => { (window as any).define = oldDefine }
   (window as any).define = myDefine
 })()

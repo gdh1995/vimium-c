@@ -397,7 +397,7 @@ interface VApiTy {
   }
   /** filterTextToGoNext */ g: (candidates: GoNextCandidate[], names: string[], isNext: boolean, lenLimit: number[]
       , totalMax: number, maxLen: number) => number
-  /** linkActivate */ h: (options: HintsNS.ContentOptions, count: number) => void
+  /** linkActivate */ h: (options: HintsNS.ContentOptions, count: number, force?: 1) => void
   /** innerHeight_ff */ i?: (type?: undefined) => number
   /** jumpToNext */ j: (nextLink: SafeHTMLElement) => void
   /** learnCSS */ l: (srcStyleUI: HTMLStyleElement | string | null, force?: 1) => void
