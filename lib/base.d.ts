@@ -417,10 +417,7 @@ interface VApiTy {
   ] | null | undefined;
   /** copied */ s (text: string, isUrl?: BOOL | boolean): void
   /** tip */ t (tid: kTip | HintMode, duration?: number, args?: Array<string | number>): void
-  /** suppressTailKeys */ u: {
-    (timeout: 0, callback?: undefined): HandlerNS.RefHandler
-    (timeout: number, callback?: HandlerNS.VoidHandler): HandlerNS.RefHandler
-  }
+  /** suppressTailKeys */ u (timeout?: 0): HandlerNS.RefHandler
   /** flash */ x: {
     (el: null, rect: Rect, lifeTime?: number, classNames?: string): () => void
     (el: Element, rect?: null, lifeTime?: number, classNames?: string): (() => void) | void

@@ -358,7 +358,7 @@ export const select_ = (element: LockableElement, rect?: Rect | null, show_flash
     if (element !== insert_Lock_()) { return }
     // then `element` is always safe
     moveSel_need_safe(element, action)
-    if (suppressRepeated) { suppressTail_(0) }
+    if (suppressRepeated) { suppressTail_() }
   })
 }
 

@@ -440,11 +440,13 @@ declare const enum InjectorTask {
   reportLiving = 3,
   extInited = 4,
 }
+interface VApiTy {}
 interface VimiumInjectorTy {
   id: string;
   alive: 0 | 0.5 | 1 | -1;
   host: string;
   version: string;
+  $: VApiTy;
   $h: ExternalMsgs[kFgReq.inject]["res"]["h"];
   clickable: ElementSet | null | undefined;
   cache: Dict<any> | null;

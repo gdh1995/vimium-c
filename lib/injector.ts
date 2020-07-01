@@ -13,6 +13,7 @@ var VimiumInjector: VimiumInjectorTy | undefined | null = VimiumInjector || {
   clickable: undefined,
   reload: null as never,
   checkIfEnabled: null as never,
+  $: null as never,
   $h: "",
   $m: null as never,
   $r: null as never,
@@ -87,6 +88,7 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
     clickable: oldClickable,
     reload: injectorBuilder(scriptSrc),
     checkIfEnabled: null as never,
+    $: null as never,
     $h: res ? res.h : "",
     $m (task): void { VimiumInjector && VimiumInjector.$r(task.t); },
     $r (): void { /* empty */ },
@@ -135,7 +137,7 @@ if (document.readyState !== "loading") {
   addEventListener("DOMContentLoaded", start, true);
 }
 })(1, function (scriptSrc): VimiumInjectorTy["reload"] {
-  return function (do_async): void {
+  return function (isAsync): void {
     const injector = VimiumInjector;
     if (injector) {
       const oldClickable = injector.clickable;
@@ -153,10 +155,10 @@ if (document.readyState !== "loading") {
       script.src = scriptSrc;
       console.log("%cVimium C%c begins to reload%s."
         , "color:red", "color:auto"
-        , do_async === InjectorTask.reload ? " because it has been updated." : "");
+        , isAsync === InjectorTask.reload ? " because it has been updated." : "");
       (document.head || document.body || docEl).appendChild(script);
     }
-    do_async ? setTimeout(doReload, 200) : doReload();
+    isAsync ? setTimeout(doReload, 200) : doReload();
   };
 });
 

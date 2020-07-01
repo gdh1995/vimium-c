@@ -4,7 +4,7 @@ VApi.e = function (cmd): void {
     removeEventListener("hashchange", injector.checkIfEnabled);
     injector.alive = 0;
     injector.destroy = injector.checkIfEnabled = injector.getCommandCount = null as never;
-    injector.$r = injector.$m = null as never;
+    injector.$ = injector.$r = injector.$m = null as never;
     injector.clickable = null;
   }
 };
@@ -15,50 +15,41 @@ VApi.e = function (cmd): void {
       ? Build.BTypes as number
       : Build.BTypes & BrowserType.Edge && !!(window as {} as {StyleMedia: unknown}).StyleMedia ? BrowserType.Edge
       : Build.BTypes & BrowserType.Firefox && browser ? BrowserType.Firefox
-      : BrowserType.Chrome,
-  transArgsRe = <RegExpSearchable<0>> /\$\d/g;
-  if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox) {
-    (window as Writable<Window>).VApi = VApi
-  }
-  let frameElement_ = (): Element | null | void => {
-    let el: typeof frameElement | undefined;
+      : BrowserType.Chrome
+  const thisApi = VApi
+  const injector = VimiumInjector!
+  const transArgsRe = <RegExpSearchable<0>> /\$\d/g
+  const runtime: typeof chrome.runtime = (!(Build.BTypes & BrowserType.Chrome)
+        || Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome
+      ? browser as typeof chrome : chrome).runtime;
+  const safeFrameElement_ = (): Element | null | void => {
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement
         || Build.BTypes & BrowserType.Edge) {
       try {
-        if (!(Build.BTypes & BrowserType.Firefox)) { return frameElement; }
-        else { el = frameElement; }
+        return frameElement;
       } catch {}
     } else {
-      if (!(Build.BTypes & BrowserType.Firefox)) { return frameElement; }
-      el = frameElement;
-    }
-    if (Build.BTypes & BrowserType.Firefox) {
-      return el;
+      return frameElement;
     }
   }
-  if (Build.BTypes & BrowserType.Firefox) {
-    if (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) {
-      // frameElement_ = () => frameElement;
-    }
-  }
+
   let i18nMessages: FgRes[kFgReq.i18n]["m"] = null,
   i18nCallback: ((res: FgRes[kFgReq.i18n]) => void) | null = res => {
     i18nMessages = res.m;
     if (!i18nMessages && i18nCallback) {
-      setTimeout(() => VApi.r![0](kFgReq.i18n, {}, i18nCallback!), 150);
+      setTimeout(() => VApi && VApi.r![0](kFgReq.i18n, {}, i18nCallback!), 150);
     }
     i18nCallback = null;
   };
-  const thisApi = VApi;
   thisApi.r![0](kFgReq.i18n, {}, i18nCallback);
   thisApi.r![2]!(2, (tid, args): string => {
     return !i18nMessages ? args && args.length ? `T${tid}: ${args.join(", ")}` : "T" + tid
         : args ? i18nMessages[tid].replace(transArgsRe, s => <string> args[+s[1] - 1])
         : i18nMessages[tid];
   })
-  const injector = VimiumInjector!,
-  parentInjector = top !== window
-      && frameElement_()
+
+  const parentInjector = top !== window
+      && safeFrameElement_()
       && (parent as Window & {VimiumInjector?: typeof VimiumInjector}).VimiumInjector,
   // share the set of all clickable, if .dataset.vimiumHooks is not "false"
   clickable = injector.clickable = parentInjector && parentInjector.clickable || injector.clickable;
@@ -72,11 +63,12 @@ VApi.e = function (cmd): void {
     let currentKeys = func!(0)
     return currentKeys !== "-" ? parseInt(currentKeys, 10) || 1 : -1;
   }).bind(null, thisApi.r![2]!);
-  thisApi.r!.length = 1;
 
-  const runtime: typeof chrome.runtime = (!(Build.BTypes & BrowserType.Chrome)
-        || Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome
-      ? browser as typeof chrome : chrome).runtime;
+  thisApi.r!.length = 1;
+  if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox) {
+    (window as Writable<Window>).VApi = thisApi
+  }
+
   if (runtime.onMessageExternal) {
     injector.alive = 1;
   } else {
@@ -121,10 +113,11 @@ VApi.e = function (cmd): void {
     }
   }
 
-  injector.cache = VApi.z;
-  injector.destroy = VApi.d;
+  injector.$ = thisApi
+  injector.cache = thisApi.z
+  injector.destroy = thisApi.d
   injector.callback && injector.callback(1, "initing");
-  if (VApi.z) { // has loaded before this script file runs
+  if (thisApi.z) { // has loaded before this script file runs
     injector.$r(InjectorTask.extInited);
   }
 })();
