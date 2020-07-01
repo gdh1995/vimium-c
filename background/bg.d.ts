@@ -504,6 +504,7 @@ declare const enum kCName {
   removeRightTab = "removeRightTab",
   removeTab = "removeTab",
   reopenTab = "reopenTab",
+  reset = "reset",
   restoreGivenTab = "restoreGivenTab",
   restoreTab = "restoreTab",
   scrollDown = "scrollDown",
@@ -639,6 +640,7 @@ declare namespace CommandsNS {
     [kCName.removeRightTab]: kBgCmd.removeRightTab;
     [kCName.removeTab]: kBgCmd.removeTab;
     [kCName.reopenTab]: kBgCmd.reopenTab;
+    [kCName.reset]: kFgCmd.reset;
     [kCName.restoreGivenTab]: kBgCmd.restoreGivenTab;
     [kCName.restoreTab]: kBgCmd.restoreTab;
     [kCName.scrollDown]: kFgCmd.scroll;

@@ -520,6 +520,7 @@ availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeO
   removeRightTab: [ kBgCmd.removeRightTab, 1, 0 ],
   removeTab: [ kBgCmd.removeTab, 1, /** 20 in main.ts */ 0 ],
   reopenTab: [ kBgCmd.reopenTab, 1, 1 ],
+  reset: [kFgCmd.reset, 0, 1],
   restoreGivenTab: [ kBgCmd.restoreGivenTab, 1, 0 ],
   restoreTab: [ kBgCmd.restoreTab, 1, 25 as 0 ],
   scrollDown: [ kFgCmd.scroll, 0, 0 ],
