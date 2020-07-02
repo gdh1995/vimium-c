@@ -137,9 +137,9 @@ If you want to compile this project manually, please run:
 
 ``` bash
 npm install typescript
-npm install pngjs # needed for Chromium-based browsers
+npm install pngjs # only needed for Chromium-based browsers
 node scripts/tsc
-# ./scripts/make.sh released-file.zip
+# ./scripts/make.sh vimium_c-debug.zip
 ```
 
 `gulp local` can also compile files in place (using configurable build options),
@@ -153,14 +153,15 @@ The options including `MinCVer` and `BTypes` in [gulp.tsconfig.json](scripts/gul
 
 <a name="donate"></a>
 Vimium C is an open-source browser extension, and everyone can install and use it free of charge.
-If you indeed want to give its author ([gdh1995@qq.com](https://gdh1995.cn/)) financial support,
-you may donate any small amount of money to him through [PayPal](https://www.paypal.com/)
-  (https://www.paypal.me/gdh1995) or [Alipay](https://intl.alipay.com/). Thanks a lot!
+If you indeed want to give its author ([gdh1995@qq.com](https://github.com/gdh1995)) financial support,
+you may donate any small amount of money to him through
+  [Open Collective](https://opencollective.com/vimium-c), [PayPal](https://www.paypal.me/gdh1995)
+  or [Alipay](https://intl.alipay.com/). Thanks a lot!
 
 Vimium C 是一款开源的浏览器扩展程序，任何人都可以安装使用它而无需支付任何费用。
-如果您确实想要资助它的开发者（[gdh1995](https://gdh1995.cn/)），
-可以通过[支付宝](https://www.alipay.com/)或 [PayPal](https://www.paypal.com/)
-(https://www.paypal.me/gdh1995) 无偿赠与他一小笔钱。谢谢您的支持！
+如果您确实想要资助它的开发者（[gdh1995@qq.com](https://github.com/gdh1995)），
+可以通过[支付宝](https://www.alipay.com/)、[Open Collective](https://opencollective.com/vimium-c)
+或 [PayPal](https://www.paypal.me/gdh1995) 无偿赠与他一小笔钱。谢谢您的支持！
 
 A donation list is in / 捐赠列表详见: https://github.com/gdh1995/vimium-c/wiki/Donation-List .
 
@@ -174,26 +175,27 @@ See the [MIT LICENSE](LICENSE.txt) for details.
 
 * [Vimium](https://github.com/philc/vimium):
   Copyright (c) 2010 Phil Crosby, Ilya Sukhar.
-  [MIT-licensed](https://github.com/philc/vimium/blob/master/MIT-LICENSE.txt).
+  Licensed under the [MIT license](https://github.com/philc/vimium/blob/master/MIT-LICENSE.txt).
 * [TypeScript](https://github.com/Microsoft/TypeScript):
     and modified `es.d.ts`, `es/*`, `dom.d.ts` and `chrome.d.ts` in `types/`:
   Copyright (c) Microsoft Corporation (All rights reserved).
-  Licensed under the Apache License, Version 2.0.
+  Licensed under the [Apache License 2.0](https://github.com/microsoft/TypeScript/blob/master/LICENSE.txt).
   See more on [www.typescriptlang.org](http://www.typescriptlang.org/).
 * [Viewer.js](https://github.com/fengyuanchen/viewerjs)
   ([Modified](https://github.com/gdh1995/viewerjs)):
   Copyright (c) 2015-present Chen Fengyuan.
-  [MIT-licensed](https://github.com/fengyuanchen/viewerjs/blob/master/LICENSE).
+  Licensed under the [MIT license](https://github.com/fengyuanchen/viewerjs/blob/master/LICENSE).
 * [JavaScript Expression Evaluator](https://github.com/silentmatt/expr-eval)
   ([Modified](https://github.com/gdh1995/js-expression-eval)):
   Copyright (c) 2015 Matthew Crumley.
-  [MIT-licensed](https://github.com/silentmatt/expr-eval/blob/master/LICENSE.txt).
+  Licensed under the [MIT license](
+    https://github.com/silentmatt/expr-eval/blob/4327f05412a3046a9b527b6ec3b50843cb0428e8/LICENSE.txt).
 * The orange picture in the icon is from https://pixabay.com/vectors/orange-fruit-mandarin-citrus-fruit-158258/
 * [微度新标签页](http://www.weidunewtab.com/):
   (c) 2012 杭州佐拉网络有限公司 保留所有权利.
 * [PDF.js](https://github.com/mozilla/pdf.js/):
   Copyright (c) Mozilla and individual contributors.
-  Licensed under the Apache License, Version 2.0.
+  Licensed under the [Apache License 2.0](https://github.com/mozilla/pdf.js/blob/master/LICENSE).
 
 # Declaration for Applicable Regions
 

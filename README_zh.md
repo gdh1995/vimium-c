@@ -86,7 +86,7 @@ Vimium C 还提供了一个用于浏览器地址栏的搜索引擎 “v”，在
 ## 安全与隐私
 
 Vimium C 具有完善的安全机制：
-* 处理网页内容时，及时清理使用痕迹，执行命令期间的文字输入、操作结果等等都会被丢弃
+* 处理网页内容时，及时清理使用痕迹，执行命令期间的文字输入、操作结果等等都会被很快丢弃
 * 上述搜索框支持设置屏蔽词来隐藏部分搜索结果（主动搜索了某屏蔽词时则不隐藏）
 * 当它收到来自其它扩展程序的消息时，会按照一份用户指定的受信任扩展标识符的列表来审核消息来源
 * 可以关闭“借助浏览器账号同步扩展设置”的功能，且此同步功能不会同步页内查找历史等信息
@@ -94,15 +94,18 @@ Vimium C 具有完善的安全机制：
 # 捐赠 / Donate
 
 <a name="donate"></a>
+
 Vimium C 是一款开源的浏览器扩展程序，任何人都可以安装使用它而无需支付任何费用。
-如果您确实想要资助它的开发者（[gdh1995](https://gdh1995.cn/)），
-可以通过[支付宝](https://www.alipay.com/)或 [PayPal](https://www.paypal.com/)
-(https://www.paypal.me/gdh1995) 无偿赠与他一小笔钱。谢谢您的支持！
+如果您确实想要资助它的开发者（[gdh1995@qq.com](https://github.com/gdh1995)），
+可以通过[支付宝](https://www.alipay.com/)、[Open Collective](https://opencollective.com/vimium-c)
+或 [PayPal](https://www.paypal.me/gdh1995) 无偿赠与他一小笔钱。谢谢您的支持！
 
 Vimium C is an open-source browser extension, and everyone can install and use it free of charge.
-If you indeed want to give its author ([gdh1995](https://gdh1995.cn/)) financial support,
-you may donate any small amount of money to him through [PayPal](https://www.paypal.com/)
-  (https://www.paypal.me/gdh1995) or [Alipay](https://intl.alipay.com/). Thanks a lot!
+If you indeed want to give its author ([gdh1995@qq.com](https://github.com/gdh1995)) financial support,
+you may donate any small amount of money to him through
+  [Open Collective](https://opencollective.com/vimium-c), [PayPal](https://www.paypal.me/gdh1995)
+  or [Alipay](https://intl.alipay.com/). Thanks a lot!
+
 
 捐赠列表详见 / A donation list is in : https://github.com/gdh1995/vimium-c/wiki/Donation-List .
 
