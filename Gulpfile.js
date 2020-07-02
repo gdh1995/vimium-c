@@ -432,7 +432,7 @@ var Tasks = {
     cmd += `npm run ${isEdge ? "edge-c" : getBuildItem("BTypes") === BrowserType.Firefox ? "firefox" : "chrome"}`
     let checkout = getBuildItem("Commit") && `git checkout ${getGitCommit(-1)}`
     let install_deps = `npm ci`
-    let fullCmds = [checkout, install_deps, cmd].map(i => i.trim()).filter(i => i)
+    let fullCmds = [checkout, install_deps, cmd].map(i => i && i.trim()).filter(i => i)
     try {
       fs.writeFileSync(osPath.join(DEST, ".snapshot.sh"), fullCmds.concat("").join("\n"))
     } catch (e) {

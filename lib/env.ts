@@ -1,4 +1,10 @@
 /* eslint-disable no-var, @typescript-eslint/no-unused-vars */
+if (!Build.NDEBUG) {
+  var __filename: string | null | undefined;
+}
+if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) {
+  var browser: unknown;
+}
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6WeakMapAndWeakSet) {
   var WeakSet: WeakSetConstructor | undefined;
   var WeakMap: WeakMapConstructor | undefined;
@@ -18,17 +24,11 @@ interface VisualViewport { width?: number; height: number; offsetLeft: number; o
 if (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinEnsured$visualViewport$) {
   var visualViewport: VisualViewport | undefined;
 }
-
 if (Build.BTypes & BrowserType.Chrome) {
   var WeakRef: unknown;
 }
 
-if (!Build.NDEBUG) {
-  var __filename: string | null | undefined;
-}
-
 var VApi: VApiTy, VimiumInjector: VimiumInjectorTy | undefined | null;
-if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { var browser: unknown; }
 
 declare var define: any
 
