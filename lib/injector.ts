@@ -2,17 +2,8 @@
 /// <reference path="../typings/lib/index.d.ts" />
 /// <reference path="../typings/build/index.d.ts" />
 
-/* eslint-disable no-var, @typescript-eslint/no-unused-vars */
-if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { var browser: unknown; }
-if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6WeakMapAndWeakSet) {
-  var WeakSet: WeakSetConstructor | undefined;
-}
-if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback
-    || Build.BTypes & BrowserType.Edge) {
-  var requestIdleCallback: RequestIdleCallback | undefined;
-}
+// eslint-disable-next-line no-var, @typescript-eslint/no-unused-vars
 var VimiumInjector: VimiumInjectorTy | undefined | null
-/* eslint-enable no-var, @typescript-eslint/no-unused-vars */
 ((): void => {
   const old = VimiumInjector, cur: VimiumInjectorTy = {
     id: "", alive: -1, host: "", version: "", cache: null,
@@ -30,14 +21,16 @@ var VimiumInjector: VimiumInjectorTy | undefined | null
 })();
 
 (function (_a0: 1, injectorBuilder: (scriptSrc: string) => VimiumInjectorTy["reload"]): void {
-
+const mayBrowser_ = Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome
+    && typeof browser === "object" && !("tagName" in (browser as unknown as Element))
+    ? browser as typeof chrome : null
 let runtime = ((!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
-      : !!(browser && (browser as typeof chrome).runtime && (browser as typeof chrome).runtime.connect)
+      : !!(mayBrowser_ && mayBrowser_.runtime && mayBrowser_.runtime.connect)
     ) ? browser as typeof chrome : chrome).runtime;
-const curEl = document.currentScript as HTMLScriptElement, scriptSrc = curEl.src, i0 = scriptSrc.indexOf("://") + 3,
-onIdle = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback && Build.BTypes & BrowserType.Chrome
+const curEl = document.currentScript as HTMLScriptElement, scriptSrc = curEl.src, i0 = scriptSrc.indexOf("://") + 3
+let onIdle = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback && Build.BTypes & BrowserType.Chrome
     || Build.BTypes & BrowserType.Edge
-  ? window.requestIdleCallback as Exclude<Window["requestIdleCallback"], Element | Window | HTMLCollection>
+  ? window.requestIdleCallback
   : requestIdleCallback;
 let tick = 1, extID = scriptSrc.slice(i0, scriptSrc.indexOf("/", i0));
 if (!(Build.BTypes & BrowserType.Chrome) || Build.BTypes & ~BrowserType.Chrome && extID.indexOf("-") > 0) {
@@ -45,6 +38,10 @@ if (!(Build.BTypes & BrowserType.Chrome) || Build.BTypes & ~BrowserType.Chrome &
 }
 extID = curEl.dataset.extensionId || extID;
 VimiumInjector.id = extID;
+if (Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback && Build.BTypes & BrowserType.Chrome
+    || Build.BTypes & BrowserType.Edge) {
+  onIdle = typeof onIdle !== "function" || "tagName" in (onIdle as unknown as Element) ? null as never : onIdle
+}
 function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined | false): void {
   type LastError = chrome.runtime.LastError;
   let str: string | undefined, noBackend: boolean, err = runtime.lastError as void | LastError;
@@ -126,8 +123,8 @@ function start(): void {
   removeEventListener("DOMContentLoaded", start);
   (Build.MinCVer >= BrowserVer.MinEnsured$requestIdleCallback || !(Build.BTypes & BrowserType.Chrome))
     && !(Build.BTypes & BrowserType.Edge) || onIdle
-  ? onIdle!((): void => {
-    onIdle!((): void => { setTimeout(call, 0); }, {timeout: 67});
+  ? (onIdle as RequestIdleCallback)((): void => {
+    (onIdle as RequestIdleCallback)!((): void => { setTimeout(call, 0); }, {timeout: 67});
   }, {timeout: 330}) : setTimeout(call, 67);
 }
 if (document.readyState !== "loading") {
@@ -175,7 +172,8 @@ interface ElementWithClickable {
 }
 VimiumInjector.clickable = VimiumInjector.clickable
     || ( Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
-        || window.WeakSet ? new WeakSet!<Element>() : <WeakSet<Element>> {
+        || typeof WeakSet === "function" && !("tagName" in (WeakSet as unknown as Element))
+        ? new WeakSet!<Element>() : <WeakSet<Element>> {
   add (element: Element) { (element as ElementWithClickable).vimiumClick = true; return this; },
   has (element: Element): boolean { return !!(element as ElementWithClickable).vimiumClick; },
   delete (element: Element): boolean {

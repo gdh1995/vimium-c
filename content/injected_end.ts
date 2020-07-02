@@ -10,18 +10,21 @@ VApi.e = function (cmd): void {
 };
 
 (function (): void {
+  const mayBrowser_ = Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome
+      && typeof browser === "object" && !("tagName" in (browser as unknown as Element))
+      ? browser as typeof chrome : null
   const OnOther: BrowserType = !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
         || !(Build.BTypes & ~BrowserType.Edge)
       ? Build.BTypes as number
       : Build.BTypes & BrowserType.Edge && !!(window as {} as {StyleMedia: unknown}).StyleMedia ? BrowserType.Edge
-      : Build.BTypes & BrowserType.Firefox && browser ? BrowserType.Firefox
-      : BrowserType.Chrome
+      : Build.BTypes & BrowserType.Firefox && mayBrowser_ && mayBrowser_.runtime && mayBrowser_.runtime.connect
+      ? BrowserType.Firefox : BrowserType.Chrome
   const thisApi = VApi
   const injector = VimiumInjector!
   const transArgsRe = <RegExpSearchable<0>> /\$\d/g
-  const runtime: typeof chrome.runtime = (!(Build.BTypes & BrowserType.Chrome)
-        || Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome
-      ? browser as typeof chrome : chrome).runtime;
+  const runtime: typeof chrome.runtime = (!(Build.BTypes & BrowserType.Chrome) ? browser as typeof chrome
+      : Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome
+      ? mayBrowser_! : chrome).runtime;
   const safeFrameElement_ = (): Element | null | void => {
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement
         || Build.BTypes & BrowserType.Edge) {
