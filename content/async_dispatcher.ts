@@ -1,10 +1,11 @@
 import { doc, deref_, weakRef_, VOther, chromeVer_, jsRe_, getTime, parseSedOptions } from "../lib/utils"
 import { IsInDOM_, activeEl_unsafe_, isInTouchMode_cr_, MDW, htmlTag_, CLK } from "../lib/dom_utils"
+import { suppressTail_ } from "../lib/keyboard_utils"
 import { center_, getVisibleClientRect_, view_ } from "../lib/rect"
 import { insert_Lock_ } from "./insert"
 import { post_ } from "./port"
 import { flash_, moveSel_need_safe } from "./dom_ui"
-import { suppressTail_ } from "../lib/keyboard_utils"
+import { hintApi } from "./link_hints"
 import { beginToPreventClick_ff, wrappedDispatchMouseEvent_ff } from "./extend_click_ff"
 
 type kMouseMoveEvents = "mouseover" | "mouseenter" | "mousemove" | "mouseout" | "mouseleave"
@@ -337,8 +338,8 @@ export const click_ = async (element: SafeElementForMouse
     reuse = Build.BTypes & BrowserType.Firefox && specialAction! & kClickAction.openInNewWindow
         ? ReuseType.newWindow
         : modifiers && modifiers[3] || specialAction! < kClickAction.newTabFromMode
-          ? ReuseType.newFg : ReuseType.newBg
-    post_({
+          ? ReuseType.newFg : ReuseType.newBg;
+    (hintApi ? hintApi.p : post_)({
       H: kFgReq.openUrl,
       u: parentAnchor!.href,
       f: !0,
