@@ -636,17 +636,21 @@ export const clear = (keepHudOrEvent?: 0 | 1 | Event, suppressTimeout?: number):
         && (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Event$$IsTrusted
             ? keepHudOrEvent.isTrusted !== !1 : keepHudOrEvent.isTrusted)
         && keepHudOrEvent.target === doc) {
-      manager_ && manager_.u(coreHints);
+      coreHints.p && manager_!.u(coreHints);
       manager_ = null
       if (keepHudOrEvent !== 1) {
         return;
       }
     }
-    const manager = manager_;
+    const manager = coreHints.p as HintManager | null;
     isActive = _timer = 0
-    manager_ = null;
+    manager_ = coreHints.p = null;
     manager && manager.c(keepHudOrEvent, suppressTimeout);
-    frameList_.forEach(cleanFrameInfo, suppressTimeout);
+    frameList_.forEach((frameInfo: FrameHintsInfo): void => { try {
+      let frame = frameInfo.s, hasManager = frame.p
+      frame.p = null
+      hasManager && frame.c(0, suppressTimeout)
+    } catch { /* empty */ } }, suppressTimeout);
     coreHints.y = frameList_ = [];
     setupEventListener(0, "unload", clear, 1);
     resetHints();
@@ -674,14 +678,6 @@ const removeBox = (): void => {
       box_ = null;
     }
     removeModal()
-}
-
-const cleanFrameInfo = function (this: number | undefined, frameInfo: FrameHintsInfo): void {
-    try {
-      let frame = frameInfo.s, hasManager = frame.p;
-      frame.p = null;
-      hasManager && frame.c(0, this);
-    } catch { /* empty */ }
 }
 
 const onFrameUnload = (officer: HintOfficer): void => {
