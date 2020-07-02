@@ -1,4 +1,4 @@
-import { doc, deref_, weakRef_, VOther, chromeVer_, jsRe_, getTime } from "../lib/utils"
+import { doc, deref_, weakRef_, VOther, chromeVer_, jsRe_, getTime, parseSedOptions } from "../lib/utils"
 import { IsInDOM_, activeEl_unsafe_, isInTouchMode_cr_, MDW, htmlTag_, CLK } from "../lib/dom_utils"
 import { center_, getVisibleClientRect_, view_ } from "../lib/rect"
 import { insert_Lock_ } from "./insert"
@@ -229,7 +229,8 @@ export const unhover_ = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >
 export const click_ = async (element: SafeElementForMouse
     , rect?: Rect | null, addFocus?: boolean | BOOL, modifiers?: MyMouseControlKeys | null
     , specialAction?: kClickAction, button?: AcceptableClickButtons
-    , /** default: false */ touchMode?: null | false | /** false */ 0 | true | "auto"): Promise<void | 1> => {
+    , /** default: false */ touchMode?: null | false | /** false */ 0 | true | "auto"
+    , userOptions?: UserSedOptions): Promise<void | 1> => {
   /**
    * for important events including `mousedown`, `mouseup`, `click` and `dblclick`, wait for two micro tasks;
    * for other events, just wait for one micro task
@@ -341,6 +342,7 @@ export const click_ = async (element: SafeElementForMouse
       H: kFgReq.openUrl,
       u: parentAnchor!.href,
       f: !0,
+      e: userOptions && parseSedOptions(userOptions),
       n: noopener,
       r: reuse
     })

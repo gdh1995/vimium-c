@@ -1,6 +1,7 @@
 import {
   chromeVer_, doc, esc, EscF, fgCache, isTop, safeObj, set_esc, VOther, VTr, safer, timeout_, loc_, weakRef_, deref_,
   keydownEvents_,
+  parseSedOptions,
 } from "../lib/utils"
 import { isHTML_, htmlTag_, createElement_, frameElement_, querySelectorAll_unsafe_ } from "../lib/dom_utils"
 import {
@@ -178,7 +179,7 @@ export const contentCommands_: {
     post_({
       H: kFgReq.copy,
       s: str as never as undefined,
-      e: options.sed,
+      e: parseSedOptions(options),
       u: (str ? "" : options.url ? loc_.href : doc.title) as "url",
       d: options.decoded || options.decode
     });
@@ -193,7 +194,7 @@ export const contentCommands_: {
       H: kFgReq.searchAs,
       u: loc_.href,
       c: options.copied,
-      s: options.sed,
+      s: parseSedOptions(options),
       t: options.selected ? getSelectionText() : ""
     });
   },

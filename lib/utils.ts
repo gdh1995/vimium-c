@@ -153,3 +153,8 @@ export const isImageUrl = (str: string | null): boolean => {
 export const recordLog = (tip: kTip | string): void => {
   console.log(tip > 0 ? VTr(<kTip> tip) : tip, loc_.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"), getTime())
 }
+
+export const parseSedOptions = (opts: UserSedOptions): ParsedSedOpts => {
+  const sed = opts.sed
+  return !sed || typeof sed !== "object" ? ({ r: sed, k: opts.sedKeys || opts.sedKey }) : sed
+}

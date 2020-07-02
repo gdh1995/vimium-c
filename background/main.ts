@@ -1763,11 +1763,11 @@
       if ((cOptions.url_mask || cOptions.url_mark || cOptions.host_mask || cOptions.host_mark) && !tabs) {
         return onRuntimeError() || <any> void getCurTab(BackgroundCommands[kBgCmd.openUrl]);
       }
-      const sed = (cOptions as OpenUrlOptions).sed;
+      let sed = Clipboard_.parseSedOptions_(cOptions as OpenUrlOptions)
       if (cOptions.url) {
         let url = cOptions.url + "";
         if (sed) {
-          url = Clipboard_.substitute_(url, SedContext.paste, sed);
+          url = Clipboard_.substitute_(url, sed.k ? SedContext.NONE : SedContext.paste, sed);
         }
         openUrl(url, Urls.WorkType.EvenAffectStatus, tabs);
       } else if (cOptions.copied) {
@@ -1780,7 +1780,7 @@
       } else {
         let url_f = cOptions.url_f as Urls.Url;
         if (sed && typeof url_f === "string" && url_f) {
-          url_f = Clipboard_.substitute_(url_f, SedContext.paste, sed);
+          url_f = Clipboard_.substitute_(url_f, sed.k ? SedContext.NONE : SedContext.paste, sed);
         }
         openUrl(url_f || "", Urls.WorkType.FakeType, tabs);
       }
@@ -1940,7 +1940,8 @@
         H: kFgReq.parseUpperUrl,
         u: "", // just a hack to make TypeScript compiler happy
         p: cRepeat,
-        t: cOptions.trailingSlash, s: cOptions.trailing_slash,
+        t: cOptions.trailingSlash, r: cOptions.trailing_slash,
+        s: Clipboard_.parseSedOptions_(cOptions as {}),
         e: true
       });
     },
@@ -1974,7 +1975,7 @@
     /* kBgCmd.copyWindowInfo: */ function (this: void): void {
       let decoded = !!(cOptions.decoded || cOptions.decode), type = cOptions.type as string | undefined;
       if (type === "frame" && cPort) {
-        requireURL({ H: kFgReq.copy, u: "" as "url", d: decoded, e: cOptions.sed });
+        requireURL({ H: kFgReq.copy, u: "" as "url", d: decoded, e: Clipboard_.parseSedOptions_(cOptions as {}) });
         return;
       }
       // include those hidden on Firefox
@@ -1983,7 +1984,8 @@
               currentWindow: true }, (tabs): void => {
         if (!type || type === "title" || type === "frame" || type === "url") {
           requestHandlers[kFgReq.copy]({
-            u: (type === "title" ? tabs[0].title : getTabUrl(tabs[0])) as "url", d: decoded, e: cOptions.sed
+            u: (type === "title" ? tabs[0].title : getTabUrl(tabs[0])) as "url",
+            d: decoded, e: Clipboard_.parseSedOptions_(cOptions as {})
           }, cPort);
           return;
         }
@@ -2004,7 +2006,7 @@
           return decoded && s1 === "url" ? BgUtils_.decodeUrlForCopy_(getTabUrl(i))
             : s1 !== "__proto__" && (i as Dict<any>)[s1] || "";
         })),
-        result = BgUtils_.copy_(data, join, cOptions.sed);
+        result = BgUtils_.copy_(data, join, Clipboard_.parseSedOptions_(cOptions as {}));
         Backend_.showHUD_(type === "tab" && tabs.length < 2 ? result : trans_("copiedWndInfo"), 1);
       });
     },
@@ -2331,7 +2333,7 @@
       } else if (!hash && url_l.startsWith("ftp:")) {
         endSlash = true;
       } else {
-        endSlash = request.t != null ? !!request.t : request.s != null ? !!request.s
+        endSlash = request.t != null ? !!request.t : request.r != null ? !!request.r
           : path.length > 1 && path.endsWith("/")
             || (<RegExpI> /\.([a-z]{2,3}|apng|jpeg|tiff)$/i).test(path); // just a try: not include .html
       }
@@ -2358,7 +2360,7 @@
         str = decoded ? enc(path) : path;
         url = url.slice(0, start) + (end ? str + url.slice(end) : str);
       }
-      let substituted = Clipboard_.substitute_(url, SedContext.gotoUrl) || url
+      let substituted = Clipboard_.substitute_(url, SedContext.gotoUrl, request.s) || url
       if (substituted !== url) {
         // if substitution returns an invalid URL, then refuse it
         BgUtils_.convertToUrl_(substituted, null, Urls.WorkType.KeepAll)
@@ -2720,9 +2722,7 @@
       if (req.a !== false) {
         prefix += "auto=once&";
       }
-      if (req.e) {
-        url = Clipboard_.substitute_(url, SedContext.paste, req.e);
-      }
+      url = req.e ? Clipboard_.substitute_(url, SedContext.paste, req.e) : url
       openShowPage(prefix + url, req.r, { opener: true });
     },
     /** kFgReq.gotoMainFrame: */ function (this: void, req: FgReq[kFgReq.gotoMainFrame], port: Port): void {

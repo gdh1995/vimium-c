@@ -207,8 +207,19 @@ type FgCmdAcrossFrames = kFgCmd.linkHints | kFgCmd.scroll | kFgCmd.vomnibar | kF
 interface FgOptions extends SafeDict<any> {}
 type SelectActions = "" | "all" | "all-input" | "all-line" | "start" | "end";
 
+interface ParsedSedOpts {
+  /** sed rules, splitted by spaces */ r: string | boolean | null | undefined
+  /** keys */ k: string | null | undefined
+}
+type MixedSedOpts = string | boolean | ParsedSedOpts
+interface UserSedOptions {
+  sed?: MixedSedOpts | null
+  sedKeys?: string | null
+  sedKey?: string | null
+}
+
 declare namespace HintsNS {
-  interface Options {
+  interface Options extends UserSedOptions {
     action?: string;
     characters?: string;
     useFilter?: boolean;
@@ -222,7 +233,6 @@ declare namespace HintsNS {
     scroll?: "force";
     touch?: null | boolean | "auto";
     join?: FgReq[kFgReq.copy]["j"];
-    sed?: string | boolean;
     decoded?: boolean;
     toggle?: {
       [selector: string]: string;
@@ -321,8 +331,7 @@ interface CmdOptions {
   [kFgCmd.autoCopy]: {
     url: boolean;
     decoded: boolean; decode?: boolean;
-    sed?: string;
-  };
+  } & UserSedOptions;
   [kFgCmd.autoOpen]: {
     keyword?: string;
     testUrl?: boolean
@@ -331,8 +340,7 @@ interface CmdOptions {
   [kFgCmd.searchAs]: {
     /** default to true */ copied?: boolean;
     /** default to true */ selected?: boolean;
-    /** sed rule */ sed?: string;
-  };
+  } & UserSedOptions;
   [kFgCmd.focusInput]: {
     act?: "" | "backspace" | "switch" | "last" | "last-visible";
     action?: "" | "backspace" | "switch" | "last" | "last-visible";
@@ -357,8 +365,11 @@ declare const enum kMarkAction {
 }
 
 declare const enum SedContext {
-  _mask = "mask",
-  copy = 1, paste = 2, image = 4, gotoUrl = 8,
+  NONE = 0,
+  /** `c` */ copy = 1 << 2,
+  /** `p` */ paste = 1 << 15,
+  /** `i` */ image = 1 << 8,
+  /** `g` */ gotoUrl = 1 << 6,
 }
 
 interface FgRes {
@@ -386,7 +397,8 @@ interface FgReqWithRes {
     /** force */ f?: BOOL;
     /** id */ i?: undefined;
     /** trailingSlash */ t: boolean | null | undefined;
-    /** @deprecated trailingSlash (old) */ s?: boolean | null | undefined;
+    /** @deprecated trailingSlash (old) */ r?: boolean | null | undefined;
+    /** sed : not for kFgReq.parseSearchUrl */ s?: MixedSedOpts | null;
     /** execute / e: unknown; */
   };
   [kFgReq.parseSearchUrl]: {
@@ -418,7 +430,7 @@ interface FgReq {
   [kFgReq.searchAs]: {
     /** url */ u: string;
     /** selected text */ t: string;
-    /** sed */ s: string | undefined;
+    /** sed */ s: ParsedSedOpts | null;
     /** copied */ c: boolean | undefined;
   };
   [kFgReq.gotoSession]: {
@@ -429,7 +441,7 @@ interface FgReq {
     // note: need to sync members to ReqH::openUrl in main.ts
     /** url */ u?: string;
     /** test-URL */ t?: boolean;
-    /** sed */ e?: string | boolean;
+    /** sed */ e?: ParsedSedOpts | null;
     /** formatted-by-<a>.href */ f?: boolean;
     /** copied */ c?: boolean;
     /** keyword */ k?: string | null;
@@ -469,14 +481,14 @@ interface FgReq {
   [kFgReq.copy]: {
     /** data */ s: string | any[];
     /** [].join($j) */ j?: string | boolean;
-    /** sed */ e?: string | boolean;
+    /** sed */ e?: ParsedSedOpts | null;
     u?: undefined | "";
     /** decode (not in use) */ d?: boolean;
   } | {
     /** url */ u: "url";
     /** data */ s?: undefined | "";
     j?: undefined;
-    /** sed */ e?: string | boolean;
+    /** sed */ e?: ParsedSedOpts | null;
     /** decode */ d?: boolean;
   };
   [kFgReq.key]: {
@@ -502,7 +514,7 @@ interface FgReq {
   [kFgReq.openImage]: {
     /** file */ f: string | null;
     /** url */ u: string;
-    /** sed */ e: string | boolean | undefined;
+    /** sed */ e: ParsedSedOpts | null;
     /** reuse */ r: ReuseType;
     /** auto: default to true */ a?: boolean;
   };
@@ -533,7 +545,7 @@ interface OpenUrlOptions {
   /* pasted */ $p?: 1
   position?: "start" | "begin" | "end" | "before" | "after"
   window?: boolean
-  sed?: string | boolean
+  sed?: MixedSedOpts | null
 }
 
 declare namespace Req {

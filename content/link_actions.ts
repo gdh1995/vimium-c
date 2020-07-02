@@ -1,6 +1,7 @@
 import HintItem = HintsNS.HintItem
 import {
   safer, fgCache, VOther, isImageUrl, jsRe_, set_keydownEvents_, keydownEvents_, timeout_, doc, chromeVer_, weakRef_,
+  parseSedOptions,
 } from "../lib/utils"
 import { getVisibleClientRect_, center_, view_ } from "../lib/rect"
 import {
@@ -131,7 +132,7 @@ const openUrl = (url: string, incognito?: boolean): void => {
     r: hintMode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
     u: url,
     f: incognito,
-    e: hintOptions.sed,
+    e: parseSedOptions(hintOptions),
     i: incognito,
     k: hintOptions.keyword, t: hintOptions.testUrl
   });
@@ -306,7 +307,7 @@ export const linkActions: readonly LinkAction[] = [
     hintApi.p({
       H: kFgReq.copy,
       j: hintOptions.join,
-      e: hintOptions.sed,
+      e: parseSedOptions(hintOptions),
       d: isUrl && hintOptions.decoded !== !1,
       s: lastYanked || str
     });
@@ -360,7 +361,7 @@ export const linkActions: readonly LinkAction[] = [
       H: kFgReq.openImage,
       r: hintMode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
       f: getImageName_(img),
-      e: hintOptions.sed,
+      e: parseSedOptions(hintOptions),
       u: text,
       a: hintOptions.auto
     });
@@ -467,7 +468,8 @@ export const linkActions: readonly LinkAction[] = [
         , rect, mask > 0 || (link as ElementToHTMLorSVG).tabIndex! >= 0
         , [!1, ctrl && !isMac, ctrl && isMac, shift]
         , specialActions, isRight ? kClickButton.second : kClickButton.none
-        , !(Build.BTypes & BrowserType.Chrome) || otherActions || newTab ? 0 : hintOptions.touch))
+        , !(Build.BTypes & BrowserType.Chrome) || otherActions || newTab ? 0 : hintOptions.touch
+        , hintOptions))
     .then((ret): void => {
       autoUnhover ? unhover_() : isQueue || ret && unhoverOnEsc()
     })

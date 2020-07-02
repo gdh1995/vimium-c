@@ -6,7 +6,7 @@ declare const enum SedAction {
   upper = 16, lower = 32, normalize = 64, reverseText = 128,
 }
 interface ClipSubItem {
-  contexts_: SedContext & number;
+  contexts_: SedContext;
   actions_: SedAction;
   match_: RegExp;
   replaced_: string;
@@ -31,7 +31,7 @@ const Clipboard_ = {
     const result: ClipSubItem[] = [];
     for (let line of text.split("\n")) {
       line = line.trim();
-      const prefix = (<RegExpOne> /^([cgips]{1,4})([^\x00- A-Za-z\\])/).exec(line);
+      const prefix = (<RegExpOne> /^([a-z]{1,6})([^\x00- A-Za-z\\])/).exec(line);
       if (!prefix) { continue; }
       const sep = "\\u" + (prefix[2].charCodeAt(0) + 0x10000).toString(16).slice(1),
       head = prefix[1],
@@ -47,9 +47,7 @@ const Clipboard_ = {
         actions |= Clipboard_.SedActionMap_[i] || 0
       }
       result.push({
-        contexts_: +head.includes("s") * (SedContext.copy | SedContext.paste)
-            + +head.includes("c") * SedContext.copy + +head.includes("p") * SedContext.paste
-            + +head.includes("g") * SedContext.gotoUrl + +head.includes("i") * SedContext.image,
+        contexts_: Clipboard_.parseSedKeys_(head),
         actions_: actions + +(suffix.includes("r") && !flags.includes("g")) * SedAction.retainMatched
             + +suffix.includes("d") * SedAction.decodeMaybeEscaped + +suffix.includes("D") * SedAction.decodeForCopy,
         match_: matchRe,
@@ -66,15 +64,34 @@ const Clipboard_ = {
         : s === "0" ? "$&" : s >= "1" && s <= "9" ? "$" + s // like r"\1" in sed
         : s // like r"abc\.def" / r"abc\\def"
   }),
-  substitute_ (text: string, context: SedContext & number, sed?: string | boolean): string {
-    if (sed === false) { return text; }
+  parseSedOptions_ (sed: string | boolean | UserSedOptions | null | undefined): ParsedSedOpts | null {
+    let r: MixedSedOpts | null | undefined, k: string | null | undefined
+    return !sed ? null : typeof sed !== "object" ? { r: sed, k: ""}
+        : !(r = sed.sed) && !(k = sed.sedKeys || sed.sedKey) ? null
+        : !r || typeof r !== "object" ? { r, k } : r.r || r.k ? r : null
+  },
+  parseSedKeys_ (keys: string): SedContext {
+    let context = SedContext.NONE
+    for (let i = 0; i < keys.length; i++) {
+      const ch = keys.charCodeAt(i) & ~kCharCode.CASE_DELTA
+      context |= ch < kCharCode.minAlphabet || ch > kCharCode.maxAlphabet ? SedContext.NONE
+        : ch === kCharCode.S ? SedContext.copy | SedContext.paste : (1 << (ch - kCharCode.A)) as SedContext
+    }
+    return context
+  },
+  substitute_ (text: string, context: SedContext, mixedSed?: MixedSedOpts | null): string {
+    const notParsed = !mixedSed || typeof mixedSed !== "object"
+    let rules = notParsed ? mixedSed as Exclude<typeof mixedSed, ParsedSedOpts> : (mixedSed as ParsedSedOpts).r
+    if (rules === false) { return text }
     let arr = Clipboard_.staticSeds_
         || (Clipboard_.staticSeds_ = Clipboard_.parseSeds_(Settings_.get_("clipSub")));
     // note: `sed` may come from options of key mappings, so here always convert it to a string
-    if (sed && sed !== true) {
-      sed = (sed + "").replace(<RegExpG> /(?!\\) ([cgips]{1,4})(?![\x00- A-Za-z\\])/g, "\n$1")
-      arr = arr.concat(Clipboard_.parseSeds_(sed))
+    if (rules && rules !== true) {
+      rules = (rules + "").replace(<RegExpG> /(?!\\) ([a-z]{1,6})(?![\x00- A-Za-z\\])/g, "\n$1")
+      arr = arr.concat(Clipboard_.parseSeds_(rules))
     }
+    context = !notParsed && (mixedSed as ParsedSedOpts).k ? Clipboard_.parseSedKeys_((mixedSed as ParsedSedOpts).k!)
+        : context
     let start: SedAction = 0, end = 0, first_group: string | undefined
     for (const item of arr) {
       if (item.contexts_ & context) {
@@ -125,7 +142,7 @@ const Clipboard_ = {
       && (el.contentEditable = "true");
     return el;
   },
-  format_ (data: string | any[], join?: FgReq[kFgReq.copy]["j"], sed?: string | boolean): string {
+  format_ (data: string | any[], join?: FgReq[kFgReq.copy]["j"], sed?: MixedSedOpts | null): string {
     if (typeof data !== "string") {
       data = join === "json" ? JSON.stringify(data, null, 2) : data.join(join !== !!join && (join as string) || "\n") +
           (data.length > 1 && (!join || join === !!join) ? "\n" : "");
@@ -141,7 +158,7 @@ const Clipboard_ = {
     data = Clipboard_.substitute_(data, SedContext.copy, sed);
     return data;
   },
-  reformat_ (copied: string, sed?: string | boolean): string {
+  reformat_ (copied: string, sed?: MixedSedOpts | null): string {
     if (copied) {
     copied = copied.replace(BgUtils_.A0Re_, " ");
     copied = Clipboard_.substitute_(copied, SedContext.paste, sed);
