@@ -26,7 +26,8 @@ elif bool "$IN_DIST"; then
   echo "No generator extension in ./dist !" 1>&2
   exit 1
 fi
-if bool "$IN_DIST" && test -d .git && which git >/dev/null 2>&1 && ! git diff-index --quiet HEAD --; then
+if bool "$CI" || bool "$TRAVIS"; then :
+elif bool "$IN_DIST" && test -d .git && which git >/dev/null 2>&1 && ! git diff-index --quiet HEAD --; then
   if ! confirm $'\n''\e[1;33mERROR: Some files have not been committed. Do continue'; then
     echo $'\n'Aborted.
     exit 0
