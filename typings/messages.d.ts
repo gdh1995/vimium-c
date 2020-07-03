@@ -281,7 +281,7 @@ interface CmdOptions {
     normal?: false | true;
   };
   [kFgCmd.framesGoBack]: {
-    reuse?: ReuseType;
+    reuse?: UserReuseType;
     local?: boolean;
     count?: -1; // just for commands.ts
     position?: OpenUrlOptions["position"]
@@ -336,6 +336,7 @@ interface CmdOptions {
     keyword?: string;
     testUrl?: boolean
     copy?: boolean;
+    reuse?: UserReuseType;
   } & CmdOptions[kFgCmd.autoCopy];
   [kFgCmd.searchAs]: {
     /** default to true */ copied?: boolean;
@@ -447,7 +448,7 @@ interface FgReq {
     /** keyword */ k?: string | null;
     /** incognito */ i?: boolean;
     /** https */ h?: boolean | null;
-    /** reuse */ r?: ReuseType;
+    /** reuse */ r?: UserReuseType;
     /** omni */ o?: boolean;
     /** noopener */ n?: boolean;
   };
@@ -533,7 +534,7 @@ interface FgReq {
   [kFgReq.findFromVisual]: {};
   [kFgReq.framesGoBack]: {
     /** step */ s: number
-    /** reuse */ r?: ReuseType
+    /** reuse */ r?: UserReuseType | null
     /** position */ p?: OpenUrlOptions["position"]
   }
   [kFgReq.learnCSS]: {};

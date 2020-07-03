@@ -21,7 +21,7 @@
 		"message": "Open URL"
 	},
 	"openUrl_p": {
-		"message": "url:string, urls:string[], reuse=-1/0/1/-2, incognito, window, position"
+		"message": "url:string, urls:string[], reuse=newFg/current/newBg/reuse, incognito, window, position"
 	},
 	"reloadTab": {
 		"message": "Reload N tab(s)"
@@ -264,13 +264,10 @@
 		"message": "Go back in history"
 	},
 	"goBack_p": {
-		"message": "reuse=-2/-1"
+		"message": "reuse=current/newBg/newFg"
 	},
 	"goForward": {
 		"message": "Go forward in history"
-	},
-	"goForward_p": {
-		"message": "reuse=-2/-1"
 	},
 	"goNext": {
 		"message": "Follow the link labeled next or \">\""
@@ -421,7 +418,7 @@
 		"message": "Redo search in another search engine"
 	},
 	"searchInAnother_p": {
-		"message": "keyword, reuse=0/-1/1/-2"
+		"message": "keyword, reuse=current/newFg/newBg/reuse"
 	},
 	"showHelp": {
 		"message": "Show help"

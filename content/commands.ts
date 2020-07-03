@@ -186,7 +186,9 @@ export const contentCommands_: {
   },
   /* kFgCmd.autoOpen: */ function (options: CmdOptions[kFgCmd.autoOpen]): void {
     let url = getSelectionText();
-    url && evalIfOK(url) || post_({ H: kFgReq.openUrl, c: !url, k: options.keyword, t: options.testUrl, u: url })
+    url && evalIfOK(url) || post_({
+      H: kFgReq.openUrl, c: !url, k: options.keyword, t: options.testUrl, u: url, r: options.reuse
+    })
     url && options.copy && contentCommands_[kFgCmd.autoCopy](options);
   },
   /* kFgCmd.searchAs: */ function (options: CmdOptions[kFgCmd.searchAs]): void {

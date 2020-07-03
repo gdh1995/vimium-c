@@ -221,6 +221,7 @@ declare const enum ReuseType {
   newFg = -1,
   newBg = -2,
 }
+declare type UserReuseType = ReuseType | keyof typeof ReuseType
 
 declare const enum FrameMaskType {
   NoMaskAndNoFocus = 0,

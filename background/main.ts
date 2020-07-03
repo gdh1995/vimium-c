@@ -54,7 +54,7 @@
   }
   interface OpenUrlOptionsInBgCmd extends OpenUrlOptions {
     url_f?: Urls.Url;
-    reuse?: ReuseType;
+    reuse?: UserReuseType;
     copied?: boolean;
     keyword?: string | null;
     testUrl?: boolean | null
@@ -624,8 +624,16 @@
     (this: void, url: string, tab: Tab
       , callback: ((this: void, tabId: number, wndId: number) => void) | null, wnd: Window) => void,
   ];
+  function parseReuse (reuse: UserReuseType | null | undefined): ReuseType {
+    return reuse == null ? ReuseType.newFg
+        : typeof reuse !== "string" ? (<number> <number | null | undefined> reuse) | 0
+        : reuse === "reuse" ? ReuseType.reuse : reuse === "newWindow" ? ReuseType.newWindow
+        : reuse === "newFg" ? ReuseType.newFg : reuse === "newBg" ? ReuseType.newBg
+        : ReuseType.Default
+  }
   function openUrl(url: Urls.Url, workType: Urls.WorkType, tabs?: [Tab] | []): void {
-    if (typeof url === "string") {
+    if (typeof url !== "string") { /* empty */ }
+    else if (url || workType !== Urls.WorkType.FakeType) {
       const tabUrl = tabs && tabs.length > 0 ? getTabUrl(tabs[0]!) : "";
       const _rawKey = (cOptions as OpenUrlOptionsInBgCmd).keyword, keyword = (_rawKey || "") + ""
       const _rawTest = (cOptions as OpenUrlOptionsInBgCmd).testUrl, testUrl = _rawTest != null ? _rawTest : !keyword
@@ -643,9 +651,10 @@
         url = testUrl ? BgUtils_.convertToUrl_(url, keyword, workType)
             : BgUtils_.createSearchUrl_(url.trim().split(BgUtils_.spacesRe_), keyword || "~")
       }
+    } else {
+      url = Settings_.cache_.newTabUrl_f
     }
-    let reuse: ReuseType = cOptions.reuse == null ? ReuseType.newFg : (cOptions.reuse | 0),
-    options = cOptions as OpenUrlOptions;
+    let reuse: ReuseType = parseReuse(cOptions.reuse), options = cOptions as OpenUrlOptions
     cOptions = null as never;
     BgUtils_.resetRe_();
     if (Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)
@@ -816,11 +825,11 @@
       }
       (cOptions as OptionEx).formatted_ = 1;
     }
-    const reuse = cOptions.reuse,
+    const reuse = parseReuse(cOptions.reuse),
     wndOpt: chrome.windows.CreateData | null = reuse === ReuseType.newWindow || cOptions.window ? {
       url: urls, incognito: !!cOptions.incognito
     } : null;
-    let active = !(reuse < ReuseType.newFg), index = tab && newTabIndex(tab, cOptions.position);
+    let active = reuse > ReuseType.newFg - 1, index = tab && newTabIndex(tab, cOptions.position);
     cOptions = null as never;
     do {
       if (wndOpt) {
@@ -1794,7 +1803,7 @@
       }
       let url_f = BgUtils_.createSearchUrl_(query.u.split(" "), keyword, Urls.WorkType.ActAnyway);
       cOptions = BgUtils_.safer_({
-        reuse: cOptions.reuse | 0,
+        reuse: cOptions.reuse,
         opener: true,
         url_f
       });
@@ -2069,7 +2078,9 @@
     // only work on Chrome: Firefox has neither tabs.goBack, nor support for tabs.update("javascript:...")
     /* kBgCmd.goBackFallback: */ Build.BTypes & BrowserType.Chrome ? function (tabs: [Tab]): void {
       if (!tabs.length) { return onRuntimeError(); }
-      requestHandlers[kFgReq.framesGoBack]({ s: cRepeat, r: cOptions.reuse }, null, tabs[0]);
+      requestHandlers[kFgReq.framesGoBack]({
+        s: cRepeat, r: cOptions.reuse as UserReuseType | null | undefined
+      }, null, tabs[0])
     } : BgUtils_.blank_,
     /* kBgCmd.showTip: */ function (this: void): void {
       let text = cOptions.text;
@@ -2761,7 +2772,7 @@
     /** kFgReq.framesGoBack: */ function (this: void, req: FgReq[kFgReq.framesGoBack], port: Port | null
         , curTab?: Pick<Tab, "id" | "url" | "pendingUrl" | "index">): void {
       const tabID = Build.BTypes & BrowserType.Chrome && curTab ? curTab.id : port!.s.t,
-      count = req.s, reuse = req.r;
+      count = req.s, reuse = parseReuse(req.r);
       let needToExecCode: boolean = Build.BTypes & BrowserType.Chrome ? false : true;
       if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.Min$Tabs$$goBack)
           && (!(Build.BTypes & BrowserType.Chrome)

@@ -31,7 +31,7 @@
 		"map W scrollToTop",
 		"map S scrollToBottom",
 		"map A goBack",
-		"map <a-s-a> goBack reuse=-1",
+		"map <a-s-a> goBack reuse=\"newFg\"",
 		"map D goForward",
 		"map Q goPrevious",
 		"map E goNext",
