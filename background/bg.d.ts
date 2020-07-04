@@ -401,6 +401,7 @@ declare namespace SettingsNS {
   interface ParsedCustomCSS {
     ui?: string;
     find?: string;
+    "find:host"?: string;
     omni?: string;
   }
 

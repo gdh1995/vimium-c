@@ -158,10 +158,10 @@ var Settings_ = {
   updateOmniStyles_: BgUtils_.blank_ as (key: MediaNS.kName, embed?: 1 | undefined) => void,
   updateMediaQueries_: BgUtils_.blank_ as (this: void) => void,
   parseCustomCSS_ (css: string): SettingsNS.ParsedCustomCSS {
-    const arr = css ? css.split(<RegExpG & RegExpSearchable<1>> /^\/\*\s?#!?([A-Za-z]+)\s?\*\//m) : [""];
+    const arr = css ? css.split(<RegExpG & RegExpSearchable<1>> /^\/\*\s?#!?([A-Za-z:]+)\s?\*\//m) : [""];
     const map: SettingsNS.ParsedCustomCSS = { ui: arr[0].trim() };
     for (let i = 1; i < arr.length; i += 2) {
-      let key = arr[i].toLowerCase() as "ui" | "find" | "omni";
+      let key = arr[i].toLowerCase() as "ui" | "find" | "find:host" | "omni";
       map[key] = (map[key] || "") + arr[i + 1].trim();
     }
     return map;
@@ -333,17 +333,21 @@ var Settings_ = {
       if (Build.BTypes & BrowserType.Firefox && isHighContrast_ff) {
         omniCSS = 'body:after{content:"";}#toolbar{opacity:1;}#toggle-dark{display:none;}.btn_svg{stroke:#999;}'
                 + ":hover>.btn_svg{stroke:currentColor;}.s,.item:hover{border-bottom-style:solid;}"
-                + '.s>.top,:hover>.top{font-weight:bold;--svg-color:currentColor;}'
+                + ".s>.top,:hover>.top{font-weight:bold;--svg-color:currentColor;}"
       }
       css = css.replace(<RegExpG> /\n/g, "")
       css = cacheId + ";" + css;
       if (Build.BTypes && BrowserType.Firefox) { omniCSS = omniCSS && omniCSS.replace(<RegExpG> /\n/g, "") }
       const css2 = a.parseCustomCSS_(a.get_("userDefinedCss"));
-      let find2 = css2.find, omni2 = css2.omni, O = "omniCSS"
+      let findh = css2["find:host"], find2 = css2.find, omni2 = css2.omni, O = "omniCSS"
       css2.ui && (css += "\n" + css2.ui);
       if (Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo && Build.BTypes & BrowserType.Chrome
           && browserVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo) {
         css = css.replace(<RegExpG> /\b0\.5px|\/\*!DPI\*\/ ?[\w.]+/g, "/*!DPI*/1px");
+      }
+      if (findh) {
+        const idx = findCSS.indexOf("\n", findCSS.indexOf("\n") + 1)
+        findCSS = `${findCSS.slice(0, idx)}  ${findh.replace(<RegExpG> /\n/g, " ")}\n${findCSS.slice(idx)}`
       }
       a.storage_.setItem("findCSS", findCSS.length + "\n" + findCSS + (find2 ? "\n" + find2 : ""));
       omniCSS || omni2 ? a.storage_.setItem(O,  omni2 ? omniCSS + "\n" + omni2 : omniCSS) : a.storage_.removeItem(O)
@@ -356,10 +360,16 @@ var Settings_ = {
       const css2 = a.parseCustomCSS_(css2Str);
       let innerCSS = css2.ui ? css + "\n" + css2.ui : css;
       {
-        let find2 = css2.find, omni2 = css2.omni, F = "findCSS", O = "omniCSS"
+        let findh = css2["find:host"], find2 = css2.find, omni2 = css2.omni, F = "findCSS", O = "omniCSS"
         css = a.storage_.getItem(F)!
         idx = css.indexOf("\n")
         css = css.slice(0, idx + 1 + +css.slice(0, idx));
+        let endFH = css.indexOf("\n", css.indexOf("\n", idx + 1) + 1), offsetFH = css.lastIndexOf("  ", endFH)
+        findh = findh ? "  " + findh.replace(<RegExpG> /\n/g, " ") : ""
+        if (offsetFH > 0 ? css.slice(offsetFH, endFH) !== findh : findh) {
+          css = css.slice(idx + 1, offsetFH > 0 ? offsetFH : endFH) + findh + css.slice(endFH)
+          css = css.length + "\n" + css
+        }
         a.storage_.setItem(F, find2 ? css + "\n" + find2 : css)
         css = (a.storage_.getItem(O) || "").split("\n", 1)[0]
         css || omni2 ? a.storage_.setItem(O, omni2 ? css + "\n" + omni2 : css) : a.storage_.removeItem(O)
@@ -396,7 +406,7 @@ var Settings_ = {
       const index = findCSS.indexOf("\n") + 1, index2 = findCSS.indexOf("\n", index);
       // Note: The lines below are allowed as a special use case
       cache.innerCSS = css.slice(a.CONST_.StyleCacheId_.length + 1);
-      cache.findCSS_ = { c: findCSS.slice(0, index - 1), s: findCSS.slice(index, index2),
+      cache.findCSS_ = { c: findCSS.slice(0, index - 1), s: findCSS.slice(index, index2).replace("  ", "\n"),
           i: findCSS.slice(index2 + 1) };
       a.omniPayload_.c = omniCSS || "";
     },

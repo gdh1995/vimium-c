@@ -25,7 +25,7 @@ import {
 } from "./key_handler"
 import { HintManager, kSafeAllSelector, set_kSafeAllSelector } from "./link_hints"
 import { createMark } from "./marks"
-import { set_findCSS, styleInHUD } from "./mode_find"
+import { set_findCSS, styleInHUD, styleSelectable } from "./mode_find"
 import { exitGrab, grabBackFocus, insertInit, raw_insert_lock, set_grabBackFocus, onFocus, onBlur } from "./insert"
 import {
   currentScrolling, onActivate, set_currentScrolling, clearCachedScrollable, resetCurrentScrolling,
@@ -237,6 +237,7 @@ set_requestHandlers([
       if (req.f) {
         /*#__INLINE__*/ set_findCSS(req.f)
         styleInHUD && (styleInHUD.textContent = req.f.i);
+        styleSelectable && (styleSelectable.textContent = req.f.s);
       }
     }
     req.c ? hudCopied(req.t) : req.t ? hudTip(kTip.raw, 0, [req.t])

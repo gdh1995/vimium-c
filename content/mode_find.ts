@@ -811,7 +811,7 @@ const toggleStyle = (disable: BOOL | boolean | Event): void => {
 }
 
 export const toggleSelectableStyle = (enable: BOOL): void => {
-  if (enable ? docSelectable_ : !styleSelectable || !styleSelectable.parentNode) { return }
+  if (enable ? docSelectable_ && !findCSS.s.includes("\n") : !styleSelectable || !styleSelectable.parentNode) { return }
   styleSelectable || (styleSelectable = createStyle(findCSS.s))
   enable ? ui_box!.appendChild(styleSelectable) : styleSelectable.remove()
 }
