@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <title>Test Firefox's Popup blocker</title>
+
+    <style media="screen" type="text/css">
+      body { font: normal 15px/18px helvetica,arial; padding: 0 0 0 20px; }
+    </style>
+  </head>
+
+  <body>
+    <p>Before tests, please:
+      <ol>
+        <li>
+          open <kbd style="color: blue; user-select: all;">about:preferences#privacy</kbd> on Firefox
+        </li>
+        <li>enable "<kbd>Block pop-up windows</kbd>" and click "<kbd>Exceptions</kbd>"</li>
+        <li>input "<kbd>gdh1995.cn</kbd>" and click "<kbd>Allow</kbd>"</li>
+        <li>click "<kbd>Save Changes</kbd>"</li>
+      </ol>
+    </p>
+    <p>
+      These're plain links:
+      <a href="./popup-blocker-result.html">relative</a>; 
+      <a href="/popup-blocker-result.html">relative to root</a>;
+      <a href="https://gdh1995.cn/popup-blocker-result.html">absolute</a>.
+    </p>
+    <p>
+      These're with <kbd>[target=_blank]</kbd>:
+      <a target="_blank" href="./popup-blocker-result.html">relative</a>; 
+      <a target="_blank" href="/popup-blocker-result.html">relative to root</a>;
+      <a target="_blank" href="https://gdh1995.cn/popup-blocker-result.html">absolute</a>.
+    </p>
+    <p aria-hidden="" onclick="event.preventDefault()">
+      These're plain links with <kbd>event.preventDefault()</kbd>:
+      <a href="./popup-blocker-result.html">relative</a>; 
+      <a href="/popup-blocker-result.html">relative to root</a>;
+      <a href="https://gdh1995.cn/popup-blocker-result.html">absolute</a>.
+    </p>
+    <p aria-hidden="" onclick="event.stopPropagation()">
+      These're plain links with <kbd>event.stopPropagation()</kbd>:
+      <a href="./popup-blocker-result.html">relative</a>; 
+      <a href="/popup-blocker-result.html">relative to root</a>;
+      <a href="https://gdh1995.cn/popup-blocker-result.html">absolute</a>.
+    </p>
+    <p aria-hidden="" onclick="event.stopImmediatePropagation()">
+      These're plain links with <kbd>event.stopImmediatePropagation()</kbd>:
+      <a href="./popup-blocker-result.html">relative</a>; 
+      <a href="/popup-blocker-result.html">relative to root</a>;
+      <a href="https://gdh1995.cn/popup-blocker-result.html">absolute</a>.
+    </p>
+    <p aria-hidden="" onclick="(event.stopImmediatePropagation(), event.preventDefault())">
+      These're plain links with <kbd>event.stopImmediatePropagation(), event.preventDefault()</kbd>:
+      <a href="./popup-blocker-result.html">relative</a>; 
+      <a href="/popup-blocker-result.html">relative to root</a>;
+      <a href="https://gdh1995.cn/popup-blocker-result.html">absolute</a>.
+    </p>
+    <p aria-hidden="" onclick="(event.stopPropagation(), event.preventDefault())">
+      These're plain links with <kbd>event.stopPropagation(), event.preventDefault()</kbd>:
+      <a href="./popup-blocker-result.html">relative</a>; 
+      <a href="/popup-blocker-result.html">relative to root</a>;
+      <a href="https://gdh1995.cn/popup-blocker-result.html">absolute</a>.
+    </p>
+    <p aria-hidden="">
+      These're plain links with <kbd>event.stopPropagation(); await 1; event.preventDefault()</kbd>:
+      <script>
+        const p = document.currentScript.parentElement;
+        p.addEventListener("click", e => e.stopPropagation(), true)
+        p.addEventListener("click", e => e.preventDefault(), true)
+      </script>
+      <a href="./popup-blocker-result.html">relative</a>; 
+      <a href="/popup-blocker-result.html">relative to root</a>;
+      <a href="https://gdh1995.cn/popup-blocker-result.html">absolute</a>.
+    </p>
+    <p aria-hidden="" onclick="event.preventDefault()">
+      These're with <kbd>[target=_blank]</kbd> and <kbd>event.preventDefault()</kbd>::
+      <a target="_blank" href="./popup-blocker-result.html">relative</a>; 
+      <a target="_blank" href="/popup-blocker-result.html">relative to root</a>;
+      <a target="_blank" href="https://gdh1995.cn/popup-blocker-result.html">absolute</a>.
+    </p>
+    <p aria-hidden="" onclick="event.stopPropagation()">
+      These're with <kbd>[target=_blank]</kbd> and <kbd>event.stopPropagation()</kbd>::
+      <a target="_blank" href="./popup-blocker-result.html">relative</a>; 
+      <a target="_blank" href="/popup-blocker-result.html">relative to root</a>;
+      <a target="_blank" href="https://gdh1995.cn/popup-blocker-result.html">absolute</a>.
+    </p>
+    <p aria-hidden="" onclick="event.stopImmediatePropagation()">
+      These're with <kbd>[target=_blank]</kbd> and <kbd>event.stopImmediatePropagation()</kbd>::
+      <a target="_blank" href="./popup-blocker-result.html">relative</a>; 
+      <a target="_blank" href="/popup-blocker-result.html">relative to root</a>;
+      <a target="_blank" href="https://gdh1995.cn/popup-blocker-result.html">absolute</a>.
+    </p>
+    <p aria-hidden="">
+      These're with <kbd>[target=_blank]</kbd> and <kbd>event.stopPropagation(); await 1; event.preventDefault()</kbd>:
+      <script>
+        const p = document.currentScript.parentElement;
+        p.addEventListener("click", e => e.stopPropagation(), true)
+        p.addEventListener("click", e => e.preventDefault(), true)
+      </script>
+      <a target="_blank" href="./popup-blocker-result.html">relative</a>; 
+      <a target="_blank" href="/popup-blocker-result.html">relative to root</a>;
+      <a target="_blank" href="https://gdh1995.cn/popup-blocker-result.html">absolute</a>.
+    </p>
+
+    <template id="rowTemplate">
+      <tr>
+        <td align="left" class="eventNumber"></td>
+        <td align="left" class="column eventColumn"></td>
+        <td align="left" class="column codeColumn"></td>
+        <td align="left" class="column keyColumn"></td>
+        <td align="left" class="column modifierColumn"></td>
+      </tr>
+    </template>
+  </body>
+
+</html>
