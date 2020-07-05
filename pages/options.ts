@@ -788,7 +788,7 @@ let optionsInit1_ = function (): void {
     event.preventDefault();
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
-      window.VApi ? VApi.t(kTip.haveToOpenManually) : alert(pTrans_("" + kTip.haveToOpenManually));
+      window.VApi ? VApi.t({ k: kTip.haveToOpenManually }) : alert(pTrans_("" + kTip.haveToOpenManually));
     } else {
       BG_.Backend_.focus_({ u: this.href, r: ReuseType.reuse, p: true });
     }
@@ -1003,83 +1003,37 @@ table.ondrop = event => {
 }
 
 $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
-  if (!window.VApi || !VApi.z) { return; }
-  const root = VApi.y().r, self = Option_.all_.userDefinedCss;
-  let styleDebug = root && root.querySelector("style.debugged") as HTMLStyleElement | null;
-  if (styleDebug) {
-    if (styleDebug.nextElementSibling) {
-      root!.appendChild(styleDebug)
-    }
-  } else {
-    if (self.saved_) {
-      return;
-    }
-    styleDebug = document.createElement("style");
-    styleDebug.className = "debugged";
-    const patch = function (): void {
-      /** Note: should keep the same as {@link ../background/settings.ts#Settings_.updateHooks_.userDefinedCss } */
-      let css = localStorage.getItem("innerCSS") as string;
-      css = css.slice(css.indexOf(";") + 1, css.indexOf("\n") + 1 || css.length)
-      VApi.y().g(css)
-      VApi.y().r!.appendChild(styleDebug as HTMLStyleElement);
-    };
-    if (root) {
-      patch();
-    } else {
-      VApi.t(kTip.raw, 0, ["Debugging CSS\u2026"])
-      VApi.y().r!.appendChild(styleDebug)
-      setTimeout(patch, 200);
-    }
-  }
-  const newVal = self.readValueFromElement_(),
-  isSame = newVal === self.previous_,
-  css2 = bgSettings_.parseCustomCSS_(newVal);
-  if (isSame) {
-    self.element_.classList.remove("debugging");
-  } else {
-    self.element_.classList.add("debugging");
-  }
-  styleDebug.textContent = css2.ui || "";
-  const iframes = root ? root.querySelectorAll("iframe") : [];
-  for (let i = 0, end = iframes.length; i < end; i++) {
-    const frame = iframes[i], isFind = frame.classList.contains("Find"),
-    doc = frame.contentDocument as HTMLDocument,
-    api = window.VApi, misc = api && api.y(), findCss = misc && misc.f,
-    root2 = isFind ? misc!.s!.parentNode as HTMLElement : doc;
-    styleDebug = root2.querySelector("style.debugged") as HTMLStyleElement | null;
-    if (!styleDebug) {
-      if (isFind) {
-        const oldCSS2 = bgSettings_.parseCustomCSS_(bgSettings_.get_("userDefinedCss")).find || "";
-        if (oldCSS2) {
-          const str = bgSettings_.cache_.findCSS_.i;
-          misc!.s!.textContent = str.slice(0, -oldCSS2.length - 1);
-        }
-        styleDebug = doc.createElement("style");
-        styleDebug.type = "text/css";
-        styleDebug.parentNode || root2.appendChild(styleDebug);
-      } else {
-        styleDebug = doc.querySelector("#custom") as HTMLStyleElement | null;
-        if (!styleDebug) {
-          /** should keep the same as {@link ../front/vomnibar#Vomnibar_.css_} */
-          styleDebug = doc.createElement("style");
-          styleDebug.type = "text/css";
-          styleDebug.id = "custom";
-        }
-        styleDebug.parentNode || (doc.head as HTMLHeadElement).appendChild(styleDebug);
+  const self = Option_.all_.userDefinedCss
+  if (self.saved_ || !window.VApi || !VApi.z) { return }
+  const newVal = self.readValueFromElement_(), isSame = newVal === self.previous_,
+  css = bgSettings_.mergeCustomCSS_(newVal, 1), misc = VApi.y(), root = misc.r
+  if (!self.element_.classList.contains("debugging") && BG_) {
+    chrome.tabs.query({ currentWindow: true, active: true }, (tabs?: [chrome.tabs.Tab?]): void => {
+      if (tabs && tabs[0] && tabs[0].url === location.href) {
+        const port = BG_.Backend_.indexPorts_(tabs[0].id, 0) as Frames.Port | null
+        port && (port.s.f |= Frames.Flags.hasCSS | Frames.Flags.hasFindCSS)
       }
-      styleDebug.classList.add("debugged");
-    }
-    styleDebug.textContent = isFind ? css2.find || ""
-      : styleDebug.textContent.split("\n", 1)[0]
-        + (isSame ? "\n" : "\n.transparent { opacity: 1; }\n") + (css2.omni && css2.omni + "\n" || "");
-    if (isFind && findCss) {
-      /** Note: should keep the same as {@link ../background/settings.ts#Settings_.updateHooks_.userDefinedCss } */
-      let css = localStorage.getItem("findCSS") as string, defaultLen = parseInt(css, 10);
-      findCss.i = findCss.i.slice(0, defaultLen - findCss.c.length - findCss.s.length - 1)
-        + "\n" + (css2.find || "");
-    }
+    })
   }
-}, 1800, $("#userDefinedCss") as HTMLTextAreaElement, 0));
+  self.element_.classList.toggle("debugging", !isSame)
+  VApi.t({
+    k: root || isSame ? 0 : kTip.raw, t: "Debugging CSS\u2026",
+    H: css.ui, f: bgSettings_.parseFindCSS_(css.find)
+  })
+  const frame = root && root.querySelector("iframe.Omnibar") as HTMLIFrameElement | null
+  const doc = frame && frame.contentDocument
+  if (doc) {
+    let styleDebug = doc.querySelector("style.debugged") || doc.querySelector("style#custom")
+    if (!styleDebug) {
+      /** should keep the same as {@link ../front/vomnibar#Vomnibar_.css_} */
+      (styleDebug = doc.createElement("style")).type = "text/css"
+      styleDebug.id = "custom"
+    }
+    styleDebug.parentNode || (doc.head as HTMLHeadElement).appendChild(styleDebug)
+    styleDebug.classList.add("debugged")
+    styleDebug.textContent = (isSame ? "\n" : "\n.transparent { opacity: 1; }\n") + (css.omni && css.omni + "\n" || "")
+  }
+}, 1200, $("#userDefinedCss") as HTMLTextAreaElement, 0));
 
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Option$HasReliableFontSize
     && bgBrowserVer_ < BrowserVer.Min$Option$HasReliableFontSize) {

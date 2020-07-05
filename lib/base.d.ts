@@ -425,8 +425,6 @@ interface VApiTy {
     /** onWndFocus */ w?: (this: void) => void
     /** find box */ b: HTMLIFrameElement | null
     /** clickable */ c: ElementSet
-    /** find CSS */ f: FindCSS
-    /** setUICSS */ g: (innerCSS: string) => void
     /** Scroller::keyIsDown */ k: number
     /** UI root */ r: VUIRoot | null
     /** style in find HUD */ s: HTMLStyleElement | null

@@ -166,6 +166,38 @@ var Settings_ = {
     }
     return map;
   },
+  mergeCustomCSS_ (css2Str: string, virtual?: 1): Ensure<SettingsNS.ParsedCustomCSS, "ui" | "find" | "omni"> {
+    const a = Settings_, I = "innerCSS"
+    let css = a.storage_.getItem(I)!, idx = css.indexOf("\n")
+    css = idx > 0 ? css.slice(0, idx) : css
+    const css2 = a.parseCustomCSS_(css2Str)
+    let innerCSS = css2.ui ? css + "\n" + css2.ui : css
+    let findh = css2["find:host"], find2 = css2.find, omni2 = css2.omni, F = "findCSS", O = "omniCSS"
+    css = a.storage_.getItem(F)!
+    idx = css.indexOf("\n")
+    css = css.slice(0, idx + 1 + +css.slice(0, idx))
+    let endFH = css.indexOf("\n", css.indexOf("\n", idx + 1) + 1), offsetFH = css.lastIndexOf("  ", endFH)
+    findh = findh ? "  " + findh.replace(<RegExpG> /\n/g, " ") : ""
+    if (offsetFH > 0 ? css.slice(offsetFH, endFH) !== findh : findh) {
+      css = css.slice(idx + 1, offsetFH > 0 ? offsetFH : endFH) + findh + css.slice(endFH)
+      css = css.length + "\n" + css
+    }
+    find2 = find2 ? css + "\n" + find2 : css
+    css = (a.storage_.getItem(O) || "").split("\n", 1)[0]
+    omni2 = omni2 ? css + "\n" + omni2 : css
+    if (!virtual) {
+      a.storage_.setItem(F, find2)
+      omni2 ? a.storage_.setItem(O, omni2) : a.storage_.removeItem(O)
+      a.set_(I, innerCSS)
+    }
+    return { ui: innerCSS, find: find2, omni: omni2 }
+  },
+  parseFindCSS_ (find2: string): FindCSS {
+    find2 = find2.slice(find2.indexOf("\n") + 1);
+    let idx = find2.indexOf("\n") + 1, endFH = find2.indexOf("\n", idx);
+    return { c: find2.slice(0, idx - 1), s: find2.slice(idx, endFH).replace("  ", "\n"),
+      i: find2.slice(endFH + 1) }
+  },
   updateHooks_: As_<{ [key in SettingsNS.DeclaredUpdateHooks]: SettingsNS.UpdateHook<key>; } & SafeObject>({
     __proto__: null as never,
     extAllowList (val): void {
@@ -355,30 +387,9 @@ var Settings_ = {
     },
     userDefinedCss (this: {}, css2Str): void {
       const a = Settings_;
-      let css = a.storage_.getItem("innerCSS")!, idx = css.indexOf("\n")
-      css = idx > 0 ? css.slice(0, idx) : css
-      const css2 = a.parseCustomCSS_(css2Str);
-      let innerCSS = css2.ui ? css + "\n" + css2.ui : css;
-      {
-        let findh = css2["find:host"], find2 = css2.find, omni2 = css2.omni, F = "findCSS", O = "omniCSS"
-        css = a.storage_.getItem(F)!
-        idx = css.indexOf("\n")
-        css = css.slice(0, idx + 1 + +css.slice(0, idx));
-        let endFH = css.indexOf("\n", css.indexOf("\n", idx + 1) + 1), offsetFH = css.lastIndexOf("  ", endFH)
-        findh = findh ? "  " + findh.replace(<RegExpG> /\n/g, " ") : ""
-        if (offsetFH > 0 ? css.slice(offsetFH, endFH) !== findh : findh) {
-          css = css.slice(idx + 1, offsetFH > 0 ? offsetFH : endFH) + findh + css.slice(endFH)
-          css = css.length + "\n" + css
-        }
-        a.storage_.setItem(F, find2 ? css + "\n" + find2 : css)
-        css = (a.storage_.getItem(O) || "").split("\n", 1)[0]
-        css || omni2 ? a.storage_.setItem(O, omni2 ? css + "\n" + omni2 : css) : a.storage_.removeItem(O)
-      }
-      a.set_("innerCSS", innerCSS);
-      const cache = a.cache_;
-      innerCSS = cache.innerCSS;
+      a.mergeCustomCSS_(css2Str);
       const ref = Backend_.indexPorts_(), request: Req.bg<kBgReq.showHUD> = {
-        N: kBgReq.showHUD, H: innerCSS, f: cache.findCSS_
+        N: kBgReq.showHUD, H: a.cache_.innerCSS, f: a.cache_.findCSS
       };
       for (const tabId in ref) {
         const frames = ref[+tabId]!;
@@ -400,15 +411,12 @@ var Settings_ = {
     },
     innerCSS (this: {}, css): void {
       const a = Settings_, cache = a.cache_ as WritableSettingsCache;
-      let findCSS = a.storage_.getItem("findCSS"), omniCSS = a.storage_.getItem("omniCSS");
+      let findCSS = a.storage_.getItem("findCSS"), omniCSS = a.storage_.getItem("omniCSS") || ""
       if (!findCSS) { a.fetchFile_("baseCSS"); return; }
-      findCSS = findCSS.slice(findCSS.indexOf("\n") + 1);
-      const index = findCSS.indexOf("\n") + 1, index2 = findCSS.indexOf("\n", index);
+      cache.findCSS = a.parseFindCSS_(findCSS)
       // Note: The lines below are allowed as a special use case
       cache.innerCSS = css.slice(a.CONST_.StyleCacheId_.length + 1);
-      cache.findCSS_ = { c: findCSS.slice(0, index - 1), s: findCSS.slice(index, index2).replace("  ", "\n"),
-          i: findCSS.slice(index2 + 1) };
-      a.omniPayload_.c = omniCSS || "";
+      a.omniPayload_.c = omniCSS
     },
     vomnibarPage (this: {}, url): void {
       const a = Settings_, cur = localStorage.getItem("vomnibarPage_f");
