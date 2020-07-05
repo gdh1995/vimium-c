@@ -37,7 +37,7 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
  */
   // `high bits` mean secret, `lower bits >> kContentCmd.MaskedBitNumber` mean content cmd
   type CommandEventDetail = number;
-  interface VimiumCustomEventCls {
+  interface CustomEventCls {
     prototype: CustomEvent;
     new <Type extends InnerConsts & string>(typeArg: Type, eventInitDict?: { detail?:
       Type extends InnerConsts.kVOnClick ? ClickableEventDetail
@@ -45,7 +45,7 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
         : never;
       composed?: boolean; }): CustomEvent;
   }
-  interface VimiumDelegateEventCls {
+  interface DelegateEventCls {
     prototype: FocusEvent;
     new (typeArg: InnerConsts.kVOnClick | InnerConsts.kHook
         , eventInitDict: Pick<FocusEventInit, "relatedTarget" | "composed">): FocusEvent;
@@ -59,7 +59,7 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
             || Build.MinCVer < BrowserVer.MinEnsuredES6MethodFunction
             || Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage)
         && (!(Build.BTypes & ~BrowserType.ChromeOrFirefox) || VOther === BrowserType.Chrome)
-        ? navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/) : 0 as const
+        ? navigator.appVersion.match(<RegExpOne & RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/) : 0 as const
     , appVer: BrowserVer | 1 | 0 = Build.BTypes & BrowserType.Chrome
         && (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
             || Build.MinCVer < BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
@@ -91,7 +91,7 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
   let box: Element | undefined | 0, hookRetryTimes = 0,
   isFirstResolve: 0 | 1 | 2 | 3 | 4 = window === top ? 3 : 4,
   hook = function (event: Event): void {
-    const t = (event as TypeToAssert<Event, VimiumDelegateEventCls["prototype"], "relatedTarget">).relatedTarget,
+    const t = (event as TypeToAssert<Event, DelegateEventCls["prototype"], "relatedTarget">).relatedTarget,
     S = InnerConsts.kSecretAttr;
     // use `instanceof` to require the `t` element is a new instance which has never entered this extension world
     if (++hookRetryTimes > GlobalConsts.MaxRetryTimesForSecret
@@ -110,13 +110,13 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
     if (!box) { return; }
     Stop_(event);
     const rawDetail = (
-        event as TypeToAssert<Event, (VimiumCustomEventCls | VimiumDelegateEventCls)["prototype"], "detail">
+        event as TypeToAssert<Event, (CustomEventCls | DelegateEventCls)["prototype"], "detail">
         ).detail as ClickableEventDetail | null | undefined,
     isSafe = this === box,
     detail = rawDetail && typeof rawDetail === "object" && isSafe ? rawDetail : "",
     fromAttrs: 0 | 1 | 2 = detail ? (detail[2] + 1) as 1 | 2 : 0;
     let path: typeof event.path,
-    target = detail ? null : (event as VimiumDelegateEventCls["prototype"]).relatedTarget as Element | null
+    target = detail ? null : (event as DelegateEventCls["prototype"]).relatedTarget as Element | null
         || (!(Build.BTypes & BrowserType.Edge)
             && Build.MinCVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
           ? event.path![0] as Element
@@ -155,7 +155,7 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
     }
   }
   function dispatchCmd(cmd: SecondLevelContentCmds): void {
-    box && box.dispatchEvent(new (CustomEvent as VimiumCustomEventCls)(
+    box && box.dispatchEvent(new (CustomEvent as CustomEventCls)(
         InnerConsts.kCmd, {
       detail: (secret << kContentCmd.MaskedBitNumber) | cmd
     }));
@@ -233,8 +233,8 @@ getElementsByTagNameInDoc = doc0[kByTag], getElementsByTagNameInEP = ElProto[kBy
 IndexOf = _call.bind(toRegister.indexOf) as never as (list: HTMLCollectionOf<Element>, item: Element) => number,
 push = (toRegister as { p (el: Element | number): void | number}).p = nodeIndexListInDocument.push,
 pushInDocument = push.bind(nodeIndexListInDocument), pushForDetached = push.bind(nodeIndexListForDetached),
-CECls = CustomEvent as VimiumCustomEventCls,
-DECls = FocusEvent as VimiumDelegateEventCls,
+CECls = CustomEvent as CustomEventCls,
+DECls = FocusEvent as DelegateEventCls,
 FProto = Function[kProto], _toString = FProto[kToS],
 listen = _call.bind<(this: (this: EventTarget,
           type: string, listener: EventListenerOrEventListenerObject, useCapture?: EventListenerOptions | boolean

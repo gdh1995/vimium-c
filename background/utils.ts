@@ -853,14 +853,14 @@ Backend_: BackendHandlersNS.BackendHandlers,
 trans_ = chrome.i18n.getMessage,
 CurCVer_: BrowserVer = Build.BTypes & BrowserType.Chrome ? 0 | (
   (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
-  && navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/)
+  && navigator.appVersion.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/)
   || [0, BrowserVer.assumedVer])[1] as number : BrowserVer.assumedVer,
 IsEdg_: boolean = Build.BTypes & BrowserType.Chrome
     && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
     ? (<RegExpOne> /\sEdg\//).test(navigator.appVersion) : false,
 CurFFVer_: FirefoxBrowserVer = !(Build.BTypes & ~BrowserType.Firefox)
   || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
-  ? 0 | (navigator.userAgent.match(/\bFirefox\/(\d+)/) || [0, FirefoxBrowserVer.assumedVer])[1] as number
+  ? 0 | (navigator.userAgent.match(<RegExpOne> /\bFirefox\/(\d+)/) || [0, FirefoxBrowserVer.assumedVer])[1] as number
   : FirefoxBrowserVer.None,
 BrowserProtocol_ = Build.BTypes & ~BrowserType.Chrome
     && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)

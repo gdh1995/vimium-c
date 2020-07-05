@@ -428,13 +428,14 @@ interface String {
       * Matches a string with a regular expression, and returns an array containing the results of that search.
       * @param regexp A variable name or string literal containing the regular expression pattern and flags.
       */
-    match(regexp: string): RegExpMatchArray | null;
+    // match(regexp: string): RegExpMatchArray | null;
 
     /**
       * Matches a string with a regular expression, and returns an array containing the results of that search.
       * @param regexp A regular expression object that contains the regular expression pattern and applicable flags.
       */
-    match(regexp: RegExp): RegExpMatchArray | null;
+    match(regexp: RegExpOne | RegExpI): RegExpMatchArray | null;
+    match(regexp: RegExpG): string[] | null;
 
     /**
       * Replaces text in a string, using a regular expression or search string.

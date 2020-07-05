@@ -3107,7 +3107,7 @@
       for (_i = decoders.length; 0 <= --_i; ) {
         pattern = decoders[_i];
         if (!url.startsWith(pattern.prefix_)) { continue; }
-        arr = s0.slice(pattern.prefix_.length).match(pattern.matcher_);
+        arr = s0.slice(pattern.prefix_.length).match(pattern.matcher_ as RegExpG);
         if (arr) { break; }
       }
       if (!arr || !pattern) { BgUtils_.resetRe_(); return null; }

@@ -3,7 +3,7 @@ const enum kNodeInfo {
   ShadowBlur = 1, ShadowFull = 2,
 }
 interface NodeWithInfo extends Node {
-  vimiumInfo?: kNodeInfo;
+  vimiumC?: kNodeInfo;
 }
 
 import {
@@ -23,9 +23,9 @@ import { Stop_, pushHandler_, removeHandler_, prevent_ } from "../lib/keyboard_u
 
 const domNodeMap = Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
     || WeakMap ? new WeakMap!<Node, kNodeInfo>() as never : {
-  set (node: Node, info: Exclude<kNodeInfo, kNodeInfo.NONE>): any { (node as NodeWithInfo).vimiumInfo = info; },
-  get (node: Node): kNodeInfo | undefined { return (node as NodeWithInfo).vimiumInfo; },
-  delete (node: Node): any { delete (node as NodeWithInfo).vimiumInfo; }
+  set (node: Node, info: Exclude<kNodeInfo, kNodeInfo.NONE>): any { (node as NodeWithInfo).vimiumC = info; },
+  get (node: Node): kNodeInfo | undefined { return (node as NodeWithInfo).vimiumC; },
+  delete (node: Node): any { delete (node as NodeWithInfo).vimiumC; }
 }
 
 let lock_ = null as LockableElement | null

@@ -236,8 +236,8 @@ set_requestHandlers([
       setUICSS(req.H);
       if (req.f) {
         /*#__INLINE__*/ set_findCSS(req.f)
-        styleInHUD && (styleInHUD.textContent = req.f.i);
-        styleSelectable && (styleSelectable.textContent = req.f.s);
+        styleInHUD && createStyle(req.f.i, styleInHUD)
+        styleSelectable && createStyle(req.f.s, styleSelectable)
       }
     }
     req.k ? hudTip(req.k, req.d, [req.t! /* safe */]) : 0

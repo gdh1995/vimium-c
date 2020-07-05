@@ -41,7 +41,7 @@ let postOnEsc = true
 let coords: null | MarksNS.ScrollInfo = null
 let initialRange: Range | null = null
 let activeRegexIndex = 0
-let regexMatches: RegExpMatchArray | null = null
+let regexMatches: string[] | null = null
 let root_: ShadowRoot | null = null
 let box_: HTMLIFrameElement = null as never
 let outerBox_: HTMLDivElement = null as never
@@ -654,19 +654,18 @@ export const updateQuery = (query: string): void => {
   ignoreCase !== null || (ignoreCase = query.toLowerCase() === query)
   isRe || (query = isActive ? query.replace(escapeAllRe, "\\$&") : "")
 
-    let re: RegExpG | null = query && tryCreateRegExp(ww
-        ? WB + query + WB : query, ignoreCase ? "gi" : "g") || null;
-    let matches: RegExpMatchArray | null = null;
-    if (re) {
-      let el = fullscreenEl_unsafe_(), text: HTMLElement["innerText"] | undefined;
-      while (el && (el as ElementToHTML).lang == null) { // in case of SVG elements
-        el = GetParent_unsafe_(el, PNType.DirectElement);
-      }
-      query = el && typeof (text = (el as HTMLElement).innerText) === "string" && text ||
-          (Build.BTypes & ~BrowserType.Firefox ? (docEl_unsafe_() as HTMLElement).innerText + ""
-            : (docEl_unsafe_() as SafeHTMLElement).innerText);
-      matches = query.match(re) || query.replace(<RegExpG> /\xa0/g, " ").match(re);
+  let re: RegExpG | null = query && tryCreateRegExp(ww ? WB + query + WB : query, ignoreCase ? "gi" : "g") || null
+  let matches: string[] | null = null
+  if (re) {
+    let el = fullscreenEl_unsafe_(), text: HTMLElement["innerText"] | undefined;
+    while (el && (el as ElementToHTML).lang == null) { // in case of SVG elements
+      el = GetParent_unsafe_(el, PNType.DirectElement);
     }
+    query = el && typeof (text = (el as HTMLElement).innerText) === "string" && text ||
+        (Build.BTypes & ~BrowserType.Firefox ? (docEl_unsafe_() as HTMLElement).innerText + ""
+          : (docEl_unsafe_() as SafeHTMLElement).innerText);
+    matches = query.match(re) || query.replace(<RegExpG> /\xa0/g, " ").match(re);
+  }
   regexMatches = isRe ? matches : null
   parsedRegexp_ = isRe ? re : null
   activeRegexIndex = 0

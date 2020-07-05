@@ -16,7 +16,7 @@ var HelpDialog = {
       let pos = template.indexOf("</style>") + 8, head = template.slice(0, pos), body = template.slice(pos).trim();
       if (Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
-        const arr = head.match("<style.*?>")!;
+        const arr = head.match(<RegExpOne> /<style.*?>/)!;
         body = head.slice(0, arr.index).trim() + body;
         head = head.slice(arr.index + arr[0].length, -8);
       }

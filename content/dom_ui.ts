@@ -67,9 +67,9 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
           (!(Build.BTypes & ~BrowserType.Edge) || box_ === root_)) {
         box_!.id = "VimiumUI"
       }
-      let el: HTMLStyleElement | null = styleIn_ = createStyle()
+      let el: HTMLStyleElement | null = styleIn_ = createElement_("style")
       setUICSS = (css): void => {
-        (styleIn_ as HTMLStyleElement).textContent = cssPatch_ ? cssPatch_[1](css) : css
+        createStyle(cssPatch_ ? cssPatch_[1](css) : css, styleIn_ as HTMLStyleElement)
       };
       setUICSS(innerCSS)
       root_.appendChild(el)
@@ -193,11 +193,10 @@ export const ensureBorder = (zoom?: number): void => {
     learnCSS(styleIn_, 1)
 }
 
-export const createStyle = (text?: string, css?: HTMLStyleElement): HTMLStyleElement => {
+export const createStyle = (text: string, css?: HTMLStyleElement): HTMLStyleElement => {
     css = css || createElement_("style");
     css.type = "text/css";
-    !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
-      ? text && css.append!(text) : text && (css.textContent = text)
+    css.textContent = text
     return css;
 }
 

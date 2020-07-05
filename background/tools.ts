@@ -201,7 +201,7 @@ ContentSettings_ = Build.PContentSettings ? {
       Backend_.complain_(trans_("setFTPCS"));
       return [];
     }
-    let info: string[] = pattern.match(/^([^:]+:\/\/)([^\/]+)/)!
+    let info: string[] = pattern.match(<RegExpOne> /^([^:]+:\/\/)([^\/]+)/)!
       , hosts = BgUtils_.hostRe_.exec(info[2])!
       , result: string[], host = hosts[3] + (hosts[4] || "");
     pattern = info[1];
