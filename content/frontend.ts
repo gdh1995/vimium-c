@@ -43,9 +43,9 @@ set_safeDestroy((silent?: Parameters<SafeDestoryF>[0]): void => {
     hookOnWnd(HookAction.Destroy);
 
     contentCommands_[kFgCmd.reset](0);
+    doExitOnClick()
     vApi.e && vApi.e(kContentCmd.Destroy);
     ui_box && adjustUI(2);
-    doExitOnClick();
 
     /*#__INLINE__*/ set_esc(null as never)
     VApi = null as never;

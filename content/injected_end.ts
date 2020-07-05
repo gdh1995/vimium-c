@@ -6,6 +6,7 @@ VApi.e = function (cmd): void {
     injector.destroy = injector.checkIfEnabled = injector.getCommandCount = null as never;
     injector.$ = injector.$r = injector.$m = null as never;
     injector.clickable = null;
+    injector.callback && injector.callback(3, "destroy")
   }
 };
 
