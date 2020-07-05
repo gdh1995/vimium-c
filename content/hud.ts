@@ -17,18 +17,6 @@ let style: CSSStyleDeclaration
 
 export { box as hud_box, text as hud_text, opacity_ as hud_opacity, timer as hud_tipTimer }
 
-export const hudCopied = (text: string, isUrl?: BOOL | boolean): void => {
-  if (!text) {
-    hudTip(isUrl ? kTip.noUrlCopied : kTip.noTextCopied, 1000)
-    return
-  }
-  if (text.startsWith(!(Build.BTypes & ~BrowserType.Firefox) ? "moz-" : "chrome-") && text.includes("://")) {
-    text = text.slice(text.indexOf("/", text.indexOf("/") + 2) + 1) || text;
-  }
-  text = (text.length > 41 ? text.slice(0, 41) + "\u2026" : text + ".");
-  hudTip(kTip.copiedIs, 2000, [text])
-}
-
 export const hudTip = (tid: kTip | HintMode, duration?: number, args?: Array<string | number>): void => {
   hudShow(tid, args);
   text && (timer = timeout_(hudHide, duration || 1500));

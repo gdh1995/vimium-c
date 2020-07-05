@@ -102,13 +102,12 @@ interface BgReq {
     /** mappedKeys */ m: SafeDict<string> | null;
     /** keyMap */ k: KeyFSM;
   };
-  [kBgReq.showHUD]: ({
+  [kBgReq.showHUD]: {
+    /** kTip */ k?: kTip | 0
     /** text */ t?: string;
-    /** isCopy */ c?: undefined;
-  } | {
-    /** text */ t: string;
-    /** isCopy */ c: 1;
-  }) & { /** findCSS */ f?: FindCSS } & Req.baseBg<kBgReq.showHUD> & Partial<BgCSSReq>;
+    /** duration */ d?: number;
+    /** findCSS */ f?: FindCSS
+  } & Partial<BgCSSReq>;
   [kBgReq.focusFrame]: {
     /** mask */ m: FrameMaskType;
     /** key */ k: kKeyCode;
@@ -484,7 +483,7 @@ interface FgReq {
     /** [].join($j) */ j?: string | boolean;
     /** sed */ e?: ParsedSedOpts | null;
     u?: undefined | "";
-    /** decode (not in use) */ d?: boolean;
+    /** decode */ d?: boolean;
   } | {
     /** url */ u: "url";
     /** data */ s?: undefined | "";

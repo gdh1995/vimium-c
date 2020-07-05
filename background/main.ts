@@ -281,7 +281,7 @@
     BgUtils_.resetRe_();
     switch (arr[1]) {
     case Urls.kEval.copy:
-      return Backend_.showHUD_((arr as Urls.CopyEvalResult)[0], 1);
+      return Backend_.showHUD_((arr as Urls.CopyEvalResult)[0], kTip.noTextCopied);
     case Urls.kEval.paste:
     case Urls.kEval.plainUrl:
       if (options.$p || arr[1] === Urls.kEval.plainUrl) {
@@ -1239,7 +1239,7 @@
       let findCSS: CmdOptions[kFgCmd.findMode]["f"] = null;
       if (!(sender.f & Frames.Flags.hasFindCSS)) {
         sender.f |= Frames.Flags.hasFindCSS;
-        findCSS = Settings_.cache_.findCSS_;
+        findCSS = Settings_.cache_.findCSS
       }
       cPort.postMessage<1, kFgCmd.findMode>({ N: kBgReq.execute
           , H: ensureInnerCSS(cPort), c: kFgCmd.findMode, n: 1
@@ -2016,7 +2016,8 @@
             : s1 !== "__proto__" && (i as Dict<any>)[s1] || "";
         })),
         result = BgUtils_.copy_(data, join, Clipboard_.parseSedOptions_(cOptions as {}));
-        Backend_.showHUD_(type === "tab" && tabs.length < 2 ? result : trans_("copiedWndInfo"), 1);
+        Backend_.showHUD_(type === "tab" && tabs.length < 2 ? result : trans_("copiedWndInfo")
+            , type === "url" ? kTip.noUrlCopied : kTip.noTextCopied)
       });
     },
     /* kBgCmd.clearFindHistory: */ function (this: void): void {
@@ -2638,7 +2639,7 @@
         , (request.i! | 0) as 0 | 1 | 2));
     },
     /** kFgReq.copy: */ function (this: void, request: FgReq[kFgReq.copy], port: Port): void {
-      let str: string | string[] | object[] | undefined, hud = !0;
+      let str: string | string[] | object[] | undefined
       str = request.u || request.s;
       if (request.d) {
         if (typeof str !== "string") {
@@ -2649,15 +2650,15 @@
           str = BgUtils_.decodeUrlForCopy_(str)
         }
       } else {
-        hud = typeof str === "string";
-        if (hud && str.length < 4 && !(str as string).trim() && str[0] === " ") {
+        if (str.length < 4 && !(str as string).trim() && str[0] === " ") {
           str = "";
         }
       }
       str = str && BgUtils_.copy_(str, request.j, request.e);
       cPort = port;
-      hud && Backend_.showHUD_(request.d
-          ? str.replace(<RegExpG & RegExpSearchable<0>> /%(20|0[9ADad])/g, decodeURIComponent) : str, 1);
+      str = request.s && typeof request.s === "object" ? `[${request.s.length}] ` + request.s.slice(-1)[0] : str
+      Backend_.showHUD_(request.d ? str.replace(<RegExpG & RegExpSearchable<0>> /%(20|0[9ADad])/g, decodeURIComponent)
+          : str, request.u ? kTip.noUrlCopied : kTip.noTextCopied);
     },
     /** kFgReq.key: */ function (this: void, request: FgReq[kFgReq.key], port: Port): void {
       (port as Frames.Port).s.f |= Frames.Flags.userActed;
@@ -3187,12 +3188,18 @@
       // should never remove its session item - in case that goBack/goForward might be wanted
       // not seems to need to restore muted status
     },
-    showHUD_ (message: string, isCopy?: 1): void {
+    showHUD_ (text: string, isCopy?: kTip): void {
+      if (isCopy) {
+        if (text.startsWith(!(Build.BTypes & ~BrowserType.Firefox) ? "moz-" : "chrome-") && text.includes("://")) {
+          text = text.slice(text.indexOf("/", text.indexOf("/") + 2) + 1) || text
+        }
+        text = (text.length > 41 ? text.slice(0, 41) + "\u2026" : text + ".")
+      }
       if (cPort && !safePost(cPort, {
           N: kBgReq.showHUD,
           H: ensureInnerCSS(cPort),
-          t: message,
-          c: isCopy
+          k: isCopy ? text ? kTip.copiedIs : isCopy : kTip.raw,
+          t: text,
         })) {
         cPort = null as never;
       }

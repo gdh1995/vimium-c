@@ -415,8 +415,7 @@ interface VApiTy {
       (task: 2, newTr: VTransType): unknown
     }?
   ] | null | undefined;
-  /** copied */ s (text: string, isUrl?: BOOL | boolean): void
-  /** tip */ t (tid: kTip | HintMode, duration?: number, args?: Array<string | number>): void
+  /** tip */ t (request: BgReq[kBgReq.showHUD]): void
   /** suppressTailKeys */ u (timeout?: 0): HandlerNS.RefHandler
   /** flash */ x: {
     (el: null, rect: Rect, lifeTime?: number, classNames?: string): () => void

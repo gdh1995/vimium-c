@@ -8,11 +8,10 @@ import { frameElement_, set_OnDocLoaded_ } from "../lib/dom_utils"
 import { wndSize_ } from "../lib/rect"
 import {
   safePost, clearRuntimePort, runtime_port, SafeDestoryF, set_safeDestroy,
-  runtimeConnect, safeDestroy, post_, send_, hookOnWnd,
+  runtimeConnect, safeDestroy, post_, send_, hookOnWnd, requestHandlers,
 } from "./port"
 import {
-  ui_box, adjustUI, doExitOnClick, getParentVApi, set_getParentVApi, set_getWndVApi_ff, learnCSS,
-  setUICSS, ui_root, flash_,
+  ui_box, adjustUI, doExitOnClick, getParentVApi, set_getParentVApi, set_getWndVApi_ff, learnCSS, ui_root, flash_,
 } from "./dom_ui"
 import { grabBackFocus } from "./insert"
 import { currentKeys } from "./key_handler"
@@ -21,7 +20,6 @@ import { enableNeedToRetryParentClickable, focusAndRun } from "./request_handler
 
 import { activate as linkActivate, coreHints } from "./link_hints"
 import { executeScroll, scrollTick, $sc, keyIsDown as scroll_keyIsDown } from "./scroller"
-import { hudTip, hudCopied } from "./hud"
 import { onLoad as findOnLoad, find_box, findCSS, styleInHUD } from "./mode_find"
 import { activate as omniActivate } from "./omni"
 import { filterTextToGoNext, jumpToNextLink } from "./pagination"
@@ -68,7 +66,7 @@ set_vApi(VApi = {
       : task < 2 ? /*#__INLINE__*/ set_clickable_(arg as ElementSet)
       : /*#__INLINE__*/ set_VTr(arg as VTransType)
     return arg
-  }], s: hudCopied, t: hudTip, m: getMappedKey,
+  }], t: requestHandlers[kBgReq.showHUD], m: getMappedKey,
   x: flash_,
   y: () => (Build.BTypes & BrowserType.Firefox ? {
     w: onWndFocus, b: find_box, c: clickable_, f: findCSS, g: setUICSS, k: scroll_keyIsDown, r: ui_root, s: styleInHUD

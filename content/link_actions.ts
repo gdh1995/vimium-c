@@ -76,7 +76,7 @@ export const executeHintInOfficer = (hint: HintItem, event?: HandlerNS.Event): R
     }
   } else {
     clickEl = null;
-    hintApi.t(kTip.linkRemoved, 2000)
+    hintApi.t({ k: kTip.linkRemoved, d: 2000 })
   }
   (<RegExpOne> /0?/).test("");
   return rect
@@ -120,7 +120,7 @@ const getImageUrl = (img: SafeHTMLElement): string | void => {
       || src.length > text.length + 7 && (text === (img as HTMLElement & {href?: string}).href)) {
     text = src;
   }
-  return text || hintApi.t(kTip.notImg, 1000)
+  return text || hintApi.t({ k: kTip.notImg })
 }
 
 const getImageName_ = (img: SafeHTMLElement): string =>
@@ -186,7 +186,7 @@ export const linkActions: readonly LinkAction[] = [
     type || element.focus && !isIFrameElement(element) && element.focus()
     /*#__INLINE__*/ syncCachedScrollable();
     if (mode1_ < HintMode.min_job) { // called from Modes[-1]
-      hintApi.t(kTip.hoverScrollable, 1000)
+      hintApi.t({ k: kTip.hoverScrollable })
       return
     }
     hintMode_ & HintMode.queue || unhoverOnEsc()
@@ -251,7 +251,7 @@ export const linkActions: readonly LinkAction[] = [
       if (tag === "input") {
         let type = getInputType(link as HTMLInputElement), f: HTMLInputElement["files"];
         if (type === "pa") {
-          return hintApi.t(kTip.ignorePassword, 2000)
+          return hintApi.t({ k: kTip.ignorePassword })
         }
         if (!uneditableInputs_[type]) {
           str = (link as HTMLInputElement).value || (link as HTMLInputElement).placeholder;
@@ -278,7 +278,7 @@ export const linkActions: readonly LinkAction[] = [
       }
     }
     if (!str) {
-      return hintApi.s("", isUrl)
+      return hintApi.t({ k: isUrl ? kTip.noUrlCopied : kTip.noTextCopied })
     }
     if (mode1 > HintMode.min_edit - 1 && mode1 < HintMode.max_edit + 1) {
       let newtab = hintOptions.newtab
@@ -299,10 +299,9 @@ export const linkActions: readonly LinkAction[] = [
     let lastYanked = mode1 & HintMode.list ? (hintManager || coreHints).y : 0 as const;
     if (lastYanked) {
       if (lastYanked.indexOf(str) >= 0) {
-        return hintApi.t(kTip.noNewToCopy)
+        return hintApi.t({ k: kTip.noNewToCopy })
       }
       lastYanked.push(str);
-      hintApi.s(`[${lastYanked.length}] ` + str)
     }
     hintApi.p({
       H: kFgReq.copy,
@@ -349,7 +348,7 @@ export const linkActions: readonly LinkAction[] = [
     a.download = getImageName_(element);
     /** @todo: how to trigger download */
     mouse_(a, CLK, [0, 0], [!0, !1, !1, !1]);
-    hintApi.t(kTip.downloaded, 2000, [text])
+    hintApi.t({ k: kTip.downloaded, t: text })
   }
   , HintMode.DOWNLOAD_MEDIA
 ] as LinkAction,

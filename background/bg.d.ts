@@ -388,7 +388,7 @@ declare namespace SettingsNS {
         | "vomnibarOptions" | "focusNewTabContent"
         | "hideHud" | "previousPatterns" | "nextPatterns"
       > {
-    findCSS_: FindCSS; // should not in Settings_.defaults
+    findCSS: FindCSS; // should not in Settings_.defaults
   }
 
   type DynamicFiles = "HelpDialog" | "Commands" | "Exclusions" |
@@ -727,7 +727,7 @@ declare namespace BackendHandlersNS {
     setIcon_ (tabId: number, type: Frames.ValidStatus, isLater?: true): void;
     removeSug_ (this: void, req: FgReq[kFgReq.removeSug], port?: Port): void;
     complain_ (this: BackendHandlers, message: string): void;
-    showHUD_ (message: string, isCopy?: 1 | undefined): void;
+    showHUD_ (message: string, isCopy?: kTip): void
     getExcluded_: ExclusionsNS.GetExcluded;
     forceStatus_ (this: BackendHandlers, act: Frames.ForcedStatusText, tabId?: number): void;
     indexPorts_: {

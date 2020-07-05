@@ -18,7 +18,7 @@ import {
   addUIElement, adjustUI, createStyle, ensureBorder, getParentVApi, getBoxTagName_cr_,
   removeSelection, setUICSS, setupExitOnClick, ui_box, ui_root, evalIfOK, checkHidden,
 } from "./dom_ui"
-import { hudCopied, hudTip, hud_box } from "./hud"
+import { hudTip, hud_box } from "./hud"
 import {
   currentKeys, mappedKeys, set_keyFSM, anyClickHandler, onKeydown, onKeyup, passKeys,
   set_isPassKeysReverted, isPassKeysReverted, set_passKeys, set_mappedKeys,
@@ -231,7 +231,7 @@ set_requestHandlers([
     (contentCommands_ as TypeToCheck as TypeChecked)[request.c](options ? safer(options) : safeObj(null), request.n);
   } as (req: BaseExecute<object, keyof CmdOptions>) => void,
   /* kBgReq.createMark: */ createMark,
-  /* kBgReq.showHUD: */ function (req: Req.bg<kBgReq.showHUD>): void {
+  /* kBgReq.showHUD: */ <VApiTy["t"]> function (req: BgReq[kBgReq.showHUD]): void {
     if (req.H) {
       setUICSS(req.H);
       if (req.f) {
@@ -240,8 +240,7 @@ set_requestHandlers([
         styleSelectable && (styleSelectable.textContent = req.f.s);
       }
     }
-    req.c ? hudCopied(req.t) : req.t ? hudTip(kTip.raw, 0, [req.t])
-    : 0;
+    req.k ? hudTip(req.k, req.d, [req.t! /* safe */]) : 0
   },
   /* kBgReq.count: */ function (request: BgReq[kBgReq.count]): void {
     let n = parseInt(currentKeys, 10) || 1, count2: 0 | 1 | 2 | 3 = 0;
