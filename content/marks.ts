@@ -2,13 +2,14 @@ import { VTr, safer, loc_, vApi } from "../lib/utils"
 import { post_ } from "./port"
 import { hudHide, hudShow, hudTip } from "./hud"
 import { removeHandler_, pushHandler_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
+import { createElement_ } from "../lib/dom_utils"
 
 let onKeyChar: ((event: HandlerNS.Event, keyChar: string) => void) | null = null
 let prefix = true
 let swap = true
 let mcount = 0
 // [0..8]
-let previous: MarksNS.FgMark[] = []
+let previous: Readonly<MarksNS.FgMark>[] = []
 
 export const activate = (options: CmdOptions[kFgCmd.marks], count: number): void => {
     const isGo = options.mode !== "create";
@@ -33,8 +34,24 @@ export const activate = (options: CmdOptions[kFgCmd.marks], count: number): void
   }, activate)
 }
 
+const dispatchMark = ((mark?: Readonly<MarksNS.FgMark> | null | undefined
+    ): Readonly<MarksNS.FgMark> | MarksNS.FgMark | null => {
+  let a = createElement_("a"), oldStr: string | undefined, newStr: string, match: string[],
+  newMark: Readonly<MarksNS.FgMark> | null | undefined
+  mark && (a.textContent = oldStr = mark + "")
+  newMark = !dispatchEvent(new FocusEvent("vimiumMark", { relatedTarget: a })) ? null
+      : (newStr = a.textContent) === oldStr ? mark
+      : (match = newStr.split(",")).length > 1 ? [~~match[0], ~~match[1], match[2]] : mark
+  return mark ? newMark as Readonly<MarksNS.FgMark> | MarksNS.FgMark | null : newMark || [scrollX | 0, scrollY | 0]
+}) as {
+  (mark: Readonly<MarksNS.FgMark>): Readonly<MarksNS.FgMark> | null | MarksNS.FgMark
+  (mark?: undefined): MarksNS.FgMark
+}
+
 export const setPreviousMarkPosition = (idx?: number): void => {
-  previous[idx! | 0] = [ scrollX, scrollY, loc_.hash ]
+  const arr = dispatchMark()
+  arr.push(loc_.hash)
+  previous[idx! | 0] = arr
 }
 
 const create = (event: HandlerNS.Event, keyChar: string): void => {
@@ -91,13 +108,16 @@ const goto = (event: HandlerNS.Event, keyChar: string): void => {
     post_(req);
 }
 
-export const scrollToMark = (scroll: Readonly<MarksNS.FgMark>): void => {
+export const scrollToMark = ((scroll: Readonly<MarksNS.FgMark> | null | undefined): void => {
+  scroll = dispatchMark(scroll!)
+  if (scroll) {
     if (scroll[1] === 0 && scroll[2] && scroll[0] === 0) {
       loc_.hash = scroll[2];
     } else {
       scrollTo(scroll[0], scroll[1]);
     }
-}
+  }
+}) as (scroll: Readonly<MarksNS.FgMark>) => void
 
 export const createMark = (req: BgReq[kBgReq.createMark], local?: 0 | 2): void => {
     post_<kFgReq.marks>({
@@ -106,7 +126,7 @@ export const createMark = (req: BgReq[kBgReq.createMark], local?: 0 | 2): void =
       l: local,
       n: req.n,
       u: loc_.href,
-      s: [scrollX | 0, scrollY | 0]
+      s: dispatchMark()
     })
     hudTip(kTip.didNormalMarkTask, 1000,
         [ VTr(kTip.didCreate), VTr(local ? kTip.local : kTip.global), req.n ])
