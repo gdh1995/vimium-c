@@ -427,7 +427,6 @@ interface VApiTy {
     /** clickable */ c: ElementSet
     /** Scroller::keyIsDown */ k: number
     /** UI root */ r: VUIRoot | null
-    /** style in find HUD */ s: HTMLStyleElement | null
   }
   /** VScroller.$sc */ $: (element: SafeElement | null, di: ScrollByY, amount: number) => void
   /** cache */ z: SettingsNS.FrontendSettingCache | null

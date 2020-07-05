@@ -151,7 +151,7 @@ export const SuppressMost_ = function (this: {}, event: HandlerNS.Event): Handle
   /**
    * if not timeout, then only suppress repeated keys
    *
-   * @argument callback can be valid only if `BTypes & Chrome` and `timeout`
+   * @argument callback can be valid only if `timeout`
    */
 export const suppressTail_ = <T extends number = 0> (timeout?: T
       , callback?: T extends 0 ? 0 : HandlerNS.VoidHandler | 0, notInHandlerStack?: 1): HandlerNS.RefHandler => {
@@ -165,7 +165,7 @@ export const suppressTail_ = <T extends number = 0> (timeout?: T
       clearTimeout_(timer);
       timer = timeout_(() => { // safe-interval
         removeHandler_(func)
-        Build.BTypes & BrowserType.Chrome && isAlive_ && callback && (callback as Exclude<typeof callback, 0>)!()
+        isAlive_ && callback && (callback as Exclude<typeof callback, 0>)!()
       }, timeout);
       return HandlerResult.Prevent;
     };

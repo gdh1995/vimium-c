@@ -20,7 +20,7 @@ import { enableNeedToRetryParentClickable, focusAndRun } from "./request_handler
 
 import { activate as linkActivate, coreHints } from "./link_hints"
 import { executeScroll, scrollTick, $sc, keyIsDown as scroll_keyIsDown } from "./scroller"
-import { onLoad as findOnLoad, find_box, styleInHUD } from "./mode_find"
+import { onLoad as findOnLoad, find_box } from "./mode_find"
 import { activate as omniActivate } from "./omni"
 import { filterTextToGoNext, jumpToNextLink } from "./pagination"
 import { main_not_ff as extend_click_not_ff } from  "./extend_click.js"
@@ -69,8 +69,8 @@ set_vApi(VApi = {
   }], t: requestHandlers[kBgReq.showHUD], m: getMappedKey,
   x: flash_,
   y: () => (Build.BTypes & BrowserType.Firefox ? {
-    w: onWndFocus, b: find_box, c: clickable_, k: scroll_keyIsDown, r: ui_root, s: styleInHUD
-  } : { b: find_box, c: clickable_, k: scroll_keyIsDown, r: ui_root, s: styleInHUD })
+    w: onWndFocus, b: find_box, c: clickable_, k: scroll_keyIsDown, r: ui_root
+  } : { b: find_box, c: clickable_, k: scroll_keyIsDown, r: ui_root })
 })
 
 if (!(Build.BTypes & BrowserType.Firefox)) { /* empty */ }

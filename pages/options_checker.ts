@@ -61,7 +61,7 @@ let keyMappingChecker_ = {
       keys = keys2;
     }
     if (cmd.replace("#", "").trim().toLowerCase() === "mapkey") {
-      const destKeyArr = options.match(/^\s*\S+/)
+      const destKeyArr = options.match(<RegExpOne> /^\s*\S+/)
       let destKey = destKeyArr && destKeyArr[0].trim()
       const destKey2 = destKey && this.normalizeKeys_(destKey)
       if (destKey2 !== destKey) {
