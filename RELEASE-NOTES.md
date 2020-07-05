@@ -4,8 +4,26 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://github.com/gdh1995/vimium-c/blob/master/README_zh.md .
 
-#### 1.83.4
+#### 1.84.0
 (the current published version on Firefox Add-ons, Microsoft Edge Add-ons and Chrome Web Store)
+* LinkHints: **better compatibility with Firefox popup blocker** in "newtab" mode
+* now **support the high contrast mode** on Firefox and Edge (Chromium)
+  ([#191](https://github.com/gdh1995/vimium-c/issues/191))
+* fix some bugs, including a regression of custom CSS and broken <kbd>Tab</kbd> during `focusInput`
+* substitution rules: extend its usages
+  * support post-actions like `decode/unescape/upper/lower/reverse`
+  * the syntax is `s/query/replaced/i,decode,upper,reverse`: repeatly append a <kbd>,</kbd> and an action
+  * most related commands supports `sedKey: character` to filter pre-defined rules
+  * now the prefix of a rule can include up to 6 any English letters, and the rule gets used if only `sedKey` is in it
+* `focusInput`: add option `prefer: CSS selector` to choose a desired input
+* Vomnibar: use <kbd>Meta+N</kbd> to select the N-th item, like Alfred
+* Vomnibar: add an option `incognito=null/boolean/"reverse"` ([#195](https://github.com/gdh1995/vimium-c/issues/195))
+* Marks: now allow some host pages to report scrolling position and jump to marks in their own ways
+  ([#193](https://github.com/gdh1995/vimium-c/issues/193))
+* the UI of options page: use flat mode
+* build: record arguments to be able to reproduce the same package, in order to meet requirements of Firefox Add-ons
+
+#### 1.83.4
 * **better simulating of mouse events**: wait for 1~2 microticks, so that work better with modern frameworks
 * fix some bugs about `LinkHints` and the Display page
 * `focusInput`: follow "Detect whether links are completely covered or not"

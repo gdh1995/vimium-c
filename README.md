@@ -101,26 +101,23 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
-#### 1.83.4
-* **better simulating of mouse events**: wait for 1~2 microticks, so that work better with modern frameworks
-* fix some bugs about `LinkHints` and the Display page
-* `focusInput`: follow "Detect whether links are completely covered or not"
-  * support an option `reachable: boolean` to override this behavior
-* `goNext`: now find links in all same-origin frames
-* `goUp`: support an option `sed` to use substitution rules with prefix=`g`
-* Block list of words: a small change to how to detect comments
-* settings: show advanced options and command items by default
-* export settings: now support non-English characters in block list of words
-
-#### 1.83.3
-* createTab: in an incognito window, now don't open extension pages by default, unless `evenIncognito`
-* Scroller: make `keepHover` enabled by default; also use a cheaper way to prevent hover effects
-* `autoOpen`/`openUrl`: add an option `testUrl`, which is default to `false` if the option `keyword` is not empty
-* LinkHints: use `[aria-label]` and support `html[data-vimium-hints=ordinal]`
-* Vomnibar: fix bugs when preferring a web page as the Vomnibar page; fix no favicons on Firefox
-* Vomnibar: add an option `engines: enum` to filter out any engines
-* scroller: continue scrolling when irrelevant keys get released
-* fix some other bugs
+#### 1.84.0
+* LinkHints: **better compatibility with Firefox popup blocker** in "newtab" mode
+* now **support the high contrast mode** on Firefox and Edge (Chromium)
+  ([#191](https://github.com/gdh1995/vimium-c/issues/191))
+* fix some bugs, including a regression of custom CSS and broken <kbd>Tab</kbd> during `focusInput`
+* substitution rules: extend its usages
+  * support post-actions like `decode/unescape/upper/lower/reverse`
+  * the syntax is `s/query/replaced/i,decode,upper,reverse`: repeatly append a <kbd>,</kbd> and an action
+  * most related commands supports `sedKey: character` to filter pre-defined rules
+  * now the prefix of a rule can include up to 6 any English letters, and the rule gets used if only `sedKey` is in it
+* `focusInput`: add option `prefer: CSS selector` to choose a desired input
+* Vomnibar: use <kbd>Meta+N</kbd> to select the N-th item, like Alfred
+* Vomnibar: add an option `incognito=null/boolean/"reverse"` ([#195](https://github.com/gdh1995/vimium-c/issues/195))
+* Marks: now allow some host pages to report scrolling position and jump to marks in their own ways
+  ([#193](https://github.com/gdh1995/vimium-c/issues/193))
+* the UI of options page: use flat mode
+* build: record arguments to be able to reproduce the same package, in order to meet requirements of Firefox Add-ons
 
 See more on [RELEASE-NOTES.md](RELEASE-NOTES.md).
 
