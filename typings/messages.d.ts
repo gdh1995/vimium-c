@@ -444,7 +444,7 @@ interface FgReq {
     /** formatted-by-<a>.href */ f?: boolean;
     /** copied */ c?: boolean;
     /** keyword */ k?: string | null;
-    /** incognito */ i?: boolean;
+    /** incognito */ i?: boolean | null | "reverse";
     /** https */ h?: boolean | null;
     /** reuse */ r?: UserReuseType;
     /** omni */ o?: boolean;
@@ -539,7 +539,7 @@ interface FgReq {
 }
 
 interface OpenUrlOptions {
-  incognito?: boolean
+  incognito?: boolean | null
   /** default to false */ opener?: boolean
   /* pasted */ $p?: 1
   position?: "start" | "begin" | "end" | "before" | "after"

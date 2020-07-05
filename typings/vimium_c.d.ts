@@ -427,6 +427,7 @@ declare namespace VomnibarNS {
     icase?: boolean;
     searchInput?: boolean;
     tree?: boolean; // show tabs in tree mode
+    incognito?: boolean | null | "reverse";
   }
 }
 

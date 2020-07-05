@@ -56,6 +56,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.updateQueryFlag_(CompletersNS.QueryFlags.TabTree, !!options.tree);
     a.updateQueryFlag_(CompletersNS.QueryFlags.MonospaceURL, null);
     a.updateQueryFlag_(CompletersNS.QueryFlags.NoTabEngine, !!options.noTabs);
+    a.doesOpenInIncognito_ = options.incognito;
     a.allowedEngines_ = (options.engines || CompletersNS.SugType.Empty) | 0;
     a.caseInsensitive_ = !!options.icase;
     a.forceNewTab_ = !!options.newtab;
@@ -135,6 +136,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
 
   isActive_: false,
+  doesOpenInIncognito_: null as VomnibarNS.GlobalOptions["incognito"],
   inputText_: "",
   lastQuery_: "",
   lastNormalInput_: "",
@@ -249,7 +251,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.timer_ = a.height_ = a.matchType_ = a.sugTypes_ = a.wheelStart_ = a.wheelTime_ = a.actionType_ =
     a.total_ = a.lastKey_ = a.wheelDelta_ = 0;
     a.docZoom_ = 1;
-    a.completions_ = a.onUpdate_ = a.isHttps_ = a.baseHttps_ = null as never;
+    a.doesOpenInIncognito_ = a.completions_ = a.onUpdate_ = a.isHttps_ = a.baseHttps_ = null as never
     a.mode_.q = a.lastQuery_ = a.inputText_ = a.lastNormalInput_ = "";
     a.mode_.o = "omni";
     a.mode_.t = CompletersNS.SugType.Empty;
@@ -735,10 +737,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     type UrlInfo = Writable<Pick<CompletersNS.Suggestion, "u">> & Partial<Pick<CompletersNS.Suggestion, "s">>;
     const item: SuggestionE | UrlInfo = sel >= 0 ? a.completions_[sel] : { u: a.input_.value.trim() },
-    action = a.actionType_, https = a.isHttps_,
+    action = a.actionType_, https = a.isHttps_, incognito = a.doesOpenInIncognito_,
     func = function (this: void): void {
       item.s != null ? Vomnibar_.gotoSession_(item as SuggestionE & Ensure<SuggestionE, "s">)
-        : Vomnibar_.navigateToUrl_(item.u, action, https);
+        : Vomnibar_.navigateToUrl_(item.u, action, https, incognito);
       (<RegExpOne> /a?/).test("");
     };
     if (sel === -1 && event && event !== !0 && event & KeyStat.altKey && (<RegExpOne> /^\w+(-\w+)?$/).test(item.u)) {
@@ -1326,12 +1328,12 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
               || str.lastIndexOf("-", str.indexOf(":") + 1 || 8) > 0 && url.lastIndexOf("://", 21) > 0
             ? (i = url.indexOf("/", url.indexOf("://") + 3), i > 0 ? url.slice(0, i + 1) : url + "/") : url);
   },
-  navigateToUrl_ (url: string, reuse: ReuseType, https: boolean | null): void {
+  navigateToUrl_ (url: string, reuse: ReuseType, https: boolean | null, incognito: Options["incognito"]): void {
     if ((<RegExpI> /javascript:/i).test(url)) {
       VPort_.postToOwner_({ N: VomnibarNS.kFReq.evalJS, u: url });
       return;
     }
-    VPort_.post_({ H: kFgReq.openUrl, r: reuse, h: https, u: url, o: true });
+    VPort_.post_({ H: kFgReq.openUrl, r: reuse, h: https, u: url, o: true, i: incognito });
     if (reuse === ReuseType.newBg
         && (!Vomnibar_.lastQuery_ || (<RegExpOne> /^\+\d{0,2}$/).exec(Vomnibar_.lastQuery_))) {
       return Vomnibar_.refresh_();

@@ -2440,8 +2440,11 @@
       const opts: OpenUrlOptionsInBgCmd & SafeObject = BgUtils_.safeObj_();
       const _rawKey = request.k, keyword = (_rawKey || "") + ""
       const _rawTest = request.t, testUrl = _rawTest != null ? _rawTest : !keyword
-      opts.reuse = request.r;
-      opts.incognito = request.i;
+      const incognito = request.i === "reverse" ? cPort ? !cPort.s.a : null : request.i
+      const reuse = request.r
+      opts.reuse = incognito != null && (!reuse || reuse === "current") && (!cPort || incognito !== cPort.s.a)
+          ? ReuseType.newFg : reuse
+      opts.incognito = incognito
       opts.sed = request.e;
       if (url) {
         if (url[0] === ":" && request.o && (<RegExpOne> /^:[bdhostw]\s/).test(url)) {
