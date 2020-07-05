@@ -44,7 +44,7 @@ ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 * `mapkey`: support `$if={os: "win"|"mac"|"linux", browser: int}`, just like `map`
 * text substitution: add a prefix of `i` and two suffixes of `r` and `d`
   * `i` is for `vimium://show image` to parse high-resolution image URLs
-  * `r` means "revert", and treats a first matched group as the result
+  * `r` means "reverse", and treats a first matched group as the result
   * `d` means "decode URL", and it will try to decode result URLs
 * LinkHints: show indigenized upper-case characters (experimentally)
 * Vomnibar: now expose visit time for customized Vomnibar page [(#154)](https://github.com/gdh1995/vimium-c/issues/154)

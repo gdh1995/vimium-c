@@ -14,7 +14,7 @@ import {
 import { keyIsDown as scroll_keyIsDown, onScrolls, scrollTick } from "./scroller"
 
 let passKeys: SafeEnum | null | "" = null
-let isPassKeysReverted = false
+let isPassKeysReversed = false
 let mappedKeys: SafeDict<string> | null = null
 let keyFSM: KeyFSM
 let currentKeys = ""  
@@ -35,13 +35,13 @@ let onKeyup2: ((this: void, event?: Pick<KeyboardEvent, "keyCode">) => void) | n
 export {
   passKeys, mappedKeys, currentKeys,
   isWaitingAccessKey, isCmdTriggered, anyClickHandler,
-  onKeyup2, isPassKeysReverted,
+  onKeyup2, isPassKeysReversed,
 }
 export function resetIsCmdTriggered (): void { isCmdTriggered = kKeyCode.None }
 export function set_passKeys (_newPassKeys: SafeEnum | null | ""): void { passKeys = _newPassKeys }
 export function installTempCurrentKeyStatus (): void { currentKeys = "", nextKeys = keyFSM }
 export function set_onKeyup2 (_newOnKeyUp: typeof onKeyup2): void { onKeyup2 = _newOnKeyUp }
-export function set_isPassKeysReverted (_newPKReverted: boolean): void { isPassKeysReverted = _newPKReverted }
+export function set_isPassKeysReversed (_newPKReversed: boolean): void { isPassKeysReversed = _newPKReversed }
 export function set_keyFSM (_newKeyFSM: BgReq[kBgReq.keyFSM]["k"]) { keyFSM = _newKeyFSM }
 export function set_mappedKeys (_newMappedKeys: BgReq[kBgReq.keyFSM]["m"]): void { mappedKeys = _newMappedKeys }
 
@@ -71,7 +71,7 @@ const checkKey = (event: HandlerNS.Event, key: string
     ): HandlerResult.Nothing | HandlerResult.Prevent | HandlerResult.PlainEsc | HandlerResult.AdvancedEsc => {
   // when checkKey, Vimium C must be enabled, so passKeys won't be `""`
   const key0 = passKeys && key ? mappedKeys ? getMappedKey(event, kModeId.NO_MAP_KEY) : key : "";
-  if (!key || key0 && !currentKeys && (key0 in <SafeEnum> passKeys) !== isPassKeysReverted) {
+  if (!key || key0 && !currentKeys && (key0 in <SafeEnum> passKeys) !== isPassKeysReversed) {
     return key ? esc!(HandlerResult.Nothing) : HandlerResult.Nothing;
   }
   let j: ReadonlyChildKeyFSM | ValidKeyAction | undefined;
@@ -82,7 +82,7 @@ const checkKey = (event: HandlerNS.Event, key: string
   }
   if (!nextKeys || (j = nextKeys[key]) == null) {
     j = keyFSM[key];
-    if (j == null || nextKeys && key0 && (key0 in <SafeEnum> passKeys) !== isPassKeysReverted) {
+    if (j == null || nextKeys && key0 && (key0 in <SafeEnum> passKeys) !== isPassKeysReversed) {
       return esc!(HandlerResult.Nothing);
     }
     if (j !== KeyAction.cmd) { currentKeys = ""; }

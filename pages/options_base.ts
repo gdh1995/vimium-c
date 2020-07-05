@@ -428,10 +428,10 @@ readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"] {
       passKeys = BG_.BgUtils_.formatKeys_(passKeys);
       const passArr = passKeys.match(<RegExpG> /<(?!<)(?:a-)?(?:c-)?(?:m-)?(?:s-)?(?:[a-z][\da-z]+|[^\sA-Z])>|\S/g);
       if (passArr) {
-        const isReverted = passArr[0] === "^" && passArr.length > 1;
-        isReverted && passArr.shift();
+        const isReversed = passArr[0] === "^" && passArr.length > 1;
+        isReversed && passArr.shift();
         passArr.sort();
-        isReverted ? passArr.unshift("^") : passArr[0] === "^" && (passArr.shift(), passArr.push("^"));
+        isReversed ? passArr.unshift("^") : passArr[0] === "^" && (passArr.shift(), passArr.push("^"));
       }
       passKeys = passArr ? (passArr.join(" ") + " ") : "";
       passKeys = passKeys.replace(<RegExpG> /<escape>/gi, "<esc>");
@@ -648,13 +648,13 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
   ;
   function collectPass(pass: string): string {
     pass = pass.trim();
-    const isReverted = pass.startsWith("^");
-    isReverted && (pass = pass.slice(1).trimLeft());
+    const isReversed = pass.length > 2 && pass.startsWith("^");
+    isReversed && (pass = pass.slice(1).trimLeft());
     const dict = Object.create<1>(null);
     for (let i of pass.split(" ")) {
       dict[i] = 1;
     }
-    return (isReverted ? "^ " : "") + Object.keys(dict).sort().join(" ");
+    return (isReversed ? "^ " : "") + Object.keys(dict).sort().join(" ");
   }
   function updateState(updateOldPass: boolean): void {
     const isSaving = inited === 3;
@@ -666,14 +666,14 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
     }
     inited = 2;
     const same = pass === oldPass;
-    const isReverted = !!pass && pass.length > 2 && pass[0] === "^";
+    const isReversed = !!pass && pass.length > 2 && pass[0] === "^";
     stateAction.textContent =
-      (isSaving ? pass ? pTrans_("o137") + pTrans_(isReverted ? "o138" : "o139") : pTrans_("o140")
-        : pTrans_(same ? "o141" : "o142") + pTrans_(pass ? isReverted ? "o138" : "o139" : same ? "o143" : "o143_2")
+      (isSaving ? pass ? pTrans_("o137") + pTrans_(isReversed ? "o138" : "o139") : pTrans_("o140")
+        : pTrans_(same ? "o141" : "o142") + pTrans_(pass ? isReversed ? "o138" : "o139" : same ? "o143" : "o143_2")
         ).replace(" to be", "")
       + pTrans_("colon") + (pass ? pTrans_("NS") : "");
     stateValue.className = pass ? "code" : "fixed-width";
-    stateValue.textContent = pass ? isReverted ? pass.slice(2) : pass
+    stateValue.textContent = pass ? isReversed ? pass.slice(2) : pass
       : pTrans_(pass !== null ? "o144" : "o145") + pTrans_("o146");
     stateTail.textContent = curIsLocked && !isSaving && same
       ? pTrans_("o147", [pTrans_(curLockedStatus !== Frames.Status.enabled ? "o144" : "o145")])

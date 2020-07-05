@@ -21,7 +21,7 @@ import {
 import { hudTip, hud_box } from "./hud"
 import {
   currentKeys, mappedKeys, set_keyFSM, anyClickHandler, onKeydown, onKeyup, passKeys,
-  set_isPassKeysReverted, isPassKeysReverted, set_passKeys, set_mappedKeys,
+  set_isPassKeysReversed, isPassKeysReversed, set_passKeys, set_mappedKeys,
 } from "./key_handler"
 import { HintManager, kSafeAllSelector, set_kSafeAllSelector } from "./link_hints"
 import { createMark } from "./marks"
@@ -127,8 +127,8 @@ set_requestHandlers([
     const newPassKeys = request.p, newEnabled = newPassKeys !== "", old = isEnabled_;
     /*#__INLINE__*/ set_passKeys(newPassKeys && safeObj<1>(null))
     if (newPassKeys) {
-      /*#__INLINE__*/ set_isPassKeysReverted(newPassKeys[0] === "^" && newPassKeys.length > 2);
-      for (const ch of (isPassKeysReverted ? newPassKeys.slice(2) : newPassKeys).split(" ")) {
+      /*#__INLINE__*/ set_isPassKeysReversed(newPassKeys[0] === "^" && newPassKeys.length > 2);
+      for (const ch of (isPassKeysReversed ? newPassKeys.slice(2) : newPassKeys).split(" ")) {
         (passKeys as SafeDict<1>)[ch] = 1;
       }
     }
