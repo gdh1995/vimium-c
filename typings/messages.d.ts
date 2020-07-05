@@ -281,7 +281,6 @@ interface CmdOptions {
   };
   [kFgCmd.framesGoBack]: {
     reuse?: UserReuseType;
-    local?: boolean;
     count?: -1; // just for commands.ts
     position?: OpenUrlOptions["position"]
   };

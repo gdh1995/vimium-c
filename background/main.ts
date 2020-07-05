@@ -2773,7 +2773,7 @@
     /** kFgReq.framesGoBack: */ function (this: void, req: FgReq[kFgReq.framesGoBack], port: Port | null
         , curTab?: Pick<Tab, "id" | "url" | "pendingUrl" | "index">): void {
       const tabID = Build.BTypes & BrowserType.Chrome && curTab ? curTab.id : port!.s.t,
-      count = req.s, reuse = parseReuse(req.r);
+      count = req.s, reuse = parseReuse(req.r || ReuseType.current);
       let needToExecCode: boolean = Build.BTypes & BrowserType.Chrome ? false : true;
       if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.Min$Tabs$$goBack)
           && (!(Build.BTypes & BrowserType.Chrome)

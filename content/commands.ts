@@ -44,13 +44,13 @@ export const contentCommands_: {
 } = [
   /* kFgCmd.framesGoBack: */ function (options: CmdOptions[kFgCmd.framesGoBack], rawStep: number): void {
     const maxStep = Math.min(rawStep > 0 ? rawStep : -rawStep, history.length - 1),
-    reuse = options.reuse,
+    reuse = options.reuse, isCurrent = reuse === "current" || reuse === ReuseType.current,
     realStep = rawStep < 0 ? -maxStep : maxStep;
     if ((!(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome)
         && maxStep > 1
         && (Build.MinCVer >= BrowserVer.Min$Tabs$$goBack || chromeVer_ >= BrowserVer.Min$Tabs$$goBack)
-        && !options.local
-        || maxStep && reuse
+        && (reuse == null || !isCurrent)
+        || maxStep && reuse && !isCurrent
     ) {
       post_({ H: kFgReq.framesGoBack, s: realStep, r: reuse, p: options.position });
     } else {
