@@ -1307,11 +1307,10 @@ function getBuildItem(key, literalVal) {
   }
   if (newVal) {
     let newVal2 = safeJSONParse(newVal);
+    if (newVal2 == null && key === "Commit") { newVal2 = newVal }
     if (newVal2 != null) {
       newVal = newVal2
       LOCAL_SILENT || print("Use env:", "BUILD_" + key, "=", newVal);
-    } else if (key !== "Commit") {
-      newVal = null
     }
   } else if (key.startsWith("Random")) {
     newVal = getRandom
