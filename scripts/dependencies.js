@@ -289,16 +289,21 @@ function extendIf(b, a) {
 
 /**
  * Get git commit id (7-character version) or null
+ * @argument {number} maxLen
  * @return {string | null}
  */
 function getGitCommit(maxLen) {
   try {
     var branch = readFile(".git/HEAD");
-    branch = branch && branch.replace("ref:", "").trim();
-    if (branch) {
-      var commit = readFile(".git/" + branch);
-      return commit ? commit.trim().slice(0, maxLen > 0 ? maxLen : maxLen < 0 ? commit.length : 7) : null;
+    branch = branch && branch.trim();
+    /** @type {string | undefined} */
+    var commit;
+    if (!branch.startsWith("ref:") && branch.length >= 32) {
+      commit = branch;
+    } else if (branch.startsWith("ref:") && branch.length > 4) {
+      commit = readFile(".git/" + branch.slice(4).trim());
     }
+    return commit ? commit.trim().slice(0, maxLen > 0 ? maxLen : maxLen < 0 ? commit.length : 7) : null;
   } catch (e) {}
   return null;
 }

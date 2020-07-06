@@ -186,7 +186,7 @@ var Tasks = {
   "build/ts": function(cb) {
     var btypes = getBuildItem("BTypes");
     var curConfig = [btypes, getBuildItem("MinCVer"), envSourceMap, compilerOptions.target
-          , /** 4 */ needCommitInfo && !onlyTestSize ? getNonNullBuildItem("Commit") : 0];
+          , /** 4 */ needCommitInfo && !onlyTestSize ? getBuildItem("Commit") : 0];
     var configFile = btypes === BrowserType.Chrome ? "chrome"
           : btypes === BrowserType.Firefox ? "firefox" : "browser-" + btypes;
     if (btypes === BrowserType.Firefox) {
@@ -426,11 +426,15 @@ var Tasks = {
   dist: [["build/ts"], ["static", "manifest", "min/others", function (done) {
     const rands = Object.setPrototypeOf(randMap || {}, null), names = Object.keys(rands)
     let cmd = "", isEdge = getBuildItem("EdgeC") == 1;
-    Object.keys(process.env).filter(i => i.startsWith("BUILD_")).filter(i => i.toLowerCase().startsWith("build_random"))
+    Object.keys(process.env).filter(i => i.startsWith("BUILD_"))
+        .filter(i => /^random|^commit/i.test(i.slice(6)))
         .forEach(key => { cmd += `${key}=${process.env[key]} ` })
     for (const key of names) { cmd += `BUILD_${key}=${rands[key]} ` }
+    let shortCommit = getBuildItem("Commit")
+    if (!cmd.toLowerCase().includes(" BUILD_Commit=")) { cmd += `BUILD_Commit=${shortCommit} ` }
+    cmd += "TEST_WORKING=0 "
     cmd += `npm run ${isEdge ? "edge-c" : getBuildItem("BTypes") === BrowserType.Firefox ? "firefox" : "chrome"}`
-    let checkout = getBuildItem("Commit") && `git checkout ${getGitCommit(-1)}`
+    let checkout = shortCommit && `git checkout ${getGitCommit(-1) || shortCommit}`
     let install_deps = `npm ci`
     let fullCmds = [checkout, install_deps, cmd].map(i => i && i.trim()).filter(i => i)
     try {
@@ -1286,9 +1290,7 @@ function getNonNullBuildItem(key) {
 function getBuildItem(key, literalVal) {
   let cached = buildOptionCache[key];
   if (!cached) {
-    if (key === "Commit") {
-      cached = [literalVal, [safeJSONParse(literalVal), locally ? null : getGitCommit()]];
-    } else if (key === "MayOverrideNewTab") {
+    if (key === "MayOverrideNewTab") {
       if (!manifest.chrome_url_overrides || !manifest.chrome_url_overrides.newtab) {
         cached = buildOptionCache[key] = ["0", 0];
       }
@@ -1304,16 +1306,21 @@ function getBuildItem(key, literalVal) {
     newVal = process.env["BUILD_" + env_key];
   }
   if (newVal) {
-    newVal = safeJSONParse(newVal);
-    if (newVal != null) {
+    let newVal2 = safeJSONParse(newVal);
+    if (newVal2 != null) {
+      newVal = newVal2
       LOCAL_SILENT || print("Use env:", "BUILD_" + key, "=", newVal);
-      buildOptionCache[key] = [literalVal, newVal];
-      return parseBuildItem(key, newVal);
+    } else if (key !== "Commit") {
+      newVal = null
     }
   } else if (key.startsWith("Random")) {
-    cached = [literalVal, getRandom];
-    buildOptionCache[key] = cached;
-    return parseBuildItem(key, cached[1]);
+    newVal = getRandom
+  } else if (key === "Commit") {
+    newVal = [safeJSONParse(literalVal), locally ? null : getGitCommit()]
+  }
+  if (newVal != null) {
+    buildOptionCache[key] = [literalVal, newVal]
+    return parseBuildItem(key, newVal)
   }
   newVal = buildConfig && buildConfig[key];
   buildOptionCache[key] = [literalVal, newVal != null ? newVal : null];

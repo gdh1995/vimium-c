@@ -52,6 +52,7 @@ set -o noglob
 ver=$(grep -m1 -o '"version":\s*"[0-9\.]*"' ${ZIP_BASE}manifest.json | awk -F '"' '{print $4;}')
 output=$1
 ori_output=$output
+test_working=${TEST_WORKING:-1}
 # 0: may be; 1: is Chromium; 2: is Firefox
 chrome_only=0
 if [ -z "$output" -o -d "$output" ]; then
@@ -85,12 +86,12 @@ if [ -z "$output" -o -d "$output" ]; then
     git_hash=$("$exact_git" rev-parse --short=7 HEAD 2>/dev/null)
     # echo "Use Git Hash: $git_hash"
     ver=${ver}${git_hash:+-${git_hash}}${has_mod}
-    if [ -d '/wo' ]; then
+    if bool "$test_working" && [ -d '/wo' ]; then
       output=/wo/
     fi
   elif [ -n "$output" ]; then
     output=${output}/
-  elif [ -d '/wo' ]; then
+  elif bool "$test_working" && [ -d '/wo' ]; then
     output=/wo/
   fi
   pkg_name=$(basename "${pkg_name:-$PWD}")
