@@ -197,7 +197,7 @@ declare const enum kFgCmd {
   goToMarks, scroll, visualMode, vomnibar,
   reset, toggle, insertMode, passNextKey, goNext,
   reload, showHelp, autoCopy,
-  autoOpen, searchAs, focusInput, editText,
+  autoOpen, searchAs, focusInput, editText, scrollSelect, toggleStyle,
   END = "END",
 }
 
@@ -354,6 +354,19 @@ interface CmdOptions {
     dom?: boolean;
     run: string;
   };
+  [kFgCmd.scrollSelect]: {
+    position?: "begin" | "home" | "start" | "end" | "last"
+    dir?: "down" | "next" | "prev" | "up" | 1 | -1
+  };
+  [kFgCmd.toggleStyle]: {
+    selector?: undefined
+    id: string
+    css?: string
+  } | {
+    selector: string
+    id?: undefined
+    css?: undefined
+  }
 }
 
 declare const enum kMarkAction {

@@ -487,6 +487,7 @@ declare const enum kCName {
   moveTabToIncognito = "moveTabToIncognito",
   moveTabToNewWindow = "moveTabToNewWindow",
   moveTabToNextWindow = "moveTabToNextWindow",
+  newTab = "newTab", // for https://github.com/philc/vimium/issues/3588
   nextFrame = "nextFrame",
   nextTab = "nextTab",
   openCopiedUrlInCurrentTab = "openCopiedUrlInCurrentTab",
@@ -519,6 +520,7 @@ declare const enum kCName {
   scrollPxRight = "scrollPxRight",
   scrollPxUp = "scrollPxUp",
   scrollRight = "scrollRight",
+  scrollSelect = "scrollSelect", // just like https://github.com/philc/vimium/issues/1242#issuecomment-646837069
   scrollTo = "scrollTo",
   scrollToBottom = "scrollToBottom",
   scrollToLeft = "scrollToLeft",
@@ -535,6 +537,7 @@ declare const enum kCName {
   toggleMuteTab = "toggleMuteTab",
   togglePinTab = "togglePinTab",
   toggleReaderMode = "toggleReaderMode",
+  toggleStyle = "toggleStyle",
   toggleSwitchTemp = "toggleSwitchTemp",
   toggleViewSource = "toggleViewSource",
   toggleVomnibarStyle = "toggleVomnibarStyle",
@@ -623,6 +626,7 @@ declare namespace CommandsNS {
     [kCName.moveTabToIncognito]: kBgCmd.moveTabToNewWindow;
     [kCName.moveTabToNewWindow]: kBgCmd.moveTabToNewWindow;
     [kCName.moveTabToNextWindow]: kBgCmd.moveTabToNextWindow;
+    [kCName.newTab]: kBgCmd.createTab;
     [kCName.nextFrame]: kBgCmd.nextFrame;
     [kCName.nextTab]: kBgCmd.goToTab;
     [kCName.openCopiedUrlInCurrentTab]: kBgCmd.openUrl;
@@ -655,6 +659,7 @@ declare namespace CommandsNS {
     [kCName.scrollPxRight]: kFgCmd.scroll;
     [kCName.scrollPxUp]: kFgCmd.scroll;
     [kCName.scrollRight]: kFgCmd.scroll;
+    [kCName.scrollSelect]: kFgCmd.scrollSelect;
     [kCName.scrollTo]: kFgCmd.scroll;
     [kCName.scrollToBottom]: kFgCmd.scroll;
     [kCName.scrollToLeft]: kFgCmd.scroll;
@@ -671,6 +676,7 @@ declare namespace CommandsNS {
     [kCName.toggleMuteTab]: kBgCmd.toggleMuteTab;
     [kCName.togglePinTab]: kBgCmd.togglePinTab;
     [kCName.toggleReaderMode]: kBgCmd.toggleViewSource;
+    [kCName.toggleStyle]: kFgCmd.toggleStyle;
     [kCName.toggleSwitchTemp]: kBgCmd.toggle;
     [kCName.toggleViewSource]: kBgCmd.toggleViewSource;
     [kCName.toggleVomnibarStyle]: kBgCmd.toggleVomnibarStyle;

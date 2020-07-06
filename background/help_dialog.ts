@@ -72,6 +72,8 @@ var HelpDialog = {
         command = command.replace("EditUrl", "Url");
       } else if (command === <string> <unknown> kShortcutAliases.nextTab1) {
         command = kCName.nextTab;
+      } else if (command === kCName.newTab) {
+        command = kCName.createTab
       }
       (commandToKeys[command] || (commandToKeys[command] = [])).push([key, registry]);
     }
@@ -222,7 +224,8 @@ var HelpDialog = {
     pageNavigation: [kCName.scrollDown, kCName.scrollUp, kCName.scrollLeft, kCName.scrollRight, kCName.scrollToTop
       , kCName.scrollToBottom, kCName.scrollToLeft, kCName.scrollToRight, kCName.scrollPageDown, kCName.scrollPageUp
       , kCName.scrollPxDown, kCName.scrollPxUp, kCName.scrollPxLeft, kCName.scrollPxRight
-      , kCName.scrollFullPageDown, kCName.scrollFullPageUp, kCName.reload, kCName.reloadTab, kCName.reloadGivenTab
+      , kCName.scrollFullPageDown, kCName.scrollFullPageUp, kCName.scrollSelect
+      , kCName.reload, kCName.reloadTab, kCName.reloadGivenTab
       , kCName.zoomIn, kCName.zoomOut, kCName.toggleViewSource
       , kCName.copyCurrentUrl, kCName.copyCurrentTitle, kCName.switchFocus, kCName.simBackspace
       , kCName.LinkHints_activateModeToCopyLinkUrl, kCName.LinkHints_activateModeToCopyLinkText
@@ -254,7 +257,7 @@ var HelpDialog = {
       , kCName.closeTabsOnRight, kCName.closeOtherTabs, kCName.moveTabLeft, kCName.moveTabRight
       , kCName.enableCSTemp, kCName.toggleCS, kCName.clearCS, kCName.copyWindowInfo],
     misc: [kCName.showHelp, kCName.autoCopy, kCName.autoOpen, kCName.searchAs, kCName.searchInAnother
-      , kCName.toggleLinkHintCharacters
+      , kCName.toggleStyle, kCName.toggleLinkHintCharacters
       , kCName.toggleSwitchTemp, kCName.passNextKey, kCName.debugBackground, kCName.closeDownloadBar, kCName.blank]
   } as { readonly [key: string]: readonly kCName[] } & SafeObject,
   advancedCommands_: As_<{ readonly [k in kCName]?: 1 | 0; } & SafeObject>({ __proto__: null as never,
@@ -263,7 +266,7 @@ var HelpDialog = {
     , moveTabToNewWindow: 1, moveTabToIncognito: 1, reloadGivenTab: 1
     , focusOrLaunch: 1
     , goUp: 1, goToRoot: 1, focusInput: 1, "LinkHints.activateModeWithQueue": 1
-    , enableCSTemp: 1, toggleCS: 1, clearCS: 1
+    , enableCSTemp: 1, toggleCS: 1, toggleStyle: 1, clearCS: 1
     , "LinkHints.activateModeToDownloadImage": 1, reopenTab: 1
     , "LinkHints.activateModeToOpenImage": 1, removeRightTab: 1
     , "LinkHints.activateModeToDownloadLink": 1, restoreGivenTab: 1

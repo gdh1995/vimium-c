@@ -3,7 +3,7 @@ import {
   keydownEvents_,
   parseSedOptions,
 } from "../lib/utils"
-import { isHTML_, htmlTag_, createElement_, frameElement_, querySelectorAll_unsafe_ } from "../lib/dom_utils"
+import { isHTML_, htmlTag_, createElement_, frameElement_, querySelectorAll_unsafe_, querySelector_unsafe_, SafeEl_not_ff_, docEl_unsafe_ } from "../lib/dom_utils"
 import {
   pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER,
 } from "../lib/keyboard_utils"
@@ -13,7 +13,7 @@ import {
 } from "../lib/rect"
 import { post_ } from "./port"
 import {
-  addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, getParentVApi, curModalElement
+  addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, getParentVApi, curModalElement, createStyle
 } from "./dom_ui"
 import { hudHide, hudShow, hudTip, hud_text } from "./hud"
 import { onKeyup2, set_onKeyup2, passKeys, installTempCurrentKeyStatus, set_passKeys } from "./key_handler"
@@ -331,5 +331,30 @@ export const contentCommands_: {
         }
       }
     }, 0);
+  },
+  /* kFgCmd.scrollSelect: */ ({ dir, position: pos }: CmdOptions[kFgCmd.scrollSelect], count: number): void => {
+    const el = raw_insert_lock as HTMLSelectElement | null
+    if (!el || htmlTag_(el) !== "select") { return }
+    let max = el.options.length
+      , absCount = count > 0 ? count : -count, step: number
+    if (pos) {
+      step = (!!pos && pos > "e" && pos < "m" && pos !== "home") === count > 0 ? max - absCount : absCount - 1
+    } else {
+      step = el.selectedIndex + (typeof dir === "string" ? dir > "p" ? -1 : 1 : dir || 1) * count
+    }
+    step = step >= max ? max - 1 : step < 0 ? 0 : step
+    el.selectedIndex = step
+  },
+  /* kFgCmd.toggleStyle: */ (options: CmdOptions[kFgCmd.toggleStyle]): void => {
+    let id = options.id, el = querySelector_unsafe_(id ? "#" + id : options.selector!), par: SafeElement | null
+    if (el) {
+      (el as HTMLStyleElement | HTMLLinkElement).disabled = !(el as HTMLStyleElement | HTMLLinkElement).disabled
+    } else if (id) {
+      el = createStyle(options.css!)
+      el.id = id
+      par = Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(doc.head)
+          : (doc.head || docEl_unsafe_()) as SafeElement | null
+      par && par.appendChild(el)
+    }
   }
 ]
