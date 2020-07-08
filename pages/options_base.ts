@@ -387,6 +387,14 @@ onRemoveRow_ (event: Event): void {
   }
 }
 
+static onFormatKey_ (this: void, _0: string, modifiers: string, ch: string): string {
+  const chLower = ch.toLowerCase()
+  return ch !== chLower ? `<${modifiers}s-${chLower}>` : _0
+}
+static formatKeys_ (keys: string): string {
+  return keys && keys.replace(<RegExpG & RegExpSearchable<2>> /<(?!<)((?:[acm]-){0,3})([^a-z\d][\dA-Z]*)>/g
+      , ExclusionRulesOption_.onFormatKey_)
+}
 readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"] {
   const rules: ExclusionsNS.StoredRule[] = [];
   part = (part === true);
@@ -425,7 +433,7 @@ readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"] {
       pattern += "/";
     }
     if (passKeys) {
-      passKeys = BG_.BgUtils_.formatKeys_(passKeys);
+      passKeys = ExclusionRulesOption_.formatKeys_(passKeys)
       const passArr = passKeys.match(<RegExpG> /<(?!<)(?:a-)?(?:c-)?(?:m-)?(?:s-)?(?:[a-z][\da-z]+|[^\sA-Z])>|\S/g);
       if (passArr) {
         const isReversed = passArr[0] === "^" && passArr.length > 1;

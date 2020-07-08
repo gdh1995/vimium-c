@@ -132,7 +132,7 @@ var Commands = {
       splitLine = line.split(" ");
       key = splitLine[0];
       if (key === "map") {
-        key = BgUtils_.formatKeys_(splitLine[1] || "");
+        key = splitLine[1] || ""
         if (!key || key === "__proto__") {
           a.logError_('Unsupported key sequence %c"%s"', colorRed, key || '""', `for "${splitLine[2] || ""}"`);
         } else if (key in registry && !(builtinKeys && key in builtinKeys)) {
@@ -204,7 +204,7 @@ var Commands = {
         a.logError_('Unknown mapping command: %c"%s"', colorRed, key, "in", line);
       } else if (splitLine.length !== 2) {
         a.logError_("Unmap needs one mapped key:", line);
-      } else if ((key = BgUtils_.formatKeys_(splitLine[1])) in registry) {
+      } else if ((key = splitLine[1]) in registry) {
         builtinKeys && delete builtinKeys[key];
         delete registry[key];
         continue;

@@ -835,14 +835,6 @@ var BgUtils_ = {
     return null;
   },
   keyRe_: <RegExpG & RegExpSearchable<0>> /<(?!<[^:])(?:.-){0,4}.\w*?(?::i)?>|./g, /* need to support "<<left>" */
-  onFormatKey_ (this: void, _0: string, modifiers: string, ch: string): string {
-    const chLower = ch.toLowerCase();
-    return ch !== chLower ? `<${modifiers}s-${chLower}>` : _0;
-  },
-  formatKeys_ (keys: string): string {
-    return keys &&
-        keys.replace(<RegExpG & RegExpSearchable<2>> /<(?!<)((?:[acm]-){0,3})([^a-z\d][\dA-Z]*)>/g, this.onFormatKey_);
-  },
   getNull_ (this: void): null { return null; },
   timeout_ (timeout: number, callback: (this: void, fakeArgs?: TimerType.fake) => void): void {
     setTimeout(callback, timeout);

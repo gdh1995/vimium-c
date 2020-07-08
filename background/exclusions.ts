@@ -84,7 +84,7 @@ var Exclusions = {
     return onURLChange;
   },
   format_ (rules: ExclusionsNS.StoredRule[]): ExclusionsNS.Rules {
-    return rules.map(rule => Exclusions.createRule_(rule.pattern, BgUtils_.formatKeys_(rule.passKeys)));
+    return rules.map(rule => Exclusions.createRule_(rule.pattern, rule.passKeys))
   },
   getAllPassed_ (): SafeEnum | true | null {
     let all = BgUtils_.safeObj_() as SafeDict<1>, tick = 0;
