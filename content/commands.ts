@@ -242,7 +242,7 @@ export const contentCommands_: {
         ) as InputHint[],
     action = options.select, keep = options.keep, pass = options.passExitKey, reachable = options.reachable;
     if (reachable != null ? reachable : fgCache.e) {
-      curModalElement || filterOutNonReachable(visibleInputs)
+      curModalElement || filterOutNonReachable(visibleInputs, 1)
     }
     let sel = visibleInputs.length;
     if (!sel) {

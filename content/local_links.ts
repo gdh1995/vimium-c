@@ -552,7 +552,7 @@ const isDescendant = function (c: Element | null, p: Element, shouldBeSingleChil
   return i > 2;
 } as (c: Element, p: Element, shouldBeSingleChild: BOOL | boolean) => boolean
 
-export const filterOutNonReachable = (list: Hint[]): void => {
+export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean | BOOL): void => {
   if (!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && VOther & BrowserType.Edge) { return; }
   if (Build.BTypes & BrowserType.Chrome && (Build.MinCVer < BrowserVer.Min$Node$$getRootNode
         || Build.MinCVer < BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint)
@@ -599,7 +599,9 @@ export const filterOutNonReachable = (list: Hint[]): void => {
     }
     if ((tag = el.localName) === "img"
         ? isDescendant(el, fromPoint!, 0)
-        : tag === "area" && fromPoint === list[i][4]) {
+        : tag === "area" ? fromPoint === list[i][4]
+        : tag === "input" && (fromPoint! as HTMLLabelElement).control === el
+          && (notForAllClickable || (i < 1 || list[i - 1][0] !== el) && (i >= list.length || list[i + 1][0] !== el))) {
       continue;
     }
     const stack = root.elementsFromPoint(cx, cy),
@@ -641,9 +643,9 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
     : _i - HintMode.FOCUS_EDITABLE ? traverse(kSafeAllSelector, getClickable)
     : traverse(Build.BTypes & ~BrowserType.Firefox
           ? kEditableSelector + kSafeAllSelector : kEditableSelector, getEditable);
-  if (_i < HintMode.max_mouse_events + 1
+  if ((_i < HintMode.max_mouse_events + 1 || _i === HintMode.FOCUS_EDITABLE)
       && visibleElements.length < GlobalConsts.MinElementCountToStopPointerDetection) {
-    fgCache.e && filterOutNonReachable(visibleElements);
+    fgCache.e && filterOutNonReachable(visibleElements, _i > HintMode.FOCUS_EDITABLE - 1);
   }
   maxLeft_ = view[2], maxTop_ = view[3], maxRight_ = view[4];
   if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar)
