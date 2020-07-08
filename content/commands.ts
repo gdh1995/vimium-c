@@ -3,7 +3,9 @@ import {
   keydownEvents_,
   parseSedOptions,
 } from "../lib/utils"
-import { isHTML_, htmlTag_, createElement_, frameElement_, querySelectorAll_unsafe_, querySelector_unsafe_, SafeEl_not_ff_, docEl_unsafe_ } from "../lib/dom_utils"
+import {
+  isHTML_, htmlTag_, createElement_, frameElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_,
+} from "../lib/dom_utils"
 import {
   pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER,
 } from "../lib/keyboard_utils"
@@ -346,7 +348,8 @@ export const contentCommands_: {
     el.selectedIndex = step
   },
   /* kFgCmd.toggleStyle: */ (options: CmdOptions[kFgCmd.toggleStyle]): void => {
-    let id = options.id, el = querySelector_unsafe_(id ? "#" + id : options.selector!), par: SafeElement | null
+    let id = options.id, nodes = querySelectorAll_unsafe_(id ? "#" + id : options.selector!),
+    el = nodes && nodes[0], par: SafeElement | null
     if (el) {
       (el as HTMLStyleElement | HTMLLinkElement).disabled = !(el as HTMLStyleElement | HTMLLinkElement).disabled
     } else if (id) {
