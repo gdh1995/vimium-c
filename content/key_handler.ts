@@ -67,10 +67,10 @@ set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
   return key;
 })
 
-const checkKey = (event: HandlerNS.Event, key: string
+const checkKey = (event: HandlerNS.Event, key: string, keyWithoutMapKey: string
     ): HandlerResult.Nothing | HandlerResult.Prevent | HandlerResult.PlainEsc | HandlerResult.AdvancedEsc => {
   // when checkKey, Vimium C must be enabled, so passKeys won't be `""`
-  const key0 = passKeys && key ? mappedKeys ? getMappedKey(event, kModeId.NO_MAP_KEY) : key : "";
+  const key0 = passKeys && key ? mappedKeys ? getMappedKey(event, kModeId.NO_MAP_KEY) : keyWithoutMapKey || key : "";
   if (!key || key0 && !currentKeys && (key0 in <SafeEnum> passKeys) !== isPassKeysReversed) {
     return key ? esc!(HandlerResult.Nothing) : HandlerResult.Nothing;
   }
@@ -169,20 +169,21 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
   }
   if (action) { /* empty */ }
   else if (/*#__NOINLINE__*/ isInInsert()) {
-    const g = insert_global_, isF_num = key > kKeyCode.maxNotFn && key < kKeyCode.minNotFn,
-    keyStr = mappedKeys || g || isF_num || event.ctrlKey
-        || key === kKeyCode.esc ? getMappedKey(eventWrapper, kModeId.Insert) : "";
-    if (g ? !g.k ? isEscape_(keyStr) : keyStr === g.k
-        : (!mappedKeys ? isF_num
-          : (tempStr = keybody_(keyStr)) > kChar.maxNotF_num && tempStr < kChar.minNotF_num)
-        ? (action = checkKey(eventWrapper, keyStr)) > HandlerResult.MaxNotEsc
-        : isEscape_(keyStr)
+    let keyStr = mappedKeys || insert_global_ || (key > kKeyCode.maxNotFn ? key < kKeyCode.minNotFn : key < kKeyCode.N0)
+          || getKeyStat_(eventWrapper) & KeyStat.ExceptShift ? getMappedKey(eventWrapper, kModeId.Insert) : ""
+    if (insert_global_ ? !insert_global_.k ? isEscape_(keyStr) : keyStr === insert_global_.k
+        : keyStr.length < 2 ? esc!(HandlerResult.Nothing)
+        : (action = checkKey(eventWrapper
+            , (tempStr = keybody_(keyStr)) > kChar.maxNotF_num && tempStr < kChar.minNotF_num ? keyStr
+              : (mappedKeys ? getMappedKey(eventWrapper, kModeId.NO_MAP_KEY) : keyStr
+                ) + GlobalConsts.DelimeterForKeyCharAndMode + "i"
+            , keyStr)) > HandlerResult.MaxNotEsc
     ) {
-      if ((raw_insert_lock && raw_insert_lock === doc.body || !isTop && wndSize_() < 5) && !g) {
+      if (!insert_global_ && (raw_insert_lock && raw_insert_lock === doc.body || !isTop && wndSize_() < 5)) {
         event.repeat && focusUpper(key, true, event);
         action = /* the real is HandlerResult.PassKey; here's for smaller code */ HandlerResult.Nothing;
       } else {
-        action = g && g.p ? (
+        action = insert_global_ && insert_global_.p ? (
           Build.BTypes & BrowserType.Chrome && checkPotentialAccessKey(eventWrapper),
           HandlerResult.Nothing) : HandlerResult.Prevent;
         /*#__NOINLINE__*/ exitInsertMode(event.target as Element);
@@ -194,7 +195,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
           | 1 << kKeyCode.altKey | 1 << kKeyCode.ctrlKey | 1 << kKeyCode.shiftKey
           ) >> key) & 1) {
       action = checkKey(eventWrapper,
-            getMappedKey(eventWrapper, currentKeys ? kModeId.Next : kModeId.Normal));
+            getMappedKey(eventWrapper, currentKeys ? kModeId.Next : kModeId.Normal), "");
       if (action > HandlerResult.MaxNotEsc) {
         action = action > HandlerResult.PlainEsc ? /*#__NOINLINE__*/ onEscDown(event, key)
             : HandlerResult.Nothing;

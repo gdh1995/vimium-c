@@ -834,7 +834,7 @@ var BgUtils_ = {
     }
     return null;
   },
-  keyRe_: <RegExpG & RegExpSearchable<0>> /<(?!<)(?:.-){0,4}.\w*?>|./g, /* need to support "<<left>" */
+  keyRe_: <RegExpG & RegExpSearchable<0>> /<(?!<)(?:.-){0,4}.\w*?(?::i)?>|./g, /* need to support "<<left>" */
   onFormatKey_ (this: void, _0: string, modifiers: string, ch: string): string {
     const chLower = ch.toLowerCase();
     return ch !== chLower ? `<${modifiers}s-${chLower}>` : _0;

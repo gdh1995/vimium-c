@@ -163,7 +163,6 @@ var Commands = {
         }
         continue;
       } else if (key === "mapkey" || key === "mapKey") {
-        const re = <RegExpG & RegExpSearchable<1>> /<(?!<[^:])([acms]-){0,4}.\w*?(:[a-z])?>|./g;
         if (splitLine.length === 4) {
           const doesNotMatchEnv = a.doesNotMatchEnv_(a.getOptions_(splitLine, 3));
           if (doesNotMatchEnv != null) {
@@ -173,9 +172,11 @@ var Commands = {
         }
         if (splitLine.length !== 3) {
           a.logError_(`mapKey: need %s source and target keys:`, splitLine.length > 3 ? "only" : "both", line);
-        } else if ((key = splitLine[1]).length > 1 && key.match(re)!.length > 1
-          || splitLine[2].length > 1 && splitLine[2].match(re)!.length > 1) {
-          a.logError_("mapKey: a source / target key should be a single key:", line);
+        } else if ((key = splitLine[1]).length > 1
+            && !(<RegExpOne> /^<(?!<[^:])([acms]-){0,4}.\w*?(:[a-z])?>$/).test(key)) {
+          a.logError_("mapKey: a source key should be a single key with an optional mode id:", line);
+        } else if (splitLine[2].length > 1 && !(<RegExpOne> /^<(?!<)(.-){0,4}.\w*?>$/).test(splitLine[2])) {
+          a.logError_("mapKey: a target key should be a single key:", line);
         } else if (key = BgUtils_.stripKey_(key), key in mkReg) {
           key = mkReg[key]!;
           a.logError_('The key %c"%s"', colorRed, splitLine[1], "has been mapped to another key:"
