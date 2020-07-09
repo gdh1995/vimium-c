@@ -716,6 +716,7 @@ TabRecency_ = {
   curTab_: (chrome.tabs.TAB_ID_NONE || GlobalConsts.TabIdNone) as number,
   curWnd_: (!(Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox) || chrome.windows)
       && chrome.windows.WINDOW_ID_NONE || GlobalConsts.WndIdNone,
+  lastWnd_: GlobalConsts.WndIdNone as number,
   incognito_: Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
       ? IncognitoType.ensuredFalse : IncognitoType.mayFalse,
   rCompare_: null as never as (a: {id: number}, b: {id: number}) => number
@@ -745,6 +746,7 @@ BgUtils_.timeout_(120, function (): void {
     let a = tabs[0], current = a.windowId, last = TabRecency_.curWnd_
     if (current !== last) {
       TabRecency_.curWnd_ = current
+      TabRecency_.lastWnd_ = last
     }
     {
       TabRecency_.incognito_ = a.incognito ? IncognitoType.true

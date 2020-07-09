@@ -215,11 +215,14 @@ type TextElement = HTMLInputElement | HTMLTextAreaElement;
 
 declare const enum ReuseType {
   current = 0,
-  Default = current,
   reuse = 1,
   newWindow = 2,
   newFg = -1,
   newBg = -2,
+  lastWndFg = -5,
+  lastWndBg = -6,
+  FLAG_LAST_WINDOW = -4,
+  Default = newFg,
 }
 declare type UserReuseType = ReuseType | keyof typeof ReuseType
 

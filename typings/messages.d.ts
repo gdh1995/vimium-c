@@ -227,7 +227,7 @@ declare namespace HintsNS {
     keyword?: string;
     testUrl?: boolean
     dblclick?: boolean;
-    newtab?: boolean | "force" | "window" | /** Firefox-only */ "no-prevent";
+    newtab?: boolean | "force" | "last-window" | "window" | /** Firefox-only */ "no-prevent";
     button?: "right";
     scroll?: "force";
     touch?: null | boolean | "auto";

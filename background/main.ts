@@ -629,7 +629,8 @@
         : typeof reuse !== "string" ? (<number> <number | null | undefined> reuse) | 0
         : reuse === "reuse" ? ReuseType.reuse : reuse === "newWindow" ? ReuseType.newWindow
         : reuse === "newFg" ? ReuseType.newFg : reuse === "newBg" ? ReuseType.newBg
-        : ReuseType.Default
+        : reuse === "lastWndFg" ? ReuseType.lastWndFg : reuse === "lastWndBg" ? ReuseType.lastWndBg
+        : ReuseType.newFg
   }
   function openUrl(url: Urls.Url, workType: Urls.WorkType, tabs?: [Tab] | []): void {
     if (typeof url !== "string") { /* empty */ }
@@ -695,12 +696,12 @@
     }
     openUrl(url, Urls.WorkType.ActAnyway, tabs);
   }
-  function openUrlInNewTab(this: void, url: string, reuse: ReuseType
+  function openUrlInNewTab(this: void, url: string, reuse: Exclude<ReuseType, ReuseType.reuse | ReuseType.current>
       , options: Readonly<Pick<OpenUrlOptions, "position" | "opener" | "window" | "incognito">>
       , tabs: [Tab] | []): void {
     const tab: Tab | undefined = tabs[0], tabIncognito = !!tab && tab.incognito,
-    incognito = options.incognito, active = reuse !== ReuseType.newBg;
-    let window = reuse === ReuseType.newWindow || options.window;
+    incognito = options.incognito, active = reuse !== ReuseType.newBg && reuse !== ReuseType.lastWndBg;
+    let window = reuse === ReuseType.newWindow || reuse < ReuseType.lastWndFg + 1 || options.window;
     let inReader: boolean | undefined
     if (Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)
         && url.startsWith("about:reader?url=")) {
@@ -722,6 +723,15 @@
       return;
     }
     if (window) {
+      if (reuse < ReuseType.lastWndFg + 1 && TabRecency_.lastWnd_ >= 0) {
+        chrome.tabs.create({ windowId: TabRecency_.lastWnd_, url, active: reuse > ReuseType.lastWndBg }, (): void => {
+          if (onRuntimeError()) {
+            openUrlInNewTab(url, ReuseType.newWindow, options, tabs)
+            return onRuntimeError()
+          }
+        })
+        return;
+      }
       getCurWnd(false, function ({ state }): void {
         makeWindow({ url, focused: active }, state !== "minimized" && state !== "docked" ? state : "");
       });
@@ -810,7 +820,8 @@
     } else if (incognito) {
       tabsCreate({ url: prefix, active: reuse !== ReuseType.newBg });
     } else {
-      openUrlInNewTab(prefix, reuse, options, [tab]);
+      // reuse may be ReuseType.reuse, but just treat it as .newFg
+      openUrlInNewTab(prefix, reuse as Exclude<ReuseType, ReuseType.current | ReuseType.reuse>, options, [tab]);
     }
     return true;
   };

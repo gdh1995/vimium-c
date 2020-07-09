@@ -53,11 +53,11 @@ type AcceptableClickButtons = kClickButton.none | kClickButton.second | kClickBu
 declare const enum kClickAction {
   none = 0,
   /** should only be used on Firefox */ plainMayOpenManually = 1,
-  forceToOpenInNewTab = 2, newTabFromMode = 4,
-  openInNewWindow = 8,
+  forceToOpenInNewTab = 2, forceToOpenInLastWnd = 4, newTabFromMode = 8,
+  openInNewWindow = 16,
   // the 1..MaxOpenForAnchor before this line should always mean HTML <a>
-  forceToDblclick = 16,
-  MinNotPlainOpenManually = 2, MaxOpenForAnchor = 15,
+  forceToDblclick = 32,
+  MinNotPlainOpenManually = 2, MaxOpenForAnchor = 31,
 }
 
 /**

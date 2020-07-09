@@ -303,7 +303,7 @@ export const click_ = async (element: SafeElementForMouse
           || Build.BTypes & BrowserType.Firefox && specialAction < kClickAction.MinNotPlainOpenManually
               && parentAnchor.target !== "_blank"
           || !(url = parentAnchor.getAttribute("href"))
-          || (!(Build.BTypes & BrowserType.Firefox) || specialAction & kClickAction.forceToOpenInNewTab)
+          || specialAction & (kClickAction.forceToOpenInNewTab | kClickAction.forceToOpenInLastWnd)
               && url[0] === "#"
           || jsRe_.test(url)
         ? ActionType.OnlyDispatch
@@ -337,6 +337,8 @@ export const click_ = async (element: SafeElementForMouse
         : relAttr.split(<RegExpOne> /\s/).indexOf("noopener") >= 0,
     reuse = Build.BTypes & BrowserType.Firefox && specialAction! & kClickAction.openInNewWindow
         ? ReuseType.newWindow
+        : specialAction! & kClickAction.forceToOpenInLastWnd
+          ? specialAction! < kClickAction.newTabFromMode ? ReuseType.lastWndFg : ReuseType.lastWndBg
         : modifiers && modifiers[3] || specialAction! < kClickAction.newTabFromMode
           ? ReuseType.newFg : ReuseType.newBg;
     (hintApi ? hintApi.p : post_)({

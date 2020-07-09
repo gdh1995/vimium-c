@@ -129,7 +129,8 @@ const getImageName_ = (img: SafeHTMLElement): string =>
 const openUrl = (url: string, incognito?: boolean): void => {
   hintApi.p({
     H: kFgReq.openUrl,
-    r: hintMode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
+    r: (hintMode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg)
+       + ReuseType.FLAG_LAST_WINDOW * <number> <number | boolean> (hintOptions.newtab === "last-window"),
     u: url,
     f: incognito,
     e: parseSedOptions(hintOptions),
@@ -457,6 +458,8 @@ export const linkActions: readonly LinkAction[] = [
             || link.closest ? !link.closest!("a") : tag !== "a") ? kClickAction.none
         : newTabOption === "force" ? newTab
             ? kClickAction.forceToOpenInNewTab | kClickAction.newTabFromMode : kClickAction.forceToOpenInNewTab
+        : newTabOption === "last-window" ? newTab
+            ? kClickAction.forceToOpenInLastWnd | kClickAction.newTabFromMode : kClickAction.forceToOpenInLastWnd
         : !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
         ? newWindow ? kClickAction.openInNewWindow
           : newTabOption === "no-prevent" ? newTab ? kClickAction.newTabFromMode : kClickAction.none
