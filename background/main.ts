@@ -454,7 +454,7 @@
     type T1 = keyof FgReq;
     type Req1 = { [K in T1]: (req: FgReq[K], port: Frames.Port) => void; };
     type Req2 = { [K in T1]: <T extends T1>(req: FgReq[T], port: Frames.Port) => void; };
-    cPort = cPort || indexFrame(TabRecency_.last_, 0);
+    cPort = cPort || indexFrame(TabRecency_.curTab_, 0);
     const res = Backend_.getPortUrl_(cPort, ignoreHash);
     if (typeof res !== "string") {
       res.then(url => {
@@ -496,7 +496,7 @@
       && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
     ? chrome.tabs.query.bind(null, { currentWindow: true, hidden: false }) : 0 as never as null,
   getCurWnd = function (populate: boolean, callback: (window: Window, exArg: FakeArg) => void): 1 {
-    const wndId = TabRecency_.lastWnd_, args = { populate };
+    const wndId = TabRecency_.curWnd_, args = { populate };
     return wndId >= 0 ? chrome.windows.get(wndId, args, callback) : chrome.windows.getCurrent(args, callback);
   } as {
     (populate: true, callback: (window: WindowWithTabs | null | undefined
@@ -505,7 +505,7 @@
   },
   tabsGet = chrome.tabs.get;
   function findCPort(port: Port | null | undefined): Port | null {
-    const frames = framesForTab[port ? port.s.t : TabRecency_.last_];
+    const frames = framesForTab[port ? port.s.t : TabRecency_.curTab_];
     return frames ? frames[0] : null as never as Port;
   }
 
@@ -541,8 +541,8 @@
     let tab: Tab | null = null;
     if (!tabs) { /* empty */ }
     else if (tabs.length > 0) { tab = tabs[0]; }
-    else if (TabRecency_.last_ >= 0) {
-      tabsGet(TabRecency_.last_, function (lastTab): void {
+    else if (TabRecency_.curTab_ >= 0) {
+      tabsGet(TabRecency_.curTab_, function (lastTab): void {
         standardCreateTab(onlyNormal, lastTab && [lastTab]);
       });
       return onRuntimeError();
@@ -1260,7 +1260,7 @@
         delete (cOptions as {} as VomnibarNS.GlobalOptions).url;
       }
       if (!port) {
-        port = cPort = indexFrame(TabRecency_.last_, 0)!;
+        port = cPort = indexFrame(TabRecency_.curTab_, 0)!;
         if (!port) { return; }
         // not go to the top frame here, so that a current frame can suppress keys for a while
       }
@@ -1299,7 +1299,7 @@
     },
     /* kBgCmd.createTab: */ BgUtils_.blank_,
     /* kBgCmd.duplicateTab: */ function (): void {
-      const tabId = cPort ? cPort.s.t : TabRecency_.last_;
+      const tabId = cPort ? cPort.s.t : TabRecency_.curTab_;
       if (tabId < 0) {
         return Backend_.complain_(trans_("dupTab"));
       }
@@ -1521,7 +1521,7 @@
             && CurCVer_ < BrowserVer.Min$windows$$GetAll$SupportWindowTypes) {
           wnds = wnds.filter(wnd => wnd.type === "normal" || wnd.type === "popup");
         }
-        const curIncognito = TabRecency_.incognito_ === IncognitoType.true, curWndId = TabRecency_.lastWnd_;
+        const curIncognito = TabRecency_.incognito_ === IncognitoType.true, curWndId = TabRecency_.curWnd_;
         wnds = wnds.filter(wnd => wnd.incognito === curIncognito);
         const _cur0 = wnds.filter(wnd => wnd.id === curWndId), _curWnd = _cur0.length ? _cur0[0] : null;
         if (!_curWnd) { return; }
@@ -1860,7 +1860,7 @@
         return;
       }
       chrome.tabs.query({audible: true}, function (tabs: Tab[]): void {
-        let curId = cOptions.other ? cPort ? cPort.s.t : TabRecency_.last_ : GlobalConsts.TabIdNone
+        let curId = cOptions.other ? cPort ? cPort.s.t : TabRecency_.curTab_ : GlobalConsts.TabIdNone
           , prefix = curId === GlobalConsts.TabIdNone ? "All" : "Other"
           , muted = false, action = { muted: true };
         for (let i = tabs.length; 0 <= --i; ) {
@@ -1963,7 +1963,7 @@
       }
     },
     /* kBgCmd.mainFrame: */ function (): void {
-      const tabId = cPort ? cPort.s.t : TabRecency_.last_, port = indexFrame(tabId, 0);
+      const tabId = cPort ? cPort.s.t : TabRecency_.curTab_, port = indexFrame(tabId, 0);
       if (!port) { return; }
       port.postMessage({
         N: kBgReq.focusFrame,
@@ -2427,7 +2427,7 @@
       });
       if (active) { return; }
       let tabId = port!.s.t;
-      tabId >= 0 || (tabId = TabRecency_.last_);
+      tabId >= 0 || (tabId = TabRecency_.curTab_);
       if (tabId >= 0) { return selectTab(tabId); }
     },
     /** kFgReq.openUrl: */ function (this: void, request: FgReq[kFgReq.openUrl] & { url_f?: Urls.Url; opener?: boolean }
@@ -2963,7 +2963,7 @@
       if (!isNotVomnibarPage(port, false)) {
         if (tabId < 0) {
           (port.s as Writable<Frames.Sender>).t = type !== PortType.omnibar ? _fakeTabId--
-              : cPort ? cPort.s.t : TabRecency_.last_;
+              : cPort ? cPort.s.t : TabRecency_.curTab_;
         }
         framesForOmni.push(port);
         if (Build.BTypes & ~BrowserType.Chrome) {
@@ -3054,7 +3054,7 @@
     getExcluded_: BgUtils_.getNull_,
     getPortUrl_ (port?: Port | null, ignoreHash?: boolean): string | Promise<string> {
       const excl = Exclusions;
-      port = port || indexFrame(TabRecency_.last_, 0);
+      port = port || indexFrame(TabRecency_.curTab_, 0);
       return port && excl && excl.rules_.length > 0 && (ignoreHash || excl._listeningHash) ? port.s.u
           : new Promise<string>((resolve): void => {
         let webNav = Build.BTypes & BrowserType.Chrome
@@ -3076,7 +3076,7 @@
     removeSug_ (this: void, { t: type, u: url }: FgReq[kFgReq.removeSug], port?: Port | null): void {
       const name = type === "tab" ? type : type + " item";
       cPort = findCPort(port)!;
-      if (type === "tab" && TabRecency_.last_ === +url) {
+      if (type === "tab" && TabRecency_.curTab_ === +url) {
         return Backend_.showHUD_(trans_("notRemoveCur"));
       }
       return Completion_.removeSug_(url, type, function (succeed): void {
@@ -3208,7 +3208,7 @@
       }
     },
     forceStatus_ (act: Frames.ForcedStatusText, tabId?: number): void {
-      const ref = framesForTab[tabId || (tabId = TabRecency_.last_)];
+      const ref = framesForTab[tabId || (tabId = TabRecency_.curTab_)];
       if (!ref) { return; }
       let spaceInd = act.indexOf(" "), newPassedKeys = spaceInd > 0 ? act.slice(spaceInd + 1) : "";
       act = act.toLowerCase() as Frames.ForcedStatusText;
@@ -3262,7 +3262,7 @@
       }
     },
     ExecuteShortcut_ (this: void, cmd: string): void {
-      const tabId = TabRecency_.last_, ports = framesForTab[tabId];
+      const tabId = TabRecency_.curTab_, ports = framesForTab[tabId];
       if (cmd === <string> <unknown> kShortcutAliases.nextTab1) { cmd = kCName.nextTab; }
       type NullableShortcutMap = ShortcutInfoMap & { [key: string]: CommandsNS.Item | null | undefined };
       const map = CommandsData_.shortcutRegistry_ as NullableShortcutMap;

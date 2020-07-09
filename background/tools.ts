@@ -713,8 +713,8 @@ MediaWatcher_ = {
 },
 TabRecency_ = {
   tabs_: BgUtils_.safeObj_<number>(),
-  last_: (chrome.tabs.TAB_ID_NONE || GlobalConsts.TabIdNone) as number,
-  lastWnd_: (!(Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox) || chrome.windows)
+  curTab_: (chrome.tabs.TAB_ID_NONE || GlobalConsts.TabIdNone) as number,
+  curWnd_: (!(Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox) || chrome.windows)
       && chrome.windows.WINDOW_ID_NONE || GlobalConsts.WndIdNone,
   incognito_: Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
       ? IncognitoType.ensuredFalse : IncognitoType.mayFalse,
@@ -722,7 +722,7 @@ TabRecency_ = {
 };
 
 BgUtils_.timeout_(120, function (): void {
-  const cache = TabRecency_.tabs_, noneWnd = TabRecency_.lastWnd_;
+  const cache = TabRecency_.tabs_, noneWnd = TabRecency_.curWnd_;
   let stamp = 1, time = 0;
   function clean(): void {
     const ref = cache;
@@ -735,16 +735,18 @@ BgUtils_.timeout_(120, function (): void {
   function listener(info: { tabId: number }): void {
     const now = performance.now();
     if (now - time > GlobalConsts.MinStayTimeToRecordTabRecency) {
-      cache[TabRecency_.last_] = ++stamp;
+      cache[TabRecency_.curTab_] = ++stamp;
       if (stamp >= GlobalConsts.MaxTabRecency) { clean(); }
     }
-    TabRecency_.last_ = info.tabId; time = now;
+    TabRecency_.curTab_ = info.tabId; time = now;
   }
   function onWndFocus(tabs: [chrome.tabs.Tab] | never[]): void {
-    if (!tabs) { return BgUtils_.runtimeError_(); }
-    let a = tabs[0];
-    if (a) {
-      TabRecency_.lastWnd_ = a.windowId;
+    if (!tabs || !tabs[0]) { return BgUtils_.runtimeError_() }
+    let a = tabs[0], current = a.windowId, last = TabRecency_.curWnd_
+    if (current !== last) {
+      TabRecency_.curWnd_ = current
+    }
+    {
       TabRecency_.incognito_ = a.incognito ? IncognitoType.true
         : Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
         ? IncognitoType.ensuredFalse : IncognitoType.mayFalse;
@@ -763,8 +765,8 @@ BgUtils_.timeout_(120, function (): void {
     time = performance.now();
     const a = tabs && tabs[0];
     if (!a) { return BgUtils_.runtimeError_(); }
-    TabRecency_.last_ = a.id;
-    TabRecency_.lastWnd_ = a.windowId;
+    TabRecency_.curTab_ = a.id;
+    TabRecency_.curWnd_ = a.windowId;
     TabRecency_.incognito_ = a.incognito ? IncognitoType.true
       : Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
       ? IncognitoType.ensuredFalse : IncognitoType.mayFalse;

@@ -814,7 +814,7 @@ tabEngine = {
   performSearch_ (this: void, query: CompletersNS.QueryStatus, tabs0: readonly WritableTabEx[]): void {
     MatchCacheManager.cacheTabs_(tabs0);
     if (query.o) { return; }
-    const curTabId = TabRecency_.last_, noFilter = queryTerms.length <= 0,
+    const curTabId = TabRecency_.curTab_, noFilter = queryTerms.length <= 0,
     hasOtherSuggestions = allExpectedTypes & (SugType.MultipleCandidates ^ SugType.tab),
     treeMode = !!(otherFlags & CompletersNS.QueryFlags.TabTree) && wantInCurrentWindow && noFilter && !isForAddressBar;
     let suggestions: CompletersNS.TabSuggestion[] = [], treeMap: SafeDict<Tab> | undefined, matched: number;
@@ -851,7 +851,7 @@ tabEngine = {
     wndIds.sort(tabEngine.SortNumbers_);
     const c = noFilter ? treeMode ? tabEngine.computeIndex_ : tabEngine.computeRecency_ : ComputeWordRelevancy,
     treeLevels: SafeDict<number> = treeMode ? BgUtils_.safeObj_() : null as never,
-    curWndId = wndIds.length > 1 ? TabRecency_.lastWnd_ : 0;
+    curWndId = wndIds.length > 1 ? TabRecency_.curWnd_ : 0;
     let ind = 0;
     if (treeMode) {
       for (const tab of tabs) { // only from start to end, and should not execute nested queries

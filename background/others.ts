@@ -727,7 +727,7 @@ BgUtils_.timeout_(600, function (): void {
         , canBeDeleted = (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeleting
               || (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox) && mayDelete)
             && !(autoSelect && i === 0) && (
-          type === "tab" ? sugItem.s !== TabRecency_.last_ : type === "history" && !hasSessionId
+          type === "tab" ? sugItem.s !== TabRecency_.curTab_ : type === "history" && !hasSessionId
         );
       if (url in urlDict) {
         url = `:${i + di} ` + url;
