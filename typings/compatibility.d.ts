@@ -138,8 +138,8 @@ declare const enum BrowserVer {
   MinEnsured$requestIdleCallback = 47,
   Min$Tabs$$Query$RejectHash = 47,
   // if .key exists, it's "v" for `v`, but "" (empty) for `<c-v>` - doesn't support all cases
-  Min$KeyboardEvent$MayHas$$Key = 47, // if EXPERIMENTAL
-  Min$IFrame$MayHas$$Referrerpolicy = 47, // if EXPERIMENTAL
+  Min$KeyboardEvent$MayHave$$Key = 47, // if EXPERIMENTAL
+  Min$IFrame$MayHave$$Referrerpolicy = 47, // if EXPERIMENTAL
   MinEnsured$InputDeviceCapabilities = 47, // even if LEGACY; also ensured UIEvent.sourceCapabilities
   MinFetchExtensionFiles = 47, // even if EXPERIMENTAL or LEGACY
   MinFetchDataURL = 48, // even if EXPERIMENTAL; test code: fetch('data:,abc').then(i=>i.text()).then(cb,cb)
@@ -498,7 +498,9 @@ declare const enum FirefoxBrowserVer {
   // but doesn't support code changes focus during input events when is composing
   // tested on Win 10 + MS PinYin and Ubuntu 18 + an inner PinYin IME
   MinContentEditableInShadowSupportIME = 69,
+  Min$MathMLElement$Prototype = 71,
   MinCrossOriginResourcePolicy = 74, // not break Vomnibar
+  MinCSS$readOnly$selector = 78, // https://developer.mozilla.org/en-US/docs/Web/CSS/:read-only
   /** @todo: trace https://bugzilla.mozilla.org/show_bug.cgi?id=1587723 */
   MinMediaChangeEventsOnBackgroundPage = 99,
   // members of a Selection are never updated when an <input> gets focused, so no work-around

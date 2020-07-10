@@ -69,18 +69,19 @@ declare const enum kClickAction {
  */
 type NodeToElement = TypeToAssert<Node, Element, "tagName", "nodeType">;
 /**
- * Tested on C74, comparing HTMLElement/SVGElement | Element, there're only 5 properties which can be used:
- * * attributeStyleMap: StylePropertyMap | null,
+ * Tested on C74, comparing (HTML | SVG | MathML)Element | Element, there're only 5 properties which can be used:
+ * * attributeStyleMap: StylePropertyMap | null (not on MathML on FF78),
  * * dataset: DOMStringMap | undefined, style: CSSStyleDeclaration | undefined,
- * * nonce: string | undefined, tabIndex: number | undefined
+ * * nonce: string | undefined (not on MathML on FF78), tabIndex: number | undefined
  *
  * While C++ wrappers should be avoided, so select "nonce" / "tabIndex". "focus" / "blur" may also be used.
- * But, "nonce" occurred very late (about C61) and does not exist on Firefox.
+ * But, "nonce" occurred very late (about C61 / FF75).
  */
-type ElementToHTMLorSVG = TypeToAssert<Element, HTMLElement | SVGElement, "tabIndex", "tagName">;
+type ElementToHTMLorOtherFormatted = TypeToAssert<Element, HTMLElement | NonHTMLButFormattedElement
+    , "tabIndex" | "style", "tagName">;
 /**
  * Document & HTMLElement & SVGStyleElement have string .title;
- * only HTMLElement has a string  .lang;
+ * only HTMLElement has a string .lang ;
  * and, in cs.chromium.org, .title is faster than .tabIndex during C++ DOM parts
  */
 type ElementToHTML = TypeToAssert<Element, HTMLElement, "lang", "tagName">;
@@ -90,10 +91,16 @@ interface SafeElement extends Element {
   nodeName: string;
   localName: string;
 }
-interface Element { __other: 0 | 1 | 2 }
-interface HTMLElement { __other: 0 }
-interface SVGElement extends SafeElement { __other: 1 }
-interface OtherSafeElement extends SafeElement { __other: 2 }
+interface Element { __other: 0 | 1 | 2 | 3 }
+interface HTMLElement { __other: 0; lang: "" }
+interface NonHTMLButFormattedElement extends SafeElement {
+  __other: 1 | 2; tabIndex: number; style: CSSStyleDeclaration
+  onclick (event: Event): any; onmousedown (event: Event): any;
+}
+interface SVGElement extends NonHTMLButFormattedElement { __other: 1 }
+// like MathMLElement since Firefox 71
+interface OtherFormattedElement extends NonHTMLButFormattedElement { __other: 2 }
+interface SafeElementWithoutFormat extends SafeElement { __other: 3 }
 type BaseSafeHTMLElement = HTMLElement & SafeElement;
 interface SafeHTMLElement extends BaseSafeHTMLElement {
   readonly innerText: string;
@@ -330,7 +337,7 @@ interface HintOffset {
 }
 
 type HTMLElementUsingMap = HTMLImageElement | HTMLObjectElement;
-type SafeElementForMouse = SafeHTMLElement | SVGElement | OtherSafeElement;
+type SafeElementForMouse = SafeHTMLElement | NonHTMLButFormattedElement | SafeElementWithoutFormat;
 interface Hint {
   [0]: SafeElementForMouse; // element
   [1]: Rect; // bounding rect

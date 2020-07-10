@@ -34,8 +34,8 @@ export function set_keyIdCorrectionOffset_old_cr_ (_newKeyIdCorrectionOffset: 18
 
 /** only return lower-case long string */
 const _getKeyName = (event: Pick<KeyboardEvent, "key" | "keyCode" | "location">): kChar => {
-    let {keyCode: i} = event, s: string | undefined;
-    return i > kKeyCode.space - 1 && i < kKeyCode.minNotDelete
+  let {keyCode: i} = event, s: string | undefined
+  return i > kKeyCode.space - 1 && i < kKeyCode.minNotDelete
       ? i < kKeyCode.insert ? keyNames_[i - kKeyCode.space] : i > kKeyCode.insert ? DEL : kChar.insert
       : i < kKeyCode.minNotDelete || i === kKeyCode.osRightMac ? (i === kKeyCode.backspace ? BSP
           : i === kKeyCode.esc ? kChar.esc
@@ -46,7 +46,7 @@ const _getKeyName = (event: Pick<KeyboardEvent, "key" | "keyCode" | "location">)
         )
       : ((s = event.key) ? (<RegExpOne> /^F\d\d?$/).test(s) : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn)
       ? ("f" + (s ? s.slice(1) : i - kKeyCode.maxNotFn)) as kChar.F_num
-      : kChar.None;
+      : kChar.None
 }
 
   /** return single characters which only depend on `shiftKey` (CapsLock is ignored) */
@@ -90,7 +90,6 @@ const _forceEnUSLayout = (key: string, event: Pick<KeyboardEvent, "key" | "keyCo
             : (mapped = _codeCorrectionMap.indexOf(code)) < 0 ? code
             : (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
                 ? kCrct! : kChar.CharCorrectionList)[mapped + 12 * +shiftKey]
-          ;
     }
     return shiftKey && key.length < 2 ? key : key.toLowerCase();
 }
@@ -104,7 +103,7 @@ export const char_ = (eventWrapper: HandlerNS.Event): kChar => {
         = eventWrapper.e
       , {key, shiftKey} = eventWrapper.e;
     if (Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.BTypes & BrowserType.Chrome && !key) {
-      // since Browser.Min$KeyboardEvent$MayHas$$Key and before .MinEnsured$KeyboardEvent$$Key
+      // since Browser.Min$KeyboardEvent$MayHave$$Key and before .MinEnsured$KeyboardEvent$$Key
       // event.key may be an empty string if some modifier keys are held on
       // it seems that KeyIdentifier doesn't follow keyboard layouts
       key = _getKeyName(event) // it's safe to skip the check of `event.keyCode`

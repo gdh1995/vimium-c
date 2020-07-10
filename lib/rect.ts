@@ -113,7 +113,7 @@ export const getVisibleClientRect_ = (element: SafeElement, el_style?: CSSStyleD
       continue
     }
     // according to https://dom.spec.whatwg.org/#dom-parentnode-children
-    // .children will always be a HTMLCollection even if element is SVGElement
+    // .children will always be a HTMLCollection even if element is a non-HTML element
     if (I) {
       continue
     }
@@ -157,10 +157,10 @@ export const getClientRectsForAreas_ = function (element: HTMLElementUsingMap, o
   }
   const toInt = (a: string): number => (a as string | number as number) | 0
   for (let _i = 0, _len = areas.length; _i < _len; _i++) {
-    const area = areas[_i] as HTMLAreaElement | Element
-    if (!("lang" in area)) { continue; }
-    let coords = area.coords.split(",").map(toInt)
-    switch (area.shape.toLowerCase()) {
+    const area = areas[_i] as SafeElement & (HTMLAreaElement | NonHTMLButFormattedElement | SafeElementWithoutFormat)
+    if ((area as ElementToHTML).lang == null) { continue; }
+    let coords = (area as HTMLAreaElement).coords.split(",").map(toInt)
+    switch ((area as HTMLAreaElement).shape.toLowerCase()) {
     case "circle": case "circ": // note: "circ" is non-conforming
       x2 = coords[0]; y2 = coords[1]; diff = coords[2] / Math.sqrt(2)
       x1 = x2 - diff; x2 += diff; y1 = y2 - diff; y2 += diff
@@ -226,8 +226,7 @@ const _fixDocZoom_cr = Build.BTypes & BrowserType.Chrome ? (zoom: number, docEl:
           && (Math.abs(rectWidth * zoom - viewportWidth) < 0.01
             || (Build.MinCVer >= BrowserVer.MinASameZoomOfDocElAsdevPixRatioWorksAgain
                   || ver > BrowserVer.MinASameZoomOfDocElAsdevPixRatioWorksAgain - 1)
-                && (style = !notSafe_not_ff_!(docEl) && (
-                  docEl as TypeToAssert<Element, HTMLElement | SVGElement, "style">).style)
+                && !notSafe_not_ff_!(docEl) && (style = (docEl as ElementToHTMLorOtherFormatted).style)
                 && style.zoom && style.zoom
             || (isDocZoomStrange_ = 1, zoom !== _getPageZoom_cr!(zoom, devRatio, docEl))))
       ? zoom : 1

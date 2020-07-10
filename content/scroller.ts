@@ -129,9 +129,8 @@ let performAnimate = (e: SafeElement | null, d: ScrollByY, a: number): void => {
       : (maskTop && maskTop.remove(), maskTop = null, running = 0)
       return
     }
-    const el = (scrolling ? Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(docEl_unsafe_())
-        : docEl_unsafe_() : styleTop
-        ) as SafeElement & TypeToAssert<Element, HTMLElement | SVGElement, "style"> | null;
+    const el = (scrolling ? Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(docEl_unsafe_()) : docEl_unsafe_()
+                : styleTop) as SafeElement & ElementToHTMLorOtherFormatted | null
     styleTop = scrolling ? el : (running = 0, element = null);
     el && el.style ? el.style.pointerEvents = scrolling ? NONE : "" : 0;
   };

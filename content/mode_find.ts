@@ -453,8 +453,7 @@ export const deactivate = (i: FindNS.Action): void => {
     clear()
     if (i > FindNS.Action.MaxExitButNoWork) {
       el = getSelectionFocusEdge_(getSelected()[0], 1);
-      el && (Build.BTypes & ~BrowserType.Firefox ? (el as ElementToHTMLorSVG).tabIndex != null : el.focus) &&
-      el.focus!();
+      el && el.focus && el.focus()
     }
     if ((i === FindNS.Action.ExitAndReFocus || !hasResult || visual_mode) && !noStyle) {
       toggleStyle(1)

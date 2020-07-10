@@ -148,18 +148,18 @@ export const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
   ) { hints.push([element, arr, type]); }
 }
 
-const getClickableInMaybeSVG = (hints: Hint[], element: SVGElement | OtherSafeElement): void => {
-  let anotherEl: SVGElement;
+const getClickableInNonHTMLButMayFormatted = (hints: Hint[]
+    , element: NonHTMLButFormattedElement | SafeElementWithoutFormat): void => {
+  let anotherEl: NonHTMLButFormattedElement
   let arr: Rect | null | undefined, s: string | null
   let type: ClickType.Default | HintsNS.AllowedClickTypeForNonHTML = ClickType.Default;
-  const tabIndex = (element as ElementToHTMLorSVG).tabIndex;
+  const tabIndex = (element as ElementToHTMLorOtherFormatted).tabIndex
   {
     {
       type = clickable_.has(element)
           || tabIndex != null && (!(Build.BTypes & ~BrowserType.Firefox)
               || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
-              ? ((anotherEl = unwrap_ff(element as SVGElement))
-                  ).onclick || anotherEl.onmousedown
+              ? (anotherEl = unwrap_ff(element as NonHTMLButFormattedElement)).onclick || anotherEl.onmousedown
               : element.getAttribute("onclick") || element.getAttribute("onmousedown"))
           || (s = element.getAttribute("role")) && (<RegExpI> /^button$/i).test(s)
           || ngEnabled && element.getAttribute("ng-click")
@@ -340,9 +340,9 @@ export const traverse = function (selector: string
   let cur_scope: [HintSources, number] | undefined
   for (const tree_scopes: Array<typeof cur_scope> = [[list, 0]]; cur_scope = tree_scopes.pop(); ) {
     for (let cur_tree = cur_scope[0], i = cur_scope[1]; i < cur_tree.length; ) {
-      const el = cur_tree[i++] as SafeElement & {lang?: undefined} | SafeHTMLElement;
-      if (el.lang != null) {
-        filter(output, el);
+      const el = cur_tree[i++] as SafeElement
+      if ((el as ElementToHTML).lang != null) {
+        filter(output, el as SafeHTMLElement)
         const shadowRoot = (Build.BTypes & BrowserType.Chrome
               && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
               && chromeVer_ < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
@@ -355,8 +355,8 @@ export const traverse = function (selector: string
           i = 0
         }
       } else if (wantClickable) {
-        /*#__NOINLINE__*/ getClickableInMaybeSVG(output as Exclude<typeof output, SafeHTMLElement[]>
-            , el as SVGElement | OtherSafeElement);
+        /*#__NOINLINE__*/ getClickableInNonHTMLButMayFormatted(output as Exclude<typeof output, SafeHTMLElement[]>
+            , el as NonHTMLButFormattedElement | SafeElementWithoutFormat);
       }
     }
   }
@@ -408,18 +408,19 @@ export const traverse = function (selector: string
 const addChildTrees = (list: HintSources, allNodes: NodeListOf<SafeElement>): HintSources => {
   let matchWebkit = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
                     && chromeVer_ < BrowserVer.MinEnsuredUnprefixedShadowDOMV0;
+  let doesFindChildFrame = !!addChildFrame_
   let hosts: SafeElement[] = [], matched: SafeElement | undefined;
   for (let i = 0, len = allNodes.length; i < len; i++) {
     let el = allNodes[i]
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
           && matchWebkit ? el.webkitShadowRoot : el.shadowRoot) {
       hosts.push(matched = el);
-    } else if (addChildFrame_ && isIFrameElement(el)) {
+    } else if (doesFindChildFrame && isIFrameElement(el)) {
       if ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
           && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
           && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
           || el !== omni_box && el !== find_box) {
-        addChildFrame_(coreHints, el, getVisibleClientRect_(el))
+        addChildFrame_!(coreHints, el, getVisibleClientRect_(el))
       }
     }
   }

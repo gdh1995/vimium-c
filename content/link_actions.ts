@@ -467,7 +467,7 @@ export const linkActions: readonly LinkAction[] = [
             ? kClickAction.plainMayOpenManually | kClickAction.newTabFromMode : kClickAction.plainMayOpenManually
         : kClickAction.none;
     catchAsyncErrorSilently(click_(link
-        , rect, mask > 0 || (link as ElementToHTMLorSVG).tabIndex! >= 0
+        , rect, mask > 0 || (link as ElementToHTMLorOtherFormatted).tabIndex! >= 0
         , [!1, ctrl && !isMac, ctrl && isMac, shift]
         , specialActions, isRight ? kClickButton.second : kClickButton.none
         , !(Build.BTypes & BrowserType.Chrome) || otherActions || newTab ? 0 : hintOptions.touch
