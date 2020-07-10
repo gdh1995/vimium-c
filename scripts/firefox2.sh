@@ -4,11 +4,13 @@ VER=
 FLAGS=
 OTHER_EXT=
 OTHER_ARGS=
-FUD=${FUD:-/r/TEMP/FUD}
+FUD=
+DO_CLEAN=0
 WORKING_DIR=${WORKING_DIR:-/r/working}
 VC_ROOT=
 DIST=
 AUTO_RELOAD=0
+ALSO_VC=0
 HOME_PAGE=
 default_vc_root=/e/Git/weidu+vim/vimium-c
 debugger_url="about:debugging#/runtime/this-firefox"
@@ -31,18 +33,14 @@ function wp() {
 while [[ $# -gt 0 ]]; do
 case "$1" in
   clean|ckean|--clean)
-    if test -e "$FUD"; then
-      rm -rf "$FUD" || exit $?
-      wp fud_w "$FUD"
-      echo -E "Clean ${fud_w} : done."
-    fi
+    DO_CLEAN=1
     shift
     ;;
   noreload|--noreload|--no-reload|no-reload)
     AUTO_RELOAD=0
     shift
     ;;
-  reload|--reload)
+  reload|--reload|auto-reload|--auto-reload)
     AUTO_RELOAD=1
     shift
     ;;
@@ -70,8 +68,13 @@ case "$1" in
     DIST=0
     shift
     ;;
+  vc|--vc)
+    ALSO_VC=1
+    shift
+    ;;
   only|--only)
-    exit 0
+    if test $DO_CLEAN -eq 1; then DO_CLEAN=2; fi
+    shift
     ;;
   [3-9][0-9]|cur|wo|prev|[1-9a-f][1-9a-f][1-9a-f][1-9a-f][1-9a-f][1-9a-f]*) # ver
     VER=$1
@@ -101,6 +104,24 @@ case "$1" in
     ;;
 esac
 done
+
+FUD=${FUD:-/r/TEMP/FUD}
+if test $DO_CLEAN -gt 0 -a -e "$FUD"; then
+
+  rm -rf "$FUD" || exit $?
+  wp fud_w "$FUD"
+  echo -E "Clean ${fud_w} : done."
+fi
+if test $DO_CLEAN -eq 2; then exit 0; fi
+
+if test $ALSO_VC -gt 0; then
+  if test $DIST -gt 0; then
+    wp deafault_vc_ext_w "$default_vc_root/dist"
+  else
+    wp deafault_vc_ext_w "$default_vc_root"
+  fi
+  OTHER_EXT=${OTHER_EXT},${deafault_vc_ext_w}
+fi
 
 if test -f "/usr/bin/env.exe"; then
   RUN=/usr/bin/start2.exe

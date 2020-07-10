@@ -9,18 +9,18 @@
   )](https://github.com/gdh1995/vimium-c/stargazers)
 [![Gitee star](https://gitee.com/gdh1995/vimium-c/badge/star.svg?theme=dark
   )](https://gitee.com/gdh1995/vimium-c/stargazers)
-[![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
+[![Current build status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
 
-[![Firefox Add-ons](https://img.shields.io/amo/users/vimium-c@gdh1995.cn?label=Firefox%2063%2B&logo=Mozilla%20Firefox&labelColor=FF7139&logoColor=white
+[![Firefox users](https://img.shields.io/amo/users/vimium-c@gdh1995.cn?label=Firefox%2063%2B&logo=Mozilla%20Firefox&labelColor=FF7139&logoColor=white
   )](https://addons.mozilla.org/firefox/addon/vimium-c/)
-[![Firefox Add-ons](https://img.shields.io/amo/rating/vimium-c@gdh1995.cn?logo=Mozilla%20Firefox&labelColor=FF7139&logoColor=white&color=blue
+[![Firefox rating](https://img.shields.io/amo/rating/vimium-c@gdh1995.cn?logo=Mozilla%20Firefox&labelColor=FF7139&logoColor=white&color=blue
   )](https://addons.mozilla.org/firefox/addon/vimium-c/reviews/)
-[![Chrome Web Store](https://img.shields.io/chrome-web-store/users/hfjbmagddngcpeloejdejnfgbamkjaeg?labelColor=4285F4&label=Chrome%2043%2B&logo=Google%20Chrome&logoColor=white&color=critical
+[![Chrome users](https://img.shields.io/chrome-web-store/users/hfjbmagddngcpeloejdejnfgbamkjaeg?labelColor=4285F4&label=Chrome%2043%2B&logo=Google%20Chrome&logoColor=white&color=critical
   )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
-[![Chrome Web Store](https://img.shields.io/chrome-web-store/rating/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&labelColor=4285F4&logoColor=white&color=critical
+[![Chrome rating](https://img.shields.io/chrome-web-store/rating/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&labelColor=4285F4&logoColor=white&color=critical
   )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
-[![Chrome Web Store](https://img.shields.io/chrome-web-store/rating-count/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&labelColor=4285F4&logoColor=white&color=critical
+[![Chrome rating count](https://img.shields.io/chrome-web-store/rating-count/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&labelColor=4285F4&logoColor=white&color=critical
   )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg/reviews)
 
 **Visit on [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/vimium-c/) /

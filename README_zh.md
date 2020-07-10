@@ -2,21 +2,26 @@
 ![Icon](icons/icon32.png) - 全键盘操作浏览器
 ============================================
 
-[![MIT 许可协议](https://img.shields.io/badge/许可协议-MIT-blue.svg)](LICENSE.txt)
 [![版本](https://img.shields.io/github/v/release/gdh1995/vimium-c?color=critical&label=gdh1995%2Fvimium-c&logo=GitHub
   )](https://github.com/gdh1995/vimium-c/releases)
+[![MIT 许可协议](https://img.shields.io/badge/许可协议-MIT-blue.svg)](LICENSE.txt)
 [![GitHub 收藏](https://img.shields.io/github/stars/gdh1995/vimium-c?logo=GitHub&labelColor=181717&color=orange
   )](https://github.com/gdh1995/vimium-c/stargazers)
 [![Gitee 收藏](https://gitee.com/gdh1995/vimium-c/badge/star.svg?theme=dark
   )](https://gitee.com/gdh1995/vimium-c/stargazers)
-[![Firefox 附加组件](https://img.shields.io/amo/rating/vimium-c@gdh1995.cn?logo=Mozilla%20Firefox&labelColor=FF7139&logoColor=white&color=blue
-  )](https://addons.mozilla.org/firefox/addon/vimium-c/)
-[![Chrome 网上应用店](https://img.shields.io/chrome-web-store/rating/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&labelColor=4285F4&logoColor=white&color=critical
-  )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
-[![Chrome 网上应用店](https://img.shields.io/chrome-web-store/rating-count/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&labelColor=4285F4&logoColor=white&color=critical
-  )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg/reviews)
 [![构建状态](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
+
+[![Firefox 用户数](https://img.shields.io/amo/users/vimium-c@gdh1995.cn?label=Firefox%2063%2B&logo=Mozilla%20Firefox&labelColor=FF7139&logoColor=white
+  )](https://addons.mozilla.org/firefox/addon/vimium-c/)
+[![Firefox 评分](https://img.shields.io/amo/rating/vimium-c@gdh1995.cn?logo=Mozilla%20Firefox&labelColor=FF7139&logoColor=white&color=blue
+  )](https://addons.mozilla.org/firefox/addon/vimium-c/reviews/)
+[![Chrome 用户数](https://img.shields.io/chrome-web-store/users/hfjbmagddngcpeloejdejnfgbamkjaeg?labelColor=4285F4&label=Chrome%2043%2B&logo=Google%20Chrome&logoColor=white&color=critical
+  )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
+[![Chrome 评分](https://img.shields.io/chrome-web-store/rating/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&labelColor=4285F4&logoColor=white&color=critical
+  )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
+[![Chrome 评分人数](https://img.shields.io/chrome-web-store/rating-count/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&labelColor=4285F4&logoColor=white&color=critical
+  )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg/reviews)
 
 **在 [Firefox 附加组件](https://addons.mozilla.org/zh-CN/firefox/addon/vimium-c/) /
 [Microsoft Edge 加载项](https://microsoftedge.microsoft.com/addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo) /
