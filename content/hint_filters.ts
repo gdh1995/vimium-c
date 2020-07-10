@@ -217,7 +217,7 @@ export const generateHintText = (hint: Hint, hintInd: number, allItems: readonly
     text = (el as HTMLImageElement).complete && (el as HTMLImageElement).alt || el.title
     show = 2
     break;
-  default: // include SVGElement and OtherSafeElement
+  default:
     if (show = <BOOL> +(hint[2] > ClickType.MaxNotBox)) {
       text = hint[2] > ClickType.frame ? "Scroll" : "Frame";
     } else if (text = el.innerText.trim()) {

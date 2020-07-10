@@ -457,7 +457,7 @@ interface VimiumInjectorTy {
   cache: Dict<any> | null;
   getCommandCount: (this: void) => number;
   checkIfEnabled: (this: void) => void;
-  /** on message to run */ $m (taskType: BgReq[kBgReq.injectorRun]): void;
+  /** on message to run */ $m (taskType: BgReq[kBgReq.injectorRun] | BgReq[kBgReq.injectorRun]["t"]): void;
   $r (taskType: InjectorTask): void;
   reload (req?: boolean | InjectorTask.reload): void;
   destroy: ((this: void, silent?: boolean) => void) | null;

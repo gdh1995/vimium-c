@@ -169,7 +169,8 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
   }
   if (action) { /* empty */ }
   else if (/*#__NOINLINE__*/ isInInsert()) {
-    let keyStr = mappedKeys || insert_global_ || (key > kKeyCode.maxNotFn ? key < kKeyCode.minNotFn : key < kKeyCode.N0)
+    let keyStr = mappedKeys || insert_global_
+          || (key > kKeyCode.maxNotFn ? key < kKeyCode.minNotFn : key < kKeyCode.minNotDelete)
           || getKeyStat_(eventWrapper) & KeyStat.ExceptShift ? getMappedKey(eventWrapper, kModeId.Insert) : ""
     if (insert_global_ ? !insert_global_.k ? isEscape_(keyStr) : keyStr === insert_global_.k
         : keyStr.length < 2 ? esc!(HandlerResult.Nothing)

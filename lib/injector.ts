@@ -86,7 +86,7 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
     checkIfEnabled: null as never,
     $: null as never,
     $h: res ? res.h : "",
-    $m (task): void { VimiumInjector && VimiumInjector.$r(task.t); },
+    $m (task): void { VimiumInjector && VimiumInjector.$r(typeof task === "object" ? task.t : task); },
     $r (): void { /* empty */ },
     getCommandCount: null as never,
     callback: oldCallback || null,

@@ -42,7 +42,7 @@ export const safePost = <k extends keyof FgReq> (request: FgReq[k] & Req.baseFg<
       runtimeConnect();
       injector && timeout_((): void => { port_ || safeDestroy(); }, 50);
     } else if (Build.BTypes & BrowserType.Firefox && injector) {
-      injector.$r(InjectorTask.recheckLiving);
+      (requestHandlers[kBgReq.injectorRun] as VimiumInjectorTy["$m"])(InjectorTask.recheckLiving)
     }
     post_(request);
   } catch { // this extension is reloaded or disabled

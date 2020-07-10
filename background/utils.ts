@@ -834,7 +834,7 @@ var BgUtils_ = {
     }
     return null;
   },
-  keyRe_: <RegExpG & RegExpSearchable<0>> /<(?!<[^:])(?:.-){0,4}.\w*?(?::i)?>|./g, /* need to support "<<left>" */
+  keyRe_: <RegExpG & RegExpSearchable<0>> /<(?!<)(?:.-){0,4}.\w*?(?::i)?>|./g, /* need to support "<<left>" */
   getNull_ (this: void): null { return null; },
   timeout_ (timeout: number, callback: (this: void, fakeArgs?: TimerType.fake) => void): void {
     setTimeout(callback, timeout);
