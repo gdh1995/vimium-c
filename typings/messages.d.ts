@@ -116,12 +116,6 @@ interface BgReq {
   } & BgCSSReq & Partial<Pick<BaseExecute<FgOptions, FgCmdAcrossFrames>, "n" | "a">>;
   [kBgReq.execute]: BaseExecute<object> & Req.baseBg<kBgReq.execute>;
   [kBgReq.exitGrab]: Req.baseBg<kBgReq.exitGrab>;
-  [kBgReq.showHelpDialog]: {
-    /** html */ h: string | /** for Firefox */ { /** head->style */ h: string; /** body */ b: string };
-    /** optionUrl */ o: string;
-    /** exitOnClick */ e: boolean;
-    /** advanced */ c: boolean;
-  } & Partial<BgCSSReq>;
   [kBgReq.settingsUpdate]: {
     /** delta */ d: Partial<SelectValueType<SettingsNS.FrontendSettingsSyncingItems>>;
   };
@@ -177,7 +171,7 @@ declare const enum kBgCmd {
   blank,
   // region: need cport
   nextFrame, parentFrame, goNext, toggle, showHelp,
-  enterInsertMode, enterVisualMode, performFind, showVomnibar,
+  insertMode, enterVisualMode, performFind, showVomnibar,
   MIN_NEED_CPORT = nextFrame, MAX_NEED_CPORT = showVomnibar,
   // endregion: need cport
   createTab,
@@ -193,12 +187,13 @@ declare const enum kBgCmd {
 }
 
 declare const enum kFgCmd {
-  framesGoBack, findMode, linkHints, unhoverLast, marks,
-  goToMarks, scroll, visualMode, vomnibar,
-  reset, toggle, insertMode, passNextKey, goNext,
-  reload, showHelp, autoCopy,
-  autoOpen, searchAs, focusInput, editText, scrollSelect, toggleStyle,
+  framesGoBack, findMode, linkHints, marks, goToMarks, scroll, visualMode, vomnibar, insertMode, toggle,
+  passNextKey, goNext, autoOpen, focusInput, editText, scrollSelect, toggleStyle, showHelpDialog,
   END = "END",
+}
+
+declare const enum kEnds {
+  FgCmd = kFgCmd.toggleStyle + 1,
 }
 
 type FgCmdAcrossFrames = kFgCmd.linkHints | kFgCmd.scroll | kFgCmd.vomnibar | kFgCmd.goNext
@@ -246,9 +241,18 @@ declare namespace HintsNS {
   }
 }
 
+interface InsertModeOptions {
+  /** stripped key */ k: string | null;
+  /** passExitKey */ p: boolean;
+  /** hud message */ h: [string] | null;
+}
+interface ShowHelpDialogOptions {
+  h?: null
+  exitOnClick?: boolean
+}
+
 interface CmdOptions {
   [kFgCmd.linkHints]: HintsNS.Options;
-  [kFgCmd.unhoverLast]: Dict<any>;
   [kFgCmd.marks]: {
     mode?: "create" | /* all others are treated as "goto"  */ "goto" | "goTo";
     prefix?: true | false;
@@ -270,7 +274,6 @@ interface CmdOptions {
     dir?: undefined;
     keepHover?: boolean;
   };
-  [kFgCmd.reset]: Dict<any>;
   [kFgCmd.toggle]: {
     k: keyof SettingsNS.FrontendSettingsSyncingItems;
     n: string; // `"${SettingsNS.FrontendSettingsSyncingItems[keyof SettingsNS.FrontendSettingsSyncingItems][0]}"`
@@ -283,7 +286,10 @@ interface CmdOptions {
     reuse?: UserReuseType;
     count?: -1; // just for commands.ts
     position?: OpenUrlOptions["position"]
-  };
+    r?: 0
+  } | {
+    r: 1
+  } & ({ url: string; hard?: undefined } | { url?: undefined; hard?: boolean })
   [kFgCmd.vomnibar]: {
     /* vomnibar */ v: string;
     /* vomnibar2 */ i: string | null;
@@ -291,6 +297,7 @@ interface CmdOptions {
     /** trailingSlash */ s: boolean | null | undefined;
     /** <script> */ j: string;
     /** secret */ k: number;
+    /** exitOnClick */ e: boolean;
   };
   [kFgCmd.goNext]: {
     /** rel */ r: string;
@@ -299,10 +306,18 @@ interface CmdOptions {
     /** max of length limit list */ m: number;
   };
   [kFgCmd.insertMode]: {
-    /** stripped key */ k: string | null;
-    /** passExitKey */ p: boolean;
-    /** hud message */ h: [string] | null;
-  };
+    /** unhover last */ u: true;
+    /** reset all: 2=destroying */ r?: 0;
+    /** insert mode */ i?: false;
+  } | {
+    /** unhover last */ u?: false;
+    /** reset all: 2=destroying */ r: 0 | 1 | 2;
+    /** insert mode */ i?: false;
+  } | {
+    /** unhover last */ u?: boolean;
+    /** reset all: 2=destroying */ r: 0 | 1 | 2;
+    /** insert mode */ i: boolean;
+  } & InsertModeOptions;
   [kFgCmd.visualMode]: {
     /** mode */ m: VisualModeNS.Mode.Visual | VisualModeNS.Mode.Line | VisualModeNS.Mode.Caret;
     /** from_find */ r?: true;
@@ -310,8 +325,12 @@ interface CmdOptions {
     /** keyMaps */ k?: VisualModeNS.KeyMap | null;
     /** words */ w?: string;
   };
-  [kFgCmd.showHelp]: { exitOnClick?: boolean };
-  [kFgCmd.reload]: { url: string; hard?: undefined } | { hard?: boolean; url?: undefined };
+  [kFgCmd.showHelpDialog]: {
+    /** html */ h: "html" | /** for Firefox */ { /** head->style */ h: string; /** body */ b: string };
+    /** optionUrl */ o: string;
+    /** exitOnClick */ e: boolean;
+    /** advanced */ c: boolean;
+  } & Partial<BgCSSReq> | ShowHelpDialogOptions
   [kFgCmd.findMode]: {
     /** count */ n: number;
     /** leave find mode */ l: boolean;
@@ -326,17 +345,18 @@ interface CmdOptions {
     /** markName */ n?: string | undefined;
     /** scroll */ s: MarksNS.FgMark;
   };
-  [kFgCmd.autoCopy]: {
-    url: boolean;
-    decoded: boolean; decode?: boolean;
-  } & UserSedOptions;
   [kFgCmd.autoOpen]: {
+    /** for autoOpen */
+    o?: 1;
     keyword?: string;
     testUrl?: boolean
-    copy?: boolean;
     reuse?: UserReuseType;
-  } & CmdOptions[kFgCmd.autoCopy];
-  [kFgCmd.searchAs]: {
+    copy?: boolean;
+    /** for autoCopy */
+    url?: boolean;
+    decoded?: boolean; decode?: boolean;
+    /** for searchAs */
+    s?: 1;
     /** default to true */ copied?: boolean;
     /** default to true */ selected?: boolean;
   } & UserSedOptions;
@@ -474,7 +494,7 @@ interface FgReq {
   [kFgReq.exitGrab]: {};
   [kFgReq.initHelp]: {
     /** wantTop */ w?: boolean;
-    /** args */ a?: CmdOptions[kFgCmd.showHelp];
+    /** args */ a?: ShowHelpDialogOptions
   };
   [kFgReq.css]: {};
   [kFgReq.vomnibar]: ({

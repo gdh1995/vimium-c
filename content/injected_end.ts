@@ -111,7 +111,7 @@ VApi.e = function (cmd): void {
     }
   };
   function onTimeout(): void {
-    if (Build.BTypes & BrowserType.Firefox) {
+    if (Build.BTypes & BrowserType.Firefox && VApi) {
       VApi.d(9); // note: here Firefox is just like a (9)
       VApi.y().w!()
     }

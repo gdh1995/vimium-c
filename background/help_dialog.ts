@@ -2,7 +2,7 @@
 var HelpDialog = {
   html_: null as [string, string] | null,
   template_: null as HTMLTableDataCellElement | DOMParser | null,
-  render_: (function (this: {}, isOptionsPage: boolean): BgReq[kBgReq.showHelpDialog]["h"] {
+  render_: (function (this: {}, isOptionsPage: boolean): ReturnType<BaseHelpDialog["render_"]> {
     const a = this as typeof HelpDialog;
     if (!a.html_
         || !Build.NDEBUG && /** {@link ../pages/loader.ts#updateUI} */Settings_.cache_.helpDialog) {
@@ -92,7 +92,7 @@ var HelpDialog = {
     a.template_ = null;
     return Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-        ? { h: html[0], b: div } : html[0].replace("{{className}}", Settings_.payload_.d) + div;
+        ? { h: html[0], b: div } : (html[0].replace("{{className}}", Settings_.payload_.d) + div) as any as "html"
   }) as BaseHelpDialog["render_"],
   // eslint-disable-next-line object-shorthand
   groupHtml_: (function (this: {}, group: string, commandToKeys: SafeDict<Array<[string, CommandsNS.Item]>>

@@ -1,10 +1,11 @@
 import {
   chromeVer_, doc, esc, EscF, fgCache, isTop, safeObj, set_esc, VOther, VTr, safer, timeout_, loc_, weakRef_, deref_,
-  keydownEvents_,
-  parseSedOptions,
+  keydownEvents_, parseSedOptions, Stop_, suppressCommonEvents, setupEventListener, vApi,
 } from "../lib/utils"
 import {
-  isHTML_, htmlTag_, createElement_, frameElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_,
+  isHTML_, htmlTag_, createElement_, frameElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK,
+  querySelector_unsafe_,
+  DAC,
 } from "../lib/dom_utils"
 import {
   pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER,
@@ -15,7 +16,8 @@ import {
 } from "../lib/rect"
 import { post_ } from "./port"
 import {
-  addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, getParentVApi, curModalElement, createStyle
+  addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, getParentVApi, curModalElement, createStyle,
+  getBoxTagName_cr_, setupExitOnClick, addUIElement, removeSelection, ui_root, kExitOnClick
 } from "./dom_ui"
 import { hudHide, hudShow, hudTip, hud_text } from "./hud"
 import { onKeyup2, set_onKeyup2, passKeys, installTempCurrentKeyStatus, set_passKeys } from "./key_handler"
@@ -27,28 +29,33 @@ import {
   set_inputHint, set_insert_global_, set_isHintingInput, set_insert_last_, onWndBlur, exitPassMode, set_exitPassMode,
 } from "./insert"
 import { activate as visualActivate, deactivate as visualDeactivate } from "./visual"
-import { activate as scActivate, clearCachedScrollable } from "./scroller"
-import { activate as omniActivate } from "./omni"
+import {
+  activate as scActivate, clearCachedScrollable, resetCurrentScrolling, onActivate, currentScrolling,
+  set_currentScrolling
+} from "./scroller"
+import { activate as omniActivate, onKeydown as omniOnKeydown, omni_status, hide as omniHide } from "./omni"
 import { findNextInText, findNextInRel } from "./pagination"
 import { traverse, getEditable, filterOutNonReachable } from "./local_links"
-import { select_, unhover_, resetLastHovered } from "./async_dispatcher"
+import { select_, unhover_, resetLastHovered, lastHovered_ } from "./async_dispatcher"
 
-interface SpecialCommands {
-  [kFgCmd.reset] (this: void, isAlive: BOOL | CmdOptions[kFgCmd.reset] & SafeObject): void;
-  [kFgCmd.showHelp] (msg: CmdOptions[kFgCmd.showHelp] | "e"): void;
-}
+export let hideHelp: ((event?: EventToPrevent) => void) | undefined | null
 
 export const contentCommands_: {
   [k in kFgCmd & number]:
-    k extends keyof SpecialCommands ? SpecialCommands[k] :
-    k extends kFgCmd.reload | kFgCmd.autoCopy ? (options: CmdOptions[k]) => void :
+    k extends kFgCmd.framesGoBack | kFgCmd.insertMode ? (msg: CmdOptions[k], count?: number) => void :
     (this: void, options: CmdOptions[k] & SafeObject, count: number, key?: -42) => void;
 } = [
-  /* kFgCmd.framesGoBack: */ function (options: CmdOptions[kFgCmd.framesGoBack], rawStep: number): void {
-    const maxStep = Math.min(rawStep > 0 ? rawStep : -rawStep, history.length - 1),
-    reuse = options.reuse, isCurrent = reuse === "current" || reuse === ReuseType.current,
-    realStep = rawStep < 0 ? -maxStep : maxStep;
-    if ((!(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome)
+  /* kFgCmd.framesGoBack: */ (options: CmdOptions[kFgCmd.framesGoBack], rawStep?: number): void => {
+    const maxStep = Math.min(rawStep! < 0 ? -rawStep! : rawStep!, history.length - 1),
+    reuse = (options as typeof options & {r: 0}).reuse,
+    isCurrent = reuse === "current" || reuse === ReuseType.current,
+    realStep = rawStep! < 0 ? -maxStep : maxStep;
+    if (options.r) {
+      timeout_((): void => {
+        options.url ? (loc_.href = options.url) : loc_.reload(!!options.hard)
+      }, 17)
+    }
+    else if ((!(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && VOther & BrowserType.Chrome)
         && maxStep > 1
         && (Build.MinCVer >= BrowserVer.Min$Tabs$$goBack || chromeVer_ >= BrowserVer.Min$Tabs$$goBack)
         && (reuse == null || !isCurrent)
@@ -61,25 +68,30 @@ export const contentCommands_: {
   },
   /* kFgCmd.findMode: */ findActivate,
   /* kFgCmd.linkHints: */ linkActivate,
-  /* kFgCmd.unhoverLast: */ function (this: void): void {
-    unhover_();
-    hudTip(kTip.didUnHoverLast);
-  },
   /* kFgCmd.marks: */ markActivate,
   /* kFgCmd.goToMarks: */ gotoMark,
   /* kFgCmd.scroll: */ scActivate,
   /* kFgCmd.visualMode: */ visualActivate,
   /* kFgCmd.vomnibar: */ omniActivate,
-  /* kFgCmd.reset: */ (isAlive): void => {
-    /*#__INLINE__*/ clearCachedScrollable()
-    /*#__INLINE__*/ resetLastHovered()
-    /*#__INLINE__*/ resetInsert()
-    linkClear(<BOOL> +!!isAlive); visualDeactivate();
-    findInit || findDeactivate(FindNS.Action.ExitNoAnyFocus);
-    onWndBlur();
+  /* kFgCmd.insertMode: */ (opt: CmdOptions[kFgCmd.insertMode]): void => {
+    if (opt.u) {
+      unhover_()
+      hudTip(kTip.didUnHoverLast)
+    }
+    if (opt.r) {
+      clearCachedScrollable(), resetCurrentScrolling(), resetLastHovered()
+      resetInsert(), linkClear((2 - opt.r) as BOOL), visualDeactivate()
+      findInit || findDeactivate(FindNS.Action.ExitNoAnyFocus)
+      omniHide(), hideHelp && hideHelp()
+      onWndBlur()
+    }
+    if (opt.i) {
+      set_insert_global_(opt)
+      opt.h && hudShow(kTip.raw, opt.h!)
+    }
   },
 
-  /* kFgCmd.toggle: */ function (options: CmdOptions[kFgCmd.toggle]): void {
+  /* kFgCmd.toggle: */ (options: CmdOptions[kFgCmd.toggle]): void => {
     const key = options.k, backupKey = "_" + key as typeof key,
     cache = safer(fgCache), cur = cache[key];
     let val = options.v, u: undefined;
@@ -97,11 +109,7 @@ export const contentCommands_: {
     options.n && hudTip(notBool ? kTip.useVal : val ? kTip.turnOn : kTip.turnOff,
         1000, [options.n, notBool ? JSON.stringify(val) : ""]);
   },
-  /* kFgCmd.insertMode: */ function (opt: CmdOptions[kFgCmd.insertMode]): void {
-    /*#__INLINE__*/ set_insert_global_(opt)
-    if (opt.h) { hudShow(kTip.raw, opt.h); }
-  },
-  /* kFgCmd.passNextKey: */ function (options: CmdOptions[kFgCmd.passNextKey], count0: number): void {
+  /* kFgCmd.passNextKey: */ (options: CmdOptions[kFgCmd.passNextKey], count0: number): void => {
     let keyCount = 0, count = count0 > 0 ? count0 : -count0
     if (!!options.normal === (count0 > 0)) {
       esc!(HandlerResult.ExitPassMode); // singleton
@@ -110,7 +118,7 @@ export const contentCommands_: {
       }
       const oldEsc = esc!, oldPassKeys = passKeys;
       /*#__INLINE__*/ set_passKeys(null)
-      /*#__INLINE__*/ set_esc(function (i: HandlerResult): HandlerResult {
+      /*#__INLINE__*/ set_esc(((i: HandlerResult): HandlerResult => {
         if (i === HandlerResult.Prevent && 0 >= --count || i === HandlerResult.ExitPassMode) {
           hudHide();
           /*#__INLINE__*/ set_passKeys(oldPassKeys)
@@ -123,13 +131,13 @@ export const contentCommands_: {
           hudShow(kTip.normalMode, [count > 1 ? VTr(kTip.nTimes, [count]) : ""]);
         }
         return i;
-      } as EscF);
+      }) as EscF)
       esc!(HandlerResult.Nothing);
       return;
     }
     exitPassMode && exitPassMode();
     const keys = safeObj<BOOL>(null);
-    pushHandler_(function (event) {
+    pushHandler_(event => {
       keyCount += +!keys[event.i];
       keys[event.i] = 1;
       return HandlerResult.PassKey;
@@ -150,7 +158,7 @@ export const contentCommands_: {
     })
     onKeyup2!();
   },
-  /* kFgCmd.goNext: */ function (req: CmdOptions[kFgCmd.goNext]): void {
+  /* kFgCmd.goNext: */ (req: CmdOptions[kFgCmd.goNext]): void => {
     let isNext = !req.r.includes("prev"), parApi: VApiTy | null | void, chosen: GoNextBaseCandidate | false | 0 | null
     if (!isTop && (parApi = Build.BTypes & BrowserType.Firefox ? getParentVApi() : frameElement_() && getParentVApi())
         && !parApi.a(keydownEvents_)) {
@@ -162,47 +170,27 @@ export const contentCommands_: {
       hudTip(kTip.noLinksToGo, 0, [VTr(kTip.prev + <number> <boolean | number> isNext)]);
     }
   },
-  /* kFgCmd.reload: */ function (options: CmdOptions[kFgCmd.reload]): void {
-    timeout_(function () {
-      options.url ? (loc_.href = options.url) : loc_.reload(!!options.hard);
-    }, 17);
-  },
-  /* kFgCmd.showHelp: */ function (options: CmdOptions[kFgCmd.showHelp] | "e"): void {
-    if (options === "e") { return; }
-    let wantTop = wndSize_(1) < 400 || wndSize_() < 320
-    if (!isHTML_()) {
-      if (isTop) { return; }
-      wantTop = true;
-    }
-    post_({ H: kFgReq.initHelp, w: wantTop, a: options });
-  },
-  /* kFgCmd.autoCopy: */ function (options: CmdOptions[kFgCmd.autoCopy]): void {
-    let str = getSelectionText(1);
-    post_({
+  /* kFgCmd.autoOpen: */ (options: CmdOptions[kFgCmd.autoOpen]): void => {
+    let selected = options.selected, str = options.s && !selected ? "" : getSelectionText(1), url = str.trim()
+    url && options.copy && post_({
       H: kFgReq.copy,
       s: str as never as undefined,
       e: parseSedOptions(options),
       u: (str ? "" : options.url ? loc_.href : doc.title) as "url",
       d: options.decoded || options.decode
-    });
-  },
-  /* kFgCmd.autoOpen: */ function (options: CmdOptions[kFgCmd.autoOpen]): void {
-    let url = getSelectionText();
-    url && evalIfOK(url) || post_({
-      H: kFgReq.openUrl, c: !url, k: options.keyword, t: options.testUrl, u: url, r: options.reuse
     })
-    url && options.copy && contentCommands_[kFgCmd.autoCopy](options);
-  },
-  /* kFgCmd.searchAs: */ function (options: CmdOptions[kFgCmd.searchAs]): void {
-    post_({
+    options.o && (url && evalIfOK(url) || post_({
+      H: kFgReq.openUrl, c: !url, k: options.keyword, t: options.testUrl, u: url, r: options.reuse
+    }))
+    options.s && post_({
       H: kFgReq.searchAs,
       u: loc_.href,
       c: options.copied,
       s: parseSedOptions(options),
-      t: options.selected ? getSelectionText() : ""
-    });
+      t: selected ? url : ""
+    })
   },
-  /* kFgCmd.focusInput: */ function (options: CmdOptions[kFgCmd.focusInput], count: number): void {
+  /* kFgCmd.focusInput: */ (options: CmdOptions[kFgCmd.focusInput], count: number): void => {
     const S = "IH IHS"
     const act = options.act || options.action, known_last = deref_(insert_last_);
     if (act && (act[0] !== "l" || known_last && !raw_insert_lock)) {
@@ -264,7 +252,7 @@ export const contentCommands_: {
     }
     const hints: HintsNS.InputHintItem[] = visibleInputs.sort(
         (a, b) => a[2] < 1 || b[2] < 1 ? b[2] - a[2] : a[2] - b[2]).map(
-        function (link): HintsNS.InputHintItem {
+          (link): HintsNS.InputHintItem => {
       const marker = createElement_("span") as HintsNS.BaseHintItem["m"],
       rect = padClientRect_(getBoundingClientRect_(link[0]), 3);
       rect.l--, rect.t--, rect.r--, rect.b--;
@@ -319,7 +307,7 @@ export const contentCommands_: {
       }
     }, insert_inputHint!);
   },
-  /* kFgCmd.editText: */ function (options: CmdOptions[kFgCmd.editText], count: number) {
+  /* kFgCmd.editText: */ (options: CmdOptions[kFgCmd.editText], count: number) => {
     (raw_insert_lock || options.dom) && timeout_((): void => {
       let commands = options.run.split(","), sel: Selection | undefined;
       while (0 < count--) {
@@ -359,5 +347,103 @@ export const contentCommands_: {
           : (doc.head || docEl_unsafe_()) as SafeElement | null
       par && par.appendChild(el)
     }
-  }
+  },
+  /* kFgCmd.showHelpDialog: */ ((options: Exclude<CmdOptions[kFgCmd.showHelpDialog], {h?: null}>): any => {
+    // Note: not suppress key on the top, because help dialog may need a while to render,
+    // and then a keyup may occur before or after it
+    const html = options.h
+    if (hideHelp || html && !isHTML_()) { hideHelp && hideHelp(); return }
+    if (!html) {
+      isTop && !isHTML_() || post_({ H: kFgReq.initHelp,
+          a: options as CmdOptions[kFgCmd.showHelpDialog] as ShowHelpDialogOptions,
+          w: wndSize_(1) < 400 || wndSize_() < 320 || isHTML_() })
+      return
+    }
+    let shouldShowAdvanced = options.c, optionUrl = options.o
+    let box: SafeHTMLElement, outerBox: SafeHTMLElement | undefined
+    if (Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)) {
+      // on FF66, if a page is limited by "script-src 'self'; style-src 'self'"
+      //   then `<style>`s created by `.innerHTML = ...` has no effects;
+      //   so need `doc.createElement('style').textContent = ...`
+      box = new DOMParser().parseFromString((html as Exclude<typeof html, string>).b, "text/html"
+          ).body.firstChild as SafeHTMLElement
+      box.prepend!(createStyle((html as Exclude<typeof html, string>).h))
+    } else {
+      outerBox = createElement_(Build.BTypes & BrowserType.Chrome ? getBoxTagName_cr_() : "div")
+      outerBox.className = "R H"
+      outerBox.innerHTML = html as string
+      box = outerBox.lastChild as SafeHTMLElement
+    }
+    box.onclick = Stop_
+    suppressCommonEvents(box, MDW)
+    if (Build.MinCVer >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument
+        || !(Build.BTypes & BrowserType.Chrome)
+        || chromeVer_ > BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument - 1) {
+      setupEventListener(box,
+        (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
+          : VOther !== BrowserType.Chrome) ? CLK : DAC, onActivate)
+    }
+
+    const closeBtn = querySelector_unsafe_("#HCls", box) as HTMLElement,
+    optLink = querySelector_unsafe_("#HOpt", box) as HTMLAnchorElement,
+    advCmd = querySelector_unsafe_("#HAdv", box) as HTMLElement,
+    toggleAdvanced = (): void => {
+      const el2 = advCmd.firstChild as HTMLElement
+      el2.innerText = el2.dataset[shouldShowAdvanced ? "h" : "s"]!
+      box.classList.toggle("HelpDA")
+    }
+    hideHelp = closeBtn.onclick = (event?: EventToPrevent): void => {
+      hideHelp = null
+      event && prevent_(event)
+      advCmd.onclick = optLink.onclick = closeBtn.onclick = null as never
+      let i: Element | null | undefined = deref_(lastHovered_)
+      i && box.contains(i) && /*#__INLINE__*/ resetLastHovered()
+      if ((i = deref_(currentScrolling)) && box.contains(i)) {
+        /*#__INLINE__*/ resetCurrentScrolling()
+        /*#__INLINE__*/ clearCachedScrollable()
+      }
+      removeHandler_(box)
+      box.remove()
+      setupExitOnClick(kExitOnClick.helpDialog | kExitOnClick.REMOVE)
+    }
+    if (! loc_.href.startsWith(optionUrl)) {
+      optLink.href = optionUrl
+      optLink.onclick = event => {
+        post_({ H: kFgReq.focusOrLaunch, u: optionUrl })
+        hideHelp!(event)
+      }
+    } else {
+      optLink.remove()
+    }
+    advCmd.onclick = event => {
+      prevent_(event)
+      shouldShowAdvanced = !shouldShowAdvanced
+      toggleAdvanced()
+      post_({
+        H: kFgReq.setSetting,
+        k: 0,
+        v: shouldShowAdvanced
+      })
+    }
+    shouldShowAdvanced && toggleAdvanced()
+    ensureBorder()
+    addUIElement(outerBox || box, AdjustType.Normal, true)
+    options.e && setupExitOnClick(kExitOnClick.helpDialog)
+    doc.hasFocus() || vApi.f()
+    /*#__INLINE__*/ set_currentScrolling(weakRef_(box))
+    pushHandler_(event => {
+      if (!raw_insert_lock && isEscape_(getMappedKey(event, kModeId.Normal))) {
+        removeSelection(ui_root) || hideHelp!()
+        return HandlerResult.Prevent
+      }
+      return HandlerResult.Nothing
+    }, box)
+    if (omni_status >= VomnibarNS.Status.Showing) {
+      removeHandler_(omniActivate)
+      pushHandler_(omniOnKeydown, omniActivate)
+    }
+    // if no [tabindex=0], `.focus()` works if :exp and since MinElement$Focus$MayMakeArrowKeySelectIt or on Firefox
+    timeout_((): void => { box.focus() }, 17)
+  }) as (options: CmdOptions[kFgCmd.showHelpDialog]) => any
 ]

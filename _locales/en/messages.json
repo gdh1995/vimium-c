@@ -210,7 +210,7 @@
 		"message": "Copy title/URL info of a current window"
 	},
 	"copyWindowInfo_p": {
-		"message": "format=\"$${title}: $${url}\", join=true/string, decoded"
+		"message": "format=\"$${title}: $${url}\", join:true/string, decoded"
 	},
 	"debugBackground": {
 		"message": "Debug the background page"
@@ -237,7 +237,7 @@
 		"message": "Enter insert mode"
 	},
 	"enterInsertMode_p": {
-		"message": "key:string"
+		"message": "key:string, unhover, reset"
 	},
 	"enterVisualLineMode": {
 		"message": "Enter visual line mode"

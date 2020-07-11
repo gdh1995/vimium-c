@@ -29,7 +29,7 @@ const domNodeMap = Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet ||
 }
 
 let lock_ = null as LockableElement | null
-let insert_global_: CmdOptions[kFgCmd.insertMode] | null = null
+let insert_global_: InsertModeOptions | null = null
 let isHintingInput: BOOL = 0
 let inputHint: { /** box */ b: HTMLDivElement | null; /** hints */ h: HintsNS.InputHintItem[] } | null = null
 let suppressType: string | null = null
@@ -46,7 +46,7 @@ export {
   insert_last_, is_last_mutable as insert_last_mutable,
   grabBackFocus, suppressType, inputHint as insert_inputHint, onWndBlur2, exitPassMode,
 }
-export function set_insert_global_ (_newIGlobal: CmdOptions[kFgCmd.insertMode]): void { insert_global_ = _newIGlobal }
+export function set_insert_global_ (_newIGlobal: InsertModeOptions): void { insert_global_ = _newIGlobal }
 export function set_insert_last_ (_newILast: WeakRef<LockableElement> | null): void { insert_last_ = _newILast }
 export function set_is_last_mutable (_newIsLastMutable: BOOL): void { is_last_mutable = _newIsLastMutable }
 export function set_inputHint (_newIHint: typeof inputHint): void { inputHint = _newIHint }

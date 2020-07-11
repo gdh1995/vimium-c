@@ -16,14 +16,15 @@ interface FullOptions extends BaseFullOptions {
 declare var VData: VDataTy
 
 import {
-  injector, isAlive_, keydownEvents_, readyState_, VOther, timeout_, clearTimeout_, loc_, recordLog, chromeVer_, interval_, clearInterval_,
+  injector, isAlive_, keydownEvents_, readyState_, VOther, timeout_, clearTimeout_, loc_, recordLog, chromeVer_,
+  interval_, clearInterval_,
 } from "../lib/utils"
 import { removeHandler_, pushHandler_, SuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils";
 import { frameElement_, isHTML_, fullscreenEl_unsafe_, NONE, createElement_ } from "../lib/dom_utils"
 import { getViewBox_, docZoom_, dScale_, prepareCrop_, bZoom_, wndSize_ } from "../lib/rect"
 import { beginScroll, scrollTick } from "./scroller"
 import {
-  getSelectionText, adjustUI, setupExitOnClick, addUIElement, getParentVApi, evalIfOK, checkHidden,
+  getSelectionText, adjustUI, setupExitOnClick, addUIElement, getParentVApi, evalIfOK, checkHidden, kExitOnClick,
 } from "./dom_ui"
 import { tryNestedFrame } from "./link_hints"
 import { insert_Lock_ } from "./insert"
@@ -120,7 +121,7 @@ export const activate = function (options: FullOptions, count: number): void {
       status = VomnibarNS.Status.ToShow
     }
     box.classList.toggle("O2", !canUseVW)
-    setupExitOnClick(0, options.exitOnClick ? hide : 0)
+    options.e && setupExitOnClick(kExitOnClick.vomnibar)
     let upper = 0;
     if (url != null) {
       url = options.url = url || options.u;
@@ -152,7 +153,7 @@ export const hide = (fromInner?: 1): void => {
         && Build.BTypes & BrowserType.Chrome ? box.style : 0 as never as null;
     status = VomnibarNS.Status.Inactive
     screenHeight_ = 0; canUseVW = !0
-    setupExitOnClick(0, 0)
+    setupExitOnClick(kExitOnClick.vomnibar | kExitOnClick.REMOVE)
     if (fromInner == null) {
       active && postToOmni(VomnibarNS.kCReq.hide)
       return

@@ -153,7 +153,7 @@ export const jumpToNextLink = (linkElement: GoNextBaseCandidate[0]): void => {
   view_(linkElement)
   flash_(linkElement) // here calls getRect -> preparCrop_
   if (url) {
-    contentCommands_[kFgCmd.reload](safer({ url }))
+    contentCommands_[kFgCmd.framesGoBack](safer({ r: 1, url }))
   } else {
     timeout_((): void => { click_(linkElement) }, 100)
   }

@@ -16,7 +16,7 @@ const port_callbacks: { [msgId: number]: <k extends keyof FgRes>(this: void, res
 let port_: Port | null = null
 let tick = 1
 let safeDestroy: SafeDestoryF
-let requestHandlers: { [k in keyof BgReq]: (this: void, request: BgReq[k]) => void }
+let requestHandlers: { [k in keyof BgReq]: (this: void, request: BgReq[k]) => unknown }
 let hookOnWnd: (action: HookAction) => void
 
 export { port_ as runtime_port, port_callbacks, safeDestroy, requestHandlers, hookOnWnd }
@@ -81,7 +81,7 @@ export const runtimeConnect = (function (this: void): void {
 })
 
 const onBgReq = <T extends keyof BgReq> (response: Req.bg<T>): void => {
-    type TypeToCheck = { [k in keyof BgReq]: (this: void, request: BgReq[k]) => void };
-    type TypeChecked = { [k in keyof BgReq]: <T2 extends keyof BgReq>(this: void, request: BgReq[T2]) => void };
+    type TypeToCheck = { [k in keyof BgReq]: (this: void, request: BgReq[k]) => unknown };
+    type TypeChecked = { [k in keyof BgReq]: <T2 extends keyof BgReq>(this: void, request: BgReq[T2]) => unknown };
     (requestHandlers as TypeToCheck as TypeChecked)[response.N](response);
 }

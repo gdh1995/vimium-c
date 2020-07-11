@@ -11,7 +11,7 @@ import {
   runtimeConnect, safeDestroy, post_, send_, hookOnWnd, requestHandlers,
 } from "./port"
 import {
-  ui_box, adjustUI, doExitOnClick, getParentVApi, set_getParentVApi, set_getWndVApi_ff, learnCSS, ui_root, flash_,
+  ui_box, adjustUI, getParentVApi, set_getParentVApi, set_getWndVApi_ff, learnCSS, ui_root, flash_,
 } from "./dom_ui"
 import { grabBackFocus } from "./insert"
 import { currentKeys } from "./key_handler"
@@ -42,8 +42,7 @@ set_safeDestroy((silent?: Parameters<SafeDestoryF>[0]): void => {
     /*#__INLINE__*/ set_isEnabled_(!1)
     hookOnWnd(HookAction.Destroy);
 
-    contentCommands_[kFgCmd.reset](0);
-    doExitOnClick()
+    contentCommands_[kFgCmd.insertMode]({r: 2})
     vApi.e && vApi.e(kContentCmd.Destroy);
     ui_box && adjustUI(2);
 

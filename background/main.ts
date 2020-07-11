@@ -1183,18 +1183,17 @@
     },
     /* kBgCmd.showHelp: */ function (this: void): void {
       if (cPort.s.i === 0 && !(cPort.s.f & Frames.Flags.hadHelpDialog)) {
-        return requestHandlers[kFgReq.initHelp]({ a: cOptions as {} }, cPort);
+        requestHandlers[kFgReq.initHelp]({ a: cOptions as {} }, cPort)
+        return
       }
       if (!window.HelpDialog) {
         BgUtils_.require_("HelpDialog");
       }
-      cPort.postMessage<1, kFgCmd.showHelp>({
-        N: kBgReq.execute,
-        H: null,
-        c: kFgCmd.showHelp,
-        n: 1,
-        a: cOptions as {}
-      });
+      cPort.postMessage<1, kFgCmd.showHelpDialog>({
+        N: kBgReq.execute, H: ensureInnerCSS(cPort),
+        c: kFgCmd.showHelpDialog, n: 1,
+        a: cOptions as ShowHelpDialogOptions
+      })
     },
     /* kBgCmd.enterInsertMode: */ function (): void {
       let key = cOptions.key,
@@ -1207,6 +1206,9 @@
         c: kFgCmd.insertMode,
         n: 1,
         a: {
+          u: !!cOptions.unhover,
+          r: <BOOL> +!!cOptions.reset,
+          i: !!cOptions.insert,
           k: k2 || null,
           p: !!cOptions.passExitKey,
           h: hud ? [trans_("" + kTip.globalInsertMode, [k2 && ": " + key])] : null
@@ -1295,6 +1297,7 @@
         t: useInner ? VomnibarNS.PageType.inner : preferWeb ? VomnibarNS.PageType.web : VomnibarNS.PageType.ext,
         s: trailingSlash,
         j: useInner ? "" : Settings_.CONST_.VomnibarScript_f_,
+        e: !!(cOptions as Partial<VomnibarNS.GlobalOptions>).exitOnClick,
         k: getSecret()
       }), cOptions as {} as CmdOptions[kFgCmd.vomnibar] & Partial<VomnibarNS.GlobalOptions>);
       if (options.mode === "bookmark") {
@@ -2172,9 +2175,8 @@
     } else { count = count || 1; }
     if (!registryEntry.background_) {
       const { alias_: fgAlias } = registryEntry,
-      dot = ((
-        (1 << kFgCmd.unhoverLast) | (1 << kFgCmd.marks) |
-        (1 << kFgCmd.passNextKey) | (1 << kFgCmd.autoCopy) | (1 << kFgCmd.focusInput)
+      dot = (kEnds.FgCmd <= 32 || fgAlias < 32) && ((
+        (1 << kFgCmd.marks) | (1 << kFgCmd.passNextKey) | (1 << kFgCmd.focusInput)
       ) >> fgAlias) & 1;
       port.postMessage({ N: kBgReq.execute, H: dot ? ensureInnerCSS(port) : null, c: fgAlias, n: count, a: options });
       return;
@@ -2246,9 +2248,9 @@
           cPort = port!;
           Backend_.showHUD_(result.u);
         } else if (port) {
-          port.postMessage<1, kFgCmd.reload>({ N: kBgReq.execute,
-            H: null, c: kFgCmd.reload, n: 1,
-            a: { url: result.u } });
+          port.postMessage<1, kFgCmd.framesGoBack>({ N: kBgReq.execute,
+            H: null, c: kFgCmd.framesGoBack, n: 1,
+            a: { r: 1, url: result.u } });
         } else {
           chrome.tabs.update({ url: result.u });
         }
@@ -2609,13 +2611,15 @@
         isOptionsPage = port2.s.u.startsWith(Settings_.CONST_.OptionsPage_),
         options = request.a || {};
         (port2 as Frames.Port).s.f |= Frames.Flags.hadHelpDialog;
-        port2.postMessage({
-          N: kBgReq.showHelpDialog,
-          H: ensureInnerCSS(port2),
+        port2.postMessage<1, kFgCmd.showHelpDialog>({
+          N: kBgReq.execute, H: ensureInnerCSS(port2),
+          c: kFgCmd.showHelpDialog, n: 1,
+          a: {
           h: args[0].render_(isOptionsPage),
           o: Settings_.CONST_.OptionsPage_,
           e: !!options.exitOnClick,
           c: Settings_.get_("showAdvancedCommands", true) || isOptionsPage && Settings_.temp_.cmdErrors_ !== 0
+          }
         });
       }, Build.NDEBUG ? null : function (args): void {
         console.error("Promises for initHelp failed:", args[0], ";", args[1]);

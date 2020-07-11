@@ -571,7 +571,7 @@ declare namespace CommandsNS {
     [kCName.LinkHints_activateModeToOpenVomnibar]: kFgCmd.linkHints;
     [kCName.LinkHints_activateModeToSearchLinkText]: kFgCmd.linkHints;
     [kCName.LinkHints_activateModeWithQueue]: kFgCmd.linkHints;
-    [kCName.LinkHints_unhoverLast]: kFgCmd.unhoverLast;
+    [kCName.LinkHints_unhoverLast]: kFgCmd.insertMode;
     [kCName.Marks_activate]: kFgCmd.marks;
     [kCName.Marks_activateCreateMode]: kFgCmd.marks;
     [kCName.Marks_clearGlobal]: kBgCmd.clearMarks;
@@ -587,7 +587,7 @@ declare namespace CommandsNS {
     [kCName.Vomnibar_activateTabSelection]: kBgCmd.showVomnibar;
     [kCName.Vomnibar_activateUrl]: kBgCmd.showVomnibar;
     [kCName.Vomnibar_activateUrlInNewTab]: kBgCmd.showVomnibar;
-    [kCName.autoCopy]: kFgCmd.autoCopy;
+    [kCName.autoCopy]: kFgCmd.autoOpen;
     [kCName.autoOpen]: kFgCmd.autoOpen;
     [kCName.blank]: kBgCmd.blank;
     [kCName.clearCS]: kBgCmd.clearCS;
@@ -606,7 +606,7 @@ declare namespace CommandsNS {
     [kCName.editText]: kFgCmd.editText;
     [kCName.enableCSTemp]: kBgCmd.toggleCS;
     [kCName.enterFindMode]: kBgCmd.performFind;
-    [kCName.enterInsertMode]: kBgCmd.enterInsertMode;
+    [kCName.enterInsertMode]: kBgCmd.insertMode;
     [kCName.enterVisualLineMode]: kBgCmd.enterVisualMode;
     [kCName.enterVisualMode]: kBgCmd.enterVisualMode;
     [kCName.firstTab]: kBgCmd.goToTab;
@@ -639,13 +639,13 @@ declare namespace CommandsNS {
     [kCName.performFind]: kBgCmd.performFind;
     [kCName.previousTab]: kBgCmd.goToTab;
     [kCName.quickNext]: kBgCmd.goToTab;
-    [kCName.reload]: kFgCmd.reload;
+    [kCName.reload]: kFgCmd.framesGoBack;
     [kCName.reloadGivenTab]: kBgCmd.reloadTab;
     [kCName.reloadTab]: kBgCmd.reloadTab;
     [kCName.removeRightTab]: kBgCmd.removeRightTab;
     [kCName.removeTab]: kBgCmd.removeTab;
     [kCName.reopenTab]: kBgCmd.reopenTab;
-    [kCName.reset]: kFgCmd.reset;
+    [kCName.reset]: kFgCmd.insertMode;
     [kCName.restoreGivenTab]: kBgCmd.restoreGivenTab;
     [kCName.restoreTab]: kBgCmd.restoreTab;
     [kCName.scrollDown]: kFgCmd.scroll;
@@ -666,7 +666,7 @@ declare namespace CommandsNS {
     [kCName.scrollToRight]: kFgCmd.scroll;
     [kCName.scrollToTop]: kFgCmd.scroll;
     [kCName.scrollUp]: kFgCmd.scroll;
-    [kCName.searchAs]: kFgCmd.searchAs;
+    [kCName.searchAs]: kFgCmd.autoOpen;
     [kCName.searchInAnother]: kBgCmd.searchInAnother;
     [kCName.showHelp]: kBgCmd.showHelp;
     [kCName.simBackspace]: kFgCmd.focusInput;
@@ -763,7 +763,7 @@ interface CommandsDataTy {
 }
 
 interface BaseHelpDialog {
-  render_ (this: {}, isOptionsPage: boolean): BgReq[kBgReq.showHelpDialog]["h"];
+  render_ (this: {}, isOptionsPage: boolean): NonNullable<CmdOptions[kFgCmd.showHelpDialog]["h"]>;
 }
 
 interface Window {

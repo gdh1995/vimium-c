@@ -1,7 +1,7 @@
 import { VOther, chromeVer_, doc } from "./utils"
 import { dimSize_ } from "./rect"
 
-export const MDW = "mousedown", CLK = "click", HDN = "hidden", NONE = "none"
+export const DAC = "DOMActivate", MDW = "mousedown", CLK = "click", HDN = "hidden", NONE = "none"
 
   /** data and DOM-shortcut section (sorted by reference numbers) */
 

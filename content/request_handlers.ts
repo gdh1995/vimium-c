@@ -1,22 +1,18 @@
 import {
   chromeVer_, clickable_, doc, esc, fgCache, injector, isEnabled_, isLocked_, isAlive_, isTop,
   keydownEvents_, safeObj, set_chromeVer_, set_clickable_, set_fgCache, set_VOther, set_isLocked_,
-  setupEventListener, set_isEnabled_, suppressCommonEvents, set_onWndFocus, VOther, onWndFocus, timeout_, safer,
-  allowScripts_, loc_, interval_, getTime, vApi, deref_, weakRef_, clearInterval_,
+  set_isEnabled_, set_onWndFocus, VOther, onWndFocus, timeout_, safer,
+  allowScripts_, loc_, interval_, getTime, vApi, clearInterval_,
 } from "../lib/utils"
-import {
-  set_keyIdCorrectionOffset_old_cr_, handler_stack, Stop_, prevent_, removeHandler_, pushHandler_, isEscape_,
-  getMappedKey,
-} from "../lib/keyboard_utils"
+import { set_keyIdCorrectionOffset_old_cr_, handler_stack } from "../lib/keyboard_utils"
 import {
   editableTypes_, markFramesetTagUnsafe, setNotSafe_not_ff, OnDocLoaded_, frameElement_,
   htmlTag_, querySelector_unsafe_, isHTML_, createElement_,
-  docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, CLK, MDW, ElementProto, isIFrameElement,
+  docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, CLK, ElementProto, isIFrameElement, DAC,
 } from "../lib/dom_utils"
 import { port_callbacks, post_, safePost, set_requestHandlers, requestHandlers, hookOnWnd, set_hookOnWnd } from "./port"
 import {
-  addUIElement, adjustUI, createStyle, ensureBorder, getParentVApi, getBoxTagName_cr_,
-  removeSelection, setUICSS, setupExitOnClick, ui_box, ui_root, evalIfOK, checkHidden,
+  addUIElement, adjustUI, createStyle, getParentVApi, getBoxTagName_cr_, setUICSS, ui_box, evalIfOK, checkHidden,
 } from "./dom_ui"
 import { hudTip, hud_box } from "./hud"
 import {
@@ -26,15 +22,11 @@ import {
 import { HintManager, kSafeAllSelector, set_kSafeAllSelector } from "./link_hints"
 import { createMark } from "./marks"
 import { set_findCSS, styleInHUD, styleSelectable } from "./mode_find"
-import { exitGrab, grabBackFocus, insertInit, raw_insert_lock, set_grabBackFocus, onFocus, onBlur } from "./insert"
-import {
-  currentScrolling, onActivate, set_currentScrolling, clearCachedScrollable, resetCurrentScrolling,
-} from "./scroller"
-import { activate as omniActivate, omni_status, onKeydown as omniOnKeydown, omni_box } from "./omni"
-import { lastHovered_, resetLastHovered } from "./async_dispatcher"
+import { exitGrab, grabBackFocus, insertInit, set_grabBackFocus, onFocus, onBlur } from "./insert"
+import { onActivate } from "./scroller"
+import { omni_status, omni_box } from "./omni"
 import { contentCommands_ } from "./commands"
 
-const DAC = "DOMActivate"
 let framemask_more = false
 let framemask_node: HTMLDivElement | null = null
 let framemask_fmTimer = TimerID.None
@@ -145,7 +137,7 @@ set_requestHandlers([
       (old && !isLocked_) || hookOnWnd(HookAction.Install);
       // here should not return even if old - a url change may mean the fullscreen mode is changed
     } else {
-      contentCommands_[kFgCmd.reset](1);
+      contentCommands_[kFgCmd.insertMode]({r: 1})
     }
     if (ui_box) { adjustUI(+newEnabled ? 1 : 2); }
   },
@@ -251,105 +243,6 @@ set_requestHandlers([
       count2 = Math.abs(getTime() - now) > 9 ? result ? 3 : 1 : 2;
     }
     post_({ H: kFgReq.cmd, c: request.c, n, i: request.i, r: count2 });
-  },
-  /* kBgReq.showHelpDialog: */ function ({ h: html, c: shouldShowAdvanced, o: optionUrl, H: CSS
-      , e: exitOnClick }: BgReq[kBgReq.showHelpDialog]): void {
-    // Note: not suppress key on the top, because help dialog may need a while to render,
-    // and then a keyup may occur before or after it
-    if (CSS) { setUICSS(CSS); }
-    const oldShowHelp = contentCommands_[kFgCmd.showHelp];
-    oldShowHelp("e");
-    if (!isHTML_()) { return; }
-    if (oldShowHelp !== contentCommands_[kFgCmd.showHelp]) { return; } // an old dialog exits
-    let box: SafeHTMLElement, outerBox: SafeHTMLElement | undefined;
-    if (Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)) {
-      // on FF66, if a page is limited by "script-src 'self'; style-src 'self'"
-      //   then `<style>`s created by `.innerHTML = ...` has no effects;
-      //   so need `doc.createElement('style').textContent = ...`
-      box = new DOMParser().parseFromString((html as Exclude<typeof html, string>).b, "text/html"
-          ).body.firstChild as SafeHTMLElement;
-      box.prepend!(createStyle((html as Exclude<typeof html, string>).h));
-    } else {
-      outerBox = createElement_(Build.BTypes & BrowserType.Chrome ? getBoxTagName_cr_() : "div")
-      outerBox.className = "R H"
-      outerBox.innerHTML = html as string
-      box = outerBox.lastChild as SafeHTMLElement
-    }
-    box.onclick = Stop_;
-    suppressCommonEvents(box, MDW);
-    if (Build.MinCVer >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument
-        || !(Build.BTypes & BrowserType.Chrome)
-        || chromeVer_ > BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument - 1) {
-      setupEventListener(box,
-        (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
-          : VOther !== BrowserType.Chrome)
-        ? CLK : DAC, onActivate);
-    }
-
-    const closeBtn = querySelector_unsafe_("#HCls", box) as HTMLElement,
-    optLink = querySelector_unsafe_("#HOpt", box) as HTMLAnchorElement,
-    advCmd = querySelector_unsafe_("#HAdv", box) as HTMLElement,
-    hide: (this: void, e?: (EventToPrevent) | CmdOptions[kFgCmd.showHelp] | "e") => void = function (event): void {
-      if (event instanceof Event) {
-        prevent_(event);
-      }
-      advCmd.onclick = optLink.onclick = closeBtn.onclick = null as never;
-      let i: Element | null | undefined = deref_(lastHovered_);
-      i && box.contains(i) && /*#__INLINE__*/ resetLastHovered();
-      if ((i = deref_(currentScrolling)) && box.contains(i)) {
-        /*#__INLINE__*/ resetCurrentScrolling();
-        /*#__INLINE__*/ clearCachedScrollable();
-      }
-      removeHandler_(box);
-      box.remove();
-      contentCommands_[kFgCmd.showHelp] = oldShowHelp;
-      setupExitOnClick(1, 0);
-    };
-    closeBtn.onclick = contentCommands_[kFgCmd.showHelp] = hide;
-    if (! loc_.href.startsWith(optionUrl)) {
-      optLink.href = optionUrl;
-      optLink.onclick = function (event) {
-        post_({ H: kFgReq.focusOrLaunch, u: optionUrl });
-        hide(event);
-      };
-    } else {
-      optLink.remove();
-    }
-    function toggleAdvanced(this: void): void {
-      const el2 = advCmd.firstChild as HTMLElement;
-      el2.innerText = el2.dataset[shouldShowAdvanced ? "h" : "s"]!;
-      box.classList.toggle("HelpDA");
-    }
-    advCmd.onclick = function (event) {
-      prevent_(event);
-      shouldShowAdvanced = !shouldShowAdvanced;
-      toggleAdvanced();
-      post_({
-        H: kFgReq.setSetting,
-        k: 0,
-        v: shouldShowAdvanced
-      });
-    };
-    shouldShowAdvanced && toggleAdvanced();
-    ensureBorder()
-    addUIElement(outerBox || box, AdjustType.Normal, true)
-    exitOnClick && setupExitOnClick(1, hide)
-    doc.hasFocus() || vApi.f();
-    /*#__INLINE__*/ set_currentScrolling(weakRef_(box))
-    pushHandler_(function (event) {
-      if (!raw_insert_lock && isEscape_(getMappedKey(event, kModeId.Normal))) {
-        removeSelection(ui_root) || hide();
-        return HandlerResult.Prevent;
-      }
-      return HandlerResult.Nothing;
-    }, box);
-    if (omni_status >= VomnibarNS.Status.Showing) {
-      removeHandler_(omniActivate);
-      pushHandler_(omniOnKeydown, omniActivate);
-    }
-    // if no [tabindex=0], `.focus()` works if :exp and since MinElement$Focus$MayMakeArrowKeySelectIt or on Firefox
-    timeout_((): void => box.focus(), 17);
   }
 ])
 
