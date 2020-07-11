@@ -66,7 +66,7 @@ let tempEmit: ((succeed: boolean) => void) | null = null;
 let viewer_: ViewerType | null = null;
 let _initialViewerData: any = null;
 let encryptKey = +window.name || 0;
-let ImageExtRe = <RegExpI> /\.(bmp|gif|icon?|jpe?g|a?png|tiff?|webp)(?=[.\-_]|\b)/i;
+let ImageExtRe = <RegExpI> /\.(avif|bmp|gif|icon?|jpe?g|a?png|tiff?|webp)(?=[.\-_]|\b)/i;
 let _shownBlobURL = "", _shownBlob: Blob | null | 0 = null;
 let loadingTimer: (() => void) | null | undefined
 

@@ -147,7 +147,7 @@ export const isImageUrl = (str: string | null): boolean => {
   const end = str.lastIndexOf("#") + 1 || str.length;
   // eslint-disable-next-line @typescript-eslint/ban-types
   str = str.substring!(str.lastIndexOf("/", str.lastIndexOf("?") + 1 || end), end);
-  return (<RegExpI & RegExpOne> /\.(?:bmp|gif|icon?|jpe?g|a?png|svg|tiff?|webp)\b/i).test(str);
+  return (<RegExpI & RegExpOne> /\.(?:avif|bmp|gif|icon?|jpe?g|a?png|svg|tiff?|webp)\b/i).test(str);
 }
 
 export const recordLog = (tip: kTip | string): void => {

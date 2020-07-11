@@ -647,7 +647,7 @@ var BgUtils_ = {
   },
   showFileUrl_ (url: string): string {
     // SVG is not blocked by images CS
-    return (<RegExpI & RegExpOne> /\.(?:bmp|gif|icon?|jpe?g|a?png|tiff?|webp)$/i).test(url)
+    return (<RegExpI & RegExpOne> /\.(?:avif|bmp|gif|icon?|jpe?g|a?png|tiff?|webp)$/i).test(url)
       ? this.formatVimiumUrl_("show image " + url, false, Urls.WorkType.Default)
       : url;
   },
