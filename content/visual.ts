@@ -43,7 +43,7 @@ import {
   toggleSelectableStyle, find_query, executeFind, find_hasResults, updateQuery as findUpdateQuery, findCSS, set_findCSS,
 } from "./mode_find"
 import { insert_Lock_ } from "./insert"
-import { hudShow, hudTip, hudHide } from "./hud"
+import { hudTip, hudHide } from "./hud"
 import { post_, send_ } from "./port"
 import { removeHandler_, pushHandler_, getMappedKey, keybody_, isEscape_, prevent_, ENTER } from "../lib/keyboard_utils"
 
@@ -104,8 +104,8 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     di_ = isRange ? kDirTy.unknown : kDirTy.right
     mode_ = newMode
     newMode !== mode ? hudTip(kTip.noUsableSel, 1000) : hudHide(!!options.r)
-    toggleSelectableStyle(1);
     alterMethod = toCaret ? "move" : kExtend
+    toggleSelectableStyle(1)
     if (/* type === SelType.None */ !type && establishInitialSelectionAnchor(theSelected[1])) {
       deactivate()
       return hudTip(kTip.needSel)
