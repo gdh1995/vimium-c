@@ -1220,24 +1220,31 @@
         return Backend_.complain_("control selection on MS Edge");
       }
       const str = typeof cOptions.mode === "string" ? cOptions.mode.toLowerCase() : "";
+      const sender = cPort.s
+      let findCSS: CmdOptions[kFgCmd.visualMode]["f"] = null
       let words = "", keyMap: CmdOptions[kFgCmd.visualMode]["k"] = null;
       let granularities: CmdOptions[kFgCmd.visualMode]["g"] = null;
-      if (~cPort.s.f & Frames.Flags.hadVisualMode) {
+      if (~sender.f & Frames.Flags.hadVisualMode) {
         if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
           || Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
             && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
         ) {
           words = Settings_.CONST_.words;
         }
+        if (!(sender.f & Frames.Flags.hasFindCSS)) {
+          sender.f |= Frames.Flags.hasFindCSS
+          findCSS = Settings_.cache_.findCSS
+        }
         keyMap = CommandsData_.visualKeys_;
         granularities = CommandsData_.visualGranularities_
-        cPort.s.f |= Frames.Flags.hadVisualMode;
+        sender.f |= Frames.Flags.hadVisualMode;
       }
       cPort.postMessage<1, kFgCmd.visualMode>({ N: kBgReq.execute,
         H: ensureInnerCSS(cPort), c: kFgCmd.visualMode, n: 1,
         a: {
           m: str === "caret" ? VisualModeNS.Mode.Caret
               : str === "line" ? VisualModeNS.Mode.Line : VisualModeNS.Mode.Visual,
+          f: findCSS,
           g: granularities,
           k: keyMap,
           w: words

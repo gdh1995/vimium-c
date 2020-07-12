@@ -21,7 +21,8 @@ export const hudTip = (tid: kTip | HintMode, duration?: number, args?: Array<str
   hudShow(tid, args);
   text && (timer = timeout_(hudHide, duration || 1500));
 }
-export const hudShow = (tid: kTip | HintMode, args?: Array<string | number>, embed?: boolean): void => {
+export const hudShow = (tid: kTip | HintMode, args?: Array<string | number>
+    , embed?: boolean | BOOL | TimerType.fake): void => {
   if (!isHTML_()) { return; }
   text = VTr(tid, args);
   opacity_ = 1;
@@ -72,14 +73,14 @@ const tween = (fake?: TimerType.fake): void => { // safe-interval
   tweenId = 0;
 }
 
-export const hudHide = (info?: TimerType): void => {
+export const hudHide = (info?: TimerType.fake | TimerType.noTimer | BOOL | boolean): void => {
   if (timer) { clearTimeout_(timer); timer = TimerID.None; }
   if (isHintsActive && !hintManager) {
     setHintMode(hintMode_)
     return
   }
   if (visual_mode) {
-    hudShow(kTip.inVisualMode, [visual_mode_name])
+    hudShow(kTip.inVisualMode, [visual_mode_name], info)
     return
   }
   if (insert_global_ && insert_global_.h) {

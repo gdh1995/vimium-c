@@ -57,7 +57,7 @@ type SelectNameToKey<T extends { [k in K]: [string, any] }, K extends string = (
 declare const enum TimerType {
   _native = 0,
   fake = -1,
-  noTimer = -2,
+  noTimer = 1,
 }
 type SafeSetTimeout = (this: void, handler: (this: void) => void, timeout: number) => number;
 declare var setTimeout: SetTimeout, setInterval: SetInterval;

@@ -320,6 +320,7 @@ interface CmdOptions {
   } & InsertModeOptions;
   [kFgCmd.visualMode]: {
     /** mode */ m: VisualModeNS.Mode.Visual | VisualModeNS.Mode.Line | VisualModeNS.Mode.Caret;
+    /** find CSS */ f?: FindCSS | null
     /** from_find */ r?: true;
     /** kGranularity[] */ g?: GranularityNames | null;
     /** keyMaps */ k?: VisualModeNS.KeyMap | null;

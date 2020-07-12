@@ -40,7 +40,7 @@ import {
 import { checkDocSelectable, getSelected, resetSelectionToDocStart, flash_ } from "./dom_ui"
 import { prepareTop, executeScroll, scrollIntoView_need_safe } from "./scroller"
 import {
-  toggleSelectableStyle, find_query, executeFind, find_hasResults, updateQuery as findUpdateQuery,
+  toggleSelectableStyle, find_query, executeFind, find_hasResults, updateQuery as findUpdateQuery, findCSS, set_findCSS,
 } from "./mode_find"
 import { insert_Lock_ } from "./insert"
 import { hudShow, hudTip, hudHide } from "./hud"
@@ -73,6 +73,7 @@ export { mode_ as visual_mode, modeName as visual_mode_name, kDir, kExtend }
 
   /** @safe_di */
 export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
+    set_findCSS(options.f || findCSS)
     init && init(options.w!, options.k!, _kGranularity = options.g!)
     removeHandler_(activate)
     checkDocSelectable();
@@ -99,13 +100,11 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     }
     const isRange = type === SelType.Range, newMode: CmdOptions[kFgCmd.visualMode]["m"] = isRange ? mode : Mode.Caret,
     toCaret = newMode === Mode.Caret;
-    hudShow(kTip.inVisualMode, [modeName = VTr(kTip.OFFSET_VISUAL_MODE + newMode)], !!options.r);
-    if (newMode !== mode) {
-      hudTip(kTip.noUsableSel, 1000)
-    }
-    toggleSelectableStyle(1);
+    modeName = VTr(kTip.OFFSET_VISUAL_MODE + newMode)
     di_ = isRange ? kDirTy.unknown : kDirTy.right
     mode_ = newMode
+    newMode !== mode ? hudTip(kTip.noUsableSel, 1000) : hudHide(!!options.r)
+    toggleSelectableStyle(1);
     alterMethod = toCaret ? "move" : kExtend
     if (/* type === SelType.None */ !type && establishInitialSelectionAnchor(theSelected[1])) {
       deactivate()
@@ -490,11 +489,9 @@ const moveRightByWordButNotSkipSpace = !(Build.BTypes & ~BrowserType.Firefox) &&
           && rightWhiteSpaceRe || WordsRe_ff_old_cr!
         ).exec(str),
     toGoLeft = match ? (!(Build.BTypes & BrowserType.Firefox)
-      ? Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
-        || <Exclude<typeof rightWhiteSpaceRe, null>> rightWhiteSpaceRe
+      ? Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces || rightWhiteSpaceRe
       : Build.BTypes & ~BrowserType.Firefox
-        && (Build.NativeWordMoveOnFirefox || VOther !== BrowserType.Firefox)
-        && <Exclude<typeof rightWhiteSpaceRe, null>> rightWhiteSpaceRe
+        && (Build.NativeWordMoveOnFirefox || VOther !== BrowserType.Firefox) && rightWhiteSpaceRe
       )
       ? match[0].length : str.length - match.index - match[0].length : 0;
     const needBack = toGoLeft > 0 && toGoLeft < str.length;
@@ -798,8 +795,9 @@ let init = (words: string, map: VisualModeNS.KeyMap, _g: any) => {
     || (Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox)
     || chromeVer_ >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) &&
   // on Firefox 65 stable, Win 10 x64, there're '\r\n' parts in Selection.toString()
+  // ignore "\ufeff" for shorter code since it's too rare
   (rightWhiteSpaceRe = <RegExpOne> (Build.BTypes & BrowserType.Firefox
-      ? /[^\S\n\r\u2029\u202f\ufeff]+$/ : /[^\S\n\u2029\u202f\ufeff]+$/));
+      ? /[^\S\n\r\u2029\u202f]+$/ : /[^\S\n\u2029\u202f]+$/));
   func(keyMap = map as VisualModeNS.SafeKeyMap)
   func(map.a as Dict<VisualAction>); func(map.g as Dict<VisualAction>)
 }
