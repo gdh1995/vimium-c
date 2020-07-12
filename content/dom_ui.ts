@@ -290,23 +290,35 @@ export const getSelected = (notExpectCount?: 1): [Selection, ShadowRoot | null] 
    * return HTMLElement if there's only Firefox
    * @UNSAFE_RETURNED
    */
-export const getSelectionParent_unsafe = (selected?: string): Element | null => {
+export const getSelectionParent_unsafe = ((re?: RegExpG & RegExpSearchable<0>): Element | null | 0 => {
     let sel = getSelected()[0], range = sel.rangeCount ? sel.getRangeAt(0) : null
-      , par: Node | null = range && range.commonAncestorContainer, p0 = par;
+      , selected: string | undefined, match: RegExpExecArray | null, result = 0
+      , par: Node | null = range && range.commonAncestorContainer, lastPar = par
     while (par && !(par as NodeToElement).tagName) {
       par = Build.BTypes & ~BrowserType.Firefox ? GetParent_unsafe_(par, PNType.DirectNode)
             : par.parentNode as Exclude<Node["parentNode"], Window | RadioNodeList | HTMLCollection>;
     }
     // now par is Element or null, and may be a <form> / <frameset>
-    if (selected && p0 && p0.nodeType === kNode.TEXT_NODE && (p0 as Text).data.trim().length <= selected.length) {
-      let text: HTMLElement["innerText"] | undefined;
-      while (par && (text = (par as TypeToAssert<Element, HTMLElement, "innerText">).innerText,
-            !(Build.BTypes & ~BrowserType.Firefox) || typeof text === "string")
-          && selected.length === (text as string).length) {
-        par = GetParent_unsafe_(par as HTMLElement, PNType.DirectElement);
+    if (re && par && range && !range.collapsed && (selected = range + "")) {
+      if (lastPar && lastPar.nodeType === kNode.TEXT_NODE && (lastPar as Text).data.trim().length <= selected.length) {
+        let text: HTMLElement["innerText"] | undefined
+        while (par && (text = (par as TypeToAssert<Element, HTMLElement, "innerText">).innerText,
+                        !(Build.BTypes & ~BrowserType.Firefox) || typeof text === "string")
+            && selected.length >= (text as string).length) {
+          par = GetParent_unsafe_(lastPar = par as HTMLElement, PNType.DirectElement)
+        }
       }
+      const left = range.cloneRange(), right = range.cloneRange()
+      left.collapse(!0), right.collapse(!1)
+      left.setStart(par || lastPar!, 0), right.setEndAfter(par || lastPar!)
+      const prefix = left + "", wanted = prefix.length, total = prefix + selected + right
+      result = 1
+      for (re.lastIndex = 0; (match = re.exec(total)) && (result = match.index - wanted) < 0; ) { /* empty */ }
     }
-    return par !== docEl_unsafe_() ? par as Element | null : null;
+    return result ? 0 : par !== docEl_unsafe_() ? par as Element | null : null
+}) as {
+  (re: RegExpG): Element | null | 0
+  (re?: undefined): Element | null
 }
 
 export const getSelectionText = (notTrim?: 1): string => {

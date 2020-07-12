@@ -708,7 +708,7 @@ export const executeFind = (query?: string | null, options?: FindNS.ExecuteOptio
     options = options ? safer(options) : safeObj(null) as FindNS.ExecuteOptions;
     let el: LockableElement | null
       , found: boolean, count = (options.n! | 0) || 1, back = count < 0
-      , par: Element | null | undefined, timesRegExpNotMatch = 0
+      , par: Element | 0 | null | undefined, timesRegExpNotMatch = 0
       , q: string, notSens = ignoreCase && !options.caseSensitive
     /** Note: FirefoxBrowserVer.MinFollowSelectionColorOnInactiveFrame
      * Before Firefox 68, it's impossible to replace the gray bg color for blurred selection:
@@ -746,15 +746,8 @@ export const executeFind = (query?: string | null, options?: FindNS.ExecuteOptio
        * `found` may be unreliable,
        * because Firefox may "match" a placeholder and cause `getSelection().type` to be `"None"`
        */
-      else if (found && pR && (par = getSelectionParent_unsafe())) {
-        pR.lastIndex = 0;
-        let text = (par as TypeToPick<Element, HTMLElement, "innerText">).innerText;
-        if (text && !(Build.BTypes & ~BrowserType.Firefox && typeof text !== "string")
-            && !(pR as RegExpG & RegExpSearchable<0>).test(text as string)
-            && timesRegExpNotMatch++ < 9) {
-          count++;
-          par = null;
-        }
+      else if (found && pR && (par = getSelectionParent_unsafe(pR)) === 0 && timesRegExpNotMatch++ < 9) {
+        count++
       }
     } while (0 < --count && found);
     if (found) {
