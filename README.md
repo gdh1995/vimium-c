@@ -101,6 +101,18 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
+#### 1.84.1
+* FindMode: **better support for regexp queries**, like matching `\ra(?!nd)` in `abc and def`
+* mapped **long keys ending with `:i` always work in a plain insert mode**
+  * for example, `map <c-j:i> editText run="auto,forward,line"` will move caret down by a line, only in insert mode
+  * not in any global insert mode of `enterInsertMode`
+* fix it could not enter VisualMode if FindMode had never been activated
+* LinkHints: a new option `newtab=last-window` to open links in the other window
+* a new command `toggleStyle` to insert/remove CSS styles to pages
+* a new command `scrollSelect` to switch selection in `<select>` boxes
+* `editText`: support a new action of "`auto`", to switch in `extend` and `move` according to selection type
+* `enterInsertMode`: support 2 new options of `unhover` and `reset` to clear old modes
+
 #### 1.84.0
 * LinkHints: **better compatibility with Firefox popup blocker** in "newtab" mode
 * now **support the high contrast mode** on Firefox and Edge (Chromium)

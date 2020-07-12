@@ -4,8 +4,20 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://github.com/gdh1995/vimium-c/blob/master/README_zh.md .
 
-#### 1.84.0
+#### 1.84.1
 (the current published version on Firefox Add-ons, Microsoft Edge Add-ons and Chrome Web Store)
+* FindMode: **better support for regexp queries**, like matching `\ra(?!nd)` in `abc and def`
+* mapped **long keys ending with `:i` always work in a plain insert mode**
+  * for example, `map <c-j:i> editText run="auto,forward,line"` will move caret down by a line, only in insert mode
+  * not in any global insert mode of `enterInsertMode`
+* fix it could not enter VisualMode if FindMode had never been activated
+* LinkHints: a new option `newtab=last-window` to open links in the other window
+* a new command `toggleStyle` to insert/remove CSS styles to pages
+* a new command `scrollSelect` to switch selection in `<select>` boxes
+* `editText`: support a new action of "`auto`", to switch in `extend` and `move` according to selection type
+* `enterInsertMode`: support 2 new options of `unhover` and `reset` to clear old modes
+
+#### 1.84.0
 * LinkHints: **better compatibility with Firefox popup blocker** in "newtab" mode
 * now **support the high contrast mode** on Firefox and Edge (Chromium)
   ([#191](https://github.com/gdh1995/vimium-c/issues/191))
