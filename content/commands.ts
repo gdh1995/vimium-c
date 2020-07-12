@@ -28,7 +28,7 @@ import {
   exitInputHint, insert_inputHint, insert_last_, raw_insert_lock, resetInsert, set_is_last_mutable,
   set_inputHint, set_insert_global_, set_isHintingInput, set_insert_last_, onWndBlur, exitPassMode, set_exitPassMode,
 } from "./insert"
-import { activate as visualActivate, deactivate as visualDeactivate } from "./visual"
+import { activate as visualActivate, deactivate as visualDeactivate, kExtend } from "./visual"
 import {
   activate as scActivate, clearCachedScrollable, resetCurrentScrolling, onActivate, currentScrolling,
   set_currentScrolling
@@ -309,12 +309,13 @@ export const contentCommands_: {
   },
   /* kFgCmd.editText: */ (options: CmdOptions[kFgCmd.editText], count: number) => {
     (raw_insert_lock || options.dom) && timeout_((): void => {
-      let commands = options.run.split(","), sel: Selection | undefined;
+      let commands = options.run.split(<RegExpG> /,\s*/g), sel: Selection | undefined;
       while (0 < count--) {
         for (let i = 0; i < commands.length; i += 3) {
           if (commands[i] !== "exec") {
             sel = sel || getSelected()[0];
-            sel.modify(commands[i] as any, commands[i + 1] as any, commands[i + 2] as any);
+            sel.modify(commands[i] === "auto" ? sel.type === "Range" ? kExtend : "move" : commands[i] as any,
+                commands[i + 1] as any, commands[i + 2] as any);
           } else {
             execCommand(commands[i + 1], doc, commands[i + 2]);
           }
