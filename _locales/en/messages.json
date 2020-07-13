@@ -450,7 +450,7 @@
 	"toggleMuteTab_p": {
 		"message": "all, other"
 	},
-	"toggleReaderMode": { "message": "Toggle Reader mode" },
+	"toggleReaderMode": { "message": "Toggle reader view" },
 	"toggleSwitchTemp": {
 		"message": "Toggle switch only on current page"
 	},
@@ -943,6 +943,7 @@
 	"openExtSrc": {
 		"message": "visit HTML of an extension's page"
 	},
+	"noReader": { "message": "No reader view for this page" },
 	"notModify": {
 		"message": "modify #$1 option"
 	},

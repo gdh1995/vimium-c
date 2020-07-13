@@ -195,6 +195,10 @@ var BgUtils_ = {
     else if (str.startsWith("file:")) { type = Urls.Type.Full; }
     else if (str.startsWith("chrome:")) {
       type = str.length < oldString.length && str.includes("/") ? Urls.Type.Search : Urls.Type.Full;
+    } else if (Build.BTypes & BrowserType.Chrome && IsEdg_ && str.startsWith("read:")) {
+      // read://http_xn--6qq79v/?url=http%3A%2F%2Fxn--6qq79v%2FHostname%2520-%2520Wikipedia.html
+      type = !(<RegExpOne> /^read:\/\/([a-z]+)_([.\da-z\-]+)\/\?url=\1%3a%2f%2f\2(%2f|$)/).test(str)
+          || str.length < oldString.length ? Urls.Type.Search : Urls.Type.Full;
     } else {
       str = str.slice(index + 3, index2 >= 0 ? index2 : void 0);
     }

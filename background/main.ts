@@ -645,6 +645,9 @@
       if (mask = cOptions.host_mask || cOptions.host_mark) {
         url = url && url.replace(mask + "", new URL(tabUrl).host);
       }
+      if (mask = cOptions.tabid_mask || cOptions.tabId_mask || cOptions.tabid_mark) {
+        url = url && url.replace(mask + "", tabUrl && "" + tabs![0]!.id);
+      }
       if (mask = cOptions.id_mask || cOptions.id_mark || cOptions.id_marker) {
         url = url && url.replace(mask + "", chrome.runtime.id);
       }
@@ -2050,17 +2053,16 @@
       let tab = tabs[0], url = getTabUrl(tab);
       const reader = cOptions.reader, keyword = cOptions.keyword
       if (url.startsWith(BrowserProtocol_)) {
-        Backend_.complain_(trans_("openExtSrc"))
+        Backend_.complain_(trans_(reader ? "noReader" : "openExtSrc"))
         return
       }
       if (reader && keyword) {
         const query = Backend_.parse_({ u: url });
         if (query && query.k === keyword) {
-          url = query.u
+          openUrl(query.u, Urls.WorkType.Default, tabs)
         } else {
-          url = BgUtils_.convertToUrl_(url, keyword)
+          openUrl(BgUtils_.convertToUrl_(url, keyword), Urls.WorkType.FakeType, tabs)
         }
-        chrome.tabs.update(tab.id, { url }, onRuntimeError)
         return
       }
       if (Build.BTypes & BrowserType.Firefox
@@ -2073,11 +2075,18 @@
         });
         return;
       }
+      if (reader) {
+        if (Build.BTypes & BrowserType.Chrome && IsEdg_ && BgUtils_.protocolRe_.test(url)) {
+          url = url.startsWith("read:") ? BgUtils_.DecodeURLPart_(url.slice(url.indexOf("?url=") + 5))
+              : `read://${new URL(url).origin.replace(<RegExpG> /:\/\/|:/g, "_")}/?url=${encodeURIComponent(url)}`
+          openUrl(url, Urls.WorkType.FakeType, tabs)
+        } else {
+          Backend_.complain_(trans_("noReader"))
+        }
+        return
+      }
       url = url.startsWith("view-source:") ? url.slice(12) : ("view-source:" + url);
-      tabsCreate({
-        url, active: tab.active, windowId: tab.windowId,
-        index: tab.index + 1, openerTabId: tab.id
-      });
+      openUrl(url, Urls.WorkType.FakeType, tabs)
     },
     /* kBgCmd.clearMarks: */ function (this: void): void {
       cOptions.local ? requireURL({ H: kFgReq.marks, u: "", a: kMarkAction.clear }, true) : Marks_.clear_();

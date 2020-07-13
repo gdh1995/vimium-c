@@ -334,7 +334,7 @@
 	"toggleMuteTab": {
 		"message": "Permuter le son de l'onglet courant"
 	},
-	"toggleReaderMode": { "message": "Permuter le mode lecteur" },
+	"toggleReaderMode": { "message": "Permuter la vue du lecteur" },
 	"toggleSwitchTemp": {
 		"message": "Activer temporairement"
 	},
@@ -755,6 +755,7 @@
 	"openExtSrc": {
 		"message": "ouvre le code-source HTML d'une page d'extension"
 	},
+	"noReader": { "message": "Pas de vue lecteur pour cette page" },
 	"notModify": {
 		"message": "modifie #$1 option"
 	},

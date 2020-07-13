@@ -975,12 +975,10 @@ function (details: chrome.runtime.InstalledDetails): void {
     status: "complete"
   }, function (tabs) {
     const t = chrome.tabs, callback = BgUtils_.runtimeError_,
-    secondPrefix = Build.BTypes & BrowserType.Chrome ? "edge" : "",
+    allowedRe = <RegExpOne> /^(file|ftps?|https?):/,
     offset = location.origin.length, js = Settings_.CONST_.ContentScripts_;
     for (let _i = tabs.length, _len = js.length - 1; 0 <= --_i; ) {
-      let url = tabs[_i].url;
-      if (url.startsWith(BrowserProtocol_) || !url.includes("://")) { continue; }
-      if (Build.BTypes & BrowserType.Chrome && url.startsWith(secondPrefix)) { continue; }
+      if (!allowedRe.test(tabs[_i].url)) { continue; }
       let tabId = tabs[_i].id;
       for (let _j = 0; _j < _len; ++_j) {
         t.executeScript(tabId, {file: js[_j].slice(offset), allFrames: true}, callback);

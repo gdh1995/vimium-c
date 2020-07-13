@@ -333,7 +333,7 @@
 	"toggleMuteTab": {
 		"message": "切换网页静音"
 	},
-	"toggleReaderMode": { "message": "切换阅读器模式" },
+	"toggleReaderMode": { "message": "切换阅读模式" },
 	"toggleSwitchTemp": {
 		"message": "在当前页面临时切换任意选项"
 	},
@@ -1373,6 +1373,7 @@
 	"openExtSrc": {
 		"message": "显示一个扩展程序网页的源代码"
 	},
+	"noReader": { "message": "此网页无法进入阅读模式" },
 	"notModify": {
 		"message": "修改“$1”选项"
 	},

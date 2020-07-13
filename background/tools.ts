@@ -180,7 +180,8 @@ ContentSettings_ = Build.PContentSettings ? {
       Backend_.showHUD_(trans_("unknownCS", [contentType]));
       return true;
     }
-    if (BgUtils_.protocolRe_.test(url) && !url.startsWith(BrowserProtocol_)) {
+    if ((!(Build.BTypes & BrowserType.Chrome) || !url.startsWith("read:"))
+        && BgUtils_.protocolRe_.test(url) && !url.startsWith(BrowserProtocol_)) {
       return false;
     }
     Backend_.complain_(trans_("changeItsCS"));
