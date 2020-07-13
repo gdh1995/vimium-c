@@ -1102,12 +1102,12 @@ function compareContentAndTouch(stream, sourceFile, targetPath) {
   });
 }
 
-function safeJSONParse(literalVal, defaultVal) {
+function safeJSONParse(literalVal, defaultVal, type) {
   var newVal = defaultVal != null ? defaultVal : null;
   try {
     newVal = JSON.parse(literalVal);
   } catch (e) {}
-  return newVal;
+  return newVal != null ? type ? type(newVal) : newVal : null;
 }
 
 function readTSConfig(tsConfigFile, throwError) {
@@ -1306,7 +1306,7 @@ function getBuildItem(key, literalVal) {
     newVal = process.env["BUILD_" + env_key];
   }
   if (newVal) {
-    let newVal2 = safeJSONParse(newVal);
+    let newVal2 = safeJSONParse(newVal, null, key === "Commit" ? String : null);
     if (newVal2 == null && key === "Commit") { newVal2 = newVal }
     if (newVal2 != null) {
       newVal = newVal2
@@ -1315,7 +1315,7 @@ function getBuildItem(key, literalVal) {
   } else if (key.startsWith("Random")) {
     newVal = getRandom
   } else if (key === "Commit") {
-    newVal = [safeJSONParse(literalVal), locally ? null : getGitCommit()]
+    newVal = [safeJSONParse(literalVal, null, String), locally ? null : getGitCommit()]
   }
   if (newVal != null) {
     buildOptionCache[key] = [literalVal, newVal]
