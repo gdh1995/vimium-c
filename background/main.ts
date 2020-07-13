@@ -2062,7 +2062,8 @@
           cOptions = BgUtils_.extendIf_({keyword: ""}, cOptions)
           openUrl(query.u, Urls.WorkType.Default, tabs)
         } else {
-          openUrl(BgUtils_.convertToUrl_(url, keyword), Urls.WorkType.FakeType, tabs)
+          url = BgUtils_.convertToUrl_(query && cOptions.parsed ? query.u : url, keyword)
+          openUrl(url, Urls.WorkType.FakeType, tabs)
         }
         return
       }
