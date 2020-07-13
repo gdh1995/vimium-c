@@ -2059,6 +2059,7 @@
       if (reader && keyword) {
         const query = Backend_.parse_({ u: url });
         if (query && query.k === keyword) {
+          cOptions = BgUtils_.extendIf_({keyword: ""}, cOptions)
           openUrl(query.u, Urls.WorkType.Default, tabs)
         } else {
           openUrl(BgUtils_.convertToUrl_(url, keyword), Urls.WorkType.FakeType, tabs)
