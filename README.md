@@ -1,5 +1,5 @@
-<span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span>
-![Icon](icons/icon32.png) - All by Keyboard
+<p align="center">![Icon](icons/icon32.png)
+<span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span> - All by Keyboard</p>
 ===========================================
 
 [![Version](https://img.shields.io/github/v/release/gdh1995/vimium-c?color=critical&label=gdh1995%2Fvimium-c&logo=GitHub

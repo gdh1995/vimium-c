@@ -103,7 +103,6 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     modeName = VTr(kTip.OFFSET_VISUAL_MODE + newMode)
     di_ = isRange ? kDirTy.unknown : kDirTy.right
     mode_ = newMode
-    newMode !== mode ? hudTip(kTip.noUsableSel, 1000) : hudHide(!!options.r)
     alterMethod = toCaret ? "move" : kExtend
     toggleSelectableStyle(1)
     if (/* type === SelType.None */ !type && establishInitialSelectionAnchor(theSelected[1])) {
@@ -117,6 +116,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     }
     commandHandler(VisualAction.Noop, 1)
     pushHandler_(onKeydown, activate)
+    newMode !== mode ? hudTip(kTip.noUsableSel, 1000) : hudHide(!!options.r)
 }
 
   /** @safe_di */
