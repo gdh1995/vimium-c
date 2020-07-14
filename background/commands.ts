@@ -190,7 +190,7 @@ var Commands = {
         key = splitLine[1];
         if (splitLine.length < 3) {
           a.logError_("Lacking command name and options in shortcut:", line);
-        } else if (!key.startsWith(CommandsNS.OtherCNames.userCustomized)
+        } else if (!(key.startsWith(CommandsNS.OtherCNames.userCustomized) && key.length > 14)
             && (Settings_.CONST_.GlobalCommands_ as Array<keyof ShortcutInfoMap | string>).indexOf(key) < 0) {
           a.logError_(shortcutLogPrefix, colorRed, key, "is not a valid name");
         } else if (key in cmdMap) {

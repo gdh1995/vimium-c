@@ -196,8 +196,8 @@ var BgUtils_ = {
     else if (str.startsWith("chrome:")) {
       type = str.length < oldString.length && str.includes("/") ? Urls.Type.Search : Urls.Type.Full;
     } else if (Build.BTypes & BrowserType.Chrome && IsEdg_ && str.startsWith("read:")) {
-      // read://http_xn--6qq79v/?url=http%3A%2F%2Fxn--6qq79v%2FHostname%2520-%2520Wikipedia.html
-      type = !(<RegExpOne> /^read:\/\/([a-z]+)_([.\da-z\-]+)\/\?url=\1%3a%2f%2f\2(%2f|$)/).test(str)
+      // read://http_xn--6qq79v_8715/?url=http%3A%2F%2Fxn--6qq79v%3A8715%2Fhello%2520-%2520world.html
+      type = !(<RegExpOne> /^read:\/\/([a-z]+)_([.\da-z\-]+)(?:_(\d+))?\/\?url=\1%3a%2f%2f\2(%3a\3)?(%2f|$)/).test(str)
           || str.length < oldString.length ? Urls.Type.Search : Urls.Type.Full;
     } else {
       str = str.slice(index + 3, index2 >= 0 ? index2 : void 0);
@@ -794,11 +794,12 @@ var BgUtils_ = {
       }
       if (str2 && str2.indexOf("=") >= 1) {
         str = "[#&?]";
+        url = "([^#&]*)"
       } else {
         str2 = str;
         str = url[ind - 1] === "#" ? "#" : str2 ? "[#?]" : "\\?";
+        url = "([^#&?]*)"
       }
-      url = "([^#&?]*)";
     } else {
       str = "^([^#?]*)";
       if (str2 = url.slice(prefix.length + 2)) {
