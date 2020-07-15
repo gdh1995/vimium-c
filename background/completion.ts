@@ -817,11 +817,12 @@ tabEngine = {
     const curTabId = TabRecency_.curTab_, noFilter = queryTerms.length <= 0,
     hasOtherSuggestions = allExpectedTypes & (SugType.MultipleCandidates ^ SugType.tab),
     treeMode = !!(otherFlags & CompletersNS.QueryFlags.TabTree) && wantInCurrentWindow && noFilter && !isForAddressBar;
-    let suggestions: CompletersNS.TabSuggestion[] = [], treeMap: SafeDict<Tab> | undefined, matched: number;
-    if (treeMode && tabs0.length > offset) {
-      treeMap = BgUtils_.safeObj_<Tab>();
+    let suggestions: CompletersNS.TabSuggestion[] = [];
+    if (treeMode && !(otherFlags & CompletersNS.QueryFlags.TabTreeFromStart)
+        && tabs0.length > offset && tabs0.length > maxTotal) {
+      const treeMap: SafeDict<Tab> = BgUtils_.safeObj_<Tab>();
       for (const tab of tabs0) { treeMap[tab.id] = tab; }
-      if (tabs0.length > maxTotal) {
+      {
         let curTab = treeMap[curTabId], pId = curTab ? curTab.openerTabId : 0, pTab = pId ? treeMap[pId] : null,
         start = pTab ? pTab.index : curTab ? curTab.index - 1 : 0, i = pTab ? 0 : (maxTotal / 2) | 0;
         for (; 1 < --i && start > 0 && tabs0[start - 1].openerTabId === pId; start--) { /* empty */ }
@@ -839,7 +840,7 @@ tabEngine = {
         tabs.push(tab as TabEx);
       }
     }
-    matched = tabs.length;
+    const matched = tabs.length;
     matchedTotal += matched;
     if (!matched) {
       allExpectedTypes ^= SugType.tab;
@@ -889,9 +890,8 @@ tabEngine = {
       suggestions.push(suggestion);
     }
     suggestions.sort(Completers.rSortByRelevancy_);
-    let resultLength = suggestions.length;
-    if (hasOtherSuggestions
-        || resultLength > offset + maxResults || !noFilter) {
+    let resultLength = suggestions.length, exceed = offset + maxResults - resultLength;
+    if (hasOtherSuggestions || exceed < 0 || !noFilter) {
       if (offset > 0 && !hasOtherSuggestions) {
         suggestions = suggestions.slice(offset, offset + maxResults);
         resultLength = maxResults;
@@ -903,7 +903,11 @@ tabEngine = {
         suggestions[i].r *= 8 / (i / 4 + 1);
       }
     } else if (offset > 0) {
-      suggestions = suggestions.slice(offset).concat(suggestions.slice(0, maxResults + offset - resultLength));
+      const exceededArr = suggestions.slice(0, exceed);
+      for (let sug of exceededArr) {
+        sug.label += "[r]"
+      }
+      suggestions = suggestions.slice(offset).concat(exceededArr);
       resultLength = suggestions.length;
       for (let i = 0; i < resultLength; i++) {
         suggestions[i].r = resultLength - i;

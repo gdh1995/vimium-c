@@ -44,6 +44,7 @@ declare namespace CompletersNS {
     MonospaceURL = 16,
     NoTabEngine = 32,
     PreferBookmarks = 64,
+    TabTreeFromStart = 128,
   }
   interface Options {
     /** maxChars */ c?: number;
@@ -429,7 +430,7 @@ declare namespace VomnibarNS {
     noTabs?: boolean;
     icase?: boolean;
     searchInput?: boolean;
-    tree?: boolean; // show tabs in tree mode
+    tree?: boolean | "from-start"; // show tabs in tree mode
     incognito?: boolean | null | "reverse";
   }
 }

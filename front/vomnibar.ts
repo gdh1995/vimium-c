@@ -53,6 +53,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.mode_.t = CompletersNS.SugType.Empty;
     a.updateQueryFlag_(CompletersNS.QueryFlags.TabInCurrentWindow, !!options.currentWindow);
     a.updateQueryFlag_(CompletersNS.QueryFlags.PreferNewOpened, (options.preferTabs || "").includes("new"));
+    a.updateQueryFlag_(CompletersNS.QueryFlags.TabTreeFromStart, options.tree === "from-start");
     a.updateQueryFlag_(CompletersNS.QueryFlags.TabTree, !!options.tree);
     a.updateQueryFlag_(CompletersNS.QueryFlags.MonospaceURL, null);
     a.updateQueryFlag_(CompletersNS.QueryFlags.NoTabEngine, !!options.noTabs);
