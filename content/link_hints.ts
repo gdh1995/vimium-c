@@ -399,16 +399,16 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
     } else if (keybody > kChar.maxNotF_num && keybody < kChar.minNotF_num && key !== kChar.f1) { // exclude plain <f1>
       if (keybody > kChar.f1 && keybody !== kChar.f2) { ret = HandlerResult.Nothing }
       else if (keybody < kChar.f2) {
-        if (key[0] === "a" && useFilter_) {
+        if (key < "b" && useFilter_) {
           locateHint(activeHint_!).l(activeHint_!);
-        } else if (key[0] === "s") {
+        } else if (key > "s") {
           // `/^s-(f1|f0[a-z0-9]+)$/`
           /*#__NOINLINE__*/ addClassName(keybody)
         }
       } // the below mens f2, f0***
       else if (num1 = 1, key.includes("-s")) {
         fgCache.e = !fgCache.e;
-      } else if (key[0] === "a") {
+      } else if (key < "b") { // a-
         !(Build.BTypes & BrowserType.Chrome) ? num1 = 0 :
         wantDialogMode_ = !wantDialogMode_;
       } else if ("cm".includes(key[0])) {

@@ -154,8 +154,8 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
     }
     if (keybody_(key) === ENTER) {
       resetKeys()
-      if (key.includes("s-") && mode_ !== Mode.Caret) { retainSelection = true }
-      "cm".includes(key[0]) ? deactivate() : yank(key[0] === "a" ? 9 : 8)
+      if (key > "s" && mode_ !== Mode.Caret) { retainSelection = true }
+      "cm".includes(key[0]) ? deactivate() : yank(key < "b" ? 9 : 8)
       return HandlerResult.Prevent;
     }
     const count = currentCount, childAction = currentSeconds && currentSeconds[key],
@@ -165,7 +165,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
       currentCount = !newActions && key.length < 2 && +key < 10 ? currentSeconds ? +key : +key + count * 10 : 0
       currentSeconds = newActions || null
       return newActions ? HandlerResult.Prevent
-          : keybody.length > 1 || key !== keybody && key[0] !== "s"
+          : keybody.length > 1 || key !== keybody && key < "s"
           ? keybody < kChar.f1 || keybody > kChar.maxF_num ? HandlerResult.Suppress : HandlerResult.Nothing
           : HandlerResult.Prevent;
     }

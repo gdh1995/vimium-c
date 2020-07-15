@@ -373,7 +373,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
     key = getMappedKey(eventWrapper, kModeId.Find), keybody = keybody_(key);
     const i: Result | KeyStat = key.includes("a-") && event.altKey ? FindNS.Action.DoNothing
       : keybody === ENTER
-        ? key[0] === "s" ? FindNS.Action.PassDirectly
+        ? key > "s" ? FindNS.Action.PassDirectly
           : (query_ && post_({ H: kFgReq.findQuery, q: query0_ }), FindNS.Action.ExitToPostMode)
       : keybody !== DEL && keybody !== BSP
         ? isEscape_(key) ? FindNS.Action.ExitAndReFocus : FindNS.Action.DoNothing
@@ -479,7 +479,7 @@ export const deactivate = (i: FindNS.Action): void => {
       } else if (el) {
         // always call scrollIntoView if only possible, to keep a consistent behavior
         !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions
-          ? scrollIntoView_(el) : fixTabNav(el)
+          ? scrollIntoView_(el) : fixTabNav_cr_old(el)
       }
     }
     toggleSelectableStyle(0);
@@ -496,7 +496,7 @@ export const deactivate = (i: FindNS.Action): void => {
  * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/element.cc?q=ScrollIntoViewNoVisualUpdate&g=0&l=717
  * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/document.cc?q=SetSequentialFocusNavigationStartingPoint&g=0&l=4773
  */
-const fixTabNav = !(Build.BTypes & BrowserType.Chrome) // firefox seems to have "focused" it
+export const fixTabNav_cr_old = !(Build.BTypes & BrowserType.Chrome) // firefox seems to have "focused" it
         || Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions ? 0 as never
       : (el: Element): void => {
     let oldPos: MarksNS.ScrollInfo | 0 = chromeVer_ < BrowserVer.MinScrollIntoViewOptions
