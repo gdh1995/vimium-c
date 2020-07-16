@@ -30,7 +30,14 @@ interface SetTimeout {
   timeout: number, a1: T1, a2: T2): number;
   <T1>(this: void, handler: (this: void, a1: T1) => void, timeout: number, a1: T1): number;
 }
-
+declare namespace Intl {
+  interface RelativeTimeFormat {
+    format (num: number, unit: "year" | "quarter" | "month" | "week" | "day" | "hour" | "minute" | "second"): string
+  }
+  var RelativeTimeFormat: { new (lang: string, options: {
+    localeMatcher?: "best fit" | "lookup"; numeric?: "always" | "auto"; style?: "long" | "short" | "narrow"
+  }): RelativeTimeFormat } | undefined
+}
 interface ConfigurableItems {
   VomnibarMaxPageNum?: number;
 }
@@ -204,6 +211,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   styleEl_: null as HTMLStyleElement | null,
   darkBtn_: null as HTMLElement | null,
   wheelOptions_: { passive: false, capture: true } as const,
+  showTime_: 0 as 0 | /** abs */ 1 | /** relative */ 2,
   show_ (): void {
     const a = Vomnibar_;
     a.showing_ = true;
@@ -250,7 +258,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     VPort_.postToOwner_({ N: VomnibarNS.kFReq.hide });
     const a = Vomnibar_;
     a.timer_ = a.height_ = a.matchType_ = a.sugTypes_ = a.wheelStart_ = a.wheelTime_ = a.actionType_ =
-    a.total_ = a.lastKey_ = a.wheelDelta_ = 0;
+    a.total_ = a.lastKey_ = a.wheelDelta_ = a.showTime_ = 0;
     a.docZoom_ = 1;
     a.doesOpenInIncognito_ = a.completions_ = a.onUpdate_ = a.isHttps_ = a.baseHttps_ = null as never
     a.mode_.q = a.lastQuery_ = a.inputText_ = a.lastNormalInput_ = "";
@@ -980,6 +988,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       Vomnibar_.darkBtn_.classList.toggle("toggled", dark);
     }
     const monospaceURL = omniStyles.includes(" mono-url ");
+    Vomnibar_.showTime_ = omniStyles.includes(" time ") ? omniStyles.includes(" absolute-time ") ? 1 : 2 : 0
     // Note: should not use style[title], because "title" on style/link has special semantics
     // https://html.spec.whatwg.org/multipage/semantics.html#the-style-element
     for (const style of (document.querySelectorAll("style[id]") as {} as HTMLStyleElement[])) {
@@ -1383,6 +1392,7 @@ VUtils_ = {
     const parser = Build.BTypes & ~BrowserType.Firefox ? 0 as never : new DOMParser();
     return function (objectArray, element): void {
       let html = "", len = a.length - 1;
+      VUtils_.timeCache_ = null
       for (let index = 0; index < objectArray.length; index++) {
         let j = 0;
         for (; j < len; j += 2) {
@@ -1390,6 +1400,7 @@ VUtils_ = {
           const key = a[j + 1];
           html += key === "typeIcon" ? Vomnibar_.getTypeIcon_(objectArray[index])
               : key === "index" ? index + 1
+              : key === "time" ? Vomnibar_.showTime_ ? VUtils_.timeStr_(objectArray[index].visit) : ""
               : objectArray[index][key as keyof SuggestionE] || "";
         }
         html += a[len];
@@ -1453,6 +1464,49 @@ VUtils_ = {
       return s.replace(escapeRe, escapeCallback);
     };
     return VUtils_.escapeCSSUrlInAttr_(s0);
+  },
+  timeCache_: null as number | null,
+  timeStr_ (timestamp: number | undefined): string {
+    const cls = Intl.RelativeTimeFormat
+    const lang = (document.documentElement as HTMLHtmlElement).lang || navigator.language as string
+    const kJustNow = lang.startsWith("zh") ? "\u521a\u521a" : lang.startsWith("fr") ? "tout \u00e0 l'heure" : "just now"
+    let dateTimeFormatters: Intl.DateTimeFormat[] = []
+    let relativeFormatter: Intl.RelativeTimeFormat | undefined
+    const kUnits = ["second", "minute", "hour", "day", /** week */ "", "month", "year"] as const
+    dateTimeFormatters.length = 7
+    VUtils_.timeStr_ = (t: number | undefined): string => {
+      if (!t) { return "" }
+      // Chrome (including Edge C) 37 and 83 has a bug that the unit of Session.lastVisitTime is second
+      const negPos = parseInt((((this.timeCache_ || (this.timeCache_ = Date.now())) / 1000
+          - (t < /** as ms: 1979-07 */ 3e11 ? t : t / 1000))) as any as string)
+      let d = negPos < 0 ? -negPos : negPos
+// the range below is copied from `threshold` in momentjs:
+// https://github.com/moment/moment/blob/9d560507e54612cf2fdd84cbaa117337568a384c/src/lib/duration/humanize.js#L4-L12
+      const unit = d < 10 ? -1 : d < 45 ? 0 : (d /= 60) < 49.5 ? 1 : (d /= 60) < 22 ? 2
+          : (d /= 24) < 5 ? 3 : d < 26 ? 4 : d < 304 ? 5 : 6
+      let str: string
+      if (unit === -1) {
+        str = kJustNow
+      } else if (Vomnibar_.showTime_ < 2
+          || (Build.BTypes & ~BrowserType.ChromeOrFirefox
+              || Build.BTypes & BrowserType.Chrome  && Build.MinCVer  < BrowserVer.MinEnsured$Intl$$RelativeTimeFormat
+              || Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.Min$Intl$$RelativeTimeFormat
+              ) && !cls) {
+        let formatter = dateTimeFormatters[unit]
+        if (!formatter) {
+          formatter = dateTimeFormatters[unit] = new Intl.DateTimeFormat!(lang, {localeMatcher: "best fit"})
+        }
+        str = "// @todo:"
+      } else {
+        if (!relativeFormatter) {
+          relativeFormatter = new cls!(lang, {localeMatcher: "best fit", numeric: "auto", style: "long"})
+        }
+        str = relativeFormatter.format((Math.round((unit < 5 ? d : d / 365.25 + 0.25)) || 1
+            ) * (negPos > 0 ? -1 : 1), kUnits[unit === 4 ? 3 : unit])
+      }
+      return `<span class="time">${str}</span>`
+    }
+    return VUtils_.timeStr_(timestamp)
   },
   Stop_: function (event: Event & Partial<ToPrevent>, prevent: boolean | BOOL): void {
     prevent && event.preventDefault!();

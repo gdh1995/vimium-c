@@ -28,7 +28,8 @@ height:39px;line-height:39px;position:absolute;left:calc(50% - 20px);text-align:
 "Microsoft YaHei","Heiti SC","WenQuanYi Micro Hei",sans-serif;}
 .icon{background:right/16px no-repeat;fill:#999;fill:var(--c,#999);height:16px;margin:1.5px 4px 0 0;padding-right:20px;
 width:16px;vertical-align:top;}.tab,.math{stroke:#999;stroke:var(--c,#999);stroke-width:4;fill:none;}
-.no-favicon .icon{margin-right:-16px;background:none !important;}.label{color:#999;font-size:14px;font-weight:normal;}
+.no-favicon .icon{margin-right:-16px;background:none !important;}
+.label,span.time{color:#999;font-size:14px;font-weight:normal;}span.time{display:block;float:right;}
 .bottom{height:18px;line-height:14px;margin-left:20px;overflow:hidden;}
 a{color:#3b517d;cursor:text;font:14px/18px "Helvetica Neue",Helvetica,Arial,sans-serif;text-decoration:none;}
 .mono-url a{font-family:Consolas,"Liberation Mono","Courier New",monospace;}
@@ -78,7 +79,7 @@ body:after{content:"";}
 		<div class="top">
 			<svg class="icon{{level}}{{favIcon}}" viewBox="0 0 64 64">
 				<path class="{{typeIcon}}" />
-			</svg><span class="title">{{title}}</span>{{label}}
+			</svg><span class="title">{{title}}</span>{{label}}{{time}}
 		</div>
 		<div class="bottom">
 			<a>{{textSplit}}</a>

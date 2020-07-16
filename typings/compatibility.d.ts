@@ -442,6 +442,7 @@ declare const enum BrowserVer {
   // https://www.chromestatus.com/features/5650553247891456
   // https://docs.google.com/document/d/1CJgCg7Y31v5MbO14RDHyBAa5Sf0ZnPVtZMiOFCNbgWc/edit
   MinMaybeScrollEndAndOverScrollEvents = 74, // if EXPERIMENTAL
+  MinEnsured$Intl$$RelativeTimeFormat = 74, // even if LEGACY
   // the below 4 are even if EXPERIMENTAL or LEGACY
   MinMediaQuery$PrefersReducedMotion = 74,
   // https://chromium.googlesource.com/chromium/src/+/5e84b7a819637ed4dd8f9c4d11288127663c8267
@@ -483,6 +484,7 @@ declare const enum FirefoxBrowserVer {
   Min$Document$$FullscreenElement = 64, // under the control of `full-screen-api.unprefix.enabled` on about:config
   // Min$globalThis = 65, // should not export `globalThis` into the outside
   Min$find$NotReturnFakeTrueOnPlaceholderAndSoOn = 65,
+  Min$Intl$$RelativeTimeFormat = 65,
   MinMediaQuery$PrefersColorScheme = 67,
   // See https://bugzilla.mozilla.org/show_bug.cgi?id=1408996 and https://bugzilla.mozilla.org/show_bug.cgi?id=1514050
   MinExpandoObjectForSandboxWindowWrapperNotGetLost = 67, // https://github.com/philc/vimium/issues/2675
