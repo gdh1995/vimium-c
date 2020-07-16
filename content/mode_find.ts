@@ -13,7 +13,7 @@ import {
 } from "../lib/dom_utils"
 import { wdZoom_, prepareCrop_, view_, dimSize_ } from "../lib/rect"
 import {
-  ui_box, ui_root, getSelectionParent_unsafe, resetSelectionToDocStart, getBoxTagName_cr_,
+  ui_box, ui_root, getSelectionParent_unsafe, resetSelectionToDocStart, getBoxTagName_cr_, collpaseSelection,
   createStyle, getSelectionText, checkDocSelectable, adjustUI, ensureBorder, addUIElement, getSelected,
 } from "./dom_ui"
 import { visual_mode, highlightRange, kDir, activate as visualActivate, kExtend } from "./visual"
@@ -347,7 +347,7 @@ const onMousedown = function (this: Window | HTMLElement, event: MouseEventToPre
   if (isAlive_ && target !== input_ && (!root_ || target.parentNode === this || target === this)
         && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
             ? event.isTrusted : event.isTrusted !== false)) {
-      prevent_(event);
+    prevent_(event)
     doFocus()
     const text = input_.firstChild as Text
     text && innerDoc_.getSelection().collapse(text, target !== input_.previousSibling ? text.data.length : 0)
@@ -527,7 +527,7 @@ const nextQuery = (back?: boolean): void => {
     send_(kFgReq.findQuery, { i: ind }, setQuery)
   } else {
     execCommand("undo")
-    innerDoc_.getSelection().collapseToEnd()
+    collpaseSelection(innerDoc_.getSelection(), VisualModeNS.kDir.right)
   }
 }
 
@@ -815,7 +815,7 @@ const getCurrentRange = (): void => {
     } else {
       range = sel.getRangeAt(0);
       // Note: `range.collapse` doesn't work if selection is inside a ShadowRoot (tested on C72 stable)
-      sel.collapseToStart();
+      collpaseSelection(sel)
     }
     range.collapse(true);
     initialRange = range;

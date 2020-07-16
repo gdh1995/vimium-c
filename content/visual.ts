@@ -37,7 +37,7 @@ import {
 import {
   padClientRect_, getSelectionBoundingBox_, getZoom_, prepareCrop_, cropRectToVisible_, getVisibleClientRect_, set_scrollingTop,
 } from "../lib/rect"
-import { checkDocSelectable, getSelected, resetSelectionToDocStart, flash_ } from "./dom_ui"
+import { checkDocSelectable, getSelected, resetSelectionToDocStart, flash_, collpaseSelection } from "./dom_ui"
 import { prepareTop, executeScroll, scrollIntoView_need_safe } from "./scroller"
 import {
   toggleSelectableStyle, find_query, executeFind, find_hasResults, updateQuery as findUpdateQuery, findCSS, set_findCSS,
@@ -661,7 +661,7 @@ const collapseToRight = (/** to-right if text is left-to-right */ toRight: Forwa
       sameEnd && extend(toRight)
       fixSelAll && ("" + sel).length !== fixSelAll && extend(1 - toRight)
     }
-    toRight ? sel.collapseToEnd() : sel.collapseToStart();
+    collpaseSelection(sel, toRight)
     di_ = kDirTy.right
 }
 
