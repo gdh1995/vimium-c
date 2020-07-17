@@ -31,6 +31,9 @@ interface SetTimeout {
   <T1>(this: void, handler: (this: void, a1: T1) => void, timeout: number, a1: T1): number;
 }
 declare namespace Intl {
+  interface DateTimeFormat {
+    formatToParts? (date?: Date | number): Array<{ type: string, value: string }>;
+  }
   interface RelativeTimeFormat {
     format (num: number, unit: "year" | "quarter" | "month" | "week" | "day" | "hour" | "minute" | "second"): string
   }
@@ -258,7 +261,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     VPort_.postToOwner_({ N: VomnibarNS.kFReq.hide });
     const a = Vomnibar_;
     a.timer_ = a.height_ = a.matchType_ = a.sugTypes_ = a.wheelStart_ = a.wheelTime_ = a.actionType_ =
-    a.total_ = a.lastKey_ = a.wheelDelta_ = a.showTime_ = 0;
+    a.total_ = a.lastKey_ = a.wheelDelta_ = a.showTime_ = VUtils_.timeCache_ = 0;
     a.docZoom_ = 1;
     a.doesOpenInIncognito_ = a.completions_ = a.onUpdate_ = a.isHttps_ = a.baseHttps_ = null as never
     a.mode_.q = a.lastQuery_ = a.inputText_ = a.lastNormalInput_ = "";
@@ -1392,7 +1395,7 @@ VUtils_ = {
     const parser = Build.BTypes & ~BrowserType.Firefox ? 0 as never : new DOMParser();
     return function (objectArray, element): void {
       let html = "", len = a.length - 1;
-      VUtils_.timeCache_ = null
+      VUtils_.timeCache_ = 0
       for (let index = 0; index < objectArray.length; index++) {
         let j = 0;
         for (; j < len; j += 2) {
@@ -1465,26 +1468,25 @@ VUtils_ = {
     };
     return VUtils_.escapeCSSUrlInAttr_(s0);
   },
-  timeCache_: null as number | null,
+  timeCache_: 0,
   timeStr_ (timestamp: number | undefined): string {
     const cls = Intl.RelativeTimeFormat
     const lang = (document.documentElement as HTMLHtmlElement).lang || navigator.language as string
     const kJustNow = lang.startsWith("zh") ? "\u521a\u521a" : lang.startsWith("fr") ? "tout \u00e0 l'heure" : "just now"
-    let dateTimeFormatters: Intl.DateTimeFormat[] = []
+    let dateTimeFormatter: Intl.DateTimeFormat | undefined | 1
     let relativeFormatter: Intl.RelativeTimeFormat | undefined
     const kUnits = ["second", "minute", "hour", "day", /** week */ "", "month", "year"] as const
-    dateTimeFormatters.length = 7
     VUtils_.timeStr_ = (t: number | undefined): string => {
       if (!t) { return "" }
+      t = t < /** as ms: 1979-07 */ 3e11 ? t * 1000 : t
       // Chrome (including Edge C) 37 and 83 has a bug that the unit of Session.lastVisitTime is second
-      const negPos = parseInt((((this.timeCache_ || (this.timeCache_ = Date.now())) / 1000
-          - (t < /** as ms: 1979-07 */ 3e11 ? t : t / 1000))) as any as string)
-      let d = negPos < 0 ? -negPos : negPos
+      const negPos = parseInt((((this.timeCache_ || (this.timeCache_ = Date.now())) - t) / 1000) as any as string)
+      let d = negPos < 0 ? -negPos : negPos, tzOffset: number | undefined
 // the range below is copied from `threshold` in momentjs:
 // https://github.com/moment/moment/blob/9d560507e54612cf2fdd84cbaa117337568a384c/src/lib/duration/humanize.js#L4-L12
       const unit = d < 10 ? -1 : d < 45 ? 0 : (d /= 60) < 49.5 ? 1 : (d /= 60) < 22 ? 2
           : (d /= 24) < 5 ? 3 : d < 26 ? 4 : d < 304 ? 5 : 6
-      let str: string
+      let str: string = ""
       if (unit === -1) {
         str = kJustNow
       } else if (Vomnibar_.showTime_ < 2
@@ -1492,14 +1494,32 @@ VUtils_ = {
               || Build.BTypes & BrowserType.Chrome  && Build.MinCVer  < BrowserVer.MinEnsured$Intl$$RelativeTimeFormat
               || Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.Min$Intl$$RelativeTimeFormat
               ) && !cls) {
-        let formatter = dateTimeFormatters[unit]
-        if (!formatter) {
-          formatter = dateTimeFormatters[unit] = new Intl.DateTimeFormat!(lang, {localeMatcher: "best fit"})
+        if (!dateTimeFormatter) {
+          dateTimeFormatter = new Intl.DateTimeFormat(lang.startsWith("zh") ? "zh-CN" : "en", {
+            localeMatcher: "best fit",
+            year: "numeric", month: "short", weekday: "long", day: "numeric", hour: "numeric", minute: "2-digit"
+          })
+          if (Build.BTypes & ~BrowserType.Firefox
+              && Build.MinCVer < BrowserVer.MinEnsured$Intl$$DateTimeFormat$$$formatToParts) {
+            dateTimeFormatter = dateTimeFormatter.formatToParts ? dateTimeFormatter
+                : (tzOffset = new Date().getTimezoneOffset() * 1000 * 60, 1 )
+          }
         }
-        str = "// @todo:"
+        if (Build.BTypes & ~BrowserType.Firefox
+            && Build.MinCVer < BrowserVer.MinEnsured$Intl$$DateTimeFormat$$$formatToParts && dateTimeFormatter === 1
+            || 1) {
+          str = new Date(t - (tzOffset! || new Date().getTimezoneOffset() * 1000 * 60)).toJSON().slice(0, 19).replace("T", " ")
+          if (negPos > 0) {
+            // unit == 6 ? [0, 7] : unit >= 4 ? [5, 10] : unit == 3 ? [5, 16] : unit >= 1 ? [11, 16] : [11, 19]
+            str = str.slice(unit > 5 ? 0 : unit > 2 ? 5 : 11, unit > 5 ? 7 : unit > 3 ? 10 : unit ? 16 : 19)
+          }
+        } else {
+
+        }
       } else {
         if (!relativeFormatter) {
-          relativeFormatter = new cls!(lang, {localeMatcher: "best fit", numeric: "auto", style: "long"})
+          relativeFormatter = new cls!(lang.startsWith("zh") ? "zh-CN" : lang
+              , {localeMatcher: "best fit", numeric: "auto", style: "long"})
         }
         str = relativeFormatter.format((Math.round((unit < 5 ? d : d / 365.25 + 0.25)) || 1
             ) * (negPos > 0 ? -1 : 1), kUnits[unit === 4 ? 3 : unit])

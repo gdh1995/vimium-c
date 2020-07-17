@@ -311,6 +311,7 @@ declare const enum BrowserVer {
   MinNoBorderForBrokenImage = 60,
   MinNoSelectionColorOnTextBoxWhenFindModeHUDIsFocused = 60,
   MinEnsuredInputEventIsNotOnlyInShadowDOMV1 = 60, // even if LEGACY; in ShadowDOMV0, "input" will also work on window
+  MinEnsured$Intl$$DateTimeFormat$$$formatToParts = 60, // even if LEGACY; since C57 in neither EXPERIMENTAL nor LEGACY
   MinTabsCreateRefuseOpenerTabIdIfNotOnCurrentWindow = 61,
   MinRoundedBorderWidthIsNotEnsured = 61, // a border is only showing if `(real_width = width * ratio * zoom) >= 0.5`
   // a bug that special style.zoom may not work is fixed since MinASameZoomOfDocElAsdevPixRatioWorksAgain
