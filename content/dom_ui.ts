@@ -334,7 +334,9 @@ export const getSelectionText = (notTrim?: 1): string => {
 export const removeSelection = function (root?: VUIRoot & Pick<DocumentOrShadowRoot, "getSelection">): boolean {
     const sel = (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
         ? root : root && root.getSelection) ? root!.getSelection!() : getSelection_()
-    return !!(sel && sel.type === "Range" && sel.anchorNode)
+    const ret = sel && sel.type === "Range" && sel.anchorNode
+    ret && collpaseSelection(sel!)
+    return !!ret
 } as (root?: VUIRoot) => boolean
 
 export const resetSelectionToDocStart = (sel?: Selection): void => {
