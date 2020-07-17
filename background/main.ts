@@ -43,7 +43,7 @@
     [kBgCmd.toggleCS]: UseTab.ActiveTab;
     [kBgCmd.searchInAnother]: UseTab.ActiveTab;
     [kBgCmd.reopenTab]: UseTab.ActiveTab;
-    [kBgCmd.toggleViewSource]: UseTab.ActiveTab;
+    [kBgCmd.toggleTabUrl]: UseTab.ActiveTab;
     [kBgCmd.toggleVomnibarStyle]: UseTab.ActiveTab;
     [kBgCmd.goBackFallback]: UseTab.ActiveTab;
   }
@@ -2049,7 +2049,7 @@
       FindModeHistory_.removeAll_(incognito);
       return Backend_.showHUD_(trans_("fhCleared", [incognito ? trans_("incog") : ""]));
     },
-    /* kBgCmd.toggleViewSource: */ function (this: void, tabs: [Tab]): void {
+    /* kBgCmd.toggleTabUrl: */ function (this: void, tabs: [Tab]): void {
       let tab = tabs[0], url = getTabUrl(tab);
       const reader = cOptions.reader, keyword = cOptions.keyword
       if (url.startsWith(BrowserProtocol_)) {

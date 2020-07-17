@@ -675,10 +675,10 @@ declare namespace CommandsNS {
     [kCName.toggleLinkHintCharacters]: kBgCmd.toggle;
     [kCName.toggleMuteTab]: kBgCmd.toggleMuteTab;
     [kCName.togglePinTab]: kBgCmd.togglePinTab;
-    [kCName.toggleReaderMode]: kBgCmd.toggleViewSource;
+    [kCName.toggleReaderMode]: kBgCmd.toggleTabUrl;
     [kCName.toggleStyle]: kFgCmd.toggleStyle;
     [kCName.toggleSwitchTemp]: kBgCmd.toggle;
-    [kCName.toggleViewSource]: kBgCmd.toggleViewSource;
+    [kCName.toggleViewSource]: kBgCmd.toggleTabUrl;
     [kCName.toggleVomnibarStyle]: kBgCmd.toggleVomnibarStyle;
     [kCName.showTip]: kBgCmd.showTip;
     [kCName.visitPreviousTab]: kBgCmd.visitPreviousTab;
