@@ -214,7 +214,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   styleEl_: null as HTMLStyleElement | null,
   darkBtn_: null as HTMLElement | null,
   wheelOptions_: { passive: false, capture: true } as const,
-  showTime_: 0 as 0 | /** abs */ 1 | /** relative */ 2,
+  showTime_: 0 as 0 | /** abs-num */ 1 | /** abs */ 2 | /** relative */ 3,
   show_ (): void {
     const a = Vomnibar_;
     a.showing_ = true;
@@ -261,7 +261,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     VPort_.postToOwner_({ N: VomnibarNS.kFReq.hide });
     const a = Vomnibar_;
     a.timer_ = a.height_ = a.matchType_ = a.sugTypes_ = a.wheelStart_ = a.wheelTime_ = a.actionType_ =
-    a.total_ = a.lastKey_ = a.wheelDelta_ = a.showTime_ = VUtils_.timeCache_ = 0;
+    a.total_ = a.lastKey_ = a.wheelDelta_ = VUtils_.timeCache_ = 0;
     a.docZoom_ = 1;
     a.doesOpenInIncognito_ = a.completions_ = a.onUpdate_ = a.isHttps_ = a.baseHttps_ = null as never
     a.mode_.q = a.lastQuery_ = a.inputText_ = a.lastNormalInput_ = "";
@@ -991,7 +991,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       Vomnibar_.darkBtn_.classList.toggle("toggled", dark);
     }
     const monospaceURL = omniStyles.includes(" mono-url ");
-    Vomnibar_.showTime_ = omniStyles.includes(" time ") ? omniStyles.includes(" absolute-time ") ? 1 : 2 : 0
+    Vomnibar_.showTime_ = !omniStyles.includes(" time ") ? 0 : omniStyles.includes(" absolute-num-time ") ? 1
+        : omniStyles.includes(" absolute-time ") ? 2 : 3
     // Note: should not use style[title], because "title" on style/link has special semantics
     // https://html.spec.whatwg.org/multipage/semantics.html#the-style-element
     for (const style of (document.querySelectorAll("style[id]") as {} as HTMLStyleElement[])) {
@@ -1475,46 +1476,71 @@ VUtils_ = {
     const kJustNow = lang.startsWith("zh") ? "\u521a\u521a" : lang.startsWith("fr") ? "tout \u00e0 l'heure" : "just now"
     let dateTimeFormatter: Intl.DateTimeFormat | undefined | 1
     let relativeFormatter: Intl.RelativeTimeFormat | undefined
+    let tzOffset = 0
     const kUnits = ["second", "minute", "hour", "day", /** week */ "", "month", "year"] as const
     VUtils_.timeStr_ = (t: number | undefined): string => {
       if (!t) { return "" }
-      t = t < /** as ms: 1979-07 */ 3e11 ? t * 1000 : t
+      if (!this.timeCache_) {
+        const now = new Date()
+        this.timeCache_ = +now
+        tzOffset = now.getTimezoneOffset() * 1000 * 60
+      }
       // Chrome (including Edge C) 37 and 83 has a bug that the unit of Session.lastVisitTime is second
-      const negPos = parseInt((((this.timeCache_ || (this.timeCache_ = Date.now())) - t) / 1000) as any as string)
-      let d = negPos < 0 ? -negPos : negPos, tzOffset: number | undefined
+      const negPos = parseInt(((this.timeCache_ - t) / 1000) as any as string)
+      let d = negPos < 0 ? -negPos : negPos
 // the range below is copied from `threshold` in momentjs:
 // https://github.com/moment/moment/blob/9d560507e54612cf2fdd84cbaa117337568a384c/src/lib/duration/humanize.js#L4-L12
       const unit = d < 10 ? -1 : d < 45 ? 0 : (d /= 60) < 49.5 ? 1 : (d /= 60) < 22 ? 2
           : (d /= 24) < 5 ? 3 : d < 26 ? 4 : d < 304 ? 5 : 6
-      let str: string = ""
+      let stdDateTime = new Date(t - tzOffset).toJSON().slice(0, 19).replace("T", " ")
+      let str: string
       if (unit === -1) {
         str = kJustNow
-      } else if (Vomnibar_.showTime_ < 2
+      } else if (Vomnibar_.showTime_ < 3
           || (Build.BTypes & ~BrowserType.ChromeOrFirefox
               || Build.BTypes & BrowserType.Chrome  && Build.MinCVer  < BrowserVer.MinEnsured$Intl$$RelativeTimeFormat
               || Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.Min$Intl$$RelativeTimeFormat
               ) && !cls) {
-        if (!dateTimeFormatter) {
+        if (!dateTimeFormatter && Vomnibar_.showTime_ > 1) {
           dateTimeFormatter = new Intl.DateTimeFormat(lang.startsWith("zh") ? "zh-CN" : "en", {
-            localeMatcher: "best fit",
+            localeMatcher: "best fit", second: "2-digit",
             year: "numeric", month: "short", weekday: "long", day: "numeric", hour: "numeric", minute: "2-digit"
           })
           if (Build.BTypes & ~BrowserType.Firefox
               && Build.MinCVer < BrowserVer.MinEnsured$Intl$$DateTimeFormat$$$formatToParts) {
-            dateTimeFormatter = dateTimeFormatter.formatToParts ? dateTimeFormatter
-                : (tzOffset = new Date().getTimezoneOffset() * 1000 * 60, 1 )
+            dateTimeFormatter = dateTimeFormatter.formatToParts ? dateTimeFormatter : 1
           }
         }
         if (Build.BTypes & ~BrowserType.Firefox
             && Build.MinCVer < BrowserVer.MinEnsured$Intl$$DateTimeFormat$$$formatToParts && dateTimeFormatter === 1
-            || 1) {
-          str = new Date(t - (tzOffset! || new Date().getTimezoneOffset() * 1000 * 60)).toJSON().slice(0, 19).replace("T", " ")
+            || Vomnibar_.showTime_ < 2) {
+          str = stdDateTime
           if (negPos > 0) {
-            // unit == 6 ? [0, 7] : unit >= 4 ? [5, 10] : unit == 3 ? [5, 16] : unit >= 1 ? [11, 16] : [11, 19]
-            str = str.slice(unit > 5 ? 0 : unit > 2 ? 5 : 11, unit > 5 ? 7 : unit > 3 ? 10 : unit ? 16 : 19)
+            // unit == 6 ? [0, 7] : unit >= 4 ? [5, 10] : unit == 3 ? [8, 16] : unit >= 1 ? [11, 16] : [11, 19]
+            str = unit > 3 ? (unit > 5 ? str.slice(0, 7) : str.slice(str[5] === "0" ? 6 : 5, 10)).replace("-", " / ")
+                : str.slice(unit > 2 ? str[8] === "0" ? 9 : 8 : 11, unit ? 16 : 19)
+          } else {
+            stdDateTime = ""
           }
         } else {
-
+          str = ""
+          const arr = (dateTimeFormatter as Intl.DateTimeFormat).formatToParts!(t)
+          for (let i = 0, isLastOutLiteral = true; i < arr.length; i++) {
+            const type = arr[i].type
+            const skip = type === "year" ? unit < 6 : type === "month" ? unit < 4
+                : type === "day" ? unit < 3 || unit > 5 : type === "weekday" ? unit < 3 || unit > 4
+                : type === "dayPeriod" || Build.BTypes & BrowserType.Chrome
+                  && Build.MinCVer < BrowserVer.Min$Intl$$DateTimeFormat$$$formatToParts$Use$dayPeriod
+                  && type === "dayperiod" ? unit > 3
+                : type === "hour" || type === "minute" ? unit > 3 : type === "second" ? unit > 0 : type !== "literal"
+            if (skip) {
+              i += isLastOutLiteral && i + 1 < arr.length && arr[i + 1].type === "literal" ? 1 : 0
+            } else {
+              isLastOutLiteral = type === "literal"
+              str += arr[i].value
+            }
+          }
+          str = str.trim().replace(<RegExpOne> /[,.: -]+$/, "")
         }
       } else {
         if (!relativeFormatter) {
@@ -1524,7 +1550,7 @@ VUtils_ = {
         str = relativeFormatter.format((Math.round((unit < 5 ? d : d / 365.25 + 0.25)) || 1
             ) * (negPos > 0 ? -1 : 1), kUnits[unit === 4 ? 3 : unit])
       }
-      return `<span class="time">${str}</span>`
+      return `<span class="time" title="${stdDateTime}">${str}</span>`
     }
     return VUtils_.timeStr_(timestamp)
   },

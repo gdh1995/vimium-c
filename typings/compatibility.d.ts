@@ -404,6 +404,7 @@ declare const enum BrowserVer {
   MinIframeInRestoredSessionTabHasPreviousTopFrameContentSettings = 70, // even if EXPERIMENTAL or LEGACY
   // test: https://mathiasbynens.be/demo/sort-stability
   MinStableSort = 70, // even if EXPERIMENTAL or LEGACY
+  Min$Intl$$DateTimeFormat$$$formatToParts$Use$dayPeriod = 70, // even if EXPERIMENTAL or LEGACY
   // means unprefixed properties and event name
   MinEnsured$Document$$fullscreenElement = 71, // even if LEGACY; MinMaybe$Document$$fullscreenElement=61
   Min$Tabs$$Update$DoesNotAcceptJavaScriptURLs = 71,

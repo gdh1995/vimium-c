@@ -636,16 +636,19 @@ historyEngine = {
     return sessions.some(function (item): boolean {
       const entry = item.tab as chrome.sessions.Session["tab"] & BrowserUrlItem
       if (!entry) { return false; }
-      let url = entry.url;
+      let url = entry.url, key: string, t: number;
       if (url.length > GlobalConsts.MaxHistoryURLLength) {
         entry.url = url = HistoryCache.trimURLAndTitleWhenTooLong_(url, entry);
       }
       if (!showThoseInBlocklist && !BlockListFilter.TestNotMatched_(url, entry.title)) { return false; }
-      const key = url + "\n" + entry.title;
+      key = url + "\n" + entry.title;
       if (key in arr) { return false; }
       arr[key] = 1; arr[url] = 1;
       ++i > 0 && historyArr.push({
-        url_: entry.url, title_: entry.title, visit_: item.lastModified, sessionId_: entry.sessionId
+        url_: entry.url, title_: entry.title,
+        visit_: !(Build.BTypes & ~BrowserType.Firefox) ? item.lastModified
+            : (t = item.lastModified, t < /* as ms: 1979-07 */ 3e11 && t > /* as ms: 1968-09 */ -4e10 ? t * 1000 : t),
+        sessionId_: entry.sessionId
       });
       return historyArr.length >= maxResults;
     }) ? historyEngine.filterFinish_(historyArr) : historyEngine.filterFill_(historyArr, query, arr, -i, 0);
@@ -662,21 +665,19 @@ historyEngine = {
         if (url.length > GlobalConsts.MaxHistoryURLLength) {
           i.url = url = HistoryCache.trimURLAndTitleWhenTooLong_(url, i);
         }
-        return !(url in this);
+        return !(url in this)
+            && (showThoseInBlocklist || BlockListFilter.TestNotMatched_(i.url, i.title || "") !== kVisibility.hidden)
       }, arr);
-      if (!showThoseInBlocklist) {
-        rawArr2 = rawArr2.filter(function (entry): boolean | BOOL {
-          return BlockListFilter.TestNotMatched_(entry.url, entry.title || "");
-        });
+      if (cut < 0) {
+        rawArr2.length = Math.min(rawArr2.length, maxResults - historyArr.length)
+      } else if (cut > 0) {
+        rawArr2 = rawArr2.slice(cut, cut + maxResults)
       }
       let historyArr2 = rawArr2.map((i): BrowserUrlItem => ({
           url_: i.url, title_: i.title, visit_: i.lastVisitTime, sessionId_: null
       }))
       if (cut < 0) {
-        historyArr2.length = Math.min(historyArr2.length, maxResults - historyArr.length);
         historyArr2 = historyArr.concat(historyArr2);
-      } else if (cut > 0) {
-        historyArr2 = historyArr2.slice(cut, cut + maxResults);
       }
       historyEngine.filterFinish_(historyArr2);
     });
@@ -840,6 +841,9 @@ tabEngine = {
         tabs.push(tab as TabEx);
       }
     }
+    if (hasOtherSuggestions && tabs.length === 1 && tabs[0].id === TabRecency_.curTab_) {
+      tabs.length = 0 // here `hasOtherSuggestions` is enough
+    }
     const matched = tabs.length;
     matchedTotal += matched;
     if (!matched) {
@@ -849,6 +853,7 @@ tabEngine = {
       offset = 0;
       return Completers.next_(suggestions, SugType.tab);
     }
+
     wndIds.sort(tabEngine.SortNumbers_);
     const c = noFilter ? treeMode ? tabEngine.computeIndex_ : tabEngine.computeRecency_ : ComputeWordRelevancy,
     treeLevels: SafeDict<number> = treeMode ? BgUtils_.safeObj_() : null as never,
