@@ -1473,7 +1473,8 @@ VUtils_ = {
   timeStr_ (timestamp: number | undefined): string {
     const cls = Intl.RelativeTimeFormat
     const lang = (document.documentElement as HTMLHtmlElement).lang || navigator.language as string
-    const kJustNow = lang.startsWith("zh") ? "\u521a\u521a" : lang.startsWith("fr") ? "tout \u00e0 l'heure" : "just now"
+    const isZh = lang.startsWith("zh"), destLang = isZh ? "zh-CN" : lang
+    const kJustNow = isZh ? "\u521a\u521a" : lang.startsWith("fr") ? "tout \u00e0 l'heure" : "just now"
     let dateTimeFormatter: Intl.DateTimeFormat | undefined | 1
     let relativeFormatter: Intl.RelativeTimeFormat | undefined
     let tzOffset = 0
@@ -1502,7 +1503,7 @@ VUtils_ = {
               || Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.Min$Intl$$RelativeTimeFormat
               ) && !cls) {
         if (!dateTimeFormatter && Vomnibar_.showTime_ > 1) {
-          dateTimeFormatter = new Intl.DateTimeFormat(lang.startsWith("zh") ? "zh-CN" : "en", {
+          dateTimeFormatter = new Intl.DateTimeFormat(destLang, {
             localeMatcher: "best fit", second: "2-digit",
             year: "numeric", month: "short", weekday: "long", day: "numeric", hour: "numeric", minute: "2-digit"
           })
@@ -1536,16 +1537,20 @@ VUtils_ = {
             if (skip) {
               i += isLastOutLiteral && i + 1 < arr.length && arr[i + 1].type === "literal" ? 1 : 0
             } else {
+              const old = isLastOutLiteral, newVal = arr[i].value
               isLastOutLiteral = type === "literal"
-              str += arr[i].value
+              !isLastOutLiteral && (type === "weekday" || type[0] === "d" && type[4] === "e") && str &&
+              (<RegExpOne> /[.:-]/).test(str[str.length - 1]) && (str = str.slice(0, -1) + " ");
+              (!old || isZh && (newVal[0] === "\u661f" || newVal[0] === "\u5468")) && !isLastOutLiteral && str &&
+              (<RegExpOne> /[^\x00-\x7f]/).test(str[str.length - 1]) && (str += " ")
+              str += newVal
             }
           }
           str = str.trim().replace(<RegExpOne> /[,.: -]+$/, "")
         }
       } else {
         if (!relativeFormatter) {
-          relativeFormatter = new cls!(lang.startsWith("zh") ? "zh-CN" : lang
-              , {localeMatcher: "best fit", numeric: "auto", style: "long"})
+          relativeFormatter = new cls!(destLang, {localeMatcher: "best fit", numeric: "auto", style: "long"})
         }
         str = relativeFormatter.format((Math.round((unit < 5 ? d : d / 365.25 + 0.25)) || 1
             ) * (negPos > 0 ? -1 : 1), kUnits[unit === 4 ? 3 : unit])
