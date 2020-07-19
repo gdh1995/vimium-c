@@ -4,6 +4,7 @@
   "description": "A keyboard shortcut tool for keyboard-based page navigation and browser tab operations with an advanced omnibar and global shortcuts",
   "private": true,
   "dependencies": {
+    "lodash": "^4.17.19",
     "pngjs": "^5.0.0",
     "typescript": ">=3.9.0"
   },
