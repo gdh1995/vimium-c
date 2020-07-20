@@ -596,7 +596,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     smoothScroll: true,
     vomnibarOptions: {
       maxMatches: 10,
-      queryInterval: 500,
+      queryInterval: 333,
       sizes: VomnibarNS.PixelData.OthersIfEmpty + ","
           + (VomnibarNS.PixelData.OthersIfNotEmpty - VomnibarNS.PixelData.OthersIfEmpty) + ","
           + VomnibarNS.PixelData.Item
