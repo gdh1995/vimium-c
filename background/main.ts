@@ -1827,7 +1827,7 @@
       }
       let url_f = BgUtils_.createSearchUrl_(query.u.split(" "), keyword, Urls.WorkType.ActAnyway);
       cOptions = BgUtils_.safer_({
-        reuse: cOptions.reuse,
+        reuse: cOptions.reuse == null ? ReuseType.current : cOptions.reuse,
         opener: true,
         url_f
       });
