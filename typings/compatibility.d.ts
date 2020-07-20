@@ -333,6 +333,7 @@ declare const enum BrowserVer {
   MinEnsured$ScrollingElement$CannotBeFrameset = 61,
   MinScrollTopLeftInteropIsAlwaysEnabled = 61,
   MinMaybe$Document$$fullscreenElement = 61, // if EXPERIMENTAL
+  Min$performance$$timeOrigin = 62, // even if EXPERIMENTAL or LEGACY
   MinCSS$Color$$RRGGBBAA = 62,
   Min$NotSecure$LabelsForSomeHttpPages = 62, // https://developers.google.com/web/updates/2017/10/nic62#https
   // there's a bug of C62/63 even if EXPERIMENTAL or LEGACY:

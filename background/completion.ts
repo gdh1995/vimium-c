@@ -1,6 +1,10 @@
 import MatchType = CompletersNS.MatchType;
 import SugType = CompletersNS.SugType;
 
+interface Performance extends EventTarget {
+  timeOrigin?: number;
+}
+
 BgUtils_.timeout_(200, function (): void {
 type Domain = CompletersNS.Domain;
 
@@ -145,6 +149,7 @@ const Suggestion: SuggestionConstructor = function (
   this.t = text;
   this.title = title;
   (this as Suggestion).r = computeRelevancy(this, extraData);
+  this.visit = 0
 } as any;
 
 function prepareHtml(sug: Suggestion): void {
@@ -365,6 +370,8 @@ bookmarkEngine = {
         score = score < fakeTimeScore ? score : (score + fakeTimeScore) / 2;
       }
       const sug = new Suggestion("bookm", i.url_, i.text_, isPath ? i.path_ : i.title_, get2ndArg, -score);
+      const historyIdx = otherFlags & CompletersNS.QueryFlags.ShowTime ? HistoryCache.binarySearch_(i.url_) : -1
+      sug.visit = historyIdx < 0 ? 0 : HistoryCache.history_![historyIdx].time_
       results2.push(sug);
       if (i.jsUrl_ === null) { continue; }
       (sug as CompletersNS.WritableCoreSuggestion).u = (i as JSBookmark).jsUrl_;
@@ -762,9 +769,9 @@ domainEngine = {
             get2ndArg, 2);
         const ind = HistoryCache.sorted_ ? HistoryCache.binarySearch_(url) : -1,
         item = ind > 0 ? HistoryCache.history_![ind] : null;
-        item ? sug.visit = item.time_ : 0
         prepareHtml(sug);
         if (item && (showThoseInBlocklist || item.visible_)) {
+          sug.visit = item.time_
           sug.title = Build.BTypes & BrowserType.Firefox
               && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
               ? item.title_ : BgUtils_.escapeText_(item.title_);
@@ -866,6 +873,10 @@ tabEngine = {
             ? pLevel < GlobalConsts.MaxTabTreeIndent ? pLevel + 1 : GlobalConsts.MaxTabTreeIndent : 1;
       }
     }
+    const timeOffset = !(otherFlags & CompletersNS.QueryFlags.ShowTime) ? 0 : TabRecency_.isLinux_ ? 0
+        : Build.MinCVer < BrowserVer.Min$performance$$timeOrigin && Build.BTypes & BrowserType.Chrome
+          && CurCVer_ < BrowserVer.Min$performance$$timeOrigin
+        ? Date.now() - performance.now() : performance.timeOrigin!
     for (const tab of tabs) {
       const tabId = tab.id, level = treeMode ? treeLevels[tabId]! : 1,
       url = Build.BTypes & BrowserType.Chrome ? tab.url || tab.pendingUrl : tab.url,
@@ -882,7 +893,7 @@ tabEngine = {
       }
       if (!inNormal && tab.incognito) { label += "*" }
       if (tab.discarded || Build.BTypes & BrowserType.Firefox && tab.hidden) { label += "~" }
-      suggestion.visit = visit
+      suggestion.visit = visit ? visit.t + timeOffset : 0
       suggestion.s = tabId;
       suggestion.label = `#${id}${label && " " + label}`
       if (Build.BTypes & BrowserType.Firefox
@@ -924,7 +935,8 @@ tabEngine = {
   },
   SortNumbers_ (this: void, a: number, b: number): number { return a - b; },
   computeRecency_ (_0: CompletersNS.CoreSuggestion, tabId: number): number {
-    return TabRecency_.tabs_[tabId] ||
+    const n = TabRecency_.tabs_[tabId]
+    return n ? n.i :
         (otherFlags & CompletersNS.QueryFlags.PreferNewOpened ? GlobalConsts.MaxTabRecency + tabId : -tabId);
   },
   computeIndex_ (_0: CompletersNS.CoreSuggestion, index: number): number {

@@ -42,9 +42,10 @@ declare namespace CompletersNS {
     PreferNewOpened = 4,
     TabTree = 8,
     MonospaceURL = 16,
-    NoTabEngine = 32,
+    ShowTime = 32,
     PreferBookmarks = 64,
     TabTreeFromStart = 128,
+    NoTabEngine = 256,
   }
   interface Options {
     /** maxChars */ c?: number;
@@ -59,6 +60,7 @@ declare namespace CompletersNS {
     /** url */ u: string;
     title: string; // used by vomnibar.html
     /** text */ t: string;
+    visit: number
   }
 
   type CoreSuggestion = Readonly<WritableCoreSuggestion>;
@@ -67,7 +69,7 @@ declare namespace CompletersNS {
     t: string;
     textSplit?: string;
     title: string;
-    visit?: number;
+    visit: number
     /** sessionId */ s?: string | number;
     label?: string;
     /** source page of favIcon */ v?: string;

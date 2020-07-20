@@ -66,6 +66,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.updateQueryFlag_(CompletersNS.QueryFlags.TabTreeFromStart, options.tree === "from-start");
     a.updateQueryFlag_(CompletersNS.QueryFlags.TabTree, !!options.tree);
     a.updateQueryFlag_(CompletersNS.QueryFlags.MonospaceURL, null);
+    a.updateQueryFlag_(CompletersNS.QueryFlags.ShowTime, null);
     a.updateQueryFlag_(CompletersNS.QueryFlags.NoTabEngine, !!options.noTabs);
     a.doesOpenInIncognito_ = options.incognito;
     a.allowedEngines_ = (options.engines || CompletersNS.SugType.Empty) | 0;
@@ -993,6 +994,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     const monospaceURL = omniStyles.includes(" mono-url ");
     Vomnibar_.showTime_ = !omniStyles.includes(" time ") ? 0 : omniStyles.includes(" absolute-num-time ") ? 1
         : omniStyles.includes(" absolute-time ") ? 2 : 3
+    Vomnibar_.updateQueryFlag_(CompletersNS.QueryFlags.ShowTime, Vomnibar_.showTime_ > 0);
     // Note: should not use style[title], because "title" on style/link has special semantics
     // https://html.spec.whatwg.org/multipage/semantics.html#the-style-element
     for (const style of (document.querySelectorAll("style[id]") as {} as HTMLStyleElement[])) {
@@ -1255,8 +1257,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
   updateQueryFlag_ (flag: CompletersNS.QueryFlags, enable: boolean | null): void {
     const isFirst = enable == null;
-    if (isFirst && flag === CompletersNS.QueryFlags.MonospaceURL) {
-      enable = ` ${Vomnibar_.styles_} `.includes(" mono-url ");
+    if (isFirst) {
+      enable = ` ${Vomnibar_.styles_} `.includes(flag - CompletersNS.QueryFlags.ShowTime ? " mono-url " : " time ")
     }
     const newFlag = (Vomnibar_.mode_.f & ~flag) | (enable ? flag : 0);
     if (Vomnibar_.mode_.f === newFlag) { return; }
