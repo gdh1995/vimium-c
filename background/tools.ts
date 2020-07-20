@@ -713,13 +713,14 @@ MediaWatcher_ = {
   }
 },
 TabRecency_ = {
-  tabs_: BgUtils_.safeObj_<number>(),
+  tabs_: BgUtils_.safeObj_<{ /* index */ i: number; /* mono clock */ t: number }>(),
   curTab_: (chrome.tabs.TAB_ID_NONE || GlobalConsts.TabIdNone) as number,
   curWnd_: (!(Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox) || chrome.windows)
       && chrome.windows.WINDOW_ID_NONE || GlobalConsts.WndIdNone,
   lastWnd_: GlobalConsts.WndIdNone as number,
   incognito_: Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
       ? IncognitoType.ensuredFalse : IncognitoType.mayFalse,
+  isLinux_: false,
   rCompare_: null as never as (a: {id: number}, b: {id: number}) => number
 };
 
@@ -729,15 +730,17 @@ BgUtils_.timeout_(120, function (): void {
   function clean(): void {
     const ref = cache;
     for (const i in ref) {
-      if (ref[i]! < GlobalConsts.MaxTabRecency - GlobalConsts.MaxTabsKeepingRecency + 1) { delete ref[i]; }
-      else { ref[i]! -= GlobalConsts.MaxTabRecency - GlobalConsts.MaxTabsKeepingRecency; }
+      if (ref[i]!.i < GlobalConsts.MaxTabRecency - GlobalConsts.MaxTabsKeepingRecency + 1) { delete ref[i]; }
+      else { ref[i]!.i -= GlobalConsts.MaxTabRecency - GlobalConsts.MaxTabsKeepingRecency; }
     }
     stamp = GlobalConsts.MaxTabsKeepingRecency + 1;
   }
   function listener(info: { tabId: number }): void {
     const now = performance.now();
     if (now - time > GlobalConsts.MinStayTimeToRecordTabRecency) {
-      cache[TabRecency_.curTab_] = ++stamp;
+      cache[TabRecency_.curTab_] = {
+        i: ++stamp, t: Build.BTypes & BrowserType.ChromeOrFirefox && TabRecency_.isLinux_ ? Date.now() : now
+      };
       if (stamp >= GlobalConsts.MaxTabRecency) { clean(); }
     }
     TabRecency_.curTab_ = info.tabId; time = now;
@@ -757,6 +760,7 @@ BgUtils_.timeout_(120, function (): void {
       return listener({ tabId: a.id });
     }
   }
+  Build.BTypes & BrowserType.ChromeOrFirefox && (TabRecency_.isLinux_ = Settings_.payload_.o === kOS.unixLike)
   chrome.tabs.onActivated.addListener(listener);
   (!(Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox) || chrome.windows) &&
   chrome.windows.onFocusChanged.addListener(function (windowId): void {
@@ -775,7 +779,7 @@ BgUtils_.timeout_(120, function (): void {
       ? IncognitoType.ensuredFalse : IncognitoType.mayFalse;
   });
   TabRecency_.rCompare_ = function (a, b): number {
-    return cache[b.id]! - cache[a.id]!;
+    return cache[b.id]!.i - cache[a.id]!.i;
   };
 
   const settings = Settings_;

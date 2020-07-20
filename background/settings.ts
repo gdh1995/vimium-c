@@ -710,6 +710,8 @@ chrome.runtime.getPlatformInfo(function (info): void {
   (Settings_.payload_ as Writable<typeof Settings_.payload_>).o = osEnum;
   Settings_.updatePayload_("i", ignoreCapsLock, Settings_.payload_)
   Settings_.temp_.initing_ |= BackendHandlersNS.kInitStat.platformInfo;
+  Build.BTypes & BrowserType.ChromeOrFirefox && typeof TabRecency_ !== "undefined"
+  && (TabRecency_.isLinux_ = osEnum === kOS.unixLike)
   Backend_ && Backend_.onInit_!();
 });
 } else {
