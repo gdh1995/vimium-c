@@ -703,7 +703,7 @@ chrome.runtime.getPlatformInfo(function (info): void {
   types = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinRuntimePlatformOs
     ? chrome.runtime.PlatformOs!
     : chrome.runtime.PlatformOs || { MAC: "mac", WIN: "win" },
-  osEnum = os === types.WIN ? kOS.win : os === types.MAC ? kOS.mac : kOS.linux,
+  osEnum = os === types.WIN ? kOS.win : os === types.MAC ? kOS.mac : kOS.unixLike,
   ignoreCapsLock = Settings_.get_("ignoreCapsLock");
   Settings_.CONST_.Platform_ = os;
   (Settings_.omniPayload_ as Writable<typeof Settings_.omniPayload_>).o =

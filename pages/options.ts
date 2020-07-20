@@ -490,7 +490,7 @@ let optionsInit1_ = function (): void {
       const obj = ref[key as "vimSync"];
       if (Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ & BrowserType.Firefox)
-          && bgSettings_.payload_.o === kOS.linux && obj instanceof BooleanOption_) {
+          && bgSettings_.payload_.o === kOS.unixLike && obj instanceof BooleanOption_) {
         obj.element_.classList.add("text-bottom");
       }
       obj.populateElement_(obj.previous_);

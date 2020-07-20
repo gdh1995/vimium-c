@@ -317,7 +317,7 @@ declare namespace SettingsNS {
   interface ConstItems {
     /** browser */ b: ["browser", BrowserType | undefined];
     /** browserVer */ v: ["browserVer", BrowserVer | FirefoxBrowserVer | 0 | undefined];
-    /** OS */ o: ["OS", kOS.mac | kOS.linux | kOS.win];
+    /** OS */ o: ["OS", kOS.mac | kOS.unixLike | kOS.win];
   }
   type DeclaredConstValues = Readonly<SelectValueType<Pick<ConstItems, "v" | "o">>>;
   interface AllConstValues extends Readonly<SelectValueType<ConstItems>> {}
@@ -368,7 +368,7 @@ declare namespace SettingsNS {
   }
 }
 declare const enum kOS {
-  mac = 0, linux = 1, win = 2,
+  mac = 0, unixLike = 1, win = 2,
   MAX_NOT_WIN = 1, UNKNOWN = 9,
 }
 

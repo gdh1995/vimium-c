@@ -208,7 +208,7 @@ const onLoad2 = (): void => {
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
         && (Build.MinFFVer < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
           && (Build.BTypes & BrowserType.Chrome || chromeVer_ < FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
-            || fgCache.o === kOS.linux)
+            || fgCache.o === kOS.unixLike)
         ? addElement("div") as HTMLDivElement : body,
     root = Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
@@ -379,7 +379,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
         ? isEscape_(key) ? FindNS.Action.ExitAndReFocus : FindNS.Action.DoNothing
       : Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther & BrowserType.Firefox)
-        && fgCache.o === kOS.linux && "cs".includes(key[0])
+        && fgCache.o === kOS.unixLike && "cs".includes(key[0])
         ? FindNS.Action.CtrlDelete
       : notEmpty || (n === kKeyCode.deleteKey && fgCache.o || event.repeat) ? FindNS.Action.PassDirectly
       : FindNS.Action.Exit;
