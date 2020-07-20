@@ -1541,11 +1541,14 @@ VUtils_ = {
             } else {
               const old = isLastOutLiteral, newVal = arr[i].value
               isLastOutLiteral = type === "literal"
-              !isLastOutLiteral && (type === "weekday" || type[0] === "d" && type[4] === "e") && str &&
+              !isLastOutLiteral && (type === "weekday" || type[0] === "d" && type.slice(4, 5) === "e") && str &&
               (<RegExpOne> /[.:-]/).test(str[str.length - 1]) && (str = str.slice(0, -1) + " ");
               (!old || isZh && (newVal[0] === "\u661f" || newVal[0] === "\u5468")) && !isLastOutLiteral && str &&
               (<RegExpOne> /[^\x00-\x7f]/).test(str[str.length - 1]) && (str += " ")
-              str += newVal
+              str += isZh && type[0] === "d" && type.slice(4, 5) === "e"
+                  ? (d = parseInt(stdDateTime.slice(11, 13), 10), d < 2 || d > 21 ? "\u591c\u95f4"
+                    : d < 6 ? "\u51cc\u6668" : d > 18 ? "\u665a\u4e0a" : newVal)
+                  : newVal
             }
           }
           str = str.trim().replace(<RegExpOne> /[,.: -]+$/, "")
