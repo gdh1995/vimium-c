@@ -45,7 +45,11 @@
         if (event.metaKey) {
           modifiers.push("Meta");
         }
+        if (event.shiftKey) {
+          modifiers.push("Shift");
+        }
         element.querySelector(".modifierColumn").textContent = modifiers.join("-");
+        element.querySelector(".keyCodeColumn").textContent = event.keyCode;
         results = [];
         while (n < table.rows.length) {
           results.push(table.deleteRow(1));
