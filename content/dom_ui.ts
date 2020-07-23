@@ -384,7 +384,7 @@ export const moveSel_need_safe = (element: LockableElement, action: SelectAction
     } catch {}
 }
 
-export const collpaseSelection = (sel: Selection, toEnd?: VisualModeNS.ForwardDir): void => {
+export const collpaseSelection = (sel: Selection, toEnd?: VisualModeNS.ForwardDir | boolean): void => {
   toEnd ? sel.collapseToEnd() : sel.collapseToStart()
 }
 

@@ -213,9 +213,11 @@ readValueFromElement_ (): string {
 TextOption_.prototype.atomicUpdate_ = NumberOption_.prototype.atomicUpdate_ = function<T extends keyof AllowedOptions
     >(this: Option_<T> & {element_: TextElement}, value: string
       , undo: boolean, locked: boolean): void {
+  let newFocused = false
   if (undo) {
     this.locked_ = true;
-    document.activeElement !== this.element_ && this.element_.focus();
+    newFocused = document.activeElement !== this.element_
+    newFocused && this.element_.focus()
     document.execCommand("undo");
   }
   this.locked_ = locked;
@@ -227,17 +229,20 @@ TextOption_.prototype.atomicUpdate_ = NumberOption_.prototype.atomicUpdate_ = fu
       this.element_.value = value;
     }
   }
+  newFocused && this.element_.blur()
   this.locked_ = false;
 };
 
 type JSONOptionNames = PossibleOptionNames<object>;
-/** in fact, JSONOption_ should accept all of `JSONOptionNames`; */
 class JSONOption_<T extends JSONOptionNames> extends TextOption_<T> {
-populateElement_ (obj: AllowedOptions[T], enableUndo?: boolean): void {
-  const one = this.element_ instanceof HTMLInputElement, s0 = JSON.stringify(obj, null, one ? 1 : 2),
-  s1 = one ? s0.replace(<RegExpG & RegExpSearchable<1>> /(,?)\n\s*/g, (_, s) => s ? ", " : "") : s0;
-  super.populateElement_(s1, enableUndo);
+formatValue_ (obj: AllowedOptions[T]): string {
+  const one = this.element_ instanceof HTMLInputElement, s0 = JSON.stringify(obj, null, one ? 1 : 2)
+  return one ? s0.replace(<RegExpG & RegExpSearchable<1>> /(,?)\n\s*/g, (_, s) => s ? ", " : "") : s0
 }
+populateElement_ (obj: AllowedOptions[T], enableUndo?: boolean): void {
+  super.populateElement_(this.formatValue_(obj), enableUndo);
+}
+doesPopulateOnSave_ (obj: any): boolean { return this.formatValue_(obj) !== this.readRaw_() }
 readValueFromElement_ (): AllowedOptions[T] {
   let value = super.readValueFromElement_(), obj: AllowedOptions[T] = null as never;
   if (value) {

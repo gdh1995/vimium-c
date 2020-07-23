@@ -720,7 +720,6 @@ TabRecency_ = {
   lastWnd_: GlobalConsts.WndIdNone as number,
   incognito_: Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
       ? IncognitoType.ensuredFalse : IncognitoType.mayFalse,
-  isLinux_: false,
   rCompare_: null as never as (a: {id: number}, b: {id: number}) => number
 };
 
@@ -739,7 +738,8 @@ BgUtils_.timeout_(120, function (): void {
     const now = performance.now();
     if (now - time > GlobalConsts.MinStayTimeToRecordTabRecency) {
       cache[TabRecency_.curTab_] = {
-        i: ++stamp, t: Build.BTypes & BrowserType.ChromeOrFirefox && TabRecency_.isLinux_ ? Date.now() : now
+        i: ++stamp,
+        t: Build.BTypes & BrowserType.ChromeOrFirefox && Settings_.payload_.o === kOS.unixLike ? Date.now() : now
       };
       if (stamp >= GlobalConsts.MaxTabRecency) { clean(); }
     }
@@ -760,7 +760,6 @@ BgUtils_.timeout_(120, function (): void {
       return listener({ tabId: a.id });
     }
   }
-  Build.BTypes & BrowserType.ChromeOrFirefox && (TabRecency_.isLinux_ = Settings_.payload_.o === kOS.unixLike)
   chrome.tabs.onActivated.addListener(listener);
   (!(Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox) || chrome.windows) &&
   chrome.windows.onFocusChanged.addListener(function (windowId): void {

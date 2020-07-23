@@ -21,5 +21,4 @@ package-lock.json linguist-generated=true linguist-vendored=true linguist-langua
 tests/*.html linguist-detectable=false linguist-language=HTML
 tests/**/*.html linguist-detectable=false linguist-language=HTML
 typings/base/* linguist-vendored
-typings/base/base.d.ts linguist-vendored=false
-typings/lib/* linguist-detectable=false
+typings/lib/* linguist-detectable=false linguist-language=TypeScript

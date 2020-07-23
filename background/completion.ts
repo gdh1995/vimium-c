@@ -873,7 +873,7 @@ tabEngine = {
             ? pLevel < GlobalConsts.MaxTabTreeIndent ? pLevel + 1 : GlobalConsts.MaxTabTreeIndent : 1;
       }
     }
-    const timeOffset = !(otherFlags & CompletersNS.QueryFlags.ShowTime) ? 0 : TabRecency_.isLinux_ ? 0
+    const timeOffset = !(otherFlags & CompletersNS.QueryFlags.ShowTime) ? 0 : Settings_.payload_.o === kOS.unixLike ? 0
         : Build.MinCVer < BrowserVer.Min$performance$$timeOrigin && Build.BTypes & BrowserType.Chrome
           && CurCVer_ < BrowserVer.Min$performance$$timeOrigin
         ? Date.now() - performance.now() : performance.timeOrigin!

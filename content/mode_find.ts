@@ -230,6 +230,8 @@ const onLoad2 = (): void => {
     root2.className = "r" + fgCache.d;
     root2.spellcheck = false;
     root2.appendChild(list);
+    box.setAttribute("role", "textbox")
+    box.setAttribute("aria-multiline", "true")
     if ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
         && (!(Build.BTypes & BrowserType.Firefox)
             || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
@@ -238,7 +240,6 @@ const onLoad2 = (): void => {
         || inShadow) {
       root_ = root as ShadowRoot
       // here can not use `box.contentEditable = "true"`, otherwise Backspace will break on Firefox, Win
-      box.setAttribute("role", "textbox");
       setupEventListener(root2, MDW, onMousedown, 0, 1)
       if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
         root.append!(root2, styleInHUD)
@@ -577,7 +578,7 @@ const postExit = (skip?: boolean | Event): void => {
 }
 
 const onInput = (e?: Event): void => {
-    if (e) {
+  if (e) {
       Stop_(e);
       if (!(Build.BTypes & BrowserType.Chrome
           && (!(Build.BTypes & ~BrowserType.Chrome) || VOther & BrowserType.Chrome)
@@ -588,7 +589,7 @@ const onInput = (e?: Event): void => {
             ? !e.isTrusted : e.isTrusted === false) { return; }
       }
       if ((e as TypeToPick<Event, InputEvent, "isComposing">).isComposing) { return; }
-    }
+  }
   const query = input_.innerText.replace(<RegExpG> /\xa0/g, " ").replace(<RegExpOne> /\n$/, "")
   let s = query_
   if (!hasResults && !isRegex && !wholeWord && notEmpty && query.startsWith(s)

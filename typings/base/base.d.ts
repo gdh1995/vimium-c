@@ -110,3 +110,11 @@ interface EnsuredMountedHTMLElement extends HTMLElement {
   readonly previousElementSibling: EnsuredMountedHTMLElement;
   readonly nextElementSibling: EnsuredMountedHTMLElement;
 }
+
+interface HTMLEditableELement {
+  setRangeText(replacement: string): void
+  setRangeText(replacement: string, start: number | null, end: number | null, selectMode?: string): void
+}
+
+interface HTMLInputElement extends HTMLEditableELement {}
+interface HTMLTextAreaElement extends HTMLEditableELement {}

@@ -17,7 +17,7 @@ import {
 import { post_ } from "./port"
 import {
   addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, getParentVApi, curModalElement, createStyle,
-  getBoxTagName_cr_, setupExitOnClick, addUIElement, removeSelection, ui_root, kExitOnClick
+  getBoxTagName_cr_, setupExitOnClick, addUIElement, removeSelection, ui_root, kExitOnClick, collpaseSelection
 } from "./dom_ui"
 import { hudHide, hudShow, hudTip, hud_text } from "./hud"
 import { onKeyup2, set_onKeyup2, passKeys, installTempCurrentKeyStatus, set_passKeys } from "./key_handler"
@@ -312,12 +312,16 @@ export const contentCommands_: {
       let commands = options.run.split(<RegExpG> /,\s*/g), sel: Selection | undefined;
       while (0 < count--) {
         for (let i = 0; i < commands.length; i += 3) {
-          if (commands[i] !== "exec") {
-            sel = sel || getSelected()[0];
-            sel.modify(commands[i] === "auto" ? sel.type === "Range" ? kExtend : "move" : commands[i] as any,
-                commands[i + 1] as any, commands[i + 2] as any);
+          const cmd = commands[i], a1 = commands[i + 1], a2 = commands[i + 2]
+          if (cmd === "exec") {
+            execCommand(a1, doc, commands[i + 2])
+          } else if (cmd === "replace") {
+            (raw_insert_lock as HTMLInputElement).setRangeText(a1, null, null, a2)
+          } else if (sel = sel || getSelected()[0], cmd === "collapse") {
+            collpaseSelection(sel, a1 === "end")
           } else {
-            execCommand(commands[i + 1], doc, commands[i + 2]);
+            sel.modify(cmd === "auto" ? sel.type === "Range" ? kExtend : "move" : cmd as any,
+                a1 as any, a2 as any)
           }
         }
       }

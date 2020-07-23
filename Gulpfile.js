@@ -453,7 +453,7 @@ var Tasks = {
   rebuild: [["clean"], "dist"],
   all: ["build"],
   clean: function() {
-    return cleanByPath([".build/**", ".snapshot.sh", "**/*.js", "!helpers/*/*.js"
+    return cleanByPath([".build/**", "manifest.json", ".snapshot.sh", "**/*.js", "!helpers/*/*.js"
       , "front/help_dialog.html", "front/vomnibar.html", "front/words.txt"]);
   },
 

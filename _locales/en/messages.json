@@ -1099,7 +1099,7 @@
 		"message": "No text found!"
 	},
 	"17":{"message":
-"auxclick beforecopy beforecut compositionend compositionstart contextmenu copy cut keypress mouseup paste selectstart wheel "
+"auxclick beforecopy beforecut compositionend compositionstart compositionupdate contextmenu copy cut keypress mouseup paste selectionchange selectstart wheel textInput "
 	},
 	"20": {
 		"message": "Copied: $1"
