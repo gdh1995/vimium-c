@@ -129,18 +129,20 @@ export const findNextInRel = (relName: string): GoNextBaseCandidate | null | und
       ? "webkit" : "moz"}-any(a,area,link)`)!
   let s: string | null | undefined;
   type HTMLElementWithRel = HTMLAnchorElement | HTMLAreaElement | HTMLLinkElement;
-  let matched: HTMLElementWithRel | undefined;
+  let matched: HTMLElementWithRel | undefined, tag: string;
   const re1 = <RegExpOne> /\s+/
   for (const element of elements as { [i: number]: Element } as Element[]) {
-    if ((!(Build.BTypes & BrowserType.Edge) ? htmlTag_(element) : (<RegExpI> /^(a|area|link)$/).test(htmlTag_(element)))
+    if ((!(Build.BTypes & BrowserType.Edge) ? tag = htmlTag_(element)
+          : (<RegExpI> /^(a|area|link)$/).test(tag = htmlTag_(element)))
         && (s = (element as TypeToPick<HTMLElement, HTMLElementWithRel, "rel">).rel)
         && s.trim().toLowerCase().split(re1).indexOf(relName) >= 0
-        && (element as HTMLElementWithRel).href) {
+        && (tag === "a" || (element as HTMLElementWithRel).href)) {
       if (matched) {
-        if ((element as HTMLElementWithRel).href.split("#")[0] !== matched.href.split("#")[0]) {
+        if ((element as HTMLElementWithRel).href
+            && (element as HTMLElementWithRel).href.split("#")[0] !== matched.href.split("#")[0]) {
           return null;
         }
-        if (!isVisibleInPage(element as SafeHTMLElement)) { continue }
+        if (tag < "b" && !isVisibleInPage(element as SafeHTMLElement)) { continue }
       }
       matched = element as HTMLElementWithRel;
     }

@@ -889,11 +889,9 @@ ignoreKeyboardLayoutOption.element_.addEventListener("change",
 
 Option_.all_.userDefinedCss.onSave_ = function () {
   if (!window.VApi || !VApi.z) { return; }
-  const root = VApi.y().r;
-  let debuggedStyle = root && root.querySelector("style.debugged") as HTMLStyleElement | null;
-  if (!debuggedStyle) { return; }
+  if (!this.element_.classList.contains("debugging")) { return; }
   setTimeout(function () {
-    (debuggedStyle as HTMLStyleElement).remove();
+    const root = VApi.y().r;
     const iframes = root!.querySelectorAll("iframe");
     for (let i = 0, end = iframes.length; i < end; i++) {
       const frame = iframes[i], isFind = frame.classList.contains("HUD"),

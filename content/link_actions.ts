@@ -442,11 +442,11 @@ export const linkActions: readonly LinkAction[] = [
     const mask = hintMode_ & HintMode.mask_focus_new, isMac = !fgCache.o,
     isRight = hintOptions.button === "right",
     dblClick = !!hintOptions.dblclick && !isRight,
-    newTabOption = hintOptions.newtab,
+    newTabStr = hintOptions.newtab + "",
     otherActions = isRight || dblClick,
     newTab = mask > HintMode.newTab - 1 && !otherActions,
     newtab_n_active = newTab && mask > HintMode.newtab_n_active - 1,
-    newWindow = newTabOption === "window" && !otherActions,
+    newWindow = newTabStr === "window" && !otherActions,
     cnsForWin = hintOptions.ctrlShiftForWindow,
     autoUnhover = hintOptions.autoUnhover,
     isQueue = hintMode_ & HintMode.queue,
@@ -456,13 +456,13 @@ export const linkActions: readonly LinkAction[] = [
     specialActions = dblClick ? kClickAction.forceToDblclick : otherActions
         || (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$Element$$Closest
             || link.closest ? !link.closest!("a") : tag !== "a") ? kClickAction.none
-        : newTabOption === "force" ? newTab
+        : newTabStr === "force" ? newTab
             ? kClickAction.forceToOpenInNewTab | kClickAction.newTabFromMode : kClickAction.forceToOpenInNewTab
-        : newTabOption === "last-window" ? newTab
+        : newTabStr === "last-window" ? newTab
             ? kClickAction.forceToOpenInLastWnd | kClickAction.newTabFromMode : kClickAction.forceToOpenInLastWnd
         : !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
         ? newWindow ? kClickAction.openInNewWindow
-          : newTabOption === "no-prevent" ? newTab ? kClickAction.newTabFromMode : kClickAction.none
+          : newTabStr.startsWith("no-") ? kClickAction.none // to skip "click" events, one should use "force"
           : newTab // need to work around Firefox's popup blocker
             ? kClickAction.plainMayOpenManually | kClickAction.newTabFromMode : kClickAction.plainMayOpenManually
         : kClickAction.none;
