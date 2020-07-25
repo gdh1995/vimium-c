@@ -257,6 +257,7 @@ var HelpDialog = {
       , kCName.closeTabsOnRight, kCName.closeOtherTabs, kCName.moveTabLeft, kCName.moveTabRight
       , kCName.enableCSTemp, kCName.toggleCS, kCName.clearCS, kCName.copyWindowInfo],
     misc: [kCName.showHelp, kCName.autoCopy, kCName.autoOpen, kCName.searchAs, kCName.searchInAnother
+      , kCName.addBookmark
       , kCName.toggleStyle, kCName.toggleLinkHintCharacters
       , kCName.toggleSwitchTemp, kCName.passNextKey, kCName.debugBackground, kCName.closeDownloadBar, kCName.blank]
   } as { readonly [key: string]: readonly kCName[] } & SafeObject,

@@ -116,6 +116,7 @@
 	"Vomnibar_activateUrlInNewTab": {
 		"message": "编辑当前网址并在新标签页打开"
 	},
+	"addBookmark": { "message": "将标签页添加到收藏夹" },
 	"autoCopy": {
 		"message": "复制选中文字、网页标题或网址"
 	},

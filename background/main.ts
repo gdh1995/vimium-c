@@ -897,6 +897,27 @@
     parts1.length > 0 && browserTabs.remove(parts1.map(j => j.id), onRuntimeError);
     parts2.length > 0 && browserTabs.remove(parts2.map(j => j.id), onRuntimeError);
   }
+  function addBookmarks (this: chrome.bookmarks.BookmarkTreeNode, tabs?: Tab[]): void {
+    if (!tabs || !tabs.length) { onRuntimeError(); return }
+    const ind = (Build.BTypes & BrowserType.Firefox ? selectFrom(tabs, 1) : selectFrom(tabs)).index
+    let [start, end] = getTabRange(ind, tabs.length)
+    let count = end - start
+    if (count > 20) {
+      if (Build.BTypes & ~BrowserType.Chrome) {
+        if (cNeedConfirm) {
+          confirm_(kCName.addBookmark, end, addBookmarks.bind(this, tabs))
+          return
+        }
+      } else {
+        if (!(count = confirm_(kCName.addBookmark, count)!)) { return }
+        if (count === 1) { start = ind, end = ind + 1 }
+      }
+    }
+    for (const tab of tabs.slice(start, end)) {
+      chrome.bookmarks.create({ parentId: this.id, title: tab.title, url: getTabUrl(tab) }, onRuntimeError)
+    }
+    Backend_.showHUD_(`Add ${end - start} bookmark${end > start + 1 ? "s" : ""}.`)
+  }
   /** if `alsoWnd`, then it's safe when tab does not exist */
   function selectTab(this: void, tabId: number, alsoWnd?: boolean): void {
     chrome.tabs.update(tabId, {active: true}, alsoWnd ? selectWnd : null);
@@ -1046,7 +1067,7 @@
       UseTab.NoTab, UseTab.CurWndTabs, UseTab.CurWndTabs,
     UseTab.NoTab, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab, UseTab.ActiveTab,
     UseTab.CurWndTabsIfRepeat, UseTab.NoTab, UseTab.CurWndTabsIfRepeat, UseTab.ActiveTab,
-    UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab,
+    UseTab.NoTab, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab,
     Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
         ? UseTab.CurShownTabs : UseTab.CurWndTabs, UseTab.NoTab, UseTab.NoTab,
@@ -1965,6 +1986,38 @@
         }
         return Backend_.reopenTab_(tab);
       });
+    },
+    /* kBgCmd.addBookmark: */ function (this: void): void {
+      const path: string = cOptions.folder || cOptions.path
+      const nodes = path ? (path + "").replace(<RegExpG> /\\/g, "/").split("/").filter(i => i) : []
+      if (!nodes.length) { Backend_.showHUD_('Need "path" to a bookmark folder.'); return }
+      chrome.bookmarks.getTree((tree): void => {
+        if (!tree) { return onRuntimeError() }
+        let roots = tree[0].children!
+        let doesMatchRoot = roots.filter(i => i.title === nodes[0])
+        if (doesMatchRoot.length) {
+          roots = doesMatchRoot
+        } else {
+          interface ArrayWithReduce<T> extends Array<T> {
+            reduce<S>(callbackfn: (previousValue: S, currentValue: T, currentIndex: number, array: ReadonlyArray<T>
+                ) => S, initialValue?: S): S;
+          }
+          roots = (roots.map(i => i.children!) as ArrayWithReduce<(typeof roots)>).reduce((i, j) => i.concat(j))
+        }
+        let folder: chrome.bookmarks.BookmarkTreeNode | null = null
+        for (let node of nodes) {
+          roots = roots.filter(i => i.title === node)
+          if (!roots.length) {
+            return Backend_.showHUD_("The bookmark folder is not found.")
+          }
+          folder = roots[0]
+          roots = folder.children!
+          if (!roots) { break }
+        }
+        (cRepeat * cRepeat < 2 ? getCurTab : Build.BTypes & BrowserType.Firefox
+            && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
+            ? getCurShownTabs_ff_only! : getCurTabs)(addBookmarks.bind(folder!))
+      })
     },
     /* kBgCmd.goUp: */ function (this: void): void {
       if (cRepeat > 0 && cPort && cPort.s.i) {

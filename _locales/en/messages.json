@@ -158,6 +158,8 @@
 	"Vomnibar_activateUrlInNewTab": {
 		"message": "Edit the current URL and open in a new tab"
 	},
+	"addBookmark": { "message": "Add tab(s) into a bookmark folder" },
+	"addBookmark_p": { "message": "folder:string" },
 	"autoCopy": {
 		"message": "Copy selected text or current frame's title or URL"
 	},

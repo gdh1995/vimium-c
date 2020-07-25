@@ -454,6 +454,7 @@ availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeO
   "Vomnibar.activateTabSelection": [ kBgCmd.showVomnibar, 1, 1, { mode: "tab", newtab: 1, autoSelect: 1 } ],
   "Vomnibar.activateUrl": [ kBgCmd.showVomnibar, 1, 0, { url: true } ],
   "Vomnibar.activateUrlInNewTab": [ kBgCmd.showVomnibar, 1, 0, { url: true, newtab: 1 } ],
+  addBookmark: [ kBgCmd.addBookmark, 1, /* 20 in main.ts */ 0 ],
   autoCopy: [ kFgCmd.autoOpen, 0, 1, { copy: true } ],
   autoOpen: [ kFgCmd.autoOpen, 0, 1, { o: 1 } ],
   blank: [ kBgCmd.blank, 1, 1 ],

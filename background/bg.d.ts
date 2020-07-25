@@ -448,6 +448,7 @@ declare const enum kCName {
   Vomnibar_activateTabSelection = "Vomnibar.activateTabSelection",
   Vomnibar_activateUrl = "Vomnibar.activateUrl",
   Vomnibar_activateUrlInNewTab = "Vomnibar.activateUrlInNewTab",
+  addBookmark = "addBookmark",
   autoCopy = "autoCopy",
   autoOpen = "autoOpen",
   blank = "blank",
@@ -587,6 +588,7 @@ declare namespace CommandsNS {
     [kCName.Vomnibar_activateTabSelection]: kBgCmd.showVomnibar;
     [kCName.Vomnibar_activateUrl]: kBgCmd.showVomnibar;
     [kCName.Vomnibar_activateUrlInNewTab]: kBgCmd.showVomnibar;
+    [kCName.addBookmark]: kBgCmd.addBookmark;
     [kCName.autoCopy]: kFgCmd.autoOpen;
     [kCName.autoOpen]: kFgCmd.autoOpen;
     [kCName.blank]: kBgCmd.blank;

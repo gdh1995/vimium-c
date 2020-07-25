@@ -116,6 +116,7 @@
 	"Vomnibar_activateUrlInNewTab": {
 		"message": "Editer l'URL courante et l'ouvrir dans un nouvel onglet"
 	},
+	"addBookmark": { "message": "Ajouter un onglet un dossier de signets" },
 	"autoCopy": {
 		"message": "Copier le texte sélectionné ou le titre du cadre courant ou l'URL"
 	},

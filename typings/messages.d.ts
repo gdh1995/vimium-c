@@ -178,7 +178,7 @@ declare const enum kBgCmd {
   duplicateTab, moveTabToNewWindow, moveTabToNextWindow, joinTabs, toggleCS,
   clearCS, goToTab, removeTab, removeTabsR, removeRightTab,
   restoreTab, restoreGivenTab, discardTab, openUrl, searchInAnother,
-  togglePinTab, toggleMuteTab, reloadTab, reopenTab,
+  togglePinTab, toggleMuteTab, reloadTab, reopenTab, addBookmark,
   goUp, moveTab, mainFrame,
   visitPreviousTab, copyWindowInfo, clearFindHistory,
   toggleTabUrl, clearMarks, toggleVomnibarStyle,

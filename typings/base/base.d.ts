@@ -118,3 +118,7 @@ interface HTMLEditableELement {
 
 interface HTMLInputElement extends HTMLEditableELement {}
 interface HTMLTextAreaElement extends HTMLEditableELement {}
+
+declare namespace chrome.bookmarks {
+  export function create(bookmark: BookmarkCreateArg, callback?: (result: BookmarkTreeNode) => void): 1;
+}
