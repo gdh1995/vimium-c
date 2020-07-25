@@ -3,10 +3,11 @@ type Tab = chrome.tabs.Tab;
 type MarkStorage = Pick<Storage, "setItem"> & SafeDict<string>;
 declare const enum SedAction {
   NONE = 0, retainMatched = 1, decodeForCopy = 2, decodeMaybeEscaped = 4, unescape = 8,
-  upper = 16, lower = 32, normalize = 64, reverseText = 128,
+  upper = 16, lower = 32, normalize = 64, reverseText = 128, filterByHost = 256,
 }
 interface ClipSubItem {
   contexts_: SedContext;
+  host_: string | null;
   actions_: SedAction;
   match_: RegExp;
   replaced_: string;
@@ -35,19 +36,25 @@ const Clipboard_ = {
       if (!prefix) { continue; }
       const sep = "\\u" + (prefix[2].charCodeAt(0) + 0x10000).toString(16).slice(1),
       head = prefix[1],
-      body = new RegExp(`^((?:\\\\${sep}|[^${sep}])+)${sep}(.*)${sep}([a-zD]{0,9})((,[A-Za-z]+)*)$`
+      body = new RegExp(`^((?:\\\\${sep}|[^${sep}])+)${sep}(.*)${sep
+          }([a-zD]{0,9})((,[A-Za-z]+|,host=[\\w.*-]+)*)$`
           ).exec(line.slice(prefix[0].length))
       if (!body) { continue; }
       let suffix = body[3]
       let flags = suffix.replace(<RegExpG> /[dDr]/g, "");
       let matchRe: RegExp | null = BgUtils_.makeRegexp_(body[1], flags)
       if (!matchRe) { continue }
-      let actions: SedAction = SedAction.NONE
+      let actions: SedAction = SedAction.NONE, host: string | null = null
       for (const i of body[4].toLowerCase().split(",")) {
-        actions |= Clipboard_.SedActionMap_[i] || 0
+        if (i.startsWith("host=")) {
+          host = i.slice(5).toLowerCase()
+        } else {
+          actions |= Clipboard_.SedActionMap_[i] || 0
+        }
       }
       result.push({
         contexts_: Clipboard_.parseSedKeys_(head),
+        host_: host,
         actions_: actions + +(suffix.includes("r") && !flags.includes("g")) * SedAction.retainMatched
             + +suffix.includes("d") * SedAction.decodeMaybeEscaped + +suffix.includes("D") * SedAction.decodeForCopy,
         match_: matchRe,
@@ -93,8 +100,16 @@ const Clipboard_ = {
     context = !notParsed && (mixedSed as ParsedSedOpts).k ? Clipboard_.parseSedKeys_((mixedSed as ParsedSedOpts).k!)
         : context
     let start: SedAction = 0, end = 0, first_group: string | undefined
+    let parsedUrl: URL | null, host: string | null = "", hostType: number
     for (const item of arr) {
-      if (item.contexts_ & context) {
+      if (item.contexts_ & context && (!item.host_
+            || (host = host !== "" ? host
+                  : (parsedUrl = BgUtils_.safeParseURL_(text), parsedUrl && parsedUrl.host.toLowerCase()))
+                && (hostType = 2 * +item.host_.endsWith(".*") + +item.host_.startsWith("*."),
+                    hostType > 2 ? `.${host}.`.includes(item.host_.slice(1, -1))
+                    : hostType > 1 ? `${host}.`.startsWith(item.host_.slice(0, -1))
+                    : hostType ? `.${host}`.endsWith(item.host_.slice(1)) : host === item.host_)
+          )) {
         if (item.actions_ & SedAction.retainMatched) {
           text.replace(item.match_ as RegExpOne & RegExpSearchable<0>, function (matched_text): string {
             const args = arguments
