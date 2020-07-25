@@ -417,8 +417,9 @@
       : pos ? [current, total] : [0, current + 1] // limited
       ;
   }
-  function confirm_(this: void, command: string, count: number
-      , callback?: (_arg: FakeArg) => void): number | void {
+  function confirm_<T extends kCName, force extends BOOL = 0> (this: void
+      , command: CommandsNS.CmdNameIds[T] extends kBgCmd ? T : force extends 1 ? kCName : never
+      , count: number, callback?: (_arg: FakeArg) => void): number | void {
     if (!(Build.NDEBUG || !command.includes("."))) {
       console.log("Assert error: command should has no limit on repeats: %c%s", "color:red", command);
     }
@@ -1373,11 +1374,11 @@
           if (count > 30) {
             if (Build.BTypes & ~BrowserType.Chrome) {
               if (cNeedConfirm) {
-                confirm_("moveTabToNewWindow", count, moveTabToNewWindow0.bind(null, wnd));
+                confirm_(kCName.moveTabToNewWindow, count, moveTabToNewWindow0.bind(null, wnd))
                 return;
               }
             } else {
-              if (!(count = confirm_("moveTabToNewWindow", count)!)) { return; }
+              if (!(count = confirm_(kCName.moveTabToNewWindow, count)!)) { return }
               if (count < 2) { range = [activeTabIndex, activeTabIndex + 1]; }
             }
           }
@@ -1630,10 +1631,10 @@
         if (count > 20) {
           if (Build.BTypes & ~BrowserType.Chrome) {
             if (cNeedConfirm) {
-              confirm_("removeTab", count, BackgroundCommands[kBgCmd.removeTab].bind(null, 2, tabs));
+              confirm_(kCName.removeTab, count, BackgroundCommands[kBgCmd.removeTab].bind(null, 2, tabs))
               return;
             }
-          } else if (!(count = confirm_("removeTab", count)!)) {
+          } else if (!(count = confirm_(kCName.removeTab, count)!)) {
             return;
           }
         }
@@ -1761,11 +1762,11 @@
       if (count > 20) {
         if (Build.BTypes & ~BrowserType.Chrome) {
           if (cNeedConfirm) {
-            confirm_("discardTab", count, BackgroundCommands[kBgCmd.discardTab].bind(null, tabs));
+            confirm_(kCName.discardTab, count, BackgroundCommands[kBgCmd.discardTab].bind(null, tabs))
             return;
           }
         } else {
-          count = confirm_("removeTab", count)!;
+          count = confirm_(kCName.discardTab, count)!
         }
       }
       if (!count) {
@@ -1851,11 +1852,11 @@
       if (end > 30) {
         if (Build.BTypes & ~BrowserType.Chrome) {
           if (cNeedConfirm) {
-            confirm_("togglePinTab", end, BackgroundCommands[kBgCmd.togglePinTab].bind(null, tabs));
+            confirm_(kCName.togglePinTab, end, BackgroundCommands[kBgCmd.togglePinTab].bind(null, tabs))
             return;
           }
         } else {
-          if (!(end = confirm_("togglePinTab", end)!)) {
+          if (!(end = confirm_(kCName.togglePinTab, end)!)) {
             return;
           }
           if (end === 1) {
@@ -1930,11 +1931,11 @@
       if (count > 20) {
         if (Build.BTypes & ~BrowserType.Chrome) {
           if (cNeedConfirm) {
-            confirm_("reloadTab", end, BackgroundCommands[kBgCmd.reloadTab].bind(null, tabs));
+            confirm_(kCName.reloadTab, end, BackgroundCommands[kBgCmd.reloadTab].bind(null, tabs))
             return;
           }
         } else {
-          if (!(count = confirm_("reloadTab", count)!)) {
+          if (!(count = confirm_(kCName.reloadTab, count)!)) {
             return;
           }
           if (count === 1) {
@@ -2183,11 +2184,11 @@
         if (!overriddenCount) {
           cKey = lastKey;
           cPort = port;
-          confirm_(registryEntry.command_, abs(cRepeat = count), onLargeCountConfirmed.bind(registryEntry));
+          confirm_<kCName, 1>(registryEntry.command_, abs(cRepeat = count), onLargeCountConfirmed.bind(registryEntry))
           return;
         }
       } else {
-        count = confirm_(registryEntry.command_, abs(count))! * (count < 0 ? -1 : 1);
+        count = confirm_<kCName, 1>(registryEntry.command_, abs(count))! * (count < 0 ? -1 : 1)
       }
       if (!count) { return; }
     } else { count = count || 1; }
