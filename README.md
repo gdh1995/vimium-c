@@ -101,6 +101,15 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
+#### 1.84.2
+* Vomnibar: add a style keyword of `time` to show time string
+* add a new command: `addBookmark` with an option of `path: string`
+* `toggleReaderMode`: now work on Edge (Chromium)
+* `removeTab`: now support `keepWindow=always`
+* `searchInAnother`: fix a regression that the default of `reuse` should be `current`
+* substitution rules: add a new filter: `,host=*.example.com`
+* fix some edge cases
+
 #### 1.84.1
 * FindMode: **better support for regexp queries**, like matching `\ra(?!nd)` in `abc and def`
 * mapped **long keys ending with `:i` always work in a plain insert mode**

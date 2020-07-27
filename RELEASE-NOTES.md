@@ -4,8 +4,17 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://github.com/gdh1995/vimium-c/blob/master/README_zh.md .
 
-#### 1.84.1
+#### 1.84.2
 (the current published version on Firefox Add-ons, Microsoft Edge Add-ons and Chrome Web Store)
+* Vomnibar: add a style keyword of `time` to show time string ([#154](https://github.com/gdh1995/vimium-c/issues/154))
+* add a new command: `addBookmark` with an option of `path: string`
+* `toggleReaderMode`: now work on Edge (Chromium)
+* `removeTab`: now support `keepWindow=always`
+* `searchInAnother`: fix a regression that the default of `reuse` should be `current`
+* substitution rules: add a new filter: `,host=*.example.com`
+* fix some edge cases
+
+#### 1.84.1
 * FindMode: **better support for regexp queries**, like matching `\ra(?!nd)` in `abc and def`
 * mapped **long keys ending with `:i` always work in a plain insert mode**
   * for example, `map <c-j:i> editText run="auto,forward,line"` will move caret down by a line, only in insert mode

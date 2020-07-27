@@ -166,7 +166,7 @@ else
 fi
 VC_ROOT=$(/usr/bin/realpath "${VC_ROOT}")
 VC_EXT=${VC_ROOT}/dist
-if test -z "$DIST" && test -d "${VC_EXT}"/manifest.json && ! test -f "${VC_EXT}"/_locales/zh_CN/messages.json; then
+if test -z "$DIST" && test -f "${VC_EXT}"/manifest.json && ! test -f "${VC_EXT}"/_locales/zh_CN/messages.json; then
   DIST=1
 fi
 if test ${DIST:-0} -gt 0; then
