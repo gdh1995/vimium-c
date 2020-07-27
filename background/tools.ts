@@ -131,7 +131,6 @@ const Clipboard_ = {
           text = start & SedAction.decodeForCopy ? BgUtils_.decodeUrlForCopy_(text)
               : start & SedAction.decodeMaybeEscaped ? BgUtils_.decodeEscapedURL_(text) : text
           text = start & SedAction.unescape ? Clipboard_.decodeSlash_(text) : text
-          text = start & SedAction.unescape ? Clipboard_.decodeSlash_(text) : text
           text = start & SedAction.upper ? text.toLocaleUpperCase!() : text
           text = start & SedAction.lower ? text.toLocaleLowerCase!() : text
           if (start & (SedAction.normalize | SedAction.reverseText)) {
