@@ -33,7 +33,7 @@
 		"message": "Close N tab(s)"
 	},
 	"removeTab_p": {
-		"message": "mayClose, goto=\"\"/left/right/previous"
+		"message": "keepWindow=\"\"/always, mayClose, goto=\"\"/left/right/previous"
 	},
 	"restoreTab": {
 		"message": "Restore closed tab(s)"

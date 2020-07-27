@@ -860,13 +860,15 @@
     return onRuntimeError();
   }
   function removeAllTabsInWnd(this: void, tab: Tab, curTabs: readonly Tab[], wnds: Window[]): void {
-    let url = false, windowId: number | undefined, wnd: Window;
+    let protect = false, windowId: number | undefined, wnd: Window;
     wnds = wnds.filter(wnd2 => wnd2.type === "normal");
-    if (wnds.length <= 1) {
+    if (cOptions.keepWindow === "always") {
+      protect = !wnds.length || wnds.some(i => i.id === tab.windowId)
+    } else if (wnds.length <= 1) {
       // protect the last window
-      url = true;
+      protect = true;
       if (!(wnd = wnds[0])) { /* empty */ }
-      else if (wnd.id !== tab.windowId) { url = false; } // the tab may be in a popup window
+      else if (wnd.id !== tab.windowId) { protect = false; } // the tab may be in a popup window
       else if (wnd.incognito && !BgUtils_.isRefusingIncognito_(Settings_.cache_.newTabUrl_f)) {
         windowId = wnd.id;
       }
@@ -877,10 +879,10 @@
       wnds = wnds.filter(wnd2 => !wnd2.incognito);
       if (wnds.length === 1 && wnds[0].id === tab.windowId) {
         windowId = wnds[0].id;
-        url = true;
+        protect = true;
       }
     }
-    if (url) {
+    if (protect) {
       tabsCreate({ index: curTabs.length, url: "", windowId });
     }
     removeTabsInOrder(tab, curTabs, 0, curTabs.length);
