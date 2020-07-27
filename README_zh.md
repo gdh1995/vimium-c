@@ -1,5 +1,4 @@
-<p align="center">![Icon](icons/icon32.png)
-<span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span> - 全键盘操作浏览器</p>
+<p align="center"><img alt="Icon" src="icons/icon32.png" /><span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span> - 全键盘操作浏览器</p>
 ===========================================
 
 [![版本](https://img.shields.io/github/v/release/gdh1995/vimium-c?color=critical&label=gdh1995%2Fvimium-c&logo=GitHub
@@ -36,7 +35,7 @@ Vimium C 支持 新版 Microsoft Edge、Firefox 63+ 和 Chrome 43+ 等现代浏�
 
 本项目主要由 [gdh1995](https://github.com/gdh1995) 开发并维护，并且以 [MIT 许可协议](LICENSE.txt) 开源。
 
-本项目地址是 https://github.com/gdh1995/vimium-c
+本项目的主仓库是 https://github.com/gdh1995/vimium-c 和 https://gitee.com/gdh1995/vimium-c
 。本项目的前身是[<span style="color: #2f508e;">Vim</span>ium](https://github.com/philc/vimium)。
 
 [Here's its description in English](README.md)（点击查看英文介绍）。

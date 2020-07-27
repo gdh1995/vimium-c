@@ -1,5 +1,4 @@
-<p align="center">![Icon](icons/icon32.png)
-<span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span> - All by Keyboard</p>
+<p align="center"><img alt="Icon" src="icons/icon32.png" /><span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span> - All by Keyboard</p>
 ===========================================
 
 [![Version](https://img.shields.io/github/v/release/gdh1995/vimium-c?color=critical&label=gdh1995%2Fvimium-c&logo=GitHub
@@ -59,6 +58,8 @@ If re-compiled from the source code, Vimium C is able to support Chromium 32~42.
 如果从源码重新编译，Vimum C 还可以支持 Chromium 32~42。
 
 ![Usage Demo of Vimium C](https://gdh1995.cn/vimium-c/demo.gif)
+
+This project is hosted on https://github.com/gdh1995/vimium-c and https://gitee.com/gdh1995/vimium-c .
 
 An old name of this project is "Vimium++", which has been given up on 2018-08-21.
 
