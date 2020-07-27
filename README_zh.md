@@ -1,5 +1,5 @@
-<p align="center"><img alt="Icon" src="icons/icon32.png" /><span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span> - 全键盘操作浏览器</p>
-===========================================
+<h2 align="center"><img alt="Icon" src="icons/icon32.png"
+/><span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span> - 全键盘操作浏览器</h2>
 
 [![版本](https://img.shields.io/github/v/release/gdh1995/vimium-c?color=critical&label=gdh1995%2Fvimium-c&logo=GitHub
   )](https://github.com/gdh1995/vimium-c/releases)
