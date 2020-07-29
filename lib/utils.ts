@@ -158,3 +158,10 @@ export const parseSedOptions = (opts: UserSedOptions): ParsedSedOpts => {
   const sed = opts.sed
   return !sed || typeof sed !== "object" ? ({ r: sed, k: opts.sedKeys || opts.sedKey }) : sed
 }
+
+export const escapeAllForRe = (str: string): string => str.replace(<RegExpG> /[$()*+.?\[\\\]\^{|}]/g, "\\$&")
+
+export const tryCreateRegExp = <T extends "g" | "gi" | ""> (pattern: string, flags: T
+    ): (T extends "" ? RegExpOne : RegExpG) | void => {
+  try { return <any> new RegExp(pattern, flags as "g") } catch {}
+}

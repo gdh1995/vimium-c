@@ -1,6 +1,6 @@
 import {
   setupEventListener, VTr, keydownEvents_, isAlive_, suppressCommonEvents, onWndFocus, VOther, timeout_, safer, fgCache,
-  doc, safeObj, getTime, chromeVer_, deref_,
+  doc, safeObj, getTime, chromeVer_, deref_, escapeAllForRe, tryCreateRegExp,
 } from "../lib/utils"
 import {
   pushHandler_, SuppressMost_, Stop_, removeHandler_, prevent_, getMappedKey, keybody_, isEscape_, keyNames_,
@@ -624,7 +624,7 @@ export const updateQuery = (query: string): void => {
   isRegex = ignoreCase = null as boolean | null
   query = isQueryRichText_ ? query.replace(<RegExpG & RegExpSearchable<0>> /\\[cirw\\]/gi, FormatQuery)
         : query;
-  let isRe = isRegex, ww = wholeWord, WB = "\\b", escapeAllRe = <RegExpG> /[$()*+.?\[\\\]\^{|}]/g
+  let isRe = isRegex, ww = wholeWord, WB = "\\b"
   if (isQueryRichText_) {
     if (isRe === null && !ww) {
       isRe = fgCache.r;
@@ -639,7 +639,7 @@ export const updateQuery = (query: string): void => {
     if (ww && (!(Build.BTypes & BrowserType.Chrome) || isRe
               || ((Build.BTypes & ~BrowserType.Chrome) && VOther !== BrowserType.Chrome)
         )) {
-      query = WB + query.replace(<RegExpG & RegExpSearchable<0>> /\\\\/g, "\\").replace(escapeAllRe, "\\$&")
+      query = WB + escapeAllForRe(query.replace(<RegExpG & RegExpSearchable<0>> /\\\\/g, "\\"))
           + WB;
       ww = false;
       isRe = true;
@@ -652,7 +652,7 @@ export const updateQuery = (query: string): void => {
   wholeWord = ww
   notEmpty = !!query
   ignoreCase !== null || (ignoreCase = query.toLowerCase() === query)
-  isRe || (query = isActive ? query.replace(escapeAllRe, "\\$&") : "")
+  isRe || (query = isActive ? escapeAllForRe(query) : "")
 
   let re: RegExpG | null = query && tryCreateRegExp(ww ? WB + query + WB : query, ignoreCase ? "gi" : "g") || null
   let matches: string[] | null = null
@@ -670,10 +670,6 @@ export const updateQuery = (query: string): void => {
   parsedRegexp_ = isRe ? re : null
   activeRegexIndex = 0
   matchCount = matches ? matches.length : 0
-}
-
-const tryCreateRegExp = (pattern: string, flags: "g" | "gi"): RegExpG | void => {
-    try { return new RegExp(pattern, flags as "g"); } catch {}
 }
 
 const FormatQuery = (str: string): string => {
