@@ -136,13 +136,12 @@ export const findNextInRel = (relName: string): GoNextBaseCandidate | null | und
           : (<RegExpI> /^(a|area|link)$/).test(tag = htmlTag_(element)))
         && (s = (element as TypeToPick<HTMLElement, HTMLElementWithRel, "rel">).rel)
         && s.trim().toLowerCase().split(re1).indexOf(relName) >= 0
-        && (tag === "a" || (element as HTMLElementWithRel).href)) {
+        && ((s = (element as HTMLElementWithRel).href) || tag < "aa")
+        && (tag > "b" || isVisibleInPage(element as SafeHTMLElement))) {
       if (matched) {
-        if ((element as HTMLElementWithRel).href
-            && (element as HTMLElementWithRel).href.split("#")[0] !== matched.href.split("#")[0]) {
+        if (s && matched.href && s.split("#")[0] !== matched.href.split("#")[0]) {
           return null;
         }
-        if (tag < "b" && !isVisibleInPage(element as SafeHTMLElement)) { continue }
       }
       matched = element as HTMLElementWithRel;
     }
