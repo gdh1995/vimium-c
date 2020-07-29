@@ -844,6 +844,14 @@ var BgUtils_ = {
   timeout_ (timeout: number, callback: (this: void, fakeArgs?: TimerType.fake) => void): void {
     setTimeout(callback, timeout);
   },
+  overrideTabsIndexes_ff_: Build.BTypes & BrowserType.Firefox ? (tabs: readonly chrome.tabs.Tab[]): void => {
+    const len = tabs.length;
+    if (len > 0 && tabs[len - 1].index !== len - 1) {
+      for (let i = 0; i < len; i++) {
+        tabs[i].index = i;
+      }
+    }
+  } : 0 as never as null,
   GC_: function (this: void): void { /* empty */ } as (this: void, inc?: number) => void
 },
 Backend_: BackendHandlersNS.BackendHandlers,

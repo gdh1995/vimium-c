@@ -110,7 +110,7 @@ const enum MatchCacheType {
   history = 1, bookmarks = 2, tabs = 3,
 }
 const enum TabCacheType {
-  none = 0, currentWindow = 1, onlyNormal = 2,
+  none = 0, currentWindow = 1, onlyNormal = 2, evenHidden = 4,
 }
 
 interface TabCacheData {
@@ -831,6 +831,7 @@ tabEngine = {
       const treeMap: SafeDict<Tab> = BgUtils_.safeObj_<Tab>();
       for (const tab of tabs0) { treeMap[tab.id] = tab; }
       {
+        Build.BTypes & BrowserType.Firefox && BgUtils_.overrideTabsIndexes_ff_!(tabs0)
         let curTab = treeMap[curTabId], pId = curTab ? curTab.openerTabId : 0, pTab = pId ? treeMap[pId] : null,
         start = pTab ? pTab.index : curTab ? curTab.index - 1 : 0, i = pTab ? 0 : (maxTotal / 2) | 0;
         for (; 1 < --i && start > 0 && tabs0[start - 1].openerTabId === pId; start--) { /* empty */ }
@@ -865,7 +866,6 @@ tabEngine = {
     const c = noFilter ? treeMode ? tabEngine.computeIndex_ : tabEngine.computeRecency_ : ComputeWordRelevancy,
     treeLevels: SafeDict<number> = treeMode ? BgUtils_.safeObj_() : null as never,
     curWndId = wndIds.length > 1 ? TabRecency_.curWnd_ : 0;
-    let ind = 0;
     if (treeMode) {
       for (const tab of tabs) { // only from start to end, and should not execute nested queries
         const pid = tab.openerTabId, pLevel = pid && treeLevels[pid];
@@ -877,14 +877,15 @@ tabEngine = {
         : Build.MinCVer < BrowserVer.Min$performance$$timeOrigin && Build.BTypes & BrowserType.Chrome
           && CurCVer_ < BrowserVer.Min$performance$$timeOrigin
         ? Date.now() - performance.now() : performance.timeOrigin!
-    for (const tab of tabs) {
+    for (let ind = 0; ind < tabs.length; ) {
+      const tab = tabs[ind++]
       const tabId = tab.id, level = treeMode ? treeLevels[tabId]! : 1,
       url = Build.BTypes & BrowserType.Chrome ? tab.url || tab.pendingUrl : tab.url,
       visit = TabRecency_.tabs_[tabId],
       suggestion = new Suggestion("tab", url, tab.text, tab.title,
-          c, treeMode ? ++ind : tabId) as CompletersNS.TabSuggestion;
+          c, treeMode ? ind : tabId) as CompletersNS.TabSuggestion;
       let id = curWndId && tab.windowId !== curWndId ? `${wndIds.indexOf(tab.windowId) + 1}:` : "", label = ""
-      id += <string> <string | number> (tab.index + 1)
+      id += <string> <string | number> ind
       if (curTabId === tabId) {
         treeMode || (suggestion.r = noFilter ? 1<<31 : 0);
         id = `(${id})`
@@ -1242,7 +1243,12 @@ Completers = {
     if (Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
         || wndIncognito !== IncognitoType.mayFalse) {
       inNormal = wndIncognito !== IncognitoType.true;
-      const newType = (inNormal ? TabCacheType.onlyNormal : 0) | (wantInCurrentWindow ? TabCacheType.currentWindow : 0);
+      let newType = (inNormal ? TabCacheType.onlyNormal : 0) | (wantInCurrentWindow ? TabCacheType.currentWindow : 0)
+      if (!(Build.BTypes & ~BrowserType.Firefox)
+          || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox) {
+        newType = newType | (wantInCurrentWindow && otherFlags & CompletersNS.QueryFlags.EvenHiddenTabs
+              ? TabCacheType.evenHidden : 0)
+      }
       if (MatchCacheManager.tabs_.type_ !== newType) {
         MatchCacheManager.tabs_ = { tabs_: null, type_: newType };
       }
@@ -1250,7 +1256,11 @@ Completers = {
       if (__tabs) {
         func(query, __tabs);
       } else {
-        chrome.tabs.query(wantInCurrentWindow ? { currentWindow: true } : {}, func.bind(null, query));
+        chrome.tabs.query(!wantInCurrentWindow ? {} : !(Build.BTypes & BrowserType.Firefox)
+              || Build.BTypes & ~BrowserType.Firefox && OnOther !== BrowserType.Firefox
+              || otherFlags & CompletersNS.QueryFlags.EvenHiddenTabs ? { currentWindow: true }
+            : { currentWindow: true, hidden: false },
+        func.bind(null, query));
       }
     } else {
       chrome.windows.getCurrent({populate: wantInCurrentWindow}, function (wnd): void {

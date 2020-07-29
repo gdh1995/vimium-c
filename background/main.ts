@@ -184,25 +184,14 @@
       backgroundLightYellow, backgroundLightYellow + ";color:red", extId);
     return list[extId] = false;
   }
-  function selectFrom(this: void, tabs: readonly Tab[], fixIndexes?: BOOL): ActiveTab {
-    Build.BTypes & BrowserType.Firefox && fixIndexes && fixTabsIndexes(tabs);
+  function selectFrom(this: void, tabs: readonly Tab[], overrideIndexes?: BOOL): ActiveTab {
+    Build.BTypes & BrowserType.Firefox && overrideIndexes && BgUtils_.overrideTabsIndexes_ff_!(tabs)
     for (let i = tabs.length; 0 < --i; ) {
       if (tabs[i].active) {
         return tabs[i]! as ActiveTab;
       }
     }
     return tabs[0]! as ActiveTab;
-  }
-  function fixTabsIndexes(tabs: readonly Tab[]): void {
-    if (Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
-      const len = tabs.length;
-      if (len > 0 && tabs[len - 1].index !== len - 1) {
-        for (let i = 0; i < len; i++) {
-          tabs[i].index = i;
-        }
-      }
-    }
   }
   function newTabIndex(this: void, tab: Readonly<Pick<Tab, "index">>, pos: OpenUrlOptions["position"]
       , openerTabId?: boolean): number | undefined {

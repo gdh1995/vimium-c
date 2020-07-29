@@ -46,6 +46,7 @@ declare namespace CompletersNS {
     PreferBookmarks = 64,
     TabTreeFromStart = 128,
     NoTabEngine = 256,
+    EvenHiddenTabs = 512,
   }
   interface Options {
     /** maxChars */ c?: number;
@@ -430,6 +431,7 @@ declare namespace VomnibarNS {
     preferTabs?: "new" | "new-opened" | "newOpened";
     engines?: CompletersNS.SugType.Empty;
     noTabs?: boolean;
+    hiddenTabs?: boolean;
     icase?: boolean;
     searchInput?: boolean;
     tree?: boolean | "from-start"; // show tabs in tree mode
