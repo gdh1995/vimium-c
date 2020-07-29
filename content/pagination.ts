@@ -114,7 +114,8 @@ export const findNextInText = (names: string[], isNext: boolean, lenLimits: numb
   candidates = candidates.sort((a, b) => a[2] - b[2])
   for (let i = candidates.length ? candidates[0][2] >> 23 : GlobalConsts.MaxNumberOfNextPatterns; i < names.length; ) {
     s = names[i++];
-    const re = new RegExp(wordRe.test(s[0]) || wordRe.test(s.slice(-1)) ? `\\b${s}\\b` : s, ""), j = i << 23;
+    const s2 = s.replace(<RegExpG> /[$()*+.?\[\\\]\^{|}]/g, "\\$&")
+    const re = new RegExp(wordRe.test(s[0]) || wordRe.test(s.slice(-1)) ? `\\b${s2}\\b` : s2, ""), j = i << 23;
     for (const candidate of candidates) {
       if (candidate[2] > j) { break }
       if (!candidate[3] || re.test(candidate[3])) { return candidate }

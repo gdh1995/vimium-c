@@ -111,7 +111,7 @@ const getImageUrl = (img: SafeHTMLElement): string | void => {
         (notImg > 1 ? getComputedStyle_(img) : img.style).backgroundImage!);
       if (arr && arr[1]) {
         const a1 = createElement_("a");
-        a1.href = arr[1].replace(<RegExpG> /\\(['"])/g, "$1");
+        a1.href = arr[1].replace(<RegExpG> /\\('|")/g, "$1");
         text = a1.href;
       }
     }
