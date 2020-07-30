@@ -1,5 +1,7 @@
-<h2 align="center"><img src="icons/icon128.png" width="32" height="32" alt="Icon"
-/><span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span> - All by Keyboard</h2>
+<h2 align="center">
+  <img src="icons/icon128.png" width="32" height="32" alt="Icon" />
+  <span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span> - All by Keyboard
+</h2>
 
 [![Version](https://img.shields.io/github/v/release/gdh1995/vimium-c?color=critical&label=gdh1995%2Fvimium-c&logo=GitHub
   )](https://github.com/gdh1995/vimium-c/releases)
@@ -143,7 +145,7 @@ __Other extensions supporting Vimium C:__
 
 See more on [RELEASE-NOTES.md](RELEASE-NOTES.md).
 
-### Known Issues
+#### Known Issues
 
 There're some known issues on previous or latest versions of Chrome,
 and please read https://github.com/gdh1995/vimium-c/wiki/Known-issues-on-various-versions-of-Chrome
@@ -168,7 +170,7 @@ The options including `MinCVer` and `BTypes` in [gulp.tsconfig.json](scripts/gul
   are used to control supported target browsers and set a minimum browser version.
 
 
-# Donate / 捐赠
+# Donating / 捐赠
 
 <a name="donate"></a>
 Vimium C is an open-source browser extension, and everyone can install and use it free of charge.
@@ -225,9 +227,9 @@ The [Vimium C](https://microsoftedge.microsoft.com/addons/detail/vimium-c/aibcgl
 This behavior is only to make these extensions easier to use, but<br>
 **DOES NOT EXPRESS OR IMPLIED** the author (gdh1995) "agrees or has no objection to"
     that "Taiwan" can be parallel to "China",
-    which was an **inappropriate** status quo in the stores' pages on 2019-11-16.
+    which was an **inappropriate** status quo in the stores' pages on 2020-07-30.
 
 According to [The Constitution of the People's Republic of China](
     http://www.npc.gov.cn/npc/c505/201803/e87e5cd7c1ce46ef866f4ec8e2d709ea.shtml)
     and international consensus,
-*Taiwan is **an inalienable part** of the sacred territory of the People's Republic of China*.
+***Taiwan is an inalienable part of the sacred territory of the People's Republic of China***.

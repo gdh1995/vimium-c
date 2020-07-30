@@ -78,10 +78,10 @@
     "url": "https://github.com/gdh1995/vimium-c.git"
   },
   "keywords": [
-    "vimium-c",
     "vimium",
     "webextension",
     "chrome-extension",
+    "browser-extension",
     "shortcut",
     "keyboard",
     "chrome",
