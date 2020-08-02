@@ -783,6 +783,7 @@
 	},
 	"Search": { "message": "Rechercher" },
 	"Go": { "message": "Aller" },
+	"21": { "message": "Impossible d'évaluer de scripts ici" },
 	"67": { "message": "Visuel" },
 	"68": { "message": "Ligne" },
 	"69": { "message": "Curseur" },
@@ -908,9 +909,6 @@
 	},
 	"20": {
 		"message": "Copié : $1"
-	},
-	"21": {
-		"message": "Impossible d'évaluer de scripts ici"
 	},
 	"22": { "message": "Trop de liens à sélectionner" },
 	"23": {

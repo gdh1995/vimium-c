@@ -1398,6 +1398,7 @@
 	},
 	"Search": { "message": "搜索" },
 	"Go": { "message": "前往" },
+	"jsFail": { "message": "抱歉，无法在当前网页上执行 JS 脚本" },
 	"67": { "message": "自由选择" },
 	"68": { "message": "整行选择" },
 	"69": { "message": "光标" },
@@ -1526,9 +1527,6 @@
 	},
 	"20": {
 		"message": "已复制：$1"
-	},
-	"21": {
-		"message": "抱歉，Vimium C 无法在当前网页上执行 JavaScript 脚本"
 	},
 	"22": { "message": "可点击的页面对象过多" },
 	"23": {

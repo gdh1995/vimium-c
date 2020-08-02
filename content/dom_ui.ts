@@ -17,7 +17,6 @@ import { styleSelectable } from "./mode_find"
 import { isHintsActive, hintManager, coreHints } from "./link_hints"
 import { post_ } from "./port"
 import { insert_Lock_ } from "./insert"
-import { hudTip } from "./hud"
 import { hide as omniHide } from "./omni"
 import { hideHelp } from "./commands"
 
@@ -488,15 +487,15 @@ export const evalIfOK = (url: Pick<BgReq[kBgReq.eval], "u"> | string): boolean =
   if (!jsRe_.test(url)) {
     return false;
   }
-  url = url.slice(11).trim();
+  let str = url.slice(11).trim();
   let el: HTMLScriptElement | undefined
-  if ((<RegExpOne> /^void\s*\( ?0 ?\)\s*;?$|^;?$/).test(url)) { /* empty */ }
+  if ((<RegExpOne> /^void\s*\( ?0 ?\)\s*;?$|^;?$/).test(str)) { /* empty */ }
   else if (!(el = runJS_(VTr(kTip.removeCurScript), 0)!).parentNode) {
-    try { url = decodeURIComponent(url); } catch {}
-    timeout_(runJS_.bind(0, url, 0), 0)
+    try { str = decodeURIComponent(str); } catch {}
+    timeout_(runJS_.bind(0, str, 0), 0)
   } else {
     el.remove()
-    hudTip(kTip.failToEvalJS);
+    post_({ H: kFgReq.evalJSFallback, u: url })
   }
   return true;
 }

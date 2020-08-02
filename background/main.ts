@@ -630,13 +630,16 @@
       const _rawTest = (cOptions as OpenUrlOptionsInBgCmd).testUrl, testUrl = _rawTest != null ? _rawTest : !keyword
       let mask: string | undefined = cOptions.url_mask || cOptions.url_mark;
       if (mask) {
-        url = url && url.replace(mask + "", (<RegExpOne> /^[%$]s/).test(mask) ? encodeURIComponent(tabUrl) : tabUrl);
+        url = url && url.replace(mask + "", (<RegExpOne> /[%$]s/).test(mask) ? encodeURIComponent(tabUrl) : tabUrl);
       }
       if (mask = cOptions.host_mask || cOptions.host_mark) {
         url = url && url.replace(mask + "", new URL(tabUrl).host);
       }
       if (mask = cOptions.tabid_mask || cOptions.tabId_mask || cOptions.tabid_mark) {
         url = url && url.replace(mask + "", tabUrl && "" + tabs![0]!.id);
+      }
+      if (mask = cOptions.title_mask || cOptions.title_mark) {
+        url = url && url.replace(mask + "", tabUrl && "" + encodeURIComponent(tabs![0]!.title));
       }
       if (mask = cOptions.id_mask || cOptions.id_mark || cOptions.id_marker) {
         url = url && url.replace(mask + "", chrome.runtime.id);
@@ -742,11 +745,11 @@
     }
     openMultiTab(args, cRepeat);
   }
-  function openJSUrl(url: string): void {
+  function openJSUrl(url: string, onBrowserFail?: () => void): void {
     if ("void 0;void(0);".includes(url.slice(11).trim())) {
       return;
     }
-    if (cPort) {
+    if (!onBrowserFail && cPort) {
       if (safePost(cPort, { N: kBgReq.eval, u: url })) {
         return;
       }
@@ -755,7 +758,10 @@
     const callback1 = function (opt?: object | -1): void {
       if (opt !== -1 && !onRuntimeError()) { return; }
       const code = BgUtils_.DecodeURLPart_(url.slice(11));
-      chrome.tabs.executeScript({ code }, onRuntimeError);
+      chrome.tabs.executeScript({ code }, (): void => {
+        onRuntimeError() && onBrowserFail && onBrowserFail();
+        return onRuntimeError()
+      })
       return onRuntimeError();
     };
     // e.g.: use Chrome omnibox at once on starting
@@ -2801,7 +2807,7 @@
     /** kFgReq.removeSug: */ function (this: void, req: FgReq[kFgReq.removeSug], port?: Port): void {
       return Backend_.removeSug_(req, port);
     },
-    /** kFgReq.openImage: */ function (this: void, req: FgReq[kFgReq.openImage], port: Port) {
+    /** kFgReq.openImage: */ function (req: FgReq[kFgReq.openImage], port: Port): void {
       let url = req.u
       if (!BgUtils_.safeParseURL_(url)) {
         cPort = port;
@@ -2817,6 +2823,13 @@
       }
       url = req.e ? Clipboard_.substitute_(url, SedContext.paste, req.e) : url
       openShowPage(prefix + url, req.r, { opener: true });
+    },
+    /** kFgReq.evalJSFallback" */ (req: FgReq[kFgReq.evalJSFallback], port: Port): void => {
+      cPort = null as never
+      openJSUrl(req.u, (): void => {
+        cPort = port
+        Backend_.showHUD_(trans_("jsFail"))
+      })
     },
     /** kFgReq.gotoMainFrame: */ function (this: void, req: FgReq[kFgReq.gotoMainFrame], port: Port): void {
       // Now that content scripts always auto-reconnect, it's not needed to find a parent frame.

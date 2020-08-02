@@ -972,6 +972,7 @@
 	},
 	"Search": { "message": "" },
 	"Go": { "message": "" },
+	"jsFail": { "message": "Here's not allowed to eval JS scripts" },
 	"67": { "message": "Visual" },
 	"68": { "message": "Line" },
 	"69": { "message": "Caret" },
@@ -1053,7 +1054,6 @@
 	"95": {
 		"message": "This item cannot be deleted"
 	},
-	"96": { "message": "(-ms-high-contrast:active)" },
 	"98": { "message": "document.currentScript.remove()" },
 	"100": {
 		"message": "Not allowed to open the target new tab URL"
@@ -1106,9 +1106,7 @@
 	"20": {
 		"message": "Copied: $1"
 	},
-	"21": {
-		"message": "Here's not allowed to eval scripts"
-	},
+	"21": { "message": "(-ms-high-contrast:active)" },
 	"22": { "message": "Too many links to select" },
 	"23": {
 		"message": "Now $1 use $2"

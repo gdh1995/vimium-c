@@ -3,7 +3,7 @@ declare const enum kTip {
   /* 4..9 */ didUnHoverLast = 4, globalInsertMode, noPassKeys, normalMode, nTimes, passNext,
   /* 10..15 */ noLinksToGo, noFocused, focusedIsHidden, noInputToFocus, noUrlCopied, noTextCopied,
   /* 17: */ kCommonEvents = 17,
-  /* 20..25 */ copiedIs = 20, failToEvalJS, tooManyLinks, useVal, turnOn, turnOff,
+  /* 20..25 */ copiedIs = 20, highContrast_WOB, tooManyLinks, useVal, turnOn, turnOff,
   /* 26..31 */ nMatches, oneMatch, someMatches, noMatches, modalHints, haveToOpenManually,
   /* 39, 41: */ global = 39, local = 41, // neither 39 nor 41 is in HintMode
   /* 44..47 */ selectLineBoundary = 44, frameUnloaded, waitEnter, logGrabFocus,
@@ -14,7 +14,7 @@ declare const enum kTip {
   /* 80: */ nowCreateMark, didCreateLastMark, didLocalMarkTask, didJumpTo, didCreate,
   /* 85: */ lastMark, didNormalMarkTask, findFrameFail, noOldQuery, noMatchFor,
   /* 90: */ inVisualMode, noUsableSel, loseSel, needSel, omniFrameFail,
-  /* 95: */ failToDelSug, highContrast_WOB, INJECTED_CONTENT_END,
+  /* 95: */ failToDelSug, INJECTED_CONTENT_END,
   /* 98:*/ removeCurScript = 98,
   /** 99: used by {@link ../Gulpfile.js} */ extendClick = 99,
   /* 100: */ firefoxRefuseURL, cancelImport, importOK,
@@ -64,7 +64,7 @@ declare const enum kFgReq {
   searchAs, gotoSession, openUrl, focus, checkIfEnabled,
   nextFrame, exitGrab, execInChild, initHelp, css,
   vomnibar, omni, copy, key, marks,
-  focusOrLaunch, cmd, removeSug, openImage,
+  focusOrLaunch, cmd, removeSug, openImage, evalJSFallback,
   /** can be used only with `FgCmdAcrossFrames` and when a fg command is just being called */
   gotoMainFrame,
   setOmniStyle, findFromVisual, framesGoBack, i18n, learnCSS,
@@ -551,6 +551,9 @@ interface FgReq {
     /** reuse */ r: ReuseType;
     /** auto: default to true */ a?: boolean;
   };
+  [kFgReq.evalJSFallback]: {
+    u: string
+  }
   [kFgReq.gotoMainFrame]: {
     /** command */ c: FgCmdAcrossFrames;
     /** focusMainFrame and showFrameBorder */ f: BOOL;
