@@ -6,6 +6,7 @@ import { allHints, isHintsActive, hintManager, setMode as setHintMode, hintMode_
 import { isHTML_, createElement_, HDN } from "../lib/dom_utils"
 import { insert_global_ } from "./insert"
 import { visual_mode, visual_mode_name } from "./visual"
+import { find_box } from "./mode_find"
 
 let tweenId = 0
 let box: HTMLDivElement | null = null
@@ -73,19 +74,21 @@ const tween = (fake?: TimerType.fake): void => { // safe-interval
   tweenId = 0;
 }
 
-export const hudHide = (info?: TimerType.fake | TimerType.noTimer | BOOL | boolean): void => {
+export const hudHide = (info?: TimerType.fake | TimerType.noTimer): void => {
   if (timer) { clearTimeout_(timer); timer = TimerID.None; }
-  if (isHintsActive && !hintManager) {
-    setHintMode(hintMode_)
-    return
-  }
-  if (visual_mode) {
-    hudShow(kTip.inVisualMode, [visual_mode_name], info)
-    return
-  }
-  if (insert_global_ && insert_global_.h) {
-    hudShow(kTip.raw, insert_global_.h)
-    return;
+  if (!find_box) {
+    if (isHintsActive && !hintManager) {
+      setHintMode(hintMode_)
+      return
+    }
+    if (visual_mode) {
+      hudShow(kTip.inVisualMode, [visual_mode_name], info)
+      return
+    }
+    if (insert_global_ && insert_global_.h) {
+      hudShow(kTip.raw, insert_global_.h)
+      return;
+    }
   }
   opacity_ = 0; text = "";
   if (!box) { /* empty */ }

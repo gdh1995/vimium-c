@@ -43,7 +43,7 @@ import {
   toggleSelectableStyle, find_query, executeFind, find_hasResults, updateQuery as findUpdateQuery, findCSS, set_findCSS,
 } from "./mode_find"
 import { insert_Lock_ } from "./insert"
-import { hudTip, hudHide } from "./hud"
+import { hudTip, hudHide, hudShow } from "./hud"
 import { post_, send_ } from "./port"
 import { removeHandler_, pushHandler_, getMappedKey, keybody_, isEscape_, prevent_, ENTER } from "../lib/keyboard_utils"
 
@@ -116,7 +116,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     }
     commandHandler(VisualAction.Noop, 1)
     pushHandler_(onKeydown, activate)
-    newMode !== mode ? hudTip(kTip.noUsableSel, 1000) : hudHide(!!options.r)
+    newMode !== mode ? hudTip(kTip.noUsableSel, 1000) : hudShow(kTip.inVisualMode, [modeName], options.r)
 }
 
   /** @safe_di */
