@@ -1,7 +1,7 @@
 import {
   doc, isTop, injector, VOther, initialDocState, set_esc, esc, setupEventListener, set_isEnabled_,
   set_clickable_, clickable_, isAlive_, set_VTr, setupKeydownEvents, onWndFocus,
-  set_readyState_, readyState_, set_allowScripts_, callFunc, recordLog, set_vApi, vApi,
+  set_readyState_, readyState_, callFunc, recordLog, set_vApi, vApi,
 } from "../lib/utils"
 import { suppressTail_, getMappedKey } from "../lib/keyboard_utils"
 import { frameElement_, set_OnDocLoaded_ } from "../lib/dom_utils"
@@ -213,8 +213,6 @@ if (isAlive_) {
     } else {
       /*#__INLINE__*/ extend_click_ff()
     }
-  } else {
-    /*#__INLINE__*/ set_allowScripts_(0)
   }
 
   initialDocState < "i" || setupEventListener(0, RSC, function _onReadyStateChange(): void {

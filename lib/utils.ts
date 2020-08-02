@@ -37,10 +37,6 @@ export function set_isLocked_ (_newIsLocked: boolean): void { isLocked_ = _newIs
 export let readyState_: Document["readyState"] = initialDocState
 export function set_readyState_ (_newReadyState: Document["readyState"]): void { readyState_ = _newReadyState }
 
-// note: scripts always means allowing timers - vPort.ClearPort requires this assumption
-export let allowScripts_: 0 | 1 | 2 = 1
-export function set_allowScripts_ (_newAllowScripts: 0 | 1 | 2): void { allowScripts_ = _newAllowScripts }
-
 export let allowRAF_: BOOL = 1
 export function set_allowRAF_ (_newAllowRAF: BOOL): void { allowRAF_ = _newAllowRAF }
 

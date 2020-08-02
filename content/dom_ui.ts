@@ -1,6 +1,5 @@
 import {
-  setupEventListener, isTop, keydownEvents_, VOther, timeout_, fgCache, doc, isAlive_, allowScripts_,
-  set_allowScripts_, jsRe_, chromeVer_, VTr, deref_,
+  setupEventListener, isTop, keydownEvents_, VOther, timeout_, fgCache, doc, isAlive_, jsRe_, chromeVer_, VTr, deref_,
 } from "../lib/utils"
 import { Stop_, prevent_ } from "../lib/keyboard_utils"
 import {
@@ -492,15 +491,11 @@ export const evalIfOK = (url: Pick<BgReq[kBgReq.eval], "u"> | string): boolean =
   url = url.slice(11).trim();
   let el: HTMLScriptElement | undefined
   if ((<RegExpOne> /^void\s*\( ?0 ?\)\s*;?$|^;?$/).test(url)) { /* empty */ }
-  else if (!(Build.BTypes & ~BrowserType.Firefox)
-      || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
-      ? allowScripts_ === 2 || allowScripts_ &&
-        /*#__INLINE__*/ set_allowScripts_(
-            (el = runJS_(VTr(kTip.removeCurScript), 0)!).parentNode ? (el.remove(), 0) : 2)
-      : allowScripts_) {
+  else if (!(el = runJS_(VTr(kTip.removeCurScript), 0)!).parentNode) {
     try { url = decodeURIComponent(url); } catch {}
-    timeout_(Build.BTypes & BrowserType.Firefox ? runJS_.bind(0, url, 0) : runJS_.bind(0, url) as () => void, 0);
+    timeout_(runJS_.bind(0, url, 0), 0)
   } else {
+    el.remove()
     hudTip(kTip.failToEvalJS);
   }
   return true;

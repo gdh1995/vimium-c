@@ -2,7 +2,7 @@ import {
   chromeVer_, clickable_, doc, esc, fgCache, injector, isEnabled_, isLocked_, isAlive_, isTop,
   keydownEvents_, safeObj, set_chromeVer_, set_clickable_, set_fgCache, set_VOther, set_isLocked_,
   set_isEnabled_, set_onWndFocus, VOther, onWndFocus, timeout_, safer,
-  allowScripts_, loc_, interval_, getTime, vApi, clearInterval_,
+  loc_, interval_, getTime, vApi, clearInterval_,
 } from "../lib/utils"
 import { set_keyIdCorrectionOffset_old_cr_, handler_stack } from "../lib/keyboard_utils"
 import {
@@ -93,7 +93,7 @@ set_requestHandlers([
       timeout_(function (): void {
         const parApi = !(Build.BTypes & ~BrowserType.Firefox)
             || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
-            ? getParentVApi() : allowScripts_ && frameElement_() && getParentVApi(),
+            ? getParentVApi() : frameElement_() && getParentVApi(),
         parHints = parApi && parApi.b as HintManager;
         if (needToRetryParentClickable) {
         const oldSet = clickable_ as any as Element[] & Set<Element>

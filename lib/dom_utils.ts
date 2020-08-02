@@ -421,14 +421,15 @@ export const runJS_ = (code: string, returnEl?: HTMLScriptElement | 0): void | H
     !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
       ? script.append!(code) : script.textContent = code
     if (Build.BTypes & ~BrowserType.Firefox) {
-      if (returnEl) { return; }
-      /** `appendChild` must be followed by /[\w.]*doc/: {@link ../Gulpfile.js#beforeUglify} */
-      script.appendChild.call(docEl_unsafe_() || doc, script);
+      const docEl = docEl_unsafe_()
+      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
+        /** `appendChild` must be followed by /[\w.]*doc/: {@link ../Gulpfile.js#beforeUglify} */
+        script.appendChild.call(docEl || doc, script)
+      } else {
+        (docEl ? script : doc).prepend!.call(docEl || doc, script);
+      }
     } else {
       (docEl_unsafe_() || doc).appendChild(script);
     }
-    if (Build.BTypes & BrowserType.Firefox) {
-      return returnEl === 0 ? script : script.remove();
-    }
-    script.remove();
+    return returnEl != null ? script : script.remove()
 }

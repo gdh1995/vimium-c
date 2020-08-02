@@ -1,5 +1,5 @@
 import {
-  clickable_, setupEventListener, VOther, timeout_, doc, isAlive_, set_allowRAF_, set_allowScripts_,
+  clickable_, setupEventListener, VOther, timeout_, doc, isAlive_, set_allowRAF_,
   loc_, replaceBrokenTimerFunc, allowRAF_, getTime, recordLog, VTr, vApi,
 } from "../lib/utils"
 import { createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, } from "../lib/dom_utils"
@@ -69,7 +69,6 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
         : Build.BTypes & BrowserType.Chrome
           && (!(Build.BTypes & ~BrowserType.ChromeOrFirefox) || VOther === BrowserType.Chrome)
         ? 1 : 0
-    , docEl = doc.documentElement
     , secret: number = (Math.random() * kContentCmd.SecretRange + 1) | 0
     , script = createElement_("script");
 /**
@@ -87,6 +86,7 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
     set_createElement_(doc.createElementNS.bind(doc, "http://www.w3.org/1999/xhtml") as typeof createElement_)
     return isFirstTime != null && OnDocLoaded_(extendClick); // retry after a while, using a real <script>
   }
+  script.dataset.vimium = secret as number | string as string
 
   let box: Element | undefined | 0, hookRetryTimes = 0,
   isFirstResolve: 0 | 1 | 2 | 3 | 4 = window === top ? 3 : 4,
@@ -552,13 +552,6 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$addEvent
    * But here it still uses the same script, just for my personal preference.
    */
   runJS_(injected, script)
-  script.dataset.vimium = secret as number | string as string;
-  if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
-    (docEl ? script : doc).prepend!.call(docEl || doc, script);
-  } else {
-    /** `appendChild` must be followed by /[\w.]*doc/: {@link ../Gulpfile.js#beforeUglify} */
-    script.appendChild.call(docEl || doc, script)
-  }
   script.dataset.vimium = "";
   if (!(Build.NDEBUG
         || BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage <= BrowserVer.NoRAFOrRICOnSandboxedPage)) {
@@ -571,7 +564,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$addEvent
   }
   // not check MinEnsuredNewScriptsFromExtensionOnSandboxedPage
   // for the case JavaScript is disabled in CS: https://github.com/philc/vimium/issues/3187
-  if (!script.parentNode) { // It succeeded to hook.
+  if (!script.parentNode) { // It succeeded in hooking.
     // wait the inner listener of `start` to finish its work
     return OnDocLoaded_((): void => {
       // only for new versions of Chrome (and Edge);
@@ -585,7 +578,6 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$addEvent
     });
   }
   // else: CSP script-src before C68, CSP sandbox before C68 or JS-disabled-in-CS on C/E
-  /*#__INLINE__*/ set_allowScripts_(0)
   script.remove();
   execute(kContentCmd.Destroy);
   if (!(Build.BTypes & BrowserType.Chrome)
