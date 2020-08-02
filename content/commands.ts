@@ -172,7 +172,7 @@ export const contentCommands_: {
   },
   /* kFgCmd.autoOpen: */ (options: CmdOptions[kFgCmd.autoOpen]): void => {
     let selected = options.selected, str = options.s && !selected ? "" : getSelectionText(1), url = str.trim()
-    url && options.copy && post_({
+    options.copy && (url || !options.o) && post_({
       H: kFgReq.copy,
       s: str as never as undefined,
       e: parseSedOptions(options),
