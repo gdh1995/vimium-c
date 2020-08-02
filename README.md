@@ -104,6 +104,15 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
+#### 1.84.3
+* fix broken `autoCopy`
+* substitution rules: fix some bugs in text substitution
+  * now execute actions in their declaration sequence
+  * add some actions: base64, btoa, encode, eecodecomp
+* Firefox: Vomnibar: not list hidden tabs by default, unless `hiddenTabs=true`
+* `goNext`: fix some issues
+* `openUrl`: add `title_mask`
+
 #### 1.84.2
 * Vomnibar: add a style keyword of `time` to show time string
 * add a new command: `addBookmark` with an option of `path: string`
@@ -112,36 +121,6 @@ __Other extensions supporting Vimium C:__
 * `searchInAnother`: fix a regression that the default of `reuse` should be `current`
 * substitution rules: add a new filter: `,host=*.example.com`
 * fix some edge cases
-
-#### 1.84.1
-* FindMode: **better support for regexp queries**, like matching `\ra(?!nd)` in `abc and def`
-* mapped **long keys ending with `:i` always work in a plain insert mode**
-  * for example, `map <c-j:i> editText run="auto,forward,line"` will move caret down by a line, only in insert mode
-  * not in any global insert mode of `enterInsertMode`
-* fix it could not enter VisualMode if FindMode had never been activated
-* LinkHints: a new option `newtab=last-window` to open links in the other window
-* a new command `toggleStyle` to insert/remove CSS styles to pages
-* a new command `scrollSelect` to switch selection in `<select>` boxes
-* `editText`: support a new action of "`auto`", to switch in `extend` and `move` according to selection type
-* `enterInsertMode`: support 2 new options of `unhover` and `reset` to clear old modes
-
-#### 1.84.0
-* LinkHints: **better compatibility with Firefox popup blocker** in "newtab" mode
-* now **support the high contrast mode** on Firefox and Edge (Chromium)
-  ([#191](https://github.com/gdh1995/vimium-c/issues/191))
-* fix some bugs, including a regression of custom CSS and broken <kbd>Tab</kbd> during `focusInput`
-* substitution rules: extend its usages
-  * support post-actions like `decode/unescape/upper/lower/reverse`
-  * the syntax is `s/query/replaced/i,decode,upper,reverse`: repeatly append a <kbd>,</kbd> and an action
-  * most related commands supports `sedKey: character` to filter pre-defined rules
-  * now the prefix of a rule can include up to 6 any English letters, and the rule gets used if only `sedKey` is in it
-* `focusInput`: add option `prefer: CSS selector` to choose a desired input
-* Vomnibar: use <kbd>Meta+N</kbd> to select the N-th item, like Alfred
-* Vomnibar: add an option `incognito=null/boolean/"reverse"` ([#195](https://github.com/gdh1995/vimium-c/issues/195))
-* Marks: now allow some host pages to report scrolling position and jump to marks in their own ways
-  ([#193](https://github.com/gdh1995/vimium-c/issues/193))
-* the UI of options page: use flat mode
-* build: record arguments to be able to reproduce the same package, in order to meet requirements of Firefox Add-ons
 
 See more on [RELEASE-NOTES.md](RELEASE-NOTES.md).
 

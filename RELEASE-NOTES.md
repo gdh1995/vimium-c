@@ -4,8 +4,17 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://github.com/gdh1995/vimium-c/blob/master/README_zh.md .
 
-#### 1.84.2
+#### v1.84.3
 (the current published version on Firefox Add-ons, Microsoft Edge Add-ons and Chrome Web Store)
+* fix broken `autoCopy`
+* substitution rules: fix some bugs in text substitution
+  * now execute actions in their declaration sequence
+  * add some actions: base64, btoa, encode, eecodecomp
+* Firefox: Vomnibar: not list hidden tabs by default, unless `hiddenTabs=true`
+* `goNext`: fix some issues
+* `openUrl`: add `title_mask`
+
+#### 1.84.2
 * Vomnibar: add a style keyword of `time` to show time string ([#154](https://github.com/gdh1995/vimium-c/issues/154))
 * add a new command: `addBookmark` with an option of `path: string`
 * `toggleReaderMode`: now work on Edge (Chromium)
