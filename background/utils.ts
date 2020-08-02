@@ -610,10 +610,10 @@ var BgUtils_ = {
     a.resetRe_();
     return indexes == null ? url : { url_: url, indexes_: indexes };
   } as Search.Executor,
-  DecodeURLPart_ (this: void, url: string | undefined, wholeURL?: 1): string {
+  DecodeURLPart_ (this: void, url: string | undefined, wholeURL?: 1 | "atob"): string {
     if (!url) { return ""; }
     try {
-      url = (wholeURL ? decodeURI : decodeURIComponent)(url);
+      url = (wholeURL === "atob" ? atob : wholeURL ? decodeURI : decodeURIComponent)(url);
     } catch {}
     return url;
   },

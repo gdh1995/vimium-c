@@ -2,30 +2,28 @@ type CSTypes = chrome.contentSettings.ValidTypes;
 type Tab = chrome.tabs.Tab;
 type MarkStorage = Pick<Storage, "setItem"> & SafeDict<string>;
 declare const enum SedAction {
-  NONE = 0, retainMatched = 1, decodeForCopy = 2, decodeMaybeEscaped = 4, unescape = 8,
-  upper = 16, lower = 32, normalize = 64, reverseText = 128, filterByHost = 256,
+  NONE = 0, decodeForCopy = 1, decodeMaybeEscaped = 2, unescape = 3,
+  upper = 4, lower = 5, normalize = 6, reverseText = 7, base64Decode = 8, base64Encode = 9,
+  encode = 10, encodeComp = 11,
 }
 interface ClipSubItem {
   contexts_: SedContext;
   host_: string | null;
-  actions_: SedAction;
   match_: RegExp;
+  retainMatched_: BOOL;
+  actions_: SedAction[];
   replaced_: string;
 }
 
 const Clipboard_ = {
-  SedActionMap_: <Dict<SedAction> & SafeObject> {
+  _SedActionMap: <Dict<SedAction> & SafeObject> {
     __proto__: null as never,
-    decode: SedAction.decodeForCopy,
-    decodeuri: SedAction.decodeForCopy,
-    decodeurl: SedAction.decodeForCopy,
-    decodecomp: SedAction.decodeMaybeEscaped,
-    matched: SedAction.retainMatched,
-    unescape: SedAction.unescape,
-    upper: SedAction.upper,
-    lower: SedAction.lower,
-    normalize: SedAction.normalize,
-    reverse: SedAction.reverseText
+    atob: SedAction.base64Decode, base64: SedAction.base64Decode, btoa: SedAction.base64Encode,
+    base64encode: SedAction.base64Encode,
+    decode: SedAction.decodeForCopy, decodeuri: SedAction.decodeForCopy, decodeurl: SedAction.decodeForCopy,
+    decodecomp: SedAction.decodeMaybeEscaped, encode: SedAction.encode, encodecomp: SedAction.encodeComp,
+    unescape: SedAction.unescape, upper: SedAction.upper, lower: SedAction.lower,
+    normalize: SedAction.normalize, reverse: SedAction.reverseText
   },
   staticSeds_: null as null | ClipSubItem[],
   parseSeds_ (text: string): ClipSubItem[] {
@@ -42,22 +40,26 @@ const Clipboard_ = {
       if (!body) { continue; }
       let suffix = body[3]
       let flags = suffix.replace(<RegExpG> /[dDr]/g, "");
-      let matchRe: RegExp | null = BgUtils_.makeRegexp_(body[1], flags)
-      if (!matchRe) { continue }
-      let actions: SedAction = SedAction.NONE, host: string | null = null
+      let actions: SedAction[] = [], host: string | null = null, retainMatched = <BOOL> +suffix.includes("r")
+      suffix.includes("d") ? actions.push(SedAction.decodeMaybeEscaped)
+          : suffix.includes("D") ? actions.push(SedAction.decodeForCopy) : 0
       for (const i of body[4].toLowerCase().split(",")) {
         if (i.startsWith("host=")) {
-          host = i.slice(5).toLowerCase()
+          host = i.slice(5)
+        } else if (i === "matched") {
+          retainMatched = 1
         } else {
-          actions |= Clipboard_.SedActionMap_[i] || 0
+          let action = Clipboard_._SedActionMap[i] || SedAction.NONE
+          action && actions.push(action)
         }
       }
-      result.push({
+      const matchRe = BgUtils_.makeRegexp_(body[1], retainMatched ? flags.replace("g", "") : flags)
+      matchRe && result.push({
         contexts_: Clipboard_.parseSedKeys_(head),
         host_: host,
-        actions_: actions + +(suffix.includes("r") && !flags.includes("g")) * SedAction.retainMatched
-            + +suffix.includes("d") * SedAction.decodeMaybeEscaped + +suffix.includes("D") * SedAction.decodeForCopy,
         match_: matchRe,
+        retainMatched_: retainMatched,
+        actions_: actions,
         replaced_: Clipboard_.decodeSlash_(body[2])
       });
     }
@@ -99,7 +101,6 @@ const Clipboard_ = {
     }
     context = !notParsed && (mixedSed as ParsedSedOpts).k ? Clipboard_.parseSedKeys_((mixedSed as ParsedSedOpts).k!)
         : context
-    let start: SedAction = 0, end = 0, first_group: string | undefined
     let parsedUrl: URL | null, host: string | null = "", hostType: number
     for (const item of arr) {
       if (item.contexts_ & context && (!item.host_
@@ -110,37 +111,45 @@ const Clipboard_ = {
                     : hostType > 1 ? `${host}.`.startsWith(item.host_.slice(0, -1))
                     : hostType ? `.${host}`.endsWith(item.host_.slice(1)) : host === item.host_)
           )) {
-        if (item.actions_ & SedAction.retainMatched) {
+        let end = -1
+        if (item.retainMatched_) {
+          let start = 0, first_group: string | undefined
           text.replace(item.match_ as RegExpOne & RegExpSearchable<0>, function (matched_text): string {
             const args = arguments
             start = args[args.length - 2]; end = start + matched_text.length
             first_group = args.length > 3 ? args[1] : ""
             return ""
           });
-          if (end) {
+          if (end >= 0) {
             const newText = text.replace(item.match_ as RegExpOne, item.replaced_)
             text = newText.slice(start, newText.length - (text.length - end)) || first_group || text.slice(start, end)
           }
-        } else {
-          end = +(item.match_ as RegExpOne).test(text);
-          (item.match_ as RegExpG).lastIndex = 0
+        } else if ((item.match_ as RegExpOne).test(text)) {
+          end = (item.match_ as RegExpG).lastIndex = 0
           text = text.replace(item.match_ as RegExpG, item.replaced_);
         }
-        if (end) {
-          start = item.actions_
-          text = start & SedAction.decodeForCopy ? BgUtils_.decodeUrlForCopy_(text)
-              : start & SedAction.decodeMaybeEscaped ? BgUtils_.decodeEscapedURL_(text) : text
-          text = start & SedAction.unescape ? Clipboard_.decodeSlash_(text) : text
-          text = start & SedAction.upper ? text.toLocaleUpperCase!() : text
-          text = start & SedAction.lower ? text.toLocaleLowerCase!() : text
-          if (start & (SedAction.normalize | SedAction.reverseText)) {
-            text = Build.MinCVer < BrowserVer.Min$String$$Normalize && Build.BTypes & BrowserType.Chrome
-                && !text.normalize ? text : text.normalize()
-          }
-          if (start & SedAction.reverseText) {
-            text = (Build.MinCVer < BrowserVer.Min$Array$$From && Build.BTypes & BrowserType.Chrome
-                && !Array.from ? text.split("") : Array.from(text)).reverse().join("")
-          }
+        if (end < 0) {
+          continue
+        }
+        host = ""
+        for (const action of item.actions_) {
+          text = action === SedAction.decodeForCopy ? BgUtils_.decodeUrlForCopy_(text)
+              : action === SedAction.decodeMaybeEscaped ? BgUtils_.decodeEscapedURL_(text)
+              : action === SedAction.unescape ? Clipboard_.decodeSlash_(text)
+              : action === SedAction.upper ? text.toLocaleUpperCase!()
+              : action === SedAction.lower ? text.toLocaleLowerCase!()
+              : action === SedAction.encode ? encodeURI(text)
+              : action === SedAction.encodeComp ? encodeURIComponent(text)
+              : action === SedAction.base64Decode ? BgUtils_.DecodeURLPart_(text, "atob")
+              : action === SedAction.base64Encode ? btoa(text)
+              : (text = (action === SedAction.normalize || action === SedAction.reverseText)
+                    && (Build.MinCVer >= BrowserVer.Min$String$$Normalize || !(Build.BTypes & BrowserType.Chrome)
+                        || text.normalize) ? text.normalize() : text,
+                action === SedAction.reverseText
+                ? (Build.MinCVer < BrowserVer.Min$Array$$From && Build.BTypes & BrowserType.Chrome
+                  && !Array.from ? text.split("") : Array.from(text)).reverse().join("")
+                : text
+              )
         }
       }
     }

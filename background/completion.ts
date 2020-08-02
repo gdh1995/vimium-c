@@ -1959,7 +1959,9 @@ Completion_ = {
     if (str.length === 2 && str[0] === ":") {
       str = str[1];
       arr = str === "b" ? knownCs.bookm : str === "h" ? knownCs.history
-        : str === "t" || str === "w" ? (wantInCurrentWindow = str === "w", knownCs.tab)
+        : str === "t" || str === "w" || str === "W" ? (wantInCurrentWindow = str !== "t",
+            otherFlags |= Build.BTypes & BrowserType.Firefox && str > "Z" ? CompletersNS.QueryFlags.EvenHiddenTabs : 0,
+            knownCs.tab)
         : str === "B" ? (otherFlags |= CompletersNS.QueryFlags.PreferBookmarks, knownCs.omni)
         : str === "H" ? (otherFlags |= CompletersNS.QueryFlags.NoTabEngine, knownCs.omni)
         : str === "d" ? knownCs.domain : str === "s" ? knownCs.search : str === "o" ? knownCs.omni : null;
