@@ -622,29 +622,45 @@
         : reuse === "lastWndFg" ? ReuseType.lastWndFg : reuse === "lastWndBg" ? ReuseType.lastWndBg
         : ReuseType.newFg
   }
+  function fillUrlMasks(url: string, tabs: [Tab?] | undefined, url_mark: string): string {
+      const tabUrl = tabs && tabs.length > 0 ? getTabUrl(tabs[0]!) : ""
+      const masks: Array<string | null | undefined> = [url_mark,
+        cOptions.host_mask || cOptions.host_mark,
+        cOptions.tabid_mask || cOptions.tabId_mask || cOptions.tabid_mark,
+        cOptions.title_mask || cOptions.title_mark,
+        cOptions.id_mask || cOptions.id_mark || cOptions.id_marker,
+      ]
+      const matches: [number, number, string][] = []
+      for (let i = 0; i < masks.length; i++) {
+        const mask = masks[i], ind = mask ? url.indexOf(mask) : -1
+        if (ind >= 0) {
+          let end = ind + mask!.length
+          for (const j of matches) { if (ind < j[1] && end >= j[0]) { continue } }
+          matches.push([ ind, end, i === 0
+              ? (<RegExpOne> /[%$]s/).test(mask!) ? BgUtils_.encodeAsciiComponent(tabUrl) : tabUrl
+              : i === 1 ? new URL(tabUrl).host : i === 2 ? tabUrl && "" + tabs![0]!.id
+              : i === 3 ? tabUrl && "" + BgUtils_.encodeAsciiComponent(tabs![0]!.title) : chrome.runtime.id ])
+        }
+      }
+      if (matches.length) {
+        let s = "", lastEnd = 0
+        matches.sort((a, b) => a[0] - b[0])
+        for (const match of matches) {
+          s = s + url.slice(lastEnd, match[0]) + match[2]
+          lastEnd = match[1]
+        }
+        url = s + url.slice(lastEnd)
+      }
+      return url
+  }
   function openUrl(url: Urls.Url, workType: Urls.WorkType, tabs?: [Tab] | []): void {
     if (typeof url !== "string") { /* empty */ }
     else if (url || workType !== Urls.WorkType.FakeType) {
-      const tabUrl = tabs && tabs.length > 0 ? getTabUrl(tabs[0]!) : "";
-      const _rawKey = (cOptions as OpenUrlOptionsInBgCmd).keyword, keyword = (_rawKey || "") + ""
-      const _rawTest = (cOptions as OpenUrlOptionsInBgCmd).testUrl, testUrl = _rawTest != null ? _rawTest : !keyword
-      let mask: string | undefined = cOptions.url_mask || cOptions.url_mark;
-      if (mask) {
-        url = url && url.replace(mask + "", (<RegExpOne> /[%$]s/).test(mask) ? encodeURIComponent(tabUrl) : tabUrl);
-      }
-      if (mask = cOptions.host_mask || cOptions.host_mark) {
-        url = url && url.replace(mask + "", new URL(tabUrl).host);
-      }
-      if (mask = cOptions.tabid_mask || cOptions.tabId_mask || cOptions.tabid_mark) {
-        url = url && url.replace(mask + "", tabUrl && "" + tabs![0]!.id);
-      }
-      if (mask = cOptions.title_mask || cOptions.title_mark) {
-        url = url && url.replace(mask + "", tabUrl && "" + encodeURIComponent(tabs![0]!.title));
-      }
-      if (mask = cOptions.id_mask || cOptions.id_mark || cOptions.id_marker) {
-        url = url && url.replace(mask + "", chrome.runtime.id);
-      }
+      let url_mark: string | null | undefined = cOptions.url_mask || cOptions.url_mark
+      url = url_mark ? fillUrlMasks(url, tabs, url_mark) : url
       if (workType !== Urls.WorkType.FakeType) {
+        const _rawKey = (cOptions as OpenUrlOptionsInBgCmd).keyword, keyword = (_rawKey || "") + ""
+        const _rawTest = (cOptions as OpenUrlOptionsInBgCmd).testUrl, testUrl = _rawTest != null ? _rawTest : !keyword
         url = testUrl ? BgUtils_.convertToUrl_(url, keyword, workType)
             : BgUtils_.createSearchUrl_(url.trim().split(BgUtils_.spacesRe_), keyword || "~")
       }
@@ -1812,7 +1828,7 @@
           return onRuntimeError();
         }
       }
-      if ((cOptions.url_mask || cOptions.url_mark || cOptions.host_mask || cOptions.host_mark) && !tabs) {
+      if ((cOptions.url_mask != null || cOptions.url_mark != null) && !tabs) {
         return onRuntimeError() || <any> void getCurTab(BackgroundCommands[kBgCmd.openUrl]);
       }
       let sed = Clipboard_.parseSedOptions_(cOptions as OpenUrlOptions)
@@ -2131,7 +2147,8 @@
       if (reader) {
         if (Build.BTypes & BrowserType.Chrome && IsEdg_ && BgUtils_.protocolRe_.test(url)) {
           url = url.startsWith("read:") ? BgUtils_.DecodeURLPart_(url.slice(url.indexOf("?url=") + 5))
-              : `read://${new URL(url).origin.replace(<RegExpG> /:\/\/|:/g, "_")}/?url=${encodeURIComponent(url)}`
+              : `read://${new URL(url).origin.replace(<RegExpG> /:\/\/|:/g, "_")}/?url=${
+                  BgUtils_.encodeAsciiComponent(url)}`
           openUrl(url, Urls.WorkType.FakeType, tabs)
         } else {
           Backend_.complain_(trans_("noReader"))
@@ -2816,7 +2833,7 @@
       }
       let prefix = Settings_.CONST_.ShowPage_ + "#!image ";
       if (req.f) {
-        prefix += "download=" + encodeURIComponent(req.f) + "&";
+        prefix += "download=" + BgUtils_.encodeAsciiComponent(req.f) + "&";
       }
       if (req.a !== false) {
         prefix += "auto=once&";
