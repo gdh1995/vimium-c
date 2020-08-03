@@ -853,7 +853,8 @@ function recoverHash_(notUpdateHistoryState?: 1): void {
   }
   let url = "#!" + type + " "
       + (VData.incognito ? "incognito=1&" : "")
-      + (VData.file ? "download=" + encodeURIComponent(VData.file) + "&" : "")
+      + (VData.file ? "download=" + (BG_ ? BG_.BgUtils_.encodeAsciiComponent : encodeURIComponent)(VData.file)
+          + "&" : "")
       + (VData.auto ? "auto=" + (VData.auto === "once" ? "once" : 1) + "&" : "")
       + VData.original;
   VData.full = url;

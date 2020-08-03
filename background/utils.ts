@@ -581,7 +581,7 @@ var BgUtils_ = {
         arr = query;
         s1 = " ";
       } else {
-        arr = (q2 || (q2 = query.map(encodeURIComponent)));
+        arr = (q2 || (q2 = query.map(BgUtils_.encodeAsciiComponent)));
         s1 = BgUtils_.isJSUrl_(url) ? "%20" : "+";
       }
       if (arr.length === 0) { return ""; }
@@ -632,6 +632,43 @@ var BgUtils_ = {
         ? BgUtils_.DecodeURLPart_(url).trim() : url
     return BgUtils_.decodeUrlForCopy_(url)
   },
+  encodeAsciiURI (this: unknown, url: string): string {
+    return encodeURI(url).replace(<RegExpG & RegExpSearchable<0>> /%(?:[CD].%..|E.%..%..)/g, (s): string => {
+      const t = decodeURIComponent(s)
+      const re = Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther & BrowserType.Edge)
+          || Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp && Build.BTypes & BrowserType.Chrome
+            && CurCVer_ < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+          || Build.MinFFVer < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+            && Build.BTypes & BrowserType.Firefox
+            && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)
+            && CurFFVer_ < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+          ? <RegExpOne> /[\u0391-\u03c9\u4e00-\u9fa5]/ // Greek letters / CJK
+          : (Build.MinCVer >= BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+              || !(Build.BTypes & BrowserType.Chrome))
+            && (Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+                || !(Build.BTypes & BrowserType.Firefox))
+            && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+          ? <RegExpOne> /[\p{L}\p{N}]/u
+          : <RegExpOne> new RegExp("[\\p{L}\\p{N}]", "u")
+      return re.test(t) ? t : s
+    })
+  },
+  encodeAsciiComponent: (url: string): string => url.replace(
+      Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther & BrowserType.Edge)
+        || Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp && Build.BTypes & BrowserType.Chrome
+          && CurCVer_ < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+        || Build.MinFFVer < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+          && Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)
+          && CurFFVer_ < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+      ? <RegExpG & RegExpSearchable<0>> /[\x00-`{-\u0390\u03ca-\u4dff\u9fa6-\uffff\s]+/g // Greek letters / CJK
+      : (Build.MinCVer >= BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp || !(Build.BTypes & BrowserType.Chrome))
+        && (Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+            || !(Build.BTypes & BrowserType.Firefox))
+        && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+      ? <RegExpG & RegExpSearchable<0>> /[^\p{L}\p{N}]+/ug
+      : <RegExpG & RegExpSearchable<0>> new RegExp("[^\\p{L}\\p{N}]+", "ug" as "g"),
+      encodeURIComponent),
   fixCharsInUrl_ (url: string): string {
     let type = +url.includes("\u3002") + 2 * +url.includes("\uff1a");
     if (type === 0) { return url; }

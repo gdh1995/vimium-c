@@ -506,6 +506,7 @@ declare const enum FirefoxBrowserVer {
   Min$MathMLElement$Prototype = 71,
   MinCrossOriginResourcePolicy = 74, // not break Vomnibar
   MinCSS$readOnly$selector = 78, // https://developer.mozilla.org/en-US/docs/Web/CSS/:read-only
+  MinEnsuredUnicodePropertyEscapesInRegExp = 78,
   /** @todo: trace https://bugzilla.mozilla.org/show_bug.cgi?id=1587723 */
   MinMediaChangeEventsOnBackgroundPage = 99,
   // members of a Selection are never updated when an <input> gets focused, so no work-around
