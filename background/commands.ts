@@ -598,8 +598,7 @@ CommandsData_: CommandsDataTy = CommandsData_ as never || {
     o: VisualAction.Reverse, a: { w: VisualAction.LexicalWord, s: VisualAction.LexicalSentence },
     aw: VisualAction.LexicalWord, as: VisualAction.LexicalSentence,
 
-    y: VisualAction.Yank, Y: VisualAction.YankLine, C: VisualAction.YankWithoutExit,
-    "c-c": VisualAction.YankRichText, "m-c": VisualAction.YankRichText,
+    y: VisualAction.Yank, Y: VisualAction.YankLine, C: VisualAction.YankWithoutExit, "c-s-c": VisualAction.YankRichText,
     p: VisualAction.YankAndOpen, P: VisualAction.YankAndNewTab,
 
     n: VisualAction.FindNext, N: VisualAction.FindPrevious,

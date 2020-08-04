@@ -29,7 +29,7 @@ declare const enum DiType {
 type ValidDiTypes = DiType.Normal | DiType.UnsafeTextBox | DiType.SafeTextBox | DiType.Complicated
     | DiType.UnsafeComplicated;
 declare const enum kYank { // should have no overlap with ReuseType
-  MIN = 7, RichTextAndExit = 7, Exit = 8, NotExit = 9,
+  MIN = 7, Exit = 7, NotExit = 8, RichTextButNotExit = 9,
 }
 
 import { VTr, VOther, safer, fgCache, doc, chromeVer_ } from "../lib/utils"
@@ -223,9 +223,9 @@ const commandHandler = (command: VisualAction, count: number): void => {
       return;
     } else if (command > VisualAction.MaxNotYank) {
       command === VisualAction.YankLine && selectLine(count)
-      yank(([kYank.Exit, kYank.Exit, kYank.NotExit, ReuseType.current, ReuseType.newFg, kYank.RichTextAndExit
+      yank(([kYank.Exit, kYank.Exit, kYank.NotExit, ReuseType.current, ReuseType.newFg, kYank.RichTextButNotExit
             ] as const)[command - VisualAction.Yank])
-      if (command !== VisualAction.YankWithoutExit) { return; }
+      if (command !== VisualAction.YankWithoutExit && command !== VisualAction.YankRichText) { return; }
     } else if (command > VisualAction.MaxNotLexical) {
       selectLexicalEntity((command - VisualAction.MaxNotLexical
           ) as kG.sentence | kG.word, count)
@@ -319,14 +319,15 @@ const findV = (count: number): void => {
    * @not_related_to_di otherwise
    */
 const yank = (action: kYank | ReuseType.current | ReuseType.newFg): void => {
-    const str = "" + curSelection
+    const str = "" + curSelection, rich = richText
     if (action < kYank.NotExit) {
       deactivate()
     }
     if (action < kYank.MIN) {
       post_({ H: kFgReq.openUrl, u: str, r: action as ReuseType })
-    } else if (richText || action < kYank.RichTextAndExit + 1) {
+    } else if (rich || action > kYank.RichTextButNotExit - 1) {
       execCommand("copy", doc)
+      hudTip(kTip.copiedIs, 0, ["# " + str])
     } else {
       post_({ H: kFgReq.copy, s: str })
     }
