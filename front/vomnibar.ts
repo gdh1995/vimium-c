@@ -885,8 +885,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
     }
     const isComposing = !!event && event.isComposing;
-    if (Build.MinCVer >= BrowserVer.Min$InputEvent$$isComposing || !(Build.BTypes & BrowserType.Chrome)
-        || isComposing != null) {
+    if (Build.MinCVer >= BrowserVer.Min$InputEvent$$isComposing && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+        || !(Build.BTypes & ~BrowserType.Firefox) || isComposing != null) {
       if (isComposing && !a.isInputComposing_) {
         a.lastNormalInput_ = a.input_.value.trim();
       }

@@ -210,7 +210,7 @@ const onLoad2 = (): void => {
           && (Build.BTypes & BrowserType.Chrome || chromeVer_ < FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
             || fgCache.o === kOS.unixLike)
         ? addElement("div") as HTMLDivElement : body,
-    root = Build.BTypes & BrowserType.Firefox
+    root = !(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
         && (Build.MinFFVer < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
           && (Build.BTypes & BrowserType.Chrome || chromeVer_ < FirefoxBrowserVer.MinContentEditableInShadowSupportIME))
@@ -220,13 +220,13 @@ const onLoad2 = (): void => {
             || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
                 && Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
         && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-        ? true : root !== box,
+        ? true : !(Build.BTypes & ~BrowserType.Edge) ? false : root !== box,
     root2 = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
         && (!(Build.BTypes & BrowserType.Firefox)
             || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
                 && Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
         && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-        || inShadow ? addElement("div") : box;
+        || Build.BTypes & ~BrowserType.Edge && inShadow ? addElement("div") : box;
     root2.className = "r" + fgCache.d;
     root2.spellcheck = false;
     root2.appendChild(list);
@@ -237,7 +237,7 @@ const onLoad2 = (): void => {
             || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
                 && Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
         && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-        || inShadow) {
+        || Build.BTypes & ~BrowserType.Edge && inShadow) {
       root_ = root as ShadowRoot
       // here can not use `box.contentEditable = "true"`, otherwise Backspace will break on Firefox, Win
       setupEventListener(root2, MDW, onMousedown, 0, 1)
@@ -259,7 +259,12 @@ const onLoad2 = (): void => {
     } else if (Build.BTypes & ~BrowserType.Firefox && zoom < 1) {
       docEl.style.zoom = "" + 1 / zoom;
     }
-    body.className = fgCache.d.trim()
+    if (!(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+        && (Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1 || !(Build.BTypes & BrowserType.Firefox))
+        && (Build.MinCVer >= BrowserVer.MinShadowDOMV0 || !(Build.BTypes & BrowserType.Chrome))
+        || Build.BTypes & ~BrowserType.Edge && root2 !== body) {
+      body.className = fgCache.d.trim()
+    }
     outerBox_.style.display = ""
     removeHandler_(activate);
     pushHandler_(onHostKeydown, activate)

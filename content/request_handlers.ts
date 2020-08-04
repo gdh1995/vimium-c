@@ -232,7 +232,7 @@ set_requestHandlers([
         styleSelectable && createStyle(req.f.s, styleSelectable)
       }
     }
-    req.k ? hudTip(req.k, req.d, [req.t! /* safe */]) : 0
+    req.k ? hudTip(req.k, req.d, [req.t || ""]) : 0
   },
   /* kBgReq.count: */ function (request: BgReq[kBgReq.count]): void {
     let n = parseInt(currentKeys, 10) || 1, count2: 0 | 1 | 2 | 3 = 0;
