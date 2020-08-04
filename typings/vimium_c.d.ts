@@ -183,7 +183,7 @@ declare const enum VisualAction {
   LexicalSentence = MaxNotLexical + VisualModeNS.kG.sentence,
   LexicalWord = MaxNotLexical + VisualModeNS.kG.word,
 
-  MaxNotYank = 30, Yank, YankLine, YankWithoutExit, YankAndOpen, YankAndNewTab,
+  MaxNotYank = 30, Yank, YankLine, YankWithoutExit, YankAndOpen, YankAndNewTab, YankRichText,
 
   MaxNotFind = 45, PerformFind, FindPrevious = PerformFind | dec, FindNext = PerformFind | inc, HighlightRange,
 
@@ -227,6 +227,7 @@ declare const enum ReuseType {
   lastWndBg = -6,
   FLAG_LAST_WINDOW = -4,
   Default = newFg,
+  MAX = 2,
 }
 declare type UserReuseType = ReuseType | keyof typeof ReuseType
 

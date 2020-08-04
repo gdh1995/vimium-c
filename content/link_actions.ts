@@ -7,18 +7,19 @@ import { getVisibleClientRect_, center_, view_ } from "../lib/rect"
 import {
   IsInDOM_, createElement_, htmlTag_, getComputedStyle_, getEditableType_, isIFrameElement, GetParent_unsafe_,
   ElementProto, querySelector_unsafe_, getInputType, uneditableInputs_, GetShadowRoot_, CLK, scrollingEl_,
-  findMainSummary_,
+  findMainSummary_, getSelection_,
 } from "../lib/dom_utils"
 import {
   hintOptions, mode1_, hintMode_, hintApi, hintManager, coreHints, setMode, detectUsableChild, hintCount_,
 } from "./link_hints"
 import { set_currentScrolling, syncCachedScrollable } from "./scroller"
 import { post_, send_ } from "./port"
-import { evalIfOK, flash_, getRect, lastFlashEl } from "./dom_ui"
+import { evalIfOK, flash_, getRect, lastFlashEl, resetSelectionToDocStart } from "./dom_ui"
 import { pushHandler_, removeHandler_, isEscape_, getMappedKey, prevent_, suppressTail_ } from "../lib/keyboard_utils"
 import { insert_Lock_ } from "./insert"
 import { unhover_, hover_, click_, select_, mouse_, catchAsyncErrorSilently } from "./async_dispatcher"
 import { omni_box, focusOmni } from "./omni"
+import { execCommand } from "./mode_find"
 type LinkEl = Hint[0];
 interface Executor {
   (this: void, linkEl: LinkEl, rect: Rect | null, hintEl: Pick<HintItem, "r">): void | boolean;
@@ -278,9 +279,6 @@ export const linkActions: readonly LinkAction[] = [
         str = (link as SafeHTMLElement).title.trim() || (link.getAttribute("aria-label") || "").trim();
       }
     }
-    if (!str) {
-      return hintApi.t({ k: isUrl ? kTip.noUrlCopied : kTip.noTextCopied })
-    }
     if (mode1 > HintMode.min_edit - 1 && mode1 < HintMode.max_edit + 1) {
       let newtab = hintOptions.newtab
       // this frame is normal, so during Vomnibar.activate, checkHidden will only pass (in most cases)
@@ -293,6 +291,16 @@ export const linkActions: readonly LinkAction[] = [
         keyword: hintOptions.keyword
       });
       return;
+    } else if (hintOptions.richText) {
+      const sel = getSelection_(), range = sel.rangeCount ? sel.getRangeAt(0) : null
+      resetSelectionToDocStart(sel)
+      sel.selectAllChildren(link)
+      execCommand("copy", doc)
+      resetSelectionToDocStart(sel)
+      range && sel.addRange(range)
+      return
+    } else if (!str) {
+      return hintApi.t({ k: isUrl ? kTip.noUrlCopied : kTip.noTextCopied })
     } else if (mode1 === HintMode.SEARCH_TEXT) {
       return openUrl(str);
     }

@@ -1285,6 +1285,7 @@
           f: findCSS,
           g: granularities,
           k: keyMap,
+          t: !!cOptions.rickText,
           w: words
         }
       });

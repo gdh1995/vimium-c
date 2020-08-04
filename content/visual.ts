@@ -28,6 +28,9 @@ declare const enum DiType {
 }
 type ValidDiTypes = DiType.Normal | DiType.UnsafeTextBox | DiType.SafeTextBox | DiType.Complicated
     | DiType.UnsafeComplicated;
+declare const enum kYank { // should have no overlap with ReuseType
+  MIN = 7, RichTextAndExit = 7, Exit = 8, NotExit = 9,
+}
 
 import { VTr, VOther, safer, fgCache, doc, chromeVer_ } from "../lib/utils"
 import {
@@ -35,12 +38,14 @@ import {
   GetChildNodes_not_ff, isInputInTextMode_cr_old,
 } from "../lib/dom_utils"
 import {
-  padClientRect_, getSelectionBoundingBox_, getZoom_, prepareCrop_, cropRectToVisible_, getVisibleClientRect_, set_scrollingTop,
+  padClientRect_, getSelectionBoundingBox_, getZoom_, prepareCrop_, cropRectToVisible_, getVisibleClientRect_,
+  set_scrollingTop,
 } from "../lib/rect"
 import { checkDocSelectable, getSelected, resetSelectionToDocStart, flash_, collpaseSelection } from "./dom_ui"
 import { prepareTop, executeScroll, scrollIntoView_need_safe } from "./scroller"
 import {
   toggleSelectableStyle, find_query, executeFind, find_hasResults, updateQuery as findUpdateQuery, findCSS, set_findCSS,
+  execCommand,
 } from "./mode_find"
 import { insert_Lock_ } from "./insert"
 import { hudTip, hudHide, hudShow } from "./hud"
@@ -54,7 +59,8 @@ let mode_ = Mode.NotActive
 let modeName = ""
 let currentCount = 0
 let currentSeconds: SafeDict<VisualAction> | null = null
-let retainSelection = false
+let retainSelection: BOOL | boolean | undefined
+let richText: BOOL | boolean | undefined
 let scope: ShadowRoot | null = null
 let curSelection: Selection = null as never
 /** need real diType */
@@ -83,7 +89,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     sel: Selection = curSelection = theSelected[0],
     type: SelType = selType(), mode: CmdOptions[kFgCmd.visualMode]["m"] = options.m
     scope = theSelected[1]
-    if (!mode_) { retainSelection = type === SelType.Range }
+    if (!mode_) { retainSelection = type === SelType.Range; richText = options.t }
     if (mode !== Mode.Caret) {
       if (!insert_Lock_() && /* (type === SelType.Caret || type === SelType.Range) */ type) {
         const r = padClientRect_(getSelectionBoundingBox_(sel))
@@ -134,10 +140,10 @@ export const deactivate = (isEsc?: 1): void => {
     const el = insert_Lock_();
     oldDiType & (DiType.TextBox | DiType.Complicated) ||
     el && el.blur();
+    retainSelection = richText = 0
     toggleSelectableStyle(0);
-    /*#__INLINE__*/ set_scrollingTop(null)
-    retainSelection = false
     resetKeys()
+    /*#__INLINE__*/ set_scrollingTop(null)
     curSelection = null as never
     scope = null
     hudHide();
@@ -154,8 +160,8 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
     }
     if (keybody_(key) === ENTER) {
       resetKeys()
-      if (key > "s" && mode_ !== Mode.Caret) { retainSelection = true }
-      "cm".includes(key[0]) ? deactivate() : yank(key < "b" ? 9 : 8)
+      if (key > "s" && mode_ !== Mode.Caret) { retainSelection = 1 }
+      "cm".includes(key[0]) ? deactivate() : yank(key < "b" ? kYank.NotExit : kYank.Exit)
       return HandlerResult.Prevent;
     }
     const count = currentCount, childAction = currentSeconds && currentSeconds[key],
@@ -217,7 +223,8 @@ const commandHandler = (command: VisualAction, count: number): void => {
       return;
     } else if (command > VisualAction.MaxNotYank) {
       command === VisualAction.YankLine && selectLine(count)
-      yank(([8, 8, 9, ReuseType.current, ReuseType.newFg] as const)[command - VisualAction.Yank])
+      yank(([kYank.Exit, kYank.Exit, kYank.NotExit, ReuseType.current, ReuseType.newFg, kYank.RichTextAndExit
+            ] as const)[command - VisualAction.Yank])
       if (command !== VisualAction.YankWithoutExit) { return; }
     } else if (command > VisualAction.MaxNotLexical) {
       selectLexicalEntity((command - VisualAction.MaxNotLexical
@@ -311,16 +318,22 @@ const findV = (count: number): void => {
    * @safe_di if action !== true
    * @not_related_to_di otherwise
    */
-const yank = (action: /* copy but not exit */ 9 | /* copy&exit */ 8 | ReuseType.current | ReuseType.newFg): void => {
+const yank = (action: kYank | ReuseType.current | ReuseType.newFg): void => {
     const str = "" + curSelection
-    if (action < 9) {
+    if (action < kYank.NotExit) {
       deactivate()
     }
-    post_(action < 8 ? { H: kFgReq.openUrl, u: str, r: action } : { H: kFgReq.copy, s: str });
+    if (action < kYank.MIN) {
+      post_({ H: kFgReq.openUrl, u: str, r: action as ReuseType })
+    } else if (richText || action < kYank.RichTextAndExit + 1) {
+      execCommand("copy", doc)
+    } else {
+      post_({ H: kFgReq.copy, s: str })
+    }
 }
 
 export const highlightRange = (sel: Selection): void => {
-    const br = sel.rangeCount > 0 ? padClientRect_(getSelectionBoundingBox_(sel)) : null
+    const br = sel.rangeCount ? padClientRect_(getSelectionBoundingBox_(sel)) : null
     if (br && br.b > br.t && br.r > 0) { // width may be 0 in Caret mode
       let cr = cropRectToVisible_(br.l - 4, br.t - 5, br.r + 3, br.b + 4)
       cr && flash_(null, cr, 660, " Sel");
@@ -800,4 +813,8 @@ let init = (words: string, map: VisualModeNS.KeyMap, _g: any) => {
       ? /[^\S\n\r\u2029\u202f]+$/ : /[^\S\n\u2029\u202f]+$/));
   func(keyMap = map as VisualModeNS.SafeKeyMap)
   func(map.a as Dict<VisualAction>); func(map.g as Dict<VisualAction>)
+}
+
+if (!(Build.NDEBUG || kYank.MIN > ReuseType.MAX)) {
+  console.log('Assert error: kYank.MIN > ReuseType.MAX');
 }

@@ -238,6 +238,7 @@ declare namespace HintsNS {
     hideHud?: boolean;
     hideHUD?: boolean;
     autoUnhover?: boolean;
+    richText?: boolean;
   }
 }
 
@@ -325,6 +326,7 @@ interface CmdOptions {
     /** kGranularity[] */ g?: GranularityNames | null;
     /** keyMaps */ k?: VisualModeNS.KeyMap | null;
     /** words */ w?: string;
+    /** richText */ t?: boolean
   };
   [kFgCmd.showHelpDialog]: {
     /** html */ h: "html" | /** for Firefox */ { /** head->style */ h: string; /** body */ b: string };
