@@ -364,7 +364,9 @@ export const isNotInViewport = function (this: void, element: Element | null, re
   (element: null, rect: Rect): VisibilityType
 }
 
-export const getSelectionBoundingBox_ = (sel: Selection): ClientRect => sel.getRangeAt(0).getBoundingClientRect()
+export const selRange_ = (sel: Selection): Range => sel.getRangeAt(0)
+
+export const getSelectionBoundingBox_ = (sel: Selection): ClientRect => selRange_(sel).getBoundingClientRect()
 
 export const view_ = (el: Element, oldY?: number): boolean => {
   let rect = padClientRect_(getBoundingClientRect_(el)), secondScroll: number,

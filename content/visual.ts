@@ -35,11 +35,11 @@ declare const enum kYank { // should have no overlap with ReuseType
 import { VTr, VOther, safer, fgCache, doc, chromeVer_ } from "../lib/utils"
 import {
   getSelection_, getSelectionFocusEdge_, isHTML_, docEl_unsafe_, notSafe_not_ff_, getEditableType_, editableTypes_,
-  GetChildNodes_not_ff, isInputInTextMode_cr_old,
+  GetChildNodes_not_ff, isInputInTextMode_cr_old, rangeCount_,
 } from "../lib/dom_utils"
 import {
   padClientRect_, getSelectionBoundingBox_, getZoom_, prepareCrop_, cropRectToVisible_, getVisibleClientRect_,
-  set_scrollingTop,
+  set_scrollingTop, selRange_,
 } from "../lib/rect"
 import { checkDocSelectable, getSelected, resetSelectionToDocStart, flash_, collpaseSelection } from "./dom_ui"
 import { prepareTop, executeScroll, scrollIntoView_need_safe } from "./scroller"
@@ -206,10 +206,10 @@ const commandHandler = (command: VisualAction, count: number): void => {
       }));
       return
     }
-    if (scope && !curSelection.rangeCount) {
+    if (scope && !rangeCount_(curSelection)) {
       scope = null
       curSelection = getSelection_()
-      if (command < VisualAction.MaxNotFind + 1 && !curSelection.rangeCount) {
+      if (command < VisualAction.MaxNotFind + 1 && !rangeCount_(curSelection)) {
         deactivate()
         return hudTip(kTip.loseSel);
       }
@@ -281,7 +281,7 @@ const establishInitialSelectionAnchor = (sr?: ShadowRoot | null): boolean => {
     offset = str!.match(<RegExpOne> /^\s*/)![0].length;
     curSelection.collapse(node, offset)
     di_ = kDirTy.right
-    return !curSelection.rangeCount
+    return !rangeCount_(curSelection)
 }
 
 const findV = (count: number): void => {
@@ -296,7 +296,7 @@ const findV = (count: number): void => {
       });
       return;
     }
-    const sel = curSelection, range = sel.rangeCount && (getDirection(""), !diType_) && sel.getRangeAt(0)
+    const sel = curSelection, range = rangeCount_(sel) && (getDirection(""), !diType_) && selRange_(sel)
     executeFind(null, { noColor: true, n: count });
     if (find_hasResults) {
       diType_ = DiType.UnsafeUnknown
@@ -309,7 +309,7 @@ const findV = (count: number): void => {
         commandHandler(VisualAction.Noop, 1)
       }
     } else {
-      range && !sel.rangeCount && sel.addRange(range)
+      range && !rangeCount_(sel) && resetSelectionToDocStart(sel, range)
       hudTip(kTip.noMatchFor, 1000, [find_query])
     }
 }
@@ -333,7 +333,7 @@ const yank = (action: kYank | ReuseType.current | ReuseType.newFg): void => {
 }
 
 export const highlightRange = (sel: Selection): void => {
-    const br = sel.rangeCount ? padClientRect_(getSelectionBoundingBox_(sel)) : null
+    const br = rangeCount_(sel) ? padClientRect_(getSelectionBoundingBox_(sel)) : null
     if (br && br.b > br.t && br.r > 0) { // width may be 0 in Caret mode
       let cr = cropRectToVisible_(br.l - 4, br.t - 5, br.r + 3, br.b + 4)
       cr && flash_(null, cr, 660, " Sel");
@@ -586,7 +586,7 @@ const getDirection = function (magic?: string
         diType_ = DiType.Normal
         return di_ = (
             num1 & (kNode.DOCUMENT_POSITION_CONTAINS | kNode.DOCUMENT_POSITION_CONTAINED_BY)
-            ? sel.getRangeAt(0).endContainer === anchorNode
+            ? selRange_(sel).endContainer === anchorNode
             : (num1 & kNode.DOCUMENT_POSITION_PRECEDING)
           ) ? kDirTy.left : kDirTy.right; // return `right` in case of unknown cases
       }
@@ -738,14 +738,12 @@ const TextOffset = (el: TextElement, di: ForwardDir | boolean): number => {
 let init = (words: string, map: VisualModeNS.KeyMap, _g: any) => {
   const func = safer, typeIdx = { None: SelType.None, Caret: SelType.Caret, Range: SelType.Range }
   init = null as never
-  selType = Build.BTypes & BrowserType.Chrome
-      && Build.MinCVer <= BrowserVer.$Selection$NotShowStatusInTextBox
-      && chromeVer_ === BrowserVer.$Selection$NotShowStatusInTextBox
-  ? (): SelType => {
-    let type = typeIdx[curSelection.type];
-    return type === SelType.Caret && diType_ && ("" + curSelection) ? SelType.Range : type;
-  } : (): SelType => {
-    return typeIdx[curSelection.type]
+  selType = (): SelType => {
+    const type = typeIdx[curSelection.type]
+    return Build.BTypes & BrowserType.Chrome
+        && Build.MinCVer <= BrowserVer.$Selection$NotShowStatusInTextBox
+        && chromeVer_ === BrowserVer.$Selection$NotShowStatusInTextBox
+        && type === SelType.Caret && diType_ && ("" + curSelection) ? SelType.Range : type
   };
 /**
  * Call stack (Chromium > icu):

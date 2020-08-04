@@ -7,11 +7,11 @@ import {
   DEL, BSP, ENTER,
 } from "../lib/keyboard_utils"
 import {
-  createShadowRoot_, getSelectionFocusEdge_, activeEl_unsafe_,
+  createShadowRoot_, getSelectionFocusEdge_, activeEl_unsafe_, rangeCount_,
   getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, htmlTag_, fullscreenEl_unsafe_, docEl_unsafe_,
   getSelection_, isSelected_, docSelectable_, isHTML_, createElement_, CLK, MDW, HDN, NONE,
 } from "../lib/dom_utils"
-import { wdZoom_, prepareCrop_, view_, dimSize_ } from "../lib/rect"
+import { wdZoom_, prepareCrop_, view_, dimSize_, selRange_ } from "../lib/rect"
 import {
   ui_box, ui_root, getSelectionParent_unsafe, resetSelectionToDocStart, getBoxTagName_cr_, collpaseSelection,
   createStyle, getSelectionText, checkDocSelectable, adjustUI, ensureBorder, addUIElement, getSelected,
@@ -692,11 +692,10 @@ const FormatQuery = (str: string): string => {
 
 const restoreSelection = (isCur?: boolean): void => {
     const sel = getSelection_(),
-    range = !isCur ? initialRange : sel.isCollapsed ? null : sel.getRangeAt(0)
+    range = !isCur ? initialRange : sel.isCollapsed ? null : selRange_(sel)
     if (!range) { return; }
-    resetSelectionToDocStart(sel);
     // Note: it works even when range is inside a shadow root (tested on C72 stable)
-    sel.addRange(range);
+    resetSelectionToDocStart(sel, range)
 }
 
 const getNextQueryFromRegexMatches = (back?: boolean): string => {
@@ -811,11 +810,11 @@ export const toggleSelectableStyle = (enable: BOOL): void => {
 
 const getCurrentRange = (): void => {
     let sel = getSelected()[0], range: Range;
-    if (!sel.rangeCount) {
+    if (!rangeCount_(sel)) {
       range = doc.createRange();
       range.setStart(doc.body || docEl_unsafe_()!, 0);
     } else {
-      range = sel.getRangeAt(0);
+      range = selRange_(sel)
       // Note: `range.collapse` doesn't work if selection is inside a ShadowRoot (tested on C72 stable)
       collpaseSelection(sel)
     }

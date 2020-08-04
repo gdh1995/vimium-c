@@ -5,12 +5,12 @@ import { Stop_, prevent_ } from "../lib/keyboard_utils"
 import {
   createElement_, createShadowRoot_, NONE, fullscreenEl_unsafe_, docEl_unsafe_, getComputedStyle_, set_docSelectable_,
   GetParent_unsafe_, getSelection_, ElementProto, GetChildNodes_not_ff, GetShadowRoot_, getEditableType_, htmlTag_,
-  notSafe_not_ff_, CLK, frameElement_, runJS_, isStyleVisible_,
+  notSafe_not_ff_, CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_,
 } from "../lib/dom_utils"
 import {
   bZoom_, dScale_, getZoom_, wdZoom_, getSelectionBoundingBox_, prepareCrop_, getClientRectsForAreas_,
   getVisibleClientRect_, getBoundingClientRect_, padClientRect_, isContaining_, cropRectToVisible_, getCroppedRect_,
-  setBoundary_, wndSize_, dimSize_,
+  setBoundary_, wndSize_, dimSize_, selRange_,
 } from "../lib/rect"
 import { currentScrolling } from "./scroller"
 import { styleSelectable } from "./mode_find"
@@ -246,7 +246,7 @@ export const getSelected = (notExpectCount?: 1): [Selection, ShadowRoot | null] 
       if (el !== doc && el.nodeType === kNode.DOCUMENT_FRAGMENT_NODE
           && typeof (func = (el as ShadowRoot).getSelection) === "function") {
         sel = func.call(el as ShadowRoot);
-        if (sel && (notExpectCount || sel.rangeCount)) {
+        if (sel && (notExpectCount || rangeCount_(sel))) {
           return [sel, el as ShadowRoot];
         }
       }
@@ -289,7 +289,7 @@ export const getSelected = (notExpectCount?: 1): [Selection, ShadowRoot | null] 
    * @UNSAFE_RETURNED
    */
 export const getSelectionParent_unsafe = ((re?: RegExpG & RegExpSearchable<0>): Element | null | 0 => {
-    let sel = getSelected()[0], range = sel.rangeCount ? sel.getRangeAt(0) : null
+    let sel = getSelected()[0], range = rangeCount_(sel) ? selRange_(sel) : null
       , selected: string | undefined, match: RegExpExecArray | null, result = 0
       , par: Node | null = range && range.commonAncestorContainer, lastPar = par
     while (par && !(par as NodeToElement).tagName) {
@@ -337,8 +337,12 @@ export const removeSelection = function (root?: VUIRoot & Pick<DocumentOrShadowR
     return !!ret
 } as (root?: VUIRoot) => boolean
 
-export const resetSelectionToDocStart = (sel?: Selection): void => {
+export const resetSelectionToDocStart = function (sel?: Selection, range?: Range | null): void {
     (sel || getSelection_()).removeAllRanges();
+    range && sel!.addRange(range)
+} as {
+  (sel: Selection, range?: Range | null): void;
+  (): void;
 }
 
   /** @NEED_SAFE_ELEMENTS element is LockableElement */
@@ -360,10 +364,8 @@ export const moveSel_need_safe = (element: LockableElement, action: SelectAction
     const sel = getSelection_();
     try {
       if (type === EditableType.rich_) {
-        const range = doc.createRange();
-        range.selectNodeContents(element);
         resetSelectionToDocStart(sel)
-        sel.addRange(range);
+        sel.selectAllChildren(element)
       } else {
         let len = (element as TextElement).value.length
           , { selectionStart: start, selectionEnd: end } = element as TextElement;

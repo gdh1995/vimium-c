@@ -44,6 +44,8 @@ export const isIFrameElement = (el: Element): el is KnownIFrameElement => {
   return (tag === "iframe" || tag === "frame") && "lang" in el
 }
 
+export const rangeCount_ = (sel: Selection): number => sel.rangeCount
+
   /** DOM-compatibility section */
 
 export const isHTML_ = !(Build.BTypes & BrowserType.Firefox)
@@ -360,7 +362,7 @@ export const isSelected_ = (): boolean => {
 }
 
 export const getSelectionFocusEdge_ = (sel: Selection, knownDi: VisualModeNS.ForwardDir): SafeElement | null => {
-    if (!sel.rangeCount) { return null; }
+    if (!rangeCount_(sel)) { return null; }
     let el = sel.focusNode!, nt: Node["nodeType"], o: Node | null
     if ((el as NodeToElement).tagName) {
       el = (Build.BTypes & ~BrowserType.Firefox ? GetChildNodes_not_ff!(el as Element)[sel.focusOffset]
