@@ -21,7 +21,7 @@
 
   const symMatch = typeof Symbol === "function" && typeof Symbol.match === "symbol" &&
                     (Symbol.match as symbol | string as "Symbol(Symbol.match)"),
-  // eslint-disable-next-line id-blacklist
+  // eslint-disable-next-line id-denylist
   StrCls = String as StringConstructor & { readonly prototype: StandardString }, TECls = TypeError,
   StrProto = StrCls.prototype,
   toStr = Object.prototype.toString;

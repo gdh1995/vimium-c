@@ -60,7 +60,7 @@
     "eol-last": "error",
     "eqeqeq": [ "error", "smart" ],
     "guard-for-in": "off",
-    "id-blacklist": [ "error", "any", "number", "boolean" ],
+    "id-denylist": [ "error", "any", "number", "boolean" ],
     "id-match": "error",
     "import/order": "off",
     "max-classes-per-file": "off",

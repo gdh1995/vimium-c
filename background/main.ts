@@ -3401,6 +3401,12 @@
       if (Settings_.temp_.initing_ !== BackendHandlersNS.kInitStat.FINISHED) { return; }
       if (!CommandsData_.keyFSM_) {
         Settings_.postUpdate_("keyMappings");
+        if (!Settings_.get_("vimSync") && !Settings_.temp_.hasEmptyLocalStorage_) {
+          Commands = null as never
+        }
+      }
+      if (Settings_.payload_.o === kOS.mac) {
+        CommandsData_.visualKeys_["m-s-c"] = VisualAction.YankRichText
       }
       // the line below requires all necessary have inited when calling this
       Backend_.onInit_ = null;

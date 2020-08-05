@@ -1061,13 +1061,6 @@ el0.textContent = (Build.BTypes & BrowserType.Edge
   ) + pTrans_("comma") + (pTrans_(platform)
         || platform[0].toUpperCase() + platform.slice(1));
 if (Build.BTypes & BrowserType.Chrome && BG_.IsEdg_) {
-  let el = $<EnsuredMountedHTMLElement>("#chromeExtVomnibar");
-  el.nextElementSibling.remove();
-  el.parentElement.classList.add("line-input");
-  el.remove();
-  el = $<EnsuredMountedHTMLElement>("#shortcutHelper");
-  el.previousElementSibling.textContent = pTrans_("period");
-  el.remove();
   const a = $<HTMLAnchorElement>("#openExtensionPage");
   a.textContent = a.href = "edge://extensions/shortcuts";
 }

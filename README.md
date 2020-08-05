@@ -88,12 +88,12 @@ __Other extensions supporting Vimium C:__
       https://chrome.google.com/webstore/detail/pdf-viewer-for-vimium-c/nacjakoppgmdcpemlfnfegmlhipddanj)
 * Shortcut Forwarding Tool
   * Provide 32 configurable shortcuts and forward them to another extension like Vimium C
-  * Visit it on [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/shortcut-forwarding-tool/) /
+  * Visit it on [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/shortcut-forwarding-tool/) /
     [Chrome Web Store](
       https://chrome.google.com/webstore/detail/shortcut-forwarding-tool/clnalilglegcjmlgenoppklmfppddien)
 * NewTab Adapter
   * Take over browser's new tab settings and open another configurable URL
-  * Visit it on [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/newtab-adapter/) /
+  * Visit it on [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/newtab-adapter/) /
     [Chrome Web Store](https://chrome.google.com/webstore/detail/newtab-adapter/cglpcedifkgalfdklahhcchnjepcckfn)
 * Modified Weidu New Tab (微度新标签页修改版)
   : a modified and lite version of [www.weidunewtab.com](http://www.weidunewtab.com/) (or

@@ -538,7 +538,7 @@ declare const enum GlobalConsts {
   ChromeWebStorePage = "https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/$id/reviews",
   ChromeHelp = "https://support.google.com/chrome/answer/157179",
   EdgStorePage = "https://microsoftedge.microsoft.com/addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo",
-  EdgHelp = "https://microsoftedgesupport.microsoft.com/hc",
+  EdgHelp = "https://support.microsoft.com/help/4531783/microsoft-edge-keyboard-shortcuts",
 
   kIsHighContrast = "isHC_f",
 

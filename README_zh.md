@@ -24,7 +24,7 @@
 [![Chrome 评分人数](https://img.shields.io/chrome-web-store/rating-count/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&labelColor=4285F4&logoColor=white&color=critical
   )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg/reviews)
 
-**在 [Firefox 附加组件](https://addons.mozilla.org/zh-CN/firefox/addon/vimium-c/) /
+**在 [Firefox 附加组件](https://addons.mozilla.org/firefox/addon/vimium-c/) /
 [Microsoft Edge 加载项](https://microsoftedge.microsoft.com/addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo) /
 [Chrome 网上应用店](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg
   ) 中查看**
