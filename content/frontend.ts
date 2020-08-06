@@ -49,6 +49,10 @@ set_safeDestroy((silent?: Parameters<SafeDestoryF>[0]): void => {
     /*#__INLINE__*/ set_esc(null as never)
     VApi = null as never;
 
+    if (!Build.NDEBUG) {
+      injector || define.noConflict()
+    }
+
     if (runtime_port) { try { runtime_port.disconnect(); } catch {} }
     silent || recordLog("Vimium C on %o has been destroyed at %o.")
     injector || (<RegExpOne> /a?/).test("");
@@ -251,8 +255,4 @@ if (!(Build.NDEBUG || GlobalConsts.MaxNumberOfNextPatterns <= 255)) {
 
 if (!(Build.NDEBUG || BrowserVer.Min$Set$Has$$forEach <= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol)) {
   console.log("Assert error: BrowserVer.Min$Set$Has$$forEach <= BrowserVer.MinES6$ForOf$Map$SetAnd$Symbol");
-}
-
-if (!Build.NDEBUG) {
-  define.noConflict()
 }

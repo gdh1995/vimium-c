@@ -38,6 +38,7 @@ Build.NDEBUG || (function (): void {
   interface DefineTy {
     (deps: string[], factory: (require: RequireTy, exports: ModuleTy) => any): any
     amd?: boolean
+    modules_?: Dict<ModuleTy>
     noConflict (): void
   }
   const oldDefine: DefineTy = typeof define !== "undefined" ? define : void 0
@@ -77,6 +78,7 @@ Build.NDEBUG || (function (): void {
     return modules[target] || (modules[target] = {} as ModuleTy)
   }
   myDefine.amd = true;
+  myDefine.modules_ = modules;
   myDefine.noConflict = (): void => { (window as any).define = oldDefine }
   (window as any).define = myDefine
 })()

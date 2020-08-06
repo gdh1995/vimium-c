@@ -10,6 +10,10 @@ VApi.e = function (cmd): void {
   }
 };
 
+if (!Build.NDEBUG) {
+  define.noConflict()
+}
+
 (function (): void {
   const mayBrowser_ = Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome
       && typeof browser === "object" && !("tagName" in (browser as unknown as Element))
