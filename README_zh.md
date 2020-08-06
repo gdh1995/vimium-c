@@ -97,9 +97,10 @@ Vimium C 具有完善的安全机制：
 * 当它收到来自其它扩展程序的消息时，会按照一份用户指定的受信任扩展标识符的列表来审核消息来源
 * 可以关闭“借助浏览器账号同步扩展配置”的功能，且此同步功能不会同步页内查找历史等信息
 
-# 捐赠 / Donate
+<a name="donate"></a><a name="donating"></a><a name="donation"></a>
 
-<a name="donate"></a>
+# 捐赠 / Donating
+
 
 Vimium C 是一款开源的浏览器扩展程序，任何人都可以安装使用它而无需支付任何费用。
 如果您确实想要资助它的开发者（[gdh1995@qq.com](https://github.com/gdh1995)），

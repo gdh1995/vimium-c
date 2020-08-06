@@ -148,10 +148,10 @@ while `gulp dist` compiles and minimizes files into `dist/`.
 The options including `MinCVer` and `BTypes` in [gulp.tsconfig.json](scripts/gulp.tsconfig.json)
   are used to control supported target browsers and set a minimum browser version.
 
+<a name="donate"></a><a name="donating"></a><a name="donation"></a>
 
 # Donating / 捐赠
 
-<a name="donate"></a>
 Vimium C is an open-source browser extension, and everyone can install and use it free of charge.
 If you indeed want to give its author ([gdh1995@qq.com](https://github.com/gdh1995)) financial support,
 you may donate any small amount of money to him through
