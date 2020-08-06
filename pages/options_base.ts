@@ -274,7 +274,7 @@ constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption_) => v
   super(element, onUpdated);
   {
     this.template_ = (element.querySelector("#exclusionTemplate") as HTMLTemplateElement
-        ).content.firstChild as HTMLTableRowElement;
+        ).content.querySelector(".exclusionRule") as HTMLTableRowElement;
     if (lang_) {
       let el: HTMLElement, t: string;
       for (el of element.querySelectorAll("[data-i]") as ArrayLike<Element> as Element[] as HTMLElement[]) {
