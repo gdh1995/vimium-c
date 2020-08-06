@@ -477,7 +477,7 @@ availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeO
             (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
           ? "about:debugging#addons" : Settings_.CONST_.OptionsPage_
         : "chrome://extensions/?id=$id",
-      id_mask: "$id"
+      id_mask: "$id", url_mask: ""
     }],
   discardTab: [ kBgCmd.discardTab, 1, /* 20 in main.ts */ 0 ],
   duplicateTab: [ kBgCmd.duplicateTab, 1, 20 as 0 ],

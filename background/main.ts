@@ -656,8 +656,8 @@
   function openUrl(url: Urls.Url, workType: Urls.WorkType, tabs?: [Tab] | []): void {
     if (typeof url !== "string") { /* empty */ }
     else if (url || workType !== Urls.WorkType.FakeType) {
-      let url_mark: string | null | undefined = cOptions.url_mask || cOptions.url_mark
-      url = url_mark ? fillUrlMasks(url, tabs, url_mark) : url
+      let url_mask: string | null | undefined = cOptions.url_mask, umark: typeof url_mask = cOptions.url_mark
+      url = url_mask != null || umark != null ? fillUrlMasks(url, tabs, url_mask != null ? url_mask : umark!) : url
       if (workType !== Urls.WorkType.FakeType) {
         const _rawKey = (cOptions as OpenUrlOptionsInBgCmd).keyword, keyword = (_rawKey || "") + ""
         const _rawTest = (cOptions as OpenUrlOptionsInBgCmd).testUrl, testUrl = _rawTest != null ? _rawTest : !keyword
