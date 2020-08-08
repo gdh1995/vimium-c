@@ -1,4 +1,4 @@
-<h2 align="center">
+<h2 align="center"><a name="readme"></a>
   <img src="icons/icon128.png" width="32" height="32" alt="Icon" />
   <span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span> - 全键盘操作浏览器
 </h2>
@@ -14,9 +14,9 @@
   )](https://travis-ci.org/gdh1995/vimium-c)
 
 [![Firefox 用户数](https://img.shields.io/amo/users/vimium-c@gdh1995.cn?label=Firefox%2063%2B&logo=Mozilla%20Firefox&labelColor=FF7139&logoColor=white
-  )](https://addons.mozilla.org/firefox/addon/vimium-c/)
+  )](https://addons.mozilla.org/firefox/addon/vimium-c/?src=external-readme)
 [![Firefox 评分](https://img.shields.io/amo/rating/vimium-c@gdh1995.cn?logo=Mozilla%20Firefox&labelColor=FF7139&logoColor=white&color=blue
-  )](https://addons.mozilla.org/firefox/addon/vimium-c/reviews/)
+  )](https://addons.mozilla.org/firefox/addon/vimium-c/reviews/?src=external-readme)
 [![Chrome 用户数](https://img.shields.io/chrome-web-store/users/hfjbmagddngcpeloejdejnfgbamkjaeg?labelColor=4285F4&label=Chrome%2043%2B&logo=Google%20Chrome&logoColor=white&color=critical
   )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
 [![Chrome 评分](https://img.shields.io/chrome-web-store/rating/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&labelColor=4285F4&logoColor=white&color=critical
@@ -24,7 +24,7 @@
 [![Chrome 评分人数](https://img.shields.io/chrome-web-store/rating-count/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&labelColor=4285F4&logoColor=white&color=critical
   )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg/reviews)
 
-**在 [Firefox 附加组件](https://addons.mozilla.org/firefox/addon/vimium-c/) /
+**在 [Firefox 附加组件](https://addons.mozilla.org/firefox/addon/vimium-c/?src=external-readme) /
 [Microsoft Edge 加载项](https://microsoftedge.microsoft.com/addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo) /
 [Chrome 网上应用店](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg
   ) 中查看**
@@ -49,7 +49,7 @@ Vimium C 支持 新版 Microsoft Edge、Firefox 63+ 和 Chrome 43+ 等现代浏�
 它支持很多网页上的常用操作：
 * 按 F 自动发现并标出可点击的链接和按钮，输入一个定位标记上的文字就能点击它
 * 按 字母O 可以显示一个方便美观的搜索框，在里边可以随意查找浏览历史和收藏的网页，还能自定义搜索引擎来快速打开搜索页面、
-查找已打开的标签页、实时计算数学表达式等等。甚至可以按 Shift+Enter（上档键+回车）来删除选中的历史记录。
+  查找已打开的标签页、实时计算数学表达式等等。甚至可以按 Shift+Enter（上档键+回车）来删除选中的历史记录。
 * 按 J/K/H/L 来像 VIM 里移动光标一样滚动屏幕内容
 * 按 “/” 显示页内查找浮层，输入 “\r” 可以做正则查找，“\w” 会执行整词匹配，还有 \R、\W、\i 和 \I 等多种用法
 * 按 V 进入自由选择模式后，能像 VIM 一样用 J/K/H/L 等快捷键修改文字的选择范围
@@ -104,20 +104,22 @@ Vimium C 具有完善的安全机制：
 
 Vimium C 是一款开源的浏览器扩展程序，任何人都可以安装使用它而无需支付任何费用。
 如果您确实想要资助它的开发者（[gdh1995@qq.com](https://github.com/gdh1995)），
-可以通过[支付宝](https://www.alipay.com/)、[Open Collective](https://opencollective.com/vimium-c)
+可以通过[支付宝](https://www.alipay.com/)、[微信](https://weixin.qq.com/)、[Open Collective](
+    https://opencollective.com/vimium-c)
 或 [PayPal](https://www.paypal.me/gdh1995) 无偿赠与他一小笔钱。谢谢您的支持！
 
 Vimium C is an open-source browser extension, and everyone can install and use it free of charge.
 If you indeed want to give its author ([gdh1995@qq.com](https://github.com/gdh1995)) financial support,
 you may donate any small amount of money to him through
-  [Open Collective](https://opencollective.com/vimium-c), [PayPal](https://www.paypal.me/gdh1995)
-  or [Alipay](https://intl.alipay.com/). Thanks a lot!
+  [Open Collective](https://opencollective.com/vimium-c), [PayPal](https://www.paypal.me/gdh1995),
+  [Alipay](https://intl.alipay.com/) or [WeChat](https://www.wechat.com/). Thanks a lot!
 
 
 捐赠列表详见 / A donation list is in : https://github.com/gdh1995/vimium-c/wiki/Donation-List .
 
-![gdh1995 的支付宝二维码](https://gdh1995.cn/alipay-recv-money.png)
-![PayPal QRCode of gdh1995](https://gdh1995.cn/paypal-recv-money.png)
+<img width="240" alt="gdh1995 的支付宝二维码" src="https://gdh1995.cn/alipay-recv-money.png" />
+<img width="240" alt="gdh1995 的微信赞赏码" src="https://gdh1995.cn/wechat-recv-money.png" />
+<img width="240" alt="PayPal QRCode of gdh1995" src="https://gdh1995.cn/paypal-recv-money.png" />
 
 # 针对适用区域的声明
 

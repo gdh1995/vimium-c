@@ -784,8 +784,8 @@ let optionsInit1_ = function (): void {
       const el1 = el.parentElement as HTMLElement, prefix = GlobalConsts.FirefoxAddonPrefix;
       el1.insertBefore(new Text(pTrans_("manageShortcut")), el);
       el1.insertBefore(new Text(pTrans_("manageShortcut_2")), el.nextSibling);
-      el2.href = prefix + "shortcut-forwarding-tool/";
-      el3.href = prefix + "newtab-adapter/";
+      el2.href = prefix + "shortcut-forwarding-tool/?src=external-vc-options";
+      el3.href = prefix + "newtab-adapter/?src=external-vc-options";
     }, [_element as HTMLAnchorElement,
         $<HTMLAnchorElement>("#shortcutHelper"), $<HTMLAnchorElement>("#newTabAdapter")] as const);
   }
@@ -808,7 +808,7 @@ let optionsInit1_ = function (): void {
           && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
         children[0].textContent = "moz";
         anchor.textContent = name;
-        anchor.href = GlobalConsts.FirefoxAddonPrefix + "newtab-adapter/";
+        anchor.href = GlobalConsts.FirefoxAddonPrefix + "newtab-adapter/?src=external-vc-options_omni";
       }
       anchor.title = name + " - " + pTrans_(Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox) ? "addons" : "webstore");

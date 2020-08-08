@@ -1185,6 +1185,7 @@
 	"HStar": {
 		"message": "在 GitHub 上收藏"
 	},
+	"HStar2": { "message": "在 码云 Gitee 上收藏" },
 	"HReview": {
 		"message": "在 "
 	},

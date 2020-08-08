@@ -765,6 +765,7 @@
 	"HStar": {
 		"message": "Star it on GitHub"
 	},
+	"HStar2": { "message": "Star it on Gitee" },
 	"HReview": {
 		"message": "Review on "
 	},

@@ -1,4 +1,4 @@
-<h2 align="center">
+<h2 align="center"><a name="readme"></a>
   <img src="icons/icon128.png" width="32" height="32" alt="Icon" />
   <span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span> - All by Keyboard
 </h2>
@@ -14,9 +14,9 @@
   )](https://travis-ci.org/gdh1995/vimium-c)
 
 [![Firefox users](https://img.shields.io/amo/users/vimium-c@gdh1995.cn?label=Firefox%2063%2B&logo=Mozilla%20Firefox&labelColor=FF7139&logoColor=white
-  )](https://addons.mozilla.org/firefox/addon/vimium-c/)
+  )](https://addons.mozilla.org/firefox/addon/vimium-c/?src=external-readme)
 [![Firefox rating](https://img.shields.io/amo/rating/vimium-c@gdh1995.cn?logo=Mozilla%20Firefox&labelColor=FF7139&logoColor=white&color=blue
-  )](https://addons.mozilla.org/firefox/addon/vimium-c/reviews/)
+  )](https://addons.mozilla.org/firefox/addon/vimium-c/reviews/?src=external-readme)
 [![Chrome users](https://img.shields.io/chrome-web-store/users/hfjbmagddngcpeloejdejnfgbamkjaeg?labelColor=4285F4&label=Chrome%2043%2B&logo=Google%20Chrome&logoColor=white&color=critical
   )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
 [![Chrome rating](https://img.shields.io/chrome-web-store/rating/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&labelColor=4285F4&logoColor=white&color=critical
@@ -24,7 +24,7 @@
 [![Chrome rating count](https://img.shields.io/chrome-web-store/rating-count/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&labelColor=4285F4&logoColor=white&color=critical
   )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg/reviews)
 
-**Visit on [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/vimium-c/) /
+**Visit on [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/vimium-c/?src=external-readme) /
 [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo) /
 [Chrome Web Store](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg
   )**
@@ -88,12 +88,13 @@ __Other extensions supporting Vimium C:__
       https://chrome.google.com/webstore/detail/pdf-viewer-for-vimium-c/nacjakoppgmdcpemlfnfegmlhipddanj)
 * Shortcut Forwarding Tool
   * Provide 32 configurable shortcuts and forward them to another extension like Vimium C
-  * Visit it on [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/shortcut-forwarding-tool/) /
+  * Visit it on
+    [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/shortcut-forwarding-tool/?src=external-vc-readme) /
     [Chrome Web Store](
       https://chrome.google.com/webstore/detail/shortcut-forwarding-tool/clnalilglegcjmlgenoppklmfppddien)
 * NewTab Adapter
   * Take over browser's new tab settings and open another configurable URL
-  * Visit it on [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/newtab-adapter/) /
+  * Visit it on [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/newtab-adapter/?src=external-vc-readme) /
     [Chrome Web Store](https://chrome.google.com/webstore/detail/newtab-adapter/cglpcedifkgalfdklahhcchnjepcckfn)
 * Modified Weidu New Tab (微度新标签页修改版)
   : a modified and lite version of [www.weidunewtab.com](http://www.weidunewtab.com/) (or
@@ -155,18 +156,20 @@ The options including `MinCVer` and `BTypes` in [gulp.tsconfig.json](scripts/gul
 Vimium C is an open-source browser extension, and everyone can install and use it free of charge.
 If you indeed want to give its author ([gdh1995@qq.com](https://github.com/gdh1995)) financial support,
 you may donate any small amount of money to him through
-  [Open Collective](https://opencollective.com/vimium-c), [PayPal](https://www.paypal.me/gdh1995)
-  or [Alipay](https://intl.alipay.com/). Thanks a lot!
+  [Open Collective](https://opencollective.com/vimium-c), [PayPal](https://www.paypal.me/gdh1995),
+  [Alipay](https://intl.alipay.com/) or [WeChat](https://www.wechat.com/). Thanks a lot!
 
 Vimium C 是一款开源的浏览器扩展程序，任何人都可以安装使用它而无需支付任何费用。
 如果您确实想要资助它的开发者（[gdh1995@qq.com](https://github.com/gdh1995)），
-可以通过[支付宝](https://www.alipay.com/)、[Open Collective](https://opencollective.com/vimium-c)
+可以通过[支付宝](https://www.alipay.com/)、[微信](https://weixin.qq.com/)、[Open Collective](
+    https://opencollective.com/vimium-c)
 或 [PayPal](https://www.paypal.me/gdh1995) 无偿赠与他一小笔钱。谢谢您的支持！
 
 A donation list is in / 捐赠列表详见: https://github.com/gdh1995/vimium-c/wiki/Donation-List .
 
-![gdh1995 的支付宝二维码](https://gdh1995.cn/alipay-recv-money.png)
-![PayPal QRCode of gdh1995](https://gdh1995.cn/paypal-recv-money.png)
+<img width="240" alt="gdh1995 的支付宝二维码" src="https://gdh1995.cn/alipay-recv-money.png" />
+<img width="240" alt="gdh1995 的微信赞赏码" src="https://gdh1995.cn/wechat-recv-money.png" />
+<img width="240" alt="PayPal QRCode of gdh1995" src="https://gdh1995.cn/paypal-recv-money.png" />
 
 # Thanks & Licenses
 

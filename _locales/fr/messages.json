@@ -595,13 +595,15 @@
 		"message": " commandes avancées"
 	},
 	"HStar": {
-		"message": "Activez l'étoile GitHub pour mettre en favori"
+		"message": "Activez l'étoile GitHub"
 	},
+	"HStar2": { "message": "Activez l'étoile Gitee" },
 	"HReview": {
 		"message": "Ecrire une revue sur "
 	},
+	"Donate": { "message": "Faire don" },
 	"ifBug": {
-		"message": "Vous avez trouvé un Bug ? "
+		"message": "Un bug? "
 	},
 	"HReport": {
 		"message": "Rapportez-le ici"

@@ -45,7 +45,7 @@ var HelpDialog = {
       release: BgUtils_.convertToUrl_("vimium://release"),
       reviewPage: !(Build.BTypes & ~BrowserType.Firefox)
               || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
-          ? GlobalConsts.FirefoxAddonPrefix + "vimium-c/reviews/"
+          ? GlobalConsts.FirefoxAddonPrefix + "vimium-c/reviews/?src=external-help-dialog"
           : (Build.BTypes & BrowserType.Chrome && IsEdg_
               ? GlobalConsts.EdgStorePage : GlobalConsts.ChromeWebStorePage).replace("$id", chrome.runtime.id),
       webStore: !(Build.BTypes & ~BrowserType.Firefox)
