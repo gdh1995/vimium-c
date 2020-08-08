@@ -167,9 +167,9 @@ Vimium C 是一款开源的浏览器扩展程序，任何人都可以安装使�
 
 A donation list is in / 捐赠列表详见: https://github.com/gdh1995/vimium-c/wiki/Donation-List .
 
-<img width="240" alt="gdh1995 的支付宝二维码" src="https://gdh1995.cn/alipay-recv-money.png" />
-<img width="240" alt="gdh1995 的微信赞赏码" src="https://gdh1995.cn/wechat-recv-money.png" />
-<img width="240" alt="PayPal QRCode of gdh1995" src="https://gdh1995.cn/paypal-recv-money.png" />
+<img width="240" alt="gdh1995 的支付宝二维码" src="https://gdh1995.cn/alipay-recv-money.png"
+  /> <img width="240" alt="gdh1995 的微信赞赏码" src="https://gdh1995.cn/wechat-recv-money.png"
+  /> <img width="240" alt="PayPal QRCode of gdh1995" src="https://gdh1995.cn/paypal-recv-money.png" />
 
 # Thanks & Licenses
 

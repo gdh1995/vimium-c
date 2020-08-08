@@ -117,9 +117,9 @@ you may donate any small amount of money to him through
 
 捐赠列表详见 / A donation list is in : https://github.com/gdh1995/vimium-c/wiki/Donation-List .
 
-<img width="240" alt="gdh1995 的支付宝二维码" src="https://gdh1995.cn/alipay-recv-money.png" />
-<img width="240" alt="gdh1995 的微信赞赏码" src="https://gdh1995.cn/wechat-recv-money.png" />
-<img width="240" alt="PayPal QRCode of gdh1995" src="https://gdh1995.cn/paypal-recv-money.png" />
+<img width="240" alt="gdh1995 的支付宝二维码" src="https://gdh1995.cn/alipay-recv-money.png"
+  /> <img width="240" alt="gdh1995 的微信赞赏码" src="https://gdh1995.cn/wechat-recv-money.png"
+  /> <img width="240" alt="PayPal QRCode of gdh1995" src="https://gdh1995.cn/paypal-recv-money.png" />
 
 # 针对适用区域的声明
 
