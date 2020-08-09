@@ -208,7 +208,6 @@ type ValidChildKeyAction = KeyAction.cmd;
 type ValidKeyAction = ValidChildKeyAction | KeyAction.count;
 interface ChildKeyFSM {
   [index: string]: ValidChildKeyAction | ChildKeyFSM | undefined;
-  readonly __proto__: never;
 }
 interface ReadonlyChildKeyFSM {
   readonly [index: string]: ValidChildKeyAction | ReadonlyChildKeyFSM | undefined;

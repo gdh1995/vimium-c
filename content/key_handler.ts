@@ -1,5 +1,5 @@
 import {
-  doc, esc, fgCache, isEnabled_, isTop, keydownEvents_, set_esc, VOther,
+  doc, esc, fgCache, isEnabled_, isTop, keydownEvents_, set_esc, VOther, safer,
 } from "../lib/utils"
 import {
   set_getMappedKey, char_, getMappedKey, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_, Stop_,
@@ -18,7 +18,7 @@ let isPassKeysReversed = false
 let mappedKeys: SafeDict<string> | null = null
 let keyFSM: KeyFSM
 let currentKeys = ""  
-let nextKeys: KeyFSM | ReadonlyChildKeyFSM | null = null
+let nextKeys: KeyFSM | ReadonlyChildKeyFSM & SafeObject | null = null
 
 let isWaitingAccessKey = false
 let isCmdTriggered: kKeyCode = kKeyCode.None
@@ -33,7 +33,7 @@ let onKeyup2: ((this: void, event?: Pick<KeyboardEvent, "keyCode">) => void) | n
 })
 
 export {
-  passKeys, mappedKeys, currentKeys,
+  passKeys, keyFSM, mappedKeys, currentKeys,
   isWaitingAccessKey, isCmdTriggered, anyClickHandler,
   onKeyup2, isPassKeysReversed,
 }
@@ -93,7 +93,7 @@ const checkKey = (event: HandlerNS.Event, key: string, keyWithoutModeID: string
     esc!(HandlerResult.Prevent);
     isCmdTriggered = event.i || kKeyCode.True
   } else {
-    nextKeys = j !== KeyAction.count ? j : keyFSM;
+    nextKeys = j !== KeyAction.count ? safer(j) : keyFSM;
   }
   return HandlerResult.Prevent;
 }

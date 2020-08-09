@@ -16,7 +16,7 @@ import {
 } from "./dom_ui"
 import { hudTip, hud_box } from "./hud"
 import {
-  currentKeys, mappedKeys, set_keyFSM, anyClickHandler, onKeydown, onKeyup, passKeys,
+  currentKeys, keyFSM, mappedKeys, set_keyFSM, anyClickHandler, onKeydown, onKeyup, passKeys,
   set_isPassKeysReversed, isPassKeysReversed, set_passKeys, set_mappedKeys,
 } from "./key_handler"
 import { HintManager, kSafeAllSelector, set_kSafeAllSelector } from "./link_hints"
@@ -69,11 +69,11 @@ set_requestHandlers([
         && VOther === BrowserType.Firefox) {
       setNotSafe_not_ff((_el): _el is HTMLFormElement => false)
     }
-    requestHandlers[kBgReq.keyFSM](request);
     if (flags) {
       /*#__INLINE__*/ set_grabBackFocus(grabBackFocus && !(flags & Frames.Flags.userActed))
       /*#__INLINE__*/ set_isLocked_(!!(flags & Frames.Flags.locked))
     }
+    requestHandlers[kBgReq.keyFSM](request);
     (requestHandlers[kBgReq.reset] as (request: BgReq[kBgReq.reset], initing?: 1) => void)(request, 1);
     if (isEnabled_) {
       insertInit();
@@ -190,24 +190,10 @@ set_requestHandlers([
   },
   /* kBgReq.exitGrab: */ exitGrab as (this: void, request: Req.bg<kBgReq.exitGrab>) => void,
   /* kBgReq.keyFSM: */ function (request: BgReq[kBgReq.keyFSM]): void {
-    const map = request.k, func = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf
-      && Build.BTypes & BrowserType.Chrome && chromeVer_ < BrowserVer.Min$Object$$setPrototypeOf
-      ? safer : Object.setPrototypeOf;
-    func(map, null);
-    function iter(obj: ReadonlyChildKeyFSM): void {
-      func(obj, null);
-      for (const key in obj) {
-        type ObjItem = Exclude<NonNullable<(typeof obj)[string]>, KeyAction.cmd>;
-        obj[key] !== KeyAction.cmd && iter(obj[key] as ObjItem);
-      }
-    }
-    for (const key in map) {
-      const sec = map[key]!;
-      sec && sec !== KeyAction.count && iter(sec);
-    }
-    /*#__INLINE__*/ set_keyFSM(map)
+    /*#__INLINE__*/ set_keyFSM(request.k)
+    safer(keyFSM)
     /*#__INLINE__*/ set_mappedKeys(request.m)
-    mappedKeys && func(mappedKeys, null);
+    mappedKeys && safer(mappedKeys)
   },
   /* kBgReq.execute: */ function<O extends keyof CmdOptions> (request: BaseExecute<CmdOptions[O], O>): void {
     if (request.H) { setUICSS(request.H); }
