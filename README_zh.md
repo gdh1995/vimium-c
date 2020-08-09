@@ -1,5 +1,5 @@
 <h2 align="center"><a name="readme"></a>
-  <img src="icons/icon128.png" width="32" height="32" alt="Icon" />
+  <img src="icons/icon128.png" width="32" height="32" alt="图标" />
   <span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span> - 全键盘操作浏览器
 </h2>
 

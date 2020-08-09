@@ -54,7 +54,7 @@ output=$1
 ori_output=$output
 test_working=${TEST_WORKING:-1}
 # 0: may be; 1: is Chromium; 2: is Firefox
-chrome_only=0
+chrome_only=${BUILD_BTypes:-0}
 if [ -z "$output" -o -d "$output" ]; then
   output=${output%/}
   [ -z "${output#.}" ] && output=
