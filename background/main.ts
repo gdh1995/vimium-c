@@ -306,7 +306,7 @@
     if (host === "github.com") {
       if (lastIndex === 3) {
         return last === "pull" || last === "milestone" ? path + "s"
-          : last === "tree" ? arr.slice(0, 3).join("/")
+          : last === "tree" || last === "blob" ? arr.slice(0, 3).join("/")
           : null;
       } else if (lastIndex === 4 && arr[3] === "releases" && (arr[4] === "tag" || arr[4] === "edit")) {
         return arr.slice(0, 4).join("/");

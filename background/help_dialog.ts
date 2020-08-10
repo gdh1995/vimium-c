@@ -128,7 +128,7 @@ var HelpDialog = {
             continue;
           }
           if (keyLen >= 0) {
-            bindings += '</span>, <span class="HelpKey">';
+            bindings += '</span> <span class="HelpKey">';
           }
           bindings += key;
           keyLen += item[0].length + 2;
