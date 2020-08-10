@@ -177,7 +177,7 @@ var Commands = {
           a.logError_("mapKey: a source key should be a single key with an optional mode id:", line);
         } else if (splitLine[2].length > 1 && !(<RegExpOne> /^<(?!<)(.-){0,4}.\w*?>$/).test(splitLine[2])) {
           a.logError_("mapKey: a target key should be a single key:", line);
-        } else if (key = BgUtils_.stripKey_(key), key in mkReg) {
+        } else if (key = BgUtils_.stripKey_(key), key in mkReg && mkReg[key] !== BgUtils_.stripKey_(splitLine[2])) {
           key = mkReg[key]!;
           a.logError_('The key %c"%s"', colorRed, splitLine[1], "has been mapped to another key:"
               , key.length > 1 ? `<${key}>` : key);
@@ -634,14 +634,17 @@ if (Backend_.onInit_) {
 }
 if (Commands) {
 Settings_.updateHooks_.keyMappings = function (this: {}, value: string | null): void {
+  const oldMappedKeys = CommandsData_.mappedKeyRegistry_, oldFSM = CommandsData_.keyFSM_
   value != null && Commands.parseKeyMappings_(value);
   Commands.populateKeyMap_(value != null);
-  Settings_.broadcast_({
+  const f = JSON.stringify, curMapped = CommandsData_.mappedKeyRegistry_,
+  updatesInMappedKeys = oldMappedKeys ? !curMapped || f(oldMappedKeys) !== f(curMapped) : !!curMapped;
+  (updatesInMappedKeys || f(CommandsData_.keyFSM_) !== f(oldFSM)) && Settings_.broadcast_({
     N: kBgReq.keyFSM,
     m: CommandsData_.mappedKeyRegistry_,
     k: CommandsData_.keyFSM_
   });
-  Settings_.broadcastOmni_({
+  updatesInMappedKeys && Settings_.broadcastOmni_({
     N: kBgReq.omni_updateOptions,
     d: {
       k: CommandsData_.mappedKeyRegistry_
