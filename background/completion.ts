@@ -135,7 +135,7 @@ let matchType: MatchType = MatchType.plain,
     maxChars = 0, maxResults = 0, maxTotal = 0, matchedTotal = 0, offset = 0,
     queryTerms: string[] = [""], rawInput = "", rawQuery = "", rawMore = "",
     wantInCurrentWindow = false,
-    domainToSkip = "",
+    historyUrlToSkip = "", bookmarkUrlToSkip = "",
     allExpectedTypes = SugType.Empty,
     omniBlockList: string[] | null = null, showThoseInBlocklist = true;
 
@@ -340,6 +340,10 @@ bookmarkEngine = {
       if (!RankingUtils.Match2_(i.text_, title)) { continue; }
       if (showThoseInBlocklist || i.visible_) {
         buildCache && newCache.push(i);
+        if (bookmarkUrlToSkip && i.url_.length < bookmarkUrlToSkip.length + 2
+            && bookmarkUrlToSkip === (i.url_.endsWith("/") ? i.url_.slice(0, -1) : i.url_)) {
+          continue;
+        }
         results.push([-RankingUtils.wordRelevancy_(i.text_, i.title_), ind]);
       }
     }
@@ -573,7 +577,7 @@ historyEngine = {
     parts0 = RegExpCache.parts_[0];
     let maxNum = maxResults + offset
       , curMinScore = -1.1, i = 0, j = 0, matched = 0;
-    domainToSkip && maxNum++;
+    historyUrlToSkip && maxNum++;
     for (j = maxNum; --j; ) { results.push(-1.1, -1.1); }
     maxNum = maxNum * 2 - 2;
     if (!noOldCache) {
@@ -612,7 +616,7 @@ historyEngine = {
       const score = results[i];
       if (score <= 0) { break; }
       const item = history[results[i + 1]];
-      if (item.url_ !== domainToSkip) {
+      if (item.url_ !== historyUrlToSkip) {
         const sug = new Suggestion("history", item.url_, item.text_, item.title_, get2ndArg, score)
         sug.visit = item.time_
         sugs.push(sug)
@@ -759,8 +763,21 @@ domainEngine = {
     }
     if (result) {
       matchedTotal++;
-      const url = (matchedDomain!.https_ ? "https://" : "http://") + result + "/";
-      domainToSkip = url;
+      let useHttps = matchedDomain!.https_ > 0, title = ""
+      if (bookmarkEngine.status_ === BookmarkStatus.inited) {
+        const re: RegExpOne = new RegExp(`^https?://${result.replace(escapeAllRe, "\\$&")}/?$`)
+        let matchedBookmarks = bookmarkEngine.bookmarks_.filter(
+            item => re.test(item.url_) && (showThoseInBlocklist || item.visible_))
+        if (matchedBookmarks.length > 0) {
+          const matched2 = matchedBookmarks.filter(i => i.url_[4] === "s")
+          useHttps = matched2.length > 0
+          matchedBookmarks = useHttps ? matched2 : matchedBookmarks
+          const matchedUrl = matchedBookmarks[0].url_
+          bookmarkUrlToSkip = matchedUrl.endsWith("/") ? matchedUrl.slice(0, -1) : matchedUrl
+          title = matchedBookmarks[0].title_
+        }
+      }
+      const url = historyUrlToSkip = (useHttps ? "https://" : "http://") + result + "/"
       if (offset > 0) {
         offset--;
       } else {
@@ -772,10 +789,11 @@ domainEngine = {
         prepareHtml(sug);
         if (item && (showThoseInBlocklist || item.visible_)) {
           sug.visit = item.time_
-          sug.title = Build.BTypes & BrowserType.Firefox
-              && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
-              ? item.title_ : BgUtils_.escapeText_(item.title_);
+          title = title || item.title_
         }
+        sug.title = Build.BTypes & BrowserType.Firefox
+            && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
+            ? title : BgUtils_.escapeText_(title)
         --maxResults;
       }
     }
@@ -1326,7 +1344,7 @@ Completers = {
   cleanGlobals_ (): void {
     Completers.mostRecentQuery_ = Completers.callback_ = inNormal = null;
     queryTerms = [];
-    rawInput = rawQuery = rawMore = domainToSkip = "";
+    rawInput = rawQuery = rawMore = historyUrlToSkip = bookmarkUrlToSkip = "";
     RegExpCache.parts_ = null as never;
     RankingUtils.maxScoreP_ = RankingEnums.maximumScore;
     RankingUtils.timeAgo_ = matchType =
