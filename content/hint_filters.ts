@@ -491,8 +491,9 @@ export const matchHintsByKey = (keyStatus: KeyStatus
     return activeHint_!;
   } else if (isSpace) { // then useFilter is true
     textSeq = textSeq0 + " ";
-  } else if (!(useFilter_ && (key.includes("c-") || key.includes("m-"))) && event.c.length === 1
-      && keybody.length === 1) {
+  } else if (useFilter_ && (key.includes("c-") || key.includes("m-")) || (event.c + keybody).length - 2) {
+    return 2;
+  } else {
     let lower = keybody.toLowerCase();
     keybody = useFilter_ ? keybody : lower.toUpperCase() as kChar;
     useFilter_ && resetMode();
@@ -514,8 +515,6 @@ export const matchHintsByKey = (keyStatus: KeyStatus
     } else {
       return 0;
     }
-  } else {
-    return 2;
   }
   keyStatus.n = 0;
   coreHints.h = 0;

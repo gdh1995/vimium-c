@@ -1456,6 +1456,9 @@
           } else {
             chrome.tabs.move(rightTabs.map(getId), { index: leftNum + 1, windowId: wnd2.id }, onRuntimeError);
           }
+          for (const tab of tabs) {
+            tab.pinned && chrome.tabs.update(tab.id, {pinned: true})
+          }
         } : notifyCKey);
       }
       function reportNoop(): void {
