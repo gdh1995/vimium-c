@@ -1111,9 +1111,7 @@ function safeJSONParse(literalVal, defaultVal, type) {
 }
 
 function readTSConfig(tsConfigFile, throwError) {
-  if (tsConfigFile.lastIndexOf(".json") !== tsConfigFile.length - 5) {
-    tsConfigFile += ".json";
-  }
+  if (!tsConfigFile.endsWith(".json")) { tsConfigFile += ".json"; }
   var config = readJSON(tsConfigFile);
   if (!config) { return null; }
   var opts = config.compilerOptions || (config.compilerOptions = {});
@@ -1150,7 +1148,7 @@ function loadValidCompilerOptions(tsConfigFile) {
   }
   opts.removeComments = false;
   const arr = opts.plugins || [];
-  for (let i = 0; i < arr.length; i++) {
+  for (let i = arr.length; 0 <= --i; ) {
     if (arr[i].name == "typescript-tslint-plugin") {
       arr.splice(i, 1);
     }

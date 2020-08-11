@@ -40,7 +40,7 @@ var _tscPatched = IN_WORKER;
 function patchTSC() {
   if (_tscPatched) { return; }
   var path = "node_modules/typescript/lib/tsc.js";
-  for (var i = 0; i < 3 && !fs.existsSync(path); ) {
+  for (var i = 0; i < 3 && !fs.existsSync(path); i++) {
     path = "../" + path;
   }
   if (i >= 3) { return; }

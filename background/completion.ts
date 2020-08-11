@@ -1887,7 +1887,7 @@ knownCs = {
         xhr.open("GET", Decoder._dataUrl + (Build.MinCVer >= BrowserVer.MinWarningOfEscapingHashInBodyOfDataURL
             || !(Build.BTypes & BrowserType.Chrome)
             || CurCVer_ >= BrowserVer.MinWarningOfEscapingHashInBodyOfDataURL
-          ? str.replace("#", "%25") : str), true);
+          ? str.replace("#", "%23") : str), true);
         return xhr.send();
       }
     },

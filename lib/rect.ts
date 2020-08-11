@@ -145,7 +145,7 @@ export const getClientRectsForAreas_ = function (element: HTMLElementUsingMap, o
   if (crHeight < 3 || crWidth < 3) { return null }
   // replace is necessary: chrome allows "&quot;", and also allows no "#"
   if (!areas) {
-    const selector = `map[name="${element.useMap.replace(<RegExpOne> /^#/, "").replace(<RegExpG> /"/g, '\\"')}"]`
+    const selector = `map[name="${element.useMap.replace(<RegExpOne> /^#/, "").replace(<RegExpG> /"|\\/g, '\\$&')}"]`
     // on C73, if a <map> is moved outside from a #shadowRoot, then the relation of the <img> and it is kept
     // while on F65 the relation will get lost.
     const root = (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
@@ -173,6 +173,7 @@ export const getClientRectsForAreas_ = function (element: HTMLElementUsingMap, o
       y1 = coords[1], y2 = coords[3], diff = coords[5]
       y1 = Math.min(y1, y2, diff); y2 = Math.max(coords[1], y2, diff)
       diff = 6
+      break
     default:
       x1 = coords[0]; y1 = coords[1]; x2 = coords[2]; y2 = coords[3]
       x1 > x2 && (x1 = x2, x2 = coords[0])
