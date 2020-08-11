@@ -4,8 +4,7 @@ import {
 } from "../lib/utils"
 import {
   isHTML_, htmlTag_, createElement_, frameElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK,
-  querySelector_unsafe_,
-  DAC,
+  querySelector_unsafe_, DAC,
 } from "../lib/dom_utils"
 import {
   pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER,
@@ -333,7 +332,7 @@ export const contentCommands_: {
     let max = el.options.length
       , absCount = count > 0 ? count : -count, step: number
     if (pos) {
-      step = (!!pos && pos > "e" && pos < "m" && pos !== "home") === count > 0 ? max - absCount : absCount - 1
+      step = (pos > "e" && pos < "m" && pos !== "home") === count > 0 ? max - absCount : absCount - 1
     } else {
       step = el.selectedIndex + (typeof dir === "string" ? dir > "p" ? -1 : 1 : dir || 1) * count
     }

@@ -156,7 +156,7 @@ BgUtils_.timeout_(1000, function (): void {
     };
     (window as any).deserializeSync = function (key: any, val: any, items?: any): any {
       if (items) {
-        val = val || items && items[key] || val;
+        val = val || items[key] || val;
       } else {
         items = val;
         val = items && items[key] || val;

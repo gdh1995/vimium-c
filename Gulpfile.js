@@ -1223,8 +1223,7 @@ function removeSomeTypeScriptOptions() {
     }
   }
   for (var i = 0; i < toDelete.length; i++) {
-    key = toDelete[i], val = compilerOptions[key];
-    delete compilerOptions[key];
+    delete compilerOptions[toDelete[i]]
   }
   if (toDelete.length > 1) {
     print("Skip these TypeScript options:", toDelete.join(", "));
@@ -1473,7 +1472,6 @@ function patchExtendClick(source) {
   }
   fs.writeFileSync(jsonPath, JSON.stringify(json));
   }
-  inJSON &&
   logger("%o: %o %s", ":extend_click", inJSON.length, inJSON ? "bytes" : "(embeded)");
   return inCode;
 }
@@ -1585,7 +1583,7 @@ function getRandom(id) {
       } catch (e) {}
     }
     if (rng) {
-      _randSeed = rng = rng(_randSeed);
+      _randSeed = rng(_randSeed);
     }
   }
   if (!locally) {

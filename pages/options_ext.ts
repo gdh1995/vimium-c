@@ -363,7 +363,7 @@ function importSettings_(time: number | string | Date, data: string, is_recommen
     return alert(err_msg);
   }
   {
-    time = +new Date(new_data && new_data.time || (typeof time === "object" ? +time : time)) || 0;
+    time = +new Date(new_data.time || (typeof time === "object" ? +time : time)) || 0;
     if ((new_data.name !== "Vimium C" && new_data.name !== "Vimium++") || (time < 10000 && time > 0)) {
       err_msg = pTrans_("notVCJSON");
       return alert(err_msg);

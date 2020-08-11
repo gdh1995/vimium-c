@@ -67,7 +67,6 @@ let keyMappingChecker_ = {
       if (destKey2 !== destKey) {
         console.log("KeyMappings Checker:", destKey, "is corrected into", destKey2)
         options = options.replace(destKey!, destKey2!)
-        destKey = destKey2
       }
     }
     return this.normalizeCmd_("", cmd, keys, options);

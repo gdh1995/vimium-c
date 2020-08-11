@@ -702,7 +702,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     const a = Vomnibar_;
     if (a.isSearchOnTop_) { return; }
     const len = a.completions_.length, n = a.mode_.r;
-    let str = len ? a.completions_[0].e : "", delta = +dirOrNum || -1;
+    let delta = +dirOrNum || -1,
     str = (a.isSelOriginal_ || a.selection_ < 0 ? a.input_.value : a.inputText_).trimRight();
     let arr = a._pageNumRe.exec(str), i = ((arr && arr[0]) as string | undefined | number as number) | 0;
     if (len >= n) { delta *= n; }

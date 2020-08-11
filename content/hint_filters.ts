@@ -263,8 +263,7 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
       indStep = !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
           && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)
           ? 0 : 1 / (1 + oldHints.length);
-      let newLen = 2,
-      ind = !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+      let ind = !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
           && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)
           ? 0 : hasSearch ? 1 : GlobalConsts.MaxLengthOfHintText + 1;
       keyStatus.k = "";
@@ -291,7 +290,7 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
               : (ind -= indStep) - hint.h.t.length;
         }
       }
-      newLen = hints.length;
+      const newLen = hints.length;
       if (newLen) {
         keyStatus.c = hasSearch ? hints : hints = oldHints.slice(0);
         if (hasSearch && newLen < 2) { // in case of only 1 hint in fullHints

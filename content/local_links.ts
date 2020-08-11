@@ -150,13 +150,10 @@ export const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
 
 const getClickableInNonHTMLButMayFormatted = (hints: Hint[]
     , element: NonHTMLButFormattedElement | SafeElementWithoutFormat): void => {
-  let anotherEl: NonHTMLButFormattedElement
-  let arr: Rect | null | undefined, s: string | null
-  let type: ClickType.Default | HintsNS.AllowedClickTypeForNonHTML = ClickType.Default;
-  const tabIndex = (element as ElementToHTMLorOtherFormatted).tabIndex
-  {
-    {
-      type = clickable_.has(element)
+      let anotherEl: NonHTMLButFormattedElement
+      let arr: Rect | null | undefined, s: string | null
+      const tabIndex = (element as ElementToHTMLorOtherFormatted).tabIndex
+      let type: ClickType.Default | HintsNS.AllowedClickTypeForNonHTML = clickable_.has(element)
           || tabIndex != null && (!(Build.BTypes & ~BrowserType.Firefox)
               || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
               ? (anotherEl = unwrap_ff(element as NonHTMLButFormattedElement)).onclick || anotherEl.onmousedown
@@ -173,15 +170,13 @@ const getClickableInNonHTMLButMayFormatted = (hints: Hint[]
           ) {
         hints.push([element, arr, type]);
       }
-    }
-  }
 }
 
 const checkJSAction = (str: string): boolean => {
-  for (let s of str.split(";")) {
-    s = s.trim();
-    const t = s.startsWith("click:") ? (s = s.slice(6)) : s && !s.includes(":") ? s : null;
-    if (t && t !== NONE && !(<RegExpOne> /\._\b(?![\$\.])/).test(t)) {
+  for (let s of str.split(";") as Array<string | null>) {
+    s = s!.trim()
+    s = s.startsWith("click:") ? s.slice(6) : s && !s.includes(":") ? s : null
+    if (s && s !== NONE && !(<RegExpOne> /\._\b(?![\$\.])/).test(s)) {
       return true;
     }
   }

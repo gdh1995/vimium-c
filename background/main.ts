@@ -2212,12 +2212,12 @@
       chrome.tabs.getZoom(curZoom => {
         if (!curZoom) { return onRuntimeError(); }
         cRepeat < -4 && (cRepeat = -cRepeat);
-        let newZoom = curZoom, m = Math;
+        let newZoom: number, M = Math
         if (cRepeat > 4) {
           newZoom = cRepeat / (cRepeat > 1000 ? cRepeat : cRepeat > 49 ? 100 : 10);
           newZoom = !(Build.BTypes & ~BrowserType.Firefox)
               || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
-              ? m.max(0.3, m.min(newZoom, 3)) : m.max(0.25, m.min(newZoom, 5));
+              ? M.max(0.3, M.min(newZoom, 3)) : M.max(0.25, M.min(newZoom, 5))
         } else {
           let nearest = 0, delta = 9,
           steps = !(Build.BTypes & ~BrowserType.Firefox)
@@ -2227,7 +2227,7 @@
           for (let ind = 0, d2 = 0; ind < steps.length && (d2 = abs(steps[ind] - curZoom)) < delta; ind++) {
             nearest = ind; delta = d2;
           }
-          newZoom = steps[nearest + cRepeat < 0 ? 0 : m.min(nearest + cRepeat, steps.length - 1)];
+          newZoom = steps[nearest + cRepeat < 0 ? 0 : M.min(nearest + cRepeat, steps.length - 1)]
         }
         if (abs(newZoom - curZoom) > 0.005) {
           chrome.tabs.setZoom(newZoom);

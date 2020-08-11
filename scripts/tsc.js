@@ -181,7 +181,6 @@ if (typeof require === "function" && require.main === module) {
       var curIconsDone = iconsDone;
       iconsDone = err ? 1 : curIconsDone || 0;
       if (curIconsDone == null) {
-        curIconsDone = 2;
         main(real_args);
       }
     });

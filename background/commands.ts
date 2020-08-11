@@ -270,7 +270,7 @@ var Commands = {
         ref[key2] = KeyAction.cmd;
         continue;
       }
-      let ref2 = ref as ChildKeyFSM, tmp: ChildKeyFSM | ValidChildKeyAction | undefined = ref2, j = 0;
+      let ref2 = ref as ChildKeyFSM, tmp: ChildKeyFSM | ValidChildKeyAction | undefined, j = 0;
       while ((tmp = ref2[strip(arr[j])]) && j < last) { j++; ref2 = tmp; }
       if (tmp != null && (index >= countOfCustomKeys || tmp === KeyAction.cmd)) {
         index >= countOfCustomKeys ? delete d.keyToCommandRegistry_[key] :

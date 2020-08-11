@@ -443,7 +443,6 @@ interface String {
       * @param replaceValue A string containing the text to replace for every successful match of searchValue in this string.
       */
     replace(searchValue: string, replaceValue: string): string;
-    replace(searchValue: string, replaceValue: string): string;
 
     /**
       * Replaces text in a string, using a regular expression or search string.

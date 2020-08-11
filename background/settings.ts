@@ -469,7 +469,7 @@ var Settings_ = {
         options.sizes = newSizes;
         options.styles = newStyles;
       }
-      (a.cache_ as WritableSettingsCache).vomnibarOptions = options = isSame ? defaultOptions : options!;
+      (a.cache_ as WritableSettingsCache).vomnibarOptions = isSame ? defaultOptions : options!;
       payload.n = maxMatches;
       payload.t = queryInterval;
       payload.l = sizes;

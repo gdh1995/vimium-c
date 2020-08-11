@@ -1888,6 +1888,7 @@ knownCs = {
             || !(Build.BTypes & BrowserType.Chrome)
             || CurCVer_ >= BrowserVer.MinWarningOfEscapingHashInBodyOfDataURL
           ? str.replace("#", "%23") : str), true);
+        // TODO(gdh1995): replace all
         return xhr.send();
       }
     },
