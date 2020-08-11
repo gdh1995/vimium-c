@@ -79,7 +79,7 @@ export const executeHintInOfficer = (hint: HintItem, event?: HandlerNS.Event): R
     clickEl = null;
     hintApi.t({ k: kTip.linkRemoved, d: 2000 })
   }
-  (<RegExpOne> /0?/).test("");
+  (<RegExpOne> /a?/).test("")
   return rect
 }
 

@@ -1158,13 +1158,13 @@ BG_.BgUtils_.GC_(1);
 function OnBgUnload(): void {
   BG_.removeEventListener("unload", OnBgUnload);
   setTimeout(function (): void {
-    BG_ = chrome.extension.getBackgroundPage() as Window as typeof BG_;
+    BG_ = chrome.extension.getBackgroundPage() as Window as typeof BG_ // lgtm [js/missing-variable-declaration]
     if (!BG_) { // a user may call `close()` in the console panel
       window.onbeforeunload = null as any;
       window.close();
       return;
     }
-    bgSettings_ = BG_.Settings_;
+    bgSettings_ = BG_.Settings_ // lgtm [js/missing-variable-declaration]
     if (!bgSettings_) { BG_ = null as never; return; }
     BG_.addEventListener("unload", OnBgUnload);
     if (BG_.document.readyState !== "loading") { setTimeout(callback, 67); return; }

@@ -218,7 +218,8 @@ export const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void
         portToOmni = channel.port1;
         (portToOmni as typeof channel.port1).onmessage = onOmniMessage
         const sec: VomnibarNS.MessageData = [secret, omniOptions as VomnibarNS.FgOptionsToFront]
-        wnd.postMessage(sec, !isFile ? new URL(page).origin : "*", [channel.port2])
+        wnd.postMessage(sec, !isFile ? new URL(page).origin : "*" // lgtm [js/cross-window-information-leak]
+            , [channel.port2])
       }
       type === VomnibarNS.PageType.web ? initMsgInterval = interval_(doPostMsg, 66) : doPostMsg(1)
     };

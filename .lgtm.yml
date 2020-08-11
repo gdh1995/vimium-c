@@ -1,0 +1,12 @@
+path_classifiers:
+  docs:
+    - "scripts/*.py"
+  library:
+    - "lib/*.min.*"
+    - lib/math_parser.js
+    - "typings/base*"
+queries:
+  - exclude: js/automatic-semicolon-insertion
+  - exclude: js/incomplete-url-scheme-check
+  - exclude: js/insecure-randomness
+  - exclude: js/regex/always-matches
