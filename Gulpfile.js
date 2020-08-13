@@ -1208,7 +1208,7 @@ function loadTypeScriptCompiler(path) {
 
 function removeSomeTypeScriptOptions() {
   if (tsOptionsCleaned) { return; }
-  var hasOwn = Object.prototype.hasOwnProperty, toDelete = [], key, val;
+  var hasOwn = Object.prototype.hasOwnProperty, toDelete = [], key;
   for (var key in compilerOptions) {
     if (key === "typescript" || key === "__proto__") { continue; }
     if (!hasOwn.call(compilerOptions, key)) { continue; }

@@ -424,7 +424,7 @@ readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"] {
       fixTail = !pattern.includes("/", schemaLen + 3);
       pattern = (schemaLen < 0 ? "^https?://" : "^") +
           (!pattern.startsWith("*") || pattern[1] === "."
-            ? ((pattern = pattern.replace(<RegExpG> /\./g, "\\.")),
+            ? ((pattern = pattern.replace(<RegExpG> /\./g, "\\.")), // lgtm [js/incomplete-sanitization]
               !pattern.startsWith("*") ? pattern.replace("://*\\.", "://(?:[^./]+\\.)*?")
                 : pattern.replace("*\\.", "(?:[^./]+\\.)*?"))
             : "[^/]" + pattern);
@@ -640,7 +640,8 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
     }
     static generateDefaultPattern_ (this: void): string {
       const url2 = url.startsWith("http:")
-        ? "^https?://" + url.split("/", 3)[2].replace(<RegExpG> /[.[\]]/g, "\\$&") + "/"
+        ? "^https?://"
+          + url.split("/", 3)[2].replace(<RegExpG> /[.[\]]/g, "\\$&") + "/" // lgtm [js/incomplete-sanitization]
         : url.startsWith(location.origin)
         ? ":vimium:/" + new URL(url).pathname.replace("/pages", "")
         : (<RegExpOne> /^[^:]+:\/\/./).test(url) && !url.startsWith("file:")

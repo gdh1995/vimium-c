@@ -782,8 +782,9 @@ let optionsInit1_ = function (): void {
     nextTick_(([el, el2, el3]) => {
       el.textContent = el.href = "about:addons";
       const el1 = el.parentElement as HTMLElement, prefix = GlobalConsts.FirefoxAddonPrefix;
-      el1.insertBefore(new Text(pTrans_("manageShortcut")), el);
-      el1.insertBefore(new Text(pTrans_("manageShortcut_2")), el.nextSibling);
+      el1.insertBefore(new Text(pTrans_("manageShortcut")), el); // lgtm [js/superfluous-trailing-arguments]
+      el1.insertBefore(new Text(pTrans_("manageShortcut_2")) // lgtm [js/superfluous-trailing-arguments]
+          , el.nextSibling);
       el2.href = prefix + "shortcut-forwarding-tool/?src=external-vc-options";
       el3.href = prefix + "newtab-adapter/?src=external-vc-options";
     }, [_element as HTMLAnchorElement,

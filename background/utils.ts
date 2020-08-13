@@ -378,7 +378,7 @@ var BgUtils_ = {
     if (path === "paste") {
       path += " .";
     }
-    if (workType < Urls.WorkType.ValidNormal || !(cmd = path = path.trim()) || (ind = path.indexOf(" ")) <= 0
+    if (workType < Urls.WorkType.ValidNormal || !(path = path.trim()) || (ind = path.indexOf(" ")) <= 0
         || !(<RegExpI> /^[a-z][\da-z\-]*(?:\.[a-z][\da-z\-]*)*$/i).test(cmd = path.slice(0, ind).toLowerCase())
         || (<RegExpI> /\.(?:css|html?|js)$/i).test(cmd)) {
       return null;

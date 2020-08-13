@@ -125,10 +125,10 @@ export const rotate1 = (totalHints: readonly HintItem[], reverse?: boolean, save
     zIndexes_ = stacks;
   }
   for (const stack of zIndexes_) {
-    for (let length = stack.length, j = reverse ? length - 1 : 0, end = reverse ? -1 : length
-          , max = Math.max.apply(Math, stack)
-          , oldI: number = totalHints[stack[reverse ? 0 : length - 1]].z!
-        ; j !== end; reverse ? j-- : j++) {
+    const length = stack.length, end = reverse ? -1 : length
+    const max = Math.max.apply(Math, stack)
+    let oldI: number = totalHints[stack[reverse ? 0 : length - 1]].z!
+    for (let j = reverse ? length - 1 : 0; j !== end; reverse ? j-- : j++) {
       const hint = totalHints[stack[j]], { m: { style, classList } } = hint, newI = hint.z!;
       style.zIndex = (hint.z = oldI) as number | string as string;
       classList.toggle("OH", oldI < max); classList.toggle("SH", oldI >= max);
@@ -435,7 +435,7 @@ export const renderMarkers = (hintItems: readonly HintItem[]): void => {
     }
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
         && noAppend) {
-      marker.appendChild(new Text(right));
+      marker.appendChild(new Text(right)); // lgtm [js/superfluous-trailing-arguments]
     } else {
       marker.append!(right);
     }

@@ -74,7 +74,7 @@ function main(callback = null
       callback = null;
       local_cb ? local_cb()
       // @ts-ignore
-      : consumed <= 0 && typeof require === "function" && require && require.main === module
+      : consumed <= 0 && typeof require === "function" && require.main === module
         && process.argv.indexOf("-q") > 0 ? void 0
       : print("All %d new icons in %d converted.", consumed, totalCount);
   };
@@ -129,6 +129,6 @@ if (typeof module !== "undefined") {
   };
 }
 // @ts-ignore
-if (typeof require === "function" && require && require.main === module) {
+if (typeof require === "function" && require.main === module) {
   main();
 }

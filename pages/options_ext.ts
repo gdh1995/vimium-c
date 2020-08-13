@@ -193,8 +193,9 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
   plat && (plat = ("" + plat).slice(0, 10));
   if (!confirm(pTrans_("confirmImport", [
         pTrans_(is_recommended !== true ? "backupFile" : "recommendedFile"),
-        ext_ver > 1 ? pTrans_("fileVCVer").replace("*", "" + ext_ver) : "",
-        (ext_ver > 1 ? pTrans_("fileVCVer_2").replace("*", "" + ext_ver) : "") + (newer ? pTrans_("fileVCNewer") : ""),
+        ext_ver > 1 ? pTrans_("fileVCVer").replace("*", "" + ext_ver) : "", // lgtm [js/incomplete-sanitization]
+        (ext_ver > 1 ? pTrans_("fileVCVer_2").replace("*", "" + ext_ver) : "" // lgtm [js/incomplete-sanitization]
+          ) + (newer ? pTrans_("fileVCNewer") : ""),
         plat ? pTrans_("filePlatform", [pTrans_(plat) || plat[0].toUpperCase() + plat.slice(1)])
           : pTrans_("commonPlatform"),
         time ? pTrans_("atTime", [formatDate_(time)]) : pTrans_("before")]))) {
