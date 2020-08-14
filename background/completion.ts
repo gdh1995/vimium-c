@@ -1884,10 +1884,12 @@ knownCs = {
           Decoder._ind = -1;
           return;
         }
-        xhr.open("GET", Decoder._dataUrl + (Build.MinCVer >= BrowserVer.MinWarningOfEscapingHashInBodyOfDataURL
-            || !(Build.BTypes & BrowserType.Chrome)
-            || CurCVer_ >= BrowserVer.MinWarningOfEscapingHashInBodyOfDataURL
-          ? str.replace("#", "%23") : str), true);
+        const arr = Build.MinCVer >= BrowserVer.MinWarningOfEscapingHashInBodyOfDataURL
+            || !(Build.BTypes & BrowserType.Chrome) || CurCVer_ >= BrowserVer.MinWarningOfEscapingHashInBodyOfDataURL
+            ? str.split("#", 3) : []
+        const num = arr.length
+        const escaped = num < 2 ? str : num < 3 ? arr[0] + "%23" + arr[1] : str.replace(<RegExpG> /#/g, "%23")
+        xhr.open("GET", Decoder._dataUrl + escaped, true);
         // TODO(gdh1995): replace all
         return xhr.send();
       }
