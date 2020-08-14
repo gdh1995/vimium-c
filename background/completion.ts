@@ -36,17 +36,17 @@ const enum BookmarkStatus {
 }
 
 interface DecodedItem {
-  readonly url_: string;
-  text_: string;
+  readonly u: string;
+  t: string;
 }
 
 interface Bookmark extends DecodedItem {
   readonly id_: string;
-  readonly text_: string;
+  readonly t: string;
   readonly path_: string;
   readonly title_: string;
   readonly visible_: Visibility;
-  readonly url_: string;
+  readonly u: string;
   readonly jsUrl_: string | null;
   readonly jsText_: string | null;
 }
@@ -55,13 +55,13 @@ interface JSBookmark extends Bookmark {
   readonly jsText_: string;
 }
 interface HistoryItem extends DecodedItem {
-  readonly url_: string;
+  readonly u: string;
   time_: number;
   title_: string;
   visible_: Visibility;
 }
 interface BrowserUrlItem {
-  url_: string;
+  u: string;
   title_: string | null;
   sessionId_: string | number | null | undefined;
   visit_: number
@@ -337,14 +337,14 @@ bookmarkEngine = {
     for (let ind = 0; ind < len; ind++) {
       const i = arr[ind];
       const title = isPath ? i.path_ : i.title_;
-      if (!RankingUtils.Match2_(i.text_, title)) { continue; }
+      if (!RankingUtils.Match2_(i.t, title)) { continue; }
       if (showThoseInBlocklist || i.visible_) {
         buildCache && newCache.push(i);
-        if (bookmarkUrlToSkip && i.url_.length < bookmarkUrlToSkip.length + 2
-            && bookmarkUrlToSkip === (i.url_.endsWith("/") ? i.url_.slice(0, -1) : i.url_)) {
+        if (bookmarkUrlToSkip && i.u.length < bookmarkUrlToSkip.length + 2
+            && bookmarkUrlToSkip === (i.u.endsWith("/") ? i.u.slice(0, -1) : i.u)) {
           continue;
         }
-        results.push([-RankingUtils.wordRelevancy_(i.text_, i.title_), ind]);
+        results.push([-RankingUtils.wordRelevancy_(i.t, i.title_), ind]);
       }
     }
     if (buildCache) {
@@ -373,8 +373,8 @@ bookmarkEngine = {
         /** inline of {@link #ComputeRelevancy} */
         score = score < fakeTimeScore ? score : (score + fakeTimeScore) / 2;
       }
-      const sug = new Suggestion("bookm", i.url_, i.text_, isPath ? i.path_ : i.title_, get2ndArg, -score);
-      const historyIdx = otherFlags & CompletersNS.QueryFlags.ShowTime ? HistoryCache.binarySearch_(i.url_) : -1
+      const sug = new Suggestion("bookm", i.u, i.t, isPath ? i.path_ : i.title_, get2ndArg, -score);
+      const historyIdx = otherFlags & CompletersNS.QueryFlags.ShowTime ? HistoryCache.binarySearch_(i.u) : -1
       sug.visit = historyIdx < 0 ? 0 : HistoryCache.history_![historyIdx].time_
       results2.push(sug);
       if (i.jsUrl_ === null) { continue; }
@@ -445,9 +445,9 @@ bookmarkEngine = {
     const url = bookmark.url!, jsSchema = "javascript:", isJS = url.startsWith(jsSchema);
     bookmarkEngine.bookmarks_.push({
       id_: id, path_: path, title_: title || id,
-      text_: isJS ? jsSchema : url,
+      t: isJS ? jsSchema : url,
       visible_: omniBlockList ? BlockListFilter.TestNotMatched_(url, title) : kVisibility.visible,
-      url_: isJS ? jsSchema : url,
+      u: isJS ? jsSchema : url,
       jsUrl_: isJS ? url : null, jsText_: isJS ? BgUtils_.DecodeURLPart_(url) : null
     });
   },
@@ -480,22 +480,22 @@ bookmarkEngine = {
     title = info && (info as chrome.bookmarks.BookmarkChangeInfo).title;
     let i = 0; for (; i < len && arr[i].id_ !== id; i++) { /* empty */ }
     if (i < len) {
-      const cur: Bookmark = arr[i], url = cur.url_,
+      const cur: Bookmark = arr[i], url = cur.u,
       url2 = info && (info as chrome.bookmarks.BookmarkChangeInfo).url;
       type WBookmark = Writable<Bookmark>;
-      if (Decoder.enabled_ && (title == null ? url !== cur.text_ || !info : url2 != null && url !== url2)) {
+      if (Decoder.enabled_ && (title == null ? url !== cur.t || !info : url2 != null && url !== url2)) {
         url in Decoder.dict_ && HistoryCache.binarySearch_(url) < 0 && delete Decoder.dict_[url];
       }
       if (title != null) {
         (cur as WBookmark).path_ = cur.path_.slice(0, -cur.title_.length) + (title || cur.id_);
         (cur as WBookmark).title_ = title || cur.id_;
         if (url2) {
-          (cur as WBookmark).url_ = url2;
-          (cur as WBookmark).text_ = Decoder.decodeURL_(url2, cur as WBookmark);
+          (cur as WBookmark).u = url2;
+          (cur as WBookmark).t = Decoder.decodeURL_(url2, cur as WBookmark);
           Decoder.continueToWork_();
         }
         if (omniBlockList) {
-          (cur as WBookmark).visible_ = BlockListFilter.TestNotMatched_(cur.url_, cur.title_);
+          (cur as WBookmark).visible_ = BlockListFilter.TestNotMatched_(cur.u, cur.title_);
         }
       } else {
         arr.splice(i, 1);
@@ -508,7 +508,7 @@ bookmarkEngine = {
     // a folder is removed
     if (!bookmarkEngine._expiredUrls && Decoder.enabled_) {
       const dict = Decoder.dict_, bs = HistoryCache.binarySearch_;
-      for (const { url_: url } of arr) {
+      for (const { u: url } of arr) {
         if ((url in dict) && bs(url) < 0) {
           delete dict[url];
         }
@@ -585,12 +585,12 @@ historyEngine = {
     }
     for (const len = history.length; i < len; i++) {
       const item = history[i];
-      if (onlyUseTime ? !parts0.test(item.text_) : !Match2(item.text_, item.title_)) { continue; }
+      if (onlyUseTime ? !parts0.test(item.t) : !Match2(item.t, item.title_)) { continue; }
       if (!(showThoseInBlocklist || item.visible_)) { continue; }
       buildCache && newCache.push(item);
       matched++;
       const score = onlyUseTime ? ComputeRecency(item.time_) || /* < 0.0002 */ 1e-16 * item.time_
-          : ComputeRelevancy(item.text_, item.title_, item.time_);
+          : ComputeRelevancy(item.t, item.title_, item.time_);
       if (curMinScore >= score) { continue; }
       for (j = maxNum - 2; 0 <= j && results[j] < score; j -= 2) {
         results[j + 2] = results[j], results[j + 3] = results[j + 1];
@@ -616,8 +616,8 @@ historyEngine = {
       const score = results[i];
       if (score <= 0) { break; }
       const item = history[results[i + 1]];
-      if (item.url_ !== historyUrlToSkip) {
-        const sug = new Suggestion("history", item.url_, item.text_, item.title_, get2ndArg, score)
+      if (item.u !== historyUrlToSkip) {
+        const sug = new Suggestion("history", item.u, item.t, item.title_, get2ndArg, score)
         sug.visit = item.time_
         sugs.push(sug)
       } else {
@@ -656,7 +656,7 @@ historyEngine = {
       if (key in arr) { return false; }
       arr[key] = 1; arr[url] = 1;
       ++i > 0 && historyArr.push({
-        url_: entry.url, title_: entry.title,
+        u: entry.url, title_: entry.title,
         visit_: !(Build.BTypes & ~BrowserType.Firefox) ? item.lastModified
             : (t = item.lastModified, t < /* as ms: 1979-07 */ 3e11 && t > /* as ms: 1968-09 */ -4e10 ? t * 1000 : t),
         sessionId_: entry.sessionId
@@ -685,7 +685,7 @@ historyEngine = {
         rawArr2 = rawArr2.slice(cut, cut + maxResults)
       }
       let historyArr2 = rawArr2.map((i): BrowserUrlItem => ({
-          url_: i.url, title_: i.title, visit_: i.lastVisitTime, sessionId_: null
+          u: i.url, title_: i.title, visit_: i.lastVisitTime, sessionId_: null
       }))
       if (cut < 0) {
         historyArr2 = historyArr.concat(historyArr2);
@@ -700,7 +700,7 @@ historyEngine = {
     Completers.next_(historyArr as Suggestion[], SugType.history);
   } as (historyArr: BrowserUrlItem[]) => void,
   MakeSuggestion_ (e: BrowserUrlItem, i: number, arr: Array<BrowserUrlItem | Suggestion>): void {
-    const u = e.url_, o = new Suggestion("history", u, Decoder.decodeURL_(u, u), e.title_ || "",
+    const u = e.u, o = new Suggestion("history", u, Decoder.decodeURL_(u, u), e.title_ || "",
       get2ndArg, (99 - i) / 100),
     sessionId = e.sessionId_
     o.visit = e.visit_
@@ -767,12 +767,12 @@ domainEngine = {
       if (bookmarkEngine.status_ === BookmarkStatus.inited) {
         const re: RegExpOne = new RegExp(`^https?://${result.replace(escapeAllRe, "\\$&")}/?$`)
         let matchedBookmarks = bookmarkEngine.bookmarks_.filter(
-            item => re.test(item.url_) && (showThoseInBlocklist || item.visible_))
+            item => re.test(item.u) && (showThoseInBlocklist || item.visible_))
         if (matchedBookmarks.length > 0) {
-          const matched2 = matchedBookmarks.filter(i => i.url_[4] === "s")
+          const matched2 = matchedBookmarks.filter(i => i.u[4] === "s")
           useHttps = matched2.length > 0
           matchedBookmarks = useHttps ? matched2 : matchedBookmarks
-          const matchedUrl = matchedBookmarks[0].url_
+          const matchedUrl = matchedBookmarks[0].u
           bookmarkUrlToSkip = matchedUrl.endsWith("/") ? matchedUrl.slice(0, -1) : matchedUrl
           title = matchedBookmarks[0].title_
         }
@@ -803,7 +803,7 @@ domainEngine = {
   refresh_ (history: HistoryItem[]): void {
     domainEngine.refresh_ = null as never;
     const parse = domainEngine.ParseDomainAndScheme_, d = HistoryCache.domains_ = BgUtils_.domains_;
-    for (const { url_: url, time_: time, visible_: visible } of history) {
+    for (const { u: url, time_: time, visible_: visible } of history) {
       const item = parse(url);
       if (!item) { continue; }
       const {domain_: domain, schema_: schema} = item, slot = d[domain];
@@ -1126,13 +1126,13 @@ searchEngine = {
         ; left = slashInd) {
       for (u = url.slice(left, slashInd), h = mostHigh; low <= h; ) {
         m = (low + h) >>> 1;
-        e = arr[m].url_.slice(left);
+        e = arr[m].u.slice(left);
         if (e > u) { h = m - 1; }
         else if (e !== u) { low = m + 1; }
-        else { return left ? arr[m].url_ : ""; }
+        else { return left ? arr[m].u : ""; }
       }
       if (low <= mostHigh && left) {
-        u = arr[low].url_;
+        u = arr[low].u;
         if (u[slashInd] === "/" && u.length <= ++slashInd) {
           return u;
         }
@@ -1496,16 +1496,16 @@ knownCs = {
           url = HistoryCache.trimURLAndTitleWhenTooLong_(url, j);
         }
         (arr as HistoryItem[])[i] = {
-          text_: url,
+          t: url,
           title_: Build.BTypes & ~BrowserType.Chrome ? j.title || "" : j.title!,
           time_: j.lastVisitTime,
           visible_: kVisibility.visible,
-          url_: url
+          u: url
         };
       }
       if (omniBlockList) {
         for (const k of arr as HistoryItem[]) {
-          if (BlockListFilter.TestNotMatched_(k.text_, k.title_) === 0) {
+          if (BlockListFilter.TestNotMatched_(k.t, k.title_) === 0) {
             k.visible_ = kVisibility.hidden;
           }
         }
@@ -1514,24 +1514,24 @@ knownCs = {
         setTimeout(function (): void {
           const arr1 = HistoryCache.history_!;
           for (let i = arr1.length - 1; 0 < i; ) {
-            const j = arr1[i], url = j.url_, text = j.text_ = Decoder.decodeURL_(url, j),
+            const j = arr1[i], url = j.u, text = j.t = Decoder.decodeURL_(url, j),
             isSame = text.length >= url.length;
             while (0 <= --i) {
-              const k = arr1[i], url2 = k.url_;
+              const k = arr1[i], url2 = k.u;
               if (url2.length >= url.length || !url.startsWith(url2)) {
                 break;
               }
-              (k as Writable<HistoryItem>).url_ = url.slice(0, url2.length);
+              (k as Writable<HistoryItem>).u = url.slice(0, url2.length);
               const decoded = isSame ? url2 : Decoder.decodeURL_(url2, k);
               // handle the case that j has been decoded in another charset but k hasn't
-              k.text_ = isSame || decoded.length < url2.length ? text.slice(0, decoded.length) : decoded;
+              k.t = isSame || decoded.length < url2.length ? text.slice(0, decoded.length) : decoded;
             }
           }
           HistoryCache.domains_ || setTimeout(function (): void {
             domainEngine.refresh_ && domainEngine.refresh_(HistoryCache.history_!);
           }, 200);
         }, 100);
-        HistoryCache.history_!.sort((a, b) => a.url_ > b.url_ ? 1 : -1);
+        HistoryCache.history_!.sort((a, b) => a.u > b.u ? 1 : -1);
         HistoryCache.sorted_ = true;
         chrome.history.onVisitRemoved.addListener(HistoryCache.OnVisitRemoved_);
         chrome.history.onVisited.addListener(HistoryCache.OnPageVisited_);
@@ -1563,11 +1563,11 @@ knownCs = {
         HistoryCache.refreshInfo_();
       }
       const j: HistoryItem = i >= 0 ? HistoryCache.history_![i] : {
-        text_: "",
+        t: "",
         title_: title,
         time_: time,
         visible_: omniBlockList ? BlockListFilter.TestNotMatched_(url, title) : kVisibility.visible,
-        url_: url
+        u: url
       };
       let slot: Domain | undefined;
       if (d) {
@@ -1600,7 +1600,7 @@ knownCs = {
         }
         return;
       }
-      j.text_ = Decoder.decodeURL_(url, j);
+      j.t = Decoder.decodeURL_(url, j);
       HistoryCache.history_!.splice(~i, 0, j);
       MatchCacheManager.timer_ && MatchCacheManager.clear_(MatchCacheType.history);
     },
@@ -1615,7 +1615,7 @@ knownCs = {
         }
         const d2 = BgUtils_.safeObj_<string>();
         for (const i of bookmarkEngine.bookmarks_) {
-          const t = d[i.url_]; t && (d2[i.url_] = t);
+          const t = d[i.u]; t && (d2[i.u] = t);
         }
         Decoder.dict_ = d2;
         return;
@@ -1689,7 +1689,7 @@ knownCs = {
       let e = "", a = HistoryCache.history_!, h = a.length - 1, l = 0, m = 0;
       while (l <= h) {
         m = (l + h) >>> 1;
-        e = a[m].url_;
+        e = a[m].u;
         if (e > u) { h = m - 1; }
         else if (e !== u) { l = m + 1; }
         else { return m; }
@@ -1728,7 +1728,7 @@ knownCs = {
     UpdateAll_ (this: void): void {
       if (bookmarkEngine.bookmarks_) {
         for (const k of bookmarkEngine.bookmarks_) {
-          (k as Writable<Bookmark>).visible_ = omniBlockList ? BlockListFilter.TestNotMatched_(k.text_, k.path_)
+          (k as Writable<Bookmark>).visible_ = omniBlockList ? BlockListFilter.TestNotMatched_(k.t, k.path_)
             : kVisibility.visible;
         }
       }
@@ -1737,11 +1737,11 @@ knownCs = {
       }
       const d = HistoryCache.domains_;
       for (const k of HistoryCache.history_) {
-        const newVisible = omniBlockList ? BlockListFilter.TestNotMatched_(k.text_, k.title_) : kVisibility.visible;
+        const newVisible = omniBlockList ? BlockListFilter.TestNotMatched_(k.t, k.title_) : kVisibility.visible;
         if (k.visible_ !== newVisible) {
           k.visible_ = newVisible;
           if (d) {
-            const domain = domainEngine.ParseDomainAndScheme_(k.url_);
+            const domain = domainEngine.ParseDomainAndScheme_(k.u);
             if (domain) {
               const slot = d[domain.domain_];
               if (slot) {
@@ -1852,12 +1852,12 @@ knownCs = {
       for (; ; ) {
         try {
           while (++i < l) {
-            j = a[i]; s = j.url_;
-            j.text_ = s.length >= 400 || s.lastIndexOf("%") < 0 ? s : _decodeFunc(s);
+            j = a[i]; s = j.u;
+            j.t = s.length >= 400 || s.lastIndexOf("%") < 0 ? s : _decodeFunc(s);
           }
           break;
         } catch {
-          j!.text_ = m[s!] || (w.push(j!), s!);
+          j!.t = m[s!] || (w.push(j!), s!);
         }
       }
       Decoder.continueToWork_();
@@ -1874,9 +1874,9 @@ knownCs = {
       let text: string | undefined;
       for (; Decoder._ind < Decoder._jobs.length; Decoder._ind++) {
         const url = Decoder._jobs[Decoder._ind], isStr = typeof url === "string",
-        str = isStr ? url as string : (url as DecodedItem).url_;
+        str = isStr ? url as string : (url as DecodedItem).u;
         if (text = Decoder.dict_[str]) {
-          isStr || ((url as DecodedItem).text_ = text);
+          isStr || ((url as DecodedItem).t = text);
           continue;
         }
         if (!xhr && !(xhr = Decoder.xhr_())) {
@@ -1890,7 +1890,6 @@ knownCs = {
         const num = arr.length
         const escaped = num < 2 ? str : num < 3 ? arr[0] + "%23" + arr[1] : str.replace(<RegExpG> /#/g, "%23")
         xhr.open("GET", Decoder._dataUrl + escaped, true);
-        // TODO(gdh1995): replace all
         return xhr.send();
       }
     },
@@ -1898,7 +1897,7 @@ knownCs = {
       if (Decoder._ind < 0) { return; } // disabled by the outsides
       const text = this.responseText, url = Decoder._jobs[Decoder._ind++];
       if (typeof url !== "string") {
-        Decoder.dict_[url.url_] = url.text_ = text;
+        Decoder.dict_[url.u] = url.t = text;
       } else {
         Decoder.dict_[url] = text;
       }
