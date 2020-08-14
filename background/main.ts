@@ -1572,49 +1572,74 @@
       });
     },
     /* kBgCmd.joinTabs: */ function (this: void): void {
-      if (Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther & BrowserType.Edge)) {
+      // { time/recency, create/id } | "all"
+      const sortOpt: string | undefined | null = cOptions.sort
+      const onlyCurrent = cOptions.windows === "current"
+      if (Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther & BrowserType.Edge)
+          && !onlyCurrent) {
         Backend_.showHUD_("Can not collect tab info of all windows");
         return;
       }
-      chrome.windows.getAll(Build.MinCVer < BrowserVer.Min$windows$$GetAll$SupportWindowTypes
+      if (onlyCurrent) {
+        getCurWnd(true, wnd => wnd ? onWindows([wnd]) : onRuntimeError())
+      } else {
+        chrome.windows.getAll(Build.MinCVer < BrowserVer.Min$windows$$GetAll$SupportWindowTypes
           && Build.BTypes & BrowserType.Chrome && CurCVer_ < BrowserVer.Min$windows$$GetAll$SupportWindowTypes
           ? {populate: true} : {populate: true, windowTypes: ["normal", "popup"]},
-      (wnds: Array<Window & {tabs: Tab[]}>) => {
+        onWindows)
+      }
+      function onWindows (wnds: Array<Window & {tabs: Tab[]}>): void {
         if (Build.MinCVer < BrowserVer.Min$windows$$GetAll$SupportWindowTypes && Build.BTypes & BrowserType.Chrome
             && CurCVer_ < BrowserVer.Min$windows$$GetAll$SupportWindowTypes) {
           wnds = wnds.filter(wnd => wnd.type === "normal" || wnd.type === "popup");
         }
-        const curIncognito = TabRecency_.incognito_ === IncognitoType.true, curWndId = TabRecency_.curWnd_;
-        wnds = wnds.filter(wnd => wnd.incognito === curIncognito);
-        const _cur0 = wnds.filter(wnd => wnd.id === curWndId), _curWnd = _cur0.length ? _cur0[0] : null;
-        if (!_curWnd) { return; }
-        const cb = (curWnd: typeof wnds[0]): void => {
-          const tabIds: number[] = [], push = (j: Tab): void => { tabIds.push(j.id); };
+        wnds = onlyCurrent ? wnds
+            : wnds.filter(wnd => wnd.incognito === (TabRecency_.incognito_ === IncognitoType.true))
+        const _cur0 = onlyCurrent ? wnds : wnds.filter(wnd => wnd.id === TabRecency_.curWnd_)
+        const _curWnd = _cur0.length ? _cur0[0] : null
+        if (!onlyCurrent && !_curWnd) { return; }
+        const cb = (curWnd: typeof wnds[0] | null): void => {
+          const allTabs: Tab[] = [], push = (j: Tab): void => { allTabs.push(j) }
           wnds.sort((i, j) => i.id - j.id).forEach(i => i.tabs.forEach(push));
-          if (!tabIds.length) { return; }
-          if (!(Build.BTypes & ~BrowserType.Firefox)
-              || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox) {
-            let start = curWnd.tabs.length;
-            for (const tabId of tabIds) {
-              chrome.tabs.move(tabId, { windowId: curWnd.id, index: start++ });
+          if (!allTabs.length) { return; }
+          if (sortOpt) {
+            const curTabId = TabRecency_.curTab_
+            const map: {[key: number]: number} = BgUtils_.safeObj_()
+            if (sortOpt.includes("time") && !sortOpt.includes("creat") || sortOpt.includes("recen")) {
+              for (let tab of allTabs) {
+                const id = tab.id, recency = TabRecency_.tabs_![id]
+                map[id] = id === curTabId ? GlobalConsts.MaxTabRecency + 1 : recency != null ? recency.i
+                    : id + (GlobalConsts.MaxTabRecency + 2)
+              }
+              allTabs.sort((a, b) => map[a.id] - map[b.id])
+            } else {
+              allTabs.sort((a, b) => a.id - b.id)
             }
-          } else {
-            chrome.tabs.move(tabIds, { windowId: curWnd.id, index: curWnd.tabs.length });
+          }
+          let start = curWnd ? curWnd.tabs.length : 0;
+          const curWndId = curWnd ? curWnd.id : TabRecency_.curWnd_
+          // Note: on Edge 84, the result of `tabs.move(number[], {index: number})` is (stable but) unpredictable
+          for (const tab of allTabs) {
+            chrome.tabs.move(tab.id, { windowId: curWndId, index: start++ })
+          }
+          for (const tab of allTabs) {
+            tab.pinned && chrome.tabs.update(tab.id, {pinned: true})
           }
         };
-        if (_curWnd.type === "popup" && _curWnd.tabs.length) {
+        if (_curWnd && _curWnd.type === "popup" && _curWnd.tabs.length) {
           // always convert a popup window to a normal one
           let curTabId = _curWnd.tabs[0].id;
           _curWnd.tabs = _curWnd.tabs.filter(i => i.id !== curTabId);
           makeWindow({
             tabId: curTabId,
-            incognito: curIncognito
+            incognito: _curWnd.incognito
           }, _curWnd.state, cb);
         } else {
-          wnds = wnds.filter(wnd => wnd.id !== curWndId);
-          cb(_curWnd);
+          wnds = onlyCurrent || !_curWnd || sortOpt && sortOpt.includes("all") ? wnds
+              : wnds.filter(wnd => wnd.id !== _curWnd.id)
+          cb(_curWnd)
         }
-      });
+      }
     },
     /* kBgCmd.toggleCS: */ function (this: void, tabs: [Tab]): void {
       if (!Build.PContentSettings) {
