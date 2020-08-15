@@ -1574,7 +1574,8 @@
     /* kBgCmd.joinTabs: */ function (this: void): void {
       // { time/recency, create/id } | "all"
       const sortOpt: string | undefined | null = cOptions.sort
-      const onlyCurrent = cOptions.windows === "current"
+      const windowsOpt: string | undefined | null = cOptions.windows
+      const onlyCurrent = windowsOpt === "current"
       if (Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther & BrowserType.Edge)
           && !onlyCurrent) {
         Backend_.showHUD_("Can not collect tab info of all windows");
@@ -1635,7 +1636,7 @@
             incognito: _curWnd.incognito
           }, _curWnd.state, cb);
         } else {
-          wnds = onlyCurrent || !_curWnd || sortOpt && sortOpt.includes("all") ? wnds
+          wnds = onlyCurrent || !_curWnd || sortOpt && sortOpt.includes("all") || windowsOpt === "all" ? wnds
               : wnds.filter(wnd => wnd.id !== _curWnd.id)
           cb(_curWnd)
         }

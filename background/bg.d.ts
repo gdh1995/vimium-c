@@ -532,6 +532,7 @@ declare const enum kCName {
   searchInAnother = "searchInAnother",
   showHelp = "showHelp",
   simBackspace = "simBackspace",
+  sortTabs = "sortTabs",
   switchFocus = "switchFocus",
   toggleCS = "toggleCS",
   toggleLinkHintCharacters = "toggleLinkHintCharacters",
@@ -672,6 +673,7 @@ declare namespace CommandsNS {
     [kCName.searchInAnother]: kBgCmd.searchInAnother;
     [kCName.showHelp]: kBgCmd.showHelp;
     [kCName.simBackspace]: kFgCmd.focusInput;
+    [kCName.sortTabs]: kBgCmd.joinTabs;
     [kCName.switchFocus]: kFgCmd.focusInput;
     [kCName.toggleCS]: kBgCmd.toggleCS;
     [kCName.toggleLinkHintCharacters]: kBgCmd.toggle;

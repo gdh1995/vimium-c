@@ -549,6 +549,7 @@ availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeO
   showHelp: [ kBgCmd.showHelp, 1, 1 ],
   showTip: [ kBgCmd.showTip, 1, 1 ],
   simBackspace: [ kFgCmd.focusInput, 0, 1, { act: "backspace" } ],
+  sortTabs: [ kBgCmd.joinTabs, 1, 1, { sort: "recency", windows: "current" } ],
   switchFocus: [ kFgCmd.focusInput, 0, 1, { act: "switch" } ],
   toggleCS: [ kBgCmd.toggleCS, 1, 0, { type: "images" } ],
   toggleLinkHintCharacters: [ kBgCmd.toggle, 1, 1, { key: "linkHintCharacters" } ],
