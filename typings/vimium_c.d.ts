@@ -214,6 +214,11 @@ interface ReadonlyChildKeyFSM {
 }
 type KeyFSM = ReadonlySafeDict<ValidKeyAction | ReadonlyChildKeyFSM>;
 
+declare const enum kMapKey {
+  NONE = 0, insertMode = 1, otherMode = 2, normal = 4, char = 8,
+  normal_long = 16, all_esc = 32, directInsert = 64,
+}
+
 type TextElement = HTMLInputElement | HTMLTextAreaElement;
 
 declare const enum ReuseType {
@@ -544,6 +549,7 @@ declare const enum GlobalConsts {
   SelectorPrefixesInPatterns = ".#[",
   DelimeterForKeyCharAndMode = ":",
   ModeIds = "nilofvmes",
+  InsertModeId = "i",
   OmniModeId = "o",
 }
 
@@ -579,7 +585,7 @@ declare const enum kKeyCode {
   metaKey = 91, osRightNonMac = 92, osRightMac = 93, menuKey = 93, maxNotFn = 112 - 1, f1, f2, f5 = f1 + 4,
   maxNotMetaKey = metaKey - 1, minNotMetaKeyOrMenu = menuKey + 1,
   f10 = f1 + 9, f12 = f1 + 11, f13, f20 = f1 + 19, minNotFn, ime = 229,
-  questionWin = 191, questionMac = kCharCode.question,
+  questionWin = 191, questionMac = kCharCode.question, bracketleftOnFF = 64,
 }
 declare const enum KeyStat {
   Default = 0, plain = Default,

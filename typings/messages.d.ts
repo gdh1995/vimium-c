@@ -83,6 +83,7 @@ interface BgReq {
     /** passKeys */ p: string | null;
     /** mappedKeys */ m: SafeDict<string> | null;
     /** keyFSM */ k: KeyFSM;
+    /** mappedKeyTypes */ t: kMapKey;
   };
   [kBgReq.injectorRun]: {
     /** task */ t: InjectorTask;
@@ -101,6 +102,7 @@ interface BgReq {
   [kBgReq.keyFSM]: {
     /** mappedKeys */ m: SafeDict<string> | null;
     /** keyMap */ k: KeyFSM;
+    /** mappedKeyTypes */ t: kMapKey;
   };
   [kBgReq.showHUD]: {
     /** kTip */ k?: kTip | 0

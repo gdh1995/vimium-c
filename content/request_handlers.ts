@@ -17,7 +17,7 @@ import {
 import { hudTip, hud_box } from "./hud"
 import {
   currentKeys, keyFSM, mappedKeys, set_keyFSM, anyClickHandler, onKeydown, onKeyup, passKeys,
-  set_isPassKeysReversed, isPassKeysReversed, set_passKeys, set_mappedKeys,
+  set_isPassKeysReversed, isPassKeysReversed, set_passKeys, set_mappedKeys, set_mapKeyTypes,
 } from "./key_handler"
 import { HintManager, kSafeAllSelector, set_kSafeAllSelector } from "./link_hints"
 import { createMark } from "./marks"
@@ -192,6 +192,7 @@ set_requestHandlers([
   /* kBgReq.keyFSM: */ function (request: BgReq[kBgReq.keyFSM]): void {
     /*#__INLINE__*/ set_keyFSM(request.k)
     safer(keyFSM)
+    set_mapKeyTypes(request.t)
     /*#__INLINE__*/ set_mappedKeys(request.m)
     mappedKeys && safer(mappedKeys)
   },

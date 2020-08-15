@@ -121,7 +121,7 @@ export const char_ = (eventWrapper: HandlerNS.Event): kChar => {
 
 export const keybody_ = (key: string): kChar => (key.slice(key.lastIndexOf("-") + 1) || key && kChar.minus) as kChar
 
-export const getKeyStat_ = ({e: event}: {e: EventControlKeys}): KeyStat => {
+export const getKeyStat_ = (event: EventControlKeys): KeyStat => {
     return <number> <boolean|number> event.altKey |
             (<number> <boolean|number> event.ctrlKey * 2) |
             (<number> <boolean|number> event.metaKey * 4) |

@@ -15,6 +15,7 @@ import { keyIsDown as scroll_keyIsDown, onScrolls, scrollTick } from "./scroller
 
 let passKeys: SafeEnum | null | "" = null
 let isPassKeysReversed = false
+let mapKeyTypes = kMapKey.NONE
 let mappedKeys: SafeDict<string> | null = null
 let keyFSM: KeyFSM
 let currentKeys = ""  
@@ -43,6 +44,7 @@ export function installTempCurrentKeyStatus (): void { currentKeys = "", nextKey
 export function set_onKeyup2 (_newOnKeyUp: typeof onKeyup2): void { onKeyup2 = _newOnKeyUp }
 export function set_isPassKeysReversed (_newPKReversed: boolean): void { isPassKeysReversed = _newPKReversed }
 export function set_keyFSM (_newKeyFSM: BgReq[kBgReq.keyFSM]["k"]) { keyFSM = _newKeyFSM }
+export function set_mapKeyTypes (_newMapKeyTypes: BgReq[kBgReq.keyFSM]["t"]): void { mapKeyTypes = _newMapKeyTypes }
 export function set_mappedKeys (_newMappedKeys: BgReq[kBgReq.keyFSM]["m"]): void { mappedKeys = _newMappedKeys }
 
 
@@ -58,10 +60,11 @@ set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
     }
     key = isLong || mod ? mod + chLower : char;
     if (mappedKeys && mode < kModeId.NO_MAP_KEY) {
-      mapped = mode && mappedKeys[key + GlobalConsts.DelimeterForKeyCharAndMode + GlobalConsts.ModeIds[mode]
-          ] || mappedKeys[key];
-      key = mapped ? mapped : !isLong && (mapped = mappedKeys[chLower]) && mapped.length < 2
-            && (baseMod = mapped.toUpperCase()) !== mapped
+      mapped = mode && mapKeyTypes & (kMapKey.insertMode | kMapKey.otherMode)
+          && mappedKeys[key + GlobalConsts.DelimeterForKeyCharAndMode + GlobalConsts.ModeIds[mode]]
+          || (mapKeyTypes & kMapKey.normal ? mappedKeys[key] : "")
+      key = mapped ? mapped : mapKeyTypes & kMapKey.char && !isLong && (mapped = mappedKeys[chLower])
+            && mapped.length < 2 && (baseMod = mapped.toUpperCase()) !== mapped
           ? mod ? mod + mapped : char === chLower ? mapped : baseMod : key
     }
   }
@@ -75,11 +78,11 @@ const checkKey = (event: HandlerNS.Event, key: string, keyWithoutModeID: string
   if (!key || key0 && !currentKeys && (key0 in <SafeEnum> passKeys) !== isPassKeysReversed) {
     return key ? esc!(HandlerResult.Nothing) : HandlerResult.Nothing;
   }
-  let j: ReadonlyChildKeyFSM | ValidKeyAction | undefined;
-  if (isEscape_(keyWithoutModeID)) {
-    Build.BTypes & BrowserType.Chrome && mappedKeys && checkPotentialAccessKey(event);
-    return nextKeys ? (esc!(HandlerResult.ExitPassMode), HandlerResult.Prevent)
-        : isEscape_(keyWithoutModeID);
+  let j: ReadonlyChildKeyFSM | ValidKeyAction | ReturnType<typeof isEscape_> | undefined = isEscape_(keyWithoutModeID)
+  if (j) {
+    Build.BTypes & BrowserType.Chrome && mapKeyTypes & (kMapKey.normal | kMapKey.insertMode | kMapKey.otherMode) &&
+    checkPotentialAccessKey(event)
+    return nextKeys ? (esc!(HandlerResult.ExitPassMode), HandlerResult.Prevent) : j;
   }
   if (!nextKeys || (j = nextKeys[key]) == null) {
     j = keyFSM[key];
@@ -118,7 +121,7 @@ const checkPotentialAccessKey = (event: HandlerNS.Event): void => {
     // during tests, an access key of ' ' (space) can be triggered on macOS (2019-10-20)
     event.c === kChar.INVALID && char_(event);
     if (isWaitingAccessKey !== (event.c.length === 1 || event.c === kChar.space)
-        && (getKeyStat_(event) & KeyStat.ExceptShift /* Chrome ignore .shiftKey */) ===
+        && (getKeyStat_(event.e) & KeyStat.ExceptShift /* Chrome ignore .shiftKey */) ===
             (fgCache.o ? KeyStat.altKey : KeyStat.altKey | KeyStat.ctrlKey)
         ) {
       isWaitingAccessKey = !isWaitingAccessKey;
@@ -170,15 +173,22 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
   }
   if (action) { /* empty */ }
   else if (/*#__NOINLINE__*/ isInInsert()) {
-    let keyStr = mappedKeys || insert_global_
-          || (key > kKeyCode.maxNotFn ? key < kKeyCode.minNotFn : key < kKeyCode.minNotDelete)
-          || getKeyStat_(eventWrapper) & KeyStat.ExceptShift ? getMappedKey(eventWrapper, kModeId.Insert) : ""
-    if (insert_global_ ? !insert_global_.k ? isEscape_(keyStr) : keyStr === insert_global_.k
+    let keyStr = mapKeyTypes & (insert_global_ && insert_global_.k
+                ? kMapKey.normal_long | kMapKey.char | kMapKey.insertMode : kMapKey.insertMode | kMapKey.normal_long)
+          || (key < kKeyCode.N0 || key > kKeyCode.MinNotAlphabet || getKeyStat_(event) & KeyStat.ExceptShift)
+              && (insert_global_ ? insert_global_.k
+                  : mapKeyTypes & kMapKey.directInsert || key > kKeyCode.maxNotFn && key < kKeyCode.minNotFn)
+          || (Build.BTypes & BrowserType.Firefox && key === kKeyCode.bracketleftOnFF || key > kKeyCode.minNotFn
+              ? event.ctrlKey : key === kKeyCode.esc)
+          ? getMappedKey(eventWrapper, mapKeyTypes & kMapKey.insertMode ? kModeId.Insert : kModeId.Normal)
+          : (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$KeyboardEvent$$Key
+              || event.key) && event.key!.length === 1 ? kChar.INVALID : ""
+    if (insert_global_ ? insert_global_.k ? keyStr === insert_global_.k : isEscape_(keyStr)
         : keyStr.length < 2 ? keyStr ? esc!(HandlerResult.Nothing) : HandlerResult.Nothing
         : (action = checkKey(eventWrapper
             , (tempStr = keybody_(keyStr)) > kChar.maxNotF_num && tempStr < kChar.minNotF_num ? keyStr
-              : (mappedKeys ? getMappedKey(eventWrapper, kModeId.NO_MAP_KEY) : keyStr
-                ) + GlobalConsts.DelimeterForKeyCharAndMode + "i"
+              : getMappedKey(eventWrapper, kModeId.NO_MAP_KEY)
+                + GlobalConsts.DelimeterForKeyCharAndMode + GlobalConsts.InsertModeId
             , keyStr)) > HandlerResult.MaxNotEsc
     ) {
       if (!insert_global_ && (raw_insert_lock && raw_insert_lock === doc.body || !isTop && wndSize_() < 5)) {
@@ -203,7 +213,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
             : HandlerResult.Nothing;
       }
       if (action === HandlerResult.Nothing
-          && suppressType && eventWrapper.c.length === 1 && !getKeyStat_(eventWrapper)) {
+          && suppressType && eventWrapper.c.length === 1 && !getKeyStat_(event)) {
         // not suppress ' ', so that it's easier to exit this mode
         action = HandlerResult.Prevent;
       }

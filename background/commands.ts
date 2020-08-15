@@ -224,6 +224,8 @@ var Commands = {
     CommandsData_.builtinKeys_ = builtinKeys;
     CommandsData_.shortcutRegistry_ = cmdMap as ShortcutInfoMap;
     CommandsData_.mappedKeyRegistry_ = Settings_.omniPayload_.k = mk > 0 ? mkReg : null;
+    const mayHaveInsert = Object.keys(registry).join("").includes(":i>") ? kMapKey.directInsert : kMapKey.NONE
+    CommandsData_.mappedKeyTypes_ = mk > 0 ? a.collectMapKeyTypes_(mkReg) | mayHaveInsert : mayHaveInsert
     Settings_.temp_.cmdErrors_ = Settings_.temp_.cmdErrors_ > 0 ? ~errors : errors;
   }),
   setupUserCustomized_ (cmdMap: Partial<ShortcutInfoMap>, key: keyof ShortcutInfoMap
@@ -240,6 +242,22 @@ var Commands = {
       ret = 2;
     }
     return ret < 1 ? 'requires a "command" option' : ret > 1 ? "" : "gets an unknown command";
+  },
+  collectMapKeyTypes_ (this: void, mapKeys: NonNullable<CommandsDataTy["mappedKeyRegistry_"]>): kMapKey {
+    let types = kMapKey.NONE
+    for (const key in mapKeys) {
+      const len = key.length
+      if (len < 2) {
+        const val = mapKeys[key]!
+        types |= val.length > 1 ? kMapKey.normal | kMapKey.normal_long
+            : key.toUpperCase() !== key && val.toUpperCase() !== val ? kMapKey.char : kMapKey.normal
+      } else if (len > 2 && key[len - 2] === GlobalConsts.DelimeterForKeyCharAndMode) {
+        types |= key[len - 1] === GlobalConsts.InsertModeId ? kMapKey.insertMode : kMapKey.otherMode
+      } else {
+        types |= mapKeys[key]!.length > 1 ? kMapKey.normal | kMapKey.normal_long : kMapKey.normal
+      }
+    }
+    return types
   },
   populateKeyMap_: (function (this: void, detectNewError: boolean): void {
     const d = CommandsData_, ref = d.keyFSM_ = BgUtils_.safeObj_<ValidKeyAction | ChildKeyFSM>(),
@@ -579,6 +597,7 @@ availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeO
 CommandsData_: CommandsDataTy = CommandsData_ as never || {
   keyFSM_: null as never as KeyFSM,
   mappedKeyRegistry_: null as SafeDict<string> | null,
+  mappedKeyTypes_: kMapKey.NONE,
   keyToCommandRegistry_: null as never as SafeDict<CommandsNS.Item>,
   builtinKeys_: null,
   errors_: null,
@@ -643,6 +662,7 @@ Settings_.updateHooks_.keyMappings = function (this: {}, value: string | null): 
   (updatesInMappedKeys || f(CommandsData_.keyFSM_) !== f(oldFSM)) && Settings_.broadcast_({
     N: kBgReq.keyFSM,
     m: CommandsData_.mappedKeyRegistry_,
+    t: CommandsData_.mappedKeyTypes_,
     k: CommandsData_.keyFSM_
   });
   updatesInMappedKeys && Settings_.broadcastOmni_({

@@ -3048,6 +3048,7 @@
         c: Settings_.payload_,
         p: pass,
         m: CommandsData_.mappedKeyRegistry_,
+        t: CommandsData_.mappedKeyTypes_,
         k: CommandsData_.keyFSM_
       });
     }

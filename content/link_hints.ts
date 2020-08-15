@@ -445,7 +445,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
         : mode;
       if (num1 !== mode) {
         setMode(num1);
-        i = getKeyStat_(event);
+        i = getKeyStat_(event.e);
         (i & (i - 1)) || (lastMode_ = mode);
       }
     } else if (i = keyNames_.indexOf(keybody), i > 0) {
