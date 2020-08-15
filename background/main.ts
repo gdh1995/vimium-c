@@ -1237,7 +1237,7 @@
       let key = cOptions.key,
       hud = cOptions.hideHUD != null ? !cOptions.hideHUD : cOptions.hideHud != null ? !cOptions.hideHud
           : !Settings_.cache_.hideHud;
-      key = key && typeof key === "string" ? key : "";
+      key = key && typeof key === "string" && key.length > 3 ? key : ""
       let k2 = BgUtils_.stripKey_(key);
       cPort.postMessage<1, kFgCmd.insertMode>({ N: kBgReq.execute,
         H: hud ? ensureInnerCSS(cPort) : null,

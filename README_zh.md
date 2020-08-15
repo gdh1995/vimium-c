@@ -13,9 +13,9 @@
 [![构建状态](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
 
-[![Firefox 用户数](https://img.shields.io/amo/users/vimium-c@gdh1995.cn?label=Firefox%2063%2B&logo=Mozilla%20Firefox&labelColor=FF7139&logoColor=white
+[![Firefox 用户数](https://img.shields.io/amo/users/vimium-c@gdh1995.cn?label=Firefox%2063%2B&logo=Firefox%20Browser&labelColor=FF7139&logoColor=white
   )](https://addons.mozilla.org/firefox/addon/vimium-c/?src=external-readme)
-[![Firefox 评分](https://img.shields.io/amo/rating/vimium-c@gdh1995.cn?logo=Mozilla%20Firefox&labelColor=FF7139&logoColor=white&color=blue
+[![Firefox 评分](https://img.shields.io/amo/rating/vimium-c@gdh1995.cn?logo=Firefox%20Browser&labelColor=FF7139&logoColor=white&color=blue
   )](https://addons.mozilla.org/firefox/addon/vimium-c/reviews/?src=external-readme)
 [![Chrome 用户数](https://img.shields.io/chrome-web-store/users/hfjbmagddngcpeloejdejnfgbamkjaeg?labelColor=4285F4&label=Chrome%2043%2B&logo=Google%20Chrome&logoColor=white&color=critical
   )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)

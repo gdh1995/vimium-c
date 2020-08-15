@@ -50,10 +50,10 @@ set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
   const char = eventWrapper.c !== kChar.INVALID ? eventWrapper.c : char_(eventWrapper), event = eventWrapper.e;
   let key: string = char, mapped: string | undefined;
   if (char) {
-    const baseMod = `${event.altKey ? "a-" : ""}${event.ctrlKey ? "c-" : ""}${event.metaKey ? "m-" : ""}`,
+    let baseMod = `${event.altKey ? "a-" : ""}${event.ctrlKey ? "c-" : ""}${event.metaKey ? "m-" : ""}`,
     chLower = char.toLowerCase(), isLong = char.length > 1,
     mod = event.shiftKey && (isLong || baseMod && char.toUpperCase() !== chLower) ? baseMod + "s-" : baseMod;
-    if (!(Build.NDEBUG || char.length === 1 || char.length > 1 && char === char.toLowerCase())) {
+    if (!(Build.NDEBUG || char.length === 1 || char.length > 1 && char === chLower)) {
       console.error(`Assert error: mapKey get an invalid char of "${char}" !`);
     }
     key = isLong || mod ? mod + chLower : char;
@@ -61,7 +61,8 @@ set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
       mapped = mode && mappedKeys[key + GlobalConsts.DelimeterForKeyCharAndMode + GlobalConsts.ModeIds[mode]
           ] || mappedKeys[key];
       key = mapped ? mapped : !isLong && (mapped = mappedKeys[chLower]) && mapped.length < 2
-          ? char === chLower ? mod + mapped : mod + mapped.toUpperCase() : key;
+            && (baseMod = mapped.toUpperCase()) !== mapped
+          ? mod ? mod + mapped : char === chLower ? mapped : baseMod : key
     }
   }
   return key;
@@ -173,7 +174,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
           || (key > kKeyCode.maxNotFn ? key < kKeyCode.minNotFn : key < kKeyCode.minNotDelete)
           || getKeyStat_(eventWrapper) & KeyStat.ExceptShift ? getMappedKey(eventWrapper, kModeId.Insert) : ""
     if (insert_global_ ? !insert_global_.k ? isEscape_(keyStr) : keyStr === insert_global_.k
-        : keyStr.length < 2 ? esc!(HandlerResult.Nothing)
+        : keyStr.length < 2 ? keyStr ? esc!(HandlerResult.Nothing) : HandlerResult.Nothing
         : (action = checkKey(eventWrapper
             , (tempStr = keybody_(keyStr)) > kChar.maxNotF_num && tempStr < kChar.minNotF_num ? keyStr
               : (mappedKeys ? getMappedKey(eventWrapper, kModeId.NO_MAP_KEY) : keyStr

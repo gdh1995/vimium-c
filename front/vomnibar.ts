@@ -510,10 +510,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     const char = Vomnibar_.char_(event);
     let key: string = char, mapped: string | undefined;
     if (char) {
-      const baseMod = `${event.altKey ? "a-" : ""}${event.ctrlKey ? "c-" : ""}${event.metaKey ? "m-" : ""}`,
+      let baseMod = `${event.altKey ? "a-" : ""}${event.ctrlKey ? "c-" : ""}${event.metaKey ? "m-" : ""}`,
       chLower = char.toLowerCase(), isLong = char.length > 1,
       mod = event.shiftKey && (isLong || baseMod && char.toUpperCase() !== chLower) ? baseMod + "s-" : baseMod;
-      if (!(Build.NDEBUG || char.length === 1 || char.length > 1 && char === char.toLowerCase())) {
+      if (!(Build.NDEBUG || char.length === 1 || char.length > 1 && char === chLower)) {
         console.error(`Assert error: Vomnibar_.key_ get an invalid char of "${char}" !`);
       }
       key = isLong || mod ? mod + chLower : char;
@@ -521,7 +521,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         mapped = Vomnibar_.mappedKeyRegistry_[key + GlobalConsts.DelimeterForKeyCharAndMode
             + GlobalConsts.OmniModeId] || Vomnibar_.mappedKeyRegistry_[key];
         key = mapped ? mapped : !isLong && (mapped = Vomnibar_.mappedKeyRegistry_[chLower]) && mapped.length < 2
-            ? char === chLower ? mod + mapped : mod + mapped.toUpperCase() : key;
+            && (baseMod = mapped.toUpperCase()) !== mapped
+            ? mod ? mod + mapped : char === chLower ? mapped : baseMod : key
       }
     }
     return key;
