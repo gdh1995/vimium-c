@@ -55,20 +55,24 @@ const $$ = document.querySelectorAll.bind(document) as <T extends HTMLElement>(s
 lang_ = chrome.i18n.getMessage("lang1");
 
 if (lang_) {
-  (function () {
+  (function (): void {
+    const lang2 = navigator.language as string || pTrans_("lang2")
     let t = pTrans_("keyMappingsP"), el: HTMLElement | null = $("#keyMappings");
     t && el && ((el as HTMLInputElement).placeholder = t);
+    for (el of $$("[data-i-t]") as ArrayLike<Element> as Element[] as HTMLElement[]) {
+      t = pTrans_(el.dataset.iT as string)
+      t && (el.title = t)
+    }
+    if (lang2 && lang_ !== "zh" && lang_ !== "zh-CN") {
+      for (el of $$("input[type=text], textarea") as ArrayLike<Element> as Element[] as HTMLElement[]) {
+        el.lang = lang2 as ""
+      }
+    }
     for (el of $$("[data-i]") as ArrayLike<Element> as Element[] as HTMLElement[]) {
       t = pTrans_(el.dataset.i as string);
       (t || el.dataset.iE) && (el.innerText = t);
     }
-    for (el of $$("[data-i-t]") as ArrayLike<Element> as Element[] as HTMLElement[]) {
-      t = pTrans_(el.dataset.iT as string);
-      t && (el.title = t);
-    }
-    (document.documentElement as HTMLHtmlElement).lang = lang_ as "";
-    t = pTrans_("vOptions");
-    t && (document.title = t);
+    (document.documentElement as HTMLHtmlElement).lang = lang_ === "zh" ? "zh-CN" as "" : lang_ as "";
   })();
 }
 

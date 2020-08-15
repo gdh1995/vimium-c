@@ -2,7 +2,7 @@
 <html spellcheck="false" data-vimium-hints="ordinal">
   <head>
     <meta charset="utf-8">
-    <title>Vimium C Options</title>
+    <title data-i="vOptions">Vimium C Options</title>
     <meta name="color-scheme" content="light dark">
     <script defer src="options_base.js"></script>
     <script defer src="options.js"></script>
@@ -37,10 +37,10 @@
                   <input autocomplete="off" type="text" class="pattern" placeholder=":https://example.net/" />
                 </td>
                 <td>
-                  <input autocomplete="off" type="text" class="passKeys" placeholder="f j &lt;c-j&gt; K" />
+                  <input autocomplete="off" type="text" class="passKeys" placeholder="f j &lt;c-j&gt; K" lang="en" />
                 </td>
                 <td>
-                  <input type="button" class="exclusionRemove" title="Remove" value="&#x2716;" />
+                  <input type="button" class="exclusionRemove" title="Remove" value="&#x2716;" lang="en" />
                 </td>
               </tr></table>
             </template>
@@ -182,7 +182,7 @@ key: https://c.com/$s/space=\s\ space_end
         <tr>
           <td class="caption" data-i="o40">Scroll step size</td>
           <td>
-            <input id="scrollStepSize" type="number" min="30" max="300" step="10"
+            <input id="scrollStepSize" type="number" min="30" max="300" step="10" lang="en"
               data-model="Number" />
             <label for="scrollStepSize" data-i="o41">px</label>
           </td>
@@ -477,7 +477,7 @@ title="Warning: Chrome has a bug of mistaken dialogue width if you has changed s
         <tr>
           <td class="caption" data-i="o72">Custom CSS<br/>for Vimium C UI</td>
           <td>
-            <textarea id="userDefinedCss" class="code min-height-4" inputmode="text" data-model="Text"
+            <textarea id="userDefinedCss" class="code min-height-4" inputmode="text" data-model="Text" lang="en"
               placeholder="/* example: */ .LH { color: red; }
 /* #find */ * { color: green; }
 /* #omni */
@@ -500,7 +500,7 @@ title="Warning: Chrome has a bug of mistaken dialogue width if you has changed s
         <tr>
           <td class="caption" data-i="o77">Vomnibar settings</td>
           <td>
-            <textarea id="vomnibarOptions" class="code" data-model="JSON">
+            <textarea id="vomnibarOptions" class="code" data-model="JSON" lang="en">
             </textarea>
             <div class="info" data-i="nonEmpty">Delete all to reset this option.</div>
           </td>
@@ -576,7 +576,7 @@ p:regexp-to-replace:target-string:i"
         <tr>
           <td class="caption" data-i="o96">Preferred<br/> Vomnibar Page</td>
           <td>
-            <input id="vomnibarPage" type="text" inputmode="url" data-model="NonEmptyText" />
+            <input id="vomnibarPage" type="text" inputmode="url" data-model="NonEmptyText" lang="en" />
             <div class="info" data-i="nonEmpty">Delete all to reset this option.</div>
           </td>
           <td class="help"><div class="help-inner break-all">
@@ -596,7 +596,8 @@ so only the default inner version will be used on them"
         <tr>
           <td class="caption" data-i="o99">Local encoding</td>
           <td>
-            <input id="localeEncoding" type="text" inputmode="text" data-model="Text" data-converter="lower" />
+            <input id="localeEncoding" type="text" inputmode="text" data-model="Text" data-converter="lower"
+                lang="en" />
           </td>
           <td class="help"><div class="help-inner">
             <span data-i="o100">In order to recognize URLs not encoded by</span> <kbd>utf-8</kbd>
@@ -608,7 +609,7 @@ so only the default inner version will be used on them"
         <tr>
           <td class="caption" data-i="o104">Keyboard settings</td>
           <td>
-            <input id="keyboard" type="text" inputmode="numeric" data-model="JSON" data-check="" />
+            <input id="keyboard" type="text" inputmode="numeric" data-model="JSON" data-check="" lang="en" />
             <div class="info" data-i="nonEmpty">Delete all to reset this option.</div>
           </td>
           <td class="help"><div class="help-inner">
