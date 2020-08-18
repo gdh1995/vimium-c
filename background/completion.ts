@@ -891,7 +891,8 @@ tabEngine = {
             ? pLevel < GlobalConsts.MaxTabTreeIndent ? pLevel + 1 : GlobalConsts.MaxTabTreeIndent : 1;
       }
     }
-    const timeOffset = !(otherFlags & CompletersNS.QueryFlags.ShowTime) ? 0 : Settings_.payload_.o === kOS.unixLike ? 0
+    const timeOffset = !(otherFlags & CompletersNS.QueryFlags.ShowTime) ? 0
+        : Build.BTypes & BrowserType.ChromeOrFirefox && Settings_.payload_.o === kOS.unixLike ? 0
         : Build.MinCVer < BrowserVer.Min$performance$$timeOrigin && Build.BTypes & BrowserType.Chrome
           && CurCVer_ < BrowserVer.Min$performance$$timeOrigin
         ? Date.now() - performance.now() : performance.timeOrigin!
@@ -912,7 +913,10 @@ tabEngine = {
       }
       if (!inNormal && tab.incognito) { label += "*" }
       if (tab.discarded || Build.BTypes & BrowserType.Firefox && tab.hidden) { label += "~" }
-      suggestion.visit = visit ? visit.t + timeOffset : 0
+      suggestion.visit = visit ? visit.t + timeOffset
+          : Build.BTypes & BrowserType.Firefox
+            && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)
+            && (tab as Tab & {lastAccessed?: number}).lastAccessed || 0
       suggestion.s = tabId;
       suggestion.label = `#${id}${label && " " + label}`
       if (Build.BTypes & BrowserType.Firefox
@@ -924,7 +928,7 @@ tabEngine = {
       }
       suggestions.push(suggestion);
     }
-    suggestions.sort(Completers.rSortByRelevancy_);
+    suggestions.sort(Completers.rSortByRelevancy_)
     let resultLength = suggestions.length, exceed = offset + maxResults - resultLength;
     if (hasOtherSuggestions || exceed < 0 || !noFilter) {
       if (offset > 0 && !hasOtherSuggestions) {

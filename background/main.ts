@@ -1611,7 +1611,9 @@
               for (let tab of allTabs) {
                 const id = tab.id, recency = TabRecency_.tabs_![id]
                 map[id] = id === curTabId ? GlobalConsts.MaxTabRecency + 1 : recency != null ? recency.i
-                    : id + (GlobalConsts.MaxTabRecency + 2)
+                    : Build.BTypes & BrowserType.Firefox
+                      && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)
+                      && (tab as Tab & {lastAccessed?: number}).lastAccessed || id + (GlobalConsts.MaxTabRecency + 2)
               }
               allTabs.sort((a, b) => map[a.id] - map[b.id])
             } else {
