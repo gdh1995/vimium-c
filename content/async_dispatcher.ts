@@ -231,7 +231,7 @@ export const click_ = async (element: SafeElementForMouse
     , rect?: Rect | null, addFocus?: boolean | BOOL, modifiers?: MyMouseControlKeys | null
     , specialAction?: kClickAction, button?: AcceptableClickButtons
     , /** default: false */ touchMode?: null | false | /** false */ 0 | true | "auto"
-    , userOptions?: UserSedOptions): Promise<void | 1> => {
+    , /** .opener: default to true */ userOptions?: UserSedOptions & OpenUrlOptions): Promise<void | 1> => {
   /**
    * for important events including `mousedown`, `mouseup`, `click` and `dblclick`, wait for two micro tasks;
    * for other events, just wait for one micro task
@@ -293,7 +293,7 @@ export const click_ = async (element: SafeElementForMouse
     OpenTabButNotDispatch = 3,
   }
   let result: ActionType = ActionType.OnlyDispatch, url: string | null
-  let parentAnchor: Partial<Pick<HTMLAnchorElement, "target" | "href">> & Element | null | undefined
+  let parentAnchor: Partial<Pick<HTMLAnchorElement, "target" | "href" | "rel">> & Element | null | undefined
   if (specialAction) {
     // for forceToDblclick, element can be OtherSafeElement; for 1..MaxOpenForAnchor, element must be in <html:a>
     result = specialAction > kClickAction.MaxOpenForAnchor ? ActionType.DispatchAndCheckInDOM
@@ -329,12 +329,12 @@ export const click_ = async (element: SafeElementForMouse
       return
     }
     // use latest attributes
-    const isBlank = parentAnchor!.target === "_blank", relAttr = parentAnchor!.getAttribute("rel"),
+    const relAttr = parentAnchor!.rel,
     /** {@link #FirefoxBrowserVer.Min$TargetIsBlank$Implies$Noopener}; here also apply on Chrome */
-    noopener = relAttr == null ? isBlank
-        : Build.MinCVer >= BrowserVer.MinEnsuredES6$Array$$Includes || !(Build.BTypes & BrowserType.Chrome)
-        ? relAttr.split(<RegExpOne> /\s/).includes!("noopener")
-        : relAttr.split(<RegExpOne> /\s/).indexOf("noopener") >= 0,
+    noopener = userOptions && userOptions.opener === !1 || !!relAttr
+        && (Build.MinCVer >= BrowserVer.MinEnsuredES6$Array$$Includes || !(Build.BTypes & BrowserType.Chrome)
+            ? relAttr.split(<RegExpOne> /\s/).includes!("noopener")
+            : relAttr.split(<RegExpOne> /\s/).indexOf("noopener") >= 0),
     reuse = Build.BTypes & BrowserType.Firefox && specialAction! & kClickAction.openInNewWindow
         ? ReuseType.newWindow
         : specialAction! & kClickAction.forceToOpenInLastWnd
