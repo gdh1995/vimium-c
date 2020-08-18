@@ -131,12 +131,12 @@ export const findNextInRel = (relName: string): GoNextBaseCandidate | null | und
   let s: string | null | undefined;
   type HTMLElementWithRel = HTMLAnchorElement | HTMLAreaElement | HTMLLinkElement;
   let matched: HTMLElementWithRel | undefined, tag: string;
-  const re1 = <RegExpOne> /\s+/
+  const re1 = <RegExpOne> /\s/
   for (const element of elements as { [i: number]: Element } as Element[]) {
     if ((!(Build.BTypes & BrowserType.Edge) ? tag = htmlTag_(element)
           : (<RegExpI> /^(a|area|link)$/).test(tag = htmlTag_(element)))
         && (s = (element as TypeToPick<HTMLElement, HTMLElementWithRel, "rel">).rel)
-        && s.trim().toLowerCase().split(re1).indexOf(relName) >= 0
+        && s.toLowerCase().split(re1).indexOf(relName) >= 0
         && ((s = (element as HTMLElementWithRel).href) || tag < "aa")
         && (tag > "b" || isVisibleInPage(element as SafeHTMLElement))) {
       if (matched) {

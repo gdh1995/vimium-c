@@ -1165,7 +1165,7 @@
       if (!(patterns instanceof Array)) {
         typeof patterns === "string" || (patterns = "");
         patterns = patterns
-            || (rel !== "next" ? Settings_.cache_.previousPatterns : Settings_.cache_.nextPatterns);
+            || (rel !== "next" && rel !== "last" ? Settings_.cache_.previousPatterns : Settings_.cache_.nextPatterns)
         patterns = patterns.split(",");
       }
       for (let i of patterns) {
