@@ -238,6 +238,7 @@ declare const enum BrowserVer {
   MinUnprefixedUserSelect = 54,
   MinHighDPIOnWindows = 54, // replace MinPhysicalPixelOnWindows
   MinNo$KeyboardEvent$$keyIdentifier = 54,
+  Min$HTMLAreaElement$rel = 54,
   // https://chromium.googlesource.com/chromium/src/+/9520623861da283533e71d6b7a8babd02675cb0b
   Min$Node$$getRootNode = 54, // not on Edge
   MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInClosedShadowDOM = 55,
