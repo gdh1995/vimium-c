@@ -347,6 +347,7 @@ export const click_ = async (element: SafeElementForMouse
       f: !0,
       e: userOptions && parseSedOptions(userOptions),
       n: noopener,
+      p: userOptions && userOptions.position,
       r: reuse
     })
     return 1

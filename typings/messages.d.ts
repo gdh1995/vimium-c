@@ -486,6 +486,7 @@ interface FgReq {
     /** https */ h?: boolean | null;
     /** reuse */ r?: UserReuseType;
     /** omni */ o?: boolean;
+    /** noopener */ p?: OpenUrlOptions["position"];
     /** noopener */ n?: boolean;
   };
   [kFgReq.focus]: {};
@@ -583,7 +584,7 @@ interface OpenUrlOptions {
   incognito?: boolean | null
   /** default to false */ opener?: boolean
   /* pasted */ $p?: 1
-  position?: "start" | "begin" | "end" | "before" | "after"
+  position?: "start" | "begin" | "end" | "before" | "after" | "default" | null
   window?: boolean
   sed?: MixedSedOpts | null
 }

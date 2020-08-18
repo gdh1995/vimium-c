@@ -196,9 +196,10 @@
   function newTabIndex(this: void, tab: Readonly<Pick<Tab, "index">>, pos: OpenUrlOptions["position"]
       , openerTabId?: boolean): number | undefined {
     return pos === "before" ? tab.index : pos === "start" || pos === "begin" ? 0
-      : pos !== "end" ? tab.index + 1
+      : pos === "after" || !pos ? tab.index + 1
       : Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & BrowserType.Firefox) || OnOther & BrowserType.Firefox)
-        && openerTabId ? 3e4
+        && openerTabId && pos !== "default" ? /** pos is "end" */ 3e4
+      // Chrome: open at end; Firefox: (if opener) at the end of its children, just like a normal click
       : undefined;
   }
   function makeWindow(this: void, option: chrome.windows.CreateData, state?: chrome.windows.ValidStates | ""
@@ -2562,8 +2563,8 @@
     /** kFgReq.openUrl: */ function (this: void, request: FgReq[kFgReq.openUrl] & { url_f?: Urls.Url; opener?: boolean }
         , port?: Port): void {
       BgUtils_.safer_(request);
-      let unsafe = port != null && isNotVomnibarPage(port, true);
-      cPort = unsafe ? port! : findCPort(port) || cPort;
+      let isWeb = port != null && isNotVomnibarPage(port, true);
+      cPort = isWeb ? port! : findCPort(port) || cPort;
       let url: Urls.Url | undefined = request.u;
       // { url_f: string, ... } | { copied: true, ... }
       const opts: OpenUrlOptionsInBgCmd & SafeObject = BgUtils_.safeObj_();
@@ -2578,27 +2579,28 @@
       if (url) {
         if (url[0] === ":" && request.o && (<RegExpOne> /^:[bdhostw]\s/).test(url)) {
           url = url.slice(2).trim();
-          url || (unsafe = false);
+          url || (isWeb = false);
         }
         if (request.f) { /* empty */ }
         else if (testUrl) {
           url = BgUtils_.fixCharsInUrl_(url);
           url = BgUtils_.convertToUrl_(url, keyword
-              , unsafe ? Urls.WorkType.ConvertKnown : Urls.WorkType.EvenAffectStatus);
+              , isWeb ? Urls.WorkType.ConvertKnown : Urls.WorkType.EvenAffectStatus);
           const type = BgUtils_.lastUrlType_;
           if (request.h != null && (type === Urls.Type.NoSchema || type === Urls.Type.NoProtocolName)) {
             url = (request.h ? "https" : "http") + (url as string).slice((url as string)[4] === "s" ? 5 : 4);
-          } else if (unsafe && type === Urls.Type.PlainVimium && (url as string).startsWith("vimium:")) {
+          } else if (isWeb && type === Urls.Type.PlainVimium && (url as string).startsWith("vimium:")) {
             url = BgUtils_.convertToUrl_(url as string);
           }
         } else {
           url = BgUtils_.createSearchUrl_(url.trim().split(BgUtils_.spacesRe_), keyword || "~")
         }
-        opts.opener = unsafe && !request.n;
+        opts.opener = isWeb && !request.n;
         opts.url_f = url;
       } else {
         opts.copied = request.c; opts.keyword = keyword; opts.testUrl = _rawTest
       }
+      opts.position = request.p
       cRepeat = 1;
       cOptions = opts;
       BackgroundCommands[kBgCmd.openUrl]();
