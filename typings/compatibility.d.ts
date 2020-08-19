@@ -357,6 +357,7 @@ declare const enum BrowserVer {
   MinEnsuredUnicodePropertyEscapesInRegExp = 64, // https://www.chromestatus.com/features/6706900393525248
   MinFocus3rdPartyIframeDirectly = 64, // even if EXPERIMENTAL; or need .contentWindow.focus()
   MinEnsuredFetchRequestCache = 64, // even if LEGACY
+  MinEnsuredLookBehindInRegexp = 64, // even if LEGACY
   // a 3rd-party Vomnibar will trigger "navigation" and clear all logs in console on Chrome 64
   // this still occurs on Chrome 65.0.3325.181 (Stable, x64, Windows 10)
   VomnibarMayClearLog1 = 64,

@@ -662,8 +662,9 @@ export const updateQuery = (query: string): void => {
 
   let re: RegExpG | null = query && tryCreateRegExp(ww ? WB + query + WB : query, ignoreCase ? "gi" : "g") || null
   let matches: string[] | null = null
-  let now = Date.now(), delta: number
+  let delta: number
   if (re) {
+    let now = Date.now()
     if (cachedInnerText
         && (delta = Math.abs(now - cachedInnerText.t)) < (cachedInnerText.i.length < 1e5 ? 3e3 : 6e3)) {
       query = cachedInnerText!.i
