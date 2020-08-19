@@ -30,17 +30,6 @@
 #HelpContent {
 	width: 920px;
 }
-@media (max-width: 957.9px) {
-	#HDlg {
-		left: 0;
-		right: 0;
-		width: auto;
-		overflow-x: scroll;
-	}
-	#HelpContent {
-		padding-right: 12px;
-	}
-}
 #HelpBanner {
 	height: 26px;
 	padding: 3px;
@@ -197,6 +186,26 @@
 }
 #HAdv:hover {
 	text-decoration: underline;
+}
+@media (max-width: 999.9px) {
+	#HDlg {
+		left: calc(50% - 419px);
+		width: 838px;
+	}
+	#HelpContent, .HelpTables {
+		width: 800px;
+	}
+}
+@media (max-width: 837.9px) {
+	#HDlg {
+		left: 0;
+		right: 0;
+		width: auto;
+		overflow-x: scroll;
+	}
+	#HelpContent {
+		padding-right: 12px;
+	}
 }
 
 #HDlg.D {
