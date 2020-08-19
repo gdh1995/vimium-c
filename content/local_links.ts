@@ -131,7 +131,7 @@ export const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
               && clientSize + 5 < element.scrollWidth ? ClickType.scrollX
             : ClickType.Default)
         || ((s = element.className)
-              && (<RegExpOne> /\b(?:[Bb](?:utto|t)n|[Cc]lose|hate|like)(?:$|[-\sA-Z_])/).test(s)
+              && (<RegExpOne> /(?:\b|_)(?:[Bb](?:utto|t)n|[Cc]lose|hate|like)(?:$|[-\sA-Z_])/).test(s)
               && (!(anotherEl = element.parentElement)
                   || (s = htmlTag_(anotherEl), !s.includes("button") && s !== "a"))
             || element.hasAttribute("aria-selected")
