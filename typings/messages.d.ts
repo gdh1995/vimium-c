@@ -204,7 +204,7 @@ interface FgOptions extends SafeDict<any> {}
 type SelectActions = "" | "all" | "all-input" | "all-line" | "start" | "end";
 
 interface ParsedSedOpts {
-  /** sed rules, splitted by spaces */ r: string | boolean | null | undefined
+  /** sed rules, split by spaces */ r: string | boolean | null | undefined
   /** keys */ k: string | null | undefined
 }
 type MixedSedOpts = string | boolean | ParsedSedOpts

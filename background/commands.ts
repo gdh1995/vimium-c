@@ -42,7 +42,7 @@ var Commands = {
         delete options.$count;
         options.count = n;
       } else if ("count" in options) {
-        options.count = details[0] === 1 ? 1 : (parseFloat(options.count) || 1) * (opt && opt.count || 1);
+        options.count = details[2] === 1 ? 1 : (parseFloat(options.count) || 1) * (opt && opt.count || 1);
       }
       if (options.$desc || options.$key) {
         help = { key_: options.$key || "", desc_: options.$desc || "" };

@@ -197,8 +197,9 @@
       , openerTabId?: boolean): number | undefined {
     return pos === "before" ? tab.index : pos === "start" || pos === "begin" ? 0
       : pos === "after" || !pos ? tab.index + 1
-      : Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & BrowserType.Firefox) || OnOther & BrowserType.Firefox)
-        && openerTabId && pos !== "default" ? /** pos is "end" */ 3e4
+      /** pos is "end" or "default" */ 
+      : Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)
+        && pos === "end" && openerTabId ? 3e4
       // Chrome: open at end; Firefox: (if opener) at the end of its children, just like a normal click
       : undefined;
   }
@@ -2272,7 +2273,8 @@
       , count: number, lastKey: kKeyCode, port: Port, overriddenCount: number): void => {
     const { options_: options, repeat_: repeat } = registryEntry;
     let scale: number | undefined;
-    if (options && (scale = options.count)) { count = count * scale; }
+    // .count may be invalid, if from other extensions
+    if (options && (scale = options.count)) { count = count * scale || 1; }
     count = Build.BTypes & ~BrowserType.Chrome && overriddenCount
       || (count >= GlobalConsts.CommandCountLimit + 1 ? GlobalConsts.CommandCountLimit
           : count <= -GlobalConsts.CommandCountLimit - 1 ? -GlobalConsts.CommandCountLimit
