@@ -57,6 +57,7 @@ let onUnexpectedBlur: ((event?: Event) => void) | null = null
 let doesCheckAlive: BOOL = 0
 let isSmall = false
 let postLock: Element | null = null
+let cachedInnerText: { /** innerText */ i: string, /** timestamp */ t: number } | null | undefined
 
 export { findCSS, query_ as find_query, hasResults as find_hasResults, box_ as find_box, styleSelectable, styleInHUD }
 export function set_findCSS (_newFindCSS: FindCSS): void { findCSS = _newFindCSS }
@@ -345,7 +346,7 @@ export const clear = (): void => {
   historyIndex = matchCount = doesCheckAlive = 0;
   styleInHUD = onUnexpectedBlur = outerBox_ =
   box_ = innerDoc_ = root_ = input_ = countEl = parsedRegexp_ =
-  initialRange = regexMatches = coords = null as never
+  initialRange = regexMatches = coords = cachedInnerText = null as never
 }
 
 const onMousedown = function (this: Window | HTMLElement, event: MouseEventToPrevent): void {
@@ -661,7 +662,13 @@ export const updateQuery = (query: string): void => {
 
   let re: RegExpG | null = query && tryCreateRegExp(ww ? WB + query + WB : query, ignoreCase ? "gi" : "g") || null
   let matches: string[] | null = null
+  let now = Date.now(), delta: number
   if (re) {
+    if (cachedInnerText
+        && (delta = Math.abs(now - cachedInnerText.t)) < (cachedInnerText.i.length < 1e5 ? 3e3 : 6e3)) {
+      query = cachedInnerText!.i
+      delta < 500 && (cachedInnerText!.t = now)
+    } else {
     let el = fullscreenEl_unsafe_(), text: HTMLElement["innerText"] | undefined;
     while (el && (el as ElementToHTML).lang == null) { // in case of SVG elements
       el = GetParent_unsafe_(el, PNType.DirectElement);
@@ -669,6 +676,8 @@ export const updateQuery = (query: string): void => {
     query = el && typeof (text = (el as HTMLElement).innerText) === "string" && text ||
         (Build.BTypes & ~BrowserType.Firefox ? (docEl_unsafe_() as HTMLElement).innerText + ""
           : (docEl_unsafe_() as SafeHTMLElement).innerText);
+    cachedInnerText = { i: query, t: now }
+    }
     matches = query.match(re) || query.replace(<RegExpG> /\xa0/g, " ").match(re);
   }
   regexMatches = isRe ? matches : null
