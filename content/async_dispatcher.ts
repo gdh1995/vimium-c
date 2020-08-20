@@ -177,8 +177,9 @@ export const hover_ = (async (newEl?: NullableSafeElForM, center?: Point2D): Pro
     const notSame = newEl !== last
     await mouse_(last, "mouseout", [0, 0], N, notSame ? newEl : N)
     if (!newEl || notSame && !IsInDOM_(newEl, last, 1)) {
-      await mouse_(last, "mouseleave", [0, 0], N, newEl)
+      IsInDOM_(last) && mouse_(last, "mouseleave", [0, 0], N, newEl)
     }
+    await 0 // should keep function effects stable - not related to what `newEl` is
   } else {
     last = N
   }
