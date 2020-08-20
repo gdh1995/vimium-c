@@ -5,8 +5,8 @@ import { CLK, MDW, OnDocLoaded_, isHTML_, set_createElement_, createElement_ } f
 import { grabBackFocus } from "./insert"
 import { coreHints } from "./link_hints"
 
-declare function exportFunction<T extends object, K extends keyof T>(this: void, func: T[K], targetScope: T
-  , options?: { defineAs: K; allowCrossOriginArguments?: boolean }): void
+declare function exportFunction(func: unknown, targetScope: object
+    , options?: { defineAs?: string; allowCrossOriginArguments?: boolean }): unknown
 
 /** `null`: disabled; `false`: nothing to do; `true`: begin to watch; `Event`: watching; `0`: page prevented */
 let clickEventToPrevent_: BOOL | Event | null = null
@@ -16,6 +16,9 @@ let preventEventOnWindow: ((wnd: Window) => Promise<void>) | undefined
 export const main_ff = (Build.BTypes & BrowserType.Firefox ? (): void => {
 (function (): void {
   const apply = OnDocLoaded_.apply, call = OnDocLoaded_.call
+  const doExport = <T extends object, K extends (keyof T) & string> (obj: T, name: K, func: T[K]): void => {
+    exportFunction(func, obj, { defineAs: name, allowCrossOriginArguments: true })
+  }
   try {
     const PEventTarget = (window as any).EventTarget as typeof EventTarget | undefined,
     Cls = PEventTarget && PEventTarget.prototype,
@@ -53,7 +56,7 @@ export const main_ff = (Build.BTypes & BrowserType.Firefox ? (): void => {
     let alive = false, timer = TimerID.None, resolved = 0
     if (grabBackFocus) {
       if (alive = typeof _listen === "function") {
-        exportFunction(newListen, Cls!, { defineAs: _listen.name as "addEventListener" })
+        doExport(Cls!, _listen.name as "addEventListener", newListen)
         vApi.e = (cmd: ValidContentCommands): void => { alive = alive && cmd < kContentCmd._minSuppressClickable }
       }
       OnDocLoaded_((): void => {
@@ -127,14 +130,14 @@ export const main_ff = (Build.BTypes & BrowserType.Firefox ? (): void => {
     let isHandingTheSecondTime: BOOL, notDuringAct: BOOL
 
     for (const [stdFunc, idx] of stdMembers.every(i => typeof i[1] === "function") ? stdMembers : [] as never) {
-      exportFunction(function (this: EventToPrevent): any {
+      doExport(EventCls!, stdFunc.name as "preventDefault" | "stopPropagation", function (this: EventToPrevent): any {
         const self = this, ret = apply.call(stdFunc, self, arguments)
         self !== clickEventToPrevent_ ? 0
         : idx < kAct.stopImm || self.defaultPrevented ? isClickEventPreventedByPage = 1 // idx === kAct.prevent
         : idx > kAct.stopImm ? /*#__NOINLINE__*/ listenToPreventClick(self) // idx === kAct.stopProp
         : /*#__NOINLINE__*/ callPreviousPreventSafely(self) // idx === kAct.stopImm
         return ret
-      }, EventCls!, { defineAs: stdFunc.name as "preventDefault" | "stopPropagation" });
+      });
     }
     clickEventToPrevent_ = 0
   } catch (e) {
