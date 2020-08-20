@@ -452,6 +452,7 @@ declare const enum kCName {
   autoCopy = "autoCopy",
   autoOpen = "autoOpen",
   blank = "blank",
+  captureTab = "captureTab",
   clearCS = "clearCS",
   clearFindHistory = "clearFindHistory",
   closeDownloadBar = "closeDownloadBar",
@@ -593,6 +594,7 @@ declare namespace CommandsNS {
     [kCName.autoCopy]: kFgCmd.autoOpen;
     [kCName.autoOpen]: kFgCmd.autoOpen;
     [kCName.blank]: kBgCmd.blank;
+    [kCName.captureTab]: kBgCmd.captureTab;
     [kCName.clearCS]: kBgCmd.clearCS;
     [kCName.clearFindHistory]: kBgCmd.clearFindHistory;
     [kCName.closeDownloadBar]: kBgCmd.moveTabToNewWindow;

@@ -482,6 +482,7 @@ availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeO
   closeOtherTabs: [ kBgCmd.removeTabsR, 1, 1, { other: true } ],
   closeTabsOnLeft: [ kBgCmd.removeTabsR, 1, 0, { count: -1e6 } ],
   closeTabsOnRight: [ kBgCmd.removeTabsR, 1, 0, { count: 1e6 } ],
+  captureTab: [ kBgCmd.captureTab, 1, 1 ],
   copyCurrentTitle: [ kBgCmd.copyWindowInfo, 1, 1, { type: "title" } ],
   copyCurrentUrl: [ kBgCmd.copyWindowInfo, 1, 1 ],
   copyWindowInfo: [ kBgCmd.copyWindowInfo, 1, 0, { type: "window" } ],

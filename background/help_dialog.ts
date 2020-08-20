@@ -255,7 +255,7 @@ var HelpDialog = {
       , kCName.joinTabs
       , kCName.togglePinTab, kCName.toggleMuteTab, kCName.visitPreviousTab, kCName.closeTabsOnLeft
       , kCName.closeTabsOnRight, kCName.closeOtherTabs, kCName.moveTabLeft, kCName.moveTabRight
-      , kCName.enableCSTemp, kCName.toggleCS, kCName.clearCS, kCName.copyWindowInfo],
+      , kCName.enableCSTemp, kCName.toggleCS, kCName.clearCS, kCName.copyWindowInfo, kCName.captureTab],
     misc: [kCName.showHelp, kCName.autoCopy, kCName.autoOpen, kCName.searchAs, kCName.searchInAnother
       , kCName.addBookmark
       , kCName.toggleStyle, kCName.toggleLinkHintCharacters

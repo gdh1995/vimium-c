@@ -46,6 +46,7 @@
     [kBgCmd.toggleTabUrl]: UseTab.ActiveTab;
     [kBgCmd.toggleVomnibarStyle]: UseTab.ActiveTab;
     [kBgCmd.goBackFallback]: UseTab.ActiveTab;
+    [kBgCmd.captureTab]: UseTab.ActiveTab;
   }
 
   interface ReopenOptions extends chrome.tabs.CreateProperties {
@@ -94,6 +95,7 @@
   cNeedConfirm: BOOL = 1, gOnConfirmCallback: ((arg: FakeArg) => void) | null | undefined = null,
   _fakeTabId: number = GlobalConsts.MaxImpossibleTabId,
   needIcon = false, cKey: kKeyCode = kKeyCode.None,
+  tempBlob: [number, string] | null | undefined,
   _lockToRemoveTempTab: {p: LatestPromise} | null | 0 = Build.BTypes & BrowserType.Firefox ? null : 0,
   gCmdTimer = 0, gTabIdOfExtWithVomnibar: number = GlobalConsts.TabIdNone;
   const getSecret = (function (this: void): (this: void) => number {
@@ -1087,7 +1089,7 @@
         && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
         ? UseTab.CurShownTabs : UseTab.CurWndTabs, UseTab.NoTab, UseTab.NoTab,
     UseTab.ActiveTab, UseTab.NoTab, UseTab.ActiveTab, UseTab.ActiveTab, UseTab.NoTab, UseTab.NoTab,
-    UseTab.NoTab
+    UseTab.NoTab, UseTab.ActiveTab,
   ],
   BackgroundCommands: {
     [K in kBgCmd & number]:
@@ -2263,6 +2265,69 @@
           chrome.tabs.setZoom(newZoom);
         }
       });
+    },
+    /* kBgCmd.captureTab: */ function (this: void, tabs?: [Tab]): void {
+      const tabId = tabs && tabs[0] ? tabs[0].id : TabRecency_.curTab_
+      let title = (cOptions.name === "title" || tabId < 0 ? "" : tabId + "-") + (tabs && tabs[0] ? tabs[0].title : "")
+          || "" + tabId
+      const capture = (!(Build.BTypes & ~BrowserType.Firefox)
+            || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox)
+          && cOptions.wholePage ? (chrome.tabs as any).captureTab as never : chrome.tabs.captureVisibleTab
+      const cb = (url?: string): void => {
+        if (!url) { return onRuntimeError() }
+        const onerror = function (err: any | Event) {
+          console.log("captureTab: can not request a data: URL:", err)
+        }
+        const cb2 = (msg: Blob | string) => {
+          if (typeof msg !== "string") {
+            msg = URL.createObjectURL(msg)
+          }
+          if (msg.startsWith("blob:")) {
+            if (tempBlob) {
+              clearTimeout(tempBlob[0]); URL.revokeObjectURL(tempBlob[1])
+            }
+            tempBlob = [setTimeout((): void => {
+              tempBlob && URL.revokeObjectURL(tempBlob[1]); tempBlob = null
+            }, 60000), msg]
+          }
+          if (!(Build.BTypes & ~BrowserType.Firefox)
+              || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox) {
+            requestHandlers[kFgReq.openImage]({
+              u: msg, f: title, a: false, e: null, r: ReuseType.newFg
+            }, cPort)
+          }
+          const a = document.createElement("a")
+          a.href = msg
+          a.download = title
+          a.target = "_blank"
+          a.click()
+        }
+        if (url.startsWith("data:")) {
+          if (Build.MinCVer >= BrowserVer.MinFetchExtensionFiles || !(Build.BTypes & BrowserType.Chrome)
+              || CurCVer_ >= BrowserVer.MinFetchDataURL) {
+            const p = fetch(url).then(r => r.blob()).then(cb2)
+            if (!Build.NDEBUG) { p.catch(onerror) }
+          } else {
+            const req = new XMLHttpRequest() as BlobXHR;
+            req.open("GET", url, true);
+            req.responseType = "blob";
+            if (!Build.NDEBUG) { req.onerror = onerror; }
+            req.onload = function (this: typeof req) { cb2(this.response); };
+            req.send();
+          }
+        } else {
+          cb2(url)
+        }
+      }
+      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFormatOptionWhenCaptureTab
+          && CurCVer_ < BrowserVer.MinFormatOptionWhenCaptureTab) {
+        title += ".jpg"
+        capture(cb)
+      } else {
+        const jpeg = Math.max(cOptions.jpeg | 0, 0)
+        title += jpeg > 0 ? ".jpg" : ".png"
+        capture(jpeg > 0 ? {format: "jpeg", quality: jpeg} : {format: "png"}, cb)
+      }
     }
   ],
   numHeadRe = <RegExpOne> /^-?\d+|^-/,
@@ -2860,10 +2925,10 @@
     /** kFgReq.removeSug: */ function (this: void, req: FgReq[kFgReq.removeSug], port?: Port): void {
       return Backend_.removeSug_(req, port);
     },
-    /** kFgReq.openImage: */ function (req: FgReq[kFgReq.openImage], port: Port): void {
+    /** kFgReq.openImage: */ function (req: FgReq[kFgReq.openImage], port?: Port): void {
       let url = req.u
       if (!BgUtils_.safeParseURL_(url)) {
-        cPort = port;
+        cPort = port!
         Backend_.showHUD_(trans_("invalidImg"));
         return;
       }
