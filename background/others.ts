@@ -550,7 +550,7 @@ BgUtils_.timeout_(150, function (): void {
       }
       };
       if (Build.MinCVer >= BrowserVer.MinFetchExtensionFiles
-          || !Build.NDEBUG && CurCVer_ >= BrowserVer.MinFetchExtensionFiles) {
+          || CurCVer_ >= BrowserVer.MinFetchExtensionFiles) {
         const p = fetch(path).then(r => r.arrayBuffer()).then(loadFromRawArray);
         if (!Build.NDEBUG) { p.catch(onerror); }
       } else {

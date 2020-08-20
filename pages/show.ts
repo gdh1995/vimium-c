@@ -770,7 +770,7 @@ function fetchImage_(url: string, element: HTMLImageElement): void {
   };
   element.addEventListener("load", clearTimer, true);
   element.addEventListener("error", clearTimer, true);
-  if (!(VData.incognito || BG_.Settings_.get_("showInIncognito") || url.startsWith("data:"))
+  if (!(VData.incognito || BG_.Settings_.get_("showInIncognito"))
       || !(<RegExpI> /^(ht|s?f)tp|^data:/i).test(url)
       || !!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinEnsured$fetch
           && !(window as any).fetch

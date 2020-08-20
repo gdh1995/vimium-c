@@ -849,17 +849,21 @@ BgUtils_.paste_ = !Settings_.CONST_.AllowClipboardRead_ ? () => null
 : Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
 ? function (this: void, sed): Promise<string | null> | null {
   const clipboard = navigator.clipboard;
-  return clipboard ? clipboard.readText!().then(s => Clipboard_.reformat_(s, sed), () => null) : null;
-} : function (this: void, sed): string {
+  return clipboard ? clipboard.readText!().then(s => Clipboard_.reformat_(
+      s.slice(0, GlobalConsts.MaxBufferLengthForPastingLongURL), sed), () => null) : null;
+} : function (this: void, sed, newLenLimit?: number): string {
   const textArea = Clipboard_.getTextArea_();
-  textArea.maxLength = GlobalConsts.MaxBufferLengthForPasting;
+  textArea.maxLength = newLenLimit || GlobalConsts.MaxBufferLengthForPastingNormalText;
   (document.documentElement as HTMLHtmlElement).appendChild(textArea);
   textArea.focus();
   document.execCommand("paste");
-  let value = textArea.value.slice(0, GlobalConsts.MaxBufferLengthForPasting);
+  let value = textArea.value.slice(0, newLenLimit || GlobalConsts.MaxBufferLengthForPastingNormalText);
   textArea.value = "";
   textArea.remove();
   textArea.removeAttribute("maxlength");
+  if (!newLenLimit && (value.slice(0, 5).toLowerCase() === "data:" || BgUtils_.isJSUrl_(value))) {
+    return BgUtils_.paste_(sed, GlobalConsts.MaxBufferLengthForPastingLongURL) as string
+  }
   return Clipboard_.reformat_(value, sed);
 };
 BgUtils_.sed_ = Clipboard_.substitute_;

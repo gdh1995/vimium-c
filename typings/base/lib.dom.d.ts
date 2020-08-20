@@ -8601,6 +8601,13 @@ interface XMLHttpRequest extends EventTarget, XMLHttpRequestEventTarget {
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 }
 
+interface BlobXHR extends XMLHttpRequest {
+  readonly response: Blob;
+  readonly responseText: never;
+  readonly responseXML: never;
+  responseType: "blob";
+}
+
 interface TextXHR extends XMLHttpRequest {
     readonly response: string;
     readonly responseText: string;

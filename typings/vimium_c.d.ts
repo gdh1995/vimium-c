@@ -494,7 +494,8 @@ declare const enum GlobalConsts {
   DefaultRectFlashTime = 400,
   // limited by Pagination.findAndFollowLink_
   MaxNumberOfNextPatterns = 200,
-  MaxBufferLengthForPasting = 8192,
+  MaxBufferLengthForPastingNormalText = /** 100K */ 102400,
+  MaxBufferLengthForPastingLongURL    = /** 20M */ 20971520,
   TimeoutToReleaseBackendModules = /** (to make TS silent) 1000 * 60 * 5 */ 300000,
   ToleranceForTimeoutToGC = 100000,
   ToleranceOfNegativeTimeDelta = 5000,

@@ -524,7 +524,7 @@ var BgUtils_ = {
           ).length * (startsWithSlash ? 1 : -1);
   },
   copy_: (() => "") as (text: string | any[], join?: FgReq[kFgReq.copy]["j"], sed?: MixedSedOpts | null) => string,
-  paste_: (() => "") as (this: void, sed?: MixedSedOpts | null) => string | Promise<string | null> | null,
+  paste_: (() => "") as (this: void, sed?: MixedSedOpts | null, len?: number) => string | Promise<string | null> | null,
   sed_: null as never as (text: string, context: SedContext, sed?: MixedSedOpts | null) => string,
   require_ <K extends SettingsNS.DynamicFiles> (name: K): Promise<NonNullable<Window[K]>> {
     type T = NonNullable<Window[K]>;
