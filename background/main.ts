@@ -433,7 +433,7 @@
         : (Build.NDEBUG || console.log("A confirmation dialog may fail in showing."), 1);
   }
   function onConfirm(response: Exclude<FgReq[kFgReq.cmd]["r"], null | undefined>): void {
-    let callback = gOnConfirmCallback;
+    const callback = gOnConfirmCallback
     gOnConfirmCallback = null;
     if (response > 1 && callback) {
       if (response < 3) {
@@ -443,6 +443,12 @@
       (callback as () => void)();
       cNeedConfirm = 1;
     }
+  }
+  function executeCmdOnTabs (tabs: Tab[] | [Tab] | undefined) {
+    const callback = gOnConfirmCallback
+    gOnConfirmCallback = null
+    callback && (callback as unknown as BgCmdCurWndTabs)(tabs!)
+    return tabs ? void 0 : onRuntimeError()
   }
   function requireURL <k extends keyof FgReq>(request: Req.fg<k> & BgReq[kBgReq.url], ignoreHash?: true): void {
     type T1 = keyof FgReq;
@@ -1861,7 +1867,7 @@
       if (cOptions.urls) {
         if (cOptions.urls instanceof Array) {
           tabs && tabs.length > 0 ? openUrls(tabs) : getCurTab(openUrls);
-          return onRuntimeError();
+          return
         }
       }
       if ((cOptions.url_mask != null || cOptions.url_mark != null) && !tabs) {
@@ -1985,7 +1991,7 @@
             return onRuntimeError();
           });
         }
-        return onRuntimeError();
+        return
       }
       if (abs(cRepeat) < 2) {
         reload(selectFrom(tabs).id, reloadProperties);
@@ -2214,7 +2220,7 @@
     },
     // only work on Chrome: Firefox has neither tabs.goBack, nor support for tabs.update("javascript:...")
     /* kBgCmd.goBackFallback: */ Build.BTypes & BrowserType.Chrome ? function (tabs: [Tab]): void {
-      if (!tabs.length) { return onRuntimeError(); }
+      if (!tabs.length) { return }
       requestHandlers[kFgReq.framesGoBack]({
         s: cRepeat, r: cOptions.reuse as UserReuseType | null | undefined
       }, null, tabs[0])
@@ -2328,12 +2334,16 @@
       }
     }
   ],
-  numHeadRe = <RegExpOne> /^-?\d+|^-/,
+  numHeadRe = <RegExpOne> /^\d+|^-\d*/,
   onLargeCountConfirmed = function (this: CommandsNS.Item): void {
     executeCommand(this, 1, cKey, cPort, cRepeat);
   },
   executeCommand = (registryEntry: CommandsNS.Item
       , count: number, lastKey: kKeyCode, port: Port, overriddenCount: number): void => {
+    if (gOnConfirmCallback) {
+      gOnConfirmCallback = null // just in case that some callbacks were thrown away
+      return
+    }
     const { options_: options, repeat_: repeat } = registryEntry;
     let scale: number | undefined;
     // .count may be invalid, if from other extensions
@@ -2374,12 +2384,11 @@
     count = BgCmdInfo[alias];
     if (count < UseTab.ActiveTab) {
       return (func as BgCmdNoTab)();
-    } else if (count < UseTab.CurWndTabsIfRepeat || count === UseTab.CurWndTabsIfRepeat && abs(cRepeat) < 2) {
-      getCurTab(func as BgCmdActiveTab);
-    } else if (Build.BTypes & BrowserType.Firefox && count > UseTab.CurWndTabs) {
-      getCurShownTabs_ff_only!(func as BgCmdCurWndTabs);
     } else {
-      getCurTabs(func as BgCmdCurWndTabs);
+      gOnConfirmCallback = func as BgCmdCurWndTabs as any
+      (count < UseTab.CurWndTabsIfRepeat || count === UseTab.CurWndTabsIfRepeat && abs(cRepeat) < 2 ? getCurTab
+          : Build.BTypes & BrowserType.Firefox && count > UseTab.CurWndTabs ? getCurShownTabs_ff_only!
+          : getCurTabs)(executeCmdOnTabs)
     }
   },
   requestHandlers: {
