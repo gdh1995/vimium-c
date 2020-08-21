@@ -585,6 +585,7 @@ interface OpenUrlOptions {
   /** default to false */ opener?: boolean
   /* pasted */ $p?: 1
   position?: "start" | "begin" | "end" | "before" | "after" | "default" | null
+  pinned?: boolean
   window?: boolean
   sed?: MixedSedOpts | null
 }

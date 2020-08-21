@@ -719,7 +719,7 @@
     openUrl(url, Urls.WorkType.ActAnyway, tabs);
   }
   function openUrlInNewTab(this: void, url: string, reuse: Exclude<ReuseType, ReuseType.reuse | ReuseType.current>
-      , options: Readonly<Pick<OpenUrlOptions, "position" | "opener" | "window" | "incognito">>
+      , options: Readonly<Pick<OpenUrlOptions, "position" | "opener" | "window" | "incognito" | "pinned">>
       , tabs: [Tab] | []): void {
     const tab: Tab | undefined = tabs[0], tabIncognito = !!tab && tab.incognito,
     incognito = options.incognito, active = reuse !== ReuseType.newBg && reuse !== ReuseType.lastWndBg;
@@ -762,7 +762,7 @@
     let openerTabId = options.opener && tab ? tab.id : undefined;
     const args: Parameters<BackendHandlersNS.BackendHandlers["reopenTab_"]>[2] & { url: string, active: boolean } = {
       url, active, windowId: tab ? tab.windowId : undefined,
-      openerTabId,
+      openerTabId, pinned: !!options.pinned,
       index: tab ? newTabIndex(tab, options.position, openerTabId != null) : undefined
     }
     if (Build.BTypes & BrowserType.Firefox
@@ -861,7 +861,7 @@
       }
       (cOptions as OptionEx).formatted_ = 1;
     }
-    const reuse = parseReuse(cOptions.reuse),
+    const reuse = parseReuse(cOptions.reuse), pinned = !!cOptions.pinned,
     wndOpt: chrome.windows.CreateData | null = reuse === ReuseType.newWindow || cOptions.window ? {
       url: urls, incognito: !!cOptions.incognito
     } : null;
@@ -873,7 +873,7 @@
         continue;
       }
       for (const url of urls) {
-        tabsCreate({ url, index, windowId, active });
+        tabsCreate({ url, index, windowId, active, pinned });
         active = false;
         index != null && index++;
       }
@@ -3389,7 +3389,9 @@
           || Build.MinCVer < BrowserVer.MinMuted && Build.BTypes & BrowserType.Chrome
               && CurCVer_ < BrowserVer.MinMuted) {
       } else {
-        callback = (tab2: Tab): void => { chrome.tabs.update(tab2.id, { muted: tab.muted }) }
+        const muted = Build.MinCVer < BrowserVer.MinMutedInfo && Build.BTypes & BrowserType.Chrome
+            && CurCVer_ < BrowserVer.MinMutedInfo ? !tab.muted : !tab.mutedInfo.muted
+        callback = (tab2: Tab): void => { chrome.tabs.update(tab2.id, { muted }) }
       }
       const args: Parameters<BackendHandlersNS.BackendHandlers["reopenTab_"]>[2] = {
         windowId: tab.windowId,
