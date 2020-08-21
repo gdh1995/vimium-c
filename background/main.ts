@@ -1675,7 +1675,7 @@
         ? count > 0 ? Math.min(len, count) - 1 : Math.max(0, len + count)
         : abs(count) > tabs.length * 2 ? (count > 0 ? -1 : 0)
         : (cur = Build.BTypes & BrowserType.Firefox ? selectFrom(tabs, 1) : selectFrom(tabs)).index + count;
-      index = (index >= 0 ? 0 : len) + (index % len);
+      index = index >= 0 ? index % len : len + (index % len || -len)
       let toSelect: Tab = tabs[index];
       if (toSelect.pinned && count < 0 && cOptions.noPinned) {
         let curIndex = (cur || (Build.BTypes & BrowserType.Firefox ? selectFrom(tabs, 1) : selectFrom(tabs))).index;
