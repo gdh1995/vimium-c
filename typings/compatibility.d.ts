@@ -13,6 +13,7 @@ declare const enum BrowserVer {
   // mouseEvent.buttons is since C43 but a `buttons` property does no harm on Chrome <= 42
   MinUsable$MouseEvent$$constructor = 31, // the real version is <= C31
   MinEnsured$onwheel = 31, // even if LEGACY
+  MinFormatOptionWhenCaptureTab = 31, // even if LEGACY
   MinSupported = 32,
   MinEnsuredES6Promise = 32, // even if LEGACY
   // the 5 below are correct even if EXPERIMENTAL or LEGACY
@@ -74,7 +75,6 @@ declare const enum BrowserVer {
   MinRequestDataURLOnBackgroundPage = 39, // even if EXPERIMENTAL or LEGACY
   Min$Set$accept$Symbol$$Iterator = 39, // even if EXPERIMENTAL or LEGACY; test code: new Set('foo')
   MinEnsuredGeneratorFunction = 39, // even if LEGACY; exists on C31 if EXPERIMENTAL
-  MinFormatOptionWhenCaptureTab = 39,
   MinOptionsUI = 40,
   MinDisableMoveTabAcrossIncognito = 40,
   // even if EXPERIMENTAL or LEGACY

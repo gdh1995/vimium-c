@@ -2270,6 +2270,7 @@
       const tabId = tabs && tabs[0] ? tabs[0].id : TabRecency_.curTab_
       let title = (cOptions.name === "title" || tabId < 0 ? "" : tabId + "-") + (tabs && tabs[0] ? tabs[0].title : "")
           || "" + tabId
+      const show = cOptions.show
       const capture = (!(Build.BTypes & ~BrowserType.Firefox)
             || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox)
           && cOptions.wholePage ? (chrome.tabs as any).captureTab as never : chrome.tabs.captureVisibleTab
@@ -2291,7 +2292,8 @@
             }, 60000), msg]
           }
           if (!(Build.BTypes & ~BrowserType.Firefox)
-              || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox) {
+              || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox
+              || show) {
             requestHandlers[kFgReq.openImage]({
               u: msg, f: title, a: false, e: null, r: ReuseType.newFg
             }, cPort)
