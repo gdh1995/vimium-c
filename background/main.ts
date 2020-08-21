@@ -982,7 +982,7 @@
     this.p && tabs2.sort((a, b) => a.url.length - b.url.length);
     let tab: Tab = selectFrom(tabs2);
     if (tab.url.length > tabs2[0].url.length) { tab = tabs2[0]; }
-    if (!Build.NDEBUG && Build.BTypes & BrowserType.Chrome
+    if (Build.BTypes & BrowserType.Chrome
         && url.startsWith(Settings_.CONST_.OptionsPage_) && !framesForTab[tab.id] && !this.s) {
       tabsCreate({ url });
       chrome.tabs.remove(tab.id);
@@ -2267,13 +2267,7 @@
       });
     },
     /* kBgCmd.captureTab: */ function (this: void, tabs?: [Tab]): void {
-      const tabId = tabs && tabs[0] ? tabs[0].id : TabRecency_.curTab_
-      let title = (cOptions.name === "title" || tabId < 0 ? "" : tabId + "-") + (tabs && tabs[0] ? tabs[0].title : "")
-          || "" + tabId
-      const show = cOptions.show
-      const capture = (!(Build.BTypes & ~BrowserType.Firefox)
-            || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox)
-          && cOptions.wholePage ? (chrome.tabs as any).captureTab as never : chrome.tabs.captureVisibleTab
+      const show = cOptions.show, jpeg = Math.min(Math.max(cOptions.jpeg | 0, 0), 100)
       const cb = (url?: string): void => {
         if (!url) { return onRuntimeError() }
         const onerror = function (err: any | Event) {
@@ -2321,14 +2315,16 @@
           cb2(url)
         }
       }
+      const tabId = tabs && tabs[0] ? tabs[0].id : TabRecency_.curTab_
+      let title = tabs && tabs[0] ? tabs[0].title : ""
+      title = cOptions.name === "title" || !title || tabId < 0 ? title || "" + tabId : tabId + "-" + title
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFormatOptionWhenCaptureTab
           && CurCVer_ < BrowserVer.MinFormatOptionWhenCaptureTab) {
         title += ".jpg"
-        capture(cb)
+        chrome.tabs.captureVisibleTab(cb)
       } else {
-        const jpeg = Math.max(cOptions.jpeg | 0, 0)
         title += jpeg > 0 ? ".jpg" : ".png"
-        capture(jpeg > 0 ? {format: "jpeg", quality: jpeg} : {format: "png"}, cb)
+        chrome.tabs.captureVisibleTab(jpeg > 0 ? {format: "jpeg", quality: jpeg} : {format: "png"}, cb)
       }
     }
   ],
