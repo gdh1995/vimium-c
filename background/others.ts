@@ -507,7 +507,7 @@ BgUtils_.timeout_(1000, function (): void {
     return;
   }
   BgUtils_.GC_();
-  if (!storage()) {  Settings_.restore_ = null;  return; }
+  if (!storage()) { Settings_.restore_ = null; return }
   storage().get(items => {
     const err = BgUtils_.runtimeError_();
     if (err) {
@@ -996,7 +996,13 @@ function (details: chrome.runtime.InstalledDetails): void {
     console.log("Sorry, but some commands of Vimium C require the permission to run in incognito mode.");
   }
 
-  if (!reason) { return; }
+  if (!reason) {
+    const p = Settings_.restore_ && Settings_.restore_() || Promise.resolve()
+    p.then(() => {
+      Backend_.focus_({ u: Settings_.CONST_.OptionsPage_ + "#installed" })
+    })
+    return
+  }
   if (parseFloat(Settings_.CONST_.VerCode_) <= parseFloat(reason)) { return; }
 
   const ref1 = Settings_.temp_;

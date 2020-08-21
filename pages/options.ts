@@ -772,7 +772,7 @@ let optionsInit1_ = function (): void {
     return pTrans_("beforeUnload");
   }
 
-  _element = $<HTMLAnchorElement>("#openExtensionPage");
+  _element = $<HTMLAnchorElement>("#openExtensionsPage");
   if (Build.MinCVer < BrowserVer.MinEnsuredChromeURL$ExtensionShortcuts
       && Build.BTypes & BrowserType.Chrome
       && bgBrowserVer_ < BrowserVer.MinEnsuredChromeURL$ExtensionShortcuts) {
@@ -1062,7 +1062,7 @@ el0.textContent = (Build.BTypes & BrowserType.Edge
   ) + pTrans_("comma") + (pTrans_(platform)
         || platform[0].toUpperCase() + platform.slice(1));
 if (Build.BTypes & BrowserType.Chrome && BG_.IsEdg_) {
-  const a = $<HTMLAnchorElement>("#openExtensionPage");
+  const a = $<HTMLAnchorElement>("#openExtensionsPage");
   a.textContent = a.href = "edge://extensions/shortcuts";
 }
 }, $("#browserName"));
