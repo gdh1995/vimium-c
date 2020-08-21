@@ -539,8 +539,8 @@
       return onRuntimeError();
     }
     let tab: Tab | null = null;
-    if (!tabs) { /* empty */ }
-    else if (tabs.length > 0) { tab = tabs[0]; }
+    if (!tabs && !cOptions.opener) { /* empty */ }
+    else if (tabs && tabs.length > 0) { tab = tabs[0]; }
     else if (TabRecency_.curTab_ >= 0) {
       tabsGet(TabRecency_.curTab_, function (lastTab): void {
         standardCreateTab(onlyNormal, lastTab && [lastTab]);
@@ -549,6 +549,7 @@
     }
     openMultiTab((tab ? {
       active: tab.active, windowId: tab.windowId,
+      openerTabId: cOptions.opener ? tab.id : void 0,
       index: newTabIndex(tab, cOptions.position)
     } : {active: true}) as InfoToCreateMultiTab, cRepeat, cOptions.evenIncognito);
     return onRuntimeError();
