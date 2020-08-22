@@ -485,7 +485,6 @@ interface FgReq {
     /** incognito */ i?: boolean | null | "reverse";
     /** https */ h?: boolean | null;
     /** reuse */ r?: UserReuseType;
-    /** omni */ o?: boolean;
     /** noopener */ p?: OpenUrlOptions["position"];
     /** noopener */ n?: boolean;
   };

@@ -875,7 +875,6 @@ BgUtils_.timeout_(600, function (): void {
     }
     return sessionId != null ? Backend_.gotoSession_({ s: sessionId }) : Backend_.openUrl_({
       u: text,
-      o: true,
       r: (disposition === "currentTab" ? ReuseType.current
         : disposition === "newForegroundTab" ? ReuseType.newFg : ReuseType.newBg)
     });
