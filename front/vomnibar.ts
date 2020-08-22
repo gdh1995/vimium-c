@@ -890,6 +890,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         || !(Build.BTypes & ~BrowserType.Firefox) || isComposing != null) {
       if (isComposing && !a.isInputComposing_) {
         a.lastNormalInput_ = a.input_.value.trim();
+      } else if (!isComposing && a.isInputComposing_) {
+        a.toggleInputMode_()
       }
       a.isInputComposing_ = isComposing!;
     }
@@ -921,7 +923,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (needMsg && earlyPost) { VPort_.postToOwner_(msg); }
     a.completions_.forEach(a.Parse_);
     a.renderItems_(a.completions_, list);
-    a.toggleAttr_("inputmode", a.isSearchOnTop_ ? "search" : "url")
+    a.toggleInputMode_()
     if (!(Build.BTypes & ~BrowserType.Firefox)
         || Build.BTypes & BrowserType.Firefox && a.browser_ & BrowserType.Firefox) {
       a.toggleAttr_("mozactionhint", a.isSearchOnTop_ ? "Search" : "Go", 1)
@@ -960,6 +962,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       a.onUpdate_ = null;
       return func.call(a);
     }
+  },
+  toggleInputMode_ (): void {
+    Vomnibar_.isInputComposing_ ||
+    Vomnibar_.toggleAttr_("inputmode", Vomnibar_.isSearchOnTop_ ? "search" : "url")
   },
   toggleAttr_ (attr: string, value: string, trans?: BOOL) {
     if (trans && Vomnibar_.pageType_ === VomnibarNS.PageType.inner) {
@@ -1129,6 +1135,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         && (!(Build.BTypes & BrowserType.Firefox) || a.browser_ !== BrowserType.Firefox)) {
       let func = function (this: HTMLInputElement, event: CompositionEvent): void {
         if (Vomnibar_.isInputComposing_ = event.type === "compositionstart") {
+          Vomnibar_.toggleInputMode_()
           if (Build.MinCVer >= BrowserVer.Min$InputEvent$$isComposing) { return; }
           Vomnibar_.lastNormalInput_ = this.value.trim();
         }
