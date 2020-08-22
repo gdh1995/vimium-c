@@ -335,6 +335,9 @@ declare namespace SettingsNS {
     /** comma-joined size numbers */ l: ["sizes", string];
     /** styles */ s: ["styles", string];
   }
+  interface VomnibarBackendItems {
+    actions: string;
+  }
   interface OtherVomnibarItems {
     /** css */ c: ["omniCSS", string];
     /** mappedKeys */ k: ["mappedKeys", SafeDict<string> | null];
@@ -348,7 +351,7 @@ declare namespace SettingsNS {
     ignoreCapsLock: 0 | 1 | 2;
     newTabUrl_f: string;
     showAdvancedCommands: boolean;
-    vomnibarOptions: SelectNVType<VomnibarOptionItems>;
+    vomnibarOptions: SelectNVType<VomnibarOptionItems> & VomnibarBackendItems;
   }
   interface FrontUpdateAllowedSettings {
     showAdvancedCommands: 0;

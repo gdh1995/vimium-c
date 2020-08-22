@@ -446,17 +446,17 @@ var Settings_ = {
       const a = Settings_, defaultOptions = a.defaults_.vomnibarOptions,
       payload = a.omniPayload_;
       let isSame = true;
-      let { maxMatches, queryInterval, styles, sizes } = defaultOptions;
+      let { actions, maxMatches, queryInterval, styles, sizes } = defaultOptions;
       if (options !== defaultOptions && options && typeof options === "object") {
         const newMaxMatches = Math.max(3, Math.min((options.maxMatches | 0) || maxMatches
             , GlobalConsts.MaxLimitOfVomnibarMatches)),
+        newActions = ((options.actions || "") + "").trim(),
         newInterval = +options.queryInterval,
-        newStyles = ((options.styles || "") + "").trim(),
-        // use `<=` in case of further updates
         newSizes = ((options.sizes || "") + "").trim(),
+        newStyles = ((options.styles || "") + "").trim(),
         newQueryInterval = Math.max(0, Math.min(newInterval >= 0 ? newInterval : queryInterval, 1200));
         isSame = maxMatches === newMaxMatches && queryInterval === newQueryInterval
-                  && newSizes === sizes
+                  && newSizes === sizes && actions === newActions
                   && styles === newStyles;
         if (!isSame) {
           maxMatches = newMaxMatches;
@@ -464,6 +464,7 @@ var Settings_ = {
           sizes = newSizes;
           styles = newStyles;
         }
+        options.actions = newActions
         options.maxMatches = newMaxMatches;
         options.queryInterval = newQueryInterval;
         options.sizes = newSizes;
@@ -601,7 +602,8 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
           + (VomnibarNS.PixelData.OthersIfNotEmpty - VomnibarNS.PixelData.OthersIfEmpty) + ","
           + VomnibarNS.PixelData.Item
           ,
-      styles: "mono-url"
+      styles: "mono-url",
+      actions: ""
     },
     userDefinedCss: "",
     vimSync: null,

@@ -2654,7 +2654,7 @@
       opts.incognito = incognito
       opts.sed = request.e;
       if (url) {
-        if (url[0] === ":" && request.o && (<RegExpOne> /^:[bdhostw]\s/).test(url)) {
+        if (url[0] === ":" && isWeb && (<RegExpOne> /^:[bdhostw]\s/).test(url)) {
           url = url.slice(2).trim();
           url || (isWeb = false);
         }
@@ -2672,7 +2672,7 @@
         } else {
           url = BgUtils_.createSearchUrl_(url.trim().split(BgUtils_.spacesRe_), keyword || "~")
         }
-        opts.opener = isWeb && !request.n;
+        opts.opener = isWeb ? !request.n : Settings_.cache_.vomnibarOptions.actions.includes("opener")
         opts.url_f = url;
       } else {
         opts.copied = request.c; opts.keyword = keyword; opts.testUrl = _rawTest
