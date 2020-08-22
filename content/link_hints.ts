@@ -122,7 +122,7 @@ let noHUD_ = false
 let options_: HintsNS.ContentOptions = null as never
 let _timer = TimerID.None
 let kSafeAllSelector = Build.BTypes & ~BrowserType.Firefox ? ":not(form)" as const : "*" as const
-const kEditableSelector = "input,textarea,[contenteditable]" as const
+const kEditable = "input,textarea,[contenteditable]" as const
 let manager_: HintManager | null = null
 let api_: VApiTy = null as never
 const unwrap_ff = (!(Build.BTypes & BrowserType.Firefox) ? 0 as never
@@ -140,7 +140,7 @@ export {
   hints_ as allHints, keyStatus_ as hintKeyStatus, useFilter_, frameList_, chars_ as hintChars,
   mode_ as hintMode_, mode1_, options_ as hintOptions, count_ as hintCount_,
   forHover_, isClickListened_, forceToScroll_, tooHigh_,
-  kSafeAllSelector, kEditableSelector, unwrap_ff, addChildFrame_,
+  kSafeAllSelector, kEditable, unwrap_ff, addChildFrame_,
   api_ as hintApi, manager_ as hintManager,
 }
 export function set_kSafeAllSelector (_newKSafeAll: string): void { kSafeAllSelector = _newKSafeAll as any }
@@ -168,7 +168,7 @@ export const activate = (options: HintsNS.ContentOptions, count: number, force?:
     const useFilter0 = options.useFilter, useFilter = useFilter0 != null ? !!useFilter0 : fgCache.f,
     frameList: FrameHintsInfo[] = frameList_ = [{h: [], v: null as never, s: coreHints}],
     toClean: HintOfficer[] = [],
-    s0 = options.characters, chars = s0 ? s0 + "" : useFilter ? fgCache.n : fgCache.c;
+    s0 = options.c, chars = s0 ? s0 + "" : useFilter ? fgCache.n : fgCache.c;
     if (chars.length < GlobalConsts.MinHintCharSetSize) {
       hudTip(kTip.fewChars, 1000)
       return clear()
@@ -244,7 +244,7 @@ const collectFrameHints = (count: number, options: HintsNS.ContentOptions
     let modeAction: ModeOpt | undefined;
     if (options_ !== options) {
       /** ensured by {@link ../background/commands.ts#Commands.makeCommand_} */
-      let mode = options.mode as number;
+      let mode = options.m as number;
       for (let modes of linkActions) {
         if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
             ? modes.indexOf(mode & ~HintMode.queue) > 0 : modes.includes!(mode & ~HintMode.queue)) {

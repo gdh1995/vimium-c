@@ -17,7 +17,7 @@ import {
 import { find_box } from "./mode_find"
 import { omni_box } from "./omni"
 import {
-  unwrap_ff, kSafeAllSelector, kEditableSelector, coreHints, addChildFrame_, mode1_, forHover_,
+  unwrap_ff, kSafeAllSelector, kEditable, coreHints, addChildFrame_, mode1_, forHover_,
   isClickListened_, forceToScroll_, hintMode_, set_isClickListened_, tooHigh_, useFilter_, hintChars, hintManager,
 } from "./link_hints"
 import { shouldScroll_need_safe, getPixelScaleToScroll, scrolled, resetScrolled, suppressScroll } from "./scroller"
@@ -638,7 +638,7 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
     ? traverse("a,[role=link]" + (Build.BTypes & ~BrowserType.Firefox ? kSafeAllSelector : ""), getLinks)
     : _i - HintMode.FOCUS_EDITABLE ? traverse(kSafeAllSelector, getClickable)
     : traverse(Build.BTypes & ~BrowserType.Firefox
-          ? kEditableSelector + kSafeAllSelector : kEditableSelector, getEditable);
+          ? kEditable + kSafeAllSelector : kEditable, getEditable);
   if ((_i < HintMode.max_mouse_events + 1 || _i === HintMode.FOCUS_EDITABLE)
       && visibleElements.length < GlobalConsts.MinElementCountToStopPointerDetection) {
     fgCache.e && filterOutNonReachable(visibleElements, _i > HintMode.FOCUS_EDITABLE - 1);

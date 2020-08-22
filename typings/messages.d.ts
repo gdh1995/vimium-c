@@ -216,10 +216,10 @@ interface UserSedOptions {
 
 declare namespace HintsNS {
   interface Options extends UserSedOptions {
+    m: HintMode;
+    c?: string;
     action?: string;
-    characters?: string;
     useFilter?: boolean;
-    mode?: string | number;
     url?: boolean;
     keyword?: string;
     testUrl?: boolean

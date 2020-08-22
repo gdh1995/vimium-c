@@ -153,7 +153,7 @@ const unhoverOnEsc = (): void => {
 }
 
 const focusIFrame = (el: KnownIFrameElement): BOOL => {
-  hintOptions.mode = hintMode_;
+  hintOptions.m = hintMode_;
   (hintManager || coreHints).$(1)
   if (el === omni_box) {
     focusOmni()

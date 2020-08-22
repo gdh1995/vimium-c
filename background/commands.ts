@@ -59,24 +59,29 @@ var Commands = {
         BgUtils_.extendIf_(options, opt);
       }
       if (details[0] === kFgCmd.linkHints && !details[1]) {
-        let rawMode = (options as HintsNS.Options).mode, mode = rawMode
-        const rawChars = (options as HintsNS.Options).characters
+        let mode: number | string | null | undefined = options.mode
+        const rawChars: string | null | undefined = options.characters
         const chars = rawChars && Settings_.updatePayload_<"c" | "n">("c", rawChars)
-        if (typeof mode !== "number") {
-          mode = (this.hintModes_[(options as HintsNS.Options).action || mode || 0
+        type OptionalHintsOptions = Partial<HintsNS.Options>;
+        if (rawChars) {
+          delete options.characters;
+          (options as OptionalHintsOptions).c = chars!
+        }
+        if (mode != null) {
+          delete options.mode
+          if (typeof mode !== "number") {
+            mode = (this.hintModes_[(options as OptionalHintsOptions).action || mode || 0
               ] as number | undefined | {} as number) | 0;
-        }
-        if (mode > HintMode.max_mouse_events) {
-          mode = mode === HintMode.EDIT_TEXT ? (options as HintsNS.Options).url ? HintMode.EDIT_LINK_URL : mode
+          }
+          if (mode > HintMode.max_mouse_events) {
+            mode = mode === HintMode.EDIT_TEXT ? (options as OptionalHintsOptions).url ? HintMode.EDIT_LINK_URL : mode
               : mode === HintMode.COPY_TEXT
-                ? (options as HintsNS.Options).join ? HintMode.COPY_TEXT | HintMode.queue | HintMode.list : mode
+                ? (options as OptionalHintsOptions).join ? HintMode.COPY_TEXT | HintMode.queue | HintMode.list : mode
               : mode > HintMode.min_disable_queue + HintMode.queue - 1 ? mode - HintMode.queue : mode;
-        }
-        if (rawMode !== mode) {
-          (options as HintsNS.Options).mode = mode;
-        }
-        if (rawChars !== chars) {
-          (options as HintsNS.Options).characters = chars
+          }
+          (options as OptionalHintsOptions).m = mode
+        } else {
+          mode = (options as OptionalHintsOptions).m!
         }
         repeat = mode > HintMode.min_disable_queue - 1 ? 1 : repeat;
       }
@@ -439,23 +444,23 @@ defaultKeyMappings_:
 availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeObject>
     As_<CommandsNS.NameMetaMap & SafeObject>({
   __proto__: null as never,
-  "LinkHints.activate": [ kFgCmd.linkHints, 0, 0, { mode: HintMode.DEFAULT } ],
-  "LinkHints.activateMode": [ kFgCmd.linkHints, 0, 0, { mode: HintMode.DEFAULT } ],
-  "LinkHints.activateModeToCopyLinkText": [ kFgCmd.linkHints, 0, 0, { mode: HintMode.COPY_TEXT } ],
-  "LinkHints.activateModeToCopyLinkUrl": [ kFgCmd.linkHints, 0, 0, { mode: HintMode.COPY_URL } ],
-  "LinkHints.activateModeToDownloadImage": [ kFgCmd.linkHints, 0, 0, { mode: HintMode.DOWNLOAD_MEDIA } ],
-  "LinkHints.activateModeToDownloadLink": [ kFgCmd.linkHints, 0, 0, { mode: HintMode.DOWNLOAD_LINK } ],
-  "LinkHints.activateModeToEdit": [ kFgCmd.linkHints, 0, 1, { mode: HintMode.FOCUS_EDITABLE } ],
-  "LinkHints.activateModeToHover": [ kFgCmd.linkHints, 0, 0, { mode: HintMode.HOVER } ],
-  "LinkHints.activateModeToLeave": [ kFgCmd.linkHints, 0, 0, { mode: HintMode.UNHOVER } ],
-  "LinkHints.activateModeToUnhover": [ kFgCmd.linkHints, 0, 0, { mode: HintMode.UNHOVER } ],
-  "LinkHints.activateModeToOpenImage": [ kFgCmd.linkHints, 0, 0, { mode: HintMode.OPEN_IMAGE } ],
-  "LinkHints.activateModeToOpenIncognito": [ kFgCmd.linkHints, 0, 0, { mode: HintMode.OPEN_INCOGNITO_LINK } ],
-  "LinkHints.activateModeToOpenInNewForegroundTab": [ kFgCmd.linkHints, 0, 0, {mode: HintMode.OPEN_IN_NEW_FG_TAB} ],
-  "LinkHints.activateModeToOpenInNewTab": [ kFgCmd.linkHints, 0, 0, { mode: HintMode.OPEN_IN_NEW_BG_TAB } ],
-  "LinkHints.activateModeToOpenVomnibar": [ kFgCmd.linkHints, 0, 1, { mode: HintMode.EDIT_TEXT } ],
-  "LinkHints.activateModeToSearchLinkText": [ kFgCmd.linkHints, 0, 0, { mode: HintMode.SEARCH_TEXT } ],
-  "LinkHints.activateModeWithQueue": [ kFgCmd.linkHints, 0, 0, { mode: HintMode.OPEN_WITH_QUEUE } ],
+  "LinkHints.activate": [ kFgCmd.linkHints, 0, 0, { m: HintMode.DEFAULT } ],
+  "LinkHints.activateMode": [ kFgCmd.linkHints, 0, 0, { m: HintMode.DEFAULT } ],
+  "LinkHints.activateModeToCopyLinkText": [ kFgCmd.linkHints, 0, 0, { m: HintMode.COPY_TEXT } ],
+  "LinkHints.activateModeToCopyLinkUrl": [ kFgCmd.linkHints, 0, 0, { m: HintMode.COPY_URL } ],
+  "LinkHints.activateModeToDownloadImage": [ kFgCmd.linkHints, 0, 0, { m: HintMode.DOWNLOAD_MEDIA } ],
+  "LinkHints.activateModeToDownloadLink": [ kFgCmd.linkHints, 0, 0, { m: HintMode.DOWNLOAD_LINK } ],
+  "LinkHints.activateModeToEdit": [ kFgCmd.linkHints, 0, 1, { m: HintMode.FOCUS_EDITABLE } ],
+  "LinkHints.activateModeToHover": [ kFgCmd.linkHints, 0, 0, { m: HintMode.HOVER } ],
+  "LinkHints.activateModeToLeave": [ kFgCmd.linkHints, 0, 0, { m: HintMode.UNHOVER } ],
+  "LinkHints.activateModeToUnhover": [ kFgCmd.linkHints, 0, 0, { m: HintMode.UNHOVER } ],
+  "LinkHints.activateModeToOpenImage": [ kFgCmd.linkHints, 0, 0, { m: HintMode.OPEN_IMAGE } ],
+  "LinkHints.activateModeToOpenIncognito": [ kFgCmd.linkHints, 0, 0, { m: HintMode.OPEN_INCOGNITO_LINK } ],
+  "LinkHints.activateModeToOpenInNewForegroundTab": [ kFgCmd.linkHints, 0, 0, {m: HintMode.OPEN_IN_NEW_FG_TAB} ],
+  "LinkHints.activateModeToOpenInNewTab": [ kFgCmd.linkHints, 0, 0, { m: HintMode.OPEN_IN_NEW_BG_TAB } ],
+  "LinkHints.activateModeToOpenVomnibar": [ kFgCmd.linkHints, 0, 1, { m: HintMode.EDIT_TEXT } ],
+  "LinkHints.activateModeToSearchLinkText": [ kFgCmd.linkHints, 0, 0, { m: HintMode.SEARCH_TEXT } ],
+  "LinkHints.activateModeWithQueue": [ kFgCmd.linkHints, 0, 0, { m: HintMode.OPEN_WITH_QUEUE } ],
   "LinkHints.unhoverLast": [ kFgCmd.insertMode, 0, 1, { u: true } ],
   "Marks.activate": [ kFgCmd.marks, 0, 0 ],
   "Marks.activateCreateMode": [ kFgCmd.marks, 0, 0, { mode: "create" } ],

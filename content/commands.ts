@@ -20,7 +20,7 @@ import {
 } from "./dom_ui"
 import { hudHide, hudShow, hudTip, hud_text } from "./hud"
 import { onKeyup2, set_onKeyup2, passKeys, installTempCurrentKeyStatus, set_passKeys } from "./key_handler"
-import { activate as linkActivate, clear as linkClear, kEditableSelector, kSafeAllSelector } from "./link_hints"
+import { activate as linkActivate, clear as linkClear, kEditable, kSafeAllSelector } from "./link_hints"
 import { activate as markActivate, gotoMark } from "./marks"
 import { activate as findActivate, deactivate as findDeactivate, execCommand, init as findInit } from "./mode_find"
 import {
@@ -225,7 +225,7 @@ export const contentCommands_: {
     interface InputHint extends Hint { [0]: HintsNS.InputHintItem["d"] }
     // here those editable and inside UI root are always detected, in case that a user modifies the shadow DOM
     const visibleInputs = traverse(Build.BTypes & ~BrowserType.Firefox
-          ? kEditableSelector + kSafeAllSelector : kEditableSelector, getEditable
+          ? kEditable + kSafeAllSelector : kEditable, getEditable
         ) as InputHint[],
     action = options.select, keep = options.keep, pass = options.passExitKey, reachable = options.reachable;
     if (reachable != null ? reachable : fgCache.e) {
