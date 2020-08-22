@@ -13,7 +13,7 @@ var {
   touchFileIfNeeded, patchTSNamespace,
   patchExtendClick: _patchExtendClick,
   loadUglifyConfig: _loadUglifyConfig,
-  logFileSize, addMetaData, inlineAllSetters,
+  logFileSize, addMetaData, inlineAllSetters, patchTerser,
 } = require("./scripts/dependencies");
 
 class BrowserType {}
@@ -23,7 +23,7 @@ Object.assign(BrowserType, {
   Edge: 4
 });
 
-const LIB_UGLIFY_JS = 'terser';
+const LIB_TERSER = 'terser';
 var DEST, willListFiles, willListEmittedFiles, JSDEST;
 var locally = false;
 var debugging = process.env.DEBUG === "1";
@@ -251,7 +251,8 @@ var Tasks = {
     var exArgs = { nameCache: { vars: {}, props: {}, timestamp: 0 } };
     var config = loadUglifyConfig(!!exArgs.nameCache);
     config.nameCache = exArgs.nameCache;
-    require(LIB_UGLIFY_JS).minify("var " + KnownBackendGlobals.join(" = {},\n") + " = {};", config);
+    patchTerser()
+    require(LIB_TERSER).minify("var " + KnownBackendGlobals.join(" = {},\n") + " = {};", config);
 
     var sources = manifest.background.scripts;
     sources = ("\n" + sources.join("\n")).replace(/\n\//g, "\n").trim().split("\n");
@@ -716,7 +717,7 @@ function outputJSResult(stream) {
     stream = stream.pipe(gulpMap(beforeUglify));
     if (doesUglifyLocalFiles) {
       var config = loadUglifyConfig();
-      stream = stream.pipe(getGulpUglify()(config));
+      stream = stream.pipe(getGulpTerser()(config));
     }
     stream = stream.pipe(gulpMap(postUglify));
   }
@@ -836,7 +837,7 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
   if (isJson) {
     stream = stream.pipe(gulpMap(uglifyJson));
   } else if (uglifyDistPasses > 0) {
-    stream = stream.pipe(getGulpUglify(!!(exArgs.aggressiveMangle && config.mangle), uglifyDistPasses)(config));
+    stream = stream.pipe(getGulpTerser(!!(exArgs.aggressiveMangle && config.mangle), uglifyDistPasses)(config));
     if (exArgs.aggressiveMangle) {
       exArgs.aggressiveMangle = false;
     }
@@ -1249,7 +1250,7 @@ function ToBuffer(string) {
   return Buffer.from ? Buffer.from(string) : new Buffer(string);
 }
 function ToString(buffer) {
-  return String(buffer);
+  return buffer.toString('utf8');
 }
 
 var _buildConfigTSContent;
@@ -1392,10 +1393,13 @@ function gulpCheckEmpty(callback, log) {
   return a;
 }
 
-function gulpMap(map) {
+function gulpMap(map, async) {
   var Transform = require('stream').Transform;
   var transformer = new Transform({objectMode: true});
   transformer._transform = function(srcFile, encoding, done) {
+    if (async) {
+      return map.call(this, srcFile, done)
+    }
     var dest = map(srcFile);
     this.push(dest !== srcFile.contents && dest || srcFile);
     done();
@@ -1476,38 +1480,50 @@ function patchExtendClick(source) {
   return inCode;
 }
 
-function getGulpUglify(aggressiveMangle, unique_passes) {
-  var compose = require('gulp-uglify/composer');
-  var logger = require('gulp-uglify/lib/log');
-  var uglify = require(LIB_UGLIFY_JS);
+function getGulpTerser(aggressiveMangle, unique_passes) {
+  patchTerser()
   var aggressive = aggressiveMangle && require("./scripts/uglifyjs-mangle")
+  var uglify = require(LIB_TERSER);
   const passes = unique_passes && unique_passes > 1 ? unique_passes : 0
   if (passes) {
     var multipleUglify = {
-      minify: function (files, config) {
-        let firstOut = (aggressive || uglify).minify(files, { ...config,
+      minify: async function (files, config) {
+        let firstOut = await (aggressive || uglify).minify(files, { ...config,
           mangle: aggressive ? config.mangle : null,
           output: { ...config.output, comments: /^[!@#]/, preserve_annotations: true,
               ast: !aggressive, code: !!aggressive },
         }), ast = aggressive ? firstOut.code : firstOut.ast;
         if (firstOut.error) { return firstOut; }
         for (let i = 1; i < unique_passes - 1; i++) {
-          ast = uglify.minify(ast, { ...config,
+          ast = (await uglify.minify(ast, { ...config,
             output: { ...config.output, comments: /^[!@#]/, preserve_annotations: true, ast: true, code: false },
             mangle: null,
-          }).ast
+          })).ast
         }
-        return uglify.minify(ast, { ...config, mangle: aggressive ? null : config.mangle,
+        return await uglify.minify(ast, { ...config, mangle: aggressive ? null : config.mangle,
           output: { ...config.output, comments: gNoComments ? false : /^!/,
             preserve_annotations: false, ast: false, code: true },
         })
       }
     }
   }
-  return compose(
-    passes ? multipleUglify : aggressive || uglify,
-    logger
-  );
+  const minifier = passes ? multipleUglify : aggressive || uglify
+  return terserOptions => {
+    return gulpMap(function (file, done) {
+      const stream = this;
+      minifier.minify(ToString(file.contents), terserOptions).then(result => {
+        if (!result || result.error) {
+          throw new Error(result ? result.error.message ?? "(empty-message)" : "(null)");
+        }
+        file.contents = ToBuffer(result.code);
+        stream.push(file);
+        done();
+      }, err => {
+        stream.emit('error', new Error("Terser: " + err));
+        done();
+      });
+    }, true);
+  }
 }
 
 function loadUglifyConfig(reload) {

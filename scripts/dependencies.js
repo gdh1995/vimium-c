@@ -189,8 +189,7 @@ function loadUglifyConfig(path, reload) {
     }
     var ver = "", terser = null;
     try {
-      // @ts-ignore
-      ver = require("terser/package").version;
+      ver = require("terser/package.json").version;
     } catch (e) {
       console.log("Can not read the version of terser.");
     }
@@ -450,6 +449,24 @@ function patchTSNamespace (ts, logger, noGenerator, wrapGeneratorToken) {
   ts[key] = wrapGeneratorToken ? wrappedAccessProp : originalAccessProp
 }
 
+let __terserPatched = false
+function patchTerser() {
+  if (__terserPatched) { return }
+  __terserPatched = true
+  const terserPackage = require("terser/package.json")
+  if (!terserPackage.exports) { return }
+  let mod = false
+  for (const i of ["./lib/parse", "./lib/ast"]) {
+    if (!terserPackage.exports[i]) {
+      mod = true
+      terserPackage.exports[i] = i + ".js"
+    }
+  }
+  if (mod) {
+    require("fs").writeFileSync("./node_modules/terser/package.json", JSON.stringify(terserPackage, null, 2))
+  }
+}
+
 module.exports = {
   readFile: readFile,
   readJSON: readJSON,
@@ -463,4 +480,5 @@ module.exports = {
   logFileSize: logFileSize,
   inlineAllSetters: inlineAllSetters,
   patchTSNamespace: patchTSNamespace,
+  patchTerser: patchTerser,
 };

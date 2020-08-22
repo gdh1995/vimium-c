@@ -12,13 +12,12 @@ const MIN_EXPECTED_STRING_GAIN = 11;
 
 // @ts-ignore
 const TEST = typeof require === "function" && require.main === module;
+require("./dependencies").patchTerser();
 
-const terser = require("terser");
 /**
  * @typedef { import("terser").MinifyOptions } MinifyOptions
  * @typedef { import("terser").MinifyOutput } MinifyOutput
- * @typedef { import("terser").AST_Scope } AST_Scope
- * @typedef { import("terser").AST_Lambda } AST_Lambda
+ * @typedef { import("../typings/base/terser").AST_Lambda } AST_Lambda
  * @typedef { Map<string, { references: object[]; mangled_name: string | null }> } VariableMap
  * @typedef { {
  *   vars?: { props?: { [oldName: string]: string } };
@@ -26,15 +25,28 @@ const terser = require("terser");
  * } } NameCache
  */
 
+/** @type { typeof import("../typings/base/terser").minify } */
+let minify;
+/** @type { typeof import("../typings/base/terser").parse } */
+let parse;
+/** @type { typeof import("../typings/base/terser").TreeWalker } */
+let TreeWalker
+const P = Promise.all([
+  // @ts-ignore
+  import("terser").then(i => minify = i.minify),
+  import("terser/lib/parse").then(i => parse = i.parse),
+  import("terser/lib/ast").then(i => TreeWalker = i.TreeWalker),
+])
+
 /**
- * @param { string | import("terser").AST_Node } text
+ * @param { string | import("../typings/base/terser").AST_Toplevel } text
  * @param { MinifyOptions } options
- * @returns { {
+ * @returns { Promise<{
  *   namesToMangle: string[][]
  *   namesCount: ReadonlyMap<string, number>
- * } }
+ * }> }
  */
-function collectWords(text, options) {
+async function collectWords(text, options) {
   /** @type { Map<string, number> } */
   const map = new Map();
   /** @type { string[][] } */
@@ -45,11 +57,10 @@ function collectWords(text, options) {
   // @ts-ignore
   const propRe = props0 && props0.regex || /^_|_$/;
   const reservedProps = new Set(props0 && props0.reserved || [ "__proto__", "$_", "_" ]);
-  terser.minify(text, { ...options,
+  (await minify(text, { ...options,
     sourceMap: false, mangle: null, nameCache: null,
-    // @ts-ignore
     output: { ast: true, code: false  }
-  }).ast.walk(new terser.TreeWalker((node) => {
+  })).ast.walk(new TreeWalker((node) => {
     switch (node.TYPE) {
     case "Function": case "Lambda":
       /** @type { AST_Lambda } */
@@ -72,7 +83,7 @@ function collectWords(text, options) {
       }
       break;
     case "Object":
-      /** @type { import("terser").AST_Object } */
+      /** @type { import("../typings/base/terser").AST_Object } */
       // @ts-ignore
       const obj = node;
       if (obj.properties.length < MIN_COMPLEX_OBJECT) { break; }
@@ -93,7 +104,7 @@ function collectWords(text, options) {
       }
       break;
     case "Dot":
-      /** @type { import("terser").AST_Dot } */
+      /** @type { import("../typings/base/terser").AST_Dot } */
       // @ts-ignore
       const dot = node;
       /** @type { string } */
@@ -121,18 +132,20 @@ function collectWords(text, options) {
 }
 
 /**
- * @param { string | import("terser").AST_Node } text
- * @returns { {
+ * @param { string | import("../typings/base/terser").AST_Node } text
+ * @returns { Promise<{
   *   stringsTooLong: string[]
   *   stringGains: Map<string, {count: number; gain: number}>
-  * } }
+  * }> }
   */
-function collectString(text) {
+async function collectString(text) {
   /** @type { string[] } */
   const stringsTooLong = []
   /** @type { Map<string, number> } */
   const stringsOccurance = new Map();
-  (typeof text === "string" ? terser.parse(text, {ecma: 2017}) : text).walk(new terser.TreeWalker(function (node) {
+  const AST_Binary = (await import("terser/lib/ast")).AST_Binary;
+  const AST_Case = (await import("terser/lib/ast")).AST_Case;
+  (typeof text === "string" ? parse(text, {ecma: 2017}) : text).walk(new TreeWalker(function (node) {
     switch (node.TYPE) {
     case "Function": case "Lambda":
       // @ts-ignore
@@ -144,11 +157,11 @@ function collectString(text) {
       const str = node.value
       if (str.length >= MIN_LONG_STRING) { stringsTooLong.push(str) }
       if (str.length >= MIN_STRING_LENGTH_TO_COMPUTE_GAIN) {
-        /** @type { import("terser").TreeWalker } */
+        /** @type { import("terser/lib/ast").TreeWalker } */
         const walker = this
         const parentNode = walker.parent(0)
-        if (parentNode instanceof terser.AST_Case
-           || parentNode instanceof terser.AST_Binary && parentNode.operator === "in") {
+        if (parentNode instanceof AST_Case
+           || parentNode instanceof AST_Binary && parentNode.operator === "in") {
           break
         }
         stringsOccurance.set(str, (stringsOccurance.get(str) || 0) + 1)
@@ -209,15 +222,16 @@ function findTooShort(names, minAllowedLength) {
 /**
  * @argument { string | string[] | { [file: string]: string } } files
  * @argument { MinifyOptions | null | undefined } options
- * @returns { MinifyOutput }
+ * @returns { Promise<MinifyOutput> }
  */
-function minify(files, options) {
+async function myMinify(files, options) {
+  await P
   const sources = typeof files === "object" ? files instanceof Array ? files : Object.values(files) : [files];
-  const ast = sources.length === 1 ? terser.parse(sources[0], options && options.parse) : sources.join("\n");
+  const ast = sources.length === 1 ? parse(sources[0], options && options.parse) : sources.join("\n");
   /** @type { (() => void) | null | undefined } */
   let disposeNameMangler;
   if (options && options.mangle) {
-    const { namesToMangle: names, namesCount: countsMap} = collectWords(ast, options);
+    const { namesToMangle: names, namesCount: countsMap} = await collectWords(ast, options);
     if (names.length > 0) {
       const duplicated = findDuplicated(names, countsMap);
       if (duplicated.length > 0) {
@@ -249,7 +263,8 @@ function minify(files, options) {
       const props = nameCache.props.props || (nameCache.props.props = {});
       // @ts-ignore
       if (options.output && options.output.code) {
-        disposeNameMangler = hookMangleNamesOnce(variables[0], variables.length > 1 ? variables[1] : null, countsMap)
+        disposeNameMangler = await hookMangleNamesOnce(variables[0]
+            , variables.length > 1 ? variables[1] : null, countsMap)
       }
       for (const arr of properties) {
         const next = createMangler(arr);
@@ -262,13 +277,13 @@ function minify(files, options) {
     }
   }
   const CHECK_WORDS = +(process.env.CHECK_WORDS || 0) > 0
-  const minified = terser.minify(ast, { ...options,
+  const minified = await minify(ast, { ...options,
     // @ts-ignore
     output: {...options.output, ast: CHECK_WORDS || options.output.ast }
   })
   disposeNameMangler && (disposeNameMangler(), disposeNameMangler = null)
   if (CHECK_WORDS) {
-    const {stringsTooLong, stringGains} = collectString(minified.ast)
+    const {stringsTooLong, stringGains} = await collectString(minified.ast)
     if (stringsTooLong.length > 0) {
       console.log("Some strings are too long:")
       stringsTooLong.sort((i, j) => j.length - i.length)
@@ -290,10 +305,11 @@ function minify(files, options) {
  * @param { readonly string[] } mainVariableNames
  * @param { readonly string[] | null } extendClickValiables
  * @param { ReadonlyMap<string, number> } countsMap
- * @returns { () => void } dispose
+ * @returns { Promise<() => void> } dispose
  */
-function hookMangleNamesOnce(mainVariableNames, extendClickValiables, countsMap) {
-  const AST_Toplevel = require("terser").AST_Toplevel;
+async function hookMangleNamesOnce(mainVariableNames, extendClickValiables, countsMap) {
+  /** @type { { prototype: import("../typings/base/terser").AST_Toplevel } } */
+  const AST_Toplevel = (await import("terser/lib/ast")).AST_Toplevel;
   // @ts-ignore
   const oldMangle = AST_Toplevel.prototype.mangle_names;
   const varCountMap = new Map([...countsMap].filter(i => i[0][0] === ":").map(([k, v]) => [k.split(":")[1], v]));
@@ -327,7 +343,7 @@ function hookMangleNamesOnce(mainVariableNames, extendClickValiables, countsMap)
     // const rareVars = astVariableNameList.filter(k => varCountMap.get(k) && varCountMap.get(k) <= 1)
     if (isVC) { return; }
     succeed = true;
-    this.walk(new terser.TreeWalker(function (node) {
+    this.walk(new TreeWalker(function (node) {
       switch (node.TYPE) {
       case "Function": case "Lambda":
         // @ts-ignore
@@ -444,7 +460,7 @@ const hashCode = (str) => {
 }
 
 if (typeof module !== "undefined") {
-  module.exports = { minify };
+  module.exports = { minify: myMinify };
 }
 
 if (TEST) {
