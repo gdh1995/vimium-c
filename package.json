@@ -4,8 +4,8 @@
   "description": "A keyboard shortcut tool for keyboard-based page navigation and browser tab operations with an advanced omnibar and global shortcuts",
   "private": true,
   "dependencies": {
-    "lodash": "^4.17.19",
     "pngjs": "^5.0.0",
+    "terser": "^5.2.1",
     "typescript": ">=3.9.0"
   },
   "devDependencies": {
@@ -25,14 +25,13 @@
     "mkdirp": "^0.5.5",
     "rimraf": "^3.0.2",
     "rollup": "^2.18.0",
-    "seedrandom": "^3.0.5",
-    "terser": "^4.8.0"
+    "seedrandom": "^3.0.5"
   },
   "optionalDependencies": {
     "@typescript-eslint/eslint-plugin": "^3.4.0",
     "@typescript-eslint/parser": "^3.4.0",
     "eslint": "^7.6.0",
-    "web-ext": "^4.3.0"
+    "web-ext": "^5.0.0"
   },
   "scripts": {
     "tsc": "node scripts/tsc.js",
