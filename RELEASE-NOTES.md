@@ -4,6 +4,23 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://github.com/gdh1995/vimium-c/blob/master/README_zh.md .
 
+#### 1.85.0
+* Firefox: fix that Vimium C would break some iframes
+* Vomnibar: fix a regression which would interrupt inputting by IME
+* Vomnibar settings: add `action=""/"opener"` (for [#198](https://github.com/gdh1995/vimium-c/issues/198))
+* add an option `opener` to some commands which open URLs, to always set opener
+* add an option `richText` to some commands in order to copy HTML content
+* FindMode: add a cache for 3~6 seconds, so if a page changes rapidly, shown `count` may be a bit inaccurate
+* paste from clipboard: now accept a string of up to 20M characters
+* add a command `sortTabs` to sort tabs, and support `sort=""/create/recency`
+  ([#207](https://github.com/gdh1995/vimium-c/issues/207))
+* LinkHints: add an option `position` and all `position` options accept `"default"`
+  ([#208](https://github.com/gdh1995/vimium-c/issues/208))
+* add a command `captureTab` to capture the visible area of a current tab
+* now open Vimium C Options page on first installation
+* add some other command options
+* fix some bugs and wrong usages
+
 #### v1.84.3
 (the current published version on Firefox Add-ons, Microsoft Edge Add-ons and Chrome Web Store)
 * fix broken `autoCopy`

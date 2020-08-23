@@ -105,28 +105,20 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
-#### 1.84.4
-* add a command `sortTabs` to sort
+#### 1.85.0
+* Firefox: fix that Vimium C would break some iframes
+* Vomnibar: fix a regression which would interrupt inputting by IME
+* Vomnibar settings: add `action=""/"opener"`
+* add an option `opener` to some commands which open URLs, to always set opener
 * add an option `richText` to some commands in order to copy HTML content
-* fix some bugs
-
-#### 1.84.3
-* fix broken `autoCopy`
-* substitution rules: fix some bugs in text substitution
-  * now execute actions in their declaration sequence
-  * add some actions: base64, btoa, encode, eecodecomp
-* Firefox: Vomnibar: not list hidden tabs by default, unless `hiddenTabs=true`
-* `goNext`: fix some issues
-* `openUrl`: add `title_mask`
-
-#### 1.84.2
-* Vomnibar: add a style keyword of `time` to show time string
-* add a new command: `addBookmark` with an option of `path: string`
-* `toggleReaderMode`: now work on Edge (Chromium)
-* `removeTab`: now support `keepWindow=always`
-* `searchInAnother`: fix a regression that the default of `reuse` should be `current`
-* substitution rules: add a new filter: `,host=*.example.com`
-* fix some edge cases
+* FindMode: add a cache for 3~6 seconds, so if a page changes rapidly, shown `count` may be a bit inaccurate
+* paste from clipboard: now accept a string of up to 20M characters
+* add a command `sortTabs` to sort tabs, and support `sort=""/create/recency`
+* LinkHints: add an option `position` and all `position` options accept `"default"`
+* add a command `captureTab` to capture the visible area of a current tab
+* now open Vimium C Options page on first installation
+* add some other command options
+* fix some bugs and wrong usages
 
 See more on [RELEASE-NOTES.md](RELEASE-NOTES.md).
 
