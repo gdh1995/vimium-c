@@ -495,6 +495,7 @@ declare const enum kCName {
   openCopiedUrlInCurrentTab = "openCopiedUrlInCurrentTab",
   openCopiedUrlInNewTab = "openCopiedUrlInNewTab",
   openUrl = "openUrl",
+  openUrlInCurrentTab = "openUrlInCurrentTab",
   parentFrame = "parentFrame",
   passNextKey = "passNextKey",
   performAnotherFind = "performAnotherFind",
@@ -636,7 +637,8 @@ declare namespace CommandsNS {
     [kCName.nextTab]: kBgCmd.goToTab;
     [kCName.openCopiedUrlInCurrentTab]: kBgCmd.openUrl;
     [kCName.openCopiedUrlInNewTab]: kBgCmd.openUrl;
-    [kCName.openUrl]: kBgCmd.openUrl;
+    [kCName.openUrl]: kBgCmd.openUrl;    
+    [kCName.openUrlInCurrentTab]: kBgCmd.openUrl;
     [kCName.parentFrame]: kBgCmd.parentFrame;
     [kCName.passNextKey]: kFgCmd.passNextKey;
     [kCName.performAnotherFind]: kBgCmd.performFind;
