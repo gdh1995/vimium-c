@@ -534,6 +534,7 @@ availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeO
   openCopiedUrlInCurrentTab: [ kBgCmd.openUrl, 1, 1, { reuse: ReuseType.current, copied: true } ],
   openCopiedUrlInNewTab: [ kBgCmd.openUrl, 1, 20 as 0, {copied: true} ],
   openUrl: [ kBgCmd.openUrl, 1, 20 as 0 ],
+  openUrlInCurrentTab: [ kBgCmd.openUrl, 1, 1, { reuse: ReuseType.current} ],
   parentFrame: [ kBgCmd.parentFrame, 1, 0 ],
   passNextKey: [ kFgCmd.passNextKey, 0, 0 ],
   performAnotherFind: [ kBgCmd.performFind, 1, 0, { index: "other" } ],
