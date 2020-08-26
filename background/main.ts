@@ -631,6 +631,7 @@
         : reuse === "reuse" ? ReuseType.reuse : reuse === "newWindow" ? ReuseType.newWindow
         : reuse === "newFg" ? ReuseType.newFg : reuse === "newBg" ? ReuseType.newBg
         : reuse === "lastWndFg" ? ReuseType.lastWndFg : reuse === "lastWndBg" ? ReuseType.lastWndBg
+        : reuse === "current" ? ReuseType.current
         : ReuseType.newFg
   }
   function fillUrlMasks(url: string, tabs: [Tab?] | undefined, url_mark: string): string {
