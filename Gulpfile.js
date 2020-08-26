@@ -1513,7 +1513,7 @@ function getGulpTerser(aggressiveMangle, unique_passes) {
       const stream = this;
       minifier.minify(ToString(file.contents), terserOptions).then(result => {
         if (!result || result.error) {
-          throw new Error(result ? result.error.message ?? "(empty-message)" : "(null)");
+          throw new Error(result ? result.error.message ? result.error.message : "(empty-message)" : "(null)");
         }
         file.contents = ToBuffer(result.code);
         stream.push(file);

@@ -131,7 +131,7 @@ and please read https://github.com/gdh1995/vimium-c/wiki/Known-issues-on-various
 
 # Building
 
-If you want to compile this project manually, please run:
+If you want to compile this project manually, then you need a Node.js 13+ and npm. Please run:
 
 ``` bash
 npm install typescript

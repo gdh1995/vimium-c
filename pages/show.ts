@@ -359,7 +359,7 @@ function clickLink(this: void, options: { [key: string]: string }
   for (const i in options) {
     a.setAttribute(i, options[i]);
   }
-  a.href = VData.url;
+  a.href = VData.url; // lgtm [js/client-side-unvalidated-url-redirection]
   simulateClick(a, event);
 }
 
