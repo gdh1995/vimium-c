@@ -149,10 +149,10 @@ export function set_isClickListened_ (_newIsClickListened: boolean): void { isCl
 export const activate = (options: HintsNS.ContentOptions, count: number, force?: 1 | TimerType.fake): void => {
     if (isActive && !force || !isEnabled_) { return; }
     if (checkHidden(kFgCmd.linkHints, count, options)) {
-      return clear()
+      return clear(1)
     }
     if (doc.body === null) {
-      clear()
+      manager_ || clear()
       if (!_timer && readyState_ > "l") {
         _timer = timeout_(activate.bind(0 as never, options, count), 300)
         return pushHandler_(SuppressMost_, coreHints)
@@ -630,22 +630,22 @@ const resetHints = (): void => {
     }
 }
 
-export const clear = (keepHudOrEvent?: 0 | 1 | Event, suppressTimeout?: number): void => {
+export const clear = (onlySelfOrEvent?: 0 | 1 | Event, suppressTimeout?: number): void => {
     if (!isAlive_) { return; }
-    if (keepHudOrEvent === 1 || keepHudOrEvent
+    if (onlySelfOrEvent === 1 || onlySelfOrEvent
         && (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Event$$IsTrusted
-            ? keepHudOrEvent.isTrusted !== !1 : keepHudOrEvent.isTrusted)
-        && keepHudOrEvent.target === doc) {
+            ? onlySelfOrEvent.isTrusted !== !1 : onlySelfOrEvent.isTrusted)
+        && onlySelfOrEvent.target === doc) {
       coreHints.p && manager_!.u(coreHints);
       manager_ = null
-      if (keepHudOrEvent !== 1) {
+      if (onlySelfOrEvent !== 1) {
         return;
       }
     }
     const manager = coreHints.p as HintManager | null;
     isActive = _timer = 0
     manager_ = coreHints.p = null;
-    manager && manager.c(keepHudOrEvent, suppressTimeout);
+    manager && manager.c(onlySelfOrEvent, suppressTimeout);
     frameList_.forEach((frameInfo: FrameHintsInfo): void => { try {
       let frame = frameInfo.s, hasManager = frame.p
       frame.p = null

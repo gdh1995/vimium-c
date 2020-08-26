@@ -503,23 +503,23 @@ export const evalIfOK = (url: Pick<BgReq[kBgReq.eval], "u"> | string): boolean =
 }
 
 export const checkHidden = (cmd?: FgCmdAcrossFrames, count?: number, options?: OptionsWithForce): BOOL => {
-  if (wndSize_() < 3 || wndSize_(1) < 3) { return 1 }
+  if (isTop) { return 0 }
   // here should not use the cache frameElement, because `getComputedStyle(frameElement).***` might break
-  const curFrameElement_ = !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox
-      && VOther === BrowserType.Firefox ? !isTop && frameElement : !isTop && frameElement_(),
-  el = !isTop && (curFrameElement_ || docEl_unsafe_());
-  if (!el) { return 0; }
-  let box = padClientRect_(getBoundingClientRect_(el)),
+  const curFrameElement = !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox
+      && VOther === BrowserType.Firefox ? frameElement : frameElement_(),
+  el = curFrameElement || docEl_unsafe_();
+  if (!el && wndSize_() > 3 && wndSize_(1) > 3) { return 0; }
+  let box = el && padClientRect_(getBoundingClientRect_(el)),
   parEvents: ReturnType<typeof getParentVApi> | undefined,
-  result: boolean | BOOL = box.b <= box.t && box.r <= box.l || !isStyleVisible_(el)
+  result: boolean | BOOL = !box || box.b <= box.t && box.r <= box.l || !isStyleVisible_(el!)
   if (cmd) {
     // if in a forced cross-origin env (by setting doc.domain),
     // then par.self.innerHeight works, but this behavior is undocumented,
     // so here only use `parApi.innerHeight_()` in case
-    if ((Build.BTypes & BrowserType.Firefox ? (parEvents = getParentVApi()) : curFrameElement_)
-        && (result || box.b <= 0
+    if ((Build.BTypes & BrowserType.Firefox ? curFrameElement && (parEvents = getParentVApi()) : curFrameElement)
+        && (result || box!.b <= 0
             || (Build.BTypes & BrowserType.Firefox && parEvents !== parent
-                  ? box.t > parEvents!.i!() : box.t > (parent as Window).innerHeight))) {
+                  ? box!.t > parEvents!.i!() : box!.t > (parent as Window).innerHeight))) {
       Build.BTypes & BrowserType.Firefox || (parEvents = getParentVApi());
       if (parEvents
           && !parEvents.a(keydownEvents_)) {
