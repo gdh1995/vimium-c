@@ -85,6 +85,8 @@ argv.length = 2;
 
 var real_write;
 var cache = Object.create(null);
+/** @type Array<Promise<number | void>> */
+var PROMISES = [];
 
 /**
  * @param {string} path
@@ -92,14 +94,15 @@ var cache = Object.create(null);
  * @param {unknown} writeBom
  */
 var writeFile = function(path, data, writeBom) {
-  try {
   var isJS = path.slice(-3) === ".js";
   var srcPath = isJS ? path.slice(0, -3) + ".ts" : path;
   var same = fs.existsSync(path);
   var skip = logPrefix !== "background" && path.indexOf("background/") >= 0;
+  PROMISES.push((async function () {
+  try {
   if (!skip && cache[path] !== data) {
     if (doesUglifyLocalFiles && isJS) {
-      data = getUglifyJS()(data);
+      data = await getUglifyJS()(data);
       if (path.indexOf("extend_click.") >= 0) {
         var patched = lib.patchExtendClick(data, true);
         data = typeof patched === "string" ? patched : patched[0] + patched[1] + patched[2];
@@ -114,12 +117,13 @@ var writeFile = function(path, data, writeBom) {
   if (same) {
     lib.touchFileIfNeeded(path, srcPath);
   } else {
-    return real_write(path, data, writeBom);
+    real_write(path, data, writeBom);
   }
   }catch (ex) {
     console.log(ex);
     throw ex;
   }
+  })());
 };
 
 /** @type {import("./dependencies").TerserOptions | null} */
@@ -132,19 +136,25 @@ var getUglifyJS = function() {
   var minify;
   if (uglify == null) {
     console.log("Can not load " + LIB_UGLIFY_JS + ", so skip uglifying");
-    minify = function(data) { return data; };
+    minify = function(data) { return Promise.resolve(data); };
   } else {
     minify = function(data, config) {
       config || (config = getDefaultUglifyConfig());
       var output = uglify.minify(data, config);
-      if (output.error) {
-        throw output.error;
-      }
-      data = output.code;
-      if (config.ecma && config.ecma >= 2017) {
-        data = data.replace(/\bappendChild\b(?!`|\.call\([\w.]*doc)/g, "append");
-      }
-      return data;
+      return (output instanceof Promise ? output.then(function (output) {
+        if (output.error) {
+          throw output.error;
+        }
+        return output;
+      }) : new Promise(function (resolve, reject) {
+        output.error ? reject(output.error) : resolve(output);
+      })).then(function (output) {
+        data = output.code;
+        if (config.ecma && config.ecma >= 2017) {
+          data = data.replace(/\bappendChild\b(?!`|\.call\([\w.]*doc)/g, "append");
+        }
+        return data;
+      });
     };
   }
   getUglifyJS = function() { return minify; };
@@ -224,8 +234,6 @@ function main(args) {
     destDirs.push(".");
   }
   var child_process = require('child_process');
-  /** @type Array<Promise<number>> */
-  var promises = [];
   var env = process.env;
   env[_WORKER_ENV_KEY] = "1";
 
@@ -237,7 +245,7 @@ function main(args) {
     env["BUILD_CopyManifest"] = "1";
     env["LOCAL_SILENT"] = "1";
     env["LOCAL_DIST"] = args[outDirArgIdx + 1];
-    promises.push(new Promise(function (resolve) {
+    PROMISES.push(new Promise(function (resolve) {
       var child = child_process.spawn(cmd, [gulp_cmd, "--silent", "static"], { env: env,
         // @ts-ignore
         stdio: ["ignore", process.stdout, process.stderr]
@@ -246,7 +254,7 @@ function main(args) {
     }));
   }
   for (var i = 1; i < destDirs.length; i++) {
-    promises.push(new Promise(function (resolve) {
+    PROMISES.push(new Promise(function (resolve) {
       var child = child_process.spawn(cmd, argv.slice(1).concat(args), {
         cwd: destDirs[i], env: env,
         // @ts-ignore
@@ -263,10 +271,19 @@ function main(args) {
     logPrefix = firstTS;
     process.chdir(firstTS);
   }
-  promises.push(executeTS(args));
-  Promise.all(promises).then(function(results) {
+  PROMISES.push(executeTS(args));
+  const q = Promise.all(PROMISES);
+  PROMISES = [];
+  q.then(function waitAll(results) {
     var err = results.reduce(function (prev, cur) { return prev || cur; }, 0);
     err && console.log("[ERROR] result code is %d", err);
+    if (PROMISES.length > 0) {
+      const q2 = Promise.all(PROMISES);
+      PROMISES = [];
+      q2.then(waitAll);
+      return;
+    }
+    err = err || 0;
     real_proc_exit(err);
   });
 }
