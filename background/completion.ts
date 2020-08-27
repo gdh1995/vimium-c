@@ -567,12 +567,12 @@ historyEngine = {
   },
   quickSearch_ (history: ReadonlyArray<Readonly<HistoryItem>>): Suggestion[] {
     const onlyUseTime = queryTerms.length === 1 && (queryTerms[0][0] === "."
-      ? (<RegExpOne> /^\.\w+$/).test(queryTerms[0])
+      ? (<RegExpOne> /^\.[\da-zA-Z]+$/).test(queryTerms[0])
       : (BgUtils_.convertToUrl_(queryTerms[0], null, Urls.WorkType.KeepAll),
         BgUtils_.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl)
     ),
     noOldCache = !(MatchCacheManager.current_ && MatchCacheManager.current_.history_),
-    buildCache = !!MatchCacheManager.newMatch_, newCache = [],
+    newCache = MatchCacheManager.newMatch_ ? [] as HistoryItem[] : null,
     results = [-1.1, -1.1], sugs: Suggestion[] = [], Match2 = RankingUtils.Match2_,
     parts0 = RegExpCache.parts_[0];
     let maxNum = maxResults + offset
@@ -587,7 +587,7 @@ historyEngine = {
       const item = history[i];
       if (onlyUseTime ? !parts0.test(item.t) : !Match2(item.t, item.title_)) { continue; }
       if (!(showThoseInBlocklist || item.visible_)) { continue; }
-      buildCache && newCache.push(item);
+      newCache && newCache.push(item);
       matched++;
       const score = onlyUseTime ? ComputeRecency(item.time_) || /* < 0.0002 */ 1e-16 * item.time_
           : ComputeRelevancy(item.t, item.title_, item.time_);
@@ -599,7 +599,7 @@ historyEngine = {
       results[j + 3] = i;
       curMinScore = results[maxNum];
     }
-    if (buildCache) {
+    if (newCache) {
       MatchCacheManager.newMatch_!.history_ = newCache;
     }
     matchedTotal += matched;
@@ -1056,7 +1056,7 @@ searchEngine = {
           queryTerms = (rawQuery.length < Consts.MaxCharsInQuery + 1 ? rawQuery
               : BgUtils_.unicodeSubstring_(rawQuery, 0, Consts.MaxCharsInQuery).trim()).split(" ");
           if (queryTerms.length > 1) {
-            queryTerms[1] = BgUtils_.fixCharsInUrl_(queryTerms[1]);
+            queryTerms[1] = BgUtils_.fixCharsInUrl_(queryTerms[1], 1);
           }
           return searchEngine.preFilter_(query);
     case Urls.kEval.search:
@@ -1997,7 +1997,7 @@ Completion_ = {
       }
     }
     if (queryTerms.length > 0) {
-      queryTerms[0] = BgUtils_.fixCharsInUrl_(queryTerms[0]);
+      queryTerms[0] = BgUtils_.fixCharsInUrl_(queryTerms[0], 1);
     }
     showThoseInBlocklist = !omniBlockList || BlockListFilter.IsExpectingHidden_(queryTerms);
     allExpectedTypes = expectedTypes !== SugType.Empty ? expectedTypes : SugType.Full;

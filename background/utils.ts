@@ -669,7 +669,7 @@ var BgUtils_ = {
       ? <RegExpG & RegExpSearchable<0>> /[^\p{L}\p{N}]+/ug
       : <RegExpG & RegExpSearchable<0>> new RegExp("[^\\p{L}\\p{N}]+", "ug" as "g"),
       encodeURIComponent),
-  fixCharsInUrl_ (url: string): string {
+  fixCharsInUrl_ (url: string, alwaysNo3002?: 1): string {
     let type = +url.includes("\u3002") + 2 * +url.includes("\uff1a");
     if (type === 0) { return url; }
     let i = url.indexOf("//");
@@ -684,7 +684,11 @@ var BgUtils_ = {
     }
     i > 0 && (str += url.slice(i));
     this.convertToUrl_(str, null, Urls.WorkType.KeepAll);
-    return this.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl ? str : url;
+    return this.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl ? str
+        : !(type & 1) || !alwaysNo3002 || url.includes("/") ? url
+        : !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredLookBehindInRegexp
+        ? url.replace(<RegExpG> /(?<=[ -\xff]|^)\u3002(?=[ -\xff]|$)/, ".")
+        : url.replace(<RegExpG> /([ -\xff]|^)\u3002(?=[ -\xff]|$)/, "$1.")
   },
   showFileUrl_ (url: string): string {
     // SVG is not blocked by images CS
