@@ -187,6 +187,7 @@ function loadUglifyConfig(path, reload) {
     if (comments && typeof comments === "string") {
       o.comments = ToRegExp(comments);
     }
+    patchTerser();
     var ver = "", terser = null;
     try {
       ver = require("terser/package.json").version;
@@ -463,6 +464,7 @@ function patchTerser() {
     }
   }
   if (mod) {
+    require("fancy-log")("Patch terser/package.json: succeed");
     require("fs").writeFileSync("./node_modules/terser/package.json", JSON.stringify(terserPackage, null, 2))
   }
 }
