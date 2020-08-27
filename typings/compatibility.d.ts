@@ -455,6 +455,7 @@ declare const enum BrowserVer {
   MinBlockAutoFocusingInCrossOriginFrame = 75,
   FakeUAMajorWhenFreezeUserAgent = 75,
   MinMediaQuery$PrefersColorScheme = 76,
+  MinEnsured$Clipboard$$write$and$ClipboardItem = 76, // before 76, exist if EXPERIMENTAL
   // https://bugs.chromium.org/p/chromium/issues/detail?id=877132
   MinRuntimeFlag$UpdateHoverAtBeginFrame = 77, // #update-hover-at-begin-frame is enabled by default
   MinChromeFavicon2 = 77, // tested on 77.0.3865.90, chrome://favicon2/ is forbidden to use on extension pages

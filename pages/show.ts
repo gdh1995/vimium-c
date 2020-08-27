@@ -472,8 +472,14 @@ function copyThing(event: EventToPrevent): void {
   const sel = getSelection();
   if ("" + sel) { return; }
   if (VData.type === "image" && VData.url) {
+    if (sel.type === "Range") { // e.g. Ctrl+A and then Ctrl+C; work well with MS Word
+      return;
+    }
+    event.preventDefault();
     const clipboard = navigator.clipboard;
-    if (Build.BTypes & BrowserType.Firefox || clipboard && clipboard.write) {
+    if (Build.BTypes & BrowserType.Firefox || !(Build.BTypes & ~BrowserType.Chrome)
+          && Build.MinCVer >= BrowserVer.MinEnsured$Clipboard$$write$and$ClipboardItem
+        || clipboard && clipboard.write) {
       const blobPromise = _shownBlob != null ? Promise.resolve(_shownBlob) : fetch(VData.url, {
         cache: "force-cache",
         referrer: "no-referrer"
