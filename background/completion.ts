@@ -374,7 +374,8 @@ bookmarkEngine = {
         score = score < fakeTimeScore ? score : (score + fakeTimeScore) / 2;
       }
       const sug = new Suggestion("bookm", i.u, i.t, isPath ? i.path_ : i.title_, get2ndArg, -score);
-      const historyIdx = otherFlags & CompletersNS.QueryFlags.ShowTime ? HistoryCache.binarySearch_(i.u) : -1
+      const historyIdx = otherFlags & CompletersNS.QueryFlags.ShowTime
+          && HistoryCache.sorted_ ? HistoryCache.binarySearch_(i.u) : -1
       sug.visit = historyIdx < 0 ? 0 : HistoryCache.history_![historyIdx].time_
       results2.push(sug);
       if (i.jsUrl_ === null) { continue; }
@@ -484,7 +485,8 @@ bookmarkEngine = {
       url2 = info && (info as chrome.bookmarks.BookmarkChangeInfo).url;
       type WBookmark = Writable<Bookmark>;
       if (Decoder.enabled_ && (title == null ? url !== cur.t || !info : url2 != null && url !== url2)) {
-        url in Decoder.dict_ && HistoryCache.binarySearch_(url) < 0 && delete Decoder.dict_[url];
+        url in Decoder.dict_ && HistoryCache.sorted_ && HistoryCache.binarySearch_(url) < 0 &&
+        delete Decoder.dict_[url]
       }
       if (title != null) {
         (cur as WBookmark).path_ = cur.path_.slice(0, -cur.title_.length) + (title || cur.id_);
@@ -508,12 +510,12 @@ bookmarkEngine = {
     // a folder is removed
     if (!bookmarkEngine._expiredUrls && Decoder.enabled_) {
       const dict = Decoder.dict_, bs = HistoryCache.binarySearch_;
-      for (const { u: url } of arr) {
+      for (const { u: url } of (HistoryCache.sorted_ ? arr : [])) {
         if ((url in dict) && bs(url) < 0) {
           delete dict[url];
         }
       }
-      bookmarkEngine._expiredUrls = false;
+      bookmarkEngine._expiredUrls = true;
     }
     return bookmarkEngine.Delay_();
   }
