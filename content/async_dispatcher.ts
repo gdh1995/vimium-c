@@ -331,8 +331,9 @@ export const click_ = async (element: SafeElementForMouse
     }
     // use latest attributes
     const relAttr = parentAnchor!.rel,
+    openerOpt = userOptions && userOptions.opener,
     /** {@link #FirefoxBrowserVer.Min$TargetIsBlank$Implies$Noopener}; here also apply on Chrome */
-    noopener = userOptions && userOptions.opener === !1 || !!relAttr
+    noopener = openerOpt != null ? !openerOpt || !!relAttr
         && (Build.MinCVer >= BrowserVer.MinEnsuredES6$Array$$Includes || !(Build.BTypes & BrowserType.Chrome)
             ? relAttr.split(<RegExpOne> /\s/).includes!("noopener")
             : relAttr.split(<RegExpOne> /\s/).indexOf("noopener") >= 0),
