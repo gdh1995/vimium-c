@@ -669,9 +669,9 @@ var BgUtils_ = {
       ? <RegExpG & RegExpSearchable<0>> /[^\p{L}\p{N}]+/ug
       : <RegExpG & RegExpSearchable<0>> new RegExp("[^\\p{L}\\p{N}]+", "ug" as "g"),
       encodeURIComponent),
-  fixCharsInUrl_ (url: string, alwaysNo3002?: 1): string {
+  fixCharsInUrl_ (url: string, alwaysNo3002?: boolean): string {
     let type = +url.includes("\u3002") + 2 * +url.includes("\uff1a");
-    if (type === 0) { return url; }
+    if (!type) { return url; }
     let i = url.indexOf("//");
     i = url.indexOf("/", i >= 0 ? i + 2 : 0);
     if (i >= 0 && i < 4) { return url; }
@@ -684,11 +684,9 @@ var BgUtils_ = {
     }
     i > 0 && (str += url.slice(i));
     this.convertToUrl_(str, null, Urls.WorkType.KeepAll);
-    return this.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl ? str
-        : !(type & 1) || !alwaysNo3002 || url.includes("/") ? url
-        : !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredLookBehindInRegexp
-        ? url.replace(<RegExpG> /(?<=[ -\xff]|^)\u3002(?=[ -\xff]|$)/, ".")
-        : url.replace(<RegExpG> /([ -\xff]|^)\u3002(?=[ -\xff]|$)/, "$1.")
+    return this.lastUrlType_ < Urls.Type.MaxOfInputIsPlainUrl + 1 ? str
+        : type !== 1 || !alwaysNo3002 || (<RegExpOne> /[^.\w\u3002-]/).test(url) ? url
+        : url.replace(<RegExpG> /\u3002/g, ".")
   },
   showFileUrl_ (url: string): string {
     // SVG is not blocked by images CS

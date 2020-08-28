@@ -134,6 +134,7 @@ let matchType: MatchType = MatchType.plain,
     otherFlags = CompletersNS.QueryFlags.None,
     maxChars = 0, maxResults = 0, maxTotal = 0, matchedTotal = 0, offset = 0,
     queryTerms: string[] = [""], rawInput = "", rawQuery = "", rawMore = "",
+    mayRawQueryChangeNextTime_ = false,
     wantInCurrentWindow = false,
     historyUrlToSkip = "", bookmarkUrlToSkip = "",
     allExpectedTypes = SugType.Empty,
@@ -1058,7 +1059,7 @@ searchEngine = {
           queryTerms = (rawQuery.length < Consts.MaxCharsInQuery + 1 ? rawQuery
               : BgUtils_.unicodeSubstring_(rawQuery, 0, Consts.MaxCharsInQuery).trim()).split(" ");
           if (queryTerms.length > 1) {
-            queryTerms[1] = BgUtils_.fixCharsInUrl_(queryTerms[1], 1);
+            queryTerms[1] = BgUtils_.fixCharsInUrl_(queryTerms[1], queryTerms.length > 2);
           }
           return searchEngine.preFilter_(query);
     case Urls.kEval.search:
@@ -1338,7 +1339,7 @@ Completers = {
     newMatchType = matchType < MatchType.plain ? (matchType === MatchType.searching_
           && !someMatches ? MatchType.searchWanted : MatchType.Default)
         : !showThoseInBlocklist ? MatchType.Default
-        : queryTerms.length <= 0 ? MatchType.Default
+        : queryTerms.length <= 0 || mayRawQueryChangeNextTime_ ? MatchType.Default
         : someMatches ? MatchType.someMatches
         : mayGoToAnotherMode ? MatchType.searchWanted
         : MatchType.emptyResult,
@@ -1358,7 +1359,7 @@ Completers = {
     maxResults = maxTotal = matchedTotal = maxChars = 0;
     allExpectedTypes = SugType.Empty;
     autoSelect = isForAddressBar = false;
-    wantInCurrentWindow = false;
+    mayRawQueryChangeNextTime_ = wantInCurrentWindow = false
     showThoseInBlocklist = true;
   },
   getOffset_ (this: void): void {
@@ -1998,8 +1999,20 @@ Completion_ = {
         if (expectedTypes !== SugType.Empty) { arr = null; }
       }
     }
-    if (queryTerms.length > 0) {
-      queryTerms[0] = BgUtils_.fixCharsInUrl_(queryTerms[0], 1);
+    if (queryTerms.length > 0 && ((str = queryTerms[0]).includes("\u3002") || str.includes("\uff1a"))) {
+      mayRawQueryChangeNextTime_ = queryTerms.length < 2
+      let newStr = BgUtils_.fixCharsInUrl_(str, mayRawQueryChangeNextTime_)
+      if (newStr !== str) {
+        queryTerms[0] = newStr
+        rawQuery = newStr + rawQuery.slice(str.length)
+        // if str looks like an filename extension, then generate a stricter `matchType`
+        // - not so correct but the impact is quite little
+        mayRawQueryChangeNextTime_ = mayRawQueryChangeNextTime_
+            && !(<RegExpOne> /^[.\u3002](\w+[.\u3002]?)*$/).test(str)
+      } else {
+        mayRawQueryChangeNextTime_ = mayRawQueryChangeNextTime_ && str.includes("\uff1a")
+            && !(<RegExpOne> /\uff1a([^\/\d]|\d[^\0-\xff])/).test(str)
+      }
     }
     showThoseInBlocklist = !omniBlockList || BlockListFilter.IsExpectingHidden_(queryTerms);
     allExpectedTypes = expectedTypes !== SugType.Empty ? expectedTypes : SugType.Full;
