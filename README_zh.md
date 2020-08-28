@@ -12,6 +12,8 @@
   )](https://gitee.com/gdh1995/vimium-c/stargazers)
 [![构建状态](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
+[![异常代码数](https://img.shields.io/lgtm/alerts/g/gdh1995/vimium-c.svg?logo=lgtm&logoWidth=18
+  )](https://lgtm.com/projects/g/gdh1995/vimium-c/alerts/)
 
 [![Firefox 用户数](https://img.shields.io/amo/users/vimium-c@gdh1995.cn?label=Firefox%2063%2B&logo=Firefox%20Browser&labelColor=FF7139&logoColor=white
   )](https://addons.mozilla.org/firefox/addon/vimium-c/?src=external-readme)

@@ -1,6 +1,4 @@
 path_classifiers:
-  docs:
-    - "scripts/*.py"
   library:
     - "lib/*.min.*"
     - lib/math_parser.js

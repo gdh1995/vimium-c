@@ -12,6 +12,8 @@
   )](https://gitee.com/gdh1995/vimium-c/stargazers)
 [![Current build status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
+[![Code alerts](https://img.shields.io/lgtm/alerts/g/gdh1995/vimium-c.svg?logo=lgtm&logoWidth=18
+  )](https://lgtm.com/projects/g/gdh1995/vimium-c/alerts/)
 
 [![Firefox users](https://img.shields.io/amo/users/vimium-c@gdh1995.cn?label=Firefox%2063%2B&logo=Firefox%20Browser&labelColor=FF7139&logoColor=white
   )](https://addons.mozilla.org/firefox/addon/vimium-c/?src=external-readme)
