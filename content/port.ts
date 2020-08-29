@@ -1,5 +1,5 @@
 import {
-  loc_, injector, safeObj, timeout_, isAlive_, VOther, isEnabled_, isLocked_, isTop, doc, set_i18n_getMsg,
+  injector, safeObj, timeout_, isAlive_, VOther, isEnabled_, isLocked_, isTop, doc, set_i18n_getMsg, locHref,
 } from "../lib/utils"
 import { passKeys } from "./key_handler"
 import { style_ui } from "./dom_ui"
@@ -61,7 +61,7 @@ export const runtimeConnect = (function (this: void): void {
   name = PortType.isTop * +isTop + PortType.hasFocus * +doc.hasFocus() + status,
   data = { name: injector ? PortNameEnum.Prefix + name + injector.$h
       : !(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && VOther & BrowserType.Edge
-      ? name + PortNameEnum.Delimiter + loc_.href
+      ? name + PortNameEnum.Delimiter + locHref()
       : "" + name
   },
   connect = api.runtime.connect

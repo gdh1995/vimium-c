@@ -17,7 +17,7 @@ declare var VData: VDataTy
 
 import {
   injector, isAlive_, keydownEvents_, readyState_, VOther, timeout_, clearTimeout_, loc_, recordLog, chromeVer_,
-  interval_, clearInterval_,
+  interval_, clearInterval_, locHref, vApi,
 } from "../lib/utils"
 import { removeHandler_, pushHandler_, SuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils";
 import { frameElement_, isHTML_, fullscreenEl_unsafe_, NONE, createElement_ } from "../lib/dom_utils"
@@ -63,7 +63,7 @@ export const activate = function (options: FullOptions, count: number): void {
     timer = TimerID.None
     let url = options.url, isTop = top === window;
     if (isTop || !options.u || typeof options.u !== "string") {
-      options.u = loc_.href;
+      options.u = vApi.u()
     }
     if (url === true || count !== 1 && url == null) {
       // update options.url to string, so that this block can only run once per command
@@ -173,7 +173,7 @@ export const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void
     el.className = "R UI Omnibar";
     el.style.display = NONE;
     if (type !== VomnibarNS.PageType.web) { /* empty */ }
-    else if ((<RegExpI> /^http:\/\/(?!localhost[:/])/i).test(page) && !(<RegExpOne> /^http:/).test(loc_.href)) {
+    else if ((<RegExpI> /^http:\/\/(?!localhost[:/])/i).test(page) && !(<RegExpOne> /^http:/).test(locHref())) {
       // not allowed by Chrome; recheck because of `tryNestedFrame`
       reload();
     } else {

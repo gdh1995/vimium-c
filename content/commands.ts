@@ -1,6 +1,6 @@
 import {
   chromeVer_, doc, esc, EscF, fgCache, isTop, safeObj, set_esc, VOther, VTr, safer, timeout_, loc_, weakRef_, deref_,
-  keydownEvents_, parseSedOptions, Stop_, suppressCommonEvents, setupEventListener, vApi,
+  keydownEvents_, parseSedOptions, Stop_, suppressCommonEvents, setupEventListener, vApi, locHref,
 } from "../lib/utils"
 import {
   isHTML_, htmlTag_, createElement_, frameElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK,
@@ -175,7 +175,7 @@ export const contentCommands_: {
       H: kFgReq.copy,
       s: str as never as undefined,
       e: parseSedOptions(options),
-      u: (str ? "" : options.url ? loc_.href : doc.title) as "url",
+      u: (str ? "" : options.url ? vApi.u() : doc.title) as "url",
       d: options.decoded || options.decode
     })
     options.o && (url && evalIfOK(url) || post_({
@@ -183,7 +183,7 @@ export const contentCommands_: {
     }))
     options.s && post_({
       H: kFgReq.searchAs,
-      u: loc_.href,
+      u: vApi.u(),
       c: options.copied,
       s: parseSedOptions(options),
       t: selected ? url : ""
@@ -411,7 +411,7 @@ export const contentCommands_: {
       box.remove()
       setupExitOnClick(kExitOnClick.helpDialog | kExitOnClick.REMOVE)
     }
-    if (! loc_.href.startsWith(optionUrl)) {
+    if (! locHref().startsWith(optionUrl)) {
       optLink.href = optionUrl
       optLink.onclick = event => {
         post_({ H: kFgReq.focusOrLaunch, u: optionUrl })

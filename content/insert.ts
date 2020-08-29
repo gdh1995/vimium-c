@@ -167,7 +167,7 @@ export const focusUpper = (key: kKeyCode, force: boolean, event: ToPrevent): voi
     keydownEvents_[key] = 1;
     const parApi = getParentVApi()
     if (parApi && !parApi.a(keydownEvents_)) {
-      parApi.u()
+      parApi.s()
       parApi.f(0, 0 as never, 0 as never, 1)
     } else {
       (parent as Window).focus()

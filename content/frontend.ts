@@ -1,7 +1,7 @@
 import {
   doc, isTop, injector, VOther, initialDocState, set_esc, esc, setupEventListener, set_isEnabled_,
   set_clickable_, clickable_, isAlive_, set_VTr, setupKeydownEvents, onWndFocus,
-  set_readyState_, readyState_, callFunc, recordLog, set_vApi, vApi,
+  set_readyState_, readyState_, callFunc, recordLog, set_vApi, vApi, locHref,
 } from "../lib/utils"
 import { suppressTail_, getMappedKey } from "../lib/keyboard_utils"
 import { frameElement_, set_OnDocLoaded_ } from "../lib/dom_utils"
@@ -62,15 +62,14 @@ set_vApi(VApi = {
   b: coreHints, e: null, z: null,
   p: post_, a: setupKeydownEvents, f: focusAndRun, d: safeDestroy, g: filterTextToGoNext, j: jumpToNextLink,
   h: linkActivate, o: omniActivate, n: findOnLoad, c: executeScroll,
-  k: scrollTick, $: $sc, l: learnCSS, u: suppressTail_,
+  k: scrollTick, $: $sc, l: learnCSS, m: getMappedKey,
   i: Build.BTypes & BrowserType.Firefox ? wndSize_ : 0 as never,
   r: injector && [send_, safePost, (task: 0 | 1 | 2, arg?: string | ElementSet | VTransType): any => {
     task < 1 ? (arg = currentKeys, /*#__NOINLINE__*/ esc!(HandlerResult.Nothing))
       : task < 2 ? /*#__INLINE__*/ set_clickable_(arg as ElementSet)
       : /*#__INLINE__*/ set_VTr(arg as VTransType)
     return arg
-  }], t: requestHandlers[kBgReq.showHUD], m: getMappedKey,
-  x: flash_,
+  }], s: suppressTail_, t: requestHandlers[kBgReq.showHUD], u: locHref, x: flash_,
   y: () => (Build.BTypes & BrowserType.Firefox ? {
     w: onWndFocus, b: find_box, c: clickable_, k: scroll_keyIsDown, r: ui_root
   } : { b: find_box, c: clickable_, k: scroll_keyIsDown, r: ui_root })

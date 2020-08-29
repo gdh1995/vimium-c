@@ -2,7 +2,7 @@ import {
   chromeVer_, clickable_, doc, esc, fgCache, injector, isEnabled_, isLocked_, isAlive_, isTop,
   keydownEvents_, safeObj, set_chromeVer_, set_clickable_, set_fgCache, set_VOther, set_isLocked_,
   set_isEnabled_, set_onWndFocus, VOther, onWndFocus, timeout_, safer,
-  loc_, interval_, getTime, vApi, clearInterval_,
+  interval_, getTime, vApi, clearInterval_, locHref,
 } from "../lib/utils"
 import { set_keyIdCorrectionOffset_old_cr_, handler_stack } from "../lib/keyboard_utils"
 import {
@@ -144,7 +144,7 @@ set_requestHandlers([
   /* kBgReq.injectorRun: */ injector ? injector.$m : null as never,
   /* kBgReq.url: */ function<T extends keyof FgReq> (this: void, request: BgReq[kBgReq.url] & Req.fg<T>): void {
     delete request.N
-    request.u = loc_.href;
+    request.u = (request.H === kFgReq.copy ? vApi.u : locHref)()
     post_<T>(request);
   },
   /* kBgReq.msg: */ function<k extends keyof FgRes> (response: Omit<Req.res<k>, "N">): void {

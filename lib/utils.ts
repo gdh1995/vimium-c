@@ -73,6 +73,8 @@ export function set_i18n_getMsg (_newGetMsg: typeof i18n_getMsg): void { i18n_ge
 
 export const callFunc = (callback: (this: void) => any): void => { callback(); }
 
+export const locHref = () => loc_.href
+
 export const getTime = Date.now
 
 export let onWndFocus = function (this: void): void { /* empty */ }

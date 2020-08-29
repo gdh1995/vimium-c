@@ -407,8 +407,8 @@ interface VApiTy {
   /** linkActivate */ h: (options: HintsNS.ContentOptions, count: number, force?: 1) => void
   /** innerHeight_ff */ i?: (type?: undefined) => number
   /** jumpToNext */ j: (nextLink: SafeHTMLElement) => void
-  /** learnCSS */ l: (srcStyleUI: HTMLStyleElement | string | null, force?: 1) => void
   /** scrollTick */ k: (willContinue: BOOL | 2) => void
+  /** learnCSS */ l: (srcStyleUI: HTMLStyleElement | string | null, force?: 1) => void
   /** getMappedKey */ m: (eventWrapper: HandlerNS.Event, mode: kModeId) => string
   /** findOnLoad */ n: (later?: 1) => void
   /** omniActivate */ o: (options: CmdOptions[kFgCmd.vomnibar], count: number) => void
@@ -422,8 +422,9 @@ interface VApiTy {
       (task: 2, newTr: VTransType): unknown
     }?
   ] | null | undefined;
+  /** suppressTailKeys */ s (timeout?: 0): HandlerNS.RefHandler
   /** tip */ t (request: BgReq[kBgReq.showHUD]): void
-  /** suppressTailKeys */ u (timeout?: 0): HandlerNS.RefHandler
+  /** urlToCopy */ u (): string
   /** flash */ x: {
     (el: null, rect: Rect, lifeTime?: number, classNames?: string): () => void
     (el: Element, rect?: null, lifeTime?: number, classNames?: string): (() => void) | void
@@ -435,8 +436,8 @@ interface VApiTy {
     /** Scroller::keyIsDown */ k: number
     /** UI root */ r: VUIRoot | null
   }
-  /** VScroller.$sc */ $: (element: SafeElement | null, di: ScrollByY, amount: number) => void
   /** cache */ z: SettingsNS.FrontendSettingCache | null
+  /** VScroller.$sc */ $: (element: SafeElement | null, di: ScrollByY, amount: number) => void
 }
 
 declare var VimiumInjector: VimiumInjectorTy | undefined | null, VApi: VApiTy;

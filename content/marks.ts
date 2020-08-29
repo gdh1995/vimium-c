@@ -1,4 +1,4 @@
-import { VTr, safer, loc_, vApi } from "../lib/utils"
+import { VTr, safer, loc_, vApi, locHref } from "../lib/utils"
 import { post_ } from "./port"
 import { hudHide, hudShow, hudTip } from "./hud"
 import { removeHandler_, pushHandler_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
@@ -89,7 +89,7 @@ const goto = (event: HandlerNS.Event, keyChar: string): void => {
       hudHide()
     } else {
       try {
-        let pos = null, key = `vimiumMark|${loc_.href.split("#", 1)[0]}|${keyChar}`
+        let pos = null, key = `vimiumMark|${locHref().split("#", 1)[0]}|${keyChar}`
         let storage = localStorage, markString = storage.getItem(key)
         if (markString && (pos = JSON.parse(markString)) && typeof pos === "object") {
           safer(pos)
@@ -103,7 +103,7 @@ const goto = (event: HandlerNS.Event, keyChar: string): void => {
         }
       } catch {}
       (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).l = 2;
-      (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).u = loc_.href;
+      (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).u = locHref()
     }
     post_(req);
 }
@@ -125,7 +125,7 @@ export const createMark = (req: BgReq[kBgReq.createMark], local?: 0 | 2): void =
       a: kMarkAction.create,
       l: local,
       n: req.n,
-      u: loc_.href,
+      u: locHref(),
       s: dispatchMark()
     })
     hudTip(kTip.didNormalMarkTask, 1000,
