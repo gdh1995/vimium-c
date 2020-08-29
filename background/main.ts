@@ -1545,7 +1545,7 @@
     /* kBgCmd.moveTabToNextWindow: */ function (this: void, [tab]: [Tab]): void {
       chrome.windows.getAll(function (wnds0: Window[]): void {
         let wnds: Window[], ids: number[], index = tab.windowId;
-        wnds = wnds0.filter(wnd => wnd.incognito === tab.incognito && wnd.type === "normal");
+        wnds = wnds0.filter(wnd => wnd.incognito === tab.incognito && wnd.type === "normal" && wnd.state !== "minimized");
         if (wnds.length > 0) {
           ids = wnds.map(wnd => wnd.id);
           index = ids.indexOf(index);
