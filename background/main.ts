@@ -1545,7 +1545,9 @@
     /* kBgCmd.moveTabToNextWindow: */ function (this: void, [tab]: [Tab]): void {
       chrome.windows.getAll(function (wnds0: Window[]): void {
         let wnds: Window[], ids: number[], index = tab.windowId;
-        wnds = wnds0.filter(wnd => wnd.incognito === tab.incognito && wnd.type === "normal" && wnd.state !== "minimized");
+        const noMin = cOptions.minimized === false || cOptions.min === false
+        wnds = wnds0.filter(wnd => wnd.incognito === tab.incognito && wnd.type === "normal"
+            && (!noMin || wnd.state !== "minimized"))
         if (wnds.length > 0) {
           ids = wnds.map(wnd => wnd.id);
           index = ids.indexOf(index);
@@ -1556,7 +1558,7 @@
             chrome.tabs.query({windowId: ids[dest], active: true}, function ([tab2]): void {
               Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
               ? chrome.tabs.move(tab.id, {
-                index: tab2.index + (cOptions.right > 0 ? 1 : 0), windowId: tab2.windowId
+                index: cOptions.end ? 3e4 : tab2.index + (cOptions.right > 0 ? 1 : 0), windowId: tab2.windowId
               }, function (): void {
                 notifyCKey();
                 selectTab(tab.id, true);
@@ -1565,7 +1567,7 @@
               : makeTempWindow(tab.id, tab.incognito, callback);
               function callback(): void {
                 chrome.tabs.move(tab.id, {
-                  index: tab2.index + (cOptions.right > 0 ? 1 : 0), windowId: tab2.windowId
+                  index: cOptions.end ? 3e4 : tab2.index + (cOptions.right > 0 ? 1 : 0), windowId: tab2.windowId
                 }, function (): void {
                   notifyCKey();
                   selectTab(tab.id, true);
