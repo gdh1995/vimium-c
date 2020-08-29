@@ -2871,7 +2871,7 @@
       str = str && BgUtils_.copy_(str, request.j, request.e);
       cPort = port;
       str = request.s && typeof request.s === "object" ? `[${request.s.length}] ` + request.s.slice(-1)[0] : str
-      Backend_.showHUD_(request.d ? str.replace(<RegExpG & RegExpSearchable<0>> /%(20|0[9ADad])/g, decodeURIComponent)
+      Backend_.showHUD_(request.d ? str.replace(<RegExpG & RegExpSearchable<0>> /%[0-7][\dA-Fa-f]/g, decodeURIComponent)
           : str, request.u ? kTip.noUrlCopied : kTip.noTextCopied);
     },
     /** kFgReq.key: */ function (this: void, request: FgReq[kFgReq.key], port: Port): void {

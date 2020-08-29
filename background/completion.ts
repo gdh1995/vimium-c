@@ -1326,7 +1326,7 @@ Completers = {
     RegExpCache.words_ = RegExpCache.starts_ = null as never;
     if (queryTerms.length > 0) {
       let s0 = queryTerms[0], s1 = shortenUrl(s0), cut = s0.length !== s1.length;
-      if (cut || s0.endsWith("/") && s0.length > 1) {
+      if (cut || s0.endsWith("/") && s0.length > 1 && !s0.endsWith("//")) {
         queryTerms[0] = cut ? s1 : s0.slice(0, -1);
         RegExpCache.fixParts_();
       }
