@@ -15,15 +15,15 @@ export interface KeyStatus {
     /** known */ n: BOOL;
     /** tab */ b: number;
 }
-interface HinterStatus {
+interface HintStatus {
   /** isActive */ a: BOOL
   /** box */ b: HTMLDivElement | HTMLDialogElement | null
   /** keyStatus */ k: Readonly<KeyStatus>
   /** mode */ m: HintMode
   /** is newly activated */ n: boolean | BOOL | null
 }
-interface BaseHinter extends HintsNS.BaseHinter {
-  /** get stat */ $ (): Readonly<HinterStatus>
+interface BaseHintWorker extends HintsNS.BaseHintWorker {
+  /** get stat */ $ (): Readonly<HintStatus>
   /** clear */ c: typeof clear
   /** dialogMode */ d: boolean
   /** executeHint */ e: typeof executeHintInOfficer
@@ -38,18 +38,18 @@ interface BaseHinter extends HintsNS.BaseHinter {
   /** checkLast_ */ x: typeof checkLast
   /** yankedList */ y: string[]
 }
-interface HintManager extends BaseHinter {
+interface HintManager extends BaseHintWorker {
     hints_?: readonly HintItem[] | null
-    /** get stat (also reset mode if needed) */ $ (resetMode?: 1): Readonly<HinterStatus>
+    /** get stat (also reset mode if needed) */ $ (resetMode?: 1): Readonly<HintStatus>
     /** reinit */ i: typeof reinit
     /** onKeydown */ n: typeof onKeydown
     p: null;
     /** resetMode */ s: typeof resetMode
     /** onFrameUnload */ u: typeof onFrameUnload
     /** resetHints */ v (): void;
-    /** setupCheck */ w (officer?: BaseHinter | null, el?: LinkEl | null, r?: Rect | null): void
+    /** setupCheck */ w (officer?: BaseHintWorker | null, el?: LinkEl | null, r?: Rect | null): void
 }
-interface HintOfficer extends BaseHinter {
+interface HintOfficer extends BaseHintWorker {
     p: HintManager | null
 }
 interface ChildFrame {
@@ -132,7 +132,7 @@ const unwrap_ff = (!(Build.BTypes & BrowserType.Firefox) ? 0 as never
     <T extends object>(obj: T): T;
 }
   /** return whether the element's VHints is not accessible */
-let addChildFrame_: ((child: BaseHinter
+let addChildFrame_: ((child: BaseHintWorker
       , el: KnownIFrameElement, rect: Rect | null) => boolean) | null | undefined
 
 export {
@@ -237,7 +237,7 @@ const collectFrameHints = (count: number, options: HintsNS.ContentOptions
       , manager: HintManager | null, frameInfo: FrameHintsInfo
       , newAddChildFrame: NonNullable<typeof addChildFrame_>
       ): void => {
-    (coreHints as BaseHinter).p = manager_ =
+    (coreHints as BaseHintWorker).p = manager_ =
         Build.BTypes & BrowserType.Firefox ? manager && unwrap_ff(manager) : manager
     resetHints();
     scrollTick(2);
@@ -477,18 +477,18 @@ const addClassName = (name: string): void => {
 }
 
 const callExecuteHint = (hint: HintItem, event?: HandlerNS.Event): void => {
-  const selectedHinter = locateHint(hint), clickEl = hint.d,
-  result = selectedHinter.e(hint, event)
+  const selectedHintWorker = locateHint(hint), clickEl = hint.d,
+  result = selectedHintWorker.e(hint, event)
   result !== 0 && timeout_((): void => {
     removeFlash && removeFlash()
     resetRemoveFlash()
     if (!(mode_ & HintMode.queue)) {
-      coreHints.w(selectedHinter, clickEl)
+      coreHints.w(selectedHintWorker, clickEl)
       clear(0, 0)
     } else {
       clearTimeout_(_timer)
       timeout_((): void => {
-        reinit(0, selectedHinter, clickEl, result)
+        reinit(0, selectedHintWorker, clickEl, result)
         if (isActive && 1 === (--count_)) {
           setMode(mode1_)
         }
@@ -497,7 +497,7 @@ const callExecuteHint = (hint: HintItem, event?: HandlerNS.Event): void => {
   }, isActive = 0)
 }
 
-const locateHint = (matchedHint: HintItem): BaseHinter => {
+const locateHint = (matchedHint: HintItem): BaseHintWorker => {
     /** safer; necessary since {@link #highlightChild} calls {@link #detectUsableChild} */
     const arr = frameList_;
     for (const list of arr.length > 1 && matchedHint ? arr : []) {
@@ -524,7 +524,7 @@ export const resetMode = (silent?: BOOL): void => {
     }
 }
 
-const delayToExecute = (officer: BaseHinter, hint: HintItem, flashEl: SafeHTMLElement | null): void => {
+const delayToExecute = (officer: BaseHintWorker, hint: HintItem, flashEl: SafeHTMLElement | null): void => {
     const waitEnter = Build.BTypes & BrowserType.Chrome && fgCache.w,
     callback = (event?: HandlerNS.Event, key?: string, keybody?: string): void => {
       let closed: void | 1 | 2
@@ -554,7 +554,7 @@ const delayToExecute = (officer: BaseHinter, hint: HintItem, flashEl: SafeHTMLEl
 }
 
 /** reinit: should only be called on manager */
-const reinit = (auto?: BOOL | TimerType.fake, officer?: BaseHinter | null
+const reinit = (auto?: BOOL | TimerType.fake, officer?: BaseHintWorker | null
     , lastEl?: LinkEl | null, rect?: Rect | null): void => {
   if (!isEnabled_) { isAlive_ && clear() }
   else {
@@ -570,7 +570,7 @@ const reinit = (auto?: BOOL | TimerType.fake, officer?: BaseHinter | null
 const resetOnWaitKey = (): void => { onWaitingKey = null }
 
 /** setupCheck: should only be called on manager */
-const setupCheck: HintManager["w"] = (officer?: BaseHinter | null, el?: LinkEl | null, r?: Rect | null): void => {
+const setupCheck: HintManager["w"] = (officer?: BaseHintWorker | null, el?: LinkEl | null, r?: Rect | null): void => {
     _timer && clearTimeout_(_timer);
     _timer = officer && el && mode1_ < HintMode.min_job ? timeout_((i): void => {
       _timer = TimerID.None;
@@ -732,7 +732,7 @@ export const detectUsableChild = (el: KnownIFrameElement): VApiTy | null => {
 }
 
 const coreHints: HintManager = {
-  $: (resetMode?: 1): HinterStatus => {
+  $: (resetMode?: 1): HintStatus => {
     return { a: isActive, b: box_, k: keyStatus_, m: resetMode ? mode_ = HintMode.DEFAULT : mode_,
       n: isActive && hints_ && hints_.length < (frameList_.length > 1 ? 200 : 100) && !keyStatus_.k }
   },

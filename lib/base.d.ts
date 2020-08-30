@@ -229,7 +229,7 @@ declare namespace HintsNS {
     (this: void, hints: T[], element: SafeHTMLElement): void
   }
 
-  interface BaseHinter {
+  interface BaseHintWorker {
   }
 
   const enum ClickType {
@@ -387,7 +387,7 @@ interface VApiTy {
     (this: void, srcCacheArray: KeydownCacheArray): boolean
     (this: void): KeydownCacheArray
   }
-  /** baseHinter */ b: HintsNS.BaseHinter
+  /** baseHintWorker */ b: HintsNS.BaseHintWorker
   /* scroll */ c: {
     (di: ScrollByY, amount: number, isTo: 0
       , factor?: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined, fromMax?: false
