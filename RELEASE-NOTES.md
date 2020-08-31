@@ -4,6 +4,14 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### 1.85.1
+* fix LinkHints/Vomnibar could not work in some conditions on Google Docs ([211](
+    https://github.com/gdh1995/vimium-c/issues/211))
+* options page: fix that it might save key mappings in a wrong syntax
+* Vomnibar: use a better strategy to replace `。` in Chinese with `.` in English
+* PDF Viewer for Vimium C: now only copy the URL of an opened PDF file in `copyCurrentUrl`
+* `moveTabToNextWindow`: now support `minimized=false` to skip minimized windows
+
 #### 1.85.0
 * Firefox: fix that Vimium C would break some iframes
 * Vomnibar: fix a regression which would interrupt inputting by IME
@@ -12,10 +20,10 @@ ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 * add an option `richText` to some commands in order to copy HTML content
 * FindMode: add a cache for 3~6 seconds, so if a page changes rapidly, shown `count` may be a bit inaccurate
 * paste from clipboard: now accept a string of up to 20M characters
-* add a command `sortTabs` to sort tabs, and support `sort=""/create/recency`
-  ([#207](https://github.com/gdh1995/vimium-c/issues/207))
-* LinkHints: add an option `position` and all `position` options accept `"default"`
-  ([#208](https://github.com/gdh1995/vimium-c/issues/208))
+* add a command `sortTabs` to sort tabs, and support `sort=""/create/recency` ([#207](
+    https://github.com/gdh1995/vimium-c/issues/207))
+* LinkHints: add an option `position` and all `position` options accept `"default"` ([#208](
+    https://github.com/gdh1995/vimium-c/issues/208))
 * add a command `captureTab` to capture the visible area of a current tab
 * now open Vimium C Options page on first installation
 * add some other command options
@@ -54,8 +62,8 @@ ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 
 #### 1.84.0
 * LinkHints: **better compatibility with Firefox popup blocker** in "newtab" mode
-* now **support the high contrast mode** on Firefox and Edge (Chromium)
-  ([#191](https://github.com/gdh1995/vimium-c/issues/191))
+* now **support the high contrast mode** on Firefox and Edge (Chromium) ([#191](
+    https://github.com/gdh1995/vimium-c/issues/191))
 * fix some bugs, including a regression of custom CSS and broken <kbd>Tab</kbd> during `focusInput`
 * substitution rules: extend its usages
   * support post-actions like `decode/unescape/upper/lower/reverse`
@@ -65,8 +73,8 @@ ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 * `focusInput`: add option `prefer: CSS selector` to choose a desired input
 * Vomnibar: use <kbd>Meta+N</kbd> to select the N-th item, like Alfred
 * Vomnibar: add an option `incognito=null/boolean/"reverse"` ([#195](https://github.com/gdh1995/vimium-c/issues/195))
-* Marks: now allow some host pages to report scrolling position and jump to marks in their own ways
-  ([#193](https://github.com/gdh1995/vimium-c/issues/193))
+* Marks: now allow some host pages to report scrolling position and jump to marks in their own ways ([#193](
+    https://github.com/gdh1995/vimium-c/issues/193))
 * the UI of options page: use flat mode
 * build: record arguments to be able to reproduce the same package, in order to meet requirements of Firefox Add-ons
 

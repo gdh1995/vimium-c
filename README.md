@@ -107,6 +107,14 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
+#### 1.85.1
+* fix LinkHints/Vomnibar could not work in some conditions on Google Docs ([211](
+    https://github.com/gdh1995/vimium-c/issues/211))
+* options page: fix that it might save key mappings in a wrong syntax
+* Vomnibar: use a better strategy to replace `。` in Chinese with `.` in English
+* PDF Viewer for Vimium C: now only copy the URL of an opened PDF file in `copyCurrentUrl`
+* `moveTabToNextWindow`: now support `minimized=false` to skip minimized windows
+
 #### 1.85.0
 * Firefox: fix that Vimium C would break some iframes
 * Vomnibar: fix a regression which would interrupt inputting by IME
