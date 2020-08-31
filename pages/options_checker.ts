@@ -4,17 +4,22 @@ let keyMappingChecker_ = {
     function sortModifiers(option: string): string {
       return option.length < 4 ? option : option.slice(0, -1).split("-").sort().join("-") + "-";
     }
-    function func(_0: string, oldModifiers: string, ch: string): string {
+    function func(_0: string, oldModifiers: string, body: string): string {
+      let suffix = ""
+      if (body.length > 2 && body[body.length - 2] === ":") {
+        suffix = body.slice(-2)
+        body = body.slice(0, -2)
+      }
       let modifiers = oldModifiers.toLowerCase();
-      const isLong = ch.length > 1, hasShift = modifiers.includes("s-"), chUpper = ch.toUpperCase();
+      const isLong = body.length > 1, hasShift = modifiers.includes("s-"), bodyUpper = body.toUpperCase()
       if (!isLong) {
         if (!modifiers) { return _0; }
-        if (hasShift && modifiers.length < 3) { return chUpper; }
+        if (hasShift && modifiers.length < 3) { return suffix ? `<${bodyUpper}${suffix}>` : bodyUpper }
       }
-      const chLower = ch.toLowerCase();
+      const bodyLower = body.toLowerCase()
       modifiers = sortModifiers(modifiers);
-      ch !== chLower && !hasShift && (modifiers += "s-");
-      return modifiers || isLong ? `<${modifiers}${chLower}>` : ch;
+      body !== bodyLower && !hasShift && (modifiers += "s-")
+      return modifiers || isLong || suffix ? `<${modifiers}${bodyLower}${suffix}>` : body
     }
     this.normalizeKeys_ = k => k.replace(<RegExpG&RegExpSearchable<2>> /<(?!<)((?:[ACMSacms]-){0,4})(.[^>]*)>/g, func);
     this.normalizeMap_ = this.normalizeMap_.bind(this);
@@ -71,6 +76,9 @@ let keyMappingChecker_ = {
     }
     return this.normalizeCmd_("", cmd, keys, options);
   },
+  correctMapKey_ (_0: string, mapA: string, B: string): string {
+    return mapA.replace("map", "mapKey") + (B.length === 3 ? B[1] : B)
+  },
   normalizeCmd_ (_0: string, cmd: string, name: string, options: string) {
     if ((options.includes("createTab") || options.includes("openUrl"))
         && (<RegExpOne> /^\s+(createTab|openUrl)\s/).test(options)
@@ -92,6 +100,8 @@ let keyMappingChecker_ = {
     if (!str) { return str; }
     this.init_ && this.init_();
     str = "\n" + str.replace(<RegExpG & RegExpSearchable<0>> /\\\\?\n/g, i => i.length === 3 ? i : "\\\r");
+    str = str.replace(<RegExpG & RegExpSearchable<3>> /(\n[ \t]*(?:#\s?)?map\s+\S+\s+)(<(?!<)(?:[ACMSacms]--){0,4}.\w*?>)/g
+        , this.correctMapKey_);
     str = str.replace(<RegExpG & RegExpSearchable<3>> /(\n[ \t]*(?:#\s?)?(?:un)?map(?:[kK]ey)?\s+)(\S+)([^\n]*)/g
         , this.normalizeMap_);
     str = str.replace(<RegExpG & RegExpSearchable<3>> /(\n[ \t]*(?:#\s?)?(?:command|shortcut)\s+)(\S+)([^\n]*)/g,

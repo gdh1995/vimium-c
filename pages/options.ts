@@ -172,7 +172,7 @@ readRaw_ (): string { return this.element_.value.trim().replace(<RegExpG> /\xa0/
 readValueFromElement_ (): AllowedOptions[T] {
   let value = this.readRaw_()
   const checker = (this as any as TextOption_<TextOptionNames>).checker_
-  if (value && checker) {
+  if (value && checker && checker.check_ === TextOption_.normalizeByOps_) {
     checker.status_ |= 2
     value = checker.check_(value)
     checker.status_ &= ~2
