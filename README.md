@@ -45,7 +45,7 @@ A <span style="color: #a55e18;">C</span>ustomized
   style="color: #a55e18;">全局快捷键</span>功能，还能运行在某些接受Vimium C的扩展程序的私有页面里，并且对CPU和内存资源的<span
   style="color: #a55e18;">消耗很低</span>。
 
-[阅读中文介绍 (description in Chinese) 。](README_zh.md)
+[阅读中文介绍 (description in Chinese) 。](README-zh.md)
 
 This project is mainly developed and maintained by [gdh1995](https://github.com/gdh1995),
 and licensed under the [MIT license](LICENSE.txt).
@@ -72,7 +72,7 @@ An old name of this project is "Vimium++", which has been given up on 2018-08-21
 
 __<span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span>:__
 
-* [中文介绍 (description in Chinese)](README_zh.md)
+* [中文介绍 (description in Chinese)](README-zh.md)
 * a web extension for MS Edge, Firefox and Chrome that provides keyboard-based navigation and control
     of the web, in the spirit of the Vim editor.
 * add some powerful functions and provide more configurable details and convenience.

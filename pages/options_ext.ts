@@ -412,7 +412,7 @@ _el.onchange = function (this: HTMLSelectElement): void {
     click($("#settingsFile"));
     return;
   }
-  const recommended = "../settings_template.json";
+  const recommended = "../settings-template.json";
   if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinFetchExtensionFiles
       || bgBrowserVer_ >= BrowserVer.MinFetchExtensionFiles) {
     fetch(recommended).then(r => r.text()).then(t => importSettings_(0, t, true));

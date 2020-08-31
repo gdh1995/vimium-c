@@ -140,7 +140,7 @@ elif test $chrome_only = 1; then
   ZIP_IGNORE=$ZIP_IGNORE' icons/disable*.png icons/partial*.png'
 fi
 if ! bool "$INCLUDE_ALL_DOCS"; then
-  ZIP_IGNORE=$ZIP_IGNORE' RELEASE*.md README_*.md'
+  ZIP_IGNORE=$ZIP_IGNORE' RELEASE*.md README-*.md README_*.md'
 fi
 zip -rX -MM $args "$output_for_zip" ${input[@]} -x 'weidu*' 'helpers*' 'test*' 'git*' \
   'dist*' 'node_modules*' 'script*' '*tsconfig*' 'type*' \

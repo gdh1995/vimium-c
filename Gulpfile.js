@@ -103,7 +103,7 @@ var Tasks = {
     return uglifyJSFiles(path, ".", "", { base: "." });
   },
   "static/json": function() {
-    const path = ["_locales/*/messages.json", "settings_template.json"];
+    const path = ["_locales/*/messages.json", "settings-template.json"];
     if (getBuildItem("BTypes") === BrowserType.Firefox) {
       path.push("!_locales/*_*/**")
     }

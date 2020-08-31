@@ -2,7 +2,7 @@ Release Notes of Vimium C
 =========================
 
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
-说明文档: https://github.com/gdh1995/vimium-c/blob/master/README_zh.md .
+说明文档: https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
 #### 1.85.0
 * Firefox: fix that Vimium C would break some iframes
