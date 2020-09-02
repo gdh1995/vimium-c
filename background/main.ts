@@ -450,7 +450,7 @@
     callback && (callback as unknown as BgCmdCurWndTabs)(tabs!)
     return tabs ? void 0 : onRuntimeError()
   }
-  function requireURL <k extends keyof FgReq>(request: Req.fg<k> & BgReq[kBgReq.url], ignoreHash?: true): void {
+  function requireURL <k extends keyof FgReq>(request: Req.fg<k> & {u: "url"}, ignoreHash?: true): void {
     type T1 = keyof FgReq;
     type Req1 = { [K in T1]: (req: FgReq[K], port: Frames.Port) => void; };
     type Req2 = { [K in T1]: <T extends T1>(req: FgReq[T], port: Frames.Port) => void; };
@@ -458,11 +458,11 @@
     const res = Backend_.getPortUrl_(cPort, ignoreHash);
     if (typeof res !== "string") {
       res.then(url => {
-        request.u = url;
+        request.u = url as "url"
         url && (requestHandlers as Req1 as Req2)[request.H](request, cPort);
       });
-    } else if (res) {
-      request.u = res;
+    } else {
+      request.u = res as "url"
       (requestHandlers as Req1 as Req2)[request.H](request, cPort);
     }
   }
@@ -2084,7 +2084,7 @@
       }
       requireURL({
         H: kFgReq.parseUpperUrl,
-        u: "", // just a hack to make TypeScript compiler happy
+        u: "" as "url",
         p: cRepeat,
         t: cOptions.trailingSlash, r: cOptions.trailing_slash,
         s: Clipboard_.parseSedOptions_(cOptions as {}),
@@ -2121,7 +2121,13 @@
     /* kBgCmd.copyWindowInfo: */ function (this: void): void {
       let decoded = !!(cOptions.decoded || cOptions.decode), type = cOptions.type as string | undefined;
       if (type === "frame" && cPort) {
-        requireURL({ H: kFgReq.copy, u: "" as "url", d: decoded, e: Clipboard_.parseSedOptions_(cOptions as {}) });
+        if (cPort.s.f & Frames.Flags.OtherExtension) {
+          cPort.postMessage({
+            N: kBgReq.url, H: kFgReq.copy, d: decoded, e: Clipboard_.parseSedOptions_(cOptions as {})
+          } as Req.bg<kBgReq.url>)
+        } else {
+          requireURL({ H: kFgReq.copy, u: "" as "url", d: decoded, e: Clipboard_.parseSedOptions_(cOptions as {}) })
+        }
         return;
       }
       // include those hidden on Firefox
@@ -2205,7 +2211,7 @@
       openUrl(url, Urls.WorkType.FakeType, tabs)
     },
     /* kBgCmd.clearMarks: */ function (this: void): void {
-      cOptions.local ? requireURL({ H: kFgReq.marks, u: "", a: kMarkAction.clear }, true) : Marks_.clear_();
+      cOptions.local ? requireURL({ H: kFgReq.marks, u: "" as "url", a: kMarkAction.clear }, true) : Marks_.clear_()
     },
     /* kBgCmd.toggleVomnibarStyle: */ function (this: void, tabs: [Tab]): void {
       const tabId = tabs[0].id, toggled = ((cOptions.style || "") + "").trim(), current = !!cOptions.current;
@@ -3549,9 +3555,7 @@
             return;
           }
           OnConnect(port as Frames.Port, (arr[0].slice(PortNameEnum.PrefixLen) as string | number as number) | 0);
-          if (Build.BTypes & BrowserType.Firefox) {
-            (port as Frames.Port).s.f |= Frames.Flags.OtherExtension;
-          }
+          (port as Frames.Port).s.f |= Frames.Flags.OtherExtension;
         } else {
           port.disconnect();
         }
