@@ -42,7 +42,7 @@ A <span style="color: #a55e18;">C</span>ustomized
 [<span style="color: #2f508e;">Vim</span>ium](https://github.com/philc/vimium) 的一款<span
   style="color: #a55e18;">修改版</span>（可以用键盘点击网页内容、操作浏览器窗口），添加了完整的<span
   style="color: #a55e18;">中文</span>支持、<span
-  style="color: #a55e18;">全局快捷键</span>功能，还能运行在某些接受Vimium C的扩展程序的私有页面里，并且对CPU和内存资源的<span
+  style="color: #a55e18;">全局快捷键</span>功能，还能运行在某些接受 Vimium C 的扩展程序的私有页面里，并且对CPU和内存资源的<span
   style="color: #a55e18;">消耗很低</span>。
 
 [阅读中文介绍 (description in Chinese) 。](README-zh.md)

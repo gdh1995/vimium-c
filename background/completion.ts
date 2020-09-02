@@ -988,7 +988,7 @@ searchEngine = {
       }
       keyword = rawQuery.slice(1).trimLeft();
       sug = searchEngine.makeUrlSuggestion_(keyword);
-      showThoseInBlocklist = !omniBlockList || showThoseInBlocklist && BlockListFilter.IsExpectingHidden_([keyword]);
+      showThoseInBlocklist = !omniBlockList || showThoseInBlocklist || BlockListFilter.IsExpectingHidden_([keyword]);
       return Completers.next_([sug], SugType.search);
     } else {
       pattern = Settings_.cache_.searchEngineMap[keyword];
