@@ -992,6 +992,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
   onStyleUpdate_ (omniStyles: string): void {
     omniStyles = ` ${omniStyles} `;
+    const docEl = document.documentElement as HTMLHtmlElement
+    const body = document.body as HTMLBodyElement
     const dark = omniStyles.includes(" dark ");
     if (Vomnibar_.darkBtn_) {
       if (!Vomnibar_.darkBtn_.childElementCount) {
@@ -1006,14 +1008,14 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     // Note: should not use style[title], because "title" on style/link has special semantics
     // https://html.spec.whatwg.org/multipage/semantics.html#the-style-element
     for (const style of (document.querySelectorAll("style[id]") as {} as HTMLStyleElement[])) {
-      const key = " " + style.id + " ", found = key === " custom " || omniStyles.includes(key);
+      const key = " " + style.id + " ", isCustom = key === " custom ", found = isCustom || omniStyles.includes(key)
       style.sheet!.disabled = !found;
+      isCustom || body.classList.toggle("has-" + style.id, found)
       if (found) {
         omniStyles = omniStyles.replace(key, " ");
       }
     }
     omniStyles = omniStyles.trim().replace(Vomnibar_.spacesRe_, " ");
-    const docEl = document.documentElement as HTMLHtmlElement;
     docEl.className !== omniStyles && (docEl.className = omniStyles);
     if (!!(Vomnibar_.mode_.f & CompletersNS.QueryFlags.MonospaceURL) !== monospaceURL) {
       Vomnibar_.updateQueryFlag_(CompletersNS.QueryFlags.MonospaceURL, monospaceURL);
