@@ -56,16 +56,16 @@ lang_ = chrome.i18n.getMessage("lang1");
 
 if (lang_) {
   (function (): void {
-    const lang2 = navigator.language as string || pTrans_("lang2")
+    const langInput = navigator.language as string || pTrans_("lang2")
     let t = pTrans_("keyMappingsP"), el: HTMLElement | null = $("#keyMappings");
     t && el && ((el as HTMLInputElement).placeholder = t);
     for (el of $$("[data-i-t]") as ArrayLike<Element> as Element[] as HTMLElement[]) {
       t = pTrans_(el.dataset.iT as string)
       t && (el.title = t)
     }
-    if (lang2 && lang_ !== "zh" && lang_ !== "zh-CN") {
+    if (langInput && (lang_ !== "zh" || langInput !== "zh-CN")) {
       for (el of $$("input[type=text], textarea") as ArrayLike<Element> as Element[] as HTMLElement[]) {
-        el.lang = lang2 as ""
+        el.lang = langInput as ""
       }
     }
     for (el of $$("[data-i]") as ArrayLike<Element> as Element[] as HTMLElement[]) {
