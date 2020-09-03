@@ -178,6 +178,7 @@ declare const enum BrowserVer {
   MinLinkRelAcceptNoopener = 49,
   Min$webNavigation$$getFrame$IgnoreProcessId = 49,
   MinSVG$Path$MayHave$d$CSSAttribute = 49, // if EXPERIMENTAL
+  MinEnsuredCSSVariables = 49, // even if LEGACY; works on C48 if EXPERIMENTAL
   MinTestedES6Environment = 49, // must be <= MinEnsuredFullES6Environment
   // Object.observe is from C36 to C49 even if EXPERIMENTAL or LEGACY
   MinES6No$Object$$Observe = 50,
@@ -476,6 +477,8 @@ declare const enum BrowserVer {
   MinOriginIsolation = 84, // https://www.chromestatus.com/features/5683766104162304
   /** This fixes that {@see #Min$CrossOriginIsolation$Flag} would break Vomnibar */
   MinExtensionResourcesHaveCOEP = 84, // https://bugs.chromium.org/p/chromium/issues/detail?id=1085915
+  // 2->0.25/0.5; 5->0.04/0.2; 6->0.027778/0.166667
+  MinBorderWidth$Ensure1$Or$Floor = 85, // even if EXPERIMENTAL or LEGACY
   /** @todo: trace https://bugs.chromium.org/p/chromium/issues/detail?id=968651&can=2&q=reduced-motion%20change */
   MinMediaChangeEventsOnBackgroundPage = 999,
   MinNo$TimerType$$Fake = 999,

@@ -1117,17 +1117,18 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         css.textContent = css.textContent.replace("0 2px 7px", "0 2px 10px").replace("0 0 1.5px", "0 0 1px");
       }
     }
-    if (Build.MinCVer < BrowserVer.MinRoundedBorderWidthIsNotEnsured
-        && Build.BTypes & BrowserType.Chrome
-        && ver < BrowserVer.MinRoundedBorderWidthIsNotEnsured
+    if (Build.BTypes & BrowserType.Chrome && (Build.MinCVer >= BrowserVer.MinBorderWidth$Ensure1$Or$Floor
+          || Build.MinCVer < BrowserVer.MinRoundedBorderWidthIsNotEnsured
+              && ver < BrowserVer.MinRoundedBorderWidthIsNotEnsured
+          || ver > BrowserVer.MinBorderWidth$Ensure1$Or$Floor - 1)
         || Build.BTypes & BrowserType.Edge
             && (!(Build.BTypes & ~BrowserType.Edge) || a.browser_ === BrowserType.Edge)) {
       // is old Chrome or Edge
       const css = document.createElement("style");
       css.type = "text/css";
-      css.textContent = !(Build.BTypes & BrowserType.Edge)
-          || Build.BTypes & BrowserType.Chrome && ver < BrowserVer.MinRoundedBorderWidthIsNotEnsured
-        ? `.item, #input { border-width: ${
+      css.textContent = !(Build.BTypes & ~BrowserType.Chrome)
+        || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome
+        ? `body:after, #input, .item { border-width: ${
           Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo &&
           ver < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1 : 0.01}px; }`
         : "#input::-ms-clear { display: none; }";

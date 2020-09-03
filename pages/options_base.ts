@@ -495,8 +495,7 @@ let setupBorderWidth_ = (Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithout
     || onlyInputs || bgBrowserVer_ >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1 / ratio : 1;
   scale = scale + 0.00000999;
   scale = ("" + scale).slice(0, 7).replace(<RegExpOne> /\.?0+$/, "");
-  css.textContent = onlyInputs ? `input, textarea { border-width: ${scale}px; }`
-  : `* { border-width: ${scale}px !important; }`;
+  css.textContent = onlyInputs ? `html { --tiny: ${scale}px; }` : `* { border-width: ${scale}px !important; }`;
   (document.head as HTMLHeadElement).appendChild(css);
 } : null;
 

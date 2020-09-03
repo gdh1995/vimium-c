@@ -11,6 +11,7 @@ html {
   --link-color: #15c;
   --link-hover-color: #15c;
   --link-active-color: #052577;
+  --tiny: 0.5px;
 }
 .less-motion {
   --transition-duration: 0;
@@ -105,6 +106,7 @@ header {
 }
 button, select {
   border: 0.5px solid #b3b3b3;
+  border-width: var(--tiny);
   border-color: var(--button-border-color, #b3b3b3);
   border-radius: 2px;
   box-sizing: border-box;
@@ -199,6 +201,7 @@ pre, .help-block {
   margin: 5px;
   /* keep 1px so it can be more conspicuous than 0.5px */
   border-left: 0.5px solid #ccc;
+  border-width: var(--tiny);
   border-color: var(--code-block-border-color, #ccc);
   padding-left: 5px;
 }
@@ -211,6 +214,7 @@ input, textarea {
   background-color: white;
   background-color: var(--background-color, white);
   border: 0.5px solid #bfbfbf;
+  border-width: var(--tiny);
   border-color: var(--input-border-color, #bfbfbf);
   border-radius: 2px;
   box-sizing: border-box;
@@ -492,6 +496,7 @@ label:active {
   background: #f3f3f3;
   background: var(--panel-background-color);
   border-top: 0.5px solid #979ca0;
+  border-width: var(--tiny);
   bottom: 0;
   left: 0;
   padding: 6px 0 0;

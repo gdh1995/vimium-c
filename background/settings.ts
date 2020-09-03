@@ -375,7 +375,10 @@ var Settings_ = {
       css2.ui && (css += "\n" + css2.ui);
       if (Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo && Build.BTypes & BrowserType.Chrome
           && browserVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo) {
-        css = css.replace(<RegExpG> /\b0\.5px|\/\*!DPI\*\/ ?[\w.]+/g, "/*!DPI*/1px");
+        css = css.replace(<RegExpG> /0\.01px|\/\*!DPI\*\/ ?[\w.]+/g, "/*!DPI*/1px");
+      } else if (Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor && Build.BTypes & BrowserType.Chrome
+          && browserVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor) {
+        css = css.replace(<RegExpG> /0\.01px|\/\*!DPI\*\/ ?[\w.]+/g, "0.5px");
       }
       if (findh) {
         const idx = findCSS.indexOf("\n", findCSS.indexOf("\n") + 1)
