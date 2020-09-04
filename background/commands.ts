@@ -59,7 +59,7 @@ var Commands = {
         BgUtils_.extendIf_(options, opt);
       }
       if (details[0] === kFgCmd.linkHints && !details[1]) {
-        let mode: number | string | null | undefined = options.mode
+        let mode: number | string | null | undefined = options.mode, stdMode = (options as OptionalHintsOptions).m!
         const rawChars: string | null | undefined = options.characters
         const chars = rawChars && Settings_.updatePayload_<"c" | "n">("c", rawChars)
         type OptionalHintsOptions = Partial<HintsNS.Options>;
@@ -73,15 +73,17 @@ var Commands = {
             mode = (this.hintModes_[(options as OptionalHintsOptions).action || mode || 0
               ] as number | undefined | {} as number) | 0;
           }
-          if (mode > HintMode.max_mouse_events) {
-            mode = mode === HintMode.EDIT_TEXT ? (options as OptionalHintsOptions).url ? HintMode.EDIT_LINK_URL : mode
-              : mode === HintMode.COPY_TEXT
-                ? (options as OptionalHintsOptions).join ? HintMode.COPY_TEXT | HintMode.queue | HintMode.list : mode
-              : mode > HintMode.min_disable_queue + HintMode.queue - 1 ? mode - HintMode.queue : mode;
-          }
-          (options as OptionalHintsOptions).m = mode
         } else {
-          mode = (options as OptionalHintsOptions).m!
+          mode = stdMode
+        }
+        if (mode > HintMode.max_mouse_events) {
+          mode = mode === HintMode.EDIT_TEXT ? (options as OptionalHintsOptions).url ? HintMode.EDIT_LINK_URL : mode
+            : mode === HintMode.COPY_TEXT
+              ? (options as OptionalHintsOptions).join ? HintMode.COPY_TEXT | HintMode.queue | HintMode.list : mode
+            : mode > HintMode.min_disable_queue + HintMode.queue - 1 ? mode - HintMode.queue : mode;
+        }
+        if (mode != stdMode) {
+          (options as OptionalHintsOptions).m = mode
         }
         repeat = mode > HintMode.min_disable_queue - 1 ? 1 : repeat;
       }
