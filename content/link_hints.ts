@@ -25,7 +25,7 @@ interface HintStatus {
 interface BaseHintWorker extends HintsNS.BaseHintWorker {
   /** get stat */ $ (): Readonly<HintStatus>
   /** clear */ c: typeof clear
-  /** dialogMode */ d: boolean
+  /** dialogMode */ d: BOOL
   /** executeHint */ e: typeof executeHintInOfficer
   /** getPreciseChildRect */ g: typeof getPreciseChildRect
   /** has just started */ h: number
@@ -179,9 +179,11 @@ export const activate = (options: HintsNS.ContentOptions, count: number, force?:
               && Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinShadowDOMV0) {
         removeModal()
       }
-      coreHints.d = (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement
+      coreHints.d = <BOOL> +(
+        (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement
             || typeof HTMLDialogElement === "function")
         && !!(wantDialogMode_ != null ? wantDialogMode_ : querySelector_unsafe_("dialog[open]"))
+        )
     }
     let allHints: readonly HintItem[], child: ChildFrame | undefined, insertPos = 0
       , frameInfo: FrameHintsInfo, total: number
@@ -267,8 +269,8 @@ const collectFrameHints = (count: number, options: HintsNS.ContentOptions
     if (!isHTML_()) {
       return;
     }
-    const view: ViewBox = getViewBox_(Build.BTypes & BrowserType.Chrome && (manager || coreHints
-        ).d ? 2 : 1);
+    const view: ViewBox = getViewBox_(Build.BTypes & BrowserType.ChromeOrFirefox
+        ? ((manager || coreHints).d + 1) as 1 | 2 : 1)
     prepareCrop_(1, outerView);
     if (tooHigh_ !== null) {
       const scrolling = scrollingEl_(1)
@@ -297,7 +299,7 @@ const render = (hints: readonly HintItem[], arr: ViewBox, raw_apis: VApiTy): voi
     api_ = Build.BTypes & BrowserType.Firefox && manager_ ? unwrap_ff(raw_apis) : raw_apis;
     ensureBorder(wdZoom_ / dScale_);
     if (hints.length) {
-      if (Build.BTypes & BrowserType.Chrome) {
+      if (Build.BTypes & BrowserType.ChromeOrFirefox) {
         box_ = addElementList(hints, arr, managerOrA.d);
       } else {
         box_ = addElementList(hints, arr);
@@ -321,7 +323,7 @@ export const setMode = (mode: HintMode, silent?: BOOL): void => {
     forHover_ = mode1_ > HintMode.min_hovering - 1 && mode1_ < HintMode.max_hovering + 1;
     if (silent || noHUD_ || hud_tipTimer) { return }
     msg = VTr(mode_) + (useFilter_ ? ` [${keyStatus_.t}]` : "")
-    if (Build.BTypes & BrowserType.Chrome) {
+    if (Build.BTypes & BrowserType.ChromeOrFirefox) {
       msg += (manager_ || coreHints).d ? VTr(kTip.modalHints) : "";
     }
     hudShow(kTip.raw, [msg], true)
@@ -666,7 +668,7 @@ export const clear = (onlySelfOrEvent?: 0 | 1 | Event, suppressTimeout?: number)
     lastMode_ = mode_ = mode1_ = count_ = forceToScroll_ = coreHints.h = 0
     /*#__INLINE__*/ resetHintKeyCode()
     useFilter_ = noHUD_ = tooHigh_ = false
-    if (Build.BTypes & BrowserType.ChromeOrFirefox) { coreHints.d = false; }
+    if (Build.BTypes & BrowserType.ChromeOrFirefox) { coreHints.d = 0 }
     chars_ = "";
     removeBox()
     hud_tipTimer || hudHide()
@@ -736,7 +738,7 @@ const coreHints: HintManager = {
     return { a: isActive, b: box_, k: keyStatus_, m: resetMode ? mode_ = HintMode.DEFAULT : mode_,
       n: isActive && hints_ && hints_.length < (frameList_.length > 1 ? 200 : 100) && !keyStatus_.k }
   },
-  d: Build.BTypes & BrowserType.Chrome ? false : 0 as never, h: 0, y: [],
+  d: 0, h: 0, y: [],
   x: checkLast, c: clear, o: collectFrameHints, j: delayToExecute, e: executeHintInOfficer, g: getPreciseChildRect,
   l: highlightHint, r: render, t: rotate1,
   p: null,

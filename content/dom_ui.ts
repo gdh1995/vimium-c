@@ -106,9 +106,9 @@ export const getBoxTagName_cr_ = Build.BTypes & BrowserType.Chrome ? function ()
         && matchMedia(VTr(kTip.highContrast_WOB)).matches ? "body" as never as "div" : "div"
 } : 0 as never
 
-export const addElementList = function <T extends boolean> (
+export const addElementList = function <T extends boolean | BOOL> (
       els: readonly HintsNS.BaseHintItem[], offset: ViewOffset, dialogContainer?: T
-      ): (T extends true ? HTMLDialogElement : HTMLDivElement) & SafeElement {
+      ): (T extends true | 1 ? HTMLDialogElement : HTMLDivElement) & SafeElement {
     const parent = createElement_(Build.BTypes & BrowserType.ChromeOrFirefox && dialogContainer ? "dialog"
         : Build.BTypes & BrowserType.Chrome ? getBoxTagName_cr_() :  "div");
     let cls = `R HM${Build.BTypes & BrowserType.ChromeOrFirefox && dialogContainer ? " DHM" : ""}${fgCache.d}`
@@ -143,7 +143,7 @@ export const addElementList = function <T extends boolean> (
       curModalElement = parent as HTMLDialogElement
     }
     addUIElement(parent, AdjustType.DEFAULT, lastFlashEl)
-    return parent as (T extends true ? HTMLDialogElement : HTMLDivElement) & SafeElement;
+    return parent as (T extends true | 1 ? HTMLDialogElement : HTMLDivElement) & SafeElement
 }
 
 export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void => {
