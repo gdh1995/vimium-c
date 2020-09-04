@@ -55,8 +55,7 @@ $("#exclusionSortButton").onclick = function (): void {
 };
 
 function formatDate_(time: number | Date): string {
-  return new Date(+time - new Date().getTimezoneOffset() * 1000 * 60
-    ).toJSON().slice(0, 19).replace("T", " ");
+  return new Date(+time - new Date().getTimezoneOffset() * 1000 * 60).toJSON().slice(0, -5).replace("T", " ")
 }
 
 interface ExportedSettings {

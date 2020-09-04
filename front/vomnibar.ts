@@ -1507,8 +1507,11 @@ VUtils_ = {
 // https://github.com/moment/moment/blob/9d560507e54612cf2fdd84cbaa117337568a384c/src/lib/duration/humanize.js#L4-L12
       const unit = d < 10 ? -1 : d < 45 ? 0 : (d /= 60) < 49.5 ? 1 : (d /= 60) < 22 ? 2
           : (d /= 24) < 5 ? 3 : d < 26 ? 4 : d < 304 ? 5 : 6
-      let stdDateTime = new Date(t - tzOffset).toJSON().slice(0, 19).replace("T", " ")
+      let stdDateTime = new Date(t - tzOffset).toJSON().slice(0, -5).replace("T", " ")
       let str: string
+      if (stdDateTime[0] === "+" || stdDateTime[0] === "-") {
+        stdDateTime = stdDateTime.replace(<RegExpOne> /^\+?(-?)0+/, "$1")
+      }
       if (unit === -1) {
         str = kJustNow
       } else if (Vomnibar_.showTime_ < 3
@@ -1530,10 +1533,11 @@ VUtils_ = {
             && Build.MinCVer < BrowserVer.MinEnsured$Intl$$DateTimeFormat$$$formatToParts && dateTimeFormatter === 1
             || Vomnibar_.showTime_ < 2) {
           str = stdDateTime
-          if (negPos > 0) {
+          if (negPos > 0 && stdDateTime[0] !== "-") {
             // unit == 6 ? [0, 7] : unit >= 4 ? [5, 10] : unit == 3 ? [8, 16] : unit >= 1 ? [11, 16] : [11, 19]
-            str = unit > 3 ? (unit > 5 ? str.slice(0, 7) : str.slice(str[5] === "0" ? 6 : 5, 10)).replace("-", " / ")
-                : str.slice(unit > 2 ? str[8] === "0" ? 9 : 8 : 11, unit ? 16 : 19)
+            str = unit > 3 ? (unit > 5 ? str.slice(0, -12) : str.slice(str[str.length - 14] === "0" ? -13 : -14, -9)
+                  ).replace("-", " / ")
+                : str.slice(unit > 2 ? str[str.length - 11] === "0" ? -10 : -11 : -8, unit ? -3 : 99)
           } else {
             stdDateTime = ""
           }
@@ -1558,7 +1562,7 @@ VUtils_ = {
               (!old || isZh && (newVal[0] === "\u661f" || newVal[0] === "\u5468")) && !isLastOutLiteral && str &&
               (<RegExpOne> /[^\x00-\x7f]/).test(str[str.length - 1]) && (str += " ")
               str += isZh && type[0] === "d" && type.slice(4, 5) === "e"
-                  ? (d = parseInt(stdDateTime.slice(11, 13), 10), d < 2 || d > 21 ? "\u591c\u95f4"
+                  ? (d = parseInt(stdDateTime.slice(-8, -6), 10), d < 2 || d > 21 ? "\u591c\u95f4"
                     : d < 6 ? "\u51cc\u6668" : d > 18 ? "\u665a\u4e0a" : newVal)
                   : newVal
             }

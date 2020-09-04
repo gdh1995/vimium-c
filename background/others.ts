@@ -985,8 +985,7 @@ function (details: chrome.runtime.InstalledDetails): void {
     }
   });
   function now(): string {
-    return new Date(Date.now() - new Date().getTimezoneOffset() * 1000 * 60
-      ).toJSON().slice(0, 19).replace("T", " ");
+    return new Date(Date.now() - new Date().getTimezoneOffset() * 1000 * 60).toJSON().slice(0, -5).replace("T", " ")
   }
   console.log("%cVimium C%c has been %cinstalled%c with %o at %c%s%c.", "color:red", "color:auto"
     , "color:#0c85e9", "color:auto", details, "color:#0c85e9", now(), "color:auto");
