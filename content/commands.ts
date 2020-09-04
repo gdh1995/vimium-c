@@ -431,7 +431,7 @@ export const contentCommands_: {
       })
     }
     shouldShowAdvanced && toggleAdvanced()
-    ensureBorder()
+    ensureBorder() // safe to skip `getZoom_`
     addUIElement(outerBox || box, AdjustType.Normal, true)
     options.e && setupExitOnClick(kExitOnClick.helpDialog)
     doc.hasFocus() || vApi.f()

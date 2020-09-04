@@ -11,7 +11,7 @@ import {
   getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, htmlTag_, fullscreenEl_unsafe_, docEl_unsafe_,
   getSelection_, isSelected_, docSelectable_, isHTML_, createElement_, CLK, MDW, HDN, NONE,
 } from "../lib/dom_utils"
-import { wdZoom_, prepareCrop_, view_, dimSize_, selRange_ } from "../lib/rect"
+import { wdZoom_, prepareCrop_, view_, dimSize_, selRange_, getZoom_ } from "../lib/rect"
 import {
   ui_box, ui_root, getSelectionParent_unsafe, resetSelectionToDocStart, getBoxTagName_cr_, collpaseSelection,
   createStyle, getSelectionText, checkDocSelectable, adjustUI, ensureBorder, addUIElement, getSelected,
@@ -71,9 +71,18 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     query || (query = options.q);
     isActive || query === query_ && options.l || setPreviousMarkPosition()
     checkDocSelectable();
-    ensureBorder();
+    if (Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor || Build.BTypes & ~BrowserType.Chrome) {
+      ensureBorder();
+    }
     if (options.l) {
       return findAndFocus(query || query_, options)
+    }
+    if (Build.BTypes & ~BrowserType.Firefox) {
+      if (Build.MinCVer >= BrowserVer.MinBorderWidth$Ensure1$Or$Floor && !(Build.BTypes & ~BrowserType.Chrome)
+          || Build.BTypes & BrowserType.Chrome && chromeVer_ > BrowserVer.MinBorderWidth$Ensure1$Or$Floor -1
+              && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)) {
+        getZoom_()
+      }
     }
     isActive && adjustUI()
     if (!isActive) {

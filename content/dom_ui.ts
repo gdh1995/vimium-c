@@ -180,7 +180,12 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
     }
 }
 
-export const ensureBorder = (zoom?: number): void => {
+export const ensureBorder = Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor
+      || Build.BTypes & ~BrowserType.Chrome ? (zoom?: number): void => {
+    if (Build.BTypes & BrowserType.Chrome && chromeVer_ > BrowserVer.MinBorderWidth$Ensure1$Or$Floor -1
+        && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)) {
+      return
+    }
     zoom || (getZoom_(), zoom = wdZoom_);
     if (!cssPatch_ && zoom >= 1) { return; }
     let width = ("" + (
@@ -195,7 +200,7 @@ export const ensureBorder = (zoom?: number): void => {
     if (cssPatch_[0] === width) { return; }
     cssPatch_[0] = width;
     learnCSS(styleIn_, 1)
-}
+} : ((): void => {}) as never
 
 export const createStyle = (text: string, css?: HTMLStyleElement): HTMLStyleElement => {
     css = css || createElement_("style");
@@ -207,12 +212,15 @@ export const createStyle = (text: string, css?: HTMLStyleElement): HTMLStyleElem
 export let setUICSS = (innerCSS: string): void => { styleIn_ = innerCSS }
 
 export const learnCSS = (srcStyleIn: typeof styleIn_, force?: 1): void => {
-    if (!styleIn_ || force) {
+    if (Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor || Build.BTypes & ~BrowserType.Chrome
+        ? !styleIn_ || force : !styleIn_) {
       const
       css = srcStyleIn && (typeof srcStyleIn === "string" ? srcStyleIn : srcStyleIn.textContent);
       if (css) {
         setUICSS(css)
-        force || post_({H: kFgReq.learnCSS});
+        if (Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor || Build.BTypes & ~BrowserType.Chrome) {
+          force || post_({H: kFgReq.learnCSS})
+        }
       }
     }
 }

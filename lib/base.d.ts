@@ -408,7 +408,7 @@ interface VApiTy {
   /** innerHeight_ff */ i?: (type?: undefined) => number
   /** jumpToNext */ j: (nextLink: SafeHTMLElement) => void
   /** scrollTick */ k: (willContinue: BOOL | 2) => void
-  /** learnCSS */ l: (srcStyleUI: HTMLStyleElement | string | null, force?: 1) => void
+  /** learnCSS */ l: (srcStyleUI: HTMLStyleElement | string | null, force?: undefined) => void
   /** getMappedKey */ m: (eventWrapper: HandlerNS.Event, mode: kModeId) => string
   /** findOnLoad */ n: (later?: 1) => void
   /** omniActivate */ o: (options: CmdOptions[kFgCmd.vomnibar], count: number) => void

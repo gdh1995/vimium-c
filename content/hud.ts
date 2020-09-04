@@ -43,7 +43,9 @@ export const hudShow = (tid: kTip | HintMode, args?: Array<string | number>
   style = el.style;
   if (!embed) {
     toggleOpacity("0")
-    ui_box || ensureBorder();
+    if (Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor || Build.BTypes & ~BrowserType.Chrome) {
+      ui_box || ensureBorder() // safe to skip `getZoom_`
+    }
   }
   addUIElement(box = el, allHints ? AdjustType.NotAdjust : AdjustType.DEFAULT)
 }
