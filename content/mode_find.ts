@@ -35,6 +35,7 @@ let isQueryRichText_ = true
 let isRegex: boolean | null = null
 let ignoreCase: boolean | null = null
 let wholeWord = false
+let wrapAround = true
 let hasResults = false
 let matchCount = 0
 let postOnEsc = true
@@ -348,13 +349,14 @@ const findAndFocus = (query: string, options: CmdOptions[kFgCmd.findMode]): void
 
 export const clear = (): void => {
   coords && scrollToMark(coords)
-  hasResults = isActive = isSmall = notEmpty = postOnEsc = false
+  hasResults = isActive = isSmall = notEmpty = postOnEsc = wholeWord = false
+  wrapAround = true
   removeHandler_(activate)
   outerBox_ && outerBox_.remove()
   if (box_ === deref_(lastHovered_)) { /*#__INLINE__*/ resetLastHovered() }
   parsedQuery_ = query_ = query0_ = ""
   historyIndex = matchCount = doesCheckAlive = 0;
-  styleInHUD = onUnexpectedBlur = outerBox_ =
+  styleInHUD = onUnexpectedBlur = outerBox_ = isRegex = ignoreCase =
   box_ = innerDoc_ = root_ = input_ = countEl = parsedRegexp_ =
   initialRange = regexMatches = coords = cachedInnerText = null as never
 }
@@ -636,9 +638,9 @@ const showCount = (changed: BOOL): void => {
 
 export const updateQuery = (query: string): void => {
   query_ = query0_ = query
-  wholeWord = false
+  wholeWord = !1, wrapAround = !0
   isRegex = ignoreCase = null as boolean | null
-  query = isQueryRichText_ ? query.replace(<RegExpG & RegExpSearchable<0>> /\\[cirw\\]/gi, FormatQuery)
+  query = isQueryRichText_ ? query.replace(<RegExpG & RegExpSearchable<0>> /\\[acirw\\]/gi, FormatQuery)
         : query;
   let isRe = isRegex, ww = wholeWord, WB = "\\b"
   if (isQueryRichText_) {
@@ -698,15 +700,13 @@ export const updateQuery = (query: string): void => {
 }
 
 const FormatQuery = (str: string): string => {
-    let flag = str.charCodeAt(1), enabled = flag >= kCharCode.a
+    let flag = str.charCodeAt(1), enabled = flag > kCharCode.a - 1
     if (flag === kCharCode.backslash) { return str; }
     flag &= ~kCharCode.CASE_DELTA;
     if (flag === kCharCode.I || flag === kCharCode.C) { ignoreCase = enabled === (flag === kCharCode.I) }
-    else if (flag === kCharCode.W) {
-      if (isRegex) { return str }
-      wholeWord = enabled
-    }
-    else { isRegex = enabled }
+    else if (flag === kCharCode.R) { isRegex = enabled } 
+    else if (isRegex) { return str }
+    else { flag > kCharCode.A ? wholeWord = enabled : wrapAround = enabled }
     return "";
 }
 
@@ -749,8 +749,8 @@ export const executeFind = (query?: string | null, options?: FindNS.ExecuteOptio
     do {
       q = query != null ? query : isRe ? getNextQueryFromRegexMatches(back) : parsedQuery_
       found = Build.BTypes & ~BrowserType.Chrome
-        ? _do_find_not_cr!(q, !notSens, back, true, wholeWord, false, false)
-        : window.find(q, !notSens, back, true, wholeWord, false, false)
+        ? _do_find_not_cr!(q, !notSens, back, wrapAround, wholeWord, false, false)
+        : window.find(q, !notSens, back, wrapAround, wholeWord, false, false)
       if (Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
           && !found) {
