@@ -729,7 +729,7 @@ declare namespace BackendHandlersNS {
      * @returns string - valid URL
      * @returns Promise<string> - valid URL or empty string for a top frame in "port's or the current" tab
      */
-    getPortUrl_ (port?: Frames.Port | null, ignoreHash?: boolean): string | Promise<string>;
+    getPortUrl_ (port?: Frames.Port | null, ignoreHash?: boolean, req?: Req.baseFg<kFgReq>): string | Promise<string>;
     openUrl_ (this: void, request: FgReq[kFgReq.openUrl], port?: Port | undefined): void;
     checkIfEnabled_: ExclusionsNS.Listener;
     focus_ (this: void, request: MarksNS.FocusOrLaunch): void;

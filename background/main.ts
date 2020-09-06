@@ -455,7 +455,7 @@
     type Req1 = { [K in T1]: (req: FgReq[K], port: Frames.Port) => void; };
     type Req2 = { [K in T1]: <T extends T1>(req: FgReq[T], port: Frames.Port) => void; };
     cPort = cPort || indexFrame(TabRecency_.curTab_, 0);
-    const res = Backend_.getPortUrl_(cPort, ignoreHash);
+    const res = Backend_.getPortUrl_(cPort, ignoreHash, request);
     if (typeof res !== "string") {
       res.then(url => {
         request.u = url as "url"
@@ -3279,20 +3279,27 @@
     focus_: requestHandlers[kFgReq.focusOrLaunch],
     setOmniStyle_: requestHandlers[kFgReq.setOmniStyle],
     getExcluded_: BgUtils_.getNull_,
-    getPortUrl_ (port?: Port | null, ignoreHash?: boolean): string | Promise<string> {
+    getPortUrl_ (port?: Port | null, ignoreHash?: boolean, request?: Req.baseFg<kFgReq>): string | Promise<string> {
       const excl = Exclusions;
       port = port || indexFrame(TabRecency_.curTab_, 0);
       return port && excl && excl.rules_.length > 0 && (ignoreHash || excl._listeningHash) ? port.s.u
           : new Promise<string>((resolve): void => {
-        let webNav = Build.BTypes & BrowserType.Chrome
-            && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
-            && CurCVer_ > BrowserVer.Min$webNavigation$$getFrame$IgnoreProcessId - 1
+        let webNav = Build.BTypes & ~BrowserType.Edge
+            && (!(Build.BTypes & ~BrowserType.Edge) || OnOther !== BrowserType.Edge)
+            && (!(Build.BTypes & ~BrowserType.Chrome)
+                || Build.MinCVer >= BrowserVer.Min$webNavigation$$getFrame$IgnoreProcessId
+                || CurCVer_ > BrowserVer.Min$webNavigation$$getFrame$IgnoreProcessId - 1)
             && port && port.s.i ? chrome.webNavigation : null;
         port ? (webNav ? webNav.getFrame : tabsGet as never as typeof chrome.webNavigation.getFrame)(
             webNav ? {tabId: port.s.t, frameId: port.s.i}
               : port.s.t as Parameters<typeof chrome.tabs.get>[0] as never,
             (tab?: chrome.webNavigation.GetFrameResultDetails | chrome.tabs.Tab | null): void => {
-          resolve(tab ? tab.url : "");
+          const url = tab ? tab.url : "";
+          if (!url && webNav) {
+            (request! as unknown as Req.bg<kBgReq.url>).N = kBgReq.url
+            safePost(port!, request as Req.bg<kBgReq.url>)
+          }
+          resolve(url);
           return onRuntimeError();
         }) : getCurTab((tabs): void => {
           resolve(tabs && tabs.length ? getTabUrl(tabs[0]) : "");
