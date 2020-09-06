@@ -107,28 +107,12 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
-#### 1.85.1
-* fix LinkHints/Vomnibar could not work in some conditions on Google Docs ([211](
-    https://github.com/gdh1995/vimium-c/issues/211))
-* options page: fix that it might save key mappings in a wrong syntax
-* Vomnibar: use a better strategy to replace `。` in Chinese with `.` in English
-* PDF Viewer for Vimium C: now only copy the URL of an opened PDF file in `copyCurrentUrl`
-* `moveTabToNextWindow`: now support `minimized=false` to skip minimized windows
-
-#### 1.85.0
-* Firefox: fix that Vimium C would break some iframes
-* Vomnibar: fix a regression which would interrupt inputting by IME
-* Vomnibar settings: add `action=""/"opener"`
-* add an option `opener` to some commands which open URLs, to always set opener
-* add an option `richText` to some commands in order to copy HTML content
-* FindMode: add a cache for 3~6 seconds, so if a page changes rapidly, shown `count` may be a bit inaccurate
-* paste from clipboard: now accept a string of up to 20M characters
-* add a command `sortTabs` to sort tabs, and support `sort=""/create/recency`
-* LinkHints: add an option `position` and all `position` options accept `"default"`
-* add a command `captureTab` to capture the visible area of a current tab
-* now open Vimium C Options page on first installation
-* add some other command options
-* fix some bugs and wrong usages
+#### 1.85.2
+* UI: fix missing borders on Chrome 85+ if a screen is in some special DPIs
+* `LinkHints.activateModeToOpenVomnibar`: fix `url=true` didn't work
+* `copyCurrentUrl` with `type=frame` now works on PDF Viewer for Vimium C
+* `goUp`/`goToRoot` now uses `type=frame`/`type=tab` to decide their target
+* Vomnibar: add a classname of `has-dark` to `<body>` when in dark mode
 
 See more on [RELEASE-NOTES.md](RELEASE-NOTES.md).
 

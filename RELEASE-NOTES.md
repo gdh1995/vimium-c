@@ -4,6 +4,13 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### 1.85.2
+* UI: fix missing borders on Chrome 85+ if a screen is in some special DPIs
+* `LinkHints.activateModeToOpenVomnibar`: fix `url=true` didn't work
+* `copyCurrentUrl` with `type=frame` now works on PDF Viewer for Vimium C
+* `goUp`/`goToRoot` now uses `type=frame`/`type=tab` to decide their target
+* Vomnibar: add a classname of `has-dark` to `<body>` when in dark mode
+
 #### 1.85.1
 * fix LinkHints/Vomnibar could not work in some conditions on Google Docs ([211](
     https://github.com/gdh1995/vimium-c/issues/211))
@@ -30,7 +37,6 @@ ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 * fix some bugs and wrong usages
 
 #### v1.84.3
-(the current published version on Firefox Add-ons, Microsoft Edge Add-ons and Chrome Web Store)
 * fix broken `autoCopy`
 * substitution rules: fix some bugs in text substitution
   * now execute actions in their declaration sequence
