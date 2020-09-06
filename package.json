@@ -25,6 +25,7 @@
     "mkdirp": "^0.5.5",
     "rimraf": "^3.0.2",
     "rollup": "^2.18.0",
+    "bl": ">=2.2.1",
     "seedrandom": "^3.0.5"
   },
   "optionalDependencies": {
