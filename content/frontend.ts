@@ -22,9 +22,9 @@ import { onLoad as findOnLoad, find_box } from "./mode_find"
 import { filterTextToGoNext, jumpToNextLink } from "./pagination"
 import { main_not_ff as extend_click_not_ff } from  "./extend_click.js"
 import { main_ff as extend_click_ff } from  "./extend_click_ff.js"
+import { RSC } from "./commands"
 
 const docReadyListeners: Array<(this: void) => void> = [], completeListeners: Array<(this: void) => void> = []
-const RSC = "readystatechange"
 
 let coreTester: { /** name */ n: BuildStr.CoreGetterFuncName; /** recvTick */ r: number; /** sendTick */ s: number;
     /** random key */ k: number; /** encrypt */ e (trustedRand: number, unsafeRand: number): string;

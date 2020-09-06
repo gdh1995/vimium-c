@@ -16,7 +16,8 @@ import {
 import { post_, set_contentCommands_ } from "./port"
 import {
   addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, getParentVApi, curModalElement, createStyle,
-  getBoxTagName_cr_, setupExitOnClick, addUIElement, removeSelection, ui_root, kExitOnClick, collpaseSelection
+  getBoxTagName_cr_, setupExitOnClick, addUIElement, removeSelection, ui_root, kExitOnClick, collpaseSelection,
+  hideHelp, set_hideHelp,
 } from "./dom_ui"
 import { hudHide, hudShow, hudTip, hud_text } from "./hud"
 import { onKeyup2, set_onKeyup2, passKeys, installTempCurrentKeyStatus, set_passKeys } from "./key_handler"
@@ -37,7 +38,7 @@ import { findNextInText, findNextInRel } from "./pagination"
 import { traverse, getEditable, filterOutNonReachable } from "./local_links"
 import { select_, unhover_, resetLastHovered, lastHovered_ } from "./async_dispatcher"
 
-export let hideHelp: ((event?: EventToPrevent) => void) | undefined | null
+export const RSC = "readystatechange"
 
 set_contentCommands_([
   /* kFgCmd.framesGoBack: */ (options: CmdOptions[kFgCmd.framesGoBack], rawStep?: number): void => {
@@ -393,8 +394,8 @@ set_contentCommands_([
       el2.innerText = el2.dataset[shouldShowAdvanced ? "h" : "s"]!
       box.classList.toggle("HelpDA")
     }
-    hideHelp = closeBtn.onclick = (event?: EventToPrevent): void => {
-      hideHelp = null
+    set_hideHelp(closeBtn.onclick = (event?: EventToPrevent): void => {
+      set_hideHelp(null)
       event && prevent_(event)
       advCmd.onclick = optLink.onclick = closeBtn.onclick = null as never
       let i: Element | null | undefined = deref_(lastHovered_)
@@ -406,7 +407,7 @@ set_contentCommands_([
       removeHandler_(box)
       box.remove()
       setupExitOnClick(kExitOnClick.helpDialog | kExitOnClick.REMOVE)
-    }
+    })
     if (! locHref().startsWith(optionUrl)) {
       optLink.href = optionUrl
       optLink.onclick = event => {

@@ -107,7 +107,11 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     st.display = NONE; st.width = "0";
     if (Build.BTypes & ~BrowserType.Firefox && wdZoom_ !== 1) { st.zoom = "" + 1 / wdZoom_; }
     outerBox.className = "R HUD UI" + fgCache.d;
-    outerBox.onmousedown = onMousedown
+    if (Build.BTypes & BrowserType.Firefox) {
+      setupEventListener(outerBox, "mousedown", onMousedown, 0, 1)
+    } else {
+      outerBox.onmousedown = onMousedown
+    }
     el.className = "R Find UI";
     el.onload = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinTestedES6Environment
         ? vApi.n.bind(0, 1) : () => vApi.n(1)

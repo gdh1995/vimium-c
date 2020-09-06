@@ -19,7 +19,6 @@ import { isHintsActive, hintManager, coreHints } from "./link_hints"
 import { post_ } from "./port"
 import { insert_Lock_ } from "./insert"
 import { hide as omniHide } from "./omni"
-import { hideHelp } from "./commands"
 
 export declare const enum kExitOnClick {
   NONE = 0, REMOVE = 8, helpDialog = 1, vomnibar = 2,
@@ -33,11 +32,13 @@ let lastFlashEl: SafeHTMLElement | null = null
 let _toExitOnClick = kExitOnClick.NONE
 let flashTime = 0;
 let curModalElement: HTMLDialogElement | null | undefined
+let hideHelp: ((event?: EventToPrevent) => void) | undefined | null
 
-export { box_ as ui_box, root_ as ui_root, styleIn_ as style_ui, lastFlashEl, curModalElement }
+export { box_ as ui_box, root_ as ui_root, styleIn_ as style_ui, lastFlashEl, curModalElement, hideHelp }
 export const removeModal = Build.BTypes & BrowserType.ChromeOrFirefox ? (): void => {
   curModalElement && curModalElement.remove(), curModalElement = null
 } : (): void => {}
+export function set_hideHelp (_newHide: typeof hideHelp) { hideHelp = _newHide }
 
 export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustType): void {
     box_ = createElement_("div");
