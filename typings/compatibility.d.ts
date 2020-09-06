@@ -429,6 +429,7 @@ declare const enum BrowserVer {
   // re-implement extension APIs into C++ bindings: @see https://bugs.chromium.org/p/chromium/issues/detail?id=763564
   MinEnsuredNativeCrxBindings = 73, // even if LEGACY
   MinCrossOriginResourcePolicy = 73, // before C75 break file downloading
+  Min$StorageArea$$onChanged = 73,
   /** Related: https://chromium.googlesource.com/chromium/src/+/0146a7468d623a36bcb55fc6ae69465702bae7fa%5E%21/#F18
    * Stack Trace:
    * * an `<iframe>` has `embedded_content_view_` member, and has `.IsDisplayNone: () => !embedded_content_view_`

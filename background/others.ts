@@ -21,10 +21,13 @@ BgUtils_.timeout_(1000, function (): void {
   }
   type MultiLineSerialized = { [key: string]: SerializationMetaData | string | undefined } & {
       [key in keyof SettingsToUpdate]: SerializationMetaData };
-  const storage = (): chrome.storage.StorageArea => __sync || (__sync = chrome.storage && chrome.storage.sync)
+  type StorageChange = chrome.storage.StorageChange
+  const storage = (): chrome.storage.StorageArea & {
+    onChanged?: chrome.events.Event<(changes: { [key: string]: StorageChange }, exArg: FakeArg) => void>
+  } => __sync || (__sync = chrome.storage && chrome.storage.sync)
   let __sync: chrome.storage.StorageArea | undefined
   let to_update: SettingsToUpdate | null = null, keyInDownloading: keyof SettingsWithDefaults | "" = "",
-  changes_to_merge: { [key: string]: chrome.storage.StorageChange } | null = null,
+  changes_to_merge: { [key: string]: StorageChange } | null = null,
   textDecoder: TextDecoder | null = null,
   restoringPromise: Promise<void> | null = null,
   cachedSync = Settings_.get_("vimSync"),
@@ -33,7 +36,10 @@ BgUtils_.timeout_(1000, function (): void {
     findModeRawQueryList: 1, innerCSS: 1, keyboard: 1, newTabUrl_f: 1
     , vomnibarPage_f: 1
   } as const);
-  function HandleStorageUpdate(changes: { [key: string]: chrome.storage.StorageChange }, area: string): void {
+  function HandleSyncAreaUpdate(changes: { [key: string]: StorageChange }): void {
+    HandleStorageUpdate(changes, "sync");
+  }
+  function HandleStorageUpdate(changes: { [key: string]: StorageChange }, area: string | FakeArg): void {
     if (area !== "sync") { return; }
     BgUtils_.safer_(changes);
     const needToRestoreFirst = Settings_.restore_ && Settings_.restore_();
@@ -381,16 +387,23 @@ BgUtils_.timeout_(1000, function (): void {
   Settings_.updateHooks_.vimSync = function (value): void {
     cachedSync = value;
     if (!storage()) { return; }
-    const event = chrome.storage.onChanged;
+    const areaOnChanged = !(Build.BTypes & BrowserType.Chrome) && Build.MinCVer > BrowserVer.Min$StorageArea$$onChanged
+        ? storage().onChanged!
+        : !(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && OnOther & BrowserType.Chrome
+        ? storage().onChanged : null
+    const event = !(Build.BTypes & BrowserType.Chrome) && Build.MinCVer > BrowserVer.Min$StorageArea$$onChanged
+        ? areaOnChanged! : Build.BTypes & BrowserType.Chrome && areaOnChanged || chrome.storage.onChanged
+    const listener = !(Build.BTypes & BrowserType.Chrome) && Build.MinCVer > BrowserVer.Min$StorageArea$$onChanged
+        || Build.BTypes & BrowserType.Chrome && areaOnChanged ? HandleSyncAreaUpdate : HandleStorageUpdate
     if (!value) {
-      event.removeListener(HandleStorageUpdate);
+      event.removeListener(listener)
       if (Settings_.sync_ !== SetLocal) {
         Settings_.sync_ = SetLocal;
         saveAllToLocal(600);
       }
       return;
     } else if (Settings_.sync_ !== TrySet) {
-      event.addListener(HandleStorageUpdate);
+      event.addListener(listener)
       Settings_.sync_ = TrySet;
       chrome.storage.local.clear();
     }
