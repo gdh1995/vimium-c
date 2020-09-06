@@ -520,7 +520,7 @@ availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeO
   goForward: [ kFgCmd.framesGoBack, 0, 0 ],
   goNext: [ kBgCmd.goNext, 1, 1 ],
   goPrevious: [ kBgCmd.goNext, 1, 1, { rel: "prev" } ],
-  goToRoot: [ kBgCmd.goUp, 1, 0 ],
+  goToRoot: [ kBgCmd.goUp, 1, 0, { top: 1 } ],
   goUp: [ kBgCmd.goUp, 1, 0, { count: -1 } ],
   joinTabs: [ kBgCmd.joinTabs, 1, 1 ],
   lastTab: [ kBgCmd.goToTab, 1, 0, { count: -1, absolute: true } ],
