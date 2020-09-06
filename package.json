@@ -26,6 +26,7 @@
     "rimraf": "^3.0.2",
     "rollup": "^2.18.0",
     "bl": ">=2.2.1",
+    "yargs-parser": ">=13.1.2",
     "seedrandom": "^3.0.5"
   },
   "optionalDependencies": {
