@@ -300,7 +300,7 @@ export const focusAndRun = (cmd?: FgCmdAcrossFrames, options?: FgOptions, count?
    * Step 8 of https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#document-open-steps
    * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/doc.cc?q=Document::open&l=3107
    */
-  failed && isEnabled_ && hookOnWnd(HookAction.Install);
+  (failed || !isEnabled_) && hookOnWnd(HookAction.Install)
   // the line below is always necessary: see https://github.com/philc/vimium/issues/2551#issuecomment-316113725
   /*#__INLINE__*/ set_onWndFocus(oldOnWndFocus)
   oldOnWndFocus()

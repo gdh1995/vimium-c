@@ -154,7 +154,8 @@ export const activate = (options: HintsNS.ContentOptions, count: number, force?:
     if (doc.body === null) {
       manager_ || clear()
       if (!_timer && readyState_ > "l") {
-        _timer = timeout_(contentCommands_[kFgCmd.linkHints].bind(0 as never, options, count), 300)
+        _timer = timeout_(contentCommands_[kFgCmd.linkHints].bind(0 as never, options, count, 0), 300)
+        removeHandler_(coreHints)
         return pushHandler_(SuppressMost_, coreHints)
       }
     }
