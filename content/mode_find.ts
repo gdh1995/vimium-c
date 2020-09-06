@@ -1,6 +1,6 @@
 import {
   setupEventListener, VTr, keydownEvents_, isAlive_, suppressCommonEvents, onWndFocus, VOther, timeout_, safer, fgCache,
-  doc, safeObj, getTime, chromeVer_, deref_, escapeAllForRe, tryCreateRegExp,
+  doc, safeObj, getTime, chromeVer_, deref_, escapeAllForRe, tryCreateRegExp, vApi,
 } from "../lib/utils"
 import {
   pushHandler_, SuppressMost_, Stop_, removeHandler_, prevent_, getMappedKey, keybody_, isEscape_, keyNames_,
@@ -108,7 +108,8 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     outerBox.className = "R HUD UI" + fgCache.d;
     outerBox.onmousedown = onMousedown
     el.className = "R Find UI";
-    el.onload = function (this: HTMLIFrameElement): void { onLoad(1) }
+    el.onload = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinTestedES6Environment
+        ? vApi.n.bind(0, 1) : () => vApi.n(1)
     pushHandler_(SuppressMost_, activate);
     query_ || (query0_ = query)
     init && init(AdjustType.NotAdjust)

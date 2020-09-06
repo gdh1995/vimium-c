@@ -97,7 +97,7 @@ import {
   linkActions, executeHintInOfficer, removeFlash, set_hintModeAction, resetRemoveFlash, resetHintKeyCode,
 } from "./link_actions"
 import { lastHovered_, resetLastHovered } from "./async_dispatcher"
-import { hookOnWnd } from "./port"
+import { hookOnWnd, contentCommands_ } from "./port"
 
 let box_: HTMLDivElement | HTMLDialogElement | null = null
 let wantDialogMode_: boolean | null = null
@@ -146,15 +146,15 @@ export {
 export function set_kSafeAllSelector (_newKSafeAll: string): void { kSafeAllSelector = _newKSafeAll as any }
 export function set_isClickListened_ (_newIsClickListened: boolean): void { isClickListened_ = _newIsClickListened }
 
-export const activate = (options: HintsNS.ContentOptions, count: number, force?: 1 | TimerType.fake): void => {
-    if (isActive && !force || !isEnabled_) { return; }
+export const activate = (options: HintsNS.ContentOptions, count: number, force?: 2 | TimerType.fake): void => {
+    if (isActive && force !== 2 || !isEnabled_) { return; }
     if (checkHidden(kFgCmd.linkHints, count, options)) {
       return clear(1)
     }
     if (doc.body === null) {
       manager_ || clear()
       if (!_timer && readyState_ > "l") {
-        _timer = timeout_(activate.bind(0 as never, options, count), 300)
+        _timer = timeout_(contentCommands_[kFgCmd.linkHints].bind(0 as never, options, count), 300)
         return pushHandler_(SuppressMost_, coreHints)
       }
     }
@@ -163,7 +163,7 @@ export const activate = (options: HintsNS.ContentOptions, count: number, force?:
     if (parApi) {
       parApi.l(style_ui)
       // recursively go up and use the topest frame in a same origin
-      return parApi.h(options, count, 1)
+      return parApi.f(kFgCmd.linkHints, options, count, 2)
     }
     const useFilter0 = options.useFilter, useFilter = useFilter0 != null ? !!useFilter0 : fgCache.f,
     frameList: FrameHintsInfo[] = frameList_ = [{h: [], v: null as never, s: coreHints}],
@@ -367,7 +367,7 @@ export const tryNestedFrame = (
     if (!frameNested_) { return false; }
     childApi = detectUsableChild(frameNested_);
     if (childApi) {
-      childApi.f(cmd, count, options);
+      childApi.f(cmd, options, count)
       if (readyState_ > "i") { set_frameNested_(false) }
     } else {
       // It's cross-site, or Vimium C on the child is wholly disabled
@@ -562,7 +562,7 @@ const reinit = (auto?: BOOL | TimerType.fake, officer?: BaseHintWorker | null
   else {
     isActive = 0;
     resetHints();
-    activate(options_, 0);
+    contentCommands_[kFgCmd.linkHints](options_, 0);
     coreHints.w(officer, lastEl, rect);
     onWaitingKey = auto ? suppressTail_(GlobalConsts.TimeOfSuppressingUnexpectedKeydownEvents
         , /*#__NOINLINE__*/ resetOnWaitKey, 1) : onWaitingKey

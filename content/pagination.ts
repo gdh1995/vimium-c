@@ -9,7 +9,7 @@ import { find_box } from "./mode_find"
 import { omni_box } from "./omni"
 import { flash_ } from "./dom_ui"
 import { click_ } from "./async_dispatcher"
-import { contentCommands_ } from "./commands"
+import { contentCommands_ } from "./port"
 
 let iframesToSearchForNext: VApiTy[] | null
 

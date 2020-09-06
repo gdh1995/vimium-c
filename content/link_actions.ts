@@ -172,7 +172,7 @@ const focusIFrame = (el: KnownIFrameElement): BOOL => {
       }
     })
   } else {
-    childApi.f(kFgCmd.linkHints, hintCount_, hintOptions, 1)
+    childApi.f(kFgCmd.linkHints, hintOptions, hintCount_, 1)
   }
   return 0
 }

@@ -1,5 +1,6 @@
 import {
   setupEventListener, isTop, keydownEvents_, VOther, timeout_, fgCache, doc, isAlive_, jsRe_, chromeVer_, VTr, deref_,
+  vApi,
 } from "../lib/utils"
 import { Stop_, prevent_ } from "../lib/keyboard_utils"
 import {
@@ -119,7 +120,7 @@ export const addElementList = function <T extends boolean | BOOL> (
       parent.appendChild(innerBox)
       innerBox.className = cls
     }
-    if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredES6ArrowFunction
+    if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinTestedES6Environment
           && Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
       (Build.BTypes &BrowserType.Chrome ? innerBox : parent).append!(...els.map(el => el.m))
     } else {
@@ -199,7 +200,7 @@ export const ensureBorder = Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or
     }
     if (cssPatch_[0] === width) { return; }
     cssPatch_[0] = width;
-    learnCSS(styleIn_, 1)
+    (vApi.l as typeof learnCSS)(styleIn_, 1)
 } : ((): void => {}) as never
 
 export const createStyle = (text: string, css?: HTMLStyleElement): HTMLStyleElement => {
@@ -531,7 +532,7 @@ export const checkHidden = (cmd?: FgCmdAcrossFrames, count?: number, options?: O
       Build.BTypes & BrowserType.Firefox || (parEvents = getParentVApi());
       if (parEvents
           && !parEvents.a(keydownEvents_)) {
-        parEvents.f(cmd, count!, options!, 1);
+        parEvents.f(cmd, options!, count!, 1);
         result = 1;
       }
     }

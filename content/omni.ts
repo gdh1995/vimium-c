@@ -19,7 +19,7 @@ import {
   injector, isAlive_, keydownEvents_, readyState_, VOther, timeout_, clearTimeout_, loc_, recordLog, chromeVer_,
   interval_, clearInterval_, locHref, vApi,
 } from "../lib/utils"
-import { removeHandler_, pushHandler_, SuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils";
+import { removeHandler_, pushHandler_, SuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
 import { frameElement_, isHTML_, fullscreenEl_unsafe_, NONE, createElement_ } from "../lib/dom_utils"
 import { getViewBox_, docZoom_, dScale_, prepareCrop_, bZoom_, wndSize_ } from "../lib/rect"
 import { beginScroll, scrollTick } from "./scroller"
@@ -75,7 +75,7 @@ export const activate = function (options: FullOptions, count: number): void {
     if (!isTop && !options.$forced) { // check $forced to avoid dead loops
       if (parent === top && !fullscreenEl_unsafe_()
           && (parApi = Build.BTypes & BrowserType.Firefox ? getParentVApi() : frameElement_() && getParentVApi())) {
-        parApi.o(options, count)
+        parApi.f(kFgCmd.vomnibar, options, count)
       } else {
         post_({ H: kFgReq.gotoMainFrame, f: 0, c: kFgCmd.vomnibar, n: count, a: options })
       }

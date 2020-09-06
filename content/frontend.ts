@@ -8,20 +8,17 @@ import { frameElement_, set_OnDocLoaded_ } from "../lib/dom_utils"
 import { wndSize_ } from "../lib/rect"
 import {
   safePost, clearRuntimePort, runtime_port, SafeDestoryF, set_safeDestroy,
-  runtimeConnect, safeDestroy, post_, send_, hookOnWnd, requestHandlers,
+  runtimeConnect, safeDestroy, post_, send_, hookOnWnd, requestHandlers, contentCommands_,
 } from "./port"
 import {
   ui_box, adjustUI, getParentVApi, set_getParentVApi, set_getWndVApi_ff, learnCSS, ui_root, flash_,
 } from "./dom_ui"
 import { grabBackFocus } from "./insert"
 import { currentKeys } from "./key_handler"
-import { contentCommands_ } from "./commands"
 import { enableNeedToRetryParentClickable, focusAndRun } from "./request_handlers"
-
-import { activate as linkActivate, coreHints } from "./link_hints"
+import { coreHints } from "./link_hints"
 import { executeScroll, scrollTick, $sc, keyIsDown as scroll_keyIsDown } from "./scroller"
 import { onLoad as findOnLoad, find_box } from "./mode_find"
-import { activate as omniActivate } from "./omni"
 import { filterTextToGoNext, jumpToNextLink } from "./pagination"
 import { main_not_ff as extend_click_not_ff } from  "./extend_click.js"
 import { main_ff as extend_click_ff } from  "./extend_click_ff.js"
@@ -61,7 +58,7 @@ set_safeDestroy((silent?: Parameters<SafeDestoryF>[0]): void => {
 set_vApi(VApi = {
   b: coreHints, e: null, z: null,
   p: post_, a: setupKeydownEvents, f: focusAndRun, d: safeDestroy, g: filterTextToGoNext, j: jumpToNextLink,
-  h: linkActivate, o: omniActivate, n: findOnLoad, c: executeScroll,
+  n: findOnLoad, c: executeScroll,
   k: scrollTick, $: $sc, l: learnCSS, m: getMappedKey,
   i: Build.BTypes & BrowserType.Firefox ? wndSize_ : 0 as never,
   r: injector && [send_, safePost, (task: 0 | 1 | 2, arg?: string | ElementSet | VTransType): any => {
@@ -254,4 +251,10 @@ if (!(Build.NDEBUG || GlobalConsts.MaxNumberOfNextPatterns <= 255)) {
 
 if (!(Build.NDEBUG || BrowserVer.Min$Set$Has$$forEach <= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol)) {
   console.log("Assert error: BrowserVer.Min$Set$Has$$forEach <= BrowserVer.MinES6$ForOf$Map$SetAnd$Symbol");
+}
+
+if (!Build.NDEBUG) {
+  (contentCommands_ as unknown as any[]).forEach((x, i) => x || alert(`Assert error: missing contentCommands_[${i}]`));
+  (requestHandlers as unknown as any[]).forEach((x, i) => x ||
+      i === kBgReq.injectorRun || alert(`Assert error: missing requestHandlers[${i}]`))
 }

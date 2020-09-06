@@ -13,7 +13,7 @@ import {
   view_, wndSize_, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, padClientRect_,
   getBoundingClientRect_, setBoundary_, wdZoom_, dScale_,
 } from "../lib/rect"
-import { post_ } from "./port"
+import { post_, set_contentCommands_ } from "./port"
 import {
   addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, getParentVApi, curModalElement, createStyle,
   getBoxTagName_cr_, setupExitOnClick, addUIElement, removeSelection, ui_root, kExitOnClick, collpaseSelection
@@ -39,11 +39,7 @@ import { select_, unhover_, resetLastHovered, lastHovered_ } from "./async_dispa
 
 export let hideHelp: ((event?: EventToPrevent) => void) | undefined | null
 
-export const contentCommands_: {
-  [k in kFgCmd & number]:
-    k extends kFgCmd.framesGoBack | kFgCmd.insertMode ? (msg: CmdOptions[k], count?: number) => void :
-    (this: void, options: CmdOptions[k] & SafeObject, count: number, key?: -42) => void;
-} = [
+set_contentCommands_([
   /* kFgCmd.framesGoBack: */ (options: CmdOptions[kFgCmd.framesGoBack], rawStep?: number): void => {
     const maxStep = Math.min(rawStep! < 0 ? -rawStep! : rawStep!, history.length - 1),
     reuse = (options as typeof options & {r: 0}).reuse,
@@ -161,7 +157,7 @@ export const contentCommands_: {
     let isNext = !req.r.includes("prev"), parApi: VApiTy | null | void, chosen: GoNextBaseCandidate | false | 0 | null
     if (!isTop && (parApi = Build.BTypes & BrowserType.Firefox ? getParentVApi() : frameElement_() && getParentVApi())
         && !parApi.a(keydownEvents_)) {
-      parApi.f(kFgCmd.goNext, 1, req as CmdOptions[kFgCmd.goNext] & FgOptions)
+      parApi.f(kFgCmd.goNext, req as CmdOptions[kFgCmd.goNext] & FgOptions, 1)
     } else if (chosen = isHTML_()
         && (findNextInRel(req.r) || req.p.length && findNextInText(req.p, isNext, req.l, req.m))) {
       chosen[1].j(chosen[0])
@@ -450,4 +446,4 @@ export const contentCommands_: {
     // if no [tabindex=0], `.focus()` works if :exp and since MinElement$Focus$MayMakeArrowKeySelectIt or on Firefox
     timeout_((): void => { box.focus() }, 17)
   }) as (options: CmdOptions[kFgCmd.showHelpDialog]) => any
-]
+])

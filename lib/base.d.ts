@@ -399,19 +399,17 @@ interface VApiTy {
   /** execute content commands */ e: ((this: void, cmd: ValidContentCommands) => void) | null
   /** focusAndRun */ f: {
     (this: void): void
-    (this: void, cmd: FgCmdAcrossFrames, count: number, options: FgOptions, showBorder?: 1): void
-    (this: void, cmd: 0, count: never, options: never, showBorder: 1): void
+    (this: void, cmd: FgCmdAcrossFrames, options: FgOptions, count: number, showBorder?: 1 | 2): void
+    (this: void, cmd: 0, options: never, count: never, showBorder: 1): void
   }
   /** filterTextToGoNext */ g: (candidates: GoNextCandidate[], names: string[], isNext: boolean, lenLimit: number[]
       , totalMax: number, maxLen: number) => number
-  /** linkActivate */ h: (options: HintsNS.ContentOptions, count: number, force?: 1) => void
   /** innerHeight_ff */ i?: (type?: undefined) => number
   /** jumpToNext */ j: (nextLink: SafeHTMLElement) => void
   /** scrollTick */ k: (willContinue: BOOL | 2) => void
   /** learnCSS */ l: (srcStyleUI: HTMLStyleElement | string | null, force?: undefined) => void
   /** getMappedKey */ m: (eventWrapper: HandlerNS.Event, mode: kModeId) => string
   /** findOnLoad */ n: (later?: 1) => void
-  /** omniActivate */ o: (options: CmdOptions[kFgCmd.vomnibar], count: number) => void
   /** post */ p: <K extends keyof FgReq>(this: void, req: FgReq[K] & Req.baseFg<K>) => void | 1;
   /** for injector */ r: [
     <k extends keyof FgRes> (cmd: k, args: Req.fgWithRes<k>["a"], callback: (this: void, res: FgRes[k]) => void) => void

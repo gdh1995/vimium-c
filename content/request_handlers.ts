@@ -10,7 +10,10 @@ import {
   htmlTag_, querySelector_unsafe_, isHTML_, createElement_,
   docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, CLK, ElementProto, isIFrameElement, DAC,
 } from "../lib/dom_utils"
-import { port_callbacks, post_, safePost, set_requestHandlers, requestHandlers, hookOnWnd, set_hookOnWnd } from "./port"
+import {
+  port_callbacks, post_, safePost, set_requestHandlers, requestHandlers, hookOnWnd, set_hookOnWnd,
+  contentCommands_,
+} from "./port"
 import {
   addUIElement, adjustUI, createStyle, getParentVApi, getBoxTagName_cr_, setUICSS, ui_box, evalIfOK, checkHidden,
 } from "./dom_ui"
@@ -25,7 +28,6 @@ import { set_findCSS, styleInHUD, styleSelectable } from "./mode_find"
 import { exitGrab, grabBackFocus, insertInit, set_grabBackFocus, onFocus, onBlur } from "./insert"
 import { onActivate } from "./scroller"
 import { omni_status, omni_box } from "./omni"
-import { contentCommands_ } from "./commands"
 
 let framemask_more = false
 let framemask_node: HTMLDivElement | null = null
@@ -141,7 +143,7 @@ set_requestHandlers([
     }
     if (ui_box) { adjustUI(+newEnabled ? 1 : 2); }
   },
-  /* kBgReq.injectorRun: */ injector ? injector.$m : null as never,
+  /* kBgReq.injectorRun: */ injector ? injector.$m : 0 as never,
   /* kBgReq.url: */ function<T extends keyof FgReq> (this: void, request: BgReq[kBgReq.url] & Req.fg<T>): void {
     delete request.N
     request.u = (request.H === kFgReq.copy ? vApi.u : locHref)()
@@ -283,7 +285,7 @@ set_hookOnWnd(((action: HookAction): void => {
       ? CLK : DAC, onActivate, true)
 }))
 
-export const focusAndRun = (cmd?: FgCmdAcrossFrames, count?: number, options?: FgOptions, showBorder?: 1): void => {
+export const focusAndRun = (cmd?: FgCmdAcrossFrames, options?: FgOptions, count?: number, showBorder?: 1 | 2): void => {
   exitGrab();
   let oldOnWndFocus = onWndFocus, failed = true;
   /*#__INLINE__*/ set_onWndFocus((): void => { failed = false; })
@@ -306,9 +308,9 @@ export const focusAndRun = (cmd?: FgCmdAcrossFrames, count?: number, options?: F
     esc!(HandlerResult.Nothing);
     if (cmd) {
       type TypeChecked = { [key in FgCmdAcrossFrames]: <T2 extends FgCmdAcrossFrames>(this: void,
-          options: CmdOptions[T2] & FgOptions, count: number) => void; };
-      (contentCommands_ as TypeChecked)[cmd](options!, count!);
+          options: CmdOptions[T2] & FgOptions, count: number, exArgsOrForce?: number) => void; };
+      (contentCommands_ as TypeChecked)[cmd](options!, count!, showBorder);
     }
-    showBorder && showFrameMask(FrameMaskType.ForcedSelf);
+    showBorder! & 1 && showFrameMask(FrameMaskType.ForcedSelf);
   }
 }
