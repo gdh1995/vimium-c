@@ -367,81 +367,34 @@ var Commands = {
   },
 
 defaultKeyMappings_:
-  "? " + kCName.showHelp +
-  " j " + kCName.scrollDown +
-  " k " + kCName.scrollUp +
-  " h " + kCName.scrollLeft +
-  " l " + kCName.scrollRight +
-  " gg " + kCName.scrollToTop +
-  " G " + kCName.scrollToBottom +
-  " zH " + kCName.scrollToLeft +
-  " zL " + kCName.scrollToRight +
-  " <c-e> " + kCName.scrollDown +
-  " <c-y> " + kCName.scrollUp +
-  " d " + kCName.scrollPageDown +
-  " u " + kCName.scrollPageUp +
-  " r " + kCName.reload +
-  " gs " + kCName.toggleViewSource +
-  " R " + kCName.reloadGivenTab +
-  " <a-R> " + kCName.reopenTab +
-  " <a-r> " + kCName.reloadTab +
-  " <a-t> " + kCName.createTab +
-  " <a-c> " + kCName.previousTab +
-  " <a-s-c> " + kCName.nextTab +
-  " <a-v> " + kCName.nextTab +
-  " i " + kCName.enterInsertMode +
-  " v " + kCName.enterVisualMode +
-  " V " + kCName.enterVisualLineMode +
-  " <f8> " + kCName.enterVisualMode +
-  " H " + kCName.goBack +
-  " L " + kCName.goForward +
-  " gu " + kCName.goUp +
-  " gU " + kCName.goToRoot +
-  " gi " + kCName.focusInput +
-  " f " + kCName.LinkHints_activate +
-  " F " + kCName.LinkHints_activateModeToOpenInNewTab +
-  " <a-f> " + kCName.LinkHints_activateModeWithQueue +
-  " / " + kCName.enterFindMode +
-  " n " + kCName.performFind +
-  " N " + kCName.performBackwardsFind +
-  " <a-n> " + kCName.performAnotherFind +
-  " [[ " + kCName.goPrevious +
-  " ]] " + kCName.goNext +
-  " yy " + kCName.copyCurrentUrl +
-  " yf " + kCName.LinkHints_activateModeToCopyLinkUrl +
-  " p " + kCName.openCopiedUrlInCurrentTab +
-  " P " + kCName.openCopiedUrlInNewTab +
-  " K " + kCName.nextTab +
-  " J " + kCName.previousTab +
-  " gt " + kCName.nextTab +
-  " gT " + kCName.previousTab +
-  " ^ " + kCName.visitPreviousTab +
-  " << " + kCName.moveTabLeft +
-  " >> " + kCName.moveTabRight +
-  " g0 " + kCName.firstTab +
-  " g$ " + kCName.lastTab +
-  " W " + kCName.moveTabToNextWindow +
-  " t " + kCName.createTab +
-  " yt " + kCName.duplicateTab +
-  " x " + kCName.removeTab +
-  " X " + kCName.restoreTab +
-  " <a-p> " + kCName.togglePinTab +
-  " <a-m> " + kCName.toggleMuteTab +
-  " o " + kCName.Vomnibar_activate +
-  " O " + kCName.Vomnibar_activateInNewTab +
-  " T " + kCName.Vomnibar_activateTabSelection +
-  " b " + kCName.Vomnibar_activateBookmarks +
-  " B " + kCName.Vomnibar_activateBookmarksInNewTab +
-  " ge " + kCName.Vomnibar_activateUrl +
-  " gE " + kCName.Vomnibar_activateUrlInNewTab +
-  " gf " + kCName.nextFrame +
-  " gF " + kCName.mainFrame +
-  " gn " + kCName.toggleVomnibarStyle +
-  " <f1> " + kCName.simBackspace +
-  " <s-f1> " + kCName.switchFocus +
-  " <f2> " + kCName.switchFocus +
-  " m " + kCName.Marks_activateCreateMode +
-  " ` " + kCName.Marks_activate
+  "? "      + kCName.showHelp           + " d "     + kCName.scrollPageDown   + " f "     + kCName.LinkHints_activate +
+  " gf "    + kCName.nextFrame          + " gg "    + kCName.scrollToTop      + " gi "    + kCName.focusInput         +
+  " gn "    + kCName.toggleVomnibarStyle+ " gs "    + kCName.toggleViewSource + " gt "    + kCName.nextTab            +
+  " gu "    + kCName.goUp               + " gF "    + kCName.mainFrame        + " gT "    + kCName.previousTab        +
+  " gU "    + kCName.goToRoot           + " g0 "    + kCName.firstTab         + " g$ "    + kCName.lastTab            +
+  " h "     + kCName.scrollLeft         + " i "     + kCName.enterInsertMode  + " j "     + kCName.scrollDown         +
+  " k "     + kCName.scrollUp           + " l "     + kCName.scrollRight      + " n "     + kCName.performFind        +
+  " o "     + kCName.Vomnibar_activate  + " r "     + kCName.reload           + " t "     + kCName.createTab          +
+  " u "     + kCName.scrollPageUp       + " v "     + kCName.enterVisualMode  + " x "     + kCName.removeTab          +
+  " yt "    + kCName.duplicateTab       + " yy "    + kCName.copyCurrentUrl   + " zH "    + kCName.scrollToLeft       +
+  " zL "    + kCName.scrollToRight      + " G "     + kCName.scrollToBottom   + " H "     + kCName.goBack             +
+  " L "     + kCName.goForward          + " R "     + kCName.reloadGivenTab   + " V "     + kCName.enterVisualLineMode+
+  " K "     + kCName.nextTab            + " J "     + kCName.previousTab      + " N "     + kCName.performBackwardsFind+
+  " W "     + kCName.moveTabToNextWindow+ " X "     + kCName.restoreTab       + " / "     + kCName.enterFindMode      +
+  " ` "     + kCName.Marks_activate     + " ^ "     + kCName.visitPreviousTab + " [[ "    + kCName.goPrevious         +
+  " ]] "    + kCName.goNext             + " << "    + kCName.moveTabLeft      + " >> "    + kCName.moveTabRight       +
+  " <a-c> " + kCName.previousTab        + " <a-v> " + kCName.nextTab          + " <a-m> " + kCName.toggleMuteTab      +
+  " <a-n> " + kCName.performAnotherFind + " <a-p> " + kCName.togglePinTab     + " <a-r> " + kCName.reloadTab          +
+  " <a-t> " + kCName.createTab          + " <a-R> " + kCName.reopenTab        + " <c-e> " + kCName.scrollDown         +
+  " <c-y> " + kCName.scrollUp           + " <f1> "  + kCName.simBackspace     + " <f2> "  + kCName.switchFocus        +
+  " <f8> "  + kCName.enterVisualMode    + " <s-f1> "+ kCName.switchFocus      + " <a-s-c> "+ kCName.nextTab           +
+  " b "     + kCName.Vomnibar_activateBookmarks           + " ge "    + kCName.Vomnibar_activateUrl                   +
+  " gE "    + kCName.Vomnibar_activateUrlInNewTab         + " m "     + kCName.Marks_activateCreateMode               +
+  " p "     + kCName.openCopiedUrlInCurrentTab            + " yf "    + kCName.LinkHints_activateModeToCopyLinkUrl    +
+  " B "     + kCName.Vomnibar_activateBookmarksInNewTab   + " F "     + kCName.LinkHints_activateModeToOpenInNewTab   +
+  " O "     + kCName.Vomnibar_activateInNewTab            + " P "     + kCName.openCopiedUrlInNewTab                  +
+  " T "     + kCName.Vomnibar_activateTabSelection        + " <a-f> " + kCName.LinkHints_activateModeWithQueue        +
+  ""
 ,
 availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeObject>
     As_<CommandsNS.NameMetaMap & SafeObject>({
