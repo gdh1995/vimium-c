@@ -2079,7 +2079,7 @@
       })
     },
     /* kBgCmd.goUp: */ function (this: void): void {
-      if (cOptions.top && cPort && cPort.s.i) {
+      if (cOptions.type !== "frame" && cPort && cPort.s.i) {
         cPort = indexFrame(cPort.s.t, 0) || cPort;
       }
       requireURL({
