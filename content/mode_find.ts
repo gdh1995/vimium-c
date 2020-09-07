@@ -673,10 +673,11 @@ export const updateQuery = (query: string): void => {
   isRegex = !!isRe
   wholeWord = ww
   notEmpty = !!query
-  ignoreCase !== null || (ignoreCase = query.toLowerCase() === query)
+  ignoreCase = ignoreCase != null ? ignoreCase : query.toLowerCase() === query
   isRe || (query = isActive ? escapeAllForRe(query) : "")
 
-  let re: RegExpG | null = query && tryCreateRegExp(ww ? WB + query + WB : query, ignoreCase ? "gi" : "g") || null
+  let re: RegExpG | null = query && tryCreateRegExp(ww ? WB + query + WB : query, (ignoreCase ? "gim" : "gm") as "g")
+      || null
   let matches: string[] | null = null
   let delta: number
   if (re) {
