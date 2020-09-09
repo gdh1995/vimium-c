@@ -596,7 +596,9 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
     if ((tag = el.localName) === "img"
         ? isDescendant(el, fromPoint!, 0)
         : tag === "area" ? fromPoint === list[i][4]
-        : tag === "input" && (fromPoint! as HTMLLabelElement).control === el
+        : tag === "input" && ((htmlTag_(fromPoint!) !== "label"
+              && (!(Build.BTypes & ~BrowserType.Firefox) || !notSafe_not_ff_!(fromPoint!))
+              && (fromPoint as SafeElement).parentElement || fromPoint!) as HTMLLabelElement).control === el
           && (notForAllClickable || (i < 1 || list[i - 1][0] !== el) && (i >= list.length || list[i + 1][0] !== el))) {
       continue;
     }
