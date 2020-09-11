@@ -928,6 +928,7 @@
 	"Global_": {
 		"message": "Global"
 	},
+	"allLocal": { "message": "local" },
 	"markRemoved": {
 		"message": "$1 $2 mark$3 been removed"
 	},

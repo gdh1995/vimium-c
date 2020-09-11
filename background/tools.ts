@@ -503,8 +503,8 @@ Marks_ = { // NOTE: all public members should be static
     }
   },
   getLocationKey_ (markName: string, url: string | undefined): string {
-    return (url ? "vimiumMark|" + BgUtils_.prepareReParsingPrefix_(url.split("#", 1)[0])
-      : "vimiumGlobalMark") + "|" + markName;
+    return url ? "vimiumMark|" + BgUtils_.prepareReParsingPrefix_(url.split("#", 1)[0])
+        + (url.length > 1 ? "|" + markName : "") : "vimiumGlobalMark|" + markName
   },
   scrollTab_ (this: void, markInfo: MarksNS.InfoToGo, tab: chrome.tabs.Tab): void {
     const tabId = tab.id, port = Backend_.indexPorts_(tabId, 0);

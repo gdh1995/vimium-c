@@ -1357,6 +1357,7 @@
 	"Global_": {
 		"message": "全局标记"
 	},
+	"allLocal": { "message": "各个网站下的" },
 	"markRemoved": {
 		"message": "$3清理了$1个$2标记"
 	},

@@ -2211,7 +2211,8 @@
       openUrl(url, Urls.WorkType.FakeType, tabs)
     },
     /* kBgCmd.clearMarks: */ function (this: void): void {
-      cOptions.local ? requireURL({ H: kFgReq.marks, u: "" as "url", a: kMarkAction.clear }, true) : Marks_.clear_()
+      cOptions.local ? cOptions.all ? Marks_.clear_("#")
+      : requireURL({ H: kFgReq.marks, u: "" as "url", a: kMarkAction.clear }, true) : Marks_.clear_()
     },
     /* kBgCmd.toggleVomnibarStyle: */ function (this: void, tabs: [Tab]): void {
       const tabId = tabs[0].id, toggled = ((cOptions.style || "") + "").trim(), current = !!cOptions.current;
