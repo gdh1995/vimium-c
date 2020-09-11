@@ -1070,6 +1070,7 @@ if (Build.BTypes & BrowserType.Chrome && BG_.IsEdg_) {
 function loadJS(file: string): HTMLScriptElement {
   const script = document.createElement("script");
   script.src = file;
+  script.async = false; script.defer = true;
   (document.head as HTMLHeadElement).appendChild(script);
   return script;
 }
@@ -1123,7 +1124,7 @@ window.onhashchange = function (this: void): void {
         (node as ElementWithHash).onclick(null, "hash");
       });
     }
-  } else if ((node = $("#" + hash))) {
+  } else if (node = $("#" + hash)) {
     nextTick_((): void => {
     if ((node as HTMLElement).dataset.model) {
       (node as HTMLElement).classList.add("highlight");

@@ -1,5 +1,10 @@
-$<ElementWithDelay>("#showCommands").onclick = function (event): void {
-  if (!window.VApi || !VApi.z) { return; }
+declare var VimiumInjector: VimiumInjectorTy | undefined | null
+
+$<ElementWithDelay>("#showCommands").onclick = function showHelp(this: void, event): void {
+  if (!window.VApi || !VApi.z) {
+    typeof VimiumInjector !== "undefined" && setTimeout(showHelp, 120, null)
+    return;
+  }
   let node: HTMLElement | null, root = VApi.y().r;
   event && event.preventDefault();
   if (!root) { /* empty */ }
