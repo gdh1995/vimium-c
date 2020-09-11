@@ -12,7 +12,7 @@ ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 * Vomnibar: add a classname of `has-dark` to `<body>` when in dark mode
 
 #### 1.85.1
-* fix LinkHints/Vomnibar could not work in some conditions on Google Docs ([211](
+* fix LinkHints/Vomnibar could not work in some situations on Google Docs ([#211](
     https://github.com/gdh1995/vimium-c/issues/211))
 * options page: fix that it might save key mappings in a wrong syntax
 * Vomnibar: use a better strategy to replace `。` in Chinese with `.` in English
@@ -145,25 +145,25 @@ ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 * better support for the flag `#freeze-user-agent` on Chrome 81
 
 #### 1.81.4
-* `Vomnibar`: roll back and prefer visited tabs to newly-opened ones
-  ([#60 (comment)](https://github.com/gdh1995/vimium-c/issues/60#issuecomment-603148180))
+* `Vomnibar`: roll back and prefer visited tabs to newly-opened ones ([#60 (comment)](
+  https://github.com/gdh1995/vimium-c/issues/60#issuecomment-603148180))
   * support `noTabs` or `":H"` to avoid searching opened tabs in omni mode
-  * add `autoSelect` and enable it by default in history/bookmark/tabs mode
-    ([#144](https://github.com/gdh1995/vimium-c/issues/144))
+  * add `autoSelect` and enable it by default in history/bookmark/tabs mode ([#144](
+    https://github.com/gdh1995/vimium-c/issues/144))
   * add `searchInput=false` to prevent default searching
 * `mapKey`: support a new mode ID of `e` (NExt) and use it when a prefix sequence of count/key has been typed.
 * `LinkHints`: support `autoUnhover` to unhover a link node once it's clicked
   * on Firefox: press <kbd>Esc</kbd> to auto unhover a link node after opening it in a new tab
-* `focusInput`: support `act="last"|"last-visible"`
-  ([#127 (comment)](https://github.com/gdh1995/vimium-c/issues/127#issuecomment-602038442))
+* `focusInput`: support `act="last"|"last-visible"` ([#127 (comment)](
+  https://github.com/gdh1995/vimium-c/issues/127#issuecomment-602038442))
 * `goNext`: prefer completely matched text (e.g. `">"` is preferred to `">|"`)
 * `goBack`: add an option of `local` to always use `history.go`, instead of async going
 * popup page: if an extension wants to run Vimium C but not is allowed, show a button to auto allow it
 * some bug fixes
 
 #### 1.81.0
-* fix that <kbd>-</kbd> or software-produced <kbd>Escape</kbd> can not be recognized
-  ([#129](https://github.com/gdh1995/vimium-c/issues/129))
+* fix that <kbd>-</kbd> or software-produced <kbd>Escape</kbd> can not be recognized ([#129](
+  https://github.com/gdh1995/vimium-c/issues/129))
 * **Privacy Policy**: update to **allow short-term and in-memory cache** for Vomnibar suggestions
   * Please see https://github.com/gdh1995/vimium-c/commit/240160ddb931c3fda545e8b7bd06f7c0bba0d56b
 * Vomnibar: also match queries in all tabs when in omni mode
@@ -173,13 +173,13 @@ ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
   * keys can be re-mapped: see [#135 (comment)](https://github.com/gdh1995/vimium-c/issues/135#issuecomment-597649596)
 * LinkHints: Firefox: improve reachability detection for scrollable areas
 * LinkHints: Filtered Hints: make hint keys follow page numbers
-* Scroller: use a lightweight method to deactivate hover effects globally if smooth scrolling is enabled
-  ([#133](https://github.com/gdh1995/vimium-c/issues/133))
+* Scroller: use a lightweight method to deactivate hover effects globally if smooth scrolling is enabled ([#133](
+  https://github.com/gdh1995/vimium-c/issues/133))
 * `goNext`: support aria-label
-* `switchFocus`: add 2 options of `select` and `flash` to work like `focusInput`
-  ([#127](https://github.com/gdh1995/vimium-c/issues/127))
-* hooked `Function::toString`: not convert those whose body includes `__VimiumC_` to `()=>1` any more
-  (influence [#130](https://github.com/gdh1995/vimium-c/issues/130))
+* `switchFocus`: add 2 options of `select` and `flash` to work like `focusInput` ([#127](
+  https://github.com/gdh1995/vimium-c/issues/127))
+* hooked `Function::toString`: not convert those whose body includes `__VimiumC_` to `()=>1` any more (influence [#130](
+  https://github.com/gdh1995/vimium-c/issues/130))
 * Chrome release: mark itself offline-enabled
 
 #### 1.80.3
@@ -288,8 +288,8 @@ ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 * Chrome: add a feature to hook in-page "access keys" and enable it by default
 * Firefox: support 63+ and more conditions
 * VHints: <kbd>Tab</kbd>: now only switch visibility in limited ranges
-* add `zoomIn` and `zoomOut` commands, and use a huge count like `1111` to reset zoom
-  ([#83](https://github.com/gdh1995/vimium-c/issues/83), [philc#2978](https://github.com/philc/vimium/pull/2978))
+* add `zoomIn` and `zoomOut` commands, and use a huge count like `1111` to reset zoom ([#83](
+  https://github.com/gdh1995/vimium-c/issues/83), [philc#2978](https://github.com/philc/vimium/pull/2978))
 * fix some old bugs
 
 #### 1.78.3
