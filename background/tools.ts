@@ -534,7 +534,8 @@ Marks_ = { // NOTE: all public members should be static
       }
     }
     return Backend_.showHUD_(trans_("markRemoved", [
-      num, trans_(url ? kTip.local + "" : kTip.global + ""), trans_(num !== 1 ? "have" : "has")
+      num, trans_(url ? url === "#" ? "allLocal" : kTip.local + "" : kTip.global + ""),
+      trans_(num !== 1 ? "have" : "has")
     ]));
   }
 },
