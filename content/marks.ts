@@ -90,7 +90,7 @@ const goto = (event: HandlerNS.Event, keyChar: string): void => {
     } else {
       try {
         let pos = null, key = `vimiumMark|${locHref().split("#", 1)[0]}|${keyChar}`
-        let storage = localStorage, markString = storage.getItem(key)
+        let storage = localStorage, markString = storage && storage.getItem(key)
         if (markString && (pos = JSON.parse(markString)) && typeof pos === "object") {
           safer(pos)
           const scrollX = pos.scrollX, scrollY = pos.scrollY, hash = pos.hash
