@@ -407,6 +407,7 @@ set_contentCommands_([
       removeHandler_(box)
       box.remove()
       setupExitOnClick(kExitOnClick.helpDialog | kExitOnClick.REMOVE)
+      closeBtn.click()
     })
     if (! locHref().startsWith(optionUrl)) {
       optLink.href = optionUrl

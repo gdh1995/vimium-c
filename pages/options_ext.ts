@@ -21,7 +21,7 @@ $<ElementWithDelay>("#showCommands").onclick = function showHelp(this: void, eve
     if (!node2) { return; }
     (node2.querySelector("#HCls") as HTMLElement).addEventListener("click", function (): void {
       location.hash = "";
-    });
+    }, true);
   }, 100);
 };
 
