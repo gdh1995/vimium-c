@@ -297,7 +297,7 @@ const findV = (count: number): void => {
       return;
     }
     const sel = curSelection, range = rangeCount_(sel) && (getDirection(""), !diType_) && selRange_(sel)
-    executeFind(null, { noColor: true, n: count });
+    executeFind(null, { noColor: 1, n: count })
     if (find_hasResults) {
       diType_ = DiType.UnsafeUnknown
       if (mode_ === Mode.Caret && selType() === SelType.Range) {

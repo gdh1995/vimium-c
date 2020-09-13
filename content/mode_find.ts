@@ -404,7 +404,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther & BrowserType.Firefox)
         && fgCache.o === kOS.unixLike && "cs".includes(key[0])
         ? FindNS.Action.CtrlDelete
-      : notEmpty || (n === kKeyCode.deleteKey && fgCache.o || event.repeat) ? FindNS.Action.PassDirectly
+      : query_ || (n === kKeyCode.deleteKey && fgCache.o || event.repeat) ? FindNS.Action.PassDirectly
       : FindNS.Action.Exit;
     let h = HandlerResult.Prevent, scroll: number;
     if (!i) {
@@ -417,8 +417,8 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
         else if (scroll = keyNames_.indexOf(keybody), scroll > 2 && scroll & 5 ^ 5) {
           beginScroll(eventWrapper, key, keybody);
         }
-        else if (keybody === kChar.j || keybody === kChar.k) {
-          executeFind(null, { n: keybody > kChar.j ? -1 : 1 })
+        else if (keybody > kChar.i && keybody < kChar.l) {
+            executeFind(null, { n: -(keybody > kChar.j), i: 1 })
         }
         else { h = HandlerResult.Suppress; }
       }
@@ -447,14 +447,15 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
 }
 
 const onHostKeydown = (event: HandlerNS.Event): HandlerResult => {
-    const key = getMappedKey(event, kModeId.Find), key2 = key.replace("m-", "c-")
+    let key = getMappedKey(event, kModeId.Find), keybody: kChar
     if (key === kChar.f2) {
       onUnexpectedBlur && onUnexpectedBlur()
       doFocus()
       return HandlerResult.Prevent;
-    } else if (key2 === "c-j" || key2 === "c-k") {
-        executeFind(null, { n: key > "c-j" ? -1 : 1 })
-        return HandlerResult.Prevent;
+    } else if (key.length > 1 && "c-m-".includes(key[0] + key[1])
+        && (keybody = keybody_(key)) > kChar.i && keybody < kChar.l) {
+        executeFind(null, { n: -(keybody > kChar.j), i: 1 })
+      return HandlerResult.Prevent
     }
     if (!insert_Lock_() && isEscape_(key)) {
       prevent_(event.e); // safer
@@ -733,6 +734,7 @@ const getNextQueryFromRegexMatches = (back?: boolean): string => {
 export const executeFind = (query?: string | null, options?: FindNS.ExecuteOptions): void => {
     options = options ? safer(options) : safeObj(null) as FindNS.ExecuteOptions;
     let el: LockableElement | null
+      , highLight = options.h, areas: Rect[] = [], noColor = highLight || options.noColor
       , found: boolean, count = (options.n! | 0) || 1, back = count < 0
       , par: Element | 0 | null | undefined, timesRegExpNotMatch = 0
       , q: string, notSens = ignoreCase && !options.caseSensitive
@@ -743,7 +745,7 @@ export const executeFind = (query?: string | null, options?: FindNS.ExecuteOptio
      *   if only a trusted "blur" event gets dispatched into Document
      * See https://bugzilla.mozilla.org/show_bug.cgi?id=1479760 .
      */
-    options.noColor || toggleStyle(0)
+    noColor || toggleStyle(0)
     back && (count = -count);
     const isRe = isRegex, pR = parsedRegexp_
     const focusHUD = !!(Build.BTypes & BrowserType.Firefox)
@@ -754,11 +756,11 @@ export const executeFind = (query?: string | null, options?: FindNS.ExecuteOptio
     do {
       q = query != null ? query : isRe ? getNextQueryFromRegexMatches(back) : parsedQuery_
       found = Build.BTypes & ~BrowserType.Chrome
-        ? _do_find_not_cr!(q, !notSens, back, wrapAround, wholeWord, false, false)
-        : window.find(q, !notSens, back, wrapAround, wholeWord, false, false)
+        ? _do_find_not_cr!(q, !notSens, back, !highLight && wrapAround, wholeWord, false, false)
+        : window.find(q, !notSens, back, !highLight && wrapAround, wholeWord, false, false)
       if (Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
-          && !found) {
+          && !highLight && wrapAround && !found) {
         resetSelectionToDocStart();
         found = _do_find_not_cr!(q, !notSens, back, true, wholeWord, false, false)
       }
@@ -780,10 +782,12 @@ export const executeFind = (query?: string | null, options?: FindNS.ExecuteOptio
       par = par || getSelectionParent_unsafe();
       par && view_(par);
     }
-    options.noColor || timeout_(hookSel, 0);
+    noColor || timeout_(hookSel, 0);
     (el = insert_Lock_()) && !isSelected_() && el.blur();
     Build.BTypes & BrowserType.Firefox && focusHUD && doFocus()
-    hasResults = found
+    if (!options.i) {
+      hasResults = found
+    }
 }
 
 /**
