@@ -338,6 +338,7 @@ interface CmdOptions {
   } & Partial<BgCSSReq> | ShowHelpDialogOptions
   [kFgCmd.findMode]: {
     /** count */ n: number;
+    /** highlight multiple in viewport */ m?: boolean | BOOL;
     /** leave find mode */ l: boolean;
     /** query */ q: string;
     /* return to view port */ r: boolean;

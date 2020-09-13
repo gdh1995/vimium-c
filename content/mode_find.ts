@@ -1,6 +1,6 @@
 import {
   setupEventListener, VTr, keydownEvents_, isAlive_, suppressCommonEvents, onWndFocus, VOther, timeout_, safer, fgCache,
-  doc, safeObj, getTime, chromeVer_, deref_, escapeAllForRe, tryCreateRegExp, vApi,
+  doc, safeObj, getTime, chromeVer_, deref_, escapeAllForRe, tryCreateRegExp, vApi, callFunc, clearTimeout_,
 } from "../lib/utils"
 import {
   pushHandler_, SuppressMost_, Stop_, removeHandler_, prevent_, getMappedKey, keybody_, isEscape_, keyNames_,
@@ -11,10 +11,13 @@ import {
   getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, htmlTag_, fullscreenEl_unsafe_, docEl_unsafe_,
   getSelection_, isSelected_, docSelectable_, isHTML_, createElement_, CLK, MDW, HDN, NONE,
 } from "../lib/dom_utils"
-import { wdZoom_, prepareCrop_, view_, dimSize_, selRange_, getZoom_ } from "../lib/rect"
+import {
+  wdZoom_, prepareCrop_, view_, dimSize_, selRange_, getZoom_, padClientRect_, getSelectionBoundingBox_,
+  cropRectToVisible_,
+} from "../lib/rect"
 import {
   ui_box, ui_root, getSelectionParent_unsafe, resetSelectionToDocStart, getBoxTagName_cr_, collpaseSelection,
-  createStyle, getSelectionText, checkDocSelectable, adjustUI, ensureBorder, addUIElement, getSelected,
+  createStyle, getSelectionText, checkDocSelectable, adjustUI, ensureBorder, addUIElement, getSelected, flash_,
 } from "./dom_ui"
 import { visual_mode, highlightRange, kDir, activate as visualActivate, kExtend } from "./visual"
 import { keyIsDown as scroll_keyIsDown, beginScroll, onScrolls } from "./scroller"
@@ -56,6 +59,7 @@ let styleSelectable: HTMLStyleElement | null = null
 let styleInHUD: HTMLStyleElement | null = null
 let onUnexpectedBlur: ((event?: Event) => void) | null = null
 let doesCheckAlive: BOOL = 0
+let highlighting: (() => void) | undefined | null
 let isSmall = false
 let postLock: Element | null = null
 let cachedInnerText: { /** innerText */ i: string, /** timestamp */ t: number } | null | undefined
@@ -338,6 +342,10 @@ const findAndFocus = (query: string, options: CmdOptions[kFgCmd.findMode]): void
     style ? style.visibility = HDN : 0;
     toggleSelectableStyle(0);
     executeFind(null, options)
+    if (hasResults && options.m) {
+      getZoom_()
+      highlightInViewport()
+    }
     style && (style.visibility = "");
     if (!hasResults) {
       toggleStyle(1)
@@ -357,6 +365,7 @@ export const clear = (): void => {
   wrapAround = true
   removeHandler_(activate)
   outerBox_ && outerBox_.remove()
+  highlighting && highlighting()
   if (box_ === deref_(lastHovered_)) { /*#__INLINE__*/ resetLastHovered() }
   parsedQuery_ = query_ = query0_ = ""
   historyIndex = matchCount = doesCheckAlive = 0;
@@ -418,7 +427,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
           beginScroll(eventWrapper, key, keybody);
         }
         else if (keybody > kChar.i && keybody < kChar.l) {
-            executeFind(null, { n: -(keybody > kChar.j), i: 1 })
+          onHostKeydown(eventWrapper)
         }
         else { h = HandlerResult.Suppress; }
       }
@@ -454,7 +463,12 @@ const onHostKeydown = (event: HandlerNS.Event): HandlerResult => {
       return HandlerResult.Prevent;
     } else if (key.length > 1 && "c-m-".includes(key[0] + key[1])
         && (keybody = keybody_(key)) > kChar.i && keybody < kChar.l) {
+      if (!hasResults) { /* empty */ }
+      else if (key.length > 4) {
+        highlightInViewport()
+      } else {
         executeFind(null, { n: -(keybody > kChar.j), i: 1 })
+      }
       return HandlerResult.Prevent
     }
     if (!insert_Lock_() && isEscape_(key)) {
@@ -731,7 +745,25 @@ const getNextQueryFromRegexMatches = (back?: boolean): string => {
   return regexMatches[count]
 }
 
-export const executeFind = (query?: string | null, options?: FindNS.ExecuteOptions): void => {
+const highlightInViewport = (): void => {
+  prepareCrop_(1)
+  const opt: FindNS.ExecuteOptions = { h: [scrollX, scrollY], i: 1 }
+  const sel = getSelected()[0], range = rangeCount_(sel) && selRange_(sel)
+  range && collpaseSelection(sel)
+  let arr = executeFind(null, opt), el: LockableElement | null
+  if (range) {
+    resetSelectionToDocStart(sel, range)
+    opt.n = -1
+    arr = arr.concat(executeFind(null, opt))
+  }
+  (el = insert_Lock_()) && el.blur()
+  highlighting && highlighting()
+  const cbs = arr.map(cr => flash_(null, cr, -1, " Sel SelH"))
+  range ? resetSelectionToDocStart(sel, range) : restoreSelection()
+  const timer = timeout_(highlighting = () => { highlighting = null; clearTimeout_(timer); cbs.map(callFunc) }, 2400)
+}
+
+export const executeFind = (query?: string | null, options?: FindNS.ExecuteOptions): Rect[] => {
     options = options ? safer(options) : safeObj(null) as FindNS.ExecuteOptions;
     let el: LockableElement | null
       , highLight = options.h, areas: Rect[] = [], noColor = highLight || options.noColor
@@ -777,8 +809,17 @@ export const executeFind = (query?: string | null, options?: FindNS.ExecuteOptio
       else if (found && pR && (par = getSelectionParent_unsafe(pR)) === 0 && timesRegExpNotMatch++ < 9) {
         count++
       }
+      else if (highLight) {
+        scrollTo(highLight[0], highLight[1])
+        const sel2 = getSelected()[0], br = rangeCount_(sel2) && padClientRect_(getSelectionBoundingBox_(sel2)),
+        cr = br && cropRectToVisible_(br.l, br.t, br.r && br.r + 3, br.b && br.b + 3)
+        if (cr) {
+          areas.push(cr)
+          count++
+        }
+      }
     } while (0 < --count && found);
-    if (found) {
+    if (found && !highLight) {
       par = par || getSelectionParent_unsafe();
       par && view_(par);
     }
@@ -788,6 +829,7 @@ export const executeFind = (query?: string | null, options?: FindNS.ExecuteOptio
     if (!options.i) {
       hasResults = found
     }
+    return areas
 }
 
 /**

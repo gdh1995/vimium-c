@@ -1316,6 +1316,7 @@
           , H: ensureInnerCSS(cPort), c: kFgCmd.findMode, n: 1
           , a: {
         n: nth > 0 ? cRepeat / absRepeat : cRepeat,
+        m: !!cOptions.highlight,
         l: leave,
         f: findCSS,
         r: cOptions.returnToViewport === true,
