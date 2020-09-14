@@ -297,7 +297,7 @@ const findV = (count: number): void => {
       return;
     }
     const sel = curSelection, range = rangeCount_(sel) && (getDirection(""), !diType_) && selRange_(sel)
-    executeFind(null, { noColor: 1, n: count })
+    executeFind("", { noColor: 1, n: count })
     if (find_hasResults) {
       diType_ = DiType.UnsafeUnknown
       if (mode_ === Mode.Caret && selType() === SelType.Range) {
@@ -391,7 +391,7 @@ const getNextRightCharacter = (isMove: BOOL): string => {
       // if isMove, then cur sel is >= 1 char & di is right
       isMove && collapseToRight(newLen === 1 ? kDirTy.right : kDirTy.left)
       oldLen_ = isMove && newLen !== 1 ? 0 : 2 + oldLen
-      return afterText[newLen - 1];
+      return afterText[newLen - 1] || ""
     }
     return "";
 }

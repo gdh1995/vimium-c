@@ -1010,7 +1010,7 @@ function (details: chrome.runtime.InstalledDetails): void {
   if (!reason) {
     const p = Settings_.restore_ && Settings_.restore_() || Promise.resolve()
     p.then(() => {
-      Backend_.focus_({ u: Settings_.CONST_.OptionsPage_ + (Build.NDEBUG || 1 ? "#commands" : "#installed") })
+      Backend_.focus_({ u: Settings_.CONST_.OptionsPage_ + (Build.NDEBUG ? "#commands" : "#installed") })
     })
     return
   }

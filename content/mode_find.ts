@@ -341,7 +341,7 @@ const findAndFocus = (query: string, options: CmdOptions[kFgCmd.findMode]): void
     const style = isActive || hud_opacity !== 1 ? null : hud_box!.style
     style ? style.visibility = HDN : 0;
     toggleSelectableStyle(0);
-    executeFind(null, options)
+    executeFind("", options)
     if (hasResults && options.m) {
       getZoom_()
       highlightInViewport()
@@ -467,7 +467,7 @@ const onHostKeydown = (event: HandlerNS.Event): HandlerResult => {
       else if (key.length > 4) {
         highlightInViewport()
       } else {
-        executeFind(null, { n: -(keybody > kChar.j), i: 1 })
+        executeFind("", { n: -(keybody > kChar.j), i: 1 })
       }
       return HandlerResult.Prevent
     }
@@ -738,27 +738,23 @@ const restoreSelection = (isCur?: boolean): void => {
     resetSelectionToDocStart(sel, range)
 }
 
-const getNextQueryFromRegexMatches = (back?: boolean): string => {
-  if (!regexMatches) { return "" }
-  let count = matchCount
-  activeRegexIndex = count = (activeRegexIndex + (back ? -1 : 1) + count) % count
-  return regexMatches[count]
-}
-
 const highlightInViewport = (): void => {
   prepareCrop_(1)
+  const oldActiveRegexIndex = activeRegexIndex
   const opt: FindNS.ExecuteOptions = { h: [scrollX, scrollY], i: 1 }
   const sel = getSelected()[0], range = rangeCount_(sel) && selRange_(sel)
   range && collpaseSelection(sel)
-  let arr = executeFind(null, opt), el: LockableElement | null
+  let arr = executeFind("", opt), el: LockableElement | null
   if (range) {
     resetSelectionToDocStart(sel, range)
+    activeRegexIndex = oldActiveRegexIndex
     opt.n = -1
-    arr = arr.concat(executeFind(null, opt))
+    arr = arr.concat(executeFind("", opt))
   }
   (el = insert_Lock_()) && el.blur()
   highlighting && highlighting()
   const cbs = arr.map(cr => flash_(null, cr, -1, " Sel SelH"))
+  activeRegexIndex = oldActiveRegexIndex
   range ? resetSelectionToDocStart(sel, range) : restoreSelection()
   const timer = timeout_(highlighting = () => { highlighting = null; clearTimeout_(timer); cbs.map(callFunc) }, 2400)
 }
@@ -784,42 +780,47 @@ export const executeFind = (query?: string | null, options?: FindNS.ExecuteOptio
       && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
       && isActive && innerDoc_.hasFocus()
     const wndSel = getSelection_()
-    let dedupID = count + 1
-    do {
-      q = query != null ? query : isRe ? getNextQueryFromRegexMatches(back) : parsedQuery_
-      found = Build.BTypes & ~BrowserType.Chrome
+    let regexpNoMatchLimit = 9 * count, dedupID = ++count, oldReInd: number, selNone: boolean
+    while (0 < count) {
+      oldReInd = activeRegexIndex
+      q = query || (!isRe ? parsedQuery_ : !regexMatches ? "" : regexMatches[
+            activeRegexIndex = highLight
+                ? back ? oldReInd > 0 ? oldReInd - 1 : 0 : oldReInd + 1 < matchCount ? oldReInd + 1 : matchCount - 1
+                : (oldReInd + (back ? -1 : 1) + matchCount) % matchCount])
+      found = !!q && (Build.BTypes & ~BrowserType.Chrome
         ? _do_find_not_cr!(q, !notSens, back, !highLight && wrapAround, wholeWord, false, false)
         : window.find(q, !notSens, back, !highLight && wrapAround, wholeWord, false, false)
+      )
       if (Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
-          && !highLight && wrapAround && !found) {
+          && !found && !highLight && wrapAround && q) {
         resetSelectionToDocStart();
         found = _do_find_not_cr!(q, !notSens, back, true, wholeWord, false, false)
       }
-      if (found && dedupID > count && !(wndSel + "")) { // the matched text may have `user-select: none`
-        dedupID = count
-        count++
-        wndSel.modify("move", kDir[1 - <number> <number | boolean>back], "character")
-      }
+      if (!found) { break }
+      selNone = dedupID > count && !(wndSel + "") // if true, then the matched text may have `user-select: none`
       /**
        * Warning: on Firefox and before {@link #FirefoxBrowserVer.Min$find$NotReturnFakeTrueOnPlaceholderAndSoOn},
        * `found` may be unreliable,
        * because Firefox may "match" a placeholder and cause `getSelection().type` to be `"None"`
        */
-      else if (found && pR && (par = getSelectionParent_unsafe(pR)) === 0 && timesRegExpNotMatch++ < 9) {
-        count++
-      }
-      else if (highLight) {
+      if (pR && !selNone && (par = getSelectionParent_unsafe(pR)) === 0 && timesRegExpNotMatch++ < regexpNoMatchLimit) {
+        activeRegexIndex = oldReInd
+      } else if (highLight) {
         scrollTo(highLight[0], highLight[1])
         const sel2 = getSelected()[0], br = rangeCount_(sel2) && padClientRect_(getSelectionBoundingBox_(sel2)),
         cr = br && cropRectToVisible_(br.l, br.t, br.r && br.r + 3, br.b && br.b + 3)
-        if (cr) {
-          areas.push(cr)
-          count++
-        }
+        cr ? areas.push(cr) : count = 0 // even for a caret caused by `user-select: none`
+        timesRegExpNotMatch = 0
+      } else {
+        count--;
       }
-    } while (0 < --count && found);
-    if (found && !highLight) {
+      if (selNone) {
+        dedupID = highLight ? 2 : ++count
+        wndSel.modify("move", kDir[1 - <number> <number | boolean>back], "character")
+      }
+    }
+    if (found! && !highLight) {
       par = par || getSelectionParent_unsafe();
       par && view_(par);
     }
@@ -827,7 +828,7 @@ export const executeFind = (query?: string | null, options?: FindNS.ExecuteOptio
     (el = insert_Lock_()) && !isSelected_() && el.blur();
     Build.BTypes & BrowserType.Firefox && focusHUD && doFocus()
     if (!options.i) {
-      hasResults = found
+      hasResults = found!
     }
     return areas
 }
