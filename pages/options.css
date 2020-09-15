@@ -430,7 +430,8 @@ label:active {
   padding-top: 1px;
 }
 .booleanOption.innerLine {
-  padding-top: 0;
+  padding-top: 1px;
+  padding-top: var(--tiny);
   line-height: 22px;
   line-height: calc(24px - var(--tiny) * 2);
 }

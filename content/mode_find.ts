@@ -780,7 +780,7 @@ export const executeFind = (query?: string | null, options?: FindNS.ExecuteOptio
       && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
       && isActive && innerDoc_.hasFocus()
     const wndSel = getSelection_()
-    let regexpNoMatchLimit = 9 * count, dedupID = ++count, oldReInd: number, selNone: boolean
+    let regexpNoMatchLimit = 9 * count, dedupID = count + 1, oldReInd: number, selNone: boolean
     while (0 < count) {
       oldReInd = activeRegexIndex
       q = query || (!isRe ? parsedQuery_ : !regexMatches ? "" : regexMatches[
