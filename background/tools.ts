@@ -470,7 +470,6 @@ Marks_ = { // NOTE: all public members should be static
         let oldPos = (request as MarksNS.FgLocalQuery).o, x: number, y: number;
         if (oldPos && (x = +oldPos.x) >= 0 && (y = +oldPos.y) >= 0) {
           (request as MarksNS.NewMark).s = scroll = [x, y, oldPos.h];
-          Marks_._set(request as MarksNS.NewMark, port.s.a);
         }
       }
       if (scroll) {

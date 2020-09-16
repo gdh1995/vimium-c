@@ -98,7 +98,6 @@ const goto = (event: HandlerNS.Event, keyChar: string): void => {
             (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).o = {
               x: scrollX | 0, y: scrollY | 0, h: "" + (hash || "")
             }
-            storage.removeItem(key)
           }
         }
       } catch {}
