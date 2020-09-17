@@ -932,7 +932,7 @@ setTimeout(function (loadI18nPayload: () => void): void {
   const nativeTrans = trans_, lang2 = nativeTrans("lang2"), lang1 = trans_("lang1"),
   i18nVer = `${lang2 || lang1 || "en"},${Settings_.CONST_.VerCode_},`,
   // eslint-disable-next-line arrow-body-style
-  newTrans: typeof chrome.i18n.getMessage = (messageName: string, substitutions?: Array<string | number>): string => {
+  newTrans: typeof chrome.i18n.getMessage = (messageName, substitutions): string => {
     return i18nKeys.has(messageName) ? nativeTrans(messageName, substitutions) : "";
   };
   let oldStr = localStorage.getItem(I18nConsts.storageKey), keyArrays: string[] = [], i18nKeys: Set<string>, toDos = 0,

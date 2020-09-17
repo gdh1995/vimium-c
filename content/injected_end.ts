@@ -26,7 +26,7 @@ if (!Build.NDEBUG) {
       ? BrowserType.Firefox : BrowserType.Chrome
   const thisApi = VApi
   const injector = VimiumInjector!
-  const transArgsRe = <RegExpSearchable<0>> /\$\d/g
+  const trArgsRe = <RegExpSearchable<0>> /\$\d/g
   const runtime: typeof chrome.runtime = (!(Build.BTypes & BrowserType.Chrome) ? browser as typeof chrome
       : Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome
       ? mayBrowser_! : chrome).runtime;
@@ -51,8 +51,9 @@ if (!Build.NDEBUG) {
   };
   thisApi.r![0](kFgReq.i18n, {}, i18nCallback);
   thisApi.r![2]!(2, (tid, args): string => {
-    return !i18nMessages ? args && args.length ? `T${tid}: ${args.join(", ")}` : "T" + tid
-        : args ? i18nMessages[tid].replace(transArgsRe, s => <string> args[+s[1] - 1])
+    return !i18nMessages
+        ? args && args.length ? `T${tid}: ${typeof args === "string" ? args : args.join(", ")}` : "T" + tid
+        : args ? i18nMessages[tid].replace(trArgsRe, s => typeof args === "string" ? args : <string> args![+s[1] - 1])
         : i18nMessages[tid];
   })
 
