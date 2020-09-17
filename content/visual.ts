@@ -41,7 +41,7 @@ import {
   padClientRect_, getSelectionBoundingBox_, getZoom_, prepareCrop_, cropRectToVisible_, getVisibleClientRect_,
   set_scrollingTop, selRange_,
 } from "../lib/rect"
-import { checkDocSelectable, getSelected, resetSelectionToDocStart, flash_, collpaseSelection } from "./dom_ui"
+import { checkDocSelectable, getSelected, resetSelectionToDocStart, flash_, collpaseSelection, ui_box } from "./dom_ui"
 import { prepareTop, executeScroll, scrollIntoView_need_safe } from "./scroller"
 import {
   toggleSelectableStyle, find_query, executeFind, find_hasResults, updateQuery as findUpdateQuery, findCSS, set_findCSS,
@@ -110,6 +110,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     di_ = isRange ? kDirTy.unknown : kDirTy.right
     mode_ = newMode
     alterMethod = toCaret ? "move" : kExtend
+    ui_box || hudShow(kTip.raw)
     toggleSelectableStyle(1)
     if (/* type === SelType.None */ !type && establishInitialSelectionAnchor(theSelected[1])) {
       deactivate()

@@ -61,7 +61,10 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
       }
     }, 0, 1); // should use a listener in active mode: https://www.chromestatus.com/features/5745543795965952
     addUIElement = (element2: HTMLElement, adjust2?: AdjustType, before?: Element | null | true): void => {
-      const doesAdjustFirst = box_!.parentNode && element2 !== curModalElement
+      const doesAdjustFirst = (!(Build.BTypes & ~BrowserType.Edge)
+          || Build.BTypes & BrowserType.Edge && VOther === BrowserType.Edge || Build.BTypes & BrowserType.Chrome
+          && Build.MinCVer < BrowserVer.Min$Node$$isConnected && chromeVer_ < BrowserVer.Min$Node$$isConnected
+          ? GetParent_unsafe_(box_!, PNType.DirectNode) : box_!.isConnected!) && element2 !== curModalElement
       adjust2 !== AdjustType.NotAdjust && doesAdjustFirst && adjustUI()
       root_.insertBefore(element2, before === true ? root_.firstChild : before || null)
       adjust2 !== AdjustType.NotAdjust && !doesAdjustFirst && adjustUI()
