@@ -351,7 +351,7 @@ const findAndFocus = (query: string, options: CmdOptions[kFgCmd.findMode]): void
       toggleStyle(1)
       if (!isActive) {
         toggleSelectableStyle(0);
-        hudTip(kTip.noMatchFor, 0, [query_])
+        hudTip(kTip.noMatchFor, 0, query_)
       }
       return;
     }

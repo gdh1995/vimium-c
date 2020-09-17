@@ -247,7 +247,7 @@ declare namespace HintsNS {
 interface InsertModeOptions {
   /** stripped key */ k: string | null;
   /** passExitKey */ p: boolean;
-  /** hud message */ h: [string] | null;
+  /** hud message */ h: [string] | string | null;
 }
 interface ShowHelpDialogOptions {
   h?: null

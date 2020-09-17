@@ -18,11 +18,11 @@ let style: CSSStyleDeclaration
 
 export { box as hud_box, text as hud_text, opacity_ as hud_opacity, timer as hud_tipTimer }
 
-export const hudTip = (tid: kTip | HintMode, duration?: number, args?: Array<string | number>): void => {
+export const hudTip = (tid: kTip | HintMode, duration?: number, args?: Array<string | number> | string): void => {
   hudShow(tid, args);
   text && (timer = timeout_(hudHide, duration || 1500));
 }
-export const hudShow = (tid: kTip | HintMode, args?: Array<string | number>
+export const hudShow = (tid: kTip | HintMode, args?: Array<string | number> | string
     , embed?: boolean | BOOL | TimerType.fake): void => {
   if (!isHTML_()) { return; }
   text = VTr(tid, args);
@@ -84,7 +84,7 @@ export const hudHide = (info?: TimerType.fake | TimerType.noTimer): void => {
       return
     }
     if (visual_mode) {
-      hudShow(kTip.inVisualMode, [visual_mode_name], info)
+      hudShow(kTip.inVisualMode, visual_mode_name, info)
       return
     }
     if (insert_global_ && insert_global_.h) {

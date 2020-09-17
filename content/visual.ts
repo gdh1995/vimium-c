@@ -123,7 +123,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     }
     commandHandler(VisualAction.Noop, 1)
     pushHandler_(onKeydown, activate)
-    newMode !== mode ? hudTip(kTip.noUsableSel, 1000) : hudShow(kTip.inVisualMode, [modeName], options.r)
+    newMode !== mode ? hudTip(kTip.noUsableSel, 1000) : hudShow(kTip.inVisualMode, modeName, options.r)
 }
 
   /** @safe_di */
@@ -311,7 +311,7 @@ const findV = (count: number): void => {
       }
     } else {
       range && !rangeCount_(sel) && resetSelectionToDocStart(sel, range)
-      hudTip(kTip.noMatchFor, 1000, [find_query])
+      hudTip(kTip.noMatchFor, 1000, find_query)
     }
 }
 
@@ -328,7 +328,7 @@ const yank = (action: kYank | ReuseType.current | ReuseType.newFg): void => {
       post_({ H: kFgReq.openUrl, u: str, r: action as ReuseType })
     } else if (rich || action > kYank.RichTextButNotExit - 1) {
       execCommand("copy", doc)
-      hudTip(kTip.copiedIs, 0, ["# " + str])
+      hudTip(kTip.copiedIs, 0, "# " + str)
     } else {
       post_({ H: kFgReq.copy, s: str })
     }

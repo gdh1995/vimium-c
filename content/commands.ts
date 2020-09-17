@@ -124,7 +124,7 @@ set_contentCommands_([
         installTempCurrentKeyStatus()
         if (keyCount - count || !hud_text) {
           keyCount = count;
-          hudShow(kTip.normalMode, [count > 1 ? VTr(kTip.nTimes, [count]) : ""]);
+          hudShow(kTip.normalMode, count > 1 ? VTr(kTip.nTimes, [count]) : "")
         }
         return i;
       }) as EscF)
@@ -141,7 +141,7 @@ set_contentCommands_([
     /*#__INLINE__*/ set_onKeyup2((event): void => {
       if (keyCount === 0 || --keyCount || --count) {
         keys[event ? event.keyCode : kKeyCode.None] = 0;
-        hudShow(kTip.passNext, [count > 1 ? VTr(kTip.nTimes, [count]) : ""]);
+        hudShow(kTip.passNext, count > 1 ? VTr(kTip.nTimes, [count]) : "");
       } else {
         exitPassMode!();
       }
@@ -163,7 +163,7 @@ set_contentCommands_([
         && (findNextInRel(req.r) || req.p.length && findNextInText(req.p, isNext, req.l, req.m))) {
       chosen[1].j(chosen[0])
     } else {
-      hudTip(kTip.noLinksToGo, 0, [VTr(kTip.prev + <number> <boolean | number> isNext)]);
+      hudTip(kTip.noLinksToGo, 0, VTr(kTip.prev + <number> <boolean | number> isNext));
     }
   },
   /* kFgCmd.autoOpen: */ (options: CmdOptions[kFgCmd.autoOpen]): void => {

@@ -1261,7 +1261,7 @@
           i: !!cOptions.insert,
           k: k2 || null,
           p: !!cOptions.passExitKey,
-          h: hud ? [trans_("" + kTip.globalInsertMode, [k2 && ": " + key])] : null
+          h: hud ? trans_("" + kTip.globalInsertMode, [k2 && ": " + key]) : null
         }
       });
     },

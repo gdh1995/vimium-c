@@ -321,7 +321,7 @@ export const setMode = (mode: HintMode, silent?: BOOL): void => {
     if (Build.BTypes & BrowserType.ChromeOrFirefox) {
       msg += (manager_ || coreHints).d ? VTr(kTip.modalHints) : "";
     }
-    hudShow(kTip.raw, [msg], true)
+    hudShow(kTip.raw, msg, true)
 }
 
 const getPreciseChildRect = (frameEl: KnownIFrameElement, view: Rect): Rect | null => {
