@@ -1,13 +1,6 @@
 import HintItem = HintsNS.HintItem
 import LinkEl = HintsNS.LinkEl
 import FilteredHintItem = HintsNS.FilteredHintItem
-interface Executor {
-    (this: void, linkEl: LinkEl, rect: Rect | null, hintEl: Pick<HintItem, "r">): void | boolean;
-}
-interface ModeOpt extends ReadonlyArray<Executor | HintMode> {
-    [0]: Executor;
-    [1]: HintMode;
-}
 export interface KeyStatus {
     /** curHints */ c: readonly HintItem[];
     /** keySequence */ k: string;
@@ -94,6 +87,7 @@ import {
   generateHintText,
 } from "./hint_filters"
 import {
+  LinkAction,
   linkActions, executeHintInOfficer, removeFlash, set_hintModeAction, resetRemoveFlash, resetHintKeyCode,
 } from "./link_actions"
 import { lastHovered_, resetLastHovered } from "./async_dispatcher"
@@ -244,7 +238,7 @@ const collectFrameHints = (count: number, options: HintsNS.ContentOptions
         Build.BTypes & BrowserType.Firefox ? manager && unwrap_ff(manager) : manager
     resetHints();
     scrollTick(2);
-    let modeAction: ModeOpt | undefined;
+    let modeAction: LinkAction | undefined;
     if (options_ !== options) {
       /** ensured by {@link ../background/commands.ts#Commands.makeCommand_} */
       let mode = options.m as number;

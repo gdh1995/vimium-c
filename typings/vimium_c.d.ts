@@ -90,10 +90,7 @@ declare namespace CompletersNS {
 }
 
 declare namespace MarksNS {
-  interface ScrollInfo extends Array<any> {
-    [0]: number;
-    [1]: number;
-  }
+  type ScrollInfo = [ x: number, y: number, hash?: string ]
   interface ScrollableMark {
     scroll: ScrollInfo;
   }

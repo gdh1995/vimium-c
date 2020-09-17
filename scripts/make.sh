@@ -15,6 +15,16 @@ function confirm() {
   esac
 }
 
+if [ "${PWD##*/}" = weidu ]; then
+  ZIP_BASE=
+  test -d ../vimium-c/ && script_base=../vimium-c/ || script_base=../
+  INCLUDE_DOT_FILES=
+  IN_DIST=
+  WITH_MAP=
+  ZIP_INPUT=
+  ZIP_IGNORE='img/bg* img/tab*'
+fi
+
 input=
 [ -z "$ZIP_BASE" -a -f "make.sh" ] && [ "${PWD##*/}" = scripts ] && ZIP_BASE=$(exec dirname "$PWD")
 [ -n "$ZIP_BASE" -a "${ZIP_BASE%/}" = "$ZIP_BASE" ] && ZIP_BASE=$ZIP_BASE/

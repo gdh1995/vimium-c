@@ -163,7 +163,7 @@ export const GetParent_unsafe_ = function (this: void, el: Node | Element
       , pn = el.parentNode as Exclude<ParentNodeProp, Window>;
     if (pe === pn /* normal pe or no parent */ || !pn /* indeed no par */) { return pn as Element | null; }
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
-        && pe && unsafeFramesetTag_old_cr_!) { // may be [a <frameset> with pn or pe overridden], or a <form>
+        && unsafeFramesetTag_old_cr_! && pe) { // may be [a <frameset> with pn or pe overridden], or a <form>
       const action = +((pn as ParentNodeProp as WindowWithTop).top === top)
           + 2 * +((pe as ParentElement as WindowWithTop).top === top);
       if (action) { // indeed a <frameset>

@@ -130,22 +130,10 @@ interface Rect extends WritableRect {
   readonly r: number; // right
   readonly b: number; // bottom
 }
-interface Point2D extends Array<number> {
-  readonly [0]: number;
-  readonly [1]: number;
-  readonly length: 2;
-}
+type Point2D = readonly [ left: number, top: number ]
 
-interface ViewOffset {
-  readonly [0]: number; // left
-  readonly [1]: number; // top
-}
-
-interface ViewBox extends ViewOffset {
-  readonly [2]: number; // width
-  readonly [3]: number; // height
-  readonly [4]: number; // max-left or 0
-}
+type ViewBox = readonly [ left: number, top: number, width: number, height: number, maxLeft: number ]
+type ViewOffset = readonly [ left: number, top: number ] | ViewBox
 
 declare const enum HookAction {
   Install = 0,
@@ -333,21 +321,17 @@ declare namespace VomnibarNS {
 
 declare type ScrollByY = 0 | 1;
 
-interface HintOffset {
-  [0]: Rect; // rect of the hint below this marker
-  [1]: number; // offset-x
-}
+type HintOffset = [ rectBehindCur: Rect, offsetX: number ]
 
 type HTMLElementUsingMap = HTMLImageElement | HTMLObjectElement;
 type SafeElementForMouse = SafeHTMLElement | NonHTMLButFormattedElement | SafeElementWithoutFormat;
-interface Hint {
-  [0]: SafeElementForMouse; // element
-  [1]: Rect; // bounding rect
-  [2]: number; // priority (smaller is prior)
-  [3]?: HintOffset;
-  [4]?: HTMLElementUsingMap;
-  length: number;
-}
+type Hint = [
+  element: SafeElementForMouse,
+  rect: Rect,
+  priority: number,
+  offset?: HintOffset,
+  relatedMap?: HTMLElementUsingMap
+]
 interface Hint4 extends Hint {
   [3]: HintOffset;
 }
@@ -355,7 +339,7 @@ interface Hint5 extends Hint4 {
   [4]: HTMLElementUsingMap; // fixed rect
 }
 
-interface GoNextBaseCandidate { [0]: SafeHTMLElement; [1]: VApiTy }
+type GoNextBaseCandidate = [element: SafeHTMLElement, api: VApiTy, score?: number, text?: string ]
 interface GoNextCandidate extends GoNextBaseCandidate { [2]: number; [3]: string }
 
 declare const enum AdjustType {
@@ -374,12 +358,7 @@ type VimiumContainerElementType = "div" | "span" | "style" | "iframe" | "a" | "s
 /** ShadowRoot | HTMLDivElement */
 type VUIRoot = ShadowRoot | (HTMLDivElement & { mode?: undefined });
 
-interface MyMouseControlKeys {
-  /** altKey */ [0]: boolean
-  /** ctrlKey */ [1]: boolean
-  /** metaKey */ [2]: boolean
-  /** shiftKey */ [3]: boolean
-}
+type MyMouseControlKeys = [ altKey: boolean, ctrlKey: boolean, metaKey: boolean, shiftKey: boolean ]
 
 interface ComplicatedVPort {
   <K extends keyof FgReq, T extends FgReq[K]>(this: void, req: T & Req.baseFg<K>): void | 1

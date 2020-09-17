@@ -24,10 +24,10 @@ type LinkEl = Hint[0];
 interface Executor {
   (this: void, linkEl: LinkEl, rect: Rect | null, hintEl: Pick<HintItem, "r">): void | boolean;
 }
-interface LinkAction extends ReadonlyArray<Executor | HintMode> {
-  [0]: Executor;
-  [1]: HintMode;
+interface HTMLExecutor {
+  (this: void, linkEl: SafeHTMLElement, rect: Rect | null, hintEl: Pick<HintItem, "r">): void | boolean;
 }
+export type LinkAction = readonly [ executor: Executor, ...modes: HintMode[] ]
 
 let hintModeAction: LinkAction | null | undefined
 let keyCode_ = kKeyCode.None
@@ -328,16 +328,16 @@ export const linkActions: readonly LinkAction[] = [
   , HintMode.EDIT_TEXT
 ],
 [
-  (link: SafeHTMLElement): void => {
+  ((link: SafeHTMLElement): void => {
     const url = getUrlData(link);
     if (!evalIfOK(url)) {
       openUrl(url, !0);
     }
-  }
+  }) as HTMLExecutor as Executor
   , HintMode.OPEN_INCOGNITO_LINK
-] as LinkAction,
+],
 [
-  (element: SafeHTMLElement): void => {
+  ((element: SafeHTMLElement): void => {
     let tag = htmlTag_(element), text: string | void;
     if (tag === "video" || tag === "audio") {
       text = (element as HTMLImageElement).currentSrc || (element as HTMLImageElement).src;
@@ -357,11 +357,11 @@ export const linkActions: readonly LinkAction[] = [
     /** @todo: how to trigger download */
     mouse_(a, CLK, [0, 0], [!0, !1, !1, !1]);
     hintApi.t({ k: kTip.downloaded, t: text })
-  }
+  }) as HTMLExecutor as Executor
   , HintMode.DOWNLOAD_MEDIA
-] as LinkAction,
+],
 [
-  (img: SafeHTMLElement): void => {
+  ((img: SafeHTMLElement): void => {
     const text = getImageUrl(img);
     if (!text) { return; }
     post_({
@@ -372,11 +372,11 @@ export const linkActions: readonly LinkAction[] = [
       u: text,
       a: hintOptions.auto
     });
-  }
+  }) as HTMLExecutor as Executor
   , HintMode.OPEN_IMAGE
-] as LinkAction,
+],
 [
-  (element: SafeHTMLElement, rect): void => {
+  ((element: SafeHTMLElement, rect): void => {
     let notAnchor = htmlTag_(element) !== "a", H = "href",
     link = notAnchor ? createElement_("a") : element as HTMLAnchorElement,
     oldUrl: string | null = notAnchor ? null : link.getAttribute(H),
@@ -406,9 +406,9 @@ export const linkActions: readonly LinkAction[] = [
       link.removeAttribute(H);
     }
     })
-  }
+  }) as HTMLExecutor as Executor
   , HintMode.DOWNLOAD_LINK
-] as LinkAction,
+],
 [
   (link, rect): void | false => {
     if (hintMode_ < HintMode.min_disable_queue) {

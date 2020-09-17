@@ -6,7 +6,7 @@
   "dependencies": {
     "pngjs": "^5.0.0",
     "terser": "^5.2.1",
-    "typescript": ">=3.9.0"
+    "typescript": ">=4.0.0"
   },
   "devDependencies": {
     "clean-css": "^4.2.3",

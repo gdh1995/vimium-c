@@ -376,7 +376,8 @@ export const clear = (): void => {
 
 const onMousedown = function (this: Window | HTMLElement, event: MouseEventToPrevent): void {
   const target = event.target as Element
-  if (isAlive_ && target !== input_ && (!root_ || target.parentNode === this || target === this)
+  if (isAlive_ && target !== input_
+        && (!root_ || GetParent_unsafe_(target, PNType.DirectNode) === this || target === this)
         && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
             ? event.isTrusted : event.isTrusted !== false)) {
     prevent_(event)
@@ -484,7 +485,7 @@ const onHostKeydown = (event: HandlerNS.Event): HandlerResult => {
    * * a host script has removed all ranges
    */
 export const deactivate = (i: FindNS.Action): void => {
-    let sin = styleIn, noStyle = !sin || !sin.parentNode, hasResult = hasResults
+    let sin = styleIn, noStyle = !sin || !GetParent_unsafe_(sin, PNType.DirectNode), hasResult = hasResults
       , maxNotRunPost = postOnEsc ? FindNS.Action.ExitAndReFocus - 1 : FindNS.Action.ExitToPostMode - 1
       , el: SafeElement | null | undefined, el2: Element | null;
     i === FindNS.Action.ExitNoAnyFocus ? hookSel(1) : focus()
@@ -862,7 +863,7 @@ const toggleStyle = (disable: BOOL | boolean | Event): void => {
       sout.remove(); sin.remove();
       return;
     }
-    if (sout.parentNode !== ui_box) {
+    if (GetParent_unsafe_(sout, PNType.DirectNode) !== ui_box) {
       ui_box!.appendChild(sout);
       !((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
         && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
@@ -875,7 +876,8 @@ const toggleStyle = (disable: BOOL | boolean | Event): void => {
 }
 
 export const toggleSelectableStyle = (enable: BOOL): void => {
-  if (enable ? docSelectable_ && !findCSS.s.includes("\n") : !styleSelectable || !styleSelectable.parentNode) { return }
+  if (enable ? docSelectable_ && !findCSS.s.includes("\n")
+      : !styleSelectable || !GetParent_unsafe_(styleSelectable, PNType.DirectNode)) { return }
   styleSelectable || (styleSelectable = createStyle(findCSS.s))
   enable ? ui_box!.appendChild(styleSelectable) : styleSelectable.remove()
 }
