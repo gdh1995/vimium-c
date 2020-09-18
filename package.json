@@ -9,6 +9,7 @@
     "typescript": ">=4.0.0"
   },
   "devDependencies": {
+    "bl": ">=2.2.1",
     "clean-css": "^4.2.3",
     "deepcopy": "^2.1.0",
     "gulp": "^4.0.2",
@@ -23,11 +24,11 @@
     "kind-of": ">=6.0.3",
     "minimist": ">=0.2.1",
     "mkdirp": "^0.5.5",
+    "node-forge": ">=0.10.0",
     "rimraf": "^3.0.2",
     "rollup": "^2.18.0",
-    "bl": ">=2.2.1",
-    "yargs-parser": ">=13.1.2",
-    "seedrandom": "^3.0.5"
+    "seedrandom": "^3.0.5",
+    "yargs-parser": ">=13.1.2"
   },
   "optionalDependencies": {
     "@typescript-eslint/eslint-plugin": "^3.4.0",
