@@ -2827,7 +2827,8 @@
           c: Settings_.get_("showAdvancedCommands", true) || isOptionsPage && Settings_.temp_.cmdErrors_ !== 0
           }
         });
-      }, Build.NDEBUG ? null : function (args): void {
+      }, Build.NDEBUG ? Build.MinCVer < BrowserVer.Min$Promise$$Then$Accepts$null && Build.BTypes & BrowserType.Chrome
+          ? undefined : null as never : function (args): void {
         console.error("Promises for initHelp failed:", args[0], ";", args[1]);
       });
     },

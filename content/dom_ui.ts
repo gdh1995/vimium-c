@@ -271,7 +271,7 @@ export const getSelected = (notExpectCount?: 1): [Selection, ShadowRoot | null] 
             && !(Build.BTypes & ~BrowserType.ChromeOrFirefox) )) {
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
           && chromeVer_ < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-          ? Build.MinCVer >= BrowserVer.MinShadowDOMV0 || ElementProto().webkitCreateShadowRoot
+          ? Build.MinCVer >= BrowserVer.MinShadowDOMV0 ? false : !ElementProto().webkitCreateShadowRoot
           : typeof ShadowRoot != "function") {
         return [sel, null];
       }

@@ -439,22 +439,39 @@ function patchTSNamespace (ts, logger, noGenerator, wrapGeneratorToken) {
   ts[bak + key] = noGenerator ? originalTransGen : null
   ts[key] = noGenerator ? notTransformGenerator : originalTransGen
 
+  key = "createPropertyAccessExpression"
+  var originalPropAccExpr = ts.factory[bak + key] || ts.factory[key]
+  if (originalPropAccExpr) {
+    var wrappedAccessPropExpr = function (_expression, name) {
+      var args = [].slice.call(arguments, 0)
+      args[1] = name === "label" ? "label_" : name === "sent" ? "sent_" : name
+      return originalPropAccExpr.apply(this, args)
+    }
+    ts.factory[bak + key] = wrapGeneratorToken ? originalPropAccExpr : null
+    ts.factory[key] = wrapGeneratorToken ? wrappedAccessPropExpr : originalPropAccExpr
+  }
   key = "createPropertyAccess"
   var originalAccessProp = ts[bak + key] || ts[key]
-  var wrappedAccessProp = function (_expression, name) {
-    var args = [].slice.call(arguments, 0)
-    args[1] = name === "label" ? "label_" : name === "sent" ? "sent_" : name
-    return originalAccessProp.apply(this, args)
+  if (originalAccessProp) {
+    var wrappedAccessProp = function (_expression, name) {
+      var args = [].slice.call(arguments, 0)
+      args[1] = name === "label" ? "label_" : name === "sent" ? "sent_" : name
+      return originalAccessProp.apply(this, args)
+    }
+    ts[bak + key] = wrapGeneratorToken ? originalAccessProp : null
+    ts[key] = wrapGeneratorToken ? wrappedAccessProp : originalAccessProp
   }
-  ts[bak + key] = wrapGeneratorToken ? originalAccessProp : null
-  ts[key] = wrapGeneratorToken ? wrappedAccessProp : originalAccessProp
 }
 
 let __terserPatched = false
 function patchTerser() {
   if (__terserPatched) { return }
   __terserPatched = true
-  const terserPackage = require("terser/package.json")
+  let path = "node_modules/terser/package.json"
+  let i = 0
+  for (; i < 4 && !fs.existsSync(path); i++) { path = "../" + path; }
+  if (i > 4) { return } // no terser installed
+  const terserPackage = readJSON(path)
   if (!terserPackage.exports) { return }
   let mod = false
   for (const i of ["./lib/parse", "./lib/ast"]) {
@@ -464,8 +481,9 @@ function patchTerser() {
     }
   }
   if (mod) {
+    require("fs").writeFileSync(path, JSON.stringify(terserPackage, null, 2))
+    delete require.cache[require('path').resolve(path)]
     require("fancy-log")("Patch terser/package.json: succeed");
-    require("fs").writeFileSync("./node_modules/terser/package.json", JSON.stringify(terserPackage, null, 2))
   }
 }
 

@@ -372,6 +372,6 @@ export const select_ = (element: LockableElement, rect?: Rect | null, show_flash
 
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredGeneratorFunction) {
   if (!(Build.NDEBUG || (<RegExpOne> /\.label_\b/).test(click_ + ""))) {
-    console.log("Assert error: async functions should have used `label_` and `sent_`")
+    alert("Assert error: async functions should have used `label_` and `sent_`")
   }
 }

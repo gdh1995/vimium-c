@@ -430,10 +430,8 @@ label:active {
   padding-top: 1px;
 }
 .booleanOption.innerLine {
-  padding-top: 1px;
-  padding-top: var(--tiny);
+  display: inline-block;
   line-height: 22px;
-  line-height: calc(24px - var(--tiny) * 2);
 }
 .checkboxHint:active { outline: none; }
 /* Ids and classes for rendering exclusionRules */

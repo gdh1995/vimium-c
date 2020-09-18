@@ -250,8 +250,9 @@ async function myMinify(files, options) {
         throw Error("No big closure found");
       }
       const properties = names.filter(arr => arr[0][0] !== ":");
-      if (properties.length > MAX_ALLOWED_PROPERTY_GROUPS) {
-        throw Error("Too many property groups to mangle: " + JSON.stringify(properties));
+      const normalProperties = properties.map(i => i.filter(j => j !== "label_" && j !== "sent_")).filter(i => i.length)
+      if (normalProperties.length > MAX_ALLOWED_PROPERTY_GROUPS) {
+        throw Error("Too many property groups to mangle: " + JSON.stringify(normalProperties));
       }
       if (properties.length < 5 && properties.length > 0) {
         console.log("Find some property groups to mangle:", properties);

@@ -1096,7 +1096,11 @@ BgUtils_.GC_ = function (inc0?: number): void {
 BgUtils_.timeout_(1200, function (): void {
   Settings_.temp_.onInstall_ && chrome.runtime.onInstalled.removeListener(Settings_.temp_.onInstall_);
   Settings_.temp_.onInstall_ = null;
-  (document.documentElement as HTMLHtmlElement).innerText = "";
+  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSetInnerTextOnHTMLHtmlElement) {
+    (document.documentElement as HTMLHtmlElement).innerHTML = "";
+  } else {
+    (document.documentElement as HTMLHtmlElement).innerText = "";
+  }
   BgUtils_.resetRe_();
   if (!Build.NDEBUG) {
     interface WindowExForDebug extends Window { a: unknown; cb: (i: any) => void }

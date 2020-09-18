@@ -207,6 +207,7 @@ if (typeof require === "function" && require.main === module) {
 function main(args) {
   var useDefaultConfigFile = args.indexOf("-p") < 0 && args.indexOf("--project") < 0;
   var destDirs = [];
+  lib.patchTerser();
   for (var i = !IN_WORKER && useDefaultConfigFile ? 0 : args.length; i < args.length; ) {
     var argi = args[i];
     if (argi[0] === "-") {

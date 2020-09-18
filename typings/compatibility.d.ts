@@ -22,6 +22,7 @@ declare const enum BrowserVer {
   Min$document$$hidden = 33, // unprefixed; .webkitHidden still exists on C31
   // `<input type=number>.selectionStart` throws since Chrome 33 and before C58 (Min$selectionStart$MayBeNull),
   Min$selectionStart$MayThrow = 33,
+  Min$Promise$$Then$Accepts$null = 33,
   MinCSSWidthUnit$vw$InCalc = 34, // even if EXPERIMENTAL or LEGACY
   Min$Object$$setPrototypeOf = 34,
   // before C34, 2 images share a size part (the first one's), and different height/width would work as the smaller one
@@ -291,6 +292,7 @@ declare const enum BrowserVer {
   MinBorderWidthIsRounded = 58,
   // Chrome changed its behavior to match the new spec on C58 (replace Min$selectionStart$MayThrow)
   Min$selectionStart$MayBeNull = 58,
+  MinSetInnerTextOnHTMLHtmlElement = 58,
   // .type is always 'Caret'
   $Selection$NotShowStatusInTextBox = 58, // Now only version 81-110 of Chrome 58 stable have such a problem
   /** @see {@link content/visual.ts#VVisual.init_ } */
