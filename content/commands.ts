@@ -1,5 +1,5 @@
 import {
-  chromeVer_, doc, esc, EscF, fgCache, isTop, safeObj, set_esc, VOther, VTr, safer, timeout_, loc_, weakRef_, deref_,
+  chromeVer_, doc, esc, EscF, fgCache, isTop, set_esc, VOther, VTr, safer, timeout_, loc_, weakRef_, deref_,
   keydownEvents_, parseSedOptions, Stop_, suppressCommonEvents, setupEventListener, vApi, locHref,
 } from "../lib/utils"
 import {
@@ -132,7 +132,7 @@ set_contentCommands_([
       return;
     }
     exitPassMode && exitPassMode();
-    const keys = safeObj<BOOL>(null);
+    const keys = safer<Dict<BOOL>>({})
     pushHandler_(event => {
       keyCount += +!keys[event.i];
       keys[event.i] = 1;
@@ -313,7 +313,7 @@ set_contentCommands_([
             execCommand(a1, doc, commands[i + 2])
           } else if (cmd === "replace") {
             (raw_insert_lock as HTMLInputElement).setRangeText(a1, null, null, a2)
-          } else if (sel = sel || getSelected()[0], cmd === "collapse") {
+          } else if (sel = sel || getSelected(), cmd === "collapse") {
             collpaseSelection(sel, a1 === "end")
           } else {
             sel.modify(cmd === "auto" ? sel.type === "Range" ? kExtend : "move" : cmd as any,

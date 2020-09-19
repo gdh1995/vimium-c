@@ -125,16 +125,15 @@ export const findNextInText = (names: string[], isNext: boolean, lenLimits: numb
 }
 
 export const findNextInRel = (relName: string): GoNextBaseCandidate | null | undefined => {
-  const elements = querySelectorAll_unsafe_(Build.BTypes & BrowserType.Edge ? "[rel]" : `[rel]:-${
+  const elements = querySelectorAll_unsafe_(Build.BTypes & BrowserType.Edge ? "a[rel],area[rel],link[rel]" : `:-${
       !(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && VOther & BrowserType.Chrome
-      ? "webkit" : "moz"}-any(a,area,link)`)!
+      ? "webkit" : "moz"}-any(a,area,link)[rel]`)!
   let s: string | null | undefined;
   type HTMLElementWithRel = HTMLAnchorElement | HTMLAreaElement | HTMLLinkElement;
   let matched: HTMLElementWithRel | undefined, tag: string;
   const re1 = <RegExpOne> /\s/
   for (const element of elements as { [i: number]: Element } as Element[]) {
-    if ((!(Build.BTypes & BrowserType.Edge) ? tag = htmlTag_(element)
-          : (<RegExpI> /^(a|area|link)$/).test(tag = htmlTag_(element)))
+    if ((tag = htmlTag_(element))
         && (s = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$HTMLAreaElement$rel
                 ? element.getAttribute("rel") : (element as TypeToPick<HTMLElement, HTMLElementWithRel, "rel">).rel)
         && s.toLowerCase().split(re1).indexOf(relName) >= 0

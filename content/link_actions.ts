@@ -7,7 +7,7 @@ import { getVisibleClientRect_, center_, view_, selRange_ } from "../lib/rect"
 import {
   IsInDOM_, createElement_, htmlTag_, getComputedStyle_, getEditableType_, isIFrameElement, GetParent_unsafe_,
   ElementProto, querySelector_unsafe_, getInputType, uneditableInputs_, GetShadowRoot_, CLK, scrollingEl_,
-  findMainSummary_, getSelection_, rangeCount_,
+  findMainSummary_, getSelection_,
 } from "../lib/dom_utils"
 import {
   hintOptions, mode1_, hintMode_, hintApi, hintManager, coreHints, setMode, detectUsableChild, hintCount_,
@@ -292,7 +292,7 @@ export const linkActions: readonly LinkAction[] = [
       });
       return;
     } else if (hintOptions.richText) {
-      const sel = getSelection_(), range = rangeCount_(sel) ? selRange_(sel) : null
+      const sel = getSelection_(), range = selRange_(sel)
       resetSelectionToDocStart(sel)
       sel.selectAllChildren(link)
       execCommand("copy", doc)

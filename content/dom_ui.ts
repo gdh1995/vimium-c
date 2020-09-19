@@ -246,9 +246,10 @@ export const checkDocSelectable = (): void => {
             ? st.userSelect || st.webkitUserSelect : st.userSelect) !== NONE)
 }
 
-export const getSelected = (notExpectCount?: 1): [Selection, ShadowRoot | null] => {
-    let el: Node | null | undefined, sel: Selection | null, func: ShadowRoot["getSelection"]
-    if (el = deref_(currentScrolling)) {
+export const getSelected = (notExpectCount?: {r?: ShadowRoot | null}): Selection => {
+  let el: Node | null | undefined, sel: Selection | null, func: ShadowRoot["getSelection"]
+  let sr: ShadowRoot | null = null
+  if (el = deref_(currentScrolling)) {
       if (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
           || !(Build.BTypes & ~BrowserType.Firefox)
           || el.getRootNode) {
@@ -260,22 +261,20 @@ export const getSelected = (notExpectCount?: 1): [Selection, ShadowRoot | null] 
           && typeof (func = (el as ShadowRoot).getSelection) === "function") {
         sel = func.call(el as ShadowRoot);
         if (sel && (notExpectCount || rangeCount_(sel))) {
-          return [sel, el as ShadowRoot];
+          sr = el as ShadowRoot
         }
       }
-    }
+  }
+  if (!sr) {
     sel = getSelection_();
-    let offset: number, sr: ShadowRoot | null = null, sel2: Selection | null = sel
-    if (!(  (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
+    let offset: number, sel2: Selection | null = sel
+    if ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
-            && !(Build.BTypes & ~BrowserType.ChromeOrFirefox) )) {
-      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+            && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+        || (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
           && chromeVer_ < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-          ? Build.MinCVer >= BrowserVer.MinShadowDOMV0 ? false : !ElementProto().webkitCreateShadowRoot
-          : typeof ShadowRoot != "function") {
-        return [sel, null];
-      }
-    }
+          ? Build.MinCVer >= BrowserVer.MinShadowDOMV0 || ElementProto().webkitCreateShadowRoot
+          : typeof ShadowRoot == "function")) {
     while (sel2) {
       sel2 = null;
       el = sel.anchorNode;
@@ -294,7 +293,10 @@ export const getSelected = (notExpectCount?: 1): [Selection, ShadowRoot | null] 
         }
       }
     }
-    return [sel, sr];
+    }
+  }
+  notExpectCount && (notExpectCount.r = sr)
+  return sel!
 }
 
   /**
@@ -302,7 +304,7 @@ export const getSelected = (notExpectCount?: 1): [Selection, ShadowRoot | null] 
    * @UNSAFE_RETURNED
    */
 export const getSelectionParent_unsafe = ((re?: RegExpG & RegExpSearchable<0>): Element | null | 0 => {
-    let sel = getSelected()[0], range = rangeCount_(sel) ? selRange_(sel) : null
+    let range = selRange_(getSelected())
       , selected: string | undefined, match: RegExpExecArray | null, result = 0
       , par: Node | null = range && range.commonAncestorContainer, lastPar = par
     while (par && !(par as NodeToElement).tagName) {

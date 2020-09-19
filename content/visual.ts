@@ -85,10 +85,9 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     checkDocSelectable();
     prepareTop()
     diType_ = DiType.UnsafeUnknown
-    let theSelected = getSelected(1),
-    sel: Selection = curSelection = theSelected[0],
-    type: SelType = selType(), mode: CmdOptions[kFgCmd.visualMode]["m"] = options.m
-    scope = theSelected[1]
+    let initialScope: {r?: ShadowRoot | null} = {}, sel: Selection = curSelection = getSelected(initialScope),
+    type: SelType = selType(), mode: Mode = options.m || Mode.Visual
+    scope = initialScope.r as Exclude<typeof initialScope.r, undefined>
     if (!mode_) { retainSelection = type === SelType.Range; richText = options.t }
     if (mode !== Mode.Caret) {
       if (!insert_Lock_() && /* (type === SelType.Caret || type === SelType.Range) */ type) {
@@ -104,7 +103,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
         type = selType()
       }
     }
-    const isRange = type === SelType.Range, newMode: CmdOptions[kFgCmd.visualMode]["m"] = isRange ? mode : Mode.Caret,
+    const isRange = type === SelType.Range, newMode: Mode = isRange ? mode : Mode.Caret,
     toCaret = newMode === Mode.Caret;
     modeName = VTr(kTip.OFFSET_VISUAL_MODE + newMode)
     di_ = isRange ? kDirTy.unknown : kDirTy.right
@@ -112,7 +111,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     alterMethod = toCaret ? "move" : kExtend
     ui_box || hudShow(kTip.raw)
     toggleSelectableStyle(1)
-    if (/* type === SelType.None */ !type && establishInitialSelectionAnchor(theSelected[1])) {
+    if (/* type === SelType.None */ !type && establishInitialSelectionAnchor(initialScope.r)) {
       deactivate()
       return hudTip(kTip.needSel)
     }
@@ -302,9 +301,7 @@ const findV = (count: number): void => {
     if (find_hasResults) {
       diType_ = DiType.UnsafeUnknown
       if (mode_ === Mode.Caret && selType() === SelType.Range) {
-        activate(safer<CmdOptions[kFgCmd.visualMode]>({
-          m: Mode.Visual
-        }));
+        activate(safer<CmdOptions[kFgCmd.visualMode]>({}));
       } else {
         di_ = kDirTy.unknown
         commandHandler(VisualAction.Noop, 1)
@@ -419,7 +416,7 @@ const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord
     }
     const oldDi = di_
     while (0 < count--) {
-      curSelection.modify(alterMethod, kDir[direction], _kGranularity[granularity as kG])
+      modify(direction, granularity as kG)
     }
     // it's safe to remove `isUnsafe` here, because:
     // either `count > 0` or `fixWord && _moveRight***()`
@@ -588,7 +585,7 @@ const getDirection = function (magic?: string
         diType_ = DiType.Normal
         return di_ = (
             num1 & (kNode.DOCUMENT_POSITION_CONTAINS | kNode.DOCUMENT_POSITION_CONTAINED_BY)
-            ? selRange_(sel).endContainer === anchorNode
+            ? selRange_(sel, 1).endContainer === anchorNode
             : (num1 & kNode.DOCUMENT_POSITION_PRECEDING)
           ) ? kDirTy.left : kDirTy.right; // return `right` in case of unknown cases
       }

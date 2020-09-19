@@ -1,6 +1,6 @@
 import {
   setupEventListener, VTr, keydownEvents_, isAlive_, suppressCommonEvents, onWndFocus, VOther, timeout_, safer, fgCache,
-  doc, safeObj, getTime, chromeVer_, deref_, escapeAllForRe, tryCreateRegExp, vApi, callFunc, clearTimeout_,
+  doc, getTime, chromeVer_, deref_, escapeAllForRe, tryCreateRegExp, vApi, callFunc, clearTimeout_,
 } from "../lib/utils"
 import {
   pushHandler_, SuppressMost_, Stop_, removeHandler_, prevent_, getMappedKey, keybody_, isEscape_, keyNames_,
@@ -421,7 +421,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
       if (keybody !== key) {
         if (key === `a-${kChar.f1}`) {
           prepareCrop_();
-          highlightRange(getSelected()[0]);
+          highlightRange(getSelected())
         }
         else if (key < "c-" || key > "m-") { h = HandlerResult.Suppress; }
         else if (scroll = keyNames_.indexOf(keybody), scroll > 2 && scroll & 5 ^ 5) {
@@ -491,7 +491,7 @@ export const deactivate = (i: FindNS.Action): void => {
     i === FindNS.Action.ExitNoAnyFocus ? hookSel(1) : focus()
     clear()
     if (i > FindNS.Action.MaxExitButNoWork) {
-      el = getSelectionFocusEdge_(getSelected()[0], 1);
+      el = getSelectionFocusEdge_(getSelected(), 1);
       el && el.focus && el.focus()
     }
     if ((i === FindNS.Action.ExitAndReFocus || !hasResult || visual_mode) && !noStyle) {
@@ -499,10 +499,7 @@ export const deactivate = (i: FindNS.Action): void => {
       restoreSelection(true)
     }
     if (visual_mode) {
-      visualActivate(safer<CmdOptions[kFgCmd.visualMode]>({
-        m: VisualModeNS.Mode.Visual,
-        r: true
-      }))
+      visualActivate(safer<CmdOptions[kFgCmd.visualMode]>({ r: true }))
       return;
     }
     if (i > FindNS.Action.MaxExitButNoWork && hasResult && (!el || el !== insert_Lock_())) {
@@ -638,7 +635,7 @@ const onInput = (e?: Event): void => {
   coords && scrollToMark(coords)
   updateQuery(query)
   restoreSelection()
-  executeFind(!isRegex ? parsedQuery_ : regexMatches ? regexMatches[0] : "")
+  executeFind(!isRegex ? parsedQuery_ : regexMatches ? regexMatches[0] : "", safer<FindNS.ExecuteOptions>({}))
   showCount(1)
 }
 
@@ -743,7 +740,7 @@ const highlightInViewport = (): void => {
   prepareCrop_(1)
   const oldActiveRegexIndex = activeRegexIndex
   const opt: FindNS.ExecuteOptions = { h: [scrollX, scrollY], i: 1 }
-  const sel = getSelected()[0], range = rangeCount_(sel) && selRange_(sel)
+  const sel = getSelected(), range = selRange_(sel)
   range && collpaseSelection(sel)
   let arr = executeFind("", opt), el: LockableElement | null
   if (range) {
@@ -760,8 +757,8 @@ const highlightInViewport = (): void => {
   const timer = timeout_(highlighting = () => { highlighting = null; clearTimeout_(timer); cbs.map(callFunc) }, 2400)
 }
 
-export const executeFind = (query?: string | null, options?: FindNS.ExecuteOptions): Rect[] => {
-    options = options ? safer(options) : safeObj(null) as FindNS.ExecuteOptions;
+export const executeFind = (query: string | null, options: FindNS.ExecuteOptions): Rect[] => {
+    safer(options)
     let el: LockableElement | null
       , highLight = options.h, areas: Rect[] = [], noColor = highLight || options.noColor
       , found: boolean, count = (options.n! | 0) || 1, back = count < 0
@@ -809,7 +806,7 @@ export const executeFind = (query?: string | null, options?: FindNS.ExecuteOptio
         activeRegexIndex = oldReInd
       } else if (highLight) {
         scrollTo(highLight[0], highLight[1])
-        const sel2 = getSelected()[0], br = rangeCount_(sel2) && padClientRect_(getSelectionBoundingBox_(sel2)),
+        const sel2 = getSelected(), br = rangeCount_(sel2) && padClientRect_(getSelectionBoundingBox_(sel2)),
         cr = br && cropRectToVisible_(br.l, br.t, br.r && br.r + 3, br.b && br.b + 3)
         cr ? areas.push(cr) : count = 0 // even for a caret caused by `user-select: none`
         timesRegExpNotMatch = 0
@@ -883,12 +880,11 @@ export const toggleSelectableStyle = (enable: BOOL): void => {
 }
 
 const getCurrentRange = (): void => {
-    let sel = getSelected()[0], range: Range;
-    if (!rangeCount_(sel)) {
+    let sel = getSelected(), range = selRange_(sel);
+    if (!range) {
       range = doc.createRange();
       range.setStart(doc.body || docEl_unsafe_()!, 0);
     } else {
-      range = selRange_(sel)
       // Note: `range.collapse` doesn't work if selection is inside a ShadowRoot (tested on C72 stable)
       collpaseSelection(sel)
     }
