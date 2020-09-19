@@ -252,6 +252,18 @@ export const getEditable = (hints: Hint[], element: SafeHTMLElement): void => {
   }
 }
 
+const getSelectable = (hints: Hint[], element: SafeHTMLElement): void => {
+  const arr = element.childNodes as NodeList
+  for (let i = 0; i < arr.length; i++) {
+    const  node = arr[i]
+    if (node.nodeType === kNode.TEXT_NODE && (node as Text).data.trim().length > 2) {
+      const arr = getVisibleClientRect_(element)
+      arr && hints.push([element as LockableElement, arr, ClickType.Default])
+      break
+    }
+  }
+}
+
 const getLinks = (hints: Hint[], element: SafeHTMLElement): void => {
   let a: string | null | false, arr: Rect | null;
   if ((a = element.dataset.vimUrl || element.localName === "a" && element.getAttribute("href")) && a !== "#"
@@ -638,7 +650,8 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
         + (_i - HintMode.DOWNLOAD_MEDIA ? "" : ",video,audio"), getImages, true)
     : _i > HintMode.min_link_job - 1 && _i < HintMode.max_link_job + 1
     ? traverse("a,[role=link]" + (Build.BTypes & ~BrowserType.Firefox ? kSafeAllSelector : ""), getLinks)
-    : _i - HintMode.FOCUS_EDITABLE ? traverse(kSafeAllSelector, getClickable)
+    : _i - HintMode.FOCUS_EDITABLE ? traverse(kSafeAllSelector,
+        _i - HintMode.ENTER_VISUAL_MODE ? getClickable : getSelectable)
     : traverse(Build.BTypes & ~BrowserType.Firefox
           ? kEditable + kSafeAllSelector : kEditable, getEditable);
   if ((_i < HintMode.max_mouse_events + 1 || _i === HintMode.FOCUS_EDITABLE)

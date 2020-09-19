@@ -1298,6 +1298,7 @@
           g: granularities,
           k: keyMap,
           t: !!cOptions.richText,
+          s: !!cOptions.start,
           w: words
         }
       });
@@ -3073,6 +3074,12 @@
     },
     /** kFgReq.learnCSS */ function (this: void, _req: FgReq[kFgReq.learnCSS], port: Port): void {
       (port as Frames.Port).s.f |= Frames.Flags.hasCSS;
+    },
+    /** kFgReq.visualMode: */ function (this: void, request: FgReq[kFgReq.visualMode], port: Port): void {
+      const isCaret = !!request.c
+      cPort = port, cRepeat = 1
+      cOptions = BgUtils_.safer_({ mode: isCaret ? "caret" : "", start: true })
+      BackgroundCommands[kBgCmd.enterVisualMode]()
     }
   ],
   framesForOmni: Frames.WritableFrames = [];

@@ -8,13 +8,13 @@ declare const enum kTip {
   /* 39, 41: */ global = 39, local = 41, // neither 39 nor 41 is in HintMode
   /* 44..47 */ selectLineBoundary = 44, frameUnloaded, waitEnter, logGrabFocus,
   /* 60..63 */ logOmniFallback = 60, logNotWorkOnSandboxed, prev, next,
-  /* 67..69 */ START_FOR_OTHERS = 67, OFFSET_VISUAL_MODE = 66, visual, line, caret,
-  /* 70: */ fewChars = 70, noLinks, exitForIME, linkRemoved, notImg,
+  /* 68..70 */ START_FOR_OTHERS = 68, OFFSET_VISUAL_MODE = 67, visual, line, caret,
+  /* 71: */ noLinks, exitForIME, linkRemoved, notImg,
   /* 75: */ hoverScrollable, ignorePassword, noNewToCopy, downloaded, nowGotoMark,
   /* 80: */ nowCreateMark, didCreateLastMark, didLocalMarkTask, didJumpTo, didCreate,
   /* 85: */ lastMark, didNormalMarkTask, findFrameFail, noOldQuery, noMatchFor,
   /* 90: */ inVisualMode, noUsableSel, loseSel, needSel, omniFrameFail,
-  /* 95: */ failToDelSug, INJECTED_CONTENT_END,
+  /* 95: */ failToDelSug, fewChars, INJECTED_CONTENT_END,
   /* 98:*/ removeCurScript = 98,
   /** 99: used by {@link ../Gulpfile.js} */ extendClick = 99,
   /* 100: */ firefoxRefuseURL, cancelImport, importOK,
@@ -67,13 +67,10 @@ declare const enum kFgReq {
   focusOrLaunch, cmd, removeSug, openImage, evalJSFallback,
   /** can be used only with `FgCmdAcrossFrames` and when a fg command is just being called */
   gotoMainFrame,
-  setOmniStyle, findFromVisual, framesGoBack, i18n, learnCSS,
+  setOmniStyle, findFromVisual, framesGoBack, i18n, learnCSS, visualMode,
   END,
-  msg = 90,
-  inject = 99,
-  command = "command",
-  id = "id",
-  shortcut = "shortcut",
+  msg = 90, inject = 99,
+  command = "command", id = "id", shortcut = "shortcut",
 }
 
 interface BgReq {
@@ -219,6 +216,7 @@ declare namespace HintsNS {
     m: HintMode;
     c?: string;
     action?: string;
+    caret?: boolean;
     useFilter?: boolean;
     url?: boolean;
     keyword?: string;
@@ -328,6 +326,7 @@ interface CmdOptions {
     /** kGranularity[] */ g?: GranularityNames | null;
     /** keyMaps */ k?: VisualModeNS.KeyMap | null;
     /** words */ w?: string;
+    /** collapse to start */ s?: boolean
     /** richText */ t?: boolean
   };
   [kFgCmd.showHelpDialog]: {
@@ -578,6 +577,9 @@ interface FgReq {
     /** position */ p?: OpenUrlOptions["position"]
   }
   [kFgReq.learnCSS]: {};
+  [kFgReq.visualMode]: {
+    /** caret mode */ c?: boolean
+  };
 }
 
 interface OpenUrlOptions {

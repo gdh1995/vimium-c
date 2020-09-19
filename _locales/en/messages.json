@@ -98,6 +98,8 @@
 	"LinkHints_activateModeWithQueue": {
 		"message": "Open multiple links in a new tab"
 	},
+	"LinkHints_activateModeToSelect": { "message": "Select text and enter visual mode" },
+	"LinkHints_activateModeToSelect_p": { "message": "caret" },
 	"LinkHints_unhoverLast": {
 		"message": "Stop hovering at last location"
 	},
@@ -975,12 +977,9 @@
 	"Search": { "message": "" },
 	"Go": { "message": "" },
 	"jsFail": { "message": "Here's not allowed to eval JS scripts" },
-	"67": { "message": "Visual" },
-	"68": { "message": "Line" },
-	"69": { "message": "Caret" },
-	"70": {
-		"message": "Too few characters for LinkHints"
-	},
+	"68": { "message": "Visual" },
+	"69": { "message": "Line" },
+	"70": { "message": "Caret" },
 	"71": {
 		"message": "No links to select"
 	},
@@ -1056,6 +1055,7 @@
 	"95": {
 		"message": "This item cannot be deleted"
 	},
+	"96": { "message": "Too few characters for LinkHints" },
 	"98": { "message": "document.currentScript.remove()" },
 	"100": {
 		"message": "Not allowed to open the target new tab URL"
@@ -1242,5 +1242,6 @@
 	},
 	"66": {
 		"message": "Select an editable area"
-	}
+	},
+	"67": { "message": "Select text and enter visual mode" }
 }

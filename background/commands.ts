@@ -415,6 +415,7 @@ availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeO
   "LinkHints.activateModeToOpenInNewTab": [ kFgCmd.linkHints, 0, 0, { m: HintMode.OPEN_IN_NEW_BG_TAB } ],
   "LinkHints.activateModeToOpenVomnibar": [ kFgCmd.linkHints, 0, 1, { m: HintMode.EDIT_TEXT } ],
   "LinkHints.activateModeToSearchLinkText": [ kFgCmd.linkHints, 0, 0, { m: HintMode.SEARCH_TEXT } ],
+  "LinkHints.activateModeToSelect": [ kFgCmd.linkHints, 0, 0, { m: HintMode.ENTER_VISUAL_MODE } ],
   "LinkHints.activateModeWithQueue": [ kFgCmd.linkHints, 0, 0, { m: HintMode.OPEN_WITH_QUEUE } ],
   "LinkHints.unhoverLast": [ kFgCmd.insertMode, 0, 1, { u: true } ],
   "Marks.activate": [ kFgCmd.marks, 0, 0 ],
@@ -544,15 +545,9 @@ availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeO
   zoomOut: [ kBgCmd.toggleZoom, 1, 0, { count: -1 } ]
 }),
   hintModes_: As_<Dict<HintMode>>({
-    focus: HintMode.FOCUS,
-    hover: HintMode.HOVER,
-    input: HintMode.FOCUS_EDITABLE,
-    leave: HintMode.UNHOVER,
-    unhover: HintMode.UNHOVER,
-    text: HintMode.COPY_TEXT,
-    "copy-text": HintMode.COPY_TEXT,
-    url: HintMode.COPY_URL,
-    image: HintMode.OPEN_IMAGE
+    "copy-text": HintMode.COPY_TEXT, focus: HintMode.FOCUS, hover: HintMode.HOVER,
+    image: HintMode.OPEN_IMAGE, input: HintMode.FOCUS_EDITABLE, leave: HintMode.UNHOVER,
+    text: HintMode.COPY_TEXT, unhover: HintMode.UNHOVER, url: HintMode.COPY_URL, visual: HintMode.ENTER_VISUAL_MODE
   })
 },
 CommandsData_: CommandsDataTy = CommandsData_ as never || {

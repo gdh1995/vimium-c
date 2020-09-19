@@ -74,6 +74,7 @@
 	"LinkHints_activateModeWithQueue": {
 		"message": "连续点击网页中的链接和按钮"
 	},
+	"LinkHints_activateModeToSelect": { "message": "选择文字以进入自由选择模式" },
 	"LinkHints_unhoverLast": {
 		"message": "模拟鼠标从上一次点击的对象上移出"
 	},
@@ -1401,12 +1402,9 @@
 	"Search": { "message": "搜索" },
 	"Go": { "message": "前往" },
 	"jsFail": { "message": "抱歉，无法在当前网页上执行 JS 脚本" },
-	"67": { "message": "自由选择" },
-	"68": { "message": "整行选择" },
-	"69": { "message": "光标" },
-	"70": {
-		"message": "用于定位链接的序号字符过少"
-	},
+	"68": { "message": "自由选择" },
+	"69": { "message": "整行选择" },
+	"70": { "message": "光标" },
 	"71": {
 		"message": "没有找到可点击的页面对象"
 	},
@@ -1482,6 +1480,7 @@
 	"95": {
 		"message": "不可删除此条搜索建议"
 	},
+	"96": { "message": "用于定位链接的序号字符过少" },
 	"100": {
 		"message": "很抱歉，您的浏览器不允许扩展程序打开您设置的网址"
 	},
@@ -1659,5 +1658,6 @@
 	},
 	"66": {
 		"message": "选择一个文本框"
-	}
+	},
+	"67": { "message": "选择文字以进入自由选择模式" }
 }

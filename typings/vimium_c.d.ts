@@ -405,6 +405,7 @@ declare const enum HintMode {
   EDIT_TEXT,
     max_edit = EDIT_TEXT,
   FOCUS_EDITABLE,
+  ENTER_VISUAL_MODE,
     min_not_hint,
 }
 

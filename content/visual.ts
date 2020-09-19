@@ -118,7 +118,8 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     if (toCaret && isRange) {
       // `sel` is not changed by @establish... , since `isRange`
       mode = ("" + sel).length;
-      collapseToRight((getDirection() & +(mode > 1)) as BOOL)
+      collapseToRight((<number> <number | boolean> !options.s
+          & getDirection() & <number> <number | boolean> (mode > 1)) as BOOL)
     }
     commandHandler(VisualAction.Noop, 1)
     pushHandler_(onKeydown, activate)

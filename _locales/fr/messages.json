@@ -74,6 +74,7 @@
 	"LinkHints_activateModeWithQueue": {
 		"message": "Ouvrir de multiples liens dans un nouvel onglet"
 	},
+	"LinkHints_activateModeToSelect": { "message": "Sélectionner du texte pour passer en mode visuel" },
 	"LinkHints_unhoverLast": {
 		"message": "Arrêter de survoler la dernier endroit"
 	},
@@ -786,12 +787,9 @@
 	"Search": { "message": "Rechercher" },
 	"Go": { "message": "Aller" },
 	"21": { "message": "Impossible d'évaluer de scripts ici" },
-	"67": { "message": "Visuel" },
-	"68": { "message": "Ligne" },
-	"69": { "message": "Curseur" },
-	"70": {
-		"message": "Caractères pour les LinkHints trop peu nombreux"
-	},
+	"68": { "message": "Visuel" },
+	"69": { "message": "Ligne" },
+	"70": { "message": "Curseur" },
 	"71": {
 		"message": "Aucun lien à sélectionner"
 	},
@@ -864,6 +862,7 @@
 	"95": {
 		"message": "Cet élément ne peut être supprimé"
 	},
+	"96": { "message": "Caractères pour les LinkHints trop peu nombreux" },
 	"100": {
 		"message": "Non-autorisé à ouvrir l'URL de la cible du nouvel onglet"
 	},
@@ -1041,5 +1040,6 @@
 	},
 	"66": {
 		"message": "Sélectionne une zone d'édition"
-	}
+	},
+	"67": { "message": "Sélectionner du texte pour passer en mode visuel" }
 }

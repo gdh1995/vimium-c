@@ -14,12 +14,15 @@ import {
 } from "./link_hints"
 import { set_currentScrolling, syncCachedScrollable } from "./scroller"
 import { post_, send_ } from "./port"
-import { evalIfOK, flash_, getRect, lastFlashEl, resetSelectionToDocStart } from "./dom_ui"
+import {
+  collpaseSelection, evalIfOK, flash_, getRect, lastFlashEl, resetSelectionToDocStart, selectAllOfNode,
+} from "./dom_ui"
 import { pushHandler_, removeHandler_, isEscape_, getMappedKey, prevent_, suppressTail_ } from "../lib/keyboard_utils"
 import { insert_Lock_ } from "./insert"
 import { unhover_, hover_, click_, select_, mouse_, catchAsyncErrorSilently } from "./async_dispatcher"
 import { omni_box, focusOmni } from "./omni"
 import { execCommand } from "./mode_find"
+import { kDir, kExtend } from "./visual"
 type LinkEl = Hint[0];
 interface Executor {
   (this: void, linkEl: LinkEl, rect: Rect | null, hintEl: Pick<HintItem, "r">): void | boolean;
@@ -293,8 +296,7 @@ export const linkActions: readonly LinkAction[] = [
       return;
     } else if (hintOptions.richText) {
       const sel = getSelection_(), range = selRange_(sel)
-      resetSelectionToDocStart(sel)
-      sel.selectAllChildren(link)
+      selectAllOfNode(link)
       execCommand("copy", doc)
       resetSelectionToDocStart(sel, range)
       return
@@ -424,6 +426,16 @@ export const linkActions: readonly LinkAction[] = [
   , HintMode.FOCUS_EDITABLE
 ],
 [
+  (el): void => {
+    selectAllOfNode(el)
+    const sel = getSelection_()
+    collpaseSelection(sel)
+    sel.modify(kExtend, kDir[1], "word")
+    post_({ H: kFgReq.visualMode, c: hintOptions.caret })
+  },
+  HintMode.ENTER_VISUAL_MODE
+],
+[
   (link, rect, hint): void | boolean => {
     const tag = htmlTag_(link)
     if (isIFrameElement(link)) { return !focusIFrame(link) }
@@ -489,6 +501,6 @@ export const linkActions: readonly LinkAction[] = [
 ]
 ]
 
-if (!(Build.NDEBUG || linkActions.length === 9)) {
-  console.log("Assert error: linkActions should have 9 items");
+if (!(Build.NDEBUG || linkActions.length === 10)) {
+  console.log("Assert error: linkActions should have 10 items");
 }

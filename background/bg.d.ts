@@ -431,6 +431,7 @@ declare const enum kCName {
   LinkHints_activateModeToOpenInNewTab = "LinkHints.activateModeToOpenInNewTab",
   LinkHints_activateModeToOpenVomnibar = "LinkHints.activateModeToOpenVomnibar",
   LinkHints_activateModeToSearchLinkText = "LinkHints.activateModeToSearchLinkText",
+  LinkHints_activateModeToSelect = "LinkHints.activateModeToSelect",
   LinkHints_activateModeWithQueue = "LinkHints.activateModeWithQueue",
   LinkHints_unhoverLast = "LinkHints.unhoverLast",
   Marks_activate = "Marks.activate",
@@ -573,6 +574,7 @@ declare namespace CommandsNS {
     [kCName.LinkHints_activateModeToOpenInNewTab]: kFgCmd.linkHints;
     [kCName.LinkHints_activateModeToOpenVomnibar]: kFgCmd.linkHints;
     [kCName.LinkHints_activateModeToSearchLinkText]: kFgCmd.linkHints;
+    [kCName.LinkHints_activateModeToSelect]: kFgCmd.linkHints;
     [kCName.LinkHints_activateModeWithQueue]: kFgCmd.linkHints;
     [kCName.LinkHints_unhoverLast]: kFgCmd.insertMode;
     [kCName.Marks_activate]: kFgCmd.marks;

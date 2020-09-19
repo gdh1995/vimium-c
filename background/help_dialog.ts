@@ -236,6 +236,7 @@ var HelpDialog = {
       , kCName.LinkHints_activateModeToDownloadLink, kCName.LinkHints_activateModeToOpenIncognito
       , kCName.LinkHints_activateModeToHover, kCName.LinkHints_activateModeToLeave, kCName.LinkHints_unhoverLast
       , kCName.LinkHints_activateModeToSearchLinkText, kCName.LinkHints_activateModeToEdit
+      , kCName.LinkHints_activateModeToSelect
       , kCName.goPrevious, kCName.goNext, kCName.nextFrame, kCName.mainFrame, kCName.parentFrame
       , kCName.enterInsertMode, kCName.enterVisualMode, kCName.enterVisualLineMode
       , kCName.Marks_activateCreateMode, kCName.Marks_activate

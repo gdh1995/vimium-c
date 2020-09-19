@@ -360,6 +360,8 @@ export const resetSelectionToDocStart = function (sel?: Selection, range?: Range
   (): void;
 }
 
+export const selectAllOfNode = (node: Node) => { getSelection_().selectAllChildren(node) }
+
   /** @NEED_SAFE_ELEMENTS element is LockableElement */
 export const moveSel_need_safe = (element: LockableElement, action: SelectActions | undefined): void => {
     const elTag = htmlTag_(element), type = elTag === "textarea" ? EditableType.TextBox
@@ -376,11 +378,9 @@ export const moveSel_need_safe = (element: LockableElement, action: SelectAction
       return;
     }
     // not need `this.getSelection_()`
-    const sel = getSelection_();
     try {
       if (type === EditableType.rich_) {
-        resetSelectionToDocStart(sel)
-        sel.selectAllChildren(element)
+        selectAllOfNode(element)
       } else {
         let len = (element as TextElement).value.length
           , { selectionStart: start, selectionEnd: end } = element as TextElement;
@@ -395,7 +395,7 @@ export const moveSel_need_safe = (element: LockableElement, action: SelectAction
           return;
         }
       }
-      (gotoEnd || gotoStart) && collpaseSelection(sel, <BOOL> +gotoEnd)
+      (gotoEnd || gotoStart) && collpaseSelection(getSelection_(), <BOOL> +gotoEnd)
     } catch {}
 }
 
