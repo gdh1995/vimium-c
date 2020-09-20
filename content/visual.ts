@@ -104,7 +104,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
       }
     }
     const isRange = type === SelType.Range, newMode: Mode = isRange ? mode : Mode.Caret,
-    toCaret = newMode === Mode.Caret;
+    toCaret = newMode === Mode.Caret, diff = newMode !== mode
     modeName = VTr(kTip.OFFSET_VISUAL_MODE + newMode)
     di_ = isRange ? kDirTy.unknown : kDirTy.right
     mode_ = newMode
@@ -123,7 +123,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     }
     commandHandler(VisualAction.Noop, 1)
     pushHandler_(onKeydown, activate)
-    newMode !== mode ? hudTip(kTip.noUsableSel, 1000) : hudShow(kTip.inVisualMode, modeName, options.r)
+    diff ? hudTip(kTip.noUsableSel, 1000) : hudShow(kTip.inVisualMode, modeName, options.r)
 }
 
   /** @safe_di */
@@ -228,8 +228,7 @@ const commandHandler = (command: VisualAction, count: number): void => {
             ] as const)[command - VisualAction.Yank])
       if (command !== VisualAction.YankWithoutExit && command !== VisualAction.YankRichText) { return; }
     } else if (command > VisualAction.MaxNotLexical) {
-      selectLexicalEntity((command - VisualAction.MaxNotLexical
-          ) as kG.sentence | kG.word, count)
+      selectLexicalEntity((command - VisualAction.MaxNotLexical) as kG.sentence | kG.word, count)
     } else if (command === VisualAction.Reverse) {
       reverseSelection()
     } else if (command >= VisualAction.MinWrapSelectionModify) {
@@ -423,9 +422,7 @@ const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord
     // either `count > 0` or `fixWord && _moveRight***()`
     mode_ !== Mode.Caret && (diType_ &= ~DiType.isUnsafe)
     di_ = direction === oldDi ? direction : kDirTy.unknown
-    if (granularity === kG.lineBoundary) {
-      hudTip(kTip.selectLineBoundary, 2000)
-    }
+    granularity - kG.lineBoundary || hudTip(kTip.selectLineBoundary, 2000)
     if (fixWord) {
       if (!shouldSkipSpaceWhenMovingRight) { // not shouldSkipSpace -> go left
         if (!(Build.BTypes & BrowserType.Firefox) || !Build.NativeWordMoveOnFirefox
