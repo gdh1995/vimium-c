@@ -84,15 +84,14 @@ interface Window {
 
 declare namespace VisualModeNS {
   const enum kG {
-    character = 0, line = 1, lineBoundary = 2, paragraph = 3, sentence = 4, word = 6, documentBoundary = 7,
+    character = 0, word = 1, lineBoundary = 3, line = 4, sentence = 5, paragraph = 6, documentBoundary = 7,
   }
 }
-type GranularityNames = readonly ["character", "line", "lineboundary", /* 3 */ "paragraph",
-      "sentence", /** VimG.vimWord */ "", /* 6 */ "word",
-      "documentboundary"]
+type GranularityNames = readonly ["character", "word", /** VimG.vimWord */ "", "lineboundary", "line"
+    , "sentence", "paragraph", "documentboundary"]
 interface Selection {
   modify(alert: "extend" | "move", direction: "forward" | "backward",
-         granularity: Exclude<GranularityNames[number], "">): void | 1;
+         granularity: GranularityNames[VisualModeNS.kG]): void | 1;
 }
 
 interface EnsuredMountedElement extends Element {

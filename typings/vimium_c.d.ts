@@ -159,7 +159,7 @@ declare namespace VisualModeNS {
     [key: string]: VisualAction | SafeDict<VisualAction> | undefined;
   }
   const enum kVimG {
-      vimWord = 5,
+      vimWord = 2,
       _mask = -1,
   }
 }
@@ -167,10 +167,11 @@ declare const enum VisualAction {
   MinNotNoop = 0, Noop = MinNotNoop - 1,
 
   MinWrapSelectionModify = MinNotNoop,
-  char = VisualModeNS.kG.character << 1, line = VisualModeNS.kG.line << 1,
-  lineBoundary = VisualModeNS.kG.lineBoundary << 1, paragraph = VisualModeNS.kG.paragraph << 1,
-  sentence = VisualModeNS.kG.sentence << 1, vimWord = VisualModeNS.kVimG.vimWord << 1,
-  word = VisualModeNS.kG.word << 1, documentBoundary = VisualModeNS.kG.documentBoundary << 1,
+  char = VisualModeNS.kG.character << 1,
+  word = VisualModeNS.kG.word << 1, vimWord = VisualModeNS.kVimG.vimWord << 1,
+  lineBoundary = VisualModeNS.kG.lineBoundary << 1, line = VisualModeNS.kG.line << 1,
+  sentence = VisualModeNS.kG.sentence << 1, paragraph = VisualModeNS.kG.paragraph << 1,
+  documentBoundary = VisualModeNS.kG.documentBoundary << 1,
   dec = VisualModeNS.kDir.left, inc = VisualModeNS.kDir.right,
 
   MinNotWrapSelectionModify = 20,

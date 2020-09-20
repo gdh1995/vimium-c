@@ -558,7 +558,7 @@ CommandsData_: CommandsDataTy = CommandsData_ as never || {
   builtinKeys_: null,
   errors_: null,
   shortcutRegistry_: null as never as ShortcutInfoMap,
-  visualGranularities_: ["character", "line", "lineboundary", "paragraph", "sentence", "", "word", "documentboundary"],
+  visualGranularities_: ["character", "word", "", "lineboundary", "line", "sentence", "paragraph", "documentboundary"],
   visualKeys_: {
     l: VisualAction.char | VisualAction.inc, h: VisualAction.char | VisualAction.dec,
     j: VisualAction.line | VisualAction.inc, k: VisualAction.line | VisualAction.dec,
