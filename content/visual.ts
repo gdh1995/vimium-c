@@ -35,7 +35,7 @@ declare const enum kYank { // should have no overlap with ReuseType
 import { VTr, VOther, safer, fgCache, doc, chromeVer_ } from "../lib/utils"
 import {
   getSelection_, getSelectionFocusEdge_, isHTML_, docEl_unsafe_, notSafe_not_ff_, getEditableType_, editableTypes_,
-  GetChildNodes_not_ff, isInputInTextMode_cr_old, rangeCount_,
+  GetChildNodes_not_ff, isInputInTextMode_cr_old, rangeCount_, getAccessibleSelectedNode
 } from "../lib/dom_utils"
 import {
   padClientRect_, getSelectionBoundingBox_, getZoom_, prepareCrop_, cropRectToVisible_, getVisibleClientRect_,
@@ -50,7 +50,7 @@ import {
 import { insert_Lock_ } from "./insert"
 import { hudTip, hudHide, hudShow } from "./hud"
 import { post_, send_ } from "./port"
-import { removeHandler_, pushHandler_, getMappedKey, keybody_, isEscape_, prevent_, ENTER } from "../lib/keyboard_utils"
+import { removeHandler_, pushHandler_, getMappedKey, keybody_, isEscape_, prevent_, ENTER, suppressTail_ } from "../lib/keyboard_utils"
 
 const kDir = ["backward", "forward"] as const
 let _kGranularity: GranularityNames
@@ -210,10 +210,18 @@ const commandHandler = (command: VisualAction, count: number): void => {
     if (scope && !rangeCount_(curSelection)) {
       scope = null
       curSelection = getSelection_()
-      if (command < VisualAction.MaxNotFind + 1 && !rangeCount_(curSelection)) {
+      if (!(Build.BTypes & BrowserType.Firefox)
+          && command < VisualAction.MaxNotFind + 1 && !rangeCount_(curSelection)) {
         deactivate()
+        suppressTail_(1000)
         return hudTip(kTip.loseSel);
       }
+    }
+    if (Build.BTypes & BrowserType.Firefox && command < VisualAction.MaxNotFind + 1
+        && !(rangeCount_(curSelection) && getAccessibleSelectedNode(curSelection) )) {
+      deactivate()
+      suppressTail_(1500)
+      return hudTip(kTip.loseSel, 2e3);
     }
     if (command === VisualAction.HighlightRange) {
       return highlightRange(curSelection)
@@ -365,8 +373,11 @@ const getNextRightCharacter = (isMove: BOOL): string => {
     }
     const sel = curSelection
     if (!diType) {
-      let focusNode = sel.focusNode!;
-      if (focusNode.nodeType === kNode.TEXT_NODE) {
+      let focusNode = getAccessibleSelectedNode(sel, 1)
+      if (Build.BTypes & BrowserType.Firefox && !focusNode) {
+        return ""
+      }
+      if (focusNode!.nodeType === kNode.TEXT_NODE) {
         const i = sel.focusOffset, str = (focusNode as Text).data;
         if (str.charAt(i).trim() || i && str.charAt(i - 1).trim() && str.slice(i).trimLeft()
               && (str[i] !== "\n" && !(Build.BTypes & BrowserType.Firefox && str[i] === "\r"))) {
@@ -554,9 +565,9 @@ const reverseSelection = (): void => {
         extend(i < 0 ? newDi : direction)
       }
     } else {
-      const { anchorNode, anchorOffset } = sel;
-      collapseToRight(direction)
-      sel.extend(anchorNode!, anchorOffset);
+      const node = getAccessibleSelectedNode(sel), offset = sel.anchorOffset
+      collapseToRight(direction);
+      (!(Build.BTypes & BrowserType.Firefox) || node) && sel.extend(node!, offset)
     }
     di_ = newDi
 }
@@ -571,10 +582,14 @@ const reverseSelection = (): void => {
 const getDirection = function (magic?: string
       ): kDirTy.left | kDirTy.right | kDirTy.unknown {
     if (di_ !== kDirTy.unknown) { return di_ }
-    const oldDiType = diType_, sel = curSelection, { anchorNode } = sel
+    const oldDiType = diType_, sel = curSelection, anchorNode = getAccessibleSelectedNode(sel)
     let num1 = -1, num2: number;
+    if (Build.BTypes & BrowserType.Firefox && !anchorNode) {
+      diType_ = DiType.Normal
+      return di_ = kDirTy.right
+    }
     if (!oldDiType || (oldDiType & (DiType.Unknown | DiType.Complicated))) {
-      const { focusNode } = sel;
+      const focusNode = getAccessibleSelectedNode(sel, 1)
       // common HTML nodes
       if (anchorNode !== focusNode) {
         num1 = Build.BTypes & ~BrowserType.Firefox
@@ -643,7 +658,7 @@ const getDirection = function (magic?: string
     }
     return di_ = num2 >= 0 || magic && num2 === -num1 ? kDirTy.right : kDirTy.left
 } as {
-    (magic: ""): kDirTy.unknown | -1;
+    (magic: ""): unknown;
     (magic?: string): kDirTy.left | kDirTy.right;
 }
 

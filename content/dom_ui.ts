@@ -6,7 +6,7 @@ import { Stop_, prevent_ } from "../lib/keyboard_utils"
 import {
   createElement_, createShadowRoot_, NONE, fullscreenEl_unsafe_, docEl_unsafe_, getComputedStyle_, set_docSelectable_,
   GetParent_unsafe_, getSelection_, ElementProto, GetChildNodes_not_ff, GetShadowRoot_, getEditableType_, htmlTag_,
-  notSafe_not_ff_, CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_,
+  notSafe_not_ff_, CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_, getAccessibleSelectedNode
 } from "../lib/dom_utils"
 import {
   bZoom_, dScale_, getZoom_, wdZoom_, getSelectionBoundingBox_, prepareCrop_, getClientRectsForAreas_,
@@ -277,8 +277,8 @@ export const getSelected = (notExpectCount?: {r?: ShadowRoot | null}): Selection
           : typeof ShadowRoot == "function")) {
     while (sel2) {
       sel2 = null;
-      el = sel.anchorNode;
-      if (el && el === sel.focusNode && (offset = sel.anchorOffset) === sel.focusOffset) {
+      el = getAccessibleSelectedNode(sel)
+      if (el && el === getAccessibleSelectedNode(sel, 1) && (offset = sel.anchorOffset) === sel.focusOffset) {
         if ((el as NodeToElement).tagName) {
           el = (Build.BTypes & ~BrowserType.Firefox ? GetChildNodes_not_ff!(el as Element)
               : el.childNodes as NodeList)[offset]
@@ -347,7 +347,7 @@ export const getSelectionText = (notTrim?: 1): string => {
 export const removeSelection = function (root?: VUIRoot & Pick<DocumentOrShadowRoot, "getSelection">): boolean {
     const sel = (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
         ? root : root && root.getSelection) ? root!.getSelection!() : getSelection_()
-    const ret = sel && sel.type === "Range" && sel.anchorNode
+    const ret = sel && sel.type === "Range" && getAccessibleSelectedNode(sel)
     ret && collpaseSelection(sel!)
     return !!ret
 } as (root?: VUIRoot) => boolean

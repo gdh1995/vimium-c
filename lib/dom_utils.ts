@@ -351,8 +351,18 @@ export const isInputInTextMode_cr_old = Build.MinCVer >= BrowserVer.Min$selectio
     } catch {}
 }
 
+export const getAccessibleSelectedNode = (sel: Selection, focused?: 1): Node | null => {
+  let node = focused ? sel.focusNode : sel.anchorNode
+  if (Build.BTypes & BrowserType.Firefox) {
+    try {
+      node && node.contains(node)
+    } catch { node = null }
+  }
+  return node
+}
+
 export const isSelected_ = (): boolean => {
-    const element = activeEl_unsafe_()!, sel = getSelection_(), node = sel.anchorNode;
+    const element = activeEl_unsafe_()!, sel = getSelection_(), node = getAccessibleSelectedNode(sel)
     return !node ? false
       : (element as TypeToAssert<Element, HTMLElement, "isContentEditable">).isContentEditable === true
       ? (Build.BTypes & ~BrowserType.Firefox ? doc.contains.call(element, node) : element.contains(node))
@@ -362,8 +372,8 @@ export const isSelected_ = (): boolean => {
 }
 
 export const getSelectionFocusEdge_ = (sel: Selection, knownDi: VisualModeNS.ForwardDir): SafeElement | null => {
-    if (!rangeCount_(sel)) { return null; }
-    let el = sel.focusNode!, nt: Node["nodeType"], o: Node | null
+    let el = rangeCount_(sel) && getAccessibleSelectedNode(sel, 1), nt: Node["nodeType"], o: Node | null
+    if (!el) { return null; }
     if ((el as NodeToElement).tagName) {
       el = (Build.BTypes & ~BrowserType.Firefox ? GetChildNodes_not_ff!(el as Element)[sel.focusOffset]
             : (el.childNodes as NodeList)[sel.focusOffset]) || el
