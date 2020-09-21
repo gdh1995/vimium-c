@@ -1,5 +1,5 @@
 <h2 align="center"><a name="readme"></a>
-  <img src="icons/icon128.png" width="32" height="32" alt="Icon" />
+  <img src="icons/icon128.png" width="32" height="32" alt="" />
   <span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span> - All by Keyboard
 </h2>
 
@@ -21,10 +21,6 @@
   )](https://addons.mozilla.org/firefox/addon/vimium-c/reviews/?src=external-readme)
 [![Chrome users](https://img.shields.io/chrome-web-store/users/hfjbmagddngcpeloejdejnfgbamkjaeg?labelColor=4285F4&label=Chrome%2043%2B&logo=Google%20Chrome&logoColor=white&color=critical
   )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
-[![Chrome rating](https://img.shields.io/chrome-web-store/rating/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&labelColor=4285F4&logoColor=white&color=critical
-  )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
-[![Chrome rating count](https://img.shields.io/chrome-web-store/rating-count/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&labelColor=4285F4&logoColor=white&color=critical
-  )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg/reviews)
 
 **Visit on [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/vimium-c/?src=external-readme) /
 [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo) /
@@ -107,14 +103,7 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
-#### 1.85.2
-* UI: fix missing borders on Chrome 85+ if a screen is in some special DPIs
-* `LinkHints.activateModeToOpenVomnibar`: fix `url=true` didn't work
-* `copyCurrentUrl` with `type=frame` now works on PDF Viewer for Vimium C
-* `goUp`/`goToRoot` now uses `type=frame`/`type=tab` to decide their target
-* Vomnibar: add a classname of `has-dark` to `<body>` when in dark mode
-
-See more on [RELEASE-NOTES.md](RELEASE-NOTES.md).
+See on [RELEASE-NOTES.md](RELEASE-NOTES.md).
 
 #### Known Issues
 

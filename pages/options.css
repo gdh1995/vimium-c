@@ -112,7 +112,8 @@ button, select {
   box-sizing: border-box;
   color: #444;
   color: var(--button-color, #444);
-  font: 12px/100% Arial,sans-serif !important;
+  font: 12px/1 "Helvetica Neue",Helvetica,Arial,"PingFang SC","Hiragino Sans GB"
+    ,"Microsoft YaHei","Heiti SC","WenQuanYi Micro Hei",sans-serif !important;
   height: 24px;
   outline: none;
   padding: 0 10px;
