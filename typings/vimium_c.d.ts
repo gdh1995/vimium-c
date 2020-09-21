@@ -10,6 +10,7 @@ declare namespace CompletersNS {
     Full = 0x3f,
     /** bookmark | history | tab */ MultipleCandidates = 7,
   }
+  const enum QComponent { NONE = 0, mode = 1, query = 2, offset = 4, queryOrOffset = query | offset }
   /**
    * only those >= .Default can be used in content
    */

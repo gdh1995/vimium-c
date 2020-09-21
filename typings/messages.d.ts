@@ -136,11 +136,13 @@ interface ShortcutInfoMap {}
 
 interface BgVomnibarSpecialReq {
   [kBgReq.omni_omni]: {
+    /** autoSelect */ a: boolean
+    /** queryComponents */ c: CompletersNS.QComponent
+    /** favIcon  */ i: 0 | 1 | 2
     /** list */ l: CompletersNS.Suggestion[];
-    /** autoSelect */ a: boolean;
     /** matchType */ m: CompletersNS.MatchType;
+    /** real mode */ r: string
     /** sugTypes */ s: CompletersNS.SugType;
-    /** favIcon  */ i: 0 | 1 | 2;
     /** total */ t: number;
   };
   [kBgReq.omni_returnFocus]: {

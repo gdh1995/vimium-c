@@ -261,7 +261,8 @@ declare namespace CompletersNS {
   }
 
   type Callback = (this: void, sugs: Array<Readonly<Suggestion>>,
-    newAutoSelect: boolean, newMatchType: MatchType, newMatchedSugTypes: SugType, newMatchedTotal: number) => void;
+    newAutoSelect: boolean, newMatchType: MatchType, newMatchedSugTypes: SugType, newMatchedTotal: number,
+    realMode: string, queryComponents: QComponent) => void;
 
   type FullOptions = Options & {
   };

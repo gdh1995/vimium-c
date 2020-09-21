@@ -337,7 +337,8 @@
     return true;
   }
   function PostCompletions(this: Port, favIcon0: 0 | 1 | 2, list: Array<Readonly<Suggestion>>
-      , autoSelect: boolean, matchType: CompletersNS.MatchType, sugTypes: CompletersNS.SugType, total: number): void {
+      , autoSelect: boolean, matchType: CompletersNS.MatchType, sugTypes: CompletersNS.SugType, total: number
+      , realMode: string, queryComponents: CompletersNS.QComponent): void {
     let { u: url } = this.s, favIcon: 0 | 1 | 2 = favIcon0 === 2 ? 2 : 0;
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
@@ -377,7 +378,10 @@
       }
       }
     }
-    safePost(this, { N: kBgReq.omni_omni, a: autoSelect, m: matchType, s: sugTypes, l: list, i: favIcon, t: total });
+    safePost(this, {
+      N: kBgReq.omni_omni, a: autoSelect, c: queryComponents, i: favIcon, l: list, m: matchType,
+      r: realMode, s: sugTypes, t: total
+    });
     BgUtils_.resetRe_();
   }
   function safePost<K extends keyof FullBgReq>(port: Port, req: Req.bg<K>): BOOL {

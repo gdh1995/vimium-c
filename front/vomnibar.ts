@@ -165,6 +165,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   actionType_: ReuseType.Default,
   matchType_: CompletersNS.MatchType.Default,
   sugTypes_: CompletersNS.SugType.Empty,
+  resMode_: "",
   focused_: false,
   showing_: false,
   codeFocusTime_: 0,
@@ -266,7 +267,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.total_ = a.lastKey_ = a.wheelDelta_ = VUtils_.timeCache_ = 0;
     a.docZoom_ = 1;
     a.doesOpenInIncognito_ = a.completions_ = a.onUpdate_ = a.isHttps_ = a.baseHttps_ = null as never
-    a.mode_.q = a.lastQuery_ = a.inputText_ = a.lastNormalInput_ = "";
+    a.mode_.q = a.lastQuery_ = a.inputText_ = a.lastNormalInput_ = a.resMode_ = "";
     a.mode_.o = "omni";
     a.mode_.t = CompletersNS.SugType.Empty;
     a.isSearchOnTop_ = false;
@@ -405,8 +406,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
   parsed_ ({ i: id, s: search }: BgVomnibarSpecialReq[kBgReq.omni_parsed]): void {
     const line = Vomnibar_.completions_[id] as SuggestionEx;
-    line.parsed_ = search ? (Vomnibar_.mode_.o.endsWith("omni") ? "" : ":o ")
-        + search.k + " " + search.u + " " : line.t;
+    line.parsed_ = search ? (Vomnibar_.mode_.o.endsWith("omni") && !Vomnibar_.resMode_ ? "" : ":o ")
+        + search.k + " " + search.u + " " : Vomnibar_.resMode_ + line.t
     if (id === Vomnibar_.selection_) {
       return Vomnibar_._updateInput(line, line.parsed_);
     }
@@ -419,9 +420,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       return a.updateInput_(a.selection_);
     }
     let line = a.completions_[a.selection_] as SuggestionEx, str = a.input_.value.trim();
-    str = str === (line.title || line.u) ? (line.parsed_ || line.t)
-      : line.title && str === line.u ? line.title
-      : str === line.t ? line.u : line.t;
+    a.resMode_ && (str = str.slice(a.resMode_.length))
+    str = str === (line.title || line.u) ? line.parsed_ || a.resMode_ + line.t
+        : a.resMode_ + (line.title && str === line.u ? line.title : str === line.t ? line.u : line.t)
     return a._updateInput(line, str);
   },
   _updateInput (line: SuggestionEx, str: string): void {
@@ -905,6 +906,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.showFavIcon_ = response.i;
     a.matchType_ = response.m;
     a.sugTypes_ = response.s;
+    a.resMode_ = response.r && response.r + " "
     a.completions_ = completions;
     a.isSearchOnTop_ = len > 0 && completions[0].e === "search";
     a.selection_ = a.isSearchOnTop_ || (a.selectFirst_ == null ? response.a : a.selectFirst_ && notEmpty) ? 0 : -1;
@@ -935,10 +937,12 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           && (!(Build.BTypes & ~BrowserType.Firefox) || a.browser_ === BrowserType.Firefox)
         ? (document.body as HTMLBodyElement).style : a.bodySt_).display = "";
     }
-    let cl = a.barCls_, c = "empty";
+    let cl = a.barCls_, cl2 = list.classList, c = "empty";
     notEmpty ? cl.remove(c) : cl.add(c);
-    cl = list.classList, c = "no-favicon";
-    a.showFavIcon_ ? cl.remove(c) : cl.add(c);
+    c = "no-query"
+    response.c & CompletersNS.QComponent.queryOrOffset ? (cl.remove(c), cl2.remove(c)) : (cl.add(c), cl2.add(c))
+    c = "no-favicon";
+    a.showFavIcon_ ? cl2.remove(c) : cl2.add(c);
     if (notEmpty) {
       if (a.selection_ === 0) {
         list.firstElementChild.classList.add("s");

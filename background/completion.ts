@@ -133,7 +133,8 @@ let matchType: MatchType = MatchType.plain,
     inNormal: boolean | null = null, autoSelect = false, isForAddressBar = false,
     otherFlags = CompletersNS.QueryFlags.None,
     maxChars = 0, maxResults = 0, maxTotal = 0, matchedTotal = 0, offset = 0,
-    queryTerms: string[] = [""], rawInput = "", rawQuery = "", rawMore = "",
+    queryTerms: string[] = [""], rawInput = "", rawMode = "", rawQuery = "", rawMore = "",
+    rawComponents = CompletersNS.QComponent.NONE, 
     mayRawQueryChangeNextTime_ = false,
     wantInCurrentWindow = false,
     historyUrlToSkip = "", bookmarkUrlToSkip = "",
@@ -554,7 +555,7 @@ historyEngine = {
         if (someQuery) {
           const curAll = Completers.suggestions_!, len = curAll.length, someMatches = len > 0;
           Completers.callback_!(someMatches && curAll[0].t === "search" ? [curAll[0]] : []
-              , autoSelect && someMatches, MatchType.Default, SugType.Empty, len);
+              , autoSelect && someMatches, MatchType.Default, SugType.Empty, len, rawMode, rawComponents)
         }
       }
       if (someQuery) { return; }
@@ -1001,8 +1002,13 @@ searchEngine = {
       }
       return Completers.next_([], SugType.search);
     } else {
-      if (pattern && rawMore) { q.push(rawMore); offset = 0; }
-      q.length > 1 ? 0 : (matchType = MatchType.reset);
+      if (pattern && rawMore) {
+        q.push(rawMore); offset = 0;
+        rawQuery += " " + rawMore
+        rawMore = ""
+        rawComponents &= ~CompletersNS.QComponent.offset
+      }
+      q.length > 1 || (matchType = MatchType.reset);
     }
     if (q.length > 1 && pattern) {
       q.shift();
@@ -1343,21 +1349,23 @@ Completers = {
         : someMatches ? MatchType.someMatches
         : mayGoToAnotherMode ? MatchType.searchWanted
         : MatchType.emptyResult,
+    realMode = rawMode, components = rawComponents,
     newSugTypes = newMatchType === MatchType.someMatches && !mayGoToAnotherMode ? Completers.sugTypes_ : SugType.Empty,
     func = Completers.callback_!;
     Completers.cleanGlobals_();
-    return func(suggestions, newAutoSelect, newMatchType, newSugTypes, matched);
+    return func(suggestions, newAutoSelect, newMatchType, newSugTypes, matched, realMode, components)
   },
   cleanGlobals_ (): void {
     Completers.mostRecentQuery_ = Completers.callback_ = inNormal = null;
     queryTerms = [];
-    rawInput = rawQuery = rawMore = historyUrlToSkip = bookmarkUrlToSkip = "";
+    rawInput = rawMode = rawQuery = rawMore = historyUrlToSkip = bookmarkUrlToSkip = "";
     RegExpCache.parts_ = null as never;
     RankingUtils.maxScoreP_ = RankingEnums.maximumScore;
     RankingUtils.timeAgo_ = matchType =
     Completers.sugTypes_ = otherFlags =
     maxResults = maxTotal = matchedTotal = maxChars = 0;
     allExpectedTypes = SugType.Empty;
+    rawComponents = CompletersNS.QComponent.NONE
     autoSelect = isForAddressBar = false;
     mayRawQueryChangeNextTime_ = wantInCurrentWindow = false
     showThoseInBlocklist = true;
@@ -1379,6 +1387,7 @@ Completers = {
     }
     rawQuery = rawQuery.slice(0, ind && ind - 1);
     rawMore = str;
+    rawComponents |= CompletersNS.QComponent.offset
   },
   rSortByRelevancy_ (a: Suggestion, b: Suggestion): number { return b.r - a.r; }
 },
@@ -1954,6 +1963,8 @@ Completion_ = {
       , callback: CompletersNS.Callback): void {
     autoSelect = false;
     rawInput = rawQuery = (query = query.trim()) && query.replace(BgUtils_.spacesRe_, " ");
+    rawMode = ""
+    rawComponents = CompletersNS.QComponent.NONE
     Completers.getOffset_();
     query = rawQuery;
     queryTerms = query
@@ -1994,7 +2005,8 @@ Completion_ = {
         : str === "d" ? knownCs.domain : str === "s" ? knownCs.search : str === "o" ? knownCs.omni : null;
       if (arr) {
         autoSelect = arr.length === 1;
-        queryTerms.shift();
+        rawMode = queryTerms.shift()!
+        rawComponents |= CompletersNS.QComponent.mode
         rawQuery = rawQuery.slice(3);
         if (expectedTypes !== SugType.Empty) { arr = null; }
       }
@@ -2016,6 +2028,9 @@ Completion_ = {
     }
     showThoseInBlocklist = !omniBlockList || BlockListFilter.IsExpectingHidden_(queryTerms);
     allExpectedTypes = expectedTypes !== SugType.Empty ? expectedTypes : SugType.Full;
+    if (rawQuery) {
+      rawComponents |= CompletersNS.QComponent.query
+    }
     Completers.filter_(arr || knownCs.omni);
   },
   removeSug_ (url, type, callback): void {
