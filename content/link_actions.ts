@@ -7,7 +7,7 @@ import { getVisibleClientRect_, center_, view_, selRange_ } from "../lib/rect"
 import {
   IsInDOM_, createElement_, htmlTag_, getComputedStyle_, getEditableType_, isIFrameElement, GetParent_unsafe_,
   ElementProto, querySelector_unsafe_, getInputType, uneditableInputs_, GetShadowRoot_, CLK, scrollingEl_,
-  findMainSummary_, getSelection_,
+  findMainSummary_, getSelection_, removeEl_s, appendNode_s
 } from "../lib/dom_utils"
 import {
   hintOptions, mode1_, hintMode_, hintApi, hintManager, coreHints, setMode, detectUsableChild, hintCount_,
@@ -387,7 +387,7 @@ export const linkActions: readonly LinkAction[] = [
       link.href = url;
       if (notAnchor) {
         let top = scrollingEl_(1);
-        top && top.appendChild(link);
+        top && appendNode_s(top, link)
       }
     }
     const kD = "download", hadNoDownload = !link.hasAttribute(kD);
@@ -400,7 +400,7 @@ export const linkActions: readonly LinkAction[] = [
     }
     if (!changed) { /* empty */ }
     else if (notAnchor) {
-      link.remove();
+      removeEl_s(link)
     }
     else if (oldUrl != null) {
       link.setAttribute(H, oldUrl);

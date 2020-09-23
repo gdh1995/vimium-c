@@ -33,10 +33,10 @@ import {
 } from "../lib/utils"
 import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_,
-  querySelector_unsafe_, getComputedStyle_, notSafe_not_ff_, HDN, isRawStyleVisible, fullscreenEl_unsafe_,
+  querySelector_unsafe_, getComputedStyle_, notSafe_not_ff_, HDN, isRawStyleVisible, fullscreenEl_unsafe_, removeEl_s
 } from "../lib/dom_utils"
 import {
-  scrollWndBy_, wndSize_, getZoom_, wdZoom_, bZoom_, isNotInViewport, prepareCrop_, padClientRect_,
+  scrollWndBy_, wndSize_, getZoom_, wdZoom_, bZoom_, isNotInViewport, prepareCrop_, padClientRect_, instantScOpt,
   getBoundingClientRect_, cropRectToVisible_, getVisibleClientRect_, dimSize_, scrollingTop, set_scrollingTop,
 } from "../lib/rect"
 import { getParentVApi, resetSelectionToDocStart, checkHidden, addElementList, curModalElement } from "./dom_ui"
@@ -126,7 +126,7 @@ let performAnimate = (e: SafeElement | null, d: ScrollByY, a: number): void => {
     if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement
         || Build.BTypes & BrowserType.ChromeOrFirefox && hasDialog) {
       scrolling ? curModalElement ? 0 : maskTop = addElementList([], [0, 0], true)
-      : (maskTop && maskTop.remove(), maskTop = null, running = 0)
+      : (maskTop && removeEl_s(maskTop), maskTop = null, running = 0)
       return
     }
     const el = (scrolling ? Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(docEl_unsafe_()) : docEl_unsafe_()
@@ -156,35 +156,23 @@ let performAnimate = (e: SafeElement | null, d: ScrollByY, a: number): void => {
   performAnimate(e, d, a)
 }
 
-const performScroll = (el: SafeElement | null, di: ScrollByY, amount: number, before?: number): number => {
-    let newPos: number, I = "instant" as const;
-    if (di) {
-      if (el) {
-        before = before == null ? dimSize_(el, kDim.positionY) : before;
-        !(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
-        !(Build.BTypes & ~BrowserType.Firefox) ||
-        el.scrollBy ? el.scrollBy({behavior: I, top: amount}) : (el.scrollTop += amount);
-        newPos = dimSize_(el, kDim.positionY);
-      } else {
-        before = scrollY;
-        // avoid using `Element`, so that users may override it
-        scrollWndBy_(0, amount);
-        newPos = scrollY;
-      }
-    } else if (el) {
-      before = before == null ? dimSize_(el, kDim.positionX) : before;
+const performScroll = ((el: SafeElement | null, di: ScrollByY, amount: number, before?: number): number => {
+    before = before != null ? before : dimSize_(el, kDim.positionX + di)
+    if (el) {
       !(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
       !(Build.BTypes & ~BrowserType.Firefox) ||
-      el.scrollBy ? el.scrollBy({behavior: I, left: amount}) : (el.scrollLeft += amount);
-      newPos = dimSize_(el, kDim.positionX);
+      // avoid using `Element`, so that users may override it
+      el.scrollBy ? el.scrollBy(instantScOpt(di, amount)) : di ? el.scrollTop += amount : el.scrollLeft += amount
     } else {
-      before = scrollX;
-      scrollWndBy_(amount, 0);
-      newPos = scrollX;
+      scrollWndBy_(di, amount)
     }
-    return newPos - before;
+    return dimSize_(el, kDim.positionX + di) - before
+}) as {
+  (el: SafeElement, di: ScrollByY, amount: number, before: number): number
+  (el: SafeElement | null, di: ScrollByY, amount: number, before?: null): number
 }
 
+/** should not use `scrollingTop` (including `dimSize_(scrollingTop, clientH/W)`) */
 export const $sc = (element: SafeElement | null, di: ScrollByY, amount: number): void => {
     if (hasSpecialScrollSnap(element)) {
       while (amount * amount >= 1 && !performScroll(element, di, amount)) {
@@ -231,7 +219,11 @@ export const activate = (options: CmdOptions[kFgCmd.scroll] & SafeObject, count:
 export const executeScroll = function (di: ScrollByY, amount0: number, isTo: BOOL
       , factor?: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined, fromMax?: boolean
       , options?: CmdOptions[kFgCmd.scroll]): void {
-    prepareTop()
+    set_scrollingTop(scrollingEl_(1))
+    if (scrollingTop) {
+      getZoom_(1)
+      getPixelScaleToScroll()
+    }
     const element = findScrollable(di, isTo ? fromMax ? 1 : -1 : amount0)
     let amount = !factor ? adjustAmount(di, amount0, element)
       : factor === 1 ? amount0
@@ -261,11 +253,11 @@ export const executeScroll = function (di: ScrollByY, amount0: number, isTo: BOO
         resetSelectionToDocStart()
       }
     }
+    set_scrollingTop(null)
     preventPointEvents = options && options.keepHover === !1
     vApi.$(element, di, amount)
     preventPointEvents = 0
     scrolled = 0
-    set_scrollingTop(null)
     if (amount && readyState_ > "i" && overrideScrollRestoration) {
       overrideScrollRestoration("scrollRestoration", "manual", "unload")
     }
@@ -368,14 +360,6 @@ const findScrollable = (di: ScrollByY, amount: number): SafeElement | null => {
     return element;
 }
 
-export const prepareTop = (): void => {
-  set_scrollingTop(scrollingEl_(1))
-  if (scrollingTop) {
-      getZoom_(1);
-    getPixelScaleToScroll()
-  }
-}
-
 export const getPixelScaleToScroll = (): void => {
     /** https://drafts.csswg.org/cssom-view/#dom-element-scrolltop
      * Imported on 2013-05-15 by https://github.com/w3c/csswg-drafts/commit/ad01664359641f791d99f0b3fce545b55579acdc
@@ -412,7 +396,7 @@ const doesScroll = (el: SafeElement, di: ScrollByY, amount: number): boolean => 
         changed2 * changed2 > 0.1 && performScroll(el, 0, -changed2, before)
       } else if (!(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior
           || !(Build.BTypes & ~BrowserType.Firefox) || el.scrollTo) {
-        el.scrollTo({behavior: "instant", [di ? "top" : "left"]: before });
+        el.scrollTo(instantScOpt(di, before))
       } else {
         di ? (el.scrollTop = before) : (el.scrollLeft = before);
       }

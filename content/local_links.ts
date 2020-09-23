@@ -7,7 +7,7 @@ import { VOther, clickable_, jsRe_, doc, isImageUrl, fgCache, readyState_, chrom
 import {
   isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, findMainSummary_, htmlTag_, isAriaNotTrue_,
   NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, ElementProto, notSafe_not_ff_, docEl_unsafe_,
-  GetParent_unsafe_, unsafeFramesetTag_old_cr_, isHTML_, querySelectorAll_unsafe_,
+  GetParent_unsafe_, unsafeFramesetTag_old_cr_, isHTML_, querySelectorAll_unsafe_, isNode_
 } from "../lib/dom_utils"
 import {
   getVisibleClientRect_, getZoomedAndCroppedRect_, getClientRectsForAreas_, getCroppedRect_, padClientRect_,
@@ -255,8 +255,8 @@ export const getEditable = (hints: Hint[], element: SafeHTMLElement): void => {
 const getSelectable = (hints: Hint[], element: SafeHTMLElement): void => {
   const arr = element.childNodes as NodeList
   for (let i = 0; i < arr.length; i++) {
-    const  node = arr[i]
-    if (node.nodeType === kNode.TEXT_NODE && (node as Text).data.trim().length > 2) {
+    const node = arr[i]
+    if (isNode_(node, kNode.TEXT_NODE) && node.data.trim().length > 2) {
       const arr = getVisibleClientRect_(element)
       arr && hints.push([element as LockableElement, arr, ClickType.Default])
       break
@@ -317,7 +317,7 @@ export const traverse = function (selector: string
   const matchAll = selector === kSafeAllSelector,
   output: Hint[] | SafeHTMLElement[] = [],
   wantClickable = filter === getClickable,
-  isInAnElement = !Build.NDEBUG && !!wholeDoc && (wholeDoc as unknown as Node).nodeType === kNode.ELEMENT_NODE,
+  isInAnElement = !Build.NDEBUG && !!wholeDoc && isNode_(wholeDoc as unknown as Node, kNode.ELEMENT_NODE),
   box = !wholeDoc && fullscreenEl_unsafe_()
       || !Build.NDEBUG && isInAnElement && wholeDoc as unknown as Element
       || doc,
@@ -553,9 +553,7 @@ const isDescendant = function (c: Element | null, p: Element, shouldBeSingleChil
       || !shouldBeSingleChild || (<RegExpOne> /\b(button|a$)/).test(p.localName as string)) {
     return c === p;
   }
-  for (; c.childElementCount === 1
-        && ((f = c.firstChild!).nodeType !== kNode.TEXT_NODE || !(f as Text).data.trim())
-        && ++i < 3
+  for (; c.childElementCount === 1 && !(isNode_(f = c.firstChild!, kNode.TEXT_NODE) && f.data.trim()) && ++i < 3
       ; c = c.lastElementChild as Element | null as Element) { /* empty */ }
   return i > 2;
 } as (c: Element, p: Element, shouldBeSingleChild: BOOL | boolean) => boolean

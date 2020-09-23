@@ -2,7 +2,7 @@ import {
   clickable_, setupEventListener, VOther, timeout_, doc, isAlive_, set_allowRAF_,
   loc_, replaceBrokenTimerFunc, allowRAF_, getTime, recordLog, VTr, vApi,
 } from "../lib/utils"
-import { createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, } from "../lib/dom_utils"
+import { createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, removeEl_s } from "../lib/dom_utils"
 import { Stop_ } from "../lib/keyboard_utils"
 import { safeDestroy } from "./port"
 import { coreHints } from "./link_hints"
@@ -223,7 +223,9 @@ _apply = _listen.apply, _call = _listen.call,
 call = _call.bind(_call as any) as <T, A extends any[], R>(func: (this: T, ...a: A) => R, thisArg: T, ...args: A) => R,
 dispatch = _call.bind<(this: (this: EventTarget, ev: Event) => boolean
     , self: EventTarget, evt: Event) => boolean>(ETP.dispatchEvent),
-ElCls = Element, ElProto = ElCls[kProto], Append = ElProto.appendChild,
+ElCls = Element, ElProto = ElCls[kProto],
+Append = !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
+    ? ElProto.append! : ElProto.appendChild,
 GetRootNode = ElProto.getRootNode,
 Attr = ElProto.setAttribute, HasAttr = ElProto.hasAttribute, Remove = ElProto.remove,
 StopProp = Event[kProto].stopImmediatePropagation as (this: Event) => void,
@@ -578,7 +580,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$addEvent
     });
   }
   // else: CSP script-src before C68, CSP sandbox before C68 or JS-disabled-in-CS on C/E
-  script.remove();
+  removeEl_s(script)
   execute(kContentCmd.Destroy);
   if (!(Build.BTypes & BrowserType.Chrome)
       || Build.BTypes & ~BrowserType.ChromeOrFirefox && !appVer) {

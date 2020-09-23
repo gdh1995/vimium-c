@@ -7,9 +7,9 @@ import {
   DEL, BSP, ENTER,
 } from "../lib/keyboard_utils"
 import {
-  createShadowRoot_, getSelectionFocusEdge_, activeEl_unsafe_, rangeCount_,
+  createShadowRoot_, getSelectionFocusEdge_, activeEl_unsafe_, rangeCount_, setClassName_s,
   getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, htmlTag_, fullscreenEl_unsafe_, docEl_unsafe_,
-  getSelection_, isSelected_, docSelectable_, isHTML_, createElement_, CLK, MDW, HDN, NONE,
+  getSelection_, isSelected_, docSelectable_, isHTML_, createElement_, CLK, MDW, HDN, NONE, removeEl_s, appendNode_s
 } from "../lib/dom_utils"
 import {
   wdZoom_, prepareCrop_, view_, dimSize_, selRange_, getZoom_, padClientRect_, getSelectionBoundingBox_,
@@ -110,13 +110,13 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     el = box_ = createElement_("iframe"), st = outerBox.style
     st.display = NONE; st.width = "0";
     if (Build.BTypes & ~BrowserType.Firefox && wdZoom_ !== 1) { st.zoom = "" + 1 / wdZoom_; }
-    outerBox.className = "R HUD UI" + fgCache.d;
+    setClassName_s(outerBox, "R UI HUD" + fgCache.d)
     if (Build.BTypes & BrowserType.Firefox) {
       setupEventListener(outerBox, "mousedown", onMousedown, 0, 1)
     } else {
       outerBox.onmousedown = onMousedown
     }
-    el.className = "R Find UI";
+    setClassName_s(el, "R UI Find")
     el.onload = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinTestedES6Environment
         ? vApi.n.bind(0, 1) : () => vApi.n(1)
     pushHandler_(SuppressMost_, activate);
@@ -124,7 +124,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     init && init(AdjustType.NotAdjust)
     toggleSelectableStyle(1);
     isActive = true
-    outerBox.appendChild(el);
+    appendNode_s(outerBox, el)
     addUIElement(outerBox, AdjustType.DEFAULT, hud_box);
 }
 
@@ -193,7 +193,7 @@ const onLoad2 = (): void => {
     list = innerDoc_.createDocumentFragment(),
     addElement = function (tag: 0 | "div" | "style", id?: string): SafeHTMLElement {
       const newEl = innerDoc_.createElement(tag || "span") as SafeHTMLElement;
-      id && (newEl.id = id, list.appendChild(newEl));
+      id && (newEl.id = id, appendNode_s(list, newEl))
       return newEl;
     };
     addElement(0, "s").dataset.vimium = "/"
@@ -247,9 +247,9 @@ const onLoad2 = (): void => {
                 && Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
         && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
         || Build.BTypes & ~BrowserType.Edge && inShadow ? addElement("div") : box;
-    root2.className = "r" + fgCache.d;
+    setClassName_s(root2, "r" + fgCache.d)
     root2.spellcheck = false;
-    root2.appendChild(list);
+    appendNode_s(root2, list)
     box.setAttribute("role", "textbox")
     box.setAttribute("aria-multiline", "true")
     if ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
@@ -264,17 +264,17 @@ const onLoad2 = (): void => {
       if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
         root.append!(root2, styleInHUD)
       } else {
-        root.appendChild(root2)
-        root.appendChild(styleInHUD)
+        appendNode_s(root, root2)
+        appendNode_s(root, styleInHUD)
       }
     } else {
-      docEl.appendChild(styleInHUD)
+      appendNode_s(docEl, styleInHUD)
     }
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)) {
       if (box !== body) {
-        innerDoc_.head!.appendChild(createStyle("body{margin:0!important}", addElement("style") as HTMLStyleElement))
-        body.appendChild(box);
+        appendNode_s(innerDoc_.head!, createStyle("body{margin:0!important}", addElement("style") as HTMLStyleElement))
+        appendNode_s(body, box)
       }
     } else if (Build.BTypes & ~BrowserType.Firefox && zoom < 1) {
       docEl.style.zoom = "" + 1 / zoom;
@@ -283,7 +283,7 @@ const onLoad2 = (): void => {
         && (Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1 || !(Build.BTypes & BrowserType.Firefox))
         && (Build.MinCVer >= BrowserVer.MinShadowDOMV0 || !(Build.BTypes & BrowserType.Chrome))
         || Build.BTypes & ~BrowserType.Edge && root2 !== body) {
-      body.className = fgCache.d.trim()
+      setClassName_s(body, fgCache.d.trim())
     }
     outerBox_.style.display = ""
     removeHandler_(activate);
@@ -317,7 +317,7 @@ const setFirstQuery = (query: string): void => {
 export let init = (adjust_type: AdjustType): void => {
     const css = findCSS.c, sin = styleIn = createStyle(css)
     ui_box ? adjustUI() : addUIElement(sin, adjust_type, true);
-    sin.remove();
+    removeEl_s(sin)
     styleOut = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
           && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
           && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
@@ -364,7 +364,7 @@ export const clear = (): void => {
   hasResults = isActive = isSmall = notEmpty = postOnEsc = wholeWord = false
   wrapAround = true
   removeHandler_(activate)
-  outerBox_ && outerBox_.remove()
+  outerBox_ && removeEl_s(outerBox_)
   highlighting && highlighting()
   if (box_ === deref_(lastHovered_)) { /*#__INLINE__*/ resetLastHovered() }
   parsedQuery_ = query_ = query0_ = ""
@@ -857,11 +857,11 @@ const toggleStyle = (disable: BOOL | boolean | Event): void => {
     // Note: `<doc/root>.adoptedStyleSheets` should not be modified in an extension world
     if (!active && disable) {
       toggleSelectableStyle(0);
-      sout.remove(); sin.remove();
+      removeEl_s(sout); removeEl_s(sin)
       return;
     }
     if (GetParent_unsafe_(sout, PNType.DirectNode) !== ui_box) {
-      ui_box!.appendChild(sout);
+      appendNode_s(ui_box!, sout)
       !((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
         && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
         && !(Build.BTypes & ~BrowserType.ChromeOrFirefox))
@@ -876,7 +876,7 @@ export const toggleSelectableStyle = (enable: BOOL): void => {
   if (enable ? docSelectable_ && !findCSS.s.includes("\n")
       : !styleSelectable || !GetParent_unsafe_(styleSelectable, PNType.DirectNode)) { return }
   styleSelectable || (styleSelectable = createStyle(findCSS.s))
-  enable ? ui_box!.appendChild(styleSelectable) : styleSelectable.remove()
+  enable ? appendNode_s(ui_box!, styleSelectable) : removeEl_s(styleSelectable)
 }
 
 const getCurrentRange = (): void => {

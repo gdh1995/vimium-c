@@ -7,7 +7,7 @@ import {
   frameList_, hintMode_, useFilter_, coreHints, hintKeyStatus, KeyStatus, hintChars, allHints, setMode, resetMode,
 } from "./link_hints"
 import {
-  createElement_, querySelector_unsafe_, getInputType, htmlTag_, docEl_unsafe_, ElementProto, HDN,
+  createElement_, querySelector_unsafe_, getInputType, htmlTag_, docEl_unsafe_, ElementProto, HDN, removeEl_s
 } from "../lib/dom_utils"
 import { bZoom_, padClientRect_, getBoundingClientRect_, dimSize_ } from "../lib/rect"
 import { chromeVer_, doc } from "../lib/utils"
@@ -321,7 +321,7 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
       if (inited && (newLen || oldKeySeq)) {
       for (const hint of newLen ? hints : oldHints) {
         const el = hint.m.firstElementChild as Element | null;
-        el && el.remove();
+        el && removeEl_s(el);
         (hint.m.firstChild as Text).data = hint.a;
       }
       for (const hint of oldHints) {

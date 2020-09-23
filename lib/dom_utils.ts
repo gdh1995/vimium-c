@@ -1,6 +1,13 @@
 import { VOther, chromeVer_, doc } from "./utils"
 import { dimSize_ } from "./rect"
 
+interface kNodeToType {
+  [kNode.TEXT_NODE]: Text
+  [kNode.ELEMENT_NODE]: Element
+  [kNode.DOCUMENT_NODE]: Document
+  [kNode.DOCUMENT_FRAGMENT_NODE]: DocumentFragment | ShadowRoot
+}
+
 export const DAC = "DOMActivate", MDW = "mousedown", CLK = "click", HDN = "hidden", NONE = "none"
 
   /** data and DOM-shortcut section (sorted by reference numbers) */
@@ -42,6 +49,10 @@ export const querySelectorAll_unsafe_ = ((selector: string, scope?: SafeElement)
 export const isIFrameElement = (el: Element): el is KnownIFrameElement => {
   const tag = el.localName
   return (tag === "iframe" || tag === "frame") && "lang" in el
+}
+
+export const isNode_ = <T extends keyof kNodeToType> (node: Node, typeId: T): node is kNodeToType[T] => {
+  return node.nodeType === typeId
 }
 
 export const rangeCount_ = (sel: Selection): number => sel.rangeCount
@@ -180,7 +191,7 @@ export const GetParent_unsafe_ = function (this: void, el: Node | Element
     return type === PNType.DirectNode ? pn as Node | null // may return a Node instance
       : type >= PNType.ResolveShadowHost && (
         !(Build.BTypes & ~BrowserType.Firefox) || Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype || pn)
-        && (pn as Node).nodeType === kNode.DOCUMENT_FRAGMENT_NODE
+        && isNode_(pn as Node, kNode.DOCUMENT_FRAGMENT_NODE)
       ? (pn as DocumentFragment as ShadowRoot).host || null // shadow root or other type of doc fragment
       : (!(Build.BTypes & ~BrowserType.Firefox) || Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype || pn)
         && "tagName" in (pn as Node as NodeToElement) ? pn as Element /* in doc and .pN+.pE are overridden */
@@ -283,9 +294,9 @@ export const IsInDOM_ = function (this: void, element: Element, root?: Element |
         : (root = element.ownerDocument, Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter &&
             Build.BTypes & BrowserType.Chrome &&
             unsafeFramesetTag_old_cr_ && (root as WindowWithTop).top === top ||
-            (root as Document | RadioNodeList).nodeType !== kNode.DOCUMENT_NODE
+            !isNode_(root as Document | RadioNodeList as Document, kNode.DOCUMENT_NODE)
         ? doc : root as Document));
-    if (root.nodeType === kNode.DOCUMENT_NODE
+    if (isNode_(root, kNode.DOCUMENT_NODE)
         && (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
           || !(Build.BTypes & ~BrowserType.Firefox) || (f = NProto.getRootNode))) {
       return !(Build.BTypes & ~BrowserType.Firefox)
@@ -379,7 +390,7 @@ export const getSelectionFocusEdge_ = (sel: Selection, knownDi: VisualModeNS.For
             : (el.childNodes as NodeList)[sel.focusOffset]) || el
     }
     for (o = el; !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
-          ? o && <number> o.nodeType - kNode.ELEMENT_NODE
+          ? o && !isNode_(o, kNode.ELEMENT_NODE)
           : o && (nt = o.nodeType, typeof nt !== "number" || nt - kNode.ELEMENT_NODE);
         o = knownDi ? o!.previousSibling : o!.nextSibling) { /* empty */ }
     if (!(Build.BTypes & ~BrowserType.Firefox)) {
@@ -402,6 +413,23 @@ export let createElement_ = doc.createElement.bind(doc) as {
     <K extends VimiumContainerElementType> (this: void, htmlTagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement;
 }
 export function set_createElement_ (_newCreateEl: typeof createElement_): void { createElement_ = _newCreateEl }
+
+/** @NEED_SAFE_ELEMENTS */
+export const appendNode_s = (parent: ParentNode, child: Element | DocumentFragment): void => {
+  Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
+      ? parent.appendChild(child) : parent.append!(child)
+}
+
+export const append_not_ff = Build.BTypes & ~BrowserType.Firefox ? (parent: ParentNode, child: Element): void => {
+  (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
+      ? ElementProto().appendChild : ElementProto().append!).call(parent, child)
+} : 0 as never
+
+/** @NEED_SAFE_ELEMENTS */
+export const removeEl_s = (el: Element): void => { el.remove() }
+
+/** @NEED_SAFE_ELEMENTS */
+export const setClassName_s = (el: Element, className: string): void => { el.className = className }
 
 export const createShadowRoot_ = <T extends HTMLDivElement | HTMLBodyElement> (box: T): ShadowRoot | T => {
     return !(Build.BTypes & ~BrowserType.Edge) ? box
@@ -431,17 +459,7 @@ export const runJS_ = (code: string, returnEl?: HTMLScriptElement | 0): void | H
     const script = returnEl || createElement_("script");
     script.type = "text/javascript";
     !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
-      ? script.append!(code) : script.textContent = code
-    if (Build.BTypes & ~BrowserType.Firefox) {
-      const docEl = docEl_unsafe_()
-      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
-        /** `appendChild` must be followed by /[\w.]*doc/: {@link ../Gulpfile.js#beforeUglify} */
-        script.appendChild.call(docEl || doc, script)
-      } else {
-        (docEl ? script : doc).prepend!.call(docEl || doc, script);
-      }
-    } else {
-      (docEl_unsafe_() || doc).appendChild(script);
-    }
-    return returnEl != null ? script : script.remove()
+        ? script.append!(code) : script.textContent = code;
+    (Build.BTypes & ~BrowserType.Firefox ? append_not_ff : appendNode_s)(docEl_unsafe_() || doc, script)
+    return returnEl != null ? script : removeEl_s(script)
 }

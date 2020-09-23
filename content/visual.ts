@@ -35,14 +35,14 @@ declare const enum kYank { // should have no overlap with ReuseType
 import { VTr, VOther, safer, fgCache, doc, chromeVer_ } from "../lib/utils"
 import {
   getSelection_, getSelectionFocusEdge_, isHTML_, docEl_unsafe_, notSafe_not_ff_, getEditableType_, editableTypes_,
-  GetChildNodes_not_ff, isInputInTextMode_cr_old, rangeCount_, getAccessibleSelectedNode
+  GetChildNodes_not_ff, isInputInTextMode_cr_old, rangeCount_, getAccessibleSelectedNode, scrollingEl_, isNode_
 } from "../lib/dom_utils"
 import {
   padClientRect_, getSelectionBoundingBox_, getZoom_, prepareCrop_, cropRectToVisible_, getVisibleClientRect_,
   set_scrollingTop, selRange_,
 } from "../lib/rect"
 import { checkDocSelectable, getSelected, resetSelectionToDocStart, flash_, collpaseSelection, ui_box } from "./dom_ui"
-import { prepareTop, executeScroll, scrollIntoView_need_safe } from "./scroller"
+import { executeScroll, scrollIntoView_need_safe, getPixelScaleToScroll } from "./scroller"
 import {
   toggleSelectableStyle, find_query, executeFind, find_hasResults, updateQuery as findUpdateQuery, findCSS, set_findCSS,
   execCommand,
@@ -50,7 +50,9 @@ import {
 import { insert_Lock_ } from "./insert"
 import { hudTip, hudHide, hudShow } from "./hud"
 import { post_, send_ } from "./port"
-import { removeHandler_, pushHandler_, getMappedKey, keybody_, isEscape_, prevent_, ENTER, suppressTail_ } from "../lib/keyboard_utils"
+import {
+  removeHandler_, pushHandler_, getMappedKey, keybody_, isEscape_, prevent_, ENTER, suppressTail_,
+} from "../lib/keyboard_utils"
 
 const kDir = ["backward", "forward"] as const
 let _kGranularity: GranularityNames
@@ -83,7 +85,9 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     init && init(options.w!, options.k!, _kGranularity = options.g!)
     removeHandler_(activate)
     checkDocSelectable();
-    prepareTop()
+    set_scrollingTop(scrollingEl_(1))
+    getZoom_(1)
+    getPixelScaleToScroll()
     diType_ = DiType.UnsafeUnknown
     let initialScope: {r?: ShadowRoot | null} = {}, sel: Selection = curSelection = getSelected(initialScope),
     type: SelType = selType(), mode: Mode = options.m || Mode.Visual
@@ -92,7 +96,6 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     if (mode !== Mode.Caret) {
       if (!insert_Lock_() && /* (type === SelType.Caret || type === SelType.Range) */ type) {
         const r = padClientRect_(getSelectionBoundingBox_(sel))
-        getZoom_(1);
         prepareCrop_();
         if (!cropRectToVisible_(r.l, r.t, (r.l || r.r) && r.r + 3, (r.t || r.b) && r.b + 3)) {
           resetSelectionToDocStart(sel);
@@ -265,7 +268,6 @@ const establishInitialSelectionAnchor = (sr?: ShadowRoot | null): boolean => {
     }
     let node: Text | null, str: string | undefined, offset: number
     if (!isHTML_()) { return true; }
-    getZoom_(1);
     prepareCrop_();
     const nodes = doc.createTreeWalker(sr || doc.body || docEl_unsafe_()!
             , NodeFilter.SHOW_TEXT);
@@ -377,8 +379,8 @@ const getNextRightCharacter = (isMove: BOOL): string => {
       if (Build.BTypes & BrowserType.Firefox && !focusNode) {
         return ""
       }
-      if (focusNode!.nodeType === kNode.TEXT_NODE) {
-        const i = sel.focusOffset, str = (focusNode as Text).data;
+      if (isNode_(focusNode!, kNode.TEXT_NODE)) {
+        const i = sel.focusOffset, str = focusNode.data;
         if (str.charAt(i).trim() || i && str.charAt(i - 1).trim() && str.slice(i).trimLeft()
               && (str[i] !== "\n" && !(Build.BTypes & BrowserType.Firefox && str[i] === "\r"))) {
           return str[i];
@@ -604,7 +606,7 @@ const getDirection = function (magic?: string
       }
       num1 = sel.anchorOffset;
       // here rechecks `!anchorNode` is just for safety.
-      if ((num2 = sel.focusOffset - num1) || !anchorNode || anchorNode.nodeType === kNode.TEXT_NODE) {
+      if ((num2 = sel.focusOffset - num1) || !anchorNode || isNode_(anchorNode, kNode.TEXT_NODE)) {
         diType_ = DiType.Normal
         return di_ = num2 >= 0 ? kDirTy.right : kDirTy.left
       }

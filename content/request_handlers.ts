@@ -7,8 +7,8 @@ import {
 import { set_keyIdCorrectionOffset_old_cr_, handler_stack } from "../lib/keyboard_utils"
 import {
   editableTypes_, markFramesetTagUnsafe, setNotSafe_not_ff, OnDocLoaded_, frameElement_,
-  htmlTag_, querySelector_unsafe_, isHTML_, createElement_,
-  docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, CLK, ElementProto, isIFrameElement, DAC,
+  htmlTag_, querySelector_unsafe_, isHTML_, createElement_, setClassName_s,
+  docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, CLK, ElementProto, isIFrameElement, DAC, removeEl_s
 } from "../lib/dom_utils"
 import {
   port_callbacks, post_, safePost, set_requestHandlers, requestHandlers, hookOnWnd, set_hookOnWnd,
@@ -250,13 +250,13 @@ export const showFrameMask = (mask: FrameMaskType): void => {
     framemask_more = true;
   } else {
     framemask_node = createElement_(Build.BTypes & BrowserType.Chrome ? getBoxTagName_cr_() : "div")
-    framemask_node.className = "R Frame" + (mask === FrameMaskType.OnlySelf ? " One" : "");
+    setClassName_s(framemask_node, "R Frame" + (mask === FrameMaskType.OnlySelf ? " One" : ""))
     framemask_fmTimer = interval_((fake?: TimerType.fake): void => { // safe-interval
       const more_ = framemask_more;
       framemask_more = false;
       if (more_ && !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake
                       && fake)) { return; }
-      if (framemask_node) { framemask_node.remove(); framemask_node = null; }
+      if (framemask_node) { removeEl_s(framemask_node); framemask_node = null; }
       clearInterval_(framemask_fmTimer);
     }, isTop ? 200 : 350);
   }

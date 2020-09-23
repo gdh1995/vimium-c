@@ -17,7 +17,7 @@ import { set_currentScrolling, scrollTick, clearCachedScrollable } from "./scrol
 import { resetIsCmdTriggered, resetAnyClickHandler } from "./key_handler"
 import {
   activeEl_unsafe_, isHTML_, docEl_unsafe_, getEditableType_, GetShadowRoot_, getSelection_, frameElement_,
-  SafeEl_not_ff_, MDW, fullscreenEl_unsafe_,
+  SafeEl_not_ff_, MDW, fullscreenEl_unsafe_, removeEl_s, isNode_
 } from "../lib/dom_utils"
 import { Stop_, pushHandler_, removeHandler_, prevent_ } from "../lib/keyboard_utils"
 
@@ -195,7 +195,7 @@ export const exitInsertMode = (target: Element): void => {
 
 export const exitInputHint = (): void => {
   if (inputHint) {
-    inputHint.b && inputHint.b.remove()
+    inputHint.b && removeEl_s(inputHint.b)
     removeHandler_(inputHint)
     inputHint = null;
   }
@@ -334,7 +334,7 @@ const hookOnShadowRoot = (path: ArrayLike<EventTarget | 0>, target: Node | 0, di
       ; 0 <= --len; ) {
     const root = (path as EventPath)[len] as Node;
     // root is target or inside target, so always a Node
-    if (root.nodeType === kNode.DOCUMENT_FRAGMENT_NODE) {
+    if (isNode_(root, kNode.DOCUMENT_FRAGMENT_NODE)) {
       setupEventListener(root as ShadowRoot, "focus", onShadow, disable);
       setupEventListener(root as ShadowRoot, "blur", onShadow, disable);
       disable ? domNodeMap.delete(root) : domNodeMap.set(root, kNodeInfo.ShadowFull);

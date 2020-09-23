@@ -4,7 +4,7 @@
 /** @type {import("./dependencies").ProcessType} */
 /** @type {import("./dependencies").FileSystem} */
 /**
- * @typedef { { word: string; occurrence: number; gain: number } } WordItem
+ * @typedef { { word: string; occurrence: number; gain: number; es5: number; single: number } } WordItem
   */
 // @ts-ignore
 var fs = require("fs");
@@ -71,7 +71,7 @@ function getLongWords(text, min_len = 8) {
   for (const [word, v] of wordMap) {
     const gain = word.length * v - (/** definition */ (word.length + 4) + /** reference */ 4 * v);
     if (gain > 0) {
-      longWords.push({ word, occurrence: v, gain });
+      longWords.push({ word, occurrence: v, gain, es5: gain - 22, single: word.length - 4 });
     }
   }
   return longWords;

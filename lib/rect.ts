@@ -2,7 +2,7 @@ import { doc, VOther, chromeVer_ } from "./utils"
 import {
   docEl_unsafe_, scrollingEl_, notSafe_not_ff_, ElementProto, isRawStyleVisible, getComputedStyle_, NONE,
   querySelector_unsafe_, querySelectorAll_unsafe_, GetParent_unsafe_, HDN, createElement_, fullscreenEl_unsafe_,
-  IsInDOM_, scrollIntoView_,
+  IsInDOM_, scrollIntoView_, rangeCount_, removeEl_s, append_not_ff, appendNode_s
 } from "./dom_utils"
 
 let paintBox_: [number, number] | null = null // it may need to use `paintBox[] / <body>.zoom`
@@ -25,10 +25,10 @@ export const wndSize_ = (id?: 0 | 1 | 2): number => id ? id < 2 ? innerWidth : d
 /** if `el` is null, then return viewSize for `kDim.scrollSize` */
 export const dimSize_ = (el: SafeElement | null, index: kDim | ScrollByY): number => {
   let visual, byY = (index & kDim.byY) as BOOL;
-  return el !== scrollingTop || index > kDim.elClientW - 1 && el
-      ? index < kDim.scrollW ? byY ? el!.clientHeight : el!.clientWidth
-        : index < kDim.positionX ? byY ? el!.scrollHeight : el!.scrollWidth
-        : byY ? el!.scrollTop : el!.scrollLeft
+  return el && (el !== scrollingTop || index > kDim.elClientW - 1)
+      ? index < kDim.scrollW ? byY ? el.clientHeight : el.clientWidth
+        : index < kDim.positionX ? byY ? el.scrollHeight : el.scrollWidth
+        : byY ? el.scrollTop : el.scrollLeft
       : index > kDim.positionX - 1 ? byY ? scrollY : scrollX
       : (visual = visualViewport,
           !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsured$visualViewport$
@@ -239,12 +239,11 @@ let _getPageZoom_cr = Build.BTypes & BrowserType.Chrome ? function (devRatio: nu
   let iframe: HTMLIFrameElement = createElement_("iframe"),
   pageZoom: number | null | undefined, doc: Document | null
   try {
-    /** `_testEl` must not start with /[\w.]*doc/: {@link ../Gulpfile.js#beforeUglify} */
-    iframe.appendChild.call(_testEl, iframe)
+    (Build.BTypes & ~BrowserType.Firefox ? append_not_ff : appendNode_s)(_testEl!, iframe)
     _testEl = (doc = iframe.contentDocument) && doc.documentElement
     pageZoom = _testEl && +getComputedStyle_(_testEl).zoom
   } catch {}
-  iframe.remove()
+  removeEl_s(iframe)
   _getPageZoom_cr = (zoom2, ratio2) => pageZoom ? ratio2 / devRatio * pageZoom : zoom2
   return pageZoom || docElZoom
 } as (devRatio: number, docElZoom: number, docEl: Element) => number : 0 as never as null
@@ -366,7 +365,7 @@ export const isNotInViewport = function (this: void, element: Element | null, re
 }
 
 export const selRange_ = ((sel: Selection, ensured?: 1): Range | null =>
-  ensured || sel.rangeCount ? sel.getRangeAt(0) : null
+  ensured || rangeCount_(sel) ? sel.getRangeAt(0) : null
 ) as {
   (sel: Selection, ensured: 1): Range
   (sel: Selection): Range | null
@@ -387,15 +386,18 @@ export const view_ = (el: Element, oldY?: number): boolean => {
       // required range of wanted: delta > 0 ? [-limit, 0] : [0, limit]
       f = delta * secondScroll <= 0 && delta * secondScroll >= elHeight - ih
     }
-    (delta || f) && scrollWndBy_(0, f ? secondScroll! * secondScroll! < 4 ? 0 : secondScroll! : delta * ih / 5)
+    (delta || f) && scrollWndBy_(1, f ? secondScroll! * secondScroll! < 4 ? 0 : secondScroll! : delta * ih / 5)
   }
   return ty === VisibilityType.Visible
 }
 
-export const scrollWndBy_ = (left: number, top: number): void => {
+export const instantScOpt = (di: number, amount: number): ScrollToOptions => 
+    ({behavior: "instant", left: di ? 0 : amount, top: di && amount})
+
+export const scrollWndBy_ = (di: ScrollByY, amount: number): void => {
   !(Build.BTypes & ~BrowserType.Firefox) ||
   !(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
-  ElementProto().scrollBy ? scrollBy({behavior: "instant", left, top}) : scrollBy(left, top)
+  ElementProto().scrollBy ? scrollBy(instantScOpt(di, amount)) : scrollBy(di ? 0 : amount, di && amount)
 }
 
 export const center_ = (rect: Rect | null): Point2D => {

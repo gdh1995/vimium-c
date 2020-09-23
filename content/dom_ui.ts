@@ -6,7 +6,8 @@ import { Stop_, prevent_ } from "../lib/keyboard_utils"
 import {
   createElement_, createShadowRoot_, NONE, fullscreenEl_unsafe_, docEl_unsafe_, getComputedStyle_, set_docSelectable_,
   GetParent_unsafe_, getSelection_, ElementProto, GetChildNodes_not_ff, GetShadowRoot_, getEditableType_, htmlTag_,
-  notSafe_not_ff_, CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_, getAccessibleSelectedNode
+  notSafe_not_ff_, CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_, getAccessibleSelectedNode, removeEl_s,
+  appendNode_s, append_not_ff, setClassName_s, isNode_
 } from "../lib/dom_utils"
 import {
   bZoom_, dScale_, getZoom_, wdZoom_, getSelectionBoundingBox_, prepareCrop_, getClientRectsForAreas_,
@@ -36,23 +37,23 @@ let hideHelp: ((event?: EventToPrevent) => void) | undefined | null
 
 export { box_ as ui_box, root_ as ui_root, styleIn_ as style_ui, lastFlashEl, curModalElement, hideHelp }
 export const removeModal = Build.BTypes & BrowserType.ChromeOrFirefox ? (): void => {
-  curModalElement && curModalElement.remove(), curModalElement = null
+  curModalElement && removeEl_s(curModalElement), curModalElement = null
 } : (): void => {}
 export function set_hideHelp (_newHide: typeof hideHelp) { hideHelp = _newHide }
 
 export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustType): void {
     box_ = createElement_("div");
-    let root: VUIRoot = root_ = createShadowRoot_(box_);
+    root_ = createShadowRoot_(box_);
     // listen "load" so that safer if shadowRoot is open
     // it doesn't matter to check `.mode == "closed"`, but not `.attachShadow`
     (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
       && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
       && !(Build.BTypes & ~BrowserType.ChromeOrFirefox) ||
-    Build.BTypes & ~BrowserType.Edge && root.mode === "closed" ||
+    Build.BTypes & ~BrowserType.Edge && root_.mode === "closed" ||
     setupEventListener(
       !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
-      || Build.BTypes & ~BrowserType.Edge && root !== box_
-      ? root as ShadowRoot : 0, "load",
+      || Build.BTypes & ~BrowserType.Edge && root_ !== box_
+      ? root_ as ShadowRoot : 0, "load",
     function Onload(this: ShadowRoot | Window, e: Event): void {
       if (!isAlive_) { setupEventListener(0, "load", Onload, 1); return; } // safe enough even if reloaded
       const t = e.target as HTMLElement | Document;
@@ -81,7 +82,7 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
         createStyle(cssPatch_ ? cssPatch_[1](css) : css, styleIn_ as HTMLStyleElement)
       };
       setUICSS(innerCSS)
-      root_.appendChild(el)
+      appendNode_s(root_, el)
       /**
        * Note: Tests on C35, 38, 41, 44, 47, 50, 53, 57, 60, 63, 67, 71, 72 confirmed
        *        that el.sheet has been valid when promise.then, even on XML pages.
@@ -93,7 +94,7 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
         adjustUI()
       }
     });
-    root.appendChild(element);
+    appendNode_s(root_, element)
     if (styleIn_) {
       setUICSS(styleIn_ as Exclude<typeof styleIn_, Element | null | undefined | "">)
     } else {
@@ -118,18 +119,18 @@ export const addElementList = function <T extends boolean | BOOL> (
         : Build.BTypes & BrowserType.Chrome ? getBoxTagName_cr_() :  "div");
     let cls = `R HM${Build.BTypes & BrowserType.ChromeOrFirefox && dialogContainer ? " DHM" : ""}${fgCache.d}`
     let innerBox: HTMLDivElement | HTMLDialogElement | undefined = parent
-    parent.className = cls
+    setClassName_s(parent, cls)
     if (Build.BTypes & BrowserType.Chrome && dialogContainer && els.length && getBoxTagName_cr_() < "d") { // <body>
       innerBox = createElement_(getBoxTagName_cr_())
-      parent.appendChild(innerBox)
-      innerBox.className = cls
+      appendNode_s(parent, innerBox)
+      setClassName_s(innerBox, cls)
     }
     if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinTestedES6Environment
           && Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
       (Build.BTypes &BrowserType.Chrome ? innerBox : parent).append!(...els.map(el => el.m))
     } else {
       for (const el of els) {
-        (Build.BTypes &BrowserType.Chrome ? innerBox : parent).appendChild(el.m)
+        appendNode_s(Build.BTypes &BrowserType.Chrome ? innerBox : parent, el.m)
       }
     }
     const style = parent.style,
@@ -159,9 +160,8 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
     // Chrome also always remove node from its parent since 58 (just like Firefox), which meets the specification
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
     //  -> #concept-node-append -> #concept-node-pre-insert -> #concept-node-adopt -> step 2
-    event === 2 ? box_!.remove() : el2 !== box_!.parentNode &&
-    /** `appendChild` should not be followed by /[\w.]*doc/: {@link ../Gulpfile.js#postUglify} */
-    (Build.BTypes & ~BrowserType.Firefox ? box_!.appendChild.call(el2, box_!) : el2.appendChild(box_!));
+    event === 2 ? removeEl_s(box_!) : el2 !== box_!.parentNode &&
+    (Build.BTypes & ~BrowserType.Firefox ? append_not_ff : appendNode_s)(el2, box_!)
     const sin = styleIn_, s = sin && (sin as HTMLStyleElement).sheet
     s && (s.disabled = false);
     Build.BTypes & BrowserType.ChromeOrFirefox &&
@@ -257,7 +257,7 @@ export const getSelected = (notExpectCount?: {r?: ShadowRoot | null}): Selection
       } else {
         for (let pn: Node | null; pn = GetParent_unsafe_(el, PNType.DirectNode); el = pn) { /* empty */ }
       }
-      if (el !== doc && el.nodeType === kNode.DOCUMENT_FRAGMENT_NODE
+      if (el !== doc && isNode_(el, kNode.DOCUMENT_FRAGMENT_NODE)
           && typeof (func = (el as ShadowRoot).getSelection) === "function") {
         sel = func.call(el as ShadowRoot);
         if (sel && (notExpectCount || rangeCount_(sel))) {
@@ -306,14 +306,14 @@ export const getSelected = (notExpectCount?: {r?: ShadowRoot | null}): Selection
 export const getSelectionParent_unsafe = ((re?: RegExpG & RegExpSearchable<0>): Element | null | 0 => {
     let range = selRange_(getSelected())
       , selected: string | undefined, match: RegExpExecArray | null, result = 0
-      , par: Node | null = range && range.commonAncestorContainer, lastPar = par
+      , par: Node | null = range && range.commonAncestorContainer, lastPar = par!
     while (par && !(par as NodeToElement).tagName) {
       par = Build.BTypes & ~BrowserType.Firefox ? GetParent_unsafe_(par, PNType.DirectNode)
             : par.parentNode as Exclude<Node["parentNode"], Window | RadioNodeList | HTMLCollection>;
     }
     // now par is Element or null, and may be a <form> / <frameset>
     if (re && par && range && !range.collapsed && (selected = range + "")) {
-      if (lastPar && lastPar.nodeType === kNode.TEXT_NODE && (lastPar as Text).data.trim().length <= selected.length) {
+      if (isNode_(lastPar, kNode.TEXT_NODE) && lastPar.data.trim().length <= selected.length) {
         let text: HTMLElement["innerText"] | undefined
         while (par && (text = (par as TypeToAssert<Element, HTMLElement, "innerText">).innerText,
                         !(Build.BTypes & ~BrowserType.Firefox) || typeof text === "string")
@@ -323,7 +323,7 @@ export const getSelectionParent_unsafe = ((re?: RegExpG & RegExpSearchable<0>): 
       }
       const left = range.cloneRange(), right = range.cloneRange()
       left.collapse(!0), right.collapse(!1)
-      left.setStart(par || lastPar!, 0), right.setEndAfter(par || lastPar!)
+      left.setStart(par || lastPar, 0), right.setEndAfter(par || lastPar)
       const prefix = left + "", wanted = prefix.length, total = prefix + selected + right
       result = 1
       for (re.lastIndex = 0; (match = re.exec(total)) && (result = match.index - wanted) < 0; ) { /* empty */ }
@@ -424,7 +424,7 @@ export const flash_ = function (el: Element | null, rect?: Rect | null, lifeTime
     if (!rect) { return; }
     const flashEl = createElement_(Build.BTypes & BrowserType.Chrome ? getBoxTagName_cr_() : "div"),
     nfs = !fullscreenEl_unsafe_()
-    flashEl.className = "R Flash" + (classNames || "") + (setBoundary_(flashEl.style, rect, nfs) ? " AbsF" : "");
+    setClassName_s(flashEl, "R Flash" + (classNames || "") + (setBoundary_(flashEl.style, rect, nfs) ? " AbsF" : ""))
     Build.BTypes & ~BrowserType.Firefox &&
     bZoom_ !== 1 && nfs && (flashEl.style.zoom = "" + bZoom_);
     addUIElement(flashEl)
@@ -434,7 +434,7 @@ export const flash_ = function (el: Element | null, rect?: Rect | null, lifeTime
     }
     const remove = (): void => {
       lastFlashEl === flashEl && (lastFlashEl = null)
-      flashEl.remove();
+      removeEl_s(flashEl)
     };
     lifeTime === -1 || timeout_(remove, (lifeTime || GlobalConsts.DefaultRectFlashTime) * (1 + +fgCache.m))
     return remove;
@@ -511,7 +511,7 @@ export const evalIfOK = (url: Pick<BgReq[kBgReq.eval], "u"> | string): boolean =
     try { str = decodeURIComponent(str); } catch {}
     timeout_(runJS_.bind(0, str, 0), 0)
   } else {
-    el.remove()
+    removeEl_s(el)
     post_({ H: kFgReq.evalJSFallback, u: url })
   }
   return true;

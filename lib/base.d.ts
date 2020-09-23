@@ -319,8 +319,6 @@ declare namespace VomnibarNS {
   }
 }
 
-declare type ScrollByY = 0 | 1;
-
 type HintOffset = [ rectBehindCur: Rect, offsetX: number ]
 
 type HTMLElementUsingMap = HTMLImageElement | HTMLObjectElement;
@@ -350,7 +348,12 @@ declare const enum AdjustType {
   DEFAULT = Normal,
 }
 
-declare const enum kDim { viewW, viewH, elClientW, elClientH, scrollW, scrollH, positionX, positionY, byX = 0, byY = 1 }
+declare const enum kDim {
+  viewW = 0, viewH = 1, elClientW = 2, elClientH = 3, scrollW = 4, scrollH = 5, positionX = 6, positionY = 7,
+  byX = 0, byY = 1
+}
+
+type ScrollByY = kDim.byX | kDim.byY;
 
 type KnownIFrameElement = HTMLIFrameElement | HTMLFrameElement
 

@@ -983,11 +983,6 @@ function beforeUglify(file) {
     }
     changed = oldChanged || n > 0;
   }
-  var noAppendChild = !(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsured$ParentNode$$appendAndPrepend */ 54;
-  if (noAppendChild) {
-    get();
-    contents = contents.replace(/\bappendChild\b(?!\.call\([\w.]*doc)/g, "append");
-  }
   if (changed || oldLen > 0 && contents.length !== oldLen) {
     file.contents = ToBuffer(contents);
   }

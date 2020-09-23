@@ -4,7 +4,7 @@ import {
 } from "../lib/utils"
 import {
   isHTML_, htmlTag_, createElement_, frameElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK,
-  querySelector_unsafe_, DAC,
+  querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s
 } from "../lib/dom_utils"
 import {
   pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER,
@@ -252,7 +252,7 @@ set_contentCommands_([
       const marker = createElement_("span") as HintsNS.BaseHintItem["m"],
       rect = padClientRect_(getBoundingClientRect_(link[0]), 3);
       rect.l--, rect.t--, rect.r--, rect.b--;
-      marker.className = "IH";
+      setClassName_s(marker, "IH")
       setBoundary_(marker.style, rect);
       return {m: marker, d: link[0]};
     })
@@ -261,7 +261,7 @@ set_contentCommands_([
     } else {
       sel = count > 0 ? Math.min(count, sel) - 1 : Math.max(0, sel + count);
     }
-    hints[sel].m.className = S
+    setClassName_s(hints[sel].m, S)
     ensureBorder(wdZoom_ / dScale_);
     select_(hints[sel].d, visibleInputs[sel][1], false, action, false).then((): void => {
       insert_inputHint!.b = addElementList<false>(hints, arr)
@@ -278,8 +278,8 @@ set_contentCommands_([
         prevent_(event.e); // in case that selecting is too slow
         select_(hints2[sel].d, null, false, action).then((): void => {
           /*#__INLINE__*/ set_isHintingInput(0)
-          hints2[oldSel].m.className = "IH"
-          hints2[sel].m.className = S
+          setClassName_s(hints2[oldSel].m, "IH")
+          setClassName_s(hints2[sel].m, S)
         })
         return HandlerResult.Prevent;
       }
@@ -346,18 +346,18 @@ set_contentCommands_([
       el.id = id
       par = Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(doc.head)
           : (doc.head || docEl_unsafe_()) as SafeElement | null
-      par && par.appendChild(el)
+      par && appendNode_s(par, el)
     }
   },
   /* kFgCmd.showHelpDialog: */ ((options: Exclude<CmdOptions[kFgCmd.showHelpDialog], {h?: null}>): any => {
     // Note: not suppress key on the top, because help dialog may need a while to render,
     // and then a keyup may occur before or after it
-    const html = options.h
-    if (hideHelp || html && !isHTML_()) { hideHelp && hideHelp(); return }
+    const html = options.h, isNowHTML = isHTML_()
+    if (hideHelp || html && !isNowHTML) { hideHelp && hideHelp(); return }
     if (!html) {
-      isTop && !isHTML_() || post_({ H: kFgReq.initHelp,
+      isTop && !isNowHTML || post_({ H: kFgReq.initHelp,
           a: options as CmdOptions[kFgCmd.showHelpDialog] as ShowHelpDialogOptions,
-          w: wndSize_(1) < 400 || wndSize_() < 320 || isHTML_() })
+          w: wndSize_(1) < 400 || wndSize_() < 320 || isNowHTML })
       return
     }
     let shouldShowAdvanced = options.c, optionUrl = options.o
@@ -372,7 +372,7 @@ set_contentCommands_([
       box.prepend!(createStyle((html as Exclude<typeof html, string>).h))
     } else {
       outerBox = createElement_(Build.BTypes & BrowserType.Chrome ? getBoxTagName_cr_() : "div")
-      outerBox.className = "R H"
+      setClassName_s(outerBox, "R H")
       outerBox.innerHTML = html as string
       box = outerBox.lastChild as SafeHTMLElement
     }
@@ -405,7 +405,7 @@ set_contentCommands_([
         /*#__INLINE__*/ clearCachedScrollable()
       }
       removeHandler_(box)
-      box.remove()
+      removeEl_s(box)
       setupExitOnClick(kExitOnClick.helpDialog | kExitOnClick.REMOVE)
       closeBtn.click()
     })
@@ -416,7 +416,7 @@ set_contentCommands_([
         hideHelp!(event)
       }
     } else {
-      optLink.remove()
+      removeEl_s(optLink)
     }
     advCmd.onclick = event => {
       prevent_(event)

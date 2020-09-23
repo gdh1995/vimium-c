@@ -20,7 +20,9 @@ import {
   interval_, clearInterval_, locHref, vApi,
 } from "../lib/utils"
 import { removeHandler_, pushHandler_, SuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
-import { frameElement_, isHTML_, fullscreenEl_unsafe_, NONE, createElement_ } from "../lib/dom_utils"
+import {
+  frameElement_, isHTML_, fullscreenEl_unsafe_, NONE, createElement_, removeEl_s, setClassName_s
+} from "../lib/dom_utils"
 import { getViewBox_, docZoom_, dScale_, prepareCrop_, bZoom_, wndSize_ } from "../lib/rect"
 import { beginScroll, scrollTick } from "./scroller"
 import {
@@ -170,7 +172,7 @@ export const hide = (fromInner?: 1): void => {
 
 export const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
     const el = createElement_("iframe") as typeof box, kRef = "referrerPolicy"
-    el.className = "R UI Omnibar";
+    setClassName_s(el, "R UI Omnibar")
     el.style.display = NONE;
     if (type !== VomnibarNS.PageType.web) { /* empty */ }
     else if ((<RegExpI> /^http:\/\/(?!localhost[:/])/i).test(page) && !(<RegExpOne> /^http:/).test(locHref())) {
@@ -236,7 +238,7 @@ export const reset = (redo?: boolean): void | 1 => {
     if (oldStatus === VomnibarNS.Status.NotInited) { return; }
     status = VomnibarNS.Status.NotInited
     portToOmni && portToOmni.close()
-    box.remove()
+    removeEl_s(box)
     portToOmni = box = null as never
     refreshKeyHandler(); // just for safer code
     omniOptions = null
