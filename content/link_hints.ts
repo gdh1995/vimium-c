@@ -40,7 +40,7 @@ interface HintManager extends BaseHintWorker {
     /** resetMode */ s: typeof resetMode
     /** onFrameUnload */ u: typeof onFrameUnload
     /** resetHints */ v (): void;
-    /** setupCheck */ w (officer?: BaseHintWorker | null, el?: LinkEl | null, r?: Rect | null): void
+    /** setupCheck */ w (officer?: BaseHintWorker | null, el?: WeakRef<LinkEl> | null, r?: Rect | null): void
 }
 interface HintOfficer extends BaseHintWorker {
     p: HintManager | null
@@ -57,7 +57,7 @@ interface FrameHintsInfo {
 
 import {
   VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_,
-  clearTimeout_, VOther, fgCache, doc, readyState_, chromeVer_, vApi, deref_, getTime,
+  clearTimeout_, VOther, fgCache, doc, readyState_, chromeVer_, vApi, deref_, getTime, weakRef_
 } from "../lib/utils"
 import {
   frameElement_, querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_,
@@ -474,7 +474,7 @@ const addClassName = (name: string): void => {
 }
 
 const callExecuteHint = (hint: HintItem, event?: HandlerNS.Event): void => {
-  const selectedHintWorker = locateHint(hint), clickEl = hint.d,
+  const selectedHintWorker = locateHint(hint), clickEl = weakRef_(hint.d),
   result = selectedHintWorker.e(hint, event)
   result !== 0 && timeout_((): void => {
     removeFlash && removeFlash()
@@ -552,7 +552,7 @@ const delayToExecute = (officer: BaseHintWorker, hint: HintItem, flashEl: SafeHT
 
 /** reinit: should only be called on manager */
 const reinit = (auto?: BOOL | TimerType.fake, officer?: BaseHintWorker | null
-    , lastEl?: LinkEl | null, rect?: Rect | null): void => {
+    , lastEl?: WeakRef<LinkEl> | null, rect?: Rect | null): void => {
   if (!isEnabled_) { isAlive_ && clear() }
   else {
     isActive = 0;
@@ -567,7 +567,8 @@ const reinit = (auto?: BOOL | TimerType.fake, officer?: BaseHintWorker | null
 const resetOnWaitKey = (): void => { onWaitingKey = null }
 
 /** setupCheck: should only be called on manager */
-const setupCheck: HintManager["w"] = (officer?: BaseHintWorker | null, el?: LinkEl | null, r?: Rect | null): void => {
+const setupCheck: HintManager["w"] = (officer?: BaseHintWorker | null
+      , el?: WeakRef<LinkEl> | null, r?: Rect | null): void => {
     _timer && clearTimeout_(_timer);
     _timer = officer && el && mode1_ < HintMode.min_job ? timeout_((i): void => {
       _timer = TimerID.None;
@@ -582,8 +583,8 @@ const setupCheck: HintManager["w"] = (officer?: BaseHintWorker | null, el?: Link
 }
 
 // checkLast: if not el, then reinit if only no key stroke and hints.length < 64
-const checkLast = function (this: void, el?: LinkEl | TimerType.fake | 1, r?: Rect | null): BOOL | 2 {
-  let r2: Rect | null, hidden: boolean
+const checkLast = ((el?: WeakRef<LinkEl> | LinkEl | TimerType.fake | 1 | null, r?: Rect | null): BOOL | 2 => {
+  let r2: Rect | null | undefined, hidden: boolean
   if (!isAlive_) { return 0 }
   else if (window.closed) { return 1 }
   else if (el === 1) { return 2 }
@@ -592,10 +593,10 @@ const checkLast = function (this: void, el?: LinkEl | TimerType.fake | 1, r?: Re
                       /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
                       // @ts-expect-error
                       || el !== TimerType.fake
-                      ) ? padClientRect_(getBoundingClientRect_(el as LinkEl)) : null
+        ) && (el = deref_(el as WeakRef<LinkEl>)) ? padClientRect_(getBoundingClientRect_(el)) : null
                       /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
     hidden = !r2 || r2.r - r2.l < 2 && r2.b - r2.t < 2
-        || !isStyleVisible_(el as LinkEl); // use 2px: may be safer
+        || !isStyleVisible_(el!) // use 2px: may be safer
     if (hidden && deref_(lastHovered_) === el) {
       /*#__INLINE__*/ resetLastHovered()
     }
@@ -606,8 +607,8 @@ const checkLast = function (this: void, el?: LinkEl | TimerType.fake | 1, r?: Re
       return 0
     }
   }
-} as {
-    (el?: LinkEl | TimerType.fake, r?: Rect | null): void | BOOL;
+}) as {
+    (el?: WeakRef<LinkEl> | TimerType.fake, r?: Rect | null): void | BOOL;
     (el: 1, r?: Rect | null): void | 1 | 2;
 }
 
