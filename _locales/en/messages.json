@@ -1066,6 +1066,7 @@
 	"104": { "message": "^(?:button|checkbox|link|radio|tab)$|^menuitem" },
 	"105": { "message": "^[^\\w\\x80-\\uffff]+|[^!-~À-üЂ-џºء-ي]+" },
 	"106": { "message": "[^0-9a-z_ß-üа-џºء-ي]+" },
+	"107": { "message": "\\b(device-width|initial-scale)\\b" },
 	"200": {
 		"message": "Not allowed to open the target new tab URL"
 	},

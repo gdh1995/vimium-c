@@ -112,7 +112,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     if (Build.BTypes & ~BrowserType.Firefox && wdZoom_ !== 1) { st.zoom = "" + 1 / wdZoom_; }
     setClassName_s(outerBox, "R UI HUD" + fgCache.d)
     if (Build.BTypes & BrowserType.Firefox) {
-      setupEventListener(outerBox, "mousedown", onMousedown, 0, 1)
+      setupEventListener(outerBox, MDW, onMousedown, 0, 1)
     } else {
       outerBox.onmousedown = onMousedown
     }

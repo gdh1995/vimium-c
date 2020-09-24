@@ -16,9 +16,9 @@ declare const enum kTip {
   /* 90: */ inVisualMode, noUsableSel, loseSel, needSel, omniFrameFail,
   /* 95: */ failToDelSug, fewChars, editableSelector, removeCurScript, webkitWithRel,
   /* 100: */ notANestedFrame, cssUrl, imgExt, clickableClasses, clickableRoles,
-  /* 105: */ invisibleHintText, notMatchedHintText,
+  /* 105: */ invisibleHintText, notMatchedHintText, metaKeywordsForMobile,
   INJECTED_CONTENT_END,
-  /* 200: */ firefoxRefuseURL, cancelImport, importOK, XHTML, redditOverlay,
+  /* 200: */ firefoxRefuseURL = 200, cancelImport, importOK, XHTML, redditOverlay,
   /** used by {@link ../Gulpfile.js} */ extendClick = 999,
 }
 

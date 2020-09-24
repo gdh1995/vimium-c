@@ -1,4 +1,4 @@
-import { VOther, chromeVer_, doc } from "./utils"
+import { VOther, chromeVer_, doc, tryCreateRegExp } from "./utils"
 import { dimSize_ } from "./rect"
 
 interface kNodeToType {
@@ -76,8 +76,7 @@ export const htmlTag_ = (Build.BTypes & ~BrowserType.Firefox ? function (element
 
 export const isInTouchMode_cr_ = Build.BTypes & BrowserType.Chrome ? (): boolean => {
     const viewport_meta = querySelector_unsafe_("meta[name=viewport]")
-    return !!viewport_meta &&
-      (<RegExpI> /\b(device-width|initial-scale)\b/i).test(
+    return !!viewport_meta && tryCreateRegExp(kTip.metaKeywordsForMobile, "i").test(
           (viewport_meta as TypeToAssert<Element, HTMLMetaElement, "content">).content! /* safe even if undefined */)
 } : 0 as never as null
 
