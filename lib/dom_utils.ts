@@ -460,6 +460,7 @@ export const runJS_ = (code: string, returnEl?: HTMLScriptElement | 0): void | H
     script.type = "text/javascript";
     !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
         ? script.append!(code) : script.textContent = code;
-    (Build.BTypes & ~BrowserType.Firefox ? append_not_ff : appendNode_s)(docEl_unsafe_() || doc, script)
+    (Build.BTypes & ~BrowserType.Firefox && docEl_unsafe_() ? append_not_ff : appendNode_s)(
+        docEl_unsafe_() || doc, script)
     return returnEl != null ? script : removeEl_s(script)
 }

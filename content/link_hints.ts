@@ -581,20 +581,16 @@ const setupCheck: HintManager["w"] = (officer?: BaseHintWorker | null
 }
 
 // checkLast: if not el, then reinit if only no key stroke and hints.length < 64
-const checkLast = ((el?: WeakRef<LinkEl> | LinkEl | TimerType.fake | 1 | null, r?: Rect | null): BOOL | 2 => {
+const checkLast = ((el?: WeakRef<LinkEl> | LinkEl | -1 | 1 | null, r?: Rect | null): BOOL | 2 => {
   let r2: Rect | null | undefined, hidden: boolean
   if (!isAlive_) { return 0 }
   else if (window.closed) { return 1 }
   else if (el === 1) { return 2 }
   else {
     r2 = el && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinNo$TimerType$$Fake
-                      /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-                      // @ts-expect-error
                       || el !== TimerType.fake
         ) && (el = deref_(el as WeakRef<LinkEl>)) ? padClientRect_(getBoundingClientRect_(el)) : null
-                      /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
-    hidden = !r2 || r2.r - r2.l < 2 && r2.b - r2.t < 2
-        || !isStyleVisible_(el!) // use 2px: may be safer
+    hidden = !r2 || r2.r - r2.l < 2 && r2.b - r2.t < 2 || !isStyleVisible_(el as LinkEl) // use 2px: may be safer
     if (hidden && deref_(lastHovered_) === el) {
       /*#__INLINE__*/ resetLastHovered()
     }

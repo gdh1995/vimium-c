@@ -57,7 +57,7 @@ let styleIn: HTMLStyleElement = null as never
 let styleOut: HTMLStyleElement = null as never
 let styleSelectable: HTMLStyleElement | null = null
 let styleInHUD: HTMLStyleElement | null = null
-let onUnexpectedBlur: ((event?: Event) => void) | null = null
+let onUnexpectedBlur: ((this: unknown, event?: Event) => void) | null = null
 let doesCheckAlive: BOOL = 0
 let highlighting: (() => void) | undefined | null
 let isSmall = false
@@ -159,17 +159,17 @@ export const onLoad = (later?: 1): void => {
       f("compositionend", onInput, t)
     }
     suppressCommonEvents(wnd, CLK);
-    f("blur", onUnexpectedBlur = function (this: Window, event): void {
-      const delta = getTime() - now, wnd1 = this
-      if (event && isActive && delta < 500 && delta > -99 && event.target === wnd1) {
-        wnd1.closed || timeout_((): void => { isActive && doFocus(); }, tick++ * 17)
+    f("blur", onUnexpectedBlur = (event): void => {
+      const delta = getTime() - now
+      if (event && isActive && delta < 500 && delta > -99 && event.target === wnd) {
+        wnd.closed || timeout_((): void => { isActive && doFocus(); }, tick++ * 17)
       } else {
-        setupEventListener(wnd1, "blur", onUnexpectedBlur, 1, 1)
+        setupEventListener(wnd, "blur", onUnexpectedBlur, 1, 1)
         onUnexpectedBlur = null
       }
     }, t);
-    f("focus", function (this: Window, event: Event): void {
-      if (doesCheckAlive && event.target === this) {
+    f("focus", (event: Event): void => {
+      if (doesCheckAlive && event.target === wnd) {
         onWndFocus();
       }
       Build.BTypes & BrowserType.Firefox

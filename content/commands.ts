@@ -7,7 +7,7 @@ import {
   querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s
 } from "../lib/dom_utils"
 import {
-  pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER,
+  pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack
 } from "../lib/keyboard_utils"
 import {
   view_, wndSize_, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, padClientRect_,
@@ -434,16 +434,20 @@ set_contentCommands_([
     options.e && setupExitOnClick(kExitOnClick.helpDialog)
     doc.hasFocus() || vApi.f()
     /*#__INLINE__*/ set_currentScrolling(weakRef_(box))
-    pushHandler_(event => {
+    const helpOnKeydown = (event: HandlerNS.Event): HandlerResult => {
       if (!raw_insert_lock && isEscape_(getMappedKey(event, kModeId.Normal))) {
         removeSelection(ui_root) || hideHelp!()
         return HandlerResult.Prevent
       }
       return HandlerResult.Nothing
-    }, box)
+    }
+    let i = removeHandler_(omniActivate)
+    if (i != null) {
+      handler_stack.splice(i, 0, { f: helpOnKeydown, i: box }, { f: omniOnKeydown, i: omniActivate })
+    } else {
+      pushHandler_(helpOnKeydown, box)
+    }
     if (omni_status >= VomnibarNS.Status.Showing) {
-      removeHandler_(omniActivate)
-      pushHandler_(omniOnKeydown, omniActivate)
     }
     // if no [tabindex=0], `.focus()` works if :exp and since MinElement$Focus$MayMakeArrowKeySelectIt or on Firefox
     timeout_((): void => { box.focus() }, 17)
