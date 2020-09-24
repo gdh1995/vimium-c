@@ -1465,9 +1465,9 @@ function patchExtendClick(source) {
   print("Save extend_click into en/messages.json")
   const json = JSON.parse(readFile(jsonPath));
   if (inJSON) {
-    json[/** kTip.extendClick */ "99"] = { message: inJSON };
+    json[/** kTip.extendClick */ "999"] = { message: inJSON };
   } else {
-    delete json[99];
+    delete json[999];
   }
   fs.writeFileSync(jsonPath, JSON.stringify(json));
   }

@@ -10,10 +10,6 @@ VApi.e = function (cmd): void {
   }
 };
 
-if (!Build.NDEBUG) {
-  define.noConflict()
-}
-
 (function (): void {
   const mayBrowser_ = Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome
       && typeof browser === "object" && !("tagName" in (browser as unknown as Element))
@@ -48,11 +44,15 @@ if (!Build.NDEBUG) {
       setTimeout(() => VApi && VApi.r![0](kFgReq.i18n, {}, i18nCallback!), 150);
     }
     i18nCallback = null;
+    if (VApi.z && i18nMessages) {
+      const injector1 = VimiumInjector!
+      injector1.callback && injector1.callback(2, "complete")
+    }
   };
   thisApi.r![0](kFgReq.i18n, {}, i18nCallback);
   thisApi.r![2]!(2, (tid, args): string => {
     return !i18nMessages
-        ? args && args.length ? `T${tid}: ${typeof args === "string" ? args : args.join(", ")}` : "T" + tid
+        ? "T" + tid // must be a valid regexp source / CSS selector
         : args ? i18nMessages[tid].replace(trArgsRe, s => typeof args === "string" ? args : <string> args![+s[1] - 1])
         : i18nMessages[tid];
   })
@@ -110,7 +110,9 @@ if (!Build.NDEBUG) {
     case InjectorTask.extInited:
       const injector1 = VimiumInjector!;
       injector1.cache = VApi.z;
-      injector1.callback && injector1.callback(2, "complete");
+      if (i18nMessages) {
+        injector1.callback && injector1.callback(2, "complete")
+      }
       addEventListener("hashchange", injector1.checkIfEnabled);
       return;
     }

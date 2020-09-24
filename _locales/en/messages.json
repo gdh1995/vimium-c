@@ -1056,16 +1056,27 @@
 		"message": "This item cannot be deleted"
 	},
 	"96": { "message": "Too few characters for LinkHints" },
+	"97": { "message": "input,textarea,[contenteditable]" },
 	"98": { "message": "document.currentScript.remove()" },
-	"100": {
+	"99": { "message": ":-webkit-any(a,area,link)[rel]" },
+	"100": { "message": "a,button,input,frame,iframe" },
+	"101": { "message": "^url\\(\\s?['\"]?((?:\\\\['\"]|[^'\"])+?)['\"]?\\s?\\)" },
+	"102": { "message": "\\.(?:avif|bmp|gif|icon?|jpe?g|a?png|svg|tiff?|webp)\\b" },
+	"103": { "message": "(?:\\b|_)(?:[Bb](?:utto|t)n|[Cc]lose|hate|like)(?:$|[-\\sA-Z_])" },
+	"104": { "message": "^(?:button|checkbox|link|radio|tab)$|^menuitem" },
+	"105": { "message": "^[^\\w\\x80-\\uffff]+|[^!-~À-üЂ-џºء-ي]+" },
+	"106": { "message": "[^0-9a-z_ß-üа-џºء-ي]+" },
+	"200": {
 		"message": "Not allowed to open the target new tab URL"
 	},
-	"101": {
+	"201": {
 		"message": "You cancelled importing"
 	},
-	"102": {
+	"202": {
 		"message": "Import settings data: OK!"
 	},
+	"203": { "message": "http://www.w3.org/1999/xhtml" },
+	"204": { "message": "#overlayScrollContainer" },
 	"4": {
 		"message": "The last element is unhovered"
 	},

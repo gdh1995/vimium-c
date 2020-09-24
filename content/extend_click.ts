@@ -83,7 +83,8 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
  * Vimium issue: https://github.com/philc/vimium/pull/1797#issuecomment-135761835
  */
   if ((script as Element as ElementToHTML).lang == null) {
-    set_createElement_(doc.createElementNS.bind(doc, "http://www.w3.org/1999/xhtml") as typeof createElement_)
+    set_createElement_(doc.createElementNS.bind(doc, VTr(kTip.XHTML) as "http://www.w3.org/1999/xhtml"
+        ) as typeof createElement_)
     return isFirstTime != null && OnDocLoaded_(extendClick); // retry after a while, using a real <script>
   }
   script.dataset.vimium = secret as number | string as string

@@ -20,7 +20,6 @@ export const injector = VimiumInjector
 export const doc = document
 export const loc_ = location
 export const initialDocState = doc.readyState
-export const jsRe_ = <RegExpI & RegExpOne> /^javascript:/i
 
 let esc: EscF | null
 
@@ -138,14 +137,17 @@ export const suppressCommonEvents = (target: Window | SafeHTMLElement, extraEven
 
 export const Stop_ = (event: Pick<Event, "stopImmediatePropagation">): void => { event.stopImmediatePropagation(); }
 
+export const isJSUrl = (str: string): boolean => (<RegExpI & RegExpOne> /^javascript:/i).test(str)
+
+let imgExtRe_: RegExpI | undefined
 export const isImageUrl = (str: string | null): boolean => {
-  if (!str || str[0] === "#" || str.length < 5 || jsRe_.test(str)) {
+  if (!str || str[0] === "#" || str.length < 5 || isJSUrl(str)) {
     return false;
   }
   const end = str.lastIndexOf("#") + 1 || str.length;
   // eslint-disable-next-line @typescript-eslint/ban-types
   str = str.substring!(str.lastIndexOf("/", str.lastIndexOf("?") + 1 || end), end);
-  return (<RegExpI & RegExpOne> /\.(?:avif|bmp|gif|icon?|jpe?g|a?png|svg|tiff?|webp)\b/i).test(str);
+  return (imgExtRe_ || (imgExtRe_ = tryCreateRegExp(kTip.imgExt, "i"))).test(str)
 }
 
 export const recordLog = (tip: kTip | string): void => {
@@ -159,7 +161,8 @@ export const parseSedOptions = (opts: UserSedOptions): ParsedSedOpts => {
 
 export const escapeAllForRe = (str: string): string => str.replace(<RegExpG> /[$()*+.?\[\\\]\^{|}]/g, "\\$&")
 
-export const tryCreateRegExp = <T extends "g" | "gi" | ""> (pattern: string, flags: T
-    ): (T extends "" ? RegExpOne : RegExpG) | void => {
-  try { return <any> new RegExp(pattern, flags as "g") } catch {}
+export const tryCreateRegExp = <S extends kTip | string, T extends "g" | "gi" | "" | "i"> (pattern: S, flags: T
+    // @ts-ignore
+    ): (T extends "" ? RegExpOne : T extends "i" ? RegExpI : RegExpG) | (S extends kTip ? never : void) => {
+  try { return <any> new RegExp(pattern > 0 ? VTr(<kTip> pattern) : pattern as string, flags as "g") } catch {}
 }

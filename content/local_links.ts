@@ -3,7 +3,7 @@ import ClickType = HintsNS.ClickType
 type HintSources = readonly SafeElement[] | NodeListOf<SafeElement>;
 type NestedFrame = false | 0 | null | KnownIFrameElement
 
-import { VOther, clickable_, jsRe_, doc, isImageUrl, fgCache, readyState_, chromeVer_ } from "../lib/utils"
+import { VOther, clickable_, isJSUrl, doc, isImageUrl, fgCache, readyState_, chromeVer_, VTr, tryCreateRegExp } from "../lib/utils"
 import {
   isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, findMainSummary_, htmlTag_, isAriaNotTrue_,
   NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, ElementProto, notSafe_not_ff_, docEl_unsafe_,
@@ -17,7 +17,7 @@ import {
 import { find_box } from "./mode_find"
 import { omni_box } from "./omni"
 import {
-  unwrap_ff, kSafeAllSelector, kEditable, coreHints, addChildFrame_, mode1_, forHover_,
+  unwrap_ff, kSafeAllSelector, coreHints, addChildFrame_, mode1_, forHover_,
   isClickListened_, forceToScroll_, hintMode_, set_isClickListened_, tooHigh_, useFilter_, hintChars, hintManager,
 } from "./link_hints"
 import { shouldScroll_need_safe, getPixelScaleToScroll, scrolled, resetScrolled, suppressScroll } from "./scroller"
@@ -29,6 +29,8 @@ let jsaEnabled_: boolean | undefined
 let maxLeft_ = 0
 let maxTop_ = 0
 let maxRight_ = 0
+let clickableClasses_: RegExpOne
+let clickableRoles_: RegExpI
 
 export { frameNested_, ngEnabled, maxLeft_, maxTop_, maxRight_ }
 export const localLinkClear = (): void => { maxLeft_ = maxTop_ = maxRight_ = 0 }
@@ -37,14 +39,14 @@ export function set_frameNested_ (_newNestedFrame: NestedFrame): void { frameNes
 /**
  * Must ensure only call {@link scroller.ts#VSc.shouldScroll_need_safe_} during {@link #getVisibleElements_}
  */
-export const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
+const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
   let arr: Rect | null | undefined, isClickable = null as boolean | null, s: string | null
     , type = ClickType.Default, anotherEl: Element | null, clientSize = 0;
   const tag = element.localName;
   switch (tag) {
   case "a":
     isClickable = true;
-    arr = checkAnchor(element as HTMLAnchorElement);
+    arr = /*#__NOINLINE__*/ checkAnchor(element as HTMLAnchorElement);
     break;
   case "audio": case "video": isClickable = true; break;
   case "frame": case "iframe":
@@ -114,13 +116,12 @@ export const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
           ? (anotherEl = (element as XrayedObject<SafeHTMLElement>).wrappedJSObject || element).onclick
             || (anotherEl as TypeToAssert<Element, SafeHTMLElement, "onmousedown">).onmousedown
           : element.getAttribute("onclick"))
-        || (s = element.getAttribute("role")) && (<RegExpI> /^(?:button|checkbox|link|radio|tab)$|^menuitem/i).test(s)
+        || (s = element.getAttribute("role")) && clickableRoles_.test(s)
         || ngEnabled && element.getAttribute("ng-click")
         || forHover_ && element.getAttribute("onmouseover")
         || jsaEnabled_ && (s = element.getAttribute("jsaction")) && checkJSAction(s)
       ? ClickType.attrListener
-      : clickable_.has(element) && isClickListened_
-        && inferTypeOfListener(element, tag)
+      : clickable_.has(element) && isClickListened_ && /*#__NOINLINE__*/ inferTypeOfListener(element, tag)
       ? ClickType.codeListener
       : (s = element.getAttribute("tabindex")) && parseInt(s, 10) >= 0 && !element.shadowRoot ? ClickType.tabindex
       : clientSize
@@ -130,8 +131,7 @@ export const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
               && (clientSize = element.clientWidth) > GlobalConsts.MinScrollableAreaSizeForDetection - 1
               && clientSize + 5 < element.scrollWidth ? ClickType.scrollX
             : ClickType.Default)
-        || ((s = element.className)
-              && (<RegExpOne> /(?:\b|_)(?:[Bb](?:utto|t)n|[Cc]lose|hate|like)(?:$|[-\sA-Z_])/).test(s)
+        || ((s = element.className) && clickableClasses_.test(s)
               && (!(anotherEl = element.parentElement)
                   || (s = htmlTag_(anotherEl), !s.includes("button") && s !== "a"))
             || element.hasAttribute("aria-selected")
@@ -267,7 +267,7 @@ const getSelectable = (hints: Hint[], element: SafeHTMLElement): void => {
 const getLinks = (hints: Hint[], element: SafeHTMLElement): void => {
   let a: string | null | false, arr: Rect | null;
   if ((a = element.dataset.vimUrl || element.localName === "a" && element.getAttribute("href")) && a !== "#"
-      && !jsRe_.test(a)) {
+      && !isJSUrl(a)) {
     if (arr = getVisibleClientRect_(element)) {
       hints.push([element, arr, ClickType.Default]);
     }
@@ -326,6 +326,7 @@ export const traverse = function (selector: string
     ? /* just smaller code */ (isD ? doc : ElementProto()).querySelectorAll : box.querySelectorAll
   let list: HintSources | null = localQuerySelectorAll.call(box, selector) as NodeListOf<SafeElement>
   wantClickable && getPixelScaleToScroll();
+  wantClickable && initTestRegExps()
   if (matchAll) {
     if (ngEnabled == null) {
       ngEnabled = !!querySelector_unsafe_(".ng-scope");
@@ -651,7 +652,7 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
     : _i - HintMode.FOCUS_EDITABLE ? traverse(kSafeAllSelector,
         _i - HintMode.ENTER_VISUAL_MODE ? getClickable : getSelectable)
     : traverse(Build.BTypes & ~BrowserType.Firefox
-          ? kEditable + kSafeAllSelector : kEditable, getEditable);
+          ? VTr(kTip.editableSelector) + kSafeAllSelector : VTr(kTip.editableSelector), getEditable);
   if ((_i < HintMode.max_mouse_events + 1 || _i === HintMode.FOCUS_EDITABLE)
       && visibleElements.length < GlobalConsts.MinElementCountToStopPointerDetection) {
     fgCache.e && filterOutNonReachable(visibleElements, _i > HintMode.FOCUS_EDITABLE - 1);
@@ -707,6 +708,13 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
   return visibleElements.reverse();
 }
 
+const initTestRegExps = (): void => {
+  if (!clickableClasses_) {
+    clickableClasses_ = tryCreateRegExp(kTip.clickableClasses, "")
+    clickableRoles_ = tryCreateRegExp(kTip.clickableRoles, "i")
+  }
+}
+
 export const checkNestedFrame = (output?: Hint[]): void => {
   let len = output ? output.length : 0
   let res: NestedFrame, rect: Rect | undefined, rect2: Rect, element: Hint[0]
@@ -719,9 +727,10 @@ export const checkNestedFrame = (output?: Hint[]): void => {
   } else {
     if (output == null) {
       output = [];
-      for (let arr = querySelectorAll_unsafe_("a,button,input,frame,iframe")! as ArrayLike<ElementToHTML>
+      for (let arr = querySelectorAll_unsafe_(VTr(kTip.notANestedFrame))! as ArrayLike<ElementToHTML>
               , i = arr.length; (len = output.length) < 2 && i-- > 0; ) {
         if (arr[i].lang != null) {
+          initTestRegExps()
           getClickable(output, arr[i] as SafeHTMLElement)
         }
       }

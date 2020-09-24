@@ -1,4 +1,4 @@
-import { doc, deref_, weakRef_, VOther, chromeVer_, jsRe_, getTime, parseSedOptions } from "../lib/utils"
+import { doc, deref_, weakRef_, VOther, chromeVer_, isJSUrl, getTime, parseSedOptions } from "../lib/utils"
 import { IsInDOM_, activeEl_unsafe_, isInTouchMode_cr_, MDW, htmlTag_, CLK } from "../lib/dom_utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
 import { center_, getVisibleClientRect_, view_ } from "../lib/rect"
@@ -306,7 +306,7 @@ export const click_ = async (element: SafeElementForMouse
           || !(url = parentAnchor.getAttribute("href"))
           || specialAction & (kClickAction.forceToOpenInNewTab | kClickAction.forceToOpenInLastWnd)
               && url[0] === "#"
-          || jsRe_.test(url)
+          || isJSUrl(url)
         ? ActionType.OnlyDispatch
         : Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)

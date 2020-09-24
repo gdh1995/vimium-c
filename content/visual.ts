@@ -32,7 +32,7 @@ declare const enum kYank { // should have no overlap with ReuseType
   MIN = 7, Exit = 7, NotExit = 8, RichTextButNotExit = 9,
 }
 
-import { VTr, VOther, safer, fgCache, doc, chromeVer_ } from "../lib/utils"
+import { VTr, VOther, safer, fgCache, doc, chromeVer_, tryCreateRegExp } from "../lib/utils"
 import {
   getSelection_, getSelectionFocusEdge_, isHTML_, docEl_unsafe_, notSafe_not_ff_, getEditableType_, editableTypes_,
   GetChildNodes_not_ff, isInputInTextMode_cr_old, rangeCount_, getAccessibleSelectedNode, scrollingEl_, isNode_
@@ -622,7 +622,8 @@ const getDirection = function (magic?: string
             )[num1 >= 0 ? num1 : sel.anchorOffset] as Node | undefined;
         if (lock === child || /** tend to trust that the selected is a textbox */ !child) {
           if (Build.MinCVer >= BrowserVer.Min$selectionStart$MayBeNull || !(Build.BTypes & BrowserType.Chrome)
-              ? (lock as TextModeElement).selectionEnd != null : isInputInTextMode_cr_old(lock as TextModeElement)) {
+              ? (lock as TextModeElement).selectionEnd != null
+              : /*#__NOINLINE__*/ isInputInTextMode_cr_old(lock as TextModeElement)) {
             diType_ = DiType.TextBox | (oldDiType & DiType.isUnsafe)
           }
         }
@@ -786,10 +787,10 @@ let init = (words: string, map: VisualModeNS.KeyMap, _g: any) => {
       if (BrowserVer.MinSelExtendForwardOnlySkipWhitespaces <= BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
           && !(Build.BTypes & ~BrowserType.Chrome)
           ) {
-        WordsRe_ff_old_cr = new RegExp(words, "");
+        WordsRe_ff_old_cr = tryCreateRegExp(words, "")!
       } else {
         // note: here thinks the `/[^]*[~~~]/` has acceptable performance
-        WordsRe_ff_old_cr = new RegExp(words || "[^]*[\\p{L}\\p{Nd}_]", words ? "" : "u");
+        WordsRe_ff_old_cr = tryCreateRegExp(words || "[^]*[\\p{L}\\p{Nd}_]", words ? "" : "u" as never)!
       }
     }
   }

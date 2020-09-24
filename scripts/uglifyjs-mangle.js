@@ -152,9 +152,10 @@ async function collectString(text) {
       if (node.name && node.name.name === "VC") { return true }
       break
     case "String":
+    case "RegExp":
       /** @type { string } */
       // @ts-ignore
-      const str = node.value
+      const str = node.value && node.value.source || node.value
       if (str.length >= MIN_LONG_STRING) { stringsTooLong.push(str) }
       if (str.length >= MIN_STRING_LENGTH_TO_COMPUTE_GAIN) {
         /** @type { import("terser/lib/ast").TreeWalker } */

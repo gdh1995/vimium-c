@@ -29,7 +29,7 @@ interface ElementScrollInfo {
 
 import {
   isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, allowRAF_, readyState_, loc_, chromeVer_,
-  vApi, deref_, weakRef_,
+  vApi, deref_, weakRef_, VTr
 } from "../lib/utils"
 import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_,
@@ -344,8 +344,8 @@ const findScrollable = (di: ScrollByY, amount: number): SafeElement | null => {
     }
     if (!element) {
       // note: twitter auto focuses its dialog panel, so it's not needed to detect it here
-      const candidate = (<RegExpOne> /^(new|www)?\.?reddit\.com$/).test(loc_.host)
-          ? querySelector_unsafe_("#overlayScrollContainer") : null;
+      const candidate = (<RegExpOne> /^(new\.|www\.|)reddit\.com$/).test(loc_.host)
+          ? querySelector_unsafe_(VTr(kTip.redditOverlay)) : null;
       element = Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(candidate) : candidate as SafeElement | null;
     }
     if (!element && top) {

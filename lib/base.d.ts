@@ -28,7 +28,7 @@ declare namespace HandlerNS {
   }
 
   interface Handler<T extends object> {
-    (this: T extends RefHandler ? any : T, event: HandlerNS.Event): HandlerResult;
+    (this: T extends RefHandler ? void : { f: Handler<T>, i: T }, event: HandlerNS.Event): HandlerResult;
   }
 
   interface VoidHandler {

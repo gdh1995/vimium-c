@@ -322,6 +322,7 @@ function patchExtendClick(source, locally, logger) {
   if (match) {
     var start = Math.max(0, match.index - 128), end = match.index;
     var prefix = source.slice(0, start), suffix = source.slice(end);
+    /** {@see #BrowserVer.MinEnsuredES6MethodFunction} */
     source = source.slice(start, end).replace(/>= ?45/, "< 45").replace(/45 ?<=/, "45 >");
     suffix = '/\\b(addEventListener|toString)\\(/g, "$1:function $1("' + suffix.slice(match[0].length);
     source = prefix + source + suffix;

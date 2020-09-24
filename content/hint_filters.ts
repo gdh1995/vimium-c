@@ -10,7 +10,7 @@ import {
   createElement_, querySelector_unsafe_, getInputType, htmlTag_, docEl_unsafe_, ElementProto, HDN, removeEl_s
 } from "../lib/dom_utils"
 import { bZoom_, padClientRect_, getBoundingClientRect_, dimSize_ } from "../lib/rect"
-import { chromeVer_, doc } from "../lib/utils"
+import { chromeVer_, doc, tryCreateRegExp } from "../lib/utils"
 import { BSP, DEL, ENTER } from "../lib/keyboard_utils"
 import { maxLeft_, maxRight_, maxTop_ } from "./local_links"
 import { ui_root } from "./dom_ui"
@@ -21,7 +21,7 @@ type Stacks = Stack[];
 
 const kNumbers = "0123456789" as const
 let activeHint_: FilteredHintItem | null = null
-let reForNonMatch_: RegExpG & RegExpOne | null | undefined
+let nonMatchedRe_: RegExpG & RegExpOne | null | undefined
 let maxPrefixLen_ = 0
 let pageNumberHints_: FilteredHintItem[] | null | undefined
 let zIndexes_: null | 0 | Stacks = null
@@ -29,7 +29,7 @@ let zIndexes_: null | 0 | Stacks = null
 export { activeHint_, zIndexes_ }
 export const resetZIndexes = (): void => { zIndexes_ = null }
 export const hintFilterReset = (): void => { pageNumberHints_ = zIndexes_ = activeHint_ = null }
-export const hintFilterClear = (): void => { reForNonMatch_ = null; maxPrefixLen_ = 0 }
+export const hintFilterClear = (): void => { maxPrefixLen_ = 0 }
 
 export const createHint = (link: Hint): HintItem => {
   let i: number = link.length < 4 ? link[1].l : (link as Hint4)[3][0].l + (link as Hint4)[3][1];
@@ -167,19 +167,6 @@ export const initFilterEngine = (hints: readonly FilteredHintItem[]): void => {
   pageNumberHints_ = hints.slice(curRangeSecond - 1, curRangeSecond + curRangeCountS1);
   getMatchingHints(hintKeyStatus, "", "", 0);
 }
-
-const generateHintStrings = (hints: readonly HintItem[]): void => {
-  const chars = hintChars, base = chars.length, is10Digits = chars === kNumbers,
-  count = hints.length;
-  for (let i = 0; i < count; i++) {
-    let hintString = "", num = is10Digits ? 0 : i + 1;
-    for (; num; num = (num / base) | 0) {
-      hintString = chars[num % base] + hintString;
-    }
-    hints[i].a = is10Digits ? i + 1 + "" : hintString;
-  }
-}
-
 export const generateHintText = (hint: Hint, hintInd: number, allItems: readonly HintItem[]): HintsNS.HintText => {
   const el = hint[0], localName = el.localName
   let text = "", show: 0 | 1 | 2 = 0, ind: number;
@@ -248,18 +235,16 @@ export const generateHintText = (hint: Hint, hintInd: number, allItems: readonly
 
 export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
     , inited: 0 | 1 | 2): HintItem | 2 | 0 => {
-  const
-  oldTextSeq = inited > 1 ? keyStatus.t : "a";
+  const oldTextSeq = inited > 1 ? keyStatus.t : "a"
   let hints = keyStatus.c as FilteredHintItem[];
   if (oldTextSeq !== text) {
     const t2 = text.trim(), t1 = oldTextSeq.trim();
     keyStatus.t = text;
     if (t1 !== t2) {
       zIndexes_ = zIndexes_ && null;
-      const search = t2.split(" "),
+      const search = t2.split(" "), hasSearch = !!t2,
       oldKeySeq = keyStatus.k,
       oldHints = t2.startsWith(t1) ? hints : allHints as readonly FilteredHintItem[],
-      hasSearch = !!t2,
       indStep = !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
           && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)
           ? 0 : 1 / (1 + oldHints.length);
@@ -270,7 +255,7 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
       if (hasSearch && !(allHints as readonly FilteredHintItem[])[0].h.w) {
         for (const {h: textHint} of allHints as readonly FilteredHintItem[]) {
           // cache lower-case versions for smaller memory usage
-          const words = textHint.w = (textHint.t = textHint.t.toLowerCase()).split(reForNonMatch_!);
+          const words = textHint.w = (textHint.t = textHint.t.toLowerCase()).split(nonMatchedRe_!);
           words[0] || words.shift();
           words.length && (words[words.length - 1] || words.pop());
         }
@@ -315,7 +300,13 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
             hints[n] = item;
           }
         }
-        generateHintStrings(hints);
+        for (let base = hintChars.length, is10Digits = hintChars === kNumbers, i = 0; i < hints.length; i++) {
+          let hintString = "", num = is10Digits ? 0 : i + 1;
+          for (; num; num = (num / base) | 0) {
+            hintString = hintChars[num % base] + hintString;
+          }
+          hints[i].a = is10Digits ? i + 1 + "" : hintString;
+        }
       }
       // hints[].zIndex is reset in .MakeStacks_
       if (inited && (newLen || oldKeySeq)) {
@@ -410,6 +401,7 @@ export const renderMarkers = (hintItems: readonly HintItem[]): void => {
   const noAppend = !!(Build.BTypes & BrowserType.Chrome)
       && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
       && chromeVer_ < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
+  const invisibleHintTextRe = <true | undefined> useFilter_ && tryCreateRegExp(kTip.invisibleHintText, "g")
   for (const hint of hintItems) {
     let right: string, marker = hint.m;
     if (useFilter_) {
@@ -417,8 +409,7 @@ export const renderMarkers = (hintItems: readonly HintItem[]): void => {
       right = hint.h!.t;
       if (!right || right[0] !== ":") { continue; }
       right = hint.h!.t = right.slice(1);
-      right = right.replace(<RegExpG> /[^!-~\xc0-\xfc\u0402-\u045f\xba\u0621-\u064a]+/g, " "
-          ).replace(<RegExpOne> /^[^\w\x80-\uffff]+|:[:\s]*$/, "").trim();
+      right = right.replace(invisibleHintTextRe!, " ").replace(<RegExpOne> /:[:\s]*$/, "").trim()
       right = right.length > GlobalConsts.MaxLengthOfShownText
           ? right.slice(0, GlobalConsts.MaxLengthOfShownText - 2).trimRight() + "\u2026" // the "\u2026" is wide
           : right;
@@ -443,8 +434,7 @@ export const renderMarkers = (hintItems: readonly HintItem[]): void => {
 }
 
 export const initAlphabetEngine = (hintItems: readonly HintItem[]): void => {
-  const math = Math, ceil = math.ceil, charSet = hintChars, step = charSet.length,
-  chars2 = " " + charSet,
+  const math = Math, ceil = math.ceil, step = hintChars.length, chars2 = " " + hintChars,
   count = hintItems.length, start = (ceil((count - 1) / (step - 1)) | 0) || 1,
   bitStep = ceil(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$Math$$log2
         ? math.log(step + 1) / math.LN2 : math.log2(step + 1)) | 0;
@@ -503,8 +493,7 @@ export const matchHintsByKey = (keyStatus: KeyStatus
     } else if (useFilter_) {
       if (keybody !== lower && hintChars !== hintChars.toLowerCase() // ignore {Lo} in chars_
           /** this line requires lower.length must be 1 or 0 */
-          || (reForNonMatch_ || (reForNonMatch_
-                = <RegExpG & RegExpOne> /[^0-9a-z_\xdf-\xfc\u0430-\u045f\xba\u0621-\u064a]+/g)
+          || (nonMatchedRe_ || (nonMatchedRe_ = tryCreateRegExp(kTip.notMatchedHintText, "g") as RegExpG & RegExpOne)
               ).test(lower)) {
         return 2;
       } else {

@@ -1,7 +1,7 @@
 import HintItem = HintsNS.HintItem
 import {
-  safer, fgCache, VOther, isImageUrl, jsRe_, set_keydownEvents_, keydownEvents_, timeout_, doc, chromeVer_, weakRef_,
-  parseSedOptions,
+  safer, fgCache, VOther, isImageUrl, isJSUrl, set_keydownEvents_, keydownEvents_, timeout_, doc, chromeVer_, weakRef_,
+  parseSedOptions, tryCreateRegExp
 } from "../lib/utils"
 import { getVisibleClientRect_, center_, view_, selRange_ } from "../lib/rect"
 import {
@@ -111,7 +111,7 @@ const getImageUrl = (img: SafeHTMLElement): string | void => {
   }
   if (notImg) {
     if (!isImageUrl(text)) {
-      let arr = (<RegExpI> /^url\(\s?['"]?((?:\\['"]|[^'"])+?)['"]?\s?\)/i).exec(
+      let arr = tryCreateRegExp(kTip.cssUrl, "i").exec(
         (notImg > 1 ? getComputedStyle_(img) : img.style).backgroundImage!);
       if (arr && arr[1]) {
         const a1 = createElement_("a");
@@ -120,7 +120,7 @@ const getImageUrl = (img: SafeHTMLElement): string | void => {
       }
     }
   }
-  if (!text || jsRe_.test(text)
+  if (!text || isJSUrl(text)
       || src.length > text.length + 7 && (text === (img as HTMLElement & {href?: string}).href)) {
     text = src;
   }

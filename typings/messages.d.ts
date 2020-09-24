@@ -14,11 +14,12 @@ declare const enum kTip {
   /* 80: */ nowCreateMark, didCreateLastMark, didLocalMarkTask, didJumpTo, didCreate,
   /* 85: */ lastMark, didNormalMarkTask, findFrameFail, noOldQuery, noMatchFor,
   /* 90: */ inVisualMode, noUsableSel, loseSel, needSel, omniFrameFail,
-  /* 95: */ failToDelSug, fewChars, INJECTED_CONTENT_END,
-  /* 98:*/ removeCurScript = 98,
-  /** 99: used by {@link ../Gulpfile.js} */ extendClick = 99,
-  /* 100: */ firefoxRefuseURL, cancelImport, importOK,
-  END,
+  /* 95: */ failToDelSug, fewChars, editableSelector, removeCurScript, webkitWithRel,
+  /* 100: */ notANestedFrame, cssUrl, imgExt, clickableClasses, clickableRoles,
+  /* 105: */ invisibleHintText, notMatchedHintText,
+  INJECTED_CONTENT_END,
+  /* 200: */ firefoxRefuseURL, cancelImport, importOK, XHTML, redditOverlay,
+  /** used by {@link ../Gulpfile.js} */ extendClick = 999,
 }
 
 interface BgCSSReq {

@@ -68,7 +68,7 @@ import {
   docZoom_, bScale_, dimSize_,
 } from "../lib/rect"
 import {
-  pushHandler_, SuppressMost_, removeHandler_, getMappedKey, keybody_, isEscape_, getKeyStat_, keyNames_, suppressTail_,
+  pushHandler_, suppressMost_, removeHandler_, getMappedKey, keybody_, isEscape_, getKeyStat_, keyNames_, suppressTail_,
   BSP,
   ENTER,
 } from "../lib/keyboard_utils"
@@ -109,14 +109,13 @@ let chars_ = ""
 let useFilter_ = false
 let keyStatus_: KeyStatus = null as never
   /** must be called from a manager, required by {@link #delayToExecute_ } */
-let onTailEnter: ((this: unknown, event: HandlerNS.Event, key: string, keybody: kChar) => void) | null = null
-let onWaitingKey: HandlerNS.RefHandler | null = null
+let onTailEnter: ((this: unknown, event: HandlerNS.Event, key: string, keybody: kChar) => void) | null | undefined
+let onWaitingKey: HandlerNS.RefHandler | null | undefined
 let isActive: BOOL = 0
 let noHUD_ = false
 let options_: HintsNS.ContentOptions = null as never
 let _timer = TimerID.None
 let kSafeAllSelector = Build.BTypes & ~BrowserType.Firefox ? ":not(form)" as const : "*" as const
-const kEditable = "input,textarea,[contenteditable]" as const
 let manager_: HintManager | null = null
 let api_: VApiTy = null as never
 const unwrap_ff = (!(Build.BTypes & BrowserType.Firefox) ? 0 as never
@@ -133,8 +132,7 @@ export {
   isActive as isHintsActive,
   hints_ as allHints, keyStatus_ as hintKeyStatus, useFilter_, frameList_, chars_ as hintChars,
   mode_ as hintMode_, mode1_, options_ as hintOptions, count_ as hintCount_,
-  forHover_, isClickListened_, forceToScroll_, tooHigh_,
-  kSafeAllSelector, kEditable, unwrap_ff, addChildFrame_,
+  forHover_, isClickListened_, forceToScroll_, tooHigh_, kSafeAllSelector, unwrap_ff, addChildFrame_,
   api_ as hintApi, manager_ as hintManager,
 }
 export function set_kSafeAllSelector (_newKSafeAll: string): void { kSafeAllSelector = _newKSafeAll as any }
@@ -149,8 +147,7 @@ export const activate = (options: HintsNS.ContentOptions, count: number, force?:
       manager_ || clear()
       if (!_timer && readyState_ > "l") {
         _timer = timeout_(contentCommands_[kFgCmd.linkHints].bind(0 as never, options, count, 0), 300)
-        removeHandler_(coreHints)
-        return pushHandler_(SuppressMost_, coreHints)
+        return suppressMost_(coreHints)
       }
     }
     const parApi = Build.BTypes & BrowserType.Firefox ? !fullscreenEl_unsafe_() && getParentVApi()
@@ -220,7 +217,8 @@ export const activate = (options: HintsNS.ContentOptions, count: number, force?:
     }
     noHUD_ = !(useFilter || frameList[0].v[3] > 40 && frameList[0].v[2] > 320)
         || (options.hideHUD || options.hideHud) === true;
-    useFilter ? initFilterEngine(allHints as readonly FilteredHintItem[]) : initAlphabetEngine(allHints)
+    useFilter ? /*#__NOINLINE__*/ initFilterEngine(allHints as readonly FilteredHintItem[])
+        : initAlphabetEngine(allHints)
     renderMarkers(allHints)
     setMode(mode_);
     coreHints.h = 1
@@ -275,10 +273,10 @@ const collectFrameHints = (count: number, options: HintsNS.ContentOptions
     removeModal()
     forceToScroll_ = options.scroll === "force" ? 2 : 0;
     addChildFrame_ = newAddChildFrame
-    const elements = getVisibleElements(view);
+    const elements = /*#__NOINLINE__*/ getVisibleElements(view)
     const hintItems = elements.map(createHint);
     addChildFrame_ = null
-    bZoom_ !== 1 && adjustMarkers(hintItems, elements);
+    bZoom_ !== 1 && /*#__NOINLINE__*/ adjustMarkers(hintItems, elements);
     for (let i = useFilter_ ? hintItems.length : 0; 0 <= --i; ) {
       hintItems[i].h = generateHintText(elements[i], i, hintItems)
     }

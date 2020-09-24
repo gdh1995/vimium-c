@@ -19,7 +19,7 @@ import {
 } from "./dom_ui"
 import { hudTip, hud_box } from "./hud"
 import {
-  currentKeys, keyFSM, mappedKeys, set_keyFSM, anyClickHandler, onKeydown, onKeyup, passKeys,
+  currentKeys, mappedKeys, set_keyFSM, anyClickHandler, onKeydown, onKeyup, passKeys,
   set_isPassKeysReversed, isPassKeysReversed, set_passKeys, set_mappedKeys, set_mapKeyTypes,
 } from "./key_handler"
 import { HintManager, kSafeAllSelector, set_kSafeAllSelector } from "./link_hints"
@@ -192,8 +192,7 @@ set_requestHandlers([
   },
   /* kBgReq.exitGrab: */ exitGrab as (this: void, request: Req.bg<kBgReq.exitGrab>) => void,
   /* kBgReq.keyFSM: */ function (request: BgReq[kBgReq.keyFSM]): void {
-    /*#__INLINE__*/ set_keyFSM(request.k)
-    safer(keyFSM)
+    safer(set_keyFSM(request.k))
     set_mapKeyTypes(request.t)
     /*#__INLINE__*/ set_mappedKeys(request.m)
     mappedKeys && safer(mappedKeys)

@@ -1,5 +1,5 @@
 import {
-  clickable_, timeout_, loc_, getTime, clearTimeout_, vApi, recordLog, doc, setupEventListener,
+  clickable_, timeout_, loc_, getTime, clearTimeout_, vApi, recordLog, doc, setupEventListener, VTr
 } from "../lib/utils"
 import { CLK, MDW, OnDocLoaded_, isHTML_, set_createElement_, createElement_ } from "../lib/dom_utils"
 import { grabBackFocus } from "./insert"
@@ -70,7 +70,8 @@ export const main_ff = (Build.BTypes & BrowserType.Firefox ? (): void => {
   }
   if (!isHTML_()) {
     // for <script>
-    set_createElement_(doc.createElementNS.bind(doc, "http://www.w3.org/1999/xhtml") as typeof createElement_)
+    set_createElement_(doc.createElementNS.bind(doc, VTr(kTip.XHTML) as "http://www.w3.org/1999/xhtml"
+        ) as typeof createElement_)
   }
   /**
    * This idea of hooking and appending `preventDefault` is from lydell's `LinkHints`:

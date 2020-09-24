@@ -3,7 +3,7 @@ import {
   doc, getTime, chromeVer_, deref_, escapeAllForRe, tryCreateRegExp, vApi, callFunc, clearTimeout_,
 } from "../lib/utils"
 import {
-  pushHandler_, SuppressMost_, Stop_, removeHandler_, prevent_, getMappedKey, keybody_, isEscape_, keyNames_,
+  pushHandler_, suppressMost_, Stop_, removeHandler_, prevent_, getMappedKey, keybody_, isEscape_, keyNames_,
   DEL, BSP, ENTER,
 } from "../lib/keyboard_utils"
 import {
@@ -119,7 +119,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     setClassName_s(el, "R UI Find")
     el.onload = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinTestedES6Environment
         ? vApi.n.bind(0, 1) : () => vApi.n(1)
-    pushHandler_(SuppressMost_, activate);
+    suppressMost_(activate)
     query_ || (query0_ = query)
     init && init(AdjustType.NotAdjust)
     toggleSelectableStyle(1);
@@ -128,20 +128,18 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     addUIElement(outerBox, AdjustType.DEFAULT, hud_box);
 }
 
-const notDisableScript = (): 1 | void => {
-    try {
-      if (innerDoc_ = box_.contentDocument as HTMLDocument | null as HTMLDocument | never) {
-        return 1;
-      }
-    } catch {}
-    deactivate(FindNS.Action.ExitUnexpectedly)
-    hudTip(kTip.findFrameFail, 2000)
-}
-
 export const onLoad = (later?: 1): void => {
-    if (!isActive || !notDisableScript()) { return; }
-    const box: HTMLIFrameElement = box_,
-    wnd = box.contentWindow, f = wnd.addEventListener.bind(wnd) as typeof addEventListener,
+    try {
+      innerDoc_ = (isActive ? box_.contentDocument as HTMLDocument | null : null) as HTMLDocument | never
+    } catch {}
+    if (!innerDoc_) {
+      if (isActive) {
+        deactivate(FindNS.Action.ExitUnexpectedly)
+        hudTip(kTip.findFrameFail, 2000)
+      }
+      return
+    }
+    const wnd = box_.contentWindow, f = wnd.addEventListener.bind(wnd) as typeof addEventListener,
     now = getTime(), t = true;
     let tick = 0;
     f(MDW, onMousedown, t)
@@ -178,7 +176,7 @@ export const onLoad = (later?: 1): void => {
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
         || Stop_(event);
     }, t);
-    box.onload = later ? null as never : function (): void {
+    box_.onload = later ? null as never : function (): void {
       onload = null as never; onLoad2()
     };
     if (later) { onLoad2() }

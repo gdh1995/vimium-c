@@ -1,4 +1,4 @@
-import { clickable_, VOther, vApi, isAlive_, safer, timeout_, escapeAllForRe, tryCreateRegExp } from "../lib/utils"
+import { clickable_, VOther, vApi, isAlive_, safer, timeout_, escapeAllForRe, tryCreateRegExp, VTr } from "../lib/utils"
 import {
   docEl_unsafe_, htmlTag_, isAriaNotTrue_, isStyleVisible_, querySelectorAll_unsafe_, isIFrameElement,
 } from "../lib/dom_utils"
@@ -125,9 +125,9 @@ export const findNextInText = (names: string[], isNext: boolean, lenLimits: numb
 }
 
 export const findNextInRel = (relName: string): GoNextBaseCandidate | null | undefined => {
-  const elements = querySelectorAll_unsafe_(Build.BTypes & BrowserType.Edge ? "a[rel],area[rel],link[rel]" : `:-${
-      !(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && VOther & BrowserType.Chrome
-      ? "webkit" : "moz"}-any(a,area,link)[rel]`)!
+  const elements = querySelectorAll_unsafe_(Build.BTypes & BrowserType.Edge ? "a[rel],area[rel],link[rel]"
+      : !(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && VOther & BrowserType.Chrome
+      ? VTr(kTip.webkitWithRel) : VTr(kTip.webkitWithRel).replace("webkit", "moz"))!
   let s: string | null | undefined;
   type HTMLElementWithRel = HTMLAnchorElement | HTMLAreaElement | HTMLLinkElement;
   let matched: HTMLElementWithRel | undefined, tag: string;

@@ -19,7 +19,7 @@ import {
   injector, isAlive_, keydownEvents_, readyState_, VOther, timeout_, clearTimeout_, loc_, recordLog, chromeVer_,
   interval_, clearInterval_, locHref, vApi,
 } from "../lib/utils"
-import { removeHandler_, pushHandler_, SuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
+import { removeHandler_, pushHandler_, suppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
 import {
   frameElement_, isHTML_, fullscreenEl_unsafe_, NONE, createElement_, removeEl_s, setClassName_s
 } from "../lib/dom_utils"
@@ -47,8 +47,7 @@ export { box as omni_box, status as omni_status }
 
 export const activate = function (options: FullOptions, count: number): void {
     // hide all further key events to wait iframe loading and focus changing from JS
-    removeHandler_(activate)
-    pushHandler_(SuppressMost_, activate)
+    suppressMost_(activate)
     let timer1 = timeout_(refreshKeyHandler, GlobalConsts.TimeOfSuppressingTailKeydownEvents)
     if (checkHidden(kFgCmd.vomnibar, count, options)) { return; }
     if (status === VomnibarNS.Status.KeepBroken) {
@@ -170,7 +169,15 @@ export const hide = (fromInner?: 1): void => {
     }
 }
 
-export const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
+const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
+    const reload = (): void => {
+      type = VomnibarNS.PageType.inner
+      el.removeAttribute(kRef)
+      // not skip the line below: in case main world JS adds some sandbox attributes
+      el.removeAttribute("sandbox")
+      el.src = page = inner!
+      omniOptions && (omniOptions.t = type)
+    }
     const el = createElement_("iframe") as typeof box, kRef = "referrerPolicy"
     setClassName_s(el, "R UI Omnibar")
     el.style.display = NONE;
@@ -183,16 +190,8 @@ export const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void
       // if set .sandbox to "allow-scripts", then wnd.postMessage(msg, origin, [channel]) fails silently
     }
     el.src = page;
-    function reload(): void {
-      type = VomnibarNS.PageType.inner;
-      el.removeAttribute(kRef);
-      // not skip the line below: in case main world JS adds some sandbox attributes
-      el.removeAttribute("sandbox")
-      el.src = page = inner!;
-      omniOptions && (omniOptions.t = type)
-    }
     let loaded: BOOL = 0, initMsgInterval = TimerID.None
-    el.onload = function (): void {
+    el.onload = (): void => {
       loaded = 1
       if (onReset) { return; }
       clearTimeout_(slowLoadTimer)
@@ -233,7 +232,7 @@ export const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void
     }, 2000) : TimerID.None
 }
 
-export const reset = (redo?: boolean): void | 1 => {
+const reset = (redo?: boolean): void | 1 => {
     const oldStatus = status
     if (oldStatus === VomnibarNS.Status.NotInited) { return; }
     status = VomnibarNS.Status.NotInited
@@ -248,7 +247,7 @@ export const reset = (redo?: boolean): void | 1 => {
     }
 }
 
-export const isAboutBlank = (): boolean => {
+const isAboutBlank = (): boolean => {
     try {
       const doc = box.contentDocument
       if (doc && doc.URL === "about:blank") { return true; }
@@ -256,14 +255,15 @@ export const isAboutBlank = (): boolean => {
     return false;
 }
 
-const onOmniMessage = function (this: OmniPort, msg: { data: any }): void {
+const onOmniMessage = function (this: OmniPort, msg: { data: any, target?: MessagePort }): void {
     type Req = VomnibarNS.FReq;
     type ReqTypes<K> = K extends keyof Req ? Req[K] & VomnibarNS.Msg<K> : never;
     const data = msg.data as ReqTypes<keyof Req>
     switch (data.N) {
     case VomnibarNS.kFReq.iframeIsAlive:
       status = VomnibarNS.Status.ToShow
-      portToOmni = this;
+      portToOmni = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinTestedES6Environment
+          ? this : msg.target! as OmniPort
       !data.o && omniOptions && postToOmni<VomnibarNS.kCReq.activate>(omniOptions)
       omniOptions = null
       break;

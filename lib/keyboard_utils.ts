@@ -19,8 +19,8 @@ const _modifierKeys: SafeEnum = {
 }
 
 interface HandlerItem {
-  /** function */ f: (event: HandlerNS.Event) => HandlerResult
-  /** bounding this */ e: object
+  /** function */ f: HandlerNS.Handler<any>
+  /** identity */ i: object
 }
 
 let getMappedKey: (this: void, event: HandlerNS.Event, mode: kModeId) => string
@@ -70,10 +70,25 @@ const _getKeyCharUsingKeyIdentifier_old_cr = !(Build.BTypes & BrowserType.Chrome
     }
 } as (event: Pick<OldKeyboardEvent, "keyIdentifier">, shiftKey: BOOL) => string
 
-  /** return strings of 1-N characters and CapsLock is ignored */
-const _forceEnUSLayout = (key: string, event: Pick<KeyboardEvent, "key" | "keyCode" | "code" | "location">
-      , shiftKey: boolean): string => {
-    let code = event.code!, prefix = code.slice(0, 2), mapped: number | undefined;
+/**
+ * * return `"space"` for the <Space> key - in most code it needs to be treated as a long key
+ * * does not skip "Unidentified", because it can not solve any issue if skipping it
+ */
+export const char_ = (eventWrapper: HandlerNS.Event): kChar => {
+  let event: Pick<KeyboardEvent, "code" | "key" | "keyCode" | "keyIdentifier" | "location" | "shiftKey">
+        = eventWrapper.e
+  let mapped: number | undefined, {key, shiftKey} = eventWrapper.e
+  if (Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.BTypes & BrowserType.Chrome && !key) {
+    // since Browser.Min$KeyboardEvent$MayHave$$Key and before .MinEnsured$KeyboardEvent$$Key
+    // event.key may be an empty string if some modifier keys are held on
+    // it seems that KeyIdentifier doesn't follow keyboard layouts
+    key = _getKeyName(event) // it's safe to skip the check of `event.keyCode`
+        || /*#__NOINLINE__*/ _getKeyCharUsingKeyIdentifier_old_cr(event as Pick<OldKeyboardEvent, "keyIdentifier">
+            , +shiftKey as BOOL)
+  } else if ((!(Build.BTypes & BrowserType.Edge) || Build.BTypes & ~BrowserType.Edge && VOther !== BrowserType.Edge)
+      && fgCache.l) {
+      /** return strings of 1-N characters and CapsLock is ignored */
+    let code = event.code!, prefix = code.slice(0, 2);
     if (prefix !== "Nu") { // not (Numpad* or NumLock)
       // https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code/code_values
       if (prefix === "Ke" || prefix === "Di" || prefix === "Ar") {
@@ -84,39 +99,19 @@ const _forceEnUSLayout = (key: string, event: Pick<KeyboardEvent, "key" | "keyCo
       // https://github.com/philc/vimium/issues/2161#issuecomment-225813082
       key = code.length === 1
             ? !shiftKey || code < "0" || code > "9" ? code : kChar.EnNumTrans[+code]
-            : _modifierKeys[key] ? fgCache.a && event.location === fgCache.a ? kChar.Modifier : ""
+            : _modifierKeys[key!] ? fgCache.a && event.location === fgCache.a ? kChar.Modifier : ""
             : key === "Escape" ? kChar.esc // e.g. https://github.com/gdh1995/vimium-c/issues/129
             : !code ? key // e.g. https://github.com/philc/vimium/issues/3451#issuecomment-569124026
             : (mapped = _codeCorrectionMap.indexOf(code)) < 0 ? code
             : (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
                 ? kCrct! : kChar.CharCorrectionList)[mapped + 12 * +shiftKey]
     }
-    return shiftKey && key.length < 2 ? key : key.toLowerCase();
-}
-
-  /**
-   * * return `"space"` for the <Space> key - in most code it needs to be treated as a long key
-   * * does not skip "Unidentified", because it can not solve any issue if skipping it
-   */
-export const char_ = (eventWrapper: HandlerNS.Event): kChar => {
-    let event: Pick<KeyboardEvent, "code" | "key" | "keyCode" | "keyIdentifier" | "location" | "shiftKey">
-        = eventWrapper.e
-      , {key, shiftKey} = eventWrapper.e;
-    if (Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.BTypes & BrowserType.Chrome && !key) {
-      // since Browser.Min$KeyboardEvent$MayHave$$Key and before .MinEnsured$KeyboardEvent$$Key
-      // event.key may be an empty string if some modifier keys are held on
-      // it seems that KeyIdentifier doesn't follow keyboard layouts
-      key = _getKeyName(event) // it's safe to skip the check of `event.keyCode`
-        || _getKeyCharUsingKeyIdentifier_old_cr(event as Pick<OldKeyboardEvent, "keyIdentifier">
-            , +shiftKey as BOOL);
-    } else {
-      key = (!(Build.BTypes & BrowserType.Edge) || Build.BTypes & ~BrowserType.Edge && VOther !== BrowserType.Edge)
-          && fgCache.l
-        ? _forceEnUSLayout(key!, event, shiftKey)
-        : key!.length > 1 || key === " " ? _getKeyName(event)
+    key = shiftKey && key!.length < 2 ? key : key!.toLowerCase()
+  } else {
+    key = key!.length > 1 || key === " " ? /*#__NOINLINE__*/ _getKeyName(event)
         : fgCache.i ? shiftKey ? key!.toUpperCase() : key!.toLowerCase() : key!;
-    }
-    return eventWrapper.c = key as kChar;
+  }
+  return eventWrapper.c = key as kChar
 }
 
 export const keybody_ = (key: string): kChar => (key.slice(key.lastIndexOf("-") + 1) || key && kChar.minus) as kChar
@@ -142,9 +137,12 @@ export const prevent_ = (event: ToPrevent): void => {
     event.preventDefault(); stopEvent(event);
 }
 
-export const SuppressMost_ = function (this: {}, event: HandlerNS.Event): HandlerResult {
-    isEscape_(getMappedKey(event, kModeId.Normal)) && removeHandler_(this);
+export const suppressMost_ = (id: object): void => {
+  removeHandler_(id)
+  pushHandler_((event: HandlerNS.Event): HandlerResult => {
+    isEscape_(getMappedKey(event, kModeId.Normal)) && removeHandler_(id)
     return event.i === kKeyCode.f12 || event.i === kKeyCode.f5 ? HandlerResult.Suppress : HandlerResult.Prevent;
+  }, id)
 }
 
   /**
@@ -175,15 +173,15 @@ export const suppressTail_ = <T extends number = 0> (timeout?: T
 
   /** handler section */
 
-export const pushHandler_ = <T extends object> (func: HandlerNS.Handler<T>, env: T): void => {
-    handlers_.push({ f: func, e: env });
+export const pushHandler_ = <T extends object> (func: HandlerNS.Handler<T>, id: T): void => {
+  handlers_.push({ f: func, i: id })
 }
 
-export const removeHandler_ = (env: object): void => {
+export const removeHandler_ = (id: object): number | void => {
     for (let ref = handlers_, i = ref.length; 0 <= --i; ) {
-      if (ref[i].e === env) {
+      if (ref[i].i === id) {
         i === ref.length - 1 ? ref.length-- : ref.splice(i, 1);
-        break;
+        return i
       }
     }
 }

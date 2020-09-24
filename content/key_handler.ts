@@ -43,9 +43,9 @@ export function set_passKeys (_newPassKeys: SafeEnum | null | ""): void { passKe
 export function installTempCurrentKeyStatus (): void { currentKeys = "", nextKeys = keyFSM }
 export function set_onKeyup2 (_newOnKeyUp: typeof onKeyup2): void { onKeyup2 = _newOnKeyUp }
 export function set_isPassKeysReversed (_newPKReversed: boolean): void { isPassKeysReversed = _newPKReversed }
-export function set_keyFSM (_newKeyFSM: BgReq[kBgReq.keyFSM]["k"]) { keyFSM = _newKeyFSM }
-export function set_mapKeyTypes (_newMapKeyTypes: BgReq[kBgReq.keyFSM]["t"]): void { mapKeyTypes = _newMapKeyTypes }
-export function set_mappedKeys (_newMappedKeys: BgReq[kBgReq.keyFSM]["m"]): void { mappedKeys = _newMappedKeys }
+export function set_keyFSM (_newKeyFSM: KeyFSM): KeyFSM { return keyFSM = _newKeyFSM }
+export function set_mapKeyTypes (_newMapKeyTypes: kMapKey): void { mapKeyTypes = _newMapKeyTypes }
+export function set_mappedKeys (_newMappedKeys: typeof mappedKeys): void { mappedKeys = _newMappedKeys }
 
 
 set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
@@ -169,7 +169,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
   if (Build.BTypes & BrowserType.Firefox) { raw_insert_lock && insert_Lock_(); }
   let action = HandlerResult.Nothing, tempStr: string;
   for (let ind = handler_stack.length; 0 <= --ind && action === HandlerResult.Nothing; ) {
-    action = handler_stack[ind].f.call(handler_stack[ind].e, eventWrapper);
+    action = handler_stack[ind].f(eventWrapper);
   }
   if (action) { /* empty */ }
   else if (/*#__NOINLINE__*/ isInInsert()) {

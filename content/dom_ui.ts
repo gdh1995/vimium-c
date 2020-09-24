@@ -1,5 +1,5 @@
 import {
-  setupEventListener, isTop, keydownEvents_, VOther, timeout_, fgCache, doc, isAlive_, jsRe_, chromeVer_, VTr, deref_,
+  setupEventListener, isTop, keydownEvents_, VOther, timeout_, fgCache, doc, isAlive_, isJSUrl, chromeVer_, VTr, deref_,
   vApi,
 } from "../lib/utils"
 import { Stop_, prevent_ } from "../lib/keyboard_utils"
@@ -77,19 +77,20 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
           (!(Build.BTypes & ~BrowserType.Edge) || box_ === root_)) {
         box_!.id = "VimiumUI"
       }
-      let el: HTMLStyleElement | null = styleIn_ = createElement_("style")
+      const S = "style" as const
+      styleIn_ = createElement_(S)
       setUICSS = (css): void => {
         createStyle(cssPatch_ ? cssPatch_[1](css) : css, styleIn_ as HTMLStyleElement)
       };
       setUICSS(innerCSS)
-      appendNode_s(root_, el)
+      appendNode_s(root_, styleIn_)
       /**
        * Note: Tests on C35, 38, 41, 44, 47, 50, 53, 57, 60, 63, 67, 71, 72 confirmed
        *        that el.sheet has been valid when promise.then, even on XML pages.
        * `AdjustType.NotAdjust` must be used before a certain, clear normal adjusting
        */
       // enforce webkit to build the style attribute node, and then we can remove it totally
-      box_!.hasAttribute("style") && box_!.removeAttribute("style")
+      box_!.hasAttribute(S) && box_!.removeAttribute(S)
       if (adjust_type !== AdjustType.NotAdjust) {
         adjustUI()
       }
@@ -170,14 +171,14 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
       const removeEL = !el || event === 2, FS = "fullscreenchange";
       if (Build.BTypes & BrowserType.Chrome
           && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)) {
-        setupEventListener(0, "webkit" + FS, adjustUI, removeEL)
+        setupEventListener(0, "webkit" + /*#__NOINLINE__*/ FS, adjustUI, removeEL)
       } else if (!(Build.BTypes & ~BrowserType.Firefox)
           || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox) {
-        setupEventListener(0, "moz" + FS, adjustUI, removeEL)
+        setupEventListener(0, "moz" + /*#__NOINLINE__*/ FS, adjustUI, removeEL)
       }
       if (!(Build.BTypes & BrowserType.Chrome)
           || chromeVer_ > BrowserVer.MinMaybe$Document$$fullscreenElement - 1) {
-        setupEventListener(0, FS, adjustUI, removeEL)
+        setupEventListener(0, /*#__NOINLINE__*/ FS, adjustUI, removeEL)
       }
       if (isHintsActive && removeEL) { // not need to check isAlive_
         hintManager || timeout_(coreHints.x, 17)
@@ -501,7 +502,7 @@ export function set_getParentVApi (_newGetParVApi: () => VApiTy | null | void): 
 
 export const evalIfOK = (url: Pick<BgReq[kBgReq.eval], "u"> | string): boolean => {
   typeof url === "string" ? 0 : url = url.u
-  if (!jsRe_.test(url)) {
+  if (!isJSUrl(url)) {
     return false;
   }
   let str = url.slice(11).trim();
@@ -554,4 +555,8 @@ export const checkHidden = (cmd?: FgCmdAcrossFrames, count?: number, options?: O
     }
   }
   return +result as BOOL;
+}
+
+if (!(Build.NDEBUG || kTip.INJECTED_CONTENT_END < kTip.extendClick)) {
+  alert("Assert error: kTip.INJECTED_CONTENT_END < kTip.extendClick")
 }
