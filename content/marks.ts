@@ -1,7 +1,7 @@
 import { VTr, safer, loc_, vApi, locHref } from "../lib/utils"
 import { post_ } from "./port"
 import { hudHide, hudShow, hudTip } from "./hud"
-import { removeHandler_, pushHandler_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
+import { removeHandler_, getMappedKey, isEscape_, replaceOrSuppressMost_ } from "../lib/keyboard_utils"
 import { createElement_ } from "../lib/dom_utils"
 
 let onKeyChar: ((event: HandlerNS.Event, keyChar: string) => void) | null = null
@@ -17,21 +17,20 @@ export const activate = (options: CmdOptions[kFgCmd.marks], count: number): void
     mcount = count < 0 || count > 9 ? 0 : count - 1
     prefix = options.prefix !== false
     swap = !!options.swap
-    removeHandler_(activate)
     hudShow(isGo ? kTip.nowGotoMark : kTip.nowCreateMark);
-  pushHandler_((event: HandlerNS.Event): HandlerResult => {
+  replaceOrSuppressMost_(kHandler.marks, (event): HandlerResult => {
     let key: string
     if (event.i === kKeyCode.ime) { return HandlerResult.Nothing; }
     key = getMappedKey(event, kModeId.Marks)
     if (key.length !== 1 && !isEscape_(key)) {
       return HandlerResult.Suppress;
     }
-    removeHandler_(activate)
+    removeHandler_(kHandler.marks)
     isEscape_(key) ? hudHide() : onKeyChar!(event, key)
     prefix = swap = true
     onKeyChar = null
     return HandlerResult.Prevent;
-  }, activate)
+  })
 }
 
 const dispatchMark = ((mark?: Readonly<MarksNS.FgMark> | null | undefined

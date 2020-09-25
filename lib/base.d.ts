@@ -20,6 +20,11 @@ declare const enum VisibilityType {
   OutOfView = 1,
   NoSpace = 2,
 }
+declare const enum kHandler {
+  linkHints, omni, find, visual, marks,
+  postFind, unhoverOnEsc, grabBackFocus, helpDialog, focusInput,
+  passNextKey, suppressTail, _MASK = "mask",
+}
 declare namespace HandlerNS {
   interface Event {
     /** keyCode */ i: kKeyCode;
@@ -27,17 +32,15 @@ declare namespace HandlerNS {
     /** event */ e: KeyboardEventToPrevent;
   }
 
-  interface Handler<T extends object> {
-    (this: T extends RefHandler ? void : { f: Handler<T>, i: T }, event: HandlerNS.Event): HandlerResult;
+  interface Handler {
+    (this: void, event: HandlerNS.Event): HandlerResult;
   }
 
-  interface VoidHandler {
-    (this: unknown): void;
-  }
-
-  interface RefHandler extends Handler<RefHandler> {
+  interface VoidHandler<T> {
+    (this: void, _arg?: undefined): T
   }
 }
+
 interface KeydownCacheArray extends SafeObject {
   [keyCode: number]: BOOL | 2 | undefined;
 }
@@ -404,7 +407,7 @@ interface VApiTy {
       (task: 2, newTr: VTransType): unknown
     }?
   ] | null | undefined;
-  /** suppressTailKeys */ s (timeout?: 0): HandlerNS.RefHandler
+  /** suppressTailKeys */ s (timeout?: 0): unknown
   /** tip */ t (request: BgReq[kBgReq.showHUD]): void
   /** urlToCopy */ u (): string
   /** flash */ x: {

@@ -53,7 +53,7 @@ export function set_inputHint (_newIHint: typeof inputHint): void { inputHint = 
 export function set_isHintingInput (_newIsHintingInput: BOOL): void { isHintingInput = _newIsHintingInput }
 export function set_grabBackFocus (_newGrabBackFocus: typeof grabBackFocus): void { grabBackFocus = _newGrabBackFocus }
 export function set_onWndBlur2 (_newOnBlur: typeof onWndBlur2): void { onWndBlur2 = _newOnBlur }
-export function set_exitPassMode (_newExitPassMode: typeof exitPassMode): void { exitPassMode = _newExitPassMode }
+export function set_exitPassMode <T extends typeof exitPassMode> (_nEPM: T): T { return exitPassMode = _nEPM }
 
 export const insertInit = (): void => {
   /** if `notBody` then `activeEl` is not null */
@@ -82,7 +82,7 @@ export const insertInit = (): void => {
           target.blur();
         }
       };
-      pushHandler_(exitGrab, exitGrab);
+      pushHandler_(exitGrab, kHandler.grabBackFocus)
       setupEventListener(0, MDW, exitGrab);
       return;
     }
@@ -98,7 +98,7 @@ export const exitGrab = function (this: void, event?: Req.fg<kFgReq.exitGrab> | 
     ): HandlerResult.Nothing | void {
   if (!grabBackFocus) { return /* safer */ HandlerResult.Nothing; }
   grabBackFocus = false;
-  removeHandler_(exitGrab);
+  removeHandler_(kHandler.grabBackFocus)
   setupEventListener(0, MDW, exitGrab, 1);
   // it's acceptable to not set the userActed flag if there's only the top frame;
   // when an iframe gets clicked, the events are mousedown and then focus, so safePost is needed
@@ -196,8 +196,8 @@ export const exitInsertMode = (target: Element): void => {
 export const exitInputHint = (): void => {
   if (inputHint) {
     inputHint.b && removeEl_s(inputHint.b)
-    removeHandler_(inputHint)
     inputHint = null;
+    removeHandler_(kHandler.focusInput)
   }
 }
 

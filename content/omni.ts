@@ -19,7 +19,7 @@ import {
   injector, isAlive_, keydownEvents_, readyState_, VOther, timeout_, clearTimeout_, loc_, recordLog, chromeVer_,
   interval_, clearInterval_, locHref, vApi,
 } from "../lib/utils"
-import { removeHandler_, pushHandler_, suppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
+import { removeHandler_, replaceOrSuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
 import {
   frameElement_, isHTML_, fullscreenEl_unsafe_, NONE, createElement_, removeEl_s, setClassName_s
 } from "../lib/dom_utils"
@@ -47,7 +47,7 @@ export { box as omni_box, status as omni_status }
 
 export const activate = function (options: FullOptions, count: number): void {
     // hide all further key events to wait iframe loading and focus changing from JS
-    suppressMost_(activate)
+    replaceOrSuppressMost_(kHandler.omni)
     let timer1 = timeout_(refreshKeyHandler, GlobalConsts.TimeOfSuppressingTailKeydownEvents)
     if (checkHidden(kFgCmd.vomnibar, count, options)) { return; }
     if (status === VomnibarNS.Status.KeepBroken) {
@@ -238,9 +238,8 @@ const reset = (redo?: boolean): void | 1 => {
     status = VomnibarNS.Status.NotInited
     portToOmni && portToOmni.close()
     removeEl_s(box)
-    portToOmni = box = null as never
+    portToOmni = box = omniOptions = null as never
     refreshKeyHandler(); // just for safer code
-    omniOptions = null
     if (onReset) { onReset(); }
     else if (redo && oldStatus > VomnibarNS.Status.ToShow - 1) {
       post_({ H: kFgReq.vomnibar, r: true, i: true })
@@ -305,11 +304,11 @@ const onShown = (maxBoxHeight: number): void => {
 }
 
 const refreshKeyHandler = (): void => {
-  status < VomnibarNS.Status.Showing && status > VomnibarNS.Status.Inactive || removeHandler_(activate)
-  status > VomnibarNS.Status.ToShow && pushHandler_(onKeydown, activate)
+  status > VomnibarNS.Status.Showing - 1 ? replaceOrSuppressMost_(kHandler.omni, /*#__NOINLINE__*/ onKeydown)
+      : status < VomnibarNS.Status.Inactive + 1 ? removeHandler_(kHandler.omni) : 0
 }
 
-export const onKeydown = (event: HandlerNS.Event): HandlerResult => {
+const onKeydown = (event: HandlerNS.Event): HandlerResult => {
     let key: string
     if (insert_Lock_()) { return HandlerResult.Nothing; }
     if (isEscape_(key = getMappedKey(event, kModeId.Omni))) { hide(); return HandlerResult.Prevent; }

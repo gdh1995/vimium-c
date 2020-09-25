@@ -17,14 +17,8 @@ const _modifierKeys: SafeEnum = {
     __proto__: null as never,
     Alt: 1, AltGraph: 1, Control: 1, Meta: 1, OS: 1, Shift: 1
 }
-
-interface HandlerItem {
-  /** function */ f: HandlerNS.Handler<any>
-  /** identity */ i: object
-}
-
+const handlers_: Array<HandlerNS.Handler | kHandler> = []
 let getMappedKey: (this: void, event: HandlerNS.Event, mode: kModeId) => string
-const handlers_: HandlerItem[] = []
 
 export { keyNames_, getMappedKey, handlers_ as handler_stack, DEL, BSP }
 export function set_getMappedKey (_newGetMappedKey: typeof getMappedKey): void { getMappedKey = _newGetMappedKey }
@@ -137,12 +131,12 @@ export const prevent_ = (event: ToPrevent): void => {
     event.preventDefault(); stopEvent(event);
 }
 
-export const suppressMost_ = (id: object): void => {
+export const replaceOrSuppressMost_ = (id: kHandler, newHandler?: HandlerNS.Handler): void => {
   removeHandler_(id)
-  pushHandler_((event: HandlerNS.Event): HandlerResult => {
+  pushHandler_(newHandler || ((event: HandlerNS.Event): HandlerResult => {
     isEscape_(getMappedKey(event, kModeId.Normal)) && removeHandler_(id)
     return event.i === kKeyCode.f12 || event.i === kKeyCode.f5 ? HandlerResult.Suppress : HandlerResult.Prevent;
-  }, id)
+  }), id)
 }
 
   /**
@@ -150,40 +144,40 @@ export const suppressMost_ = (id: object): void => {
    *
    * @argument callback can be valid only if `timeout`
    */
-export const suppressTail_ = <T extends number = 0> (timeout?: T
-      , callback?: T extends 0 ? 0 : HandlerNS.VoidHandler | 0, notInHandlerStack?: 1): HandlerNS.RefHandler => {
-    let timer = 0,
-    func: HandlerNS.RefHandler = event => {
+export const suppressTail_ = ((timeout?: number
+    , callback?: HandlerNS.VoidHandler<unknown>): HandlerNS.Handler | HandlerNS.VoidHandler<HandlerResult> => {
+  let timer = TimerID.None, func = (event?: HandlerNS.Event): HandlerResult => {
       if (!timeout) {
-        if (event.e.repeat) { return HandlerResult.Prevent; }
-        removeHandler_(func);
+        if (event!.e.repeat) { return HandlerResult.Prevent }
+        removeHandler_(func as never as kHandler.suppressTail)
         return HandlerResult.Nothing;
       }
       clearTimeout_(timer);
-      timer = timeout_(() => { // safe-interval
-        removeHandler_(func)
-        isAlive_ && callback && (callback as Exclude<typeof callback, 0>)!()
+      timer = timeout_((): void => { // safe-interval
+        removeHandler_(func as never as kHandler.suppressTail)
+        callback && isAlive_ && callback()
       }, timeout);
       return HandlerResult.Prevent;
-    };
-    timeout && (func as () => any)();
-    notInHandlerStack || pushHandler_(func, func);
-    return func;
+  };
+  timeout && func()
+  if (!callback) {
+    pushHandler_(func, func as never as kHandler.suppressTail)
+  }
+  return func
+}) as {
+  (timeout?: number, callback?: undefined): unknown
+  (timeout: number, callback: HandlerNS.VoidHandler<any>): HandlerNS.VoidHandler<HandlerResult>
 }
 
   /** handler section */
 
-export const pushHandler_ = <T extends object> (func: HandlerNS.Handler<T>, id: T): void => {
-  handlers_.push({ f: func, i: id })
-}
+export const pushHandler_ = handlers_.push.bind(handlers_) as (func: HandlerNS.Handler, id: kHandler) => void
 
-export const removeHandler_ = (id: object): number | void => {
-    for (let ref = handlers_, i = ref.length; 0 <= --i; ) {
-      if (ref[i].i === id) {
-        i === ref.length - 1 ? ref.length-- : ref.splice(i, 1);
-        return i
-      }
-    }
+export const removeHandler_ = (id: kHandler): void => {
+  let i = handlers_.lastIndexOf(id)
+  if (i > 0) {
+    i === handlers_.length - 1 ? handlers_.length -= 2 : handlers_.splice(i - 1, 1)
+  }
 }
 
   /** misc section */

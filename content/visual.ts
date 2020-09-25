@@ -51,7 +51,7 @@ import { insert_Lock_ } from "./insert"
 import { hudTip, hudHide, hudShow } from "./hud"
 import { post_, send_ } from "./port"
 import {
-  removeHandler_, pushHandler_, getMappedKey, keybody_, isEscape_, prevent_, ENTER, suppressTail_,
+  removeHandler_, getMappedKey, keybody_, isEscape_, prevent_, ENTER, suppressTail_, replaceOrSuppressMost_
 } from "../lib/keyboard_utils"
 
 const kDir = ["backward", "forward"] as const
@@ -83,7 +83,6 @@ export { mode_ as visual_mode, modeName as visual_mode_name, kDir, kExtend }
 export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     set_findCSS(options.f || findCSS)
     init && init(options.w!, options.k!, _kGranularity = options.g!)
-    removeHandler_(activate)
     checkDocSelectable();
     set_scrollingTop(scrollingEl_(1))
     getZoom_(1)
@@ -125,7 +124,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
           & getDirection() & <number> <number | boolean> (mode > 1)) as BOOL)
     }
     commandHandler(VisualAction.Noop, 1)
-    pushHandler_(onKeydown, activate)
+    replaceOrSuppressMost_(kHandler.visual, onKeydown)
     diff ? hudTip(kTip.noUsableSel, 1000) : hudShow(kTip.inVisualMode, modeName, options.r)
 }
 
@@ -136,7 +135,7 @@ export const deactivate = (isEsc?: 1): void => {
     diType_ = DiType.UnsafeUnknown
     getDirection("")
     const oldDiType: DiType = diType_
-    removeHandler_(activate)
+    removeHandler_(kHandler.visual)
     if (!retainSelection) {
       collapseToFocus(isEsc && mode_ !== Mode.Caret ? 1 : 0)
     }

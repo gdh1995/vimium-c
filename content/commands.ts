@@ -7,7 +7,7 @@ import {
   querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s
 } from "../lib/dom_utils"
 import {
-  pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack
+  pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack, replaceOrSuppressMost_
 } from "../lib/keyboard_utils"
 import {
   view_, wndSize_, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, padClientRect_,
@@ -33,7 +33,7 @@ import {
   activate as scActivate, clearCachedScrollable, resetCurrentScrolling, onActivate, currentScrolling,
   set_currentScrolling
 } from "./scroller"
-import { activate as omniActivate, onKeydown as omniOnKeydown, omni_status, hide as omniHide } from "./omni"
+import { activate as omniActivate, hide as omniHide } from "./omni"
 import { findNextInText, findNextInRel } from "./pagination"
 import { traverse, getEditable, filterOutNonReachable } from "./local_links"
 import { select_, unhover_, resetLastHovered, lastHovered_ } from "./async_dispatcher"
@@ -131,28 +131,27 @@ set_contentCommands_([
       esc!(HandlerResult.Nothing);
       return;
     }
-    exitPassMode && exitPassMode();
-    const keys = safer<Dict<BOOL>>({})
-    pushHandler_(event => {
+    const keys = safer<{ [keyCode in kKeyCode]: BOOL }>({})
+    replaceOrSuppressMost_(kHandler.passNextKey, event => {
       keyCount += +!keys[event.i];
       keys[event.i] = 1;
       return HandlerResult.PassKey;
-    }, keys);
-    /*#__INLINE__*/ set_onKeyup2((event): void => {
+    })
+    set_onKeyup2((event): void => {
       if (keyCount === 0 || --keyCount || --count) {
-        keys[event ? event.keyCode : kKeyCode.None] = 0;
+        keys[event && event.keyCode] = 0
         hudShow(kTip.passNext, count > 1 ? VTr(kTip.nTimes, [count]) : "");
       } else {
         exitPassMode!();
       }
     })
+    onKeyup2!(<0> kKeyCode.None)
     /*#__INLINE__*/ set_exitPassMode((): void => {
       /*#__INLINE__*/ set_exitPassMode(null)
       /*#__INLINE__*/ set_onKeyup2(null)
-      removeHandler_(keys);
+      removeHandler_(kHandler.passNextKey)
       hudHide();
     })
-    onKeyup2!();
   },
   /* kFgCmd.goNext: */ (req: CmdOptions[kFgCmd.goNext]): void => {
     let isNext = !req.r.includes("prev"), parApi: VApiTy | null | void, chosen: GoNextBaseCandidate | false | 0 | null
@@ -301,7 +300,7 @@ set_contentCommands_([
       } else {
         return HandlerResult.Nothing;
       }
-    }, insert_inputHint!);
+    }, kHandler.focusInput)
   },
   /* kFgCmd.editText: */ (options: CmdOptions[kFgCmd.editText], count: number) => {
     (raw_insert_lock || options.dom) && timeout_((): void => {
@@ -404,7 +403,7 @@ set_contentCommands_([
         /*#__INLINE__*/ resetCurrentScrolling()
         /*#__INLINE__*/ clearCachedScrollable()
       }
-      removeHandler_(box)
+      removeHandler_(kHandler.helpDialog)
       removeEl_s(box)
       setupExitOnClick(kExitOnClick.helpDialog | kExitOnClick.REMOVE)
       closeBtn.click()
@@ -434,21 +433,13 @@ set_contentCommands_([
     options.e && setupExitOnClick(kExitOnClick.helpDialog)
     doc.hasFocus() || vApi.f()
     /*#__INLINE__*/ set_currentScrolling(weakRef_(box))
-    const helpOnKeydown = (event: HandlerNS.Event): HandlerResult => {
+    handler_stack.splice((handler_stack.indexOf(kHandler.omni) + 1 || handler_stack.length + 2) - 2, 0, event => {
       if (!raw_insert_lock && isEscape_(getMappedKey(event, kModeId.Normal))) {
         removeSelection(ui_root) || hideHelp!()
         return HandlerResult.Prevent
       }
       return HandlerResult.Nothing
-    }
-    let i = removeHandler_(omniActivate)
-    if (i != null) {
-      handler_stack.splice(i, 0, { f: helpOnKeydown, i: box }, { f: omniOnKeydown, i: omniActivate })
-    } else {
-      pushHandler_(helpOnKeydown, box)
-    }
-    if (omni_status >= VomnibarNS.Status.Showing) {
-    }
+    }, kHandler.helpDialog)
     // if no [tabindex=0], `.focus()` works if :exp and since MinElement$Focus$MayMakeArrowKeySelectIt or on Firefox
     timeout_((): void => { box.focus() }, 17)
   }) as (options: CmdOptions[kFgCmd.showHelpDialog]) => any

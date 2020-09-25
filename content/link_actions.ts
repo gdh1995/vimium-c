@@ -143,16 +143,13 @@ const openUrl = (url: string, incognito?: boolean): void => {
   });
 }
 
-const unhoverOnEsc = (): void => {
-  const exit: HandlerNS.RefHandler = event => {
-    removeHandler_(exit);
+const unhoverOnEsc: HandlerNS.Handler = event => {
+    removeHandler_(kHandler.unhoverOnEsc)
     if (isEscape_(getMappedKey(event, kModeId.Link)) && !insert_Lock_()) {
       unhover_();
       return HandlerResult.Prevent;
     }
     return HandlerResult.Nothing;
-  };
-  pushHandler_(exit, exit);
 }
 
 const focusIFrame = (el: KnownIFrameElement): BOOL => {
@@ -194,7 +191,7 @@ export const linkActions: readonly LinkAction[] = [
       hintApi.t({ k: kTip.hoverScrollable })
       return
     }
-    hintMode_ & HintMode.queue || unhoverOnEsc()
+    hintMode_ & HintMode.queue || pushHandler_(unhoverOnEsc, kHandler.unhoverOnEsc)
     if (!toggleMap || typeof toggleMap !== "object") { return; }
     safer(toggleMap);
     let ancestors: Element[] = [], top: Element | null = element, re = <RegExpOne> /^-?\d+/;
@@ -492,7 +489,7 @@ export const linkActions: readonly LinkAction[] = [
         , !(Build.BTypes & BrowserType.Chrome) || otherActions || newTab ? 0 : hintOptions.touch
         , hintOptions))
     .then((ret): void => {
-      autoUnhover ? unhover_() : isQueue || ret && unhoverOnEsc()
+      autoUnhover ? unhover_() : isQueue || ret && pushHandler_(unhoverOnEsc, kHandler.unhoverOnEsc)
     })
   }
   , HintMode.OPEN_IN_CURRENT_TAB

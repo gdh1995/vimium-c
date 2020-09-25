@@ -3,7 +3,7 @@ import {
   doc, getTime, chromeVer_, deref_, escapeAllForRe, tryCreateRegExp, vApi, callFunc, clearTimeout_,
 } from "../lib/utils"
 import {
-  pushHandler_, suppressMost_, Stop_, removeHandler_, prevent_, getMappedKey, keybody_, isEscape_, keyNames_,
+  pushHandler_, replaceOrSuppressMost_, Stop_, removeHandler_, prevent_, getMappedKey, keybody_, isEscape_, keyNames_,
   DEL, BSP, ENTER,
 } from "../lib/keyboard_utils"
 import {
@@ -119,7 +119,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     setClassName_s(el, "R UI Find")
     el.onload = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinTestedES6Environment
         ? vApi.n.bind(0, 1) : () => vApi.n(1)
-    suppressMost_(activate)
+    replaceOrSuppressMost_(kHandler.find)
     query_ || (query0_ = query)
     init && init(AdjustType.NotAdjust)
     toggleSelectableStyle(1);
@@ -284,8 +284,7 @@ const onLoad2 = (): void => {
       setClassName_s(body, fgCache.d.trim())
     }
     outerBox_.style.display = ""
-    removeHandler_(activate);
-    pushHandler_(onHostKeydown, activate)
+    replaceOrSuppressMost_(kHandler.find, onHostKeydown)
     // delay hudHide, so that avoid flicker on Firefox
     hudHide(TimerType.noTimer);
     setFirstQuery(query0_)
@@ -361,7 +360,7 @@ export const clear = (): void => {
   coords && scrollToMark(coords)
   hasResults = isActive = isSmall = notEmpty = postOnEsc = wholeWord = false
   wrapAround = true
-  removeHandler_(activate)
+  removeHandler_(kHandler.find)
   outerBox_ && removeEl_s(outerBox_)
   highlighting && highlighting()
   if (box_ === deref_(lastHovered_)) { /*#__INLINE__*/ resetLastHovered() }
@@ -584,9 +583,9 @@ const postActivate = (): void => {
   if (!el) { postExit(); return }
   pushHandler_((event: HandlerNS.Event): HandlerResult => {
     const exit = isEscape_(getMappedKey(event, kModeId.Insert));
-    exit ? postExit() : removeHandler_(postActivate)
+    exit ? postExit() : removeHandler_(kHandler.postFind)
     return exit ? HandlerResult.Prevent : HandlerResult.Nothing;
-  }, postActivate)
+  }, kHandler.postFind)
   if (el === postLock) { return }
   if (!postLock) {
     setupEventListener(0, CLK, postExit)
@@ -606,7 +605,7 @@ const postExit = (skip?: boolean | Event): void => {
       if (!postLock || skip === true) { return }
       postLock = null
       setupEventListener(0, CLK, postExit, 1)
-      removeHandler_(postActivate)
+      removeHandler_(kHandler.postFind)
       setupSuppress();
 }
 

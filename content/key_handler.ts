@@ -27,7 +27,7 @@ let noopEventHandler: EventListenerObject["handleEvent"] = Object.is as any
 interface MouseEventListener extends EventListenerObject { handleEvent (evt: MouseEventToPrevent): ELRet }
 let anyClickHandler: MouseEventListener = { handleEvent: noopEventHandler }
 
-let onKeyup2: ((this: void, event?: Pick<KeyboardEvent, "keyCode">) => void) | null | undefined
+let onKeyup2: ((this: void, event: Pick<KeyboardEvent, "keyCode"> | 0) => void) | null | undefined
 
 /*#__INLINE__*/ set_esc(function<T extends Exclude<HandlerResult, HandlerResult.ExitPassMode>> (i: T): T {
   currentKeys = ""; nextKeys = null; return i;
@@ -168,8 +168,8 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
   if (Build.BTypes & BrowserType.Chrome) { isWaitingAccessKey && /*#__NOINLINE__*/ resetAnyClickHandler(); }
   if (Build.BTypes & BrowserType.Firefox) { raw_insert_lock && insert_Lock_(); }
   let action = HandlerResult.Nothing, tempStr: string;
-  for (let ind = handler_stack.length; 0 <= --ind && action === HandlerResult.Nothing; ) {
-    action = handler_stack[ind].f(eventWrapper);
+  for (let ind = handler_stack.length; 0 < ind && action === HandlerResult.Nothing; ) {
+    action = (handler_stack[ind -= 2] as HandlerNS.Handler)(eventWrapper);
   }
   if (action) { /* empty */ }
   else if (/*#__NOINLINE__*/ isInInsert()) {

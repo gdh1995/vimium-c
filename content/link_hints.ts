@@ -68,9 +68,8 @@ import {
   docZoom_, bScale_, dimSize_,
 } from "../lib/rect"
 import {
-  pushHandler_, suppressMost_, removeHandler_, getMappedKey, keybody_, isEscape_, getKeyStat_, keyNames_, suppressTail_,
-  BSP,
-  ENTER,
+  replaceOrSuppressMost_, removeHandler_, getMappedKey, keybody_, isEscape_, getKeyStat_, keyNames_, suppressTail_,
+  BSP, ENTER,
 } from "../lib/keyboard_utils"
 import {
   style_ui, addElementList, ensureBorder, adjustUI, flash_, getParentVApi, getWndVApi_ff, checkHidden, removeModal,
@@ -110,7 +109,7 @@ let useFilter_ = false
 let keyStatus_: KeyStatus = null as never
   /** must be called from a manager, required by {@link #delayToExecute_ } */
 let onTailEnter: ((this: unknown, event: HandlerNS.Event, key: string, keybody: kChar) => void) | null | undefined
-let onWaitingKey: HandlerNS.RefHandler | null | undefined
+let onWaitingKey: HandlerNS.VoidHandler<HandlerResult> | null | undefined
 let isActive: BOOL = 0
 let noHUD_ = false
 let options_: HintsNS.ContentOptions = null as never
@@ -147,7 +146,7 @@ export const activate = (options: HintsNS.ContentOptions, count: number, force?:
       manager_ || clear()
       if (!_timer && readyState_ > "l") {
         _timer = timeout_(contentCommands_[kFgCmd.linkHints].bind(0 as never, options, count, 0), 300)
-        return suppressMost_(coreHints)
+        return replaceOrSuppressMost_(kHandler.linkHints)
       }
     }
     const parApi = Build.BTypes & BrowserType.Firefox ? !fullscreenEl_unsafe_() && getParentVApi()
@@ -302,8 +301,7 @@ const render = (hints: readonly HintItem[], arr: ViewBox, raw_apis: VApiTy): voi
     }
     /*#__INLINE__*/ set_keydownEvents_((Build.BTypes & BrowserType.Firefox ? api_ : raw_apis).a())
     /*#__INLINE__*/ set_onWndBlur2(managerOrA.s);
-    removeHandler_(coreHints)
-    pushHandler_(coreHints.n, coreHints)
+    replaceOrSuppressMost_(kHandler.linkHints, coreHints.n)
     manager_ && setupEventListener(0, "unload", clear);
     isActive = 1;
 }
@@ -377,7 +375,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
       /*#__INLINE__*/ set_keydownEvents_(api_.a());
       ret = manager_.n(event)
     } else if (onWaitingKey) {
-      onWaitingKey(event);
+      onWaitingKey()
     } else if (event.e.repeat || !isActive) {
       // NOTE: should always prevent repeated keys.
     } else if (i === kKeyCode.ime) {
@@ -542,7 +540,7 @@ const delayToExecute = (officer: BaseHintWorker, hint: HintItem, flashEl: SafeHT
     removeBox()
     Build.BTypes & BrowserType.Firefox && (officer = unwrap_ff(officer));
     if (Build.BTypes & BrowserType.Chrome && !waitEnter) {
-      onWaitingKey = suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents, callback, 1)
+      onWaitingKey = suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents, callback)
     } else {
       hudShow(kTip.waitEnter);
     }
@@ -558,7 +556,7 @@ const reinit = (auto?: BOOL | TimerType.fake, officer?: BaseHintWorker | null
     contentCommands_[kFgCmd.linkHints](options_, 0);
     coreHints.w(officer, lastEl, rect);
     onWaitingKey = auto ? suppressTail_(GlobalConsts.TimeOfSuppressingUnexpectedKeydownEvents
-        , /*#__NOINLINE__*/ resetOnWaitKey, 1) : onWaitingKey
+        , /*#__NOINLINE__*/ resetOnWaitKey) : onWaitingKey
   }
 }
 
@@ -646,7 +644,7 @@ export const clear = (onlySelfOrEvent?: 0 | 1 | Event, suppressTimeout?: number)
     coreHints.y = frameList_ = [];
     setupEventListener(0, "unload", clear, 1);
     resetHints();
-    removeHandler_(coreHints)
+    removeHandler_(kHandler.linkHints)
     suppressTimeout != null && suppressTail_(suppressTimeout);
     /*#__INLINE__*/ set_onWndBlur2(null);
     removeFlash && removeFlash();
@@ -685,7 +683,7 @@ const onFrameUnload = (officer: HintOfficer): void => {
     frames.splice(i, 1);
     if (!deleteCount) { return; }
     onWaitingKey = onTailEnter ? onWaitingKey
-        : suppressTail_(GlobalConsts.TimeOfSuppressingUnexpectedKeydownEvents, /*#__NOINLINE__*/ resetOnWaitKey, 1)
+        : suppressTail_(GlobalConsts.TimeOfSuppressingUnexpectedKeydownEvents, /*#__NOINLINE__*/ resetOnWaitKey)
     resetZIndexes()
     keyStatus_.c = hints_!
     keyStatus_.n = keyStatus_.b = 0
