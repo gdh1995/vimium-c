@@ -428,7 +428,7 @@ export const linkActions: readonly LinkAction[] = [
     const sel = getSelection_()
     collpaseSelection(sel)
     sel.modify(kExtend, kDir[1], "word")
-    post_({ H: kFgReq.visualMode, c: hintOptions.caret })
+    hintOptions.visual === !1 || post_({ H: kFgReq.visualMode, c: hintOptions.caret })
   },
   HintMode.ENTER_VISUAL_MODE
 ],

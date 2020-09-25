@@ -242,6 +242,7 @@ declare namespace HintsNS {
     hideHUD?: boolean;
     autoUnhover?: boolean;
     richText?: boolean;
+    visual?: false;
   }
 }
 
