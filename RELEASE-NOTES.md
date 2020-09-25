@@ -4,6 +4,17 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### 1.86.0
+* add `LinkHints.activateToSelect` which uses `caret: boolean, visual=true`
+  * it works just like the `element_text_select` command in [VimFx](https://github.com/akhodakivskiy/VimFx)
+* FindMode: press `<c-s-j>` and `<c-s-k>` to **flash rects over all visible matched** text
+* FindMode: now enable the multi-line flag when in regexp mode
+* `Marks.clearLocal`: add an option `all` to clear local marks of all websites
+* Firefox: fix VisualMode might crash when selection met a text box
+* fix some other bugs
+* now Marks won't erase Vimium's local marks
+* now open the command list dialog on a first installation
+
 #### 1.85.2
 * UI: fix missing borders on Chrome 85+ if a screen is in some special DPIs
 * `LinkHints.activateModeToOpenVomnibar`: fix `url=true` didn't work
