@@ -176,7 +176,7 @@ export const pushHandler_ = handlers_.push.bind(handlers_) as (func: HandlerNS.H
 export const removeHandler_ = (id: kHandler): void => {
   let i = handlers_.lastIndexOf(id)
   if (i > 0) {
-    i === handlers_.length - 1 ? handlers_.length -= 2 : handlers_.splice(i - 1, 1)
+    i === handlers_.length - 1 ? handlers_.length -= 2 : handlers_.splice(i - 1, 2)
   }
 }
 
