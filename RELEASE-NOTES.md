@@ -4,6 +4,9 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### 1.86.1
+* fix losing some hints on v1.86.0
+
 #### 1.86.0
 * add `LinkHints.activateToSelect` which uses `caret: boolean, visual=true`
   * it works just like the `element_text_select` command in [VimFx](https://github.com/akhodakivskiy/VimFx)
