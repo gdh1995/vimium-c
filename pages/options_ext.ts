@@ -134,7 +134,7 @@ $<ElementWithDelay>("#exportButton").onclick = function (event): void {
       }
     }
   }
-  let exported_data = JSON.stringify(exported_object, null, "\t"), d_s = formatDate_(d);
+  let exported_data = JSON.stringify(exported_object, null, "\t") + "\n", d_s = formatDate_(d);
   if (exported_object.environment.platform === "win") {
     // in case "endings" didn't work
     exported_data = exported_data.replace(<RegExpG> /\n/g, "\r\n");
