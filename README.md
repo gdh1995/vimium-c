@@ -1,4 +1,4 @@
-<h2 align="center"><a name="readme"></a>
+<a name="readme"></a><h2 align="center">
   <img src="icons/icon128.png" width="32" height="32" alt="" />
   <span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span> - All by Keyboard
 </h2>
