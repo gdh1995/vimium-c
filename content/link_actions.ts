@@ -97,8 +97,8 @@ const getUrlData = (link: SafeHTMLElement): string => {
 
 /** return: img is HTMLImageElement | HTMLAnchorElement | HTMLElement[style={backgroundImage}] */
 const getImageUrl = (img: SafeHTMLElement): string | void => {
-  let text: string | null, src = img.dataset.src || "", elTag = htmlTag_(img), n: number,
-  notImg: 0 | 1 | 2 = elTag !== "img" ? 1 : 0;
+  let src = img.dataset.canonicalSrc || img.dataset.src || ""
+  let text: string | null, elTag = htmlTag_(img), n: number, notImg: 0 | 1 | 2 = elTag !== "img" ? 1 : 0;
   if (!notImg) {
     text = (img as HTMLImageElement).currentSrc || img.getAttribute("src") && (img as HTMLImageElement).src;
     if ((n = (img as HTMLImageElement).naturalWidth) && n < 3
