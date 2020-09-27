@@ -101,9 +101,11 @@ __Other extensions supporting Vimium C:__
       https://chrome.google.com/webstore/detail/微度新标签页修改版/hdnehngglnbnehkfcidabjckinphnief)
 
 
+<a name="changelog"></a>
+
 # Release Notes
 
-See on [RELEASE-NOTES.md](RELEASE-NOTES.md).
+Refer to [RELEASE-NOTES.md](RELEASE-NOTES.md).
 
 #### Known Issues
 
