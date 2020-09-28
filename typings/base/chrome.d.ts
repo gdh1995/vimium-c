@@ -184,10 +184,12 @@ declare namespace chrome.bookmarks {
     // export function move(id: string, destination: BookmarkDestinationArg, callback?: (result: BookmarkTreeNode) => void): 1;
     /**
      * Updates the properties of a bookmark or folder. Specify only the properties that you want to change; unspecified properties will be left unchanged. Note: Currently, only 'title' and 'url' are supported.
+     * @deprecated
      * @param callback If you specify the callback parameter, it should be a function that looks like this:
      * function( BookmarkTreeNode result) {...};
      */
-    // export function update(id: string, changes: BookmarkChangesArg, callback?: (result: BookmarkTreeNode) => void): 1;
+    function __deprecated_update(id: string, changes: BookmarkChangesArg, callback?: (result: BookmarkTreeNode) => void): 1;
+
     /**
      * Removes a bookmark or an empty bookmark folder.
      * @param callback If you specify the callback parameter, it should be a function that looks like this:
@@ -210,10 +212,11 @@ declare namespace chrome.bookmarks {
     export function getSubTree(id: string, callback: (results: BookmarkTreeNode[], exArg: FakeArg) => void): 1;
     /**
      * Recursively removes a bookmark folder.
+     * @deprecated
      * @param callback If you specify the callback parameter, it should be a function that looks like this:
      * function() {...};
      */
-    // export function removeTree(id: string, callback?: Function): 1;
+    function __deprecated_removeTree(id: string, callback?: Function): 1;
 
     /** Fired when a bookmark or folder is removed. When a folder is removed recursively, a single notification is fired for the folder, and none for its contents. */
     var onRemoved: BookmarkRemovedEvent;
@@ -910,10 +913,12 @@ declare namespace chrome.history {
     // export function deleteRange(range: Range, callback: () => void): 1;
     /**
      * Deletes all items from the history.
+     * @deprecated
      * @param callback The callback parameter should be a function that looks like this:
      * function() {...};
      */
-    // export function deleteAll(callback: () => void): 1;
+    function __deprecated_deleteAll(callback: () => void): 1;
+
     /**
      * Retrieves information about visits to a URL.
      * @param callback The callback parameter should be a function that looks like this:
@@ -2408,7 +2413,8 @@ declare namespace chrome.tabs {
      * @deprecated since Chrome 33. Please use tabs.query {active: true}.
      * @param windowId Optional. Defaults to the current window.
      */
-    // export function getSelected(windowId: number, callback: (tab: Tab) => void): 1;
+    function __deprecated_getSelected(windowId: number, callback: (tab: Tab) => void): 1;
+
     /**
      * Creates a new tab.
      * @param callback Optional.
@@ -2533,11 +2539,13 @@ declare namespace chrome.tabs {
     // export function insertCSS(details: InjectDetails, callback?: Function): 1;
     /**
      * Injects CSS into a page. For details, see the programmatic injection section of the content scripts doc.
+     * @deprecated
      * @param tabId Optional. The ID of the tab in which to insert the CSS; defaults to the active tab of the current window.
      * @param details Details of the script or CSS to inject. Either the code or the file property must be set, but both may not be set at the same time.
      * @param callback Optional. Called when all the CSS has been inserted.
      */
-    // export function insertCSS(tabId: number, details: InjectDetails, callback?: Function): 1;
+    function __deprecated_insertCSS(tabId: number, details: InjectDetails, callback?: Function): 1;
+
     /**
      * Highlights the given tabs.
      * @since Chrome 16.
