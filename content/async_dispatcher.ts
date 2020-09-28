@@ -319,7 +319,7 @@ export const click_ = async (element: SafeElementForMouse
             await await mouse_(element, CLK, center, modifiers) && result))
       && getVisibleClientRect_(element)) {
     // require element is still visible
-    if (specialAction === kClickAction.forceToDblclick) {
+    if (specialAction! > kClickAction.MaxOpenForAnchor /* === (specialAction === kClickAction.forceToDblclick) */) {
       if (!(element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
         // use old rect
         await click_(element, rect, 0, modifiers, kClickAction.none, kClickButton.primaryAndTwice)
@@ -330,11 +330,10 @@ export const click_ = async (element: SafeElementForMouse
       return
     }
     // use latest attributes
-    const relAttr = parentAnchor!.rel,
-    openerOpt = userOptions && userOptions.opener,
+    const relAttr = parentAnchor!.rel, openerOpt = userOptions && userOptions.opener,
     /** {@link #FirefoxBrowserVer.Min$TargetIsBlank$Implies$Noopener}; here also apply on Chrome */
-    noopener = openerOpt != null ? !openerOpt : !!relAttr
-        && (Build.MinCVer >= BrowserVer.MinEnsuredES6$Array$$Includes || !(Build.BTypes & BrowserType.Chrome)
+    noopener = openerOpt != null ? !openerOpt : !relAttr ? parentAnchor!.target === "_blank"
+        : (Build.MinCVer >= BrowserVer.MinEnsuredES6$Array$$Includes || !(Build.BTypes & BrowserType.Chrome)
             ? relAttr.split(<RegExpOne> /\s/).includes!("noopener")
             : relAttr.split(<RegExpOne> /\s/).indexOf("noopener") >= 0),
     reuse = Build.BTypes & BrowserType.Firefox && specialAction! & kClickAction.openInNewWindow

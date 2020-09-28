@@ -224,6 +224,10 @@
     } else {
       option.focused = true;
     }
+    const url = option.url
+    if (typeof url === "string" && (!url || Settings_.newTabs_[url] === Urls.NewTabType.browser)) {
+      delete option.url
+    }
     chrome.windows.create(option, state || !focused ? function (wnd) {
       callback && callback(wnd);
       if (!wnd) { return; } // do not return lastError: just throw errors for easier debugging
@@ -232,7 +236,7 @@
       chrome.windows.update(wnd.id, opt);
     } : callback || null);
   }
-  function makeTempWindow(this: void, tabIdUrl: number | string, incognito: boolean
+  function makeTempWindow(this: void, tabIdUrl: number | "about:blank", incognito: boolean
       , callback: (wnd: Window) => void): void {
     const isId = typeof tabIdUrl === "number", option: chrome.windows.CreateData = {
       type: "normal",
@@ -532,10 +536,7 @@
       openMultiTab(options, cRepeat);
       return !inCurWnd && active ? selectWnd(options) : undefined;
     }
-    makeWindow({
-      url,
-      incognito: true, focused: active
-    }, oldWnd && oldWnd.type === "normal" ? oldWnd.state : "");
+    makeWindow({ url, incognito: true, focused: active }, oldWnd && oldWnd.type === "normal" ? oldWnd.state : "")
   }
   function standardCreateTab(this: void, onlyNormal?: boolean, tabs?: [Tab]): void {
     if (cOptions.url || cOptions.urls) {
@@ -752,7 +753,9 @@
     }
     if (window) {
       if (reuse < ReuseType.lastWndFg + 1 && TabRecency_.lastWnd_ >= 0) {
-        chrome.tabs.create({ windowId: TabRecency_.lastWnd_, url, active: reuse > ReuseType.lastWndBg }, (): void => {
+        chrome.tabs.create({ windowId: TabRecency_.lastWnd_,
+            url: !url || Settings_.newTabs_[url] === Urls.NewTabType.browser ? void 0 : url,
+            active: reuse > ReuseType.lastWndBg }, (): void => {
           if (onRuntimeError()) {
             openUrlInNewTab(url, ReuseType.newWindow, options, tabs)
             return onRuntimeError()
@@ -865,11 +868,16 @@
       for (let i = 0; i < urls.length; i++) {
         urls[i] = BgUtils_.convertToUrl_(urls[i] + "");
       }
+      if (!(Build.BTypes & ~BrowserType.Firefox)
+          || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox) {
+        urls = urls.filter(i => Settings_.newTabs_[i] !== Urls.NewTabType.browser && !(<RegExpI> /file:\/\//i).test(i));
+        (cOptions as CommandsNS.RawOptions).urls = urls
+      }
       (cOptions as OptionEx).formatted_ = 1;
     }
     const reuse = parseReuse(cOptions.reuse), pinned = !!cOptions.pinned,
     wndOpt: chrome.windows.CreateData | null = reuse === ReuseType.newWindow || cOptions.window ? {
-      url: urls, incognito: !!cOptions.incognito
+      url: urls.length > 0 ? urls: void 0, incognito: !!cOptions.incognito
     } : null;
     let active = reuse > ReuseType.newFg - 1, index = tab && newTabIndex(tab, cOptions.position);
     cOptions = null as never;
@@ -971,7 +979,7 @@
     // if `this.s`, then `typeof this` is `MarksNS.MarkToGo`
     const callback = this.s ? focusOrLaunch[3].bind(this as MarksNS.MarkToGo, 0) : null;
     if (tabs.length <= 0 || TabRecency_.incognito_ === IncognitoType.true && !tabs[0].incognito) {
-      chrome.windows.create({url: this.u}, callback && function (wnd: Window): void {
+      makeWindow({url: this.u}, "", callback && function (wnd: Window): void {
         if (wnd.tabs && wnd.tabs.length > 0) { return callback(wnd.tabs[0]); }
       });
       return;
@@ -1516,7 +1524,11 @@
               const tabId2 = options.tabId!;
               if (Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
                   || !Build.CreateFakeIncognito || options.url) {
-                chrome.tabs.create({url: options.url, index: tab2.index + 1, windowId: tab2.windowId});
+                let url2: string | undefined = options.url
+                if (typeof url2 === "string" && (!url2 || Settings_.newTabs_[url2] === Urls.NewTabType.browser)) {
+                  url2 = undefined
+                }
+                chrome.tabs.create({url: url2, index: tab2.index + 1, windowId: tab2.windowId});
                 selectWnd(tab2);
                 chrome.tabs.remove(tabId2);
               } else {

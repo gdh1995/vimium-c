@@ -64,8 +64,7 @@ var BgUtils_ = {
   isRefusingIncognito_ (url: string): boolean {
     url = url.slice(0, 99).toLowerCase();
     // https://cs.chromium.org/chromium/src/url/url_constants.cc?type=cs&q=kAboutBlankWithHashPath&g=0&l=12
-    return url.startsWith("about:") ? url !== "about:blank" && ((Build.BTypes & ~BrowserType.Chrome
-          && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) || url !== "about:blank/")
+    return url.startsWith("about:") ? url !== "about:blank" && (Settings_.newTabs_[url] !== Urls.NewTabType.browser)
       : !(Build.BTypes & BrowserType.Chrome) ? url.startsWith(BrowserProtocol_)
       : url.startsWith("chrome:") ? !url.startsWith("chrome://downloads")
       : url.startsWith(BrowserProtocol_) && !url.startsWith(Settings_.CONST_.NtpNewTab_)
