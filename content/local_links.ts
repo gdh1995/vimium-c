@@ -3,7 +3,10 @@ import ClickType = HintsNS.ClickType
 type HintSources = readonly SafeElement[] | NodeListOf<SafeElement>;
 type NestedFrame = false | 0 | null | KnownIFrameElement
 
-import { VOther, clickable_, isJSUrl, doc, isImageUrl, fgCache, readyState_, chromeVer_, VTr, tryCreateRegExp } from "../lib/utils"
+import {
+  VOther, clickable_, isJSUrl, doc, isImageUrl, fgCache, readyState_, chromeVer_, VTr, tryCreateRegExp, getMediaUrl,
+  getMediaTag, kMediaTag
+} from "../lib/utils"
 import {
   isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, findMainSummary_, htmlTag_, isAriaNotTrue_,
   NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, ElementProto, notSafe_not_ff_, docEl_unsafe_,
@@ -275,12 +278,12 @@ const getLinks = (hints: Hint[], element: SafeHTMLElement): void => {
 }
 
 const getImages = (hints: Hint[], element: SafeHTMLElement): void => {
-  const tag = element.localName;
-  let str: string | null | undefined, cr: Rect | null | undefined;
-  if (tag === "img") {
+  const mediaTag = getMediaTag(element)
+  let str: string | null | undefined = getMediaUrl(element, mediaTag < kMediaTag.MIN_NOT_MEDIA_EL)
+    , cr: Rect | null | undefined
+  if (!mediaTag) {
     // according to https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement#Browser_compatibility,
     // <img>.currentSrc is since C45
-    str = element.getAttribute("src") || (element as HTMLImageElement).currentSrc || element.dataset.src;
     if (str) {
       let r = padClientRect_(getBoundingClientRect_(element)), l = r.l, t = r.t, w = r.r - l, h = r.b - t
       if (w < 8 && h < 8) {
@@ -293,10 +296,7 @@ const getImages = (hints: Hint[], element: SafeHTMLElement): void => {
       cr = cr && isStyleVisible_(element) ? getCroppedRect_(element, cr) : null;
     }
   } else {
-    if (mode1_ === HintMode.DOWNLOAD_MEDIA && (tag === "video" || tag === "audio")) {
-      str = (element as unknown as HTMLImageElement).currentSrc || (element as unknown as HTMLImageElement).src;
-    } else {
-      str = element.dataset.src || element.getAttribute("href");
+    if (mediaTag > kMediaTag.MIN_NOT_MEDIA_EL - 1) {
       if (!isImageUrl(str)) {
         str = element.style.backgroundImage!;
         str = str && (<RegExpI> /^url\(/i).test(str) ? str : "";

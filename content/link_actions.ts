@@ -1,7 +1,7 @@
 import HintItem = HintsNS.HintItem
 import {
   safer, fgCache, VOther, isImageUrl, isJSUrl, set_keydownEvents_, keydownEvents_, timeout_, doc, chromeVer_, weakRef_,
-  parseSedOptions, tryCreateRegExp
+  parseSedOptions, tryCreateRegExp, getMediaUrl, kMediaTag, getMediaTag
 } from "../lib/utils"
 import { getVisibleClientRect_, center_, view_, selRange_ } from "../lib/rect"
 import {
@@ -96,23 +96,21 @@ const getUrlData = (link: SafeHTMLElement): string => {
 }
 
 /** return: img is HTMLImageElement | HTMLAnchorElement | HTMLElement[style={backgroundImage}] */
-const getImageUrl = (img: SafeHTMLElement): string | void => {
+const getMediaOrBgImageUrl = (img: SafeHTMLElement): string | void => {
+  let rawMediaTag = getMediaTag(img), mediaTag = rawMediaTag
   let src = img.dataset.canonicalSrc || img.dataset.src || ""
-  let text: string | null, elTag = htmlTag_(img), n: number, notImg: 0 | 1 | 2 = elTag !== "img" ? 1 : 0;
-  if (!notImg) {
-    text = (img as HTMLImageElement).currentSrc || img.getAttribute("src") && (img as HTMLImageElement).src;
+  let text: string | null, n: number
+  if (!mediaTag) {
     if ((n = (img as HTMLImageElement).naturalWidth) && n < 3
         && (n = (img as HTMLImageElement).naturalHeight) && n < 3) {
-      notImg = 2;
-      text = "";
+      mediaTag = kMediaTag.others
     }
-  } else {
-    text = elTag === "a" ? img.getAttribute("href") && (img as HTMLAnchorElement).href : "";
   }
-  if (notImg) {
+  text = mediaTag < kMediaTag.others ? src || getMediaUrl(img, mediaTag < kMediaTag.MIN_NOT_MEDIA_EL) : ""
+  if (mediaTag > kMediaTag.MIN_NOT_MEDIA_EL - 1) {
     if (!isImageUrl(text)) {
       let arr = tryCreateRegExp(kTip.cssUrl, "i").exec(
-        (notImg > 1 ? getComputedStyle_(img) : img.style).backgroundImage!);
+            (!rawMediaTag ? getComputedStyle_(img) : img.style).backgroundImage!)
       if (arr && arr[1]) {
         const a1 = createElement_("a");
         a1.href = arr[1].replace(<RegExpG> /\\('|")/g, "$1");
@@ -337,12 +335,7 @@ export const linkActions: readonly LinkAction[] = [
 ],
 [
   ((element: SafeHTMLElement): void => {
-    let tag = htmlTag_(element), text: string | void;
-    if (tag === "video" || tag === "audio") {
-      text = (element as HTMLImageElement).currentSrc || (element as HTMLImageElement).src;
-    } else {
-      text = getImageUrl(element);
-    }
+    let text = getMediaOrBgImageUrl(element)
     if (!text) { return; }
     const url = text, i = text.indexOf("://"), a = createElement_("a");
     if (i > 0) {
@@ -361,7 +354,7 @@ export const linkActions: readonly LinkAction[] = [
 ],
 [
   ((img: SafeHTMLElement): void => {
-    const text = getImageUrl(img);
+    const text = getMediaOrBgImageUrl(img);
     if (!text) { return; }
     post_({
       H: kFgReq.openImage,

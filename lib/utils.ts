@@ -150,6 +150,25 @@ export const isImageUrl = (str: string | null): boolean => {
   return (imgExtRe_ || (imgExtRe_ = tryCreateRegExp(kTip.imgExt, "i"))).test(str)
 }
 
+export declare const enum kMediaTag {
+  img = 0, otherMedias = 1, a = 2, others = 3, fakeOthers = 4,
+  MIN_NOT_MEDIA_EL = 2,
+}
+
+export const getMediaTag = (element: SafeHTMLElement) => {
+  const tag = element.localName
+  return tag === "img" ? kMediaTag.img : tag === "video" || tag === "audio" ? kMediaTag.otherMedias
+      : tag === "a" ? kMediaTag.a : kMediaTag.others
+}
+
+export const getMediaUrl = (element: HTMLImageElement | SafeHTMLElement, isMedia: boolean): string => {
+  let kSrcAttr: "src", srcValue: string | null
+  return element.dataset.src
+      || isMedia && (element as HTMLImageElement).currentSrc
+      || (srcValue = element.getAttribute(kSrcAttr = isMedia ? "src" : "href" as never) || "",
+          isMedia && (element as Partial<HTMLImageElement>)[kSrcAttr] || srcValue)
+}
+
 export const recordLog = (tip: kTip | string): void => {
   console.log(tip > 0 ? VTr(<kTip> tip) : tip, loc_.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"), getTime())
 }
