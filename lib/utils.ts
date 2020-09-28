@@ -151,8 +151,8 @@ export const isImageUrl = (str: string | null): boolean => {
 }
 
 export declare const enum kMediaTag {
-  img = 0, otherMedias = 1, a = 2, others = 3, fakeOthers = 4,
-  MIN_NOT_MEDIA_EL = 2,
+  img = 0, otherMedias = 1, a = 2, others = 3,
+  MIN_NOT_MEDIA_EL = 2, LAST = 3,
 }
 
 export const getMediaTag = (element: SafeHTMLElement) => {

@@ -97,20 +97,20 @@ const getUrlData = (link: SafeHTMLElement): string => {
 
 /** return: img is HTMLImageElement | HTMLAnchorElement | HTMLElement[style={backgroundImage}] */
 const getMediaOrBgImageUrl = (img: SafeHTMLElement): string | void => {
-  let rawMediaTag = getMediaTag(img), mediaTag = rawMediaTag
+  let mediaTag = getMediaTag(img)
   let src = img.dataset.canonicalSrc || img.dataset.src || ""
   let text: string | null, n: number
   if (!mediaTag) {
     if ((n = (img as HTMLImageElement).naturalWidth) && n < 3
         && (n = (img as HTMLImageElement).naturalHeight) && n < 3) {
-      mediaTag = kMediaTag.others
+      mediaTag = kMediaTag.LAST + 1
     }
   }
   text = mediaTag < kMediaTag.others ? src || getMediaUrl(img, mediaTag < kMediaTag.MIN_NOT_MEDIA_EL) : ""
   if (mediaTag > kMediaTag.MIN_NOT_MEDIA_EL - 1) {
     if (!isImageUrl(text)) {
       let arr = tryCreateRegExp(kTip.cssUrl, "i").exec(
-            (!rawMediaTag ? getComputedStyle_(img) : img.style).backgroundImage!)
+            (mediaTag > kMediaTag.LAST ? getComputedStyle_(img) : img.style).backgroundImage!)
       if (arr && arr[1]) {
         const a1 = createElement_("a");
         a1.href = arr[1].replace(<RegExpG> /\\('|")/g, "$1");
