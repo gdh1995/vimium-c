@@ -454,7 +454,7 @@ export const scrollIntoView_ = (el: Element, dir?: boolean): void => {
           dir != null ? dir : { block: "nearest" });
 }
 
-export const runJS_ = (code: string, returnEl?: HTMLScriptElement | 0): void | HTMLScriptElement => {
+export const runJS_ = (code: string, returnEl?: HTMLScriptElement | null | 0): void | HTMLScriptElement => {
     const script = returnEl || createElement_("script");
     script.type = "text/javascript";
     !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend

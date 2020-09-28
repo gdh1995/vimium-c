@@ -510,7 +510,7 @@ export const evalIfOK = (url: Pick<BgReq[kBgReq.eval], "u"> | string): boolean =
   if ((<RegExpOne> /^void\s*\( ?0 ?\)\s*;?$|^;?$/).test(str)) { /* empty */ }
   else if (!GetParent_unsafe_((el = runJS_(VTr(kTip.removeCurScript), 0)!), PNType.DirectNode)) {
     try { str = decodeURIComponent(str); } catch {}
-    timeout_(runJS_.bind(0, str, 0), 0)
+    timeout_(runJS_.bind(0, str, null), 0)
   } else {
     removeEl_s(el)
     post_({ H: kFgReq.evalJSFallback, u: url })
