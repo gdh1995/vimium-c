@@ -1,8 +1,8 @@
 import {
   setupEventListener, isTop, keydownEvents_, VOther, timeout_, fgCache, doc, isAlive_, isJSUrl, chromeVer_, VTr, deref_,
-  vApi,
+  vApi, Stop_
 } from "../lib/utils"
-import { Stop_, prevent_ } from "../lib/keyboard_utils"
+import { prevent_ } from "../lib/keyboard_utils"
 import {
   createElement_, createShadowRoot_, NONE, fullscreenEl_unsafe_, docEl_unsafe_, getComputedStyle_, set_docSelectable_,
   GetParent_unsafe_, getSelection_, ElementProto, GetChildNodes_not_ff, GetShadowRoot_, getEditableType_, htmlTag_,

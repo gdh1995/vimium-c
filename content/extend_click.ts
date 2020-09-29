@@ -1,9 +1,8 @@
 import {
   clickable_, setupEventListener, VOther, timeout_, doc, isAlive_, set_allowRAF_,
-  loc_, replaceBrokenTimerFunc, allowRAF_, getTime, recordLog, VTr, vApi,
+  loc_, replaceBrokenTimerFunc, allowRAF_, getTime, recordLog, VTr, vApi, Stop_
 } from "../lib/utils"
 import { createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, removeEl_s } from "../lib/dom_utils"
-import { Stop_ } from "../lib/keyboard_utils"
 import { safeDestroy } from "./port"
 import { coreHints } from "./link_hints"
 import { grabBackFocus } from "./insert"

@@ -1,4 +1,4 @@
-import { fgCache, clearTimeout_, timeout_, isAlive_, VOther } from "./utils"
+import { fgCache, clearTimeout_, timeout_, isAlive_, VOther, Stop_ as stopEvent } from "./utils"
 
 const DEL = kChar.delete, BSP = kChar.backspace
 const ENT = kChar.enter
@@ -122,10 +122,7 @@ export const isEscape_ = (key: string): HandlerResult.AdvancedEsc | HandlerResul
         : key === "c-" + kChar.bracketLeft ? HandlerResult.PlainEsc : HandlerResult.Nothing;
 }
 
-  /** event section */
-
-export { Stop_ } from "./utils"
-import { Stop_ as stopEvent } from "./utils"
+/** handler section */
 
 export const prevent_ = (event: ToPrevent): void => {
     event.preventDefault(); stopEvent(event);
@@ -168,8 +165,6 @@ export const suppressTail_ = ((timeout?: number
   (timeout?: number, callback?: undefined): unknown
   (timeout: number, callback: HandlerNS.VoidHandler<any>): HandlerNS.VoidHandler<HandlerResult>
 }
-
-  /** handler section */
 
 export const pushHandler_ = handlers_.push.bind(handlers_) as (func: HandlerNS.Handler, id: kHandler) => void
 

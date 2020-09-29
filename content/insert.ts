@@ -7,7 +7,7 @@ interface NodeWithInfo extends Node {
 }
 
 import {
-  doc, keydownEvents_, safeObj, fgCache, isTop, set_keydownEvents_, setupEventListener, VOther,
+  doc, keydownEvents_, safeObj, fgCache, isTop, set_keydownEvents_, setupEventListener, VOther, Stop_,
   esc, onWndFocus, isEnabled_, readyState_, injector, getTime, recordLog, weakRef_,
 } from "../lib/utils"
 import { post_, safePost } from "./port"
@@ -19,7 +19,7 @@ import {
   activeEl_unsafe_, isHTML_, docEl_unsafe_, getEditableType_, GetShadowRoot_, getSelection_, frameElement_,
   SafeEl_not_ff_, MDW, fullscreenEl_unsafe_, removeEl_s, isNode_
 } from "../lib/dom_utils"
-import { Stop_, pushHandler_, removeHandler_, prevent_ } from "../lib/keyboard_utils"
+import { pushHandler_, removeHandler_, prevent_ } from "../lib/keyboard_utils"
 
 const domNodeMap = Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
     || WeakMap ? new WeakMap!<Node, kNodeInfo>() as never : {

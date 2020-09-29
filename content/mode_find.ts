@@ -1,9 +1,9 @@
 import {
   setupEventListener, VTr, keydownEvents_, isAlive_, suppressCommonEvents, onWndFocus, VOther, timeout_, safer, fgCache,
-  doc, getTime, chromeVer_, deref_, escapeAllForRe, tryCreateRegExp, vApi, callFunc, clearTimeout_,
+  doc, getTime, chromeVer_, deref_, escapeAllForRe, tryCreateRegExp, vApi, callFunc, clearTimeout_, Stop_
 } from "../lib/utils"
 import {
-  pushHandler_, replaceOrSuppressMost_, Stop_, removeHandler_, prevent_, getMappedKey, keybody_, isEscape_, keyNames_,
+  pushHandler_, replaceOrSuppressMost_, removeHandler_, prevent_, getMappedKey, keybody_, isEscape_, keyNames_,
   DEL, BSP, ENTER,
 } from "../lib/keyboard_utils"
 import {

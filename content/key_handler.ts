@@ -1,8 +1,8 @@
 import {
-  doc, esc, fgCache, isEnabled_, isTop, keydownEvents_, set_esc, VOther, safer,
+  doc, esc, fgCache, isEnabled_, isTop, keydownEvents_, set_esc, VOther, safer, Stop_
 } from "../lib/utils"
 import {
-  set_getMappedKey, char_, getMappedKey, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_, Stop_,
+  set_getMappedKey, char_, getMappedKey, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_
 } from "../lib/keyboard_utils"
 import { activeEl_unsafe_, getSelection_, ElementProto } from "../lib/dom_utils"
 import { wndSize_ } from "../lib/rect"
