@@ -863,13 +863,13 @@
 		"message": "Cet élément ne peut être supprimé"
 	},
 	"96": { "message": "Caractères pour les LinkHints trop peu nombreux" },
-	"100": {
+	"200": {
 		"message": "Non-autorisé à ouvrir l'URL de la cible du nouvel onglet"
 	},
-	"101": {
+	"201": {
 		"message": "Vous avez annulé l'importation"
 	},
-	"102": {
+	"202": {
 		"message": "Import des données de paramétrage : OK!"
 	},
 	"4": {

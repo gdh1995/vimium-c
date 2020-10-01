@@ -392,7 +392,7 @@ export const view_ = (el: Element, oldY?: number): boolean => {
 }
 
 export const instantScOpt = (di: number, amount: number): ScrollToOptions => 
-    ({behavior: "instant", left: di ? 0 : amount, top: di && amount})
+    ({behavior: "instant", [di ? "top" : "left"]: amount})
 
 export const scrollWndBy_ = (di: ScrollByY, amount: number): void => {
   !(Build.BTypes & ~BrowserType.Firefox) ||

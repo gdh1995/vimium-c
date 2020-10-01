@@ -4,6 +4,9 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### 1.86.2
+* fix some bugs
+
 #### 1.86.1
 * fix losing some hints on v1.86.0
 
