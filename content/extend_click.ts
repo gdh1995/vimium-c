@@ -178,7 +178,7 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
         // normally, if here, must have: limited by CSP; not C or C >= MinEnsuredNewScriptsFromExtensionOnSandboxedPage
         // ignore the rare (unexpected) case that injected code breaks even when not limited by CSP,
         //     which might mean curCVer has no ES6...
-        runJS_("`${VimiumC=>" + secret + "}`")
+        runJS_("`${" + GlobalConsts.MarkAcrossJSWorlds + "=>" + secret + "}`")
       }
     }
     box = 0;
@@ -245,7 +245,7 @@ kEventName2 = kVOnClick + BuildStr.RandomClick,
 kReady = "readystatechange", kFunc = "function",
 StringIndexOf = kReady.indexOf, StringSubstr = kReady.substr
 function decryptFromVerifier (func: InnerVerifier | unknown): string {
-  const str = call(_toString, func as InnerVerifier), offset = call(StringIndexOf, str, kMarkToVerify);
+  const str = call(_toString, func as InnerVerifier), offset = call(StringIndexOf, str, kMk);
   return call(StringSubstr, str, offset
       , GlobalConsts.LengthOfMarkAcrossJSWorlds + GlobalConsts.SecretStringLength);
 }
@@ -260,7 +260,7 @@ function newFuncToString (a: FUNC, args: IArguments): string {
               , myAEL, myToStrStr = call(_toString, myToStr)))
             ) && str !== myToStrStr ? str
         : (
-          noAbnormalVerifyingFound && (a as PublicFunction)(kMarkToVerify, verifier),
+          noAbnormalVerifyingFound && (a as PublicFunction)(kMk, verifier),
           a === anotherAEL ? call(_toString, _listen) : a === anotherToStr ? call(_toString, _toString)
           : (noAbnormalVerifyingFound = 0, str)
         );
@@ -271,7 +271,7 @@ const hooks = {
   /** Create */ c: doc0.createElement,
   toString: function toString(this: FUNC): string {
     const args = arguments;
-    if (args.length === 2 && args[0] === kMarkToVerify) {
+    if (args.length === 2 && args[0] === kMk) {
       // randomize the body of this function
       (args[1] as InnerVerifier)(decryptFromVerifier(args[1]), verifier);
     }
@@ -280,7 +280,7 @@ const hooks = {
   addEventListener: function addEventListener(this: EventTarget, type: string
       , listener: EventListenerOrEventListenerObject): void {
     const a = this, args = arguments, len = args.length;
-    if (type === kMarkToVerify) {
+    if (type === kMk) {
       (listener as any as InnerVerifier)(decryptFromVerifier(listener), verifier);
       return;
     }
@@ -327,9 +327,9 @@ let doInit = function (this: void): void {
     timer = toRegister.length > 0 ? setTimeout_(next, InnerConsts.DelayForNext) : 0;
   }
 },
-kMarkToVerify = GlobalConsts.MarkAcrossJSWorlds as const,
+/** kMarkToVerify */ kMk = GlobalConsts.MarkAcrossJSWorlds as const,
+detectDisabled: string | 0 = kMk + `=>` + sec,
 myAELStr: string | undefined, myToStrStr: string | undefined,
-detectDisabled: string | 0 = `VimiumC=>` + sec,
 noAbnormalVerifyingFound: BOOL = 1,
 anotherAEL: typeof myAEL | undefined | 0, anotherToStr: typeof myToStr | undefined | 0,
 // here `setTimeout` is normal and will not use TimerType.fake

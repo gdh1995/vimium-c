@@ -479,9 +479,13 @@ const createMangler = (function (doesTest) {
           }
         }
       }
-      const lookupSize = n1 * Math.pow(n2, width - 1), lookupStart = mangledNamesList.length - lookupSize
+      const lookupSize = n1 * Math.pow(n2, width - 1)
+      let lookupStart = 0;
+      for (let i = 0; i < width - 1; i++) {
+        lookupStart += n1 * Math.pow(n2, i)
+      }
       const lookupOffset = lookupStart + (hashCode(lower) % lookupSize)
-      for (let i = lookupOffset; i < mangledNamesList.length; i++) {
+      for (let i = lookupOffset; i < lookupStart + lookupSize; i++) {
         if (tryAddUnique(mangledNamesList[i])) { return mangledNamesList[i] }
       }
       for (let i = lookupStart; i < lookupOffset; i++) {
