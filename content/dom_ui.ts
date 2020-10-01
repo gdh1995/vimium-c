@@ -1,10 +1,10 @@
 import {
   setupEventListener, isTop, keydownEvents_, VOther, timeout_, fgCache, doc, isAlive_, isJSUrl, chromeVer_, VTr, deref_,
-  vApi, Stop_
+  vApi, Stop_, createRegExp
 } from "../lib/utils"
 import { prevent_ } from "../lib/keyboard_utils"
 import {
-  createElement_, createShadowRoot_, NONE, fullscreenEl_unsafe_, docEl_unsafe_, getComputedStyle_, set_docSelectable_,
+  createElement_, attachShadow_, NONE, fullscreenEl_unsafe_, docEl_unsafe_, getComputedStyle_, set_docSelectable_,
   GetParent_unsafe_, getSelection_, ElementProto, GetChildNodes_not_ff, GetShadowRoot_, getEditableType_, htmlTag_,
   notSafe_not_ff_, CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_, getAccessibleSelectedNode, removeEl_s,
   appendNode_s, append_not_ff, setClassName_s, isNode_
@@ -43,7 +43,7 @@ export function set_hideHelp (_newHide: typeof hideHelp) { hideHelp = _newHide }
 
 export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustType): void {
     box_ = createElement_("div");
-    root_ = createShadowRoot_(box_);
+    root_ = attachShadow_(box_);
     // listen "load" so that safer if shadowRoot is open
     // it doesn't matter to check `.mode == "closed"`, but not `.attachShadow`
     (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
@@ -199,9 +199,7 @@ export const ensureBorder = Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or
         && chromeVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
         ? 1.01 : 0.51) / zoom).slice(0, 5);
     if (!cssPatch_) {
-      cssPatch_ = ["", (css) => {
-        return css.replace(<RegExpG> /\b0\.5px|\/\*!DPI\*\/[\w.]+/g, "/*!DPI*/" + cssPatch_![0] + "px");
-      }];
+      cssPatch_ = ["", (css) => css.replace(createRegExp(kTip.css0d5px, "g"), VTr(kTip.css0d5Patch, cssPatch_![0]))]
     }
     if (cssPatch_[0] === width) { return; }
     cssPatch_[0] = width;
@@ -507,7 +505,7 @@ export const evalIfOK = (url: Pick<BgReq[kBgReq.eval], "u"> | string): boolean =
   }
   let str = url.slice(11).trim();
   let el: HTMLScriptElement | undefined
-  if ((<RegExpOne> /^void\s*\( ?0 ?\)\s*;?$|^;?$/).test(str)) { /* empty */ }
+  if (createRegExp(kTip.voidJS, "").test(str)) { /* empty */ }
   else if (!GetParent_unsafe_((el = runJS_(VTr(kTip.removeCurScript), 0)!), PNType.DirectNode)) {
     try { str = decodeURIComponent(str); } catch {}
     timeout_(runJS_.bind(0, str, null), 0)

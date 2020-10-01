@@ -4,7 +4,7 @@ type HintSources = readonly SafeElement[] | NodeListOf<SafeElement>;
 type NestedFrame = false | 0 | null | KnownIFrameElement
 
 import {
-  VOther, clickable_, isJSUrl, doc, isImageUrl, fgCache, readyState_, chromeVer_, VTr, tryCreateRegExp, getMediaUrl,
+  VOther, clickable_, isJSUrl, doc, isImageUrl, fgCache, readyState_, chromeVer_, VTr, createRegExp, getMediaUrl,
   getMediaTag, kMediaTag
 } from "../lib/utils"
 import {
@@ -34,6 +34,7 @@ let maxTop_ = 0
 let maxRight_ = 0
 let clickableClasses_: RegExpOne
 let clickableRoles_: RegExpI
+let buttonOrATags_: RegExpOne
 
 export { frameNested_, ngEnabled, maxLeft_, maxTop_, maxRight_ }
 export const localLinkClear = (): void => { maxLeft_ = maxTop_ = maxRight_ = 0 }
@@ -464,7 +465,7 @@ const deduplicate = (list: Hint[]): void => {
       if (k === ClickType.codeListener) {
         if (s = ((element = list[i][0]) as SafeHTMLElement).localName, s === "i" || s === D) {
           if (notRemoveParents
-              = i > 0 && (<RegExpOne> /\b(button|a$)/).test(list[i - 1][0].localName)
+              = i > 0 && buttonOrATags_.test(list[i - 1][0].localName)
               ? (s < "i" || !element.innerHTML.trim()) && isDescendant(element, list[i - 1][0], s < "i")
               : !!(element = (element as SafeHTMLElement).parentElement)
                 && htmlTag_(element) === "button" && (element as HTMLButtonElement).disabled
@@ -513,7 +514,7 @@ const deduplicate = (list: Hint[]): void => {
     }
     else if (i + 1 < list.length && list[j = i + 1][2] < ClickType.edit + 1
         && isDescendant(element = list[j][0], list[i][0], 0)
-        && (list[j][2] > ClickType.edit - 1 || (<RegExpOne> /\b(button|a$)/).test((element as Hint[0]).localName))) {
+        && (list[j][2] > ClickType.edit - 1 || buttonOrATags_.test((element as Hint[0]).localName))) {
       ++splice
     }
     else if (j = i - 1, i < 1 || (k = list[j][2]) > ClickType.MaxWeak
@@ -551,7 +552,7 @@ const isDescendant = function (c: Element | null, p: Element, shouldBeSingleChil
             && unsafeFramesetTag_old_cr_ && notSafe_not_ff_!(c))
       ) { /* empty */ }
   if (c !== p
-      || !shouldBeSingleChild || (<RegExpOne> /\b(button|a$)/).test(p.localName as string)) {
+      || !shouldBeSingleChild || buttonOrATags_.test(p.localName as string)) {
     return c === p;
   }
   for (; c.childElementCount === 1 && !(isNode_(f = c.firstChild!, kNode.TEXT_NODE) && f.data.trim()) && ++i < 3
@@ -559,17 +560,7 @@ const isDescendant = function (c: Element | null, p: Element, shouldBeSingleChil
   return i > 2;
 } as (c: Element, p: Element, shouldBeSingleChild: BOOL | boolean) => boolean
 
-export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean | BOOL): void => {
-  if (!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && VOther & BrowserType.Edge) { return; }
-  if (Build.BTypes & BrowserType.Chrome && (Build.MinCVer < BrowserVer.Min$Node$$getRootNode
-        || Build.MinCVer < BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint)
-      && chromeVer_ < (BrowserVer.Min$Node$$getRootNode > BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint
-          ? BrowserVer.Min$Node$$getRootNode : BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint)) {
-    return;
-  }
-  if (Build.BTypes & BrowserType.Chrome && isDocZoomStrange_ && docZoom_ - 1) {
-    return;
-  }
+export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean | BOOL, _a3?: void): void => {
   let i = list.length, el: SafeElement, root: Document | ShadowRoot, tag: string,
   fromPoint: Element | null | undefined, temp: Element | null, index2 = 0;
   const zoom = Build.BTypes & BrowserType.Chrome ? docZoom_ * bZoom_ : 1,
@@ -585,6 +576,15 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
     fromPoint = root.elementFromPoint(x, y);
     return !fromPoint || el === fromPoint || el.contains(fromPoint);
   };
+  if (!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && VOther & BrowserType.Edge
+      || Build.BTypes & BrowserType.Chrome && (Build.MinCVer < BrowserVer.Min$Node$$getRootNode
+              || Build.MinCVer < BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint)
+          && chromeVer_ < (BrowserVer.Min$Node$$getRootNode > BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint
+              ? BrowserVer.Min$Node$$getRootNode : BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint)
+      || Build.BTypes & BrowserType.Chrome && isDocZoomStrange_ && docZoom_ - 1) {
+    return;
+  }
+  initTestRegExps()
   while (0 <= --i) {
     el = list[i][0];
     root = el.getRootNode!() as Document | ShadowRoot;
@@ -710,8 +710,9 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
 
 const initTestRegExps = (): void => {
   if (!clickableClasses_) {
-    clickableClasses_ = tryCreateRegExp(kTip.clickableClasses, "")
-    clickableRoles_ = tryCreateRegExp(kTip.clickableRoles, "i")
+    clickableClasses_ = createRegExp(kTip.clickableClasses, "")
+    clickableRoles_ = createRegExp(kTip.clickableRoles, "i")
+    buttonOrATags_ = createRegExp(kTip.buttonOrA, "")
   }
 }
 

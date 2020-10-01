@@ -292,7 +292,7 @@ export const getViewBox_ = function (needBox?: 1 | 2): ViewBox | ViewOffset {
   box = docEl_unsafe_()!, st = getComputedStyle_(box),
   box2 = doc.body, st2 = box2 ? getComputedStyle_(box2) : st,
   zoom2 = bZoom_ = Build.BTypes & ~BrowserType.Firefox && box2 && +st2.zoom || 1,
-  containHasPaint = (<RegExpOne> /content|paint|strict/).test(st.contain!),
+  containHasPaint = (<RegExpOne> /c|p/).test(st.contain!),
   kM = "matrix(1,",
   stacking = !(Build.BTypes & BrowserType.Chrome && needBox === 2)
       && (st.position !== "static" || containHasPaint || st.transform !== NONE),

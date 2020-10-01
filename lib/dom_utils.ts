@@ -1,4 +1,4 @@
-import { VOther, chromeVer_, doc, tryCreateRegExp } from "./utils"
+import { VOther, chromeVer_, doc, createRegExp } from "./utils"
 import { dimSize_ } from "./rect"
 
 interface kNodeToType {
@@ -76,7 +76,7 @@ export const htmlTag_ = (Build.BTypes & ~BrowserType.Firefox ? function (element
 
 export const isInTouchMode_cr_ = Build.BTypes & BrowserType.Chrome ? (): boolean => {
     const viewport_meta = querySelector_unsafe_("meta[name=viewport]")
-    return !!viewport_meta && tryCreateRegExp(kTip.metaKeywordsForMobile, "i").test(
+    return !!viewport_meta && createRegExp(kTip.metaKeywordsForMobile, "i").test(
           (viewport_meta as TypeToAssert<Element, HTMLMetaElement, "content">).content! /* safe even if undefined */)
 } : 0 as never as null
 
@@ -430,8 +430,8 @@ export const removeEl_s = (el: Element): void => { el.remove() }
 /** @NEED_SAFE_ELEMENTS */
 export const setClassName_s = (el: Element, className: string): void => { el.className = className }
 
-export const createShadowRoot_ = <T extends HTMLDivElement | HTMLBodyElement> (box: T): ShadowRoot | T => {
-    return !(Build.BTypes & ~BrowserType.Edge) ? box
+export const attachShadow_ = <T extends HTMLDivElement | HTMLBodyElement> (box: T): ShadowRoot | T => {
+  return !(Build.BTypes & ~BrowserType.Edge) ? box
       : (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
         && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
         && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
@@ -444,7 +444,7 @@ export const createShadowRoot_ = <T extends HTMLDivElement | HTMLBodyElement> (b
       : Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
         && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
             || box.webkitCreateShadowRoot)
-      ? box.webkitCreateShadowRoot!() : box;
+      ? box.webkitCreateShadowRoot!() : box
 }
 
 export const scrollIntoView_ = (el: Element, dir?: boolean): void => {

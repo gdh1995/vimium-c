@@ -1,7 +1,7 @@
 import HintItem = HintsNS.HintItem
 import {
   safer, fgCache, VOther, isImageUrl, isJSUrl, set_keydownEvents_, keydownEvents_, timeout_, doc, chromeVer_, weakRef_,
-  parseSedOptions, tryCreateRegExp, getMediaUrl, kMediaTag, getMediaTag
+  parseSedOptions, createRegExp, getMediaUrl, kMediaTag, getMediaTag
 } from "../lib/utils"
 import { getVisibleClientRect_, center_, view_, selRange_ } from "../lib/rect"
 import {
@@ -109,7 +109,7 @@ const getMediaOrBgImageUrl = (img: SafeHTMLElement): string | void => {
   text = mediaTag < kMediaTag.others ? src || getMediaUrl(img, mediaTag < kMediaTag.MIN_NOT_MEDIA_EL) : ""
   if (mediaTag > kMediaTag.MIN_NOT_MEDIA_EL - 1) {
     if (!isImageUrl(text)) {
-      let arr = tryCreateRegExp(kTip.cssUrl, "i").exec(
+      let arr = createRegExp(kTip.cssUrl, "i").exec(
             (mediaTag > kMediaTag.LAST ? getComputedStyle_(img) : img.style).backgroundImage!)
       if (arr && arr[1]) {
         const a1 = createElement_("a");

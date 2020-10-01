@@ -10,7 +10,7 @@ import {
   createElement_, querySelector_unsafe_, getInputType, htmlTag_, docEl_unsafe_, ElementProto, HDN, removeEl_s
 } from "../lib/dom_utils"
 import { bZoom_, padClientRect_, getBoundingClientRect_, dimSize_ } from "../lib/rect"
-import { chromeVer_, doc, tryCreateRegExp } from "../lib/utils"
+import { chromeVer_, doc, createRegExp } from "../lib/utils"
 import { BSP, DEL, ENTER } from "../lib/keyboard_utils"
 import { maxLeft_, maxRight_, maxTop_ } from "./local_links"
 import { ui_root } from "./dom_ui"
@@ -401,7 +401,7 @@ export const renderMarkers = (hintItems: readonly HintItem[]): void => {
   const noAppend = !!(Build.BTypes & BrowserType.Chrome)
       && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
       && chromeVer_ < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
-  const invisibleHintTextRe = <true | undefined> useFilter_ && tryCreateRegExp(kTip.invisibleHintText, "g")
+  const invisibleHintTextRe = <true | undefined> useFilter_ && createRegExp(kTip.invisibleHintText, "g")
   for (const hint of hintItems) {
     let right: string, marker = hint.m;
     if (useFilter_) {
@@ -493,7 +493,7 @@ export const matchHintsByKey = (keyStatus: KeyStatus
     } else if (useFilter_) {
       if (keybody !== lower && hintChars !== hintChars.toLowerCase() // ignore {Lo} in chars_
           /** this line requires lower.length must be 1 or 0 */
-          || (nonMatchedRe_ || (nonMatchedRe_ = tryCreateRegExp(kTip.notMatchedHintText, "g") as RegExpG & RegExpOne)
+          || (nonMatchedRe_ || (nonMatchedRe_ = createRegExp(kTip.notMatchedHintText, "g") as RegExpG & RegExpOne)
               ).test(lower)) {
         return 2;
       } else {

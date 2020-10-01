@@ -1067,6 +1067,12 @@
 	"105": { "message": "^[^\\w\\x80-\\uffff]+|[^!-~À-üЂ-џºء-ي]+" },
 	"106": { "message": "[^0-9a-z_ß-üа-џºء-ي]+" },
 	"107": { "message": "\\b(device-width|initial-scale)\\b" },
+	"108": { "message": "\\b0\\.5px|/\\*!DPI\\*/[\\w.]+" },
+	"109": { "message": "/*!DPI*/$1px" },
+	"110": { "message": "^void\\s*\\( ?0 ?\\)\\s*;?$$|^;?$$" },
+	"111": { "message": "^http://(?!localhost[:/])" },
+	"112": { "message": "^(new\\.|www\\.|)reddit\\.com$$" },
+	"113": { "message": "(^|-)(button|a$$)" },
 	"200": {
 		"message": "Not allowed to open the target new tab URL"
 	},

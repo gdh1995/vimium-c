@@ -17,7 +17,7 @@ declare var VData: VDataTy
 
 import {
   injector, isAlive_, keydownEvents_, readyState_, VOther, timeout_, clearTimeout_, loc_, recordLog, chromeVer_,
-  interval_, clearInterval_, locHref, vApi,
+  interval_, clearInterval_, locHref, vApi, createRegExp
 } from "../lib/utils"
 import { removeHandler_, replaceOrSuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
 import {
@@ -182,7 +182,7 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
     setClassName_s(el, "R UI Omnibar")
     el.style.display = NONE;
     if (type !== VomnibarNS.PageType.web) { /* empty */ }
-    else if ((<RegExpI> /^http:\/\/(?!localhost[:/])/i).test(page) && !(<RegExpOne> /^http:/).test(locHref())) {
+    else if (createRegExp(kTip.nonLocalhostRe, "i").test(page) && !(<RegExpOne> /^http:/).test(locHref())) {
       // not allowed by Chrome; recheck because of `tryNestedFrame`
       reload();
     } else {

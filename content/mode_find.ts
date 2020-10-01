@@ -7,7 +7,7 @@ import {
   DEL, BSP, ENTER,
 } from "../lib/keyboard_utils"
 import {
-  createShadowRoot_, getSelectionFocusEdge_, activeEl_unsafe_, rangeCount_, setClassName_s,
+  attachShadow_, getSelectionFocusEdge_, activeEl_unsafe_, rangeCount_, setClassName_s,
   getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, htmlTag_, fullscreenEl_unsafe_, docEl_unsafe_,
   getSelection_, isSelected_, docSelectable_, isHTML_, createElement_, CLK, MDW, HDN, NONE, removeEl_s, appendNode_s
 } from "../lib/dom_utils"
@@ -232,7 +232,7 @@ const onLoad2 = (): void => {
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
         && (Build.MinFFVer < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
           && (Build.BTypes & BrowserType.Chrome || chromeVer_ < FirefoxBrowserVer.MinContentEditableInShadowSupportIME))
-        ? box : createShadowRoot_(box),
+        ? box : attachShadow_(box),
     inShadow = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
         && (!(Build.BTypes & BrowserType.Firefox)
             || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1

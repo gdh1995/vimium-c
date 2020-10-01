@@ -147,7 +147,7 @@ export const isImageUrl = (str: string | null): boolean => {
   const end = str.lastIndexOf("#") + 1 || str.length;
   // eslint-disable-next-line @typescript-eslint/ban-types
   str = str.substring!(str.lastIndexOf("/", str.lastIndexOf("?") + 1 || end), end);
-  return (imgExtRe_ || (imgExtRe_ = tryCreateRegExp(kTip.imgExt, "i"))).test(str)
+  return (imgExtRe_ || (imgExtRe_ = createRegExp(kTip.imgExt, "i"))).test(str)
 }
 
 export declare const enum kMediaTag {
@@ -180,8 +180,11 @@ export const parseSedOptions = (opts: UserSedOptions): ParsedSedOpts => {
 
 export const escapeAllForRe = (str: string): string => str.replace(<RegExpG> /[$()*+.?\[\\\]\^{|}]/g, "\\$&")
 
-export const tryCreateRegExp = <S extends kTip | string, T extends "g" | "gi" | "" | "i"> (pattern: S, flags: T
-    // @ts-ignore
-    ): (T extends "" ? RegExpOne : T extends "i" ? RegExpI : RegExpG) | (S extends kTip ? never : void) => {
-  try { return <any> new RegExp(pattern > 0 ? VTr(<kTip> pattern) : pattern as string, flags as "g") } catch {}
+export const createRegExp = <S extends kTip, T extends "g" | "i" | ""> (pattern: S, flags: T
+    ): T extends "" ? RegExpOne : T extends "i" ? RegExpI : RegExpG =>
+    <any> new RegExp(VTr(<kTip> pattern), flags as "g")
+
+export const tryCreateRegExp = <T extends "g" | "gi" | "gim" | "gm" | "i" | "u" | ""> (pattern: string, flags: T
+    ): (T extends "" ? RegExpOne : T extends "i" ? RegExpI : RegExpG) | void => {
+  try { return <any> new RegExp(pattern, flags as "g") } catch {}
 }
