@@ -6,9 +6,9 @@ import { ParseOptions, MinifyOptions, MinifyOutput } from "../../node_modules/te
 declare function parse(text: string, options?: ParseOptions): AST_Toplevel;
 
 export class TreeWalker {
-    constructor(callback: (node: AST_Node, descend?: (node: AST_Node) => void) => boolean | undefined);
+    constructor(callback: (this: TreeWalker, node: AST_Node, descend?: (node: AST_Node) => void) => boolean | undefined)
     directives: object;
-    find_parent(type: AST_Node): AST_Node | undefined;
+    find_parent<T extends AST_Node>(type: { new (props?: object): T }): T | undefined;
     has_directive(type: string): boolean;
     loopcontrol_target(node: AST_Node): AST_Node | undefined;
     parent(n: number): AST_Node | undefined;
@@ -46,6 +46,7 @@ export class AST_Node {
     static from_mozilla_ast?: (node: AST_Node) => any;
     walk: (visitor: TreeWalker) => void;
     transform: (tt: TreeTransformer, in_list?: boolean) => AST_Node;
+    print_to_string (): string
     TYPE: string;
     CTOR: typeof AST_Node;
 }
@@ -92,6 +93,17 @@ declare class AST_Toplevel extends AST_Scope {
     globals: any;
 }
 
+declare class AST_IterationStatement extends AST_Statement {
+    block_scope: AST_Scope
+}
+
+declare class AST_ForIn extends AST_IterationStatement {
+}
+
+declare class AST_Binary extends AST_Node {
+    operator: string
+}
+
 declare class AST_Lambda extends AST_Scope {
     constructor(props?: object);
     name: AST_SymbolDeclaration | null;
@@ -115,20 +127,25 @@ declare class AST_Definitions extends AST_Statement {
 
 declare class AST_Var extends AST_Definitions {
     constructor(props?: object);
+    TYPE: "Var"
 }
 
 declare class AST_Let extends AST_Definitions {
     constructor(props?: object);
+    TYPE: "Let"
 }
 
 declare class AST_Const extends AST_Definitions {
     constructor(props?: object);
+    TYPE: "Const"
 }
 
 declare class AST_Destructuring extends AST_Node {
     constructor(props?: object);
     names: AST_Node[];
     is_array: boolean;
+    all_symbols (): AST_Symbol[]
+    TYPE: "Destructuring"
 }
 declare class AST_VarDef extends AST_Node {
     constructor(props?: object);
@@ -167,10 +184,12 @@ declare class AST_Symbol extends AST_Node {
 declare class AST_SymbolDeclaration extends AST_Symbol {
     constructor(props?: object);
     init: AST_Node | null;
+    definition(): SymbolDef;
 }
 
 declare class AST_SymbolVar extends AST_SymbolDeclaration {
     constructor(props?: object);
+    TYPE: "SymbolVar"
 }
 
 declare class AST_SymbolBlockDeclaration extends AST_SymbolDeclaration {
@@ -179,11 +198,14 @@ declare class AST_SymbolBlockDeclaration extends AST_SymbolDeclaration {
 
 declare class AST_SymbolConst extends AST_SymbolBlockDeclaration {
     constructor(props?: object);
+    TYPE: "SymbolConst"
 }
 
 declare class AST_SymbolLet extends AST_SymbolBlockDeclaration {
     constructor(props?: object);
+    TYPE: "SymbolLet"
 }
 declare class AST_SymbolRef extends AST_Symbol {
     constructor(props?: object);
+    TYPE: "SymbolRef"
 }

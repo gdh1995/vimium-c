@@ -348,7 +348,7 @@ ExclusionRulesOption_.prototype.onRowChange_ = function (this: ExclusionRulesOpt
 TextOption_.prototype.showError_ = function<T extends TextualizedOptionNames>(this: TextOption_<T>
     , msg: string, tag?: OptionErrorType | null, errors?: boolean): void {
   errors != null || (errors = !!msg);
-  const { element_: el } = this, { classList: cls } = el, par = el.parentElement as HTMLElement;
+  const { element_: el, element_: { classList: cls, parentElement: par } } = this
   let errEl = el.nextElementSibling as HTMLElement | null;
   errEl = errEl && errEl.classList.contains("tip") ? errEl : null;
   nextTick_(() => {
@@ -356,7 +356,7 @@ TextOption_.prototype.showError_ = function<T extends TextualizedOptionNames>(th
     if (errEl == null) {
       errEl = document.createElement("div");
       errEl.className = "tip";
-      par.insertBefore(errEl, el.nextElementSibling as Element | null);
+      (par as HTMLElement).insertBefore(errEl, el.nextElementSibling as Element | null);
     }
     errEl.textContent = msg;
     tag !== null && cls.add(tag || "has-error");

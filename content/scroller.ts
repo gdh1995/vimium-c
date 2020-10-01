@@ -438,9 +438,10 @@ const selectFirst = (info: ElementScrollInfo, skipPrepare?: 1): ElementScrollInf
   /** @NEED_SAFE_ELEMENTS */
 export const scrollIntoView_need_safe = (el: SafeElement): void => {
     const rect = el.getClientRects()[0] as ClientRect | undefined;
+    const { min, max } = Math
     if (!rect) { return; }
     let r = padClientRect_(rect), iw = wndSize_(1), ih = wndSize_(),
-    { min, max } = Math, ihm = min(96, ih / 2), iwm = min(64, iw / 2),
+    ihm = min(96, ih / 2), iwm = min(64, iw / 2),
     hasY = r.b < ihm ? max(r.b - ih + ihm, r.t - ihm) : ih < r.t + ihm ? min(r.b - ih + ihm, r.t - ihm) : 0,
     hasX = r.r < 0 ? max(r.l - iwm, r.r - iw + iwm) : iw < r.l ? min(r.r - iw + iwm, r.l - iwm) : 0
     currentScrolling = weakRef_(el)

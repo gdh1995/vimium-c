@@ -261,8 +261,8 @@ const getSelectable = (hints: Hint[], element: SafeHTMLElement): void => {
   for (let i = 0; i < arr.length; i++) {
     const node = arr[i]
     if (isNode_(node, kNode.TEXT_NODE) && node.data.trim().length > 2) {
-      const arr = getVisibleClientRect_(element)
-      arr && hints.push([element as LockableElement, arr, ClickType.Default])
+      const rect = getVisibleClientRect_(element)
+      rect && hints.push([element as LockableElement, rect, ClickType.Default])
       break
     }
   }

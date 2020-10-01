@@ -131,8 +131,8 @@ else if (Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox |
     }});
 }
 if (!(isTop || injector)) {
-  const parApi = frameElement_() && getParentVApi();
-  if (!parApi) {
+  const scoped_parApi = frameElement_() && getParentVApi();
+  if (!scoped_parApi) {
       if ((Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
           || WeakSet) && <boolean> grabBackFocus) {
         /*#__INLINE__*/ enableNeedToRetryParentClickable()
@@ -152,11 +152,11 @@ if (!(isTop || injector)) {
   } else if (Build.BTypes & BrowserType.Firefox) {
     /*#__NOINLINE__*/ (function (): void {
       try { // `vApi` is still unsafe
-          const state = parApi.y()
+          const state = scoped_parApi.y()
           if ((!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox
                 ? state.b && XPCNativeWrapper(state.b) : state.b) === frameElement_()) {
             safeDestroy(1);
-            parApi.n()
+            scoped_parApi.n()
           } else {
             /*#__INLINE__*/ set_clickable_(state.c)
           }
@@ -174,11 +174,11 @@ if (!(isTop || injector)) {
     })()
   } else {
       // if not `vfind`, then a parent may have destroyed for unknown reasons
-      if (parApi.y().b === frameElement_()) {
+      if (scoped_parApi.y().b === frameElement_()) {
         safeDestroy(1);
-        parApi.n();
+        scoped_parApi.n();
       } else {
-        /*#__INLINE__*/ set_clickable_(parApi.y().c)
+        /*#__INLINE__*/ set_clickable_(scoped_parApi.y().c)
       }
   }
 }

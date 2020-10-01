@@ -129,10 +129,11 @@ export const rotate1 = (totalHints: readonly HintItem[], reverse?: boolean, save
     const max = Math.max.apply(Math, stack)
     let oldI: number = totalHints[stack[reverse ? 0 : length - 1]].z!
     for (let j = reverse ? length - 1 : 0; j !== end; reverse ? j-- : j++) {
-      const hint = totalHints[stack[j]], { m: { style, classList } } = hint, newI = hint.z!;
+      const hint = totalHints[stack[j]]
+      const { m: { style, classList }, z: newI } = hint
       style.zIndex = (hint.z = oldI) as number | string as string;
       classList.toggle("OH", oldI < max); classList.toggle("SH", oldI >= max);
-      oldI = newI;
+      oldI = newI!
     }
   }
 }
@@ -311,8 +312,8 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
       // hints[].zIndex is reset in .MakeStacks_
       if (inited && (newLen || oldKeySeq)) {
       for (const hint of newLen ? hints : oldHints) {
-        const el = hint.m.firstElementChild as Element | null;
-        el && removeEl_s(el);
+        const firstChild = hint.m.firstElementChild as Element | null
+        firstChild && removeEl_s(firstChild);
         (hint.m.firstChild as Text).data = hint.a;
       }
       for (const hint of oldHints) {
@@ -459,9 +460,8 @@ export const initAlphabetEngine = (hintItems: readonly HintItem[]): void => {
 
 export const matchHintsByKey = (keyStatus: KeyStatus
     , event: HandlerNS.Event, key: string, keybody: kChar): HintItem | 0 | 2 => {
-  let {k: sequence, t: textSeq, b: oldTab, c: hints} = keyStatus
-    , doesDetectMatchSingle: 0 | 1 | 2 = 0
-    , textSeq0 = textSeq, isSpace = keybody === kChar.space, isTab = keybody === kChar.tab;
+  let doesDetectMatchSingle: 0 | 1 | 2 = 0, isSpace = keybody === kChar.space, isTab = keybody === kChar.tab
+  let {k: sequence, t: textSeq, t: textSeq0, b: oldTab, c: hints} = keyStatus
   textSeq = textSeq && textSeq.replace("  ", " ");
   keyStatus.b = isSpace ? oldTab
       : isTab ? useFilter_ ? oldTab - 2 * +(key === "s-" + keybody) + 1 : 1 - oldTab

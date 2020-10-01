@@ -17,9 +17,14 @@ require("./dependencies").patchTerser();
 /**
  * @typedef { import("terser").MinifyOptions } MinifyOptions
  * @typedef { import("terser").MinifyOutput } MinifyOutput
- * @typedef { import("../typings/base/terser").AST_Lambda } AST_Lambda
+ * @typedef { import("../typings/base/terser").AST_Lambda } AST_LambdaClass
  * @typedef { import("../typings/base/terser").AST_Function } AST_Function
  * @typedef { import("../typings/base/terser").AST_Toplevel } AST_Toplevel
+ * @typedef { import("../typings/base/terser").AST_Node } AST_Node
+ * @typedef { import("../typings/base/terser").AST_Let } AST_Let
+ * @typedef { import("../typings/base/terser").AST_Const } AST_Const
+ * @typedef { import("../typings/base/terser").AST_SymbolConst } AST_SymbolConst
+ * @typedef { import("../typings/base/terser").AST_SymbolLet } AST_SymbolLet
  * @typedef { Map<string, { references: object[]; mangled_name: string | null }> } VariableMap
  * @typedef { {
  *   vars?: { props?: { [oldName: string]: string } };
@@ -37,11 +42,23 @@ let TreeWalker
 let AST_Var
 /** @type { typeof import("../typings/base/terser").AST_SymbolVar } */
 let AST_SymbolVar
+/** @type { typeof import("../typings/base/terser").AST_Lambda } */
+let AST_Lambda
+/** @type { typeof import("../typings/base/terser").AST_Scope } */
+// @ts-ignore
+let AST_Scope
+/** @type { typeof import("../typings/base/terser").AST_Block } */
+let AST_Block
+/** @type { typeof import("../typings/base/terser").AST_IterationStatement } */
+let AST_IterationStatement
 const P = Promise.all([
   // @ts-ignore
   import("terser").then(i => minify = i.minify),
   import("terser/lib/parse").then(i => parse = i.parse),
-  import("terser/lib/ast").then(i => { TreeWalker = i.TreeWalker; AST_Var = i.AST_Var; AST_SymbolVar = i.AST_SymbolVar }),
+  import("terser/lib/ast").then(i => {
+    TreeWalker = i.TreeWalker; AST_Var = i.AST_Var; AST_SymbolVar = i.AST_SymbolVar; AST_Lambda = i.AST_Lambda
+    AST_Scope = i.AST_Scope, AST_Block = i.AST_Block, AST_IterationStatement = i.AST_IterationStatement
+  }),
 ])
 
 /**
@@ -68,7 +85,7 @@ async function collectWords(text, options) {
   })).ast.walk(new TreeWalker((node) => {
     switch (node.TYPE) {
     case "Accessor": case "Function": case "Arrow": case "Defun": case "Lambda":
-      /** @type { AST_Lambda } */
+      /** @type { AST_LambdaClass } */
       // @ts-ignore
       const closure = node;
       /** @type { VariableMap } */
@@ -137,7 +154,7 @@ async function collectWords(text, options) {
 }
 
 /**
- * @param { string | import("../typings/base/terser").AST_Node } text
+ * @param { string | AST_Node } text
  * @returns { Promise<{
   *   stringsTooLong: string[]
   *   stringGains: Map<string, {count: number; gain: number}>
@@ -148,6 +165,7 @@ async function collectString(text) {
   const stringsTooLong = []
   /** @type { Map<string, number> } */
   const stringsOccurance = new Map();
+  /** @type { typeof import("../typings/base/terser").AST_Binary } */
   const AST_Binary = (await import("terser/lib/ast")).AST_Binary;
   const AST_Case = (await import("terser/lib/ast")).AST_Case;
   (typeof text === "string" ? parse(text) : text).walk(new TreeWalker(function (node) {
@@ -163,9 +181,7 @@ async function collectString(text) {
       const str = node.value && node.value.source || node.value
       if (str.length >= MIN_LONG_STRING) { stringsTooLong.push(str) }
       if (str.length >= MIN_STRING_LENGTH_TO_COMPUTE_GAIN) {
-        /** @type { import("terser/lib/ast").TreeWalker } */
-        const walker = this
-        const parentNode = walker.parent(0)
+        const parentNode = this.parent(0)
         if (parentNode instanceof AST_Case
            || parentNode instanceof AST_Binary && parentNode.operator === "in") {
           break
@@ -320,11 +336,11 @@ function replaceLets(ast) {
   ast.walk(new TreeWalker(node => {
     switch (node.TYPE) {
     case "Accessor": case "Function": case "Arrow": case "Defun": case "Lambda":
-      /** @type { AST_Function | AST_Lambda } */
+      /** @type { AST_Function | AST_LambdaClass } */
       // @ts-ignore
       const func = node
       const nodes = func.body.filter(i => i.TYPE === "Let" || i.TYPE === "Const")
-      /** @type { Array<import("../typings/base/terser").AST_Let> } */
+      /** @type { Array<AST_Let | AST_Const> } */
       // @ts-ignore
       const es6Vars = nodes
       for (const var1 of es6Vars) {
@@ -333,6 +349,7 @@ function replaceLets(ast) {
             Object.setPrototypeOf(name, AST_SymbolVar.prototype)
           }
         }
+        // todo: this is to work around a bug of terser
         if (!var1.definitions.some(def => def.name.TYPE === "Destructuring")) {
           Object.setPrototypeOf(var1, AST_Var.prototype)
         }
@@ -340,6 +357,125 @@ function replaceLets(ast) {
     }
     return false
   }))
+  ast.walk(new TreeWalker(function (node) {
+    if (node.TYPE === "Let" || node.TYPE === "Const") {
+      /** @type { AST_Let | AST_Const } */
+      // @ts-ignore
+      const es6Var = node
+      /** @type { Map<string, boolean> }  */
+      const names = new Map()
+      for (let def of es6Var.definitions) {
+        if (def.name.TYPE === "Destructuring") { names.clear(); break }
+        let varHasValue = hasValue(es6Var, def, this)
+        if (!varHasValue) {
+          let iterStat, func_context = this.find_parent(AST_Lambda)
+          for (let i = 0, node2; node2 = this.parent(i), node2 && node2 !== func_context; i++) {
+            if (node instanceof AST_IterationStatement) {
+              iterStat = node; break
+            }
+          }
+          if (iterStat) { names.clear(); break }
+        }
+        names.set(def.name.name, varHasValue)
+      }
+      if (names.size > 0 && testScopedLets(es6Var, this, names)) {
+        Object.setPrototypeOf(es6Var, AST_Var.prototype)
+      }
+    }
+    return false
+  }))
+}
+
+/**
+ * @param { AST_Let | AST_Const } selfVar
+ * @param { import("../typings/base/terser").TreeWalker } context
+ * @param { Map<string, boolean> } varNames
+ * @returns { boolean } whether it can be converted to a `var`
+ */
+function testScopedLets(selfVar, context, varNames) {
+  let root = context.find_parent(AST_Lambda)
+  if (!root) { return false }
+  /** @type { AST_Node[] } */
+  let curBlocks = []
+  for (let i = 0, may_block; may_block = context.parent(i), may_block !== root; i++) {
+    (may_block instanceof AST_Block || may_block instanceof AST_IterationStatement) && curBlocks.push(may_block)
+  }
+  if (!curBlocks[0] || context.parent(0) !== curBlocks[0]) {
+    throw Error("unsupported AST: unknown type of blocks")
+  }
+  let sameNameFound = false
+  /** @type { AST_Node } */
+  let sameVar
+  root.walk(new TreeWalker(function (node1) {
+    if (!sameNameFound && (node1.TYPE === "Let" || node1.TYPE === "Const" || node1.TYPE === "Var")
+        && node1 !== selfVar) {
+      /** @type { import("../typings/base/terser").AST_Definitions } */
+      // @ts-ignore
+      let var1 = node1
+      /** @type { [string, boolean][] } */
+      const namePairs = []
+      for (const def2 of var1.definitions) {
+        if (def2.name.TYPE === "Destructuring") {
+          for (const name3 of def2.name.all_symbols()) {
+            namePairs.push([name3.name, true])
+          }
+        } else {
+          let def2HasValue = hasValue(var1, def2, this)
+          namePairs.push([def2.name.name, def2HasValue])
+        }
+      }
+      for (const [name, anotherHasValue] of namePairs) {
+        if (!varNames.has(name)) { continue }
+        const curHasVal = varNames.get(name)
+        if (var1.TYPE === "Var" && (!curHasVal || !anotherHasValue)) { sameVar = var1; return sameNameFound = true }
+        if (curBlocks.includes(this.parent(0))) { sameVar = var1; return sameNameFound = true }
+        let inSubBlock = false
+        for (let i = 0, node2; node2 = this.parent(i), node2 !== root && node2; i++) {
+          inSubBlock = inSubBlock || node2 instanceof AST_Block || node2 instanceof AST_IterationStatement
+          if (node2 === curBlocks[0]) { sameVar = var1; return sameNameFound = true }
+        }
+        if (!inSubBlock) { sameVar = var1; return sameNameFound = true }
+      }
+    }
+    return sameNameFound
+  }))
+  if (sameNameFound) {
+    if (sameVar) {
+      console.log("Warning: Found conflict declarations with a same name:"
+          , selfVar.print_to_string(), " ### ", sameVar.print_to_string())
+    }
+    return false
+  }
+  if (curBlocks.some(i => i instanceof AST_IterationStatement)) {
+    let foundFuncInLoop = false
+    curBlocks[0].walk(new TreeWalker(function (node1) {
+      if (!foundFuncInLoop && node1 instanceof AST_Lambda) {
+        return foundFuncInLoop = true
+      }
+      return foundFuncInLoop
+    }))
+    if (foundFuncInLoop) {
+      console.log("Warning: Found a function in a scoped loop:", curBlocks[0].print_to_string())
+      return false
+    }
+  }
+  return true
+}
+
+/**
+ * @param { import("../typings/base/terser").AST_Definitions } var1
+ * @param { import("../typings/base/terser").AST_VarDef } def
+ * @param { import("../typings/base/terser").TreeWalker } walker
+ * @returns { boolean }
+ */
+function hasValue(var1, def, walker) {
+  let value = !!def.value, parent = walker.parent(0)
+  if (!value && (parent.TYPE === "ForOf" || parent.TYPE === "ForIn")
+      // @ts-ignore
+      && (parent.init === var1)) {
+    value = true
+  }
+  return value
 }
 
 /**
@@ -355,7 +491,7 @@ async function hookMangleNamesOnce(mainVariableNames, extendClickValiables, coun
   const oldMangle = AST_Toplevel.prototype.mangle_names;
   const varCountMap = new Map([...countsMap].filter(i => i[0][0] === ":").map(([k, v]) => [k.split(":")[1], v]));
   const kNo$ = {}
-  /** @type { (this: AST_Lambda, options: import("terser").MangleOptions, no$?: object) => any } */
+  /** @type { (this: AST_LambdaClass, options: import("terser").MangleOptions, no$?: object) => any } */
   const myMangle = function (options, argNo$) {
     const mainClosure = this.body ? this.body.filter(i => i.TYPE.includes("Statement"))[0] : null;
     /** @type { VariableMap } */
@@ -381,7 +517,7 @@ async function hookMangleNamesOnce(mainVariableNames, extendClickValiables, coun
         }
       }
     }
-    const astVariableNameList = [...astVariables.keys()]
+    const astVariableNameList = [...astVariables.keys()].filter(i => !i.startsWith("scoped_"))
     const unknownVars = astVariableNameList.filter(k => !varCountMap.has(k) && k !== "arguments" && k !== "VC")
     if (unknownVars.length > 0) {
       console.log("Warning: some unknown variables in a closure:", unknownVars)

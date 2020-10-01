@@ -102,12 +102,13 @@ export const findNextInText = (names: string[], isNext: boolean, lenLimits: numb
     ): GoNextBaseCandidate | null => {
   const wordRe = <RegExpOne> /\b/
   let candidates: GoNextCandidate[] = [], officer: VApiTy | undefined, maxLen = totalMax, s: string
+  let curLenLimit: number
   iframesToSearchForNext = [vApi]
   while (officer = iframesToSearchForNext!.pop()) {
     try {
       maxLen = officer.g(candidates, names, isNext, lenLimits, totalMax, maxLen)
     } catch {}
-    let curLenLimit = (maxLen + 1) << 16
+    curLenLimit = (maxLen + 1) << 16
     candidates = candidates.filter(a => (a[2] & 0x7fffff) < curLenLimit)
   }
   iframesToSearchForNext = null
