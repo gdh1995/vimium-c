@@ -1450,8 +1450,9 @@ function patchExtendClick(source) {
     if (inJSON.includes('\\"')) { throw Error('Error: extend_click should not include `\\"`'); }
     inJSON = inJSON.replace(/"/g, "'");
     if (inJSON.includes("$")) {
-      if (!/\bzz\b/.test(inJSON)) {
-        inJSON = inJSON.replace(/\$/g, "zz");
+      if (!/\$\$/.test(inJSON)) {
+        print("[WARNING] extend_click: need to escape '$'")
+        inJSON = inJSON.replace(/\$/g, "$$$$")
       } else {
         throw Error('Error: can not escape `$` in extend_click');
       }

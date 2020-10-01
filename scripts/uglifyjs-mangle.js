@@ -354,8 +354,9 @@ async function hookMangleNamesOnce(mainVariableNames, extendClickValiables, coun
   // @ts-ignore
   const oldMangle = AST_Toplevel.prototype.mangle_names;
   const varCountMap = new Map([...countsMap].filter(i => i[0][0] === ":").map(([k, v]) => [k.split(":")[1], v]));
-  /** @type { (this: AST_Lambda, options: import("terser").MangleOptions) => any } */
-  const myMangle = function (options) {
+  const kNo$ = {}
+  /** @type { (this: AST_Lambda, options: import("terser").MangleOptions, no$?: object) => any } */
+  const myMangle = function (options, argNo$) {
     const mainClosure = this.body ? this.body.filter(i => i.TYPE.includes("Statement"))[0] : null;
     /** @type { VariableMap } */
     // @ts-ignore
@@ -372,7 +373,11 @@ async function hookMangleNamesOnce(mainVariableNames, extendClickValiables, coun
       if (varCountMap.has(name)) {
         const varDef = astVariables.get(name);
         if (varDef) {
-          varDef.mangled_name = next(name);
+          let newName = ""
+          do {
+            newName = next(name)
+          } while (argNo$ === kNo$ && newName.includes("$"))
+          varDef.mangled_name = newName
         }
       }
     }
@@ -389,7 +394,7 @@ async function hookMangleNamesOnce(mainVariableNames, extendClickValiables, coun
       case "Accessor": case "Function": case "Arrow": case "Defun": case "Lambda":
         // @ts-ignore
         if (node.name && node.name.name === "VC") {
-          myMangle.call(node, options)
+          myMangle.call(node, options, kNo$)
           return true
         }
       }

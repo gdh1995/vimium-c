@@ -178,7 +178,7 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
         // normally, if here, must have: limited by CSP; not C or C >= MinEnsuredNewScriptsFromExtensionOnSandboxedPage
         // ignore the rare (unexpected) case that injected code breaks even when not limited by CSP,
         //     which might mean curCVer has no ES6...
-        runJS_("`${Vimium" + secret + "=>9}`");
+        runJS_("`${VimiumC=>" + secret + "}`")
       }
     }
     box = 0;
@@ -329,7 +329,7 @@ let doInit = function (this: void): void {
 },
 kMarkToVerify = GlobalConsts.MarkAcrossJSWorlds as const,
 myAELStr: string | undefined, myToStrStr: string | undefined,
-detectDisabled: string | 0 = `Vimium${sec}=>9`,
+detectDisabled: string | 0 = `VimiumC=>` + sec,
 noAbnormalVerifyingFound: BOOL = 1,
 anotherAEL: typeof myAEL | undefined | 0, anotherToStr: typeof myToStr | undefined | 0,
 // here `setTimeout` is normal and will not use TimerType.fake

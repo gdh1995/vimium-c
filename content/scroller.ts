@@ -159,7 +159,7 @@ let performAnimate = (e: SafeElement | null, d: ScrollByY, a: number): void => {
 const performScroll = ((el: SafeElement | null, di: ScrollByY, amount: number, before?: number): number => {
     before = before != null ? before : dimSize_(el, kDim.positionX + di)
     if (el) {
-      !(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
+      !(Build.BTypes & BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
       !(Build.BTypes & ~BrowserType.Firefox) ||
       // avoid using `Element`, so that users may override it
       el.scrollBy ? el.scrollBy(instantScOpt(di, amount)) : di ? el.scrollTop += amount : el.scrollLeft += amount
@@ -394,7 +394,7 @@ const doesScroll = (el: SafeElement, di: ScrollByY, amount: number): boolean => 
          */
         let changed2 = performScroll(el, 0, -changed, before)
         changed2 * changed2 > 0.1 && performScroll(el, 0, -changed2, before)
-      } else if (!(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior
+      } else if (!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior
           || !(Build.BTypes & ~BrowserType.Firefox) || el.scrollTo) {
         el.scrollTo(instantScOpt(di, before))
       } else {

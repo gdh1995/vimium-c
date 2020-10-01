@@ -396,7 +396,7 @@ export const instantScOpt = (di: number, amount: number): ScrollToOptions =>
 
 export const scrollWndBy_ = (di: ScrollByY, amount: number): void => {
   !(Build.BTypes & ~BrowserType.Firefox) ||
-  !(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
+  !(Build.BTypes & BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
   ElementProto().scrollBy ? scrollBy(instantScOpt(di, amount)) : scrollBy(di ? 0 : amount, di && amount)
 }
 
