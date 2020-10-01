@@ -1526,13 +1526,7 @@ function loadTerserConfig(reload) {
       a.format.beautify = true
       a.format.indent_level = 2
     }
-    if (outputES6) {
-      a.ecma = 6;
-      var c = a.compress || (a.compress = {});
-      c.hoist_vars = false;
-    } else {
-      a.ecma = 5;
-    }
+    a.ecma = outputES6 ? 6 : 5
   }
   if (gNoComments || !locally && getNonNullBuildItem("NDEBUG")) {
     a.format.comments = /^!/

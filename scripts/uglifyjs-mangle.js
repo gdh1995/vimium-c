@@ -18,6 +18,7 @@ require("./dependencies").patchTerser();
  * @typedef { import("terser").MinifyOptions } MinifyOptions
  * @typedef { import("terser").MinifyOutput } MinifyOutput
  * @typedef { import("../typings/base/terser").AST_Lambda } AST_Lambda
+ * @typedef { import("../typings/base/terser").AST_Function } AST_Function
  * @typedef { import("../typings/base/terser").AST_Toplevel } AST_Toplevel
  * @typedef { Map<string, { references: object[]; mangled_name: string | null }> } VariableMap
  * @typedef { {
@@ -32,11 +33,15 @@ let minify;
 let parse;
 /** @type { typeof import("../typings/base/terser").TreeWalker } */
 let TreeWalker
+/** @type { typeof import("../typings/base/terser").AST_Var } */
+let AST_Var
+/** @type { typeof import("../typings/base/terser").AST_SymbolVar } */
+let AST_SymbolVar
 const P = Promise.all([
   // @ts-ignore
   import("terser").then(i => minify = i.minify),
   import("terser/lib/parse").then(i => parse = i.parse),
-  import("terser/lib/ast").then(i => TreeWalker = i.TreeWalker),
+  import("terser/lib/ast").then(i => { TreeWalker = i.TreeWalker; AST_Var = i.AST_Var; AST_SymbolVar = i.AST_SymbolVar }),
 ])
 
 /**
@@ -62,7 +67,7 @@ async function collectWords(text, options) {
     mangle: null, nameCache: null, format: { ast: true, code: false }
   })).ast.walk(new TreeWalker((node) => {
     switch (node.TYPE) {
-    case "Function": case "Lambda":
+    case "Accessor": case "Function": case "Arrow": case "Defun": case "Lambda":
       /** @type { AST_Lambda } */
       // @ts-ignore
       const closure = node;
@@ -228,9 +233,14 @@ function findTooShort(names, minAllowedLength) {
 async function myMinify(files, options) {
   await P
   const sources = typeof files === "object" ? files instanceof Array ? files : Object.values(files) : [files];
-  const ast = sources.length === 1 ? parse(sources[0], options && options.parse) : sources.join("\n");
+  let ast = sources.length === 1 ? parse(sources[0], options && options.parse) : sources.join("\n")
   /** @type { (() => void) | null | undefined } */
   let disposeNameMangler;
+  const isES6 = options && options.ecma && options.ecma >= 6;
+  if (isES6) {
+    ast = typeof ast !== "string" ? ast : parse(ast, options && options.parse)
+    replaceLets(ast)
+  }
   if (options && options.mangle) {
     const { namesToMangle: names, namesCount: countsMap} = await collectWords(ast, options);
     if (names.length > 0) {
@@ -301,6 +311,35 @@ async function myMinify(files, options) {
     }
   }
   return minified
+}
+
+/**
+ * @param { AST_Toplevel } ast
+ */
+function replaceLets(ast) {
+  ast.walk(new TreeWalker(node => {
+    switch (node.TYPE) {
+    case "Accessor": case "Function": case "Arrow": case "Defun": case "Lambda":
+      /** @type { AST_Function | AST_Lambda } */
+      // @ts-ignore
+      const func = node
+      const nodes = func.body.filter(i => i.TYPE === "Let" || i.TYPE === "Const")
+      /** @type { Array<import("../typings/base/terser").AST_Let> } */
+      // @ts-ignore
+      const es6Vars = nodes
+      for (const var1 of es6Vars) {
+        for (const { name } of var1.definitions) {
+          if (name.TYPE === "SymbolConst" || name.TYPE === "SymbolLet") {
+            Object.setPrototypeOf(name, AST_SymbolVar.prototype)
+          }
+        }
+        if (!var1.definitions.some(def => def.name.TYPE === "Destructuring")) {
+          Object.setPrototypeOf(var1, AST_Var.prototype)
+        }
+      }
+    }
+    return false
+  }))
 }
 
 /**

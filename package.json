@@ -5,8 +5,8 @@
   "private": true,
   "dependencies": {
     "pngjs": "^5.0.0",
-    "terser": "^5.2.1",
-    "typescript": ">=4.0.0"
+    "terser": "^5.3.3",
+    "typescript": "^4.0.0"
   },
   "devDependencies": {
     "bl": ">=2.2.1",
@@ -61,6 +61,7 @@
     "latest-edge": "bash -c \"BUILD_MinCVer=53 BUILD_BTypes=4 LOCAL_DIST=${LOCAL_DIST:-dist} BUILD_NDEBUG=0 gulp local2\"",
     "chrome": "bash -c \"BUILD_MinCVer=43 BUILD_BTypes=1 NEED_COMMIT=1 gulp dist && IN_DIST=1 ./scripts/make.sh\"",
     "csize": "bash -c \"BUILD_MinCVer=${BUILD_MinCVer:-43} BUILD_BTypes=${BUILD_BTypes:-1} gulp size/content\"",
+    "fsize": "bash -c \"BUILD_MinFFVer=${BUILD_MinFFVer:-63} BUILD_BTypes=${BUILD_BTypes:-2} gulp size/content\"",
     "chrome-latest": "bash -c \"BUILD_MinCVer=77 BUILD_BTypes=1 gulp dist\"",
     "chrome-legacy": "bash -c \"BUILD_MinCVer=32 BUILD_BTypes=1 gulp dist\"",
     "chromium": "npm run chrome",

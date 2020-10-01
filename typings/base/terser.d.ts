@@ -108,6 +108,34 @@ declare class AST_Arrow extends AST_Lambda {
     constructor(props?: object);
 }
 
+declare class AST_Definitions extends AST_Statement {
+    constructor(props?: object);
+    definitions: AST_VarDef[];
+}
+
+declare class AST_Var extends AST_Definitions {
+    constructor(props?: object);
+}
+
+declare class AST_Let extends AST_Definitions {
+    constructor(props?: object);
+}
+
+declare class AST_Const extends AST_Definitions {
+    constructor(props?: object);
+}
+
+declare class AST_Destructuring extends AST_Node {
+    constructor(props?: object);
+    names: AST_Node[];
+    is_array: boolean;
+}
+declare class AST_VarDef extends AST_Node {
+    constructor(props?: object);
+    name: AST_Destructuring | AST_SymbolConst | AST_SymbolLet | AST_SymbolVar;
+    value: AST_Node | null;
+}
+
 declare class AST_PropAccess extends AST_Node {
     constructor(props?: object);
     expression: AST_Node;
@@ -141,6 +169,21 @@ declare class AST_SymbolDeclaration extends AST_Symbol {
     init: AST_Node | null;
 }
 
+declare class AST_SymbolVar extends AST_SymbolDeclaration {
+    constructor(props?: object);
+}
+
+declare class AST_SymbolBlockDeclaration extends AST_SymbolDeclaration {
+    constructor(props?: object);
+}
+
+declare class AST_SymbolConst extends AST_SymbolBlockDeclaration {
+    constructor(props?: object);
+}
+
+declare class AST_SymbolLet extends AST_SymbolBlockDeclaration {
+    constructor(props?: object);
+}
 declare class AST_SymbolRef extends AST_Symbol {
     constructor(props?: object);
 }
