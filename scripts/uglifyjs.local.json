@@ -1,5 +1,5 @@
 {
-  "output": {
+  "format": {
     "ascii_only": true, // if `false` by default, '\xa0' is replaced with '\xc2\xa0', which is wrong
     "beautify": true,
     "braces": true,

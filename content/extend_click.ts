@@ -202,16 +202,10 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
         || '"use strict";(' + (function VC(this: void): void {
 
 function verifier(maybeSecret: string, maybeVerifierB?: InnerVerifier): ReturnType<InnerVerifier> {
-  if (maybeSecret === GlobalConsts.MarkAcrossJSWorlds
-      && noAbnormalVerifyingFound) {
-    if (!maybeVerifierB) {
-      return [myAEL, myToStr];
-    } else {
-      [anotherAEL, anotherToStr] = maybeVerifierB(decryptFromVerifier(maybeVerifierB))!;
-    }
-  } else {
-    noAbnormalVerifyingFound = 0;
-  }
+  return maybeSecret === GlobalConsts.MarkAcrossJSWorlds && noAbnormalVerifyingFound
+      ? !maybeVerifierB ? [myAEL, myToStr]
+        : ([anotherAEL, anotherToStr] = maybeVerifierB(decryptFromVerifier(maybeVerifierB))!, 0 as never as void)
+      : (noAbnormalVerifyingFound = 0) as never as void
 }
 type FUNC = (this: unknown, ...args: never[]) => unknown;
 const doc0 = document, curScript = doc0.currentScript as HTMLScriptElement,
@@ -249,13 +243,13 @@ rEL = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$addEve
 kVOnClick = InnerConsts.kVOnClick,
 kEventName2 = kVOnClick + BuildStr.RandomClick,
 kReady = "readystatechange", kFunc = "function",
-StringIndexOf = kReady.indexOf, StringSubstr = kReady.substr,
-decryptFromVerifier = (func: InnerVerifier | unknown): string => {
+StringIndexOf = kReady.indexOf, StringSubstr = kReady.substr
+function decryptFromVerifier (func: InnerVerifier | unknown): string {
   const str = call(_toString, func as InnerVerifier), offset = call(StringIndexOf, str, kMarkToVerify);
   return call(StringSubstr, str, offset
       , GlobalConsts.LengthOfMarkAcrossJSWorlds + GlobalConsts.SecretStringLength);
-},
-newFuncToString = function (a: FUNC, args: IArguments): string {
+}
+function newFuncToString (a: FUNC, args: IArguments): string {
     const replaced = a === myAEL || a === anotherAEL ? _listen
         : a === myToStr || a === anotherToStr ? _toString
         : 0,
@@ -270,8 +264,8 @@ newFuncToString = function (a: FUNC, args: IArguments): string {
           a === anotherAEL ? call(_toString, _listen) : a === anotherToStr ? call(_toString, _toString)
           : (noAbnormalVerifyingFound = 0, str)
         );
-},
-hooks = {
+}
+const hooks = {
   // the code below must include direct reference to at least one property in `hooks`
   // so that uglifyJS / terse won't remove the `hooks` variable
   /** Create */ c: doc0.createElement,
@@ -305,7 +299,6 @@ hooks = {
     // returns void: https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/events/event_target.idl
   }
 },
-noop = (): 1 => 1,
 myAEL = hooks[kAEL], myToStr = hooks[kToS];
 
 let doInit = function (this: void): void {
@@ -345,11 +338,11 @@ docChildren: Document["children"] | ((index: number) => Element | null) = doc0.c
 unsafeDispatchCounter = 0,
 allNodesInDocument = null as HTMLCollectionOf<Element> | null,
 allNodesForDetached = null as HTMLCollectionOf<Element> | null,
-isReRegistering: BOOL | boolean = 0,
+isReRegistering: BOOL | boolean = 0
 // To avoid a host script detect Vimum C by code like:
 // ` a1 = setTimeout(()=>{}); $0.addEventListener('click', ()=>{}); a2=setTimeout(()=>{}); [a1, a2] `
-delayToStartIteration = (): void => { setTimeout_(next, GlobalConsts.ExtendClick_DelayToStartIteration); },
-next = function (): void {
+function delayToStartIteration(): void { setTimeout_(next, GlobalConsts.ExtendClick_DelayToStartIteration) }
+function next(): void {
   const len = toRegister.length,
   start = len > (Build.NDEBUG ? InnerConsts.MaxElementsInOneTickRelease : InnerConsts.MaxElementsInOneTickDebug)
     ? len - (Build.NDEBUG ? InnerConsts.MaxElementsInOneTickRelease : InnerConsts.MaxElementsInOneTickDebug) : 0,
@@ -365,7 +358,7 @@ next = function (): void {
   doRegister(0);
   allNodesInDocument = allNodesForDetached = null;
 }
-, root: HTMLDivElement, timer = setTimeout_(doInit, InnerConsts.DelayToWaitDomReady)
+let root: HTMLDivElement, timer = setTimeout_(doInit, InnerConsts.DelayToWaitDomReady)
 , queueMicroTask_: (callback: () => void) => void =
     !(Build.BTypes & ~BrowserType.ChromeOrFirefox) && Build.MinCVer >= BrowserVer.Min$queueMicrotask
     ? queueMicrotask : Build.BTypes & ~BrowserType.Edge ? (window as any).queueMicrotask : 0 as unknown as any
@@ -518,6 +511,7 @@ function executeCmd(eventOrDestroy?: Event): void {
   clearTimeout1(timer);
   timer = 1;
 }
+function noop(): 1 { return 1 }
 
 toRegister.s = toRegister.splice;
 // only the below can affect outsides

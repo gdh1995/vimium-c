@@ -12,7 +12,7 @@ var {
   getGitCommit, extendIf, readJSON, readFile,
   touchFileIfNeeded, patchTSNamespace,
   patchExtendClick: _patchExtendClick,
-  loadUglifyConfig: _loadUglifyConfig,
+  loadTerserConfig: _loadTerserConfig,
   logFileSize, addMetaData, inlineAllSetters, patchTerser,
 } = require("./scripts/dependencies");
 
@@ -23,7 +23,6 @@ Object.assign(BrowserType, {
   Edge: 4
 });
 
-const LIB_TERSER = 'terser';
 var DEST, willListFiles, willListEmittedFiles, JSDEST;
 var locally = false;
 var debugging = process.env.DEBUG === "1";
@@ -32,12 +31,11 @@ var gTypescript = null, tsOptionsCleaned = false;
 var buildConfig = null;
 var cacheNames = process.env.ENABLE_NAME_CACHE !== "0";
 var needCommitInfo = process.env.NEED_COMMIT === "1";
-var envSourceMap = process.env.ENABLE_SOURCE_MAP === "1";
 var doesMergeProjects = process.env.MERGE_TS_PROJECTS !== "0";
-var doesUglifyLocalFiles = process.env.UGLIFY_LOCAL !== "0";
-var FORCED_NO_UGLIFY = process.env.FORCED_NO_UGLIFY === "1";
+var doesMinifyLocalFiles = process.env.MINIFY_LOCAL !== "0";
+var FORCED_NO_MINIFY = process.env.FORCED_NO_MINIFY === "1";
 var LOCAL_SILENT = process.env.LOCAL_SILENT === "1";
-var uglifyDistPasses = +process.env.UGLIFY_DIST_PASSES || 2;
+var minifyDistPasses = +process.env.MINIFY_DIST_PASSES || 2;
 var gNoComments = process.env.NO_COMMENT === "1";
 var disableErrors = process.env.SHOW_ERRORS !== "1" && (process.env.SHOW_ERRORS === "0" || !compileInBatch);
 var ignoreHeaderChanges = process.env.IGNORE_HEADER_CHANGES !== "0";
@@ -54,8 +52,7 @@ createBuildConfigCache();
 var has_polyfill = !!(getBuildItem("BTypes") & BrowserType.Chrome)
     && getBuildItem("MinCVer") < 43 /* MinSafe$String$$StartsWith */;
 var may_have_newtab = getNonNullBuildItem("MayOverrideNewTab") > 0;
-var uglify_viewer = false;
-uglify_viewer = !(getBuildItem("BTypes") & BrowserType.Chrome)
+var minify_viewer = !(getBuildItem("BTypes") & BrowserType.Chrome)
     || getBuildItem("MinCVer") >= /* MinTestedES6Environment */ 49;
 const POLYFILL_FILE = "lib/polyfill.ts", NEWTAB_FILE = "pages/newtab.ts";
 const VIEWER_JS = "lib/viewer.min.js";
@@ -91,26 +88,26 @@ var Tasks = {
   "build/pages": ["build/options", "build/show", "build/others"],
   "static/special": function() {
     const path = ["lib/*.min.js", "lib/*.min.css"];
-    uglify_viewer && path.push("!" + VIEWER_JS);
+    minify_viewer && path.push("!" + VIEWER_JS)
     return copyByPath(path);
   },
-  "static/uglify-js": function() {
+  "static/minify-js": function() {
     const path = ["lib/math_parser*.js"];
-    uglify_viewer && path.push(VIEWER_JS);
-    if (!getNonNullBuildItem("NDEBUG")) {
+    minify_viewer && path.push(VIEWER_JS)
+    if (!getNonNullBuildItem("NDEBUG") || FORCED_NO_MINIFY) {
       return copyByPath(path);
     }
-    return uglifyJSFiles(path, ".", "", { base: "." });
+    return minifyJSFiles(path, ".", "", { base: "." });
   },
   "static/json": function() {
     const path = ["_locales/*/messages.json", "settings-template.json"];
     if (getBuildItem("BTypes") === BrowserType.Firefox) {
       path.push("!_locales/*_*/**")
     }
-    if (!getNonNullBuildItem("NDEBUG")) {
+    if (!getNonNullBuildItem("NDEBUG") || FORCED_NO_MINIFY) {
       return copyByPath(path);
     }
-    return uglifyJSFiles(path, ".", "", { base: ".", json: true });
+    return minifyJSFiles(path, ".", "", { base: ".", json: true })
   },
   "png2bin": function(cb) {
     const p2b = require("./scripts/icons-to-blob");
@@ -120,7 +117,7 @@ var Tasks = {
   },
   "minify-css": function() {
     const path = ["pages/*.css"];
-    if (!getNonNullBuildItem("NDEBUG")) { return copyByPath(path); }
+    if (!getNonNullBuildItem("NDEBUG") || FORCED_NO_MINIFY) { return copyByPath(path) }
     const CleanCSS = require("clean-css"), clean_css = new CleanCSS();
     return copyByPath(path, function(file) {
       file.contents = ToBuffer(clean_css.minify(ToString(file.contents)).styles);
@@ -129,17 +126,17 @@ var Tasks = {
   "minify-html": function() {
     const arr = ["front/*.html", "pages/*.html", "!*/vomnibar.html"];
     may_have_newtab || arr.push("!" + NEWTAB_FILE.replace(".ts", ".*"));
-    if (!getNonNullBuildItem("NDEBUG")) { return copyByPath(arr); }
+    if (!getNonNullBuildItem("NDEBUG") || FORCED_NO_MINIFY) { return copyByPath(arr) }
     return copyByPath(arr, file => file.contents = ToBuffer(require('html-minifier').minify(ToString(file.contents), {
       collapseWhitespace: true,
       minifyCSS: true,
       maxLineLength: 4096
     })))
   },
-  "static/uglify": function(cb) {
-    gulp.parallel("static/uglify-js", "static/json", "minify-css", "minify-html")(cb);
+  "static/minify": function(cb) {
+    gulp.parallel("static/minify-js", "static/json", "minify-css", "minify-html")(cb)
   },
-  static: ["static/special", "static/uglify", function() {
+  static: ["static/special", "static/minify", function() {
     var arr = ["front/*", "pages/*", "icons/*", "lib/*"
       , "*.txt", "*.md", "!**/[a-ln-z.]*.json", "!**/*.bin"
       , "!**/*.min.*"
@@ -157,7 +154,7 @@ var Tasks = {
     may_have_newtab || arr.push("!" + NEWTAB_FILE.replace(".ts", ".*"));
     var btypes = getBuildItem("BTypes");
     btypes & BrowserType.Chrome || arr.push("!" + FILE_URLS_CSS);
-    uglify_viewer && arr.push("!" + VIEWER_JS);
+    minify_viewer && arr.push("!" + VIEWER_JS)
     var has_wordsRe = btypes & ~BrowserType.Firefox
             && getBuildItem("MinCVer") <
                 59 /* min(MinSelExtendForwardOnlySkipWhitespaces, MinEnsuredUnicodePropertyEscapesInRegExp) */
@@ -185,7 +182,7 @@ var Tasks = {
   "build/_all": ["build/scripts", "build/options", "build/show"],
   "build/ts": function(cb) {
     var btypes = getBuildItem("BTypes");
-    var curConfig = [btypes, getBuildItem("MinCVer"), envSourceMap, compilerOptions.target
+    var curConfig = [btypes, getBuildItem("MinCVer"), compilerOptions.target
           , /** 4 */ needCommitInfo && !onlyTestSize ? getBuildItem("Commit") : 0];
     var configFile = btypes === BrowserType.Chrome ? "chrome"
           : btypes === BrowserType.Firefox ? "firefox" : "browser-" + btypes;
@@ -201,7 +198,7 @@ var Tasks = {
     var needClean = true;
     try {
       var oldConfig = readJSON(configFile);
-      if (onlyTestSize) { oldConfig[4] = 0; }
+      if (onlyTestSize) { oldConfig[3] = 0; }
       oldConfig = JSON.stringify(oldConfig);
       needClean = oldConfig !== curConfig;
     } catch (e) {}
@@ -237,7 +234,7 @@ var Tasks = {
       [sources.slice(0), cs.js[0], null], [rest, ".", ""]
     ];
     if (onlyTestSize) { debugging = 1; maps.length = 1 }
-    checkJSAndUglifyAll(0, maps, "min/content", exArgs, (err) => {
+    checkJSAndMinifyAll(0, maps, "min/content", exArgs, (err) => {
       if (!err) {
         logFileSize(DEST + "/" + cs.js[0], logger);
       }
@@ -249,10 +246,10 @@ var Tasks = {
       return cb();
     }
     var exArgs = { nameCache: { vars: {}, props: {}, timestamp: 0 } };
-    var config = loadUglifyConfig(!!exArgs.nameCache);
+    var config = loadTerserConfig(!!exArgs.nameCache)
     config.nameCache = exArgs.nameCache;
     patchTerser()
-    require(LIB_TERSER).minify("var " + KnownBackendGlobals.join(" = {},\n") + " = {};", config);
+    require("terser").minify("var " + KnownBackendGlobals.join(" = {},\n") + " = {};", config)
 
     var sources = manifest.background.scripts;
     sources = ("\n" + sources.join("\n")).replace(/\n\//g, "\n").trim().split("\n");
@@ -271,7 +268,7 @@ var Tasks = {
       [rest, ".", ""]
     ];
     manifest.background.scripts = sources;
-    checkJSAndUglifyAll(1, maps, "min/bg", exArgs, cb);
+    checkJSAndMinifyAll(1, maps, "min/bg", exArgs, cb)
   }],
   "min/others": ["min/bg", function(cb) {
     if (jsmin_status[2]) {
@@ -299,14 +296,14 @@ var Tasks = {
           props[key] = vars[key];
         }
       }
-      if (KnownBackendGlobals.length > 0 && loadUglifyConfig(false).mangle) {
+      if (KnownBackendGlobals.length > 0 && loadTerserConfig(false).mangle) {
         throw new Error('Some global variable are not found: ' + KnownBackendGlobals.join(", "));
       }
     }
     gulp.task("min/others/omni", function() {
       var props = exArgs.nameCache.props && exArgs.nameCache.props.props || null;
       props = props && {};
-      return uglifyJSFiles(["front/vomnibar*.js"], ".", "", {
+      return minifyJSFiles(["front/vomnibar*.js"], ".", "", {
         passAll: null,
         nameCache: exArgs.nameCache && {
           vars: deepcopy(exArgs.nameCache.vars),
@@ -316,7 +313,7 @@ var Tasks = {
     });
     gulp.task("min/others/options", function() {
       exArgs.passAll = null;
-      return uglifyJSFiles(["pages/options_base.js", "pages/options.js"
+      return minifyJSFiles(["pages/options_base.js", "pages/options.js"
       , "pages/options_ext.js", "pages/options_checker.js"]
           , ".", "", deepcopy(exArgs));
     });
@@ -335,7 +332,7 @@ var Tasks = {
         }
       }
       exArgs.passAll = false;
-      return uglifyJSFiles(res, ".", "", deepcopy(exArgs));
+      return minifyJSFiles(res, ".", "", deepcopy(exArgs))
     });
     gulp.parallel("min/others/omni", "min/others/options", "min/others/misc")(function() {
       jsmin_status[2] = true;
@@ -554,7 +551,7 @@ gulp.task("locally", function(done) {
   if (may_have_newtab != old_has_newtab) {
     CompileTasks.front[0][4] = may_have_newtab ? NEWTAB_FILE : "!" + NEWTAB_FILE;
   }
-  uglify_viewer = !(getBuildItem("BTypes") & BrowserType.Chrome)
+  minify_viewer = !(getBuildItem("BTypes") & BrowserType.Chrome)
       || getBuildItem("MinCVer") >= /* MinTestedES6Environment */ 49;
   if (!has_dialog_ui) {
     let i = CompileTasks.others[0].indexOf("!*/dialog_ui.*");
@@ -714,12 +711,12 @@ function compile(pathOrStream, header_files, done, options) {
 
 function outputJSResult(stream) {
   if (locally) {
-    stream = stream.pipe(gulpMap(beforeUglify));
-    if (doesUglifyLocalFiles) {
-      var config = loadUglifyConfig();
+    stream = stream.pipe(gulpMap(beforeTerser))
+    if (doesMinifyLocalFiles) {
+      var config = loadTerserConfig()
       stream = stream.pipe(getGulpTerser()(config));
     }
-    stream = stream.pipe(gulpMap(postUglify));
+    stream = stream.pipe(gulpMap(postTerser))
   }
   stream = stream.pipe(gulpChanged(JSDEST, {
     hasChanged: compareContentAndTouch
@@ -730,7 +727,7 @@ function outputJSResult(stream) {
   return stream.pipe(gulp.dest(JSDEST));
 }
 
-function checkJSAndUglifyAll(taskOrder, maps, key, exArgs, cb) {
+function checkJSAndMinifyAll(taskOrder, maps, key, exArgs, cb) {
   Promise.all(maps.map(function(i) {
     if (debugging) { return true; }
     var is_file = i[1] && i[1] !== ".";
@@ -762,7 +759,7 @@ function checkJSAndUglifyAll(taskOrder, maps, key, exArgs, cb) {
           if (exArgs.aggressiveMangle) {
             exArgs.aggressiveMangle = false;
           }
-          return uglifyJSFiles(map[0], map[1], map[2], newExArgs);
+          return minifyJSFiles(map[0], map[1], map[2], newExArgs)
       });
     }
     gulp.series(...tasks)(function(err) {
@@ -773,7 +770,7 @@ function checkJSAndUglifyAll(taskOrder, maps, key, exArgs, cb) {
   });
 }
 
-function uglifyJSFiles(path, output, new_suffix, exArgs) {
+function minifyJSFiles(path, output, new_suffix, exArgs) {
   exArgs || (exArgs = {});
   const base = exArgs.base || JSDEST;
   path = formatPath(path, base);
@@ -826,18 +823,18 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
     stream = stream.pipe(require('gulp-concat')(output));
   }
   var nameCache = exArgs.nameCache;
-  var stdConfig = loadUglifyConfig(!!nameCache);
+  var stdConfig = loadTerserConfig(!!nameCache)
   if (nameCache) {
     stdConfig.nameCache = nameCache;
   }
   if (!isJson) {
-    stream = stream.pipe(gulpMap(beforeUglify));
+    stream = stream.pipe(gulpMap(beforeTerser))
   }
   const config = stdConfig;
   if (isJson) {
-    stream = stream.pipe(gulpMap(uglifyJson));
-  } else if (uglifyDistPasses > 0) {
-    stream = stream.pipe(getGulpTerser(!!(exArgs.aggressiveMangle && config.mangle), uglifyDistPasses)(config));
+    stream = stream.pipe(gulpMap(minifyJson))
+  } else if (minifyDistPasses > 0) {
+    stream = stream.pipe(getGulpTerser(!!(exArgs.aggressiveMangle && config.mangle), minifyDistPasses)(config))
     if (exArgs.aggressiveMangle) {
       exArgs.aggressiveMangle = false;
     }
@@ -847,7 +844,7 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
   }
   if (!isJson) {
     stream = stream.pipe(gulpMap(function(file) {
-      postUglify(file, allPaths);
+      postTerser(file, allPaths)
     }));
   }
   if (willListEmittedFiles && !is_file) {
@@ -916,7 +913,7 @@ function beforeCompile(file) {
 
 var toRemovedGlobal = null;
 
-function beforeUglify(file) {
+function beforeTerser(file) {
   var allPathStr = file.history.join("|").replace(/\\/g, "/");
   var contents = null, changed = false, oldLen = 0;
   function get() { contents == null && (contents = ToString(file.contents), changed = true, oldLen = contents.length); }
@@ -988,7 +985,7 @@ function beforeUglify(file) {
   }
 }
 
-function postUglify(file, allPaths) {
+function postTerser(file, allPaths) {
   var allPathStr = (allPaths || file.history).join("|").replace(/\\/g, "/");
   var contents = null, changed = false, oldLen = 0;
   function get() { contents == null && (contents = ToString(file.contents), changed = true, oldLen = contents.length); }
@@ -1005,7 +1002,7 @@ function postUglify(file, allPaths) {
   }
 }
 
-function uglifyJson(file) {
+function minifyJson(file) {
   var contents = ToString(file.contents), oldLen = contents.length;
   var data = JSON.parse(contents);
   contents = JSON.stringify(data);
@@ -1478,31 +1475,31 @@ function patchExtendClick(source) {
 function getGulpTerser(aggressiveMangle, unique_passes) {
   patchTerser()
   var aggressive = aggressiveMangle && require("./scripts/uglifyjs-mangle")
-  var uglify = require(LIB_TERSER);
+  var terser = require("terser")
   const passes = unique_passes && unique_passes > 1 ? unique_passes : 0
   if (passes) {
-    var multipleUglify = {
+    var multipleMinify = {
       minify: async function (files, config) {
-        let firstOut = await (aggressive || uglify).minify(files, { ...config,
+        let firstOut = await (aggressive || terser).minify(files, { ...config,
           mangle: aggressive ? config.mangle : null,
-          output: { ...config.output, comments: /^[!@#]/, preserve_annotations: true,
+          format: { ...config.format, comments: /^[!@#]/, preserve_annotations: true,
               ast: !aggressive, code: !!aggressive },
         }), ast = aggressive ? firstOut.code : firstOut.ast;
         if (firstOut.error) { return firstOut; }
         for (let i = 1; i < unique_passes - 1; i++) {
-          ast = (await uglify.minify(ast, { ...config,
-            output: { ...config.output, comments: /^[!@#]/, preserve_annotations: true, ast: true, code: false },
+          ast = (await terser.minify(ast, { ...config,
+            format: { ...config.format, comments: /^[!@#]/, preserve_annotations: true, ast: true, code: false },
             mangle: null,
           })).ast
         }
-        return await uglify.minify(ast, { ...config, mangle: aggressive ? null : config.mangle,
-          output: { ...config.output, comments: gNoComments ? false : /^!/,
+        return await terser.minify(ast, { ...config, mangle: aggressive ? null : config.mangle,
+          format: { ...config.format, comments: gNoComments ? false : /^!/,
             preserve_annotations: false, ast: false, code: true },
         })
       }
     }
   }
-  const minifier = passes ? multipleUglify : aggressive || uglify
+  const minifier = passes ? multipleMinify : aggressive || terser
   return terserOptions => {
     return gulpMap(function (file, done) {
       const stream = this;
@@ -1514,20 +1511,20 @@ function getGulpTerser(aggressiveMangle, unique_passes) {
         stream.push(file);
         done();
       }, err => {
-        stream.emit('error', new Error("Terser: " + err));
+        stream.emit('error', err)
         done();
       });
     }, true);
   }
 }
 
-function loadUglifyConfig(reload) {
-  var a = _loadUglifyConfig(locally ? "scripts/uglifyjs.local.json" : "scripts/uglifyjs.dist.json", reload);
+function loadTerserConfig(reload) {
+  var a = _loadTerserConfig(locally ? "scripts/uglifyjs.local.json" : "scripts/uglifyjs.dist.json", reload);
   {
-    if (FORCED_NO_UGLIFY || !getNonNullBuildItem("NDEBUG")) {
+    if (FORCED_NO_MINIFY || !getNonNullBuildItem("NDEBUG")) {
       a.mangle = false;
-      a.output.beautify = true;
-      a.output.indent_level = 2;
+      a.format.beautify = true
+      a.format.indent_level = 2
     }
     if (outputES6) {
       a.ecma = 6;
@@ -1538,7 +1535,7 @@ function loadUglifyConfig(reload) {
     }
   }
   if (gNoComments || !locally && getNonNullBuildItem("NDEBUG")) {
-    a.output.comments = /^!/;
+    a.format.comments = /^!/
   }
   return a;
 }

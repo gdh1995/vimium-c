@@ -30,7 +30,7 @@ export class TreeTransformer extends TreeWalker {
 }
 
 export async function minify(files: string | string[] | { [file: string]: string } | AST_Toplevel
-    , options?: MinifyOptions & { output: {ast: boolean, code: boolean} }
+    , options?: MinifyOptions & { format: {ast: boolean, code: boolean} }
     ): Promise<MinifyOutput & { ast: AST_Node }>;
 
 export class AST_Node {

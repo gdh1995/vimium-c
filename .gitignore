@@ -25,7 +25,7 @@ node_modules*
 test.*
 !/tests/**
 todo*
-!Gulpfile.js
+!gulpfile.js
 !tsc.js
 !/lib/math_parser.js
 !/lib/viewer.min.js

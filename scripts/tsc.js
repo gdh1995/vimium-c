@@ -75,8 +75,7 @@ if (!_tscPatched) {
 
 // ==================== customized building ====================
 
-var doesUglifyLocalFiles = process.env.UGLIFY_LOCAL !== "0";
-var LIB_UGLIFY_JS = 'terser';
+var doesMinifyLocalFiles = process.env.MINIFY_LOCAL !== "0";
 
 var real_proc_exit = process.exit;
 process.exit = function(){};
@@ -101,8 +100,8 @@ var writeFile = function(path, data, writeBom) {
   PROMISES.push((async function () {
   try {
   if (!skip && cache[path] !== data) {
-    if (doesUglifyLocalFiles && isJS) {
-      data = await getUglifyJS()(data);
+    if (doesMinifyLocalFiles && isJS) {
+      data = await getTerser()(data);
       if (path.indexOf("extend_click.") >= 0) {
         var patched = lib.patchExtendClick(data, true);
         data = typeof patched === "string" ? patched : patched[0] + patched[1] + patched[2];
@@ -127,20 +126,20 @@ var writeFile = function(path, data, writeBom) {
 };
 
 /** @type {import("./dependencies").TerserOptions | null} */
-var defaultUglifyConfig = null;
-var getUglifyJS = function() {
-  var uglify;
+var defaultTerserConfig = null;
+var getTerser = function() {
+  var terser;
   try {
-    uglify = require(LIB_UGLIFY_JS);
+    terser = require("terser")
   } catch (e) {}
   var minify;
-  if (uglify == null) {
-    console.log("Can not load " + LIB_UGLIFY_JS + ", so skip uglifying");
+  if (terser == null) {
+    console.log("Can not load terser, so skip minifying JS")
     minify = function(data) { return Promise.resolve(data); };
   } else {
     minify = function(data, config) {
-      config || (config = getDefaultUglifyConfig());
-      var output = uglify.minify(data, config);
+      config || (config = getDefaultTerserConfig());
+      var output = terser.minify(data, config);
       return (output instanceof Promise ? output.then(function (output) {
         if (output.error) {
           throw output.error;
@@ -157,22 +156,22 @@ var getUglifyJS = function() {
       });
     };
   }
-  getUglifyJS = function() { return minify; };
+  getTerser = function() { return minify; };
   return minify;
 };
 
-function getDefaultUglifyConfig() {
-  if (!defaultUglifyConfig) {
-    defaultUglifyConfig = lib.loadUglifyConfig(root + "scripts/uglifyjs.local.json");
+function getDefaultTerserConfig() {
+  if (!defaultTerserConfig) {
+    defaultTerserConfig = lib.loadTerserConfig(root + "scripts/uglifyjs.local.json");
     var tsconfig = lib.readJSON(root + "tsconfig.json");
     var target = tsconfig.compilerOptions.target;
-    defaultUglifyConfig.ecma = ({
+    defaultTerserConfig.ecma = ({
       es5: 5, es6: 6, es2015: 6, es2017: 2017, es2018: 2018
-    })[target] || defaultUglifyConfig.ecma
-    var out = defaultUglifyConfig.output || (defaultUglifyConfig.output = {});
-    out.code = true; out.ast = false;
+    })[target] || defaultTerserConfig.ecma
+    var format = defaultTerserConfig.format || (defaultTerserConfig.format = {})
+    format.code = true; format.ast = false
   }
-  return defaultUglifyConfig;
+  return defaultTerserConfig;
 }
 
 /** @type { 0 | 1 | 2 | null } */

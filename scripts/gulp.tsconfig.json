@@ -4,7 +4,6 @@
     "listFiles": false,
     "outDir": ".",
     "skipLibCheck": true,
-    "sourceMap": true,
     "target": "es5",
     "typeRoots": ["typings"],
     "typescript": "typescript/lib/typescript"

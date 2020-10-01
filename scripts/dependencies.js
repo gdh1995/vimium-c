@@ -34,7 +34,7 @@
  * } } FileSystem
  * 
  * @typedef { {
- *    compress: any; output: any; mangle: any; ecma?: 5 | 2015 | 2016 | 2017 | 2018;
+ *    compress: any; format: any; mangle: any; ecma?: 5 | 2015 | 2016 | 2017 | 2018;
  * } } TerserOptions
  */
 /** @type {FileSystem} */
@@ -149,22 +149,22 @@ function _makeJSONReader() {
   _readJSON = readJSON1;
 }
 
-var _uglifyjsConfig = null, _configWarningLogged = false;
+var _terserConfig = null, _configWarningLogged = false;
 
 /**
- * Load configuration of UglifyJS or terser
+ * Load configuration of terser
  * @param {string} path - file path
  * @param {boolean} [reload] - force to reload or return the cache if possible
  * @returns {TerserOptions} parsed configuration object
  */
-function loadUglifyConfig(path, reload) {
-  var a = _uglifyjsConfig;
+function loadTerserConfig(path, reload) {
+  var a = _terserConfig;
   if (a == null || reload) {
     a = readJSON(path);
     if (!reload) {
-      _uglifyjsConfig = a;
+      _terserConfig = a;
     }
-    var o = a.output || (a.output = {});
+    var f = a.format || (a.format = {});
     var c = a.compress || (a.compress = {}); // gd = c.global_defs || (c.global_defs = {});
     function ToRegExp(literal) {
       var re = literal.match(/^\/(.*)\/([a-z]*)$/);
@@ -183,9 +183,9 @@ function loadUglifyConfig(path, reload) {
     else if (m && !m.keep_fnames) {
       m.keep_fnames = c.keep_fnames;
     }
-    var comments = o.comments;
+    var comments = f.comments;
     if (comments && typeof comments === "string") {
-      o.comments = ToRegExp(comments);
+      f.comments = ToRegExp(comments);
     }
     patchTerser();
     var ver = "", terser = null;
@@ -491,7 +491,7 @@ function patchTerser() {
 module.exports = {
   readFile: readFile,
   readJSON: readJSON,
-  loadUglifyConfig: loadUglifyConfig,
+  loadTerserConfig: loadTerserConfig,
   touchFileIfNeeded: touchFileIfNeeded,
   compareFileTime: compareFileTime,
   extendIf: extendIf,

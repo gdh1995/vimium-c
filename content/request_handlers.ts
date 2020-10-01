@@ -39,7 +39,7 @@ export const enableNeedToRetryParentClickable = (): void => { needToRetryParentC
 
 set_requestHandlers([
   /* kBgReq.init: */ function (request: BgReq[kBgReq.init]): void {
-    const {c: load, s: flags} = request;
+    const load = request.c, flags = request.s
     if (Build.BTypes & BrowserType.Chrome) {
       /*#__INLINE__*/ set_chromeVer_(load.v as BrowserVer);
     }

@@ -28,7 +28,7 @@ export function set_keyIdCorrectionOffset_old_cr_ (_newKeyIdCorrectionOffset: 18
 
 /** only return lower-case long string */
 const _getKeyName = (event: Pick<KeyboardEvent, "key" | "keyCode" | "location">): kChar => {
-  let {keyCode: i} = event, s: string | undefined
+  let i = event.keyCode, s: string | undefined
   return i > kKeyCode.space - 1 && i < kKeyCode.minNotDelete
       ? i < kKeyCode.insert ? keyNames_[i - kKeyCode.space] : i > kKeyCode.insert ? DEL : kChar.insert
       : i < kKeyCode.minNotDelete || i === kKeyCode.osRightMac ? (i === kKeyCode.backspace ? BSP
@@ -71,7 +71,7 @@ const _getKeyCharUsingKeyIdentifier_old_cr = !(Build.BTypes & BrowserType.Chrome
 export const char_ = (eventWrapper: HandlerNS.Event): kChar => {
   let event: Pick<KeyboardEvent, "code" | "key" | "keyCode" | "keyIdentifier" | "location" | "shiftKey">
         = eventWrapper.e
-  let mapped: number | undefined, {key, shiftKey} = eventWrapper.e
+  let mapped: number | undefined, key = event.key, shiftKey = event.shiftKey
   if (Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.BTypes & BrowserType.Chrome && !key) {
     // since Browser.Min$KeyboardEvent$MayHave$$Key and before .MinEnsured$KeyboardEvent$$Key
     // event.key may be an empty string if some modifier keys are held on

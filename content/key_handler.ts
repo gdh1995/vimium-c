@@ -232,7 +232,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
 const onEscDown = (event: KeyboardEventToPrevent, key: kKeyCode
   ): HandlerResult.Default | HandlerResult.PassKey | HandlerResult.Prevent => {
   let action: HandlerResult.Default | HandlerResult.PassKey | HandlerResult.Prevent = HandlerResult.Prevent
-  let { repeat } = event
+  let repeat = event.repeat
   let activeEl = activeEl_unsafe_(), body = doc.body;
   /** if `notBody` then `activeEl` is not null */
   if (!repeat && removeSelection()) {
