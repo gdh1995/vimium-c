@@ -3485,8 +3485,21 @@
       } else {
         newPassedKeys = newPassedKeys && newPassedKeys.replace(<RegExpG> /<(\S+)>/g, "$1");
       }
-      const always_enabled = Exclusions == null || Exclusions.rules_.length <= 0, oldStatus = ref[0].s.s,
+      cPort = indexFrame(tabId, 0) || ref[0]
+      let pattern: string | null
+      const curSender = cPort.s,
+      always_enabled = Exclusions == null || Exclusions.rules_.length <= 0, oldStatus = curSender.s,
+      stdStatus = always_enabled ? Frames.Status.enabled : oldStatus === Frames.Status.partial ? oldStatus
+          : (pattern = Backend_.getExcluded_(curSender.u, curSender),
+              pattern ? Frames.Status.partial : pattern === null ? Frames.Status.disabled : Frames.Status.enabled),
       stat = act === "enable" ? Frames.Status.enabled : act === "disable" ? Frames.Status.disabled
+        : act === "toggle-disabled" ? oldStatus !== Frames.Status.disabled ? Frames.Status.disabled
+            : stdStatus === Frames.Status.disabled ? Frames.Status.enabled : null
+        : act === "toggle-enabled" ? oldStatus !== Frames.Status.enabled ? Frames.Status.enabled
+            : stdStatus === Frames.Status.enabled ? Frames.Status.disabled : null
+        : act === "toggle-next" ? oldStatus === Frames.Status.partial ? Frames.Status.enabled
+            : oldStatus === Frames.Status.enabled ? stdStatus === Frames.Status.disabled ? null : Frames.Status.disabled
+            : stdStatus === Frames.Status.disabled ? Frames.Status.enabled : null
         : act === "toggle" || act === "next"
         ? oldStatus !== Frames.Status.enabled ? Frames.Status.enabled : Frames.Status.disabled
         : null,
@@ -3496,17 +3509,16 @@
         p: stat !== Frames.Status.disabled ? null : newPassedKeys,
         f: locked
       };
-      cPort = indexFrame(tabId, 0) || ref[0];
       if (stat === null && tabId < 0) {
         silent || oldStatus !== Frames.Status.disabled && Backend_.showHUD_(trans_("unknownStatAction", [act]));
         return;
       }
-      let pattern: string | null, newStatus: Frames.ValidStatus = locked ? stat! : Frames.Status.enabled;
+      let newStatus: Frames.ValidStatus = locked ? stat! : Frames.Status.enabled;
       for (let i = ref.length; 1 <= --i; ) {
         const port = ref[i], sender = port.s;
         sender.f = locked ? sender.f | Frames.Flags.locked : sender.f & ~Frames.Flags.locked;
         if (unknown) {
-          pattern = msg.p = Backend_.getExcluded_(sender.u, sender);
+          let pattern = msg.p = Backend_.getExcluded_(sender.u, sender)
           newStatus = pattern === null ? Frames.Status.enabled : pattern
             ? Frames.Status.partial : Frames.Status.disabled;
           if (newStatus !== Frames.Status.partial && sender.s === newStatus) { continue; }
@@ -3519,7 +3531,7 @@
       silent || newStatus !== Frames.Status.disabled && Backend_.showHUD_(trans_("newStat", [
         trans_(newStatus === Frames.Status.enabled ? "fullEnabled" : "halfDisabled")
       ]));
-      if (needIcon && (newStatus = ref[0].s.s) !== oldStatus) {
+      if (needIcon && (newStatus = curSender.s) !== oldStatus) {
         Backend_.setIcon_(tabId, newStatus);
       }
     },

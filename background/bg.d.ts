@@ -124,6 +124,7 @@ declare namespace Urls {
 declare namespace Frames {
   type ValidStatus = Status.enabled | Status.partial | Status.disabled;
   type ForcedStatusText = "reset" | "enable" | "disable" | "toggle" | "next" | "reset silent" | "enable silent"
+      | "toggle-disabled" | "toggle-enabled" | "toggle-next"
       | "__ANY_CASE__";
 
   interface Sender {
