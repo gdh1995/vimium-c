@@ -3493,9 +3493,11 @@
           : (pattern = Backend_.getExcluded_(curSender.u, curSender),
               pattern ? Frames.Status.partial : pattern === null ? Frames.Status.disabled : Frames.Status.enabled),
       stat = act === "enable" ? Frames.Status.enabled : act === "disable" ? Frames.Status.disabled
-        : act === "toggle-disabled" ? oldStatus !== Frames.Status.disabled ? Frames.Status.disabled
+        : act === "toggle-disabled" ? oldStatus !== Frames.Status.disabled
+            ? stdStatus === Frames.Status.disabled ? null : Frames.Status.disabled
             : stdStatus === Frames.Status.disabled ? Frames.Status.enabled : null
-        : act === "toggle-enabled" ? oldStatus !== Frames.Status.enabled ? Frames.Status.enabled
+        : act === "toggle-enabled" ? oldStatus !== Frames.Status.enabled
+            ? stdStatus === Frames.Status.enabled ? null : Frames.Status.enabled
             : stdStatus === Frames.Status.enabled ? Frames.Status.disabled : null
         : act === "toggle-next" ? oldStatus === Frames.Status.partial ? Frames.Status.enabled
             : oldStatus === Frames.Status.enabled ? stdStatus === Frames.Status.disabled ? null : Frames.Status.disabled
