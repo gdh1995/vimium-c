@@ -349,10 +349,7 @@ function replaceLets(ast) {
             Object.setPrototypeOf(name, AST_SymbolVar.prototype)
           }
         }
-        // todo: this is to work around a bug of terser
-        if (!var1.definitions.some(def => def.name.TYPE === "Destructuring")) {
-          Object.setPrototypeOf(var1, AST_Var.prototype)
-        }
+        Object.setPrototypeOf(var1, AST_Var.prototype)
       }
     }
     return false
@@ -365,7 +362,12 @@ function replaceLets(ast) {
       /** @type { Map<string, boolean> }  */
       const names = new Map()
       for (let def of es6Var.definitions) {
-        if (def.name.TYPE === "Destructuring") { names.clear(); break }
+        if (def.name.TYPE === "Destructuring") {
+          for (const name1 of def.name.all_symbols()) {
+            names.set(name1.name, true)
+          }
+          continue
+        }
         let varHasValue = hasValue(es6Var, def, this)
         if (!varHasValue) {
           let iterStat, func_context = this.find_parent(AST_Lambda)
