@@ -425,15 +425,27 @@ function testScopedLets(selfVar, context, varNames) {
     return false
   }
   if (curBlocks.some(i => i instanceof AST_IterationStatement)) {
-    let foundFuncInLoop = false
+    let foundFuncInLoop = 0
     curBlocks[0].walk(new TreeWalker(function (node1) {
-      if (!foundFuncInLoop && node1 instanceof AST_Lambda) {
-        return foundFuncInLoop = true
+      if (foundFuncInLoop < 2 && node1 instanceof AST_Lambda) {
+        node1.walk(new TreeWalker(function (node2) {
+          // @ts-ignore
+          if (node2.TYPE === "SymbolRef" && varNames.has(node2.name)) {
+            foundFuncInLoop = 2; return true
+          }
+          return false
+        }))
+        if (foundFuncInLoop < 1) { foundFuncInLoop = 1 }
+        return true
       }
-      return foundFuncInLoop
+      return foundFuncInLoop >= 2
     }))
-    if (foundFuncInLoop) {
+    if (foundFuncInLoop === 1) {
       console.log("Warning: Found a function in a scoped loop:", curBlocks[0].print_to_string())
+    }
+    if (foundFuncInLoop === 2) {
+      console.log("[Warning] ====== A function uses let/const variables of a loop's scoped closure !!! ======",
+          curBlocks[0].print_to_string())
       return false
     }
   }
@@ -463,7 +475,7 @@ function* collectVariableAndValues(var1, context) {
       } else if (type === "For" && parent.init === var1) {
         // @ts-ignore
         let cond = parent.condition
-        while (cond.TYPE === "Binary" && cond.operator === "&&") { cond = cond.left }
+        while (cond.TYPE === "Binary" && (cond.operator === "&&" || cond.operator === "||")) { cond = cond.left }
         if (cond.TYPE === "Assign" && cond.operator === "="
             && cond.left.TYPE === "SymbolRef" && cond.left.name === def.name.name) {
           hasValue = true
