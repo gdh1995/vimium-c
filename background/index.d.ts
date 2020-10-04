@@ -393,7 +393,7 @@ declare namespace SettingsNS {
     findCSS: FindCSS; // should not in Settings_.defaults
   }
 
-  type DynamicFiles = "HelpDialog" | "Commands" | "Exclusions" |
+  type DynamicFiles = "HelpDialog" | "KeyMappings" | "Exclusions" |
     "MathParser";
 
   interface Sync {
@@ -779,7 +779,7 @@ interface BaseHelpDialog {
 
 interface Window {
   readonly MathParser?: object;
-  readonly Commands?: object;
+  readonly KeyMappings?: object;
   readonly CommandsData_: CommandsDataTy;
   readonly Completion_: CompletersNS.GlobalCompletersConstructor;
   readonly Exclusions?: object;

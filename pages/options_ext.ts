@@ -383,7 +383,7 @@ function importSettings_(time: number | string | Date, data: string, is_recommen
     (loadChecker as CheckerLoader).info_ = "";
     element.addEventListener("load", cb);
   }), t2 = time, d2 = new_data;
-  Promise.all([BG_.BgUtils_.require_("Commands"), BG_.BgUtils_.require_("Exclusions"), promisedChecker]
+  Promise.all([BG_.BgUtils_.require_("KeyMappings"), BG_.BgUtils_.require_("Exclusions"), promisedChecker]
       ).then(function (): void {
     setTimeout(_importSettings, 17, t2, d2, is_recommended);
   });

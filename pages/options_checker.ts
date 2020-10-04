@@ -172,7 +172,7 @@ Option_.all_.keyboard.checker_ = {
   if (info === "keyMappings") { return ReloadCommands(); }
   Option_.all_.keyMappings.element_.addEventListener("input", ReloadCommands);
   function ReloadCommands(this: HTMLElement | void, event?: Event): void {
-    BG_.Commands || BG_.BgUtils_.require_("Commands");
+    BG_.KeyMappings || BG_.BgUtils_.require_("KeyMappings");
     if (!event) { return; }
     (this as HTMLElement).removeEventListener("input", ReloadCommands);
   }

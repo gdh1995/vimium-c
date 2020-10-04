@@ -290,7 +290,7 @@ interface CmdOptions {
   };
   [kFgCmd.framesGoBack]: {
     reuse?: UserReuseType;
-    count?: -1; // just for commands.ts
+    count?: -1; // just for key_mappings.ts
     position?: OpenUrlOptions["position"]
     r?: 0
   } | {

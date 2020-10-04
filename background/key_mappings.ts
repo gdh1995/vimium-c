@@ -3,7 +3,7 @@ interface EnvCond {
   browser?: BrowserType
 }
 // eslint-disable-next-line no-var
-var Commands = {
+var KeyMappings = {
   getOptions_ (item: string[], start: number): CommandsNS.Options | null {
     let opt: CommandsNS.RawOptions, i = start, len = item.length, ind: number, str: string | undefined, val: string;
     if (len <= i) { return null; }
@@ -117,7 +117,7 @@ var Commands = {
       , builtinKeys: SafeDict<1> | null = null
       , regItem: CommandsNS.Item | null
       , mkReg = BgUtils_.safeObj_<string>();
-    const a = this as typeof Commands, available = a.availableCommands_;
+    const a = this as typeof KeyMappings, available = a.availableCommands_;
     const colorRed = "color:red", shortcutLogPrefix = 'Shortcut %c"%s"';
     CommandsData_.errors_ = null
     lines = line.replace(<RegExpSearchable<0>> /\\\\?\n/g, t => t.length === 3 ? "\\\n" : ""
@@ -275,7 +275,7 @@ var Commands = {
     customKeys = builtinKeys ? allKeys.filter(i => !(i in builtinKeys)) : allKeys,
     countOfCustomKeys = customKeys.length,
     sortedKeys = builtinKeys ? customKeys.concat(Object.keys(builtinKeys)) : allKeys,
-    C = Commands,
+    C = KeyMappings,
     d2 = Settings_.temp_, oldErrors = d2.cmdErrors_;
     if (oldErrors < 0) { d2.cmdErrors_ = ~oldErrors; }
     for (let ch = 10; 0 <= --ch; ) { ref[ch] = KeyAction.count; }
@@ -351,7 +351,7 @@ var Commands = {
     if (!description) { return; }
     const port: Port | null = sender.tab ? Backend_.indexPorts_(sender.tab.id, sender.frameId || 0)
             || (Backend_.indexPorts_(sender.tab.id) || [null])[0] : null;
-    if (!port && !description[1]) { /** {@link bg.d.ts#CommandsNS.FgDescription} */
+    if (!port && !description[1]) { /** {@link index.d.ts#CommandsNS.FgDescription} */
       return;
     }
     let options = message.options as CommandsNS.RawOptions | null | undefined
@@ -589,17 +589,17 @@ CommandsData_: CommandsDataTy = CommandsData_ as never || {
 };
 
 if (!Build.NDEBUG) {
-  Commands.availableCommands_[CommandsNS.OtherCNames.focusOptions] = [
+  KeyMappings.availableCommands_[CommandsNS.OtherCNames.focusOptions] = [
     kBgCmd.openUrl, 1, 1, { reuse: ReuseType.reuse, url: "vimium://options" }
   ];
-  Commands.defaultKeyMappings_ += ` <a-s-f12> ${kCName.debugBackground} <s-f12> ${CommandsNS.OtherCNames.focusOptions}`;
+  KeyMappings.defaultKeyMappings_ += ` <a-s-f12> ${kCName.debugBackground} <s-f12> ${CommandsNS.OtherCNames.focusOptions}`;
 }
 if (Backend_.onInit_) {
   if (Settings_.temp_.initing_ & BackendHandlersNS.kInitStat.platformInfo) {
-    Commands.parseKeyMappings_(Settings_.get_("keyMappings"));
-    Commands.populateKeyMap_(true);
+    KeyMappings.parseKeyMappings_(Settings_.get_("keyMappings"));
+    KeyMappings.populateKeyMap_(true);
     if (!Settings_.get_("vimSync") && !Settings_.temp_.hasEmptyLocalStorage_) {
-      Commands = null as never;
+      KeyMappings = null as never;
     }
   }
   (Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox)
@@ -608,11 +608,11 @@ if (Backend_.onInit_) {
         (command: keyof ShortcutInfoMap | kShortcutAliases & string, exArg: FakeArg) => void
       >).addListener(Backend_.ExecuteShortcut_);
 }
-if (Commands) {
+if (KeyMappings) {
 Settings_.updateHooks_.keyMappings = function (this: {}, value: string | null): void {
   const oldMappedKeys = CommandsData_.mappedKeyRegistry_, oldFSM = CommandsData_.keyFSM_
-  value != null && Commands.parseKeyMappings_(value);
-  Commands.populateKeyMap_(value != null);
+  value != null && KeyMappings.parseKeyMappings_(value);
+  KeyMappings.populateKeyMap_(value != null);
   const f = JSON.stringify, curMapped = CommandsData_.mappedKeyRegistry_,
   updatesInMappedKeys = oldMappedKeys ? !curMapped || f(oldMappedKeys) !== f(curMapped) : !!curMapped;
   (updatesInMappedKeys || f(CommandsData_.keyFSM_) !== f(oldFSM)) && Settings_.broadcast_({

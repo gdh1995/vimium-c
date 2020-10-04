@@ -2,7 +2,7 @@
 /// <reference path="../typings/lib/index.d.ts" />
 /// <reference path="../typings/build/index.d.ts" />
 /// <reference path="../lib/base.d.ts" />
-/// <reference path="../background/bg.d.ts" />
+/// <reference path="../background/index.d.ts" />
 /// <reference path="../background/utils.ts" />
 /// <reference path="../background/settings.ts" />
 /* eslint-disable @typescript-eslint/prefer-string-starts-ends-with, @typescript-eslint/prefer-includes */

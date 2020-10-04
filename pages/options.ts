@@ -1190,7 +1190,7 @@ function OnBgUnload(): void {
       needCommands = true;
     }
     needExclusions && !BG_.Exclusions && BG_.BgUtils_.require_("Exclusions");
-    needCommands && !BG_.Commands && BG_.BgUtils_.require_("Commands");
+    needCommands && !BG_.KeyMappings && BG_.BgUtils_.require_("KeyMappings");
     BG_.BgUtils_.GC_(1);
   }
 }
