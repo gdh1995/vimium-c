@@ -67,6 +67,7 @@ declare const enum BrowserVer {
   MinCorrect$KeyboardEvent$$Repeat = 38,
   MinEnsuredTextEncoderAndDecoder = 38, // even if LEGACY; still exists on C31 if EXPERIMENTAL
   MinEnsured$Math$$log2 = 38, // even if LEGACY; exists on C34 if EXPERIMENTAL
+  MinNewWeakSetWithSetOrArray = 38, // `s=new Set();s.add(a={});new WeakSet(s).has(a)` : even if EXPERIMENTAL or LEGACY
   MinCmdArg$__javascript_harmony = 39, // before C39, it's not `--javascript-harmony` but `--js-flags=--harmony`
   MinWithFrameIdInArg = 39,
   MinMaybe$String$$StartsWithAndEndsWith = 39, // if EXPERIMENTAL

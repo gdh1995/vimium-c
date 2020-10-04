@@ -96,20 +96,22 @@ set_requestHandlers([
         const parApi = !(Build.BTypes & ~BrowserType.Firefox)
             || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
             ? getParentVApi() : frameElement_() && getParentVApi(),
+        oldSet = clickable_ as any as Element[] & Set<Element>,
         parHints = parApi && parApi.b as HintManager;
-        if (needToRetryParentClickable) {
-        const oldSet = clickable_ as any as Element[] & Set<Element>
-        /*#__INLINE__*/ set_clickable_(parApi ? parApi.y().c : new WeakSet!<Element>())
-        if (!Build.NDEBUG && parApi) {
+        if (!needToRetryParentClickable) { /* empty */ }
+        else if (!Build.NDEBUG && parApi) {
           let count = 0;
+          set_clickable_(parApi.y().c)
           oldSet.forEach(el => { clickable_.has(el) || (clickable_.add(el), count++) })
           console.log(`Vimium C: extend click: ${count ? "add " + count : "no"} local items to the parent's set.`);
-        } else if (Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet
-            && Build.MinCVer >= BrowserVer.Min$Set$Has$$forEach || !(Build.BTypes & BrowserType.Chrome)) {
+        } else if (Build.MinCVer < BrowserVer.MinNewWeakSetWithSetOrArray && Build.BTypes & BrowserType.Chrome) {
+          set_clickable_(parApi ? parApi.y().c : new WeakSet!<Element>())
+          oldSet.forEach(clickable_.add, clickable_)
+        } else if (parApi) {
+          set_clickable_(parApi.y().c)
           oldSet.forEach(clickable_.add, clickable_);
         } else {
-          oldSet.forEach(el => { clickable_.add(el) })
-        }
+          set_clickable_(new WeakSet!<Element>(oldSet))
         }
         const manager = parHints && parHints.p || parHints
         manager && manager.h > 1 && getTime() - manager.h < 1200 && manager.i(1)
