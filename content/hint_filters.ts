@@ -333,11 +333,12 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
     keyStatus.k = seq;
     zIndexes_ = zIndexes_ && null;
     if (newUnerSeq < 2) { return newUnerSeq ? hintsUnderSeq[0] : 0; }
+    let el: HTMLSpanElement
     for (const { m: marker, a: key } of hints) {
       const match = key.startsWith(seq);
       marker.style.visibility = match ? "" : HDN
       if (match) {
-        let child = marker.firstChild!, el: HTMLSpanElement;
+        let child = marker.firstChild!
         if (child.nodeType === kNode.TEXT_NODE) {
           el = createElement_("span")
           if (!(Build.BTypes & BrowserType.Chrome)
@@ -403,8 +404,9 @@ export const renderMarkers = (hintItems: readonly HintItem[]): void => {
       && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
       && chromeVer_ < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
   const invisibleHintTextRe = <true | undefined> useFilter_ && createRegExp(kTip.invisibleHintText, "g")
+  let right: string
   for (const hint of hintItems) {
-    let right: string, marker = hint.m;
+    const marker = hint.m;
     if (useFilter_) {
       marker.textContent = hint.a;
       right = hint.h!.t;

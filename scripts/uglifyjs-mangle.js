@@ -359,26 +359,14 @@ function replaceLets(ast) {
       /** @type { AST_Let | AST_Const } */
       // @ts-ignore
       const es6Var = node
-      /** @type { Map<string, boolean> }  */
-      const names = new Map()
-      for (let def of es6Var.definitions) {
-        if (def.name.TYPE === "Destructuring") {
-          for (const name1 of def.name.all_symbols()) {
-            names.set(name1.name, true)
-          }
-          continue
-        }
-        let varHasValue = hasValue(es6Var, def, this)
-        if (!varHasValue) {
-          let iterStat, func_context = this.find_parent(AST_Lambda)
+      const names = new Map(collectVariableAndValues(es6Var, this))
+      if ([...names.values()].some(i => !i)) {
+          const func_context = this.find_parent(AST_Lambda)
           for (let i = 0, node2; node2 = this.parent(i), node2 && node2 !== func_context; i++) {
-            if (node instanceof AST_IterationStatement) {
-              iterStat = node; break
+            if (node2 instanceof AST_IterationStatement) {
+              return false
             }
           }
-          if (iterStat) { names.clear(); break }
-        }
-        names.set(def.name.name, varHasValue)
       }
       if (names.size > 0 && testScopedLets(es6Var, this, names)) {
         Object.setPrototypeOf(es6Var, AST_Var.prototype)
@@ -414,19 +402,7 @@ function testScopedLets(selfVar, context, varNames) {
       /** @type { import("../typings/base/terser").AST_Definitions } */
       // @ts-ignore
       let var1 = node1
-      /** @type { [string, boolean][] } */
-      const namePairs = []
-      for (const def2 of var1.definitions) {
-        if (def2.name.TYPE === "Destructuring") {
-          for (const name3 of def2.name.all_symbols()) {
-            namePairs.push([name3.name, true])
-          }
-        } else {
-          let def2HasValue = hasValue(var1, def2, this)
-          namePairs.push([def2.name.name, def2HasValue])
-        }
-      }
-      for (const [name, anotherHasValue] of namePairs) {
+      for (const [name, anotherHasValue] of collectVariableAndValues(var1, this)) {
         if (!varNames.has(name)) { continue }
         const curHasVal = varNames.get(name)
         if (var1.TYPE === "Var" && (!curHasVal || !anotherHasValue)) { sameVar = var1; return sameNameFound = true }
@@ -466,18 +442,36 @@ function testScopedLets(selfVar, context, varNames) {
 
 /**
  * @param { import("../typings/base/terser").AST_Definitions } var1
- * @param { import("../typings/base/terser").AST_VarDef } def
- * @param { import("../typings/base/terser").TreeWalker } walker
- * @returns { boolean }
+ * @param { import("../typings/base/terser").TreeWalker } context
+ * @returns { Generator<[string, boolean]> }
  */
-function hasValue(var1, def, walker) {
-  let value = !!def.value, parent = walker.parent(0)
-  if (!value && (parent.TYPE === "ForOf" || parent.TYPE === "ForIn")
+function* collectVariableAndValues(var1, context) {
+  for (const def of var1.definitions) {
+    if (def.name.TYPE === "Destructuring") {
+      for (const name3 of def.name.all_symbols()) {
+        yield [name3.name, true]
+      }
+      continue
+    }
+    let hasValue = !!def.value, parent = context.parent(0)
+    if (!hasValue) {
+      const type = parent.TYPE
+      if (type === "ForOf" || type === "ForIn") {
+        // @ts-ignore
+        hasValue = parent.init === var1
       // @ts-ignore
-      && (parent.init === var1)) {
-    value = true
+      } else if (type === "For" && parent.init === var1) {
+        // @ts-ignore
+        let cond = parent.condition
+        while (cond.TYPE === "Binary" && cond.operator === "&&") { cond = cond.left }
+        if (cond.TYPE === "Assign" && cond.operator === "="
+            && cond.left.TYPE === "SymbolRef" && cond.left.name === def.name.name) {
+          hasValue = true
+        }
+      }
+    }
+    yield [def.name.name, hasValue]
   }
-  return value
 }
 
 /**
