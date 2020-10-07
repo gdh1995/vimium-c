@@ -220,7 +220,7 @@ var Settings_ = {
     newTabUrl (this: {}, url): void {
       url = (<RegExpI> /^\/?pages\/[a-z]+.html\b/i).test(url)
         ? chrome.runtime.getURL(url) : BgUtils_.convertToUrl_(url);
-      return Settings_.set_("newTabUrl_f", url);
+      Settings_.set_("newTabUrl_f", url)
     },
     searchEngines (this: {}): void {
       return Settings_.set_("searchEngineMap", BgUtils_.safeObj_<Search.Engine>());
@@ -246,8 +246,8 @@ var Settings_ = {
         cache.searchEngineMap = initialMap as SafeObject & typeof initialMap;
         cache.searchEngineRules = [];
         Build.MayOverrideNewTab && Settings_.get_("focusNewTabContent", true);
-        if (str = Settings_.get_("newTabUrl_f", true)) {
-          return (Settings_.updateHooks_.newTabUrl_f as (this: void, url_f: string) => void)(str);
+        if (Settings_.get_("newTabUrl_f", true)) {
+          return
         }
       }
       return Settings_.postUpdate_("newTabUrl");
@@ -663,7 +663,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     KnownPages_: ["blank", "newtab", "options", "show"],
     MathParser: "/lib/math_parser.js",
     HelpDialog: "/background/help_dialog.js",
-    Commands: "/background/commands.js",
+    KeyMappings: "/background/key_mappings.js",
     Exclusions: "/background/exclusions.js",
     InjectEnd_: "content/injected_end.js",
     NewTabForNewUser_: Build.MayOverrideNewTab ? "pages/options.html#!newTabUrl" : "",

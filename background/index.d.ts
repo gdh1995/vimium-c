@@ -22,6 +22,7 @@ declare namespace Search {
   }
   interface EngineMap extends SafeDict<Engine> {}
 }
+
 declare namespace Urls {
   const enum kEval {
     math = 0, copy = 1, search = 2, ERROR = 3, status = 4, paste = 5,
@@ -136,7 +137,8 @@ declare namespace Frames {
     /** flags */ f: Flags;
   }
 
-  interface Port extends chrome.runtime.Port {
+  type BrowserPort = chrome.runtime.Port
+  interface Port extends BrowserPort {
     readonly sender: never;
     s: Sender;
     postMessage<K extends 1, O extends keyof CmdOptions>(request: Req.FgCmd<O>): K;
@@ -171,8 +173,6 @@ declare const enum IncognitoType {
   ensuredFalse = 0,
   mayFalse = 1, true = 2,
 }
-
-type CurrentTabs = [chrome.tabs.Tab];
 
 declare namespace MarksNS {
   interface StoredGlobalMark {
@@ -616,8 +616,8 @@ declare namespace CommandsNS {
     [kCName.enableCSTemp]: kBgCmd.toggleCS;
     [kCName.enterFindMode]: kBgCmd.performFind;
     [kCName.enterInsertMode]: kBgCmd.insertMode;
-    [kCName.enterVisualLineMode]: kBgCmd.enterVisualMode;
-    [kCName.enterVisualMode]: kBgCmd.enterVisualMode;
+    [kCName.enterVisualLineMode]: kBgCmd.visualMode;
+    [kCName.enterVisualMode]: kBgCmd.visualMode;
     [kCName.firstTab]: kBgCmd.goToTab;
     [kCName.focusInput]: kFgCmd.focusInput;
     [kCName.focusOrLaunch]: kBgCmd.openUrl;
@@ -722,22 +722,46 @@ interface ShortcutInfoMap {
 }
 
 declare namespace BackendHandlersNS {
-  interface BackendHandlers {
-    parse_ (this: void, request: FgReqWithRes[kFgReq.parseSearchUrl]): FgRes[kFgReq.parseSearchUrl];
-    gotoSession_: {
+  interface SpecialHandlers {
+    [kFgReq.setSetting]: (this: void
+      , request: SetSettingReq<keyof SettingsNS.FrontUpdateAllowedSettings>, port: Port) => void;
+    [kFgReq.gotoSession]: {
       (this: void, request: { s: string | number; a: false }, port: Port): void;
       (this: void, request: { s: string | number; a?: true }): void;
     };
+    [kFgReq.checkIfEnabled]: ExclusionsNS.Listener & (
+        (this: void, request: FgReq[kFgReq.checkIfEnabled], port: Frames.Port) => void);
+    [kFgReq.parseUpperUrl]: {
+      (this: void,
+        request: FgReqWithRes[kFgReq.parseUpperUrl] & Pick<FgReq[kFgReq.parseUpperUrl], "e">, port: Port | null): void;
+      (this: void, request: FgReqWithRes[kFgReq.parseUpperUrl], port?: Port): FgRes[kFgReq.parseUpperUrl];
+    };
+    [kFgReq.focusOrLaunch]: (this: void, request: MarksNS.FocusOrLaunch, _port?: Port | null, notFolder?: true) => void;
+    [kFgReq.setOmniStyle]: (this: void, request: FgReq[kFgReq.setOmniStyle], _port?: Port) => void;
+    [kFgReq.framesGoBack]: {
+      (this: void, req: FgReq[kFgReq.framesGoBack], port: Port): void;
+      (this: void, req: FgReq[kFgReq.framesGoBack], port: null
+          , tabId: Pick<chrome.tabs.Tab, "id" | "url" | "pendingUrl" | "index">): void
+    };
+  }
+  type FgRequestHandlers = {
+    [K in keyof FgReqWithRes | keyof FgReq]:
+      K extends keyof SpecialHandlers ? SpecialHandlers[K] :
+      K extends keyof FgReqWithRes ? (((this: void, request: FgReqWithRes[K], port: Port) => FgRes[K])
+        | (K extends keyof FgReq ? (this: void, request: FgReq[K], port: Port) => void : never)) :
+      K extends keyof FgReq ? ((this: void, request: FgReq[K], port: Port) => void) :
+      never;
+  }
+
+  interface BackendHandlers {
+    reqH_: FgRequestHandlers,
+    parse_ (this: void, request: FgReqWithRes[kFgReq.parseSearchUrl]): FgRes[kFgReq.parseSearchUrl];
     /**
      * @returns "" - in a child frame, so need to send request to content
      * @returns string - valid URL
      * @returns Promise<string> - valid URL or empty string for a top frame in "port's or the current" tab
      */
     getPortUrl_ (port?: Frames.Port | null, ignoreHash?: boolean, req?: Req.baseFg<kFgReq>): string | Promise<string>;
-    openUrl_ (this: void, request: FgReq[kFgReq.openUrl], port?: Port | undefined): void;
-    checkIfEnabled_: ExclusionsNS.Listener;
-    focus_ (this: void, request: MarksNS.FocusOrLaunch): void;
-    setOmniStyle_ (this: void, request: FgReq[kFgReq.setOmniStyle], port?: Port): void;
     reopenTab_ (tab: chrome.tabs.Tab, refresh?: /* false */ 0 | /* a temp blank tab */ 1 | /* directly */ 2,
         exProps?: chrome.tabs.CreateProperties & {openInReaderMode?: boolean}): void;
     setIcon_ (tabId: number, type: Frames.ValidStatus, isLater?: true): void;

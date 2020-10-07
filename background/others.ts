@@ -124,7 +124,7 @@ BgUtils_.timeout_(1000, function (): void {
     doSet(key, value);
   }
   function doSet(key: keyof SettingsToSync, value: any): void {
-    const Cmd = "Commands", Excl = "Exclusions",
+    const Cmd = "KeyMappings", Excl = "Exclusions",
     wanted: SettingsNS.DynamicFiles | "" = key === "keyMappings" ? Cmd
         : key.startsWith("exclusion") ? Excl : "";
     if (!wanted) {
@@ -498,7 +498,7 @@ BgUtils_.timeout_(1000, function (): void {
     else if (!localStorage.length) {
       BgUtils_.GC_();
       // eslint-disable-next-line arrow-body-style
-      restoringPromise = Promise.all([BgUtils_.require_("Commands"), BgUtils_.require_("Exclusions")]).then(_ => {
+      restoringPromise = Promise.all([BgUtils_.require_("KeyMappings"), BgUtils_.require_("Exclusions")]).then(_ => {
         return new Promise<void>(resolve => {
           cachedSync ? storage().get(items => {
             const err = BgUtils_.runtimeError_();
@@ -886,11 +886,12 @@ BgUtils_.timeout_(600, function (): void {
     if (text.slice(0, 7).toLowerCase() === "file://") {
       text = BgUtils_.showFileUrl_(text);
     }
-    return sessionId != null ? Backend_.gotoSession_({ s: sessionId }) : Backend_.openUrl_({
+    return sessionId != null ? Backend_.reqH_[kFgReq.gotoSession]({ s: sessionId })
+        : Backend_.reqH_[kFgReq.openUrl]({
       u: text,
       r: (disposition === "currentTab" ? ReuseType.current
         : disposition === "newForegroundTab" ? ReuseType.newFg : ReuseType.newBg)
-    });
+    }, null as never as Frames.Port);
   }
   omnibox.onInputStarted.addListener(function (): void {
     chrome.windows.getCurrent(function (wnd?: chrome.windows.Window): void {
@@ -1010,7 +1011,7 @@ function (details: chrome.runtime.InstalledDetails): void {
   if (!reason) {
     const p = Settings_.restore_ && Settings_.restore_() || Promise.resolve()
     p.then(() => {
-      Backend_.focus_({ u: Settings_.CONST_.OptionsPage_ + (Build.NDEBUG ? "#commands" : "#installed") })
+      Backend_.reqH_[kFgReq.focusOrLaunch]({ u: Settings_.CONST_.OptionsPage_ + (Build.NDEBUG ? "#commands" : "#installed") })
     })
     return
   }
@@ -1049,7 +1050,7 @@ function (details: chrome.runtime.InstalledDetails): void {
     chrome.notifications.onClicked.addListener(function (id): void {
       if (id !== reason) { return; }
       chrome.notifications.clear(reason);
-      Backend_.focus_({
+      Backend_.reqH_[kFgReq.focusOrLaunch]({
         u: BgUtils_.convertToUrl_("vimium://release")
       });
     });
@@ -1066,7 +1067,7 @@ BgUtils_.GC_ = function (inc0?: number): void {
   let now = 0, timeout = 0, referenceCount = 0;
   BgUtils_.GC_ = function (inc?: number): void {
     inc && (referenceCount = referenceCount + inc > 0 ? referenceCount + inc : 0);
-    if (referenceCount > 0 || !Commands || !Exclusions || Exclusions.rules_.length > 0) {
+    if (referenceCount > 0 || !KeyMappings || !Exclusions || Exclusions.rules_.length > 0) {
       if (timeout) { clearTimeout(timeout); timeout = 0; }
       return;
     }
@@ -1081,9 +1082,9 @@ BgUtils_.GC_ = function (inc0?: number): void {
     }
     timeout = 0;
     const hook = Settings_.updateHooks_;
-    if (Commands) {
+    if (KeyMappings) {
       hook.keyMappings = null as never;
-      Commands = null as never;
+      KeyMappings = null as never;
     }
     if (Exclusions && Exclusions.rules_.length <= 0) {
       hook.exclusionRules = hook.exclusionOnlyFirstMatch =

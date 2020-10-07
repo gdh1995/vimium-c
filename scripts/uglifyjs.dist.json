@@ -86,7 +86,7 @@
       "VimiumInjector", "VApi",
       // # fixed background global names:
       "OnOther",
-      "Commands", "Exclusions", "HelpDialog",
+      "KeyMappings", "Exclusions", "HelpDialog",
       // # front/vomnibar
       "VCID",
       // # lib/

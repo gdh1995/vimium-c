@@ -572,7 +572,7 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
     event.preventDefault();
     const a: MarksNS.FocusOrLaunch = BG_.Object.create(null);
     a.u = bgSettings_.CONST_.OptionsPage_;
-    BG_.Backend_.focus_(a);
+    BG_.Backend_.reqH_[kFgReq.focusOrLaunch](a)
     window.close();
   };
   if (notRunnable) {

@@ -3,11 +3,20 @@
   "background": {
     "persistent": true,
     "scripts": [
+      "background/define.js",
       "background/utils.js",
       "background/settings.js",
+      "background/browser.js",
+      "background/store.js",
+      "background/ports.js",
+      "background/open_urls.js",
+      "background/frame_commands.js",
+      "background/tab_commands.js",
+      "background/all_commands.js",
+      "background/request_handlers.js",
       "background/main.js",
       "background/exclusions.js",
-      "background/commands.js",
+      "background/key_mappings.js",
       "background/tools.js",
       "background/completion.js",
       "background/others.js"

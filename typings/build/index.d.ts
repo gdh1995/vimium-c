@@ -9,7 +9,6 @@ declare const enum Build {
   MayOverrideNewTab = 0,
   MayAndroidOnFirefox = 1,
   DetectAPIOnFirefox = 1,
-  CreateFakeIncognito = 0,
 }
 // Note: one random value must be used only in one .ts file, to avoid issues caused by partly building
 declare const enum BuildStr {

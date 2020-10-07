@@ -7,7 +7,7 @@
 (function (): void {
 const BG_ = chrome.extension.getBackgroundPage() as Window as Window & { Settings_: typeof Settings_ };
 if (BG_ && !BG_.Settings_.get_("dialogMode")) {
-  BG_.Backend_.focus_({
+  BG_.Backend_.reqH_[kFgReq.focusOrLaunch]({
     u: BG_.Settings_.CONST_.OptionsPage_,
     r: ReuseType.reuse
   });

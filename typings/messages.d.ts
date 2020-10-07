@@ -63,7 +63,7 @@ declare const enum kBgReq {
 
 declare const enum kFgReq {
   setSetting, findQuery, parseSearchUrl, parseUpperUrl,
-  searchAs, gotoSession, openUrl, focus, checkIfEnabled,
+  searchAs, gotoSession, openUrl, onFrameFocused, checkIfEnabled,
   nextFrame, exitGrab, execInChild, initHelp, css,
   vomnibar, omni, copy, key, marks,
   focusOrLaunch, cmd, removeSug, openImage, evalJSFallback,
@@ -173,19 +173,18 @@ interface FullBgReq extends BgReq, BgVomnibarSpecialReq {}
 declare const enum kBgCmd {
   blank,
   // region: need cport
-  nextFrame, parentFrame, goNext, toggle, showHelp,
-  insertMode, enterVisualMode, performFind, showVomnibar,
-  MIN_NEED_CPORT = nextFrame, MAX_NEED_CPORT = showVomnibar,
+  goNext, insertMode, nextFrame, parentFrame,
+  performFind, toggle, showHelp, showVomnibar, visualMode,
+  MIN_NEED_CPORT = goNext, MAX_NEED_CPORT = visualMode,
   // endregion: need cport
-  createTab,
-  duplicateTab, moveTabToNewWindow, moveTabToNextWindow, joinTabs, toggleCS,
-  clearCS, goToTab, removeTab, removeTabsR, removeRightTab,
-  restoreTab, restoreGivenTab, discardTab, openUrl, searchInAnother,
-  togglePinTab, toggleMuteTab, reloadTab, reopenTab, addBookmark,
-  goUp, moveTab, mainFrame,
-  visitPreviousTab, copyWindowInfo, clearFindHistory,
-  toggleTabUrl, clearMarks, toggleVomnibarStyle,
-  goBackFallback, showTip, autoOpenFallback, toggleZoom, captureTab,
+  addBookmark, autoOpenFallback,
+  captureTab, clearCS, clearFindHistory, clearMarks, copyWindowInfo, createTab,
+  discardTab, duplicateTab, goBackFallback, goToTab, goUp, joinTabs,
+  mainFrame, moveTab, moveTabToNewWindow, moveTabToNextWindow, openUrl,
+  reloadTab, removeRightTab, removeTab, removeTabsR, reopenTab, restoreGivenTab, restoreTab,
+  searchInAnother, showTip,
+  toggleCS, toggleMuteTab, togglePinTab, toggleTabUrl, toggleVomnibarStyle, toggleZoom,
+  visitPreviousTab,
   END = "END",
 }
 
@@ -254,7 +253,11 @@ interface InsertModeOptions {
 }
 interface ShowHelpDialogOptions {
   h?: null
-  exitOnClick?: boolean
+  exitOnClick?: boolean | null
+}
+interface TrailingSlashOptions {
+  trailingSlash?: boolean | null
+  /** (deprecated) */ trailing_slash?: boolean | null
 }
 
 interface CmdOptions {
@@ -439,7 +442,7 @@ interface FgReqWithRes {
     /** force */ f?: BOOL;
     /** id */ i?: undefined;
     /** trailingSlash */ t: boolean | null | undefined;
-    /** @deprecated trailingSlash (old) */ r?: boolean | null | undefined;
+    /** (deprecated) trailingSlash (old) */ r?: boolean | null | undefined;
     /** sed : not for kFgReq.parseSearchUrl */ s?: MixedSedOpts | null;
     /** execute / e: unknown; */
   };
@@ -493,7 +496,7 @@ interface FgReq {
     /** noopener */ p?: OpenUrlOptions["position"];
     /** noopener */ n?: boolean;
   };
-  [kFgReq.focus]: {};
+  [kFgReq.onFrameFocused]: {};
   [kFgReq.checkIfEnabled]: {
     /** url */ u: string;
   };
@@ -522,14 +525,14 @@ interface FgReq {
   } & CompletersNS.Options;
   [kFgReq.copy]: {
     /** data */ s: string | any[];
-    /** [].join($j) */ j?: string | boolean;
+    /** [].join($j) */ j?: string | boolean | null
     /** sed */ e?: ParsedSedOpts | null;
     u?: undefined | "";
     /** decode */ d?: boolean;
   } | {
     /** url */ u: "url";
     /** data */ s?: undefined | "";
-    j?: undefined;
+    j?: undefined | null
     /** sed */ e?: ParsedSedOpts | null;
     /** decode */ d?: boolean;
   };
@@ -587,14 +590,14 @@ interface FgReq {
   };
 }
 
-interface OpenUrlOptions {
+interface OpenUrlOptions extends UserSedOptions {
   incognito?: boolean | null
-  /** default to false */ opener?: boolean
-  /* pasted */ $p?: 1
+  /** default to false */ opener?: boolean | null
+  /* pasted */ $p?: 1 | null
   position?: "start" | "begin" | "end" | "before" | "after" | "default" | null
-  pinned?: boolean
-  window?: boolean
-  sed?: MixedSedOpts | null
+  pinned?: boolean | null
+  reuse?: UserReuseType | null
+  window?: boolean | null
 }
 
 declare namespace Req {

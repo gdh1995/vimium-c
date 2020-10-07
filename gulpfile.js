@@ -73,15 +73,15 @@ var CompileTasks = {
             , "lib/injector.ts", "pages/*.ts"
             , may_have_newtab ? NEWTAB_FILE : "!" + NEWTAB_FILE
             , "!pages/options*.ts", "!pages/show.ts"]
-          , ["background/bg.d.ts", "content/*.d.ts"]
+          , ["background/index.d.ts", "content/*.d.ts"]
           , { inBatch: false }],
-  vomnibar: ["front/vomnibar*.ts", ["background/bg.d.ts", "content/*.d.ts"]],
+  vomnibar: ["front/vomnibar*.ts", ["background/index.d.ts", "content/*.d.ts"]],
   polyfill: [POLYFILL_FILE],
   injector: ["lib/injector.ts"],
   options: ["pages/options*.ts", ["background/*.d.ts", "content/*.d.ts"]],
-  show: ["pages/show.ts", ["background/bg.d.ts", "content/*.d.ts"]],
+  show: ["pages/show.ts", ["background/index.d.ts", "content/*.d.ts"]],
   others: [ ["pages/*.ts", "front/*.ts", "!pages/options*.ts", "!pages/show.ts", "!front/vomnibar*.ts"]
-            , "background/bg.d.ts" ],
+            , "background/index.d.ts" ],
 }
 
 var Tasks = {
@@ -97,7 +97,7 @@ var Tasks = {
     if (!getNonNullBuildItem("NDEBUG") || FORCED_NO_MINIFY) {
       return copyByPath(path);
     }
-    return minifyJSFiles(path, ".", "", { base: "." });
+    return minifyJSFiles(path, ".", { base: "." });
   },
   "static/json": function() {
     const path = ["_locales/*/messages.json", "settings-template.json"];
@@ -107,7 +107,7 @@ var Tasks = {
     if (!getNonNullBuildItem("NDEBUG") || FORCED_NO_MINIFY) {
       return copyByPath(path);
     }
-    return minifyJSFiles(path, ".", "", { base: ".", json: true })
+    return minifyJSFiles(path, ".", { base: ".", json: true })
   },
   "png2bin": function(cb) {
     const p2b = require("./scripts/icons-to-blob");
@@ -231,7 +231,7 @@ var Tasks = {
     var rest = ["content/*.js"];
     for (var arr = sources, i = 0, len = arr.length; i < len; i++) { rest.push("!" + arr[i]); }
     var maps = [
-      [sources.slice(0), cs.js[0], null], [rest, ".", ""]
+      [sources.slice(0), cs.js[0], { rollup: true }], [rest, "."]
     ];
     if (onlyTestSize) { debugging = 1; maps.length = 1 }
     checkJSAndMinifyAll(0, maps, "min/content", exArgs, (err) => {
@@ -256,16 +256,18 @@ var Tasks = {
     var ori_sources = sources.slice(0);
     // on Firefox, a browser-inner file `resource://devtools/server/main.js` is also shown as `main.js`
     // which makes debugging annoying
-    var body = sources.splice(0, sources.indexOf("background/main.js") + 1, "background/body.js");
+    var globals = sources.splice(0, sources.indexOf("background/settings.js") + 1, "background/globals.js");
+    var body = sources.splice(1, sources.indexOf("background/main.js"), "background/main.js");
     var index = sources.indexOf("background/tools.js") + 1;
     var tail = sources.splice(index, sources.length - index, "background/tail.js");
     var rest = ["background/*.js"];
     for (var arr = ori_sources, i = 0, len = arr.length; i < len; i++) { rest.push("!" + arr[i]); }
     var maps = [
-      [body, sources[0], null],
-      [sources.slice(1, index), ".", ""],
-      [tail, sources[index], null],
-      [rest, ".", ""]
+      [globals, sources[0]],
+      [body, sources[1], { rollup: true }],
+      [sources.slice(2, index), "."],
+      [tail, sources[index]],
+      [rest, "."]
     ];
     manifest.background.scripts = sources;
     checkJSAndMinifyAll(1, maps, "min/bg", exArgs, cb)
@@ -303,7 +305,7 @@ var Tasks = {
     gulp.task("min/others/omni", function() {
       var props = exArgs.nameCache.props && exArgs.nameCache.props.props || null;
       props = props && {};
-      return minifyJSFiles(["front/vomnibar*.js"], ".", "", {
+      return minifyJSFiles(["front/vomnibar*.js"], ".", {
         passAll: null,
         nameCache: exArgs.nameCache && {
           vars: deepcopy(exArgs.nameCache.vars),
@@ -315,7 +317,7 @@ var Tasks = {
       exArgs.passAll = null;
       return minifyJSFiles(["pages/options_base.js", "pages/options.js"
       , "pages/options_ext.js", "pages/options_checker.js"]
-          , ".", "", deepcopy(exArgs));
+          , ".", deepcopy(exArgs));
     });
     gulp.task("min/others/misc", function() {
       var oriManifest = readJSON("manifest.json", true);
@@ -332,7 +334,7 @@ var Tasks = {
         }
       }
       exArgs.passAll = false;
-      return minifyJSFiles(res, ".", "", deepcopy(exArgs))
+      return minifyJSFiles(res, ".", deepcopy(exArgs))
     });
     gulp.parallel("min/others/omni", "min/others/options", "min/others/misc")(function() {
       jsmin_status[2] = true;
@@ -752,14 +754,14 @@ function checkJSAndMinifyAll(taskOrder, maps, key, exArgs, cb) {
     for (var i = 0; i < maps.length; i++) {
       const name = key + "/_" + (i + 1)
       const map = maps[i]
-      const rollup = taskOrder === 0 && i === 0
+      const rollup = !!map[2] && !!map[2].rollup
       tasks.push(name);
       gulp.task(name, function() {
           const newExArgs = {...exArgs, rollup};
           if (exArgs.aggressiveMangle) {
             exArgs.aggressiveMangle = false;
           }
-          return minifyJSFiles(map[0], map[1], map[2], newExArgs)
+          return minifyJSFiles(map[0], map[1], newExArgs)
       });
     }
     gulp.series(...tasks)(function(err) {
@@ -770,7 +772,7 @@ function checkJSAndMinifyAll(taskOrder, maps, key, exArgs, cb) {
   });
 }
 
-function minifyJSFiles(path, output, new_suffix, exArgs) {
+function minifyJSFiles(path, output, exArgs) {
   exArgs || (exArgs = {});
   const base = exArgs.base || JSDEST;
   path = formatPath(path, base);
@@ -778,7 +780,6 @@ function minifyJSFiles(path, output, new_suffix, exArgs) {
     path.push("!**/*.min.js");
   }
   output = output || ".";
-  new_suffix = new_suffix !== "" ? (new_suffix || ".min") : "";
 
   var stream = gulp.src(path, { base: base });
   var isJson = !!exArgs.json;
@@ -791,13 +792,13 @@ function minifyJSFiles(path, output, new_suffix, exArgs) {
       dest: osPath.join(DEST, output)
     } : exArgs.nameCache ? {
       dest: DEST,
-      ext: new_suffix + ext,
+      ext: ext,
       extra: exArgs.passAll === false ? exArgs.nameCachePath || null
         : (exArgs.nameCachePath && path.push(exArgs.nameCachePath), path)
     } : {
       dest: DEST,
       extra: exArgs.nameCachePath || null,
-      ext: new_suffix + ext
+      ext: ext
     });
     if (!is_file && exArgs.nameCachePath && exArgs.passAll !== false) {
       if (!("_bufferedFiles" in newerTransform)) {
@@ -839,9 +840,6 @@ function minifyJSFiles(path, output, new_suffix, exArgs) {
       exArgs.aggressiveMangle = false;
     }
   }
-  if (!is_file && new_suffix !== "") {
-     stream = stream.pipe(require('gulp-rename')({ suffix: new_suffix }));
-  }
   if (!isJson) {
     stream = stream.pipe(gulpMap(function(file) {
       postTerser(file, allPaths)
@@ -858,8 +856,8 @@ function rollupContent(stream) {
   var transformer = new Transform({objectMode: true});
   var others = []
   var historys = []
-  transformer._transform = function(srcFile, encoding, done) {
-    if (/[\\\/]env./.test(srcFile.history.join(";"))) { // env.js
+  transformer._transform = function(srcFile, _encoding, done) {
+    if (/[\\\/](env|define)\./.test(srcFile.history.join(";"))) { // env.js / define.js
       this.push(srcFile);
     } else {
       others.push(srcFile)
@@ -868,18 +866,15 @@ function rollupContent(stream) {
     done();
   };
   transformer._flush = function(done) {
-    const file = others.filter(i => i.history.join(" ").includes("frontend."))[0];
+    const file = others[others.length - 1];
     if (!file) {
-      for (const i of others) { this.push(i) }
       return done();
     }
-    const inputOptions = require("./scripts/rollup.config.js")
-    inputOptions.input = require("path").relative(file.cwd, file.path)
-    const outputOptions = inputOptions.output
-    inputOptions.output = null
-    outputOptions.file = null
-    require("rollup").rollup(inputOptions)
-    .then(builder => builder.generate(outputOptions))
+    const rollupConfig = require("./scripts/rollup.config.js")
+    rollupConfig.input = require("path").relative(file.cwd, file.path)
+    rollupConfig.output.file = null
+    require("rollup").rollup({...rollupConfig, output: null})
+    .then(builder => builder.generate(rollupConfig.output))
     .then(result => {
       if (result === undefined) {
         return done("No rollup.js found");
@@ -899,10 +894,9 @@ function beforeCompile(file) {
   var allPathStr = file.history.join("|");
   var contents = null, changed = false, oldLen = 0;
   function get() { contents == null && (contents = ToString(file.contents), changed = true, oldLen = contents.length); }
-  if (!locally && (allPathStr.includes("settings") || allPathStr.includes("commands")
-      || allPathStr.includes("vomnibar")
-      || allPathStr.includes("help_dialog") || allPathStr.includes("completion"))) {
+  if (!locally && (allPathStr.includes("background/") || allPathStr.includes("front/"))) {
     get();
+    changed = false
     contents = contents.replace(/\b(const|let|var)?\s?As[a-zA-Z]*_\s?=[^,;\n]+[,;\n]/g, ""
         ).replace(/\bAs[a-zA-Z]*_\b/g, "");
   }

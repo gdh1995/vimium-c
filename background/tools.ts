@@ -264,15 +264,15 @@ ContentSettings_ = Build.PContentSettings ? {
     cs.clear({ scope: kIncognito }, BgUtils_.runtimeError_);
     localStorage.removeItem(ContentSettings_.makeKey_(contentType));
   },
-  clearCS_ (options: CommandsNS.Options, port: Port | null): void {
-    const ty = "" + options.type as CSTypes;
+  clearCS_ (options: KnownOptions<kBgCmd.clearCS>, port: Port | null): void {
+    const ty = ("" + options.type!) as NonNullable<typeof options.type>
     if (!ContentSettings_.complain_(ty, "http://a.cc/")) {
       ContentSettings_.Clear_(ty, port ? port.s.a : TabRecency_.incognito_ === IncognitoType.true);
       return Backend_.showHUD_(trans_("csCleared", [trans_(ty) || ty]));
     }
   },
-  toggleCS_ (count: number, options: CommandsNS.Options, tabs: [Tab]): void {
-    const ty = "" + options.type as CSTypes, tab = tabs[0];
+  toggleCS_ (count: number, options: KnownOptions<kBgCmd.toggleCS>, tabs: [Tab]): void {
+    const ty = ("" + options.type!) as NonNullable<typeof options.type>, tab = tabs[0];
     return options.incognito ? ContentSettings_.ensureIncognito_(count, ty, tab)
       : ContentSettings_.toggleCurrent_(count, ty, tab, options.action === "reopen");
   },
@@ -489,16 +489,16 @@ Marks_ = { // NOTE: all public members should be static
     if (tabId >= 0 && Backend_.indexPorts_(tabId)) {
       chrome.tabs.get(tabId, Marks_.checkTab_.bind(0, markInfo));
     } else {
-      return Backend_.focus_(markInfo);
+      return Backend_.reqH_[kFgReq.focusOrLaunch](markInfo);
     }
   },
   checkTab_ (this: 0, mark: MarksNS.MarkToGo, tab: chrome.tabs.Tab): void {
     const url = (Build.BTypes & BrowserType.Chrome ? tab.url || tab.pendingUrl : tab.url).split("#", 1)[0]
     if (url === mark.u || mark.p && mark.u.startsWith(url)) {
-      Backend_.gotoSession_({ s: tab.id });
+      Backend_.reqH_[kFgReq.gotoSession]({ s: tab.id });
       return Marks_.scrollTab_(mark, tab);
     } else {
-      return Backend_.focus_(mark);
+      return Backend_.reqH_[kFgReq.focusOrLaunch](mark);
     }
   },
   getLocationKey_ (markName: string, url: string | undefined): string {
@@ -706,7 +706,7 @@ MediaWatcher_ = {
       (payload as Generalized<Pick<typeof payload, typeof payloadKey>>)[payloadKey] = newPayloadVal;
       embed || settings.broadcast_({ N: kBgReq.settingsUpdate, d: [payloadKey] });
     }
-    Backend_.setOmniStyle_({
+    Backend_.reqH_[kFgReq.setOmniStyle]({
       t: omniToggled,
       e: bMatched || ` ${settings.cache_.vomnibarOptions.styles} `.includes(` ${omniToggled} `),
       b: !embed
@@ -768,7 +768,7 @@ BgUtils_.timeout_(120, function (): void {
     }
     TabRecency_.curTab_ = info.tabId; time = now;
   }
-  function onWndFocus(tabs: [chrome.tabs.Tab] | never[]): void {
+  function onFocusChanged(tabs: [chrome.tabs.Tab] | never[]): void {
     if (!tabs || !tabs[0]) { return BgUtils_.runtimeError_() }
     let a = tabs[0], current = a.windowId, last = TabRecency_.curWnd_
     if (current !== last) {
@@ -788,9 +788,9 @@ BgUtils_.timeout_(120, function (): void {
   chrome.windows.onFocusChanged.addListener(function (windowId): void {
     if (windowId === noneWnd) { return; }
     // here windowId may pointer to a devTools window on C45 - see BrowserVer.Min$windows$APIsFilterOutDevToolsByDefault
-    chrome.tabs.query({windowId, active: true}, onWndFocus);
+    chrome.tabs.query({windowId, active: true}, onFocusChanged);
   });
-  chrome.tabs.query({currentWindow: true, active: true}, function (tabs: CurrentTabs): void {
+  chrome.tabs.query({currentWindow: true, active: true}, function (tabs: [chrome.tabs.Tab]): void {
     time = performance.now();
     const a = tabs && tabs[0];
     if (!a) { return BgUtils_.runtimeError_(); }

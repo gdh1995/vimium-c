@@ -316,10 +316,7 @@ declare namespace VomnibarNS {
   }
   type FgOptionsToFront = CReq[kCReq.activate];
 
-  interface ContentOptions extends GlobalOptions {
-    trailingSlash?: boolean;
-    trailing_slash?: boolean;
-  }
+  interface ContentOptions extends GlobalOptions {}
 }
 
 type HintOffset = [ rectBehindCur: Rect, offsetX: number ]

@@ -71,7 +71,7 @@ var Exclusions = {
     const onURLChange: null | ExclusionsNS.Listener = !chrome.webNavigation ? null
       : Build.MinCVer >= BrowserVer.MinWithFrameId || !(Build.BTypes & BrowserType.Chrome)
         || CurCVer_ >= BrowserVer.MinWithFrameId
-      ? function (details): void { Backend_.checkIfEnabled_(details); }
+      ? function (details): void { Backend_.reqH_[kFgReq.checkIfEnabled](details) }
       : function (details: chrome.webNavigation.WebNavigationCallbackDetails) {
         const ref = Backend_.indexPorts_(details.tabId),
         msg: Req.bg<kBgReq.url> = { N: kBgReq.url, H: kFgReq.checkIfEnabled };
@@ -170,7 +170,7 @@ Settings_.updateHooks_.exclusionRules = function (this: void, rules: ExclusionsN
   setTimeout(function (): void {
     setTimeout(Exclusions.RefreshStatus_, 10, isEmpty);
     if (CommandsData_.keyFSM_ === curKeyFSM) {
-      BgUtils_.require_("Commands").then(() => Settings_.postUpdate_("keyMappings", null));
+      BgUtils_.require_("KeyMappings").then(() => Settings_.postUpdate_("keyMappings", null));
     }
   }, 1);
 };

@@ -107,7 +107,9 @@ var writeFile = function(path, data, writeBom) {
         data = typeof patched === "string" ? patched : patched[0] + patched[1] + patched[2];
       }
     }
-    data = lib.addMetaData(path, data);
+    if (path.indexOf("content/") >= 0 || path.indexOf("lib/") >= 0) {
+      data = lib.addMetaData(path, data);
+    }
     same = same && lib.readFile(path, {}) === data;
   }
   var prefix = logPrefix && "[" + logPrefix + "]";

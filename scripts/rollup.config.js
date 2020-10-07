@@ -1,14 +1,14 @@
 "use strict";
 
 module.exports = {
-  input: "content/frontend.js",
+  input: ".", // e.g. "content/frontend.js"
   preserveSymlinks: true,
   treeshake: {
     moduleSideEffects: true,
     propertyReadSideEffects: false,
   },
   output: {
-    file: "dist/content/vimium-c.js",
+    file: "dist/", // e.g. "dist/content/vimium-c.js"
     freeze: false,
     format: "iife",
     esModule: false,

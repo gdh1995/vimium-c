@@ -91,7 +91,7 @@ set_requestHandlers([
     }
     requestHandlers[kBgReq.init] = null as never;
     OnDocLoaded_(function (): void {
-      /*#__INLINE__*/ set_onWndFocus(safePost.bind(0, <Req.fg<kFgReq.focus>> { H: kFgReq.focus }))
+      /*#__INLINE__*/ set_onWndFocus(safePost.bind(0, <Req.fg<kFgReq.onFrameFocused>> { H: kFgReq.onFrameFocused }))
       timeout_(function (): void {
         const parApi = !(Build.BTypes & ~BrowserType.Firefox)
             || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
