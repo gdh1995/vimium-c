@@ -274,10 +274,10 @@ Backend_ = {
     }
 };
 
-  (!(Build.BTypes & BrowserType.Edge) || chrome.runtime.onMessageExternal) &&
-  (chrome.runtime.onMessageExternal!.addListener(function (this: void
-      , message: boolean | number | string | null | undefined | ExternalMsgs[keyof ExternalMsgs]["req"]
-      , sender, sendResponse): void {
+(!(Build.BTypes & BrowserType.Edge) || chrome.runtime.onMessageExternal) &&
+(chrome.runtime.onMessageExternal!.addListener((
+      message: boolean | number | string | null | undefined | ExternalMsgs[keyof ExternalMsgs]["req"]
+      , sender, sendResponse): void => {
     if (!isExtIdAllowed(sender.id, sender.url)) {
       sendResponse(false);
       return;
@@ -317,7 +317,7 @@ Backend_ = {
       executeExternalCmd(message, sender);
       break;
     }
-  }), Settings_.postUpdate_("extAllowList"));
+}), Settings_.postUpdate_("extAllowList"))
 
 browserTabs.onReplaced.addListener((addedTabId, removedTabId) => {
     const ref = framesForTab, frames = ref[removedTabId];
@@ -328,6 +328,10 @@ browserTabs.onReplaced.addListener((addedTabId, removedTabId) => {
       (frames[i].s as Writable<Frames.Sender>).t = addedTabId;
     }
 });
+
+if (Settings_.storage_.getItem("exclusionRules") !== "[]") {
+  Exclusions.setRules_(Settings_.get_("exclusionRules"))
+}
 
   Settings_.postUpdate_("vomnibarPage", null);
   Settings_.postUpdate_("searchUrl", null); // will also update newTabUrl

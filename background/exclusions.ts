@@ -158,10 +158,6 @@ var Exclusions = {
   }
 };
 
-if (Settings_.storage_.getItem("exclusionRules") !== "[]") {
-  Exclusions.setRules_(Settings_.get_("exclusionRules"))
-}
-
 Settings_.updateHooks_.exclusionRules = function (this: void, rules: ExclusionsNS.StoredRule[]): void {
   const isEmpty = !Exclusions.rules_.length, curKeyFSM = CommandsData_.keyFSM_
   Exclusions.setRules_(rules);

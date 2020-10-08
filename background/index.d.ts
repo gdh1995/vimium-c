@@ -803,7 +803,7 @@ interface BaseHelpDialog {
 interface Window {
   readonly MathParser?: object;
   readonly KeyMappings?: object;
-  readonly CommandsData_: CommandsDataTy;
+  readonly CommandsData_: object;
   readonly Completion_: CompletersNS.GlobalCompletersConstructor;
   readonly Exclusions?: object;
   readonly HelpDialog?: BaseHelpDialog;
