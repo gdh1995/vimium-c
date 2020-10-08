@@ -237,7 +237,7 @@ const collectFrameHints = (count: number, options: HintsNS.ContentOptions
     scrollTick(2);
     let modeAction: LinkAction | undefined;
     if (options_ !== options) {
-      /** ensured by {@link ../background/commands.ts#Commands.makeCommand_} */
+      /** ensured by {@link ../background/key_mappings.ts#KeyMappings.makeCommand_} */
       let mode = options.m as number;
       for (let modes of linkActions) {
         if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes

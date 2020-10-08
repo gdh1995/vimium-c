@@ -124,14 +124,11 @@ BgUtils_.timeout_(1000, function (): void {
     doSet(key, value);
   }
   function doSet(key: keyof SettingsToSync, value: any): void {
-    const Cmd = "KeyMappings", Excl = "Exclusions",
-    wanted: SettingsNS.DynamicFiles | "" = key === "keyMappings" ? Cmd
-        : key.startsWith("exclusion") ? Excl : "";
+    const wanted = key === "keyMappings" || key === "exclusionRules" ? "KeyMappings" : ""
     if (!wanted) {
       return setAndPost(key, value);
     }
-    Promise.all<false | object>([wanted === Excl && BgUtils_.require_(Cmd), BgUtils_.require_(wanted)]).then(
-        () => setAndPost(key, value));
+    BgUtils_.require_(wanted).then(setAndPost.bind(null, key, value))
     BgUtils_.GC_();
   }
   function setAndPost(key: keyof SettingsToSync, value: any): void {
@@ -498,15 +495,15 @@ BgUtils_.timeout_(1000, function (): void {
     else if (!localStorage.length) {
       BgUtils_.GC_();
       // eslint-disable-next-line arrow-body-style
-      restoringPromise = Promise.all([BgUtils_.require_("KeyMappings"), BgUtils_.require_("Exclusions")]).then(_ => {
+      restoringPromise = BgUtils_.require_("KeyMappings").then(_ => {
         return new Promise<void>(resolve => {
           cachedSync ? storage().get(items => {
             const err = BgUtils_.runtimeError_();
             err ? (Settings_.restore_ = null, resolve()) : beginToRestore(items, 1, resolve);
             return err;
           }) : beginToRestore({}, 2, resolve);
-        }).then(_1 => { restoringPromise = null; });
-      });
+        })
+      }).then(_ => { restoringPromise = null })
     } else {
       return null;
     }
@@ -1067,7 +1064,7 @@ BgUtils_.GC_ = function (inc0?: number): void {
   let now = 0, timeout = 0, referenceCount = 0;
   BgUtils_.GC_ = function (inc?: number): void {
     inc && (referenceCount = referenceCount + inc > 0 ? referenceCount + inc : 0);
-    if (referenceCount > 0 || !KeyMappings || !Exclusions || Exclusions.rules_.length > 0) {
+    if (referenceCount > 0 || !KeyMappings) {
       if (timeout) { clearTimeout(timeout); timeout = 0; }
       return;
     }
@@ -1085,11 +1082,6 @@ BgUtils_.GC_ = function (inc0?: number): void {
     if (KeyMappings) {
       hook.keyMappings = null as never;
       KeyMappings = null as never;
-    }
-    if (Exclusions && Exclusions.rules_.length <= 0) {
-      hook.exclusionRules = hook.exclusionOnlyFirstMatch =
-      hook.exclusionListenHash = null as never;
-      Exclusions = null as never;
     }
   }
 };

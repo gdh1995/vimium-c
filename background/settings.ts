@@ -422,7 +422,7 @@ var Settings_ = {
       a.omniPayload_.c = omniCSS
     },
     vomnibarPage (this: {}, url): void {
-      const a = Settings_, cur = localStorage.getItem("vomnibarPage_f");
+      const a = Settings_, cur = a.storage_.getItem("vomnibarPage_f");
       if (cur && !url) {
         (a.cache_ as WritableSettingsCache).vomnibarPage_f = cur;
         return;
@@ -664,7 +664,6 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     MathParser: "/lib/math_parser.js",
     HelpDialog: "/background/help_dialog.js",
     KeyMappings: "/background/key_mappings.js",
-    Exclusions: "/background/exclusions.js",
     InjectEnd_: "content/injected_end.js",
     NewTabForNewUser_: Build.MayOverrideNewTab ? "pages/options.html#!newTabUrl" : "",
     OverrideNewTab_: Build.MayOverrideNewTab ? true : false,

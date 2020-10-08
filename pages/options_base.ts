@@ -500,11 +500,9 @@ let setupBorderWidth_ = (Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithout
 } : null;
 
 location.pathname.toLowerCase().includes("/popup.html") &&
-Promise.all([ BG_.BgUtils_.require_("Exclusions"),
-    BG_.BgUtils_.GC_(1), bgSettings_.restore_ && bgSettings_.restore_()
-]).then((callback => () => {
-    chrome.tabs.query({currentWindow: true as true, active: true as true}, callback);
-})(function (activeTabs: [chrome.tabs.Tab] | never[]): void {
+Promise.resolve((BG_.BgUtils_.GC_(1), bgSettings_.restore_) && bgSettings_.restore_()).then(((callback): () => void =>
+    (): void => { chrome.tabs.query({currentWindow: true, active: true}, callback) }
+)((activeTabs: [chrome.tabs.Tab] | never[]): void => {
   const curTab = activeTabs[0], _url = curTab.url;
   let ref = BG_.Backend_.indexPorts_(curTab.id), blockedMsg = $("#blocked-msg");
   const notRunnable = !(ref || curTab && _url && curTab.status === "loading" && (<RegExpOne> /^(ht|s?f)tp/).test(_url));

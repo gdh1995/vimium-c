@@ -152,7 +152,7 @@ Backend_ = {
       set_cPort(indexFrame(tabId, 0) || ref[0])
       let pattern: string | null
       const curSender = cPort.s,
-      always_enabled = Exclusions == null || Exclusions.rules_.length <= 0, oldStatus = curSender.s,
+      always_enabled = !Exclusions.rules_.length, oldStatus = curSender.s,
       stdStatus = always_enabled ? Frames.Status.enabled : oldStatus === Frames.Status.partial ? oldStatus
           : (pattern = Backend_.getExcluded_(curSender.u, curSender),
               pattern ? Frames.Status.partial : pattern === null ? Frames.Status.disabled : Frames.Status.enabled),

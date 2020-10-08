@@ -256,7 +256,7 @@ var Tasks = {
     var ori_sources = sources.slice(0);
     // on Firefox, a browser-inner file `resource://devtools/server/main.js` is also shown as `main.js`
     // which makes debugging annoying
-    var globals = sources.splice(0, sources.indexOf("background/settings.js") + 1, "background/globals.js");
+    var globals = sources.splice(0, sources.indexOf("background/exclusions.js") + 1, "background/globals.js");
     var body = sources.splice(1, sources.indexOf("background/main.js"), "background/main.js");
     var index = sources.indexOf("background/tools.js") + 1;
     var tail = sources.splice(index, sources.length - index, "background/tail.js");

@@ -3,6 +3,8 @@ interface EnvCond {
   browser?: BrowserType
 }
 // eslint-disable-next-line no-var
+declare var CommandsData_: CommandsDataTy
+// eslint-disable-next-line no-var
 var KeyMappings = {
   getOptions_ (item: string[], start: number): CommandsNS.Options | null {
     let opt: CommandsNS.RawOptions, i = start, len = item.length, ind: number, str: string | undefined, val: string;
@@ -315,7 +317,7 @@ var KeyMappings = {
     if (detectNewError && CommandsData_.errors_) {
       console.groupEnd();
     }
-    const maybePassed = Exclusions ? Exclusions.getAllPassed_() : null;
+    const maybePassed = Exclusions.getAllPassed_();
     const func = function (obj: ChildKeyFSM): void {
       for (const key in obj) {
         const val = obj[key]!;
@@ -552,14 +554,14 @@ availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeO
 },
 CommandsData_: CommandsDataTy = CommandsData_ as never || {
   keyFSM_: null as never as KeyFSM,
-  mappedKeyRegistry_: null as SafeDict<string> | null,
+  mappedKeyRegistry_: null,
   mappedKeyTypes_: kMapKey.NONE,
   keyToCommandRegistry_: null as never as SafeDict<CommandsNS.Item>,
   builtinKeys_: null,
   errors_: null,
   shortcutRegistry_: null as never as ShortcutInfoMap,
   visualGranularities_: ["character", "word", "", "lineboundary", "line", "sentence", "paragraph", "documentboundary"],
-  visualKeys_: {
+  visualKeys_: <VisualModeNS.KeyMap> As_<{ [key: string]: VisualAction | { [key: string]: VisualAction } }>({
     l: VisualAction.char | VisualAction.inc, h: VisualAction.char | VisualAction.dec,
     j: VisualAction.line | VisualAction.inc, k: VisualAction.line | VisualAction.dec,
     $: VisualAction.lineBoundary | VisualAction.inc, 0: VisualAction.lineBoundary | VisualAction.dec,
@@ -585,7 +587,7 @@ CommandsData_: CommandsDataTy = CommandsData_ as never || {
 
     "c-e": VisualAction.ScrollDown, "c-y": VisualAction.ScrollUp,
     "c-down": VisualAction.ScrollDown, "c-up": VisualAction.ScrollUp
-  } as { [key: string]: VisualAction | { [key: string]: VisualAction } } as VisualModeNS.KeyMap
+  })
 };
 
 if (!Build.NDEBUG) {

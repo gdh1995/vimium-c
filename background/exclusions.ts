@@ -1,6 +1,3 @@
-if (Settings_.get_("vimSync") || Settings_.temp_.hasEmptyLocalStorage_
-    || ((!Backend_.onInit_ || localStorage.getItem("exclusionRules") !== "[]")
-        && !Settings_.updateHooks_.exclusionRules)) {
 // eslint-disable-next-line no-var
 var Exclusions = {
   testers_: null as never as SafeDict<ExclusionsNS.Tester>,
@@ -161,10 +158,12 @@ var Exclusions = {
   }
 };
 
-Exclusions.setRules_(Settings_.get_("exclusionRules"));
+if (Settings_.storage_.getItem("exclusionRules") !== "[]") {
+  Exclusions.setRules_(Settings_.get_("exclusionRules"))
+}
 
 Settings_.updateHooks_.exclusionRules = function (this: void, rules: ExclusionsNS.StoredRule[]): void {
-  const isEmpty = Exclusions.rules_.length <= 0, curKeyFSM = CommandsData_.keyFSM_;
+  const isEmpty = !Exclusions.rules_.length, curKeyFSM = CommandsData_.keyFSM_
   Exclusions.setRules_(rules);
   BgUtils_.GC_();
   setTimeout(function (): void {
@@ -180,7 +179,3 @@ Settings_.updateHooks_.exclusionOnlyFirstMatch = function (this: void, value: bo
 };
 
 Settings_.updateHooks_.exclusionListenHash = Exclusions.updateListeners_;
-} else {
-  // eslint-disable-next-line no-var
-  var Exclusions = null as never as typeof Exclusions;
-}

@@ -158,9 +158,8 @@ const formatPortSender = (port: Port): Frames.Sender => {
 /** @see {#BackendHandlers.getPortUrl_} */
 export const getPortUrl = (port?: Port | null, ignoreHash?: boolean, request?: Req.baseFg<kFgReq>
     ): string | Promise<string> => {
-  const excl = Exclusions
   port = port || indexFrame(TabRecency_.curTab_, 0)
-  return port && excl && excl.rules_.length > 0 && (ignoreHash || excl._listeningHash) ? port.s.u
+  return port && Exclusions.rules_.length && (ignoreHash || Exclusions._listeningHash) ? port.s.u
       : new Promise<string>((resolve): void => {
     const webNav = Build.BTypes & ~BrowserType.Edge
         && (!(Build.BTypes & ~BrowserType.Edge) || OnOther !== BrowserType.Edge)

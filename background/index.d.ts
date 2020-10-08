@@ -393,8 +393,7 @@ declare namespace SettingsNS {
     findCSS: FindCSS; // should not in Settings_.defaults
   }
 
-  type DynamicFiles = "HelpDialog" | "KeyMappings" | "Exclusions" |
-    "MathParser";
+  type DynamicFiles = "HelpDialog" | "KeyMappings" | "MathParser";
 
   interface Sync {
     set<K extends keyof PersistentSettings> (key: K, value: PersistentSettings[K] | null): void;

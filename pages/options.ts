@@ -334,7 +334,6 @@ class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
 
 ExclusionRulesOption_.prototype.onRowChange_ = function (this: ExclusionRulesOption_, isAdd: number): void {
   if (this.list_.length !== isAdd) { return; }
-  isAdd && !BG_.Exclusions && BG_.BgUtils_.require_("Exclusions");
   const el = $("#exclusionToolbar"), options = el.querySelectorAll("[data-model]");
   el.style.visibility = isAdd ? "" : "hidden";
   for (let i = 0, len = options.length; i < len; i++) {
@@ -637,10 +636,11 @@ let optionsInit1_ = function (): void {
   }
   opt = Option_.all_.keyMappings;
   opt.onSave_ = function (): void {
-    const errors = BG_.CommandsData_.errors_,
+    const bgCommandsData_ = BG_.CommandsData_ as CommandsDataTy
+    const errors = bgCommandsData_.errors_,
     msg = errors ? formatCmdErrors_(errors) : "";
     if (bgSettings_.payload_.l && !msg) {
-      let str = Object.keys(BG_.CommandsData_.keyFSM_).join(""), mapKey = BG_.CommandsData_.mappedKeyRegistry_;
+      let str = Object.keys(bgCommandsData_.keyFSM_).join(""), mapKey = bgCommandsData_.mappedKeyRegistry_;
       str += mapKey ? Object.keys(mapKey).join("") : "";
       if ((<RegExpOne> /[^ -\xff]/).test(str)) {
         this.showError_(pTrans_("ignoredNonEN"), null);
@@ -1183,22 +1183,19 @@ function OnBgUnload(): void {
         opt.previous_ = bgSettings_.get_(opt.field_);
       }
     }
-    let needExclusions = false, needCommands = false;
-    if ((Option_.all_.exclusionRules as ExclusionRulesOption_).list_.length > 0) {
-      needExclusions = needCommands = true;
-    } else if (Option_.all_.keyMappings.checker_) {
-      needCommands = true;
+    let needCommands = false
+    if ((Option_.all_.exclusionRules as ExclusionRulesOption_).list_.length || Option_.all_.keyMappings.checker_) {
+      needCommands = true
     }
-    needExclusions && !BG_.Exclusions && BG_.BgUtils_.require_("Exclusions");
     needCommands && !BG_.KeyMappings && BG_.BgUtils_.require_("KeyMappings");
     BG_.BgUtils_.GC_(1);
   }
 }
 BG_.addEventListener("unload", OnBgUnload);
 
-const cmdRegistry = BG_.CommandsData_.keyToCommandRegistry_["?"];
+const cmdRegistry = (BG_.CommandsData_ as CommandsDataTy).keyToCommandRegistry_["?"]
 if (!cmdRegistry || cmdRegistry.alias_ !== kBgCmd.showHelp) { (function (): void {
-  const arr = BG_.CommandsData_.keyToCommandRegistry_;
+  const arr = (BG_.CommandsData_ as CommandsDataTy).keyToCommandRegistry_
   let matched = "";
   for (let key in arr) {
     const item = arr[key] as CommandsNS.Item;
