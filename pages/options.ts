@@ -949,14 +949,15 @@ if (Build.BTypes & BrowserType.ChromeOrFirefox
 }
 
 if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && bgOnOther_ & BrowserType.Firefox) {
-  nextTick_((): void => {
+  setTimeout((): void => {
     const test = document.createElement("div")
     test.style.display = "none"
     test.style.color = "#543";
     (document.body as HTMLBodyElement).append!(test)
-    requestIdleCallback!(() => {
+    requestIdleCallback!((): void => {
       const K = GlobalConsts.kIsHighContrast, storage = localStorage
-      const isHC = getComputedStyle(test).color?.replace(<RegExpG> / /g, '') != "rgb(85,68,51)"
+      const newColor = (getComputedStyle(test).color || "").replace(<RegExpG> / /g, '').toLowerCase()
+      const isHC = !!newColor && newColor != "rgb(85,68,51)"
       test.remove()
       const oldIsHC = storage.getItem(K) == "1"
       if (isHC != oldIsHC) {

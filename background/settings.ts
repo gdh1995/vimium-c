@@ -365,7 +365,7 @@ var Settings_ = {
       if (Build.BTypes & BrowserType.Firefox && isHighContrast_ff) {
         omniCSS = 'body:after{content:"";}#toolbar{opacity:1;}#toggle-dark{display:none;}.btn_svg{stroke:#999;}'
                 + ":hover>.btn_svg{stroke:currentColor;}.s,.item:hover{border-bottom-style:solid;}"
-                + ".s>.top,:hover>.top{font-weight:bold;--svg-color:currentColor;}"
+                + ".s>.top,:hover>.top{font-weight:bold;--c:currentColor;}"
       }
       css = css.replace(<RegExpG> /\n/g, "")
       css = cacheId + ";" + css;
