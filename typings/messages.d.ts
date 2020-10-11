@@ -220,6 +220,7 @@ declare namespace HintsNS {
     c?: string;
     action?: string;
     caret?: boolean;
+    ordinal?: boolean
     useFilter?: boolean;
     url?: boolean;
     keyword?: string;
@@ -366,6 +367,7 @@ interface CmdOptions {
     reuse?: UserReuseType;
     copy?: boolean;
     /** for autoCopy */
+    text?: string
     url?: boolean;
     decoded?: boolean; decode?: boolean;
     /** for searchAs */

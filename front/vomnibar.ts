@@ -563,7 +563,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
       if (mainModifier === "a-") {
         if (key === "a-" + kChar.Alt || key === "a-" + kChar.Modifier) {
-          // not set keyup listener by intent:
+          // not set keyup listener on purpose:
           // so that a short Alt will only toggle inAlt, and a long Alt can show on keydown and hide on keyup
           Vomnibar_.inAlt_ = Vomnibar_.inAlt_ || setTimeout(Vomnibar_.toggleAlt_, 260, -1);
           return;
@@ -1579,6 +1579,7 @@ VUtils_ = {
         }
         str = relativeFormatter.format((Math.round((unit < 5 ? d : d / 365.25 + 0.25)) || 1
             ) * (negPos > 0 ? -1 : 1), kUnits[unit === 4 ? 3 : unit])
+        str = isZh ? str.replace("\u79d2\u949f", "\u79d2") : str
       }
       return `<span class="time" title="${stdDateTime}">${str}</span>`
     }

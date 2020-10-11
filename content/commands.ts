@@ -166,7 +166,9 @@ set_contentCommands_([
     }
   },
   /* kFgCmd.autoOpen: */ (options: CmdOptions[kFgCmd.autoOpen]): void => {
-    let selected = options.selected, str = options.s && !selected ? "" : getSelectionText(1), url = str.trim()
+    let selected = options.selected,
+    str = options.s && !selected ? "" : getSelectionText(1) || (options.text || "") + "",
+    url = str.trim()
     options.copy && (url || !options.o) && post_({
       H: kFgReq.copy,
       s: str as never as undefined,

@@ -5,6 +5,7 @@ import ClickType = HintsNS.ClickType
 
 import {
   frameList_, hintMode_, useFilter_, coreHints, hintKeyStatus, KeyStatus, hintChars, allHints, setMode, resetMode,
+  hintOptions
 } from "./link_hints"
 import {
   createElement_, querySelector_unsafe_, getInputType, htmlTag_, docEl_unsafe_, ElementProto, HDN, removeEl_s
@@ -283,9 +284,10 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
           return hints[0];
         }
         if (!hasSearch
-            && ((!(Build.BTypes & ~BrowserType.Firefox) ? docEl_unsafe_()!.getAttribute("data-vimium-hints")
+            && (hintOptions.ordinal != null ? hintOptions.ordinal :
+                ((!(Build.BTypes & ~BrowserType.Firefox) ? (docEl_unsafe_()! as HTMLElement).dataset.vimiumHints
                   : ElementProto().getAttribute.call(docEl_unsafe_()!, "data-vimium-hints"))
-                || "").includes("ordinal")) {
+                || "").includes("ordinal"))) {
           /* empty */
         }
         else if (!(Build.BTypes & ~BrowserType.ChromeOrFirefox)
