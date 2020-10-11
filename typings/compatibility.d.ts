@@ -483,6 +483,7 @@ declare const enum BrowserVer {
   MinExtensionResourcesHaveCOEP = 84, // https://bugs.chromium.org/p/chromium/issues/detail?id=1085915
   // 2->0.25/0.5; 5->0.04/0.2; 6->0.027778/0.166667
   MinBorderWidth$Ensure1$Or$Floor = 85, // even if EXPERIMENTAL or LEGACY
+  MinClipboardWriteHTML = 86,
   /** @todo: trace https://bugs.chromium.org/p/chromium/issues/detail?id=968651&can=2&q=reduced-motion%20change */
   MinMediaChangeEventsOnBackgroundPage = 999,
   MinNo$TimerType$$Fake = 999,
