@@ -527,7 +527,7 @@ BgUtils_.timeout_(1000, function (): void {
       return err;
     }
     restoringPromise = Promise.resolve();
-    restoringPromise = new Promise(r => beginToRestore(items, 3, r)).then<void>(_ => { restoringPromise = null; });
+    restoringPromise = new Promise<void>(r => beginToRestore(items, 3, r)).then<void>(_ => { restoringPromise = null })
   });
 });
 

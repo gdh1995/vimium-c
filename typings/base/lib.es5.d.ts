@@ -1460,7 +1460,7 @@ declare type PropertyDecorator = (target: Object, propertyKey: string) => void;
 declare type MethodDecorator = <T>(target: Object, propertyKey: string, descriptor: TypedPropertyDescriptor<T>) => TypedPropertyDescriptor<T> | void;
 declare type ParameterDecorator = (target: Object, propertyKey: string, parameterIndex: number) => void;
 
-declare type PromiseConstructorLike = new <T>(executor: (resolve: (value?: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void) => PromiseLike<T>;
+declare type PromiseConstructorLike = new <T>(executor: (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void) => PromiseLike<T>;
 
 interface PromiseLike<T> {
     /**
@@ -1505,6 +1505,13 @@ type Partial<T> = {
 };
 
 /**
+ * Make all properties in T required
+ */
+type Required<T> = {
+    [P in keyof T]-?: T[P];
+};
+
+/**
  * Make all properties in T readonly
  */
 type Readonly<T> = {
@@ -1512,7 +1519,7 @@ type Readonly<T> = {
 };
 
 /**
- * From T pick a set of properties K
+ * From T, pick a set of properties whose keys are in the union K
  */
 type Pick<T, K extends keyof T> = {
     [P in K]: T[P];
@@ -1561,7 +1568,7 @@ interface ArrayBufferConstructor {
     new (byteLength: number): ArrayBuffer;
     isView(arg: any): arg is ArrayBufferView;
 }
-declare const ArrayBuffer: ArrayBufferConstructor;
+declare var ArrayBuffer: ArrayBufferConstructor;
 
 interface ArrayBufferView {
     /**
