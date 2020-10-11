@@ -20,8 +20,8 @@ import { coreHints } from "./link_hints"
 import { executeScroll, scrollTick, $sc, keyIsDown as scroll_keyIsDown } from "./scroller"
 import { onLoad as findOnLoad, find_box } from "./mode_find"
 import { filterTextToGoNext, jumpToNextLink } from "./pagination"
-import { main_not_ff as extend_click_not_ff } from  "./extend_click.js"
-import { main_ff as extend_click_ff } from  "./extend_click_ff.js"
+import { main_not_ff as extend_click_not_ff } from  "./extend_click"
+import { main_ff as extend_click_ff } from  "./extend_click_ff"
 import { RSC } from "./commands"
 
 const docReadyListeners: Array<(this: void) => void> = [], completeListeners: Array<(this: void) => void> = []

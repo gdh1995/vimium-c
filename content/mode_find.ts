@@ -107,7 +107,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     activeRegexIndex = 0
 
     const outerBox = outerBox_ = createElement_(Build.BTypes & BrowserType.Chrome ? getBoxTagName_cr_() : "div"),
-    el = box_ = createElement_("iframe"), st = outerBox.style
+    st = outerBox.style
     st.display = NONE; st.width = "0";
     if (Build.BTypes & ~BrowserType.Firefox && wdZoom_ !== 1) { st.zoom = "" + 1 / wdZoom_; }
     setClassName_s(outerBox, "R UI HUD" + fgCache.d)
@@ -116,15 +116,16 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     } else {
       outerBox.onmousedown = onMousedown
     }
-    setClassName_s(el, "R UI Find")
-    el.onload = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinTestedES6Environment
+    box_ = createElement_("iframe")
+    setClassName_s(box_, "R UI Find")
+    box_.onload = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinTestedES6Environment
         ? vApi.n.bind(0, 1) : () => vApi.n(1)
     replaceOrSuppressMost_(kHandler.find)
     query_ || (query0_ = query)
     init && init(AdjustType.NotAdjust)
     toggleSelectableStyle(1);
     isActive = true
-    appendNode_s(outerBox, el)
+    appendNode_s(outerBox, box_)
     addUIElement(outerBox, AdjustType.DEFAULT, hud_box);
 }
 

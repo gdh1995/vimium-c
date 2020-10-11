@@ -3,7 +3,7 @@ import {
 } from "../lib/utils"
 import { ui_box, ensureBorder, addUIElement, adjustUI, getBoxTagName_cr_ } from "./dom_ui"
 import { allHints, isHintsActive, hintManager, setMode as setHintMode, hintMode_ } from "./link_hints"
-import { isHTML_, createElement_, HDN, setClassName_s } from "../lib/dom_utils"
+import { isHTML_, createElement_, HDN, setClassName_s, appendNode_s } from "../lib/dom_utils"
 import { insert_global_ } from "./insert"
 import { visual_mode, visual_mode_name } from "./visual"
 import { find_box } from "./mode_find"
@@ -29,25 +29,22 @@ export const hudShow = (tid: kTip | HintMode, args?: Array<string | number> | st
   opacity_ = 1;
   if (timer) { clearTimeout_(timer); timer = TimerID.None; }
   embed || tweenId || (tweenId = interval_(tween, 40));
-  let el = box;
-  if (el) {
+  if (box) {
     $text.data = text;
     embed && toggleOpacity("")
     return
   }
-  el = createElement_(Build.BTypes & BrowserType.Chrome ? getBoxTagName_cr_() : "div")
-  setClassName_s(el, "R HUD" + fgCache.d)
-  !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
-    ? el.append!(text) : el.textContent = text
-  $text = el.firstChild as Text;
-  style = el.style;
+  box = createElement_(Build.BTypes & BrowserType.Chrome ? getBoxTagName_cr_() : "div")
+  setClassName_s(box, "R HUD" + fgCache.d)
+  appendNode_s(box, $text = new Text(text))
+  style = box.style
   if (!embed) {
     toggleOpacity("0")
     if (Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor || Build.BTypes & ~BrowserType.Chrome) {
       ui_box || ensureBorder() // safe to skip `getZoom_`
     }
   }
-  addUIElement(box = el, allHints ? AdjustType.NotAdjust : AdjustType.DEFAULT)
+  addUIElement(box, allHints ? AdjustType.NotAdjust : AdjustType.DEFAULT)
 }
 
 const tween = (fake?: TimerType.fake): void => { // safe-interval
@@ -68,8 +65,7 @@ const tween = (fake?: TimerType.fake): void => { // safe-interval
   if (opacity) {
     style.opacity = opacity < 1 ? "" + opacity : ""
   } else {
-    toggleOpacity("0")
-    $text.data = "";
+    hudHide(TimerType.noTimer)
   }
   if (opacity !== opacity_) { return }
   clearInterval_(tweenId);
@@ -78,16 +74,16 @@ const tween = (fake?: TimerType.fake): void => { // safe-interval
 
 export const hudHide = (info?: TimerType.fake | TimerType.noTimer): void => {
   if (timer) { clearTimeout_(timer); timer = TimerID.None; }
-  if (!find_box) {
-    if (isHintsActive && !hintManager) {
+  {
+    if (!find_box && isHintsActive && !hintManager) {
       setHintMode(hintMode_)
       return
     }
-    if (visual_mode) {
+    if (!find_box && visual_mode) {
       hudShow(kTip.inVisualMode, visual_mode_name, info)
       return
     }
-    if (insert_global_ && insert_global_.h) {
+    if (!find_box && insert_global_ && insert_global_.h) {
       hudShow(kTip.raw, insert_global_.h)
       return;
     }

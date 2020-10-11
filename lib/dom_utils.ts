@@ -414,7 +414,7 @@ export let createElement_ = doc.createElement.bind(doc) as {
 export function set_createElement_ (_newCreateEl: typeof createElement_): void { createElement_ = _newCreateEl }
 
 /** @NEED_SAFE_ELEMENTS */
-export const appendNode_s = (parent: ParentNode, child: Element | DocumentFragment): void => {
+export const appendNode_s = (parent: ParentNode, child: Element | DocumentFragment | Text): void => {
   Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
       ? parent.appendChild(child) : parent.append!(child)
 }
@@ -455,11 +455,16 @@ export const scrollIntoView_ = (el: Element, dir?: boolean): void => {
 }
 
 export const runJS_ = (code: string, returnEl?: HTMLScriptElement | null | 0): void | HTMLScriptElement => {
+    const docEl = Build.BTypes & ~BrowserType.Firefox ? docEl_unsafe_() : null
     const script = returnEl || createElement_("script");
     script.type = "text/javascript";
+    // keep it fast, rather than small
     !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
         ? script.append!(code) : script.textContent = code;
-    (Build.BTypes & ~BrowserType.Firefox && docEl_unsafe_() ? append_not_ff : appendNode_s)(
-        docEl_unsafe_() || doc, script)
+    if (Build.BTypes & ~BrowserType.Firefox) {
+      docEl ? append_not_ff(docEl, script) : appendNode_s(doc, script)
+    } else {
+      appendNode_s(docEl_unsafe_() || doc, script)
+    }
     return returnEl != null ? script : removeEl_s(script)
 }

@@ -52,9 +52,7 @@ type SelectNameToKey<T extends { [k in K]: [string, any] }, K extends keyof T = 
 
 // type EmptyArray = never[];
 declare const enum TimerType {
-  _native = 0,
-  fake = -1,
-  noTimer = 1,
+  _native = 0, fake = 9, noTimer = 1,
 }
 type SafeSetTimeout = (this: void, handler: (this: void) => void, timeout: number) => number;
 declare var setTimeout: SetTimeout, setInterval: SetInterval;

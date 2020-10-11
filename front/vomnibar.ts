@@ -307,7 +307,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       if (!a.codeFocusReceived_ || !a.focused_) {
         focus = focus ? <number> focus | 0 : 0;
         if (!Build.NDEBUG) {
-          if (focus >= 0) {
+          if (TimerType.fake < 0 ? focus >= 0 : focus < TimerType.fake) {
             console.log(`Vomnibar: can not focus the input bar at the ${focus + 1} time`
               + (focus < 5 ? ", so retry in 33ms." : "."));
           } else {

@@ -579,7 +579,7 @@ const setupCheck: HintManager["w"] = (officer?: BaseHintWorker | null
 }
 
 // checkLast: if not el, then reinit if only no key stroke and hints.length < 64
-const checkLast = ((el?: WeakRef<LinkEl> | LinkEl | -1 | 1 | null, r?: Rect | null): BOOL | 2 => {
+const checkLast = ((el?: WeakRef<LinkEl> | LinkEl | TimerType.fake | 9 | 1 | null, r?: Rect | null): BOOL | 2 => {
   let r2: Rect | null | undefined, hidden: boolean
   if (!isAlive_) { return 0 }
   else if (window.closed) { return 1 }
@@ -679,7 +679,7 @@ const onFrameUnload = (officer: HintOfficer): void => {
     }
     if (i >= len || !isActive || _timer) { return; }
     const deleteCount = frames[i].h.length
-    deleteCount && (hints_ as HintItem[]).splice(offset, deleteCount) // remove `readonly` by intent
+    deleteCount && (hints_ as HintItem[]).splice(offset, deleteCount) // remove `readonly` on purpose
     frames.splice(i, 1);
     if (!deleteCount) { return; }
     onWaitingKey = onTailEnter ? onWaitingKey
