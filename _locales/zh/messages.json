@@ -1340,6 +1340,7 @@
 	"halfDisabled": {
 		"message": "部分禁用"
 	},
+	"fullDisabled": { "message": "完全禁用" },
 	"unknownCS": {
 		"message": "未知的网站功能类型：$1"
 	},

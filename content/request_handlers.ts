@@ -73,7 +73,8 @@ set_requestHandlers([
     }
     if (flags) {
       /*#__INLINE__*/ set_grabBackFocus(grabBackFocus && !(flags & Frames.Flags.userActed))
-      /*#__INLINE__*/ set_isLocked_(!!(flags & Frames.Flags.locked))
+      set_isLocked_(Frames.Flags.locked === 1 ? (flags & Frames.Flags.locked) as BOOL
+          : flags & Frames.Flags.locked ? 1 : 0)
     }
     requestHandlers[kBgReq.keyFSM](request);
     (requestHandlers[kBgReq.reset] as (request: BgReq[kBgReq.reset], initing?: 1) => void)(request, 1);
@@ -132,7 +133,7 @@ set_requestHandlers([
     if (initing) {
       return;
     }
-    /*#__INLINE__*/ set_isLocked_(!!request.f)
+    /*#__INLINE__*/ set_isLocked_(request.f!)
     // if true, recover listeners on shadow roots;
     // otherwise listeners on shadow roots will be removed on next blur events
     if (newEnabled) {

@@ -80,6 +80,7 @@ interface BgReq {
     /** status */ s: Frames.Flags;
     /** cache (aka. payload) */ c: SettingsNS.FrontendSettingCache;
     /** passKeys */ p: string | null;
+    /** forced */ f?: undefined
     /** mappedKeys */ m: SafeDict<string> | null;
     /** keyFSM */ k: KeyFSM;
     /** mappedKeyTypes */ t: kMapKey;
@@ -89,7 +90,7 @@ interface BgReq {
   };
   [kBgReq.reset]: {
     /** passKeys */ p: string | null;
-    /** forced */ f?: boolean;
+    /** forced: if .H is .reset, then must exist */ f?: 0 | 1 | 2
   };
   [kBgReq.msg]: {
     /** mid */ m: number;

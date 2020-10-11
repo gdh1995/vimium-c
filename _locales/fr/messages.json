@@ -729,6 +729,7 @@
 	"halfDisabled": {
 		"message": "partiellement désactivé(es)"
 	},
+	"fullDisabled": { "message": "désactivée" },
 	"unknownCS": {
 		"message": "Paramètres de contenu inconnus: $1"
 	},

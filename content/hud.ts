@@ -1,5 +1,5 @@
 import {
-  fgCache, doc, isEnabled_, VTr, isAlive_, timeout_, clearTimeout_, interval_, clearInterval_,
+  fgCache, doc, isEnabled_, VTr, isAlive_, timeout_, clearTimeout_, interval_, clearInterval_, isLocked_,
 } from "../lib/utils"
 import { ui_box, ensureBorder, addUIElement, adjustUI, getBoxTagName_cr_ } from "./dom_ui"
 import { allHints, isHintsActive, hintManager, setMode as setHintMode, hintMode_ } from "./link_hints"
@@ -97,6 +97,7 @@ export const hudHide = (info?: TimerType.fake | TimerType.noTimer): void => {
   else if (info === TimerType.noTimer || !isEnabled_) {
     toggleOpacity("0")
     $text.data = "";
+    isEnabled_ && isLocked_ !== 2 || adjustUI(2)
   }
   else if (!tweenId && isAlive_) {
     tweenId = interval_(tween, 40);

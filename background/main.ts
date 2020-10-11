@@ -136,20 +136,23 @@ Backend_ = {
     forceStatus_ (act: Frames.ForcedStatusText, tabId?: number): void {
       const ref = framesForTab[tabId || (tabId = TabRecency_.curTab_)];
       if (!ref) { return; }
-      let spaceInd = act.indexOf(" "), newPassedKeys = spaceInd > 0 ? act.slice(spaceInd + 1) : "";
+      set_cPort(indexFrame(tabId, 0) || ref[0])
+      let spaceInd = act.search(<RegExpOne> /\/| /), newPassedKeys = spaceInd > 0 ? act.slice(spaceInd + 1) : ""
       act = act.toLowerCase() as Frames.ForcedStatusText;
       if (spaceInd > 0) {
         act = act.slice(0, spaceInd) as Frames.ForcedStatusText;
       }
+      act.includes("-") && act.endsWith("able") && (act += "d")
       const silent = !!newPassedKeys && (<RegExpOne> /^silent/i).test(newPassedKeys);
-      newPassedKeys = (silent ? newPassedKeys.slice(7) : newPassedKeys).trimLeft();
+      newPassedKeys = (silent ? newPassedKeys.slice(7) : newPassedKeys).trim()
+      let shown: BOOL = 0
+      const logAndShow = (msg: string): void => { console.log(msg), shown || showHUD(msg); shown = 1 }
       if (newPassedKeys && !newPassedKeys.startsWith("^ ")) {
-        console.log('"vimium://status" only accepts a list of hooked keys');
+        logAndShow('"vimium://status" only accepts a list of hooked keys')
         newPassedKeys = "";
-      } else {
-        newPassedKeys = newPassedKeys && newPassedKeys.replace(<RegExpG> /<(\S+)>/g, "$1");
+      } else if (newPassedKeys) {
+        newPassedKeys = newPassedKeys.replace(<RegExpG> /<(\S+)>/g, "$1").replace(BgUtils_.spacesRe_, " ")
       }
-      set_cPort(indexFrame(tabId, 0) || ref[0])
       let pattern: string | null
       const curSender = cPort.s,
       always_enabled = !Exclusions.rules_.length, oldStatus = curSender.s,
@@ -168,17 +171,16 @@ Backend_ = {
             : stdStatus === Frames.Status.disabled ? Frames.Status.enabled : null
         : act === "toggle" || act === "next"
         ? oldStatus !== Frames.Status.enabled ? Frames.Status.enabled : Frames.Status.disabled
-        : null,
-      locked = stat !== null, unknown = !(locked || always_enabled),
+        : (act !== "reset" && logAndShow(`Unknown status action: "${act}", so reset`) , null),
+      enableWithPassedKeys = !!newPassedKeys && act === "enable",
+      locked = stat !== null ? stat === Frames.Status.disabled && newPassedKeys ? 2 : 1 : 0,
+      unknown = !(locked || always_enabled),
       msg: Req.bg<kBgReq.reset> = {
         N: kBgReq.reset,
-        p: stat !== Frames.Status.disabled ? null : newPassedKeys,
+        p: stat === Frames.Status.disabled || enableWithPassedKeys ? newPassedKeys : null,
         f: locked
       };
-      if (stat === null && tabId < 0) {
-        silent || oldStatus !== Frames.Status.disabled && showHUD(trans_("unknownStatAction", [act]));
-        return;
-      }
+      // avoid Status.partial even if `newPassedKeys`, to keep other checks about Flags.locked correct
       let newStatus: Frames.ValidStatus = locked ? stat! : Frames.Status.enabled;
       for (let i = ref.length; 1 <= --i; ) {
         const port = ref[i], sender = port.s;
@@ -194,10 +196,10 @@ Backend_ = {
         sender.s = newStatus;
         port.postMessage(msg);
       }
-      silent || newStatus !== Frames.Status.disabled && showHUD(trans_("newStat", [
-        trans_(newStatus === Frames.Status.enabled ? "fullEnabled" : "halfDisabled")
-      ]));
-      if (needIcon && (newStatus = curSender.s) !== oldStatus) {
+      newStatus = ref[0].s.s
+      silent || shown || showHUD(trans_("newStat", trans_(newStatus === Frames.Status.enabled && !enableWithPassedKeys
+          ? "fullEnabled" : newStatus === Frames.Status.disabled ? "fullDisabled" : "halfDisabled")))
+      if (needIcon && newStatus !== oldStatus) {
         Backend_.setIcon_(tabId, newStatus);
       }
     },

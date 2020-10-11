@@ -174,7 +174,7 @@
         "message": "Copy selected text or current frame's title or URL"
     },
     "autoCopy_p": {
-        "message": "url, decoded"
+        "message": "text: string, url, decoded"
     },
     "autoOpen": {
         "message": "Open selected or copied text in a new tab"
@@ -932,6 +932,7 @@
     "halfDisabled": {
         "message": "partially disabled"
     },
+    "fullDisabled": { "message": "disabled" },
     "unknownCS": {
         "message": "Unknown content settings type: $1"
     },

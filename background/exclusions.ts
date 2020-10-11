@@ -102,8 +102,7 @@ var Exclusions = {
   },
   RefreshStatus_ (this: void, old_is_empty: boolean): void {
     const always_enabled = Exclusions.rules_.length > 0 ? null : <Req.bg<kBgReq.reset>> {
-      N: kBgReq.reset,
-      p: null
+      N: kBgReq.reset, p: null, f: 0
     };
     if (old_is_empty) {
       always_enabled || Settings_.broadcast_<kBgReq.url>({
@@ -132,7 +131,7 @@ var Exclusions = {
           }
         }
         if (port.s.f & Frames.Flags.locked) { continue; }
-        port.postMessage(always_enabled || { N: kBgReq.reset, p: pass });
+        port.postMessage(always_enabled || { N: kBgReq.reset, p: pass, f: 0 });
         port.s.s = status;
       }
       if (needIcon && status0 !== (status = frames[0].s.s)) {
