@@ -34,3 +34,7 @@ cursor:text;display:flex;height:21px;padding:4px 4px 0}.r.D{background:#1e1e1e;c
 :host,body{background-color:#eee!important;margin:0!important}:host(.D),body.D{background-color:#222!important}
 @media(-ms-high-contrast:active){.HC.r:not(#r){background:none}
 .HC.r:after{border:0.01px solid #aaa;bottom:0;content:"";left:0;position:fixed;right:0;top:0;z-index:-1}}
+/*#omni*/
+body:after{content:"";}#toolbar{opacity:1;}#toggle-dark{display:none;}.btn_svg{stroke:#999;}
+:hover>.btn_svg{stroke:currentColor;}.s,.item:hover{border-bottom-style:solid;}
+.s>.top,:hover>.top{font-weight:bold;--c:currentColor;}

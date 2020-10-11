@@ -9,7 +9,8 @@ var HelpDialog = {
       const noShadow = !( (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             && !(Build.BTypes & ~BrowserType.ChromeOrFirefox))
-          && !Settings_.CONST_.StyleCacheId_.includes("s"),
+          && !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+                ? window.ShadowRoot || document.documentElement!.webkitCreateShadowRoot : window.ShadowRoot),
       template = Settings_.cache_.helpDialog!,
       noContain = Build.MinCVer <= BrowserVer.CSS$Contain$BreaksHelpDialogSize && Build.BTypes & BrowserType.Chrome
           && CurCVer_ === BrowserVer.CSS$Contain$BreaksHelpDialogSize;

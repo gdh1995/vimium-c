@@ -963,7 +963,7 @@ if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox
       if (isHC != oldIsHC) {
         isHC ? storage.setItem(K, "1") : storage.removeItem(K);
         delete (bgSettings_.cache_ as Partial<SettingsNS.FullCache>).helpDialog
-        bgSettings_.fetchFile_("baseCSS", bgSettings_.postUpdate_.bind(bgSettings_, "userDefinedCss"))
+        bgSettings_.reloadCSS_(2)
       }
     }, { timeout: 1e3 })
   }, 34)
@@ -1009,10 +1009,11 @@ table.ondrop = event => {
 
 $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
   const self = Option_.all_.userDefinedCss
-  if (self.saved_ || !window.VApi || !VApi.z) { return }
+  const isDebugging = self.element_.classList.contains("debugging")
+  if (self.saved_ && !isDebugging || !window.VApi || !VApi.z) { return }
   const newVal = self.readValueFromElement_(), isSame = newVal === self.previous_,
-  css = bgSettings_.mergeCustomCSS_(newVal, 1), misc = VApi.y(), root = misc.r
-  if (!self.element_.classList.contains("debugging") && BG_) {
+  css = bgSettings_.reloadCSS_(-1, newVal)!, misc = VApi.y(), root = misc.r
+  if (!isDebugging && BG_) {
     chrome.tabs.query({ currentWindow: true, active: true }, (tabs?: [chrome.tabs.Tab?]): void => {
       if (tabs && tabs[0] && tabs[0].url === location.href) {
         const port = BG_.Backend_.indexPorts_(tabs[0].id, 0) as Frames.Port | null
@@ -1023,7 +1024,7 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
   self.element_.classList.toggle("debugging", !isSame)
   VApi.t({
     k: root || isSame ? 0 : kTip.raw, t: "Debugging CSS\u2026",
-    H: css.ui, f: bgSettings_.parseFindCSS_(css.find)
+    H: css.ui, f: css.find
   })
   const frame = root && root.querySelector("iframe.Omnibar") as HTMLIFrameElement | null
   const doc = frame && frame.contentDocument

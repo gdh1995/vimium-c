@@ -1,5 +1,5 @@
-import { removeTempTab, tabsGet, runtimeError_, getCurTab, getTabUrl, browserTabs } from "./browser"
-import { needIcon, NoFrameId, cPort, getSecret, set_cPort, cKey, reqH_ } from "./store"
+import { removeTempTab, tabsGet, runtimeError_, getCurTab, getTabUrl, browserTabs, browserWebNav } from "./browser"
+import { needIcon_, NoFrameId, cPort, getSecret, set_cPort, cKey, reqH_, contentPayload, omniPayload, settings, innerCSS_ } from "./store"
 
 export const framesForTab: Frames.FramesMap = BgUtils_.safeObj_<Frames.Frames>()
 export const framesForOmni: Frames.WritableFrames = []
@@ -29,7 +29,7 @@ const onMessage = <K extends keyof FgReq, T extends keyof FgRes> (request: Req.f
 export const OnConnect = (port: Frames.Port, type: number): void => {
   const sender = /*#__NOINLINE__*/ formatPortSender(port), { t: tabId, u: url } = sender
     , ref = framesForTab[tabId]
-    , isOmni = url === Settings_.cache_.vomnibarPage_f
+    , isOmni = url === settings.cache_.vomnibarPage_f
   let status: Frames.ValidStatus = Frames.Status.enabled
   if (type >= PortType.omnibar || isOmni) {
     if (type < PortType.knownStatusBase || isOmni) {
@@ -48,7 +48,7 @@ export const OnConnect = (port: Frames.Port, type: number): void => {
     }
   }
   if (type >= PortType.knownStatusBase) {
-    port.postMessage({ N: kBgReq.settingsUpdate, d: Settings_.payload_ })
+    port.postMessage({ N: kBgReq.settingsUpdate, d: contentPayload })
   } else {
     let pass: null | string, flags: Frames.Flags = Frames.Flags.blank
     if (ref && ((flags = sender.f = ref[0].s.f & Frames.Flags.InheritedFlags) & Frames.Flags.locked)) {
@@ -59,7 +59,7 @@ export const OnConnect = (port: Frames.Port, type: number): void => {
       status = pass === null ? Frames.Status.enabled : pass ? Frames.Status.partial : Frames.Status.disabled
     }
     port.postMessage({
-      N: kBgReq.init, s: flags, c: Settings_.payload_, p: pass,
+      N: kBgReq.init, s: flags, c: contentPayload, p: pass,
       m: CommandsData_.mappedKeyRegistry_, t: CommandsData_.mappedKeyTypes_, k: CommandsData_.keyFSM_
     })
   }
@@ -70,14 +70,14 @@ export const OnConnect = (port: Frames.Port, type: number): void => {
   if (ref) {
     (ref as Frames.WritableFrames).push(port)
     if (type & PortType.hasFocus) {
-      if (needIcon && ref[0].s.s !== status) {
+      if (needIcon_ && ref[0].s.s !== status) {
         Backend_.setIcon_(tabId, status)
       }
       (ref as Frames.WritableFrames)[0] = port
     }
   } else {
     framesForTab[tabId] = [port, port]
-    status !== Frames.Status.enabled && needIcon && Backend_.setIcon_(tabId, status)
+    status !== Frames.Status.enabled && needIcon_ && Backend_.setIcon_(tabId, status)
   }
   if (Build.MinCVer < BrowserVer.MinWithFrameId && Build.BTypes & BrowserType.Chrome && NoFrameId) {
     (sender as Writable<Frames.Sender>).i = (type & PortType.isTop) ? 0 : ((Math.random() * 9999997) | 0) + 2
@@ -116,7 +116,7 @@ const onOmniConnect = (port: Frames.Port, tabId: number, type: PortType): boolea
       port.onDisconnect.addListener(/*#__NOINLINE__*/ onOmniDisconnect)
       port.onMessage.addListener(/*#__NOINLINE__*/ onMessage)
       type === PortType.omnibar &&
-      port.postMessage({ N: kBgReq.omni_init, l: Settings_.omniPayload_, s: getSecret() })
+      port.postMessage({ N: kBgReq.omni_init, l: omniPayload, s: getSecret() })
       return true
     }
   } else if (tabId < 0 // should not be true; just in case of misusing
@@ -126,7 +126,7 @@ const onOmniConnect = (port: Frames.Port, tabId: number, type: PortType): boolea
       ) { /* empty */ }
   else {
     browserTabs.executeScript(tabId, {
-      file: Settings_.CONST_.VomnibarScript_, frameId: port.s.i, runAt: "document_start"
+      file: settings.CONST_.VomnibarScript_, frameId: port.s.i, runAt: "document_start"
     }, runtimeError_)
     port.disconnect()
     return true
@@ -166,7 +166,7 @@ export const getPortUrl = (port?: Port | null, ignoreHash?: boolean, request?: R
         && (!(Build.BTypes & ~BrowserType.Chrome)
             || Build.MinCVer >= BrowserVer.Min$webNavigation$$getFrame$IgnoreProcessId
             || CurCVer_ > BrowserVer.Min$webNavigation$$getFrame$IgnoreProcessId - 1)
-        && port && port.s.i ? chrome.webNavigation : null
+        && port && port.s.i ? browserWebNav() : null
     port ? (webNav ? webNav.getFrame : tabsGet as never as typeof chrome.webNavigation.getFrame)(
         webNav ? {tabId: port.s.t, frameId: port.s.i}
           : port.s.t as Parameters<typeof chrome.tabs.get>[0] as never,
@@ -209,9 +209,9 @@ export const findCPort = (port: Port | null | undefined): Port | null => {
 
 export const isExtIdAllowed = (extId: string | null | undefined, url: string | undefined): boolean => {
   if (extId == null) { extId = "unknown_sender" }
-  const list = Settings_.extAllowList_, stat = list[extId] as boolean | undefined
+  const list = settings.extAllowList_, stat = list[extId] as boolean | undefined
   if (stat != null) { return stat }
-  if (url === Settings_.cache_.vomnibarPage_f) { return true }
+  if (url === settings.cache_.vomnibarPage_f) { return true }
   if (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)
       && stat == null && url) {
     url = new URL(url).host
@@ -243,7 +243,7 @@ export const ensureInnerCSS = (port: Frames.Port): string | null => {
   const { s: sender } = port
   if (sender.f & Frames.Flags.hasCSS) { return null }
   sender.f |= Frames.Flags.hasCSSAndActed
-  return Settings_.cache_.innerCSS
+  return innerCSS_
 }
 
 export const onExitGrab = (_0: FgReq[kFgReq.exitGrab], port: Port): void => {
@@ -265,7 +265,7 @@ export const isNotVomnibarPage = (port: Frames.Port, noLog: boolean): boolean =>
   let info = port.s, f = info.f
   if (!(f & Frames.Flags.vomnibarChecked)) {
     f |= Frames.Flags.vomnibarChecked |
-      (info.u === Settings_.cache_.vomnibarPage_f || info.u === Settings_.CONST_.VomnibarPageInner_
+      (info.u === settings.cache_.vomnibarPage_f || info.u === settings.CONST_.VomnibarPageInner_
         ? Frames.Flags.isVomnibar : 0)
     info.f = f
   }

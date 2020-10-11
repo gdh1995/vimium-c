@@ -69,9 +69,7 @@ chrome.runtime && chrome.runtime.getManifest && (function () {
   (window as {} as {updateUI(): void}).updateUI = function (): void {
       const settings = (chrome.extension.getBackgroundPage() as BgWindow2).Settings_;
       delete (settings.cache_ as Partial<SettingsNS.FullCache>).helpDialog
-      settings.fetchFile_("baseCSS", function (): void {
-        settings.postUpdate_("userDefinedCss");
-      });
+      settings.reloadCSS_(2)
   };
   if (!Build.NDEBUG) {
       interface WindowExForDebug extends Window { a: unknown; cb: (i: any) => void }

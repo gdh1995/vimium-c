@@ -1,15 +1,19 @@
+import C = kBgCmd
 import {
   browserTabs, browserWindows, InfoToCreateMultiTab, openMultiTab, Tab, tabsGet, getTabUrl, selectFrom, runtimeError_,
-  selectTab, getCurWnd, getCurTabs, getCurTab, getCurShownTabs_ff_only, browserSessions
+  selectTab, getCurWnd, getCurTabs, getCurTab, getCurShownTabs_ff_only, browserSessions, browser_
 } from "./browser"
 import {
   cPort, cRepeat, cKey, get_cOptions, set_cPort, set_cOptions, set_cRepeat, set_cKey, cNeedConfirm, set_executeCommand,
-  executeCommand
+  executeCommand,
+  contentPayload,
+  settings
 } from "./store"
 import {
   framesForTab, ensureInnerCSS, indexFrame, requireURL, framesForOmni, sendFgCmd, complainNoSession, showHUD,
   complainLimits
 } from "./ports"
+import { parseSedOptions_ } from "./clipboard"
 import { newTabIndex, openUrl } from "./open_urls"
 import {
   parentFrame, enterVisualMode, showVomnibar, toggleZoom, confirm_, gOnConfirmCallback, captureTab,
@@ -47,8 +51,6 @@ interface BgCmdInfoNS {
   [kBgCmd.visitPreviousTab]: Info.CurShownTabs | Info.CurWndTabs
 }
 
-import C = kBgCmd
-
 const abs = Math.abs
 
 const BgCmdInfo: { readonly [K in kBgCmd & number]: K extends keyof BgCmdInfoNS ? BgCmdInfoNS[K] : Info.NoTab } = [
@@ -84,7 +86,7 @@ const BackgroundCommands: {
     if (!(patterns instanceof Array)) {
       typeof patterns === "string" || (patterns = "")
       patterns = patterns
-          || (rel !== "next" && rel !== "last" ? Settings_.cache_.previousPatterns : Settings_.cache_.nextPatterns)
+          || (rel !== "next" && rel !== "last" ? settings.cache_.previousPatterns : settings.cache_.nextPatterns)
       patterns = patterns.split(",")
     }
     for (let i of patterns) {
@@ -102,7 +104,7 @@ const BackgroundCommands: {
     let _key = get_cOptions<C.insertMode>().key, _hud: boolean | UnknownValue,
     hud = (_hud = get_cOptions<C.insertMode>().hideHUD) != null ? !_hud
         : (_hud = get_cOptions<C.insertMode>().hideHud) != null ? !_hud
-        : !Settings_.cache_.hideHud,
+        : !settings.cache_.hideHud,
     key = _key && typeof _key === "string" && _key.length > 3 ? BgUtils_.stripKey_(_key) : ""
     sendFgCmd(kFgCmd.insertMode, hud, {
       h: hud ? trans_("" + kTip.globalInsertMode, [key && ": " + _key]) : null,
@@ -119,14 +121,14 @@ const BackgroundCommands: {
   /* kBgCmd.toggle: */ (): void => {
     type Keys = SettingsNS.FrontendSettingsSyncingItems[keyof SettingsNS.FrontendSettingsSyncingItems][0]
     type ManualNamesMap = SelectNameToKey<SettingsNS.ManuallySyncedItems>
-    const all = Settings_.payload_, key: Keys = (get_cOptions<C.toggle>().key || "") + "" as Keys,
+    const key: Keys = (get_cOptions<C.toggle>().key || "") + "" as Keys,
     key2 = key === "darkMode" ? "d" as ManualNamesMap["darkMode"]
         : key === "reduceMotion" ? "m" as ManualNamesMap["reduceMotion"]
-        : Settings_.valuesToLoad_[key],
-    old = key2 ? all[key2] : 0, keyRepr = trans_("quoteA", [key])
+        : settings.valuesToLoad_[key],
+    old = key2 ? contentPayload[key2] : 0, keyRepr = trans_("quoteA", [key])
     let value = get_cOptions<C.toggle>().value, isBool = typeof value === "boolean", msg = ""
     if (!key2) {
-      msg = trans_(key in Settings_.defaults_ ? "notFgOpt" : "unknownA", [keyRepr])
+      msg = trans_(key in settings.defaults_ ? "notFgOpt" : "unknownA", [keyRepr])
     } else if (typeof old === "boolean") {
       isBool || (value = null)
     } else if (isBool || value === undefined) {
@@ -138,7 +140,7 @@ const BackgroundCommands: {
     if (msg) {
       showHUD(msg)
     } else {
-      value = Settings_.updatePayload_(key2, value)
+      value = settings.updatePayload_(key2, value)
       const ports = framesForTab[cPort.s.t]!
       for (let i = 1; i < ports.length; i++) {
         let isCur = ports[i] === ports[0]
@@ -164,7 +166,7 @@ const BackgroundCommands: {
     const path: string | UnknownValue = get_cOptions<C.addBookmark>().folder || get_cOptions<C.addBookmark>().path
     const nodes = path ? (path + "").replace(<RegExpG> /\\/g, "/").split("/").filter(i => i) : []
     if (!nodes.length) { showHUD('Need "path" to a bookmark folder.'); return }
-    chrome.bookmarks.getTree((tree): void => {
+    browser_.bookmarks.getTree((tree): void => {
       if (!tree) { return runtimeError_() }
       let roots = tree[0].children!
       let doesMatchRoot = roots.filter(i => i.title === nodes[0])
@@ -206,7 +208,7 @@ const BackgroundCommands: {
           }
         }
         for (const tab of tabs.slice(start, end)) {
-          chrome.bookmarks.create({ parentId: folder!.id, title: tab.title, url: getTabUrl(tab) }, runtimeError_)
+          browser_.bookmarks.create({ parentId: folder!.id, title: tab.title, url: getTabUrl(tab) }, runtimeError_)
         }
         showHUD(`Add ${end - start} bookmark${end > start + 1 ? "s" : ""}.`)
       })
@@ -305,7 +307,7 @@ const BackgroundCommands: {
     if (Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
         || CurCVer_ >= BrowserVer.MinNoAbnormalIncognito
         || TabRecency_.incognito_ === IncognitoType.ensuredFalse
-        || Settings_.CONST_.DisallowIncognito_
+        || settings.CONST_.DisallowIncognito_
         ) {
       tabsGet(tabId, fallback)
     } else {
@@ -350,7 +352,7 @@ const BackgroundCommands: {
     requireURL({ H: kFgReq.parseUpperUrl, u: "" as "url",
       p: cRepeat,
       t: get_cOptions<C.goUp, true>().trailingSlash, r: get_cOptions<C.goUp, true>().trailing_slash,
-      s: Clipboard_.parseSedOptions_(get_cOptions<C.goUp, true>()),
+      s: parseSedOptions_(get_cOptions<C.goUp, true>()),
       e: true
     })
   },
@@ -414,7 +416,7 @@ const BackgroundCommands: {
     ++tab.index
     if (Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
         || CurCVer_ >= BrowserVer.MinNoAbnormalIncognito
-        || TabRecency_.incognito_ === IncognitoType.ensuredFalse || Settings_.CONST_.DisallowIncognito_
+        || TabRecency_.incognito_ === IncognitoType.ensuredFalse || settings.CONST_.DisallowIncognito_
         || !BgUtils_.isRefusingIncognito_(getTabUrl(tab))) {
       Backend_.reopenTab_(tab)
     } else {

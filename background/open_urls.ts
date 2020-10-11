@@ -1,11 +1,11 @@
+import C = kBgCmd
 import {
   selectFrom, selectWnd, getCurTab, runtimeError_, tabsGet, getTabUrl, getCurWnd, Tab, Window, browserTabs,
-  browserWindows, getAllWindows, tabsCreate, safeUpdate, InfoToCreateMultiTab, openMultiTab, makeWindow
+  browserWindows, getAllWindows, tabsCreate, safeUpdate, InfoToCreateMultiTab, openMultiTab, makeWindow, browser_
 } from "./browser"
-import { cKey, cPort, cRepeat, get_cOptions, set_cOptions, set_cPort, set_cRepeat } from "./store"
+import { cKey, cPort, cRepeat, get_cOptions, settings, set_cOptions, set_cPort, set_cRepeat } from "./store"
 import { framesForTab, ensureInnerCSS, safePost, showHUD, complainLimits, findCPort, isNotVomnibarPage } from "./ports"
-
-import C = kBgCmd
+import { parseSedOptions_, paste_, substitute_ } from "./clipboard"
 
 type ShowPageData = [string, typeof Settings_.temp_.shownHash_, number]
 
@@ -97,7 +97,7 @@ const fillUrlMasks = (url: string, tabs: [Tab?] | undefined, url_mark: string | 
       matches.push([ ind, end, i === 0
           ? (<RegExpOne> /[%$]s/).test(mask!) ? BgUtils_.encodeAsciiComponent(tabUrl) : tabUrl
           : i === 1 ? new URL(tabUrl).host : i === 2 ? tabUrl && "" + tabs![0]!.id
-          : i === 3 ? tabUrl && "" + BgUtils_.encodeAsciiComponent(tabs![0]!.title) : chrome.runtime.id ])
+          : i === 3 ? tabUrl && "" + BgUtils_.encodeAsciiComponent(tabs![0]!.title) : browser_.runtime.id ])
     }
   }
   if (matches.length) {
@@ -142,7 +142,7 @@ const openUrlInNewTab = (url: string, reuse: Exclude<ReuseType, ReuseType.reuse 
   if (window) {
     if (reuse < ReuseType.lastWndFg + 1 && TabRecency_.lastWnd_ >= 0) {
       browserTabs.create({ windowId: TabRecency_.lastWnd_, active: reuse > ReuseType.lastWndBg,
-        url: !url || Settings_.newTabs_[url] === Urls.NewTabType.browser ? void 0 : url
+        url: !url || settings.newTabs_[url] === Urls.NewTabType.browser ? void 0 : url
       }, (): void => {
         if (runtimeError_()) {
           openUrlInNewTab(url, ReuseType.newWindow, options, tabs)
@@ -198,7 +198,7 @@ export const openJSUrl = (url: string, onBrowserFail?: () => void): void => {
 }
 
 export const openShowPage = (url: string, reuse: ReuseType, options: OpenUrlOptions, tab?: Tab): boolean => {
-  const prefix = Settings_.CONST_.ShowPage_
+  const prefix = settings.CONST_.ShowPage_
   if (url.length < prefix.length + 3 || !url.startsWith(prefix)) { return false; }
   if (!tab) {
     getCurTab(function (tabs: [Tab]): void {
@@ -213,15 +213,15 @@ export const openShowPage = (url: string, reuse: ReuseType, options: OpenUrlOpti
   }
   const { incognito } = tab
   const arr: ShowPageData = [url, null, 0]
-  Settings_.temp_.shownHash_ = arr[1] = function (this: void) {
+  settings.temp_.shownHash_ = arr[1] = function (this: void) {
     clearTimeout(arr[2])
-    Settings_.temp_.shownHash_ = null
+    settings.temp_.shownHash_ = null
     return arr[0]
   }
   arr[2] = setTimeout(() => {
     arr[0] = "#!url vimium://error (vimium://show: sorry, the info has expired.)"
     arr[2] = setTimeout(function () {
-      if (Settings_.temp_.shownHash_ === arr[1]) { Settings_.temp_.shownHash_ = null; }
+      if (settings.temp_.shownHash_ === arr[1]) { settings.temp_.shownHash_ = null; }
       arr[0] = "", arr[1] = null
     }, 2000)
   }, 1200)
@@ -233,7 +233,7 @@ export const openShowPage = (url: string, reuse: ReuseType, options: OpenUrlOpti
               || Build.MinCVer >= BrowserVer.Min$Extension$$GetView$AcceptsTabId
               || CurCVer_ >= BrowserVer.Min$Extension$$GetView$AcceptsTabId)
           && !tab.url.split("#", 2)[1]
-      ? chrome.extension.getViews({ tabId: tab.id }) : []
+      ? browser_.extension.getViews({ tabId: tab.id }) : []
     if (Build.BTypes & BrowserType.ChromeOrFirefox && views.length > 0
         && views[0].location.href.startsWith(prefix) && views[0].onhashchange) {
       (views[0].onhashchange as () => void)()
@@ -259,7 +259,7 @@ const openUrls = (tabs: [Tab] | [] | undefined): void => {
     }
     if (!(Build.BTypes & ~BrowserType.Firefox)
         || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox) {
-      urls = urls.filter(i => Settings_.newTabs_[i] !== Urls.NewTabType.browser && !(<RegExpI> /file:\/\//i).test(i))
+      urls = urls.filter(i => settings.newTabs_[i] !== Urls.NewTabType.browser && !(<RegExpI> /file:\/\//i).test(i))
       get_cOptions<C.openUrl, true>().urls = urls
     }
     get_cOptions<C.openUrl, true>().formatted_ = 1
@@ -299,7 +299,7 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, tabs?
           : BgUtils_.createSearchUrl_(url.trim().split(BgUtils_.spacesRe_), keyword || "~")
     }
   } else {
-    url = Settings_.cache_.newTabUrl_f
+    url = settings.cache_.newTabUrl_f
   }
   let options = get_cOptions<C.openUrl, true>(), reuse: ReuseType = parseReuse(options.reuse)
   set_cOptions(null)
@@ -360,15 +360,15 @@ export const openUrl = (tabs?: [Tab] | []): void => {
   if ((get_cOptions<C.openUrl>().url_mask != null || get_cOptions<C.openUrl>().url_mark != null) && !tabs) {
     return runtimeError_() || <any> void getCurTab(openUrl)
   }
-  let sed = Clipboard_.parseSedOptions_(get_cOptions<C.openUrl, true>())
+  let sed = parseSedOptions_(get_cOptions<C.openUrl, true>())
   if (get_cOptions<C.openUrl>().url) {
     let url = get_cOptions<C.openUrl>().url + ""
     if (sed) {
-      url = Clipboard_.substitute_(url, sed.k ? SedContext.NONE : SedContext.paste, sed)
+      url = substitute_(url, sed.k ? SedContext.NONE : SedContext.paste, sed)
     }
     openUrlWithActions(url, Urls.WorkType.EvenAffectStatus, tabs)
   } else if (get_cOptions<C.openUrl>().copied) {
-    const url = BgUtils_.paste_(sed)
+    const url = paste_(sed)
     if (url instanceof Promise) {
       url.then(/*#__NOINLINE__*/ openCopiedUrl.bind(null, tabs))
       return
@@ -377,7 +377,7 @@ export const openUrl = (tabs?: [Tab] | []): void => {
   } else {
     let url_f = get_cOptions<C.openUrl, true>().url_f!
     if (sed && typeof url_f === "string" && url_f) {
-      url_f = Clipboard_.substitute_(url_f, sed.k ? SedContext.NONE : SedContext.paste, sed)
+      url_f = substitute_(url_f, sed.k ? SedContext.NONE : SedContext.paste, sed)
     }
     openUrlWithActions(url_f || "", Urls.WorkType.FakeType, tabs)
   }
@@ -417,7 +417,7 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port): void =>
     } else {
       url = BgUtils_.createSearchUrl_(url.trim().split(BgUtils_.spacesRe_), keyword || "~")
     }
-    opts.opener = isWeb ? !request.n : Settings_.cache_.vomnibarOptions.actions.includes("opener")
+    opts.opener = isWeb ? !request.n : settings.cache_.vomnibarOptions.actions.includes("opener")
     opts.url_f = url
   } else {
     opts.copied = request.c, opts.keyword = keyword, opts.testUrl = _rawTest
@@ -465,7 +465,7 @@ const focusAndExecuteArr = [function (tabs): void {
   let tab: Tab = selectFrom(tabs2)
   if (tab.url.length > tabs2[0].url.length) { tab = tabs2[0]; }
   if (Build.BTypes & BrowserType.Chrome
-      && url.startsWith(Settings_.CONST_.OptionsPage_) && !framesForTab[tab.id] && !this.s) {
+      && url.startsWith(settings.CONST_.OptionsPage_) && !framesForTab[tab.id] && !this.s) {
     tabsCreate({ url })
     browserTabs.remove(tab.id)
   } else {

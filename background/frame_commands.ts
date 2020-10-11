@@ -1,14 +1,14 @@
-import { browserTabs, getTabUrl, runtimeError_, selectTab } from "./browser"
+import C = kBgCmd
+import { browserTabs, browserWebNav, getTabUrl, runtimeError_, selectTab } from "./browser"
 import {
   cPort, NoFrameId, cRepeat, get_cOptions, set_cPort, getSecret, set_cOptions, set_cRepeat, set_cNeedConfirm,
-  executeCommand, reqH_
+  executeCommand, reqH_, omniPayload, settings, findCSS_
 } from "./store"
 import {
   framesForTab, indexFrame, ensureInnerCSS, framesForOmni, focusFrame, sendFgCmd, showHUD, complainLimits
 } from "./ports"
+import { substitute_ } from "./clipboard"
 import { parseReuse, newTabIndex, openShowPage } from "./open_urls"
-
-import C = kBgCmd
 
 export const nextFrame = (): void => {
   let port = cPort, ind = -1
@@ -34,12 +34,12 @@ export const parentFrame = (): void => {
   msg && showHUD(msg)
   if (!sender.i
       || Build.MinCVer < BrowserVer.MinWithFrameId && Build.BTypes & BrowserType.Chrome && NoFrameId
-      || !chrome.webNavigation) {
+      || !browserWebNav()) {
     mainFrame()
     return
   }
   let self = sender.i, frameId = self, found: boolean, count = cRepeat
-  chrome.webNavigation.getAllFrames({ tabId: sender.t }, (frames): void => {
+  browserWebNav()!.getAllFrames({ tabId: sender.t }, (frames): void => {
     do {
       found = false
       for (const i of frames) {
@@ -60,13 +60,13 @@ export const performFind = (): void => {
   nth = rawIndex ? rawIndex === "other" ? absRepeat + 1 : rawIndex === "count" ? absRepeat
             : rawIndex >= 0 ? -1 - (0 | <number> <number | string> rawIndex) : 0 : 0,
   leave = !!nth || !get_cOptions<C.performFind>().active
-  let findCSS: CmdOptions[kFgCmd.findMode]["f"] = null
+  let sentFindCSS: CmdOptions[kFgCmd.findMode]["f"] = null
   if (!(sender.f & Frames.Flags.hasFindCSS)) {
     sender.f |= Frames.Flags.hasFindCSS
-    findCSS = Settings_.cache_.findCSS
+    sentFindCSS = findCSS_
   }
   sendFgCmd(kFgCmd.findMode, true, {
-    n: nth > 0 ? cRepeat / absRepeat : cRepeat, l: leave, f: findCSS,
+    n: nth > 0 ? cRepeat / absRepeat : cRepeat, l: leave, f: sentFindCSS,
     m: !!get_cOptions<C.performFind>().highlight,
     r: get_cOptions<C.performFind>().returnToViewport === true,
     s: !nth && absRepeat < 2 && !!get_cOptions<C.performFind>().selected,
@@ -76,20 +76,23 @@ export const performFind = (): void => {
 }
 
 export const initHelp = (request: FgReq[kFgReq.initHelp], port: Port): void => {
-  Promise.all([
+  const kHD = "helpDialog";
+  Promise.all(As_<readonly [Promise<BaseHelpDialog>, unknown]>([
     BgUtils_.require_("HelpDialog"),
-    new Promise<void>((resolve): void => { Settings_.fetchFile_("helpDialog", resolve) })
-  ]).then((args): void => {
+    (kHD in settings.cache_) || new Promise<void>((resolve): void => {
+      settings.fetchFile_(kHD, (text) => { settings.set_(kHD, text); resolve() })
+    })
+  ])).then((args): void => {
     const port2 = request.w && indexFrame(port.s.t, 0) || port,
-    isOptionsPage = port2.s.u.startsWith(Settings_.CONST_.OptionsPage_),
+    isOptionsPage = port2.s.u.startsWith(settings.CONST_.OptionsPage_),
     options = request.a || {};
     (port2 as Frames.Port).s.f |= Frames.Flags.hadHelpDialog
     set_cPort(port2)
     sendFgCmd(kFgCmd.showHelpDialog, true, {
       h: args[0].render_(isOptionsPage),
-      o: Settings_.CONST_.OptionsPage_,
+      o: settings.CONST_.OptionsPage_,
       e: !!options.exitOnClick,
-      c: Settings_.get_("showAdvancedCommands", true) || isOptionsPage && Settings_.temp_.cmdErrors_ !== 0
+      c: settings.get_("showAdvancedCommands", true) || isOptionsPage && settings.temp_.cmdErrors_ !== 0
     })
   }, Build.NDEBUG ? Build.MinCVer < BrowserVer.Min$Promise$$Then$Accepts$null && Build.BTypes & BrowserType.Chrome
       ? undefined : null as never : (args): void => {
@@ -110,9 +113,9 @@ export const showVomnibar = (forceInner?: boolean): void => {
     if (!port) { return }
     // not go to the top frame here, so that a current frame can suppress keys for a while
   }
-  const page = Settings_.cache_.vomnibarPage_f, { u: url } = port.s, preferWeb = !page.startsWith(BrowserProtocol_),
+  const page = settings.cache_.vomnibarPage_f, { u: url } = port.s, preferWeb = !page.startsWith(BrowserProtocol_),
   isCurOnExt = url.startsWith(BrowserProtocol_),
-  inner = forceInner || !page.startsWith(location.origin) ? Settings_.CONST_.VomnibarPageInner_ : page
+  inner = forceInner || !page.startsWith(location.origin) ? settings.CONST_.VomnibarPageInner_ : page
   forceInner = forceInner ? forceInner
     : preferWeb ? isCurOnExt || page.startsWith("file:") && !url.startsWith("file:///")
       // it has occurred since Chrome 50 (BrowserVer.Min$tabs$$executeScript$hasFrameIdArg)
@@ -131,7 +134,7 @@ export const showVomnibar = (forceInner?: boolean): void => {
     i: useInner ? null : inner,
     t: useInner ? VomnibarNS.PageType.inner : preferWeb ? VomnibarNS.PageType.web : VomnibarNS.PageType.ext,
     s: trailingSlash,
-    j: useInner ? "" : Settings_.CONST_.VomnibarScript_f_,
+    j: useInner ? "" : settings.CONST_.VomnibarScript_f_,
     e: !!(get_cOptions<C.showVomnibar>()).exitOnClick,
     k: getSecret()
   }), get_cOptions<C.showVomnibar, true>())
@@ -155,18 +158,18 @@ export const enterVisualMode = (): void => {
   const _rawMode = get_cOptions<C.visualMode>().mode
   const str = typeof _rawMode === "string" ? _rawMode.toLowerCase() : ""
   const sender = cPort.s
-  let findCSS: CmdOptions[kFgCmd.visualMode]["f"] = null
+  let sentFindCSS: CmdOptions[kFgCmd.visualMode]["f"] = null
   let words = "", keyMap: CmdOptions[kFgCmd.visualMode]["k"] = null
   let granularities: CmdOptions[kFgCmd.visualMode]["g"] = null
   if (~sender.f & Frames.Flags.hadVisualMode) {
     if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
         || Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
             && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) {
-      words = Settings_.CONST_.words
+      words = settings.CONST_.words
     }
     if (!(sender.f & Frames.Flags.hasFindCSS)) {
       sender.f |= Frames.Flags.hasFindCSS
-      findCSS = Settings_.cache_.findCSS
+      sentFindCSS = findCSS_
     }
     keyMap = CommandsData_.visualKeys_
     granularities = CommandsData_.visualGranularities_
@@ -174,7 +177,7 @@ export const enterVisualMode = (): void => {
   }
   sendFgCmd(kFgCmd.visualMode, true, {
     m: str === "caret" ? VisualModeNS.Mode.Caret : str === "line" ? VisualModeNS.Mode.Line : VisualModeNS.Mode.Visual,
-    f: findCSS, g: granularities, k: keyMap,
+    f: sentFindCSS, g: granularities, k: keyMap,
     t: !!get_cOptions<C.visualMode>().richText, s: !!get_cOptions<C.visualMode>().start, w: words
   })
 }
@@ -249,14 +252,14 @@ export const openImgCmd = (req: FgReq[kFgReq.openImage], port?: Port): void => {
     showHUD(trans_("invalidImg"))
     return
   }
-  let prefix = Settings_.CONST_.ShowPage_ + "#!image "
+  let prefix = settings.CONST_.ShowPage_ + "#!image "
   if (req.f) {
     prefix += "download=" + BgUtils_.encodeAsciiComponent(req.f) + "&"
   }
   if (req.a !== false) {
     prefix += "auto=once&"
   }
-  url = req.e ? Clipboard_.substitute_(url, SedContext.paste, req.e) : url
+  url = req.e ? substitute_(url, SedContext.paste, req.e) : url
   openShowPage(prefix + url, req.r, { opener: true })
 }
 
@@ -331,8 +334,8 @@ export const mainFrame = (): void => {
 }
 
 export const setOmniStyle = (req: FgReq[kFgReq.setOmniStyle], port?: Port): void => {
-  let styles: string, payload = Settings_.omniPayload_, curStyles = payload.s
-  if (!req.o && Settings_.temp_.omniStyleOverridden_) {
+  let styles: string, curStyles = omniPayload.s
+  if (!req.o && settings.temp_.omniStyleOverridden_) {
     return
   }
   {
@@ -340,14 +343,14 @@ export const setOmniStyle = (req: FgReq[kFgReq.setOmniStyle], port?: Port): void
     newExist = req.e != null ? req.e : exists
     styles = newExist ? exists ? curStyles : curStyles + toggled : extSt.replace(toggled, " ")
     styles = styles.trim().replace(BgUtils_.spacesRe_, " ")
-    if (req.b === false) { payload.s = styles; return }
+    if (req.b === false) { omniPayload.s = styles; return }
     if (req.o) {
-      Settings_.temp_.omniStyleOverridden_ = newExist !==
-          (` ${Settings_.cache_.vomnibarOptions.styles} `.includes(toggled))
+      settings.temp_.omniStyleOverridden_ = newExist !==
+          (` ${settings.cache_.vomnibarOptions.styles} `.includes(toggled))
     }
   }
   if (styles === curStyles) { return }
-  payload.s = styles
+  omniPayload.s = styles
   const request2: Req.bg<kBgReq.omni_updateOptions> = { N: kBgReq.omni_updateOptions, d: { s: styles } }
   for (const frame of framesForOmni) {
     frame !== port && frame.postMessage(request2)

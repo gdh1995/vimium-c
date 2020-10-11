@@ -7,9 +7,11 @@
       "background/utils.js",
       "background/settings.js",
       "background/exclusions.js",
-      "background/browser.js",
       "background/store.js",
+      "background/browser.js",
       "background/ports.js",
+      "background/ui_css.js",
+      "background/clipboard.js",
       "background/open_urls.js",
       "background/frame_commands.js",
       "background/tab_commands.js",
@@ -19,6 +21,7 @@
       "background/key_mappings.js",
       "background/tools.js",
       "background/completion.js",
+      "background/sync.js",
       "background/others.js"
     ]
   },

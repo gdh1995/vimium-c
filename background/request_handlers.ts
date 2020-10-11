@@ -1,13 +1,15 @@
 import {
-  browserTabs, runtimeError_, selectTab, safeUpdate, selectWnd, browserSessions
+  browserTabs, runtimeError_, selectTab, safeUpdate, selectWnd, browserSessions, browserWebNav
 } from "./browser"
 import {
-  set_cPort, set_cRepeat, set_cOptions, needIcon, set_cKey, cKey, get_cOptions, set_reqH_, reqH_, executeCommand
+  set_cPort, set_cRepeat, set_cOptions, needIcon_, set_cKey, cKey, get_cOptions, set_reqH_, reqH_, executeCommand,
+  settings, innerCSS_
 } from "./store"
 import {
   findCPort, isNotVomnibarPage, framesForTab, indexFrame, onExitGrab, focusFrame, sendFgCmd, safePost,
   complainNoSession, showHUD, complainLimits
 } from "./ports"
+import { paste_, substitute_ } from "./clipboard"
 import { openShowPage, focusAndExecute, focusOrLaunch, openJSUrl, openUrlReq } from "./open_urls"
 import {
   initHelp, openImgCmd, setOmniStyle, framesGoBack, onConfirmResponse, enterVisualMode, showVomnibar, parentFrame,
@@ -21,14 +23,14 @@ const numHeadRe = <RegExpOne> /^\d+|^-\d*/
 
 set_reqH_([
   /** kFgReq.setSetting: */ (request: SetSettingReq<keyof SettingsNS.FrontUpdateAllowedSettings>, port: Port): void => {
-    const k = request.k, allowed = Settings_.frontUpdateAllowed_
+    const k = request.k, allowed = settings.frontUpdateAllowed_
     if (!(k >= 0 && k < allowed.length)) {
       set_cPort(port)
       return complainLimits(trans_("notModify", [k]))
     }
-    const key = allowed[k], p = Settings_.restore_ && Settings_.restore_()
-    if (Settings_.get_(key) === request.v) { return }
-    p ? p.then(() => { Settings_.set_(key, request.v) }) : Settings_.set_(key, request.v)
+    const key = allowed[k], p = settings.restore_ && settings.restore_()
+    if (settings.get_(key) === request.v) { return }
+    p ? p.then(() => { settings.set_(key, request.v) }) : settings.set_(key, request.v)
     interface BaseCheck { key: 123 }
     type Map1<T> = T extends keyof SettingsNS.DirectlySyncedItems ? T : 123
     interface Check extends BaseCheck { key: Map1<keyof SettingsNS.FrontUpdateAllowedSettings> }
@@ -196,7 +198,7 @@ set_reqH_([
       str = decoded ? enc(path) : path
       url = url.slice(0, start) + (end ? str + url.slice(end) : str)
     }
-    let substituted = Clipboard_.substitute_(url, SedContext.gotoUrl, request.s) || url
+    let substituted = substitute_(url, SedContext.gotoUrl, request.s) || url
     if (substituted !== url) {
       // if substitution returns an invalid URL, then refuse it
       BgUtils_.convertToUrl_(substituted, null, Urls.WorkType.KeepAll)
@@ -211,7 +213,7 @@ set_reqH_([
       set_cPort(port)
       return showHUD(trans_("noEngineFound"))
     }
-    query = request.t.trim() || (request.c ? BgUtils_.paste_(request.s) : "")
+    query = request.t.trim() || (request.c ? paste_(request.s) : "")
     const doSearch = (query2: string | null): void => {
       let err = query2 === null ? "It's not allowed to read clipboard"
         : (query2 = query2.trim()) ? "" : trans_("noSelOrCopied")
@@ -264,11 +266,11 @@ set_reqH_([
     }
     let tabId = port.s.t, ref = framesForTab[tabId], status: Frames.ValidStatus
     if (!ref) {
-      needIcon && Backend_.setIcon_(tabId, port.s.s)
+      needIcon_ && Backend_.setIcon_(tabId, port.s.s)
       return
     }
     if (port === ref[0]) { return }
-    if (needIcon && (status = port.s.s) !== ref[0].s.s) {
+    if (needIcon_ && (status = port.s.s) !== ref[0].s.s) {
       (ref as Writable<typeof ref>)[0] = port
       Backend_.setIcon_(tabId, status)
       return
@@ -291,7 +293,7 @@ set_reqH_([
     if (sender.s !== status) {
       if (sender.f & Frames.Flags.locked) { return }
       sender.s = status
-      if (needIcon && framesForTab[sender.t]![0] === port) {
+      if (needIcon_ && framesForTab[sender.t]![0] === port) {
         Backend_.setIcon_(sender.t, status)
       }
     } else if (!pattern || pattern === Backend_.getExcluded_(oldUrl, sender)) {
@@ -329,8 +331,7 @@ set_reqH_([
       set_cKey(request.k)
       focusAndExecute(request, port, iport, 1)
     } else {
-      const nav = chrome.webNavigation
-      nav && nav.getAllFrames({tabId: port.s.t}, (frames): void => {
+      browserWebNav() && browserWebNav()!.getAllFrames({tabId: port.s.t}, (frames): void => {
         let childId = 0, self = port.s.i
         for (const i1 of frames) {
           if (i1.parentFrameId === self) {
@@ -352,7 +353,7 @@ set_reqH_([
   /** kFgReq.initHelp: */ initHelp,
   /** kFgReq.css: */ (_0: {}, port: Port): void => {
     (port as Frames.Port).s.f |= Frames.Flags.hasCSSAndActed
-    port.postMessage({ N: kBgReq.showHUD, H: Settings_.cache_.innerCSS })
+    port.postMessage({ N: kBgReq.showHUD, H: innerCSS_ })
   },
   /** kFgReq.vomnibar: */ (request: FgReq[kFgReq.vomnibar]
       , port: Port): void => {
@@ -368,7 +369,7 @@ set_reqH_([
       if (inner) { return }
       set_cOptions(BgUtils_.safeObj_())
       set_cRepeat(1)
-    } else if (inner && get_cOptions<kBgCmd.showVomnibar>().v === Settings_.CONST_.VomnibarPageInner_) {
+    } else if (inner && get_cOptions<kBgCmd.showVomnibar>().v === settings.CONST_.VomnibarPageInner_) {
       return
     }
     set_cPort(port)
@@ -434,8 +435,8 @@ set_reqH_([
   },
   /** kFgReq.framesGoBack: */ framesGoBack,
   /** kFgReq.i18n: */ (): FgRes[kFgReq.i18n] => {
-    Settings_.temp_.loadI18nPayload_ && Settings_.temp_.loadI18nPayload_()
-    return { m: Settings_.i18nPayload_ }
+    settings.temp_.loadI18nPayload_ && settings.temp_.loadI18nPayload_()
+    return { m: settings.i18nPayload_ }
   },
   /** kFgReq.learnCSS */ (_req: FgReq[kFgReq.learnCSS], port: Port): void => {
     (port as Frames.Port).s.f |= Frames.Flags.hasCSS

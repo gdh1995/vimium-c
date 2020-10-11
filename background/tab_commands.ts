@@ -1,13 +1,13 @@
+import C = kBgCmd
 import {
   browserTabs, getAllWindows, makeTempWindow, makeWindow, PopWindow, Tab, tabsCreate, Window, getTabUrl, selectFrom,
   runtimeError_, IncNormalWnd, selectWnd, selectTab, getCurWnd, getCurTabs, getCurTab
 } from "./browser"
-import { cRepeat, get_cOptions, cPort, set_cOptions, cNeedConfirm, set_cPort } from "./store"
+import { cRepeat, get_cOptions, cPort, set_cOptions, cNeedConfirm, set_cPort, settings } from "./store"
 import { complainLimits, focusFrame, requireURL, showHUD } from "./ports"
+import { copy_, parseSedOptions_ } from "./clipboard"
 import { openUrlWithActions } from "./open_urls"
 import { confirm_ } from "./frame_commands"
-
-import C = kBgCmd
 
 const abs = Math.abs
 
@@ -42,7 +42,7 @@ export const copyData = (request: FgReq[kFgReq.copy], port: Port): void => {
       str = ""
     }
   }
-  str = str && BgUtils_.copy_(str, request.j, request.e)
+  str = str && copy_(str, request.j, request.e)
   set_cPort(port)
   str = request.s && typeof request.s === "object" ? `[${request.s.length}] ` + request.s.slice(-1)[0] : str
   showHUD(request.d ? str.replace(<RegExpG & RegExpSearchable<0>> /%[0-7][\dA-Fa-f]/g, decodeURIComponent)
@@ -52,7 +52,7 @@ export const copyData = (request: FgReq[kFgReq.copy], port: Port): void => {
 export const copyWindowInfo = (): void => {
   let decoded = !!(get_cOptions<C.copyWindowInfo>().decoded || get_cOptions<C.copyWindowInfo>().decode),
   type = get_cOptions<C.copyWindowInfo>().type
-  const sed = Clipboard_.parseSedOptions_(get_cOptions<C.copyWindowInfo, true>())
+  const sed = parseSedOptions_(get_cOptions<C.copyWindowInfo, true>())
   if (type === "frame" && cPort) {
     if (cPort.s.f & Frames.Flags.OtherExtension) {
       cPort.postMessage({
@@ -91,7 +91,7 @@ export const copyWindowInfo = (): void => {
       return decoded && s1 === "url" ? BgUtils_.decodeUrlForCopy_(getTabUrl(i))
         : s1 !== "__proto__" && (i as Dict<any>)[s1] || ""
     })),
-    result = BgUtils_.copy_(data, join, sed)
+    result = copy_(data, join, sed)
     // @todo: check the second arg
     showHUD(type === "tab" && tabs.length < 2 ? result : trans_("copiedWndInfo")
         // @ts-ignore
@@ -265,7 +265,7 @@ export const moveTabToNewWindow = (): void => {
         browserTabs.query({ windowId: wnds[wnds.length - 1].id, active: true }, ([tab2]): void => {
           const tabId2 = options.tabId!
           let url2: string | undefined = options.url
-          if (typeof url2 === "string" && (!url2 || Settings_.newTabs_[url2] === Urls.NewTabType.browser)) {
+          if (typeof url2 === "string" && (!url2 || settings.newTabs_[url2] === Urls.NewTabType.browser)) {
             url2 = undefined
           }
           browserTabs.create({url: url2, index: tab2.index + 1, windowId: tab2.windowId})
@@ -278,7 +278,7 @@ export const moveTabToNewWindow = (): void => {
       if (options.url) {
         tabId = options.tabId
         options.tabId = undefined
-        if (Settings_.CONST_.DisallowIncognito_) {
+        if (settings.CONST_.DisallowIncognito_) {
           options.focused = true
           state = ""
         }
@@ -463,7 +463,7 @@ const removeAllTabsInWnd = (tab: Tab, curTabs: readonly Tab[], wnds: Window[]): 
     protect = true
     if (!(wnd = wnds[0])) { /* empty */ }
     else if (wnd.id !== tab.windowId) { protect = false } // the tab may be in a popup window
-    else if (wnd.incognito && !BgUtils_.isRefusingIncognito_(Settings_.cache_.newTabUrl_f)) {
+    else if (wnd.incognito && !BgUtils_.isRefusingIncognito_(settings.cache_.newTabUrl_f)) {
       windowId = wnd.id
     }
     // other urls will be disabled if incognito else auto in current window

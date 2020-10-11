@@ -342,10 +342,8 @@ declare namespace SettingsNS {
     vomnibarPage_f: string;
     omniBlockList: string;
   }
-  interface CachedFiles {
-    baseCSS: string;
-    helpDialog: string;
-  }
+  interface CachedFiles { helpDialog: string }
+  interface ReadableFiles extends CachedFiles { baseCSS: string; words: string }
   interface OtherSettingsWithDefaults {
     searchEngineMap: SafeDict<Search.Engine>;
   }
@@ -374,8 +372,7 @@ declare namespace SettingsNS {
   type SpecialUpdateHooks = "newTabUrl_f";
 
   type DeclaredUpdateHooks = "newTabUrl" | "searchEngines" | "searchEngineMap" | "searchUrl"
-        | "baseCSS" | "userDefinedCss" | "innerCSS" | "vomnibarPage"
-        | "extAllowList" | "grabBackFocus" | "mapModifier" | "vomnibarOptions";
+        | "vomnibarPage" | "extAllowList" | "grabBackFocus" | "mapModifier" | "vomnibarOptions";
   type EnsuredUpdateHooks = DeclaredUpdateHooks | WoThisUpdateHooks | SpecialUpdateHooks;
   type UpdateHook<key extends keyof FullSettings> =
         key extends NullableUpdateHooks ? NullableUpdateHook<key>
@@ -386,11 +383,10 @@ declare namespace SettingsNS {
   type FullUpdateHookMap = PartialOrEnsured<BaseFullUpdateHookMap, EnsuredUpdateHooks>;
 
   interface FullCache extends SafeObject, PartialOrEnsured<FullSettings
-      , "innerCSS" | "newTabUrl_f" | "searchEngineMap" | "searchEngineRules" | "vomnibarPage_f"
+      , "newTabUrl_f" | "searchEngineMap" | "searchEngineRules" | "vomnibarPage_f"
         | "vomnibarOptions" | "focusNewTabContent"
         | "hideHud" | "previousPatterns" | "nextPatterns"
       > {
-    findCSS: FindCSS; // should not in Settings_.defaults
   }
 
   type DynamicFiles = "HelpDialog" | "KeyMappings" | "MathParser";
@@ -399,12 +395,7 @@ declare namespace SettingsNS {
     set<K extends keyof PersistentSettings> (key: K, value: PersistentSettings[K] | null): void;
   }
 
-  interface ParsedCustomCSS {
-    ui?: string;
-    find?: string;
-    "find:host"?: string;
-    omni?: string;
-  }
+  interface MergedCustomCSS { ui: string; find: FindCSS; omni: string }
 
   interface LegacyNames {
     phraseBlacklist: "omniBlockList";
@@ -822,7 +813,8 @@ declare const enum Consts {
 }
 
 // eslint-disable-next-line no-var
-declare var Backend_: BackendHandlersNS.BackendHandlers, CommandsData_: CommandsDataTy;
+declare var OnOther: BrowserType, Backend_: BackendHandlersNS.BackendHandlers, CommandsData_: CommandsDataTy
+declare var CurCVer_: BrowserVer, CurFFVer_: FirefoxBrowserVer, IsEdg_: boolean, BrowserProtocol_: string
 
 // eslint-disable-next-line no-var
 declare var setTimeout: SetTimeout;

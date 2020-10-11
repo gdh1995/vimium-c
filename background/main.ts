@@ -1,5 +1,5 @@
-import { runtimeError_, getTabUrl, tabsGet, browserTabs, tabsCreate, browserSessions } from "./browser"
-import { cPort, needIcon, reqH_, set_cPort } from "./store"
+import { runtimeError_, getTabUrl, tabsGet, browserTabs, tabsCreate, browserSessions, browser_ } from "./browser"
+import { contentPayload, cPort, needIcon_, reqH_, settings, set_cPort, set_needIcon_, set_visualWordRe_ } from "./store"
 import {
   framesForTab, indexFrame, findCPort, framesForOmni, OnConnect, isExtIdAllowed, getPortUrl, showHUD, complainLimits
 } from "./ports"
@@ -38,7 +38,7 @@ Backend_ = {
         didSucceed = obj.p != null;
         return { k: "", s: 0, u: didSucceed ? obj.u : s0, e: didSucceed ? obj.p : obj.u };
       }
-      const decoders = Settings_.cache_.searchEngineRules;
+      const decoders = settings.cache_.searchEngineRules;
       if (_i = BgUtils_.IsURLHttp_(url)) {
         url = url.slice(_i);
         s0 = s0.slice(_i);
@@ -199,7 +199,7 @@ Backend_ = {
       newStatus = ref[0].s.s
       silent || shown || showHUD(trans_("newStat", trans_(newStatus === Frames.Status.enabled && !enableWithPassedKeys
           ? "fullEnabled" : newStatus === Frames.Status.disabled ? "fullDisabled" : "halfDisabled")))
-      if (needIcon && newStatus !== oldStatus) {
+      if (needIcon_ && newStatus !== oldStatus) {
         Backend_.setIcon_(tabId, newStatus);
       }
     },
@@ -231,22 +231,22 @@ Backend_ = {
         : indexFrame(tabId, frameId);
     } as BackendHandlersNS.BackendHandlers["indexPorts_"],
     onInit_(): void {
-      if (Settings_.temp_.initing_ !== BackendHandlersNS.kInitStat.FINISHED) { return; }
+      if (settings.temp_.initing_ !== BackendHandlersNS.kInitStat.FINISHED) { return; }
       if (!CommandsData_.keyFSM_) {
-        Settings_.postUpdate_("keyMappings");
-        if (!Settings_.get_("vimSync") && !Settings_.temp_.hasEmptyLocalStorage_) {
+        settings.postUpdate_("keyMappings");
+        if (!settings.get_("vimSync") && !settings.temp_.hasEmptyLocalStorage_) {
           KeyMappings = null as never
         }
       }
-      if (Settings_.payload_.o === kOS.mac) {
+      if (contentPayload.o === kOS.mac) {
         CommandsData_.visualKeys_["m-s-c"] = VisualAction.YankRichText
       }
       // the line below requires all necessary have inited when calling this
       Backend_.onInit_ = null;
-      Settings_.get_("hideHud", true);
-      Settings_.get_("nextPatterns", true);
-      Settings_.get_("previousPatterns", true);
-      chrome.runtime.onConnect.addListener(function (port): void {
+      settings.get_("hideHud", true);
+      settings.get_("nextPatterns", true);
+      settings.get_("previousPatterns", true);
+      browser_.runtime.onConnect.addListener(function (port): void {
         if (!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && OnOther & BrowserType.Edge) {
           let name = port.name, pos = name.indexOf(PortNameEnum.Delimiter), type = pos > 0 ? name.slice(0, pos) : name;
           port.sender.url = name.slice(type.length + 1);
@@ -254,15 +254,15 @@ Backend_ = {
         }
         return OnConnect(port as Frames.Port, (port.name as string | number as number) | 0);
       });
-      if (Build.BTypes & BrowserType.Edge && !chrome.runtime.onConnectExternal) {
+      if (Build.BTypes & BrowserType.Edge && !browser_.runtime.onConnectExternal) {
         return;
       }
-      chrome.runtime.onConnectExternal!.addListener(function (port): void {
+      browser_.runtime.onConnectExternal!.addListener(function (port): void {
         let { sender, name } = port, arr: string[];
         if (sender
             && isExtIdAllowed(sender.id, sender.url)
             && name.startsWith(PortNameEnum.Prefix) && (arr = name.split(PortNameEnum.Delimiter)).length > 1) {
-          if (arr[1] !== Settings_.CONST_.GitVer) {
+          if (arr[1] !== settings.CONST_.GitVer) {
             (port as Port).postMessage({ N: kBgReq.injectorRun, t: InjectorTask.reload });
             port.disconnect();
             return;
@@ -276,8 +276,8 @@ Backend_ = {
     }
 };
 
-(!(Build.BTypes & BrowserType.Edge) || chrome.runtime.onMessageExternal) &&
-(chrome.runtime.onMessageExternal!.addListener((
+(!(Build.BTypes & BrowserType.Edge) || browser_.runtime.onMessageExternal) &&
+(browser_.runtime.onMessageExternal!.addListener((
       message: boolean | number | string | null | undefined | ExternalMsgs[keyof ExternalMsgs]["req"]
       , sender, sendResponse): void => {
     if (!isExtIdAllowed(sender.id, sender.url)) {
@@ -303,23 +303,23 @@ Backend_ = {
         name: "Vimium C",
         host: location.host,
         shortcuts: true,
-        injector: Settings_.CONST_.Injector_,
-        version: Settings_.CONST_.VerCode_
+        injector: settings.CONST_.Injector_,
+        version: settings.CONST_.VerCode_
       });
       break;
     case kFgReq.inject:
       (sendResponse as (res: ExternalMsgs[kFgReq.inject]["res"]) => void | 1)({
-        s: message.scripts ? Settings_.CONST_.ContentScripts_ : null,
-        version: Settings_.CONST_.VerCode_,
+        s: message.scripts ? settings.CONST_.ContentScripts_ : null,
+        version: settings.CONST_.VerCode_,
         host: !(Build.BTypes & ~BrowserType.Chrome) ? "" : location.host,
-        h: PortNameEnum.Delimiter + Settings_.CONST_.GitVer
+        h: PortNameEnum.Delimiter + settings.CONST_.GitVer
       });
       break;
     case kFgReq.command:
       executeExternalCmd(message, sender);
       break;
     }
-}), Settings_.postUpdate_("extAllowList"))
+}), settings.postUpdate_("extAllowList"))
 
 browserTabs.onReplaced.addListener((addedTabId, removedTabId) => {
     const ref = framesForTab, frames = ref[removedTabId];
@@ -331,13 +331,15 @@ browserTabs.onReplaced.addListener((addedTabId, removedTabId) => {
     }
 });
 
-if (Settings_.storage_.getItem("exclusionRules") !== "[]") {
-  Exclusions.setRules_(Settings_.get_("exclusionRules"))
+if (settings.storage_.getItem("exclusionRules") !== "[]") {
+  Exclusions.setRules_(settings.get_("exclusionRules"))
 }
 
-  Settings_.postUpdate_("vomnibarPage", null);
-  Settings_.postUpdate_("searchUrl", null); // will also update newTabUrl
-  Settings_.postUpdate_("vomnibarOptions");
+settings.updateHooks_.showActionIcon = (value): void => { set_needIcon_(value && !!browser_.browserAction) }
+
+  settings.postUpdate_("vomnibarPage", null);
+  settings.postUpdate_("searchUrl", null); // will also update newTabUrl
+  settings.postUpdate_("vomnibarOptions");
 
   // will run only on <kbd>F5</kbd>, not on runtime.reload
 window.onunload = (event): void => {
@@ -355,4 +357,26 @@ window.onunload = (event): void => {
     if (framesForOmni.length > 0) {
       framesForOmni[0].disconnect();
     }
+}
+
+if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
+    || Build.BTypes & BrowserType.Edge
+    || Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+      && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) {
+  ( (Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox))
+    ? !Build.NativeWordMoveOnFirefox
+      && !BgUtils_.makeRegexp_("\\p{L}", "u", 0)
+    : Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge) ? true
+    : Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
+      && Build.MinCVer < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
+      && (BrowserVer.MinSelExtendForwardOnlySkipWhitespaces < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
+        ? CurCVer_ < (
+          BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
+          ? BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp : BrowserVer.MinSelExtendForwardOnlySkipWhitespaces)
+        : CurCVer_ < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
+          || !BgUtils_.makeRegexp_("\\p{L}", "u", 0))
+  ) ? settings.fetchFile_("words", (text): void => {
+    set_visualWordRe_(text.replace(<RegExpG> /[\n\r]/g, "")
+        .replace(<RegExpG & RegExpSearchable<1>> /\\u(\w{4})/g, (_, s1) => String.fromCharCode(+("0x" + s1))))
+  }) : set_visualWordRe_("")
 }

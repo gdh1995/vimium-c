@@ -1,3 +1,5 @@
+import { settings } from "./store"
+
 export type Tab = chrome.tabs.Tab
 export type Window = chrome.windows.Window
 
@@ -9,11 +11,15 @@ export interface InfoToCreateMultiTab extends
     Partial<Pick<chrome.tabs.CreateProperties, "index" | "openerTabId" | "windowId">> {
   url: string; active: boolean; pinned?: boolean }
 
-export const browserTabs = chrome.tabs
-export const browserWindows = chrome.windows
-export const browserSessions = (): typeof chrome.sessions => chrome.sessions
+export const browser_: typeof chrome = Build.BTypes & ~BrowserType.Chrome
+    && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)
+    ? browser as typeof chrome : chrome
+export const browserTabs = browser_.tabs
+export const browserWindows = browser_.windows
+export const browserSessions = (): typeof chrome.sessions => browser_.sessions
+export const browserWebNav = (): typeof chrome.webNavigation | undefined => browser_.webNavigation
 
-export const runtimeError_ = (): any => chrome.runtime.lastError
+export const runtimeError_ = BgUtils_.runtimeError_
 
 export const tabsGet = browserTabs.get
 
@@ -66,28 +72,28 @@ export const tabsCreate = (args: chrome.tabs.CreateProperties, callback?: ((tab:
     , evenIncognito?: boolean | -1 | null): 1 => {
   let { url } = args, type: Urls.NewTabType | undefined
   if (!url) {
-    url = Settings_.cache_.newTabUrl_f
+    url = settings.cache_.newTabUrl_f
     if (TabRecency_.incognito_ === IncognitoType.true
-        && (evenIncognito == -1 ? url.endsWith(Settings_.CONST_.BlankNewTab_) && url.startsWith(location.origin)
+        && (evenIncognito == -1 ? url.endsWith(settings.CONST_.BlankNewTab_) && url.startsWith(location.origin)
             : !evenIncognito && url.startsWith(location.protocol))) { /* empty */ }
-    else if (Build.MayOverrideNewTab && Settings_.CONST_.OverrideNewTab_
-        ? Settings_.cache_.focusNewTabContent
+    else if (Build.MayOverrideNewTab && settings.CONST_.OverrideNewTab_
+        ? settings.cache_.focusNewTabContent
         : !(Build.BTypes & BrowserType.Firefox)
           || (Build.BTypes & ~BrowserType.Firefox && OnOther !== BrowserType.Firefox)
-          || !Settings_.newTabs_[url]) {
+          || !settings.newTabs_[url]) {
       args.url = url
     }
     if (!args.url) {
       delete args.url
     }
-  } else if (!(type = Settings_.newTabs_[url])) { /* empty */ }
+  } else if (!(type = settings.newTabs_[url])) { /* empty */ }
   else if (type === Urls.NewTabType.browser) {
     // ignore Build.MayOverrideNewTab and other things,
     // so that if another extension manages the NTP, this line still works
     delete args.url
   } else if (Build.MayOverrideNewTab && type === Urls.NewTabType.vimium) {
     /** if not MayOverride, no .vimium cases in {@link settings.ts#__init__} */
-    args.url = Settings_.cache_.newTabUrl_f
+    args.url = settings.cache_.newTabUrl_f
   }
   if (Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge)) {
     delete args.openerTabId
@@ -146,7 +152,7 @@ export const makeWindow = (options: chrome.windows.CreateData, state?: chrome.wi
     options.focused = true
   }
   const url = options.url
-  if (typeof url === "string" && (!url || Settings_.newTabs_[url] === Urls.NewTabType.browser)) {
+  if (typeof url === "string" && (!url || settings.newTabs_[url] === Urls.NewTabType.browser)) {
     delete options.url
   }
   browserWindows.create(options, state || !focused ? (wnd): void => {

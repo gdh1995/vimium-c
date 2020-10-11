@@ -1,5 +1,13 @@
-export const NoFrameId = Build.MinCVer < BrowserVer.MinWithFrameId && Build.BTypes & BrowserType.Chrome
+export const NoFrameId = Build.MinCVer < BrowserVer.MinWithFrameId && !!(Build.BTypes & BrowserType.Chrome)
     && CurCVer_ < BrowserVer.MinWithFrameId
+export const settings = Settings_
+export const contentPayload = settings.payload_
+export const omniPayload = settings.omniPayload_
+
+export let findCSS_: FindCSS
+export let innerCSS_: string
+export let needIcon_ = false
+export let visualWordsRe_: string
 
 export let cKey: kKeyCode = kKeyCode.None
 export let cNeedConfirm: BOOL = 1
@@ -7,7 +15,6 @@ let cOptions: CommandsNS.Options = null as never
 export let cPort: Frames.Port = null as never
 /** any change to `cRepeat` should ensure it won't be `0` */
 export let cRepeat = 1
-export let needIcon = false
 
 export let reqH_: BackendHandlersNS.FgRequestHandlers
 export let executeCommand: (registryEntry: CommandsNS.Item, count: number, lastKey: kKeyCode, port: Port
@@ -20,7 +27,11 @@ export const get_cOptions = <K extends keyof BgCmdOptions = kBgCmd.blank, Trust 
 export const set_cOptions = <T> (_newOpts: CommandsNS.Options & T | null): void => { cOptions = _newOpts! }
 export const set_cPort = (_newPort: Frames.Port | null): void => { cPort = _newPort! }
 export const set_cRepeat = (_newRepeat: number): void => { cRepeat = _newRepeat }
-export const set_needIcon = (_newNeedIcon: boolean): void => { needIcon = _newNeedIcon }
+
+export const set_findCSS_ = (_newFindCSS: FindCSS): void => { findCSS_ = _newFindCSS }
+export const set_innerCSS_ = (_newInnerCSS: string): void => { innerCSS_ = _newInnerCSS }
+export const set_needIcon_ = (_newNeedIcon: boolean): void => { needIcon_ = _newNeedIcon }
+export const set_visualWordRe_ = (_newVisualWord: string): void => { visualWordsRe_ = _newVisualWord }
 
 export const set_reqH_ = (_newRH: BackendHandlersNS.FgRequestHandlers): void => { reqH_ = _newRH }
 export const set_executeCommand = (_newEC: typeof executeCommand): void => { executeCommand = _newEC }
@@ -36,4 +47,8 @@ export const getSecret = (): number => {
   return _secret
 }
 
-Settings_.updateHooks_.showActionIcon = (value): void => { needIcon = value && !!chrome.browserAction }
+if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
+  (contentPayload as Writable<typeof contentPayload>).b = (omniPayload as Writable<typeof omniPayload>).b = OnOther
+}
+contentPayload.g = settings.get_("grabBackFocus")
+
