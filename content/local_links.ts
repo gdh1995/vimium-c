@@ -283,8 +283,6 @@ const getImages = (hints: Hint[], element: SafeHTMLElement): void => {
   let str: string | null | undefined = getMediaUrl(element, mediaTag < kMediaTag.MIN_NOT_MEDIA_EL)
     , cr: Rect | null | undefined
   if (!mediaTag) {
-    // according to https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement#Browser_compatibility,
-    // <img>.currentSrc is since C45
     if (str) {
       let r = padClientRect_(getBoundingClientRect_(element)), l = r.l, t = r.t, w = r.r - l, h = r.b - t
       if (w < 8 && h < 8) {

@@ -164,9 +164,11 @@ export const getMediaTag = (element: SafeHTMLElement) => {
 export const getMediaUrl = (element: HTMLImageElement | SafeHTMLElement, isMedia: boolean): string => {
   let kSrcAttr: "src", srcValue: string | null
   return element.dataset.src
+      // according to https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement#Browser_compatibility,
+      // <img>.currentSrc is since C45
       || isMedia && (element as HTMLImageElement).currentSrc
       || (srcValue = element.getAttribute(kSrcAttr = isMedia ? "src" : "href" as never) || "",
-          isMedia && (element as Partial<HTMLImageElement>)[kSrcAttr] || srcValue)
+          srcValue && (element as Partial<HTMLImageElement>)[kSrcAttr] || srcValue)
 }
 
 export const recordLog = (tip: kTip | string): void => {
