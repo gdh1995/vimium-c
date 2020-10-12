@@ -10,7 +10,7 @@ import {
   settings
 } from "./store"
 import {
-  framesForTab, ensureInnerCSS, indexFrame, requireURL, framesForOmni, sendFgCmd, complainNoSession, showHUD,
+  framesForTab, portSendFgCmd, indexFrame, requireURL, framesForOmni, sendFgCmd, complainNoSession, showHUD,
   complainLimits
 } from "./ports"
 import { parseSedOptions_ } from "./clipboard"
@@ -53,7 +53,7 @@ interface BgCmdInfoNS {
 
 const abs = Math.abs
 
-const BgCmdInfo: { readonly [K in kBgCmd & number]: K extends keyof BgCmdInfoNS ? BgCmdInfoNS[K] : Info.NoTab } = [
+const BgCmdInfo: { readonly [K in keyof BgCmdOptions]: K extends keyof BgCmdInfoNS ? BgCmdInfoNS[K] : Info.NoTab } = [
   /* kBgCmd.blank           */ Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab,
   /* kBgCmd.performFind     */ Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab,
   /* kBgCmd.addBookmark     */ Info.NoTab, Info.NoTab, Info.ActiveTab, Info.NoTab, Info.NoTab,
@@ -70,7 +70,7 @@ const BgCmdInfo: { readonly [K in kBgCmd & number]: K extends keyof BgCmdInfoNS 
 ]
 
 const BackgroundCommands: {
-  readonly [K in kBgCmd & number]: K extends keyof BgCmdInfoNS
+  readonly [K in keyof BgCmdOptions]: K extends keyof BgCmdInfoNS
       ? BgCmdInfoNS[K] extends Info.ActiveTab ? BgCmdActiveTab
         : BgCmdInfoNS[K] extends Info.CurWndTabsIfRepeat | Info.CurWndTabs | Info.CurShownTabs ? BgCmdCurWndTabs
         : BgCmdInfoNS[K] extends Info.ActiveTab | Info.NoTab ? BgCmdActiveTabOrNoTab
@@ -144,9 +144,7 @@ const BackgroundCommands: {
       const ports = framesForTab[cPort.s.t]!
       for (let i = 1; i < ports.length; i++) {
         let isCur = ports[i] === ports[0]
-        ports[i].postMessage<1, kFgCmd.toggle>({ N: kBgReq.execute, H: isCur ? ensureInnerCSS(cPort) : null,
-          c: kFgCmd.toggle, n: 1, a: { k: key2, n: isCur ? keyRepr : "", v: value }
-        })
+        portSendFgCmd(ports[i], kFgCmd.toggle, isCur, { k: key2, n: isCur ? keyRepr : "", v: value }, 1)
       }
     }
   },
@@ -566,10 +564,10 @@ set_executeCommand((registryEntry: CommandsNS.Item, count: number, lastKey: kKey
   } else { count = count || 1 }
   if (!registryEntry.background_) {
     const { alias_: fgAlias } = registryEntry,
-    dot = (kEnds.FgCmd <= 32 || fgAlias < 32) && ((
+    dot = (kFgCmd.END <= 32 || fgAlias < 32) && <BOOL> (((
       (1 << kFgCmd.marks) | (1 << kFgCmd.passNextKey) | (1 << kFgCmd.focusInput)
-    ) >> fgAlias) & 1
-    port.postMessage({ N: kBgReq.execute, H: dot ? ensureInnerCSS(port) : null, c: fgAlias, n: count, a: options })
+    ) >> fgAlias) & 1)
+    portSendFgCmd(port, fgAlias, dot, options as any, count)
     return
   }
   const { alias_: alias } = registryEntry, func = BackgroundCommands[alias]

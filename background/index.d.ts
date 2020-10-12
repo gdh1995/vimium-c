@@ -219,35 +219,9 @@ declare namespace ExclusionsNS {
 }
 
 declare namespace CommandsNS {
-  interface RawOptions extends SafeDict<any> {}
-  interface Options extends ReadonlySafeDict<any> {}
-  // encoded info
-  interface CustomHelpInfo {
-    key_: string;
-    desc_: string;
-    $key_?: unknown;
-  }
-  interface NormalizedCustomHelpInfo extends CustomHelpInfo {
-    $key_: string;
-    $desc_: string;
-  }
-  type BgDescription = [ kBgCmd & number, 1, number, {}? ];
-  type FgDescription = [ kFgCmd & number, 0, number, {}? ];
-  /** [ enum, is background, count limit, default options ] */
-  type Description = BgDescription | FgDescription;
   interface BaseItem {
-    readonly command_: kCName;
-    readonly options_: Options | null;
-    readonly repeat_: number;
-    readonly help_: CustomHelpInfo | null;
+    readonly alias_: (kBgCmd | kFgCmd) & number; readonly background_: BOOL
   }
-  type Item = (BaseItem & {
-    readonly alias_: kBgCmd & number;
-    readonly background_: 1;
-  }) | (BaseItem & {
-    readonly alias_: kFgCmd & number;
-    readonly background_: 0;
-  });
 }
 
 declare namespace CompletersNS {
@@ -697,19 +671,9 @@ declare namespace CommandsNS {
   };
 }
 
-declare const enum kShortcutAliases {
-  _mask = 0,
-  nextTab1 = kCName.quickNext,
-}
-interface ShortcutInfoMap {
-  [kCName.createTab]: CommandsNS.Item;
-  [kCName.goBack]: CommandsNS.Item;
-  [kCName.goForward]: CommandsNS.Item;
-  [kCName.previousTab]: CommandsNS.Item;
-  [kCName.nextTab]: CommandsNS.Item;
-  [kCName.reloadTab]: CommandsNS.Item;
-  [CommandsNS.OtherCNames.userCustomized]: CommandsNS.Item;
-}
+declare const enum kShortcutAliases { _mask = 0, nextTab1 = kCName.quickNext }
+type StandardShortcutNames = kCName.createTab | kCName.goBack | kCName.goForward | kCName.previousTab
+    | kCName.nextTab | kCName.reloadTab | CommandsNS.OtherCNames.userCustomized
 
 declare namespace BackendHandlersNS {
   interface SpecialHandlers {
@@ -777,10 +741,8 @@ declare namespace BackendHandlersNS {
 
 interface CommandsDataTy {
   errors_: null | string[][];
-  keyToCommandRegistry_: SafeDict<CommandsNS.Item>;
   builtinKeys_: SafeDict<1> | null;
   keyFSM_: KeyFSM;
-  shortcutRegistry_: ShortcutInfoMap;
   mappedKeyRegistry_: SafeDict<string> | null;
   mappedKeyTypes_: kMapKey;
   visualGranularities_: GranularityNames;
@@ -794,7 +756,7 @@ interface BaseHelpDialog {
 interface Window {
   readonly MathParser?: object;
   readonly KeyMappings?: object;
-  readonly CommandsData_: object;
+  readonly CommandsData_: CommandsDataTy & { keyToCommandRegistry_: SafeDict<CommandsNS.BaseItem> }
   readonly Completion_: CompletersNS.GlobalCompletersConstructor;
   readonly Exclusions?: object;
   readonly HelpDialog?: BaseHelpDialog;

@@ -46,9 +46,3 @@ export const getSecret = (): number => {
   _time = now
   return _secret
 }
-
-if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
-  (contentPayload as Writable<typeof contentPayload>).b = (omniPayload as Writable<typeof omniPayload>).b = OnOther
-}
-contentPayload.g = settings.get_("grabBackFocus")
-

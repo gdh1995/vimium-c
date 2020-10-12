@@ -60,7 +60,7 @@ var HelpDialog = {
       body = body.replace(<RegExpSearchable<1>> /\{\{(\w+)}}/g, (_, group: string) => consts[group] || _);
       a.html_ = [head, body];
     }
-    const commandToKeys = BgUtils_.safeObj_<Array<[string, CommandsNS.Item]>>(),
+    const commandToKeys = BgUtils_.safeObj_<[string, CommandsNS.BaseItem][]>(),
     ref = CommandsData_.keyToCommandRegistry_, hideUnbound = !isOptionsPage, showNames = isOptionsPage;
     for (const key in ref) {
       const registry = ref[key]!;
@@ -96,7 +96,7 @@ var HelpDialog = {
         ? { h: html[0], b: div } : (html[0].replace("{{className}}", Settings_.payload_.d) + div) as any as "html"
   }) as BaseHelpDialog["render_"],
   // eslint-disable-next-line object-shorthand
-  groupHtml_: (function (this: {}, group: string, commandToKeys: SafeDict<Array<[string, CommandsNS.Item]>>
+  groupHtml_: (function (this: {}, group: string, commandToKeys: SafeDict<[string, CommandsNS.BaseItem][]>
       , hideUnbound: boolean, showNames: boolean): string {
     const a = this as typeof HelpDialog;
     const renderItem = a.commandHtml_

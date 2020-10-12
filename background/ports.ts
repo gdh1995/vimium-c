@@ -239,8 +239,7 @@ export const indexFrame = (tabId: number, frameId: number): Port | null => {
   return null
 }
 
-export const ensureInnerCSS = (port: Frames.Port): string | null => {
-  const { s: sender } = port
+export const ensureInnerCSS = (sender: Frames.Sender): string | null => {
   if (sender.f & Frames.Flags.hasCSS) { return null }
   sender.f |= Frames.Flags.hasCSSAndActed
   return innerCSS_
@@ -288,11 +287,16 @@ export const safePost = <K extends keyof FullBgReq>(port: Port, req: Req.bg<K>):
 }
 
 export const focusFrame = (port: Port, css: boolean, mask: FrameMaskType): void => {
-  port.postMessage({ N: kBgReq.focusFrame, H: css ? ensureInnerCSS(port) : null, m: mask, k: cKey, c: 0 })
+  port.postMessage({ N: kBgReq.focusFrame, H: css ? ensureInnerCSS(port.s) : null, m: mask, k: cKey, c: 0 })
 }
 
 export const sendFgCmd = <K extends keyof CmdOptions> (cmd: K, css: boolean, opts: CmdOptions[K]): void => {
-  cPort.postMessage<1, K>({ N: kBgReq.execute, H: css ? ensureInnerCSS(cPort) : null, c: cmd, n: 1, a: opts })
+  portSendFgCmd(cPort, cmd, css, opts, 1)
+}
+
+export const portSendFgCmd = <K extends keyof CmdOptions> (
+    port: Port, cmd: K, css: boolean | BOOL, opts: CmdOptions[K], count: number): void => {
+  port.postMessage<1, K>({ N: kBgReq.execute, H: css ? ensureInnerCSS(cPort.s) : null, c: cmd, n: count, a: opts })
 }
 
 export const showHUD = (text: string, isCopy?: kTip): void => {
@@ -303,7 +307,7 @@ export const showHUD = (text: string, isCopy?: kTip): void => {
     text = (text.length > 41 ? text.slice(0, 41) + "\u2026" : text + ".")
   }
   if (cPort && !safePost(cPort, {
-      N: kBgReq.showHUD, H: ensureInnerCSS(cPort), k: isCopy ? text ? kTip.copiedIs : isCopy : kTip.raw, t: text
+      N: kBgReq.showHUD, H: ensureInnerCSS(cPort.s), k: isCopy ? text ? kTip.copiedIs : isCopy : kTip.raw, t: text
   })) {
     set_cPort(null)
   }

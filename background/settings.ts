@@ -474,7 +474,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
       wiki: "/wiki",
       __proto__: null as never
     },
-    GlobalCommands_: null as never as Array<keyof ShortcutInfoMap>,
+    GlobalCommands_: null as never as StandardShortcutNames[],
     ShowPage_: "pages/show.html",
     VomnibarPageInner_: "", VomnibarScript_: "/front/vomnibar.js", VomnibarScript_f_: ""
   }
@@ -543,7 +543,7 @@ chrome.runtime.getPlatformInfo(function (info): void {
   if (Build.BTypes & BrowserType.Chrome && IsEdg_) {
     ref3[EdgNewTab] = ref3[EdgNewTab + "/"] = Urls.NewTabType.browser;
   }
-  obj.GlobalCommands_ = (<Array<keyof ShortcutInfoMap | kShortcutAliases & string>> Object.keys(ref.commands || {})
+  obj.GlobalCommands_ = (<Array<StandardShortcutNames | kShortcutAliases & string>> Object.keys(ref.commands || {})
       ).map(i => i === <string> <unknown> kShortcutAliases.nextTab1 ? kCName.nextTab : i);
   obj.VerCode_ = ref.version;
   obj.VerName_ = ref.version_name || ref.version;
@@ -563,6 +563,11 @@ chrome.runtime.getPlatformInfo(function (info): void {
   }
   obj.ContentScripts_ = ref2.map(func);
 
+  payload_.g = settings.get_("grabBackFocus")
+  if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
+    (payload_ as Writable<typeof payload_>).b =
+        (settings.omniPayload_ as Writable<typeof settings.omniPayload_>).b = OnOther
+  }
   type PayloadNames = keyof typeof valuesToLoad_;
   for (let _i in valuesToLoad_) {
     settings.updatePayload_(valuesToLoad_[_i as PayloadNames], settings.get_(_i as PayloadNames), payload_)

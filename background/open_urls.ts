@@ -4,7 +4,7 @@ import {
   browserWindows, getAllWindows, tabsCreate, safeUpdate, InfoToCreateMultiTab, openMultiTab, makeWindow, browser_
 } from "./browser"
 import { cKey, cPort, cRepeat, get_cOptions, settings, set_cOptions, set_cPort, set_cRepeat } from "./store"
-import { framesForTab, ensureInnerCSS, safePost, showHUD, complainLimits, findCPort, isNotVomnibarPage } from "./ports"
+import { framesForTab, ensureInnerCSS, safePost, showHUD, complainLimits, findCPort, isNotVomnibarPage, portSendFgCmd } from "./ports"
 import { parseSedOptions_, paste_, substitute_ } from "./clipboard"
 
 type ShowPageData = [string, typeof Settings_.temp_.shownHash_, number]
@@ -493,14 +493,14 @@ export const focusAndExecute = (req: Omit<FgReq[kFgReq.gotoMainFrame], "f">
   if (mainPort && mainPort.s.s !== Frames.Status.disabled) {
     mainPort.postMessage({
       N: kBgReq.focusFrame,
-      H: focusAndShowFrameBorder || req.c !== kFgCmd.scroll ? ensureInnerCSS(port) : null,
+      H: focusAndShowFrameBorder || req.c !== kFgCmd.scroll ? ensureInnerCSS(port.s) : null,
       m: focusAndShowFrameBorder ? FrameMaskType.ForcedSelf : FrameMaskType.NoMaskAndNoFocus,
       k: focusAndShowFrameBorder ? cKey : kKeyCode.None,
       c: req.c, n: req.n, a: req.a
     })
   } else {
     req.a.$forced = true
-    port.postMessage({ N: kBgReq.execute, H: null, c: req.c, n: req.n, a: req.a })
+    portSendFgCmd(port, req.c, false, req.a as any, req.n)
   }
 }
 

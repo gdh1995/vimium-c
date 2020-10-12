@@ -90,7 +90,7 @@ interface BgCmdOptions {
   [kBgCmd.toggleCS]: { action: "" | "reopen"; incognito: boolean; type: chrome.contentSettings.ValidTypes }
   [kBgCmd.toggleMuteTab]: { all: boolean; other: boolean }
   [kBgCmd.togglePinTab]: LimitedRangeOptions
-  [kBgCmd.toggleTabUrl]: { keyword: string; parsed: string; reader: boolean; }
+  [kBgCmd.toggleTabUrl]: { keyword: string; parsed: string; reader: boolean }
   [kBgCmd.toggleVomnibarStyle]: { style: string; current: boolean }
   [kBgCmd.toggleZoom]: {}
   [kBgCmd.visitPreviousTab]: {}
@@ -115,4 +115,35 @@ interface MasksForOpenUrl {
 
 interface LimitedRangeOptions {
   limited: boolean
+}
+
+declare namespace CommandsNS {
+  interface RawOptions extends SafeDict<any> {}
+  interface Options extends ReadonlySafeDict<any> {}
+  // encoded info
+  interface CustomHelpInfo {
+    key_: string; desc_: string; $key_?: unknown
+  }
+  interface NormalizedCustomHelpInfo extends CustomHelpInfo {
+    $key_: string; $desc_: string
+  }
+  type BgDescription = [ alias: keyof BgCmdOptions, background: 1, repeat: number, defaultOptions?: {} ]
+  type FgDescription = [ alias: keyof CmdOptions, background: 0, repeat: number, defaultOptions?: {} ]
+  /** [ enum, is background, count limit, default options ] */
+  type Description = BgDescription | FgDescription
+  interface BaseItem {
+    readonly options_: Options | null
+    readonly repeat_: number
+    readonly command_: kCName
+    readonly help_: CustomHelpInfo | null
+  }
+  type Item = (BaseItem & { readonly alias_: keyof BgCmdOptions; readonly background_: 1
+      }) | (BaseItem & { readonly alias_: keyof CmdOptions; readonly background_: 0 })
+}
+
+type ShortcutInfoMap = { [k in StandardShortcutNames]: CommandsNS.Item }
+
+interface CommandsDataTy {
+  keyToCommandRegistry_: SafeDict<CommandsNS.Item>
+  shortcutRegistry_: ShortcutInfoMap
 }

@@ -636,7 +636,7 @@ let optionsInit1_ = function (): void {
   }
   opt = Option_.all_.keyMappings;
   opt.onSave_ = function (): void {
-    const bgCommandsData_ = BG_.CommandsData_ as CommandsDataTy
+    const bgCommandsData_ = BG_.CommandsData_
     const errors = bgCommandsData_.errors_,
     msg = errors ? formatCmdErrors_(errors) : "";
     if (bgSettings_.payload_.l && !msg) {
@@ -1195,12 +1195,12 @@ function OnBgUnload(): void {
 }
 BG_.addEventListener("unload", OnBgUnload);
 
-const cmdRegistry = (BG_.CommandsData_ as CommandsDataTy).keyToCommandRegistry_["?"]
+const cmdRegistry = BG_.CommandsData_.keyToCommandRegistry_["?"]
 if (!cmdRegistry || cmdRegistry.alias_ !== kBgCmd.showHelp) { (function (): void {
-  const arr = (BG_.CommandsData_ as CommandsDataTy).keyToCommandRegistry_
+  const arr = BG_.CommandsData_.keyToCommandRegistry_
   let matched = "";
   for (let key in arr) {
-    const item = arr[key] as CommandsNS.Item;
+    const item = arr[key]!
     if (item.alias_ === kBgCmd.showHelp) {
       matched = matched && matched.length < key.length ? matched : key;
     }

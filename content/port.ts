@@ -18,7 +18,7 @@ let tick = 1
 let safeDestroy: SafeDestoryF
 let requestHandlers: { [k in keyof BgReq]: (this: void, request: BgReq[k]) => unknown }
 let contentCommands_: {
-  [k in kFgCmd & number]:
+  [k in keyof CmdOptions]:
     k extends kFgCmd.framesGoBack | kFgCmd.insertMode ? (msg: CmdOptions[k], count?: number) => void :
     (this: void, options: CmdOptions[k] & SafeObject, count: number, key?: -42 | 0 | 1 | 2 | TimerType.fake) => void;
 }

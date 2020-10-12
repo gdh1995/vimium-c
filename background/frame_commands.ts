@@ -5,7 +5,7 @@ import {
   executeCommand, reqH_, omniPayload, settings, findCSS_
 } from "./store"
 import {
-  framesForTab, indexFrame, ensureInnerCSS, framesForOmni, focusFrame, sendFgCmd, showHUD, complainLimits
+  framesForTab, indexFrame, portSendFgCmd, framesForOmni, focusFrame, sendFgCmd, showHUD, complainLimits
 } from "./ports"
 import { substitute_ } from "./clipboard"
 import { parseReuse, newTabIndex, openShowPage } from "./open_urls"
@@ -141,11 +141,7 @@ export const showVomnibar = (forceInner?: boolean): void => {
   if (options.mode === "bookmark") {
     options.mode = "bookm"
   }
-  port.postMessage<1, kFgCmd.vomnibar>({
-    N: kBgReq.execute, H: ensureInnerCSS(port),
-    c: kFgCmd.vomnibar, n: cRepeat,
-    a: options
-  })
+  portSendFgCmd(port, kFgCmd.vomnibar, true, options, cRepeat)
   options.k = -1
   set_cOptions(options) // safe on renaming
 }
@@ -463,7 +459,7 @@ export const executeShortcut = (shortcutName: keyof ShortcutInfoMap, ports: Fram
     return
   }
   let registry = CommandsData_.shortcutRegistry_[shortcutName], cmdName = registry.command_,
-  cmdFallback: kBgCmd & number = 0
+  cmdFallback: keyof BgCmdOptions = 0
   if (cmdName === "goBack" || cmdName === "goForward") {
     if (Build.BTypes & BrowserType.Chrome
         && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)) {

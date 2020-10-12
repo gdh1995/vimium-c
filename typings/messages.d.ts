@@ -27,7 +27,7 @@ interface BgCSSReq {
   /** style (aka. CSS) */ H: string | null;
 }
 
-interface BaseExecute<T, C extends kFgCmd & number = kFgCmd & number> extends BgCSSReq {
+interface BaseExecute<T, C extends keyof CmdOptions = keyof CmdOptions> extends BgCSSReq {
   /** command */ c: C;
   /** count */ n: number;
   /** args (aka. options) */ a: T | null;
@@ -134,9 +134,6 @@ interface BgReq {
   };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface ShortcutInfoMap {}
-
 interface BgVomnibarSpecialReq {
   [kBgReq.omni_omni]: {
     /** autoSelect */ a: boolean
@@ -186,17 +183,13 @@ declare const enum kBgCmd {
   searchInAnother, showTip,
   toggleCS, toggleMuteTab, togglePinTab, toggleTabUrl, toggleVomnibarStyle, toggleZoom,
   visitPreviousTab,
-  END = "END",
+  END, ENDS = "END",
 }
 
 declare const enum kFgCmd {
   framesGoBack, findMode, linkHints, marks, goToMarks, scroll, visualMode, vomnibar, insertMode, toggle,
   passNextKey, goNext, autoOpen, focusInput, editText, scrollSelect, toggleStyle, showHelpDialog,
-  END = "END",
-}
-
-declare const enum kEnds {
-  FgCmd = kFgCmd.toggleStyle + 1,
+  END, ENDS = "END",
 }
 
 type FgCmdAcrossFrames = kFgCmd.linkHints | kFgCmd.scroll | kFgCmd.vomnibar | kFgCmd.goNext
