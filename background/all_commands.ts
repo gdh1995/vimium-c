@@ -83,21 +83,27 @@ const BackgroundCommands: {
   /* kBgCmd.goNext: */ (): void => {
     let rel = get_cOptions<C.goNext>().rel, p2: string[] = [], patterns = get_cOptions<C.goNext>().patterns
     rel = rel ? rel + "" : "next"
-    if (!(patterns instanceof Array)) {
-      typeof patterns === "string" || (patterns = "")
-      patterns = patterns
-          || (rel !== "next" && rel !== "last" ? settings.cache_.previousPatterns : settings.cache_.nextPatterns)
-      patterns = patterns.split(",")
-    }
-    for (let i of patterns) {
-      i = i && (i + "").trim()
-      i && p2.push(GlobalConsts.SelectorPrefixesInPatterns.includes(i[0]) ? i : i.toLowerCase())
-      if (p2.length === GlobalConsts.MaxNumberOfNextPatterns) { break }
+    if (!get_cOptions<C.goNext>().$n) {
+      if (!(patterns instanceof Array)) {
+        typeof patterns === "string" || (patterns = "")
+        patterns = patterns
+            || (rel !== "next" && rel !== "last" ? settings.cache_.previousPatterns : settings.cache_.nextPatterns)
+        patterns = patterns.split(",")
+      }
+      for (let i of patterns) {
+        i = i && (i + "").trim()
+        i && p2.push(GlobalConsts.SelectorPrefixesInPatterns.includes(i[0]) ? i : i.toLowerCase())
+        if (p2.length === GlobalConsts.MaxNumberOfNextPatterns) { break }
+      }
+      get_cOptions<C.goNext, true>().patterns = patterns
+      get_cOptions<C.goNext, true>().rel = rel
+      get_cOptions<C.goNext, true>().$n = 1
     }
     const maxLens: number[] = p2.map(i => Math.max(i.length + 12, i.length * 4)),
     totalMaxLen: number = Math.max.apply(Math, maxLens)
     sendFgCmd(kFgCmd.goNext, true, {
-      r: rel, p: p2, l: maxLens, m: totalMaxLen > 0 && totalMaxLen < 99 ? totalMaxLen : 32
+      r: get_cOptions<C.goNext>().noRel ? "" : rel,
+      p: p2, l: maxLens, m: totalMaxLen > 0 && totalMaxLen < 99 ? totalMaxLen : 32
     })
   },
   /* kBgCmd.insertMode: */ (): void => {

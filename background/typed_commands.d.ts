@@ -1,7 +1,7 @@
 interface BgCmdOptions {
   [kBgCmd.blank]: {}
   // region: need cport
-  [kBgCmd.goNext]: { patterns: string | string[]; rel: string }
+  [kBgCmd.goNext]: { noRel: boolean; patterns: string | string[]; rel: string; $n: 1 }
   [kBgCmd.insertMode]: {
     key: string
     hideHUD: boolean

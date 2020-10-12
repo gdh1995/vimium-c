@@ -284,6 +284,7 @@
     "goNext": {
         "message": "Follow the link labeled next or \">\""
     },
+    "goNext_p": { "message": "patterns:string, rel:string, noRel" },
     "goPrevious": {
         "message": "Follow the link labeled previous or \"<\""
     },

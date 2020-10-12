@@ -159,7 +159,7 @@ set_contentCommands_([
         && !parApi.a(keydownEvents_)) {
       parApi.f(kFgCmd.goNext, req as CmdOptions[kFgCmd.goNext] & FgOptions, 1)
     } else if (chosen = isHTML_()
-        && (findNextInRel(req.r) || req.p.length && findNextInText(req.p, isNext, req.l, req.m))) {
+        && (req.r && findNextInRel(req.r) || req.p.length && findNextInText(req.p, isNext, req.l, req.m))) {
       chosen[1].j(chosen[0])
     } else {
       hudTip(kTip.noLinksToGo, 0, VTr(kTip.prev + <number> <boolean | number> isNext));
