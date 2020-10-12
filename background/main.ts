@@ -1,5 +1,5 @@
 import { runtimeError_, getTabUrl, tabsGet, browserTabs, tabsCreate, browserSessions, browser_ } from "./browser"
-import { contentPayload, cPort, needIcon_, reqH_, settings, set_cPort, set_needIcon_, set_visualWordRe_ } from "./store"
+import { contentPayload, cPort, needIcon_, reqH_, settings, set_cPort, set_needIcon_, set_visualWordsRe_ } from "./store"
 import {
   framesForTab, indexFrame, findCPort, framesForOmni, OnConnect, isExtIdAllowed, getPortUrl, showHUD, complainLimits
 } from "./ports"
@@ -158,7 +158,7 @@ Backend_ = {
       always_enabled = !Exclusions.rules_.length, oldStatus = curSender.s,
       stdStatus = always_enabled ? Frames.Status.enabled : oldStatus === Frames.Status.partial ? oldStatus
           : (pattern = Backend_.getExcluded_(curSender.u, curSender),
-              pattern ? Frames.Status.partial : pattern === null ? Frames.Status.disabled : Frames.Status.enabled),
+              pattern ? Frames.Status.partial : pattern === null ? Frames.Status.enabled : Frames.Status.disabled),
       stat = act === "enable" ? Frames.Status.enabled : act === "disable" ? Frames.Status.disabled
         : act === "toggle-disabled" ? oldStatus !== Frames.Status.disabled
             ? stdStatus === Frames.Status.disabled ? null : Frames.Status.disabled
@@ -376,7 +376,7 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
         : CurCVer_ < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
           || !BgUtils_.makeRegexp_("\\p{L}", "u", 0))
   ) ? settings.fetchFile_("words", (text): void => {
-    set_visualWordRe_(text.replace(<RegExpG> /[\n\r]/g, "")
+    set_visualWordsRe_(text.replace(<RegExpG> /[\n\r]/g, "")
         .replace(<RegExpG & RegExpSearchable<1>> /\\u(\w{4})/g, (_, s1) => String.fromCharCode(+("0x" + s1))))
-  }) : set_visualWordRe_("")
+  }) : set_visualWordsRe_("")
 }

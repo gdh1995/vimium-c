@@ -444,6 +444,7 @@ function testScopedLets(selfVar, context, varNames) {
       console.log("Warning: Found a function in a scoped loop:", curBlocks[0].print_to_string())
     }
     if (foundFuncInLoop === 2) {
+      varNames.has("stdFunc") ||
       console.log("[Warning] ====== A function uses let/const variables of a loop's scoped closure !!! ======",
           curBlocks[0].print_to_string())
       return false

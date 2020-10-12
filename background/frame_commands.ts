@@ -2,7 +2,7 @@ import C = kBgCmd
 import { browserTabs, browserWebNav, getTabUrl, runtimeError_, selectTab } from "./browser"
 import {
   cPort, NoFrameId, cRepeat, get_cOptions, set_cPort, getSecret, set_cOptions, set_cRepeat, set_cNeedConfirm,
-  executeCommand, reqH_, omniPayload, settings, findCSS_
+  executeCommand, reqH_, omniPayload, settings, findCSS_, visualWordsRe_
 } from "./store"
 import {
   framesForTab, indexFrame, portSendFgCmd, framesForOmni, focusFrame, sendFgCmd, showHUD, complainLimits
@@ -161,7 +161,7 @@ export const enterVisualMode = (): void => {
     if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
         || Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
             && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) {
-      words = settings.CONST_.words
+      words = visualWordsRe_
     }
     if (!(sender.f & Frames.Flags.hasFindCSS)) {
       sender.f |= Frames.Flags.hasFindCSS

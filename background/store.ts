@@ -31,7 +31,7 @@ export const set_cRepeat = (_newRepeat: number): void => { cRepeat = _newRepeat 
 export const set_findCSS_ = (_newFindCSS: FindCSS): void => { findCSS_ = _newFindCSS }
 export const set_innerCSS_ = (_newInnerCSS: string): void => { innerCSS_ = _newInnerCSS }
 export const set_needIcon_ = (_newNeedIcon: boolean): void => { needIcon_ = _newNeedIcon }
-export const set_visualWordRe_ = (_newVisualWord: string): void => { visualWordsRe_ = _newVisualWord }
+export const set_visualWordsRe_ = (_newVisualWord: string): void => { visualWordsRe_ = _newVisualWord }
 
 export const set_reqH_ = (_newRH: BackendHandlersNS.FgRequestHandlers): void => { reqH_ = _newRH }
 export const set_executeCommand = (_newEC: typeof executeCommand): void => { executeCommand = _newEC }
