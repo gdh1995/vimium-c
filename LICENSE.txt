@@ -22,3 +22,12 @@ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
+
+=======================================================================
+
+An exception is, the translation files in
+[_locales/](https://github.com/gdh1995/vimium-c/tree/master/_locales)
+belong to [CC-BY-SA-4.0](https://creativecommons.org/licenses/by-sa/4.0/),
+except some of those English sentences which are the same as
+[philc/vimium](https://github.com/philc/vimium)'s
+are under Vimium's MIT license.

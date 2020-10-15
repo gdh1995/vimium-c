@@ -37,7 +37,12 @@ Vimium C 是一款开源、免费的键盘增强类浏览器扩展，支持为�
 
 Vimium C 支持 新版 Microsoft Edge、Firefox 63+ 和 Chrome 43+ 等现代浏览器。
 
-本项目主要由 [gdh1995](https://github.com/gdh1995) 开发并维护，并且以 [MIT 许可协议](LICENSE.txt) 开源。
+本项目主要由 [gdh1995](https://github.com/gdh1995)
+基于 [<span style="color: #2f508e;">Vim</span>ium](https://github.com/philc/vimium)
+开发并维护，并且以 [MIT 许可协议](LICENSE.txt) 开源。
+除部分源自 [Vimium](https://github.com/philc/vimium) 的以 MIT 许可协议 开源的英文语句外，
+本项目的翻译文件（[_locales/](https://github.com/gdh1995/vimium-c/tree/master/_locales) 文件夹）归属于
+[CC-BY-SA-4.0](https://creativecommons.org/licenses/by-sa/4.0/)（创作共用-署名-相同方式共享 4.0）协议。
 
 本项目的主仓库是 https://github.com/gdh1995/vimium-c 和 https://gitee.com/gdh1995/vimium-c
 。本项目的前身是[<span style="color: #2f508e;">Vim</span>ium](https://github.com/philc/vimium)。

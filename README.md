@@ -160,7 +160,12 @@ A donation list is in / 捐赠列表详见: https://github.com/gdh1995/vimium-c/
 # Thanks & Licenses
 
 Vimium C: Copyright (c) Dahan Gong, Phil Crosby, Ilya Sukhar.
-See the [MIT LICENSE](LICENSE.txt) for details.
+See the [MIT license](LICENSE.txt) for details.
+
+The translation files in [_locales/](https://github.com/gdh1995/vimium-c/tree/master/_locales) belong to
+  [CC-BY-SA-4.0](https://creativecommons.org/licenses/by-sa/4.0/),
+except some of those English sentences which are the same as [philc/vimium](https://github.com/philc/vimium)'s
+  are under Vimium's MIT license.
 
 * [Vimium](https://github.com/philc/vimium):
   Copyright (c) 2010 Phil Crosby, Ilya Sukhar.
