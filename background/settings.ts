@@ -543,6 +543,10 @@ chrome.runtime.getPlatformInfo(function (info): void {
   if (Build.BTypes & BrowserType.Chrome && IsEdg_) {
     ref3[EdgNewTab] = ref3[EdgNewTab + "/"] = Urls.NewTabType.browser;
   }
+  if (Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)) {
+    const chromeNewTabPage = "chrome://new-tab-page"
+    ref3[chromeNewTabPage] = ref3[chromeNewTabPage + "/"] = Urls.NewTabType.browser
+  }
   obj.GlobalCommands_ = (<Array<StandardShortcutNames | kShortcutAliases & string>> Object.keys(ref.commands || {})
       ).map(i => i === <string> <unknown> kShortcutAliases.nextTab1 ? kCName.nextTab : i);
   obj.VerCode_ = ref.version;
