@@ -1,1046 +1,1097 @@
 {
-	"createTab": {
-		"message": "Créer un / de nouveaux onglet(s)"
-	},
-	"discardTab": {
-		"message": "Défausser un / d'autres onglet(s)"
-	},
-	"duplicateTab": {
-		"message": "Dupliquer l'onglet courant N fois"
-	},
-	"moveTabToNewWindow": {
-		"message": "Déplacer N onglet(s) dans une nouvelle fenêtre"
-	},
-	"openCopiedUrlInNewTab": {
-		"message": "Ouvrir l'URL du presse-papiers dans N nouveaux onglets"
-	},
-	"openUrl": {
-		"message": "Ouvrir l'URL"
-	},
-	"reloadTab": {
-		"message": "Recharger N onglet(s)"
-	},
-	"removeTab": {
-		"message": "Fermer N onglet(s)"
-	},
-	"restoreTab": {
-		"message": "Restaurer des onglets fermés"
-	},
-	"togglePinTab": {
-		"message": "Attacher ou détacher N onglet(s)"
-	},
-	"LinkHints_activate": {
-		"message": "Ouvrir un lien dans l'onglet courant"
-	},
-	"LinkHints_activateModeToCopyLinkText": {
-		"message": "Copier un lien dans le presse-papiers"
-	},
-	"LinkHints_activateModeToCopyLinkUrl": {
-		"message": "Copier un lien dans le presse-papiers"
-	},
-	"LinkHints_activateModeToDownloadImage": {
-		"message": "Télécharger image, video et audio"
-	},
-	"LinkHints_activateModeToDownloadLink": {
-		"message": "Télécharger le lien de l'URL"
-	},
-	"LinkHints_activateModeToEdit": {
-		"message": "Sélectionner une zone d'édition"
-	},
-	"LinkHints_activateModeToHover": {
-		"message": "Sélectionner un élement et survoler"
-	},
-	"LinkHints_activateModeToLeave": {
-		"message": "Laisser la souris quitter le lien"
-	},
-	"LinkHints_activateModeToOpenImage": {
-		"message": "Montrer l'image dans un nouvel onglet"
-	},
-	"LinkHints_activateModeToOpenIncognito": {
-		"message": "Ouvrir le lien dans une fenêtre incognito"
-	},
-	"LinkHints_activateModeToOpenInNewForegroundTab": {
-		"message": "Ouvrir un lien dans un nouvel onglet et passer à celui-ci"
-	},
-	"LinkHints_activateModeToOpenInNewTab": {
-		"message": "Ouvrir un lien dans un nouvel onglet"
-	},
-	"LinkHints_activateModeToOpenVomnibar": {
-		"message": "Editer un lien sur Vomnibar"
-	},
-	"LinkHints_activateModeToSearchLinkText": {
-		"message": "Ouvrir ou chercher le texte d'un lien"
-	},
-	"LinkHints_activateModeWithQueue": {
-		"message": "Ouvrir de multiples liens dans un nouvel onglet"
-	},
-	"LinkHints_activateModeToSelect": { "message": "Sélectionner du texte pour passer en mode visuel" },
-	"LinkHints_unhoverLast": {
-		"message": "Arrêter de survoler la dernier endroit"
-	},
-	"Marks_activate": {
-		"message": "Aller à un marqueur"
-	},
-	"Marks_activateCreateMode": {
-		"message": "Créer un nouveau marqueur"
-	},
-	"Marks_clearGlobal": {
-		"message": "Retirer tous les marqueurs globaux"
-	},
-	"Marks_clearLocal": {
-		"message": "Retirer tous les marqueurs locaux pour le site"
-	},
-	"Vomnibar_activate": {
-		"message": "Ouvrir l'URL, le marque-page, ou l'entrée d'historique"
-	},
-	"Vomnibar_activateBookmarks": {
-		"message": "Ouvrir un marque-page"
-	},
-	"Vomnibar_activateBookmarksInNewTab": {
-		"message": "Ouvrir un marque-page dans un nouvel onglet"
-	},
-	"Vomnibar_activateHistory": {
-		"message": "Ouvrir l'historique"
-	},
-	"Vomnibar_activateHistoryInNewTab": {
-		"message": "Ouvrir l'historique dans un nouvel onglet"
-	},
-	"Vomnibar_activateInNewTab": {
-		"message": "Ouvrir l'URL, l'historique, ..., dans un nouvel onglet"
-	},
-	"Vomnibar_activateTabSelection": {
-		"message": "Chercher dans les onglets ouverts"
-	},
-	"Vomnibar_activateUrl": {
-		"message": "Editer l'URL courante"
-	},
-	"Vomnibar_activateUrlInNewTab": {
-		"message": "Editer l'URL courante et l'ouvrir dans un nouvel onglet"
-	},
-	"addBookmark": { "message": "Ajouter un onglet un dossier de signets" },
-	"autoCopy": {
-		"message": "Copier le texte sélectionné ou le titre du cadre courant ou l'URL"
-	},
-	"autoOpen": {
-		"message": "Ouvrir le texte sélectionné ou copié dans un nouvel onglet"
-	},
-	"blank": {
-		"message": "Ne rien faire"
-	},
-	"clearCS": {
-		"message": "Nettoyer les paramètres du contenu de l'extension"
-	},
-	"clearFindHistory": {
-		"message": "Nettoyer l'historique du mode recherhe"
-	},
-	"closeOtherTabs": {
-		"message": "Fermer tous les autres onglets"
-	},
-	"closeTabsOnLeft": {
-		"message": "Fermer tous les onglets sur la gauche"
-	},
-	"closeTabsOnRight": {
-		"message": "Fermer tous les onglets sur la droite"
-	},
-	"copyCurrentTitle": {
-		"message": "Copier le titre de l'onglet courant"
-	},
-	"copyCurrentUrl": {
-		"message": "Copier les informations de la page"
-	},
-	"copyWindowInfo": {
-		"message": "Copier le titre/l'URL de la fenêtre courante"
-	},
-	"debugBackground": {
-		"message": "Débugger le fond de la page"
-	},
-	"editText": {
-		"message": "Envoyer l'action d'édition au navigateur"
-	},
-	"enableCSTemp": {
-		"message": "Activer les feuilles de style du site en fenêtre incognito"
-	},
-	"enterFindMode": {
-		"message": "Passer en mode recherche"
-	},
-	"enterInsertMode": {
-		"message": "Passer en mode insertion"
-	},
-	"enterVisualLineMode": {
-		"message": "Passer en mode visuel-ligne"
-	},
-	"enterVisualMode": {
-		"message": "Passer en mode visuel"
-	},
-	"firstTab": {
-		"message": "Aller au Nième onglet"
-	},
-	"focusInput": {
-		"message": "Mettre le focus sur la Nième zone de texte visible sur la page et parcourir en utilisant TAB"
-	},
-	"focusOrLaunch": {
-		"message": "Mettre le focus sur un onglet avec l'URL donnée et l'ouvrir"
-	},
-	"goBack": {
-		"message": "Remonter dans l'historique"
-	},
-	"goForward": {
-		"message": "Avancer dans l'historique"
-	},
-	"goNext": {
-		"message": "Suivre le lien etiquetté next ou \">\""
-	},
-	"goPrevious": {
-		"message": "Suivre le lien etiquetté previous \"<\""
-	},
-	"goToRoot": {
-		"message": "Aller à la racine hiérarchique de l'URL courante"
-	},
-	"goUp": {
-		"message": "Remonter la hiérarchie de l'URL"
-	},
-	"joinTabs": { "message": "Collecter tous les onglets dans la fenêtre courante" },
-	"lastTab": {
-		"message": "Aller au Nième dernier onglet"
-	},
-	"mainFrame": {
-		"message": "Sélectionner la frame principale/supérieure de l'onglet"
-	},
-	"moveTabLeft": {
-		"message": "Déplacer l'onglet à gauche"
-	},
-	"moveTabRight": {
-		"message": "Déplacer l'onglet à droite"
-	},
-	"moveTabToIncognito": {
-		"message": "Déplacer l'onglet dans une fenêtre incognito"
-	},
-	"moveTabToNextWindow": {
-		"message": "Déplacer l'onglet dans la fenêtre suivante"
-	},
-	"nextFrame": {
-		"message": "Avancer jusqu'au prochain cadre de la page"
-	},
-	"nextTab": {
-		"message": "Aller sur l'onglet de droite"
-	},
-	"openCopiedUrlInCurrentTab": {
-		"message": "Ouvrir l'URL du presse-papiers dans l'onglet courant"
-	},
-	"parentFrame": {
-		"message": "Mettre le focus sur la frame parent"
-	},
-	"passNextKey": {
-		"message": "Envoyer les prochaines touches pressées à la page"
-	},
-	"performAnotherFind": {
-		"message": "Chercher les seconds voire plus récents, mots de recherche"
-	},
-	"performBackwardsFind": {
-		"message": "Remonter parmi les résultats de recherche"
-	},
-	"performFind": {
-		"message": "Avancer parmi les résultats de recherche"
-	},
-	"previousTab": {
-		"message": "Aller sur l'onglet de gauche"
-	},
-	"reload": {
-		"message": "Recharger la frame courante"
-	},
-	"reloadGivenTab": {
-		"message": "Recharger le Nième onglet"
-	},
-	"removeRightTab": {
-		"message": "Fermer le Nième onglet à droite"
-	},
-	"reopenTab": {
-		"message": "Réouvrir la page courante"
-	},
-	"restoreGivenTab": {
-		"message": "Restaurer le Nième onglet"
-	},
-	"scrollDown": {
-		"message": "Défiler vers le bas"
-	},
-	"scrollFullPageDown": {
-		"message": "Défiler vers le bas d'une page"
-	},
-	"scrollFullPageUp": {
-		"message": "Défiler vers le haut d'une page"
-	},
-	"scrollLeft": {
-		"message": "Défiler à gauche"
-	},
-	"scrollPageDown": {
-		"message": "Défiler d'une page vers le bas"
-	},
-	"scrollPageUp": {
-		"message": "Défiler d'une page vers le haut"
-	},
-	"scrollPxDown": {
-		"message": "Défiler d'un pixel vers le bas"
-	},
-	"scrollPxLeft": {
-		"message": "Défiler d'un pixel vers la gauche"
-	},
-	"scrollPxRight": {
-		"message": "Défiler d'un pixel vers la droite"
-	},
-	"scrollPxUp": {
-		"message": "Défiler d'un pixel vers le haut"
-	},
-	"scrollRight": {
-		"message": "Défiler à droite"
-	},
-	"scrollTo": {
-		"message": "Défiler vers une position personnalisée"
-	},
-	"scrollToBottom": {
-		"message": "Défiler au bas de page"
-	},
-	"scrollToLeft": {
-		"message": "Défiler tout à gauche"
-	},
-	"scrollToRight": {
-		"message": "Défiler tout à droite"
-	},
-	"scrollToTop": {
-		"message": "Défiler au sommet de page"
-	},
-	"scrollUp": {
-		"message": "Défiler vers le haut"
-	},
-	"searchAs": {
-		"message": "Chercher le texte sélectionné ou copié avec le moteur de recherche courant"
-	},
-	"searchInAnother": {
-		"message": "Re-effectuer la recherche dans un autre moteur de recherche"
-	},
-	"showHelp": {
-		"message": "Montrer l'aide"
-	},
-	"simBackspace": {
-		"message": "Simuler RETOUR une fois s'il y a le focus"
-	},
-	"switchFocus": {
-		"message": "Floute l'élément actif ou remet le focus dessus"
-	},
-	"toggleCS": {
-		"message": "Paramètres de contenu du site de basculement"
-	},
-	"toggleLinkHintCharacters": {
-		"message": "Permuter les autres indices du lien"
-	},
-	
-	"toggleMuteTab": {
-		"message": "Permuter le son de l'onglet courant"
-	},
-	"toggleReaderMode": { "message": "Permuter la vue du lecteur" },
-	"toggleSwitchTemp": {
-		"message": "Activer temporairement"
-	},
-	"toggleViewSource": {
-		"message": "Voir la source de la page"
-	},
-	"toggleVomnibarStyle": {
-		"message": "Alterner les styles de la page Vomnibar"
-	},
-	"closeDownloadBar": {
-		"message": "Fermer la barre de téléchargement du bas de façon élégante"
-	},
-	"showTip": {
-		"message": "Montrer un indice sur le HUD"
-	},
-	"visitPreviousTab": {
-		"message": "Aller à l'onglet précédemment visité sur la fenêtre courante"
-	},
-	"zoomIn": {
-		"message": "Zoomer l'onglet courant"
-	},
-	"zoomOut": {
-		"message": "Dézoomer l'onglet courant"
-	},
-	"createTab_s": {
-		"message": "Créer un nouvel onglet"
-	},
-	"goBack_s": {
-		"message": "Remonter dans l'historique"
-	},
-	"goForward_s": {
-		"message": "Avancer dans l'historique"
-	},
-	"previousTab_s": {
-		"message": "Aller à gauche de un onglet"
-	},
-	"quickNext_s": {
-		"message": "Aller à droite de un onglet"
-	},
-	"reloadTab_s": {
-		"message": "Recharger l'onglet"
-	},
-	"userCustomized": {
-		"message": "Raccourci personnalisé"
-	},
-	"cmdParams": {
-		"message": " (utilisez *)"
-	},
-	"cmdConfirm": {
-		"message": "Vous avez demandé à Vimium C d'effectuer $1 répétitions de la commande:\n    $2\n\nÊtes-vous certain de vouloir continuer ?"
-	},
-	"name": {
-		"message": "Vimium C - Tout par le clavier"
-	},
-	"description": {
-		"message": "Un outil de raccourcis clavier pour une navigation de page centrée sur l'usage du clavier, des opérations sur les onglets du navigateur avec une omnibar avancée ainsi que des raccourcis globaux"
-	},
-	"lang1": { "message": "fr" },
-	"noActiveState": { "message": "Tel que configuré, pas d'état actif présent" },
-	"o3_2": {
-		"message": "(Rangé)"
-	},
-	"o114": {
-		"message": " Options Avancées"
-	},
-	"o115": {
-		"message": "Pas De Modifications"
-	},
-	"o115_2": {
-		"message": "Sauvegarder les modifications"
-	},
-	"o115_3": {
-		"message": "Sauvegardé(es)"
-	},
-	"o137": {
-		"message": "commence à "
-	},
-	"o138": {
-		"message": "s'enclenche seulement"
-	},
-	"o139": {
-		"message": "exclue "
-	},
-	"o140": {
-		"message": "devient "
-	},
-	"o141": {
-		"message": "garde "
-	},
-	"o142": {
-		"message": "va "
-	},
-	"o143": {
-		"message": "être"
-	},
-	"o143_2": {
-		"message": "être"
-	},
-	"o144": {
-		"message": "désactivé(es)"
-	},
-	"o145": {
-		"message": " activé(es)"
-	},
-	"o145_2": {
-		"message": "activé(es)"
-	},
-	"o147": {
-		"message": " (sur cet onglet, $1 une fois)"
-	},
-	"o148": {
-		"message": " si remis à zéro"
-	},
-	"dirtyOptions": {
-		"message": "De telles options ont été changées à d'autres endroits:\n      * $1\n    Continuer à sauvegarder et écraser avec ces modifications ?"
-	},
-	"clickToUnmask": {
-		"message": "# Cliquez pour retirer le masque du contenu\u2026"
-	},
-	"beforeUnload": {
-		"message": "Vous avez des modifications non-sauvegardées dans les options"
-	},
-	"ignoredNonEN": {
-		"message": "La configuration Clavier a été ignorée ! Merci de considérer de désactiver l'option."
-	},
-	"onlyExtVomnibar": {
-		"message": "Seules les pages d'extension de Vomnibar peuvent fonctionner avant Chromium $1"
-	},
-	"fileVomnibar" : {
-		"message": "Une page de fichier de Vomnibar est limitée par le navigateur pour fonctionner uniquement sur file:///* pages."
-	},
-	"httpVomnibar" : {
-		"message": "Une page HTTP de Vomnibar est limitée par le navigateur et ne fonctionne pas sur les pages HTTPS."
-	},
-	"beforeChromium": {
-		"message": "sur navigateurs Chromium avant v$1"
-	},
-	"lackPermission": {
-		"message": "pour manquer de permissions$1"
-	},
-	"invalidOption": {
-		"message": "Cette option est invalide $1"
-	},
-	"manageShortcut": {
-		"message": "\"Paramétrer les raccourcis\" dans \"le menu Outils\" de "
-	},
-	"addons": {
-		"message": "Extensions Firefox"
-	},
-	"edgestore": {
-		"message": "Extensions MS Edge"
-	},
-	"NewTabAdapter": {
-		"message": "NewTab Adapter (Adaptateur de nouvel onglet)"
-	},
-	"refusedURLs": {
-		"message": "L'ouverture de l'URL \"$1\" par une WebExtension est refusée par le navigateur Firefox."
-	},
-	"nonPlainURL": {
-		"message": "La valeur \"$1\" n'est pas une URL ordinaire valide"
-	},
-	"changedBeforeSync": {
-		"message": "        Erreur:\nDésolé, mais vous êtes en train d'activer les options de \"Sync\"\n    tandis que d'autres options sont également modifiées.\nMerci d'effectuer une action à la fois!"
-	},
-	"warningForSync": {
-		"message": "        Attention:\nles paramètres courants seront RÉÉCRIS par la prochaine que Vimium C démarre !\nMerci de sauvegarder vos paramètres en utilisant le bouton \"Exporter les paramètres\"\n!!!        MAINTENANT        !!!"
-	},
-	"confirmImport": {
-		"message": "Vous êtes en train de charger $1:\n      * depuis $2Vimium C$3\n      * pour $4\n      * exporté $5\n\nÊtes-vous sûr de vouloir continuer ?"
-	},
-	"backupFile": {
-		"message": "une copie des paramètres"
-	},
-	"recommendedFile": {
-		"message": "les paramètres recommandés"
-	},
-	"fileVCVer": {
-		"message": "version * de "
-	},
-	"fileVCNewer": {
-		"message": " (plus récent(e))"
-	},
-	"filePlatform": {
-		"message": "la plateforme $1"
-	},
-	"commonPlatform": {
-		"message": "les plateformes communes"
-	},
-	"atTime": {
-		"message": "à $1"
-	},
-	"before": {
-		"message": "avant"
-	},
-	"keepSyncing": {
-		"message": "Voulez-vous conserver les paramètres synchronisés avec votre compte de navigateur courant ?\n\nAppuyez sur \"Annuler\" pour arrêter."
-	},
-	"notJSON": {
-		"message": "Aucune donnée JSON trouvée !"
-	},
-	"JSONParseError": {
-		"message": "Désolé, Vimium C ne peut analyser le fichier JSON :\n un caractère inattendu à la ligne $1, colonne $2"
-	},
-	"notVCJSON": {
-		"message": "Désolé, pas de données de paramètres Vimium C trouvées !"
-	},
-	"exc": {
-		"message": "Erreur: "
-	},
-	"unknown": {
-		"message": "(inconnu(es))"
-	},
-	"JSONTooLarge": {
-		"message": "    Erreur Fatale :\n\nVotre fichier de paramètres \"$1\" semble trop grand !\n\nTel que limité par votre navigateur, la taille maximale est de seulement $2 Ko."
-	},
-	"Once": {
-		"message": " une fois"
-	},
-	"Upgrade": {
-		"message": "Mise à jour"
-	},
-	"upgradeMsg": {
-		"message": "Vimium C a été mise à jour vers la v$1.\n"
-	},
-	"clickForMore": {
-		"message": "Cliquez ici pour plus d'informations."
-	},
-	"cmdList": {
-		"message": "Liste des Commandes"
-	},
-	"help": {
-		"message": "Aide"
-	},
-	"browserHelp": { "message": "Aide Navigateur" },
-	"tipClickToCopy": {
-		"message": "Astuce : Cliquez un nom de commande pour le copier dans le presse-papiers."
-	},
-	"pageNav": {
-		"message": "Navigue sur la page"
-	},
-	"useVomnibar": {
-		"message": "Utilise la Vomnibar"
-	},
-	"useFind": {
-		"message": "Utilise la recherche"
-	},
-	"historyNav": {
-		"message": "Navigue dans l'historique"
-	},
-	"changeTabs": {
-		"message": "Manipule les onglets"
-	},
-	"misc": {
-		"message": "Divers"
-	},
-	"advCmd": {
-		"message": " commandes avancées"
-	},
-	"HStar": {
-		"message": "Activez l'étoile GitHub"
-	},
-	"HStar2": { "message": "Activez l'étoile Gitee" },
-	"HReview": {
-		"message": "Ecrire une revue sur "
-	},
-	"Donate": { "message": "Faire don" },
-	"ifBug": {
-		"message": "Un bug? "
-	},
-	"HReport": {
-		"message": "Rapportez-le ici"
-	},
-	"HCredits": {
-		"message": "Crédits: "
-	},
-	"HOriginal": {
-		"message": " (l'extension originale), "
-	},
-	"HBy": {
-		"message": " par "
-	},
-	"HAnd": {
-		"message": " et "
-	},
-	"noCopied": {
-		"message": "Aucun texte copié !"
-	},
-	"notFgOpt": {
-		"message": "$1 n'est pas un changement valide"
-	},
-	"unknownA": {
-		"message": "nom d'option inconnu $1"
-	},
-	"notBool": {
-		"message": "$1 n'est pas un commutateur booléen"
-	},
-	"needVal": {
-		"message": "besoin de valeur=... pour l'option $1"
-	},
-	"unlikeVal": {
-		"message": "la valeur de $1 devrait être comme $2"
-	},
-	"moveAllTabs": {
-		"message": "Rien ne se passe en déplacant les onglets de cette fenêtre"
-	},
-	"hasIncog": {
-		"message": "Cet onglet provient d'une fenêtre incognito"
-	},
-	"notRestoreIfIncog": {
-		"message": "Ne peut pas restaurer un onglet de mode incognito !"
-	},
-	"indexOOR": {
-		"message": "L'index de session fourni est hors de portée"
-	},
-	"noDiscardIfOld": {
-		"message": "Vimium C ne peut pas décharger les onglets avant Chromium $1"
-	},
-	"discardFail": {
-		"message": "Ne peut pas décharger l'onglet"
-	},
-	"notEngine": {
-		"message": "Pas de moteur de recherche trouvé !"
-	},
-	"noKw": {
-		"message": "Cette commande manque l'argument \"mot-clé\""
-	},
-	"noMute": {
-		"message": "Vimium C ne peut pas contrôler l'état de sourdine avant Chromium $1"
-	},
-	"muted": {
-		"message": "Mis en sourdine"
-	},
-	"unmuted": {
-		"message": "Sourdine désactivée"
-	},
-	"mute": {
-		"message": "$1 onglet(s) sont mis en sourdine"
-	},
-	"unmute": {
-		"message": "$1 onglet(s) ont leurs sourdines désactivées"
-	},
-	"fhCleared": {
-		"message": "$1 historique de recherche nettoyé"
-	},
-	"noStyleName": {
-		"message": "Aucun nom de style de Vomnibar n'est donné"
-	},
-	"needText": {
-		"message": "\"showTip\" a besoin d'une option \"texte\""
-	},
-	"noEngineFind": {
-		"message": "Aucun moteur de recherche trouvé !"
-	},
-	"noSelOrCopied": {
-		"message": "Aucun texte sélectionné ou copié trouvé"
-	},
-	"noTabItem": {
-		"message": "L'onglet cible a disparu !"
-	},
-	"noSessionItem": {
-		"message": "La session fermée semble être trop ancienne"
-	},
-	"invalidImg": {
-		"message": "L'URL de l'image sélectionnée est invalide"
-	},
-	"noTabHistory": {
-		"message": "Ne peut pas ouvrir un historique de cet onglet"
-	},
-	"notRemoveCur": {
-		"message": "L'onglet courant devrait être conservé"
-	},
-	"delSug": {
-		"message": "A réussi à supprimer un $1"
-	},
-	"notDelSug": {
-		"message": "Le $1 n'est pas trouvé !"
-	},
-	"notAllowA": {
-		"message": "Il est interdit de $1"
-	},
-	"unknownStatAction": {
-		"message": "Il est survenu un action de statut inconnu: $1"
-	},
-	"newStat": {
-		"message": "Désormais le statut de la page est $1"
-	},
-	"fullEnabled": {
-		"message": "activé(es)"
-	},
-	"halfDisabled": {
-		"message": "partiellement désactivé(es)"
-	},
-	"fullDisabled": { "message": "désactivée" },
-	"unknownCS": {
-		"message": "Paramètres de contenu inconnus: $1"
-	},
-	"changeItsCS": {
-		"message": "changez ses paramètres de contenu"
-	},
-	"csCleared": {
-		"message": "Les paramètres du contenu $1 ont été effacés"
-	},
-	"noMark": {
-		"message": "$1 marqueur non-défini : ' $2 '"
-	},
-	"markRemoved": {
-		"message": "$1 $2 marqueur$3 été supprimé"
-	},
-	"have": {
-		"message": "s ont"
-	},
-	"has": {
-		"message": " a"
-	},
-	"dupTab": {
-		"message": "duplique un tel onglet"
-	},
-	"openIncog": {
-		"message": "ouvre l'URL en mode incognito"
-	},
-	"openExtSrc": {
-		"message": "ouvre le code-source HTML d'une page d'extension"
-	},
-	"noReader": { "message": "Pas de vue lecteur pour cette page" },
-	"notModify": {
-		"message": "modifie #$1 option"
-	},
-	"setFileCS": {
-		"message": "spécifie les feuilles de style du fichier depuis Chromium $1"
-	},
-	"setFolderCS": {
-		"message": "spécifie la feuille de style des dossiers de fichiers"
-	},
-	"setFTPCS": {
-		"message": "spécifie les paramètres de contenu des pages de FTP"
-	},
-	"setIncogCS": {
-		"message": "changer les paramètres incognito"
-	},
-	"copiedWndInfo": {
-		"message": "(info des onglets)"
-	},
-	"Close": {
-		"message": "Cacher"
-	},
-	"Toggle_Dark": {
-		"message": "Basculez le mode sombre"
-	},
-	"Search": { "message": "Rechercher" },
-	"Go": { "message": "Aller" },
-	"21": { "message": "Impossible d'évaluer de scripts ici" },
-	"68": { "message": "Visuel" },
-	"69": { "message": "Ligne" },
-	"70": { "message": "Curseur" },
-	"71": {
-		"message": "Aucun lien à sélectionner"
-	},
-	"72": {
-		"message": "Les LinkHints existent parce que vous tapez au clavier"
-	},
-	"73": {
-		"message": "Le lien a été supprimé de la page"
-	},
-	"74": {
-		"message": "Pas une image"
-	},
-	"75": {
-		"message": "Survole pour dérouler"
-	},
-	"76": {
-		"message": "Désolé, Vimium C ne copiera aucun mot de passe"
-	},
-	"77": {
-		"message": "Rien de nouveau à copier"
-	},
-	"78": {
-		"message": "Télécharge: $1"
-	},
-	"79": {
-		"message": "Va au marqueur\u2026"
-	},
-	"80": {
-		"message": "Crée un marqueur\u2026"
-	},
-	"81": {
-		"message": "Créé un marqueur local [dernier]"
-	},
-	"82": {
-		"message": "$1 local marqueur [ $2 ]"
-	},
-	"83": {
-		"message": "Sauté vers"
-	},
-	"84": {
-		"message": "Créé"
-	},
-	"85": {
-		"message": "dernier"
-	},
-	"86": {
-		"message": "$1 $2 marqueur : ' $3 '"
-	},
-	"87": {
-		"message": "Désolé, Vimium C ne peut pas ouvrir de HUD sur cette page"
-	},
-	"88": {
-		"message": "Aucune ancienne requête à trouver"
-	},
-	"89": {
-		"message": "Aucune correspondance pour \"$1\""
-	},
-	"91": {
-		"message": "Aucune sélection utilisable, entrée en mode curseur\u2026"
-	},
-	"92": {
-		"message": "Sélection perdue"
-	},
-	"93": {
-		"message": "Créez une sélection avant d'entrer en mode visuel"
-	},
-	"94": {
-		"message": "Désolé, le chargement de la Vomnibar semble échouer"
-	},
-	"95": {
-		"message": "Cet élément ne peut être supprimé"
-	},
-	"96": { "message": "Caractères pour les LinkHints trop peu nombreux" },
-	"200": {
-		"message": "Non-autorisé à ouvrir l'URL de la cible du nouvel onglet"
-	},
-	"201": {
-		"message": "Vous avez annulé l'importation"
-	},
-	"202": {
-		"message": "Import des données de paramétrage : OK!"
-	},
-	"4": {
-		"message": "Le dernier élément est dé-survolé"
-	},
-	"5": {
-		"message": "Mode insertion$1"
-	},
-	"6": {
-		"message": "Aucune touche transmise"
-	},
-	"7": {
-		"message": "Mode normal (touches transmises désactivées)$1"
-	},
-	"8": {
-		"message": ": $1 fois"
-	},
-	"9": {
-		"message": "Envoyez les prochaines touches$1"
-	},
-	"10": {
-		"message": "Aucun lien pour aller $1"
-	},
-	"11": {
-		"message": "Rien n'a le focus"
-	},
-	"12": {
-		"message": "Le dernier élement en focus est caché"
-	},
-	"13": {
-		"message": "Il n'y a aucun champ de saisie sur lequel mettre le focus"
-	},
-	"14": {
-		"message": "Aucune URL trouvée !"
-	},
-	"15": {
-		"message": "Aucun texte trouvé !"
-	},
-	"20": {
-		"message": "Copié : $1"
-	},
-	"22": { "message": "Trop de liens à sélectionner" },
-	"23": {
-		"message": "Désormais $1 utilise $2"
-	},
-	"24": {
-		"message": "Désormais $1 est activé"
-	},
-	"25": {
-		"message": "$1 a été désactivée"
-	},
-	"26": {
-		"message": "($1 correspondances)"
-	},
-	"27": {
-		"message": "(1 correspondance)"
-	},
-	"28": {
-		"message": "(Quelques correspondances)"
-	},
-	"29": {
-		"message": "(Pas de correspondances)"
-	},
-	"30": {
-		"message": " (IHM modale)"
-	},
-	"31": {
-		"message": "Sur Firefox vous devez visiter cette URL manuellement"
-	},
-	"39": { "message": "globaux" },
-	"41": { "message": "local" },
-	"44": {
-		"message": "Ligne de bordure sélectionnée"
-	},
-	"45": { "message": "Une frame fille vient juste d'être modifiée" },
-	"46": { "message": "Pressez <Entrée> pour continuer\u2026" },
-	"0": {
-		"message": "Ouvre le lien dans l'onglet courant"
-	},
-	"2": {
-		"message": "Ouvre le lien dans un nouvel onglet"
-	},
-	"3": {
-		"message": "Ouvre le lien dans un nouvel onglet actif"
-	},
-	"16": {
-		"message": "Ouvre de multiples liens dans l'onglet courant"
-	},
-	"18": {
-		"message": "Ouvre de multiples liens dans de nouveaux onglets"
-	},
-	"19": {
-		"message": "Active le lien et attend"
-	},
-	"32": {
-		"message": "Survole le lien"
-	},
-	"33": {
-		"message": "Simule la souris qui quitte le lien"
-	},
-	"34": {
-		"message": "Met le focus sur le noeud"
-	},
-	"35": {
-		"message": "Télécharge le média"
-	},
-	"36": {
-		"message": "Ouvre l'image"
-	},
-	"37": {
-		"message": "Cherche le texte sélectionné"
-	},
-	"38": {
-		"message": "Copie le texte du lien dans le presse-papiers"
-	},
-	"40": {
-		"message": "Copie le lien de l'URL dans le presse-papiers"
-	},
-	"42": {
-		"message": "Télécharge le lien"
-	},
-	"43": {
-		"message": "Ouvre le lien dans une fenêtre incognito"
-	},
-	"51": {
-		"message": "Télécharge de multiples médias"
-	},
-	"52": {
-		"message": "Ouvre de multiples images"
-	},
-	"58": {
-		"message": "Télécharge de multiples liens"
-	},
-	"59": {
-		"message": "Ouvre de multiples onglets en incognito"
-	},
-	"48": {
-		"message": "Survole les noeuds continuellement"
-	},
-	"49": {
-		"message": "Simule la souris quittant continuellement"
-	},
-	"50": {
-		"message": "Met le focus sur les noeuds continuellement"
-	},
-	"53": {
-		"message": "Cherche le texte du lien un à un"
-	},
-	"54": {
-		"message": "Copie le texte du lien un à un"
-	},
-	"55": {
-		"message": "Copie la liste du texte de liens"
-	},
-	"56": {
-		"message": "Copie l'URL du lien un à un"
-	},
-	"57": {
-		"message": "Copie la liste d'URL du lien"
-	},
-	"62": { "message": "précedent" },
-	"63": { "message": "suivant" },
-	"64": {
-		"message": "Edite l'URL du lien dans la Vomnibar"
-	},
-	"65": {
-		"message": "Edite le texte du lien dans la Vomnibar"
-	},
-	"66": {
-		"message": "Sélectionne une zone d'édition"
-	},
-	"67": { "message": "Sélectionner du texte pour passer en mode visuel" }
+    "createTab": {
+        "message": "Créer de nouveaux onglets"
+    },
+    "discardTab": {
+        "message": "Défausser d'autres onglets"
+    },
+    "duplicateTab": {
+        "message": "Dupliquer l'onglet courant N fois"
+    },
+    "moveTabToNewWindow": {
+        "message": "Déplacer N onglets dans une nouvelle fenêtre"
+    },
+    "openCopiedUrlInNewTab": {
+        "message": "Ouvrir l'URL du presse-papiers dans N nouveaux onglets"
+    },
+    "openUrl": {
+        "message": "Ouvrir l'URL"
+    },
+    "reloadTab": {
+        "message": "Recharger N onglet(s)"
+    },
+    "removeTab": {
+        "message": "Fermer N onglet(s)"
+    },
+    "restoreTab": {
+        "message": "Restaurer des onglets fermés"
+    },
+    "togglePinTab": {
+        "message": "Attacher ou détacher N onglet(s)"
+    },
+    "LinkHints_activate": {
+        "message": "Ouvrir un lien dans l'onglet courant"
+    },
+    "LinkHints_activateModeToCopyLinkText": {
+        "message": "Copier un lien dans le presse-papiers"
+    },
+    "LinkHints_activateModeToCopyLinkUrl": {
+        "message": "Copier un lien dans le presse-papiers"
+    },
+    "LinkHints_activateModeToDownloadImage": {
+        "message": "Télécharger image, video et audio"
+    },
+    "LinkHints_activateModeToDownloadLink": {
+        "message": "Télécharger le lien de l'URL"
+    },
+    "LinkHints_activateModeToEdit": {
+        "message": "Sélectionner une zone d'édition"
+    },
+    "LinkHints_activateModeToHover": {
+        "message": "Sélectionner un élement et survoler"
+    },
+    "LinkHints_activateModeToLeave": {
+        "message": "Laisser la souris quitter le lien"
+    },
+    "LinkHints_activateModeToOpenImage": {
+        "message": "Montrer l'image dans un nouvel onglet"
+    },
+    "LinkHints_activateModeToOpenIncognito": {
+        "message": "Ouvrir le lien dans une fenêtre incognito"
+    },
+    "LinkHints_activateModeToOpenInNewForegroundTab": {
+        "message": "Ouvrir un lien dans un nouvel onglet et passer à celui-ci"
+    },
+    "LinkHints_activateModeToOpenInNewTab": {
+        "message": "Ouvrir un lien dans un nouvel onglet"
+    },
+    "LinkHints_activateModeToOpenVomnibar": {
+        "message": "Editer un lien sur Vomnibar"
+    },
+    "LinkHints_activateModeToSearchLinkText": {
+        "message": "Ouvrir ou chercher le texte d'un lien"
+    },
+    "LinkHints_activateModeWithQueue": {
+        "message": "Ouvrir de multiples liens dans un nouvel onglet"
+    },
+    "LinkHints_activateModeToSelect": {
+        "message": "Sélectionner du texte pour passer en mode visuel"
+    },
+    "LinkHints_unhoverLast": {
+        "message": "Arrêter de survoler la dernier endroit"
+    },
+    "Marks_activate": {
+        "message": "Aller à un marqueur"
+    },
+    "Marks_activateCreateMode": {
+        "message": "Créer un nouveau marqueur"
+    },
+    "Marks_clearGlobal": {
+        "message": "Retirer tous les marqueurs globaux"
+    },
+    "Marks_clearLocal": {
+        "message": "Retirer tous les marqueurs locaux pour le site"
+    },
+    "Vomnibar_activate": {
+        "message": "Ouvrir l'URL, le marque-page, ou l'entrée d'historique"
+    },
+    "Vomnibar_activateBookmarks": {
+        "message": "Ouvrir un marque-page"
+    },
+    "Vomnibar_activateBookmarksInNewTab": {
+        "message": "Ouvrir un marque-page dans un nouvel onglet"
+    },
+    "Vomnibar_activateHistory": {
+        "message": "Ouvrir l'historique"
+    },
+    "Vomnibar_activateHistoryInNewTab": {
+        "message": "Ouvrir l'historique dans un nouvel onglet"
+    },
+    "Vomnibar_activateInNewTab": {
+        "message": "Ouvrir l'URL, l'historique, ..., dans un nouvel onglet"
+    },
+    "Vomnibar_activateTabSelection": {
+        "message": "Chercher dans les onglets ouverts"
+    },
+    "Vomnibar_activateUrl": {
+        "message": "Editer l'URL courante"
+    },
+    "Vomnibar_activateUrlInNewTab": {
+        "message": "Editer l'URL courante et l'ouvrir dans un nouvel onglet"
+    },
+    "addBookmark": {
+        "message": "Ajouter un onglet un dossier de signets"
+    },
+    "autoCopy": {
+        "message": "Copier le texte sélectionné ou le titre du cadre courant ou l'URL"
+    },
+    "autoOpen": {
+        "message": "Ouvrir le texte sélectionné ou copié dans un nouvel onglet"
+    },
+    "blank": {
+        "message": "Ne rien faire"
+    },
+    "clearCS": {
+        "message": "Nettoyer les paramètres du contenu de l'extension"
+    },
+    "clearFindHistory": {
+        "message": "Nettoyer l'historique du mode recherhe"
+    },
+    "closeOtherTabs": {
+        "message": "Fermer tous les autres onglets"
+    },
+    "closeTabsOnLeft": {
+        "message": "Fermer tous les onglets sur la gauche"
+    },
+    "closeTabsOnRight": {
+        "message": "Fermer tous les onglets sur la droite"
+    },
+    "copyCurrentTitle": {
+        "message": "Copier le titre de l'onglet courant"
+    },
+    "copyCurrentUrl": {
+        "message": "Copier les informations de la page"
+    },
+    "copyWindowInfo": {
+        "message": "Copier le titre/l'URL de la fenêtre courante"
+    },
+    "debugBackground": {
+        "message": "Débugger le fond de la page"
+    },
+    "editText": {
+        "message": "Envoyer l'action d'édition au navigateur"
+    },
+    "enableCSTemp": {
+        "message": "Activer les feuilles de style du site en fenêtre incognito"
+    },
+    "enterFindMode": {
+        "message": "Passer en mode recherche"
+    },
+    "enterInsertMode": {
+        "message": "Passer en mode insertion"
+    },
+    "enterVisualLineMode": {
+        "message": "Passer en mode visuel-ligne"
+    },
+    "enterVisualMode": {
+        "message": "Passer en mode visuel"
+    },
+    "firstTab": {
+        "message": "Aller au Nième onglet"
+    },
+    "focusInput": {
+        "message": "Mettre le focus sur la Nième zone de texte visible sur la page et parcourir en utilisant TAB"
+    },
+    "focusOrLaunch": {
+        "message": "Mettre le focus sur un onglet avec l'URL donnée et l'ouvrir"
+    },
+    "goBack": {
+        "message": "Remonter dans l'historique"
+    },
+    "goForward": {
+        "message": "Avancer dans l'historique"
+    },
+    "goNext": {
+        "message": "Suivre le lien etiquetté next ou \">\""
+    },
+    "goPrevious": {
+        "message": "Suivre le lien etiquetté previous \"<\""
+    },
+    "goToRoot": {
+        "message": "Aller à la racine hiérarchique de l'URL courante"
+    },
+    "goUp": {
+        "message": "Remonter la hiérarchie de l'URL"
+    },
+    "joinTabs": {
+        "message": "Collecter tous les onglets dans la fenêtre courante"
+    },
+    "lastTab": {
+        "message": "Aller au Nième dernier onglet"
+    },
+    "mainFrame": {
+        "message": "Sélectionner la frame principale/supérieure de l'onglet"
+    },
+    "moveTabLeft": {
+        "message": "Déplacer l'onglet à gauche"
+    },
+    "moveTabRight": {
+        "message": "Déplacer l'onglet à droite"
+    },
+    "moveTabToIncognito": {
+        "message": "Déplacer l'onglet dans une fenêtre incognito"
+    },
+    "moveTabToNextWindow": {
+        "message": "Déplacer l'onglet dans la fenêtre suivante"
+    },
+    "nextFrame": {
+        "message": "Avancer jusqu'au prochain cadre de la page"
+    },
+    "nextTab": {
+        "message": "Aller sur l'onglet de droite"
+    },
+    "openCopiedUrlInCurrentTab": {
+        "message": "Ouvrir l'URL du presse-papiers dans l'onglet courant"
+    },
+    "parentFrame": {
+        "message": "Mettre le focus sur la frame parent"
+    },
+    "passNextKey": {
+        "message": "Envoyer les prochaines touches pressées à la page"
+    },
+    "performAnotherFind": {
+        "message": "Chercher les seconds voire plus récents, mots de recherche"
+    },
+    "performBackwardsFind": {
+        "message": "Remonter parmi les résultats de recherche"
+    },
+    "performFind": {
+        "message": "Avancer parmi les résultats de recherche"
+    },
+    "previousTab": {
+        "message": "Aller sur l'onglet de gauche"
+    },
+    "reload": {
+        "message": "Recharger la frame courante"
+    },
+    "reloadGivenTab": {
+        "message": "Recharger le Nième onglet"
+    },
+    "removeRightTab": {
+        "message": "Fermer le Nième onglet à droite"
+    },
+    "reopenTab": {
+        "message": "Réouvrir la page courante"
+    },
+    "restoreGivenTab": {
+        "message": "Restaurer le Nième onglet"
+    },
+    "scrollDown": {
+        "message": "Défiler vers le bas"
+    },
+    "scrollFullPageDown": {
+        "message": "Défiler vers le bas d'une page"
+    },
+    "scrollFullPageUp": {
+        "message": "Défiler vers le haut d'une page"
+    },
+    "scrollLeft": {
+        "message": "Défiler à gauche"
+    },
+    "scrollPageDown": {
+        "message": "Défiler d'une page vers le bas"
+    },
+    "scrollPageUp": {
+        "message": "Défiler d'une page vers le haut"
+    },
+    "scrollPxDown": {
+        "message": "Défiler d'un pixel vers le bas"
+    },
+    "scrollPxLeft": {
+        "message": "Défiler d'un pixel vers la gauche"
+    },
+    "scrollPxRight": {
+        "message": "Défiler d'un pixel vers la droite"
+    },
+    "scrollPxUp": {
+        "message": "Défiler d'un pixel vers le haut"
+    },
+    "scrollRight": {
+        "message": "Défiler à droite"
+    },
+    "scrollTo": {
+        "message": "Défiler vers une position personnalisée"
+    },
+    "scrollToBottom": {
+        "message": "Défiler au bas de page"
+    },
+    "scrollToLeft": {
+        "message": "Défiler tout à gauche"
+    },
+    "scrollToRight": {
+        "message": "Défiler tout à droite"
+    },
+    "scrollToTop": {
+        "message": "Défiler au sommet de page"
+    },
+    "scrollUp": {
+        "message": "Défiler vers le haut"
+    },
+    "searchAs": {
+        "message": "Chercher le texte sélectionné ou copié avec le moteur de recherche courant"
+    },
+    "searchInAnother": {
+        "message": "Re-effectuer la recherche dans un autre moteur de recherche"
+    },
+    "showHelp": {
+        "message": "Montrer l'aide"
+    },
+    "simBackspace": {
+        "message": "Simuler RETOUR une fois s'il y a le focus"
+    },
+    "switchFocus": {
+        "message": "Floute l'élément actif ou remet le focus dessus"
+    },
+    "toggleCS": {
+        "message": "Paramètres de contenu du site de basculement"
+    },
+    "toggleLinkHintCharacters": {
+        "message": "Permuter les autres indices du lien"
+    },
+    "toggleMuteTab": {
+        "message": "Permuter le son de l'onglet courant"
+    },
+    "toggleReaderMode": {
+        "message": "Permuter la vue du lecteur"
+    },
+    "toggleSwitchTemp": {
+        "message": "Activer temporairement"
+    },
+    "toggleViewSource": {
+        "message": "Voir la source de la page"
+    },
+    "toggleVomnibarStyle": {
+        "message": "Alterner les styles de la page Vomnibar"
+    },
+    "closeDownloadBar": {
+        "message": "Fermer la barre de téléchargement du bas de façon élégante"
+    },
+    "showTip": {
+        "message": "Montrer un indice sur le HUD"
+    },
+    "visitPreviousTab": {
+        "message": "Aller à l'onglet précédemment visité sur la fenêtre courante"
+    },
+    "zoomIn": {
+        "message": "Zoomer l'onglet courant"
+    },
+    "zoomOut": {
+        "message": "Dézoomer l'onglet courant"
+    },
+    "createTab_s": {
+        "message": "Créer un nouvel onglet"
+    },
+    "goBack_s": {
+        "message": "Remonter dans l'historique"
+    },
+    "goForward_s": {
+        "message": "Avancer dans l'historique"
+    },
+    "previousTab_s": {
+        "message": "Aller à gauche de un onglet"
+    },
+    "quickNext_s": {
+        "message": "Aller à droite de un onglet"
+    },
+    "reloadTab_s": {
+        "message": "Recharger l'onglet"
+    },
+    "userCustomized": {
+        "message": "Raccourci personnalisé"
+    },
+    "cmdParams": {
+        "message": " (utilisez *)"
+    },
+    "cmdConfirm": {
+        "message": "Vous avez demandé à Vimium C d'effectuer $1 répétitions de la commande:\n    $2\n\nÊtes-vous certain de vouloir continuer ?"
+    },
+    "name": {
+        "message": "Vimium C - Tout par le clavier"
+    },
+    "description": {
+        "message": "Un outil de raccourcis clavier pour une navigation de page centrée sur l'usage du clavier, des opérations sur les onglets du navigateur avec une omnibar avancée ainsi que des raccourcis globaux"
+    },
+    "lang1": {
+        "message": "fr"
+    },
+    "noActiveState": {
+        "message": "Tel que configuré, pas d'état actif présent"
+    },
+    "o3_2": {
+        "message": "(Rangé)"
+    },
+    "o114": {
+        "message": " Options Avancées"
+    },
+    "o115": {
+        "message": "Pas De Modifications"
+    },
+    "o115_2": {
+        "message": "Sauvegarder les modifications"
+    },
+    "o115_3": {
+        "message": "Sauvegardé(es)"
+    },
+    "o137": {
+        "message": "commence à "
+    },
+    "o138": {
+        "message": "s'enclenche seulement"
+    },
+    "o139": {
+        "message": "exclue "
+    },
+    "o140": {
+        "message": "devient "
+    },
+    "o141": {
+        "message": "garde "
+    },
+    "o142": {
+        "message": "va "
+    },
+    "o143": {
+        "message": "être"
+    },
+    "o143_2": {
+        "message": "être"
+    },
+    "o144": {
+        "message": "désactivé(es)"
+    },
+    "o145": {
+        "message": " activé(es)"
+    },
+    "o145_2": {
+        "message": "activé(es)"
+    },
+    "o147": {
+        "message": " (sur cet onglet, $1 une fois)"
+    },
+    "o148": {
+        "message": " si remis à zéro"
+    },
+    "dirtyOptions": {
+        "message": "De telles options ont été changées à d'autres endroits:\n      * $1\n    Continuer à sauvegarder et écraser avec ces modifications ?"
+    },
+    "clickToUnmask": {
+        "message": "# Cliquez pour retirer le masque du contenu…"
+    },
+    "beforeUnload": {
+        "message": "Vous avez des modifications non-sauvegardées dans les options"
+    },
+    "ignoredNonEN": {
+        "message": "La configuration Clavier a été ignorée ! Merci de considérer de désactiver l'option."
+    },
+    "onlyExtVomnibar": {
+        "message": "Seules les pages d'extension de Vomnibar peuvent fonctionner avant Chromium $1"
+    },
+    "fileVomnibar": {
+        "message": "Une page de fichier de Vomnibar est limitée par le navigateur pour fonctionner uniquement sur file:///* pages."
+    },
+    "httpVomnibar": {
+        "message": "Une page HTTP de Vomnibar est limitée par le navigateur et ne fonctionne pas sur les pages HTTPS."
+    },
+    "beforeChromium": {
+        "message": "sur navigateurs Chromium avant v$1"
+    },
+    "lackPermission": {
+        "message": "pour manquer de permissions$1"
+    },
+    "invalidOption": {
+        "message": "Cette option est invalide $1"
+    },
+    "manageShortcut": {
+        "message": "\"Paramétrer les raccourcis\" dans \"le menu Outils\" de "
+    },
+    "addons": {
+        "message": "Extensions Firefox"
+    },
+    "edgestore": {
+        "message": "Extensions MS Edge"
+    },
+    "NewTabAdapter": {
+        "message": "NewTab Adapter (Adaptateur de nouvel onglet)"
+    },
+    "refusedURLs": {
+        "message": "L'ouverture de l'URL \"$1\" par une WebExtension est refusée par le navigateur Firefox."
+    },
+    "nonPlainURL": {
+        "message": "La valeur \"$1\" n'est pas une URL ordinaire valide"
+    },
+    "changedBeforeSync": {
+        "message": "        Erreur:\nDésolé, mais vous êtes en train d'activer les options de \"Sync\"\n    tandis que d'autres options sont également modifiées.\nMerci d'effectuer une action à la fois!"
+    },
+    "warningForSync": {
+        "message": "        Attention:\nles paramètres courants seront RÉÉCRIS par la prochaine que Vimium C démarre !\nMerci de sauvegarder vos paramètres en utilisant le bouton \"Exporter les paramètres\"\n!!!        MAINTENANT        !!!"
+    },
+    "confirmImport": {
+        "message": "Vous êtes en train de charger $1:\n      * depuis $2Vimium C$3\n      * pour $4\n      * exporté $5\n\nÊtes-vous sûr de vouloir continuer ?"
+    },
+    "backupFile": {
+        "message": "une copie des paramètres"
+    },
+    "recommendedFile": {
+        "message": "les paramètres recommandés"
+    },
+    "fileVCVer": {
+        "message": "version * de "
+    },
+    "fileVCNewer": {
+        "message": " (plus récent(e))"
+    },
+    "filePlatform": {
+        "message": "la plateforme $1"
+    },
+    "commonPlatform": {
+        "message": "les plateformes communes"
+    },
+    "atTime": {
+        "message": "à $1"
+    },
+    "before": {
+        "message": "avant"
+    },
+    "keepSyncing": {
+        "message": "Voulez-vous conserver les paramètres synchronisés avec votre compte de navigateur courant ?\n\nAppuyez sur \"Annuler\" pour arrêter."
+    },
+    "notJSON": {
+        "message": "Aucune donnée JSON trouvée !"
+    },
+    "JSONParseError": {
+        "message": "Désolé, Vimium C ne peut analyser le fichier JSON :\n un caractère inattendu à la ligne $1, colonne $2"
+    },
+    "notVCJSON": {
+        "message": "Désolé, pas de données de paramètres Vimium C trouvées !"
+    },
+    "exc": {
+        "message": "Erreur: "
+    },
+    "unknown": {
+        "message": "(inconnu(es))"
+    },
+    "JSONTooLarge": {
+        "message": "    Erreur Fatale :\n\nVotre fichier de paramètres \"$1\" semble trop grand !\n\nTel que limité par votre navigateur, la taille maximale est de seulement $2 Ko."
+    },
+    "Once": {
+        "message": " une fois"
+    },
+    "Upgrade": {
+        "message": "Mise à jour"
+    },
+    "upgradeMsg": {
+        "message": "Vimium C a été mise à jour vers la v$1.\n"
+    },
+    "clickForMore": {
+        "message": "Cliquez ici pour plus d'informations."
+    },
+    "cmdList": {
+        "message": "Liste des Commandes"
+    },
+    "help": {
+        "message": "Aide"
+    },
+    "browserHelp": {
+        "message": "Aide Navigateur"
+    },
+    "tipClickToCopy": {
+        "message": "Astuce : Cliquez un nom de commande pour le copier dans le presse-papiers."
+    },
+    "pageNav": {
+        "message": "Navigue sur la page"
+    },
+    "useVomnibar": {
+        "message": "Utilise la Vomnibar"
+    },
+    "useFind": {
+        "message": "Utilise la recherche"
+    },
+    "historyNav": {
+        "message": "Navigue dans l'historique"
+    },
+    "changeTabs": {
+        "message": "Manipule les onglets"
+    },
+    "misc": {
+        "message": "Divers"
+    },
+    "advCmd": {
+        "message": " commandes avancées"
+    },
+    "HStar": {
+        "message": "Activez l'étoile GitHub"
+    },
+    "HStar2": {
+        "message": "Activez l'étoile Gitee"
+    },
+    "HReview": {
+        "message": "Ecrire une revue sur "
+    },
+    "Donate": {
+        "message": "Faire don"
+    },
+    "ifBug": {
+        "message": "Un bug? "
+    },
+    "HReport": {
+        "message": "Rapportez-le ici"
+    },
+    "HCredits": {
+        "message": "Crédits: "
+    },
+    "HOriginal": {
+        "message": " (l'extension originale), "
+    },
+    "HBy": {
+        "message": " par "
+    },
+    "HAnd": {
+        "message": " et "
+    },
+    "noCopied": {
+        "message": "Aucun texte copié !"
+    },
+    "notFgOpt": {
+        "message": "$1 n'est pas un changement valide"
+    },
+    "unknownA": {
+        "message": "nom d'option inconnu $1"
+    },
+    "notBool": {
+        "message": "$1 n'est pas un commutateur booléen"
+    },
+    "needVal": {
+        "message": "besoin de valeur=... pour l'option $1"
+    },
+    "unlikeVal": {
+        "message": "la valeur de $1 devrait être comme $2"
+    },
+    "moveAllTabs": {
+        "message": "Rien ne se passe en déplacant les onglets de cette fenêtre"
+    },
+    "hasIncog": {
+        "message": "Cet onglet provient d'une fenêtre incognito"
+    },
+    "notRestoreIfIncog": {
+        "message": "Ne peut pas restaurer un onglet de mode incognito !"
+    },
+    "indexOOR": {
+        "message": "L'index de session fourni est hors de portée"
+    },
+    "noDiscardIfOld": {
+        "message": "Vimium C ne peut pas décharger les onglets avant Chromium $1"
+    },
+    "discardFail": {
+        "message": "Ne peut pas décharger l'onglet"
+    },
+    "notEngine": {
+        "message": "Pas de moteur de recherche trouvé !"
+    },
+    "noKw": {
+        "message": "Cette commande manque l'argument \"mot-clé\""
+    },
+    "noMute": {
+        "message": "Vimium C ne peut pas contrôler l'état de sourdine avant Chromium $1"
+    },
+    "muted": {
+        "message": "Mis en sourdine"
+    },
+    "unmuted": {
+        "message": "Sourdine désactivée"
+    },
+    "mute": {
+        "message": "$1 onglet(s) sont mis en sourdine"
+    },
+    "unmute": {
+        "message": "$1 onglet(s) ont leurs sourdines désactivées"
+    },
+    "fhCleared": {
+        "message": "$1 historique de recherche nettoyé"
+    },
+    "noStyleName": {
+        "message": "Aucun nom de style de Vomnibar n'est donné"
+    },
+    "needText": {
+        "message": "\"showTip\" a besoin d'une option \"texte\""
+    },
+    "noEngineFind": {
+        "message": "Aucun moteur de recherche trouvé !"
+    },
+    "noSelOrCopied": {
+        "message": "Aucun texte sélectionné ou copié trouvé"
+    },
+    "noTabItem": {
+        "message": "L'onglet cible a disparu !"
+    },
+    "noSessionItem": {
+        "message": "La session fermée semble être trop ancienne"
+    },
+    "invalidImg": {
+        "message": "L'URL de l'image sélectionnée est invalide"
+    },
+    "noTabHistory": {
+        "message": "Ne peut pas ouvrir un historique de cet onglet"
+    },
+    "notRemoveCur": {
+        "message": "L'onglet courant devrait être conservé"
+    },
+    "delSug": {
+        "message": "A réussi à supprimer un $1"
+    },
+    "notDelSug": {
+        "message": "Le $1 n'est pas trouvé !"
+    },
+    "notAllowA": {
+        "message": "Il est interdit de $1"
+    },
+    "unknownStatAction": {
+        "message": "Il est survenu un action de statut inconnu: $1"
+    },
+    "newStat": {
+        "message": "Désormais le statut de la page est $1"
+    },
+    "fullEnabled": {
+        "message": "activé(es)"
+    },
+    "halfDisabled": {
+        "message": "partiellement désactivé(es)"
+    },
+    "fullDisabled": {
+        "message": "désactivée"
+    },
+    "unknownCS": {
+        "message": "Paramètres de contenu inconnus: $1"
+    },
+    "changeItsCS": {
+        "message": "changez ses paramètres de contenu"
+    },
+    "csCleared": {
+        "message": "Les paramètres du contenu $1 ont été effacés"
+    },
+    "noMark": {
+        "message": "$1 marqueur non-défini : ' $2 '"
+    },
+    "markRemoved": {
+        "message": "$1 $2 marqueur$3 été supprimé"
+    },
+    "have": {
+        "message": "s ont"
+    },
+    "has": {
+        "message": " a"
+    },
+    "dupTab": {
+        "message": "duplique un tel onglet"
+    },
+    "openIncog": {
+        "message": "ouvre l'URL en mode incognito"
+    },
+    "openExtSrc": {
+        "message": "ouvre le code-source HTML d'une page d'extension"
+    },
+    "noReader": {
+        "message": "Pas de vue lecteur pour cette page"
+    },
+    "notModify": {
+        "message": "modifie #$1 option"
+    },
+    "setFileCS": {
+        "message": "spécifie les feuilles de style du fichier depuis Chromium $1"
+    },
+    "setFolderCS": {
+        "message": "spécifie la feuille de style des dossiers de fichiers"
+    },
+    "setFTPCS": {
+        "message": "spécifie les paramètres de contenu des pages de FTP"
+    },
+    "setIncogCS": {
+        "message": "changer les paramètres incognito"
+    },
+    "copiedWndInfo": {
+        "message": "(info des onglets)"
+    },
+    "Close": {
+        "message": "Cacher"
+    },
+    "Toggle_Dark": {
+        "message": "Basculez le mode sombre"
+    },
+    "Search": {
+        "message": "Rechercher"
+    },
+    "Go": {
+        "message": "Aller"
+    },
+    "21": {
+        "message": "Impossible d'évaluer de scripts ici"
+    },
+    "68": {
+        "message": "Visuel"
+    },
+    "69": {
+        "message": "Ligne"
+    },
+    "70": {
+        "message": "Curseur"
+    },
+    "71": {
+        "message": "Aucun lien à sélectionner"
+    },
+    "72": {
+        "message": "Les LinkHints existent parce que vous tapez au clavier"
+    },
+    "73": {
+        "message": "Le lien a été supprimé de la page"
+    },
+    "74": {
+        "message": "Pas une image"
+    },
+    "75": {
+        "message": "Survole pour dérouler"
+    },
+    "76": {
+        "message": "Désolé, Vimium C ne copiera aucun mot de passe"
+    },
+    "77": {
+        "message": "Rien de nouveau à copier"
+    },
+    "78": {
+        "message": "Télécharge: $1"
+    },
+    "79": {
+        "message": "Va au marqueur…"
+    },
+    "80": {
+        "message": "Crée un marqueur…"
+    },
+    "81": {
+        "message": "Créé un marqueur local [dernier]"
+    },
+    "82": {
+        "message": "$1 local marqueur [ $2 ]"
+    },
+    "83": {
+        "message": "Sauté vers"
+    },
+    "84": {
+        "message": "Créé"
+    },
+    "85": {
+        "message": "dernier"
+    },
+    "86": {
+        "message": "$1 $2 marqueur : ' $3 '"
+    },
+    "87": {
+        "message": "Désolé, Vimium C ne peut pas ouvrir de HUD sur cette page"
+    },
+    "88": {
+        "message": "Aucune ancienne requête à trouver"
+    },
+    "89": {
+        "message": "Aucune correspondance pour \"$1\""
+    },
+    "91": {
+        "message": "Aucune sélection utilisable, entrée en mode curseur…"
+    },
+    "92": {
+        "message": "Sélection perdue"
+    },
+    "93": {
+        "message": "Créez une sélection avant d'entrer en mode visuel"
+    },
+    "94": {
+        "message": "Désolé, le chargement de la Vomnibar semble échouer"
+    },
+    "95": {
+        "message": "Cet élément ne peut être supprimé"
+    },
+    "96": {
+        "message": "Caractères pour les LinkHints trop peu nombreux"
+    },
+    "200": {
+        "message": "Non-autorisé à ouvrir l'URL de la cible du nouvel onglet"
+    },
+    "201": {
+        "message": "Vous avez annulé l'importation"
+    },
+    "202": {
+        "message": "Import des données de paramétrage : OK!"
+    },
+    "4": {
+        "message": "Le dernier élément est dé-survolé"
+    },
+    "5": {
+        "message": "Mode insertion$1"
+    },
+    "6": {
+        "message": "Aucune touche transmise"
+    },
+    "7": {
+        "message": "Mode normal (touches transmises désactivées)$1"
+    },
+    "8": {
+        "message": ": $1 fois"
+    },
+    "9": {
+        "message": "Envoyez les prochaines touches$1"
+    },
+    "10": {
+        "message": "Aucun lien pour aller $1"
+    },
+    "11": {
+        "message": "Rien n'a le focus"
+    },
+    "12": {
+        "message": "Le dernier élement en focus est caché"
+    },
+    "13": {
+        "message": "Il n'y a aucun champ de saisie sur lequel mettre le focus"
+    },
+    "14": {
+        "message": "Aucune URL trouvée !"
+    },
+    "15": {
+        "message": "Aucun texte trouvé !"
+    },
+    "20": {
+        "message": "Copié : $1"
+    },
+    "22": {
+        "message": "Trop de liens à sélectionner"
+    },
+    "23": {
+        "message": "Désormais $1 utilise $2"
+    },
+    "24": {
+        "message": "Désormais $1 est activé"
+    },
+    "25": {
+        "message": "$1 a été désactivée"
+    },
+    "26": {
+        "message": "($1 correspondances)"
+    },
+    "27": {
+        "message": "(1 correspondance)"
+    },
+    "28": {
+        "message": "(Quelques correspondances)"
+    },
+    "29": {
+        "message": "(Pas de correspondances)"
+    },
+    "30": {
+        "message": " (IHM modale)"
+    },
+    "31": {
+        "message": "Sur Firefox vous devez visiter cette URL manuellement"
+    },
+    "39": {
+        "message": "globaux"
+    },
+    "41": {
+        "message": "local"
+    },
+    "44": {
+        "message": "Ligne de bordure sélectionnée"
+    },
+    "45": {
+        "message": "Une frame fille vient juste d'être modifiée"
+    },
+    "46": {
+        "message": "Pressez <Entrée> pour continuer…"
+    },
+    "0": {
+        "message": "Ouvre le lien dans l'onglet courant"
+    },
+    "2": {
+        "message": "Ouvre le lien dans un nouvel onglet"
+    },
+    "3": {
+        "message": "Ouvre le lien dans un nouvel onglet actif"
+    },
+    "16": {
+        "message": "Ouvre de multiples liens dans l'onglet courant"
+    },
+    "18": {
+        "message": "Ouvre de multiples liens dans de nouveaux onglets"
+    },
+    "19": {
+        "message": "Active le lien et attend"
+    },
+    "32": {
+        "message": "Survole le lien"
+    },
+    "33": {
+        "message": "Simule la souris qui quitte le lien"
+    },
+    "34": {
+        "message": "Met le focus sur le noeud"
+    },
+    "35": {
+        "message": "Télécharge le média"
+    },
+    "36": {
+        "message": "Ouvre l'image"
+    },
+    "37": {
+        "message": "Cherche le texte sélectionné"
+    },
+    "38": {
+        "message": "Copie le texte du lien dans le presse-papiers"
+    },
+    "40": {
+        "message": "Copie le lien de l'URL dans le presse-papiers"
+    },
+    "42": {
+        "message": "Télécharge le lien"
+    },
+    "43": {
+        "message": "Ouvre le lien dans une fenêtre incognito"
+    },
+    "51": {
+        "message": "Télécharge de multiples médias"
+    },
+    "52": {
+        "message": "Ouvre de multiples images"
+    },
+    "58": {
+        "message": "Télécharge de multiples liens"
+    },
+    "59": {
+        "message": "Ouvre de multiples onglets en incognito"
+    },
+    "48": {
+        "message": "Survole les noeuds continuellement"
+    },
+    "49": {
+        "message": "Simule la souris quittant continuellement"
+    },
+    "50": {
+        "message": "Met le focus sur les noeuds continuellement"
+    },
+    "53": {
+        "message": "Cherche le texte du lien un à un"
+    },
+    "54": {
+        "message": "Copie le texte du lien un à un"
+    },
+    "55": {
+        "message": "Copie la liste du texte de liens"
+    },
+    "56": {
+        "message": "Copie l'URL du lien un à un"
+    },
+    "57": {
+        "message": "Copie la liste d'URL du lien"
+    },
+    "62": {
+        "message": "précedent"
+    },
+    "63": {
+        "message": "suivant"
+    },
+    "64": {
+        "message": "Edite l'URL du lien dans la Vomnibar"
+    },
+    "65": {
+        "message": "Edite le texte du lien dans la Vomnibar"
+    },
+    "66": {
+        "message": "Sélectionne une zone d'édition"
+    },
+    "67": {
+        "message": "Sélectionner du texte pour passer en mode visuel"
+    }
 }
