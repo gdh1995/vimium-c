@@ -62,7 +62,7 @@ const KnownBackendGlobals = [
   "Backend_", "BgUtils_", "BrowserProtocol_",
   "Clipboard_", "CommandsData_", "Completion_", "ContentSettings_", "CurCVer_", "CurFFVer_",
   "FindModeHistory_", "IncognitoWatcher_", "Marks_", "MediaWatcher_",
-  "Settings_", "TabRecency_", "trans_", "As_", "IsEdg_"
+  "Settings_", "TabRecency_", "trans_", "IsEdg_"
 ];
 
 var CompileTasks = {
@@ -891,7 +891,7 @@ function rollupContent(stream) {
 }
 
 function beforeCompile(file) {
-  var allPathStr = file.history.join("|");
+  var allPathStr = file.history.join("|").replace(/\\/g, "/");
   var contents = null, changed = false, oldLen = 0;
   function get() { contents == null && (contents = ToString(file.contents), changed = true, oldLen = contents.length); }
   if (!locally && (allPathStr.includes("background/") || allPathStr.includes("front/"))) {
