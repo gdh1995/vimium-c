@@ -289,7 +289,7 @@ function extendIf(b, a) {
 
 /**
  * Get git commit id (7-character version) or null
- * @argument {number} maxLen
+ * @argument {number} [maxLen]
  * @return {string | null}
  */
 function getGitCommit(maxLen) {

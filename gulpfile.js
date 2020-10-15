@@ -6,15 +6,15 @@ var gulpChanged = require('gulp-changed');
 var ts = require("gulp-typescript");
 var newer = require('gulp-newer');
 var gulpPrint = require('gulp-print');
-var gulpSome = require('gulp-some');
 var osPath = require('path');
 var {
-  getGitCommit, extendIf, readJSON, readFile,
-  touchFileIfNeeded, patchTSNamespace,
+  getGitCommit, readJSON, readFile, patchTSNamespace, logFileSize, addMetaData, patchTerser,
   patchExtendClick: _patchExtendClick,
   loadTerserConfig: _loadTerserConfig,
-  logFileSize, addMetaData, inlineAllSetters, patchTerser,
 } = require("./scripts/dependencies");
+var gulpUtils = require("./scripts/gulp-utils")
+var { print, ToBuffer, ToString, cleanByPath, minifyJSFiles,
+      safeJSONParse, gulpMap, getGulpTerser } = gulpUtils
 
 class BrowserType {}
 Object.assign(BrowserType, {
@@ -26,8 +26,7 @@ Object.assign(BrowserType, {
 var DEST, willListFiles, willListEmittedFiles, JSDEST;
 var locally = false;
 var debugging = process.env.DEBUG === "1";
-var compileInBatch = true;
-var gTypescript = null, tsOptionsCleaned = false;
+var gTypescript = null;
 var buildConfig = null;
 var cacheNames = process.env.ENABLE_NAME_CACHE !== "0";
 var needCommitInfo = process.env.NEED_COMMIT === "1";
@@ -37,7 +36,7 @@ var FORCED_NO_MINIFY = process.env.FORCED_NO_MINIFY === "1";
 var LOCAL_SILENT = process.env.LOCAL_SILENT === "1";
 var minifyDistPasses = +process.env.MINIFY_DIST_PASSES || 2;
 var gNoComments = process.env.NO_COMMENT === "1";
-var disableErrors = process.env.SHOW_ERRORS !== "1" && (process.env.SHOW_ERRORS === "0" || !compileInBatch);
+var disableErrors = process.env.SHOW_ERRORS !== "1" && process.env.SHOW_ERRORS === "0";
 var ignoreHeaderChanges = process.env.IGNORE_HEADER_CHANGES !== "0";
 var onlyTestSize = false;
 var manifest = readJSON("manifest.json", true);
@@ -47,6 +46,9 @@ var jsmin_status = [false, false, false];
 var buildOptionCache = Object.create(null);
 var outputES6 = false;
 gulpPrint = gulpPrint.default || gulpPrint;
+gulpUtils.set_dest(DEST, JSDEST)
+gulpUtils.set_minifier_env(willListEmittedFiles, /[\\\/](env|define)\./, loadTerserConfig, beforeTerser
+    , minifyDistPasses, gNoComments, postTerser)
 
 createBuildConfigCache();
 var has_polyfill = !!(getBuildItem("BTypes") & BrowserType.Chrome)
@@ -161,7 +163,7 @@ var Tasks = {
         || btypes & BrowserType.Firefox && !getNonNullBuildItem("NativeWordMoveOnFirefox");
     if (!has_wordsRe) {
       arr.push("!front/words.txt");
-      gulp.series(function() { return cleanByPath("front/words.txt"); })();
+      gulp.series(function() { return cleanByPath("front/words.txt", DEST); })();
     }
     if (btypes & BrowserType.Chrome) {
       gulp.series("png2bin")();
@@ -175,9 +177,8 @@ var Tasks = {
   "build/scripts": ["build/background", "build/content", "build/front"],
   "build/_clean_diff": function() {
     return cleanByPath([".build/**", "manifest.json", "pages/dialog_ui.*", "*/vomnibar.html"
-      , "*/*.html", "*/*.css", "**/*.json"
-      , "**/*.js", "!helpers/*/*.js"
-      , FILE_URLS_CSS]);
+        , "*/*.html", "*/*.css", "**/*.json", "**/*.js", "!helpers/*/*.js"
+        , FILE_URLS_CSS], DEST)
   },
   "build/_all": ["build/scripts", "build/options", "build/show"],
   "build/ts": function(cb) {
@@ -234,12 +235,12 @@ var Tasks = {
       [sources.slice(0), cs.js[0], { rollup: true }], [rest, "."]
     ];
     if (onlyTestSize) { debugging = 1; maps.length = 1 }
-    checkJSAndMinifyAll(0, maps, "min/content", exArgs, (err) => {
+    gulpUtils.checkJSAndMinifyAll(0, maps, "min/content", exArgs, (err) => {
       if (!err) {
         logFileSize(DEST + "/" + cs.js[0], logger);
       }
       cb(err);
-    });
+    }, jsmin_status, debugging, getNameCacheFilePath, cacheNames);
   }],
   "min/bg": ["min/content", function(cb) {
     if (jsmin_status[1]) {
@@ -270,13 +271,15 @@ var Tasks = {
       [rest, "."]
     ];
     manifest.background.scripts = sources;
-    checkJSAndMinifyAll(1, maps, "min/bg", exArgs, cb)
+    gulpUtils.checkJSAndMinifyAll(1, maps, "min/bg", exArgs, cb
+        , jsmin_status, debugging, getNameCacheFilePath, cacheNames)
   }],
   "min/others": ["min/bg", function(cb) {
     if (jsmin_status[2]) {
       return cb();
     }
-    var exArgs = { nameCache: loadNameCache("bg"), nameCachePath: getNameCacheFilePath("bg") };
+    var exArgs = { nameCache: gulpUtils.loadNameCache("bg", cacheNames, getNameCacheFilePath),
+        nameCachePath: getNameCacheFilePath("bg") };
     var deepcopy = require("deepcopy");
     if (exArgs.nameCache.vars && exArgs.nameCache.props) {
       let {vars: {props: vars}, props: {props: props}} = exArgs.nameCache;
@@ -424,7 +427,7 @@ var Tasks = {
   },
   manifest: [["min/bg"], "_manifest"],
   dist: [["build/ts"], ["static", "manifest", "min/others", function (done) {
-    const rands = Object.setPrototypeOf(randMap || {}, null), names = Object.keys(rands)
+    const rands = Object.setPrototypeOf(gulpUtils.getRandMap() || {}, null), names = Object.keys(rands)
     let cmd = "", isEdge = getBuildItem("EdgeC") == 1;
     Object.keys(process.env).filter(i => i.startsWith("BUILD_"))
         .filter(i => /^random|^commit/i.test(i.slice(6)))
@@ -454,7 +457,7 @@ var Tasks = {
   all: ["build"],
   clean: function() {
     return cleanByPath([".build/**", "manifest.json", ".snapshot.sh", "**/*.js", "!helpers/*/*.js"
-      , "front/help_dialog.html", "front/vomnibar.html", "front/words.txt"]);
+      , "front/help_dialog.html", "front/vomnibar.html", "front/words.txt"], DEST);
   },
 
   scripts: ["background", "content", "front"],
@@ -567,31 +570,12 @@ gulp.task("locally", function(done) {
   }
   JSDEST = process.env.LOCAL_DIST || ".";
   /[\/\\]$/.test(JSDEST) && (JSDEST = JSDEST.slice(0, -1));
+  gulpUtils.set_dest(DEST, JSDEST)
   willListEmittedFiles = true;
   done();
 });
-makeCompileTasks();
-makeTasks();
-
-function makeCompileTask(src, header_files, options) {
-  header_files = typeof header_files === "string" ? [header_files] : header_files || [];
-  return function(done) {
-    compile(src, header_files, done, options);
-  };
-}
-
-function makeCompileTasks() {
-  var hasOwn = Object.prototype.hasOwnProperty;
-  for (var key in CompileTasks) {
-    if (!hasOwn.call(CompileTasks, key)) { continue; }
-    var config = CompileTasks[key], task = makeCompileTask(config[0], config[1], config.length > 2 ? config[2] : null);
-    gulp.task(key, gulp.series("locally", task));
-    gulp.task("build/" + key, task);
-    if (fs.existsSync(key) && fs.statSync(key).isDirectory()) {
-      gulp.task(key + "/", gulp.series(key));
-    }
-  }
-}
+gulpUtils.makeCompileTasks(CompileTasks, compile);
+gulpUtils.makeTasks(Tasks);
 
 var _notifiedTasks = [], _notifiedTaskTimer = 0;
 function makeWatchTask(taskName) {
@@ -612,44 +596,9 @@ function makeWatchTask(taskName) {
   });
 }
 
-function makeTasks() {
-  var hasOwn = Object.prototype.hasOwnProperty;
-  var left = [];
-  for (let key in Tasks) {
-    if (!hasOwn.call(Tasks, key)) { continue; }
-    left.push([key, Tasks[key]]);
-  }
-  while (left.length > 0) {
-    let [ key, task ] = left.shift();
-    if (typeof task === "function") {
-      gulp.task(key, task);
-      continue;
-    }
-    const knownTasks = gulp.tree().nodes, toTest = task[0] instanceof Array ? task[0] : task;
-    let notFound = false;
-    for (const i of toTest) {
-      if (typeof i === "string" && knownTasks.indexOf(i) < 0) {
-        notFound = true;
-        break;
-      }
-    }
-    if (notFound) {
-      left.push([key, task]);
-      continue;
-    }
-    if (typeof task[1] === "function" || task[0] instanceof Array) {
-      gulp.task(key, Tasks[key] =
-          gulp.series(task[0] instanceof Array ? gulp.parallel(...task[0]) : task[0], task[1]));
-    } else {
-      gulp.task(key, task.length === 1 && typeof Tasks[task[0]] === "function" ? Tasks[task[0]]
-          : gulp.parallel(...task));
-    }
-  }
-}
-
 function tsProject() {
-  loadTypeScriptCompiler();
-  removeSomeTypeScriptOptions();
+  gTypescript = gulpUtils.loadTypeScriptCompiler(null, compilerOptions, gTypescript);
+  gulpUtils.removeSomeTypeScriptOptions(compilerOptions, gTypescript)
   var btypes = getBuildItem("BTypes"), cver = getBuildItem("MinCVer");
   var noGenerator = !(btypes & BrowserType.Chrome) || cver >= /* MinEnsuredGeneratorFunction */ 39;
   var wrapGeneratorToken = !!(btypes & BrowserType.Chrome) && cver < /* MinEnsuredGeneratorFunction */ 39;
@@ -657,7 +606,6 @@ function tsProject() {
   return disableErrors ? ts(compilerOptions, ts.reporter.nullReporter()) : ts(compilerOptions);
 }
 
-var _mergedProject = null, _mergedProjectInput = null;
 function compile(pathOrStream, header_files, done, options) {
   if (typeof pathOrStream === "string") {
     pathOrStream = [pathOrStream];
@@ -670,45 +618,8 @@ function compile(pathOrStream, header_files, done, options) {
   var extra = ignoreHeaderChanges || header_files === false ? undefined
     : ["typings/**/*.d.ts", "typings/*.d.ts", "!typings/build/*.ts"].concat(header_files
         ).concat(buildConfig ? ["scripts/gulp.tsconfig.json"] : []);
-  var allIfNotEmpty = gulpAllIfNotEmpty();
-  var localCompileInBatch = options && options.inBatch != null ? options.inBatch : compileInBatch;
-  if (localCompileInBatch) {
-    stream = stream.pipe(allIfNotEmpty.prepare);
-  }
-  if (!debugging) {
-    stream = stream.pipe(newer({ dest: JSDEST, ext: '.js', extra: extra }));
-  }
-  stream = stream.pipe(gulpSome(function(file) {
-    var t = file.relative, s = ".d.ts", i = t.length - s.length;
-    return i < 0 || t.indexOf(s, i) !== i;
-  }));
-  if (localCompileInBatch) {
-    stream = stream.pipe(allIfNotEmpty.cond);
-  }
-  if (willListFiles) {
-    stream = stream.pipe(gulpPrint());
-  }
-  stream = stream.pipe(gulpMap(beforeCompile));
-  var merged = doesMergeProjects ? _mergedProjectInput : null;
-  var isInitingMerged = merged == null;
-  if (isInitingMerged) {
-    merged = gulpMerge();
-    doesMergeProjects && (_mergedProjectInput = merged);
-  }
-  stream.pipe(merged.attachSource());
-  if (isInitingMerged) {
-    getBuildConfigStream().pipe(merged.attachSource());
-    merged = merged.pipe(gulpSome(function(file) {
-      var t = file.relative, s = ".d.ts", i = t.length - s.length;
-      return i < 0 || t.indexOf(s, i) !== i;
-    }));
-    var project = tsProject();
-    merged = merged.pipe(project);
-    merged = outputJSResult(merged.js);
-    _mergedProject = merged;
-  }
-  merged = _mergedProject;
-  merged.on("finish", done);
+  gulpUtils.compileTS(stream, options, extra, done, doesMergeProjects
+      , debugging, JSDEST, willListFiles, getBuildConfigStream, beforeCompile, outputJSResult, tsProject)
 }
 
 function outputJSResult(stream) {
@@ -720,174 +631,11 @@ function outputJSResult(stream) {
     }
     stream = stream.pipe(gulpMap(postTerser))
   }
-  stream = stream.pipe(gulpChanged(JSDEST, {
-    hasChanged: compareContentAndTouch
-  }));
+  stream = stream.pipe(gulpChanged(JSDEST, { hasChanged: gulpUtils.compareContentAndTouch }));
   if (willListEmittedFiles) {
     stream = stream.pipe(gulpPrint());
   }
   return stream.pipe(gulp.dest(JSDEST));
-}
-
-function checkJSAndMinifyAll(taskOrder, maps, key, exArgs, cb) {
-  Promise.all(maps.map(function(i) {
-    if (debugging) { return true; }
-    var is_file = i[1] && i[1] !== ".";
-    return checkAnyNewer(i[0], JSDEST, is_file ? osPath.join(DEST, i[1]) : DEST, is_file ? "" : ".js");
-  })).then(function(all) {
-    var isNewer = false;
-    for (var i = 0; i < all.length; i++) {
-      if (all[i]) {
-        isNewer = true; break;
-      }
-    }
-    if (!isNewer && exArgs.nameCache && "timestamp" in exArgs.nameCache && cacheNames) {
-      var path = getNameCacheFilePath(key);
-      var stat = fs.existsSync(path) ? fs.statSync(path) : null;
-      if (!stat || stat.mtime < exArgs.nameCache.timestamp - 4) {
-        isNewer = true;
-      }
-    }
-    if (!isNewer) { jsmin_status[taskOrder] = true; return cb(); }
-    exArgs.passAll = true;
-    var tasks = [];
-    for (var i = 0; i < maps.length; i++) {
-      const name = key + "/_" + (i + 1)
-      const map = maps[i]
-      const rollup = !!map[2] && !!map[2].rollup
-      tasks.push(name);
-      gulp.task(name, function() {
-          const newExArgs = {...exArgs, rollup};
-          if (exArgs.aggressiveMangle) {
-            exArgs.aggressiveMangle = false;
-          }
-          return minifyJSFiles(map[0], map[1], newExArgs)
-      });
-    }
-    gulp.series(...tasks)(function(err) {
-      jsmin_status[taskOrder] = true;
-      saveNameCacheIfNeeded(key, exArgs.nameCache);
-      cb(err);
-    });
-  });
-}
-
-function minifyJSFiles(path, output, exArgs) {
-  exArgs || (exArgs = {});
-  const base = exArgs.base || JSDEST;
-  path = formatPath(path, base);
-  if (path.join("\n").indexOf("viewer.min.js") < 0) {
-    path.push("!**/*.min.js");
-  }
-  output = output || ".";
-
-  var stream = gulp.src(path, { base: base });
-  var isJson = !!exArgs.json;
-  var ext = isJson ? ".json" : ".js";
-  var is_file = output.endsWith(ext);
-
-  if (!exArgs.passAll) {
-    const newerTransform = newer(is_file ? {
-      extra: exArgs.nameCachePath || null,
-      dest: osPath.join(DEST, output)
-    } : exArgs.nameCache ? {
-      dest: DEST,
-      ext: ext,
-      extra: exArgs.passAll === false ? exArgs.nameCachePath || null
-        : (exArgs.nameCachePath && path.push(exArgs.nameCachePath), path)
-    } : {
-      dest: DEST,
-      extra: exArgs.nameCachePath || null,
-      ext: ext
-    });
-    if (!is_file && exArgs.nameCachePath && exArgs.passAll !== false) {
-      if (!("_bufferedFiles" in newerTransform)) {
-        throw new Error("This version of `gulp-newer` is unsupported!");
-      }
-      newerTransform._bufferedFiles = [];
-    }
-    stream = stream.pipe(newerTransform);
-  }
-  let allPaths = null;
-  if (is_file) {
-    stream = stream.pipe(gulpMap(function(file) {
-      allPaths = (allPaths || []).concat(file.history);
-    }));
-  }
-  if (is_file) {
-    if (willListEmittedFiles) {
-      stream = stream.pipe(gulpPrint());
-    }
-    if (exArgs.rollup) {
-      stream = rollupContent(stream)
-    }
-    stream = stream.pipe(require('gulp-concat')(output));
-  }
-  var nameCache = exArgs.nameCache;
-  var stdConfig = loadTerserConfig(!!nameCache)
-  if (nameCache) {
-    stdConfig.nameCache = nameCache;
-  }
-  if (!isJson) {
-    stream = stream.pipe(gulpMap(beforeTerser))
-  }
-  const config = stdConfig;
-  if (isJson) {
-    stream = stream.pipe(gulpMap(minifyJson))
-  } else if (minifyDistPasses > 0) {
-    stream = stream.pipe(getGulpTerser(!!(exArgs.aggressiveMangle && config.mangle), minifyDistPasses)(config))
-    if (exArgs.aggressiveMangle) {
-      exArgs.aggressiveMangle = false;
-    }
-  }
-  if (!isJson) {
-    stream = stream.pipe(gulpMap(function(file) {
-      postTerser(file, allPaths)
-    }));
-  }
-  if (willListEmittedFiles && !is_file) {
-    stream = stream.pipe(gulpPrint());
-  }
-  return stream.pipe(gulp.dest(DEST));
-}
-
-function rollupContent(stream) {
-  var Transform = require('stream').Transform;
-  var transformer = new Transform({objectMode: true});
-  var others = []
-  var historys = []
-  transformer._transform = function(srcFile, _encoding, done) {
-    if (/[\\\/](env|define)\./.test(srcFile.history.join(";"))) { // env.js / define.js
-      this.push(srcFile);
-    } else {
-      others.push(srcFile)
-    }
-    historys = historys.concat(srcFile.history)
-    done();
-  };
-  transformer._flush = function(done) {
-    const file = others[others.length - 1];
-    if (!file) {
-      return done();
-    }
-    const rollupConfig = require("./scripts/rollup.config.js")
-    rollupConfig.input = require("path").relative(file.cwd, file.path)
-    rollupConfig.output.file = null
-    require("rollup").rollup({...rollupConfig, output: null})
-    .then(builder => builder.generate(rollupConfig.output))
-    .then(result => {
-      if (result === undefined) {
-        return done("No rollup.js found");
-      }
-      var code = result.output[0].code
-      code = inlineAllSetters(code)
-      file.contents = Buffer.from(code)
-      file.history = historys
-      this.push(file)
-      done()
-    })
-  };
-  return stream.pipe(transformer)
 }
 
 function beforeCompile(file) {
@@ -996,15 +744,6 @@ function postTerser(file, allPaths) {
   }
 }
 
-function minifyJson(file) {
-  var contents = ToString(file.contents), oldLen = contents.length;
-  var data = JSON.parse(contents);
-  contents = JSON.stringify(data);
-  if (contents.length !== oldLen) {
-    file.contents = ToBuffer(contents);
-  }
-}
-
 function copyByPath(path, mapFuncOrPipe) {
   var stream = gulp.src(path, { base: "." })
     .pipe(newer(DEST))
@@ -1025,121 +764,18 @@ function copyByPath(path, mapFuncOrPipe) {
     }));
   stream = mapFuncOrPipe instanceof require("stream").Transform ? stream.pipe(mapFuncOrPipe)
       : typeof mapFuncOrPipe === "function" ? stream.pipe(gulpMap(mapFuncOrPipe)) : stream
-  stream = stream
-    .pipe(gulpChanged(DEST, {
-      hasChanged: compareContentAndTouch
-    }));
+  stream = stream.pipe(gulpChanged(DEST, { hasChanged: gulpUtils.compareContentAndTouch }));
   if (willListEmittedFiles) {
     stream = stream.pipe(gulpPrint());
   }
   return stream.pipe(gulp.dest(DEST));
 }
 
-function cleanByPath(path) {
-  path = formatPath(path, DEST);
-  var rimraf = require("rimraf");
-  return gulp.src(path, {
-      base: ".", read: false, dot: true, allowEmpty: true, nodir: true
-  }).pipe(gulpMap(file => {
-    rimraf.sync(file.path, { disableGlob: true });
-  }));
-}
-
-function formatPath(path, base) {
-  if (typeof path === "string") {
-    path = [path];
-  } else {
-    path = path.slice(0);
-  }
-  if (base && base !== ".") {
-    for (var i = 0; i < path.length; i++) {
-      var p = path[i];
-      path[i] = p[0] !== "!" ? osPath.join(base, p) : "!" + osPath.join(base, p.slice(1));
-    }
-  }
-  return path;
-}
-
-function compareContentAndTouch(stream, sourceFile, targetPath) {
-  if (sourceFile.isNull()) {
-    return gulpChanged.compareContents.apply(this, arguments);
-  }
-  var isSame = false, equals = sourceFile.contents.equals,
-  newEquals = sourceFile.contents.equals = function(targetData) {
-    var curIsSame = equals.apply(this, arguments);
-    isSame || (isSame = curIsSame);
-    return curIsSame;
-  };
-  return gulpChanged.compareContents.apply(this, arguments
-  ).then(function() {
-    sourceFile.contents.equals === newEquals && (sourceFile.contents.equals = equals);
-    if (!isSame) { return; }
-    var sourcePath = sourceFile.history && sourceFile.history[0] || targetPath;
-    if (targetPath.slice(-3) === ".js") {
-      let sourcePath2 = sourcePath.slice(-3) === ".js" ? sourcePath.slice(0, -3) + ".ts" : sourcePath;
-      if (fs.existsSync(sourcePath2)) { sourcePath = sourcePath2; }
-    }
-    if (touchFileIfNeeded(targetPath, sourcePath)) {
-      var fileName = sourceFile.relative;
-      print("Touch an unchanged file:", fileName.indexOf(":\\") > 0 ? fileName : fileName.replace(/\\/g, "/"));
-    }
-  }).catch(function(e) {
-    sourceFile.contents.equals === newEquals && (sourceFile.contents.equals = equals);
-    throw e;
-  });
-}
-
-function safeJSONParse(literalVal, defaultVal, type) {
-  var newVal = defaultVal != null ? defaultVal : null;
-  try {
-    newVal = JSON.parse(literalVal);
-  } catch (e) {}
-  return newVal != null ? type ? type(newVal) : newVal : null;
-}
-
-function readTSConfig(tsConfigFile, throwError) {
-  if (!tsConfigFile.endsWith(".json")) { tsConfigFile += ".json"; }
-  var config = readJSON(tsConfigFile);
-  if (!config) { return null; }
-  var opts = config.compilerOptions || (config.compilerOptions = {});
-  if (config.extends) {
-    var baseFile = osPath.join(osPath.dirname(tsConfigFile), config.extends);
-    var baseConfig = readTSConfig(baseFile, throwError), baseOptions = baseConfig.compilerOptions;
-    if (baseConfig.build) {
-      extendIf(config.build, baseConfig.build);
-    }
-    if (baseOptions) {
-      if (baseOptions.plugins && opts.plugins) {
-        var pluginNames = opts.plugins.map(function (i) { return i.name; });
-        opts.plugins.unshift.apply(opts.plugins, baseOptions.plugins.filter(function (i) {
-          return pluginNames.indexOf(i.name) < 0;
-        }));
-      }
-      extendIf(opts, baseOptions);
-    }
-  }
-  return config;
-}
-
 function loadValidCompilerOptions(tsConfigFile) {
-  var tsconfig = readTSConfig(tsConfigFile, true);
-  if (tsconfig.build) {
-    buildConfig = tsconfig.build;
-  }
+  var tsconfig = gulpUtils.readTSConfig(tsConfigFile, true);
+  buildConfig = tsconfig.build || buildConfig
+  gulpUtils.normalizeTSConfig(tsconfig)
   var opts = tsconfig.compilerOptions;
-  if (buildConfig && opts.types) {
-    opts.types = opts.types.filter(i => i !== "build");
-  }
-  if (opts.noImplicitUseStrict) {
-    opts.alwaysStrict = false;
-  }
-  opts.removeComments = false;
-  const arr = opts.plugins || [];
-  for (let i = arr.length; 0 <= --i; ) {
-    if (arr[i].name == "typescript-tslint-plugin") {
-      arr.splice(i, 1);
-    }
-  }
   if (buildOptionCache) {
     var btypes = getBuildItem("BTypes"), cver = getBuildItem("MinCVer");
     outputES6 = !(btypes & BrowserType.Chrome && cver < /* MinTestedES6Environment */ 49);
@@ -1156,68 +792,10 @@ function loadValidCompilerOptions(tsConfigFile) {
     DEST = "dist";
   }
   JSDEST = osPath.join(DEST, ".build");
+  gulpUtils.set_dest(DEST, JSDEST)
   willListFiles   = !!opts.listFiles;
   willListEmittedFiles = !!opts.listEmittedFiles;
   return opts;
-}
-
-function loadTypeScriptCompiler(path) {
-  if (gTypescript) { return; }
-  tsOptionsCleaned = false;
-  var typescript1;
-  path = path || compilerOptions.typescript || null;
-  if (typeof path === "string") {
-    var exists1 = fs.existsSync(path), exists = exists1 || fs.existsSync(path + ".js");
-    if (!exists) {
-      var dir = "./node_modules/" + path;
-      exists1 = fs.existsSync(dir);
-      if (exists1 || fs.existsSync(dir + ".js")) { path = dir; exists = true; }
-    }
-    if (exists) {
-      if (exists1 && fs.statSync(path).isDirectory()) {
-        path = osPath.join(path, "typescript");
-      }
-      try {
-        typescript1 = require(path);
-      } catch (e) {}
-    }
-    if (path.startsWith("./node_modules/typescript/")) {
-      print('Load the TypeScript dependency:', typescript1 != null ? "succeed" : "fail");
-    } else {
-      print('Load a customized TypeScript compiler:', typescript1 != null ? "succeed" : "fail");
-    }
-  }
-  if (typescript1 == null) {
-    typescript1 = require("typescript/lib/typescript");
-  }
-  gTypescript = compilerOptions.typescript = typescript1;
-}
-
-function removeSomeTypeScriptOptions() {
-  if (tsOptionsCleaned) { return; }
-  var hasOwn = Object.prototype.hasOwnProperty, toDelete = [], key;
-  for (var key in compilerOptions) {
-    if (key === "typescript" || key === "__proto__") { continue; }
-    if (!hasOwn.call(compilerOptions, key)) { continue; }
-    var declared = gTypescript.optionDeclarations.some(function(i) {
-      return i.name === key;
-    });
-    declared || toDelete.push(key);
-  }
-  for (const key of ["incremental", "tsBuildInfoFile"]) {
-    if (key in compilerOptions) {
-      toDelete.push(key);
-    }
-  }
-  for (var i = 0; i < toDelete.length; i++) {
-    delete compilerOptions[toDelete[i]]
-  }
-  if (toDelete.length > 1) {
-    print("Skip these TypeScript options:", toDelete.join(", "));
-  } else if (toDelete.length === 1) {
-    print("Skip the TypeScript option:", toDelete[0]);
-  }
-  tsOptionsCleaned = true;
 }
 
 var _buildConfigPrinted = false;
@@ -1230,13 +808,6 @@ function getBuildConfigStream() {
     file.contents = ToBuffer(_buildConfigTSContent);
     return file;
   }));
-}
-
-function ToBuffer(string) {
-  return Buffer.from ? Buffer.from(string) : new Buffer(string);
-}
-function ToString(buffer) {
-  return buffer.toString('utf8');
 }
 
 var _buildConfigTSContent;
@@ -1284,23 +855,7 @@ function getBuildItem(key, literalVal) {
   if (cached != null) {
     return parseBuildItem(key, cached[1]);
   }
-  var newVal = process.env["BUILD_" + key];
-  if (!newVal) {
-    let env_key = key.replace(/[A-Z]+[a-z\d]*/g, word => "_" + word.toUpperCase()).replace(/^_/, "");
-    newVal = process.env["BUILD_" + env_key];
-  }
-  if (newVal) {
-    let newVal2 = safeJSONParse(newVal, null, key === "Commit" ? String : null);
-    if (newVal2 == null && key === "Commit") { newVal2 = newVal }
-    if (newVal2 != null) {
-      newVal = newVal2
-      LOCAL_SILENT || print("Use env:", "BUILD_" + key, "=", newVal);
-    }
-  } else if (key.startsWith("Random")) {
-    newVal = getRandom
-  } else if (key === "Commit") {
-    newVal = [safeJSONParse(literalVal, null, String), locally ? null : getGitCommit()]
-  }
+  var newVal = gulpUtils.parseBuildEnv(key, literalVal, LOCAL_SILENT, locally)
   if (newVal != null) {
     buildOptionCache[key] = [literalVal, newVal]
     return parseBuildItem(key, newVal)
@@ -1323,104 +878,6 @@ function parseBuildItem(key, newVal) {
     }
   }
   return newVal;
-}
-
-function print() {
-  return logger.apply(null, arguments);
-}
-
-function checkAnyNewer(path, pathBase, dest, ext) {
-  path = formatPath(path, pathBase);
-  return new Promise(function(resolve, reject) {
-    gulp.src(path, { base: pathBase })
-      .pipe(newer(ext ? { dest: dest, ext: ext, } : { dest: dest, }))
-      .pipe(gulpCheckEmpty(function(isEmpty) {
-        resolve(!isEmpty);
-      }))
-    ;
-  });
-}
-
-function gulpAllIfNotEmpty() {
-  var Transform = require('stream').Transform;
-  var b = new Transform({objectMode: true});
-  var a = gulpCheckEmpty(function(isEmpty) {
-    if (!isEmpty) {
-      var arr = b.files;
-      for (var i = 0; i < arr.length; i++) {
-        this.push(arr[i]);
-      }
-    }
-  });
-  b.files = [];
-  b._transform = function(srcFile, encoding, done) {
-    this.files.push(srcFile);
-    this.push(srcFile);
-    done();
-  };
-  return {
-    cond: a,
-    prepare: b,
-  };
-}
-
-function gulpCheckEmpty(callback, log) {
-  var Transform = require('stream').Transform;
-  var a = new Transform({objectMode: true});
-  a._empty = true;
-  a._transform = function(srcFile, encoding, done) {
-    a._empty = false;
-    done();
-  };
-  a._flush = function(done) {
-    callback.call(a, a._empty);
-    done();
-  };
-  return a;
-}
-
-function gulpMap(map, async) {
-  var Transform = require('stream').Transform;
-  var transformer = new Transform({objectMode: true});
-  transformer._transform = function(srcFile, encoding, done) {
-    if (async) {
-      return map.call(this, srcFile, done)
-    }
-    var dest = map(srcFile);
-    this.push(dest !== srcFile.contents && dest || srcFile);
-    done();
-  };
-  transformer._flush = function(done) { done(); };
-  return transformer;
-}
-
-function gulpMerge() {
-  var Transform = require('stream').Transform;
-  var knownFiles = {};
-  var ref = 0;
-  var merged = new Transform({objectMode: true});
-  var push = function(srcFile, encoding, done) {
-    var path = "@" + srcFile.history[0];
-    if (! knownFiles[path]) {
-      knownFiles[path] = 1;
-      merged.push(srcFile);
-    }
-    done();
-  }, flush = function(done) {
-    ref--;
-    if (ref === 0) {
-      merged.push(null);
-    }
-    done();
-  };
-  merged.attachSource = function() {
-    var proxy = new Transform({objectMode: true});
-    proxy._transform = push;
-    proxy._flush = flush;
-    ref++;
-    return proxy;
-  };
-  return merged;
 }
 
 function patchExtendClick(source) {
@@ -1467,52 +924,6 @@ function patchExtendClick(source) {
   return inCode;
 }
 
-function getGulpTerser(aggressiveMangle, unique_passes) {
-  patchTerser()
-  var aggressive = aggressiveMangle && require("./scripts/uglifyjs-mangle")
-  var terser = require("terser")
-  const passes = unique_passes && unique_passes > 1 ? unique_passes : 0
-  if (passes) {
-    var multipleMinify = {
-      minify: async function (files, config) {
-        let firstOut = await (aggressive || terser).minify(files, { ...config,
-          mangle: aggressive ? config.mangle : null,
-          format: { ...config.format, comments: /^[!@#]/, preserve_annotations: true,
-              ast: !aggressive, code: !!aggressive },
-        }), ast = aggressive ? firstOut.code : firstOut.ast;
-        if (firstOut.error) { return firstOut; }
-        for (let i = 1; i < unique_passes - 1; i++) {
-          ast = (await terser.minify(ast, { ...config,
-            format: { ...config.format, comments: /^[!@#]/, preserve_annotations: true, ast: true, code: false },
-            mangle: null,
-          })).ast
-        }
-        return await terser.minify(ast, { ...config, mangle: aggressive ? null : config.mangle,
-          format: { ...config.format, comments: gNoComments ? false : /^!/,
-            preserve_annotations: false, ast: false, code: true },
-        })
-      }
-    }
-  }
-  const minifier = passes ? multipleMinify : aggressive || terser
-  return terserOptions => {
-    return gulpMap(function (file, done) {
-      const stream = this;
-      minifier.minify(ToString(file.contents), terserOptions).then(result => {
-        if (!result || result.error) {
-          throw new Error(result ? result.error.message ? result.error.message : "(empty-message)" : "(null)");
-        }
-        file.contents = ToBuffer(result.code);
-        stream.push(file);
-        done();
-      }, err => {
-        stream.emit('error', err)
-        done();
-      });
-    }, true);
-  }
-}
-
 function loadTerserConfig(reload) {
   var a = _loadTerserConfig(locally ? "scripts/uglifyjs.local.json" : "scripts/uglifyjs.dist.json", reload);
   {
@@ -1534,73 +945,4 @@ function getNameCacheFilePath(path) {
     return path;
   }
   return osPath.join(JSDEST, ".names-" + path.replace("min/", "") + ".cache");
-}
-
-function saveNameCacheIfNeeded(key, nameCache) {
-  if (nameCache && cacheNames) {
-    nameCache.timestamp = 0;
-    const path = getNameCacheFilePath(key);
-    if (fs.existsSync(path)) {
-      const oldCache = readJSON(path);
-      oldCache.timestamp = 0;
-      if (JSON.stringify(oldCache) === JSON.stringify(nameCache)) {
-        print("NameCache for " + key.replace("min/", "") + " is unchanged");
-        return;
-      }
-    }
-    nameCache.timestamp = Date.now();
-    fs.writeFileSync(path, JSON.stringify(nameCache));
-    print("Saved nameCache for " + key.replace("min/", ""));
-  }
-}
-
-function loadNameCache(path) {
-  var nameCache = cacheNames ? readJSON(getNameCacheFilePath(path), false) : null;
-  if (nameCache) {
-    print("Loaded nameCache of " + path);
-  }
-  return nameCache || { vars: {}, props: {}, timestamp: 0 };
-}
-
-var randMap, _randSeed;
-function getRandom(id) {
-  var rand = randMap ? randMap[id] : 0;
-  if (rand) {
-    if ((typeof rand === "string") === locally) {
-      return rand;
-    }
-  }
-  if (!randMap) {
-    randMap = {};
-    _randSeed = `${osPath.resolve(__dirname).replace(/\\/g, "/")}@${parseInt(fs.statSync("manifest.json").mtimeMs)}/`;
-    var rng;
-    if (!locally) {
-      try {
-        rng = require('seedrandom');
-      } catch (e) {}
-    }
-    if (rng) {
-      _randSeed = rng(_randSeed);
-    }
-  }
-  if (!locally) {
-    while (!rand || Object.values(randMap).includes(rand)) {
-      /** {@see #GlobalConsts.SecretRange} */
-      rand = 1e6 + (0 | ((typeof _randSeed === "function" ? _randSeed() : Math.random()) * 9e6));
-    }
-  } else {
-    var hash = _randSeed + id;
-    hash = compute_hash(hash);
-    hash = hash.slice(0, 7);
-    rand = hash;
-  }
-  randMap[id] = rand;
-  return rand;
-}
-
-function compute_hash(str) {
-  var crypto = require('crypto');
-  var md5 = crypto.createHash('sha1');
-  md5.update(str)
-  return md5.digest('hex');
 }
