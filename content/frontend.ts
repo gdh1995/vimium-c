@@ -28,7 +28,7 @@ const docReadyListeners: Array<(this: void) => void> = [], completeListeners: Ar
 
 let coreTester: { /** name */ n: BuildStr.CoreGetterFuncName; /** recvTick */ r: number; /** sendTick */ s: number;
     /** random key */ k: number; /** encrypt */ e (trustedRand: number, unsafeRand: number): string;
-    /** compare_ */ c: Parameters<SandboxGetterFunc>[0]; }
+    /** compare_ */ c: Parameters<SandboxGetterFunc>[0]; /** sandboxGetter */ g: SandboxGetterFunc }
 
 set_safeDestroy((silent?: Parameters<SafeDestoryF>[0]): void => {
     if (!isAlive_) { return; }
@@ -93,15 +93,30 @@ else if (Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox |
             ).map((i, ind) => parseInt(i, 16) & (ind & 1 ? ~a : a)).join("");
       },
       c (rand2: number, testEncrypted: string): boolean {
+        "use strict";
         const diff = coreTester.e(coreTester.k, +rand2) !== testEncrypted, d2 = coreTester.r > 64;
         coreTester.r += d2 ? 0 : diff ? 2 : 1;
         return diff || d2; // hide the real result if too many errors
+      },
+      g (comparer, rand1): VApiTy | void {
+        let rand2 = Math.random(), toStr = hookOnWnd.toString
+        // an ES6 method function is always using the strict mode, so the arguments are inaccessible outside it
+        if (coreTester.s > GlobalConsts.MaxRetryTimesForSecret
+            // if `comparer` is a Proxy, then `toString` returns "[native code]", so the line below is safe
+            || toStr.call(comparer) !== toStr.call(coreTester.c)
+            || comparer(rand2, coreTester.e(rand2, +rand1))) {
+          if (coreTester.s < GlobalConsts.MaxRetryTimesForSecret + 10) {
+            coreTester.s++
+          }
+          return
+        }
+        return vApi
       }
     };
     /** Note: this function needs to be safe enough */
     /*#__INLINE__*/ set_getWndVApi_ff((anotherWnd: Window): VApiTy | null | void => {
       coreTester.r = -1;
-      // Sometimes a `anotherWnd` has neither `.wrappedJSObject` nor `coreTester`,
+      // Sometimes an `anotherWnd` has neither `.wrappedJSObject` nor `coreTester`,
       // usually when a child frame is hidden. Tested on QQMail (destkop version) on Firefox 74.
       // So add `|| anotherWnd` for less exceptions
       try {
@@ -111,24 +126,10 @@ else if (Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox |
           !coreTester.r ? core : null;
       } catch {}
     })
-    // on Firefox, such a exported function can only be called from privileged environments
+    // on Firefox, such an exposed function can only be called from privileged environments
     wrappedJSObject[coreTester.n] = Object.defineProperty<SandboxGetterFunc>(
         (new window.Object() as any).wrappedJSObject as object,
-        "_get", { configurable: false, enumerable: false, writable: false,
-                  value (comparer, rand1) {
-      let rand2 = Math.random();
-      // an ES6 method function is always using the strict mode, so the arguments are inaccessible outside it
-      if (coreTester.s > GlobalConsts.MaxRetryTimesForSecret
-          // if `comparer` is a Proxy, then `toString` returns "[native code]", so the line below is safe
-          || hookOnWnd.toString.call(comparer) !== coreTester.c + ""
-          || comparer(rand2, coreTester.e(rand2, +rand1))) {
-        if (coreTester.s <= GlobalConsts.MaxRetryTimesForSecret) {
-          coreTester.s++;
-        }
-        return;
-      }
-      return vApi;
-    }});
+        "_get", { value: coreTester.g })
 }
 if (!(isTop || injector)) {
   const scoped_parApi = frameElement_() && getParentVApi();
