@@ -115,8 +115,8 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     toggleSelectableStyle(1)
     if (/* type === SelType.None */ !type && establishInitialSelectionAnchor(initialScope.r)) {
       deactivate()
-      return hudTip(kTip.needSel)
-    }
+      hudTip(kTip.needSel)
+    } else {
     if (toCaret && isRange) {
       // `sel` is not changed by @establish... , since `isRange`
       mode = ("" + sel).length;
@@ -126,6 +126,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     commandHandler(VisualAction.Noop, 1)
     replaceOrSuppressMost_(kHandler.visual, onKeydown)
     diff ? hudTip(kTip.noUsableSel, 1000) : hudShow(kTip.inVisualMode, modeName, options.r)
+    }
 }
 
   /** @safe_di */
@@ -202,11 +203,9 @@ const commandHandler = (command: VisualAction, count: number): void => {
       if (command === VisualAction.EmbeddedFindMode) {
         hudHide() // it should auto keep HUD showing the mode text
         post_({ H: kFgReq.findFromVisual });
-        return;
+      } else {
+        activate(safer<CmdOptions[kFgCmd.visualMode]>({ m: command - VisualAction.MaxNotNewMode }))
       }
-      activate(safer<CmdOptions[kFgCmd.visualMode]>({
-        m: command - VisualAction.MaxNotNewMode
-      }));
       return
     }
     if (scope && !rangeCount_(curSelection)) {
@@ -226,7 +225,8 @@ const commandHandler = (command: VisualAction, count: number): void => {
       return hudTip(kTip.loseSel, 2e3);
     }
     if (command === VisualAction.HighlightRange) {
-      return highlightRange(curSelection)
+      highlightRange(curSelection)
+      return
     }
     mode === Mode.Caret && collapseToFocus(0)
     if (command > VisualAction.MaxNotFind) {

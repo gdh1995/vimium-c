@@ -100,7 +100,7 @@ export const hudHide = (info?: TimerType.fake | TimerType.noTimer): void => {
   }
 }
 
-const toggleOpacity = (opacity: string) => {
+export const toggleOpacity = (opacity: string) => {
   style.opacity = opacity
   style.visibility = opacity !== "0" ? "" : HDN
 }

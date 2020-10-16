@@ -9,7 +9,7 @@ import {
 import {
   attachShadow_, getSelectionFocusEdge_, activeEl_unsafe_, rangeCount_, setClassName_s,
   getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, htmlTag_, fullscreenEl_unsafe_, docEl_unsafe_,
-  getSelection_, isSelected_, docSelectable_, isHTML_, createElement_, CLK, MDW, HDN, NONE, removeEl_s, appendNode_s
+  getSelection_, isSelected_, docSelectable_, isHTML_, createElement_, CLK, MDW, NONE, removeEl_s, appendNode_s,
 } from "../lib/dom_utils"
 import {
   wdZoom_, prepareCrop_, view_, dimSize_, selRange_, getZoom_, padClientRect_, getSelectionBoundingBox_,
@@ -22,7 +22,7 @@ import {
 import { visual_mode, highlightRange, kDir, activate as visualActivate, kExtend } from "./visual"
 import { keyIsDown as scroll_keyIsDown, beginScroll, onScrolls } from "./scroller"
 import { scrollToMark, setPreviousMarkPosition } from "./marks"
-import { hudHide, hud_box, hudTip, hud_opacity } from "./hud"
+import { hudHide, hud_box, hudTip, hud_opacity, toggleOpacity as hud_toggleOpacity } from "./hud"
 import { post_, send_ } from "./port"
 import { insert_Lock_, setupSuppress } from "./insert"
 import { lastHovered_, resetLastHovered, select_ } from "./async_dispatcher"
@@ -80,8 +80,41 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
       ensureBorder();
     }
     if (options.l) {
-      return findAndFocus(query || query_, options)
+      if (query = query || query_) {
+        init && init(AdjustType.MustAdjust)
+        if (query !== query_) {
+          updateQuery(query)
+          if (isActive) {
+            input_.textContent = query.replace(<RegExpOne> /^ /, "\xa0")
+            showCount(1)
+          }
+        }
+        isQueryRichText_ = true
+        const hud_showing = !isActive && hud_opacity === 1
+        hud_showing && hud_toggleOpacity("0")
+        toggleSelectableStyle(0)
+        executeFind("", options)
+        if (hasResults && options.m) {
+          getZoom_()
+          highlightInViewport()
+        }
+        hud_showing && hud_toggleOpacity("")
+        if (!hasResults) {
+          toggleStyle(1)
+          if (!isActive) {
+            toggleSelectableStyle(0)
+            hudTip(kTip.noMatchFor, 0, query_)
+          }
+        } else {
+          focusFoundLinkIfAny()
+          postActivate()
+        }
+      } else {
+        hudTip(kTip.noOldQuery)
+      }
+      return
     }
+    postOnEsc = options.p
     if (Build.BTypes & ~BrowserType.Firefox) {
       if (Build.MinCVer >= BrowserVer.MinBorderWidth$Ensure1$Or$Floor && !(Build.BTypes & ~BrowserType.Chrome)
           || Build.BTypes & BrowserType.Chrome && chromeVer_ > BrowserVer.MinBorderWidth$Ensure1$Or$Floor -1
@@ -89,18 +122,18 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
         getZoom_()
       }
     }
-    isActive && adjustUI()
-    if (!isActive) {
-      getCurrentRange()
-      if (options.r) {
-        coords = [scrollX, scrollY]
-      }
-    }
-    postOnEsc = options.p
     if (isActive) {
+      adjustUI()
       hudHide(TimerType.noTimer);
       return setFirstQuery(query)
     }
+    if (initialRange = selRange_(getSelected())) {
+      collpaseSelection(getSelection_()) // `range.collapse` doesn't work when inside a ShadowRoot (C72)
+    } else {
+      (initialRange = doc.createRange()).setStart(doc.body || docEl_unsafe_()!, 0)
+    }
+    initialRange.collapse(!0)
+    if (options.r) { coords = [scrollX, scrollY] }
 
     parsedQuery_ = query_ = ""
     parsedRegexp_ = regexMatches = null
@@ -321,40 +354,6 @@ export let init = (adjust_type: AdjustType): void => {
           && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
         || Build.BTypes & ~BrowserType.Edge && ui_box !== ui_root ? createStyle(css) : sin;
   init = null as never
-}
-
-const findAndFocus = (query: string, options: CmdOptions[kFgCmd.findMode]): void => {
-    if (!query) {
-      return hudTip(kTip.noOldQuery);
-    }
-    init && init(AdjustType.MustAdjust)
-    if (query !== query_) {
-      updateQuery(query)
-      if (isActive) {
-        input_.textContent = query.replace(<RegExpOne> /^ /, "\xa0")
-        showCount(1)
-      }
-    }
-    isQueryRichText_ = true
-    const style = isActive || hud_opacity !== 1 ? null : hud_box!.style
-    style ? style.visibility = HDN : 0;
-    toggleSelectableStyle(0);
-    executeFind("", options)
-    if (hasResults && options.m) {
-      getZoom_()
-      highlightInViewport()
-    }
-    style && (style.visibility = "");
-    if (!hasResults) {
-      toggleStyle(1)
-      if (!isActive) {
-        toggleSelectableStyle(0);
-        hudTip(kTip.noMatchFor, 0, query_)
-      }
-      return;
-    }
-    focusFoundLinkIfAny()
-    postActivate()
 }
 
 export const clear = (): void => {
@@ -638,13 +637,13 @@ const onInput = (e?: Event): void => {
 }
 
 const showCount = (changed: BOOL): void => {
-    let count = matchCount
-    if (changed) {
+  let count = matchCount
+  if (changed) {
       countEl.dataset.vimium = !parsedQuery_ ? "" : VTr(
           count > 1 ? kTip.nMatches : count ? kTip.oneMatch : hasResults ? kTip.someMatches : kTip.noMatches,
           [count]
       );
-    }
+  }
   count = (dimSize_(input_, kDim.scrollW) + countEl.offsetWidth + 35) & ~31
   if (!isSmall || count > 151) {
     outerBox_.style.width = ((isSmall = count < 152) ? 0 as number | string as string : count + "px")
@@ -875,17 +874,4 @@ export const toggleSelectableStyle = (enable: BOOL): void => {
       : !styleSelectable || !GetParent_unsafe_(styleSelectable, PNType.DirectNode)) { return }
   styleSelectable || (styleSelectable = createStyle(findCSS.s))
   enable ? appendNode_s(ui_box!, styleSelectable) : removeEl_s(styleSelectable)
-}
-
-const getCurrentRange = (): void => {
-    let sel = getSelected(), range = selRange_(sel);
-    if (!range) {
-      range = doc.createRange();
-      range.setStart(doc.body || docEl_unsafe_()!, 0);
-    } else {
-      // Note: `range.collapse` doesn't work if selection is inside a ShadowRoot (tested on C72 stable)
-      collpaseSelection(sel)
-    }
-    range.collapse(true);
-    initialRange = range;
 }
