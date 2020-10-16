@@ -243,6 +243,7 @@ declare namespace FindNS {
   interface ExecuteOptions extends Partial<Pick<CmdOptions[kFgCmd.findMode], "n">> {
     /** highlight */ h?: [number, number] | false;
     /** ignore$hasResult */ i?: 1;
+    /** just inputted */ j?: 1;
     noColor?: BOOL | boolean
     caseSensitive?: boolean;
   }

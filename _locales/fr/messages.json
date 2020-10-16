@@ -864,6 +864,7 @@
 		"message": "Cet élément ne peut être supprimé"
 	},
 	"96": { "message": "Caractères pour les LinkHints trop peu nombreux" },
+	"114": { "message": "La recherche est arrivée à sa fin" },
 	"200": {
 		"message": "Non-autorisé à ouvrir l'URL de la cible du nouvel onglet"
 	},

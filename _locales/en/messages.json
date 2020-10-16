@@ -1153,6 +1153,7 @@
     "113": {
         "message": "(^|-)(button|a$$)"
     },
+    "114": { "message": "Search has arrived at an end" },
     "200": {
         "message": "Not allowed to open the target new tab URL"
     },

@@ -302,8 +302,8 @@ export const getSelected = (notExpectCount?: {r?: ShadowRoot | null}): Selection
    * return HTMLElement if there's only Firefox
    * @UNSAFE_RETURNED
    */
-export const getSelectionParent_unsafe = ((re?: RegExpG & RegExpSearchable<0>): Element | null | 0 => {
-    let range = selRange_(getSelected())
+export const getSelectionParent_unsafe = ((sel: Selection, re?: RegExpG & RegExpSearchable<0>): Element | null | 0 => {
+    let range = selRange_(sel)
       , selected: string | undefined, match: RegExpExecArray | null, result = 0
       , par: Node | null = range && range.commonAncestorContainer, lastPar = par!
     while (par && !(par as NodeToElement).tagName) {
@@ -329,8 +329,8 @@ export const getSelectionParent_unsafe = ((re?: RegExpG & RegExpSearchable<0>): 
     }
     return result ? 0 : par !== docEl_unsafe_() ? par as Element | null : null
 }) as {
-  (re: RegExpG): Element | null | 0
-  (re?: undefined): Element | null
+  (sel: Selection, re: RegExpG): Element | null | 0
+  (sel: Selection, re?: undefined): Element | null
 }
 
 export const getSelectionText = (notTrim?: 1): string => {

@@ -259,6 +259,10 @@ export let frameElement_ = (): Element | null | void => {
     }
 }
 
+export const compareDocumentPosition = (anchorNode: Node, focusNode: Node) =>
+    Build.BTypes & ~BrowserType.Firefox ? Node.prototype.compareDocumentPosition.call(anchorNode, focusNode)
+    : anchorNode.compareDocumentPosition(focusNode)
+
   /** computation section */
 
 export const findMainSummary_ = ((details: HTMLDetailsElement | Element | null): SafeHTMLElement | null => {

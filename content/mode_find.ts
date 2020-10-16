@@ -7,9 +7,10 @@ import {
   DEL, BSP, ENTER,
 } from "../lib/keyboard_utils"
 import {
-  attachShadow_, getSelectionFocusEdge_, activeEl_unsafe_, rangeCount_, setClassName_s,
+  attachShadow_, getSelectionFocusEdge_, activeEl_unsafe_, rangeCount_, setClassName_s, compareDocumentPosition,
   getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, htmlTag_, fullscreenEl_unsafe_, docEl_unsafe_,
   getSelection_, isSelected_, docSelectable_, isHTML_, createElement_, CLK, MDW, NONE, removeEl_s, appendNode_s,
+  getAccessibleSelectedNode
 } from "../lib/dom_utils"
 import {
   wdZoom_, prepareCrop_, view_, dimSize_, selRange_, getZoom_, padClientRect_, getSelectionBoundingBox_,
@@ -540,8 +541,8 @@ export const fixTabNav_cr_old = !(Build.BTypes & BrowserType.Chrome) // firefox 
 
   /** return an element if no <a> else null */
 const focusFoundLinkIfAny = (): SafeElement | null | void => {
-    let cur = Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(getSelectionParent_unsafe())
-        : getSelectionParent_unsafe() as SafeElement | null;
+    let cur = Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(getSelectionParent_unsafe(getSelected()))
+        : getSelectionParent_unsafe(getSelected()) as SafeElement | null;
     for (let i = 0, el: Element | null = cur; el && el !== doc.body && i++ < 5;
         el = GetParent_unsafe_(el, PNType.RevealSlotAndGotoParent)) {
       if (htmlTag_(el) === "a") {
@@ -632,7 +633,7 @@ const onInput = (e?: Event): void => {
   coords && scrollToMark(coords)
   updateQuery(query)
   restoreSelection()
-  executeFind(!isRegex ? parsedQuery_ : regexMatches ? regexMatches[0] : "", safer<FindNS.ExecuteOptions>({}))
+  executeFind(!isRegex ? parsedQuery_ : regexMatches ? regexMatches[0] : "", { j: 1 })
   showCount(1)
 }
 
@@ -776,6 +777,7 @@ export const executeFind = (query: string | null, options: FindNS.ExecuteOptions
       && isActive && innerDoc_.hasFocus()
     const wndSel = getSelection_()
     let regexpNoMatchLimit = 9 * count, dedupID = count + 1, oldReInd: number, selNone: boolean
+    let oldAnchor = options.j ? 0 : getAccessibleSelectedNode(getSelected()), curSel: Selection
     while (0 < count) {
       oldReInd = activeRegexIndex
       q = query || (!isRe ? parsedQuery_ : !regexMatches ? "" : regexMatches[
@@ -792,18 +794,20 @@ export const executeFind = (query: string | null, options: FindNS.ExecuteOptions
         resetSelectionToDocStart();
         found = _do_find_not_cr!(q, !notSens, back, true, wholeWord, false, false)
       }
-      if (!found) { break }
+      if (!found) { options.j || highLight || wrapAround || hudTip(kTip.wrapWhenFind); break }
       selNone = dedupID > count && !(wndSel + "") // if true, then the matched text may have `user-select: none`
       /**
        * Warning: on Firefox and before {@link #FirefoxBrowserVer.Min$find$NotReturnFakeTrueOnPlaceholderAndSoOn},
        * `found` may be unreliable,
        * because Firefox may "match" a placeholder and cause `getSelection().type` to be `"None"`
        */
-      if (pR && !selNone && (par = getSelectionParent_unsafe(pR)) === 0 && timesRegExpNotMatch++ < regexpNoMatchLimit) {
+      if (pR && !selNone && (par = getSelectionParent_unsafe(curSel = getSelected(), pR)) === 0
+          && timesRegExpNotMatch++ < regexpNoMatchLimit) {
         activeRegexIndex = oldReInd
       } else if (highLight) {
         scrollTo(highLight[0], highLight[1])
-        const sel2 = getSelected(), br = rangeCount_(sel2) && padClientRect_(getSelectionBoundingBox_(sel2)),
+        curSel = getSelected()
+        const br = rangeCount_(curSel) && padClientRect_(getSelectionBoundingBox_(curSel)),
         cr = br && cropRectToVisible_(br.l, br.t, br.r && br.r + 3, br.b && br.b + 3)
         cr ? areas.push(cr) : count = 0 // even for a caret caused by `user-select: none`
         timesRegExpNotMatch = 0
@@ -815,9 +819,13 @@ export const executeFind = (query: string | null, options: FindNS.ExecuteOptions
         wndSel.modify("move", kDir[1 - <number> <number | boolean>back], "character")
       }
     }
-    if (found! && !highLight) {
-      par = par || getSelectionParent_unsafe();
-      par && view_(par);
+    if (found! && !highLight && (par = par || getSelectionParent_unsafe(curSel = getSelected()))) {
+      let newAnchor = oldAnchor && getAccessibleSelectedNode(curSel!)
+      let posChange = newAnchor && compareDocumentPosition(oldAnchor as Node, newAnchor)
+      view_(par)
+      if (posChange && /** go back */ !!(posChange & kNode.DOCUMENT_POSITION_PRECEDING) !== back) {
+        hudTip(kTip.wrapWhenFind)
+      }
     }
     noColor || timeout_(hookSel, 0);
     (el = insert_Lock_()) && !isSelected_() && el.blur();
