@@ -1,1376 +1,478 @@
 {
-    "createTab": {
-        "message": "Create new tabs"
-    },
-    "discardTab": {
-        "message": "Discard some other tabs"
-    },
-    "duplicateTab": {
-        "message": "Duplicate current tab for N times"
-    },
-    "moveTabToNewWindow": {
-        "message": "Move N tabs to new window"
-    },
-    "moveTabToNewWindow_p": {
-        "message": "limited=null/true/false"
-    },
-    "openCopiedUrlInNewTab": {
-        "message": "Open the clipboard's URL in N new tabs"
-    },
-    "openUrl": {
-        "message": "Open URL"
-    },
-    "openUrl_p": {
-        "message": "url:string, urls:string[], reuse=newFg/current/newBg/reuse, incognito, window, position"
-    },
-    "reloadTab": {
-        "message": "Reload N tabs"
-    },
-    "reloadTab_p": {
-        "message": "hard, bypassCache"
-    },
-    "removeTab": {
-        "message": "Close N tabs"
-    },
-    "removeTab_p": {
-        "message": "keepWindow=\"\"/always, mayClose, goto=\"\"/left/right/previous"
-    },
-    "restoreTab": {
-        "message": "Restore closed tabs"
-    },
-    "togglePinTab": {
-        "message": "Pin or unpin N tabs"
-    },
-    "LinkHints_activate": {
-        "message": "Open a link in the current tab"
-    },
-    "LinkHints_activate_p": {
-        "message": "button=\"\"/right, touch=false/true/\"auto\""
-    },
-    "LinkHints_activateModeToCopyLinkText": {
-        "message": "Copy a link text to the clipboard"
-    },
-    "LinkHints_activateModeToCopyLinkText_p": {
-        "message": "join:boolean/string"
-    },
-    "LinkHints_activateModeToCopyLinkUrl": {
-        "message": "Copy a link URL to the clipboard"
-    },
-    "LinkHints_activateModeToDownloadImage": {
-        "message": "Download image, video and audio"
-    },
-    "LinkHints_activateModeToDownloadLink": {
-        "message": "Download link URL"
-    },
-    "LinkHints_activateModeToEdit": {
-        "message": "Select an editable area"
-    },
-    "LinkHints_activateModeToHover": {
-        "message": "Select an element and hover"
-    },
-    "LinkHints_activateModeToLeave": {
-        "message": "Let mouse leave link"
-    },
-    "LinkHints_activateModeToOpenImage": {
-        "message": "Show image in a new tab"
-    },
-    "LinkHints_activateModeToOpenImage_p": {
-        "message": "auto=true"
-    },
-    "LinkHints_activateModeToOpenIncognito": {
-        "message": "Open a link in incognito window"
-    },
-    "LinkHints_activateModeToOpenInNewForegroundTab": {
-        "message": "Open a link in a new tab and switch to it"
-    },
-    "LinkHints_activateModeToOpenInNewTab": {
-        "message": "Open a link in a new tab"
-    },
-    "LinkHints_activateModeToOpenVomnibar": {
-        "message": "Edit a link text on Vomnibar"
-    },
-    "LinkHints_activateModeToOpenVomnibar_p": {
-        "message": "url, newtab"
-    },
-    "LinkHints_activateModeToSearchLinkText": {
-        "message": "Open or search a link text"
-    },
-    "LinkHints_activateModeWithQueue": {
-        "message": "Open multiple links in a new tab"
-    },
-    "LinkHints_activateModeToSelect": {
-        "message": "Select text and enter visual mode"
-    },
-    "LinkHints_activateModeToSelect_p": {
-        "message": "caret"
-    },
-    "LinkHints_unhoverLast": {
-        "message": "Stop hovering at last location"
-    },
-    "Marks_activate": {
-        "message": "Go to a mark"
-    },
-    "Marks_activate_p": {
-        "message": "prefix=true, swap, mapKey"
-    },
-    "Marks_activateCreateMode": {
-        "message": "Create a new mark"
-    },
-    "Marks_activateCreateMode_p": {
-        "message": "swap"
-    },
-    "Marks_clearGlobal": {
-        "message": "Remove all global marks"
-    },
-    "Marks_clearLocal": {
-        "message": "Remove all local marks for this site"
-    },
-    "Vomnibar_activate": {
-        "message": "Open URL, bookmark, or history entry"
-    },
-    "Vomnibar_activate_p": {
-        "message": "keyword=\"\", url:boolean/string"
-    },
-    "Vomnibar_activateBookmarks": {
-        "message": "Open a bookmark"
-    },
-    "Vomnibar_activateBookmarksInNewTab": {
-        "message": "Open a bookmark in a new tab"
-    },
-    "Vomnibar_activateEditUrl": {
-        "message": "Edit the current URL"
-    },
-    "Vomnibar_activateEditUrlInNewTab": {
-        "message": "Edit the current URL and open in a new tab"
-    },
-    "Vomnibar_activateHistory": {
-        "message": "Open a history"
-    },
-    "Vomnibar_activateHistoryInNewTab": {
-        "message": "Open a history in a new tab"
-    },
-    "Vomnibar_activateInNewTab": {
-        "message": "Open URL, history, … in a new tab"
-    },
-    "Vomnibar_activateInNewTab_p": {
-        "message": "keyword, url"
-    },
-    "Vomnibar_activateTabSelection": {
-        "message": "Search through your open tabs"
-    },
-    "Vomnibar_activateUrl": {
-        "message": "Edit the current URL"
-    },
-    "Vomnibar_activateUrlInNewTab": {
-        "message": "Edit the current URL and open in a new tab"
-    },
-    "addBookmark": {
-        "message": "Add tabs into a bookmark folder"
-    },
-    "addBookmark_p": {
-        "message": "folder:string"
-    },
-    "autoCopy": {
-        "message": "Copy selected text or current frame's title or URL"
-    },
-    "autoCopy_p": {
-        "message": "text: string, url, decoded"
-    },
-    "autoOpen": {
-        "message": "Open selected or copied text in a new tab"
-    },
-    "blank": {
-        "message": "Do nothing"
-    },
-    "clearCS": {
-        "message": "Clear extension's content settings"
-    },
-    "clearCS_p": {
-        "message": "type=images"
-    },
-    "clearFindHistory": {
-        "message": "Clear find mode history"
-    },
-    "closeOtherTabs": {
-        "message": "Close all other tabs"
-    },
-    "closeOtherTabs_p": {
-        "message": "filter=\"\"/url/url+hash/url+title"
-    },
-    "closeTabsOnLeft": {
-        "message": "Close all tabs on the left"
-    },
-    "closeTabsOnLeft_p": {
-        "message": "$$count=0"
-    },
-    "closeTabsOnRight": {
-        "message": "Close all tabs on the right"
-    },
-    "closeTabsOnRight_p": {
-        "message": "$$count=0"
-    },
-    "copyCurrentTitle": {
-        "message": "Copy current tab's title"
-    },
-    "copyCurrentUrl": {
-        "message": "Copy page's info"
-    },
-    "copyCurrentUrl_p": {
-        "message": "type=url/title/frame, decoded"
-    },
-    "copyWindowInfo": {
-        "message": "Copy title/URL info of a current window"
-    },
-    "copyWindowInfo_p": {
-        "message": "format=\"$${title}: $${url}\", join:true/string, decoded"
-    },
-    "debugBackground": {
-        "message": "Debug the background page"
-    },
-    "editText": {
-        "message": "Send editing action to browser"
-    },
-    "editText_p": {
-        "message": "run:string, dom=false"
-    },
-    "enableCSTemp": {
-        "message": "Enable the site's CS in incognito window"
-    },
-    "enableCSTemp_p": {
-        "message": "type=images"
-    },
-    "enterFindMode": {
-        "message": "Enter find mode"
-    },
-    "enterFindMode_p": {
-        "message": "last, selected=true"
-    },
-    "enterInsertMode": {
-        "message": "Enter insert mode"
-    },
-    "enterInsertMode_p": {
-        "message": "key:string, unhover, reset"
-    },
-    "enterVisualLineMode": {
-        "message": "Enter visual line mode"
-    },
-    "enterVisualMode": {
-        "message": "Enter visual mode"
-    },
-    "firstTab": {
-        "message": "Go to the first N-th tab"
-    },
-    "focusInput": {
-        "message": "Focus the N-th visible text box on the page and cycle using tab"
-    },
-    "focusInput_p": {
-        "message": "keep, select=\"\"/all/all-line/start/end"
-    },
-    "focusOrLaunch": {
-        "message": "Focus a tab with given URL or open it"
-    },
-    "focusOrLaunch_p": {
-        "message": "url:string, prefix"
-    },
-    "goBack": {
-        "message": "Go back in history"
-    },
-    "goBack_p": {
-        "message": "reuse=current/newBg/newFg"
-    },
-    "goForward": {
-        "message": "Go forward in history"
-    },
-    "goNext": {
-        "message": "Follow the link labeled next or \">\""
-    },
-    "goNext_p": { "message": "patterns:string, rel:string, noRel" },
-    "goPrevious": {
-        "message": "Follow the link labeled previous or \"<\""
-    },
-    "goToRoot": {
-        "message": "Go to root of current URL hierarchy"
-    },
-    "goUp": {
-        "message": "Go up the URL hierarchy"
-    },
-    "goUp_p": {
-        "message": "trailingSlash=null/true/false"
-    },
-    "joinTabs": {
-        "message": "Collect all tabs into current window"
-    },
-    "lastTab": {
-        "message": "Go to the last N-th tab"
-    },
-    "mainFrame": {
-        "message": "Select the tab's main/top frame"
-    },
-    "moveTabLeft": {
-        "message": "Move tab to the left"
-    },
-    "moveTabRight": {
-        "message": "Move tab to the right"
-    },
-    "moveTabToIncognito": {
-        "message": "Make tab in incognito window"
-    },
-    "moveTabToNextWindow": {
-        "message": "Move tab to next window"
-    },
-    "moveTabToNextWindow_p": {
-        "message": "right"
-    },
-    "nextFrame": {
-        "message": "Cycle forward to the next frame on the page"
-    },
-    "nextTab": {
-        "message": "Go one tab right"
-    },
-    "openCopiedUrlInCurrentTab": {
-        "message": "Open the clipboard's URL in the current tab"
-    },
-    "parentFrame": {
-        "message": "Focus a parent frame"
-    },
-    "passNextKey": {
-        "message": "Pass the next keys to the page"
-    },
-    "passNextKey_p": {
-        "message": "normal"
-    },
-    "performAnotherFind": {
-        "message": "Find the second or even earlier query words"
-    },
-    "performBackwardsFind": {
-        "message": "Cycle backward to the previous find match"
-    },
-    "performFind": {
-        "message": "Cycle forward to the next find match"
-    },
-    "previousTab": {
-        "message": "Go one tab left"
-    },
-    "reload": {
-        "message": "Reload current frame"
-    },
-    "reload_p": {
-        "message": "hard"
-    },
-    "reloadGivenTab": {
-        "message": "Reload N-th tab"
-    },
-    "reloadGivenTab_p": {
-        "message": "hard"
-    },
-    "removeRightTab": {
-        "message": "Close N-th tab on the right"
-    },
-    "reopenTab": {
-        "message": "Reopen current page"
-    },
-    "restoreGivenTab": {
-        "message": "Restore the last N-th tab"
-    },
-    "scrollDown": {
-        "message": "Scroll down"
-    },
-    "scrollFullPageDown": {
-        "message": "Scroll a full page down"
-    },
-    "scrollFullPageUp": {
-        "message": "Scroll a full page up"
-    },
-    "scrollLeft": {
-        "message": "Scroll left"
-    },
-    "scrollPageDown": {
-        "message": "Scroll a page down"
-    },
-    "scrollPageUp": {
-        "message": "Scroll a page up"
-    },
-    "scrollPxDown": {
-        "message": "Scroll 1px down"
-    },
-    "scrollPxLeft": {
-        "message": "Scroll 1px left"
-    },
-    "scrollPxRight": {
-        "message": "Scroll 1px right"
-    },
-    "scrollPxUp": {
-        "message": "Scroll 1px up"
-    },
-    "scrollRight": {
-        "message": "Scroll right"
-    },
-    "scrollTo": {
-        "message": "Scroll to custom position"
-    },
-    "scrollToBottom": {
-        "message": "Scroll to the bottom of the page"
-    },
-    "scrollToLeft": {
-        "message": "Scroll all the way to the left"
-    },
-    "scrollToRight": {
-        "message": "Scroll all the way to the right"
-    },
-    "scrollToTop": {
-        "message": "Scroll to the top of the page"
-    },
-    "scrollUp": {
-        "message": "Scroll up"
-    },
-    "searchAs": {
-        "message": "Search selected or copied text using current search engine"
-    },
-    "searchAs_p": {
-        "message": "copied=true, selected=true"
-    },
-    "searchInAnother": {
-        "message": "Redo search in another search engine"
-    },
-    "searchInAnother_p": {
-        "message": "keyword, reuse=current/newFg/newBg/reuse"
-    },
-    "showHelp": {
-        "message": "Show help"
-    },
-    "simBackspace": {
-        "message": "Simulate backspace once if focused"
-    },
-    "switchFocus": {
-        "message": "Blur activeElement or refocus it"
-    },
-    "switchFocus_p": {
-        "message": "flash, select=\"\"/all/all-line/start/end"
-    },
-    "toggleCS": {
-        "message": "Toggle the site's content settings"
-    },
-    "toggleCS_p": {
-        "message": "type=images"
-    },
-    "toggleLinkHintCharacters": {
-        "message": "Toggle the other link hints"
-    },
-    "toggleLinkHintCharacters_p": {
-        "message": "value:string"
-    },
-    "toggleMuteTab": {
-        "message": "Mute or unmute current tab"
-    },
-    "toggleMuteTab_p": {
-        "message": "all, other"
-    },
-    "toggleReaderMode": {
-        "message": "Toggle reader view"
-    },
-    "toggleSwitchTemp": {
-        "message": "Toggle switch only on current page"
-    },
-    "toggleSwitchTemp_p": {
-        "message": "key:string [, value:any]"
-    },
-    "toggleViewSource": {
-        "message": "View page source"
-    },
-    "toggleVomnibarStyle": {
-        "message": "Toggle styles of vomnibar page"
-    },
-    "toggleVomnibarStyle_p": {
-        "message": "style=dark, current"
-    },
-    "closeDownloadBar": {
-        "message": "Close the bottom download bar elegantly"
-    },
-    "showTip": {
-        "message": "Show a tip on the HUD"
-    },
-    "showTip_p": {
-        "message": "text:string"
-    },
-    "visitPreviousTab": {
-        "message": "Go to previously-visited tab on current window"
-    },
-    "zoomIn": {
-        "message": "Make a current tab zoom in"
-    },
-    "zoomOut": {
-        "message": "Make a current tab zoom out"
-    },
-    "createTab_s": {
-        "message": "Create new tab"
-    },
-    "goBack_s": {
-        "message": "Go back in history"
-    },
-    "goForward_s": {
-        "message": "Go forward in history"
-    },
-    "previousTab_s": {
-        "message": "Go one tab left"
-    },
-    "quickNext_s": {
-        "message": "Go one tab right"
-    },
-    "reloadTab_s": {
-        "message": "Reload tab"
-    },
-    "userCustomized": {
-        "message": "Custom shortcut"
-    },
-    "cmdParams": {
-        "message": " (use *)"
-    },
-    "cmdConfirm": {
-        "message": "You have asked Vimium C to perform $1 repeats of the command:\n    $2\n\nAre you sure you want to continue?"
-    },
-    "name": {
-        "message": "Vimium C - All by Keyboard"
-    },
-    "description": {
-        "message": "A keyboard shortcut tool for keyboard-based page navigation and browser tab operations with an advanced omnibar and global shortcuts"
-    },
-    "lang1": {
-        "message": ""
-    },
-    "lang2": {
-        "message": ""
-    },
-    "NS": {
-        "message": " "
-    },
-    "noActiveState": {
-        "message": "As configured, here's no active state"
-    },
-    "period": {
-        "message": "."
-    },
-    "colon": {
-        "message": ":"
-    },
-    "semicolon": {
-        "message": ";"
-    },
-    "question": {
-        "message": "?"
-    },
-    "period2": {
-        "message": ". "
-    },
-    "semicolon2": {
-        "message": "; "
-    },
-    "question2": {
-        "message": "? "
-    },
-    "win": {
-        "message": "Windows"
-    },
-    "mac": {
-        "message": "macOS"
-    },
-    "o3_2": {
-        "message": "(Sorted)"
-    },
-    "o114": {
-        "message": " Advanced Options"
-    },
-    "o115": {
-        "message": "No Changes"
-    },
-    "o115_2": {
-        "message": "Save Changes"
-    },
-    "o115_3": {
-        "message": "Saved"
-    },
-    "o137": {
-        "message": "becomes to "
-    },
-    "o138": {
-        "message": "only hook"
-    },
-    "o139": {
-        "message": "exclude"
-    },
-    "o140": {
-        "message": "becomes"
-    },
-    "o141": {
-        "message": "keeps to "
-    },
-    "o142": {
-        "message": "will "
-    },
-    "o143": {
-        "message": "be"
-    },
-    "o143_2": {
-        "message": "be"
-    },
-    "o144": {
-        "message": "disabled"
-    },
-    "o145": {
-        "message": " enabled"
-    },
-    "o145_2": {
-        "message": "enabled"
-    },
-    "o147": {
-        "message": " (on this tab, $1 for once)"
-    },
-    "o148": {
-        "message": " if reset"
-    },
-    "dirtyOptions": {
-        "message": "Such options have been changed at other places:\n      * $1\n    Continue to save and override these changes?"
-    },
-    "clickToUnmask": {
-        "message": "# Click to unmask the content…"
-    },
-    "beforeUnload": {
-        "message": "You have unsaved changes to options."
-    },
-    "comma": {
-        "message": ", "
-    },
-    "ignoredNonEN": {
-        "message": "Keyboard layout has been ignored! Please consider disabling the option."
-    },
-    "onlyExtVomnibar": {
-        "message": "Extension vomnibar pages can only work before Chromium $1."
-    },
-    "fileVomnibar": {
-        "message": "A file vomnibar is limited by browser to only work on file:///* pages."
-    },
-    "httpVomnibar": {
-        "message": "An HTTP vomnibar is limited by browser and doesn't work on HTTPS pages."
-    },
-    "beforeChromium": {
-        "message": "on Chromium browsers before v$1"
-    },
-    "lackPermission": {
-        "message": "for lacking permission$1"
-    },
-    "invalidOption": {
-        "message": "This option is invalid $1"
-    },
-    "manageShortcut": {
-        "message": "\"Manage Shortcuts\" in \"Tools Menu\" of "
-    },
-    "addons": {
-        "message": "Firefox Add-ons"
-    },
-    "webstore": {
-        "message": "Chrome Web Store"
-    },
-    "edgestore": {
-        "message": "MS Edge Add-ons"
-    },
-    "NewTabAdapter": {
-        "message": "NewTab Adapter"
-    },
-    "refusedURLs": {
-        "message": "The URL \"$1\" is restricted to be opened by a WebExtension from Firefox browser."
-    },
-    "nonPlainURL": {
-        "message": "The value \"$1\" is not a valid plain URL."
-    },
-    "changedBeforeSync": {
-        "message": "        Error:\nSorry, but you're enabling the \"Sync settings\" option\n    while some other options are also modified.\nPlease only perform one action at a time!"
-    },
-    "warningForSync": {
-        "message": "        Warning:\nthe current settings will be OVERRIDDEN the next time Vimium C starts!\nPlease back up your settings using the \"Export Settings\" button\n!!!        RIGHT NOW        !!!"
-    },
-    "confirmImport": {
-        "message": "You are loading $1:\n      * from $2Vimium C$3\n      * for $4\n      * exported $5\n\nAre you sure you want to continue?"
-    },
-    "backupFile": {
-        "message": "a settings copy"
-    },
-    "recommendedFile": {
-        "message": "the recommended settings"
-    },
-    "fileVCVer": {
-        "message": "version * of "
-    },
-    "fileVCNewer": {
-        "message": " (newer)"
-    },
-    "filePlatform": {
-        "message": "the $1 platform"
-    },
-    "commonPlatform": {
-        "message": "common platforms"
-    },
-    "atTime": {
-        "message": "at $1"
-    },
-    "before": {
-        "message": "before"
-    },
-    "keepSyncing": {
-        "message": "Do you want to keep settings synchronized with your current browser account?\n\nPress \"Cancel\" to stop it."
-    },
-    "notJSON": {
-        "message": "No JSON data found!"
-    },
-    "JSONParseError": {
-        "message": "Sorry, Vimium C cannot parse the JSON file:\n  an unexpected character at line $1, column $2"
-    },
-    "notVCJSON": {
-        "message": "Sorry, no Vimium C settings data found!"
-    },
-    "exc": {
-        "message": "Error: "
-    },
-    "unknown": {
-        "message": "(unknown)"
-    },
-    "JSONTooLarge": {
-        "message": "    Fatal Error:\n\nYour settings file \"$1\" seems too large!\n\nAs limited by your browser, the max size is only $2 KB."
-    },
-    "Once": {
-        "message": " for once"
-    },
-    "Upgrade": {
-        "message": "Upgrade"
-    },
-    "upgradeMsg": {
-        "message": "Vimium C has been upgraded to v$1.\n"
-    },
-    "upgradeMsg2": {
-        "message": ""
-    },
-    "clickForMore": {
-        "message": "Click here for more information."
-    },
-    "cmdList": {
-        "message": "Command Listing"
-    },
-    "help": {
-        "message": "Help"
-    },
-    "browserHelp": {
-        "message": "Browser help"
-    },
-    "tipClickToCopy": {
-        "message": "Tip: Click a command name to copy it to the clipboard."
-    },
-    "pageNav": {
-        "message": "Navigating the page"
-    },
-    "useVomnibar": {
-        "message": "Using the Vomnibar"
-    },
-    "useFind": {
-        "message": "Using find"
-    },
-    "historyNav": {
-        "message": "Navigating history"
-    },
-    "changeTabs": {
-        "message": "Manipulating tabs"
-    },
-    "misc": {
-        "message": "Miscellaneous"
-    },
-    "advCmd": {
-        "message": " advanced commands"
-    },
-    "ext": {
-        "message": ""
-    },
-    "VerIs": {
-        "message": "Version "
-    },
-    "HStar": {
-        "message": "Star it on GitHub"
-    },
-    "HStar2": {
-        "message": "Star it on Gitee"
-    },
-    "HReview": {
-        "message": "Review on "
-    },
-    "ifBug": {
-        "message": "Found a bug? "
-    },
-    "HReport": {
-        "message": "Report it here"
-    },
-    "HCredits": {
-        "message": "Credits: "
-    },
-    "HOriginal": {
-        "message": " (the original project), "
-    },
-    "HBy": {
-        "message": " by "
-    },
-    "HAnd": {
-        "message": " and "
-    },
-    "HEnd": {
-        "message": "."
-    },
-    "noCopied": {
-        "message": "No text copied!"
-    },
-    "quoteA": {
-        "message": "\"$1\""
-    },
-    "notFgOpt": {
-        "message": "$1 is not a valid switch"
-    },
-    "unknownA": {
-        "message": "unknown option name $1"
-    },
-    "notBool": {
-        "message": "$1 is not a boolean switch"
-    },
-    "needVal": {
-        "message": "need value=… for option $1"
-    },
-    "unlikeVal": {
-        "message": "value of $1 should be like $2"
-    },
-    "moveAllTabs": {
-        "message": "Nothing happens when moving every tab of this window"
-    },
-    "hasIncog": {
-        "message": "This tab has been in an incognito window"
-    },
-    "notRestoreIfIncog": {
-        "message": "Cannot restore a tab in incognito mode!"
-    },
-    "indexOOR": {
-        "message": "The session index provided is out of range"
-    },
-    "noDiscardIfOld": {
-        "message": "Vimium C cannot discard tabs before Chromium $1"
-    },
-    "discardFail": {
-        "message": "Cannot discard the tab"
-    },
-    "noQueryFound": {
-        "message": "No query words recognized!"
-    },
-    "noKw": {
-        "message": "This command lacks an argument \"keyword\""
-    },
-    "noMute": {
-        "message": "Vimium C cannot control mute state before Chromium $1"
-    },
-    "muted": {
-        "message": "Muted"
-    },
-    "unmuted": {
-        "message": "Unmuted"
-    },
-    "mute": {
-        "message": "$1 tab(s) are muted"
-    },
-    "unmute": {
-        "message": "$1 tab(s) are unmuted"
-    },
-    "fhCleared": {
-        "message": "$1find history has been cleared"
-    },
-    "incog": {
-        "message": "incognito "
-    },
-    "noStyleName": {
-        "message": "No Vomnibar style name has been given"
-    },
-    "needText": {
-        "message": "\"showTip\" needs a \"text\" option"
-    },
-    "noEngineFound": {
-        "message": "No search engine found!"
-    },
-    "noSelOrCopied": {
-        "message": "No selected nor copied text found"
-    },
-    "noTabItem": {
-        "message": "The target tab has disappeared!"
-    },
-    "noSessionItem": {
-        "message": "The closed session may be too old"
-    },
-    "invalidImg": {
-        "message": "The selected image URL is invalid"
-    },
-    "noTabHistory": {
-        "message": "Cannot open a history of this tab"
-    },
-    "notRemoveCur": {
-        "message": "The current tab should be kept"
-    },
-    "delSug": {
-        "message": "Succeed to delete a $1"
-    },
-    "notDelSug": {
-        "message": "The $1 cannot be found!"
-    },
-    "notAllowA": {
-        "message": "It's not allowed to $1"
-    },
-    "unknownStatAction": {
-        "message": "Got an unknown status action: $1"
-    },
-    "newStat": {
-        "message": "The page status is now $1"
-    },
-    "fullEnabled": {
-        "message": "enabled"
-    },
-    "halfDisabled": {
-        "message": "partially disabled"
-    },
-    "fullDisabled": { "message": "disabled" },
-    "unknownCS": {
-        "message": "Unknown content settings type: $1"
-    },
-    "changeItsCS": {
-        "message": "change its content settings"
-    },
-    "csCleared": {
-        "message": "$1 content settings have been cleared"
-    },
-    "images": {
-        "message": "Image"
-    },
-    "javascript": {
-        "message": "JavaScript"
-    },
-    "noMark": {
-        "message": "$1 mark not set : ' $2 '"
-    },
-    "Local_": {
-        "message": "Local"
-    },
-    "Global_": {
-        "message": "Global"
-    },
-    "allLocal": {
-        "message": "local"
-    },
-    "markRemoved": {
-        "message": "$1 $2 mark$3 been removed"
-    },
-    "have": {
-        "message": "s have"
-    },
-    "has": {
-        "message": " has"
-    },
-    "dupTab": {
-        "message": "duplicate such a tab"
-    },
-    "openIncog": {
-        "message": "open this URL in incognito mode"
-    },
-    "openExtSrc": {
-        "message": "visit HTML of an extension's page"
-    },
-    "noReader": {
-        "message": "No reader view for this page"
-    },
-    "notModify": {
-        "message": "modify #$1 option"
-    },
-    "setFileCS": {
-        "message": "set file CSs since Chromium $1"
-    },
-    "setFolderCS": {
-        "message": "set CS of file folders"
-    },
-    "setFTPCS": {
-        "message": "set FTP pages' content settings"
-    },
-    "setIncogCS": {
-        "message": "change incognito settings"
-    },
-    "copiedWndInfo": {
-        "message": "(info of tabs)"
-    },
-    "Close": {
-        "message": ""
-    },
-    "Toggle_Dark": {
-        "message": ""
-    },
-    "Search": {
-        "message": ""
-    },
-    "Go": {
-        "message": ""
-    },
-    "jsFail": {
-        "message": "Here's not allowed to eval JS scripts"
-    },
-    "68": {
-        "message": "Visual"
-    },
-    "69": {
-        "message": "Line"
-    },
-    "70": {
-        "message": "Caret"
-    },
-    "71": {
-        "message": "No links to select"
-    },
-    "72": {
-        "message": "LinkHints exits because you're typing"
-    },
-    "73": {
-        "message": "The link has been removed from the page"
-    },
-    "74": {
-        "message": "Not an image"
-    },
-    "75": {
-        "message": "Hover to scroll"
-    },
-    "76": {
-        "message": "Sorry, Vimium C won't copy any password"
-    },
-    "77": {
-        "message": "Nothing new to copy"
-    },
-    "78": {
-        "message": "Download: $1"
-    },
-    "79": {
-        "message": "Go to mark…"
-    },
-    "80": {
-        "message": "Create mark…"
-    },
-    "81": {
-        "message": "Created local mark [last]"
-    },
-    "82": {
-        "message": "$1 local mark [ $2 ]"
-    },
-    "83": {
-        "message": "Jumped to"
-    },
-    "84": {
-        "message": "Created"
-    },
-    "85": {
-        "message": "last"
-    },
-    "86": {
-        "message": "$1 $2 mark : ' $3 '"
-    },
-    "87": {
-        "message": "Sorry, Vimium C cannot open a HUD on this page"
-    },
-    "88": {
-        "message": "No old queries to find"
-    },
-    "89": {
-        "message": "No matches for \"$1\""
-    },
-    "90": {
-        "message": "$1 mode"
-    },
-    "91": {
-        "message": "No usable selection, entering caret mode…"
-    },
-    "92": {
-        "message": "Selection has been lost"
-    },
-    "93": {
-        "message": "Create a selection before entering visual mode"
-    },
-    "94": {
-        "message": "Sorry, Vomnibar page seems to fail to load"
-    },
-    "95": {
-        "message": "This item cannot be deleted"
-    },
-    "96": {
-        "message": "Too few characters for LinkHints"
-    },
-    "97": {
-        "message": "input,textarea,[contenteditable]"
-    },
-    "98": {
-        "message": "document.currentScript.remove()"
-    },
-    "99": {
-        "message": ":-webkit-any(a,area,link)[rel]"
-    },
-    "100": {
-        "message": "a,button,input,frame,iframe"
-    },
-    "101": {
-        "message": "^url\\(\\s?['\"]?((?:\\\\['\"]|[^'\"])+?)['\"]?\\s?\\)"
-    },
-    "102": {
-        "message": "\\.(?:avif|bmp|gif|icon?|jpe?g|a?png|svg|tiff?|webp)\\b"
-    },
-    "103": {
-        "message": "(?:\\b|_)(?:[Bb](?:utto|t)n|[Cc]lose|hate|like)(?:$$|[-\\sA-Z_])"
-    },
-    "104": {
-        "message": "^(?:button|checkbox|link|radio|tab)$$|^menuitem"
-    },
-    "105": {
-        "message": "^[^\\w\\x80-\\uffff]+|[^!-~À-üЂ-џºء-ي]+"
-    },
-    "106": {
-        "message": "[^0-9a-z_ß-üа-џºء-ي]+"
-    },
-    "107": {
-        "message": "\\b(device-width|initial-scale)\\b"
-    },
-    "108": {
-        "message": "\\b0\\.5px|/\\*!DPI\\*/[\\w.]+"
-    },
-    "109": {
-        "message": "/*!DPI*/$1px"
-    },
-    "110": {
-        "message": "^void\\s*\\( ?0 ?\\)\\s*;?$$|^;?$$"
-    },
-    "111": {
-        "message": "^http://(?!localhost[:/])"
-    },
-    "112": {
-        "message": "^(new\\.|www\\.|)reddit\\.com$$"
-    },
-    "113": {
-        "message": "(^|-)(button|a$$)"
-    },
-    "114": { "message": "Search has arrived at an end" },
-    "200": {
-        "message": "Not allowed to open the target new tab URL"
-    },
-    "201": {
-        "message": "You cancelled importing"
-    },
-    "202": {
-        "message": "Import settings data: OK!"
-    },
-    "203": {
-        "message": "http://www.w3.org/1999/xhtml"
-    },
-    "204": {
-        "message": "#overlayScrollContainer"
-    },
-    "4": {
-        "message": "The last element is unhovered"
-    },
-    "5": {
-        "message": "Insert mode$1"
-    },
-    "6": {
-        "message": "No pass keys"
-    },
-    "7": {
-        "message": "Normal mode (pass keys disabled)$1"
-    },
-    "8": {
-        "message": ": $1 times"
-    },
-    "9": {
-        "message": "Pass next keys$1"
-    },
-    "10": {
-        "message": "No links to go $1"
-    },
-    "11": {
-        "message": "Nothing was focused"
-    },
-    "12": {
-        "message": "The last focused is hidden"
-    },
-    "13": {
-        "message": "There are no inputs to focus on"
-    },
-    "14": {
-        "message": "No URL found!"
-    },
-    "15": {
-        "message": "No text found!"
-    },
-    "17": {
-        "message": "auxclick beforecopy beforecut compositionend compositionstart compositionupdate contextmenu copy cut keypress mouseup paste selectionchange selectstart wheel textInput "
-    },
-    "20": {
-        "message": "Copied: $1"
-    },
-    "21": {
-        "message": "(-ms-high-contrast:active)"
-    },
-    "22": {
-        "message": "Too many links to select"
-    },
-    "23": {
-        "message": "Now $1 use $2"
-    },
-    "24": {
-        "message": "Now $1 is on"
-    },
-    "25": {
-        "message": "$1 has been turned off"
-    },
-    "26": {
-        "message": "($1 matches)"
-    },
-    "27": {
-        "message": "(1 match)"
-    },
-    "28": {
-        "message": "(Some matches)"
-    },
-    "29": {
-        "message": "(No matches)"
-    },
-    "30": {
-        "message": " (modal UI)"
-    },
-    "31": {
-        "message": "On Firefox you have to visit this URL manually"
-    },
-    "39": {
-        "message": "global"
-    },
-    "41": {
-        "message": "local"
-    },
-    "44": {
-        "message": "Selected line boundary"
-    },
-    "45": {
-        "message": "A child frame just got updated"
-    },
-    "46": {
-        "message": "Hit <Enter> to proceed…"
-    },
-    "47": {
-        "message": "Vimium C blocks auto-focusing on %s at %o."
-    },
-    "60": {
-        "message": "Vimium C uses the built-in Vomnibar page because the preferred is too old."
-    },
-    "61": {
-        "message": "Some functions of Vimium C may not work because %o is sandboxed at %o."
-    },
-    "0": {
-        "message": "Open link in current tab"
-    },
-    "1": {
-        "message": "$1"
-    },
-    "2": {
-        "message": "Open link in new tab"
-    },
-    "3": {
-        "message": "Open link in new active tab"
-    },
-    "16": {
-        "message": "Open multiple links in current tab"
-    },
-    "18": {
-        "message": "Open multiple links in new tabs"
-    },
-    "19": {
-        "message": "Activate link and hold on"
-    },
-    "32": {
-        "message": "Hover over node"
-    },
-    "33": {
-        "message": "Simulate mouse leaving link"
-    },
-    "34": {
-        "message": "Focus node"
-    },
-    "35": {
-        "message": "Download media"
-    },
-    "36": {
-        "message": "Open image"
-    },
-    "37": {
-        "message": "Search selected text"
-    },
-    "38": {
-        "message": "Copy link text to Clipboard"
-    },
-    "40": {
-        "message": "Copy link URL to Clipboard"
-    },
-    "42": {
-        "message": "Download link"
-    },
-    "43": {
-        "message": "Open link in incognito window"
-    },
-    "51": {
-        "message": "Download multiple media"
-    },
-    "52": {
-        "message": "Open multiple images"
-    },
-    "58": {
-        "message": "Download multiple links"
-    },
-    "59": {
-        "message": "Open multiple incognito tabs"
-    },
-    "48": {
-        "message": "Hover over nodes continuously"
-    },
-    "49": {
-        "message": "Simulate mouse leaving continuously"
-    },
-    "50": {
-        "message": "Focus nodes continuously"
-    },
-    "53": {
-        "message": "Search link text one by one"
-    },
-    "54": {
-        "message": "Copy link text one by one"
-    },
-    "55": {
-        "message": "Copy link text list"
-    },
-    "56": {
-        "message": "Copy link URL one by one"
-    },
-    "57": {
-        "message": "Copy link URL list"
-    },
-    "62": {
-        "message": "prev"
-    },
-    "63": {
-        "message": "next"
-    },
-    "64": {
-        "message": "Edit link URL on Vomnibar"
-    },
-    "65": {
-        "message": "Edit link text on Vomnibar"
-    },
-    "66": {
-        "message": "Select an editable area"
-    },
-    "67": {
-        "message": "Select text and enter visual mode"
-    }
+  "createTab": { "message": "Create new tabs" },
+  "discardTab": { "message": "Discard some other tabs" },
+  "duplicateTab": { "message": "Duplicate current tab for N times" },
+  "moveTabToNewWindow": { "message": "Move N tabs to new window" },
+  "moveTabToNewWindow_p": { "message": "limited=null/true/false" },
+  "openCopiedUrlInNewTab": { "message": "Open the clipboard's URL in N new tabs" },
+  "openUrl": { "message": "Open URL" },
+  "openUrl_p": { "message": "url:string, urls:string[], reuse=newFg/current/newBg/reuse, incognito, window, position" },
+  "reloadTab": { "message": "Reload N tabs" },
+  "reloadTab_p": { "message": "hard, bypassCache" },
+  "removeTab": { "message": "Close N tabs" },
+  "removeTab_p": { "message": "keepWindow=\"\"/always, mayClose, goto=\"\"/left/right/previous" },
+  "restoreTab": { "message": "Restore closed tabs" },
+  "togglePinTab": { "message": "Pin or unpin N tabs" },
+  "LinkHints_activate": { "message": "Open a link in the current tab" },
+  "LinkHints_activate_p": { "message": "button=\"\"/right, touch=false/true/\"auto\"" },
+  "LinkHints_activateModeToCopyLinkText": { "message": "Copy a link text to the clipboard" },
+  "LinkHints_activateModeToCopyLinkText_p": { "message": "join:boolean/string" },
+  "LinkHints_activateModeToCopyLinkUrl": { "message": "Copy a link URL to the clipboard" },
+  "LinkHints_activateModeToDownloadImage": { "message": "Download image, video and audio" },
+  "LinkHints_activateModeToDownloadLink": { "message": "Download link URL" },
+  "LinkHints_activateModeToEdit": { "message": "Select an editable area" },
+  "LinkHints_activateModeToHover": { "message": "Select an element and hover" },
+  "LinkHints_activateModeToLeave": { "message": "Let mouse leave link" },
+  "LinkHints_activateModeToOpenImage": { "message": "Show image in a new tab" },
+  "LinkHints_activateModeToOpenImage_p": { "message": "auto=true" },
+  "LinkHints_activateModeToOpenIncognito": { "message": "Open a link in incognito window" },
+  "LinkHints_activateModeToOpenInNewForegroundTab": { "message": "Open a link in a new tab and switch to it" },
+  "LinkHints_activateModeToOpenInNewTab": { "message": "Open a link in a new tab" },
+  "LinkHints_activateModeToOpenVomnibar": { "message": "Edit a link text on Vomnibar" },
+  "LinkHints_activateModeToOpenVomnibar_p": { "message": "url, newtab" },
+  "LinkHints_activateModeToSearchLinkText": { "message": "Open or search a link text" },
+  "LinkHints_activateModeWithQueue": { "message": "Open multiple links in a new tab" },
+  "LinkHints_activateModeToSelect": { "message": "Select text and enter visual mode" },
+  "LinkHints_activateModeToSelect_p": { "message": "caret" },
+  "LinkHints_unhoverLast": { "message": "Stop hovering at last location" },
+  "Marks_activate": { "message": "Go to a mark" },
+  "Marks_activate_p": { "message": "prefix=true, swap, mapKey" },
+  "Marks_activateCreateMode": { "message": "Create a new mark" },
+  "Marks_activateCreateMode_p": { "message": "swap" },
+  "Marks_clearGlobal": { "message": "Remove all global marks" },
+  "Marks_clearLocal": { "message": "Remove all local marks for this site" },
+  "Vomnibar_activate": { "message": "Open URL, bookmark, or history entry" },
+  "Vomnibar_activate_p": { "message": "keyword=\"\", url:boolean/string" },
+  "Vomnibar_activateBookmarks": { "message": "Open a bookmark" },
+  "Vomnibar_activateBookmarksInNewTab": { "message": "Open a bookmark in a new tab" },
+  "Vomnibar_activateEditUrl": { "message": "Edit the current URL" },
+  "Vomnibar_activateEditUrlInNewTab": { "message": "Edit the current URL and open in a new tab" },
+  "Vomnibar_activateHistory": { "message": "Open a history" },
+  "Vomnibar_activateHistoryInNewTab": { "message": "Open a history in a new tab" },
+  "Vomnibar_activateInNewTab": { "message": "Open URL, history, … in a new tab" },
+  "Vomnibar_activateInNewTab_p": { "message": "keyword, url" },
+  "Vomnibar_activateTabSelection": { "message": "Search through your open tabs" },
+  "Vomnibar_activateUrl": { "message": "Edit the current URL" },
+  "Vomnibar_activateUrlInNewTab": { "message": "Edit the current URL and open in a new tab" },
+  "addBookmark": { "message": "Add tabs into a bookmark folder" },
+  "addBookmark_p": { "message": "folder:string" },
+  "autoCopy": { "message": "Copy selected text or current frame's title or URL" },
+  "autoCopy_p": { "message": "text: string, url, decoded" },
+  "autoOpen": { "message": "Open selected or copied text in a new tab" },
+  "blank": { "message": "Do nothing" },
+  "clearCS": { "message": "Clear extension's content settings" },
+  "clearCS_p": { "message": "type=images" },
+  "clearFindHistory": { "message": "Clear find mode history" },
+  "closeOtherTabs": { "message": "Close all other tabs" },
+  "closeOtherTabs_p": { "message": "filter=\"\"/url/url+hash/url+title" },
+  "closeTabsOnLeft": { "message": "Close all tabs on the left" },
+  "closeTabsOnLeft_p": { "message": "$$count=0" },
+  "closeTabsOnRight": { "message": "Close all tabs on the right" },
+  "closeTabsOnRight_p": { "message": "$$count=0" },
+  "copyCurrentTitle": { "message": "Copy current tab's title" },
+  "copyCurrentUrl": { "message": "Copy page's info" },
+  "copyCurrentUrl_p": { "message": "type=url/title/frame, decoded" },
+  "copyWindowInfo": { "message": "Copy title/URL info of a current window" },
+  "copyWindowInfo_p": { "message": "format=\"$${title}: $${url}\", join:true/string, decoded" },
+  "debugBackground": { "message": "Debug the background page" },
+  "editText": { "message": "Send editing action to browser" },
+  "editText_p": { "message": "run:string, dom=false" },
+  "enableCSTemp": { "message": "Enable the site's CS in incognito window" },
+  "enableCSTemp_p": { "message": "type=images" },
+  "enterFindMode": { "message": "Enter find mode" },
+  "enterFindMode_p": { "message": "last, selected=true" },
+  "enterInsertMode": { "message": "Enter insert mode" },
+  "enterInsertMode_p": { "message": "key:string, unhover, reset" },
+  "enterVisualLineMode": { "message": "Enter visual line mode" },
+  "enterVisualMode": { "message": "Enter visual mode" },
+  "firstTab": { "message": "Go to the first N-th tab" },
+  "focusInput": { "message": "Focus the N-th visible text box on the page and cycle using tab" },
+  "focusInput_p": { "message": "keep, select=\"\"/all/all-line/start/end" },
+  "focusOrLaunch": { "message": "Focus a tab with given URL or open it" },
+  "focusOrLaunch_p": { "message": "url:string, prefix" },
+  "goBack": { "message": "Go back in history" },
+  "goBack_p": { "message": "reuse=current/newBg/newFg" },
+  "goForward": { "message": "Go forward in history" },
+  "goNext": { "message": "Follow the link labeled next or \">\"" },
+  "goNext_p": { "message": "patterns:string, rel:string, noRel" },
+  "goPrevious": { "message": "Follow the link labeled previous or \"<\"" },
+  "goToRoot": { "message": "Go to root of current URL hierarchy" },
+  "goUp": { "message": "Go up the URL hierarchy" },
+  "goUp_p": { "message": "trailingSlash=null/true/false" },
+  "joinTabs": { "message": "Collect all tabs into current window" },
+  "lastTab": { "message": "Go to the last N-th tab" },
+  "mainFrame": { "message": "Select the tab's main/top frame" },
+  "moveTabLeft": { "message": "Move tab to the left" },
+  "moveTabRight": { "message": "Move tab to the right" },
+  "moveTabToIncognito": { "message": "Make tab in incognito window" },
+  "moveTabToNextWindow": { "message": "Move tab to next window" },
+  "moveTabToNextWindow_p": { "message": "right" },
+  "nextFrame": { "message": "Cycle forward to the next frame on the page" },
+  "nextTab": { "message": "Go one tab right" },
+  "openCopiedUrlInCurrentTab": { "message": "Open the clipboard's URL in the current tab" },
+  "parentFrame": { "message": "Focus a parent frame" },
+  "passNextKey": { "message": "Pass the next keys to the page" },
+  "passNextKey_p": { "message": "normal" },
+  "performAnotherFind": { "message": "Find the second or even earlier query words" },
+  "performBackwardsFind": { "message": "Cycle backward to the previous find match" },
+  "performFind": { "message": "Cycle forward to the next find match" },
+  "previousTab": { "message": "Go one tab left" },
+  "reload": { "message": "Reload current frame" },
+  "reload_p": { "message": "hard" },
+  "reloadGivenTab": { "message": "Reload N-th tab" },
+  "reloadGivenTab_p": { "message": "hard" },
+  "removeRightTab": { "message": "Close N-th tab on the right" },
+  "reopenTab": { "message": "Reopen current page" },
+  "restoreGivenTab": { "message": "Restore the last N-th tab" },
+  "scrollDown": { "message": "Scroll down" },
+  "scrollFullPageDown": { "message": "Scroll a full page down" },
+  "scrollFullPageUp": { "message": "Scroll a full page up" },
+  "scrollLeft": { "message": "Scroll left" },
+  "scrollPageDown": { "message": "Scroll a page down" },
+  "scrollPageUp": { "message": "Scroll a page up" },
+  "scrollPxDown": { "message": "Scroll 1px down" },
+  "scrollPxLeft": { "message": "Scroll 1px left" },
+  "scrollPxRight": { "message": "Scroll 1px right" },
+  "scrollPxUp": { "message": "Scroll 1px up" },
+  "scrollRight": { "message": "Scroll right" },
+  "scrollTo": { "message": "Scroll to custom position" },
+  "scrollToBottom": { "message": "Scroll to the bottom of the page" },
+  "scrollToLeft": { "message": "Scroll all the way to the left" },
+  "scrollToRight": { "message": "Scroll all the way to the right" },
+  "scrollToTop": { "message": "Scroll to the top of the page" },
+  "scrollUp": { "message": "Scroll up" },
+  "searchAs": { "message": "Search selected or copied text using current search engine" },
+  "searchAs_p": { "message": "copied=true, selected=true" },
+  "searchInAnother": { "message": "Redo search in another search engine" },
+  "searchInAnother_p": { "message": "keyword, reuse=current/newFg/newBg/reuse" },
+  "showHelp": { "message": "Show help" },
+  "simBackspace": { "message": "Simulate backspace once if focused" },
+  "switchFocus": { "message": "Blur activeElement or refocus it" },
+  "switchFocus_p": { "message": "flash, select=\"\"/all/all-line/start/end" },
+  "toggleCS": { "message": "Toggle the site's content settings" },
+  "toggleCS_p": { "message": "type=images" },
+  "toggleLinkHintCharacters": { "message": "Toggle the other link hints" },
+  "toggleLinkHintCharacters_p": { "message": "value:string" },
+  "toggleMuteTab": { "message": "Mute or unmute current tab" },
+  "toggleMuteTab_p": { "message": "all, other" },
+  "toggleReaderMode": { "message": "Toggle reader view" },
+  "toggleSwitchTemp": { "message": "Toggle switch only on current page" },
+  "toggleSwitchTemp_p": { "message": "key:string [, value:any]" },
+  "toggleViewSource": { "message": "View page source" },
+  "toggleVomnibarStyle": { "message": "Toggle styles of vomnibar page" },
+  "toggleVomnibarStyle_p": { "message": "style=dark, current" },
+  "closeDownloadBar": { "message": "Close the bottom download bar elegantly" },
+  "showTip": { "message": "Show a tip on the HUD" },
+  "showTip_p": { "message": "text:string" },
+  "visitPreviousTab": { "message": "Go to previously-visited tab on current window" },
+  "zoomIn": { "message": "Make a current tab zoom in" },
+  "zoomOut": { "message": "Make a current tab zoom out" },
+  "createTab_s": { "message": "Create new tab" },
+  "goBack_s": { "message": "Go back in history" },
+  "goForward_s": { "message": "Go forward in history" },
+  "previousTab_s": { "message": "Go one tab left" },
+  "quickNext_s": { "message": "Go one tab right" },
+  "reloadTab_s": { "message": "Reload tab" },
+  "userCustomized": { "message": "Custom shortcut" },
+  "cmdParams": { "message": " (use *)" },
+  "cmdConfirm": { "message":
+    "You have asked Vimium C to perform $1 repeats of the command:\n    $2\n\nAre you sure you want to continue?" },
+  "name": { "message": "Vimium C - All by Keyboard" },
+  "description": { "message":
+"A keyboard shortcut tool for keyboard-based page navigation and browser tab operations with an advanced omnibar and global shortcuts"
+  },
+  "lang1": { "message": "" },
+  "lang2": { "message": "" },
+  "NS": { "message": " " },
+  "noActiveState": { "message": "As configured, here's no active state" },
+  "period": { "message": "." },
+  "colon": { "message": ":" },
+  "semicolon": { "message": ";" },
+  "question": { "message": "?" },
+  "period2": { "message": ". " },
+  "semicolon2": { "message": "; " },
+  "question2": { "message": "? " },
+  "win": { "message": "Windows" },
+  "mac": { "message": "macOS" },
+  "o3_2": { "message": "(Sorted)" },
+  "o114": { "message": " Advanced Options" },
+  "o115": { "message": "No Changes" },
+  "o115_2": { "message": "Save Changes" },
+  "o115_3": { "message": "Saved" },
+  "o137": { "message": "becomes to " },
+  "o138": { "message": "only hook" },
+  "o139": { "message": "exclude" },
+  "o140": { "message": "becomes" },
+  "o141": { "message": "keeps to " },
+  "o142": { "message": "will " },
+  "o143": { "message": "be" },
+  "o143_2": { "message": "be" },
+  "o144": { "message": "disabled" },
+  "o145": { "message": " enabled" },
+  "o145_2": { "message": "enabled" },
+  "o147": { "message": " (on this tab, $1 for once)" },
+  "o148": { "message": " if reset" },
+  "dirtyOptions": { "message":
+    "Such options have been changed at other places:\n      * $1\n    Continue to save and override these changes?" },
+  "clickToUnmask": { "message": "# Click to unmask the content…" },
+  "beforeUnload": { "message": "You have unsaved changes to options." },
+  "comma": { "message": ", " },
+  "ignoredNonEN": { "message": "Keyboard layout has been ignored! Please consider disabling the option." },
+  "onlyExtVomnibar": { "message": "Extension vomnibar pages can only work before Chromium $1." },
+  "fileVomnibar": { "message": "A file vomnibar is limited by browser to only work on file:///* pages." },
+  "httpVomnibar": { "message": "An HTTP vomnibar is limited by browser and doesn't work on HTTPS pages." },
+  "beforeChromium": { "message": "on Chromium browsers before v$1" },
+  "lackPermission": { "message": "for lacking permission$1" },
+  "invalidOption": { "message": "This option is invalid $1" },
+  "manageShortcut": { "message": "\"Manage Shortcuts\" in \"Tools Menu\" of " },
+  "addons": { "message": "Firefox Add-ons" },
+  "webstore": { "message": "Chrome Web Store" },
+  "edgestore": { "message": "MS Edge Add-ons" },
+  "NewTabAdapter": { "message": "NewTab Adapter" },
+  "refusedURLs": { "message": "The URL \"$1\" is restricted to be opened by a WebExtension from Firefox browser." },
+  "nonPlainURL": { "message": "The value \"$1\" is not a valid plain URL." },
+  "changedBeforeSync": { "message":
+"        Error:\nSorry, but you're enabling the \"Sync settings\" option\n    while some other options are also modified.\nPlease only perform one action at a time!"
+  },
+  "warningForSync": { "message":
+"        Warning:\nthe current settings will be OVERRIDDEN the next time Vimium C starts!\nPlease back up your settings using the \"Export Settings\" button\n!!!        RIGHT NOW        !!!"
+  },
+  "confirmImport": { "message":
+"You are loading $1:\n      * from $2Vimium C$3\n      * for $4\n      * exported $5\n\nAre you sure you want to continue?"
+  },
+  "backupFile": { "message": "a settings copy" },
+  "recommendedFile": { "message": "the recommended settings" },
+  "fileVCVer": { "message": "version * of " },
+  "fileVCNewer": { "message": " (newer)" },
+  "filePlatform": { "message": "the $1 platform" },
+  "commonPlatform": { "message": "common platforms" },
+  "atTime": { "message": "at $1" },
+  "before": { "message": "before" },
+  "keepSyncing": { "message":
+    "Do you want to keep settings synchronized with your current browser account?\n\nPress \"Cancel\" to stop it." },
+  "notJSON": { "message": "No JSON data found!" },
+  "JSONParseError": { "message":
+    "Sorry, Vimium C cannot parse the JSON file:\n  an unexpected character at line $1, column $2" },
+  "notVCJSON": { "message": "Sorry, no Vimium C settings data found!" },
+  "exc": { "message": "Error: " },
+  "unknown": { "message": "(unknown)" },
+  "JSONTooLarge": { "message":
+"    Fatal Error:\n\nYour settings file \"$1\" seems too large!\n\nAs limited by your browser, the max size is only $2 KB."
+  },
+  "Once": { "message": " for once" },
+  "Upgrade": { "message": "Upgrade" },
+  "upgradeMsg": { "message": "Vimium C has been upgraded to v$1.\n" },
+  "upgradeMsg2": { "message": "" },
+  "clickForMore": { "message": "Click here for more information." },
+  "cmdList": { "message": "Command Listing" },
+  "help": { "message": "Help" },
+  "browserHelp": { "message": "Browser help" },
+  "tipClickToCopy": { "message": "Tip: Click a command name to copy it to the clipboard." },
+  "pageNav": { "message": "Navigating the page" },
+  "useVomnibar": { "message": "Using the Vomnibar" },
+  "useFind": { "message": "Using find" },
+  "historyNav": { "message": "Navigating history" },
+  "changeTabs": { "message": "Manipulating tabs" },
+  "misc": { "message": "Miscellaneous" },
+  "advCmd": { "message": " advanced commands" },
+  "ext": { "message": "" },
+  "VerIs": { "message": "Version " },
+  "HStar": { "message": "Star it on GitHub" },
+  "HStar2": { "message": "Star it on Gitee" },
+  "HReview": { "message": "Review on " },
+  "ifBug": { "message": "Found a bug? " },
+  "HReport": { "message": "Report it here" },
+  "HCredits": { "message": "Credits: " },
+  "HOriginal": { "message": " (the original project), " },
+  "HBy": { "message": " by " },
+  "HAnd": { "message": " and " },
+  "HEnd": { "message": "." },
+  "noCopied": { "message": "No text copied!" },
+  "quoteA": { "message": "\"$1\"" },
+  "notFgOpt": { "message": "$1 is not a valid switch" },
+  "unknownA": { "message": "unknown option name $1" },
+  "notBool": { "message": "$1 is not a boolean switch" },
+  "needVal": { "message": "need value=… for option $1" },
+  "unlikeVal": { "message": "value of $1 should be like $2" },
+  "moveAllTabs": { "message": "Nothing happens when moving every tab of this window" },
+  "hasIncog": { "message": "This tab has been in an incognito window" },
+  "notRestoreIfIncog": { "message": "Cannot restore a tab in incognito mode!" },
+  "indexOOR": { "message": "The session index provided is out of range" },
+  "noDiscardIfOld": { "message": "Vimium C cannot discard tabs before Chromium $1" },
+  "discardFail": { "message": "Cannot discard the tab" },
+  "noQueryFound": { "message": "No query words recognized!" },
+  "noKw": { "message": "This command lacks an argument \"keyword\"" },
+  "noMute": { "message": "Vimium C cannot control mute state before Chromium $1" },
+  "muted": { "message": "Muted" },
+  "unmuted": { "message": "Unmuted" },
+  "mute": { "message": "$1 tab(s) are muted" },
+  "unmute": { "message": "$1 tab(s) are unmuted" },
+  "fhCleared": { "message": "$1find history has been cleared" },
+  "incog": { "message": "incognito " },
+  "noStyleName": { "message": "No Vomnibar style name has been given" },
+  "needText": { "message": "\"showTip\" needs a \"text\" option" },
+  "noEngineFound": { "message": "No search engine found!" },
+  "noSelOrCopied": { "message": "No selected nor copied text found" },
+  "noTabItem": { "message": "The target tab has disappeared!" },
+  "noSessionItem": { "message": "The closed session may be too old" },
+  "invalidImg": { "message": "The selected image URL is invalid" },
+  "noTabHistory": { "message": "Cannot open a history of this tab" },
+  "notRemoveCur": { "message": "The current tab should be kept" },
+  "delSug": { "message": "Succeed to delete a $1" },
+  "notDelSug": { "message": "The $1 cannot be found!" },
+  "notAllowA": { "message": "It's not allowed to $1" },
+  "unknownStatAction": { "message": "Got an unknown status action: $1" },
+  "newStat": { "message": "The page status is now $1" },
+  "fullEnabled": { "message": "enabled" },
+  "halfDisabled": { "message": "partially disabled" },
+  "fullDisabled": { "message": "disabled" },
+  "unknownCS": { "message": "Unknown content settings type: $1" },
+  "changeItsCS": { "message": "change its content settings" },
+  "csCleared": { "message": "$1 content settings have been cleared" },
+  "images": { "message": "Image" },
+  "javascript": { "message": "JavaScript" },
+  "noMark": { "message": "$1 mark not set : ' $2 '" },
+  "Local_": { "message": "Local" },
+  "Global_": { "message": "Global" },
+  "allLocal": { "message": "local" },
+  "markRemoved": { "message": "$1 $2 mark$3 been removed" },
+  "have": { "message": "s have" },
+  "has": { "message": " has" },
+  "dupTab": { "message": "duplicate such a tab" },
+  "openIncog": { "message": "open this URL in incognito mode" },
+  "openExtSrc": { "message": "visit HTML of an extension's page" },
+  "noReader": { "message": "No reader view for this page" },
+  "notModify": { "message": "modify #$1 option" },
+  "setFileCS": { "message": "set file CSs since Chromium $1" },
+  "setFolderCS": { "message": "set CS of file folders" },
+  "setFTPCS": { "message": "set FTP pages' content settings" },
+  "setIncogCS": { "message": "change incognito settings" },
+  "copiedWndInfo": { "message": "(info of tabs)" },
+  "Close": { "message": "" },
+  "Toggle_Dark": { "message": "" },
+  "Search": { "message": "" },
+  "Go": { "message": "" },
+  "jsFail": { "message": "Here's not allowed to eval JS scripts" },
+  "1": { "message": "$1" },
+  "4": { "message": "The last element is unhovered" },
+  "5": { "message": "Insert mode$1" },
+  "6": { "message": "No pass keys" },
+  "7": { "message": "Normal mode (pass keys disabled)$1" },
+  "8": { "message": ": $1 times" },
+  "9": { "message": "Pass next keys$1" },
+  "10": { "message": "No links to go $1" },
+  "11": { "message": "Nothing was focused" },
+  "12": { "message": "The last focused is hidden" },
+  "13": { "message": "There are no inputs to focus on" },
+  "14": { "message": "No URL found!" },
+  "15": { "message": "No text found!" },
+  "17": { "message":
+"auxclick beforecopy beforecut compositionend compositionstart compositionupdate contextmenu copy cut keypress mouseup paste selectionchange selectstart wheel textInput "
+  },
+  "20": { "message": "Copied: $1" },
+  "21": { "message": "(-ms-high-contrast:active)" },
+  "22": { "message": "Too many links to select" },
+  "23": { "message": "Now $1 use $2" },
+  "24": { "message": "Now $1 is on" },
+  "25": { "message": "$1 has been turned off" },
+  "26": { "message": "($1 matches)" },
+  "27": { "message": "(1 match)" },
+  "28": { "message": "(Some matches)" },
+  "29": { "message": "(No matches)" },
+  "30": { "message": " (modal UI)" },
+  "31": { "message": "On Firefox you have to visit this URL manually" },
+  "39": { "message": "global" },
+  "41": { "message": "local" },
+  "44": { "message": "Selected line boundary" },
+  "45": { "message": "A child frame just got updated" },
+  "46": { "message": "Hit <Enter> to proceed…" },
+  "47": { "message": "Vimium C blocks auto-focusing on %s at %o." },
+  "60": { "message": "Vimium C uses the built-in Vomnibar page because the preferred is too old." },
+  "61": { "message": "Some functions of Vimium C may not work because %o is sandboxed at %o." },
+  "68": { "message": "Visual" },
+  "69": { "message": "Line" },
+  "70": { "message": "Caret" },
+  "71": { "message": "No links to select" },
+  "72": { "message": "LinkHints exits because you're typing" },
+  "73": { "message": "The link has been removed from the page" },
+  "74": { "message": "Not an image" },
+  "75": { "message": "Hover to scroll" },
+  "76": { "message": "Sorry, Vimium C won't copy any password" },
+  "77": { "message": "Nothing new to copy" },
+  "78": { "message": "Download: $1" },
+  "79": { "message": "Go to mark…" },
+  "80": { "message": "Create mark…" },
+  "81": { "message": "Created local mark [last]" },
+  "82": { "message": "$1 local mark [ $2 ]" },
+  "83": { "message": "Jumped to" },
+  "84": { "message": "Created" },
+  "85": { "message": "last" },
+  "86": { "message": "$1 $2 mark : ' $3 '" },
+  "87": { "message": "Sorry, Vimium C cannot open a HUD on this page" },
+  "88": { "message": "No old queries to find" },
+  "89": { "message": "No matches for \"$1\"" },
+  "90": { "message": "$1 mode" },
+  "91": { "message": "No usable selection, entering caret mode…" },
+  "92": { "message": "Selection has been lost" },
+  "93": { "message": "Create a selection before entering visual mode" },
+  "94": { "message": "Sorry, Vomnibar page seems to fail to load" },
+  "95": { "message": "This item cannot be deleted" },
+  "96": { "message": "Too few characters for LinkHints" },
+  "97": { "message": "input,textarea,[contenteditable]" },
+  "98": { "message": "document.currentScript.remove()" },
+  "99": { "message": ":-webkit-any(a,area,link)[rel]" },
+  "100": { "message": "a,button,input,frame,iframe" },
+  "101": { "message": "^url\\(\\s?['\"]?((?:\\\\['\"]|[^'\"])+?)['\"]?\\s?\\)" },
+  "102": { "message": "\\.(?:avif|bmp|gif|icon?|jpe?g|a?png|svg|tiff?|webp)\\b" },
+  "103": { "message": "(?:\\b|_)(?:[Bb](?:utto|t)n|[Cc]lose|hate|like)(?:$$|[-\\sA-Z_])" },
+  "104": { "message": "^(?:button|checkbox|link|radio|tab)$$|^menuitem" },
+  "105": { "message": "^[^\\w\\x80-\\uffff]+|[^!-~À-üЂ-џºء-ي]+" },
+  "106": { "message": "[^0-9a-z_ß-üа-џºء-ي]+" },
+  "107": { "message": "\\b(device-width|initial-scale)\\b" },
+  "108": { "message": "\\b0\\.5px|/\\*!DPI\\*/[\\w.]+" },
+  "109": { "message": "/*!DPI*/$1px" },
+  "110": { "message": "^void\\s*\\( ?0 ?\\)\\s*;?$$|^;?$$" },
+  "111": { "message": "^http://(?!localhost[:/])" },
+  "112": { "message": "^(new\\.|www\\.|)reddit\\.com$$" },
+  "113": { "message": "(^|-)(button|a$$)" },
+  "114": { "message": "Search has arrived at an end" },
+  "200": { "message": "Not allowed to open the target new tab URL" },
+  "201": { "message": "You cancelled importing" },
+  "202": { "message": "Import settings data: OK!" },
+  "203": { "message": "http://www.w3.org/1999/xhtml" },
+  "204": { "message": "#overlayScrollContainer" },
+  "0": { "message": "Open link in current tab" },
+  "2": { "message": "Open link in new tab" },
+  "3": { "message": "Open link in new active tab" },
+  "16": { "message": "Open multiple links in current tab" },
+  "18": { "message": "Open multiple links in new tabs" },
+  "19": { "message": "Activate link and hold on" },
+  "32": { "message": "Hover over node" },
+  "33": { "message": "Simulate mouse leaving link" },
+  "34": { "message": "Focus node" },
+  "35": { "message": "Download media" },
+  "36": { "message": "Open image" },
+  "37": { "message": "Search selected text" },
+  "38": { "message": "Copy link text to Clipboard" },
+  "40": { "message": "Copy link URL to Clipboard" },
+  "42": { "message": "Download link" },
+  "43": { "message": "Open link in incognito window" },
+  "51": { "message": "Download multiple media" },
+  "52": { "message": "Open multiple images" },
+  "58": { "message": "Download multiple links" },
+  "59": { "message": "Open multiple incognito tabs" },
+  "48": { "message": "Hover over nodes continuously" },
+  "49": { "message": "Simulate mouse leaving continuously" },
+  "50": { "message": "Focus nodes continuously" },
+  "53": { "message": "Search link text one by one" },
+  "54": { "message": "Copy link text one by one" },
+  "55": { "message": "Copy link text list" },
+  "56": { "message": "Copy link URL one by one" },
+  "57": { "message": "Copy link URL list" },
+  "62": { "message": "prev" },
+  "63": { "message": "next" },
+  "64": { "message": "Edit link URL on Vomnibar" },
+  "65": { "message": "Edit link text on Vomnibar" },
+  "66": { "message": "Select an editable area" },
+  "67": { "message": "Select text and enter visual mode" }
 }
