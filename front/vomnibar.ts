@@ -492,12 +492,12 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         if (prefix === "Ke" || prefix === "Di" || prefix === "Ar") {
           code = code.slice(code < "K" ? 5 : 3);
         }
-        key = code.length === 1
+        key = code.length === 1 && key!.length < 2
               ? !shiftKey || code < "0" || code > "9" ? code : enNumTrans[+code]
               : this._modifierKeys[key!]
                 ? Vomnibar_.mapModifier_ && event.location === Vomnibar_.mapModifier_ ? kChar.Modifier
                 : key === "Alt" ? key : ""
-              : key === "Escape" ? kChar.esc : !code ? key
+              : key === "Escape" ? kChar.esc : code.length < 2 ? key
               : (mapped = this._codeCorrectionMap.indexOf(code)) < 0 ? code
               : charCorrectionList[mapped + 12 * +shiftKey]
             ;
