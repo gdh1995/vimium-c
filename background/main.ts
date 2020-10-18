@@ -1,5 +1,6 @@
 import { runtimeError_, getTabUrl, tabsGet, browserTabs, tabsCreate, browserSessions, browser_ } from "./browser"
 import { contentPayload, cPort, needIcon_, reqH_, settings, set_cPort, set_needIcon_, set_visualWordsRe_ } from "./store"
+import "./ui_css"
 import {
   framesForTab, indexFrame, findCPort, framesForOmni, OnConnect, isExtIdAllowed, getPortUrl, showHUD, complainLimits
 } from "./ports"

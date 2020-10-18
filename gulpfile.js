@@ -291,7 +291,7 @@ var Tasks = {
     var exArgs = { nameCache: gulpUtils.loadNameCache("bg", cacheNames, getNameCacheFilePath),
         nameCachePath: getNameCacheFilePath("bg") };
     var deepcopy = require("deepcopy");
-    if (exArgs.nameCache.vars && exArgs.nameCache.props) {
+    if (!FORCED_NO_MINIFY && exArgs.nameCache.vars && exArgs.nameCache.props) {
       let {vars: {props: vars}, props: {props: props}} = exArgs.nameCache;
       var browser = getNonNullBuildItem("BTypes");
       if ("$OnOther" in vars
@@ -941,6 +941,7 @@ function loadTerserConfig(reload) {
       a.mangle = false;
       a.format.beautify = true
       a.format.indent_level = 2
+      a.compress.sequences = false
     }
     a.ecma = outputES6 ? 6 : 5
   }

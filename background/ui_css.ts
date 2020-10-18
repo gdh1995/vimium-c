@@ -29,7 +29,8 @@ const StyleCacheId_ = settings.CONST_.VerCode_ + ","
 
 const loadCSS = (action: MergeAction, cssStr?: string): SettingsNS.MergedCustomCSS | void => {
   if (action === MergeAction.virtual) {
-    return mergeCSS(cssStr!, MergeAction.virtual)
+    mergeCSS(cssStr!, MergeAction.virtual)
+    return
   }
   {
     let findCSSStr: string | null | false
