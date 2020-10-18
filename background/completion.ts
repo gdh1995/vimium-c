@@ -708,7 +708,7 @@ historyEngine = {
       get2ndArg, (99 - i) / 100),
     sessionId = e.sessionId_
     o.visit = e.visit_
-    sessionId && (o.s = sessionId, o.label = "&#8617;");
+    sessionId && (o.s = sessionId, o.label = `<span class="undo">&#8630;</span>`);
     arr[i] = o;
   }
 },
