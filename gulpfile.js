@@ -34,7 +34,8 @@ var doesMergeProjects = process.env.MERGE_TS_PROJECTS !== "0";
 var doesMinifyLocalFiles = process.env.MINIFY_LOCAL !== "0";
 var FORCED_NO_MINIFY = process.env.FORCED_NO_MINIFY === "1";
 var LOCAL_SILENT = process.env.LOCAL_SILENT === "1";
-var minifyDistPasses = +process.env.MINIFY_DIST_PASSES || 2;
+var minifyDistPasses = +process.env.MINIFY_DIST_PASSES || 0;
+var maxDistSequences = +process.env.MAX_DIST_SEQUENCES || 0;
 var gNoComments = process.env.NO_COMMENT === "1";
 var disableErrors = process.env.SHOW_ERRORS !== "1" && process.env.SHOW_ERRORS === "0";
 var ignoreHeaderChanges = process.env.IGNORE_HEADER_CHANGES !== "0";
@@ -48,7 +49,7 @@ var outputES6 = false;
 gulpPrint = gulpPrint.default || gulpPrint;
 gulpUtils.set_dest(DEST, JSDEST)
 gulpUtils.set_minifier_env(willListEmittedFiles, /[\\\/](env|define)\./, loadTerserConfig, beforeTerser
-    , minifyDistPasses, gNoComments, postTerser)
+    , 1, gNoComments, postTerser, false)
 
 createBuildConfigCache();
 var has_polyfill = !!(getBuildItem("BTypes") & BrowserType.Chrome)
@@ -942,6 +943,11 @@ function loadTerserConfig(reload) {
       a.format.beautify = true
       a.format.indent_level = 2
       a.compress.sequences = false
+    } else {
+      maxDistSequences = maxDistSequences || a.compress.sequences
+      minifyDistPasses = minifyDistPasses || a.compress.passes
+      gulpUtils.set_minifier_env(willListEmittedFiles, /[\\\/](env|define)\./, loadTerserConfig, beforeTerser
+          , minifyDistPasses, gNoComments, postTerser, maxDistSequences)
     }
     a.ecma = outputES6 ? 6 : 5
   }

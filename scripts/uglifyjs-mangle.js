@@ -62,14 +62,14 @@ const P = Promise.all([
 ])
 
 /**
- * @param { string | AST_Toplevel } text
+ * @param { AST_Node } ast
  * @param { MinifyOptions } options
  * @returns { Promise<{
  *   namesToMangle: string[][]
  *   namesCount: ReadonlyMap<string, number>
  * }> }
  */
-async function collectWords(text, options) {
+async function collectWords(ast, options) {
   /** @type { Map<string, number> } */
   const map = new Map();
   /** @type { string[][] } */
@@ -80,9 +80,7 @@ async function collectWords(text, options) {
   // @ts-ignore
   const propRe = props0 && props0.regex || /^_|_$/;
   const reservedProps = new Set(props0 && props0.reserved || [ "__proto__", "$_", "_" ]);
-  (await minify(text, { ...options,
-    mangle: null, nameCache: null, format: { ast: true, code: false }
-  })).ast.walk(new TreeWalker((node) => {
+  ast.walk(new TreeWalker((node) => {
     switch (node.TYPE) {
     case "Accessor": case "Function": case "Arrow": case "Defun": case "Lambda":
       /** @type { AST_LambdaClass } */
@@ -249,12 +247,18 @@ function findTooShort(names, minAllowedLength) {
 async function myMinify(files, options) {
   await P
   const sources = typeof files === "object" ? files instanceof Array ? files : Object.values(files) : [files];
-  let ast = sources.length === 1 ? parse(sources[0], options && options.parse) : sources.join("\n")
+  const compress = { ...(options && typeof options.compress === "object" ? options.compress : {}),
+      sequences: false, passes: 1 }
+  let ast = parse(sources.join("\n"), options && options.parse)
   /** @type { (() => void) | null | undefined } */
   let disposeNameMangler;
   const isES6 = options && options.ecma && options.ecma >= 6;
+  // @ts-ignore
+  ast = (await minify(ast, { compress,
+    // @ts-ignore
+    format: { ast: true, code: false, comments: true }
+  })).ast
   if (isES6) {
-    ast = typeof ast !== "string" ? ast : parse(ast, options && options.parse)
     replaceLets(ast)
   }
   if (options && options.mangle) {
@@ -305,7 +309,7 @@ async function myMinify(files, options) {
     }
   }
   const CHECK_WORDS = +(process.env.CHECK_WORDS || 0) > 0
-  const minified = await minify(ast, { ...options,
+  const minified = await minify(ast, { ...options, compress,
     // @ts-ignore
     format: {...options.format, ast: CHECK_WORDS || options.format.ast }
   })
@@ -330,7 +334,7 @@ async function myMinify(files, options) {
 }
 
 /**
- * @param { AST_Toplevel } ast
+ * @param { AST_Node } ast
  */
 function replaceLets(ast) {
   ast.walk(new TreeWalker(node => {

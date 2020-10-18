@@ -359,8 +359,7 @@ exports.getGulpTerser = function (aggressiveMangle, unique_passes, noComments) {
   var aggressive = aggressiveMangle && require("./uglifyjs-mangle")
   var terser = require("terser")
   const passes = unique_passes && unique_passes > 1 ? unique_passes : 0
-  if (passes) {
-    var multipleMinify = {
+  const minifier = passes ? {
       minify: async function (files, config) {
         let firstOut = await (aggressive || terser).minify(files, { ...config,
           mangle: aggressive ? config.mangle : null,
@@ -371,21 +370,23 @@ exports.getGulpTerser = function (aggressiveMangle, unique_passes, noComments) {
             : firstOut.ast;
         // @ts-ignore
         if (firstOut.error) { return firstOut; }
-        for (let i = 1; i < unique_passes - 1; i++) {
+        for (let i = 2; i < unique_passes; i++) {
+          print("terser: middle pass #%o", i)
           ast = (await terser.minify(ast, { ...config,
             format: { ...config.format, comments: /^[!@#]/, preserve_annotations: true, ast: true, code: false },
+            compress: { ...config.compress, sequences: false, passes: 1 },
             mangle: null,
           // @ts-ignore
           })).ast
         }
+        print("terser: last pass #%o, seqences=%o", unique_passes, maxDistSequences)
         return await terser.minify(ast, { ...config, mangle: aggressive ? null : config.mangle,
+          compress: { ...config.compress, sequences: maxDistSequences, passes: 1 },
           format: { ...config.format, comments: noComments ? false : /^!/,
             preserve_annotations: false, ast: false, code: true },
         })
       }
-    }
-  }
-  const minifier = passes ? multipleMinify : aggressive || terser
+  } : aggressive || terser
   return terserOptions => {
     return exports.gulpMap(function (file, done) {
       const stream = this;
@@ -482,9 +483,10 @@ exports.checkJSAndMinifyAll = function (taskOrder, maps, key, exArgs, cb
 }
 
 var willListEmittedFiles, excludedPathRe, loadTerserConfig, beforeTerser, minifyDistPasses, gNoComments, postTerser;
+var maxDistSequences
 exports.set_minifier_env = function () {
   [willListEmittedFiles, excludedPathRe, loadTerserConfig, beforeTerser, minifyDistPasses, gNoComments, postTerser
-      ] = arguments
+      , maxDistSequences ] = arguments
 }
 
 exports.minifyJSFiles = function (path, output, exArgs) {

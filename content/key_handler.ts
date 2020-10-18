@@ -108,8 +108,8 @@ const checkPotentialAccessKey = (event: HandlerNS.Event): void => {
    * And the modifier stat for access keys is user-configurable: `ui.key.generalAccessKey`
    * * there was another one (`ui.key.contentAccess`) but it has been removed from the latest code
    */
-  if (Build.BTypes & BrowserType.Chrome && event.e.altKey
-      && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)) {
+  if (Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)
+      && event.e.altKey) {
     /** On Chrome, there're 2 paths to trigger accesskey:
      * * `blink::WebInputEvent::kRawKeyDown` := `event#keydown` => `blink::WebInputEvent::kChar` := `handleAccessKey`
      * * `blink::WebInputEvent::kKeyDown` := `handleAccessKey` + `event#keydown`

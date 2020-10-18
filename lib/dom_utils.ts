@@ -153,7 +153,7 @@ export const GetParent_unsafe_ = function (this: void, el: Node | Element
      * * a selection / range can only know nodes and text in a same tree scope
      */
     const kPN = "parentNode"
-    if (type >= PNType.RevealSlot && Build.BTypes & ~BrowserType.Edge) {
+    if (Build.BTypes & ~BrowserType.Edge && type >= PNType.RevealSlot) {
       if (Build.MinCVer < BrowserVer.MinNoShadowDOMv0 && Build.BTypes & BrowserType.Chrome
           && chromeVer_ < BrowserVer.MinNoShadowDOMv0) {
         const func = ElementProto().getDestinationInsertionPoints,

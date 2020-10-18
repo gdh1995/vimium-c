@@ -715,17 +715,19 @@ const selectLine = (count: number): void => {
   modify(kDirTy.right, kG.lineBoundary)
   const ch = getNextRightCharacter(0)
   const num1 = oldLen_
-    if (ch && num1 && ch !== "\n" && !(Build.BTypes & BrowserType.Firefox && ch === "\r")) {
-    extend(kDirTy.left);
-    ("" + curSelection).length + 2 - num1 && extend(kDirTy.right)
+  if (ch && num1 && ch !== "\n") {
+    if (!(Build.BTypes & BrowserType.Firefox) || ch !== "\r") {
+      extend(kDirTy.left);
+      ("" + curSelection).length + 2 - num1 && extend(kDirTy.right)
+    }
   }
 }
 
 const ensureLine = (command: number): void => {
   let di = getDirection()
-    if (di && command < VisualAction.MinNotWrapSelectionModify
+  if (di && command < VisualAction.MinNotWrapSelectionModify
       && command >= VisualAction.MinWrapSelectionModify && !diType_ && selType() === SelType.Caret) {
-      di = (1 & ~command) as ForwardDir; // old Di
+    di = (1 & ~command) as ForwardDir // old Di
     modify(di, kG.lineBoundary)
     selType() !== SelType.Range && modify(di, kG.line)
     di_ = di
@@ -733,9 +735,9 @@ const ensureLine = (command: number): void => {
     let len = (curSelection + "").length
     modify(di = di_ = 1 - di, kG.lineBoundary);
     (curSelection + "").length - len || modify(di, kG.line)
-      return;
-    }
-    for (let mode = 2; 0 < mode--; ) {
+    return
+  }
+  for (let mode = 2; 0 < mode--; ) {
     reverseSelection()
     di = di_ = (1 - di) as ForwardDir
     modify(di, kG.lineBoundary)
