@@ -6,6 +6,7 @@
 	"autoReduceMotion": true,
 	"clipSub": [
 		"g@^https://www.zhihu.com/question/\\d+(?=/answer/?$)@@r",
+		"p@^https://item.m.jd.com/product/(\\d+).html\\b@https://item.jd.com/$1.html@",
 		""
 	],
 	"exclusionListenHash": false,
@@ -15,6 +16,7 @@
 		"unmapAll",
 		"map ? showHelp",
 		"map <a-/> enterInsertMode",
+		"# map <a-/> openUrl url=\"vimium://status/toggle-disabled/^\\u0020<a-/>\"",
 		"map <a-?> enterInsertMode key=\"<s-esc>\"",
 		"map <a-t> createTab",
 		"map <a-c> previousTab",
@@ -62,10 +64,11 @@
 		"map Gg LinkHints.activateModeToOpenInNewTab",
 		"map FE LinkHints.activateModeToOpenVomnibar url",
 		"map FT LinkHints.activateModeToOpenVomnibar",
+		"map Fv LinkHints.activateModeToSelect",
 		"map o Vomnibar.activate",
 		"map g Vomnibar.activateInNewTab preferTabs=\"new\"",
 		"map t Vomnibar.activateTabSelection preferTabs=\"new\"",
-		"map T Vomnibar.activateTabSelection currentWindow preferTabs=\"new\"",
+		"map T Vomnibar.activateTabSelection tree=\"from-start\" currentWindow preferTabs=\"new\"",
 		"map h Vomnibar.activateHistoryInNewTab",
 		"map b Vomnibar.activateInNewTab keyword=\"bing\"",
 		"map Fe Vomnibar.activateUrl",
