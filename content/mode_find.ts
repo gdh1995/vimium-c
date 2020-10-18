@@ -777,7 +777,7 @@ export const executeFind = (query: string | null, options: FindNS.ExecuteOptions
       && isActive && innerDoc_.hasFocus()
     const wndSel = getSelection_()
     let regexpNoMatchLimit = 9 * count, dedupID = count + 1, oldReInd: number, selNone: boolean
-    let oldAnchor = options.j ? 0 : getAccessibleSelectedNode(getSelected()), curSel: Selection
+    let oldAnchor = !options.j && wrapAround && getAccessibleSelectedNode(getSelected()), curSel: Selection
     while (0 < count) {
       oldReInd = activeRegexIndex
       q = query || (!isRe ? parsedQuery_ : !regexMatches ? "" : regexMatches[
@@ -794,7 +794,7 @@ export const executeFind = (query: string | null, options: FindNS.ExecuteOptions
         resetSelectionToDocStart();
         found = _do_find_not_cr!(q, !notSens, back, true, wholeWord, false, false)
       }
-      if (!found) { options.j || highLight || wrapAround || hudTip(kTip.wrapWhenFind); break }
+      if (!found) { break }
       selNone = dedupID > count && !(wndSel + "") // if true, then the matched text may have `user-select: none`
       /**
        * Warning: on Firefox and before {@link #FirefoxBrowserVer.Min$find$NotReturnFakeTrueOnPlaceholderAndSoOn},
@@ -824,7 +824,7 @@ export const executeFind = (query: string | null, options: FindNS.ExecuteOptions
       let posChange = newAnchor && compareDocumentPosition(oldAnchor as Node, newAnchor)
       view_(par)
       if (posChange && /** go back */ !!(posChange & kNode.DOCUMENT_POSITION_PRECEDING) !== back) {
-        hudTip(kTip.wrapWhenFind)
+        hudTip(kTip.wrapWhenFind, 1000, VTr(back ? kTip.atStart : kTip.atEnd))
       }
     }
     noColor || timeout_(hookSel, 0);
