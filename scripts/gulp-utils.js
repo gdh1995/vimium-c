@@ -231,11 +231,12 @@ exports.loadTypeScriptCompiler = function (path, compilerOptions, cachedTypescri
       if (exists1 && fs.statSync(path).isDirectory()) {
         path = osPath.join(path, "typescript");
       }
+      path = osPath.resolve(path)
       try {
         typescript1 = require(path);
       } catch (e) {}
     }
-    if (path.startsWith("./node_modules/typescript/")) {
+    if (osPath.resolve(path).startsWith(process.cwd())) {
       print('Load the TypeScript dependency:', typescript1 != null ? "succeed" : "fail");
     } else {
       print('Load a customized TypeScript compiler:', typescript1 != null ? "succeed" : "fail");
@@ -354,6 +355,7 @@ exports.makeCompileTasks = function (tasks, compile) {
   }
 }
 
+var _hasLoggedTerserPasses = false
 exports.getGulpTerser = function (aggressiveMangle, unique_passes, noComments) {
   dependencies.patchTerser()
   var aggressive = aggressiveMangle && require("./uglifyjs-mangle")
@@ -371,7 +373,7 @@ exports.getGulpTerser = function (aggressiveMangle, unique_passes, noComments) {
         // @ts-ignore
         if (firstOut.error) { return firstOut; }
         for (let i = 2; i < unique_passes; i++) {
-          print("terser: middle pass #%o", i)
+          _hasLoggedTerserPasses || print("terser: middle pass #%o", i)
           ast = (await terser.minify(ast, { ...config,
             format: { ...config.format, comments: /^[!@#]/, preserve_annotations: true, ast: true, code: false },
             compress: { ...config.compress, sequences: false, passes: 1 },
@@ -379,7 +381,8 @@ exports.getGulpTerser = function (aggressiveMangle, unique_passes, noComments) {
           // @ts-ignore
           })).ast
         }
-        print("terser: last pass #%o, seqences=%o", unique_passes, maxDistSequences)
+        _hasLoggedTerserPasses || print("terser: last pass #%o, seqences=%o", unique_passes, maxDistSequences)
+        _hasLoggedTerserPasses = true
         return await terser.minify(ast, { ...config, mangle: aggressive ? null : config.mangle,
           compress: { ...config.compress, sequences: maxDistSequences, passes: 1 },
           format: { ...config.format, comments: noComments ? false : /^!/,
