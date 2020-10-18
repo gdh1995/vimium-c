@@ -465,7 +465,7 @@
   "sug_history": { "message": "历史记录条目" },
   "notAllowA": { "message": "Vimium C 无法$1" },
   "unknownStatAction": { "message": "未知的动作：$1" },
-  "newStat": { "message": "现在Vimium C的工作状态是$1" },
+  "newStat": { "message": "Vimium C 已被 $1" },
   "fullEnabled": { "message": "完全启用" },
   "halfDisabled": { "message": "部分禁用" },
   "fullDisabled": { "message": "完全禁用" },

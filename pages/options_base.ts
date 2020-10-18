@@ -717,6 +717,7 @@ Promise.resolve((BG_.BgUtils_.GC_(1), bgSettings_.restore_) && bgSettings_.resto
     exclusions.save_();
     setTimeout(function () {
       bgExclusions.testers_ = testers;
+      setTimeout(initBottomLeft, 150)
     }, 50);
     inited = 3;
     updateState(true);
@@ -732,7 +733,7 @@ Promise.resolve((BG_.BgUtils_.GC_(1), bgSettings_.restore_) && bgSettings_.resto
   document.addEventListener("keyup", function (event): void {
     if (event.keyCode === kKeyCode.enter && (event.ctrlKey || event.metaKey)) {
       setTimeout(window.close, 300);
-      if (!saved) { return saveOptions(); }
+      if (!saved) { saveOptions() }
     }
   });
 
@@ -742,21 +743,23 @@ Promise.resolve((BG_.BgUtils_.GC_(1), bgSettings_.restore_) && bgSettings_.resto
   for (let _i = 0, _len = rules.length; _i < _len; _i++) {
     ref1[rules[_i].pattern] = ref2[_i];
   }
-  const toggleAction = frameInfo.s !== Frames.Status.disabled ? "Disable" : "Enable"
-    , curIsLocked = !!(frameInfo.f & Frames.Flags.locked);
-  curLockedStatus = curIsLocked ? frameInfo.s : Frames.Status.__fake;
-  let el0 = $<EnsuredMountedHTMLElement>("#toggleOnce"), el1 = el0.nextElementSibling;
-  nextTick_(() => {
-  el0.firstElementChild.textContent = (pTrans_(toggleAction) || toggleAction) + (curIsLocked ? "" : pTrans_("Once"));
-  el0.onclick = forceState.bind(null, toggleAction);
-  stateValue.id = "state-value";
-  if (curIsLocked) {
-    el1.classList.remove("hidden");
-    el1.firstElementChild.onclick = forceState.bind(null, "Reset");
-  } else {
-    el1.remove();
+  let toggleAction: "Disable" | "Enable", curIsLocked: boolean
+  const initBottomLeft = (): void => {
+    toggleAction = frameInfo.s !== Frames.Status.disabled ? "Disable" : "Enable"
+    curIsLocked = !!(frameInfo.f & Frames.Flags.locked)
+    curLockedStatus = curIsLocked ? frameInfo.s : Frames.Status.__fake
+    let el0 = $<EnsuredMountedHTMLElement>("#toggleOnce"), el1 = el0.nextElementSibling
+    nextTick_(() => {
+      el0.firstElementChild.textContent = (pTrans_(toggleAction) || toggleAction) + (curIsLocked ? "" : pTrans_("Once"))
+      el0.onclick = forceState.bind(null, toggleAction)
+      stateValue.id = "state-value"
+      el1.classList.toggle("hidden", !curIsLocked)
+      if (curIsLocked) {
+        el1.firstElementChild.onclick = forceState.bind(null, "Reset")
+      }
+    });
   }
-  });
+  initBottomLeft()
   if (!(Build.BTypes & BrowserType.Chrome)
       || Build.BTypes & ~BrowserType.Chrome && bgOnOther_ !== BrowserType.Chrome
       || !bgSettings_.payload_.o
