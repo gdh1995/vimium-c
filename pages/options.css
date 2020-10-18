@@ -457,22 +457,22 @@ label:active {
   width: 20px;
 }
 .exclusionRemove {
-  border: none;
-  background: none;
-  color: #979ca0;
   cursor: default;
-  font: 13px/12px "Segoe UI Symbol", sans-serif;
-  padding: 5px 4px 5px 3px;
-  -webkit-user-select: none;
-  user-select: none;
+  height: 12px;
+  margin: 8px 4px 0;
+  stroke: #979ca0;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.4;
+  width: 12px;
 }
 .exclusionRemove:hover {
-  color: #444;
-  color: var(--icon-button-hover-color);
+  stroke: #444;
+  stroke: var(--icon-button-hover-color);
 }
 .exclusionRemove:active {
-  color: #4d90fe;
-  color: var(--icon-button-active-color);
+  stroke: #4d90fe;
+  stroke: var(--icon-button-active-color);
   outline: none;
 }
 .exclusionHeader {

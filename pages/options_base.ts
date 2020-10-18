@@ -284,14 +284,20 @@ constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption_) => v
     this.template_ = (element.querySelector("#exclusionTemplate") as HTMLTemplateElement
         ).content.querySelector(".exclusionRule") as HTMLTableRowElement;
     if (lang_) {
-      let el: HTMLElement, t: string;
+      let el: HTMLElement, t: string | null
       for (el of element.querySelectorAll("[data-i]") as ArrayLike<Element> as Element[] as HTMLElement[]) {
         t = pTrans_(el.dataset.i as string);
         t && (el.innerText = t);
       }
       for (el of this.template_.querySelectorAll("[title]") as ArrayLike<Element> as Element[] as HTMLElement[]) {
-        t = pTrans_(el.title);
-        t && (el.title = t);
+        t = el.title
+        if (t) {
+          t = pTrans_(t)
+          t && (el.title = t)
+        } else {
+          t = pTrans_(el.getAttribute("title")!)
+          t && el.setAttribute("title", t)
+        }
       }
     }
     this.$list_ = element.querySelector("tbody") as HTMLTableSectionElement;
@@ -383,9 +389,10 @@ static OnNewKeys_ (vnode: ExclusionVisibleVirtualNode): void {
   }
 }
 onRemoveRow_ (event: Event): void {
-  let element = event.target as HTMLElement;
+  let element = event.target as EnsuredMountedElement
+  element.localName === "path" && (element = element.parentElement)
   if (!element.classList.contains("exclusionRemove")) { return; }
-  element = (element.parentNode as Node).parentNode as HTMLElement;
+  element = element.parentNode.parentNode
   if (element.classList.contains("exclusionRule")) {
     const vnode = (element.querySelector(".pattern") as ExclusionRealNode).vnode;
     element.remove();
