@@ -222,6 +222,7 @@
 		"ip|IP|Ip: ip\\ $S IP 查询",
 		"dns\\:|DNS\\:: http://119.29.29.29/d?dn=$s Public DNS",
 		"gh|github: https://github.com/search?q=$s GitHub",
+		"ge|gitee: https://search.gitee.com/?type=repository&q=$s blank=https://gitee.com/ Gitee",
 		"doc: . devdocs.io/ re=/^(\\w+)\\//",
 		"doc|docs: http://devdocs.io/#q=$s DevDocs",
 		"mdn: https://developer.mozilla.org/zh-CN/search?q=$s",

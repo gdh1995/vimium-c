@@ -394,6 +394,8 @@ az|amazon: https://www.amazon.com/s/?field-keywords=%s \\
 v.m|v\\:math: vimium://math\\ $S re= \u8ba1\u7b97\u5668
 gh|github: https://github.com/search?q=$s \\
   blank=https://github.com/ GitHub 仓库
+ge|gitee: https://search.gitee.com/?type=repository&q=$s \\
+  blank=https://gitee.com/ Gitee 仓库
 js\\:|Js: javascript:\\ $S; JavaScript`
 
 : `bi: https://cn.bing.com/search?q=$s
@@ -428,6 +430,8 @@ az|amazon: https://www.amazon.com/s/?field-keywords=%s \\
 v.m|v\\:math: vimium://math\\ $S re= Calculate
 gh|github: https://github.com/search?q=$s \\
   blank=https://github.com/ GitHub Repo
+ge|gitee: https://search.gitee.com/?type=repository&q=$s \\
+  blank=https://gitee.com/ Gitee 仓库
 js\\:|Js: javascript:\\ $S; JavaScript`,
     searchEngineMap: {} as SafeDict<any>,
     showActionIcon: true,
