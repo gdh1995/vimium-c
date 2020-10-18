@@ -14,6 +14,12 @@ interface BgWindow extends Window {
   BgUtils_: typeof BgUtils_;
   Settings_: typeof Settings_;
 }
+type OptionType<T extends keyof AllowedOptions> = T extends "exclusionRules" ? ExclusionRulesOption_
+    : T extends UniversalNumberSettings ? NumberOption_<T>
+    : T extends JSONOptionNames ? JSONOption_<T>
+    : T extends TextualizedOptionNames ? TextOption_<T>
+    : NonNullable<AllowedOptions[T]> extends boolean | number ? BooleanOption_<T>
+    : never
 
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".includes) {
 (function (): void {
@@ -173,9 +179,7 @@ abstract class Option_<T extends keyof AllowedOptions> {
   onSave_ (): void { /* empty */ }
   checker_?: Checker<T>;
 
-  static all_ = Object.create(null) as {
-    [T in keyof AllowedOptions]: Option_<T>;
-  } & SafeObject;
+  static all_: { [T in keyof AllowedOptions]: OptionType<T> } & SafeObject
   static syncToFrontend_: Array<keyof SettingsNS.AutoSyncedNameMap>;
   static suppressPopulate_ = true;
 
@@ -555,14 +559,14 @@ Promise.resolve((BG_.BgUtils_.GC_(1), bgSettings_.restore_) && bgSettings_.resto
     docEl.classList.toggle("auto-dark", !!bgSettings_.payload_.d);
     docEl.style.height = "";
   } else {
-    nextTick_(versionEl => {
+    nextTick_((versionEl): void => {
       blockedMsg.remove();
       blockedMsg = null as never;
       const docCls = (document.documentElement as HTMLHtmlElement).classList;
       docCls.toggle("auto-dark", !!bgSettings_.payload_.d);
       docCls.toggle("less-motion", !!bgSettings_.payload_.m);
       versionEl.textContent = bgSettings_.CONST_.VerName_;
-    }, $<HTMLElement>(".version"));
+    }, $(".version"))
   }
   const element = $<HTMLAnchorElement>(".options-link"), optionsUrl = bgSettings_.CONST_.OptionsPage_;
   element.href !== optionsUrl && (element.href = optionsUrl);
@@ -589,7 +593,7 @@ Promise.resolve((BG_.BgUtils_.GC_(1), bgSettings_.restore_) && bgSettings_.resto
   },
   topUrl = frameInfo.i && ((BG_.Backend_.indexPorts_(curTab.id, 0)
       || {} as Frames.Port).s || {} as Frames.Sender).u || "",
-  stateAction = $<EnsuredMountedHTMLElement>("#state-action"), saveBtn = $<HTMLButtonElement>("#saveOptions"),
+  stateAction = $<EnsuredMountedHTMLElement>("#state-action"), saveBtn2 = $<HTMLButtonElement>("#saveOptions"),
   stateValue = stateAction.nextElementSibling, stateTail = stateValue.nextElementSibling,
   url = frameInfo.u;
   class PopExclusionRulesOption extends ExclusionRulesOption_ {
@@ -688,8 +692,8 @@ Promise.resolve((BG_.BgUtils_.GC_(1), bgSettings_.restore_) && bgSettings_.resto
     stateTail.textContent = curIsLocked && !isSaving && same
       ? pTrans_("o147", [pTrans_(curLockedStatus !== Frames.Status.enabled ? "o144" : "o145")])
       : curIsLocked ? pTrans_("o148") : "";
-    saveBtn.disabled = same;
-    (saveBtn.firstChild as Text).data = pTrans_(same ? "o115" : "o115_2");
+    saveBtn2.disabled = same;
+    (saveBtn2.firstChild as Text).data = pTrans_(same ? "o115" : "o115_2")
   }
   function onUpdated(this: void): void {
     if (saved) {
@@ -699,13 +703,13 @@ Promise.resolve((BG_.BgUtils_.GC_(1), bgSettings_.restore_) && bgSettings_.resto
         (el.nextElementSibling as HTMLElement).style.display = "";
         el.remove();
       }
-      saveBtn.removeAttribute("disabled");
-      (saveBtn.firstChild as Text).data = pTrans_("o115_2");
+      saveBtn2.removeAttribute("disabled");
+      (saveBtn2.firstChild as Text).data = pTrans_("o115_2")
     }
     updateState(inited < 2);
   }
   function saveOptions(this: void): void {
-    if (saveBtn.disabled) {
+    if (saveBtn2.disabled) {
       return;
     }
     const testers = bgExclusions.testers_;
@@ -716,15 +720,15 @@ Promise.resolve((BG_.BgUtils_.GC_(1), bgSettings_.restore_) && bgSettings_.resto
     }, 50);
     inited = 3;
     updateState(true);
-    (saveBtn.firstChild as Text).data = pTrans_("o115_3");
+    (saveBtn2.firstChild as Text).data = pTrans_("o115_3")
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
-      saveBtn.blur();
+      saveBtn2.blur()
     }
-    saveBtn.disabled = true;
+    saveBtn2.disabled = true
     saved = true;
   }
-  saveBtn.onclick = saveOptions;
+  saveBtn2.onclick = saveOptions
   document.addEventListener("keyup", function (event): void {
     if (event.keyCode === kKeyCode.enter && (event.ctrlKey || event.metaKey)) {
       setTimeout(window.close, 300);

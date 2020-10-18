@@ -1,4 +1,5 @@
 let keyMappingChecker_ = {
+  status_: 0 as const,
   normalizeKeys_: null as never as (this: void, s: string) => string,
   init_ (): void {
     function sortModifiers(option: string): string {
@@ -115,7 +116,8 @@ Option_.all_.keyMappings.checker_ = keyMappingChecker_;
 keyMappingChecker_ = null as never;
 
 Option_.all_.searchUrl.checker_ = {
-  check_ (str: string): string {
+  status_: 0,
+  check_ (str): string {
     const map = Object.create<Search.RawEngine>(null);
     BG_.BgUtils_.parseSearchEngines_("k:" + str, map);
     const obj = map.k;
@@ -154,7 +156,8 @@ Option_.all_.vimSync.allowToSave_ = function (): boolean {
 };
 
 Option_.all_.keyboard.checker_ = {
-  check_ (data: AllowedOptions["keyboard"]): AllowedOptions["keyboard"] {
+  status_: 0,
+  check_ (data) {
     if (data == null || data.length !== 2 || !(data[0] > 0 && data[0] < 4000) || !(data[1] > 0 && data[1] < 1000)) {
       return bgSettings_.defaults_.keyboard;
     }
@@ -170,7 +173,7 @@ Option_.all_.keyboard.checker_ = {
   }
 
   if (info === "keyMappings") { return ReloadCommands(); }
-  Option_.all_.keyMappings.element_.addEventListener("input", ReloadCommands);
+  (Option_.all_.keyMappings.element_ as HTMLInputElement).addEventListener("input", ReloadCommands)
   function ReloadCommands(this: HTMLElement | void, event?: Event): void {
     BG_.KeyMappings || BG_.BgUtils_.require_("KeyMappings");
     if (!event) { return; }

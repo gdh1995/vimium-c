@@ -56,7 +56,7 @@ ExclusionRulesOption_.prototype.sortRules_ = function (this: ExclusionRulesOptio
 };
 
 $("#exclusionSortButton").onclick = function (): void {
-  return (Option_.all_.exclusionRules as ExclusionRulesOption_).sortRules_(this);
+  Option_.all_.exclusionRules.sortRules_(this)
 };
 
 function formatDate_(time: number | Date): string {

@@ -329,7 +329,7 @@ var Tasks = {
     });
     gulp.task("min/others/options", function() {
       exArgs.passAll = null;
-      return minifyJSFiles(["pages/options_base.js", "pages/options.js"
+      return minifyJSFiles(["pages/options_base.js", "pages/options_defs.js", "pages/options_wnd.js"
       , "pages/options_ext.js", "pages/options_checker.js"]
           , ".", deepcopy(exArgs));
     });
