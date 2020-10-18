@@ -57,7 +57,7 @@ interface FrameHintsInfo {
 
 import {
   VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_,
-  clearTimeout_, VOther, fgCache, doc, readyState_, chromeVer_, vApi, deref_, getTime, weakRef_
+  clearTimeout_, VOther, fgCache, doc, readyState_, chromeVer_, vApi, deref_, getTime, weakRef_, unwrap_ff
 } from "../lib/utils"
 import {
   frameElement_, querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_,
@@ -117,12 +117,6 @@ let _timer = TimerID.None
 let kSafeAllSelector = Build.BTypes & ~BrowserType.Firefox ? ":not(form)" as const : "*" as const
 let manager_: HintManager | null = null
 let api_: VApiTy = null as never
-const unwrap_ff = (!(Build.BTypes & BrowserType.Firefox) ? 0 as never
-      : <T extends object> (obj: T): T => (obj as XrayedObject<T>).wrappedJSObject || obj) as {
-    <T extends SafeElement>(obj: T): T;
-    (obj: Element): unknown;
-    <T extends object>(obj: T): T;
-}
   /** return whether the element's VHints is not accessible */
 let addChildFrame_: ((child: BaseHintWorker
       , el: KnownIFrameElement, rect: Rect | null) => boolean) | null | undefined
@@ -131,7 +125,7 @@ export {
   isActive as isHintsActive,
   hints_ as allHints, keyStatus_ as hintKeyStatus, useFilter_, frameList_, chars_ as hintChars,
   mode_ as hintMode_, mode1_, options_ as hintOptions, count_ as hintCount_,
-  forHover_, isClickListened_, forceToScroll_, tooHigh_, kSafeAllSelector, unwrap_ff, addChildFrame_,
+  forHover_, isClickListened_, forceToScroll_, tooHigh_, kSafeAllSelector, addChildFrame_,
   api_ as hintApi, manager_ as hintManager,
 }
 export function set_kSafeAllSelector (_newKSafeAll: string): void { kSafeAllSelector = _newKSafeAll as any }

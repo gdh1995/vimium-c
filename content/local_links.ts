@@ -5,7 +5,7 @@ type NestedFrame = false | 0 | null | KnownIFrameElement
 
 import {
   VOther, clickable_, isJSUrl, doc, isImageUrl, fgCache, readyState_, chromeVer_, VTr, createRegExp, getMediaUrl,
-  getMediaTag, kMediaTag
+  getMediaTag, kMediaTag, unwrap_ff
 } from "../lib/utils"
 import {
   isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, findMainSummary_, htmlTag_, isAriaNotTrue_,
@@ -20,7 +20,7 @@ import {
 import { find_box } from "./mode_find"
 import { omni_box } from "./omni"
 import {
-  unwrap_ff, kSafeAllSelector, coreHints, addChildFrame_, mode1_, forHover_,
+  kSafeAllSelector, coreHints, addChildFrame_, mode1_, forHover_,
   isClickListened_, forceToScroll_, hintMode_, set_isClickListened_, tooHigh_, useFilter_, hintChars, hintManager,
 } from "./link_hints"
 import { shouldScroll_need_safe, getPixelScaleToScroll, scrolled, resetScrolled, suppressScroll } from "./scroller"
@@ -117,7 +117,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
   if (isClickable === null) {
     type = (s = element.contentEditable) !== "inherit" && s && s !== "false" ? ClickType.edit
       : (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
-          ? (anotherEl = (element as XrayedObject<SafeHTMLElement>).wrappedJSObject || element).onclick
+          ? (anotherEl = unwrap_ff(element)).onclick
             || (anotherEl as TypeToAssert<Element, SafeHTMLElement, "onmousedown">).onmousedown
           : element.getAttribute("onclick"))
         || (s = element.getAttribute("role")) && clickableRoles_.test(s)

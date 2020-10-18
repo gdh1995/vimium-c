@@ -1,5 +1,5 @@
 import {
-  clickable_, timeout_, loc_, getTime, clearTimeout_, vApi, recordLog, doc, setupEventListener, VTr
+  clickable_, timeout_, loc_, getTime, clearTimeout_, vApi, recordLog, doc, setupEventListener, VTr, raw_unwrap_ff
 } from "../lib/utils"
 import { CLK, MDW, OnDocLoaded_, isHTML_, set_createElement_, createElement_ } from "../lib/dom_utils"
 import { grabBackFocus } from "./insert"
@@ -22,7 +22,7 @@ export const main_ff = (Build.BTypes & BrowserType.Firefox ? (): void => {
   try {
     const PEventTarget = (window as any).EventTarget as typeof EventTarget | undefined,
     Cls = PEventTarget && PEventTarget.prototype,
-    wrappedCls = Cls && (Cls as any).wrappedJSObject as typeof Cls | undefined,
+    wrappedCls = Cls && raw_unwrap_ff(Cls),
     _listen = wrappedCls && wrappedCls.addEventListener,
     newListen = function (this: EventTarget, type: string
         , listener: EventListenerOrEventListenerObject): void {
@@ -82,7 +82,7 @@ export const main_ff = (Build.BTypes & BrowserType.Firefox ? (): void => {
     type Pair<Key extends kAct> = readonly [() => void, Key]
     const PEvent = (window as any).Event as typeof Event | undefined,
     EventCls = PEvent && PEvent.prototype as EventToPrevent,
-    wrappedCls = EventCls && (EventCls as any).wrappedJSObject as typeof EventCls | undefined,
+    wrappedCls = EventCls && raw_unwrap_ff(EventCls),
     stdMembers: readonly [Pair<kAct.prevent>, Pair<kAct.stopImm>, Pair<kAct.stopProp>] & { [i in kAct]: Pair<i> }
         = grabBackFocus && wrappedCls ? [[wrappedCls.preventDefault, kAct.prevent]
             , [wrappedCls.stopImmediatePropagation, kAct.stopImm]
@@ -156,7 +156,7 @@ export const wrappedDispatchMouseEvent_ff = (targetElement: Element, mouseEventM
   clickEventToPrevent_ = clickEventToPrevent_ && (mouseEventMayBePrevented.type === CLK
       && (view = (targetElement.ownerDocument as Document).defaultView) === window
       && mouseEventMayBePrevented || 0)
-  if (!(Build.NDEBUG || !view || view !== (window as any).wrappedJSObject)) {
+  if (!(Build.NDEBUG || !view || view !== raw_unwrap_ff(window))) {
     console.log("Assert error: a target element is bound to window.wrappedJSObject");
   }
   if (clickEventToPrevent_) {

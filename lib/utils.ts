@@ -99,6 +99,17 @@ export const deref_ = !(Build.BTypes & BrowserType.ChromeOrFirefox) ? weakRef_ a
       ): T | null | undefined => val && val.deref()
     : (weakRef_ = ((val: object) => val) as any) as never
 
+export const raw_unwrap_ff = Build.BTypes & BrowserType.Firefox ? <T extends object> (val: T): T | undefined => {
+  return (val as XrayedObject<T>).wrappedJSObject
+} : 0 as never
+
+export const unwrap_ff = (!(Build.BTypes & BrowserType.Firefox) ? 0 as never
+    : <T extends object> (obj: T): T => (obj as XrayedObject<T>).wrappedJSObject || obj) as {
+  <T extends SafeElement>(obj: T): T
+  (obj: Element): unknown
+  <T extends object>(obj: T): T extends XrayedObject<infer S> ? S : T
+}
+
 type TimerFunc = (func: (this: void, fake?: TimerType.fake) => void, time: number) => TimerID.Valid | TimerID.Others
 export let timeout_: TimerFunc = Build.NDEBUG ? setTimeout : (func, timeout) => setTimeout(func, timeout)
 export let interval_: TimerFunc = Build.NDEBUG ? setInterval : (func, period) => setInterval(func, period)

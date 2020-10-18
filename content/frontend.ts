@@ -1,7 +1,7 @@
 import {
   doc, isTop, injector, VOther, initialDocState, set_esc, esc, setupEventListener, set_isEnabled_,
   set_clickable_, clickable_, isAlive_, set_VTr, setupKeydownEvents, onWndFocus,
-  set_readyState_, readyState_, callFunc, recordLog, set_vApi, vApi, locHref,
+  set_readyState_, readyState_, callFunc, recordLog, set_vApi, vApi, locHref, unwrap_ff, raw_unwrap_ff,
 } from "../lib/utils"
 import { suppressTail_, getMappedKey } from "../lib/keyboard_utils"
 import { frameElement_, set_OnDocLoaded_ } from "../lib/dom_utils"
@@ -121,15 +121,15 @@ else if (Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox |
       // So add `|| anotherWnd` for less exceptions
       try {
         let core: ReturnType<SandboxGetterFunc>,
-        wrapper = (anotherWnd.wrappedJSObject || anotherWnd)[coreTester.n], getter = wrapper && wrapper._get;
+        wrapper = unwrap_ff(anotherWnd as any as XrayedObject<typeof wrappedJSObject>)[coreTester.n],
+        getter = wrapper && wrapper._get
         return getter && (core = getter(coreTester.c, coreTester.k = Math.random())) &&
           !coreTester.r ? core : null;
       } catch {}
     })
     // on Firefox, such an exposed function can only be called from privileged environments
-    wrappedJSObject[coreTester.n] = Object.defineProperty<SandboxGetterFunc>(
-        (new window.Object() as any).wrappedJSObject as object,
-        "_get", { value: coreTester.g })
+    wrappedJSObject[coreTester.n] = Object.defineProperty(
+        raw_unwrap_ff(new window.Object())!, "_get", { value: coreTester.g })
 }
 if (!(isTop || injector)) {
   const scoped_parApi = frameElement_() && getParentVApi();

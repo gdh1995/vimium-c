@@ -464,7 +464,6 @@ type XrayedObject<T extends object> = T & {
 
 interface Window {
   readonly VApi?: VApiTy;
-  wrappedJSObject: typeof wrappedJSObject;
 }
 
 /** Warning on Firefox:
