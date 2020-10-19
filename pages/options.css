@@ -454,23 +454,23 @@ label:active {
   width: 33%;
 }
 .exclusionRemoveTd {
-  width: 20px;
+  width: 24px;
 }
-.exclusionRemove {
+.remove {
   cursor: default;
-  height: 12px;
-  margin: 8px 4px 0;
+  height: 16px;
+  margin: 6px 4px 0;
   stroke: #979ca0;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 2.4;
-  width: 12px;
+  width: 16px;
 }
-.exclusionRemove:hover {
+.remove:hover {
   stroke: #444;
   stroke: var(--icon-button-hover-color);
 }
-.exclusionRemove:active {
+.remove:active {
   stroke: #4d90fe;
   stroke: var(--icon-button-active-color);
   outline: none;

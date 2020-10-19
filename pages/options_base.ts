@@ -391,7 +391,7 @@ static OnNewKeys_ (vnode: ExclusionVisibleVirtualNode): void {
 onRemoveRow_ (event: Event): void {
   let element = event.target as EnsuredMountedElement
   element.localName === "path" && (element = element.parentElement)
-  if (!element.classList.contains("exclusionRemove")) { return; }
+  if (!element.classList.contains("remove")) { return; }
   element = element.parentNode.parentNode
   if (element.classList.contains("exclusionRule")) {
     const vnode = (element.querySelector(".pattern") as ExclusionRealNode).vnode;
