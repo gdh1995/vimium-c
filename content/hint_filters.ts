@@ -11,7 +11,7 @@ import {
   createElement_, querySelector_unsafe_, getInputType, htmlTag_, docEl_unsafe_, ElementProto, HDN, removeEl_s
 } from "../lib/dom_utils"
 import { bZoom_, padClientRect_, getBoundingClientRect_, dimSize_ } from "../lib/rect"
-import { chromeVer_, doc, createRegExp } from "../lib/utils"
+import { chromeVer_, createRegExp } from "../lib/utils"
 import { BSP, DEL, ENTER } from "../lib/keyboard_utils"
 import { maxLeft_, maxRight_, maxTop_ } from "./local_links"
 import { ui_root } from "./dom_ui"
@@ -424,7 +424,7 @@ export const renderMarkers = (hintItems: readonly HintItem[]): void => {
     } else {
       right = hint.a.slice(-1);
       for (const ch of hint.a.slice(0, -1)) {
-        const node = doc.createElement("span");
+        const node = createElement_("span")
         node.textContent = ch;
         marker.appendChild(node);
       }

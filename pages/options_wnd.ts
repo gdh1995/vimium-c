@@ -447,7 +447,7 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
   const isDebugging = self.element_.classList.contains("debugging")
   if (self.saved_ && !isDebugging || !window.VApi || !VApi.z) { return }
   const newVal = self.readValueFromElement_(), isSame = newVal === self.previous_,
-  css = bgSettings_.reloadCSS_(-1, newVal)!, misc = VApi.y(), root = misc.r
+  css = bgSettings_.reloadCSS_(-1, newVal), misc = VApi.y(), root = misc.r
   if (!isDebugging && BG_) {
     chrome.tabs.query({ currentWindow: true, active: true }, (tabs?: [chrome.tabs.Tab?]): void => {
       if (tabs && tabs[0] && tabs[0].url === location.href) {

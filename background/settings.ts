@@ -284,7 +284,8 @@ var Settings_ = {
       } });
     }
   }) as { [key in SettingsNS.DeclaredUpdateHooks]: SettingsNS.UpdateHook<key>; } as SettingsNS.FullUpdateHookMap,
-  reloadCSS_: null as never as (action: -1 | 2, _?: string) => SettingsNS.MergedCustomCSS | void,
+  reloadCSS_: null as never as <T extends -1 | 2> (action: T, customCSS?: string
+      ) => T extends -1 ? SettingsNS.MergedCustomCSS : void,
   /** can only fetch files in the `[ROOT]/front` folder */
   /** @todo: */
   fetchFile_ (file: keyof SettingsNS.ReadableFiles, callback: (this: void, text: string) => any): void {

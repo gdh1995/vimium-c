@@ -29,8 +29,7 @@ const StyleCacheId_ = settings.CONST_.VerCode_ + ","
 
 const loadCSS = (action: MergeAction, cssStr?: string): SettingsNS.MergedCustomCSS | void => {
   if (action === MergeAction.virtual) {
-    mergeCSS(cssStr!, MergeAction.virtual)
-    return
+    return mergeCSS(cssStr!, MergeAction.virtual)
   }
   {
     let findCSSStr: string | null | false
@@ -229,7 +228,7 @@ const mergeCSS = (css2Str: string, action: MergeAction | "userDefinedCss"): Sett
 }
 
 settings.updateHooks_.userDefinedCss = mergeCSS
-settings.reloadCSS_ = loadCSS
+settings.reloadCSS_ = loadCSS as typeof settings.reloadCSS_
 
 set_innerCSS_(settings.storage_.getItem("innerCSS") || "")
 if (innerCSS_ && innerCSS_.startsWith(StyleCacheId_)) {
