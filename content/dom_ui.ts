@@ -1,13 +1,13 @@
 import {
   setupEventListener, isTop, keydownEvents_, VOther, timeout_, fgCache, doc, isAlive_, isJSUrl, chromeVer_, VTr, deref_,
-  vApi, Stop_, createRegExp
+  vApi, Stop_, createRegExp, isTY
 } from "../lib/utils"
 import { prevent_ } from "../lib/keyboard_utils"
 import {
   createElement_, attachShadow_, NONE, fullscreenEl_unsafe_, docEl_unsafe_, getComputedStyle_, set_docSelectable_,
   GetParent_unsafe_, getSelection_, ElementProto, GetChildNodes_not_ff, GetShadowRoot_, getEditableType_, htmlTag_,
   notSafe_not_ff_, CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_, getAccessibleSelectedNode, removeEl_s,
-  appendNode_s, append_not_ff, setClassName_s, isNode_
+  appendNode_s, append_not_ff, setClassName_s, isNode_, INP, contains_s, setOrRemoveAttr, selOffset_, textContent_
 } from "../lib/dom_utils"
 import {
   bZoom_, dScale_, getZoom_, wdZoom_, getSelectionBoundingBox_, prepareCrop_, getClientRectsForAreas_,
@@ -90,7 +90,7 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
        * `AdjustType.NotAdjust` must be used before a certain, clear normal adjusting
        */
       // enforce webkit to build the style attribute node, and then we can remove it totally
-      box_!.hasAttribute(S) && box_!.removeAttribute(S)
+      box_!.hasAttribute(S) && setOrRemoveAttr(box_!, S)
       if (adjust_type !== AdjustType.NotAdjust) {
         adjustUI()
       }
@@ -157,7 +157,7 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
     // Before Firefox 64, the mozFullscreenChangeEvent.target is document
     // so here should only use `fullscreenEl_unsafe_`
     const el: Element | null = fullscreenEl_unsafe_(),
-    el2 = el && !root_.contains(el) ? el : docEl_unsafe_()!
+    el2 = el && !contains_s(root_, el) ? el : docEl_unsafe_()!
     // Chrome also always remove node from its parent since 58 (just like Firefox), which meets the specification
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
     //  -> #concept-node-append -> #concept-node-pre-insert -> #concept-node-adopt -> step 2
@@ -209,7 +209,7 @@ export const ensureBorder = Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or
 export const createStyle = (text: string, css?: HTMLStyleElement): HTMLStyleElement => {
     css = css || createElement_("style");
     css.type = "text/css";
-    css.textContent = text
+    textContent_(css, text)
     return css;
 }
 
@@ -219,7 +219,7 @@ export const learnCSS = (srcStyleIn: typeof styleIn_, force?: 1): void => {
     if (Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor || Build.BTypes & ~BrowserType.Chrome
         ? !styleIn_ || force : !styleIn_) {
       const
-      css = srcStyleIn && (typeof srcStyleIn === "string" ? srcStyleIn : srcStyleIn.textContent);
+      css = srcStyleIn && (isTY(srcStyleIn) ? srcStyleIn : textContent_(srcStyleIn))
       if (css) {
         setUICSS(css)
         if (Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor || Build.BTypes & ~BrowserType.Chrome) {
@@ -245,8 +245,10 @@ export const checkDocSelectable = (): void => {
             ? st.userSelect || st.webkitUserSelect : st.userSelect) !== NONE)
 }
 
+export const getSelectionOf = (node: DocumentOrShadowRootMixin): Selection | null => node.getSelection!()
+
 export const getSelected = (notExpectCount?: {r?: ShadowRoot | null}): Selection => {
-  let el: Node | null | undefined, sel: Selection | null, func: ShadowRoot["getSelection"]
+  let el: Node | null | undefined, sel: Selection | null
   let sr: ShadowRoot | null = null
   if (el = deref_(currentScrolling)) {
       if (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
@@ -257,8 +259,8 @@ export const getSelected = (notExpectCount?: {r?: ShadowRoot | null}): Selection
         for (let pn: Node | null; pn = GetParent_unsafe_(el, PNType.DirectNode); el = pn) { /* empty */ }
       }
       if (el !== doc && isNode_(el, kNode.DOCUMENT_FRAGMENT_NODE)
-          && typeof (func = (el as ShadowRoot).getSelection) === "function") {
-        sel = func.call(el as ShadowRoot);
+          && isTY((el as ShadowRoot).getSelection, kTY.func)) {
+        sel = getSelectionOf(el as ShadowRoot);
         if (sel && (notExpectCount || rangeCount_(sel))) {
           sr = el as ShadowRoot
         }
@@ -273,17 +275,17 @@ export const getSelected = (notExpectCount?: {r?: ShadowRoot | null}): Selection
         || (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
           && chromeVer_ < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
           ? Build.MinCVer >= BrowserVer.MinShadowDOMV0 || ElementProto().webkitCreateShadowRoot
-          : typeof ShadowRoot == "function")) {
+          : isTY(ShadowRoot, kTY.func))) {
     while (sel2) {
       sel2 = null;
       el = getAccessibleSelectedNode(sel)
-      if (el && el === getAccessibleSelectedNode(sel, 1) && (offset = sel.anchorOffset) === sel.focusOffset) {
+      if (el && el === getAccessibleSelectedNode(sel, 1) && (offset = selOffset_(sel)) === selOffset_(sel, 1)) {
         if ((el as NodeToElement).tagName) {
           el = (Build.BTypes & ~BrowserType.Firefox ? GetChildNodes_not_ff!(el as Element)
               : el.childNodes as NodeList)[offset]
           if (el && (el as NodeToElement).tagName && (sr = GetShadowRoot_(el as Element))) {
-            if (!(Build.BTypes & ~BrowserType.Chrome) ? (sel2 = sr.getSelection!())
-                : (func = sr.getSelection) && (sel2 = func.call(sr))) {
+            if (!(Build.BTypes & ~BrowserType.Chrome) ? (sel2 = getSelectionOf(sr))
+                : sr.getSelection && (sel2 = getSelectionOf(sr))) {
               sel = sel2!;
             } else {
               sr = null;
@@ -315,7 +317,7 @@ export const getSelectionParent_unsafe = ((sel: Selection, re?: RegExpG & RegExp
       if (isNode_(lastPar, kNode.TEXT_NODE) && lastPar.data.trim().length <= selected.length) {
         let text: HTMLElement["innerText"] | undefined
         while (par && (text = (par as TypeToAssert<Element, HTMLElement, "innerText">).innerText,
-                        !(Build.BTypes & ~BrowserType.Firefox) || typeof text === "string")
+                        !(Build.BTypes & ~BrowserType.Firefox) || isTY(text))
             && selected.length >= (text as string).length) {
           par = GetParent_unsafe_(lastPar = par as HTMLElement, PNType.DirectElement)
         }
@@ -345,7 +347,7 @@ export const getSelectionText = (notTrim?: 1): string => {
 
 export const removeSelection = function (root?: VUIRoot & Pick<DocumentOrShadowRoot, "getSelection">): boolean {
     const sel = (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
-        ? root : root && root.getSelection) ? root!.getSelection!() : getSelection_()
+        ? root : root && root.getSelection) ? getSelectionOf(root as ShadowRoot) : getSelection_()
     const ret = sel && sel.type === "Range" && getAccessibleSelectedNode(sel)
     ret && collpaseSelection(sel!)
     return !!ret
@@ -364,12 +366,12 @@ export const selectAllOfNode = (node: Node) => { getSelection_().selectAllChildr
   /** @NEED_SAFE_ELEMENTS element is LockableElement */
 export const moveSel_need_safe = (element: LockableElement, action: SelectActions | undefined): void => {
     const elTag = htmlTag_(element), type = elTag === "textarea" ? EditableType.TextBox
-        : elTag === "input" ? EditableType.input_
+        : elTag === INP ? EditableType.input_
         : element.isContentEditable ? EditableType.rich_
         : EditableType.Default;
     if (type === EditableType.Default) { return; }
     const isBox = type === EditableType.TextBox || type === EditableType.rich_
-        && element.textContent.includes("\n"),
+        && textContent_(element).includes("\n"),
     lineAllAndBoxEnd = action === "all-input" || action === "all-line",
     gotoStart = action === "start",
     gotoEnd = !action || action === "end" || isBox && lineAllAndBoxEnd;
@@ -462,7 +464,7 @@ const doExitOnClick = (event?: MouseEventToPrevent): void => {
               && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
               && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
               ? event.target === box_
-              : !(event.target instanceof Element) || root_.contains(event.target))
+              : !(event.target instanceof Element) || contains_s(root_, event.target))
           ) {
         return;
       }
@@ -499,7 +501,7 @@ export let getParentVApi = Build.BTypes & BrowserType.Firefox ? (): VApiTy | nul
 export function set_getParentVApi (_newGetParVApi: () => VApiTy | null | void): void { getParentVApi = _newGetParVApi }
 
 export const evalIfOK = (url: Pick<BgReq[kBgReq.eval], "u"> | string): boolean => {
-  typeof url === "string" ? 0 : url = url.u
+  isTY(url) ? 0 : url = url.u
   if (!isJSUrl(url)) {
     return false;
   }

@@ -1,9 +1,9 @@
 import {
   fgCache, doc, isEnabled_, VTr, isAlive_, timeout_, clearTimeout_, interval_, clearInterval_, isLocked_,
 } from "../lib/utils"
+import { isHTML_, createElement_, setClassName_s, appendNode_s, setVisibility_s } from "../lib/dom_utils"
 import { ui_box, ensureBorder, addUIElement, adjustUI, getBoxTagName_cr_ } from "./dom_ui"
 import { allHints, isHintsActive, hintManager, setMode as setHintMode, hintMode_ } from "./link_hints"
-import { isHTML_, createElement_, HDN, setClassName_s, appendNode_s } from "../lib/dom_utils"
 import { insert_global_ } from "./insert"
 import { visual_mode, visual_mode_name } from "./visual"
 import { find_box } from "./mode_find"
@@ -14,7 +14,6 @@ let $text: Text = null as never
 let text = ""
 let opacity_: 0 | 0.25 | 0.5 | 0.75 | 1 = 0
 let timer = TimerID.None
-let style: CSSStyleDeclaration
 
 export { box as hud_box, text as hud_text, opacity_ as hud_opacity, timer as hud_tipTimer }
 
@@ -37,7 +36,6 @@ export const hudShow = (tid: kTip | HintMode, args?: Array<string | number> | st
   box = createElement_(Build.BTypes & BrowserType.Chrome ? getBoxTagName_cr_() : "div")
   setClassName_s(box, "R HUD" + fgCache.d)
   appendNode_s(box, $text = new Text(text))
-  style = box.style
   if (!embed) {
     toggleOpacity("0")
     if (Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor || Build.BTypes & ~BrowserType.Chrome) {
@@ -49,7 +47,7 @@ export const hudShow = (tid: kTip | HintMode, args?: Array<string | number> | st
 
 const tween = (fake?: TimerType.fake): void => { // safe-interval
   let opacity = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake
-                && fake ? 0 : +(style.opacity || 1);
+                && fake ? 0 : +(box!.style.opacity || 1);
   if (opacity === opacity_) { /* empty */ }
   else if (opacity === 0) {
     $text.data = text;
@@ -63,7 +61,7 @@ const tween = (fake?: TimerType.fake): void => { // safe-interval
     opacity = opacity_;
   }
   if (opacity) {
-    style.opacity = opacity < 1 ? "" + opacity : ""
+    toggleOpacity(opacity < 1 ? <string> <number | string> opacity : "")
   } else {
     hudHide(TimerType.noTimer)
   }
@@ -100,7 +98,7 @@ export const hudHide = (info?: TimerType.fake | TimerType.noTimer): void => {
   }
 }
 
-export const toggleOpacity = (opacity: string) => {
-  style.opacity = opacity
-  style.visibility = opacity !== "0" ? "" : HDN
+export const toggleOpacity = (opacity: string, onlyOpacity?: 1) => {
+  box!.style.opacity = opacity
+  onlyOpacity || setVisibility_s(box!, opacity !== "0")
 }

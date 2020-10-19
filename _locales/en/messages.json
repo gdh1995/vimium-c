@@ -438,6 +438,7 @@
   "114": { "message": "Search has arrived at the $1" },
   "115": { "message": "start" },
   "116": { "message": "end" },
+  "117": { "message": "\\b(?:[Cc]lose)(?:$$|[-\\sA-Z_])" },
   "200": { "message": "Not allowed to open the target new tab URL" },
   "201": { "message": "You cancelled importing" },
   "202": { "message": "Import settings data: OK!" },

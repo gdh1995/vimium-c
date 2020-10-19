@@ -6,9 +6,9 @@ import {
 } from "../lib/utils"
 import { set_keyIdCorrectionOffset_old_cr_, handler_stack } from "../lib/keyboard_utils"
 import {
-  editableTypes_, markFramesetTagUnsafe, setNotSafe_not_ff, OnDocLoaded_, frameElement_,
+  editableTypes_, markFramesetTagUnsafe, setNotSafe_not_ff, OnDocLoaded_, frameElement_, BU,
   htmlTag_, querySelector_unsafe_, isHTML_, createElement_, setClassName_s,
-  docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, CLK, ElementProto, isIFrameElement, DAC, removeEl_s
+  docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, CLK, ElementProto, isIFrameElement, DAC, removeEl_s, toggleClass
 } from "../lib/dom_utils"
 import {
   port_callbacks, post_, safePost, set_requestHandlers, requestHandlers, hookOnWnd, set_hookOnWnd,
@@ -166,7 +166,7 @@ set_requestHandlers([
       const i2 = "_" + i as Keys;
       (i2 in fgCache) && (safer(fgCache)[i2] = void 0 as never);
     }
-    delta.d != null && hud_box && hud_box.classList.toggle("D", !!delta.d);
+    delta.d != null && hud_box && toggleClass(hud_box, "D", !!delta.d)
   },
   /* kBgReq.focusFrame: */ (req: BgReq[kBgReq.focusFrame]): void => {
     // Note: .c, .S are ensured to exist
@@ -279,7 +279,7 @@ set_hookOnWnd(((action: HookAction): void => {
   f("keydown", onKeydown, true);
   f("keyup", onKeyup, true);
   action !== HookAction.Suppress && f("focus", onFocus, true);
-  f("blur", onBlur, true);
+  f(BU, onBlur, true);
   if (!(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome) {
     f(CLK, anyClickHandler, true);
   }

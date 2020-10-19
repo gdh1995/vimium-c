@@ -4,13 +4,13 @@ type HintSources = readonly SafeElement[] | NodeListOf<SafeElement>;
 type NestedFrame = false | 0 | null | KnownIFrameElement
 
 import {
-  VOther, clickable_, isJSUrl, doc, isImageUrl, fgCache, readyState_, chromeVer_, VTr, createRegExp, getMediaUrl,
-  getMediaTag, kMediaTag, unwrap_ff
+  VOther, clickable_, isJSUrl, doc, isImageUrl, fgCache, readyState_, chromeVer_, VTr, createRegExp, unwrap_ff
 } from "../lib/utils"
 import {
   isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, findMainSummary_, htmlTag_, isAriaNotTrue_,
   NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, ElementProto, notSafe_not_ff_, docEl_unsafe_,
-  GetParent_unsafe_, unsafeFramesetTag_old_cr_, isHTML_, querySelectorAll_unsafe_, isNode_
+  GetParent_unsafe_, unsafeFramesetTag_old_cr_, isHTML_, querySelectorAll_unsafe_, isNode_, INP, attr_s,
+  getMediaTag, getMediaUrl, contains_s
 } from "../lib/dom_utils"
 import {
   getVisibleClientRect_, getZoomedAndCroppedRect_, getClientRectsForAreas_, getCroppedRect_, padClientRect_,
@@ -33,10 +33,11 @@ let maxLeft_ = 0
 let maxTop_ = 0
 let maxRight_ = 0
 let clickableClasses_: RegExpOne
+let closableClasses_: RegExpOne
 let clickableRoles_: RegExpI
 let buttonOrATags_: RegExpOne
 
-export { frameNested_, ngEnabled, maxLeft_, maxTop_, maxRight_ }
+export { frameNested_, ngEnabled, maxLeft_, maxTop_, maxRight_, closableClasses_ }
 export const localLinkClear = (): void => { maxLeft_ = maxTop_ = maxRight_ = 0 }
 export function set_frameNested_ (_newNestedFrame: NestedFrame): void { frameNested_ = _newNestedFrame }
 
@@ -121,9 +122,9 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
             || (anotherEl as TypeToAssert<Element, SafeHTMLElement, "onmousedown">).onmousedown
           : element.getAttribute("onclick"))
         || (s = element.getAttribute("role")) && clickableRoles_.test(s)
-        || ngEnabled && element.getAttribute("ng-click")
-        || forHover_ && element.getAttribute("onmouseover")
-        || jsaEnabled_ && (s = element.getAttribute("jsaction")) && checkJSAction(s)
+        || ngEnabled && attr_s(element, "ng-click")
+        || forHover_ && attr_s(element, "onmouseover")
+        || jsaEnabled_ && (s = attr_s(element, "jsaction")) && checkJSAction(s)
       ? ClickType.attrListener
       : clickable_.has(element) && isClickListened_ && /*#__NOINLINE__*/ inferTypeOfListener(element, tag)
       ? ClickType.codeListener
@@ -161,10 +162,10 @@ const getClickableInNonHTMLButMayFormatted = (hints: Hint[]
           || tabIndex != null && (!(Build.BTypes & ~BrowserType.Firefox)
               || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
               ? (anotherEl = unwrap_ff(element as NonHTMLButFormattedElement)).onclick || anotherEl.onmousedown
-              : element.getAttribute("onclick") || element.getAttribute("onmousedown"))
-          || (s = element.getAttribute("role")) && (<RegExpI> /^button$/i).test(s)
-          || ngEnabled && element.getAttribute("ng-click")
-          || jsaEnabled_ && (s = element.getAttribute("jsaction")) && checkJSAction(s)
+              : attr_s(element, "onclick") || attr_s(element, "onmousedown"))
+          || (s = attr_s(element, "role")) && (<RegExpI> /^button$/i).test(s)
+          || ngEnabled && attr_s(element, "ng-click")
+          || jsaEnabled_ && (s = attr_s(element, "jsaction")) && checkJSAction(s)
         ? ClickType.attrListener
         : tabIndex != null && tabIndex >= 0 ? element.localName === "a" ? ClickType.attrListener : ClickType.tabindex
         : ClickType.Default;
@@ -189,8 +190,8 @@ const checkJSAction = (str: string): boolean => {
 
 const checkAnchor = (anchor: HTMLAnchorElement): Rect | null => {
   // for Google search result pages
-  let mayBeSearchResult = !!(anchor.rel || anchor.getAttribute("onmousedown")
-        || (Build.BTypes & ~BrowserType.Chrome ? anchor.getAttribute("ping") : anchor.ping)),
+  let mayBeSearchResult = !!(anchor.rel || attr_s(anchor, "onmousedown")
+        || (Build.BTypes & ~BrowserType.Chrome ? attr_s(anchor, "ping") : anchor.ping)),
   el = mayBeSearchResult && querySelector_unsafe_("h3,h4", anchor)
         || (mayBeSearchResult || anchor.childElementCount === 1) && anchor.firstElementChild as Element | null
         || null,
@@ -245,7 +246,7 @@ const inferTypeOfListener = (el: SafeHTMLElement, tag: string): boolean => {
 /** Note: required by {@link #kFgCmd.focusInput}, should only add LockableElement instances */
 export const getEditable = (hints: Hint[], element: SafeHTMLElement): void => {
   let arr: Rect | null, s: string = element.localName;
-  if ((s === "input" || s === "textarea")
+  if ((s === INP || s === "textarea")
       ? s < "t" && uneditableInputs_[getInputType(element as HTMLInputElement)]
         || (element as TextElement).disabled || (element as TextElement).readOnly
       : (s = element.contentEditable) === "inherit" || s === "false" || !s) {
@@ -270,7 +271,7 @@ const getSelectable = (hints: Hint[], element: SafeHTMLElement): void => {
 
 const getLinks = (hints: Hint[], element: SafeHTMLElement): void => {
   let a: string | null | false, arr: Rect | null;
-  if ((a = element.dataset.vimUrl || element.localName === "a" && element.getAttribute("href")) && a !== "#"
+  if ((a = element.dataset.vimUrl || element.localName === "a" && attr_s(element, "href")) && a !== "#"
       && !isJSUrl(a)) {
     if (arr = getVisibleClientRect_(element)) {
       hints.push([element, arr, ClickType.Default]);
@@ -478,7 +479,7 @@ const deduplicate = (list: Hint[]): void => {
           if (notRemoveParents
               = crect.l < prect.l + /* icon_16 */ 19 && crect.t < prect.t + 9
               && crect.l > prect.l - 4 && crect.t > prect.t - 4 && crect.b > prect.b - 9
-              && (s !== "a" || element.contains(list[j][0]))) {
+              && (s !== "a" || contains_s(element, list[j][0]))) {
             // the `<a>` is a single-line box's most left element and the first clickable element,
             // so think the box is just a layout container
             // for [i] is `<div>`, not limit the height of parent `<div>`,
@@ -569,10 +570,10 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
       || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
       ? (x: number, y: number): boolean => {
     fromPoint = root.elementFromPoint(x, y);
-    return fromPoint ? el === fromPoint || el.contains(fromPoint) : root === doc;
+    return fromPoint ? el === fromPoint || contains_s(el, fromPoint) : root === doc
   } : (x, y): boolean => {
     fromPoint = root.elementFromPoint(x, y);
-    return !fromPoint || el === fromPoint || el.contains(fromPoint);
+    return !fromPoint || el === fromPoint || contains_s(el, fromPoint)
   };
   if (!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && VOther & BrowserType.Edge
       || Build.BTypes & BrowserType.Chrome && (Build.MinCVer < BrowserVer.Min$Node$$getRootNode
@@ -597,15 +598,14 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
       continue;
     }
     if (nodeType === kNode.DOCUMENT_FRAGMENT_NODE
-        && (temp = el.lastElementChild as Element | null)
-        && htmlTag_(temp) === "slot"
-        && (root as ShadowRoot).host.contains(fromPoint!)) {
+        && (temp = el.lastElementChild as Element | null) && htmlTag_(temp) === "slot"
+        && contains_s((root as ShadowRoot).host, fromPoint!)) {
       continue;
     }
     if ((tag = el.localName) === "img"
         ? isDescendant(el, fromPoint!, 0)
         : tag === "area" ? fromPoint === list[i][4]
-        : tag === "input" && ((htmlTag_(fromPoint!) !== "label"
+        : tag === INP && ((htmlTag_(fromPoint!) !== "label"
               && (!(Build.BTypes & ~BrowserType.Firefox) || !notSafe_not_ff_!(fromPoint!))
               && (fromPoint as SafeElement).parentElement || fromPoint!) as HTMLLabelElement).control === el
           && (notForAllClickable || (i < 1 || list[i - 1][0] !== el) && (i >= list.length || list[i + 1][0] !== el))) {
@@ -626,7 +626,7 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
         while (temp = stack[index2], index2++ < elPos
             && !(Build.BTypes & ~BrowserType.Firefox && notSafe_not_ff_!(temp))
             && !isAriaNotTrue_(temp as SafeElement, kAria.hidden)) { /* empty */ }
-        temp = temp !== fromPoint && el.contains(temp) ? el : temp;
+        temp = temp !== fromPoint && contains_s(el, temp) ? el : temp
       }
       temp === el
       || does_hit(cx, Build.BTypes & BrowserType.Chrome ? (area.t + 2) * zoom : area.t + 2) // x=center, y=top
@@ -684,7 +684,7 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
       t.t > maxTop_ && t.t > r.t || t.l > maxLeft_ && t.l > r.l ||
         r2.length === 1 && (t.b - t.t < 3 || t.r - t.l < 3) || (visibleElement[1] = t);
     } else if ((reason = visibleElement[2]) > ClickType.MaxNotWeak && reason < ClickType.MinNotWeak
-        && visibleElement[0].contains(visibleElements[_i][0])) {
+        && contains_s(visibleElement[0], visibleElements[_i][0])) {
       visibleElements.splice(_len, 1);
     } else {
       visibleElement.length > 3 && (r = (visibleElement as Hint4)[3][0]);
@@ -711,6 +711,7 @@ const initTestRegExps = (): void => {
     clickableClasses_ = createRegExp(kTip.clickableClasses, "")
     clickableRoles_ = createRegExp(kTip.clickableRoles, "i")
     buttonOrATags_ = createRegExp(kTip.buttonOrA, "")
+    closableClasses_ = createRegExp(kTip.closableClasses, "")
   }
 }
 

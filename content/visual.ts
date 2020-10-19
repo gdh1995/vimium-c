@@ -32,11 +32,12 @@ declare const enum kYank { // should have no overlap with ReuseType
   MIN = 7, Exit = 7, NotExit = 8, RichTextButNotExit = 9,
 }
 
-import { VTr, VOther, safer, fgCache, doc, chromeVer_, tryCreateRegExp } from "../lib/utils"
+import { VTr, VOther, safer, fgCache, doc, chromeVer_, tryCreateRegExp, isTY } from "../lib/utils"
 import {
   getSelection_, getSelectionFocusEdge_, isHTML_, docEl_unsafe_, notSafe_not_ff_, getEditableType_, editableTypes_,
   GetChildNodes_not_ff, isInputInTextMode_cr_old, rangeCount_, getAccessibleSelectedNode, scrollingEl_, isNode_,
-  compareDocumentPosition
+  compareDocumentPosition,
+  selOffset_
 } from "../lib/dom_utils"
 import {
   padClientRect_, getSelectionBoundingBox_, getZoom_, prepareCrop_, cropRectToVisible_, getVisibleClientRect_,
@@ -171,7 +172,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
     }
     const count = currentCount, childAction = currentSeconds && currentSeconds[key],
     newActions = childAction != null ? childAction : keyMap[key]
-    if (typeof newActions !== "number") {
+    if (!isTY(newActions, kTY.num)) {
       // asserts newActions is SafeDict<VisualAction> | null | undefined
       currentCount = !newActions && key.length < 2 && +key < 10 ? currentSeconds ? +key : +key + count * 10 : 0
       currentSeconds = newActions || null
@@ -380,7 +381,7 @@ const getNextRightCharacter = (isMove: BOOL): string => {
         return ""
       }
       if (isNode_(focusNode!, kNode.TEXT_NODE)) {
-        const i = sel.focusOffset, str = focusNode.data;
+        const i = selOffset_(sel, 1), str = focusNode.data;
         if (str.charAt(i).trim() || i && str.charAt(i - 1).trim() && str.slice(i).trimLeft()
               && (str[i] !== "\n" && !(Build.BTypes & BrowserType.Firefox && str[i] === "\r"))) {
           return str[i];
@@ -567,7 +568,7 @@ const reverseSelection = (): void => {
         extend(i < 0 ? newDi : direction)
       }
     } else {
-      const node = getAccessibleSelectedNode(sel), offset = sel.anchorOffset
+      const node = getAccessibleSelectedNode(sel), offset = selOffset_(sel)
       collapseToRight(direction);
       (!(Build.BTypes & BrowserType.Firefox) || node) && sel.extend(node!, offset)
     }
@@ -602,9 +603,9 @@ const getDirection = function (magic?: string
             : (num1 & kNode.DOCUMENT_POSITION_PRECEDING)
           ) ? kDirTy.left : kDirTy.right; // return `right` in case of unknown cases
       }
-      num1 = sel.anchorOffset;
+      num1 = selOffset_(sel)
       // here rechecks `!anchorNode` is just for safety.
-      if ((num2 = sel.focusOffset - num1) || !anchorNode || isNode_(anchorNode, kNode.TEXT_NODE)) {
+      if ((num2 = selOffset_(sel, 1) - num1) || !anchorNode || isNode_(anchorNode, kNode.TEXT_NODE)) {
         diType_ = DiType.Normal
         return di_ = num2 >= 0 ? kDirTy.right : kDirTy.left
       }
@@ -617,7 +618,7 @@ const getDirection = function (magic?: string
           && editableTypes_[lock.localName]! > EditableType.MaxNotTextModeElement) {
         const child = (!(Build.BTypes & ~BrowserType.Firefox) ? (anchorNode as Element).childNodes as NodeList
             : GetChildNodes_not_ff!(anchorNode as Element)
-            )[num1 >= 0 ? num1 : sel.anchorOffset] as Node | undefined;
+            )[num1 >= 0 ? num1 : selOffset_(sel)] as Node | undefined;
         if (lock === child || /** tend to trust that the selected is a textbox */ !child) {
           if (Build.MinCVer >= BrowserVer.Min$selectionStart$MayBeNull || !(Build.BTypes & BrowserType.Chrome)
               ? (lock as TextModeElement).selectionEnd != null
@@ -643,7 +644,7 @@ const getDirection = function (magic?: string
       return di_ = kDirTy.right
     }
     extend(kDirTy.right)
-    diType_ = diType_ && sel.anchorOffset !== sel.focusOffset ? DiType.Normal
+    diType_ = diType_ && selOffset_(sel) !== selOffset_(sel, 1) ? DiType.Normal
       : diType_ & ~DiType.isUnsafe
     num2 = ("" + sel).length - num1;
     /**

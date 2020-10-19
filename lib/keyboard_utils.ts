@@ -1,9 +1,9 @@
-import { fgCache, clearTimeout_, timeout_, isAlive_, VOther, Stop_ as stopEvent } from "./utils"
+import { fgCache, clearTimeout_, timeout_, isAlive_, VOther, Stop_ as stopEvent, Lower } from "./utils"
 
-const DEL = kChar.delete, BSP = kChar.backspace
+const DEL = kChar.delete, BSP = kChar.backspace, SP = kChar.space
 const ENT = kChar.enter
 export { ENT as ENTER }
-const keyNames_: readonly kChar[] = [kChar.space, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
+const keyNames_: readonly kChar[] = [SP, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
     kChar.left, kChar.up, kChar.right, kChar.down]
 let keyIdCorrectionOffset_old_cr_: 185 | 300 | null = Build.BTypes & BrowserType.Chrome
       && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
@@ -20,7 +20,7 @@ const _modifierKeys: SafeEnum = {
 const handlers_: Array<HandlerNS.Handler | kHandler> = []
 let getMappedKey: (this: void, event: HandlerNS.Event, mode: kModeId) => string
 
-export { keyNames_, getMappedKey, handlers_ as handler_stack, DEL, BSP }
+export { keyNames_, getMappedKey, handlers_ as handler_stack, DEL, BSP, SP as SPC }
 export function set_getMappedKey (_newGetMappedKey: typeof getMappedKey): void { getMappedKey = _newGetMappedKey }
 export function set_keyIdCorrectionOffset_old_cr_ (_newKeyIdCorrectionOffset: 185 | 300 | null): void {
   keyIdCorrectionOffset_old_cr_ = _newKeyIdCorrectionOffset
@@ -100,10 +100,10 @@ export const char_ = (eventWrapper: HandlerNS.Event): kChar => {
             : (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
                 ? kCrct! : kChar.CharCorrectionList)[mapped + 12 * +shiftKey]
     }
-    key = shiftKey && key!.length < 2 ? key : key!.toLowerCase()
+    key = shiftKey && key!.length < 2 ? key : Lower(key!)
   } else {
     key = key!.length > 1 || key === " " ? /*#__NOINLINE__*/ _getKeyName(event)
-        : fgCache.i ? shiftKey ? key!.toUpperCase() : key!.toLowerCase() : key!;
+        : fgCache.i ? shiftKey ? key!.toUpperCase() : Lower(key!) : key!
   }
   return eventWrapper.c = key as kChar
 }

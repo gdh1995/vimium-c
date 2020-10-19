@@ -1,8 +1,8 @@
 import {
-  doc, esc, fgCache, isEnabled_, isTop, keydownEvents_, set_esc, VOther, safer, Stop_
+  doc, esc, fgCache, isEnabled_, isTop, keydownEvents_, set_esc, VOther, safer, Stop_, isTY, Lower
 } from "../lib/utils"
 import {
-  set_getMappedKey, char_, getMappedKey, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_
+  set_getMappedKey, char_, getMappedKey, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_, SPC
 } from "../lib/keyboard_utils"
 import { activeEl_unsafe_, getSelection_, ElementProto } from "../lib/dom_utils"
 import { wndSize_ } from "../lib/rect"
@@ -53,7 +53,7 @@ set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
   let key: string = char, mapped: string | undefined;
   if (char) {
     let baseMod = `${event.altKey ? "a-" : ""}${event.ctrlKey ? "c-" : ""}${event.metaKey ? "m-" : ""}`,
-    chLower = char.toLowerCase(), isLong = char.length > 1,
+    chLower = Lower(char), isLong = char.length > 1,
     mod = event.shiftKey && (isLong || baseMod && char.toUpperCase() !== chLower) ? baseMod + "s-" : baseMod;
     if (!(Build.NDEBUG || char.length === 1 || char.length > 1 && char === chLower)) {
       console.error(`Assert error: mapKey get an invalid char of "${char}" !`);
@@ -120,7 +120,7 @@ const checkPotentialAccessKey = (event: HandlerNS.Event): void => {
      */
     // during tests, an access key of ' ' (space) can be triggered on macOS (2019-10-20)
     event.c === kChar.INVALID && char_(event);
-    if (isWaitingAccessKey !== (event.c.length === 1 || event.c === kChar.space)
+    if (isWaitingAccessKey !== (event.c.length === 1 || event.c === SPC)
         && (getKeyStat_(event.e) & KeyStat.ExceptShift /* Chrome ignore .shiftKey */) ===
             (fgCache.o ? KeyStat.altKey : KeyStat.altKey | KeyStat.ctrlKey)
         ) {
@@ -238,7 +238,7 @@ const onEscDown = (event: KeyboardEventToPrevent, key: kKeyCode
   if (!repeat && removeSelection()) {
     /* empty */
   } else if (repeat && !keydownEvents_[key] && activeEl !== body) {
-    (Build.BTypes & ~BrowserType.Firefox ? typeof activeEl!.blur === "function"
+    (Build.BTypes & ~BrowserType.Firefox ? isTY(activeEl!.blur, kTY.func)
         : activeEl!.blur) && // in case activeEl is unsafe
     activeEl!.blur!();
   } else if (!isTop && activeEl === body) {

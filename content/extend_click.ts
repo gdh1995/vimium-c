@@ -1,8 +1,8 @@
 import {
   clickable_, setupEventListener, VOther, timeout_, doc, isAlive_, set_allowRAF_,
-  loc_, replaceBrokenTimerFunc, allowRAF_, getTime, recordLog, VTr, vApi, Stop_
+  loc_, replaceBrokenTimerFunc, allowRAF_, getTime, recordLog, VTr, vApi, Stop_, isTY
 } from "../lib/utils"
-import { createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, removeEl_s } from "../lib/dom_utils"
+import { createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, removeEl_s, attr_s, setOrRemoveAttr } from "../lib/dom_utils"
 import { safeDestroy } from "./port"
 import { coreHints } from "./link_hints"
 import { grabBackFocus } from "./insert"
@@ -97,11 +97,11 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
     if (++hookRetryTimes > GlobalConsts.MaxRetryTimesForSecret
         || !(t instanceof Element)) { return; }
     Stop_(event);
-    if (t.localName !== "div" || t.getAttribute(S) !== "" + secret) { return; }
+    if (t.localName !== "div" || attr_s(t, S) !== "" + secret) { return }
     setupEventListener(0, kHookRand, hook, 1);
     hook = null as never;
     if (box == null) {
-      t.removeAttribute(S);
+      setOrRemoveAttr(t, S)
       setupEventListener(t, kVOnClick1, onClick);
       box = t;
     }
@@ -113,7 +113,7 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
         event as TypeToAssert<Event, (CustomEventCls | DelegateEventCls)["prototype"], "detail">
         ).detail as ClickableEventDetail | null | undefined,
     isSafe = this === box,
-    detail = rawDetail && typeof rawDetail === "object" && isSafe ? rawDetail : "",
+    detail = rawDetail && isTY(rawDetail, kTY.obj) && isSafe ? rawDetail : "",
     fromAttrs: 0 | 1 | 2 = detail ? (detail[2] + 1) as 1 | 2 : 0;
     let path: typeof event.path,
     target = detail ? null : (event as DelegateEventCls["prototype"]).relatedTarget as Element | null
@@ -134,7 +134,7 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
     if (!Build.NDEBUG) {
       console.log(`Vimium C: extend click: resolve ${detail ? "[%o + %o]" : "<%o>%s"} in %o @t=%o .`
         , detail ? detail[0].length
-          : target && (typeof target.localName !== "string" ? target + "" : target.localName)
+          : target && (isTY(target.localName) ? target.localName : target + "")
         , detail ? detail[2] ? -0 : detail[1].length
           : (event as FocusEvent).relatedTarget ? " (detached)"
           : this === window ? " (path on window)" : " (path on box)"

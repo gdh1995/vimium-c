@@ -482,3 +482,6 @@ interface Window {
  * * when the page is loaded, the `parent` is still restricted and only `.focus` and `.location.href` can be accessed
  */
 declare var parent: unknown;
+
+declare const enum kTY { str = 0, obj = 1, func = 2, num = 3 }
+declare const enum kMediaTag { img = 0, otherMedias = 1, a = 2, others = 3, MIN_NOT_MEDIA_EL = 2, LAST = 3 }

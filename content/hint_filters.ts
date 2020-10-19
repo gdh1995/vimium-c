@@ -3,17 +3,18 @@ import FilteredHintItem = HintsNS.FilteredHintItem
 import MarkerElement = HintsNS.MarkerElement
 import ClickType = HintsNS.ClickType
 
+import { chromeVer_, createRegExp, Lower } from "../lib/utils"
+import {
+  createElement_, querySelector_unsafe_, getInputType, htmlTag_, docEl_unsafe_, ElementProto, removeEl_s, ALA, attr_s,
+  contains_s, setClassName_s, setVisibility_s, toggleClass, textContent_
+} from "../lib/dom_utils"
 import {
   frameList_, hintMode_, useFilter_, coreHints, hintKeyStatus, KeyStatus, hintChars, allHints, setMode, resetMode,
   hintOptions
 } from "./link_hints"
-import {
-  createElement_, querySelector_unsafe_, getInputType, htmlTag_, docEl_unsafe_, ElementProto, HDN, removeEl_s
-} from "../lib/dom_utils"
 import { bZoom_, padClientRect_, getBoundingClientRect_, dimSize_ } from "../lib/rect"
-import { chromeVer_, createRegExp } from "../lib/utils"
-import { BSP, DEL, ENTER } from "../lib/keyboard_utils"
-import { maxLeft_, maxRight_, maxTop_ } from "./local_links"
+import { BSP, DEL, ENTER, SPC } from "../lib/keyboard_utils"
+import { closableClasses_, maxLeft_, maxRight_, maxTop_ } from "./local_links"
 import { ui_root } from "./dom_ui"
 import { omni_box } from "./omni"
 
@@ -67,7 +68,7 @@ export const adjustMarkers = (arr: readonly HintItem[], elements: readonly Hint[
       ? maxRight_ * zi : 0,
   mt = Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar
       ? maxTop_ * zi : 0;
-  while (0 <= i && ui_root.contains(arr[i].d)) {
+  while (0 <= i && contains_s(ui_root, arr[i].d)) {
     let st = arr[i--].m.style;
     Build.BTypes & ~BrowserType.Firefox && (st.zoom = z);
     if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinAbsolutePositionNotCauseScrollbar) {
@@ -131,9 +132,10 @@ export const rotate1 = (totalHints: readonly HintItem[], reverse?: boolean, save
     let oldI: number = totalHints[stack[reverse ? 0 : length - 1]].z!
     for (let j = reverse ? length - 1 : 0; j !== end; reverse ? j-- : j++) {
       const hint = totalHints[stack[j]]
-      const { m: { style, classList }, z: newI } = hint
-      style.zIndex = (hint.z = oldI) as number | string as string;
-      classList.toggle("OH", oldI < max); classList.toggle("SH", oldI >= max);
+      const m = hint.m, newI = hint.z
+      m.style.zIndex = (hint.z = oldI) as number | string as string;
+      toggleClass(m, "OH", oldI < max)
+      toggleClass(m, "SH", oldI >= max)
       oldI = newI!
     }
   }
@@ -175,13 +177,13 @@ export const generateHintText = (hint: Hint, hintInd: number, allItems: readonly
   if (!("lang" in el)) { // SVG elements or plain `Element` nodes
     // SVG: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/text
     // demo: https://developer.mozilla.org/en-US/docs/Web/MathML/Element/mfrac on Firefox
-    text = el.textContent.replace(<RegExpG> /\s{2,}/g, " ");
+    text = textContent_(el).replace(<RegExpG> /\s{2,}/g, " ")
   } else switch (localName) {
   case "input": case "select": case "textarea":
     let labels = (el as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement).labels;
     if (labels && labels.length
         && (text = (labels[0] as SafeHTMLElement).innerText).trim()) {
-      show = <BOOL> +!labels[0].contains(el);
+      show = <BOOL> +!contains_s(labels[0], el)
     } else if (localName[0] === "s") {
       const selected = (el as HTMLSelectElement).selectedOptions[0];
       text = selected ? selected.label : "";
@@ -218,9 +220,8 @@ export const generateHintText = (hint: Hint, hintInd: number, allItems: readonly
           ? generateHintText([el2 as SafeHTMLElement] as {[0]: SafeHTMLElement} as Hint, hintInd, allItems).t : ""
       show = text ? 2 : 0
     }
-    text = text || el.title || el.getAttribute("aria-label") || (
-        (text = el.className) && (<RegExpOne> /\b(?:[Cc]lose)(?:$|[-\sA-Z_])/).test(text) ? "Close"
-        : "")
+    text = text || el.title || attr_s(el, ALA)
+        || ((text = el.className) && closableClasses_.test(text) ? "Close" : "")
     break;
   }
   if (text) {
@@ -257,7 +258,7 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
       if (hasSearch && !(allHints as readonly FilteredHintItem[])[0].h.w) {
         for (const {h: textHint} of allHints as readonly FilteredHintItem[]) {
           // cache lower-case versions for smaller memory usage
-          const words = textHint.w = (textHint.t = textHint.t.toLowerCase()).split(nonMatchedRe_!);
+          const words = textHint.w = (textHint.t = Lower(textHint.t)).split(nonMatchedRe_!);
           words[0] || words.shift();
           words.length && (words[words.length - 1] || words.pop());
         }
@@ -319,7 +320,7 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
         (hint.m.firstChild as Text).data = hint.a;
       }
       for (const hint of oldHints) {
-        hint.m.style.visibility = hint.i !== 0 ? "" : HDN
+        setVisibility_s(hint.m, hint.i !== 0)
       }
       }
       if (!newLen) {
@@ -338,7 +339,7 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
     let el: HTMLSpanElement
     for (const { m: marker, a: key } of hints) {
       const match = key.startsWith(seq);
-      marker.style.visibility = match ? "" : HDN
+      setVisibility_s(marker, match)
       if (match) {
         let child = marker.firstChild!
         if (child.nodeType === kNode.TEXT_NODE) {
@@ -349,7 +350,7 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
           } else {
             marker.insertBefore(el, child)
           }
-          el.className = "MC";
+          setClassName_s(el, "MC")
         } else {
           el = child;
           child = child.nextSibling as Text;
@@ -364,10 +365,10 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
   const newActive = hints[(keyStatus.b < 0 ? (keyStatus.b += newUnerSeq) : keyStatus.b) % newUnerSeq];
   if (oldActive !== newActive) {
     if (oldActive) {
-      oldActive.m.classList.remove("MH");
+      toggleClass(oldActive.m, "MH", 0)
       oldActive.m.style.zIndex = "";
     }
-    newActive.m.classList.add("MH");
+    toggleClass(newActive.m, "MH", 1)
     newActive.m.style.zIndex = allHints!.length as number | string as string;
     activeHint_ = newActive;
   }
@@ -419,7 +420,7 @@ export const renderMarkers = (hintItems: readonly HintItem[]): void => {
           ? right.slice(0, GlobalConsts.MaxLengthOfShownText - 2).trimRight() + "\u2026" // the "\u2026" is wide
           : right;
       if (!right) { continue; }
-      marker.classList.add("TH");
+      toggleClass(marker, "TH", 1)
       right = ": " + right;
     } else {
       right = hint.a.slice(-1);
@@ -464,7 +465,7 @@ export const initAlphabetEngine = (hintItems: readonly HintItem[]): void => {
 
 export const matchHintsByKey = (keyStatus: KeyStatus
     , event: HandlerNS.Event, key: string, keybody: kChar): HintItem | 0 | 2 => {
-  let doesDetectMatchSingle: 0 | 1 | 2 = 0, isSpace = keybody === kChar.space, isTab = keybody === kChar.tab
+  let doesDetectMatchSingle: 0 | 1 | 2 = 0, isSpace = keybody === SPC, isTab = keybody === kChar.tab
   let {k: sequence, t: textSeq, t: textSeq0, b: oldTab, c: hints} = keyStatus
   textSeq = textSeq && textSeq.replace("  ", " ");
   keyStatus.b = isSpace ? oldTab
@@ -487,7 +488,7 @@ export const matchHintsByKey = (keyStatus: KeyStatus
   } else if (useFilter_ && (key.includes("c-") || key.includes("m-")) || (event.c + keybody).length - 2) {
     return 2;
   } else {
-    let lower = keybody.toLowerCase();
+    let lower = Lower(keybody)
     keybody = useFilter_ ? keybody : lower.toUpperCase() as kChar;
     useFilter_ && resetMode();
     if (hintChars.includes(keybody)
@@ -495,7 +496,7 @@ export const matchHintsByKey = (keyStatus: KeyStatus
       sequence += keybody;
       doesDetectMatchSingle = useFilter_ || sequence.length < maxPrefixLen_ ? 1 : 2;
     } else if (useFilter_) {
-      if (keybody !== lower && hintChars !== hintChars.toLowerCase() // ignore {Lo} in chars_
+      if (keybody !== lower && hintChars !== Lower(hintChars) // ignore {Lo} in chars_
           /** this line requires lower.length must be 1 or 0 */
           || (nonMatchedRe_ || (nonMatchedRe_ = createRegExp(kTip.notMatchedHintText, "g") as RegExpG & RegExpOne)
               ).test(lower)) {
@@ -521,7 +522,7 @@ export const matchHintsByKey = (keyStatus: KeyStatus
     const notDoSubCheck = !keyStatus.b, wanted = notDoSubCheck ? sequence : sequence.slice(0, -1);
     hints = keyStatus.c = (doesDetectMatchSingle ? hints : allHints!).filter(hint => {
       const pass = hint.a.startsWith(wanted) && (notDoSubCheck || !hint.a.startsWith(sequence));
-      hint.m.style.visibility = pass ? "" : HDN
+      setVisibility_s(hint.m, pass)
       return pass;
     });
     const limit = sequence.length - keyStatus.b;

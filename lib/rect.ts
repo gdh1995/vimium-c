@@ -1,4 +1,4 @@
-import { doc, VOther, chromeVer_ } from "./utils"
+import { doc, VOther, chromeVer_, Lower } from "./utils"
 import {
   docEl_unsafe_, scrollingEl_, notSafe_not_ff_, ElementProto, isRawStyleVisible, getComputedStyle_, NONE,
   querySelector_unsafe_, querySelectorAll_unsafe_, GetParent_unsafe_, HDN, createElement_, fullscreenEl_unsafe_,
@@ -160,7 +160,7 @@ export const getClientRectsForAreas_ = function (element: HTMLElementUsingMap, o
     const area = areas[_i] as SafeElement & (HTMLAreaElement | NonHTMLButFormattedElement | SafeElementWithoutFormat)
     if ((area as ElementToHTML).lang == null) { continue; }
     let coords = (area as HTMLAreaElement).coords.split(",").map(toInt)
-    switch ((area as HTMLAreaElement).shape.toLowerCase()) {
+    switch (Lower((area as HTMLAreaElement).shape)) {
     case "circle": case "circ": // note: "circ" is non-conforming
       x2 = coords[0]; y2 = coords[1]; diff = coords[2] / Math.sqrt(2)
       x1 = x2 - diff; x2 += diff; y1 = y2 - diff; y2 += diff

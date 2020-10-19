@@ -1,6 +1,6 @@
 import {
   setupEventListener, VTr, keydownEvents_, isAlive_, suppressCommonEvents, onWndFocus, VOther, timeout_, safer, fgCache,
-  doc, getTime, chromeVer_, deref_, escapeAllForRe, tryCreateRegExp, vApi, callFunc, clearTimeout_, Stop_
+  doc, getTime, chromeVer_, deref_, escapeAllForRe, tryCreateRegExp, vApi, callFunc, clearTimeout_, Stop_, isTY, Lower
 } from "../lib/utils"
 import {
   pushHandler_, replaceOrSuppressMost_, removeHandler_, prevent_, getMappedKey, keybody_, isEscape_, keyNames_,
@@ -10,7 +10,7 @@ import {
   attachShadow_, getSelectionFocusEdge_, activeEl_unsafe_, rangeCount_, setClassName_s, compareDocumentPosition,
   getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, htmlTag_, fullscreenEl_unsafe_, docEl_unsafe_,
   getSelection_, isSelected_, docSelectable_, isHTML_, createElement_, CLK, MDW, NONE, removeEl_s, appendNode_s,
-  getAccessibleSelectedNode
+  getAccessibleSelectedNode,  INP, BU, UNL, contains_s, setOrRemoveAttr, textContent_
 } from "../lib/dom_utils"
 import {
   wdZoom_, prepareCrop_, view_, dimSize_, selRange_, getZoom_, padClientRect_, getSelectionBoundingBox_,
@@ -18,7 +18,7 @@ import {
 } from "../lib/rect"
 import {
   ui_box, ui_root, getSelectionParent_unsafe, resetSelectionToDocStart, getBoxTagName_cr_, collpaseSelection,
-  createStyle, getSelectionText, checkDocSelectable, adjustUI, ensureBorder, addUIElement, getSelected, flash_,
+  createStyle, getSelectionText, checkDocSelectable, adjustUI, ensureBorder, addUIElement, getSelected, flash_, getSelectionOf,
 } from "./dom_ui"
 import { visual_mode, highlightRange, kDir, activate as visualActivate, kExtend } from "./visual"
 import { keyIsDown as scroll_keyIsDown, beginScroll, onScrolls } from "./scroller"
@@ -86,7 +86,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
         if (query !== query_) {
           updateQuery(query)
           if (isActive) {
-            input_.textContent = query.replace(<RegExpOne> /^ /, "\xa0")
+            textContent_(input_, query.replace(<RegExpOne> /^ /, "\xa0"))
             showCount(1)
           }
         }
@@ -180,11 +180,11 @@ export const onLoad = (later?: 1): void => {
     f(MDW, onMousedown, t)
     f("keydown", onIFrameKeydown, t)
     f("keyup", onIFrameKeydown, t)
-    f("input", onInput, t)
+    f(INP, onInput, t)
     if (Build.BTypes & ~BrowserType.Chrome) {
       f("paste", onPaste_not_cr!, t)
     }
-    f("unload", (e: Event): void => {
+    f(UNL, (e: Event): void => {
       if (!isAlive_ || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
                 ? !e.isTrusted : e.isTrusted === false)) { return; }
       isActive && deactivate(FindNS.Action.ExitUnexpectedly);
@@ -194,12 +194,12 @@ export const onLoad = (later?: 1): void => {
       f("compositionend", onInput, t)
     }
     suppressCommonEvents(wnd, CLK);
-    f("blur", onUnexpectedBlur = (event): void => {
+    f(BU, onUnexpectedBlur = (event): void => {
       const delta = getTime() - now
       if (event && isActive && delta < 500 && delta > -99 && event.target === wnd) {
         wnd.closed || timeout_((): void => { isActive && doFocus(); }, tick++ * 17)
       } else {
-        setupEventListener(wnd, "blur", onUnexpectedBlur, 1, 1)
+        setupEventListener(wnd, BU, onUnexpectedBlur, 1, 1)
         onUnexpectedBlur = null
       }
     }, t);
@@ -251,7 +251,7 @@ const onLoad2 = (): void => {
         && Build.MinCVer < BrowserVer.MinEnsuredInputEventIsNotOnlyInShadowDOMV1
         && chromeVer_ < BrowserVer.MinEnsuredInputEventIsNotOnlyInShadowDOMV1) {
       // not check MinEnsuredShadowDOMV1 for smaller code
-      setupEventListener(el, "input", onInput)
+      setupEventListener(el, INP, onInput)
     }
     countEl = addElement(0, "c")
     createStyle(findCSS.i, styleInHUD = addElement("style") as HTMLStyleElement);
@@ -283,8 +283,8 @@ const onLoad2 = (): void => {
     setClassName_s(root2, "r" + fgCache.d)
     root2.spellcheck = false;
     appendNode_s(root2, list)
-    box.setAttribute("role", "textbox")
-    box.setAttribute("aria-multiline", "true")
+    setOrRemoveAttr(box, "role", "textbox")
+    setOrRemoveAttr(box, "aria-multiline", "true")
     if ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
         && (!(Build.BTypes & BrowserType.Firefox)
             || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
@@ -381,13 +381,13 @@ const onMousedown = function (this: Window | HTMLElement, event: MouseEventToPre
     prevent_(event)
     doFocus()
     const text = input_.firstChild as Text
-    text && innerDoc_.getSelection().collapse(text, target !== input_.previousSibling ? text.data.length : 0)
+    text && getSelectionOf(innerDoc_)!.collapse(text, target !== input_.previousSibling ? text.data.length : 0)
   }
 }
 
 let onPaste_not_cr = Build.BTypes & ~BrowserType.Chrome
       ? function (this: Window, event: ClipboardEvent & ToPrevent): void {
-    const d = event.clipboardData, text = d && typeof d.getData === "function" ? d.getData("text/plain") : "";
+    const d = event.clipboardData, text = d && isTY(d.getData, kTY.func) ? d.getData("text/plain") : "";
     prevent_(event);
     if (!text) { return; }
     execCommand("insertText", 0, text)
@@ -444,7 +444,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
     if (i < FindNS.Action.DoNothing + 1) { return; }
     keydownEvents_[n] = 1;
     if (Build.BTypes & BrowserType.Firefox && i === FindNS.Action.CtrlDelete) {
-      const sel = innerDoc_.getSelection()
+      const sel = getSelectionOf(innerDoc_)!
       // on Chrome 79 + Win 10 / Firefox 69 + Ubuntu 18, delete a range itself
       // while on Firefox 70 + Win 10 it collapses first
       sel.type === "Caret" && sel.modify(kExtend, kDir[+(keybody > "d")], "word")
@@ -503,7 +503,7 @@ export const deactivate = (i: FindNS.Action): void => {
     if (i > FindNS.Action.MaxExitButNoWork && hasResult && (!el || el !== insert_Lock_())) {
       let container = focusFoundLinkIfAny()
       if (container && i === FindNS.Action.ExitAndReFocus && (el2 = activeEl_unsafe_())
-          && getEditableType_<0>(el2) > EditableType.TextBox - 1 && container.contains(el2)) {
+          && getEditableType_<0>(el2) > EditableType.TextBox - 1 && contains_s(container, el2)) {
         prepareCrop_();
         select_(el2 as LockableElement).then((): void => {
           toggleSelectableStyle(0)
@@ -561,7 +561,7 @@ const nextQuery = (back?: boolean): void => {
     send_(kFgReq.findQuery, { i: ind }, setQuery)
   } else {
     execCommand("undo")
-    collpaseSelection(innerDoc_.getSelection(), VisualModeNS.kDir.right)
+    collpaseSelection(getSelectionOf(innerDoc_)!, VisualModeNS.kDir.right)
   }
 }
 
@@ -594,7 +594,7 @@ const postActivate = (): void => {
   }
   postExit(true)
   postLock = el
-  setupEventListener(el, "blur", postExit)
+  setupEventListener(el, BU, postExit)
 }
 
 const postExit = (skip?: boolean | Event): void => {
@@ -602,7 +602,7 @@ const postExit = (skip?: boolean | Event): void => {
       if (skip && skip !== !!skip
           && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
               ? !skip.isTrusted : skip.isTrusted === false)) { return; }
-      postLock && setupEventListener(postLock, "blur", postExit, 1)
+      postLock && setupEventListener(postLock, BU, postExit, 1)
       if (!postLock || skip === true) { return }
       postLock = null
       setupEventListener(0, CLK, postExit, 1)
@@ -684,7 +684,7 @@ export const updateQuery = (query: string): void => {
   isRegex = !!isRe
   wholeWord = ww
   notEmpty = !!query
-  ignoreCase = ignoreCase != null ? ignoreCase : query.toLowerCase() === query
+  ignoreCase = ignoreCase != null ? ignoreCase : Lower(query) === query
   isRe || (query = isActive ? escapeAllForRe(query) : "")
 
   let re: RegExpG | null = query && tryCreateRegExp(ww ? WB + query + WB : query, (ignoreCase ? "gim" : "gm") as "g")
@@ -702,7 +702,7 @@ export const updateQuery = (query: string): void => {
     while (el && (el as ElementToHTML).lang == null) { // in case of SVG elements
       el = GetParent_unsafe_(el, PNType.DirectElement);
     }
-    query = el && typeof (text = (el as HTMLElement).innerText) === "string" && text ||
+    query = el && isTY(text = (el as HTMLElement).innerText) && text ||
         (Build.BTypes & ~BrowserType.Firefox ? (docEl_unsafe_() as HTMLElement).innerText + ""
           : (docEl_unsafe_() as SafeHTMLElement).innerText);
     cachedInnerText = { i: query, t: now }

@@ -39,7 +39,7 @@
       "docEl_unsafe_",
       "__awaiter", "__generator", "sent", "_a.sent", "_b.sent", "_c.sent",
       "onRuntimeError", "BgUtils_.runtimeError_",
-      "trans_", "pTrans_", "sTrans_", "VTr",
+      "trans_", "pTrans_", "sTrans_", "VTr", "contains_s", "attr_s", "isTY", "getMediaTag",
       "readyState", "binarySearch_",
       "getMatchRanges",
       "document", "Math", "docEl_", "devRatio_", "activeEl_", "querySelector_", "querySelectorAll_",

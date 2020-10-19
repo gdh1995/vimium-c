@@ -29,10 +29,10 @@ interface ElementScrollInfo {
 
 import {
   isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, allowRAF_, readyState_, loc_, chromeVer_,
-  vApi, deref_, weakRef_, VTr, createRegExp
+  vApi, deref_, weakRef_, VTr, createRegExp, isTY
 } from "../lib/utils"
 import {
-  rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_,
+  rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, UNL,
   querySelector_unsafe_, getComputedStyle_, notSafe_not_ff_, HDN, isRawStyleVisible, fullscreenEl_unsafe_, removeEl_s
 } from "../lib/dom_utils"
 import {
@@ -117,7 +117,7 @@ let performAnimate = (e: SafeElement | null, d: ScrollByY, a: number): void => {
     }
   },
   hasDialog = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement
-      || !!(Build.BTypes & BrowserType.ChromeOrFirefox) && typeof HTMLDialogElement === "function",
+      || !!(Build.BTypes & BrowserType.ChromeOrFirefox) && isTY(HTMLDialogElement, kTY.func),
   startAnimate = (): void => {
     timer = TimerID.None;
     running = running || rAF_(animate);
@@ -259,7 +259,7 @@ export const executeScroll = function (di: ScrollByY, amount0: number, isTo: BOO
     preventPointEvents = 0
     scrolled = 0
     if (amount && readyState_ > "i" && overrideScrollRestoration) {
-      overrideScrollRestoration("scrollRestoration", "manual", "unload")
+      overrideScrollRestoration("scrollRestoration", "manual")
     }
 } as {
     (di: ScrollByY, amount: number, isTo: 0
@@ -269,16 +269,16 @@ export const executeScroll = function (di: ScrollByY, amount0: number, isTo: BOO
       , factor?: undefined | 0, fromMax?: boolean, options?: CmdOptions[kFgCmd.scroll]): void;
 }
 
-let overrideScrollRestoration = function (kScrollRestoration, kManual, kUnload): void {
+let overrideScrollRestoration = function (kScrollRestoration, kManual): void {
     const h = history, old = h[kScrollRestoration], listen = setupEventListener,
-    reset = (): void => { h[kScrollRestoration] = old; listen(0, kUnload, reset, 1); };
+    reset = (): void => { h[kScrollRestoration] = old; listen(0, UNL, reset, 1); };
     if (old && old !== kManual) {
       h[kScrollRestoration] = kManual;
       overrideScrollRestoration = 0 as never
       OnDocLoaded_(() => { timeout_(reset, 1); }, 1);
-      listen(0, kUnload, reset);
+      listen(0, UNL, reset);
     }
-} as ((key: "scrollRestoration", kManual: "manual", kUnload: "unload") => void) | 0
+} as ((key: "scrollRestoration", kManual: "manual") => void) | 0
 
   /** @argument willContinue 1: continue; 0: skip middle steps; 2: abort further actions */
 export const scrollTick = (willContinue: BOOL | 2): void => {

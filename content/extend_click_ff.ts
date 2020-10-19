@@ -1,5 +1,5 @@
 import {
-  clickable_, timeout_, loc_, getTime, clearTimeout_, vApi, recordLog, doc, setupEventListener, VTr, raw_unwrap_ff
+  clickable_, timeout_, loc_, getTime, clearTimeout_, vApi, recordLog, doc, setupEventListener, VTr, raw_unwrap_ff, isTY
 } from "../lib/utils"
 import { CLK, MDW, OnDocLoaded_, isHTML_, set_createElement_, createElement_ } from "../lib/dom_utils"
 import { grabBackFocus } from "./insert"
@@ -55,7 +55,7 @@ export const main_ff = (Build.BTypes & BrowserType.Firefox ? (): void => {
   
     let alive = false, timer = TimerID.None, resolved = 0
     if (grabBackFocus) {
-      if (alive = typeof _listen === "function") {
+      if (alive = isTY(_listen, kTY.func)) {
         doExport(Cls!, _listen.name as "addEventListener", newListen)
         vApi.e = (cmd: ValidContentCommands): void => { alive = alive && cmd < kContentCmd._minSuppressClickable }
       }
@@ -130,7 +130,7 @@ export const main_ff = (Build.BTypes & BrowserType.Firefox ? (): void => {
     )
     let isHandingTheSecondTime: BOOL, notDuringAct: BOOL
 
-    for (const [stdFunc, idx] of stdMembers.every(i => typeof i[1] === "function") ? stdMembers : [] as never) {
+    for (const [stdFunc, idx] of stdMembers.every(i => isTY(i[1], kTY.func)) ? stdMembers : [] as never) {
       doExport(EventCls!, stdFunc.name as "preventDefault" | "stopPropagation", function (this: EventToPrevent): any {
         const self = this, ret = apply.call(stdFunc, self, arguments)
         self !== clickEventToPrevent_ ? 0
@@ -167,7 +167,7 @@ export const wrappedDispatchMouseEvent_ff = (targetElement: Element, mouseEventM
   if (!Build.NDEBUG && mouseEventMayBePrevented.type === CLK) {
     console.log("Vimium C: dispatch a click event and returned is %o, %s %o, so return %o"
         , rawDispatchRetVal, "clickEventToPrevent_ is"
-        , clickEventToPrevent_ && typeof clickEventToPrevent_ === "object" ? "<Event>" : clickEventToPrevent_
+        , clickEventToPrevent_ && isTY(clickEventToPrevent_, kTY.obj) ? "<Event>" : clickEventToPrevent_
         , wrappedRetVal)
   }
   clickEventToPrevent_ = clickEventToPrevent_ && 0

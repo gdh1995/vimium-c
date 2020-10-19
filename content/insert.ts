@@ -8,7 +8,7 @@ interface NodeWithInfo extends Node {
 
 import {
   doc, keydownEvents_, safeObj, fgCache, isTop, set_keydownEvents_, setupEventListener, VOther, Stop_,
-  esc, onWndFocus, isEnabled_, readyState_, injector, getTime, recordLog, weakRef_,
+  esc, onWndFocus, isEnabled_, readyState_, injector, getTime, recordLog, weakRef_
 } from "../lib/utils"
 import { post_, safePost } from "./port"
 import { getParentVApi, ui_box } from "./dom_ui"
@@ -17,7 +17,7 @@ import { set_currentScrolling, scrollTick, clearCachedScrollable } from "./scrol
 import { resetIsCmdTriggered, resetAnyClickHandler } from "./key_handler"
 import {
   activeEl_unsafe_, isHTML_, docEl_unsafe_, getEditableType_, GetShadowRoot_, getSelection_, frameElement_,
-  SafeEl_not_ff_, MDW, fullscreenEl_unsafe_, removeEl_s, isNode_
+  SafeEl_not_ff_, MDW, fullscreenEl_unsafe_, removeEl_s, isNode_, BU
 } from "../lib/dom_utils"
 import { pushHandler_, removeHandler_, prevent_ } from "../lib/keyboard_utils"
 
@@ -336,7 +336,7 @@ const hookOnShadowRoot = (path: ArrayLike<EventTarget | 0>, target: Node | 0, di
     // root is target or inside target, so always a Node
     if (isNode_(root, kNode.DOCUMENT_FRAGMENT_NODE)) {
       setupEventListener(root as ShadowRoot, "focus", onShadow, disable);
-      setupEventListener(root as ShadowRoot, "blur", onShadow, disable);
+      setupEventListener(root as ShadowRoot, BU, onShadow, disable);
       disable ? domNodeMap.delete(root) : domNodeMap.set(root, kNodeInfo.ShadowFull);
     }
   }

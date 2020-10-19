@@ -1,13 +1,13 @@
 import HintItem = HintsNS.HintItem
 import {
   safer, fgCache, VOther, isImageUrl, isJSUrl, set_keydownEvents_, keydownEvents_, timeout_, doc, chromeVer_, weakRef_,
-  parseSedOptions, createRegExp, getMediaUrl, kMediaTag, getMediaTag
+  parseSedOptions, createRegExp, isTY
 } from "../lib/utils"
 import { getVisibleClientRect_, center_, view_, selRange_ } from "../lib/rect"
 import {
   IsInDOM_, createElement_, htmlTag_, getComputedStyle_, getEditableType_, isIFrameElement, GetParent_unsafe_,
   ElementProto, querySelector_unsafe_, getInputType, uneditableInputs_, GetShadowRoot_, CLK, scrollingEl_,
-  findMainSummary_, getSelection_, removeEl_s, appendNode_s
+  findMainSummary_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s, setOrRemoveAttr, toggleClass, textContent_
 } from "../lib/dom_utils"
 import {
   hintOptions, mode1_, hintMode_, hintApi, hintManager, coreHints, setMode, detectUsableChild, hintCount_,
@@ -125,8 +125,7 @@ const getMediaOrBgImageUrl = (img: SafeHTMLElement): string | void => {
   return text || hintApi.t({ k: kTip.notImg })
 }
 
-const getImageName_ = (img: SafeHTMLElement): string =>
-  img.getAttribute("download") || img.getAttribute("alt") || img.title
+const getImageName_ = (img: SafeHTMLElement): string => attr_s(img, "download") || attr_s(img, "alt") || img.title
 
 const openUrl = (url: string, incognito?: boolean): void => {
   hintApi.p({
@@ -190,7 +189,7 @@ export const linkActions: readonly LinkAction[] = [
       return
     }
     hintMode_ & HintMode.queue || pushHandler_(unhoverOnEsc, kHandler.unhoverOnEsc)
-    if (!toggleMap || typeof toggleMap !== "object") { return; }
+    if (!toggleMap || !isTY(toggleMap, kTY.obj)) { return }
     safer(toggleMap);
     let ancestors: Element[] = [], top: Element | null = element, re = <RegExpOne> /^-?\d+/;
     for (let key in toggleMap) {
@@ -217,7 +216,7 @@ export const linkActions: readonly LinkAction[] = [
                     ] as SafeElement)
               : element.closest!(selector))) {
           for (const clsName of toggleMap[key].split(" ")) {
-            clsName.trim() && selected.classList.toggle(clsName);
+            clsName.trim() && toggleClass(selected, clsName)
           }
         }
       } catch {}
@@ -243,12 +242,12 @@ export const linkActions: readonly LinkAction[] = [
       str = getUrlData(link as SafeHTMLElement);
       str && (<RegExpI> /^mailto:./).test(str) && (str = str.slice(7).trim());
     }
-    else if ((str = link.getAttribute("data-vim-text"))
+    else if ((str = attr_s(link, "data-vim-text"))
         && (str = str.trim())) { /* empty */ }
     else if (isIFrameElement(link)) { return !focusIFrame(link) }
     else {
       const tag = htmlTag_(link)
-      if (tag === "input") {
+      if (tag === INP) {
         let type = getInputType(link as HTMLInputElement), f: HTMLInputElement["files"];
         if (type === "pa") {
           return hintApi.t({ k: kTip.ignorePassword })
@@ -270,11 +269,11 @@ export const linkActions: readonly LinkAction[] = [
                 || GetShadowRoot_(link) && (childEl = GetShadowRoot_(link)!.querySelector("div,span"))
                     && htmlTag_(childEl) && (childEl as SafeHTMLElement).innerText
                 || str).trim()
-            || (str = link.textContent.trim()) && str.replace(<RegExpG> /\s+/g, " ")
+            || (str = textContent_(link).trim()) && str.replace(<RegExpG> /\s+/g, " ")
       }
       str = str && str.trim();
       if (!str && tag) {
-        str = (link as SafeHTMLElement).title.trim() || (link.getAttribute("aria-label") || "").trim();
+        str = (link as SafeHTMLElement).title.trim() || (attr_s(link, ALA) || "").trim();
       }
     }
     if (mode1 > HintMode.min_edit - 1 && mode1 < HintMode.max_edit + 1) {
@@ -371,7 +370,7 @@ export const linkActions: readonly LinkAction[] = [
   ((element: SafeHTMLElement, rect): void => {
     let notAnchor = htmlTag_(element) !== "a", H = "href",
     link = notAnchor ? createElement_("a") : element as HTMLAnchorElement,
-    oldUrl: string | null = notAnchor ? null : link.getAttribute(H),
+    oldUrl: string | null = notAnchor ? null : attr_s(link, H),
     url = getUrlData(element), changed = notAnchor || url !== link.href;
     if (changed) {
       link.href = url;
@@ -386,16 +385,13 @@ export const linkActions: readonly LinkAction[] = [
     }
     catchAsyncErrorSilently(click_(link, rect, 0, [!0, !1, !1, !1])).then((): void => {
     if (hadNoDownload) {
-      link.removeAttribute(kD);
+      setOrRemoveAttr(link, kD)
     }
     if (!changed) { /* empty */ }
     else if (notAnchor) {
       removeEl_s(link)
-    }
-    else if (oldUrl != null) {
-      link.setAttribute(H, oldUrl);
     } else {
-      link.removeAttribute(H);
+      setOrRemoveAttr(link, H, oldUrl)
     }
     })
   }) as HTMLExecutor as Executor

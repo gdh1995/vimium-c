@@ -1,13 +1,14 @@
 import {
   chromeVer_, doc, esc, EscF, fgCache, isTop, set_esc, VOther, VTr, safer, timeout_, loc_, weakRef_, deref_,
-  keydownEvents_, parseSedOptions, Stop_, suppressCommonEvents, setupEventListener, vApi, locHref,
+  keydownEvents_, parseSedOptions, Stop_, suppressCommonEvents, setupEventListener, vApi, locHref, isTY
 } from "../lib/utils"
 import {
   isHTML_, htmlTag_, createElement_, frameElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK,
-  querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s
+  querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass
 } from "../lib/dom_utils"
 import {
-  pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack, replaceOrSuppressMost_
+  pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
+  replaceOrSuppressMost_
 } from "../lib/keyboard_utils"
 import {
   view_, wndSize_, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, padClientRect_,
@@ -293,7 +294,7 @@ set_contentCommands_([
       }
       else if (keep ? isEscape_(key) || (
           keybody_(key) === ENTER
-          && (/* a?c?m?-enter */ key < "s" && (key[0] !== "e" || htmlTag_(insert_inputHint!.h[sel].d) === "input"))
+          && (/* a?c?m?-enter */ key < "s" && (key[0] !== "e" || htmlTag_(insert_inputHint!.h[sel].d) === INP))
         ) : !isIME && keyCode !== kKeyCode.f12
       ) {
         exitInputHint();
@@ -332,7 +333,7 @@ set_contentCommands_([
     if (pos) {
       step = (pos > "e" && pos < "m" && pos !== "home") === count > 0 ? max - absCount : absCount - 1
     } else {
-      step = el.selectedIndex + (typeof dir === "string" ? dir > "p" ? -1 : 1 : dir || 1) * count
+      step = el.selectedIndex + (isTY(dir) ? dir > "p" ? -1 : 1 : dir || 1) * count
     }
     step = step >= max ? max - 1 : step < 0 ? 0 : step
     el.selectedIndex = step
@@ -393,15 +394,15 @@ set_contentCommands_([
     toggleAdvanced = (): void => {
       const el2 = advCmd.firstChild as HTMLElement
       el2.innerText = el2.dataset[shouldShowAdvanced ? "h" : "s"]!
-      box.classList.toggle("HelpDA")
+      toggleClass(box, "HelpDA")
     }
     set_hideHelp(closeBtn.onclick = (event?: EventToPrevent): void => {
       set_hideHelp(null)
       event && prevent_(event)
       advCmd.onclick = optLink.onclick = closeBtn.onclick = null as never
       let i: Element | null | undefined = deref_(lastHovered_)
-      i && box.contains(i) && /*#__INLINE__*/ resetLastHovered()
-      if ((i = deref_(currentScrolling)) && box.contains(i)) {
+      i && contains_s(box, i) && /*#__INLINE__*/ resetLastHovered()
+      if ((i = deref_(currentScrolling)) && contains_s(box, i)) {
         /*#__INLINE__*/ resetCurrentScrolling()
         /*#__INLINE__*/ clearCachedScrollable()
       }

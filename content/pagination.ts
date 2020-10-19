@@ -1,8 +1,8 @@
 import {
-  clickable_, VOther, vApi, isAlive_, safer, timeout_, escapeAllForRe, tryCreateRegExp, VTr, unwrap_ff
+  clickable_, VOther, vApi, isAlive_, safer, timeout_, escapeAllForRe, tryCreateRegExp, VTr, unwrap_ff, isTY, Lower
 } from "../lib/utils"
 import {
-  docEl_unsafe_, htmlTag_, isAriaNotTrue_, isStyleVisible_, querySelectorAll_unsafe_, isIFrameElement,
+  docEl_unsafe_, htmlTag_, isAriaNotTrue_, isStyleVisible_, querySelectorAll_unsafe_, isIFrameElement, ALA, attr_s, contains_s
 } from "../lib/dom_utils"
 import { getBoundingClientRect_, view_ } from "../lib/rect"
 import { kSafeAllSelector, detectUsableChild } from "./link_hints"
@@ -21,10 +21,9 @@ const GetButtons = function (this: void, hints, element): void {
     tag === "button" ? !(element as HTMLButtonElement).disabled
     : clickable_.has(element)
     || (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
-        ? (unwrap_ff(element)).onclick : element.getAttribute("onclick"))
-    || (
-      (s = element.getAttribute("role")) ? (<RegExpI> /^(button|link)$/i).test(s)
-      : ngEnabled && element.getAttribute("ng-click")));
+        ? (unwrap_ff(element)).onclick : attr_s(element, "onclick"))
+    || ((s = attr_s(element, "role")) ? (<RegExpI> /^(button|link)$/i).test(s)
+        : ngEnabled && attr_s(element, "ng-click")))
   if (isClickable && isVisibleInPage(element)) {
     hints.push(element)
   }
@@ -64,11 +63,11 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, isNext, lenLi
   }
   for (let wsRe = <RegExpOne> /\s+/, _len = links.length - 1; 0 <= --_len; ) {
     const link = links[_len];
-    if (link.contains(links[_len + 1]) || (s = link.innerText).length > totalMax) { continue; }
-    if (s = s || (ch = (link as HTMLInputElement).value) && ch.toLowerCase && ch
-            || link.getAttribute("aria-label") || link.title) {
+    if (contains_s(link, links[_len + 1]) || (s = link.innerText).length > totalMax) { continue }
+    if (s = s || (ch = (link as HTMLInputElement).value) && isTY(ch, kTY.str) && ch
+            || attr_s(link, ALA) || link.title) {
       if (s.length > totalMax) { continue; }
-      s = s.toLowerCase();
+      s = Lower(s)
       for (i = 0; i < names.length; i++) {
         if (s.length < lenLimits[i] && s.includes(names[i])) {
           if (!s.includes(refusedStr) && (len = (s = s.trim()).split(wsRe).length) <= maxLen) {
@@ -138,8 +137,8 @@ export const findNextInRel = (relName: string): GoNextBaseCandidate | null | und
   for (const element of elements as { [i: number]: Element } as Element[]) {
     if ((tag = htmlTag_(element))
         && (s = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$HTMLAreaElement$rel
-                ? element.getAttribute("rel") : (element as TypeToPick<HTMLElement, HTMLElementWithRel, "rel">).rel)
-        && s.toLowerCase().split(re1).indexOf(relName) >= 0
+                ? attr_s(element, "rel") : (element as TypeToPick<HTMLElement, HTMLElementWithRel, "rel">).rel)
+        && Lower(s).split(re1).indexOf(relName) >= 0
         && ((s = (element as HTMLElementWithRel).href) || tag < "aa")
         && (tag > "b" || isVisibleInPage(element as SafeHTMLElement))) {
       if (matched) {

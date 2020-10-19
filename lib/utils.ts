@@ -161,34 +161,13 @@ export const isImageUrl = (str: string | null): boolean => {
   return (imgExtRe_ || (imgExtRe_ = createRegExp(kTip.imgExt, "i"))).test(str)
 }
 
-export declare const enum kMediaTag {
-  img = 0, otherMedias = 1, a = 2, others = 3,
-  MIN_NOT_MEDIA_EL = 2, LAST = 3,
-}
-
-export const getMediaTag = (element: SafeHTMLElement) => {
-  const tag = element.localName
-  return tag === "img" ? kMediaTag.img : tag === "video" || tag === "audio" ? kMediaTag.otherMedias
-      : tag === "a" ? kMediaTag.a : kMediaTag.others
-}
-
-export const getMediaUrl = (element: HTMLImageElement | SafeHTMLElement, isMedia: boolean): string => {
-  let kSrcAttr: "src", srcValue: string | null
-  return element.dataset.src
-      // according to https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement#Browser_compatibility,
-      // <img>.currentSrc is since C45
-      || isMedia && (element as HTMLImageElement).currentSrc
-      || (srcValue = element.getAttribute(kSrcAttr = isMedia ? "src" : "href" as never) || "",
-          srcValue && (element as Partial<HTMLImageElement>)[kSrcAttr] || srcValue)
-}
-
 export const recordLog = (tip: kTip | string): void => {
   console.log(tip > 0 ? VTr(<kTip> tip) : tip, loc_.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"), getTime())
 }
 
 export const parseSedOptions = (opts: UserSedOptions): ParsedSedOpts => {
   const sed = opts.sed
-  return !sed || typeof sed !== "object" ? ({ r: sed, k: opts.sedKeys || opts.sedKey }) : sed
+  return !sed || !isTY(sed, kTY.obj) ? ({ r: sed, k: opts.sedKeys || opts.sedKey }) : sed
 }
 
 export const escapeAllForRe = (str: string): string => str.replace(<RegExpG> /[$()*+.?\[\\\]\^{|}]/g, "\\$&")
@@ -201,3 +180,14 @@ export const tryCreateRegExp = <T extends "g" | "gi" | "gim" | "gm" | "i" | "u" 
     ): (T extends "" ? RegExpOne : T extends "i" ? RegExpI : RegExpG) | void => {
   try { return <any> new RegExp(pattern, flags as "g") } catch {}
 }
+
+/** ==== shortcuts of constant code ==== */
+
+const TYPES = ["string", "object", "function", "number"]
+export const isTY = ((obj: any, ty?: kTY): boolean => typeof obj === TYPES[ty || kTY.str]) as {
+  <T extends kTY> (obj: any, ty: T): obj is (T extends kTY.str ? string
+      : T extends kTY.obj ? object : T extends kTY.func ? Function : T extends kTY.num ? number : never)
+  (obj: any): obj is string
+}
+
+export const Lower = (str: string): string => str.toLowerCase()

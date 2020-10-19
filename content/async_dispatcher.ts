@@ -1,5 +1,5 @@
 import { doc, deref_, weakRef_, VOther, chromeVer_, isJSUrl, getTime, parseSedOptions } from "../lib/utils"
-import { IsInDOM_, activeEl_unsafe_, isInTouchMode_cr_, MDW, htmlTag_, CLK } from "../lib/dom_utils"
+import { IsInDOM_, activeEl_unsafe_, isInTouchMode_cr_, MDW, htmlTag_, CLK, attr_s, contains_s } from "../lib/dom_utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
 import { center_, getVisibleClientRect_, view_ } from "../lib/rect"
 import { insert_Lock_ } from "./insert"
@@ -172,7 +172,7 @@ export const touch_cr_ = Build.BTypes & BrowserType.Chrome ? (element: SafeEleme
 export const hover_ = (async (newEl?: NullableSafeElForM, center?: Point2D): Promise<void> => {
   // if center is affected by zoom / transform, then still dispatch mousemove
   let elFromPoint = center && doc.elementFromPoint(center[0], center[1]),
-  canDispatchMove: boolean = !newEl || elFromPoint === newEl || !elFromPoint || !newEl.contains(elFromPoint),
+  canDispatchMove: boolean = !newEl || elFromPoint === newEl || !elFromPoint || !contains_s(newEl, elFromPoint),
   last = deref_(lastHovered_), N = lastHovered_ = null
   if (last && IsInDOM_(last)) {
     const notSame = newEl !== last
@@ -304,7 +304,7 @@ export const click_ = async (element: SafeElementForMouse
               : (parentAnchor = element.closest!("a")) && htmlTag_(parentAnchor) ? parentAnchor : null)
           || Build.BTypes & BrowserType.Firefox && specialAction < kClickAction.MinNotPlainOpenManually
               && parentAnchor.target !== "_blank"
-          || !(url = parentAnchor.getAttribute("href"))
+          || !(url = attr_s(parentAnchor, "href"))
           || specialAction & (kClickAction.forceToOpenInNewTab | kClickAction.forceToOpenInLastWnd)
               && url[0] === "#"
           || isJSUrl(url)

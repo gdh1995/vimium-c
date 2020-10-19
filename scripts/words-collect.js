@@ -30,9 +30,9 @@ const minShownVal = argv[argi] && !isNaN(+argv[argi]) ? +argv[argi++] : 24;
 
 const wordRe = /(["'])(?:\\.|)+?\1|\w+/g;
 const stopWords = `
-  function instanceof prototype
-  endsWith includes startsWith toLowerCase toUpperCase
-  localName textContent getAttribute removeAttribute
+  function instanceof
+  endsWith includes startsWith
+  localName
 `;
 
 let allLongWords = getLongWords(contentText, minWordLen);

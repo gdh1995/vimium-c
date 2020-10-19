@@ -57,11 +57,11 @@ interface FrameHintsInfo {
 
 import {
   VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_,
-  clearTimeout_, VOther, fgCache, doc, readyState_, chromeVer_, vApi, deref_, getTime, weakRef_, unwrap_ff
+  clearTimeout_, VOther, fgCache, doc, readyState_, chromeVer_, vApi, deref_, getTime, weakRef_, unwrap_ff, isTY
 } from "../lib/utils"
 import {
   frameElement_, querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_,
-  getComputedStyle_, isStyleVisible_, htmlTag_, fullscreenEl_unsafe_, removeEl_s
+  getComputedStyle_, isStyleVisible_, htmlTag_, fullscreenEl_unsafe_, removeEl_s, UNL, toggleClass
 } from "../lib/dom_utils"
 import {
   getViewBox_, prepareCrop_, wndSize_, bZoom_, wdZoom_, dScale_, padClientRect_, getBoundingClientRect_,
@@ -69,7 +69,7 @@ import {
 } from "../lib/rect"
 import {
   replaceOrSuppressMost_, removeHandler_, getMappedKey, keybody_, isEscape_, getKeyStat_, keyNames_, suppressTail_,
-  BSP, ENTER,
+  BSP, ENTER, SPC,
 } from "../lib/keyboard_utils"
 import {
   style_ui, addElementList, ensureBorder, adjustUI, flash_, getParentVApi, getWndVApi_ff, checkHidden, removeModal,
@@ -166,7 +166,7 @@ export const activate = (options: HintsNS.ContentOptions, count: number, force?:
       }
       coreHints.d = <BOOL> +(
         (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement
-            || typeof HTMLDialogElement === "function")
+            || isTY(HTMLDialogElement, kTY.func))
         && !!(wantDialogMode_ != null ? wantDialogMode_ : querySelector_unsafe_("dialog[open]"))
         )
     }
@@ -296,7 +296,7 @@ const render = (hints: readonly HintItem[], arr: ViewBox, raw_apis: VApiTy): voi
     /*#__INLINE__*/ set_keydownEvents_((Build.BTypes & BrowserType.Firefox ? api_ : raw_apis).a())
     /*#__INLINE__*/ set_onWndBlur2(managerOrA.s);
     replaceOrSuppressMost_(kHandler.linkHints, coreHints.n)
-    manager_ && setupEventListener(0, "unload", clear);
+    manager_ && setupEventListener(0, UNL, clear);
     isActive = 1;
 }
 
@@ -390,7 +390,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
           locateHint(activeHint_!).l(activeHint_!);
         } else if (key > "s") {
           // `/^s-(f1|f0[a-z0-9]+)$/`
-          /*#__NOINLINE__*/ addClassName(keybody)
+          frameList_.forEach((/*#__NOINLINE__*/ toggleClassForKey).bind(0, keybody))
         }
       } // the below mens f2, f0***
       else if (num1 = 1, key.includes("-s")) {
@@ -443,7 +443,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
       tooHigh_ = null;
       resetMode();
       timeout_(reinit, 0)
-    } else if (keybody === kChar.space && (!useFilter_ || key !== keybody)) {
+    } else if (keybody === SPC && (!useFilter_ || key !== keybody)) {
       keyStatus_.t = keyStatus_.t.replace("  ", " ");
       zIndexes_ !== 0 && /*#__NOINLINE__*/ rotateHints(key === "s-" + keybody);
       resetMode();
@@ -457,11 +457,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
     return ret;
 }
 
-const addClassName = (name: string): void => {
-  for (const frame of frameList_) {
-    frame.s.$().b!.classList.toggle("HM-" + name)
-  }
-}
+const toggleClassForKey = (name: string, frame: FrameHintsInfo): void => { toggleClass(frame.s.$().b!, "HM-" + name) }
 
 const callExecuteHint = (hint: HintItem, event?: HandlerNS.Event): void => {
   const selectedHintWorker = locateHint(hint), clickEl = weakRef_(hint.d),
@@ -498,7 +494,7 @@ const locateHint = (matchedHint: HintItem): BaseHintWorker => {
 
 const highlightHint = (hint: HintItem): void => {
   flash_(hint.m, null, 660, " Sel")
-  box_!.classList.toggle("HMM")
+  toggleClass(box_!, "HMM")
 }
 
 export const resetMode = (silent?: BOOL): void => {
@@ -522,9 +518,9 @@ const delayToExecute = (officer: BaseHintWorker, hint: HintItem, flashEl: SafeHT
         hudTip(kTip.linkRemoved)
         isActive && clear()
       } else if (event) {
-        tick = waitEnter && keybody === kChar.space ? tick + 1 : 0;
+        tick = waitEnter && keybody === SPC ? tick + 1 : 0;
         tick === 3 || keybody === ENTER ? callExecuteHint(hint, event)
-        : key === kChar.f1 && flashEl ? flashEl.classList.toggle("Sel") : 0;
+        : key === kChar.f1 && flashEl ? toggleClass(flashEl, "Sel") : 0;
       } else {
         callExecuteHint(hint);
       }
@@ -636,7 +632,7 @@ export const clear = (onlySelfOrEvent?: 0 | 1 | Event, suppressTimeout?: number)
       hasManager && frame.c(0, suppressTimeout)
     } catch { /* empty */ } }, suppressTimeout);
     coreHints.y = frameList_ = [];
-    setupEventListener(0, "unload", clear, 1);
+    setupEventListener(0, UNL, clear, 1);
     resetHints();
     removeHandler_(kHandler.linkHints)
     suppressTimeout != null && suppressTail_(suppressTimeout);
