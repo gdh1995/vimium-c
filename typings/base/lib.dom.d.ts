@@ -8913,7 +8913,7 @@ interface ImageBitmap {
     close(): void;
 }
 
-interface NodeListOf<TNode extends Node> extends NodeList, ReadonlyArray<TNode> {
+interface NodeListOf<TNode extends Node> extends NodeList {
     length: number;
     item(index: number): TNode;
     [index: number]: TNode;

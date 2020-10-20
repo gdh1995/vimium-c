@@ -392,8 +392,12 @@ export const traverse = function (selector: string
       /*#__INLINE__*/ set_bZoom_(1)
       prepareCrop_(1);
     }
-    for (const el of (<ShadowRoot> ui_root).querySelectorAll(selector)) {
-      filter(output, el as SafeHTMLElement);
+    const elements = (<ShadowRoot> ui_root).querySelectorAll(selector) as NodeListOf<SafeHTMLElement>
+    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
+        && chromeVer_ < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes) {;
+      for (let i = 0; i < elements.length; i++) { filter(output, elements[i]) }
+    } else {
+      (elements as ArrayLike<SafeHTMLElement> as SafeHTMLElement[]).forEach(filter.bind(0, output))
     }
     /*#__INLINE__*/ set_bZoom_(bz)
     if (notHookScroll) {

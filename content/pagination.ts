@@ -135,7 +135,9 @@ export const findNextInRel = (relName: string): GoNextBaseCandidate | null | und
   type HTMLElementWithRel = HTMLAnchorElement | HTMLAreaElement | HTMLLinkElement;
   let matched: HTMLElementWithRel | undefined, tag: string;
   const re1 = <RegExpOne> /\s/
-  for (const element of elements as { [i: number]: Element } as Element[]) {
+  const array = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
+      ? [].slice.call(elements) : elements as { [i: number]: Element } as Element[]
+  for (const element of array) {
     if ((tag = htmlTag_(element))
         && (s = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$HTMLAreaElement$rel
                 ? attr_s(element, "rel") : (element as TypeToPick<HTMLElement, HTMLElementWithRel, "rel">).rel)

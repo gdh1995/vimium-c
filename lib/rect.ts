@@ -102,9 +102,13 @@ export let getBoundingClientRect_: (el: Element) => ClientRect = Build.BTypes & 
   return getBoundingClientRect_(el)
 } : el => el.getBoundingClientRect()
 
-export const getVisibleClientRect_ = (element: SafeElement, el_style?: CSSStyleDeclaration | null): Rect | null => {
+export const getVisibleClientRect_ = Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
+&& Build.BTypes & BrowserType.Chrome
+? (element: SafeElement, el_style?: CSSStyleDeclaration | null): Rect | null => {
   let cr: Rect | null, I: "inline" | undefined, useChild: boolean, isInline: boolean | undefined, str: string
-  for (const rect of <ClientRect[]> <{[i: number]: ClientRect}> element.getClientRects()) {
+  const arr = element.getClientRects()
+  for (let i = 0; i < arr.length; i++) {
+    const rect = arr[i]
     if (rect.height > 0 && rect.width > 0) {
       if (cr = cropRectToVisible_(rect.left, rect.top, rect.right, rect.bottom)) {
         return isRawStyleVisible(el_style || getComputedStyle_(element)) ? cr : null
@@ -113,9 +117,38 @@ export const getVisibleClientRect_ = (element: SafeElement, el_style?: CSSStyleD
     }
     // according to https://dom.spec.whatwg.org/#dom-parentnode-children
     // .children will always be a HTMLCollection even if element is a non-HTML element
-    if (I) {
+    if (I) { continue }
+    I = "inline"
+    const children = element.children
+    for (let j = 0; j < children.length; j++) {
+      const el2 = children[j], st = getComputedStyle_(el2)
+      if (useChild = st.float !== NONE || ((str = st.position) !== "static" && str !== "relative")) { /* empty */ }
+      else if (rect.height === 0) {
+        if (isInline == null) {
+          el_style || (el_style = getComputedStyle_(element))
+          isInline = (el_style.fontSize === "0px" || el_style.lineHeight === "0px")
+            && el_style.display.startsWith(I)
+        }
+        useChild = isInline && st.display.startsWith(I)
+      }
+      if (useChild && !(Build.BTypes & ~BrowserType.Firefox && notSafe_not_ff_!(el2))
+          && (cr = getVisibleClientRect_(el2 as SafeElement, st))) {
+        return cr
+      }
+    }
+  }
+  return null
+}
+: (element: SafeElement, el_style?: CSSStyleDeclaration | null): Rect | null => {
+  let cr: Rect | null, I: "inline" | undefined, useChild: boolean, isInline: boolean | undefined, str: string
+  for (const rect of <ClientRect[]> <{[i: number]: ClientRect}> element.getClientRects()) {
+    if (rect.height > 0 && rect.width > 0) {
+      if (cr = cropRectToVisible_(rect.left, rect.top, rect.right, rect.bottom)) {
+        return isRawStyleVisible(el_style || getComputedStyle_(element)) ? cr : null
+      }
       continue
     }
+    if (I) { continue }
     I = "inline"
     for (const el2 of <Element[]> <{[index: number]: Element}> element.children) {
       const st = getComputedStyle_(el2)
