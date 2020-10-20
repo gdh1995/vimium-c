@@ -177,11 +177,7 @@ const BackgroundCommands: {
       if (doesMatchRoot.length) {
         roots = doesMatchRoot
       } else {
-        interface ArrayWithReduce<T> extends Array<T> {
-          reduce<S>(callbackfn: (previousValue: S, currentValue: T, currentIndex: number, array: ReadonlyArray<T>
-              ) => S, initialValue?: S): S
-        }
-        roots = (roots.map(i => i.children!) as ArrayWithReduce<(typeof roots)>).reduce((i, j) => i.concat(j))
+        roots = roots.reduce((i, j) => i.concat(j.children!), [] as chrome.bookmarks.BookmarkTreeNode[])
       }
       let folder: chrome.bookmarks.BookmarkTreeNode | null = null
       for (let node of nodes) {

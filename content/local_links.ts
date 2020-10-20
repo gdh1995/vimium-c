@@ -4,7 +4,8 @@ type HintSources = readonly SafeElement[] | NodeListOf<SafeElement>;
 type NestedFrame = false | 0 | null | KnownIFrameElement
 
 import {
-  VOther, clickable_, isJSUrl, doc, isImageUrl, fgCache, readyState_, chromeVer_, VTr, createRegExp, unwrap_ff
+  VOther, clickable_, isJSUrl, doc, isImageUrl, fgCache, readyState_, chromeVer_, VTr, createRegExp, unwrap_ff, max_,
+  math
 } from "../lib/utils"
 import {
   isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, findMainSummary_, htmlTag_, isAriaNotTrue_,
@@ -178,10 +179,10 @@ const getClickableInNonHTMLButMayFormatted = (hints: Hint[]
 }
 
 const checkJSAction = (str: string): boolean => {
-  for (let s of str.split(";") as Array<string | null>) {
-    s = s!.trim()
-    s = s.startsWith("click:") ? s.slice(6) : s && !s.includes(":") ? s : null
-    if (s && s !== NONE && !(<RegExpOne> /\._\b(?![\$\.])/).test(s)) {
+  for (let jsaStr of str.split(";")) {
+    jsaStr = jsaStr!.trim()
+    jsaStr = jsaStr.startsWith("click:") ? jsaStr.slice(6) : jsaStr && !jsaStr.includes(":") ? jsaStr : NONE
+    if (jsaStr !== NONE && !(<RegExpOne> /\._\b(?![\$\.])/).test(jsaStr)) {
       return true;
     }
   }
@@ -658,14 +659,14 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
   maxLeft_ = view[2], maxTop_ = view[3], maxRight_ = view[4];
   if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar)
       && maxRight_ > 0) {
-    _i = Math.ceil(Math.log(visibleElements.length) / Math.log(hintChars.length));
+    _i = math.ceil(math.log(visibleElements.length) / math.log(hintChars.length));
     maxLeft_ -= 16 * _i + 12;
   }
   visibleElements.reverse();
 
   const obj = {l: null as never, t: null as never} as {l: Rect[]; t: Rect}, func = SubtractSequence_.bind(obj);
   let r2 = null as Rect[] | null, t: Rect, reason: ClickType, visibleElement: Hint;
-  for (let _len = visibleElements.length, _j = Math.max(0, _len - 16); 0 < --_len; ) {
+  for (let _len = visibleElements.length, _j = max_(0, _len - 16); 0 < --_len; ) {
     _j > 0 && --_j;
     visibleElement = visibleElements[_len];
     if (visibleElement[2] > ClickType.MaxNotBox) { continue; }

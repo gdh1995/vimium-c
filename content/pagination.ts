@@ -2,7 +2,8 @@ import {
   clickable_, VOther, vApi, isAlive_, safer, timeout_, escapeAllForRe, tryCreateRegExp, VTr, unwrap_ff, isTY, Lower
 } from "../lib/utils"
 import {
-  docEl_unsafe_, htmlTag_, isAriaNotTrue_, isStyleVisible_, querySelectorAll_unsafe_, isIFrameElement, ALA, attr_s, contains_s
+  docEl_unsafe_, htmlTag_, isAriaNotTrue_, isStyleVisible_, querySelectorAll_unsafe_, isIFrameElement, ALA, attr_s,
+  contains_s
 } from "../lib/dom_utils"
 import { getBoundingClientRect_, view_ } from "../lib/rect"
 import { kSafeAllSelector, detectUsableChild } from "./link_hints"
@@ -102,23 +103,23 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, isNext, lenLi
 export const findNextInText = (names: string[], isNext: boolean, lenLimits: number[], totalMax: number
     ): GoNextBaseCandidate | null => {
   const wordRe = <RegExpOne> /\b/
-  let candidates: GoNextCandidate[] = [], officer: VApiTy | undefined, maxLen = totalMax, s: string
+  let array: GoNextCandidate[] = [], officer: VApiTy | undefined, maxLen = totalMax, s: string
   let curLenLimit: number
   iframesToSearchForNext = [vApi]
   while (officer = iframesToSearchForNext!.pop()) {
     try {
-      maxLen = officer.g(candidates, names, isNext, lenLimits, totalMax, maxLen)
+      maxLen = officer.g(array, names, isNext, lenLimits, totalMax, maxLen)
     } catch {}
     curLenLimit = (maxLen + 1) << 16
-    candidates = candidates.filter(a => (a[2] & 0x7fffff) < curLenLimit)
+    array = array.filter(a => (a[2] & 0x7fffff) < curLenLimit)
   }
   iframesToSearchForNext = null
-  candidates = candidates.sort((a, b) => a[2] - b[2])
-  for (let i = candidates.length ? candidates[0][2] >> 23 : GlobalConsts.MaxNumberOfNextPatterns; i < names.length; ) {
+  array = array.sort((a, b) => a[2] - b[2])
+  for (let i = array.length ? array[0][2] >> 23 : GlobalConsts.MaxNumberOfNextPatterns; i < names.length; ) {
     s = names[i++];
     const re = tryCreateRegExp(wordRe.test(s[0]) || wordRe.test(s.slice(-1))
         ? `\\b${escapeAllForRe(s)}\\b` : escapeAllForRe(s), "")!, j = i << 23
-    for (const candidate of candidates) {
+    for (const candidate of array) {
       if (candidate[2] > j) { break }
       if (!candidate[3] || re.test(candidate[3])) { return candidate }
     }

@@ -1,6 +1,7 @@
 import {
   setupEventListener, VTr, keydownEvents_, isAlive_, suppressCommonEvents, onWndFocus, VOther, timeout_, safer, fgCache,
-  doc, getTime, chromeVer_, deref_, escapeAllForRe, tryCreateRegExp, vApi, callFunc, clearTimeout_, Stop_, isTY, Lower
+  doc, getTime, chromeVer_, deref_, escapeAllForRe, tryCreateRegExp, vApi, callFunc, clearTimeout_, Stop_, isTY, Lower,
+  math, max_, min_
 } from "../lib/utils"
 import {
   pushHandler_, replaceOrSuppressMost_, removeHandler_, prevent_, getMappedKey, keybody_, isEscape_, keyNames_,
@@ -18,7 +19,8 @@ import {
 } from "../lib/rect"
 import {
   ui_box, ui_root, getSelectionParent_unsafe, resetSelectionToDocStart, getBoxTagName_cr_, collpaseSelection,
-  createStyle, getSelectionText, checkDocSelectable, adjustUI, ensureBorder, addUIElement, getSelected, flash_, getSelectionOf,
+  createStyle, getSelectionText, checkDocSelectable, adjustUI, ensureBorder, addUIElement, getSelected, flash_,
+  getSelectionOf
 } from "./dom_ui"
 import { visual_mode, highlightRange, kDir, activate as visualActivate, kExtend } from "./visual"
 import { keyIsDown as scroll_keyIsDown, beginScroll, onScrolls } from "./scroller"
@@ -693,8 +695,7 @@ export const updateQuery = (query: string): void => {
   let delta: number
   if (re) {
     let now = Date.now()
-    if (cachedInnerText
-        && (delta = Math.abs(now - cachedInnerText.t)) < (cachedInnerText.i.length < 1e5 ? 3e3 : 6e3)) {
+    if (cachedInnerText && (delta = math.abs(now - cachedInnerText.t)) < (cachedInnerText.i.length < 1e5 ? 3e3 : 6e3)) {
       query = cachedInnerText!.i
       delta < 500 && (cachedInnerText!.t = now)
     } else {
@@ -782,7 +783,7 @@ export const executeFind = (query: string | null, options: FindNS.ExecuteOptions
       oldReInd = activeRegexIndex
       q = query || (!isRe ? parsedQuery_ : !regexMatches ? "" : regexMatches[
             activeRegexIndex = highLight
-                ? back ? oldReInd > 0 ? oldReInd - 1 : 0 : oldReInd + 1 < matchCount ? oldReInd + 1 : matchCount - 1
+                ? back ? max_(0, oldReInd - 1) : min_(oldReInd + 1, matchCount - 1)
                 : (oldReInd + (back ? -1 : 1) + matchCount) % matchCount])
       found = !!q && (Build.BTypes & ~BrowserType.Chrome
         ? _do_find_not_cr!(q, !notSens, back, !highLight && wrapAround, wholeWord, false, false)

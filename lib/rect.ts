@@ -1,4 +1,4 @@
-import { doc, VOther, chromeVer_, Lower } from "./utils"
+import { doc, VOther, chromeVer_, Lower, max_, min_, math } from "./utils"
 import {
   docEl_unsafe_, scrollingEl_, notSafe_not_ff_, ElementProto, isRawStyleVisible, getComputedStyle_, NONE,
   querySelector_unsafe_, querySelectorAll_unsafe_, GetParent_unsafe_, HDN, createElement_, fullscreenEl_unsafe_,
@@ -44,7 +44,6 @@ export let prepareCrop_ = (inVisualViewport?: 1, limitedView?: Rect | null): num
   prepareCrop_ = (function (this: void, inVisual?: 1, limited?: Rect | null): number {
     const dz = Build.BTypes & ~BrowserType.Firefox ? docZoom_ : 1,
     fz = Build.BTypes & ~BrowserType.Firefox ? dz * bZoom_ : 1, b = paintBox_,
-    max = Math.max, min = Math.min,
     d = doc, visual = inVisual && visualViewport
     let i: number, j: number, el: Element | null, docEl: Document["documentElement"]
     vleft = vtop = 0
@@ -64,18 +63,18 @@ export let prepareCrop_ = (inVisualViewport?: 1, limitedView?: Rect | null): num
       i = wndSize_(1), j = wndSize_()
       if (!docEl) { return vbottom = j, vbottoms = j - 8, vright = i; }
       // the below is not reliable but safe enough, even when docEl is unsafe
-      i = min(max(i - GlobalConsts.MaxScrollbarWidth, (dimSize_(docEl as SafeElement, kDim.elClientW) * dz) | 0), i)
-      j = min(max(j - GlobalConsts.MaxScrollbarWidth, (dimSize_(docEl as SafeElement, kDim.elClientH) * dz) | 0), j)
+      i = min_(max_(i - GlobalConsts.MaxScrollbarWidth, (dimSize_(docEl as SafeElement, kDim.elClientW) * dz) | 0), i)
+      j = min_(max_(j - GlobalConsts.MaxScrollbarWidth, (dimSize_(docEl as SafeElement, kDim.elClientH) * dz) | 0), j)
     }
     if (b) {
-      i = min(i, b[0] * dz); j = min(j, b[1] * dz)
+      i = min_(i, b[0] * dz), j = min_(j, b[1] * dz)
     }
     vright = (i / fz) | 0, vbottom = (j / fz) | 0
     if (limited) {
-      vleft = max(vleft, limited.l | 0)
-      vtop = max(vtop, limited.t | 0)
-      vright = min(vright, limited.r | 0)
-      vbottom = min(vbottom, limited.b | 0)
+      vleft = max_(vleft, limited.l | 0)
+      vtop = max_(vtop, limited.t | 0)
+      vright = min_(vright, limited.r | 0)
+      vbottom = min_(vbottom, limited.b | 0)
     }
     vtops = vtop + 3
     vbottoms = (vbottom - 8 / fz) | 0
@@ -162,16 +161,16 @@ export const getClientRectsForAreas_ = function (element: HTMLElementUsingMap, o
     let coords = (area as HTMLAreaElement).coords.split(",").map(toInt)
     switch (Lower((area as HTMLAreaElement).shape)) {
     case "circle": case "circ": // note: "circ" is non-conforming
-      x2 = coords[0]; y2 = coords[1]; diff = coords[2] / Math.sqrt(2)
+      x2 = coords[0]; y2 = coords[1]; diff = coords[2] / math.sqrt(2)
       x1 = x2 - diff; x2 += diff; y1 = y2 - diff; y2 += diff
       diff = 3
       break
     case "default": x1 = y1 = diff = 0, x2 = crWidth, y2 = crHeight; break
     case "poly": case "polygon": // note: "polygon" is non-conforming
       y1 = coords[0], y2 = coords[2], diff = coords[4]
-      x1 = Math.min(y1, y2, diff); x2 = Math.max(y1, y2, diff)
+      x1 = min_(y1, y2, diff); x2 = max_(y1, y2, diff)
       y1 = coords[1], y2 = coords[3], diff = coords[5]
-      y1 = Math.min(y1, y2, diff); y2 = Math.max(coords[1], y2, diff)
+      y1 = min_(y1, y2, diff); y2 = max_(coords[1], y2, diff)
       diff = 6
       break
     default:
@@ -223,8 +222,8 @@ const _fixDocZoom_cr = Build.BTypes & BrowserType.Chrome ? (zoom: number, docEl:
           && ver < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl
       || (rectWidth = getBoundingClientRect_(docEl).width,
           viewportWidth = visualViewport!.width!,
-          Math.abs(rectWidth - viewportWidth) > 1e-3
-          && (Math.abs(rectWidth * zoom - viewportWidth) < 0.01
+          math.abs(rectWidth - viewportWidth) > 1e-3
+          && (math.abs(rectWidth * zoom - viewportWidth) < 0.01
             || (Build.MinCVer >= BrowserVer.MinASameZoomOfDocElAsdevPixRatioWorksAgain
                   || ver > BrowserVer.MinASameZoomOfDocElAsdevPixRatioWorksAgain - 1)
                 && !notSafe_not_ff_!(docEl) && (style = (docEl as ElementToHTMLorOtherFormatted).style)
@@ -271,16 +270,16 @@ export const getZoom_ = Build.BTypes & ~BrowserType.Firefox ? function (target?:
   }
   paintBox_ = null; // it's not so necessary to get a new paintBox here
   docZoom_ = zoom
-  wdZoom_ = Math.round(zoom * (ratio < 1 ? ratio : 1) * 1000) / 1000
+  wdZoom_ = math.round(zoom * min_(ratio, 1) * 1000) / 1000
 } : function (): void {
   paintBox_ = null
   docZoom_ = bZoom_ = 1
   /** the min() is required in {@link ../front/vomnibar.ts#Vomnibar_.activateO_ } */
-  wdZoom_ = Math.min(wndSize_(2), 1)
+  wdZoom_ = min_(wndSize_(2), 1)
 } as never
 
 export const getViewBox_ = function (needBox?: 1 | 2): ViewBox | ViewOffset {
-  const ratio = wndSize_(2), M = Math, round = M.round
+  const ratio = wndSize_(2), round = math.round
   let iw = wndSize_(1), ih = wndSize_(), ratio2 = ratio < 1 ? ratio : 1
   if (fullscreenEl_unsafe_()) {
     getZoom_(1)
@@ -318,8 +317,8 @@ export const getViewBox_ = function (needBox?: 1 | 2): ViewBox | ViewOffset {
   x = x * (Build.BTypes & BrowserType.Chrome ? ltScale : scale) - rect.l
   y = y * (Build.BTypes & BrowserType.Chrome ? ltScale : scale) - rect.t
   // note: `Math.abs(y) < 0.01` supports almost all `0.01 * N` (except .01, .26, .51, .76)
-  x = x * x < 1e-4 ? 0 : M.ceil(round(x / zoom2 * 100) / 100)
-  y = y * y < 1e-4 ? 0 : M.ceil(round(y / zoom2 * 100) / 100)
+  x = x * x < 1e-4 ? 0 : math.ceil(round(x / zoom2 * 100) / 100)
+  y = y * y < 1e-4 ? 0 : math.ceil(round(y / zoom2 * 100) / 100)
   if (Build.BTypes & ~BrowserType.Firefox) {
     iw /= zoom, ih /= zoom
   }
@@ -337,12 +336,12 @@ export const getViewBox_ = function (needBox?: 1 | 2): ViewBox | ViewOffset {
   if (xScrollable) {
     mw += 64 * zoom2
     iw = containHasPaint ? iw : sEl && (dimSize_(sEl, kDim.scrollW) - scrollX) / zoom
-          || M.max((iw - GlobalConsts.MaxScrollbarWidth) / zoom, rect.r)
+          || max_((iw - GlobalConsts.MaxScrollbarWidth) / zoom, rect.r)
   }
   if (yScrollable) {
     mh += 20 * zoom2
     ih = containHasPaint ? ih : sEl && (dimSize_(sEl, kDim.scrollH) - scrollY) / zoom
-          || M.max((ih - GlobalConsts.MaxScrollbarWidth) / zoom, rect.b)
+          || max_((ih - GlobalConsts.MaxScrollbarWidth) / zoom, rect.b)
   }
   iw = iw < mw ? iw : mw, ih = ih < mh ? ih : mh
   iw = (iw / zoom2) | 0, ih = (ih / zoom2) | 0
@@ -412,9 +411,9 @@ export const isContaining_ = (a: Rect, b: Rect): boolean => {
 }
 
 export const padClientRect_ = function (rect: ClientRect, padding?: number): WritableRect {
-  const x = rect.left, y = rect.top, max = Math.max
+  const x = rect.left, y = rect.top
   padding = x || y ? padding || 0 : 0
-  return {l: x | 0, t: y | 0, r: (x + max(rect.width, padding)) | 0, b: (y + max(rect.height, padding)) | 0}
+  return {l: x | 0, t: y | 0, r: (x + max_(rect.width, padding)) | 0, b: (y + max_(rect.height, padding)) | 0}
 } as {
   (rect: ClientRect, padding: number): WritableRect
   (rect: ClientRect): Rect

@@ -114,23 +114,23 @@ export const getBoxTagName_cr_ = Build.BTypes & BrowserType.Chrome ? function ()
 } : 0 as never
 
 export const addElementList = function <T extends boolean | BOOL> (
-      els: readonly HintsNS.BaseHintItem[], offset: ViewOffset, dialogContainer?: T
+      array: readonly HintsNS.BaseHintItem[], offset: ViewOffset, dialogContainer?: T
       ): (T extends true | 1 ? HTMLDialogElement : HTMLDivElement) & SafeElement {
     const parent = createElement_(Build.BTypes & BrowserType.ChromeOrFirefox && dialogContainer ? "dialog"
         : Build.BTypes & BrowserType.Chrome ? getBoxTagName_cr_() :  "div");
     let cls = `R HM${Build.BTypes & BrowserType.ChromeOrFirefox && dialogContainer ? " DHM" : ""}${fgCache.d}`
     let innerBox: HTMLDivElement | HTMLDialogElement | undefined = parent
     setClassName_s(parent, cls)
-    if (Build.BTypes & BrowserType.Chrome && dialogContainer && els.length && getBoxTagName_cr_() < "d") { // <body>
+    if (Build.BTypes & BrowserType.Chrome && dialogContainer && array.length && getBoxTagName_cr_() < "d") { // <body>
       innerBox = createElement_(getBoxTagName_cr_())
       appendNode_s(parent, innerBox)
       setClassName_s(innerBox, cls)
     }
     if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinTestedES6Environment
           && Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
-      (Build.BTypes &BrowserType.Chrome ? innerBox : parent).append!(...els.map(el => el.m))
+      (Build.BTypes &BrowserType.Chrome ? innerBox : parent).append!(...array.map(el => el.m))
     } else {
-      for (const el of els) {
+      for (const el of array) {
         appendNode_s(Build.BTypes &BrowserType.Chrome ? innerBox : parent, el.m)
       }
     }
@@ -431,7 +431,7 @@ export const flash_ = function (el: Element | null, rect?: Rect | null, lifeTime
     addUIElement(flashEl)
     lastFlashEl = flashEl
     if (!Build.NDEBUG) {
-      lifeTime = lifeTime === -1 ? - 1 : Math.max(lifeTime || 0, flashTime! | 0);
+      lifeTime = lifeTime === -1 ? - 1 : Math.max(lifeTime || 0, flashTime! | 0)
     }
     const remove = (): void => {
       lastFlashEl === flashEl && (lastFlashEl = null)

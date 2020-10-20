@@ -1,8 +1,10 @@
 import {
-  clickable_, setupEventListener, VOther, timeout_, doc, isAlive_, set_allowRAF_,
+  clickable_, setupEventListener, VOther, timeout_, doc, isAlive_, set_allowRAF_, math,
   loc_, replaceBrokenTimerFunc, allowRAF_, getTime, recordLog, VTr, vApi, Stop_, isTY
 } from "../lib/utils"
-import { createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, removeEl_s, attr_s, setOrRemoveAttr } from "../lib/dom_utils"
+import {
+  createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, removeEl_s, attr_s, setOrRemoveAttr
+} from "../lib/dom_utils"
 import { safeDestroy } from "./port"
 import { coreHints } from "./link_hints"
 import { grabBackFocus } from "./insert"
@@ -68,7 +70,7 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
         : Build.BTypes & BrowserType.Chrome
           && (!(Build.BTypes & ~BrowserType.ChromeOrFirefox) || VOther === BrowserType.Chrome)
         ? 1 : 0
-    , secret: number = (Math.random() * kContentCmd.SecretRange + 1) | 0
+    , secret: number = (math.random() * kContentCmd.SecretRange + 1) | 0
     , script = createElement_("script");
 /**
  * Note:
@@ -146,10 +148,10 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
       coreHints.h - 1 || timeout_(coreHints.x, 34);
     }
   }
-  function resolve(isBox: BOOL, nodeIndexList: number[]): void {
-    if (!nodeIndexList.length) { return; }
+  function resolve(isBox: BOOL, nodeIndexArray: number[]): void {
+    if (!nodeIndexArray.length) { return; }
     const list = (isBox ? box as Element : doc).getElementsByTagName("*");
-    for (const index of nodeIndexList) {
+    for (const index of nodeIndexArray) {
       let el = list[index];
       el && clickable_.add(el);
     }
@@ -534,7 +536,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$addEvent
       injected = injected.replace(<RegExpG> /: ?function \w+/g, "");
     }
     injected = injected.replace(GlobalConsts.MarkAcrossJSWorlds
-        , "$&" + ((Math.random() * GlobalConsts.SecretRange + GlobalConsts.SecretBase) | 0));
+        , "$&" + ((math.random() * GlobalConsts.SecretRange + GlobalConsts.SecretBase) | 0))
     vApi.e = execute;
     setupEventListener(0, kHookRand, hook);
     setupEventListener(0, kVOnClick1, onClick);

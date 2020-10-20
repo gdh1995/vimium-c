@@ -1,6 +1,6 @@
 import {
   chromeVer_, doc, esc, EscF, fgCache, isTop, set_esc, VOther, VTr, safer, timeout_, loc_, weakRef_, deref_,
-  keydownEvents_, parseSedOptions, Stop_, suppressCommonEvents, setupEventListener, vApi, locHref, isTY
+  keydownEvents_, parseSedOptions, Stop_, suppressCommonEvents, setupEventListener, vApi, locHref, isTY, max_, min_
 } from "../lib/utils"
 import {
   isHTML_, htmlTag_, createElement_, frameElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK,
@@ -43,7 +43,7 @@ export const RSC = "readystatechange"
 
 set_contentCommands_([
   /* kFgCmd.framesGoBack: */ (options: CmdOptions[kFgCmd.framesGoBack], rawStep?: number): void => {
-    const maxStep = Math.min(rawStep! < 0 ? -rawStep! : rawStep!, history.length - 1),
+    const maxStep = min_(rawStep! < 0 ? -rawStep! : rawStep!, history.length - 1),
     reuse = (options as typeof options & {r: 0}).reuse,
     isCurrent = reuse === "current" || reuse === ReuseType.current,
     realStep = rawStep! < 0 ? -maxStep : maxStep;
@@ -259,9 +259,13 @@ set_contentCommands_([
       return {m: marker, d: link[0]};
     })
     if (count === 1 && known_last) {
-      sel = Math.max(0, hints.map(link => link.d).indexOf(known_last))
+      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Array$$find$$findIndex) {
+        sel = max_(0, hints.map(link => link.d).indexOf(known_last))
+      } else {
+        sel = max_(0, hints.findIndex(link => link.d === known_last))
+      }
     } else {
-      sel = count > 0 ? Math.min(count, sel) - 1 : Math.max(0, sel + count);
+      sel = count > 0 ? min_(count, sel) - 1 : max_(0, sel + count);
     }
     setClassName_s(hints[sel].m, S)
     ensureBorder(wdZoom_ / dScale_);

@@ -1,13 +1,14 @@
 import HintItem = HintsNS.HintItem
 import {
   safer, fgCache, VOther, isImageUrl, isJSUrl, set_keydownEvents_, keydownEvents_, timeout_, doc, chromeVer_, weakRef_,
-  parseSedOptions, createRegExp, isTY
+  parseSedOptions, createRegExp, isTY, max_, min_
 } from "../lib/utils"
 import { getVisibleClientRect_, center_, view_, selRange_ } from "../lib/rect"
 import {
   IsInDOM_, createElement_, htmlTag_, getComputedStyle_, getEditableType_, isIFrameElement, GetParent_unsafe_,
   ElementProto, querySelector_unsafe_, getInputType, uneditableInputs_, GetShadowRoot_, CLK, scrollingEl_,
-  findMainSummary_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s, setOrRemoveAttr, toggleClass, textContent_
+  findMainSummary_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s,
+  setOrRemoveAttr, toggleClass, textContent_
 } from "../lib/dom_utils"
 import {
   hintOptions, mode1_, hintMode_, hintApi, hintManager, coreHints, setMode, detectUsableChild, hintCount_,
@@ -174,7 +175,7 @@ const focusIFrame = (el: KnownIFrameElement): BOOL => {
   return 0
 }
 
-export const linkActions: readonly LinkAction[] = [
+export const linkActionArray: readonly LinkAction[] = [
 [
   (element, rect): void => {
     const type = getEditableType_<0>(element), toggleMap = hintOptions.toggle;
@@ -210,13 +211,13 @@ export const linkActions: readonly LinkAction[] = [
       try {
         if (selector && (selected = up
               ? Build.BTypes & ~BrowserType.Firefox
-                ? ElementProto().querySelector.call(ancestors[Math.max(0, Math.min(up + 1, ancestors.length - 1))]
+                ? ElementProto().querySelector.call(ancestors[max_(0, min_(up + 1, ancestors.length - 1))]
                     , selector)
-                : querySelector_unsafe_(selector, ancestors[Math.max(0, Math.min(up + 1, ancestors.length - 1))
+                : querySelector_unsafe_(selector, ancestors[max_(0, min_(up + 1, ancestors.length - 1))
                     ] as SafeElement)
               : element.closest!(selector))) {
-          for (const clsName of toggleMap[key].split(" ")) {
-            clsName.trim() && toggleClass(selected, clsName)
+          for (const classNameStr of toggleMap[key].split(" ")) {
+            classNameStr.trim() && toggleClass(selected, classNameStr)
           }
         }
       } catch {}
@@ -438,7 +439,7 @@ export const linkActions: readonly LinkAction[] = [
       (link as HTMLDetailsElement).open = !(link as HTMLDetailsElement).open;
       return;
     } else if (hint.r && hint.r === link) {
-      linkActions[0][0](link, rect, hint);
+      linkActionArray[0][0](link, rect, hint);
       return;
     } else if (getEditableType_<0>(link) > EditableType.TextBox - 1) {
       select_(link as LockableElement, rect, !removeFlash);
@@ -487,6 +488,6 @@ export const linkActions: readonly LinkAction[] = [
 ]
 ]
 
-if (!(Build.NDEBUG || linkActions.length === 10)) {
+if (!(Build.NDEBUG || linkActionArray.length === 10)) {
   console.log("Assert error: linkActions should have 10 items");
 }

@@ -36,8 +36,7 @@ import { VTr, VOther, safer, fgCache, doc, chromeVer_, tryCreateRegExp, isTY } f
 import {
   getSelection_, getSelectionFocusEdge_, isHTML_, docEl_unsafe_, notSafe_not_ff_, getEditableType_, editableTypes_,
   GetChildNodes_not_ff, isInputInTextMode_cr_old, rangeCount_, getAccessibleSelectedNode, scrollingEl_, isNode_,
-  compareDocumentPosition,
-  selOffset_
+  compareDocumentPosition, selOffset_
 } from "../lib/dom_utils"
 import {
   padClientRect_, getSelectionBoundingBox_, getZoom_, prepareCrop_, cropRectToVisible_, getVisibleClientRect_,

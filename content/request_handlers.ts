@@ -1,5 +1,5 @@
 import {
-  chromeVer_, clickable_, doc, esc, fgCache, injector, isEnabled_, isLocked_, isAlive_, isTop,
+  chromeVer_, clickable_, doc, esc, fgCache, injector, isEnabled_, isLocked_, isAlive_, isTop, math,
   keydownEvents_, safeObj, set_chromeVer_, set_clickable_, set_fgCache, set_VOther, set_isLocked_,
   set_isEnabled_, set_onWndFocus, VOther, onWndFocus, timeout_, safer,
   interval_, getTime, vApi, clearInterval_, locHref,
@@ -125,8 +125,8 @@ set_requestHandlers([
     /*#__INLINE__*/ set_passKeys(newPassKeys && safeObj<1>(null))
     if (newPassKeys) {
       /*#__INLINE__*/ set_isPassKeysReversed(newPassKeys[0] === "^" && newPassKeys.length > 2);
-      for (const ch of (isPassKeysReversed ? newPassKeys.slice(2) : newPassKeys).split(" ")) {
-        (passKeys as SafeDict<1>)[ch] = 1;
+      for (const keyStr of (isPassKeysReversed ? newPassKeys.slice(2) : newPassKeys).split(" ")) {
+        (passKeys as SafeDict<1>)[keyStr] = 1;
       }
     }
     /*#__INLINE__*/ set_isEnabled_(newEnabled);
@@ -231,7 +231,7 @@ set_requestHandlers([
     exitGrab();
     if (Build.BTypes & ~BrowserType.Chrome && request.m) {
       const now = getTime(), result = confirm(request.m);
-      count2 = Math.abs(getTime() - now) > 9 ? result ? 3 : 1 : 2;
+      count2 = math.abs(getTime() - now) > 9 ? result ? 3 : 1 : 2
     }
     post_({ H: kFgReq.cmd, c: request.c, n, i: request.i, r: count2 });
   }

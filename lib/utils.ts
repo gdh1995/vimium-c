@@ -191,3 +191,7 @@ export const isTY = ((obj: any, ty?: kTY): boolean => typeof obj === TYPES[ty ||
 }
 
 export const Lower = (str: string): string => str.toLowerCase()
+
+export const math = Math
+export const max_ = Build.NDEBUG ? math.max : (...args: number[]): number => math.max(...args)
+export const min_ = Build.NDEBUG ? math.min : (...args: number[]): number => math.min(...args)

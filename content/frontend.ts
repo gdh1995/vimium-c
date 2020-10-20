@@ -1,7 +1,7 @@
 import {
   doc, isTop, injector, VOther, initialDocState, set_esc, esc, setupEventListener, set_isEnabled_,
   set_clickable_, clickable_, isAlive_, set_VTr, setupKeydownEvents, onWndFocus,
-  set_readyState_, readyState_, callFunc, recordLog, set_vApi, vApi, locHref, unwrap_ff, raw_unwrap_ff,
+  set_readyState_, readyState_, callFunc, recordLog, set_vApi, vApi, locHref, unwrap_ff, raw_unwrap_ff, math,
 } from "../lib/utils"
 import { suppressTail_, getMappedKey } from "../lib/keyboard_utils"
 import { frameElement_, set_OnDocLoaded_ } from "../lib/dom_utils"
@@ -99,7 +99,7 @@ else if (Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox |
         return diff || d2; // hide the real result if too many errors
       },
       g (comparer, rand1): VApiTy | void {
-        let rand2 = Math.random(), toStr = hookOnWnd.toString
+        let rand2 = math.random(), toStr = hookOnWnd.toString
         // an ES6 method function is always using the strict mode, so the arguments are inaccessible outside it
         if (coreTester.s > GlobalConsts.MaxRetryTimesForSecret
             // if `comparer` is a Proxy, then `toString` returns "[native code]", so the line below is safe
@@ -123,7 +123,7 @@ else if (Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox |
         let core: ReturnType<SandboxGetterFunc>,
         wrapper = unwrap_ff(anotherWnd as any as XrayedObject<typeof wrappedJSObject>)[coreTester.n],
         getter = wrapper && wrapper._get
-        return getter && (core = getter(coreTester.c, coreTester.k = Math.random())) &&
+        return getter && (core = getter(coreTester.c, coreTester.k = math.random())) &&
           !coreTester.r ? core : null;
       } catch {}
     })

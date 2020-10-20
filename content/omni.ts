@@ -16,12 +16,13 @@ interface FullOptions extends BaseFullOptions {
 declare var VData: VDataTy
 
 import {
-  injector, isAlive_, keydownEvents_, readyState_, VOther, timeout_, clearTimeout_, loc_, recordLog, chromeVer_,
+  injector, isAlive_, keydownEvents_, readyState_, VOther, timeout_, clearTimeout_, loc_, recordLog, chromeVer_, math,
   interval_, clearInterval_, locHref, vApi, createRegExp, isTY
 } from "../lib/utils"
 import { removeHandler_, replaceOrSuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
 import {
-  frameElement_, isHTML_, fullscreenEl_unsafe_, NONE, createElement_, removeEl_s, setClassName_s, setOrRemoveAttr, toggleClass
+  frameElement_, isHTML_, fullscreenEl_unsafe_, NONE, createElement_, removeEl_s, setClassName_s, setOrRemoveAttr,
+  toggleClass
 } from "../lib/dom_utils"
 import { getViewBox_, docZoom_, dScale_, prepareCrop_, bZoom_, wndSize_ } from "../lib/rect"
 import { beginScroll, scrollTick } from "./scroller"
@@ -267,7 +268,7 @@ const onOmniMessage = function (this: OmniPort, msg: { data: any, target?: Messa
       omniOptions = null
       break;
     case VomnibarNS.kFReq.style:
-      box.style.height = Math.ceil(data.h / docZoom_
+      box.style.height = math.ceil(data.h / docZoom_
           / (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
               && (!(Build.BTypes & ~BrowserType.Chrome)
                   || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome)

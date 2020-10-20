@@ -129,11 +129,11 @@ declare const enum BrowserVer {
   MinMuted = 45,
   // https://www.chromestatus.com/features/5697181675683840
   MinNoMousePositionUpdatesWhenScrolling = 45, // replaced by MinRuntimeFlag$UpdateHoverAtBeginFrame
-  MinMutedInfo = 46,
-  // even if EXPERIMENTAL or LEGACY
+  // the 3 below are even if EXPERIMENTAL or LEGACY
+  Min$Array$$find$$findIndex = 45,
   MinAutoDecodeJSURL = 46,
-  // even if EXPERIMENTAL or LEGACY
   Min$Event$$IsTrusted = 46,
+  MinMutedInfo = 46,
   // occur on Chrome 46 if EXPERIMENTAL; always enabled since C47 even if LEGACY
   MinMayBe$requestIdleCallback = 46,
   Min$windows$APIsFilterOutDevToolsByDefault = 46,
@@ -207,7 +207,7 @@ declare const enum BrowserVer {
   // Chrome also began to put contain attr in use on 51 if EXPERIMENTAL
   // but obviously there's some bugs about this feature
   CSS$Contain$BreaksHelpDialogSize = 51,
-  MinEnsuredForOf$NodeList$Or$HTMLCollection = 51,
+  MinEnsured$ForOf$forEach$ForDOMListTypes = 51, // NodeList, HTMLCollection and ClientRectList
   // test: var {a,b,c}={a:(...a)=>[-1,`${Math.sign(2)}`,...a],b(i=2){return i*6}, ['c'](d){let j=class A{};return ""+j}}
   // on C51, the above passes, but the Developer Tools can not be opened if LEGACY
   MinEnsuredFullES6Environment = 52,

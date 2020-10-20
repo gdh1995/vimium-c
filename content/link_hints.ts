@@ -56,7 +56,7 @@ interface FrameHintsInfo {
 }
 
 import {
-  VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_,
+  VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_, max_, min_, math,
   clearTimeout_, VOther, fgCache, doc, readyState_, chromeVer_, vApi, deref_, getTime, weakRef_, unwrap_ff, isTY
 } from "../lib/utils"
 import {
@@ -81,13 +81,12 @@ import {
   getVisibleElements, localLinkClear, frameNested_, checkNestedFrame, set_frameNested_, filterOutNonReachable,
 } from "./local_links"
 import {
-  rotateHints, matchHintsByKey, zIndexes_, rotate1, initFilterEngine, initAlphabetEngine, renderMarkers,
+  matchHintsByKey, zIndexes_, rotate1, initFilterEngine, initAlphabetEngine, renderMarkers, generateHintText,
   getMatchingHints, activeHint_, hintFilterReset, hintFilterClear, resetZIndexes, adjustMarkers, createHint,
-  generateHintText,
 } from "./hint_filters"
 import {
   LinkAction,
-  linkActions, executeHintInOfficer, removeFlash, set_hintModeAction, resetRemoveFlash, resetHintKeyCode,
+  linkActionArray, executeHintInOfficer, removeFlash, set_hintModeAction, resetRemoveFlash, resetHintKeyCode,
 } from "./link_actions"
 import { lastHovered_, resetLastHovered } from "./async_dispatcher"
 import { hookOnWnd, contentCommands_ } from "./port"
@@ -95,7 +94,7 @@ import { hookOnWnd, contentCommands_ } from "./port"
 let box_: HTMLDivElement | HTMLDialogElement | null = null
 let wantDialogMode_: boolean | null = null
 let hints_: readonly HintItem[] | null = null
-let frameList_: FrameHintsInfo[] = []
+let frameArray: FrameHintsInfo[] = []
 let mode_ = HintMode.empty
 let mode1_ = HintMode.empty
 let forHover_ = false
@@ -123,7 +122,7 @@ let addChildFrame_: ((child: BaseHintWorker
 
 export {
   isActive as isHintsActive,
-  hints_ as allHints, keyStatus_ as hintKeyStatus, useFilter_, frameList_, chars_ as hintChars,
+  hints_ as allHints, keyStatus_ as hintKeyStatus, useFilter_, frameArray, chars_ as hintChars,
   mode_ as hintMode_, mode1_, options_ as hintOptions, count_ as hintCount_,
   forHover_, isClickListened_, forceToScroll_, tooHigh_, kSafeAllSelector, addChildFrame_,
   api_ as hintApi, manager_ as hintManager,
@@ -151,9 +150,10 @@ export const activate = (options: HintsNS.ContentOptions, count: number, force?:
       return parApi.f(kFgCmd.linkHints, options, count, 2)
     }
     const useFilter0 = options.useFilter, useFilter = useFilter0 != null ? !!useFilter0 : fgCache.f,
-    frameList: FrameHintsInfo[] = frameList_ = [{h: [], v: null as never, s: coreHints}],
-    toClean: HintOfficer[] = [],
+    topFrameInfo: FrameHintsInfo = {h: [], v: null as never, s: coreHints},
+    toCleanArray: HintOfficer[] = [],
     s0 = options.c, chars = s0 ? s0 + "" : useFilter ? fgCache.n : fgCache.c;
+    frameArray = [topFrameInfo]
     if (chars.length < GlobalConsts.MinHintCharSetSize) {
       hudTip(kTip.fewChars, 1000)
       return clear()
@@ -186,20 +186,20 @@ export const activate = (options: HintsNS.ContentOptions, count: number, force?:
         }
         return !officer;
       };
-      coreHints.o(count, options, chars, useFilter, null, null, frameList[0], addChild)
-      allHints = frameList[0].h;
+      coreHints.o(count, options, chars, useFilter, null, null, topFrameInfo, addChild)
+      allHints = topFrameInfo.h
       while (child = childFrames.pop()) {
         if (child.v) {
           insertPos = childFrames.length;
-          frameList.push(frameInfo = {h: [], v: null as never, s: child.s});
+          frameArray.push(frameInfo = {h: [], v: null as never, s: child.s});
           child.s.o(count, options, chars, useFilter, child.v, coreHints, frameInfo, addChild);
           // ensure allHints always belong to the manager frame
           allHints = frameInfo.h.length ? allHints.concat(frameInfo.h) : allHints;
         } else if (child.s.$().a) {
-          toClean.push(child.s);
+          toCleanArray.push(child.s)
         }
       }
-      for (const i of toClean) { i.p = null; i.c() }
+      for (const i of toCleanArray) { i.p = null; i.c() }
       total = allHints.length;
       if (!total || total > GlobalConsts.MaxCountToHint) {
         hudTip(total ? kTip.tooManyLinks : kTip.noLinks, 1000)
@@ -208,14 +208,14 @@ export const activate = (options: HintsNS.ContentOptions, count: number, force?:
       hints_ = keyStatus_.c = allHints
       if (!Build.NDEBUG) { coreHints.hints_ = allHints }
     }
-    noHUD_ = !(useFilter || frameList[0].v[3] > 40 && frameList[0].v[2] > 320)
+    noHUD_ = !(useFilter || topFrameInfo.v[3] > 40 && topFrameInfo.v[2] > 320)
         || (options.hideHUD || options.hideHud) === true;
     useFilter ? /*#__NOINLINE__*/ initFilterEngine(allHints as readonly FilteredHintItem[])
         : initAlphabetEngine(allHints)
     renderMarkers(allHints)
     setMode(mode_);
     coreHints.h = 1
-    for (const frame of frameList) {
+    for (const frame of frameArray) {
       frame.s.r(frame.h, frame.v, vApi);
     }
 }
@@ -233,16 +233,19 @@ const collectFrameHints = (count: number, options: HintsNS.ContentOptions
     if (options_ !== options) {
       /** ensured by {@link ../background/key_mappings.ts#KeyMappings.makeCommand_} */
       let mode = options.m as number;
-      for (let modes of linkActions) {
-        if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
-            ? modes.indexOf(mode & ~HintMode.queue) > 0 : modes.includes!(mode & ~HintMode.queue)) {
-          modeAction = modes;
-          break;
+      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Array$$find$$findIndex) {
+        for (let modes of linkActionArray) {
+          if (modes.indexOf(mode & ~HintMode.queue) > 0) { modeAction = modes; break }
         }
-      }
-      if (!modeAction) {
-        modeAction = linkActions[8];
-        mode = HintMode.DEFAULT;
+        if (!modeAction) {
+          modeAction = linkActionArray[8]
+          mode = HintMode.DEFAULT;
+        }
+      } else {
+        modeAction = linkActionArray.find((modes): boolean => {
+          return Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
+              ? modes.indexOf(mode & ~HintMode.queue) > 0 : modes.includes!(mode & ~HintMode.queue)
+        }) || (mode = HintMode.DEFAULT, linkActionArray[8])
       }
       mode = count > 1 ? mode ? mode | HintMode.queue : HintMode.OPEN_WITH_QUEUE : mode;
       set_hintModeAction(modeAction);
@@ -315,25 +318,25 @@ export const setMode = (mode: HintMode, silent?: BOOL): void => {
 }
 
 const getPreciseChildRect = (frameEl: KnownIFrameElement, view: Rect): Rect | null => {
-    const max = Math.max, min = Math.min, V = "visible",
+    const V = "visible",
     brect = padClientRect_(getBoundingClientRect_(frameEl)),
     docEl = docEl_unsafe_(), body = doc.body, inBody = !!body && IsInDOM_(frameEl, body, 1),
     zoom = (Build.BTypes & BrowserType.Chrome ? docZoom_ * (inBody ? bZoom_ : 1) : 1
         ) / dScale_ / (inBody ? bScale_ : 1);
-    let x0 = min(view.l, brect.l), y0 = min(view.t, brect.t), l = x0, t = y0, r = view.r, b = view.b
+    let x0 = min_(view.l, brect.l), y0 = min_(view.t, brect.t), l = x0, t = y0, r = view.r, b = view.b
     for (let el: Element | null = frameEl; el = GetParent_unsafe_(el, PNType.RevealSlotAndGotoParent); ) {
       const st = getComputedStyle_(el);
       if (st.overflow !== V) {
         let outer = padClientRect_(getBoundingClientRect_(el)), hx = st.overflowX !== V, hy = st.overflowY !== V,
         scale = el !== docEl && inBody ? dScale_ * bScale_ : dScale_;
         /** Note: since `el` is not safe, `dimSize_(el, *)` may returns `NaN` */
-        hx && (l = max(l, outer.l), r = l + min(r - l, outer.r - outer.l
+        hx && (l = max_(l, outer.l), r = l + min_(r - l, outer.r - outer.l
               , hy && dimSize_(el as SafeElement, kDim.elClientW) * scale || r))
-        hy && (t = max(t, outer.t), b = t + min(b - t, outer.b - outer.t
+        hy && (t = max_(t, outer.t), b = t + min_(b - t, outer.b - outer.t
               , hx && dimSize_(el as SafeElement, kDim.elClientH) * scale || b))
       }
     }
-    l = max(l, view.l), t = max(t, view.t);
+    l = max_(l, view.l), t = max_(t, view.t)
     const cropped = l + 7 < r && t + 7 < b ? {
         l: (l - x0) * zoom, t: (t - y0) * zoom, r: (r - x0) * zoom, b: (b - y0) * zoom} : null;
     let hints: Hint[] | null;
@@ -390,7 +393,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
           locateHint(activeHint_!).l(activeHint_!);
         } else if (key > "s") {
           // `/^s-(f1|f0[a-z0-9]+)$/`
-          frameList_.forEach((/*#__NOINLINE__*/ toggleClassForKey).bind(0, keybody))
+          frameArray.forEach((/*#__NOINLINE__*/ toggleClassForKey).bind(0, keybody))
         }
       } // the below mens f2, f0***
       else if (num1 = 1, key.includes("-s")) {
@@ -445,7 +448,9 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
       timeout_(reinit, 0)
     } else if (keybody === SPC && (!useFilter_ || key !== keybody)) {
       keyStatus_.t = keyStatus_.t.replace("  ", " ");
-      zIndexes_ !== 0 && /*#__NOINLINE__*/ rotateHints(key === "s-" + keybody);
+      if (zIndexes_ !== 0) {
+        frameArray.forEach((/*#__NOINLINE__*/ rotateHints).bind(0, key === "s-" + keybody))
+      }
       resetMode();
     } else if (matchedHint = /*#__NOINLINE__*/ matchHintsByKey(keyStatus_, event, key, keybody), matchedHint === 0) {
       // then .keyStatus_.hintSequence_ is the last key char
@@ -458,6 +463,10 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
 }
 
 const toggleClassForKey = (name: string, frame: FrameHintsInfo): void => { toggleClass(frame.s.$().b!, "HM-" + name) }
+
+const rotateHints = (reverse: boolean, list: FrameHintsInfo): void => {
+  list.s.t(list.h, reverse, !keyStatus_.k && !keyStatus_.t)
+}
 
 const callExecuteHint = (hint: HintItem, event?: HandlerNS.Event): void => {
   const selectedHintWorker = locateHint(hint), clickEl = weakRef_(hint.d),
@@ -475,21 +484,20 @@ const callExecuteHint = (hint: HintItem, event?: HandlerNS.Event): void => {
         if (isActive && 1 === (--count_)) {
           setMode(mode1_)
         }
-      }, frameList_.length > 1 ? 50 : 18)
+      }, frameArray.length > 1 ? 50 : 18)
     }
   }, isActive = 0)
 }
 
 const locateHint = (matchedHint: HintItem): BaseHintWorker => {
     /** safer; necessary since {@link #highlightChild} calls {@link #detectUsableChild} */
-    const arr = frameList_;
-    for (const list of arr.length > 1 && matchedHint ? arr : []) {
-      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
-          ? list.h.indexOf(matchedHint) >= 0 : list.h.includes!(matchedHint)) {
-        return list.s;
-      }
+  for (var i = frameArray.length; 0 < --i; ) {
+    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
+        ? frameArray[i].h.indexOf(matchedHint) >= 0 : frameArray[i].h.includes!(matchedHint)) {
+      break
     }
-    return coreHints;
+  }
+  return frameArray[i].s
 }
 
 const highlightHint = (hint: HintItem): void => {
@@ -565,7 +573,7 @@ const setupCheck: HintManager["w"] = (officer?: BaseHintWorker | null
       } catch {}
       doesReinit && reinit(1)
       coreHints.h = isActive && getTime()
-    }, frameList_.length > 1 ? 380 : 255) : TimerID.None;
+    }, frameArray.length > 1 ? 380 : 255) : TimerID.None;
 }
 
 // checkLast: if not el, then reinit if only no key stroke and hints.length < 64
@@ -583,7 +591,7 @@ const checkLast = ((el?: WeakRef<LinkEl> | LinkEl | TimerType.fake | 9 | 1 | nul
       /*#__INLINE__*/ resetLastHovered()
     }
     if ((!r2 || r) && (manager_ || coreHints).$().n
-        && (hidden || Math.abs(r2!.l - r!.l) > 100 || Math.abs(r2!.t - r!.t) > 60)) {
+        && (hidden || math.abs(r2!.l - r!.l) > 100 || math.abs(r2!.t - r!.t) > 60)) {
       return manager_ ? 1 : (reinit(1), 0)
     } else {
       return 0
@@ -605,7 +613,7 @@ const resetHints = (): void => {
       k: "", t: "",
       n: 0, b: 0
     };
-    for (const frame of frameList_) {
+    for (const frame of frameArray) {
       frame.h = [];
     }
 }
@@ -626,12 +634,12 @@ export const clear = (onlySelfOrEvent?: 0 | 1 | Event, suppressTimeout?: number)
     isActive = _timer = 0
     manager_ = coreHints.p = null;
     manager && manager.c(onlySelfOrEvent, suppressTimeout);
-    frameList_.forEach((frameInfo: FrameHintsInfo): void => { try {
+    frameArray.forEach((frameInfo: FrameHintsInfo): void => { try {
       let frame = frameInfo.s, hasManager = frame.p
       frame.p = null
       hasManager && frame.c(0, suppressTimeout)
     } catch { /* empty */ } }, suppressTimeout);
-    coreHints.y = frameList_ = [];
+    coreHints.y = frameArray = [];
     setupEventListener(0, UNL, clear, 1);
     resetHints();
     removeHandler_(kHandler.linkHints)
@@ -661,7 +669,7 @@ const removeBox = (): void => {
 }
 
 const onFrameUnload = (officer: HintOfficer): void => {
-    const frames = frameList_, len = frames.length;
+    const frames = frameArray, len = frames.length;
     const wrappedOfficer_ff = Build.BTypes & BrowserType.Firefox ? unwrap_ff(officer) : 0 as never as null
     let i = 0, offset = 0;
     while (i < len && frames[i].s !== (Build.BTypes & BrowserType.Firefox ? wrappedOfficer_ff! : officer)) {
@@ -714,7 +722,7 @@ export const detectUsableChild = (el: KnownIFrameElement): VApiTy | null => {
 const coreHints: HintManager = {
   $: (resetMode?: 1): HintStatus => {
     return { a: isActive, b: box_, k: keyStatus_, m: resetMode ? mode_ = HintMode.DEFAULT : mode_,
-      n: isActive && hints_ && hints_.length < (frameList_.length > 1 ? 200 : 100) && !keyStatus_.k }
+      n: isActive && hints_ && hints_.length < (frameArray.length > 1 ? 200 : 100) && !keyStatus_.k }
   },
   d: 0, h: 0, y: [],
   x: checkLast, c: clear, o: collectFrameHints, j: delayToExecute, e: executeHintInOfficer, g: getPreciseChildRect,
@@ -728,4 +736,7 @@ export { HintManager, coreHints }
 
 if (!(Build.NDEBUG || HintMode.min_not_hint <= <number> kTip.START_FOR_OTHERS)) {
   console.log("Assert error: HintMode.min_not_hint <= kTip.START_FOR_OTHERS");
+}
+if (!(Build.NDEBUG || BrowserVer.Min$Array$$find$$findIndex <= BrowserVer.MinEnsuredES6$Array$$Includes)) {
+  console.log("Assert error: BrowserVer.Min$Array$$find$$findIndex <= BrowserVer.MinEnsuredES6$Array$$Includes")
 }

@@ -3,14 +3,13 @@ import FilteredHintItem = HintsNS.FilteredHintItem
 import MarkerElement = HintsNS.MarkerElement
 import ClickType = HintsNS.ClickType
 
-import { chromeVer_, createRegExp, Lower } from "../lib/utils"
+import { chromeVer_, createRegExp, Lower, math, max_ } from "../lib/utils"
 import {
   createElement_, querySelector_unsafe_, getInputType, htmlTag_, docEl_unsafe_, ElementProto, removeEl_s, ALA, attr_s,
   contains_s, setClassName_s, setVisibility_s, toggleClass, textContent_
 } from "../lib/dom_utils"
 import {
-  frameList_, hintMode_, useFilter_, coreHints, hintKeyStatus, KeyStatus, hintChars, allHints, setMode, resetMode,
-  hintOptions
+  hintMode_, useFilter_, coreHints, hintKeyStatus, KeyStatus, hintChars, allHints, setMode, resetMode, hintOptions
 } from "./link_hints"
 import { bZoom_, padClientRect_, getBoundingClientRect_, dimSize_ } from "../lib/rect"
 import { BSP, DEL, ENTER, SPC } from "../lib/keyboard_utils"
@@ -25,12 +24,12 @@ const kNumbers = "0123456789" as const
 let activeHint_: FilteredHintItem | null = null
 let nonMatchedRe_: RegExpG & RegExpOne | null | undefined
 let maxPrefixLen_ = 0
-let pageNumberHints_: FilteredHintItem[] | null | undefined
-let zIndexes_: null | 0 | Stacks = null
+let pageNumberHintArray: FilteredHintItem[] | null | undefined
+let zIndexes_: Stacks | null | 0 = null
 
 export { activeHint_, zIndexes_ }
 export const resetZIndexes = (): void => { zIndexes_ = null }
-export const hintFilterReset = (): void => { pageNumberHints_ = zIndexes_ = activeHint_ = null }
+export const hintFilterReset = (): void => { pageNumberHintArray = zIndexes_ = activeHint_ = null }
 export const hintFilterClear = (): void => { maxPrefixLen_ = 0 }
 
 export const createHint = (link: Hint): HintItem => {
@@ -79,15 +78,6 @@ export const adjustMarkers = (arr: readonly HintItem[], elements: readonly Hint[
   }
 }
 
-/** require `.zIndexes_` is not `0` */
-export const rotateHints = (reverse?: boolean) => {
-  const frames = frameList_,
-  saveCache = !hintKeyStatus.k && !hintKeyStatus.t;
-  for (const list of frames) {
-    list.s.t(list.h, reverse, saveCache);
-  }
-}
-
 export const rotate1 = (totalHints: readonly HintItem[], reverse?: boolean, saveIfNoOverlap?: boolean): void => {
   if (!zIndexes_) {
     const rects: Array<Rect | null> = []
@@ -126,12 +116,12 @@ export const rotate1 = (totalHints: readonly HintItem[], reverse?: boolean, save
     }
     zIndexes_ = stacks;
   }
-  for (const stack of zIndexes_) {
-    const length = stack.length, end = reverse ? -1 : length
-    const max = Math.max.apply(Math, stack)
-    let oldI: number = totalHints[stack[reverse ? 0 : length - 1]].z!
+  for (const zIndexSubArray of zIndexes_) {
+    const length = zIndexSubArray.length, end = reverse ? -1 : length
+    const max = (Build.NDEBUG ? max_ : Math.max).apply(math, zIndexSubArray)
+    let oldI: number = totalHints[zIndexSubArray[reverse ? 0 : length - 1]].z!
     for (let j = reverse ? length - 1 : 0; j !== end; reverse ? j-- : j++) {
-      const hint = totalHints[stack[j]]
+      const hint = totalHints[zIndexSubArray[j]]
       const m = hint.m, newI = hint.z
       m.style.zIndex = (hint.z = oldI) as number | string as string;
       toggleClass(m, "OH", oldI < max)
@@ -168,7 +158,7 @@ export const initFilterEngine = (hints: readonly FilteredHintItem[]): void => {
     curRangeSecond = idxOfSecond;
     curRangeCountS1 = len - idxOfSecond;
   }
-  pageNumberHints_ = hints.slice(curRangeSecond - 1, curRangeSecond + curRangeCountS1);
+  pageNumberHintArray = hints.slice(curRangeSecond - 1, curRangeSecond + curRangeCountS1)
   getMatchingHints(hintKeyStatus, "", "", 0);
 }
 export const generateHintText = (hint: Hint, hintInd: number, allItems: readonly HintItem[]): HintsNS.HintText => {
@@ -247,10 +237,10 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
       zIndexes_ = zIndexes_ && null;
       const search = t2.split(" "), hasSearch = !!t2,
       oldKeySeq = keyStatus.k,
-      oldHints = t2.startsWith(t1) ? hints : allHints as readonly FilteredHintItem[],
+      oldHintArray = t2.startsWith(t1) ? hints : allHints as readonly FilteredHintItem[],
       indStep = !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
           && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)
-          ? 0 : 1 / (1 + oldHints.length);
+          ? 0 : 1 / (1 + oldHintArray.length)
       let ind = !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
           && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)
           ? 0 : hasSearch ? 1 : GlobalConsts.MaxLengthOfHintText + 1;
@@ -264,7 +254,7 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
         }
       }
       hasSearch && (hints = []);
-      for (const hint of oldHints) {
+      for (const hint of oldHintArray) {
         if (hasSearch) {
           const s = scoreHint(hint.h, search);
           (hint.i = !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
@@ -280,7 +270,7 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
       }
       const newLen = hints.length;
       if (newLen) {
-        keyStatus.c = hasSearch ? hints : hints = oldHints.slice(0);
+        keyStatus.c = hasSearch ? hints : hints = oldHintArray.slice(0)
         if (hasSearch && newLen < 2) { // in case of only 1 hint in fullHints
           return hints[0];
         }
@@ -298,7 +288,7 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
           hints.sort((x1, x2) => x2.i - x1.i);
         }
         if (!hasSearch) {
-          for (const item of pageNumberHints_!) {
+          for (const item of pageNumberHintArray!) {
             const n = +item.h.t - 1;
             hints[hints.indexOf(item)] = hints[n];
             hints[n] = item;
@@ -314,12 +304,12 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
       }
       // hints[].zIndex is reset in .MakeStacks_
       if (inited && (newLen || oldKeySeq)) {
-      for (const hint of newLen ? hints : oldHints) {
+      for (const hint of newLen ? hints : oldHintArray) {
         const firstChild = hint.m.firstElementChild as Element | null
         firstChild && removeEl_s(firstChild);
         (hint.m.firstChild as Text).data = hint.a;
       }
-      for (const hint of oldHints) {
+      for (const hint of oldHintArray) {
         setVisibility_s(hint.m, hint.i !== 0)
       }
       }
@@ -382,33 +372,32 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
  *
  * so, use `~ * 1e4` to ensure delta > 1
  */
-const scoreHint = (textHint: HintsNS.HintText, searchWords: readonly string[]): number => {
-  let words = textHint.w!, total = 0;
-  if (!words.length) { return 0; }
-  for (const search of searchWords) {
+const scoreHint = (textHint: HintsNS.HintText, queryWordArray: readonly string[]): number => {
+  let hintWordArray = textHint.w!, total = 0;
+  if (!hintWordArray.length) { return 0; }
+  for (const search of queryWordArray) {
     let max = 0;
-    for (const word of words) {
+    for (const word of hintWordArray) {
       const pos = word.indexOf(search);
-      max = pos < 0 ? max : Math.max(max,
-          pos ? 1 : words.length - search.length ? max ? 2 : 6 : max ? 4 : 8);
+      max = pos < 0 ? max : max_(max, pos ? 1 : hintWordArray.length - search.length ? max ? 2 : 6 : max ? 4 : 8)
     }
     if (!max) { return 0; }
     total += max;
   }
   if (!(Build.BTypes & ~BrowserType.ChromeOrFirefox)
       && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)) {
-    return total && Math.log(1 + textHint.t.length) / total;
+    return total && math.log(1 + textHint.t.length) / total;
   }
-  return total * GlobalConsts.MatchingScoreFactorForHintText / Math.log(1 + textHint.t.length);
+  return total * GlobalConsts.MatchingScoreFactorForHintText / math.log(1 + textHint.t.length);
 }
 
-export const renderMarkers = (hintItems: readonly HintItem[]): void => {
+export const renderMarkers = (hintItemArray: readonly HintItem[]): void => {
   const noAppend = !!(Build.BTypes & BrowserType.Chrome)
       && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
       && chromeVer_ < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
   const invisibleHintTextRe = <true | undefined> useFilter_ && createRegExp(kTip.invisibleHintText, "g")
   let right: string
-  for (const hint of hintItems) {
+  for (const hint of hintItemArray) {
     const marker = hint.m;
     if (useFilter_) {
       marker.textContent = hint.a;
@@ -424,9 +413,9 @@ export const renderMarkers = (hintItems: readonly HintItem[]): void => {
       right = ": " + right;
     } else {
       right = hint.a.slice(-1);
-      for (const ch of hint.a.slice(0, -1)) {
+      for (const markerChar of hint.a.slice(0, -1)) {
         const node = createElement_("span")
-        node.textContent = ch;
+        node.textContent = markerChar
         marker.appendChild(node);
       }
     }
@@ -440,9 +429,9 @@ export const renderMarkers = (hintItems: readonly HintItem[]): void => {
 }
 
 export const initAlphabetEngine = (hintItems: readonly HintItem[]): void => {
-  const math = Math, ceil = math.ceil, step = hintChars.length, chars2 = " " + hintChars,
-  count = hintItems.length, start = (ceil((count - 1) / (step - 1)) | 0) || 1,
-  bitStep = ceil(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$Math$$log2
+  const step = hintChars.length, chars2 = " " + hintChars,
+  count = hintItems.length, start = (math.ceil((count - 1) / (step - 1)) | 0) || 1,
+  bitStep = math.ceil(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$Math$$log2
         ? math.log(step + 1) / math.LN2 : math.log2(step + 1)) | 0;
   let hints: number[] = [0], next = 1, bitOffset = 0;
   for (let offset = 0, hint = 0; offset < start; ) {
@@ -466,7 +455,7 @@ export const initAlphabetEngine = (hintItems: readonly HintItem[]): void => {
 export const matchHintsByKey = (keyStatus: KeyStatus
     , event: HandlerNS.Event, key: string, keybody: kChar): HintItem | 0 | 2 => {
   let doesDetectMatchSingle: 0 | 1 | 2 = 0, isSpace = keybody === SPC, isTab = keybody === kChar.tab
-  let {k: sequence, t: textSeq, t: textSeq0, b: oldTab, c: hints} = keyStatus
+  let {k: sequence, t: textSeq, t: textSeq0, b: oldTab, c: hintArray} = keyStatus
   textSeq = textSeq && textSeq.replace("  ", " ");
   keyStatus.b = isSpace ? oldTab
       : isTab ? useFilter_ ? oldTab - 2 * +(key === "s-" + keybody) + 1 : 1 - oldTab
@@ -512,7 +501,7 @@ export const matchHintsByKey = (keyStatus: KeyStatus
   keyStatus.n = 0;
   coreHints.h = 0;
   if (doesDetectMatchSingle > 1) {
-    for (const hint of hints) { if (hint.a === sequence) { return hint; } }
+    for (const hint of hintArray) { if (hint.a === sequence) { return hint; } }
   }
   if (useFilter_) {
     return getMatchingHints(keyStatus, textSeq, sequence, 2);
@@ -520,21 +509,21 @@ export const matchHintsByKey = (keyStatus: KeyStatus
     zIndexes_ = zIndexes_ && null;
     keyStatus.k = sequence;
     const notDoSubCheck = !keyStatus.b, wanted = notDoSubCheck ? sequence : sequence.slice(0, -1);
-    hints = keyStatus.c = (doesDetectMatchSingle ? hints : allHints!).filter(hint => {
+    hintArray = keyStatus.c = (doesDetectMatchSingle ? hintArray : allHints!).filter(hint => {
       const pass = hint.a.startsWith(wanted) && (notDoSubCheck || !hint.a.startsWith(sequence));
       setVisibility_s(hint.m, pass)
       return pass;
     });
     const limit = sequence.length - keyStatus.b;
     type MarkerElementChild = Exclude<MarkerElement["firstChild"], Text | null>;
-    for (const { m: { childNodes: ref } } of hints) {
+    for (const { m: { childNodes: ref } } of hintArray) {
 // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/dom_token_list.cc?q=DOMTokenList::setValue&g=0&l=258
 // shows that `.classList.add()` costs more
-      for (let j = ref.length - 1; 0 <= --j; ) {
+      for (let j = ref.length; 0 < j--; ) {
         !(ref[j] as MarkerElementChild).className !== (j < limit) ||
         ((ref[j] as MarkerElementChild).className = j < limit ? "MC" : "");
       }
     }
-    return hints.length ? 2 : 0;
+    return hintArray.length ? 2 : 0;
   }
 }

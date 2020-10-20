@@ -29,7 +29,7 @@ interface ElementScrollInfo {
 
 import {
   isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, allowRAF_, readyState_, loc_, chromeVer_,
-  vApi, deref_, weakRef_, VTr, createRegExp, isTY
+  vApi, deref_, weakRef_, VTr, createRegExp, isTY, max_, math, min_
 } from "../lib/utils"
 import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, UNL,
@@ -97,9 +97,9 @@ let performAnimate = (e: SafeElement | null, d: ScrollByY, a: number): void => {
       }
     }
     let delta = amount * (elapsed / duration) * calibration;
-    continuous || (delta = Math.min(delta, amount - totalDelta));
+    continuous || (delta = min_(delta, amount - totalDelta))
     // not use `sign * _performScroll()`, so that the code is safer even though there're bounce effects
-    delta = delta > 0 ? Math.abs(performScroll(element, di, sign * Math.ceil(delta))) : 0
+    delta = delta > 0 ? math.abs(performScroll(element, di, sign * math.ceil(delta))) : 0
     if (delta) {
       totalDelta += delta;
       rAF_(animate);
@@ -135,9 +135,8 @@ let performAnimate = (e: SafeElement | null, d: ScrollByY, a: number): void => {
     el && el.style ? el.style.pointerEvents = scrolling ? NONE : "" : 0;
   };
   performAnimate = (newEl, newDi, newAmount): void => {
-    const math = Math, max = math.max;
-    amount = max(1, newAmount > 0 ? newAmount : -newAmount); calibration = 1.0; di = newDi
-    duration = max(ScrollerNS.Consts.minDuration, ScrollerNS.Consts.durationScaleForAmount * math.log(amount));
+    amount = max_(1, newAmount > 0 ? newAmount : -newAmount), calibration = 1.0, di = newDi
+    duration = max_(ScrollerNS.Consts.minDuration, ScrollerNS.Consts.durationScaleForAmount * math.log(amount))
     element = newEl;
     sign = newAmount < 0 ? -1 : 1;
     totalDelta = totalElapsed = 0.0;
@@ -147,7 +146,7 @@ let performAnimate = (e: SafeElement | null, d: ScrollByY, a: number): void => {
     }
     const keyboard = fgCache.k;
     maxInterval = math.round(keyboard[1] / ScrollerNS.Consts.FrameIntervalMs) + ScrollerNS.Consts.MaxSkippedF
-    minDelay = (((keyboard[0] + max(keyboard[1], ScrollerNS.Consts.DelayMinDelta)
+    minDelay = (((keyboard[0] + max_(keyboard[1], ScrollerNS.Consts.DelayMinDelta)
           + ScrollerNS.Consts.DelayTolerance) / ScrollerNS.Consts.DelayUnitMs) | 0)
       * ScrollerNS.Consts.DelayUnitMs
     preventPointEvents && toggleAnimation!(1)
@@ -232,7 +231,7 @@ export const executeScroll = function (di: ScrollByY, amount0: number, isTo: BOO
       const curPos = dimSize_(element, di + kDim.positionX),
       viewSize = dimSize_(element, di + kDim.viewW),
       max = (fromMax || amount) && dimSize_(element, di + kDim.scrollW) - viewSize
-      amount = element ? Math.max(0, Math.min(fromMax ? max - amount : amount, max)) - curPos
+      amount = element ? max_(0, min_(fromMax ? max - amount : amount, max)) - curPos
           : fromMax ? viewSize : amount - curPos;
     }
     let core: ReturnType<typeof getParentVApi> | false;
@@ -365,7 +364,7 @@ export const getPixelScaleToScroll = (): void => {
      * Imported on 2013-05-15 by https://github.com/w3c/csswg-drafts/commit/ad01664359641f791d99f0b3fce545b55579acdc
      * Firefox is still using `int`: https://bugzilla.mozilla.org/show_bug.cgi?id=1217330 (filed on 2015-10-22)
      */
-  scale = (Build.BTypes & BrowserType.Firefox ? 2 : 1) / Math.min(1, wdZoom_) / Math.min(1, bZoom_)
+  scale = (Build.BTypes & BrowserType.Firefox ? 2 : 1) / min_(1, wdZoom_) / min_(1, bZoom_)
 }
 
 const checkCurrent = (el: SafeElement | null): void => {
@@ -412,9 +411,8 @@ const selectFirst = (info: ElementScrollInfo, skipPrepare?: 1): ElementScrollInf
       return info;
     }
     skipPrepare || prepareCrop_();
-    let children: ElementScrollInfo[] = [], child: ElementScrollInfo | null
-      , _ref = element.children, _len = _ref.length;
-    while (0 < _len--) {
+    let children: ElementScrollInfo[] = []
+    for (let _ref = element.children, _len = _ref.length; 0 < _len--; ) {
       element = _ref[_len]! as /** fake `as` */ SafeElement;
       // here assumes that a <form> won't be a main scrollable area
       if (Build.BTypes & ~BrowserType.Firefox && notSafe_not_ff_!(element)) { continue; }
@@ -423,27 +421,21 @@ const selectFirst = (info: ElementScrollInfo, skipPrepare?: 1): ElementScrollInf
           : getVisibleClientRect_(element)
       if (visible) {
         let height_ = visible.b - visible.t;
-        children.push({ a: (visible.r - visible.l) * height_, e: element, h: height_});
+        children.push({ a: (visible.r - visible.l) * height_, e: element, h: height_})
       }
     }
     children.sort((a, b) => b.a - a.a)
-    for (const info1 of children) {
-      if (child = selectFirst(info1, 1)) {
-        return child;
-      }
-    }
-    return null;
+    return children.reduce((cur, info1) => cur || selectFirst(info1, 1), null as ElementScrollInfo | null)
 }
 
   /** @NEED_SAFE_ELEMENTS */
 export const scrollIntoView_need_safe = (el: SafeElement): void => {
     const rect = el.getClientRects()[0] as ClientRect | undefined;
-    const { min, max } = Math
     if (!rect) { return; }
     let r = padClientRect_(rect), iw = wndSize_(1), ih = wndSize_(),
-    ihm = min(96, ih / 2), iwm = min(64, iw / 2),
-    hasY = r.b < ihm ? max(r.b - ih + ihm, r.t - ihm) : ih < r.t + ihm ? min(r.b - ih + ihm, r.t - ihm) : 0,
-    hasX = r.r < 0 ? max(r.l - iwm, r.r - iw + iwm) : iw < r.l ? min(r.r - iw + iwm, r.l - iwm) : 0
+    ihm = min_(96, ih / 2), iwm = min_(64, iw / 2),
+    hasY = r.b < ihm ? max_(r.b - ih + ihm, r.t - ihm) : ih < r.t + ihm ? min_(r.b - ih + ihm, r.t - ihm) : 0,
+    hasX = r.r < 0 ? max_(r.l - iwm, r.r - iw + iwm) : iw < r.l ? min_(r.r - iw + iwm, r.l - iwm) : 0
     currentScrolling = weakRef_(el)
     cachedScrollable = 0
     if (hasX || hasY) {
