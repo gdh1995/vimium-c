@@ -38,6 +38,7 @@
   "scripts": {
     "tsc": "node scripts/tsc.js",
     "watch": "node scripts/tsc.js --watch",
+    "dev": "node scripts/tsc.js --watch",
     "all": "gulp tsc",
     "prepare": "node scripts/icons-to-blob.js -q",
     "w": "node scripts/tsc.js --watch",
