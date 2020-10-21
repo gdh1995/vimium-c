@@ -2,6 +2,7 @@ export interface EscF {
   <T extends Exclude<HandlerResult, HandlerResult.ExitPassMode>> (this: void, i: T): T;
   (this: void, i: HandlerResult.ExitPassMode): unknown;
 }
+export type XrayedObject<T extends object> = T & { wrappedJSObject: T }
 
 export let VOther: BrowserType = !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
     || !(Build.BTypes & ~BrowserType.Edge)

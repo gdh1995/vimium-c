@@ -448,17 +448,6 @@ type SecondLevelContentCmds = kContentCmd.AutoFindAllOnClick | kContentCmd.Manua
     | kContentCmd.Destroy;
 
 
-interface SandboxGetterFunc {
-  (comparer: (this: void, rand2: number, testEncrypted: string) => boolean,
-    rand1: number): VApiTy | 0 | null | undefined | void;
-}
-interface SandboxGetterWrapper { _get: SandboxGetterFunc }
-declare var wrappedJSObject: { [key: string]: SandboxGetterWrapper };
-declare var XPCNativeWrapper: <T extends object> (wrapped: T) => XrayedObject<T>;
-type XrayedObject<T extends object> = T & {
-  wrappedJSObject: T;
-};
-
 interface Window {
   readonly VApi?: VApiTy;
 }

@@ -1,5 +1,5 @@
 import {
-  doc, isTop, injector, VOther, initialDocState, set_esc, esc, setupEventListener, set_isEnabled_,
+  doc, isTop, injector, VOther, initialDocState, set_esc, esc, setupEventListener, set_isEnabled_, XrayedObject,
   set_clickable_, clickable_, isAlive_, set_VTr, setupKeydownEvents, onWndFocus,
   set_readyState_, readyState_, callFunc, recordLog, set_vApi, vApi, locHref, unwrap_ff, raw_unwrap_ff, math,
 } from "../lib/utils"
@@ -23,6 +23,14 @@ import { filterTextToGoNext, jumpToNextLink } from "./pagination"
 import { main_not_ff as extend_click_not_ff } from  "./extend_click"
 import { main_ff as extend_click_ff } from  "./extend_click_ff"
 import { RSC } from "./commands"
+
+interface SandboxGetterFunc {
+  (comparer: (this: void, rand2: number, testEncrypted: string) => boolean, rand1: number
+      ): VApiTy | 0 | null | undefined | void;
+}
+interface SandboxGetterWrapper { _get: SandboxGetterFunc }
+type WindowWithGetter = Window & { [key: string]: SandboxGetterWrapper }
+declare var XPCNativeWrapper: <T extends object> (wrapped: T) => XrayedObject<T>;
 
 const docReadyListeners: Array<(this: void) => void> = [], completeListeners: Array<(this: void) => void> = []
 
@@ -94,6 +102,7 @@ else if (Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox |
       },
       c (rand2: number, testEncrypted: string): boolean {
         "use strict";
+        /* @OUTPUT {"use strict";} */
         const diff = coreTester.e(coreTester.k, +rand2) !== testEncrypted, d2 = coreTester.r > 64;
         coreTester.r += d2 ? 0 : diff ? 2 : 1;
         return diff || d2; // hide the real result if too many errors
@@ -121,14 +130,14 @@ else if (Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox |
       // So add `|| anotherWnd` for less exceptions
       try {
         let core: ReturnType<SandboxGetterFunc>,
-        wrapper = unwrap_ff(anotherWnd as any as XrayedObject<typeof wrappedJSObject>)[coreTester.n],
+        wrapper = unwrap_ff(anotherWnd as XrayedObject<WindowWithGetter>)[coreTester.n],
         getter = wrapper && wrapper._get
         return getter && (core = getter(coreTester.c, coreTester.k = math.random())) &&
           !coreTester.r ? core : null;
       } catch {}
     })
     // on Firefox, such an exposed function can only be called from privileged environments
-    wrappedJSObject[coreTester.n] = Object.defineProperty(
+    raw_unwrap_ff(window as XrayedObject<WindowWithGetter>)![coreTester.n] = Object.defineProperty(
         raw_unwrap_ff(new window.Object())!, "_get", { value: coreTester.g })
 }
 if (!(isTop || injector)) {
