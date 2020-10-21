@@ -326,7 +326,7 @@ export const getViewBox_ = function (needBox?: 1 | 2): ViewBox | ViewOffset {
   zoom2 = bZoom_ = Build.BTypes & ~BrowserType.Firefox && box2 && +st2.zoom || 1,
   containHasPaint = (<RegExpOne> /c|p/).test(st.contain!),
   kM = "matrix(1,",
-  stacking = !(Build.BTypes & BrowserType.Chrome && needBox === 2)
+  stacking = !(Build.BTypes & BrowserType.ChromeOrFirefox && needBox === 2)
       && (st.position !== "static" || containHasPaint || st.transform !== NONE),
   // NOTE: if box.zoom > 1, although doc.documentElement.scrollHeight is integer,
   //   its real rect may has a float width, such as 471.333 / 472
@@ -346,9 +346,9 @@ export const getViewBox_ = function (needBox?: 1 | 2): ViewBox | ViewOffset {
         : !(Build.BTypes & ~BrowserType.Firefox)
           || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
         ? -float(st.borderTopWidth ) : 0 | -box.clientTop
-    , ltScale = Build.BTypes & BrowserType.Chrome ? needBox === 2 ? 1 : scale : 1
-  x = x * (Build.BTypes & BrowserType.Chrome ? ltScale : scale) - rect.l
-  y = y * (Build.BTypes & BrowserType.Chrome ? ltScale : scale) - rect.t
+  const ltScale = Build.BTypes & BrowserType.ChromeOrFirefox ? needBox === 2 ? 1 : scale : scale
+  x = x * ltScale - rect.l
+  y = y * ltScale - rect.t
   // note: `Math.abs(y) < 0.01` supports almost all `0.01 * N` (except .01, .26, .51, .76)
   x = x * x < 1e-4 ? 0 : math.ceil(round(x / zoom2 * 100) / 100)
   y = y * y < 1e-4 ? 0 : math.ceil(round(y / zoom2 * 100) / 100)
