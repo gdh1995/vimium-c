@@ -99,9 +99,9 @@ let performAnimate = (e: SafeElement | null, d: ScrollByY, a: number): void => {
     let delta = amount * (elapsed / duration) * calibration;
     continuous || (delta = min_(delta, amount - totalDelta))
     // not use `sign * _performScroll()`, so that the code is safer even though there're bounce effects
-    delta = delta > 0 ? math.abs(performScroll(element, di, sign * math.ceil(delta))) : 0
-    if (delta) {
-      totalDelta += delta;
+    if (delta > 0) {
+      delta = performScroll(element, di, sign * math.ceil(delta))
+      totalDelta += math.abs(delta)
       rAF_(animate);
     } else {
       if ((!(Build.BTypes & BrowserType.Chrome) || chromeVer_ >= BrowserVer.MinMaybeScrollEndAndOverScrollEvents)

@@ -8,15 +8,17 @@ import {
 let paintBox_: [number, number] | null = null // it may need to use `paintBox[] / <body>.zoom`
 let wdZoom_ = 1 // <html>.zoom * min(devicePixelRatio, 1) := related to physical pixels
 let docZoom_ = 1 // zoom of <html>
+let bZoom_ = 1 // zoom of <body> (if not fullscreen else 1)
 let isDocZoomStrange_: BOOL = 0
 let dScale_ = 1 // <html>.transform:scale (ignore the case of sx != sy)
 let bScale_ = 1 // <body>.transform:scale (ignore the case of sx != sy)
-  /** zoom of <body> (if not fullscreen else 1) */
-let bZoom_ = 1
+let vright: number, vbottom: number, vbottoms: number, vleft: number, vtop: number, vtops: number
 /** @NEED_SAFE_ELEMENTS */
 let scrollingTop: SafeElement | null = null
 
-export { paintBox_, wdZoom_, docZoom_, isDocZoomStrange_, dScale_, bScale_, bZoom_, scrollingTop }
+export {
+  paintBox_, wdZoom_, docZoom_, isDocZoomStrange_, dScale_, bScale_, bZoom_, scrollingTop, vright as viewportRight
+}
 export function set_bZoom_ (_newBZoom: number): void { bZoom_ = _newBZoom }
 export function set_scrollingTop (newScrollingTop: SafeElement | null): void { scrollingTop = newScrollingTop }
 
@@ -39,12 +41,9 @@ export const dimSize_ = (el: SafeElement | null, index: kDim | ScrollByY): numbe
 }
 
 /** depends on .docZoom_, .bZoom_, .paintBox_ */
-export let prepareCrop_ = (inVisualViewport?: 1, limitedView?: Rect | null): number => {
-  let vright: number, vbottom: number, vbottoms: number, vleft: number, vtop: number, vtops: number
-  prepareCrop_ = (function (this: void, inVisual?: 1, limited?: Rect | null): number {
-    const dz = Build.BTypes & ~BrowserType.Firefox ? docZoom_ : 1,
-    fz = Build.BTypes & ~BrowserType.Firefox ? dz * bZoom_ : 1, b = paintBox_,
-    d = doc, visual = inVisual && visualViewport
+export let prepareCrop_ = (inVisualViewport?: 1, limited?: Rect | null): number | void => {
+    const fz = Build.BTypes & ~BrowserType.Firefox ? docZoom_ * bZoom_ : 1,
+    visual = inVisualViewport && visualViewport
     let i: number, j: number, el: Element | null, docEl: Document["documentElement"]
     vleft = vtop = 0
     if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$visualViewport$ ? visual
@@ -55,7 +54,7 @@ export let prepareCrop_ = (inVisualViewport?: 1, limitedView?: Rect | null): num
     else if (docEl = docEl_unsafe_(),
         el = Build.MinCVer >= BrowserVer.MinScrollTopLeftInteropIsAlwaysEnabled
             || !(Build.BTypes & BrowserType.Chrome)
-            ? scrollingEl_() : d.compatMode === "BackCompat" ? d.body : docEl,
+            ? scrollingEl_() : doc.compatMode === "BackCompat" ? doc.body : docEl,
         Build.MinCVer < BrowserVer.MinScrollTopLeftInteropIsAlwaysEnabled && Build.BTypes & BrowserType.Chrome
           ? el && !notSafe_not_ff_!(el) : el) {
       i = dimSize_(el as SafeElement, kDim.elClientW), j = dimSize_(el as SafeElement, kDim.elClientH)
@@ -63,11 +62,12 @@ export let prepareCrop_ = (inVisualViewport?: 1, limitedView?: Rect | null): num
       i = wndSize_(1), j = wndSize_()
       if (!docEl) { return vbottom = j, vbottoms = j - 8, vright = i; }
       // the below is not reliable but safe enough, even when docEl is unsafe
-      i = min_(max_(i - GlobalConsts.MaxScrollbarWidth, (dimSize_(docEl as SafeElement, kDim.elClientW) * dz) | 0), i)
-      j = min_(max_(j - GlobalConsts.MaxScrollbarWidth, (dimSize_(docEl as SafeElement, kDim.elClientH) * dz) | 0), j)
+      type SafeE = SafeElement
+      i = min_(max_(i - GlobalConsts.MaxScrollbarWidth, (dimSize_(docEl as SafeE, kDim.elClientW) * docZoom_) | 0), i)
+      j = min_(max_(j - GlobalConsts.MaxScrollbarWidth, (dimSize_(docEl as SafeE, kDim.elClientH) * docZoom_) | 0), j)
     }
-    if (b) {
-      i = min_(i, b[0] * dz), j = min_(j, b[1] * dz)
+    if (paintBox_) {
+      i = min_(i, paintBox_[0] * docZoom_), j = min_(j, paintBox_[1] * docZoom_)
     }
     vright = (i / fz) | 0, vbottom = (j / fz) | 0
     if (limited) {
@@ -78,9 +78,9 @@ export let prepareCrop_ = (inVisualViewport?: 1, limitedView?: Rect | null): num
     }
     vtops = vtop + 3
     vbottoms = (vbottom - 8 / fz) | 0
-    return vright
-  })
-  cropRectToVisible_ = (function (left, top, right, bottom): Rect | null {
+}
+
+export const cropRectToVisible_ = (left: number, top: number, right: number, bottom: number): Rect | null => {
     if (top > vbottoms || bottom < vtops) {
       return null
     }
@@ -91,8 +91,6 @@ export let prepareCrop_ = (inVisualViewport?: 1, limitedView?: Rect | null): num
       b: bottom < vbottom ? (bottom | 0) : vbottom
     }
     return cr.r - cr.l > 2 && cr.b - cr.t > 2 ? cr : null
-  })
-  return prepareCrop_(inVisualViewport, limitedView)
 }
 
 export let getBoundingClientRect_: (el: Element) => ClientRect = Build.BTypes & ~BrowserType.Firefox ? (el) => {
@@ -306,24 +304,23 @@ export const getZoom_ = Build.BTypes & ~BrowserType.Firefox ? function (target?:
   wdZoom_ = math.round(zoom * min_(ratio, 1) * 1000) / 1000
 } : function (): void {
   paintBox_ = null
-  docZoom_ = bZoom_ = 1
   /** the min() is required in {@link ../front/vomnibar.ts#Vomnibar_.activateO_ } */
   wdZoom_ = min_(wndSize_(2), 1)
 } as never
 
-export const getViewBox_ = function (needBox?: 1 | 2): ViewBox | ViewOffset {
+export const getViewBox_ = function (needBox?: 1 | /** dialog-found */ 2): ViewBox | ViewOffset {
   const ratio = wndSize_(2), round = math.round
   let iw = wndSize_(1), ih = wndSize_(), ratio2 = ratio < 1 ? ratio : 1
   if (fullscreenEl_unsafe_()) {
     getZoom_(1)
     dScale_ = bScale_ = 1
-    ratio2 = wdZoom_ / ratio2
-    return [0, 0, (iw / ratio2) | 0, (ih / ratio2) | 0, 0]
+    ratio2 = ratio2 / wdZoom_
+    return [0, 0, (iw * ratio2) | 0, (ih * ratio2) | 0, 0]
   }
   const float = parseFloat,
   box = docEl_unsafe_()!, st = getComputedStyle_(box),
   box2 = doc.body, st2 = box2 ? getComputedStyle_(box2) : st,
-  zoom2 = bZoom_ = Build.BTypes & ~BrowserType.Firefox && box2 && +st2.zoom || 1,
+  zoom2 = Build.BTypes & ~BrowserType.Firefox ? bZoom_ = box2 && +st2.zoom || 1 : 1,
   containHasPaint = (<RegExpOne> /c|p/).test(st.contain!),
   kM = "matrix(1,",
   stacking = !(Build.BTypes & BrowserType.ChromeOrFirefox && needBox === 2)
@@ -336,8 +333,8 @@ export const getViewBox_ = function (needBox?: 1 | 2): ViewBox | ViewOffset {
   _trans = st.transform, scale = dScale_ = _trans && !_trans.startsWith(kM) && float(_trans.slice(7)) || 1
   bScale_ = box2 && (_trans = st2.transform) && !_trans.startsWith(kM) && float(_trans.slice(7)) || 1
   Build.BTypes & BrowserType.Chrome && (zoom = _fixDocZoom_cr!(zoom, box, ratio))
-  wdZoom_ = round(zoom * ratio2 * 1000) / 1000
-  docZoom_ = Build.BTypes & ~BrowserType.Firefox ? zoom : 1
+  wdZoom_ = Build.BTypes & ~BrowserType.Firefox ? round(zoom * ratio2 * 1000) / 1000 : ratio2
+  if (Build.BTypes & ~BrowserType.Firefox) { docZoom_ = zoom }
   let x = !stacking ? float(st.marginLeft)
         : !(Build.BTypes & ~BrowserType.Firefox)
           || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
@@ -476,8 +473,6 @@ export const setBoundary_ = (style: CSSStyleDeclaration, r: WritableRect, allow_
   style.width = (r.r - r.l) + P, style.height = (r.b - r.t) + P
   return need_abs
 }
-
-export let cropRectToVisible_: (left: number, top: number, right: number, bottom: number) => Rect | null = null as never
 
 export const SubtractSequence_ = function (this: {l: Rect[]; t: Rect}, rect1: Rect): void { // rect1 - rect2
   let rect2 = this.t, a = this.l, x1: number, x2: number

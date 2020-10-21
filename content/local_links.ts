@@ -387,8 +387,8 @@ export const traverse = function (selector: string
       && (Build.NDEBUG && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
         || ui_root.mode === "closed")
       ) {
-    const bz = bZoom_, notHookScroll = scrolled === 0;
-    if (bz !== 1 && isD) {
+    const bz = Build.BTypes & ~BrowserType.Firefox ? bZoom_ : 1, notHookScroll = scrolled === 0
+    if (Build.BTypes & ~BrowserType.Firefox && bz !== 1 && isD) {
       /*#__INLINE__*/ set_bZoom_(1)
       prepareCrop_(1);
     }
@@ -399,7 +399,7 @@ export const traverse = function (selector: string
     } else {
       (elements as ArrayLike<SafeHTMLElement> as SafeHTMLElement[]).forEach(filter.bind(0, output))
     }
-    /*#__INLINE__*/ set_bZoom_(bz)
+    Build.BTypes & ~BrowserType.Firefox && /*#__INLINE__*/ set_bZoom_(bz)
     if (notHookScroll) {
       /*#__INLINE__*/ resetScrolled()
     }

@@ -24,7 +24,7 @@ import {
   frameElement_, isHTML_, fullscreenEl_unsafe_, NONE, createElement_, removeEl_s, setClassName_s, setOrRemoveAttr,
   toggleClass
 } from "../lib/dom_utils"
-import { getViewBox_, docZoom_, dScale_, prepareCrop_, bZoom_, wndSize_ } from "../lib/rect"
+import { getViewBox_, docZoom_, dScale_, prepareCrop_, bZoom_, wndSize_, viewportRight } from "../lib/rect"
 import { beginScroll, scrollTick } from "./scroller"
 import {
   getSelectionText, adjustUI, setupExitOnClick, addUIElement, getParentVApi, evalIfOK, checkHidden, kExitOnClick,
@@ -42,7 +42,7 @@ let onReset: (() => void) | null = null
 let timer = TimerID.None
   // unit: physical pixel (if C<52)
 let screenHeight_ = 0
-let canUseVW = true
+let canUseVW: boolean
 
 export { box as omni_box, status as omni_status }
 
@@ -86,12 +86,13 @@ export const activate = function (options: FullOptions, count: number): void {
     if (!isHTML_()) { return; }
     omniOptions = null
     getViewBox_();
+    // `canUseVW` is computed for the gulp-built version of vomnibar.html
     canUseVW = (Build.MinCVer >= BrowserVer.MinCSSWidthUnit$vw$InCalc
             || !!(Build.BTypes & BrowserType.Chrome) && chromeVer_ > BrowserVer.MinCSSWidthUnit$vw$InCalc - 1)
         && !fullscreenEl_unsafe_() && docZoom_ === 1 && dScale_ === 1;
     let scale = wndSize_(2);
-    let width = canUseVW ? innerWidth : !(Build.BTypes & ~BrowserType.Firefox) ? prepareCrop_()
-        : prepareCrop_() * docZoom_ * bZoom_;
+    let width = canUseVW ? innerWidth : (prepareCrop_()
+        , !(Build.BTypes & ~BrowserType.Firefox) ? viewportRight : viewportRight * docZoom_ * bZoom_)
     if (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
         && (!(Build.BTypes & ~BrowserType.Chrome)
             || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome)) {
