@@ -343,10 +343,7 @@ interface GoNextCandidate extends GoNextBaseCandidate { [2]: number; [3]: string
 
 declare const enum AdjustType {
   /** Note(gdh1995): NotAdjust must be used carefully: @see {@link dom_ui.ts#addUIElement : setUICSS} */
-  Normal = 0,
-  MustAdjust = 1,
-  NotAdjust = 2,
-  DEFAULT = Normal,
+  NotAdjust = 0, Normal = 1, MustAdjust = 2, DEFAULT = Normal,
 }
 
 declare const enum kDim {

@@ -66,9 +66,9 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
           || Build.BTypes & BrowserType.Edge && VOther === BrowserType.Edge || Build.BTypes & BrowserType.Chrome
           && Build.MinCVer < BrowserVer.Min$Node$$isConnected && chromeVer_ < BrowserVer.Min$Node$$isConnected
           ? GetParent_unsafe_(box_!, PNType.DirectNode) : box_!.isConnected!) && element2 !== curModalElement
-      adjust2 !== AdjustType.NotAdjust && doesAdjustFirst && adjustUI()
+      adjust2 && doesAdjustFirst && adjustUI()
       root_.insertBefore(element2, before === true ? root_.firstChild : before || null)
-      adjust2 !== AdjustType.NotAdjust && !doesAdjustFirst && adjustUI()
+      adjust2 && !doesAdjustFirst && adjustUI()
     };
     setUICSS = ((innerCSS): void => {
       if (!((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
@@ -91,7 +91,7 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
        */
       // enforce webkit to build the style attribute node, and then we can remove it totally
       box_!.hasAttribute(S) && setOrRemoveAttr(box_!, S)
-      if (adjust_type !== AdjustType.NotAdjust) {
+      if (adjust_type) {
         adjustUI()
       }
     });
@@ -100,12 +100,12 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
       setUICSS(styleIn_ as Exclude<typeof styleIn_, Element | null | undefined | "">)
     } else {
       box_.style.display = NONE
-      if (adjust_type === AdjustType.MustAdjust) {
+      if (adjust_type! > AdjustType.MustAdjust - 1) {
         adjustUI()
       }
       post_({ H: kFgReq.css });
     }
-} as (element: HTMLElement, adjust?: AdjustType, before?: Element | null | true) => void
+} as (element: HTMLElement, adjust: AdjustType, before?: Element | null | true) => void
 
 export const getBoxTagName_cr_ = Build.BTypes & BrowserType.Chrome ? function (): "div" {
   return (!(Build.BTypes & ~BrowserType.Chrome) || VOther & BrowserType.Chrome)
@@ -429,7 +429,7 @@ export const flash_ = function (el: Element | null, rect?: Rect | null, lifeTime
     setClassName_s(flashEl, "R Flash" + (classNames || "") + (setBoundary_(flashEl.style, rect, nfs) ? " AbsF" : ""))
     Build.BTypes & ~BrowserType.Firefox &&
     bZoom_ !== 1 && nfs && (flashEl.style.zoom = "" + bZoom_);
-    addUIElement(flashEl)
+    addUIElement(flashEl, AdjustType.DEFAULT)
     lastFlashEl = flashEl
     if (!Build.NDEBUG) {
       lifeTime = lifeTime === -1 ? - 1 : Math.max(lifeTime || 0, flashTime! | 0)

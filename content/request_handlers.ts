@@ -262,7 +262,7 @@ export const showFrameMask = (mask: FrameMaskType): void => {
       clearInterval_(framemask_fmTimer);
     }, isTop ? 200 : 350);
   }
-  addUIElement(framemask_node);
+  addUIElement(framemask_node, AdjustType.DEFAULT);
 }
 
 set_hookOnWnd(((action: HookAction): void => {
