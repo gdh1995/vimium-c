@@ -67,10 +67,10 @@ var BgUtils_ = {
 .mt.mu.mv.mw.mx.my.mz.na.nc.ne.nf.ng.ni.nl.no.np.nr.nu.nz.om.pa.pe.pf.pg.ph.pk.pl.pm.pn.pr.ps.pt.pw.py.qa.re.ro.rs\
 .ru.rw.sa.sb.sc.sd.se.sg.sh.si.sj.sk.sl.sm.sn.so.sr.st.su.sv.sx\
 .sy.sz.tc.td.tf.tg.th.tj.tk.tl.tm.tn.to.tr.tt.tv.tw.tz.ua.ug.uk.us.uy.uz.va.vc.ve.vg.vi.vn.vu.wf.ws.ye.yt.za.zm.zw",
-    ".abc.art.bid.biz.cat.com.dev.edu.fit.fun.gov.ink.int.kim.law.lol.ltd.men.mil.moe.mom.mtn.net\
+    ".abc.art.bid.biz.cat.com.dev.edu.fit.fun.gov.icu.ink.int.kim.law.lol.ltd.men.mil.moe.mom.mtn.net\
 .new.one.org.pro.pub.red.ren.run.tel.top.vip.win.xin.xxx.xyz"
-    , ".aero.arpa.asia.auto.band.beer.chat.city.club.cool.coop.date.fund.game.gift.gold.guru.help.info.jobs.life\
-.link.live.loan.love.luxe.mobi.name.news.pics.plus.shop.show.site.sohu.team.tech.wang.wiki.work.yoga.zone"
+    , ".aero.arpa.asia.auto.band.beer.chat.city.club.cool.coop.date.fans.fund.game.gift.gold.guru.help.host.info.jobs\
+.life.link.live.loan.love.luxe.mobi.name.news.pics.plus.shop.show.site.sohu.team.tech.wang.wiki.work.yoga.zone"
     , ".citic.cloud.email.games.group.local.onion.party.photo.press.rocks.space.store.today.trade.video.world"
     , ".center.design.lawyer.market.museum.online.social.studio.travel"
     , ".company.fashion.science.website"
