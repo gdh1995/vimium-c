@@ -522,9 +522,9 @@ declare const enum GlobalConsts {
   TrimmedTitleLengthWhenURLIsTooLong = 160,
   MatchCacheLifeTime = 6000,
   TabCacheLifeTime = 3000,
-  // so that `P` = 89 / 9e6 < 1e-5
-  SecretRange = 9e6,
-  SecretBase = 1e6,
+  // so that `P` = 89 / 9e7 < 1e-6
+  SecretRange = 9e7,
+  SecretBase = 1e7,
   MaxRetryTimesForSecret = 89,
   SecretStringLength = 7,
   MarkAcrossJSWorlds = "__VimiumC_", // .length should be {@link #GlobalConsts.LengthOfMarkAcrossJSWorlds}

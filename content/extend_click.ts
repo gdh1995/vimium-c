@@ -70,7 +70,7 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
         : Build.BTypes & BrowserType.Chrome
           && (!(Build.BTypes & ~BrowserType.ChromeOrFirefox) || VOther === BrowserType.Chrome)
         ? 1 : 0
-    , secret: number = (math.random() * kContentCmd.SecretRange + 1) | 0
+    , secret: number = (math.random() * GlobalConsts.SecretRange) | 0
     , script = createElement_("script");
 /**
  * Note:
@@ -198,15 +198,18 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
     (maybeSecret: string, maybeAnotherVerifierInner: InnerVerifier | unknown): void;
     (maybeSecret: string): [EventTarget["addEventListener"], Function["toString"]] | void;
   }
+  type ValidVerifyingOut = Exclude<ReturnType<InnerVerifier>, void>
   type PublicFunction = (maybeKNeedToVerify: string, verifierFunc: InnerVerifier | unknown) => void | string;
   let injected: string = (Build.NDEBUG ? VTr(isFirstTime ? kTip.extendClick : kTip.removeCurScript)
           : !isFirstTime && VTr(kTip.removeCurScript))
         || '"use strict";(' + (function VC(this: void): void {
 
-function verifier(maybeSecret: string, maybeVerifierB?: InnerVerifier): ReturnType<InnerVerifier> {
+function verifier(maybeSecret: string | ValidVerifyingOut, maybeVerifierB?: InnerVerifier): ValidVerifyingOut | void {
   return maybeSecret === GlobalConsts.MarkAcrossJSWorlds && noAbnormalVerifyingFound
       ? !maybeVerifierB ? [myAEL, myToStr]
-        : ([anotherAEL, anotherToStr] = maybeVerifierB(decryptFromVerifier(maybeVerifierB))!, 0 as never as void)
+        : (maybeSecret = maybeVerifierB(decryptFromVerifier(maybeVerifierB))!,
+          [anotherAEL, anotherToStr] = maybeSecret,
+          0 as never as void)
       : (noAbnormalVerifyingFound = 0) as never as void
 }
 type FUNC = (this: unknown, ...args: never[]) => unknown;
@@ -535,8 +538,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$addEvent
         appVer >= BrowserVer.MinEnsuredES6MethodFunction) {
       injected = injected.replace(<RegExpG> /: ?function \w+/g, "");
     }
-    injected = injected.replace(GlobalConsts.MarkAcrossJSWorlds
-        , "$&" + ((math.random() * GlobalConsts.SecretRange + GlobalConsts.SecretBase) | 0))
+    injected = injected.replace(GlobalConsts.MarkAcrossJSWorlds, "$&" + ((secret + GlobalConsts.SecretBase) | 0))
     vApi.e = execute;
     setupEventListener(0, kHookRand, hook);
     setupEventListener(0, kVOnClick1, onClick);
