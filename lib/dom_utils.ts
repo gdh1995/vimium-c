@@ -1,4 +1,4 @@
-import { VOther, chromeVer_, doc, createRegExp, isTY, Lower } from "./utils"
+import { VOther, chromeVer_, doc, createRegExp, isTY, Lower, OBJECT_TYPES } from "./utils"
 import { dimSize_ } from "./rect"
 
 interface kNodeToType {
@@ -65,6 +65,8 @@ export const contains_s = (par: Node, child: Node): boolean => par.contains(chil
 export const attr_s = (el: Element, attr: string): string | null => el.getAttribute(attr)
 
 export const selOffset_ = (sel: Selection, focus?: 1): number => focus ? sel.focusOffset : sel.anchorOffset
+
+export const doesSupportDialog = (): boolean => typeof HTMLDialogElement == OBJECT_TYPES[kTY.func]
 
   /** DOM-compatibility section */
 

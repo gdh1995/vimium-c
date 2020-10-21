@@ -184,7 +184,8 @@ export const tryCreateRegExp = <T extends "g" | "gi" | "gim" | "gm" | "i" | "u" 
 /** ==== shortcuts of constant code ==== */
 
 const TYPES = ["string", "object", "function", "number"]
-export const isTY = ((obj: any, ty?: kTY): boolean => typeof obj === TYPES[ty || kTY.str]) as {
+export { TYPES as OBJECT_TYPES }
+export const isTY = ((obj: any, ty?: kTY): boolean => typeof obj == TYPES[ty || kTY.str]) as {
   <T extends kTY> (obj: any, ty: T): obj is (T extends kTY.str ? string
       : T extends kTY.obj ? object : T extends kTY.func ? Function : T extends kTY.num ? number : never)
   (obj: any): obj is string

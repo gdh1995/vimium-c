@@ -1,6 +1,6 @@
 import {
   setupEventListener, isTop, keydownEvents_, VOther, timeout_, fgCache, doc, isAlive_, isJSUrl, chromeVer_, VTr, deref_,
-  vApi, Stop_, createRegExp, isTY
+  vApi, Stop_, createRegExp, isTY, OBJECT_TYPES
 } from "../lib/utils"
 import { prevent_ } from "../lib/keyboard_utils"
 import {
@@ -276,7 +276,7 @@ export const getSelected = (notExpectCount?: {r?: ShadowRoot | null}): Selection
         || (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
           && chromeVer_ < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
           ? Build.MinCVer >= BrowserVer.MinShadowDOMV0 || ElementProto().webkitCreateShadowRoot
-          : isTY(ShadowRoot, kTY.func))) {
+          : typeof ShadowRoot == OBJECT_TYPES[kTY.func])) {
     while (sel2) {
       sel2 = null;
       el = getAccessibleSelectedNode(sel)

@@ -57,11 +57,11 @@ interface FrameHintsInfo {
 
 import {
   VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_, max_, min_, math,
-  clearTimeout_, VOther, fgCache, doc, readyState_, chromeVer_, vApi, deref_, getTime, weakRef_, unwrap_ff, isTY
+  clearTimeout_, VOther, fgCache, doc, readyState_, chromeVer_, vApi, deref_, getTime, weakRef_, unwrap_ff
 } from "../lib/utils"
 import {
   frameElement_, querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_,
-  getComputedStyle_, isStyleVisible_, htmlTag_, fullscreenEl_unsafe_, removeEl_s, UNL, toggleClass
+  getComputedStyle_, isStyleVisible_, htmlTag_, fullscreenEl_unsafe_, removeEl_s, UNL, toggleClass, doesSupportDialog
 } from "../lib/dom_utils"
 import {
   getViewBox_, prepareCrop_, wndSize_, bZoom_, wdZoom_, dScale_, padClientRect_, getBoundingClientRect_,
@@ -166,7 +166,7 @@ export const activate = (options: HintsNS.ContentOptions, count: number, force?:
       }
       coreHints.d = <BOOL> +(
         (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement
-            || isTY(HTMLDialogElement, kTY.func))
+            || doesSupportDialog())
         && !!(wantDialogMode_ != null ? wantDialogMode_ : querySelector_unsafe_("dialog[open]"))
         )
     }

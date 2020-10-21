@@ -29,11 +29,12 @@ interface ElementScrollInfo {
 
 import {
   isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, allowRAF_, readyState_, loc_, chromeVer_,
-  vApi, deref_, weakRef_, VTr, createRegExp, isTY, max_, math, min_
+  vApi, deref_, weakRef_, VTr, createRegExp, max_, math, min_
 } from "../lib/utils"
 import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, UNL,
-  querySelector_unsafe_, getComputedStyle_, notSafe_not_ff_, HDN, isRawStyleVisible, fullscreenEl_unsafe_, removeEl_s
+  querySelector_unsafe_, getComputedStyle_, notSafe_not_ff_, HDN, isRawStyleVisible, fullscreenEl_unsafe_, removeEl_s,
+  doesSupportDialog
 } from "../lib/dom_utils"
 import {
   scrollWndBy_, wndSize_, getZoom_, wdZoom_, bZoom_, isNotInViewport, prepareCrop_, padClientRect_, instantScOpt,
@@ -117,7 +118,7 @@ let performAnimate = (e: SafeElement | null, d: ScrollByY, a: number): void => {
     }
   },
   hasDialog = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement
-      || !!(Build.BTypes & BrowserType.ChromeOrFirefox) && isTY(HTMLDialogElement, kTY.func),
+      || !!(Build.BTypes & BrowserType.ChromeOrFirefox) && doesSupportDialog(),
   startAnimate = (): void => {
     timer = TimerID.None;
     running = running || rAF_(animate);
