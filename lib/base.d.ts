@@ -205,7 +205,7 @@ declare namespace HintsNS {
     /** key */ a: string;
     /** text */ h: HintText | null;
     /** refer */ r: HTMLElementUsingMap | Hint[0] | null;
-    /** score */ i: number;
+    /** score (if not filterHints, it's count of matched characters) */ i: number;
     /** zIndex */ z?: number;
   }
 

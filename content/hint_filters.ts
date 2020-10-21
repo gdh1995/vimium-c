@@ -508,21 +508,22 @@ export const matchHintsByKey = (keyStatus: KeyStatus
   } else {
     zIndexes_ = zIndexes_ && null;
     keyStatus.k = sequence;
-    const notDoSubCheck = !keyStatus.b, wanted = notDoSubCheck ? sequence : sequence.slice(0, -1);
+    const notDoSubCheck = !keyStatus.b, limit = sequence.length - keyStatus.b,
+    wantedPrefix = sequence.slice(0, limit), lastChar = notDoSubCheck ? "" : sequence[limit]
     hintArray = keyStatus.c = (doesDetectMatchSingle ? hintArray : allHints!).filter(hint => {
-      const pass = hint.a.startsWith(wanted) && (notDoSubCheck || !hint.a.startsWith(sequence));
+      const pass = hint.a.startsWith(wantedPrefix) && (notDoSubCheck || hint.a[limit] !== lastChar)
       setVisibility_s(hint.m, pass)
       return pass;
     });
-    const limit = sequence.length - keyStatus.b;
     type MarkerElementChild = Exclude<MarkerElement["firstChild"], Text | null>;
-    for (const { m: { childNodes: ref } } of hintArray) {
+    for (const hint of hintArray) {
+      const ref = hint.m.childNodes, hintN = hint.i
 // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/dom_token_list.cc?q=DOMTokenList::setValue&g=0&l=258
 // shows that `.classList.add()` costs more
-      for (let j = ref.length; 0 < j--; ) {
-        !(ref[j] as MarkerElementChild).className !== (j < limit) ||
+      for (let j = limit > hintN ? hintN : limit, end = limit > hintN ? limit : hintN; j < end; j++) {
         ((ref[j] as MarkerElementChild).className = j < limit ? "MC" : "");
       }
+      hint.i = limit
     }
     return hintArray.length ? 2 : 0;
   }
