@@ -157,18 +157,19 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
     // Before Firefox 64, the mozFullscreenChangeEvent.target is document
     // so here should only use `fullscreenEl_unsafe_`
     const el: Element | null = fullscreenEl_unsafe_(),
-    el2 = el && !contains_s(root_, el) ? el : docEl_unsafe_()!
+    disableUI = event === 2,
+    el2 = el && !contains_s(root_, el) && !contains_s(box_!, el) ? el : docEl_unsafe_()!
     // Chrome also always remove node from its parent since 58 (just like Firefox), which meets the specification
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
     //  -> #concept-node-append -> #concept-node-pre-insert -> #concept-node-adopt -> step 2
-    event === 2 ? removeEl_s(box_!) : el2 !== box_!.parentNode &&
+    disableUI ? removeEl_s(box_!) : el2 !== box_!.parentNode &&
     (Build.BTypes & ~BrowserType.Firefox ? append_not_ff : appendNode_s)(el2, box_!)
     const sin = styleIn_, s = sin && (sin as HTMLStyleElement).sheet
     s && (s.disabled = false);
-    Build.BTypes & BrowserType.ChromeOrFirefox &&
+    !(Build.BTypes & BrowserType.ChromeOrFirefox) || disableUI ||
     curModalElement && !curModalElement.open && curModalElement.showModal()
     if (el || event) {
-      const removeEL = !el || event === 2, FS = "fullscreenchange";
+      const removeEL = !el || disableUI, FS = "fullscreenchange";
       if (Build.BTypes & BrowserType.Chrome
           && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)) {
         setupEventListener(0, "webkit" + /*#__NOINLINE__*/ FS, adjustUI, removeEL)
