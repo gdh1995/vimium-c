@@ -386,7 +386,8 @@ var BgUtils_ = {
         BgUtils_.quotedStringRe_.test(path) && (path = path.slice(1, -1));
         path = path.replace(/\uff0c/g as RegExpG, " ");
         const re2 = /([\u2070-\u2079\xb2\xb3\xb9]+)|[\xb0\uff0b\u2212\xd7\xf7]|''?/g
-        path = path.replace(<RegExpG & RegExpSearchable<0>> /[\xb0']\s*\d+(\s*)(?=\)|$)/g, (str, g1): string => {
+        path = path.replace(<RegExpG> /deg\b/g, "\xb0")
+            .replace(<RegExpG & RegExpSearchable<0>> /[\xb0']\s*\d+(\s*)(?=\)|$)/g, (str, g1): string => {
           str = str.trim()
           return str + (str[0] === "'"  ? "''" : "'") + g1
         }).replace(<RegExpG & RegExpSearchable<1>> re2, (str, g1): string => {
@@ -400,6 +401,9 @@ var BgUtils_ = {
           }
           return out && "**" + out
         }).replace(<RegExpG>/\*PI\+(?!\s*\d)/g, "*PI").replace(<RegExpG> /([\d.])rad\b/g, "$1")
+        let nParenthesis = ([].reduce as (cb: (o: number, c: string) => number, o: number) => number
+            ).call(path, (n, ch) => n + (ch === "(" ? 1 : ch === ")" ? -1 : 0), 0)
+        while (nParenthesis-- > 0) { path += ")" }
         let result = BgUtils_.tryEvalMath_(path, MathParser) || "";
         return [result, Urls.kEval.math, path];
       });
@@ -512,6 +516,7 @@ var BgUtils_ = {
         }
       } catch {}
       mathParser.clean();
+      mathParser.errormsg && (mathParser.errormsg = "")
     }
     return result;
   },

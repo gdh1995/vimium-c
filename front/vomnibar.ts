@@ -421,7 +421,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     let line = a.completions_[a.selection_] as SuggestionEx, str = a.input_.value.trim();
     a.resMode_ && (str = str.slice(a.resMode_.length))
-    str = str === (line.title || line.u) ? line.parsed_ || a.resMode_ + line.t
+    str = str === (line.title || line.u) ? line.parsed_ || a.resMode_ + (line.title === line.t ? line.u : line.t)
         : a.resMode_ + (line.title && str === line.u ? line.title : str === line.t ? line.u : line.t)
     return a._updateInput(line, str);
   },
@@ -1470,7 +1470,7 @@ VUtils_ = {
     }
     sug.t = text;
     if (str = sug.title) {
-      (sug as Writable<typeof sug>).title = str.replace(<RegExpG> /<\/?match>/g, "").replace(
+      (sug as Writable<typeof sug>).title = str.replace(<RegExpG> /<\/?match[^>]*?>/g, "").replace(
           <RegExpG & RegExpSearchable<1>> /&(amp|apos|gt|lt|quot);|\u2026/g, VUtils_.onHTMLEntity);
     }
     return i;
