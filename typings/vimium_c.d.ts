@@ -525,8 +525,8 @@ declare const enum GlobalConsts {
   // so that `P` = 89 / 9e7 < 1e-6
   SecretRange = 9e7,
   SecretBase = 1e7,
+  SecretStringLength = 8,
   MaxRetryTimesForSecret = 89,
-  SecretStringLength = 7,
   MarkAcrossJSWorlds = "__VimiumC_", // .length should be {@link #GlobalConsts.LengthOfMarkAcrossJSWorlds}
   LengthOfMarkAcrossJSWorlds = 10,
   ExtendClick_DelayToFindAll = 600,
