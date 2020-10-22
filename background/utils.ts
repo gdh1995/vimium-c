@@ -385,6 +385,13 @@ var BgUtils_ = {
       ).then<Urls.MathEvalResult>(function (MathParser): Urls.MathEvalResult {
         BgUtils_.quotedStringRe_.test(path) && (path = path.slice(1, -1));
         path = path.replace(/\uff0c/g as RegExpG, " ");
+        path = path.replace(<RegExpG & RegExpSearchable<0>> /[\u2070-\u2079\xb2\xb3\xb9]+/g, (str): string => {
+          let out = ""
+          for (const ch of str) {
+            out += ch < "\xba" ? ch > "\xb3" ? 1 : ch < "\xb3" ? 2 : 3 : ch.charCodeAt(0) - 0x2070
+          }
+          return out && "**" + out
+        })
         let result = BgUtils_.tryEvalMath_(path, MathParser) || "";
         return [result, Urls.kEval.math, path];
       });
