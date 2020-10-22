@@ -1,5 +1,6 @@
 import {
-  clickable_, VOther, vApi, isAlive_, safer, timeout_, escapeAllForRe, tryCreateRegExp, VTr, unwrap_ff, isTY, Lower
+  clickable_, VOther, vApi, isAlive_, safer, timeout_, escapeAllForRe, tryCreateRegExp, VTr, unwrap_ff, isTY, Lower,
+  chromeVer_
 } from "../lib/utils"
 import {
   docEl_unsafe_, htmlTag_, isAriaNotTrue_, isStyleVisible_, querySelectorAll_unsafe_, isIFrameElement, ALA, attr_s,
@@ -136,6 +137,8 @@ export const findNextInRel = (relName: string): GoNextBaseCandidate | null | und
   let matched: HTMLElementWithRel | undefined, tag: string;
   const re1 = <RegExpOne> /\s/
   const array = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
+      && Build.MinCVer >= BrowserVer.MinTestedES6Environment
+      && chromeVer_ < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
       ? [].slice.call(elements) : elements as { [i: number]: Element } as Element[]
   for (const element of array) {
     if ((tag = htmlTag_(element))

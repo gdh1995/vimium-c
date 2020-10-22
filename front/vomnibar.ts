@@ -1011,7 +1011,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     Vomnibar_.updateQueryFlag_(CompletersNS.QueryFlags.ShowTime, Vomnibar_.showTime_ > 0);
     // Note: should not use style[title], because "title" on style/link has special semantics
     // https://html.spec.whatwg.org/multipage/semantics.html#the-style-element
-    for (const style of (document.querySelectorAll("style[id]") as {} as HTMLStyleElement[])) {
+    const styles = document.querySelectorAll("style[id]")
+    for (let i = 0; i < styles.length; i++) {
+      const style = styles[i] as HTMLStyleElement
       const key = " " + style.id + " ", isCustom = key === " custom ", found = isCustom || omniStyles.includes(key)
       style.sheet!.disabled = !found;
       isCustom || body.classList.toggle("has-" + style.id, found)
@@ -1161,7 +1163,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     });
     a.onStyleUpdate_(a.styles_);
     if (a.pageType_ === VomnibarNS.PageType.inner) {
-      for (const el of document.querySelectorAll("[title]") as ArrayLike<Element> as HTMLElement[]) {
+      const els = document.querySelectorAll("[title]")
+      for (let i = 0; i < els.length; i++) {
+        const el = els[i] as HTMLElement
         let t = chrome.i18n.getMessage(el.title.replace(" ", "_"));
         t && (el.title = t);
       }

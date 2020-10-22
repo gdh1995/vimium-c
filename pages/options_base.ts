@@ -19,7 +19,7 @@ type OptionType<T extends keyof AllowedOptions> = T extends "exclusionRules" ? E
     : T extends JSONOptionNames ? JSONOption_<T>
     : T extends TextualizedOptionNames ? TextOption_<T>
     : NonNullable<AllowedOptions[T]> extends boolean | number ? BooleanOption_<T>
-    : never
+    : never;
 
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".includes) {
 (function (): void {
@@ -57,7 +57,13 @@ if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox &&
   (window as any).bgOnOther_ = BG_.OnOther as BrowserType;
 }
 
-const $$ = document.querySelectorAll.bind(document) as <T extends HTMLElement>(selector: string) => NodeListOf<T>,
+const $$ = ((selector: string, root?: HTMLElement | ShadowRoot | null) => {
+  const list = (root || document).querySelectorAll(selector)
+  return Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
+      && Build.MinCVer >= BrowserVer.MinTestedES6Environment
+      && BG_.CurCVer_ < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
+      ? [].slice.call(list) : list
+}) as <T extends HTMLElement>(selector: string, root?: HTMLElement | ShadowRoot | null) => ArrayLike<T>,
 lang_ = chrome.i18n.getMessage("lang1");
 
 if (lang_) {
@@ -65,16 +71,16 @@ if (lang_) {
     const langInput = navigator.language as string || pTrans_("lang2")
     let t = pTrans_("keyMappingsP"), el: HTMLElement | null = $("#keyMappings");
     t && el && ((el as HTMLInputElement).placeholder = t);
-    for (el of $$("[data-i-t]") as ArrayLike<Element> as Element[] as HTMLElement[]) {
+    for (el of $$("[data-i-t]") as HTMLElement[]) {
       t = pTrans_(el.dataset.iT as string)
       t && (el.title = t)
     }
     if (langInput && (lang_ !== "zh" || langInput !== "zh-CN")) {
-      for (el of $$("input[type=text], textarea") as ArrayLike<Element> as Element[] as HTMLElement[]) {
+      for (el of $$("input[type=text], textarea") as HTMLElement[]) {
         el.lang = langInput as ""
       }
     }
-    for (el of $$("[data-i]") as ArrayLike<Element> as Element[] as HTMLElement[]) {
+    for (el of $$("[data-i]") as HTMLElement[]) {
       t = pTrans_(el.dataset.i as string);
       (t || el.dataset.iE) && (el.innerText = t);
     }
@@ -285,11 +291,11 @@ constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption_) => v
         ).content.querySelector(".exclusionRule") as HTMLTableRowElement;
     if (lang_) {
       let el: HTMLElement, t: string | null
-      for (el of element.querySelectorAll("[data-i]") as ArrayLike<Element> as Element[] as HTMLElement[]) {
+      for (el of $$("[data-i]", element) as HTMLElement[]) {
         t = pTrans_(el.dataset.i as string);
         t && (el.innerText = t);
       }
-      for (el of this.template_.querySelectorAll("[title]") as ArrayLike<Element> as Element[] as HTMLElement[]) {
+      for (el of $$("[title]", this.template_) as HTMLElement[]) {
         t = el.title
         if (t) {
           t = pTrans_(t)

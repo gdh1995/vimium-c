@@ -294,6 +294,10 @@ export const findMainSummary_ = ((details: HTMLDetailsElement | Element | null):
     // Specification: https://html.spec.whatwg.org/multipage/interactive-elements.html#the-summary-element
     // `HTMLDetailsElement::FindMainSummary()` in
     // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_details_element.cc?g=0&l=101
+    if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.Min$Array$$find$$findIndex) {
+      return ([].find as (predicate: (value: Element) => boolean) => Element | undefined).call(details!.children
+          , summary => htmlTag_(summary) === "summary") as SafeHTMLElement | null || null
+    }
     for (let summaries = details!.children, i = 0, len = summaries.length; i < len; i++) {
       const summary = summaries[i];
       // there's no window.HTMLSummaryElement on C70

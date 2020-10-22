@@ -405,7 +405,7 @@ const doesScroll = (el: SafeElement, di: ScrollByY, amount: number): boolean => 
     return !!changed;
 }
 
-const selectFirst = (info: ElementScrollInfo, skipPrepare?: 1): ElementScrollInfo | null => {
+const selectFirst = (info: ElementScrollInfo, skipPrepare?: 1): ElementScrollInfo | null | undefined => {
     let element = info.e;
     if (dimSize_(element, kDim.elClientH) + 3 < dimSize_(element, kDim.scrollH) &&
         (doesScroll(element, 1, 1) || dimSize_(element, kDim.positionY) > 0 && doesScroll(element, 1, 0))) {

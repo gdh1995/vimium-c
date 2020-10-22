@@ -168,7 +168,7 @@ Option_.all_.keyboard.checker_ = {
 (function (): void {
   const func = loadChecker as CheckerLoader, info = func.info_;
   func.info_ = "";
-  for (const element of $$("[data-check]")) {
+  for (const element of $$("[data-check]") as HTMLElement[]) {
     element.removeEventListener(element.dataset.check || "input", func as typeof loadChecker);
   }
 

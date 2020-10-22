@@ -339,7 +339,7 @@ JSONOption_.prototype.areEqual_ = Option_.areJSONEqual_
 
 ExclusionRulesOption_.prototype.onRowChange_ = function (this: ExclusionRulesOption_, isAdd: number): void {
   if (this.list_.length !== isAdd) { return }
-  const el = $("#exclusionToolbar"), options = el.querySelectorAll("[data-model]")
+  const el = $("#exclusionToolbar"), options = $$("[data-model]", el)
   el.style.visibility = isAdd ? "" : "hidden"
   for (let i = 0, len = options.length; i < len; i++) {
     const opt = Option_.all_[options[i].id as keyof AllowedOptions],
@@ -395,7 +395,7 @@ const createNewOption = ((): <T extends keyof AllowedOptions> (_element: HTMLEle
     instance.fetch_()
     return Option_.all_[instance.field_] = instance as any
   }
-  [].forEach.call($$("[data-model]"), createNewOption)
+  ($$("[data-model]") as HTMLElement[]).forEach(createNewOption)
   return createNewOption
 })()
 
@@ -546,7 +546,7 @@ Option_.all_.userDefinedCss.onSave_ = function () {
   if (!this.element_.classList.contains("debugging")) { return }
   setTimeout(function () {
     const root = VApi.y().r
-    const iframes = root!.querySelectorAll("iframe")
+    const iframes = $$<HTMLIFrameElement>("iframe", root)
     for (let i = 0, end = iframes.length; i < end; i++) {
       const frame = iframes[i], isFind = frame.classList.contains("HUD"),
       style = frame.contentDocument!.querySelector("style.debugged") as HTMLStyleElement | null

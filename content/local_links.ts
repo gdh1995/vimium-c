@@ -260,6 +260,16 @@ export const getEditable = (hints: Hint[], element: SafeHTMLElement): void => {
 
 const getSelectable = (hints: Hint[], element: SafeHTMLElement): void => {
   const arr = element.childNodes as NodeList
+  if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.Min$Array$$find$$findIndex) {
+    for (const node of arr as ArrayLike<Node> as Node[]) {
+      if (isNode_(node, kNode.TEXT_NODE) && node.data.trim().length > 2) {
+        const rect = getVisibleClientRect_(element)
+        rect && hints.push([element as LockableElement, rect, ClickType.Default])
+        break
+      }
+    }
+    return
+  }
   for (let i = 0; i < arr.length; i++) {
     const node = arr[i]
     if (isNode_(node, kNode.TEXT_NODE) && node.data.trim().length > 2) {
