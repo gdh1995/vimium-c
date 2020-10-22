@@ -426,7 +426,7 @@ const selectFirst = (info: ElementScrollInfo, skipPrepare?: 1): ElementScrollInf
       }
     }
     children.sort((a, b) => b.a - a.a)
-    return children.reduce((cur, info1) => cur || selectFirst(info1, 1), null as ElementScrollInfo | null)
+    return children.reduce((cur, info1) => cur || selectFirst(info1, 1), null as ElementScrollInfo | null | undefined)
 }
 
   /** @NEED_SAFE_ELEMENTS */
