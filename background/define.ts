@@ -1,10 +1,5 @@
 declare var define: any
 
-interface IterableMap<K extends string | number, V> extends Map<K, V> {
-  // [Symbol.iterator] (): Iterator<[K, V]>
-  keys (): IterableIterator<K>
-}
-
 if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
   (window as Writable<Window>).OnOther = Build.BTypes & BrowserType.Chrome
       && (typeof browser === "undefined" || (browser && (browser as typeof chrome).runtime) == null
@@ -92,7 +87,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$Stri
       return this.indexOf(s, pos) >= 0
     }
     if (Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
-        && (!(window as any as typeof globalThis).Map || !(Map.prototype as IterableMap<string, any>).keys)) {
+        && CurCVer_ < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) {
       type SimulatedMap = IterableMap<string, any> & Set<string> & { map_: SafeDict<1>, isSet_: BOOL }
       const proto = {
         add (k: string): any { this.map_[k] = 1 },

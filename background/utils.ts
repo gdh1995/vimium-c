@@ -9,6 +9,22 @@ var BgUtils_ = {
     }
     return dest as T & T2;
   },
+  keys_ (map: Map<string, any> | Set<any>): string[] {
+    let arr: string[], iter_i: IteratorResult<string>
+    if (Build.MinCVer >= BrowserVer.MinEnsuredES6SpreadOperator && Build.MinCVer >= BrowserVer.MinTestedES6Environment
+        || !(Build.BTypes & BrowserType.Chrome)) {
+      arr = [... <string[]> <any> (map as IterableMap<string, any>).keys()]
+    } else if (Build.MinCVer >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+        || CurCVer_ > BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol - 1) {
+      arr = []
+      for (const iterator = (map as IterableMap<string, any>).keys(); iter_i = iterator.next(), !iter_i.done; ) {
+        arr.push(iter_i.value)
+      }
+    } else {
+      arr = Object.keys((map as Map<string, any> as SimulatedMapWithKeys<string, any>).keys())
+    }
+    return arr
+  },
   blank_ (this: void): void { /* empty */ },
   _reToReset: <RegExpOne> /a?/,
   resetRe_ (): true {

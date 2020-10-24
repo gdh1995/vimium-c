@@ -1173,8 +1173,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.init_ = VUtils_.makeListRenderer_ = null as never;
     if (Build.BTypes & BrowserType.Chrome
           && (!(Build.BTypes & ~BrowserType.Chrome) || a.browser_ === BrowserType.Chrome)
-          && (Build.MinCVer >= BrowserVer.MinSVG$Path$Has$d$CSSAttribute
-              || ver >= BrowserVer.MinSVG$Path$Has$d$CSSAttribute)
+          && (Build.MinCVer >= BrowserVer.MinEnsuredSVG$Path$Has$d$CSSAttribute
+              || ver >= BrowserVer.MinEnsuredSVG$Path$Has$d$CSSAttribute)
         || a.bodySt_.d != null) {
       return;
     }

@@ -233,8 +233,6 @@ var KeyMappings = {
     CommandsData_.builtinKeys_ = builtinKeys;
     CommandsData_.shortcutRegistry_ = cmdMap
     CommandsData_.mappedKeyRegistry_ = Settings_.omniPayload_.k = mk > 0 ? mkReg : null;
-    const mayHaveInsert = Object.keys(registry).join("").includes(":i>") ? kMapKey.directInsert : kMapKey.NONE
-    CommandsData_.mappedKeyTypes_ = mk > 0 ? a.collectMapKeyTypes_(mkReg) | mayHaveInsert : mayHaveInsert
     Settings_.temp_.cmdErrors_ = Settings_.temp_.cmdErrors_ > 0 ? ~errors : errors;
   }),
   setupUserCustomized_ (cmdMap: CommandsDataTy["shortcutRegistry_"], key: StandardShortcutNames
@@ -268,18 +266,23 @@ var KeyMappings = {
     }
     return types
   },
-  populateKeyMap_: (function (this: void, detectNewError: boolean): void {
+  populateKeyMap_: (function (this: void, hasFoundChanges: boolean): void {
     const d = CommandsData_, ref = d.keyFSM_ = BgUtils_.safeObj_<ValidKeyAction | ChildKeyFSM>(),
     keyRe = BgUtils_.keyRe_,
     strip = BgUtils_.stripKey_,
     builtinKeys = d.builtinKeys_,
-    allKeys = Object.keys(d.keyToCommandRegistry_),
+    allKeys = BgUtils_.keys_(d.keyToCommandRegistry_),
+    mappedKeyReg = CommandsData_.mappedKeyRegistry_,
     customKeys = builtinKeys ? allKeys.filter(i => !builtinKeys.has(i)) : allKeys,
     countOfCustomKeys = customKeys.length,
-    sortedKeys = builtinKeys ? customKeys.concat(Object.keys(builtinKeys)) : allKeys,
+    sortedKeys = builtinKeys ? customKeys.concat(BgUtils_.keys_(builtinKeys)) : allKeys,
     C = KeyMappings,
     d2 = Settings_.temp_, oldErrors = d2.cmdErrors_;
     if (oldErrors < 0) { d2.cmdErrors_ = ~oldErrors; }
+    if (hasFoundChanges) {
+      const mayHaveInsert = allKeys.join().includes(":i>") ? kMapKey.directInsert : kMapKey.NONE
+      d.mappedKeyTypes_ = mappedKeyReg ? C.collectMapKeyTypes_(mappedKeyReg) | mayHaveInsert : mayHaveInsert
+    }
     for (let ch = 10; 0 <= --ch; ) { ref[ch] = KeyAction.count; }
     ref["-"] = KeyAction.count;
     for (let index = 0; index < sortedKeys.length; index++) {
@@ -292,7 +295,7 @@ var KeyMappings = {
             d.keyToCommandRegistry_.delete(key)
             continue;
           }
-          detectNewError && C.warnInactive_(ref[key2] as ReadonlyChildKeyFSM, key);
+          hasFoundChanges && C.warnInactive_(ref[key2] as ReadonlyChildKeyFSM, key);
         }
         ref[key2] = KeyAction.cmd;
         continue;
@@ -301,20 +304,20 @@ var KeyMappings = {
       while ((tmp = ref2[strip(arr[j])]) && j < last) { j++; ref2 = tmp; }
       if (tmp != null && (index >= countOfCustomKeys || tmp === KeyAction.cmd)) {
         index >= countOfCustomKeys ? d.keyToCommandRegistry_.delete(key) :
-        detectNewError && C.warnInactive_(key, arr.slice(0, j + 1).join(""));
+        hasFoundChanges && C.warnInactive_(key, arr.slice(0, j + 1).join(""));
         continue;
       }
-      tmp != null && detectNewError && C.warnInactive_(tmp, key);
+      tmp != null && hasFoundChanges && C.warnInactive_(tmp, key);
       while (j < last) { ref2 = ref2[strip(arr[j++])] = BgUtils_.safeObj_() as ChildKeyFSM; }
       ref2[strip(arr[last])] = KeyAction.cmd;
     }
-    if (detectNewError && d2.cmdErrors_) {
+    if (hasFoundChanges && d2.cmdErrors_) {
       console.log("%c%o errors found.", "background-color:#fffbe5", d2.cmdErrors_);
     } else if (oldErrors < 0) {
       console.log("The new key mappings have no errors");
     }
     CommandsData_.builtinKeys_ = null;
-    if (detectNewError && CommandsData_.errors_) {
+    if (hasFoundChanges && CommandsData_.errors_) {
       console.groupEnd();
     }
     const maybePassed = Exclusions.getAllPassed_();

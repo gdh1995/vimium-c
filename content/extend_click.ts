@@ -581,16 +581,14 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$addEvent
   removeEl_s(script)
   execute(kContentCmd.Destroy);
   if (!(Build.BTypes & BrowserType.Chrome)
-      || Build.BTypes & ~BrowserType.ChromeOrFirefox && !appVer) {
+      || Build.BTypes & ~BrowserType.ChromeOrFirefox && VOther & ~BrowserType.Chrome) {
     // on Edge (EdgeHTML), `setTimeout` and `requestAnimationFrame` work well
     return;
   }
   // ensured on Chrome
-  const breakTotally = Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage
-      // still check appVer, so that treat it as a latest version if appVer parsing is failed
-      && appVer && appVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage;
   recordLog(kTip.logNotWorkOnSandboxed)
-  if (Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage && breakTotally) {
+  if (Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage
+      && appVer && appVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage) {
     return safeDestroy(1)
   }
   /*#__INLINE__*/

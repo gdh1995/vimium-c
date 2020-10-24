@@ -745,8 +745,7 @@ domainEngine = {
         }
       }
     } else if (Build.MinCVer >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
-        || CurCVer_ > BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol - 1
-        || (Map.prototype as IterableMap<string, any>).keys) {
+        || CurCVer_ > BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol - 1) {
       const iterator = (ref as IterableMap<string, Domain>).keys()
       let iter_i: IteratorResult<string> | undefined
       while (iter_i = iterator.next(), !iter_i.done) {
@@ -1232,7 +1231,7 @@ searchEngine = {
     return sug;
   },
   BuildSearchKeywords_ (): void {
-    let arr = Object.keys(Settings_.cache_.searchEngineMap).sort(), max = 0, last = "", dedup: string[] = []
+    let arr = BgUtils_.keys_(Settings_.cache_.searchEngineMap).sort(), max = 0, last = "", dedup: string[] = []
     for (let ind = arr.length; 0 <= --ind; ) {
       const key = arr[ind]
       if (!last.startsWith(key)) {

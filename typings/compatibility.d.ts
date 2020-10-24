@@ -194,8 +194,7 @@ declare const enum BrowserVer {
   MinSVG$Path$Has$Use$Attribute = 50, // <path use="..." />
   MinMaybe$window$$InputEvent = 50, // only if EXPERIMENTAL
   // MinShowBlockForBrokenImage = 51, // not reproduced
-  // the 2 below just mean they're enabled even if LEGACY
-  MinIFrameReferrerpolicy = 51,
+  MinEnsuredIFrameReferrerpolicy = 51,
   MinEnsured$KeyboardEvent$$Key = 51,
   // the 6 below are correct even if EXPERIMENTAL or LEGACY
   MinPassiveEventListener = 51,
@@ -218,8 +217,8 @@ declare const enum BrowserVer {
   // since https://github.com/chromium/chromium/commit/866d1237c72059624def2242e218a7dfe78b125e
   MinEventListenersFromExtensionOnSandboxedPage = 52,
   // the 4 below are correct even if LEGACY
-  MinCSSEnableContain = 52,
-  MinSVG$Path$Has$d$CSSAttribute = 52, // svg path { d: path('...'); }
+  MinEnsuredCSSEnableContain = 52, // on C51, not exists unless EXPERIMENTAL
+  MinEnsuredSVG$Path$Has$d$CSSAttribute = 52, // svg path { d: path('...'); } ; on C51, not exists unless EXPERIMENTAL
   MinForcedDirectWriteOnWindows = 52,
   // if #enable-site-per-process or #enable-top-document-isolation,
   // for 3rd-party child frames in other processes, it keeps the same only since C52 even if EXPERIMENTAL

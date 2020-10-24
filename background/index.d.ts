@@ -784,3 +784,10 @@ interface SetTimeout {
   <T1, T2>(this: void, handler: (this: void, a1: T1, a2: T2) => void, timeout: number, a1: T1, a2: T2): number;
   <T1>(this: void, handler: (this: void, a1: T1) => void, timeout: number, a1: T1): number;
 }
+
+interface IterableMap<K extends string | number, V> extends Map<K, V> {
+  keys (): IterableIterator<K>
+}
+interface SimulatedMapWithKeys<K extends string | number, V> extends Map<K, V> {
+  keys (): SafeDict<V>
+}
