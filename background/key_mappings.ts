@@ -114,9 +114,9 @@ var KeyMappings = {
   parseKeyMappings_: (function (this: {}, line: string): void {
     let key: string | undefined, lines: string[], splitLine: string[], mk = 0, _i: number
       , _len: number, details: CommandsNS.Description | undefined, errors = 0, ch: number
-      , registry = BgUtils_.safeObj_<CommandsNS.Item>()
-      , cmdMap = BgUtils_.safeObj_<CommandsNS.Item>() as Partial<ShortcutInfoMap>
-      , builtinKeys: SafeDict<1> | null = null
+      , registry: CommandsDataTy["keyToCommandRegistry_"] = new Map()
+      , cmdMap: CommandsDataTy["shortcutRegistry_"] = new Map()
+      , builtinKeys: TextSet | null = null
       , regItem: CommandsNS.Item | null
       , mkReg = BgUtils_.safeObj_<string>();
     const a = this as typeof KeyMappings, available = a.availableCommands_;
@@ -125,12 +125,12 @@ var KeyMappings = {
     lines = line.replace(<RegExpSearchable<0>> /\\\\?\n/g, t => t.length === 3 ? "\\\n" : ""
                ).replace(<RegExpG> /[\t ]+/g, " ").split("\n");
     if (lines[0] !== "unmapAll" && lines[0] !== "unmapall") {
-      builtinKeys = BgUtils_.safeObj_<1>();
+      builtinKeys = new Set!()
       const defaultMap = a.defaultKeyMappings_.split(" ");
       for (_i = defaultMap.length; 0 < _i; ) {
         _i -= 2;
-        registry[defaultMap[_i]] = a.makeCommand_(defaultMap[_i + 1])!;
-        builtinKeys[defaultMap[_i]] = 1;
+        registry.set(defaultMap[_i], a.makeCommand_(defaultMap[_i + 1])!)
+        builtinKeys.add(defaultMap[_i])
       }
     } else {
       _i = 1;
@@ -144,8 +144,8 @@ var KeyMappings = {
         key = splitLine[1] || ""
         if (!key || key === "__proto__") {
           a.logError_('Unsupported key sequence %c"%s"', colorRed, key || '""', `for "${splitLine[2] || ""}"`);
-        } else if (key in registry && !(builtinKeys && key in builtinKeys)) {
-          a.logError_('Key %c"%s"', colorRed, key, "has been mapped to", registry[key]!.command_);
+        } else if (registry.has(key) && !(builtinKeys && builtinKeys.has(key))) {
+          a.logError_('Key %c"%s"', colorRed, key, "has been mapped to", registry.get(key)!.command_)
         } else if (splitLine.length < 3) {
           a.logError_('Lacking command when mapping %c"%s"', colorRed, key);
         } else if (!(details = available[splitLine[2]])) {
@@ -156,14 +156,14 @@ var KeyMappings = {
         } else {
           regItem = a.makeCommand_(splitLine[2], a.getOptions_(splitLine, 3), details);
           if (regItem) {
-            registry[key] = regItem;
-            builtinKeys && delete builtinKeys[key];
+            registry.set(key, regItem)
+            builtinKeys && builtinKeys.delete(key)
           }
           continue;
         }
       } else if (key === "unmapAll" || key === "unmapall") {
-        registry = BgUtils_.safeObj_();
-        cmdMap = BgUtils_.safeObj_<CommandsNS.Item>() as Partial<ShortcutInfoMap>;
+        registry = new Map()
+        cmdMap = new Map()
         builtinKeys = null;
         mkReg = BgUtils_.safeObj_<string>(), mk = 0;
         if (errors > 0) {
@@ -200,12 +200,12 @@ var KeyMappings = {
         if (splitLine.length < 3) {
           a.logError_("Lacking command name and options in shortcut:", line);
         } else if (!(key.startsWith(CommandsNS.OtherCNames.userCustomized) && key.length > 14)
-            && (Settings_.CONST_.GlobalCommands_ as Array<keyof ShortcutInfoMap | string>).indexOf(key) < 0) {
+            && (Settings_.CONST_.GlobalCommands_ as Array<StandardShortcutNames | string>).indexOf(key) < 0) {
           a.logError_(shortcutLogPrefix, colorRed, key, "is not a valid name");
-        } else if (key in cmdMap) {
+        } else if (cmdMap.has(key as StandardShortcutNames)) {
           a.logError_(shortcutLogPrefix, colorRed, key, "has been configured");
         } else {
-          key = a.setupUserCustomized_(cmdMap, key as keyof ShortcutInfoMap, a.getOptions_(splitLine, 2));
+          key = a.setupUserCustomized_(cmdMap, key as StandardShortcutNames, a.getOptions_(splitLine, 2))
           if (!key) { continue; }
           a.logError_(shortcutLogPrefix, colorRed, splitLine[1], key);
         }
@@ -213,31 +213,31 @@ var KeyMappings = {
         a.logError_('Unknown mapping command: %c"%s"', colorRed, key, "in", line);
       } else if (splitLine.length !== 2) {
         a.logError_("Unmap needs one mapped key:", line);
-      } else if ((key = splitLine[1]) in registry) {
-        builtinKeys && delete builtinKeys[key];
-        delete registry[key];
+      } else if (registry.has(key = splitLine[1])) {
+        builtinKeys && builtinKeys.delete(key)
+        registry.delete(key)
         continue;
       } else {
         a.logError_('Unmapping: %c"%s"', colorRed, key, "has not been mapped");
       }
       ++errors;
     }
-    for (key of Settings_.CONST_.GlobalCommands_) {
-      if (!key.startsWith("user") && !cmdMap[key as keyof ShortcutInfoMap]) {
-        if (regItem = a.makeCommand_(key)) {
-          cmdMap[key as keyof ShortcutInfoMap] = regItem;
+    for (const shortcut of Settings_.CONST_.GlobalCommands_) {
+      if (!shortcut.startsWith("user") && !cmdMap.has(shortcut)) {
+        if (regItem = a.makeCommand_(shortcut)) {
+          cmdMap.set(shortcut, regItem)
         }
       }
     }
     CommandsData_.keyToCommandRegistry_ = registry;
     CommandsData_.builtinKeys_ = builtinKeys;
-    CommandsData_.shortcutRegistry_ = cmdMap as ShortcutInfoMap;
+    CommandsData_.shortcutRegistry_ = cmdMap
     CommandsData_.mappedKeyRegistry_ = Settings_.omniPayload_.k = mk > 0 ? mkReg : null;
     const mayHaveInsert = Object.keys(registry).join("").includes(":i>") ? kMapKey.directInsert : kMapKey.NONE
     CommandsData_.mappedKeyTypes_ = mk > 0 ? a.collectMapKeyTypes_(mkReg) | mayHaveInsert : mayHaveInsert
     Settings_.temp_.cmdErrors_ = Settings_.temp_.cmdErrors_ > 0 ? ~errors : errors;
   }),
-  setupUserCustomized_ (cmdMap: Partial<ShortcutInfoMap>, key: keyof ShortcutInfoMap
+  setupUserCustomized_ (cmdMap: CommandsDataTy["shortcutRegistry_"], key: StandardShortcutNames
       , options: CommandsNS.Options | null): string {
     let has_cmd: BOOL = 1
       , command: string = options && options.command || (has_cmd = 0, key.startsWith("user") ? "" : key)
@@ -246,7 +246,7 @@ var KeyMappings = {
     if (ret && (command in this.availableCommands_)) {
       has_cmd && delete (options as CommandsNS.RawOptions).command;
       if (regItem = this.makeCommand_(command, options)) {
-        cmdMap[key] = regItem;
+        cmdMap.set(key, regItem)
       }
       ret = 2;
     }
@@ -274,7 +274,7 @@ var KeyMappings = {
     strip = BgUtils_.stripKey_,
     builtinKeys = d.builtinKeys_,
     allKeys = Object.keys(d.keyToCommandRegistry_),
-    customKeys = builtinKeys ? allKeys.filter(i => !(i in builtinKeys)) : allKeys,
+    customKeys = builtinKeys ? allKeys.filter(i => !builtinKeys.has(i)) : allKeys,
     countOfCustomKeys = customKeys.length,
     sortedKeys = builtinKeys ? customKeys.concat(Object.keys(builtinKeys)) : allKeys,
     C = KeyMappings,
@@ -289,7 +289,7 @@ var KeyMappings = {
         let key2 = strip(key);
         if (key2 in ref) {
           if (index >= countOfCustomKeys) {
-            delete d.keyToCommandRegistry_[key];
+            d.keyToCommandRegistry_.delete(key)
             continue;
           }
           detectNewError && C.warnInactive_(ref[key2] as ReadonlyChildKeyFSM, key);
@@ -300,7 +300,7 @@ var KeyMappings = {
       let ref2 = ref as ChildKeyFSM, tmp: ChildKeyFSM | ValidChildKeyAction | undefined, j = 0;
       while ((tmp = ref2[strip(arr[j])]) && j < last) { j++; ref2 = tmp; }
       if (tmp != null && (index >= countOfCustomKeys || tmp === KeyAction.cmd)) {
-        index >= countOfCustomKeys ? delete d.keyToCommandRegistry_[key] :
+        index >= countOfCustomKeys ? d.keyToCommandRegistry_.delete(key) :
         detectNewError && C.warnInactive_(key, arr.slice(0, j + 1).join(""));
         continue;
       }
@@ -435,7 +435,7 @@ availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeO
   "Vomnibar.activateTabSelection": [ kBgCmd.showVomnibar, 1, 1, { mode: "tab", newtab: 1, autoSelect: 1 } ],
   "Vomnibar.activateUrl": [ kBgCmd.showVomnibar, 1, 0, { url: true } ],
   "Vomnibar.activateUrlInNewTab": [ kBgCmd.showVomnibar, 1, 0, { url: true, newtab: 1 } ],
-  addBookmark: [ kBgCmd.addBookmark, 1, /* 20 in main.ts */ 0 ],
+  addBookmark: [ kBgCmd.addBookmark, 1, /* 20 in all_commands.ts */ 0 ],
   autoCopy: [ kFgCmd.autoOpen, 0, 1, { copy: true } ],
   autoOpen: [ kFgCmd.autoOpen, 0, 1, { o: 1 } ],
   blank: [ kBgCmd.blank, 1, 1 ],
@@ -461,7 +461,7 @@ availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeO
         : "chrome://extensions/?id=$id",
       id_mask: "$id", url_mask: ""
     }],
-  discardTab: [ kBgCmd.discardTab, 1, /* 20 in main.ts */ 0 ],
+  discardTab: [ kBgCmd.discardTab, 1, /* 20 in all_commands.ts */ 0 ],
   duplicateTab: [ kBgCmd.duplicateTab, 1, 20 as 0 ],
   editText: [ kFgCmd.editText, 0, 0 ],
   enableCSTemp: [ kBgCmd.toggleCS, 1, 0, { type: "images", incognito: true } ],
@@ -484,7 +484,7 @@ availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeO
   moveTabLeft: [ kBgCmd.moveTab, 1, 0, { count: -1 } ],
   moveTabRight: [ kBgCmd.moveTab, 1, 0 ],
   moveTabToIncognito: [ kBgCmd.moveTabToNewWindow, 1, 1, { incognito: true } ],
-  moveTabToNewWindow: [ kBgCmd.moveTabToNewWindow, 1, /** 30 in main.ts */ 0 ],
+  moveTabToNewWindow: [ kBgCmd.moveTabToNewWindow, 1, /** 30 in tab_commands.ts */ 0 ],
   moveTabToNextWindow: [ kBgCmd.moveTabToNextWindow, 1, 0 ],
   newTab: [ kBgCmd.createTab, 1, 20 as 0 ],
   nextFrame: [ kBgCmd.nextFrame, 1, 0 ],
@@ -501,9 +501,9 @@ availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeO
   quickNext: [ kBgCmd.goToTab, 1, 0 ],
   reload: [ kFgCmd.framesGoBack, 0, 1, { r: 1 } ],
   reloadGivenTab: [ kBgCmd.reloadTab, 1, 0, { single: true } ],
-  reloadTab: [ kBgCmd.reloadTab, 1, /** 20 in main.ts */ 0 ],
+  reloadTab: [ kBgCmd.reloadTab, 1, /** 20 in tab_commands.ts */ 0 ],
   removeRightTab: [ kBgCmd.removeRightTab, 1, 0 ],
-  removeTab: [ kBgCmd.removeTab, 1, /** 20 in main.ts */ 0 ],
+  removeTab: [ kBgCmd.removeTab, 1, /** 20 in tab_commands.ts */ 0 ],
   reopenTab: [ kBgCmd.reopenTab, 1, 1 ],
   reset: [kFgCmd.insertMode, 0, 1, { r: 1 }],
   restoreGivenTab: [ kBgCmd.restoreGivenTab, 1, 0 ],
@@ -536,7 +536,7 @@ availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeO
   toggleCS: [ kBgCmd.toggleCS, 1, 0, { type: "images" } ],
   toggleLinkHintCharacters: [ kBgCmd.toggle, 1, 1, { key: "linkHintCharacters" } ],
   toggleMuteTab: [ kBgCmd.toggleMuteTab, 1, 1 ],
-  togglePinTab: [ kBgCmd.togglePinTab, 1, /** 30 in main.ts */ 0 ],
+  togglePinTab: [ kBgCmd.togglePinTab, 1, /** 30 in all_commands.ts */ 0 ],
   toggleStyle: [ kFgCmd.toggleStyle, 0, 1 ],
   toggleSwitchTemp: [ kBgCmd.toggle, 1, 1 ],
   toggleViewSource: [ kBgCmd.toggleTabUrl, 1, 1, { opener: true } ],
@@ -556,10 +556,10 @@ CommandsData_: CommandsDataTy = CommandsData_ as never || {
   keyFSM_: null as never as KeyFSM,
   mappedKeyRegistry_: null,
   mappedKeyTypes_: kMapKey.NONE,
-  keyToCommandRegistry_: null as never as SafeDict<CommandsNS.Item>,
+  keyToCommandRegistry_: null as never as Map<string, CommandsNS.Item>,
   builtinKeys_: null,
   errors_: null,
-  shortcutRegistry_: null as never as ShortcutInfoMap,
+  shortcutRegistry_: null as never as Map<StandardShortcutNames, CommandsNS.Item>,
   visualGranularities_: ["character", "word", "", "lineboundary", "line", "sentence", "paragraph", "documentboundary"],
   visualKeys_: <VisualModeNS.KeyMap> As_<{ [key: string]: VisualAction | { [key: string]: VisualAction } }>({
     l: VisualAction.char | VisualAction.inc, h: VisualAction.char | VisualAction.dec,
@@ -607,7 +607,7 @@ if (Backend_.onInit_) {
   (Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox)
       && !chrome.commands ||
   (chrome.commands.onCommand as chrome.events.Event<
-        (command: keyof ShortcutInfoMap | kShortcutAliases & string, exArg: FakeArg) => void
+        (command: StandardShortcutNames | kShortcutAliases & string, exArg: FakeArg) => void
       >).addListener(Backend_.ExecuteShortcut_);
 }
 if (KeyMappings) {

@@ -541,7 +541,7 @@ Promise.resolve((BG_.BgUtils_.GC_(1), bgSettings_.restore_) && bgSettings_.resto
     body.style.width = "auto";
     body.appendChild(blockedMsg);
     const extHost = _url.startsWith(location.protocol) && !_url.startsWith(location.origin) ? new URL(_url).host : "",
-    extStat = extHost ? bgSettings_.extAllowList_[extHost] : null;
+    extStat = extHost ? bgSettings_.extAllowList_.get(extHost) : null
     if (extStat != null && (Build.BTypes & ~BrowserType.Chrome ? !extStat || typeof extStat === "string" : !extStat)) {
       const refusedEl = $<EnsuredMountedHTMLElement>("#injection-refused");
       refusedEl.style.display = "";
@@ -549,7 +549,7 @@ Promise.resolve((BG_.BgUtils_.GC_(1), bgSettings_.restore_) && bgSettings_.resto
       $<HTMLAnchorElement>("#doAllowExt").onclick = function () {
         let list = bgSettings_.get_("extAllowList"), old = list.split("\n"), extIdToAdd = extHost;
         if (Build.BTypes & ~BrowserType.Chrome) {
-          let maybeId = bgSettings_.extAllowList_[extHost];
+          let maybeId = bgSettings_.extAllowList_.get(extHost)
           extIdToAdd = typeof maybeId === "string" && maybeId ? maybeId : extIdToAdd;
         }
         if (old.indexOf(extIdToAdd) < 0) {
@@ -615,7 +615,7 @@ Promise.resolve((BG_.BgUtils_.GC_(1), bgSettings_.restore_) && bgSettings_.resto
     }
     isPatternMatched_ (pattern: string): boolean {
       if (!pattern) { return false; }
-      const rule = bgExclusions.testers_[pattern]!;
+      const rule = bgExclusions.testers_.get(pattern)!
       if (rule.t === ExclusionsNS.TesterType.StringPrefix
           ? url.startsWith(rule.v) && (!topUrl || topUrl.startsWith(rule.v))
           : rule.v.test(url) && (!topUrl || rule.v.test(topUrl))) {

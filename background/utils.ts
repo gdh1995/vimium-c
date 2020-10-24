@@ -49,7 +49,7 @@ var BgUtils_ = {
   isRefusingIncognito_ (url: string): boolean {
     url = url.slice(0, 99).toLowerCase();
     // https://cs.chromium.org/chromium/src/url/url_constants.cc?type=cs&q=kAboutBlankWithHashPath&g=0&l=12
-    return url.startsWith("about:") ? url !== "about:blank" && (Settings_.newTabs_[url] !== Urls.NewTabType.browser)
+    return url.startsWith("about:") ? url !== "about:blank" && (Settings_.newTabs_.get(url) !== Urls.NewTabType.browser)
       : !(Build.BTypes & BrowserType.Chrome) ? url.startsWith(BrowserProtocol_)
       : url.startsWith("chrome:") ? !url.startsWith("chrome://downloads")
       : url.startsWith(BrowserProtocol_) && !url.startsWith(Settings_.CONST_.NtpNewTab_)
@@ -82,7 +82,8 @@ var BgUtils_ = {
         (obj as any).__proto__ = null; return obj as T & SafeObject; }
       : <T extends object> (opt: T): T & SafeObject => Object.setPrototypeOf(opt, null)
     ) as (<T extends object> (opt: T) => T & SafeObject),
-  domains_: Object.create<CompletersNS.Domain>(null),
+  domains_: !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+      ? new Map<string, CompletersNS.Domain>() : 0 as never,
   hostRe_: <RegExpOne & RegExpSearchable<4>> /^([^:]+(:[^:]+)?@)?([^:]+|\[[^\]]+])(:\d{2,5})?$/,
   spacesRe_: <RegExpG> /\s+/g,
   A0Re_: <RegExpG> /\xa0/g,
@@ -247,7 +248,7 @@ var BgUtils_ = {
       : oldString;
   } as Urls.Converter,
   checkInDomain_ (host: string, port?: string | null): 0 | 1 | 2 {
-    const domain = port && this.domains_[host + port] || this.domains_[host];
+    const domain = port && this.domains_.get(host + port) || this.domains_.get(host)
     return domain ? domain.https_ ? 2 : 1 : 0;
   },
   checkSpecialSchemes_ (str: string, i: number, spacePos: number): Urls.Type | Urls.TempType.Unspecified {
@@ -554,7 +555,7 @@ var BgUtils_ = {
   searchVariable_: <RegExpG & RegExpSearchable<1>> /\$([+-]?\d+)/g,
   createSearchUrl_: function (query: string[], keyword: string, vimiumUrlWork: Urls.WorkType): Urls.Url {
     const a = BgUtils_;
-    let url: string, pattern: Search.Engine | undefined = Settings_.cache_.searchEngineMap[keyword || query[0]];
+    let url: string, pattern: Search.Engine | undefined = Settings_.cache_.searchEngineMap.get(keyword || query[0])
     if (pattern) {
       if (!keyword) { keyword = query.shift()!; }
       url = a.createSearch_(query, pattern.url_, pattern.blank_);
@@ -714,7 +715,7 @@ var BgUtils_ = {
     }
     return origin !== o2 ? o2 + url.slice(ind) : url;
   },
-  parseSearchEngines_ (str: string, map: Search.EngineMap): Search.Rule[] {
+  parseSearchEngines_ (str: string, map: Map<string, Search.Engine>): Search.Rule[] {
     const a = this;
     let ids: string[], tmpRule: Search.TmpRule | null, tmpKey: Search.Rule["delimiter_"],
     key: string, obj: Search.RawEngine,
@@ -722,7 +723,7 @@ var BgUtils_ = {
     rSpace = <RegExpOne> /\s/, re = a.searchWordRe_,
     func = (function (k: string): boolean {
       return (k = k.trim()) && k !== "__proto__" && k.length < Consts.MinInvalidLengthOfSearchKey
-        ? (map[k] = obj, true) : false;
+        ? (map.set(k, obj), true) : false
     });
     for (let val of str.replace(<RegExpSearchable<0>> /\\\\?\n/g, t => t.length === 3 ? "\\\n" : "").split("\n")) {
       val = val.trim();
@@ -889,4 +890,8 @@ var BgUtils_ = {
     }
   } : 0 as never as null,
   GC_: function (this: void): void { /* empty */ } as (this: void, inc?: number) => void
+}
+
+if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) {
+  BgUtils_.domains_ = new Map()
 }

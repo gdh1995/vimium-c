@@ -60,10 +60,9 @@ var HelpDialog = {
       body = body.replace(<RegExpSearchable<1>> /\{\{(\w+)}}/g, (_, group: string) => consts[group] || _);
       a.html_ = [head, body];
     }
-    const commandToKeys = BgUtils_.safeObj_<[string, CommandsNS.BaseItem][]>(),
+    const commandToKeys = new Map<string, [string, CommandsNS.BaseItem][]>(),
     ref = CommandsData_.keyToCommandRegistry_, hideUnbound = !isOptionsPage, showNames = isOptionsPage;
-    for (const key in ref) {
-      const registry = ref[key]!;
+    ref.forEach((registry, key): void => {
       let command: string = registry.command_;
       if (command.endsWith(".activateMode")) {
         command = command.slice(0, -4);
@@ -76,8 +75,10 @@ var HelpDialog = {
       } else if (command === kCName.newTab) {
         command = kCName.createTab
       }
-      (commandToKeys[command] || (commandToKeys[command] = [])).push([key, registry]);
-    }
+      let keys = commandToKeys.get(command)
+      keys || commandToKeys.set(command, keys = [])
+      keys.push([key, registry])
+    })
     const result = BgUtils_.safer_<Dict<string>>({
       className: Settings_.payload_.d,
       title: trans_(isOptionsPage ? "cmdList" : "help"),
@@ -96,7 +97,7 @@ var HelpDialog = {
         ? { h: html[0], b: div } : (html[0].replace("{{className}}", Settings_.payload_.d) + div) as any as "html"
   }) as BaseHelpDialog["render_"],
   // eslint-disable-next-line object-shorthand
-  groupHtml_: (function (this: {}, group: string, commandToKeys: SafeDict<[string, CommandsNS.BaseItem][]>
+  groupHtml_: (function (this: {}, group: string, commandToKeys: Map<string, [string, CommandsNS.BaseItem][]>
       , hideUnbound: boolean, showNames: boolean): string {
     const a = this as typeof HelpDialog;
     const renderItem = a.commandHtml_
@@ -104,15 +105,15 @@ var HelpDialog = {
       , cachedDescriptions = a.descriptions_;
     let html = "";
     for (const command of a.commandGroups_[group]) {
-      let keys = commandToKeys[command];
+      let keys = commandToKeys.get(command)
       if (hideUnbound && !keys) { continue; }
       const isAdvanced = a.advancedCommands_[command] === 1;
-      let keyLen = -2, bindings = "", description = cachedDescriptions[command];
+      let keyLen = -2, bindings = "", description = cachedDescriptions.get(command)
       if (!description) {
         let key = command.replace(".", "_"), params = trans_(key + "_p");
         description = trans_(key).replace("<", "&lt;").replace(">", "&gt;") // lgtm [js/incomplete-sanitization]
             + (params ? cmdParams.replace("*", params) : " "); // lgtm [js/incomplete-sanitization]
-        cachedDescriptions[command] = description;
+        cachedDescriptions.set(command, description)
         if (!(Build.NDEBUG || description)) {
           console.log("Assert error: lack a description for %c%s", "color:red", command);
         }
@@ -284,7 +285,7 @@ var HelpDialog = {
     , "Vomnibar.activateUrl": 1, "Vomnibar.activateUrlInNewTab": 1
     , closeDownloadBar: Build.BTypes & BrowserType.Chrome ? 0 : 1
   }),
-  descriptions_: BgUtils_.safeObj_<string>()
+  descriptions_: new Map<string, string>()
 };
 if (Build.BTypes & BrowserType.Firefox
     && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)

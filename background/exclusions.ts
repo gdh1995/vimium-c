@@ -1,8 +1,9 @@
 // eslint-disable-next-line no-var
 var Exclusions = {
-  testers_: null as never as SafeDict<ExclusionsNS.Tester>,
+  testers_: null as never as Map<string, ExclusionsNS.Tester>,
   createRule_ (pattern: string, keys: string): ExclusionsNS.Tester {
-    let cur: ExclusionsNS.Tester | undefined = this.testers_[pattern], re: RegExp | null | undefined;
+    let cur: ExclusionsNS.Tester | undefined = this.testers_.get(pattern), re: RegExp | null | undefined
+    let rule: ExclusionsNS.Tester
     keys = keys && keys.replace(<RegExpG> /<(\S+)>/g, "$1");
     if (cur) {
       return {
@@ -18,7 +19,7 @@ var Exclusions = {
         console.log("Failed in creating an RegExp from %o", pattern);
       }
     }
-    return this.testers_[pattern] = re ? {
+    rule = re ? {
       t: ExclusionsNS.TesterType.RegExp,
       v: re as RegExpOne,
       k: keys
@@ -27,7 +28,9 @@ var Exclusions = {
       v: pattern.startsWith(":vimium://")
           ? BgUtils_.formatVimiumUrl_(pattern.slice(10), false, Urls.WorkType.ConvertKnown) : pattern.slice(1),
       k: keys
-    };
+    }
+    this.testers_.set(pattern, rule)
+    return rule
   },
   _listening: false,
   _listeningHash: false,
@@ -40,7 +43,7 @@ var Exclusions = {
       this.updateListeners_();
       return;
     }
-    this.testers_ || (this.testers_ = BgUtils_.safeObj_<ExclusionsNS.Tester>());
+    this.testers_ || (this.testers_ = new Map())
     this.rules_ = this.format_(rules);
     this.testers_ = null as never;
     Backend_.getExcluded_ = this.GetPassKeys_;

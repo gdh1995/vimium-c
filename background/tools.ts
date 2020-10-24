@@ -1,6 +1,5 @@
 type CSTypes = chrome.contentSettings.ValidTypes;
 type Tab = chrome.tabs.Tab;
-type MarkStorage = Pick<Storage, "setItem"> & SafeDict<string>;
 
 const ContentSettings_ = Build.PContentSettings ? {
   makeKey_ (this: void, contentType: CSTypes, url?: string): string {
@@ -240,15 +239,8 @@ const ContentSettings_ = Build.PContentSettings ? {
 } as never,
 Marks_ = { // NOTE: all public members should be static
   cache_: localStorage,
-  cacheI_: null as MarkStorage | null,
-  _storage (): MarkStorage {
-    const map = BgUtils_.safeObj_() as MarkStorage;
-    map.setItem = function (k: string, v: string): void { this[k] = v; };
-    return map;
-  },
-  _set ({ l: local, n: markName, u: url, s: scroll }: MarksNS.NewMark, incognito: boolean, tabId?: number): void {
-    const storage = incognito ? Marks_.cacheI_ || (IncognitoWatcher_.watch_(), Marks_.cacheI_ = Marks_._storage())
-      : Marks_.cache_;
+  cacheI_: null as Map<string, string> | null,
+  set_ ({ l: local, n: markName, u: url, s: scroll }: MarksNS.NewMark, incognito: boolean, tabId?: number): void {
     if (local && scroll[0] === 0 && scroll[1] === 0) {
       if (scroll.length === 2) {
         const i = url.indexOf("#");
@@ -257,9 +249,11 @@ Marks_ = { // NOTE: all public members should be static
         scroll.pop();
       }
     }
-    storage.setItem(Marks_.getLocationKey_(markName, local ? url : "")
-      , JSON.stringify<MarksNS.StoredGlobalMark | MarksNS.ScrollInfo>(local ? scroll
-        : { tabId: tabId!, url, scroll }));
+    const key = Marks_.getLocationKey_(markName, local ? url : "")
+    const val = JSON.stringify<MarksNS.StoredGlobalMark | MarksNS.ScrollInfo>(local ? scroll
+        : { tabId: tabId!, url, scroll })
+    incognito ? (Marks_.cacheI_ || (IncognitoWatcher_.watch_(), Marks_.cacheI_ = new Map())).set(key, val)
+        : Marks_.cache_.setItem(key, val)
   },
   _goto (port: Port, options: CmdOptions[kFgCmd.goToMarks]) {
     port.postMessage<1, kFgCmd.goToMarks>({ N: kBgReq.execute, H: null, c: kFgCmd.goToMarks, n: 1, a: options});
@@ -267,7 +261,8 @@ Marks_ = { // NOTE: all public members should be static
   createMark_ (this: void, request: MarksNS.NewTopMark | MarksNS.NewMark, port: Port): void {
     let tabId = port.s.t;
     if (request.s) {
-      return Marks_._set(request, port.s.a, tabId);
+      Marks_.set_(request, port.s.a, tabId)
+      return
     }
     (port = Backend_.indexPorts_(tabId, 0) || port) && port.postMessage({
       N: kBgReq.createMark,
@@ -276,7 +271,7 @@ Marks_ = { // NOTE: all public members should be static
   },
   gotoMark_ (this: void, request: MarksNS.FgQuery, port: Port): void {
     const { l: local, n: markName } = request, key = Marks_.getLocationKey_(markName, local ? request.u : "");
-    const str = Marks_.cacheI_ && port.s.a && Marks_.cacheI_[key] || Marks_.cache_.getItem(key);
+    const str = port.s.a && Marks_.cacheI_ && Marks_.cacheI_.get(key) || Marks_.cache_.getItem(key)
     if (local) {
       let scroll: MarksNS.FgMark | null = str ? JSON.parse(str) as MarksNS.FgMark : null;
       if (!scroll) {
@@ -322,7 +317,7 @@ Marks_ = { // NOTE: all public members should be static
     const tabId = tab.id, port = Backend_.indexPorts_(tabId, 0);
     port && Marks_._goto(port, { n: markInfo.n, s: markInfo.s, l: 0 });
     if (markInfo.t !== tabId && markInfo.n) {
-      return Marks_._set(markInfo as MarksNS.MarkToGo, TabRecency_.incognito_ === IncognitoType.true, tabId);
+      return Marks_.set_(markInfo as MarksNS.MarkToGo, TabRecency_.incognito_ === IncognitoType.true, tabId);
     }
   },
   clear_ (this: void, url?: string): void {
@@ -336,15 +331,13 @@ Marks_ = { // NOTE: all public members should be static
     }
     for (const key of toRemove) { storage.removeItem(key); }
     let num = toRemove.length;
-    if (Marks_.cacheI_) {
-      const storage2 = Marks_.cacheI_;
-      for (const key in storage2) {
-        if (key.startsWith(key_start)) {
-          num++;
-          delete storage2[key];
-        }
+    const storage2 = Marks_.cacheI_
+    storage2 && storage2.forEach((_v, key): void => {
+      if (key.startsWith(key_start)) {
+        num++
+        storage2.delete(key)
       }
-    }
+    })
     return Backend_.showHUD_(trans_("markRemoved", [
       num, trans_(url ? url === "#" ? "allLocal" : kTip.local + "" : kTip.global + ""),
       trans_(num !== 1 ? "have" : "has")
@@ -549,7 +542,7 @@ MediaWatcher_ = {
   }
 },
 TabRecency_ = {
-  tabs_: BgUtils_.safeObj_<{ /* index */ i: number; /* mono clock */ t: number }>(),
+  tabs_: new Map<number, { /* index */ i: number; /* mono clock */ t: number }>(),
   curTab_: (chrome.tabs.TAB_ID_NONE || GlobalConsts.TabIdNone) as number,
   curWnd_: (!(Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox) || chrome.windows)
       && chrome.windows.WINDOW_ID_NONE || GlobalConsts.WndIdNone,
@@ -563,20 +556,19 @@ BgUtils_.timeout_(120, function (): void {
   const cache = TabRecency_.tabs_, noneWnd = TabRecency_.curWnd_;
   let stamp = 1, time = 0;
   function clean(): void {
-    const ref = cache;
-    for (const i in ref) {
-      if (ref[i]!.i < GlobalConsts.MaxTabRecency - GlobalConsts.MaxTabsKeepingRecency + 1) { delete ref[i]; }
-      else { ref[i]!.i -= GlobalConsts.MaxTabRecency - GlobalConsts.MaxTabsKeepingRecency; }
-    }
+    cache.forEach((val, i) => {
+      if (val.i < GlobalConsts.MaxTabRecency - GlobalConsts.MaxTabsKeepingRecency + 1) { cache.delete(i) }
+      else { val.i -= GlobalConsts.MaxTabRecency - GlobalConsts.MaxTabsKeepingRecency }
+    })
     stamp = GlobalConsts.MaxTabsKeepingRecency + 1;
   }
   function listener(info: { tabId: number }): void {
     const now = performance.now();
     if (now - time > GlobalConsts.MinStayTimeToRecordTabRecency) {
-      cache[TabRecency_.curTab_] = {
+      cache.set(TabRecency_.curTab_, {
         i: ++stamp,
         t: Build.BTypes & BrowserType.ChromeOrFirefox && Settings_.payload_.o === kOS.unixLike ? Date.now() : now
-      };
+      })
       if (stamp >= GlobalConsts.MaxTabRecency) { clean(); }
     }
     TabRecency_.curTab_ = info.tabId; time = now;
@@ -613,9 +605,7 @@ BgUtils_.timeout_(120, function (): void {
       : Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
       ? IncognitoType.ensuredFalse : IncognitoType.mayFalse;
   });
-  TabRecency_.rCompare_ = function (a, b): number {
-    return cache[b.id]!.i - cache[a.id]!.i;
-  };
+  TabRecency_.rCompare_ = (a, b): number => cache.get(b.id)!.i - cache.get(a.id)!.i
 
   const settings = Settings_;
   settings.updateHooks_.autoDarkMode = settings.updateHooks_.autoReduceMotion = (value: boolean

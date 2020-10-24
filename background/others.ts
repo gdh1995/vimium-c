@@ -8,7 +8,7 @@ declare const enum OmniboxData {
 BgUtils_.timeout_(150, function (): void {
   const browserAction = chrome.browserAction;
   if (!browserAction) { return; }
-  let imageData: IconNS.StatusMap<IconNS.IconBuffer> | null, tabIds: IconNS.StatusMap<number[]> & SafeObject | null;
+  let imageData: IconNS.StatusMap<IconNS.IconBuffer> | null, tabIds: Map<Frames.ValidStatus, number[] | null> | null
   let mayShowIcons = true;
   const func = Settings_.updateHooks_.showActionIcon,
   onerror = (err: any): void => {
@@ -27,8 +27,8 @@ BgUtils_.timeout_(150, function (): void {
       cache[small] = new ImageData(uint8Array.subarray(0, firstSize), small, small);
       cache[large] = new ImageData(uint8Array.subarray(firstSize), large, large);
       imageData![type] = cache;
-      const arr = tabIds![type]!;
-      delete tabIds![type];
+      const arr = tabIds!.get(type)!
+      tabIds!.delete!(type)
       for (let w = 0, h = arr.length; w < h; w++) {
         Backend_.setIcon_(arr[w], type, true);
       }
@@ -71,7 +71,7 @@ BgUtils_.timeout_(150, function (): void {
       imageData = 1 as unknown as IconNS.StatusMap<IconNS.IconBuffer>;
     } else {
       imageData = [null, null, null];
-      tabIds = BgUtils_.safeObj_();
+      tabIds = new Map()
     }
     // only do partly updates: ignore "rare" cases like `sender.s` is enabled but the real icon isn't
     const ref = Backend_.indexPorts_();
@@ -102,11 +102,11 @@ BgUtils_.timeout_(150, function (): void {
         imageData: data
       };
       isLater ? f(args, BgUtils_.runtimeError_) : f(args);
-    } else if (tabIds![type]) {
-      tabIds![type]!.push(tabId);
+    } else if (tabIds!.has(type)) {
+      tabIds!.get(type)!.push(tabId)
     } else {
       setTimeout(loadBinaryImagesAndSetIcon, 0, type);
-      tabIds![type] = [tabId];
+      tabIds!.set(type, [tabId])
     }
   };
   Settings_.updateHooks_.showActionIcon = function (value): void {
@@ -136,14 +136,13 @@ BgUtils_.timeout_(600, function (): void {
     type_?: "history" | "tab";
     sessionId_?: number | string;
   }
-  type SubInfoMap = SafeDict<SubInfo>;
   const onDel = (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox)
       ? omnibox.onDeleteSuggestion : null,
   mayDelete = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeleting
       || (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox)
           && !!onDel && typeof onDel.addListener === "function";
   let last: string | null = null, firstResultUrl = "", lastSuggest: SuggestCallback | null = null
-    , timer = 0, subInfoMap: SubInfoMap | null = null
+    , timer = 0, subInfoMap: Map<string, SubInfo> | null = null
     , maxChars = OmniboxData.DefaultMaxChars
     , suggestions: chrome.omnibox.SuggestResult[] | null = null, cleanTimer = 0, inputTime: number
     , defaultSuggestionType = FirstSugType.Default, matchType: CompletersNS.MatchType = CompletersNS.MatchType.Default
@@ -202,10 +201,10 @@ BgUtils_.timeout_(600, function (): void {
         && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeleting
             || (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox) && mayDelete
             || response[0].s != null)) {
-      subInfoMap = BgUtils_.safeObj_<SubInfo>();
+      subInfoMap = new Map()
     }
     suggestions = [];
-    const urlDict = BgUtils_.safeObj_<number>();
+    const urlDict: TextSet = new Set!()
     for (let i = 0, di = autoSelect ? 0 : 1, len = response.length; i < len; i++) {
       let sugItem = response[i], { title, u: url, e: type } = sugItem, tail = "", hasSessionId = sugItem.s != null
         , canBeDeleted = (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeleting
@@ -213,10 +212,10 @@ BgUtils_.timeout_(600, function (): void {
             && !(autoSelect && i === 0) && (
           type === "tab" ? sugItem.s !== TabRecency_.curTab_ : type === "history" && !hasSessionId
         );
-      if (url in urlDict) {
+      if (urlDict.has(url)) {
         url = `:${i + di} ` + url;
       } else {
-        urlDict[url] = 1;
+        urlDict.add(url)
       }
       if (canBeDeleted) {
         info.type_ = <SubInfo["type_"]> type;
@@ -233,7 +232,7 @@ BgUtils_.timeout_(600, function (): void {
       canBeDeleted && (msg.deletable = true);
       hasSessionId && (info.sessionId_ = sugItem.s!);
       if (canBeDeleted || hasSessionId) {
-        subInfoMap![url] = info;
+        subInfoMap!.set(url, info)
         info = {};
       }
       suggestions.push(msg);
@@ -343,7 +342,7 @@ BgUtils_.timeout_(600, function (): void {
       });
     }
     if (firstResultUrl && text === last) { text = firstResultUrl; }
-    const sessionId = subInfoMap && subInfoMap[text] && subInfoMap[text]!.sessionId_;
+    const sessionId = subInfoMap && subInfoMap.get(text) && subInfoMap.get(text)!.sessionId_
     clean();
     return open(text, disposition, sessionId);
   }
@@ -382,7 +381,7 @@ BgUtils_.timeout_(600, function (): void {
   onDel!.addListener(function (text): void {
     // eslint-disable-next-line radix
     const ind = parseInt(text.slice(text.lastIndexOf("~", text.length - 2) + 1)) - 1;
-    let url = suggestions && suggestions[ind].content, info = url && subInfoMap && subInfoMap[url] || null,
+    let url = suggestions && suggestions[ind].content, info = url && subInfoMap && subInfoMap.get(url) || null,
     type = info && info.type_;
     if (!type) {
       console.log("Error: want to delete a suggestion but no related info found (may spend too long before deleting).");

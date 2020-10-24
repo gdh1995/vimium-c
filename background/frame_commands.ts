@@ -436,17 +436,17 @@ export const setupSingletonCmdTimer = (newTimer: number): void => {
 }
 
 export const onConfirmResponse = (request: FgReq[kFgReq.cmd], port: Port): void => {
-  const cmd = request.c as keyof ShortcutInfoMap, id = request.i
+  const cmd = request.c as StandardShortcutNames, id = request.i
   if (id >= -1 && _gCmdTimer !== id) { return } // an old / aborted / test message
   setupSingletonCmdTimer(0)
   if (request.r) {
     onConfirm(request.r)
     return
   }
-  executeCommand(CommandsData_.shortcutRegistry_[cmd], request.n, kKeyCode.None, port, 0)
+  executeCommand(CommandsData_.shortcutRegistry_.get(cmd)!, request.n, kKeyCode.None, port, 0)
 }
 
-export const executeShortcut = (shortcutName: keyof ShortcutInfoMap, ports: Frames.Frames | null | undefined): void => {
+export const executeShortcut = (shortcutName: StandardShortcutNames, ports: Frames.Frames | null | undefined): void => {
   setupSingletonCmdTimer(0)
   if (ports) {
     let port = ports[0]
@@ -458,7 +458,7 @@ export const executeShortcut = (shortcutName: keyof ShortcutInfoMap, ports: Fram
     port.s.f |= Frames.Flags.userActed
     return
   }
-  let registry = CommandsData_.shortcutRegistry_[shortcutName], cmdName = registry.command_,
+  let registry = CommandsData_.shortcutRegistry_.get(shortcutName)!, cmdName = registry.command_,
   cmdFallback: keyof BgCmdOptions = 0
   if (cmdName === "goBack" || cmdName === "goForward") {
     if (Build.BTypes & BrowserType.Chrome

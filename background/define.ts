@@ -1,5 +1,10 @@
 declare var define: any
 
+interface IterableMap<K extends string | number, V> extends Map<K, V> {
+  // [Symbol.iterator] (): Iterator<[K, V]>
+  keys (): IterableIterator<K>
+}
+
 if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
   (window as Writable<Window>).OnOther = Build.BTypes & BrowserType.Chrome
       && (typeof browser === "undefined" || (browser && (browser as typeof chrome).runtime) == null
@@ -85,6 +90,38 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$Stri
     StringCls.includes = function (this: string, s: string, pos?: number): boolean {
       // eslint-disable-next-line @typescript-eslint/prefer-includes
       return this.indexOf(s, pos) >= 0
+    }
+    if (Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+        && (!(window as any as typeof globalThis).Map || !(Map.prototype as IterableMap<string, any>).keys)) {
+      type SimulatedMap = IterableMap<string, any> & Set<string> & { map_: SafeDict<1>, isSet_: BOOL }
+      const proto = {
+        add (k: string): any { this.map_[k] = 1 },
+        clear (): void { this.map_ = BgUtils_.safeObj_<1>() },
+        delete (k: string): any { delete this.map_[k] },
+        forEach (cb: any): any {
+          const isSet = this.isSet_, map = this.map_
+          for (let key in map) {
+            isSet ? cb(key) : cb(map[key], key)
+          }
+        },
+        get (k: string): any { return this.map_[k] },
+        has (k: string): boolean { return this.map_[k] === 1 },
+        keys (): any { return this.map_ as any },
+        set (k: string, v: any): any { this.map_[k] = v }
+      } as SimulatedMap
+      const setProto = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && Build.BTypes & BrowserType.Chrome
+          && !Object.setPrototypeOf ? (obj: SimulatedMap): void => { (obj as any).__proto__ = proto }
+          : (opt: SimulatedMap): void => { (Object.setPrototypeOf as any)(opt, proto) };
+      (window as any as typeof globalThis).Set = function (this: SimulatedMap): any {
+        setProto(this)
+        this.map_ = BgUtils_.safeObj_<1>()
+        this.isSet_ = 1
+      } as any;
+      (window as any as typeof globalThis).Map = function (this: SimulatedMap): any {
+        setProto(this)
+        this.map_ = BgUtils_.safeObj_<1>()
+        this.isSet_ = 0
+      } as any
     }
   })()
 }

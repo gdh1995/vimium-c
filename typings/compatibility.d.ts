@@ -59,6 +59,8 @@ declare const enum BrowserVer {
    */
   MinCSS$All$MayMistakenlyResetFixedPosition = 37,
   MinEnsuredHTMLDialogElement = 37, // not on Edge; under a flag since FF53; still exists on C31 if EXPERIMENTAL
+  // since C37, if EXPERIMENTAL `Symbol.iterator` is valid and `for-of` can be used on Set and Map
+  MinMaybe$Symbol$$Iterator$existsAndWorksFor$Set$and$Map = 37,
   // for-of is only for generators before C38, so an array can not be iterated on C37 even if EXPERIMENTAL
   MinEnsuredES6$ForOf$Map$SetAnd$Symbol = 38, // even if LEGACY; still exists on C31 if EXPERIMENTAL
   // .repeat exists since C32, but only works since C38, even if EXPERIMENTAL

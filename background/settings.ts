@@ -41,8 +41,8 @@ var Settings_ = {
     k: null
   }),
   i18nPayload_: null as string[] | null,
-  newTabs_: BgUtils_.safeObj_() as ReadonlySafeDict<Urls.NewTabType>,
-  extAllowList_: null as never as SafeDict<boolean | string>,
+  newTabs_: new Map() as ReadonlyMap<string, Urls.NewTabType>,
+  extAllowList_: null as never as Map<string, boolean | string>,
   storage_: localStorage,
   get_<K extends keyof SettingsWithDefaults> (key: K, forCache?: boolean): SettingsWithDefaults[K] {
     if (key in this.cache_) {
@@ -161,15 +161,15 @@ var Settings_ = {
     __proto__: null as never,
     extAllowList (val): void {
       const old = Settings_.extAllowList_;
-      const map = Settings_.extAllowList_ = BgUtils_.safeObj_<boolean>();
+      const map = old || (Settings_.extAllowList_ = new Map())
       if (old && Build.BTypes & BrowserType.Chrome
           && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)) {
-        for (const key in old) { if (old[key] === false) { map[key] = false; } }
+        map.forEach((val, key): void => { val !== false && map.delete(key) })
       }
       if (!val) { return; }
       for (let arr = val.split("\n"), i = arr.length, wordCharRe = /^[\da-z_]/i as RegExpI; 0 <= --i; ) {
         if ((val = arr[i].trim()) && wordCharRe.test(val)) {
-          map[val] = true;
+          map.set(val, true)
         }
       }
     },
@@ -182,27 +182,25 @@ var Settings_ = {
       Settings_.set_("newTabUrl_f", url)
     },
     searchEngines (this: {}): void {
-      return Settings_.set_("searchEngineMap", BgUtils_.safeObj_<Search.Engine>());
-    },
-    searchEngineMap (this: {}, value: FullSettings["searchEngineMap"]): void {
       const a = Settings_;
+      const map = a.cache_.searchEngineMap
+      map.clear()
       "searchKeywords" in a.cache_ && a.set_("searchKeywords", null);
       // Note: this requires `searchUrl` must be a valid URL
       if (!(Build.NDEBUG || BgUtils_.protocolRe_.test(a.get_("searchUrl")))) {
         console.log('Assert error: BgUtils_.protocolRe_.test(Settings_.get_("searchUrl"))');
       }
-      const rules = BgUtils_.parseSearchEngines_("~:" + a.get_("searchUrl") + "\n" + a.get_("searchEngines"), value);
+      const rules = BgUtils_.parseSearchEngines_("~:" + a.get_("searchUrl") + "\n" + a.get_("searchEngines"), map)
       return a.set_("searchEngineRules", rules);
     },
     searchUrl (str): void {
       const cache = Settings_.cache_ as WritableSettingsCache;
+      const map = cache.searchEngineMap
       if (str) {
-        BgUtils_.parseSearchEngines_("~:" + str, cache.searchEngineMap);
+        BgUtils_.parseSearchEngines_("~:" + str, map)
       } else {
-        const initialMap: { "~": Search.Engine } = {
-          "~": { name_: "~", blank_: "", url_: Settings_.get_("searchUrl").split(" ", 1)[0] }
-        };
-        cache.searchEngineMap = initialMap as SafeObject & typeof initialMap;
+        map.clear()
+        map.set("~", { name_: "~", blank_: "", url_: Settings_.get_("searchUrl").split(" ", 1)[0] })
         cache.searchEngineRules = [];
         Build.MayOverrideNewTab && Settings_.get_("focusNewTabContent", true);
         if (Settings_.get_("newTabUrl_f", true)) {
@@ -434,7 +432,6 @@ gh|github: https://github.com/search?q=$s \\
 ge|gitee: https://search.gitee.com/?type=repository&q=$s \\
   blank=https://gitee.com/ Gitee 仓库
 js\\:|Js: javascript:\\ $S; JavaScript`,
-    searchEngineMap: {} as SafeDict<any>,
     showActionIcon: true,
     showAdvancedCommands: true,
     showAdvancedOptions: true,
@@ -576,14 +573,14 @@ chrome.runtime.getPlatformInfo(function (info): void {
   CommonNewTab = Build.BTypes & BrowserType.Edge
       && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge)
     ? "about:home" : "about:newtab", ChromeNewTab = "chrome://newtab",
-  ref3 = settings.newTabs_ as Writable<typeof settings.newTabs_>;
+  ref3 = settings.newTabs_ as Map<string, Urls.NewTabType>
   function func(path: string): string {
     return (path.charCodeAt(0) === kCharCode.slash ? origin : path.startsWith(prefix) ? "" : prefix) + path;
   }
   if (Build.MayOverrideNewTab) {
     const overrides = ref.chrome_url_overrides, hasNewTab = overrides && overrides.newtab;
     settings.CONST_.OverrideNewTab_ = !!hasNewTab;
-    ref3[func(hasNewTab || "pages/newtab.html")] = Urls.NewTabType.vimium;
+    ref3.set(func(hasNewTab || "pages/newtab.html"), Urls.NewTabType.vimium)
   }
   if (!Build.NoDialogUI) {
     const options_ui = ref.options_ui, open_in_tab = options_ui && options_ui.open_in_tab;
@@ -599,16 +596,18 @@ chrome.runtime.getPlatformInfo(function (info): void {
       : (Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome))
       ? IsEdg_ ? EdgNewTab : ChromeNewTab : CommonNewTab;
   // note: on firefox, "about:newtab/" is invalid, but it's OKay if still marking the URL a NewTab URL.
-  ref3[CommonNewTab] = ref3[CommonNewTab + "/"] = Urls.NewTabType.browser;
-  (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) ||
-  (ref3[ChromeNewTab] = ref3[ChromeNewTab + "/"] = Urls.NewTabType.browser);
+  ref3.set(CommonNewTab, Urls.NewTabType.browser); ref3.set(CommonNewTab + "/", Urls.NewTabType.browser)
+  if (Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)) {
+    ref3.set(ChromeNewTab, Urls.NewTabType.browser); ref3.set(ChromeNewTab + "/", Urls.NewTabType.browser)
+  }
   if (Build.BTypes & BrowserType.Chrome && IsEdg_) {
-    ref3[EdgNewTab] = ref3[EdgNewTab + "/"] = Urls.NewTabType.browser;
+    ref3.set(EdgNewTab, Urls.NewTabType.browser); ref3.set(EdgNewTab + "/", Urls.NewTabType.browser)
   }
   if (Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)) {
     const chromeNewTabPage = "chrome://new-tab-page"
-    ref3[chromeNewTabPage] = ref3[chromeNewTabPage + "/"] = Urls.NewTabType.browser
+    ref3.set(chromeNewTabPage, Urls.NewTabType.browser); ref3.set(chromeNewTabPage + "/", Urls.NewTabType.browser)
   }
+  (settings.cache_ as WritableSettingsCache).searchEngineMap = new Map()
   obj.GlobalCommands_ = (<Array<StandardShortcutNames | kShortcutAliases & string>> Object.keys(ref.commands || {})
       ).map(i => i === <string> <unknown> kShortcutAliases.nextTab1 ? kCName.nextTab : i);
   obj.VerCode_ = ref.version;

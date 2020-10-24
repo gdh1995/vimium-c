@@ -80,13 +80,13 @@ export const tabsCreate = (args: chrome.tabs.CreateProperties, callback?: ((tab:
         ? settings.cache_.focusNewTabContent
         : !(Build.BTypes & BrowserType.Firefox)
           || (Build.BTypes & ~BrowserType.Firefox && OnOther !== BrowserType.Firefox)
-          || !settings.newTabs_[url]) {
+          || !settings.newTabs_.has(url)) {
       args.url = url
     }
     if (!args.url) {
       delete args.url
     }
-  } else if (!(type = settings.newTabs_[url])) { /* empty */ }
+  } else if (!(type = settings.newTabs_.get(url))) { /* empty */ }
   else if (type === Urls.NewTabType.browser) {
     // ignore Build.MayOverrideNewTab and other things,
     // so that if another extension manages the NTP, this line still works
@@ -152,7 +152,7 @@ export const makeWindow = (options: chrome.windows.CreateData, state?: chrome.wi
     options.focused = true
   }
   const url = options.url
-  if (typeof url === "string" && (!url || settings.newTabs_[url] === Urls.NewTabType.browser)) {
+  if (typeof url === "string" && (!url || settings.newTabs_.get(url) === Urls.NewTabType.browser)) {
     delete options.url
   }
   browserWindows.create(options, state || !focused ? (wnd): void => {

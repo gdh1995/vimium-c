@@ -621,7 +621,7 @@ function OnBgUnload(): void {
       }
     }
     let needCommands = false
-    if (Option_.all_.exclusionRules.list_.length || Option_.all_.keyMappings.checker_) {
+    if (ref.exclusionRules.list_.length || ref.keyMappings.checker_) {
       needCommands = true
     }
     needCommands && !BG_.KeyMappings && BG_.BgUtils_.require_("KeyMappings");
@@ -630,16 +630,15 @@ function OnBgUnload(): void {
 }
 BG_.addEventListener("unload", OnBgUnload);
 
-const cmdRegistry = BG_.CommandsData_.keyToCommandRegistry_["?"]
+const cmdRegistry = BG_.CommandsData_.keyToCommandRegistry_.get("?")
 if (!cmdRegistry || cmdRegistry.alias_ !== kBgCmd.showHelp) { (function (): void {
   const arr = BG_.CommandsData_.keyToCommandRegistry_
   let matched = "";
-  for (let key in arr) {
-    const item = arr[key]!
+  arr.forEach((item, key): void => {
     if (item.alias_ === kBgCmd.showHelp) {
       matched = matched && matched.length < key.length ? matched : key;
     }
-  }
+  })
   if (matched) {
     nextTick_(el => el.textContent = matched, $("#questionShortcut"));
   }

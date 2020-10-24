@@ -20,7 +20,6 @@ declare namespace Search {
     readonly name_: string;
     readonly delimiter_: RegExpOne | RegExpI | string;
   }
-  interface EngineMap extends SafeDict<Engine> {}
 }
 
 declare namespace Urls {
@@ -318,17 +317,15 @@ declare namespace SettingsNS {
   }
   interface CachedFiles { helpDialog: string }
   interface ReadableFiles extends CachedFiles { baseCSS: string; words: string }
-  interface OtherSettingsWithDefaults {
-    searchEngineMap: SafeDict<Search.Engine>;
-  }
   interface BaseNonPersistentSettings {
+    searchEngineMap: Map<string, Search.Engine>
     searchEngineRules: Search.Rule[];
     searchKeywords: string | null;
   }
-  interface NonPersistentSettings extends BaseNonPersistentSettings, OtherSettingsWithDefaults, CachedFiles {}
+  interface NonPersistentSettings extends BaseNonPersistentSettings, CachedFiles {}
   interface PersistentSettings extends FrontendSettings, BackendSettings {}
 
-  interface SettingsWithDefaults extends PersistentSettings, OtherSettingsWithDefaults {}
+  interface SettingsWithDefaults extends PersistentSettings {}
   interface FullSettings extends PersistentSettings, NonPersistentSettings {}
 
   interface SimpleUpdateHook<K extends keyof FullSettings> {
@@ -345,7 +342,7 @@ declare namespace SettingsNS {
   type WoThisUpdateHooks = "showActionIcon";
   type SpecialUpdateHooks = "newTabUrl_f";
 
-  type DeclaredUpdateHooks = "newTabUrl" | "searchEngines" | "searchEngineMap" | "searchUrl"
+  type DeclaredUpdateHooks = "newTabUrl" | "searchEngines" | "searchUrl"
         | "vomnibarPage" | "extAllowList" | "grabBackFocus" | "mapModifier" | "vomnibarOptions";
   type EnsuredUpdateHooks = DeclaredUpdateHooks | WoThisUpdateHooks | SpecialUpdateHooks;
   type UpdateHook<key extends keyof FullSettings> =
@@ -739,9 +736,10 @@ declare namespace BackendHandlersNS {
   }
 }
 
+interface TextSet extends Set<string> {}
 interface CommandsDataTy {
   errors_: null | string[][];
-  builtinKeys_: SafeDict<1> | null;
+  builtinKeys_: TextSet | null
   keyFSM_: KeyFSM;
   mappedKeyRegistry_: SafeDict<string> | null;
   mappedKeyTypes_: kMapKey;
@@ -756,7 +754,7 @@ interface BaseHelpDialog {
 interface Window {
   readonly MathParser?: object;
   readonly KeyMappings?: object;
-  readonly CommandsData_: CommandsDataTy & { keyToCommandRegistry_: SafeDict<CommandsNS.BaseItem> }
+  readonly CommandsData_: CommandsDataTy & { keyToCommandRegistry_: Map<string, CommandsNS.BaseItem> }
   readonly Completion_: CompletersNS.GlobalCompletersConstructor;
   readonly Exclusions?: object;
   readonly HelpDialog?: BaseHelpDialog;

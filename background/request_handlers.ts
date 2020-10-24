@@ -392,12 +392,12 @@ set_reqH_([
       count = prefix !== "-" ? parseInt(prefix, 10) || 1 : -1
     }
     const ref = CommandsData_.keyToCommandRegistry_
-    if (!(key in ref)) {
+    if (!ref.has(key)) {
       arr = key.match(BgUtils_.keyRe_)!
       key = arr[arr.length - 1]
       count = 1
     }
-    const registryEntry = ref[key]!
+    const registryEntry = ref.get(key)!
     BgUtils_.resetRe_()
     executeCommand(registryEntry, count, request.l, port, 0)
   },

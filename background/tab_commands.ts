@@ -128,7 +128,7 @@ export const joinTabs = (): void => {
         const map: {[key: number]: number} = BgUtils_.safeObj_()
         if (sortOpt.includes("time") && !sortOpt.includes("creat") || sortOpt.includes("recen")) {
           for (let tab of allTabs) {
-            const id = tab.id, recency = TabRecency_.tabs_![id]
+            const id = tab.id, recency = TabRecency_.tabs_.get(id)
             map[id] = id === curTabId ? GlobalConsts.MaxTabRecency + 1 : recency != null ? recency.i
                 : Build.BTypes & BrowserType.Firefox
                   && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)
@@ -265,7 +265,7 @@ export const moveTabToNewWindow = (): void => {
         browserTabs.query({ windowId: wnds[wnds.length - 1].id, active: true }, ([tab2]): void => {
           const tabId2 = options.tabId!
           let url2: string | undefined = options.url
-          if (typeof url2 === "string" && (!url2 || settings.newTabs_[url2] === Urls.NewTabType.browser)) {
+          if (typeof url2 === "string" && (!url2 || settings.newTabs_.get(url2) === Urls.NewTabType.browser)) {
             url2 = undefined
           }
           browserTabs.create({url: url2, index: tab2.index + 1, windowId: tab2.windowId})
@@ -441,8 +441,8 @@ export const removeTab = (phase?: 1 | 2, tabs?: readonly Tab[]): void => {
   goToIndex = count >= total ? total : goto === "left" ? start > 0 ? start - 1 : end
       : goto === "right" ? end < total ? end : start - 1 : goto === "previous" ? -2 : total
   if (goToIndex === -2) {
-    let nextTab: Tab | null | undefined = end < total && !(tabs[end].id in TabRecency_.tabs_) ? tabs[end]
-        : tabs.filter((j, ind) => (ind < start || ind >= end) && j.id in TabRecency_.tabs_)
+    let nextTab: Tab | null | undefined = end < total && !TabRecency_.tabs_.has(tabs[end].id) ? tabs[end]
+        : tabs.filter((j, ind) => (ind < start || ind >= end) && TabRecency_.tabs_.has(j.id))
             .sort(TabRecency_.rCompare_)[0]
     goToIndex = nextTab ? nextTab.index : total
   }

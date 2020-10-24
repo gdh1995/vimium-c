@@ -207,21 +207,20 @@ Backend_ = {
     ExecuteShortcut_ (this: void, cmd: string): void {
       const tabId = TabRecency_.curTab_, ports = framesForTab[tabId];
       if (cmd === <string> <unknown> kShortcutAliases.nextTab1) { cmd = kCName.nextTab; }
-      type NullableShortcutMap = ShortcutInfoMap & { [key: string]: CommandsNS.Item | null | undefined };
-      const map = CommandsData_.shortcutRegistry_ as NullableShortcutMap;
-      if (!map || !map[cmd]) {
+      const map = CommandsData_.shortcutRegistry_ as Map<string, CommandsNS.Item | null>
+      if (!map || !map.get(cmd)) {
         // usually, only userCustomized* and those from 3rd-party extensions will enter this branch
-        if (map && map[cmd] !== null) {
-          map[cmd] = null;
+        if (map && map.get(cmd) !== null) {
+          map.set(cmd, null)
           console.log("Shortcut %o has not been configured.", cmd);
         }
         return;
       }
       if (ports == null || (ports[0].s.f & Frames.Flags.userActed) || tabId < 0) {
-        return executeShortcut(cmd as keyof typeof CommandsData_.shortcutRegistry_, ports);
+        return executeShortcut(cmd as StandardShortcutNames, ports)
       }
       tabsGet(tabId, function (tab): void {
-        executeShortcut(cmd as keyof typeof CommandsData_.shortcutRegistry_,
+        executeShortcut(cmd as StandardShortcutNames,
           tab && tab.status === "complete" ? framesForTab[tab.id] : null);
         return runtimeError_()
       });

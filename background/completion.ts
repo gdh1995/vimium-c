@@ -487,8 +487,8 @@ bookmarkEngine = {
       url2 = info && (info as chrome.bookmarks.BookmarkChangeInfo).url;
       type WBookmark = Writable<Bookmark>;
       if (Decoder.enabled_ && (title == null ? url !== cur.t || !info : url2 != null && url !== url2)) {
-        url in Decoder.dict_ && HistoryCache.sorted_ && HistoryCache.binarySearch_(url) < 0 &&
-        delete Decoder.dict_[url]
+        Decoder.dict_.has(url) && HistoryCache.sorted_ && HistoryCache.binarySearch_(url) < 0 &&
+        Decoder.dict_.delete(url)
       }
       if (title != null) {
         (cur as WBookmark).path_ = cur.path_.slice(0, -cur.title_.length) + (title || cur.id_);
@@ -513,8 +513,8 @@ bookmarkEngine = {
     if (!bookmarkEngine._expiredUrls && Decoder.enabled_) {
       const dict = Decoder.dict_, bs = HistoryCache.binarySearch_;
       for (const { u: url } of (HistoryCache.sorted_ ? arr : [])) {
-        if ((url in dict) && bs(url) < 0) {
-          delete dict[url];
+        if (dict.has(url) && bs(url) < 0) {
+          dict.delete(url)
         }
       }
       bookmarkEngine._expiredUrls = true;
@@ -566,7 +566,7 @@ historyEngine = {
     } else if (chrome.sessions) {
       chrome.sessions.getRecentlyClosed(historyEngine.loadSessions_.bind(historyEngine, query));
     } else {
-      historyEngine.filterFill_([], query, {}, 0, 0);
+      historyEngine.filterFill_([], query, new Set!(), 0, 0)
     }
   },
   quickSearch_ (history: ReadonlyArray<Readonly<HistoryItem>>): Suggestion[] {
@@ -634,19 +634,18 @@ historyEngine = {
   loadTabs_ (this: void, query: CompletersNS.QueryStatus, tabs: readonly WritableTabEx[]): void {
     MatchCacheManager.cacheTabs_(tabs);
     if (query.o) { return; }
-    const arr: SafeDict<number> = BgUtils_.safeObj_();
+    const arr: TextSet = new Set!()
     let count = 0;
     for (const tab of tabs) {
       if (tab.incognito && inNormal) { continue; }
       let url = Build.BTypes & BrowserType.Chrome ? tab.url || tab.pendingUrl : tab.url;
-      if (url in arr) { continue; }
-      arr[url] = 1; count++;
+      if (!arr.has(url)) { arr.add(url), count++ }
     }
     return historyEngine.filterFill_([], query, arr, offset, count);
   },
   loadSessions_ (query: CompletersNS.QueryStatus, sessions: chrome.sessions.Session[]): void {
     if (query.o) { return; }
-    const historyArr: BrowserUrlItem[] = [], arr: Dict<number> = {};
+    const historyArr: BrowserUrlItem[] = [], arr: TextSet = new Set!();
     let i = -offset;
     return sessions.some(function (item): boolean {
       const entry = item.tab as chrome.sessions.Session["tab"] & BrowserUrlItem
@@ -657,8 +656,8 @@ historyEngine = {
       }
       if (!showThoseInBlocklist && !BlockListFilter.TestNotMatched_(url, entry.title)) { return false; }
       key = url + "\n" + entry.title;
-      if (key in arr) { return false; }
-      arr[key] = 1; arr[url] = 1;
+      if (arr.has(key)) { return false }
+      arr.add(key), arr.add(url)
       ++i > 0 && historyArr.push({
         u: entry.url, title_: entry.title,
         visit_: !(Build.BTypes & ~BrowserType.Firefox) ? item.lastModified
@@ -668,21 +667,21 @@ historyEngine = {
       return historyArr.length >= maxResults;
     }) ? historyEngine.filterFinish_(historyArr) : historyEngine.filterFill_(historyArr, query, arr, -i, 0);
   },
-  filterFill_ (historyArr: BrowserUrlItem[], query: CompletersNS.QueryStatus, arr: Dict<number>,
+  filterFill_ (historyArr: BrowserUrlItem[], query: CompletersNS.QueryStatus, urlSet: TextSet,
       cut: number, neededMore: number): void {
     chrome.history.search({
       text: "",
       maxResults: offset + maxResults * (showThoseInBlocklist ? 1 : 2) + neededMore
     }, function (rawArr2: chrome.history.HistoryItem[]): void {
       if (query.o) { return; }
-      rawArr2 = rawArr2.filter(function (this: Dict<number>, i): boolean {
+      rawArr2 = rawArr2.filter((i): boolean => {
         let url = i.url;
         if (url.length > GlobalConsts.MaxHistoryURLLength) {
           i.url = url = HistoryCache.trimURLAndTitleWhenTooLong_(url, i);
         }
-        return !(url in this)
+        return !urlSet.has(url)
             && (showThoseInBlocklist || BlockListFilter.TestNotMatched_(i.url, i.title || "") !== kVisibility.hidden)
-      }, arr);
+      })
       if (cut < 0) {
         rawArr2.length = Math.min(rawArr2.length, maxResults - historyArr.length)
       } else if (cut > 0) {
@@ -736,12 +735,37 @@ domainEngine = {
     word = queryTerms[0].replace("/", "").toLowerCase();
     let sug: Suggestion | undefined, result = "", matchedDomain: Domain | undefined, result_score = -1.1;
     RankingUtils.maxScoreP_ = RankingEnums.maximumScore;
-    for (const domain in ref) {
-      if (!domain.includes(word)) { continue; }
-      matchedDomain = ref[domain]!;
-      if (showThoseInBlocklist || matchedDomain.count_ > 0) {
-        const score = ComputeRelevancy(domain, "", matchedDomain.time_);
-        if (score > result_score) { result_score = score; result = domain; }
+    if (Build.MinCVer >= BrowserVer.MinTestedES6Environment || !(Build.BTypes & BrowserType.Chrome)) {
+      for (const domain of (ref as IterableMap<string, Domain>).keys() as unknown as string[]) {
+        if (!domain.includes(word)) { continue }
+        matchedDomain = ref.get(domain)!
+        if (showThoseInBlocklist || matchedDomain.count_ > 0) {
+          const score = ComputeRelevancy(domain, "", matchedDomain.time_)
+          if (score > result_score) { result_score = score; result = domain }
+        }
+      }
+    } else if (Build.MinCVer >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+        || CurCVer_ > BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol - 1
+        || (Map.prototype as IterableMap<string, any>).keys) {
+      const iterator = (ref as IterableMap<string, Domain>).keys()
+      let iter_i: IteratorResult<string> | undefined
+      while (iter_i = iterator.next(), !iter_i.done) {
+        const domain = iter_i.value
+        if (!domain.includes(word)) { continue; }
+        matchedDomain = ref.get(domain)!
+        if (showThoseInBlocklist || matchedDomain.count_ > 0) {
+          const score = ComputeRelevancy(domain, "", matchedDomain.time_)
+          if (score > result_score) { result_score = score; result = domain }
+        }
+      }
+    } else {
+      for (let domain in (ref as IterableMap<string, Domain>).keys() as any as SafeDict<Domain>) {
+        if (!domain.includes(word)) { continue; }
+        matchedDomain = ref.get(domain)!
+        if (showThoseInBlocklist || matchedDomain.count_ > 0) {
+          const score = ComputeRelevancy(domain, "", matchedDomain.time_)
+          if (score > result_score) { result_score = score; result = domain }
+        }
       }
     }
     let isMainPart = result.length === word.length;
@@ -751,7 +775,11 @@ domainEngine = {
         if (r2.includes(word)) {
           let d2: Domain | undefined;
           r2 = "www." + r2;
-          if ((d2 = ref[r2]) && (showThoseInBlocklist || d2.count_ > 0)) { result = r2; matchedDomain = d2; }
+          if (d2 = ref.get(r2)) {
+            if (showThoseInBlocklist || d2.count_ > 0) { result = r2; matchedDomain = d2 }
+          } else if ((d2 = ref.get(r2 = "m." + r2)) && (showThoseInBlocklist || d2.count_ > 0)) {
+            if (showThoseInBlocklist || d2.count_ > 0) { result = r2; matchedDomain = d2 }
+          }
         }
       }
       let mainLen = result.startsWith(word) ? 0 : result.startsWith("www." + word) ? 4 : -1;
@@ -810,13 +838,13 @@ domainEngine = {
     for (const { u: url, time_: time, visible_: visible } of history) {
       const item = parse(url);
       if (!item) { continue; }
-      const {domain_: domain, schema_: schema} = item, slot = d[domain];
+      const {domain_: domain, schema_: schema} = item, slot = d.get(domain)
       if (slot) {
         if (slot.time_ < time) { slot.time_ = time; }
         slot.count_ += visible;
         if (schema >= Urls.SchemaId.HTTP) { slot.https_ = schema === Urls.SchemaId.HTTPS ? 1 : 0; }
       } else {
-        d[domain] = {time_: time, count_: visible, https_: schema === Urls.SchemaId.HTTPS ? 1 : 0};
+        d.set(domain, {time_: time, count_: visible, https_: schema === Urls.SchemaId.HTTPS ? 1 : 0})
       }
     }
   },
@@ -850,11 +878,11 @@ tabEngine = {
     let suggestions: CompletersNS.TabSuggestion[] = [];
     if (treeMode && !(otherFlags & CompletersNS.QueryFlags.TabTreeFromStart)
         && tabs0.length > offset && tabs0.length > maxTotal) {
-      const treeMap: SafeDict<Tab> = BgUtils_.safeObj_<Tab>();
-      for (const tab of tabs0) { treeMap[tab.id] = tab; }
+      const treeMap = new Map<number, Tab>()
+      for (const tab of tabs0) { treeMap.set(tab.id, tab) }
       {
         Build.BTypes & BrowserType.Firefox && BgUtils_.overrideTabsIndexes_ff_!(tabs0)
-        let curTab = treeMap[curTabId], pId = curTab ? curTab.openerTabId : 0, pTab = pId ? treeMap[pId] : null,
+        let curTab = treeMap.get(curTabId), pId = curTab ? curTab.openerTabId : 0, pTab = pId ? treeMap.get(pId) : null,
         start = pTab ? pTab.index : curTab ? curTab.index - 1 : 0, i = pTab ? 0 : (maxTotal / 2) | 0;
         for (; 1 < --i && start > 0 && tabs0[start - 1].openerTabId === pId; start--) { /* empty */ }
         tabs0 = start > 0 ? tabs0.slice(start).concat(tabs0.slice(0, start)) : tabs0;
@@ -904,7 +932,7 @@ tabEngine = {
       const tab = tabs[ind++]
       const tabId = tab.id, level = treeMode ? treeLevels[tabId]! : 1,
       url = Build.BTypes & BrowserType.Chrome ? tab.url || tab.pendingUrl : tab.url,
-      visit = TabRecency_.tabs_[tabId],
+      visit = TabRecency_.tabs_.get(tabId),
       suggestion = new Suggestion("tab", url, tab.text, tab.title,
           c, treeMode ? ind : tabId) as CompletersNS.TabSuggestion;
       let id = curWndId && tab.windowId !== curWndId ? `${wndIds.indexOf(tab.windowId) + 1}:` : "", label = ""
@@ -962,7 +990,7 @@ tabEngine = {
   },
   SortNumbers_ (this: void, a: number, b: number): number { return a - b; },
   computeRecency_ (_0: CompletersNS.CoreSuggestion, tabId: number): number {
-    const n = TabRecency_.tabs_[tabId]
+    const n = TabRecency_.tabs_.get(tabId)
     return n ? n.i :
         (otherFlags & CompletersNS.QueryFlags.PreferNewOpened ? GlobalConsts.MaxTabRecency + tabId : -tabId);
   },
@@ -992,7 +1020,7 @@ searchEngine = {
       showThoseInBlocklist = !omniBlockList || showThoseInBlocklist || BlockListFilter.IsExpectingHidden_([keyword]);
       return Completers.next_([sug], SugType.search);
     } else {
-      pattern = Settings_.cache_.searchEngineMap[keyword];
+      pattern = Settings_.cache_.searchEngineMap.get(keyword)
     }
     if (failIfNull === true) {
       if (!pattern) { return true; }
@@ -1204,12 +1232,17 @@ searchEngine = {
     return sug;
   },
   BuildSearchKeywords_ (): void {
-    let arr = Object.keys(Settings_.cache_.searchEngineMap), max = 0, j: number;
-    for (const i of arr) {
-      j = i.length;
-      max < j && (max = j);
+    let arr = Object.keys(Settings_.cache_.searchEngineMap).sort(), max = 0, last = "", dedup: string[] = []
+    for (let ind = arr.length; 0 <= --ind; ) {
+      const key = arr[ind]
+      if (!last.startsWith(key)) {
+        let j = key.length
+        max = j > max ? j : max
+        last = key
+        dedup.push(key)
+      }
     }
-    Settings_.set_("searchKeywords", "\n" + arr.join("\n"));
+    Settings_.set_("searchKeywords", "\n" + dedup.join("\n"))
     searchEngine.searchKeywordMaxLength_ = max;
     searchEngine.timer_ = 0;
   }
@@ -1589,14 +1622,14 @@ knownCs = {
       if (d) {
         let domain = domainEngine.ParseDomainAndScheme_(url);
         if (!domain) { /* empty */ }
-        else if (slot = d[domain.domain_]) {
+        else if (slot = d.get(domain.domain_)) {
           slot.time_ = time;
           if (i < 0) { slot.count_ += j.visible_; }
           if (domain.schema_ >= Urls.SchemaId.HTTP) { slot.https_ = domain.schema_ === Urls.SchemaId.HTTPS ? 1 : 0; }
         } else {
-          d[domain.domain_] = {
+          d.set(domain.domain_, {
             time_: time, count_: j.visible_, https_: domain.schema_ === Urls.SchemaId.HTTPS ? 1 : 0
-          };
+          })
         }
       }
       if (i >= 0) {
@@ -1627,11 +1660,11 @@ knownCs = {
       if (toRemove.allHistory) {
         HistoryCache.history_ = [];
         if (HistoryCache.domains_) {
-          HistoryCache.domains_ = BgUtils_.domains_ = BgUtils_.safeObj_<Domain>();
+          HistoryCache.domains_ = BgUtils_.domains_ = new Map()
         }
-        const d2 = BgUtils_.safeObj_<string>();
+        const d2 = new Map<string, string>()
         for (const i of bookmarkEngine.bookmarks_) {
-          const t = d[i.u]; t && (d2[i.u] = t);
+          d.delete(i.u)
         }
         Decoder.dict_ = d2;
         return;
@@ -1643,12 +1676,12 @@ knownCs = {
         if (i >= 0) {
           if (domains && h![i].visible_) {
             const item = domainEngine.ParseDomainAndScheme_(j);
-            if (item && (entry = domains[item.domain_]) && (--entry.count_) <= 0) {
-              delete domains[item.domain_];
+            if (item && (entry = domains.get(item.domain_)) && (--entry.count_) <= 0) {
+              domains.delete(item.domain_)
             }
           }
           h!.splice(i, 1);
-          delete d[j];
+          d.delete(j)
         }
       }
     },
@@ -1759,7 +1792,7 @@ knownCs = {
           if (d) {
             const domain = domainEngine.ParseDomainAndScheme_(k.u);
             if (domain) {
-              const slot = d[domain.domain_];
+              const slot = d.get(domain.domain_)
               if (slot) {
                 slot.count_ += newVisible || -1;
               }
@@ -1860,7 +1893,7 @@ knownCs = {
       try {
         return _decodeFunc(a);
       } catch {}
-      return Decoder.dict_[a] || (o && Decoder._jobs.push(o), a);
+      return Decoder.dict_.get(a) || (o && Decoder._jobs.push(o), a)
     },
     decodeList_ (a: DecodedItem[]): void {
       const { dict_: m, _jobs: w } = Decoder;
@@ -1873,12 +1906,12 @@ knownCs = {
           }
           break;
         } catch {
-          j!.t = m[s!] || (w.push(j!), s!);
+          j!.t = m.get(s!) || (w.push(j!), s!)
         }
       }
       Decoder.continueToWork_();
     },
-    dict_: BgUtils_.safeObj_<string>(),
+    dict_: new Map<string, string>(),
     _jobs: [] as ItemToDecode[],
     _ind: -1,
     continueToWork_ (): void {
@@ -1891,7 +1924,7 @@ knownCs = {
       for (; Decoder._ind < Decoder._jobs.length; Decoder._ind++) {
         const url = Decoder._jobs[Decoder._ind], isStr = typeof url === "string",
         str = isStr ? url as string : (url as DecodedItem).u;
-        if (text = Decoder.dict_[str]) {
+        if (text = Decoder.dict_.get(str)) {
           isStr || ((url as DecodedItem).t = text);
           continue;
         }
@@ -1913,9 +1946,9 @@ knownCs = {
       if (Decoder._ind < 0) { return; } // disabled by the outsides
       const text = this.responseText, url = Decoder._jobs[Decoder._ind++];
       if (typeof url !== "string") {
-        Decoder.dict_[url.u] = url.t = text;
+        Decoder.dict_.set(url.u, url.t = text)
       } else {
-        Decoder.dict_[url] = text;
+        Decoder.dict_.set(url, text)
       }
       if (Decoder._ind < Decoder._jobs.length) {
         Decoder.Work_(this);
@@ -1948,7 +1981,7 @@ knownCs = {
           return Decoder.decodeList_(bookmarkEngine.bookmarks_);
         }, 100);
       } else {
-        Decoder.dict_ = BgUtils_.safeObj_<string>();
+        Decoder.dict_.clear()
         Decoder._jobs.length = 0;
       }
       if (Decoder.enabled_ === enabled) { return; }

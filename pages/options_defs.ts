@@ -395,7 +395,11 @@ const createNewOption = ((): <T extends keyof AllowedOptions> (_element: HTMLEle
     instance.fetch_()
     return Option_.all_[instance.field_] = instance as any
   }
-  ($$("[data-model]") as HTMLElement[]).forEach(createNewOption)
+  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes) {
+    [].forEach.call($$("[data-model]") as HTMLElement[], createNewOption)
+  } else {
+    ($$("[data-model]") as HTMLElement[]).forEach(createNewOption)
+  }
   return createNewOption
 })()
 
@@ -528,7 +532,7 @@ Option_.all_.newTabUrl.checker_ = {
       }
       Option_.all_.newTabUrl.showError_(err)
     }
-    return !value.startsWith("http") && (url in bgSettings_.newTabs_
+    return !value.startsWith("http") && (bgSettings_.newTabs_.has(url)
       || (<RegExpI> /^(?!http|ftp)[a-z\-]+:\/?\/?newtab\b\/?/i).test(value)
       ) ? bgSettings_.defaults_.newTabUrl : value
   }

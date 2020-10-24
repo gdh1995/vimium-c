@@ -448,7 +448,7 @@ declare namespace VomnibarNS {
 }
 
 interface ElementSet {
-  add (value: Element): object | void | number;
+  add (value: Element): unknown;
   has (value: Element): boolean
 }
 

@@ -207,25 +207,27 @@ export const findCPort = (port: Port | null | undefined): Port | null => {
   return frames ? frames[0] : null as never as Port
 }
 
-export const isExtIdAllowed = (extId: string | null | undefined, url: string | undefined): boolean => {
+export const isExtIdAllowed = (extId: string | null | undefined, url: string | undefined): boolean | string => {
   if (extId == null) { extId = "unknown_sender" }
-  const list = settings.extAllowList_, stat = list[extId] as boolean | undefined
+  const list = settings.extAllowList_, stat = list.get(extId)
   if (stat != null) { return stat }
   if (url === settings.cache_.vomnibarPage_f) { return true }
   if (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)
       && stat == null && url) {
     url = new URL(url).host
-    if (list[url] === true) {
-      return list[extId] = true
+    if (list.get(url) === true) {
+      list.set(extId, true)
+      return true
     }
     if (url !== extId) {
-      list[url] = extId
+      list.set(url, extId)
     }
   }
   const backgroundLightYellow = "background-color:#fffbe5"
   console.log("%cReceive message from an extension/sender not in the allow list: %c%s",
     backgroundLightYellow, backgroundLightYellow + ";color:red", extId)
-  return list[extId] = false
+  list.set(extId, false)
+  return false
 }
 
 export const indexFrame = (tabId: number, frameId: number): Port | null => {

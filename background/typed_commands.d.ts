@@ -141,9 +141,7 @@ declare namespace CommandsNS {
       }) | (BaseItem & { readonly alias_: keyof CmdOptions; readonly background_: 0 })
 }
 
-type ShortcutInfoMap = { [k in StandardShortcutNames]: CommandsNS.Item }
-
 interface CommandsDataTy {
-  keyToCommandRegistry_: SafeDict<CommandsNS.Item>
-  shortcutRegistry_: ShortcutInfoMap
+  keyToCommandRegistry_: Map<string, CommandsNS.Item>
+  shortcutRegistry_: Map<StandardShortcutNames, CommandsNS.Item>
 }

@@ -118,9 +118,9 @@ keyMappingChecker_ = null as never;
 Option_.all_.searchUrl.checker_ = {
   status_: 0,
   check_ (str): string {
-    const map = Object.create<Search.RawEngine>(null);
+    const map = new (BG_ as unknown as typeof globalThis).Map<string, Search.RawEngine>()
     BG_.BgUtils_.parseSearchEngines_("k:" + str, map);
-    const obj = map.k;
+    const obj = map.get("k")
     if (obj == null) {
       return bgSettings_.get_("searchUrl", true);
     }

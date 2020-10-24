@@ -508,7 +508,7 @@ const BackgroundCommands: {
   /* kBgCmd.visitPreviousTab: */ (tabs: Tab[]): void => {
     if (tabs.length < 2) { return }
     tabs.splice((Build.BTypes & BrowserType.Firefox ? selectFrom(tabs, 1) : selectFrom(tabs)).index, 1)
-    tabs = tabs.filter(i => i.id in TabRecency_.tabs_).sort(TabRecency_.rCompare_)
+    tabs = tabs.filter(i => TabRecency_.tabs_.has(i.id)).sort(TabRecency_.rCompare_)
     const tab = tabs[cRepeat > 0 ? Math.min(cRepeat, tabs.length) - 1
       : Math.max(0, tabs.length + cRepeat)]
     tab && selectTab(tab.id)

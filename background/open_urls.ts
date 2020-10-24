@@ -142,7 +142,7 @@ const openUrlInNewTab = (url: string, reuse: Exclude<ReuseType, ReuseType.reuse 
   if (window) {
     if (reuse < ReuseType.lastWndFg + 1 && TabRecency_.lastWnd_ >= 0) {
       browserTabs.create({ windowId: TabRecency_.lastWnd_, active: reuse > ReuseType.lastWndBg,
-        url: !url || settings.newTabs_[url] === Urls.NewTabType.browser ? void 0 : url
+        url: !url || settings.newTabs_.get(url) === Urls.NewTabType.browser ? void 0 : url
       }, (): void => {
         if (runtimeError_()) {
           openUrlInNewTab(url, ReuseType.newWindow, options, tabs)
@@ -259,7 +259,7 @@ const openUrls = (tabs: [Tab] | [] | undefined): void => {
     }
     if (!(Build.BTypes & ~BrowserType.Firefox)
         || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox) {
-      urls = urls.filter(i => settings.newTabs_[i] !== Urls.NewTabType.browser && !(<RegExpI> /file:\/\//i).test(i))
+      urls = urls.filter(i => settings.newTabs_.get(i) !== Urls.NewTabType.browser && !(<RegExpI> /file:\/\//i).test(i))
       get_cOptions<C.openUrl, true>().urls = urls
     }
     get_cOptions<C.openUrl, true>().formatted_ = 1
