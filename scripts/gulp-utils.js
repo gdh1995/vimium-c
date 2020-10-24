@@ -9,12 +9,13 @@ var gulpSome = require('gulp-some');
 var logger = require("fancy-log");
 var newer = require('gulp-newer');
 var osPath = require('path');
+var gulpfile = require("../gulpfile")
 
 var DEST, JSDEST;
 
 function print() { logger.apply(null, arguments) }
 
-exports.set_dest = function (newDest, newJSDest) { [DEST, JSDEST] = arguments }
+exports.set_dest = function (_newDest, _newJSDest) { [DEST, JSDEST] = arguments }
 
 exports.formatPath = function (path, base) {
   if (typeof path === "string") {
@@ -485,11 +486,9 @@ exports.checkJSAndMinifyAll = function (taskOrder, maps, key, exArgs, cb
   });
 }
 
-var willListEmittedFiles, excludedPathRe, loadTerserConfig, beforeTerser, minifyDistPasses, gNoComments, postTerser;
-var maxDistSequences
+var willListEmittedFiles, excludedPathRe, minifyDistPasses, gNoComments, maxDistSequences
 exports.set_minifier_env = function () {
-  [willListEmittedFiles, excludedPathRe, loadTerserConfig, beforeTerser, minifyDistPasses, gNoComments, postTerser
-      , maxDistSequences ] = arguments
+  [willListEmittedFiles, excludedPathRe, minifyDistPasses, gNoComments, maxDistSequences ] = arguments
 }
 
 exports.minifyJSFiles = function (path, output, exArgs) {
@@ -545,12 +544,12 @@ exports.minifyJSFiles = function (path, output, exArgs) {
     stream = stream.pipe(require('gulp-concat')(output));
   }
   var nameCache = exArgs.nameCache;
-  var stdConfig = loadTerserConfig(!!nameCache)
+  var stdConfig = gulpfile.loadTerserConfig(!!nameCache)
   if (nameCache) {
     stdConfig.nameCache = nameCache;
   }
   if (!isJson) {
-    stream = stream.pipe(exports.gulpMap(beforeTerser))
+    stream = stream.pipe(exports.gulpMap(gulpfile.beforeTerser))
   }
   const config = stdConfig;
   if (isJson) {
@@ -564,7 +563,7 @@ exports.minifyJSFiles = function (path, output, exArgs) {
   }
   if (!isJson) {
     stream = stream.pipe(exports.gulpMap(function (file) {
-      postTerser(file, allPaths)
+      gulpfile.postTerser(file, allPaths)
     }));
   }
   if (willListEmittedFiles && !is_file) {

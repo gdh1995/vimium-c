@@ -13,7 +13,7 @@ var {
   loadTerserConfig: _loadTerserConfig,
 } = require("./scripts/dependencies");
 var gulpUtils = require("./scripts/gulp-utils")
-var { print, ToBuffer, ToString, cleanByPath, minifyJSFiles,
+var { print, ToBuffer, ToString, cleanByPath, minifyJSFiles, set_minifier_env,
       safeJSONParse, gulpMap, getGulpTerser } = gulpUtils
 
 class BrowserType {}
@@ -48,8 +48,7 @@ var buildOptionCache = Object.create(null);
 var outputES6 = false;
 gulpPrint = gulpPrint.default || gulpPrint;
 gulpUtils.set_dest(DEST, JSDEST)
-gulpUtils.set_minifier_env(willListEmittedFiles, /[\\\/](env|define)\./, loadTerserConfig, beforeTerser
-    , 1, gNoComments, postTerser, false)
+set_minifier_env(willListEmittedFiles, /[\\\/](env|define)\./, 1, gNoComments, false)
 
 createBuildConfigCache();
 var has_polyfill = !!(getBuildItem("BTypes") & BrowserType.Chrome)
@@ -666,7 +665,7 @@ function beforeCompile(file) {
 
 var toRemovedGlobal = null;
 
-function beforeTerser(file) {
+const beforeTerser = exports.beforeTerser = (file) => {
   var allPathStr = file.history.join("|").replace(/\\/g, "/");
   var contents = null, changed = false, oldLen = 0;
   function get() { contents == null && (contents = ToString(file.contents), changed = true, oldLen = contents.length); }
@@ -738,7 +737,7 @@ function beforeTerser(file) {
   }
 }
 
-function postTerser(file, allPaths) {
+const postTerser = exports.postTerser = (file, allPaths) => {
   var allPathStr = (allPaths || file.history).join("|").replace(/\\/g, "/");
   var contents = null, changed = false, oldLen = 0;
   function get() { contents == null && (contents = ToString(file.contents), changed = true, oldLen = contents.length); }
@@ -935,7 +934,7 @@ function patchExtendClick(source) {
   return inCode;
 }
 
-function loadTerserConfig(reload) {
+const loadTerserConfig = exports.loadTerserConfig = (reload) => {
   var a = _loadTerserConfig(locally ? "scripts/uglifyjs.local.json" : "scripts/uglifyjs.dist.json", reload);
   {
     if (FORCED_NO_MINIFY || !getNonNullBuildItem("NDEBUG")) {
@@ -946,12 +945,11 @@ function loadTerserConfig(reload) {
     } else {
       maxDistSequences = maxDistSequences || a.compress.sequences
       minifyDistPasses = minifyDistPasses || a.compress.passes
-      gulpUtils.set_minifier_env(willListEmittedFiles, /[\\\/](env|define)\./, loadTerserConfig, beforeTerser
-          , minifyDistPasses, gNoComments, postTerser, maxDistSequences)
+      set_minifier_env(willListEmittedFiles, /[\\\/](env|define)\./, minifyDistPasses, gNoComments, maxDistSequences)
     }
     a.ecma = outputES6 ? 6 : 5
   }
-  if (gNoComments || !locally && getNonNullBuildItem("NDEBUG")) {
+  if (gNoComments || !locally && getNonNullBuildItem("NDEBUG") && !FORCED_NO_MINIFY) {
     a.format.comments = /^!/
   }
   return a;

@@ -49,7 +49,7 @@ var projectRoot = fsPath.dirname(fsPath.dirname(__filename)).replace(/\\/g, "/")
  * @param { { bom?: "\uFFFE" | "\uFEFF" | "" } | null } [info] - object to store extra info
  * @returns {string} file text content
  */
-function readFile(fileName, info) {
+exports.readFile = (fileName, info) => {
   info == null && (info = {});
   var buffer = fs.readFileSync(fileName);
   var len = buffer.length;
@@ -95,7 +95,7 @@ var _readJSON;
  * @type {ReadJson}
  * @param {boolean} [throwError] - throw on error or just log it
  */
-function readJSON(fileName, throwError) {
+exports.readJSON = (fileName, throwError) => {
   if (!_readJSON) {
     _makeJSONReader();
   }
@@ -131,7 +131,7 @@ function _makeJSONReader() {
     /** @type string | undefined */
     var text = cached[fileName];
     if (text == null) {
-      text = readFile(fileName);
+      text = exports.readFile(fileName);
       text = text.replace(stringOrComment, onReplace);
       cached[fileName] = text;
     }
@@ -157,10 +157,10 @@ var _terserConfig = null, _configWarningLogged = false;
  * @param {boolean} [reload] - force to reload or return the cache if possible
  * @returns {TerserOptions} parsed configuration object
  */
-function loadTerserConfig(path, reload) {
+exports.loadTerserConfig = (path, reload) => {
   var a = _terserConfig;
   if (a == null || reload) {
-    a = readJSON(path);
+    a = exports.readJSON(path);
     if (!reload) {
       _terserConfig = a;
     }
@@ -187,7 +187,7 @@ function loadTerserConfig(path, reload) {
     if (comments && typeof comments === "string") {
       f.comments = ToRegExp(comments);
     }
-    patchTerser();
+    exports.patchTerser();
     var ver = "", terser = null;
     try {
       ver = require("terser/package.json").version;
@@ -236,7 +236,7 @@ function loadTerserConfig(path, reload) {
  * @param {boolean} [virtual] - whether to skip real actions
  * @returns {boolean | null} whether it's needed to touch or not
  */
-function touchFileIfNeeded(targetPath, fileToCompareTime, virtual) {
+exports.touchFileIfNeeded = (targetPath, fileToCompareTime, virtual) => {
   if (fileToCompareTime === targetPath) { fileToCompareTime = null; }
   if (!fs.existsSync(targetPath) || fileToCompareTime && !fs.existsSync(fileToCompareTime)) {
     return null;
@@ -268,8 +268,8 @@ function touchFileIfNeeded(targetPath, fileToCompareTime, virtual) {
  * @param {string} dest - target file
  * @returns {boolean} whether src is older than dest or not
  */
-function compareFileTime(src, dest) {
-  return touchFileIfNeeded(dest, src, true) === false;
+exports.compareFileTime = (src, dest) => {
+  return exports.touchFileIfNeeded(dest, src, true) === false;
 }
 
 /**
@@ -279,7 +279,7 @@ function compareFileTime(src, dest) {
  * @param {Partial<T>} a - source object
  * @return {T} b
  */
-function extendIf(b, a) {
+exports.extendIf = (b, a) => {
   Object.setPrototypeOf(a, null);
   for (var i in a) {
     (i in b) || (b[i] = a[i]);
@@ -292,16 +292,16 @@ function extendIf(b, a) {
  * @argument {number} [maxLen]
  * @return {string | null}
  */
-function getGitCommit(maxLen) {
+exports.getGitCommit = (maxLen) => {
   try {
-    var branch = readFile(".git/HEAD");
+    var branch = exports.readFile(".git/HEAD");
     branch = branch && branch.trim();
     /** @type {string | undefined} */
     var commit;
     if (!branch.startsWith("ref:") && branch.length >= 32) {
       commit = branch;
     } else if (branch.startsWith("ref:") && branch.length > 4) {
-      commit = readFile(".git/" + branch.slice(4).trim());
+      commit = exports.readFile(".git/" + branch.slice(4).trim());
     }
     return commit ? commit.trim().slice(0, maxLen > 0 ? maxLen : maxLen < 0 ? commit.length : 7) : null;
   } catch (e) {}
@@ -315,7 +315,7 @@ function getGitCommit(maxLen) {
  * @param {{ (...args: any[]): any; error(message: string): any; }} [logger]
  * @returns { [string, string, string] | string }
  */
-function patchExtendClick(source, locally, logger) {
+exports.patchExtendClick = (source, locally, logger) => {
   logger && logger('Patch the extend_click module');
   source = source.replace(/\b(addEventListener|toString) ?: ?function ?\w*/g, "$1");
   var match = /\/: \?function \\w\+\/g, ?(""|'')/.exec(source);
@@ -361,7 +361,7 @@ function patchExtendClick(source, locally, logger) {
  * @argument {{ (...args: any[]): any; error(message: string): any; }} logger
  * @returns {boolean} whether successful or not
  */
-function logFileSize(filePath, logger) {
+exports.logFileSize = (filePath, logger) => {
   try {
     var fd = fs.openSync(filePath, "r"),
     size = fs.fstatSync(fd).size;
@@ -379,7 +379,7 @@ function logFileSize(filePath, logger) {
  * @param {string} data
  * @return {string}
  */
-function addMetaData(path, data) {
+exports.addMetaData = (path, data) => {
   const isAMDModule = data.startsWith("define") || data.startsWith("(factory")
       || data.startsWith("(function(factory)") || data.startsWith("(function (factory)");
   if (!isAMDModule) { return data; }
@@ -392,7 +392,7 @@ function addMetaData(path, data) {
  * @param { string } code 
  * @returns { string }
  */
-function inlineAllSetters (code) {
+exports.inlineAllSetters = (code) => {
   const allNames = code.match(/\bset_\w+\b/g);
   for (let i = 0; i < allNames.length; i++) {
     const name = allNames[i].slice(4);
@@ -424,7 +424,7 @@ function inlineAllSetters (code) {
  * @argument {boolean} [noGenerator]
  * @argument {boolean} [wrapGeneratorToken]
  */
-function patchTSNamespace (ts, logger, noGenerator, wrapGeneratorToken) {
+exports.patchTSNamespace = (ts, logger, noGenerator, wrapGeneratorToken) => {
   var key, bak = "_bak_"
 
   key = "transformGenerators"
@@ -465,14 +465,14 @@ function patchTSNamespace (ts, logger, noGenerator, wrapGeneratorToken) {
 }
 
 let __terserPatched = false
-function patchTerser() {
+exports.patchTerser = () => {
   if (__terserPatched) { return }
   __terserPatched = true
   let path = "node_modules/terser/package.json"
   let i = 0
   for (; i < 4 && !fs.existsSync(path); i++) { path = "../" + path; }
   if (i > 4) { return } // no terser installed
-  const terserPackage = readJSON(path)
+  const terserPackage = exports.readJSON(path)
   if (!terserPackage.exports) { return }
   let mod = false
   for (const i of ["./lib/parse", "./lib/ast"]) {
@@ -487,19 +487,3 @@ function patchTerser() {
     require("fancy-log")("Patch terser/package.json: succeed");
   }
 }
-
-module.exports = {
-  readFile: readFile,
-  readJSON: readJSON,
-  loadTerserConfig: loadTerserConfig,
-  touchFileIfNeeded: touchFileIfNeeded,
-  compareFileTime: compareFileTime,
-  extendIf: extendIf,
-  getGitCommit: getGitCommit,
-  patchExtendClick: patchExtendClick,
-  addMetaData: addMetaData,
-  logFileSize: logFileSize,
-  inlineAllSetters: inlineAllSetters,
-  patchTSNamespace: patchTSNamespace,
-  patchTerser: patchTerser,
-};
