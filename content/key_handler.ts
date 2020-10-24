@@ -13,7 +13,7 @@ import {
 } from "./insert"
 import { keyIsDown as scroll_keyIsDown, onScrolls, scrollTick } from "./scroller"
 
-let passKeys: SafeEnum | null | "" = null
+let passKeys: Set<string> | null = null
 let isPassKeysReversed = false
 let mapKeyTypes = kMapKey.NONE
 let mappedKeys: SafeDict<string> | null = null
@@ -39,7 +39,7 @@ export {
   onKeyup2, isPassKeysReversed,
 }
 export function set_isCmdTriggered (_newTriggerred: kKeyCode): void { isCmdTriggered = _newTriggerred }
-export function set_passKeys (_newPassKeys: SafeEnum | null | ""): void { passKeys = _newPassKeys }
+export function set_passKeys (_newPassKeys: typeof passKeys): void { passKeys = _newPassKeys }
 export function installTempCurrentKeyStatus (): void { currentKeys = "", nextKeys = keyFSM }
 export function set_onKeyup2 (_newOnKeyUp: typeof onKeyup2): void { onKeyup2 = _newOnKeyUp }
 export function set_isPassKeysReversed (_newPKReversed: boolean): void { isPassKeysReversed = _newPKReversed }
@@ -75,7 +75,7 @@ const checkKey = (event: HandlerNS.Event, key: string, keyWithoutModeID: string
     ): HandlerResult.Nothing | HandlerResult.Prevent | HandlerResult.PlainEsc | HandlerResult.AdvancedEsc => {
   // when checkKey, Vimium C must be enabled, so passKeys won't be `""`
   const key0 = passKeys && key ? mappedKeys ? getMappedKey(event, kModeId.NO_MAP_KEY) : keyWithoutModeID : "";
-  if (!key || key0 && !currentKeys && (key0 in <SafeEnum> passKeys) !== isPassKeysReversed) {
+  if (!key || key0 && !currentKeys && passKeys!.has(key0) !== isPassKeysReversed) {
     return key ? esc!(HandlerResult.Nothing) : HandlerResult.Nothing;
   }
   let j: ReadonlyChildKeyFSM | ValidKeyAction | ReturnType<typeof isEscape_> | undefined = isEscape_(keyWithoutModeID)
@@ -86,7 +86,7 @@ const checkKey = (event: HandlerNS.Event, key: string, keyWithoutModeID: string
   }
   if (!nextKeys || (j = nextKeys[key]) == null) {
     j = keyFSM[key];
-    if (j == null || nextKeys && key0 && (key0 in <SafeEnum> passKeys) !== isPassKeysReversed) {
+    if (j == null || nextKeys && key0 && passKeys!.has(key0) !== isPassKeysReversed) {
       return esc!(HandlerResult.Nothing);
     }
     if (j !== KeyAction.cmd) { currentKeys = ""; }

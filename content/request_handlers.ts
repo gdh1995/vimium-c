@@ -1,5 +1,5 @@
 import {
-  chromeVer_, clickable_, doc, esc, fgCache, injector, isEnabled_, isLocked_, isAlive_, isTop, math,
+  chromeVer_, clickable_, doc, esc, fgCache, injector, isEnabled_, isLocked_, isAlive_, isTop, math, includes_,
   keydownEvents_, safeObj, set_chromeVer_, set_clickable_, set_fgCache, set_VOther, set_isLocked_,
   set_isEnabled_, set_onWndFocus, VOther, onWndFocus, timeout_, safer,
   interval_, getTime, vApi, clearInterval_, locHref,
@@ -19,7 +19,7 @@ import {
 } from "./dom_ui"
 import { hudTip, hud_box } from "./hud"
 import {
-  currentKeys, mappedKeys, set_keyFSM, anyClickHandler, onKeydown, onKeyup, passKeys,
+  currentKeys, mappedKeys, set_keyFSM, anyClickHandler, onKeydown, onKeyup,
   set_isPassKeysReversed, isPassKeysReversed, set_passKeys, set_mappedKeys, set_mapKeyTypes,
 } from "./key_handler"
 import { HintManager, kSafeAllSelector, set_kSafeAllSelector } from "./link_hints"
@@ -121,22 +121,30 @@ set_requestHandlers([
     injector && injector.$r(InjectorTask.extInited);
   },
   /* kBgReq.reset: */ function (request: BgReq[kBgReq.reset], initing?: 1): void {
-    const newPassKeys = request.p, newEnabled = newPassKeys !== "", old = isEnabled_;
-    set_passKeys(newPassKeys && safeObj<1>(null))
+    const newPassKeys = request.p, old = isEnabled_
+    set_isEnabled_(newPassKeys !== "")
     if (newPassKeys) {
+      const arr = (isPassKeysReversed ? newPassKeys.slice(2) : newPassKeys).split(" ")
       set_isPassKeysReversed(newPassKeys[0] === "^" && newPassKeys.length > 2)
-      for (const keyStr of (isPassKeysReversed ? newPassKeys.slice(2) : newPassKeys).split(" ")) {
-        (passKeys as SafeDict<1>)[keyStr] = 1;
+      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Set$accept$Symbol$$Iterator
+          && chromeVer_ < BrowserVer.Min$Set$accept$Symbol$$Iterator) {
+        type StringArraySet = string[] & Set<string>;
+        (arr as StringArraySet).has = Build.MinCVer >= BrowserVer.MinEnsuredES6$Array$$Includes ? arr.includes!
+            : includes_
+        set_passKeys(arr as StringArraySet)
+      } else {
+        set_passKeys(new Set!(arr))
       }
+    } else {
+      set_passKeys(newPassKeys as Exclude<typeof newPassKeys, string>) // ignore `""`
     }
-    set_isEnabled_(newEnabled)
     if (initing) {
       return;
     }
     set_isLocked_(request.f!)
     // if true, recover listeners on shadow roots;
     // otherwise listeners on shadow roots will be removed on next blur events
-    if (newEnabled) {
+    if (isEnabled_) {
       esc!(HandlerResult.Nothing); // for passNextKey#normal
       old || insertInit();
       (old && !isLocked_) || hookOnWnd(HookAction.Install);
@@ -144,7 +152,7 @@ set_requestHandlers([
     } else {
       contentCommands_[kFgCmd.insertMode]({r: 1})
     }
-    if (ui_box) { adjustUI(+newEnabled ? 1 : 2); }
+    if (ui_box) { adjustUI(+isEnabled_ ? 1 : 2) }
   },
   /* kBgReq.injectorRun: */ injector ? injector.$m : 0 as never,
   /* kBgReq.url: */ function<T extends keyof FgReq> (this: void, request: BgReq[kBgReq.url] & Req.fg<T>): void {

@@ -1,6 +1,6 @@
 import {
   doc, isTop, injector, VOther, initialDocState, set_esc, esc, setupEventListener, set_isEnabled_, XrayedObject,
-  set_clickable_, clickable_, isAlive_, set_VTr, setupKeydownEvents, onWndFocus,
+  set_clickable_, clickable_, isAlive_, set_VTr, setupKeydownEvents, onWndFocus, includes_,
   set_readyState_, readyState_, callFunc, recordLog, set_vApi, vApi, locHref, unwrap_ff, raw_unwrap_ff, math,
 } from "../lib/utils"
 import { suppressTail_, getMappedKey } from "../lib/keyboard_utils"
@@ -156,7 +156,7 @@ if (!(isTop || injector)) {
           // a temp collection on a very old Chrome, so it's okay just to ignore its elements
           clickable_.has =
               Build.MinCVer >= BrowserVer.MinEnsuredES6$Array$$Includes || !(Build.BTypes & BrowserType.Chrome)
-              ? (clickable_ as ElementArraySet).includes! : () => !1;
+              ? (clickable_ as ElementArraySet).includes! : includes_
         }
       }
   } else if (Build.BTypes & BrowserType.Firefox) {
