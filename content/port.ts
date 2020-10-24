@@ -26,7 +26,7 @@ let hookOnWnd: (action: HookAction) => void
 
 export { port_ as runtime_port, port_callbacks, safeDestroy, requestHandlers, contentCommands_, hookOnWnd }
 
-export function clearRuntimePort (): void { port_ = null }
+export function set_port_ (_newRuntimePort: null): void { port_ = _newRuntimePort }
 export function set_safeDestroy (_newSafeDestroy: SafeDestoryF): void { safeDestroy = _newSafeDestroy }
 export function set_requestHandlers (_newHandlers: typeof requestHandlers): void { requestHandlers = _newHandlers }
 export function set_contentCommands_ (_newCmds: typeof contentCommands_): void { contentCommands_ = _newCmds }
@@ -83,7 +83,7 @@ export const runtimeConnect = (function (this: void): void {
     }, requestHandlers[kBgReq.init] ? 2000 : 5000);
   });
   port_.onMessage.addListener(/*#__NOINLINE__*/ onBgReq)
-  /*#__INLINE__*/ set_i18n_getMsg(api.i18n.getMessage)
+  set_i18n_getMsg(api.i18n.getMessage)
 })
 
 const onBgReq = <T extends keyof BgReq> (response: Req.bg<T>): void => {

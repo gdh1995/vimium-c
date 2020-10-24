@@ -148,7 +148,7 @@ export const deactivate = (isEsc?: 1): void => {
     retainSelection = richText = 0
     toggleSelectableStyle(0);
     resetKeys()
-    /*#__INLINE__*/ set_scrollingTop(null)
+    set_scrollingTop(null)
     curSelection = null as never
     scope = null
     hudHide();

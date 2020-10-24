@@ -60,11 +60,9 @@ let joined: VApiTy | null = null
 let scrolled = 0
 
 export { currentScrolling, cachedScrollable, keyIsDown, scrolled }
-export function resetScrolled (): void { scrolled = 0 }
+export function set_scrolled (_newScrolled: 0): void { scrolled = _newScrolled }
 export function set_currentScrolling (_newCurSc: WeakRef<SafeElement> | null): void { currentScrolling = _newCurSc }
-export function resetCurrentScrolling (): void { currentScrolling = null }
-export function clearCachedScrollable (): void { cachedScrollable = 0 }
-export function syncCachedScrollable (): void { cachedScrollable = currentScrolling }
+export function set_cachedScrollable (_newCachedSc: typeof cachedScrollable): void { cachedScrollable = _newCachedSc }
 
 let performAnimate = (e: SafeElement | null, d: ScrollByY, a: number): void => {
   let amount = 0, calibration = 1.0, di: ScrollByY = 0, duration = 0, element: SafeElement | null = null, //

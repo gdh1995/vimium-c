@@ -695,7 +695,7 @@ const beforeTerser = exports.beforeTerser = (file) => {
     if (!(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsuredES6WeakMapAndWeakSet */ 36) {
       toRemovedGlobal += "Weak(Set|Map)|";
     }
-    if (!(btypes & BrowserType.Chrome) || minCVer >= /* MinES6$ForOf$Map$SetAnd$Symbol */ 38) {
+    if (!(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsuredES6$ForOf$Map$SetAnd$Symbol */ 38) {
       toRemovedGlobal += "Set|";
     }
     if (!(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsured$InputDeviceCapabilities */ 47) {

@@ -559,8 +559,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$addEvent
   }
   if (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome
       && appVer === BrowserVer.NoRAFOrRICOnSandboxedPage) {
-    /*#__INLINE__*/ set_allowRAF_(0)
-    rAF_!(() => { /*#__INLINE__*/ set_allowRAF_(1) });
+    set_allowRAF_(0)
+    rAF_!(() => { set_allowRAF_(1) })
   }
   // not check MinEnsuredNewScriptsFromExtensionOnSandboxedPage
   // for the case JavaScript is disabled in CS: https://github.com/philc/vimium/issues/3187

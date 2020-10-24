@@ -13,7 +13,7 @@ import {
 import {
   hintOptions, mode1_, hintMode_, hintApi, hintManager, coreHints, setMode, detectUsableChild, hintCount_,
 } from "./link_hints"
-import { set_currentScrolling, syncCachedScrollable } from "./scroller"
+import { currentScrolling, set_cachedScrollable, set_currentScrolling } from "./scroller"
 import { post_, send_ } from "./port"
 import {
   collpaseSelection, evalIfOK, flash_, getRect, lastFlashEl, resetSelectionToDocStart, selectAllOfNode,
@@ -34,24 +34,24 @@ interface HTMLExecutor {
 export type LinkAction = readonly [ executor: Executor, ...modes: HintMode[] ]
 
 let hintModeAction: LinkAction | null | undefined
-let keyCode_ = kKeyCode.None
+let hintKeyCode_ = kKeyCode.None
 let removeFlash = null as (() => void) | null
 
-export { removeFlash, keyCode_ as hintKeyCode }
+export { removeFlash, hintKeyCode_ as hintKeyCode }
 export function set_hintModeAction (_newHintModeAction: LinkAction | null): void { hintModeAction = _newHintModeAction }
-export const resetRemoveFlash = (): void => { removeFlash = null }
-export const resetHintKeyCode = (): void => { keyCode_ = kKeyCode.None }
+export function set_removeFlash (_newRmFlash: null): void { removeFlash = _newRmFlash }
+export function set_hintKeyCode_ (_newHintKeyCode: kKeyCode): void { hintKeyCode_ = _newHintKeyCode }
 
 export const executeHintInOfficer = (hint: HintItem, event?: HandlerNS.Event): Rect | null | undefined | 0 => {
   const masterOrA = hintManager || coreHints, keyStatus = masterOrA.$().k;
   let rect: Rect | null | undefined, clickEl: LinkEl | null = hint.d;
   if (hintManager) {
-    /*#__INLINE__*/ set_keydownEvents_(hintApi.a());
+    set_keydownEvents_(hintApi.a())
     setMode(masterOrA.$().m, 1);
   }
   if (event) {
     prevent_(event.e);
-    keydownEvents_[keyCode_ = event.i] = 1;
+    keydownEvents_[hintKeyCode_ = event.i] = 1
   }
   masterOrA.v(); // here .keyStatus_ is reset
   if (IsInDOM_(clickEl)) {
@@ -162,8 +162,7 @@ const focusIFrame = (el: KnownIFrameElement): BOOL => {
   const childApi = detectUsableChild(el)
   if (!childApi) {
     send_(kFgReq.execInChild, {
-      u: el.src,
-      c: kFgCmd.linkHints, n: hintCount_, k: keyCode_, a: hintOptions
+      u: el.src, c: kFgCmd.linkHints, n: hintCount_, k: hintKeyCode_, a: hintOptions
     }, (res): void => {
       if (!res) {
         el.contentWindow.focus()
@@ -181,10 +180,10 @@ export const linkActionArray: readonly LinkAction[] = [
     const type = getEditableType_<0>(element), toggleMap = hintOptions.toggle;
     // here not check lastHovered on purpose
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
-    /*#__INLINE__*/ set_currentScrolling(weakRef_(element));
+    set_currentScrolling(weakRef_(element))
     catchAsyncErrorSilently(hover_(element, center_(rect))).then((): void => {
     type || element.focus && !isIFrameElement(element) && element.focus()
-    /*#__INLINE__*/ syncCachedScrollable();
+    set_cachedScrollable(currentScrolling)
     if (mode1_ < HintMode.min_job) { // called from Modes[-1]
       hintApi.t({ k: kTip.hoverScrollable })
       return

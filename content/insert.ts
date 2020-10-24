@@ -13,8 +13,8 @@ import {
 import { post_, safePost } from "./port"
 import { getParentVApi, ui_box } from "./dom_ui"
 import { hudHide } from "./hud"
-import { set_currentScrolling, scrollTick, clearCachedScrollable } from "./scroller"
-import { resetIsCmdTriggered, resetAnyClickHandler } from "./key_handler"
+import { set_currentScrolling, scrollTick, set_cachedScrollable } from "./scroller"
+import { set_isCmdTriggered, resetAnyClickHandler } from "./key_handler"
 import {
   activeEl_unsafe_, isHTML_, docEl_unsafe_, getEditableType_, GetShadowRoot_, getSelection_, frameElement_,
   SafeEl_not_ff_, MDW, fullscreenEl_unsafe_, removeEl_s, isNode_, BU
@@ -61,7 +61,7 @@ export const insertInit = (): void => {
   notBody = activeEl !== doc.body && (!(Build.BTypes & BrowserType.Firefox)
         || Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox
         || isHTML_() || activeEl !== docEl_unsafe_()) && !!activeEl;
-  /*#__INLINE__*/ set_keydownEvents_(safeObj(null))
+  set_keydownEvents_(safeObj(null))
   if (fgCache.g && grabBackFocus) {
     let counter = 0, prompt = function (): void {
       counter++ || recordLog(kTip.logGrabFocus)
@@ -255,11 +255,11 @@ export const onFocus = (event: Event | FocusEvent): void => {
   if (!lastWndFocusTime || getTime() - lastWndFocusTime > 30) {
     if (Build.BTypes & ~BrowserType.Firefox) {
       let el: SafeElement | null = SafeEl_not_ff_!(target as Element)
-      el && /*#__INLINE__*/ set_currentScrolling(weakRef_(el));
+      el && set_currentScrolling(weakRef_(el))
     } else {
-      /*#__INLINE__*/ set_currentScrolling(weakRef_(target as SafeElement));
+      set_currentScrolling(weakRef_(target as SafeElement))
     }
-    /*#__INLINE__*/ clearCachedScrollable();
+    set_cachedScrollable(0)
   }
   lastWndFocusTime = 0;
   if (getEditableType_<2>(target)) {
@@ -346,8 +346,8 @@ export const onWndBlur = (): void => {
   scrollTick(0);
   onWndBlur2 && onWndBlur2();
   exitPassMode && exitPassMode();
-  /*#__INLINE__*/ set_keydownEvents_(safeObj(null))
-  /*#__INLINE__*/ resetIsCmdTriggered();
+  set_keydownEvents_(safeObj(null))
+  set_isCmdTriggered(kKeyCode.None)
   if (Build.BTypes & BrowserType.Chrome) {
     /*#__NOINLINE__*/ resetAnyClickHandler();
   }

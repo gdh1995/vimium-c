@@ -35,21 +35,21 @@ let framemask_fmTimer = TimerID.None
 let needToRetryParentClickable: BOOL = 0
 
 /** require `WeakSet` MUST exist; should ensure `clickable_.forEach` MUST exist */
-export const enableNeedToRetryParentClickable = (): void => { needToRetryParentClickable = 1 }
+export function set_needToRetryParentClickable (_newNeeded: 1): void { needToRetryParentClickable = _newNeeded }
 
 set_requestHandlers([
   /* kBgReq.init: */ function (request: BgReq[kBgReq.init]): void {
     const load = request.c, flags = request.s
     if (Build.BTypes & BrowserType.Chrome) {
-      /*#__INLINE__*/ set_chromeVer_(load.v as BrowserVer);
+      set_chromeVer_(load.v as BrowserVer)
     }
     if (<number> Build.BTypes !== BrowserType.Chrome && <number> Build.BTypes !== BrowserType.Firefox
         && <number> Build.BTypes !== BrowserType.Edge) {
-      /*#__INLINE__*/ set_VOther(load.b!)
+      set_VOther(load.b!)
     }
-    /*#__INLINE__*/ set_fgCache(vApi.z = load)
+    set_fgCache(vApi.z = load)
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key) {
-      load.o || /*#__INLINE__*/ set_keyIdCorrectionOffset_old_cr_(300);
+      load.o || set_keyIdCorrectionOffset_old_cr_(300)
     }
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNoKeygenElement
         || Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinNoKeygenElement) {
@@ -72,7 +72,7 @@ set_requestHandlers([
       setNotSafe_not_ff((_el): _el is HTMLFormElement => false)
     }
     if (flags) {
-      /*#__INLINE__*/ set_grabBackFocus(grabBackFocus && !(flags & Frames.Flags.userActed))
+      set_grabBackFocus(grabBackFocus && !(flags & Frames.Flags.userActed))
       set_isLocked_(Frames.Flags.locked === 1 ? (flags & Frames.Flags.locked) as BOOL
           : flags & Frames.Flags.locked ? 1 : 0)
     }
@@ -86,13 +86,13 @@ set_requestHandlers([
         hookOnWnd(HookAction.SuppressListenersOnDocument);
       }
     } else {
-      /*#__INLINE__*/ set_grabBackFocus(false)
+      set_grabBackFocus(false)
       hookOnWnd(HookAction.Suppress);
       vApi.e && vApi.e(kContentCmd.SuppressClickable);
     }
     requestHandlers[kBgReq.init] = null as never;
     OnDocLoaded_(function (): void {
-      /*#__INLINE__*/ set_onWndFocus(safePost.bind(0, <Req.fg<kFgReq.onFrameFocused>> { H: kFgReq.onFrameFocused }))
+      set_onWndFocus(safePost.bind(0, <Req.fg<kFgReq.onFrameFocused>> { H: kFgReq.onFrameFocused }))
       timeout_(function (): void {
         const parApi = !(Build.BTypes & ~BrowserType.Firefox)
             || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
@@ -122,18 +122,18 @@ set_requestHandlers([
   },
   /* kBgReq.reset: */ function (request: BgReq[kBgReq.reset], initing?: 1): void {
     const newPassKeys = request.p, newEnabled = newPassKeys !== "", old = isEnabled_;
-    /*#__INLINE__*/ set_passKeys(newPassKeys && safeObj<1>(null))
+    set_passKeys(newPassKeys && safeObj<1>(null))
     if (newPassKeys) {
-      /*#__INLINE__*/ set_isPassKeysReversed(newPassKeys[0] === "^" && newPassKeys.length > 2);
+      set_isPassKeysReversed(newPassKeys[0] === "^" && newPassKeys.length > 2)
       for (const keyStr of (isPassKeysReversed ? newPassKeys.slice(2) : newPassKeys).split(" ")) {
         (passKeys as SafeDict<1>)[keyStr] = 1;
       }
     }
-    /*#__INLINE__*/ set_isEnabled_(newEnabled);
+    set_isEnabled_(newEnabled)
     if (initing) {
       return;
     }
-    /*#__INLINE__*/ set_isLocked_(request.f!)
+    set_isLocked_(request.f!)
     // if true, recover listeners on shadow roots;
     // otherwise listeners on shadow roots will be removed on next blur events
     if (newEnabled) {
@@ -197,7 +197,7 @@ set_requestHandlers([
   /* kBgReq.keyFSM: */ function (request: BgReq[kBgReq.keyFSM]): void {
     safer(set_keyFSM(request.k))
     set_mapKeyTypes(request.t)
-    /*#__INLINE__*/ set_mappedKeys(request.m)
+    set_mappedKeys(request.m)
     mappedKeys && safer(mappedKeys)
   },
   /* kBgReq.execute: */ function<O extends keyof CmdOptions> (request: BaseExecute<CmdOptions[O], O>): void {
@@ -218,7 +218,7 @@ set_requestHandlers([
     if (req.H) {
       setUICSS(req.H);
       if (req.f) {
-        /*#__INLINE__*/ set_findCSS(req.f)
+        set_findCSS(req.f)
         styleInHUD && createStyle(req.f.i, styleInHUD)
         styleSelectable && createStyle(req.f.s, styleSelectable)
       }
@@ -290,7 +290,7 @@ set_hookOnWnd(((action: HookAction): void => {
 export const focusAndRun = (cmd?: FgCmdAcrossFrames, options?: FgOptions, count?: number, showBorder?: 1 | 2): void => {
   exitGrab();
   let oldOnWndFocus = onWndFocus, failed = true;
-  /*#__INLINE__*/ set_onWndFocus((): void => { failed = false; })
+  set_onWndFocus((): void => { failed = false })
   if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox) {
     omni_status === VomnibarNS.Status.Showing && omni_box.blur()
     // cur is safe because on Firefox
@@ -304,7 +304,7 @@ export const focusAndRun = (cmd?: FgCmdAcrossFrames, options?: FgOptions, count?
    */
   (failed || !isEnabled_) && hookOnWnd(HookAction.Install)
   // the line below is always necessary: see https://github.com/philc/vimium/issues/2551#issuecomment-316113725
-  /*#__INLINE__*/ set_onWndFocus(oldOnWndFocus)
+  set_onWndFocus(oldOnWndFocus)
   oldOnWndFocus()
   if (isAlive_) {
     esc!(HandlerResult.Nothing);

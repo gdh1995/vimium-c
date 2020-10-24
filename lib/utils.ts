@@ -49,7 +49,7 @@ export let clickable_: ElementSet
 export function set_clickable_ (_newClickable: ElementSet): void { clickable_ = _newClickable }
 
 export let keydownEvents_: KeydownCacheArray;
-export const set_keydownEvents_ = (_newKeydownEvents: KeydownCacheArray): void => { keydownEvents_ = _newKeydownEvents }
+export function set_keydownEvents_ (_newKeydownEvents: KeydownCacheArray): void { keydownEvents_ = _newKeydownEvents }
 export const setupKeydownEvents = function (arr?: KeydownCacheArray): KeydownCacheArray | boolean {
   if (!arr) { return keydownEvents_; }
   return !isEnabled_ || !(keydownEvents_ = arr);

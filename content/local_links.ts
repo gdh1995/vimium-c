@@ -24,7 +24,7 @@ import {
   kSafeAllSelector, coreHints, addChildFrame_, mode1_, forHover_,
   isClickListened_, forceToScroll_, hintMode_, set_isClickListened_, tooHigh_, useFilter_, hintChars, hintManager,
 } from "./link_hints"
-import { shouldScroll_need_safe, getPixelScaleToScroll, scrolled, resetScrolled, suppressScroll } from "./scroller"
+import { shouldScroll_need_safe, getPixelScaleToScroll, scrolled, set_scrolled, suppressScroll } from "./scroller"
 import { ui_root, ui_box } from "./dom_ui"
 
 let frameNested_: NestedFrame = false
@@ -399,19 +399,18 @@ export const traverse = function (selector: string
       ) {
     const bz = Build.BTypes & ~BrowserType.Firefox ? bZoom_ : 1, notHookScroll = scrolled === 0
     if (Build.BTypes & ~BrowserType.Firefox && bz !== 1 && isD) {
-      /*#__INLINE__*/ set_bZoom_(1)
+      set_bZoom_(1)
       prepareCrop_(1);
     }
     const elements = (<ShadowRoot> ui_root).querySelectorAll(selector) as NodeListOf<SafeHTMLElement>
-    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
-        && chromeVer_ < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes) {;
+    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes) {
       for (let i = 0; i < elements.length; i++) { filter(output, elements[i]) }
     } else {
       (elements as ArrayLike<SafeHTMLElement> as SafeHTMLElement[]).forEach(filter.bind(0, output))
     }
-    Build.BTypes & ~BrowserType.Firefox && /*#__INLINE__*/ set_bZoom_(bz)
+    Build.BTypes & ~BrowserType.Firefox && set_bZoom_(bz)
     if (notHookScroll) {
-      /*#__INLINE__*/ resetScrolled()
+      set_scrolled(0)
     }
   }
   scrolled === 1 && suppressScroll();

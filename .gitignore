@@ -36,7 +36,8 @@ scripts/*public_suffix*
 scripts/*releases*
 icons/*.bin
 package-lock.json
-# just to make vscode ignore those on finding
+# the below are just to make vscode ignore those on finding
+/.eslintrc.json
 typings/base/
 !typings/base/base.d.ts
 scripts/*.pem.enc

@@ -7,7 +7,7 @@ import { suppressTail_, getMappedKey } from "../lib/keyboard_utils"
 import { frameElement_, set_OnDocLoaded_ } from "../lib/dom_utils"
 import { wndSize_ } from "../lib/rect"
 import {
-  safePost, clearRuntimePort, runtime_port, SafeDestoryF, set_safeDestroy,
+  safePost, set_port_, runtime_port, SafeDestoryF, set_safeDestroy,
   runtimeConnect, safeDestroy, post_, send_, hookOnWnd, requestHandlers, contentCommands_,
 } from "./port"
 import {
@@ -15,7 +15,7 @@ import {
 } from "./dom_ui"
 import { grabBackFocus } from "./insert"
 import { currentKeys } from "./key_handler"
-import { enableNeedToRetryParentClickable, focusAndRun } from "./request_handlers"
+import { set_needToRetryParentClickable, focusAndRun } from "./request_handlers"
 import { coreHints } from "./link_hints"
 import { executeScroll, scrollTick, $sc, keyIsDown as scroll_keyIsDown } from "./scroller"
 import { onLoad as findOnLoad, find_box } from "./mode_find"
@@ -41,17 +41,17 @@ let coreTester: { /** name */ n: BuildStr.CoreGetterFuncName; /** recvTick */ r:
 set_safeDestroy((silent?: Parameters<SafeDestoryF>[0]): void => {
     if (!isAlive_) { return; }
     if (Build.BTypes & BrowserType.Firefox && silent === 9) {
-      /*#__INLINE__*/ clearRuntimePort()
+      set_port_(null)
       return;
     }
-    /*#__INLINE__*/ set_isEnabled_(!1)
+    set_isEnabled_(!1)
     hookOnWnd(HookAction.Destroy);
 
     contentCommands_[kFgCmd.insertMode]({r: 2})
     vApi.e && vApi.e(kContentCmd.Destroy);
     ui_box && adjustUI(2);
 
-    /*#__INLINE__*/ set_esc(null as never)
+    set_esc(null as never)
     VApi = null as never;
 
     if (!Build.NDEBUG) {
@@ -71,8 +71,8 @@ set_vApi(VApi = {
   i: Build.BTypes & BrowserType.Firefox ? wndSize_ : 0 as never,
   r: injector && [send_, safePost, (task: 0 | 1 | 2, arg?: string | ElementSet | VTransType): any => {
     task < 1 ? (arg = currentKeys, /*#__NOINLINE__*/ esc!(HandlerResult.Nothing))
-      : task < 2 ? /*#__INLINE__*/ set_clickable_(arg as ElementSet)
-      : /*#__INLINE__*/ set_VTr(arg as VTransType)
+      : task < 2 ? set_clickable_(arg as ElementSet)
+      : set_VTr(arg as VTransType)
     return arg
   }], s: suppressTail_, t: requestHandlers[kBgReq.showHUD], u: locHref, x: flash_,
   y: () => (Build.BTypes & BrowserType.Firefox ? {
@@ -82,8 +82,8 @@ set_vApi(VApi = {
 
 if (!(Build.BTypes & BrowserType.Firefox)) { /* empty */ }
 else if (Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox || injector !== void 0) {
-    /*#__INLINE__*/ set_getWndVApi_ff(wnd => wnd.VApi);
-    /*#__INLINE__*/ set_getParentVApi(() => frameElement_() && (parent as Window).VApi)
+    set_getWndVApi_ff(wnd => wnd.VApi)
+    set_getParentVApi(() => frameElement_() && (parent as Window).VApi)
 } else {
     coreTester = {
       n: BuildStr.CoreGetterFuncName,
@@ -123,7 +123,7 @@ else if (Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox |
       }
     };
     /** Note: this function needs to be safe enough */
-    /*#__INLINE__*/ set_getWndVApi_ff((anotherWnd: Window): VApiTy | null | void => {
+    set_getWndVApi_ff((anotherWnd: Window): VApiTy | null | void => {
       coreTester.r = -1;
       // Sometimes an `anotherWnd` has neither `.wrappedJSObject` nor `coreTester`,
       // usually when a child frame is hidden. Tested on QQMail (destkop version) on Firefox 74.
@@ -145,13 +145,13 @@ if (!(isTop || injector)) {
   if (!scoped_parApi) {
       if ((Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
           || WeakSet) && <boolean> grabBackFocus) {
-        /*#__INLINE__*/ enableNeedToRetryParentClickable()
+        set_needToRetryParentClickable(1)
         if (Build.MinCVer >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol || !(Build.BTypes & BrowserType.Chrome)
             || (Build.MinCVer >= BrowserVer.Min$Set$Has$$forEach ? Set : Set && Set.prototype.forEach)) {
-          /*#__INLINE__*/ set_clickable_(new Set!<Element>())
+          set_clickable_(new Set!<Element>())
         } else {
           type ElementArraySet = Element[] & ElementSet
-          /*#__INLINE__*/ set_clickable_([] as any as ElementArraySet)
+          set_clickable_([] as any as ElementArraySet)
           clickable_.add = (clickable_ as ElementArraySet).push;
           // a temp collection on a very old Chrome, so it's okay just to ignore its elements
           clickable_.has =
@@ -168,7 +168,7 @@ if (!(isTop || injector)) {
             safeDestroy(1);
             scoped_parApi.n()
           } else {
-            /*#__INLINE__*/ set_clickable_(state.c)
+            set_clickable_(state.c)
           }
           return;
       } catch (e) {
@@ -179,7 +179,7 @@ if (!(isTop || injector)) {
       if ((!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
           && <boolean> /** is_readyState_loading */ grabBackFocus) {
         // here the parent `core` is invalid - maybe from a fake provider
-        /*#__INLINE__*/ set_getParentVApi(() => null);
+        set_getParentVApi(() => null)
       }
     })()
   } else {
@@ -188,14 +188,14 @@ if (!(isTop || injector)) {
         safeDestroy(1);
         scoped_parApi.n();
       } else {
-        /*#__INLINE__*/ set_clickable_(scoped_parApi.y().c)
+        set_clickable_(scoped_parApi.y().c)
       }
   }
 }
 
 if (isAlive_) {
     interface ElementWithClickable { vimiumClick?: boolean }
-    /*#__INLINE__*/ set_clickable_(!(Build.BTypes & BrowserType.Firefox)
+    set_clickable_(!(Build.BTypes & BrowserType.Firefox)
         || Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox
         ? clickable_ ||
           (Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
@@ -207,9 +207,9 @@ if (isAlive_) {
     // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
     hookOnWnd(HookAction.Install);
     if (initialDocState < "i") {
-      /*#__INLINE__*/ set_OnDocLoaded_(callFunc)
+      set_OnDocLoaded_(callFunc)
     } else {
-      /*#__INLINE__*/ set_OnDocLoaded_((callback, onloaded) => {
+      set_OnDocLoaded_((callback, onloaded) => {
         readyState_ < "l" && !onloaded ? callback() : (onloaded ? completeListeners : docReadyListeners).push(callback)
       })
     }

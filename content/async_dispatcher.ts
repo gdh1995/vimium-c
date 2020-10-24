@@ -23,7 +23,7 @@ let _idc: InputDeviceCapabilities | undefined
 let lastHovered_: WeakRef<SafeElementForMouse> | null | undefined
 
 export { lastHovered_ }
-export function resetLastHovered (): void { lastHovered_ = null }
+export function set_lastHovered_ (_newHovered: null): void { lastHovered_ = _newHovered }
 
 /** util functions */
 
@@ -137,7 +137,7 @@ export const mouse_ = function (element: SafeElementForMouse
   }
   if (!(Build.BTypes & ~BrowserType.Firefox)
       || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox) {
-    return /*#__INLINE__*/ wrappedDispatchMouseEvent_ff(element, mouseEvent)
+    return wrappedDispatchMouseEvent_ff(element, mouseEvent)
   }
   return element.dispatchEvent(mouseEvent)
 } as {

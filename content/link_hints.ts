@@ -82,13 +82,12 @@ import {
 } from "./local_links"
 import {
   matchHintsByKey, zIndexes_, rotate1, initFilterEngine, initAlphabetEngine, renderMarkers, generateHintText,
-  getMatchingHints, activeHint_, hintFilterReset, hintFilterClear, resetZIndexes, adjustMarkers, createHint,
+  getMatchingHints, activeHint_, hintFilterReset, set_maxPrefixLen_, set_zIndexes_, adjustMarkers, createHint
 } from "./hint_filters"
 import {
-  LinkAction,
-  linkActionArray, executeHintInOfficer, removeFlash, set_hintModeAction, resetRemoveFlash, resetHintKeyCode,
+  LinkAction, linkActionArray, executeHintInOfficer, removeFlash, set_hintModeAction, set_removeFlash, set_hintKeyCode_
 } from "./link_actions"
-import { lastHovered_, resetLastHovered } from "./async_dispatcher"
+import { lastHovered_, set_lastHovered_ } from "./async_dispatcher"
 import { hookOnWnd, contentCommands_ } from "./port"
 
 let box_: HTMLDivElement | HTMLDialogElement | null = null
@@ -296,8 +295,8 @@ const render = (hints: readonly HintItem[], arr: ViewBox, raw_apis: VApiTy): voi
     } else if (coreHints === managerOrA) {
       adjustUI();
     }
-    /*#__INLINE__*/ set_keydownEvents_((Build.BTypes & BrowserType.Firefox ? api_ : raw_apis).a())
-    /*#__INLINE__*/ set_onWndBlur2(managerOrA.s);
+    set_keydownEvents_((Build.BTypes & BrowserType.Firefox ? api_ : raw_apis).a())
+    set_onWndBlur2(managerOrA.s)
     replaceOrSuppressMost_(kHandler.linkHints, coreHints.n)
     manager_ && setupEventListener(0, UNL, clear);
     isActive = 1;
@@ -369,7 +368,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
     let matchedHint: ReturnType<typeof matchHintsByKey>, i: number = event.i, key: string, keybody: kChar;
     let ret = HandlerResult.Prevent, num1: number | undefined, mode = mode_, mode1 = mode1_
     if (manager_) {
-      /*#__INLINE__*/ set_keydownEvents_(api_.a());
+      set_keydownEvents_(api_.a())
       ret = manager_.n(event)
     } else if (onWaitingKey) {
       onWaitingKey()
@@ -473,7 +472,7 @@ const callExecuteHint = (hint: HintItem, event?: HandlerNS.Event): void => {
   result = selectedHintWorker.e(hint, event)
   result !== 0 && timeout_((): void => {
     removeFlash && removeFlash()
-    resetRemoveFlash()
+    set_removeFlash(null)
     if (!(mode_ & HintMode.queue)) {
       coreHints.w(selectedHintWorker, clickEl)
       clear(0, 0)
@@ -588,7 +587,7 @@ const checkLast = ((el?: WeakRef<LinkEl> | LinkEl | TimerType.fake | 9 | 1 | nul
         ) && (el = deref_(el as WeakRef<LinkEl>)) ? padClientRect_(getBoundingClientRect_(el)) : null
     hidden = !r2 || r2.r - r2.l < 2 && r2.b - r2.t < 2 || !isStyleVisible_(el as LinkEl) // use 2px: may be safer
     if (hidden && deref_(lastHovered_) === el) {
-      /*#__INLINE__*/ resetLastHovered()
+      set_lastHovered_(null)
     }
     if ((!r2 || r) && (manager_ || coreHints).$().n
         && (hidden || math.abs(r2!.l - r!.l) > 100 || math.abs(r2!.t - r!.t) > 60)) {
@@ -644,15 +643,15 @@ export const clear = (onlySelfOrEvent?: 0 | 1 | Event, suppressTimeout?: number)
     resetHints();
     removeHandler_(kHandler.linkHints)
     suppressTimeout != null && suppressTail_(suppressTimeout);
-    /*#__INLINE__*/ set_onWndBlur2(null);
+    set_onWndBlur2(null)
     removeFlash && removeFlash();
     api_ = options_ = null as never
-    /*#__INLINE__*/ set_hintModeAction(null)
-    /*#__INLINE__*/ resetRemoveFlash()
+    set_hintModeAction(null)
+    set_removeFlash(null)
     /*#__INLINE__*/ localLinkClear()
-    /*#__INLINE__*/ hintFilterClear()
+    set_maxPrefixLen_(0)
     lastMode_ = mode_ = mode1_ = count_ = forceToScroll_ = coreHints.h = 0
-    /*#__INLINE__*/ resetHintKeyCode()
+    set_hintKeyCode_(kKeyCode.None)
     useFilter_ = noHUD_ = tooHigh_ = false
     if (Build.BTypes & BrowserType.ChromeOrFirefox) { coreHints.d = 0 }
     chars_ = "";
@@ -682,7 +681,7 @@ const onFrameUnload = (officer: HintOfficer): void => {
     if (!deleteCount) { return; }
     onWaitingKey = onTailEnter ? onWaitingKey
         : suppressTail_(GlobalConsts.TimeOfSuppressingUnexpectedKeydownEvents, /*#__NOINLINE__*/ resetOnWaitKey)
-    resetZIndexes()
+    set_zIndexes_(null)
     keyStatus_.c = hints_!
     keyStatus_.n = keyStatus_.b = 0
     if (!hints_!.length) {

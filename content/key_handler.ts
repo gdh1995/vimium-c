@@ -29,7 +29,7 @@ let anyClickHandler: MouseEventListener = { handleEvent: noopEventHandler }
 
 let onKeyup2: ((this: void, event: Pick<KeyboardEvent, "keyCode"> | 0) => void) | null | undefined
 
-/*#__INLINE__*/ set_esc(function<T extends Exclude<HandlerResult, HandlerResult.ExitPassMode>> (i: T): T {
+set_esc(function<T extends Exclude<HandlerResult, HandlerResult.ExitPassMode>> (i: T): T {
   currentKeys = ""; nextKeys = null; return i;
 })
 
@@ -38,7 +38,7 @@ export {
   isWaitingAccessKey, isCmdTriggered, anyClickHandler,
   onKeyup2, isPassKeysReversed,
 }
-export function resetIsCmdTriggered (): void { isCmdTriggered = kKeyCode.None }
+export function set_isCmdTriggered (_newTriggerred: kKeyCode): void { isCmdTriggered = _newTriggerred }
 export function set_passKeys (_newPassKeys: SafeEnum | null | ""): void { passKeys = _newPassKeys }
 export function installTempCurrentKeyStatus (): void { currentKeys = "", nextKeys = keyFSM }
 export function set_onKeyup2 (_newOnKeyUp: typeof onKeyup2): void { onKeyup2 = _newOnKeyUp }
@@ -259,7 +259,7 @@ export const onKeyup = (event: KeyboardEventToPrevent): void => {
   if (scroll_keyIsDown && (key === isCmdTriggered || isCmdTriggered < kKeyCode.True + 1)) {
     scrollTick(0);
   }
-  /*#__INLINE__*/ resetIsCmdTriggered();
+  isCmdTriggered = kKeyCode.None
   if (Build.BTypes & BrowserType.Chrome) {
     isWaitingAccessKey && /*#__NOINLINE__*/ resetAnyClickHandler();
   }

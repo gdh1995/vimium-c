@@ -28,7 +28,7 @@ import { scrollToMark, setPreviousMarkPosition } from "./marks"
 import { hudHide, hud_box, hudTip, hud_opacity, toggleOpacity as hud_toggleOpacity } from "./hud"
 import { post_, send_ } from "./port"
 import { insert_Lock_, setupSuppress } from "./insert"
-import { lastHovered_, resetLastHovered, select_ } from "./async_dispatcher"
+import { lastHovered_, set_lastHovered_, select_ } from "./async_dispatcher"
 
 let isActive = false
 let query_ = ""
@@ -366,7 +366,7 @@ export const clear = (): void => {
   removeHandler_(kHandler.find)
   outerBox_ && removeEl_s(outerBox_)
   highlighting && highlighting()
-  if (box_ === deref_(lastHovered_)) { /*#__INLINE__*/ resetLastHovered() }
+  if (box_ === deref_(lastHovered_)) { set_lastHovered_(null) }
   parsedQuery_ = query_ = query0_ = ""
   historyIndex = matchCount = doesCheckAlive = 0;
   styleInHUD = onUnexpectedBlur = outerBox_ = isRegex = ignoreCase =

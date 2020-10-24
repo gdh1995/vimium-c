@@ -31,13 +31,12 @@ import {
 } from "./insert"
 import { activate as visualActivate, deactivate as visualDeactivate, kExtend } from "./visual"
 import {
-  activate as scActivate, clearCachedScrollable, resetCurrentScrolling, onActivate, currentScrolling,
-  set_currentScrolling
+  activate as scActivate, set_cachedScrollable, onActivate, currentScrolling, set_currentScrolling
 } from "./scroller"
 import { activate as omniActivate, hide as omniHide } from "./omni"
 import { findNextInText, findNextInRel } from "./pagination"
 import { traverse, getEditable, filterOutNonReachable } from "./local_links"
-import { select_, unhover_, resetLastHovered, lastHovered_ } from "./async_dispatcher"
+import { select_, unhover_, set_lastHovered_, lastHovered_ } from "./async_dispatcher"
 
 export const RSC = "readystatechange"
 
@@ -76,7 +75,7 @@ set_contentCommands_([
       hudTip(kTip.didUnHoverLast)
     }
     if (opt.r) {
-      clearCachedScrollable(), resetCurrentScrolling(), resetLastHovered()
+      set_cachedScrollable(0), set_currentScrolling(null), set_lastHovered_(null)
       resetInsert(), linkClear((2 - opt.r) as BOOL), visualDeactivate()
       findInit || findDeactivate(FindNS.Action.ExitNoAnyFocus)
       omniHide(), hideHelp && hideHelp()
@@ -114,12 +113,12 @@ set_contentCommands_([
         return hudTip(kTip.noPassKeys);
       }
       const oldEsc = esc!, oldPassKeys = passKeys;
-      /*#__INLINE__*/ set_passKeys(null)
-      /*#__INLINE__*/ set_esc(((i: HandlerResult): HandlerResult => {
+      set_passKeys(null)
+      set_esc(((i: HandlerResult): HandlerResult => {
         if (i === HandlerResult.Prevent && 0 >= --count || i === HandlerResult.ExitPassMode) {
           hudHide();
-          /*#__INLINE__*/ set_passKeys(oldPassKeys)
-          /*#__INLINE__*/ set_esc(oldEsc)
+          set_passKeys(oldPassKeys)
+          set_esc(oldEsc)
           return oldEsc(HandlerResult.Prevent);
         }
         installTempCurrentKeyStatus()
@@ -147,9 +146,9 @@ set_contentCommands_([
       }
     })
     onKeyup2!(<0> kKeyCode.None)
-    /*#__INLINE__*/ set_exitPassMode((): void => {
-      /*#__INLINE__*/ set_exitPassMode(null)
-      /*#__INLINE__*/ set_onKeyup2(null)
+    set_exitPassMode((): void => {
+      set_exitPassMode(null)
+      set_onKeyup2(null)
       removeHandler_(kHandler.passNextKey)
       hudHide();
     })
@@ -197,15 +196,15 @@ set_contentCommands_([
         if (act === BSP) {
           if (view_(newEl)) { execCommand(DEL, doc); }
         } else {
-          /*#__INLINE__*/ set_insert_last_(weakRef_(newEl))
-          /*#__INLINE__*/ set_is_last_mutable(0)
+          set_insert_last_(weakRef_(newEl))
+          set_is_last_mutable(0)
           newEl.blur();
         }
       } else if (!(newEl = known_last)) {
         hudTip(kTip.noFocused, 1200);
       } else if (act !== "last-visible" && view_(newEl) || !isNotInViewport(newEl)) {
-        /*#__INLINE__*/ set_insert_last_(null)
-        /*#__INLINE__*/ set_is_last_mutable(1)
+        set_insert_last_(null)
+        set_is_last_mutable(1)
         getZoom_(newEl);
         prepareCrop_();
         select_(newEl, null, !!options.flash, options.select, true);
@@ -273,17 +272,17 @@ set_contentCommands_([
       insert_inputHint!.b = addElementList<false>(hints, arr)
     })
     exitInputHint();
-    /*#__INLINE__*/ set_inputHint({ b: null, h: hints })
+    set_inputHint({ b: null, h: hints })
     pushHandler_((event) => {
       const keyCode = event.i, isIME = keyCode === kKeyCode.ime, repeat = event.e.repeat,
       key = isIME || repeat ? "" : getMappedKey(event, kModeId.Insert)
       if (key === kChar.tab || key === `s-${kChar.tab}`) {
         const hints2 = insert_inputHint!.h, oldSel = sel, len = hints2.length;
         sel = (oldSel + (key < "t" ? len - 1 : 1)) % len;
-        /*#__INLINE__*/ set_isHintingInput(1);
+        set_isHintingInput(1)
         prevent_(event.e); // in case that selecting is too slow
         select_(hints2[sel].d, null, false, action).then((): void => {
-          /*#__INLINE__*/ set_isHintingInput(0)
+          set_isHintingInput(0)
           setClassName_s(hints2[oldSel].m, "IH")
           setClassName_s(hints2[sel].m, S)
         })
@@ -405,10 +404,10 @@ set_contentCommands_([
       event && prevent_(event)
       advCmd.onclick = optLink.onclick = closeBtn.onclick = null as never
       let i: Element | null | undefined = deref_(lastHovered_)
-      i && contains_s(box, i) && /*#__INLINE__*/ resetLastHovered()
+      i && contains_s(box, i) && set_lastHovered_(null)
       if ((i = deref_(currentScrolling)) && contains_s(box, i)) {
-        /*#__INLINE__*/ resetCurrentScrolling()
-        /*#__INLINE__*/ clearCachedScrollable()
+        set_currentScrolling(null)
+        set_cachedScrollable(0)
       }
       removeHandler_(kHandler.helpDialog)
       removeEl_s(box)
@@ -439,7 +438,7 @@ set_contentCommands_([
     addUIElement(outerBox || box, AdjustType.Normal, true)
     options.e && setupExitOnClick(kExitOnClick.helpDialog)
     doc.hasFocus() || vApi.f()
-    /*#__INLINE__*/ set_currentScrolling(weakRef_(box))
+    set_currentScrolling(weakRef_(box))
     handler_stack.splice((handler_stack.indexOf(kHandler.omni) + 1 || handler_stack.length + 2) - 2, 0, event => {
       if (!raw_insert_lock && isEscape_(getMappedKey(event, kModeId.Normal))) {
         removeSelection(ui_root) || hideHelp!()
