@@ -748,6 +748,7 @@ const postTerser = exports.postTerser = (file, allPaths) => {
   if (allPathStr.includes("content/") || allPathStr.includes("lib/") && !allPathStr.includes("/env.js")) {
     get();
     contents = addMetaData(file.relative, contents)
+    contents = contents.replace(/\n?\/\*!? ?@OUTPUT ?\{([^}]+)\} ?\*\/\n?/g, '$1')
   }
   if (changed || oldLen > 0 && contents.length !== oldLen) {
     file.contents = ToBuffer(contents);

@@ -102,7 +102,7 @@ else if (Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox |
       },
       c (rand2: number, testEncrypted: string): boolean {
         "use strict";
-        /* @OUTPUT {"use strict";} */
+        /*! @OUTPUT {"use strict";} */
         const diff = coreTester.e(coreTester.k, +rand2) !== testEncrypted, d2 = coreTester.r > 64;
         coreTester.r += d2 ? 0 : diff ? 2 : 1;
         return diff || d2; // hide the real result if too many errors
