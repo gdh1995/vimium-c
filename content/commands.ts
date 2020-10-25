@@ -21,7 +21,7 @@ import {
   hideHelp, set_hideHelp,
 } from "./dom_ui"
 import { hudHide, hudShow, hudTip, hud_text } from "./hud"
-import { onKeyup2, set_onKeyup2, passKeys, installTempCurrentKeyStatus, set_passKeys } from "./key_handler"
+import { onKeyup2, set_onKeyup2, passKeys, set_nextKeys, set_passKeys, keyFSM } from "./key_handler"
 import { activate as linkActivate, clear as linkClear, kSafeAllSelector } from "./link_hints"
 import { activate as markActivate, gotoMark } from "./marks"
 import { activate as findActivate, deactivate as findDeactivate, execCommand, init as findInit } from "./mode_find"
@@ -121,7 +121,8 @@ set_contentCommands_([
           set_esc(oldEsc)
           return oldEsc(HandlerResult.Prevent);
         }
-        installTempCurrentKeyStatus()
+        oldEsc(HandlerResult.Nothing)
+        set_nextKeys(keyFSM)
         if (keyCount - count || !hud_text) {
           keyCount = count;
           hudShow(kTip.normalMode, count > 1 ? VTr(kTip.nTimes, [count]) : "")

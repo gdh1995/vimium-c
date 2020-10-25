@@ -555,6 +555,7 @@ declare const enum GlobalConsts {
   ModeIds = "nilofvmes",
   InsertModeId = "i",
   OmniModeId = "o",
+  KeySequenceTimeout = 3e5,
 }
 
 declare const enum kModeId {

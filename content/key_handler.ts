@@ -18,7 +18,8 @@ let isPassKeysReversed = false
 let mapKeyTypes = kMapKey.NONE
 let mappedKeys: SafeDict<string> | null = null
 let keyFSM: KeyFSM
-let currentKeys = ""  
+let currentKeys = ""
+let curKeyTimestamp = 0
 let nextKeys: KeyFSM | ReadonlyChildKeyFSM & SafeObject | null = null
 
 let isWaitingAccessKey = false
@@ -30,7 +31,7 @@ let anyClickHandler: MouseEventListener = { handleEvent: noopEventHandler }
 let onKeyup2: ((this: void, event: Pick<KeyboardEvent, "keyCode"> | 0) => void) | null | undefined
 
 set_esc(function<T extends Exclude<HandlerResult, HandlerResult.ExitPassMode>> (i: T): T {
-  currentKeys = ""; nextKeys = null; return i;
+  currentKeys = ""; nextKeys = null; curKeyTimestamp = 0; return i
 })
 
 export {
@@ -40,7 +41,7 @@ export {
 }
 export function set_isCmdTriggered (_newTriggerred: kKeyCode): void { isCmdTriggered = _newTriggerred }
 export function set_passKeys (_newPassKeys: typeof passKeys): void { passKeys = _newPassKeys }
-export function installTempCurrentKeyStatus (): void { currentKeys = "", nextKeys = keyFSM }
+export function set_nextKeys (_newNK: KeyFSM): void { nextKeys = _newNK }
 export function set_onKeyup2 (_newOnKeyUp: typeof onKeyup2): void { onKeyup2 = _newOnKeyUp }
 export function set_isPassKeysReversed (_newPKReversed: boolean): void { isPassKeysReversed = _newPKReversed }
 export function set_keyFSM (_newKeyFSM: KeyFSM): KeyFSM { return keyFSM = _newKeyFSM }
@@ -78,6 +79,12 @@ const checkKey = (event: HandlerNS.Event, key: string, keyWithoutModeID: string
   if (!key || key0 && !currentKeys && passKeys!.has(key0) !== isPassKeysReversed) {
     return key ? esc!(HandlerResult.Nothing) : HandlerResult.Nothing;
   }
+  const timestamp = event.e.timeStamp
+  if (curKeyTimestamp && nextKeys && nextKeys !== keyFSM
+      && timestamp - curKeyTimestamp > GlobalConsts.KeySequenceTimeout) {
+    currentKeys = ""
+    nextKeys = null
+  }
   let j: ReadonlyChildKeyFSM | ValidKeyAction | ReturnType<typeof isEscape_> | undefined = isEscape_(keyWithoutModeID)
   if (j) {
     Build.BTypes & BrowserType.Chrome && mapKeyTypes & (kMapKey.normal | kMapKey.insertMode | kMapKey.otherMode) &&
@@ -98,6 +105,7 @@ const checkKey = (event: HandlerNS.Event, key: string, keyWithoutModeID: string
     isCmdTriggered = event.i || kKeyCode.True
   } else {
     nextKeys = j !== KeyAction.count ? safer(j) : keyFSM;
+    curKeyTimestamp = timestamp
   }
   return HandlerResult.Prevent;
 }
