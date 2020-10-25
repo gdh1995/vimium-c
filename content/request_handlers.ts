@@ -104,7 +104,7 @@ set_requestHandlers([
           let count = 0;
           set_clickable_(parApi.y().c)
           oldSet.forEach(el => { clickable_.has(el) || (clickable_.add(el), count++) })
-          console.log(`Vimium C: extend click: ${count ? "add " + count : "no"} local items to the parent's set.`);
+          console.log(`Vimium C: extend click: ${count ? "add " + count : "no"} local items sent to the parent's set.`)
         } else if (Build.MinCVer < BrowserVer.MinNewWeakSetWithSetOrArray && Build.BTypes & BrowserType.Chrome) {
           set_clickable_(parApi ? parApi.y().c : new WeakSet!<Element>())
           oldSet.forEach(clickable_.add, clickable_)

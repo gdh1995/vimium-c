@@ -650,15 +650,14 @@ function outputJSResult(stream) {
 
 function beforeCompile(file) {
   var allPathStr = file.history.join("|").replace(/\\/g, "/");
-  var contents = null, changed = false, oldLen = 0;
-  function get() { contents == null && (contents = ToString(file.contents), changed = true, oldLen = contents.length); }
+  var contents = null, oldLen = 0;
+  function get() { contents == null && (contents = ToString(file.contents), oldLen = contents.length) }
   if (!locally && (allPathStr.includes("background/") || allPathStr.includes("front/"))) {
     get();
-    changed = false
     contents = contents.replace(/\b(const|let|var)?\s?As[a-zA-Z]*_\s?=[^,;\n]+[,;\n]/g, ""
         ).replace(/\bAs[a-zA-Z]*_\b/g, "");
   }
-  if (changed || oldLen > 0 && contents.length !== oldLen) {
+  if (oldLen > 0 && contents.length !== oldLen) {
     file.contents = ToBuffer(contents);
   }
 }
@@ -667,8 +666,8 @@ var toRemovedGlobal = null;
 
 const beforeTerser = exports.beforeTerser = (file) => {
   var allPathStr = file.history.join("|").replace(/\\/g, "/");
-  var contents = null, changed = false, oldLen = 0;
-  function get() { contents == null && (contents = ToString(file.contents), changed = true, oldLen = contents.length); }
+  var contents = null, oldLen = 0;
+  function get(c) { contents == null && (contents = ToString(file.contents), oldLen = contents.length) }
   if (!locally && outputES6) {
     get();
     contents = contents.replace(/\bconst([\s{\[])/g, "let$1");
@@ -716,8 +715,6 @@ const beforeTerser = exports.beforeTerser = (file) => {
     }
     toRemovedGlobal = toRemovedGlobal.slice(0, -1);
     toRemovedGlobal = toRemovedGlobal && new RegExp(`(const|let|var|,)\\s?(${toRemovedGlobal})[,;]\n?\n?`, "g");
-    const oldChanged = changed;
-    get();
     let n = 0, remove = str => str[0] === "," ? str.slice(-1) : str.slice(-1) === "," ? str.split(/\s/)[0] + " " : "";
     let s1 = contents.slice(0, 1000);
     for (; ; n++) {
@@ -730,17 +727,20 @@ const beforeTerser = exports.beforeTerser = (file) => {
     if (n > 0) {
       contents = s1 + contents.slice(1000);
     }
-    changed = oldChanged || n > 0;
   }
-  if (changed || oldLen > 0 && contents.length !== oldLen) {
+  if (oldLen > 0 && contents.length !== oldLen) {
     file.contents = ToBuffer(contents);
   }
 }
 
 const postTerser = exports.postTerser = (file, allPaths) => {
   var allPathStr = (allPaths || file.history).join("|").replace(/\\/g, "/");
-  var contents = null, changed = false, oldLen = 0;
-  function get() { contents == null && (contents = ToString(file.contents), changed = true, oldLen = contents.length); }
+  var contents = null, oldLen = 0;
+  function get() { contents == null && (contents = ToString(file.contents), oldLen = contents.length); }
+  if (allPathStr.includes("content/") || allPathStr.includes("lib/")) {
+    get()
+    contents = contents.replace(/\n?\/\*!? ?@OUTPUT ?\{([^}]+)\} ?\*\/\n?/g, '$1')
+  }
   if (allPathStr.indexOf("extend_click.") >= 0) {
     get();
     contents = patchExtendClick(contents);
@@ -748,9 +748,8 @@ const postTerser = exports.postTerser = (file, allPaths) => {
   if (allPathStr.includes("content/") || allPathStr.includes("lib/") && !allPathStr.includes("/env.js")) {
     get();
     contents = addMetaData(file.relative, contents)
-    contents = contents.replace(/\n?\/\*!? ?@OUTPUT ?\{([^}]+)\} ?\*\/\n?/g, '$1')
   }
-  if (changed || oldLen > 0 && contents.length !== oldLen) {
+  if (oldLen > 0 && contents.length !== oldLen) {
     file.contents = ToBuffer(contents);
   }
 }

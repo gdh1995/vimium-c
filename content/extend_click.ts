@@ -248,6 +248,7 @@ rEL = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$addEve
 kVOnClick = InnerConsts.kVOnClick,
 kEventName2 = kVOnClick + BuildStr.RandomClick,
 kReady = "readystatechange", kFunc = "function",
+docCreateElement = doc0.createElement,
 StringIndexOf = kReady.indexOf, StringSubstr = kReady.substr
 function decryptFromVerifier (func: InnerVerifier | unknown): string {
   const str = call(_toString, func as InnerVerifier), offset = call(StringIndexOf, str, kMk);
@@ -255,25 +256,21 @@ function decryptFromVerifier (func: InnerVerifier | unknown): string {
       , GlobalConsts.LengthOfMarkAcrossJSWorlds + GlobalConsts.SecretStringLength);
 }
 function newFuncToString (a: FUNC, args: IArguments): string {
-    const replaced = a === myAEL || a === anotherAEL ? _listen
-        : a === myToStr || a === anotherToStr ? _toString
-        : 0,
-    str = call(_apply as (this: (this: FUNC, ...args: any[]) => string, self: FUNC, args: IArguments) => string,
-              _toString, replaced || a, args);
-    detectDisabled && str === detectDisabled && executeCmd();
-    return replaced || str !== (myAELStr || (myAELStr = call(_toString as (this: Function, ...args: any[]) => string
-              , myAEL, myToStrStr = call(_toString, myToStr)))
-            ) && str !== myToStrStr ? str
-        : (
-          noAbnormalVerifyingFound && (a as PublicFunction)(kMk, verifier),
-          a === anotherAEL ? call(_toString, _listen) : a === anotherToStr ? call(_toString, _toString)
-          : (noAbnormalVerifyingFound = 0, str)
-        );
+  const replaced = a === myAEL || a === anotherAEL ? _listen : a === myToStr || a === anotherToStr ? _toString : 0,
+  str = call(_apply as (this: (this: FUNC, ...args: any[]) => string, self: FUNC, args: IArguments) => string,
+            _toString, replaced || a, args)
+  detectDisabled && str === detectDisabled && executeCmd()
+  return replaced
+      || str !== (myAELStr
+                  || (myToStrStr = call(_toString, myToStr),
+                      myAELStr = call(_toString, myAEL)))
+          && str !== myToStrStr
+      ? str
+      : (noAbnormalVerifyingFound && (a as PublicFunction)(kMk, verifier), a === anotherAEL) ? call(_toString, _listen)
+      : a === anotherToStr ? call(_toString, _toString)
+      : (noAbnormalVerifyingFound = 0, str)
 }
 const hooks = {
-  // the code below must include direct reference to at least one property in `hooks`
-  // so that uglifyJS / terse won't remove the `hooks` variable
-  /** Create */ c: doc0.createElement,
   toString: function toString(this: FUNC): string {
     const args = arguments;
     if (args.length === 2 && args[0] === kMk) {
@@ -304,7 +301,7 @@ const hooks = {
     // returns void: https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/events/event_target.idl
   }
 },
-myAEL = hooks[kAEL], myToStr = hooks[kToS];
+myAEL = (/*#__NOINLINE__*/ hooks)[kAEL], myToStr = (/*#__NOINLINE__*/ hooks)[kToS]
 
 let doInit = function (this: void): void {
   if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once) {
@@ -315,7 +312,7 @@ let doInit = function (this: void): void {
   // note: `HTMLCollection::operator []` can not be overridden by `Object.defineProperty` on C32/83
   const docEl2 = Build.BTypes & BrowserType.Edge ? (docChildren as Extract<typeof docChildren, Function>)(0)
       : (docChildren as Exclude<typeof docChildren, Function>)[0] as Element | null,
-  el = call(hooks.c, doc0, "div") as HTMLDivElement,
+  el = call(docCreateElement, doc0, "div") as HTMLDivElement,
   S = InnerConsts.kSecretAttr;
   if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once) {
     doInit = null as never
