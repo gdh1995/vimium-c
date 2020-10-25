@@ -572,7 +572,8 @@ export const toggleTabUrl = (tabs: [Tab]): void => {
   if (reader && keyword) {
     const query = Backend_.parse_({ u: url })
     if (query && query.k === keyword) {
-      set_cOptions(BgUtils_.extendIf_({keyword: ""}, get_cOptions() as SafeObject))
+      set_cOptions(BgUtils_.extendIf_(BgUtils_.safer_<UnknownOptions<kBgCmd.openUrl>>({
+          keyword: ""}), get_cOptions<kBgCmd.openUrl>()))
       openUrlWithActions(query.u, Urls.WorkType.Default, tabs)
     } else {
       url = BgUtils_.convertToUrl_(query && get_cOptions<C.toggleTabUrl>().parsed ? query.u : url, keyword)

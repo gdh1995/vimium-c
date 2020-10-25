@@ -5,13 +5,12 @@ import {
 } from "./browser"
 import {
   cPort, cRepeat, cKey, get_cOptions, set_cPort, set_cOptions, set_cRepeat, set_cKey, cNeedConfirm, set_executeCommand,
-  executeCommand,
-  contentPayload,
-  settings
+  executeCommand, contentPayload, settings
 } from "./store"
 import {
   framesForTab, portSendFgCmd, indexFrame, requireURL, framesForOmni, sendFgCmd, complainNoSession, showHUD,
-  complainLimits
+  complainLimits,
+  getPortUrl,
 } from "./ports"
 import { parseSedOptions_ } from "./clipboard"
 import { newTabIndex, openUrl } from "./open_urls"
@@ -83,6 +82,21 @@ const BackgroundCommands: {
   /* kBgCmd.goNext: */ (): void => {
     let rel = get_cOptions<C.goNext>().rel, p2: string[] = [], patterns = get_cOptions<C.goNext>().patterns
     rel = rel ? rel + "" : "next"
+    const isNext = get_cOptions<C.goNext>().isNext != null ? !!get_cOptions<C.goNext>().isNext
+        : !rel.includes("prev") && !rel.includes("before")
+    const sed = parseSedOptions_(get_cOptions<C.goNext, true>())
+    if (sed && sed.r !== false) {
+      set_cPort(indexFrame(cPort.s.t, 0))
+      set_cRepeat(isNext ? cRepeat : -cRepeat)
+      Promise.resolve(getPortUrl()).then((url): void => {
+        if (url) {
+          set_cOptions(BgUtils_.extendIf_(BgUtils_.safer_<UnknownOptions<kBgCmd.openUrl>>({
+              url_f: url, goNext: true }), get_cOptions<kBgCmd.openUrl>()))
+          openUrl()
+        }
+      })
+      return
+    }
     if (!get_cOptions<C.goNext>().$n) {
       if (!(patterns instanceof Array)) {
         typeof patterns === "string" || (patterns = "")
@@ -102,7 +116,7 @@ const BackgroundCommands: {
     const maxLens: number[] = p2.map(i => Math.max(i.length + 12, i.length * 4)),
     totalMaxLen: number = Math.max.apply(Math, maxLens)
     sendFgCmd(kFgCmd.goNext, true, {
-      r: get_cOptions<C.goNext>().noRel ? "" : rel,
+      r: get_cOptions<C.goNext>().noRel ? "" : rel, n: isNext,
       p: p2, l: maxLens, m: totalMaxLen > 0 && totalMaxLen < 99 ? totalMaxLen : 32
     })
   },

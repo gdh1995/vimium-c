@@ -154,15 +154,15 @@ set_contentCommands_([
     })
   },
   /* kFgCmd.goNext: */ (req: CmdOptions[kFgCmd.goNext]): void => {
-    let isNext = !req.r.includes("prev"), parApi: VApiTy | null | void, chosen: GoNextBaseCandidate | false | 0 | null
+    let parApi: VApiTy | null | void, chosen: GoNextBaseCandidate | false | 0 | null
     if (!isTop && (parApi = Build.BTypes & BrowserType.Firefox ? getParentVApi() : frameElement_() && getParentVApi())
         && !parApi.a(keydownEvents_)) {
       parApi.f(kFgCmd.goNext, req as CmdOptions[kFgCmd.goNext] & FgOptions, 1)
     } else if (chosen = isHTML_()
-        && (req.r && findNextInRel(req.r) || req.p.length && findNextInText(req.p, isNext, req.l, req.m))) {
+        && (req.r && findNextInRel(req.r) || req.p.length && findNextInText(req.p, req.n, req.l, req.m))) {
       chosen[1].j(chosen[0])
     } else {
-      hudTip(kTip.noLinksToGo, 0, VTr(kTip.prev + <number> <boolean | number> isNext));
+      hudTip(kTip.noLinksToGo, 0, VTr(kTip.prev + <number> <boolean | number> req.n))
     }
   },
   /* kFgCmd.autoOpen: */ (options: CmdOptions[kFgCmd.autoOpen]): void => {

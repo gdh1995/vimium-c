@@ -94,7 +94,7 @@
   "goBack_p": { "message": "reuse=current/newBg/newFg" },
   "goForward": { "message": "Go forward in history" },
   "goNext": { "message": "Follow the link labeled next or \">\"" },
-  "goNext_p": { "message": "patterns:string, rel:string, noRel" },
+  "goNext_p": { "message": "sed, patterns:string, rel:string, noRel, isNext" },
   "goPrevious": { "message": "Follow the link labeled previous or \"<\"" },
   "goToRoot": { "message": "Go to root of current URL hierarchy" },
   "goUp": { "message": "Go up the URL hierarchy" },

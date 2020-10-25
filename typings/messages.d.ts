@@ -306,6 +306,7 @@ interface CmdOptions {
   };
   [kFgCmd.goNext]: {
     /** rel */ r: string;
+    /** isNext */ n: boolean;
     /** patterns */ p: string[];
     /** length limit list */ l: number[];
     /** max of length limit list */ m: number;
@@ -412,6 +413,7 @@ declare const enum SedContext {
   /** `p` */ paste = 1 << 15,
   /** `i` */ image = 1 << 8,
   /** `g` */ gotoUrl = 1 << 6,
+  /** `n` */ goNext = 1 << 13,
 }
 
 interface FgRes {

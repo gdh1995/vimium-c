@@ -4,7 +4,9 @@ import {
   browserWindows, getAllWindows, tabsCreate, safeUpdate, InfoToCreateMultiTab, openMultiTab, makeWindow, browser_
 } from "./browser"
 import { cKey, cPort, cRepeat, get_cOptions, settings, set_cOptions, set_cPort, set_cRepeat } from "./store"
-import { framesForTab, ensureInnerCSS, safePost, showHUD, complainLimits, findCPort, isNotVomnibarPage, portSendFgCmd } from "./ports"
+import {
+  framesForTab, ensureInnerCSS, safePost, showHUD, complainLimits, findCPort, isNotVomnibarPage, portSendFgCmd
+} from "./ports"
 import { parseSedOptions_, paste_, substitute_ } from "./clipboard"
 
 type ShowPageData = [string, typeof Settings_.temp_.shownHash_, number]
@@ -350,6 +352,17 @@ const openCopiedUrl = (tabs: [Tab] | [] | undefined, url: string | null): void =
   openUrlWithActions(url, Urls.WorkType.ActAnyway, tabs)
 }
 
+const goToNextUrl = (url: string, count: number): string => {
+  return url.replace(<RegExpG & RegExpSearchable<3>> /\$(?:\{(\d+)(:\d*)?(:\d*)?\}|\$)/g, (s, n, m, t): string => {
+    if (s === "$$") { return "$" }
+    let cur = n && parseInt(n) || 1
+    let maxi = m && parseInt(m.slice(1)) || 0
+    let stepi = Math.max(1, t && parseInt(t.slice(1)) || 1)
+    cur += stepi * count
+    return "" + Math.max(1, Math.min(cur, maxi > 0 ? maxi : cur))
+  })
+}
+
 export const openUrl = (tabs?: [Tab] | []): void => {
   if (get_cOptions<C.openUrl>().urls) {
     if (get_cOptions<C.openUrl>().urls instanceof Array) {
@@ -364,7 +377,7 @@ export const openUrl = (tabs?: [Tab] | []): void => {
   if (get_cOptions<C.openUrl>().url) {
     let url = get_cOptions<C.openUrl>().url + ""
     if (sed) {
-      url = substitute_(url, sed.k ? SedContext.NONE : SedContext.paste, sed)
+      url = substitute_(url, SedContext.paste, sed)
     }
     openUrlWithActions(url, Urls.WorkType.EvenAffectStatus, tabs)
   } else if (get_cOptions<C.openUrl>().copied) {
@@ -376,8 +389,14 @@ export const openUrl = (tabs?: [Tab] | []): void => {
     /*#__NOINLINE__*/ openCopiedUrl(tabs, url)
   } else {
     let url_f = get_cOptions<C.openUrl, true>().url_f!
-    if (sed && typeof url_f === "string" && url_f) {
-      url_f = substitute_(url_f, sed.k ? SedContext.NONE : SedContext.paste, sed)
+    if (typeof url_f === "string" && url_f) {
+      let doesGoNext = !!get_cOptions<C.openUrl>().goNext
+      if (sed || doesGoNext) {
+        url_f = substitute_(url_f, doesGoNext ? SedContext.goNext : SedContext.paste, sed)
+        if (doesGoNext) {
+          url_f = /*#__NOINLINE__*/ goToNextUrl(url_f, cRepeat)
+        }
+      }
     }
     openUrlWithActions(url_f || "", Urls.WorkType.FakeType, tabs)
   }

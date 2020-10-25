@@ -429,7 +429,7 @@ set_reqH_([
   },
   /** kFgReq.setOmniStyle: */ setOmniStyle,
   /** kFgReq.findFromVisual */ (_: FgReq[kFgReq.findFromVisual], port: Port): void => {
-    set_cOptions(BgUtils_.safer_({ active: true, returnToViewport: true }))
+    set_cOptions(BgUtils_.safer_<UnknownOptions<kBgCmd.performFind>>({ active: true, returnToViewport: true }))
     set_cPort(port), set_cRepeat(1)
     performFind()
   },
@@ -443,7 +443,7 @@ set_reqH_([
   },
   /** kFgReq.visualMode: */ (request: FgReq[kFgReq.visualMode], port: Port): void => {
     const isCaret = !!request.c
-    set_cOptions(BgUtils_.safer_({ mode: isCaret ? "caret" : "", start: true }))
+    set_cOptions(BgUtils_.safer_<UnknownOptions<kBgCmd.visualMode>>({ mode: isCaret ? "caret" : "", start: true }))
     set_cPort(port), set_cRepeat(1)
     enterVisualMode()
   }
