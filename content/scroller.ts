@@ -74,7 +74,7 @@ let performAnimate = (e: SafeElement | null, d: ScrollByY, a: number): void => {
     const
     // although timestamp is mono, Firefox adds too many limits to its precision
     elapsed = !timestamp ? (newTimestamp = performance.now(), ScrollerNS.Consts.firstTick)
-              : newTimestamp > timestamp ? newTimestamp - timestamp
+              : newTimestamp > timestamp + 1 ? newTimestamp - timestamp
               : (newTimestamp += ScrollerNS.Consts.tickForUnexpectedTime, ScrollerNS.Consts.tickForUnexpectedTime),
     continuous = keyIsDown > 0
     timestamp = newTimestamp;
@@ -103,7 +103,7 @@ let performAnimate = (e: SafeElement | null, d: ScrollByY, a: number): void => {
       totalDelta += math.abs(delta)
       rAF_(animate);
     } else {
-      if ((!(Build.BTypes & BrowserType.Chrome) || chromeVer_ >= BrowserVer.MinMaybeScrollEndAndOverScrollEvents)
+      if ((!(Build.BTypes & BrowserType.Chrome) || chromeVer_ > BrowserVer.MinMaybeScrollEndAndOverScrollEvents - 1)
           && "onscrollend" in (Build.BTypes & ~BrowserType.Firefox ? Image.prototype : doc)) {
         // according to tests on C75, no "scrollend" events if scrolling behavior is "instant";
         // the doc on Google Docs requires no "overscroll" events for programmatic scrolling
