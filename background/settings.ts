@@ -285,7 +285,6 @@ var Settings_ = {
   reloadCSS_: null as never as <T extends -1 | 2> (action: T, customCSS?: string
       ) => T extends -1 ? SettingsNS.MergedCustomCSS : void,
   /** can only fetch files in the `[ROOT]/front` folder */
-  /** @todo: */
   fetchFile_ (file: keyof SettingsNS.ReadableFiles, callback: (this: void, text: string) => any): void {
     let filePath = this.CONST_[file];
     if (!Build.NDEBUG && !filePath) { throw Error("unknown file: " + file); } // just for debugging

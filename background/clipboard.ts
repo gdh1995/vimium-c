@@ -6,15 +6,11 @@ declare const enum SedAction {
   encode = 10, encodeComp = 11,
 }
 interface ClipSubItem {
-  contexts_: SedContext
-  host_: string | null
-  match_: RegExp
-  retainMatched_: BOOL
-  actions_: SedAction[]
-  replaced_: string
+  readonly contexts_: SedContext; readonly host_: string | null; readonly match_: RegExp
+  readonly retainMatched_: BOOL; readonly actions_: SedAction[]; readonly replaced_: string
 }
 
-const SedActionMap: Dict<SedAction> & SafeObject = {
+const SedActionMap: ReadonlySafeDict<SedAction> = {
   __proto__: null as never,
   atob: SedAction.base64Decode, base64: SedAction.base64Decode, btoa: SedAction.base64Encode,
   base64encode: SedAction.base64Encode,
@@ -24,9 +20,9 @@ const SedActionMap: Dict<SedAction> & SafeObject = {
   normalize: SedAction.normalize, reverse: SedAction.reverseText
 }
 
-let staticSeds_: ClipSubItem[] | null = null
+let staticSeds_: readonly ClipSubItem[] | null = null
 
-const parseSeds_ = (text: string): ClipSubItem[] => {
+const parseSeds_ = (text: string): readonly ClipSubItem[] => {
   const result: ClipSubItem[] = []
   for (let line of text.split("\n")) {
     line = line.trim()
@@ -91,6 +87,15 @@ export const parseSedKeys_ = (keys: string): SedContext => {
       : ch === kCharCode.S ? SedContext.copy | SedContext.paste : (1 << (ch - kCharCode.A)) as SedContext
   }
   return context
+}
+
+export const maySedRuleExist = (context: SedContext): boolean => {
+  for (const item of staticSeds_ || []) {
+    if (item.contexts_ & context) {
+      return true
+    }
+  }
+  return !staticSeds_
 }
 
 export const substitute_ = (text: string, context: SedContext, mixedSed?: MixedSedOpts | null): string => {

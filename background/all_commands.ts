@@ -12,11 +12,11 @@ import {
   complainLimits,
   getPortUrl,
 } from "./ports"
-import { parseSedOptions_ } from "./clipboard"
-import { newTabIndex, openUrl } from "./open_urls"
+import { maySedRuleExist, parseSedOptions_, substitute_ } from "./clipboard"
+import { goToNextUrl, newTabIndex, openUrl } from "./open_urls"
 import {
   parentFrame, enterVisualMode, showVomnibar, toggleZoom, confirm_, gOnConfirmCallback, captureTab,
-  set_gOnConfirmCallback, initHelp, setOmniStyle, framesGoBack, mainFrame, nextFrame, performFind
+  set_gOnConfirmCallback, initHelp, setOmniStyle, framesGoBack, mainFrame, nextFrame, performFind, framesGoNext
 } from "./frame_commands"
 import {
   copyWindowInfo, getTabRange, joinTabs, moveTabToNewWindow, moveTabToNextWindow, reloadTab, removeTab, toggleMuteTab,
@@ -80,44 +80,30 @@ const BackgroundCommands: {
 
   // region: need cport
   /* kBgCmd.goNext: */ (): void => {
-    let rel = get_cOptions<C.goNext>().rel, p2: string[] = [], patterns = get_cOptions<C.goNext>().patterns
-    rel = rel ? rel + "" : "next"
+    const rawRel = get_cOptions<C.goNext>().rel
+    const rel = rawRel ? rawRel + "" : "next"
     const isNext = get_cOptions<C.goNext>().isNext != null ? !!get_cOptions<C.goNext>().isNext
         : !rel.includes("prev") && !rel.includes("before")
     const sed = parseSedOptions_(get_cOptions<C.goNext, true>())
-    if (sed && sed.r !== false) {
-      set_cPort(indexFrame(cPort.s.t, 0))
-      set_cRepeat(isNext ? cRepeat : -cRepeat)
-      Promise.resolve(getPortUrl()).then((url): void => {
-        if (url) {
-          set_cOptions(BgUtils_.extendIf_(BgUtils_.safer_<UnknownOptions<kBgCmd.openUrl>>({
-              url_f: url, goNext: true }), get_cOptions<kBgCmd.openUrl>()))
-          openUrl()
-        }
-      })
+    if (!sed || sed.r === false || !sed.k && !maySedRuleExist(SedContext.goNext)) {
+      framesGoNext(isNext, rel)
       return
     }
-    if (!get_cOptions<C.goNext>().$n) {
-      if (!(patterns instanceof Array)) {
-        typeof patterns === "string" || (patterns = "")
-        patterns = patterns
-            || (rel !== "next" && rel !== "last" ? settings.cache_.previousPatterns : settings.cache_.nextPatterns)
-        patterns = patterns.split(",")
+    Promise.resolve(getPortUrl(indexFrame(cPort.s.t, 0))).then((tabUrl): void => {
+      const count = isNext ? cRepeat : -cRepeat
+      const template = tabUrl && substitute_(tabUrl, SedContext.goNext, sed)
+      const [hasPlaceholder, next] = template ? goToNextUrl(template, count) : [false, tabUrl]
+      if (hasPlaceholder && next) {
+        set_cRepeat(count)
+        set_cOptions(BgUtils_.extendIf_(BgUtils_.safer_<UnknownOptions<kBgCmd.openUrl>>({
+            url_f: next, goNext: false, sed: false }), get_cOptions<kBgCmd.openUrl>()))
+        if (get_cOptions<C.openUrl>().reuse === void 0) {
+          get_cOptions<C.openUrl, true>().reuse = ReuseType.current
+        }
+        openUrl()
+      } else {
+        framesGoNext(isNext, rel)
       }
-      for (let i of patterns) {
-        i = i && (i + "").trim()
-        i && p2.push(GlobalConsts.SelectorPrefixesInPatterns.includes(i[0]) ? i : i.toLowerCase())
-        if (p2.length === GlobalConsts.MaxNumberOfNextPatterns) { break }
-      }
-      get_cOptions<C.goNext, true>().patterns = patterns
-      get_cOptions<C.goNext, true>().rel = rel
-      get_cOptions<C.goNext, true>().$n = 1
-    }
-    const maxLens: number[] = p2.map(i => Math.max(i.length + 12, i.length * 4)),
-    totalMaxLen: number = Math.max.apply(Math, maxLens)
-    sendFgCmd(kFgCmd.goNext, true, {
-      r: get_cOptions<C.goNext>().noRel ? "" : rel, n: isNext,
-      p: p2, l: maxLens, m: totalMaxLen > 0 && totalMaxLen < 99 ? totalMaxLen : 32
     })
   },
   /* kBgCmd.insertMode: */ (): void => {

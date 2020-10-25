@@ -390,6 +390,34 @@ export const toggleZoom = (): void => {
   })
 }
 
+export const framesGoNext = (isNext: boolean, rel: string): void => {
+  let rawPatterns = get_cOptions<C.goNext>().patterns, patterns = rawPatterns, useDefaultPatterns = false
+  if (!patterns || !(patterns instanceof Array)) {
+    patterns = patterns && typeof patterns === "string" ? patterns
+        : (useDefaultPatterns = true, isNext ? settings.cache_.nextPatterns : settings.cache_.previousPatterns)
+    patterns = patterns.split(",")
+  }
+  if (useDefaultPatterns || !get_cOptions<C.goNext>().$n) {
+    let p2: string[] = []
+    for (let i of patterns) {
+      i = i && (i + "").trim()
+      i && p2.push(GlobalConsts.SelectorPrefixesInPatterns.includes(i[0]) ? i : i.toLowerCase())
+      if (p2.length === GlobalConsts.MaxNumberOfNextPatterns) { break }
+    }
+    patterns = p2
+    if (!useDefaultPatterns) {
+      get_cOptions<C.goNext, true>().patterns = patterns
+      get_cOptions<C.goNext, true>().$n = 1
+    }
+  }
+  const maxLens: number[] = patterns.map(i => Math.max(i.length + 12, i.length * 4)),
+  totalMaxLen: number = Math.max.apply(Math, maxLens)
+  sendFgCmd(kFgCmd.goNext, true, {
+    r: get_cOptions<C.goNext>().noRel ? "" : rel, n: isNext,
+    p: patterns, l: maxLens, m: totalMaxLen > 0 && totalMaxLen < 99 ? totalMaxLen : 32
+  })
+}
+
 /** `confirm()` simulator section */
 
 export let gOnConfirmCallback: ((arg?: FakeArg) => void) | null | undefined
@@ -480,9 +508,11 @@ export const executeShortcut = (shortcutName: StandardShortcutNames, ports: Fram
   if (registry.alias_ > kBgCmd.MAX_NEED_CPORT || registry.alias_ < kBgCmd.MIN_NEED_CPORT) {
     executeCommand(registry, 1, kKeyCode.None, null as never as Port, 0)
   } else {
-    let opts = registry.options_ || ((registry as Writable<typeof registry>).options_ = BgUtils_.safeObj_<any>())
-    if (!opts.$noWarn) {
-      (opts as Writable<typeof opts>).$noWarn = true
+    let opts = registry.options_
+    if (!opts || !opts.$noWarn) {
+      let rawOpts = (registry as Writable<typeof registry>).options_ = BgUtils_.safeObj_<any>()
+      opts && BgUtils_.extendIf_(rawOpts, opts)
+      rawOpts.$noWarn = true
       console.log("Error: Command", cmdName, "must run on pages which are not privileged")
     }
   }

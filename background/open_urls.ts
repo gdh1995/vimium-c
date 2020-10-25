@@ -352,15 +352,18 @@ const openCopiedUrl = (tabs: [Tab] | [] | undefined, url: string | null): void =
   openUrlWithActions(url, Urls.WorkType.ActAnyway, tabs)
 }
 
-const goToNextUrl = (url: string, count: number): string => {
-  return url.replace(<RegExpG & RegExpSearchable<3>> /\$(?:\{(\d+)(:\d*)?(:\d*)?\}|\$)/g, (s, n, m, t): string => {
+export const goToNextUrl = (url: string, count: number): [hasPlaceholder: boolean, newUrl: string] => {
+  let matched = false
+  url = url.replace(<RegExpG & RegExpSearchable<3>> /\$(?:\{(\d+)(:\d*)?(:\d*)?\}|\$)/g, (s, n, m, t): string => {
     if (s === "$$") { return "$" }
+    matched = true
     let cur = n && parseInt(n) || 1
     let maxi = m && parseInt(m.slice(1)) || 0
     let stepi = Math.max(1, t && parseInt(t.slice(1)) || 1)
     cur += stepi * count
     return "" + Math.max(1, Math.min(cur, maxi > 0 ? maxi : cur))
   })
+  return [matched, url]
 }
 
 export const openUrl = (tabs?: [Tab] | []): void => {
@@ -394,7 +397,7 @@ export const openUrl = (tabs?: [Tab] | []): void => {
       if (sed || doesGoNext) {
         url_f = substitute_(url_f, doesGoNext ? SedContext.goNext : SedContext.paste, sed)
         if (doesGoNext) {
-          url_f = /*#__NOINLINE__*/ goToNextUrl(url_f, cRepeat)
+          url_f = /*#__NOINLINE__*/ goToNextUrl(url_f, cRepeat)[1]
         }
       }
     }

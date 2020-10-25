@@ -92,10 +92,7 @@ export const copyWindowInfo = (): void => {
         : s1 !== "__proto__" && (i as Dict<any>)[s1] || ""
     })),
     result = copy_(data, join, sed)
-    // @todo: check the second arg
-    showHUD(type === "tab" && tabs.length < 2 ? result : trans_("copiedWndInfo")
-        // @ts-ignore
-        , type === "url" ? kTip.noUrlCopied : kTip.noTextCopied)
+    showHUD(type === "tab" && tabs.length < 2 ? result : trans_("copiedWndInfo"), kTip.noTextCopied)
   })
 }
 
