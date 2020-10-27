@@ -716,6 +716,7 @@ const beforeTerser = exports.beforeTerser = (file) => {
     toRemovedGlobal = toRemovedGlobal.slice(0, -1);
     toRemovedGlobal = toRemovedGlobal && new RegExp(`(const|let|var|,)\\s?(${toRemovedGlobal})[,;]\n?\n?`, "g");
     let n = 0, remove = str => str[0] === "," ? str.slice(-1) : str.slice(-1) === "," ? str.split(/\s/)[0] + " " : "";
+    get()
     let s1 = contents.slice(0, 1000);
     for (; ; n++) {
       let s2 = s1.replace(toRemovedGlobal, remove);

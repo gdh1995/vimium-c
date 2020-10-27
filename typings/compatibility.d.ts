@@ -522,7 +522,7 @@ declare const enum FirefoxBrowserVer {
   MinCSS$readOnly$selector = 78, // https://developer.mozilla.org/en-US/docs/Web/CSS/:read-only
   MinEnsuredUnicodePropertyEscapesInRegExp = 78,
   /** @todo: trace https://bugzilla.mozilla.org/show_bug.cgi?id=1587723 */
-  MinMediaChangeEventsOnBackgroundPage = 99,
+  MinMediaChangeEventsOnBackgroundPage = 999,
   // members of a Selection are never updated when an <input> gets focused, so no work-around
   Min$Selection$SupportTextBox = 999,
   None = 0,
