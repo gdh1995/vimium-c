@@ -30,6 +30,7 @@ interface ViewerType {
     ratio: number, width: number, height: number
     left: number, top: number
   }
+  initialImageData: unknown;
   destroy(): any;
   show(): any;
   play(fullscreen: true): any;
@@ -64,7 +65,7 @@ let VShown: ValidNodeTypes | null = null;
 let bgLink = $<HTMLAnchorElement & SafeHTMLElement>("#bgLink");
 let tempEmit: ((succeed: boolean) => void) | null = null;
 let viewer_: ViewerType | null = null;
-let _initialViewerData: any = null;
+let _initialViewerData: unknown = null;
 let encryptKey = +window.name || 0;
 let ImageExtRe = <RegExpI> /\.(avif|bmp|gif|icon?|jpe?g|a?png|tiff?|webp)(?=[.\-_]|\b)/i;
 let _shownBlobURL = "", _shownBlob: Blob | null | 0 = null;
@@ -614,7 +615,7 @@ function showSlide(ViewerModule: CurWnd["Viewer"], zoomToFit?: boolean): Promise
     configurable: true,
     enumerable: true,
     get: () => _initialViewerData,
-    set (val: any): void {
+    set (val: unknown): void {
       _initialViewerData = val
       if (viewer_ && !zoomToFit) {
         zoomToFit = true

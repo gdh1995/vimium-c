@@ -24,19 +24,9 @@ import { main_not_ff as extend_click_not_ff } from  "./extend_click"
 import { main_ff as extend_click_ff } from  "./extend_click_ff"
 import { RSC } from "./commands"
 
-interface SandboxGetterFunc {
-  (comparer: (this: void, rand2: number, testEncrypted: string) => boolean, rand1: number
-      ): VApiTy | 0 | null | undefined | void;
-}
-interface SandboxGetterWrapper { _get: SandboxGetterFunc }
-type WindowWithGetter = Window & { [key: string]: SandboxGetterWrapper }
 declare var XPCNativeWrapper: <T extends object> (wrapped: T) => XrayedObject<T>;
 
 const docReadyListeners: Array<(this: void) => void> = [], completeListeners: Array<(this: void) => void> = []
-
-let coreTester: { /** name */ n: BuildStr.CoreGetterFuncName; /** recvTick */ r: number; /** sendTick */ s: number;
-    /** random key */ k: number; /** encrypt */ e (trustedRand: number, unsafeRand: number): string;
-    /** compare_ */ c: Parameters<SandboxGetterFunc>[0]; /** sandboxGetter */ g: SandboxGetterFunc }
 
 set_safeDestroy((silent?: Parameters<SafeDestoryF>[0]): void => {
     if (!isAlive_) { return; }
@@ -85,12 +75,14 @@ else if (Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox |
     set_getWndVApi_ff(wnd => wnd.VApi)
     set_getParentVApi(() => frameElement_() && (parent as Window).VApi)
 } else {
-    coreTester = {
-      n: BuildStr.CoreGetterFuncName,
-      k: 0,
-      r: 0,
-      s: 0,
-      e (trustedRand: number, unsafeRand: number): string {
+  ((): void => {
+    type Comparer = (this: void, rand2: number, testEncrypted: string) => boolean
+    type SandboxGetterFunc = (this: void, comparer: Comparer, rand1: number) => VApiTy | 0 | null | undefined | void
+    type GetterWrapper = { _get: SandboxGetterFunc }
+    type WindowWithGetter = Window & { __VimiumC__: GetterWrapper }
+    let randomKey = 0, recvTick = 0, sendTick = 0
+    const name = BuildStr.CoreGetterFuncName as string as "__VimiumC__"
+    const encrypt = (trustedRand: number, unsafeRand: number): string => {
         trustedRand += (unsafeRand >= 0 && unsafeRand < 1 ? unsafeRand : trustedRand);
         let a = (0x8000 * trustedRand) | 0,
         host = new URL((browser as typeof chrome).runtime.getURL("")).host.replace(<RegExpG> /-/g, "");
@@ -99,46 +91,49 @@ else if (Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox |
               : BuildStr.RandomReq)
             ).match(<RegExpG> /[\da-f]{1,4}/gi)!
             ).map((i, ind) => parseInt(i, 16) & (ind & 1 ? ~a : a)).join("");
-      },
-      c (rand2: number, testEncrypted: string): boolean {
+    }
+    const comparer: Comparer = (rand2, testEncrypted): boolean => {
         "use strict";
         /*! @OUTPUT {"use strict";} */
-        const diff = coreTester.e(coreTester.k, +rand2) !== testEncrypted, d2 = coreTester.r > 64;
-        coreTester.r += d2 ? 0 : diff ? 2 : 1;
+        const diff = encrypt(randomKey, +rand2) !== testEncrypted, d2 = recvTick > 64
+        recvTick += d2 ? 0 : diff ? 2 : 1
         return diff || d2; // hide the real result if too many errors
-      },
-      g (comparer, rand1): VApiTy | void {
+    }
+    const getterWrapper: GetterWrapper = Object.defineProperty(raw_unwrap_ff(new window.Object() as GetterWrapper)!
+          , "_get", { value (maybeComparer, rand1): VApiTy | void {
         let rand2 = math.random(), toStr = hookOnWnd.toString
         // an ES6 method function is always using the strict mode, so the arguments are inaccessible outside it
-        if (coreTester.s > GlobalConsts.MaxRetryTimesForSecret
+        if (sendTick > GlobalConsts.MaxRetryTimesForSecret
             // if `comparer` is a Proxy, then `toString` returns "[native code]", so the line below is safe
-            || toStr.call(comparer) !== toStr.call(coreTester.c)
-            || comparer(rand2, coreTester.e(rand2, +rand1))) {
-          if (coreTester.s < GlobalConsts.MaxRetryTimesForSecret + 10) {
-            coreTester.s++
+            || toStr.call(maybeComparer) !== toStr.call(comparer)
+            || maybeComparer(rand2, e(rand2, +rand1))) {
+          if (sendTick < GlobalConsts.MaxRetryTimesForSecret + 10) {
+            sendTick++
           }
           return
         }
         return vApi
-      }
-    };
+    } })
     /** Note: this function needs to be safe enough */
     set_getWndVApi_ff((anotherWnd: Window): VApiTy | null | void => {
-      coreTester.r = -1;
+      recvTick = -1
       // Sometimes an `anotherWnd` has neither `.wrappedJSObject` nor `coreTester`,
       // usually when a child frame is hidden. Tested on QQMail (destkop version) on Firefox 74.
       // So add `|| anotherWnd` for less exceptions
       try {
         let core: ReturnType<SandboxGetterFunc>,
-        wrapper = unwrap_ff(anotherWnd as XrayedObject<WindowWithGetter>)[coreTester.n],
+        wrapper = unwrap_ff(anotherWnd as XrayedObject<WindowWithGetter>)[name],
         getter = wrapper && wrapper._get
-        return getter && (core = getter(coreTester.c, coreTester.k = math.random())) &&
-          !coreTester.r ? core : null;
+        return getter && (core = getter(comparer, randomKey = math.random())) && !recvTick ? core : null
       } catch {}
     })
     // on Firefox, such an exposed function can only be called from privileged environments
-    raw_unwrap_ff(window as XrayedObject<WindowWithGetter>)![coreTester.n] = Object.defineProperty(
-        raw_unwrap_ff(new window.Object())!, "_get", { value: coreTester.g })
+    try {
+      raw_unwrap_ff(window as XrayedObject<WindowWithGetter>)![name] = getterWrapper
+    } catch { // if window[name] is not configurable
+      set_getWndVApi_ff((_anotherWnd: Window): VApiTy | null | void => {})
+    }
+  })()
 }
 if (!(isTop || injector)) {
   const scoped_parApi = frameElement_() && getParentVApi();

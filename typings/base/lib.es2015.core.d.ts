@@ -368,8 +368,9 @@ interface ObjectConstructor {
      * @param attributes Descriptor for the property. It can be for a data property or an accessor
      *  property.
      */
-    defineProperty<ValueType>(o: any, propertyKey: PropertyKey, attributes: PropertyDescriptorT<ValueType>): any;
-    defineProperty(o: any, propertyKey: PropertyKey, attributes: PropertyDescriptor): any;
+    defineProperty<O extends object, K extends keyof O>(obj: O, propertyKey: K, attributes: PropertyDescriptorT<O[K]>): O;
+    // defineProperty<ValueType>(o: any, propertyKey: PropertyKey, attributes: PropertyDescriptorT<ValueType>): any;
+    // defineProperty(o: any, propertyKey: PropertyKey, attributes: PropertyDescriptor): any;
 }
 
 interface ReadonlyArray<T> {
