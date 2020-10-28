@@ -195,8 +195,8 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
    * * must look like a real task and contain random string
    */
   interface InnerVerifier {
-    (maybeSecret: string, maybeAnotherVerifierInner: InnerVerifier | unknown): void;
-    (maybeSecret: string): [EventTarget["addEventListener"], Function["toString"]] | void;
+    (maybeSecret: string, maybeAnotherVerifierInner: InnerVerifier): void;
+    (maybeSecret: string, _?: 0 | unknown): [EventTarget["addEventListener"], Function["toString"]] | void;
   }
   type ValidVerifyingOut = Exclude<ReturnType<InnerVerifier>, void>
   type PublicFunction = (maybeKNeedToVerify: string, verifierFunc: InnerVerifier | unknown) => void | string;
@@ -204,12 +204,12 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
           : !isFirstTime && VTr(kTip.removeCurScript))
         || '"use strict";(' + (function VC(this: void): void {
 
-function verifier(maybeSecret: string | ValidVerifyingOut, maybeVerifierB?: InnerVerifier): ValidVerifyingOut | void {
+function verifier(maybeSecret: string | ValidVerifyingOut, maybeVerifierB?: unknown): ValidVerifyingOut | void {
   "use strict";
   /*! @OUTPUT {"use strict";} */
   return maybeSecret === GlobalConsts.MarkAcrossJSWorlds && noAbnormalVerifyingFound
       ? !maybeVerifierB ? [myAEL, myToStr]
-        : (maybeSecret = maybeVerifierB(decryptFromVerifier(maybeVerifierB))!,
+        : (maybeSecret = (maybeVerifierB as InnerVerifier)(checkIsNotVerifier(maybeVerifierB, 1) as string)!,
           [anotherAEL, anotherToStr] = maybeSecret,
           0 as never as void)
       : (noAbnormalVerifyingFound = 0) as never as void
@@ -252,10 +252,15 @@ kEventName2 = kVOnClick + BuildStr.RandomClick,
 kReady = "readystatechange", kFunc = "function",
 docCreateElement = doc0.createElement,
 StringIndexOf = kReady.indexOf, StringSubstr = kReady.substr
-function decryptFromVerifier (func: InnerVerifier | unknown): string {
-  const str = call(_toString, func as InnerVerifier)
-  return call(StringSubstr, str, verifierPrefixLen - GlobalConsts.LengthOfMarkAcrossJSWorlds
-      , GlobalConsts.LengthOfMarkAcrossJSWorlds + GlobalConsts.SecretStringLength);
+function checkIsNotVerifier (func: InnerVerifier | unknown | 0, noSecArg?: BOOL, str?: string): unknown {
+  return !verifierPrefixLen
+    || call(StringSubstr, str = str || call(_toString, func as any), 0, verifierPrefixLen) !== myVerifierStrPrefix
+    || call(StringSubstr, str, verifierPrefixLen + GlobalConsts.SecretStringLength) !== myVerifierStrSuffix
+    || func && (func as InnerVerifier)(
+        call(StringSubstr, str, verifierPrefixLen - GlobalConsts.LengthOfMarkAcrossJSWorlds
+          , GlobalConsts.LengthOfMarkAcrossJSWorlds + GlobalConsts.SecretStringLength),
+        noSecArg ? 0 : verifier
+    )
 }
 function newFuncToString (a: FUNC, args: IArguments): string {
   const replaced = a === myAEL || a === anotherAEL ? _listen : a === myToStr || a === anotherToStr ? _toString : 0,
@@ -267,15 +272,13 @@ function newFuncToString (a: FUNC, args: IArguments): string {
                   || (myToStrStr = call(_toString, myToStr),
                       myVerifierStrPrefix = call(_toString, verifier),
                       verifierPrefixLen =
-                          call(StringIndexOf, myVerifierStrPrefix, kMk) + GlobalConsts.LengthOfMarkAcrossJSWorlds),
+                          call(StringIndexOf, myVerifierStrPrefix, kMk) + GlobalConsts.LengthOfMarkAcrossJSWorlds,
                       myVerifierStrSuffix = call(StringSubstr, myVerifierStrPrefix
                           , verifierPrefixLen + GlobalConsts.SecretStringLength),
                       myVerifierStrPrefix = call(StringSubstr, myVerifierStrPrefix, 0, verifierPrefixLen),
-                      myAELStr = call(_toString, myAEL))
+                      myAELStr = call(_toString, myAEL)))
           && str !== myToStrStr
-      ? call(StringSubstr, str, 0, verifierPrefixLen) === myVerifierStrPrefix
-          && call(StringSubstr, str, verifierPrefixLen + GlobalConsts.SecretStringLength) === myVerifierStrSuffix
-        ? call(_toString, noop) : str
+      ? checkIsNotVerifier(0, 0, str) ? str : call(_toString, noop)
       : (noAbnormalVerifyingFound && (a as PublicFunction)(kMk, verifier), a === anotherAEL) ? call(_toString, _listen)
       : a === anotherToStr ? call(_toString, _toString)
       : (noAbnormalVerifyingFound = 0, str)
@@ -284,8 +287,7 @@ const hooks = {
   toString: function toString(this: FUNC): string {
     const args = arguments;
     if (args.length === 2 && args[0] === kMk) {
-      // randomize the body of this function
-      (args[1] as InnerVerifier)(decryptFromVerifier(args[1]), verifier);
+      checkIsNotVerifier(args[1])
     }
     return newFuncToString(this, args);
   },
@@ -293,7 +295,7 @@ const hooks = {
       , listener: EventListenerOrEventListenerObject): void {
     const a = this, args = arguments, len = args.length;
     if (type === kMk) {
-      (listener as any as InnerVerifier)(decryptFromVerifier(listener), verifier);
+      checkIsNotVerifier(listener)
       return;
     }
     len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2])
@@ -342,7 +344,7 @@ let doInit = function (this: void): void {
 /** kMarkToVerify */ kMk = GlobalConsts.MarkAcrossJSWorlds as const,
 detectDisabled: string | 0 = kMk + `=>` + sec,
 myAELStr: string | undefined, myToStrStr: string | undefined,
-myVerifierStrPrefix: string, myVerifierStrSuffix: string, verifierPrefixLen: number,
+myVerifierStrPrefix: string, myVerifierStrSuffix: string, verifierPrefixLen: number | undefined,
 noAbnormalVerifyingFound: BOOL = 1,
 anotherAEL: typeof myAEL | undefined | 0, anotherToStr: typeof myToStr | undefined | 0,
 // here `setTimeout` is normal and will not use TimerType.fake

@@ -131,7 +131,7 @@ else if (Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox |
     try {
       raw_unwrap_ff(window as XrayedObject<WindowWithGetter>)![name] = getterWrapper
     } catch { // if window[name] is not configurable
-      set_getWndVApi_ff((_anotherWnd: Window): VApiTy | null | void => {})
+      set_getWndVApi_ff(() => {})
     }
   })()
 }
