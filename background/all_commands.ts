@@ -92,7 +92,8 @@ const BackgroundCommands: {
     Promise.resolve(getPortUrl(indexFrame(cPort.s.t, 0))).then((tabUrl): void => {
       const count = isNext ? cRepeat : -cRepeat
       const template = tabUrl && substitute_(tabUrl, SedContext.goNext, sed)
-      const [hasPlaceholder, next] = template ? goToNextUrl(template, count) : [false, tabUrl]
+      const [hasPlaceholder, next] = template ? goToNextUrl(template, count
+          , get_cOptions<C.goNext>().absolute ? "absolute" : true) : [false, tabUrl]
       if (hasPlaceholder && next) {
         set_cRepeat(count)
         set_cOptions(BgUtils_.extendIf_(BgUtils_.safer_<UnknownOptions<kBgCmd.openUrl>>({

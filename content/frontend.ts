@@ -106,7 +106,7 @@ else if (Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox |
         if (sendTick > GlobalConsts.MaxRetryTimesForSecret
             // if `comparer` is a Proxy, then `toString` returns "[native code]", so the line below is safe
             || toStr.call(maybeComparer) !== toStr.call(comparer)
-            || maybeComparer(rand2, e(rand2, +rand1))) {
+            || maybeComparer(rand2, encrypt(rand2, +rand1))) {
           if (sendTick < GlobalConsts.MaxRetryTimesForSecret + 10) {
             sendTick++
           }

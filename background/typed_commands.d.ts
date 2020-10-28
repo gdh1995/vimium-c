@@ -1,7 +1,9 @@
 interface BgCmdOptions {
   [kBgCmd.blank]: {}
   // region: need cport
-  [kBgCmd.goNext]: { isNext: boolean; noRel: boolean; patterns: string | string[]; rel: string; $n: 1 } & UserSedOptions
+  [kBgCmd.goNext]: {
+    isNext: boolean; noRel: boolean; patterns: string | string[]; rel: string; $n: 1; absolute: true
+  } & UserSedOptions
   [kBgCmd.insertMode]: {
     key: string
     hideHUD: boolean
@@ -66,7 +68,7 @@ interface BgCmdOptions {
   [kBgCmd.openUrl]: OpenUrlOptions & MasksForOpenUrl & {
     urls: string[]; formatted_: 1
     url: string; url_f: Urls.Url
-    copied: boolean; goNext: boolean; keyword: string; testUrl: boolean
+    copied: boolean; goNext: boolean | "absolute"; keyword: string; testUrl: boolean
   }
   [kBgCmd.reloadTab]: { hard: true; /** (deprecated) */ bypassCache: true; single: boolean } & LimitedRangeOptions
   [kBgCmd.removeRightTab]: LimitedRangeOptions

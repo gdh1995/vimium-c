@@ -300,6 +300,11 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, tabs?
       url = testUrl ? BgUtils_.convertToUrl_(url, keyword, workType)
           : BgUtils_.createSearchUrl_(url.trim().split(BgUtils_.spacesRe_), keyword || "~")
     }
+    const goNext = get_cOptions<C.openUrl, true>().goNext
+    if (goNext && url && typeof url === "string") {
+      url = substitute_(url, SedContext.goNext, parseSedOptions_(get_cOptions<C.openUrl, true>()))
+      url = goToNextUrl(url, cRepeat, goNext)[1]
+    }
   } else {
     url = settings.cache_.newTabUrl_f
   }
@@ -352,16 +357,20 @@ const openCopiedUrl = (tabs: [Tab] | [] | undefined, url: string | null): void =
   openUrlWithActions(url, Urls.WorkType.ActAnyway, tabs)
 }
 
-export const goToNextUrl = (url: string, count: number): [hasPlaceholder: boolean, newUrl: string] => {
+export const goToNextUrl = (url: string, count: number, abs: true | "absolute"): [found: boolean, newUrl: string] => {
   let matched = false
-  url = url.replace(<RegExpG & RegExpSearchable<3>> /\$(?:\{(\d+)(:\d*)?(:\d*)?\}|\$)/g, (s, n, m, t): string => {
+  let re = <RegExpSearchable<4>> /\$(?:\{(\d+)[,\/#@](\d*):(\d*)(:-?\d*)?\}|\$)/g
+  url = url.replace(<RegExpG & RegExpSearchable<4>> re, (s, n, min, end, t): string => {
     if (s === "$$") { return "$" }
     matched = true
     let cur = n && parseInt(n) || 1
-    let maxi = m && parseInt(m.slice(1)) || 0
-    let stepi = Math.max(1, t && parseInt(t.slice(1)) || 1)
-    cur += stepi * count
-    return "" + Math.max(1, Math.min(cur, maxi > 0 ? maxi : cur))
+    let mini = min && parseInt(min) || 0
+    let endi = end && parseInt(end) || 0
+    let stepi = t && parseInt(t.slice(1)) || 1
+    stepi < 0 && ([mini, endi] = [endi, mini])
+    count *= stepi
+    cur = abs !== "absolute" ? cur + count : count > 0 ? mini + count - 1 : count < 0 ? endi + count : cur
+    return "" + Math.max(mini || 1, Math.min(cur, endi ? endi - 1 : cur))
   })
   return [matched, url]
 }
@@ -392,14 +401,8 @@ export const openUrl = (tabs?: [Tab] | []): void => {
     /*#__NOINLINE__*/ openCopiedUrl(tabs, url)
   } else {
     let url_f = get_cOptions<C.openUrl, true>().url_f!
-    if (typeof url_f === "string" && url_f) {
-      let doesGoNext = !!get_cOptions<C.openUrl>().goNext
-      if (sed || doesGoNext) {
-        url_f = substitute_(url_f, doesGoNext ? SedContext.goNext : SedContext.paste, sed)
-        if (doesGoNext) {
-          url_f = /*#__NOINLINE__*/ goToNextUrl(url_f, cRepeat)[1]
-        }
-      }
+    if (sed && typeof url_f === "string" && url_f) {
+      url_f = substitute_(url_f, SedContext.paste, sed)
     }
     openUrlWithActions(url_f || "", Urls.WorkType.FakeType, tabs)
   }
