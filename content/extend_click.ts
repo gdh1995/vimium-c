@@ -262,7 +262,12 @@ function checkIsNotVerifier (func: InnerVerifier | unknown | 0, noSecArg?: BOOL,
         noSecArg ? 0 : verifier
     )
 }
-function newFuncToString (a: FUNC, args: IArguments): string {
+const hooks = {
+  toString: function toString(this: FUNC): string {
+    const a = this, args = arguments;
+    if (args.length === 2 && args[0] === kMk) {
+      return checkIsNotVerifier(args[1]) as any
+    }
   const replaced = a === myAEL || a === anotherAEL ? _listen : a === myToStr || a === anotherToStr ? _toString : 0,
   str = call(_apply as (this: (this: FUNC, ...args: any[]) => string, self: FUNC, args: IArguments) => string,
             _toString, replaced || a, args)
@@ -282,14 +287,6 @@ function newFuncToString (a: FUNC, args: IArguments): string {
       : (noAbnormalVerifyingFound && (a as PublicFunction)(kMk, verifier), a === anotherAEL) ? call(_toString, _listen)
       : a === anotherToStr ? call(_toString, _toString)
       : (noAbnormalVerifyingFound = 0, str)
-}
-const hooks = {
-  toString: function toString(this: FUNC): string {
-    const args = arguments;
-    if (args.length === 2 && args[0] === kMk) {
-      checkIsNotVerifier(args[1])
-    }
-    return newFuncToString(this, args);
   },
   addEventListener: function addEventListener(this: EventTarget, type: string
       , listener: EventListenerOrEventListenerObject): void {
