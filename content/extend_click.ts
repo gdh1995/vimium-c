@@ -70,7 +70,7 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
         : Build.BTypes & BrowserType.Chrome
           && (!(Build.BTypes & ~BrowserType.ChromeOrFirefox) || VOther === BrowserType.Chrome)
         ? 1 : 0
-    , secret: number = (math.random() * GlobalConsts.SecretRange) | 0
+    , secret: string = ((math.random() * GlobalConsts.SecretRange + GlobalConsts.SecretBase) | 0) + ""
     , script = createElement_("script");
 /**
  * Note:
@@ -88,7 +88,7 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
         ) as typeof createElement_)
     return isFirstTime != null && OnDocLoaded_(extendClick); // retry after a while, using a real <script>
   }
-  script.dataset.vimium = secret as number | string as string
+  script.dataset.vimium = secret
 
   let box: Element | undefined | 0, hookRetryTimes = 0,
   isFirstResolve: 0 | 1 | 2 | 3 | 4 = window === top ? 3 : 4,
@@ -99,7 +99,7 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
     if (++hookRetryTimes > GlobalConsts.MaxRetryTimesForSecret
         || !(t instanceof Element)) { return; }
     Stop_(event);
-    if (t.localName !== "div" || attr_s(t, S) !== "" + secret) { return }
+    if (t.localName !== "div" || attr_s(t, S) !== secret) { return }
     setupEventListener(0, kHookRand, hook, 1);
     hook = null as never;
     if (box == null) {
@@ -125,10 +125,10 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
           : (path = event.path) && path.length > 1 ? path[0] as Element : null);
     if (detail) {
       resolve(0, detail[0]); resolve(1, detail[1]);
-    } else if (/* safer */ target && (isSafe && !rawDetail || secret + "" + target.tagName === rawDetail)) {
+    } else if (/* safer */ target && (isSafe && !rawDetail || secret + target.tagName === rawDetail)) {
       clickable_.add(target);
     } else {
-      if (!Build.NDEBUG && !isSafe && target && secret + "" + target.tagName !== rawDetail) {
+      if (!Build.NDEBUG && !isSafe && target && secret + target.tagName !== rawDetail) {
         console.error("extend click: unexpected: detail =", rawDetail, target);
         return;
       }
@@ -159,7 +159,7 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
   function dispatchCmd(cmd: SecondLevelContentCmds): void {
     box && box.dispatchEvent(new (CustomEvent as CustomEventCls)(
         InnerConsts.kCmd, {
-      detail: (secret << kContentCmd.MaskedBitNumber) | cmd
+      detail: (+secret << kContentCmd.MaskedBitNumber) | cmd
     }));
   }
   function execute(cmd: ValidContentCommands): void {
@@ -194,29 +194,19 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
    * * never change the global environment / break this closure
    * * must look like a real task and contain random string
    */
-  interface InnerVerifier {
-    (maybeSecret: string, maybeAnotherVerifierInner: InnerVerifier): void;
-    (maybeSecret: string, _?: 0 | unknown): [EventTarget["addEventListener"], Function["toString"]] | void;
-  }
-  type ValidVerifyingOut = Exclude<ReturnType<InnerVerifier>, void>
-  type PublicFunction = (maybeKNeedToVerify: string, verifierFunc: InnerVerifier | unknown) => void | string;
+  interface InnerVerifier { (maybeSecret: string): void }
+  type PublicFunction = (this: string, verifierFunc: InnerVerifier | unknown) => void | string;
   let injected: string = (Build.NDEBUG ? VTr(isFirstTime ? kTip.extendClick : kTip.removeCurScript)
           : !isFirstTime && VTr(kTip.removeCurScript))
         || '"use strict";(' + (function VC(this: void): void {
 
-function verifier(maybeSecret: string | ValidVerifyingOut, maybeVerifierB?: unknown): ValidVerifyingOut | void {
-  "use strict";
-  /*! @OUTPUT {"use strict";} */
-  return maybeSecret === GlobalConsts.MarkAcrossJSWorlds && noAbnormalVerifyingFound
-      ? !maybeVerifierB ? [myAEL, myToStr]
-        : (maybeSecret = (maybeVerifierB as InnerVerifier)(checkIsNotVerifier(maybeVerifierB, 1) as string)!,
-          [anotherAEL, anotherToStr] = maybeSecret,
-          0 as never as void)
-      : (noAbnormalVerifyingFound = 0) as never as void
+function verifier(maybeSecret: string): void {
+  "use strict"; /*! @OUTPUT {"use strict";} */
+  verifierIsLastMatched = maybeSecret === GlobalConsts.MarkAcrossJSWorlds
 }
 type FUNC = (this: unknown, ...args: never[]) => unknown;
 const doc0 = document, curScript = doc0.currentScript as HTMLScriptElement,
-sec: number = +curScript.dataset.vimium!,
+sec = curScript.dataset.vimium!,
 kAEL = "addEventListener", kToS = "toString", kProto = "prototype", kByTag = "getElementsByTagName",
 ETP = EventTarget[kProto], _listen = ETP[kAEL],
 toRegister: Element[] & { p (el: Element): void | 1; s: Element[]["splice"] } = [] as any,
@@ -251,51 +241,44 @@ kVOnClick = InnerConsts.kVOnClick,
 kEventName2 = kVOnClick + BuildStr.RandomClick,
 kReady = "readystatechange", kFunc = "function",
 docCreateElement = doc0.createElement,
-StringIndexOf = kReady.indexOf, StringSubstr = kReady.substr
-function checkIsNotVerifier (func: InnerVerifier | unknown | 0, noSecArg?: BOOL, str?: string): unknown {
-  return !verifierPrefixLen
-    || call(StringSubstr, str = str || call(_toString, func as any), 0, verifierPrefixLen) !== myVerifierStrPrefix
-    || call(StringSubstr, str, verifierPrefixLen + GlobalConsts.SecretStringLength) !== myVerifierStrSuffix
-    || func && (func as InnerVerifier)(
-        call(StringSubstr, str, verifierPrefixLen - GlobalConsts.LengthOfMarkAcrossJSWorlds
-          , GlobalConsts.LengthOfMarkAcrossJSWorlds + GlobalConsts.SecretStringLength),
-        noSecArg ? 0 : verifier
+StringSplit = kReady.split, StringSubstr = kReady.substr
+function checkIsNotVerifier (func: InnerVerifier | 0 | unknown): unknown {
+  if (!verifierPrefixLen) {
+    verifierLen = (verifierStrPrefix = call(_toString, verifier)).length
+    verifierPrefixLen = (verifierStrPrefix = call(StringSplit, verifierStrPrefix, sec)[0]).length
+  }
+  return func && (func as InnerVerifier)(
+        call(StringSubstr, call(_toString, func as InnerVerifier)
+          , verifierPrefixLen - GlobalConsts.LengthOfMarkAcrossJSWorlds
+          , GlobalConsts.LengthOfMarkAcrossJSWorlds + GlobalConsts.SecretStringLength)
     )
 }
 const hooks = {
   toString: function toString(this: FUNC): string {
     const a = this, args = arguments;
-    if (args.length === 2 && args[0] === kMk) {
-      return checkIsNotVerifier(args[1]) as any
+    if (a as unknown as ThisParameterType<PublicFunction> === kMk) {
+      return checkIsNotVerifier(args[0]) as any
     }
-  const replaced = a === myAEL || a === anotherAEL ? _listen : a === myToStr || a === anotherToStr ? _toString : 0,
-  str = call(_apply as (this: (this: FUNC, ...args: any[]) => string, self: FUNC, args: IArguments) => string,
-            _toString, replaced || a, args)
-  detectDisabled && str === detectDisabled && executeCmd()
-  return replaced ? str
-      : str !== (myAELStr
+    const str = call(_apply as (this: (this: FUNC, ...args: any[]) => string, self: FUNC, args: IArguments) => string,
+        _toString, a, args)
+    detectDisabled && str === detectDisabled && executeCmd()
+    return str !== (myAELStr
                   || (myToStrStr = call(_toString, myToStr),
-                      myVerifierStrPrefix = call(_toString, verifier),
-                      verifierPrefixLen =
-                          call(StringIndexOf, myVerifierStrPrefix, kMk) + GlobalConsts.LengthOfMarkAcrossJSWorlds,
-                      myVerifierStrSuffix = call(StringSubstr, myVerifierStrPrefix
-                          , verifierPrefixLen + GlobalConsts.SecretStringLength),
-                      myVerifierStrPrefix = call(StringSubstr, myVerifierStrPrefix, 0, verifierPrefixLen),
                       myAELStr = call(_toString, myAEL)))
           && str !== myToStrStr
-      ? checkIsNotVerifier(0, 0, str) ? str : call(_toString, noop)
-      : (noAbnormalVerifyingFound && (a as PublicFunction)(kMk, verifier), a === anotherAEL) ? call(_toString, _listen)
-      : a === anotherToStr ? call(_toString, _toString)
-      : (noAbnormalVerifyingFound = 0, str)
+        ? str.length !== verifierLen|| call(StringSubstr, str, 0, verifierPrefixLen!) !== verifierStrPrefix
+          ? str : call(_toString, noop)
+        : a === myToStr || a === myAEL || (checkIsNotVerifier(0),
+              verifierIsLastMatched = 0, call(a as PublicFunction, kMk, verifier), verifierIsLastMatched)
+        ? call(_toString, str === myAELStr ? _listen : _toString) : str
   },
   addEventListener: function addEventListener(this: EventTarget, type: string
       , listener: EventListenerOrEventListenerObject): void {
     const a = this, args = arguments, len = args.length;
-    if (type === kMk) {
-      checkIsNotVerifier(listener)
-      return;
+    if (a as unknown as ThisParameterType<PublicFunction> === kMk) {
+      return checkIsNotVerifier(type) as any
     }
-    len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2])
+    const ret = len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2])
       : call(_apply as (this: (this: EventTarget, ...args: any[]) => void
                         , self: EventTarget, args: IArguments) => void,
              _listen as (this: EventTarget, ...args: any[]) => void, a, args);
@@ -307,7 +290,7 @@ const hooks = {
       toRegister.p(a as Element);
       timer = timer || (queueMicroTask_(delayToStartIteration), 1);
     }
-    // returns void: https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/events/event_target.idl
+    return ret as void
   }
 },
 myAEL = (/*#__NOINLINE__*/ hooks)[kAEL], myToStr = (/*#__NOINLINE__*/ hooks)[kToS]
@@ -328,7 +311,7 @@ let doInit = function (this: void): void {
   }
   docChildren = null as never;
   if (!docEl2) { return executeCmd(); }
-  call(Attr, el, S, "" + sec);
+  call(Attr, el, S, sec);
   listen(el, InnerConsts.kCmd, executeCmd, !0);
   dispatch(window, new DECls((InnerConsts.kHook + BuildStr.RandomClick) as InnerConsts.kHook, {relatedTarget: el}));
   if (call(HasAttr, el, S)) {
@@ -339,11 +322,10 @@ let doInit = function (this: void): void {
   }
 },
 /** kMarkToVerify */ kMk = GlobalConsts.MarkAcrossJSWorlds as const,
-detectDisabled: string | 0 = kMk + `=>` + sec,
+detectDisabled: string | 0 = kMk + "=>" + sec,
 myAELStr: string | undefined, myToStrStr: string | undefined,
-myVerifierStrPrefix: string, myVerifierStrSuffix: string, verifierPrefixLen: number | undefined,
-noAbnormalVerifyingFound: BOOL = 1,
-anotherAEL: typeof myAEL | undefined | 0, anotherToStr: typeof myToStr | undefined | 0,
+verifierStrPrefix: string | undefined, verifierPrefixLen: number | undefined, verifierLen: number | undefined,
+verifierIsLastMatched: BOOL | boolean | undefined,
 // here `setTimeout` is normal and will not use TimerType.fake
 setTimeout_ = setTimeout as SafeSetTimeout,
 docChildren: Document["children"] | ((index: number) => Element | null) = doc0.children,
@@ -493,7 +475,7 @@ function safeReRegister(element: Element, doc1: Document): void {
 function executeCmd(eventOrDestroy?: Event): void {
   const detail: CommandEventDetail = eventOrDestroy && (eventOrDestroy as CustomEvent).detail,
   cmd: SecondLevelContentCmds | kContentCmd._fake = detail
-      ? (detail >> kContentCmd.MaskedBitNumber) === sec ? detail & ((1 << kContentCmd.MaskedBitNumber) - 1)
+      ? (detail >> kContentCmd.MaskedBitNumber) === +sec ? detail & ((1 << kContentCmd.MaskedBitNumber) - 1)
         : kContentCmd._fake
       : eventOrDestroy ? kContentCmd._fake : kContentCmd.Destroy;
   // always stopProp even if the secret does not match, so that an attacker can not detect secret by enumerating numbers
@@ -545,7 +527,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$addEvent
         appVer >= BrowserVer.MinEnsuredES6MethodFunction) {
       injected = injected.replace(<RegExpG> /: ?function \w+/g, "");
     }
-    injected = injected.replace(GlobalConsts.MarkAcrossJSWorlds, "$&" + ((secret + GlobalConsts.SecretBase) | 0))
+    injected = injected.replace(GlobalConsts.MarkAcrossJSWorlds, "$&" + secret)
     vApi.e = execute;
     setupEventListener(0, kHookRand, hook);
     setupEventListener(0, kVOnClick1, onClick);
