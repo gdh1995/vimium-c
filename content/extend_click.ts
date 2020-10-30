@@ -242,41 +242,39 @@ kEventName2 = kVOnClick + BuildStr.RandomClick,
 kReady = "readystatechange", kFunc = "function",
 docCreateElement = doc0.createElement,
 StringSplit = kReady.split, StringSubstr = kReady.substr
-function checkIsNotVerifier (func: InnerVerifier | 0 | unknown): unknown {
-  if (!verifierPrefixLen) {
-    verifierLen = (verifierStrPrefix = call(_toString, verifier)).length
-    verifierPrefixLen = (verifierStrPrefix = call(StringSplit, verifierStrPrefix, sec)[0]).length
-  }
-  return func && (func as InnerVerifier)(
+function checkIsNotVerifier (func: InnerVerifier | unknown): void {
+  (func as InnerVerifier)(
         call(StringSubstr, call(_toString, func as InnerVerifier)
-          , verifierPrefixLen - GlobalConsts.LengthOfMarkAcrossJSWorlds
+          , verifierPrefixLen! - GlobalConsts.LengthOfMarkAcrossJSWorlds
           , GlobalConsts.LengthOfMarkAcrossJSWorlds + GlobalConsts.SecretStringLength)
-    )
+  )
 }
 const hooks = {
   toString: function toString(this: FUNC): string {
     const a = this, args = arguments;
-    if (a as unknown as ThisParameterType<PublicFunction> === kMk) {
-      return checkIsNotVerifier(args[0]) as any
+    if (typeof a === "string") {
+      return a as unknown as ThisParameterType<PublicFunction> === kMk && checkIsNotVerifier(args[0]) as any
     }
     const str = call(_apply as (this: (this: FUNC, ...args: any[]) => string, self: FUNC, args: IArguments) => string,
         _toString, a, args)
     detectDisabled && str === detectDisabled && executeCmd()
     return str !== (myAELStr
                   || (myToStrStr = call(_toString, myToStr),
+                      verifierLen = (verifierStrPrefix = call(_toString, verifier)).length,
+                      verifierPrefixLen = (verifierStrPrefix = call(StringSplit, verifierStrPrefix, sec)[0]).length,
                       myAELStr = call(_toString, myAEL)))
           && str !== myToStrStr
-        ? str.length !== verifierLen|| call(StringSubstr, str, 0, verifierPrefixLen!) !== verifierStrPrefix
+        ? str.length !== verifierLen || call(StringSubstr, str, 0, verifierPrefixLen!) !== verifierStrPrefix
           ? str : call(_toString, noop)
-        : a === myToStr || a === myAEL || (checkIsNotVerifier(0),
+        : a === myToStr || a === myAEL || (
               verifierIsLastMatched = 0, call(a as PublicFunction, kMk, verifier), verifierIsLastMatched)
         ? call(_toString, str === myAELStr ? _listen : _toString) : str
   },
   addEventListener: function addEventListener(this: EventTarget, type: string
       , listener: EventListenerOrEventListenerObject): void {
     const a = this, args = arguments, len = args.length;
-    if (a as unknown as ThisParameterType<PublicFunction> === kMk) {
-      return checkIsNotVerifier(type) as any
+    if (typeof a === "string") {
+      return a as unknown as ThisParameterType<PublicFunction> === kMk && checkIsNotVerifier(type) as any
     }
     const ret = len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2])
       : call(_apply as (this: (this: EventTarget, ...args: any[]) => void
