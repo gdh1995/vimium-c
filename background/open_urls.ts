@@ -302,7 +302,7 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, tabs?
     }
     const goNext = get_cOptions<C.openUrl, true>().goNext
     if (goNext && url && typeof url === "string") {
-      url = substitute_(url, SedContext.goNext, parseSedOptions_(get_cOptions<C.openUrl, true>()))
+      url = substitute_(url, SedContext.goNext)
       url = goToNextUrl(url, cRepeat, goNext)[1]
     }
   } else {
