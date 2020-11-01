@@ -327,16 +327,16 @@ exports.patchExtendClick = (source, locally, logger) => {
     suffix = '/\\b(addEventListener|toString)\\(/g, "$1:function $1("' + suffix.slice(match[0].length);
     source = prefix + source + suffix;
   }
-  match = /' ?\+ ?\(?function VC ?\(/.exec(source);
+  match = /['"] ?\+ ?\(?function VC ?\(/.exec(source);
   if (match) {
     var start = match.index;
     var end1 = source.indexOf('}).toString()', start) + 1 || source.indexOf('}.toString()', start) + 1;
     var end2 = source.indexOf('")();"', end1 + 2) + 1 || source.indexOf("')();'", end1 + 2) + 1;
     if (end2 <= 0) {
-      throw new Error('Can not find the end ".toString() + \')();\'" around the injected function.');
+      throw new Error('Can not find the end ".toString() + \\")();\\"" around the injected function.');
     }
-    var prefix = source.slice(0, start), suffix = "'" + source.slice(end2 + ")();'".length);
-    source = source.slice(start + match[0].length, end1).replace(/ \/\/[^\n]*?$/g, "").replace(/'/g, '"');
+    var prefix = source.slice(0, start), suffix = '"' + source.slice(end2 + ')();"'.length);
+    source = source.slice(start + match[0].length, end1).replace(/ \/\/[^\n]*$/mg, "").replace(/"/g, "'");
     source = source.replace(/\\/g, "\\\\");
     if (locally) {
       source = source.replace(/([\r\n]) {4}/g, "$1").replace(/\r\n?|\n/g, "\\n\\\n");
@@ -344,10 +344,10 @@ exports.patchExtendClick = (source, locally, logger) => {
       source = source.replace(/[\r\n]\s*/g, "");
     }
     source = "function(" + source + ")()";
-    const sourceHead = '"use strict";(';
-    if (prefix.endsWith(sourceHead)) {
-      prefix = prefix.slice(0, -sourceHead.length);
-      source = sourceHead + source;
+    const sourceHead = "''use strict';("
+    if (prefix.slice(-sourceHead.length).replace(/"/g, "'") === sourceHead) {
+      prefix = prefix.slice(0, -sourceHead.length) + '"'
+      source = sourceHead.slice(1) + source
     }
     return [prefix, source, suffix];
   } else if (! (/(=|\?|:|\|\|) ?'"use strict";\(function\b/).test(source)) {

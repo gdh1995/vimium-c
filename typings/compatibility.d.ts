@@ -420,6 +420,8 @@ declare const enum BrowserVer {
   Min$Tabs$$Update$DoesNotAcceptJavaScriptURLs = 71,
   MinTabIdBeSmallAgain = 71,
   Min$queueMicrotask = 71, // even if EXPERIMENTAL or LEGACY
+  // since C59 if EXPERIMENTAL; enabled by default since C66; C71 is even if LEGACY
+  MinEnsured$Function$$toString$preservesWhitespace = 71, // also preserve comments
   Min$Tabs$$goBack = 72, // and tabs.goForward; even if EXPERIMENTAL or LEGACY
   // https://www.chromestatus.com/features/5656049583390720
   // deprecation is since C66

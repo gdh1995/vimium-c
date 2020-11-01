@@ -32,7 +32,6 @@ var cacheNames = process.env.ENABLE_NAME_CACHE !== "0";
 var needCommitInfo = process.env.NEED_COMMIT === "1";
 var doesMergeProjects = process.env.MERGE_TS_PROJECTS !== "0";
 var doesMinifyLocalFiles = process.env.MINIFY_LOCAL !== "0";
-var FORCED_NO_MINIFY = process.env.FORCED_NO_MINIFY === "1";
 var LOCAL_SILENT = process.env.LOCAL_SILENT === "1";
 var minifyDistPasses = +process.env.MINIFY_DIST_PASSES || 0;
 var maxDistSequences = +process.env.MAX_DIST_SEQUENCES || 0;
@@ -96,7 +95,7 @@ var Tasks = {
   "static/minify-js": function() {
     const path = ["lib/math_parser*.js"];
     minify_viewer && path.push(VIEWER_JS)
-    if (!getNonNullBuildItem("NDEBUG") || FORCED_NO_MINIFY) {
+    if (!getBuildItem("Minify")) {
       return copyByPath(path);
     }
     return minifyJSFiles(path, ".", { base: "." });
@@ -116,7 +115,7 @@ var Tasks = {
       }
     }
     path.push("!_locales/*_*/**")
-    if (!getNonNullBuildItem("NDEBUG") || FORCED_NO_MINIFY) {
+    if (!getBuildItem("Minify")) {
       return copyByPath(path);
     }
     return minifyJSFiles(path, ".", { base: ".", json: true })
@@ -129,7 +128,7 @@ var Tasks = {
   },
   "minify-css": function() {
     const path = ["pages/*.css"];
-    if (!getNonNullBuildItem("NDEBUG") || FORCED_NO_MINIFY) { return copyByPath(path) }
+    if (!getBuildItem("Minify")) { return copyByPath(path) }
     const CleanCSS = require("clean-css"), clean_css = new CleanCSS();
     return copyByPath(path, function(file) {
       file.contents = ToBuffer(clean_css.minify(ToString(file.contents)).styles);
@@ -138,7 +137,7 @@ var Tasks = {
   "minify-html": function() {
     const arr = ["front/*.html", "pages/*.html", "!*/vomnibar.html"];
     may_have_newtab || arr.push("!" + NEWTAB_FILE.replace(".ts", ".*"));
-    if (!getNonNullBuildItem("NDEBUG") || FORCED_NO_MINIFY) { return copyByPath(arr) }
+    if (!getBuildItem("Minify")) { return copyByPath(arr) }
     return copyByPath(arr, file => file.contents = ToBuffer(require('html-minifier').minify(ToString(file.contents), {
       collapseWhitespace: true,
       minifyCSS: true,
@@ -194,7 +193,7 @@ var Tasks = {
   "build/ts": function(cb) {
     var btypes = getBuildItem("BTypes");
     var curConfig = [btypes, getBuildItem("MinCVer"), compilerOptions.target
-          , /** 4 */ needCommitInfo && !onlyTestSize ? getBuildItem("Commit") : 0];
+          , /** 4 */ needCommitInfo && !onlyTestSize ? getBuildItem("Commit") : 0, getBuildItem("Minify")]
     var configFile = btypes === BrowserType.Chrome ? "chrome"
           : btypes === BrowserType.Firefox ? "firefox" : "browser-" + btypes;
     if (btypes === BrowserType.Firefox) {
@@ -291,7 +290,7 @@ var Tasks = {
     var exArgs = { nameCache: gulpUtils.loadNameCache("bg", cacheNames, getNameCacheFilePath),
         nameCachePath: getNameCacheFilePath("bg") };
     var deepcopy = require("deepcopy");
-    if (!FORCED_NO_MINIFY && exArgs.nameCache.vars && exArgs.nameCache.props) {
+    if (getBuildItem("Minify") && exArgs.nameCache.vars && exArgs.nameCache.props) {
       let {vars: {props: vars}, props: {props: props}} = exArgs.nameCache;
       var browser = getNonNullBuildItem("BTypes");
       if ("$OnOther" in vars
@@ -514,6 +513,8 @@ var Tasks = {
   },
   "minc": ["size/content"],
   "content/size": ["size/content"],
+  "content/csize": ["size/content"],
+  "cize": ["size/content"],
   "words": ["build/content", function (cb) {
     process.env.CHECK_WORDS = "1";
     gulp.series("min/content")(function () {
@@ -528,7 +529,7 @@ var Tasks = {
     locally = true;
     if (!process.env.LOCAL_DIST) {
       process.env.LOCAL_DIST = "dist";
-      print("Set env's default: BUILD_BTypes = dist");
+      print("Set env's default: LOCAL_DIST = dist");
     }
     var arr = ["static", "_manifest"];
     if (fs.existsSync(osPath.join(JSDEST, "lib/dom_utils.js"))) {
@@ -740,7 +741,7 @@ const postTerser = exports.postTerser = (file, allPaths) => {
   function get() { contents == null && (contents = ToString(file.contents), oldLen = contents.length); }
   if (allPathStr.includes("content/") || allPathStr.includes("lib/")) {
     get()
-    contents = contents.replace(/\n?\/\*!? ?@OUTPUT ?\{([^}]+)\} ?\*\/\n?/g, '$1')
+    contents = contents.replace(/\n?\/\*!? ?@OUTPUT ?\{([^]+)\} ?\*\/\n?/g, '$1')
   }
   if (allPathStr.indexOf("extend_click.") >= 0) {
     get();
@@ -896,10 +897,16 @@ function patchExtendClick(source) {
   if (!(getBuildItem("BTypes") & ~BrowserType.Firefox)) { return source; }
   const patched = _patchExtendClick(source, locally, logger);
   if (typeof patched === "string") { return patched; }
+  if (getBuildItem("MinCVer") < /* MinEnsuredES6ArrowFunction */ 49 && getBuildItem("BTypes") & BrowserType.Chrome) {
+    patched[1] = patched[1].replace(/function ?\(([\w, ]*)\)({I=)?/g
+        , (s, args, bodyPrefix, idx, full) => full.slice(idx - 2, idx) === ";(" ? s
+            : bodyPrefix ? `function (${args})${bodyPrefix}` : `(${args})=>`)
+  }
   let inCode, inJSON;
   if (getNonNullBuildItem("NDEBUG") && !+(process.env.EMBED_EXTEND_CLICK || 0)) {
-    const n1 = patched[0].endsWith("||'") ? 3 : patched[0].endsWith("|| '") ? 4 : 0;
-    if (!n1 || patched[2][0] !== "'") {
+    const matched = patched[0].slice(-4).replace(/'/g, '"')
+    const n1 = matched.endsWith('||"') ? 3 : matched === '|| "' ? 4 : 0;
+    if (!n1 || patched[2][0] !== '"') {
       throw Error("Error: can not extract extend_click from the target code file!!!");
     }
     inCode = patched[0].slice(0, -n1) + patched[2].slice(1);
@@ -908,9 +915,8 @@ function patchExtendClick(source) {
     inCode = patched.join(""); inJSON = "";
   }
   if (inJSON) {
-    if (inJSON.includes("'")) { throw Error("Error: extend_click should not include `'`"); }
-    if (inJSON.includes('\\"')) { throw Error('Error: extend_click should not include `\\"`'); }
-    inJSON = inJSON.replace(/"/g, "'");
+    if (inJSON.includes('"')) { throw Error("Error: extend_click should not include `\"`") }
+    if (inJSON.includes("\\'")) { throw Error("Error: extend_click should not include `\\'`") }
     if (inJSON.includes("$")) {
       if (!/\$\$/.test(inJSON)) {
         print("[WARNING] extend_click: need to escape '$'")
@@ -938,7 +944,7 @@ function patchExtendClick(source) {
 const loadTerserConfig = exports.loadTerserConfig = (reload) => {
   var a = _loadTerserConfig(locally ? "scripts/uglifyjs.local.json" : "scripts/uglifyjs.dist.json", reload);
   {
-    if (FORCED_NO_MINIFY || !getNonNullBuildItem("NDEBUG")) {
+    if (!getBuildItem("Minify")) {
       a.mangle = false;
       a.format.beautify = true
       a.format.indent_level = 2
@@ -950,7 +956,7 @@ const loadTerserConfig = exports.loadTerserConfig = (reload) => {
     }
     a.ecma = outputES6 ? 6 : 5
   }
-  if (gNoComments || !locally && getNonNullBuildItem("NDEBUG") && !FORCED_NO_MINIFY) {
+  if (gNoComments || !locally && getBuildItem("Minify")) {
     a.format.comments = /^!/
   }
   return a;

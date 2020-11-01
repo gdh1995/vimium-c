@@ -109,8 +109,8 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
     }
   };
   function onClick(this: Element | Window, event: Event): void {
+    Stop_(event)
     if (!box) { return; }
-    Stop_(event);
     const rawDetail = (
         event as TypeToAssert<Event, (CustomEventCls | DelegateEventCls)["prototype"], "detail">
         ).detail as ClickableEventDetail | null | undefined,
@@ -195,17 +195,19 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
    * * must look like a real task and contain random string
    */
   interface InnerVerifier { (maybeSecret: string): void }
-  type PublicFunction = (this: string, verifierFunc: InnerVerifier | unknown) => void | string;
   let injected: string = (Build.NDEBUG ? VTr(isFirstTime ? kTip.extendClick : kTip.removeCurScript)
           : !isFirstTime && VTr(kTip.removeCurScript))
-        || '"use strict";(' + (function VC(this: void): void {
+        || "'use strict';(" + (function VC(this: void): void {
 
-function verifier(maybeSecret: string): void {
-  "use strict"; /*! @OUTPUT {"use strict";} */
-  verifierIsLastMatched = maybeSecret === GlobalConsts.MarkAcrossJSWorlds
-}
 type FUNC = (this: unknown, ...args: never[]) => unknown;
-const doc0 = document, curScript = doc0.currentScript as HTMLScriptElement,
+const V = /** verifier */ (maybeSecret: string): void | boolean => {
+  if (Build.MinCVer < BrowserVer.MinTestedES6Environment && Build.BTypes & BrowserType.Chrome) {
+    I = GlobalConsts.MarkAcrossJSWorlds === maybeSecret
+  } else {
+    return I = GlobalConsts.MarkAcrossJSWorlds === maybeSecret
+  }
+},
+doc0 = document, curScript = doc0.currentScript as HTMLScriptElement,
 sec = curScript.dataset.vimium!,
 kAEL = "addEventListener", kToS = "toString", kProto = "prototype", kByTag = "getElementsByTagName",
 ETP = EventTarget[kProto], _listen = ETP[kAEL],
@@ -241,43 +243,56 @@ kVOnClick = InnerConsts.kVOnClick,
 kEventName2 = kVOnClick + BuildStr.RandomClick,
 kReady = "readystatechange", kFunc = "function",
 docCreateElement = doc0.createElement,
-StringSplit = kReady.split, StringSubstr = kReady.substr
-function checkIsNotVerifier (func: InnerVerifier | unknown): void {
-  (func as InnerVerifier)(
+StringSplit = Build.Minify ? 0 as never : kReady.split, StringSubstr = kReady.substr,
+checkIsNotVerifier = (func?: InnerVerifier | unknown): void => {
+  if (!Build.Minify && !verifierPrefixLen) {
+    verifierLen = (verifierStrPrefix = call(_toString, V)).length,
+    verifierPrefixLen = (verifierStrPrefix = call(StringSplit, verifierStrPrefix, sec)[0]).length
+  }
+  func && (func as InnerVerifier)(
         call(StringSubstr, call(_toString, func as InnerVerifier)
-          , verifierPrefixLen! - GlobalConsts.LengthOfMarkAcrossJSWorlds
+          , (!Build.Minify ? verifierPrefixLen! : GlobalConsts.LengthOfMarkAcrossJSWorlds
+              /** `16` is for {@see #BrowserVer.MinEnsured$Function$$toString$preservesWhitespace} */
+              + (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinTestedES6Environment ? 16 : 6)
+             ) - GlobalConsts.LengthOfMarkAcrossJSWorlds
           , GlobalConsts.LengthOfMarkAcrossJSWorlds + GlobalConsts.SecretStringLength)
   )
 }
 const hooks = {
   toString: function toString(this: FUNC): string {
     const a = this, args = arguments;
-    if (typeof a === "string") {
-      return a as unknown as ThisParameterType<PublicFunction> === kMk && checkIsNotVerifier(args[0]) as any
-    }
     const str = call(_apply as (this: (this: FUNC, ...args: any[]) => string, self: FUNC, args: IArguments) => string,
         _toString, a, args)
-    detectDisabled && str === detectDisabled && executeCmd()
-    return str !== (myAELStr
+    const mayStrBeToStr: boolean
+        = str !== (myAELStr
                   || (myToStrStr = call(_toString, myToStr),
-                      verifierLen = (verifierStrPrefix = call(_toString, verifier)).length,
-                      verifierPrefixLen = (verifierStrPrefix = call(StringSplit, verifierStrPrefix, sec)[0]).length,
+                      Build.Minify
+                      ? verifierStrPrefix = call(StringSubstr, call(_toString, V), 0
+                            , GlobalConsts.LengthOfMarkAcrossJSWorlds + (Build.BTypes & BrowserType.Chrome
+                                && Build.MinCVer < BrowserVer.MinTestedES6Environment ? 16 : 6))
+                      : (verifierLen = (verifierStrPrefix = call(_toString, V)).length,
+                        verifierPrefixLen = (verifierStrPrefix = call(StringSplit, verifierStrPrefix, sec)[0]).length),
                       myAELStr = call(_toString, myAEL)))
-          && str !== myToStrStr
-        ? str.length !== verifierLen || call(StringSubstr, str, 0, verifierPrefixLen!) !== verifierStrPrefix
+    args[0] as unknown === kMk && checkIsNotVerifier(args[1]) as any
+    detectDisabled && str === detectDisabled && executeCmd()
+    return mayStrBeToStr && str !== myToStrStr
+        ? str.length !== (!Build.Minify ? verifierLen
+              : GlobalConsts.LengthOfMarkAcrossJSWorlds + GlobalConsts.SecretStringLength
+                + (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinTestedES6Environment ? 22 : 11))
+          || call(StringSubstr, str, 0, !Build.Minify ? verifierPrefixLen! : GlobalConsts.LengthOfMarkAcrossJSWorlds
+                + (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinTestedES6Environment ? 16 : 6)
+              ) !== verifierStrPrefix
           ? str : call(_toString, noop)
-        : a === myToStr || a === myAEL || (
-              verifierIsLastMatched = 0, call(a as PublicFunction, kMk, verifier), verifierIsLastMatched)
-        ? call(_toString, str === myAELStr ? _listen : _toString) : str
+        : a === myToStr || a === myAEL || (I = 0,
+          mayStrBeToStr ? call(a as any, noop, kMk, V) : (a as any)(kVOnClick, noop, 0, V), I)
+        ? call(_toString, mayStrBeToStr ? _toString : _listen) : str
   },
   addEventListener: function addEventListener(this: EventTarget, type: string
       , listener: EventListenerOrEventListenerObject): void {
     const a = this, args = arguments, len = args.length;
-    if (typeof a === "string") {
-      return a as unknown as ThisParameterType<PublicFunction> === kMk && checkIsNotVerifier(type) as any
-    }
-    const ret = len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2])
-      : call(_apply as (this: (this: EventTarget, ...args: any[]) => void
+    const ret = type === kVOnClick ? checkIsNotVerifier(args[3]) as any
+        : len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2])
+        : call(_apply as (this: (this: EventTarget, ...args: any[]) => void
                         , self: EventTarget, args: IArguments) => void,
              _listen as (this: EventTarget, ...args: any[]) => void, a, args);
     if (type === "click" || type === "mousedown" || type === "dblclick"
@@ -293,7 +308,7 @@ const hooks = {
 },
 myAEL = (/*#__NOINLINE__*/ hooks)[kAEL], myToStr = (/*#__NOINLINE__*/ hooks)[kToS]
 
-let doInit = function (this: void): void {
+let doInit = (): void => {
   if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once) {
     doInit && rEL!(kReady, doInit, !0)
   }
@@ -323,18 +338,22 @@ let doInit = function (this: void): void {
 detectDisabled: string | 0 = kMk + "=>" + sec,
 myAELStr: string | undefined, myToStrStr: string | undefined,
 verifierStrPrefix: string | undefined, verifierPrefixLen: number | undefined, verifierLen: number | undefined,
-verifierIsLastMatched: BOOL | boolean | undefined,
+/** verifierIsLastMatched */ I: BOOL | boolean | undefined,
 // here `setTimeout` is normal and will not use TimerType.fake
 setTimeout_ = setTimeout as SafeSetTimeout,
 docChildren: Document["children"] | ((index: number) => Element | null) = doc0.children,
 unsafeDispatchCounter = 0,
 allNodesInDocument = null as HTMLCollectionOf<Element> | null,
 allNodesForDetached = null as HTMLCollectionOf<Element> | null,
+root: HTMLDivElement, timer = setTimeout_(doInit, InnerConsts.DelayToWaitDomReady),
+queueMicroTask_: (callback: () => void) => void =
+    !(Build.BTypes & ~BrowserType.ChromeOrFirefox) && Build.MinCVer >= BrowserVer.Min$queueMicrotask
+    ? queueMicrotask : Build.BTypes & ~BrowserType.Edge ? (window as any).queueMicrotask : 0 as unknown as any,
 isReRegistering: BOOL | boolean = 0
 // To avoid a host script detect Vimum C by code like:
 // ` a1 = setTimeout(()=>{}); $0.addEventListener('click', ()=>{}); a2=setTimeout(()=>{}); [a1, a2] `
-function delayToStartIteration(): void { setTimeout_(next, GlobalConsts.ExtendClick_DelayToStartIteration) }
-function next(): void {
+const delayToStartIteration = (): void => { setTimeout_(next, GlobalConsts.ExtendClick_DelayToStartIteration) }
+const next = (): void => {
   const len = toRegister.length,
   start = len > (Build.NDEBUG ? InnerConsts.MaxElementsInOneTickRelease : InnerConsts.MaxElementsInOneTickDebug)
     ? len - (Build.NDEBUG ? InnerConsts.MaxElementsInOneTickRelease : InnerConsts.MaxElementsInOneTickDebug) : 0,
@@ -350,21 +369,7 @@ function next(): void {
   doRegister(0);
   allNodesInDocument = allNodesForDetached = null;
 }
-let root: HTMLDivElement, timer = setTimeout_(doInit, InnerConsts.DelayToWaitDomReady)
-, queueMicroTask_: (callback: () => void) => void =
-    !(Build.BTypes & ~BrowserType.ChromeOrFirefox) && Build.MinCVer >= BrowserVer.Min$queueMicrotask
-    ? queueMicrotask : Build.BTypes & ~BrowserType.Edge ? (window as any).queueMicrotask : 0 as unknown as any
-;
-if (!(Build.BTypes & ~BrowserType.Edge)
-    || (Build.BTypes & ~BrowserType.ChromeOrFirefox || Build.MinCVer < BrowserVer.Min$queueMicrotask)
-        && typeof queueMicroTask_ !== kFunc) {
-  queueMicroTask_ = Promise.resolve() as any;
-  queueMicroTask_ = (queueMicroTask_ as any as Promise<void>).then.bind(queueMicroTask_ as any as Promise<void>);
-}
-if (Build.BTypes & BrowserType.Edge) {
-  docChildren = docChildren.item.bind(docChildren)
-}
-function prepareRegister(this: void, element: Element): void {
+const prepareRegister = (element: Element): void => {
   if (contains(element)) {
     pushInDocument(
       IndexOf(allNodesInDocument = allNodesInDocument || call(getElementsByTagNameInDoc, doc0, "*")
@@ -445,7 +450,7 @@ function prepareRegister(this: void, element: Element): void {
       }
   }
 }
-function doRegister(fromAttrs: BOOL): void {
+const doRegister = (fromAttrs: BOOL): void => {
   if (nodeIndexListInDocument.length + nodeIndexListForDetached.length) {
     dispatch(root, new CECls(kVOnClick, {
       detail: [nodeIndexListInDocument, nodeIndexListForDetached, fromAttrs, unsafeDispatchCounter++]
@@ -456,7 +461,7 @@ function doRegister(fromAttrs: BOOL): void {
 // https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/core/dom/node.cc;l=2117;drc=06e052d21baaa5afc7c851ed43c6a90e53dc6156
   root.textContent = "";
 }
-function safeReRegister(element: Element, doc1: Document): void {
+const safeReRegister = (element: Element, doc1: Document): void => {
   const localAEL = doc1[kAEL], localREL = doc1.removeEventListener;
   if (typeof localAEL == kFunc && typeof localREL == kFunc && localAEL !== myAEL) {
     isReRegistering = 1;
@@ -470,7 +475,7 @@ function safeReRegister(element: Element, doc1: Document): void {
     isReRegistering = 0;
   }
 }
-function executeCmd(eventOrDestroy?: Event): void {
+const executeCmd = (eventOrDestroy?: Event): void => {
   const detail: CommandEventDetail = eventOrDestroy && (eventOrDestroy as CustomEvent).detail,
   cmd: SecondLevelContentCmds | kContentCmd._fake = detail
       ? (detail >> kContentCmd.MaskedBitNumber) === +sec ? detail & ((1 << kContentCmd.MaskedBitNumber) - 1)
@@ -503,18 +508,27 @@ function executeCmd(eventOrDestroy?: Event): void {
   clearTimeout1(timer);
   timer = 1;
 }
-function noop(): 1 { return 1 }
+const noop = (): 1 => { return 1 }
 
+if (!(Build.BTypes & ~BrowserType.Edge)
+    || (Build.BTypes & ~BrowserType.ChromeOrFirefox || Build.MinCVer < BrowserVer.Min$queueMicrotask)
+        && typeof queueMicroTask_ !== kFunc) {
+  queueMicroTask_ = Promise.resolve() as any;
+  queueMicroTask_ = (queueMicroTask_ as any as Promise<void>).then.bind(queueMicroTask_ as any as Promise<void>);
+}
+if (Build.BTypes & BrowserType.Edge) {
+  docChildren = docChildren.item.bind(docChildren)
+}
 toRegister.s = toRegister.splice;
 // only the below can affect outsides
 curScript.remove();
 ETP[kAEL] = myAEL;
-FProto[kToS] = myToStr;
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once) {
   _listen(kReady, doInit, !0);
 } else {
   _listen(kReady, doInit, {capture: !0, once: !0});
 }
+FProto[kToS] = myToStr
 
       }).toString() + ")();" /** need "toString()": {@link ../scripts/dependencies.js#patchExtendClick} */
 
@@ -524,6 +538,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$addEvent
     if (Build.MinCVer < BrowserVer.MinEnsuredES6MethodFunction && Build.BTypes & BrowserType.Chrome &&
         appVer >= BrowserVer.MinEnsuredES6MethodFunction) {
       injected = injected.replace(<RegExpG> /: ?function \w+/g, "");
+    }
+    if (Build.MinCVer < BrowserVer.MinEnsuredES6ArrowFunction && Build.BTypes & BrowserType.Chrome
+        && appVer < BrowserVer.MinEnsuredES6ArrowFunction) {
+      injected = injected.replace(<RegExpG> /\(([\w,]*\))=>/g, "function($1")
     }
     injected = injected.replace(GlobalConsts.MarkAcrossJSWorlds, "$&" + secret)
     vApi.e = execute;

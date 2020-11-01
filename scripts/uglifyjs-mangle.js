@@ -3,12 +3,15 @@
 "use strict";
 
 const MAX_ALLOWED_PROPERTY_GROUPS = 0;
-const MIN_COMPLEX_CLOSURE = 300;
+const MIN_COMPLEX_CLOSURE = 100;
 const MIN_COMPLEX_OBJECT = 1;
-const MIN_ALLOWED_NAME_LENGTH = 2;
+const MIN_ALLOWED_NAME_LENGTH = 3
 const MIN_LONG_STRING = 20;
 const MIN_STRING_LENGTH_TO_COMPUTE_GAIN = 2;
 const MIN_EXPECTED_STRING_GAIN = 11;
+const ALLOWED_SHORT_NAMES = new Set([
+  ":SP:0", ":BU:0", ":V:1", ":I:1"
+])
 
 // @ts-ignore
 const TEST = typeof require === "function" && require.main === module;
@@ -74,6 +77,7 @@ async function collectWords(ast, options) {
   const map = new Map();
   /** @type { string[][] } */
   let namesToMangle = [];
+  let variableListCount = 0
   const _props0 = options.mangle && typeof options.mangle === "object" ? options.mangle.properties : null,
   props0 = _props0 && typeof _props0 === "object" ? _props0 : null;
   /** @type { RegExp } */
@@ -94,11 +98,12 @@ async function collectWords(ast, options) {
       for (const [key, node] of closure.variables) {
         const ref_count = node.references.length;
         if (ref_count === 0) { continue; }
-        const id = ":" + key + ":" + namesToMangle.length;
+        const id = ":" + key + ":" + variableListCount
         names.push(id);
         map.set(id, (map.get(id) || 0) + ref_count);
       }
       if (names.length > 0) {
+        variableListCount++
         namesToMangle.push(names)
       }
       break;
@@ -224,7 +229,7 @@ function findDuplicated(names, countsMap) {
 /**
  * @param { readonly string[][] } names
  * @param { number } minAllowedLength
- * @return { string[] }
+ * @return { Set<string> }
  */
 function findTooShort(names, minAllowedLength) {
   /** @type { Set<string> } */
@@ -236,7 +241,7 @@ function findTooShort(names, minAllowedLength) {
       }
     }
   }
-  return [...short];
+  return short
 }
 
 /**
@@ -269,8 +274,9 @@ async function myMinify(files, options) {
         throw Error("Find duplicated keys: " + JSON.stringify(duplicated, null, 2));
       }
       const tooShort = findTooShort(names, MIN_ALLOWED_NAME_LENGTH);
-      if (tooShort.length > 0) {
-        throw Error("Some keys are too short: " + JSON.stringify(tooShort, null, 2));
+      ALLOWED_SHORT_NAMES.forEach(i => tooShort.delete(i))
+      if (tooShort.size > 0) {
+        throw Error("Some keys are too short: " + JSON.stringify([...tooShort], null, 2))
       }
       const variables = names.filter(arr => arr[0][0] === ":");
       if (variables.length > 2) {
@@ -514,14 +520,17 @@ async function hookMangleNamesOnce(mainVariableNames, extendClickValiables, coun
     /** @type {Map<string, any>} */
     const astVariables = isVC ? this.variables : expression && expression.variables;
     if (!astVariables || !isVC && astVariables.size < MIN_COMPLEX_CLOSURE) { return; }
-    const vars = isVC ? extendClickValiables : mainVariableNames
+    const vars = (isVC ? extendClickValiables : mainVariableNames).map(i => i.split(":")[1])
     const next = createMangler(["do", "for", "if", "in", "new", "try", "var", "let",
         ...vars, ...(options.reserved || [])]);
-    for (const id of vars) {
-      const name = id.split(":")[1]
+    for (const name of vars) {
       if (varCountMap.has(name)) {
         const varDef = astVariables.get(name);
         if (varDef) {
+          if (name.length < MIN_ALLOWED_NAME_LENGTH && vars.includes(name)) {
+            varDef.mangled_name = name
+            continue
+          }
           let newName = ""
           do {
             newName = next(name)
@@ -633,7 +642,8 @@ const createMangler = (function (doesTest) {
       for (let i = 0; i < width - 1; i++) {
         lookupStart += n1 * Math.pow(n2, i)
       }
-      const lookupOffset = lookupStart + (hashCode(lower) % lookupSize)
+      const hash1 = hashCode(lower) % lookupSize
+      const lookupOffset = lookupStart + (hash1 >= 0 ? hash1 : hash1 + lookupSize)
       for (let i = lookupOffset; i < lookupStart + lookupSize; i++) {
         if (tryAddUnique(mangledNamesList[i])) { return mangledNamesList[i] }
       }
