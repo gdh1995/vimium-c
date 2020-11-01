@@ -489,7 +489,7 @@ declare const enum BrowserVer {
   MinBorderWidth$Ensure1$Or$Floor = 85, // even if EXPERIMENTAL or LEGACY
   MinClipboardWriteHTML = 86,
   /** @todo: trace https://bugs.chromium.org/p/chromium/issues/detail?id=968651&can=2&q=reduced-motion%20change */
-  MinMediaChangeEventsOnBackgroundPage = 999,
+  MinMediaChangeEventsOnBackgroundPage = 1000,
   MinNo$TimerType$$Fake = 999,
   assumedVer = 998,
 }
@@ -524,7 +524,7 @@ declare const enum FirefoxBrowserVer {
   MinCSS$readOnly$selector = 78, // https://developer.mozilla.org/en-US/docs/Web/CSS/:read-only
   MinEnsuredUnicodePropertyEscapesInRegExp = 78,
   /** @todo: trace https://bugzilla.mozilla.org/show_bug.cgi?id=1587723 */
-  MinMediaChangeEventsOnBackgroundPage = 999,
+  MinMediaChangeEventsOnBackgroundPage = 1000,
   // members of a Selection are never updated when an <input> gets focused, so no work-around
   Min$Selection$SupportTextBox = 999,
   None = 0,
