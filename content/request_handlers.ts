@@ -77,7 +77,7 @@ set_requestHandlers([
           : flags & Frames.Flags.locked ? 1 : 0)
     }
     requestHandlers[kBgReq.keyFSM](request);
-    (requestHandlers[kBgReq.reset] as (request: BgReq[kBgReq.reset], initing?: 1) => void)(request, 1);
+    (requestHandlers[kBgReq.reset] as (request: BgReq[kBgReq.reset | kBgReq.init], initing?: 1) => void)(request, 1)
     if (isEnabled_) {
       insertInit();
       if (Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
@@ -120,7 +120,7 @@ set_requestHandlers([
     });
     injector && injector.$r(InjectorTask.extInited);
   },
-  /* kBgReq.reset: */ function (request: BgReq[kBgReq.reset], initing?: 1): void {
+  /* kBgReq.reset: */ function (request: BgReq[kBgReq.reset | kBgReq.init], initing?: 1): void {
     const newPassKeys = request.p, old = isEnabled_
     set_isEnabled_(newPassKeys !== "")
     if (newPassKeys) {

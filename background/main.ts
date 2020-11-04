@@ -174,7 +174,7 @@ Backend_ = {
         ? oldStatus !== Frames.Status.enabled ? Frames.Status.enabled : Frames.Status.disabled
         : (act !== "reset" && logAndShow(`Unknown status action: "${act}", so reset`) , null),
       enableWithPassedKeys = !!newPassedKeys && act === "enable",
-      locked = stat !== null ? stat === Frames.Status.disabled && newPassedKeys ? 2 : 1 : 0,
+      locked = stat !== null ? stat === Frames.Status.disabled ? 3 : 1 : 0,
       unknown = !(locked || always_enabled),
       msg: Req.bg<kBgReq.reset> = {
         N: kBgReq.reset,

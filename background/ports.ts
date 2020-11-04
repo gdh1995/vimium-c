@@ -43,6 +43,9 @@ export const OnConnect = (port: Frames.Port, type: number): void => {
       return
     } else {
       status = ((type >>> PortType.BitOffsetOfKnownStatus) & PortType.MaskOfKnownStatus) - 1
+      if (type & PortType.isLocked && status === Frames.Status.partial) {
+        status = type & PortType.isLockedAsDisabled ? Frames.Status.disabled : Frames.Status.enabled
+      }
       sender.f = ((type & PortType.isLocked) ? Frames.Flags.lockedAndUserActed : Frames.Flags.userActed
         ) + ((type & PortType.hasCSS) && Frames.Flags.hasCSS)
     }
@@ -53,6 +56,7 @@ export const OnConnect = (port: Frames.Port, type: number): void => {
     let pass: null | string, flags: Frames.Flags = Frames.Flags.blank
     if (ref && ((flags = sender.f = ref[0].s.f & Frames.Flags.InheritedFlags) & Frames.Flags.locked)) {
       status = ref[0].s.s
+      // @todo: rewrite framesForTab to store forced passKeys
       pass = status !== Frames.Status.disabled ? null : ""
     } else {
       pass = Backend_.getExcluded_(url, sender)

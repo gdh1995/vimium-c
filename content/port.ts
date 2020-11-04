@@ -62,7 +62,7 @@ export const runtimeConnect = (function (this: void): void {
       ? browser as typeof chrome : chrome,
   status = requestHandlers[kBgReq.init] ? PortType.initing
       : (isEnabled_ ? passKeys ? PortType.knownPartial : PortType.knownEnabled : PortType.knownDisabled)
-        + PortType.isLocked * <number> <number | boolean> isLocked_
+        + PortType.isLocked * isLocked_
         + PortType.hasCSS * <number> <number | boolean> !!style_ui,
   name = PortType.isTop * +isTop + PortType.hasFocus * +doc.hasFocus() + status,
   data = { name: injector ? PortNameEnum.Prefix + name + injector.$h

@@ -91,7 +91,7 @@ interface BgReq {
   };
   [kBgReq.reset]: {
     /** passKeys */ p: string | null;
-    /** forced: if .H is .reset, then must exist */ f?: 0 | 1 | 2
+    /** forced: if .H is .reset, then must exist */ f: 0 | 1 | 3
   };
   [kBgReq.msg]: {
     /** mid */ m: number;

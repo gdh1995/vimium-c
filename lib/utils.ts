@@ -31,7 +31,7 @@ export { esc as isAlive_ }
 export let isEnabled_ = false
 export function set_isEnabled_ (_newIsEnabled: boolean): void { isEnabled_ = _newIsEnabled }
 
-export let isLocked_: 0 | /** locked */ 1 | /** locked and disabled (even with a few hooked keys) */ 2 = 0
+export let isLocked_: 0 | /** locked */ 1 | /** locked and disabled (even with a few hooked keys) */ 3 = 0
 export function set_isLocked_ (_newIsLocked: typeof isLocked_): void { isLocked_ = _newIsLocked }
 
 export let readyState_: Document["readyState"] = initialDocState
