@@ -298,7 +298,7 @@ export const sendFgCmd = <K extends keyof CmdOptions> (cmd: K, css: boolean, opt
 
 export const portSendFgCmd = <K extends keyof CmdOptions> (
     port: Port, cmd: K, css: boolean | BOOL, opts: CmdOptions[K], count: number): void => {
-  port.postMessage<1, K>({ N: kBgReq.execute, H: css ? ensureInnerCSS(cPort.s) : null, c: cmd, n: count, a: opts })
+  port.postMessage<1, K>({ N: kBgReq.execute, H: css ? ensureInnerCSS(port.s) : null, c: cmd, n: count, a: opts })
 }
 
 export const showHUD = (text: string, isCopy?: kTip): void => {

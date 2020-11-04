@@ -570,6 +570,7 @@ set_executeCommand((registryEntry: CommandsNS.Item, count: number, lastKey: kKey
     dot = (kFgCmd.END <= 32 || fgAlias < 32) && <BOOL> (((
       (1 << kFgCmd.marks) | (1 << kFgCmd.passNextKey) | (1 << kFgCmd.focusInput)
     ) >> fgAlias) & 1)
+    set_cPort(port)
     portSendFgCmd(port, fgAlias, dot, options as any, count)
     return
   }

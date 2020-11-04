@@ -299,7 +299,7 @@ set_reqH_([
     } else if (!pattern || pattern === Backend_.getExcluded_(oldUrl, sender)) {
       return
     }
-    port.postMessage({ N: kBgReq.reset, p: pattern })
+    port.postMessage({ N: kBgReq.reset, p: pattern, f: 0 })
   },
   /** kFgReq.nextFrame: */ (request: FgReq[kFgReq.nextFrame], port: Port): void => {
     set_cPort(port)
