@@ -11,7 +11,7 @@ import {
   attachShadow_, getSelectionFocusEdge_, activeEl_unsafe_, rangeCount_, setClassName_s, compareDocumentPosition,
   getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, htmlTag_, fullscreenEl_unsafe_, docEl_unsafe_,
   getSelection_, isSelected_, docSelectable_, isHTML_, createElement_, CLK, MDW, NONE, removeEl_s, appendNode_s,
-  getAccessibleSelectedNode,  INP, BU, UNL, contains_s, setOrRemoveAttr, textContent_
+  getAccessibleSelectedNode,  INP, BU, UNL, contains_s, setOrRemoveAttr_s, textContent_s
 } from "../lib/dom_utils"
 import {
   wdZoom_, prepareCrop_, view_, dimSize_, selRange_, getZoom_, padClientRect_, getSelectionBoundingBox_,
@@ -88,7 +88,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
         if (query !== query_) {
           updateQuery(query)
           if (isActive) {
-            textContent_(input_, query.replace(<RegExpOne> /^ /, "\xa0"))
+            textContent_s(input_, query.replace(<RegExpOne> /^ /, "\xa0"))
             showCount(1)
           }
         }
@@ -285,8 +285,8 @@ const onLoad2 = (): void => {
     setClassName_s(root2, "r" + fgCache.d)
     root2.spellcheck = false;
     appendNode_s(root2, list)
-    setOrRemoveAttr(box, "role", "textbox")
-    setOrRemoveAttr(box, "aria-multiline", "true")
+    setOrRemoveAttr_s(box, "role", "textbox")
+    setOrRemoveAttr_s(box, "aria-multiline", "true")
     if ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
         && (!(Build.BTypes & BrowserType.Firefox)
             || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1

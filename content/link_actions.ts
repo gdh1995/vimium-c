@@ -8,7 +8,7 @@ import {
   IsInDOM_, createElement_, htmlTag_, getComputedStyle_, getEditableType_, isIFrameElement, GetParent_unsafe_,
   ElementProto, querySelector_unsafe_, getInputType, uneditableInputs_, GetShadowRoot_, CLK, scrollingEl_,
   findMainSummary_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s,
-  setOrRemoveAttr, toggleClass, textContent_
+  setOrRemoveAttr_s, toggleClass_s, textContent_s
 } from "../lib/dom_utils"
 import {
   hintOptions, mode1_, hintMode_, hintApi, hintManager, coreHints, setMode, detectUsableChild, hintCount_,
@@ -216,7 +216,7 @@ export const linkActionArray: readonly LinkAction[] = [
                     ] as SafeElement)
               : element.closest!(selector))) {
           for (const classNameStr of toggleMap[key].split(" ")) {
-            classNameStr.trim() && toggleClass(selected, classNameStr)
+            classNameStr.trim() && toggleClass_s(selected, classNameStr)
           }
         }
       } catch {}
@@ -269,7 +269,7 @@ export const linkActionArray: readonly LinkAction[] = [
                 || GetShadowRoot_(link) && (childEl = GetShadowRoot_(link)!.querySelector("div,span"))
                     && htmlTag_(childEl) && (childEl as SafeHTMLElement).innerText
                 || str).trim()
-            || (str = textContent_(link).trim()) && str.replace(<RegExpG> /\s+/g, " ")
+            || (str = textContent_s(link).trim()) && str.replace(<RegExpG> /\s+/g, " ")
       }
       str = str && str.trim();
       if (!str && tag) {
@@ -385,13 +385,13 @@ export const linkActionArray: readonly LinkAction[] = [
     }
     catchAsyncErrorSilently(click_(link, rect, 0, [!0, !1, !1, !1])).then((): void => {
     if (hadNoDownload) {
-      setOrRemoveAttr(link, kD)
+      setOrRemoveAttr_s(link, kD)
     }
     if (!changed) { /* empty */ }
     else if (notAnchor) {
       removeEl_s(link)
     } else {
-      setOrRemoveAttr(link, H, oldUrl)
+      setOrRemoveAttr_s(link, H, oldUrl)
     }
     })
   }) as HTMLExecutor as Executor

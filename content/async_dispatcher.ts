@@ -6,7 +6,7 @@ import { suppressTail_ } from "../lib/keyboard_utils"
 import { center_, getVisibleClientRect_, view_ } from "../lib/rect"
 import { insert_Lock_ } from "./insert"
 import { post_ } from "./port"
-import { flash_, moveSel_need_safe } from "./dom_ui"
+import { flash_, moveSel_s } from "./dom_ui"
 import { hintApi } from "./link_hints"
 import { beginToPreventClick_ff, wrappedDispatchMouseEvent_ff } from "./extend_click_ff"
 
@@ -306,7 +306,7 @@ export const click_ = async (element: SafeElementForMouse
               : (parentAnchor = element.closest!("a")) && htmlTag_(parentAnchor) ? parentAnchor : null)
           || Build.BTypes & BrowserType.Firefox && specialAction < kClickAction.MinNotPlainOpenManually
               && parentAnchor.target !== "_blank"
-          || !(url = attr_s(parentAnchor, "href"))
+          || !(url = attr_s(parentAnchor as SafeElement, "href"))
           || specialAction & (kClickAction.forceToOpenInNewTab | kClickAction.forceToOpenInLastWnd)
               && url[0] === "#"
           || isJSUrl(url)
@@ -367,7 +367,7 @@ export const select_ = (element: LockableElement, rect?: Rect | null, show_flash
     show_flash && flash_(element)
     if (element !== insert_Lock_()) { return }
     // then `element` is always safe
-    moveSel_need_safe(element, action)
+    moveSel_s(element, action)
     if (suppressRepeated) { suppressTail_() }
   })
 }

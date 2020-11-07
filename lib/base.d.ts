@@ -188,8 +188,10 @@ declare namespace HintsNS {
   interface ContentOptions extends Options, SafeObject {}
   type LinkEl = Hint[0];
 
-  interface MarkerElement extends HTMLSpanElement {
+  interface MarkerElement extends SafeHTMLElement {
+    readonly localName: "span"
     readonly firstChild: HTMLSpanElement | Text | null;
+    readonly firstElementChild: HTMLSpanElement | null
     readonly childNodes: NodeListOf<HTMLSpanElement | Text>;
   }
   interface BaseHintItem {

@@ -13,7 +13,6 @@ let isDocZoomStrange_: BOOL = 0
 let dScale_ = 1 // <html>.transform:scale (ignore the case of sx != sy)
 let bScale_ = 1 // <body>.transform:scale (ignore the case of sx != sy)
 let vright: number, vbottom: number, vbottoms: number, vleft: number, vtop: number, vtops: number
-/** @NEED_SAFE_ELEMENTS */
 let scrollingTop: SafeElement | null = null
 
 export {
@@ -269,7 +268,7 @@ let _getPageZoom_cr = Build.BTypes & BrowserType.Chrome ? function (devRatio: nu
   let iframe: HTMLIFrameElement = createElement_("iframe"),
   pageZoom: number | null | undefined, doc: Document | null
   try {
-    (Build.BTypes & ~BrowserType.Firefox ? append_not_ff : appendNode_s)(_testEl!, iframe)
+    (Build.BTypes & ~BrowserType.Firefox ? append_not_ff : appendNode_s as typeof append_not_ff)(_testEl!, iframe)
     _testEl = (doc = iframe.contentDocument) && doc.documentElement
     pageZoom = _testEl && +getComputedStyle_(_testEl).zoom
   } catch {}

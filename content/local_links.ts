@@ -24,7 +24,7 @@ import {
   kSafeAllSelector, coreHints, addChildFrame_, mode1_, forHover_,
   isClickListened_, forceToScroll_, hintMode_, set_isClickListened_, tooHigh_, useFilter_, hintChars, hintManager,
 } from "./link_hints"
-import { shouldScroll_need_safe, getPixelScaleToScroll, scrolled, set_scrolled, suppressScroll } from "./scroller"
+import { shouldScroll_s, getPixelScaleToScroll, scrolled, set_scrolled, suppressScroll } from "./scroller"
 import { ui_root, ui_box } from "./dom_ui"
 
 let frameNested_: NestedFrame = false
@@ -43,7 +43,7 @@ export const localLinkClear = (): void => { maxLeft_ = maxTop_ = maxRight_ = 0 }
 export function set_frameNested_ (_newNestedFrame: NestedFrame): void { frameNested_ = _newNestedFrame }
 
 /**
- * Must ensure only call {@link scroller.ts#VSc.shouldScroll_need_safe_} during {@link #getVisibleElements_}
+ * Must ensure only call {@link scroller.ts#VSc.shouldScroll_s_} during {@link #getVisibleElements_}
  */
 const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
   let arr: Rect | null | undefined, isClickable = null as boolean | null, s: string | null
@@ -147,7 +147,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
       && (arr = tag === "img" ? getZoomedAndCroppedRect_(element as HTMLImageElement, null, true)
               : arr || getVisibleClientRect_(element, null))
       && (type < ClickType.scrollX
-        || shouldScroll_need_safe(element
+        || shouldScroll_s(element
             , (((type - ClickType.scrollX) as ScrollByY) + forceToScroll_) as BOOL | 2 | 3, 0) > 0)
       && isAriaNotTrue_(element, kAria.hidden)
       && (hintMode_ > HintMode.min_job - 1 || isAriaNotTrue_(element, kAria.disabled))

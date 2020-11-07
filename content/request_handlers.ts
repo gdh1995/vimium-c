@@ -8,7 +8,7 @@ import { set_keyIdCorrectionOffset_old_cr_, handler_stack } from "../lib/keyboar
 import {
   editableTypes_, markFramesetTagUnsafe, setNotSafe_not_ff, OnDocLoaded_, frameElement_, BU,
   htmlTag_, querySelector_unsafe_, isHTML_, createElement_, setClassName_s,
-  docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, CLK, ElementProto, isIFrameElement, DAC, removeEl_s, toggleClass
+  docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, CLK, ElementProto, isIFrameElement, DAC, removeEl_s, toggleClass_s
 } from "../lib/dom_utils"
 import {
   port_callbacks, post_, safePost, set_requestHandlers, requestHandlers, hookOnWnd, set_hookOnWnd,
@@ -174,7 +174,7 @@ set_requestHandlers([
       const i2 = "_" + i as Keys;
       (i2 in fgCache) && (safer(fgCache)[i2] = void 0 as never);
     }
-    delta.d != null && hud_box && toggleClass(hud_box, "D", !!delta.d)
+    delta.d != null && hud_box && toggleClass_s(hud_box, "D", !!delta.d)
   },
   /* kBgReq.focusFrame: */ (req: BgReq[kBgReq.focusFrame]): void => {
     // Note: .c, .S are ensured to exist

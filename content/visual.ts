@@ -43,7 +43,7 @@ import {
   set_scrollingTop, selRange_,
 } from "../lib/rect"
 import { checkDocSelectable, getSelected, resetSelectionToDocStart, flash_, collpaseSelection, ui_box } from "./dom_ui"
-import { executeScroll, scrollIntoView_need_safe, getPixelScaleToScroll } from "./scroller"
+import { executeScroll, scrollIntoView_s, getPixelScaleToScroll } from "./scroller"
 import {
   toggleSelectableStyle, find_query, executeFind, find_hasResults, updateQuery as findUpdateQuery, findCSS, set_findCSS,
   execCommand,
@@ -257,7 +257,7 @@ const commandHandler = (command: VisualAction, count: number): void => {
     if (diType_ & DiType.Complicated) { return }
     const focused = getSelectionFocusEdge_(curSelection, di_ as ForwardDir)
     if (focused) {
-      scrollIntoView_need_safe(focused)
+      scrollIntoView_s(focused)
     }
 }
 

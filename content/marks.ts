@@ -2,7 +2,7 @@ import { VTr, safer, loc_, vApi, locHref, isTY } from "../lib/utils"
 import { post_ } from "./port"
 import { hudHide, hudShow, hudTip } from "./hud"
 import { removeHandler_, getMappedKey, isEscape_, replaceOrSuppressMost_ } from "../lib/keyboard_utils"
-import { createElement_, textContent_ } from "../lib/dom_utils"
+import { createElement_, textContent_s } from "../lib/dom_utils"
 
 let onKeyChar: ((event: HandlerNS.Event, keyChar: string) => void) | null = null
 let prefix = true
@@ -37,9 +37,9 @@ const dispatchMark = ((mark?: Readonly<MarksNS.FgMark> | null | undefined
     ): Readonly<MarksNS.FgMark> | MarksNS.FgMark | null => {
   let a = createElement_("a"), oldStr: string | undefined, newStr: string, match: string[],
   newMark: Readonly<MarksNS.FgMark> | null | undefined
-  mark && textContent_(a, oldStr = mark + "")
+  mark && textContent_s(a, oldStr = mark + "")
   newMark = !dispatchEvent(new FocusEvent("vimiumMark", { relatedTarget: a })) ? null
-      : (newStr = textContent_(a)) === oldStr ? mark
+      : (newStr = textContent_s(a)) === oldStr ? mark
       : (match = newStr.split(",")).length > 1 ? [~~match[0], ~~match[1], match[2]] : mark
   return mark ? newMark as Readonly<MarksNS.FgMark> | MarksNS.FgMark | null : newMark || [scrollX | 0, scrollY | 0]
 }) as {

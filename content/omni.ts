@@ -21,8 +21,8 @@ import {
 } from "../lib/utils"
 import { removeHandler_, replaceOrSuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
 import {
-  frameElement_, isHTML_, fullscreenEl_unsafe_, NONE, createElement_, removeEl_s, setClassName_s, setOrRemoveAttr,
-  toggleClass
+  frameElement_, isHTML_, fullscreenEl_unsafe_, NONE, createElement_, removeEl_s, setClassName_s, setOrRemoveAttr_s,
+  toggleClass_s
 } from "../lib/dom_utils"
 import { getViewBox_, docZoom_, dScale_, prepareCrop_, bZoom_, wndSize_, viewportRight } from "../lib/rect"
 import { beginScroll, scrollTick } from "./scroller"
@@ -123,7 +123,7 @@ export const activate = function (options: FullOptions, count: number): void {
       focusOmni()
       status = VomnibarNS.Status.ToShow
     }
-    toggleClass(box, "O2", !canUseVW)
+    toggleClass_s(box, "O2", !canUseVW)
     options.e && setupExitOnClick(kExitOnClick.vomnibar)
     let upper = 0;
     if (url != null) {
@@ -174,9 +174,9 @@ export const hide = (fromInner?: 1): void => {
 const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
     const reload = (): void => {
       type = VomnibarNS.PageType.inner
-      setOrRemoveAttr(el, kRef)
+      setOrRemoveAttr_s(el, kRef)
       // not skip the line below: in case main world JS adds some sandbox attributes
-      setOrRemoveAttr(el,"sandbox")
+      setOrRemoveAttr_s(el,"sandbox")
       el.src = page = inner!
       omniOptions && (omniOptions.t = type)
     }

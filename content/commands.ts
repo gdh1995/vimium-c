@@ -4,7 +4,7 @@ import {
 } from "../lib/utils"
 import {
   isHTML_, htmlTag_, createElement_, frameElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK,
-  querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass
+  querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s
 } from "../lib/dom_utils"
 import {
   pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
@@ -398,7 +398,7 @@ set_contentCommands_([
     toggleAdvanced = (): void => {
       const el2 = advCmd.firstChild as HTMLElement
       el2.innerText = el2.dataset[shouldShowAdvanced ? "h" : "s"]!
-      toggleClass(box, "HelpDA")
+      toggleClass_s(box, "HelpDA")
     }
     set_hideHelp(closeBtn.onclick = (event?: EventToPrevent): void => {
       set_hideHelp(null)

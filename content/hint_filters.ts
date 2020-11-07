@@ -6,7 +6,7 @@ import ClickType = HintsNS.ClickType
 import { chromeVer_, createRegExp, Lower, math, max_ } from "../lib/utils"
 import {
   createElement_, querySelector_unsafe_, getInputType, htmlTag_, docEl_unsafe_, ElementProto, removeEl_s, ALA, attr_s,
-  contains_s, setClassName_s, setVisibility_s, toggleClass, textContent_
+  contains_s, setClassName_s, setVisibility_s, toggleClass_s, textContent_s
 } from "../lib/dom_utils"
 import {
   hintMode_, useFilter_, coreHints, hintKeyStatus, KeyStatus, hintChars, allHints, setMode, resetMode, hintOptions
@@ -124,8 +124,8 @@ export const rotate1 = (totalHints: readonly HintItem[], reverse?: boolean, save
       const hint = totalHints[zIndexSubArray[j]]
       const m = hint.m, newI = hint.z
       m.style.zIndex = (hint.z = oldI) as number | string as string;
-      toggleClass(m, "OH", oldI < max)
-      toggleClass(m, "SH", oldI >= max)
+      toggleClass_s(m, "OH", oldI < max)
+      toggleClass_s(m, "SH", oldI >= max)
       oldI = newI!
     }
   }
@@ -167,13 +167,13 @@ export const generateHintText = (hint: Hint, hintInd: number, allItems: readonly
   if (!("lang" in el)) { // SVG elements or plain `Element` nodes
     // SVG: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/text
     // demo: https://developer.mozilla.org/en-US/docs/Web/MathML/Element/mfrac on Firefox
-    text = textContent_(el).replace(<RegExpG> /\s{2,}/g, " ")
+    text = textContent_s(el).replace(<RegExpG> /\s{2,}/g, " ")
   } else switch (localName) {
   case "input": case "select": case "textarea":
     let labels = (el as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement).labels;
     if (labels && labels.length
         && (text = (labels[0] as SafeHTMLElement).innerText).trim()) {
-      show = <BOOL> +!contains_s(labels[0], el)
+      show = <BOOL> +!contains_s(labels[0] as SafeHTMLElement, el)
     } else if (localName[0] === "s") {
       const selected = (el as HTMLSelectElement).selectedOptions[0];
       text = selected ? selected.label : "";
@@ -305,7 +305,7 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
       // hints[].zIndex is reset in .MakeStacks_
       if (inited && (newLen || oldKeySeq)) {
       for (const hint of newLen ? hints : oldHintArray) {
-        const firstChild = hint.m.firstElementChild as Element | null
+        const firstChild = hint.m.firstElementChild
         firstChild && removeEl_s(firstChild);
         (hint.m.firstChild as Text).data = hint.a;
       }
@@ -355,10 +355,10 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
   const newActive = hints[(keyStatus.b < 0 ? (keyStatus.b += newUnerSeq) : keyStatus.b) % newUnerSeq];
   if (oldActive !== newActive) {
     if (oldActive) {
-      toggleClass(oldActive.m, "MH", 0)
+      toggleClass_s(oldActive.m, "MH", 0)
       oldActive.m.style.zIndex = "";
     }
-    toggleClass(newActive.m, "MH", 1)
+    toggleClass_s(newActive.m, "MH", 1)
     newActive.m.style.zIndex = allHints!.length as number | string as string;
     activeHint_ = newActive;
   }
@@ -409,7 +409,7 @@ export const renderMarkers = (hintItemArray: readonly HintItem[]): void => {
           ? right.slice(0, GlobalConsts.MaxLengthOfShownText - 2).trimRight() + "\u2026" // the "\u2026" is wide
           : right;
       if (!right) { continue; }
-      toggleClass(marker, "TH", 1)
+      toggleClass_s(marker, "TH", 1)
       right = ": " + right;
     } else {
       right = hint.a.slice(-1);

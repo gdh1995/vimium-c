@@ -61,7 +61,7 @@ import {
 } from "../lib/utils"
 import {
   frameElement_, querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_,
-  getComputedStyle_, isStyleVisible_, htmlTag_, fullscreenEl_unsafe_, removeEl_s, UNL, toggleClass, doesSupportDialog
+  getComputedStyle_, isStyleVisible_, htmlTag_, fullscreenEl_unsafe_, removeEl_s, UNL, toggleClass_s, doesSupportDialog
 } from "../lib/dom_utils"
 import {
   getViewBox_, prepareCrop_, wndSize_, bZoom_, wdZoom_, dScale_, padClientRect_, getBoundingClientRect_,
@@ -461,7 +461,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
     return ret;
 }
 
-const toggleClassForKey = (name: string, frame: FrameHintsInfo): void => { toggleClass(frame.s.$().b!, "HM-" + name) }
+const toggleClassForKey = (name: string, frame: FrameHintsInfo): void => { toggleClass_s(frame.s.$().b!, "HM-" + name) }
 
 const rotateHints = (reverse: boolean, list: FrameHintsInfo): void => {
   list.s.t(list.h, reverse, !keyStatus_.k && !keyStatus_.t)
@@ -501,7 +501,7 @@ const locateHint = (matchedHint: HintItem): BaseHintWorker => {
 
 const highlightHint = (hint: HintItem): void => {
   flash_(hint.m, null, 660, " Sel")
-  toggleClass(box_!, "HMM")
+  toggleClass_s(box_!, "HMM")
 }
 
 export const resetMode = (silent?: BOOL): void => {
@@ -527,7 +527,7 @@ const delayToExecute = (officer: BaseHintWorker, hint: HintItem, flashEl: SafeHT
       } else if (event) {
         tick = waitEnter && keybody === SPC ? tick + 1 : 0;
         tick === 3 || keybody === ENTER ? callExecuteHint(hint, event)
-        : key === kChar.f1 && flashEl ? toggleClass(flashEl, "Sel") : 0;
+        : key === kChar.f1 && flashEl ? toggleClass_s(flashEl, "Sel") : 0;
       } else {
         callExecuteHint(hint);
       }

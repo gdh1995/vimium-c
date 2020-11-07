@@ -7,7 +7,7 @@ import {
   createElement_, attachShadow_, NONE, fullscreenEl_unsafe_, docEl_unsafe_, getComputedStyle_, set_docSelectable_,
   GetParent_unsafe_, getSelection_, ElementProto, GetChildNodes_not_ff, GetShadowRoot_, getEditableType_, htmlTag_,
   notSafe_not_ff_, CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_, getAccessibleSelectedNode, removeEl_s,
-  appendNode_s, append_not_ff, setClassName_s, isNode_, INP, contains_s, setOrRemoveAttr, selOffset_, textContent_
+  appendNode_s, append_not_ff, setClassName_s, isNode_, INP, contains_s, setOrRemoveAttr_s, selOffset_, textContent_s
 } from "../lib/dom_utils"
 import {
   bZoom_, dScale_, getZoom_, wdZoom_, getSelectionBoundingBox_, prepareCrop_, getClientRectsForAreas_,
@@ -90,7 +90,7 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
        * `AdjustType.NotAdjust` must be used before a certain, clear normal adjusting
        */
       // enforce webkit to build the style attribute node, and then we can remove it totally
-      box_!.hasAttribute(S) && setOrRemoveAttr(box_!, S)
+      box_!.hasAttribute(S) && setOrRemoveAttr_s(box_!, S)
       if (adjust_type) {
         adjustUI()
       }
@@ -163,7 +163,7 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
     //  -> #concept-node-append -> #concept-node-pre-insert -> #concept-node-adopt -> step 2
     disableUI ? removeEl_s(box_!) : el2 !== box_!.parentNode &&
-    (Build.BTypes & ~BrowserType.Firefox ? append_not_ff : appendNode_s)(el2, box_!)
+    (Build.BTypes & ~BrowserType.Firefox ? append_not_ff : appendNode_s as typeof append_not_ff)(el2, box_!)
     const sin = styleIn_, s = sin && (sin as HTMLStyleElement).sheet
     s && (s.disabled = false);
     !(Build.BTypes & BrowserType.ChromeOrFirefox) || disableUI ||
@@ -210,7 +210,7 @@ export const ensureBorder = Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or
 export const createStyle = (text: string, css?: HTMLStyleElement): HTMLStyleElement => {
     css = css || createElement_("style");
     css.type = "text/css";
-    textContent_(css, text)
+    textContent_s(css, text)
     return css;
 }
 
@@ -220,7 +220,7 @@ export const learnCSS = (srcStyleIn: typeof styleIn_, force?: 1): void => {
     if (Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor || Build.BTypes & ~BrowserType.Chrome
         ? !styleIn_ || force : !styleIn_) {
       const
-      css = srcStyleIn && (isTY(srcStyleIn) ? srcStyleIn : textContent_(srcStyleIn))
+      css = srcStyleIn && (isTY(srcStyleIn) ? srcStyleIn : textContent_s(srcStyleIn))
       if (css) {
         setUICSS(css)
         if (Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor || Build.BTypes & ~BrowserType.Chrome) {
@@ -301,10 +301,7 @@ export const getSelected = (notExpectCount?: {r?: ShadowRoot | null}): Selection
   return sel!
 }
 
-  /**
-   * return HTMLElement if there's only Firefox
-   * @UNSAFE_RETURNED
-   */
+/** return HTMLElement if there's only Firefox */
 export const getSelectionParent_unsafe = ((sel: Selection, re?: RegExpG & RegExpSearchable<0>): Element | null | 0 => {
     let range = selRange_(sel)
       , selected: string | undefined, match: RegExpExecArray | null, result = 0
@@ -364,15 +361,14 @@ export const resetSelectionToDocStart = function (sel?: Selection, range?: Range
 
 export const selectAllOfNode = (node: Node) => { getSelection_().selectAllChildren(node) }
 
-  /** @NEED_SAFE_ELEMENTS element is LockableElement */
-export const moveSel_need_safe = (element: LockableElement, action: SelectActions | undefined): void => {
+export const moveSel_s = (element: LockableElement, action: SelectActions | undefined): void => {
     const elTag = htmlTag_(element), type = elTag === "textarea" ? EditableType.TextBox
         : elTag === INP ? EditableType.input_
         : element.isContentEditable ? EditableType.rich_
         : EditableType.Default;
     if (type === EditableType.Default) { return; }
     const isBox = type === EditableType.TextBox || type === EditableType.rich_
-        && textContent_(element).includes("\n"),
+        && textContent_s(element).includes("\n"),
     lineAllAndBoxEnd = action === "all-input" || action === "all-line",
     gotoStart = action === "start",
     gotoEnd = !action || action === "end" || isBox && lineAllAndBoxEnd;

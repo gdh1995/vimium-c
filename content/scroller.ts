@@ -1,10 +1,4 @@
-/**
- * Note(gdh1995):
- * - All private members are @NEED_SAFE_ELEMENTS
- * - Untagged public members are @safe_even_if_any_overridden_property
- */
-declare namespace ScrollerNS {
-  const enum Consts {
+declare const enum ScrollConsts {
     calibrationBoundary = 150, maxCalibration = 1.6, minCalibration = 0.5,
     minDuration = 100, durationScaleForAmount = 20,
     maxS = 1.05, minS = 0.95, delayToChangeSpeed = 75, tickForUnexpectedTime = 17, firstTick = 17,
@@ -19,7 +13,6 @@ declare namespace ScrollerNS {
     HighIntervalF = 24, LowIntervalF = 2, DefaultMaxIntervalF = HighIntervalF + MaxSkippedF,
 
     AmountLimitToScrollAndWaitRepeatedKeys = 20,
-  }
 }
 interface ElementScrollInfo {
   /** area */ a: number;
@@ -47,11 +40,9 @@ import { setPreviousMarkPosition } from "./marks"
 import { keyNames_, prevent_ } from "../lib/keyboard_utils"
 
 let toggleAnimation: ((scrolling?: BOOL) => void) | null = null
-let maxInterval = ScrollerNS.Consts.DefaultMaxIntervalF as number
-let minDelay = ScrollerNS.Consts.DefaultMinDelayMs as number
-/** @NEED_SAFE_ELEMENTS */
+let maxInterval = 9
+let minDelay: number
 let currentScrolling: WeakRef<SafeElement> | null = null
-/** @NEED_SAFE_ELEMENTS */
 let cachedScrollable: WeakRef<SafeElement> | 0 | null = 0
 let keyIsDown = 0
 let preventPointEvents: BOOL | boolean | undefined
@@ -64,7 +55,7 @@ export function set_scrolled (_newScrolled: 0): void { scrolled = _newScrolled }
 export function set_currentScrolling (_newCurSc: WeakRef<SafeElement> | null): void { currentScrolling = _newCurSc }
 export function set_cachedScrollable (_newCachedSc: typeof cachedScrollable): void { cachedScrollable = _newCachedSc }
 
-let performAnimate = (e: SafeElement | null, d: ScrollByY, a: number): void => {
+let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: number): void => {
   let amount = 0, calibration = 1.0, di: ScrollByY = 0, duration = 0, element: SafeElement | null = null, //
   sign = 0, timestamp = 0, totalDelta = 0.0, totalElapsed = 0.0, //
   running = 0, timer = TimerID.None,
@@ -73,25 +64,25 @@ let performAnimate = (e: SafeElement | null, d: ScrollByY, a: number): void => {
     if (!isAlive_ || !running) { toggleAnimation!(); return; }
     const
     // although timestamp is mono, Firefox adds too many limits to its precision
-    elapsed = !timestamp ? (newTimestamp = performance.now(), ScrollerNS.Consts.firstTick)
+    elapsed = !timestamp ? (newTimestamp = performance.now(), ScrollConsts.firstTick)
               : newTimestamp > timestamp + 1 ? newTimestamp - timestamp
-              : (newTimestamp += ScrollerNS.Consts.tickForUnexpectedTime, ScrollerNS.Consts.tickForUnexpectedTime),
+              : (newTimestamp += ScrollConsts.tickForUnexpectedTime, ScrollConsts.tickForUnexpectedTime),
     continuous = keyIsDown > 0
     timestamp = newTimestamp;
     totalElapsed += elapsed;
-    if (amount < ScrollerNS.Consts.AmountLimitToScrollAndWaitRepeatedKeys
+    if (amount < ScrollConsts.AmountLimitToScrollAndWaitRepeatedKeys
         && continuous && totalDelta >= amount && totalElapsed < minDelay - 2) {
       running = 0;
       timer = timeout_(startAnimate, minDelay - totalElapsed)
       return;
     }
     if (continuous) {
-      if (totalElapsed >= ScrollerNS.Consts.delayToChangeSpeed) {
+      if (totalElapsed >= ScrollConsts.delayToChangeSpeed) {
         if (totalElapsed > minDelay) { --keyIsDown; }
-        if (ScrollerNS.Consts.minCalibration <= calibration && calibration <= ScrollerNS.Consts.maxCalibration) {
-          const calibrationScale = ScrollerNS.Consts.calibrationBoundary / amount / calibration;
-          calibration *= calibrationScale > ScrollerNS.Consts.maxS ? ScrollerNS.Consts.maxS
-            : calibrationScale < ScrollerNS.Consts.minS ? ScrollerNS.Consts.minS : 1;
+        if (ScrollConsts.minCalibration <= calibration && calibration <= ScrollConsts.maxCalibration) {
+          const calibrationScale = ScrollConsts.calibrationBoundary / amount / calibration;
+          calibration *= calibrationScale > ScrollConsts.maxS ? ScrollConsts.maxS
+            : calibrationScale < ScrollConsts.minS ? ScrollConsts.minS : 1;
         }
       }
     }
@@ -133,25 +124,25 @@ let performAnimate = (e: SafeElement | null, d: ScrollByY, a: number): void => {
     styleTop = scrolling ? el : (running = 0, element = null);
     el && el.style ? el.style.pointerEvents = scrolling ? NONE : "" : 0;
   };
-  performAnimate = (newEl, newDi, newAmount): void => {
-    amount = max_(1, newAmount > 0 ? newAmount : -newAmount), calibration = 1.0, di = newDi
-    duration = max_(ScrollerNS.Consts.minDuration, ScrollerNS.Consts.durationScaleForAmount * math.log(amount))
-    element = newEl;
-    sign = newAmount < 0 ? -1 : 1;
+  performAnimate = (newEl1, newDi1, newAmount1): void => {
+    amount = max_(1, newAmount1 > 0 ? newAmount1 : -newAmount1), calibration = 1.0, di = newDi1
+    duration = max_(ScrollConsts.minDuration, ScrollConsts.durationScaleForAmount * math.log(amount))
+    element = newEl1
+    sign = newAmount1 < 0 ? -1 : 1
     totalDelta = totalElapsed = 0.0;
     timestamp = 0;
     if (timer) {
       clearTimeout_(timer);
     }
     const keyboard = fgCache.k;
-    maxInterval = math.round(keyboard[1] / ScrollerNS.Consts.FrameIntervalMs) + ScrollerNS.Consts.MaxSkippedF
-    minDelay = (((keyboard[0] + max_(keyboard[1], ScrollerNS.Consts.DelayMinDelta)
-          + ScrollerNS.Consts.DelayTolerance) / ScrollerNS.Consts.DelayUnitMs) | 0)
-      * ScrollerNS.Consts.DelayUnitMs
+    maxInterval = math.round(keyboard[1] / ScrollConsts.FrameIntervalMs) + ScrollConsts.MaxSkippedF
+    minDelay = (((keyboard[0] + max_(keyboard[1], ScrollConsts.DelayMinDelta)
+          + ScrollConsts.DelayTolerance) / ScrollConsts.DelayUnitMs) | 0)
+      * ScrollConsts.DelayUnitMs
     preventPointEvents && toggleAnimation!(1)
     startAnimate();
   };
-  performAnimate(e, d, a)
+  performAnimate(newEl, newDi, newAmount)
 }
 
 const performScroll = ((el: SafeElement | null, di: ScrollByY, amount: number, before?: number): number => {
@@ -326,7 +317,7 @@ const findScrollable = (di: ScrollByY, amount: number): SafeElement | null => {
     let element = activeEl;
     if (element) {;
       let reason: number, notNeedToRecheck = !di
-      while (element !== top && (reason = shouldScroll_need_safe(element!
+      while (element !== top && (reason = shouldScroll_s(element!
               , element === cachedScrollable ? (di + 2) as 2 | 3 : di
               , amount)) < 1) {
         if (!reason) {
@@ -427,8 +418,7 @@ const selectFirst = (info: ElementScrollInfo, skipPrepare?: 1): ElementScrollInf
     return children.reduce((cur, info1) => cur || selectFirst(info1, 1), null as ElementScrollInfo | null | undefined)
 }
 
-  /** @NEED_SAFE_ELEMENTS */
-export const scrollIntoView_need_safe = (el: SafeElement): void => {
+export const scrollIntoView_s = (el: SafeElement): void => {
     const rect = el.getClientRects()[0] as ClientRect | undefined;
     if (!rect) { return; }
     let r = padClientRect_(rect), iw = wndSize_(1), ih = wndSize_(),
@@ -456,8 +446,7 @@ export const scrollIntoView_need_safe = (el: SafeElement): void => {
     scrollTick(0); // it's safe to only clean keyIsDown here
 }
 
-  /** @NEED_SAFE_ELEMENTS */
-export const shouldScroll_need_safe = (element: SafeElement, di: BOOL | 2 | 3, amount: number): -1 | 0 | 1 => {
+export const shouldScroll_s = (element: SafeElement, di: BOOL | 2 | 3, amount: number): -1 | 0 | 1 => {
     const st = getComputedStyle_(element);
     return (di ? st.overflowY : st.overflowX) === HDN && di < 2
       || st.display === NONE || !isRawStyleVisible(st) ? -1

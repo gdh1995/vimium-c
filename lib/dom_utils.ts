@@ -29,18 +29,14 @@ export const getComputedStyle_: (element: Element) => CSSStyleDeclaration =
 
 export const getSelection_: () => Selection = Build.NDEBUG ? getSelection : () => getSelection()
 
-  /** @UNSAFE_RETURNED */
 export const docEl_unsafe_ = (): Element | null => doc.documentElement
 
-  /** @UNSAFE_RETURNED */
 export const activeEl_unsafe_ = (): Element | null => doc.activeElement
 
-  /** @UNSAFE_RETURNED */
 export const querySelector_unsafe_ = (selector: string
     , scope?: SafeElement | ShadowRoot | Document | HTMLDivElement | HTMLDetailsElement
     ): Element | null => (scope || doc).querySelector(selector)
 
-  /** @UNSAFE_RETURNED */
 export const querySelectorAll_unsafe_ = ((selector: string, scope?: SafeElement): NodeListOf<Element> | void => {
     try { return (scope || doc).querySelectorAll(selector) } catch {}
 }) as {
@@ -58,11 +54,10 @@ export const isNode_ = <T extends keyof kNodeToType> (node: Node, typeId: T): no
 
 export const rangeCount_ = (sel: Selection): number => sel.rangeCount
 
-/** @NEED_SAFE_ELEMENTS */
-export const contains_s = (par: Node, child: Node): boolean => par.contains(child)
+export const contains_s = (par: SafeElement | Document | ShadowRoot | HTMLDivElement, child: Node): boolean =>
+    par.contains(child)
 
-/** @NEED_SAFE_ELEMENTS */
-export const attr_s = (el: Element, attr: string): string | null => el.getAttribute(attr)
+export const attr_s = (el: SafeElement, attr: string): string | null => el.getAttribute(attr)
 
 export const selOffset_ = (sel: Selection, focus?: 1): number => focus ? sel.focusOffset : sel.anchorOffset
 
@@ -149,12 +144,11 @@ export const GetChildNodes_not_ff = Build.BTypes & ~BrowserType.Firefox ? (el: E
   }
 } : 0 as never as null
 
-export const ElementProto = (): Element => Element.prototype
+export const ElementProto = (): SafeElement => Element.prototype as SafeElement
 
   /**
    * Try its best to find a real parent
    * @safe_even_if_any_overridden_property
-   * @UNSAFE_RETURNED
    */
 export const GetParent_unsafe_ = function (this: void, el: Node | Element
       , type: PNType.DirectNode | PNType.DirectElement | PNType.RevealSlot | PNType.RevealSlotAndGotoParent
@@ -193,8 +187,10 @@ export const GetParent_unsafe_ = function (this: void, el: Node | Element
       }
     }
     // par exists but not in normal tree
-    if (Build.BTypes & ~BrowserType.Firefox && !(pn.nodeType && contains_s(pn, el))) { // pn is overridden
-      if (pe && pe.nodeType && contains_s(pe, el)) { /* pe is real */ return pe }
+    if (Build.BTypes & ~BrowserType.Firefox && !(pn.nodeType
+          && contains_s(pn as Exclude<ParentNodeProp, Window | {length: number} | null> as SafeElement, el))) {
+      // pn is overridden
+      if (pe && pe.nodeType && contains_s(pe as any, el)) { /* pe is real */ return pe }
       pn = Getter_not_ff_!(Node, el, kPN);
     }
     // pn is real (if BrowserVer.MinParentNodeGetterInNodePrototype else) real or null
@@ -240,7 +236,6 @@ export const scrollingEl_ = (fallback?: 1): SafeElement | null => {
         : null
 }
 
-  /** @UNSAFE_RETURNED */
 export const fullscreenEl_unsafe_ = (): Element | null => {
     /** On Firefox, doc.fullscreenElement may not exist even since FF64 - see Min$Document$$FullscreenElement */
     return !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
@@ -332,7 +327,8 @@ export const IsInDOM_ = function (this: void, element: Element, root?: Element |
         : (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
             ? NProto.getRootNode : f)!.call(element, {composed: true}) === root;
     }
-    if (Build.BTypes & ~BrowserType.Firefox ? NProto.contains.call(root, element) : contains_s(root, element)) {
+    if (Build.BTypes & ~BrowserType.Firefox ? NProto.contains.call(root, element)
+        : contains_s(root as SafeElement | Exclude<typeof root, Element>, element)) {
       return true;
     }
     while ((pe = GetParent_unsafe_(element
@@ -410,7 +406,7 @@ export const isSelected_ = (): boolean => {
     const element = activeEl_unsafe_()!, sel = getSelection_(), node = getAccessibleSelectedNode(sel)
     return !node ? false
       : (element as TypeToAssert<Element, HTMLElement, "isContentEditable">).isContentEditable === true
-      ? (Build.BTypes & ~BrowserType.Firefox ? doc.contains.call(element, node) : contains_s(element, node))
+      ? Build.BTypes & BrowserType.Firefox ? contains_s(element as SafeElement, node) : doc.contains.call(element, node)
       : element === node || !!(node as NodeToElement).tagName
         && element === (Build.BTypes & ~BrowserType.Firefox ? GetChildNodes_not_ff!(node as Element)
             : node.childNodes as NodeList)[selOffset_(sel)]
@@ -448,41 +444,43 @@ export let createElement_ = doc.createElement.bind(doc) as {
 }
 export function set_createElement_ (_newCreateEl: typeof createElement_): void { createElement_ = _newCreateEl }
 
-/** @NEED_SAFE_ELEMENTS */
-export const appendNode_s = (parent: ParentNode, child: Element | DocumentFragment | Text): void => {
+export const appendNode_s = (parent: SafeElement | Document | ShadowRoot | HTMLDivElement | HTMLDialogElement
+    , child: Element | DocumentFragment | Text): void => {
   Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
       ? parent.appendChild(child) : parent.append!(child)
 }
 
-export const append_not_ff = Build.BTypes & ~BrowserType.Firefox ? (parent: ParentNode, child: Element): void => {
+export const append_not_ff = Build.BTypes & ~BrowserType.Firefox ? (parent: Element, child: HTMLElement): void => {
   (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
       ? ElementProto().appendChild : ElementProto().append!).call(parent, child)
 } : 0 as never
 
-/** @NEED_SAFE_ELEMENTS */
-export const removeEl_s = (el: Element): void => { el.remove() }
+export const removeEl_s = (el: SafeHTMLElement | HTMLDialogElement | HTMLScriptElement | HTMLSpanElement): void => {
+  el.remove()
+}
 
-/** @NEED_SAFE_ELEMENTS */
-export const setClassName_s = (el: Element, className: string): void => { el.className = className }
+export const setClassName_s = (el: SafeHTMLElement | HTMLDivElement | HTMLSpanElement, className: string): void => {
+  el.className = className
+}
 
-/** @NEED_SAFE_ELEMENTS */
-export const setVisibility_s = (el: HTMLDivElement | HTMLSpanElement, visible: boolean): void => {
+export const setVisibility_s = (el: SafeHTMLElement | HTMLDivElement | HTMLSpanElement, visible: boolean): void => {
   el.style.visibility = visible ? "" : HDN
 }
 
-/** @NEED_SAFE_ELEMENTS */
-export const setOrRemoveAttr = (el: Element, attr: string, newVal?: string | null): void => {
+export const setOrRemoveAttr_s = (el: SafeHTMLElement, attr: string, newVal?: string | null): void => {
   newVal != null ? el.setAttribute(attr, newVal) : el.removeAttribute(attr)
 }
 
-/** @NEED_SAFE_ELEMENTS */
-export const toggleClass = (el: Element, className: string, force?: boolean | BOOL): void => {
+export const toggleClass_s = (el: SafeHTMLElement, className: string, force?: boolean | BOOL): void => {
   const list = el.classList
   force != null ? list.toggle(className, !!force) : list.toggle(className)
 }
 
-/** @NEED_SAFE_ELEMENTS */
-export const textContent_ = (el: Element, text?: string): string => text && (el.textContent = text) || el.textContent
+export const textContent_s = ((el: SafeElement, text?: string): string => text ? el.textContent = text : el.textContent
+) as {
+  (el: SafeHTMLElement | HTMLStyleElement | HTMLScriptElement, text: string): string
+  (el: SafeElement | HTMLStyleElement): string
+}
 
 export const attachShadow_ = <T extends HTMLDivElement | HTMLBodyElement> (box: T): ShadowRoot | T => {
   return !(Build.BTypes & ~BrowserType.Edge) ? box
@@ -514,11 +512,11 @@ export const runJS_ = (code: string, returnEl?: HTMLScriptElement | null | 0): v
     script.type = "text/javascript";
     // keep it fast, rather than small
     !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
-        ? script.append!(code) : textContent_(script, code)
+        ? script.append!(code) : textContent_s(script, code)
     if (Build.BTypes & ~BrowserType.Firefox) {
       docEl ? append_not_ff(docEl, script) : appendNode_s(doc, script)
     } else {
-      appendNode_s(docEl_unsafe_() || doc, script)
+      appendNode_s(docEl_unsafe_() as SafeElement | null || doc, script)
     }
     return returnEl != null ? script : removeEl_s(script)
 }

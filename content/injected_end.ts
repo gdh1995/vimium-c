@@ -26,14 +26,14 @@ VApi.e = function (cmd): void {
   const runtime: typeof chrome.runtime = (!(Build.BTypes & BrowserType.Chrome) ? browser as typeof chrome
       : Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome
       ? mayBrowser_! : chrome).runtime;
-  const safeFrameElement_ = (): Element | null | void => {
+  const safeFrameElement_ = (): HTMLIFrameElement | HTMLFrameElement | null | void => {
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement
         || Build.BTypes & BrowserType.Edge) {
       try {
-        return frameElement;
+        return frameElement as HTMLIFrameElement | HTMLFrameElement
       } catch {}
     } else {
-      return frameElement;
+      return frameElement as HTMLIFrameElement | HTMLFrameElement
     }
   }
 

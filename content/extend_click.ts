@@ -3,7 +3,7 @@ import {
   loc_, replaceBrokenTimerFunc, allowRAF_, getTime, recordLog, VTr, vApi, Stop_, isTY
 } from "../lib/utils"
 import {
-  createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, removeEl_s, attr_s, setOrRemoveAttr
+  createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, removeEl_s, attr_s, setOrRemoveAttr_s
 } from "../lib/dom_utils"
 import { safeDestroy } from "./port"
 import { coreHints } from "./link_hints"
@@ -103,7 +103,7 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
     setupEventListener(0, kHookRand, hook, 1);
     hook = null as never;
     if (box == null) {
-      setOrRemoveAttr(t, S)
+      setOrRemoveAttr_s(t, S)
       setupEventListener(t, kVOnClick1, onClick);
       box = t;
     }
