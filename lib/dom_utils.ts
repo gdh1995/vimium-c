@@ -444,7 +444,7 @@ export let createElement_ = doc.createElement.bind(doc) as {
 }
 export function set_createElement_ (_newCreateEl: typeof createElement_): void { createElement_ = _newCreateEl }
 
-export const appendNode_s = (parent: SafeElement | Document | ShadowRoot | HTMLDivElement | HTMLDialogElement
+export const appendNode_s = (parent: SafeElement | Document | HTMLDivElement | HTMLDialogElement | DocumentFragment
     , child: Element | DocumentFragment | Text): void => {
   Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
       ? parent.appendChild(child) : parent.append!(child)
@@ -467,11 +467,12 @@ export const setVisibility_s = (el: SafeHTMLElement | HTMLDivElement | HTMLSpanE
   el.style.visibility = visible ? "" : HDN
 }
 
-export const setOrRemoveAttr_s = (el: SafeHTMLElement, attr: string, newVal?: string | null): void => {
+export const setOrRemoveAttr_s = (el: SafeElement, attr: string, newVal?: string | null): void => {
   newVal != null ? el.setAttribute(attr, newVal) : el.removeAttribute(attr)
 }
 
-export const toggleClass_s = (el: SafeHTMLElement, className: string, force?: boolean | BOOL): void => {
+export const toggleClass_s = (el: SafeElement | HTMLDivElement | HTMLDialogElement
+    , className: string, force?: boolean | BOOL): void => {
   const list = el.classList
   force != null ? list.toggle(className, !!force) : list.toggle(className)
 }

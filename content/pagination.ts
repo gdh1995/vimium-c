@@ -143,7 +143,8 @@ export const findNextInRel = (relName: string): GoNextBaseCandidate | null | und
   for (const element of array) {
     if ((tag = htmlTag_(element))
         && (s = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$HTMLAreaElement$rel
-                ? attr_s(element, "rel") : (element as TypeToPick<HTMLElement, HTMLElementWithRel, "rel">).rel)
+                ? attr_s(element as SafeHTMLElement, "rel")
+                : (element as TypeToPick<HTMLElement, HTMLElementWithRel, "rel">).rel)
         && Lower(s).split(re1).indexOf(relName) >= 0
         && ((s = (element as HTMLElementWithRel).href) || tag < "aa")
         && (tag > "b" || isVisibleInPage(element as SafeHTMLElement))) {

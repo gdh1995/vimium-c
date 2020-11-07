@@ -8,7 +8,7 @@ import {
   IsInDOM_, createElement_, htmlTag_, getComputedStyle_, getEditableType_, isIFrameElement, GetParent_unsafe_,
   ElementProto, querySelector_unsafe_, getInputType, uneditableInputs_, GetShadowRoot_, CLK, scrollingEl_,
   findMainSummary_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s,
-  setOrRemoveAttr_s, toggleClass_s, textContent_s
+  setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_
 } from "../lib/dom_utils"
 import {
   hintOptions, mode1_, hintMode_, hintApi, hintManager, coreHints, setMode, detectUsableChild, hintCount_,
@@ -215,8 +215,10 @@ export const linkActionArray: readonly LinkAction[] = [
                 : querySelector_unsafe_(selector, ancestors[max_(0, min_(up + 1, ancestors.length - 1))
                     ] as SafeElement)
               : element.closest!(selector))) {
-          for (const classNameStr of toggleMap[key].split(" ")) {
-            classNameStr.trim() && toggleClass_s(selected, classNameStr)
+          if (!(Build.BTypes & ~BrowserType.Firefox) || !notSafe_not_ff_!(selected)) {
+            for (const classNameStr of toggleMap[key].split(" ")) {
+              classNameStr.trim() && toggleClass_s(selected as SafeElement, classNameStr)
+            }
           }
         }
       } catch {}

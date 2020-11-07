@@ -264,7 +264,7 @@ const onLoad2 = (): void => {
         && (Build.MinFFVer < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
           && (Build.BTypes & BrowserType.Chrome || chromeVer_ < FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
             || fgCache.o === kOS.unixLike)
-        ? addElement("div") as HTMLDivElement : body,
+        ? addElement("div") as HTMLDivElement & SafeHTMLElement : body as HTMLBodyElement & SafeHTMLElement,
     root = !(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
         && (Build.MinFFVer < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
@@ -308,7 +308,8 @@ const onLoad2 = (): void => {
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)) {
       if (box !== body) {
-        appendNode_s(innerDoc_.head!, createStyle("body{margin:0!important}", addElement("style") as HTMLStyleElement))
+        appendNode_s(innerDoc_.head! as HTMLHeadElement & SafeHTMLElement
+            , createStyle("body{margin:0!important}", addElement("style") as HTMLStyleElement))
         appendNode_s(body, box)
       }
     } else if (Build.BTypes & ~BrowserType.Firefox && zoom < 1) {

@@ -493,7 +493,7 @@ const deduplicate = (list: Hint[]): void => {
           if (notRemoveParents
               = crect.l < prect.l + /* icon_16 */ 19 && crect.t < prect.t + 9
               && crect.l > prect.l - 4 && crect.t > prect.t - 4 && crect.b > prect.b - 9
-              && (s !== "a" || contains_s(element, list[j][0]))) {
+              && (s !== "a" || contains_s(element as SafeHTMLElement, list[j][0]))) {
             // the `<a>` is a single-line box's most left element and the first clickable element,
             // so think the box is just a layout container
             // for [i] is `<div>`, not limit the height of parent `<div>`,
@@ -613,7 +613,7 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
     }
     if (nodeType === kNode.DOCUMENT_FRAGMENT_NODE
         && (temp = el.lastElementChild as Element | null) && htmlTag_(temp) === "slot"
-        && contains_s((root as ShadowRoot).host, fromPoint!)) {
+        && contains_s((root as ShadowRoot).host as SafeElement, fromPoint!)) {
       continue;
     }
     if ((tag = el.localName) === "img"

@@ -90,9 +90,9 @@ type ElementToHTMLorOtherFormatted = TypeToAssert<Element, HTMLElement | NonHTML
 type ElementToHTML = TypeToAssert<Element, HTMLElement, "lang", "tagName">;
 
 interface SafeElement extends Element {
-  tagName: string;
-  nodeName: string;
-  localName: string;
+  readonly tagName: string;
+  readonly nodeName: string;
+  readonly localName: string;
 }
 interface Element { __other: 0 | 1 | 2 | 3 }
 interface HTMLElement { __other: 0; lang: "" }
@@ -106,7 +106,7 @@ interface OtherFormattedElement extends NonHTMLButFormattedElement { __other: 2 
 interface SafeElementWithoutFormat extends SafeElement { __other: 3 }
 type BaseSafeHTMLElement = HTMLElement & SafeElement;
 interface SafeHTMLElement extends BaseSafeHTMLElement {
-  readonly innerText: string;
+  innerText: string;
   readonly parentElement: Element | null;
   readonly parentNode: Node | null;
   readonly localName: keyof HTMLElementTagNameMap;

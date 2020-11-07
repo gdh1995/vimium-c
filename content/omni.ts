@@ -34,7 +34,7 @@ import { insert_Lock_ } from "./insert"
 import { hudTip, hud_box } from "./hud"
 import { post_, send_ } from "./port"
 
-let box: HTMLIFrameElement & { contentWindow: IFrameWindow } = null as never
+let box: HTMLIFrameElement & { contentWindow: IFrameWindow } & SafeHTMLElement = null as never
 let portToOmni: OmniPort = null as never
 let status = VomnibarNS.Status.NotInited
 let omniOptions: VomnibarNS.FgOptionsToFront | null = null

@@ -99,11 +99,11 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
     if (++hookRetryTimes > GlobalConsts.MaxRetryTimesForSecret
         || !(t instanceof Element)) { return; }
     Stop_(event);
-    if (t.localName !== "div" || attr_s(t, S) !== secret) { return }
+    if (t.localName !== "div" || attr_s(t as SafeElement, S) !== secret) { return }
     setupEventListener(0, kHookRand, hook, 1);
     hook = null as never;
     if (box == null) {
-      setOrRemoveAttr_s(t, S)
+      setOrRemoveAttr_s(t as SafeElement, S)
       setupEventListener(t, kVOnClick1, onClick);
       box = t;
     }
