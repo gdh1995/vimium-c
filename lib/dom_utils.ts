@@ -146,19 +146,12 @@ export const GetChildNodes_not_ff = Build.BTypes & ~BrowserType.Firefox ? (el: E
 
 export const ElementProto = (): SafeElement => Element.prototype as SafeElement
 
-  /**
-   * Try its best to find a real parent
-   * @safe_even_if_any_overridden_property
-   */
+/** Try its best to find a real parent */
 export const GetParent_unsafe_ = function (this: void, el: Node | Element
-      , type: PNType.DirectNode | PNType.DirectElement | PNType.RevealSlot | PNType.RevealSlotAndGotoParent
-      ): Node | null {
-    /**
-     * Known info about Chrome:
-     * * a selection / range can only know nodes and text in a same tree scope
-     */
-    const kPN = "parentNode"
-    if (Build.BTypes & ~BrowserType.Edge && type >= PNType.RevealSlot) {
+    , type: PNType.DirectNode | PNType.DirectElement | PNType.RevealSlot | PNType.RevealSlotAndGotoParent
+    ): Node | null {
+  /** Chrome: a selection / range can only know nodes and text in a same tree scope */
+  if (Build.BTypes & ~BrowserType.Edge && type >= PNType.RevealSlot) {
       if (Build.MinCVer < BrowserVer.MinNoShadowDOMv0 && Build.BTypes & BrowserType.Chrome
           && chromeVer_ < BrowserVer.MinNoShadowDOMv0) {
         const func = ElementProto().getDestinationInsertionPoints,
@@ -172,35 +165,31 @@ export const GetParent_unsafe_ = function (this: void, el: Node | Element
         if (type === PNType.RevealSlot) { return slot; }
         while (slot = slot.assignedSlot) { el = slot; }
       }
-    }
-    type ParentNodeProp = Node["parentNode"]; type ParentElement = Node["parentElement"];
-    let pe = el.parentElement as Exclude<ParentElement, Window>
-      , pn = el.parentNode as Exclude<ParentNodeProp, Window>;
-    if (pe === pn /* normal pe or no parent */ || !pn /* indeed no par */) { return pn as Element | null; }
-    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
-        && unsafeFramesetTag_old_cr_! && pe) { // may be [a <frameset> with pn or pe overridden], or a <form>
-      const action = +((pn as ParentNodeProp as WindowWithTop).top === top)
-          + 2 * +((pe as ParentElement as WindowWithTop).top === top);
-      if (action) { // indeed a <frameset>
-        return action < 2 ? pe as Element : action < 3 ? pn as Node : el === doc.body ? docEl_unsafe_()
-          : Getter_not_ff_!(Node, el, kPN);
-      }
-    }
-    // par exists but not in normal tree
-    if (Build.BTypes & ~BrowserType.Firefox && !(pn.nodeType
-          && contains_s(pn as Exclude<ParentNodeProp, Window | {length: number} | null> as SafeElement, el))) {
-      // pn is overridden
-      if (pe && pe.nodeType && contains_s(pe as any, el)) { /* pe is real */ return pe }
-      pn = Getter_not_ff_!(Node, el, kPN);
-    }
+  }
+  type ParentNodeProp = Node["parentNode"]; type ParentElement = Node["parentElement"]
+  let pe = el.parentElement as Exclude<ParentElement, Window>, pn = el.parentNode as Exclude<ParentNodeProp, Window>
+  if (pe === pn /* normal pe or no parent */ || !pn /* indeed no par */) { return pn as Element | null }
+  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
+      && unsafeFramesetTag_old_cr_!) {
+    // may be `frameset,form` with pn or pe overridden; <frameset>.parentNode may be an connected shadowRoot
+    pe = pe && (pe as ParentElement as WindowWithTop).top !== top ? pe : null
+    pn = (pn as ParentNodeProp as WindowWithTop).top !== top ? pn : pe
+  }
+  if (!(Build.BTypes & BrowserType.Firefox) || Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox) {
+    pn = (!(Build.BTypes & ~BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter || pn)
+        && pn!.nodeType && doc.contains.call(pn as Node, el) ? pn
+        : Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype
+          && !(Build.BTypes & ~BrowserType.ChromeOrFirefox) ? Getter_not_ff_!(Node, el, "parentNode")
+        : pe && pe.nodeType && doc.contains.call(pe as Element, el) ? (type = PNType.DirectNode, pe)
+        : el === doc.body ? docEl_unsafe_() : Getter_not_ff_!(Node, el, "parentNode")
+  }
     // pn is real (if BrowserVer.MinParentNodeGetterInNodePrototype else) real or null
-    return type === PNType.DirectNode ? pn as Node | null // may return a Node instance
-      : type >= PNType.ResolveShadowHost && (
-        !(Build.BTypes & ~BrowserType.Firefox) || Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype || pn)
+  return Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinParentNodeGetterInNodePrototype && !pn
+      || type === PNType.DirectNode ? pn as Node | null // may return a Node instance
+      : type >= PNType.ResolveShadowHost
         && isNode_(pn as Node, kNode.DOCUMENT_FRAGMENT_NODE)
       ? (pn as DocumentFragment as ShadowRoot).host || null // shadow root or other type of doc fragment
-      : (!(Build.BTypes & ~BrowserType.Firefox) || Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype || pn)
-        && "tagName" in (pn as Node as NodeToElement) ? pn as Element /* in doc and .pN+.pE are overridden */
+      : (pn as Node as NodeToElement).tagName ? pn as Element /* in doc and .pN+.pE are overridden */
       : null /* pn is null, or some unknown type ... */;
 } as {
     (this: void, el: Element, type: PNType.DirectElement
@@ -311,8 +300,7 @@ export const IsInDOM_ = function (this: void, element: Element, root?: Element |
         return isConnected!; // is boolean : exists and is not overridden
       }
     }
-    let f: Node["getRootNode"]
-      , NProto = Node.prototype, pe: Element | null;
+    let f: Node["getRootNode"], pe: Element | null;
     root = <Element | Document> root || (!(Build.BTypes & ~BrowserType.Firefox) ? element.ownerDocument as Document
         : (root = element.ownerDocument, Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter &&
             Build.BTypes & BrowserType.Chrome &&
@@ -321,13 +309,13 @@ export const IsInDOM_ = function (this: void, element: Element, root?: Element |
         ? doc : root as Document));
     if (isNode_(root, kNode.DOCUMENT_NODE)
         && (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
-          || !(Build.BTypes & ~BrowserType.Firefox) || (f = NProto.getRootNode))) {
+          || !(Build.BTypes & ~BrowserType.Firefox) || (f = doc.getRootNode))) {
       return !(Build.BTypes & ~BrowserType.Firefox)
         ? element.getRootNode!({composed: true}) === root
         : (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
-            ? NProto.getRootNode : f)!.call(element, {composed: true}) === root;
+            ? doc.getRootNode : f)!.call(element, {composed: true}) === root;
     }
-    if (Build.BTypes & ~BrowserType.Firefox ? NProto.contains.call(root, element)
+    if (Build.BTypes & ~BrowserType.Firefox ? doc.contains.call(root, element)
         : contains_s(root as SafeElement | Exclude<typeof root, Element>, element)) {
       return true;
     }
