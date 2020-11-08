@@ -9,7 +9,7 @@ import {
 } from "../lib/utils"
 import {
   isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, findMainSummary_, htmlTag_, isAriaNotTrue_,
-  NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, ElementProto, notSafe_not_ff_, docEl_unsafe_,
+  NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, notSafe_not_ff_, docEl_unsafe_,
   GetParent_unsafe_, unsafeFramesetTag_old_cr_, isHTML_, querySelectorAll_unsafe_, isNode_, INP, attr_s,
   getMediaTag, getMediaUrl, contains_s
 } from "../lib/dom_utils"
@@ -21,8 +21,8 @@ import {
 import { find_box } from "./mode_find"
 import { omni_box } from "./omni"
 import {
-  kSafeAllSelector, coreHints, addChildFrame_, mode1_, forHover_,
-  isClickListened_, forceToScroll_, hintMode_, set_isClickListened_, tooHigh_, useFilter_, hintChars, hintManager, hintOptions,
+  kSafeAllSelector, coreHints, addChildFrame_, mode1_, forHover_, hintOptions,
+  isClickListened_, forceToScroll_, hintMode_, set_isClickListened_, tooHigh_, useFilter_, hintChars, hintManager
 } from "./link_hints"
 import { shouldScroll_s, getPixelScaleToScroll, scrolled, set_scrolled, suppressScroll } from "./scroller"
 import { ui_root, ui_box } from "./dom_ui"
@@ -323,34 +323,35 @@ const getIfOnlyVisible = (hints: Hint[], element: SafeElement): void => {
   arr && hints.push([element as SafeElementForMouse, arr, ClickType.Default])
 }
 
-const matchSafeElements = (udSelector: string, udBox: Element | Document | ShadowRoot): HintSources => {
-  let udList: NodeListOf<Element> | void = querySelectorAll_unsafe_(udSelector, udBox as SafeElement | Document)
-  if (Build.BTypes & ~BrowserType.Firefox) {
-    return udList ? ([].filter as (this: ArrayLike<Element>, filter: (el: Element) => boolean) => SafeElement[]
-      ).call(udList, el => !notSafe_not_ff_!(el)) : []
+const matchSafeElements = ((selector: string, rootNode: Element | ShadowRoot | null
+    , udSelector: string | null, mayBeUnsafe?: 1): HintSources | void => {
+  let list = udSelector !== " "
+      ? querySelectorAll_unsafe_(udSelector || selector, rootNode, mayBeUnsafe as never as 0) : []
+  if (!(Build.BTypes & ~BrowserType.Firefox)) {
+    return list as NodeListOf<SafeElement> | void
   }
-  return udList as NodeListOf<SafeElement> | void || []
+  return !udSelector ? list as NodeListOf<SafeElement>
+    : list && ([].filter as (this: ArrayLike<Element>, filter: (el: Element) => boolean) => SafeElement[]
+        ).call(list, el => !notSafe_not_ff_!(el))
+}) as {
+  (selector: string, rootNode: ShadowRoot | HTMLDivElement, udSelector: string | null): HintSources
+  (selector: string, rootNode: Element | null, udSelector: string | null, mayBeUnsafe: 1): HintSources | void
 }
 
-/** @safe_even_if_any_overridden_property */
-export const traverse = function (selector: string, options: CSSOptions
-    , filter: Filter<Hint | SafeHTMLElement>, notWantVUI?: 1
-    , wholeDoc?: 1 | Document | Element): Hint[] | SafeHTMLElement[] {
-  if (!Build.NDEBUG && Build.BTypes & ~BrowserType.Firefox && selector === "*") {
-    selector = kSafeAllSelector; // for easier debugging
-  }
-  const matchSelector = options.match, matchAll = selector === kSafeAllSelector && !matchSelector,
-  output: Hint[] | SafeHTMLElement[] = [],
+export const traverse = ((selector: string, options: CSSOptions, filter: Filter<Hint | SafeHTMLElement>
+    , notWantVUI?: 1, wholeDoc?: 1 | Element): Hint[] | SafeHTMLElement[] => {
+  const output: Hint[] | SafeHTMLElement[] = [],
   wantClickable = filter === getClickable,
   isInAnElement = !Build.NDEBUG && !!wholeDoc && wholeDoc !== 1 && isNode_(wholeDoc, kNode.ELEMENT_NODE),
-  box = !wholeDoc && fullscreenEl_unsafe_()
-      || !Build.NDEBUG && isInAnElement && wholeDoc as Element
-      || doc,
-  isD = box === doc,
-  localQuerySelectorAll = Build.BTypes & ~BrowserType.Firefox
-    ? /* just smaller code */ (isD ? doc : ElementProto()).querySelectorAll : box.querySelectorAll
-  wantClickable && getPixelScaleToScroll();
-  wantClickable && initTestRegExps()
+  traverseRoot = !wholeDoc ? fullscreenEl_unsafe_() : !Build.NDEBUG && isInAnElement && wholeDoc as Element || null
+  let matchSelector = options.match || null,
+  matchAll = (!Build.NDEBUG && Build.BTypes & ~BrowserType.Firefox && selector === "*" // for easier debugging
+      ? selector = kSafeAllSelector : selector) === kSafeAllSelector && !matchSelector,
+  list: HintSources | null = matchSafeElements(selector, traverseRoot, matchSelector, 1) || (matchSelector = " ", [])
+  if (wantClickable) {
+    getPixelScaleToScroll();
+    initTestRegExps()
+  }
   if (matchSelector) {
     filter = /*#__NOINLINE__*/ getIfOnlyVisible as Filter<Hint> as Filter<Hint | SafeHTMLElement>
   } else if (matchAll) {
@@ -361,12 +362,11 @@ export const traverse = function (selector: string, options: CSSOptions
       jsaEnabled_ = !!querySelector_unsafe_("[jsaction]");
     }
   }
-  let list: HintSources | null = matchSelector ? matchSafeElements(matchSelector, box)
-      : localQuerySelectorAll.call(box, selector) as NodeListOf<SafeElement>
-  list = matchAll ? list
-      : addChildTrees(list, localQuerySelectorAll.call(box, kSafeAllSelector) as NodeListOf<SafeElement>)
-  list = !wholeDoc && tooHigh_ && isD && list.length >= GlobalConsts.LinkHintPageHeightLimitToCheckViewportFirst
+  list = !wholeDoc && tooHigh_ && !traverseRoot
+      && list.length >= GlobalConsts.LinkHintPageHeightLimitToCheckViewportFirst
       && !matchSelector ? getElementsInViewport(list) : list
+  list = matchAll ? list : addChildTrees(list
+      , querySelectorAll_unsafe_(kSafeAllSelector, traverseRoot) as NodeListOf<SafeElement>)
   if (!Build.NDEBUG && isInAnElement && !matchSelector) {
     // just for easier debugging
     list = [].slice.call(list);
@@ -384,10 +384,9 @@ export const traverse = function (selector: string, options: CSSOptions
             ? el.webkitShadowRoot : el.shadowRoot) as ShadowRoot | null | undefined;
         if (shadowRoot) {
           tree_scopes.push([cur_tree, i])
-          cur_tree = matchSelector ? matchSafeElements(matchSelector, shadowRoot)
-              : shadowRoot.querySelectorAll(selector) as NodeListOf<SafeElement>
-          cur_tree = matchAll ? cur_tree
-              : addChildTrees(cur_tree, shadowRoot.querySelectorAll(kSafeAllSelector) as NodeListOf<SafeElement>)
+          cur_tree = matchSafeElements(selector, shadowRoot, matchSelector)
+          cur_tree = matchAll ? cur_tree : addChildTrees(cur_tree
+              , querySelectorAll_unsafe_(kSafeAllSelector, shadowRoot) as NodeListOf<SafeElement>)
           i = 0
         }
       } else if (wantClickable) {
@@ -397,7 +396,7 @@ export const traverse = function (selector: string, options: CSSOptions
       }
     }
   }
-  if (wholeDoc && (Build.NDEBUG || !isInAnElement)) {
+  if (Build.NDEBUG ? wholeDoc : wholeDoc && !isInAnElement) {
     // this requires not detecting scrollable elements if wholeDoc
     if (!(Build.NDEBUG || !wantClickable && !isInAnElement)) {
       console.log("Assert error: `!wantClickable if wholeDoc` in VHints.traverse_");
@@ -416,17 +415,16 @@ export const traverse = function (selector: string, options: CSSOptions
         || ui_root.mode === "closed")
       ) {
     const bz = Build.BTypes & ~BrowserType.Firefox ? bZoom_ : 1, notHookScroll = scrolled === 0
-    if (Build.BTypes & ~BrowserType.Firefox && bz !== 1 && isD) {
+    if (Build.BTypes & ~BrowserType.Firefox && bz !== 1 && !traverseRoot) {
       set_bZoom_(1)
       prepareCrop_(1);
     }
-    const elements = matchSelector ? matchSafeElements(matchSelector, ui_root
+    const elements = matchSafeElements(selector, ui_root, matchSelector
         ) as ArrayLike<SafeElement> as ArrayLike<SafeHTMLElement>
-        : (<ShadowRoot> ui_root).querySelectorAll(selector) as NodeListOf<SafeHTMLElement>
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes) {
       for (let i = 0; i < elements.length; i++) { filter(output, elements[i]) }
     } else {
-      (elements as ArrayLike<SafeHTMLElement> as SafeHTMLElement[]).forEach(filter.bind(0, output))
+      (elements as SafeHTMLElement[]).forEach(filter.bind(0, output))
     }
     Build.BTypes & ~BrowserType.Firefox && set_bZoom_(bz)
     if (notHookScroll) {
@@ -442,7 +440,7 @@ export const traverse = function (selector: string, options: CSSOptions
     frameNested_ = null
   }
   return output;
-} as {
+}) as {
   (key: string, options: CSSOptions, filter: Filter<SafeHTMLElement>, notWantVUI?: 1, wholeDoc?: 1): SafeHTMLElement[]
   (key: string, options: CSSOptions, filter: Filter<Hint>, notWantVUI?: 1): Hint[]
 }

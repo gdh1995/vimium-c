@@ -37,11 +37,19 @@ export const querySelector_unsafe_ = (selector: string
     , scope?: SafeElement | ShadowRoot | Document | HTMLDivElement | HTMLDetailsElement
     ): Element | null => (scope || doc).querySelector(selector)
 
-export const querySelectorAll_unsafe_ = ((selector: string, scope?: SafeElement | Document
-    ): NodeListOf<Element> | void => {
-  try { return (scope || doc).querySelectorAll(selector) } catch {}
+export const querySelectorAll_unsafe_ = ((selector: string, scope?: Element | ShadowRoot | null
+    , isScopeInElementAndNull?: 1): NodeListOf<Element> | void => {
+  try {
+    if (Build.BTypes & ~BrowserType.Firefox) {
+      return (scope && isScopeInElementAndNull ? ElementProto() : scope || doc
+          ).querySelectorAll.call(scope || doc, selector)
+    } else {
+      return (scope || doc).querySelectorAll(selector)
+    }
+  } catch {}
 }) as {
-  (selector: string, scope?: SafeElement | Document): NodeListOf<Element> | void
+  (selector: string, scope: Element | null, isScopeInElementAndNull: 1): NodeListOf<SafeElement> | void
+  (selector: string, scope?: Element | ShadowRoot | null, isScopeInElementAndNull?: 0): NodeListOf<Element> | void
 }
 
 export const isIFrameElement = (el: Element): el is KnownIFrameElement => {

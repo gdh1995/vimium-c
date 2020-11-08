@@ -2,7 +2,7 @@ import { doc, VOther, chromeVer_, Lower, max_, min_, math } from "./utils"
 import {
   docEl_unsafe_, scrollingEl_, notSafe_not_ff_, ElementProto, isRawStyleVisible, getComputedStyle_, NONE,
   querySelector_unsafe_, querySelectorAll_unsafe_, GetParent_unsafe_, HDN, createElement_, fullscreenEl_unsafe_,
-  IsInDOM_, scrollIntoView_, rangeCount_, removeEl_s, append_not_ff, appendNode_s
+  IsInDOM_, scrollIntoView_, rangeCount_, removeEl_s, append_not_ff, appendNode_s, htmlTag_
 } from "./dom_utils"
 
 let paintBox_: [number, number] | null = null // it may need to use `paintBox[] / <body>.zoom`
@@ -181,13 +181,13 @@ export const getClientRectsForAreas_ = function (element: HTMLElementUsingMap, o
         || !(Build.BTypes & ~BrowserType.Firefox) || element.getRootNode)
       ? element.getRootNode!() as ShadowRoot | Document : doc
     const map = querySelector_unsafe_(selector, root)
-    if (!map || (map as ElementToHTML).lang == null) { return null; }
+    if (!map || !htmlTag_(map)) { return null }
     areas = querySelectorAll_unsafe_("area", map as SafeHTMLElement)!
   }
   const toInt = (a: string): number => (a as string | number as number) | 0
   for (let _i = 0, _len = areas.length; _i < _len; _i++) {
     const area = areas[_i] as SafeElement & (HTMLAreaElement | NonHTMLButFormattedElement | SafeElementWithoutFormat)
-    if ((area as ElementToHTML).lang == null) { continue; }
+    if (!htmlTag_(area)) { continue }
     let coords = (area as HTMLAreaElement).coords.split(",").map(toInt)
     switch (Lower((area as HTMLAreaElement).shape)) {
     case "circle": case "circ": // note: "circ" is non-conforming
