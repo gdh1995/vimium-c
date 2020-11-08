@@ -28,6 +28,8 @@ import { shouldScroll_s, getPixelScaleToScroll, scrolled, set_scrolled, suppress
 import { ui_root, ui_box } from "./dom_ui"
 
 let frameNested_: NestedFrame = false
+let _oldExtraClickable: Element[] | null
+let extraClickable_: ElementSet
 let ngEnabled: boolean | undefined
 let jsaEnabled_: boolean | undefined
 let maxLeft_ = 0
@@ -123,6 +125,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
             || (anotherEl as TypeToAssert<Element, SafeHTMLElement, "onmousedown">).onmousedown
           : element.getAttribute("onclick"))
         || (s = element.getAttribute("role")) && clickableRoles_.test(s)
+        || extraClickable_.has(element)
         || ngEnabled && attr_s(element, "ng-click")
         || forHover_ && attr_s(element, "onmouseover")
         || jsaEnabled_ && (s = attr_s(element, "jsaction")) && checkJSAction(s)
@@ -149,7 +152,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
       && (type < ClickType.scrollX
         || shouldScroll_s(element
             , (((type - ClickType.scrollX) as ScrollByY) + forceToScroll_) as BOOL | 2 | 3, 0) > 0)
-      && isAriaNotTrue_(element, kAria.hidden)
+      && (isAriaNotTrue_(element, kAria.hidden) || extraClickable_.has(element))
       && (hintMode_ > HintMode.min_job - 1 || isAriaNotTrue_(element, kAria.disabled))
   ) { hints.push([element, arr, type]); }
 }
@@ -160,6 +163,7 @@ const getClickableInNonHTMLButMayFormatted = (hints: Hint[]
       let arr: Rect | null | undefined, s: string | null
       const tabIndex = (element as ElementToHTMLorOtherFormatted).tabIndex
       let type: ClickType.Default | HintsNS.AllowedClickTypeForNonHTML = clickable_.has(element)
+          || extraClickable_.has(element)
           || tabIndex != null && (!(Build.BTypes & ~BrowserType.Firefox)
               || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
               ? (anotherEl = unwrap_ff(element as NonHTMLButFormattedElement)).onclick || anotherEl.onmousedown
@@ -338,6 +342,8 @@ const matchSafeElements = ((selector: string, rootNode: Element | ShadowRoot | n
   (selector: string, rootNode: Element | null, udSelector: string | null, mayBeUnsafe: 1): HintSources | void
 }
 
+const isInOldExtraClickable: ElementSet["has"] = (el) => _oldExtraClickable!.indexOf(el) >= 0
+
 export const traverse = ((selector: string, options: CSSOptions, filter: Filter<Hint | SafeHTMLElement>
     , notWantVUI?: 1, wholeDoc?: 1 | Element): Hint[] | SafeHTMLElement[] => {
   const output: Hint[] | SafeHTMLElement[] = [],
@@ -345,12 +351,26 @@ export const traverse = ((selector: string, options: CSSOptions, filter: Filter<
   isInAnElement = !Build.NDEBUG && !!wholeDoc && wholeDoc !== 1 && isNode_(wholeDoc, kNode.ELEMENT_NODE),
   traverseRoot = !wholeDoc ? fullscreenEl_unsafe_() : !Build.NDEBUG && isInAnElement && wholeDoc as Element || null
   let matchSelector = options.match || null,
+  clickableSelector = wantClickable && options.clickable || null,
   matchAll = (!Build.NDEBUG && Build.BTypes & ~BrowserType.Firefox && selector === "*" // for easier debugging
       ? selector = kSafeAllSelector : selector) === kSafeAllSelector && !matchSelector,
   list: HintSources | null = matchSafeElements(selector, traverseRoot, matchSelector, 1) || (matchSelector = " ", [])
   if (wantClickable) {
     getPixelScaleToScroll();
     initTestRegExps()
+    const ex = clickableSelector && querySelectorAll_unsafe_(clickableSelector, traverseRoot)
+        || (clickableSelector = null, [])
+    if (!(Build.BTypes & BrowserType.Chrome)
+        || Build.MinCVer >= BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
+        || chromeVer_ > BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes - 1) {
+      extraClickable_ = new WeakSet!(ex as readonly Element[])
+    } else if (Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || WeakSet) {
+      extraClickable_ = new WeakSet!
+      for (let i = ex.length; 0 < i; ) { extraClickable_.add(ex[i--]) }
+    } else {
+      _oldExtraClickable = [].slice.call(ex)
+      extraClickable_ = { has: isInOldExtraClickable } as ElementSet
+    }
   }
   if (matchSelector) {
     filter = /*#__NOINLINE__*/ getIfOnlyVisible as Filter<Hint> as Filter<Hint | SafeHTMLElement>
@@ -384,6 +404,18 @@ export const traverse = ((selector: string, options: CSSOptions, filter: Filter<
             ? el.webkitShadowRoot : el.shadowRoot) as ShadowRoot | null | undefined;
         if (shadowRoot) {
           tree_scopes.push([cur_tree, i])
+          if (clickableSelector) {
+            const ex = querySelectorAll_unsafe_(clickableSelector, shadowRoot)!
+            if (!(Build.BTypes & BrowserType.Chrome)
+                || Build.MinCVer >= BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
+                || chromeVer_ > BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes - 1) {
+              (ex as ArrayLike<Element> as readonly Element[]).forEach(extraClickable_.add, extraClickable_)
+            } else if (Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || WeakSet) {
+              for (let i = ex.length; 0 < i; ) { extraClickable_.add(ex[i--]) }
+            } else {
+              _oldExtraClickable = _oldExtraClickable!.concat(ex as ArrayLike<Element> as Element[])
+            }
+          }
           cur_tree = matchSafeElements(selector, shadowRoot, matchSelector)
           cur_tree = matchAll ? cur_tree : addChildTrees(cur_tree
               , querySelectorAll_unsafe_(kSafeAllSelector, shadowRoot) as NodeListOf<SafeElement>)
@@ -401,8 +433,7 @@ export const traverse = ((selector: string, options: CSSOptions, filter: Filter<
     if (!(Build.NDEBUG || !wantClickable && !isInAnElement)) {
       console.log("Assert error: `!wantClickable if wholeDoc` in VHints.traverse_");
     }
-    return output;
-  }
+  } else {
   list = cur_scope = null as never
   if (Build.BTypes & ~BrowserType.Edge && ui_root
       && ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
@@ -438,6 +469,11 @@ export const traverse = ((selector: string, options: CSSOptions, filter: Filter<
     checkNestedFrame(output as Hint[]);
   } else if (output.length > 0) {
     frameNested_ = null
+  }
+  }
+  extraClickable_ = null as never
+  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6WeakMapAndWeakSet) {
+    _oldExtraClickable = null
   }
   return output;
 }) as {

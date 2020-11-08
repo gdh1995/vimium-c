@@ -41,7 +41,11 @@ interface ParsedSearch {
   /** error */ e?: string | null;
 }
 
-interface CSSOptions { match?: "css-selector" | null | undefined }
+// Note: `clickable` is not used in `focusInput`
+interface CSSOptions {
+  match?: "css-selector" | " " | null | undefined
+  clickable?: "css-selector" | null | undefined
+}
 
 interface FindCSS {
   /** change-selection-color */ c: string;
