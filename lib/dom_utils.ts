@@ -37,10 +37,11 @@ export const querySelector_unsafe_ = (selector: string
     , scope?: SafeElement | ShadowRoot | Document | HTMLDivElement | HTMLDetailsElement
     ): Element | null => (scope || doc).querySelector(selector)
 
-export const querySelectorAll_unsafe_ = ((selector: string, scope?: SafeElement): NodeListOf<Element> | void => {
-    try { return (scope || doc).querySelectorAll(selector) } catch {}
+export const querySelectorAll_unsafe_ = ((selector: string, scope?: SafeElement | Document
+    ): NodeListOf<Element> | void => {
+  try { return (scope || doc).querySelectorAll(selector) } catch {}
 }) as {
-  (selector: string, scope?: SafeElement): NodeListOf<Element> | void
+  (selector: string, scope?: SafeElement | Document): NodeListOf<Element> | void
 }
 
 export const isIFrameElement = (el: Element): el is KnownIFrameElement => {

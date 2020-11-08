@@ -160,7 +160,7 @@ set_contentCommands_([
         && !parApi.a(keydownEvents_)) {
       parApi.f(kFgCmd.goNext, req as CmdOptions[kFgCmd.goNext] & FgOptions, 1)
     } else if (chosen = isHTML_()
-        && (req.r && findNextInRel(req.r) || req.p.length && findNextInText(req.p, req.n, req.l, req.m))) {
+        && (req.r && findNextInRel(req.r) || req.p.length && findNextInText(req.p, req))) {
       chosen[1].j(chosen[0])
     } else {
       hudTip(kTip.noLinksToGo, 0, VTr(kTip.prev + <number> <boolean | number> req.n))
@@ -224,7 +224,7 @@ set_contentCommands_([
     interface InputHint extends Hint { [0]: HintsNS.InputHintItem["d"] }
     // here those editable and inside UI root are always detected, in case that a user modifies the shadow DOM
     const visibleInputs = traverse(Build.BTypes & ~BrowserType.Firefox
-          ? VTr(kTip.editableSelector) + kSafeAllSelector : VTr(kTip.editableSelector), getEditable
+          ? VTr(kTip.editableSelector) + kSafeAllSelector : VTr(kTip.editableSelector), options, getEditable
         ) as InputHint[],
     action = options.select, keep = options.keep, pass = options.passExitKey, reachable = options.reachable;
     if (reachable != null ? reachable : fgCache.e) {

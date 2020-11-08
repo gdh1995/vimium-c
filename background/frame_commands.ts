@@ -415,6 +415,7 @@ export const framesGoNext = (isNext: boolean, rel: string): void => {
   totalMaxLen: number = Math.max.apply(Math, maxLens)
   sendFgCmd(kFgCmd.goNext, true, {
     r: get_cOptions<C.goNext>().noRel ? "" : rel, n: isNext,
+    match: get_cOptions<C.goNext, true>().match,
     p: patterns, l: maxLens, m: totalMaxLen > 0 && totalMaxLen < 99 ? totalMaxLen : 32
   })
 }

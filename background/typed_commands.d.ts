@@ -3,7 +3,7 @@ interface BgCmdOptions {
   // region: need cport
   [kBgCmd.goNext]: {
     isNext: boolean; noRel: boolean; patterns: string | string[]; rel: string; $n: 1; absolute: true
-  } & UserSedOptions
+  } & UserSedOptions & CSSOptions
   [kBgCmd.insertMode]: {
     key: string
     hideHUD: boolean

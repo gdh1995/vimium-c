@@ -41,6 +41,8 @@ interface ParsedSearch {
   /** error */ e?: string | null;
 }
 
+interface CSSOptions { match?: "css-selector" | null | undefined }
+
 interface FindCSS {
   /** change-selection-color */ c: string;
   /** force-content-selectable */ s: string;
@@ -210,7 +212,7 @@ interface UserSedOptions {
 }
 
 declare namespace HintsNS {
-  interface Options extends UserSedOptions {
+  interface Options extends UserSedOptions, CSSOptions {
     m: HintMode;
     c?: string;
     action?: string;
@@ -311,7 +313,7 @@ interface CmdOptions {
     /** patterns */ p: string[];
     /** length limit list */ l: number[];
     /** max of length limit list */ m: number;
-  };
+  } & CSSOptions;
   [kFgCmd.insertMode]: {
     /** unhover last */ u: true;
     /** reset all: 2=destroying */ r?: 0;
@@ -381,7 +383,7 @@ interface CmdOptions {
     flash?: boolean;
     reachable?: boolean; // default to true
     prefer?: string;
-  };
+  } & CSSOptions;
   [kFgCmd.editText]: {
     dom?: boolean;
     run: string;

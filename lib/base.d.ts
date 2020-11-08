@@ -386,8 +386,8 @@ interface VApiTy {
     (this: void, cmd: FgCmdAcrossFrames, options: FgOptions, count: number, showBorder?: 1 | 2): void
     (this: void, cmd: 0, options: never, count: never, showBorder: 1): void
   }
-  /** filterTextToGoNext */ g: (candidates: GoNextCandidate[], names: string[], isNext: boolean, lenLimit: number[]
-      , totalMax: number, maxLen: number) => number
+  /** filterTextToGoNext */ g: (candidates: GoNextCandidate[], names: string[]
+      , options: CmdOptions[kFgCmd.goNext], maxLen: number) => number
   /** innerHeight_ff */ i?: (type?: undefined) => number
   /** jumpToNext */ j: (nextLink: SafeHTMLElement) => void
   /** scrollTick */ k: (willContinue: BOOL | 2) => void

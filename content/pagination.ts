@@ -44,10 +44,11 @@ const isVisibleInPage = (element: SafeHTMLElement): boolean => {
       && (rect = getBoundingClientRect_(element)).width > 2 && rect.height > 2 && isStyleVisible_(element)
 }
 
-export const filterTextToGoNext: VApiTy["g"] = (candidates, names, isNext, lenLimits, totalMax, maxLen): number => {
+export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxLen): number => {
   if (!isAlive_) { return maxLen }
   // Note: this traverser should not need a prepareCrop
-  const links = traverse(kSafeAllSelector, GetButtons, true, true),
+  const links = traverse(kSafeAllSelector, options, GetButtons, 1, 1),
+  isNext = options.n, lenLimits = options.l, totalMax = options.m,
   quirk = isNext ? ">>" : "<<", quirkIdx = names.indexOf(quirk),
   rel = isNext ? "next" : "prev", relIdx = names.indexOf(rel),
   detectQuirk = quirkIdx > 0 ? names.lastIndexOf(quirk[0], quirkIdx) : -1,
@@ -101,15 +102,15 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, isNext, lenLi
   return maxLen
 }
 
-export const findNextInText = (names: string[], isNext: boolean, lenLimits: number[], totalMax: number
+export const findNextInText = (names: string[], options: CmdOptions[kFgCmd.goNext]
     ): GoNextBaseCandidate | null => {
   const wordRe = <RegExpOne> /\b/
-  let array: GoNextCandidate[] = [], officer: VApiTy | undefined, maxLen = totalMax, s: string
+  let array: GoNextCandidate[] = [], officer: VApiTy | undefined, maxLen = options.m, s: string
   let curLenLimit: number
   iframesToSearchForNext = [vApi]
   while (officer = iframesToSearchForNext!.pop()) {
     try {
-      maxLen = officer.g(array, names, isNext, lenLimits, totalMax, maxLen)
+      maxLen = officer.g(array, names, options, maxLen)
     } catch {}
     curLenLimit = (maxLen + 1) << 16
     array = array.filter(a => (a[2] & 0x7fffff) < curLenLimit)

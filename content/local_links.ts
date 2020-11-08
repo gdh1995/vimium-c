@@ -22,7 +22,7 @@ import { find_box } from "./mode_find"
 import { omni_box } from "./omni"
 import {
   kSafeAllSelector, coreHints, addChildFrame_, mode1_, forHover_,
-  isClickListened_, forceToScroll_, hintMode_, set_isClickListened_, tooHigh_, useFilter_, hintChars, hintManager,
+  isClickListened_, forceToScroll_, hintMode_, set_isClickListened_, tooHigh_, useFilter_, hintChars, hintManager, hintOptions,
 } from "./link_hints"
 import { shouldScroll_s, getPixelScaleToScroll, scrolled, set_scrolled, suppressScroll } from "./scroller"
 import { ui_root, ui_box } from "./dom_ui"
@@ -318,27 +318,42 @@ const getImages = (hints: Hint[], element: SafeHTMLElement): void => {
   cr && hints.push([element, cr, ClickType.Default]);
 }
 
+const getIfOnlyVisible = (hints: Hint[], element: SafeElement): void => {
+  let arr = getVisibleClientRect_(element)
+  arr && hints.push([element as SafeElementForMouse, arr, ClickType.Default])
+}
+
+const matchSafeElements = (udSelector: string, udBox: Element | Document | ShadowRoot): HintSources => {
+  let udList: NodeListOf<Element> | void = querySelectorAll_unsafe_(udSelector, udBox as SafeElement | Document)
+  if (Build.BTypes & ~BrowserType.Firefox) {
+    return udList ? ([].filter as (this: ArrayLike<Element>, filter: (el: Element) => boolean) => SafeElement[]
+      ).call(udList, el => !notSafe_not_ff_!(el)) : []
+  }
+  return udList as NodeListOf<SafeElement> | void || []
+}
+
 /** @safe_even_if_any_overridden_property */
-export const traverse = function (selector: string
-    , filter: Filter<Hint | SafeHTMLElement>, notWantVUI?: boolean
-    , wholeDoc?: true): Hint[] | SafeHTMLElement[] {
+export const traverse = function (selector: string, options: CSSOptions
+    , filter: Filter<Hint | SafeHTMLElement>, notWantVUI?: 1
+    , wholeDoc?: 1 | Document | Element): Hint[] | SafeHTMLElement[] {
   if (!Build.NDEBUG && Build.BTypes & ~BrowserType.Firefox && selector === "*") {
     selector = kSafeAllSelector; // for easier debugging
   }
-  const matchAll = selector === kSafeAllSelector,
+  const matchSelector = options.match, matchAll = selector === kSafeAllSelector && !matchSelector,
   output: Hint[] | SafeHTMLElement[] = [],
   wantClickable = filter === getClickable,
-  isInAnElement = !Build.NDEBUG && !!wholeDoc && isNode_(wholeDoc as unknown as Node, kNode.ELEMENT_NODE),
+  isInAnElement = !Build.NDEBUG && !!wholeDoc && wholeDoc !== 1 && isNode_(wholeDoc, kNode.ELEMENT_NODE),
   box = !wholeDoc && fullscreenEl_unsafe_()
-      || !Build.NDEBUG && isInAnElement && wholeDoc as unknown as Element
+      || !Build.NDEBUG && isInAnElement && wholeDoc as Element
       || doc,
   isD = box === doc,
   localQuerySelectorAll = Build.BTypes & ~BrowserType.Firefox
     ? /* just smaller code */ (isD ? doc : ElementProto()).querySelectorAll : box.querySelectorAll
-  let list: HintSources | null = localQuerySelectorAll.call(box, selector) as NodeListOf<SafeElement>
   wantClickable && getPixelScaleToScroll();
   wantClickable && initTestRegExps()
-  if (matchAll) {
+  if (matchSelector) {
+    filter = /*#__NOINLINE__*/ getIfOnlyVisible as Filter<Hint> as Filter<Hint | SafeHTMLElement>
+  } else if (matchAll) {
     if (ngEnabled == null) {
       ngEnabled = !!querySelector_unsafe_(".ng-scope");
     }
@@ -346,12 +361,13 @@ export const traverse = function (selector: string
       jsaEnabled_ = !!querySelector_unsafe_("[jsaction]");
     }
   }
+  let list: HintSources | null = matchSelector ? matchSafeElements(matchSelector, box)
+      : localQuerySelectorAll.call(box, selector) as NodeListOf<SafeElement>
   list = matchAll ? list
       : addChildTrees(list, localQuerySelectorAll.call(box, kSafeAllSelector) as NodeListOf<SafeElement>)
-  if (!wholeDoc && tooHigh_ && isD && list.length >= GlobalConsts.LinkHintPageHeightLimitToCheckViewportFirst) {
-    list = getElementsInViewport(list);
-  }
-  if (!Build.NDEBUG && isInAnElement) {
+  list = !wholeDoc && tooHigh_ && isD && list.length >= GlobalConsts.LinkHintPageHeightLimitToCheckViewportFirst
+      && !matchSelector ? getElementsInViewport(list) : list
+  if (!Build.NDEBUG && isInAnElement && !matchSelector) {
     // just for easier debugging
     list = [].slice.call(list);
     (list as SafeElement[]).unshift(wholeDoc as unknown as SafeElement);
@@ -368,13 +384,15 @@ export const traverse = function (selector: string
             ? el.webkitShadowRoot : el.shadowRoot) as ShadowRoot | null | undefined;
         if (shadowRoot) {
           tree_scopes.push([cur_tree, i])
-          cur_tree = shadowRoot.querySelectorAll(selector) as NodeListOf<SafeElement>
+          cur_tree = matchSelector ? matchSafeElements(matchSelector, shadowRoot)
+              : shadowRoot.querySelectorAll(selector) as NodeListOf<SafeElement>
           cur_tree = matchAll ? cur_tree
               : addChildTrees(cur_tree, shadowRoot.querySelectorAll(kSafeAllSelector) as NodeListOf<SafeElement>)
           i = 0
         }
       } else if (wantClickable) {
-        /*#__NOINLINE__*/ getClickableInNonHTMLButMayFormatted(output as Exclude<typeof output, SafeHTMLElement[]>
+        (matchSelector ? getIfOnlyVisible : /*#__NOINLINE__*/ getClickableInNonHTMLButMayFormatted
+            )(output as Exclude<typeof output, SafeHTMLElement[]>
             , el as NonHTMLButFormattedElement | SafeElementWithoutFormat);
       }
     }
@@ -402,7 +420,9 @@ export const traverse = function (selector: string
       set_bZoom_(1)
       prepareCrop_(1);
     }
-    const elements = (<ShadowRoot> ui_root).querySelectorAll(selector) as NodeListOf<SafeHTMLElement>
+    const elements = matchSelector ? matchSafeElements(matchSelector, ui_root
+        ) as ArrayLike<SafeElement> as ArrayLike<SafeHTMLElement>
+        : (<ShadowRoot> ui_root).querySelectorAll(selector) as NodeListOf<SafeHTMLElement>
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes) {
       for (let i = 0; i < elements.length; i++) { filter(output, elements[i]) }
     } else {
@@ -423,8 +443,8 @@ export const traverse = function (selector: string
   }
   return output;
 } as {
-  (key: string, filter: Filter<SafeHTMLElement>, notWantVUI?: true, wholeDoc?: true): SafeHTMLElement[];
-  (key: string, filter: Filter<Hint>, notWantVUI?: boolean): Hint[];
+  (key: string, options: CSSOptions, filter: Filter<SafeHTMLElement>, notWantVUI?: 1, wholeDoc?: 1): SafeHTMLElement[]
+  (key: string, options: CSSOptions, filter: Filter<Hint>, notWantVUI?: 1): Hint[]
 }
 
 const addChildTrees = (list: HintSources, allNodes: NodeListOf<SafeElement>): HintSources => {
@@ -658,13 +678,15 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
     // not check `img[src]` in case of `<img srcset=... >`
     ? traverse(`a[href],img,div${B},span${B},[data-src]`
         + (Build.BTypes & ~BrowserType.Firefox ? kSafeAllSelector : "")
-        + (_i - HintMode.DOWNLOAD_MEDIA ? "" : ",video,audio"), getImages, true)
+        + (_i - HintMode.DOWNLOAD_MEDIA ? "" : ",video,audio"), hintOptions, /*#__NOINLINE__*/ getImages, 1)
     : _i > HintMode.min_link_job - 1 && _i < HintMode.max_link_job + 1
-    ? traverse("a,[role=link]" + (Build.BTypes & ~BrowserType.Firefox ? kSafeAllSelector : ""), getLinks)
-    : _i - HintMode.FOCUS_EDITABLE ? traverse(kSafeAllSelector,
-        _i - HintMode.ENTER_VISUAL_MODE ? getClickable : getSelectable)
+    ? traverse("a,[role=link]" + (Build.BTypes & ~BrowserType.Firefox ? kSafeAllSelector : "")
+        , hintOptions, /*#__NOINLINE__*/ getLinks)
+    : _i - HintMode.FOCUS_EDITABLE ? traverse(kSafeAllSelector, hintOptions
+        , _i - HintMode.ENTER_VISUAL_MODE ? /*#__NOINLINE__*/ getClickable : /*#__NOINLINE__*/ getSelectable)
     : traverse(Build.BTypes & ~BrowserType.Firefox
-          ? VTr(kTip.editableSelector) + kSafeAllSelector : VTr(kTip.editableSelector), getEditable);
+          ? VTr(kTip.editableSelector) + kSafeAllSelector : VTr(kTip.editableSelector)
+        , hintOptions, /*#__NOINLINE__*/ getEditable)
   if ((_i < HintMode.max_mouse_events + 1 || _i === HintMode.FOCUS_EDITABLE)
       && visibleElements.length < GlobalConsts.MinElementCountToStopPointerDetection) {
     fgCache.e && filterOutNonReachable(visibleElements, _i > HintMode.FOCUS_EDITABLE - 1);
