@@ -174,7 +174,7 @@ export const recordLog = (tip: kTip | string): void => {
 
 export const parseSedOptions = (opts: UserSedOptions): ParsedSedOpts => {
   const sed = opts.sed
-  return !sed || !isTY(sed, kTY.obj) ? ({ r: sed, k: opts.sedKeys || opts.sedKey }) : sed
+  return isTY(sed, kTY.obj) && sed || { r: sed, k: opts.sedKeys || opts.sedKey }
 }
 
 export const escapeAllForRe = (str: string): string => str.replace(<RegExpG> /[$()*+.?\[\\\]\^{|}]/g, "\\$&")

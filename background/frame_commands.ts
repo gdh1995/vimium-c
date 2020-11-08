@@ -7,7 +7,7 @@ import {
 import {
   framesForTab, indexFrame, portSendFgCmd, framesForOmni, focusFrame, sendFgCmd, showHUD, complainLimits
 } from "./ports"
-import { substitute_ } from "./clipboard"
+import { parseSedOptions_, substitute_ } from "./clipboard"
 import { parseReuse, newTabIndex, openShowPage } from "./open_urls"
 
 export const nextFrame = (): void => {
@@ -136,6 +136,7 @@ export const showVomnibar = (forceInner?: boolean): void => {
     s: trailingSlash,
     j: useInner ? "" : settings.CONST_.VomnibarScript_f_,
     e: !!(get_cOptions<C.showVomnibar>()).exitOnClick,
+    d: parseSedOptions_(get_cOptions<C.showVomnibar, true>()),
     k: getSecret()
   }), get_cOptions<C.showVomnibar, true>())
   if (options.mode === "bookmark") {

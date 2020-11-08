@@ -72,11 +72,10 @@ const decodeSlash_ = (text: string): string =>
             : s // like r"abc\.def" / r"abc\\def"
     )
 
-export const parseSedOptions_ = (sed: string | boolean | UserSedOptions | null | undefined): ParsedSedOpts | null => {
-  let r: MixedSedOpts | null | undefined, k: string | null | undefined
-  return !sed ? null : typeof sed !== "object" ? { r: sed, k: ""}
-      : !(r = sed.sed) && !(k = sed.sedKeys || sed.sedKey) ? null
-      : !r || typeof r !== "object" ? { r, k } : r.r || r.k ? r : null
+export const parseSedOptions_ = (sed: UserSedOptions): ParsedSedOpts | null => {
+  let r = sed.sed, k = sed.sedKeys || sed.sedKey
+  return r == null && !k ? null
+      : !r || typeof r !== "object" ? { r, k } : r.r != null || r.k ? r : null
 }
 
 export const parseSedKeys_ = (keys: string): SedContext => {

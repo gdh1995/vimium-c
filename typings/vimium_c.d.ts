@@ -424,7 +424,7 @@ declare namespace VomnibarNS {
     MeanWidthOfMonoFont = 7.7, MeanWidthOfNonMonoFont = 4,
     WindowSizeX = 0.8, AllHNotInput = AllHNotUrl,
   }
-  interface GlobalOptions extends TrailingSlashOptions {
+  interface GlobalOptions extends TrailingSlashOptions, UserSedOptions {
     mode: string;
     currentWindow?: boolean;
     newtab: boolean | BOOL;

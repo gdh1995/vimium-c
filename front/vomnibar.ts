@@ -76,6 +76,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.selectFirst_ = options.autoSelect;
     a.notSearchInput_ = options.searchInput === false;
     a.baseHttps_ = null;
+    a.sed_ = options.d
     let { url, keyword, p: search } = options, start: number | undefined;
     let scale = Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
             && (!(Build.BTypes & ~BrowserType.Chrome)
@@ -217,6 +218,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   styleEl_: null as HTMLStyleElement | null,
   darkBtn_: null as HTMLElement | null,
   wheelOptions_: { passive: false, capture: true } as const,
+  sed_: null as ParsedSedOpts | null,
   showTime_: 0 as 0 | /** abs-num */ 1 | /** abs */ 2 | /** relative */ 3,
   show_ (): void {
     const a = Vomnibar_;
@@ -266,7 +268,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.timer_ = a.height_ = a.matchType_ = a.sugTypes_ = a.wheelStart_ = a.wheelTime_ = a.actionType_ =
     a.total_ = a.lastKey_ = a.wheelDelta_ = VUtils_.timeCache_ = 0;
     a.docZoom_ = 1;
-    a.doesOpenInIncognito_ = a.completions_ = a.onUpdate_ = a.isHttps_ = a.baseHttps_ = null as never
+    a.sed_ = a.doesOpenInIncognito_ = a.completions_ = a.onUpdate_ = a.isHttps_ = a.baseHttps_ = null as never
     a.mode_.q = a.lastQuery_ = a.inputText_ = a.lastNormalInput_ = a.resMode_ = "";
     a.mode_.o = "omni";
     a.mode_.t = CompletersNS.SugType.Empty;
@@ -756,7 +758,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     action = a.actionType_, https = a.isHttps_, incognito = a.doesOpenInIncognito_,
     func = function (this: void): void {
       item.s != null ? Vomnibar_.gotoSession_(item as SuggestionE & Ensure<SuggestionE, "s">)
-        : Vomnibar_.navigateToUrl_(item.u, action, https, incognito);
+        : Vomnibar_.navigateToUrl_(item.u, action, https, incognito, sel);
       (<RegExpOne> /a?/).test("");
     };
     if (sel === -1 && event && event !== !0 && event & KeyStat.altKey && (<RegExpOne> /^\w+(-\w+)?$/).test(item.u)) {
@@ -1364,12 +1366,14 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
               || str.lastIndexOf("-", str.indexOf(":") + 1 || 8) > 0 && url.lastIndexOf("://", 21) > 0
             ? (i = url.indexOf("/", url.indexOf("://") + 3), i > 0 ? url.slice(0, i + 1) : url + "/") : url);
   },
-  navigateToUrl_ (url: string, reuse: ReuseType, https: boolean | null, incognito: Options["incognito"]): void {
-    if ((<RegExpI> /javascript:/i).test(url)) {
+  navigateToUrl_ (url: string, reuse: ReuseType, https: boolean | null, incognito: Options["incognito"]
+      , sel: number): void {
+    if ((<RegExpI> /^javascript:/i).test(url)) {
       VPort_.postToOwner_({ N: VomnibarNS.kFReq.evalJS, u: url });
       return;
     }
-    VPort_.post_({ H: kFgReq.openUrl, r: reuse, h: https, u: url, i: incognito });
+    VPort_.post_({ H: kFgReq.openUrl, r: reuse, h: https, u: url, i: incognito,
+        e: sel === -1 ? Vomnibar_.sed_ : { r: false, k: "" } })
     if (reuse === ReuseType.newBg
         && (!Vomnibar_.lastQuery_ || (<RegExpOne> /^\+\d{0,2}$/).exec(Vomnibar_.lastQuery_))) {
       return Vomnibar_.refresh_();

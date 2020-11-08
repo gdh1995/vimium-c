@@ -430,6 +430,9 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port): void =>
     }
     if (request.f) { /* empty */ }
     else if (testUrl) {
+      if (!isWeb) {
+        url = substitute_(url as string, SedContext.omni, request.e)
+      }
       url = BgUtils_.fixCharsInUrl_(url)
       url = BgUtils_.convertToUrl_(url, keyword
           , isWeb ? Urls.WorkType.ConvertKnown : Urls.WorkType.EvenAffectStatus)

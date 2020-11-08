@@ -303,6 +303,7 @@ interface CmdOptions {
     /** <script> */ j: string;
     /** secret */ k: number;
     /** exitOnClick */ e: boolean;
+    /** sed */ d: ParsedSedOpts | null
   };
   [kFgCmd.goNext]: {
     /** rel */ r: string;
@@ -414,6 +415,7 @@ declare const enum SedContext {
   /** `i` */ image = 1 << 8,
   /** `g` */ gotoUrl = 1 << 6,
   /** `n` */ goNext = 1 << 13,
+  /** `o` */ omni = 1 << 14,
 }
 
 interface FgRes {

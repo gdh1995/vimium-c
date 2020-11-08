@@ -169,19 +169,18 @@ export const GetParent_unsafe_ = function (this: void, el: Node | Element
   type ParentNodeProp = Node["parentNode"]; type ParentElement = Node["parentElement"]
   let pe = el.parentElement as Exclude<ParentElement, Window>, pn = el.parentNode as Exclude<ParentNodeProp, Window>
   if (pe === pn /* normal pe or no parent */ || !pn /* indeed no par */) { return pn as Element | null }
-  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
-      && unsafeFramesetTag_old_cr_!) {
-    // may be `frameset,form` with pn or pe overridden; <frameset>.parentNode may be an connected shadowRoot
-    pe = pe && (pe as ParentElement as WindowWithTop).top !== top ? pe : null
-    pn = (pn as ParentNodeProp as WindowWithTop).top !== top ? pn : pe
-  }
+  // may be `frameset,form` with pn or pe overridden; <frameset>.parentNode may be an connected shadowRoot
   if (!(Build.BTypes & BrowserType.Firefox) || Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox) {
-    pn = (!(Build.BTypes & ~BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter || pn)
+    pn = (!(Build.BTypes & ~BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
+          || !unsafeFramesetTag_old_cr_ || (pn as ParentNodeProp as WindowWithTop).top !== top)
         && pn!.nodeType && doc.contains.call(pn as Node, el) ? pn
         : Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype
-          && !(Build.BTypes & ~BrowserType.ChromeOrFirefox) ? Getter_not_ff_!(Node, el, "parentNode")
-        : pe && pe.nodeType && doc.contains.call(pe as Element, el) ? (type = PNType.DirectNode, pe)
-        : el === doc.body ? docEl_unsafe_() : Getter_not_ff_!(Node, el, "parentNode")
+          || !(Build.BTypes & BrowserType.Chrome)
+          || chromeVer_ > BrowserVer.MinParentNodeGetterInNodePrototype - 1 ? Getter_not_ff_!(Node, el, "parentNode")
+        : (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
+          ? pe && (!unsafeFramesetTag_old_cr_ || (pe as ParentNodeProp as WindowWithTop).top !== top) : pe)
+        && pe!.nodeType && doc.contains.call(pe as Element, el) ? (type = PNType.DirectNode, pe)
+        : el === doc.body ? docEl_unsafe_() : null
   }
     // pn is real (if BrowserVer.MinParentNodeGetterInNodePrototype else) real or null
   return Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinParentNodeGetterInNodePrototype && !pn

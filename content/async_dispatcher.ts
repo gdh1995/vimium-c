@@ -235,7 +235,7 @@ export const click_ = async (element: SafeElementForMouse
     , rect?: Rect | null, addFocus?: boolean | BOOL, modifiers?: MyMouseControlKeys | null
     , specialAction?: kClickAction, button?: AcceptableClickButtons
     , /** default: false */ touchMode?: null | false | /** false */ 0 | true | "auto"
-    , /** .opener: default to true */ userOptions?: UserSedOptions & OpenUrlOptions): Promise<void | 1> => {
+    , /** .opener: default to true */ userOptions?: OpenUrlOptions): Promise<void | 1> => {
   /**
    * for important events including `mousedown`, `mouseup`, `click` and `dblclick`, wait for two micro tasks;
    * for other events, just wait for one micro task

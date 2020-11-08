@@ -261,7 +261,7 @@ declare namespace VomnibarNS {
     ToShow = 2,
     Showing = 3,
   }
-  interface BaseFgOptions extends Pick<CmdOptions[kFgCmd.vomnibar], "s" | "t"> {
+  interface BaseFgOptions extends Pick<CmdOptions[kFgCmd.vomnibar], "s" | "t" | "d"> {
     // physical pixel size (if C<52) and devicePixelRatio
     w: number;
     h: number;
