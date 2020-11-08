@@ -606,7 +606,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           : AllowedActions.nothing;
       } else if (char === kChar.up || char === kChar.down || char === kChar.end || char === kChar.home) {
         event.preventDefault();
-        a.lastScrolling_ = Date.now();
+        a.lastScrolling_ = event.timeStamp
         window.onkeyup = Vomnibar_.HandleKeydown_;
         VPort_.postToOwner_({ N: VomnibarNS.kFReq.scroll, k: key, b: char });
         return;
@@ -845,7 +845,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (event.deltaX || !deltaY || !a.isActive_ || a.isSearchOnTop_) { return }
     if (now - a.wheelTime_ > (!mode /* WheelEvent.DOM_DELTA_PIXEL */
                               ? GlobalConsts.TouchpadTimeout : GlobalConsts.WheelTimeout)
-        || now + 33 < a.wheelTime_) {
+        || now - a.wheelTime_ < -33) {
       a.wheelDelta_ = 0;
       a.wheelStart_ = 0;
     }
@@ -856,7 +856,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       , abs = Math.abs(total);
     if (abs < GlobalConsts.VomnibarWheelStepForPage
         || a.wheelStart_ && now - a.wheelStart_ < GlobalConsts.VomnibarWheelIntervalForPage
-            && now + 33 > a.wheelStart_
+            && now - a.wheelStart_ > -33
     ) {
       a.wheelDelta_ = total;
       return;
@@ -1238,7 +1238,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       if (!Vomnibar_.lastScrolling_) {
         // clear state, to avoid OnEnterUp receives unrelated keys
         stop = keyCode > kKeyCode.maxAcsKeys || keyCode < kKeyCode.minAcsKeys;
-      } else if (stop || (now = Date.now()) - Vomnibar_.lastScrolling_ > 40 || now < Vomnibar_.lastScrolling_) {
+      } else if (stop || (now = event.timeStamp) - Vomnibar_.lastScrolling_ > 40 || now < Vomnibar_.lastScrolling_) {
         VPort_.postToOwner_({ N: stop ? VomnibarNS.kFReq.scrollEnd : VomnibarNS.kFReq.scrollGoing });
         Vomnibar_.lastScrolling_ = now;
       }

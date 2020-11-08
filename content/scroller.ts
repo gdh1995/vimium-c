@@ -58,7 +58,7 @@ export function set_cachedScrollable (_newCachedSc: typeof cachedScrollable): vo
 let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: number): void => {
   let amount = 0, calibration = 1.0, di: ScrollByY = 0, duration = 0, element: SafeElement | null = null, //
   sign = 0, timestamp = 0, totalDelta = 0.0, totalElapsed = 0.0, //
-  running = 0, timer = TimerID.None,
+  running = 0, timer: ValidTimeoutID = TimerID.None,
   styleTop: SafeElement | null = null, maskTop: HTMLDialogElement | null = styleTop,
   animate = (newTimestamp: number): void => {
     if (!isAlive_ || !running) { toggleAnimation!(); return; }

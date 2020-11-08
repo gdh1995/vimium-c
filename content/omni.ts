@@ -39,7 +39,7 @@ let portToOmni: OmniPort = null as never
 let status = VomnibarNS.Status.NotInited
 let omniOptions: VomnibarNS.FgOptionsToFront | null = null
 let onReset: (() => void) | null = null
-let timer = TimerID.None
+let timer: ValidTimeoutID = TimerID.None
   // unit: physical pixel (if C<52)
 let screenHeight_ = 0
 let canUseVW: boolean
@@ -192,7 +192,7 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
       // if set .sandbox to "allow-scripts", then wnd.postMessage(msg, origin, [channel]) fails silently
     }
     el.src = page;
-    let loaded: BOOL = 0, initMsgInterval = TimerID.None
+    let loaded: BOOL = 0, initMsgInterval: ValidIntervalID = TimerID.None
     el.onload = (): void => {
       loaded = 1
       if (onReset) { return; }

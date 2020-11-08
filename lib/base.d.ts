@@ -448,7 +448,10 @@ type ContentCommandsNotSuppress = kContentCmd.AutoFindAllOnClick | kContentCmd.M
 type SecondLevelContentCmds = kContentCmd.AutoFindAllOnClick | kContentCmd.ManuallyFindAllOnClick
     | kContentCmd.Destroy;
 
-
+declare const enum TimerID { None = 0, Valid = 42, Timeout = "43", Interval = "44", __mask = "" }
+type ValidTimeoutID = 0 | 42 | "43"
+type ValidIntervalID = 0 | 42 | "44"
+    
 interface Window {
   readonly VApi?: VApiTy;
 }

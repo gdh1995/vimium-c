@@ -111,7 +111,7 @@ let onWaitingKey: HandlerNS.VoidHandler<HandlerResult> | null | undefined
 let isActive: BOOL = 0
 let noHUD_ = false
 let options_: HintsNS.ContentOptions = null as never
-let _timer = TimerID.None
+let _timer: ValidTimeoutID = TimerID.None
 let kSafeAllSelector = Build.BTypes & ~BrowserType.Firefox ? ":not(form)" as const : "*" as const
 let manager_: HintManager | null = null
 let api_: VApiTy = null as never

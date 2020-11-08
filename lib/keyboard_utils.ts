@@ -143,7 +143,7 @@ export const replaceOrSuppressMost_ = (id: kHandler, newHandler?: HandlerNS.Hand
    */
 export const suppressTail_ = ((timeout?: number
     , callback?: HandlerNS.VoidHandler<unknown>): HandlerNS.Handler | HandlerNS.VoidHandler<HandlerResult> => {
-  let timer = TimerID.None, func = (event?: HandlerNS.Event): HandlerResult => {
+  let timer: ValidTimeoutID = TimerID.None, func = (event?: HandlerNS.Event): HandlerResult => {
       if (!timeout) {
         if (event!.e.repeat) { return HandlerResult.Prevent }
         removeHandler_(func as never as kHandler.suppressTail)

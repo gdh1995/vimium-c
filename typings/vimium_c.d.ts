@@ -193,12 +193,6 @@ declare const enum VisualAction {
   MaxNotScroll = 60, ScrollUp, ScrollDown,
 }
 
-declare const enum TimerID {
-  None = 0,
-  Valid = 42,
-  Others = 43,
-}
-
 declare const enum KeyAction {
   cmd = 0, count = 1,
   __mask = -1,

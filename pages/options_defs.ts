@@ -93,7 +93,7 @@ class NumberOption_<T extends UniversalNumberSettings> extends Option_<T> {
     event.preventDefault()
     const oldTime = this.wheelTime_
     let i = Date.now() // safe for time changes
-    if (i - oldTime < 100 && i + 99 > oldTime && oldTime > 0) { return }
+    if (i - oldTime < 100 && i + 99 > oldTime && oldTime) { return }
     this.wheelTime_ = i
     const el = this.element_, inc = (event.deltaY || event.deltaX) > 0, val0 = el.value
     let val: string, func: undefined | ((n: string) => number) | (

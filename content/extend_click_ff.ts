@@ -54,7 +54,7 @@ export const main_ff = (Build.BTypes & BrowserType.Firefox ? (): void => {
       timer = resolved = 0
     }
   
-    let alive = false, timer = TimerID.None, resolved = 0
+    let alive = false, timer: ValidTimeoutID = TimerID.None, resolved = 0
     if (grabBackFocus) {
       if (alive = isTY(_listen, kTY.func)) {
         doExport(Cls!, _listen.name as "addEventListener", newListen)

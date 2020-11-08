@@ -31,7 +31,7 @@ import { omni_status, omni_box } from "./omni"
 
 let framemask_more = false
 let framemask_node: HTMLDivElement | null = null
-let framemask_fmTimer = TimerID.None
+let framemask_fmTimer: ValidIntervalID = TimerID.None
 let needToRetryParentClickable: BOOL = 0
 
 /** require `WeakSet` MUST exist; should ensure `clickable_.forEach` MUST exist */
@@ -115,7 +115,10 @@ set_requestHandlers([
           set_clickable_(new WeakSet!<Element>(oldSet))
         }
         const manager = parHints && parHints.p || parHints
-        manager && manager.h > 1 && getTime() - manager.h < 1200 && manager.i(1)
+        if (manager && manager.h && manager.h - 1) {
+          const delta = getTime() - manager.h
+          delta < 1200 && delta >= 0 && manager!.i(1)
+        }
       }, 330);
     });
     injector && injector.$r(InjectorTask.extInited);

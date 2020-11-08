@@ -1817,8 +1817,8 @@ knownCs = {
     newMatch_: null as MatchCacheRecord | null,
     tabs_: As_<TabCacheData>({ tabs_: null, type_: TabCacheType.none }),
     all_: [] as MatchCacheRecord[],
-    timer_: TimerID.None,
-    tabTimer_: TimerID.None,
+    timer_: 0,
+    tabTimer_: 0,
     update_ (): void {
       let q2 = queryTerms, found: MatchCacheRecord | null = null, now = 0, full_query = q2.join(" ");
       for (let records = MatchCacheManager.all_, ind = full_query ? records.length : 0; 0 <= --ind; ) {
@@ -1862,7 +1862,7 @@ knownCs = {
       } else {
         records.length = 0;
         clearInterval(MatchCacheManager.timer_);
-        MatchCacheManager.timer_ = TimerID.None;
+        MatchCacheManager.timer_ = 0
       }
     },
     clear_ (type: MatchCacheType): void {
@@ -1876,7 +1876,7 @@ knownCs = {
       if (MatchCacheManager.tabs_.tabs_ === tabs) { return; }
       if (MatchCacheManager.tabTimer_) {
         clearTimeout(MatchCacheManager.tabTimer_);
-        MatchCacheManager.tabTimer_ = TimerID.None;
+        MatchCacheManager.tabTimer_ = 0
       }
       MatchCacheManager.tabs_.tabs_ = tabs;
       if (tabs) {

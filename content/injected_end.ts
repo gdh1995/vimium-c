@@ -87,7 +87,7 @@ VApi.e = function (cmd): void {
       , colorRed, colorAuto, colorRed, colorAuto, "color:#0c85e9"
       , runtime.id || location.host, ".");
   }
-  let livingCheckTimer = TimerID.None;
+  let livingCheckTimer: number = TimerID.None;
   injector.$r = function (task): void {
     if (task === InjectorTask.reload) {
       const injector1 = VimiumInjector;

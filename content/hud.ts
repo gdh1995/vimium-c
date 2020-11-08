@@ -8,12 +8,12 @@ import { insert_global_ } from "./insert"
 import { visual_mode, visual_mode_name } from "./visual"
 import { find_box } from "./mode_find"
 
-let tweenId = 0
+let tweenId: ValidIntervalID = TimerID.None
 let box: HTMLDivElement | null = null
 let $text: Text = null as never
 let text = ""
 let opacity_: 0 | 0.25 | 0.5 | 0.75 | 1 = 0
-let timer = TimerID.None
+let timer: ValidTimeoutID = TimerID.None
 
 export { box as hud_box, text as hud_text, opacity_ as hud_opacity, timer as hud_tipTimer }
 

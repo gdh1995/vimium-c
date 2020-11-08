@@ -695,7 +695,7 @@ export const updateQuery = (query: string): void => {
   let matches: string[] | null = null
   let delta: number
   if (re) {
-    let now = Date.now()
+    let now = getTime()
     if (cachedInnerText && (delta = math.abs(now - cachedInnerText.t)) < (cachedInnerText.i.length < 1e5 ? 3e3 : 6e3)) {
       query = cachedInnerText!.i
       delta < 500 && (cachedInnerText!.t = now)
