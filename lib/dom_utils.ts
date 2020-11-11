@@ -48,7 +48,7 @@ export const querySelectorAll_unsafe_ = ((selector: string, scope?: Element | Sh
     }
   } catch {}
 }) as {
-  (selector: string, scope: Element | null, isScopeInElementAndNull: 1): NodeListOf<SafeElement> | void
+  (selector: string, scope: Element | null, isScopeInElementAndNull: 1): NodeListOf<Element> | void
   (selector: string, scope?: Element | ShadowRoot | null, isScopeInElementAndNull?: 0): NodeListOf<Element> | void
 }
 
@@ -416,8 +416,8 @@ export const getSelectionFocusEdge_ = (sel: Selection, knownDi: VisualModeNS.For
             : (el.childNodes as NodeList)[selOffset_(sel, 1)]) || el
     }
     for (o = el; !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
-          ? o && !isNode_(o, kNode.ELEMENT_NODE)
-          : o && (nt = o.nodeType, !isTY(nt, kTY.num) || nt - kNode.ELEMENT_NODE);
+          ? o && <number> <Element | RadioNodeList | kNode> o.nodeType - kNode.ELEMENT_NODE
+          : o && (nt = o.nodeType, isTY(nt, kTY.num) && nt - kNode.ELEMENT_NODE);
         o = knownDi ? o!.previousSibling : o!.nextSibling) { /* empty */ }
     if (!(Build.BTypes & ~BrowserType.Firefox)) {
       return (/* Element | null */ o || (/* el is not Element */ el && el.parentElement)) as SafeElement | null;

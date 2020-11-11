@@ -204,4 +204,4 @@ export const math = Math
 export const max_ = Build.NDEBUG ? math.max : (...args: number[]): number => math.max(...args)
 export const min_ = Build.NDEBUG ? math.min : (...args: number[]): number => math.min(...args)
 
-export function includes_<T> (this: T[], el: T): boolean { return this.indexOf(el) >= 0 }
+export function includes_<T> (this: T[] | readonly T[], el: T): boolean { return this.indexOf(el) >= 0 }

@@ -21,7 +21,7 @@ import {
 import { find_box } from "./mode_find"
 import { omni_box } from "./omni"
 import {
-  kSafeAllSelector, coreHints, addChildFrame_, mode1_, forHover_, hintOptions,
+  kSafeAllSelector, coreHints, addChildFrame_, mode1_, forHover_, hintOptions, AddChildDirectly,
   isClickListened_, forceToScroll_, hintMode_, set_isClickListened_, tooHigh_, useFilter_, hintChars, hintManager
 } from "./link_hints"
 import { shouldScroll_s, getPixelScaleToScroll, scrolled, set_scrolled, suppressScroll } from "./scroller"
@@ -60,7 +60,8 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
     if (isClickable = element !== find_box) {
       arr = getVisibleClientRect_(element);
       if (element !== omni_box) {
-        isClickable = addChildFrame_ ? addChildFrame_(coreHints, element as KnownIFrameElement, arr) : !!arr
+        isClickable = addChildFrame_ ? (addChildFrame_ as AddChildDirectly)(coreHints
+            , element as KnownIFrameElement, arr) : !!arr
       } else if (arr) {
         (arr as WritableRect).l += 12; (arr as WritableRect).t += 9;
       }
@@ -362,7 +363,7 @@ export const traverse = ((selector: string, options: CSSOptions, filter: Filter<
     , notWantVUI?: 1, wholeDoc?: 1 | Element): Hint[] | SafeHTMLElement[] => {
   const output: Hint[] | SafeHTMLElement[] = [],
   wantClickable = filter === getClickable,
-  isInAnElement = !Build.NDEBUG && !!wholeDoc && wholeDoc !== 1 && isNode_(wholeDoc, kNode.ELEMENT_NODE),
+  isInAnElement = !Build.NDEBUG && !!wholeDoc && wholeDoc !== 1 && wholeDoc.tagName != null,
   traverseRoot = !wholeDoc ? fullscreenEl_unsafe_() : !Build.NDEBUG && isInAnElement && wholeDoc as Element || null
   let matchSelector = options.match || null,
   clickableSelector = wantClickable && options.clickable || null,
@@ -387,11 +388,12 @@ export const traverse = ((selector: string, options: CSSOptions, filter: Filter<
       && list.length >= GlobalConsts.LinkHintPageHeightLimitToCheckViewportFirst
       && !matchSelector ? getElementsInViewport(list) : list
   list = matchAll ? list : addChildTrees(list
-      , querySelectorAll_unsafe_(kSafeAllSelector, traverseRoot) as NodeListOf<SafeElement>)
+      , querySelectorAll_unsafe_(kSafeAllSelector, traverseRoot, 1) as NodeListOf<SafeElement>)
   if (!Build.NDEBUG && isInAnElement && !matchSelector) {
     // just for easier debugging
-    list = [].slice.call(list);
-    (list as SafeElement[]).unshift(wholeDoc as unknown as SafeElement);
+    if (!(Build.BTypes & ~BrowserType.Firefox) || !notSafe_not_ff_!(traverseRoot!)) {
+      (list = ([] as SafeElement[]).slice.call(list)).unshift(traverseRoot as SafeElement)
+    }
   }
   let cur_scope: [HintSources, number, ElementSet] | undefined
   const tree_scopes: Array<typeof cur_scope> = [[list, 0
@@ -446,12 +448,12 @@ export const traverse = ((selector: string, options: CSSOptions, filter: Filter<
       set_bZoom_(1)
       prepareCrop_(1);
     }
-    const elements = matchSafeElements(selector, ui_root, matchSelector
-        ) as ArrayLike<SafeElement> as ArrayLike<SafeHTMLElement>
-    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes) {
-      for (let i = 0; i < elements.length; i++) { filter(output, elements[i]) }
+    list = querySelectorAll_unsafe_(selector, ui_root) as NodeListOf<SafeElement>
+    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
+        && Build.MinCVer >= BrowserVer.MinTestedES6Environment) {
+      for (let i = 0; i < list.length; i++) { htmlTag_(list[i]) && filter(output, list[i] as SafeHTMLElement) }
     } else {
-      (elements as SafeHTMLElement[]).forEach(filter.bind(0, output))
+      for (const i of list as ArrayLike<Element> as Element[]) { htmlTag_(i) && filter(output, i as SafeHTMLElement) }
     }
     Build.BTypes & ~BrowserType.Firefox && set_bZoom_(bz)
     if (notHookScroll) {
@@ -459,7 +461,7 @@ export const traverse = ((selector: string, options: CSSOptions, filter: Filter<
     }
   }
   scrolled === 1 && suppressScroll();
-  if (wantClickable) { deduplicate(output as Hint[]); }
+  if (wantClickable && !matchSelector) { deduplicate(output as Hint[]) }
   if (frameNested_ === null) { /* empty */ }
   else if (wantClickable) {
     checkNestedFrame(output as Hint[]);
@@ -477,23 +479,26 @@ export const traverse = ((selector: string, options: CSSOptions, filter: Filter<
 const addChildTrees = (list: HintSources, allNodes: NodeListOf<SafeElement>): HintSources => {
   let matchWebkit = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
                     && chromeVer_ < BrowserVer.MinEnsuredUnprefixedShadowDOMV0;
-  let doesFindChildFrame = !!addChildFrame_
-  let hosts: SafeElement[] = [], matched: SafeElement | undefined;
+  let local_addChildFrame_ = addChildFrame_, hosts: SafeElement[] = []
   for (let i = 0, len = allNodes.length; i < len; i++) {
     let el = allNodes[i]
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
           && matchWebkit ? el.webkitShadowRoot : el.shadowRoot) {
-      hosts.push(matched = el);
-    } else if (doesFindChildFrame && isIFrameElement(el)) {
+      hosts.push(el)
+    } else if (local_addChildFrame_ && isIFrameElement(el)) {
       if ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
           && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
           && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
           || el !== omni_box && el !== find_box) {
-        addChildFrame_!(coreHints, el, getVisibleClientRect_(el))
+        local_addChildFrame_(coreHints, el, getVisibleClientRect_(el), hosts)
       }
     }
   }
-  return matched ? [].slice.call<ArrayLike<SafeElement>, [], SafeElement[]>(list).concat(hosts) : list;
+  if (!hosts.length) { return list }
+  list = ([] as SafeElement[]).slice.call(list)
+  return list.concat((hosts as readonly SafeElement[]).filter(
+      Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
+      && chromeVer_ < BrowserVer.MinEnsuredES6$Array$$Includes ? list.includes! : includes_, list))
 }
 
 const getElementsInViewport = (list: HintSources): HintSources => {

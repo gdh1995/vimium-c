@@ -54,6 +54,10 @@ interface FrameHintsInfo {
     v: ViewBox;
     s: HintManager | HintOfficer
 }
+/** return whether the element's VHints is not accessible */
+export type AddChildDirectly = (officer: BaseHintWorker, el: KnownIFrameElement, rect: Rect | null) => boolean
+export type AddChildIndirectly = (officer: BaseHintWorker
+    , el: KnownIFrameElement, rect: Rect | null, elList: SafeElement[]) => boolean
 
 import {
   VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_, max_, min_, math,
@@ -115,9 +119,7 @@ let _timer: ValidTimeoutID = TimerID.None
 let kSafeAllSelector = Build.BTypes & ~BrowserType.Firefox ? ":not(form)" as const : "*" as const
 let manager_: HintManager | null = null
 let api_: VApiTy = null as never
-  /** return whether the element's VHints is not accessible */
-let addChildFrame_: ((child: BaseHintWorker
-      , el: KnownIFrameElement, rect: Rect | null) => boolean) | null | undefined
+let addChildFrame_: AddChildDirectly | AddChildIndirectly | null | undefined
 
 export {
   isActive as isHintsActive,
@@ -128,6 +130,7 @@ export {
 }
 export function set_kSafeAllSelector (_newKSafeAll: string): void { kSafeAllSelector = _newKSafeAll as any }
 export function set_isClickListened_ (_newIsClickListened: boolean): void { isClickListened_ = _newIsClickListened }
+export function set_addChildFrame_ (_newACF: typeof addChildFrame_): void { addChildFrame_ = _newACF }
 
 export const activate = (options: HintsNS.ContentOptions, count: number, force?: 2 | TimerType.fake): void => {
     if (isActive && force !== 2 || !isEnabled_) { return; }
@@ -173,17 +176,17 @@ export const activate = (options: HintsNS.ContentOptions, count: number, force?:
       , frameInfo: FrameHintsInfo, total: number
     {
       const childFrames: ChildFrame[] = [],
-      addChild: typeof addChildFrame_ = (child, el, rect): boolean => {
+      addChild: AddChildDirectly = (officer, el, rect): boolean => {
         const childApi = detectUsableChild(el),
-        officer: HintOfficer | null | undefined = childApi && (childApi.b as HintOfficer)
-        if (officer) {
+        childOfficer: HintOfficer | null | undefined = childApi && (childApi.b as HintOfficer)
+        if (childOfficer) {
           childApi!.l(style_ui)
           childFrames.splice(insertPos, 0, {
-            v: rect && child.g(el, rect),
-            s: officer
+            v: rect && officer.g(el, rect),
+            s: childOfficer
           });
         }
-        return !officer;
+        return !childOfficer
       };
       coreHints.o(count, options, chars, useFilter, null, null, topFrameInfo, addChild)
       allHints = topFrameInfo.h
@@ -222,8 +225,7 @@ export const activate = (options: HintsNS.ContentOptions, count: number, force?:
 const collectFrameHints = (count: number, options: HintsNS.ContentOptions
       , chars: string, useFilter: boolean, outerView: Rect | null
       , manager: HintManager | null, frameInfo: FrameHintsInfo
-      , newAddChildFrame: NonNullable<typeof addChildFrame_>
-      ): void => {
+      , newAddChildFrame: AddChildDirectly): void => {
     (coreHints as BaseHintWorker).p = manager_ =
         Build.BTypes & BrowserType.Firefox ? manager && unwrap_ff(manager) : manager
     resetHints();

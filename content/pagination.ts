@@ -7,7 +7,7 @@ import {
   contains_s
 } from "../lib/dom_utils"
 import { getBoundingClientRect_, view_ } from "../lib/rect"
-import { kSafeAllSelector, detectUsableChild } from "./link_hints"
+import { kSafeAllSelector, detectUsableChild, set_addChildFrame_ } from "./link_hints"
 import { traverse, ngEnabled } from "./local_links"
 import { find_box } from "./mode_find"
 import { omni_box } from "./omni"
@@ -29,12 +29,14 @@ const GetButtons = function (this: void, hints, element): void {
   if (isClickable && isVisibleInPage(element)) {
     hints.push(element)
   }
-  if ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
-      && !(Build.BTypes & ~BrowserType.ChromeOrFirefox) ? isIFrameElement(element)
-      : isIFrameElement(element) && element !== find_box && element !== omni_box) {
-    const rect = getBoundingClientRect_(element),
-    childApi = rect.width > 99 && rect.height > 15 && detectUsableChild(element as KnownIFrameElement)
-    childApi && iframesToSearchForNext!.push(childApi)
+  if (isIFrameElement(element)) {
+    if ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
+        && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+        || element !== find_box && element !== omni_box) {
+      const rect = getBoundingClientRect_(element),
+      childApi = rect.width > 99 && rect.height > 15 && detectUsableChild(element)
+      childApi && iframesToSearchForNext!.push(childApi)
+    }
   }
 } as HintsNS.Filter<SafeHTMLElement>
 
@@ -47,12 +49,14 @@ const isVisibleInPage = (element: SafeHTMLElement): boolean => {
 export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxLen): number => {
   if (!isAlive_) { return maxLen }
   // Note: this traverser should not need a prepareCrop
+  set_addChildFrame_((_, el, _2, subList) => !subList!.push(el as KnownIFrameElement & SafeHTMLElement) )
   const links = traverse(kSafeAllSelector, options, GetButtons, 1, 1),
   isNext = options.n, lenLimits = options.l, totalMax = options.m,
   quirk = isNext ? ">>" : "<<", quirkIdx = names.indexOf(quirk),
   rel = isNext ? "next" : "prev", relIdx = names.indexOf(rel),
   detectQuirk = quirkIdx > 0 ? names.lastIndexOf(quirk[0], quirkIdx) : -1,
   refusedStr = isNext ? "<" : ">";
+  set_addChildFrame_(null)
   links.push(docEl_unsafe_() as never);
   let ch: string, s: string, len: number, i = 0, candInd = 0
   for (; i < names.length; i++) {
