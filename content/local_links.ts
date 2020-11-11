@@ -5,7 +5,7 @@ type NestedFrame = false | 0 | null | KnownIFrameElement
 
 import {
   VOther, clickable_, isJSUrl, doc, isImageUrl, fgCache, readyState_, chromeVer_, VTr, createRegExp, unwrap_ff, max_,
-  math
+  math, includes_
 } from "../lib/utils"
 import {
   isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, findMainSummary_, htmlTag_, isAriaNotTrue_,
@@ -28,7 +28,6 @@ import { shouldScroll_s, getPixelScaleToScroll, scrolled, set_scrolled, suppress
 import { ui_root, ui_box } from "./dom_ui"
 
 let frameNested_: NestedFrame = false
-let _oldExtraClickable: Element[] | null
 let extraClickable_: ElementSet
 let ngEnabled: boolean | undefined
 let jsaEnabled_: boolean | undefined
@@ -342,7 +341,22 @@ const matchSafeElements = ((selector: string, rootNode: Element | ShadowRoot | n
   (selector: string, rootNode: Element | null, udSelector: string | null, mayBeUnsafe: 1): HintSources | void
 }
 
-const isInOldExtraClickable: ElementSet["has"] = (el) => _oldExtraClickable!.indexOf(el) >= 0
+const createElementSet = (list: NodeListOf<Element> | Element[]): ElementSet => {
+  let set: ElementSet | null
+  if (!(Build.BTypes & BrowserType.Chrome)
+      || Build.MinCVer >= BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
+      || chromeVer_ > BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes - 1) {
+    set = new WeakSet!(list as ArrayLike<Element> as readonly Element[])
+  } else if (Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || WeakSet) {
+    set = new WeakSet!;
+    [].forEach.call<readonly Element[], [callback: (this: ElementSet, el: Element) => any, cbSelf: ElementSet], any>(
+        list as ArrayLike<Element> as readonly Element[], set.add, set)
+  } else {
+    set = [].slice.call(list) as {} as ElementSet
+    set.has = includes_
+  }
+  return set
+}
 
 export const traverse = ((selector: string, options: CSSOptions, filter: Filter<Hint | SafeHTMLElement>
     , notWantVUI?: 1, wholeDoc?: 1 | Element): Hint[] | SafeHTMLElement[] => {
@@ -358,19 +372,6 @@ export const traverse = ((selector: string, options: CSSOptions, filter: Filter<
   if (wantClickable) {
     getPixelScaleToScroll();
     initTestRegExps()
-    const ex = clickableSelector && querySelectorAll_unsafe_(clickableSelector, traverseRoot)
-        || (clickableSelector = null, [])
-    if (!(Build.BTypes & BrowserType.Chrome)
-        || Build.MinCVer >= BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
-        || chromeVer_ > BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes - 1) {
-      extraClickable_ = new WeakSet!(ex as readonly Element[])
-    } else if (Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || WeakSet) {
-      extraClickable_ = new WeakSet!
-      for (let i = ex.length; 0 < i; ) { extraClickable_.add(ex[i--]) }
-    } else {
-      _oldExtraClickable = [].slice.call(ex)
-      extraClickable_ = { has: isInOldExtraClickable } as ElementSet
-    }
   }
   if (matchSelector) {
     filter = /*#__NOINLINE__*/ getIfOnlyVisible as Filter<Hint> as Filter<Hint | SafeHTMLElement>
@@ -392,8 +393,12 @@ export const traverse = ((selector: string, options: CSSOptions, filter: Filter<
     list = [].slice.call(list);
     (list as SafeElement[]).unshift(wholeDoc as unknown as SafeElement);
   }
-  let cur_scope: [HintSources, number] | undefined
-  for (const tree_scopes: Array<typeof cur_scope> = [[list, 0]]; cur_scope = tree_scopes.pop(); ) {
+  let cur_scope: [HintSources, number, ElementSet] | undefined
+  const tree_scopes: Array<typeof cur_scope> = [[list, 0
+      , createElementSet(clickableSelector && querySelectorAll_unsafe_(clickableSelector, traverseRoot, 1)
+          || (clickableSelector = null, [])) ]]
+  for (; cur_scope = tree_scopes.pop(); ) {
+    extraClickable_ = cur_scope[2]
     for (let cur_tree = cur_scope[0], i = cur_scope[1]; i < cur_tree.length; ) {
       const el = cur_tree[i++] as SafeElement
       if ((el as ElementToHTML).lang != null) {
@@ -403,23 +408,14 @@ export const traverse = ((selector: string, options: CSSOptions, filter: Filter<
               && chromeVer_ < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
             ? el.webkitShadowRoot : el.shadowRoot) as ShadowRoot | null | undefined;
         if (shadowRoot) {
-          tree_scopes.push([cur_tree, i])
-          if (clickableSelector) {
-            const ex = querySelectorAll_unsafe_(clickableSelector, shadowRoot)!
-            if (!(Build.BTypes & BrowserType.Chrome)
-                || Build.MinCVer >= BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
-                || chromeVer_ > BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes - 1) {
-              (ex as ArrayLike<Element> as readonly Element[]).forEach(extraClickable_.add, extraClickable_)
-            } else if (Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || WeakSet) {
-              for (let i = ex.length; 0 < i; ) { extraClickable_.add(ex[i--]) }
-            } else {
-              _oldExtraClickable = _oldExtraClickable!.concat(ex as ArrayLike<Element> as Element[])
-            }
-          }
+          tree_scopes.push([cur_tree, i, extraClickable_])
           cur_tree = matchSafeElements(selector, shadowRoot, matchSelector)
           cur_tree = matchAll ? cur_tree : addChildTrees(cur_tree
               , querySelectorAll_unsafe_(kSafeAllSelector, shadowRoot) as NodeListOf<SafeElement>)
           i = 0
+          if (clickableSelector) {
+            extraClickable_ = createElementSet(querySelectorAll_unsafe_(clickableSelector, shadowRoot)!)
+          }
         }
       } else if (wantClickable) {
         (matchSelector ? getIfOnlyVisible : /*#__NOINLINE__*/ getClickableInNonHTMLButMayFormatted
@@ -472,9 +468,6 @@ export const traverse = ((selector: string, options: CSSOptions, filter: Filter<
   }
   }
   extraClickable_ = null as never
-  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6WeakMapAndWeakSet) {
-    _oldExtraClickable = null
-  }
   return output;
 }) as {
   (key: string, options: CSSOptions, filter: Filter<SafeHTMLElement>, notWantVUI?: 1, wholeDoc?: 1): SafeHTMLElement[]
