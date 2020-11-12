@@ -140,9 +140,10 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
               && (clientSize = element.clientWidth) > GlobalConsts.MinScrollableAreaSizeForDetection - 1
               && clientSize + 5 < element.scrollWidth ? ClickType.scrollX
             : ClickType.Default)
-        || ((s = element.className) && clickableClasses_.test(s)
-              && (!(anotherEl = element.parentElement)
-                  || (s = htmlTag_(anotherEl), !s.includes("button") && s !== "a"))
+        || (((s = element.className) && clickableClasses_.test(s) ? type = ClickType.classname : tag === "li")
+            && (!(anotherEl = element.parentElement)
+                || (type ? (s = htmlTag_(anotherEl), !s.includes("button") && s !== "a")
+                    : clickable_.has(anotherEl) && htmlTag_(anotherEl) === "ul" && !s.includes("active")))
             || element.hasAttribute("aria-selected")
             || element.getAttribute("data-tab") ? ClickType.classname : ClickType.Default);
   }
@@ -521,7 +522,7 @@ const getElementsInViewport = (list: HintSources): HintSources => {
 const deduplicate = (list: Hint[]): void => {
   const D = "div"
   let i = list.length, j: number, k: ClickType, s: string, notRemoveParents: boolean;
-  let element: Element | null, prect: Rect, crect: Rect | null, splice: BOOL = 0
+  let element: Element | null, prect: Rect, crect: Rect | null, splice: number = 0
   while (0 <= --i) {
     k = list[i][2];
     notRemoveParents = k === ClickType.classname;
@@ -572,18 +573,21 @@ const deduplicate = (list: Hint[]): void => {
           && element.childElementCount < 2 && element.localName === "a"
           && !(element as TypeToPick<Element, HTMLElement, "innerText">).innerText) {
         // a rare case that <a> has only a clickable <input>
-        --i
-        ++splice
+        splice = i--
       }
       j = i;
     }
-    else if (i + 1 < list.length && list[j = i + 1][2] < ClickType.edit + 1
+    else if (i + 1 < list.length && list[j = i + 1][2] < ClickType.MinWeak
         && isDescendant(element = list[j][0], list[i][0], 0)
         && (list[j][2] > ClickType.edit - 1 || buttonOrATags_.test((element as Hint[0]).localName))) {
       ++splice
     }
     else if (j = i - 1, i < 1 || (k = list[j][2]) > ClickType.MaxWeak
-        || !isDescendant(list[i][0], list[j][0], 1)) {
+        || !isDescendant(element = list[i][0], list[j][0], 1)) {
+      if (k < ClickType.MinNotWeak && k > ClickType.MaxNotWeak && i && list[j][0].localName === "ul"
+          && isDescendant(element!, list[j][0], 0) && element!.localName === "li") {
+        splice = i--
+      }
       /* empty */
     } else if (isContaining_(list[j][1], list[i][1])) {
       ++splice
