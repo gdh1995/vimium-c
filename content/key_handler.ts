@@ -183,9 +183,9 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
   else if (/*#__NOINLINE__*/ isInInsert()) {
     let keyStr = mapKeyTypes & (insert_global_ && insert_global_.k
                 ? kMapKey.normal_long | kMapKey.char | kMapKey.insertMode : kMapKey.insertMode | kMapKey.normal_long)
-          || (key < kKeyCode.N0 || key > kKeyCode.MinNotAlphabet || getKeyStat_(event) & KeyStat.ExceptShift)
-              && (insert_global_ ? insert_global_.k
-                  : mapKeyTypes & kMapKey.directInsert || key > kKeyCode.maxNotFn && key < kKeyCode.minNotFn)
+          || (insert_global_ ? insert_global_.k
+                : mapKeyTypes & kMapKey.directInsert || key > kKeyCode.maxNotFn && key < kKeyCode.minNotFn)
+              && (key < kKeyCode.N0 || key > kKeyCode.MinNotAlphabet || getKeyStat_(event) & KeyStat.ExceptShift)
           || (Build.BTypes & BrowserType.Firefox && key === kKeyCode.bracketleftOnFF || key > kKeyCode.minNotFn
               ? event.ctrlKey : key === kKeyCode.esc)
           ? getMappedKey(eventWrapper, mapKeyTypes & kMapKey.insertMode ? kModeId.Insert : kModeId.Normal)

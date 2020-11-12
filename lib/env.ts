@@ -59,6 +59,9 @@ Build.NDEBUG || (function (): void {
     filename = filename.replace(".js", "")
     const exports = modules[filename] || (modules[filename] = {} as ModuleTy)
     const ind = filename.lastIndexOf("/")
+    if (!Build.NDEBUG) {
+      (myDefine as any)[ind > 0 ? filename.slice(ind + 1) : filename] = exports
+    }
     const base = ind > 0 ? filename.slice(0, ind) : filename
     return (factory || deps as never as typeof factory)(require.bind(null, base), exports)
   }

@@ -449,6 +449,9 @@ export const initAlphabetEngine = (hintItems: readonly HintItem[]): void => {
       hintString += chars2[num & mask];
     }
     hintItems[i].a = hintString;
+    if (!Build.NDEBUG) {
+      (hintItems as any)[hintString.toLowerCase()] = hintItems[i]
+    }
 }
 }
 

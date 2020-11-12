@@ -56,6 +56,9 @@ if (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) 
     const name = (document.currentScript as HTMLScriptElement).src.split("/")
     const filename = name[name.length - 1].replace(".js", "")
     const exports = modules[filename] || (modules[filename] = {} as ModuleTy)
+    if (!Build.NDEBUG) {
+      (myDefine as any)[filename] = exports
+    }
     return (factory || deps as never as typeof factory)(require, exports)
   }
   const require = (target: string): ModuleTy => {
