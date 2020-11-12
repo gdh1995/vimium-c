@@ -44,7 +44,7 @@ var Exclusions = {
       return;
     }
     this.testers_ || (this.testers_ = new Map())
-    this.rules_ = this.format_(rules);
+    this.rules_ = rules.map(this.Format_)
     this.testers_ = null as never;
     Backend_.getExcluded_ = this.GetPassKeys_;
     this.updateListeners_();
@@ -83,9 +83,7 @@ var Exclusions = {
     this.getOnURLChange_ = () => onURLChange;
     return onURLChange;
   },
-  format_ (rules: ExclusionsNS.StoredRule[]): ExclusionsNS.Rules {
-    return rules.map(rule => Exclusions.createRule_(rule.pattern, rule.passKeys))
-  },
+  Format_: (rule: ExclusionsNS.StoredRule): ExclusionsNS.Tester => Exclusions.createRule_(rule.pattern, rule.passKeys),
   getAllPassed_ (): SafeEnum | true | null {
     let all = BgUtils_.safeObj_() as SafeDict<1>, tick = 0;
     for (const { k: passKeys } of this.rules_) {
@@ -98,7 +96,7 @@ var Exclusions = {
   },
   getTemp_ (url: string, sender: Frames.Sender, rules: ExclusionsNS.StoredRule[]): string | null {
     const old = this.rules_;
-    this.rules_ = this.format_(rules);
+    this.rules_ = rules.map(this.Format_)
     const ret = this.GetPassKeys_(url, sender);
     this.rules_ = old;
     return ret;

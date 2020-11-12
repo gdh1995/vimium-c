@@ -751,10 +751,10 @@ Promise.resolve((BG_.BgUtils_.GC_(1), bgSettings_.restore_) && bgSettings_.resto
   });
 
   const rules = bgSettings_.get_("exclusionRules")
-    , ref1 = bgExclusions.testers_ = BG_.Object.create(null)
+    , ref1: typeof bgExclusions.testers_ = bgExclusions.testers_ = new (BG_ as {} as typeof globalThis).Map()
     , ref2 = bgExclusions.rules_;
   for (let _i = 0, _len = rules.length; _i < _len; _i++) {
-    ref1[rules[_i].pattern] = ref2[_i];
+    ref1.set(rules[_i].pattern, ref2[_i])
   }
   let toggleAction: "Disable" | "Enable", curIsLocked: boolean
   const initBottomLeft = (): void => {
