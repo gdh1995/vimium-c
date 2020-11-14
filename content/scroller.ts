@@ -2,6 +2,7 @@ declare const enum ScrollConsts {
     calibrationBoundary = 150, maxCalibration = 1.6, minCalibration = 0.5,
     minDuration = 100, durationScaleForAmount = 20,
     maxS = 1.05, minS = 0.95, delayToChangeSpeed = 75, tickForUnexpectedTime = 17, firstTick = 17,
+    FirefoxMinFakeInterval = 100, // https://developer.mozilla.org/en-US/docs/Web/API/Performance/now
 
     DelayMinDelta = 60, DelayTolerance = 60,
     DelayUnitMs = 30, FrameIntervalMs = 16.67, MaxSkippedF = 4,
@@ -22,7 +23,7 @@ interface ElementScrollInfo {
 
 import {
   isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, allowRAF_, readyState_, loc_, chromeVer_,
-  vApi, deref_, weakRef_, VTr, createRegExp, max_, math, min_
+  vApi, deref_, weakRef_, VTr, createRegExp, max_, math, min_, VOther
 } from "../lib/utils"
 import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, UNL,
@@ -59,17 +60,43 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
   let amount = 0, calibration = 1.0, di: ScrollByY = 0, duration = 0, element: SafeElement | null = null, //
   sign = 0, timestamp = 0, totalDelta = 0.0, totalElapsed = 0.0, //
   running = 0, timer: ValidTimeoutID = TimerID.None,
+  min_delta = 0, rawTimestamp = 0,
   styleTop: SafeElement | null = null, maskTop: HTMLDialogElement | null = styleTop,
-  animate = (newTimestamp: number): void => {
-    if (!isAlive_ || !running) { toggleAnimation!(); return; }
-    const
+  animate = (newRawTimestamp: number): void => {
+    const continuous = keyIsDown > 0, rawElapsed = newRawTimestamp - rawTimestamp
+    let newTimestamp = newRawTimestamp, elapsed: number
     // although timestamp is mono, Firefox adds too many limits to its precision
-    elapsed = !timestamp ? (newTimestamp = performance.now(), ScrollConsts.firstTick)
-              : newTimestamp > timestamp + 1 ? newTimestamp - timestamp
-              : (newTimestamp += ScrollConsts.tickForUnexpectedTime, ScrollConsts.tickForUnexpectedTime),
-    continuous = keyIsDown > 0
-    timestamp = newTimestamp;
+    if (!timestamp) {
+      newTimestamp = performance.now()
+      elapsed = max_(newRawTimestamp + (min_delta || ScrollConsts.firstTick) - newTimestamp, 0)
+      newTimestamp = max_(newRawTimestamp, newTimestamp)
+    } else if (rawElapsed < 1e-5) {
+      if (Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || VOther & BrowserType.Firefox) && rawElapsed > -1e-5) {
+        elapsed = min_delta || ScrollConsts.tickForUnexpectedTime
+        newTimestamp = timestamp + elapsed
+      } else /** when (rawElapsed < -1e-5 || rawElapsed ~= 0 && VOther !== BrowserType.Firefox) */ {
+        elapsed = 0
+      }
+    } else {
+      elapsed = max_(newRawTimestamp - timestamp, 0)
+      if (Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || VOther & BrowserType.Firefox)
+          && rawElapsed > ScrollConsts.FirefoxMinFakeInterval - 1 && (rawElapsed === parseInt(<any> rawElapsed))) {
+        if (elapsed > 1.5 * (min_delta || ScrollConsts.tickForUnexpectedTime)) {
+          elapsed = min_delta || ScrollConsts.tickForUnexpectedTime
+        }
+        newTimestamp = timestamp + elapsed
+      } else {
+        rawTimestamp && (min_delta = min_(rawElapsed + 1, min_delta || 1e5))
+      }
+    }
+    // console.log("rawOld/rawNew:", rawTimestamp, newRawTimestamp, "; old/new:", timestamp, newTimestamp
+    //     , "; elapsed =", elapsed, "; min_delta =", min_delta);
+    rawTimestamp = newRawTimestamp
+    timestamp = newTimestamp
     totalElapsed += elapsed;
+    if (!isAlive_ || !running) { toggleAnimation!(); return }
     if (amount < ScrollConsts.AmountLimitToScrollAndWaitRepeatedKeys
         && continuous && totalDelta >= amount && totalElapsed < minDelay - 2) {
       running = 0;
@@ -93,7 +120,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       delta = performScroll(element, di, sign * math.ceil(delta))
       totalDelta += math.abs(delta) || 1
       rAF_(animate);
-    } else {
+    } else if (elapsed) {
       if ((!(Build.BTypes & BrowserType.Chrome) || chromeVer_ > BrowserVer.MinMaybeScrollEndAndOverScrollEvents - 1)
           && "onscrollend" in (Build.BTypes & ~BrowserType.Firefox ? Image.prototype : doc)) {
         // according to tests on C75, no "scrollend" events if scrolling behavior is "instant";
@@ -104,6 +131,8 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       }
       checkCurrent(element)
       toggleAnimation!();
+    } else {
+      rAF_(animate)
     }
   },
   hasDialog = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement
@@ -113,15 +142,19 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     running = running || rAF_(animate);
   };
   toggleAnimation = (scrolling?: BOOL): void => {
+    if (!scrolling) {
+      running = rawTimestamp = 0
+      element = null
+    }
     if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement
         || Build.BTypes & BrowserType.ChromeOrFirefox && hasDialog) {
-      scrolling ? curModalElement ? 0 : maskTop = addElementList([], [0, 0], true)
-      : (maskTop && removeEl_s(maskTop), maskTop = null, running = 0)
+      maskTop = scrolling ? curModalElement ? maskTop : addElementList([], [0, 0], true)
+          : maskTop && removeEl_s(maskTop) || null
       return
     }
     const el = (scrolling ? Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(docEl_unsafe_()) : docEl_unsafe_()
                 : styleTop) as SafeElement & ElementToHTMLorOtherFormatted | null
-    styleTop = scrolling ? el : (running = 0, element = null);
+    styleTop = scrolling ? el : null
     el && el.style ? el.style.pointerEvents = scrolling ? NONE : "" : 0;
   };
   performAnimate = (newEl1, newDi1, newAmount1): void => {
@@ -130,7 +163,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     element = newEl1
     sign = newAmount1 < 0 ? -1 : 1
     totalDelta = totalElapsed = 0.0;
-    timestamp = 0;
+    timestamp = rawTimestamp = 0
     if (timer) {
       clearTimeout_(timer);
     }
@@ -138,7 +171,8 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     maxInterval = math.round(keyboard[1] / ScrollConsts.FrameIntervalMs) + ScrollConsts.MaxSkippedF
     minDelay = (((keyboard[0] + max_(keyboard[1], ScrollConsts.DelayMinDelta)
           + ScrollConsts.DelayTolerance) / ScrollConsts.DelayUnitMs) | 0)
-      * ScrollConsts.DelayUnitMs
+        * ScrollConsts.DelayUnitMs
+    keyboard.length > 2 && (min_delta = min_(min_delta, +keyboard[2]! || min_delta))
     preventPointEvents && toggleAnimation!(1)
     startAnimate();
   };
