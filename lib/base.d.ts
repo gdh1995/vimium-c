@@ -350,6 +350,7 @@ declare const enum AdjustType {
 
 declare const enum kDim {
   viewW = 0, viewH = 1, elClientW = 2, elClientH = 3, scrollW = 4, scrollH = 5, positionX = 6, positionY = 7,
+  /** used in {@see ../content/scroller.ts#shouldScroll_s} */ _posX2 = 8, _posY2 = 9,
   byX = 0, byY = 1
 }
 

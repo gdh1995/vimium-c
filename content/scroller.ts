@@ -355,7 +355,7 @@ const findScrollable = (di: ScrollByY, amount: number): SafeElement | null => {
               , element === cachedScrollable ? (di + 2) as 2 | 3 : di
               , amount)) < 1) {
         if (!reason) {
-          notNeedToRecheck = notNeedToRecheck || doesScroll(element!, 1, -amount)
+          notNeedToRecheck = notNeedToRecheck || doesScroll(element!, kDim.byY, -amount)
         }
         element = (Build.BTypes & ~BrowserType.Firefox
             ? SafeEl_not_ff_!(GetParent_unsafe_(element!, PNType.RevealSlotAndGotoParent))
@@ -431,7 +431,8 @@ const doesScroll = (el: SafeElement, di: ScrollByY, amount: number): boolean => 
 const selectFirst = (info: ElementScrollInfo, skipPrepare?: 1): ElementScrollInfo | null | undefined => {
     let element = info.e;
     if (dimSize_(element, kDim.elClientH) + 3 < dimSize_(element, kDim.scrollH) &&
-        (doesScroll(element, 1, 1) || dimSize_(element, kDim.positionY) > 0 && doesScroll(element, 1, 0))) {
+        ((element === scrollingTop ? shouldScroll_s(element, kDim.byY, 1) > 0 : doesScroll(element, kDim.byY, 1))
+          || dimSize_(element, kDim.positionY) > 0 && doesScroll(element, kDim.byY, 0))) {
       return info;
     }
     skipPrepare || prepareCrop_();
