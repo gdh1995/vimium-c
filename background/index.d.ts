@@ -475,6 +475,7 @@ declare const enum kCName {
   reset = "reset",
   restoreGivenTab = "restoreGivenTab",
   restoreTab = "restoreTab",
+  runKey = "runKey",
   scrollDown = "scrollDown",
   scrollFullPageDown = "scrollFullPageDown",
   scrollFullPageUp = "scrollFullPageUp",
@@ -495,6 +496,7 @@ declare const enum kCName {
   scrollUp = "scrollUp",
   searchAs = "searchAs",
   searchInAnother = "searchInAnother",
+  sendToExtension = "sendToExtension",
   showHelp = "showHelp",
   simBackspace = "simBackspace",
   sortTabs = "sortTabs",
@@ -618,6 +620,7 @@ declare namespace CommandsNS {
     [kCName.reset]: kFgCmd.insertMode;
     [kCName.restoreGivenTab]: kBgCmd.restoreGivenTab;
     [kCName.restoreTab]: kBgCmd.restoreTab;
+    [kCName.runKey]: kBgCmd.runKey;
     [kCName.scrollDown]: kFgCmd.scroll;
     [kCName.scrollFullPageDown]: kFgCmd.scroll;
     [kCName.scrollFullPageUp]: kFgCmd.scroll;
@@ -638,6 +641,7 @@ declare namespace CommandsNS {
     [kCName.scrollUp]: kFgCmd.scroll;
     [kCName.searchAs]: kFgCmd.autoOpen;
     [kCName.searchInAnother]: kBgCmd.searchInAnother;
+    [kCName.sendToExtension]: kBgCmd.sendToExtension;
     [kCName.showHelp]: kBgCmd.showHelp;
     [kCName.simBackspace]: kFgCmd.focusInput;
     [kCName.sortTabs]: kBgCmd.joinTabs;

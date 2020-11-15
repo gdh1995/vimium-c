@@ -62,7 +62,7 @@ const BgCmdInfo: { readonly [K in keyof BgCmdOptions]: K extends keyof BgCmdInfo
       ? Info.CurShownTabs : Info.CurWndTabs, Info.NoTab, Info.NoTab, Info.NoTab,
   /* kBgCmd.moveTab         */ Info.CurWndTabs, Info.NoTab, Info.ActiveTab, Info.NoTab, Info.CurWndTabsIfRepeat,
   /* kBgCmd.removeRightTab  */ Info.CurWndTabs, Info.NoTab, Info.CurWndTabs, Info.ActiveTab, Info.NoTab,
-  /* kBgCmd.restoreTab      */ Info.NoTab, Info.ActiveTab, Info.NoTab, Info.ActiveTab,
+  /* kBgCmd.restoreTab      */ Info.NoTab, Info.NoTab, Info.ActiveTab, Info.NoTab, Info.NoTab, Info.ActiveTab,
   /* kBgCmd.togglePinTab    */ Info.NoTab, Info.CurWndTabsIfRepeat, Info.ActiveTab, Info.ActiveTab, Info.NoTab,
       Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
       ? Info.CurShownTabs : Info.CurWndTabs
@@ -467,6 +467,45 @@ const BackgroundCommands: {
       sessions.restore(null, runtimeError_)
     } while (0 < --count)
   },
+  /* kBgCmd.runKey: */ (): void => {
+    let keys = get_cOptions<C.runKey>().keys, absCRepeat = abs(cRepeat), key: string | undefined
+    if (typeof keys === "string" && keys.trim() && keys.includes(" ")) {
+      keys = keys.split(" ")
+    }
+    if (!(keys instanceof Array)) {
+      showHUD('Require keys: space-seperated-string | string[]')
+    } else if (absCRepeat > keys.length && keys.length !== 1) {
+      showHUD('"runKey" has no such a key')
+    } else if (key = keys[keys.length === 1 ? 0 : absCRepeat - 1], typeof key !== "string") {
+      showHUD('in "runKey", the key is invalid')
+    } else if (cPort) {
+      (cPort as Frames.Port).s.f |= Frames.Flags.userActed
+      let count = 1, arr: null | string[] = (<RegExpOne> /^\d+|^-\d*/).exec(key)
+      if (arr != null) {
+        let prefix = arr[0]
+        key = key.slice(prefix.length)
+        count = prefix !== "-" ? parseInt(prefix, 10) || 1 : -1
+      }
+      let registryEntry = CommandsData_.keyToCommandRegistry_.get(key)
+      if (!registryEntry) {
+        showHUD('in "runKey", the key is invalid')
+      } else if (registryEntry.alias_ === kBgCmd.runKey && registryEntry.background_) {
+        showHUD('"runKey" can not be nested')
+      } else {
+        BgUtils_.resetRe_()
+        count = keys.length === 1 ? count * cRepeat : absCRepeat !== cRepeat ? -count : count
+        if (Object.keys(get_cOptions<C.runKey>()).length > 1) {
+          registryEntry = BgUtils_.extendIf_(BgUtils_.safeObj_<{}>(), registryEntry)
+          let newOptions = BgUtils_.safeObj_<{}>()
+          BgUtils_.extendIf_(newOptions, get_cOptions<C.runKey>())
+          delete newOptions.keys
+          registryEntry.options_ && BgUtils_.extendIf_(newOptions, registryEntry.options_);
+          (registryEntry as Writable<typeof registryEntry>).options_ = newOptions
+        }
+        executeCommand(registryEntry, count, cKey, cPort, 0)
+      }
+    }
+  },
   /* kBgCmd.searchInAnother: */ (tabs: [Tab]): void => {
     let keyword = (get_cOptions<C.searchInAnother>().keyword || "") + ""
     const query = Backend_.parse_({ u: getTabUrl(tabs[0]) })
@@ -482,6 +521,25 @@ const BackgroundCommands: {
   /* kBgCmd.showTip: */ (): void => {
     let text = get_cOptions<C.showTip>().text
     showHUD(text ? text + "" : trans_("needText"))
+  },
+  /* kBgCmd.sendToExtension: */ (): void => {
+    let targetID = get_cOptions<C.sendToExtension>().id, data = get_cOptions<C.sendToExtension>().data
+    if (targetID && typeof targetID === "string" && data !== void 0) {
+      const now = Date.now()
+      chrome.runtime.sendMessage(targetID, get_cOptions<C.sendToExtension>().raw ? data : {
+        handler: "message", from: "Vimium C", count: cRepeat, keyCode: cKey, data
+      }, (cb): void => {
+        if (runtimeError_()) {
+          let err: any = runtimeError_()
+          console.log(`Can not send message to the extension %o:`, targetID, err)
+          showHUD("Error: " + (err.message || err))
+        } else if (typeof cb === "string" && Math.abs(Date.now() - now) < 1e3) {
+          showHUD(cb)
+        }
+      })
+    } else {
+      showHUD('Require a string "id" and message "data"')
+    }
   },
   /* kBgCmd.toggleCS: */ (tabs: [Tab]): void => {
     Build.PContentSettings ? ContentSettings_.toggleCS_(cRepeat, get_cOptions<C.toggleCS, true>(), tabs)

@@ -262,7 +262,8 @@ var HelpDialog = {
     misc: [kCName.showHelp, kCName.autoCopy, kCName.autoOpen, kCName.searchAs, kCName.searchInAnother
       , kCName.addBookmark
       , kCName.toggleStyle, kCName.toggleLinkHintCharacters
-      , kCName.toggleSwitchTemp, kCName.passNextKey, kCName.debugBackground, kCName.closeDownloadBar, kCName.blank]
+      , kCName.toggleSwitchTemp, kCName.passNextKey, kCName.debugBackground, kCName.closeDownloadBar
+      , kCName.sendToExtension, kCName.runKey, kCName.blank]
   } as { readonly [key: string]: readonly kCName[] } & SafeObject,
   advancedCommands_: As_<{ readonly [k in kCName]?: 1 | 0; } & SafeObject>({ __proto__: null as never,
     toggleViewSource: 1, clearFindHistory: 1
@@ -273,7 +274,7 @@ var HelpDialog = {
     , enableCSTemp: 1, toggleCS: 1, toggleStyle: 1, clearCS: 1
     , "LinkHints.activateModeToDownloadImage": 1, reopenTab: 1
     , "LinkHints.activateModeToOpenImage": 1, removeRightTab: 1
-    , "LinkHints.activateModeToDownloadLink": 1, restoreGivenTab: 1
+    , "LinkHints.activateModeToDownloadLink": 1, restoreGivenTab: 1, runKey: 1, sendToExtension: 1
     , discardTab: 1, copyWindowInfo: 1
     , "LinkHints.activateModeToOpenIncognito": 1, passNextKey: 1
     , goNext: 1, goPrevious: 1, "Marks.clearLocal": 1, "Marks.clearGlobal": 1

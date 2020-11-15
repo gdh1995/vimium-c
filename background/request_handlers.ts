@@ -19,7 +19,6 @@ import { copyData } from "./tab_commands"
 
 /** any change to `cRepeat` should ensure it won't be `0` */
 let gTabIdOfExtWithVomnibar: number = GlobalConsts.TabIdNone
-const numHeadRe = <RegExpOne> /^\d+|^-\d*/
 
 set_reqH_([
   /** kFgReq.setSetting: */ (request: SetSettingReq<keyof SettingsNS.FrontUpdateAllowedSettings>, port: Port): void => {
@@ -385,7 +384,7 @@ set_reqH_([
   /** kFgReq.key: */ (request: FgReq[kFgReq.key], port: Port): void => {
     (port as Frames.Port).s.f |= Frames.Flags.userActed
     let key: string = request.k, count = 1
-      , arr: null | string[] = numHeadRe.exec(key)
+      , arr: null | string[] = (<RegExpOne> /^\d+|^-\d*/).exec(key)
     if (arr != null) {
       let prefix = arr[0]
       key = key.slice(prefix.length)
