@@ -5,15 +5,14 @@ declare const enum ScrollConsts {
     FirefoxMinFakeInterval = 100, // https://developer.mozilla.org/en-US/docs/Web/API/Performance/now
 
     DelayMinDelta = 60, DelayTolerance = 60,
-    DelayUnitMs = 30, FrameIntervalMs = 16.67, MaxSkippedF = 4,
+    FrameIntervalMs = 16.67,
     // https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-2000-server/cc978658(v=technet.10)
     //            delay         interval  # delay - interval (not so useful)
     // high:  60f / 1000ms :  400ms / 24f # 660 / 28
     // low:   15f /  250ms :   33ms /  2f # 200 / 6
-    HighDelayMs = 1000, LowDelayMs = 250, DefaultMinDelayMs = 660,
-    HighIntervalF = 24, LowIntervalF = 2, DefaultMaxIntervalF = HighIntervalF + MaxSkippedF,
 
     AmountLimitToScrollAndWaitRepeatedKeys = 20,
+    DEBUG = 0xf,
 }
 interface ElementScrollInfo {
   /** area */ a: number;
@@ -41,14 +40,14 @@ import { setPreviousMarkPosition } from "./marks"
 import { keyNames_, prevent_ } from "../lib/keyboard_utils"
 
 let toggleAnimation: ((scrolling?: BOOL) => void) | null = null
-let maxInterval = 9
+let maxKeyInterval = 1
 let minDelay: number
 let currentScrolling: WeakRef<SafeElement> | null = null
 let cachedScrollable: WeakRef<SafeElement> | 0 | null = 0
 let keyIsDown = 0
 let preventPointEvents: BOOL | boolean | undefined
 let scale = 1
-let joined: VApiTy | null = null
+let joined: VApiTy | null | undefined
 let scrolled = 0
 
 export { currentScrolling, cachedScrollable, keyIsDown, scrolled }
@@ -79,7 +78,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
         elapsed = 0
       }
     } else {
-      elapsed = max_(newRawTimestamp - timestamp, 0)
+      elapsed = newRawTimestamp > timestamp ? newRawTimestamp - timestamp : 0
       if (Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || VOther & BrowserType.Firefox)
           && rawElapsed > ScrollConsts.FirefoxMinFakeInterval - 1 && (rawElapsed === parseInt(<any> rawElapsed))) {
@@ -88,11 +87,14 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
         }
         newTimestamp = timestamp + elapsed
       } else {
-        rawTimestamp && (min_delta = min_(rawElapsed + 1, min_delta || 1e5))
+        rawTimestamp && (min_delta = min_(rawElapsed + 0.1, min_delta || 1e5))
       }
     }
-    // console.log("rawOld/rawNew:", rawTimestamp, newRawTimestamp, "; old/new:", timestamp, newTimestamp
-    //     , "; elapsed =", elapsed, "; min_delta =", min_delta);
+    if (ScrollConsts.DEBUG & 1) {
+      console.log("rawOld/rawNew:", rawTimestamp % 1e4, newRawTimestamp % 1e4
+          , "; old/new:", timestamp % 1e4, newTimestamp % 1e4
+          , "; elapsed =", ((elapsed * 1000) | 0) / 1000, "; min_delta =", ((min_delta * 1000) | 0) / 1000)
+    }
     rawTimestamp = newRawTimestamp
     timestamp = newTimestamp
     totalElapsed += elapsed;
@@ -105,7 +107,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     }
     if (continuous) {
       if (totalElapsed >= ScrollConsts.delayToChangeSpeed) {
-        if (totalElapsed > minDelay) { --keyIsDown; }
+        if (totalElapsed > minDelay) { keyIsDown = keyIsDown > elapsed ? keyIsDown - elapsed : 0 }
         if (ScrollConsts.minCalibration <= calibration && calibration <= ScrollConsts.maxCalibration) {
           const calibrationScale = ScrollConsts.calibrationBoundary / amount / calibration;
           calibration *= calibrationScale > ScrollConsts.maxS ? ScrollConsts.maxS
@@ -117,6 +119,10 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     continuous || (delta = min_(delta, amount - totalDelta))
     // not use `sign * _performScroll()`, so that the code is safer even though there're bounce effects
     if (delta > 0) {
+      if (ScrollConsts.DEBUG & 2) {
+        console.log("do scroll:", totalDelta, "+ ceil(", ((elapsed * 1000) | 0) / 1000, ") ; amount =", amount
+            , "; keyIsDown =", keyIsDown)
+      }
       delta = performScroll(element, di, sign * math.ceil(delta))
       totalDelta += math.abs(delta) || 1
       rAF_(animate);
@@ -168,11 +174,9 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       clearTimeout_(timer);
     }
     const keyboard = fgCache.k;
-    maxInterval = math.round(keyboard[1] / ScrollConsts.FrameIntervalMs) + ScrollConsts.MaxSkippedF
-    minDelay = (((keyboard[0] + max_(keyboard[1], ScrollConsts.DelayMinDelta)
-          + ScrollConsts.DelayTolerance) / ScrollConsts.DelayUnitMs) | 0)
-        * ScrollConsts.DelayUnitMs
     keyboard.length > 2 && (min_delta = min_(min_delta, +keyboard[2]! || min_delta))
+    maxKeyInterval = keyboard[1] * 2 + ScrollConsts.DelayTolerance
+    minDelay = keyboard[0] + max_(keyboard[1], ScrollConsts.DelayMinDelta) + ScrollConsts.DelayTolerance
     preventPointEvents && toggleAnimation!(1)
     startAnimate();
   };
@@ -305,7 +309,11 @@ let overrideScrollRestoration = function (kScrollRestoration, kManual): void {
 
   /** @argument willContinue 1: continue; 0: skip middle steps; 2: abort further actions */
 export const scrollTick = (willContinue: BOOL | 2): void => {
-    keyIsDown = willContinue - 1 ? 0 : maxInterval
+    if ((ScrollConsts.DEBUG & 4) && (keyIsDown || willContinue === 1)) {
+      console.log("update keyIsDown from", keyIsDown, "to", willContinue - 1 ? 0 : maxKeyInterval, "@"
+          , ((performance.now() % 1e3 * 1e4) | 0) / 1e4)
+    }
+    keyIsDown = willContinue - 1 ? 0 : maxKeyInterval
     willContinue > 1 && toggleAnimation && toggleAnimation()
     if (joined) {
       joined.k(willContinue)
