@@ -56,10 +56,9 @@ export function set_currentScrolling (_newCurSc: WeakRef<SafeElement> | null): v
 export function set_cachedScrollable (_newCachedSc: typeof cachedScrollable): void { cachedScrollable = _newCachedSc }
 
 let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: number): void => {
-  let amount = 0, calibration = 1.0, di: ScrollByY = 0, duration = 0, element: SafeElement | null = null, //
-  sign = 0, timestamp = 0, totalDelta = 0.0, totalElapsed = 0.0, //
+  let amount: number, sign: number, calibration: number, di: ScrollByY, duration: number, element: SafeElement | null,
+  beforePos: number, timestamp: number, rawTimestamp: number, totalDelta: number, totalElapsed: number, min_delta = 0,
   running = 0, timer: ValidTimeoutID = TimerID.None,
-  min_delta = 0, rawTimestamp = 0,
   styleTop: SafeElement | null = null, maskTop: HTMLDialogElement | null = styleTop,
   animate = (newRawTimestamp: number): void => {
     const continuous = keyIsDown > 0, rawElapsed = newRawTimestamp - rawTimestamp
@@ -69,6 +68,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       newTimestamp = performance.now()
       elapsed = max_(newRawTimestamp + (min_delta || ScrollConsts.firstTick) - newTimestamp, 0)
       newTimestamp = max_(newRawTimestamp, newTimestamp)
+      beforePos = dimSize_(element, kDim.positionX + di)
     } else if (rawElapsed < 1e-5) {
       if (Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || VOther & BrowserType.Firefox) && rawElapsed > -1e-5) {
@@ -123,7 +123,8 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
         console.log("do scroll:", totalDelta, "+ ceil(", ((elapsed * 1000) | 0) / 1000, ") ; amount =", amount
             , "; keyIsDown =", keyIsDown)
       }
-      delta = performScroll(element, di, sign * math.ceil(delta))
+      delta = performScroll(element, di, sign * math.ceil(delta), beforePos)
+      beforePos += delta
       totalDelta += math.abs(delta) || 1
       rAF_(animate);
     } else if (elapsed) {
@@ -149,7 +150,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
   };
   toggleAnimation = (scrolling?: BOOL): void => {
     if (!scrolling) {
-      running = rawTimestamp = 0
+      running = rawTimestamp = beforePos = 0
       element = null
     }
     if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement
@@ -189,14 +190,14 @@ const performScroll = ((el: SafeElement | null, di: ScrollByY, amount: number, b
       !(Build.BTypes & BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
       !(Build.BTypes & ~BrowserType.Firefox) ||
       // avoid using `Element`, so that users may override it
-      el.scrollBy ? el.scrollBy(instantScOpt(di, amount)) : di ? el.scrollTop += amount : el.scrollLeft += amount
+      el.scrollBy ? el.scrollBy(instantScOpt(di, amount))
+      : di ? el.scrollTop = before + amount : el.scrollLeft = before + amount
     } else {
       scrollWndBy_(di, amount)
     }
     return dimSize_(el, kDim.positionX + di) - before
 }) as {
-  (el: SafeElement, di: ScrollByY, amount: number, before: number): number
-  (el: SafeElement | null, di: ScrollByY, amount: number, before?: null): number
+  (el: SafeElement | null, di: ScrollByY, amount: number, before?: number): number
 }
 
 /** should not use `scrollingTop` (including `dimSize_(scrollingTop, clientH/W)`) */
