@@ -18,7 +18,7 @@ import { post_, set_contentCommands_ } from "./port"
 import {
   addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, getParentVApi, curModalElement, createStyle,
   getBoxTagName_cr_, setupExitOnClick, addUIElement, removeSelection, ui_root, kExitOnClick, collpaseSelection,
-  hideHelp, set_hideHelp,
+  hideHelp, set_hideHelp, set_helpBox,
 } from "./dom_ui"
 import { hudHide, hudShow, hudTip, hud_text } from "./hud"
 import { onKeyup2, set_onKeyup2, passKeys, set_nextKeys, set_passKeys, keyFSM } from "./key_handler"
@@ -402,6 +402,7 @@ set_contentCommands_([
     }
     set_hideHelp(closeBtn.onclick = (event?: EventToPrevent): void => {
       set_hideHelp(null)
+      set_helpBox(null)
       event && prevent_(event)
       advCmd.onclick = optLink.onclick = closeBtn.onclick = null as never
       let i: Element | null | undefined = deref_(lastHovered_)
@@ -440,6 +441,7 @@ set_contentCommands_([
     options.e && setupExitOnClick(kExitOnClick.helpDialog)
     doc.hasFocus() || vApi.f()
     set_currentScrolling(weakRef_(box))
+    set_helpBox(box)
     handler_stack.splice((handler_stack.indexOf(kHandler.omni) + 1 || handler_stack.length + 2) - 2, 0, event => {
       if (!raw_insert_lock && isEscape_(getMappedKey(event, kModeId.Normal))) {
         removeSelection(ui_root) || hideHelp!()

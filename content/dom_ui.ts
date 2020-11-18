@@ -33,13 +33,15 @@ let lastFlashEl: SafeHTMLElement | null = null
 let _toExitOnClick = kExitOnClick.NONE
 let flashTime = 0;
 let curModalElement: HTMLDialogElement | null | undefined
+let helpBox: HTMLElement | null | undefined
 let hideHelp: ((event?: EventToPrevent) => void) | undefined | null
 
-export { box_ as ui_box, root_ as ui_root, styleIn_ as style_ui, lastFlashEl, curModalElement, hideHelp }
+export { box_ as ui_box, root_ as ui_root, styleIn_ as style_ui, lastFlashEl, curModalElement, helpBox, hideHelp }
 export const removeModal = Build.BTypes & BrowserType.ChromeOrFirefox ? (): void => {
   curModalElement && removeEl_s(curModalElement), curModalElement = null
 } : (): void => {}
 export function set_hideHelp (_newHide: typeof hideHelp) { hideHelp = _newHide }
+export function set_helpBox (_newHelpBox: typeof helpBox) { helpBox = _newHelpBox }
 
 export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustType): void {
     box_ = createElement_("div");

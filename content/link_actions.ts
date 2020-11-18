@@ -268,7 +268,7 @@ export const linkActionArray: readonly LinkAction[] = [
           : tag && (str = (link as SafeHTMLElement).innerText.trim(),
               (<RegExpI> /^mailto:./i).test(str) ? str.slice(7)
               : str
-                || GetShadowRoot_(link) && (childEl = GetShadowRoot_(link)!.querySelector("div,span"))
+                || GetShadowRoot_(link) && (childEl = querySelector_unsafe_("div,span", GetShadowRoot_(link)!))
                     && htmlTag_(childEl) && (childEl as SafeHTMLElement).innerText
                 || str).trim()
             || (str = textContent_s(link).trim()) && str.replace(<RegExpG> /\s+/g, " ")

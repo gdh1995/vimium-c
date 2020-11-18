@@ -11,7 +11,7 @@ import {
   isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, findMainSummary_, htmlTag_, isAriaNotTrue_,
   NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, notSafe_not_ff_, docEl_unsafe_,
   GetParent_unsafe_, unsafeFramesetTag_old_cr_, isHTML_, querySelectorAll_unsafe_, isNode_, INP, attr_s,
-  getMediaTag, getMediaUrl, contains_s
+  getMediaTag, getMediaUrl, contains_s, GetShadowRoot_
 } from "../lib/dom_utils"
 import {
   getVisibleClientRect_, getZoomedAndCroppedRect_, getClientRectsForAreas_, getCroppedRect_, padClientRect_,
@@ -25,7 +25,7 @@ import {
   isClickListened_, forceToScroll_, hintMode_, set_isClickListened_, tooHigh_, useFilter_, hintChars, hintManager
 } from "./link_hints"
 import { shouldScroll_s, getPixelScaleToScroll, scrolled, set_scrolled, suppressScroll } from "./scroller"
-import { ui_root, ui_box } from "./dom_ui"
+import { ui_root, ui_box, helpBox } from "./dom_ui"
 
 let frameNested_: NestedFrame = false
 let extraClickable_: ElementSet
@@ -132,7 +132,8 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
       ? ClickType.attrListener
       : clickable_.has(element) && isClickListened_ && /*#__NOINLINE__*/ inferTypeOfListener(element, tag)
       ? ClickType.codeListener
-      : (s = element.getAttribute("tabindex")) && parseInt(s, 10) >= 0 && !element.shadowRoot ? ClickType.tabindex
+      : (s = element.getAttribute("tabindex")) && parseInt(s, 10) >= 0 && !GetShadowRoot_(element)
+        && element !== helpBox ? ClickType.tabindex
       : clientSize
         && ((clientSize = element.clientHeight) > GlobalConsts.MinScrollableAreaSizeForDetection - 1
               && clientSize + 5 < element.scrollHeight ? ClickType.scrollY
