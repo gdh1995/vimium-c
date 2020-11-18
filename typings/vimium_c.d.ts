@@ -485,7 +485,7 @@ declare const enum GlobalConsts {
   MaxLengthOfShownText = 35, // include the length of ": "
   MaxLengthOfHintText = 252, // [512 bytes - (sizeof(uchar*) = 8)] / sizeof(uchar) = 252
   MatchingScoreFactorForHintText = 1e4,
-  VomnibarSecretTimeout = 3000,
+  VomnibarSecretTimeout = 8000, // should be much larger than {@see ../content/omni.ts#init::slowLoadTimer}'s
   VomnibarWheelStepForPage = 300,
   VomnibarWheelIntervalForPage = 150,
   WheelTimeout = 330,

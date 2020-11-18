@@ -38,7 +38,7 @@ let box: HTMLIFrameElement & { contentWindow: IFrameWindow } & SafeHTMLElement |
 let portToOmni: OmniPort = null as never
 let status = VomnibarNS.Status.NotInited
 let omniOptions: VomnibarNS.FgOptionsToFront | null = null
-let onReset: (() => void) | null = null
+let secondActivateWithNewOptions: (() => void) | null = null
 let timer: ValidTimeoutID = TimerID.None
   // unit: physical pixel (if C<52)
 let screenHeight_ = 0
@@ -49,6 +49,7 @@ export { box as omni_box, status as omni_status }
 export const activate = function (options: FullOptions, count: number): void {
     // hide all further key events to wait iframe loading and focus changing from JS
     replaceOrSuppressMost_(kHandler.omni)
+    secondActivateWithNewOptions = null
     let timer1 = timeout_(refreshKeyHandler, GlobalConsts.TimeOfSuppressingTailKeydownEvents)
     if (checkHidden(kFgCmd.vomnibar, count, options)) { return; }
     if (status === VomnibarNS.Status.KeepBroken) {
@@ -115,7 +116,8 @@ export const activate = function (options: FullOptions, count: number): void {
       status = VomnibarNS.Status.Initing
       init(options)
     } else if (isAboutBlank()) {
-      onReset = function (): void { onReset = null; activate(options, count); }
+      secondActivateWithNewOptions = activate.bind(0, options, count);
+      (status > VomnibarNS.Status.ToShow - 1 || timeout_ != setTimeout) && resetWhenBoxExists()
       return;
     } else if (status === VomnibarNS.Status.Inactive) {
       status = VomnibarNS.Status.ToShow
@@ -191,11 +193,11 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
       // if set .sandbox to "allow-scripts", then wnd.postMessage(msg, origin, [channel]) fails silently
     }
     el.src = page;
-    let loaded: BOOL = 0, initMsgInterval: ValidIntervalID = TimerID.None
+    let loaded: BOOL = 0, initMsgInterval: ValidIntervalID = TimerID.None, slowLoadTimer: ValidTimeoutID | undefined
     el.onload = (): void => {
       loaded = 1
-      if (onReset) { return; }
-      clearTimeout_(slowLoadTimer)
+      clearTimeout_(slowLoadTimer!) // safe even if undefined
+      if (!isAlive_) { return }
       if (type !== VomnibarNS.PageType.inner && isAboutBlank()) {
         recordLog(kTip.logOmniFallback)
         reload()
@@ -205,7 +207,9 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
         clearInterval_(initMsgInterval)
         const ok = !isAlive_ || status !== VomnibarNS.Status.Initing
         if (Build.BTypes & ~BrowserType.Firefox ? ok || i : ok) {
-          isAlive_ && box && (box.onload = omniOptions = null as never); return
+          // only clear `onload` when receiving `VomnibarNS.kFReq.iframeIsAlive`, to avoid checking `i`
+          secondActivateWithNewOptions && secondActivateWithNewOptions()
+          return
         }
         if (type !== VomnibarNS.PageType.inner) { reload(); return }
         resetWhenBoxExists()
@@ -227,10 +231,10 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
       type === VomnibarNS.PageType.web ? initMsgInterval = interval_(doPostMsg, 66) : doPostMsg(1)
     };
     addUIElement(box = el, AdjustType.MustAdjust, hud_box)
-    const slowLoadTimer = type !== VomnibarNS.PageType.inner ? timeout_(function (i): void {
+    slowLoadTimer = type !== VomnibarNS.PageType.inner ? timeout_(function (i): void {
       clearInterval_(initMsgInterval)
       loaded || (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i) ||
-      onReset || reload()
+      reload()
     }, 2000) : TimerID.None
 }
 
@@ -242,7 +246,7 @@ const resetWhenBoxExists = (redo?: boolean): void | 1 => {
     removeEl_s(box!)
     portToOmni = box = omniOptions = null as never
     refreshKeyHandler(); // just for safer code
-    if (onReset) { onReset(); }
+    if (secondActivateWithNewOptions) { secondActivateWithNewOptions(); }
     else if (redo && oldStatus > VomnibarNS.Status.ToShow - 1) {
       post_({ H: kFgReq.vomnibar, r: true, i: true })
     }
@@ -266,7 +270,7 @@ const onOmniMessage = function (this: OmniPort, msg: { data: any, target?: Messa
       portToOmni = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinTestedES6Environment
           ? this : msg.target! as OmniPort
       !data.o && omniOptions && postToOmni<VomnibarNS.kCReq.activate>(omniOptions)
-      omniOptions = null
+      box!.onload = omniOptions = null as never
       break;
     case VomnibarNS.kFReq.style:
       const style = box!.style
