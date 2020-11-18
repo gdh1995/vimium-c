@@ -34,7 +34,7 @@ import { insert_Lock_ } from "./insert"
 import { hudTip, hud_box } from "./hud"
 import { post_, send_ } from "./port"
 
-let box: HTMLIFrameElement & { contentWindow: IFrameWindow } & SafeHTMLElement = null as never
+let box: HTMLIFrameElement & { contentWindow: IFrameWindow } & SafeHTMLElement | null = null
 let portToOmni: OmniPort = null as never
 let status = VomnibarNS.Status.NotInited
 let omniOptions: VomnibarNS.FgOptionsToFront | null = null
@@ -123,7 +123,7 @@ export const activate = function (options: FullOptions, count: number): void {
       focusOmni()
       status = VomnibarNS.Status.ToShow
     }
-    toggleClass_s(box, "O2", !canUseVW)
+    toggleClass_s(box!, "O2", !canUseVW)
     options.e && setupExitOnClick(kExitOnClick.vomnibar)
     let upper = 0;
     if (url != null) {
@@ -150,26 +150,25 @@ export const activate = function (options: FullOptions, count: number): void {
     });
 } as (options: CmdOptions[kFgCmd.vomnibar], count: number) => void
 
-export const hide = (fromInner?: 1): void => {
-    const active = status > VomnibarNS.Status.Inactive,
-    style_old_cr = Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval
-        && Build.BTypes & BrowserType.Chrome ? box.style : 0 as never as null;
+type InnerHide = (fromInner?: 1 | null) => void
+export const hide = ((fromInner?: 1 | null): void => {
     status = VomnibarNS.Status.Inactive
     screenHeight_ = 0; canUseVW = !0
     setupExitOnClick(kExitOnClick.vomnibar | kExitOnClick.REMOVE)
     if (fromInner == null) {
-      active && postToOmni(VomnibarNS.kCReq.hide)
+      status > VomnibarNS.Status.Inactive && postToOmni(VomnibarNS.kCReq.hide)
       return
     }
     // needed, in case the iframe is focused and then a `<esc>` is pressed before removing suppressing
     refreshKeyHandler()
-    active || focus();
+    status > VomnibarNS.Status.Inactive || focus()
     if (Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval && Build.BTypes & BrowserType.Chrome) {
+      let style_old_cr = box!.style
       style_old_cr!.height = style_old_cr!.top = ""; style_old_cr!.display = NONE;
     } else {
-      box.style.cssText = "display:none"
+      box!.style.cssText = "display:none"
     }
-}
+}) as InnerHide as (_arg?: null) => void
 
 const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
     const reload = (): void => {
@@ -180,7 +179,7 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
       el.src = page = inner!
       omniOptions && (omniOptions.t = type)
     }
-    const el = createElement_("iframe") as typeof box, kRef = "referrerPolicy"
+    const el = createElement_("iframe") as NonNullable<typeof box>, kRef = "referrerPolicy"
     setClassName_s(el, "R UI Omnibar")
     el.style.display = NONE;
     if (type !== VomnibarNS.PageType.web) { /* empty */ }
@@ -209,7 +208,7 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
           isAlive_ && box && (box.onload = omniOptions = null as never); return
         }
         if (type !== VomnibarNS.PageType.inner) { reload(); return }
-        reset()
+        resetWhenBoxExists()
         focus();
         status = VomnibarNS.Status.KeepBroken
         activate({} as FullOptions, 1)
@@ -235,12 +234,12 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
     }, 2000) : TimerID.None
 }
 
-const reset = (redo?: boolean): void | 1 => {
+const resetWhenBoxExists = (redo?: boolean): void | 1 => {
     const oldStatus = status
     if (oldStatus === VomnibarNS.Status.NotInited) { return; }
     status = VomnibarNS.Status.NotInited
     portToOmni && portToOmni.close()
-    removeEl_s(box)
+    removeEl_s(box!)
     portToOmni = box = omniOptions = null as never
     refreshKeyHandler(); // just for safer code
     if (onReset) { onReset(); }
@@ -251,7 +250,7 @@ const reset = (redo?: boolean): void | 1 => {
 
 const isAboutBlank = (): boolean => {
     try {
-      const doc = box.contentDocument
+      const doc = box!.contentDocument
       if (doc && doc.URL === "about:blank") { return true; }
     } catch {}
     return false;
@@ -270,7 +269,7 @@ const onOmniMessage = function (this: OmniPort, msg: { data: any, target?: Messa
       omniOptions = null
       break;
     case VomnibarNS.kFReq.style:
-      const style = box.style
+      const style = box!.style
       style.height = math.ceil(data.h / docZoom_
           / (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
               && (!(Build.BTypes & ~BrowserType.Chrome)
@@ -292,13 +291,13 @@ const onOmniMessage = function (this: OmniPort, msg: { data: any, target?: Messa
       }
       break;
     case VomnibarNS.kFReq.focus: focus(); keydownEvents_[data.l] = 1; break
-    case VomnibarNS.kFReq.hide: hide(1); break
+    case VomnibarNS.kFReq.hide: (hide as InnerHide)(1); break
     case VomnibarNS.kFReq.scroll: beginScroll(0, data.k, data.b); break
     case VomnibarNS.kFReq.scrollGoing: // no break;
     case VomnibarNS.kFReq.scrollEnd: scrollTick((VomnibarNS.kFReq.scrollEnd - data.N) as BOOL); break
     case VomnibarNS.kFReq.evalJS: evalIfOK(data); break
     case VomnibarNS.kFReq.broken: focus(); // no break;
-    case VomnibarNS.kFReq.unload: isAlive_ && reset(data.N === VomnibarNS.kFReq.broken); break
+    case VomnibarNS.kFReq.unload: isAlive_ && resetWhenBoxExists(data.N === VomnibarNS.kFReq.broken); break
     case VomnibarNS.kFReq.hud: hudTip(data.k); break
     }
 } as <K extends keyof VomnibarNS.FReq> ({ data }: { data: VomnibarNS.FReq[K] & VomnibarNS.Msg<K> }) => void | 1
@@ -321,7 +320,7 @@ export const focusOmni = (): void => {
     if (status < VomnibarNS.Status.Showing) { return; }
     if (Build.MinCVer < BrowserVer.MinFocus3rdPartyIframeDirectly
         && Build.BTypes & BrowserType.Chrome) {
-      box.contentWindow.focus()
+      box!.contentWindow.focus()
     }
     postToOmni(VomnibarNS.kCReq.focus)
 }
