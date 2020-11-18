@@ -199,7 +199,8 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
       clearTimeout_(slowLoadTimer)
       if (type !== VomnibarNS.PageType.inner && isAboutBlank()) {
         recordLog(kTip.logOmniFallback)
-        return reload();
+        reload()
+        return
       }
       timeout_((i?: TimerType.fake): void => {
         clearInterval_(initMsgInterval)
@@ -269,13 +270,25 @@ const onOmniMessage = function (this: OmniPort, msg: { data: any, target?: Messa
       omniOptions = null
       break;
     case VomnibarNS.kFReq.style:
-      box.style.height = math.ceil(data.h / docZoom_
+      const style = box.style
+      style.height = math.ceil(data.h / docZoom_
           / (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
               && (!(Build.BTypes & ~BrowserType.Chrome)
                   || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome)
               ? wndSize_(2) : 1)) + "px"
       if (status === VomnibarNS.Status.ToShow) {
-        onShown(data.m!)
+        status = VomnibarNS.Status.Showing
+        const maxBoxHeight = data.m!,
+        topHalfThreshold = maxBoxHeight * 0.6 + VomnibarNS.PixelData.MarginTop *
+            (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
+              && (!(Build.BTypes & ~BrowserType.Chrome)
+                  || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome)
+              ? wndSize_(2) : 1),
+        top = screenHeight_ > topHalfThreshold * 2 ? ((50 - maxBoxHeight * 0.6 / screenHeight_ * 100) | 0
+            ) + (canUseVW ? "vh" : "%") : ""
+        style.top = !Build.NoDialogUI && VimiumInjector === null && loc_.hash === "#dialog-ui" ? "8px" : top;
+        style.display = "";
+        timeout_(refreshKeyHandler, 160)
       }
       break;
     case VomnibarNS.kFReq.focus: focus(); keydownEvents_[data.l] = 1; break
@@ -290,35 +303,18 @@ const onOmniMessage = function (this: OmniPort, msg: { data: any, target?: Messa
     }
 } as <K extends keyof VomnibarNS.FReq> ({ data }: { data: VomnibarNS.FReq[K] & VomnibarNS.Msg<K> }) => void | 1
 
-const onShown = (maxBoxHeight: number): void => {
-    status = VomnibarNS.Status.Showing
-    const style = box.style,
-    topHalfThreshold = maxBoxHeight * 0.6 + VomnibarNS.PixelData.MarginTop *
-        (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
-          && (!(Build.BTypes & ~BrowserType.Chrome)
-              || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome)
-          ? wndSize_(2) : 1),
-    top = screenHeight_ > topHalfThreshold * 2 ? ((50 - maxBoxHeight * 0.6 / screenHeight_ * 100) | 0
-        ) + (canUseVW ? "vh" : "%") : ""
-    style.top = !Build.NoDialogUI && VimiumInjector === null && loc_.hash === "#dialog-ui" ? "8px" : top;
-    style.display = "";
-    timeout_(refreshKeyHandler, 160)
-}
-
 const refreshKeyHandler = (): void => {
-  status > VomnibarNS.Status.Showing - 1 ? replaceOrSuppressMost_(kHandler.omni, /*#__NOINLINE__*/ onKeydown)
-      : status < VomnibarNS.Status.Inactive + 1 ? removeHandler_(kHandler.omni) : 0
-}
-
-const onKeydown = (event: HandlerNS.Event): HandlerResult => {
-    let key: string
+  status < VomnibarNS.Status.Showing ? status < VomnibarNS.Status.Inactive + 1 ? removeHandler_(kHandler.omni) : 0
+      : replaceOrSuppressMost_(kHandler.omni, ((event: HandlerNS.Event | string): HandlerResult => {
     if (insert_Lock_()) { return HandlerResult.Nothing; }
-    if (isEscape_(key = getMappedKey(event, kModeId.Omni))) { hide(); return HandlerResult.Prevent; }
-    if (key === kChar.f1 || key === kChar.f2) {
+    event = getMappedKey(event as HandlerNS.Event, kModeId.Omni)
+    if (isEscape_(event)) { hide(); return HandlerResult.Prevent }
+    if (event === kChar.f1 || event === kChar.f2) {
       focusOmni()
       return HandlerResult.Prevent;
     }
     return HandlerResult.Nothing;
+  }) as (event: HandlerNS.Event) => HandlerResult)
 }
 
 export const focusOmni = (): void => {
