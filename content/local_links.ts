@@ -397,6 +397,8 @@ export const traverse = ((selector: string, options: CSSOptions, filter: Filter<
     }
   }
   let cur_scope: [HintSources, number, ElementSet] | undefined
+  const prefixedShadow = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+      && chromeVer_ < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
   const tree_scopes: Array<typeof cur_scope> = [[list, 0
       , createElementSet(clickableSelector && querySelectorAll_unsafe_(clickableSelector, traverseRoot, 1)
           || (clickableSelector = null, [])) ]]
@@ -407,8 +409,7 @@ export const traverse = ((selector: string, options: CSSOptions, filter: Filter<
       if ((el as ElementToHTML).lang != null) {
         filter(output, el as SafeHTMLElement)
         const shadowRoot = (Build.BTypes & BrowserType.Chrome
-              && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-              && chromeVer_ < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+              && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0 && prefixedShadow
             ? el.webkitShadowRoot : el.shadowRoot) as ShadowRoot | null | undefined;
         if (shadowRoot) {
           tree_scopes.push([cur_tree, i, extraClickable_])
@@ -497,9 +498,12 @@ const addChildTrees = (list: HintSources, allNodes: NodeListOf<SafeElement>): Hi
   }
   if (!hosts.length) { return list }
   list = ([] as SafeElement[]).slice.call(list)
+  const set = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Set$accept$Symbol$$Iterator
+      && chromeVer_ < BrowserVer.Min$Set$accept$Symbol$$Iterator ? list : new Set!(list)
   return list.concat((hosts as readonly SafeElement[]).filter(
-      Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
-      && chromeVer_ < BrowserVer.MinEnsuredES6$Array$$Includes ? list.includes! : includes_, list))
+      Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Set$accept$Symbol$$Iterator
+      && chromeVer_ < BrowserVer.Min$Set$accept$Symbol$$Iterator ? el => (set as SafeElement[]).indexOf(el) < 0
+      :el => !(set as Set<SafeElement>).has(el)))
 }
 
 const getElementsInViewport = (list: HintSources): HintSources => {

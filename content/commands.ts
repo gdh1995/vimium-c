@@ -358,12 +358,12 @@ set_contentCommands_([
   /* kFgCmd.showHelpDialog: */ ((options: Exclude<CmdOptions[kFgCmd.showHelpDialog], {h?: null}>): any => {
     // Note: not suppress key on the top, because help dialog may need a while to render,
     // and then a keyup may occur before or after it
-    const html = options.h, isNowHTML = isHTML_()
-    if (hideHelp || html && !isNowHTML) { hideHelp && hideHelp(); return }
+    const html = options.h, notHTML = !isHTML_()
+    if (hideHelp || html && notHTML) { hideHelp && hideHelp(); return }
     if (!html) {
-      isTop && !isNowHTML || post_({ H: kFgReq.initHelp,
+      isTop && notHTML || post_({ H: kFgReq.initHelp,
           a: options as CmdOptions[kFgCmd.showHelpDialog] as ShowHelpDialogOptions,
-          w: wndSize_(1) < 400 || wndSize_() < 320 || isNowHTML })
+          w: wndSize_(1) < 400 || wndSize_() < 320 || notHTML })
       return
     }
     let shouldShowAdvanced = options.c, optionUrl = options.o
