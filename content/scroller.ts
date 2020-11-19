@@ -12,7 +12,7 @@ declare const enum ScrollConsts {
     // low:   15f /  250ms :   33ms /  2f # 200 / 6
 
     AmountLimitToScrollAndWaitRepeatedKeys = 20,
-    DEBUG = 0xf,
+    DEBUG = 0,
 }
 interface ElementScrollInfo {
   /** area */ a: number;
@@ -90,10 +90,11 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
         rawTimestamp && (min_delta = min_(rawElapsed + 0.1, min_delta || 1e5))
       }
     }
-    if (ScrollConsts.DEBUG & 1) {
-      console.log("rawOld/rawNew:", rawTimestamp % 1e4, newRawTimestamp % 1e4
-          , "; old/new:", timestamp % 1e4, newTimestamp % 1e4
-          , "; elapsed =", ((elapsed * 1000) | 0) / 1000, "; min_delta =", ((min_delta * 1000) | 0) / 1000)
+    if (!Build.NDEBUG && ScrollConsts.DEBUG & 1) {
+      console.log("rawOld>rawNew: +%o = %o ; old>new: +%o = %o ; elapsed = %o ; min_delta = %o"
+          , (((newRawTimestamp - rawTimestamp) * 1e2) | 0) / 1e2
+          , newRawTimestamp % 1e4 , (((newTimestamp - timestamp) * 1e2) | 0) / 1e2, newTimestamp % 1e4
+          , ((elapsed * 1e2) | 0) / 1e2, ((min_delta * 1e2) | 0) / 1e2)
     }
     rawTimestamp = newRawTimestamp
     timestamp = newTimestamp
@@ -119,9 +120,10 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     continuous || (delta = min_(delta, amount - totalDelta))
     // not use `sign * _performScroll()`, so that the code is safer even though there're bounce effects
     if (delta > 0) {
-      if (ScrollConsts.DEBUG & 2) {
-        console.log("do scroll:", totalDelta, "+ ceil(", ((elapsed * 1000) | 0) / 1000, ") ; amount =", amount
-            , "; keyIsDown =", keyIsDown)
+      if (!Build.NDEBUG && ScrollConsts.DEBUG & 2) {
+        console.log("do scroll: %o + ceil(%o); amount=%o ; keyIsDown=%o"
+            , ((totalDelta * 100) | 0) / 100, ((elapsed * 100) | 0) / 100, amount
+            , ((keyIsDown * 10) | 0) / 10)
       }
       delta = performScroll(element, di, sign * math.ceil(delta), beforePos)
       beforePos += delta
@@ -310,9 +312,9 @@ let overrideScrollRestoration = function (kScrollRestoration, kManual): void {
 
   /** @argument willContinue 1: continue; 0: skip middle steps; 2: abort further actions */
 export const scrollTick = (willContinue: BOOL | 2): void => {
-    if ((ScrollConsts.DEBUG & 4) && (keyIsDown || willContinue === 1)) {
-      console.log("update keyIsDown from", keyIsDown, "to", willContinue - 1 ? 0 : maxKeyInterval, "@"
-          , ((performance.now() % 1e3 * 1e4) | 0) / 1e4)
+    if (!Build.NDEBUG && ScrollConsts.DEBUG & 4 && (keyIsDown || willContinue === 1)) {
+      console.log("update keyIsDown from", ((keyIsDown * 10) | 0) / 10, "to", willContinue - 1 ? 0 : maxKeyInterval, "@"
+          , ((performance.now() % 1e3 * 1e2) | 0) / 1e2)
     }
     keyIsDown = willContinue - 1 ? 0 : maxKeyInterval
     willContinue > 1 && toggleAnimation && toggleAnimation()

@@ -304,7 +304,7 @@ export const focusAndRun = (cmd?: FgCmdAcrossFrames, options?: FgOptions, count?
   let oldOnWndFocus = onWndFocus, failed = true;
   set_onWndFocus((): void => { failed = false })
   if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox) {
-    omni_status === VomnibarNS.Status.Showing && omni_box.blur()
+    omni_status === VomnibarNS.Status.Showing && omni_box!.blur()
     // cur is safe because on Firefox
     const cur = activeEl_unsafe_() as SafeElement | null;
     cur && isIFrameElement(cur) && cur.blur()
