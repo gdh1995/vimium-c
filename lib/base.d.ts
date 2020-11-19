@@ -394,7 +394,7 @@ interface VApiTy {
   /** scrollTick */ k: (willContinue: BOOL | 2) => void
   /** learnCSS */ l: (srcStyleUI: HTMLStyleElement | string | null, force?: undefined) => void
   /** getMappedKey */ m: (eventWrapper: HandlerNS.Event, mode: kModeId) => string
-  /** findOnLoad */ n: (later?: 1) => void
+  /** findOnLoad */ n: (event?: Event) => void
   /** post */ p: <K extends keyof FgReq>(this: void, req: FgReq[K] & Req.baseFg<K>) => void | 1;
   /** for injector */ r: [
     <k extends keyof FgRes> (cmd: k, args: Req.fgWithRes<k>["a"], callback: (this: void, res: FgRes[k]) => void) => void

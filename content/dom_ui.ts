@@ -15,11 +15,11 @@ import {
   setBoundary_, wndSize_, dimSize_, selRange_,
 } from "../lib/rect"
 import { currentScrolling } from "./scroller"
-import { styleSelectable } from "./mode_find"
+import { find_box, styleSelectable } from "./mode_find"
 import { isHintsActive, hintManager, coreHints } from "./link_hints"
 import { post_ } from "./port"
 import { insert_Lock_ } from "./insert"
-import { hide as omniHide } from "./omni"
+import { hide as omniHide, omni_box } from "./omni"
 
 export declare const enum kExitOnClick {
   NONE = 0, REMOVE = 8, helpDialog = 1, vomnibar = 2,
@@ -59,8 +59,8 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
     function Onload(this: ShadowRoot | Window, e: Event): void {
       if (!isAlive_) { setupEventListener(0, "load", Onload, 1); return; } // safe enough even if reloaded
       const t = e.target as HTMLElement | Document;
-      if (GetParent_unsafe_(t, PNType.DirectNode) === root_) {
-        Stop_(e); t.onload && (t as HTMLElement).onload(e);
+      if (t === omni_box || t === find_box) {
+        Stop_(e); t.onload && t.onload(e)
       }
     }, 0, 1); // should use a listener in active mode: https://www.chromestatus.com/features/5745543795965952
     addUIElement = (element2: HTMLElement, adjust2?: AdjustType, before?: Element | null | true): void => {

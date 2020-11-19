@@ -154,8 +154,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     }
     box_ = createElement_("iframe")
     setClassName_s(box_, "R UI Find")
-    box_.onload = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinTestedES6Environment
-        ? vApi.n.bind(0, 1) : () => vApi.n(1)
+    box_.onload = vApi.n
     replaceOrSuppressMost_(kHandler.find)
     query_ || (query0_ = query)
     init && init(AdjustType.NotAdjust)
@@ -165,7 +164,15 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     addUIElement(outerBox, AdjustType.DEFAULT, hud_box);
 }
 
-export const onLoad = (later?: 1): void => {
+export const onLoad = (later?: Event): void => {
+  if (Build.BTypes & BrowserType.Edge
+      || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredShadowDOMV1
+      || Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredShadowDOMV1) {
+    if (later && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+          ? !later.isTrusted : later.isTrusted === false)) {
+      return
+    }
+  }
     try {
       innerDoc_ = (isActive ? box_.contentDocument as HTMLDocument | null : null) as HTMLDocument | never
     } catch {}

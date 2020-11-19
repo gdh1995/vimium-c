@@ -17,7 +17,7 @@ declare var VData: VDataTy
 
 import {
   injector, isAlive_, keydownEvents_, readyState_, VOther, timeout_, clearTimeout_, loc_, recordLog, chromeVer_, math,
-  interval_, clearInterval_, locHref, vApi, createRegExp, isTY
+  interval_, clearInterval_, locHref, vApi, createRegExp, isTY, safeObj
 } from "../lib/utils"
 import { removeHandler_, replaceOrSuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
 import {
@@ -194,7 +194,15 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
     }
     el.src = page;
     let loaded: BOOL = 0, initMsgInterval: ValidIntervalID = TimerID.None, slowLoadTimer: ValidTimeoutID | undefined
-    el.onload = (): void => {
+    el.onload = (event): void => {
+      if (Build.BTypes & BrowserType.Edge
+          || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredShadowDOMV1
+          || Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredShadowDOMV1) {
+        if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+            ? !event.isTrusted : event.isTrusted === false) {
+          return
+        }
+      }
       loaded = 1
       clearTimeout_(slowLoadTimer!) // safe even if undefined
       if (!isAlive_) { return }
@@ -208,14 +216,14 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
         const ok = !isAlive_ || status !== VomnibarNS.Status.Initing
         if (Build.BTypes & ~BrowserType.Firefox ? ok || i : ok) {
           // only clear `onload` when receiving `VomnibarNS.kFReq.iframeIsAlive`, to avoid checking `i`
-          secondActivateWithNewOptions && secondActivateWithNewOptions()
+          isAlive_ && secondActivateWithNewOptions && secondActivateWithNewOptions()
           return
         }
         if (type !== VomnibarNS.PageType.inner) { reload(); return }
         resetWhenBoxExists()
         focus();
         status = VomnibarNS.Status.KeepBroken
-        activate({} as FullOptions, 1)
+        activate(safeObj(null), 1)
       }, 400)
       const doPostMsg = (postMsgStat?: TimerType.fake | 1): void => {
         const wnd = el.contentWindow, isFile = page.startsWith("file:")
@@ -243,6 +251,10 @@ const resetWhenBoxExists = (redo?: boolean): void | 1 => {
     if (oldStatus === VomnibarNS.Status.NotInited) { return; }
     status = VomnibarNS.Status.NotInited
     portToOmni && portToOmni.close()
+    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredShadowDOMV1
+        && Build.MinCVer < BrowserVer.Min$Event$$IsTrusted) {
+      box!.onload = null as never
+    }
     removeEl_s(box!)
     portToOmni = box = omniOptions = null as never
     refreshKeyHandler(); // just for safer code
