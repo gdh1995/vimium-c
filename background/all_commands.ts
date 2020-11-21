@@ -200,7 +200,7 @@ const BackgroundCommands: {
         if (count > 20) {
           if (Build.BTypes & ~BrowserType.Chrome) {
             if (cNeedConfirm) {
-              confirm_(kCName.addBookmark, end, doAddBookmarks.bind(0, tabs))
+              confirm_(kCName.addBookmark, count, doAddBookmarks.bind(0, tabs))
               return
             }
           } else {

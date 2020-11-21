@@ -363,7 +363,7 @@ export const reloadTab = (tabs?: Tab[] | never[] | [Tab]): void => {
   if (count > 20) {
     if (Build.BTypes & ~BrowserType.Chrome) {
       if (cNeedConfirm) {
-        confirm_(kCName.reloadTab, end, reloadTab.bind(null, tabs))
+        confirm_(kCName.reloadTab, count, reloadTab.bind(null, tabs))
         return
       }
     } else {
