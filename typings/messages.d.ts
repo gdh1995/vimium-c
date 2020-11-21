@@ -557,7 +557,7 @@ interface FgReq {
   [kFgReq.focusOrLaunch]: MarksNS.FocusOrLaunch;
   [kFgReq.cmd]: Pick<BgReq[kBgReq.count], "c" | "i"> & {
     /** count */ n: number;
-    /** confirmation-response */ r: 0 | 1 | 2 | 3;
+    /** confirmation-response: 0=fail, 1=cancel, 2=force1, 3=confirm */ r: 0 | 1 | 2 | 3
   };
   [kFgReq.removeSug]: {
     /** type */ t: "tab" | "history";

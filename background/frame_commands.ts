@@ -2,7 +2,7 @@ import C = kBgCmd
 import { browserTabs, browserWebNav, getTabUrl, runtimeError_, selectTab } from "./browser"
 import {
   cPort, NoFrameId, cRepeat, get_cOptions, set_cPort, getSecret, set_cOptions, set_cRepeat, set_cNeedConfirm,
-  executeCommand, reqH_, omniPayload, settings, findCSS_, visualWordsRe_
+  executeCommand, reqH_, omniPayload, settings, findCSS_, visualWordsRe_, set_cKey
 } from "./store"
 import {
   framesForTab, indexFrame, portSendFgCmd, framesForOmni, focusFrame, sendFgCmd, showHUD, complainLimits
@@ -422,11 +422,12 @@ export const framesGoNext = (isNext: boolean, rel: string): void => {
 
 /** `confirm()` simulator section */
 
-export let gOnConfirmCallback: ((arg?: FakeArg) => void) | null | undefined
+export let gOnConfirmCallback: ((force1: boolean, arg?: FakeArg) => void) | null | undefined
 let _gCmdTimer = 0
 
 export function set_gOnConfirmCallback (_newGocc: typeof gOnConfirmCallback) { gOnConfirmCallback = _newGocc }
 
+/** 0=cancel, 1=force1, count=accept */
 export const confirm_ = <T extends kCName, force extends BOOL = 0> (
     command: CommandsNS.CmdNameIds[T] extends kBgCmd ? T : force extends 1 ? kCName : never
     , count: number, callback?: (_arg?: FakeArg) => void): number | void => {
@@ -435,11 +436,15 @@ export const confirm_ = <T extends kCName, force extends BOOL = 0> (
   }
   let msg = trans_("cmdConfirm", [count, trans_(command)])
   if (Build.BTypes & ~BrowserType.Chrome) {
-    gOnConfirmCallback = callback
-    setupSingletonCmdTimer(setTimeout(onConfirm, 3000, 0))
-    cPort ? (indexFrame(cPort.s.t, 0) || cPort).postMessage({
-      N: kBgReq.count, c: "", i: _gCmdTimer, m: msg
-    }) : onConfirm(1)
+    if (cPort) {
+      gOnConfirmCallback = onConfirmWrapper.bind(0, get_cOptions() as any, cRepeat, cPort, callback!)
+      setupSingletonCmdTimer(setTimeout(onConfirm, 3000, 0));
+      (indexFrame(cPort.s.t, 0) || cPort).postMessage({
+        N: kBgReq.count, c: "", i: _gCmdTimer, m: msg
+      })
+    } else {
+      gOnConfirmCallback = null // clear old commands
+    }
     return
   }
   const now = Date.now(), result = window.confirm(msg)
@@ -447,15 +452,21 @@ export const confirm_ = <T extends kCName, force extends BOOL = 0> (
       : (Build.NDEBUG || console.log("A confirmation dialog may fail in showing."), 1)
 }
 
+const onConfirmWrapper = (bakOptions: SafeObject, count: number, port: Port
+    , callback: (arg?: FakeArg) => void, force1?: boolean) => {
+  force1 || set_cKey(kKeyCode.None)
+  set_cOptions(bakOptions)
+  set_cRepeat(force1 ? count > 0 ? 1 : -1 : count)
+  set_cPort(port)
+  callback()
+}
+
 export const onConfirm = (response: FgReq[kFgReq.cmd]["r"]): void => {
   const callback = gOnConfirmCallback
   gOnConfirmCallback = null
   if (response > 1 && callback) {
-    if (response < 3) {
-      set_cRepeat(cRepeat > 0 ? 1 : -1)
-    }
     set_cNeedConfirm(0)
-    callback!()
+    callback(response < 3)
     set_cNeedConfirm(1)
   }
 }

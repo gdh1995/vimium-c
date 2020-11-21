@@ -613,6 +613,7 @@ set_executeCommand((registryEntry: CommandsNS.Item, count: number, lastKey: kKey
     if (Build.BTypes & ~BrowserType.Chrome) {
       if (!overriddenCount) {
         set_cKey(lastKey)
+        set_cOptions(null)
         set_cPort(port)
         set_cRepeat(count)
         confirm_<kCName, 1>(registryEntry.command_, abs(count), onLargeCountConfirmed.bind(null, registryEntry))
