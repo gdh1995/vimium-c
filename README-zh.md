@@ -104,6 +104,42 @@ Vimium C 具有完善的安全机制：
 * 当它收到来自其它扩展程序的消息时，会按照一份用户指定的受信任扩展标识符的列表来审核消息来源
 * 可以关闭“借助浏览器账号同步扩展配置”的功能，且此同步功能不会同步页内查找历史等信息
 
+## 与其它扩展协同工作
+
+* PDF Viewer for Vimium C （支持 Vimium C 的 PDF 阅读器）
+  * 基于 [PDF.js](https://github.com/mozilla/pdf.js/) 修改并发布，可以代替应用商店里的 [PDF Viewer](
+      https://chrome.google.com/webstore/detail/pdf-viewer/oemmndcbldboiebfnladdacbdfmadadm)
+  * 在 [Chrome 网上应用店](
+      https://chrome.google.com/webstore/detail/pdf-viewer-for-vimium-c/nacjakoppgmdcpemlfnfegmlhipddanj) 上查看
+  * 项目主页：[vimium-c-helpers/pdf-viewer](https://gitee.com/gdh1995/vimium-c-helpers/tree/master/pdf-viewer)
+* 新标签页修改器
+  * 接管浏览器的新标签页设置，转为打开一个可以随意修改的网址
+  * 在 [Firefox 附加组件](https://addons.mozilla.org/firefox/addon/newtab-adapter/?src=external-vc-readme) 和
+    [Chrome 网上应用店](https://chrome.google.com/webstore/detail/newtab-adapter/cglpcedifkgalfdklahhcchnjepcckfn) 上查看
+  * 项目主页：[vimium-c-helpers/newtab](https://gitee.com/gdh1995/vimium-c-helpers/tree/master/newtab#git-readme)
+* 快捷键补充工具
+  * 提供 32 个可全局绑定的快捷键，快捷键被触发时通知其它扩展（比如 Vimium C）执行相应操作
+  * 在
+    [Firefox 附加组件](https://addons.mozilla.org/firefox/addon/shortcut-forwarding-tool/?src=external-vc-readme) 和
+    [Chrome 网上应用店](
+      https://chrome.google.com/webstore/detail/shortcut-forwarding-tool/clnalilglegcjmlgenoppklmfppddien) 上查看
+  * 项目主页：[vimium-c-helpers/shortcuts](https://gitee.com/gdh1995/vimium-c-helpers/tree/master/shortcuts#git-readme)
+* 微度新标签页修改版
+  * [www.weidunewtab.com](http://www.weidunewtab.com/)（英文网址：[www.newtabplus.com](
+      http://www.newtabplus.com/)）的修改精简版，界面文字只保留了中文翻译
+  * 此版本不接管浏览器新标签页设置，如需接管新标签页，推荐使用 [新标签页修改器](
+      https://chrome.google.com/webstore/detail/newtab-adapter/cglpcedifkgalfdklahhcchnjepcckfn) 等扩展
+  * 在 [Chrome 网上应用店](
+      https://chrome.google.com/webstore/detail/微度新标签页修改版/hdnehngglnbnehkfcidabjckinphnief) 上查看
+
+
+<a name="changelog"></a>
+
+# 更新说明
+
+参见 [RELEASE-NOTES.md](RELEASE-NOTES.md)（目前暂仅提供英文说明）。
+
+
 <a name="donate"></a><a name="donating"></a><a name="donation"></a>
 
 # 捐赠 / Donating

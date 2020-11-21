@@ -83,25 +83,30 @@ __<span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</s
 __Other extensions supporting Vimium C:__
 
 * PDF Viewer for Vimium C
-  : a modified version of [PDF Viewer](
+  * built from (modified) [PDF.js](https://github.com/mozilla/pdf.js/),
+    and is a replacement for the extension named [PDF Viewer](
       https://chrome.google.com/webstore/detail/pdf-viewer/oemmndcbldboiebfnladdacbdfmadadm)
-    from [PDF.js](https://github.com/mozilla/pdf.js/)
-  * Visit it on [Chrome Web Store](
+  * visit it on [Chrome Web Store](
       https://chrome.google.com/webstore/detail/pdf-viewer-for-vimium-c/nacjakoppgmdcpemlfnfegmlhipddanj)
+  * Project home: [vimium-c-helpers/pdf-viewer](https://github.com/gdh1995/vimium-c-helpers/tree/master/pdf-viewer)
+* NewTab Adapter
+  * take over browser's new tab settings and open another configurable URL
+  * visit it on [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/newtab-adapter/?src=external-vc-readme) /
+    [Chrome Web Store](https://chrome.google.com/webstore/detail/newtab-adapter/cglpcedifkgalfdklahhcchnjepcckfn)
+  * project home: [vimium-c-helpers/newtab](https://github.com/gdh1995/vimium-c-helpers/tree/master/newtab#readme)
 * Shortcut Forwarding Tool
-  * Provide 32 configurable shortcuts and forward them to another extension like Vimium C
-  * Visit it on
+  * provide 32 configurable shortcuts and forward them to another extension like Vimium C
+  * visit it on
     [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/shortcut-forwarding-tool/?src=external-vc-readme) /
     [Chrome Web Store](
       https://chrome.google.com/webstore/detail/shortcut-forwarding-tool/clnalilglegcjmlgenoppklmfppddien)
-* NewTab Adapter
-  * Take over browser's new tab settings and open another configurable URL
-  * Visit it on [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/newtab-adapter/?src=external-vc-readme) /
-    [Chrome Web Store](https://chrome.google.com/webstore/detail/newtab-adapter/cglpcedifkgalfdklahhcchnjepcckfn)
+  * project home: [vimium-c-helpers/shortcuts](https://github.com/gdh1995/vimium-c-helpers/tree/master/shortcuts#readme)
 * Modified Weidu New Tab (微度新标签页修改版)
-  : a modified and lite version of [www.weidunewtab.com](http://www.weidunewtab.com/) (or
-      [www.newtabplus.com](http://www.newtabplus.com/) )
-  * Visit it on [Chrome Web Store](
+  * a modified and lite version of [www.weidunewtab.com](http://www.weidunewtab.com/) (or
+      [www.newtabplus.com](http://www.newtabplus.com/) ), with Chinese translation only
+  * it does not take over browser's new tab settings; if needed then [NewTab Adapter](
+      https://chrome.google.com/webstore/detail/newtab-adapter/cglpcedifkgalfdklahhcchnjepcckfn) is recommended
+  * visit it on [Chrome Web Store](
       https://chrome.google.com/webstore/detail/微度新标签页修改版/hdnehngglnbnehkfcidabjckinphnief)
 
 
