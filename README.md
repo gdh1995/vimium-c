@@ -114,6 +114,13 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
+#### 1.87.0
+
+* `scroll*`: support a monitor with a high refresh rate
+* `LinkHints`: support `clickable=<CSS-selector>` to mark any element clickable
+* `goNext`: support substituting a tab URL and jumping to it
+* add some other features and fix a few bugs
+
 Refer to [RELEASE-NOTES.md](RELEASE-NOTES.md).
 
 #### Known Issues

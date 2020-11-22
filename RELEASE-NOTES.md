@@ -4,6 +4,41 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### 1.87.0
+
+new features:
+* `scroll*`: support a monitor with a **high refresh rate**
+* `LinkHints`: support `clickable=<CSS-selector>` to **mark any element clickable**
+  * also support `match=<CSS-selector>` to show hints for matched elements only
+  * `goNext` and `focusInput` also support them
+* `goNext`: support **substituting a tab URL** and jumping to it
+  * need to convert the index number of URL into `${index[/[min]:[max]:[step]]}` first
+  * the default key when substituting is `n`, and `goNext` now supports `sed`
+  * the later parts are optional, and the shortest format is `${curIndex}`
+  * `goNext` will use a new URL of `index + step`, or find an element as a fallback if a tab URL is not converted
+  * if `absolute`, then use command count as the new index
+  * now can skip checking the `rel` attribute by `noRel`
+* Vomnibar: run sed with a key of "`o`" on enter if the input line is selected
+* Vomnibar: math calculator: now support `rad`, `＋−×÷`, `3² + 4²` and `°`
+* a new command of `runKey` with `keys:string[]`: act like another key which is selected in its `keys` option using command count
+* a new command of `sendToExtension`: send messages to other extensions
+* `vimium://status` now supports `toggle-enabled/toggle-disabled/toggle-reset`
+  * switch in only 2 statuses, still with an optional list of hooked keys
+* when displaying an image, <kbd>Ctrl+C</kbd> will copy a HTML part on a latest Chrome
+  * then it can be pasted directly in MS Word
+
+breaking changes:
+* add a timeout of 30 seconds after pressing a prefix key
+* add a few search engines into the default list
+  * some of them are default only when browser language is Chinese
+* keyboard event: not use a `code` if it looks like `Key*` while the `event.key` is long ([philc#3317](
+    https://github.com/philc/vimium/issues/3317))
+
+bug fixes:
+* scroll: fix `keepHover=false` breaks all UI until a `LinkHints` command
+* Chrome: the watcher for click event listeners: fix a naive security bug
+* fix some edge cases
+
 #### 1.86.2
 * fix some bugs
 
