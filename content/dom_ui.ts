@@ -72,7 +72,7 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
       root_.insertBefore(element2, before === true ? root_.firstChild : before || null)
       adjust2 && !doesAdjustFirst && adjustUI()
     };
-    setUICSS = ((innerCSS): void => {
+    setUICSS = (innerCSS): void => {
       if (!((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)) &&
@@ -81,9 +81,7 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
       }
       const S = "style" as const
       styleIn_ = createElement_(S)
-      setUICSS = (css): void => {
-        createStyle(cssPatch_ ? cssPatch_[1](css) : css, styleIn_ as HTMLStyleElement)
-      };
+      setUICSS = finalSetCSS
       setUICSS(innerCSS)
       appendNode_s(root_, styleIn_)
       /**
@@ -96,15 +94,13 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
       if (adjust_type) {
         adjustUI()
       }
-    });
+    }
     appendNode_s(root_, element)
     if (styleIn_) {
       setUICSS(styleIn_ as Exclude<typeof styleIn_, Element | null | undefined | "">)
     } else {
       box_.style.display = NONE
-      if (adjust_type! > AdjustType.MustAdjust - 1) {
-        adjustUI()
-      }
+      adjust_type! > AdjustType.MustAdjust - 1 && adjustUI()
       post_({ H: kFgReq.css });
     }
 } as (element: HTMLElement, adjust: AdjustType, before?: Element | null | true) => void
@@ -120,7 +116,7 @@ export const addElementList = function <T extends boolean | BOOL> (
       ): (T extends true | 1 ? HTMLDialogElement : HTMLDivElement) & SafeElement {
     const parent = createElement_(Build.BTypes & BrowserType.ChromeOrFirefox && dialogContainer ? "dialog"
         : Build.BTypes & BrowserType.Chrome ? getBoxTagName_cr_() :  "div");
-    let cls = `R HM${Build.BTypes & BrowserType.ChromeOrFirefox && dialogContainer ? " DHM" : ""}${fgCache.d}`
+    let cls = "R HM" + (Build.BTypes & BrowserType.ChromeOrFirefox && dialogContainer ? " DHM" : "") + fgCache.d
     let innerBox: HTMLDivElement | HTMLDialogElement | undefined = parent
     setClassName_s(parent, cls)
     if (Build.BTypes & BrowserType.Chrome && dialogContainer && array.length && getBoxTagName_cr_() < "d") { // <body>
@@ -217,6 +213,10 @@ export const createStyle = (text: string, css?: HTMLStyleElement): HTMLStyleElem
 }
 
 export let setUICSS = (innerCSS: string): void => { styleIn_ = innerCSS }
+
+const finalSetCSS: typeof setUICSS = (css): void => {
+  createStyle(cssPatch_ ? cssPatch_[1](css) : css, styleIn_ as HTMLStyleElement)
+}
 
 export const learnCSS = (srcStyleIn: typeof styleIn_, force?: 1): void => {
     if (Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor || Build.BTypes & ~BrowserType.Chrome

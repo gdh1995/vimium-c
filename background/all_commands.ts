@@ -626,11 +626,12 @@ set_executeCommand((registryEntry: CommandsNS.Item, count: number, lastKey: kKey
   } else { count = count || 1 }
   if (!registryEntry.background_) {
     const { alias_: fgAlias } = registryEntry,
-    dot = (kFgCmd.END <= 32 || fgAlias < 32) && <BOOL> (((
+    wantCSS = (kFgCmd.END <= 32 || fgAlias < 32) && <BOOL> (((
       (1 << kFgCmd.marks) | (1 << kFgCmd.passNextKey) | (1 << kFgCmd.focusInput)
     ) >> fgAlias) & 1)
+        || fgAlias === kFgCmd.scroll && (!!options && (options as CmdOptions[kFgCmd.scroll]).keepHover === false)
     set_cPort(port)
-    portSendFgCmd(port, fgAlias, dot, options as any, count)
+    portSendFgCmd(port, fgAlias, wantCSS, options as any, count)
     return
   }
   const { alias_: alias } = registryEntry, func = BackgroundCommands[alias]
@@ -641,7 +642,7 @@ set_executeCommand((registryEntry: CommandsNS.Item, count: number, lastKey: kKey
   set_cRepeat(count)
   count = BgCmdInfo[alias]
   if (count < Info.ActiveTab) {
-    return (func as BgCmdNoTab)()
+    (func as BgCmdNoTab)()
   } else {
     set_gOnConfirmCallback(func as BgCmdCurWndTabs as any);
     (count < Info.CurWndTabsIfRepeat || count === Info.CurWndTabsIfRepeat && abs(cRepeat) < 2 ? getCurTab

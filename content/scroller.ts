@@ -1,5 +1,5 @@
 declare const enum ScrollConsts {
-    calibrationBoundary = 150, maxCalibration = 1.6, minCalibration = 0.5,
+    calibrationBoundary = 150, maxCalibration = 1.6, minCalibration = 0.5, SpeedChangeInterval = 47,
     minDuration = 100, durationScaleForAmount = 20,
     maxS = 1.05, minS = 0.95, delayToChangeSpeed = 75, tickForUnexpectedTime = 17, firstTick = 17,
     FirefoxMinFakeInterval = 100, // https://developer.mozilla.org/en-US/docs/Web/API/Performance/now
@@ -26,16 +26,18 @@ import {
 } from "../lib/utils"
 import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, UNL,
-  querySelector_unsafe_, getComputedStyle_, notSafe_not_ff_, HDN, isRawStyleVisible, fullscreenEl_unsafe_, removeEl_s,
+  querySelector_unsafe_, getComputedStyle_, notSafe_not_ff_, HDN, isRawStyleVisible, fullscreenEl_unsafe_,
   doesSupportDialog
 } from "../lib/dom_utils"
 import {
   scrollWndBy_, wndSize_, getZoom_, wdZoom_, bZoom_, isNotInViewport, prepareCrop_, padClientRect_, instantScOpt,
   getBoundingClientRect_, cropRectToVisible_, getVisibleClientRect_, dimSize_, scrollingTop, set_scrollingTop,
 } from "../lib/rect"
-import { getParentVApi, resetSelectionToDocStart, checkHidden, addElementList, curModalElement } from "./dom_ui"
+import {
+  getParentVApi, resetSelectionToDocStart, checkHidden, addElementList, curModalElement, removeModal
+} from "./dom_ui"
 import { isCmdTriggered } from "./key_handler"
-import { tryNestedFrame } from "./link_hints"
+import { hint_box, tryNestedFrame } from "./link_hints"
 import { setPreviousMarkPosition } from "./marks"
 import { keyNames_, prevent_ } from "../lib/keyboard_utils"
 
@@ -58,8 +60,8 @@ export function set_cachedScrollable (_newCachedSc: typeof cachedScrollable): vo
 let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: number): void => {
   let amount: number, sign: number, calibration: number, di: ScrollByY, duration: number, element: SafeElement | null,
   beforePos: number, timestamp: number, rawTimestamp: number, totalDelta: number, totalElapsed: number, min_delta = 0,
-  running = 0, timer: ValidTimeoutID = TimerID.None,
-  styleTop: SafeElement | null = null, maskTop: HTMLDialogElement | null = styleTop,
+  running = 0, timer: ValidTimeoutID = TimerID.None, calibTime: number,
+  styleTop: SafeElement | null = null,
   animate = (newRawTimestamp: number): void => {
     const continuous = keyIsDown > 0, rawElapsed = newRawTimestamp - rawTimestamp
     let newTimestamp = newRawTimestamp, elapsed: number
@@ -109,10 +111,13 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     if (continuous) {
       if (totalElapsed >= ScrollConsts.delayToChangeSpeed) {
         if (totalElapsed > minDelay) { keyIsDown = keyIsDown > elapsed ? keyIsDown - elapsed : 0 }
-        if (ScrollConsts.minCalibration <= calibration && calibration <= ScrollConsts.maxCalibration) {
+        calibTime += elapsed
+        if (ScrollConsts.minCalibration <= calibration && calibration <= ScrollConsts.maxCalibration
+            && calibTime > ScrollConsts.SpeedChangeInterval) {
           const calibrationScale = ScrollConsts.calibrationBoundary / amount / calibration;
           calibration *= calibrationScale > ScrollConsts.maxS ? ScrollConsts.maxS
             : calibrationScale < ScrollConsts.minS ? ScrollConsts.minS : 1;
+          calibTime = 0
         }
       }
     }
@@ -152,13 +157,12 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
   };
   toggleAnimation = (scrolling?: BOOL): void => {
     if (!scrolling) {
-      running = rawTimestamp = beforePos = 0
+      running = rawTimestamp = beforePos = calibTime = 0
       element = null
     }
     if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement
         || Build.BTypes & BrowserType.ChromeOrFirefox && hasDialog) {
-      maskTop = scrolling ? curModalElement ? maskTop : addElementList([], [0, 0], true)
-          : maskTop && removeEl_s(maskTop) || null
+      scrolling ? curModalElement || addElementList([], [0, 0], 1) : curModalElement !== hint_box && removeModal()
       return
     }
     const el = (scrolling ? Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(docEl_unsafe_()) : docEl_unsafe_()
@@ -171,8 +175,8 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     duration = max_(ScrollConsts.minDuration, ScrollConsts.durationScaleForAmount * math.log(amount))
     element = newEl1
     sign = newAmount1 < 0 ? -1 : 1
-    totalDelta = totalElapsed = 0.0;
-    timestamp = rawTimestamp = 0
+    totalDelta = totalElapsed = 0.0
+    timestamp = rawTimestamp = calibTime = 0
     if (timer) {
       clearTimeout_(timer);
     }
