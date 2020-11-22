@@ -154,16 +154,17 @@ export const activate = function (options: FullOptions, count: number): void {
 
 type InnerHide = (fromInner?: 1 | null) => void
 export const hide = ((fromInner?: 1 | null): void => {
+    const oldIsActive = status > VomnibarNS.Status.Inactive
     status = VomnibarNS.Status.Inactive
     screenHeight_ = 0; canUseVW = !0
     setupExitOnClick(kExitOnClick.vomnibar | kExitOnClick.REMOVE)
     if (fromInner == null) {
-      status > VomnibarNS.Status.Inactive && postToOmni(VomnibarNS.kCReq.hide)
+      oldIsActive && postToOmni(VomnibarNS.kCReq.hide)
       return
     }
     // needed, in case the iframe is focused and then a `<esc>` is pressed before removing suppressing
     refreshKeyHandler()
-    status > VomnibarNS.Status.Inactive || focus()
+    oldIsActive || focus()
     if (Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval && Build.BTypes & BrowserType.Chrome) {
       let style_old_cr = box!.style
       style_old_cr!.height = style_old_cr!.top = ""; style_old_cr!.display = NONE;
