@@ -658,7 +658,7 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
       || Build.BTypes & BrowserType.Chrome && isDocZoomStrange_ && docZoom_ - 1) {
     return;
   }
-  initTestRegExps()
+  initTestRegExps() // in case of `isDescendant(..., ..., 1)`
   while (0 <= --i) {
     el = list[i][0];
     root = el.getRootNode!() as Document | ShadowRoot;
@@ -808,7 +808,9 @@ export const checkNestedFrame = (output?: Hint[]): void => {
               , i = arr.length; (len = output.length) < 2 && i-- > 0; ) {
         if (arr[i].lang != null) {
           initTestRegExps()
+          extraClickable_ = extraClickable_ || createElementSet([])
           getClickable(output, arr[i] as SafeHTMLElement)
+          extraClickable_ = null as never
         }
       }
     }
