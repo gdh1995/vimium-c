@@ -343,18 +343,25 @@ async function myMinify(files, options) {
  * @param { AST_Node } ast
  */
 function replaceLets(ast) {
-  ast.walk(new TreeWalker(node => {
+  ast.walk(new TreeWalker(function (node) {
     switch (node.TYPE) {
     case "Accessor": case "Function": case "Arrow": case "Defun": case "Lambda":
       /** @type { AST_Function | AST_LambdaClass } */
       // @ts-ignore
       const func = node
       const nodes = func.body.filter(i => i.TYPE === "Let" || i.TYPE === "Const")
+      const argNames = collectArgumentNames(func)
       /** @type { Array<AST_Let | AST_Const> } */
       // @ts-ignore
       const es6Vars = nodes
       for (const var1 of es6Vars) {
-        for (const { name } of var1.definitions) {
+        const names = new Map(collectVariableAndValues(var1, this))
+        for (const [name, _hasValue] of names) {
+          if (argNames.has(name.name)) {
+            throw new Error("conflicted argument name and variable name: " + name)
+          }
+        }
+        for (const name of names.keys()) {
           if (name.TYPE === "SymbolConst" || name.TYPE === "SymbolLet") {
             Object.setPrototypeOf(name, AST_SymbolVar.prototype)
           }
@@ -378,7 +385,12 @@ function replaceLets(ast) {
             }
           }
       }
-      if (names.size > 0 && testScopedLets(es6Var, this, names)) {
+      if (names.size > 0 && testScopedLets(es6Var, this, new Map([...names.entries()].map(([i, j]) => [i.name, j])))) {
+        for (const name of names.keys()) {
+          if (name.TYPE === "SymbolConst" || name.TYPE === "SymbolLet") {
+            Object.setPrototypeOf(name, AST_SymbolVar.prototype)
+          }
+        }
         Object.setPrototypeOf(es6Var, AST_Var.prototype)
       }
     }
@@ -413,8 +425,8 @@ function testScopedLets(selfVar, context, varNames) {
       // @ts-ignore
       let var1 = node1
       for (const [name, anotherHasValue] of collectVariableAndValues(var1, this)) {
-        if (!varNames.has(name)) { continue }
-        const curHasVal = varNames.get(name)
+        if (!varNames.has(name.name)) { continue }
+        const curHasVal = varNames.get(name.name)
         if (var1.TYPE === "Var" && (!curHasVal || !anotherHasValue)) { sameVar = var1; return sameNameFound = true }
         if (curBlocks.includes(this.parent(0))) { sameVar = var1; return sameNameFound = true }
         let inSubBlock = false
@@ -429,8 +441,9 @@ function testScopedLets(selfVar, context, varNames) {
   }))
   if (sameNameFound) {
     if (sameVar) {
-      console.log("Warning: Found conflict declarations with a same name:"
+      console.log("Warning: Found conflicted declarations with a same name:"
           , selfVar.print_to_string(), " ### ", sameVar.print_to_string())
+      throw new Error("conflicted declarations!");
     }
     return false
   }
@@ -454,25 +467,64 @@ function testScopedLets(selfVar, context, varNames) {
       console.log("Warning: Found a function in a scoped loop:", curBlocks[0].print_to_string())
     }
     if (foundFuncInLoop === 2) {
-      varNames.has("stdFunc") ||
-      console.log("[Warning] ====== A function uses let/const variables of a loop's scoped closure !!! ======",
-          curBlocks[0].print_to_string())
+      if (!varNames.has("stdFunc")) {
+        console.log("[Warning] ====== A function uses let/const variables of a loop's scoped closure !!! ======",
+            curBlocks[0].print_to_string())
+        throw new Error("scoped variable in a loop!");
+      }
       return false
     }
+  }
+  const argNames = collectArgumentNames(context.find_parent(AST_Lambda))
+  for (const name of argNames.keys()) {
+    if (varNames.get(name) == false) { return false }
   }
   return true
 }
 
 /**
+ * @param {AST_LambdaClass} func
+ * @returns {Set<string>}
+ */
+function collectArgumentNames(func) {
+  /** @type { Set<string> } */
+  const argNames = new Set()
+  if (func.argnames.length) {
+    /** string */
+    for (const arg of func.argnames) {
+      switch (arg.TYPE) {
+        case "SymbolFunarg": argNames.add(arg.name); break
+        case "Destructuring":
+          arg.all_symbols().forEach(i => {
+            if (i.TYPE !== "SymbolFunarg" || typeof i.name !== "string") {
+              throw new Error("unsupported destructing in function arguments: " + arg.print_to_string())
+            }
+            argNames.add(i.name)
+          })
+          break
+        case "Expansion": throw new Error("unsupported: expansion in function arguments: " + arg.print_to_string())
+        case "DefaultAssign":
+          if (!arg.left.name || typeof arg.left.name !== "string") {
+            throw new Error("unsupported defaultAssigin in function arguments: " + arg.print_to_string())
+          }
+          argNames.add(arg.left.name)
+          break
+      }
+    }
+  }
+  return argNames
+}
+
+/**
  * @param { import("../typings/base/terser").AST_Definitions } var1
  * @param { import("../typings/base/terser").TreeWalker } context
- * @returns { Generator<[string, boolean]> }
+ * @returns { Generator<[import("../typings/base/terser").AST_Symbol, boolean]> }
  */
 function* collectVariableAndValues(var1, context) {
   for (const def of var1.definitions) {
     if (def.name.TYPE === "Destructuring") {
       for (const name3 of def.name.all_symbols()) {
-        yield [name3.name, true]
+        yield [name3, true]
       }
       continue
     }
@@ -493,7 +545,7 @@ function* collectVariableAndValues(var1, context) {
         }
       }
     }
-    yield [def.name.name, hasValue]
+    yield [def.name, hasValue]
   }
 }
 

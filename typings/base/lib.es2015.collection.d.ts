@@ -18,7 +18,7 @@ and limitations under the License.
 /// <reference no-default-lib="true"/>
 
 
-interface Map<K extends string | number, V> {
+interface Map<K extends string | number | object, V> {
     clear(): void;
     delete(key: K): unknown;
     forEach(callbackfn: (value: V, key: K) => void, thisArg?: any): void;

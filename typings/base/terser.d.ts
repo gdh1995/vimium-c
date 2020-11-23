@@ -107,6 +107,7 @@ declare class AST_Binary extends AST_Node {
 declare class AST_Lambda extends AST_Scope {
     constructor(props?: object);
     name: AST_SymbolDeclaration | null;
+    argnames: any[]
     uses_arguments: boolean;
     is_generator: boolean;
     async: boolean;
