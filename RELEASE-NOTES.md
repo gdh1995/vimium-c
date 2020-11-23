@@ -4,7 +4,10 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
-#### 1.87.0
+#### 1.87.1
+* fix crashes in the Firefox / Edge store versions ([#251](https://github.com/gdh1995/vimium-c/issues/251))
+
+#### 1.87.1
 
 new features:
 * `scroll*`: support a monitor with a **high refresh rate**

@@ -114,6 +114,9 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
+#### 1.87.1
+* fix crashes in the Firefox / Edge store versions
+
 #### 1.87.0
 
 * `scroll*`: support a monitor with a high refresh rate
