@@ -114,11 +114,7 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
-#### 1.87.1
-* fix crashes in the Firefox / Edge store versions
-
-#### 1.87.0
-
+#### 1.87.2
 * `scroll*`: support a monitor with a high refresh rate
 * `LinkHints`: support `clickable=<CSS-selector>` to mark any element clickable
 * `goNext`: support substituting a tab URL and jumping to it
