@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-"use strict"
-
+"use strict";
+(async () => {
 //@ts-check
 const fs = require("fs")
 const pathModule = require("path")
@@ -19,7 +19,7 @@ let curFile = [
 ].filter(i => i && fs.existsSync(i))[0] || ""
 
 /** @type { string } */
-const lines = fs.existsSync(curFile)
+const lines = curFile && fs.existsSync(curFile)
         ? fs.readFileSync(curFile, {encoding: "utf-8"})
         : await new Promise((resolve, reject) => {
     let body = ""
@@ -54,19 +54,23 @@ for (const isEn of [true, false]) {
         if (/^[\dA-Za-z]+$/.test(i) != isEn) { continue }
         const leni = i.length
         if (leni > len_tld) {
-            print(`${prefix}${line}"${count ? ` // char[${count}][${len_tld}]` : ""}`)
+            let tail = count ? ` // char[${count}][${len_tld}]` : ""
+            if (len_line > (isEn ? 115 : 80) - tail.length) {
+                tail = '\n' + prefix.slice(0, -3) + " " + tail
+            }
+            print(`${prefix}${line}"${tail}`)
             line = ""
             while (len_tld + 2 < leni) {
                 len_tld += 1
                 line += '", "'
             }
             if (line) {
-                print(`${prefix}${line}`)
+                print(`${prefix}${line}"`)
             }
             [count, len_tld, line, len_line] = [0, leni, "", prefix.length]
         }
         len_line += leni + 1
-        if (len_line > (isEn ? 120 : 80)) {
+        if (len_line > (isEn ? 115 : 80)) {
             line += "\\\n." + i
             len_line = leni + 1
         } else {
@@ -75,7 +79,7 @@ for (const isEn of [true, false]) {
         count += 1
     }
     if (count > 0) {
-        print(`${prefix}${line}${count ? ` // char[${count}][${len_tld}]` : ""}`)
+        print(`${prefix}${line}"${count ? ` // char[${count}][${len_tld}]` : ""}`)
         count = 0
     }
     print("];")
@@ -87,3 +91,4 @@ for (const isEn of [true, false]) {
 function print() {
     console.log(...arguments)
 }
+})()
