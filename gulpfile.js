@@ -114,7 +114,6 @@ var Tasks = {
         }
       }
     }
-    path.push("!_locales/*_*/**")
     if (!getBuildItem("Minify")) {
       return copyByPath(path);
     }
