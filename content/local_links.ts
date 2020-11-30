@@ -145,7 +145,6 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
             && (!(anotherEl = element.parentElement)
                 || (type ? (s = htmlTag_(anotherEl), !s.includes("button") && s !== "a")
                     : clickable_.has(anotherEl) && htmlTag_(anotherEl) === "ul" && !s.includes("active")))
-            && (!(s = element.getAttribute("unselectable")) || s.toLowerCase() !== "on")
             || element.hasAttribute("aria-selected")
             || element.getAttribute("data-tab") ? ClickType.classname : ClickType.Default);
   }
@@ -157,6 +156,8 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
             , (((type - ClickType.scrollX) as ScrollByY) + forceToScroll_) as BOOL | 2 | 3, 0) > 0)
       && (isAriaNotTrue_(element, kAria.hidden) || extraClickable_.has(element))
       && (hintMode_ > HintMode.min_job - 1 || isAriaNotTrue_(element, kAria.disabled))
+      && (type < ClickType.codeListener  || type > ClickType.classname
+          || !(s = element.getAttribute("unselectable")) || s.toLowerCase() !== "on")
   ) { hints.push([element, arr, type]); }
 }
 
@@ -238,7 +239,6 @@ const inferTypeOfListener = (el: SafeHTMLElement, tag: string): boolean => {
         ? (el2 = querySelector_unsafe_("input[type=checkbox]", el) as SafeElement | null,
           !!(el2 && htmlTag_(el2) && isNotReplacedBy(el2 as SafeHTMLElement)))
         : tag !== "table"
-          && (!(tag = el.getAttribute("unselectable")!) || tag.toLowerCase() !== "on")
       : !(el2 = el.firstElementChild as Element | null) ||
         !(!el.className && !el.id && tag === D
           || ((tag = htmlTag_(el2)) === D || tag === "span") && clickable_.has(el2)
