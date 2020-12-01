@@ -425,6 +425,7 @@ availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeO
   "LinkHints.unhoverLast": [ kFgCmd.insertMode, 0, 1, { u: true } ],
   "Marks.activate": [ kFgCmd.marks, 0, 0 ],
   "Marks.activateCreateMode": [ kFgCmd.marks, 0, 0, { mode: "create" } ],
+  "Marks.activateGotoMode": [ kFgCmd.marks, 0, 0 ],
   "Marks.clearGlobal": [ kBgCmd.clearMarks, 1, 1 ],
   "Marks.clearLocal": [ kBgCmd.clearMarks, 1, 1, { local: true } ],
   "Vomnibar.activate": [ kBgCmd.showVomnibar, 1, 0 ],

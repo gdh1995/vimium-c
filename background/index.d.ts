@@ -399,6 +399,7 @@ declare const enum kCName {
   LinkHints_unhoverLast = "LinkHints.unhoverLast",
   Marks_activate = "Marks.activate",
   Marks_activateCreateMode = "Marks.activateCreateMode",
+  Marks_activateGotoMode = "Marks.activateGotoMode",
   Marks_clearGlobal = "Marks.clearGlobal",
   Marks_clearLocal = "Marks.clearLocal",
   Vomnibar_activate = "Vomnibar.activate",
@@ -544,6 +545,7 @@ declare namespace CommandsNS {
     [kCName.LinkHints_unhoverLast]: kFgCmd.insertMode;
     [kCName.Marks_activate]: kFgCmd.marks;
     [kCName.Marks_activateCreateMode]: kFgCmd.marks;
+    [kCName.Marks_activateGotoMode]: kFgCmd.marks;
     [kCName.Marks_clearGlobal]: kBgCmd.clearMarks;
     [kCName.Marks_clearLocal]: kBgCmd.clearMarks;
     [kCName.Vomnibar_activate]: kBgCmd.showVomnibar;

@@ -66,6 +66,7 @@ var HelpDialog = {
       let command: string = registry.command_;
       if (command.endsWith(".activateMode")) {
         command = command.slice(0, -4);
+      } else if (command.endsWith("GotoMode")) {
       } else if (command.endsWith("Leave")) {
         command = command.slice(0, -5) + "Unhover";
       } else if (command.includes("EditUrl")) {
