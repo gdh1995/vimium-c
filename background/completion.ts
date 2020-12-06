@@ -170,10 +170,10 @@ function prepareHtml(sug: Suggestion): void {
   sug.textSplit = /*#__NOINLINE__*/ cutUrl(str, getMatchRanges(str), text.length - str.length
     , isForAddressBar ? maxChars - 13 - Math.min(sug.title.length, 40) : maxChars);
 }
-function cutTitle(title: string): string {
+function cutTitle(title: string, knownRange?: [number, number] | []): string {
   let cut = title.length > maxChars + 40;
   cut && (title = BgUtils_.unicodeSubstring_(title, 0, maxChars + 39));
-  return highlight(cut ? title + "\u2026" : title, getMatchRanges(title));
+  return highlight(cut ? title + "\u2026" : title, knownRange || getMatchRanges(title))
 }
 function highlight(this: void, str: string, ranges: number[]): string {
   if (Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
@@ -184,6 +184,7 @@ function highlight(this: void, str: string, ranges: number[]): string {
   let out = "", end = 0;
   for (let _i = 0; _i < ranges.length; _i += 2) {
     const start = ranges[_i], end2 = ranges[_i + 1];
+    if (start >= str.length) { continue }
     out += BgUtils_.escapeText_(str.slice(end, start));
     out += "<match>";
     out += BgUtils_.escapeText_(str.slice(start, end2));
@@ -382,7 +383,7 @@ bookmarkEngine = {
       results2.push(sug);
       if (i.jsUrl_ === null) { continue; }
       (sug as CompletersNS.WritableCoreSuggestion).u = (i as JSBookmark).jsUrl_;
-      sug.title = cutTitle(sug.title);
+      sug.title = cutTitle(isPath ? i.path_ : i.title_)
       sug.textSplit = "javascript: \u2026";
       sug.t = (i as JSBookmark).jsText_;
     }
@@ -570,17 +571,19 @@ historyEngine = {
     }
   },
   quickSearch_ (history: ReadonlyArray<Readonly<HistoryItem>>): Suggestion[] {
-    const onlyUseTime = queryTerms.length === 1 && (queryTerms[0][0] === "."
-      ? (<RegExpOne> /^\.[\da-zA-Z]+$/).test(queryTerms[0])
-      : (BgUtils_.convertToUrl_(queryTerms[0], null, Urls.WorkType.KeepAll),
+    const firstTerm = queryTerms.length === 1 ? queryTerms[0] : "",
+    onlyUseTime = firstTerm && (firstTerm[0] === "." ? (<RegExpOne> /^\.[\da-zA-Z]+$/).test(firstTerm)
+      : (BgUtils_.convertToUrl_(firstTerm, null, Urls.WorkType.KeepAll),
         BgUtils_.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl)
     ),
+    firstTermRe = !onlyUseTime ? null
+        : firstTerm[0] === "." || BgUtils_.lastUrlType_ > Urls.Type.Full ? RegExpCache.parts_[0]
+        : (RegExpCache.starts_ || RegExpCache.buildOthers_(), RegExpCache.starts_[0]),
     noOldCache = !(MatchCacheManager.current_ && MatchCacheManager.current_.history_),
     newCache = MatchCacheManager.newMatch_ ? [] as HistoryItem[] : null,
     results = [-1.1, -1.1], sugs: Suggestion[] = [], Match2 = RankingUtils.Match2_,
-    parts0 = RegExpCache.parts_[0];
-    let maxNum = maxResults + offset
-      , curMinScore = -1.1, i = 0, j = 0, matched = 0;
+    isEncodedURL = onlyUseTime && firstTerm.includes("%") && !(<RegExpOne> /[^\x21-\x7e]|%[^A-F\da-f]/).test(firstTerm)
+    let maxNum = maxResults + offset, curMinScore = -1.1, i = 0, j = 0, matched = 0
     historyUrlToSkip && maxNum++;
     for (j = maxNum; --j; ) { results.push(-1.1, -1.1); }
     maxNum = maxNum * 2 - 2;
@@ -589,19 +592,22 @@ historyEngine = {
     }
     for (const len = history.length; i < len; i++) {
       const item = history[i];
-      if (onlyUseTime ? !parts0.test(item.t) : !Match2(item.t, item.title_)) { continue; }
-      if (!(showThoseInBlocklist || item.visible_)) { continue; }
-      newCache && newCache.push(item);
-      matched++;
-      const score = onlyUseTime ? ComputeRecency(item.time_) || /* < 0.0002 */ 1e-16 * item.time_
-          : ComputeRelevancy(item.t, item.title_, item.time_);
-      if (curMinScore >= score) { continue; }
-      for (j = maxNum - 2; 0 <= j && results[j] < score; j -= 2) {
-        results[j + 2] = results[j], results[j + 3] = results[j + 1];
+      if (onlyUseTime ? firstTermRe!.test(isEncodedURL ? item.u : item.t) : Match2(item.t, item.title_)) {
+        if (showThoseInBlocklist || item.visible_) {
+          newCache && newCache.push(item);
+          matched++;
+          const score = onlyUseTime ? ComputeRecency(item.time_) || /* < 0.0002 */ 1e-16 * Math.max(0, item.time_)
+              : ComputeRelevancy(item.t, item.title_, item.time_);
+          if (score > curMinScore) {
+            for (j = maxNum - 2; 0 <= j && results[j] < score; j -= 2) {
+              results[j + 2] = results[j], results[j + 3] = results[j + 1];
+            }
+            results[j + 2] = score;
+            results[j + 3] = i;
+            curMinScore = results[maxNum];
+          }
+        }
       }
-      results[j + 2] = score;
-      results[j + 3] = i;
-      curMinScore = results[maxNum];
     }
     if (newCache) {
       MatchCacheManager.newMatch_!.history_ = newCache;
@@ -621,7 +627,7 @@ historyEngine = {
       if (score <= 0) { break; }
       const item = history[results[i + 1]];
       if (item.u !== historyUrlToSkip) {
-        const sug = new Suggestion("history", item.u, item.t, item.title_, get2ndArg, score)
+        const sug = new Suggestion("history", item.u, isEncodedURL ? item.u : item.t, item.title_, get2ndArg, score)
         sug.visit = item.time_
         sugs.push(sug)
       } else {
@@ -822,9 +828,7 @@ domainEngine = {
           sug.visit = item.time_
           title = title || item.title_
         }
-        sug.title = Build.BTypes & BrowserType.Firefox
-            && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
-            ? title : BgUtils_.escapeText_(title)
+        sug.title = cutTitle(title, [])
         --maxResults;
       }
     }
@@ -1120,13 +1124,13 @@ searchEngine = {
 
     if (q.length > 0 && pattern) {
       sug.t = searchEngine.makeText_(text, indexes);
-      sug.title = highlight(sug.title, [pattern.name_.length + 2, sug.title.length]);
+      sug.title = cutTitle(sug.title, [pattern.name_.length + 2, sug.title.length]);
       sug.textSplit = highlight(sug.t, indexes);
     } else {
       sug.t = BgUtils_.DecodeURLPart_(shortenUrl(text));
       if (!(Build.BTypes & BrowserType.Firefox
             && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar)) {
-        sug.title = BgUtils_.escapeText_(sug.title);
+        sug.title = cutTitle(sug.title, [])
       }
       sug.textSplit = Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
@@ -1147,7 +1151,7 @@ searchEngine = {
     --sug.r;
     if (!(Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar)) {
-      sug.title = `<match style="text-decoration: none;">${BgUtils_.escapeText_(sug.title)}<match>`;
+      sug.title = `<match style="text-decoration: none;">${cutTitle(sug.title, [])}<match>`
     }
     sug.textSplit = Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
@@ -1214,10 +1218,7 @@ searchEngine = {
     isSearch = BgUtils_.lastUrlType_ === Urls.Type.Search,
     sug = new Suggestion("search", url, BgUtils_.DecodeURLPart_(shortenUrl(url))
       , "", get2ndArg, 9) as SearchSuggestion;
-    sug.title = isSearch ? "~: " + highlight(keyword, [0, keyword.length])
-        : Build.BTypes & BrowserType.Firefox
-          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
-        ? keyword : BgUtils_.escapeText_(keyword);
+    sug.title = isSearch ? "~: " + cutTitle(keyword, [0, keyword.length]) : cutTitle(keyword, [])
     sug.textSplit = Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
         ? sug.t : BgUtils_.escapeText_(sug.t);
