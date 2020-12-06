@@ -633,7 +633,7 @@ var BgUtils_ = {
   DecodeURLPart_ (this: void, url: string | undefined, wholeURL?: 1 | "atob"): string {
     if (!url) { return ""; }
     try {
-      url = (wholeURL === "atob" ? atob : wholeURL ? decodeURI : decodeURIComponent)(url);
+      url = (wholeURL ? wholeURL === "atob" ? atob : decodeURI : decodeURIComponent)(url);
     } catch {}
     return url;
   },
