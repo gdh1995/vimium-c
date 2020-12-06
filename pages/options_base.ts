@@ -582,15 +582,38 @@ Promise.resolve((BG_.BgUtils_.GC_(1), bgSettings_.restore_) && bgSettings_.resto
     }, $(".version"))
   }
   const element = $<HTMLAnchorElement>(".options-link"), optionsUrl = bgSettings_.CONST_.OptionsPage_;
-  element.href !== optionsUrl && (element.href = optionsUrl);
-  element.onclick = function (this: HTMLAnchorElement, event: EventToPrevent): void {
-    event.preventDefault();
-    const a: MarksNS.FocusOrLaunch = BG_.Object.create(null);
-    a.u = bgSettings_.CONST_.OptionsPage_;
-    BG_.Backend_.reqH_[kFgReq.focusOrLaunch](a)
-    window.close();
-  };
+  if (_url.startsWith(optionsUrl)) {
+    (element.nextElementSibling as HTMLElement).remove()
+    element.remove()
+  } else {
+    element.href !== optionsUrl && (element.href = optionsUrl);
+    element.onclick = (event: EventToPrevent): void => {
+      event.preventDefault();
+      const a: MarksNS.FocusOrLaunch = BG_.Object.create(null);
+      a.u = bgSettings_.CONST_.OptionsPage_;
+      BG_.Backend_.reqH_[kFgReq.focusOrLaunch](a)
+      window.close();
+    };
+  }
   if (notRunnable) {
+    const retryInjectElement = $<HTMLAnchorElement>("#retryInject")
+    if (Build.BTypes & ~BrowserType.Firefox
+        && (!(Build.BTypes & BrowserType.Firefox) || BG_.OnOther !== BrowserType.Firefox)
+        && (<RegExpOne> /^(file|ftps?|https?):/).test(_url)) {
+      retryInjectElement.onclick = (event) => {
+        event.preventDefault()
+        if (!BG_.Backend_.indexPorts_(curTab.id)) {
+          const offset = location.origin.length, ignoreErr = (): void => {}
+          for (let js of bgSettings_.CONST_.ContentScripts_) {
+            chrome.tabs.executeScript(curTab.id, {file: js.slice(offset), allFrames: true}, ignoreErr)
+          }
+        }
+        window.close();
+      }
+    } else {
+      (retryInjectElement.nextElementSibling as HTMLElement).remove()
+      retryInjectElement.remove()
+    }
     return;
   }
 

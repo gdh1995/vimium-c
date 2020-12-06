@@ -50,7 +50,7 @@ p {
 	min-width: 54px;
 	text-align: right;
 }
-a.decorate-none {
+a.decorate-none:not(:hover) {
   text-decoration: none;
 }
 .accesskey {
@@ -121,8 +121,8 @@ a.decorate-none {
         <span data-i="o120">Disable for once</span> (<span class="accesskey">X</span>)</a><span class="hidden"> /
         <a id="resetStatus" href="vimium://status reset" class="decorate-none"
             tabindex="1" role="button" accesskey="z">
-        <span data-i="o121">Reset</span> (<span class="accesskey">Z</span>)</a></span><span data-i="period">.</span>
-        <a class="options-link" href="options.html" target="_blank" tabindex="1" data-i="o121_2">Options</a><span
+        <span data-i="o121">Reset</span> (<span class="accesskey">Z</span>)</a></span><span data-i="period2">. 
+        </span><a class="options-link" href="options.html" target="_blank" tabindex="1" data-i="o121_2">Options</a><span
             data-i="period">.</span>
         <span data-i="ext" data-i-e="1"></span><span data-i="VerIs">Version </span><span class="version"></span><span
             data-i="period">.</span>
@@ -136,8 +136,8 @@ a.decorate-none {
     </div>
     <div id="blocked-msg" style="width: 400px; margin: 5px; display: none;">
       <h4>
-        <span data-i="o124">Maybe</span> <span class="Vim">Vim</span>ium <span class="C">C</span><span data-i="o125">
-          is </span><span id="state-value" data-i="o126">not running</span><span data-i="o127"> on this page.</span>
+        <span class="Vim">Vim</span>ium <span class="C">C</span><span data-i="o125">
+          is </span><span id="state-value" data-i="o126">not running</span><span data-i="o127"> on this page</span>
       </h4>
       <p id="injection-refused" style="display: none;">
         <span data-i="o127_2">
@@ -161,10 +161,12 @@ a.decorate-none {
       </p>
       </div>
       <p>
-        <span data-i="o134">Configure more on the </span><a class="options-link" href="options.html" target="_blank"
-          data-i="o135">options</a><span data-i="o136"> page.</span>
-        <span data-i="ext" data-i-e="1"></span><span data-i="VerIs">Version
-          </span><span class="version"></span><span data-i="period">.</span>
+        <a id="retryInject" href="vimium://status enable" class="decorate-none" role="button" accesskey="z">
+        <span data-i="o133_2">Retry</span> (<span class="accesskey">Z</span>)</a><span data-i="period2">.
+        </span><span data-i="o134">Configure more on the </span><a
+            class="options-link" href="options.html" target="_blank" data-i="o135">options</a><span
+            data-i="o136"> page. </span><span
+            data-i="VerIs">Version</span><span class="version"></span><span data-i="period">.</span>
       </p>
     </div>
   </body>
