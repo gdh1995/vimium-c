@@ -16,7 +16,7 @@ import {
 import { currentScrolling, set_cachedScrollable, set_currentScrolling } from "./scroller"
 import { post_, send_ } from "./port"
 import {
-  collpaseSelection, evalIfOK, flash_, getRect, lastFlashEl, resetSelectionToDocStart, selectAllOfNode,
+  collpaseSelection, evalIfOK, flash_, getRect, getSelected, lastFlashEl, resetSelectionToDocStart, selectAllOfNode,
 } from "./dom_ui"
 import { pushHandler_, removeHandler_, isEscape_, getMappedKey, prevent_, suppressTail_ } from "../lib/keyboard_utils"
 import { insert_Lock_ } from "./insert"
@@ -97,7 +97,7 @@ const getUrlData = (link: SafeHTMLElement): string => {
 }
 
 /** return: img is HTMLImageElement | HTMLAnchorElement | HTMLElement[style={backgroundImage}] */
-const getMediaOrBgImageUrl = (img: SafeHTMLElement): string | void => {
+const downloadOrOpenMedia = (img: SafeHTMLElement): void => {
   let mediaTag = getMediaTag(img)
   let src = img.dataset.canonicalSrc || img.dataset.src || ""
   let text: string | null, n: number
@@ -123,7 +123,23 @@ const getMediaOrBgImageUrl = (img: SafeHTMLElement): string | void => {
       || src.length > text.length + 7 && (text === (img as HTMLElement & {href?: string}).href)) {
     text = src;
   }
-  return text || hintApi.t({ k: kTip.notImg })
+  if (!text) { hintApi.t({ k: kTip.notImg }) }
+  else if (mode1_ === HintMode.OPEN_IMAGE) {
+    post_({
+      H: kFgReq.openImage, r: hintMode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
+      e: parseSedOptions(hintOptions), a: hintOptions.auto,
+      f: getImageName_(img), u: text
+    })
+  } else {
+    const url = text, i = text.indexOf("://"), a = createElement_("a")
+    text = i > 0 ? text.slice(text.indexOf("/", i + 4) + 1) : text
+    text = text.length > 40 ? text.slice(0, 39) + "\u2026" : text
+    a.href = url
+    a.download = getImageName_(img)
+    /** @todo: how to trigger download */
+    mouse_(a, CLK, [0, 0], [!0, !1, !1, !1])
+    hintApi.t({ k: kTip.downloaded, t: text })
+  }
 }
 
 const getImageName_ = (img: SafeHTMLElement): string => attr_s(img, "download") || attr_s(img, "alt") || img.title
@@ -291,7 +307,7 @@ export const linkActionArray: readonly LinkAction[] = [
       });
       return;
     } else if (hintOptions.richText) {
-      const sel = getSelection_(), range = selRange_(sel)
+      const sel = getSelected({}), range = selRange_(getSelection_())
       selectAllOfNode(link)
       execCommand("copy", doc)
       resetSelectionToDocStart(sel, range)
@@ -335,37 +351,8 @@ export const linkActionArray: readonly LinkAction[] = [
   , HintMode.OPEN_INCOGNITO_LINK
 ],
 [
-  ((element: SafeHTMLElement): void => {
-    let text = getMediaOrBgImageUrl(element)
-    if (!text) { return; }
-    const url = text, i = text.indexOf("://"), a = createElement_("a");
-    if (i > 0) {
-      text = text.slice(text.indexOf("/", i + 4) + 1);
-    }
-    if (text.length > 40) {
-      text = text.slice(0, 39) + "\u2026";
-    }
-    a.href = url;
-    a.download = getImageName_(element);
-    /** @todo: how to trigger download */
-    mouse_(a, CLK, [0, 0], [!0, !1, !1, !1]);
-    hintApi.t({ k: kTip.downloaded, t: text })
-  }) as HTMLExecutor as Executor
+  downloadOrOpenMedia as HTMLExecutor as Executor
   , HintMode.DOWNLOAD_MEDIA
-],
-[
-  ((img: SafeHTMLElement): void => {
-    const text = getMediaOrBgImageUrl(img);
-    if (!text) { return; }
-    post_({
-      H: kFgReq.openImage,
-      r: hintMode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
-      f: getImageName_(img),
-      e: parseSedOptions(hintOptions),
-      u: text,
-      a: hintOptions.auto
-    });
-  }) as HTMLExecutor as Executor
   , HintMode.OPEN_IMAGE
 ],
 [

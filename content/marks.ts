@@ -4,31 +4,29 @@ import { hudHide, hudShow, hudTip } from "./hud"
 import { removeHandler_, getMappedKey, isEscape_, replaceOrSuppressMost_ } from "../lib/keyboard_utils"
 import { createElement_, textContent_s } from "../lib/dom_utils"
 
-let onKeyChar: ((event: HandlerNS.Event, keyChar: string) => void) | null = null
-let prefix = true
-let swap = true
-let mcount = 0
+let onKeyChar: ((event: HandlerNS.Event, keyChar: string) => void) | null
+let prefix: boolean
+let swap: boolean
+let mcount: number
 // [0..8]
 let previous: Readonly<MarksNS.FgMark>[] = []
 
 export const activate = (options: CmdOptions[kFgCmd.marks], count: number): void => {
-    const isGo = options.mode !== "create";
-    onKeyChar = isGo ? goto : create
-    mcount = count < 0 || count > 9 ? 0 : count - 1
-    prefix = options.prefix !== false
-    swap = !!options.swap
-    hudShow(isGo ? kTip.nowGotoMark : kTip.nowCreateMark);
+  const isGo = options.mode !== "create"
+  onKeyChar = isGo ? goto : create
+  mcount = count < 2 || count > 9 ? 0 : count - 1
+  prefix = options.prefix !== !1
+  swap = !!options.swap
+  hudShow(isGo ? kTip.nowGotoMark : kTip.nowCreateMark)
   replaceOrSuppressMost_(kHandler.marks, (event): HandlerResult => {
-    let key: string
     if (event.i === kKeyCode.ime) { return HandlerResult.Nothing; }
-    key = getMappedKey(event, kModeId.Marks)
+    const key = getMappedKey(event, kModeId.Marks)
     if (key.length !== 1 && !isEscape_(key)) {
       return HandlerResult.Suppress;
     }
     removeHandler_(kHandler.marks)
     isEscape_(key) ? hudHide() : onKeyChar!(event, key)
-    prefix = swap = true
-    onKeyChar = null
+    onKeyChar = prefix = swap = mcount = null as never
     return HandlerResult.Prevent;
   })
 }
@@ -48,9 +46,7 @@ const dispatchMark = ((mark?: Readonly<MarksNS.FgMark> | null | undefined
 }
 
 export const setPreviousMarkPosition = (idx?: number): void => {
-  const arr = dispatchMark()
-  arr.push(loc_.hash)
-  previous[idx! | 0] = arr
+  (previous[idx! | 0] = dispatchMark()).push(loc_.hash)
 }
 
 const create = (event: HandlerNS.Event, keyChar: string): void => {
@@ -71,13 +67,14 @@ const create = (event: HandlerNS.Event, keyChar: string): void => {
 
 const goto = (event: HandlerNS.Event, keyChar: string): void => {
     if (keyChar === "`" || keyChar === "'") {
-      const count = mcount, pos = previous[count]
-      setPreviousMarkPosition(pos ? 0 : count)
+      const pos = previous[mcount]
+      setPreviousMarkPosition(pos ? 0 : mcount)
       if (pos) {
         scrollToMark(pos)
       }
-      return hudTip(kTip.didLocalMarkTask, 1000,
-          [VTr(pos ? kTip.didJumpTo : kTip.didCreate), count ? count + 1 : VTr(kTip.lastMark)])
+      hudTip(kTip.didLocalMarkTask, 1000,
+          [VTr(pos ? kTip.didJumpTo : kTip.didCreate), mcount ? mcount + 1 : VTr(kTip.lastMark)])
+      return
     }
     const req: Extract<Req.fg<kFgReq.marks>, { a: kMarkAction.goto }> = {
       H: kFgReq.marks, a: kMarkAction.goto,

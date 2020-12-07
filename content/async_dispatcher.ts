@@ -220,7 +220,7 @@ export const unhover_ = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >
         .bind<void, NullableSafeElForM, 1, NullableSafeElForM, [], Promise<0>>(0, el, 1, el || old))
   } else if (step < 2) {
     lastHovered_ = weakRef_(el)
-    return hover_().then(unhover_.bind(0, old, 2))
+    return hover_().then(unhover_.bind<0, NullableSafeElForM, 2, [], 0>(0, old, 2))
   } else {
     return <0> <any> (el && activeEl_unsafe_() === el && el.blur && el.blur())
   }
@@ -228,6 +228,7 @@ export const unhover_ = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >
   (element?: NullableSafeElForM, step?: undefined, active?: undefined): Promise<void | 0>
   (element: NullableSafeElForM, step: 1, active: NullableSafeElForM): Promise<0>
   (element: NullableSafeElForM, step: 2): /* all false values */ 0
+  (element: NullableSafeElForM, rect: Rect | null): Promise<void | 0> // only since MinEnsuredAsyncFunctions
 }
 
 

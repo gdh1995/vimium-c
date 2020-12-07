@@ -134,7 +134,7 @@ export function set_addChildFrame_ (_newACF: typeof addChildFrame_): void { addC
 
 export const activate = (options: HintsNS.ContentOptions, count: number, force?: 2 | TimerType.fake): void => {
     if (isActive && force !== 2 || !isEnabled_) { return; }
-    if (checkHidden(kFgCmd.linkHints, count, options)) {
+    if (checkHidden(kFgCmd.linkHints, options, count)) {
       return clear(1)
     }
     if (doc.body === null) {
@@ -188,13 +188,13 @@ export const activate = (options: HintsNS.ContentOptions, count: number, force?:
         }
         return !childOfficer
       };
-      coreHints.o(count, options, chars, useFilter, null, null, topFrameInfo, addChild)
+      coreHints.o(options, count, chars, useFilter, null, null, topFrameInfo, addChild)
       allHints = topFrameInfo.h
       while (child = childFrames.pop()) {
         if (child.v) {
           insertPos = childFrames.length;
           frameArray.push(frameInfo = {h: [], v: null as never, s: child.s});
-          child.s.o(count, options, chars, useFilter, child.v, coreHints, frameInfo, addChild);
+          child.s.o(options, count, chars, useFilter, child.v, coreHints, frameInfo, addChild);
           // ensure allHints always belong to the manager frame
           allHints = frameInfo.h.length ? allHints.concat(frameInfo.h) : allHints;
         } else if (child.s.$().a) {
@@ -222,7 +222,7 @@ export const activate = (options: HintsNS.ContentOptions, count: number, force?:
     }
 }
 
-const collectFrameHints = (count: number, options: HintsNS.ContentOptions
+const collectFrameHints = (options: HintsNS.ContentOptions, count: number
       , chars: string, useFilter: boolean, outerView: Rect | null
       , manager: HintManager | null, frameInfo: FrameHintsInfo
       , newAddChildFrame: AddChildDirectly): void => {
@@ -347,7 +347,7 @@ const getPreciseChildRect = (frameEl: KnownIFrameElement, view: Rect): Rect | nu
 }
 
 export const tryNestedFrame = (
-      cmd: Exclude<FgCmdAcrossFrames, kFgCmd.linkHints>, count: number, options: SafeObject): boolean => {
+      cmd: Exclude<FgCmdAcrossFrames, kFgCmd.linkHints>, options: SafeObject, count: number): boolean => {
     let childApi: VApiTy | null
     if (frameNested_ !== null) {
       prepareCrop_();

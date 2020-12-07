@@ -51,7 +51,7 @@ export const activate = function (options: FullOptions, count: number): void {
     replaceOrSuppressMost_(kHandler.omni)
     secondActivateWithNewOptions = null
     let timer1 = timeout_(refreshKeyHandler, GlobalConsts.TimeOfSuppressingTailKeydownEvents)
-    if (checkHidden(kFgCmd.vomnibar, count, options)) { return; }
+    if (checkHidden(kFgCmd.vomnibar, options, count)) { return }
     if (status === VomnibarNS.Status.KeepBroken) {
       return hudTip(kTip.omniFrameFail, 2000)
     }
@@ -112,7 +112,7 @@ export const activate = function (options: FullOptions, count: number): void {
       if (!options.$forced) { // re-check it for safety
         options.$forced = 1;
       }
-      if (tryNestedFrame(kFgCmd.vomnibar, count, options)) { return; }
+      if (tryNestedFrame(kFgCmd.vomnibar, options, count)) { return; }
       status = VomnibarNS.Status.Initing
       init(options)
     } else if (isAboutBlank()) {

@@ -517,7 +517,7 @@ export const evalIfOK = (url: Pick<BgReq[kBgReq.eval], "u"> | string): boolean =
   return true;
 }
 
-export const checkHidden = (cmd?: FgCmdAcrossFrames, count?: number, options?: OptionsWithForce): BOOL => {
+export const checkHidden = (cmd?: FgCmdAcrossFrames, options?: OptionsWithForce, count?: number): BOOL => {
   if (isTop) { return 0 }
   // here should not use the cache frameElement, because `getComputedStyle(frameElement).***` might break
   const curFrameElement = !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox

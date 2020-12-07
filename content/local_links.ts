@@ -254,16 +254,13 @@ const inferTypeOfListener = (el: SafeHTMLElement, tag: string): boolean => {
 
 /** Note: required by {@link #kFgCmd.focusInput}, should only add LockableElement instances */
 export const getEditable = (hints: Hint[], element: SafeHTMLElement): void => {
-  let arr: Rect | null, s: string = element.localName;
-  if ((s === INP || s === "textarea")
-      ? s < "t" && uneditableInputs_[getInputType(element as HTMLInputElement)]
-        || (element as TextElement).disabled || (element as TextElement).readOnly
+  let s: string = element.localName
+  if ((s === INP && uneditableInputs_[getInputType(element as HTMLInputElement)] || s === "textarea")
+      ? (element as TextElement).disabled || (element as TextElement).readOnly
       : (s = element.contentEditable) === "inherit" || s === "false" || !s) {
     return
   }
-  if (arr = getVisibleClientRect_(element)) {
-    hints.push([element as LockableElement, arr, ClickType.edit]);
-  }
+  getIfOnlyVisible(hints, element)
 }
 
 const getSelectable = (hints: Hint[], element: SafeHTMLElement): void => {
@@ -271,8 +268,7 @@ const getSelectable = (hints: Hint[], element: SafeHTMLElement): void => {
   if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.Min$Array$$find$$findIndex) {
     for (const node of arr as ArrayLike<Node> as Node[]) {
       if (isNode_(node, kNode.TEXT_NODE) && node.data.trim().length > 2) {
-        const rect = getVisibleClientRect_(element)
-        rect && hints.push([element as LockableElement, rect, ClickType.Default])
+        getIfOnlyVisible(hints, element)
         break
       }
     }
@@ -281,20 +277,17 @@ const getSelectable = (hints: Hint[], element: SafeHTMLElement): void => {
   for (let i = 0; i < arr.length; i++) {
     const node = arr[i]
     if (isNode_(node, kNode.TEXT_NODE) && node.data.trim().length > 2) {
-      const rect = getVisibleClientRect_(element)
-      rect && hints.push([element as LockableElement, rect, ClickType.Default])
+      getIfOnlyVisible(hints, element)
       break
     }
   }
 }
 
 const getLinks = (hints: Hint[], element: SafeHTMLElement): void => {
-  let a: string | null | false, arr: Rect | null;
+  let a: string | null | false;
   if ((a = element.dataset.vimUrl || element.localName === "a" && attr_s(element, "href")) && a !== "#"
       && !isJSUrl(a)) {
-    if (arr = getVisibleClientRect_(element)) {
-      hints.push([element, arr, ClickType.Default]);
-    }
+    getIfOnlyVisible(hints, element)
   }
 }
 
@@ -312,7 +305,10 @@ const getImages = (hints: Hint[], element: SafeHTMLElement): void => {
         h > 3 ? 0 : h = 3;
       }
       cr = cropRectToVisible_(l, t, l + w, t + h);
-      cr = cr && isStyleVisible_(element) ? getCroppedRect_(element, cr) : null;
+      if (cr && isStyleVisible_(element)) {
+        cr = getCroppedRect_(element, cr)
+        cr && hints.push([element, cr, ClickType.Default])
+      }
     }
   } else {
     if (mediaTag > kMediaTag.MIN_NOT_MEDIA_EL - 1) {
@@ -321,9 +317,8 @@ const getImages = (hints: Hint[], element: SafeHTMLElement): void => {
         str = str && (<RegExpI> /^url\(/i).test(str) ? str : "";
       }
     }
-    cr = str ? getVisibleClientRect_(element) : cr;
+    str && getIfOnlyVisible(hints, element)
   }
-  cr && hints.push([element, cr, ClickType.Default]);
 }
 
 const getIfOnlyVisible = (hints: Hint[], element: SafeElement): void => {

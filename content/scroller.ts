@@ -228,8 +228,8 @@ export const activate = (options: CmdOptions[kFgCmd.scroll] & SafeObject, count:
     if (options.$c == null) {
       options.$c = isCmdTriggered
     }
-    if (checkHidden(kFgCmd.scroll, count, options)) { return; }
-    if (tryNestedFrame(kFgCmd.scroll, count, options)) { return; }
+    if (checkHidden(kFgCmd.scroll, options, count)) { return }
+    if (tryNestedFrame(kFgCmd.scroll, options, count)) { return }
     const di: ScrollByY = options.axis === "x" ? 0 : 1,
     dest = options.dest;
     let fromMax = dest === "max";
