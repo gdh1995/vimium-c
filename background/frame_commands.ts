@@ -10,7 +10,7 @@ import {
 import { parseSedOptions_, substitute_ } from "./clipboard"
 import { parseReuse, newTabIndex, openShowPage } from "./open_urls"
 
-export const nextFrame = (): void => {
+export const nextFrame = (): void | kBgCmd.nextFrame => {
   let port = cPort, ind = -1
   const frames = framesForTab[port.s.t]
   if (frames && frames.length > 2) {
@@ -26,7 +26,7 @@ export const nextFrame = (): void => {
     , port !== cPort && frames && port !== frames[0] ? FrameMaskType.NormalNext : FrameMaskType.OnlySelf)
 }
 
-export const parentFrame = (): void => {
+export const parentFrame = (): void | kBgCmd.parentFrame => {
   const sender = cPort.s,
   msg = Build.MinCVer < BrowserVer.MinWithFrameId && Build.BTypes & BrowserType.Chrome && NoFrameId
     ? `Vimium C can not know parent frame before Chrome ${BrowserVer.MinWithFrameId}`
@@ -55,7 +55,7 @@ export const parentFrame = (): void => {
   })
 }
 
-export const performFind = (): void => {
+export const performFind = (): void | kBgCmd.performFind => {
   const sender = cPort.s, absRepeat = cRepeat < 0 ? -cRepeat : cRepeat, rawIndex = get_cOptions<C.performFind>().index,
   nth = rawIndex ? rawIndex === "other" ? absRepeat + 1 : rawIndex === "count" ? absRepeat
             : rawIndex >= 0 ? -1 - (0 | <number> <number | string> rawIndex) : 0 : 0,
@@ -100,7 +100,7 @@ export const initHelp = (request: FgReq[kFgReq.initHelp], port: Port): void => {
   })
 }
 
-export const showVomnibar = (forceInner?: boolean): void => {
+export const showVomnibar = (forceInner?: boolean): void | kBgCmd.showVomnibar => {
   let port = cPort as Port | null
   let optUrl: VomnibarNS.GlobalOptions["url"] | UnknownValue = get_cOptions<C.showVomnibar>().url
   if (optUrl != null && optUrl !== true && typeof optUrl !== "string") {
@@ -147,7 +147,7 @@ export const showVomnibar = (forceInner?: boolean): void => {
   set_cOptions(options) // safe on renaming
 }
 
-export const enterVisualMode = (): void => {
+export const enterVisualMode = (): void | kBgCmd.visualMode => {
   if (Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge)) {
     complainLimits("control selection on MS Edge")
     return
@@ -181,7 +181,7 @@ export const enterVisualMode = (): void => {
 
 let _tempBlob: [number, string] | null | undefined
 
-export const captureTab = (tabs?: [Tab]): void => {
+export const captureTab = (tabs?: [Tab]): void | kBgCmd.captureTab => {
   const show = get_cOptions<C.captureTab>().show,
   jpeg = Math.min(Math.max(get_cOptions<C.captureTab, true>().jpeg! | 0, 0), 100)
   const cb = (url?: string): void => {
@@ -325,7 +325,7 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null
   }
 }
 
-export const mainFrame = (): void => {
+export const mainFrame = (): void | kBgCmd.mainFrame => {
   const tabId = cPort ? cPort.s.t : TabRecency_.curTab_, port = indexFrame(tabId, 0)
   port && focusFrame(port, true, framesForTab[tabId]![0] === port ? FrameMaskType.OnlySelf : FrameMaskType.ForcedSelf)
 }
@@ -354,7 +354,7 @@ export const setOmniStyle = (req: FgReq[kFgReq.setOmniStyle], port?: Port): void
   }
 }
 
-export const toggleZoom = (): void => {
+export const toggleZoom = (): void | kBgCmd.toggleZoom => {
   if (Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge)
       || Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox && !browserTabs.getZoom) {
     complainLimits("control zoom settings of tabs")

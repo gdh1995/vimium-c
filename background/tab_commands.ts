@@ -49,7 +49,7 @@ export const copyData = (request: FgReq[kFgReq.copy], port: Port): void => {
       : str, request.u ? kTip.noUrlCopied : kTip.noTextCopied)
 }
 
-export const copyWindowInfo = (): void => {
+export const copyWindowInfo = (): void | kBgCmd.copyWindowInfo => {
   let decoded = !!(get_cOptions<C.copyWindowInfo>().decoded || get_cOptions<C.copyWindowInfo>().decode),
   type = get_cOptions<C.copyWindowInfo>().type
   const sed = parseSedOptions_(get_cOptions<C.copyWindowInfo, true>())
@@ -96,7 +96,7 @@ export const copyWindowInfo = (): void => {
   })
 }
 
-export const joinTabs = (): void => {
+export const joinTabs = (): void | kBgCmd.joinTabs => {
   // { time/recency, create/id } | "all"
   const sortOpt: string | undefined | null = get_cOptions<C.joinTabs, true>().sort
   const windowsOpt: string | undefined | null = get_cOptions<C.joinTabs, true>().windows
@@ -167,7 +167,7 @@ export const joinTabs = (): void => {
   }
 }
 
-export const moveTabToNewWindow = (): void => {
+export const moveTabToNewWindow = (): void | kBgCmd.moveTabToNewWindow => {
   const kInc = "hasIncog"
   const moveTabToNewWindow0 = (wnd?: PopWindow): void => {
     if (!wnd) { return runtimeError_() }
@@ -296,7 +296,7 @@ export const moveTabToNewWindow = (): void => {
   }
 }
 
-export const moveTabToNextWindow = ([tab]: [Tab]): void => {
+export const moveTabToNextWindow = ([tab]: [Tab]): void | kBgCmd.moveTabToNextWindow => {
   getAllWindows((wnds0: Window[]): void => {
     let wnds: Window[], ids: number[], index = tab.windowId
     const noMin = get_cOptions<C.moveTabToNextWindow>().minimized === false
@@ -489,7 +489,7 @@ const removeTabsInOrder = (tab: Tab, tabs: readonly Tab[], start: number, end: n
   parts2.length > 0 && browserTabs.remove(parts2.map(j => j.id), runtimeError_)
 }
 
-export const toggleMuteTab = (): void => {
+export const toggleMuteTab = (): void | kBgCmd.toggleMuteTab => {
   if (!(Build.BTypes & ~BrowserType.Edge)
       || (Build.BTypes & BrowserType.Edge && OnOther === BrowserType.Edge)
       || Build.MinCVer < BrowserVer.MinMuted && Build.BTypes & BrowserType.Chrome
@@ -559,7 +559,7 @@ export const togglePinTab = (tabs: Tab[]): void => {
   }
 }
 
-export const toggleTabUrl = (tabs: [Tab]): void => {
+export const toggleTabUrl = (tabs: [Tab]): void | kBgCmd.toggleTabUrl => {
   let tab = tabs[0], url = getTabUrl(tab)
   const reader = get_cOptions<C.toggleTabUrl>().reader, keyword = get_cOptions<C.toggleTabUrl, true>().keyword
   if (url.startsWith(BrowserProtocol_)) {

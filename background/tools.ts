@@ -83,12 +83,12 @@ const ContentSettings_ = Build.PContentSettings ? {
       return Backend_.showHUD_(trans_("csCleared", [trans_(ty) || ty]));
     }
   },
-  toggleCS_ (count: number, options: KnownOptions<kBgCmd.toggleCS>, tabs: [Tab]): void {
+  toggleCS_ (options: KnownOptions<kBgCmd.toggleCS>, count: number, tabs: [Tab]): void {
     const ty = ("" + options.type!) as NonNullable<typeof options.type>, tab = tabs[0];
     return options.incognito ? ContentSettings_.ensureIncognito_(count, ty, tab)
-      : ContentSettings_.toggleCurrent_(count, ty, tab, options.action === "reopen");
+      : ContentSettings_.toggleCurrent_(ty, count, tab, options.action === "reopen");
   },
-  toggleCurrent_ (this: void, count: number, contentType: CSTypes, tab: Tab, reopen: boolean): void {
+  toggleCurrent_ (this: void, contentType: CSTypes, count: number, tab: Tab, reopen: boolean): void {
     const pattern = BgUtils_.removeComposedScheme_(tab.url);
     if (ContentSettings_.complain_(contentType, pattern)) { return; }
     chrome.contentSettings[contentType].get({

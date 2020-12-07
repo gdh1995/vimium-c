@@ -24,10 +24,10 @@ import {
 } from "./tab_commands"
 
 declare const enum Info { NoTab = 0, ActiveTab = 1, CurWndTabsIfRepeat = 2, CurWndTabs = 3, CurShownTabs = 4 }
-type BgCmdNoTab = (this: void, _fakeArg?: undefined) => void
-type BgCmdActiveTab = (this: void, tabs1: [Tab]) => void
-type BgCmdActiveTabOrNoTab = (this: void, tabs1?: [Tab]) => void
-type BgCmdCurWndTabs = (this: void, tabs1: Tab[]) => void
+type BgCmdNoTab<T extends kBgCmd> = (this: void, _fakeArg?: undefined) => void | T
+type BgCmdActiveTab<T extends kBgCmd> = (this: void, tabs1: [Tab]) => void | T
+type BgCmdActiveTabOrNoTab<T extends kBgCmd> = (this: void, tabs1?: [Tab]) => void | T
+type BgCmdCurWndTabs<T extends kBgCmd> = (this: void, tabs1: Tab[]) => void | T
 
 interface BgCmdInfoNS {
   [kBgCmd.captureTab]: Info.ActiveTab
@@ -70,16 +70,16 @@ const BgCmdInfo: { readonly [K in keyof BgCmdOptions]: K extends keyof BgCmdInfo
 
 const BackgroundCommands: {
   readonly [K in keyof BgCmdOptions]: K extends keyof BgCmdInfoNS
-      ? BgCmdInfoNS[K] extends Info.ActiveTab ? BgCmdActiveTab
-        : BgCmdInfoNS[K] extends Info.CurWndTabsIfRepeat | Info.CurWndTabs | Info.CurShownTabs ? BgCmdCurWndTabs
-        : BgCmdInfoNS[K] extends Info.ActiveTab | Info.NoTab ? BgCmdActiveTabOrNoTab
+      ? BgCmdInfoNS[K] extends Info.ActiveTab ? BgCmdActiveTab<K>
+        : BgCmdInfoNS[K] extends Info.CurWndTabsIfRepeat | Info.CurWndTabs | Info.CurShownTabs ? BgCmdCurWndTabs<K>
+        : BgCmdInfoNS[K] extends Info.ActiveTab | Info.NoTab ? BgCmdActiveTabOrNoTab<K>
         : never
-      : BgCmdNoTab
+      : BgCmdNoTab<K>
 } = [
   /* kBgCmd.blank: */ BgUtils_.blank_,
 
   // region: need cport
-  /* kBgCmd.goNext: */ (): void => {
+  /* kBgCmd.goNext: */ (): void | kBgCmd.goNext => {
     const rawRel = get_cOptions<C.goNext>().rel
     const rel = rawRel ? rawRel + "" : "next"
     const isNext = get_cOptions<C.goNext>().isNext != null ? !!get_cOptions<C.goNext>().isNext
@@ -107,7 +107,7 @@ const BackgroundCommands: {
       }
     })
   },
-  /* kBgCmd.insertMode: */ (): void => {
+  /* kBgCmd.insertMode: */ (): void | kBgCmd.insertMode => {
     let _key = get_cOptions<C.insertMode>().key, _hud: boolean | UnknownValue,
     hud = (_hud = get_cOptions<C.insertMode>().hideHUD) != null ? !_hud
         : (_hud = get_cOptions<C.insertMode>().hideHud) != null ? !_hud
@@ -125,7 +125,7 @@ const BackgroundCommands: {
   /* kBgCmd.nextFrame: */ nextFrame,
   /* kBgCmd.parentFrame: */ parentFrame,
   /* kBgCmd.performFind: */ performFind,
-  /* kBgCmd.toggle: */ (): void => {
+  /* kBgCmd.toggle: */ (): void | kBgCmd.toggle => {
     type Keys = SettingsNS.FrontendSettingsSyncingItems[keyof SettingsNS.FrontendSettingsSyncingItems][0]
     type ManualNamesMap = SelectNameToKey<SettingsNS.ManuallySyncedItems>
     const key: Keys = (get_cOptions<C.toggle>().key || "") + "" as Keys,
@@ -155,7 +155,7 @@ const BackgroundCommands: {
       }
     }
   },
-  /* kBgCmd.showHelp: */ (): void => {
+  /* kBgCmd.showHelp: */ (): void | kBgCmd.showHelp => {
     if (cPort.s.i === 0 && !(cPort.s.f & Frames.Flags.hadHelpDialog)) {
       initHelp({ a: get_cOptions<C.showHelp, true>() }, cPort)
     } else {
@@ -167,7 +167,7 @@ const BackgroundCommands: {
   /* kBgCmd.visualMode: */ enterVisualMode,
   // endregion: need cport
 
-  /* kBgCmd.addBookmark: */ (): void => {
+  /* kBgCmd.addBookmark: */ (): void | kBgCmd.addBookmark => {
     const path: string | UnknownValue = get_cOptions<C.addBookmark>().folder || get_cOptions<C.addBookmark>().path
     const nodes = path ? (path + "").replace(<RegExpG> /\\/g, "/").split("/").filter(i => i) : []
     if (!nodes.length) { showHUD('Need "path" to a bookmark folder.'); return }
@@ -215,7 +215,7 @@ const BackgroundCommands: {
       })
     })
   },
-  /* kBgCmd.autoOpenFallback: */ (): void => {
+  /* kBgCmd.autoOpenFallback: */ (): void | kBgCmd.autoOpenFallback => {
     set_cOptions(BgUtils_.safer_<KnownOptions<C.openUrl>>({
       copied: true,
       keyword: get_cOptions<C.autoOpenFallback, true>().keyword
@@ -223,16 +223,16 @@ const BackgroundCommands: {
     openUrl()
   },
   /* kBgCmd.captureTab: */ captureTab,
-  /* kBgCmd.clearCS: */ (): void => {
+  /* kBgCmd.clearCS: */ (): void | kBgCmd.clearCS => {
     Build.PContentSettings ? ContentSettings_.clearCS_(get_cOptions<C.clearCS, true>(), cPort)
     : (ContentSettings_.complain_ as () => any)()
   },
-  /* kBgCmd.clearFindHistory: */ (): void => {
+  /* kBgCmd.clearFindHistory: */ (): void | kBgCmd.clearFindHistory => {
     const incognito = cPort ? cPort.s.a : TabRecency_.incognito_ === IncognitoType.true
     FindModeHistory_.removeAll_(incognito)
     return showHUD(trans_("fhCleared", [incognito ? trans_("incog") : ""]))
   },
-  /* kBgCmd.clearMarks: */ (): void => {
+  /* kBgCmd.clearMarks: */ (): void | kBgCmd.clearMarks => {
     get_cOptions<C.clearMarks>().local ? get_cOptions<C.clearMarks>().all ? Marks_.clear_("#")
     : requireURL({ H: kFgReq.marks, u: "" as "url", a: kMarkAction.clear }, true) : Marks_.clear_()
   },
@@ -257,7 +257,7 @@ const BackgroundCommands: {
     }
     return runtimeError_()
   },
-  /* kBgCmd.discardTab: */ (tabs: Tab[]): void => {
+  /* kBgCmd.discardTab: */ (tabs: Tab[]): void | kBgCmd.discardTab => {
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$tabs$$discard
         && CurCVer_ < BrowserVer.Min$tabs$$discard) {
       showHUD(trans_("noDiscardIfOld", [BrowserVer.Min$tabs$$discard]))
@@ -291,7 +291,7 @@ const BackgroundCommands: {
       }
     }
   },
-  /* kBgCmd.duplicateTab: */ (): void => {
+  /* kBgCmd.duplicateTab: */ (): void | kBgCmd.duplicateTab => {
     const tabId = cPort ? cPort.s.t : TabRecency_.curTab_
     if (tabId < 0) {
       return complainLimits(trans_("dupTab"))
@@ -324,11 +324,11 @@ const BackgroundCommands: {
     }
   },
   // only work on Chrome: Firefox has neither tabs.goBack, nor support for tabs.update("javascript:...")
-  /* kBgCmd.goBackFallback: */ Build.BTypes & BrowserType.Chrome ? (tabs: [Tab]): void => {
+  /* kBgCmd.goBackFallback: */ Build.BTypes & BrowserType.Chrome ? (tabs: [Tab]): void | kBgCmd.goBackFallback => {
     if (!tabs.length) { return }
     framesGoBack({ s: cRepeat, r: get_cOptions<C.goBackFallback, true>().reuse }, null, tabs[0])
   } : BgUtils_.blank_,
-  /* kBgCmd.goToTab: */ (tabs: Tab[]): void => {
+  /* kBgCmd.goToTab: */ (tabs: Tab[]): void | kBgCmd.goToTab => {
     if (tabs.length < 2) { return }
     const count = cRepeat, len = tabs.length
     let cur: Tab | undefined, index = get_cOptions<C.goToTab>().absolute
@@ -346,7 +346,7 @@ const BackgroundCommands: {
     }
     if (!toSelect.active) { selectTab(toSelect.id) }
   },
-  /* kBgCmd.goUp: */ (): void => {
+  /* kBgCmd.goUp: */ (): void | kBgCmd.goUp => {
     if (get_cOptions<C.goUp>().type !== "frame" && cPort && cPort.s.i) {
       set_cPort(indexFrame(cPort.s.t, 0) || cPort)
     }
@@ -359,7 +359,7 @@ const BackgroundCommands: {
   },
   /* kBgCmd.joinTabs: */ joinTabs,
   /* kBgCmd.mainFrame: */ mainFrame,
-  /* kBgCmd.moveTab: */ (tabs: Tab[]): void => {
+  /* kBgCmd.moveTab: */ (tabs: Tab[]): void | kBgCmd.moveTab => {
     const tab = selectFrom(tabs), pinned = tab.pinned
     let index = Math.max(0, Math.min(tabs.length - 1, tab.index + cRepeat))
     while (pinned !== tabs[index].pinned) { index -= cRepeat > 0 ? 1 : -1 }
@@ -371,13 +371,13 @@ const BackgroundCommands: {
   /* kBgCmd.moveTabToNextWindow: */ moveTabToNextWindow,
   /* kBgCmd.openUrl: */ openUrl,
   /* kBgCmd.reloadTab: */ reloadTab,
-  /* kBgCmd.removeRightTab: */ (tabs: Tab[]): void => {
+  /* kBgCmd.removeRightTab: */ (tabs: Tab[]): void | kBgCmd.removeRightTab => {
     if (!tabs) { return }
     const ind = selectFrom(tabs).index, [start, end] = getTabRange(ind, tabs.length, 0, 1)
     browserTabs.remove(tabs[ind + 1 === end || cRepeat > 0 && start !== ind ? start : end - 1].id)
   },
   /* kBgCmd.removeTab: */ removeTab,
-  /* kBgCmd.removeTabsR: */ (tabs: Tab[]): void => {
+  /* kBgCmd.removeTabsR: */ (tabs: Tab[]): void | kBgCmd.removeTabsR => {
     /** `direction` is treated as limited; limited by pinned */
     let activeTab = selectFrom(tabs), direction = get_cOptions<C.removeTabsR>().other ? 0 : cRepeat
     let i = activeTab.index, noPinned = false
@@ -411,7 +411,7 @@ const BackgroundCommands: {
       browserTabs.remove(tabs.map(tab => tab.id), runtimeError_)
     }
   },
-  /* kBgCmd.reopenTab: */ (tabs: [Tab] | never[]): void => {
+  /* kBgCmd.reopenTab: */ (tabs: [Tab] | never[]): void | kBgCmd.reopenTab => {
     if (tabs.length <= 0) { return }
     const tab = tabs[0]
     ++tab.index
@@ -429,7 +429,7 @@ const BackgroundCommands: {
       })
     }
   },
-  /* kBgCmd.restoreGivenTab: */ (): void => {
+  /* kBgCmd.restoreGivenTab: */ (): void | kBgCmd.restoreGivenTab => {
     const sessions = browserSessions()
     if ((Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox
           || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSessions) && !sessions) {
@@ -451,7 +451,7 @@ const BackgroundCommands: {
     }
     sessions.getRecentlyClosed(doRestore)
   },
-  /* kBgCmd.restoreTab: */ (): void => {
+  /* kBgCmd.restoreTab: */ (): void | kBgCmd.restoreTab => {
     const sessions = browserSessions()
     if ((Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox
           || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSessions) && !sessions) {
@@ -467,7 +467,7 @@ const BackgroundCommands: {
       sessions.restore(null, runtimeError_)
     } while (0 < --count)
   },
-  /* kBgCmd.runKey: */ (): void => {
+  /* kBgCmd.runKey: */ (): void | kBgCmd.runKey => {
     let keys = get_cOptions<C.runKey>().keys, absCRepeat = abs(cRepeat), key: string | undefined
     if (typeof keys === "string" && keys.trim() && keys.includes(" ")) {
       keys = keys.split(" ")
@@ -506,7 +506,7 @@ const BackgroundCommands: {
       }
     }
   },
-  /* kBgCmd.searchInAnother: */ (tabs: [Tab]): void => {
+  /* kBgCmd.searchInAnother: */ (tabs: [Tab]): void | kBgCmd.searchInAnother => {
     let keyword = (get_cOptions<C.searchInAnother>().keyword || "") + ""
     const query = Backend_.parse_({ u: getTabUrl(tabs[0]) })
     if (!query || !keyword) {
@@ -518,11 +518,7 @@ const BackgroundCommands: {
     set_cOptions(BgUtils_.safer_({ reuse: reuse ?? ReuseType.current, opener: true, url_f }))
     openUrl(tabs)
   },
-  /* kBgCmd.showTip: */ (): void => {
-    let text = get_cOptions<C.showTip>().text
-    showHUD(text ? text + "" : trans_("needText"))
-  },
-  /* kBgCmd.sendToExtension: */ (): void => {
+  /* kBgCmd.sendToExtension: */ (): void | kBgCmd.sendToExtension => {
     let targetID = get_cOptions<C.sendToExtension>().id, data = get_cOptions<C.sendToExtension>().data
     if (targetID && typeof targetID === "string" && data !== void 0) {
       const now = Date.now()
@@ -541,14 +537,18 @@ const BackgroundCommands: {
       showHUD('Require a string "id" and message "data"')
     }
   },
-  /* kBgCmd.toggleCS: */ (tabs: [Tab]): void => {
-    Build.PContentSettings ? ContentSettings_.toggleCS_(cRepeat, get_cOptions<C.toggleCS, true>(), tabs)
+  /* kBgCmd.showTip: */ (): void | kBgCmd.showTip => {
+    let text = get_cOptions<C.showTip>().text
+    showHUD(text ? text + "" : trans_("needText"))
+  },
+  /* kBgCmd.toggleCS: */ (tabs: [Tab]): void | kBgCmd.toggleCS => {
+    Build.PContentSettings ? ContentSettings_.toggleCS_(get_cOptions<C.toggleCS, true>(), cRepeat, tabs)
         : (ContentSettings_.complain_ as () => any)()
   },
   /* kBgCmd.toggleMuteTab: */ toggleMuteTab,
   /* kBgCmd.togglePinTab: */ togglePinTab,
   /* kBgCmd.toggleTabUrl: */ toggleTabUrl,
-  /* kBgCmd.toggleVomnibarStyle: */ (tabs: [Tab]): void => {
+  /* kBgCmd.toggleVomnibarStyle: */ (tabs: [Tab]): void | kBgCmd.toggleVomnibarStyle => {
     const tabId = tabs[0].id, toggled = ((get_cOptions<C.toggleVomnibarStyle>().style || "") + "").trim(),
     current = !!get_cOptions<C.toggleVomnibarStyle>().current
     if (!toggled) {
@@ -564,7 +564,7 @@ const BackgroundCommands: {
     current || setOmniStyle({ t: toggled, o: 1 })
   },
   /* kBgCmd.toggleZoom: */ toggleZoom,
-  /* kBgCmd.visitPreviousTab: */ (tabs: Tab[]): void => {
+  /* kBgCmd.visitPreviousTab: */ (tabs: Tab[]): void | kBgCmd.visitPreviousTab => {
     if (tabs.length < 2) { return }
     tabs.splice((Build.BTypes & BrowserType.Firefox ? selectFrom(tabs, 1) : selectFrom(tabs)).index, 1)
     tabs = tabs.filter(i => TabRecency_.tabs_.has(i.id)).sort(TabRecency_.rCompare_)
@@ -577,7 +577,7 @@ const BackgroundCommands: {
 const executeCmdOnTabs = (tabs: Tab[] | [Tab] | undefined): void => {
   const callback = gOnConfirmCallback
   set_gOnConfirmCallback(null)
-  callback && (callback as unknown as BgCmdCurWndTabs)(tabs!)
+  callback && (callback as unknown as BgCmdCurWndTabs<kBgCmd>)(tabs!)
   return tabs ? void 0 : runtimeError_()
 }
 
@@ -642,9 +642,9 @@ set_executeCommand((registryEntry: CommandsNS.Item, count: number, lastKey: kKey
   set_cRepeat(count)
   count = BgCmdInfo[alias]
   if (count < Info.ActiveTab) {
-    (func as BgCmdNoTab)()
+    (func as BgCmdNoTab<kBgCmd>)()
   } else {
-    set_gOnConfirmCallback(func as BgCmdCurWndTabs as any);
+    set_gOnConfirmCallback(func as BgCmdCurWndTabs<kBgCmd> as any);
     (count < Info.CurWndTabsIfRepeat || count === Info.CurWndTabsIfRepeat && abs(cRepeat) < 2 ? getCurTab
         : Build.BTypes & BrowserType.Firefox && count > Info.CurWndTabs ? getCurShownTabs_ff_only!
         : getCurTabs)(/*#__NOINLINE__*/ executeCmdOnTabs)
