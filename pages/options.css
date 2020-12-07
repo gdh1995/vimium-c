@@ -485,12 +485,14 @@ label:active {
 }
 #exclusionAddButton {
   overflow: hidden;
+  overflow: crop;
   visibility: visible;
   width: 76px;
 }
 #exclusionSortButton {
   margin-right: 4px;
   overflow: hidden;
+  overflow: crop;
   padding: 0 7px;
   width: 76px;
 }
