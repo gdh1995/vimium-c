@@ -25,26 +25,18 @@ import { omni_box, focusOmni } from "./omni"
 import { execCommand } from "./mode_find"
 import { kDir, kExtend } from "./visual"
 type LinkEl = Hint[0];
-interface Executor {
-  (this: void, linkEl: LinkEl, rect: Rect | null, hintEl: Pick<HintItem, "r">): void | boolean;
-}
-interface HTMLExecutor {
-  (this: void, linkEl: SafeHTMLElement, rect: Rect | null, hintEl: Pick<HintItem, "r">): void | boolean;
-}
-export type LinkAction = readonly [ executor: Executor, ...modes: HintMode[] ]
 
-let hintModeAction: LinkAction | null | undefined
 let hintKeyCode_ = kKeyCode.None
 let removeFlash = null as (() => void) | null
 
 export { removeFlash, hintKeyCode_ as hintKeyCode }
-export function set_hintModeAction (_newHintModeAction: LinkAction | null): void { hintModeAction = _newHintModeAction }
 export function set_removeFlash (_newRmFlash: null): void { removeFlash = _newRmFlash }
 export function set_hintKeyCode_ (_newHintKeyCode: kKeyCode): void { hintKeyCode_ = _newHintKeyCode }
 
 export const executeHintInOfficer = (hint: HintItem, event?: HandlerNS.Event): Rect | null | undefined | 0 => {
   const masterOrA = hintManager || coreHints, keyStatus = masterOrA.$().k;
   let rect: Rect | null | undefined, clickEl: LinkEl | null = hint.d;
+  let showRect: BOOL | undefined
   if (hintManager) {
     set_keydownEvents_(hintApi.a())
     setMode(masterOrA.$().m, 1);
@@ -73,8 +65,67 @@ export const executeHintInOfficer = (hint: HintItem, event?: HandlerNS.Event): R
     }
     hintManager && focus();
     // tolerate new rects in some cases
-    const showRect = hintModeAction![0](clickEl, rect, hint);
-    if (!removeFlash && showRect !== false && (rect || (rect = getVisibleClientRect_(clickEl)))) {
+    const m = mode1_
+    if (isIFrameElement(clickEl)) {
+      hintOptions.m = hintMode_;
+      (hintManager || coreHints).$(1)
+      showRect = <BOOL> +(clickEl !== omni_box)
+      showRect ? /*#__NOINLINE__*/ focusIFrame(clickEl) : focusOmni()
+    } else if (m < HintMode.min_job) {
+      if (htmlTag_(clickEl) === "details") {
+        const summary = findMainSummary_(clickEl as HTMLDetailsElement);
+        if (summary) {
+          // `HTMLSummaryElement::DefaultEventHandler(event)` in
+          // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_summary_element.cc?l=109
+          const rect2 = (clickEl as HTMLDetailsElement).open || !rect ? getVisibleClientRect_(summary) : rect
+          catchAsyncErrorSilently(click_(summary, rect2, 1)).then((): void => {
+            removeFlash || rect2 && flash_(null, rect2)
+          })
+          showRect = 0
+        } else {
+          (clickEl as HTMLDetailsElement).open = !(clickEl as HTMLDetailsElement).open;
+        }
+      } else if (hint.r && hint.r === clickEl) {
+        hoverEl(clickEl, rect)
+      } else if (getEditableType_<0>(clickEl) > EditableType.TextBox - 1) {
+        select_(clickEl as LockableElement, rect, !removeFlash)
+        showRect = 0
+      } else {
+        /*#__NOINLINE__*/ defaultClick(clickEl, rect)
+      }
+    } else if (m < HintMode.UNHOVER + 1) {
+      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredAsyncFunctions) {
+        m < HintMode.HOVER + 1 ? hoverEl(clickEl, rect) : unhover_(clickEl)
+      } else {
+        (m < HintMode.HOVER + 1 ? hoverEl : unhover_)(clickEl, rect)
+      }
+    } else if (m < HintMode.FOCUS + 1) {
+      view_(clickEl)
+      clickEl.focus && clickEl.focus()
+      removeFlash || flash_(clickEl)
+      showRect = 0
+    } else if (m < HintMode.max_media + 1) {
+      /*#__NOINLINE__*/ downloadOrOpenMedia(clickEl as SafeHTMLElement)
+    } else if (m < HintMode.max_copying + 1) {
+      copyText(clickEl)
+    } else if (m < HintMode.DOWNLOAD_LINK + 1) {
+      /*#__NOINLINE__*/ downloadLink(clickEl as SafeHTMLElement, rect)
+    } else if (m < HintMode.OPEN_INCOGNITO_LINK + 1) {
+      const url = getUrlData(clickEl as SafeHTMLElement)
+      evalIfOK(url) || openUrl(url, !0)
+    } else if (m < HintMode.max_edit + 1) {
+      copyText(clickEl)
+    } else if (m < HintMode.FOCUS_EDITABLE + 1) {
+      select_(clickEl as HintsNS.InputHintItem["d"], rect, !removeFlash)
+      showRect = 0
+    } else { // HintMode.ENTER_VISUAL_MODE
+      selectAllOfNode(clickEl)
+      const sel = getSelection_()
+      collpaseSelection(sel)
+      sel.modify(kExtend, kDir[1], "word")
+      hintOptions.visual === !1 || post_({ H: kFgReq.visualMode, c: hintOptions.caret })
+    }
+    if (!removeFlash && showRect !== 0 && (rect || (rect = getVisibleClientRect_(clickEl)))) {
       timeout_(function (): void {
         (showRect || doc.hasFocus()) && flash_(null, rect!);
       }, 17);
@@ -123,26 +174,25 @@ const downloadOrOpenMedia = (img: SafeHTMLElement): void => {
       || src.length > text.length + 7 && (text === (img as HTMLElement & {href?: string}).href)) {
     text = src;
   }
+  const filename = attr_s(img, "download") || attr_s(img, "alt") || img.title
   if (!text) { hintApi.t({ k: kTip.notImg }) }
   else if (mode1_ === HintMode.OPEN_IMAGE) {
     post_({
       H: kFgReq.openImage, r: hintMode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
       e: parseSedOptions(hintOptions), a: hintOptions.auto,
-      f: getImageName_(img), u: text
+      f: filename, u: text
     })
   } else {
     const url = text, i = text.indexOf("://"), a = createElement_("a")
     text = i > 0 ? text.slice(text.indexOf("/", i + 4) + 1) : text
     text = text.length > 40 ? text.slice(0, 39) + "\u2026" : text
     a.href = url
-    a.download = getImageName_(img)
+    a.download = filename
     /** @todo: how to trigger download */
     mouse_(a, CLK, [0, 0], [!0, !1, !1, !1])
     hintApi.t({ k: kTip.downloaded, t: text })
   }
 }
-
-const getImageName_ = (img: SafeHTMLElement): string => attr_s(img, "download") || attr_s(img, "alt") || img.title
 
 const openUrl = (url: string, incognito?: boolean): void => {
   hintApi.p({
@@ -166,13 +216,7 @@ const unhoverOnEsc: HandlerNS.Handler = event => {
     return HandlerResult.Nothing;
 }
 
-const focusIFrame = (el: KnownIFrameElement): BOOL => {
-  hintOptions.m = hintMode_;
-  (hintManager || coreHints).$(1)
-  if (el === omni_box) {
-    focusOmni()
-    return 1
-  }
+const focusIFrame = (el: KnownIFrameElement): void => {
   el.focus()
   // focus first, so that childApi is up-to-date (in case <iframe> was removed on focus)
   const childApi = detectUsableChild(el)
@@ -187,12 +231,9 @@ const focusIFrame = (el: KnownIFrameElement): BOOL => {
   } else {
     childApi.f(kFgCmd.linkHints, hintOptions, hintCount_, 1)
   }
-  return 0
 }
 
-export const linkActionArray: readonly LinkAction[] = [
-[
-  (element, rect): void => {
+const hoverEl = (element: LinkEl, rect: Rect | null): void => {
     const type = getEditableType_<0>(element), toggleMap = hintOptions.toggle;
     // here not check lastHovered on purpose
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
@@ -243,15 +284,9 @@ export const linkActionArray: readonly LinkAction[] = [
       }
     }
     })
-  }
-  , HintMode.HOVER
-],
-[
-  (el): void => { unhover_(el) }
-  , HintMode.UNHOVER
-],
-[
-  (link): boolean | void => {
+}
+
+const copyText = (link: LinkEl): void => {
     const mode1 = mode1_;
     let isUrl = mode1 > HintMode.min_link_job - 1 && mode1 < HintMode.max_link_job + 1,
         childEl: Element | null,
@@ -262,13 +297,13 @@ export const linkActionArray: readonly LinkAction[] = [
     }
     else if ((str = attr_s(link, "data-vim-text"))
         && (str = str.trim())) { /* empty */ }
-    else if (isIFrameElement(link)) { return !focusIFrame(link) }
     else {
       const tag = htmlTag_(link)
       if (tag === INP) {
         let type = getInputType(link as HTMLInputElement), f: HTMLInputElement["files"];
         if (type === "pa") {
-          return hintApi.t({ k: kTip.ignorePassword })
+          hintApi.t({ k: kTip.ignorePassword })
+          return
         }
         if (!uneditableInputs_[type]) {
           str = (link as HTMLInputElement).value || (link as HTMLInputElement).placeholder;
@@ -294,7 +329,7 @@ export const linkActionArray: readonly LinkAction[] = [
         str = (link as SafeHTMLElement).title.trim() || (attr_s(link, ALA) || "").trim();
       }
     }
-    if (mode1 > HintMode.min_edit - 1 && mode1 < HintMode.max_edit + 1) {
+  if (mode1 > HintMode.min_edit - 1 && mode1 < HintMode.max_edit + 1) {
       let newtab = hintOptions.newtab
       // this frame is normal, so during Vomnibar.activate, checkHidden will only pass (in most cases)
       type Options = FgReq[kFgReq.vomnibar] & { c: number } & Partial<VomnibarNS.ContentOptions>;
@@ -305,24 +340,23 @@ export const linkActionArray: readonly LinkAction[] = [
         url: str,
         keyword: hintOptions.keyword
       });
-      return;
-    } else if (hintOptions.richText) {
+  } else if (hintOptions.richText) {
       const sel = getSelected({}), range = selRange_(getSelection_())
       selectAllOfNode(link)
       execCommand("copy", doc)
       resetSelectionToDocStart(sel, range)
-      return
-    } else if (!str) {
-      return hintApi.t({ k: isUrl ? kTip.noUrlCopied : kTip.noTextCopied })
-    } else if (mode1 === HintMode.SEARCH_TEXT) {
-      return openUrl(str);
-    }
+  } else if (!str) {
+      hintApi.t({ k: isUrl ? kTip.noUrlCopied : kTip.noTextCopied })
+  } else if (mode1 === HintMode.SEARCH_TEXT) {
+      openUrl(str)
+  } else {
     // then mode1 can only be HintMode.COPY_*
     let lastYanked = mode1 & HintMode.list ? (hintManager || coreHints).y : 0 as const;
+    if (lastYanked && lastYanked.indexOf(str) >= 0) {
+      hintApi.t({ k: kTip.noNewToCopy })
+      return
+    }
     if (lastYanked) {
-      if (lastYanked.indexOf(str) >= 0) {
-        return hintApi.t({ k: kTip.noNewToCopy })
-      }
       lastYanked.push(str);
     }
     hintApi.p({
@@ -331,32 +365,11 @@ export const linkActionArray: readonly LinkAction[] = [
       e: parseSedOptions(hintOptions),
       d: isUrl && hintOptions.decoded !== !1,
       s: lastYanked || str
-    });
+    })
   }
-  , HintMode.SEARCH_TEXT
-  , HintMode.COPY_TEXT
-  , HintMode.COPY_TEXT | HintMode.list
-  , HintMode.COPY_URL
-  , HintMode.COPY_URL | HintMode.list
-  , HintMode.EDIT_LINK_URL
-  , HintMode.EDIT_TEXT
-],
-[
-  ((link: SafeHTMLElement): void => {
-    const url = getUrlData(link);
-    if (!evalIfOK(url)) {
-      openUrl(url, !0);
-    }
-  }) as HTMLExecutor as Executor
-  , HintMode.OPEN_INCOGNITO_LINK
-],
-[
-  downloadOrOpenMedia as HTMLExecutor as Executor
-  , HintMode.DOWNLOAD_MEDIA
-  , HintMode.OPEN_IMAGE
-],
-[
-  ((element: SafeHTMLElement, rect): void => {
+}
+
+const downloadLink = (element: SafeHTMLElement, rect: Rect | null): void => {
     let notAnchor = htmlTag_(element) !== "a", H = "href",
     link = notAnchor ? createElement_("a") : element as HTMLAnchorElement,
     oldUrl: string | null = notAnchor ? null : attr_s(link, H),
@@ -372,7 +385,7 @@ export const linkActionArray: readonly LinkAction[] = [
     if (hadNoDownload) {
       link[kD] = "";
     }
-    catchAsyncErrorSilently(click_(link, rect, 0, [!0, !1, !1, !1])).then((): void => {
+  catchAsyncErrorSilently(click_(link, rect, 0, [!0, !1, !1, !1])).then((): void => {
     if (hadNoDownload) {
       setOrRemoveAttr_s(link, kD)
     }
@@ -382,57 +395,10 @@ export const linkActionArray: readonly LinkAction[] = [
     } else {
       setOrRemoveAttr_s(link, H, oldUrl)
     }
-    })
-  }) as HTMLExecutor as Executor
-  , HintMode.DOWNLOAD_LINK
-],
-[
-  (link, rect): void | false => {
-    if (hintMode_ < HintMode.min_disable_queue) {
-      view_(link);
-      link.focus && link.focus();
-      removeFlash || flash_(link)
-    } else {
-      select_(link as HintsNS.InputHintItem["d"], rect, !removeFlash)
-    }
-    return false;
-  }
-  , HintMode.FOCUS
-  , HintMode.FOCUS_EDITABLE
-],
-[
-  (el): void => {
-    selectAllOfNode(el)
-    const sel = getSelection_()
-    collpaseSelection(sel)
-    sel.modify(kExtend, kDir[1], "word")
-    hintOptions.visual === !1 || post_({ H: kFgReq.visualMode, c: hintOptions.caret })
-  },
-  HintMode.ENTER_VISUAL_MODE
-],
-[
-  (link, rect, hint): void | boolean => {
-    const tag = htmlTag_(link)
-    if (isIFrameElement(link)) { return !focusIFrame(link) }
-    else if (tag === "details") {
-      const summary = findMainSummary_(link as HTMLDetailsElement);
-      if (summary) {
-          // `HTMLSummaryElement::DefaultEventHandler(event)` in
-          // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_summary_element.cc?l=109
-          rect = (link as HTMLDetailsElement).open || !rect ? getVisibleClientRect_(summary) : rect;
-          catchAsyncErrorSilently(click_(summary, rect, 1))
-          .then((): void => { removeFlash || rect && flash_(null, rect) })
-          return false;
-      }
-      (link as HTMLDetailsElement).open = !(link as HTMLDetailsElement).open;
-      return;
-    } else if (hint.r && hint.r === link) {
-      linkActionArray[0][0](link, rect, hint);
-      return;
-    } else if (getEditableType_<0>(link) > EditableType.TextBox - 1) {
-      select_(link as LockableElement, rect, !removeFlash);
-      return false;
-    }
+  })
+}
+
+const defaultClick = (link: LinkEl, rect: Rect | null): void => {
     const mask = hintMode_ & HintMode.mask_focus_new, isMac = !fgCache.o,
     isRight = hintOptions.button === "right",
     dblClick = !!hintOptions.dblclick && !isRight,
@@ -449,7 +415,7 @@ export const linkActionArray: readonly LinkAction[] = [
     shift = newWindow || newtab_n_active,
     specialActions = dblClick ? kClickAction.forceToDblclick : otherActions
         || (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$Element$$Closest
-            || link.closest ? !link.closest!("a") : tag !== "a") ? kClickAction.none
+            || link.closest ? !link.closest!("a") : htmlTag_(link) !== "a") ? kClickAction.none
         : newTabStr === "force" ? newTab
             ? kClickAction.forceToOpenInNewTab | kClickAction.newTabFromMode : kClickAction.forceToOpenInNewTab
         : newTabStr === "last-window" ? newTab
@@ -469,13 +435,4 @@ export const linkActionArray: readonly LinkAction[] = [
     .then((ret): void => {
       autoUnhover ? unhover_() : isQueue || ret && pushHandler_(unhoverOnEsc, kHandler.unhoverOnEsc)
     })
-  }
-  , HintMode.OPEN_IN_CURRENT_TAB
-  , HintMode.OPEN_IN_NEW_BG_TAB
-  , HintMode.OPEN_IN_NEW_FG_TAB
-]
-]
-
-if (!(Build.NDEBUG || linkActionArray.length === 10)) {
-  console.log("Assert error: linkActions should have 10 items");
 }

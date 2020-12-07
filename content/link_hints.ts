@@ -88,9 +88,7 @@ import {
   matchHintsByKey, zIndexes_, rotate1, initFilterEngine, initAlphabetEngine, renderMarkers, generateHintText,
   getMatchingHints, activeHint_, hintFilterReset, set_maxPrefixLen_, set_zIndexes_, adjustMarkers, createHint
 } from "./hint_filters"
-import {
-  LinkAction, linkActionArray, executeHintInOfficer, removeFlash, set_hintModeAction, set_removeFlash, set_hintKeyCode_
-} from "./link_actions"
+import { executeHintInOfficer, removeFlash, set_removeFlash, set_hintKeyCode_ } from "./link_actions"
 import { lastHovered_, set_lastHovered_ } from "./async_dispatcher"
 import { hookOnWnd, contentCommands_ } from "./port"
 
@@ -230,29 +228,11 @@ const collectFrameHints = (options: HintsNS.ContentOptions, count: number
         Build.BTypes & BrowserType.Firefox ? manager && unwrap_ff(manager) : manager
     resetHints();
     scrollTick(2);
-    let modeAction: LinkAction | undefined;
     if (options_ !== options) {
       /** ensured by {@link ../background/key_mappings.ts#KeyMappings.makeCommand_} */
-      let mode = options.m as number;
-      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Array$$find$$findIndex) {
-        for (let modes of linkActionArray) {
-          if (modes.indexOf(mode & ~HintMode.queue) > 0) { modeAction = modes; break }
-        }
-        if (!modeAction) {
-          modeAction = linkActionArray[8]
-          mode = HintMode.DEFAULT;
-        }
-      } else {
-        modeAction = linkActionArray.find((modes): boolean => {
-          return Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
-              ? modes.indexOf(mode & ~HintMode.queue) > 0 : modes.includes!(mode & ~HintMode.queue)
-        }) || (mode = HintMode.DEFAULT, linkActionArray[8])
-      }
-      mode = count > 1 ? mode ? mode | HintMode.queue : HintMode.OPEN_WITH_QUEUE : mode;
-      set_hintModeAction(modeAction);
       options_ = options;
       count_ = count;
-      setMode(mode, 1);
+      setMode(count > 1 ? (options.m || (HintMode.OPEN_WITH_QUEUE & ~HintMode.queue)) | HintMode.queue : options.m, 1)
     }
     chars_ = chars;
     useFilter_ = useFilter
@@ -648,7 +628,6 @@ export const clear = (onlySelfOrEvent?: 0 | 1 | Event, suppressTimeout?: number)
     set_onWndBlur2(null)
     removeFlash && removeFlash();
     api_ = options_ = null as never
-    set_hintModeAction(null)
     set_removeFlash(null)
     /*#__INLINE__*/ localLinkClear()
     set_maxPrefixLen_(0)
