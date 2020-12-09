@@ -2,13 +2,15 @@ const enum kNodeInfo {
   NONE = 0,
   ShadowBlur = 1, ShadowFull = 2,
 }
-interface NodeWithInfo extends Node {
-  vimiumC?: kNodeInfo;
+interface ShadowNodeMap {
+  set (node: Node, info: kNodeInfo.ShadowBlur | kNodeInfo.ShadowFull): any
+  get (node: Node): kNodeInfo | undefined
+  delete (node: Node): any
 }
 
 import {
   doc, keydownEvents_, safeObj, fgCache, isTop, set_keydownEvents_, setupEventListener, VOther, Stop_,
-  esc, onWndFocus, isEnabled_, readyState_, injector, getTime, recordLog, weakRef_
+  esc, onWndFocus, isEnabled_, readyState_, injector, recordLog, weakRef_
 } from "../lib/utils"
 import { post_, safePost } from "./port"
 import { getParentVApi, ui_box } from "./dom_ui"
@@ -21,13 +23,7 @@ import {
 } from "../lib/dom_utils"
 import { pushHandler_, removeHandler_, prevent_ } from "../lib/keyboard_utils"
 
-const domNodeMap = Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
-    || WeakMap ? new WeakMap!<Node, kNodeInfo>() as never : {
-  set (node: Node, info: Exclude<kNodeInfo, kNodeInfo.NONE>): any { (node as NodeWithInfo).vimiumC = info; },
-  get (node: Node): kNodeInfo | undefined { return (node as NodeWithInfo).vimiumC; },
-  delete (node: Node): any { delete (node as NodeWithInfo).vimiumC; }
-}
-
+let shadowNodeMap: ShadowNodeMap | undefined
 let lock_ = null as LockableElement | null
 let insert_global_: InsertModeOptions | null = null
 let isHintingInput: BOOL = 0
@@ -63,22 +59,21 @@ export const insertInit = (): void => {
         || isHTML_() || activeEl !== docEl_unsafe_()) && !!activeEl;
   set_keydownEvents_(safeObj(null))
   if (fgCache.g && grabBackFocus) {
-    let counter = 0, prompt = function (): void {
-      counter++ || recordLog(kTip.logGrabFocus)
-    };
-    if (notBody = notBody && getEditableType_(activeEl!)) {
+    let counter = 0
+    if (notBody = notBody && !!getEditableType_(activeEl!)) {
       insert_last_ = null;
-      prompt();
+      counter = 1
+      recordLog(kTip.logGrabFocus);
       (activeEl as LockableElement).blur();
       // here ignore the rare case of an XMLDocument with a editable node on Firefox, for smaller code
       notBody = (activeEl = activeEl_unsafe_()) !== doc.body;
     }
     if (!notBody) {
-      grabBackFocus = function (event: Event, target: LockableElement): void {
+      grabBackFocus = (event: Event, target: LockableElement): void => {
         const activeEl1 = activeEl_unsafe_();
         if (activeEl1 === target || activeEl1 && GetShadowRoot_(activeEl1)) {
           Stop_(event);
-          prompt();
+          counter++ || recordLog(kTip.logGrabFocus)
           target.blur();
         }
       };
@@ -201,7 +196,7 @@ export const exitInputHint = (): void => {
   }
 }
 
-export function resetInsert (): void {
+export const resetInsert = (): void => {
   insert_last_ = lock_ = insert_global_ = null;
   is_last_mutable = 1;
   exitGrab(); setupSuppress();
@@ -213,7 +208,7 @@ export const onFocus = (event: Event | FocusEvent): void => {
   // on Firefox, target may also be `document`
   let target: EventTarget | Element | Window | Document = event.target;
   if (target === window) {
-    lastWndFocusTime = getTime();
+    lastWndFocusTime = event.timeStamp
     return onWndFocus();
   }
   if (!isEnabled_ || Build.BTypes & BrowserType.Firefox && target === doc) { return; }
@@ -252,7 +247,7 @@ export const onFocus = (event: Event | FocusEvent): void => {
     hookOnShadowRoot(isNormalHost ? path! : [sr, target], target as Element);
     target = isNormalHost ? top as Element : target;
   }
-  if (!lastWndFocusTime || getTime() - lastWndFocusTime > 30) {
+  if (!lastWndFocusTime || event.timeStamp - lastWndFocusTime > 30) {
     if (Build.BTypes & ~BrowserType.Firefox) {
       let el: SafeElement | null = SafeEl_not_ff_!(target as Element)
       el && set_currentScrolling(weakRef_(el))
@@ -306,7 +301,7 @@ export const onBlur = (event: Event | FocusEvent): void => {
   }
   if (!sr || target === ui_box) { return; }
   if (same) {
-    domNodeMap.set(sr, kNodeInfo.ShadowBlur);
+    shadowNodeMap && shadowNodeMap.set(sr, kNodeInfo.ShadowBlur)
   } else {
     hookOnShadowRoot(path!, target as Element, 1);
   }
@@ -319,7 +314,7 @@ export const onShadow = function (this: ShadowRoot, event: FocusEvent): void {
     onFocus(event);
     return;
   }
-  if (!isEnabled_ || domNodeMap.get(this) === kNodeInfo.ShadowBlur) {
+  if (!isEnabled_ || shadowNodeMap && shadowNodeMap.get(this) === kNodeInfo.ShadowBlur) {
     hookOnShadowRoot([this, 0 as never], 0, 1);
   }
   if (isEnabled_) {
@@ -332,12 +327,15 @@ const hookOnShadowRoot = (path: ArrayLike<EventTarget | 0>, target: Node | 0, di
         || !(Build.BTypes & BrowserType.Chrome)
         ? (path as Array<EventTarget | 0>).indexOf(target) : ([] as Array<EventTarget | 0>).indexOf.call(path, target)
       ; 0 <= --len; ) {
-    const root = (path as EventPath)[len] as Node;
+    const root = (path as EventPath)[len] as Document | Element | ShadowRoot
     // root is target or inside target, so always a Node
     if (isNode_(root, kNode.DOCUMENT_FRAGMENT_NODE)) {
-      setupEventListener(root as ShadowRoot, "focus", onShadow, disable);
-      setupEventListener(root as ShadowRoot, BU, onShadow, disable);
-      disable ? domNodeMap.delete(root) : domNodeMap.set(root, kNodeInfo.ShadowFull);
+      setupEventListener(root, "focus", onShadow, disable)
+      setupEventListener(root, BU, onShadow, disable)
+      disable ? shadowNodeMap && shadowNodeMap.delete(root)
+      : (shadowNodeMap || (shadowNodeMap = Build.MinCVer < BrowserVer.MinEnsuredES6WeakMapAndWeakSet
+            && Build.BTypes & BrowserType.Chrome ? /*#__NOINLINE__*/ getSimpleNodeMap() : new WeakMap!()
+        )).set(root, kNodeInfo.ShadowFull);
     }
   }
 }
@@ -353,4 +351,13 @@ export const onWndBlur = (): void => {
   }
   injector || (<RegExpOne> /a?/).test("");
   esc!(HandlerResult.ExitPassMode);
+}
+
+const getSimpleNodeMap = (): ShadowNodeMap => {
+  interface NodeWithInfo extends Node { vimiumC?: kNodeInfo }
+  return WeakMap ? new WeakMap() : {
+    set (node: Node, info: Exclude<kNodeInfo, kNodeInfo.NONE>): any { (node as NodeWithInfo).vimiumC = info },
+    get (node: Node): kNodeInfo | undefined { return (node as NodeWithInfo).vimiumC },
+    delete (node: Node): any { delete (node as NodeWithInfo).vimiumC }
+  }
 }

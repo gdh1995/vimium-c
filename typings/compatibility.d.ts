@@ -488,6 +488,8 @@ declare const enum BrowserVer {
   // 2->0.25/0.5; 5->0.04/0.2; 6->0.027778/0.166667
   MinBorderWidth$Ensure1$Or$Floor = 85, // even if EXPERIMENTAL or LEGACY
   MinClipboardWriteHTML = 86,
+  Min$TargetIsBlank$Implies$Noopener = 88, // https://chromestatus.com/features/6140064063029248
+  MinCSS$overflow$crop = 89,
   /** @todo: trace https://bugs.chromium.org/p/chromium/issues/detail?id=968651&can=2&q=reduced-motion%20change */
   MinMediaChangeEventsOnBackgroundPage = 1000,
   MinNo$TimerType$$Fake = 999,
