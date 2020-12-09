@@ -66,24 +66,22 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
         (arr as WritableRect).l += 12; (arr as WritableRect).t += 9;
       }
     }
-    type = isClickable ? ClickType.frame : ClickType.Default;
+    type = ClickType.frame
     break;
-  case "input":
-    if (getInputType(element as HTMLInputElement) === "hi") { return; } // no break;
-  case "textarea":
+  case "input": case "textarea":
     // on C75, a <textarea disabled> is still focusable
-    if ((element as TextElement).disabled && mode1_ < HintMode.max_mouse_events + 1) { return; }
-    if (tag < "t" && uneditableInputs_[getInputType(element as HTMLInputElement)]) {
-      const st = getComputedStyle_(element), visible = <number> <string | number> st.opacity > 0;
-      isClickable = visible || !(element as HTMLInputElement).labels.length;
-      if (isClickable) {
-        arr = getZoomedAndCroppedRect_(element as HTMLInputElement, st, !visible);
-        type = arr ? ClickType.edit : ClickType.Default;
+    if ((element as TextElement).disabled && mode1_ < HintMode.max_mouse_events + 1) { /* empty */ }
+    else if (tag > "t" || !uneditableInputs_[s = getInputType(element as HTMLInputElement)]) {
+      isClickable = !(element as TextElement).readOnly || mode1_ > HintMode.min_job - 1
+    } else if (s !== "hi") {
+      const st = getComputedStyle_(element)
+      isClickable = <number> <string | number> st.opacity > 0
+      if (isClickable || !(element as HTMLInputElement).labels.length) {
+        arr = getZoomedAndCroppedRect_(element as HTMLInputElement, st, !isClickable)
+        isClickable = !!arr
       }
-    } else if (!(element as TextElement).readOnly || mode1_ > HintMode.min_job - 1) {
-      type = ClickType.edit;
-      isClickable = true;
     }
+    type = ClickType.edit
     break;
   case "details":
     isClickable = isNotReplacedBy(findMainSummary_(element as HTMLDetailsElement), hints);
@@ -97,12 +95,11 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
     break;
   case "object": case "embed":
     s = (element as HTMLObjectElement | HTMLEmbedElement).type;
-    if (s && s.endsWith("x-shockwave-flash")) { isClickable = true; break; }
-    if (tag !== "embed"
-        && (element as HTMLObjectElement).useMap) {
+    isClickable = !!s && s.endsWith("x-shockwave-flash")
+    if (!isClickable && tag > "o" && (element as HTMLObjectElement).useMap) {
       getClientRectsForAreas_(element as HTMLObjectElement, hints);
     }
-    return;
+    break
   case "img":
     if ((element as HTMLImageElement).useMap) {
       getClientRectsForAreas_(element as HTMLImageElement, hints);
@@ -147,8 +144,9 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
                     : clickable_.has(anotherEl) && htmlTag_(anotherEl) === "ul" && !s.includes("active")))
             || element.hasAttribute("aria-selected")
             || element.getAttribute("data-tab") ? ClickType.classname : ClickType.Default);
+    isClickable = type > ClickType.Default
   }
-  if ((isClickable || type !== ClickType.Default)
+  if (isClickable
       && (arr = tag === "img" ? getZoomedAndCroppedRect_(element as HTMLImageElement, null, true)
               : arr || getVisibleClientRect_(element, null))
       && (type < ClickType.scrollX
@@ -254,9 +252,10 @@ const inferTypeOfListener = (el: SafeHTMLElement, tag: string): boolean => {
 
 /** Note: required by {@link #kFgCmd.focusInput}, should only add LockableElement instances */
 export const getEditable = (hints: Hint[], element: SafeHTMLElement): void => {
-  let s: string = element.localName
-  if ((s === INP && uneditableInputs_[getInputType(element as HTMLInputElement)] || s === "textarea")
-      ? (element as TextElement).disabled || (element as TextElement).readOnly
+  let s: string = element.localName;
+  if ((s === INP || s === "textarea")
+      ? s < "t" && uneditableInputs_[getInputType(element as HTMLInputElement)]
+        || (element as TextElement).disabled || (element as TextElement).readOnly
       : (s = element.contentEditable) === "inherit" || s === "false" || !s) {
     return
   }
