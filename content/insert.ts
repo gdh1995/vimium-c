@@ -277,14 +277,15 @@ export const onBlur = (event: Event | FocusEvent): void => {
   if (!isEnabled_
       || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
           ? !event.isTrusted : event.isTrusted === false)) { return; }
-  const target: EventTarget | Element | Window | Document = event.target;
+  let target: EventTarget | Element | Window | Document = event.target, topOfPath: EventTarget | undefined
   if (target === window) { return onWndBlur(); }
   if (Build.BTypes & BrowserType.Firefox && target === doc) { return; }
+  const sr = GetShadowRoot_(target as Element)
+  if (sr && target !== ui_box) {
   let path = !(Build.BTypes & ~BrowserType.Firefox)
       || Build.BTypes & BrowserType.Firefox && !(Build.BTypes & BrowserType.Edge)
           && Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
       ? event.composedPath!() : event.path
-    , topOfPath: EventTarget | undefined
     , same = Build.MinCVer >= BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInClosedShadowDOM
           && !(Build.BTypes & ~BrowserType.Chrome)
         || !(Build.BTypes & ~BrowserType.Firefox)
@@ -292,19 +293,19 @@ export const onBlur = (event: Event | FocusEvent): void => {
             && Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
         ? (topOfPath = path![0]) === target
         : !(topOfPath = path && path[0]) || topOfPath === window || topOfPath === target
-    , sr = GetShadowRoot_(target as Element);
-  if (lock_ === (same ? target : topOfPath)) {
-    lock_ = null;
-    if (inputHint && !isHintingInput && doc.hasFocus()) {
-      exitInputHint();
-    }
-  }
-  if (!sr || target === ui_box) { return; }
   if (same) {
     shadowNodeMap || hookOnShadowRoot([sr, 0], 0) // in case of unexpect wrong states made by onFocus
     shadowNodeMap!.set(sr, kNodeInfo.ShadowBlur)
   } else {
     hookOnShadowRoot(path!, target as Element, 1);
+    target = topOfPath!
+  }
+  }
+  if (lock_ === target) {
+    lock_ = null;
+    if (inputHint && !isHintingInput && doc.hasFocus()) {
+      exitInputHint();
+    }
   }
 }
 
