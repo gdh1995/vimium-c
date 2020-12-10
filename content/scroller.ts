@@ -259,7 +259,10 @@ export const executeScroll = function (di: ScrollByY, amount0: number, isTo: BOO
       getPixelScaleToScroll()
     }
     const element = findScrollable(di, isTo ? fromMax ? 1 : -1 : amount0)
-    let amount = !factor ? adjustAmount(di, amount0, element)
+    let amount = !factor ?
+        (!di && amount0 && element && dimSize_(element, kDim.scrollW)
+            <= dimSize_(element, kDim.scrollH) * (dimSize_(element, kDim.scrollW) < 720 ? 2 : 1)
+          ? amount0 * 0.6 : amount0) * fgCache.t
       : factor === 1 ? amount0
       : amount0 * dimSize_(element, di + (factor === "max" ? kDim.scrollW : kDim.viewW))
     if (isTo) {
@@ -351,17 +354,35 @@ export const onScrolls = (event: KeyboardEventToPrevent): boolean => {
     return repeat;
 }
 
-const adjustAmount = (di: ScrollByY, amount: number, element: SafeElement | null): number => {
-    amount *= fgCache.t;
-    return !di && amount && element && dimSize_(element, kDim.scrollW)
-        <= dimSize_(element, kDim.scrollH) * (dimSize_(element, kDim.scrollW) < 720 ? 2 : 1)
-      ? amount * 0.6 : amount;
-}
-
   /**
    * @param amount should not be 0
    */
 const findScrollable = (di: ScrollByY, amount: number): SafeElement | null => {
+  const selectFirst = (info: ElementScrollInfo, skipPrepare?: 1): ElementScrollInfo | null | undefined => {
+    let cur_el = info.e
+    if (dimSize_(cur_el, kDim.elClientH) + 3 < dimSize_(cur_el, kDim.scrollH) &&
+        ((cur_el === scrollingTop ? shouldScroll_s(cur_el, kDim.byY, 1) > 0 : doesScroll(cur_el, kDim.byY, 1))
+          || dimSize_(cur_el, kDim.positionY) > 0 && doesScroll(cur_el, kDim.byY, 0))) {
+      return info
+    }
+    skipPrepare || prepareCrop_()
+    let children: ElementScrollInfo[] = []
+    for (let _ref = cur_el.children, _len = _ref.length; 0 < _len--; ) {
+      cur_el = _ref[_len]! as /** fake `as` */ SafeElement
+      // here assumes that a <form> won't be a main scrollable area
+      if (Build.BTypes & ~BrowserType.Firefox && notSafe_not_ff_!(cur_el)) { continue }
+      const rect = padClientRect_(getBoundingClientRect_(cur_el))
+      const visible = rect.b > rect.t ? cropRectToVisible_(rect.l, rect.t, rect.r, rect.b)
+          : getVisibleClientRect_(cur_el)
+      if (visible) {
+        let height_ = visible.b - visible.t
+        children.push({ a: (visible.r - visible.l) * height_, e: cur_el, h: height_})
+      }
+    }
+    children.sort((a, b) => b.a - a.a)
+    return children.reduce((cur, info1) => cur || selectFirst(info1, 1), null as ElementScrollInfo | null | undefined)
+  }
+
     const top = scrollingTop, activeEl: SafeElement | null | undefined = deref_(currentScrolling)
     let element = activeEl;
     if (element) {;
@@ -443,42 +464,17 @@ const doesScroll = (el: SafeElement, di: ScrollByY, amount: number): boolean => 
     return !!changed;
 }
 
-const selectFirst = (info: ElementScrollInfo, skipPrepare?: 1): ElementScrollInfo | null | undefined => {
-    let element = info.e;
-    if (dimSize_(element, kDim.elClientH) + 3 < dimSize_(element, kDim.scrollH) &&
-        ((element === scrollingTop ? shouldScroll_s(element, kDim.byY, 1) > 0 : doesScroll(element, kDim.byY, 1))
-          || dimSize_(element, kDim.positionY) > 0 && doesScroll(element, kDim.byY, 0))) {
-      return info;
-    }
-    skipPrepare || prepareCrop_();
-    let children: ElementScrollInfo[] = []
-    for (let _ref = element.children, _len = _ref.length; 0 < _len--; ) {
-      element = _ref[_len]! as /** fake `as` */ SafeElement;
-      // here assumes that a <form> won't be a main scrollable area
-      if (Build.BTypes & ~BrowserType.Firefox && notSafe_not_ff_!(element)) { continue; }
-      const rect = padClientRect_(getBoundingClientRect_(element))
-      const visible = rect.b > rect.t ? cropRectToVisible_(rect.l, rect.t, rect.r, rect.b)
-          : getVisibleClientRect_(element)
-      if (visible) {
-        let height_ = visible.b - visible.t;
-        children.push({ a: (visible.r - visible.l) * height_, e: element, h: height_})
-      }
-    }
-    children.sort((a, b) => b.a - a.a)
-    return children.reduce((cur, info1) => cur || selectFirst(info1, 1), null as ElementScrollInfo | null | undefined)
-}
-
-export const scrollIntoView_s = (el: SafeElement): void => {
-    const rect = el.getClientRects()[0] as ClientRect | undefined;
+export const scrollIntoView_s = (el?: SafeElement | null): void => {
+    const rect = el && el.getClientRects()[0] as ClientRect | undefined
     if (!rect) { return; }
     let r = padClientRect_(rect), iw = wndSize_(1), ih = wndSize_(),
     ihm = min_(96, ih / 2), iwm = min_(64, iw / 2),
     hasY = r.b < ihm ? max_(r.b - ih + ihm, r.t - ihm) : ih < r.t + ihm ? min_(r.b - ih + ihm, r.t - ihm) : 0,
     hasX = r.r < 0 ? max_(r.l - iwm, r.r - iw + iwm) : iw < r.l ? min_(r.r - iw + iwm, r.l - iwm) : 0
-    currentScrolling = weakRef_(el)
+    currentScrolling = weakRef_(el!)
     cachedScrollable = 0
     if (hasX || hasY) {
-      for (let el2: Element | null = el; el2; el2 = GetParent_unsafe_(el2, PNType.RevealSlotAndGotoParent)) {
+      for (let el2: Element | null = el!; el2; el2 = GetParent_unsafe_(el2, PNType.RevealSlotAndGotoParent)) {
         const pos = getComputedStyle_(el2).position;
         if (pos === "fixed" || pos === "sticky") {
           hasX = hasY = 0;

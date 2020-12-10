@@ -1,35 +1,11 @@
-import { VTr, safer, loc_, vApi, locHref, isTY } from "../lib/utils"
+import { VTr, safer, loc_, vApi, locHref, isTY, isTop } from "../lib/utils"
 import { post_ } from "./port"
 import { hudHide, hudShow, hudTip } from "./hud"
 import { removeHandler_, getMappedKey, isEscape_, replaceOrSuppressMost_ } from "../lib/keyboard_utils"
 import { createElement_, textContent_s } from "../lib/dom_utils"
 
-let onKeyChar: ((event: HandlerNS.Event, keyChar: string) => void) | null
-let prefix: boolean
-let swap: boolean
-let mcount: number
 // [0..8]
 let previous: Readonly<MarksNS.FgMark>[] = []
-
-export const activate = (options: CmdOptions[kFgCmd.marks], count: number): void => {
-  const isGo = options.mode !== "create"
-  onKeyChar = isGo ? goto : create
-  mcount = count < 2 || count > 9 ? 0 : count - 1
-  prefix = options.prefix !== !1
-  swap = !!options.swap
-  hudShow(isGo ? kTip.nowGotoMark : kTip.nowCreateMark)
-  replaceOrSuppressMost_(kHandler.marks, (event): HandlerResult => {
-    if (event.i === kKeyCode.ime) { return HandlerResult.Nothing; }
-    const key = getMappedKey(event, kModeId.Marks)
-    if (key.length !== 1 && !isEscape_(key)) {
-      return HandlerResult.Suppress;
-    }
-    removeHandler_(kHandler.marks)
-    isEscape_(key) ? hudHide() : onKeyChar!(event, key)
-    onKeyChar = prefix = swap = mcount = null as never
-    return HandlerResult.Prevent;
-  })
-}
 
 const dispatchMark = ((mark?: Readonly<MarksNS.FgMark> | null | undefined
     ): Readonly<MarksNS.FgMark> | MarksNS.FgMark | null => {
@@ -49,12 +25,35 @@ export const setPreviousMarkPosition = (idx?: number): void => {
   (previous[idx! | 0] = dispatchMark()).push(loc_.hash)
 }
 
-const create = (event: HandlerNS.Event, keyChar: string): void => {
-    if (keyChar === "`" || keyChar === "'") {
+export const activate = (options: CmdOptions[kFgCmd.marks], count: number): void => {
+  const isCreate = options.mode === "create"
+  const mcount = count < 2 || count > 9 ? 0 : count - 1
+  const prefix = options.prefix !== !1
+  const swap = !!options.swap
+  hudShow(<number> <number | boolean> isCreate + kTip.nowGotoMark)
+  replaceOrSuppressMost_(kHandler.marks, (event): HandlerResult => {
+  if (event.i === kKeyCode.ime) { return HandlerResult.Nothing }
+  const keyChar = getMappedKey(event, kModeId.Marks)
+  if (keyChar.length !== 1 && !isEscape_(keyChar)) {
+    return HandlerResult.Suppress
+  }
+  removeHandler_(kHandler.marks)
+  if (isEscape_(keyChar)) {
+    hudHide()
+  } else if ("`'".includes(keyChar)) {
+    if (isCreate) {
       setPreviousMarkPosition(mcount)
       hudTip(kTip.didCreateLastMark, 1000)
-    } else if (event.e.shiftKey !== swap) {
-      if (top === window) {
+    } else {
+      const pos = previous[mcount]
+      setPreviousMarkPosition(pos ? 0 : mcount)
+      pos && scrollToMark(pos)
+      hudTip(kTip.didLocalMarkTask, 1000,
+          [VTr(pos ? kTip.didJumpTo : kTip.didCreate), mcount ? mcount + 1 : VTr(kTip.lastMark)])
+    }
+  } else if (isCreate) {
+    if (event.e.shiftKey !== swap) {
+      if (isTop) {
         createMark({n: keyChar})
       } else {
         post_({H: kFgReq.marks, a: kMarkAction.create, n: keyChar})
@@ -63,19 +62,7 @@ const create = (event: HandlerNS.Event, keyChar: string): void => {
     } else {
       createMark({n: keyChar}, 2)
     }
-}
-
-const goto = (event: HandlerNS.Event, keyChar: string): void => {
-    if (keyChar === "`" || keyChar === "'") {
-      const pos = previous[mcount]
-      setPreviousMarkPosition(pos ? 0 : mcount)
-      if (pos) {
-        scrollToMark(pos)
-      }
-      hudTip(kTip.didLocalMarkTask, 1000,
-          [VTr(pos ? kTip.didJumpTo : kTip.didCreate), mcount ? mcount + 1 : VTr(kTip.lastMark)])
-      return
-    }
+  } else {
     const req: Extract<Req.fg<kFgReq.marks>, { a: kMarkAction.goto }> = {
       H: kFgReq.marks, a: kMarkAction.goto,
       p: prefix,
@@ -102,6 +89,9 @@ const goto = (event: HandlerNS.Event, keyChar: string): void => {
       (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).u = locHref()
     }
     post_(req);
+  }
+  return HandlerResult.Prevent
+  })
 }
 
 export const scrollToMark = ((scroll: Readonly<MarksNS.FgMark> | null | undefined): void => {
@@ -136,4 +126,8 @@ export const gotoMark = ({ n: a, s: scroll, l: local }: CmdOptions[kFgCmd.goToMa
       hudTip(kTip.didNormalMarkTask, local ? 1000 : 2000,
           [ VTr(kTip.didJumpTo), VTr(kTip.global + local), a ])
     }
+}
+
+if (!(Build.NDEBUG || kTip.nowGotoMark + 1 === kTip.nowCreateMark)) {
+  console.log("Assert error: kTip.nowGotoMark + 1 === kTip.nowCreateMark")
 }

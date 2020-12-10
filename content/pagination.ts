@@ -17,29 +17,6 @@ import { contentCommands_ } from "./port"
 
 let iframesToSearchForNext: VApiTy[] | null
 
-const GetButtons = function (this: void, hints, element): void {
-  let s: string | null;
-  const tag = element.localName, isClickable = tag === "a" || tag && (
-    tag === "button" ? !(element as HTMLButtonElement).disabled
-    : clickable_.has(element)
-    || (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
-        ? (unwrap_ff(element)).onclick : attr_s(element, "onclick"))
-    || ((s = attr_s(element, "role")) ? (<RegExpI> /^(button|link)$/i).test(s)
-        : ngEnabled && attr_s(element, "ng-click")))
-  if (isClickable && isVisibleInPage(element)) {
-    hints.push(element)
-  }
-  if (isIFrameElement(element)) {
-    if ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
-        && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-        || element !== find_box && element !== omni_box) {
-      const rect = getBoundingClientRect_(element),
-      childApi = rect.width > 99 && rect.height > 15 && detectUsableChild(element)
-      childApi && iframesToSearchForNext!.push(childApi)
-    }
-  }
-} as HintsNS.Filter<SafeHTMLElement>
-
 const isVisibleInPage = (element: SafeHTMLElement): boolean => {
   let rect: ClientRect
   return isAriaNotTrue_(element, kAria.disabled)
@@ -47,10 +24,32 @@ const isVisibleInPage = (element: SafeHTMLElement): boolean => {
 }
 
 export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxLen): number => {
+
   if (!isAlive_) { return maxLen }
   // Note: this traverser should not need a prepareCrop
   set_addChildFrame_((_, el, _2, subList) => !subList!.push(el as KnownIFrameElement & SafeHTMLElement) )
-  const links = traverse(kSafeAllSelector, options, GetButtons, 1, 1),
+  const links = traverse(kSafeAllSelector, options, (hints, element): void => {
+    let s: string | null
+    const tag = element.localName, isClickable = tag === "a" || tag && (
+      tag === "button" ? !(element as HTMLButtonElement).disabled
+      : clickable_.has(element)
+      || (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
+          ? (unwrap_ff(element)).onclick : attr_s(element, "onclick"))
+      || ((s = attr_s(element, "role")) ? (<RegExpI> /^(button|link)$/i).test(s)
+          : ngEnabled && attr_s(element, "ng-click")))
+    if (isClickable && isVisibleInPage(element)) {
+      hints.push(element)
+    }
+    if (isIFrameElement(element)) {
+      if ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
+          && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+          || element !== find_box && element !== omni_box) {
+        const rect = getBoundingClientRect_(element),
+        childApi = rect.width > 99 && rect.height > 15 && detectUsableChild(element)
+        childApi && iframesToSearchForNext!.push(childApi)
+      }
+    }
+  }, 1, 1),
   isNext = options.n, lenLimits = options.l, totalMax = options.m,
   quirk = isNext ? ">>" : "<<", quirkIdx = names.indexOf(quirk),
   rel = isNext ? "next" : "prev", relIdx = names.indexOf(rel),
