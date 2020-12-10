@@ -445,7 +445,18 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
         Build.BTypes & BrowserType.Firefox && box_.blur()
         focus(); keydownEvents_[n] = 1;
       }
-      else if (keybody === kChar.up || keybody === kChar.down) { nextQuery(keybody < kChar.up) }
+      else if (keybody === kChar.up || keybody === kChar.down) {
+        scroll = historyIndex + (keybody < "u" ? -1 : 1)
+        if (scroll >= 0) {
+          historyIndex = scroll
+          if (keybody > "u") {
+            send_(kFgReq.findQuery, { i: scroll }, setQuery)
+          } else {
+            execCommand("undo")
+            collpaseSelection(getSelectionOf(innerDoc_)!, VisualModeNS.kDir.right)
+          }
+        }
+      }
       else { h = HandlerResult.Suppress; }
     } else if (i === FindNS.Action.PassDirectly) {
       h = HandlerResult.Suppress;
@@ -563,18 +574,6 @@ const focusFoundLinkIfAny = (): SafeElement | null | void => {
     return cur;
 }
 
-const nextQuery = (back?: boolean): void => {
-  const ind = historyIndex + (back ? -1 : 1)
-    if (ind < 0) { return; }
-  historyIndex = ind
-  if (!back) {
-    send_(kFgReq.findQuery, { i: ind }, setQuery)
-  } else {
-    execCommand("undo")
-    collpaseSelection(getSelectionOf(innerDoc_)!, VisualModeNS.kDir.right)
-  }
-}
-
 const setQuery = (query: string): void => {
   if (query === query_ || !innerDoc_) { /* empty */ }
   else if (!query && historyIndex > 0) { --historyIndex }
@@ -662,12 +661,21 @@ const showCount = (changed: BOOL): void => {
 }
 
 export const updateQuery = (query: string): void => {
+  const WB = "\\b"
+  let ww = !1, isRe: boolean | null = null, matches: string[] | null = null, delta: number
   query_ = query0_ = query
-  wholeWord = !1, wrapAround = !0
-  isRegex = ignoreCase = null as boolean | null
-  query = isQueryRichText_ ? query.replace(<RegExpG & RegExpSearchable<0>> /\\[acirw\\]/gi, FormatQuery)
-        : query;
-  let isRe = isRegex, ww = wholeWord, WB = "\\b"
+  wrapAround = !0
+  ignoreCase = null as boolean | null
+  query = !isQueryRichText_ ? query : query.replace(<RegExpG & RegExpSearchable<0>> /\\[acirw\\]/gi, (str): string => {
+    let flag = str.charCodeAt(1), enabled = flag > kCharCode.a - 1
+    if (flag === kCharCode.backslash) { return str }
+    flag &= ~kCharCode.CASE_DELTA
+    if (flag === kCharCode.I || flag === kCharCode.C) { ignoreCase = enabled === (flag === kCharCode.I) }
+    else if (flag === kCharCode.R) { isRe = enabled } 
+    else if (isRe) { return str }
+    else { flag > kCharCode.A ? ww = enabled : wrapAround = enabled }
+    return ""
+  })
   if (isQueryRichText_) {
     if (isRe === null && !ww) {
       isRe = fgCache.r;
@@ -699,8 +707,6 @@ export const updateQuery = (query: string): void => {
 
   let re: RegExpG | null = query && tryCreateRegExp(ww ? WB + query + WB : query, (ignoreCase ? "gim" : "gm") as "g")
       || null
-  let matches: string[] | null = null
-  let delta: number
   if (re) {
     let now = getTime()
     if (cachedInnerText && (delta = math.abs(now - cachedInnerText.t)) < (cachedInnerText.i.length < 1e5 ? 3e3 : 6e3)) {
@@ -722,17 +728,6 @@ export const updateQuery = (query: string): void => {
   parsedRegexp_ = isRe ? re : null
   activeRegexIndex = 0
   matchCount = matches ? matches.length : 0
-}
-
-const FormatQuery = (str: string): string => {
-    let flag = str.charCodeAt(1), enabled = flag > kCharCode.a - 1
-    if (flag === kCharCode.backslash) { return str; }
-    flag &= ~kCharCode.CASE_DELTA;
-    if (flag === kCharCode.I || flag === kCharCode.C) { ignoreCase = enabled === (flag === kCharCode.I) }
-    else if (flag === kCharCode.R) { isRegex = enabled } 
-    else if (isRegex) { return str }
-    else { flag > kCharCode.A ? wholeWord = enabled : wrapAround = enabled }
-    return "";
 }
 
 const restoreSelection = (isCur?: boolean): void => {
@@ -765,9 +760,20 @@ const highlightInViewport = (): void => {
 }
 
 export const executeFind = (query: string | null, options: FindNS.ExecuteOptions): Rect[] => {
-    safer(options)
+/**
+ * According to https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/editor.cc?q=FindRangeOfString&g=0&l=815 ,
+ * the range to find is either `[selection..docEnd]` or `[docStart..selection]`,
+ * so those in shadowDOM / ancestor tree scopes will still be found.
+ * Therefore `@styleIn_` is always needed, and VFind may not need a sub-scope selection.
+ */
+    const _do_find_not_cr = Build.BTypes & ~BrowserType.Chrome ? function (this: void): boolean {
+      // (string, caseSensitive, backwards, wrapAround, wholeWord, searchInFrames, showDialog);
+      try {
+        return window.find.apply(window, arguments);
+      } catch { return false; }
+    } as Window["find"] : 0 as never as null
     let el: LockableElement | null
-      , highLight = options.h, areas: Rect[] = [], noColor = highLight || options.noColor
+      , highLight = safer(options).h, areas: Rect[] = [], noColor = highLight || options.noColor
       , found: boolean, count = (options.n! | 0) || 1, back = count < 0
       , par: Element | 0 | null | undefined, timesRegExpNotMatch = 0
       , q: string, notSens = ignoreCase && !options.caseSensitive
@@ -844,19 +850,6 @@ export const executeFind = (query: string | null, options: FindNS.ExecuteOptions
     }
     return areas
 }
-
-/**
- * According to https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/editor.cc?q=FindRangeOfString&g=0&l=815 ,
- * the range to find is either `[selection..docEnd]` or `[docStart..selection]`,
- * so those in shadowDOM / ancestor tree scopes will still be found.
- * Therefore `@styleIn_` is always needed, and VFind may not need a sub-scope selection.
- */
-const _do_find_not_cr = Build.BTypes & ~BrowserType.Chrome ? function (this: void): boolean {
-    // (string, caseSensitive, backwards, wrapAround, wholeWord, searchInFrames, showDialog);
-    try {
-      return window.find.apply(window, arguments);
-    } catch { return false; }
-} as Window["find"] : 0 as never as null
 
 const hookSel = (t?: TimerType.fake | 1): void => {
   setupEventListener(0, "selectionchange", toggleStyle, t! > 0)

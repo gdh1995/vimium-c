@@ -34,109 +34,6 @@ export function set_removeFlash (_newRmFlash: null): void { removeFlash = _newRm
 export function set_hintKeyCode_ (_newHintKeyCode: kKeyCode): void { hintKeyCode_ = _newHintKeyCode }
 
 export const executeHintInOfficer = (hint: HintItem, event?: HandlerNS.Event): Rect | null | undefined | 0 => {
-  const masterOrA = hintManager || coreHints, keyStatus = masterOrA.$().k;
-  let rect: Rect | null | undefined, clickEl: LinkEl | null = hint.d;
-  let showRect: BOOL | undefined
-  if (hintManager) {
-    set_keydownEvents_(hintApi.a())
-    setMode(masterOrA.$().m, 1);
-  }
-  if (event) {
-    prevent_(event.e);
-    keydownEvents_[hintKeyCode_ = event.i] = 1
-  }
-  masterOrA.v(); // here .keyStatus_ is reset
-  if (IsInDOM_(clickEl)) {
-    // must get outline first, because clickEl may hide itself when activated
-    // must use UI.getRect, so that zooms are updated, and prepareCrop is called
-    rect = getRect(clickEl, hint.r !== clickEl ? hint.r as HTMLElementUsingMap | null : null);
-    if (keyStatus.t && !keyStatus.k && !keyStatus.n) {
-      if ((!(Build.BTypes & BrowserType.Chrome)
-            || Build.BTypes & ~BrowserType.Chrome && VOther !== BrowserType.Chrome
-            || Build.MinCVer < BrowserVer.MinUserActivationV2 && chromeVer_ < BrowserVer.MinUserActivationV2)
-          && !fgCache.w) {
-        // e.g.: https://github.com/philc/vimium/issues/3103#issuecomment-552653871
-        suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents);
-      } else {
-        removeFlash = rect && flash_(null, rect, -1);
-        masterOrA.j(coreHints, hint, rect && lastFlashEl)
-        return 0
-      }
-    }
-    hintManager && focus();
-    // tolerate new rects in some cases
-    const m = mode1_
-    if (isIFrameElement(clickEl)) {
-      hintOptions.m = hintMode_;
-      (hintManager || coreHints).$(1)
-      showRect = <BOOL> +(clickEl !== omni_box)
-      showRect ? /*#__NOINLINE__*/ focusIFrame(clickEl) : focusOmni()
-    } else if (m < HintMode.min_job) {
-      if (htmlTag_(clickEl) === "details") {
-        const summary = findMainSummary_(clickEl as HTMLDetailsElement);
-        if (summary) {
-          // `HTMLSummaryElement::DefaultEventHandler(event)` in
-          // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_summary_element.cc?l=109
-          const rect2 = (clickEl as HTMLDetailsElement).open || !rect ? getVisibleClientRect_(summary) : rect
-          catchAsyncErrorSilently(click_(summary, rect2, 1)).then((): void => {
-            removeFlash || rect2 && flash_(null, rect2)
-          })
-          showRect = 0
-        } else {
-          (clickEl as HTMLDetailsElement).open = !(clickEl as HTMLDetailsElement).open;
-        }
-      } else if (hint.r && hint.r === clickEl) {
-        hoverEl(clickEl, rect)
-      } else if (getEditableType_<0>(clickEl) > EditableType.TextBox - 1) {
-        select_(clickEl as LockableElement, rect, !removeFlash)
-        showRect = 0
-      } else {
-        /*#__NOINLINE__*/ defaultClick(clickEl, rect)
-      }
-    } else if (m < HintMode.UNHOVER + 1) {
-      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredAsyncFunctions) {
-        m < HintMode.HOVER + 1 ? hoverEl(clickEl, rect) : unhover_(clickEl)
-      } else {
-        (m < HintMode.HOVER + 1 ? hoverEl : unhover_)(clickEl, rect)
-      }
-    } else if (m < HintMode.FOCUS + 1) {
-      view_(clickEl)
-      clickEl.focus && clickEl.focus()
-      removeFlash || flash_(clickEl)
-      showRect = 0
-    } else if (m < HintMode.max_media + 1) {
-      /*#__NOINLINE__*/ downloadOrOpenMedia(clickEl as SafeHTMLElement)
-    } else if (m < HintMode.max_copying + 1) {
-      copyText(clickEl)
-    } else if (m < HintMode.DOWNLOAD_LINK + 1) {
-      /*#__NOINLINE__*/ downloadLink(clickEl as SafeHTMLElement, rect)
-    } else if (m < HintMode.OPEN_INCOGNITO_LINK + 1) {
-      const url = getUrlData(clickEl as SafeHTMLElement)
-      evalIfOK(url) || openUrl(url, !0)
-    } else if (m < HintMode.max_edit + 1) {
-      copyText(clickEl)
-    } else if (m < HintMode.FOCUS_EDITABLE + 1) {
-      select_(clickEl as HintsNS.InputHintItem["d"], rect, !removeFlash)
-      showRect = 0
-    } else { // HintMode.ENTER_VISUAL_MODE
-      selectAllOfNode(clickEl)
-      const sel = getSelection_()
-      collpaseSelection(sel)
-      sel.modify(kExtend, kDir[1], "word")
-      hintOptions.visual === !1 || post_({ H: kFgReq.visualMode, c: hintOptions.caret })
-    }
-    if (!removeFlash && showRect !== 0 && (rect || (rect = getVisibleClientRect_(clickEl)))) {
-      timeout_(function (): void {
-        (showRect || doc.hasFocus()) && flash_(null, rect!);
-      }, 17);
-    }
-  } else {
-    clickEl = null;
-    hintApi.t({ k: kTip.linkRemoved, d: 2000 })
-  }
-  (<RegExpOne> /a?/).test("")
-  return rect
-}
 
 const getUrlData = (link: SafeHTMLElement): string => {
   const str = link.dataset.vimUrl;
@@ -435,4 +332,108 @@ const defaultClick = (link: LinkEl, rect: Rect | null): void => {
     .then((ret): void => {
       autoUnhover ? unhover_() : isQueue || ret && pushHandler_(unhoverOnEsc, kHandler.unhoverOnEsc)
     })
+}
+
+  const masterOrA = hintManager || coreHints, keyStatus = masterOrA.$().k
+  let rect: Rect | null | undefined, clickEl: LinkEl | null = hint.d
+  let showRect: BOOL | undefined
+  if (hintManager) {
+    set_keydownEvents_(hintApi.a())
+    setMode(masterOrA.$().m, 1)
+  }
+  if (event) {
+    prevent_(event.e)
+    keydownEvents_[hintKeyCode_ = event.i] = 1
+  }
+  masterOrA.v() // here .keyStatus_ is reset
+  if (IsInDOM_(clickEl)) {
+    // must get outline first, because clickEl may hide itself when activated
+    // must use UI.getRect, so that zooms are updated, and prepareCrop is called
+    rect = getRect(clickEl, hint.r !== clickEl ? hint.r as HTMLElementUsingMap | null : null)
+    if (keyStatus.t && !keyStatus.k && !keyStatus.n) {
+      if ((!(Build.BTypes & BrowserType.Chrome)
+            || Build.BTypes & ~BrowserType.Chrome && VOther !== BrowserType.Chrome
+            || Build.MinCVer < BrowserVer.MinUserActivationV2 && chromeVer_ < BrowserVer.MinUserActivationV2)
+          && !fgCache.w) {
+        // e.g.: https://github.com/philc/vimium/issues/3103#issuecomment-552653871
+        suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents)
+      } else {
+        removeFlash = rect && flash_(null, rect, -1)
+        masterOrA.j(coreHints, hint, rect && lastFlashEl)
+        return 0
+      }
+    }
+    hintManager && focus()
+    // tolerate new rects in some cases
+    const m = mode1_
+    if (isIFrameElement(clickEl)) {
+      hintOptions.m = hintMode_;
+      (hintManager || coreHints).$(1)
+      showRect = <BOOL> +(clickEl !== omni_box)
+      showRect ? /*#__NOINLINE__*/ focusIFrame(clickEl) : focusOmni()
+    } else if (m < HintMode.min_job) {
+      if (htmlTag_(clickEl) === "details") {
+        const summary = findMainSummary_(clickEl as HTMLDetailsElement)
+        if (summary) {
+          // `HTMLSummaryElement::DefaultEventHandler(event)` in
+          // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_summary_element.cc?l=109
+          const rect2 = (clickEl as HTMLDetailsElement).open || !rect ? getVisibleClientRect_(summary) : rect
+          catchAsyncErrorSilently(click_(summary, rect2, 1)).then((): void => {
+            removeFlash || rect2 && flash_(null, rect2)
+          })
+          showRect = 0
+        } else {
+          (clickEl as HTMLDetailsElement).open = !(clickEl as HTMLDetailsElement).open
+        }
+      } else if (hint.r && hint.r === clickEl) {
+        hoverEl(clickEl, rect)
+      } else if (getEditableType_<0>(clickEl) > EditableType.TextBox - 1) {
+        select_(clickEl as LockableElement, rect, !removeFlash)
+        showRect = 0
+      } else {
+        /*#__NOINLINE__*/ defaultClick(clickEl, rect)
+      }
+    } else if (m < HintMode.UNHOVER + 1) {
+      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredAsyncFunctions) {
+        m < HintMode.HOVER + 1 ? hoverEl(clickEl, rect) : unhover_(clickEl)
+      } else {
+        (m < HintMode.HOVER + 1 ? hoverEl : unhover_)(clickEl, rect)
+      }
+    } else if (m < HintMode.FOCUS + 1) {
+      view_(clickEl)
+      clickEl.focus && clickEl.focus()
+      removeFlash || flash_(clickEl)
+      showRect = 0
+    } else if (m < HintMode.max_media + 1) {
+      /*#__NOINLINE__*/ downloadOrOpenMedia(clickEl as SafeHTMLElement)
+    } else if (m < HintMode.max_copying + 1) {
+      copyText(clickEl)
+    } else if (m < HintMode.DOWNLOAD_LINK + 1) {
+      /*#__NOINLINE__*/ downloadLink(clickEl as SafeHTMLElement, rect)
+    } else if (m < HintMode.OPEN_INCOGNITO_LINK + 1) {
+      const url = getUrlData(clickEl as SafeHTMLElement)
+      evalIfOK(url) || openUrl(url, !0)
+    } else if (m < HintMode.max_edit + 1) {
+      copyText(clickEl)
+    } else if (m < HintMode.FOCUS_EDITABLE + 1) {
+      select_(clickEl as HintsNS.InputHintItem["d"], rect, !removeFlash)
+      showRect = 0
+    } else { // HintMode.ENTER_VISUAL_MODE
+      selectAllOfNode(clickEl)
+      const sel = getSelection_()
+      collpaseSelection(sel)
+      sel.modify(kExtend, kDir[1], "word")
+      hintOptions.visual === !1 || post_({ H: kFgReq.visualMode, c: hintOptions.caret })
+    }
+    if (!removeFlash && showRect !== 0 && (rect || (rect = getVisibleClientRect_(clickEl)))) {
+      timeout_(function (): void {
+        (showRect || doc.hasFocus()) && flash_(null, rect!)
+      }, 17)
+    }
+  } else {
+    clickEl = null
+    hintApi.t({ k: kTip.linkRemoved, d: 2000 })
+  }
+  (<RegExpOne> /a?/).test("")
+  return rect
 }

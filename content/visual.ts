@@ -64,7 +64,6 @@ let currentCount = 0
 let currentSeconds: SafeDict<VisualAction> | null = null
 let retainSelection: BOOL | boolean | undefined
 let richText: BOOL | boolean | undefined
-let scope: ShadowRoot | null = null
 let curSelection: Selection = null as never
 /** need real diType */
 let selType: () => SelType = null as never
@@ -82,6 +81,61 @@ export { mode_ as visual_mode, modeName as visual_mode_name, kDir, kExtend }
 
   /** @safe_di */
 export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
+  /** @safe_di requires selection is None on called, and may change `selection_` */
+  const establishInitialSelectionAnchor = (): number => {
+    if (!(Build.NDEBUG || curSelection && curSelection.type === "None")) {
+      console.log('Assert error: VVisual.selection_ && VVisual.selection_.type === "None"')
+    }
+    let node: Text | null, str: string | undefined, offset: number
+    if (!isHTML_()) { return 0 }
+    prepareCrop_()
+    const nodes = doc.createTreeWalker(initialScope.r || doc.body || docEl_unsafe_()!, NodeFilter.SHOW_TEXT)
+    while (node = nodes.nextNode() as Text | null) {
+      if (50 <= (str = node.data).length && 50 < str.trim().length) {
+        const element = node.parentElement
+        if (element && (!(Build.BTypes & ~BrowserType.Firefox) || !notSafe_not_ff_!(element))
+            && getVisibleClientRect_(element as SafeElement) && !getEditableType_(element)) {
+          break
+        }
+      }
+    }
+    if (!node) {
+      if (initialScope.r) {
+        curSelection = getSelection_()
+        scope = null
+        return establishInitialSelectionAnchor()
+      }
+      return 0
+    }
+    offset = str!.match(<RegExpOne> /^\s*/)![0].length
+    curSelection.collapse(node, offset)
+    di_ = kDirTy.right
+    return rangeCount_(curSelection)
+  }
+
+  const resetKeys = (): void => {
+    currentCount = 0; currentSeconds = null
+  }
+
+  /**
+   * @safe_di if action !== true
+   * @not_related_to_di otherwise
+   */
+  const yank = (action: kYank | ReuseType.current | ReuseType.newFg): void => {
+    const str = "" + curSelection, rich = richText
+    action < kYank.NotExit && deactivate()
+    if (action < kYank.MIN) {
+      post_({ H: kFgReq.openUrl, u: str, r: action as ReuseType })
+    } else if (rich || action > kYank.RichTextButNotExit - 1) {
+      execCommand("copy", doc)
+      hudTip(kTip.copiedIs, 0, "# " + str)
+    } else {
+      post_({ H: kFgReq.copy, s: str })
+    }
+  }
+
+    const initialScope: {r?: ShadowRoot | null} = {}
+    let mode: Mode = options.m || Mode.Visual
     set_findCSS(options.f || findCSS)
     init && init(options.w!, options.k!, _kGranularity = options.g!)
     checkDocSelectable();
@@ -89,9 +143,8 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     getZoom_(1)
     getPixelScaleToScroll()
     diType_ = DiType.UnsafeUnknown
-    let initialScope: {r?: ShadowRoot | null} = {}, sel: Selection = curSelection = getSelected(initialScope),
-    type: SelType = selType(), mode: Mode = options.m || Mode.Visual
-    scope = initialScope.r as Exclude<typeof initialScope.r, undefined>
+    let sel: Selection = curSelection = getSelected(initialScope),
+    type: SelType = selType(), scope = initialScope.r as Exclude<typeof initialScope.r, undefined>
     if (!mode_) { retainSelection = type === SelType.Range; richText = options.t }
     if (mode !== Mode.Caret) {
       if (!insert_Lock_() && /* (type === SelType.Caret || type === SelType.Range) */ type) {
@@ -114,48 +167,19 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     alterMethod = toCaret ? "move" : kExtend
     ui_box || hudShow(kTip.raw)
     toggleSelectableStyle(1)
-    if (/* type === SelType.None */ !type && establishInitialSelectionAnchor(initialScope.r)) {
+
+  if (/* type === SelType.None */ !type && !establishInitialSelectionAnchor()) {
       deactivate()
       hudTip(kTip.needSel)
-    } else {
-    if (toCaret && isRange) {
+      return
+  }
+  if (toCaret && isRange) {
       // `sel` is not changed by @establish... , since `isRange`
       mode = ("" + sel).length;
       collapseToRight((<number> <number | boolean> !options.s
           & getDirection() & <number> <number | boolean> (mode > 1)) as BOOL)
-    }
-    commandHandler(VisualAction.Noop, 1)
-    replaceOrSuppressMost_(kHandler.visual, onKeydown)
-    diff ? hudTip(kTip.noUsableSel, 1000) : hudShow(kTip.inVisualMode, modeName, options.r)
-    }
-}
-
-  /** @safe_di */
-export const deactivate = (isEsc?: 1): void => {
-    if (!mode_) { return; }
-    di_ = kDirTy.unknown
-    diType_ = DiType.UnsafeUnknown
-    getDirection("")
-    const oldDiType: DiType = diType_
-    removeHandler_(kHandler.visual)
-    if (!retainSelection) {
-      collapseToFocus(isEsc && mode_ !== Mode.Caret ? 1 : 0)
-    }
-    mode_ = Mode.NotActive; modeName = ""
-    const el = insert_Lock_();
-    oldDiType & (DiType.TextBox | DiType.Complicated) ||
-    el && el.blur();
-    retainSelection = richText = 0
-    toggleSelectableStyle(0);
-    resetKeys()
-    set_scrollingTop(null)
-    curSelection = null as never
-    scope = null
-    hudHide();
-}
-
-  /** @unknown_di_result */
-const onKeydown = (event: HandlerNS.Event): HandlerResult => {
+  }
+  replaceOrSuppressMost_(kHandler.visual, (event: HandlerNS.Event): HandlerResult => {
     const doPass = event.i === kKeyCode.ime || event.i === kKeyCode.menuKey && fgCache.o,
     key = doPass ? "" : getMappedKey(event, kModeId.Visual), keybody = keybody_(key);
     if (!key || isEscape_(key)) {
@@ -186,117 +210,14 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
     diType_ = DiType.UnsafeUnknown
     commandHandler(newActions, count || 1)
     return HandlerResult.Prevent;
-}
-
-  /** @not_related_to_di */
-const resetKeys = (): void => {
-  currentCount = 0; currentSeconds = null
-}
+  })
 
   /** @unknown_di_result */
 const commandHandler = (command: VisualAction, count: number): void => {
-    let mode = mode_
-    if (command > VisualAction.MaxNotScroll) {
-      executeScroll(1, command - VisualAction.ScrollDown ? -count : count, 0)
-      return;
-    }
-    if (command > VisualAction.MaxNotNewMode) {
-      if (command === VisualAction.EmbeddedFindMode) {
-        hudHide() // it should auto keep HUD showing the mode text
-        post_({ H: kFgReq.findFromVisual });
-      } else {
-        activate(safer<CmdOptions[kFgCmd.visualMode]>({ m: command - VisualAction.MaxNotNewMode }))
-      }
-      return
-    }
-    if (scope && !rangeCount_(curSelection)) {
-      scope = null
-      curSelection = getSelection_()
-      if (!(Build.BTypes & BrowserType.Firefox)
-          && command < VisualAction.MaxNotFind + 1 && !rangeCount_(curSelection)) {
-        deactivate()
-        suppressTail_(1000)
-        return hudTip(kTip.loseSel);
-      }
-    }
-    if (Build.BTypes & BrowserType.Firefox && command < VisualAction.MaxNotFind + 1
-        && !(rangeCount_(curSelection) && getAccessibleSelectedNode(curSelection) )) {
-      deactivate()
-      suppressTail_(1500)
-      return hudTip(kTip.loseSel, 2e3);
-    }
-    if (command === VisualAction.HighlightRange) {
-      highlightRange(curSelection)
-      return
-    }
-    mode === Mode.Caret && collapseToFocus(0)
-    if (command > VisualAction.MaxNotFind) {
-      findV(command - VisualAction.PerformFind ? count : -count)
-      return;
-    } else if (command > VisualAction.MaxNotYank) {
-      command === VisualAction.YankLine && selectLine(count)
-      yank(([kYank.Exit, kYank.Exit, kYank.NotExit, ReuseType.current, ReuseType.newFg, kYank.RichTextButNotExit
-            ] as const)[command - VisualAction.Yank])
-      if (command !== VisualAction.YankWithoutExit && command !== VisualAction.YankRichText) { return; }
-    } else if (command > VisualAction.MaxNotLexical) {
-      selectLexicalEntity((command - VisualAction.MaxNotLexical) as kG.sentence | kG.word, count)
-    } else if (command === VisualAction.Reverse) {
-      reverseSelection()
-    } else if (command >= VisualAction.MinWrapSelectionModify) {
-      runMovements((command & 1) as 0 | 1, command >> 1, count)
-    }
-    if (mode === Mode.Caret) {
-      extend(kDirTy.right)
-      if (selType() === SelType.Caret) {
-        extend(kDirTy.left)
-      }
-    } else if (mode === Mode.Line) {
-      ensureLine(command)
-    }
-    getDirection("")
-    if (diType_ & DiType.Complicated) { return }
-    const focused = getSelectionFocusEdge_(curSelection, di_ as ForwardDir)
-    if (focused) {
-      scrollIntoView_s(focused)
-    }
-}
-
-  /** @safe_di requires selection is None on called, and may change `selection_` */
-const establishInitialSelectionAnchor = (sr?: ShadowRoot | null): boolean => {
-    if (!(Build.NDEBUG || curSelection && curSelection.type === "None")) {
-      console.log('Assert error: VVisual.selection_ && VVisual.selection_.type === "None"');
-    }
-    let node: Text | null, str: string | undefined, offset: number
-    if (!isHTML_()) { return true; }
-    prepareCrop_();
-    const nodes = doc.createTreeWalker(sr || doc.body || docEl_unsafe_()!
-            , NodeFilter.SHOW_TEXT);
-    while (node = nodes.nextNode() as Text | null) {
-      if (50 <= (str = node.data).length && 50 < str.trim().length) {
-        const element = node.parentElement;
-        if (element && (!(Build.BTypes & ~BrowserType.Firefox) || !notSafe_not_ff_!(element))
-            && getVisibleClientRect_(element as SafeElement) && !getEditableType_(element)) {
-          break;
-        }
-      }
-    }
-    if (!node) {
-      if (sr) {
-        curSelection = getSelection_()
-        scope = null
-        return establishInitialSelectionAnchor()
-      }
-      return true;
-    }
-    offset = str!.match(<RegExpOne> /^\s*/)![0].length;
-    curSelection.collapse(node, offset)
-    di_ = kDirTy.right
-    return !rangeCount_(curSelection)
-}
 
 const findV = (count: number): void => {
     if (!find_query) {
-      send_(kFgReq.findQuery, {}, function (query): void {
+      send_(kFgReq.findQuery, {}, (query): void => {
         if (query) {
           findUpdateQuery(query);
           findV(count)
@@ -320,44 +241,6 @@ const findV = (count: number): void => {
       range && !rangeCount_(sel) && resetSelectionToDocStart(sel, range)
       hudTip(kTip.noMatchFor, 1000, find_query)
     }
-}
-
-  /**
-   * @safe_di if action !== true
-   * @not_related_to_di otherwise
-   */
-const yank = (action: kYank | ReuseType.current | ReuseType.newFg): void => {
-    const str = "" + curSelection, rich = richText
-    if (action < kYank.NotExit) {
-      deactivate()
-    }
-    if (action < kYank.MIN) {
-      post_({ H: kFgReq.openUrl, u: str, r: action as ReuseType })
-    } else if (rich || action > kYank.RichTextButNotExit - 1) {
-      execCommand("copy", doc)
-      hudTip(kTip.copiedIs, 0, "# " + str)
-    } else {
-      post_({ H: kFgReq.copy, s: str })
-    }
-}
-
-export const highlightRange = (sel: Selection): void => {
-    const br = rangeCount_(sel) ? padClientRect_(getSelectionBoundingBox_(sel)) : null
-    if (br && br.b > br.t && br.r > 0) { // width may be 0 in Caret mode
-      let cr = cropRectToVisible_(br.l - 4, br.t - 5, br.r + 3, br.b + 4)
-      cr && flash_(null, cr, 660, " Sel");
-    }
-}
-
-  /** @unknown_di_result */
-const extend = (d: ForwardDir, g?: kG): void | 1 => {
-  curSelection.modify(kExtend, kDir[d], _kGranularity[g || kG.character])
-  diType_ &= ~DiType.isUnsafe
-}
-
-  /** @unknown_di_result */
-const modify = (d: ForwardDir, g: kG): void => {
-  curSelection.modify(alterMethod, kDir[d], _kGranularity[g])
 }
 
   /**
@@ -436,19 +319,21 @@ const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord
     mode_ !== Mode.Caret && (diType_ &= ~DiType.isUnsafe)
     di_ = direction === oldDi ? direction : kDirTy.unknown
     granularity - kG.lineBoundary || hudTip(kTip.selectLineBoundary, 2000)
-    if (fixWord) {
-      if (!shouldSkipSpaceWhenMovingRight) { // not shouldSkipSpace -> go left
+    if (!fixWord) { return }
+    if (!shouldSkipSpaceWhenMovingRight) { // not shouldSkipSpace -> go left
         if (!(Build.BTypes & BrowserType.Firefox) || !Build.NativeWordMoveOnFirefox
             || Build.BTypes & ~BrowserType.Firefox && !isFirefox) {
           moveRightByWordButNotSkipSpace!()
         }
         return;
-      }
-      !Build.NativeWordMoveOnFirefox &&
-      (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && isFirefox) &&
-      moveRightByWordButNotSkipSpace!() || moveRightForSpaces()
     }
-}
+    if (Build.NativeWordMoveOnFirefox
+        || !(Build.BTypes & BrowserType.Firefox) || Build.BTypes & ~BrowserType.Firefox && !isFirefox) {
+      return
+    }
+    if (moveRightByWordButNotSkipSpace!()) {
+      return
+    }
 
   /**
    * Chrome use ICU4c's RuleBasedBreakIterator and then DictionaryBreakEngine -> CjkBreakEngine
@@ -461,7 +346,6 @@ const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord
    *  rbbi_cache.cpp?type=cs&q=BreakCache::following&g=0&l=248
    *  rbbi_cache.cpp?type=cs&q=BreakCache::nextOL&g=0&l=278
    */
-const moveRightForSpaces = (): void => {
     const isMove = mode_ === Mode.Caret ? 1 : 0
     let ch: string;
     getDirection("")
@@ -572,6 +456,122 @@ const reverseSelection = (): void => {
       (!(Build.BTypes & BrowserType.Firefox) || node) && sel.extend(node!, offset)
     }
     di_ = newDi
+}
+
+  /** after called, VVisual must exit at once */
+const selectLine = (count: number): void => {
+  const oldDi = getDirection()
+  mode_ = Mode.Visual // safer
+  alterMethod = kExtend
+  {
+    oldDi && reverseSelection()
+    modify(kDirTy.left, kG.lineBoundary)
+    di_ = kDirTy.left // safe
+    reverseSelection()
+  }
+  while (0 < --count) { modify(kDirTy.right, kG.line) }
+  modify(kDirTy.right, kG.lineBoundary)
+  const ch = getNextRightCharacter(0)
+  const num1 = oldLen_
+  if (ch && num1 && ch !== "\n") {
+    if (!(Build.BTypes & BrowserType.Firefox) || ch !== "\r") {
+      extend(kDirTy.left);
+      ("" + curSelection).length + 2 - num1 && extend(kDirTy.right)
+    }
+  }
+}
+
+const ensureLine = (command: number): void => {
+  let di = getDirection()
+  if (di && command < VisualAction.MinNotWrapSelectionModify
+      && command >= VisualAction.MinWrapSelectionModify && !diType_ && selType() === SelType.Caret) {
+    di = (1 & ~command) as ForwardDir // old Di
+    modify(di, kG.lineBoundary)
+    selType() !== SelType.Range && modify(di, kG.line)
+    di_ = di
+    reverseSelection()
+    let len = (curSelection + "").length
+    modify(di = di_ = 1 - di, kG.lineBoundary);
+    (curSelection + "").length - len || modify(di, kG.line)
+    return
+  }
+  for (let mode = 2; 0 < mode--; ) {
+    reverseSelection()
+    di = di_ = (1 - di) as ForwardDir
+    modify(di, kG.lineBoundary)
+  }
+}
+
+  const mode = mode_
+  if (command > VisualAction.MaxNotScroll) {
+    executeScroll(1, command - VisualAction.ScrollDown ? -count : count, 0)
+    return;
+  }
+  if (command > VisualAction.MaxNotNewMode) {
+    if (command === VisualAction.EmbeddedFindMode) {
+      hudHide() // it should auto keep HUD showing the mode text
+      post_({ H: kFgReq.findFromVisual });
+    } else {
+      activate(safer<CmdOptions[kFgCmd.visualMode]>({ m: command - VisualAction.MaxNotNewMode }))
+    }
+    return
+  }
+  if (scope && !rangeCount_(curSelection)) {
+    scope = null
+    curSelection = getSelection_()
+    if (!(Build.BTypes & BrowserType.Firefox)
+        && command < VisualAction.MaxNotFind + 1 && !rangeCount_(curSelection)) {
+      deactivate()
+      suppressTail_(1000)
+      return hudTip(kTip.loseSel);
+    }
+  }
+  if (Build.BTypes & BrowserType.Firefox && command < VisualAction.MaxNotFind + 1
+      && !(rangeCount_(curSelection) && getAccessibleSelectedNode(curSelection) )) {
+    deactivate()
+    suppressTail_(1500)
+    return hudTip(kTip.loseSel, 2e3);
+  }
+  if (command === VisualAction.HighlightRange) {
+    highlightRange(curSelection)
+    return
+  }
+  mode === Mode.Caret && collapseToFocus(0)
+  if (command > VisualAction.MaxNotFind) {
+    findV(command - VisualAction.PerformFind ? count : -count)
+    return;
+  } else if (command > VisualAction.MaxNotYank) {
+    command === VisualAction.YankLine && selectLine(count)
+    yank(([kYank.Exit, kYank.Exit, kYank.NotExit, ReuseType.current, ReuseType.newFg, kYank.RichTextButNotExit
+          ] as const)[command - VisualAction.Yank])
+    if (command !== VisualAction.YankWithoutExit && command !== VisualAction.YankRichText) { return; }
+  } else if (command > VisualAction.MaxNotLexical) {
+    const entity = (command - VisualAction.MaxNotLexical) as kG.sentence | kG.word
+    collapseToFocus(1)
+    entity - kG.word || modify(kDirTy.right, kG.character)
+    modify(kDirTy.left, entity)
+    di_ = kDirTy.left // safe
+    collapseToFocus(1)
+    runMovements(kDirTy.right, entity, count)
+  } else if (command === VisualAction.Reverse) {
+    reverseSelection()
+  } else if (command >= VisualAction.MinWrapSelectionModify) {
+    runMovements((command & 1) as 0 | 1, command >> 1, count)
+  }
+  if (mode === Mode.Caret) {
+    extend(kDirTy.right)
+    if (selType() === SelType.Caret) {
+      extend(kDirTy.left)
+    }
+  } else if (mode === Mode.Line) {
+    ensureLine(command)
+  }
+  getDirection("")
+  diType_ & DiType.Complicated || scrollIntoView_s(getSelectionFocusEdge_(curSelection, di_ as ForwardDir))
+}
+
+  commandHandler(VisualAction.Noop, 1)
+  diff ? hudTip(kTip.noUsableSel, 1000) : hudShow(kTip.inVisualMode, modeName, options.r)
 }
 
   /**
@@ -691,59 +691,6 @@ const collapseToRight = (/** to-right if text is left-to-right */ toRight: Forwa
     di_ = kDirTy.right
 }
 
-const selectLexicalEntity = (entity: kG.sentence | kG.word, count: number): void => {
-  collapseToFocus(1)
-  entity - kG.word || modify(kDirTy.right, kG.character)
-  modify(kDirTy.left, entity)
-  di_ = kDirTy.left // safe
-  collapseToFocus(1)
-  runMovements(kDirTy.right, entity, count)
-}
-
-  /** after called, VVisual must exit at once */
-const selectLine = (count: number): void => {
-  const oldDi = getDirection()
-  mode_ = Mode.Visual // safer
-  alterMethod = kExtend
-  {
-    oldDi && reverseSelection()
-    modify(kDirTy.left, kG.lineBoundary)
-    di_ = kDirTy.left // safe
-    reverseSelection()
-  }
-  while (0 < --count) { modify(kDirTy.right, kG.line) }
-  modify(kDirTy.right, kG.lineBoundary)
-  const ch = getNextRightCharacter(0)
-  const num1 = oldLen_
-  if (ch && num1 && ch !== "\n") {
-    if (!(Build.BTypes & BrowserType.Firefox) || ch !== "\r") {
-      extend(kDirTy.left);
-      ("" + curSelection).length + 2 - num1 && extend(kDirTy.right)
-    }
-  }
-}
-
-const ensureLine = (command: number): void => {
-  let di = getDirection()
-  if (di && command < VisualAction.MinNotWrapSelectionModify
-      && command >= VisualAction.MinWrapSelectionModify && !diType_ && selType() === SelType.Caret) {
-    di = (1 & ~command) as ForwardDir // old Di
-    modify(di, kG.lineBoundary)
-    selType() !== SelType.Range && modify(di, kG.line)
-    di_ = di
-    reverseSelection()
-    let len = (curSelection + "").length
-    modify(di = di_ = 1 - di, kG.lineBoundary);
-    (curSelection + "").length - len || modify(di, kG.line)
-    return
-  }
-  for (let mode = 2; 0 < mode--; ) {
-    reverseSelection()
-    di = di_ = (1 - di) as ForwardDir
-    modify(di, kG.lineBoundary)
-  }
-}
-
   /** @argument el must be in text mode  */
 const TextOffset = (el: TextElement, di: ForwardDir | boolean): number => {
     return (di ? el.selectionEnd : el.selectionStart)!;
@@ -826,6 +773,47 @@ let init = (words: string, map: VisualModeNS.KeyMap, _g: any) => {
       ? /[^\S\n\r\u2029\u202f]+$/ : /[^\S\n\u2029\u202f]+$/));
   func(keyMap = map as VisualModeNS.SafeKeyMap)
   func(map.a as Dict<VisualAction>); func(map.g as Dict<VisualAction>)
+}
+
+export const highlightRange = (sel: Selection): void => {
+  const br = rangeCount_(sel) ? padClientRect_(getSelectionBoundingBox_(sel)) : null
+  if (br && br.b > br.t && br.r > 0) { // width may be 0 in Caret mode
+    let cr = cropRectToVisible_(br.l - 4, br.t - 5, br.r + 3, br.b + 4)
+    cr && flash_(null, cr, 660, " Sel")
+  }
+}
+
+/** @unknown_di_result */
+const extend = (d: ForwardDir, g?: kG): void | 1 => {
+  curSelection.modify(kExtend, kDir[d], _kGranularity[g || kG.character])
+  diType_ &= ~DiType.isUnsafe
+}
+
+/** @unknown_di_result */
+const modify = (d: ForwardDir, g: kG): void => {
+  curSelection.modify(alterMethod, kDir[d], _kGranularity[g])
+}
+
+/** @safe_di */
+export const deactivate = (isEsc?: 1): void => {
+  if (!mode_) { return }
+  di_ = kDirTy.unknown
+  diType_ = DiType.UnsafeUnknown
+  getDirection("")
+  const oldDiType: DiType = diType_
+  removeHandler_(kHandler.visual)
+  if (!retainSelection) {
+    collapseToFocus(isEsc && mode_ !== Mode.Caret ? 1 : 0)
+  }
+  mode_ = Mode.NotActive
+  modeName = ""
+  const el = insert_Lock_()
+  oldDiType & (DiType.TextBox | DiType.Complicated) || el && el.blur()
+  toggleSelectableStyle(0)
+  retainSelection = richText = currentCount = 0
+  set_scrollingTop(null)
+  currentSeconds = curSelection = null as never
+  hudHide()
 }
 
 if (!(Build.NDEBUG || kYank.MIN > ReuseType.MAX)) {
