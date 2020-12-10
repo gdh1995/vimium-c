@@ -231,7 +231,7 @@ export const onFocus = (event: Event | FocusEvent): void => {
         || Build.BTypes & BrowserType.Firefox && !(Build.BTypes & BrowserType.Edge)
             && Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
         ? event.composedPath!() : event.path
-      , top: EventTarget | undefined,
+      , topOfPath: EventTarget | undefined,
     /**
      * isNormalHost is true if one of:
      * - Chrome is since BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInShadowDOM
@@ -242,10 +242,10 @@ export const onFocus = (event: Event | FocusEvent): void => {
       || !(Build.BTypes & ~BrowserType.Firefox)
       || Build.BTypes & BrowserType.Firefox && !(Build.BTypes & BrowserType.Edge)
           && Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
-      ? (top = path![0]) !== target
-      : !!(top = path && path[0]) && top !== window && top !== target;
+      ? (topOfPath = path![0]) !== target
+      : !!(topOfPath = path && path[0]) && topOfPath !== window && topOfPath !== target
     hookOnShadowRoot(isNormalHost ? path! : [sr, target], target as Element);
-    target = isNormalHost ? top as Element : target;
+    target = isNormalHost ? topOfPath as Element : target
   }
   if (!lastWndFocusTime || event.timeStamp - lastWndFocusTime > 30) {
     if (Build.BTypes & ~BrowserType.Firefox) {
@@ -284,16 +284,16 @@ export const onBlur = (event: Event | FocusEvent): void => {
       || Build.BTypes & BrowserType.Firefox && !(Build.BTypes & BrowserType.Edge)
           && Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
       ? event.composedPath!() : event.path
-    , top: EventTarget | undefined
+    , topOfPath: EventTarget | undefined
     , same = Build.MinCVer >= BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInClosedShadowDOM
           && !(Build.BTypes & ~BrowserType.Chrome)
         || !(Build.BTypes & ~BrowserType.Firefox)
         || Build.BTypes & BrowserType.Firefox && !(Build.BTypes & BrowserType.Edge)
             && Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
-        ? (top = path![0]) === target
-        : !(top = path && path[0]) || top === window || top === target
+        ? (topOfPath = path![0]) === target
+        : !(topOfPath = path && path[0]) || topOfPath === window || topOfPath === target
     , sr = GetShadowRoot_(target as Element);
-  if (lock_ === (same ? target : top)) {
+  if (lock_ === (same ? target : topOfPath)) {
     lock_ = null;
     if (inputHint && !isHintingInput && doc.hasFocus()) {
       exitInputHint();

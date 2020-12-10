@@ -1,5 +1,5 @@
 import {
-  clickable_, setupEventListener, VOther, timeout_, doc, isAlive_, set_allowRAF_, math,
+  clickable_, setupEventListener, VOther, timeout_, doc, isAlive_, set_allowRAF_, math, isTop,
   loc_, replaceBrokenTimerFunc, allowRAF_, getTime, recordLog, VTr, vApi, Stop_, isTY
 } from "../lib/utils"
 import {
@@ -91,7 +91,7 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
   script.dataset.vimium = secret
 
   let box: Element | undefined | 0, hookRetryTimes = 0,
-  isFirstResolve: 0 | 1 | 2 | 3 | 4 = window === top ? 3 : 4,
+  isFirstResolve: 0 | 1 | 2 | 3 | 4 = isTop ? 3 : 4,
   hook = function (event: Event): void {
     const t = (event as TypeToAssert<Event, DelegateEventCls["prototype"], "relatedTarget">).relatedTarget,
     S = InnerConsts.kSecretAttr;

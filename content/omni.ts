@@ -17,7 +17,7 @@ declare var VData: VDataTy
 
 import {
   injector, isAlive_, keydownEvents_, readyState_, VOther, timeout_, clearTimeout_, loc_, recordLog, chromeVer_, math,
-  interval_, clearInterval_, locHref, vApi, createRegExp, isTY, safeObj
+  interval_, clearInterval_, locHref, vApi, createRegExp, isTY, safeObj, isTop
 } from "../lib/utils"
 import { removeHandler_, replaceOrSuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
 import {
@@ -64,7 +64,7 @@ export const activate = function (options: FullOptions, count: number): void {
       }
     }
     timer = TimerID.None
-    let url = options.url, isTop = top === window;
+    let url = options.url
     if (isTop || !options.u || !isTY(options.u)) {
       options.u = vApi.u()
     }
