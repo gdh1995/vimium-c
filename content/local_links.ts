@@ -28,7 +28,7 @@ import { shouldScroll_s, getPixelScaleToScroll, scrolled, set_scrolled, suppress
 import { ui_root, ui_box, helpBox } from "./dom_ui"
 
 let frameNested_: NestedFrame = false
-let extraClickable_: ElementSet
+let extraClickable_: ElementSet | null
 let ngEnabled: boolean | undefined
 let jsaEnabled_: boolean | undefined
 let maxLeft_ = 0
@@ -122,7 +122,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
             || (anotherEl as TypeToAssert<Element, SafeHTMLElement, "onmousedown">).onmousedown
           : element.getAttribute("onclick"))
         || (s = element.getAttribute("role")) && clickableRoles_.test(s)
-        || extraClickable_.has(element)
+        || extraClickable_ && extraClickable_.has(element)
         || ngEnabled && attr_s(element, "ng-click")
         || forHover_ && attr_s(element, "onmouseover")
         || jsaEnabled_ && (s = attr_s(element, "jsaction")) && checkJSAction(s)
@@ -152,7 +152,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
       && (type < ClickType.scrollX
         || shouldScroll_s(element
             , (((type - ClickType.scrollX) as ScrollByY) + forceToScroll_) as BOOL | 2 | 3, 0) > 0)
-      && (isAriaNotTrue_(element, kAria.hidden) || extraClickable_.has(element))
+      && (isAriaNotTrue_(element, kAria.hidden) || extraClickable_ && extraClickable_.has(element))
       && (hintMode_ > HintMode.min_job - 1 || isAriaNotTrue_(element, kAria.disabled))
       && (type < ClickType.codeListener  || type > ClickType.classname
           || !(s = element.getAttribute("unselectable")) || s.toLowerCase() !== "on")
@@ -165,7 +165,7 @@ const getClickableInNonHTMLButMayFormatted = (hints: Hint[]
       let arr: Rect | null | undefined, s: string | null
       const tabIndex = (element as ElementToHTMLorOtherFormatted).tabIndex
       let type: ClickType.Default | HintsNS.AllowedClickTypeForNonHTML = clickable_.has(element)
-          || extraClickable_.has(element)
+          || extraClickable_ && extraClickable_.has(element)
           || tabIndex != null && (!(Build.BTypes & ~BrowserType.Firefox)
               || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
               ? (anotherEl = unwrap_ff(element as NonHTMLButFormattedElement)).onclick || anotherEl.onmousedown
@@ -340,9 +340,10 @@ const matchSafeElements = ((selector: string, rootNode: Element | ShadowRoot | n
   (selector: string, rootNode: Element | null, udSelector: string | null, mayBeUnsafe: 1): HintSources | void
 }
 
-const createElementSet = (list: NodeListOf<Element> | Element[]): ElementSet => {
+const createElementSet = (list: NodeListOf<Element> | Element[]): ElementSet | null => {
   let set: ElementSet | null
-  if (!(Build.BTypes & BrowserType.Chrome)
+  if (!list.length) { set = null }
+  else if (!(Build.BTypes & BrowserType.Chrome)
       || Build.MinCVer >= BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
       || chromeVer_ > BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes - 1) {
     set = new WeakSet!(list as ArrayLike<Element> as readonly Element[])
@@ -393,7 +394,7 @@ export const traverse = ((selector: string, options: CSSOptions, filter: Filter<
       (list = ([] as SafeElement[]).slice.call(list)).unshift(traverseRoot as SafeElement)
     }
   }
-  let cur_scope: [HintSources, number, ElementSet] | undefined
+  let cur_scope: [HintSources, number, ElementSet | null] | undefined
   const prefixedShadow = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
       && chromeVer_ < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
   const tree_scopes: Array<typeof cur_scope> = [[list, 0
@@ -804,9 +805,7 @@ export const checkNestedFrame = (output?: Hint[]): void => {
               , i = arr.length; (len = output.length) < 2 && i-- > 0; ) {
         if (arr[i].lang != null) {
           initTestRegExps()
-          extraClickable_ = extraClickable_ || createElementSet([])
           getClickable(output, arr[i] as SafeHTMLElement)
-          extraClickable_ = null as never
         }
       }
     }
