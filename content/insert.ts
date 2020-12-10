@@ -301,20 +301,21 @@ export const onBlur = (event: Event | FocusEvent): void => {
   }
   if (!sr || target === ui_box) { return; }
   if (same) {
-    shadowNodeMap && shadowNodeMap.set(sr, kNodeInfo.ShadowBlur)
+    shadowNodeMap || hookOnShadowRoot([sr, 0], 0) // in case of unexpect wrong states made by onFocus
+    shadowNodeMap!.set(sr, kNodeInfo.ShadowBlur)
   } else {
     hookOnShadowRoot(path!, target as Element, 1);
   }
 }
 
-export const onShadow = function (this: ShadowRoot, event: FocusEvent): void {
+const onShadow = function (this: ShadowRoot, event: FocusEvent): void {
   if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
       ? !event.isTrusted : event.isTrusted === false) { return; }
   if (isEnabled_ && event.type === "focus") {
     onFocus(event);
     return;
   }
-  if (!isEnabled_ || shadowNodeMap && shadowNodeMap.get(this) === kNodeInfo.ShadowBlur) {
+  if (!isEnabled_ || shadowNodeMap!.get(this) === kNodeInfo.ShadowBlur) {
     hookOnShadowRoot([this, 0 as never], 0, 1);
   }
   if (isEnabled_) {
@@ -358,6 +359,6 @@ const getSimpleNodeMap = (): ShadowNodeMap => {
   return WeakMap ? new WeakMap() : {
     set (node: Node, info: Exclude<kNodeInfo, kNodeInfo.NONE>): any { (node as NodeWithInfo).vimiumC = info },
     get (node: Node): kNodeInfo | undefined { return (node as NodeWithInfo).vimiumC },
-    delete (node: Node): any { delete (node as NodeWithInfo).vimiumC }
+    delete (node: Node): any { (node as NodeWithInfo).vimiumC = kNodeInfo.NONE }
   }
 }
