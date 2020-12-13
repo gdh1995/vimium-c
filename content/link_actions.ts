@@ -27,16 +27,26 @@ import { kDir, kExtend } from "./visual"
 type LinkEl = Hint[0];
 
 let hintKeyCode_ = kKeyCode.None
-let removeFlash = null as (() => void) | null
+let removeFlash: (() => void) | null | undefined
 
 export { removeFlash, hintKeyCode_ as hintKeyCode }
 export function set_removeFlash (_newRmFlash: null): void { removeFlash = _newRmFlash }
 export function set_hintKeyCode_ (_newHintKeyCode: kKeyCode): void { hintKeyCode_ = _newHintKeyCode }
 
-export const executeHintInOfficer = (hint: HintItem, event?: HandlerNS.Event): Rect | null | undefined | 0 => {
+const unhoverOnEsc: HandlerNS.Handler = event => {
+  removeHandler_(kHandler.unhoverOnEsc)
+  if (isEscape_(getMappedKey(event, kModeId.Link)) && !insert_Lock_()) {
+    unhover_();
+    return HandlerResult.Prevent;
+  }
+  return HandlerResult.Nothing;
+}
 
-const getUrlData = (link: SafeHTMLElement): string => {
-  const str = link.dataset.vimUrl;
+export const executeHintInOfficer = (hint: HintItem | Pick<HintItem, "d" | "r"> & {m?: null}
+    , event?: HandlerNS.Event): Rect | null | undefined | 0 => {
+
+const getUrlData = (): string => {
+  let link = clickEl as SafeHTMLElement, str = link.dataset.vimUrl
   if (str) {
     (link = createElement_("a")).href = str.trim();
   }
@@ -45,21 +55,23 @@ const getUrlData = (link: SafeHTMLElement): string => {
 }
 
 /** return: img is HTMLImageElement | HTMLAnchorElement | HTMLElement[style={backgroundImage}] */
-const downloadOrOpenMedia = (img: SafeHTMLElement): void => {
-  let mediaTag = getMediaTag(img)
-  let src = img.dataset.canonicalSrc || img.dataset.src || ""
+const downloadOrOpenMedia = (): void => {
+  let mediaTag = getMediaTag(clickEl as SafeHTMLElement), dataset = (clickEl as SafeHTMLElement).dataset
+  let src = dataset.canonicalSrc || dataset.src || ""
   let text: string | null, n: number
   if (!mediaTag) {
-    if ((n = (img as HTMLImageElement).naturalWidth) && n < 3
-        && (n = (img as HTMLImageElement).naturalHeight) && n < 3) {
+    if ((n = (clickEl as HTMLImageElement).naturalWidth) && n < 3
+        && (n = (clickEl as HTMLImageElement).naturalHeight) && n < 3) {
       mediaTag = kMediaTag.LAST + 1
     }
   }
-  text = mediaTag < kMediaTag.others ? src || getMediaUrl(img, mediaTag < kMediaTag.MIN_NOT_MEDIA_EL) : ""
+  text = mediaTag < kMediaTag.others
+      ? src || getMediaUrl(clickEl as SafeHTMLElement, mediaTag < kMediaTag.MIN_NOT_MEDIA_EL) : ""
   if (mediaTag > kMediaTag.MIN_NOT_MEDIA_EL - 1) {
     if (!isImageUrl(text)) {
       let arr = createRegExp(kTip.cssUrl, "i").exec(
-            (mediaTag > kMediaTag.LAST ? getComputedStyle_(img) : img.style).backgroundImage!)
+            (mediaTag > kMediaTag.LAST ? getComputedStyle_(clickEl)
+              : (clickEl as SafeHTMLElement).style).backgroundImage!)
       if (arr && arr[1]) {
         const a1 = createElement_("a");
         a1.href = arr[1].replace(<RegExpG> /\\('|")/g, "$1");
@@ -68,10 +80,10 @@ const downloadOrOpenMedia = (img: SafeHTMLElement): void => {
     }
   }
   if (!text || isJSUrl(text)
-      || src.length > text.length + 7 && (text === (img as HTMLElement & {href?: string}).href)) {
+      || src.length > text.length + 7 && (text === (clickEl as HTMLElement & {href?: string}).href)) {
     text = src;
   }
-  const filename = attr_s(img, "download") || attr_s(img, "alt") || img.title
+  const filename = attr_s(clickEl, kD) || attr_s(clickEl, "alt") || (clickEl as SafeHTMLElement).title
   if (!text) { hintApi.t({ k: kTip.notImg }) }
   else if (mode1_ === HintMode.OPEN_IMAGE) {
     post_({
@@ -104,39 +116,13 @@ const openUrl = (url: string, incognito?: boolean): void => {
   });
 }
 
-const unhoverOnEsc: HandlerNS.Handler = event => {
-    removeHandler_(kHandler.unhoverOnEsc)
-    if (isEscape_(getMappedKey(event, kModeId.Link)) && !insert_Lock_()) {
-      unhover_();
-      return HandlerResult.Prevent;
-    }
-    return HandlerResult.Nothing;
-}
-
-const focusIFrame = (el: KnownIFrameElement): void => {
-  el.focus()
-  // focus first, so that childApi is up-to-date (in case <iframe> was removed on focus)
-  const childApi = detectUsableChild(el)
-  if (!childApi) {
-    send_(kFgReq.execInChild, {
-      u: el.src, c: kFgCmd.linkHints, n: hintCount_, k: hintKeyCode_, a: hintOptions
-    }, (res): void => {
-      if (!res) {
-        el.contentWindow.focus()
-      }
-    })
-  } else {
-    childApi.f(kFgCmd.linkHints, hintOptions, hintCount_, 1)
-  }
-}
-
-const hoverEl = (element: LinkEl, rect: Rect | null): void => {
-    const type = getEditableType_<0>(element), toggleMap = hintOptions.toggle;
+const hoverEl = (rect: Rect | null): void => {
+    const type = getEditableType_<0>(clickEl), toggleMap = hintOptions.toggle;
     // here not check lastHovered on purpose
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
-    set_currentScrolling(weakRef_(element))
-    catchAsyncErrorSilently(hover_(element, center_(rect))).then((): void => {
-    type || element.focus && !isIFrameElement(element) && element.focus()
+    set_currentScrolling(weakRef_(clickEl))
+    catchAsyncErrorSilently(hover_(clickEl, center_(rect))).then((): void => {
+    type || clickEl.focus && !isIFrameElement(clickEl) && clickEl.focus()
     set_cachedScrollable(currentScrolling)
     if (mode1_ < HintMode.min_job) { // called from Modes[-1]
       hintApi.t({ k: kTip.hoverScrollable })
@@ -145,7 +131,7 @@ const hoverEl = (element: LinkEl, rect: Rect | null): void => {
     hintMode_ & HintMode.queue || pushHandler_(unhoverOnEsc, kHandler.unhoverOnEsc)
     if (!toggleMap || !isTY(toggleMap, kTY.obj)) { return }
     safer(toggleMap);
-    let ancestors: Element[] = [], top: Element | null = element, re = <RegExpOne> /^-?\d+/;
+    let ancestors: Element[] = [], top: Element | null = clickEl, re = <RegExpOne> /^-?\d+/;
     for (let key in toggleMap) {
       // if no Element::closest, go up by 6 levels and then query the selector
       let selector = key, prefix = re.exec(key), upper = prefix && prefix[0];
@@ -154,7 +140,7 @@ const hoverEl = (element: LinkEl, rect: Rect | null): void => {
       }
       let up = (upper as string | number as number) | 0, selected: Element | null = null;
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest && !up) {
-        up = element.closest ? 0 : 6;
+        up = clickEl.closest ? 0 : 6;
       }
       selector = selector.trim();
       while (up && up + 1 >= ancestors.length && top) {
@@ -168,7 +154,7 @@ const hoverEl = (element: LinkEl, rect: Rect | null): void => {
                     , selector)
                 : querySelector_unsafe_(selector, ancestors[max_(0, min_(up + 1, ancestors.length - 1))
                     ] as SafeElement)
-              : element.closest!(selector))) {
+              : clickEl.closest!(selector))) {
           if (!(Build.BTypes & ~BrowserType.Firefox) || !notSafe_not_ff_!(selected)) {
             for (const classNameStr of toggleMap[key].split(" ")) {
               classNameStr.trim() && toggleClass_s(selected as SafeElement, classNameStr)
@@ -183,47 +169,46 @@ const hoverEl = (element: LinkEl, rect: Rect | null): void => {
     })
 }
 
-const copyText = (link: LinkEl): void => {
+const copyText = (): void => {
     const mode1 = mode1_;
     let isUrl = mode1 > HintMode.min_link_job - 1 && mode1 < HintMode.max_link_job + 1,
         childEl: Element | null,
         str: string | null | undefined;
     if (isUrl) {
-      str = getUrlData(link as SafeHTMLElement);
+      str = getUrlData()
       str && (<RegExpI> /^mailto:./).test(str) && (str = str.slice(7).trim());
     }
-    else if ((str = attr_s(link, "data-vim-text"))
+    else if ((str = attr_s(clickEl, "data-vim-text"))
         && (str = str.trim())) { /* empty */ }
     else {
-      const tag = htmlTag_(link)
       if (tag === INP) {
-        let type = getInputType(link as HTMLInputElement), f: HTMLInputElement["files"];
+        let type = getInputType(clickEl as HTMLInputElement), f: HTMLInputElement["files"];
         if (type === "pa") {
           hintApi.t({ k: kTip.ignorePassword })
           return
         }
         if (!uneditableInputs_[type]) {
-          str = (link as HTMLInputElement).value || (link as HTMLInputElement).placeholder;
+          str = (clickEl as HTMLInputElement).value || (clickEl as HTMLInputElement).placeholder;
         } else if (type === "fi") {
-          str = (f = (link as HTMLInputElement).files) && f.length > 0 ? f[0].name : "";
+          str = (f = (clickEl as HTMLInputElement).files) && f.length > 0 ? f[0].name : "";
         } else if ("buimsure".includes(type)) {
-          str = (link as HTMLInputElement).value;
+          str = (clickEl as HTMLInputElement).value;
         }
       } else {
-        str = tag === "textarea" ? (link as HTMLTextAreaElement).value
-          : tag === "select" ? ((link as HTMLSelectElement).selectedIndex < 0
-              ? "" : (link as HTMLSelectElement).options[(link as HTMLSelectElement).selectedIndex].text)
-          : tag && (str = (link as SafeHTMLElement).innerText.trim(),
+        str = tag === "textarea" ? (clickEl as HTMLTextAreaElement).value
+          : tag === "select" ? ((clickEl as HTMLSelectElement).selectedIndex < 0
+              ? "" : (clickEl as HTMLSelectElement).options[(clickEl as HTMLSelectElement).selectedIndex].text)
+          : tag && (str = (clickEl as SafeHTMLElement).innerText.trim(),
               (<RegExpI> /^mailto:./i).test(str) ? str.slice(7)
               : str
-                || GetShadowRoot_(link) && (childEl = querySelector_unsafe_("div,span", GetShadowRoot_(link)!))
+                || GetShadowRoot_(clickEl) && (childEl = querySelector_unsafe_("div,span", GetShadowRoot_(clickEl)!))
                     && htmlTag_(childEl) && (childEl as SafeHTMLElement).innerText
                 || str).trim()
-            || (str = textContent_s(link).trim()) && str.replace(<RegExpG> /\s+/g, " ")
+            || (str = textContent_s(clickEl).trim()) && str.replace(<RegExpG> /\s+/g, " ")
       }
       str = str && str.trim();
       if (!str && tag) {
-        str = (link as SafeHTMLElement).title.trim() || (attr_s(link, ALA) || "").trim();
+        str = (clickEl as SafeHTMLElement).title.trim() || (attr_s(clickEl, ALA) || "").trim();
       }
     }
   if (mode1 > HintMode.min_edit - 1 && mode1 < HintMode.max_edit + 1) {
@@ -239,7 +224,7 @@ const copyText = (link: LinkEl): void => {
       });
   } else if (hintOptions.richText) {
       const sel = getSelected({}), range = selRange_(getSelection_())
-      selectAllOfNode(link)
+      selectAllOfNode(clickEl)
       execCommand("copy", doc)
       resetSelectionToDocStart(sel, range)
   } else if (!str) {
@@ -266,11 +251,11 @@ const copyText = (link: LinkEl): void => {
   }
 }
 
-const downloadLink = (element: SafeHTMLElement, rect: Rect | null): void => {
-    let notAnchor = htmlTag_(element) !== "a", H = "href",
-    link = notAnchor ? createElement_("a") : element as HTMLAnchorElement,
+const downloadLink = (rect: Rect | null): void => {
+    let notAnchor = tag !== "a", H = "href",
+    link = notAnchor ? createElement_("a") : clickEl as HTMLAnchorElement,
     oldUrl: string | null = notAnchor ? null : attr_s(link, H),
-    url = getUrlData(element), changed = notAnchor || url !== link.href;
+    url = getUrlData(), changed = notAnchor || url !== link.href
     if (changed) {
       link.href = url;
       if (notAnchor) {
@@ -278,7 +263,7 @@ const downloadLink = (element: SafeHTMLElement, rect: Rect | null): void => {
         top && appendNode_s(top, link)
       }
     }
-    const kD = "download", hadNoDownload = !link.hasAttribute(kD);
+    const hadNoDownload = !link.hasAttribute(kD);
     if (hadNoDownload) {
       link[kD] = "";
     }
@@ -295,7 +280,7 @@ const downloadLink = (element: SafeHTMLElement, rect: Rect | null): void => {
   })
 }
 
-const defaultClick = (link: LinkEl, rect: Rect | null): void => {
+const defaultClick = (rect: Rect | null): void => {
     const mask = hintMode_ & HintMode.mask_focus_new, isMac = !fgCache.o,
     isRight = hintOptions.button === "right",
     dblClick = !!hintOptions.dblclick && !isRight,
@@ -312,7 +297,7 @@ const defaultClick = (link: LinkEl, rect: Rect | null): void => {
     shift = newWindow || newtab_n_active,
     specialActions = dblClick ? kClickAction.forceToDblclick : otherActions
         || (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$Element$$Closest
-            || link.closest ? !link.closest!("a") : htmlTag_(link) !== "a") ? kClickAction.none
+            || clickEl.closest ? !clickEl.closest!("a") : tag !== "a") ? kClickAction.none
         : newTabStr === "force" ? newTab
             ? kClickAction.forceToOpenInNewTab | kClickAction.newTabFromMode : kClickAction.forceToOpenInNewTab
         : newTabStr === "last-window" ? newTab
@@ -323,8 +308,8 @@ const defaultClick = (link: LinkEl, rect: Rect | null): void => {
           : newTab // need to work around Firefox's popup blocker
             ? kClickAction.plainMayOpenManually | kClickAction.newTabFromMode : kClickAction.plainMayOpenManually
         : kClickAction.none;
-    catchAsyncErrorSilently(click_(link
-        , rect, mask > 0 || (link as ElementToHTMLorOtherFormatted).tabIndex! >= 0
+    catchAsyncErrorSilently(click_(clickEl
+        , rect, mask > 0 || (clickEl as ElementToHTMLorOtherFormatted).tabIndex! >= 0
         , [!1, ctrl && !isMac, ctrl && isMac, shift]
         , specialActions, isRight ? kClickButton.second : kClickButton.none
         , !(Build.BTypes & BrowserType.Chrome) || otherActions || newTab ? 0 : hintOptions.touch
@@ -335,7 +320,10 @@ const defaultClick = (link: LinkEl, rect: Rect | null): void => {
 }
 
   const masterOrA = hintManager || coreHints, keyStatus = masterOrA.$().k
-  let rect: Rect | null | undefined, clickEl: LinkEl | null = hint.d
+  const clickEl: LinkEl = hint.d
+  const tag = htmlTag_(clickEl)
+  const kD = "download"
+  let rect: Rect | null | undefined
   let showRect: BOOL | undefined
   if (hintManager) {
     set_keydownEvents_(hintApi.a())
@@ -350,7 +338,7 @@ const defaultClick = (link: LinkEl, rect: Rect | null): void => {
     // must get outline first, because clickEl may hide itself when activated
     // must use UI.getRect, so that zooms are updated, and prepareCrop is called
     rect = getRect(clickEl, hint.r !== clickEl ? hint.r as HTMLElementUsingMap | null : null)
-    if (keyStatus.t && !keyStatus.k && !keyStatus.n) {
+    if (hint.m && keyStatus.t && !keyStatus.k && !keyStatus.n) {
       if ((!(Build.BTypes & BrowserType.Chrome)
             || Build.BTypes & ~BrowserType.Chrome && VOther !== BrowserType.Chrome
             || Build.MinCVer < BrowserVer.MinUserActivationV2 && chromeVer_ < BrowserVer.MinUserActivationV2)
@@ -366,13 +354,26 @@ const defaultClick = (link: LinkEl, rect: Rect | null): void => {
     hintManager && focus()
     // tolerate new rects in some cases
     const m = mode1_
-    if (isIFrameElement(clickEl)) {
+    if (hint.m && isIFrameElement(clickEl)) {
       hintOptions.m = hintMode_;
       (hintManager || coreHints).$(1)
       showRect = <BOOL> +(clickEl !== omni_box)
-      showRect ? /*#__NOINLINE__*/ focusIFrame(clickEl) : focusOmni()
+      if (showRect) {
+        clickEl.focus()
+        // focus first, so that childApi is up-to-date (in case <iframe> was removed on focus)
+        const childApi = detectUsableChild(clickEl)
+        if (childApi) {
+          childApi.f(kFgCmd.linkHints, hintOptions, hintCount_, 1)
+        } else {
+          send_(kFgReq.execInChild, {
+            u: clickEl.src, c: kFgCmd.linkHints, n: hintCount_, k: hintKeyCode_, a: hintOptions
+          }, (res): void => { !res || clickEl.contentWindow.focus() })
+        }
+      } else {
+        focusOmni()
+      }
     } else if (m < HintMode.min_job) {
-      if (htmlTag_(clickEl) === "details") {
+      if (tag === "details") {
         const summary = findMainSummary_(clickEl as HTMLDetailsElement)
         if (summary) {
           // `HTMLSummaryElement::DefaultEventHandler(event)` in
@@ -386,35 +387,31 @@ const defaultClick = (link: LinkEl, rect: Rect | null): void => {
           (clickEl as HTMLDetailsElement).open = !(clickEl as HTMLDetailsElement).open
         }
       } else if (hint.r && hint.r === clickEl) {
-        hoverEl(clickEl, rect)
+        hoverEl(rect)
       } else if (getEditableType_<0>(clickEl) > EditableType.TextBox - 1) {
         select_(clickEl as LockableElement, rect, !removeFlash)
         showRect = 0
       } else {
-        /*#__NOINLINE__*/ defaultClick(clickEl, rect)
+        /*#__NOINLINE__*/ defaultClick(rect)
       }
     } else if (m < HintMode.UNHOVER + 1) {
-      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredAsyncFunctions) {
-        m < HintMode.HOVER + 1 ? hoverEl(clickEl, rect) : unhover_(clickEl)
-      } else {
-        (m < HintMode.HOVER + 1 ? hoverEl : unhover_)(clickEl, rect)
-      }
+      m < HintMode.HOVER + 1 ? hoverEl(rect) : unhover_(clickEl)
     } else if (m < HintMode.FOCUS + 1) {
       view_(clickEl)
       clickEl.focus && clickEl.focus()
       removeFlash || flash_(clickEl)
       showRect = 0
     } else if (m < HintMode.max_media + 1) {
-      /*#__NOINLINE__*/ downloadOrOpenMedia(clickEl as SafeHTMLElement)
+      /*#__NOINLINE__*/ downloadOrOpenMedia()
     } else if (m < HintMode.max_copying + 1) {
-      copyText(clickEl)
+      copyText()
     } else if (m < HintMode.DOWNLOAD_LINK + 1) {
-      /*#__NOINLINE__*/ downloadLink(clickEl as SafeHTMLElement, rect)
+      /*#__NOINLINE__*/ downloadLink(rect)
     } else if (m < HintMode.OPEN_INCOGNITO_LINK + 1) {
-      const url = getUrlData(clickEl as SafeHTMLElement)
+      const url = getUrlData()
       evalIfOK(url) || openUrl(url, !0)
     } else if (m < HintMode.max_edit + 1) {
-      copyText(clickEl)
+      copyText()
     } else if (m < HintMode.FOCUS_EDITABLE + 1) {
       select_(clickEl as HintsNS.InputHintItem["d"], rect, !removeFlash)
       showRect = 0
@@ -431,7 +428,6 @@ const defaultClick = (link: LinkEl, rect: Rect | null): void => {
       }, 17)
     }
   } else {
-    clickEl = null
     hintApi.t({ k: kTip.linkRemoved, d: 2000 })
   }
   (<RegExpOne> /a?/).test("")
