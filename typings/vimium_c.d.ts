@@ -433,7 +433,8 @@ declare namespace VomnibarNS {
     exitOnClick?: boolean;
     autoSelect?: boolean | null | BOOL;
     preferTabs?: "new" | "new-opened" | "newOpened";
-    engines?: CompletersNS.SugType.Empty;
+    engines?: CompletersNS.SugType.Empty | CompletersNS.SugType.Full | keyof typeof CompletersNS.SugType
+        | ReadonlyArray<keyof typeof CompletersNS.SugType>
     noTabs?: boolean;
     hiddenTabs?: boolean;
     icase?: boolean;

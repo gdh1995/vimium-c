@@ -46,6 +46,7 @@ interface ConfigurableItems {
 }
 interface Window extends ConfigurableItems {}
 import PixelData = VomnibarNS.PixelData;
+import SugType = CompletersNS.SugType
 
 if (typeof VApi == "object" && VApi && typeof VApi.d == "function") {
   VApi.d(1);
@@ -70,7 +71,19 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.updateQueryFlag_(CompletersNS.QueryFlags.NoTabEngine, !!options.noTabs);
     a.updateQueryFlag_(CompletersNS.QueryFlags.EvenHiddenTabs, !!options.hiddenTabs);
     a.doesOpenInIncognito_ = options.incognito;
-    a.allowedEngines_ = (options.engines || CompletersNS.SugType.Empty) | 0;
+    let engines = options.engines
+    engines instanceof Array && (engines = engines.join() as keyof typeof SugType)
+    if (typeof engines === "string" && engines) {
+      engines = (engines.includes("bookmark") ? SugType.bookmark : 0)
+          + (engines.includes("history") ? SugType.history : 0)
+          + (engines.includes("tab") ? SugType.tab : 0)
+          + (engines.includes("search") ? SugType.search : 0)
+          + (engines.includes("domain") ? SugType.domain : 0)
+    }
+    a.allowedEngines_ = ((engines as SugType | "") || SugType.Empty) | 0
+    if (a.allowedEngines_) {
+      a.mode_.o = "omni"
+    }
     a.caseInsensitive_ = !!options.icase;
     a.forceNewTab_ = !!options.newtab;
     a.selectFirst_ = options.autoSelect;
