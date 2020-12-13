@@ -510,7 +510,7 @@ export const deactivate = (i: FindNS.Action): void => {
     i === FindNS.Action.ExitNoAnyFocus ? hookSel(1) : focus()
     clear()
     if (i > FindNS.Action.MaxExitButNoWork) {
-      el = getSelectionFocusEdge_(getSelected(), 1);
+      el = getSelectionFocusEdge_(getSelected())
       el && el.focus && el.focus()
     }
     if ((i === FindNS.Action.ExitAndReFocus || !hasResult || visual_mode) && !noStyle) {

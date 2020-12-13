@@ -1,5 +1,5 @@
 import { VOther, chromeVer_, doc, createRegExp, isTY, Lower, OBJECT_TYPES } from "./utils"
-import { dimSize_ } from "./rect"
+import { dimSize_, selRange_ } from "./rect"
 
 interface kNodeToType {
   [kNode.TEXT_NODE]: Text
@@ -408,9 +408,20 @@ export const isSelected_ = (): boolean => {
             : node.childNodes as NodeList)[selOffset_(sel)]
 }
 
-export const getSelectionFocusEdge_ = (sel: Selection, knownDi: VisualModeNS.ForwardDir): SafeElement | null => {
+/** return `right` in case of unknown cases */
+export const getDirectionOfNormalSelection = (sel: Selection, anc: Node, focus: Node): VisualModeNS.ForwardDir => {
+  const num1 = compareDocumentPosition(anc, focus)
+  return (
+      num1 & (kNode.DOCUMENT_POSITION_CONTAINS | kNode.DOCUMENT_POSITION_CONTAINED_BY)
+      ? selRange_(sel, 1).endContainer === anc : (num1 & kNode.DOCUMENT_POSITION_PRECEDING)
+    ) ? VisualModeNS.kDir.left : VisualModeNS.kDir.right
+}
+
+export const getSelectionFocusEdge_ = (sel: Selection, knownDi?: VisualModeNS.ForwardDir): SafeElement | null => {
     let el = rangeCount_(sel) && getAccessibleSelectedNode(sel, 1), nt: Node["nodeType"], o: Node | null
     if (!el) { return null; }
+    const anc = getAccessibleSelectedNode(sel)
+    knownDi = knownDi != null ? knownDi : anc !== el && anc ? getDirectionOfNormalSelection(sel, anc, el) : 1
     if ((el as NodeToElement).tagName) {
       el = (Build.BTypes & ~BrowserType.Firefox ? GetChildNodes_not_ff!(el as Element)[selOffset_(sel, 1)]
             : (el.childNodes as NodeList)[selOffset_(sel, 1)]) || el

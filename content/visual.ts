@@ -36,7 +36,7 @@ import { VTr, VOther, safer, fgCache, doc, chromeVer_, tryCreateRegExp, isTY } f
 import {
   getSelection_, getSelectionFocusEdge_, isHTML_, docEl_unsafe_, notSafe_not_ff_, getEditableType_, editableTypes_,
   GetChildNodes_not_ff, isInputInTextMode_cr_old, rangeCount_, getAccessibleSelectedNode, scrollingEl_, isNode_,
-  compareDocumentPosition, selOffset_
+  getDirectionOfNormalSelection, selOffset_
 } from "../lib/dom_utils"
 import {
   padClientRect_, getSelectionBoundingBox_, getZoom_, prepareCrop_, cropRectToVisible_, getVisibleClientRect_,
@@ -594,13 +594,8 @@ const getDirection = function (magic?: string
       const focusNode = getAccessibleSelectedNode(sel, 1)
       // common HTML nodes
       if (anchorNode !== focusNode) {
-        num1 = compareDocumentPosition(anchorNode!, focusNode!)
         diType_ = DiType.Normal
-        return di_ = (
-            num1 & (kNode.DOCUMENT_POSITION_CONTAINS | kNode.DOCUMENT_POSITION_CONTAINED_BY)
-            ? selRange_(sel, 1).endContainer === anchorNode
-            : (num1 & kNode.DOCUMENT_POSITION_PRECEDING)
-          ) ? kDirTy.left : kDirTy.right; // return `right` in case of unknown cases
+        return di_ = getDirectionOfNormalSelection(sel, anchorNode!, focusNode!)
       }
       num1 = selOffset_(sel)
       // here rechecks `!anchorNode` is just for safety.
