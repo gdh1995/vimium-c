@@ -217,8 +217,9 @@ interface UserSedOptions {
 
 declare namespace HintsNS {
   interface Options extends UserSedOptions, CSSOptions {
-    m: HintMode;
-    c?: string;
+    /** mode */ m: HintMode
+    /** hint characters */ c?: string
+    /** click directly */ direct?: boolean | "sel" | "focus" | "hover" | "sel,focus,hover"
     action?: string;
     caret?: boolean;
     ordinal?: boolean

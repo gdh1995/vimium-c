@@ -422,6 +422,7 @@ availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeO
   "LinkHints.activateModeToSearchLinkText": [ kFgCmd.linkHints, 0, 0, { m: HintMode.SEARCH_TEXT } ],
   "LinkHints.activateModeToSelect": [ kFgCmd.linkHints, 0, 0, { m: HintMode.ENTER_VISUAL_MODE } ],
   "LinkHints.activateModeWithQueue": [ kFgCmd.linkHints, 0, 0, { m: HintMode.OPEN_WITH_QUEUE } ],
+  "LinkHints.click": [ kFgCmd.linkHints, 0, 0, { direct: true, m: HintMode.DEFAULT } ],
   "LinkHints.unhoverLast": [ kFgCmd.insertMode, 0, 1, { u: true } ],
   "Marks.activate": [ kFgCmd.marks, 0, 0 ],
   "Marks.activateCreateMode": [ kFgCmd.marks, 0, 0, { mode: "create" } ],

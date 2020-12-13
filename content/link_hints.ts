@@ -65,7 +65,7 @@ import {
 } from "../lib/utils"
 import {
   frameElement_, querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_,
-  getComputedStyle_, isStyleVisible_, htmlTag_, fullscreenEl_unsafe_, removeEl_s, UNL, toggleClass_s, doesSupportDialog
+  getComputedStyle_, isStyleVisible_, htmlTag_, fullscreenEl_unsafe_, removeEl_s, UNL, toggleClass_s, doesSupportDialog, getSelectionFocusEdge_, activeEl_unsafe_, SafeEl_not_ff_
 } from "../lib/dom_utils"
 import {
   getViewBox_, prepareCrop_, wndSize_, bZoom_, wdZoom_, dScale_, padClientRect_, getBoundingClientRect_,
@@ -76,7 +76,7 @@ import {
   BSP, ENTER, SPC,
 } from "../lib/keyboard_utils"
 import {
-  style_ui, addElementList, ensureBorder, adjustUI, flash_, getParentVApi, getWndVApi_ff, checkHidden, removeModal,
+  style_ui, addElementList, ensureBorder, adjustUI, flash_, getParentVApi, getWndVApi_ff, checkHidden, removeModal, getSelected,
 } from "./dom_ui"
 import { scrollTick, beginScroll } from "./scroller"
 import { hudTip, hudShow, hudHide, hud_tipTimer } from "./hud"
@@ -134,6 +134,9 @@ export const activate = (options: HintsNS.ContentOptions, count: number, force?:
     if (isActive && force !== 2 || !isEnabled_) { return; }
     if (checkHidden(kFgCmd.linkHints, options, count)) {
       return clear(1)
+    }
+    if (options.direct && !isActive) {
+      return activateDirectly(options, count)
     }
     if (doc.body === null) {
       manager_ || clear()
@@ -202,7 +205,7 @@ export const activate = (options: HintsNS.ContentOptions, count: number, force?:
       for (const i of toCleanArray) { i.p = null; i.c() }
       total = allHints.length;
       if (!total || total > GlobalConsts.MaxCountToHint) {
-        hudTip(total ? kTip.tooManyLinks : kTip.noLinks, 1000)
+        hudTip(total ? kTip.tooManyLinks : kTip.noLinks)
         return clear()
       }
       hints_ = keyStatus_.c = allHints
@@ -468,6 +471,29 @@ const callExecuteHint = (hint: HintItem, event?: HandlerNS.Event): void => {
       }, frameArray.length > 1 ? 50 : 18)
     }
   }, isActive = 0)
+}
+
+const activateDirectly = (options: HintsNS.ContentOptions, count: number) => {
+  const d = options.direct! as string,
+  allTypes = (d as typeof options.direct) === !0, mode = options.m &= ~HintMode.queue,
+  next = (): void => {
+    IsInDOM_(el!) && (coreHints.e({d: el as LinkEl, r: null}), --count > 0) ? setTimeout(next, 17) : clear()
+  }
+  let el: SafeElement | null | undefined = (allTypes || d.includes("l")) && getSelectionFocusEdge_(getSelected())
+      || (allTypes || d.includes("f")) && (insert_Lock_()
+            || (Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(activeEl_unsafe_())
+                : activeEl_unsafe_() as SafeElement | null))
+      || (allTypes || d.includes("h") ? deref_(lastHovered_) : null)
+  el = mode < HintMode.min_job || el && htmlTag_(el) ? el : null
+  if (!el || !IsInDOM_(el)) {
+    hudTip(kTip.noLinks)
+  } else {
+    count = mode < HintMode.min_job ? min_(count, 3e3) : 1
+    api_ = vApi
+    options_ = options
+    setMode(mode, count_ = isActive = 1)
+    next()
+  }
 }
 
 const locateHint = (matchedHint: HintItem): BaseHintWorker => {
