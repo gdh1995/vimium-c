@@ -241,24 +241,24 @@ export const fullscreenEl_unsafe_ = (): Element | null => {
       ? doc.fullscreenElement : doc.webkitFullscreenElement;
 }
 
-  // Note: sometimes a cached frameElement is not the wanted
-export let frameElement_ = (): Element | null | void => {
+// Note: sometimes a cached frameElement is not the wanted
+export let frameElement_ = (): SafeHTMLElement | null | void => {
     let el: typeof frameElement | undefined;
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement
         || Build.BTypes & BrowserType.Edge) {
       try {
-        if (!(Build.BTypes & BrowserType.Firefox)) { return frameElement; }
+        if (!(Build.BTypes & BrowserType.Firefox)) { return frameElement as SafeHTMLElement }
         else { el = frameElement; }
       } catch {}
     } else {
-      if (!(Build.BTypes & BrowserType.Firefox)) { return frameElement; }
+      if (!(Build.BTypes & BrowserType.Firefox)) { return frameElement as SafeHTMLElement }
       el = frameElement;
     }
     if (Build.BTypes & BrowserType.Firefox) {
       if (el && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)) {
-        frameElement_ = () => el;
+        frameElement_ = () => el as SafeHTMLElement;
       }
-      return el;
+      return el as SafeHTMLElement
     }
 }
 

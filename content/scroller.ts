@@ -22,12 +22,12 @@ interface ElementScrollInfo {
 
 import {
   isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, allowRAF_, readyState_, loc_, chromeVer_,
-  vApi, deref_, weakRef_, VTr, createRegExp, max_, math, min_, VOther
+  vApi, deref_, weakRef_, VTr, createRegExp, max_, math, min_, VOther, Lower
 } from "../lib/utils"
 import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, UNL,
   querySelector_unsafe_, getComputedStyle_, notSafe_not_ff_, HDN, isRawStyleVisible, fullscreenEl_unsafe_,
-  doesSupportDialog
+  doesSupportDialog, attr_s
 } from "../lib/dom_utils"
 import {
   scrollWndBy_, wndSize_, getZoom_, wdZoom_, bZoom_, isNotInViewport, prepareCrop_, padClientRect_, instantScOpt,
@@ -276,7 +276,8 @@ export const executeScroll = function (di: ScrollByY, amount0: number, isTo: BOO
     if (element === scrollingTop && element
       && (core = Build.BTypes & BrowserType.Firefox ? !fullscreenEl_unsafe_() && getParentVApi()
               : frameElement_() && !fullscreenEl_unsafe_() && getParentVApi())
-      && !doesScroll(element, di, amount || (fromMax ? 1 : 0))) {
+      && (Lower(attr_s(frameElement_()!, "scrolling") || "") === "no"
+          || !doesScroll(element, di, amount || (fromMax ? 1 : 0)))) {
         core.c(di, amount0, isTo as 0, factor, fromMax as false);
         if (core.y().k) {
           scrollTick(1)

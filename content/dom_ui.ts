@@ -517,7 +517,7 @@ export const evalIfOK = (url: Pick<BgReq[kBgReq.eval], "u"> | string): boolean =
   return true;
 }
 
-export const checkHidden = (cmd?: FgCmdAcrossFrames, options?: OptionsWithForce, count?: number): BOOL => {
+export const checkHidden = ((cmd?: FgCmdAcrossFrames, options?: OptionsWithForce, count?: number): BOOL => {
   if (isTop) { return 0 }
   // here should not use the cache frameElement, because `getComputedStyle(frameElement).***` might break
   const curFrameElement = !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox
@@ -554,6 +554,9 @@ export const checkHidden = (cmd?: FgCmdAcrossFrames, options?: OptionsWithForce,
     }
   }
   return +result as BOOL;
+}) as {
+  (cmd: FgCmdAcrossFrames, options: OptionsWithForce, count: number): BOOL
+  (cmd?: undefined): BOOL
 }
 
 if (!(Build.NDEBUG || kTip.INJECTED_CONTENT_END < kTip.extendClick)) {
