@@ -227,6 +227,8 @@ declare const enum ReuseType {
   MAX = 2,
 }
 declare type UserReuseType = ReuseType | keyof typeof ReuseType
+    | "newwindow" | "new-window" | "newfg" | "new-fg" | "newbg" | "new-bg"
+    | "lastwndfg" | "last-wnd-fg" | "lastwndbg" | "last-wnd-bg"
 
 declare const enum FrameMaskType {
   NoMaskAndNoFocus = 0,

@@ -120,16 +120,16 @@ export const safeUpdate = (url: string, secondTimes?: true, tabs1?: [Tab]): void
 /** options.url should not be required for kBgCmd.createTab. If count <= 1, only open once */
 export const openMultiTab = (options: InfoToCreateMultiTab, count: number, evenIncognito?: boolean | -1 | null
     ): void => {
-  const wndId = options.windowId, hasIndex = options.index != null
+  const hasIndex = options.index != null
   tabsCreate(options, options.active ? (tab): void => {
-    tab && tab.windowId !== wndId && selectWnd(tab)
+    tab && tab.windowId !== TabRecency_.curWnd_ && selectWnd(tab)
   } : null, evenIncognito)
   if (count < 2) { return }
   options.active = false
-  do {
+  while (count-- > 1) {
     hasIndex && ++options.index!
     browserTabs.create(options)
-  } while (--count > 1)
+  }
 }
 
 export const makeWindow = (options: chrome.windows.CreateData, state?: chrome.windows.ValidStates | ""

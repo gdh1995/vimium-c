@@ -246,11 +246,10 @@ const BackgroundCommands: {
     if (tabs && !(tabs instanceof Array)) { tab = tabs; TabRecency_.curTab_ = tab.id }
     else if (tabs && tabs.length > 0) { tab = tabs[0] }
     if (!tab && TabRecency_.curTab_ >= 0) {
-      TabRecency_.curTab_ = GlobalConsts.TabIdNone
       tabsGet(TabRecency_.curTab_, createTab)
     } else {
       openMultiTab((tab ? {
-        active: tab.active, windowId: tab.windowId,
+        active: true, windowId: tab.windowId,
         openerTabId: get_cOptions<C.createTab>().opener ? tab.id : void 0,
         index: newTabIndex(tab, get_cOptions<C.createTab>().position)
       } : {active: true}) as InfoToCreateMultiTab, cRepeat, get_cOptions<C.createTab, true>().evenIncognito)

@@ -75,10 +75,12 @@ const openUrlInIncognito = (url: string
 export const parseReuse = (reuse: UserReuseType | null | undefined): ReuseType =>
     reuse == null ? ReuseType.newFg
     : typeof reuse !== "string" ? (<number> <number | null | undefined> reuse) | 0
-    : reuse === "reuse" ? ReuseType.reuse : reuse === "newWindow" ? ReuseType.newWindow
-    : reuse === "newFg" ? ReuseType.newFg : reuse === "newBg" ? ReuseType.newBg
-    : reuse === "lastWndFg" ? ReuseType.lastWndFg : reuse === "lastWndBg" ? ReuseType.lastWndBg
+    : (reuse = reuse.toLowerCase().replace("-", "") as (typeof reuse & string), reuse === "reuse") ? ReuseType.reuse
+    : reuse === "newwindow" ? ReuseType.newWindow
+    : reuse === "newfg" ? ReuseType.newFg : reuse === "newbg" ? ReuseType.newBg
     : reuse === "current" ? ReuseType.current
+    : (reuse = reuse.replace("-", "") as (typeof reuse & string),
+      reuse === "lastwndfg") ? ReuseType.lastWndFg : reuse === "lastwndbg" ? ReuseType.lastWndBg
     : ReuseType.newFg
 
 
