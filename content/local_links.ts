@@ -467,7 +467,8 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
             // icons: button > i; button > div@mousedown; (button[disabled] >) div@mousedown
             ++splice
           }
-        } else if (s === D
+        }
+        if (s === D && !splice
             && (j = i + 1) < list.length
             && (s = list[j][0].localName, s === D || s === "a")) {
           prect = list[i][1]; crect = list[j][1];
