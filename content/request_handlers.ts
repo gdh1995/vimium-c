@@ -278,25 +278,25 @@ export const showFrameMask = (mask: FrameMaskType): void => {
 }
 
 set_hookOnWnd(((action: HookAction): void => {
-  let f = action ? removeEventListener : addEventListener
+  let f = action ? removeEventListener : addEventListener, t = true
   if (Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
       && Build.BTypes & BrowserType.Chrome) {
     if (!(Build.BTypes & ~BrowserType.Chrome && VOther !== BrowserType.Chrome)
         && (action || chromeVer_ < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow)) {
-      f.call(doc, DAC, onActivate, true)
-      f.call(doc, CLK, anyClickHandler, true);
+      f.call(doc, DAC, onActivate, t)
+      f.call(doc, CLK, anyClickHandler, t)
     }
     if (action === HookAction.SuppressListenersOnDocument) { return; }
   }
-  f("keydown", onKeydown, true);
-  f("keyup", onKeyup, true);
-  action !== HookAction.Suppress && f("focus", onFocus, true);
-  f(BU, onBlur, true);
+  f("keydown", onKeydown, t)
+  f("keyup", onKeyup, t)
+  action !== HookAction.Suppress && f("focus", onFocus, t)
+  f(BU, onBlur, t)
   if (!(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome) {
-    f(CLK, anyClickHandler, true);
+    f(CLK, anyClickHandler, t)
   }
-  f(Build.BTypes & ~BrowserType.Chrome && VOther !== BrowserType.Chrome
-      ? CLK : DAC, onActivate, true)
+  f(VOther !== BrowserType.Chrome
+      ? CLK : DAC, onActivate, t)
 }))
 
 export const focusAndRun = (cmd?: FgCmdAcrossFrames, options?: FgOptions, count?: number, showBorder?: 1 | 2): void => {

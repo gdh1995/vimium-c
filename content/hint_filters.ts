@@ -21,11 +21,11 @@ type Stack = number[];
 type Stacks = Stack[];
 
 const kNumbers = "0123456789" as const
-let activeHint_: FilteredHintItem | null = null
+let activeHint_: FilteredHintItem | null | undefined
 let nonMatchedRe_: RegExpG & RegExpOne | null | undefined
 let maxPrefixLen_ = 0
 let pageNumberHintArray: FilteredHintItem[] | null | undefined
-let zIndexes_: Stacks | null | 0 = null
+let zIndexes_: Stacks | null | undefined | 0
 
 export { activeHint_, zIndexes_ }
 export function set_zIndexes_ (_newZIndexes: null): void { zIndexes_ = _newZIndexes }
@@ -111,7 +111,7 @@ export const rotate1 = (totalHints: readonly HintItem[], reverse?: boolean, save
     });
     stacks = stacks.filter(stack => stack.length > 1);
     if (stacks.length <= 0) {
-      zIndexes_ = saveIfNoOverlap ? 0 : null;
+      zIndexes_ = saveIfNoOverlap ? 0 : zIndexes_
       return;
     }
     zIndexes_ = stacks;

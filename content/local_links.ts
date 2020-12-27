@@ -446,7 +446,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
     }
   }
   scrolled === 1 && suppressScroll();
-  if (wantClickable && !matchSelector) {
+  if (wantClickable && !matchSelector) { // deduplicate
     ((list: Hint[]): void => {
   const D = "div"
   let i = list.length, j: number, k: ClickType, s: string, notRemoveParents: boolean;

@@ -16,6 +16,7 @@
     "noImplicitThis": true,
     "noImplicitUseStrict": false,
     "noLib": true,
+    "noUncheckedIndexedAccess": false,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "outDir": ".",

@@ -501,7 +501,7 @@ interface FgReq {
     /** incognito */ i?: boolean | null | "reverse";
     /** https */ h?: boolean | null;
     /** reuse */ r?: UserReuseType;
-    /** noopener */ p?: OpenUrlOptions["position"];
+    /** position */ p?: OpenUrlOptions["position"];
     /** noopener */ n?: boolean;
   };
   [kFgReq.onFrameFocused]: {};
