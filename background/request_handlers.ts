@@ -69,6 +69,15 @@ set_reqH_([
       return
     }
     let { u: url } = request, url_l = url.toLowerCase()
+    if (request.p === 1) {
+      let url2 = substitute_(url, SedContext.goToRoot, request.s)
+      if (url2 !== url && url2 && url2 !== url + "/" && url2 + "/" !== url) {
+        BgUtils_.convertToUrl_(url2, null, Urls.WorkType.KeepAll)
+        if (BgUtils_.lastUrlType_ === Urls.Type.Full) {
+          return { u: url2, p: "(sed)" }
+        }
+      }
+    }
     if (!BgUtils_.protocolRe_.test(BgUtils_.removeComposedScheme_(url_l))) {
       BgUtils_.resetRe_()
       return { u: "This url has no upper paths", p: null }

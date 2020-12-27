@@ -423,6 +423,7 @@ declare const enum SedContext {
   /** `g` */ gotoUrl = 1 << 6,
   /** `n` */ goNext = 1 << 13,
   /** `o` */ omni = 1 << 14,
+  /** `r` */ goToRoot = 1 << 17,
 }
 
 interface FgRes {

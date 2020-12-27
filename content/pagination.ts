@@ -134,6 +134,8 @@ export const findNextInText = (names: string[], options: CmdOptions[kFgCmd.goNex
 
 export const findNextInRel = (relName: string): GoNextBaseCandidate | null | undefined => {
   const elements = querySelectorAll_unsafe_(Build.BTypes & BrowserType.Edge ? "a[rel],area[rel],link[rel]"
+      : !(Build.BTypes & ~BrowserType.Firefox) && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredCSS$is$selector
+      ? VTr(kTip.webkitWithRel).replace("-webkit-any", "is")
       : !(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && VOther & BrowserType.Chrome
       ? VTr(kTip.webkitWithRel) : VTr(kTip.webkitWithRel).replace("webkit", "moz"))!
   let s: string | null | undefined;
