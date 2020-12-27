@@ -420,11 +420,11 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port): void =>
   const _rawKey = request.k, keyword = (_rawKey || "") + ""
   const _rawTest = request.t, testUrl = _rawTest != null ? _rawTest : !keyword
   const incognito = request.i === "reverse" ? cPort ? !cPort.s.a : null : request.i
-  const reuse = request.r
+  const reuse = request.r, sed = request.e
   opts.reuse = incognito != null && (!reuse || reuse === "current") && (!cPort || incognito !== cPort.s.a)
       ? ReuseType.newFg : reuse
   opts.incognito = incognito
-  opts.sed = request.e
+  opts.sed = sed
   if (url) {
     if (url[0] === ":" && isWeb && (<RegExpOne> /^:[bdhostw]\s/).test(url)) {
       url = url.slice(2).trim()
@@ -433,7 +433,10 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port): void =>
     if (request.f) { /* empty */ }
     else if (testUrl) {
       if (!isWeb) {
-        url = substitute_(url as string, SedContext.omni, request.e)
+        url = substitute_(url as string, SedContext.omni, sed)
+        if (sed && typeof sed === "object" && sed.r !== false) {
+            opts.sed = { r: sed.r, k: null }
+        }
       }
       url = BgUtils_.fixCharsInUrl_(url)
       url = BgUtils_.convertToUrl_(url, keyword

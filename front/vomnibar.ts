@@ -46,7 +46,7 @@ interface ConfigurableItems {
 }
 interface Window extends ConfigurableItems {}
 import PixelData = VomnibarNS.PixelData;
-import SugType = CompletersNS.SugType
+import SugType2 = CompletersNS.SugType
 
 if (typeof VApi == "object" && VApi && typeof VApi.d == "function") {
   VApi.d(1);
@@ -72,15 +72,15 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.updateQueryFlag_(CompletersNS.QueryFlags.EvenHiddenTabs, !!options.hiddenTabs);
     a.doesOpenInIncognito_ = options.incognito;
     let engines = options.engines
-    engines instanceof Array && (engines = engines.join() as keyof typeof SugType)
+    engines instanceof Array && (engines = engines.join() as keyof typeof CompletersNS.SugType)
     if (typeof engines === "string" && engines) {
-      engines = (engines.includes("bookmark") ? SugType.bookmark : 0)
-          + (engines.includes("history") ? SugType.history : 0)
-          + (engines.includes("tab") ? SugType.tab : 0)
-          + (engines.includes("search") ? SugType.search : 0)
-          + (engines.includes("domain") ? SugType.domain : 0)
+      engines = (engines.includes("bookmark") ? SugType2.bookmark : 0)
+          + (engines.includes("history") ? SugType2.history : 0)
+          + (engines.includes("tab") ? SugType2.tab : 0)
+          + (engines.includes("search") ? SugType2.search : 0)
+          + (engines.includes("domain") ? SugType2.domain : 0)
     }
-    a.allowedEngines_ = ((engines as SugType | "") || SugType.Empty) | 0
+    a.allowedEngines_ = ((engines as CompletersNS.SugType | "") || SugType2.Empty) | 0
     if (a.allowedEngines_) {
       a.mode_.o = "omni"
     }

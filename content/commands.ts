@@ -412,7 +412,7 @@ set_contentCommands_([
         set_cachedScrollable(0)
       }
       removeHandler_(kHandler.helpDialog)
-      removeEl_s(box)
+      removeEl_s(Build.BTypes & ~BrowserType.Firefox && outerBox || box)
       setupExitOnClick(kExitOnClick.helpDialog | kExitOnClick.REMOVE)
       closeBtn.click()
     })
@@ -437,7 +437,7 @@ set_contentCommands_([
     }
     shouldShowAdvanced && toggleAdvanced()
     ensureBorder() // safe to skip `getZoom_`
-    addUIElement(outerBox || box, AdjustType.Normal, true)
+    addUIElement(Build.BTypes & ~BrowserType.Firefox && outerBox || box, AdjustType.Normal, true)
     options.e && setupExitOnClick(kExitOnClick.helpDialog)
     doc.hasFocus() || vApi.f()
     set_currentScrolling(weakRef_(box))

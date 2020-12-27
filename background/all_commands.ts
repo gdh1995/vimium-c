@@ -524,13 +524,14 @@ const BackgroundCommands: {
       chrome.runtime.sendMessage(targetID, get_cOptions<C.sendToExtension>().raw ? data : {
         handler: "message", from: "Vimium C", count: cRepeat, keyCode: cKey, data
       }, (cb): void => {
-        if (runtimeError_()) {
-          let err: any = runtimeError_()
+        let err: any = runtimeError_()
+        if (err) {
           console.log(`Can not send message to the extension %o:`, targetID, err)
           showHUD("Error: " + (err.message || err))
         } else if (typeof cb === "string" && Math.abs(Date.now() - now) < 1e3) {
           showHUD(cb)
         }
+        return err
       })
     } else {
       showHUD('Require a string "id" and message "data"')
