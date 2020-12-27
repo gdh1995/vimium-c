@@ -36,7 +36,7 @@ import { VTr, VOther, safer, fgCache, doc, chromeVer_, tryCreateRegExp, isTY } f
 import {
   getSelection_, getSelectionFocusEdge_, isHTML_, docEl_unsafe_, notSafe_not_ff_, getEditableType_, editableTypes_,
   GetChildNodes_not_ff, isInputInTextMode_cr_old, rangeCount_, getAccessibleSelectedNode, scrollingEl_, isNode_,
-  getDirectionOfNormalSelection, selOffset_
+  getDirectionOfNormalSelection, selOffset_, modifySel, kDir
 } from "../lib/dom_utils"
 import {
   padClientRect_, getSelectionBoundingBox_, getZoom_, prepareCrop_, cropRectToVisible_, getVisibleClientRect_,
@@ -55,29 +55,25 @@ import {
   removeHandler_, getMappedKey, keybody_, isEscape_, prevent_, ENTER, suppressTail_, replaceOrSuppressMost_
 } from "../lib/keyboard_utils"
 
-const kDir = ["backward", "forward"] as const
 let _kGranularity: GranularityNames
 
 let mode_ = Mode.NotActive
-let modeName = ""
-let currentCount = 0
-let currentSeconds: SafeDict<VisualAction> | null = null
+let modeName: string
 let retainSelection: BOOL | boolean | undefined
 let richText: BOOL | boolean | undefined
-let curSelection: Selection = null as never
+let curSelection: Selection
 /** need real diType */
-let selType: () => SelType = null as never
-let keyMap: SafeDict<VisualAction | SafeDict<VisualAction>> = null as never
-let alterMethod: "move" | "extend" = "" as never
+let selType: () => SelType
+let keyMap: SafeDict<VisualAction | SafeDict<VisualAction>>
+let isAlertExtend: BOOL | boolean
 let di_: ForwardDir | kDirTy.unknown = kDirTy.unknown
-let diType_: ValidDiTypes | DiType.UnsafeUnknown | DiType.SafeUnknown = DiType.UnsafeUnknown
+let diType_: ValidDiTypes | DiType.UnsafeUnknown | DiType.SafeUnknown
 /** 0 means it's invalid; >=2 means real_length + 2; 1 means uninited */
 let oldLen_ = 0
-let WordsRe_ff_old_cr: RegExpOne | RegExpU | null = null
-let rightWhiteSpaceRe: RegExpOne | null = null
-let kExtend = "extend" as const
+let WordsRe_ff_old_cr: RegExpOne | RegExpU | null
+let rightWhiteSpaceRe: RegExpOne | null
 
-export { mode_ as visual_mode, modeName as visual_mode_name, kDir, kExtend }
+export { mode_ as visual_mode, modeName as visual_mode_name }
 
   /** @safe_di */
 export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
@@ -136,6 +132,8 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
 
     const initialScope: {r?: ShadowRoot | null} = {}
     let mode: Mode = options.m || Mode.Visual
+    let currentCount = 0
+    let currentSeconds: SafeDict<VisualAction> | null = null
     set_findCSS(options.f || findCSS)
     init && init(options.w!, options.k!, _kGranularity = options.g!)
     checkDocSelectable();
@@ -143,15 +141,15 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     getZoom_(1)
     getPixelScaleToScroll()
     diType_ = DiType.UnsafeUnknown
-    let sel: Selection = curSelection = getSelected(initialScope),
-    type: SelType = selType(), scope = initialScope.r as Exclude<typeof initialScope.r, undefined>
+    curSelection = getSelected(initialScope)
+    let type: SelType = selType(), scope = initialScope.r as Exclude<typeof initialScope.r, undefined>
     if (!mode_) { retainSelection = type === SelType.Range; richText = options.t }
     if (mode !== Mode.Caret) {
       if (!insert_Lock_() && /* (type === SelType.Caret || type === SelType.Range) */ type) {
-        const r = padClientRect_(getSelectionBoundingBox_(sel))
+        const r = padClientRect_(getSelectionBoundingBox_(curSelection))
         prepareCrop_();
         if (!cropRectToVisible_(r.l, r.t, (r.l || r.r) && r.r + 3, (r.t || r.b) && r.b + 3)) {
-          resetSelectionToDocStart(sel);
+          resetSelectionToDocStart(curSelection)
         } else if (type === SelType.Caret) {
           extend(kDirTy.right)
           selType() === SelType.Range || extend(kDirTy.left)
@@ -160,11 +158,11 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
       }
     }
     const isRange = type === SelType.Range, newMode: Mode = isRange ? mode : Mode.Caret,
-    toCaret = newMode === Mode.Caret, diff = newMode !== mode
+    diff = newMode !== mode
     modeName = VTr(kTip.OFFSET_VISUAL_MODE + newMode)
     di_ = isRange ? kDirTy.unknown : kDirTy.right
     mode_ = newMode
-    alterMethod = toCaret ? "move" : kExtend
+    isAlertExtend = newMode !== Mode.Caret
     ui_box || hudShow(kTip.raw)
     toggleSelectableStyle(1)
 
@@ -173,9 +171,9 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
       hudTip(kTip.needSel)
       return
   }
-  if (toCaret && isRange) {
+  if (!isAlertExtend && isRange) {
       // `sel` is not changed by @establish... , since `isRange`
-      mode = ("" + sel).length;
+      mode = ("" + curSelection).length;
       collapseToRight((<number> <number | boolean> !options.s
           & getDirection() & <number> <number | boolean> (mode > 1)) as BOOL)
   }
@@ -462,7 +460,7 @@ const reverseSelection = (): void => {
 const selectLine = (count: number): void => {
   const oldDi = getDirection()
   mode_ = Mode.Visual // safer
-  alterMethod = kExtend
+  isAlertExtend = 1
   {
     oldDi && reverseSelection()
     modify(kDirTy.left, kG.lineBoundary)
@@ -780,13 +778,13 @@ export const highlightRange = (sel: Selection): void => {
 
 /** @unknown_di_result */
 const extend = (d: ForwardDir, g?: kG): void | 1 => {
-  curSelection.modify(kExtend, kDir[d], _kGranularity[g || kG.character])
+  modifySel(curSelection, 1, d, _kGranularity[(g! | 0) as kG])
   diType_ &= ~DiType.isUnsafe
 }
 
 /** @unknown_di_result */
 const modify = (d: ForwardDir, g: kG): void => {
-  curSelection.modify(alterMethod, kDir[d], _kGranularity[g])
+  modifySel(curSelection, isAlertExtend, d, _kGranularity[g])
 }
 
 /** @safe_di */
@@ -805,9 +803,9 @@ export const deactivate = (isEsc?: 1): void => {
   const el = insert_Lock_()
   oldDiType & (DiType.TextBox | DiType.Complicated) || el && el.blur()
   toggleSelectableStyle(0)
-  retainSelection = richText = currentCount = 0
+  retainSelection = richText = oldLen_ = 0
   set_scrollingTop(null)
-  currentSeconds = curSelection = null as never
+  curSelection = null as never
   hudHide()
 }
 

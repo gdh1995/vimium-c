@@ -11,7 +11,7 @@ import {
   attachShadow_, getSelectionFocusEdge_, activeEl_unsafe_, rangeCount_, setClassName_s, compareDocumentPosition,
   getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, htmlTag_, fullscreenEl_unsafe_, docEl_unsafe_,
   getSelection_, isSelected_, docSelectable_, isHTML_, createElement_, CLK, MDW, NONE, removeEl_s, appendNode_s,
-  getAccessibleSelectedNode,  INP, BU, UNL, contains_s, setOrRemoveAttr_s, textContent_s
+  getAccessibleSelectedNode,  INP, BU, UNL, contains_s, setOrRemoveAttr_s, textContent_s, modifySel
 } from "../lib/dom_utils"
 import {
   wdZoom_, prepareCrop_, view_, dimSize_, selRange_, getZoom_, padClientRect_, getSelectionBoundingBox_,
@@ -22,7 +22,7 @@ import {
   createStyle, getSelectionText, checkDocSelectable, adjustUI, ensureBorder, addUIElement, getSelected, flash_,
   getSelectionOf
 } from "./dom_ui"
-import { visual_mode, highlightRange, kDir, activate as visualActivate, kExtend } from "./visual"
+import { visual_mode, highlightRange, activate as visualActivate } from "./visual"
 import { keyIsDown as scroll_keyIsDown, beginScroll, onScrolls } from "./scroller"
 import { scrollToMark, setPreviousMarkPosition } from "./marks"
 import { hudHide, hud_box, hudTip, hud_opacity, toggleOpacity as hud_toggleOpacity } from "./hud"
@@ -468,7 +468,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
       const sel = getSelectionOf(innerDoc_)!
       // on Chrome 79 + Win 10 / Firefox 69 + Ubuntu 18, delete a range itself
       // while on Firefox 70 + Win 10 it collapses first
-      sel.type === "Caret" && sel.modify(kExtend, kDir[+(keybody > "d")], "word")
+      sel.type === "Caret" && modifySel(sel, 1, keybody > kChar.d, "word")
       execCommand(DEL)
       return;
     }
@@ -831,7 +831,7 @@ export const executeFind = (query: string | null, options: FindNS.ExecuteOptions
       }
       if (selNone) {
         dedupID = highLight ? 2 : ++count
-        wndSel.modify("move", kDir[1 - <number> <number | boolean>back], "character")
+        modifySel(wndSel, 0, !back, "character")
       }
     }
     if (found! && !highLight && (par = par || getSelectionParent_unsafe(curSel = getSelected()))) {

@@ -8,7 +8,7 @@ import {
   IsInDOM_, createElement_, htmlTag_, getComputedStyle_, getEditableType_, isIFrameElement, GetParent_unsafe_,
   ElementProto, querySelector_unsafe_, getInputType, uneditableInputs_, GetShadowRoot_, CLK, scrollingEl_,
   findMainSummary_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s,
-  setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_
+  setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel
 } from "../lib/dom_utils"
 import {
   hintOptions, mode1_, hintMode_, hintApi, hintManager, coreHints, setMode, detectUsableChild, hintCount_,
@@ -23,7 +23,6 @@ import { insert_Lock_ } from "./insert"
 import { unhover_, hover_, click_, select_, mouse_, catchAsyncErrorSilently } from "./async_dispatcher"
 import { omni_box, focusOmni } from "./omni"
 import { execCommand } from "./mode_find"
-import { kDir, kExtend } from "./visual"
 type LinkEl = Hint[0];
 
 let hintKeyCode_ = kKeyCode.None
@@ -419,7 +418,7 @@ const defaultClick = (rect: Rect | null): void => {
       selectAllOfNode(clickEl)
       const sel = getSelection_()
       collpaseSelection(sel)
-      sel.modify(kExtend, kDir[1], "word")
+      modifySel(sel, 1, 1, "word")
       hintOptions.visual === !1 || post_({ H: kFgReq.visualMode, c: hintOptions.caret })
     }
     if (!removeFlash && showRect !== 0 && (rect || (rect = getVisibleClientRect_(clickEl)))) {

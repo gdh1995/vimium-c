@@ -10,13 +10,15 @@ interface kNodeToType {
 
 export const DAC = "DOMActivate", MDW = "mousedown", CLK = "click", HDN = "hidden", NONE = "none"
 export const INP = "input", BU = "blur", ALA = "aria-label", UNL = "unload"
+export const kDir = ["backward", "forward"] as const
 
-  /** data and DOM-shortcut section (sorted by reference numbers) */
+  /** data and DOM-shortcut section */
 
 let unsafeFramesetTag_old_cr_: "frameset" | "" | null =
     Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
     ? "" : 0 as never as null
 let docSelectable_ = true
+
 export { unsafeFramesetTag_old_cr_, docSelectable_ }
 export function markFramesetTagUnsafe (): "frameset" { return unsafeFramesetTag_old_cr_ = "frameset" }
 export function set_docSelectable_ (_newDocSelectable: boolean): void { docSelectable_ = _newDocSelectable }
@@ -512,6 +514,11 @@ export const scrollIntoView_ = (el: Element, dir?: boolean): void => {
       : ElementProto().scrollIntoView.call(el,
           Build.MinCVer < BrowserVer.MinScrollIntoViewOptions && Build.BTypes & BrowserType.Chrome &&
           dir != null ? dir : { block: "nearest" });
+}
+
+export const modifySel = (sel: Selection, extend: BOOL | boolean, di: BOOL | boolean
+    , g: GranularityNames[VisualModeNS.kG]): void => {
+  sel.modify(extend ? "extend" : "move", kDir[+di], g)
 }
 
 export const runJS_ = (code: string, returnEl?: HTMLScriptElement | null | 0): void | HTMLScriptElement => {

@@ -4,7 +4,7 @@ import {
 } from "../lib/utils"
 import {
   isHTML_, htmlTag_, createElement_, frameElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK,
-  querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s
+  querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s, modifySel
 } from "../lib/dom_utils"
 import {
   pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
@@ -29,7 +29,7 @@ import {
   exitInputHint, insert_inputHint, insert_last_, raw_insert_lock, resetInsert, set_is_last_mutable,
   set_inputHint, set_insert_global_, set_isHintingInput, set_insert_last_, onWndBlur, exitPassMode, set_exitPassMode,
 } from "./insert"
-import { activate as visualActivate, deactivate as visualDeactivate, kExtend } from "./visual"
+import { activate as visualActivate, deactivate as visualDeactivate } from "./visual"
 import {
   activate as scActivate, set_cachedScrollable, onActivate, currentScrolling, set_currentScrolling
 } from "./scroller"
@@ -322,8 +322,7 @@ set_contentCommands_([
           } else if (sel = sel || getSelected(), cmd === "collapse") {
             collpaseSelection(sel, a1 === "end")
           } else {
-            sel.modify(cmd === "auto" ? sel.type === "Range" ? kExtend : "move" : cmd as any,
-                a1 as any, a2 as any)
+            modifySel(sel, cmd === "auto" ? sel.type === "Range" : cmd < kChar.f, a1 > kChar.f, a2 as any)
           }
         }
       }
