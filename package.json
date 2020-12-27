@@ -24,6 +24,7 @@
     "minimist": ">=0.2.1",
     "mkdirp": "^0.5.5",
     "node-forge": ">=0.10.0",
+    "node-notifier": "^8.0.1",
     "rimraf": "^3.0.2",
     "rollup": "^2.18.0",
     "seedrandom": "^3.0.5",
@@ -33,7 +34,7 @@
     "@typescript-eslint/eslint-plugin": "^3.4.0",
     "@typescript-eslint/parser": "^3.4.0",
     "eslint": "^7.6.0",
-    "web-ext": "^5.1.0"
+    "web-ext": "^5.4.1"
   },
   "scripts": {
     "tsc": "node scripts/tsc.js",
