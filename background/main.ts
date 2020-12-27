@@ -50,7 +50,19 @@ Backend_ = {
         arr = s0.slice(pattern.prefix_.length).match(pattern.matcher_ as RegExpG);
         if (arr) { break; }
       }
-      if (!arr || !pattern) { BgUtils_.resetRe_(); return null; }
+      if (!arr || !pattern) {
+        const showPage = settings.CONST_.ShowPage_
+        if (url.startsWith(showPage)) {
+          s0 = s0.slice(showPage.length).replace(<RegExpOne> /^#!?/, "")
+          return {
+            k: "vimium://show",
+            u: s0,
+            s: s0.startsWith("image") && s0.lastIndexOf("&", s0.indexOf(":") + 1) + 1 || s0.indexOf(" ") + 1,
+          }
+        }
+        BgUtils_.resetRe_()
+        return null
+      }
       if (arr.length > 1 && !pattern.matcher_.global) { arr.shift(); }
       const re = pattern.delimiter_;
       if (arr.length > 1) {
