@@ -638,7 +638,8 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
       } else {
         while (temp = stack[index2], index2++ < elPos
             && !(Build.BTypes & ~BrowserType.Firefox && notSafe_not_ff_!(temp))
-            && !isAriaNotTrue_(temp as SafeElement, kAria.hidden)) { /* empty */ }
+            && (!isAriaNotTrue_(temp as SafeElement, kAria.hidden)
+                || contains_s(temp as SafeElement, el))) { /* empty */ }
         temp = temp !== fromPoint && contains_s(el, temp) ? el : temp
       }
       temp === el
