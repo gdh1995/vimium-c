@@ -166,7 +166,7 @@ export const getPortUrl = (port?: Port | null, ignoreHash?: boolean, request?: R
   return port && Exclusions.rules_.length && (ignoreHash || Exclusions._listeningHash) ? port.s.u
       : new Promise<string>((resolve): void => {
     const webNav = Build.BTypes & ~BrowserType.Edge
-        && (!(Build.BTypes & ~BrowserType.Edge) || OnOther !== BrowserType.Edge)
+        && (!(Build.BTypes & BrowserType.Edge) || OnOther !== BrowserType.Edge)
         && (!(Build.BTypes & ~BrowserType.Chrome)
             || Build.MinCVer >= BrowserVer.Min$webNavigation$$getFrame$IgnoreProcessId
             || CurCVer_ > BrowserVer.Min$webNavigation$$getFrame$IgnoreProcessId - 1)

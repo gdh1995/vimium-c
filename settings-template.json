@@ -5,8 +5,8 @@
 	},
 	"autoReduceMotion": true,
 	"clipSub": [
-		"g@^https://www.zhihu.com/question/\\d+(?=/answer/?$)@@r",
-		"p@^https://item.m.jd.com/product/(\\d+).html\\b@https://item.jd.com/$1.html@",
+		"g@^https://www\\.zhihu\\.com/question/\\d+(?=/answer/?$)@@r",
+		"p@^https://item\\.m\\.jd\\.com/product/(\\d+)\\.html\\b@https://item.jd.com/$1.html@",
 		""
 	],
 	"exclusionListenHash": false,

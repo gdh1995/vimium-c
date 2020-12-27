@@ -159,7 +159,7 @@ if test "$VER" == wo -o -z "$VER"; then
   EXE=$WORKING_DIR/core/firefox.exe
 else
   EXE=$WORKING_DIR/core${VER}/firefox.exe
-  test -f "$EXE" || EXE=$FIREFOX_ROOT/core${VER}/chrome.exe
+  test -f "$EXE" || EXE=$FIREFOX_ROOT/core${VER}/firefox.exe
   if test $VER -le 68; then
     debugger_url="about:debugging#addons"
   fi

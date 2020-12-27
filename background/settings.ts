@@ -306,7 +306,7 @@ var Settings_ = {
     __proto__: null as never,
     autoDarkMode: true,
     autoReduceMotion: false,
-    clipSub: "p@^https://item.m.jd.com/product/(\\d+).html\\b@https://item.jd.com/$1.html@",
+    clipSub: "p@^https://item\.m\.jd\.com/product/(\\d+)\.html\\b@https://item.jd.com/$1.html@",
     dialogMode: false,
     exclusionListenHash: true,
     exclusionOnlyFirstMatch: false,
