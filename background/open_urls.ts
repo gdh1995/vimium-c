@@ -347,6 +347,7 @@ const openCopiedUrl = (tabs: [Tab] | [] | undefined, url: string | null): void =
   }
   let start = url.indexOf("://") + 3
   if (start > 3 && BgUtils_.protocolRe_.test(url)) {
+    url = (<RegExpOne> /^ttps?:/i).test(url) ? "h" + url : url
     // an origin with "/"
     let arr: RegExpExecArray | null
     const end = url.indexOf("/", start) + 1 || url.length,
@@ -398,9 +399,9 @@ export const openUrl = (tabs?: [Tab] | []): void => {
     const url = paste_(sed)
     if (url instanceof Promise) {
       url.then(/*#__NOINLINE__*/ openCopiedUrl.bind(null, tabs))
-      return
+    } else {
+      openCopiedUrl(tabs, url)
     }
-    /*#__NOINLINE__*/ openCopiedUrl(tabs, url)
   } else {
     let url_f = get_cOptions<C.openUrl, true>().url_f!
     if (sed && typeof url_f === "string" && url_f) {
