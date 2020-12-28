@@ -48,6 +48,7 @@ declare namespace CompletersNS {
     TabTreeFromStart = 128,
     NoTabEngine = 256,
     EvenHiddenTabs = 512,
+    NoSessions = 1024,
   }
   interface Options {
     /** maxChars */ c?: number;
@@ -443,6 +444,7 @@ declare namespace VomnibarNS {
     searchInput?: boolean;
     tree?: boolean | "from-start"; // show tabs in tree mode
     incognito?: boolean | null | "reverse";
+    noSessions?: boolean | "always" | "start"
   }
 }
 

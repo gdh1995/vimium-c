@@ -71,6 +71,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.updateQueryFlag_(CompletersNS.QueryFlags.NoTabEngine, !!options.noTabs);
     a.updateQueryFlag_(CompletersNS.QueryFlags.EvenHiddenTabs, !!options.hiddenTabs);
     a.doesOpenInIncognito_ = options.incognito;
+    a.updateQueryFlag_(CompletersNS.QueryFlags.NoSessions, !!options.noSessions)
     let engines = options.engines
     engines instanceof Array && (engines = engines.join() as keyof typeof CompletersNS.SugType)
     if (typeof engines === "string" && engines) {
@@ -89,6 +90,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.selectFirst_ = options.autoSelect;
     a.notSearchInput_ = options.searchInput === false;
     a.baseHttps_ = null;
+    a.noSessionsOnStart_ = options.noSessions === "start"
     a.sed_ = options.d
     let { url, keyword, p: search } = options, start: number | undefined;
     let scale = Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
@@ -189,6 +191,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   selectFirst_: false as VomnibarNS.GlobalOptions["autoSelect"],
   preferNewOpened_: false as VomnibarNS.GlobalOptions["autoSelect"],
   notSearchInput_: false,
+  noSessionsOnStart_: false,
   allowedEngines_: CompletersNS.SugType.Empty,
   showFavIcon_: 0 as 0 | 1 | 2,
   showRelevancy_: false,
@@ -242,6 +245,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   hide_ (fromContent?: BOOL): void {
     const a = Vomnibar_, el = a.input_;
     a.isActive_ = a.showing_ = a.isEditing_ = a.isInputComposing_ = a.blurWanted_ = a.codeFocusReceived_ = false;
+    a.noSessionsOnStart_ = false
     a.codeFocusTime_ = 0;
     ((document.body as Element).removeEventListener as typeof removeEventListener)("wheel", a.onWheel_, a.wheelOptions_)
     a.timer_ > 0 && clearTimeout(a.timer_);
@@ -1347,7 +1351,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         mode.q = mode.q.toLowerCase();
       }
     }
-    return VPort_.post_(mode);
+    VPort_.post_(mode);
+    if (mode.f & CompletersNS.QueryFlags.NoSessions && typeof a.noSessionsOnStart_) {
+      mode.f &= ~CompletersNS.QueryFlags.NoSessions
+    }
   },
 
   _favPrefix: "",

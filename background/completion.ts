@@ -528,6 +528,7 @@ historyEngine = {
   filter_ (query: CompletersNS.QueryStatus, index: number): void {
     if ((Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox)
         && !chrome.history
+        || (!queryTerms.length && otherFlags & CompletersNS.QueryFlags.NoSessions)
         || !(allExpectedTypes & SugType.history)) { return Completers.next_([], SugType.history); }
     const history = HistoryCache.history_, someQuery = queryTerms.length > 0;
     if (history) {
