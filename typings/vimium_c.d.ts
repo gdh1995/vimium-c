@@ -445,6 +445,7 @@ declare namespace VomnibarNS {
     tree?: boolean | "from-start"; // show tabs in tree mode
     incognito?: boolean | null | "reverse";
     noSessions?: boolean | "always" | "start"
+    clickLike?: null | "chrome" | /** as "chrome" */ true | "vivaldi" | /** as "vivaldi" */ "chrome2"
   }
 }
 

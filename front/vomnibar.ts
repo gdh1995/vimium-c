@@ -92,6 +92,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.baseHttps_ = null;
     a.noSessionsOnStart_ = options.noSessions === "start"
     a.sed_ = options.d
+    a.clickLike_ = options.clickLike
     let { url, keyword, p: search } = options, start: number | undefined;
     let scale = Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
             && (!(Build.BTypes & ~BrowserType.Chrome)
@@ -189,9 +190,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   blurWanted_: false,
   forceNewTab_: false,
   selectFirst_: false as VomnibarNS.GlobalOptions["autoSelect"],
-  preferNewOpened_: false as VomnibarNS.GlobalOptions["autoSelect"],
   notSearchInput_: false,
   noSessionsOnStart_: false,
+  clickLike_: null as VomnibarNS.GlobalOptions["clickLike"],
   allowedEngines_: CompletersNS.SugType.Empty,
   showFavIcon_: 0 as 0 | 1 | 2,
   showRelevancy_: false,
@@ -285,6 +286,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.timer_ = a.height_ = a.matchType_ = a.sugTypes_ = a.wheelStart_ = a.wheelTime_ = a.actionType_ =
     a.total_ = a.lastKey_ = a.wheelDelta_ = VUtils_.timeCache_ = 0;
     a.docZoom_ = 1;
+    a.clickLike_ =
     a.sed_ = a.doesOpenInIncognito_ = a.completions_ = a.onUpdate_ = a.isHttps_ = a.baseHttps_ = null as never
     a.mode_.q = a.lastQuery_ = a.inputText_ = a.lastNormalInput_ = a.resMode_ = "";
     a.mode_.o = "omni";
@@ -751,6 +753,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     a.actionType_ = event == null ? a.actionType_
       : event === true ? a.forceNewTab_ ? ReuseType.newFg : ReuseType.current
+      : event & (KeyStat.PrimaryModifier | KeyStat.shiftKey) && a.clickLike_ ? a.parseClickEventAs_(event)
       : event & KeyStat.PrimaryModifier ? event & KeyStat.shiftKey ? ReuseType.newBg : ReuseType.newFg
       : event & KeyStat.shiftKey || !a.forceNewTab_ ? ReuseType.current : ReuseType.newFg;
     if (sel === -1) {
@@ -799,6 +802,13 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
               ? KeyStat.metaKey : 0)
           + (event.shiftKey || keyCode === kKeyCode.shiftKey ? KeyStat.shiftKey : 0));
     }
+  },
+  parseClickEventAs_ (event: KeyStat): ReuseType {
+    const a = Vomnibar_, type = a.clickLike_ === true ? "chrome" : a.clickLike_ + "",
+    hasCtrl = event & KeyStat.PrimaryModifier, hasShift = event & KeyStat.shiftKey,
+    likeVivaldi = type.endsWith("2") ? type.includes("chro") : type.includes("viva")
+    return likeVivaldi ? hasCtrl ? hasShift ? ReuseType.newWindow : ReuseType.newBg : ReuseType.newFg
+        : hasCtrl ? hasShift ? ReuseType.newFg : ReuseType.newBg : ReuseType.newWindow // likeChrome / likeFirefox
   },
   removeCur_ (): void {
     if (Vomnibar_.selection_ < 0) { return; }
