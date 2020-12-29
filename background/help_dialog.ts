@@ -39,7 +39,8 @@ var HelpDialog = {
         }
         Settings_.set_("helpDialog", "");
       }
-      body = body.replace(<RegExpG & RegExpSearchable<1>> /\$(\w+)/g, (_, s) => trans_(s) || (s[0] === "_" ? "" : s));
+      body = body.replace(<RegExpG & RegExpSearchable<1>> /\$(\w+)/g
+          , (_, s) => trans_(s) || (s[0] === "_" || s === "NS" ? "" : s))
       const consts = BgUtils_.safer_<Dict<string>>({
       homePage: Settings_.CONST_.HomePage_,
       version: Settings_.CONST_.VerName_,

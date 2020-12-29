@@ -496,7 +496,7 @@ el0.textContent = (Build.BTypes & BrowserType.Edge
     ? "Firefox " + BG_.CurFFVer_
     : (BG_.IsEdg_ ? ["MS Edge"]
         : (<RegExpOne> /\bChromium\b/).exec(navigator.appVersion) || ["Chrome"])[0] + " " + bgBrowserVer_
-  ) + pTrans_("comma") + (pTrans_(platform)
+  ) + pTrans_("comma") + pTrans_("NS") + (pTrans_(platform)
         || platform[0].toUpperCase() + platform.slice(1));
 if (Build.BTypes & BrowserType.Chrome && BG_.IsEdg_) {
   const a = $<HTMLAnchorElement>("#openExtensionsPage");
