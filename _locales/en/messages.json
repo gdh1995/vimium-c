@@ -193,6 +193,7 @@
   "colon": { "message": ":" },
   "semicolon": { "message": ";" },
   "question": { "message": "?" },
+  "OpenC": { "message": "Open: " },
   "win": { "message": "Windows" },
   "mac": { "message": "macOS" },
   "o3_2": { "message": "(Sorted)" },

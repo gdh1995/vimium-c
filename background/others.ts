@@ -136,6 +136,7 @@ BgUtils_.timeout_(600, function (): void {
     type_?: "history" | "tab";
     sessionId_?: number | string;
   }
+  const colon2 = trans_("colon") + trans_("NS")
   const onDel = (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox)
       ? omnibox.onDeleteSuggestion : null,
   mayDelete = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeleting
@@ -206,7 +207,7 @@ BgUtils_.timeout_(600, function (): void {
     suggestions = [];
     const urlDict: TextSet = new Set!()
     for (let i = 0, di = autoSelect ? 0 : 1, len = response.length; i < len; i++) {
-      let sugItem = response[i], { title, u: url, e: type } = sugItem, tail = "", hasSessionId = sugItem.s != null
+      let sugItem = response[i], { title, u: url, e: type } = sugItem, desc = "", hasSessionId = sugItem.s != null
         , canBeDeleted = (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeleting
               || (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox) && mayDelete)
             && !(autoSelect && i === 0) && (
@@ -219,16 +220,16 @@ BgUtils_.timeout_(600, function (): void {
       }
       if (canBeDeleted) {
         info.type_ = <SubInfo["type_"]> type;
-        tail = ` ~${i + di}~`;
+        desc = ` ~${i + di}~`
       }
       if (Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
-        tail = sugItem.textSplit! + (title && " - " + title) + tail;
+        desc = (title && title + " - ") + sugItem.textSplit! + desc
       } else {
-        tail = title ? `</url><dim> - ${title}${tail}</dim>` : tail ? `</url><dim>${tail}</dim>` : "</url>";
-        tail = "<url>" + sugItem.textSplit! + tail;
+        desc = (title ? title + " <dim>-</dim> <url>" : "<url>") + sugItem.textSplit! + "</url>"
+            + (desc && `<dim>${desc}</dim>`)
       }
-      const msg: chrome.omnibox.SuggestResult = { content: url, description: tail };
+      const msg: chrome.omnibox.SuggestResult = { content: url, description: desc };
       canBeDeleted && (msg.deletable = true);
       hasSessionId && (info.sessionId_ = sugItem.s!);
       if (canBeDeleted || hasSessionId) {
@@ -241,18 +242,18 @@ BgUtils_.timeout_(600, function (): void {
     if (!autoSelect) {
       if (Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
-        defaultDesc = "Open: <input>";
+        defaultDesc = trans_("OpenC") + "<input>";
       } else if (defaultSuggestionType !== FirstSugType.defaultOpen) {
-        defaultDesc = "<dim>Open: </dim><url>%s</url>";
+        defaultDesc = `<dim>${trans_("OpenC")}</dim><url>%s</url>`;
         defaultSuggestionType = FirstSugType.defaultOpen;
       }
     } else if (sug.e === "search") {
       let text = (sug as CompletersNS.SearchSuggestion).p;
       if (Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
-        defaultDesc = (text && `${text} - `) + sug.textSplit!;
+        defaultDesc = (text && text + colon2) + sug.textSplit!
       } else {
-        defaultDesc = (text && `<dim>${BgUtils_.escapeText_(text)} - </dim>`) + `<url>${sug.textSplit}</url>`;
+        defaultDesc = (text && `<dim>${BgUtils_.escapeText_(text) + colon2}</dim>`) + `<url>${sug.textSplit}</url>`
       }
       defaultSuggestionType = FirstSugType.search;
       if (sug = response[1]) {
@@ -261,7 +262,7 @@ BgUtils_.timeout_(600, function (): void {
           suggestions[1].description = Build.BTypes & BrowserType.Firefox
                 && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
               ? sug.textSplit! + " = " + sug.t
-              : `<dim>${sug.textSplit} = </dim><url><match>${sug.t}</match></url>`;
+              : `${sug.textSplit} = <url><match>${sug.t}</match></url>`
           break;
         }
       }

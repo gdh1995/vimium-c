@@ -144,6 +144,7 @@
   "colon": { "message": "：" },
   "semicolon": { "message": "；" },
   "question": { "message": "？" },
+  "OpenC": { "message": "访问：" },
   "Options": { "message": "设置" },
   "Patterns": { "message": "网址匹配规则" },
   "Pattern": { "message": "网址匹配规则" },
