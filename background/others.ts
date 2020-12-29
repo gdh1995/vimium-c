@@ -206,6 +206,7 @@ BgUtils_.timeout_(600, function (): void {
     }
     suggestions = [];
     const urlDict: TextSet = new Set!()
+    const showTypeLetter = ` ${Settings_.omniPayload_.s} `.includes(" type-letter ")
     for (let i = 0, di = autoSelect ? 0 : 1, len = response.length; i < len; i++) {
       let sugItem = response[i], { title, u: url, e: type } = sugItem, desc = "", hasSessionId = sugItem.s != null
         , canBeDeleted = (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeleting
@@ -226,8 +227,10 @@ BgUtils_.timeout_(600, function (): void {
           && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
         desc = (title && title + " - ") + sugItem.textSplit! + desc
       } else {
-        desc = (title ? title + " <dim>-</dim> <url>" : "<url>") + sugItem.textSplit! + "</url>"
-            + (desc && `<dim>${desc}</dim>`)
+        desc = (title || showTypeLetter ? (title ? title + " <dim>" : "<dim>")
+                  + (showTypeLetter ? `[${sugItem.e[0].toUpperCase()}] ` : "")
+                  + (title ? "-</dim> <url>" : "</dim><url>") : "<url>"
+            ) + sugItem.textSplit! + "</url>" + (desc && `<dim>${desc}</dim>`)
       }
       const msg: chrome.omnibox.SuggestResult = { content: url, description: desc };
       canBeDeleted && (msg.deletable = true);
