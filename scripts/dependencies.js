@@ -403,12 +403,11 @@ exports.inlineAllSetters = (code) => {
   return code.replace(/\b[gs]et_(\w+)\(([^\n]+)/g, function (fullStr, name, data, ind) {
     var parenthesis = 1;
     if (code.slice(ind - 16, ind).trim().endsWith("function")) {
-      console.log("inlineSetters: found a function declaration: function", name)
       return fullStr;
     }
     if (fullStr[0] === "g") {
       if (data[0] !== ")") {
-        console.log("inlineSetters: found a parameterized getter:", name + "(" + data.split(")", 1)[0] + ")")
+        console.log("[WARNING] inlineSetters: found a parameterized getter:", name + "(" + data.split(")", 1)[0] + ")")
         return fullStr;
       }
       return name + data.slice(1)
