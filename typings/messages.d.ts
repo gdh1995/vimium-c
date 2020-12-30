@@ -349,7 +349,7 @@ interface CmdOptions {
     /** advanced */ c: boolean;
   } & Partial<BgCSSReq> | ShowHelpDialogOptions
   [kFgCmd.findMode]: {
-    /** count */ n: number;
+    /** count */ c: number;
     /** highlight multiple in viewport */ m?: boolean | BOOL;
     /** leave find mode */ l: boolean;
     /** query */ q: string;
@@ -357,6 +357,7 @@ interface CmdOptions {
     /* auto use selected text */ s: boolean;
     /** findCSS */ f: FindCSS | null;
     /** use post mode on esc */ p: boolean;
+    /** normalize text */ n: boolean
   };
   [kFgCmd.goToMarks]: {
     /** local */ l: 0 | /** kTip.local - kTip.global */ 2

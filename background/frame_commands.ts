@@ -66,8 +66,8 @@ export const performFind = (): void | kBgCmd.performFind => {
     sentFindCSS = findCSS_
   }
   sendFgCmd(kFgCmd.findMode, true, {
-    n: nth > 0 ? cRepeat / absRepeat : cRepeat, l: leave, f: sentFindCSS,
-    m: !!get_cOptions<C.performFind>().highlight,
+    c: nth > 0 ? cRepeat / absRepeat : cRepeat, l: leave, f: sentFindCSS,
+    m: !!get_cOptions<C.performFind>().highlight, n: !!get_cOptions<C.performFind>().normalize,
     r: get_cOptions<C.performFind>().returnToViewport === true,
     s: !nth && absRepeat < 2 && !!get_cOptions<C.performFind>().selected,
     p: !!get_cOptions<C.performFind>().postOnEsc,

@@ -44,7 +44,8 @@ let wholeWord = false
 let wrapAround = true
 let hasResults = false
 let matchCount = 0
-let postOnEsc = true
+let postOnEsc: boolean
+let doesNormalizeLetters: boolean
 let coords: null | MarksNS.ScrollInfo = null
 let initialRange: Range | null = null
 let activeRegexIndex = 0
@@ -118,6 +119,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
       return
     }
     postOnEsc = options.p
+    doesNormalizeLetters = options.n
     if (Build.BTypes & ~BrowserType.Firefox) {
       if (Build.MinCVer >= BrowserVer.MinBorderWidth$Ensure1$Or$Floor && !(Build.BTypes & ~BrowserType.Chrome)
           || Build.BTypes & BrowserType.Chrome && chromeVer_ > BrowserVer.MinBorderWidth$Ensure1$Or$Floor -1
@@ -369,7 +371,7 @@ export let init = (adjust_type: AdjustType): void => {
 
 export const clear = (): void => {
   coords && scrollToMark(coords)
-  hasResults = isActive = isSmall = notEmpty = postOnEsc = wholeWord = false
+  hasResults = isActive = isSmall = notEmpty = postOnEsc = doesNormalizeLetters = wholeWord = false
   wrapAround = true
   removeHandler_(kHandler.find)
   outerBox_ && removeEl_s(outerBox_)
@@ -487,7 +489,7 @@ const onHostKeydown = (event: HandlerNS.Event): HandlerResult => {
       else if (key.length > 4) {
         highlightInViewport()
       } else {
-        executeFind("", { n: -(keybody > kChar.j), i: 1 })
+        executeFind("", { c: -(keybody > kChar.j), i: 1 })
       }
       return HandlerResult.Prevent
     }
@@ -661,6 +663,14 @@ const showCount = (changed: BOOL): void => {
 }
 
 export const updateQuery = (query: string): void => {
+  const normLetters = (str: string): string => {
+    return str.normalize("NFD").replace(<RegExpG & RegExpSearchable<0>> /[\u0300-\u0331\u24b6-\u24e9\uff21-\uff56]/g
+        , (ch: string): string => {
+      const i = ch.charCodeAt(0)
+      return i < 818 ? ""
+          : String.fromCharCode(i - (i < 0x2500 ? i < 0x24d0 ? 0x24b6 - 65 : 0x24d0 - 97 : 0xff21 - 65))
+    })
+  }
   const WB = "\\b"
   let ww = !1, isRe: boolean | null = null, matches: string[] | null = null, delta: number
   query_ = query0_ = query
@@ -703,13 +713,14 @@ export const updateQuery = (query: string): void => {
   wholeWord = ww
   notEmpty = !!query
   ignoreCase = ignoreCase != null ? ignoreCase : Lower(query) === query
-  isRe || (query = isActive ? escapeAllForRe(query) : "")
+  isRe || (query = isActive ? escapeAllForRe(doesNormalizeLetters ? normLetters(query) : query) : "")
 
   let re: RegExpG | null = query && tryCreateRegExp(ww ? WB + query + WB : query, (ignoreCase ? "gim" : "gm") as "g")
       || null
   if (re) {
     let now = getTime()
-    if (cachedInnerText && (delta = math.abs(now - cachedInnerText.t)) < (cachedInnerText.i.length < 1e5 ? 3e3 : 6e3)) {
+    if (cachedInnerText && (delta = math.abs(now - cachedInnerText.t))
+          < (doesNormalizeLetters || cachedInnerText.i.length > 1e5 ? 6e3 : 3e3)) {
       query = cachedInnerText!.i
       delta < 500 && (cachedInnerText!.t = now)
     } else {
@@ -720,7 +731,7 @@ export const updateQuery = (query: string): void => {
     query = el && isTY(text = (el as HTMLElement).innerText) && text ||
         (Build.BTypes & ~BrowserType.Firefox ? (docEl_unsafe_() as HTMLElement).innerText + ""
           : (docEl_unsafe_() as SafeHTMLElement).innerText);
-    cachedInnerText = { i: query, t: now }
+    cachedInnerText = { i: doesNormalizeLetters ? normLetters(query) : query, t: now }
     }
     matches = query.match(re) || query.replace(<RegExpG> /\xa0/g, " ").match(re);
   }
@@ -748,7 +759,7 @@ const highlightInViewport = (): void => {
   if (range) {
     resetSelectionToDocStart(sel, range)
     activeRegexIndex = oldActiveRegexIndex
-    opt.n = -1
+    opt.c = -1
     arr = arr.concat(executeFind("", opt))
   }
   (el = insert_Lock_()) && el.blur()
@@ -774,7 +785,7 @@ export const executeFind = (query: string | null, options: FindNS.ExecuteOptions
     } as Window["find"] : 0 as never as null
     let el: LockableElement | null
       , highLight = safer(options).h, areas: Rect[] = [], noColor = highLight || options.noColor
-      , found: boolean, count = (options.n! | 0) || 1, back = count < 0
+      , found: boolean, count = (options.c! | 0) || 1, back = count < 0
       , par: Element | 0 | null | undefined, timesRegExpNotMatch = 0
       , q: string, notSens = ignoreCase && !options.caseSensitive
     /** Note: FirefoxBrowserVer.MinFollowSelectionColorOnInactiveFrame

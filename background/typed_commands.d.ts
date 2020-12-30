@@ -18,6 +18,7 @@ interface BgCmdOptions {
   [kBgCmd.performFind]: {
     active: boolean
     highlight: boolean
+    normalize: boolean
     index: "other" | "count" | number
     last: boolean
     postOnEsc: boolean
