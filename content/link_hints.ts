@@ -477,12 +477,17 @@ const activateDirectly = (options: HintsNS.ContentOptions, count: number) => {
   const d = options.direct! as string,
   allTypes = (d as typeof options.direct) === !0, mode = options.m &= ~HintMode.queue,
   next = (): void => {
-    IsInDOM_(el!) && (coreHints.e({d: el as LinkEl, r: null}), --count > 0) ? setTimeout(next, 17) : clear()
+    IsInDOM_(el!) && (coreHints.e({d: el as LinkEl, r: null}), --count > 0)
+      ? setTimeout(next, count > 99 ? 1 : 17) : clear()
   }
-  let el: SafeElement | null | undefined = (allTypes || d.includes("l")) && getSelectionFocusEdge_(getSelected())
-      || (allTypes || d.includes("f")) && (insert_Lock_()
-            || (Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(activeEl_unsafe_())
-                : activeEl_unsafe_() as SafeElement | null))
+  let docActive: SafeElement | null
+  let el: SafeElement | null | undefined = (allTypes || d.includes("l"))
+      && getSelection().type === "Range" && getSelectionFocusEdge_(getSelected())
+      || (allTypes || d.includes("f"))
+          && (insert_Lock_()
+              || (docActive = Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(activeEl_unsafe_())
+                    : activeEl_unsafe_() as SafeElement | null,
+                  docActive !== doc.body && docActive !== docEl_unsafe_() ? docActive : 0))
       || (allTypes || d.includes("h") ? deref_(lastHovered_) : null)
   el = mode < HintMode.min_job || el && htmlTag_(el) ? el : null
   if (!el || !IsInDOM_(el)) {
