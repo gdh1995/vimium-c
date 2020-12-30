@@ -400,19 +400,18 @@ exports.inlineAllSetters = (code) => {
       throw new Error('Can not find symbol "' + name + '"');
     }
   }
-  return code.replace(/\bset_(\w+)\(([^\n]+)/g, function (fullStr, name, data, ind) {
+  return code.replace(/\b[gs]et_(\w+)\(([^\n]+)/g, function (fullStr, name, data, ind) {
     var parenthesis = 1;
     if (code.slice(ind - 16, ind).trim().endsWith("function")) {
+      console.log("inlineSetters: found a function declaration: function", name)
       return fullStr;
     }
-    for (var i = 0; i < data.length; i++) {
-      if (data[i] === "(") { parenthesis++; }
-      else if (data[i] === ")") {
-        parenthesis--;
-        if (parenthesis === 0) {
-          break;
-        }
+    if (fullStr[0] === "g") {
+      if (data[0] !== ")") {
+        console.log("inlineSetters: found a parameterized getter:", name + "(" + data.split(")", 1)[0] + ")")
+        return fullStr;
       }
+      return name + data.slice(1)
     }
     return "(" + name + " = " + data;
   });
