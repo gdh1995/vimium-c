@@ -223,8 +223,8 @@ export const onLoad = (later?: Event): void => {
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
         || Stop_(event);
     }, t);
-    box_.onload = later ? null as never : function (): void {
-      onload = null as never; onLoad2()
+    box_.onload = later ? null as never : (e): void => {
+      (e.target as typeof box_).onload = null as never; onLoad2()
     };
     if (later) { onLoad2() }
 }
