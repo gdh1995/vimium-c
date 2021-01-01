@@ -73,6 +73,15 @@ export { findCSS, query_ as find_query, hasResults as find_hasResults, box_ as f
 export function set_findCSS (_newFindCSS: FindCSS): void { findCSS = _newFindCSS }
 
 export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
+    const initSelColors = (adjust_type: AdjustType): void => {
+      const css = findCSS.c, sin = styleSelColorIn = createStyle(css)
+      ui_box ? adjustUI() : addUIElement(sin, adjust_type, true)
+      removeEl_s(sin)
+      styleSelColorOut = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
+            && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+            && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+          || Build.BTypes & ~BrowserType.Edge && ui_box !== ui_root ? createStyle(css) : sin
+    }
     findCSS = options.f || findCSS;
     if (!isHTML_()) { return; }
     let query: string = options.s ? getSelectionText() : "";
@@ -196,11 +205,7 @@ export const onLoad = (later?: Event): void => {
     if (Build.BTypes & ~BrowserType.Chrome) {
       f("paste", onPaste_not_cr!, t)
     }
-    f(UNL, (e: Event): void => {
-      if (!isAlive_ || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
-                ? !e.isTrusted : e.isTrusted === false)) { return; }
-      isActive && deactivate(FindNS.Action.ExitUnexpectedly);
-    }, t)
+    f(UNL, /*#__NOINLINE__*/ onIframeUnload, t)
     if (Build.BTypes & BrowserType.Chrome
         && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)) {
       f("compositionend", onInput, t)
@@ -215,24 +220,9 @@ export const onLoad = (later?: Event): void => {
         onUnexpectedBlur = null
       }
     }, t);
-    f("focus", (event: Event): void => {
-      if (doesCheckAlive && event.target === wnd) {
-        onWndFocus();
-      }
-      Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
-        || Stop_(event);
-    }, t);
-    box_.onload = later ? null as never : (e): void => {
-      (e.target as typeof box_).onload = null as never; onLoad2()
-    };
-    if (later) { onLoad2() }
-}
-
-const onLoad2 = (): void => {
-    if (!isActive) { return; }
-    const wnd: Window = box_.contentWindow,
-    docEl = innerDoc_.documentElement as HTMLHtmlElement,
+    f("focus", /*#__NOINLINE__*/ onIframeFocus, t)
+  let onLoad2 = (): void => {
+    const docEl = innerDoc_.documentElement as HTMLHtmlElement,
     body = innerDoc_.body as HTMLBodyElement,
     zoom = Build.BTypes & ~BrowserType.Firefox ? wnd.devicePixelRatio : 1,
     list = innerDoc_.createDocumentFragment(),
@@ -241,6 +231,7 @@ const onLoad2 = (): void => {
       id && (newEl.id = id, appendNode_s(list, newEl))
       return newEl;
     };
+    onLoad2 = null as never
     addElement(0, "s").dataset.vimium = "/"
     const el = input_ = addElement(0, "i")
     addElement(0, "h");
@@ -336,6 +327,24 @@ const onLoad2 = (): void => {
     // delay hudHide, so that avoid flicker on Firefox
     hudHide(TimerType.noTimer);
     setFirstQuery(query0_)
+  }
+
+  box_.onload = later ? null as never : (e): void => {
+    (e.target as typeof box_).onload = null as never; isActive && onLoad2()
+  }
+  if (later) { onLoad2() }
+}
+
+const onIframeFocus = function (this: Window, event: Event): void {
+  doesCheckAlive && event.target === this && onWndFocus()
+  Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
+  || Stop_(event)
+}
+
+const onIframeUnload = (e: Event): void => {
+  isActive && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+                ? !e.isTrusted : e.isTrusted === false)
+  && deactivate(FindNS.Action.ExitUnexpectedly)
 }
 
 const doFocus = (): void => {
@@ -357,16 +366,6 @@ const setFirstQuery = (query: string): void => {
   isQueryRichText_ = true
   notEmpty = !!query_
   notEmpty && execCommand("selectAll")
-}
-
-const initSelColors = (adjust_type: AdjustType): void => {
-    const css = findCSS.c, sin = styleSelColorIn = createStyle(css)
-    ui_box ? adjustUI() : addUIElement(sin, adjust_type, true);
-    removeEl_s(sin)
-    styleSelColorOut = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
-          && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
-          && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-        || Build.BTypes & ~BrowserType.Edge && ui_box !== ui_root ? createStyle(css) : sin;
 }
 
 export const clear = (): void => {
@@ -397,12 +396,10 @@ const onMousedown = function (this: Window | HTMLElement, event: MouseEventToPre
   }
 }
 
-let onPaste_not_cr = Build.BTypes & ~BrowserType.Chrome
-      ? function (this: Window, event: ClipboardEvent & ToPrevent): void {
+const onPaste_not_cr = Build.BTypes & ~BrowserType.Chrome ? (event: ClipboardEvent & ToPrevent): void => {
     const d = event.clipboardData, text = d && isTY(d.getData, kTY.func) ? d.getData("text/plain") : "";
     prevent_(event);
-    if (!text) { return; }
-    execCommand("insertText", 0, text)
+    text && execCommand("insertText", 0, text)
 } : 0 as never as null
 
 const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
@@ -591,6 +588,18 @@ export const execCommand = (cmd: string, doc?: Document | 0, value?: string) => 
 }
 
 const postActivate = (): void => {
+  const postExit = (skip?: boolean | Event): void => {
+    // safe if destroyed, because `el.onblur = Exit`
+    if (skip && skip !== !!skip
+        && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+            ? !skip.isTrusted : skip.isTrusted === false)) { return }
+    postLock && setupEventListener(postLock, BU, postExit, 1)
+    if (!postLock || skip === true) { return }
+    postLock = null
+    setupEventListener(0, CLK, postExit, 1)
+    removeHandler_(kHandler.postFind)
+    setupSuppress()
+  }
   const el = insert_Lock_()
   if (!el) { postExit(); return }
   pushHandler_((event: HandlerNS.Event): HandlerResult => {
@@ -606,19 +615,6 @@ const postActivate = (): void => {
   postExit(true)
   postLock = el
   setupEventListener(el, BU, postExit)
-}
-
-const postExit = (skip?: boolean | Event): void => {
-      // safe if destroyed, because `el.onblur = Exit`
-      if (skip && skip !== !!skip
-          && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
-              ? !skip.isTrusted : skip.isTrusted === false)) { return; }
-      postLock && setupEventListener(postLock, BU, postExit, 1)
-      if (!postLock || skip === true) { return }
-      postLock = null
-      setupEventListener(0, CLK, postExit, 1)
-      removeHandler_(kHandler.postFind)
-      setupSuppress();
 }
 
 const onInput = (e?: Event): void => {
