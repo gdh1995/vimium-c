@@ -57,9 +57,9 @@ let innerDoc_: HTMLDocument = null as never
 let input_: SafeHTMLElement = null as never
 let countEl: SafeHTMLElement = null as never
 let findCSS: FindCSS = null as never
-let styleIn: HTMLStyleElement = null as never
-let styleOut: HTMLStyleElement = null as never
-let styleSelectable: HTMLStyleElement | null = null
+let styleSelColorIn: HTMLStyleElement | null | undefined
+let styleSelColorOut: HTMLStyleElement | null | undefined
+let styleSelectable: HTMLStyleElement | null | undefined
 let styleInHUD: HTMLStyleElement | null = null
 let onUnexpectedBlur: ((this: unknown, event?: Event) => void) | null = null
 let doesCheckAlive: BOOL = 0
@@ -68,7 +68,8 @@ let isSmall = false
 let postLock: Element | null = null
 let cachedInnerText: { /** innerText */ i: string, /** timestamp */ t: number } | null | undefined
 
-export { findCSS, query_ as find_query, hasResults as find_hasResults, box_ as find_box, styleSelectable, styleInHUD }
+export { findCSS, query_ as find_query, hasResults as find_hasResults, box_ as find_box, styleSelectable,
+    styleInHUD, styleSelColorOut }
 export function set_findCSS (_newFindCSS: FindCSS): void { findCSS = _newFindCSS }
 
 export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
@@ -85,7 +86,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     }
     if (options.l) {
       if (query = query || query_) {
-        init && init(AdjustType.MustAdjust)
+        styleSelColorOut || initSelColors(AdjustType.MustAdjust)
         if (query !== query_) {
           updateQuery(query)
           if (isActive) {
@@ -96,7 +97,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
         isQueryRichText_ = true
         const hud_showing = !isActive && hud_opacity === 1
         hud_showing && hud_toggleOpacity("0")
-        toggleSelectableStyle(0)
+        toggleSelectableStyle()
         executeFind("", options)
         if (hasResults && options.m) {
           getZoom_()
@@ -106,7 +107,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
         if (!hasResults) {
           toggleStyle(1)
           if (!isActive) {
-            toggleSelectableStyle(0)
+            toggleSelectableStyle()
             hudTip(kTip.noMatchFor, 0, query_)
           }
         } else {
@@ -159,7 +160,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     box_.onload = vApi.n
     replaceOrSuppressMost_(kHandler.find)
     query_ || (query0_ = query)
-    init && init(AdjustType.NotAdjust)
+    styleSelColorOut || initSelColors(AdjustType.NotAdjust)
     toggleSelectableStyle(1);
     isActive = true
     appendNode_s(outerBox, box_)
@@ -358,15 +359,14 @@ const setFirstQuery = (query: string): void => {
   notEmpty && execCommand("selectAll")
 }
 
-export let init = (adjust_type: AdjustType): void => {
-    const css = findCSS.c, sin = styleIn = createStyle(css)
+const initSelColors = (adjust_type: AdjustType): void => {
+    const css = findCSS.c, sin = styleSelColorIn = createStyle(css)
     ui_box ? adjustUI() : addUIElement(sin, adjust_type, true);
     removeEl_s(sin)
-    styleOut = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
+    styleSelColorOut = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
           && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
           && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
         || Build.BTypes & ~BrowserType.Edge && ui_box !== ui_root ? createStyle(css) : sin;
-  init = null as never
 }
 
 export const clear = (): void => {
@@ -506,7 +506,7 @@ const onHostKeydown = (event: HandlerNS.Event): HandlerResult => {
    * * a host script has removed all ranges
    */
 export const deactivate = (i: FindNS.Action): void => {
-    let sin = styleIn, noStyle = !sin || !GetParent_unsafe_(sin, PNType.DirectNode), hasResult = hasResults
+    let sin = styleSelColorIn, noStyle = !sin || !GetParent_unsafe_(sin, PNType.DirectNode), hasResult = hasResults
       , maxNotRunPost = postOnEsc ? FindNS.Action.ExitAndReFocus - 1 : FindNS.Action.ExitToPostMode - 1
       , el: SafeElement | null | undefined, el2: Element | null;
     i === FindNS.Action.ExitNoAnyFocus ? hookSel(1) : focus()
@@ -529,7 +529,7 @@ export const deactivate = (i: FindNS.Action): void => {
           && getEditableType_<0>(el2) > EditableType.TextBox - 1 && contains_s(container, el2)) {
         prepareCrop_();
         select_(el2 as LockableElement).then((): void => {
-          toggleSelectableStyle(0)
+          toggleSelectableStyle()
           i > maxNotRunPost && postActivate()
         })
         return
@@ -539,7 +539,7 @@ export const deactivate = (i: FindNS.Action): void => {
           ? scrollIntoView_(el) : fixTabNav_cr_old(el)
       }
     }
-    toggleSelectableStyle(0);
+    toggleSelectableStyle()
     if (i > maxNotRunPost) {
       postActivate()
     }
@@ -868,14 +868,15 @@ const hookSel = (t?: TimerType.fake | 1): void => {
 
   /** must be called after initing */
 const toggleStyle = (disable: BOOL | boolean | Event): void => {
-    const sout = styleOut, sin = styleIn, active = isActive
+    const sout = styleSelColorOut, sin = styleSelColorIn, active = isActive
     if (!sout) { return; }
     hookSel(1)
     disable = !!disable;
     // Note: `<doc/root>.adoptedStyleSheets` should not be modified in an extension world
     if (!active && disable) {
-      toggleSelectableStyle(0);
-      removeEl_s(sout); removeEl_s(sin)
+      toggleSelectableStyle()
+      removeEl_s(sout); removeEl_s(sin!)
+      styleSelColorOut = styleSelColorIn = null as never
       return;
     }
     if (GetParent_unsafe_(sout, PNType.DirectNode) !== ui_box) {
@@ -885,15 +886,14 @@ const toggleStyle = (disable: BOOL | boolean | Event): void => {
         && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
         && !(Build.BTypes & ~BrowserType.ChromeOrFirefox))
       && (!(Build.BTypes & ~BrowserType.Edge) || sin === sout)
-      || addUIElement(sin, AdjustType.NotAdjust, true);
+      || addUIElement(sin!, AdjustType.NotAdjust, true)
     }
     sout.sheet && (sout.sheet.disabled = disable);
-    sin.sheet && (sin.sheet.disabled = disable);
+    sin!.sheet && (sin!.sheet.disabled = disable)
 }
 
-export const toggleSelectableStyle = (enable: BOOL): void => {
-  if (enable ? docSelectable_ && !findCSS.s.includes("\n")
-      : !styleSelectable || !GetParent_unsafe_(styleSelectable, PNType.DirectNode)) { return }
-  styleSelectable || (styleSelectable = createStyle(findCSS.s))
-  enable ? appendNode_s(ui_box!, styleSelectable) : removeEl_s(styleSelectable)
+export const toggleSelectableStyle = (enable?: 1): void => {
+  !enable ? styleSelectable && (removeEl_s(styleSelectable), styleSelectable = null)
+  : docSelectable_ && !findCSS.s.includes("\n")
+    || appendNode_s(ui_box!, styleSelectable = createStyle(findCSS.s))
 }

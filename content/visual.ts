@@ -802,7 +802,7 @@ export const deactivate = (isEsc?: 1): void => {
   modeName = ""
   const el = insert_Lock_()
   oldDiType & (DiType.TextBox | DiType.Complicated) || el && el.blur()
-  toggleSelectableStyle(0)
+  toggleSelectableStyle()
   retainSelection = richText = oldLen_ = 0
   set_scrollingTop(null)
   curSelection = null as never

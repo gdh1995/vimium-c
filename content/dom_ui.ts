@@ -233,7 +233,7 @@ export const learnCSS = (srcStyleIn: typeof styleIn_, force?: 1): void => {
 }
 
 export const checkDocSelectable = (): void => {
-    let sout: HTMLStyleElement | null | HTMLBodyElement | HTMLFrameSetElement = styleSelectable
+    let sout: HTMLStyleElement | null | undefined | HTMLBodyElement | HTMLFrameSetElement = styleSelectable
       , gcs = getComputedStyle_, st: CSSStyleDeclaration
       , mayTrue = !sout || !GetParent_unsafe_(sout, PNType.DirectNode)
     if (mayTrue && (sout = doc.body)) {

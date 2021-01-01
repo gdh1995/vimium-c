@@ -24,7 +24,7 @@ import { hudHide, hudShow, hudTip, hud_text } from "./hud"
 import { onKeyup2, set_onKeyup2, passKeys, set_nextKeys, set_passKeys, keyFSM } from "./key_handler"
 import { activate as linkActivate, clear as linkClear, kSafeAllSelector } from "./link_hints"
 import { activate as markActivate, gotoMark } from "./marks"
-import { activate as findActivate, deactivate as findDeactivate, execCommand, init as findInit } from "./mode_find"
+import { activate as findActivate, deactivate as findDeactivate, execCommand, styleSelColorOut } from "./mode_find"
 import {
   exitInputHint, insert_inputHint, insert_last_, raw_insert_lock, resetInsert, set_is_last_mutable,
   set_inputHint, set_insert_global_, set_isHintingInput, set_insert_last_, onWndBlur, exitPassMode, set_exitPassMode,
@@ -77,7 +77,7 @@ set_contentCommands_([
     if (opt.r) {
       set_cachedScrollable(0), set_currentScrolling(null), set_lastHovered_(null)
       resetInsert(), linkClear((2 - opt.r) as BOOL), visualDeactivate()
-      findInit || findDeactivate(FindNS.Action.ExitNoAnyFocus)
+      styleSelColorOut && findDeactivate(FindNS.Action.ExitNoAnyFocus)
       omniHide(), hideHelp && hideHelp()
       onWndBlur()
     }
