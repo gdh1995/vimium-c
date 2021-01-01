@@ -879,7 +879,8 @@ const toggleStyle = (disable: BOOL | boolean | Event): void => {
       return;
     }
     if (GetParent_unsafe_(sout, PNType.DirectNode) !== ui_box) {
-      appendNode_s(ui_box!, sout)
+      ui_box!.insertBefore(sout, styleSelectable && GetParent_unsafe_(styleSelectable, PNType.DirectNode) === ui_box
+          ? styleSelectable : null)
       !((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
         && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
         && !(Build.BTypes & ~BrowserType.ChromeOrFirefox))
