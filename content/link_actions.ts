@@ -87,7 +87,7 @@ const downloadOrOpenMedia = (): void => {
   else if (mode1_ === HintMode.OPEN_IMAGE) {
     post_({
       H: kFgReq.openImage, r: hintMode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
-      e: parseSedOptions(hintOptions), a: hintOptions.auto,
+      k: hintOptions.keyword, e: parseSedOptions(hintOptions), a: hintOptions.auto,
       f: filename, u: text
     })
   } else {

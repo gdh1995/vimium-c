@@ -12,7 +12,7 @@ import {
 import { paste_, substitute_ } from "./clipboard"
 import { openShowPage, focusAndExecute, focusOrLaunch, openJSUrl, openUrlReq } from "./open_urls"
 import {
-  initHelp, openImgCmd, setOmniStyle, framesGoBack, onConfirmResponse, enterVisualMode, showVomnibar, parentFrame,
+  initHelp, openImgReq, setOmniStyle, framesGoBack, onConfirmResponse, enterVisualMode, showVomnibar, parentFrame,
   nextFrame, performFind
 } from "./frame_commands"
 import { copyData } from "./tab_commands"
@@ -423,7 +423,7 @@ set_reqH_([
   /** kFgReq.removeSug: */ (req: FgReq[kFgReq.removeSug], port?: Port): void => {
     Backend_.removeSug_(req, port)
   },
-  /** kFgReq.openImage: */ openImgCmd,
+  /** kFgReq.openImage: */ openImgReq,
   /** kFgReq.evalJSFallback" */ (req: FgReq[kFgReq.evalJSFallback], port: Port): void => {
     set_cPort(null)
     openJSUrl(req.u, (): void => {

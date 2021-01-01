@@ -8,7 +8,7 @@ import {
   framesForTab, indexFrame, portSendFgCmd, framesForOmni, focusFrame, sendFgCmd, showHUD, complainLimits
 } from "./ports"
 import { parseSedOptions_, substitute_ } from "./clipboard"
-import { parseReuse, newTabIndex, openShowPage } from "./open_urls"
+import { parseReuse, newTabIndex, openUrlWithActions } from "./open_urls"
 
 export const nextFrame = (): void | kBgCmd.nextFrame => {
   let port = cPort, ind = -1
@@ -202,7 +202,7 @@ export const captureTab = (tabs?: [Tab]): void | kBgCmd.captureTab => {
       if (!(Build.BTypes & ~BrowserType.Firefox)
           || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox
           || show) {
-        openImgCmd({
+        openImgReq({
           u: msg, f: title, a: false, e: null, r: ReuseType.newFg
         }, cPort)
       }
@@ -242,7 +242,7 @@ export const captureTab = (tabs?: [Tab]): void | kBgCmd.captureTab => {
   }
 }
 
-export const openImgCmd = (req: FgReq[kFgReq.openImage], port?: Port): void => {
+export const openImgReq = (req: FgReq[kFgReq.openImage], port?: Port): void => {
   let url = req.u
   if (!BgUtils_.safeParseURL_(url)) {
     set_cPort(port!)
@@ -257,7 +257,10 @@ export const openImgCmd = (req: FgReq[kFgReq.openImage], port?: Port): void => {
     prefix += "auto=once&"
   }
   url = req.e ? substitute_(url, SedContext.paste, req.e) : url
-  openShowPage(prefix + url, req.r, { opener: true })
+  set_cOptions(BgUtils_.safer_<KnownOptions<C.openUrl>>({ opener: true, reuse: req.r }))
+  openUrlWithActions(typeof req.k !== "string" ? prefix + url
+        : req.k ? BgUtils_.convertToUrl_(url, req.k, Urls.WorkType.ActAnyway) : url
+      , Urls.WorkType.FakeType)
 }
 
 export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null

@@ -570,6 +570,7 @@ interface FgReq {
     /** file */ f: string | null;
     /** url */ u: string;
     /** sed */ e: ParsedSedOpts | null;
+    /** keyword: `""` means to use raw URL directly */ k?: string
     /** reuse */ r: ReuseType;
     /** auto: default to true */ a?: boolean;
   };
