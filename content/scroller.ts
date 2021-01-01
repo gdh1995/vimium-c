@@ -27,11 +27,11 @@ import {
 import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, UNL,
   querySelector_unsafe_, getComputedStyle_, notSafe_not_ff_, HDN, isRawStyleVisible, fullscreenEl_unsafe_,
-  doesSupportDialog, attr_s
+  doesSupportDialog, attr_s, getSelection_
 } from "../lib/dom_utils"
 import {
   scrollWndBy_, wndSize_, getZoom_, wdZoom_, bZoom_, isNotInViewport, prepareCrop_, padClientRect_, instantScOpt,
-  getBoundingClientRect_, cropRectToVisible_, getVisibleClientRect_, dimSize_, scrollingTop, set_scrollingTop,
+  getBoundingClientRect_, cropRectToVisible_, getVisibleClientRect_, dimSize_, scrollingTop, set_scrollingTop, isSelARange,
 } from "../lib/rect"
 import {
   getParentVApi, resetSelectionToDocStart, checkHidden, addElementList, curModalElement, removeModal
@@ -47,7 +47,7 @@ let minDelay: number
 let currentScrolling: WeakRef<SafeElement> | null = null
 let cachedScrollable: WeakRef<SafeElement> | 0 | null = 0
 let keyIsDown = 0
-let preventPointEvents: BOOL | boolean | undefined
+let preventPointEvents: BOOL | 2
 let scale = 1
 let joined: VApiTy | null | undefined
 let scrolled = 0
@@ -184,7 +184,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     keyboard.length > 2 && (min_delta = min_(min_delta, +keyboard[2]! || min_delta))
     maxKeyInterval = keyboard[1] * 2 + ScrollConsts.DelayTolerance
     minDelay = keyboard[0] + max_(keyboard[1], ScrollConsts.DelayMinDelta) + ScrollConsts.DelayTolerance
-    preventPointEvents && toggleAnimation!(1)
+    preventPointEvents && (preventPointEvents > 1 || !isSelARange(getSelection_())) && toggleAnimation!(1)
     startAnimate();
   };
   performAnimate(newEl, newDi, newAmount)
@@ -292,7 +292,8 @@ export const executeScroll = function (di: ScrollByY, amount0: number, isTo: BOO
       }
     }
     set_scrollingTop(null)
-    preventPointEvents = options && options.keepHover === !1
+    const keepHover = options && options.keepHover
+    preventPointEvents = keepHover === !1 ? 1 : keepHover === "never" ? 2 : 0
     vApi.$(element, di, amount)
     preventPointEvents = 0
     scrolled = 0

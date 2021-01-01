@@ -393,6 +393,8 @@ export const isNotInViewport = function (this: void, element: Element | null, re
   (element: null, rect: Rect): VisibilityType
 }
 
+export const isSelARange = (sel: Selection): boolean => sel.type === "Range"
+
 export const selRange_ = ((sel: Selection, ensured?: 1): Range | null =>
   ensured || rangeCount_(sel) ? sel.getRangeAt(0) : null
 ) as {

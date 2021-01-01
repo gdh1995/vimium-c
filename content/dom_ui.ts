@@ -12,7 +12,7 @@ import {
 import {
   bZoom_, dScale_, getZoom_, wdZoom_, getSelectionBoundingBox_, prepareCrop_, getClientRectsForAreas_,
   getVisibleClientRect_, getBoundingClientRect_, padClientRect_, isContaining_, cropRectToVisible_, getCroppedRect_,
-  setBoundary_, wndSize_, dimSize_, selRange_,
+  setBoundary_, wndSize_, dimSize_, selRange_, isSelARange,
 } from "../lib/rect"
 import { currentScrolling } from "./scroller"
 import { find_box, styleSelectable } from "./mode_find"
@@ -348,7 +348,7 @@ export const getSelectionText = (notTrim?: 1): string => {
 export const removeSelection = function (root?: VUIRoot & Pick<DocumentOrShadowRoot, "getSelection">): boolean {
     const sel = (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
         ? root : root && root.getSelection) ? getSelectionOf(root as ShadowRoot) : getSelection_()
-    const ret = sel && sel.type === "Range" && getAccessibleSelectedNode(sel)
+    const ret = sel && isSelARange(sel) && getAccessibleSelectedNode(sel)
     ret && collpaseSelection(sel!)
     return !!ret
 } as (root?: VUIRoot) => boolean

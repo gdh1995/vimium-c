@@ -11,7 +11,7 @@ import {
   replaceOrSuppressMost_
 } from "../lib/keyboard_utils"
 import {
-  view_, wndSize_, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, padClientRect_,
+  view_, wndSize_, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, padClientRect_, isSelARange,
   getBoundingClientRect_, setBoundary_, wdZoom_, dScale_,
 } from "../lib/rect"
 import { post_, set_contentCommands_ } from "./port"
@@ -322,7 +322,7 @@ set_contentCommands_([
           } else if (sel = sel || getSelected(), cmd === "collapse") {
             collpaseSelection(sel, a1 === "end")
           } else {
-            modifySel(sel, cmd === "auto" ? sel.type === "Range" : cmd < kChar.f, a1 > kChar.f, a2 as any)
+            modifySel(sel, cmd === "auto" ? isSelARange(sel) : cmd < kChar.f, a1 > kChar.f, a2 as any)
           }
         }
       }

@@ -65,11 +65,12 @@ import {
 } from "../lib/utils"
 import {
   frameElement_, querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_,
-  getComputedStyle_, isStyleVisible_, htmlTag_, fullscreenEl_unsafe_, removeEl_s, UNL, toggleClass_s, doesSupportDialog, getSelectionFocusEdge_, activeEl_unsafe_, SafeEl_not_ff_
+  getComputedStyle_, isStyleVisible_, htmlTag_, fullscreenEl_unsafe_, removeEl_s, UNL, toggleClass_s, doesSupportDialog,
+  getSelectionFocusEdge_, activeEl_unsafe_, SafeEl_not_ff_
 } from "../lib/dom_utils"
 import {
   getViewBox_, prepareCrop_, wndSize_, bZoom_, wdZoom_, dScale_, padClientRect_, getBoundingClientRect_,
-  docZoom_, bScale_, dimSize_,
+  docZoom_, bScale_, dimSize_, isSelARange,
 } from "../lib/rect"
 import {
   replaceOrSuppressMost_, removeHandler_, getMappedKey, keybody_, isEscape_, getKeyStat_, keyNames_, suppressTail_,
@@ -482,12 +483,12 @@ const activateDirectly = (options: HintsNS.ContentOptions, count: number) => {
   }
   let docActive: SafeElement | null
   let el: SafeElement | null | undefined = (allTypes || d.includes("l"))
-      && getSelection().type === "Range" && getSelectionFocusEdge_(getSelected())
+      && isSelARange(getSelection()) && getSelectionFocusEdge_(getSelected())
       || (allTypes || d.includes("f"))
           && (insert_Lock_()
               || (docActive = Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(activeEl_unsafe_())
                     : activeEl_unsafe_() as SafeElement | null,
-                  docActive !== doc.body && docActive !== docEl_unsafe_() ? docActive : 0))
+                  docActive !== doc.body && docActive !== docEl_unsafe_() && docActive))
       || (allTypes || d.includes("h") ? deref_(lastHovered_) : null)
   el = mode < HintMode.min_job || el && htmlTag_(el) ? el : null
   if (!el || !IsInDOM_(el)) {

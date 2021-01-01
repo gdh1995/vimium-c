@@ -284,7 +284,7 @@ interface CmdOptions {
     view?: undefined;
     sel?: "clear";
     dir?: undefined;
-    keepHover?: boolean;
+    keepHover?: boolean | "never";
   };
   [kFgCmd.toggle]: {
     k: keyof SettingsNS.FrontendSettingsSyncingItems;
