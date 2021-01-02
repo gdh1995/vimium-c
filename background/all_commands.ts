@@ -15,7 +15,7 @@ import {
 import { maySedRuleExist, parseSedOptions_, substitute_ } from "./clipboard"
 import { goToNextUrl, newTabIndex, openUrl } from "./open_urls"
 import {
-  parentFrame, enterVisualMode, showVomnibar, toggleZoom, confirm_, gOnConfirmCallback, captureTab,
+  parentFrame, enterVisualMode, showVomnibar, toggleZoom, confirm_, gOnConfirmCallback, captureTab, runKeyWithCond,
   set_gOnConfirmCallback, initHelp, setOmniStyle, framesGoBack, mainFrame, nextFrame, performFind, framesGoNext
 } from "./frame_commands"
 import {
@@ -466,45 +466,7 @@ const BackgroundCommands: {
       sessions.restore(null, runtimeError_)
     } while (0 < --count)
   },
-  /* kBgCmd.runKey: */ (): void | kBgCmd.runKey => {
-    let keys = get_cOptions<C.runKey>().keys, absCRepeat = abs(cRepeat), key: string | undefined
-    if (typeof keys === "string" && keys.trim() && keys.includes(" ")) {
-      keys = keys.split(" ")
-    }
-    if (!(keys instanceof Array)) {
-      showHUD('Require keys: space-seperated-string | string[]')
-    } else if (absCRepeat > keys.length && keys.length !== 1) {
-      showHUD('"runKey" has no such a key')
-    } else if (key = keys[keys.length === 1 ? 0 : absCRepeat - 1], typeof key !== "string") {
-      showHUD('in "runKey", the key is invalid')
-    } else if (cPort) {
-      (cPort as Frames.Port).s.f |= Frames.Flags.userActed
-      let count = 1, arr: null | string[] = (<RegExpOne> /^\d+|^-\d*/).exec(key)
-      if (arr != null) {
-        let prefix = arr[0]
-        key = key.slice(prefix.length)
-        count = prefix !== "-" ? parseInt(prefix, 10) || 1 : -1
-      }
-      let registryEntry = CommandsData_.keyToCommandRegistry_.get(key)
-      if (!registryEntry) {
-        showHUD('in "runKey", the key is invalid')
-      } else if (registryEntry.alias_ === kBgCmd.runKey && registryEntry.background_) {
-        showHUD('"runKey" can not be nested')
-      } else {
-        BgUtils_.resetRe_()
-        count = keys.length === 1 ? count * cRepeat : absCRepeat !== cRepeat ? -count : count
-        if (Object.keys(get_cOptions<C.runKey>()).length > 1) {
-          registryEntry = BgUtils_.extendIf_(BgUtils_.safeObj_<{}>(), registryEntry)
-          let newOptions = BgUtils_.safeObj_<{}>()
-          BgUtils_.extendIf_(newOptions, get_cOptions<C.runKey>())
-          delete newOptions.keys
-          registryEntry.options_ && BgUtils_.extendIf_(newOptions, registryEntry.options_);
-          (registryEntry as Writable<typeof registryEntry>).options_ = newOptions
-        }
-        executeCommand(registryEntry, count, cKey, cPort, 0)
-      }
-    }
-  },
+  /* kBgCmd.runKey: */ runKeyWithCond,
   /* kBgCmd.searchInAnother: */ (tabs: [Tab]): void | kBgCmd.searchInAnother => {
     let keyword = (get_cOptions<C.searchInAnother>().keyword || "") + ""
     const query = Backend_.parse_({ u: getTabUrl(tabs[0]) })

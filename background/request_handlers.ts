@@ -13,7 +13,7 @@ import { paste_, substitute_ } from "./clipboard"
 import { openShowPage, focusAndExecute, focusOrLaunch, openJSUrl, openUrlReq } from "./open_urls"
 import {
   initHelp, openImgReq, setOmniStyle, framesGoBack, onConfirmResponse, enterVisualMode, showVomnibar, parentFrame,
-  nextFrame, performFind
+  nextFrame, performFind, runKeyWithCond
 } from "./frame_commands"
 import { copyData } from "./tab_commands"
 
@@ -454,9 +454,11 @@ set_reqH_([
     set_cOptions(BgUtils_.safer_<UnknownOptions<kBgCmd.visualMode>>({ mode: isCaret ? "caret" : "", start: true }))
     set_cPort(port), set_cRepeat(1)
     enterVisualMode()
+  },
+  /** kFgReq.respondForRunAs: */ (request: FgReq[kFgReq.respondForRunKey]): void => {
+    runKeyWithCond(request)
   }
 ])
-
   
 const upperGitUrls = (url: string, path: string): string | void | null => {
   const obj = BgUtils_.safeParseURL_(url), host: string | undefined = obj ? obj.host : ""

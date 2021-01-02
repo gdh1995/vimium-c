@@ -61,7 +61,7 @@ declare const enum kBgReq {
   START = 0,
   init = START, reset, injectorRun, url, msg, eval,
   settingsUpdate, focusFrame, exitGrab, keyFSM, execute,
-  createMark, showHUD, count, showHelpDialog,
+  createMark, showHUD, count, queryForRunKey,
   OMNI_MIN = 42,
   omni_init = OMNI_MIN, omni_omni, omni_parsed, omni_returnFocus,
   omni_toggleStyle, omni_updateOptions,
@@ -77,6 +77,7 @@ declare const enum kFgReq {
   /** can be used only with `FgCmdAcrossFrames` and when a fg command is just being called */
   gotoMainFrame,
   setOmniStyle, findFromVisual, framesGoBack, i18n, learnCSS, visualMode,
+  respondForRunKey,
   END,
   msg = 90, inject = 99,
   command = "command", id = "id", shortcut = "shortcut",
@@ -139,6 +140,7 @@ interface BgReq {
     /** id */ i: number;
     /** message-in-confirmation-dialog */ m: string;
   };
+  [kBgReq.queryForRunKey]: {}
 }
 
 interface BgVomnibarSpecialReq {
@@ -599,6 +601,11 @@ interface FgReq {
   [kFgReq.visualMode]: {
     /** caret mode */ c?: boolean
   };
+  [kFgReq.respondForRunKey]: {
+    /** tag of an active element */ t: string
+    /** className attr */ c: string
+    /** id attr */ i: string
+  }
 }
 
 interface OpenUrlOptions extends UserSedOptions {

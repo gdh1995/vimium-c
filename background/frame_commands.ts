@@ -2,10 +2,10 @@ import C = kBgCmd
 import { browserTabs, browserWebNav, getTabUrl, runtimeError_, selectTab } from "./browser"
 import {
   cPort, NoFrameId, cRepeat, get_cOptions, set_cPort, getSecret, set_cOptions, set_cRepeat, set_cNeedConfirm,
-  executeCommand, reqH_, omniPayload, settings, findCSS_, visualWordsRe_, set_cKey
+  executeCommand, reqH_, omniPayload, settings, findCSS_, visualWordsRe_, set_cKey, cKey
 } from "./store"
 import {
-  framesForTab, indexFrame, portSendFgCmd, framesForOmni, focusFrame, sendFgCmd, showHUD, complainLimits
+  framesForTab, indexFrame, portSendFgCmd, framesForOmni, focusFrame, sendFgCmd, showHUD, complainLimits, safePost
 } from "./ports"
 import { parseSedOptions_, substitute_ } from "./clipboard"
 import { parseReuse, newTabIndex, openUrlWithActions } from "./open_urls"
@@ -530,6 +530,114 @@ export const executeShortcut = (shortcutName: StandardShortcutNames, ports: Fram
       opts && BgUtils_.extendIf_(rawOpts, opts)
       rawOpts.$noWarn = true
       console.log("Error: Command", cmdName, "must run on pages which are not privileged")
+    }
+  }
+}
+
+export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey] | undefined): void => {
+  let expected_rules = get_cOptions<kBgCmd.runKey, true>().expect
+  const absCRepeat = Math.abs(cRepeat)
+  let portUrl: string | undefined, activeEl: Element | undefined
+  let matchedIndex: number = -1
+  let matchedRule: KnownOptions<kBgCmd.runKey> | BgCmdOptions[kBgCmd.runKey]["expect"][0]
+      = get_cOptions<kBgCmd.runKey, true>()
+  if (!cPort) {
+    const frames = framesForTab[TabRecency_.curTab_]
+    set_cPort(frames ? frames[0] : null)
+  }
+  cPort && ((cPort as Frames.Port).s.f |= Frames.Flags.userActed)
+  for (let i = 0, size = expected_rules instanceof Array ? expected_rules.length : (expected_rules = 0 as never)
+        ; i < size; i++) {
+    const rule = expected_rules![i]
+    let elSelector = rule.element, host = rule.host
+    if (elSelector) {
+      if (!info) {
+        safePost(cPort, { N: kBgReq.queryForRunKey })
+        return
+      }
+      if ((<RegExpOne> /^[A-Za-z][-\w]+$/).test(elSelector)) {
+        if (info.t !== elSelector) { continue }  
+      } else {
+        if (!activeEl) {
+          activeEl = document.createElement(info.t)
+          activeEl.className = info.c
+          activeEl.id = info.i
+        }
+        if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Element$$matches
+            && CurCVer_ < BrowserVer.Min$Element$$matches ? !activeEl.webkitMatchesSelector!(info.t)
+            : !activeEl.matches!(info.t)) { continue }
+      }
+    }
+    if (host) {
+      if (!cPort) { return }
+      if (typeof host === "string") {
+        if (host[0] === "^") {
+          const re = BgUtils_.makeRegexp_(host, "")
+          host = re ? { t: ExclusionsNS.TesterType.RegExp, v: re as RegExpOne } : null
+        } else {
+          host = { t: ExclusionsNS.TesterType.StringPrefix, v: host[0] === ":" ? host.slice(1) : host }
+        }
+        rule.host = host
+      }
+      if (host) {
+        if (!portUrl) {
+          portUrl = cPort.s.u
+          if (cPort.s.i && portUrl.lastIndexOf("://", 5) < 0 && !BgUtils_.protocolRe_.test(portUrl)) {
+            const mainFrame = Backend_.indexPorts_(cPort.s.t, 0)
+            portUrl = mainFrame ? mainFrame.s.u : portUrl
+          }
+        }
+        if (host.t === ExclusionsNS.TesterType.StringPrefix
+            ? !portUrl.startsWith(host.v as string) : !(host.v as RegExpOne).test(portUrl)) {
+          continue
+        }
+      }
+    }
+    matchedIndex = i
+    matchedRule = rule
+    break
+  }
+  let keys = matchedRule.keys
+  if (typeof keys === "string") {
+    keys = keys.trim().split(BgUtils_.spacesRe_);
+    (matchedRule as Writable<typeof matchedRule>).keys = keys
+  }
+  let key: string
+  const sub_name = matchedIndex >= 0 ? `[${matchedIndex + 1}] ` : ""
+  if (!(keys instanceof Array)) {
+    showHUD(sub_name + "Require keys: space-seperated-string | string[]")
+    return
+  } else if (absCRepeat > keys.length && keys.length !== 1) {
+    showHUD(sub_name + 'Has no such a key')
+    return
+  } else if (key = keys[keys.length === 1 ? 0 : absCRepeat - 1], typeof key !== "string" || !key) {
+    showHUD(sub_name + 'The key is invalid')
+  }
+  if (key) {
+    let count = 1, arr: null | string[] = (<RegExpOne> /^\d+|^-\d*/).exec(key)
+    if (arr != null) {
+      let prefix = arr[0]
+      key = key.slice(prefix.length)
+      count = prefix !== "-" ? parseInt(prefix, 10) || 1 : -1
+    }
+    let registryEntry = CommandsData_.keyToCommandRegistry_.get(key)
+    if (!registryEntry) {
+      showHUD('in "runKey", the key is invalid')
+    } else if (registryEntry.alias_ === kBgCmd.runKey && registryEntry.background_) {
+      showHUD('"runKey" can not be nested')
+    } else {
+      BgUtils_.resetRe_()
+      count = keys.length === 1 ? count * cRepeat : absCRepeat !== cRepeat ? -count : count
+      const specialOptions = matchedRule.options
+      if (specialOptions || Object.keys(get_cOptions<C.runKey>()).length > 1) {
+        registryEntry = BgUtils_.extendIf_(BgUtils_.safeObj_<{}>(), registryEntry)
+        let newOptions = BgUtils_.safeObj_<{}>()
+        BgUtils_.extendIf_(newOptions, specialOptions || get_cOptions<C.runKey>())
+        specialOptions || delete newOptions.keys
+        registryEntry.options_ && BgUtils_.extendIf_(newOptions, registryEntry.options_);
+        (registryEntry as Writable<typeof registryEntry>).options_ = newOptions
+      }
+      executeCommand(registryEntry, count, cKey, cPort, 0)
     }
   }
 }

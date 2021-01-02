@@ -88,7 +88,16 @@ interface BgCmdOptions {
   [kBgCmd.reopenTab]: {}
   [kBgCmd.restoreGivenTab]: {}
   [kBgCmd.restoreTab]: {}
-  [kBgCmd.runKey]: { keys: string[] | /** space-seperated list */ string }
+  [kBgCmd.runKey]: {
+    expect: Array<{
+      element?: string,
+      host?: string | Pick<ExclusionsNS.Tester, "t" | "v"> | null,
+      keys: string[] | string
+      options?: object
+    }>
+    keys: string[] | /** space-seperated list */ string
+    options?: object
+  }
   [kBgCmd.searchInAnother]: { keyword: string; reuse: UserReuseType }
   [kBgCmd.sendToExtension]: { id: string; data: any; raw: true }
   [kBgCmd.showTip]: { text: string }

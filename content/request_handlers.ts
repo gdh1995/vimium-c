@@ -6,7 +6,7 @@ import {
 } from "../lib/utils"
 import { set_keyIdCorrectionOffset_old_cr_, handler_stack } from "../lib/keyboard_utils"
 import {
-  editableTypes_, markFramesetTagUnsafe, setNotSafe_not_ff, OnDocLoaded_, frameElement_, BU,
+  editableTypes_, markFramesetTagUnsafe, setNotSafe_not_ff, OnDocLoaded_, frameElement_, BU, notSafe_not_ff_,
   htmlTag_, querySelector_unsafe_, isHTML_, createElement_, setClassName_s,
   docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, CLK, ElementProto, isIFrameElement, DAC, removeEl_s, toggleClass_s
 } from "../lib/dom_utils"
@@ -25,7 +25,9 @@ import {
 import { HintManager, kSafeAllSelector, set_kSafeAllSelector } from "./link_hints"
 import { createMark } from "./marks"
 import { set_findCSS, styleInHUD, styleSelectable } from "./mode_find"
-import { exitGrab, grabBackFocus, insertInit, set_grabBackFocus, onFocus, onBlur } from "./insert"
+import {
+  exitGrab, grabBackFocus, insertInit, set_grabBackFocus, onFocus, onBlur, insert_Lock_, raw_insert_lock
+} from "./insert"
 import { onActivate } from "./scroller"
 import { omni_status, omni_box } from "./omni"
 
@@ -246,6 +248,11 @@ set_requestHandlers([
       count2 = math.abs(getTime() - now) > 9 ? result ? 3 : 1 : 2
     }
     post_({ H: kFgReq.cmd, c: request.c, n, i: request.i, r: count2 });
+  },
+  /* kBgReq.queryForRunAs: */ (_request: BgReq[kBgReq.queryForRunKey]): void => {
+    const lock = (Build.BTypes & BrowserType.Firefox ? insert_Lock_() : raw_insert_lock) || activeEl_unsafe_()
+    const tag = !lock || Build.BTypes & ~BrowserType.Firefox && notSafe_not_ff_!(lock) ? "" : lock.localName as string
+    post_({ H: kFgReq.respondForRunKey, t: tag, c: tag && lock!.className, i: tag && lock!.id })
   }
 ])
 
