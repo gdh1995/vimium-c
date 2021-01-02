@@ -26,7 +26,7 @@ import { activate as linkActivate, clear as linkClear, kSafeAllSelector } from "
 import { activate as markActivate, gotoMark } from "./marks"
 import { activate as findActivate, deactivate as findDeactivate, execCommand, styleSelColorOut } from "./mode_find"
 import {
-  exitInputHint, insert_inputHint, insert_last_, raw_insert_lock, resetInsert, set_is_last_mutable,
+  exitInputHint, insert_inputHint, insert_last_, raw_insert_lock, insert_Lock_, resetInsert, set_is_last_mutable,
   set_inputHint, set_insert_global_, set_isHintingInput, set_insert_last_, onWndBlur, exitPassMode, set_exitPassMode,
 } from "./insert"
 import { activate as visualActivate, deactivate as visualDeactivate } from "./visual"
@@ -191,6 +191,7 @@ set_contentCommands_([
   /* kFgCmd.focusInput: */ (options: CmdOptions[kFgCmd.focusInput], count: number): void => {
     const S = "IH IHS"
     const act = options.act || options.action, known_last = deref_(insert_last_);
+    Build.BTypes & BrowserType.Firefox && insert_Lock_()
     if (act && (act[0] !== "l" || known_last && !raw_insert_lock)) {
       let newEl: LockableElement | null | undefined = raw_insert_lock, ret: BOOL = 1;
       if (newEl) {
@@ -277,6 +278,10 @@ set_contentCommands_([
     pushHandler_((event) => {
       const keyCode = event.i, isIME = keyCode === kKeyCode.ime, repeat = event.e.repeat,
       key = isIME || repeat ? "" : getMappedKey(event, kModeId.Insert)
+      if (Build.BTypes & BrowserType.Firefox && !insert_Lock_()) {
+        exitInputHint()
+        return HandlerResult.Prevent
+      }
       if (key === kChar.tab || key === `s-${kChar.tab}`) {
         const hints2 = insert_inputHint!.h, oldSel = sel, len = hints2.length;
         sel = (oldSel + (key < "t" ? len - 1 : 1)) % len;
@@ -310,7 +315,8 @@ set_contentCommands_([
     }, kHandler.focusInput)
   },
   /* kFgCmd.editText: */ (options: CmdOptions[kFgCmd.editText], count: number) => {
-    (raw_insert_lock || options.dom) && timeout_((): void => {
+    const editable = insert_Lock_();
+    (editable || options.dom) && timeout_((): void => {
       let commands = options.run.split(<RegExpG> /,\s*/g), sel: Selection | undefined;
       while (0 < count--) {
         for (let i = 0; i < commands.length; i += 3) {
@@ -318,7 +324,7 @@ set_contentCommands_([
           if (cmd === "exec") {
             execCommand(a1, doc, commands[i + 2])
           } else if (cmd === "replace") {
-            (raw_insert_lock as HTMLInputElement).setRangeText(a1, null, null, a2)
+            (editable as HTMLInputElement).setRangeText(a1, null, null, a2)
           } else if (sel = sel || getSelected(), cmd === "collapse") {
             collpaseSelection(sel, a1 === "end")
           } else {
@@ -329,7 +335,7 @@ set_contentCommands_([
     }, 0);
   },
   /* kFgCmd.scrollSelect: */ ({ dir, position: pos }: CmdOptions[kFgCmd.scrollSelect], count: number): void => {
-    const el = raw_insert_lock as HTMLSelectElement | null
+    const el = insert_Lock_() as HTMLSelectElement | null
     if (!el || htmlTag_(el) !== "select") { return }
     let max = el.options.length
       , absCount = count > 0 ? count : -count, step: number
@@ -442,7 +448,7 @@ set_contentCommands_([
     set_currentScrolling(weakRef_(box))
     set_helpBox(box)
     handler_stack.splice((handler_stack.indexOf(kHandler.omni) + 1 || handler_stack.length + 2) - 2, 0, event => {
-      if (!raw_insert_lock && isEscape_(getMappedKey(event, kModeId.Normal))) {
+      if (!insert_Lock_() && isEscape_(getMappedKey(event, kModeId.Normal))) {
         removeSelection(ui_root) || hideHelp!()
         return HandlerResult.Prevent
       }
