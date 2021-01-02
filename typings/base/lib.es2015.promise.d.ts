@@ -145,6 +145,8 @@ interface PromiseConstructor {
      * @returns A promise whose internal state matches the provided promise.
      */
     resolve<T>(value: T | PromiseLike<T>): Promise<T>;
+    resolved(): Promise<void>;
+    resolved? <T>(value: T | PromiseLike<T>): Promise<T>;
 }
 
 declare var Promise: PromiseConstructor;

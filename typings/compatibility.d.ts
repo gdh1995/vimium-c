@@ -23,6 +23,7 @@ declare const enum BrowserVer {
   // `<input type=number>.selectionStart` throws since Chrome 33 and before C58 (Min$selectionStart$MayBeNull),
   Min$selectionStart$MayThrow = 33,
   Min$Promise$$Then$Accepts$null = 33,
+  Maybe$Promise$onlyHas$$resolved = 33, // only if EXPERIMENTAL
   MinCSSWidthUnit$vw$InCalc = 34, // even if EXPERIMENTAL or LEGACY
   Min$Object$$setPrototypeOf = 34,
   // before C34, 2 images share a size part (the first one's), and different height/width would work as the smaller one
@@ -31,6 +32,7 @@ declare const enum BrowserVer {
   // on C34 and if EXPERIMENTAL, then it's not implied; before C37, `'unsafe-inline'` is necessary in CSP
   StyleSrc$UnsafeInline$MayNotImply$UnsafeEval = 34,
   Min$String$$Normalize = 34, // even if EXPERIMENTAL or LEGACY
+  Min$Element$$matches = 34, // even if EXPERIMENTAL or LEGACY
   MinEnsuredUnprefixedShadowDOMV0 = 35, // even if LEGACY
   MinEnsured$Event$$Path = 35, // = MinEnsuredUnprefixedShadowDOMV0
   // there're WeakMap, WeakSet, Map, Set and Symbol on C31, if #enable-javascript-harmony

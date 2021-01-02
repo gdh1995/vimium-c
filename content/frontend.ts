@@ -243,6 +243,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$Stri
         const i = this.length - s.length;
         return i >= 0 && this.indexOf(s, i) === i;
       };
+    } else if (Build.MinCVer <= BrowserVer.Maybe$Promise$onlyHas$$resolved) {
+      Promise.resolve || (Promise.resolve = Promise.resolved!)
     }
     StringCls.includes = function (this: string, s: string, pos?: number): boolean {
     // eslint-disable-next-line @typescript-eslint/prefer-includes

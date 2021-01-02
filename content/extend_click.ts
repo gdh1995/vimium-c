@@ -513,7 +513,12 @@ const noop = (): 1 => { return 1 }
 if (!(Build.BTypes & ~BrowserType.Edge)
     || (Build.BTypes & ~BrowserType.ChromeOrFirefox || Build.MinCVer < BrowserVer.Min$queueMicrotask)
         && typeof queueMicroTask_ !== kFunc) {
-  queueMicroTask_ = Promise.resolve() as any;
+  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer <= BrowserVer.Maybe$Promise$onlyHas$$resolved) {
+    const P = Promise
+    queueMicroTask_ = (P.resolve ? P.resolve() : P.resolved!()) as any
+  } else {
+    queueMicroTask_ = Promise.resolve() as any
+  }
   queueMicroTask_ = (queueMicroTask_ as any as Promise<void>).then.bind(queueMicroTask_ as any as Promise<void>);
 }
 if (Build.BTypes & BrowserType.Edge) {
