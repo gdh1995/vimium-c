@@ -377,308 +377,164 @@ declare namespace SettingsNS {
 }
 import FullSettings = SettingsNS.FullSettings;
 
-declare const enum kCName {
-  LinkHints_activate = "LinkHints.activate",
-  LinkHints_activateMode = "LinkHints.activateMode",
-  LinkHints_activateModeToCopyLinkText = "LinkHints.activateModeToCopyLinkText",
-  LinkHints_activateModeToCopyLinkUrl = "LinkHints.activateModeToCopyLinkUrl",
-  LinkHints_activateModeToDownloadImage = "LinkHints.activateModeToDownloadImage",
-  LinkHints_activateModeToDownloadLink = "LinkHints.activateModeToDownloadLink",
-  LinkHints_activateModeToEdit = "LinkHints.activateModeToEdit",
-  LinkHints_activateModeToHover = "LinkHints.activateModeToHover",
-  LinkHints_activateModeToLeave = "LinkHints.activateModeToLeave",
-  LinkHints_activateModeToUnhover = "LinkHints.activateModeToUnhover",
-  LinkHints_activateModeToOpenImage = "LinkHints.activateModeToOpenImage",
-  LinkHints_activateModeToOpenIncognito = "LinkHints.activateModeToOpenIncognito",
-  LinkHints_activateModeToOpenInNewForegroundTab = "LinkHints.activateModeToOpenInNewForegroundTab",
-  LinkHints_activateModeToOpenInNewTab = "LinkHints.activateModeToOpenInNewTab",
-  LinkHints_activateModeToOpenVomnibar = "LinkHints.activateModeToOpenVomnibar",
-  LinkHints_activateModeToSearchLinkText = "LinkHints.activateModeToSearchLinkText",
-  LinkHints_activateModeToSelect = "LinkHints.activateModeToSelect",
-  LinkHints_activateModeWithQueue = "LinkHints.activateModeWithQueue",
-  LinkHints_click = "LinkHints.click",
-  LinkHints_unhoverLast = "LinkHints.unhoverLast",
-  Marks_activate = "Marks.activate",
-  Marks_activateCreateMode = "Marks.activateCreateMode",
-  Marks_activateGotoMode = "Marks.activateGotoMode",
-  Marks_clearGlobal = "Marks.clearGlobal",
-  Marks_clearLocal = "Marks.clearLocal",
-  Vomnibar_activate = "Vomnibar.activate",
-  Vomnibar_activateBookmarks = "Vomnibar.activateBookmarks",
-  Vomnibar_activateBookmarksInNewTab = "Vomnibar.activateBookmarksInNewTab",
-  Vomnibar_activateEditUrl = "Vomnibar.activateEditUrl",
-  Vomnibar_activateEditUrlInNewTab = "Vomnibar.activateEditUrlInNewTab",
-  Vomnibar_activateHistory = "Vomnibar.activateHistory",
-  Vomnibar_activateHistoryInNewTab = "Vomnibar.activateHistoryInNewTab",
-  Vomnibar_activateInNewTab = "Vomnibar.activateInNewTab",
-  Vomnibar_activateTabSelection = "Vomnibar.activateTabSelection",
-  Vomnibar_activateUrl = "Vomnibar.activateUrl",
-  Vomnibar_activateUrlInNewTab = "Vomnibar.activateUrlInNewTab",
-  addBookmark = "addBookmark",
-  autoCopy = "autoCopy",
-  autoOpen = "autoOpen",
-  blank = "blank",
-  captureTab = "captureTab",
-  clearCS = "clearCS",
-  clearFindHistory = "clearFindHistory",
-  closeDownloadBar = "closeDownloadBar",
-  closeOtherTabs = "closeOtherTabs",
-  closeTabsOnLeft = "closeTabsOnLeft",
-  closeTabsOnRight = "closeTabsOnRight",
-  copyCurrentTitle = "copyCurrentTitle",
-  copyCurrentUrl = "copyCurrentUrl",
-  copyWindowInfo = "copyWindowInfo",
+interface OtherCNamesForDebug {
+  focusOptions: kBgCmd.openUrl
+}
+declare const enum CNameLiterals {
+  newTab = "newTab",
   createTab = "createTab",
-  debugBackground = "debugBackground",
-  discardTab = "discardTab",
-  duplicateTab = "duplicateTab",
-  editText = "editText",
-  enableCSTemp = "enableCSTemp",
-  enterFindMode = "enterFindMode",
-  enterInsertMode = "enterInsertMode",
-  enterVisualLineMode = "enterVisualLineMode",
-  enterVisualMode = "enterVisualMode",
-  firstTab = "firstTab",
-  focusInput = "focusInput",
-  focusOrLaunch = "focusOrLaunch",
-  goBack = "goBack",
-  goForward = "goForward",
-  goNext = "goNext",
-  goPrevious = "goPrevious",
-  goToRoot = "goToRoot",
-  goUp = "goUp",
-  joinTabs = "joinTabs",
-  lastTab = "lastTab",
-  mainFrame = "mainFrame",
-  moveTabLeft = "moveTabLeft",
-  moveTabRight = "moveTabRight",
-  moveTabToIncognito = "moveTabToIncognito",
-  moveTabToNewWindow = "moveTabToNewWindow",
-  moveTabToNextWindow = "moveTabToNextWindow",
-  newTab = "newTab", // for https://github.com/philc/vimium/issues/3588
-  nextFrame = "nextFrame",
-  nextTab = "nextTab",
-  openCopiedUrlInCurrentTab = "openCopiedUrlInCurrentTab",
-  openCopiedUrlInNewTab = "openCopiedUrlInNewTab",
-  openUrl = "openUrl",
-  parentFrame = "parentFrame",
-  passNextKey = "passNextKey",
-  performAnotherFind = "performAnotherFind",
-  performBackwardsFind = "performBackwardsFind",
-  performFind = "performFind",
-  previousTab = "previousTab",
+  focusOptions = "focusOptions",
   quickNext = "quickNext",
-  reload = "reload",
-  reloadGivenTab = "reloadGivenTab",
-  reloadTab = "reloadTab",
-  removeRightTab = "removeRightTab",
-  removeTab = "removeTab",
-  reopenTab = "reopenTab",
-  reset = "reset",
-  restoreGivenTab = "restoreGivenTab",
-  restoreTab = "restoreTab",
-  runKey = "runKey",
-  scrollDown = "scrollDown",
-  scrollFullPageDown = "scrollFullPageDown",
-  scrollFullPageUp = "scrollFullPageUp",
-  scrollLeft = "scrollLeft",
-  scrollPageDown = "scrollPageDown",
-  scrollPageUp = "scrollPageUp",
-  scrollPxDown = "scrollPxDown",
-  scrollPxLeft = "scrollPxLeft",
-  scrollPxRight = "scrollPxRight",
-  scrollPxUp = "scrollPxUp",
-  scrollRight = "scrollRight",
-  scrollSelect = "scrollSelect", // just like https://github.com/philc/vimium/issues/1242#issuecomment-646837069
-  scrollTo = "scrollTo",
-  scrollToBottom = "scrollToBottom",
-  scrollToLeft = "scrollToLeft",
-  scrollToRight = "scrollToRight",
-  scrollToTop = "scrollToTop",
-  scrollUp = "scrollUp",
-  searchAs = "searchAs",
-  searchInAnother = "searchInAnother",
-  sendToExtension = "sendToExtension",
-  showHelp = "showHelp",
-  simBackspace = "simBackspace",
-  sortTabs = "sortTabs",
-  switchFocus = "switchFocus",
-  toggleCS = "toggleCS",
-  toggleLinkHintCharacters = "toggleLinkHintCharacters",
-  toggleMuteTab = "toggleMuteTab",
-  togglePinTab = "togglePinTab",
-  toggleReaderMode = "toggleReaderMode",
-  toggleStyle = "toggleStyle",
-  toggleSwitchTemp = "toggleSwitchTemp",
-  toggleViewSource = "toggleViewSource",
-  toggleVomnibarStyle = "toggleVomnibarStyle",
-  showTip = "showTip",
-  visitPreviousTab = "visitPreviousTab",
-  zoomIn = "zoomIn",
-  zoomOut = "zoomOut",
+  nextTab = "nextTab",
+  debugBackground = "debugBackground",
+  userCustomized = "userCustomized"
 }
 
-declare namespace CommandsNS {
-  const enum OtherCNames {
-    focusOptions = "focusOptions",
-    userCustomized = "userCustomized",
-  }
-
-  interface CmdNameIds {
-    [kCName.LinkHints_activate]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateMode]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateModeToCopyLinkText]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateModeToCopyLinkUrl]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateModeToDownloadImage]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateModeToDownloadLink]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateModeToEdit]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateModeToHover]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateModeToLeave]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateModeToUnhover]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateModeToOpenImage]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateModeToOpenIncognito]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateModeToOpenInNewForegroundTab]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateModeToOpenInNewTab]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateModeToOpenVomnibar]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateModeToSearchLinkText]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateModeToSelect]: kFgCmd.linkHints;
-    [kCName.LinkHints_activateModeWithQueue]: kFgCmd.linkHints;
-    [kCName.LinkHints_click]: kFgCmd.linkHints
-    [kCName.LinkHints_unhoverLast]: kFgCmd.insertMode;
-    [kCName.Marks_activate]: kFgCmd.marks;
-    [kCName.Marks_activateCreateMode]: kFgCmd.marks;
-    [kCName.Marks_activateGotoMode]: kFgCmd.marks;
-    [kCName.Marks_clearGlobal]: kBgCmd.clearMarks;
-    [kCName.Marks_clearLocal]: kBgCmd.clearMarks;
-    [kCName.Vomnibar_activate]: kBgCmd.showVomnibar;
-    [kCName.Vomnibar_activateBookmarks]: kBgCmd.showVomnibar;
-    [kCName.Vomnibar_activateBookmarksInNewTab]: kBgCmd.showVomnibar;
-    [kCName.Vomnibar_activateEditUrl]: kBgCmd.showVomnibar;
-    [kCName.Vomnibar_activateEditUrlInNewTab]: kBgCmd.showVomnibar;
-    [kCName.Vomnibar_activateHistory]: kBgCmd.showVomnibar;
-    [kCName.Vomnibar_activateHistoryInNewTab]: kBgCmd.showVomnibar;
-    [kCName.Vomnibar_activateInNewTab]: kBgCmd.showVomnibar;
-    [kCName.Vomnibar_activateTabSelection]: kBgCmd.showVomnibar;
-    [kCName.Vomnibar_activateUrl]: kBgCmd.showVomnibar;
-    [kCName.Vomnibar_activateUrlInNewTab]: kBgCmd.showVomnibar;
-    [kCName.addBookmark]: kBgCmd.addBookmark;
-    [kCName.autoCopy]: kFgCmd.autoOpen;
-    [kCName.autoOpen]: kFgCmd.autoOpen;
-    [kCName.blank]: kBgCmd.blank;
-    [kCName.captureTab]: kBgCmd.captureTab;
-    [kCName.clearCS]: kBgCmd.clearCS;
-    [kCName.clearFindHistory]: kBgCmd.clearFindHistory;
-    [kCName.closeDownloadBar]: kBgCmd.moveTabToNewWindow;
-    [kCName.closeOtherTabs]: kBgCmd.removeTabsR;
-    [kCName.closeTabsOnLeft]: kBgCmd.removeTabsR;
-    [kCName.closeTabsOnRight]: kBgCmd.removeTabsR;
-    [kCName.copyCurrentTitle]: kBgCmd.copyWindowInfo;
-    [kCName.copyCurrentUrl]: kBgCmd.copyWindowInfo;
-    [kCName.copyWindowInfo]: kBgCmd.copyWindowInfo;
-    [kCName.createTab]: kBgCmd.createTab;
-    [kCName.debugBackground]: kBgCmd.openUrl;
-    [kCName.discardTab]: kBgCmd.discardTab;
-    [kCName.duplicateTab]: kBgCmd.duplicateTab;
-    [kCName.editText]: kFgCmd.editText;
-    [kCName.enableCSTemp]: kBgCmd.toggleCS;
-    [kCName.enterFindMode]: kBgCmd.performFind;
-    [kCName.enterInsertMode]: kBgCmd.insertMode;
-    [kCName.enterVisualLineMode]: kBgCmd.visualMode;
-    [kCName.enterVisualMode]: kBgCmd.visualMode;
-    [kCName.firstTab]: kBgCmd.goToTab;
-    [kCName.focusInput]: kFgCmd.focusInput;
-    [kCName.focusOrLaunch]: kBgCmd.openUrl;
-    [kCName.goBack]: kFgCmd.framesGoBack;
-    [kCName.goForward]: kFgCmd.framesGoBack;
-    [kCName.goNext]: kBgCmd.goNext;
-    [kCName.goPrevious]: kBgCmd.goNext;
-    [kCName.goToRoot]: kBgCmd.goUp;
-    [kCName.goUp]: kBgCmd.goUp;
-    [kCName.joinTabs]: kBgCmd.joinTabs;
-    [kCName.lastTab]: kBgCmd.goToTab;
-    [kCName.mainFrame]: kBgCmd.mainFrame;
-    [kCName.moveTabLeft]: kBgCmd.moveTab;
-    [kCName.moveTabRight]: kBgCmd.moveTab;
-    [kCName.moveTabToIncognito]: kBgCmd.moveTabToNewWindow;
-    [kCName.moveTabToNewWindow]: kBgCmd.moveTabToNewWindow;
-    [kCName.moveTabToNextWindow]: kBgCmd.moveTabToNextWindow;
-    [kCName.newTab]: kBgCmd.createTab;
-    [kCName.nextFrame]: kBgCmd.nextFrame;
-    [kCName.nextTab]: kBgCmd.goToTab;
-    [kCName.openCopiedUrlInCurrentTab]: kBgCmd.openUrl;
-    [kCName.openCopiedUrlInNewTab]: kBgCmd.openUrl;
-    [kCName.openUrl]: kBgCmd.openUrl;
-    [kCName.parentFrame]: kBgCmd.parentFrame;
-    [kCName.passNextKey]: kFgCmd.passNextKey;
-    [kCName.performAnotherFind]: kBgCmd.performFind;
-    [kCName.performBackwardsFind]: kBgCmd.performFind;
-    [kCName.performFind]: kBgCmd.performFind;
-    [kCName.previousTab]: kBgCmd.goToTab;
-    [kCName.quickNext]: kBgCmd.goToTab;
-    [kCName.reload]: kFgCmd.framesGoBack;
-    [kCName.reloadGivenTab]: kBgCmd.reloadTab;
-    [kCName.reloadTab]: kBgCmd.reloadTab;
-    [kCName.removeRightTab]: kBgCmd.removeRightTab;
-    [kCName.removeTab]: kBgCmd.removeTab;
-    [kCName.reopenTab]: kBgCmd.reopenTab;
-    [kCName.reset]: kFgCmd.insertMode;
-    [kCName.restoreGivenTab]: kBgCmd.restoreGivenTab;
-    [kCName.restoreTab]: kBgCmd.restoreTab;
-    [kCName.runKey]: kBgCmd.runKey;
-    [kCName.scrollDown]: kFgCmd.scroll;
-    [kCName.scrollFullPageDown]: kFgCmd.scroll;
-    [kCName.scrollFullPageUp]: kFgCmd.scroll;
-    [kCName.scrollLeft]: kFgCmd.scroll;
-    [kCName.scrollPageDown]: kFgCmd.scroll;
-    [kCName.scrollPageUp]: kFgCmd.scroll;
-    [kCName.scrollPxDown]: kFgCmd.scroll;
-    [kCName.scrollPxLeft]: kFgCmd.scroll;
-    [kCName.scrollPxRight]: kFgCmd.scroll;
-    [kCName.scrollPxUp]: kFgCmd.scroll;
-    [kCName.scrollRight]: kFgCmd.scroll;
-    [kCName.scrollSelect]: kFgCmd.scrollSelect;
-    [kCName.scrollTo]: kFgCmd.scroll;
-    [kCName.scrollToBottom]: kFgCmd.scroll;
-    [kCName.scrollToLeft]: kFgCmd.scroll;
-    [kCName.scrollToRight]: kFgCmd.scroll;
-    [kCName.scrollToTop]: kFgCmd.scroll;
-    [kCName.scrollUp]: kFgCmd.scroll;
-    [kCName.searchAs]: kFgCmd.autoOpen;
-    [kCName.searchInAnother]: kBgCmd.searchInAnother;
-    [kCName.sendToExtension]: kBgCmd.sendToExtension;
-    [kCName.showHelp]: kBgCmd.showHelp;
-    [kCName.simBackspace]: kFgCmd.focusInput;
-    [kCName.sortTabs]: kBgCmd.joinTabs;
-    [kCName.switchFocus]: kFgCmd.focusInput;
-    [kCName.toggleCS]: kBgCmd.toggleCS;
-    [kCName.toggleLinkHintCharacters]: kBgCmd.toggle;
-    [kCName.toggleMuteTab]: kBgCmd.toggleMuteTab;
-    [kCName.togglePinTab]: kBgCmd.togglePinTab;
-    [kCName.toggleReaderMode]: kBgCmd.toggleTabUrl;
-    [kCName.toggleStyle]: kFgCmd.toggleStyle;
-    [kCName.toggleSwitchTemp]: kBgCmd.toggle;
-    [kCName.toggleViewSource]: kBgCmd.toggleTabUrl;
-    [kCName.toggleVomnibarStyle]: kBgCmd.toggleVomnibarStyle;
-    [kCName.showTip]: kBgCmd.showTip;
-    [kCName.visitPreviousTab]: kBgCmd.visitPreviousTab;
-    [kCName.zoomIn]: kBgCmd.toggleZoom;
-    [kCName.zoomOut]: kBgCmd.toggleZoom;
-  }
-
-  /** [ enum, is background, count limit, default options ] */
-  type NameMetaMap = {
-    readonly [k in kCName]:
-        CmdNameIds[k] extends kBgCmd ? [CmdNameIds[k], 1, 0 | 1, object?]
-        : CmdNameIds[k] extends keyof CmdOptions
-          ? [CmdNameIds[k], 0, 0 | 1, CmdOptions[CmdNameIds[k]]?]
-        : CmdNameIds[k] extends kFgCmd ? [CmdNameIds[k], 0, 0 | 1]
-        : never;
-  };
+interface CmdNameIds {
+  "LinkHints.activate": kFgCmd.linkHints
+  "LinkHints.activateMode": kFgCmd.linkHints
+  "LinkHints.activateModeToCopyLinkText": kFgCmd.linkHints
+  "LinkHints.activateModeToCopyLinkUrl": kFgCmd.linkHints
+  "LinkHints.activateModeToDownloadImage": kFgCmd.linkHints
+  "LinkHints.activateModeToDownloadLink": kFgCmd.linkHints
+  "LinkHints.activateModeToEdit": kFgCmd.linkHints
+  "LinkHints.activateModeToHover": kFgCmd.linkHints
+  "LinkHints.activateModeToLeave": kFgCmd.linkHints
+  "LinkHints.activateModeToUnhover": kFgCmd.linkHints
+  "LinkHints.activateModeToOpenImage": kFgCmd.linkHints
+  "LinkHints.activateModeToOpenIncognito": kFgCmd.linkHints
+  "LinkHints.activateModeToOpenInNewForegroundTab": kFgCmd.linkHints
+  "LinkHints.activateModeToOpenInNewTab": kFgCmd.linkHints
+  "LinkHints.activateModeToOpenVomnibar": kFgCmd.linkHints
+  "LinkHints.activateModeToSearchLinkText": kFgCmd.linkHints
+  "LinkHints.activateModeToSelect": kFgCmd.linkHints
+  "LinkHints.activateModeWithQueue": kFgCmd.linkHints
+  "LinkHints.click": kFgCmd.linkHints
+  "LinkHints.unhoverLast": kFgCmd.insertMode
+  "Marks.activate": kFgCmd.marks
+  "Marks.activateCreateMode": kFgCmd.marks
+  "Marks.activateGotoMode": kFgCmd.marks
+  "Marks.clearGlobal": kBgCmd.clearMarks
+  "Marks.clearLocal": kBgCmd.clearMarks
+  "Vomnibar.activate": kBgCmd.showVomnibar
+  "Vomnibar.activateBookmarks": kBgCmd.showVomnibar
+  "Vomnibar.activateBookmarksInNewTab": kBgCmd.showVomnibar
+  "Vomnibar.activateEditUrl": kBgCmd.showVomnibar
+  "Vomnibar.activateEditUrlInNewTab": kBgCmd.showVomnibar
+  "Vomnibar.activateHistory": kBgCmd.showVomnibar
+  "Vomnibar.activateHistoryInNewTab": kBgCmd.showVomnibar
+  "Vomnibar.activateInNewTab": kBgCmd.showVomnibar
+  "Vomnibar.activateTabSelection": kBgCmd.showVomnibar
+  "Vomnibar.activateUrl": kBgCmd.showVomnibar
+  "Vomnibar.activateUrlInNewTab": kBgCmd.showVomnibar
+  addBookmark: kBgCmd.addBookmark
+  autoCopy: kFgCmd.autoOpen
+  autoOpen: kFgCmd.autoOpen
+  blank: kBgCmd.blank
+  captureTab: kBgCmd.captureTab
+  clearCS: kBgCmd.clearCS
+  clearFindHistory: kBgCmd.clearFindHistory
+  closeDownloadBar: kBgCmd.moveTabToNewWindow
+  closeOtherTabs: kBgCmd.removeTabsR
+  closeTabsOnLeft: kBgCmd.removeTabsR
+  closeTabsOnRight: kBgCmd.removeTabsR
+  copyCurrentTitle: kBgCmd.copyWindowInfo
+  copyCurrentUrl: kBgCmd.copyWindowInfo
+  copyWindowInfo: kBgCmd.copyWindowInfo
+  createTab: kBgCmd.createTab
+  debugBackground: kBgCmd.openUrl
+  discardTab: kBgCmd.discardTab
+  duplicateTab: kBgCmd.duplicateTab
+  editText: kFgCmd.editText
+  enableCSTemp: kBgCmd.toggleCS
+  enterFindMode: kBgCmd.performFind
+  enterInsertMode: kBgCmd.insertMode
+  enterVisualLineMode: kBgCmd.visualMode
+  enterVisualMode: kBgCmd.visualMode
+  firstTab: kBgCmd.goToTab
+  focusInput: kFgCmd.focusInput
+  focusOrLaunch: kBgCmd.openUrl
+  goBack: kFgCmd.framesGoBack
+  goForward: kFgCmd.framesGoBack
+  goNext: kBgCmd.goNext
+  goPrevious: kBgCmd.goNext
+  goToRoot: kBgCmd.goUp
+  goUp: kBgCmd.goUp
+  joinTabs: kBgCmd.joinTabs
+  lastTab: kBgCmd.goToTab
+  mainFrame: kBgCmd.mainFrame
+  moveTabLeft: kBgCmd.moveTab
+  moveTabRight: kBgCmd.moveTab
+  moveTabToIncognito: kBgCmd.moveTabToNewWindow
+  moveTabToNewWindow: kBgCmd.moveTabToNewWindow
+  moveTabToNextWindow: kBgCmd.moveTabToNextWindow
+  newTab: kBgCmd.createTab
+  nextFrame: kBgCmd.nextFrame
+  nextTab: kBgCmd.goToTab
+  openCopiedUrlInCurrentTab: kBgCmd.openUrl
+  openCopiedUrlInNewTab: kBgCmd.openUrl
+  openUrl: kBgCmd.openUrl
+  parentFrame: kBgCmd.parentFrame
+  passNextKey: kFgCmd.passNextKey
+  performAnotherFind: kBgCmd.performFind
+  performBackwardsFind: kBgCmd.performFind
+  performFind: kBgCmd.performFind
+  previousTab: kBgCmd.goToTab
+  quickNext: kBgCmd.goToTab
+  reload: kFgCmd.framesGoBack
+  reloadGivenTab: kBgCmd.reloadTab
+  reloadTab: kBgCmd.reloadTab
+  removeRightTab: kBgCmd.removeRightTab
+  removeTab: kBgCmd.removeTab
+  reopenTab: kBgCmd.reopenTab
+  reset: kFgCmd.insertMode
+  restoreGivenTab: kBgCmd.restoreGivenTab
+  restoreTab: kBgCmd.restoreTab
+  runKey: kBgCmd.runKey
+  scrollDown: kFgCmd.scroll
+  scrollFullPageDown: kFgCmd.scroll
+  scrollFullPageUp: kFgCmd.scroll
+  scrollLeft: kFgCmd.scroll
+  scrollPageDown: kFgCmd.scroll
+  scrollPageUp: kFgCmd.scroll
+  scrollPxDown: kFgCmd.scroll
+  scrollPxLeft: kFgCmd.scroll
+  scrollPxRight: kFgCmd.scroll
+  scrollPxUp: kFgCmd.scroll
+  scrollRight: kFgCmd.scroll
+  scrollSelect: kFgCmd.scrollSelect
+  scrollTo: kFgCmd.scroll
+  scrollToBottom: kFgCmd.scroll
+  scrollToLeft: kFgCmd.scroll
+  scrollToRight: kFgCmd.scroll
+  scrollToTop: kFgCmd.scroll
+  scrollUp: kFgCmd.scroll
+  searchAs: kFgCmd.autoOpen
+  searchInAnother: kBgCmd.searchInAnother
+  sendToExtension: kBgCmd.sendToExtension
+  showHelp: kBgCmd.showHelp
+  simBackspace: kFgCmd.focusInput
+  sortTabs: kBgCmd.joinTabs
+  switchFocus: kFgCmd.focusInput
+  toggleCS: kBgCmd.toggleCS
+  toggleLinkHintCharacters: kBgCmd.toggle
+  toggleMuteTab: kBgCmd.toggleMuteTab
+  togglePinTab: kBgCmd.togglePinTab
+  toggleReaderMode: kBgCmd.toggleTabUrl
+  toggleStyle: kFgCmd.toggleStyle
+  toggleSwitchTemp: kBgCmd.toggle
+  toggleViewSource: kBgCmd.toggleTabUrl
+  toggleVomnibarStyle: kBgCmd.toggleVomnibarStyle
+  showTip: kBgCmd.showTip
+  visitPreviousTab: kBgCmd.visitPreviousTab
+  zoomIn: kBgCmd.toggleZoom
+  zoomOut: kBgCmd.toggleZoom
 }
+type kCName = keyof CmdNameIds
 
-declare const enum kShortcutAliases { _mask = 0, nextTab1 = kCName.quickNext }
-type StandardShortcutNames = kCName.createTab | kCName.goBack | kCName.goForward | kCName.previousTab
-    | kCName.nextTab | kCName.reloadTab | CommandsNS.OtherCNames.userCustomized
+declare const enum kShortcutAliases { _mask = 0, nextTab1 = CNameLiterals.quickNext }
+type StandardShortcutNames = CNameLiterals.createTab | "goBack" | "goForward" | "previousTab"
+    | CNameLiterals.nextTab | "reloadTab" | CNameLiterals.userCustomized
 
 declare namespace BackendHandlersNS {
   interface SpecialHandlers {

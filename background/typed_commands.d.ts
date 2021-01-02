@@ -64,7 +64,7 @@ interface BgCmdOptions {
   }
   [kBgCmd.mainFrame]: {}
   [kBgCmd.moveTab]: {}
-  [kBgCmd.moveTabToNewWindow]: { all: boolean; incognito: boolean } & LimitedRangeOptions
+  [kBgCmd.moveTabToNewWindow]: { all: boolean | BOOL; incognito: boolean } & LimitedRangeOptions
   [kBgCmd.moveTabToNextWindow]: { minimized: false; min: false; end: boolean; right: boolean }
   [kBgCmd.openUrl]: OpenUrlOptions & MasksForOpenUrl & {
     urls: string[]; formatted_: 1
@@ -95,7 +95,7 @@ interface BgCmdOptions {
   [kBgCmd.toggleCS]: { action: "" | "reopen"; incognito: boolean; type: chrome.contentSettings.ValidTypes }
   [kBgCmd.toggleMuteTab]: { all: boolean; other: boolean }
   [kBgCmd.togglePinTab]: LimitedRangeOptions
-  [kBgCmd.toggleTabUrl]: { keyword: string; parsed: string; reader: boolean }
+  [kBgCmd.toggleTabUrl]: { keyword: string; parsed: string; reader: boolean } & OpenUrlOptions
   [kBgCmd.toggleVomnibarStyle]: { style: string; current: boolean }
   [kBgCmd.toggleZoom]: {}
   [kBgCmd.visitPreviousTab]: {}

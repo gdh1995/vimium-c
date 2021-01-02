@@ -73,9 +73,9 @@ var HelpDialog = {
       } else if (command.includes("EditUrl")) {
         command = command.replace("EditUrl", "Url");
       } else if (command === <string> <unknown> kShortcutAliases.nextTab1) {
-        command = kCName.nextTab;
-      } else if (command === kCName.newTab) {
-        command = kCName.createTab
+        command = CNameLiterals.nextTab;
+      } else if (command === CNameLiterals.newTab) {
+        command = CNameLiterals.createTab
       }
       let keys = commandToKeys.get(command)
       keys || commandToKeys.set(command, keys = [])
@@ -224,49 +224,50 @@ var HelpDialog = {
     }
     return (root as RootElement).innerHTML;
   },
-  commandGroups_: { __proto__: null as never,
-    pageNavigation: [kCName.scrollDown, kCName.scrollUp, kCName.scrollLeft, kCName.scrollRight, kCName.scrollToTop
-      , kCName.scrollToBottom, kCName.scrollToLeft, kCName.scrollToRight, kCName.scrollPageDown, kCName.scrollPageUp
-      , kCName.scrollPxDown, kCName.scrollPxUp, kCName.scrollPxLeft, kCName.scrollPxRight
-      , kCName.scrollFullPageDown, kCName.scrollFullPageUp, kCName.scrollSelect
-      , kCName.reload, kCName.reloadTab, kCName.reloadGivenTab
-      , kCName.zoomIn, kCName.zoomOut, kCName.toggleViewSource
-      , kCName.copyCurrentUrl, kCName.copyCurrentTitle, kCName.switchFocus, kCName.simBackspace
-      , kCName.LinkHints_activateModeToCopyLinkUrl, kCName.LinkHints_activateModeToCopyLinkText
-      , kCName.openCopiedUrlInCurrentTab, kCName.openCopiedUrlInNewTab, kCName.goUp, kCName.goToRoot
-      , kCName.focusInput, kCName.LinkHints_activate, kCName.LinkHints_activateModeToOpenInNewTab
-      , kCName.LinkHints_activateModeToOpenInNewForegroundTab, kCName.LinkHints_activateModeWithQueue
-      , kCName.LinkHints_activateModeToDownloadImage, kCName.LinkHints_activateModeToOpenImage
-      , kCName.LinkHints_activateModeToDownloadLink, kCName.LinkHints_activateModeToOpenIncognito
-      , kCName.LinkHints_activateModeToHover, kCName.LinkHints_activateModeToLeave, kCName.LinkHints_unhoverLast
-      , kCName.LinkHints_activateModeToSearchLinkText, kCName.LinkHints_activateModeToEdit
-      , kCName.LinkHints_activateModeToSelect
-      , kCName.goPrevious, kCName.goNext, kCName.nextFrame, kCName.mainFrame, kCName.parentFrame
-      , kCName.enterInsertMode, kCName.enterVisualMode, kCName.enterVisualLineMode
-      , kCName.Marks_activateCreateMode, kCName.Marks_activate
-      , kCName.Marks_clearLocal, kCName.Marks_clearGlobal, kCName.openUrl, kCName.focusOrLaunch
+  commandGroups_: As_<{ readonly [key: string]: readonly (kCName)[] } & SafeObject>({
+    __proto__: null as never,
+    pageNavigation: ["scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop"
+      , "scrollToBottom", "scrollToLeft", "scrollToRight", "scrollPageDown", "scrollPageUp"
+      , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight"
+      , "scrollFullPageDown", "scrollFullPageUp", "scrollSelect"
+      , "reload", "reloadTab", "reloadGivenTab"
+      , "zoomIn", "zoomOut", "toggleViewSource"
+      , "copyCurrentUrl", "copyCurrentTitle", "switchFocus", "simBackspace"
+      , "LinkHints.activateModeToCopyLinkUrl", "LinkHints.activateModeToCopyLinkText"
+      , "openCopiedUrlInCurrentTab", "openCopiedUrlInNewTab", "goUp", "goToRoot"
+      , "focusInput", "LinkHints.activate", "LinkHints.activateModeToOpenInNewTab"
+      , "LinkHints.activateModeToOpenInNewForegroundTab", "LinkHints.activateModeWithQueue"
+      , "LinkHints.activateModeToDownloadImage", "LinkHints.activateModeToOpenImage"
+      , "LinkHints.activateModeToDownloadLink", "LinkHints.activateModeToOpenIncognito"
+      , "LinkHints.activateModeToHover", "LinkHints.activateModeToLeave", "LinkHints.unhoverLast"
+      , "LinkHints.activateModeToSearchLinkText", "LinkHints.activateModeToEdit"
+      , "LinkHints.activateModeToSelect"
+      , "goPrevious", "goNext", "nextFrame", "mainFrame", "parentFrame"
+      , "enterInsertMode", "enterVisualMode", "enterVisualLineMode"
+      , "Marks.activateCreateMode", "Marks.activate"
+      , "Marks.clearLocal", "Marks.clearGlobal", "openUrl", "focusOrLaunch"
       ],
-    vomnibarCommands: [kCName.Vomnibar_activate, kCName.Vomnibar_activateInNewTab
-      , kCName.Vomnibar_activateBookmarks, kCName.Vomnibar_activateBookmarksInNewTab, kCName.Vomnibar_activateHistory
-      , kCName.Vomnibar_activateHistoryInNewTab, kCName.Vomnibar_activateTabSelection
-      , kCName.Vomnibar_activateUrl, kCName.Vomnibar_activateUrlInNewTab
-      , kCName.LinkHints_activateModeToOpenVomnibar, kCName.toggleVomnibarStyle],
-    historyNavigation: [kCName.goBack, kCName.goForward, kCName.reopenTab],
-    findCommands: [kCName.enterFindMode, kCName.performFind, kCName.performBackwardsFind, kCName.performAnotherFind
-      , kCName.clearFindHistory],
-    tabManipulation: [kCName.nextTab, kCName.previousTab, kCName.firstTab, kCName.lastTab, kCName.createTab
-      , kCName.duplicateTab, kCName.removeTab, kCName.removeRightTab, kCName.restoreTab, kCName.restoreGivenTab
-      , kCName.discardTab, kCName.moveTabToNextWindow, kCName.moveTabToNewWindow, kCName.moveTabToIncognito
-      , kCName.joinTabs
-      , kCName.togglePinTab, kCName.toggleMuteTab, kCName.visitPreviousTab, kCName.closeTabsOnLeft
-      , kCName.closeTabsOnRight, kCName.closeOtherTabs, kCName.moveTabLeft, kCName.moveTabRight
-      , kCName.enableCSTemp, kCName.toggleCS, kCName.clearCS, kCName.copyWindowInfo, kCName.captureTab],
-    misc: [kCName.showHelp, kCName.autoCopy, kCName.autoOpen, kCName.searchAs, kCName.searchInAnother
-      , kCName.addBookmark
-      , kCName.toggleStyle, kCName.toggleLinkHintCharacters
-      , kCName.toggleSwitchTemp, kCName.passNextKey, kCName.debugBackground, kCName.closeDownloadBar
-      , kCName.sendToExtension, kCName.runKey, kCName.blank]
-  } as { readonly [key: string]: readonly kCName[] } & SafeObject,
+    vomnibarCommands: ["Vomnibar.activate", "Vomnibar.activateInNewTab"
+      , "Vomnibar.activateBookmarks", "Vomnibar.activateBookmarksInNewTab", "Vomnibar.activateHistory"
+      , "Vomnibar.activateHistoryInNewTab", "Vomnibar.activateTabSelection"
+      , "Vomnibar.activateUrl", "Vomnibar.activateUrlInNewTab"
+      , "LinkHints.activateModeToOpenVomnibar", "toggleVomnibarStyle"],
+    historyNavigation: ["goBack", "goForward", "reopenTab"],
+    findCommands: ["enterFindMode", "performFind", "performBackwardsFind", "performAnotherFind"
+      , "clearFindHistory"],
+    tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab"
+      , "duplicateTab", "removeTab", "removeRightTab", "restoreTab", "restoreGivenTab"
+      , "discardTab", "moveTabToNextWindow", "moveTabToNewWindow", "moveTabToIncognito"
+      , "joinTabs"
+      , "togglePinTab", "toggleMuteTab", "visitPreviousTab", "closeTabsOnLeft"
+      , "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"
+      , "enableCSTemp", "toggleCS", "clearCS", "copyWindowInfo", "captureTab"],
+    misc: ["showHelp", "autoCopy", "autoOpen", "searchAs", "searchInAnother"
+      , "addBookmark"
+      , "toggleStyle", "toggleLinkHintCharacters"
+      , "toggleSwitchTemp", "passNextKey", "debugBackground", "closeDownloadBar"
+      , "sendToExtension", "runKey", "blank"]
+  }),
   advancedCommands_: As_<{ readonly [k in kCName]?: 1 | 0; } & SafeObject>({ __proto__: null as never,
     toggleViewSource: 1, clearFindHistory: 1
     , scrollToLeft: 1, scrollToRight: 1, moveTabToNextWindow: 1
@@ -288,11 +289,11 @@ var HelpDialog = {
     , "Vomnibar.activateUrl": 1, "Vomnibar.activateUrlInNewTab": 1
     , closeDownloadBar: Build.BTypes & BrowserType.Chrome ? 0 : 1
   }),
-  descriptions_: new Map<string, string>()
+  descriptions_: new Map<kCName, string>()
 };
 if (Build.BTypes & BrowserType.Firefox
     && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)
     || Build.BTypes & BrowserType.Chrome && IsEdg_) {
   (HelpDialog.commandGroups_.tabManipulation as Writable<typeof HelpDialog.commandGroups_.tabManipulation>
-      ).push(kCName.toggleReaderMode)
+      ).push("toggleReaderMode")
 }

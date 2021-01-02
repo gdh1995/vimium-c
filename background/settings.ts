@@ -608,7 +608,7 @@ chrome.runtime.getPlatformInfo(function (info): void {
   }
   (settings.cache_ as WritableSettingsCache).searchEngineMap = new Map()
   obj.GlobalCommands_ = (<Array<StandardShortcutNames | kShortcutAliases & string>> Object.keys(ref.commands || {})
-      ).map(i => i === <string> <unknown> kShortcutAliases.nextTab1 ? kCName.nextTab : i);
+      ).map(i => i === <string> <unknown> kShortcutAliases.nextTab1 ? CNameLiterals.nextTab : i);
   obj.VerCode_ = ref.version;
   obj.VerName_ = ref.version_name || ref.version;
   obj.OptionsPage_ = func(ref.options_page || obj.OptionsPage_);

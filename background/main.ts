@@ -218,7 +218,7 @@ Backend_ = {
     },
     ExecuteShortcut_ (this: void, cmd: string): void {
       const tabId = TabRecency_.curTab_, ports = framesForTab[tabId];
-      if (cmd === <string> <unknown> kShortcutAliases.nextTab1) { cmd = kCName.nextTab; }
+      if (cmd === <string> <unknown> kShortcutAliases.nextTab1) { cmd = CNameLiterals.nextTab }
       const map = CommandsData_.shortcutRegistry_ as Map<string, CommandsNS.Item | null>
       if (!map || !map.get(cmd)) {
         // usually, only userCustomized* and those from 3rd-party extensions will enter this branch

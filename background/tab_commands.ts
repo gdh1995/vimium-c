@@ -184,11 +184,11 @@ export const moveTabToNewWindow = (): void | kBgCmd.moveTabToNewWindow => {
       if (count > 30) {
         if (Build.BTypes & ~BrowserType.Chrome) {
           if (cNeedConfirm) {
-            confirm_(kCName.moveTabToNewWindow, count, moveTabToNewWindow0.bind(null, wnd))
+            confirm_("moveTabToNewWindow", count, moveTabToNewWindow0.bind(null, wnd))
             return
           }
         } else {
-          if (!(count = confirm_(kCName.moveTabToNewWindow, count)!)) { return }
+          if (!(count = confirm_("moveTabToNewWindow", count)!)) { return }
           if (count < 2) { range = [activeTabIndex, activeTabIndex + 1] }
         }
       }
@@ -364,11 +364,11 @@ export const reloadTab = (tabs?: Tab[] | never[] | [Tab]): void => {
   if (count > 20) {
     if (Build.BTypes & ~BrowserType.Chrome) {
       if (cNeedConfirm) {
-        confirm_(kCName.reloadTab, count, reloadTab.bind(null, tabs))
+        confirm_("reloadTab", count, reloadTab.bind(null, tabs))
         return
       }
     } else {
-      if (!(count = confirm_(kCName.reloadTab, count)!)) {
+      if (!(count = confirm_("reloadTab", count)!)) {
         return
       }
       if (count === 1) {
@@ -404,10 +404,10 @@ export const removeTab = (phase?: 1 | 2, tabs?: readonly Tab[]): void => {
     if (count > 20) {
       if (Build.BTypes & ~BrowserType.Chrome) {
         if (cNeedConfirm) {
-          confirm_(kCName.removeTab, count, removeTab.bind(null, 2, tabs))
+          confirm_("removeTab", count, removeTab.bind(null, 2, tabs))
           return
         }
-      } else if (!(count = confirm_(kCName.removeTab, count)!)) {
+      } else if (!(count = confirm_("removeTab", count)!)) {
         return
       }
     }
@@ -546,10 +546,10 @@ export const togglePinTab = (tabs: Tab[]): void => {
   if (end > 30) {
     if (Build.BTypes & ~BrowserType.Chrome) {
       if (cNeedConfirm) {
-        confirm_(kCName.togglePinTab, end, togglePinTab.bind(null, tabs))
+        confirm_("togglePinTab", end, togglePinTab.bind(null, tabs))
         return
       }
-    } else if (!(end = confirm_(kCName.togglePinTab, end)!)) {
+    } else if (!(end = confirm_("togglePinTab", end)!)) {
       return
     } else if (end === 1) {
       wantedTabIds = [tab.id]

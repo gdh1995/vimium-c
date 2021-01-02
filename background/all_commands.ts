@@ -200,11 +200,11 @@ const BackgroundCommands: {
         if (count > 20) {
           if (Build.BTypes & ~BrowserType.Chrome) {
             if (cNeedConfirm) {
-              confirm_(kCName.addBookmark, count, doAddBookmarks.bind(0, tabs))
+              confirm_("addBookmark", count, doAddBookmarks.bind(0, tabs))
               return
             }
           } else {
-            if (!(count = confirm_(kCName.addBookmark, count)!)) { return }
+            if (!(count = confirm_("addBookmark", count)!)) { return }
             if (count === 1) { start = ind, end = ind + 1 }
           }
         }
@@ -267,11 +267,11 @@ const BackgroundCommands: {
     if (count > 20) {
       if (Build.BTypes & ~BrowserType.Chrome) {
         if (cNeedConfirm) {
-          confirm_(kCName.discardTab, count, BackgroundCommands[kBgCmd.discardTab].bind(null, tabs))
+          confirm_("discardTab", count, BackgroundCommands[kBgCmd.discardTab].bind(null, tabs))
           return
         }
       } else {
-        count = confirm_(kCName.discardTab, count)!
+        count = confirm_("discardTab", count)!
       }
     }
     if (!count) { return }

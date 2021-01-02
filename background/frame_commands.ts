@@ -432,7 +432,7 @@ export function set_gOnConfirmCallback (_newGocc: typeof gOnConfirmCallback) { g
 
 /** 0=cancel, 1=force1, count=accept */
 export const confirm_ = <T extends kCName, force extends BOOL = 0> (
-    command: CommandsNS.CmdNameIds[T] extends kBgCmd ? T : force extends 1 ? kCName : never
+    command: CmdNameIds[T] extends kBgCmd ? T : force extends 1 ? kCName : never
     , count: number, callback?: (_arg?: FakeArg) => void): number | void => {
   if (!(Build.NDEBUG || !command.includes("."))) {
     console.log("Assert error: command should has no limit on repeats: %c%s", "color:red", command)
