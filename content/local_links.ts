@@ -11,7 +11,7 @@ import {
   isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, findMainSummary_, htmlTag_, isAriaNotTrue_,
   NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, notSafe_not_ff_, docEl_unsafe_,
   GetParent_unsafe_, unsafeFramesetTag_old_cr_, isHTML_, querySelectorAll_unsafe_, isNode_, INP, attr_s,
-  getMediaTag, getMediaUrl, contains_s, GetShadowRoot_
+  getMediaTag, getMediaUrl, contains_s, GetShadowRoot_, parentNode_unsafe_s
 } from "../lib/dom_utils"
 import {
   getVisibleClientRect_, getZoomedAndCroppedRect_, getClientRectsForAreas_, getCroppedRect_, padClientRect_,
@@ -490,7 +490,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
         crect = Build.BTypes & ~BrowserType.Firefox && notSafe_not_ff_!(element) ? null
             : getVisibleClientRect_(element as SafeElement);
         if (crect && isContaining_(crect, prect) && htmlTag_(element)) {
-          if (list[i + 1][0].parentNode !== element) {
+          if (parentNode_unsafe_s(list[i + 1][0]) !== element) {
             list[i] = [element as SafeHTMLElement, crect, ClickType.tabindex];
           } else if (list[i + 1][2] === ClickType.codeListener) {
             // [tabindex] > :listened, then [i] is only a layout container
@@ -498,7 +498,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
           }
         }
       } else if (notRemoveParents
-          = k === ClickType.edit && i > 0 && (element = list[i - 1][0]) === list[i][0].parentNode
+          = k === ClickType.edit && i > 0 && (element = list[i - 1][0]) === parentNode_unsafe_s(list[i][0])
           && element.childElementCount < 2 && element.localName === "a"
           && !(element as TypeToPick<Element, HTMLElement, "innerText">).innerText) {
         // a rare case that <a> has only a clickable <input>

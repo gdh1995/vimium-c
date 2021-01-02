@@ -11,7 +11,7 @@ import {
   attachShadow_, getSelectionFocusEdge_, activeEl_unsafe_, rangeCount_, setClassName_s, compareDocumentPosition,
   getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, htmlTag_, fullscreenEl_unsafe_, docEl_unsafe_,
   getSelection_, isSelected_, docSelectable_, isHTML_, createElement_, CLK, MDW, NONE, removeEl_s, appendNode_s,
-  getAccessibleSelectedNode,  INP, BU, UNL, contains_s, setOrRemoveAttr_s, textContent_s, modifySel
+  getAccessibleSelectedNode,  INP, BU, UNL, contains_s, setOrRemoveAttr_s, textContent_s, modifySel, parentNode_unsafe_s
 } from "../lib/dom_utils"
 import {
   wdZoom_, prepareCrop_, view_, dimSize_, selRange_, getZoom_, padClientRect_, getSelectionBoundingBox_,
@@ -282,7 +282,7 @@ export const onLoad = (later?: Event): void => {
             || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
                 && Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
         && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-        || Build.BTypes & ~BrowserType.Edge && inShadow ? addElement("div") : box;
+        || Build.BTypes & ~BrowserType.Edge && inShadow ? addElement("div") as HTMLDivElement : box
     setClassName_s(root2, "r" + fgCache.d)
     root2.spellcheck = false;
     appendNode_s(root2, list)
@@ -383,10 +383,10 @@ export const clear = (): void => {
   initialRange = regexMatches = coords = cachedInnerText = null as never
 }
 
-const onMousedown = function (this: Window | HTMLElement, event: MouseEventToPrevent): void {
+const onMousedown = function (this: Window | HTMLDivElement | HTMLBodyElement, event: MouseEventToPrevent): void {
   const target = event.target as Element
   if (isAlive_ && target !== input_
-        && (!root_ || GetParent_unsafe_(target, PNType.DirectNode) === this || target === this)
+        && (!root_ || parentNode_unsafe_s(target as unknown as SafeElement) === this || target === this)
         && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
             ? event.isTrusted : event.isTrusted !== false)) {
     prevent_(event)
@@ -503,7 +503,7 @@ const onHostKeydown = (event: HandlerNS.Event): HandlerResult => {
    * * a host script has removed all ranges
    */
 export const deactivate = (i: FindNS.Action): void => {
-    let sin = styleSelColorIn, noStyle = !sin || !GetParent_unsafe_(sin, PNType.DirectNode), hasResult = hasResults
+    let sin = styleSelColorIn, noStyle = !sin || !parentNode_unsafe_s(sin), hasResult = hasResults
       , maxNotRunPost = postOnEsc ? FindNS.Action.ExitAndReFocus - 1 : FindNS.Action.ExitToPostMode - 1
       , el: SafeElement | null | undefined, el2: Element | null;
     i === FindNS.Action.ExitNoAnyFocus ? hookSel(1) : focus()
@@ -875,8 +875,8 @@ const toggleStyle = (disable: BOOL | boolean | Event): void => {
       styleSelColorOut = styleSelColorIn = null as never
       return;
     }
-    if (GetParent_unsafe_(sout, PNType.DirectNode) !== ui_box) {
-      ui_box!.insertBefore(sout, styleSelectable && GetParent_unsafe_(styleSelectable, PNType.DirectNode) === ui_box
+    if (parentNode_unsafe_s(sout) !== ui_box) {
+      ui_box!.insertBefore(sout, styleSelectable && parentNode_unsafe_s(styleSelectable) === ui_box
           ? styleSelectable : null)
       !((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
         && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)

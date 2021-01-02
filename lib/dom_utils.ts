@@ -74,6 +74,9 @@ export const selOffset_ = (sel: Selection, focus?: 1): number => focus ? sel.foc
 
 export const doesSupportDialog = (): boolean => typeof HTMLDialogElement == OBJECT_TYPES[kTY.func]
 
+export const parentNode_unsafe_s = (el: SafeElement | HTMLStyleElement | Text
+    ): Element | Document | DocumentFragment | null => el.parentNode as any
+
   /** DOM-compatibility section */
 
 export const isHTML_ = !(Build.BTypes & BrowserType.Firefox)
@@ -521,7 +524,8 @@ export const modifySel = (sel: Selection, extend: BOOL | boolean, di: BOOL | boo
   sel.modify(extend ? "extend" : "move", kDir[+di], g)
 }
 
-export const runJS_ = (code: string, returnEl?: HTMLScriptElement | null | 0): void | HTMLScriptElement => {
+export const runJS_ = (code: string, returnEl?: HTMLScriptElement | null | 0
+      ): void | HTMLScriptElement & SafeHTMLElement => {
     const docEl = Build.BTypes & ~BrowserType.Firefox ? docEl_unsafe_() : null
     const script = returnEl || createElement_("script");
     script.type = "text/javascript";
@@ -533,5 +537,5 @@ export const runJS_ = (code: string, returnEl?: HTMLScriptElement | null | 0): v
     } else {
       appendNode_s(docEl_unsafe_() as SafeElement | null || doc, script)
     }
-    return returnEl != null ? script : removeEl_s(script)
+    return returnEl != null ? script as SafeHTMLElement & HTMLScriptElement : removeEl_s(script)
 }

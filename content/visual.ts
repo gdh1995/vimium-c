@@ -36,7 +36,7 @@ import { VTr, VOther, safer, fgCache, doc, chromeVer_, tryCreateRegExp, isTY } f
 import {
   getSelection_, getSelectionFocusEdge_, isHTML_, docEl_unsafe_, notSafe_not_ff_, getEditableType_, editableTypes_,
   GetChildNodes_not_ff, isInputInTextMode_cr_old, rangeCount_, getAccessibleSelectedNode, scrollingEl_, isNode_,
-  getDirectionOfNormalSelection, selOffset_, modifySel, kDir
+  getDirectionOfNormalSelection, selOffset_, modifySel, kDir, parentNode_unsafe_s
 } from "../lib/dom_utils"
 import {
   padClientRect_, getSelectionBoundingBox_, getZoom_, prepareCrop_, cropRectToVisible_, getVisibleClientRect_,
@@ -604,7 +604,7 @@ const getDirection = function (magic?: string
     }
     // editable text elements
     const lock = insert_Lock_();
-    if (lock && lock.parentNode === anchorNode) { // safe because lock is LockableElement
+    if (lock && parentNode_unsafe_s(lock) === anchorNode) { // safe because lock is LockableElement
       type TextModeElement = TextElement;
       if ((oldDiType & DiType.Unknown)
           && editableTypes_[lock.localName]! > EditableType.MaxNotTextModeElement) {

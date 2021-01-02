@@ -3,7 +3,7 @@ import {
   loc_, replaceBrokenTimerFunc, allowRAF_, getTime, recordLog, VTr, vApi, Stop_, isTY
 } from "../lib/utils"
 import {
-  createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, removeEl_s, attr_s, setOrRemoveAttr_s
+  createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, removeEl_s, attr_s, setOrRemoveAttr_s, parentNode_unsafe_s
 } from "../lib/dom_utils"
 import { safeDestroy } from "./port"
 import { coreHints } from "./link_hints"
@@ -569,7 +569,7 @@ FProto[kToS] = myToStr
   }
   // not check MinEnsuredNewScriptsFromExtensionOnSandboxedPage
   // for the case JavaScript is disabled in CS: https://github.com/philc/vimium/issues/3187
-  if (!script.parentNode) { // It succeeded in hooking.
+  if (!parentNode_unsafe_s(script)) { // It succeeded in hooking.
     // wait the inner listener of `start` to finish its work
     return OnDocLoaded_((): void => {
       // only for new versions of Chrome (and Edge);
