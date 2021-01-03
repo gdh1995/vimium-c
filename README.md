@@ -123,11 +123,7 @@ __Other extensions supporting Vimium C:__
 * FindMode: use `normalize` to normalize text before finding and get a more accurate count
 * when operate multiple tabs, not limit the range to one side if count \< 10
 * `gotoRoot`: if there're sed rules marked with `"r"`, then use them to learn sub roots
-* omnibox: move title before URL - just like Firefox/Chrome/Edge
-* Vomnibar: now can query an encoded URL in browser history
-  * add `noSessions`=false|true|always|start ([#224](https://github.com/gdh1995/vimium-c/issues/224),
-      [#261](https://github.com/gdh1995/vimium-c/issues/261#issuecomment-747290671))
-  * also add `clickLike` to change behaviors on *-Enter ([#263](https://github.com/gdh1995/vimium-c/issues/263))
+* some other enhancements
 * fix some bugs including that `goToRoot` and `showTip` may break
 
 Refer to [RELEASE-NOTES.md](RELEASE-NOTES.md).

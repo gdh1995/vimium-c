@@ -75,7 +75,7 @@ let optionsInit1_ = function (): void {
     createNewOption(_element)
     nextTick_(box => box.style.display = "", $("#focusNewTabContentBox"));
     nextTick_(([el1, el2]) => el2.previousElementSibling !== el1 && el2.parentElement.insertBefore(el1, el2)
-      , [$("#newTabUrlBox"), $<EnsuredMountedHTMLElement>("searchUrlBox")] as const)
+      , [$("#newTabUrlBox"), $<EnsuredMountedHTMLElement>("#searchUrlBox")] as const)
   }
   if (!Build.NoDialogUI && bgSettings_.CONST_.OptionsUIOpenInTab_) {
     _element = $("#dialogMode")
