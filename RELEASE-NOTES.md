@@ -4,13 +4,31 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### 1.88.0
+* add `map *** runKey expect={env1:key1} keys=<default_key>` with `env name ...conditions`
+  * now Vimium C can trigger different commands on different websites / for different active elements
+  * see https://github.com/gdh1995/vimium-c/wiki/Map-a-key-to-different-commands-on-different-websites
+* add `LinkHints.click` to click selected text, focused element or the nearest clicked
+* `ignoreKeyboardLayout`: add a partly-checked state which requires <kbd>Alt</kbd> to ignore layouts
+* FindMode: use `normalize` to normalize text before finding and get a more accurate count
+* when operate multiple tabs, not limit the range to one side if count \< 10
+* `gotoRoot`: if there're sed rules marked with `"r"`, then use them to learn sub roots
+* omnibox: move title before URL - just like Firefox/Chrome/Edge
+* Vomnibar: now can query an encoded URL in browser history
+  * add `noSessions`=false|true|always|start ([#224](https://github.com/gdh1995/vimium-c/issues/224),
+      [#261](https://github.com/gdh1995/vimium-c/issues/261#issuecomment-747290671))
+  * also add `clickLike` to change behaviors on *-Enter ([#263](https://github.com/gdh1995/vimium-c/issues/263))
+* increase `minimum_chrome_version` to `47`
+* some other enhancements
+* fix some bugs including that `goToRoot` and `showTip` may break
+
 #### 1.87.2
 * fix a crash preventing Vomnibar and Scroller from working ([#250](https://github.com/gdh1995/vimium-c/issues/250))
 
 #### 1.87.1
 * fix crashes in the Firefox / Edge store versions ([#251](https://github.com/gdh1995/vimium-c/issues/251))
 
-#### 1.87.1
+#### 1.87.0
 
 new features:
 * `scroll*`: support a monitor with a **high refresh rate**
@@ -389,7 +407,7 @@ bug fixes:
 * **not manage browser NewTab any more** in released versions ([#53](https://github.com/gdh1995/vimium-c/issues/53),
     [#51](https://github.com/gdh1995/vimium-c/issues/51), [#42](https://github.com/gdh1995/vimium-c/issues/42),
     [#28](https://github.com/gdh1995/vimium-c/issues/28), [#14](https://github.com/gdh1995/vimium-c/issues/14))
-* `ignoreKeyboardLayout` is enabled by default, to **support most keyboard layouts by default**
+* ~~`ignoreKeyboardLayout` is enabled by default, to support most keyboard layouts by default~~ (reverted later)
 * the [PRIVACY POLICY](PRIVACY-POLICY.md) has been updated
 * translated into Chinese
 * some other bug fixes

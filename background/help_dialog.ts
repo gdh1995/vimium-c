@@ -68,6 +68,7 @@ var HelpDialog = {
       if (command.endsWith(".activateMode")) {
         command = command.slice(0, -4);
       } else if (command.endsWith("GotoMode")) {
+        command = command.slice(0, -8)
       } else if (command.endsWith("Unhover")) {
         command = command.slice(0, -6) + "Leave"
       } else if (command.includes("EditUrl")) {

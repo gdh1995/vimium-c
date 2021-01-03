@@ -70,7 +70,7 @@ import {
 } from "../lib/dom_utils"
 import {
   getViewBox_, prepareCrop_, wndSize_, bZoom_, wdZoom_, dScale_, padClientRect_, getBoundingClientRect_,
-  docZoom_, bScale_, dimSize_, isSelARange, selRange_, getSelectionBoundingBox_,
+  docZoom_, bScale_, dimSize_, isSelARange, getSelectionBoundingBox_,
 } from "../lib/rect"
 import {
   replaceOrSuppressMost_, removeHandler_, getMappedKey, keybody_, isEscape_, getKeyStat_, keyNames_, suppressTail_,

@@ -114,11 +114,21 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
-#### 1.87.2
-* `scroll*`: support a monitor with a high refresh rate
-* `LinkHints`: support `clickable=<CSS-selector>` to mark any element clickable
-* `goNext`: support substituting a tab URL and jumping to it
-* add some other features and fix a few bugs
+#### 1.88.0
+* add `map *** runKey expect={env1:key1} keys=<default_key>` with `env name ...conditions`
+  * now Vimium C can trigger different commands on different websites / for different active elements
+  * see https://github.com/gdh1995/vimium-c/wiki/Map-a-key-to-different-commands-on-different-websites
+* add `LinkHints.click` to click selected text, focused element or the nearest clicked
+* `ignoreKeyboardLayout`: add a partly-checked state which requires <kbd>Alt</kbd> to ignore layouts
+* FindMode: use `normalize` to normalize text before finding and get a more accurate count
+* when operate multiple tabs, not limit the range to one side if count \< 10
+* `gotoRoot`: if there're sed rules marked with `"r"`, then use them to learn sub roots
+* omnibox: move title before URL - just like Firefox/Chrome/Edge
+* Vomnibar: now can query an encoded URL in browser history
+  * add `noSessions`=false|true|always|start ([#224](https://github.com/gdh1995/vimium-c/issues/224),
+      [#261](https://github.com/gdh1995/vimium-c/issues/261#issuecomment-747290671))
+  * also add `clickLike` to change behaviors on *-Enter ([#263](https://github.com/gdh1995/vimium-c/issues/263))
+* fix some bugs including that `goToRoot` and `showTip` may break
 
 Refer to [RELEASE-NOTES.md](RELEASE-NOTES.md).
 
