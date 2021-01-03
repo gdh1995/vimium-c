@@ -534,42 +534,36 @@ export const executeShortcut = (shortcutName: StandardShortcutNames, ports: Fram
   }
 }
 
-export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey] | undefined): void => {
-  let expected_rules = get_cOptions<kBgCmd.runKey, true>().expect
-  const absCRepeat = Math.abs(cRepeat)
-  let portUrl: string | undefined, activeEl: Element | undefined
-  let matchedIndex: number = -1
-  let matchedRule: KnownOptions<kBgCmd.runKey> | BgCmdOptions[kBgCmd.runKey]["expect"][0]
-      = get_cOptions<kBgCmd.runKey, true>()
-  if (!cPort) {
-    const frames = framesForTab[TabRecency_.curTab_]
-    set_cPort(frames ? frames[0] : null)
-  }
-  cPort && ((cPort as Frames.Port).s.f |= Frames.Flags.userActed)
-  for (let i = 0, size = expected_rules instanceof Array ? expected_rules.length : (expected_rules = 0 as never)
-        ; i < size; i++) {
-    const rule = expected_rules![i]
+declare const enum EnvMatchResult { abort, nextEnv, matched }
+interface CurrentEnvCache {
+  element_?: Element
+  portUrl_?: string
+}
+
+const matchEnvRule = (rule: CommandsNS.EnvItem, cur: CurrentEnvCache
+      , info?: FgReq[kFgReq.respondForRunKey]): EnvMatchResult => {
     let elSelector = rule.element, host = rule.host
     if (elSelector) {
       if (!info) {
         safePost(cPort, { N: kBgReq.queryForRunKey })
-        return
+        return EnvMatchResult.abort
       }
       if ((<RegExpOne> /^[A-Za-z][-\w]+$/).test(elSelector)) {
-        if (info.t !== elSelector) { continue }  
+        if (info.t !== elSelector) { return EnvMatchResult.nextEnv }
       } else {
-        if (!activeEl) {
-          activeEl = document.createElement(info.t)
+        if (!cur.element_) {
+          const activeEl = document.createElement(info.t)
           activeEl.className = info.c
           activeEl.id = info.i
+          cur.element_ = activeEl
         }
         if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Element$$matches
-            && CurCVer_ < BrowserVer.Min$Element$$matches ? !activeEl.webkitMatchesSelector!(info.t)
-            : !activeEl.matches!(info.t)) { continue }
+            && CurCVer_ < BrowserVer.Min$Element$$matches ? !cur.element_.webkitMatchesSelector!(info.t)
+            : !cur.element_.matches!(info.t)) { return EnvMatchResult.nextEnv }
       }
     }
     if (host) {
-      if (!cPort) { return }
+      if (!cPort) { return EnvMatchResult.abort }
       if (typeof host === "string") {
         if (host[0] === "^") {
           const re = BgUtils_.makeRegexp_(host, "")
@@ -580,30 +574,81 @@ export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey] | undefined
         rule.host = host
       }
       if (host) {
-        if (!portUrl) {
-          portUrl = cPort.s.u
+        if (!cur.portUrl_) {
+          let portUrl = cPort.s.u
           if (cPort.s.i && portUrl.lastIndexOf("://", 5) < 0 && !BgUtils_.protocolRe_.test(portUrl)) {
             const mainFrame = Backend_.indexPorts_(cPort.s.t, 0)
             portUrl = mainFrame ? mainFrame.s.u : portUrl
           }
+          cur.portUrl_ = portUrl
         }
         if (host.t === ExclusionsNS.TesterType.StringPrefix
-            ? !portUrl.startsWith(host.v as string) : !(host.v as RegExpOne).test(portUrl)) {
-          continue
+            ? !cur.portUrl_.startsWith(host.v as string) : !(host.v as RegExpOne).test(cur.portUrl_)) {
+          return EnvMatchResult.nextEnv
         }
       }
     }
-    matchedIndex = i
-    matchedRule = rule
-    break
+    return EnvMatchResult.matched
+}
+
+export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey]): void => {
+  const expected_rules = get_cOptions<kBgCmd.runKey, true>().expect
+  const absCRepeat = Math.abs(cRepeat)
+  const curEnvCache: CurrentEnvCache = {}
+  let matchedIndex: number | string = -1
+  let matchedRule: KnownOptions<kBgCmd.runKey> | CommandsNS.EnvItem | CommandsNS.EnvItemWithKeys
+      = get_cOptions<kBgCmd.runKey, true>()
+  let keys: string | string[] | null | undefined
+  if (!cPort) {
+    const frames = framesForTab[TabRecency_.curTab_]
+    set_cPort(frames ? frames[0] : null)
   }
-  let keys = matchedRule.keys
+  cPort && ((cPort as Frames.Port).s.f |= Frames.Flags.userActed)
+  for (let i = 0, size = expected_rules instanceof Array ? expected_rules.length : 0
+        ; i < size; i++) {
+    const rule = (expected_rules as CommandsNS.EnvItemWithKeys[])[i]
+    const res = matchEnvRule(rule, curEnvCache, info)
+    if (res === EnvMatchResult.abort) { return }
+    if (res === EnvMatchResult.matched) {
+      matchedIndex = i
+      matchedRule = rule
+      break
+    }
+  }
+  if (matchedIndex === -1 && expected_rules
+      && typeof expected_rules === "object" && !(expected_rules instanceof Array)) {
+    const envMap = CommandsData_.envRegistry_
+    if (!envMap) {
+      showHUD('No environments have been declared')
+      return
+    }
+    for (let ruleName in expected_rules) {
+      const rule = CommandsData_.envRegistry_!.get(ruleName)
+      if (!rule) {
+        showHUD(`No environment named "${ruleName}"`)
+        return
+      }
+      const res = matchEnvRule(rule, curEnvCache, info)
+      if (res === EnvMatchResult.abort) { return }
+      if (res === EnvMatchResult.matched) {
+        matchedIndex = ruleName
+        matchedRule = rule
+        keys = expected_rules[ruleName]
+        break
+      }
+    }
+  }
+  keys = keys || (matchedRule as KnownOptions<kBgCmd.runKey> | CommandsNS.EnvItemWithKeys).keys
   if (typeof keys === "string") {
     keys = keys.trim().split(BgUtils_.spacesRe_);
-    (matchedRule as Writable<typeof matchedRule>).keys = keys
+    if (typeof matchedIndex === "number") {
+      (matchedRule as KnownOptions<kBgCmd.runKey> | CommandsNS.EnvItemWithKeys).keys = keys
+    } else {
+      (expected_rules as Dict<string | string[]>)[matchedIndex] = keys
+    }
   }
   let key: string
-  const sub_name = matchedIndex >= 0 ? `[${matchedIndex + 1}] ` : ""
+  const sub_name = typeof matchedIndex === "number" && matchedIndex >= 0 ? `[${matchedIndex + 1}] ` : ""
   if (!(keys instanceof Array)) {
     showHUD(sub_name + "Require keys: space-seperated-string | string[]")
     return
@@ -629,7 +674,7 @@ export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey] | undefined
       BgUtils_.resetRe_()
       count = keys.length === 1 ? count * cRepeat : absCRepeat !== cRepeat ? -count : count
       const specialOptions = matchedRule.options
-      if (specialOptions || Object.keys(get_cOptions<C.runKey>()).length > 1) {
+      if (specialOptions || !expected_rules && Object.keys(get_cOptions<C.runKey>()).length > 1) {
         registryEntry = BgUtils_.extendIf_(BgUtils_.safeObj_<{}>(), registryEntry)
         let newOptions = BgUtils_.safeObj_<{}>()
         BgUtils_.extendIf_(newOptions, specialOptions || get_cOptions<C.runKey>())

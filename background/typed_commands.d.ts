@@ -89,12 +89,7 @@ interface BgCmdOptions {
   [kBgCmd.restoreGivenTab]: {}
   [kBgCmd.restoreTab]: {}
   [kBgCmd.runKey]: {
-    expect: Array<{
-      element?: string,
-      host?: string | Pick<ExclusionsNS.Tester, "t" | "v"> | null,
-      keys: string[] | string
-      options?: object
-    }>
+    expect: CommandsNS.EnvItemWithKeys[] | Dict<string | string[]>
     keys: string[] | /** space-seperated list */ string
     options?: object
   }

@@ -221,6 +221,14 @@ declare namespace CommandsNS {
   interface BaseItem {
     readonly alias_: (kBgCmd | kFgCmd) & number; readonly background_: BOOL
   }
+  interface EnvItem {
+    element?: string
+    host?: string | Pick<ExclusionsNS.Tester, "t" | "v"> | null
+    options?: object
+  }
+  interface EnvItemWithKeys extends EnvItem {
+    keys: string[] | string
+  }
 }
 
 declare namespace CompletersNS {
@@ -607,6 +615,7 @@ interface CommandsDataTy {
   keyFSM_: KeyFSM;
   mappedKeyRegistry_: SafeDict<string> | null;
   mappedKeyTypes_: kMapKey;
+  envRegistry_: Map<string, CommandsNS.EnvItem> | null
   visualGranularities_: GranularityNames;
   visualKeys_: VisualModeNS.KeyMap;
 }

@@ -132,6 +132,7 @@ var KeyMappings = {
       , _len: number, details: CommandsNS.Description | undefined, errors = 0, ch: number
       , registry: CommandsDataTy["keyToCommandRegistry_"] = new Map()
       , cmdMap: CommandsDataTy["shortcutRegistry_"] = new Map()
+      , envMap: CommandsDataTy["envRegistry_"] = null
       , builtinKeys: TextSet | null = null
       , regItem: CommandsNS.Item | null
       , mkReg = BgUtils_.safeObj_<string>();
@@ -180,6 +181,7 @@ var KeyMappings = {
       } else if (key === "unmapAll" || key === "unmapall") {
         registry = new Map()
         cmdMap = new Map()
+        envMap = null
         builtinKeys = null;
         mkReg = BgUtils_.safeObj_<string>(), mk = 0;
         if (errors > 0) {
@@ -225,6 +227,14 @@ var KeyMappings = {
           if (!key) { continue; }
           a.logError_(shortcutLogPrefix, colorRed, splitLine[1], key);
         }
+      } else if (key === "env") {
+        if (splitLine.length < 3) {
+          a.logError_("Lacking conditions in env declaration:", line)
+        } else if (envMap && envMap.has(key)) {
+          a.logError_('The environment name %c"%s"', colorRed, key, "has been used")
+        } else {
+          (envMap || (envMap = new Map())).set(splitLine[1], a.getOptions_(splitLine, 2) as CommandsNS.EnvItem)
+        }
       } else if (key !== "unmap") {
         a.logError_('Unknown mapping command: %c"%s"', colorRed, key, "in", line);
       } else if (splitLine.length !== 2) {
@@ -248,6 +258,7 @@ var KeyMappings = {
     CommandsData_.keyToCommandRegistry_ = registry;
     CommandsData_.builtinKeys_ = builtinKeys;
     CommandsData_.shortcutRegistry_ = cmdMap
+    CommandsData_.envRegistry_ = envMap
     CommandsData_.mappedKeyRegistry_ = Settings_.omniPayload_.k = mk > 0 ? mkReg : null;
     Settings_.temp_.cmdErrors_ = Settings_.temp_.cmdErrors_ > 0 ? ~errors : errors;
   }),
@@ -588,6 +599,7 @@ CommandsData_: CommandsDataTy = CommandsData_ as never || {
   mappedKeyTypes_: kMapKey.NONE,
   keyToCommandRegistry_: null as never as Map<string, CommandsNS.Item>,
   builtinKeys_: null,
+  envRegistry_: null,
   errors_: null,
   shortcutRegistry_: null as never as Map<StandardShortcutNames, CommandsNS.Item>,
   visualGranularities_: ["character", "word", "", "lineboundary", "line", "sentence", "paragraph", "documentboundary"],
