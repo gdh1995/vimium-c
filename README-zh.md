@@ -21,7 +21,7 @@
   )](https://addons.mozilla.org/firefox/addon/vimium-c/?src=external-readme)
 [![评分](https://img.shields.io/amo/rating/vimium-c@gdh1995.cn?logo=Firefox%20Browser&logoColor=white&label=评分&labelColor=FF7139&color=blue
   )](https://addons.mozilla.org/firefox/addon/vimium-c/reviews/?src=external-readme)
-[![Chrome 43+](https://img.shields.io/chrome-web-store/v/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&logoColor=white&label=Chrome%2043%2B&labelColor=4285F4&color=critical
+[![Chrome 47+](https://img.shields.io/chrome-web-store/v/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&logoColor=white&label=Chrome%2043%2B&labelColor=4285F4&color=critical
   )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
 [![用户数](https://img.shields.io/chrome-web-store/users/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&logoColor=white&label=用户数&labelColor=4285F4&color=critical
   )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
@@ -35,7 +35,7 @@ Vimium C 是一款开源、免费的键盘增强类浏览器扩展，支持为�
 只要有键盘，您就能自由点击网页中的链接和按钮、选择和复制文字和网址，也能轻松操作浏览器标签页，
 还能在一个便捷的搜索框中随意搜索历史记录、收藏夹和打开的标签页等等。
 
-Vimium C 支持 新版 Microsoft Edge、Firefox 63+ 和 Chrome 43+ 等现代浏览器。
+Vimium C 支持 新版 Microsoft Edge、Firefox 63+ 和 Chrome 47+ 等现代浏览器。
 
 本项目主要由 [gdh1995](https://github.com/gdh1995)
 基于 [<span style="color: #2f508e;">Vim</span>ium](https://github.com/philc/vimium)

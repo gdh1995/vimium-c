@@ -21,7 +21,7 @@
   )](https://addons.mozilla.org/firefox/addon/vimium-c/?src=external-readme)
 [![rating](https://img.shields.io/amo/rating/vimium-c@gdh1995.cn?logo=Firefox%20Browser&logoColor=white&label=rating&labelColor=FF7139&color=blue
   )](https://addons.mozilla.org/firefox/addon/vimium-c/reviews/?src=external-readme)
-[![Chrome 43+](https://img.shields.io/chrome-web-store/v/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&logoColor=white&label=Chrome%2043%2B&labelColor=4285F4&color=critical
+[![Chrome 47+](https://img.shields.io/chrome-web-store/v/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&logoColor=white&label=Chrome%2043%2B&labelColor=4285F4&color=critical
   )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
 [![users](https://img.shields.io/chrome-web-store/users/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&logoColor=white&label=users&labelColor=4285F4&color=critical
   )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
@@ -53,11 +53,11 @@ and licensed under the [MIT license](LICENSE.txt).
 本项目主要由 [gdh1995](https://github.com/gdh1995) 开发并维护，且以 [MIT 许可协议](LICENSE.txt) 开源。
 
 It (the released version) supports the new MS Edge, Chrome and other Chromium-based browsers
-  whose core versions are >= 43, and has a prefect support for a recent Firefox (since version 63.0).
+  whose core versions are >= 47, and has a prefect support for a recent Firefox (since version 63.0).
 It can even run on MS Edge (EdgeHTML), though there're still some errors.
 If re-compiled from the source code, Vimium C is able to support Chromium 32~42.
 
-它支持内核版本不低于 43 的新版 Microsoft Edge、Chrome 和其它以 Chromium 为内核的浏览器，
+它支持内核版本不低于 47 的新版 Microsoft Edge、Chrome 和其它以 Chromium 为内核的浏览器，
 同时也能完美运行在近些年发布的 Firefox 63 和更高版本上，甚至在 Edge (EdgeHTML 内核) 上也能正常执行大部分命令。
 如果从源码重新编译，Vimum C 还可以支持 Chromium 32~42。
 
