@@ -227,6 +227,7 @@ declare namespace CommandsNS {
     options?: object
   }
   interface EnvItemWithKeys extends EnvItem {
+    env: string
     keys: string[] | string
   }
 }
