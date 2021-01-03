@@ -545,7 +545,7 @@ const matchEnvRule = (rule: CommandsNS.EnvItem, cur: CurrentEnvCache
     let elSelector = rule.element, host = rule.host
     if (elSelector) {
       if (!info) {
-        safePost(cPort, { N: kBgReq.queryForRunKey })
+        safePost(cPort, { N: kBgReq.queryForRunKey, n: performance.now() })
         return EnvMatchResult.abort
       }
       if ((<RegExpOne> /^[A-Za-z][-\w]+$/).test(elSelector)) {

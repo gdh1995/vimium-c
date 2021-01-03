@@ -456,7 +456,9 @@ set_reqH_([
     enterVisualMode()
   },
   /** kFgReq.respondForRunAs: */ (request: FgReq[kFgReq.respondForRunKey]): void => {
-    runKeyWithCond(request)
+    if (performance.now() - request.n < 500) {
+      runKeyWithCond(request)
+    }
   }
 ])
   

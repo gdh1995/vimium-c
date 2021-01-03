@@ -249,10 +249,12 @@ set_requestHandlers([
     }
     post_({ H: kFgReq.cmd, c: request.c, n, i: request.i, r: count2 });
   },
-  /* kBgReq.queryForRunAs: */ (_request: BgReq[kBgReq.queryForRunKey]): void => {
+  /* kBgReq.queryForRunAs: */ (request: BgReq[kBgReq.queryForRunKey]): void => {
     const lock = (Build.BTypes & BrowserType.Firefox ? insert_Lock_() : raw_insert_lock) || activeEl_unsafe_()
     const tag = !lock || Build.BTypes & ~BrowserType.Firefox && notSafe_not_ff_!(lock) ? "" : lock.localName as string
-    post_({ H: kFgReq.respondForRunKey, t: tag, c: tag && lock!.className, i: tag && lock!.id })
+    post_({ H: kFgReq.respondForRunKey, n: request.n,
+      t: tag, c: tag && lock!.className, i: tag && lock!.id,
+    })
   }
 ])
 

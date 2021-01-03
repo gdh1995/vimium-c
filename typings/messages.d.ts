@@ -140,7 +140,7 @@ interface BgReq {
     /** id */ i: number;
     /** message-in-confirmation-dialog */ m: string;
   };
-  [kBgReq.queryForRunKey]: {}
+  [kBgReq.queryForRunKey]: { n: number }
 }
 
 interface BgVomnibarSpecialReq {
@@ -602,6 +602,7 @@ interface FgReq {
     /** caret mode */ c?: boolean
   };
   [kFgReq.respondForRunKey]: {
+    /** start time */ n: number
     /** tag of an active element */ t: string
     /** className attr */ c: string
     /** id attr */ i: string
