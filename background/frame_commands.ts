@@ -592,6 +592,7 @@ const matchEnvRule = (rule: CommandsNS.EnvItem, cur: CurrentEnvCache
 }
 
 export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey]): void => {
+  const envMap = CommandsData_.envRegistry_
   const expected_rules = get_cOptions<kBgCmd.runKey, true>().expect
   const absCRepeat = Math.abs(cRepeat)
   const curEnvCache: CurrentEnvCache = {}
@@ -606,18 +607,33 @@ export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey]): void => {
   cPort && ((cPort as Frames.Port).s.f |= Frames.Flags.userActed)
   for (let i = 0, size = expected_rules instanceof Array ? expected_rules.length : 0
         ; i < size; i++) {
-    const rule = (expected_rules as CommandsNS.EnvItemWithKeys[])[i]
+    let rule: CommandsNS.EnvItem | CommandsNS.EnvItemWithKeys = (expected_rules as CommandsNS.EnvItemWithKeys[])[i]
+    const ruleName = (rule as CommandsNS.EnvItemWithKeys).env
+    if (ruleName) {
+      if (!envMap) {
+        showHUD('No environments have been declared')
+        return
+      }
+      const rule2 = envMap.get(ruleName)
+      if (!rule2) {
+        showHUD(`No environment named "${ruleName}"`)
+        return
+      }
+      rule = rule2
+    }
     const res = matchEnvRule(rule, curEnvCache, info)
     if (res === EnvMatchResult.abort) { return }
     if (res === EnvMatchResult.matched) {
-      matchedIndex = i
+      matchedIndex = ruleName || i
       matchedRule = rule
+      if (ruleName) {
+        keys = (expected_rules as CommandsNS.EnvItemWithKeys[])[i].keys
+      }
       break
     }
   }
   if (matchedIndex === -1 && expected_rules
       && typeof expected_rules === "object" && !(expected_rules instanceof Array)) {
-    const envMap = CommandsData_.envRegistry_
     if (!envMap) {
       showHUD('No environments have been declared')
       return

@@ -234,6 +234,7 @@ var KeyMappings = {
           a.logError_('The environment name %c"%s"', colorRed, key, "has been used")
         } else {
           (envMap || (envMap = new Map())).set(splitLine[1], a.getOptions_(splitLine, 2) as CommandsNS.EnvItem)
+          continue
         }
       } else if (key !== "unmap") {
         a.logError_('Unknown mapping command: %c"%s"', colorRed, key, "in", line);
