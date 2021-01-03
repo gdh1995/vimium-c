@@ -18,11 +18,12 @@ let keyMappingChecker_ = {
         if (hasShift && modifiers.length < 3) { return suffix ? `<${bodyUpper}${suffix}>` : bodyUpper }
       }
       const bodyLower = body.toLowerCase()
-      modifiers = sortModifiers(modifiers);
+      modifiers = modifiers.includes("v-") ? "v-" : sortModifiers(modifiers)
       body !== bodyLower && !hasShift && (modifiers += "s-")
+      // not convert "-" in body to "_", in case of new modifiers in the future
       return modifiers || isLong || suffix ? `<${modifiers}${bodyLower}${suffix}>` : body
     }
-    this.normalizeKeys_ = k => k.replace(<RegExpG&RegExpSearchable<2>> /<(?!<)((?:[ACMSacms]-){0,4})(.[^>]*)>/g, func);
+    this.normalizeKeys_ = k => k.replace(<RegExpG&RegExpSearchable<2>> /<(?!<)((?:[ACMSVacmsv]-){0,4})(.[^>]*)>/g, func)
     this.normalizeMap_ = this.normalizeMap_.bind(this);
     this.normalizeCmd_ = this.normalizeCmd_.bind(this);
     this.normalizeOptions_ = this.normalizeOptions_.bind(this);
@@ -102,7 +103,7 @@ let keyMappingChecker_ = {
     this.init_ && this.init_();
     str = "\n" + str.replace(<RegExpG & RegExpSearchable<0>> /\\\\?\n/g, i => i.length === 3 ? i : "\\\r");
     str = str.replace(<RegExpG & RegExpSearchable<3>
-        > /(\n[ \t]*(?:#\s?)?map\s+(?:<(?!<)(?:.-){0,4}.[\w:]*?>|\S)\s+)(<(?!<)(?:[ACMSacms]--){0,4}.\w*?>)(?=\s|$)/g
+        > /(\n[ \t]*(?:#\s?)?map\s+(?:<(?!<)(?:.-){0,4}.[\w:]*?>|\S)\s+)(<(?!<)(?:[ACMSVacmsv]--){0,4}.\w*?>)(?=\s|$)/g
         , this.correctMapKey_);
     str = str.replace(<RegExpG & RegExpSearchable<3>> /(\n[ \t]*(?:#\s?)?(?:un)?map(?:[kK]ey)?\s+)(\S+)([^\n]*)/g
         , this.normalizeMap_);

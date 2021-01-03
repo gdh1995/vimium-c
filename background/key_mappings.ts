@@ -19,7 +19,7 @@ type NameMetaMapEx = NameMetaMap & {
 // eslint-disable-next-line no-var
 declare var CommandsData_: CommandsDataTy
 
-const AsC_ = <T extends kCName> (i: T): T => i
+var AsC_ = <T extends kCName> (i: T): T => i
 // eslint-disable-next-line no-var
 var KeyMappings = {
   getOptions_ (item: string[], start: number): CommandsNS.Options | null {
@@ -341,14 +341,21 @@ var KeyMappings = {
       for (const key in obj) {
         const val = obj[key]!;
         if (val !== KeyAction.cmd) { func(val); }
-        else if (maybePassed !== true && ref[key] === KeyAction.cmd && !(maybePassed && key in maybePassed)) {
+        else if (maybePassed !== true && ref[key] === KeyAction.cmd && !(maybePassed && key in maybePassed)
+            || key.startsWith("v-")) {
           delete obj[key];
         }
       }
     };
     for (const key in ref) {
       const val = ref[key]!;
-      if (val !== KeyAction.cmd && val !== KeyAction.count) { func(val); }
+      if (val === KeyAction.cmd) {
+        if (key.startsWith("v-")) {
+          delete ref[key]
+        }
+      } else if (val !== KeyAction.count) {
+        func(val)
+      }
     }
   }) as (this: void, detectNewError: boolean) => void,
   logError_: function (): void {

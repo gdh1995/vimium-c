@@ -92,7 +92,7 @@ const checkKey = (event: HandlerNS.Event, key: string, keyWithoutModeID: string
     return nextKeys ? (esc!(HandlerResult.ExitPassMode), HandlerResult.Prevent) : j;
   }
   if (!nextKeys || (j = nextKeys[key]) == null) {
-    j = keyFSM[key];
+    j = key.startsWith("v-") ? KeyAction.cmd : keyFSM[key];
     if (j == null || nextKeys && key0 && passKeys!.has(key0) !== isPassKeysReversed) {
       return esc!(HandlerResult.Nothing);
     }
