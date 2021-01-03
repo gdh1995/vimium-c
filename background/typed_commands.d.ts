@@ -59,7 +59,7 @@ interface BgCmdOptions {
   [kBgCmd.goToTab]: { absolute: boolean; noPinned: boolean }
   [kBgCmd.goUp]: { type: "tab" | "frame" } & TrailingSlashOptions & UserSedOptions
   [kBgCmd.joinTabs]: {
-    sort: "" | "time" | "create" | "recency" | "recent" | "all"
+    sort: "" | "time" | "create" | "recency" | "recent" | "id"
     windows: "" | "current" | "all"
   }
   [kBgCmd.mainFrame]: {}

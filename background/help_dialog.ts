@@ -68,8 +68,8 @@ var HelpDialog = {
       if (command.endsWith(".activateMode")) {
         command = command.slice(0, -4);
       } else if (command.endsWith("GotoMode")) {
-      } else if (command.endsWith("Leave")) {
-        command = command.slice(0, -5) + "Unhover";
+      } else if (command.endsWith("Unhover")) {
+        command = command.slice(0, -6) + "Leave"
       } else if (command.includes("EditUrl")) {
         command = command.replace("EditUrl", "Url");
       } else if (command === <string> <unknown> kShortcutAliases.nextTab1) {
@@ -241,7 +241,7 @@ var HelpDialog = {
       , "LinkHints.activateModeToDownloadLink", "LinkHints.activateModeToOpenIncognito"
       , "LinkHints.activateModeToHover", "LinkHints.activateModeToLeave", "LinkHints.unhoverLast"
       , "LinkHints.activateModeToSearchLinkText", "LinkHints.activateModeToEdit"
-      , "LinkHints.activateModeToSelect"
+      , "LinkHints.activateModeToSelect", "LinkHints.click"
       , "goPrevious", "goNext", "nextFrame", "mainFrame", "parentFrame"
       , "enterInsertMode", "enterVisualMode", "enterVisualLineMode"
       , "Marks.activateCreateMode", "Marks.activate"
@@ -258,7 +258,7 @@ var HelpDialog = {
     tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab"
       , "duplicateTab", "removeTab", "removeRightTab", "restoreTab", "restoreGivenTab"
       , "discardTab", "moveTabToNextWindow", "moveTabToNewWindow", "moveTabToIncognito"
-      , "joinTabs"
+      , "joinTabs", "sortTabs"
       , "togglePinTab", "toggleMuteTab", "visitPreviousTab", "closeTabsOnLeft"
       , "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"
       , "enableCSTemp", "toggleCS", "clearCS", "copyWindowInfo", "captureTab"],
@@ -266,7 +266,7 @@ var HelpDialog = {
       , "addBookmark"
       , "toggleStyle", "toggleLinkHintCharacters"
       , "toggleSwitchTemp", "passNextKey", "debugBackground", "closeDownloadBar"
-      , "sendToExtension", "runKey", "blank"]
+      , "reset", "runKey", "sendToExtension", "blank"]
   }),
   advancedCommands_: As_<{ readonly [k in kCName]?: 1 | 0; } & SafeObject>({ __proto__: null as never,
     toggleViewSource: 1, clearFindHistory: 1
@@ -283,7 +283,7 @@ var HelpDialog = {
     , goNext: 1, goPrevious: 1, "Marks.clearLocal": 1, "Marks.clearGlobal": 1
     , moveTabLeft: 1, moveTabRight: 1, closeTabsOnLeft: 1, closeTabsOnRight: 1
     , closeOtherTabs: 1, scrollPxDown: 1, scrollPxUp: 1, scrollPxLeft: 1
-    , scrollPxRight: 1, debugBackground: 1, blank: 1
+    , scrollPxRight: 1, debugBackground: 1, blank: 1, reset: 1, scrollSelect: 1
     , "LinkHints.activateModeToHover": 1, "LinkHints.unhoverLast": 1
     , toggleLinkHintCharacters: 1, toggleSwitchTemp: 1, "LinkHints.activateModeToLeave": 1
     , "Vomnibar.activateUrl": 1, "Vomnibar.activateUrlInNewTab": 1

@@ -221,7 +221,7 @@ declare namespace HintsNS {
   interface Options extends UserSedOptions, CSSOptions {
     /** mode */ m: HintMode
     /** hint characters */ c?: string
-    /** click directly */ direct?: boolean | "sel" | "focus" | "hover" | "sel,focus,hover"
+    /** click directly */ direct?: boolean | "sel" | "focus" | "hover" | "click" | "sel,focus,hover" | "sel,focus,click"
     action?: string;
     caret?: boolean;
     ordinal?: boolean

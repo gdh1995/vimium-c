@@ -489,7 +489,7 @@ const activateDirectly = (options: HintsNS.ContentOptions, count: number) => {
               || (docActive = Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(activeEl_unsafe_())
                     : activeEl_unsafe_() as SafeElement | null,
                   docActive !== doc.body && docActive !== docEl_unsafe_() && docActive))
-      || (allTypes || d.includes("h") ? deref_(lastHovered_) : null)
+      || (allTypes || d.includes("h") || d.includes("i") ? deref_(lastHovered_) : null)
   el = mode < HintMode.min_job || el && htmlTag_(el) ? el : null
   if (!el || !IsInDOM_(el)) {
     hudTip(kTip.noLinks)

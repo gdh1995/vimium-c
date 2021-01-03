@@ -99,7 +99,7 @@ export const copyWindowInfo = (): void | kBgCmd.copyWindowInfo => {
 
 export const joinTabs = (): void | kBgCmd.joinTabs => {
   // { time/recency, create/id } | "all"
-  const sortOpt: string | undefined | null = get_cOptions<C.joinTabs, true>().sort
+  const sortOpt = get_cOptions<C.joinTabs, true>().sort
   const windowsOpt: string | undefined | null = get_cOptions<C.joinTabs, true>().windows
   const onlyCurrent = windowsOpt === "current"
   if (Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther & BrowserType.Edge)

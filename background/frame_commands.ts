@@ -667,7 +667,7 @@ export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey]): void => {
     }
     let registryEntry = CommandsData_.keyToCommandRegistry_.get(key)
     if (!registryEntry) {
-      showHUD('in "runKey", the key is invalid')
+      showHUD(`the "${key}" has not been mapped`)
     } else if (registryEntry.alias_ === kBgCmd.runKey && registryEntry.background_) {
       showHUD('"runKey" can not be nested')
     } else {
