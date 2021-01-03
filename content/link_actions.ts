@@ -42,7 +42,7 @@ const unhoverOnEsc: HandlerNS.Handler = event => {
 }
 
 export const executeHintInOfficer = (hint: HintItem | Pick<HintItem, "d" | "r"> & {m?: null}
-    , event?: HandlerNS.Event): Rect | null | undefined | 0 => {
+    , event?: HandlerNS.Event | null | 0, knownRect?: Rect | null | 0 | false): Rect | null | undefined | 0 => {
 
 const getUrlData = (): string => {
   let link = clickEl as SafeHTMLElement, str = link.dataset.vimUrl
@@ -115,12 +115,12 @@ const openUrl = (url: string, incognito?: boolean): void => {
   });
 }
 
-const hoverEl = (rect: Rect | null): void => {
+const hoverEl = (): void => {
     const type = getEditableType_<0>(clickEl), toggleMap = hintOptions.toggle;
     // here not check lastHovered on purpose
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
     set_currentScrolling(weakRef_(clickEl))
-    catchAsyncErrorSilently(hover_(clickEl, center_(rect))).then((): void => {
+    catchAsyncErrorSilently(hover_(clickEl, center_(rect!))).then((): void => {
     type || clickEl.focus && !isIFrameElement(clickEl) && clickEl.focus()
     set_cachedScrollable(currentScrolling)
     if (mode1_ < HintMode.min_job) { // called from Modes[-1]
@@ -250,7 +250,7 @@ const copyText = (): void => {
   }
 }
 
-const downloadLink = (rect: Rect | null): void => {
+const downloadLink = (): void => {
     let notAnchor = tag !== "a", H = "href",
     link = notAnchor ? createElement_("a") : clickEl as HTMLAnchorElement,
     oldUrl: string | null = notAnchor ? null : attr_s(link, H),
@@ -279,7 +279,7 @@ const downloadLink = (rect: Rect | null): void => {
   })
 }
 
-const defaultClick = (rect: Rect | null): void => {
+const defaultClick = (): void => {
     const mask = hintMode_ & HintMode.mask_focus_new, isMac = !fgCache.o,
     isRight = hintOptions.button === "right",
     dblClick = !!hintOptions.dblclick && !isRight,
@@ -336,7 +336,7 @@ const defaultClick = (rect: Rect | null): void => {
   if (IsInDOM_(clickEl)) {
     // must get outline first, because clickEl may hide itself when activated
     // must use UI.getRect, so that zooms are updated, and prepareCrop is called
-    rect = getRect(clickEl, hint.r !== clickEl ? hint.r as HTMLElementUsingMap | null : null)
+    rect = knownRect || getRect(clickEl, hint.r !== clickEl ? hint.r as HTMLElementUsingMap | null : null)
     if (hint.m && keyStatus.t && !keyStatus.k && !keyStatus.n) {
       if ((!(Build.BTypes & BrowserType.Chrome)
             || Build.BTypes & ~BrowserType.Chrome && VOther !== BrowserType.Chrome
@@ -386,15 +386,15 @@ const defaultClick = (rect: Rect | null): void => {
           (clickEl as HTMLDetailsElement).open = !(clickEl as HTMLDetailsElement).open
         }
       } else if (hint.r && hint.r === clickEl) {
-        hoverEl(rect)
+        hoverEl()
       } else if (getEditableType_<0>(clickEl) > EditableType.TextBox - 1) {
         select_(clickEl as LockableElement, rect, !removeFlash)
         showRect = 0
       } else {
-        /*#__NOINLINE__*/ defaultClick(rect)
+        /*#__NOINLINE__*/ defaultClick()
       }
     } else if (m < HintMode.UNHOVER + 1) {
-      m < HintMode.HOVER + 1 ? hoverEl(rect) : unhover_(clickEl)
+      m < HintMode.HOVER + 1 ? hoverEl() : unhover_(clickEl)
     } else if (m < HintMode.FOCUS + 1) {
       view_(clickEl)
       clickEl.focus && clickEl.focus()
@@ -405,7 +405,7 @@ const defaultClick = (rect: Rect | null): void => {
     } else if (m < HintMode.max_copying + 1) {
       copyText()
     } else if (m < HintMode.DOWNLOAD_LINK + 1) {
-      /*#__NOINLINE__*/ downloadLink(rect)
+      /*#__NOINLINE__*/ downloadLink()
     } else if (m < HintMode.OPEN_INCOGNITO_LINK + 1) {
       const url = getUrlData()
       evalIfOK(url) || openUrl(url, !0)

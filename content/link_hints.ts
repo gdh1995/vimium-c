@@ -66,11 +66,11 @@ import {
 import {
   frameElement_, querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_,
   getComputedStyle_, isStyleVisible_, htmlTag_, fullscreenEl_unsafe_, removeEl_s, UNL, toggleClass_s, doesSupportDialog,
-  getSelectionFocusEdge_, activeEl_unsafe_, SafeEl_not_ff_
+  getSelectionFocusEdge_, activeEl_unsafe_, SafeEl_not_ff_, rangeCount_
 } from "../lib/dom_utils"
 import {
   getViewBox_, prepareCrop_, wndSize_, bZoom_, wdZoom_, dScale_, padClientRect_, getBoundingClientRect_,
-  docZoom_, bScale_, dimSize_, isSelARange,
+  docZoom_, bScale_, dimSize_, isSelARange, selRange_, getSelectionBoundingBox_,
 } from "../lib/rect"
 import {
   replaceOrSuppressMost_, removeHandler_, getMappedKey, keybody_, isEscape_, getKeyStat_, keyNames_, suppressTail_,
@@ -478,12 +478,17 @@ const activateDirectly = (options: HintsNS.ContentOptions, count: number) => {
   const d = options.direct! as string,
   allTypes = (d as typeof options.direct) === !0, mode = options.m &= ~HintMode.queue,
   next = (): void => {
-    IsInDOM_(el!) && (coreHints.e({d: el as LinkEl, r: null}), --count > 0)
-      ? setTimeout(next, count > 99 ? 1 : 17) : clear()
+    let rect: ClientRect | 0, sel: Selection
+    IsInDOM_(el!) && (coreHints.e({d: el as LinkEl, r: null}, 0
+      , isSel && (sel = getSelected(), rect = rangeCount_(sel) && getSelectionBoundingBox_(sel),
+                  rect && padClientRect_(rect))
+    ), --count > 0)
+    ? setTimeout(next, count > 99 ? 1 : 17) : clear()
   }
-  let docActive: SafeElement | null
-  let el: SafeElement | null | undefined = (allTypes || d.includes("l"))
-      && isSelARange(getSelection()) && getSelectionFocusEdge_(getSelected())
+  let docActive: SafeElement | null, isSel: boolean
+  let el: SafeElement | null | undefined
+  el = (allTypes || d.includes("l"))
+      && isSelARange(getSelection()) && (el = getSelectionFocusEdge_(getSelected()), isSel = !!el, el)
       || (allTypes || d.includes("f"))
           && (insert_Lock_()
               || (docActive = Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(activeEl_unsafe_())
@@ -498,6 +503,7 @@ const activateDirectly = (options: HintsNS.ContentOptions, count: number) => {
     api_ = vApi
     options_ = options
     setMode(mode, count_ = isActive = 1)
+    prepareCrop_()
     next()
   }
 }
