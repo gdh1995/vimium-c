@@ -298,7 +298,7 @@ declare const enum PortType {
 
 declare namespace SettingsNS {
   interface DirectlySyncedItems {
-    /** ignoreKeyboardLayout */ l: ["ignoreKeyboardLayout", boolean];
+    /** ignoreKeyboardLayout */ l: ["ignoreKeyboardLayout", 0 | 1 | 2];
     /** keyboard */ k: ["keyboard", [delay: number, interval: number, /** on Firefox */ screenRefreshRate?: number]]
     /** linkHintCharacters */ c: ["linkHintCharacters", string];
     /** linkHintNumbers */ n: ["linkHintNumbers", string];

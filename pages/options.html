@@ -279,14 +279,15 @@ key: https://c.com/$s/space=\s\ space_end
           <td class="caption"></td>
           <td>
             <label class="booleanOption" tabindex="-1" aria-hidden="true">
-              <input id="ignoreKeyboardLayout" type="checkbox" tabindex="-1" aria-hidden="true" data-model="Boolean" />
+              <input id="ignoreKeyboardLayout" type="checkbox" tabindex="-1" aria-hidden="true"
+                  data-model="Boolean" data-map="[0,1,2]" />
               <span data-i="o50" class="checkboxHint" role="checkbox" tabindex="0" aria-hidden="false"
                 >Ignore keyboard layout</span>
             </label>
           </td>
           <td class="help"><div class="help-inner line-help">
-            <span data-i="o51">Always recognize keys in en-US</span><span data-i="o52">
-              QWERTY layout and ignore CapsLock, for some non-Latin keyboards.</span>
+            <span data-i="o51">Recognize keys in en-US</span><span data-i="o52">
+              QWERTY layout and ignore CapsLock. If partially checked, require Alt (Option).</span>
           </div></td>
         </tr>
         <tr id="ignoreCapsLockBox">

@@ -69,7 +69,7 @@ const _getKeyCharUsingKeyIdentifier_old_cr = !(Build.BTypes & BrowserType.Chrome
  * * does not skip "Unidentified", because it can not solve any issue if skipping it
  */
 export const char_ = (eventWrapper: HandlerNS.Event): kChar => {
-  let event: Pick<KeyboardEvent, "code" | "key" | "keyCode" | "keyIdentifier" | "location" | "shiftKey">
+  let event: Pick<KeyboardEvent, "code" | "key" | "keyCode" | "keyIdentifier" | "location" | "shiftKey" | "altKey">
         = eventWrapper.e
   let mapped: number | undefined, key = event.key, shiftKey = event.shiftKey
   if (Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.BTypes & BrowserType.Chrome && !key) {
@@ -80,7 +80,7 @@ export const char_ = (eventWrapper: HandlerNS.Event): kChar => {
         || /*#__NOINLINE__*/ _getKeyCharUsingKeyIdentifier_old_cr(event as Pick<OldKeyboardEvent, "keyIdentifier">
             , +shiftKey as BOOL)
   } else if ((!(Build.BTypes & BrowserType.Edge) || Build.BTypes & ~BrowserType.Edge && VOther !== BrowserType.Edge)
-      && fgCache.l) {
+      && (fgCache.l > 1 || event.altKey && fgCache.l === 1)) {
       /** return strings of 1-N characters and CapsLock is ignored */
     let code = event.code!, prefix = code.slice(0, 2);
     if (prefix !== "Nu") { // not (Numpad* or NumLock)

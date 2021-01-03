@@ -372,7 +372,7 @@ let optionsInit1_ = function (): void {
     opt.onSave_ = (): void => {
       oldOnSave.call(opt)
       nextTick_((ref2): void => {
-        ref2.textContent = pTrans_(opt.readValueFromElement_() ? "o145_2" : "o144")
+        ref2.textContent = pTrans_(opt.readValueFromElement_() > 1 ? "o145_2" : "o144")
       }, $(`#${opt.element_.id}Status`))
     }
     _ref[_i].onclick = onRefStatClick;

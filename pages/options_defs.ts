@@ -53,7 +53,8 @@ interface NumberChecker extends Checker<"scrollStepSize"> {
   min: number | null; max: number | null; default: number
   check_ (value: number): number
 }
-type UniversalNumberSettings = Exclude<PossibleOptionNames<number>, "ignoreCapsLock" | "mapModifier">
+type UniversalNumberSettings =
+    Exclude<PossibleOptionNames<number>, "ignoreCapsLock" | "mapModifier" | "ignoreKeyboardLayout">
 class NumberOption_<T extends UniversalNumberSettings> extends Option_<T> {
   readonly element_: HTMLInputElement
   previous_: number
@@ -139,9 +140,11 @@ class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
     this.element_.onchange = this.onUpdated_
   }
   populateElement_ (value: FullSettings[T]): void {
-    this.element_.checked = value === this.map_[this.true_index_]
+    // support false/true when .map_ is like [0, 1, 2]
+    const is_true = value === true || value === this.map_[this.true_index_]
+    this.element_.checked = is_true
     this.element_.indeterminate = this.true_index_ > 1 && value === this.map_[1]
-    this.inner_status_ = Math.max(0, this.map_.indexOf(value)) as 0 | 1 | 2
+    this.inner_status_ = is_true ? this.true_index_ : Math.max(0, this.map_.indexOf(value)) as 0 | 1 | 2
   }
   readValueFromElement_ (): FullSettings[T] {
     let value = this.element_.indeterminate ? this.map_[1] : this.map_[this.element_.checked ? this.true_index_ : 0]
@@ -489,7 +492,7 @@ filterLinkHintsOptions_.onSave_ = function (): void {
 }
 
 Option_.all_.ignoreKeyboardLayout.onSave_ = function (): void {
-  nextTick_((el): void => { el.style.display = this.readValueFromElement_() ? "none" : "" }, $("#ignoreCapsLockBox"))
+  nextTick_(el => { el.style.display = this.readValueFromElement_() > 1 ? "none" : "" }, $("#ignoreCapsLockBox"))
 }
 
 Option_.all_.vomnibarPage.onSave_ = function (): void {

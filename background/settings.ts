@@ -331,7 +331,7 @@ shortcut-forwarding-tool@gdh1995.cn`
     grabBackFocus: false,
     hideHud: false,
     ignoreCapsLock: 0,
-    ignoreKeyboardLayout: false,
+    ignoreKeyboardLayout: 0,
     innerCSS: "",
     keyboard: [560, 33],
     keyMappings: "",
@@ -644,9 +644,13 @@ chrome.runtime.getPlatformInfo(function (info): void {
       settings.storage_.removeItem(oldKey);
     }
   }
-  if (Build.MayOverrideNewTab) {
-    if (settings.temp_.hasEmptyLocalStorage_) {
+  if (settings.temp_.hasEmptyLocalStorage_) {
+    if (Build.MayOverrideNewTab) {
       settings.set_("newTabUrl", obj.NewTabForNewUser_);
+    }
+    const platform = (navigator.platform || "").toLowerCase()
+    if (platform.startsWith("mac") || platform.startsWith("ip")) {
+      settings.set_("ignoreKeyboardLayout", 1)
     }
   }
 })();
