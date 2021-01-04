@@ -84,10 +84,14 @@ const downloadOrOpenMedia = (): void => {
   }
   const filename = attr_s(clickEl, kD) || attr_s(clickEl, "alt") || (clickEl as SafeHTMLElement).title
   if (!text) { hintApi.t({ k: kTip.notImg }) }
-  else if (mode1_ === HintMode.OPEN_IMAGE) {
+  else if ((!(Build.BTypes & ~BrowserType.Firefox)
+            || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox)
+      && (!Build.DetectAPIOnFirefox || hintOptions.keyword != null)
+      || mode1_ === HintMode.OPEN_IMAGE) {
     post_({
       H: kFgReq.openImage, r: hintMode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
-      k: hintOptions.keyword, e: parseSedOptions(hintOptions), a: hintOptions.auto,
+      k: Build.BTypes & BrowserType.Firefox && mode1_ !== HintMode.OPEN_IMAGE ? "" : hintOptions.keyword,
+      e: parseSedOptions(hintOptions), a: hintOptions.auto,
       f: filename, u: text
     })
   } else {

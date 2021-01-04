@@ -197,12 +197,13 @@ export const captureTab = (tabs?: [Tab]): void | kBgCmd.captureTab => {
         }
         _tempBlob = [setTimeout((): void => {
           _tempBlob && URL.revokeObjectURL(_tempBlob[1]); _tempBlob = null
-        }, 60000), msg]
+        }, !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox
+            || show ? 5000 : 30000), msg]
       }
       if (!(Build.BTypes & ~BrowserType.Firefox)
           || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox
           || show) {
-        openImgReq({
+        openImgReq({ o: "pixel=1&",
           u: msg, f: title, a: false, e: null, r: ReuseType.newFg
         }, cPort)
         return
@@ -220,10 +221,10 @@ export const captureTab = (tabs?: [Tab]): void | kBgCmd.captureTab => {
         if (!Build.NDEBUG) { p.catch(onerror) }
       } else {
         const req = new XMLHttpRequest() as BlobXHR
-        req.open("GET", url, true)
         req.responseType = "blob"
         if (!Build.NDEBUG) { req.onerror = onerror }
         req.onload = function (this: typeof req) { cb2(this.response) }
+        req.open("GET", url, true)
         req.send()
       }
     } else {
@@ -257,9 +258,12 @@ export const openImgReq = (req: FgReq[kFgReq.openImage], port?: Port): void => {
   if (req.a !== false) {
     prefix += "auto=once&"
   }
+  req.o && (prefix += req.o)
   url = req.e ? substitute_(url, SedContext.paste, req.e) : url
   set_cOptions(BgUtils_.safer_<KnownOptions<C.openUrl>>({ opener: true, reuse: req.r }))
-  openUrlWithActions(typeof req.k !== "string" ? prefix + url
+  // not use v:show for those from other extensions
+  openUrlWithActions(typeof req.k !== "string"
+        && (!url.startsWith(location.protocol) || url.startsWith(location.origin)) ? prefix + url
         : req.k ? BgUtils_.convertToUrl_(url, req.k, Urls.WorkType.ActAnyway) : url
       , Urls.WorkType.FakeType)
 }

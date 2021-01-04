@@ -8,6 +8,7 @@ interface VDataTy {
   url: string;
   file?: string;
   auto?: boolean | "once";
+  pixel?: boolean
   incognito?: boolean;
   error?: string;
 }
@@ -129,6 +130,8 @@ window.onhashchange = function (this: void): void {
       val = val.toLowerCase();
       if (key === "auto") {
         VData.auto = val === "once" ? val : val === "true" ? true : val === "false" ? false : parseInt(val, 10) > 0;
+      } else if (key === "pixel") {
+        VData.pixel = val === "1" || val === "true"
       } else if (key === "incognito") {
         VData.incognito = val === "true" || val !== "false" && parseInt(val, 10) > 0;
       } else {
@@ -202,9 +205,10 @@ window.onhashchange = function (this: void): void {
         }
         VData.original = VData.url;
         resetOnceProperties_();
-        if (VData.url.startsWith("data:") && !this.src.startsWith("data")) {
+        const url_prefix = VData.url.slice(0, 6).toLowerCase(), is_blob = url_prefix.startsWith("blob:")
+        if (is_blob || url_prefix.startsWith("data:") && !this.src.startsWith("data")) {
           bgLink.dataset.vimUrl = VData.original = VData.url = this.src;
-          recoverHash_(1);
+          recoverHash_(is_blob ? 0 : 1)
         }
         this.onerror = this.onload = null as never;
         this.src.startsWith("blob:") ||
@@ -213,6 +217,9 @@ window.onhashchange = function (this: void): void {
         }, 0);
         showBgLink();
         this.classList.add("zoom-in");
+        if (VData.pixel) {
+          (document.body as HTMLBodyElement).classList.add("pixel");
+        }
         if (width >= innerWidth * 0.9) {
           (document.body as HTMLBodyElement).classList.add("filled");
         }
@@ -228,7 +235,7 @@ window.onhashchange = function (this: void): void {
       const path = file.split(<RegExpOne> /[/\\]+/);
       path.length > 1 && VShown.setAttribute("download", path[path.length - 1]);
       VShown.alt = file;
-      VShown.title = file;
+      VShown.setAttribute("aria-title", file)
     }
     listenWheelForImage(true);
     break;
@@ -505,7 +512,7 @@ function copyThing(event: EventToPrevent): void {
         }
         const img = document.createElement("img")
         img.src = VData.url
-        VData.file && (img.alt = img.title = VData.file)
+        VData.file && (img.setAttribute("aria-title", img.alt = VData.file))
         item["text/html"] = new Blob([img.outerHTML], {type: "text/html"})
         return doWrite().catch(() => (delete item["text/html"], doWrite()))
       }),
@@ -653,7 +660,9 @@ function clean(): void {
   }
   if (VData.type === "image") {
     listenWheelForImage(false);
-    (document.body as HTMLBodyElement).classList.remove("filled");
+    const boxClass = (document.body as HTMLBodyElement).classList
+    boxClass.remove("pixel")
+    boxClass.remove("filled");
     (VShown as HTMLImageElement).removeAttribute("src");
     (VShown as HTMLImageElement).onerror = (VShown as HTMLImageElement).onload = null as never
     if (viewer_) {
@@ -793,21 +802,32 @@ function fetchImage_(url: string, element: HTMLImageElement): void {
   };
   element.addEventListener("load", clearTimer, true);
   element.addEventListener("error", clearTimer, true);
-  if (!(VData.incognito || BG_.Settings_.get_("showInIncognito"))
-      || !(<RegExpI> /^(ht|s?f)tp|^data:/i).test(url)
-      || !!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinEnsured$fetch
-          && !(window as any).fetch
-      || !!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinEnsuredFetchRequestCache
-          // has known MinMaybe$fetch$And$Request == MinMaybe$fetch == 41
-          && !("cache" in Request.prototype)) {
+  const url_prefix = url.slice(0, 20).toLowerCase()
+  const is_blob = url_prefix.startsWith("blob:"), is_data = url_prefix.startsWith("data:")
+  if (!is_blob && (!is_data || url.length < 1e4)
+      && ((!VData.incognito && !BG_.Settings_.get_("showInIncognito"))
+          || !(<RegExpOne> /^(ht|s?f)tp|^data:/).test(url_prefix)
+          || !!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinEnsured$fetch
+              && !(window as any).fetch
+          || !!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinEnsuredFetchRequestCache
+              // has known MinMaybe$fetch$And$Request == MinMaybe$fetch == 41
+              && !("cache" in Request.prototype))) {
     element.src = url;
   } else {
     destroyObject_();
     body.replaceChild(text, element);
-    Promise.resolve(blobCache[url] || fetch(url, {
+    Promise.resolve(blobCache[url] || (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFetchDataURL
+        && BG_ && BG_.CurCVer_ < BrowserVer.MinFetchDataURL ? new Promise<Blob>((resolve, reject): void => {
+      const req = new XMLHttpRequest() as BlobXHR
+      req.responseType = "blob"
+      req.onload = function (): void { resolve(this.response) }
+      req.onerror = function (e): void { reject("Error: " + e.message) }
+      req.open("GET", url, true)
+      req.send()
+    }) : fetch(url, is_blob || is_data ? {} : {
       cache: "no-store",
       referrer: "no-referrer"
-    }).then(res => res.blob())).then(blob => {
+    }).then(res => res.blob()))).then(blob => {
       blobCache[url] = blob
       return _shownBlobURL = URL.createObjectURL(_shownBlob = blob)
     }, () => url).then(newUrl => {
@@ -869,7 +889,7 @@ function resetOnceProperties_(): boolean {
   return changed;
 }
 
-function recoverHash_(notUpdateHistoryState?: 1): void {
+function recoverHash_(notUpdateHistoryState?: BOOL): void {
   const type = VData.type;
   if (!type) {
     return;
@@ -879,6 +899,7 @@ function recoverHash_(notUpdateHistoryState?: 1): void {
       + (VData.file ? "download=" + (BG_ ? BG_.BgUtils_.encodeAsciiComponent : encodeURIComponent)(VData.file)
           + "&" : "")
       + (VData.auto ? "auto=" + (VData.auto === "once" ? "once" : 1) + "&" : "")
+      + (VData.pixel ? "pixel=1&" : "")
       + VData.original;
   VData.full = url;
   if (notUpdateHistoryState) { return; }

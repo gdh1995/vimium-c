@@ -574,6 +574,7 @@ interface FgReq {
     /** sed */ e: ParsedSedOpts | null;
     /** keyword: `""` means to use raw URL directly */ k?: string
     /** reuse */ r: ReuseType;
+    /** other options */ o?: string;
     /** auto: default to true */ a?: boolean;
   };
   [kFgReq.evalJSFallback]: {

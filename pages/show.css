@@ -16,6 +16,9 @@ body.filled:not(.viewer-open) {
   max-width: 100%;
   max-height: 100%;
 }
+body.pixel .viewer-container img {
+  image-rendering: pixelated;
+}
 
 #bgLink {
   position: absolute;
