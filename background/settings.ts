@@ -7,6 +7,7 @@ type SettingsUpdateMsg = {
 }
 
 const As_ = <T> (i: T): T => i;
+const AsC_ = <T extends kCName> (i: T): T => i
 // eslint-disable-next-line no-var
 var Settings_ = {
   cache_: BgUtils_.safeObj_() as Readonly<SettingsNS.FullCache>,
@@ -608,7 +609,7 @@ chrome.runtime.getPlatformInfo(function (info): void {
   }
   (settings.cache_ as WritableSettingsCache).searchEngineMap = new Map()
   obj.GlobalCommands_ = (<Array<StandardShortcutNames | kShortcutAliases & string>> Object.keys(ref.commands || {})
-      ).map(i => i === <string> <unknown> kShortcutAliases.nextTab1 ? CNameLiterals.nextTab : i);
+      ).map(i => i === <string> <unknown> kShortcutAliases.nextTab1 ? AsC_("nextTab") : i);
   obj.VerCode_ = ref.version;
   obj.VerName_ = ref.version_name || ref.version;
   obj.OptionsPage_ = func(ref.options_page || obj.OptionsPage_);

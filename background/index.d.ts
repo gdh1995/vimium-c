@@ -390,12 +390,8 @@ interface OtherCNamesForDebug {
   focusOptions: kBgCmd.openUrl
 }
 declare const enum CNameLiterals {
-  newTab = "newTab",
-  createTab = "createTab",
   focusOptions = "focusOptions",
   quickNext = "quickNext",
-  nextTab = "nextTab",
-  debugBackground = "debugBackground",
   userCustomized = "userCustomized"
 }
 
@@ -542,8 +538,8 @@ interface CmdNameIds {
 type kCName = keyof CmdNameIds
 
 declare const enum kShortcutAliases { _mask = 0, nextTab1 = CNameLiterals.quickNext }
-type StandardShortcutNames = CNameLiterals.createTab | "goBack" | "goForward" | "previousTab"
-    | CNameLiterals.nextTab | "reloadTab" | CNameLiterals.userCustomized
+type StandardShortcutNames = "createTab" | "goBack" | "goForward" | "previousTab"
+    | "nextTab" | "reloadTab" | CNameLiterals.userCustomized
 
 declare namespace BackendHandlersNS {
   interface SpecialHandlers {
@@ -646,12 +642,12 @@ declare const enum Consts {
   MaxLengthOfSearchKey = 50, MinInvalidLengthOfSearchKey = MaxLengthOfSearchKey + 1,
 }
 
-// eslint-disable-next-line no-var
+/* eslint-disable no-var */
 declare var OnOther: BrowserType, Backend_: BackendHandlersNS.BackendHandlers, CommandsData_: CommandsDataTy
 declare var CurCVer_: BrowserVer, CurFFVer_: FirefoxBrowserVer, IsEdg_: boolean, BrowserProtocol_: string
-
-// eslint-disable-next-line no-var
 declare var setTimeout: SetTimeout;
+/* eslint-enable no-var */
+
 interface SetTimeout {
   <T1, T2, T3>(this: void, handler: (this: void, a1: T1, a2: T2, a3: T3) => void,
     timeout: number, a1: T1, a2: T2, a3: T3): number;

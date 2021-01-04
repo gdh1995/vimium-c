@@ -205,6 +205,7 @@ export const captureTab = (tabs?: [Tab]): void | kBgCmd.captureTab => {
         openImgReq({
           u: msg, f: title, a: false, e: null, r: ReuseType.newFg
         }, cPort)
+        return
       }
       const a = document.createElement("a")
       a.href = msg
@@ -545,7 +546,7 @@ const matchEnvRule = (rule: CommandsNS.EnvItem, cur: CurrentEnvCache
     let elSelector = rule.element, host = rule.host
     if (elSelector) {
       if (!info) {
-        safePost(cPort, { N: kBgReq.queryForRunKey, n: performance.now() })
+        cPort && safePost(cPort, { N: kBgReq.queryForRunKey, n: performance.now() })
         return EnvMatchResult.abort
       }
       if ((<RegExpOne> /^[A-Za-z][-\w]+$/).test(elSelector)) {

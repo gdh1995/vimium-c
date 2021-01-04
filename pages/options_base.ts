@@ -83,8 +83,9 @@ if (lang_) {
       }
     }
     for (el of $$("[data-i]") as HTMLElement[]) {
-      t = pTrans_(el.dataset.i as string);
-      (t || el.dataset.iE) && (el.innerText = t);
+      const dataset = el.dataset, i = dataset.i!
+      t = pTrans_(i);
+      (t || i === "NS" || dataset.iE) && (el.innerText = t);
     }
     (document.documentElement as HTMLHtmlElement).lang = lang_ === "zh" ? "zh-CN" as "" : lang_ as "";
   })();

@@ -74,9 +74,9 @@ var HelpDialog = {
       } else if (command.includes("EditUrl")) {
         command = command.replace("EditUrl", "Url");
       } else if (command === <string> <unknown> kShortcutAliases.nextTab1) {
-        command = CNameLiterals.nextTab;
-      } else if (command === CNameLiterals.newTab) {
-        command = CNameLiterals.createTab
+        command = AsC_("nextTab");
+      } else if (command === AsC_("newTab")) {
+        command = AsC_("createTab")
       }
       let keys = commandToKeys.get(command)
       keys || commandToKeys.set(command, keys = [])

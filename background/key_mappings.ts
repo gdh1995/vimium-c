@@ -19,7 +19,6 @@ type NameMetaMapEx = NameMetaMap & {
 // eslint-disable-next-line no-var
 declare var CommandsData_: CommandsDataTy
 
-var AsC_ = <T extends kCName> (i: T): T => i
 // eslint-disable-next-line no-var
 var KeyMappings = {
   getOptions_ (item: string[], start: number): CommandsNS.Options | null {
@@ -637,7 +636,7 @@ if (!Build.NDEBUG) {
   (KeyMappings.availableCommands_ as unknown as NameMetaMap as Writable<NameMetaMapEx>)["focusOptions"] = [
     kBgCmd.openUrl, 1, 1, { reuse: ReuseType.reuse, url: "vimium://options" }
   ];
-  KeyMappings.defaultKeyMappings_ += ` <a-s-f12> ${CNameLiterals.debugBackground}`
+  KeyMappings.defaultKeyMappings_ += ` <a-s-f12> ${AsC_("debugBackground")}`
   KeyMappings.defaultKeyMappings_ += ` <s-f12> ${CNameLiterals.focusOptions}`
 }
 if (Backend_.onInit_) {
