@@ -83,8 +83,8 @@ declare namespace CompletersNS {
   }
   interface SearchSuggestion extends Suggestion {
     e: "search";
-    // not empty
     /** pattern */ p: string;
+    /** not-a-search */ n?: 1;
   }
   interface TabSuggestion extends Suggestion {
     level?: string;

@@ -1020,8 +1020,12 @@ searchEngine = {
         q.shift();
       }
       keyword = rawQuery.slice(1).trimLeft();
-      sug = searchEngine.makeUrlSuggestion_(keyword);
       showThoseInBlocklist = !omniBlockList || showThoseInBlocklist || BlockListFilter.IsExpectingHidden_([keyword]);
+      if (offset) {
+        offset--
+        return Completers.next_([], SugType.search)
+      }
+      sug = searchEngine.makeUrlSuggestion_(keyword)
       return Completers.next_([sug], SugType.search);
     } else {
       pattern = Settings_.cache_.searchEngineMap.get(keyword)
@@ -1230,6 +1234,7 @@ searchEngine = {
     if (Build.BTypes & BrowserType.Chrome || isForAddressBar) {
       sug.p = isSearch ? "~" : "";
     }
+    sug.n = 1
     return sug;
   },
   BuildSearchKeywords_ (): void {

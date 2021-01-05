@@ -937,7 +937,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.sugTypes_ = response.s;
     a.resMode_ = response.r && response.r + " "
     a.completions_ = completions;
-    a.isSearchOnTop_ = len > 0 && completions[0].e === "search";
+    a.isSearchOnTop_ = len > 0 && completions[0].e === "search" && !(completions[0] as CompletersNS.SearchSuggestion).n
     a.selection_ = a.isSearchOnTop_ || (a.selectFirst_ == null ? response.a : a.selectFirst_ && notEmpty) ? 0 : -1;
     a.isSelOriginal_ = true;
     const height = a.height_
