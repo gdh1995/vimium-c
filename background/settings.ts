@@ -144,6 +144,7 @@ var Settings_ = {
     case "i":
       value = value === !!value ? value
         : (value as ValType<"i">) > 1 || (value as ValType<"i">) > 0 && !Settings_.payload_.o; break
+    case "l": value = value === !!value ? value ? 2 : 0 : value; break
     case "d": value = value ? " D" : ""; break
     // no default:
     }

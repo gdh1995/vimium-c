@@ -66,7 +66,7 @@ let doesCheckAlive: BOOL = 0
 let highlighting: (() => void) | undefined | null
 let isSmall = false
 let postLock: Element | null = null
-let cachedInnerText: { /** innerText */ i: string, /** timestamp */ t: number } | null | undefined
+let cachedInnerText: { /** innerText */ i: string, /** timestamp */ t: number, n: boolean } | null | undefined
 
 export { findCSS, query_ as find_query, hasResults as find_hasResults, box_ as find_box, styleSelectable,
     styleInHUD, styleSelColorOut }
@@ -709,25 +709,27 @@ export const updateQuery = (query: string): void => {
   wholeWord = ww
   notEmpty = !!query
   ignoreCase = ignoreCase != null ? ignoreCase : Lower(query) === query
-  isRe || (query = isActive ? escapeAllForRe(doesNormalizeLetters ? normLetters(query) : query) : "")
+  const didNorm = !isRe && doesNormalizeLetters
+  isRe || (query = isActive ? escapeAllForRe(didNorm ? normLetters(query) : query) : "")
 
   let re: RegExpG | null = query && tryCreateRegExp(ww ? WB + query + WB : query, (ignoreCase ? "gim" : "gm") as "g")
       || null
   if (re) {
     let now = getTime()
-    if (cachedInnerText && (delta = math.abs(now - cachedInnerText.t))
-          < (doesNormalizeLetters || cachedInnerText.i.length > 1e5 ? 6e3 : 3e3)) {
+    if (cachedInnerText && cachedInnerText.n === didNorm && (delta = math.abs(now - cachedInnerText.t))
+          < (didNorm || cachedInnerText.i.length > 1e5 ? 6e3 : 3e3)) {
       query = cachedInnerText!.i
       delta < 500 && (cachedInnerText!.t = now)
     } else {
-    let el = fullscreenEl_unsafe_(), text: HTMLElement["innerText"] | undefined;
-    while (el && (el as ElementToHTML).lang == null) { // in case of SVG elements
-      el = GetParent_unsafe_(el, PNType.DirectElement);
-    }
-    query = el && isTY(text = (el as HTMLElement).innerText) && text ||
-        (Build.BTypes & ~BrowserType.Firefox ? (docEl_unsafe_() as HTMLElement).innerText + ""
-          : (docEl_unsafe_() as SafeHTMLElement).innerText);
-    cachedInnerText = { i: doesNormalizeLetters ? normLetters(query) : query, t: now }
+      let el = fullscreenEl_unsafe_(), text: HTMLElement["innerText"] | undefined;
+      while (el && (el as ElementToHTML).lang == null) { // in case of SVG elements
+        el = GetParent_unsafe_(el, PNType.DirectElement);
+      }
+      query = el && isTY(text = (el as HTMLElement).innerText) && text ||
+          (Build.BTypes & ~BrowserType.Firefox ? (docEl_unsafe_() as HTMLElement).innerText + ""
+            : (docEl_unsafe_() as SafeHTMLElement).innerText);
+      query = didNorm ? normLetters(query) : query
+      cachedInnerText = { i: query, t: now, n: didNorm }
     }
     matches = query.match(re) || query.replace(<RegExpG> /\xa0/g, " ").match(re);
   }
