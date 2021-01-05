@@ -4,6 +4,12 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### 1.88.1
+* fix `ignoreKeyboardLayout` didn't work if it had been enabled
+* fix in FindMode RegExp mode could not match non-English letters
+* Firefox: `LinkHints.activateModeToDownloadImage` now opens a plain tab, to support <kbd>Ctrl+S</kbd>
+* `vimium://show`: add a parameter of `pixel=1` to show pixelated images
+
 #### 1.88.0
 * add `map *** runKey expect={env1:key1} keys=<default_key>` with `env name ...conditions`
   * now Vimium C can trigger different commands on different websites / for different active elements
