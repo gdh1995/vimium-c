@@ -546,7 +546,7 @@ FProto[kToS] = myToStr
     }
     if (Build.MinCVer < BrowserVer.MinEnsuredES6ArrowFunction && Build.BTypes & BrowserType.Chrome
         && appVer < BrowserVer.MinEnsuredES6ArrowFunction) {
-      injected = injected.replace(<RegExpG> /\(([\w,]*\))=>/g, "function($1")
+      injected = injected.replace(<RegExpG> (Build.Minify ? /\(([\w,]*\))=>/g : /\(([\w, ]*\))=>/g), "function($1")
     }
     injected = injected.replace(GlobalConsts.MarkAcrossJSWorlds, "$&" + secret)
     vApi.e = execute;
