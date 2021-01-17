@@ -72,9 +72,9 @@ set_reqH_([
     if (request.p === 1) {
       let url2 = substitute_(url, SedContext.goToRoot, request.s)
       if (url2 !== url && url2 && url2 !== url + "/" && url2 + "/" !== url) {
-        BgUtils_.convertToUrl_(url2, null, Urls.WorkType.KeepAll)
+        const url3 = BgUtils_.convertToUrl_(url2, null, Urls.WorkType.KeepAll)
         if (BgUtils_.lastUrlType_ === Urls.Type.Full) {
-          return { u: url2, p: "(sed)" }
+          return { u: url3, p: "(sed)" }
         }
       }
     }
@@ -209,8 +209,8 @@ set_reqH_([
     let substituted = substitute_(url, SedContext.gotoUrl, request.s) || url
     if (substituted !== url) {
       // if substitution returns an invalid URL, then refuse it
-      BgUtils_.convertToUrl_(substituted, null, Urls.WorkType.KeepAll)
-      url = BgUtils_.lastUrlType_ === Urls.Type.Full ? substituted : url
+      const url4 = BgUtils_.convertToUrl_(substituted, null, Urls.WorkType.KeepAll)
+      url = BgUtils_.lastUrlType_ === Urls.Type.Full ? url4 : url
     }
     BgUtils_.resetRe_()
     return { u: url, p: path }
