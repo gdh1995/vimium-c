@@ -242,6 +242,7 @@ Backend_ = {
         : frameId == null ? (tabId === GlobalConsts.VomnibarFakeTabId ? framesForOmni : framesForTab[tabId] || null)
         : indexFrame(tabId, frameId);
     } as BackendHandlersNS.BackendHandlers["indexPorts_"],
+    curTab_: () => TabRecency_.curTab_,
     onInit_(): void {
       if (settings.temp_.initing_ !== BackendHandlersNS.kInitStat.FINISHED) { return; }
       if (!CommandsData_.keyFSM_) {

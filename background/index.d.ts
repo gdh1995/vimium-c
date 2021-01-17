@@ -596,6 +596,7 @@ declare namespace BackendHandlersNS {
       (this: void, tabId: number): Frames.Frames | null;
       (this: void): Frames.FramesMap;
     };
+    curTab_ (): number,
     ExecuteShortcut_ (this: void, command: string): void;
     onInit_: ((this: void) => void) | null;
   }

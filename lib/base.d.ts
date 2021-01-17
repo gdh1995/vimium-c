@@ -222,7 +222,14 @@ declare namespace HintsNS {
     (this: void, hints: T[], element: SafeHTMLElement): void
   }
 
+  interface BaseHintStatus {
+    /** isActive */ a: BOOL
+    /** box */ b: HTMLDivElement | HTMLDialogElement | null
+    /** mode */ m: HintMode
+  }
+
   interface BaseHintWorker {
+    /** get stat */ $ (): Readonly<BaseHintStatus>
   }
 
   const enum ClickType {

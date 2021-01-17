@@ -292,15 +292,16 @@ let optionsInit1_ = function (): void {
     }, $("#tipForNoShadow"));
   }
 
-  nextTick_((ref2): void => {
-  for (let _i = ref2.length; 0 <= --_i; ) {
+  setTimeout((): void => {
+    const ref2 = $$("[data-href]")
+    for (let _i = ref2.length; 0 <= --_i; ) {
     const element = ref2[_i] as HTMLInputElement;
     let str = element.dataset.href as string;
     str = BG_.BgUtils_.convertToUrl_(str, null, Urls.WorkType.ConvertKnown);
     element.removeAttribute("data-href");
     element.setAttribute("href", str);
-  }
-  }, $$("[data-href]"));
+    }
+  }, 100)
 
 
   _element = $<HTMLAnchorElement>("#openExtensionsPage");
@@ -658,6 +659,26 @@ document.addEventListener("click", function onClickOnce(): void {
       });
     }
   }, true);
+
+  if (!(Build.BTypes & BrowserType.Chrome) || Build.BTypes & ~BrowserType.Chrome && bgOnOther_ & ~BrowserType.Chrome) {
+    return
+  }
+  document.addEventListener("click", (event): void => {
+    const el = event.target as Element
+    if (el.localName !== "a" || !(event.ctrlKey || event.metaKey)) { return }
+    const api = window.VApi, hintWorker = api && api.b, stat = hintWorker && hintWorker.$()
+    if (stat && stat.b && !stat.a) { // .b: showing hints; !.a : is calling executor
+      const m1 = stat.m & ~HintMode.queue
+      if (m1 < HintMode.min_job && m1 & HintMode.newTab && !(m1 & HintMode.focused)) {
+        const curTab = BG_.Backend_.curTab_()
+        if (curTab >= 0) {
+          setTimeout(() => {
+            chrome.tabs.update(curTab, { active: true })
+          }, 0)
+        }
+      }
+    }
+  })
 }, true);
 
 function click(a: Element): boolean {

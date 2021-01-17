@@ -632,7 +632,7 @@ select:-moz-focusring {
 
 @supports (-moz-appearance: none) {
   #keyMappings {
-    min-height: 166px;
+    min-height: 182px;
   }
   input.text-bottom[type=checkbox] {
     vertical-align: text-bottom;

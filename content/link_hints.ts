@@ -8,11 +8,8 @@ export interface KeyStatus {
     /** known */ n: BOOL;
     /** tab */ b: number;
 }
-interface HintStatus {
-  /** isActive */ a: BOOL
-  /** box */ b: HTMLDivElement | HTMLDialogElement | null
+interface HintStatus extends HintsNS.BaseHintStatus {
   /** keyStatus */ k: Readonly<KeyStatus>
-  /** mode */ m: HintMode
   /** is newly activated */ n: boolean | BOOL | null
 }
 interface BaseHintWorker extends HintsNS.BaseHintWorker {
