@@ -631,8 +631,6 @@ historyEngine = {
         const sug = new Suggestion("history", item.u, isEncodedURL ? item.u : item.t, item.title_, get2ndArg, score)
         sug.visit = item.time_
         sugs.push(sug)
-      } else {
-        maxNum--;
       }
     }
     Decoder.continueToWork_();
