@@ -5,7 +5,7 @@ import {
 } from "../lib/utils"
 import { getVisibleClientRect_, center_, view_, selRange_ } from "../lib/rect"
 import {
-  IsInDOM_, createElement_, htmlTag_, getComputedStyle_, getEditableType_, isIFrameElement, GetParent_unsafe_,
+  IsInDOM_, createElement_, htmlTag_, getComputedStyle_, getEditableType_, isIFrameElement, GetParent_unsafe_, focus_,
   ElementProto, querySelector_unsafe_, getInputType, uneditableInputs_, GetShadowRoot_, CLK, scrollingEl_,
   findMainSummary_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s,
   setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel
@@ -125,7 +125,7 @@ const hoverEl = (): void => {
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
     set_currentScrolling(weakRef_(clickEl))
     catchAsyncErrorSilently(hover_(clickEl, center_(rect!))).then((): void => {
-    type || clickEl.focus && !isIFrameElement(clickEl) && clickEl.focus()
+    type || !isIFrameElement(clickEl) && focus_(clickEl)
     set_cachedScrollable(currentScrolling)
     if (mode1_ < HintMode.min_job) { // called from Modes[-1]
       hintApi.t({ k: kTip.hoverScrollable })
@@ -362,7 +362,7 @@ const defaultClick = (): void => {
       (hintManager || coreHints).$(1)
       showRect = <BOOL> +(clickEl !== omni_box)
       if (showRect) {
-        clickEl.focus()
+        focus_(clickEl)
         // focus first, so that childApi is up-to-date (in case <iframe> was removed on focus)
         const childApi = detectUsableChild(clickEl)
         if (childApi) {
@@ -401,7 +401,7 @@ const defaultClick = (): void => {
       m < HintMode.HOVER + 1 ? hoverEl() : unhover_(clickEl)
     } else if (m < HintMode.FOCUS + 1) {
       view_(clickEl)
-      clickEl.focus && clickEl.focus()
+      focus_(clickEl)
       removeFlash || flash_(clickEl)
       showRect = 0
     } else if (m < HintMode.max_media + 1) {

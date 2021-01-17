@@ -33,7 +33,7 @@
       "search", "match", "exec", "replace", "split",
       "create", "bind", "toString", "createElement", "Object.create",
       "getAttribute", "hasAttribute", "querySelector", "querySelectorAll",
-      "max", "min", "floor", "round", "abs", "random",
+      "max", "max_", "min", "min_", "isTY", "Lower", "includes_", "floor", "round", "abs", "random",
       "Math.max", "Math.min", "Math.floor", "Math.round", "Math.abs", "Math.random",
       "safeObj", "safeObj_", "weakRef_", "deref_",
       "docEl_unsafe_",

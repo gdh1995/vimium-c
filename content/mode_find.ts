@@ -9,7 +9,7 @@ import {
 } from "../lib/keyboard_utils"
 import {
   attachShadow_, getSelectionFocusEdge_, activeEl_unsafe_, rangeCount_, setClassName_s, compareDocumentPosition,
-  getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, htmlTag_, fullscreenEl_unsafe_, docEl_unsafe_,
+  getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, focus_, fullscreenEl_unsafe_, docEl_unsafe_,
   getSelection_, isSelected_, docSelectable_, isHTML_, createElement_, CLK, MDW, NONE, removeEl_s, appendNode_s,
   getAccessibleSelectedNode,  INP, BU, UNL, contains_s, setOrRemoveAttr_s, textContent_s, modifySel, parentNode_unsafe_s
 } from "../lib/dom_utils"
@@ -349,13 +349,12 @@ const onIframeUnload = (e: Event): void => {
 
 const doFocus = (): void => {
   doesCheckAlive = 0
-    if (!(Build.BTypes & ~BrowserType.Firefox)
-        || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox) {
+  if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox) {
     box_.contentWindow.focus()
-    }
+  }
     // fix that: search "a" in VFind, Ctrl+F, "a", Esc, select normal text using mouse, `/` can not refocus
   (root_ || innerDoc_).activeElement === input_ && input_.blur()
-  input_.focus()
+  focus_(input_)
   doesCheckAlive = 1
 }
 
@@ -510,7 +509,7 @@ export const deactivate = (i: FindNS.Action): void => {
     clear()
     if (i > FindNS.Action.MaxExitButNoWork) {
       el = getSelectionFocusEdge_(getSelected())
-      el && el.focus && el.focus()
+      el && focus_(el)
     }
     if ((i === FindNS.Action.ExitAndReFocus || !hasResult || visual_mode) && !noStyle) {
       toggleStyle(1)
@@ -565,8 +564,8 @@ const focusFoundLinkIfAny = (): SafeElement | null | void => {
         : getSelectionParent_unsafe(getSelected()) as SafeElement | null;
     for (let i = 0, el: Element | null = cur; el && el !== doc.body && i++ < 5;
         el = GetParent_unsafe_(el, PNType.RevealSlotAndGotoParent)) {
-      if (htmlTag_(el) === "a") {
-        (el as HTMLAnchorElement).focus();
+      if (el.localName === "a") {
+        focus_(el as SafeElement)
         return;
       }
     }

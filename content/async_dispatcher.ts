@@ -1,6 +1,6 @@
 import { doc, deref_, weakRef_, VOther, chromeVer_, isJSUrl, getTime, parseSedOptions } from "../lib/utils"
 import {
-  IsInDOM_, activeEl_unsafe_, isInTouchMode_cr_, MDW, htmlTag_, CLK, attr_s, contains_s
+  IsInDOM_, activeEl_unsafe_, isInTouchMode_cr_, MDW, htmlTag_, CLK, attr_s, contains_s, focus_
 } from "../lib/dom_utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
 import { center_, getVisibleClientRect_, view_ } from "../lib/rect"
@@ -275,7 +275,7 @@ export const click_ = async (element: SafeElementForMouse
   // Note: here we can check doc.activeEl only when @click is used on the current focused document
   if (addFocus && element !== insert_Lock_() && element !== activeEl_unsafe_() &&
       !(element as Partial<HTMLInputElement>).disabled) {
-    element.focus && element.focus()
+    focus_(element)
     if (!IsInDOM_(element)) { return }
     await 0
   }

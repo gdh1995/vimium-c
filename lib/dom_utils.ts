@@ -273,7 +273,7 @@ export const compareDocumentPosition = (anchorNode: Node, focusNode: Node) =>
 
 export const getAccessibleSelectedNode = (sel: Selection, focused?: 1): Node | null => {
   let node = focused ? sel.focusNode : sel.anchorNode
-  if (Build.BTypes & BrowserType.Firefox) {
+  if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox) {
     try {
       node && compareDocumentPosition(node, node)
     } catch { node = null }
@@ -539,3 +539,5 @@ export const runJS_ = (code: string, returnEl?: HTMLScriptElement | null | 0
     }
     return returnEl != null ? script as SafeHTMLElement & HTMLScriptElement : removeEl_s(script)
 }
+
+export const focus_ = (el: SafeElement): void => { el.focus && el.focus() }

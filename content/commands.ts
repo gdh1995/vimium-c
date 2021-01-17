@@ -4,7 +4,7 @@ import {
 } from "../lib/utils"
 import {
   isHTML_, htmlTag_, createElement_, frameElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK,
-  querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s, modifySel
+  querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s, modifySel, focus_
 } from "../lib/dom_utils"
 import {
   pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
@@ -455,6 +455,6 @@ set_contentCommands_([
       return HandlerResult.Nothing
     }, kHandler.helpDialog)
     // if no [tabindex=0], `.focus()` works if :exp and since MinElement$Focus$MayMakeArrowKeySelectIt or on Firefox
-    timeout_((): void => { box.focus() }, 17)
+    timeout_((): void => { focus_(box) }, 17)
   }) as (options: CmdOptions[kFgCmd.showHelpDialog]) => any
 ])
