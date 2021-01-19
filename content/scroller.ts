@@ -388,19 +388,15 @@ const findScrollable = (di: ScrollByY, amount: number): SafeElement | null => {
     const top = scrollingTop, activeEl: SafeElement | null | undefined = deref_(currentScrolling)
     let element = activeEl;
     if (element) {;
-      let reason: number, notNeedToRecheck = !di
-      while (element !== top && (reason = shouldScroll_s(element!
+      while (element !== top && shouldScroll_s(element!
               , element === cachedScrollable ? (di + 2) as 2 | 3 : di
-              , amount)) < 1) {
-        if (!reason) {
-          notNeedToRecheck = notNeedToRecheck || doesScroll(element!, kDim.byY, -amount)
-        }
+              , amount) < 1) {
         element = (Build.BTypes & ~BrowserType.Firefox
             ? SafeEl_not_ff_!(GetParent_unsafe_(element!, PNType.RevealSlotAndGotoParent))
             : GetParent_unsafe_(element!, PNType.RevealSlotAndGotoParent) as SafeElement | null
           ) || top;
       }
-      element = element !== top || notNeedToRecheck ? element : null
+      element = element !== top ? element : null
       cachedScrollable = weakRef_(element)
     }
     if (!element) {
