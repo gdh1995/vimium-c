@@ -423,24 +423,33 @@ export const getDirectionOfNormalSelection = (sel: Selection, anc: Node, focus: 
 }
 
 export const getSelectionFocusEdge_ = (sel: Selection, knownDi?: VisualModeNS.ForwardDir): SafeElement | null => {
-    let el = rangeCount_(sel) && getAccessibleSelectedNode(sel, 1), nt: Node["nodeType"], o: Node | null
+    let el = rangeCount_(sel) && getAccessibleSelectedNode(sel, 1), nt: Node["nodeType"], o: Node | null | 0 = el
     if (!el) { return null; }
     const anc = getAccessibleSelectedNode(sel)
-    knownDi = knownDi != null ? knownDi : anc !== el && anc ? getDirectionOfNormalSelection(sel, anc, el) : 1
+    knownDi = knownDi != null ? knownDi
+        : anc === el ? (selOffset_(sel, 1) < selOffset_(sel) ? VisualModeNS.kDir.left : VisualModeNS.kDir.right)
+        : anc ? getDirectionOfNormalSelection(sel, anc, el) : 1
     if ((el as NodeToElement).tagName) {
-      el = (Build.BTypes & ~BrowserType.Firefox ? GetChildNodes_not_ff!(el as Element)[selOffset_(sel, 1)]
-            : (el.childNodes as NodeList)[selOffset_(sel, 1)]) || el
+      o = (Build.BTypes & ~BrowserType.Firefox ? GetChildNodes_not_ff!(el as Element) : el.childNodes as NodeList
+          )[selOffset_(sel, 1)]
+    } else {
+      el = GetParent_unsafe_(el as Node, PNType.DirectNode)
     }
-    for (o = el; !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
-          ? o && <number> <Element | RadioNodeList | kNode> o.nodeType - kNode.ELEMENT_NODE
-          : o && (nt = o.nodeType, isTY(nt, kTY.num) && nt - kNode.ELEMENT_NODE);
-        o = knownDi ? o!.previousSibling : o!.nextSibling) { /* empty */ }
+    for (; o && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
+          ? <number> <Element | RadioNodeList | kNode> o.nodeType - kNode.ELEMENT_NODE
+          : isTY(nt = o.nodeType, kTY.num) && nt - kNode.ELEMENT_NODE)
+        ; o = knownDi ? o!.previousSibling : o!.nextSibling) { /* empty */ }
+    if (o && anc) {
+      const num = compareDocumentPosition(anc, o)
+      if (!(num & (kNode.DOCUMENT_POSITION_CONTAINS | kNode.DOCUMENT_POSITION_CONTAINED_BY))
+          && num & (knownDi ? kNode.DOCUMENT_POSITION_PRECEDING : kNode.DOCUMENT_POSITION_FOLLOWING)) {
+        o = 0
+      }
+    }
     if (!(Build.BTypes & ~BrowserType.Firefox)) {
-      return (/* Element | null */ o || (/* el is not Element */ el && el.parentElement)) as SafeElement | null;
+      return (/* Element | null */ o || /* container element */ el) as SafeElement | null;
     }
-    return SafeEl_not_ff_!(<Element | null> o
-        || (/* el is not Element */ el && el.parentElement as Element | null)
-      , PNType.DirectElement);
+    return SafeEl_not_ff_!(<Element | null> (o || el), PNType.DirectElement)
 }
 
   /** action section */
