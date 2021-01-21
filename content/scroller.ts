@@ -47,7 +47,7 @@ let minDelay: number
 let currentScrolling: WeakRef<SafeElement> | null = null
 let cachedScrollable: WeakRef<SafeElement> | 0 | null = 0
 let keyIsDown = 0
-let preventPointEvents: BOOL | 2
+let preventPointEvents: BOOL | 2 | 3
 let scale = 1
 let joined: VApiTy | null | undefined
 let scrolled = 0
@@ -60,7 +60,7 @@ export function set_cachedScrollable (_newCachedSc: typeof cachedScrollable): vo
 let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: number): void => {
   let amount: number, sign: number, calibration: number, di: ScrollByY, duration: number, element: SafeElement | null,
   beforePos: number, timestamp: number, rawTimestamp: number, totalDelta: number, totalElapsed: number, min_delta = 0,
-  running = 0, timer: ValidTimeoutID = TimerID.None, calibTime: number,
+  running = 0, timer: ValidTimeoutID = TimerID.None, calibTime: number, lostFrames: number,
   styleTop: SafeElement | null = null,
   animate = (newRawTimestamp: number): void => {
     const continuous = keyIsDown > 0, rawElapsed = newRawTimestamp - rawTimestamp
@@ -89,6 +89,10 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
         }
         newTimestamp = timestamp + elapsed
       } else {
+        if (rawElapsed > 20 && preventPointEvents === 3 && rawElapsed > min_delta * 1.8 && ++lostFrames > 2) {
+          preventPointEvents = 2
+          toggleAnimation!(1)
+        }
         rawTimestamp && (min_delta = min_(rawElapsed + 0.1, min_delta || 1e5))
       }
     }
@@ -157,7 +161,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
   };
   toggleAnimation = (scrolling?: BOOL): void => {
     if (!scrolling) {
-      running = rawTimestamp = beforePos = calibTime = 0
+      running = rawTimestamp = beforePos = calibTime = preventPointEvents = lostFrames = 0
       element = null
     }
     if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement
@@ -176,15 +180,15 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     element = newEl1
     sign = newAmount1 < 0 ? -1 : 1
     totalDelta = totalElapsed = 0.0
-    timestamp = rawTimestamp = calibTime = 0
+    timestamp = rawTimestamp = calibTime = lostFrames = 0
     if (timer) {
       clearTimeout_(timer);
     }
     const keyboard = fgCache.k;
     keyboard.length > 2 && (min_delta = min_(min_delta, +keyboard[2]! || min_delta))
     maxKeyInterval = keyboard[1] * 2 + ScrollConsts.DelayTolerance
-    minDelay = keyboard[0] + max_(keyboard[1], ScrollConsts.DelayMinDelta) + ScrollConsts.DelayTolerance
-    preventPointEvents && (preventPointEvents > 1 || !isSelARange(getSelection_())) && toggleAnimation!(1)
+    minDelay = keyboard[0] + max_(keyboard[1], ScrollConsts.DelayMinDelta) + ScrollConsts.DelayTolerance;
+    (preventPointEvents === 2 || preventPointEvents === 1 && !isSelARange(getSelection_())) && toggleAnimation!(1)
     startAnimate();
   };
   performAnimate(newEl, newDi, newAmount)
@@ -293,9 +297,9 @@ export const executeScroll = function (di: ScrollByY, amount0: number, isTo: BOO
     }
     set_scrollingTop(null)
     const keepHover = options && options.keepHover
-    preventPointEvents = keepHover === !1 ? 1 : keepHover === "never" ? 2 : 0
+    preventPointEvents = keepHover === !1 ? 1 : keepHover === "never" ? 2 : keepHover === "auto" ? 3 : 0
     vApi.$(element, di, amount)
-    preventPointEvents = 0
+    preventPointEvents = keyIsDown ? preventPointEvents : 0
     scrolled = 0
     if (amount && readyState_ > "i" && overrideScrollRestoration) {
       overrideScrollRestoration("scrollRestoration", "manual")
