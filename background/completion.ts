@@ -737,8 +737,11 @@ domainEngine = {
   } ,
   performSearch_ (): void {
     const ref = BgUtils_.domains_, p = RankingUtils.maxScoreP_,
+    ret_many: Array<{r: number, d: string, m: Domain}> | null =
+        allExpectedTypes === SugType.domain && autoSelect ? [] : null, // autoSelect means there's only 1 engine in mode
     word = queryTerms[0].replace("/", "").toLowerCase();
-    let sug: Suggestion | undefined, result = "", matchedDomain: Domain | undefined, result_score = -1.1;
+    const extraSlash = word === queryTerms[0]
+    let sugs: Suggestion[] = [], result = "", matchedDomain: Domain | undefined, result_score = -1.1
     RankingUtils.maxScoreP_ = RankingEnums.maximumScore;
     if (Build.MinCVer >= BrowserVer.MinTestedES6Environment || !(Build.BTypes & BrowserType.Chrome)) {
       for (const domain of (ref as IterableMap<string, Domain>).keys() as unknown as string[]) {
@@ -746,7 +749,8 @@ domainEngine = {
         matchedDomain = ref.get(domain)!
         if (showThoseInBlocklist || matchedDomain.count_ > 0) {
           const score = ComputeRelevancy(domain, "", matchedDomain.time_)
-          if (score > result_score) { result_score = score; result = domain }
+          ret_many ? ret_many.push({ r: score, d: domain, m: matchedDomain })
+          : score > result_score ? (result_score = score, result = domain) : 0
         }
       }
     } else if (Build.MinCVer >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
@@ -759,7 +763,8 @@ domainEngine = {
         matchedDomain = ref.get(domain)!
         if (showThoseInBlocklist || matchedDomain.count_ > 0) {
           const score = ComputeRelevancy(domain, "", matchedDomain.time_)
-          if (score > result_score) { result_score = score; result = domain }
+          ret_many ? ret_many.push({ r: score, d: domain, m: matchedDomain })
+          : score > result_score ? (result_score = score, result = domain) : 0
         }
       }
     } else {
@@ -768,7 +773,8 @@ domainEngine = {
         matchedDomain = ref.get(domain)!
         if (showThoseInBlocklist || matchedDomain.count_ > 0) {
           const score = ComputeRelevancy(domain, "", matchedDomain.time_)
-          if (score > result_score) { result_score = score; result = domain }
+          ret_many ? ret_many.push({ r: score, d: domain, m: matchedDomain })
+          : score > result_score ? (result_score = score, result = domain) : 0
         }
       }
     }
@@ -799,9 +805,25 @@ domainEngine = {
     }
     if (result) {
       matchedTotal++;
+      autoSelect = !offset && isMainPart || autoSelect
+      sugs = domainEngine.createDomainSug_(result, matchedDomain!, 0, extraSlash)
+    } else if (ret_many) {
+      ret_many.sort(domainEngine.rsortByR_)
+      matchedTotal = ret_many.length
+      if (matchedTotal > offset + maxResults) {
+        ret_many.length = offset + maxResults
+      }
+      for (const i of ret_many) {
+        sugs.push(domainEngine.createDomainSug_(i.d, i.m, i.r, extraSlash)[0])
+      }
+    }
+    RankingUtils.maxScoreP_ = p;
+    Completers.next_(sugs, SugType.domain);
+  },
+  createDomainSug_ (key: string, matchedDomain: Domain, scoreInMany: number, extraSlash: boolean): Suggestion[] {
       let useHttps = matchedDomain!.https_ > 0, title = ""
       if (bookmarkEngine.status_ === BookmarkStatus.inited) {
-        const re: RegExpOne = new RegExp(`^https?://${result.replace(escapeAllRe, "\\$&")}/?$`)
+        const re: RegExpOne = new RegExp(`^https?://${key.replace(escapeAllRe, "\\$&")}/?$`)
         let matchedBookmarks = bookmarkEngine.bookmarks_.filter(
             item => re.test(item.u) && (showThoseInBlocklist || item.visible_))
         if (matchedBookmarks.length > 0) {
@@ -813,13 +835,12 @@ domainEngine = {
           title = matchedBookmarks[0].title_
         }
       }
-      const url = historyUrlToSkip = (useHttps ? "https://" : "http://") + result + "/"
-      if (offset > 0) {
-        offset--;
-      } else {
-        autoSelect = isMainPart || autoSelect;
-        sug = new Suggestion("domain", url, word === queryTerms[0] ? result : result + "/", "",
-            get2ndArg, 2);
+      const url = (useHttps ? "https://" : "http://") + key + "/"
+      if (!scoreInMany) {
+        historyUrlToSkip = url
+        if (offset > 0) { offset--; return [] }
+      }
+        const sug = new Suggestion("domain", url, extraSlash ? key : key + "/", "", get2ndArg, scoreInMany || 2)
         const ind = HistoryCache.sorted_ ? HistoryCache.binarySearch_(url) : -1,
         item = ind > 0 ? HistoryCache.history_![ind] : null;
         prepareHtml(sug);
@@ -829,10 +850,7 @@ domainEngine = {
         }
         sug.title = cutTitle(title, [])
         --maxResults;
-      }
-    }
-    RankingUtils.maxScoreP_ = p;
-    Completers.next_(sug ? [sug] : [], SugType.domain);
+        return [sug]
   },
   refresh_ (history: HistoryItem[]): void {
     domainEngine.refresh_ = null as never;
@@ -859,7 +877,8 @@ domainEngine = {
     i = url.indexOf("/", d);
     url = url.slice(d, i < 0 ? url.length : i);
     return { domain_: url !== "__proto__" ? url : ".__proto__", schema_: d };
-  }
+  },
+  rsortByR_: (a: { r: number }, b: { r: number }): number => b.r - a.r
 },
 
 tabEngine = {
