@@ -74,13 +74,15 @@ import {
   BSP, ENTER, SPC,
 } from "../lib/keyboard_utils"
 import {
-  style_ui, addElementList, ensureBorder, adjustUI, flash_, getParentVApi, getWndVApi_ff, checkHidden, removeModal, getSelected,
+  style_ui, addElementList, ensureBorder, adjustUI, flash_, getParentVApi, getWndVApi_ff, checkHidden, removeModal,
+  getSelected
 } from "./dom_ui"
 import { scrollTick, beginScroll } from "./scroller"
 import { hudTip, hudShow, hudHide, hud_tipTimer } from "./hud"
 import { set_onWndBlur2, insert_Lock_ } from "./insert"
 import {
-  getVisibleElements, localLinkClear, frameNested_, checkNestedFrame, set_frameNested_, filterOutNonReachable,
+  getVisibleElements, localLinkClear, frameNested_, checkNestedFrame, set_frameNested_, filterOutNonReachable, traverse,
+  getIfOnlyVisible
 } from "./local_links"
 import {
   matchHintsByKey, zIndexes_, rotate1, initFilterEngine, initAlphabetEngine, renderMarkers, generateHintText,
@@ -472,7 +474,7 @@ const callExecuteHint = (hint: HintItem, event?: HandlerNS.Event): void => {
 }
 
 const activateDirectly = (options: HintsNS.ContentOptions, count: number) => {
-  const d = options.direct! as string,
+  const d = options.direct! as string, match = options.match, elIndex = options.index,
   allTypes = (d as typeof options.direct) === !0, mode = options.m &= ~HintMode.queue,
   next = (): void => {
     let rect: ClientRect | 0, sel: Selection
@@ -482,16 +484,20 @@ const activateDirectly = (options: HintsNS.ContentOptions, count: number) => {
     ), --count > 0)
     ? setTimeout(next, count > 99 ? 1 : 17) : clear()
   }
-  let docActive: SafeElement | null, isSel: boolean
+  let docActive: SafeElement | null, isSel: boolean | undefined, matched: Hint[], matchedOne: Hint | undefined
   let el: SafeElement | null | undefined
-  el = (allTypes || d.includes("l"))
-      && isSelARange(getSelection()) && (el = getSelectionFocusEdge_(getSelected()), isSel = !!el, el)
-      || (allTypes || d.includes("f"))
+  el = (prepareCrop_(), allTypes || d.includes("ele")) && match // target | element
+          && (matched = traverse(kSafeAllSelector, options, getIfOnlyVisible, 1)).length > 0
+          && (matchedOne = matched.slice(elIndex === "count" ? count < 0 ? count : count - 1 : +elIndex! || 0)[0])
+          && matchedOne[0]
+      || (allTypes || d.includes("se")) // selected
+          && isSelARange(getSelection()) && (el = getSelectionFocusEdge_(getSelected()), isSel = !!el, el)
+      || (allTypes || d.includes("f")) // focused
           && (insert_Lock_()
               || (docActive = Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(activeEl_unsafe_())
                     : activeEl_unsafe_() as SafeElement | null,
                   docActive !== doc.body && docActive !== docEl_unsafe_() && docActive))
-      || (allTypes || d.includes("h") || d.includes("i") ? deref_(lastHovered_) : null)
+      || (allTypes || d.includes("h") || d.includes("i") ? deref_(lastHovered_) : null) // hover | clicked
   el = mode < HintMode.min_job || el && htmlTag_(el) ? el : null
   if (!el || !IsInDOM_(el)) {
     hudTip(kTip.noLinks)
@@ -500,7 +506,6 @@ const activateDirectly = (options: HintsNS.ContentOptions, count: number) => {
     api_ = vApi
     options_ = options
     setMode(mode, count_ = isActive = 1)
-    prepareCrop_()
     next()
   }
 }

@@ -221,7 +221,8 @@ declare namespace HintsNS {
   interface Options extends UserSedOptions, CSSOptions {
     /** mode */ m: HintMode
     /** hint characters */ c?: string
-    /** click directly */ direct?: boolean | "sel" | "focus" | "hover" | "click" | "sel,focus,hover" | "sel,focus,click"
+    /** click directly */ direct?: boolean | "element" | "sel" | "focus" | "hover" | "click" | "element,sel,focus,hover"
+    index?: "count" | number
     action?: string;
     caret?: boolean;
     ordinal?: boolean
@@ -278,7 +279,7 @@ interface CmdOptions {
     dir?: 1 | -1 | 0.5 | -0.5;
     view?: 0 | /** means 0 */ undefined | 1 | "max" | /* all others are treated as "view" */ 2 | "view";
     dest?: undefined;
-    keepHover?: boolean;
+    keepHover?: boolean | "auto" | "never"
   } | {
     /** continuous */ $c?: kKeyCode;
     dest: "min" | "max";
@@ -286,7 +287,7 @@ interface CmdOptions {
     view?: undefined;
     sel?: "clear";
     dir?: undefined;
-    keepHover?: boolean | "never";
+    keepHover?: boolean | "auto" | "never"
   };
   [kFgCmd.toggle]: {
     k: keyof SettingsNS.FrontendSettingsSyncingItems;

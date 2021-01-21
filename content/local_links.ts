@@ -237,7 +237,7 @@ export const getEditable = (hints: Hint[], element: SafeHTMLElement): void => {
   getIfOnlyVisible(hints, element)
 }
 
-const getIfOnlyVisible = (hints: Hint[], element: SafeElement): void => {
+export const getIfOnlyVisible = (hints: Hint[], element: SafeElement): void => {
   let arr = getVisibleClientRect_(element)
   arr && hints.push([element as SafeElementForMouse, arr, ClickType.Default])
 }
