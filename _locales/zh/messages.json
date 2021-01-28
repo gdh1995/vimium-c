@@ -139,6 +139,7 @@
   "userCustomized": { "message": "自定义快捷键" },
   "cmdParams": { "message": "（参数：*）" },
   "cmdConfirm": { "message": "您希望 Vimium C 执行 $1 次如下命令：\n    $2\n\n是否确认继续?" },
+  "harmfulURL": { "message": "发现网址可能危害您的电脑！！！" },
   "name": { "message": "Vimium C - 全键盘操作浏览器" },
   "description": { "message":
     "一款支持全键盘操作浏览器的辅助工具，只用键盘即可点击任意链接、切换标签页和快速搜索任意内容，支持自定义快捷键和调整操作细节"

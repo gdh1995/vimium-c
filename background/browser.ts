@@ -102,6 +102,9 @@ export const tabsCreate = (args: chrome.tabs.CreateProperties, callback?: ((tab:
 }
 
 export const safeUpdate = (url: string, secondTimes?: true, tabs1?: [Tab]): void => {
+  if (Backend_.verifyHarmfulUrl_(url)) {
+    return
+  }
   if (!tabs1) {
     if (BgUtils_.isRefusingIncognito_(url) && secondTimes !== true) {
       getCurTab(safeUpdate.bind(null, url, true))
@@ -121,6 +124,9 @@ export const safeUpdate = (url: string, secondTimes?: true, tabs1?: [Tab]): void
 export const openMultiTab = (options: InfoToCreateMultiTab, count: number, evenIncognito?: boolean | -1 | null
     ): void => {
   const hasIndex = options.index != null
+  if (options.url && Backend_.verifyHarmfulUrl_(options.url)) {
+    return
+  }
   tabsCreate(options, options.active ? (tab): void => {
     tab && tab.windowId !== TabRecency_.curWnd_ && selectWnd(tab)
   } : null, evenIncognito)

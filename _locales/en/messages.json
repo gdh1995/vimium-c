@@ -191,6 +191,7 @@
   "cmdParams": { "message": " (use *)" },
   "cmdConfirm": { "message":
     "You have asked Vimium C to perform $1 repeats of the command:\n    $2\n\nAre you sure you want to continue?" },
+  "harmfulURL": { "message": "The URL may be harmful to your computer !!!" },
   "name": { "message": "Vimium C - All by Keyboard" },
   "description": { "message":
 "A keyboard shortcut tool for keyboard-based page navigation and browser tab operations with an advanced omnibar and global shortcuts"

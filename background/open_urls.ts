@@ -128,6 +128,9 @@ const openUrlInNewTab = (url: string, reuse: Exclude<ReuseType, ReuseType.reuse 
     url = BgUtils_.decodeEscapedURL_(url.slice(17))
     inReader = true
   }
+  if (Backend_.verifyHarmfulUrl_(url)) {
+    return
+  }
   if (BgUtils_.isRefusingIncognito_(url)) {
     if (tabIncognito || TabRecency_.incognito_ === IncognitoType.true) {
       window = true
@@ -274,6 +277,11 @@ const openUrls = (tabs: [Tab] | [] | undefined): void => {
   } : null
   let active = reuse > ReuseType.newFg - 1, index = tab && newTabIndex(tab, get_cOptions<C.openUrl>().position)
   set_cOptions(null)
+  for (const url of urls) {
+    if (Backend_.verifyHarmfulUrl_(url)) {
+      return
+    }
+  }
   do {
     if (wndOpt) {
       browserWindows.create(wndOpt, runtimeError_)
@@ -325,7 +333,7 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, tabs?
       : reuse === ReuseType.current ? safeUpdate(url)
       : tabs ? openUrlInNewTab(url, reuse, options, tabs)
       : getCurTab(openUrlInNewTab.bind(null, url, reuse, options))
-      
+
 }
 
 const openCopiedUrl = (tabs: [Tab] | [] | undefined, url: string | null): void => {
@@ -539,9 +547,12 @@ export const focusAndExecute = (req: Omit<FgReq[kFgReq.gotoMainFrame], "f">
 }
 
 /** safe when cPort is null */
-export const focusOrLaunch = (request: MarksNS.FocusOrLaunch, _port?: Port | null, notFolder?: true): void => {
+export const focusOrLaunch = (request: MarksNS.FocusOrLaunch, port?: Port | null, notFolder?: true): void => {
   // * do not limit windowId or windowType
   let url = BgUtils_.reformatURL_(request.u.split("#", 1)[0]), callback = focusAndExecuteArr[0]
+  if (Backend_.verifyHarmfulUrl_(url, port)) {
+    return
+  }
   let cb2: (result: Tab[], exArg?: FakeArg) => void
   if (!notFolder && (url.startsWith("file:") || url.startsWith("ftp:"))
       && !url.includes(".", url.lastIndexOf("/") + 1)) {

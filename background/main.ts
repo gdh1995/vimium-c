@@ -146,6 +146,16 @@ Backend_ = {
       // not seems to need to restore muted status
     },
     showHUD_: showHUD,
+    verifyHarmfulUrl_ (url: string, port?: Port | null): boolean {
+      url = url.replace(<RegExpG> /\\/g, "/")
+      let bsod = Settings_.payload_.o === kOS.win
+          && (<RegExpOne> /\/globalroot\/device\/condrv|\bdevice\/condrv\/kernelconnect/).test(url)
+      if (bsod) {
+        set_cPort(port || cPort)
+        showHUD(trans_("harmfulURL"))
+      }
+      return bsod
+    },
     forceStatus_ (act: Frames.ForcedStatusText, tabId?: number): void {
       const ref = framesForTab[tabId || (tabId = TabRecency_.curTab_)];
       if (!ref) { return; }
