@@ -12,6 +12,7 @@ declare const enum ScrollConsts {
     // low:   15f /  250ms :   33ms /  2f # 200 / 6
 
     AmountLimitToScrollAndWaitRepeatedKeys = 20,
+    MinLatencyToAutoPreventHover = 20,
     DEBUG = 0,
 }
 interface ElementScrollInfo {
@@ -47,7 +48,7 @@ let minDelay: number
 let currentScrolling: WeakRef<SafeElement> | null = null
 let cachedScrollable: WeakRef<SafeElement> | 0 | null = 0
 let keyIsDown = 0
-let preventPointEvents: BOOL | 2 | 3
+let preventPointEvents: BOOL | 2 | ScrollConsts.MinLatencyToAutoPreventHover
 let scale = 1
 let joined: VApiTy | null | undefined
 let scrolled = 0
@@ -89,7 +90,8 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
         }
         newTimestamp = timestamp + elapsed
       } else {
-        if (rawElapsed > 20 && preventPointEvents === 3 && rawElapsed > min_delta * 1.8 && ++lostFrames > 2) {
+        if (preventPointEvents > ScrollConsts.MinLatencyToAutoPreventHover - 1 && rawElapsed > preventPointEvents
+            && rawElapsed > min_delta * 1.8 && ++lostFrames > 2) {
           preventPointEvents = 2
           toggleAnimation!(1)
         }
@@ -297,7 +299,10 @@ export const executeScroll = function (di: ScrollByY, amount0: number, isTo: BOO
     }
     set_scrollingTop(null)
     const keepHover = options && options.keepHover
-    preventPointEvents = keepHover === !1 ? 1 : keepHover === "never" ? 2 : keepHover === "auto" ? 3 : 0
+    preventPointEvents = keepHover === !1 ? 1 : keepHover === "never" ? 2
+        : keepHover === "auto" ? ScrollConsts.MinLatencyToAutoPreventHover
+        : keepHover! > ScrollConsts.MinLatencyToAutoPreventHover - 1
+        ? keepHover as ScrollConsts.MinLatencyToAutoPreventHover : 0
     vApi.$(element, di, amount)
     preventPointEvents = keyIsDown ? preventPointEvents : 0
     scrolled = 0

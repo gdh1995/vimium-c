@@ -287,7 +287,7 @@ interface CmdOptions {
     view?: undefined;
     sel?: "clear";
     dir?: undefined;
-    keepHover?: boolean | "auto" | "never"
+    keepHover?: boolean | "auto" | "never" | /* or >= 20 */ 20
   };
   [kFgCmd.toggle]: {
     k: keyof SettingsNS.FrontendSettingsSyncingItems;
