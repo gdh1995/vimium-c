@@ -98,20 +98,24 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
         rawTimestamp && (min_delta = min_(rawElapsed + 0.1, min_delta || 1e5))
       }
     }
+    totalElapsed += elapsed
+    if (timer) { elapsed = min_delta; timer = 0 }
     if (!Build.NDEBUG && ScrollConsts.DEBUG & 1) {
-      console.log("rawOld>rawNew: +%o = %o ; old>new: +%o = %o ; elapsed = %o ; min_delta = %o"
+      console.log("rawOld>rawNew: +%o = %o ; old>new: +%o = %o ; elapsed: +%o = %o; min_delta = %o"
           , (((newRawTimestamp - rawTimestamp) * 1e2) | 0) / 1e2
           , newRawTimestamp % 1e4 , (((newTimestamp - timestamp) * 1e2) | 0) / 1e2, newTimestamp % 1e4
-          , ((elapsed * 1e2) | 0) / 1e2, ((min_delta * 1e2) | 0) / 1e2)
+          , ((elapsed * 1e2) | 0) / 1e2, ((totalElapsed * 1e2) | 0) / 1e2, ((min_delta * 1e2) | 0) / 1e2)
     }
     rawTimestamp = newRawTimestamp
     timestamp = newTimestamp
-    totalElapsed += elapsed;
     if (!isAlive_ || !running) { toggleAnimation!(); return }
     if (amount < ScrollConsts.AmountLimitToScrollAndWaitRepeatedKeys
-        && continuous && totalDelta >= amount && totalElapsed < minDelay - 2) {
+        && totalElapsed < minDelay - 2 && continuous && totalDelta >= amount) {
       running = 0;
       timer = timeout_(startAnimate, minDelay - totalElapsed)
+      if (!Build.NDEBUG && ScrollConsts.DEBUG) {
+        console.log("[animation] wait for %o - %o ms", minDelay, ((totalElapsed * 1e2) | 0) / 1e2)
+      }
       return;
     }
     if (continuous) {
@@ -133,7 +137,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     if (delta > 0) {
       if (!Build.NDEBUG && ScrollConsts.DEBUG & 2) {
         console.log("do scroll: %o + ceil(%o); amount=%o ; keyIsDown=%o"
-            , ((totalDelta * 100) | 0) / 100, ((elapsed * 100) | 0) / 100, amount
+            , ((totalDelta * 100) | 0) / 100, ((delta * 100) | 0) / 100, amount
             , ((keyIsDown * 10) | 0) / 10)
       }
       delta = performScroll(element, di, sign * math.ceil(delta), beforePos)
@@ -158,11 +162,14 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
   hasDialog = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement
       || !!(Build.BTypes & BrowserType.ChromeOrFirefox) && doesSupportDialog(),
   startAnimate = (): void => {
-    timer = TimerID.None;
     running = running || rAF_(animate);
   };
   toggleAnimation = (scrolling?: BOOL): void => {
     if (!scrolling) {
+      if (!Build.NDEBUG && ScrollConsts.DEBUG) {
+        console.log("[animation] stop after %o ms / %o px"
+            , ((totalElapsed * 1e2) | 0) / 1e2, ((totalDelta * 1e2) | 0) / 1e2)
+      }
       running = rawTimestamp = beforePos = calibTime = preventPointEvents = lostFrames = 0
       element = null
     }
@@ -181,16 +188,18 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     duration = max_(ScrollConsts.minDuration, ScrollConsts.durationScaleForAmount * math.log(amount))
     element = newEl1
     sign = newAmount1 < 0 ? -1 : 1
+    timer && clearTimeout_(timer)
+    timer = TimerID.None
     totalDelta = totalElapsed = 0.0
     timestamp = rawTimestamp = calibTime = lostFrames = 0
-    if (timer) {
-      clearTimeout_(timer);
-    }
     const keyboard = fgCache.k;
     keyboard.length > 2 && (min_delta = min_(min_delta, +keyboard[2]! || min_delta))
-    maxKeyInterval = keyboard[1] * 2 + ScrollConsts.DelayTolerance
+    maxKeyInterval = max_(min_delta, keyboard[1]) * 2 + ScrollConsts.DelayTolerance
     minDelay = keyboard[0] + max_(keyboard[1], ScrollConsts.DelayMinDelta) + ScrollConsts.DelayTolerance;
     (preventPointEvents === 2 || preventPointEvents === 1 && !isSelARange(getSelection_())) && toggleAnimation!(1)
+    if (!Build.NDEBUG && ScrollConsts.DEBUG) {
+      console.log("[animation] start with axis = %o, amount = %o, dir = %o", di ? "y" : "x", amount, sign)
+    }
     startAnimate();
   };
   performAnimate(newEl, newDi, newAmount)
