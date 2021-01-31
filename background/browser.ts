@@ -102,7 +102,7 @@ export const tabsCreate = (args: chrome.tabs.CreateProperties, callback?: ((tab:
 }
 
 export const safeUpdate = (url: string, secondTimes?: true, tabs1?: [Tab]): void => {
-  if (Backend_.verifyHarmfulUrl_(url)) {
+  if (Backend_.checkHarmfulUrl_(url)) {
     return
   }
   if (!tabs1) {
@@ -124,7 +124,7 @@ export const safeUpdate = (url: string, secondTimes?: true, tabs1?: [Tab]): void
 export const openMultiTab = (options: InfoToCreateMultiTab, count: number, evenIncognito?: boolean | -1 | null
     ): void => {
   const hasIndex = options.index != null
-  if (options.url && Backend_.verifyHarmfulUrl_(options.url)) {
+  if (options.url && Backend_.checkHarmfulUrl_(options.url)) {
     return
   }
   tabsCreate(options, options.active ? (tab): void => {

@@ -128,7 +128,7 @@ const openUrlInNewTab = (url: string, reuse: Exclude<ReuseType, ReuseType.reuse 
     url = BgUtils_.decodeEscapedURL_(url.slice(17))
     inReader = true
   }
-  if (Backend_.verifyHarmfulUrl_(url)) {
+  if (Backend_.checkHarmfulUrl_(url)) {
     return
   }
   if (BgUtils_.isRefusingIncognito_(url)) {
@@ -278,7 +278,7 @@ const openUrls = (tabs: [Tab] | [] | undefined): void => {
   let active = reuse > ReuseType.newFg - 1, index = tab && newTabIndex(tab, get_cOptions<C.openUrl>().position)
   set_cOptions(null)
   for (const url of urls) {
-    if (Backend_.verifyHarmfulUrl_(url)) {
+    if (Backend_.checkHarmfulUrl_(url)) {
       return
     }
   }
@@ -550,7 +550,7 @@ export const focusAndExecute = (req: Omit<FgReq[kFgReq.gotoMainFrame], "f">
 export const focusOrLaunch = (request: MarksNS.FocusOrLaunch, port?: Port | null, notFolder?: true): void => {
   // * do not limit windowId or windowType
   let url = BgUtils_.reformatURL_(request.u.split("#", 1)[0]), callback = focusAndExecuteArr[0]
-  if (Backend_.verifyHarmfulUrl_(url, port)) {
+  if (Backend_.checkHarmfulUrl_(url, port)) {
     return
   }
   let cb2: (result: Tab[], exArg?: FakeArg) => void

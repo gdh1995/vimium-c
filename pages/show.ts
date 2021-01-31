@@ -184,7 +184,7 @@ window.onhashchange = function (this: void): void {
       }
       setTimeout(showBgLink, 34);
       this.onclick = function (e) {
-        if (BG_ && BG_.Backend_.verifyHarmfulUrl_(VData.url)) {
+        if (BG_ && BG_.Backend_.checkHarmfulUrl_(VData.url)) {
           return;
         }
         !e.ctrlKey && !e.shiftKey && !e.altKey && chrome.tabs && chrome.tabs.update
