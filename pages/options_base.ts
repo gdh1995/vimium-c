@@ -540,6 +540,9 @@ Promise.resolve((BG_.BgUtils_.GC_(1), bgSettings_.restore_) && bgSettings_.resto
     } else if (Build.BTypes & BrowserType.Edge
         && (!(Build.BTypes & ~BrowserType.Edge) || bgOnOther_ === BrowserType.Edge)) {
       (refreshTip.querySelector(".action") as HTMLElement).textContent = "open a new web page";
+    } else if ((<RegExpOne> /\bOpera\//).test(navigator.userAgent)
+        && (<RegExpOne> /\.(google|bing|baidu)\./).test(_url.split("/", 4).slice(0, 3).join("/"))) {
+      (blockedMsg.querySelector("#opera-warning") as HTMLElement).style.display = "";
     }
     body.style.width = "auto";
     body.appendChild(blockedMsg);
