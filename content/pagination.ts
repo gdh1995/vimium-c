@@ -70,8 +70,8 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
   for (let wsRe = <RegExpOne> /\s+/, _len = links.length - 1; 0 <= --_len; ) {
     const link = links[_len];
     if (contains_s(link, links[_len + 1]) || (s = link.innerText).length > totalMax) { continue }
-    if (s = s || (ch = (link as HTMLInputElement).value) && isTY(ch, kTY.str) && ch
-            || attr_s(link, ALA) || link.title) {
+    if (s = s.length > 2 ? s : !s && (ch = (link as HTMLInputElement).value) && isTY(ch, kTY.str) && ch
+            || attr_s(link, ALA) || link.title || s) {
       if (s.length > totalMax) { continue; }
       s = Lower(s)
       for (i = 0; i < names.length; i++) {
