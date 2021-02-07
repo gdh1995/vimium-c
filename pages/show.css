@@ -3,6 +3,10 @@ body.filled, body.pixel {
   font-size: 0;
   margin: 0;
 }
+body {
+  min-width: 96vw;
+  min-height: 96vh;
+}
 body.filled:not(.viewer-open) {
   overflow: overlay;
 }

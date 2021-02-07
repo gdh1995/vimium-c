@@ -61,6 +61,7 @@ pTrans_: typeof chrome.i18n.getMessage = Build.BTypes & BrowserType.Firefox
     && BG_ && (!(Build.BTypes & ~BrowserType.Firefox) || BG_.OnOther === BrowserType.Firefox)
     ? (i, j) => BG_.trans_(i, j) : chrome.i18n.getMessage;
 const blobCache: Dict<Blob> = {}
+const body = document.body as HTMLBodyElement
 
 let VShown: ValidNodeTypes | null = null;
 let bgLink = $<HTMLAnchorElement & SafeHTMLElement>("#bgLink");
@@ -71,6 +72,7 @@ let encryptKey = +window.name || 0;
 let ImageExtRe = <RegExpI> /\.(avif|bmp|gif|icon?|jpe?g|a?png|tiff?|webp)(?=[.\-_]|\b)/i;
 let _shownBlobURL = "", _shownBlob: Blob | null | 0 = null;
 let loadingTimer: (() => void) | null | undefined
+let _nextUrl: string | undefined
 
 if (chrome.i18n.getMessage("lang1")) {
   document.title = pTrans_("vDisplay") || document.title;
@@ -87,8 +89,9 @@ window.onhashchange = function (this: void): void {
   VData = Object.create(null);
   VData.o = getOmni_;
   let url = location.hash, type: VDataTy["type"] = "", file = "";
-  if (!url && BG_ && BG_.Settings_ && BG_.Settings_.temp_.shownHash_) {
-    url = BG_.Settings_.temp_.shownHash_();
+  if (_nextUrl || !url && BG_ && BG_.Settings_ && BG_.Settings_.temp_.shownHash_) {
+    url = _nextUrl || BG_.Settings_.temp_.shownHash_!()
+    _nextUrl = ""
     if ((<RegExpI> /^[^:]+[ &]data:/i).test(url)) {
       encryptKey = -1;
     }
@@ -220,7 +223,6 @@ window.onhashchange = function (this: void): void {
         }, 0);
         showBgLink();
         this.classList.add("zoom-in");
-        const body = document.body as HTMLBodyElement
         if (VData.pixel) {
           body.classList.add("pixel")
           const dpr = devicePixelRatio
@@ -332,6 +334,28 @@ window.onpopstate = function () {
 };
 
 window.onunload = destroyObject_;
+
+body.ondrop = (e): void => {
+  const files = e.dataTransfer.files;
+  if (files.length === 1) {
+    const file = files[0], name = file.name
+    if (file.type.startsWith("image/") || ImageExtRe.test(name)) {
+      (e as Event as EventToPrevent).preventDefault()
+      _nextUrl = "#!image download=" + name + "&" + URL.createObjectURL(file);
+      (onhashchange as () => void)()
+    }
+  }
+}
+
+body.ondragover = body.ondragenter = (e): void => {
+  const items = e.dataTransfer.items
+  if (items.length === 1) {
+    const item = (items as any)[0] as never || items.item(0)
+    if (item.type.startsWith("image/")) {
+      (e as Event as EventToPrevent).preventDefault()
+    }
+  }
+}
 
 document.addEventListener("keydown", function (this: void, event): void {
   if (VData.type === "image" && imgOnKeydown(event)) {
