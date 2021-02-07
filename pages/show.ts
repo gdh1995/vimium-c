@@ -195,12 +195,12 @@ window.onhashchange = function (this: void): void {
     if ((<RegExpOne> /[:.]/).test(url)) {
       VShown.onclick = defaultOnClick;
       VShown.onload = function (this: HTMLImageElement): void {
-        const width = this.naturalWidth;
-        if (width < 12 && this.naturalHeight < 12) {
+        const width = this.naturalWidth, height = this.naturalHeight;
+        if (width < 12 && height < 12) {
           if (VData.auto) {
             disableAutoAndReload_();
             return;
-          } else if (width < 2 && this.naturalHeight < 2) {
+          } else if (width < 2 && height < 2) {
             console.log("The image is too small to see.");
             this.onerror(null as never);
             return;
@@ -220,11 +220,24 @@ window.onhashchange = function (this: void): void {
         }, 0);
         showBgLink();
         this.classList.add("zoom-in");
+        const body = document.body as HTMLBodyElement
         if (VData.pixel) {
-          (document.body as HTMLBodyElement).classList.add("pixel");
+          body.classList.add("pixel")
+          const dpr = devicePixelRatio
+          if (1 || width > innerWidth * dpr * 0.9 && height > (innerHeight as number) * dpr * 0.9) {
+            const el = importBody("snapshot-banner", true);
+            (el.querySelector(".banner-close") as SVGElement)!.onclick = _e => { el.remove() }
+            let arr = el.querySelectorAll("[data-i]") as ArrayLike<Element> as HTMLElement[]
+            for (let i = 0; i < arr.length; i++) {
+              const s = arr[i].dataset.i!, isTitle = s.endsWith("-t")
+              const t = pTrans_(isTitle ? s.slice(0, -2) : s)
+              t && (isTitle ? arr[i].title = t : arr[i]!.textContent = t)
+            }
+            body.insertBefore(el, body.firstChild)
+          }
         }
         if (width >= innerWidth * 0.9) {
-          (document.body as HTMLBodyElement).classList.add("filled");
+          body.classList.add("filled");
         }
       };
       fetchImage_(url, VShown);
@@ -390,6 +403,16 @@ function imgOnKeydown(event: KeyboardEventToPrevent): boolean {
       : keyCode === kKeyCode.space ? kChar.space : keyCode === kKeyCode.enter ? kChar.enter : "",
   keybody = (key.slice(key.lastIndexOf("-") + 1) || key && kChar.minus) as kChar;
   if (keybody === kChar.space || keybody === kChar.enter) {
+    if (VData.pixel) {
+      const active = document.activeElement, banner = active && document.querySelector("#snapshot-banner")
+      if (banner && banner.contains(active!)) {
+        const close = banner.querySelector(".banner-close") as SVGElement
+        if (close.contains(active!)) {
+          close.onclick(null as never)
+        }
+        return true
+      }
+    }
     event.preventDefault();
     if (keybody === kChar.enter && viewer_ && viewer_.isShown && !viewer_.hiding && !viewer_.played) {
       viewer_.play(true);
@@ -434,11 +457,11 @@ function decodeURLPart_(url: string, func?: typeof decodeURI | null): string {
   return url;
 }
 
-function importBody(id: string): HTMLElement {
+function importBody(id: string, notInsert?: boolean): HTMLElement {
   const templates = $<HTMLTemplateElement>("#bodyTemplate"),
   // note: content has no getElementById on Chrome before BrowserVer.Min$DocumentFragment$$getElementById
   node = document.importNode(templates.content.querySelector("#" + id) as HTMLElement, true);
-  (document.body as HTMLBodyElement).insertBefore(node, templates);
+  notInsert || (document.body as HTMLBodyElement).insertBefore(node, templates)
   return node;
 }
 

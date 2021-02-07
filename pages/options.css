@@ -458,22 +458,29 @@ label:active {
 }
 .remove {
   cursor: default;
+  display: inline-block;
   height: 16px;
+  line-height: 0;
   margin: 6px 4px 0;
-  stroke: #979ca0;
+  color: #979ca0;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 2.4;
   width: 16px;
 }
 .remove:hover {
-  stroke: #444;
-  stroke: var(--icon-button-hover-color);
+  color: #444;
+  color: var(--icon-button-hover-color);
 }
 .remove:active {
-  stroke: #4d90fe;
-  stroke: var(--icon-button-active-color);
+  color: #4d90fe;
+  color: var(--icon-button-active-color);
   outline: none;
+}
+.btn_svg {
+  height: 16px;
+  stroke: currentColor;
+  width: 16px;
 }
 .exclusionHeader {
   color: #444;

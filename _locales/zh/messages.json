@@ -343,6 +343,7 @@
   "o146": { "message": "状态" },
   "o147": { "message": "（当前网页处于 临时$1 状态）" },
   "o148": { "message": "（保存时自动取消状态锁定）" },
+  "s1": { "message": "以下是截图：" },
   "keyMappingsP": { "message": "# 在此处定义新的按键映射和快捷键" },
   "sft": { "message": "Shortcut Forwarding Tool 提供了 32 个可配置的快捷键栏位" },
   "twoS": { "message": "%s 和 $$s 的用法作用完全相同" },

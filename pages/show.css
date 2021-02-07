@@ -1,5 +1,5 @@
 
-body.filled {
+body.filled, body.pixel {
   font-size: 0;
   margin: 0;
 }
@@ -23,6 +23,41 @@ body.pixel .viewer-container img {
 #bgLink {
   position: absolute;
   z-index: -1;
+}
+
+#snapshot-banner {
+  height: 32px;
+}
+.banner-box {
+  background: lightyellow;
+  border-bottom: 1px solid #ebeb00;
+  box-sizing: border-box;
+  font-size: 16px;
+  height: 32px;
+  left: 0;
+  line-height: 32px;
+  padding-left: 2em;
+  position: fixed;
+  right: 0;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.banner-close {
+  color: #777;
+  fill: #777;
+  font-size: 0;
+  height: 20px;
+  line-height: 0;
+  position: absolute;
+  right: 32px;
+  top: 6px;
+  width: 20px;
+}
+.btn_svg {
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.4;
 }
 
 #shownText {
