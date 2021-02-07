@@ -92,7 +92,7 @@ export const activate = function (options: FullOptions, count: number): void {
             || !!(Build.BTypes & BrowserType.Chrome) && chromeVer_ > BrowserVer.MinCSSWidthUnit$vw$InCalc - 1)
         && !fullscreenEl_unsafe_() && docZoom_ === 1 && dScale_ === 1;
     let scale = wndSize_(2);
-    let width = canUseVW ? innerWidth : (prepareCrop_()
+    let width = canUseVW ? wndSize_(1) : (prepareCrop_()
         , !(Build.BTypes & ~BrowserType.Firefox) ? viewportRight : viewportRight * docZoom_ * bZoom_)
     if (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
         && (!(Build.BTypes & ~BrowserType.Chrome)

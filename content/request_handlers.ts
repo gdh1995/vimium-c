@@ -8,7 +8,7 @@ import { set_keyIdCorrectionOffset_old_cr_, handler_stack } from "../lib/keyboar
 import {
   editableTypes_, markFramesetTagUnsafe, setNotSafe_not_ff, OnDocLoaded_, frameElement_, BU, notSafe_not_ff_,
   htmlTag_, querySelector_unsafe_, isHTML_, createElement_, setClassName_s,
-  docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, CLK, ElementProto, isIFrameElement, DAC, removeEl_s, toggleClass_s
+  docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, CLK, ElementProto, isIFrameElement, DAC, removeEl_s, toggleClass_s, fullscreenEl_unsafe_
 } from "../lib/dom_utils"
 import {
   port_callbacks, post_, safePost, set_requestHandlers, requestHandlers, hookOnWnd, set_hookOnWnd,
@@ -251,9 +251,10 @@ set_requestHandlers([
   },
   /* kBgReq.queryForRunAs: */ (request: BgReq[kBgReq.queryForRunKey]): void => {
     const lock = (Build.BTypes & BrowserType.Firefox ? insert_Lock_() : raw_insert_lock) || activeEl_unsafe_()
-    const tag = !lock || Build.BTypes & ~BrowserType.Firefox && notSafe_not_ff_!(lock) ? "" : lock.localName as string
+    const tag = (Build.BTypes & ~BrowserType.Firefox ? !lock || notSafe_not_ff_!(lock) : !lock)
+        ? "" : lock!.localName as string
     post_({ H: kFgReq.respondForRunKey, n: request.n,
-      t: tag, c: tag && lock!.className, i: tag && lock!.id,
+      t: tag, c: tag && lock!.className, i: tag && lock!.id, f: !fullscreenEl_unsafe_()
     })
   }
 ])

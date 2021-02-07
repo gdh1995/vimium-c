@@ -547,13 +547,14 @@ interface CurrentEnvCache {
 
 const matchEnvRule = (rule: CommandsNS.EnvItem, cur: CurrentEnvCache
       , info?: FgReq[kFgReq.respondForRunKey]): EnvMatchResult => {
-    let elSelector = rule.element, host = rule.host
-    if (elSelector) {
+    let elSelector = rule.element, host = rule.host, fullscreen = rule.fullscreen
+    if (elSelector || fullscreen != null) {
       if (!info) {
         cPort && safePost(cPort, { N: kBgReq.queryForRunKey, n: performance.now() })
         return EnvMatchResult.abort
       }
-      if ((<RegExpOne> /^[A-Za-z][-\w]+$/).test(elSelector)) {
+      if (!elSelector) { /* empty */ }
+      else if ((<RegExpOne> /^[A-Za-z][-\w]+$/).test(elSelector)) {
         if (info.t !== elSelector) { return EnvMatchResult.nextEnv }
       } else {
         if (!cur.element_) {
@@ -565,6 +566,11 @@ const matchEnvRule = (rule: CommandsNS.EnvItem, cur: CurrentEnvCache
         if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Element$$matches
             && CurCVer_ < BrowserVer.Min$Element$$matches ? !cur.element_.webkitMatchesSelector!(info.t)
             : !cur.element_.matches!(info.t)) { return EnvMatchResult.nextEnv }
+      }
+      if (fullscreen != null) {
+        if (!!fullscreen !== !info.f) {
+          return EnvMatchResult.nextEnv
+        }
       }
     }
     if (host) {

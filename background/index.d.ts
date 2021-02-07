@@ -224,6 +224,7 @@ declare namespace CommandsNS {
   interface EnvItem {
     element?: string
     host?: string | Pick<ExclusionsNS.Tester, "t" | "v"> | null
+    fullscreen?: boolean
     options?: object
   }
   interface EnvItemWithKeys extends EnvItem {

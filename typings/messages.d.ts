@@ -608,6 +608,7 @@ interface FgReq {
     /** tag of an active element */ t: string
     /** className attr */ c: string
     /** id attr */ i: string
+    /** not fullscreen */ f: boolean
   }
 }
 
