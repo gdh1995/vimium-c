@@ -336,9 +336,9 @@ window.onpopstate = function () {
 window.onunload = destroyObject_;
 
 body.ondrop = (e): void => {
-  const files = e.dataTransfer.files;
+  const files = e.dataTransfer.files
   if (files.length === 1) {
-    const file = files[0], name = file.name
+    const file = files.item(0), name = file.name
     if (file.type.startsWith("image/") || ImageExtRe.test(name)) {
       (e as Event as EventToPrevent).preventDefault()
       _nextUrl = "#!image download=" + name + "&" + URL.createObjectURL(file);
@@ -350,7 +350,7 @@ body.ondrop = (e): void => {
 body.ondragover = body.ondragenter = (e): void => {
   const items = e.dataTransfer.items
   if (items.length === 1) {
-    const item = (items as any)[0] as never || items.item(0)
+    const item = items[0]
     if (item.type.startsWith("image/")) {
       (e as Event as EventToPrevent).preventDefault()
     }
