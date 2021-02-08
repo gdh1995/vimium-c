@@ -1398,12 +1398,13 @@ Completers = {
     const someMatches = suggestions.length > 0,
     newAutoSelect = autoSelect && someMatches, matched = matchedTotal,
     mayGoToAnotherMode = rawInput === ":",
-    newMatchType = matchType < MatchType.plain ? (matchType === MatchType.searching_
-          && !someMatches ? MatchType.searchWanted : MatchType.Default)
+    newMatchType = matchType < MatchType.plain
+        ? matchType === MatchType.searching_ && !someMatches && !mayGoToAnotherMode
+          ? MatchType.searchWanted : MatchType.Default
         : !showThoseInBlocklist ? MatchType.Default
         : queryTerms.length <= 0 || mayRawQueryChangeNextTime_ ? MatchType.Default
         : someMatches ? MatchType.someMatches
-        : mayGoToAnotherMode ? MatchType.searchWanted
+        : mayGoToAnotherMode ? MatchType.Default
         : MatchType.emptyResult,
     realMode = rawMode, components = rawComponents,
     newSugTypes = newMatchType === MatchType.someMatches && !mayGoToAnotherMode ? Completers.sugTypes_ : SugType.Empty,
@@ -2045,7 +2046,7 @@ Completion_ = {
         options.o === "bomni" ? (otherFlags |= CompletersNS.QueryFlags.PreferBookmarks, knownCs.omni)
         : knownCs[options.o]
       , str = queryTerms.length >= 1 ? queryTerms[0] : ""
-      , expectedTypes = options.t;
+    let expectedTypes = options.t || SugType.Full, allowedEngines = options.e! || SugType.Full
     if (arr === knownCs.tab) {
        wantInCurrentWindow = !!(otherFlags & CompletersNS.QueryFlags.TabInCurrentWindow);
     }
@@ -2060,11 +2061,11 @@ Completion_ = {
         : str === "H" ? (otherFlags |= CompletersNS.QueryFlags.NoTabEngine, knownCs.omni)
         : str === "d" ? knownCs.domain : str === "s" ? knownCs.search : str === "o" ? knownCs.omni : null;
       if (arr) {
-        autoSelect = arr.length === 1;
+        autoSelect = arr.length === 2
         rawMode = queryTerms.shift()!
         rawComponents |= CompletersNS.QComponent.mode
         rawQuery = rawQuery.slice(3);
-        if (expectedTypes !== SugType.Empty) { arr = null; }
+        allowedEngines = arr[0]
       }
     }
     if (queryTerms.length > 0 && ((str = queryTerms[0]).includes("\u3002") || str.includes("\uff1a"))) {
@@ -2083,7 +2084,7 @@ Completion_ = {
       }
     }
     showThoseInBlocklist = !omniBlockList || BlockListFilter.IsExpectingHidden_(queryTerms);
-    allExpectedTypes = expectedTypes !== SugType.Empty ? expectedTypes : SugType.Full;
+    allExpectedTypes = expectedTypes & allowedEngines
     if (rawQuery) {
       rawComponents |= CompletersNS.QComponent.query
     }

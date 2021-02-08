@@ -52,6 +52,7 @@ declare namespace CompletersNS {
   }
   interface Options {
     /** maxChars */ c?: number;
+    /** allowedEngines */ e?: SugType;
     /** maxResults */ r?: number;
     /** flags */ f: QueryFlags;
     /** last sug types: empty means all */ t: SugType;

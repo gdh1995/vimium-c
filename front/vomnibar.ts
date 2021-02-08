@@ -81,8 +81,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           + (engines.includes("search") ? SugType2.search : 0)
           + (engines.includes("domain") ? SugType2.domain : 0)
     }
-    a.allowedEngines_ = ((engines as CompletersNS.SugType | "") || SugType2.Empty) | 0
-    if (a.allowedEngines_) {
+    a.mode_.e = ((engines as CompletersNS.SugType | "") || SugType2.Empty) | 0
+    if (a.mode_.e) {
       a.mode_.o = "omni"
     }
     a.caseInsensitive_ = !!options.icase;
@@ -193,7 +193,6 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   notSearchInput_: false,
   noSessionsOnStart_: false,
   clickLike_: null as VomnibarNS.GlobalOptions["clickLike"],
-  allowedEngines_: CompletersNS.SugType.Empty,
   showFavIcon_: 0 as 0 | 1 | 2,
   showRelevancy_: false,
   docZoom_: 1,
@@ -1323,6 +1322,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     o: "omni" as CompletersNS.ValidTypes,
     t: CompletersNS.SugType.Empty,
     c: 0,
+    e: CompletersNS.SugType.Empty,
     r: 0,
     f: CompletersNS.QueryFlags.None,
     i: 0 as 0 | 1 | 2,
@@ -1349,9 +1349,6 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         : a.matchType_ === CompletersNS.MatchType.searchWanted
         ? !str.includes(" ") ? CompletersNS.SugType.search : CompletersNS.SugType.Empty
         : (newMatchType = a.matchType_, a.sugTypes_);
-      if (a.allowedEngines_) {
-        mode.t = (mode.t || CompletersNS.SugType.Full) & a.allowedEngines_
-      }
       mode.q = str;
       a.matchType_ = newMatchType;
       a.onInnerWidth_();
