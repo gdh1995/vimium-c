@@ -114,6 +114,17 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
+#### 1.88.2
+* refuse to open known "harmful" URLs and show a tip: for example, the `...\condrv\kernelconnect` will trigger an error
+* key mappings: `env`: add `fullscreen: boolean` to detect element-wise fullscreen mode
+* `LinkHints.click`: add `direct="element" match=... index=<number>|"count"` to directly select any element and click
+* Scroller: support `keepHover=true|"auto"|false|"never"|<number>`
+* Scroller: fix broken `scrollPx*` and some other issues
+* Vomnibar: if in domain mode (query starts with `:d `), then show a list of matched domains
+* Vomnibar: fix an order bug on pagedown
+* `goNext`: prefer the value of `[aria-label]` if text is very short (up to 2 characters, like icons)
+* improved `vimium://show #!image`
+
 #### 1.88.0
 * add `map *** runKey expect={env1:key1} keys=<default_key>` with `env name ...conditions`
   * now Vimium C can trigger different commands on different websites / for different active elements

@@ -4,6 +4,20 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### 1.88.2
+* refuse to open known "harmful" URLs and show a tip: for example, the `...\condrv\kernelconnect` will trigger an error
+* key mappings: `env`: add `fullscreen: boolean` to detect element-wise fullscreen mode
+* `LinkHints.click`: add `direct="element" match=... index=<number>|"count"` to directly select any element and click
+* Scroller: support `keepHover=true|"auto"|false|"never"|<number>`
+  * `"auto"` to detect 3 times of losing frames (interval `>` 20ms) and then prevent hover effects
+  * `false` means to prevent by default, unless there's selected text; `never` means to ignore selection status
+  * `<number>` means a minimum latency for `"auto"`, if it `>=` 20
+* Scroller: fix broken `scrollPx*` and some other issues
+* Vomnibar: if in domain mode (query starts with `:d `), then show a list of matched domains
+* Vomnibar: fix an order bug on pagedown
+* `goNext`: prefer the value of `[aria-label]` if text is very short (up to 2 characters, like icons)
+* improved `vimium://show #!image`
+
 #### 1.88.1
 * fix `ignoreKeyboardLayout` didn't work if it had been enabled
 * fix in FindMode RegExp mode could not match non-English letters
