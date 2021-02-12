@@ -181,6 +181,7 @@
   "visitPreviousTab": { "message": "Go to previously-visited tab on current window" },
   "zoomIn": { "message": "Make a current tab zoom in" },
   "zoomOut": { "message": "Make a current tab zoom out" },
+  "zoomReset": { "message": "Reset zoom level" },
   "createTab_s": { "message": "Create new tab" },
   "goBack_s": { "message": "Go back in history" },
   "goForward_s": { "message": "Go forward in history" },

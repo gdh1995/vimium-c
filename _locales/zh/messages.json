@@ -130,6 +130,7 @@
   "visitPreviousTab": { "message": "切换到最近访问的上一个标签页" },
   "zoomIn": { "message": "放大网页" },
   "zoomOut": { "message": "缩小网页" },
+  "zoomReset": { "message": "重置网页缩放比例" },
   "createTab_s": { "message": "打开新的标签页" },
   "goBack_s": { "message": "在历史记录中后退" },
   "goForward_s": { "message": "在历史记录中前进" },

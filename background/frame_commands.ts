@@ -376,8 +376,13 @@ export const toggleZoom = (): void | kBgCmd.toggleZoom => {
   browserTabs.getZoom(curZoom => {
     if (!curZoom) { return runtimeError_() }
     cRepeat < -4 && set_cRepeat(-cRepeat)
-    let newZoom: number, M = Math
-    if (cRepeat > 4) {
+    let newZoom: number, level = +get_cOptions<kBgCmd.toggleZoom, true>().level!, M = Math
+    if (level) {
+      newZoom = 1 + level * cRepeat
+      newZoom = !(Build.BTypes & ~BrowserType.Firefox)
+          || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
+          ? M.max(0.3, M.min(newZoom, 3)) : M.max(0.25, M.min(newZoom, 5))
+    } else if (cRepeat > 4) {
       newZoom = cRepeat / (cRepeat > 1000 ? cRepeat : cRepeat > 49 ? 100 : 10)
       newZoom = !(Build.BTypes & ~BrowserType.Firefox)
           || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox

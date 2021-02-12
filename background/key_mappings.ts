@@ -585,7 +585,8 @@ availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeO
   toggleVomnibarStyle: [ kBgCmd.toggleVomnibarStyle, 1, 1, { style: "dark" } ],
   visitPreviousTab: [ kBgCmd.visitPreviousTab, 1, 0 ],
   zoomIn: [ kBgCmd.toggleZoom, 1, 0 ],
-  zoomOut: [ kBgCmd.toggleZoom, 1, 0, { count: -1 } ]
+  zoomOut: [ kBgCmd.toggleZoom, 1, 0, { count: -1 } ],
+  zoomReset: [ kBgCmd.toggleZoom, 1, 0, { count: 9e4 } ]
 }),
   hintModes_: As_<Dict<HintMode>>({
     "copy-text": HintMode.COPY_TEXT, focus: HintMode.FOCUS, hover: HintMode.HOVER,

@@ -232,7 +232,7 @@ var HelpDialog = {
       , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight"
       , "scrollFullPageDown", "scrollFullPageUp", "scrollSelect"
       , "reload", "reloadTab", "reloadGivenTab"
-      , "zoomIn", "zoomOut", "toggleViewSource"
+      , "zoomIn", "zoomOut", "zoomReset", "toggleViewSource"
       , "copyCurrentUrl", "copyCurrentTitle", "switchFocus", "simBackspace"
       , "LinkHints.activateModeToCopyLinkUrl", "LinkHints.activateModeToCopyLinkText"
       , "openCopiedUrlInCurrentTab", "openCopiedUrlInNewTab", "goUp", "goToRoot"

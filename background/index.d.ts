@@ -535,6 +535,7 @@ interface CmdNameIds {
   visitPreviousTab: kBgCmd.visitPreviousTab
   zoomIn: kBgCmd.toggleZoom
   zoomOut: kBgCmd.toggleZoom
+  zoomReset: kBgCmd.toggleZoom
 }
 type kCName = keyof CmdNameIds
 

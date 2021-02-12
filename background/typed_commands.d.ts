@@ -101,7 +101,7 @@ interface BgCmdOptions {
   [kBgCmd.togglePinTab]: LimitedRangeOptions
   [kBgCmd.toggleTabUrl]: { keyword: string; parsed: string; reader: boolean } & OpenUrlOptions
   [kBgCmd.toggleVomnibarStyle]: { style: string; current: boolean }
-  [kBgCmd.toggleZoom]: {}
+  [kBgCmd.toggleZoom]: { level: number }
   [kBgCmd.visitPreviousTab]: {}
 }
 
