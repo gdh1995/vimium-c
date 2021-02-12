@@ -427,7 +427,8 @@ interface VApiTy {
     /** UI root */ r: VUIRoot | null
   }
   /** cache */ z: SettingsNS.FrontendSettingCache | null
-  /** VScroller.$sc */ $: (element: SafeElement | null, di: ScrollByY, amount: number) => void
+  /** VScroller.$sc */ $: (element: SafeElement | null, di: ScrollByY, amount: number
+      , options?: CmdOptions[kFgCmd.scroll]) => void
 }
 
 declare var VimiumInjector: VimiumInjectorTy | undefined | null, VApi: VApiTy;

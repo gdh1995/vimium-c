@@ -312,7 +312,7 @@ export const executeScroll = function (di: ScrollByY, amount0: number, isTo: BOO
         : keepHover === "auto" ? ScrollConsts.MinLatencyToAutoPreventHover
         : keepHover! > ScrollConsts.MinLatencyToAutoPreventHover - 1
         ? keepHover as ScrollConsts.MinLatencyToAutoPreventHover : 0
-    vApi.$(element, di, amount)
+    vApi.$(element, di, amount, options)
     preventPointEvents = keyIsDown ? preventPointEvents : 0
     scrolled = 0
     if (amount && readyState_ > "i" && overrideScrollRestoration) {
