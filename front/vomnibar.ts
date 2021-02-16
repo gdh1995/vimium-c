@@ -217,10 +217,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   wheelStart_: 0,
   wheelTime_: 0,
   wheelDelta_: 0,
-  browser_: !(Build.BTypes & ~BrowserType.Chrome)
-      || !(Build.BTypes & ~BrowserType.Firefox) || !(Build.BTypes & ~BrowserType.Edge)
-      ? Build.BTypes : BrowserType.Chrome,
-  browserVer_: Build.BTypes & BrowserType.Chrome ? BrowserVer.assumedVer : BrowserVer.assumedVer,
+  browser_: Build.BTypes && !(Build.BTypes & (Build.BTypes - 1)) ? Build.BTypes : BrowserType.Chrome,
+  browserVer_: BrowserVer.assumedVer,
   os_: kOS.win as SettingsNS.ConstItems["o"][1],
   caseInsensitive_: false,
   mapModifier_: 0 as SettingsNS.AllVomnibarItems["a"][1],
@@ -1752,10 +1750,10 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
   }, 700)
   Vomnibar_.secret_ = function (this: void, {l: payload, s: secret}): void {
     Vomnibar_.secret_ = null;
-    if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
+    if (!Build.BTypes || Build.BTypes & (Build.BTypes - 1)) {
       Vomnibar_.browser_ = payload.b!;
     }
-    if (Build.BTypes & BrowserType.Chrome) {
+    if ((!(Build.BTypes & (Build.BTypes - 1)) ? Build.BTypes : payload.b!) & BrowserType.Chrome) {
       Vomnibar_.browserVer_ = payload.v as BrowserVer;
     }
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key) {

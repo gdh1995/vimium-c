@@ -383,8 +383,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
       else if (num1 = 1, key.includes("-s")) {
         fgCache.e = !fgCache.e;
       } else if (key < "b") { // a-
-        !(Build.BTypes & BrowserType.Chrome) ? num1 = 0 :
-        wantDialogMode_ = !wantDialogMode_;
+        Build.BTypes & BrowserType.ChromeOrFirefox ? wantDialogMode_ = !wantDialogMode_ : num1 = 0
       } else if ("cm".includes(key[0])) {
         options_.useFilter = fgCache.f = !useFilter_;
       } else if (key !== keybody) { // <s-f2>

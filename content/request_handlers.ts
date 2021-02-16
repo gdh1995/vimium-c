@@ -2,7 +2,7 @@ import {
   chromeVer_, clickable_, doc, esc, fgCache, injector, isEnabled_, isLocked_, isAlive_, isTop, math, includes_,
   keydownEvents_, safeObj, set_chromeVer_, set_clickable_, set_fgCache, set_VOther, set_isLocked_,
   set_isEnabled_, set_onWndFocus, VOther, onWndFocus, timeout_, safer,
-  interval_, getTime, vApi, clearInterval_, locHref,
+  interval_, getTime, vApi, clearInterval_, locHref, set_firefoxVer_,
 } from "../lib/utils"
 import { set_keyIdCorrectionOffset_old_cr_, handler_stack } from "../lib/keyboard_utils"
 import {
@@ -43,7 +43,12 @@ set_requestHandlers([
   /* kBgReq.init: */ function (request: BgReq[kBgReq.init]): void {
     const load = request.c, flags = request.s
     if (Build.BTypes & BrowserType.Chrome) {
-      set_chromeVer_(load.v as BrowserVer)
+      set_chromeVer_(!(Build.BTypes & ~BrowserType.Chrome) || load.b! & BrowserType.Chrome
+          ? load.v as BrowserVer : BrowserVer.assumedVer)
+    }
+    if (Build.BTypes & BrowserType.Firefox) {
+      set_firefoxVer_(!(Build.BTypes & ~BrowserType.Firefox) || load.b! & BrowserType.Firefox
+          ? load.v as FirefoxBrowserVer : 0)
     }
     if (<number> Build.BTypes !== BrowserType.Chrome && <number> Build.BTypes !== BrowserType.Firefox
         && <number> Build.BTypes !== BrowserType.Edge) {

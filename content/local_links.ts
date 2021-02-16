@@ -699,7 +699,7 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
     : _i - HintMode.FOCUS_EDITABLE ? traverse(kSafeAllSelector, hintOptions
           , _i - HintMode.ENTER_VISUAL_MODE ? getClickable : (hints: Hint[], element: SafeHTMLElement): void => {
         const arr = element.childNodes as NodeList
-        if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.Min$Array$$find$$findIndex) {
+        if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes) {
           for (const node of arr as ArrayLike<Node> as Node[]) {
             if (isNode_(node, kNode.TEXT_NODE) && node.data.trim().length > 2) {
               getIfOnlyVisible(hints, element)

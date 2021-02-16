@@ -185,7 +185,7 @@ export const GetParent_unsafe_ = function (this: void, el: Node | Element
   if (pe === pn /* normal pe or no parent */ || !pn /* indeed no par */) { return pn as Element | null }
   // may be `frameset,form` with pn or pe overridden; <frameset>.parentNode may be an connected shadowRoot
   if (!(Build.BTypes & BrowserType.Firefox) || Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox) {
-    pn = (!(Build.BTypes & ~BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
+    pn = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
           || !unsafeFramesetTag_old_cr_ || (pn as ParentNodeProp as WindowWithTop).top !== top)
         && pn!.nodeType && doc.contains.call(pn as Node, el) ? pn
         : Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype
