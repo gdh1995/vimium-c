@@ -239,10 +239,7 @@ export const getCroppedRect_ = function (el: Element, crect: Rect | null): Rect 
 }
 
 const _fixDocZoom_cr = Build.BTypes & BrowserType.Chrome ? (zoom: number, docEl: Element, devRatio: number): number => {
-  let ver = Build.MinCVer < BrowserVer.MinASameZoomOfDocElAsdevPixRatioWorksAgain
-      && (!(Build.BTypes & ~BrowserType.Chrome) || VOther & BrowserType.Chrome) ? chromeVer_ as BrowserVer : 0,
-  rectWidth: number, viewportWidth: number,
-  style: CSSStyleDeclaration | false | undefined
+  let rectWidth: number, viewportWidth: number, style: CSSStyleDeclaration | false | undefined
   if (BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl !== BrowserVer.MinEnsured$visualViewport$) {
     console.log("Assert error: MinDevicePixelRatioImplyZoomOfDocEl should be equal with MinEnsured$visualViewport$")
   }
@@ -250,13 +247,13 @@ const _fixDocZoom_cr = Build.BTypes & BrowserType.Chrome ? (zoom: number, docEl:
   return Build.BTypes & ~BrowserType.Chrome && VOther & ~BrowserType.Chrome
       || zoom === 1
       || Build.MinCVer < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl
-          && ver < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl
+          && chromeVer_ < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl
       || (rectWidth = getBoundingClientRect_(docEl).width,
           viewportWidth = visualViewport!.width!,
           math.abs(rectWidth - viewportWidth) > 1e-3
           && (math.abs(rectWidth * zoom - viewportWidth) < 0.01
             || (Build.MinCVer >= BrowserVer.MinASameZoomOfDocElAsdevPixRatioWorksAgain
-                  || ver > BrowserVer.MinASameZoomOfDocElAsdevPixRatioWorksAgain - 1)
+                  || chromeVer_ > BrowserVer.MinASameZoomOfDocElAsdevPixRatioWorksAgain - 1)
                 && !notSafe_not_ff_!(docEl) && (style = (docEl as ElementToHTMLorOtherFormatted).style)
                 && style.zoom && style.zoom
             || (isDocZoomStrange_ = 1, zoom !== _getPageZoom_cr!(zoom, devRatio, docEl))))
@@ -309,15 +306,7 @@ export const getZoom_ = Build.BTypes & ~BrowserType.Firefox ? function (target?:
 } as never
 
 export const getViewBox_ = function (needBox?: 1 | /** dialog-found */ 2): ViewBox | ViewOffset {
-  const ratio = wndSize_(2), round = math.round
-  let iw = wndSize_(1), ih = wndSize_(), ratio2 = ratio < 1 ? ratio : 1
-  if (fullscreenEl_unsafe_()) {
-    getZoom_(1)
-    dScale_ = bScale_ = 1
-    ratio2 = ratio2 / wdZoom_
-    return [0, 0, (iw * ratio2) | 0, (ih * ratio2) | 0, 0]
-  }
-  const float = parseFloat,
+  const ratio = wndSize_(2), round = math.round, float = parseFloat,
   box = docEl_unsafe_()!, st = getComputedStyle_(box),
   box2 = doc.body, st2 = box2 ? getComputedStyle_(box2) : st,
   zoom2 = Build.BTypes & ~BrowserType.Firefox ? bZoom_ = box2 && +st2.zoom || 1 : 1,
@@ -328,12 +317,20 @@ export const getViewBox_ = function (needBox?: 1 | /** dialog-found */ 2): ViewB
   // NOTE: if box.zoom > 1, although doc.documentElement.scrollHeight is integer,
   //   its real rect may has a float width, such as 471.333 / 472
   rect = padClientRect_(getBoundingClientRect_(box))
-  let zoom = Build.BTypes & ~BrowserType.Firefox && +st.zoom || 1,
+  let zoom = Build.BTypes & BrowserType.Chrome ? _fixDocZoom_cr!(+st.zoom || 1, box, ratio)
+      : Build.BTypes & ~BrowserType.Firefox && +st.zoom || 1,
+  iw = wndSize_(1), ih = wndSize_(),
   // ignore the case that x != y in "transform: scale(x, y)""
   _trans = st.transform, scale = dScale_ = _trans && !_trans.startsWith(kM) && float(_trans.slice(7)) || 1
+  if (fullscreenEl_unsafe_()) {
+    getZoom_(1)
+    dScale_ = bScale_ = 1
+    return [0, 0
+        , Build.BTypes & ~BrowserType.Firefox ? (iw * docZoom_ / wdZoom_) | 0 : iw
+        , Build.BTypes & ~BrowserType.Firefox ? (ih * docZoom_ / wdZoom_) | 0 : ih, 0]
+  }
   bScale_ = box2 && (_trans = st2.transform) && !_trans.startsWith(kM) && float(_trans.slice(7)) || 1
-  Build.BTypes & BrowserType.Chrome && (zoom = _fixDocZoom_cr!(zoom, box, ratio))
-  wdZoom_ = Build.BTypes & ~BrowserType.Firefox ? round(zoom * ratio2 * 1000) / 1000 : ratio2
+  wdZoom_ = !(Build.BTypes & ~BrowserType.Firefox) ? min_(wndSize_(2), 1) : round(zoom * min_(ratio, 1) * 1000) / 1000
   if (Build.BTypes & ~BrowserType.Firefox) { docZoom_ = zoom }
   let x = !stacking ? float(st.marginLeft)
         : !(Build.BTypes & ~BrowserType.Firefox)

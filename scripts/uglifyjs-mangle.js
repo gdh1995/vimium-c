@@ -252,14 +252,15 @@ function findTooShort(names, minAllowedLength) {
 async function myMinify(files, options) {
   await P
   const sources = typeof files === "object" ? files instanceof Array ? files : Object.values(files) : [files];
-  const compress = { ...(options && typeof options.compress === "object" ? options.compress : {}),
+  /** @type {MinifyOptions["compress"]} */
+  const compress = { ...(options && typeof options.compress === "object" && options.compress || {}),
       sequences: false, passes: 1 }
   let ast = parse(sources.join("\n"), options && options.parse)
   /** @type { (() => void) | null | undefined } */
   let disposeNameMangler;
   const isES6 = options && options.ecma && options.ecma >= 6;
   // @ts-ignore
-  ast = (await minify(ast, { compress,
+  ast = (await minify(ast, { compress, mangle: false,
     // @ts-ignore
     format: { ast: true, code: false, comments: true }
   })).ast

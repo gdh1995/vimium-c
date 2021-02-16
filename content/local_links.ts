@@ -424,9 +424,8 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
           && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
         || ui_root !== ui_box)
       // now must have shadow DOM, because `UI.root_` !== `UI.box_`
-      && !notWantVUI
       && (Build.NDEBUG && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
-        || ui_root.mode === "closed")
+          ? !notWantVUI : !notWantVUI && ui_root.mode === "closed")
       ) {
     const bz = Build.BTypes & ~BrowserType.Firefox ? bZoom_ : 1, notHookScroll = scrolled === 0
     if (Build.BTypes & ~BrowserType.Firefox && bz !== 1 && !traverseRoot) {
@@ -559,9 +558,8 @@ const isDescendant = function (c: Element | null, p: Element, shouldBeSingleChil
   while (0 < i-- && c
       && (c = Build.BTypes & ~BrowserType.Firefox ? GetParent_unsafe_(c, PNType.DirectElement)
               : c.parentElement as Element | null)
-      && c !== p
       && !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
-            && unsafeFramesetTag_old_cr_ && notSafe_not_ff_!(c))
+            ? c === p || unsafeFramesetTag_old_cr_ && notSafe_not_ff_!(c) : c === p)
       ) { /* empty */ }
   if (c !== p
       || !shouldBeSingleChild || buttonOrATags_.test(p.localName as string)) {

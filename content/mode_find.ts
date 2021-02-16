@@ -692,11 +692,9 @@ export const updateQuery = (query: string): void => {
         isRe = true;
       }
     }
-    if (ww && (!(Build.BTypes & BrowserType.Chrome) || isRe
-              || ((Build.BTypes & ~BrowserType.Chrome) && VOther !== BrowserType.Chrome)
-        )) {
-      query = WB + escapeAllForRe(query.replace(<RegExpG & RegExpSearchable<0>> /\\\\/g, "\\"))
-          + WB;
+    if (!(Build.BTypes & BrowserType.Chrome) || ((Build.BTypes & ~BrowserType.Chrome) && VOther !== BrowserType.Chrome)
+        ? ww : ww && isRe) {
+      query = WB + escapeAllForRe(query.replace(<RegExpG & RegExpSearchable<0>> /\\\\/g, "\\")) + WB
       ww = false;
       isRe = true;
     }

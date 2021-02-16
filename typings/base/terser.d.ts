@@ -1,7 +1,7 @@
 /// <reference no-default-lib="true"/>
 /// <reference path="es.d.ts" />
 
-import { ParseOptions, MinifyOptions, MinifyOutput } from "../../node_modules/terser/tools/terser"
+import { ParseOptions, MinifyOptions, MinifyOutput, FormatOptions } from "../../node_modules/terser/tools/terser"
 
 declare function parse(text: string, options?: ParseOptions): AST_Toplevel;
 
@@ -46,7 +46,7 @@ export class AST_Node {
     static from_mozilla_ast?: (node: AST_Node) => any;
     walk: (visitor: TreeWalker) => void;
     transform: (tt: TreeTransformer, in_list?: boolean) => AST_Node;
-    print_to_string (): string
+    print_to_string (formatOptions?: FormatOptions): string
     TYPE: string;
     CTOR: typeof AST_Node;
 }

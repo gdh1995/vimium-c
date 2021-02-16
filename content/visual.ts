@@ -263,7 +263,7 @@ const getNextRightCharacter = (isMove: BOOL): string => {
       if (isNode_(focusNode!, kNode.TEXT_NODE)) {
         const i = selOffset_(sel, 1), str = focusNode.data;
         if (str.charAt(i).trim() || i && str.charAt(i - 1).trim() && str.slice(i).trimLeft()
-              && (str[i] !== "\n" && !(Build.BTypes & BrowserType.Firefox && str[i] === "\r"))) {
+              && (Build.BTypes & BrowserType.Firefox ? str[i] !== "\n" && str[i] !== "\r" : str[i] !== "\n")) {
           return str[i];
         }
       }

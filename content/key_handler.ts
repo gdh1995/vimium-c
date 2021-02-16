@@ -88,7 +88,7 @@ const checkKey = (event: HandlerNS.Event, key: string, keyWithoutModeID: string
   let j: ReadonlyChildKeyFSM | ValidKeyAction | ReturnType<typeof isEscape_> | undefined = isEscape_(keyWithoutModeID)
   if (j) {
     Build.BTypes & BrowserType.Chrome && mapKeyTypes & (kMapKey.normal | kMapKey.insertMode | kMapKey.otherMode) &&
-    checkPotentialAccessKey(event)
+    checkAccessKey_cr(event)
     return nextKeys ? (esc!(HandlerResult.ExitPassMode), HandlerResult.Prevent) : j;
   }
   if (!nextKeys || (j = nextKeys[key]) == null) {
@@ -110,7 +110,7 @@ const checkKey = (event: HandlerNS.Event, key: string, keyWithoutModeID: string
   return HandlerResult.Prevent;
 }
 
-const checkPotentialAccessKey = (event: HandlerNS.Event): void => {
+const checkAccessKey_cr = Build.BTypes & BrowserType.Chrome ? (event: HandlerNS.Event): void => {
   /** On Firefox, access keys are only handled during keypress events, so it has been "hooked" well:
    * https://dxr.mozilla.org/mozilla/source/content/events/src/nsEventStateManager.cpp#960 .
    * And the modifier stat for access keys is user-configurable: `ui.key.generalAccessKey`
@@ -133,16 +133,16 @@ const checkPotentialAccessKey = (event: HandlerNS.Event): void => {
             (fgCache.o ? KeyStat.altKey : KeyStat.altKey | KeyStat.ctrlKey)
         ) {
       isWaitingAccessKey = !isWaitingAccessKey;
-      anyClickHandler.handleEvent = isWaitingAccessKey ? onAnyClick : noopEventHandler;
+      anyClickHandler.handleEvent = isWaitingAccessKey ? /*#__NOINLINE__*/ onAnyClick_cr : noopEventHandler
     }
   }
-}
+} : 0 as never
 
 export const resetAnyClickHandler = (): void => {
   isWaitingAccessKey = false; anyClickHandler.handleEvent = noopEventHandler;
 }
 
-const onAnyClick = (event: MouseEventToPrevent): void => {
+const onAnyClick_cr = Build.BTypes & BrowserType.Chrome ? (event: MouseEventToPrevent): void => {
   // Note: here `event` may be a simulated one from a browser itself or page scripts
   // here has been on Chrome
   if (isWaitingAccessKey
@@ -160,7 +160,7 @@ const onAnyClick = (event: MouseEventToPrevent): void => {
       prevent_(event);
     }
   }
-}
+} : 0 as never
 
 export const onKeydown = (event: KeyboardEventToPrevent): void => {
   const key = event.keyCode;
@@ -170,7 +170,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
       || !key) { return; }
   const eventWrapper: HandlerNS.Event = {c: kChar.INVALID, e: event, i: key};
   if (scroll_keyIsDown && onScrolls(event)) {
-    Build.BTypes & BrowserType.Chrome && checkPotentialAccessKey(eventWrapper);
+    Build.BTypes & BrowserType.Chrome && checkAccessKey_cr(eventWrapper)
     return;
   }
   if (Build.BTypes & BrowserType.Chrome) { isWaitingAccessKey && /*#__NOINLINE__*/ resetAnyClickHandler(); }
@@ -203,9 +203,9 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
         event.repeat && focusUpper(key, true, event);
         action = /* the real is HandlerResult.PassKey; here's for smaller code */ HandlerResult.Nothing;
       } else {
-        action = insert_global_ && insert_global_.p ? (
-          Build.BTypes & BrowserType.Chrome && checkPotentialAccessKey(eventWrapper),
-          HandlerResult.Nothing) : HandlerResult.Prevent;
+        action = insert_global_ && insert_global_.p
+            ? (Build.BTypes & BrowserType.Chrome && checkAccessKey_cr(eventWrapper), HandlerResult.Nothing)
+            : HandlerResult.Prevent
         /*#__NOINLINE__*/ exitInsertMode(event.target as Element);
       }
     }
@@ -228,7 +228,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
   }
   if (action < HandlerResult.MinStopOrPreventEvents) { return; }
   if (action > HandlerResult.MaxNotPrevent) {
-    Build.BTypes & BrowserType.Chrome && checkPotentialAccessKey(eventWrapper);
+    Build.BTypes & BrowserType.Chrome && checkAccessKey_cr(eventWrapper)
     prevent_(event);
   } else {
     Stop_(event);

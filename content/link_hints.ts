@@ -93,7 +93,7 @@ import { lastHovered_, set_lastHovered_ } from "./async_dispatcher"
 import { hookOnWnd, contentCommands_ } from "./port"
 
 let box_: HTMLDivElement | HTMLDialogElement | null = null
-let wantDialogMode_: boolean | null = null
+let wantDialogMode_: boolean | null | undefined
 let hints_: readonly HintItem[] | null = null
 let frameArray: FrameHintsInfo[] = []
 let mode_ = HintMode.empty
@@ -170,7 +170,7 @@ export const activate = (options: HintsNS.ContentOptions, count: number, force?:
       coreHints.d = <BOOL> +(
         (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement
             || doesSupportDialog())
-        && !!(wantDialogMode_ != null ? wantDialogMode_ : querySelector_unsafe_("dialog[open]"))
+        && (wantDialogMode_ != null ? wantDialogMode_ : !!querySelector_unsafe_("dialog[open]"))
         )
     }
     let allHints: readonly HintItem[], child: ChildFrame | undefined, insertPos = 0

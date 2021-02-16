@@ -118,19 +118,19 @@ export const addElementList = function <T extends boolean | BOOL> (
     const parent = createElement_(Build.BTypes & BrowserType.ChromeOrFirefox && dialogContainer ? "dialog"
         : Build.BTypes & BrowserType.Chrome ? getBoxTagName_cr_() :  "div");
     let cls = "R HM" + (Build.BTypes & BrowserType.ChromeOrFirefox && dialogContainer ? " DHM" : "") + fgCache.d
-    let innerBox: HTMLDivElement | HTMLDialogElement | undefined = parent
+    let innerBox_cr: HTMLDivElement | HTMLDialogElement | undefined = parent
     setClassName_s(parent, cls)
     if (Build.BTypes & BrowserType.Chrome && dialogContainer && array.length && getBoxTagName_cr_() < "d") { // <body>
-      innerBox = createElement_(getBoxTagName_cr_())
-      appendNode_s(parent, innerBox)
-      setClassName_s(innerBox, cls)
+      innerBox_cr = createElement_(getBoxTagName_cr_())
+      appendNode_s(parent, innerBox_cr)
+      setClassName_s(innerBox_cr, cls)
     }
     if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinTestedES6Environment
           && Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
-      (Build.BTypes &BrowserType.Chrome ? innerBox : parent).append!(...array.map(el => el.m))
+      (Build.BTypes &BrowserType.Chrome ? innerBox_cr : parent).append!(...array.map(el => el.m))
     } else {
       for (const el of array) {
-        appendNode_s(Build.BTypes &BrowserType.Chrome ? innerBox : parent, el.m)
+        appendNode_s(Build.BTypes &BrowserType.Chrome ? innerBox_cr : parent, el.m)
       }
     }
     const style = parent.style,
@@ -188,8 +188,8 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
 
 export const ensureBorder = Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor
       || Build.BTypes & ~BrowserType.Chrome ? (zoom?: number): void => {
-    if (Build.BTypes & BrowserType.Chrome && chromeVer_ > BrowserVer.MinBorderWidth$Ensure1$Or$Floor -1
-        && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)) {
+    if (Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)
+        && !(chromeVer_ < BrowserVer.MinBorderWidth$Ensure1$Or$Floor)) {
       return
     }
     zoom || (getZoom_(), zoom = wdZoom_);
@@ -317,7 +317,7 @@ export const getSelectionParent_unsafe = ((sel: Selection, re?: RegExpG & RegExp
       if (isNode_(lastPar, kNode.TEXT_NODE) && lastPar.data.trim().length <= selected.length) {
         let text: HTMLElement["innerText"] | undefined
         while (par && (text = (par as TypeToAssert<Element, HTMLElement, "innerText">).innerText,
-                        !(Build.BTypes & ~BrowserType.Firefox) || isTY(text))
+                        !(Build.BTypes & ~BrowserType.Firefox) ? 1 : isTY(text))
             && selected.length >= (text as string).length) {
           par = GetParent_unsafe_(lastPar = par as HTMLElement, PNType.DirectElement)
         }
@@ -533,7 +533,7 @@ export const checkHidden = ((cmd?: FgCmdAcrossFrames, options?: OptionsWithForce
     // so here only use `parApi.innerHeight_()` in case
     if ((Build.BTypes & BrowserType.Firefox ? curFrameElement && (parEvents = getParentVApi()) : curFrameElement)
         && (result || box!.b <= 0
-            || (Build.BTypes & BrowserType.Firefox && parEvents !== parent
+            || (Build.BTypes & BrowserType.Firefox
                   ? box!.t > parEvents!.i!() : box!.t > (parent as Window).innerHeight))) {
       Build.BTypes & BrowserType.Firefox || (parEvents = getParentVApi());
       if (parEvents

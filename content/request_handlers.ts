@@ -6,7 +6,7 @@ import {
 } from "../lib/utils"
 import { set_keyIdCorrectionOffset_old_cr_, handler_stack } from "../lib/keyboard_utils"
 import {
-  editableTypes_, markFramesetTagUnsafe, setNotSafe_not_ff, OnDocLoaded_, frameElement_, BU, notSafe_not_ff_,
+  editableTypes_, markFramesetTagUnsafe_old_cr, setNotSafe_not_ff, OnDocLoaded_, frameElement_, BU, notSafe_not_ff_,
   htmlTag_, querySelector_unsafe_, isHTML_, createElement_, setClassName_s,
   docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, CLK, ElementProto, isIFrameElement, DAC, removeEl_s, toggleClass_s, fullscreenEl_unsafe_
 } from "../lib/dom_utils"
@@ -72,7 +72,7 @@ set_requestHandlers([
     }
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
         && chromeVer_ < BrowserVer.MinFramesetHasNoNamedGetter) {
-      set_kSafeAllSelector(kSafeAllSelector + ":not(" + (/*#__INLINE__*/ markFramesetTagUnsafe()) + ")");
+      set_kSafeAllSelector(kSafeAllSelector + ":not(" + (/*#__INLINE__*/ markFramesetTagUnsafe_old_cr()) + ")");
     }
     if (Build.BTypes & ~BrowserType.Firefox && Build.BTypes & BrowserType.Firefox
         && VOther === BrowserType.Firefox) {
@@ -88,7 +88,7 @@ set_requestHandlers([
     if (isEnabled_) {
       insertInit();
       if (Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
-          && Build.BTypes & BrowserType.Chrome
+          && Build.BTypes & BrowserType.Chrome && !(Build.BTypes & ~BrowserType.Chrome && VOther !== BrowserType.Chrome)
           && chromeVer_ > BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow - 1) {
         hookOnWnd(HookAction.SuppressListenersOnDocument);
       }
@@ -295,12 +295,11 @@ export const showFrameMask = (mask: FrameMaskType): void => {
 set_hookOnWnd(((action: HookAction): void => {
   let f = action ? removeEventListener : addEventListener, t = true
   if (Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
-      && Build.BTypes & BrowserType.Chrome) {
-    if (!(Build.BTypes & ~BrowserType.Chrome && VOther !== BrowserType.Chrome)
+      && Build.BTypes & BrowserType.Chrome
+      && !(Build.BTypes & ~BrowserType.Chrome && VOther !== BrowserType.Chrome)
         && (action || chromeVer_ < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow)) {
       f.call(doc, DAC, onActivate, t)
       f.call(doc, CLK, anyClickHandler, t)
-    }
     if (action === HookAction.SuppressListenersOnDocument) { return; }
   }
   f("keydown", onKeydown, t)

@@ -51,9 +51,8 @@ const tween = (fake?: TimerType.fake): void => { // safe-interval
   if (opacity === opacity_) { /* empty */ }
   else if (opacity === 0) {
     $text.data = text;
-    toggleOpacity(fgCache.m
-        || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && fake
-        ? "" : "0.25")
+    toggleOpacity(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && fake
+        || fgCache.m ? "" : "0.25")
     return adjustUI();
   } else if (!fgCache.m && doc.hasFocus()) {
     opacity += opacity < opacity_ ? 0.25 : -0.25;

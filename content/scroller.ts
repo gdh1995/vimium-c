@@ -228,9 +228,8 @@ export const $sc = (element: SafeElement | null, di: ScrollByY, amount: number):
         amount /= 2;
       }
       checkCurrent(element)
-    } else if (fgCache.s
-        && (Build.MinCVer > BrowserVer.NoRAFOrRICOnSandboxedPage || !(Build.BTypes & BrowserType.Chrome)
-            || allowRAF_)) {
+    } else if (Build.BTypes & BrowserType.Chrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
+        ? fgCache.s && allowRAF_ : fgCache.s) {
       amount && performAnimate(element, di, amount)
       scrollTick(1)
     } else if (amount) {

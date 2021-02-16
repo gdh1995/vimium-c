@@ -372,7 +372,7 @@ set_contentCommands_([
       return
     }
     let shouldShowAdvanced = options.c, optionUrl = options.o
-    let box: SafeHTMLElement, outerBox: SafeHTMLElement | undefined
+    let box: SafeHTMLElement, outerBox_not_ff: SafeHTMLElement | undefined
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)) {
       // on FF66, if a page is limited by "script-src 'self'; style-src 'self'"
@@ -382,10 +382,10 @@ set_contentCommands_([
           ).body.firstChild as SafeHTMLElement
       box.prepend!(createStyle((html as Exclude<typeof html, string>).h))
     } else {
-      outerBox = createElement_(Build.BTypes & BrowserType.Chrome ? getBoxTagName_cr_() : "div")
-      setClassName_s(outerBox, "R H")
-      outerBox.innerHTML = html as string
-      box = outerBox.lastChild as SafeHTMLElement
+      outerBox_not_ff = createElement_(Build.BTypes & BrowserType.Chrome ? getBoxTagName_cr_() : "div")
+      setClassName_s(outerBox_not_ff, "R H")
+      outerBox_not_ff.innerHTML = html as string
+      box = outerBox_not_ff.lastChild as SafeHTMLElement
     }
     box.onclick = Stop_
     suppressCommonEvents(box, MDW)
@@ -417,7 +417,8 @@ set_contentCommands_([
         set_cachedScrollable(0)
       }
       removeHandler_(kHandler.helpDialog)
-      removeEl_s(Build.BTypes & ~BrowserType.Firefox && outerBox || box)
+      removeEl_s(Build.BTypes & BrowserType.Firefox ? Build.BTypes & ~BrowserType.Firefox && outerBox_not_ff || box
+          : outerBox_not_ff!)
       setupExitOnClick(kExitOnClick.helpDialog | kExitOnClick.REMOVE)
       closeBtn.click()
     })
@@ -442,7 +443,8 @@ set_contentCommands_([
     }
     shouldShowAdvanced && toggleAdvanced()
     ensureBorder() // safe to skip `getZoom_`
-    addUIElement(Build.BTypes & ~BrowserType.Firefox && outerBox || box, AdjustType.Normal, true)
+    addUIElement(Build.BTypes & BrowserType.Firefox ? Build.BTypes & ~BrowserType.Firefox && outerBox_not_ff || box
+        : outerBox_not_ff!, AdjustType.Normal, true)
     options.e && setupExitOnClick(kExitOnClick.helpDialog)
     doc.hasFocus() || vApi.f()
     set_currentScrolling(weakRef_(box))

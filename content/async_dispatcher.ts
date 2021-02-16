@@ -88,9 +88,9 @@ const __awaiter = (_aw_self: void | 0 | undefined, _aw_args: unknown, _aw_p: Pro
 
 export { __generator as __asyncGenerator, __awaiter as __asyncAwaiter }
 
-export const catchAsyncErrorSilently = (promise_to_catch: Promise<any>): Promise<any> =>
+export const catchAsyncErrorSilently = (p: Promise<any>): Promise<any> =>
     !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredAsyncFunctions
-      ? promise_to_catch.catch((): void => {}) :  promise_to_catch
+      ? p.catch(Build.NDEBUG ? (): void => {} : e => console.log("Vimium C: unexpected error\n", e)) : p
 
 /** sync dispatchers */
 
@@ -286,9 +286,9 @@ export const click_ = async (element: SafeElementForMouse
     // if button is the right, then auxclick can be triggered even if element.disabled
     mouse_(element, "auxclick", center, modifiers, null, button)
   }
-  if (button === kClickButton.second /* is the right button */
-      || Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || VOther & BrowserType.Chrome)
-          && (element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
+  if (button === kClickButton.second) { return }
+  if (Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || VOther & BrowserType.Chrome)
+      && (element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
     return
   }
   const enum ActionType {

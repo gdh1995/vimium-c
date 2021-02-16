@@ -20,7 +20,7 @@ let unsafeFramesetTag_old_cr_: "frameset" | "" | null =
 let docSelectable_ = true
 
 export { unsafeFramesetTag_old_cr_, docSelectable_ }
-export function markFramesetTagUnsafe (): "frameset" { return unsafeFramesetTag_old_cr_ = "frameset" }
+export function markFramesetTagUnsafe_old_cr (): "frameset" { return unsafeFramesetTag_old_cr_ = "frameset" }
 export function set_docSelectable_ (_newDocSelectable: boolean): void { docSelectable_ = _newDocSelectable }
 
 export const rAF_: (callback: FrameRequestCallback) => number =
@@ -40,18 +40,18 @@ export const querySelector_unsafe_ = (selector: string
     ): Element | null => (scope || doc).querySelector(selector)
 
 export const querySelectorAll_unsafe_ = ((selector: string, scope?: Element | ShadowRoot | null
-    , isScopeInElementAndNull?: 1): NodeListOf<Element> | void => {
+    , isScopeAnElementOrNull?: 1): NodeListOf<Element> | void => {
   try {
     if (Build.BTypes & ~BrowserType.Firefox) {
-      return (scope && isScopeInElementAndNull ? ElementProto() : scope || doc
+      return (scope && isScopeAnElementOrNull ? ElementProto() : scope || doc
           ).querySelectorAll.call(scope || doc, selector)
     } else {
       return (scope || doc).querySelectorAll(selector)
     }
   } catch {}
 }) as {
-  (selector: string, scope: Element | null, isScopeInElementAndNull: 1): NodeListOf<Element> | void
-  (selector: string, scope?: Element | ShadowRoot | null, isScopeInElementAndNull?: 0): NodeListOf<Element> | void
+  (selector: string, scope: Element | null, isScopeAnElementOrNull: 1): NodeListOf<Element> | void
+  (selector: string, scope?: Element | ShadowRoot | null, isScopeAnElementOrNull?: 0): NodeListOf<Element> | void
 }
 
 export const isIFrameElement = (el: Element): el is KnownIFrameElement => {
@@ -320,9 +320,9 @@ export const IsInDOM_ = function (this: void, element: Element, root?: Element |
             unsafeFramesetTag_old_cr_ && (root as WindowWithTop).top === top ||
             !isNode_(root as Document | RadioNodeList as Document, kNode.DOCUMENT_NODE)
         ? doc : root as Document));
-    if (isNode_(root, kNode.DOCUMENT_NODE)
-        && (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
-          || !(Build.BTypes & ~BrowserType.Firefox) || (f = doc.getRootNode))) {
+    if (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
+        || !(Build.BTypes & ~BrowserType.Firefox)
+        ? isNode_(root, kNode.DOCUMENT_NODE) : isNode_(root, kNode.DOCUMENT_NODE) && (f = doc.getRootNode)) {
       return !(Build.BTypes & ~BrowserType.Firefox)
         ? element.getRootNode!({composed: true}) === root
         : (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
