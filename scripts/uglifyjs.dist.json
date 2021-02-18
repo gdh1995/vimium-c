@@ -16,6 +16,7 @@
     "drop_debugger": true,
     "evaluate": true,
     "hoist_funs": true,
+    "hoist_props": true,
     "hoist_vars": true,
     "if_return": true,
     "inline": true,

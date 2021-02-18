@@ -6,6 +6,7 @@ module.exports = {
   treeshake: {
     moduleSideEffects: true,
     propertyReadSideEffects: false,
+    tryCatchDeoptimization: false,
   },
   output: {
     file: "dist/", // e.g. "dist/content/vimium-c.js"
