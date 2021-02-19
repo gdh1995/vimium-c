@@ -1,4 +1,4 @@
-import { VOther, chromeVer_, doc, createRegExp, isTY, Lower, OBJECT_TYPES } from "./utils"
+import { chromeVer_, doc, createRegExp, isTY, Lower, OBJECT_TYPES, OnFirefox, OnChrome, OnEdge } from "./utils"
 import { dimSize_, selRange_ } from "./rect"
 
 interface kNodeToType {
@@ -15,8 +15,7 @@ export const kDir = ["backward", "forward"] as const
   /** data and DOM-shortcut section */
 
 let unsafeFramesetTag_old_cr_: "frameset" | "" | null =
-    Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
-    ? "" : 0 as never as null
+    OnChrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter ? "" : 0 as never as null
 let docSelectable_ = true
 
 export { unsafeFramesetTag_old_cr_, docSelectable_ }
@@ -42,7 +41,7 @@ export const querySelector_unsafe_ = (selector: string
 export const querySelectorAll_unsafe_ = ((selector: string, scope?: Element | ShadowRoot | null
     , isScopeAnElementOrNull?: 1): NodeListOf<Element> | void => {
   try {
-    if (Build.BTypes & ~BrowserType.Firefox) {
+    if (!OnFirefox) {
       return (scope && isScopeAnElementOrNull ? ElementProto() : scope || doc
           ).querySelectorAll.call(scope || doc, selector)
     } else {
@@ -79,31 +78,28 @@ export const parentNode_unsafe_s = (el: SafeElement | HTMLStyleElement | Text
 
   /** DOM-compatibility section */
 
-export const isHTML_ = !(Build.BTypes & BrowserType.Firefox)
-    || Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox
-      ? (): boolean => "lang" in <ElementToHTML> (docEl_unsafe_() || {})
-      : (): boolean => doc instanceof HTMLDocument
+export const isHTML_ = OnFirefox ? (): boolean => doc instanceof HTMLDocument
+    : (): boolean => "lang" in <ElementToHTML> (docEl_unsafe_() || {})
 
-export const htmlTag_ = (Build.BTypes & ~BrowserType.Firefox ? function (element: Element | HTMLElement): string {
+export const htmlTag_ = (!OnFirefox ? (element: Element | HTMLElement): string => {
     let s: Element["localName"];
     if ("lang" in element && typeof (s = element.localName) === "string") {
-      return (Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter || !(Build.BTypes & BrowserType.Chrome)
+      return (!OnChrome || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
           ? s === "form" : s === "form" || s === unsafeFramesetTag_old_cr_) ? "" : s;
     }
     return "";
   } : (element: Element): string => "lang" in element ? (element as SafeHTMLElement).localName : ""
 ) as (element: Element) => string // duplicate the signature, for easier F12 in VS Code
 
-export const isInTouchMode_cr_ = Build.BTypes & BrowserType.Chrome ? (): boolean => {
+export const isInTouchMode_cr_ = OnChrome ? (): boolean => {
     const viewport_meta = querySelector_unsafe_("meta[name=viewport]")
     return !!viewport_meta && createRegExp(kTip.metaKeywordsForMobile, "i").test(
           (viewport_meta as TypeToAssert<Element, HTMLMetaElement, "content">).content! /* safe even if undefined */)
 } : 0 as never as null
 
 /** refer to {@link #BrowserVer.MinParentNodeGetterInNodePrototype } */
-export const Getter_not_ff_ = Build.BTypes & ~BrowserType.Firefox ? function <Ty extends Node, Key extends keyof Ty
-            , ensured extends boolean = false>(this: void
-      , Cls: { prototype: Ty; new (): Ty }, instance: Ty
+export const Getter_not_ff_ = !OnFirefox ? function <Ty extends Node, Key extends keyof Ty
+    , ensured extends boolean = false>(Cls: { prototype: Ty; new (): Ty }, instance: Ty
       , property: Key & (Ty extends Element ? "assignedSlot" : "childNodes" | "parentNode")
       ): Exclude<NonNullable<Ty[Key]>, Window | RadioNodeList | HTMLCollection
             | (Key extends "parentNode" ? never : Element)>
@@ -112,16 +108,15 @@ export const Getter_not_ff_ = Build.BTypes & ~BrowserType.Firefox ? function <Ty
     return desc && desc.get ? desc.get.call(instance) : null;
 } : 0 as never as null
 
-export let notSafe_not_ff_ = Build.BTypes & ~BrowserType.Firefox ? (el: Element): el is HTMLFormElement => {
+export let notSafe_not_ff_ = !OnFirefox ? (el: Element): el is HTMLFormElement => {
   let s: Element["localName"]
   return typeof (s = el.localName) !== "string" ||
-      (Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter || !(Build.BTypes & BrowserType.Chrome)
+      (!OnChrome || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
         ? s === "form" : s === "form" || s === unsafeFramesetTag_old_cr_)
 } : 0 as never as null
-export const setNotSafe_not_ff = (f: typeof notSafe_not_ff_): void => { notSafe_not_ff_ = f }
 
   /** @safe_even_if_any_overridden_property */
-export const SafeEl_not_ff_ = Build.BTypes & ~BrowserType.Firefox ? function (
+export const SafeEl_not_ff_ = !OnFirefox ? function (
       this: void, el: Element | null, type?: PNType.DirectElement | undefined): Node | null {
   return el && notSafe_not_ff_!(el)
     ? SafeEl_not_ff_!(GetParent_unsafe_(el, type || PNType.RevealSlotAndGotoParent), type) : el
@@ -132,24 +127,23 @@ export const SafeEl_not_ff_ = Build.BTypes & ~BrowserType.Firefox ? function (
 
 export const GetShadowRoot_ = (el: Element): ShadowRoot | null => {
     // check type of el to avoid exceptions
-    if (!(Build.BTypes & ~BrowserType.Firefox)) {
+    if (OnFirefox) {
       return Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1 ? el.shadowRoot as ShadowRoot | null
         : <ShadowRoot | null | undefined> el.shadowRoot || null;
     }
     // Note: .webkitShadowRoot and .shadowRoot share a same object
-    const sr = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+    const sr = OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
         && chromeVer_ < BrowserVer.MinEnsuredUnprefixedShadowDOMV0 ? el.webkitShadowRoot : el.shadowRoot;
     // according to https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow,
     // <form> and <frameset> can not have shadowRoot
-    return (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
-        && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
-        && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+    return OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+        || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
       ? sr && notSafe_not_ff_!(el) ? null : sr as Exclude<typeof sr, undefined | Element | RadioNodeList | Window>
       : sr && !notSafe_not_ff_!(el) && <Exclude<typeof sr, Element | RadioNodeList | Window>> sr || null;
 }
 
-export const GetChildNodes_not_ff = Build.BTypes & ~BrowserType.Firefox ? (el: Element): NodeList => {
-  if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype) {
+export const GetChildNodes_not_ff = !OnFirefox ? (el: Element): NodeList => {
+  if (!OnChrome || Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype) {
     return Getter_not_ff_!(Node, el, "childNodes")!
   } else {
     let cn = (el as Element).childNodes
@@ -165,15 +159,14 @@ export const GetParent_unsafe_ = function (this: void, el: Node | Element
     , type: PNType.DirectNode | PNType.DirectElement | PNType.RevealSlot | PNType.RevealSlotAndGotoParent
     ): Node | null {
   /** Chrome: a selection / range can only know nodes and text in a same tree scope */
-  if (Build.BTypes & ~BrowserType.Edge && type >= PNType.RevealSlot) {
-      if (Build.MinCVer < BrowserVer.MinNoShadowDOMv0 && Build.BTypes & BrowserType.Chrome
-          && chromeVer_ < BrowserVer.MinNoShadowDOMv0) {
+  if (!OnEdge && type >= PNType.RevealSlot) {
+      if (OnChrome && Build.MinCVer < BrowserVer.MinNoShadowDOMv0 && chromeVer_ < BrowserVer.MinNoShadowDOMv0) {
         const func = ElementProto().getDestinationInsertionPoints,
         arr = func ? func.call(el) : [], len = arr.length;
         len > 0 && (el = arr[len - 1]);
       }
       let slot = (el as Element).assignedSlot;
-      Build.BTypes & ~BrowserType.Firefox && slot && notSafe_not_ff_!(el as Element) &&
+      !OnFirefox && slot && notSafe_not_ff_!(el as Element) &&
       (slot = Getter_not_ff_!(Element, el as Element, "assignedSlot"));
       if (slot) {
         if (type === PNType.RevealSlot) { return slot; }
@@ -184,20 +177,19 @@ export const GetParent_unsafe_ = function (this: void, el: Node | Element
   let pe = el.parentElement as Exclude<ParentElement, Window>, pn = el.parentNode as Exclude<ParentNodeProp, Window>
   if (pe === pn /* normal pe or no parent */ || !pn /* indeed no par */) { return pn as Element | null }
   // may be `frameset,form` with pn or pe overridden; <frameset>.parentNode may be an connected shadowRoot
-  if (!(Build.BTypes & BrowserType.Firefox) || Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox) {
-    pn = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
+  if (!OnFirefox) {
+    pn = (!OnChrome || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
           || !unsafeFramesetTag_old_cr_ || (pn as ParentNodeProp as WindowWithTop).top !== top)
         && pn!.nodeType && doc.contains.call(pn as Node, el) ? pn
-        : Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype
-          || !(Build.BTypes & BrowserType.Chrome)
+        : !OnChrome || Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype
           || chromeVer_ > BrowserVer.MinParentNodeGetterInNodePrototype - 1 ? Getter_not_ff_!(Node, el, "parentNode")
-        : (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
+        : (Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
           ? pe && (!unsafeFramesetTag_old_cr_ || (pe as ParentNodeProp as WindowWithTop).top !== top) : pe)
         && pe!.nodeType && doc.contains.call(pe as Element, el) ? (type = PNType.DirectNode, pe)
         : el === doc.body ? docEl_unsafe_() : null
   }
     // pn is real (if BrowserVer.MinParentNodeGetterInNodePrototype else) real or null
-  return Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinParentNodeGetterInNodePrototype && !pn
+  return OnChrome && Build.MinCVer < BrowserVer.MinParentNodeGetterInNodePrototype && !pn
       || type === PNType.DirectNode ? pn as Node | null // may return a Node instance
       : type >= PNType.ResolveShadowHost
         && isNode_(pn as Node, kNode.DOCUMENT_FRAGMENT_NODE)
@@ -213,10 +205,10 @@ export const GetParent_unsafe_ = function (this: void, el: Node | Element
 export const scrollingEl_ = (fallback?: 1): SafeElement | null => {
     // Both C73 and FF66 still supports the Quirk mode (entered by `doc.open()`)
     let el = doc.scrollingElement, docEl = docEl_unsafe_();
-    if (!(Build.BTypes & ~BrowserType.Firefox)) {
+    if (OnFirefox) {
       return el || !fallback ? el as SafeElement | null : docEl as SafeElement | null;
     }
-    if (Build.MinCVer < BrowserVer.Min$Document$$ScrollingElement && Build.BTypes & BrowserType.Chrome
+    if (OnChrome && Build.MinCVer < BrowserVer.Min$Document$$ScrollingElement
         && el === void 0) {
       /**
        * The code about `inQuirksMode` in `Element::scrollTop()` is wrapped by a flag #scrollTopLeftInterop
@@ -240,27 +232,25 @@ export const scrollingEl_ = (fallback?: 1): SafeElement | null => {
 
 export const fullscreenEl_unsafe_ = (): Element | null => {
     /** On Firefox, doc.fullscreenElement may not exist even since FF64 - see Min$Document$$FullscreenElement */
-    return !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
-      ? doc.mozFullScreenElement
-      : !(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
+    return OnFirefox ? doc.mozFullScreenElement
+      : !OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement)
       ? doc.fullscreenElement : doc.webkitFullscreenElement;
 }
 
 // Note: sometimes a cached frameElement is not the wanted
 export let frameElement_ = (): SafeHTMLElement | null | void => {
     let el: typeof frameElement | undefined;
-    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement
-        || Build.BTypes & BrowserType.Edge) {
+    if (OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement) {
       try {
-        if (!(Build.BTypes & BrowserType.Firefox)) { return frameElement as SafeHTMLElement }
+        if (!OnFirefox) { return frameElement as SafeHTMLElement }
         else { el = frameElement; }
       } catch {}
     } else {
-      if (!(Build.BTypes & BrowserType.Firefox)) { return frameElement as SafeHTMLElement }
+      if (!OnFirefox) { return frameElement as SafeHTMLElement }
       el = frameElement;
     }
-    if (Build.BTypes & BrowserType.Firefox) {
-      if (el && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)) {
+    if (OnFirefox) {
+      if (el) {
         frameElement_ = () => el as SafeHTMLElement;
       }
       return el as SafeHTMLElement
@@ -268,12 +258,12 @@ export let frameElement_ = (): SafeHTMLElement | null | void => {
 }
 
 export const compareDocumentPosition = (anchorNode: Node, focusNode: Node) =>
-    Build.BTypes & ~BrowserType.Firefox ? Node.prototype.compareDocumentPosition.call(anchorNode, focusNode)
+    !OnFirefox ? Node.prototype.compareDocumentPosition.call(anchorNode, focusNode)
     : anchorNode.compareDocumentPosition(focusNode)
 
 export const getAccessibleSelectedNode = (sel: Selection, focused?: 1): Node | null => {
   let node = focused ? sel.focusNode : sel.anchorNode
-  if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox) {
+  if (OnFirefox) {
     try {
       node && compareDocumentPosition(node, node)
     } catch { node = null }
@@ -284,14 +274,14 @@ export const getAccessibleSelectedNode = (sel: Selection, focused?: 1): Node | n
   /** computation section */
 
 export const findMainSummary_ = ((details: HTMLDetailsElement | Element | null): SafeHTMLElement | null => {
-    if (!(Build.BTypes & BrowserType.Edge)) { // https://developer.mozilla.org/en-US/docs/Web/CSS/:scope
+    if (!OnEdge) { // https://developer.mozilla.org/en-US/docs/Web/CSS/:scope
       details = querySelector_unsafe_(':scope>summary', details as HTMLDetailsElement)
       return details && htmlTag_(details) ? details as SafeHTMLElement : null
     }
     // Specification: https://html.spec.whatwg.org/multipage/interactive-elements.html#the-summary-element
     // `HTMLDetailsElement::FindMainSummary()` in
     // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_details_element.cc?g=0&l=101
-    if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.Min$Array$$find$$findIndex) {
+    if (!OnChrome || Build.MinCVer >= BrowserVer.Min$Array$$find$$findIndex) {
       return ([].find as (predicate: (value: Element) => boolean) => Element | undefined).call(details!.children
           , summary => htmlTag_(summary) === "summary") as SafeHTMLElement | null || null
     }
@@ -309,26 +299,24 @@ export const IsInDOM_ = function (this: void, element: Element, root?: Element |
       , checkMouseEnter?: 1): boolean {
     if (!root) {
       const isConnected = element.isConnected; /** {@link #BrowserVer.Min$Node$$isConnected} */
-      if (!(Build.BTypes & ~BrowserType.Firefox) || isConnected === !!isConnected) {
+      if (!(OnChrome || OnEdge) || isConnected === !!isConnected) {
         return isConnected!; // is boolean : exists and is not overridden
       }
     }
     let f: Node["getRootNode"], pe: Element | null;
-    root = <Element | Document> root || (!(Build.BTypes & ~BrowserType.Firefox) ? element.ownerDocument as Document
-        : (root = element.ownerDocument, Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter &&
-            Build.BTypes & BrowserType.Chrome &&
+    root = <Element | Document> root || (OnFirefox ? element.ownerDocument as Document
+        : (root = element.ownerDocument, OnChrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter &&
             unsafeFramesetTag_old_cr_ && (root as WindowWithTop).top === top ||
             !isNode_(root as Document | RadioNodeList as Document, kNode.DOCUMENT_NODE)
-        ? doc : root as Document));
-    if (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
-        || !(Build.BTypes & ~BrowserType.Firefox)
+            ? doc : root as Document))
+    if (OnFirefox || !OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Node$$getRootNode)
         ? isNode_(root, kNode.DOCUMENT_NODE) : isNode_(root, kNode.DOCUMENT_NODE) && (f = doc.getRootNode)) {
-      return !(Build.BTypes & ~BrowserType.Firefox)
+      return OnFirefox
         ? element.getRootNode!({composed: true}) === root
-        : (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
+        : (!OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Node$$getRootNode)
             ? doc.getRootNode : f)!.call(element, {composed: true}) === root;
     }
-    if (Build.BTypes & ~BrowserType.Firefox ? doc.contains.call(root, element)
+    if (!OnFirefox ? doc.contains.call(root, element)
         : contains_s(root as SafeElement | Exclude<typeof root, Element>, element)) {
       return true;
     }
@@ -396,8 +384,8 @@ export const getEditableType_ = function (element: Element): EditableType {
     (element: Element): element is LockableElement; // this line is just to avoid a warning on VS Code
 }
 
-export const isInputInTextMode_cr_old = Build.MinCVer >= BrowserVer.Min$selectionStart$MayBeNull
-      || !(Build.BTypes & BrowserType.Chrome) ? 0 as never : (el: TextElement): boolean | void => {
+export const isInputInTextMode_cr_old = !OnChrome || Build.MinCVer >= BrowserVer.Min$selectionStart$MayBeNull
+      ? 0 as never : (el: TextElement): boolean | void => {
     try {
       return el.selectionEnd != null;
     } catch {}
@@ -407,9 +395,9 @@ export const isSelected_ = (): boolean => {
     const element = activeEl_unsafe_()!, sel = getSelection_(), node = getAccessibleSelectedNode(sel)
     return !node ? false
       : (element as TypeToAssert<Element, HTMLElement, "isContentEditable">).isContentEditable === true
-      ? Build.BTypes & BrowserType.Firefox ? contains_s(element as SafeElement, node) : doc.contains.call(element, node)
+      ? OnFirefox ? contains_s(element as SafeElement, node) : doc.contains.call(element, node)
       : element === node || !!(node as NodeToElement).tagName
-        && element === (Build.BTypes & ~BrowserType.Firefox ? GetChildNodes_not_ff!(node as Element)
+        && element === (!OnFirefox ? GetChildNodes_not_ff!(node as Element)
             : node.childNodes as NodeList)[selOffset_(sel)]
 }
 
@@ -430,12 +418,11 @@ export const getSelectionFocusEdge_ = (sel: Selection, knownDi?: VisualModeNS.Fo
         : anc === el ? (selOffset_(sel, 1) < selOffset_(sel) ? VisualModeNS.kDir.left : VisualModeNS.kDir.right)
         : anc ? getDirectionOfNormalSelection(sel, anc, el) : 1
     if ((el as NodeToElement).tagName) {
-      o = (Build.BTypes & ~BrowserType.Firefox ? GetChildNodes_not_ff!(el as Element) : el.childNodes as NodeList
-          )[selOffset_(sel, 1)]
+      o = (OnFirefox ? el.childNodes as NodeList : GetChildNodes_not_ff!(el as Element))[selOffset_(sel, 1)]
     } else {
       el = GetParent_unsafe_(el as Node, PNType.DirectNode)
     }
-    for (; o && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
+    for (; o && (!OnChrome || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
           ? <number> <Element | RadioNodeList | kNode> o.nodeType - kNode.ELEMENT_NODE
           : isTY(nt = o.nodeType, kTY.num) && nt - kNode.ELEMENT_NODE)
         ; o = knownDi ? o!.previousSibling : o!.nextSibling) { /* empty */ }
@@ -446,7 +433,7 @@ export const getSelectionFocusEdge_ = (sel: Selection, knownDi?: VisualModeNS.Fo
         o = 0
       }
     }
-    if (!(Build.BTypes & ~BrowserType.Firefox)) {
+    if (OnFirefox) {
       return (/* Element | null */ o || /* container element */ el) as SafeElement | null;
     }
     return SafeEl_not_ff_!(<Element | null> (o || el), PNType.DirectElement)
@@ -467,12 +454,12 @@ export function set_createElement_ (_newCreateEl: typeof createElement_): void {
 
 export const appendNode_s = (parent: SafeElement | Document | HTMLDivElement | HTMLDialogElement | DocumentFragment
     , child: Element | DocumentFragment | Text): void => {
-  Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
+  OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
       ? parent.appendChild(child) : parent.append!(child)
 }
 
-export const append_not_ff = Build.BTypes & ~BrowserType.Firefox ? (parent: Element, child: HTMLElement): void => {
-  (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
+export const append_not_ff = !OnFirefox ? (parent: Element, child: HTMLElement): void => {
+  (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
       ? ElementProto().appendChild : ElementProto().append!).call(parent, child)
 } : 0 as never
 
@@ -505,27 +492,23 @@ export const textContent_s = ((el: SafeElement, text?: string): string => text ?
 }
 
 export const attachShadow_ = <T extends HTMLDivElement | HTMLBodyElement> (box: T): ShadowRoot | T => {
-  return !(Build.BTypes & ~BrowserType.Edge) ? box
-      : (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
-        && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
-        && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+  return OnEdge ? box
+      : OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1
+        || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
         || box.attachShadow
       ? box.attachShadow!({mode: "closed"})
-      : Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredShadowDOMV1
-        && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-            || box.createShadowRoot)
+      : OnChrome && Build.MinCVer < BrowserVer.MinEnsuredShadowDOMV1
+        && (Build.MinCVer >= BrowserVer.MinEnsuredUnprefixedShadowDOMV0 || box.createShadowRoot)
       ? box.createShadowRoot!()
-      : Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-        && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
-            || box.webkitCreateShadowRoot)
+      : OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+        && (Build.MinCVer >= BrowserVer.MinShadowDOMV0 || box.webkitCreateShadowRoot)
       ? box.webkitCreateShadowRoot!() : box
 }
 
 export const scrollIntoView_ = (el: Element, dir?: boolean): void => {
-    !(Build.BTypes & ~BrowserType.Firefox) ? el.scrollIntoView({ block: "nearest" })
+    OnFirefox ? el.scrollIntoView({ block: "nearest" })
       : ElementProto().scrollIntoView.call(el,
-          Build.MinCVer < BrowserVer.MinScrollIntoViewOptions && Build.BTypes & BrowserType.Chrome &&
-          dir != null ? dir : { block: "nearest" });
+          OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions && dir != null ? dir : { block: "nearest" })
 }
 
 export const modifySel = (sel: Selection, extend: BOOL | boolean, di: BOOL | boolean
@@ -535,13 +518,13 @@ export const modifySel = (sel: Selection, extend: BOOL | boolean, di: BOOL | boo
 
 export const runJS_ = (code: string, returnEl?: HTMLScriptElement | null | 0
       ): void | HTMLScriptElement & SafeHTMLElement => {
-    const docEl = Build.BTypes & ~BrowserType.Firefox ? docEl_unsafe_() : null
+    const docEl = !OnFirefox ? docEl_unsafe_() : null
     const script = returnEl || createElement_("script");
     script.type = "text/javascript";
     // keep it fast, rather than small
-    !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
+    !OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
         ? script.append!(code) : textContent_s(script, code)
-    if (Build.BTypes & ~BrowserType.Firefox) {
+    if (!OnFirefox) {
       docEl ? append_not_ff(docEl, script) : appendNode_s(doc, script)
     } else {
       appendNode_s(docEl_unsafe_() as SafeElement | null || doc, script)

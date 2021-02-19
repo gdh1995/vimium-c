@@ -1,5 +1,5 @@
 import {
-  doc, esc, fgCache, isEnabled_, isTop, keydownEvents_, set_esc, VOther, safer, Stop_, isTY, Lower
+  doc, esc, fgCache, isEnabled_, isTop, keydownEvents_, set_esc, safer, Stop_, isTY, Lower, OnChrome, OnFirefox
 } from "../lib/utils"
 import {
   set_getMappedKey, char_, getMappedKey, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_, SPC
@@ -87,8 +87,7 @@ const checkKey = (event: HandlerNS.Event, key: string, keyWithoutModeID: string
   }
   let j: ReadonlyChildKeyFSM | ValidKeyAction | ReturnType<typeof isEscape_> | undefined = isEscape_(keyWithoutModeID)
   if (j) {
-    Build.BTypes & BrowserType.Chrome && mapKeyTypes & (kMapKey.normal | kMapKey.insertMode | kMapKey.otherMode) &&
-    checkAccessKey_cr(event)
+    OnChrome && mapKeyTypes & (kMapKey.normal | kMapKey.insertMode | kMapKey.otherMode) && checkAccessKey_cr(event)
     return nextKeys ? (esc!(HandlerResult.ExitPassMode), HandlerResult.Prevent) : j;
   }
   if (!nextKeys || (j = nextKeys[key]) == null) {
@@ -110,14 +109,13 @@ const checkKey = (event: HandlerNS.Event, key: string, keyWithoutModeID: string
   return HandlerResult.Prevent;
 }
 
-const checkAccessKey_cr = Build.BTypes & BrowserType.Chrome ? (event: HandlerNS.Event): void => {
+const checkAccessKey_cr = OnChrome ? (event: HandlerNS.Event): void => {
   /** On Firefox, access keys are only handled during keypress events, so it has been "hooked" well:
    * https://dxr.mozilla.org/mozilla/source/content/events/src/nsEventStateManager.cpp#960 .
    * And the modifier stat for access keys is user-configurable: `ui.key.generalAccessKey`
    * * there was another one (`ui.key.contentAccess`) but it has been removed from the latest code
    */
-  if (Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)
-      && event.e.altKey) {
+  if (event.e.altKey) {
     /** On Chrome, there're 2 paths to trigger accesskey:
      * * `blink::WebInputEvent::kRawKeyDown` := `event#keydown` => `blink::WebInputEvent::kChar` := `handleAccessKey`
      * * `blink::WebInputEvent::kKeyDown` := `handleAccessKey` + `event#keydown`
@@ -142,7 +140,7 @@ export const resetAnyClickHandler = (): void => {
   isWaitingAccessKey = false; anyClickHandler.handleEvent = noopEventHandler;
 }
 
-const onAnyClick_cr = Build.BTypes & BrowserType.Chrome ? (event: MouseEventToPrevent): void => {
+const onAnyClick_cr = OnChrome ? (event: MouseEventToPrevent): void => {
   // Note: here `event` may be a simulated one from a browser itself or page scripts
   // here has been on Chrome
   if (isWaitingAccessKey
@@ -170,11 +168,11 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
       || !key) { return; }
   const eventWrapper: HandlerNS.Event = {c: kChar.INVALID, e: event, i: key};
   if (scroll_keyIsDown && onScrolls(event)) {
-    Build.BTypes & BrowserType.Chrome && checkAccessKey_cr(eventWrapper)
+    OnChrome && checkAccessKey_cr(eventWrapper)
     return;
   }
-  if (Build.BTypes & BrowserType.Chrome) { isWaitingAccessKey && /*#__NOINLINE__*/ resetAnyClickHandler(); }
-  if (Build.BTypes & BrowserType.Firefox) { raw_insert_lock && insert_Lock_(); }
+  OnChrome && isWaitingAccessKey && /*#__NOINLINE__*/ resetAnyClickHandler()
+  OnFirefox && raw_insert_lock && insert_Lock_()
   let action = HandlerResult.Nothing, tempStr: string;
   for (let ind = handler_stack.length; 0 < ind && action === HandlerResult.Nothing; ) {
     action = (handler_stack[ind -= 2] as HandlerNS.Handler)(eventWrapper);
@@ -186,10 +184,10 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
           || (insert_global_ ? insert_global_.k
                 : mapKeyTypes & kMapKey.directInsert || key > kKeyCode.maxNotFn && key < kKeyCode.minNotFn)
               && (key < kKeyCode.N0 || key > kKeyCode.MinNotAlphabet || getKeyStat_(event) & KeyStat.ExceptShift)
-          || (Build.BTypes & BrowserType.Firefox && key === kKeyCode.bracketleftOnFF || key > kKeyCode.minNotFn
+          || (OnFirefox && key === kKeyCode.bracketleftOnFF || key > kKeyCode.minNotFn
               ? event.ctrlKey : key === kKeyCode.esc)
           ? getMappedKey(eventWrapper, mapKeyTypes & kMapKey.insertMode ? kModeId.Insert : kModeId.Normal)
-          : (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$KeyboardEvent$$Key
+          : (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$KeyboardEvent$$Key
               || event.key) && event.key!.length === 1 ? kChar.INVALID : ""
     if (insert_global_ ? insert_global_.k ? keyStr === insert_global_.k : isEscape_(keyStr)
         : keyStr.length < 2 ? keyStr ? esc!(HandlerResult.Nothing) : HandlerResult.Nothing
@@ -204,7 +202,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
         action = /* the real is HandlerResult.PassKey; here's for smaller code */ HandlerResult.Nothing;
       } else {
         action = insert_global_ && insert_global_.p
-            ? (Build.BTypes & BrowserType.Chrome && checkAccessKey_cr(eventWrapper), HandlerResult.Nothing)
+            ? (OnChrome && checkAccessKey_cr(eventWrapper), HandlerResult.Nothing)
             : HandlerResult.Prevent
         /*#__NOINLINE__*/ exitInsertMode(event.target as Element);
       }
@@ -228,7 +226,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
   }
   if (action < HandlerResult.MinStopOrPreventEvents) { return; }
   if (action > HandlerResult.MaxNotPrevent) {
-    Build.BTypes & BrowserType.Chrome && checkAccessKey_cr(eventWrapper)
+    OnChrome && checkAccessKey_cr(eventWrapper)
     prevent_(event);
   } else {
     Stop_(event);
@@ -246,9 +244,7 @@ const onEscDown = (event: KeyboardEventToPrevent, key: kKeyCode
   if (!repeat && removeSelection()) {
     /* empty */
   } else if (repeat && !keydownEvents_[key] && activeEl !== body) {
-    (Build.BTypes & ~BrowserType.Firefox ? isTY(activeEl!.blur, kTY.func)
-        : activeEl!.blur) && // in case activeEl is unsafe
-    activeEl!.blur!();
+    (OnFirefox ? activeEl!.blur : isTY(activeEl!.blur, kTY.func)) && activeEl!.blur!()
   } else if (!isTop && activeEl === body) {
     focusUpper(key, repeat, event);
     action = HandlerResult.PassKey;
@@ -268,9 +264,7 @@ export const onKeyup = (event: KeyboardEventToPrevent): void => {
     scrollTick(0);
   }
   isCmdTriggered = kKeyCode.None
-  if (Build.BTypes & BrowserType.Chrome) {
-    isWaitingAccessKey && /*#__NOINLINE__*/ resetAnyClickHandler();
-  }
+  OnChrome && isWaitingAccessKey && /*#__NOINLINE__*/ resetAnyClickHandler()
   if (suppressType && getSelection_().type !== suppressType) {
     setupSuppress();
   }

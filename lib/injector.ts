@@ -21,25 +21,24 @@ var VimiumInjector: VimiumInjectorTy | undefined | null
 })();
 
 (function (_a0: 1, injectorBuilder: (scriptSrc: string) => VimiumInjectorTy["reload"]): void {
-const mayBrowser_ = Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome
+const MayChrome = !!(Build.BTypes & BrowserType.Chrome), MayNotChrome = !!(Build.BTypes & ~BrowserType.Chrome)
+const MayEdge = !!(Build.BTypes & BrowserType.Edge)
+const mayBrowser_ = MayChrome && MayNotChrome
     && typeof browser === "object" && !("tagName" in (browser as unknown as Element))
-    ? browser as typeof chrome : null
-let runtime = ((!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
+    ? (browser as typeof chrome) : null
+let runtime = ((!MayNotChrome ? false : !MayChrome ? true
       : !!(mayBrowser_ && mayBrowser_.runtime && mayBrowser_.runtime.connect)
-    ) ? browser as typeof chrome : chrome).runtime;
+    ) ? (browser as typeof chrome) : chrome).runtime
 const curEl = document.currentScript as HTMLScriptElement, scriptSrc = curEl.src, i0 = scriptSrc.indexOf("://") + 3
-let onIdle = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback && Build.BTypes & BrowserType.Chrome
-    || Build.BTypes & BrowserType.Edge
-  ? window.requestIdleCallback
-  : requestIdleCallback;
+let onIdle = MayChrome && Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback || MayEdge
+    ? window.requestIdleCallback : requestIdleCallback
 let tick = 1, extID = scriptSrc.slice(i0, scriptSrc.indexOf("/", i0));
-if (!(Build.BTypes & BrowserType.Chrome) || Build.BTypes & ~BrowserType.Chrome && extID.indexOf("-") > 0) {
+if (!MayChrome || MayNotChrome && extID.indexOf("-") > 0) {
   extID = curEl.dataset.vimiumId || BuildStr.FirefoxID;
 }
 extID = curEl.dataset.extensionId || extID;
 VimiumInjector.id = extID;
-if (Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback && Build.BTypes & BrowserType.Chrome
-    || Build.BTypes & BrowserType.Edge) {
+if (MayChrome && Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback || MayEdge) {
   onIdle = typeof onIdle !== "function" || "tagName" in (onIdle as unknown as Element) ? null as never : onIdle
 }
 function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined | false): void {
@@ -78,7 +77,7 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
   const newInjector = VimiumInjector = {
     id: extID,
     alive: 0,
-    host: !(Build.BTypes & ~BrowserType.Chrome) ? extID : res ? res.host : "",
+    host: !MayNotChrome ? extID : res ? res.host : "",
     version: res ? res.version : "",
     cache: null,
     clickable: oldClickable,
@@ -121,8 +120,7 @@ function call(): void {
 }
 function start(): void {
   removeEventListener("DOMContentLoaded", start);
-  (Build.MinCVer >= BrowserVer.MinEnsured$requestIdleCallback || !(Build.BTypes & BrowserType.Chrome))
-    && !(Build.BTypes & BrowserType.Edge) || onIdle
+  !(MayChrome && Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback || MayEdge) || onIdle
   ? (onIdle as RequestIdleCallback)((): void => {
     (onIdle as RequestIdleCallback)!((): void => { setTimeout(call, 0); }, {timeout: 67});
   }, {timeout: 330}) : setTimeout(call, 67);

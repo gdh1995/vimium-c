@@ -1,6 +1,6 @@
 import {
-  setupEventListener, isTop, keydownEvents_, VOther, timeout_, fgCache, doc, isAlive_, isJSUrl, chromeVer_, VTr, deref_,
-  vApi, Stop_, createRegExp, isTY, OBJECT_TYPES
+  setupEventListener, isTop, keydownEvents_, timeout_, fgCache, doc, isAlive_, isJSUrl, chromeVer_, VTr, deref_, OnEdge,
+  vApi, Stop_, createRegExp, isTY, OBJECT_TYPES, OnChrome, OnFirefox, WithDialog, injector
 } from "../lib/utils"
 import { prevent_ } from "../lib/keyboard_utils"
 import {
@@ -38,7 +38,7 @@ let helpBox: HTMLElement | null | undefined
 let hideHelp: ((event?: EventToPrevent) => void) | undefined | null
 
 export { box_ as ui_box, root_ as ui_root, styleIn_ as style_ui, lastFlashEl, curModalElement, helpBox, hideHelp }
-export const removeModal = Build.BTypes & BrowserType.ChromeOrFirefox ? (): void => {
+export const removeModal = WithDialog ? (): void => {
   curModalElement && removeEl_s(curModalElement), curModalElement = null
 } : (): void => {}
 export function set_hideHelp (_newHide: typeof hideHelp) { hideHelp = _newHide }
@@ -49,15 +49,11 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
     root_ = attachShadow_(box_);
     // listen "load" so that safer if shadowRoot is open
     // it doesn't matter to check `.mode == "closed"`, but not `.attachShadow`
-    (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
-      && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
-      && !(Build.BTypes & ~BrowserType.ChromeOrFirefox) ||
-    Build.BTypes & ~BrowserType.Edge && root_.mode === "closed" ||
-    setupEventListener(
-      !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
-      || Build.BTypes & ~BrowserType.Edge && root_ !== box_
-      ? root_ as ShadowRoot : 0, "load",
-    function Onload(this: ShadowRoot | Window, e: Event): void {
+    OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1
+        || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
+        || !OnEdge && root_.mode === "closed"
+        || setupEventListener(OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0 || !OnEdge && root_ !== box_
+              ? root_ as ShadowRoot : 0, "load", function Onload(this: ShadowRoot | Window, e: Event): void {
       if (!isAlive_) { setupEventListener(0, "load", Onload, 1); return; } // safe enough even if reloaded
       const t = e.target as HTMLElement | Document;
       if (t === omni_box || t === find_box) {
@@ -65,19 +61,18 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
       }
     }, 0, 1); // should use a listener in active mode: https://www.chromestatus.com/features/5745543795965952
     addUIElement = (element2: HTMLElement, adjust2?: AdjustType, before?: Element | null | true): void => {
-      const doesAdjustFirst = (!(Build.BTypes & ~BrowserType.Edge)
-          || Build.BTypes & BrowserType.Edge && VOther === BrowserType.Edge || Build.BTypes & BrowserType.Chrome
-          && Build.MinCVer < BrowserVer.Min$Node$$isConnected && chromeVer_ < BrowserVer.Min$Node$$isConnected
+      const doesAdjustFirst = (OnEdge
+          || OnChrome && Build.MinCVer < BrowserVer.Min$Node$$isConnected
+              && chromeVer_ < BrowserVer.Min$Node$$isConnected
           ? parentNode_unsafe_s(box_!) : box_!.isConnected!) && element2 !== curModalElement
       adjust2 && doesAdjustFirst && adjustUI()
       root_.insertBefore(element2, before === true ? root_.firstChild : before || null)
       adjust2 && !doesAdjustFirst && adjustUI()
     };
     setUICSS = (innerCSS): void => {
-      if (!((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
-            && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
-            && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)) &&
-          (!(Build.BTypes & ~BrowserType.Edge) || box_ === root_)) {
+      if ((OnChrome && Build.MinCVer < BrowserVer.MinShadowDOMV0
+            || OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+          && (OnEdge || box_ === root_)) {
         box_!.id = "VimiumUI"
       }
       const S = "style" as const
@@ -106,46 +101,44 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
     }
 } as (element: HTMLElement, adjust: AdjustType, before?: Element | null | true) => void
 
-export const getBoxTagName_cr_ = Build.BTypes & BrowserType.Chrome ? function (): "div" {
-  return (!(Build.BTypes & ~BrowserType.Chrome) || VOther & BrowserType.Chrome)
+export const getBoxTagName_cr_ = OnChrome ? (): "div" =>
+    OnChrome
         && (Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1 || chromeVer_ > BrowserVer.MinEnsuredShadowDOMV1 - 1)
         && matchMedia(VTr(kTip.highContrast_WOB)).matches ? "body" as never as "div" : "div"
-} : 0 as never
+: 0 as never
 
 export const addElementList = function <T extends boolean | BOOL> (
       array: readonly HintsNS.BaseHintItem[], offset: ViewOffset, dialogContainer?: T
       ): (T extends true | 1 ? HTMLDialogElement : HTMLDivElement) & SafeElement {
-    const parent = createElement_(Build.BTypes & BrowserType.ChromeOrFirefox && dialogContainer ? "dialog"
-        : Build.BTypes & BrowserType.Chrome ? getBoxTagName_cr_() :  "div");
-    let cls = "R HM" + (Build.BTypes & BrowserType.ChromeOrFirefox && dialogContainer ? " DHM" : "") + fgCache.d
+    const parent = createElement_(WithDialog && dialogContainer ? "dialog"
+        : OnChrome ? getBoxTagName_cr_() : "div");
+    let cls = "R HM" + (WithDialog && dialogContainer ? " DHM" : "") + fgCache.d
     let innerBox_cr: HTMLDivElement | HTMLDialogElement | undefined = parent
     setClassName_s(parent, cls)
-    if (Build.BTypes & BrowserType.Chrome && dialogContainer && array.length && getBoxTagName_cr_() < "d") { // <body>
+    if (OnChrome && dialogContainer && array.length && getBoxTagName_cr_() < "d") { // <body>
       innerBox_cr = createElement_(getBoxTagName_cr_())
       appendNode_s(parent, innerBox_cr)
       setClassName_s(innerBox_cr, cls)
     }
-    if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinTestedES6Environment
+    if (!OnChrome || Build.MinCVer >= BrowserVer.MinTestedES6Environment
           && Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
-      (Build.BTypes &BrowserType.Chrome ? innerBox_cr : parent).append!(...array.map(el => el.m))
+      (OnChrome ? innerBox_cr : parent).append!(...array.map(el => el.m))
     } else {
       for (const el of array) {
-        appendNode_s(Build.BTypes &BrowserType.Chrome ? innerBox_cr : parent, el.m)
+        appendNode_s(OnChrome ? innerBox_cr : parent, el.m)
       }
     }
     const style = parent.style,
-    zoom = bZoom_ / (Build.BTypes & BrowserType.ChromeOrFirefox && dialogContainer ? 1 : dScale_),
+    zoom = bZoom_ / (WithDialog && dialogContainer ? 1 : dScale_),
     left = offset[0] + "px", top = offset[1] + "px";
-    if ((!(Build.BTypes & ~BrowserType.Firefox)
-          || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox)
-        && zoom - 1) {
+    if (OnFirefox && zoom - 1) {
       style.cssText = `left:0;top:0;transform:scale(${zoom})translate(${left},${top})`;
     } else {
       style.left = left; style.top = top;
       zoom - 1 && (style.zoom = zoom as number | string as string);
     }
     fullscreenEl_unsafe_() && (style.position = "fixed");
-    if (Build.BTypes & BrowserType.ChromeOrFirefox && dialogContainer) {
+    if (WithDialog && dialogContainer) {
       curModalElement = parent as HTMLDialogElement
     }
     addUIElement(parent, AdjustType.DEFAULT, lastFlashEl)
@@ -162,22 +155,20 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
     //  -> #concept-node-append -> #concept-node-pre-insert -> #concept-node-adopt -> step 2
     disableUI ? removeEl_s(box_!) : el2 !== parentNode_unsafe_s(box_!) &&
-    (Build.BTypes & ~BrowserType.Firefox ? append_not_ff : appendNode_s as typeof append_not_ff)(el2, box_!)
+    (OnFirefox ? (appendNode_s as typeof append_not_ff) : append_not_ff)(el2, box_!)
     const sin = styleIn_, s = sin && (sin as HTMLStyleElement).sheet
     s && (s.disabled = false);
-    !(Build.BTypes & BrowserType.ChromeOrFirefox) || disableUI ||
-    curModalElement && !curModalElement.open && curModalElement.showModal()
+    if (WithDialog) {
+      disableUI || curModalElement && !curModalElement.open && curModalElement.showModal()
+    }
     if (el || event) {
       const removeEL = !el || disableUI, FS = "fullscreenchange";
-      if (Build.BTypes & BrowserType.Chrome
-          && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)) {
+      if (OnChrome) {
         setupEventListener(0, "webkit" + /*#__NOINLINE__*/ FS, adjustUI, removeEL)
-      } else if (!(Build.BTypes & ~BrowserType.Firefox)
-          || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox) {
+      } else if (OnFirefox) {
         setupEventListener(0, "moz" + /*#__NOINLINE__*/ FS, adjustUI, removeEL)
       }
-      if (!(Build.BTypes & BrowserType.Chrome)
-          || chromeVer_ > BrowserVer.MinMaybe$Document$$fullscreenElement - 1) {
+      if (!OnChrome || chromeVer_ > BrowserVer.MinMaybe$Document$$fullscreenElement - 1) {
         setupEventListener(0, /*#__NOINLINE__*/ FS, adjustUI, removeEL)
       }
       if (isHintsActive && removeEL) { // not need to check isAlive_
@@ -186,16 +177,14 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
     }
 }
 
-export const ensureBorder = Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor
-      || Build.BTypes & ~BrowserType.Chrome ? (zoom?: number): void => {
-    if (Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)
-        && !(chromeVer_ < BrowserVer.MinBorderWidth$Ensure1$Or$Floor)) {
+export const ensureBorder = !OnChrome || Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor
+      ? (zoom?: number): void => {
+    if (OnChrome && !(chromeVer_ < BrowserVer.MinBorderWidth$Ensure1$Or$Floor)) {
       return
     }
     zoom || (getZoom_(), zoom = wdZoom_);
     if (!cssPatch_ && zoom >= 1) { return; }
-    let width = ("" + (
-        Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
+    let width = ("" + (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
         && chromeVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
         ? 1.01 : 0.51) / zoom).slice(0, 5);
     if (!cssPatch_) {
@@ -220,13 +209,13 @@ const finalSetCSS: typeof setUICSS = (css): void => {
 }
 
 export const learnCSS = (srcStyleIn: typeof styleIn_, force?: 1): void => {
-    if (Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor || Build.BTypes & ~BrowserType.Chrome
+    if (!OnChrome || Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor
         ? !styleIn_ || force : !styleIn_) {
       const
       css = srcStyleIn && (isTY(srcStyleIn) ? srcStyleIn : textContent_s(srcStyleIn))
       if (css) {
         setUICSS(css)
-        if (Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor || Build.BTypes & ~BrowserType.Chrome) {
+        if (!OnChrome || Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor) {
           force || post_({H: kFgReq.learnCSS})
         }
       }
@@ -239,13 +228,13 @@ export const checkDocSelectable = (): void => {
       , mayTrue = !sout || !parentNode_unsafe_s(sout)
     if (mayTrue && (sout = doc.body)) {
       st = gcs(sout);
-      mayTrue = (Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinUnprefixedUserSelect
-            || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinUnprefixedUserSelect
+      mayTrue = (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinUnprefixedUserSelect
+            || OnChrome && Build.MinCVer < BrowserVer.MinUnprefixedUserSelect
             ? st.userSelect || st.webkitUserSelect : st.userSelect) !== NONE;
     }
     set_docSelectable_(mayTrue && (st = gcs(docEl_unsafe_()!),
-            Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinUnprefixedUserSelect
-            || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinUnprefixedUserSelect
+            OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinUnprefixedUserSelect
+            || OnChrome && Build.MinCVer < BrowserVer.MinUnprefixedUserSelect
             ? st.userSelect || st.webkitUserSelect : st.userSelect) !== NONE)
 }
 
@@ -255,8 +244,7 @@ export const getSelected = (notExpectCount?: {r?: ShadowRoot | null}): Selection
   let el: Node | null | undefined, sel: Selection | null
   let sr: ShadowRoot | null = null
   if (el = deref_(currentScrolling)) {
-      if (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
-          || !(Build.BTypes & ~BrowserType.Firefox)
+      if ((OnChrome ? Build.MinCVer >= BrowserVer.Min$Node$$getRootNode : !OnEdge)
           || el.getRootNode) {
         el = el.getRootNode!();
       } else {
@@ -273,10 +261,9 @@ export const getSelected = (notExpectCount?: {r?: ShadowRoot | null}): Selection
   if (!sr) {
     sel = getSelection_();
     let offset: number, sel2: Selection | null = sel
-    if ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
-            && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
-            && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-        || (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+    if (OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+        || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
+        || (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
           && chromeVer_ < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
           ? Build.MinCVer >= BrowserVer.MinShadowDOMV0 || ElementProto().webkitCreateShadowRoot
           : typeof ShadowRoot == OBJECT_TYPES[kTY.func])) {
@@ -285,11 +272,9 @@ export const getSelected = (notExpectCount?: {r?: ShadowRoot | null}): Selection
       el = getAccessibleSelectedNode(sel)
       if (el && el === getAccessibleSelectedNode(sel, 1) && (offset = selOffset_(sel)) === selOffset_(sel, 1)) {
         if ((el as NodeToElement).tagName) {
-          el = (Build.BTypes & ~BrowserType.Firefox ? GetChildNodes_not_ff!(el as Element)
-              : el.childNodes as NodeList)[offset]
+          el = (OnFirefox ? el.childNodes as NodeList : GetChildNodes_not_ff!(el as Element))[offset]
           if (el && (el as NodeToElement).tagName && (sr = GetShadowRoot_(el as Element))) {
-            if (!(Build.BTypes & ~BrowserType.Chrome) ? (sel2 = getSelectionOf(sr))
-                : sr.getSelection && (sel2 = getSelectionOf(sr))) {
+            if (OnChrome ? sel2 = getSelectionOf(sr) : sr.getSelection && (sel2 = getSelectionOf(sr))) {
               sel = sel2!;
             } else {
               sr = null;
@@ -316,8 +301,8 @@ export const getSelectionParent_unsafe = ((sel: Selection, re?: RegExpG & RegExp
     if (re && par && range && !range.collapsed && (selected = range + "")) {
       if (isNode_(lastPar, kNode.TEXT_NODE) && lastPar.data.trim().length <= selected.length) {
         let text: HTMLElement["innerText"] | undefined
-        while (par && (text = (par as TypeToAssert<Element, HTMLElement, "innerText">).innerText,
-                        !(Build.BTypes & ~BrowserType.Firefox) ? 1 : isTY(text))
+        while (par
+            && (text = (par as TypeToAssert<Element, HTMLElement, "innerText">).innerText, OnFirefox ? 1 : isTY(text))
             && selected.length >= (text as string).length) {
           par = GetParent_unsafe_(lastPar = par as HTMLElement, PNType.DirectElement)
         }
@@ -346,7 +331,7 @@ export const getSelectionText = (notTrim?: 1): string => {
 }
 
 export const removeSelection = function (root?: VUIRoot & Pick<DocumentOrShadowRoot, "getSelection">): boolean {
-    const sel = (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+    const sel = (OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
         ? root : root && root.getSelection) ? getSelectionOf(root as ShadowRoot) : getSelection_()
     const ret = sel && isSelARange(sel) && getAccessibleSelectedNode(sel)
     ret && collpaseSelection(sel!)
@@ -388,9 +373,7 @@ export const moveSel_s = (element: LockableElement, action: SelectActions | unde
           return;
         }
         (element as TextElement).select();
-        if (Build.BTypes & BrowserType.Firefox
-            && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
-            && (gotoEnd || gotoStart)) {
+        if (OnFirefox && (gotoEnd || gotoStart)) {
           (element as TextElement).setSelectionRange(gotoEnd ? len : 0, gotoEnd ? len : 0);
           return;
         }
@@ -409,8 +392,7 @@ export const getRect = (clickEl: Element, refer?: HTMLElementUsingMap | null): R
     if (refer) {
       return getClientRectsForAreas_(refer, [], [clickEl as HTMLAreaElement]);
     }
-    const rect = Build.BTypes & ~BrowserType.Firefox && notSafe_not_ff_!(clickEl) ? null
-        : getVisibleClientRect_(clickEl as SafeElement),
+    const rect = OnFirefox || !notSafe_not_ff_!(clickEl) ? getVisibleClientRect_(clickEl as SafeElement) : null,
     cr = getBoundingClientRect_(clickEl),
     bcr = padClientRect_(cr, 8),
     rect2 = rect && !isContaining_(bcr, rect) ? rect
@@ -422,10 +404,10 @@ export const flash_ = function (el: Element | null, rect?: Rect | null, lifeTime
       ): (() => void) | void {
     rect || (rect = getRect(el!))
     if (!rect) { return; }
-    const flashEl = createElement_(Build.BTypes & BrowserType.Chrome ? getBoxTagName_cr_() : "div"),
+    const flashEl = createElement_(OnChrome ? getBoxTagName_cr_() : "div"),
     nfs = !fullscreenEl_unsafe_()
     setClassName_s(flashEl, "R Flash" + (classNames || "") + (setBoundary_(flashEl.style, rect, nfs) ? " AbsF" : ""))
-    Build.BTypes & ~BrowserType.Firefox &&
+    OnChrome &&
     bZoom_ !== 1 && nfs && (flashEl.style.zoom = "" + bZoom_);
     addUIElement(flashEl, AdjustType.DEFAULT)
     lastFlashEl = flashEl
@@ -452,16 +434,14 @@ export const setupExitOnClick = (key: kExitOnClick): void => {
 const doExitOnClick = (event?: MouseEventToPrevent): void => {
   if (event) {
       if (// simulated events generated by page code
-          (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
-              ? !event.isTrusted : event.isTrusted === false)
+          (OnChrome && Build.MinCVer < BrowserVer.Min$Event$$IsTrusted ? event.isTrusted === false : !event.isTrusted)
           // simulated events generated by browser code
           || !(event as MouseEvent).detail && !(event as MouseEvent).clientY
           // Vimium C has been disabled
           || !parentNode_unsafe_s(box_!)
           // the click target is in Vimium C's UI
-          || ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
-              && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
-              && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+          || (OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+                || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
               ? event.target === box_
               : !(event.target instanceof Element) || contains_s(root_, event.target))
           ) {
@@ -474,7 +454,8 @@ const doExitOnClick = (event?: MouseEventToPrevent): void => {
 }
 
 /** must be called only if having known anotherWindow is "in a same origin" */
-export let getWndVApi_ff: ((anotherWindow: Window) => VApiTy | null | void) | undefined
+export let getWndVApi_ff = OnFirefox ? (anotherWindow: Window): VApiTy | null | void => anotherWindow.VApi
+    : 0 as never as null
 export function set_getWndVApi_ff (_newGetWndVApi: typeof getWndVApi_ff): void { getWndVApi_ff = _newGetWndVApi }
 
 /**
@@ -483,19 +464,16 @@ export function set_getWndVApi_ff (_newGetWndVApi: typeof getWndVApi_ff): void {
  *
  * So even if it returns a valid object, `parent.***` may still be blocked
  */
-export let getParentVApi = Build.BTypes & BrowserType.Firefox ? (): VApiTy | null | void => {
-  if (Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox ? !frameElement_() : !frameElement) {
+export let getParentVApi = OnFirefox && injector === void 0 ? (): VApiTy | null | void => {
     // in Firefox, not use the cached version of frameElement - for less exceptions in the below code
-    return;
-  }
   // Note: the functionality below should keep the same even if the cached version is used - for easier debugging
-  const core = getWndVApi_ff!(parent as Window);
-  if ((!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox) && core) {
+  const core = frameElement && getWndVApi_ff!(parent as Window);
+  if (core) {
     /** the case of injector is handled in {@link ./injected_end.ts} */
     getParentVApi = () => core;
   }
   return core;
-} : () => (parent as Window).VApi
+} : (): VApiTy | null | void => frameElement_() && (parent as Window).VApi
 
 export function set_getParentVApi (_newGetParVApi: () => VApiTy | null | void): void { getParentVApi = _newGetParVApi }
 
@@ -520,8 +498,7 @@ export const evalIfOK = (url: Pick<BgReq[kBgReq.eval], "u"> | string): boolean =
 export const checkHidden = ((cmd?: FgCmdAcrossFrames, options?: OptionsWithForce, count?: number): BOOL => {
   if (isTop) { return 0 }
   // here should not use the cache frameElement, because `getComputedStyle(frameElement).***` might break
-  const curFrameElement = !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox
-      && VOther === BrowserType.Firefox ? frameElement : frameElement_(),
+  const curFrameElement = OnFirefox ? frameElement : frameElement_(),
   el = curFrameElement || docEl_unsafe_();
   if (!el && wndSize_() > 3 && wndSize_(1) > 3) { return 0; }
   let box = el && padClientRect_(getBoundingClientRect_(el)),
@@ -531,11 +508,10 @@ export const checkHidden = ((cmd?: FgCmdAcrossFrames, options?: OptionsWithForce
     // if in a forced cross-origin env (by setting doc.domain),
     // then par.self.innerHeight works, but this behavior is undocumented,
     // so here only use `parApi.innerHeight_()` in case
-    if ((Build.BTypes & BrowserType.Firefox ? curFrameElement && (parEvents = getParentVApi()) : curFrameElement)
+    if ((OnFirefox ? (parEvents = getParentVApi()) : curFrameElement)
         && (result || box!.b <= 0
-            || (Build.BTypes & BrowserType.Firefox
-                  ? box!.t > parEvents!.i!() : box!.t > (parent as Window).innerHeight))) {
-      Build.BTypes & BrowserType.Firefox || (parEvents = getParentVApi());
+            || (OnFirefox ? box!.t > parEvents!.i!() : box!.t > (parent as Window).innerHeight))) {
+      OnFirefox || (parEvents = getParentVApi())
       if (parEvents
           && !parEvents.a(keydownEvents_)) {
         parEvents.f(cmd, options!, count!, 1);

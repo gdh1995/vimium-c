@@ -16,8 +16,8 @@ interface FullOptions extends BaseFullOptions {
 declare var VData: VDataTy
 
 import {
-  injector, isAlive_, keydownEvents_, readyState_, VOther, timeout_, clearTimeout_, loc_, recordLog, chromeVer_, math,
-  interval_, clearInterval_, locHref, vApi, createRegExp, isTY, safeObj, isTop
+  injector, isAlive_, keydownEvents_, readyState_, timeout_, clearTimeout_, loc_, recordLog, chromeVer_, math, OnChrome,
+  interval_, clearInterval_, locHref, vApi, createRegExp, isTY, safeObj, isTop, OnFirefox, OnEdge
 } from "../lib/utils"
 import { removeHandler_, replaceOrSuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
 import {
@@ -76,8 +76,7 @@ export const activate = function (options: FullOptions, count: number): void {
     }
     let parApi: ReturnType<typeof getParentVApi>;
     if (!isTop && !options.$forced) { // check $forced to avoid dead loops
-      if (parent === top && !fullscreenEl_unsafe_()
-          && (parApi = Build.BTypes & BrowserType.Firefox ? getParentVApi() : frameElement_() && getParentVApi())) {
+      if (parent === top && !fullscreenEl_unsafe_() && (parApi = getParentVApi())) {
         parApi.f(kFgCmd.vomnibar, options, count)
       } else {
         post_({ H: kFgReq.gotoMainFrame, f: 0, c: kFgCmd.vomnibar, n: count, a: options })
@@ -88,15 +87,13 @@ export const activate = function (options: FullOptions, count: number): void {
     omniOptions = null
     getViewBox_();
     // `canUseVW` is computed for the gulp-built version of vomnibar.html
-    canUseVW = (Build.MinCVer >= BrowserVer.MinCSSWidthUnit$vw$InCalc
-            || !!(Build.BTypes & BrowserType.Chrome) && chromeVer_ > BrowserVer.MinCSSWidthUnit$vw$InCalc - 1)
+    canUseVW = (!OnChrome || Build.MinCVer >= BrowserVer.MinCSSWidthUnit$vw$InCalc
+            || chromeVer_ > BrowserVer.MinCSSWidthUnit$vw$InCalc - 1)
         && !fullscreenEl_unsafe_() && docZoom_ === 1 && dScale_ === 1;
     let scale = wndSize_(2);
     let width = canUseVW ? wndSize_(1) : (prepareCrop_()
-        , !(Build.BTypes & ~BrowserType.Firefox) ? viewportRight : viewportRight * docZoom_ * bZoom_)
-    if (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
-        && (!(Build.BTypes & ~BrowserType.Chrome)
-            || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome)) {
+        , OnFirefox ? viewportRight : viewportRight * docZoom_ * bZoom_)
+    if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent) {
       options.w = width * scale;
       options.h = screenHeight_ = wndSize_() * scale;
     } else {
@@ -165,7 +162,7 @@ export const hide = ((fromInner?: 1 | null): void => {
     // needed, in case the iframe is focused and then a `<esc>` is pressed before removing suppressing
     refreshKeyHandler()
     oldIsActive || focus()
-    if (Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval && Build.BTypes & BrowserType.Chrome) {
+    if (OnChrome && Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval) {
       let style_old_cr = box!.style
       style_old_cr!.height = style_old_cr!.top = ""; style_old_cr!.display = NONE;
     } else {
@@ -196,10 +193,10 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
     el.src = page;
     let loaded: BOOL = 0, initMsgInterval: ValidIntervalID = TimerID.None, slowLoadTimer: ValidTimeoutID | undefined
     el.onload = (event): void => {
-      if (Build.BTypes & BrowserType.Edge
-          || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredShadowDOMV1
-          || Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredShadowDOMV1) {
-        if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+      if (OnEdge
+          || OnChrome && Build.MinCVer < BrowserVer.MinEnsuredShadowDOMV1
+          || OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredShadowDOMV1) {
+        if (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted
             ? !event.isTrusted : event.isTrusted === false) {
           return
         }
@@ -215,7 +212,7 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
       timeout_((i?: TimerType.fake): void => {
         clearInterval_(initMsgInterval)
         const ok = !isAlive_ || status !== VomnibarNS.Status.Initing
-        if (Build.BTypes & ~BrowserType.Firefox ? ok || i : ok) {
+        if (OnFirefox ? ok : ok || i) {
           // only clear `onload` when receiving `VomnibarNS.kFReq.iframeIsAlive`, to avoid checking `i`
           isAlive_ && secondActivateWithNewOptions && secondActivateWithNewOptions()
           return
@@ -242,7 +239,7 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
     addUIElement(box = el, AdjustType.MustAdjust, hud_box)
     slowLoadTimer = type !== VomnibarNS.PageType.inner ? timeout_(function (i): void {
       clearInterval_(initMsgInterval)
-      loaded || (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i) ||
+      loaded || (OnChrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i) ||
       reload()
     }, 2000) : TimerID.None
 }
@@ -252,7 +249,7 @@ const resetWhenBoxExists = (redo?: boolean): void | 1 => {
     if (oldStatus === VomnibarNS.Status.NotInited) { return; }
     status = VomnibarNS.Status.NotInited
     portToOmni && portToOmni.close()
-    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredShadowDOMV1
+    if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredShadowDOMV1
         && Build.MinCVer < BrowserVer.Min$Event$$IsTrusted) {
       box!.onload = null as never
     }
@@ -280,8 +277,7 @@ const onOmniMessage = function (this: OmniPort, msg: { data: any, target?: Messa
     switch (data.N) {
     case VomnibarNS.kFReq.iframeIsAlive:
       status = VomnibarNS.Status.ToShow
-      portToOmni = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinTestedES6Environment
-          ? this : msg.target! as OmniPort
+      portToOmni = OnChrome && Build.MinCVer < BrowserVer.MinTestedES6Environment ? this : msg.target! as OmniPort
       !data.o && omniOptions && postToOmni<VomnibarNS.kCReq.activate>(omniOptions)
       box!.onload = omniOptions = null as never
       break;
@@ -289,17 +285,13 @@ const onOmniMessage = function (this: OmniPort, msg: { data: any, target?: Messa
       const style = box!.style
       style.height = math.ceil(data.h / docZoom_
           / (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
-              && (!(Build.BTypes & ~BrowserType.Chrome)
-                  || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome)
-              ? wndSize_(2) : 1)) + "px"
+              && OnChrome ? wndSize_(2) : 1)) + "px"
       if (status === VomnibarNS.Status.ToShow) {
         status = VomnibarNS.Status.Showing
         const maxBoxHeight = data.m!,
         topHalfThreshold = maxBoxHeight * 0.6 + VomnibarNS.PixelData.MarginTop *
             (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
-              && (!(Build.BTypes & ~BrowserType.Chrome)
-                  || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome)
-              ? wndSize_(2) : 1),
+              && OnChrome ? wndSize_(2) : 1),
         top = screenHeight_ > topHalfThreshold * 2 ? ((50 - maxBoxHeight * 0.6 / screenHeight_ * 100) | 0
             ) + (canUseVW ? "vh" : "%") : ""
         style.top = !Build.NoDialogUI && VimiumInjector === null && loc_.hash === "#dialog-ui" ? "8px" : top;
@@ -335,8 +327,7 @@ const refreshKeyHandler = (): void => {
 
 export const focusOmni = (): void => {
     if (status < VomnibarNS.Status.Showing) { return; }
-    if (Build.MinCVer < BrowserVer.MinFocus3rdPartyIframeDirectly
-        && Build.BTypes & BrowserType.Chrome) {
+    if (OnChrome && Build.MinCVer < BrowserVer.MinFocus3rdPartyIframeDirectly) {
       box!.contentWindow.focus()
     }
     postToOmni(VomnibarNS.kCReq.focus)

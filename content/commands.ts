@@ -1,6 +1,7 @@
 import {
-  chromeVer_, doc, esc, EscF, fgCache, isTop, set_esc, VOther, VTr, safer, timeout_, loc_, weakRef_, deref_,
-  keydownEvents_, parseSedOptions, Stop_, suppressCommonEvents, setupEventListener, vApi, locHref, isTY, max_, min_
+  chromeVer_, doc, esc, EscF, fgCache, isTop, set_esc, VTr, safer, timeout_, loc_, weakRef_, deref_,
+  keydownEvents_, parseSedOptions, Stop_, suppressCommonEvents, setupEventListener, vApi, locHref, isTY, max_, min_,
+  OnChrome, OnFirefox, OnEdge
 } from "../lib/utils"
 import {
   isHTML_, htmlTag_, createElement_, frameElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK,
@@ -51,9 +52,8 @@ set_contentCommands_([
         options.url ? (loc_.href = options.url) : loc_.reload(!!options.hard)
       }, 17)
     }
-    else if ((!(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && VOther & BrowserType.Chrome)
-        && maxStep > 1
-        && (Build.MinCVer >= BrowserVer.Min$Tabs$$goBack || chromeVer_ >= BrowserVer.Min$Tabs$$goBack)
+    else if (OnChrome && maxStep > 1
+        && (Build.MinCVer >= BrowserVer.Min$Tabs$$goBack || chromeVer_ > BrowserVer.Min$Tabs$$goBack - 1)
         && (reuse == null || !isCurrent)
         || maxStep && reuse && !isCurrent
     ) {
@@ -156,7 +156,7 @@ set_contentCommands_([
   },
   /* kFgCmd.goNext: */ (req: CmdOptions[kFgCmd.goNext]): void => {
     let parApi: VApiTy | null | void, chosen: GoNextBaseCandidate | false | 0 | null
-    if (!isTop && (parApi = Build.BTypes & BrowserType.Firefox ? getParentVApi() : frameElement_() && getParentVApi())
+    if (!isTop && (parApi = getParentVApi())
         && !parApi.a(keydownEvents_)) {
       parApi.f(kFgCmd.goNext, req as CmdOptions[kFgCmd.goNext] & FgOptions, 1)
     } else if (chosen = isHTML_()
@@ -191,7 +191,7 @@ set_contentCommands_([
   /* kFgCmd.focusInput: */ (options: CmdOptions[kFgCmd.focusInput], count: number): void => {
     const S = "IH IHS"
     const act = options.act || options.action, known_last = deref_(insert_last_);
-    Build.BTypes & BrowserType.Firefox && insert_Lock_()
+    OnFirefox && insert_Lock_()
     if (act && (act[0] !== "l" || known_last && !raw_insert_lock)) {
       let newEl: LockableElement | null | undefined = raw_insert_lock, ret: BOOL = 1;
       if (newEl) {
@@ -224,7 +224,7 @@ set_contentCommands_([
     prepareCrop_(1);
     interface InputHint extends Hint { [0]: HintsNS.InputHintItem["d"] }
     // here those editable and inside UI root are always detected, in case that a user modifies the shadow DOM
-    const visibleInputs = traverse(Build.BTypes & ~BrowserType.Firefox
+    const visibleInputs = traverse(!OnFirefox
           ? VTr(kTip.editableSelector) + kSafeAllSelector : VTr(kTip.editableSelector), options, getEditable
         ) as InputHint[],
     action = options.select, keep = options.keep, pass = options.passExitKey, reachable = options.reachable;
@@ -245,8 +245,7 @@ set_contentCommands_([
     for (let ind = 0; ind < sel; ind++) {
       const hint = visibleInputs[ind], j = hint[0].tabIndex;
       hint[2] = preferred.indexOf(hint[0]) >= 0 ? 0.5 : j < 1 ? -ind
-          : !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-            && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)
+          : (OnChrome ? Build.MinCVer >= BrowserVer.MinStableSort : !OnEdge)
           ? j : j + ind / 8192;
     }
     const hints: HintsNS.InputHintItem[] = visibleInputs.sort(
@@ -260,7 +259,7 @@ set_contentCommands_([
       return {m: marker, d: link[0]};
     })
     if (count === 1 && known_last) {
-      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Array$$find$$findIndex) {
+      if (OnChrome && Build.MinCVer < BrowserVer.Min$Array$$find$$findIndex) {
         sel = max_(0, hints.map(link => link.d).indexOf(known_last))
       } else {
         sel = max_(0, hints.findIndex(link => link.d === known_last))
@@ -278,7 +277,7 @@ set_contentCommands_([
     pushHandler_((event) => {
       const keyCode = event.i, isIME = keyCode === kKeyCode.ime, repeat = event.e.repeat,
       key = isIME || repeat ? "" : getMappedKey(event, kModeId.Insert)
-      if (Build.BTypes & BrowserType.Firefox && !insert_Lock_()) {
+      if (OnFirefox && !insert_Lock_()) {
         exitInputHint()
         return HandlerResult.Prevent
       }
@@ -355,8 +354,7 @@ set_contentCommands_([
     } else if (id) {
       el = createStyle(options.css!)
       el.id = id
-      par = Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(doc.head)
-          : (doc.head || docEl_unsafe_()) as SafeElement | null
+      par = OnFirefox ? (doc.head || docEl_unsafe_()) as SafeElement | null : SafeEl_not_ff_!(doc.head)
       par && appendNode_s(par, el)
     }
   },
@@ -373,8 +371,7 @@ set_contentCommands_([
     }
     let shouldShowAdvanced = options.c, optionUrl = options.o
     let box: SafeHTMLElement, outerBox_not_ff: SafeHTMLElement | undefined
-    if (Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)) {
+    if (OnFirefox) {
       // on FF66, if a page is limited by "script-src 'self'; style-src 'self'"
       //   then `<style>`s created by `.innerHTML = ...` has no effects;
       //   so need `doc.createElement('style').textContent = ...`
@@ -382,19 +379,16 @@ set_contentCommands_([
           ).body.firstChild as SafeHTMLElement
       box.prepend!(createStyle((html as Exclude<typeof html, string>).h))
     } else {
-      outerBox_not_ff = createElement_(Build.BTypes & BrowserType.Chrome ? getBoxTagName_cr_() : "div")
+      outerBox_not_ff = createElement_(OnChrome ? getBoxTagName_cr_() : "div")
       setClassName_s(outerBox_not_ff, "R H")
       outerBox_not_ff.innerHTML = html as string
       box = outerBox_not_ff.lastChild as SafeHTMLElement
     }
     box.onclick = Stop_
     suppressCommonEvents(box, MDW)
-    if (Build.MinCVer >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument
-        || !(Build.BTypes & BrowserType.Chrome)
+    if (!OnChrome || Build.MinCVer >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument
         || chromeVer_ > BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument - 1) {
-      setupEventListener(box,
-        (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
-          : VOther !== BrowserType.Chrome) ? CLK : DAC, onActivate)
+      setupEventListener(box, OnChrome ? DAC : CLK, onActivate)
     }
 
     const closeBtn = querySelector_unsafe_("#HCls", box) as HTMLElement,
@@ -417,8 +411,7 @@ set_contentCommands_([
         set_cachedScrollable(0)
       }
       removeHandler_(kHandler.helpDialog)
-      removeEl_s(Build.BTypes & BrowserType.Firefox ? Build.BTypes & ~BrowserType.Firefox && outerBox_not_ff || box
-          : outerBox_not_ff!)
+      removeEl_s(OnFirefox ? box : outerBox_not_ff!)
       setupExitOnClick(kExitOnClick.helpDialog | kExitOnClick.REMOVE)
       closeBtn.click()
     })
@@ -443,8 +436,7 @@ set_contentCommands_([
     }
     shouldShowAdvanced && toggleAdvanced()
     ensureBorder() // safe to skip `getZoom_`
-    addUIElement(Build.BTypes & BrowserType.Firefox ? Build.BTypes & ~BrowserType.Firefox && outerBox_not_ff || box
-        : outerBox_not_ff!, AdjustType.Normal, true)
+    addUIElement(OnFirefox ? box : outerBox_not_ff!, AdjustType.Normal, true)
     options.e && setupExitOnClick(kExitOnClick.helpDialog)
     doc.hasFocus() || vApi.f()
     set_currentScrolling(weakRef_(box))

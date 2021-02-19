@@ -1,14 +1,14 @@
 import {
   chromeVer_, clickable_, doc, esc, fgCache, injector, isEnabled_, isLocked_, isAlive_, isTop, math, includes_,
-  keydownEvents_, safeObj, set_chromeVer_, set_clickable_, set_fgCache, set_VOther, set_isLocked_,
-  set_isEnabled_, set_onWndFocus, VOther, onWndFocus, timeout_, safer,
-  interval_, getTime, vApi, clearInterval_, locHref, set_firefoxVer_,
+  keydownEvents_, safeObj, set_chromeVer_, set_clickable_, set_fgCache, set_isLocked_, OnChrome, OnFirefox,
+  set_isEnabled_, set_onWndFocus, onWndFocus, timeout_, safer,
+  interval_, getTime, vApi, clearInterval_, locHref, set_firefoxVer_, firefoxVer_,
 } from "../lib/utils"
 import { set_keyIdCorrectionOffset_old_cr_, handler_stack } from "../lib/keyboard_utils"
 import {
-  editableTypes_, markFramesetTagUnsafe_old_cr, setNotSafe_not_ff, OnDocLoaded_, frameElement_, BU, notSafe_not_ff_,
-  htmlTag_, querySelector_unsafe_, isHTML_, createElement_, setClassName_s,
-  docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, CLK, ElementProto, isIFrameElement, DAC, removeEl_s, toggleClass_s, fullscreenEl_unsafe_
+  editableTypes_, markFramesetTagUnsafe_old_cr, OnDocLoaded_, frameElement_, BU, notSafe_not_ff_,
+  htmlTag_, querySelector_unsafe_, isHTML_, createElement_, setClassName_s, fullscreenEl_unsafe_,
+  docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, CLK, ElementProto, isIFrameElement, DAC, removeEl_s, toggleClass_s
 } from "../lib/dom_utils"
 import {
   port_callbacks, post_, safePost, set_requestHandlers, requestHandlers, hookOnWnd, set_hookOnWnd,
@@ -42,41 +42,20 @@ export function set_needToRetryParentClickable (_newNeeded: 1): void { needToRet
 set_requestHandlers([
   /* kBgReq.init: */ function (request: BgReq[kBgReq.init]): void {
     const load = request.c, flags = request.s
-    if (Build.BTypes & BrowserType.Chrome) {
-      set_chromeVer_(!(Build.BTypes & ~BrowserType.Chrome) || load.b! & BrowserType.Chrome
-          ? load.v as BrowserVer : BrowserVer.assumedVer)
-    }
-    if (Build.BTypes & BrowserType.Firefox) {
-      set_firefoxVer_(!(Build.BTypes & ~BrowserType.Firefox) || load.b! & BrowserType.Firefox
-          ? load.v as FirefoxBrowserVer : 0)
-    }
-    if (<number> Build.BTypes !== BrowserType.Chrome && <number> Build.BTypes !== BrowserType.Firefox
-        && <number> Build.BTypes !== BrowserType.Edge) {
-      set_VOther(load.b!)
-    }
+    OnChrome && set_chromeVer_(load.v as BrowserVer)
+    OnFirefox && set_firefoxVer_(load.v as FirefoxBrowserVer)
     set_fgCache(vApi.z = load)
-    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key) {
+    if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key) {
       load.o || set_keyIdCorrectionOffset_old_cr_(300)
     }
-    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNoKeygenElement
-        || Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinNoKeygenElement) {
-      /** here should keep the same as {@link ../background/settings.ts#Settings_.payload_} */
-      if (Build.BTypes & BrowserType.Chrome
-          ? Build.MinCVer < BrowserVer.MinNoKeygenElement && chromeVer_ < BrowserVer.MinNoKeygenElement
-          : Build.BTypes & BrowserType.Firefox
-          ? Build.MinFFVer < FirefoxBrowserVer.MinNoKeygenElement
-            && <FirefoxBrowserVer | 0> load.v < FirefoxBrowserVer.MinNoKeygenElement
-          : false) {
-        (editableTypes_ as Writable<typeof editableTypes_>).keygen = EditableType.Select;
-      }
+    if (OnChrome && Build.MinCVer < BrowserVer.MinNoKeygenElement && chromeVer_ < BrowserVer.MinNoKeygenElement
+        || OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinNoKeygenElement
+            && firefoxVer_ < FirefoxBrowserVer.MinNoKeygenElement) {
+      (editableTypes_ as Writable<typeof editableTypes_>).keygen = EditableType.Select
     }
-    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
+    if (OnChrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
         && chromeVer_ < BrowserVer.MinFramesetHasNoNamedGetter) {
       set_kSafeAllSelector(kSafeAllSelector + ":not(" + (/*#__INLINE__*/ markFramesetTagUnsafe_old_cr()) + ")");
-    }
-    if (Build.BTypes & ~BrowserType.Firefox && Build.BTypes & BrowserType.Firefox
-        && VOther === BrowserType.Firefox) {
-      setNotSafe_not_ff((_el): _el is HTMLFormElement => false)
     }
     if (flags) {
       set_grabBackFocus(grabBackFocus && !(flags & Frames.Flags.userActed))
@@ -87,8 +66,7 @@ set_requestHandlers([
     (requestHandlers[kBgReq.reset] as (request: BgReq[kBgReq.reset | kBgReq.init], initing?: 1) => void)(request, 1)
     if (isEnabled_) {
       insertInit();
-      if (Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
-          && Build.BTypes & BrowserType.Chrome && !(Build.BTypes & ~BrowserType.Chrome && VOther !== BrowserType.Chrome)
+      if (OnChrome && Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
           && chromeVer_ > BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow - 1) {
         hookOnWnd(HookAction.SuppressListenersOnDocument);
       }
@@ -101,9 +79,7 @@ set_requestHandlers([
     OnDocLoaded_(function (): void {
       set_onWndFocus(safePost.bind(0, <Req.fg<kFgReq.onFrameFocused>> { H: kFgReq.onFrameFocused }))
       timeout_(function (): void {
-        const parApi = !(Build.BTypes & ~BrowserType.Firefox)
-            || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
-            ? getParentVApi() : frameElement_() && getParentVApi(),
+        const parApi = getParentVApi(),
         oldSet = clickable_ as any as Element[] & Set<Element>,
         parHints = parApi && parApi.b as HintManager;
         if (!needToRetryParentClickable) { /* empty */ }
@@ -112,7 +88,7 @@ set_requestHandlers([
           set_clickable_(parApi.y().c)
           oldSet.forEach(el => { clickable_.has(el) || (clickable_.add(el), count++) })
           console.log(`Vimium C: extend click: ${count ? "add " + count : "no"} local items sent to the parent's set.`)
-        } else if (Build.MinCVer < BrowserVer.MinNewWeakSetWithSetOrArray && Build.BTypes & BrowserType.Chrome) {
+        } else if (OnChrome && Build.MinCVer < BrowserVer.MinNewWeakSetWithSetOrArray) {
           set_clickable_(parApi ? parApi.y().c : new WeakSet!<Element>())
           oldSet.forEach(clickable_.add, clickable_)
         } else if (parApi) {
@@ -136,7 +112,7 @@ set_requestHandlers([
     if (newPassKeys) {
       const arr = (isPassKeysReversed ? newPassKeys.slice(2) : newPassKeys).split(" ")
       set_isPassKeysReversed(newPassKeys[0] === "^" && newPassKeys.length > 2)
-      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Set$accept$Symbol$$Iterator
+      if (OnChrome && Build.MinCVer < BrowserVer.Min$Set$accept$Symbol$$Iterator
           && chromeVer_ < BrowserVer.Min$Set$accept$Symbol$$Iterator) {
         type StringArraySet = string[] & Set<string>;
         (arr as StringArraySet).has = Build.MinCVer >= BrowserVer.MinEnsuredES6$Array$$Includes ? arr.includes!
@@ -248,15 +224,15 @@ set_requestHandlers([
     let n = parseInt(currentKeys, 10) || 1, count2: 0 | 1 | 2 | 3 = 0;
     esc!(HandlerResult.Nothing);
     exitGrab();
-    if (Build.BTypes & ~BrowserType.Chrome && request.m) {
+    if (!OnChrome && request.m) {
       const now = getTime(), result = confirm(request.m);
       count2 = math.abs(getTime() - now) > 9 ? result ? 3 : 1 : 2
     }
     post_({ H: kFgReq.cmd, c: request.c, n, i: request.i, r: count2 });
   },
   /* kBgReq.queryForRunAs: */ (request: BgReq[kBgReq.queryForRunKey]): void => {
-    const lock = (Build.BTypes & BrowserType.Firefox ? insert_Lock_() : raw_insert_lock) || activeEl_unsafe_()
-    const tag = (Build.BTypes & ~BrowserType.Firefox ? !lock || notSafe_not_ff_!(lock) : !lock)
+    const lock = (OnFirefox ? insert_Lock_() : raw_insert_lock) || activeEl_unsafe_()
+    const tag = (OnFirefox ? !lock : !lock || notSafe_not_ff_!(lock))
         ? "" : lock!.localName as string
     post_({ H: kFgReq.respondForRunKey, n: request.n,
       t: tag, c: tag && lock!.className, i: tag && lock!.id, f: !fullscreenEl_unsafe_()
@@ -268,23 +244,20 @@ export const showFrameMask = (mask: FrameMaskType): void => {
   if (!isTop && mask === FrameMaskType.NormalNext) {
     let docEl = docEl_unsafe_();
     if (docEl) {
-    Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
-      && (!(Build.BTypes & ~BrowserType.Chrome) || chromeVer_ < BrowserVer.MinScrollIntoViewOptions)
-    ? ElementProto().scrollIntoViewIfNeeded!.call(docEl)
-    : scrollIntoView_(docEl);
+      OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
+      ? ElementProto().scrollIntoViewIfNeeded!.call(docEl) : scrollIntoView_(docEl)
     }
   }
   if (mask < FrameMaskType.minWillMask || !isHTML_()) { return; }
   if (framemask_node) {
     framemask_more = true;
   } else {
-    framemask_node = createElement_(Build.BTypes & BrowserType.Chrome ? getBoxTagName_cr_() : "div")
+    framemask_node = createElement_(OnChrome ? getBoxTagName_cr_() : "div")
     setClassName_s(framemask_node, "R Frame" + (mask === FrameMaskType.OnlySelf ? " One" : ""))
     framemask_fmTimer = interval_((fake?: TimerType.fake): void => { // safe-interval
       const more_ = framemask_more;
       framemask_more = false;
-      if (more_ && !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake
-                      && fake)) { return; }
+      if (more_ && !(OnChrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && fake)) { return }
       if (framemask_node) { removeEl_s(framemask_node); framemask_node = null; }
       clearInterval_(framemask_fmTimer);
     }, isTop ? 200 : 350);
@@ -294,9 +267,7 @@ export const showFrameMask = (mask: FrameMaskType): void => {
 
 set_hookOnWnd(((action: HookAction): void => {
   let f = action ? removeEventListener : addEventListener, t = true
-  if (Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
-      && Build.BTypes & BrowserType.Chrome
-      && !(Build.BTypes & ~BrowserType.Chrome && VOther !== BrowserType.Chrome)
+  if (OnChrome && Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
         && (action || chromeVer_ < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow)) {
       f.call(doc, DAC, onActivate, t)
       f.call(doc, CLK, anyClickHandler, t)
@@ -306,18 +277,15 @@ set_hookOnWnd(((action: HookAction): void => {
   f("keyup", onKeyup, t)
   action !== HookAction.Suppress && f("focus", onFocus, t)
   f(BU, onBlur, t)
-  if (!(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && VOther === BrowserType.Chrome) {
-    f(CLK, anyClickHandler, t)
-  }
-  f(VOther !== BrowserType.Chrome
-      ? CLK : DAC, onActivate, t)
+  OnChrome && f(CLK, anyClickHandler, t)
+  f(OnChrome ? DAC: CLK, onActivate, t)
 }))
 
 export const focusAndRun = (cmd?: FgCmdAcrossFrames, options?: FgOptions, count?: number, showBorder?: 1 | 2): void => {
   exitGrab();
   let oldOnWndFocus = onWndFocus, failed = true;
   set_onWndFocus((): void => { failed = false })
-  if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox) {
+  if (OnFirefox) {
     omni_status === VomnibarNS.Status.Showing && omni_box!.blur()
     // cur is safe because on Firefox
     const cur = activeEl_unsafe_() as SafeElement | null;

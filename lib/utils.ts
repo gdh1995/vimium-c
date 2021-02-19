@@ -4,13 +4,19 @@ export interface EscF {
 }
 export type XrayedObject<T extends object> = T & { wrappedJSObject: T }
 
-export let VOther: BrowserType = !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
-    || !(Build.BTypes & ~BrowserType.Edge)
+const _browser: BrowserType = Build.BTypes && !(Build.BTypes & (Build.BTypes - 1))
     ? Build.BTypes as number
     : Build.BTypes & BrowserType.Edge && !!(window as {} as {StyleMedia: unknown}).StyleMedia ? BrowserType.Edge
     : Build.BTypes & BrowserType.Firefox && browser ? BrowserType.Firefox
     : BrowserType.Chrome
-export function set_VOther (_newRealBrowser: BrowserType): void { VOther = _newRealBrowser }
+export const OnChrome: boolean = !(Build.BTypes & ~BrowserType.Chrome)
+    || !!(Build.BTypes & BrowserType.Chrome && _browser & BrowserType.Chrome)
+export const OnFirefox: boolean = !(Build.BTypes & ~BrowserType.Firefox)
+    || !!(Build.BTypes & BrowserType.Firefox && _browser & BrowserType.Firefox)
+export const OnEdge: boolean = !(Build.BTypes & ~BrowserType.Edge)
+    || !!(Build.BTypes & BrowserType.Edge && _browser & BrowserType.Edge)
+export const OnSafari: boolean = false
+export const WithDialog: boolean = OnChrome || OnFirefox
 
 /** its initial value should be 0, need by {@see ../content/request_handlers#hookOnWnd} */
 export let chromeVer_: BrowserVer = 0
@@ -86,29 +92,29 @@ export function set_onWndFocus (_newOnWndFocus: (this: void) => void): void { on
 export const safeObj = Object.create as { (o: null): any; <T>(o: null): SafeDict<T> }
 
 export const safer: <T extends object> (opt: T) => T & SafeObject
-    = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && Build.BTypes & BrowserType.Chrome
+    = OnChrome && Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf
         && !Object.setPrototypeOf
       ? <T extends object> (obj: T): T & SafeObject => { (obj as any).__proto__ = null; return obj as T & SafeObject; }
       : <T extends object> (opt: T): T & SafeObject => Object.setPrototypeOf(opt, null);
 
-export let weakRef_ = (Build.BTypes & BrowserType.ChromeOrFirefox ? <T extends object>(val: T | null | undefined
+export let weakRef_ = (OnChrome || OnFirefox ? <T extends object>(val: T | null | undefined
       ): WeakRef<T> | null | undefined => val && new (WeakRef as WeakRefConstructor)(val)
     : (_newObj: object) => _newObj) as {
   <T extends object>(val: T): WeakRef<T>
   <T extends object>(val: T | null): WeakRef<T> | null
   <T extends object>(val: T | null | undefined): WeakRef<T> | null | undefined
 }
-export const deref_ = !(Build.BTypes & BrowserType.ChromeOrFirefox) ? weakRef_ as any as never
+export const deref_ = !(OnChrome || OnFirefox) ? weakRef_ as any as never
     : WeakRef ? <T extends object>(val: WeakRef<T> | null | undefined
       ): T | null | undefined => val && val.deref()
     : (weakRef_ = ((val: object) => val) as any) as never
 
-export const raw_unwrap_ff = Build.BTypes & BrowserType.Firefox ? <T extends object> (val: T): T | undefined => {
+export const raw_unwrap_ff = OnFirefox ? <T extends object> (val: T): T | undefined => {
   return (val as XrayedObject<T>).wrappedJSObject
 } : 0 as never
 
-export const unwrap_ff = (!(Build.BTypes & BrowserType.Firefox) ? 0 as never
-    : <T extends object> (obj: T): T => (obj as XrayedObject<T>).wrappedJSObject || obj) as {
+export const unwrap_ff = (OnFirefox ? <T extends object> (obj: T): T => (obj as XrayedObject<T>).wrappedJSObject || obj
+    : 0 as never) as {
   <T extends SafeElement>(obj: T): T
   (obj: Element): unknown
   <T extends object>(obj: T): T extends XrayedObject<infer S> ? S : T
@@ -145,7 +151,7 @@ export const setupEventListener =
     , disable?: boolean | BOOL, activeMode?: Active): void => {
   (disable ? removeEventListener : addEventListener).call(target as unknown as Window || window, eventType,
     <(this: T, e: EventToPrevent) => void> func || Stop_,
-    Build.BTypes & BrowserType.Firefox && activeMode === 3 ? !1
+    OnFirefox && activeMode === 3 ? !1
     : {passive: !activeMode, capture: true} as EventListenerOptions | boolean as boolean)
 }
 

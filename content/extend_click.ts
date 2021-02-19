@@ -1,6 +1,6 @@
 import {
-  clickable_, setupEventListener, VOther, timeout_, doc, isAlive_, set_allowRAF_, math, isTop,
-  loc_, replaceBrokenTimerFunc, allowRAF_, getTime, recordLog, VTr, vApi, Stop_, isTY
+  clickable_, setupEventListener, timeout_, doc, isAlive_, set_allowRAF_, math, isTop, OnChrome,
+  loc_, replaceBrokenTimerFunc, allowRAF_, getTime, recordLog, VTr, vApi, Stop_, isTY, OnEdge, OnFirefox
 } from "../lib/utils"
 import {
   createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, removeEl_s, attr_s, setOrRemoveAttr_s, parentNode_unsafe_s
@@ -9,7 +9,7 @@ import { safeDestroy } from "./port"
 import { coreHints } from "./link_hints"
 import { grabBackFocus } from "./insert"
 
-export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
+export const main_not_ff = (!OnFirefox ? (): void => {
 (function extendClick(this: void, isFirstTime?: boolean): void | false {
 /** Note(gdh1995):
  * According to source code of C72,
@@ -54,22 +54,19 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
 
   const kVOnClick1 = InnerConsts.kVOnClick
     , kHookRand = (InnerConsts.kHook + BuildStr.RandomClick) as InnerConsts.kHook
-    , appInfo = Build.BTypes & BrowserType.Chrome
+    , appInfo = OnChrome
         && (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
             || Build.MinCVer < BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
             || Build.MinCVer < BrowserVer.MinEnsuredES6MethodFunction
             || Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage)
-        && (!(Build.BTypes & ~BrowserType.ChromeOrFirefox) || VOther === BrowserType.Chrome)
         ? navigator.appVersion.match(<RegExpOne & RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/) : 0 as const
-    , appVer: BrowserVer | 1 | 0 = Build.BTypes & BrowserType.Chrome
+    , appVer: BrowserVer | 1 | 0 = OnChrome
         && (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
             || Build.MinCVer < BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
             || Build.MinCVer < BrowserVer.MinEnsuredES6MethodFunction
             || Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage)
         ? appInfo && <BrowserVer> +appInfo[1] || 0
-        : Build.BTypes & BrowserType.Chrome
-          && (!(Build.BTypes & ~BrowserType.ChromeOrFirefox) || VOther === BrowserType.Chrome)
-        ? 1 : 0
+        : OnChrome ? 1 : 0
     , secret: string = ((math.random() * GlobalConsts.SecretRange + GlobalConsts.SecretBase) | 0) + ""
     , script = createElement_("script");
 /**
@@ -119,10 +116,10 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
     fromAttrs: 0 | 1 | 2 = detail ? (detail[2] + 1) as 1 | 2 : 0;
     let path: typeof event.path,
     target = detail ? null : (event as DelegateEventCls["prototype"]).relatedTarget as Element | null
-        || (!(Build.BTypes & BrowserType.Edge)
-            && Build.MinCVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
-          ? event.path![0] as Element
-          : (path = event.path) && path.length > 1 ? path[0] as Element : null);
+        || (!OnEdge
+            && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow)
+            ? event.path![0] as Element
+            : (path = event.path) && path.length > 1 ? path[0] as Element : null)
     if (detail) {
       resolve(0, detail[0]); resolve(1, detail[1]);
     } else if (/* safer */ target && (isSafe && !rawDetail || secret + target.tagName === rawDetail)) {
@@ -201,12 +198,14 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
 
 type FUNC = (this: unknown, ...args: never[]) => unknown;
 const V = /** verifier */ (maybeSecret: string): void | boolean => {
-  if (Build.MinCVer < BrowserVer.MinTestedES6Environment && Build.BTypes & BrowserType.Chrome) {
+  if (MayChrome && Build.MinCVer < BrowserVer.MinTestedES6Environment) {
     I = GlobalConsts.MarkAcrossJSWorlds === maybeSecret
   } else {
     return I = GlobalConsts.MarkAcrossJSWorlds === maybeSecret
   }
 },
+MayChrome = !!(Build.BTypes & BrowserType.Chrome),
+MayEdge = !!(Build.BTypes & BrowserType.Edge), MayNotEdge = !!(Build.BTypes & ~BrowserType.Edge),
 doc0 = document, curScript = doc0.currentScript as HTMLScriptElement,
 sec = curScript.dataset.vimium!,
 kAEL = "addEventListener", kToS = "toString", kProto = "prototype", kByTag = "getElementsByTagName",
@@ -217,7 +216,7 @@ call = _call.bind(_call as any) as <T, A extends any[], R>(func: (this: T, ...a:
 dispatch = _call.bind<(this: (this: EventTarget, ev: Event) => boolean
     , self: EventTarget, evt: Event) => boolean>(ETP.dispatchEvent),
 ElCls = Element, ElProto = ElCls[kProto],
-Append = !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
+Append = !MayChrome || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
     ? ElProto.append! : ElProto.appendChild,
 GetRootNode = ElProto.getRootNode,
 Attr = ElProto.setAttribute, HasAttr = ElProto.hasAttribute, Remove = ElProto.remove,
@@ -237,13 +236,13 @@ listen = _call.bind<(this: (this: EventTarget,
         self: EventTarget, name: string, listener: EventListenerOrEventListenerObject,
         opts?: EventListenerOptions | boolean
     ) => 42 | void>(_listen),
-rEL = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once
+rEL = MayChrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once
     ? removeEventListener : 0 as never as null, clearTimeout1 = clearTimeout,
 kVOnClick = InnerConsts.kVOnClick,
 kEventName2 = kVOnClick + BuildStr.RandomClick,
 kReady = "readystatechange", kFunc = "function",
 docCreateElement = doc0.createElement,
-StringSplit = Build.Minify ? 0 as never : kReady.split, StringSubstr = kReady.substr,
+StringSplit = !Build.Minify ? kReady.split : 0 as never, StringSubstr = kReady.substr,
 checkIsNotVerifier = (func?: InnerVerifier | unknown): void => {
   if (!Build.Minify && !verifierPrefixLen) {
     verifierLen = (verifierStrPrefix = call(_toString, V)).length,
@@ -253,7 +252,7 @@ checkIsNotVerifier = (func?: InnerVerifier | unknown): void => {
         call(StringSubstr, call(_toString, func as InnerVerifier)
           , (!Build.Minify ? verifierPrefixLen! : GlobalConsts.LengthOfMarkAcrossJSWorlds
               /** `16` is for {@see #BrowserVer.MinEnsured$Function$$toString$preservesWhitespace} */
-              + (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinTestedES6Environment ? 16 : 6)
+              + (MayChrome && Build.MinCVer < BrowserVer.MinTestedES6Environment ? 16 : 6)
              ) - GlobalConsts.LengthOfMarkAcrossJSWorlds
           , GlobalConsts.LengthOfMarkAcrossJSWorlds + GlobalConsts.SecretStringLength)
   )
@@ -268,8 +267,8 @@ const hooks = {
                   || (myToStrStr = call(_toString, myToStr),
                       Build.Minify
                       ? verifierStrPrefix = call(StringSubstr, call(_toString, V), 0
-                            , GlobalConsts.LengthOfMarkAcrossJSWorlds + (Build.BTypes & BrowserType.Chrome
-                                && Build.MinCVer < BrowserVer.MinTestedES6Environment ? 16 : 6))
+                            , GlobalConsts.LengthOfMarkAcrossJSWorlds
+                              + (MayChrome && Build.MinCVer < BrowserVer.MinTestedES6Environment ? 16 : 6))
                       : (verifierLen = (verifierStrPrefix = call(_toString, V)).length,
                         verifierPrefixLen = (verifierStrPrefix = call(StringSplit, verifierStrPrefix, sec)[0]).length),
                       myAELStr = call(_toString, myAEL)))
@@ -278,9 +277,9 @@ const hooks = {
     return mayStrBeToStr && str !== myToStrStr
         ? str.length !== (!Build.Minify ? verifierLen
               : GlobalConsts.LengthOfMarkAcrossJSWorlds + GlobalConsts.SecretStringLength
-                + (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinTestedES6Environment ? 22 : 11))
+                + (MayChrome && Build.MinCVer < BrowserVer.MinTestedES6Environment ? 22 : 11))
           || call(StringSubstr, str, 0, !Build.Minify ? verifierPrefixLen! : GlobalConsts.LengthOfMarkAcrossJSWorlds
-                + (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinTestedES6Environment ? 16 : 6)
+                + (MayChrome && Build.MinCVer < BrowserVer.MinTestedES6Environment ? 16 : 6)
               ) !== verifierStrPrefix
           ? str : call(_toString, noop)
         : a === myToStr || a === myAEL || (I = 0,
@@ -309,17 +308,17 @@ const hooks = {
 myAEL = (/*#__NOINLINE__*/ hooks)[kAEL], myToStr = (/*#__NOINLINE__*/ hooks)[kToS]
 
 let doInit = (): void => {
-  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once) {
+  if (MayChrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once) {
     doInit && rEL!(kReady, doInit, !0)
   }
   if (!detectDisabled) { return }
   detectDisabled = 0;
   // note: `HTMLCollection::operator []` can not be overridden by `Object.defineProperty` on C32/83
-  const docEl2 = Build.BTypes & BrowserType.Edge ? (docChildren as Extract<typeof docChildren, Function>)(0)
+  const docEl2 = MayEdge ? (docChildren as Extract<typeof docChildren, Function>)(0)
       : (docChildren as Exclude<typeof docChildren, Function>)[0] as Element | null,
   el = call(docCreateElement, doc0, "div") as HTMLDivElement,
   S = InnerConsts.kSecretAttr;
-  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once) {
+  if (MayChrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once) {
     doInit = null as never
   }
   docChildren = null as never;
@@ -347,8 +346,8 @@ allNodesInDocument = null as HTMLCollectionOf<Element> | null,
 allNodesForDetached = null as HTMLCollectionOf<Element> | null,
 root: HTMLDivElement, timer = setTimeout_(doInit, InnerConsts.DelayToWaitDomReady),
 queueMicroTask_: (callback: () => void) => void =
-    !(Build.BTypes & ~BrowserType.ChromeOrFirefox) && Build.MinCVer >= BrowserVer.Min$queueMicrotask
-    ? queueMicrotask : Build.BTypes & ~BrowserType.Edge ? (window as any).queueMicrotask : 0 as unknown as any,
+    MayEdge || MayChrome && Build.MinCVer < BrowserVer.Min$queueMicrotask
+    ? MayNotEdge ? (window as any).queueMicrotask : 0 as unknown as any : queueMicrotask,
 isReRegistering: BOOL | boolean = 0
 // To avoid a host script detect Vimum C by code like:
 // ` a1 = setTimeout(()=>{}); $0.addEventListener('click', ()=>{}); a2=setTimeout(()=>{}); [a1, a2] `
@@ -382,8 +381,7 @@ const prepareRegister = (element: Element): void => {
   if (doc1 !== doc0) {
     // although on Firefox element.__proto__ is auto-updated when it is adopted
     // but aEl may be called before real insertion
-    if ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
-          || (doc1 as WindowWithTop).top !== top)
+    if ((!MayChrome || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter || (doc1 as WindowWithTop).top !== top)
         && (doc1 as Exclude<typeof doc1, Window>).nodeType === kNode.DOCUMENT_NODE
         && (doc1 as Document).defaultView) {
       // just smell like a Document
@@ -395,7 +393,7 @@ const prepareRegister = (element: Element): void => {
     return;
   }
   let parent: Node | RadioNodeList | null | undefined, tempParent: Node | RadioNodeList | null | undefined;
-  if (!(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.Min$Node$$getRootNode || GetRootNode) {
+  if (!MayEdge && (!MayChrome || Build.MinCVer >= BrowserVer.Min$Node$$getRootNode) || GetRootNode) {
     parent = call(GetRootNode!, element);
   } else {
     // according to tests and source code, the named getter for <frameset> requires <frame>.contentDocument is valid
@@ -426,9 +424,8 @@ const prepareRegister = (element: Element): void => {
   }
   else if (type !== kNode.DOCUMENT_FRAGMENT_NODE) { /* empty */ }
   else if (unsafeDispatchCounter < InnerConsts.MaxUnsafeEventsInOneTick - 2) {
-    if (Build.BTypes & ~BrowserType.Edge
-        && (tempParent = (parent as TypeToAssert<DocumentFragment, ShadowRoot, "host">).host)) {
-      parent = (!(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.Min$Node$$getRootNode || GetRootNode)
+    if (MayNotEdge && (tempParent = (parent as TypeToAssert<DocumentFragment, ShadowRoot, "host">).host)) {
+      parent = (!MayEdge && (!MayChrome || Build.MinCVer >= BrowserVer.Min$Node$$getRootNode) || GetRootNode)
           && (tempParent as NonNullable<ShadowRoot["host"]>).shadowRoot // an open shadow tree
           && call(GetRootNode!, element, {composed: !0});
       if (parent && (parent === doc0 || (<NodeToElement> parent).nodeType === kNode.ELEMENT_NODE)
@@ -510,10 +507,9 @@ const executeCmd = (eventOrDestroy?: Event): void => {
 }
 const noop = (): 1 => { return 1 }
 
-if (!(Build.BTypes & ~BrowserType.Edge)
-    || (Build.BTypes & ~BrowserType.ChromeOrFirefox || Build.MinCVer < BrowserVer.Min$queueMicrotask)
-        && typeof queueMicroTask_ !== kFunc) {
-  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer <= BrowserVer.Maybe$Promise$onlyHas$$resolved) {
+if (!MayNotEdge
+    || (MayEdge || MayChrome && Build.MinCVer < BrowserVer.Min$queueMicrotask) && typeof queueMicroTask_ !== kFunc) {
+  if (MayChrome && Build.MinCVer <= BrowserVer.Maybe$Promise$onlyHas$$resolved) {
     const P = Promise
     queueMicroTask_ = (P.resolve ? P.resolve() : P.resolved!()) as any
   } else {
@@ -521,14 +517,14 @@ if (!(Build.BTypes & ~BrowserType.Edge)
   }
   queueMicroTask_ = (queueMicroTask_ as any as Promise<void>).then.bind(queueMicroTask_ as any as Promise<void>);
 }
-if (Build.BTypes & BrowserType.Edge) {
+if (MayEdge) {
   docChildren = docChildren.item.bind(docChildren)
 }
 toRegister.s = toRegister.splice;
 // only the below can affect outsides
 curScript.remove();
 ETP[kAEL] = myAEL;
-if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once) {
+if (MayChrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once) {
   _listen(kReady, doInit, !0);
 } else {
   _listen(kReady, doInit, {capture: !0, once: !0});
@@ -540,11 +536,11 @@ FProto[kToS] = myToStr
 // #endregion injected code
 
   if (isFirstTime) {
-    if (Build.MinCVer < BrowserVer.MinEnsuredES6MethodFunction && Build.BTypes & BrowserType.Chrome &&
-        appVer >= BrowserVer.MinEnsuredES6MethodFunction) {
+    if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6MethodFunction
+        && appVer >= BrowserVer.MinEnsuredES6MethodFunction) {
       injected = injected.replace(<RegExpG> /: ?function \w+/g, "");
     }
-    if (Build.MinCVer < BrowserVer.MinEnsuredES6ArrowFunction && Build.BTypes & BrowserType.Chrome
+    if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6ArrowFunction
         && appVer < BrowserVer.MinEnsuredES6ArrowFunction) {
       injected = injected.replace(<RegExpG> (Build.Minify ? /\(([\w,]*\))=>/g : /\(([\w, ]*\))=>/g), "function($1")
     }
@@ -567,7 +563,7 @@ FProto[kToS] = myToStr
         || BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage <= BrowserVer.NoRAFOrRICOnSandboxedPage)) {
     console.log("Assert error: Warning: may no timer function on sandbox page!");
   }
-  if (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome
+  if (OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
       && appVer === BrowserVer.NoRAFOrRICOnSandboxedPage) {
     set_allowRAF_(0)
     rAF_!(() => { set_allowRAF_(1) })
@@ -590,8 +586,7 @@ FProto[kToS] = myToStr
   // else: CSP script-src before C68, CSP sandbox before C68 or JS-disabled-in-CS on C/E
   removeEl_s(script)
   execute(kContentCmd.Destroy);
-  if (!(Build.BTypes & BrowserType.Chrome)
-      || Build.BTypes & ~BrowserType.ChromeOrFirefox && VOther & ~BrowserType.Chrome) {
+  if (!OnChrome) {
     // on Edge (EdgeHTML), `setTimeout` and `requestAnimationFrame` work well
     return;
   }
@@ -606,7 +601,7 @@ FProto[kToS] = myToStr
     const cb = (): void => { func(TimerType.fake); };
     const rIC = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? requestIdleCallback : 0 as never as null
     // in case there's `$("#requestIdleCallback")`
-    return Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome && !allowRAF_
+    return OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && !allowRAF_
       ? (Promise.resolve().then(cb), 1)
       : (Build.MinCVer >= BrowserVer.MinEnsured$requestIdleCallback ? timeout > 19 : timeout > 19 && rIC)
       ? (Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? rIC : requestIdleCallback)!(cb, { timeout })

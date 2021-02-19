@@ -1,5 +1,5 @@
 import {
-  fgCache, doc, isEnabled_, VTr, isAlive_, timeout_, clearTimeout_, interval_, clearInterval_, isLocked_,
+  fgCache, doc, isEnabled_, VTr, isAlive_, timeout_, clearTimeout_, interval_, clearInterval_, isLocked_, OnChrome,
 } from "../lib/utils"
 import { isHTML_, createElement_, setClassName_s, appendNode_s, setVisibility_s } from "../lib/dom_utils"
 import { ui_box, ensureBorder, addUIElement, adjustUI, getBoxTagName_cr_ } from "./dom_ui"
@@ -33,12 +33,12 @@ export const hudShow = (tid: kTip | HintMode, args?: Array<string | number> | st
     embed && toggleOpacity("")
     return
   }
-  box = createElement_(Build.BTypes & BrowserType.Chrome ? getBoxTagName_cr_() : "div")
+  box = createElement_(OnChrome ? getBoxTagName_cr_() : "div")
   setClassName_s(box, "R HUD" + fgCache.d)
   appendNode_s(box, $text = new Text(text))
   if (!embed) {
     toggleOpacity("0")
-    if (Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor || Build.BTypes & ~BrowserType.Chrome) {
+    if (!OnChrome || Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor) {
       ui_box || ensureBorder() // safe to skip `getZoom_`
     }
   }
@@ -46,13 +46,11 @@ export const hudShow = (tid: kTip | HintMode, args?: Array<string | number> | st
 }
 
 const tween = (fake?: TimerType.fake): void => { // safe-interval
-  let opacity = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake
-                && fake ? 0 : +(box!.style.opacity || 1);
+  let opacity = OnChrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && fake ? 0 : +(box!.style.opacity || 1)
   if (opacity === opacity_) { /* empty */ }
   else if (opacity === 0) {
     $text.data = text;
-    toggleOpacity(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && fake
-        || fgCache.m ? "" : "0.25")
+    toggleOpacity(OnChrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && fake || fgCache.m ? "" : "0.25")
     return adjustUI();
   } else if (!fgCache.m && doc.hasFocus()) {
     opacity += opacity < opacity_ ? 0.25 : -0.25;

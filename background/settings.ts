@@ -637,8 +637,7 @@ chrome.runtime.getPlatformInfo(function (info): void {
 
   payload_.g = settings.get_("grabBackFocus")
   if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
-    (payload_ as Writable<typeof payload_>).b =
-        (settings.omniPayload_ as Writable<typeof settings.omniPayload_>).b = OnOther
+    (settings.omniPayload_ as Writable<typeof settings.omniPayload_>).b = OnOther
   }
   type PayloadNames = keyof typeof valuesToLoad_;
   for (let _i in valuesToLoad_) {

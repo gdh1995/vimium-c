@@ -57,8 +57,9 @@ export type AddChildIndirectly = (officer: BaseHintWorker
     , el: KnownIFrameElement, rect: Rect | null, elList: SafeElement[]) => boolean
 
 import {
-  VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_, max_, min_, math,
-  clearTimeout_, VOther, fgCache, doc, readyState_, chromeVer_, vApi, deref_, getTime, weakRef_, unwrap_ff
+  VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_, max_, min_, math, OnEdge,
+  clearTimeout_, fgCache, doc, readyState_, chromeVer_, vApi, deref_, getTime, weakRef_, unwrap_ff, OnFirefox, OnChrome,
+  WithDialog
 } from "../lib/utils"
 import {
   frameElement_, querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_,
@@ -114,7 +115,7 @@ let isActive: BOOL = 0
 let noHUD_ = false
 let options_: HintsNS.ContentOptions = null as never
 let _timer: ValidTimeoutID = TimerID.None
-let kSafeAllSelector = Build.BTypes & ~BrowserType.Firefox ? ":not(form)" as const : "*" as const
+let kSafeAllSelector = OnFirefox ? "*" as const : ":not(form)" as const
 let manager_: HintManager | null = null
 let api_: VApiTy = null as never
 let addChildFrame_: AddChildDirectly | AddChildIndirectly | null | undefined
@@ -145,8 +146,7 @@ export const activate = (options: HintsNS.ContentOptions, count: number, force?:
         return replaceOrSuppressMost_(kHandler.linkHints)
       }
     }
-    const parApi = Build.BTypes & BrowserType.Firefox ? !fullscreenEl_unsafe_() && getParentVApi()
-        : frameElement_() && !fullscreenEl_unsafe_() && getParentVApi();
+    const parApi = !fullscreenEl_unsafe_() && getParentVApi()
     if (parApi) {
       parApi.l(style_ui)
       // recursively go up and use the topest frame in a same origin
@@ -161,15 +161,14 @@ export const activate = (options: HintsNS.ContentOptions, count: number, force?:
       hudTip(kTip.fewChars, 1000)
       return clear()
     }
-    if (Build.BTypes & BrowserType.ChromeOrFirefox) {
-      if (Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredShadowDOMV1
+    if (WithDialog) {
+      if (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredShadowDOMV1
           || BrowserVer.MinEnsuredHTMLDialogElement < BrowserVer.MinShadowDOMV0
-              && Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinShadowDOMV0) {
+              && OnChrome && Build.MinCVer < BrowserVer.MinShadowDOMV0) {
         removeModal()
       }
       coreHints.d = <BOOL> +(
-        (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement
-            || doesSupportDialog())
+        (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement || doesSupportDialog())
         && (wantDialogMode_ != null ? wantDialogMode_ : !!querySelector_unsafe_("dialog[open]"))
         )
     }
@@ -227,8 +226,7 @@ const collectFrameHints = (options: HintsNS.ContentOptions, count: number
       , chars: string, useFilter: boolean, outerView: Rect | null
       , manager: HintManager | null, frameInfo: FrameHintsInfo
       , newAddChildFrame: AddChildDirectly): void => {
-    (coreHints as BaseHintWorker).p = manager_ =
-        Build.BTypes & BrowserType.Firefox ? manager && unwrap_ff(manager) : manager
+    (coreHints as BaseHintWorker).p = manager_ = OnFirefox ? manager && unwrap_ff(manager) : manager
     resetHints();
     scrollTick(2);
     if (options_ !== options) {
@@ -242,8 +240,7 @@ const collectFrameHints = (options: HintsNS.ContentOptions, count: number
     if (!isHTML_()) {
       return;
     }
-    const view: ViewBox = getViewBox_(Build.BTypes & BrowserType.ChromeOrFirefox
-        ? ((manager || coreHints).d + 1) as 1 | 2 : 1)
+    const view: ViewBox = getViewBox_(OnEdge ? 1 : ((manager || coreHints).d + 1) as 1 | 2)
     prepareCrop_(1, outerView);
     if (tooHigh_ !== null) {
       const scrolling = scrollingEl_(1)
@@ -269,10 +266,10 @@ const render = (hints: readonly HintItem[], arr: ViewBox, raw_apis: VApiTy): voi
     let body = doc.body
     manager_ && body && htmlTag_(body) && body.isContentEditable && hookOnWnd(HookAction.Install)
     removeBox()
-    api_ = Build.BTypes & BrowserType.Firefox && manager_ ? unwrap_ff(raw_apis) : raw_apis;
+    api_ = OnFirefox && manager_ ? unwrap_ff(raw_apis) : raw_apis
     ensureBorder(wdZoom_ / dScale_);
     if (hints.length) {
-      if (Build.BTypes & BrowserType.ChromeOrFirefox) {
+      if (WithDialog) {
         box_ = addElementList(hints, arr, managerOrA.d);
       } else {
         box_ = addElementList(hints, arr);
@@ -280,7 +277,7 @@ const render = (hints: readonly HintItem[], arr: ViewBox, raw_apis: VApiTy): voi
     } else if (coreHints === managerOrA) {
       adjustUI();
     }
-    set_keydownEvents_((Build.BTypes & BrowserType.Firefox ? api_ : raw_apis).a())
+    set_keydownEvents_((OnFirefox ? api_ : raw_apis).a())
     set_onWndBlur2(managerOrA.s)
     replaceOrSuppressMost_(kHandler.linkHints, coreHints.n)
     manager_ && setupEventListener(0, UNL, clear);
@@ -295,7 +292,7 @@ export const setMode = (mode: HintMode, silent?: BOOL): void => {
     forHover_ = mode1_ > HintMode.min_hovering - 1 && mode1_ < HintMode.max_hovering + 1;
     if (silent || noHUD_ || hud_tipTimer) { return }
     msg = VTr(mode_) + (useFilter_ ? ` [${keyStatus_.t}]` : "")
-    if (Build.BTypes & BrowserType.ChromeOrFirefox) {
+    if (WithDialog) {
       msg += (manager_ || coreHints).d ? VTr(kTip.modalHints) : "";
     }
     hudShow(kTip.raw, msg, true)
@@ -305,8 +302,7 @@ const getPreciseChildRect = (frameEl: KnownIFrameElement, view: Rect): Rect | nu
     const V = "visible",
     brect = padClientRect_(getBoundingClientRect_(frameEl)),
     docEl = docEl_unsafe_(), body = doc.body, inBody = !!body && IsInDOM_(frameEl, body, 1),
-    zoom = (Build.BTypes & BrowserType.Chrome ? docZoom_ * (inBody ? bZoom_ : 1) : 1
-        ) / dScale_ / (inBody ? bScale_ : 1);
+    zoom = (OnChrome ? docZoom_ * (inBody ? bZoom_ : 1) : 1) / dScale_ / (inBody ? bScale_ : 1);
     let x0 = min_(view.l, brect.l), y0 = min_(view.t, brect.t), l = x0, t = y0, r = view.r, b = view.b
     for (let el: Element | null = frameEl; el = GetParent_unsafe_(el, PNType.RevealSlotAndGotoParent); ) {
       const st = getComputedStyle_(el);
@@ -383,19 +379,16 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
       else if (num1 = 1, key.includes("-s")) {
         fgCache.e = !fgCache.e;
       } else if (key < "b") { // a-
-        Build.BTypes & BrowserType.ChromeOrFirefox ? wantDialogMode_ = !wantDialogMode_ : num1 = 0
+        WithDialog ? wantDialogMode_ = !wantDialogMode_ : num1 = 0
       } else if ("cm".includes(key[0])) {
         options_.useFilter = fgCache.f = !useFilter_;
       } else if (key !== keybody) { // <s-f2>
         isClickListened_ = !isClickListened_;
-      } else if (Build.BTypes & BrowserType.Firefox
-              && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
-              && isClickListened_
-            || !vApi.e) {
+      } else if (OnFirefox && isClickListened_ || !vApi.e) {
         num1 = 0
       } else {
         isClickListened_ = true;
-        if (Build.BTypes & ~BrowserType.Firefox) {
+        if (!OnFirefox) {
           vApi.e(kContentCmd.ManuallyFindAllOnClick);
         }
       }
@@ -493,8 +486,7 @@ const activateDirectly = (options: HintsNS.ContentOptions, count: number) => {
           && isSelARange(getSelection()) && (el = getSelectionFocusEdge_(getSelected()), isSel = !!el, el)
       || (allTypes || d.includes("f")) // focused
           && (insert_Lock_()
-              || (docActive = Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(activeEl_unsafe_())
-                    : activeEl_unsafe_() as SafeElement | null,
+              || (docActive = OnFirefox ? <SafeElement | null> activeEl_unsafe_() : SafeEl_not_ff_!(activeEl_unsafe_()),
                   docActive !== doc.body && docActive !== docEl_unsafe_() && docActive))
       || (allTypes || d.includes("h") || d.includes("i") ? deref_(lastHovered_) : null) // hover | clicked
   el = mode < HintMode.min_job || el && htmlTag_(el) ? el : null
@@ -512,7 +504,7 @@ const activateDirectly = (options: HintsNS.ContentOptions, count: number) => {
 const locateHint = (matchedHint: HintItem): BaseHintWorker => {
     /** safer; necessary since {@link #highlightChild} calls {@link #detectUsableChild} */
   for (var i = frameArray.length; 0 < --i; ) {
-    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
+    if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
         ? frameArray[i].h.indexOf(matchedHint) >= 0 : frameArray[i].h.includes!(matchedHint)) {
       break
     }
@@ -536,7 +528,7 @@ export const resetMode = (silent?: BOOL): void => {
 }
 
 const delayToExecute = (officer: BaseHintWorker, hint: HintItem, flashEl: SafeHTMLElement | null): void => {
-    const waitEnter = Build.BTypes & BrowserType.Chrome && fgCache.w,
+    const waitEnter = OnChrome && fgCache.w,
     callback = (event?: HandlerNS.Event, key?: string, keybody?: string): void => {
       let closed: void | 1 | 2
       try {
@@ -556,8 +548,8 @@ const delayToExecute = (officer: BaseHintWorker, hint: HintItem, flashEl: SafeHT
     let tick = 0;
     onTailEnter = callback;
     removeBox()
-    Build.BTypes & BrowserType.Firefox && (officer = unwrap_ff(officer));
-    if (Build.BTypes & BrowserType.Chrome && !waitEnter) {
+    OnFirefox && (officer = unwrap_ff(officer));
+    if (OnChrome && !waitEnter) {
       onWaitingKey = suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents, callback)
     } else {
       hudShow(kTip.waitEnter);
@@ -588,8 +580,8 @@ const setupCheck: HintManager["w"] = (officer?: BaseHintWorker | null
       _timer = TimerID.None;
       let doesReinit: BOOL | boolean | void | undefined
       try {
-        doesReinit = !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i)
-            && (Build.BTypes & BrowserType.Firefox ? unwrap_ff(officer!) : officer).x(el, r)
+        doesReinit = !(OnChrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i)
+            && (OnFirefox ? unwrap_ff(officer!) : officer).x(el, r)
       } catch {}
       doesReinit && reinit(1)
       coreHints.h = isActive && getTime()
@@ -603,9 +595,8 @@ const checkLast = ((el?: WeakRef<LinkEl> | LinkEl | TimerType.fake | 9 | 1 | nul
   else if (window.closed) { return 1 }
   else if (el === 1) { return 2 }
   else {
-    r2 = el && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinNo$TimerType$$Fake
-                      || el !== TimerType.fake
-        ) && (el = deref_(el as WeakRef<LinkEl>)) ? padClientRect_(getBoundingClientRect_(el)) : null
+    r2 = el && (!OnChrome || Build.MinCVer >= BrowserVer.MinNo$TimerType$$Fake || el !== TimerType.fake)
+        && (el = deref_(el as WeakRef<LinkEl>)) ? padClientRect_(getBoundingClientRect_(el)) : null
     hidden = !r2 || r2.r - r2.l < 2 && r2.b - r2.t < 2 || !isStyleVisible_(el as LinkEl) // use 2px: may be safer
     if (hidden && deref_(lastHovered_) === el) {
       set_lastHovered_(null)
@@ -641,7 +632,7 @@ const resetHints = (): void => {
 export const clear = (onlySelfOrEvent?: 0 | 1 | Event, suppressTimeout?: number): void => {
     if (!isAlive_) { return; }
     if (onlySelfOrEvent === 1 || onlySelfOrEvent
-        && (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Event$$IsTrusted
+        && (OnChrome && Build.MinCVer < BrowserVer.Min$Event$$IsTrusted
             ? onlySelfOrEvent.isTrusted !== !1 : onlySelfOrEvent.isTrusted)
         && onlySelfOrEvent.target === doc) {
       coreHints.p && manager_!.u(coreHints);
@@ -673,7 +664,7 @@ export const clear = (onlySelfOrEvent?: 0 | 1 | Event, suppressTimeout?: number)
     lastMode_ = mode_ = mode1_ = count_ = forceToScroll_ = coreHints.h = 0
     set_hintKeyCode_(kKeyCode.None)
     useFilter_ = noHUD_ = tooHigh_ = false
-    if (Build.BTypes & BrowserType.ChromeOrFirefox) { coreHints.d = 0 }
+    if (WithDialog) { coreHints.d = 0 }
     chars_ = "";
     removeBox()
     hud_tipTimer || hudHide()
@@ -689,9 +680,9 @@ const removeBox = (): void => {
 
 const onFrameUnload = (officer: HintOfficer): void => {
     const frames = frameArray, len = frames.length;
-    const wrappedOfficer_ff = Build.BTypes & BrowserType.Firefox ? unwrap_ff(officer) : 0 as never as null
+    const wrappedOfficer_ff = OnFirefox ? unwrap_ff(officer) : 0 as never as null
     let i = 0, offset = 0;
-    while (i < len && frames[i].s !== (Build.BTypes & BrowserType.Firefox ? wrappedOfficer_ff! : officer)) {
+    while (i < len && frames[i].s !== (OnFirefox ? wrappedOfficer_ff! : officer)) {
       offset += frames[i++].h.length;
     }
     if (i >= len || !isActive || _timer) { return; }
@@ -720,12 +711,12 @@ export const detectUsableChild = (el: KnownIFrameElement): VApiTy | null => {
   let err: boolean | null = true, childEvents: VApiTy | null | void | undefined
   try {
     err = !el.contentDocument
-      || !(childEvents = Build.BTypes & BrowserType.Firefox ? getWndVApi_ff!(el.contentWindow) : el.contentWindow.VApi)
+      || !(childEvents = OnFirefox ? getWndVApi_ff!(el.contentWindow) : el.contentWindow.VApi)
       || childEvents.a(keydownEvents_);
   } catch (e) {
     if (!Build.NDEBUG) {
       let notDocError = true;
-      if (Build.BTypes & BrowserType.Chrome && chromeVer_ < BrowserVer.Min$ContentDocument$NotThrow) {
+      if (OnChrome && chromeVer_ < BrowserVer.Min$ContentDocument$NotThrow) {
         try {
           notDocError = el.contentDocument !== void 0
         } catch { notDocError = false; }

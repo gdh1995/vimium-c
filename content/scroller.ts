@@ -23,7 +23,7 @@ interface ElementScrollInfo {
 
 import {
   isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, allowRAF_, readyState_, loc_, chromeVer_,
-  vApi, deref_, weakRef_, VTr, createRegExp, max_, math, min_, VOther, Lower
+  vApi, deref_, weakRef_, VTr, createRegExp, max_, math, min_, Lower, OnChrome, OnFirefox, OnEdge, WithDialog, OnSafari
 } from "../lib/utils"
 import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, UNL,
@@ -73,8 +73,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       newTimestamp = max_(newRawTimestamp, newTimestamp)
       beforePos = dimSize_(element, kDim.positionX + di)
     } else if (rawElapsed < 1e-5) {
-      if (Build.BTypes & BrowserType.Firefox
-          && (!(Build.BTypes & ~BrowserType.Firefox) || VOther & BrowserType.Firefox) && rawElapsed > -1e-5) {
+      if (OnFirefox && rawElapsed > -1e-5) {
         elapsed = min_delta || ScrollConsts.tickForUnexpectedTime
         newTimestamp = timestamp + elapsed
       } else /** when (rawElapsed < -1e-5 || rawElapsed ~= 0 && VOther !== BrowserType.Firefox) */ {
@@ -82,8 +81,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       }
     } else {
       elapsed = newRawTimestamp > timestamp ? newRawTimestamp - timestamp : 0
-      if (Build.BTypes & BrowserType.Firefox
-          && (!(Build.BTypes & ~BrowserType.Firefox) || VOther & BrowserType.Firefox)
+      if (OnFirefox
           && rawElapsed > ScrollConsts.FirefoxMinFakeInterval - 1 && (rawElapsed === parseInt(<any> rawElapsed))) {
         if (elapsed > 1.5 * (min_delta || ScrollConsts.tickForUnexpectedTime)) {
           elapsed = min_delta || ScrollConsts.tickForUnexpectedTime
@@ -145,8 +143,8 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       totalDelta += math.abs(delta) || 1
       rAF_(animate);
     } else if (elapsed) {
-      if ((!(Build.BTypes & BrowserType.Chrome) || chromeVer_ > BrowserVer.MinMaybeScrollEndAndOverScrollEvents - 1)
-          && "onscrollend" in (Build.BTypes & ~BrowserType.Firefox ? Image.prototype : doc)) {
+      if ((!OnChrome || chromeVer_ > BrowserVer.MinMaybeScrollEndAndOverScrollEvents - 1)
+          && "onscrollend" in (OnFirefox ? doc : Image.prototype)) {
         // according to tests on C75, no "scrollend" events if scrolling behavior is "instant";
         // the doc on Google Docs requires no "overscroll" events for programmatic scrolling
         const notEl: boolean = !element || element === scrollingEl_();
@@ -159,8 +157,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       rAF_(animate)
     }
   },
-  hasDialog = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement
-      || !!(Build.BTypes & BrowserType.ChromeOrFirefox) && doesSupportDialog(),
+  hasDialog = OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement || WithDialog && doesSupportDialog(),
   startAnimate = (): void => {
     running = running || rAF_(animate);
   };
@@ -173,12 +170,11 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       running = rawTimestamp = beforePos = calibTime = preventPointEvents = lostFrames = 0
       element = null
     }
-    if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement
-        || Build.BTypes & BrowserType.ChromeOrFirefox && hasDialog) {
+    if (WithDialog && (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement || hasDialog)) {
       scrolling ? curModalElement || addElementList([], [0, 0], 1) : curModalElement !== hint_box && removeModal()
       return
     }
-    const el = (scrolling ? Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(docEl_unsafe_()) : docEl_unsafe_()
+    const el = (scrolling ? OnFirefox ? docEl_unsafe_() : SafeEl_not_ff_!(docEl_unsafe_())
                 : styleTop) as SafeElement & ElementToHTMLorOtherFormatted | null
     styleTop = scrolling ? el : null
     el && el.style ? el.style.pointerEvents = scrolling ? NONE : "" : 0;
@@ -208,10 +204,9 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
 const performScroll = ((el: SafeElement | null, di: ScrollByY, amount: number, before?: number): number => {
     before = before != null ? before : dimSize_(el, kDim.positionX + di)
     if (el) {
-      !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
-      !(Build.BTypes & ~BrowserType.Firefox) ||
+      (OnChrome ? Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior : !OnEdge) ||
       // avoid using `Element`, so that users may override it
-      el.scrollBy ? el.scrollBy(instantScOpt(di, amount))
+      el.scrollBy ? OnSafari ? el.scrollBy(di ? 0 : amount, di && amount) : el.scrollBy(instantScOpt(di, amount))
       : di ? el.scrollTop = before + amount : el.scrollLeft = before + amount
     } else {
       scrollWndBy_(di, amount)
@@ -228,7 +223,7 @@ export const $sc = (element: SafeElement | null, di: ScrollByY, amount: number):
         amount /= 2;
       }
       checkCurrent(element)
-    } else if (Build.BTypes & BrowserType.Chrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
+    } else if (OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
         ? fgCache.s && allowRAF_ : fgCache.s) {
       amount && performAnimate(element, di, amount)
       scrollTick(1)
@@ -288,8 +283,7 @@ export const executeScroll = function (di: ScrollByY, amount0: number, isTo: BOO
     }
     let core: ReturnType<typeof getParentVApi> | false;
     if (element === scrollingTop && element
-      && (core = Build.BTypes & BrowserType.Firefox ? !fullscreenEl_unsafe_() && getParentVApi()
-              : frameElement_() && !fullscreenEl_unsafe_() && getParentVApi())
+      && (core = !fullscreenEl_unsafe_() && getParentVApi())
       && (Lower(attr_s(frameElement_()!, "scrolling") || "") === "no"
           || !doesScroll(element, di, amount || (fromMax ? 1 : 0)))) {
         core.c(di, amount0, isTo as 0, factor, fromMax as false);
@@ -366,8 +360,8 @@ export const beginScroll = (eventWrapper: 0 | Pick<HandlerNS.Event, "e">, key: s
 }
 
 export const onScrolls = (event: KeyboardEventToPrevent): boolean => {
-    const repeat = Build.MinCVer < BrowserVer.Min$KeyboardEvent$$Repeat$ExistsButNotWork
-        && Build.BTypes & BrowserType.Chrome ? !!event.repeat : event.repeat;
+    const repeat = OnChrome && Build.MinCVer < BrowserVer.Min$KeyboardEvent$$Repeat$ExistsButNotWork
+        ? !!event.repeat : event.repeat
     repeat && prevent_(event);
     scrollTick(<BOOL> +repeat)
     return repeat;
@@ -389,7 +383,7 @@ const findScrollable = (di: ScrollByY, amount: number): SafeElement | null => {
     for (let _ref = cur_el.children, _len = _ref.length; 0 < _len--; ) {
       cur_el = _ref[_len]! as /** fake `as` */ SafeElement
       // here assumes that a <form> won't be a main scrollable area
-      if (Build.BTypes & ~BrowserType.Firefox && notSafe_not_ff_!(cur_el)) { continue }
+      if (!OnFirefox && notSafe_not_ff_!(cur_el)) { continue }
       const rect = padClientRect_(getBoundingClientRect_(cur_el))
       const visible = rect.b > rect.t ? cropRectToVisible_(rect.l, rect.t, rect.r, rect.b)
           : getVisibleClientRect_(cur_el)
@@ -408,7 +402,7 @@ const findScrollable = (di: ScrollByY, amount: number): SafeElement | null => {
       while (element !== top && shouldScroll_s(element!
               , element === cachedScrollable ? (di + 2) as 2 | 3 : di
               , amount) < 1) {
-        element = (Build.BTypes & ~BrowserType.Firefox
+        element = (!OnFirefox
             ? SafeEl_not_ff_!(GetParent_unsafe_(element!, PNType.RevealSlotAndGotoParent))
             : GetParent_unsafe_(element!, PNType.RevealSlotAndGotoParent) as SafeElement | null
           ) || top;
@@ -420,7 +414,7 @@ const findScrollable = (di: ScrollByY, amount: number): SafeElement | null => {
       // note: twitter auto focuses its dialog panel, so it's not needed to detect it here
       const candidate = createRegExp(kTip.redditHost, "").test(loc_.host)
           ? querySelector_unsafe_(VTr(kTip.redditOverlay)) : null;
-      element = Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(candidate) : candidate as SafeElement | null;
+      element = OnFirefox ? candidate as SafeElement | null : SafeEl_not_ff_!(candidate)
     }
     if (!element && top) {
       const candidate = selectFirst({ a: 0, e: top, h: 0 })
@@ -439,7 +433,7 @@ export const getPixelScaleToScroll = (): void => {
      * Imported on 2013-05-15 by https://github.com/w3c/csswg-drafts/commit/ad01664359641f791d99f0b3fce545b55579acdc
      * Firefox is still using `int`: https://bugzilla.mozilla.org/show_bug.cgi?id=1217330 (filed on 2015-10-22)
      */
-  scale = (Build.BTypes & BrowserType.Firefox ? 2 : 1) / min_(1, wdZoom_) / min_(1, bZoom_)
+  scale = (OnFirefox ? 2 : 1) / min_(1, wdZoom_) / min_(1, bZoom_)
 }
 
 const checkCurrent = (el: SafeElement | null): void => {
@@ -468,9 +462,8 @@ const doesScroll = (el: SafeElement, di: ScrollByY, amount: number): boolean => 
          */
         let changed2 = performScroll(el, 0, -changed, before)
         changed2 * changed2 > 0.1 && performScroll(el, 0, -changed2, before)
-      } else if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior
-          || !(Build.BTypes & ~BrowserType.Firefox) || el.scrollTo) {
-        el.scrollTo(instantScOpt(di, before))
+      } else if ((OnChrome ? Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior : !OnEdge) || el.scrollTo) {
+        OnSafari ? el.scrollTo(di ? 0 : before, di && before) : el.scrollTo(instantScOpt(di, before))
       } else {
         di ? (el.scrollTop = before) : (el.scrollLeft = before);
       }
@@ -515,8 +508,7 @@ export const shouldScroll_s = (element: SafeElement, di: BOOL | 2 | 3, amount: n
 }
 
 export const suppressScroll = (): void => {
-    if (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome
-        && !allowRAF_) {
+    if (OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && !allowRAF_) {
       scrolled = 0
       return;
     }
@@ -529,22 +521,16 @@ export const suppressScroll = (): void => {
 }
 
 export const onActivate = (event: Event): void => {
-  if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
-      ? event.isTrusted : event.isTrusted !== false) {
-    const path = !(Build.BTypes & ~BrowserType.Firefox)
-        || Build.BTypes & BrowserType.Firefox && !(Build.BTypes & BrowserType.Edge)
+  if (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted ? event.isTrusted : event.isTrusted !== false) {
+    const path = !(OnChrome || OnEdge) || OnChrome
             && Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
         ? event.composedPath!() : event.path,
-    el = Build.MinCVer >= BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInClosedShadowDOM
-          && !(Build.BTypes & ~BrowserType.Chrome)
-        || !(Build.BTypes & ~BrowserType.Firefox)
-        || Build.BTypes & BrowserType.Firefox && !(Build.BTypes & BrowserType.Edge)
-            && Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
-        || (Build.MinCVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
-              || !(Build.BTypes & BrowserType.Chrome)
-            ? path : path && path.length > 1)
+    el = (!(OnChrome || OnEdge) || OnChrome
+            && (Build.MinCVer >= BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInClosedShadowDOM
+                || Build.MinCVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow)
+          || (OnEdge ? path : path!.length > 1))
         ? path![0] as Element : event.target as Element;
-    currentScrolling = weakRef_(Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(el) : el as SafeElement | null)
+    currentScrolling = weakRef_(OnFirefox ? el as SafeElement | null : SafeEl_not_ff_!(el))
     cachedScrollable = 0
   }
 }

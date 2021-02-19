@@ -1,7 +1,7 @@
 import HintItem = HintsNS.HintItem
 import {
-  safer, fgCache, VOther, isImageUrl, isJSUrl, set_keydownEvents_, keydownEvents_, timeout_, doc, chromeVer_, weakRef_,
-  parseSedOptions, createRegExp, isTY, max_, min_
+  safer, fgCache, isImageUrl, isJSUrl, set_keydownEvents_, keydownEvents_, timeout_, doc, chromeVer_, weakRef_,
+  parseSedOptions, createRegExp, isTY, max_, min_, OnFirefox, OnChrome
 } from "../lib/utils"
 import { getVisibleClientRect_, center_, view_, selRange_ } from "../lib/rect"
 import {
@@ -84,13 +84,11 @@ const downloadOrOpenMedia = (): void => {
   }
   const filename = attr_s(clickEl, kD) || attr_s(clickEl, "alt") || (clickEl as SafeHTMLElement).title
   if (!text) { hintApi.t({ k: kTip.notImg }) }
-  else if ((!(Build.BTypes & ~BrowserType.Firefox)
-            || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox)
-      && (!Build.DetectAPIOnFirefox || hintOptions.keyword != null)
+  else if (OnFirefox && (!Build.DetectAPIOnFirefox || hintOptions.keyword != null)
       || mode1_ === HintMode.OPEN_IMAGE) {
     post_({
       H: kFgReq.openImage, r: hintMode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
-      k: Build.BTypes & BrowserType.Firefox && mode1_ !== HintMode.OPEN_IMAGE ? "" : hintOptions.keyword,
+      k: OnFirefox && mode1_ !== HintMode.OPEN_IMAGE ? "" : hintOptions.keyword,
       e: parseSedOptions(hintOptions), a: hintOptions.auto,
       f: filename, u: text
     })
@@ -142,7 +140,7 @@ const hoverEl = (): void => {
         selector = selector.slice(upper.length);
       }
       let up = (upper as string | number as number) | 0, selected: Element | null = null;
-      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest && !up) {
+      if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest && !up) {
         up = clickEl.closest ? 0 : 6;
       }
       selector = selector.trim();
@@ -152,13 +150,13 @@ const hoverEl = (): void => {
       }
       try {
         if (selector && (selected = up
-              ? Build.BTypes & ~BrowserType.Firefox
+              ? !OnFirefox
                 ? ElementProto().querySelector.call(ancestors[max_(0, min_(up + 1, ancestors.length - 1))]
                     , selector)
                 : querySelector_unsafe_(selector, ancestors[max_(0, min_(up + 1, ancestors.length - 1))
                     ] as SafeElement)
               : clickEl.closest!(selector))) {
-          if (!(Build.BTypes & ~BrowserType.Firefox) || !notSafe_not_ff_!(selected)) {
+          if (OnFirefox || !notSafe_not_ff_!(selected)) {
             for (const classNameStr of toggleMap[key].split(" ")) {
               classNameStr.trim() && toggleClass_s(selected as SafeElement, classNameStr)
             }
@@ -299,13 +297,13 @@ const defaultClick = (): void => {
     ctrl = newTab && !(newtab_n_active && noCtrlPlusShiftForActive) || newWindow && !!noCtrlPlusShiftForActive,
     shift = newWindow || newtab_n_active,
     specialActions = dblClick ? kClickAction.forceToDblclick : otherActions
-        || (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$Element$$Closest
+        || (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$Element$$Closest
             || clickEl.closest ? !clickEl.closest!("a") : tag !== "a") ? kClickAction.none
         : newTabStr === "force" ? newTab
             ? kClickAction.forceToOpenInNewTab | kClickAction.newTabFromMode : kClickAction.forceToOpenInNewTab
         : newTabStr === "last-window" ? newTab
             ? kClickAction.forceToOpenInLastWnd | kClickAction.newTabFromMode : kClickAction.forceToOpenInLastWnd
-        : !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
+        : OnFirefox
         ? newWindow ? kClickAction.openInNewWindow
           : newTabStr.startsWith("no-") ? kClickAction.none // to skip "click" events, one should use "force"
           : newTab // need to work around Firefox's popup blocker
@@ -315,7 +313,7 @@ const defaultClick = (): void => {
         , rect, mask > 0 || (clickEl as ElementToHTMLorOtherFormatted).tabIndex! >= 0
         , [!1, ctrl && !isMac, ctrl && isMac, shift]
         , specialActions, isRight ? kClickButton.second : kClickButton.none
-        , !(Build.BTypes & BrowserType.Chrome) || otherActions || newTab ? 0 : hintOptions.touch
+        , !OnChrome || otherActions || newTab ? 0 : hintOptions.touch
         , hintOptions))
     .then((ret): void => {
       autoUnhover ? unhover_() : isQueue || ret && pushHandler_(unhoverOnEsc, kHandler.unhoverOnEsc)
@@ -342,9 +340,7 @@ const defaultClick = (): void => {
     // must use UI.getRect, so that zooms are updated, and prepareCrop is called
     rect = knownRect || getRect(clickEl, hint.r !== clickEl ? hint.r as HTMLElementUsingMap | null : null)
     if (hint.m && keyStatus.t && !keyStatus.k && !keyStatus.n) {
-      if ((!(Build.BTypes & BrowserType.Chrome)
-            || Build.BTypes & ~BrowserType.Chrome && VOther !== BrowserType.Chrome
-            || Build.MinCVer < BrowserVer.MinUserActivationV2 && chromeVer_ < BrowserVer.MinUserActivationV2)
+      if ((!OnChrome || Build.MinCVer < BrowserVer.MinUserActivationV2 && chromeVer_ < BrowserVer.MinUserActivationV2)
           && !fgCache.w) {
         // e.g.: https://github.com/philc/vimium/issues/3103#issuecomment-552653871
         suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents)

@@ -32,7 +32,7 @@ declare const enum kYank { // should have no overlap with ReuseType
   MIN = 7, Exit = 7, NotExit = 8, RichTextButNotExit = 9,
 }
 
-import { VTr, VOther, safer, fgCache, doc, chromeVer_, tryCreateRegExp, isTY } from "../lib/utils"
+import { VTr, safer, fgCache, doc, chromeVer_, tryCreateRegExp, isTY, OnFirefox, OnChrome, OnEdge } from "../lib/utils"
 import {
   getSelection_, getSelectionFocusEdge_, isHTML_, docEl_unsafe_, notSafe_not_ff_, getEditableType_, editableTypes_,
   GetChildNodes_not_ff, isInputInTextMode_cr_old, rangeCount_, getAccessibleSelectedNode, scrollingEl_, isNode_,
@@ -89,7 +89,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     while (node = nodes.nextNode() as Text | null) {
       if (50 <= (str = node.data).length && 50 < str.trim().length) {
         const element = node.parentElement
-        if (element && (!(Build.BTypes & ~BrowserType.Firefox) || !notSafe_not_ff_!(element))
+        if (element && (OnFirefox || !notSafe_not_ff_!(element))
             && getVisibleClientRect_(element as SafeElement) && !getEditableType_(element)) {
           break
         }
@@ -257,13 +257,13 @@ const getNextRightCharacter = (isMove: BOOL): string => {
     const sel = curSelection
     if (!diType) {
       let focusNode = getAccessibleSelectedNode(sel, 1)
-      if (Build.BTypes & BrowserType.Firefox && !focusNode) {
+      if (OnFirefox && !focusNode) {
         return ""
       }
       if (isNode_(focusNode!, kNode.TEXT_NODE)) {
         const i = selOffset_(sel, 1), str = focusNode.data;
         if (str.charAt(i).trim() || i && str.charAt(i - 1).trim() && str.slice(i).trimLeft()
-              && (Build.BTypes & BrowserType.Firefox ? str[i] !== "\n" && str[i] !== "\r" : str[i] !== "\n")) {
+              && (OnFirefox ? str[i] !== "\n" && str[i] !== "\r" : str[i] !== "\n")) {
           return str[i];
         }
       }
@@ -291,18 +291,14 @@ const getNextRightCharacter = (isMove: BOOL): string => {
 const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord
       , count: number): void => {
     const shouldSkipSpaceWhenMovingRight = granularity === kVimG.vimWord
-    const isFirefox = !(Build.BTypes & ~BrowserType.Firefox)
-      || !!(Build.BTypes & BrowserType.Firefox) && VOther === BrowserType.Firefox;
     let fixWord: BOOL = 0;
     if (shouldSkipSpaceWhenMovingRight || granularity === kG.word) {
 // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/editing_behavior.h?type=cs&q=ShouldSkipSpaceWhenMovingRight&g=0&l=99
       if (direction &&
-          (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && isFirefox
-            ? !Build.NativeWordMoveOnFirefox || shouldSkipSpaceWhenMovingRight
+          (OnFirefox ? !Build.NativeWordMoveOnFirefox || shouldSkipSpaceWhenMovingRight
             : (fgCache.o > kOS.MAX_NOT_WIN) !== shouldSkipSpaceWhenMovingRight)) {
         fixWord = 1;
-        if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && isFirefox
-            ? !Build.NativeWordMoveOnFirefox : !shouldSkipSpaceWhenMovingRight) {
+        if (OnFirefox ? !Build.NativeWordMoveOnFirefox : !shouldSkipSpaceWhenMovingRight) {
           count--;
         }
       }
@@ -319,14 +315,12 @@ const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord
     granularity - kG.lineBoundary || hudTip(kTip.selectLineBoundary, 2000)
     if (!fixWord) { return }
     if (!shouldSkipSpaceWhenMovingRight) { // not shouldSkipSpace -> go left
-        if (!(Build.BTypes & BrowserType.Firefox) || !Build.NativeWordMoveOnFirefox
-            || Build.BTypes & ~BrowserType.Firefox && !isFirefox) {
+        if (!OnFirefox || !Build.NativeWordMoveOnFirefox) {
           moveRightByWordButNotSkipSpace!()
         }
         return;
     }
-    if (Build.NativeWordMoveOnFirefox
-        || !(Build.BTypes & BrowserType.Firefox) || Build.BTypes & ~BrowserType.Firefox && !isFirefox) {
+    if (!OnFirefox || Build.NativeWordMoveOnFirefox) {
       return
     }
     if (moveRightByWordButNotSkipSpace!()) {
@@ -357,7 +351,7 @@ const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord
       ch = getNextRightCharacter(isMove)
       // (t/b/r/c/e/) visible_units.cc?q=SkipWhitespaceAlgorithm&g=0&l=1191
     } while (ch && (
-      !(Build.BTypes & ~BrowserType.Firefox) || Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
+      !OnChrome || Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
       || rightWhiteSpaceRe ? rightWhiteSpaceRe!.test(ch) : !WordsRe_ff_old_cr!.test(ch)
     ));
     if (ch && oldLen_) {
@@ -377,7 +371,7 @@ const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord
   /**
    * if Build.NativeWordMoveOnFirefox, then should never be called if browser is Firefox
    */
-const moveRightByWordButNotSkipSpace = !(Build.BTypes & ~BrowserType.Firefox) && Build.NativeWordMoveOnFirefox ? null
+const moveRightByWordButNotSkipSpace = OnFirefox && Build.NativeWordMoveOnFirefox ? null
       : (): boolean => {
     const sel = curSelection
     let str = "" + sel, len = str.length, di = getDirection()
@@ -386,18 +380,12 @@ const moveRightByWordButNotSkipSpace = !(Build.BTypes & ~BrowserType.Firefox) &&
     if (!di) { di_ = str2 ? kDirTy.unknown : kDirTy.right }
     str = di ? str2.slice(len) : getDirection() ? str + str2 : str.slice(0, len - str2.length)
     // now di_ is correct, and can be left / right
-    let match = (!(Build.BTypes & BrowserType.Firefox)
-        ? Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
+    let match = (OnFirefox ? WordsRe_ff_old_cr!
+        : !OnChrome || Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
           ? rightWhiteSpaceRe! : (rightWhiteSpaceRe || WordsRe_ff_old_cr)!
-        : !(Build.BTypes & ~BrowserType.Firefox) ? WordsRe_ff_old_cr!
-        : (Build.NativeWordMoveOnFirefox || VOther !== BrowserType.Firefox)
-          && rightWhiteSpaceRe || WordsRe_ff_old_cr!
         ).exec(str),
-    toGoLeft = match ? (!(Build.BTypes & BrowserType.Firefox)
-      ? Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces || rightWhiteSpaceRe
-      : Build.BTypes & ~BrowserType.Firefox
-        && (Build.NativeWordMoveOnFirefox || VOther !== BrowserType.Firefox) && rightWhiteSpaceRe
-      )
+    toGoLeft = match ? (OnFirefox ? false : !OnChrome ? true
+          : Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces || rightWhiteSpaceRe)
       ? match[0].length : str.length - match.index - match[0].length : 0;
     const needBack = toGoLeft > 0 && toGoLeft < str.length;
     if (needBack) {
@@ -451,7 +439,7 @@ const reverseSelection = (): void => {
     } else {
       const node = getAccessibleSelectedNode(sel), offset = selOffset_(sel)
       collapseToRight(direction);
-      (!(Build.BTypes & BrowserType.Firefox) || node) && sel.extend(node!, offset)
+      (!OnFirefox || node) && sel.extend(node!, offset)
     }
     di_ = newDi
 }
@@ -472,7 +460,7 @@ const selectLine = (count: number): void => {
   const ch = getNextRightCharacter(0)
   const num1 = oldLen_
   if (ch && num1 && ch !== "\n") {
-    if (!(Build.BTypes & BrowserType.Firefox) || ch !== "\r") {
+    if (!OnFirefox || ch !== "\r") {
       extend(kDirTy.left);
       ("" + curSelection).length + 2 - num1 && extend(kDirTy.right)
     }
@@ -517,14 +505,13 @@ const ensureLine = (command: number): void => {
   if (scope && !rangeCount_(curSelection)) {
     scope = null
     curSelection = getSelection_()
-    if (!(Build.BTypes & BrowserType.Firefox)
-        && command < VisualAction.MaxNotFind + 1 && !rangeCount_(curSelection)) {
+    if (!OnFirefox && command < VisualAction.MaxNotFind + 1 && !rangeCount_(curSelection)) {
       deactivate()
       suppressTail_(1000)
       return hudTip(kTip.loseSel);
     }
   }
-  if (Build.BTypes & BrowserType.Firefox && command < VisualAction.MaxNotFind + 1
+  if (OnFirefox && command < VisualAction.MaxNotFind + 1
       && !(rangeCount_(curSelection) && getAccessibleSelectedNode(curSelection) )) {
     deactivate()
     suppressTail_(1500)
@@ -584,7 +571,7 @@ const getDirection = function (magic?: string
     if (di_ !== kDirTy.unknown) { return di_ }
     const oldDiType = diType_, sel = curSelection, anchorNode = getAccessibleSelectedNode(sel)
     let num1 = -1, num2: number;
-    if (Build.BTypes & BrowserType.Firefox && !anchorNode) {
+    if (OnFirefox && !anchorNode) {
       diType_ = DiType.Normal
       return di_ = kDirTy.right
     }
@@ -608,11 +595,11 @@ const getDirection = function (magic?: string
       type TextModeElement = TextElement;
       if ((oldDiType & DiType.Unknown)
           && editableTypes_[lock.localName]! > EditableType.MaxNotTextModeElement) {
-        const child = (!(Build.BTypes & ~BrowserType.Firefox) ? (anchorNode as Element).childNodes as NodeList
+        const child = (OnFirefox ? (anchorNode as Element).childNodes as NodeList
             : GetChildNodes_not_ff!(anchorNode as Element)
             )[num1 >= 0 ? num1 : selOffset_(sel)] as Node | undefined;
         if (lock === child || /** tend to trust that the selected is a textbox */ !child) {
-          if (Build.MinCVer >= BrowserVer.Min$selectionStart$MayBeNull || !(Build.BTypes & BrowserType.Chrome)
+          if (!OnChrome || Build.MinCVer >= BrowserVer.Min$selectionStart$MayBeNull
               ? (lock as TextModeElement).selectionEnd != null
               : /*#__NOINLINE__*/ isInputInTextMode_cr_old(lock as TextModeElement)) {
             diType_ = DiType.TextBox | (oldDiType & DiType.isUnsafe)
@@ -695,8 +682,7 @@ let init = (words: string, map: VisualModeNS.KeyMap, _g: any) => {
   init = null as never
   selType = (): SelType => {
     const type = typeIdx[curSelection.type]
-    return Build.BTypes & BrowserType.Chrome
-        && Build.MinCVer <= BrowserVer.$Selection$NotShowStatusInTextBox
+    return OnChrome && Build.MinCVer <= BrowserVer.$Selection$NotShowStatusInTextBox
         && chromeVer_ === BrowserVer.$Selection$NotShowStatusInTextBox
         && type === SelType.Caret && diType_ && ("" + curSelection) ? SelType.Range : type
   };
@@ -716,23 +702,16 @@ let init = (words: string, map: VisualModeNS.KeyMap, _g: any) => {
  * if no unicode RegExp, The list of words will be loaded into {@link background/settings.ts#Settings_.CONST_.WordsRe_}
  */
   // icu@u_isalnum: http://icu-project.org/apiref/icu4c/uchar_8h.html#a5dff81615fcb62295bf8b1c63dd33a14
-  if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
-      || Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) {
-    if (!(Build.BTypes & ~BrowserType.Firefox)
-        || Build.BTypes & BrowserType.Chrome
-            && chromeVer_ < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
-        || Build.BTypes & BrowserType.Firefox && Build.BTypes & BrowserType.Edge
-            && VOther === BrowserType.Firefox) {
-      // Firefox && not native || Chrome && not only white spaces
+  if (OnFirefox && !Build.NativeWordMoveOnFirefox
+      || OnChrome && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
+          && chromeVer_ < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) {
       if (BrowserVer.MinSelExtendForwardOnlySkipWhitespaces <= BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
-          && !(Build.BTypes & ~BrowserType.Chrome)
-          ) {
+          && OnChrome) {
         WordsRe_ff_old_cr = tryCreateRegExp(words, "")!
       } else {
         // note: here thinks the `/[^]*[~~~]/` has acceptable performance
         WordsRe_ff_old_cr = tryCreateRegExp(words || "[^]*[\\p{L}\\p{Nd}_]", words ? "" : "u" as never)!
       }
-    }
   }
 /** C72
  * The real is ` (!IsSpaceOrNewline(c) && c != kNoBreakSpaceCharacter) || c == '\n' `
@@ -756,14 +735,12 @@ let init = (words: string, map: VisualModeNS.KeyMap, _g: any) => {
    *  : https://chromium.googlesource.com/chromium/src/+/117a5ba5073a1c78d08d3be3210afc09af96158c%5E%21/#F2
    * Min$Space$NotMatch$U180e$InRegExp=59
    */
-  (!(Build.BTypes & BrowserType.Chrome)
+  (!OnChrome
     || Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
-    || (Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox)
-    || chromeVer_ >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) &&
+    || chromeVer_ > BrowserVer.MinSelExtendForwardOnlySkipWhitespaces - 1) &&
   // on Firefox 65 stable, Win 10 x64, there're '\r\n' parts in Selection.toString()
   // ignore "\ufeff" for shorter code since it's too rare
-  (rightWhiteSpaceRe = <RegExpOne> (Build.BTypes & BrowserType.Firefox
-      ? /[^\S\n\r\u2029\u202f]+$/ : /[^\S\n\u2029\u202f]+$/));
+  (rightWhiteSpaceRe = <RegExpOne> (OnFirefox ? /[^\S\n\r\u2029\u202f]+$/ : /[^\S\n\u2029\u202f]+$/));
   func(keyMap = map as VisualModeNS.SafeKeyMap)
   func(map.a as Dict<VisualAction>); func(map.g as Dict<VisualAction>)
 }

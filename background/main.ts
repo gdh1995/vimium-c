@@ -383,13 +383,13 @@ window.onunload = (event): void => {
 }
 
 if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
-    || Build.BTypes & BrowserType.Edge
-    || Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+    || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
       && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) {
   ( (Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox))
     ? !Build.NativeWordMoveOnFirefox
       && !BgUtils_.makeRegexp_("\\p{L}", "u", 0)
-    : Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge) ? true
+    : Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)
+      ? false
     : Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
       && Build.MinCVer < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
       && (BrowserVer.MinSelExtendForwardOnlySkipWhitespaces < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp

@@ -160,7 +160,7 @@ export const enterVisualMode = (): void | kBgCmd.visualMode => {
   let granularities: CmdOptions[kFgCmd.visualMode]["g"] = null
   if (~sender.f & Frames.Flags.hadVisualMode) {
     if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
-        || Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+        || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
             && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) {
       words = visualWordsRe_
     }

@@ -9,8 +9,8 @@ interface ShadowNodeMap {
 }
 
 import {
-  doc, keydownEvents_, safeObj, fgCache, isTop, set_keydownEvents_, setupEventListener, VOther, Stop_,
-  esc, onWndFocus, isEnabled_, readyState_, injector, recordLog, weakRef_
+  doc, keydownEvents_, safeObj, fgCache, isTop, set_keydownEvents_, setupEventListener, Stop_, OnChrome, OnFirefox,
+  esc, onWndFocus, isEnabled_, readyState_, injector, recordLog, weakRef_, OnEdge
 } from "../lib/utils"
 import { post_, safePost } from "./port"
 import { getParentVApi, ui_box } from "./dom_ui"
@@ -54,9 +54,7 @@ export function set_exitPassMode <T extends typeof exitPassMode> (_nEPM: T): T {
 export const insertInit = (): void => {
   /** if `notBody` then `activeEl` is not null */
   let activeEl = activeEl_unsafe_(),
-  notBody = activeEl !== doc.body && (!(Build.BTypes & BrowserType.Firefox)
-        || Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox
-        || isHTML_() || activeEl !== docEl_unsafe_()) && !!activeEl;
+  notBody = activeEl !== doc.body && (!OnFirefox ? true : isHTML_() || activeEl !== docEl_unsafe_()) && !!activeEl
   set_keydownEvents_(safeObj(null))
   if (fgCache.g && grabBackFocus) {
     let counter = 0
@@ -107,9 +105,7 @@ export const exitGrab = function (this: void, event?: Req.fg<kFgReq.exitGrab> | 
 }
 
 export const insert_Lock_ = (): LockableElement | null => {
-  if (Build.BTypes & BrowserType.Firefox
-      && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
-      && lock_) {
+  if (OnFirefox && lock_) {
     const root = lock_.getRootNode!();
     lock_ = root && (root as TypeToPick<Node, DocumentOrShadowRoot, "activeElement">
         ).activeElement === lock_ ? lock_ : null;
@@ -203,7 +199,7 @@ export const resetInsert = (): void => {
 }
 
 export const onFocus = (event: Event | FocusEvent): void => {
-  if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+  if (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted
       ? !event.isTrusted : event.isTrusted === false) { return; }
   // on Firefox, target may also be `document`
   let target: EventTarget | Element | Window | Document = event.target;
@@ -211,7 +207,8 @@ export const onFocus = (event: Event | FocusEvent): void => {
     lastWndFocusTime = event.timeStamp
     return onWndFocus();
   }
-  if (!isEnabled_ || Build.BTypes & BrowserType.Firefox && target === doc) { return; }
+  if (!isEnabled_) { return }
+  if (OnFirefox && target === doc) { return }
   /**
    * Notes:
    * according to test, Chrome Password Saver won't fill fields inside a shadow DOM
@@ -227,8 +224,7 @@ export const onFocus = (event: Event | FocusEvent): void => {
   if (target === ui_box) { return Stop_(event); }
   const sr = GetShadowRoot_(target as Element);
   if (sr) {
-    let path = !(Build.BTypes & ~BrowserType.Firefox)
-        || Build.BTypes & BrowserType.Firefox && !(Build.BTypes & BrowserType.Edge)
+    let path = !(OnChrome || OnEdge) || OnChrome
             && Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
         ? event.composedPath!() : event.path
       , topOfPath: EventTarget | undefined,
@@ -237,18 +233,16 @@ export const onFocus = (event: Event | FocusEvent): void => {
      * - Chrome is since BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInShadowDOM
      * - `event.currentTarget` (`this`) is a shadowRoot
      */
-    isNormalHost = Build.MinCVer >= BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInClosedShadowDOM
-        && !(Build.BTypes & ~BrowserType.Chrome)
-      || !(Build.BTypes & ~BrowserType.Firefox)
-      || Build.BTypes & BrowserType.Firefox && !(Build.BTypes & BrowserType.Edge)
-          && Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
+    isNormalHost = !(OnChrome || OnEdge) || OnChrome
+          && (Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
+              || Build.MinCVer >= BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInClosedShadowDOM)
       ? (topOfPath = path![0]) !== target
       : !!(topOfPath = path && path[0]) && topOfPath !== window && topOfPath !== target
     hookOnShadowRoot(isNormalHost ? path! : [sr, target], target as Element);
     target = isNormalHost ? topOfPath as Element : target
   }
   if (!lastWndFocusTime || event.timeStamp - lastWndFocusTime > 30) {
-    if (Build.BTypes & ~BrowserType.Firefox) {
+    if (!OnFirefox) {
       let el: SafeElement | null = SafeEl_not_ff_!(target as Element)
       el && set_currentScrolling(weakRef_(el))
     } else {
@@ -275,22 +269,19 @@ export const onFocus = (event: Event | FocusEvent): void => {
 
 export const onBlur = (event: Event | FocusEvent): void => {
   if (!isEnabled_
-      || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+      || (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted
           ? !event.isTrusted : event.isTrusted === false)) { return; }
   let target: EventTarget | Element | Window | Document = event.target, topOfPath: EventTarget | undefined
   if (target === window) { return onWndBlur(); }
-  if (Build.BTypes & BrowserType.Firefox && target === doc) { return; }
+  if (OnFirefox && target === doc) { return; }
   const sr = GetShadowRoot_(target as Element)
   if (sr && target !== ui_box) {
-  let path = !(Build.BTypes & ~BrowserType.Firefox)
-      || Build.BTypes & BrowserType.Firefox && !(Build.BTypes & BrowserType.Edge)
+  let path = !(OnChrome || OnEdge) || OnChrome
           && Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
       ? event.composedPath!() : event.path
-    , same = Build.MinCVer >= BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInClosedShadowDOM
-          && !(Build.BTypes & ~BrowserType.Chrome)
-        || !(Build.BTypes & ~BrowserType.Firefox)
-        || Build.BTypes & BrowserType.Firefox && !(Build.BTypes & BrowserType.Edge)
-            && Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
+    , same = !(OnChrome || OnEdge) || OnChrome
+          && (Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
+              || Build.MinCVer >= BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInClosedShadowDOM)
         ? (topOfPath = path![0]) === target
         : !(topOfPath = path && path[0]) || topOfPath === window || topOfPath === target
   if (same) {
@@ -310,7 +301,7 @@ export const onBlur = (event: Event | FocusEvent): void => {
 }
 
 const onShadow = function (this: ShadowRoot, event: FocusEvent): void {
-  if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+  if (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted
       ? !event.isTrusted : event.isTrusted === false) { return; }
   if (isEnabled_ && event.type === "focus") {
     onFocus(event);
@@ -325,8 +316,7 @@ const onShadow = function (this: ShadowRoot, event: FocusEvent): void {
 }
 
 const hookOnShadowRoot = (path: ArrayLike<EventTarget | 0>, target: Node | 0, disable?: 1): void => {
-  for (let len = Build.MinCVer >= BrowserVer.Min$Event$$path$IsStdArrayAndIncludesWindow
-        || !(Build.BTypes & BrowserType.Chrome)
+  for (let len = !OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$path$IsStdArrayAndIncludesWindow
         ? (path as Array<EventTarget | 0>).indexOf(target) : ([] as Array<EventTarget | 0>).indexOf.call(path, target)
       ; 0 <= --len; ) {
     const root = (path as EventPath)[len] as Document | Element | ShadowRoot
@@ -335,8 +325,8 @@ const hookOnShadowRoot = (path: ArrayLike<EventTarget | 0>, target: Node | 0, di
       setupEventListener(root, "focus", onShadow, disable)
       setupEventListener(root, BU, onShadow, disable)
       disable ? shadowNodeMap && shadowNodeMap.delete(root)
-      : (shadowNodeMap || (shadowNodeMap = Build.MinCVer < BrowserVer.MinEnsuredES6WeakMapAndWeakSet
-            && Build.BTypes & BrowserType.Chrome ? /*#__NOINLINE__*/ getSimpleNodeMap() : new WeakMap!()
+      : (shadowNodeMap || (shadowNodeMap = OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6WeakMapAndWeakSet
+            ? /*#__NOINLINE__*/ getSimpleNodeMap() : new WeakMap!()
         )).set(root, kNodeInfo.ShadowFull);
     }
   }
@@ -348,7 +338,7 @@ export const onWndBlur = (): void => {
   exitPassMode && exitPassMode();
   set_keydownEvents_(safeObj(null))
   set_isCmdTriggered(kKeyCode.None)
-  if (Build.BTypes & BrowserType.Chrome) {
+  if (OnChrome) {
     /*#__NOINLINE__*/ resetAnyClickHandler();
   }
   injector || (<RegExpOne> /a?/).test("");

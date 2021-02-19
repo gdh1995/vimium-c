@@ -3,7 +3,7 @@ import FilteredHintItem = HintsNS.FilteredHintItem
 import MarkerElement = HintsNS.MarkerElement
 import ClickType = HintsNS.ClickType
 
-import { chromeVer_, createRegExp, Lower, math, max_ } from "../lib/utils"
+import { chromeVer_, createRegExp, Lower, math, max_, OnChrome, OnEdge, OnFirefox } from "../lib/utils"
 import {
   createElement_, querySelector_unsafe_, getInputType, htmlTag_, docEl_unsafe_, ElementProto, removeEl_s, ALA, attr_s,
   contains_s, setClassName_s, setVisibility_s, toggleClass_s, textContent_s
@@ -38,13 +38,13 @@ export const createHint = (link: Hint): HintItem => {
   isBox = link[2] > ClickType.MaxNotBox, P = "px";
   marker.className = isBox ? "LH BH" : "LH";
   st.left = i + P;
-  if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar)
+  if ((!OnChrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar)
       && i > maxLeft_ && maxRight_) {
     st.maxWidth = maxRight_ - i + P;
   }
   i = link[1].t;
   st.top = i + P;
-  if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar)
+  if ((!OnChrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar)
       && i > maxTop_) {
     st.maxHeight = maxTop_ - i + GlobalConsts.MaxHeightOfLinkHintMarker + P;
   }
@@ -62,15 +62,15 @@ export const adjustMarkers = (arr: readonly HintItem[], elements: readonly Hint[
   const zi = bZoom_;
   let i = arr.length - 1;
   if (!ui_root || i < 0 || arr[i].d !== omni_box && !querySelector_unsafe_("#HDlg", ui_root)) { return }
-  const z = Build.BTypes & ~BrowserType.Firefox ? ("" + 1 / zi).slice(0, 5) : "",
-  mr = Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar
+  const z = !OnFirefox ? ("" + 1 / zi).slice(0, 5) : "",
+  mr = !OnChrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar
       ? maxRight_ * zi : 0,
-  mt = Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar
+  mt = !OnChrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar
       ? maxTop_ * zi : 0;
   while (0 <= i && contains_s(ui_root, arr[i].d)) {
     let st = arr[i--].m.style;
-    Build.BTypes & ~BrowserType.Firefox && (st.zoom = z);
-    if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinAbsolutePositionNotCauseScrollbar) {
+    OnFirefox || (st.zoom = z)
+    if (OnChrome && Build.MinCVer >= BrowserVer.MinAbsolutePositionNotCauseScrollbar) {
       continue;
     }
     st.maxWidth && (st.maxWidth = mr - elements[i][1].l + "px");
@@ -238,11 +238,9 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
       const search = t2.split(" "), hasSearch = !!t2,
       oldKeySeq = keyStatus.k,
       oldHintArray = t2.startsWith(t1) ? hints : allHints as readonly FilteredHintItem[],
-      indStep = !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-          && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)
+      indStep = (OnChrome ? Build.MinCVer >= BrowserVer.MinStableSort : !OnEdge)
           ? 0 : 1 / (1 + oldHintArray.length)
-      let ind = !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-          && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)
+      let ind = (OnChrome ? Build.MinCVer >= BrowserVer.MinStableSort : !OnEdge)
           ? 0 : hasSearch ? 1 : GlobalConsts.MaxLengthOfHintText + 1;
       keyStatus.k = "";
       if (hasSearch && !(allHints as readonly FilteredHintItem[])[0].h.w) {
@@ -257,13 +255,11 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
       for (const hint of oldHintArray) {
         if (hasSearch) {
           const s = scoreHint(hint.h, search);
-          (hint.i = !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-              && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)
+          (hint.i = (OnChrome ? Build.MinCVer >= BrowserVer.MinStableSort : !OnEdge)
               ? s : s && s + (ind -= indStep)) &&
           hints.push(hint);
         } else {
-          hint.i = !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-              && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)
+          hint.i = (OnChrome ? Build.MinCVer >= BrowserVer.MinStableSort : !OnEdge)
               ? hint.h.t.length + 1
               : (ind -= indStep) - hint.h.t.length;
         }
@@ -276,13 +272,12 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
         }
         if (!hasSearch
             && (hintOptions.ordinal != null ? hintOptions.ordinal :
-                ((!(Build.BTypes & ~BrowserType.Firefox) ? (docEl_unsafe_()! as HTMLElement).dataset.vimiumHints
+                ((OnFirefox ? (docEl_unsafe_()! as HTMLElement).dataset.vimiumHints
                   : ElementProto().getAttribute.call(docEl_unsafe_()!, "data-vimium-hints"))
                 || "").includes("ordinal"))) {
           /* empty */
         }
-        else if (!(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-            && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)) {
+        else if (OnChrome ? Build.MinCVer >= BrowserVer.MinStableSort : !OnEdge) {
           hints.sort((x1, x2) => x1.i - x2.i);
         } else {
           hints.sort((x1, x2) => x2.i - x1.i);
@@ -334,8 +329,7 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
         let child = marker.firstChild!
         if (child.nodeType === kNode.TEXT_NODE) {
           el = createElement_("span")
-          if (!(Build.BTypes & BrowserType.Chrome)
-              || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
+          if (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
             marker.prepend!(el)
           } else {
             marker.insertBefore(el, child)
@@ -384,16 +378,14 @@ const scoreHint = (textHint: HintsNS.HintText, queryWordArray: readonly string[]
     if (!max) { return 0; }
     total += max;
   }
-  if (!(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-      && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)) {
+  if (OnChrome ? Build.MinCVer >= BrowserVer.MinStableSort : !OnEdge) {
     return total && math.log(1 + textHint.t.length) / total;
   }
   return total * GlobalConsts.MatchingScoreFactorForHintText / math.log(1 + textHint.t.length);
 }
 
 export const renderMarkers = (hintItemArray: readonly HintItem[]): void => {
-  const noAppend = !!(Build.BTypes & BrowserType.Chrome)
-      && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
+  const noAppend = OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
       && chromeVer_ < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
   const invisibleHintTextRe = <true | undefined> useFilter_ && createRegExp(kTip.invisibleHintText, "g")
   let right: string
@@ -419,8 +411,7 @@ export const renderMarkers = (hintItemArray: readonly HintItem[]): void => {
         marker.appendChild(node);
       }
     }
-    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
-        && noAppend) {
+    if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend && noAppend) {
       marker.appendChild(new Text(right)); // lgtm [js/superfluous-trailing-arguments]
     } else {
       marker.append!(right);
@@ -431,7 +422,7 @@ export const renderMarkers = (hintItemArray: readonly HintItem[]): void => {
 export const initAlphabetEngine = (hintItems: readonly HintItem[]): void => {
   const step = hintChars.length, chars2 = " " + hintChars,
   count = hintItems.length, start = (math.ceil((count - 1) / (step - 1)) | 0) || 1,
-  bitStep = math.ceil(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$Math$$log2
+  bitStep = math.ceil(OnChrome && Build.MinCVer < BrowserVer.MinEnsured$Math$$log2
         ? math.log(step + 1) / math.LN2 : math.log2(step + 1)) | 0;
   let hints: number[] = [0], next = 1, bitOffset = 0;
   for (let offset = 0, hint = 0; offset < start; ) {

@@ -1,7 +1,7 @@
 import {
-  setupEventListener, VTr, keydownEvents_, isAlive_, suppressCommonEvents, onWndFocus, VOther, timeout_, safer, fgCache,
+  setupEventListener, VTr, keydownEvents_, isAlive_, suppressCommonEvents, onWndFocus, timeout_, safer, fgCache,
   doc, getTime, chromeVer_, deref_, escapeAllForRe, tryCreateRegExp, vApi, callFunc, clearTimeout_, Stop_, isTY, Lower,
-  math, max_, min_, firefoxVer_
+  math, max_, min_, OnFirefox, OnChrome, OnEdge, firefoxVer_
 } from "../lib/utils"
 import {
   pushHandler_, replaceOrSuppressMost_, removeHandler_, prevent_, getMappedKey, keybody_, isEscape_, keyNames_,
@@ -77,10 +77,9 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
       const css = findCSS.c, sin = styleSelColorIn = createStyle(css)
       ui_box ? adjustUI() : addUIElement(sin, adjust_type, true)
       removeEl_s(sin)
-      styleSelColorOut = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
-            && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
-            && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-          || Build.BTypes & ~BrowserType.Edge && ui_box !== ui_root ? createStyle(css) : sin
+      styleSelColorOut = OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+          || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
+          || !OnEdge && ui_box !== ui_root ? createStyle(css) : sin
     }
     findCSS = options.f || findCSS;
     if (!isHTML_()) { return; }
@@ -90,7 +89,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     query || (query = options.q);
     isActive || query === query_ && options.l || setPreviousMarkPosition()
     checkDocSelectable();
-    if (Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor || Build.BTypes & ~BrowserType.Chrome) {
+    if (!OnChrome || Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor) {
       ensureBorder();
     }
     if (options.l) {
@@ -130,12 +129,9 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     }
     postOnEsc = options.p
     doesNormalizeLetters = options.n
-    if (Build.BTypes & ~BrowserType.Firefox) {
-      if (Build.MinCVer >= BrowserVer.MinBorderWidth$Ensure1$Or$Floor && !(Build.BTypes & ~BrowserType.Chrome)
-          || Build.BTypes & BrowserType.Chrome && chromeVer_ > BrowserVer.MinBorderWidth$Ensure1$Or$Floor -1
-              && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)) {
-        getZoom_()
-      }
+    if (OnChrome && (Build.MinCVer >= BrowserVer.MinBorderWidth$Ensure1$Or$Floor
+          || chromeVer_ > BrowserVer.MinBorderWidth$Ensure1$Or$Floor - 1)) {
+      getZoom_()
     }
     if (isActive) {
       adjustUI()
@@ -154,12 +150,12 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     parsedRegexp_ = regexMatches = null
     activeRegexIndex = 0
 
-    const outerBox = outerBox_ = createElement_(Build.BTypes & BrowserType.Chrome ? getBoxTagName_cr_() : "div"),
+    const outerBox = outerBox_ = createElement_(OnChrome ? getBoxTagName_cr_() : "div"),
     st = outerBox.style
     st.display = NONE; st.width = "0";
-    if (Build.BTypes & ~BrowserType.Firefox && wdZoom_ !== 1) { st.zoom = "" + 1 / wdZoom_; }
+    if (!OnFirefox && wdZoom_ !== 1) { st.zoom = "" + 1 / wdZoom_; }
     setClassName_s(outerBox, "R UI HUD" + fgCache.d)
-    if (Build.BTypes & BrowserType.Firefox) {
+    if (OnFirefox) {
       setupEventListener(outerBox, MDW, onMousedown, 0, 1)
     } else {
       outerBox.onmousedown = onMousedown
@@ -177,10 +173,10 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
 }
 
 export const onLoad = (later?: Event): void => {
-  if (Build.BTypes & BrowserType.Edge
-      || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredShadowDOMV1
-      || Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredShadowDOMV1) {
-    if (later && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+  if (OnEdge
+      || OnChrome && Build.MinCVer < BrowserVer.MinEnsuredShadowDOMV1
+      || OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredShadowDOMV1) {
+    if (later && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted
           ? !later.isTrusted : later.isTrusted === false)) {
       return
     }
@@ -202,12 +198,9 @@ export const onLoad = (later?: Event): void => {
     f("keydown", onIFrameKeydown, t)
     f("keyup", onIFrameKeydown, t)
     f(INP, onInput, t)
-    if (Build.BTypes & ~BrowserType.Chrome) {
-      f("paste", onPaste_not_cr!, t)
-    }
+    OnChrome || f("paste", onPaste_not_cr!, t)
     f(UNL, /*#__NOINLINE__*/ onIframeUnload, t)
-    if (Build.BTypes & BrowserType.Chrome
-        && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)) {
+    if (OnChrome) {
       f("compositionend", onInput, t)
     }
     suppressCommonEvents(wnd, CLK);
@@ -224,7 +217,7 @@ export const onLoad = (later?: Event): void => {
   let onLoad2 = (): void => {
     const docEl = innerDoc_.documentElement as HTMLHtmlElement,
     body = innerDoc_.body as HTMLBodyElement,
-    zoom = Build.BTypes & ~BrowserType.Firefox ? wnd.devicePixelRatio : 1,
+    zoom = OnFirefox ? 1 : wnd.devicePixelRatio,
     list = innerDoc_.createDocumentFragment(),
     addElement = function (tag: 0 | "div" | "style", id?: string): SafeHTMLElement {
       const newEl = innerDoc_.createElement(tag || "span") as SafeHTMLElement;
@@ -235,10 +228,10 @@ export const onLoad = (later?: Event): void => {
     addElement(0, "s").dataset.vimium = "/"
     const el = input_ = addElement(0, "i")
     addElement(0, "h");
-    if (!(Build.BTypes & ~BrowserType.Firefox) && !Build.DetectAPIOnFirefox) {
+    if (OnFirefox && !Build.DetectAPIOnFirefox) {
       el.contentEditable = "true";
       setupEventListener(wnd, "paste", null, 1, 1);
-    } else if (Build.BTypes & ~BrowserType.Chrome) {
+    } else if (!OnChrome) {
       let plain = true;
       try {
         el.contentEditable = "plaintext-only";
@@ -250,8 +243,7 @@ export const onLoad = (later?: Event): void => {
     } else {
       el.contentEditable = "plaintext-only";
     }
-    if (Build.BTypes & BrowserType.Chrome
-        && Build.MinCVer < BrowserVer.MinEnsuredInputEventIsNotOnlyInShadowDOMV1
+    if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredInputEventIsNotOnlyInShadowDOMV1
         && chromeVer_ < BrowserVer.MinEnsuredInputEventIsNotOnlyInShadowDOMV1) {
       // not check MinEnsuredShadowDOMV1 for smaller code
       setupEventListener(el, INP, onInput)
@@ -260,44 +252,36 @@ export const onLoad = (later?: Event): void => {
     createStyle(findCSS.i, styleInHUD = addElement("style") as HTMLStyleElement);
     // add `<div>` to fix that a body with backgroundColor doesn't follow border-radius on FF63; and on Linux
     // an extra <div> may be necessary for Ctrl+A: https://github.com/gdh1995/vimium-c/issues/79#issuecomment-540921532
-    const box = Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
+    const box = OnFirefox
         && (Build.MinFFVer < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
             && firefoxVer_ < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
             || fgCache.o === kOS.unixLike)
         ? addElement("div") as HTMLDivElement & SafeHTMLElement : body as HTMLBodyElement & SafeHTMLElement,
-    root = !(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
+    root = OnEdge || OnFirefox
         && (Build.MinFFVer < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
           && firefoxVer_ < FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
         ? box : attachShadow_(box),
-    inShadow = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
-        && (!(Build.BTypes & BrowserType.Firefox)
-            || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
-                && Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
-        && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-        ? true : !(Build.BTypes & ~BrowserType.Edge) ? false : root !== box,
-    root2 = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
-        && (!(Build.BTypes & BrowserType.Firefox)
-            || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
-                && Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
-        && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-        || Build.BTypes & ~BrowserType.Edge && inShadow ? addElement("div") as HTMLDivElement : box
+    inShadow = OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+        || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
+            && Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME
+        || !OnEdge && root !== box,
+    root2 = OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+        || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
+            && Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME
+        || !OnEdge && inShadow ? addElement("div") as HTMLDivElement : box
     setClassName_s(root2, "r" + fgCache.d)
     root2.spellcheck = false;
     appendNode_s(root2, list)
     setOrRemoveAttr_s(box, "role", "textbox")
     setOrRemoveAttr_s(box, "aria-multiline", "true")
-    if ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
-        && (!(Build.BTypes & BrowserType.Firefox)
-            || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
-                && Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
-        && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-        || Build.BTypes & ~BrowserType.Edge && inShadow) {
+    if (OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+        || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
+            && Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME
+        || !OnEdge && inShadow) {
       root_ = root as ShadowRoot
       // here can not use `box.contentEditable = "true"`, otherwise Backspace will break on Firefox, Win
       setupEventListener(root2, MDW, onMousedown, 0, 1)
-      if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
+      if (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
         root.append!(root2, styleInHUD)
       } else {
         appendNode_s(root, root2)
@@ -306,20 +290,18 @@ export const onLoad = (later?: Event): void => {
     } else {
       appendNode_s(docEl, styleInHUD)
     }
-    if (Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)) {
+    if (OnFirefox) {
       if (box !== body) {
         appendNode_s(innerDoc_.head! as HTMLHeadElement & SafeHTMLElement
             , createStyle("body{margin:0!important}", addElement("style") as HTMLStyleElement))
         appendNode_s(body, box)
       }
-    } else if (Build.BTypes & ~BrowserType.Firefox && zoom < 1) {
+    } else if (zoom < 1) {
       docEl.style.zoom = "" + 1 / zoom;
     }
-    if (!(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-        && (Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1 || !(Build.BTypes & BrowserType.Firefox))
-        && (Build.MinCVer >= BrowserVer.MinShadowDOMV0 || !(Build.BTypes & BrowserType.Chrome))
-        || Build.BTypes & ~BrowserType.Edge && root2 !== body) {
+    if (OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+        || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
+        || !OnEdge && root2 !== body) {
       setClassName_s(body, fgCache.d.trim())
     }
     outerBox_.style.display = ""
@@ -337,22 +319,20 @@ export const onLoad = (later?: Event): void => {
 
 const onIframeFocus = function (this: Window, event: Event): void {
   doesCheckAlive && event.target === this && onWndFocus()
-  Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
-  || Stop_(event)
+  OnFirefox || Stop_(event)
 }
 
 const onIframeUnload = (e: Event): void => {
-  isActive && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
-                ? !e.isTrusted : e.isTrusted === false)
+  isActive && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted ? !e.isTrusted : e.isTrusted === false)
   && deactivate(FindNS.Action.ExitUnexpectedly)
 }
 
 const doFocus = (): void => {
   doesCheckAlive = 0
-  if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox) {
+  if (OnFirefox) {
     box_.contentWindow.focus()
   }
-    // fix that: search "a" in VFind, Ctrl+F, "a", Esc, select normal text using mouse, `/` can not refocus
+  // fix that: search "a" in VFind, Ctrl+F, "a", Esc, select normal text using mouse, `/` can not refocus
   (root_ || innerDoc_).activeElement === input_ && input_.blur()
   focus_(input_)
   doesCheckAlive = 1
@@ -386,7 +366,7 @@ const onMousedown = function (this: Window | HTMLDivElement | HTMLBodyElement, e
   const target = event.target as Element
   if (isAlive_ && target !== input_
         && (!root_ || parentNode_unsafe_s(target as unknown as SafeElement) === this || target === this)
-        && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+        && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted
             ? event.isTrusted : event.isTrusted !== false)) {
     prevent_(event)
     doFocus()
@@ -395,7 +375,7 @@ const onMousedown = function (this: Window | HTMLDivElement | HTMLBodyElement, e
   }
 }
 
-const onPaste_not_cr = Build.BTypes & ~BrowserType.Chrome ? (event: ClipboardEvent & ToPrevent): void => {
+const onPaste_not_cr = !OnChrome ? (event: ClipboardEvent & ToPrevent): void => {
     const d = event.clipboardData, text = d && isTY(d.getData, kTY.func) ? d.getData("text/plain") : "";
     prevent_(event);
     text && execCommand("insertText", 0, text)
@@ -404,7 +384,7 @@ const onPaste_not_cr = Build.BTypes & ~BrowserType.Chrome ? (event: ClipboardEve
 const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
     Stop_(event);
     const n = event.keyCode
-    if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+    if (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted
         ? !event.isTrusted : event.isTrusted === false) { return; }
     if (n === kKeyCode.ime || scroll_keyIsDown && onScrolls(event) || event.type === "keyup") { return; }
     type Result = FindNS.Action;
@@ -416,9 +396,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
           : (query_ && post_({ H: kFgReq.findQuery, q: query0_ }), FindNS.Action.ExitToPostMode)
       : keybody !== DEL && keybody !== BSP
         ? isEscape_(key) ? FindNS.Action.ExitAndReFocus : FindNS.Action.DoNothing
-      : Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || VOther & BrowserType.Firefox)
-        && fgCache.o === kOS.unixLike && "cs".includes(key[0])
+      : OnFirefox && fgCache.o === kOS.unixLike && "cs".includes(key[0])
         ? FindNS.Action.CtrlDelete
       : query_ || (n === kKeyCode.deleteKey && fgCache.o || event.repeat) ? FindNS.Action.PassDirectly
       : FindNS.Action.Exit;
@@ -440,7 +418,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
       }
       else if (keybody === kChar.f1) { execCommand(DEL) }
       else if (keybody === kChar.f2) {
-        Build.BTypes & BrowserType.Firefox && box_.blur()
+        OnFirefox && box_.blur()
         focus(); keydownEvents_[n] = 1;
       }
       else if (keybody === kChar.up || keybody === kChar.down) {
@@ -462,7 +440,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
     h < HandlerResult.Prevent || prevent_(event);
     if (i < FindNS.Action.DoNothing + 1) { return; }
     keydownEvents_[n] = 1;
-    if (Build.BTypes & BrowserType.Firefox && i === FindNS.Action.CtrlDelete) {
+    if (OnFirefox && i === FindNS.Action.CtrlDelete) {
       const sel = getSelectionOf(innerDoc_)!
       // on Chrome 79 + Win 10 / Firefox 69 + Ubuntu 18, delete a range itself
       // while on Firefox 70 + Win 10 it collapses first
@@ -531,8 +509,7 @@ export const deactivate = (i: FindNS.Action): void => {
         return
       } else if (el) {
         // always call scrollIntoView if only possible, to keep a consistent behavior
-        !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions
-          ? scrollIntoView_(el) : fixTabNav_cr_old(el)
+        OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions ? fixTabNav_cr_old(el) : scrollIntoView_(el)
       }
     }
     toggleSelectableStyle()
@@ -548,20 +525,21 @@ export const deactivate = (i: FindNS.Action): void => {
  * Tracking:
  * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/element.cc?q=ScrollIntoViewNoVisualUpdate&g=0&l=717
  * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/document.cc?q=SetSequentialFocusNavigationStartingPoint&g=0&l=4773
+ * 
+ * Firefox seems to have "focused" it
  */
-export const fixTabNav_cr_old = !(Build.BTypes & BrowserType.Chrome) // firefox seems to have "focused" it
-        || Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions ? 0 as never
-      : (el: Element): void => {
+export const fixTabNav_cr_old = OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
+      ? (el: Element): void => {
     let oldPos: MarksNS.ScrollInfo | 0 = chromeVer_ < BrowserVer.MinScrollIntoViewOptions
           ? [scrollX, scrollY] : 0;
     scrollIntoView_(el);
     oldPos && scrollToMark(oldPos)
-}
+} : 0 as never
 
   /** return an element if no <a> else null */
 const focusFoundLinkIfAny = (): SafeElement | null | void => {
-    let cur = Build.BTypes & ~BrowserType.Firefox ? SafeEl_not_ff_!(getSelectionParent_unsafe(getSelected()))
-        : getSelectionParent_unsafe(getSelected()) as SafeElement | null;
+    let cur = OnFirefox ? getSelectionParent_unsafe(getSelected()) as SafeElement | null
+        : SafeEl_not_ff_!(getSelectionParent_unsafe(getSelected()))
     for (let i = 0, el: Element | null = cur; el && el !== doc.body && i++ < 5;
         el = GetParent_unsafe_(el, PNType.RevealSlotAndGotoParent)) {
       if (el.localName === "a") {
@@ -590,7 +568,7 @@ const postActivate = (): void => {
   const postExit = (skip?: boolean | Event): void => {
     // safe if destroyed, because `el.onblur = Exit`
     if (skip && skip !== !!skip
-        && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+        && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted
             ? !skip.isTrusted : skip.isTrusted === false)) { return }
     postLock && setupEventListener(postLock, BU, postExit, 1)
     if (!postLock || skip === true) { return }
@@ -619,12 +597,11 @@ const postActivate = (): void => {
 const onInput = (e?: Event): void => {
   if (e) {
       Stop_(e);
-      if (!(Build.BTypes & BrowserType.Chrome
-          && (!(Build.BTypes & ~BrowserType.Chrome) || VOther & BrowserType.Chrome)
+      if (!(OnChrome
           && (Build.MinCVer >= BrowserVer.Min$compositionend$$isComposing$IsMistakenlyFalse
               || chromeVer_ > BrowserVer.Min$compositionend$$isComposing$IsMistakenlyFalse - 1)
           && e.type < "i")) {
-        if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+        if (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted
             ? !e.isTrusted : e.isTrusted === false) { return; }
       }
       if ((e as TypeToPick<Event, InputEvent, "isComposing">).isComposing) { return; }
@@ -692,8 +669,7 @@ export const updateQuery = (query: string): void => {
         isRe = true;
       }
     }
-    if (!(Build.BTypes & BrowserType.Chrome) || ((Build.BTypes & ~BrowserType.Chrome) && VOther !== BrowserType.Chrome)
-        ? ww : ww && isRe) {
+    if (OnChrome ? ww && isRe : ww) {
       query = WB + escapeAllForRe(query.replace(<RegExpG & RegExpSearchable<0>> /\\\\/g, "\\")) + WB
       ww = false;
       isRe = true;
@@ -723,8 +699,7 @@ export const updateQuery = (query: string): void => {
         el = GetParent_unsafe_(el, PNType.DirectElement);
       }
       query = el && isTY(text = (el as HTMLElement).innerText) && text ||
-          (Build.BTypes & ~BrowserType.Firefox ? (docEl_unsafe_() as HTMLElement).innerText + ""
-            : (docEl_unsafe_() as SafeHTMLElement).innerText);
+          (OnFirefox ? (docEl_unsafe_() as SafeHTMLElement).innerText : (docEl_unsafe_() as HTMLElement).innerText + "")
       query = didNorm ? normLetters(query) : query
       cachedInnerText = { i: query, t: now, n: didNorm }
     }
@@ -772,7 +747,7 @@ export const executeFind = (query: string | null, options: FindNS.ExecuteOptions
  * so those in shadowDOM / ancestor tree scopes will still be found.
  * Therefore `@styleIn_` is always needed, and VFind may not need a sub-scope selection.
  */
-    const _do_find_not_cr = Build.BTypes & ~BrowserType.Chrome ? function (this: void): boolean {
+    const _do_find_not_cr = !OnChrome ? function (): boolean {
       // (string, caseSensitive, backwards, wrapAround, wholeWord, searchInFrames, showDialog);
       try {
         return window.find.apply(window, arguments);
@@ -793,9 +768,7 @@ export const executeFind = (query: string | null, options: FindNS.ExecuteOptions
     noColor || toggleStyle(0)
     back && (count = -count);
     const isRe = isRegex, pR = parsedRegexp_
-    const focusHUD = !!(Build.BTypes & BrowserType.Firefox)
-      && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
-      && isActive && innerDoc_.hasFocus()
+    const focusHUD = OnFirefox && isActive && innerDoc_.hasFocus()
     const wndSel = getSelection_()
     let regexpNoMatchLimit = 9 * count, dedupID = count + 1, oldReInd: number, selNone: boolean
     let oldAnchor = !options.j && wrapAround && getAccessibleSelectedNode(getSelected()), curSel: Selection
@@ -805,13 +778,11 @@ export const executeFind = (query: string | null, options: FindNS.ExecuteOptions
             activeRegexIndex = highLight
                 ? back ? max_(0, oldReInd - 1) : min_(oldReInd + 1, matchCount - 1)
                 : (oldReInd + (back ? -1 : 1) + matchCount) % matchCount])
-      found = !!q && (Build.BTypes & ~BrowserType.Chrome
+      found = !!q && (!OnChrome
         ? _do_find_not_cr!(q, !notSens, back, !highLight && wrapAround, wholeWord, false, false)
         : window.find(q, !notSens, back, !highLight && wrapAround, wholeWord, false, false)
       )
-      if (Build.BTypes & BrowserType.Firefox
-          && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
-          && !found && !highLight && wrapAround && q) {
+      if (OnFirefox && !found && !highLight && wrapAround && q) {
         resetSelectionToDocStart();
         found = _do_find_not_cr!(q, !notSens, back, true, wholeWord, false, false)
       }
@@ -850,7 +821,7 @@ export const executeFind = (query: string | null, options: FindNS.ExecuteOptions
     }
     noColor || timeout_(hookSel, 0);
     (el = insert_Lock_()) && !isSelected_() && el.blur();
-    Build.BTypes & BrowserType.Firefox && focusHUD && doFocus()
+    OnFirefox && focusHUD && doFocus()
     if (!options.i) {
       hasResults = found!
     }
@@ -877,11 +848,11 @@ const toggleStyle = (disable: BOOL | boolean | Event): void => {
     if (parentNode_unsafe_s(sout) !== ui_box) {
       ui_box!.insertBefore(sout, styleSelectable && parentNode_unsafe_s(styleSelectable) === ui_box
           ? styleSelectable : null)
-      !((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
-        && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
-        && !(Build.BTypes & ~BrowserType.ChromeOrFirefox))
-      && (!(Build.BTypes & ~BrowserType.Edge) || sin === sout)
-      || addUIElement(sin!, AdjustType.NotAdjust, true)
+      if (OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+          || OnFirefox || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
+          || !OnEdge && sin !== sout) {
+        addUIElement(sin!, AdjustType.NotAdjust, true)
+      }
     }
     sout.sheet && (sout.sheet.disabled = disable);
     sin!.sheet && (sin!.sheet.disabled = disable)

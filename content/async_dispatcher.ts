@@ -1,4 +1,6 @@
-import { doc, deref_, weakRef_, VOther, chromeVer_, isJSUrl, getTime, parseSedOptions } from "../lib/utils"
+import {
+  OnChrome, OnFirefox, OnEdge, doc, deref_, weakRef_, chromeVer_, isJSUrl, getTime, parseSedOptions
+} from "../lib/utils"
 import {
   IsInDOM_, activeEl_unsafe_, isInTouchMode_cr_, MDW, htmlTag_, CLK, attr_s, contains_s, focus_
 } from "../lib/dom_utils"
@@ -27,10 +29,10 @@ export function set_lastHovered_ (_newHovered: null): void { lastHovered_ = _new
 
 /** util functions */
 
-const __generator = (_generator_noop_0: void | undefined, sourcebranchedFunc: YieldableFunction
-    ): YieldableFunction => sourcebranchedFunc
+const __generator = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredGeneratorFunction
+    ? (_0: void | undefined, branchedFunc: YieldableFunction): YieldableFunction => branchedFunc : 0 as never
 
-const __myAwaiter = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredGeneratorFunction
+const __myAwaiter = Build.BTypes & BrowserType.Chrome ? Build.MinCVer < BrowserVer.MinEnsuredGeneratorFunction
 ? (branchedFunc: () => YieldableFunction): Promise<any> => new Promise<any> ((resolve): void => {
   const resolveVoid = resolve.bind(0, void 0)
   const generator = branchedFunc()
@@ -61,7 +63,7 @@ const __myAwaiter = Build.BTypes & BrowserType.Chrome && Build.MinCVer < Browser
     resolveVoid()
   }
 })
-: Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredAsyncFunctions
+: Build.MinCVer < BrowserVer.MinEnsuredAsyncFunctions
 ? <TNext, TReturn> (generatorFunction: () => Generator<TNext | TReturn | Promise<TNext | TReturn>, TReturn, TNext>
     ): Promise<TReturn | void> => new Promise<TReturn | void> ((resolve): void => {
   const resolveVoid = Build.MinCVer < BrowserVer.MinTestedES6Environment ? resolve.bind(0, void 0) : () => resolve()
@@ -81,16 +83,18 @@ const __myAwaiter = Build.BTypes & BrowserType.Chrome && Build.MinCVer < Browser
     resolveVoid()
   }
 })
-: 0 as never
+: 0 as never : 0 as never
 
-const __awaiter = (_aw_self: void | 0 | undefined, _aw_args: unknown, _aw_p: PromiseConstructor | 0 | undefined
+const __awaiter = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredAsyncFunctions
+? (_aw_self: void | 0 | undefined, _aw_args: unknown, _aw_p: PromiseConstructor | 0 | undefined
     , func_to_await: Function): Promise<YieldedValue> => __myAwaiter(func_to_await as any)
+: 0 as never
 
 export { __generator as __asyncGenerator, __awaiter as __asyncAwaiter }
 
 export const catchAsyncErrorSilently = (p: Promise<any>): Promise<any> =>
-    !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredAsyncFunctions
-      ? p.catch(Build.NDEBUG ? (): void => {} : e => console.log("Vimium C: unexpected error\n", e)) : p
+    OnChrome && Build.MinCVer < BrowserVer.MinEnsuredAsyncFunctions ? p
+    : p.catch(Build.NDEBUG ? (): void => {} : e => console.log("Vimium C: unexpected error\n", e))
 
 /** sync dispatchers */
 
@@ -109,7 +113,7 @@ export const mouse_ = function (element: SafeElementForMouse
   relatedTarget = relatedTarget && relatedTarget.ownerDocument === doc ? relatedTarget : null
   let mouseEvent: MouseEvent
   // note: there seems no way to get correct screenX/Y of an element
-  if (!(Build.BTypes & BrowserType.Chrome)
+  if (!OnChrome
       || Build.MinCVer >= BrowserVer.MinUsable$MouseEvent$$constructor
       || chromeVer_ >= BrowserVer.MinUsable$MouseEvent$$constructor) {
     // Note: The `composed` here may require Shadow DOM support
@@ -119,12 +123,9 @@ export const mouse_ = function (element: SafeElementForMouse
       button, buttons: tyKey === "d" ? button || 1 : 0,
       relatedTarget
     },
-    IDC = Build.MinCVer >= BrowserVer.MinEnsured$InputDeviceCapabilities || !(Build.BTypes & BrowserType.Chrome)
+    IDC = !OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$InputDeviceCapabilities
         ? null : InputDeviceCapabilities
-    if (Build.BTypes & BrowserType.Chrome
-        && (!(Build.BTypes & ~BrowserType.Chrome) || VOther & BrowserType.Chrome)
-        && (Build.MinCVer >= BrowserVer.MinEnsured$InputDeviceCapabilities || IDC)
-        ) {
+    if (OnChrome && (Build.MinCVer >= BrowserVer.MinEnsured$InputDeviceCapabilities || IDC)) {
       init.sourceCapabilities = _idc = _idc ||
           new (Build.MinCVer >= BrowserVer.MinEnsured$InputDeviceCapabilities ? InputDeviceCapabilities
                 : IDC)!({fireTouchEvents: !1})
@@ -135,8 +136,7 @@ export const mouse_ = function (element: SafeElementForMouse
     mouseEvent.initMouseEvent(type, !0, !0, view, detail, x, y, x, y
       , ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget)
   }
-  if (!(Build.BTypes & ~BrowserType.Firefox)
-      || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox) {
+  if (OnFirefox) {
     return wrappedDispatchMouseEvent_ff(element, mouseEvent)
   }
   return element.dispatchEvent(mouseEvent)
@@ -149,7 +149,7 @@ export const mouse_ = function (element: SafeElementForMouse
     , modifiers?: null, related?: NullableSafeElForM): boolean
 }
 
-export const touch_cr_ = Build.BTypes & BrowserType.Chrome ? (element: SafeElementForMouse
+export const touch_cr_ = OnChrome ? (element: SafeElementForMouse
     , [x, y]: Point2D, id?: number): number => {
   const newId = id || getTime(),
   touchObj = new Touch({
@@ -203,7 +203,7 @@ export const hover_ = (async (newEl?: NullableSafeElForM, center?: Point2D): Pro
   (newEl?: null): Promise<void>
 }
 
-export const unhover_ = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredGeneratorFunction
+export const unhover_ = (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredGeneratorFunction
 ? async (element?: NullableSafeElForM): Promise<void> => {
   const old = deref_(lastHovered_), active = element || old
   if (old !== element) {
@@ -241,14 +241,13 @@ export const click_ = async (element: SafeElementForMouse
    * for important events including `mousedown`, `mouseup`, `click` and `dblclick`, wait for two micro tasks;
    * for other events, just wait for one micro task
    */
-  if (!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && VOther === BrowserType.Edge) {
+  if (OnEdge) {
     if ((element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
       return
     }
   }
   const center = center_(rect || (rect = getVisibleClientRect_(element)))
-  if (Build.BTypes & BrowserType.Chrome
-      && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)
+  if (OnChrome
       && (Build.MinCVer >= BrowserVer.MinEnsuredTouchEventConstructor
           || chromeVer_ >= BrowserVer.MinEnsuredTouchEventConstructor)
       && (touchMode === !0 || touchMode && isInTouchMode_cr_!())) {
@@ -262,7 +261,7 @@ export const click_ = async (element: SafeElementForMouse
     await hover_(element, center)
     if (!lastHovered_) { return }
   }
-  if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox) {
+  if (OnFirefox) {
     // https://bugzilla.mozilla.org/show_bug.cgi?id=329509 says this starts on FF65,
     // but tests also confirmed it on Firefox 63.0.3 x64, Win10
     if ((element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
@@ -287,8 +286,7 @@ export const click_ = async (element: SafeElementForMouse
     mouse_(element, "auxclick", center, modifiers, null, button)
   }
   if (button === kClickButton.second) { return }
-  if (Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || VOther & BrowserType.Chrome)
-      && (element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
+  if (OnChrome && (element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
     return
   }
   const enum ActionType {
@@ -299,27 +297,24 @@ export const click_ = async (element: SafeElementForMouse
   }
   let result: ActionType = ActionType.OnlyDispatch, url: string | null
   let parentAnchor: Partial<Pick<HTMLAnchorElement, "target" | "href" | "rel">> & Element | null | undefined
+  /** @todo: range of specialAction */
   if (specialAction) {
     // for forceToDblclick, element can be OtherSafeElement; for 1..MaxOpenForAnchor, element must be in <html:a>
     result = specialAction > kClickAction.MaxOpenForAnchor ? ActionType.DispatchAndCheckInDOM
-        : !(parentAnchor = Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest
-              && Build.BTypes & BrowserType.Chrome && !element.closest ? element
+        : !(parentAnchor = OnChrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest && !element.closest
+              ? element
               : (parentAnchor = element.closest!("a")) && htmlTag_(parentAnchor) ? parentAnchor : null)
-          || Build.BTypes & BrowserType.Firefox && specialAction < kClickAction.MinNotPlainOpenManually
-              && parentAnchor.target !== "_blank"
+          || (OnFirefox ? specialAction < kClickAction.MinNotPlainOpenManually && parentAnchor.target !== "_blank" : 0)
           || !(url = attr_s(parentAnchor as SafeElement, "href"))
           || specialAction & (kClickAction.forceToOpenInNewTab | kClickAction.forceToOpenInLastWnd)
               && url[0] === "#"
           || isJSUrl(url)
         ? ActionType.OnlyDispatch
-        : Build.BTypes & BrowserType.Firefox
-          && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
-          && specialAction & (kClickAction.plainMayOpenManually | kClickAction.openInNewWindow)
+        : OnFirefox && specialAction & (kClickAction.plainMayOpenManually | kClickAction.openInNewWindow)
         ? ActionType.DispatchAndMayOpenTab : ActionType.OpenTabButNotDispatch
   }
   if ((result > ActionType.OpenTabButNotDispatch - 1
-        || (Build.BTypes & BrowserType.Firefox
-              && /*#__INLINE__*/ beginToPreventClick_ff(result === ActionType.DispatchAndMayOpenTab),
+        || (OnFirefox && /*#__INLINE__*/ beginToPreventClick_ff(result === ActionType.DispatchAndMayOpenTab),
             await await mouse_(element, CLK, center, modifiers) && result))
       && getVisibleClientRect_(element)) {
     // require element is still visible
@@ -337,10 +332,10 @@ export const click_ = async (element: SafeElementForMouse
     const relAttr = parentAnchor!.rel, openerOpt = userOptions && userOptions.opener,
     /** {@link #BrowserVer.Min$TargetIsBlank$Implies$Noopener} and FirefoxBrowserVer's */
     noopener = openerOpt != null ? !openerOpt : !relAttr ? parentAnchor!.target === "_blank"
-        : (Build.MinCVer >= BrowserVer.MinEnsuredES6$Array$$Includes || !(Build.BTypes & BrowserType.Chrome)
+        : (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredES6$Array$$Includes
             ? relAttr.split(<RegExpOne> /\s/).includes!("noopener")
             : relAttr.split(<RegExpOne> /\s/).indexOf("noopener") >= 0),
-    reuse = Build.BTypes & BrowserType.Firefox && specialAction! & kClickAction.openInNewWindow
+    reuse = OnFirefox && specialAction! & kClickAction.openInNewWindow
         ? ReuseType.newWindow
         : specialAction! & kClickAction.forceToOpenInLastWnd
           ? specialAction! < kClickAction.newTabFromMode ? ReuseType.lastWndFg : ReuseType.lastWndBg

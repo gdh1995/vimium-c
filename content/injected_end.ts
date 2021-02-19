@@ -13,22 +13,24 @@ VApi.e = function (cmd): void {
 (function (): void {
   const mayBrowser_ = Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome
       && typeof browser === "object" && !("tagName" in (browser as unknown as Element))
-      ? browser as typeof chrome : null
-  const OnOther: BrowserType = !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
+      ? (browser as typeof chrome) : null
+  const _OnOther: BrowserType = !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
         || !(Build.BTypes & ~BrowserType.Edge)
       ? Build.BTypes as number
       : Build.BTypes & BrowserType.Edge && !!(window as {} as {StyleMedia: unknown}).StyleMedia ? BrowserType.Edge
       : Build.BTypes & BrowserType.Firefox && mayBrowser_ && mayBrowser_.runtime && mayBrowser_.runtime.connect
       ? BrowserType.Firefox : BrowserType.Chrome
+  const OnChrome = !(Build.BTypes & ~BrowserType.Chrome) || !!(_OnOther & BrowserType.Chrome)
+  const OnFirefox = !(Build.BTypes & ~BrowserType.Firefox) || !!(_OnOther & BrowserType.Firefox)
+  const OnEdge = !(Build.BTypes & ~BrowserType.Edge) || !!(_OnOther & BrowserType.Edge)
+
   const thisApi = VApi
   const injector = VimiumInjector!
   const trArgsRe = <RegExpSearchable<0>> /\$\d/g
   const runtime: typeof chrome.runtime = (!(Build.BTypes & BrowserType.Chrome) ? browser as typeof chrome
-      : Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome
-      ? mayBrowser_! : chrome).runtime;
+      : !OnChrome ? mayBrowser_! : chrome).runtime
   const safeFrameElement_ = (): HTMLIFrameElement | HTMLFrameElement | null | void => {
-    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement
-        || Build.BTypes & BrowserType.Edge) {
+    if (OnChrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement || OnEdge) {
       try {
         return frameElement as HTMLIFrameElement | HTMLFrameElement
       } catch {}
@@ -64,8 +66,7 @@ VApi.e = function (cmd): void {
   clickable = injector.clickable = parentInjector && parentInjector.clickable || injector.clickable;
   clickable && (thisApi.r![2]!(1, clickable));
 
-  injector.checkIfEnabled = (function (this: null
-      , func: <K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void): void {
+  injector.checkIfEnabled = (function (this: null, func: NonNullable<NonNullable<VApiTy["r"]>[1]>): void {
     func({ H: kFgReq.checkIfEnabled, u: location.href });
   }).bind(null, thisApi.r![1]!);
   injector.getCommandCount = ((func: NonNullable<VApiTy["r"]>[2]): number => {
@@ -74,7 +75,7 @@ VApi.e = function (cmd): void {
   }).bind(null, thisApi.r![2]!);
 
   thisApi.r!.length = 1;
-  if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox) {
+  if (OnFirefox) {
     (window as Writable<Window>).VApi = thisApi
   }
 
@@ -94,8 +95,7 @@ VApi.e = function (cmd): void {
       injector1 && injector1.reload(InjectorTask.reload);
       return;
     }
-    if (!(Build.BTypes & ~BrowserType.Firefox)
-        || (Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox)) {
+    if (OnFirefox) {
       switch (task) {
       case InjectorTask.recheckLiving:
         livingCheckTimer && clearTimeout(livingCheckTimer);
@@ -118,7 +118,7 @@ VApi.e = function (cmd): void {
     }
   };
   function onTimeout(): void {
-    if (Build.BTypes & BrowserType.Firefox && VApi) {
+    if (OnFirefox && VApi) {
       VApi.d(9); // note: here Firefox is just like a (9)
       VApi.y().w!()
     }

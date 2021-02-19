@@ -1,7 +1,7 @@
 import {
-  doc, isTop, injector, VOther, initialDocState, set_esc, esc, setupEventListener, set_isEnabled_, XrayedObject,
+  doc, isTop, injector, initialDocState, set_esc, esc, setupEventListener, set_isEnabled_, XrayedObject,
   set_clickable_, clickable_, isAlive_, set_VTr, setupKeydownEvents, onWndFocus, includes_,
-  set_readyState_, readyState_, callFunc, recordLog, set_vApi, vApi, locHref, unwrap_ff, raw_unwrap_ff, math,
+  set_readyState_, readyState_, callFunc, recordLog, set_vApi, vApi, locHref, unwrap_ff, raw_unwrap_ff, math, OnFirefox, OnChrome,
 } from "../lib/utils"
 import { suppressTail_, getMappedKey } from "../lib/keyboard_utils"
 import { frameElement_, set_OnDocLoaded_ } from "../lib/dom_utils"
@@ -30,7 +30,7 @@ const docReadyListeners: Array<(this: void) => void> = [], completeListeners: Ar
 
 set_safeDestroy((silent?: Parameters<SafeDestoryF>[0]): void => {
     if (!isAlive_) { return; }
-    if (Build.BTypes & BrowserType.Firefox && silent === 9) {
+    if (OnFirefox && silent === 9) {
       set_port_(null)
       return;
     }
@@ -58,23 +58,19 @@ set_vApi(VApi = {
   p: post_, a: setupKeydownEvents, f: focusAndRun, d: safeDestroy, g: filterTextToGoNext, j: jumpToNextLink,
   n: findOnLoad, c: executeScroll,
   k: scrollTick, $: $sc, l: learnCSS, m: getMappedKey,
-  i: Build.BTypes & BrowserType.Firefox ? wndSize_ : 0 as never,
+  i: OnFirefox ? wndSize_ : 0 as never,
   r: injector && [send_, safePost, (task: 0 | 1 | 2, arg?: string | ElementSet | VTransType): any => {
     task < 1 ? (arg = currentKeys, /*#__NOINLINE__*/ esc!(HandlerResult.Nothing))
       : task < 2 ? set_clickable_(arg as ElementSet)
       : set_VTr(arg as VTransType)
     return arg
   }], s: suppressTail_, t: requestHandlers[kBgReq.showHUD], u: locHref, x: flash_,
-  y: () => (Build.BTypes & BrowserType.Firefox ? {
+  y: OnFirefox ? () => ( {
     w: onWndFocus, b: find_box, c: clickable_, k: scroll_keyIsDown, r: ui_root
-  } : { b: find_box, c: clickable_, k: scroll_keyIsDown, r: ui_root })
+  } ) : () => ( {  b: find_box, c: clickable_, k: scroll_keyIsDown, r: ui_root } )
 })
 
-if (!(Build.BTypes & BrowserType.Firefox)) { /* empty */ }
-else if (Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox || injector !== void 0) {
-    set_getWndVApi_ff(wnd => wnd.VApi)
-    set_getParentVApi(() => frameElement_() && (parent as Window).VApi)
-} else {
+if (OnFirefox && injector === void 0) {
   ((): void => {
     type Comparer = (this: void, rand2: number, testEncrypted: string) => boolean
     type SandboxGetterFunc = (this: void, comparer: Comparer, rand1: number) => VApiTy | 0 | null | undefined | void
@@ -136,12 +132,12 @@ else if (Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox |
   })()
 }
 if (!(isTop || injector)) {
-  const scoped_parApi = frameElement_() && getParentVApi();
+  const scoped_parApi = OnFirefox ? frameElement_() && getParentVApi() : getParentVApi()
   if (!scoped_parApi) {
-      if ((Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
+      if ((!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet
           || WeakSet) && <boolean> grabBackFocus) {
         set_needToRetryParentClickable(1)
-        if (Build.MinCVer >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol || !(Build.BTypes & BrowserType.Chrome)
+        if (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
             || (Build.MinCVer >= BrowserVer.Min$Set$Has$$forEach ? Set : Set && Set.prototype.forEach)) {
           set_clickable_(new Set!<Element>())
         } else {
@@ -150,16 +146,15 @@ if (!(isTop || injector)) {
           clickable_.add = (clickable_ as ElementArraySet).push;
           // a temp collection on a very old Chrome, so it's okay just to ignore its elements
           clickable_.has =
-              Build.MinCVer >= BrowserVer.MinEnsuredES6$Array$$Includes || !(Build.BTypes & BrowserType.Chrome)
+              !OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredES6$Array$$Includes
               ? (clickable_ as ElementArraySet).includes! : includes_
         }
       }
-  } else if (Build.BTypes & BrowserType.Firefox) {
+  } else if (OnFirefox) {
     /*#__NOINLINE__*/ (function (): void {
       try { // `vApi` is still unsafe
           const state = scoped_parApi.y()
-          if ((!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox
-                ? state.b && XPCNativeWrapper(state.b) : state.b) === frameElement_()) {
+          if ((OnFirefox ? state.b && XPCNativeWrapper(state.b) : state.b) === frameElement_()) {
             safeDestroy(1);
             scoped_parApi.n()
           } else {
@@ -171,8 +166,7 @@ if (!(isTop || injector)) {
           console.log("Assert error: Parent frame check breaks:", e);
         }
       }
-      if ((!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
-          && <boolean> /** is_readyState_loading */ grabBackFocus) {
+      if (<boolean> /** is_readyState_loading */ grabBackFocus) {
         // here the parent `core` is invalid - maybe from a fake provider
         set_getParentVApi(() => null)
       }
@@ -190,10 +184,8 @@ if (!(isTop || injector)) {
 
 if (isAlive_) {
     interface ElementWithClickable { vimiumClick?: boolean }
-    set_clickable_(!(Build.BTypes & BrowserType.Firefox)
-        || Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox
-        ? clickable_ ||
-          (Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
+    set_clickable_(!OnFirefox
+        ? clickable_ || (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet
               || WeakSet ? new WeakSet!<Element>() as never : {
             add (element: Element): any { (element as ElementWithClickable).vimiumClick = true; },
             has (element: Element): boolean { return !!(element as ElementWithClickable).vimiumClick; }
@@ -212,11 +204,10 @@ if (isAlive_) {
     runtimeConnect();
 
   if (injector === void 0) {
-    if (!(Build.BTypes & BrowserType.Firefox)
-        || Build.BTypes & ~BrowserType.Firefox && VOther !== BrowserType.Firefox) {
-      /*#__INLINE__*/ extend_click_not_ff()
-    } else {
+    if (OnFirefox) {
       /*#__INLINE__*/ extend_click_ff()
+    } else {
+      /*#__INLINE__*/ extend_click_not_ff()
     }
   }
 
@@ -232,7 +223,7 @@ if (isAlive_) {
   })
 }
 
-if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".includes) {
+if (OnChrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".includes) {
     const StringCls = String.prototype;
     /** startsWith may exist - {@see #BrowserVer.Min$String$$StartsWithEndsWithAndIncludes$ByDefault} */
     if (!"".startsWith) {

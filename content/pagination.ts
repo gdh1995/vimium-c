@@ -1,6 +1,6 @@
 import {
-  clickable_, VOther, vApi, isAlive_, safer, timeout_, escapeAllForRe, tryCreateRegExp, VTr, unwrap_ff, isTY, Lower,
-  chromeVer_
+  clickable_, vApi, isAlive_, safer, timeout_, escapeAllForRe, tryCreateRegExp, VTr, unwrap_ff, isTY, Lower, chromeVer_,
+  OnChrome, OnFirefox, OnEdge
 } from "../lib/utils"
 import {
   docEl_unsafe_, htmlTag_, isAriaNotTrue_, isStyleVisible_, querySelectorAll_unsafe_, isIFrameElement, ALA, attr_s,
@@ -33,16 +33,14 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
     const tag = element.localName, isClickable = tag === "a" || tag && (
       tag === "button" ? !(element as HTMLButtonElement).disabled
       : clickable_.has(element)
-      || (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther & BrowserType.Firefox
-          ? (unwrap_ff(element)).onclick : attr_s(element, "onclick"))
+      || (OnFirefox ? unwrap_ff(element).onclick : attr_s(element, "onclick"))
       || ((s = attr_s(element, "role")) ? (<RegExpI> /^(button|link)$/i).test(s)
           : ngEnabled && attr_s(element, "ng-click")))
     if (isClickable && isVisibleInPage(element)) {
       hints.push(element)
     }
     if (isIFrameElement(element)) {
-      if ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
-          && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+      if (OnFirefox || OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1
           || element !== find_box && element !== omni_box) {
         const rect = getBoundingClientRect_(element),
         childApi = rect.width > 99 && rect.height > 15 && detectUsableChild(element)
@@ -83,8 +81,7 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
             else if (detectQuirk === i && s.includes(quirk)) { i = quirkIdx; len = 1; }
             // requires GlobalConsts.MaxNumberOfNextPatterns <= 255
             candidates.push([link, vApi,
-                  !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-                  && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)
+                  (OnChrome ? Build.MinCVer >= BrowserVer.MinStableSort : !OnEdge)
                   ? (i << 23) | (len << 16) : (i << 23) | (len << 16) | candInd++ & 0xffff,
                 s])
           }
@@ -95,8 +92,7 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
     // for non-English pages like www.google.co.jp
     if (s.length < 5 && relIdx >= 0 && (ch = link.id) && ch.includes(rel)) {
       candidates.push([link, vApi,
-            !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-            && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinStableSort)
+            (OnChrome ? Build.MinCVer >= BrowserVer.MinStableSort : !OnEdge)
             ? (relIdx << 23) | (((4 + ch.length) & 0x3f) << 16)
             : (relIdx << 23) | (((4 + ch.length) & 0x3f) << 16) | candInd++ & 0xffff,
           rel])
@@ -133,22 +129,21 @@ export const findNextInText = (names: string[], options: CmdOptions[kFgCmd.goNex
 }
 
 export const findNextInRel = (relName: string): GoNextBaseCandidate | null | undefined => {
-  const elements = querySelectorAll_unsafe_(Build.BTypes & BrowserType.Edge ? "a[rel],area[rel],link[rel]"
-      : !(Build.BTypes & ~BrowserType.Firefox) && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredCSS$is$selector
+  const elements = querySelectorAll_unsafe_(OnEdge ? "a[rel],area[rel],link[rel]"
+      : OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredCSS$is$selector
       ? VTr(kTip.webkitWithRel).replace("-webkit-any", "is")
-      : !(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && VOther & BrowserType.Chrome
-      ? VTr(kTip.webkitWithRel) : VTr(kTip.webkitWithRel).replace("webkit", "moz"))!
+      : OnFirefox ? VTr(kTip.webkitWithRel).replace("webkit", "moz") : VTr(kTip.webkitWithRel))!
   let s: string | null | undefined;
   type HTMLElementWithRel = HTMLAnchorElement | HTMLAreaElement | HTMLLinkElement;
   let matched: HTMLElementWithRel | undefined, tag: string;
   const re1 = <RegExpOne> /\s/
-  const array = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
+  const array = OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
       && Build.MinCVer >= BrowserVer.MinTestedES6Environment
       && chromeVer_ < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
       ? [].slice.call(elements) : elements as { [i: number]: Element } as Element[]
   for (const element of array) {
     if ((tag = htmlTag_(element))
-        && (s = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$HTMLAreaElement$rel
+        && (s = OnChrome && Build.MinCVer < BrowserVer.Min$HTMLAreaElement$rel
                 ? attr_s(element as SafeHTMLElement, "rel")
                 : (element as TypeToPick<HTMLElement, HTMLElementWithRel, "rel">).rel)
         && Lower(s).split(re1).indexOf(relName) >= 0

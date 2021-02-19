@@ -1,18 +1,16 @@
-import { fgCache, clearTimeout_, timeout_, isAlive_, VOther, Stop_ as stopEvent, Lower } from "./utils"
+import { fgCache, clearTimeout_, timeout_, isAlive_, Stop_ as stopEvent, Lower, OnChrome, OnEdge } from "./utils"
 
 const DEL = kChar.delete, BSP = kChar.backspace, SP = kChar.space
 const ENT = kChar.enter
 export { ENT as ENTER }
 const keyNames_: readonly kChar[] = [SP, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
     kChar.left, kChar.up, kChar.right, kChar.down]
-let keyIdCorrectionOffset_old_cr_: 185 | 300 | null = Build.BTypes & BrowserType.Chrome
-      && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
-      ? 185 : 0 as never as null
+let keyIdCorrectionOffset_old_cr_ = OnChrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
+    ? 185 as 185 : 0 as never as 300 | null
 const _codeCorrectionMap = ["Semicolon", "Equal", "Comma", "Minus", "Period", "Slash", "Backquote",
     "BracketLeft", "Backslash", "BracketRight", "Quote", "IntlBackslash"]
-const kCrct = Build.BTypes & BrowserType.Chrome
-      && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
-      ? kChar.CharCorrectionList : 0 as never as null
+const kCrct = OnChrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
+    ? kChar.CharCorrectionList : 0 as never as null
 const _modifierKeys: SafeEnum = {
     __proto__: null as never,
     Alt: 1, AltGraph: 1, Control: 1, Meta: 1, OS: 1, Shift: 1
@@ -44,11 +42,10 @@ const _getKeyName = (event: Pick<KeyboardEvent, "key" | "keyCode" | "location">)
 }
 
   /** return single characters which only depend on `shiftKey` (CapsLock is ignored) */
-const _getKeyCharUsingKeyIdentifier_old_cr = !(Build.BTypes & BrowserType.Chrome)
+const _getKeyCharUsingKeyIdentifier_old_cr = !OnChrome
         || Build.MinCVer >= BrowserVer.MinEnsured$KeyboardEvent$$Key ? 0 as never
       : function (event: Pick<OldKeyboardEvent, "keyIdentifier">, shiftKey: BOOL): string {
-    let s: string | undefined = Build.BTypes & ~BrowserType.Chrome
-        ? event.keyIdentifier || "" : event.keyIdentifier,
+    let s: string | undefined = event.keyIdentifier,
     keyId: kCharCode = s.startsWith("U+") ? parseInt(s.slice(2), 16) : 0;
     if (keyId < kCharCode.minNotAlphabet) {
       return keyId < kCharCode.minNotSpace ? ""
@@ -72,15 +69,14 @@ export const char_ = (eventWrapper: HandlerNS.Event): kChar => {
   let event: Pick<KeyboardEvent, "code" | "key" | "keyCode" | "keyIdentifier" | "location" | "shiftKey" | "altKey">
         = eventWrapper.e
   let mapped: number | undefined, key = event.key, shiftKey = event.shiftKey
-  if (Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.BTypes & BrowserType.Chrome && !key) {
+  if (Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && OnChrome && !key) {
     // since Browser.Min$KeyboardEvent$MayHave$$Key and before .MinEnsured$KeyboardEvent$$Key
     // event.key may be an empty string if some modifier keys are held on
     // it seems that KeyIdentifier doesn't follow keyboard layouts
     key = _getKeyName(event) // it's safe to skip the check of `event.keyCode`
         || /*#__NOINLINE__*/ _getKeyCharUsingKeyIdentifier_old_cr(event as Pick<OldKeyboardEvent, "keyIdentifier">
             , +shiftKey as BOOL)
-  } else if ((!(Build.BTypes & BrowserType.Edge) || Build.BTypes & ~BrowserType.Edge && VOther !== BrowserType.Edge)
-      && (fgCache.l > 1 || event.altKey && fgCache.l === 1)) {
+  } else if (!OnEdge && (fgCache.l > 1 || event.altKey && fgCache.l === 1)) {
       /** return strings of 1-N characters and CapsLock is ignored */
     let code = event.code!, prefix = code.slice(0, 2);
     if (prefix !== "Nu") { // not (Numpad* or NumLock)
@@ -97,7 +93,7 @@ export const char_ = (eventWrapper: HandlerNS.Event): kChar => {
             : key === "Escape" ? kChar.esc // e.g. https://github.com/gdh1995/vimium-c/issues/129
             : code.length < 2 ? key // e.g. https://github.com/philc/vimium/issues/3451#issuecomment-569124026
             : (mapped = _codeCorrectionMap.indexOf(code)) < 0 ? code
-            : (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
+            : (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
                 ? kCrct! : kChar.CharCorrectionList)[mapped + 12 * +shiftKey]
     }
     key = shiftKey && key!.length < 2 ? key : Lower(key!)

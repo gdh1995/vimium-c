@@ -1,6 +1,7 @@
 import {
   clickable_, timeout_, loc_, getTime, clearTimeout_, vApi, recordLog, doc, setupEventListener, VTr, raw_unwrap_ff,
-  isTY
+  isTY,
+  OnFirefox
 } from "../lib/utils"
 import { CLK, MDW, OnDocLoaded_, isHTML_, set_createElement_, createElement_ } from "../lib/dom_utils"
 import { grabBackFocus } from "./insert"
@@ -14,7 +15,7 @@ let clickEventToPrevent_: BOOL | Event | null = null
 let isClickEventPreventedByPage: BOOL = 0
 let preventEventOnWindow: ((wnd: Window) => Promise<void>) | undefined
 
-export const main_ff = (Build.BTypes & BrowserType.Firefox ? (): void => {
+export const main_ff = (OnFirefox ? (): void => {
 (function (): void {
   const apply = OnDocLoaded_.apply, call = OnDocLoaded_.call
   const doExport = <T extends object, K extends (keyof T) & string> (obj: T, name: K, func: T[K]): void => {
@@ -47,12 +48,12 @@ export const main_ff = (Build.BTypes & BrowserType.Firefox ? (): void => {
           self: EventTarget, name: string, listener: EventListenerOrEventListenerObject,
           opts?: EventListenerOptions | boolean
         ) => 42 | void>(_listen!),
-    resolve = Build.NDEBUG ? 0 as never : (): void => {
+    resolve = !Build.NDEBUG ? (): void => {
       console.log("Vimium C: extend click: resolve %o in %o @t=%o .", resolved
           , loc_.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"), getTime() % 3600000)
       timer && clearTimeout_(timer)
       timer = resolved = 0
-    }
+    } : 0 as never
   
     let alive = false, timer: ValidTimeoutID = TimerID.None, resolved = 0
     if (grabBackFocus) {

@@ -1,5 +1,6 @@
 import {
-  injector, safeObj, timeout_, isAlive_, VOther, isEnabled_, isLocked_, isTop, doc, set_i18n_getMsg, locHref,
+  injector, safeObj, timeout_, isAlive_, isEnabled_, isLocked_, isTop, doc, set_i18n_getMsg, locHref, OnEdge, OnChrome,
+  OnFirefox
 } from "../lib/utils"
 import { passKeys } from "./key_handler"
 import { style_ui } from "./dom_ui"
@@ -47,7 +48,7 @@ export const safePost = <k extends keyof FgReq> (request: FgReq[k] & Req.baseFg<
     if (!port_) {
       runtimeConnect();
       injector && timeout_((): void => { port_ || safeDestroy(); }, 50);
-    } else if (Build.BTypes & BrowserType.Firefox && injector) {
+    } else if (OnFirefox && injector) {
       (requestHandlers[kBgReq.injectorRun] as VimiumInjectorTy["$m"])(InjectorTask.recheckLiving)
     }
     post_(request);
@@ -57,25 +58,20 @@ export const safePost = <k extends keyof FgReq> (request: FgReq[k] & Req.baseFg<
 }
 
 export const runtimeConnect = (function (this: void): void {
-  const api = Build.BTypes & ~BrowserType.Chrome
-      && (!(Build.BTypes & BrowserType.Chrome) || VOther !== BrowserType.Chrome)
-      ? browser as typeof chrome : chrome,
+  const api = OnChrome ? chrome : browser as typeof chrome,
   status = requestHandlers[kBgReq.init] ? PortType.initing
       : (isEnabled_ ? passKeys ? PortType.knownPartial : PortType.knownEnabled : PortType.knownDisabled)
         + PortType.isLocked * isLocked_
         + PortType.hasCSS * <number> <number | boolean> !!style_ui,
   name = PortType.isTop * +isTop + PortType.hasFocus * +doc.hasFocus() + status,
   data = { name: injector ? PortNameEnum.Prefix + name + injector.$h
-      : !(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && VOther & BrowserType.Edge
-      ? name + PortNameEnum.Delimiter + locHref()
-      : "" + name
-  },
+                  : OnEdge ? name + PortNameEnum.Delimiter + locHref() : "" + name },
   connect = api.runtime.connect
   port_ = injector ? connect(injector.id, data) as Port : connect(data) as Port
   port_.onDisconnect.addListener((): void => {
     port_ = null
     timeout_(function (i): void {
-      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i) {
+      if (OnChrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i) {
         safeDestroy()
       } else {
         try { port_ || !isAlive_ || runtimeConnect() } catch { safeDestroy() }
