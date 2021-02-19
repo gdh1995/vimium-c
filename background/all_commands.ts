@@ -340,6 +340,9 @@ const BackgroundCommands: {
       let curIndex = (cur || (Build.BTypes & BrowserType.Firefox ? selectFrom(tabs, 1) : selectFrom(tabs))).index
       if (curIndex > index && !tabs[curIndex - 1].pinned) {
         while (tabs[index].pinned) { index++ }
+        if (count > 1 && get_cOptions<C.goToTab>().absolute) {
+          index = Math.min(len, index + count) - 1
+        }
         toSelect = tabs[index]
       }
     }
