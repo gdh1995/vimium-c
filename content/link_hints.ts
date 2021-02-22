@@ -62,7 +62,7 @@ import {
   WithDialog
 } from "../lib/utils"
 import {
-  frameElement_, querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_,
+  querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_,
   getComputedStyle_, isStyleVisible_, htmlTag_, fullscreenEl_unsafe_, removeEl_s, UNL, toggleClass_s, doesSupportDialog,
   getSelectionFocusEdge_, activeEl_unsafe_, SafeEl_not_ff_, rangeCount_
 } from "../lib/dom_utils"

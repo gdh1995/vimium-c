@@ -15,6 +15,7 @@
     "defaults": false,
     "evaluate": true,
     "hoist_vars": false,
+    "join_vars": false,
     "keep_fargs": false,
     "keep_fnames": true,
     "passes": 1,

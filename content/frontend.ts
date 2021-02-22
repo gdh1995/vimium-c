@@ -1,7 +1,7 @@
 import {
   doc, isTop, injector, initialDocState, set_esc, esc, setupEventListener, set_isEnabled_, XrayedObject,
   set_clickable_, clickable_, isAlive_, set_VTr, setupKeydownEvents, onWndFocus, includes_,
-  set_readyState_, readyState_, callFunc, recordLog, set_vApi, vApi, locHref, unwrap_ff, raw_unwrap_ff, math, OnFirefox, OnChrome,
+  set_readyState_, readyState_, callFunc, recordLog, set_vApi, vApi, locHref, unwrap_ff, raw_unwrap_ff, math, OnFirefox, OnChrome, OnEdge,
 } from "../lib/utils"
 import { suppressTail_, getMappedKey } from "../lib/keyboard_utils"
 import { frameElement_, set_OnDocLoaded_ } from "../lib/dom_utils"
@@ -184,13 +184,11 @@ if (!(isTop || injector)) {
 
 if (isAlive_) {
     interface ElementWithClickable { vimiumClick?: boolean }
-    set_clickable_(!OnFirefox
-        ? clickable_ || (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet
-              || WeakSet ? new WeakSet!<Element>() as never : {
-            add (element: Element): any { (element as ElementWithClickable).vimiumClick = true; },
-            has (element: Element): boolean { return !!(element as ElementWithClickable).vimiumClick; }
-          })
-        : /* now know it's on Firefox */ clickable_ || new WeakSet!<Element>())
+    set_clickable_(clickable_ || (!OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet)
+          || WeakSet ? new WeakSet!<Element>() as never : {
+        add (element: Element): any { (element as ElementWithClickable).vimiumClick = true },
+        has: (element: Element): boolean => !!(element as ElementWithClickable).vimiumClick
+    }))
     // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
     hookOnWnd(HookAction.Install);
     if (initialDocState < "i") {

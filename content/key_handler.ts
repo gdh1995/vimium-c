@@ -163,7 +163,7 @@ const onAnyClick_cr = OnChrome ? (event: MouseEventToPrevent): void => {
 export const onKeydown = (event: KeyboardEventToPrevent): void => {
   const key = event.keyCode;
   if (!isEnabled_
-      || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
+      || (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted ? !event.isTrusted
           : event.isTrusted === false) // skip checks of `instanceof KeyboardEvent` if checking `!.keyCode`
       || !key) { return; }
   const eventWrapper: HandlerNS.Event = {c: kChar.INVALID, e: event, i: key};
@@ -257,7 +257,7 @@ const onEscDown = (event: KeyboardEventToPrevent, key: kKeyCode
 export const onKeyup = (event: KeyboardEventToPrevent): void => {
   let key = event.keyCode;
   if (!isEnabled_
-      || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
+      || (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted ? !event.isTrusted
           : event.isTrusted === false) // skip checks of `instanceof KeyboardEvent` if checking `!.keyCode`
       || !key) { return; }
   if (scroll_keyIsDown && (key === isCmdTriggered || isCmdTriggered < kKeyCode.True + 1)) {

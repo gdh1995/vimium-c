@@ -46,8 +46,8 @@ export function set_isLocked_ (_newIsLocked: typeof isLocked_): void { isLocked_
 export let readyState_: Document["readyState"] = initialDocState
 export function set_readyState_ (_newReadyState: Document["readyState"]): void { readyState_ = _newReadyState }
 
-export let allowRAF_: BOOL = 1
-export function set_allowRAF_ (_newAllowRAF: BOOL): void { allowRAF_ = _newAllowRAF }
+export let allowRAF_old_cr_: BOOL = 1
+export function set_allowRAF_old_cr_ (_newAllowRAF: BOOL): void { allowRAF_old_cr_ = _newAllowRAF }
 
 /** ==== Cache ==== */
 

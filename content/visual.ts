@@ -32,7 +32,7 @@ declare const enum kYank { // should have no overlap with ReuseType
   MIN = 7, Exit = 7, NotExit = 8, RichTextButNotExit = 9,
 }
 
-import { VTr, safer, fgCache, doc, chromeVer_, tryCreateRegExp, isTY, OnFirefox, OnChrome, OnEdge } from "../lib/utils"
+import { VTr, safer, fgCache, doc, chromeVer_, tryCreateRegExp, isTY, OnFirefox, OnChrome } from "../lib/utils"
 import {
   getSelection_, getSelectionFocusEdge_, isHTML_, docEl_unsafe_, notSafe_not_ff_, getEditableType_, editableTypes_,
   GetChildNodes_not_ff, isInputInTextMode_cr_old, rangeCount_, getAccessibleSelectedNode, scrollingEl_, isNode_,

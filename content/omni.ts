@@ -21,7 +21,7 @@ import {
 } from "../lib/utils"
 import { removeHandler_, replaceOrSuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
 import {
-  frameElement_, isHTML_, fullscreenEl_unsafe_, NONE, createElement_, removeEl_s, setClassName_s, setOrRemoveAttr_s,
+  isHTML_, fullscreenEl_unsafe_, NONE, createElement_, removeEl_s, setClassName_s, setOrRemoveAttr_s,
   toggleClass_s
 } from "../lib/dom_utils"
 import { getViewBox_, docZoom_, dScale_, prepareCrop_, bZoom_, wndSize_, viewportRight } from "../lib/rect"

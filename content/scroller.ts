@@ -22,7 +22,7 @@ interface ElementScrollInfo {
 }
 
 import {
-  isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, allowRAF_, readyState_, loc_, chromeVer_,
+  isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, allowRAF_old_cr_, readyState_, loc_, chromeVer_,
   vApi, deref_, weakRef_, VTr, createRegExp, max_, math, min_, Lower, OnChrome, OnFirefox, OnEdge, WithDialog, OnSafari
 } from "../lib/utils"
 import {
@@ -224,7 +224,7 @@ export const $sc = (element: SafeElement | null, di: ScrollByY, amount: number):
       }
       checkCurrent(element)
     } else if (OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
-        ? fgCache.s && allowRAF_ : fgCache.s) {
+        ? fgCache.s && allowRAF_old_cr_ : fgCache.s) {
       amount && performAnimate(element, di, amount)
       scrollTick(1)
     } else if (amount) {
@@ -508,7 +508,7 @@ export const shouldScroll_s = (element: SafeElement, di: BOOL | 2 | 3, amount: n
 }
 
 export const suppressScroll = (): void => {
-    if (OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && !allowRAF_) {
+    if (OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && !allowRAF_old_cr_) {
       scrolled = 0
       return;
     }
@@ -522,12 +522,12 @@ export const suppressScroll = (): void => {
 
 export const onActivate = (event: Event): void => {
   if (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted ? event.isTrusted : event.isTrusted !== false) {
-    const path = !(OnChrome || OnEdge) || OnChrome
-            && Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
+    const path = !OnEdge && (!OnChrome
+          || Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow)
         ? event.composedPath!() : event.path,
-    el = (!(OnChrome || OnEdge) || OnChrome
-            && (Build.MinCVer >= BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInClosedShadowDOM
-                || Build.MinCVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow)
+    el = (!OnEdge && (!OnChrome
+              || Build.MinCVer >= BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInClosedShadowDOM
+              || Build.MinCVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow)
           || (OnEdge ? path : path!.length > 1))
         ? path![0] as Element : event.target as Element;
     currentScrolling = weakRef_(OnFirefox ? el as SafeElement | null : SafeEl_not_ff_!(el))

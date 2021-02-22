@@ -83,7 +83,6 @@ var real_args = argv.length > 2 ? argv.splice(2, argv.length - 2) : [];
 argv.length = 2;
 
 var real_write;
-var cache = Object.create(null);
 /** @type Array<Promise<number | void>> */
 var PROMISES = [];
 
@@ -99,7 +98,7 @@ var writeFile = function(path, data, writeBom) {
   var skip = logPrefix !== "background" && path.indexOf("background/") >= 0;
   PROMISES.push((async function () {
   try {
-  if (!skip && cache[path] !== data) {
+  if (!skip) {
     if (doesMinifyLocalFiles && isJS) {
       data = await getTerser()(data);
       if (path.indexOf("extend_click.") >= 0) {
@@ -129,6 +128,7 @@ var writeFile = function(path, data, writeBom) {
 
 /** @type {import("./dependencies").TerserOptions | null} */
 var defaultTerserConfig = null;
+var known_defs = null
 var getTerser = function() {
   var terser;
   try {
@@ -141,6 +141,7 @@ var getTerser = function() {
   } else {
     minify = function(data, config) {
       config || (config = getDefaultTerserConfig());
+      data = lib.replace_global_defs(known_defs, data)
       var output = terser.minify(data, config);
       return (output instanceof Promise ? output.then(function (output) {
         if (output.error) {
@@ -154,7 +155,7 @@ var getTerser = function() {
         if (config.ecma && config.ecma >= 2017) {
           data = data.replace(/\bappendChild\b(?!`|\.call\([\w.]*doc)/g, "append");
         }
-        return data;
+        return lib.remove_dead_code(known_defs, data, config)
       });
     };
   }
@@ -172,6 +173,16 @@ function getDefaultTerserConfig() {
     })[target] || defaultTerserConfig.ecma
     var format = defaultTerserConfig.format || (defaultTerserConfig.format = {})
     format.code = true; format.ast = false
+  }
+  if (!known_defs) {
+    known_defs = {}
+    var _buildConfigTSContent = lib.readFile(root + "typings/build/index.d.ts")
+    _buildConfigTSContent.replace(/\b([A-Z]\w+)\s?=\s?([^,}]+)/g, function(_, key, literalVal) {
+      if (key === "BTypes") {
+        lib.fill_global_defs(known_defs, +literalVal)
+      }
+      return ""
+    });
   }
   return defaultTerserConfig;
 }

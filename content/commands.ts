@@ -4,7 +4,7 @@ import {
   OnChrome, OnFirefox, OnEdge
 } from "../lib/utils"
 import {
-  isHTML_, htmlTag_, createElement_, frameElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK,
+  isHTML_, htmlTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK,
   querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s, modifySel, focus_
 } from "../lib/dom_utils"
 import {

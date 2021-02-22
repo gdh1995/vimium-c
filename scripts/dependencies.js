@@ -485,3 +485,79 @@ exports.patchTerser = () => {
     require("fancy-log")("Patch terser/package.json: succeed");
   }
 }
+
+exports.BrowserType = {
+  Chrome: 1,
+  Firefox: 2,
+  Edge: 4,
+  WithDialog: 3,
+}
+
+/**
+ * @argument {{ [key: string]: any }} global_defs
+ * @argument {number} btypes
+ */
+exports.fill_global_defs = (global_defs, btypes) => {
+  for (const key of Object.keys(exports.BrowserType)) {
+    const val = exports.BrowserType[key], onlyVal = btypes === val
+    if (onlyVal || !(btypes & val)) {
+      global_defs[key.startsWith("With") ? key : "On" + key] = onlyVal
+    }
+  }
+}
+
+/**
+ * @argument {{ [key: string]: any }} global_defs
+ * @argument {string} code
+ * @returns {string}
+ */
+exports.replace_global_defs = (global_defs, code) => {
+  const keys = Object.keys(global_defs).join("|")
+  if (!keys) { return code }
+  const arr = new RegExp(keys, "g")
+  /** @type {[start: number, end: number, value: any][]} */
+  const to_replace = []
+  let match
+  while (match = arr.exec(code)) {
+    const pos = match.index, key = match[0]
+    if (code[pos - 1] === "." && code.substr(pos + key.length, 12).trimLeft()[0] !== "=") {
+      const arr = [...code.slice(Math.max(0, pos - 32), pos - 1)].reverse().join("")
+      const prefix = /^[\w$]+/.exec(arr)
+      if (prefix) {
+        to_replace.push([pos - 1 - prefix[0].length, pos + key.length, global_defs[key]])
+      }
+    }
+  }
+  if (!to_replace.length) { return code }
+  let buf = [], offset = 0
+  for (const task of to_replace) {
+    buf.push(code.slice(offset, task[0]), "" + task[2])
+    offset = task[1]
+  }
+  buf.push(code.slice(offset))
+  return buf.join("")
+}
+
+/**
+ * @argument {{ [key: string]: any }} global_defs
+ * @argument {string} code
+ * @argument {TerserOptions} config
+ * @returns {Promise<string>}
+ */
+exports.remove_dead_code = async (global_defs, code, config) => {
+  const keys = Object.keys(exports.BrowserType).map(i => i.startsWith("With") ? i : "On" + i).join("|")
+  const raw_code = code
+  for (let re1 = new RegExp(`!*[\\w$]+\\.(?:${keys}) (&&|\\|\\|) (false|true)`, "g"), old_len = 0
+      ; code.length !== old_len; ) {
+    old_len = code.length
+    code = code.replace(re1, (s, op, right) =>
+        (op == "&&") === (right === "false") ? right : s.slice(s.startsWith("!!") ? 2 : 0, -(right.length + 4))
+    )
+  }
+  if (code.length === raw_code.length) {
+    return raw_code
+  }
+  return (await require('terser').minify(code, {
+    ...config, mangle: false, compress: { ...config.compress, dead_code: true, conditionals: true }
+  })).code
+}

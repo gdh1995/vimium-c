@@ -141,7 +141,20 @@ exports.gulpMap = function (map, async) {
       return map.call(this, srcFile, done)
     }
     var dest = map(srcFile)
-    this.push(dest !== srcFile.contents && dest || srcFile)
+    if (dest instanceof Promise) {
+      dest.then((result) => {
+        if (result) {
+          throw new Error("gulpMap doesn't accept any result value")
+        }
+        this.push(srcFile)
+        done()
+      })
+      return
+    }
+    if (dest) {
+      throw new Error("gulpMap doesn't accept any returned value")
+    }
+    this.push(srcFile)
     done()
   }
   transformer._flush = function(done) { done() }
@@ -563,7 +576,7 @@ exports.minifyJSFiles = function (path, output, exArgs) {
   }
   if (!isJson) {
     stream = stream.pipe(exports.gulpMap(function (file) {
-      gulpfile.postTerser(file, allPaths)
+      gulpfile.postTerser(null, file, allPaths)
     }));
   }
   if (willListEmittedFiles && !is_file) {

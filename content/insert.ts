@@ -224,18 +224,18 @@ export const onFocus = (event: Event | FocusEvent): void => {
   if (target === ui_box) { return Stop_(event); }
   const sr = GetShadowRoot_(target as Element);
   if (sr) {
-    let path = !(OnChrome || OnEdge) || OnChrome
-            && Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
+    const path = !OnEdge && (!OnChrome
+          || Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow)
         ? event.composedPath!() : event.path
-      , topOfPath: EventTarget | undefined,
+    let topOfPath: EventTarget | undefined
     /**
      * isNormalHost is true if one of:
      * - Chrome is since BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInShadowDOM
      * - `event.currentTarget` (`this`) is a shadowRoot
      */
-    isNormalHost = !(OnChrome || OnEdge) || OnChrome
-          && (Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
-              || Build.MinCVer >= BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInClosedShadowDOM)
+    const isNormalHost = !OnEdge && (!OnChrome
+          || Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
+          || Build.MinCVer >= BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInClosedShadowDOM)
       ? (topOfPath = path![0]) !== target
       : !!(topOfPath = path && path[0]) && topOfPath !== window && topOfPath !== target
     hookOnShadowRoot(isNormalHost ? path! : [sr, target], target as Element);
@@ -276,12 +276,12 @@ export const onBlur = (event: Event | FocusEvent): void => {
   if (OnFirefox && target === doc) { return; }
   const sr = GetShadowRoot_(target as Element)
   if (sr && target !== ui_box) {
-  let path = !(OnChrome || OnEdge) || OnChrome
-          && Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
+  const path = !OnEdge && (!OnChrome
+          || Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow)
       ? event.composedPath!() : event.path
-    , same = !(OnChrome || OnEdge) || OnChrome
-          && (Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
-              || Build.MinCVer >= BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInClosedShadowDOM)
+  const same = !OnEdge && (!OnChrome
+          || Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
+          || Build.MinCVer >= BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInClosedShadowDOM)
         ? (topOfPath = path![0]) === target
         : !(topOfPath = path && path[0]) || topOfPath === window || topOfPath === target
   if (same) {

@@ -9,19 +9,12 @@ var gulpPrint = require('gulp-print');
 var osPath = require('path');
 var {
   getGitCommit, readJSON, readFile, patchTSNamespace, logFileSize, addMetaData, patchTerser,
-  patchExtendClick: _patchExtendClick,
+  patchExtendClick: _patchExtendClick, BrowserType, fill_global_defs, replace_global_defs, remove_dead_code,
   loadTerserConfig: _loadTerserConfig,
 } = require("./scripts/dependencies");
 var gulpUtils = require("./scripts/gulp-utils")
 var { print, ToBuffer, ToString, cleanByPath, minifyJSFiles, set_minifier_env,
       safeJSONParse, gulpMap, getGulpTerser } = gulpUtils
-
-class BrowserType {}
-Object.assign(BrowserType, {
-  Chrome: 1,
-  Firefox: 2,
-  Edge: 4
-});
 
 var DEST, willListFiles, willListEmittedFiles, JSDEST;
 var locally = false;
@@ -635,11 +628,12 @@ function compile(pathOrStream, header_files, done, options) {
 function outputJSResult(stream) {
   if (locally) {
     stream = stream.pipe(gulpMap(beforeTerser))
+    var config
     if (doesMinifyLocalFiles) {
-      var config = loadTerserConfig()
+      config = loadTerserConfig()
       stream = stream.pipe(getGulpTerser()(config));
     }
-    stream = stream.pipe(gulpMap(postTerser))
+    stream = stream.pipe(gulpMap(postTerser.bind(null, config)))
   }
   stream = stream.pipe(gulpChanged(JSDEST, { hasChanged: gulpUtils.compareContentAndTouch }));
   if (willListEmittedFiles) {
@@ -729,16 +723,28 @@ const beforeTerser = exports.beforeTerser = (file) => {
       contents = s1 + contents.slice(1000);
     }
   }
+  if (locally && doesMinifyLocalFiles) {
+    get()
+    if (!known_defs) {
+      known_defs = {}
+      fill_global_defs(known_defs, getBuildItem("BTypes"))
+    }
+    contents = replace_global_defs(known_defs, contents)
+  }
   if (oldLen > 0 && contents.length !== oldLen) {
     file.contents = ToBuffer(contents);
   }
 }
 
-const postTerser = exports.postTerser = (file, allPaths) => {
+const postTerser = exports.postTerser = async (terserConfig, file, allPaths) => {
   var allPathStr = (allPaths || file.history).join("|").replace(/\\/g, "/");
   var contents = null, oldLen = 0;
   function get() { contents == null && (contents = ToString(file.contents), oldLen = contents.length); }
-  if (allPathStr.includes("content/") || allPathStr.includes("lib/")) {
+  if (locally && doesMinifyLocalFiles) {
+    get()
+    contents = await remove_dead_code(known_defs, contents, terserConfig)
+  }
+  if (!locally && (allPathStr.includes("content/") || allPathStr.includes("lib/"))) {
     get()
     contents = contents.replace(/\n?\/\*!? ?@OUTPUT ?\{([^]+)\} ?\*\/\n?/g, '$1')
   }
@@ -817,7 +823,6 @@ function getBuildConfigStream() {
       print("Current build config is:\n" + _buildConfigTSContent.trim());
     }
     file.contents = ToBuffer(_buildConfigTSContent);
-    return file;
   }));
 }
 
@@ -858,7 +863,7 @@ function getBuildItem(key, literalVal) {
   if (!cached) {
     if (key === "MayOverrideNewTab") {
       if (!manifest.chrome_url_overrides || !manifest.chrome_url_overrides.newtab) {
-        cached = buildOptionCache[key] = ["0", 0];
+        cached = ["0", 0];
       }
     }
     cached && (buildOptionCache[key] = cached);
@@ -940,6 +945,7 @@ function patchExtendClick(source) {
   return inCode;
 }
 
+var known_defs
 const loadTerserConfig = exports.loadTerserConfig = (reload) => {
   var a = _loadTerserConfig(locally ? "scripts/uglifyjs.local.json" : "scripts/uglifyjs.dist.json", reload);
   {
@@ -948,6 +954,8 @@ const loadTerserConfig = exports.loadTerserConfig = (reload) => {
       a.format.beautify = true
       a.format.indent_level = 2
       a.compress.sequences = false
+      a.compress.join_vars = false
+      a.compress.hoist_vars = false
     } else {
       maxDistSequences = maxDistSequences || a.compress.sequences
       minifyDistPasses = minifyDistPasses || a.compress.passes
