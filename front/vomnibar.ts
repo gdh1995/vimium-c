@@ -860,7 +860,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       el.setSelectionRange(0, left.length, "backward");
     }
   },
-  OnTimer_ (this: void): void { if (Vomnibar_) { return Vomnibar_.fetch_(); } },
+  OnTimer_ (this: void): void { if (Vomnibar_ && Vomnibar_.isActive_) { Vomnibar_.fetch_() } },
   onWheel_ (event: WheelEvent & ToPrevent): void {
     if (event.ctrlKey || event.metaKey
         || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
@@ -1357,7 +1357,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
     }
     VPort_.post_(mode);
-    if (mode.f & CompletersNS.QueryFlags.NoSessions && typeof a.noSessionsOnStart_) {
+    if (mode.f & CompletersNS.QueryFlags.NoSessions && a.noSessionsOnStart_) {
       mode.f &= ~CompletersNS.QueryFlags.NoSessions
     }
   },
