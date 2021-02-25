@@ -130,11 +130,11 @@ var Tasks = {
     const arr = ["front/*.html", "pages/*.html", "!*/vomnibar.html"];
     may_have_newtab || arr.push("!" + NEWTAB_FILE.replace(".ts", ".*"));
     if (!getBuildItem("Minify")) { return copyByPath(arr) }
-    return copyByPath(arr, file => file.contents = ToBuffer(require('html-minifier').minify(ToString(file.contents), {
+    return copyByPath(arr, file => { file.contents = ToBuffer(require('html-minifier').minify(ToString(file.contents), {
       collapseWhitespace: true,
       minifyCSS: true,
       maxLineLength: 4096
-    })))
+    })) })
   },
   "static/minify": function(cb) {
     gulp.parallel("static/minify-js", "static/json", "minify-css", "minify-html")(cb)
