@@ -484,3 +484,14 @@ declare var parent: unknown;
 
 declare const enum kTY { str = 0, obj = 1, func = 2, num = 3 }
 declare const enum kMediaTag { img = 0, otherMedias = 1, a = 2, others = 3, MIN_NOT_MEDIA_EL = 2, LAST = 3 }
+
+interface KnownDataset {
+  vimium: string // secret of extend click; or prefix and suffix in the Find HUD
+  vimiumHints: "ordinal" | string // order of link hints in filter-hint mode
+  s: string // used by help dialog
+  h: string // used by help dialog
+  vimUrl: string // used in HintMode.{COPY_URL,DOWNLOAD_LINK}
+  vimText: string
+  src: string // used in getMediaUrl
+  canonicalSrc: string // used in HintMode.{OPEN_IMAGE,DOWNLOAD_MEDIA}
+}

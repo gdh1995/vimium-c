@@ -19,6 +19,7 @@
     "noUncheckedIndexedAccess": false,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
+    "noPropertyAccessFromIndexSignature": true,
     "outDir": ".",
     "plugins": [
     ],

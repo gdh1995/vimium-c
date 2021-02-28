@@ -283,9 +283,7 @@ class MaskedText_<T extends TextOptionNames> extends TextOption_<T> {
   }
   populateElement_ (value: AllowedOptions[T], enableUndo?: boolean): void {
     if (this.masked_) {
-      let s: string = this.element_.dataset.mask || ""
-      s = pTrans_(s || "clickToUnmask") || s
-      s && (this.element_.placeholder = s)
+      this.element_.placeholder = pTrans_("clickToUnmask")
       return
     }
     super.populateElement_(value, enableUndo)

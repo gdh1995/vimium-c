@@ -107,7 +107,7 @@ var HelpDialog = {
       , cmdParams = trans_("cmdParams")
       , cachedDescriptions = a.descriptions_;
     let html = "";
-    for (const command of a.commandGroups_[group]) {
+    for (const command of a.commandGroups_[group as keyof typeof a.commandGroups_]) {
       let keys = commandToKeys.get(command)
       if (hideUnbound && !keys) { continue; }
       const isAdvanced = a.advancedCommands_[command] === 1;
@@ -225,7 +225,11 @@ var HelpDialog = {
     }
     return (root as RootElement).innerHTML;
   },
-  commandGroups_: As_<{ readonly [key: string]: readonly (kCName)[] } & SafeObject>({
+  commandGroups_: As_<{
+    readonly [key in
+        "pageNavigation" | "vomnibarCommands" | "historyNavigation" | "findCommands" | "tabManipulation" | "misc"
+        ]: readonly kCName[]
+  } & SafeObject>({
     __proto__: null as never,
     pageNavigation: ["scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop"
       , "scrollToBottom", "scrollToLeft", "scrollToRight", "scrollPageDown", "scrollPageUp"

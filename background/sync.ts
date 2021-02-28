@@ -381,8 +381,9 @@ const saveAllToLocal = (timeout: number): void => {
   })
 }
 
-const beginToRestore = (items: Dict<any>, kSources: 1 | 2 | 3, resolve: () => void): void => {
-  kSources & 2 && chrome.storage.local.get((items2): void => {
+interface LocalSettings extends Dict<any> { vimSync?: SettingsNS.BackendSettings["vimSync"] }
+const beginToRestore = (items: LocalSettings, kSources: 1 | 2 | 3, resolve: () => void): void => {
+  kSources & 2 && chrome.storage.local.get((items2: LocalSettings): void => {
     const err = BgUtils_.runtimeError_()
     if (err) {
       Settings_.restore_ = null;

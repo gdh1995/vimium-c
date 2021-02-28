@@ -127,8 +127,27 @@ interface LimitedRangeOptions {
 }
 
 declare namespace CommandsNS {
-  interface RawOptions extends SafeDict<any> {}
-  interface Options extends ReadonlySafeDict<any> {}
+  interface RawOptions extends SafeDict<any> {
+    count?: number | string // float factor to scale count
+    $count?: number // absolute count: will ignore .count in default options
+    $desc?: string
+    $key?: string
+    $if?: {
+      sys?: string
+      browser?: BrowserType
+    } | null
+  }
+  interface Options extends ReadonlySafeDict<any> {
+    count?: number
+    $noWarn?: boolean
+  }
+  interface RawCustomizedOptions extends RawOptions {
+    command?: string
+  }
+  interface RawLinkHintsOptions extends RawOptions {
+    mode?: number | string | null
+    characters?: string | null
+  }
   // encoded info
   interface CustomHelpInfo {
     key_: string; desc_: string; $key_?: unknown

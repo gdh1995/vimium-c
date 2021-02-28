@@ -358,7 +358,7 @@ export const uneditableInputs_: SafeEnum = { __proto__: null as never,
     bu: 1, ch: 1, co: 1, fi: 1, hi: 1, im: 1, ra: 1, re: 1, su: 1
 }
 
-export const editableTypes_: ReadonlySafeDict<EditableType> = { __proto__: null as never,
+export const editableTypes_: ReadonlySafeDict<EditableType> & { keygen?: EditableType } = { __proto__: null as never,
     input: EditableType.input_, textarea: EditableType.TextBox,
     select: EditableType.Select,
     embed: EditableType.Embed, object: EditableType.Embed

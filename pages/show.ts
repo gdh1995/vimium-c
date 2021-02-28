@@ -12,6 +12,11 @@ interface VDataTy {
   incognito?: boolean;
   error?: string;
 }
+interface KnownDataset {
+  i: string // text in i18n
+  text: string // names of type tips in i18n
+  colon: string // colon string in i18n
+}
 
 // eslint-disable-next-line no-var
 var VData: VDataTy = null as never;

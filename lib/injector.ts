@@ -1,6 +1,13 @@
+/// <reference no-default-lib="true"/>
 /// <reference path="../typings/base/index.d.ts" />
 /// <reference path="../typings/lib/index.d.ts" />
 /// <reference path="../typings/build/index.d.ts" />
+
+interface KnownDataset {
+  vimiumId: string
+  extensionId: string
+  vimiumHooks: "" | "true" | "false" // if "false" then not hook addEventListener
+}
 
 // eslint-disable-next-line no-var, @typescript-eslint/no-unused-vars
 var VimiumInjector: VimiumInjectorTy | undefined | null

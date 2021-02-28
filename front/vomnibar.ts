@@ -44,6 +44,10 @@ declare namespace Intl {
 interface ConfigurableItems {
   VomnibarMaxPageNum?: number;
 }
+interface KnownDataset {
+  favicons: "" | "true" | "false" // if "" or "true" then always show favicons
+  version: `${number}.${number}` // html version
+}
 interface Window extends ConfigurableItems {}
 import PixelData = VomnibarNS.PixelData;
 import SugType2 = CompletersNS.SugType
@@ -116,7 +120,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
              + GlobalConsts.MaxScrollbarWidth)
         ) / a.itemHeight_), a.maxMatches_));
     a.mode_.r = max;
-    a.init_ && a.preInit_(options.t);
+    a.preInit_ && a.preInit_(options.t)
     if (Build.BTypes & ~BrowserType.Firefox) {
       a.bodySt_.zoom = dz > 1 ? dz + "" : "";
     } else {
@@ -1196,7 +1200,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         t && (el.title = t);
       }
     }
-    a.init_ = VUtils_.makeListRenderer_ = null as never;
+    a.init_ = a.preInit_ = VUtils_.makeListRenderer_ = null as never;
     if (Build.BTypes & BrowserType.Chrome
           && (!(Build.BTypes & ~BrowserType.Chrome) || a.browser_ === BrowserType.Chrome)
           && (Build.MinCVer >= BrowserVer.MinEnsuredSVG$Path$Has$d$CSSAttribute

@@ -20,6 +20,20 @@ type OptionType<T extends keyof AllowedOptions> = T extends "exclusionRules" ? E
     : T extends TextualizedOptionNames ? TextOption_<T>
     : NonNullable<AllowedOptions[T]> extends boolean | number ? BooleanOption_<T>
     : never;
+interface KnownDataset {
+  iT: string // title in i18n
+  i: string // text in i18n
+  iE: "true" | "1" // does accept empty text in i18n
+  check: "check" // event name used in BooleanOption_
+  map: string // json array of `[0|1|2, 0|1|2, (0|1|2)?]`, used in BooleanOption_
+  allowNull: "true" | "1" // does allow null value, used in BooleanOption
+  converter: "lower" | "upper" | "chars" | "lower chars" // converter names for string values
+  model: string // enum of option types
+  autoResize: keyof AllowedOptions // enum of option names
+  delay: "" | "continue" | "event" // work type when delaying click events
+  permission: "webNavigation" | "C76" | string // required permissions
+  href: `vimium://${string}`
+}
 
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".includes) {
 (function (): void {

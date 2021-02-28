@@ -135,7 +135,7 @@ let optionsInit1_ = function (): void {
   let func: {
     (this: HTMLElement, event: MouseEventToPrevent): void;
   } | ElementWithDelay["onclick"] = function (this: HTMLElement): void {
-    const target = $("#" + <string> this.dataset.autoResize);
+    const target = $("#" + this.dataset.autoResize!)
     let height = target.scrollHeight, width = target.scrollWidth, dw = width - target.clientWidth;
     if (height <= target.clientHeight && dw <= 0) { return; }
     const maxWidth = Math.max(Math.min(innerWidth, 1024) - 120, 550);
@@ -156,7 +156,7 @@ let optionsInit1_ = function (): void {
   }
 
   func = function (event): void {
-    let str = this.dataset.delay as string, e = null as MouseEventToPrevent | null;
+    let str = this.dataset.delay!, e = null as MouseEventToPrevent | null;
     if (str !== "continue") {
       event && event.preventDefault();
     }
@@ -239,7 +239,7 @@ let optionsInit1_ = function (): void {
     }
     for (let i = els.length; 0 <= --i; ) {
       let el: HTMLElement = els[i];
-      let key = el.dataset.permission as string;
+      let key = el.dataset.permission!
       if (key[0] === "C") {
         if (!(Build.BTypes & BrowserType.Chrome)
             || Build.BTypes & ~BrowserType.Chrome && bgOnOther_ !== BrowserType.Chrome) {
@@ -275,7 +275,7 @@ let optionsInit1_ = function (): void {
       const el = this.querySelector("[data-permission]") as TextElement | null;
       this.onclick = null as never;
       if (!el) { return; }
-      const key = el.dataset.permission;
+      const key = el.dataset.permission!
       el.placeholder = pTrans_("lackPermission", [key ? `: "${key}"` : ""]);
     }
   })(_ref);
@@ -296,8 +296,7 @@ let optionsInit1_ = function (): void {
     const ref2 = $$("[data-href]")
     for (let _i = ref2.length; 0 <= --_i; ) {
     const element = ref2[_i] as HTMLInputElement;
-    let str = element.dataset.href as string;
-    str = BG_.BgUtils_.convertToUrl_(str, null, Urls.WorkType.ConvertKnown);
+    let str = BG_.BgUtils_.convertToUrl_(element.dataset.href!, null, Urls.WorkType.ConvertKnown);
     element.removeAttribute("data-href");
     element.setAttribute("href", str);
     }
@@ -527,7 +526,7 @@ document.addEventListener("keydown", function (this: void, event): void {
     if (key === "a-" + kChar.f12) {
       let el2 = $<HTMLSelectElement>("#importOptions");
       const oldSelected = el2.selectedIndex, callback = (): void => {
-        el2.onchange && (el2 as any).onchange()
+        el2.onchange && el2.onchange(null as never)
         el2.selectedIndex = oldSelected
       }
       $<HTMLOptionElement>("#recommendedSettings").selected = true;

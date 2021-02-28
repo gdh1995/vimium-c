@@ -51,7 +51,7 @@ set_requestHandlers([
     if (OnChrome && Build.MinCVer < BrowserVer.MinNoKeygenElement && chromeVer_ < BrowserVer.MinNoKeygenElement
         || OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinNoKeygenElement
             && firefoxVer_ < FirefoxBrowserVer.MinNoKeygenElement) {
-      (editableTypes_ as Writable<typeof editableTypes_>).keygen = EditableType.Select
+      editableTypes_.keygen = EditableType.Select
     }
     if (OnChrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
         && chromeVer_ < BrowserVer.MinFramesetHasNoNamedGetter) {

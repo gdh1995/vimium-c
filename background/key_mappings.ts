@@ -1,7 +1,3 @@
-interface EnvCond {
-  sys?: string
-  browser?: BrowserType
-}
 type RawCmdDesc<c extends kCName, e extends CmdNameIds[c] = CmdNameIds[c]> =
     e extends keyof CmdOptions ? [e, 0, 0 | 1, CmdOptions[e]?]
     : e extends keyof BgCmdOptions ? [e, 1, 0 | 1, Partial<BgCmdOptions[e] & {count: number}>?]
@@ -21,7 +17,7 @@ declare var CommandsData_: CommandsDataTy
 
 // eslint-disable-next-line no-var
 var KeyMappings = {
-  getOptions_ (item: string[], start: number): CommandsNS.Options | null {
+  getOptions_ (item: string[], start: number): CommandsNS.RawOptions | null {
     let opt: CommandsNS.RawOptions, i = start, len = item.length, ind: number, str: string | undefined, val: string;
     if (len <= i) { return null; }
     opt = BgUtils_.safeObj_();
@@ -59,7 +55,7 @@ var KeyMappings = {
         delete options.$count;
         options.count = n;
       } else if ("count" in options) {
-        options.count = details[2] === 1 ? 1 : (parseFloat(options.count) || 1) * (opt && opt.count || 1);
+        options.count = details[2] === 1 ? 1 : (parseFloat(options.count!) || 1) * (opt && opt.count || 1);
       }
       if (options.$desc || options.$key) {
         help = { key_: options.$key || "", desc_: options.$desc || "" };
@@ -73,34 +69,33 @@ var KeyMappings = {
         delete options.$if;
       }
       if (opt) {
-        BgUtils_.extendIf_(options, opt);
+        BgUtils_.extendIf_<CommandsNS.RawOptions, CommandsNS.RawOptions>(options, opt)
       }
       if (details[0] === kFgCmd.linkHints && !details[1]) {
-        let mode: number | string | null | undefined = options.mode, stdMode = (options as OptionalHintsOptions).m!
-        const rawChars: string | null | undefined = options.characters
+        const lhOpt = options as Partial<HintsNS.Options> & CommandsNS.RawLinkHintsOptions
+        let mode = lhOpt.mode, stdMode = lhOpt.m!
+        const rawChars = lhOpt.characters
         const chars = rawChars && Settings_.updatePayload_<"c" | "n">("c", rawChars)
-        type OptionalHintsOptions = Partial<HintsNS.Options>;
         if (rawChars) {
-          delete options.characters;
-          (options as OptionalHintsOptions).c = chars!
+          delete lhOpt.characters
+          lhOpt.c = chars!
         }
         if (mode != null) {
-          delete options.mode
+          delete lhOpt.mode
           if (typeof mode !== "number") {
-            mode = (this.hintModes_[(options as OptionalHintsOptions).action || mode || 0
-              ] as number | undefined | {} as number) | 0;
+            mode = (this.hintModes_[lhOpt.action || mode || 0] as number | undefined | {} as number) | 0
           }
         } else {
           mode = stdMode
         }
         if (mode > HintMode.max_mouse_events) {
-          mode = mode === HintMode.EDIT_TEXT ? (options as OptionalHintsOptions).url ? HintMode.EDIT_LINK_URL : mode
+          mode = mode === HintMode.EDIT_TEXT ? lhOpt.url ? HintMode.EDIT_LINK_URL : mode
             : mode === HintMode.COPY_TEXT
-              ? (options as OptionalHintsOptions).join ? HintMode.COPY_TEXT | HintMode.queue | HintMode.list : mode
+              ? lhOpt.join ? HintMode.COPY_TEXT | HintMode.queue | HintMode.list : mode
             : mode > HintMode.min_disable_queue + HintMode.queue - 1 ? mode - HintMode.queue : mode;
         }
         if (mode != stdMode) {
-          (options as OptionalHintsOptions).m = mode
+          lhOpt.m = mode
         }
         repeat = mode > HintMode.min_disable_queue - 1 ? 1 : repeat;
       }
@@ -112,12 +107,12 @@ var KeyMappings = {
       background_: details[1] as Exclude<typeof details[1], 0>,
       command_: command as kCName,
       help_: help,
-      options_: options,
+      options_: options as typeof opt,
       repeat_: repeat
     };
   },
   doesNotMatchEnv_ (options: CommandsNS.RawOptions | null): boolean | null {
-    const condition: EnvCond | null | undefined = options && options.$if;
+    const condition = options && options.$if;
     return condition ? !!condition.sys && condition.sys !== Settings_.CONST_.Platform_
         || !!condition.browser
           && !(condition.browser & (Build.BTypes & ~BrowserType.Chrome
@@ -263,13 +258,13 @@ var KeyMappings = {
     Settings_.temp_.cmdErrors_ = Settings_.temp_.cmdErrors_ > 0 ? ~errors : errors;
   }),
   setupUserCustomized_ (cmdMap: CommandsDataTy["shortcutRegistry_"], key: StandardShortcutNames
-      , options: CommandsNS.Options | null): string {
+      , options: CommandsNS.RawCustomizedOptions | null): string {
     let has_cmd: BOOL = 1
       , command: string = options && options.command || (has_cmd = 0, key.startsWith("user") ? "" : key)
       , regItem: CommandsNS.Item | null
       , ret: 0 | 1 | 2 = command ? 1 : 0;
     if (ret && (command in this.availableCommands_)) {
-      has_cmd && delete (options as CommandsNS.RawOptions).command;
+      has_cmd && delete options!.command
       if (regItem = this.makeCommand_(command, options)) {
         cmdMap.set(key, regItem)
       }

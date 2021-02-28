@@ -536,7 +536,7 @@ export const executeShortcut = (shortcutName: StandardShortcutNames, ports: Fram
   } else {
     let opts = registry.options_
     if (!opts || !opts.$noWarn) {
-      let rawOpts = (registry as Writable<typeof registry>).options_ = BgUtils_.safeObj_<any>()
+      let rawOpts: CommandsNS.Options = (registry as Writable<typeof registry>).options_ = BgUtils_.safeObj_<any>()
       opts && BgUtils_.extendIf_(rawOpts, opts)
       rawOpts.$noWarn = true
       console.log("Error: Command", cmdName, "must run on pages which are not privileged")
@@ -708,7 +708,7 @@ export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey]): void => {
       const specialOptions = matchedRule.options
       if (specialOptions || !expected_rules && Object.keys(get_cOptions<C.runKey>()).length > 1) {
         registryEntry = BgUtils_.extendIf_(BgUtils_.safeObj_<{}>(), registryEntry)
-        let newOptions = BgUtils_.safeObj_<{}>()
+        let newOptions: CommandsNS.Options & KnownOptions<kBgCmd.runKey> = BgUtils_.safeObj_<{}>()
         BgUtils_.extendIf_(newOptions, specialOptions || get_cOptions<C.runKey>())
         specialOptions || delete newOptions.keys
         registryEntry.options_ && BgUtils_.extendIf_(newOptions, registryEntry.options_);

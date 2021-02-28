@@ -396,7 +396,7 @@ set_contentCommands_([
     advCmd = querySelector_unsafe_("#HAdv", box) as HTMLElement,
     toggleAdvanced = (): void => {
       const el2 = advCmd.firstChild as HTMLElement
-      el2.innerText = el2.dataset["sh"[+shouldShowAdvanced]]!
+      el2.innerText = el2.dataset["sh"[+shouldShowAdvanced] as "s" | "h"]!
       toggleClass_s(box, "HelpDA")
     }
     set_hideHelp(closeBtn.onclick = (event?: EventToPrevent): void => {

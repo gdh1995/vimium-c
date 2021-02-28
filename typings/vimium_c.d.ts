@@ -157,8 +157,13 @@ declare namespace VisualModeNS {
     __mask = -1,
   }
   type ForwardDir = kDir.left | kDir.right;
-  interface KeyMap extends Dict<VisualAction | Dict<VisualAction>> {}
+  interface KeyMap extends Dict<VisualAction | Dict<VisualAction>> {
+    a: Dict<VisualAction>
+    g: Dict<VisualAction>
+  }
   interface SafeKeyMap extends KeyMap, SafeObject {
+    a: SafeDict<VisualAction>
+    g: SafeDict<VisualAction>
     [key: string]: VisualAction | SafeDict<VisualAction> | undefined;
   }
   const enum kVimG {

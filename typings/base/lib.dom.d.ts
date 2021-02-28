@@ -2990,11 +2990,13 @@ interface HTMLElementEventMap extends ElementEventMap {
     "waiting": Event;
 }
 
+interface KnownDataset {}
+
 interface HTMLElement extends Element {
     accessKey: string;
     readonly children: HTMLCollection;
     contentEditable: "true" | "false" | "inherit" | "plaintext-only";
-    readonly dataset: DOMStringMap;
+    readonly dataset: Partial<KnownDataset>;
     dir: string;
     draggable: boolean;
     hidden: boolean;

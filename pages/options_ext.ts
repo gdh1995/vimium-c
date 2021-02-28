@@ -74,6 +74,7 @@ interface ExportedSettings {
     platform?: string;
   };
   findModeRawQueryList?: never;
+  vimSync: SettingsNS.BackendSettings["vimSync"]
   [key: string]: any;
 }
 
