@@ -484,8 +484,10 @@ function (details: chrome.runtime.InstalledDetails): void {
 
   if (!reason) {
     const p = Settings_.restore_ && Settings_.restore_() || Promise.resolve()
-    p.then(() => {
-      Backend_.reqH_[kFgReq.focusOrLaunch]({ u: Settings_.CONST_.OptionsPage_ + (Build.NDEBUG ? "#commands" : "#installed") })
+    p.then(() => Backend_.onInit_ ? new Promise(resolve => setTimeout(resolve, 200)) : 0).then((): void => {
+      Backend_.reqH_[kFgReq.focusOrLaunch]({
+        u: Settings_.CONST_.OptionsPage_ + (Build.NDEBUG ? "#commands" : "#installed")
+      })
     })
     return
   }
