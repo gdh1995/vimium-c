@@ -97,7 +97,7 @@ interface BgCmdOptions {
   [kBgCmd.sendToExtension]: { id: string; data: any; raw: true }
   [kBgCmd.showTip]: { text: string }
   [kBgCmd.toggleCS]: { action: "" | "reopen"; incognito: boolean; type: chrome.contentSettings.ValidTypes }
-  [kBgCmd.toggleMuteTab]: { all: boolean; other: boolean }
+  [kBgCmd.toggleMuteTab]: { all: boolean; other: boolean; others: boolean; mute: boolean }
   [kBgCmd.togglePinTab]: LimitedRangeOptions
   [kBgCmd.toggleTabUrl]: { keyword: string; parsed: string; reader: boolean } & OpenUrlOptions
   [kBgCmd.toggleVomnibarStyle]: { style: string; current: boolean }

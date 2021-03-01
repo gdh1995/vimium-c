@@ -497,34 +497,40 @@ export const toggleMuteTab = (): void | kBgCmd.toggleMuteTab => {
           && CurCVer_ < BrowserVer.MinMuted) {
     return showHUD(trans_("noMute", [BrowserVer.MinMuted]))
   }
-  if (!(get_cOptions<C.toggleMuteTab>().all || get_cOptions<C.toggleMuteTab>().other)) {
+  if (!(get_cOptions<C.toggleMuteTab>().all
+        || get_cOptions<C.toggleMuteTab>().other || get_cOptions<C.toggleMuteTab>().others)) {
     getCurTab(([tab]: [Tab]): void => {
-      const wanted = Build.MinCVer < BrowserVer.MinMutedInfo && Build.BTypes & BrowserType.Chrome
+      const neg = Build.MinCVer < BrowserVer.MinMutedInfo && Build.BTypes & BrowserType.Chrome
           && CurCVer_ < BrowserVer.MinMutedInfo ? !tab.muted : !tab.mutedInfo.muted
-      browserTabs.update(tab.id, { muted: wanted })
-      showHUD(trans_(wanted ? "muted" : "unmuted"))
+      const mute = get_cOptions<kBgCmd.toggleMuteTab>().mute != null ? !!get_cOptions<kBgCmd.toggleMuteTab>().mute : neg
+      mute === neg && browserTabs.update(tab.id, { muted: mute })
+      showHUD(trans_(mute ? "muted" : "unmuted"))
     })
     return
   }
   browserTabs.query({audible: true}, (tabs: Tab[]): void => {
-    let curId = get_cOptions<C.toggleMuteTab>().other ? cPort ? cPort.s.t : TabRecency_.curTab_ : GlobalConsts.TabIdNone
+    let curId = get_cOptions<C.toggleMuteTab>().other || get_cOptions<C.toggleMuteTab>().others
+          ? cPort ? cPort.s.t : TabRecency_.curTab_ : GlobalConsts.TabIdNone
       , prefix = curId === GlobalConsts.TabIdNone ? "All" : "Other"
-      , muted = false, action = { muted: true }
-    for (let i = tabs.length; 0 <= --i; ) {
-      const tab = tabs[i]
+      , mute = tabs.length === 0 || curId !== GlobalConsts.TabIdNone && tabs.length === 1 && tabs[0].id === curId
+    if (get_cOptions<kBgCmd.toggleMuteTab>().mute != null) {
+      mute = !!get_cOptions<kBgCmd.toggleMuteTab>().mute
+    } else for (const tab of tabs) {
       if (tab.id !== curId && (Build.MinCVer < BrowserVer.MinMutedInfo && Build.BTypes & BrowserType.Chrome
               && CurCVer_ < BrowserVer.MinMutedInfo ? !tab.muted : !tab.mutedInfo.muted)) {
-        muted = true
+        mute = true
+        break
+      }
+    }
+    const action = { muted: mute }
+    for (const tab of tabs) {
+      if (tab.id !== curId
+          && mute === (Build.MinCVer < BrowserVer.MinMutedInfo && Build.BTypes & BrowserType.Chrome
+              && CurCVer_ < BrowserVer.MinMutedInfo ? !tab.muted : !tab.mutedInfo.muted)) {
         browserTabs.update(tab.id, action)
       }
     }
-    if (muted) { return showHUD(trans_("mute", [prefix])) }
-    action.muted = false
-    for (let i = tabs.length; 0 <= --i; ) {
-      const j = tabs[i].id
-      j !== curId && browserTabs.update(j, action)
-    }
-    showHUD(trans_("unmute", [prefix]))
+    showHUD(trans_(mute ? "mute" : "unmute", [trans_(prefix)]))
   })
 }
 

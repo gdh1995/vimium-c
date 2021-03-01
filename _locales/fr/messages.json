@@ -262,6 +262,8 @@
   "unmuted": { "message": "Sourdine désactivée" },
   "mute": { "message": "$1 onglet(s) sont mis en sourdine" },
   "unmute": { "message": "$1 onglet(s) ont leurs sourdines désactivées" },
+  "All": { "message": "Tous les" },
+  "Other": { "message": "Autres" },
   "fhCleared": { "message": "$1 historique de recherche nettoyé" },
   "noStyleName": { "message": "Aucun nom de style de Vomnibar n'est donné" },
   "needText": { "message": "\"showTip\" a besoin d'une option \"texte\"" },
