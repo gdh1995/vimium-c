@@ -314,16 +314,11 @@ const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord
     di_ = direction === oldDi ? direction : kDirTy.unknown
     granularity - kG.lineBoundary || hudTip(kTip.selectLineBoundary, 2000)
     if (!fixWord) { return }
-    if (!shouldSkipSpaceWhenMovingRight) { // not shouldSkipSpace -> go left
-        if (!OnFirefox || !Build.NativeWordMoveOnFirefox) {
-          moveRightByWordButNotSkipSpace!()
-        }
+    if (!(OnFirefox && Build.NativeWordMoveOnFirefox) && !shouldSkipSpaceWhenMovingRight) {
+        moveRightByWordButNotSkipSpace!()
         return;
     }
-    if (!OnFirefox || Build.NativeWordMoveOnFirefox) {
-      return
-    }
-    if (moveRightByWordButNotSkipSpace!()) {
+    if (OnFirefox && !Build.NativeWordMoveOnFirefox && moveRightByWordButNotSkipSpace!()) {
       return
     }
 
