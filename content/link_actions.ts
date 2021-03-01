@@ -8,7 +8,7 @@ import {
   IsInDOM_, createElement_, htmlTag_, getComputedStyle_, getEditableType_, isIFrameElement, GetParent_unsafe_, focus_,
   ElementProto, querySelector_unsafe_, getInputType, uneditableInputs_, GetShadowRoot_, CLK, scrollingEl_,
   findMainSummary_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s,
-  setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel
+  setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_
 } from "../lib/dom_utils"
 import {
   hintOptions, mode1_, hintMode_, hintApi, hintManager, coreHints, setMode, detectUsableChild, hintCount_,
@@ -44,8 +44,31 @@ const unhoverOnEsc: HandlerNS.Handler = event => {
 export const executeHintInOfficer = (hint: HintItem | Pick<HintItem, "d" | "r"> & {m?: null}
     , event?: HandlerNS.Event | null | 0, knownRect?: Rect | null | 0 | false): Rect | null | undefined | 0 => {
 
+const accessElAttr = (isUrl?: 1): [string: string, isUserCustomized?: BOOL] => {
+  type primitiveObject = boolean | number | string
+  const dataset = (clickEl as SafeHTMLElement).dataset
+  for (let accessor of ((hintOptions.access || "") + "").split(",")) {
+    const arr = accessor.split(":"), selector = arr.length === 2 ? arr[0] : 0
+    const el: SafeElement | null = !selector ? clickEl
+        : OnFirefox ? querySelector_unsafe_(selector) as SafeElement | null
+        : SafeEl_not_ff_!(querySelector_unsafe_(selector))
+    let json: Dict<primitiveObject | null> | primitiveObject | null | undefined | Element = el
+    for (const prop of (selector ? arr[1] : accessor).split(".")) {
+      if (json && isTY(json)) {
+        try { json = JSON.parse(json) }
+        catch { json = 0 }
+      }
+      json = json != el ? json && isTY(json, kTY.obj) && (json as Dict<primitiveObject | null>)[prop]
+          : el ? htmlTag_(el) && ((el as SafeHTMLElement).dataset as Dict<string>)[prop] || attr_s(clickEl, prop)
+          : 0
+    }
+    if (json && isTY(json)) { return [json, 1] }
+  }
+  return [(isUrl ? dataset.vimUrl : dataset.canonicalSrc || dataset.src) || ""]
+}
+
 const getUrlData = (): string => {
-  let link = clickEl as SafeHTMLElement, str = link.dataset.vimUrl
+  let link = clickEl as SafeHTMLElement, str = accessElAttr(1)[0]
   if (str) {
     (link = createElement_("a")).href = str.trim();
   }
@@ -55,8 +78,8 @@ const getUrlData = (): string => {
 
 /** return: img is HTMLImageElement | HTMLAnchorElement | HTMLElement[style={backgroundImage}] */
 const downloadOrOpenMedia = (): void => {
-  let mediaTag = getMediaTag(clickEl as SafeHTMLElement), dataset = (clickEl as SafeHTMLElement).dataset
-  let src = dataset.canonicalSrc || dataset.src || ""
+  let mediaTag = getMediaTag(clickEl as SafeHTMLElement)
+  let srcObj = accessElAttr(), src = srcObj[0]
   let text: string | null, n: number
   if (!mediaTag) {
     if ((n = (clickEl as HTMLImageElement).naturalWidth) && n < 3
@@ -64,7 +87,7 @@ const downloadOrOpenMedia = (): void => {
       mediaTag = kMediaTag.LAST + 1
     }
   }
-  text = mediaTag < kMediaTag.others
+  text = srcObj[1] ? src : mediaTag < kMediaTag.others
       ? src || getMediaUrl(clickEl as SafeHTMLElement, mediaTag < kMediaTag.MIN_NOT_MEDIA_EL) : ""
   if (mediaTag > kMediaTag.MIN_NOT_MEDIA_EL - 1) {
     if (!isImageUrl(text)) {

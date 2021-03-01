@@ -229,6 +229,9 @@ declare namespace HintsNS {
     useFilter?: boolean;
     url?: boolean;
     keyword?: string;
+    // access el.dataset[<json keys>] || el.attrs[key][json keys]
+    // format: [<css selector>":"]<dataset-key or attr-name>[...("."<json key>)], like img:viewer.url
+    access?: string
     testUrl?: boolean
     dblclick?: boolean;
     newtab?: boolean | "force" | "last-window" | "window" | /** Firefox-only */ "no-prevent";
