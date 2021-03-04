@@ -148,8 +148,10 @@ export const makeWindow = (options: chrome.windows.CreateData, state?: chrome.wi
   }
   if (state && (Build.MinCVer >= BrowserVer.MinCreateWndWithState || !(Build.BTypes & BrowserType.Chrome)
                 || CurCVer_ >= BrowserVer.MinCreateWndWithState)) {
-    options.state = state
-    state = ""
+    if (!state.includes("fullscreen")) {
+      (options as chrome.windows.CreateDataEx).state = state
+      state = ""
+    }
   }
   if (Build.BTypes & BrowserType.Firefox
       && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
@@ -172,7 +174,7 @@ export const makeWindow = (options: chrome.windows.CreateData, state?: chrome.wi
 
 export const makeTempWindow = (tabIdUrl: number | "about:blank", incognito: boolean
     , callback: (wnd: Window, exArg: FakeArg) => void): void => {
-  const isId = typeof tabIdUrl === "number", options: chrome.windows.CreateData = {
+  const isId = typeof tabIdUrl === "number", options: chrome.windows.CreateDataEx = {
     type: "normal", focused: false, incognito, state: "minimized",
     tabId: isId ? tabIdUrl as number : undefined, url: isId ? undefined : tabIdUrl as string
   }

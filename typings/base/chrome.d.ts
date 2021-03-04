@@ -2965,6 +2965,8 @@ declare namespace chrome.windows {
          * The number of pixels to position the new window from the left edge of the screen. If not specified, the new window is offset naturally from the last focused window. This value is ignored for panels.
          */
         left?: number;
+    }
+    interface CreateDataEx extends CreateData {
         /**
          * Optional. The initial state of the window. The 'minimized', 'maximized' and 'fullscreen' states cannot be combined with 'left', 'top', 'width' or 'height'.
          * One of: "normal", "minimized", "maximized", "fullscreen", or "docked"
@@ -2972,7 +2974,7 @@ declare namespace chrome.windows {
          */
         state?: string;
     }
-    type ValidStates = "normal" | "minimized" | "maximized" | "fullscreen" | "docked";
+    type ValidStates = "normal" | "minimized" | "maximized" | "fullscreen" | "locked-fullscreen" | "docked";
 
     interface UpdateInfo {
         /** Optional. The offset from the top edge of the screen to move the window to in pixels. This value is ignored for panels. */
