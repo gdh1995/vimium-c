@@ -740,9 +740,10 @@ const postTerser = exports.postTerser = async (terserConfig, file, allPaths) => 
   var allPathStr = (allPaths || file.history).join("|").replace(/\\/g, "/");
   var contents = null, oldLen = 0;
   function get() { contents == null && (contents = ToString(file.contents), oldLen = contents.length); }
-  if (locally && doesMinifyLocalFiles) {
+  if (locally ? doesMinifyLocalFiles
+      : terserConfig.compress && terserConfig.compress.booleans && false) {
     get()
-    contents = await remove_dead_code(known_defs, contents, terserConfig)
+    contents = contents.replace(/![01]\b/g, s => s === "!0")
   }
   if (!locally && (allPathStr.includes("content/") || allPathStr.includes("lib/"))) {
     get()

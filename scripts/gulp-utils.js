@@ -576,7 +576,7 @@ exports.minifyJSFiles = function (path, output, exArgs) {
   }
   if (!isJson) {
     stream = stream.pipe(exports.gulpMap(function (file) {
-      gulpfile.postTerser(null, file, allPaths)
+      gulpfile.postTerser(stdConfig, file, allPaths)
     }));
   }
   if (willListEmittedFiles && !is_file) {

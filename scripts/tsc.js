@@ -155,7 +155,7 @@ var getTerser = function() {
         if (config.ecma && config.ecma >= 2017) {
           data = data.replace(/\bappendChild\b(?!`|\.call\([\w.]*doc)/g, "append");
         }
-        return lib.remove_dead_code(known_defs, data, config)
+        return data.replace(/![01]\b/g, s => s === "!0")
       });
     };
   }

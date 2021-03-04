@@ -539,12 +539,12 @@ exports.replace_global_defs = (global_defs, code) => {
 }
 
 /**
- * @argument {{ [key: string]: any }} global_defs
+ * @argument {{ [key: string]: any }} _global_defs
  * @argument {string} code
  * @argument {TerserOptions} config
  * @returns {Promise<string>}
  */
-exports.remove_dead_code = async (global_defs, code, config) => {
+exports.remove_dead_code = async (_global_defs, code, config) => {
   const keys = Object.keys(exports.BrowserType).map(i => i.startsWith("With") ? i : "On" + i).join("|")
   const raw_code = code
   for (let re1 = new RegExp(`!*[\\w$]+\\.(?:${keys}) (&&|\\|\\|) (false|true)`, "g"), old_len = 0
