@@ -62,9 +62,7 @@ if (!(BG_ && BG_.BgUtils_ && BG_.BgUtils_.convertToUrl_)) {
   BG_ = null as never;
 }
 const $ = <T extends HTMLElement>(selector: string): T => document.querySelector(selector) as T,
-pTrans_: typeof chrome.i18n.getMessage = Build.BTypes & BrowserType.Firefox
-    && BG_ && (!(Build.BTypes & ~BrowserType.Firefox) || BG_.OnOther === BrowserType.Firefox)
-    ? (i, j) => BG_.trans_(i, j) : chrome.i18n.getMessage;
+pTrans_ = chrome.i18n.getMessage
 const blobCache: Dict<Blob> = {}
 const body = document.body as HTMLBodyElement
 
@@ -80,7 +78,7 @@ let loadingTimer: (() => void) | null | undefined
 let _nextUrl: string | undefined
 
 if (chrome.i18n.getMessage("lang1")) {
-  document.title = pTrans_("vDisplay") || document.title;
+  document.title = pTrans_("vDisplay") && "Vimium C " + pTrans_("vDisplay") || document.title
 }
 
 window.onhashchange = function (this: void): void {
@@ -184,7 +182,7 @@ window.onhashchange = function (this: void): void {
       resetOnceProperties_();
       VData.auto = false;
       this.onerror = this.onload = null as never;
-      this.alt = VData.error = pTrans_("failInLoading") || "\xa0(fail in loading)\xa0";
+      this.alt = VData.error = pTrans_("failInLoading")
       if (Build.MinCVer >= BrowserVer.MinNoBorderForBrokenImage || !(Build.BTypes & BrowserType.Chrome)
           || BG_ && BG_.Settings_
             && BG_.CurCVer_ >= BrowserVer.MinNoBorderForBrokenImage) {
@@ -251,7 +249,7 @@ window.onhashchange = function (this: void): void {
     } else {
       url = VData.url = "";
       VShown.onerror(null as never);
-      VShown.alt = VData.error = pTrans_("none") || "\xa0(null)\xa0";
+      VShown.alt = VData.error = pTrans_("none");
     }
     if (file) {
       VData.file = file = tryToFixFileExt_(file) || file;
@@ -895,7 +893,7 @@ function fetchImage_(url: string, element: HTMLImageElement): void {
       clearTimer();
     } else if (!text.parentNode) {
       body.insertBefore(text, element);
-      text.data = pTrans_("loading") || "loading\u2026";
+      text.data = pTrans_("loading")
     }
   }, 400);
 }

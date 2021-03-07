@@ -23,7 +23,6 @@ type OptionType<T extends keyof AllowedOptions> = T extends "exclusionRules" ? E
 interface KnownDataset {
   iT: string // title in i18n
   i: string // text in i18n
-  iE: "true" | "1" // does accept empty text in i18n
   check: "check" // event name used in BooleanOption_
   map: string // json array of `[0|1|2, 0|1|2, (0|1|2)?]`, used in BooleanOption_
   allowNull: "true" | "1" // does allow null value, used in BooleanOption
@@ -69,7 +68,7 @@ var $ = <T extends HTMLElement>(selector: string): T => document.querySelector(s
   , pTrans_: typeof chrome.i18n.getMessage = Build.BTypes & BrowserType.Firefox
       && (!(Build.BTypes & ~BrowserType.Firefox) || BG_.OnOther === BrowserType.Firefox)
       ? (i, j) => BG_.trans_(i, j) : chrome.i18n.getMessage;
-if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
+if (!Build.BTypes || Build.BTypes & (Build.BTypes - 1)) {
   (window as any).bgOnOther_ = BG_.OnOther as BrowserType;
 }
 
@@ -87,19 +86,15 @@ if (lang_) {
     const langInput = navigator.language as string || pTrans_("lang2")
     let t = pTrans_("keyMappingsP"), el: HTMLElement | null = $("#keyMappings");
     t && el && ((el as HTMLInputElement).placeholder = t);
-    for (el of $$("[data-i-t]") as HTMLElement[]) {
-      t = pTrans_(el.dataset.iT as string)
-      t && (el.title = t)
-    }
     if (langInput && (lang_ !== "zh" || langInput !== "zh-CN")) {
       for (el of $$("input[type=text], textarea") as HTMLElement[]) {
         el.lang = langInput as ""
       }
     }
     for (el of $$("[data-i]") as HTMLElement[]) {
-      const dataset = el.dataset, i = dataset.i!
-      t = pTrans_(i);
-      (t || i === "NS" || dataset.iE) && (el.innerText = t);
+      const dataset = el.dataset, i = dataset.i!, isTitle = i.endsWith("-t")
+      t = pTrans_(isTitle ? i.slice(0, -2) : i);
+      (t || i === "NS") && (isTitle ? el.title = t : el!.innerText = t)
     }
     (document.documentElement as HTMLHtmlElement).lang = lang_ === "zh" ? "zh-CN" as "" : lang_ as "";
   })();

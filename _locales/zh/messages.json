@@ -411,7 +411,7 @@
   "upgradeMsg2": { "message": "" },
   "clickForMore": { "message": "点击阅读详细信息。" },
   "vOptions": { "message": "Vimium C 设置" },
-  "vDisplay": { "message": "Vimium C 展示" },
+  "vDisplay": { "message": "展示" },
   "vBlank": { "message": "空白页" },
   "cmdList": { "message": "命令列表" },
   "help": { "message": "帮助" },
