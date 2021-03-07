@@ -43,7 +43,7 @@ Build.NDEBUG || (function (): void {
   }
   const oldDefine: DefineTy = typeof define !== "undefined" ? define : void 0
   let modules: Dict<ModuleTy> = {}
-  const myDefine: DefineTy = (deps, factory): void => {
+  const myDefine: DefineTy = function (this: any, deps, factory): void {
     let filename = __filename
     __filename = null
     if (!filename) {
@@ -54,7 +54,7 @@ Build.NDEBUG || (function (): void {
         (window as any)[fileName] = (factory as any || deps as any)()
         return
       }
-      return oldDefine(deps, factory)
+      return oldDefine.apply(this, arguments)
     }
     filename = filename.replace(".js", "")
     const exports = modules[filename] || (modules[filename] = {} as ModuleTy)
@@ -82,6 +82,15 @@ Build.NDEBUG || (function (): void {
   }
   myDefine.amd = true;
   myDefine.modules_ = modules;
-  myDefine.noConflict = (): void => { (window as any).define = oldDefine }
-  (window as any).define = myDefine
+  myDefine.noConflict = (): void => {
+    (window as PartialOf<typeof globalThis, "define">).define = oldDefine
+    if (oldDefine.modules_) {
+      for (let key in modules) {
+        oldDefine.modules_[key] = modules[key]
+      }
+    } else {
+      oldDefine.modules_ = modules;
+    }
+  }
+  (window as PartialOf<typeof globalThis, "define">).define = myDefine
 })()

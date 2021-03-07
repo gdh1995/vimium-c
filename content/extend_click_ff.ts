@@ -22,7 +22,7 @@ export const main_ff = (OnFirefox ? (): void => {
     exportFunction(func, obj, { defineAs: name, allowCrossOriginArguments: true })
   }
   try {
-    const PEventTarget = (window as any).EventTarget as typeof EventTarget | undefined,
+    const PEventTarget = (window as PartialOf<typeof globalThis, "EventTarget">).EventTarget,
     Cls = PEventTarget && PEventTarget.prototype,
     wrappedCls = Cls && raw_unwrap_ff(Cls),
     _listen = wrappedCls && wrappedCls.addEventListener,
@@ -82,7 +82,7 @@ export const main_ff = (OnFirefox ? (): void => {
   try {
     const enum kAct { prevent = 0, stopImm = 1, stopProp = 2 }
     type Pair<Key extends kAct> = readonly [() => void, Key]
-    const PEvent = (window as any).Event as typeof Event | undefined,
+    const PEvent = (window as PartialOf<typeof globalThis, "Event">).Event,
     EventCls = PEvent && PEvent.prototype as EventToPrevent,
     wrappedCls = EventCls && raw_unwrap_ff(EventCls),
     stdMembers: readonly [Pair<kAct.prevent>, Pair<kAct.stopImm>, Pair<kAct.stopProp>] & { [i in kAct]: Pair<i> }

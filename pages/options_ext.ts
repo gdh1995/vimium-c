@@ -1,5 +1,3 @@
-declare var VimiumInjector: VimiumInjectorTy | undefined | null
-
 $<ElementWithDelay>("#showCommands").onclick = function showHelp(this: void, event): void {
   if (!window.VApi || !VApi.z) {
     typeof VimiumInjector !== "undefined" && setTimeout(showHelp, 120, null)

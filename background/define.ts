@@ -43,23 +43,23 @@ if (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) 
   window.chrome = browser as typeof chrome
 }
 
-(function (): void {
-  type ModuleTy = Dict<any> & { __esModule: boolean }
+Build.NDEBUG || (function (): void {
+  type ModuleTy = Dict<any> & { __esModule?: boolean }
   type RequireTy = (target: string) => ModuleTy
   interface DefineTy {
     (deps: string[], factory: (require: RequireTy, exports: ModuleTy) => any): any
     amd?: boolean
     modules_?: Dict<ModuleTy>
   }
-  let modules: Dict<ModuleTy> = {}
+  const modules: Dict<ModuleTy> = {}
   const myDefine: DefineTy = (_, factory): void => {
-    const name = (document.currentScript as HTMLScriptElement).src.split("/")
-    const filename = name[name.length - 1].replace(".js", "")
-    const exports = modules[filename] || (modules[filename] = {} as ModuleTy)
+    const name = (document.currentScript as HTMLScriptElement).src
+    const filename = name.slice(name.lastIndexOf("/") + 1).replace(".js", "")
+    const exports: ModuleTy = modules[filename] || (modules[filename] = {})
     if (!Build.NDEBUG) {
       (myDefine as any)[filename] = exports
     }
-    return factory(require, exports)
+    factory(require, exports)
   }
   const require = (target: string): ModuleTy => {
     target = target.replace(<RegExpG> /\.(\/|js)/g, "")
@@ -69,7 +69,7 @@ if (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) 
     myDefine.amd = true
     myDefine.modules_ = modules
   }
-  (window as any).define = myDefine
+  (window as PartialOf<typeof globalThis, "define">).define = myDefine
 })()
 
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".includes) {

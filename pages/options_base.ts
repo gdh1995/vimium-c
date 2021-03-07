@@ -62,6 +62,7 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
     : typeof browser !== "undefined" && (browser && (browser as typeof chrome).runtime) != null) {
   window.chrome = browser as typeof chrome;
 }
+(window as PartialOf<typeof globalThis, "VimiumInjector">).VimiumInjector = null
 // eslint-disable-next-line no-var
 var $ = <T extends HTMLElement>(selector: string): T => document.querySelector(selector) as T
   , BG_ = chrome.extension.getBackgroundPage() as Window as BgWindow
@@ -69,7 +70,7 @@ var $ = <T extends HTMLElement>(selector: string): T => document.querySelector(s
       && (!(Build.BTypes & ~BrowserType.Firefox) || BG_.OnOther === BrowserType.Firefox)
       ? (i, j) => BG_.trans_(i, j) : chrome.i18n.getMessage;
 if (!Build.BTypes || Build.BTypes & (Build.BTypes - 1)) {
-  (window as any).bgOnOther_ = BG_.OnOther as BrowserType;
+  (window as PartialOf<typeof globalThis, "bgOnOther_">).bgOnOther_ = BG_.OnOther as BrowserType
 }
 
 const $$ = ((selector: string, root?: HTMLElement | ShadowRoot | null) => {

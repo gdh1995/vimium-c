@@ -18,6 +18,7 @@ type OnlyEnsureItemsNonNull<T> = { [P in keyof T]: NonNullable<T[P]> }; // for l
 type EnsureNonNull<T> = EnsureItemsNonNull<NonNullable<T>>;
 type Ensure<T, K extends keyof T> = { -readonly [P in K]-?: NonNullable<T[P]> };
 
+type PartialOf<T, Keys extends keyof T> = { [P in Keys]?: T[P]; };
 type PartialOrEnsured<T, EnsuredKeys extends keyof T> = {
   [P in EnsuredKeys]: T[P];
 } & {

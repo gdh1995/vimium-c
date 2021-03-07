@@ -6,8 +6,7 @@
 /// <reference path="../background/utils.ts" />
 /// <reference path="../background/settings.ts" />
 /* eslint-disable @typescript-eslint/prefer-string-starts-ends-with, @typescript-eslint/prefer-includes */
-// eslint-disable-next-line no-var
-var VimiumInjector: VimiumInjectorTy | undefined | null = null;
+(window as PartialOf<typeof globalThis, "VimiumInjector">).VimiumInjector = null
 if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
     : typeof browser !== "undefined" && browser && (browser as typeof chrome).runtime) {
   window.chrome = browser as typeof chrome;

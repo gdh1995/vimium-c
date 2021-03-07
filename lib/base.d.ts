@@ -437,6 +437,7 @@ interface VDataTy {
   full: string;
   o (oldUrl: string): string;
 }
+declare var VData: VDataTy | null | undefined
 
 type VTransType = (tid: kTip | HintMode, args?: Array<string | number> | string) => string;
 

@@ -138,7 +138,7 @@ export const activate = function (options: FullOptions, count: number): void {
           : (omniOptions = options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront)
       return;
     }
-    if (injector === null && (window as Window & {VData?: Element | VDataTy}).VData) {
+    if (injector === null && (window as PartialOf<typeof globalThis, "VData">).VData) {
       url = VData.o(url);
     }
     send_(kFgReq.parseSearchUrl, { t: options.s, p: upper, u: url }, function (search): void {
