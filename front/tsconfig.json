@@ -12,6 +12,8 @@
   ],
   "exclude": [
     "../pages/dialog_ui*.ts",
+    "../pages/define.ts",
+    "../pages/async_bg.ts",
     "../pages/loader.ts",
     "../pages/newtab*.ts",
     "../pages/options*.ts",

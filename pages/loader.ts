@@ -1,6 +1,3 @@
-/// <reference path="../typings/base/index.d.ts" />
-/// <reference path="../typings/lib/index.d.ts" />
-/// <reference path="../typings/build/index.d.ts" />
 /// <reference path="../lib/base.d.ts" />
 /// <reference path="../background/index.d.ts" />
 /// <reference path="../background/utils.ts" />

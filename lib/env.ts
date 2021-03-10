@@ -45,8 +45,7 @@ Build.NDEBUG || (function (): void {
   let modules: Dict<ModuleTy> = {}
   const myDefine: DefineTy = function (this: any, deps, factory): void {
     let filename = __filename
-    __filename = null
-    if (!filename) {
+    if (!filename || filename.lastIndexOf("content/", 0) === -1 && filename.lastIndexOf("lib/", 0) === -1) {
       if (!oldDefine) {
         const name = (document.currentScript as HTMLScriptElement).src.split("/")
         const fileName = name[name.length - 1].replace(<RegExpG> /\.js|\.min/g, "")
@@ -56,6 +55,7 @@ Build.NDEBUG || (function (): void {
       }
       return oldDefine.apply(this, arguments)
     }
+    __filename = null
     filename = filename.replace(".js", "")
     const exports = modules[filename] || (modules[filename] = {} as ModuleTy)
     const ind = filename.lastIndexOf("/")

@@ -1,3 +1,9 @@
+import { OnOther as bgOnOther_, CurCVer_, BG_, bgSettings_ } from "./async_bg"
+import {
+  Option_, AllowedOptions, pTrans_, Checker, PossibleOptionNames, nextTick_, ExclusionRulesOption_, $, $$,
+  KnownOptionsDataset, OptionErrorType, ExclusionRealNode
+} from "./options_base"
+
 Option_.all_ = Object.create(null)
 Option_.syncToFrontend_ = []
 
@@ -53,9 +59,9 @@ interface NumberChecker extends Checker<"scrollStepSize"> {
   min: number | null; max: number | null; default: number
   check_ (value: number): number
 }
-type UniversalNumberSettings =
+export type UniversalNumberSettings =
     Exclude<PossibleOptionNames<number>, "ignoreCapsLock" | "mapModifier" | "ignoreKeyboardLayout">
-class NumberOption_<T extends UniversalNumberSettings> extends Option_<T> {
+export class NumberOption_<T extends UniversalNumberSettings> extends Option_<T> {
   readonly element_: HTMLInputElement
   previous_: number
   wheelTime_: number
@@ -120,7 +126,7 @@ class NumberOption_<T extends UniversalNumberSettings> extends Option_<T> {
   }
 }
 
-class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
+export class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
   readonly element_: HTMLInputElement
   previous_: FullSettings[T]
   map_: any[]
@@ -130,9 +136,9 @@ class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
   inner_status_: 0 | 1 | 2
   constructor (element: HTMLInputElement, onUpdated: (this: BooleanOption_<T>) => void) {
     super(element, onUpdated)
-    let map = element.dataset.map
+    let map = (element.dataset as KnownOptionsDataset).map
     this.map_ = map ? JSON.parse(map)
-        : this.element_.dataset.allowNull ? BooleanOption_.map_for_3_ : BooleanOption_.map_for_2_
+        : (this.element_.dataset as KnownOptionsDataset).allowNull ? BooleanOption_.map_for_3_ : BooleanOption_.map_for_2_
     this.true_index_ = (this.map_.length - 1) as 2 | 1
     if (this.true_index_ > 1 && this.field_ !== "vimSync") {
       this.element_.addEventListener("change", this.onTripleStatusesClicked.bind(this), true)
@@ -159,14 +165,15 @@ class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
   }
 }
 
-type TextualizedOptionNames = PossibleOptionNames<string | object>
+export type TextualizedOptionNames = PossibleOptionNames<string | object>
 type TextOptionNames = PossibleOptionNames<string>
-class TextOption_<T extends TextualizedOptionNames> extends Option_<T> {
+export class TextOption_<T extends TextualizedOptionNames> extends Option_<T> {
   readonly element_: TextElement
   checker_?: Checker<T> & { ops_?: string[], status_: 0 | 1 | 2 | 3 }
   constructor (element: TextElement, onUpdated: (this: TextOption_<T>) => void) {
     super(element, onUpdated)
-    const converter = this.element_.dataset.converter || "", ops = converter ? converter.split(" ") : []
+    const converter = (this.element_.dataset as KnownOptionsDataset).converter || ""
+    const ops = converter ? converter.split(" ") : []
     this.element_.oninput = this.onUpdated_
     if (ops.length > 0) {
       (this as any as TextOption_<TextOptionNames>).checker_ = {
@@ -226,7 +233,7 @@ class TextOption_<T extends TextualizedOptionNames> extends Option_<T> {
   }
 }
 
-class NonEmptyTextOption_<T extends TextOptionNames> extends TextOption_<T> {
+export class NonEmptyTextOption_<T extends TextOptionNames> extends TextOption_<T> {
   readValueFromElement_ (): string {
     let value = super.readValueFromElement_()
     if (!value) {
@@ -237,8 +244,8 @@ class NonEmptyTextOption_<T extends TextOptionNames> extends TextOption_<T> {
   }
 }
 
-type JSONOptionNames = PossibleOptionNames<object>
-class JSONOption_<T extends JSONOptionNames> extends TextOption_<T> {
+export type JSONOptionNames = PossibleOptionNames<object>
+export class JSONOption_<T extends JSONOptionNames> extends TextOption_<T> {
   formatValue_ (obj: AllowedOptions[T]): string {
     const one = this.element_ instanceof HTMLInputElement, s0 = JSON.stringify(obj, null, one ? 1 : 2)
     return one ? s0.replace(<RegExpG & RegExpSearchable<1>> /(,?)\n\s*/g, (_, s) => s ? ", " : "") : s0
@@ -262,7 +269,7 @@ class JSONOption_<T extends JSONOptionNames> extends TextOption_<T> {
   }
 }
 
-class MaskedText_<T extends TextOptionNames> extends TextOption_<T> {
+export class MaskedText_<T extends TextOptionNames> extends TextOption_<T> {
   masked_: boolean
   _myCancelMask: (() => void) | null
   constructor (element: TextElement, onUpdated: (this: TextOption_<T>) => void) {
@@ -350,10 +357,12 @@ ExclusionRulesOption_.prototype.onRowChange_ = function (this: ExclusionRulesOpt
   }
 }
 
-const saveBtn = $<SaveBtn>("#saveOptions")
-const exportBtn = $<HTMLButtonElement>("#exportButton")
-let savedStatus: (newStat?: boolean | null) => boolean
-const createNewOption = ((): <T extends keyof AllowedOptions> (_element: HTMLElement) => Option_<T> => {
+export interface SaveBtn extends HTMLButtonElement { onclick (this: SaveBtn, virtually?: MouseEvent | false): void }
+export const saveBtn = $<SaveBtn>("#saveOptions")
+export const exportBtn = $<HTMLButtonElement>("#exportButton")
+export let savedStatus: (newStat?: boolean | null) => boolean
+
+export const createNewOption = ((): <T extends keyof AllowedOptions> (_element: HTMLElement) => Option_<T> => {
   let status = false
   savedStatus = newStat => status = newStat != null ? newStat : status
   const onUpdated = function <T extends keyof AllowedOptions>(this: Option_<T>): void {
@@ -390,9 +399,9 @@ const createNewOption = ((): <T extends keyof AllowedOptions> (_element: HTMLEle
     Text: TextOption_, NonEmptyText: NonEmptyTextOption_, JSON: JSONOption_, MaskedText: MaskedText_,
     ExclusionRules: ExclusionRulesOption_
   }
-  const createNewOption = <T extends keyof AllowedOptions> (_element: HTMLElement): Option_<T> => {
-    const cls = types[_element.dataset.model as "Text"]
-    const instance = new cls(_element as TextElement, onUpdated)
+  const createNewOption = <T extends keyof AllowedOptions> (element: HTMLElement): Option_<T> => {
+    const cls = types[(element.dataset as KnownOptionsDataset).model as "Text"]
+    const instance = new cls(element as TextElement, onUpdated)
     instance.fetch_()
     return Option_.all_[instance.field_] = instance as any
   }
@@ -499,7 +508,7 @@ Option_.all_.vomnibarPage.onSave_ = function (): void {
     , isExtPage = url.startsWith(location.protocol) || url.startsWith("front/")
   if (Build.MinCVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg
       && Build.BTypes & BrowserType.Chrome
-      && bgBrowserVer_ < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
+      && CurCVer_ < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
     nextTick_((): void => {
       element2.style.textDecoration = isExtPage ? "" : "line-through"
     })

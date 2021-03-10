@@ -343,6 +343,7 @@ declare const enum BrowserVer {
   MinEnsured$ScrollingElement$CannotBeFrameset = 61,
   MinScrollTopLeftInteropIsAlwaysEnabled = 61,
   MinMaybe$Document$$fullscreenElement = 61, // if EXPERIMENTAL
+  MinEnsuredScript$type$$module = 61, // even if LEGACY
   Min$performance$$timeOrigin = 62, // even if EXPERIMENTAL or LEGACY
   MinCSS$Color$$RRGGBBAA = 62,
   Min$NotSecure$LabelsForSomeHttpPages = 62, // https://developers.google.com/web/updates/2017/10/nic62#https
@@ -353,6 +354,7 @@ declare const enum BrowserVer {
   // https://github.com/philc/vimium/issues/2921#issuecomment-361052160
   CreateShadowRootOnDocReadyBreakPages1 = 62,
   CreateShadowRootOnDocReadyBreakPages2 = 63,
+  MinUsableScript$type$$module$InExtensions = 63, // even if EXPERIMENTAL or LEGACY
   // the 6 below are correct even if EXPERIMENTAL or LEGACY
   // `/deep/` works on C35 even if LEGACY
   // static `/deep/` selector in query is still supported on Chrome LATEST_TESTED

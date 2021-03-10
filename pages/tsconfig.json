@@ -6,6 +6,8 @@
     "tsBuildInfoFile": "../scripts/.ts.pages.build",
   },
   "include": [
+    "define.ts",
+    "async_bg.ts",
     "loader.ts",
     "options*.ts",
     "show.ts"

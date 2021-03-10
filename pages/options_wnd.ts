@@ -1,10 +1,18 @@
+/// <reference path="./define.ts" />
+import { OnOther as bgOnOther_, CurCVer_, BG_, bgSettings_, reloadBG_ } from "./async_bg"
+import {
+  KnownOptionsDataset,
+  setupBorderWidth_, nextTick_, Option_, pTrans_, PossibleOptionNames, AllowedOptions, debounce_, $, $$
+} from "./options_base"
+import { saveBtn, exportBtn, savedStatus, createNewOption, BooleanOption_ } from "./options_defs"
+
 interface ElementWithHash extends HTMLElement {
   onclick (this: ElementWithHash, event: MouseEventToPrevent | null, hash?: "hash"): void;
 }
-interface ElementWithDelay extends HTMLElement {
+export interface ElementWithDelay extends HTMLElement {
   onclick (this: ElementWithDelay, event?: MouseEventToPrevent | null): void;
 }
-interface OptionWindow extends Window {
+export interface OptionWindow extends Window {
   _delayed: [string, MouseEventToPrevent | null];
 }
 
@@ -20,10 +28,7 @@ nextTick_((versionEl): void => {
   versionEl.textContent = bgSettings_.CONST_.VerName_;
 }, $(".version"))
 
-interface SaveBtn extends HTMLButtonElement {
-  onclick (this: SaveBtn, virtually?: MouseEvent | false): void;
-}
-interface AdvancedOptBtn extends HTMLButtonElement {
+export interface AdvancedOptBtn extends HTMLButtonElement {
   onclick (_0: MouseEvent | null, init?: "hash" | true): void;
 }
 
@@ -70,16 +75,16 @@ let optionsInit1_ = function (): void {
   (_element as AdvancedOptBtn).onclick(null, true);
 
   if (Build.MayOverrideNewTab && bgSettings_.CONST_.OverrideNewTab_) {
-    _element = $("#focusNewTabContent")
-    _element.dataset.model = "Boolean"
+    _element = $("#focusNewTabContent");
+    (_element.dataset as KnownOptionsDataset).model = "Boolean"
     createNewOption(_element)
     nextTick_(box => box.style.display = "", $("#focusNewTabContentBox"));
     nextTick_(([el1, el2]) => el2.previousElementSibling !== el1 && el2.parentElement.insertBefore(el1, el2)
       , [$("#newTabUrlBox"), $<EnsuredMountedHTMLElement>("#searchUrlBox")] as const)
   }
   if (!Build.NoDialogUI && bgSettings_.CONST_.OptionsUIOpenInTab_) {
-    _element = $("#dialogMode")
-    _element.dataset.model = "Boolean"
+    _element = $("#dialogMode");
+    (_element.dataset as KnownOptionsDataset).model = "Boolean"
     createNewOption(_element)
     nextTick_(box => box.style.display = "", $("#dialogModeBox"));
   }
@@ -106,7 +111,7 @@ let optionsInit1_ = function (): void {
   _ref = $$("[data-check]");
   for (let _i = _ref.length; 0 <= --_i; ) {
     _element = _ref[_i];
-    _element.addEventListener(_element.dataset.check || "input", loadChecker);
+    _element.addEventListener((_element.dataset as KnownOptionsDataset).check || "input", loadChecker);
   }
 
   document.addEventListener("keyup", function (this: void, event): void {
@@ -135,7 +140,7 @@ let optionsInit1_ = function (): void {
   let func: {
     (this: HTMLElement, event: MouseEventToPrevent): void;
   } | ElementWithDelay["onclick"] = function (this: HTMLElement): void {
-    const target = $("#" + this.dataset.autoResize!)
+    const target = $("#" + (this.dataset as KnownOptionsDataset).autoResize!)
     let height = target.scrollHeight, width = target.scrollWidth, dw = width - target.clientWidth;
     if (height <= target.clientHeight && dw <= 0) { return; }
     const maxWidth = Math.max(Math.min(innerWidth, 1024) - 120, 550);
@@ -156,7 +161,7 @@ let optionsInit1_ = function (): void {
   }
 
   func = function (event): void {
-    let str = this.dataset.delay!, e = null as MouseEventToPrevent | null;
+    let str = (this.dataset as KnownOptionsDataset).delay!, e = null as MouseEventToPrevent | null;
     if (str !== "continue") {
       event && event.preventDefault();
     }
@@ -179,7 +184,7 @@ let optionsInit1_ = function (): void {
   }
 
   if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredWebkitUserSelectAll
-      && bgBrowserVer_ < BrowserVer.MinEnsuredWebkitUserSelectAll) {
+      && CurCVer_ < BrowserVer.MinEnsuredWebkitUserSelectAll) {
   _ref = $$(".sel-all");
   func = function (this: HTMLElement, event): void {
     if (event.target !== this) { return; }
@@ -205,7 +210,7 @@ let optionsInit1_ = function (): void {
     });
     if (Build.MinCVer >= BrowserVer.MinCorrectBoxWidthForOptionsUI
         || !(Build.BTypes & BrowserType.Chrome)
-        || bgBrowserVer_ >= BrowserVer.MinCorrectBoxWidthForOptionsUI) { return; }
+        || CurCVer_ >= BrowserVer.MinCorrectBoxWidthForOptionsUI) { return; }
     ratio > 1 && ((document.body as HTMLBodyElement).style.width = 910 / ratio + "px");
     ( !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
       && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.Min$Tabs$$getZoom)
@@ -239,7 +244,7 @@ let optionsInit1_ = function (): void {
     }
     for (let i = els.length; 0 <= --i; ) {
       let el: HTMLElement = els[i];
-      let key = el.dataset.permission!
+      let key = (el.dataset as KnownOptionsDataset).permission!
       if (key[0] === "C") {
         if (!(Build.BTypes & BrowserType.Chrome)
             || Build.BTypes & ~BrowserType.Chrome && bgOnOther_ !== BrowserType.Chrome) {
@@ -249,7 +254,7 @@ let optionsInit1_ = function (): void {
             }, (el as EnsuredMountedHTMLElement).parentElement.parentElement.parentElement);
           }
           continue;
-        } else if (bgBrowserVer_ >= +key.slice(1)) {
+        } else if (CurCVer_ >= +key.slice(1)) {
           continue;
         }
         key = pTrans_("beforeChromium", [key.slice(1)]);
@@ -275,7 +280,7 @@ let optionsInit1_ = function (): void {
       const el = this.querySelector("[data-permission]") as TextElement | null;
       this.onclick = null as never;
       if (!el) { return; }
-      const key = el.dataset.permission!
+      const key = (el.dataset as KnownOptionsDataset).permission!
       el.placeholder = pTrans_("lackPermission", [key ? `: "${key}"` : ""]);
     }
   })(_ref);
@@ -296,7 +301,8 @@ let optionsInit1_ = function (): void {
     const ref2 = $$("[data-href]")
     for (let _i = ref2.length; 0 <= --_i; ) {
     const element = ref2[_i] as HTMLInputElement;
-    let str = BG_.BgUtils_.convertToUrl_(element.dataset.href!, null, Urls.WorkType.ConvertKnown);
+    let str = BG_.BgUtils_.convertToUrl_((element.dataset as KnownOptionsDataset).href!
+        , null, Urls.WorkType.ConvertKnown)
     element.removeAttribute("data-href");
     element.setAttribute("href", str);
     }
@@ -306,7 +312,7 @@ let optionsInit1_ = function (): void {
   _element = $<HTMLAnchorElement>("#openExtensionsPage");
   if (Build.MinCVer < BrowserVer.MinEnsuredChromeURL$ExtensionShortcuts
       && Build.BTypes & BrowserType.Chrome
-      && bgBrowserVer_ < BrowserVer.MinEnsuredChromeURL$ExtensionShortcuts) {
+      && CurCVer_ < BrowserVer.MinEnsuredChromeURL$ExtensionShortcuts) {
     (_element as HTMLAnchorElement).href = "chrome://extensions/configureCommands";
   } else if (Build.BTypes & BrowserType.Firefox
       && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
@@ -357,7 +363,7 @@ let optionsInit1_ = function (): void {
         ].element_.nextElementSibling as SafeHTMLElement;
     {
       Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
-        && bgBrowserVer_ < BrowserVer.MinScrollIntoViewOptions
+        && CurCVer_ < BrowserVer.MinScrollIntoViewOptions
       ? node2.scrollIntoViewIfNeeded!()
       : node2.scrollIntoView({ block: "center" });
       node2.focus();
@@ -397,7 +403,7 @@ if (!bgSettings_.payload_.o) {
 (window.onhashchange as () => void)();
 
 if (Build.BTypes & BrowserType.ChromeOrFirefox
-    && (Build.BTypes & BrowserType.Chrome && bgBrowserVer_ > BrowserVer.MinMediaQuery$PrefersColorScheme
+    && (Build.BTypes & BrowserType.Chrome && CurCVer_ > BrowserVer.MinMediaQuery$PrefersColorScheme
       || Build.BTypes & BrowserType.Firefox && BG_.CurFFVer_ > FirefoxBrowserVer.MinMediaQuery$PrefersColorScheme
       )) {
   const media = matchMedia("(prefers-color-scheme: dark)");
@@ -477,7 +483,7 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
 }, 1200, $("#userDefinedCss") as HTMLTextAreaElement, 0));
 
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Option$HasReliableFontSize
-    && bgBrowserVer_ < BrowserVer.Min$Option$HasReliableFontSize) {
+    && CurCVer_ < BrowserVer.Min$Option$HasReliableFontSize) {
   $("select").classList.add("font-fix");
 }
 
@@ -495,7 +501,7 @@ el0.textContent = (Build.BTypes & BrowserType.Edge
         && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)
     ? "Firefox " + BG_.CurFFVer_
     : (BG_.IsEdg_ ? ["MS Edge"]
-        : (<RegExpOne> /\bChromium\b/).exec(navigator.appVersion) || ["Chrome"])[0] + " " + bgBrowserVer_
+        : (<RegExpOne> /\bChromium\b/).exec(navigator.appVersion) || ["Chrome"])[0] + " " + CurCVer_
   ) + pTrans_("comma") + pTrans_("NS") + (pTrans_(platform)
         || platform[0].toUpperCase() + platform.slice(1));
 if (Build.BTypes & BrowserType.Chrome && BG_.IsEdg_) {
@@ -504,20 +510,19 @@ if (Build.BTypes & BrowserType.Chrome && BG_.IsEdg_) {
 }
 }, $("#browserName"));
 
-function loadJS(file: string): HTMLScriptElement {
-  const script = document.createElement("script");
-  script.src = file;
-  script.async = false; script.defer = true;
-  (document.head as HTMLHeadElement).appendChild(script);
-  return script;
+export const loadJS = (url: string): Promise<void> => {
+  const filename = url.slice(url.lastIndexOf("/") + 1).replace(".js", "")
+  __filename = `__loader_` + filename
+  return new Promise<void>((resolve): void => {
+    define([url], (): void => resolve())
+  })
 }
 
-interface CheckerLoader { info_?: string }
-function loadChecker(this: HTMLElement): void {
-  if ((loadChecker as CheckerLoader).info_ != null) { return; }
-  (loadChecker as CheckerLoader).info_ = this.id;
+export const loadChecker = function (this: HTMLElement): void {
+  if (loadChecker.info_ != null) { return }
+  loadChecker.info_ = this.id
   loadJS("options_checker.js");
-}
+} as { (this: HTMLElement): void; info_?: string }
 
 document.addEventListener("keydown", function (this: void, event): void {
   if (event.keyCode !== kKeyCode.space) {
@@ -563,7 +568,7 @@ window.onhashchange = function (this: void): void {
     }
   } else if (node = $("#" + hash)) {
     nextTick_((): void => {
-    if ((node as HTMLElement).dataset.model) {
+    if (((node as HTMLElement).dataset as KnownOptionsDataset).model) {
       (node as HTMLElement).classList.add("highlight");
     }
     const callback = function (event?: Event): void {
@@ -597,14 +602,12 @@ BG_.BgUtils_.GC_(1);
 function OnBgUnload(): void {
   BG_.removeEventListener("unload", OnBgUnload);
   setTimeout(function (): void {
-    BG_ = chrome.extension.getBackgroundPage() as Window as typeof BG_ // lgtm [js/missing-variable-declaration]
-    if (!BG_) { // a user may call `close()` in the console panel
+    reloadBG_()
+    if (!BG_) {
       window.onbeforeunload = null as any;
       window.close();
       return;
     }
-    bgSettings_ = BG_.Settings_ // lgtm [js/missing-variable-declaration]
-    if (!bgSettings_) { BG_ = null as never; return; }
     BG_.addEventListener("unload", OnBgUnload);
     if (BG_.document.readyState !== "loading") { setTimeout(callback, 67); return; }
     BG_.addEventListener("DOMContentLoaded", function load(): void {
@@ -680,7 +683,7 @@ document.addEventListener("click", function onClickOnce(): void {
   })
 }, true);
 
-function click(a: Element): boolean {
+export const click = function (a: Element): boolean {
   const mouseEvent = document.createEvent("MouseEvents");
   mouseEvent.initMouseEvent("click", true, true, window, 1, 0, 0, 0, 0
     , false, false, false, false, 0, null);

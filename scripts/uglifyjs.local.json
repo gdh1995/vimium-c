@@ -22,7 +22,7 @@
     "passes": 2,
     "properties": true,
     "pure_getters": true,
-    "pure_funcs": ["require"],
+    "pure_funcs": null,
     "side_effects": true,
     "unsafe_arrows": true,
     "unsafe_comps": false,

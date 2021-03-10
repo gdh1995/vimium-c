@@ -1,3 +1,7 @@
+import { BG_, bgSettings_ } from "./async_bg"
+import { Option_, pTrans_, AllowedOptions, $$, KnownOptionsDataset } from "./options_base"
+import { loadChecker } from "./options_wnd"
+
 let keyMappingChecker_ = {
   status_: 0 as const,
   normalizeKeys_: null as never as (this: void, s: string) => string,
@@ -167,10 +171,10 @@ Option_.all_.keyboard.checker_ = {
 };
 
 (function (): void {
-  const func = loadChecker as CheckerLoader, info = func.info_;
-  func.info_ = "";
+  const info = loadChecker.info_
+  loadChecker.info_ = ""
   for (const element of $$("[data-check]") as HTMLElement[]) {
-    element.removeEventListener(element.dataset.check || "input", func as typeof loadChecker);
+    element.removeEventListener((element.dataset as KnownOptionsDataset).check || "input", loadChecker)
   }
 
   if (info === "keyMappings") { return ReloadCommands(); }

@@ -148,7 +148,7 @@ exports.gulpMap = function (map, async) {
         }
         this.push(srcFile)
         done()
-      })
+      }).catch(err => done(err))
       return
     }
     if (dest) {
@@ -606,22 +606,45 @@ function rollupContent(stream, localExcludedPathRe) {
       return done();
     }
     oriRollupConfig = oriRollupConfig || require("./rollup.config.js")
-    oriRollupConfig.output.file = null
     require("rollup").rollup({ ...oriRollupConfig, output: null, input: require("path").relative(file.cwd, file.path) })
-    .then(builder => builder.generate({ ...oriRollupConfig.output }))
+    .then(builder => builder.generate({ ...oriRollupConfig.output, file: null }))
     .then(result => {
       if (result === undefined) {
         return done(new Error("No rollup.js found"));
       }
       var code = result.output[0].code
       code = dependencies.inlineAllSetters(code)
-      file.contents = Buffer.from(code)
+      file.contents = exports.ToBuffer(code)
       file.history = historys
       this.push(file)
       done()
     })
   };
   return stream.pipe(transformer)
+}
+
+exports.rollupOne = function (file, oriRollupConfig, codeCB) {
+  const rollup = require("rollup")
+  const input = exports.ToString(file.contents)
+  const path = file.relative
+  const preserve = oriRollupConfig.output.preserveModules
+  return rollup.rollup({ ...oriRollupConfig, output: null, input: path,
+    plugins: [  {
+      name: 'virtual',
+      resolveId(id) {
+        if (preserve) {
+          return id === path ? id : { id, external: true }
+        }
+      },
+      load(id) { if (id === path) { return input } }
+    } ]
+  })
+  .then(builder => builder.generate({ ...oriRollupConfig.output, file: null }))
+  .then(result => {
+    let code = result.output[0].code
+    code = codeCB ? codeCB(code, file) : code
+    file.contents = exports.ToBuffer(code)
+  })
 }
 
 exports.parseBuildEnv = function (key, literalVal, LOCAL_SILENT, locally) {

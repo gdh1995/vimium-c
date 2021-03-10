@@ -75,10 +75,12 @@
     "properties": {
       "regex": "/^_|_$/",
       "builtins": true,
-      "reserved": [ "__proto__", "$_", "_", "_get" ],
+      "reserved": [ "__proto__", "$_", "_", "_get", "__filename", "__extends" ],
       "undeclared": true
     },
     "reserved": [
+      // # globals
+      "define",
       // # expected names in content
       "WeakMap", "WeakSet", "Set", "InputDeviceCapabilities", "visualViewport",
       "requestIdleCallback", "WeakRef",

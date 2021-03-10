@@ -1,8 +1,5 @@
 /// <reference path="../lib/base.d.ts" />
-/// <reference path="../background/index.d.ts" />
-/// <reference path="../background/utils.ts" />
-/// <reference path="../background/settings.ts" />
-interface VDataTy {
+interface VDataTy2 extends VDataTy {
   type: "image" | "url" | "";
   original: string;
   url: string;
@@ -12,19 +9,16 @@ interface VDataTy {
   incognito?: boolean;
   error?: string;
 }
-interface KnownDataset {
+interface KnownShowDataset extends KnownDataset {
   i: string // text in i18n
   text: string // names of type tips in i18n
   colon: string // colon string in i18n
 }
 
-// eslint-disable-next-line no-var
-var VData: VDataTy = null as never;
-if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
-    : typeof browser !== "undefined" && (browser && (browser as typeof chrome).runtime) != null) {
-  window.chrome = browser as typeof chrome;
-}
-(function (): void {
+import { OnOther as bgOnOther_, CurCVer_, BG_ } from "./async_bg"
+
+let VData: VDataTy2 = null as never
+
 interface ViewerType {
   scrollbarWidth: number
   hiding: boolean
@@ -51,16 +45,8 @@ interface ImportBody {
 interface CurWnd extends Window {
   Viewer: new (root: HTMLElement) => ViewerType
 }
-interface BgWindow extends Window {
-  BgUtils_: typeof BgUtils_;
-  Settings_: typeof Settings_;
-}
 type ValidNodeTypes = HTMLImageElement | HTMLDivElement;
 
-let BG_ = chrome.extension && chrome.extension.getBackgroundPage() as Window as BgWindow
-if (!(BG_ && BG_.BgUtils_ && BG_.BgUtils_.convertToUrl_)) {
-  BG_ = null as never;
-}
 const $ = <T extends HTMLElement>(selector: string): T => document.querySelector(selector) as T,
 pTrans_ = chrome.i18n.getMessage
 const blobCache: Dict<Blob> = {}
@@ -89,9 +75,9 @@ window.onhashchange = function (this: void): void {
     VShown = null;
   }
 
-  VData = Object.create(null);
+  VData = (window as unknown as typeof globalThis).VData = Object.create(null);
   VData.o = getOmni_;
-  let url = location.hash, type: VDataTy["type"] = "", file = "";
+  let url = location.hash, type: VDataTy2["type"] = "", file = "";
   if (_nextUrl || !url && BG_ && BG_.Settings_ && BG_.Settings_.temp_.shownHash_) {
     url = _nextUrl || BG_.Settings_.temp_.shownHash_!()
     _nextUrl = ""
@@ -184,8 +170,7 @@ window.onhashchange = function (this: void): void {
       this.onerror = this.onload = null as never;
       this.alt = VData.error = pTrans_("failInLoading")
       if (Build.MinCVer >= BrowserVer.MinNoBorderForBrokenImage || !(Build.BTypes & BrowserType.Chrome)
-          || BG_ && BG_.Settings_
-            && BG_.CurCVer_ >= BrowserVer.MinNoBorderForBrokenImage) {
+          || CurCVer_ >= BrowserVer.MinNoBorderForBrokenImage) {
         this.classList.add("broken");
       }
       setTimeout(showBgLink, 34);
@@ -234,7 +219,7 @@ window.onhashchange = function (this: void): void {
             (el.querySelector(".banner-close") as SVGElement)!.onclick = _e => { el.remove() }
             let arr = el.querySelectorAll("[data-i]") as ArrayLike<Element> as HTMLElement[]
             for (let i = 0; i < arr.length; i++) {
-              const s = arr[i].dataset.i!, isTitle = s.endsWith("-t")
+              const s = (arr[i].dataset as KnownShowDataset).i!, isTitle = s.endsWith("-t")
               const t = pTrans_(isTitle ? s.slice(0, -2) : s)
               t && (isTitle ? arr[i].title = t : arr[i]!.textContent = t)
             }
@@ -307,28 +292,6 @@ window.onhashchange = function (this: void): void {
   }
   bgLink.onclick = VShown ? clickShownNode : defaultOnClick;
 };
-
-if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".includes) {
-(function (): void {
-  const StringCls = String.prototype;
-  /** startsWith may exist - {@see #BrowserVer.Min$String$$StartsWithEndsWithAndIncludes$ByDefault} */
-  if (!"".startsWith) {
-    StringCls.startsWith = function (this: string, s: string): boolean {
-      return this.lastIndexOf(s, 0) === 0;
-    };
-    StringCls.endsWith = function (this: string, s: string): boolean {
-      const i = this.length - s.length;
-      return i >= 0 && this.indexOf(s, i) === i;
-    };
-  } else if (Build.MinCVer <= BrowserVer.Maybe$Promise$onlyHas$$resolved) {
-    Promise.resolve || (Promise.resolve = Promise.resolved!)
-  }
-  StringCls.includes = function (this: string, s: string, pos?: number): boolean {
-    // eslint-disable-next-line @typescript-eslint/prefer-includes
-    return this.indexOf(s, pos) >= 0;
-  };
-})();
-}
 
 (window.onhashchange as () => void)();
 
@@ -519,8 +482,8 @@ function showText(tip: string | Urls.kEval, body: string | string[]): void {
   tip = typeof tip === "number" ? ["math", "copy", "search", "ERROR", "status", "paste"
       , "url"
       ][tip] : tip;
-  $("#textTip").dataset.text = pTrans_("t_" + tip) || tip;
-  $(".colon").dataset.colon = pTrans_("colon") + pTrans_("NS");
+  ($("#textTip").dataset as KnownShowDataset).text = pTrans_("t_" + tip) || tip;
+  ($(".colon").dataset as KnownShowDataset).colon = pTrans_("colon") + pTrans_("NS");
   const textBody = $("#textBody");
   if (body) {
     textBody.textContent = typeof body !== "string" ? body.join(" ") : body;
@@ -558,9 +521,8 @@ function copyThing(event: EventToPrevent): void {
         }
         const doWrite = (): Promise<void> => clipboard!.write!([new ClipboardItem(item)])
         if (!(Build.BTypes & BrowserType.Chrome)
-            || Build.BTypes & ~BrowserType.Chrome && (!BG_ || BG_.OnOther !== BrowserType.Chrome)
-            || Build.MinCVer < BrowserVer.MinClipboardWriteHTML
-                && BG_ && BG_.CurCVer_ < BrowserVer.MinClipboardWriteHTML) {
+            || Build.BTypes & ~BrowserType.Chrome && bgOnOther_ !== BrowserType.Chrome
+            || Build.MinCVer < BrowserVer.MinClipboardWriteHTML && CurCVer_ < BrowserVer.MinClipboardWriteHTML) {
           return doWrite()
         }
         const img = document.createElement("img")
@@ -570,7 +532,7 @@ function copyThing(event: EventToPrevent): void {
         return doWrite().catch(() => (delete item["text/html"], doWrite()))
       }),
       finalPromise = !(Build.BTypes & ~BrowserType.Firefox)
-          || Build.BTypes & BrowserType.Firefox && BG_ && BG_.OnOther === BrowserType.Firefox
+          || Build.BTypes & BrowserType.Firefox && bgOnOther_ === BrowserType.Firefox
           ? navClipPromise.catch(_ => {
             const thisBrowser = typeof browser === "object" && _shownBlob ? browser as typeof chrome : 0,
             clip = thisBrowser && (thisBrowser as any).clipboard;
@@ -870,7 +832,7 @@ function fetchImage_(url: string, element: HTMLImageElement): void {
     destroyObject_();
     body.replaceChild(text, element);
     Promise.resolve(blobCache[url] || (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFetchDataURL
-        && BG_ && BG_.CurCVer_ < BrowserVer.MinFetchDataURL ? new Promise<Blob>((resolve, reject): void => {
+        && CurCVer_ < BrowserVer.MinFetchDataURL ? new Promise<Blob>((resolve, reject): void => {
       const req = new XMLHttpRequest() as BlobXHR
       req.responseType = "blob"
       req.onload = function (): void { resolve(this.response) }
@@ -949,7 +911,7 @@ function recoverHash_(notUpdateHistoryState?: BOOL): void {
   }
   let url = "#!" + type + " "
       + (VData.incognito ? "incognito=1&" : "")
-      + (VData.file ? "download=" + (BG_ ? BG_.BgUtils_.encodeAsciiComponent : encodeURIComponent)(VData.file)
+      + (VData.file ? "download=" + encodeAsciiComponent(VData.file)
           + "&" : "")
       + (VData.auto ? "auto=" + (VData.auto === "once" ? "once" : 1) + "&" : "")
       + (VData.pixel ? "pixel=1&" : "")
@@ -958,6 +920,24 @@ function recoverHash_(notUpdateHistoryState?: BOOL): void {
   if (notUpdateHistoryState) { return; }
   let encryptedUrl = encrypt_(url, encryptKey, true);
   history.replaceState(encryptedUrl, "", "");
+}
+
+function encodeAsciiComponent (url: string): string { return url.replace(
+    Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || bgOnOther_ & BrowserType.Edge)
+      || Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp && Build.BTypes & BrowserType.Chrome
+        && CurCVer_ < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+      || Build.MinFFVer < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+        && Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ & BrowserType.Firefox)
+        && CurFFVer_ < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+    ? <RegExpG & RegExpSearchable<0>> /[\x00-`{-\u0390\u03ca-\u4dff\u9fa6-\uffff\s]+/g // Greek letters / CJK
+    : (Build.MinCVer >= BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp || !(Build.BTypes & BrowserType.Chrome))
+      && (Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+          || !(Build.BTypes & BrowserType.Firefox))
+      && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+    ? <RegExpG & RegExpSearchable<0>> /[^\p{L}\p{N}]+/ug
+    : <RegExpG & RegExpSearchable<0>> new RegExp("[^\\p{L}\\p{N}]+", "ug" as "g"),
+    encodeURIComponent)
 }
 
 function encrypt_(message: string, password: number, doEncrypt: boolean): string {
@@ -1004,4 +984,3 @@ if (!Build.NDEBUG) {
     VShown, bgLink, tempEmit, viewer_, encryptKey, ImageExtRe, _shownBlobURL,
   })
 }
-})();

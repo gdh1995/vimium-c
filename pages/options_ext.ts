@@ -1,3 +1,8 @@
+import { OnOther as bgOnOther_, CurCVer_, BG_, bgSettings_ } from "./async_bg"
+import { $, AllowedOptions, ExclusionRulesOption_, Option_, pTrans_ } from "./options_base"
+import { SaveBtn } from "./options_defs"
+import { AdvancedOptBtn, click, ElementWithDelay, loadChecker, loadJS, OptionWindow } from "./options_wnd"
+
 $<ElementWithDelay>("#showCommands").onclick = function showHelp(this: void, event): void {
   if (!window.VApi || !VApi.z) {
     typeof VimiumInjector !== "undefined" && setTimeout(showHelp, 120, null)
@@ -102,7 +107,7 @@ $<ElementWithDelay>("#exportButton").onclick = function (event): void {
   };
   if (Build.BTypes & BrowserType.Chrome
       && (!(Build.BTypes & ~BrowserType.Chrome) || bgOnOther_ === BrowserType.Chrome)) {
-    exported_object.environment.chrome = bgBrowserVer_;
+    exported_object.environment.chrome = CurCVer_;
   }
   const storedKeys: Array<keyof SettingsNS.PersistentSettings> = [],
   storage = localStorage, all = bgSettings_.defaults_;
@@ -373,15 +378,9 @@ function importSettings_(time: number | string | Date, data: string, is_recommen
       return alert(err_msg);
     }
   }
-  const promisedChecker = Option_.all_.keyMappings.checker_ ? 1 : new Promise<1>(function (resolve): void {
-    const element = $<HTMLScriptElement>("script[src*=options_checker]") || loadJS("options_checker.js"),
-    cb = function (): void {
-      element.removeEventListener("load", cb);
-      resolve(1);
-    };
-    (loadChecker as CheckerLoader).info_ = "";
-    element.addEventListener("load", cb);
-  }), t2 = time, d2 = new_data;
+  const promisedChecker = Option_.all_.keyMappings.checker_ ? null as never as void
+      : (loadChecker.info_ = "", loadJS("options_checker.js"))
+  const t2 = time, d2 = new_data
   Promise.all([BG_.BgUtils_.require_("KeyMappings"), promisedChecker]).then((): void => {
     setTimeout(_importSettings, 17, t2, d2, is_recommended);
   });
@@ -416,7 +415,7 @@ _el.onchange = function (this: HTMLSelectElement): void {
   }
   const recommended = "../settings-template.json";
   if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinFetchExtensionFiles
-      || bgBrowserVer_ >= BrowserVer.MinFetchExtensionFiles) {
+      || CurCVer_ >= BrowserVer.MinFetchExtensionFiles) {
     fetch(recommended).then(r => r.text()).then(t => importSettings_(0, t, true));
     return;
   }

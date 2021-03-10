@@ -66,15 +66,16 @@ var CompileTasks = {
   front: [["front/*.ts", has_polyfill ? POLYFILL_FILE : "!" + POLYFILL_FILE
             , "lib/injector.ts", "pages/*.ts"
             , may_have_newtab ? NEWTAB_FILE : "!" + NEWTAB_FILE
-            , "!pages/options*.ts", "!pages/show.ts"]
+            , "!pages/options*.ts", "!pages/show.ts", "!pages/async_bg.ts"]
           , ["background/index.d.ts", "content/*.d.ts"]
           , { inBatch: false }],
   vomnibar: ["front/vomnibar*.ts", ["background/index.d.ts", "content/*.d.ts"]],
   polyfill: [POLYFILL_FILE],
   injector: ["lib/injector.ts"],
-  options: ["pages/options*.ts", ["background/*.d.ts", "content/*.d.ts"]],
-  show: ["pages/show.ts", ["background/index.d.ts", "content/*.d.ts"]],
-  others: [ ["pages/*.ts", "front/*.ts", "!pages/options*.ts", "!pages/show.ts", "!front/vomnibar*.ts"]
+  options: [["pages/options*.ts", "pages/async_bg.ts"], ["background/*.d.ts", "content/*.d.ts"]],
+  show: [["pages/show.ts", "pages/async_bg.ts"], ["background/index.d.ts", "content/*.d.ts"]],
+  others: [ ["pages/*.ts", "front/*.ts", "!pages/options*.ts", "!pages/show.ts", "!pages/async_bg.ts"
+              , "!front/vomnibar*.ts"]
             , "background/index.d.ts" ],
 }
 
@@ -317,16 +318,15 @@ var Tasks = {
         }
       });
     });
-    gulp.task("min/others/options", function() {
+    gulp.task("min/others/pages", function() {
       exArgs.passAll = null;
-      return minifyJSFiles(["pages/options_base.js", "pages/options_defs.js", "pages/options_wnd.js"
-      , "pages/options_ext.js", "pages/options_checker.js"]
+      return minifyJSFiles(["pages/options*.js", "pages/show*", "pages/async_bg*"]
           , ".", deepcopy(exArgs));
     });
     gulp.task("min/others/misc", function() {
       var oriManifest = readJSON("manifest.json", true);
       var res = ["**/*.js", "!background/*.js", "!content/*.js", "!front/vomnibar*", "!helpers/*/*.js"
-          , "!pages/options*"];
+          , "!pages/options*", "!pages/show*", "!pages/async_bg*"];
       has_polyfill || res.push("!" + POLYFILL_FILE.replace(".ts", ".*"));
       may_have_newtab || res.push("!" + NEWTAB_FILE.replace(".ts", ".*"));
       if (!has_dialog_ui) {
@@ -340,7 +340,7 @@ var Tasks = {
       exArgs.passAll = false;
       return minifyJSFiles(res, ".", deepcopy(exArgs))
     });
-    gulp.parallel("min/others/omni", "min/others/options", "min/others/misc")(function() {
+    gulp.parallel("min/others/omni", "min/others/pages", "min/others/misc")(function() {
       jsmin_status[2] = true;
       cb();
     });
@@ -634,6 +634,27 @@ function outputJSResult(stream) {
       stream = stream.pipe(getGulpTerser()(config));
     }
     stream = stream.pipe(gulpMap(postTerser.bind(null, config)))
+  } else {
+    const es5 = getBuildItem("BTypes") & BrowserType.Edge || getBuildItem("BTypes") & BrowserType.Chrome
+        && getBuildItem("MinCVer") < /* MinUsableScript$type$$module$InExtensions */ 63
+    stream = stream.pipe(gulpMap(file => {
+      const path = file.relative.replace(/\\/g, "/")
+      if (path.includes("pages/") && /show|options|env|async_bg/.test(path)) {
+        if (es5) {
+          return gulpUtils.rollupOne(file, {
+            treeshake: false, output: { format: "amd", preserveModules: true }
+          }, (code, file) => {
+            var banner = "window.__filename = " + JSON.stringify(file.relative.replace(/\\/g, "/")) + ";\n"
+            return banner + code
+          })
+        } else {
+          file.contents = ToBuffer(ToString(file.contents
+              ).replace(/\bimport\b[^'"}]+\}?\s?\bfrom\b\s?['"][.\/\w]+['"]/g, s => {
+            return s.includes(".js") ? s : s.slice(0, -1) + ".js" + s.slice(-1)
+          }))
+        }
+      }
+    }))
   }
   stream = stream.pipe(gulpChanged(JSDEST, { hasChanged: gulpUtils.compareContentAndTouch }));
   if (willListEmittedFiles) {

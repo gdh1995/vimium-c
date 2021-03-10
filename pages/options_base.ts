@@ -1,26 +1,24 @@
 /// <reference path="../lib/base.d.ts" />
-/// <reference path="../background/index.d.ts" />
-/// <reference path="../background/utils.ts" />
-/// <reference path="../background/settings.ts" />
 /// <reference path="../background/exclusions.ts" />
-type AllowedOptions = SettingsNS.PersistentSettings;
-type PossibleOptionNames<T> = PossibleKeys<AllowedOptions, T>;
+
+export type AllowedOptions = SettingsNS.PersistentSettings
+export type PossibleOptionNames<T> = PossibleKeys<AllowedOptions, T>
 interface BaseChecker<V extends AllowedOptions[keyof AllowedOptions]> {
   init_? (): any;
   check_ (value: V): V;
 }
-type Checker<T extends keyof AllowedOptions> = BaseChecker<AllowedOptions[T]>;
-interface BgWindow extends Window {
-  BgUtils_: typeof BgUtils_;
-  Settings_: typeof Settings_;
-}
+export type Checker<T extends keyof AllowedOptions> = BaseChecker<AllowedOptions[T]>
+import {
+  UniversalNumberSettings, NumberOption_, JSONOptionNames, JSONOption_, TextualizedOptionNames, TextOption_,
+  BooleanOption_
+} from "./options_defs"
 type OptionType<T extends keyof AllowedOptions> = T extends "exclusionRules" ? ExclusionRulesOption_
     : T extends UniversalNumberSettings ? NumberOption_<T>
     : T extends JSONOptionNames ? JSONOption_<T>
     : T extends TextualizedOptionNames ? TextOption_<T>
     : NonNullable<AllowedOptions[T]> extends boolean | number ? BooleanOption_<T>
     : never;
-interface KnownDataset {
+export interface KnownOptionsDataset extends KnownDataset {
   iT: string // title in i18n
   i: string // text in i18n
   check: "check" // event name used in BooleanOption_
@@ -34,56 +32,24 @@ interface KnownDataset {
   href: `vimium://${string}`
 }
 
-if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".includes) {
-(function (): void {
-  const StringCls = String.prototype;
-  /** startsWith may exist - {@see #BrowserVer.Min$String$$StartsWithEndsWithAndIncludes$ByDefault} */
-  if (!"".startsWith) {
-    StringCls.startsWith = function (this: string, s: string): boolean {
-      return this.lastIndexOf(s, 0) === 0;
-    };
-    StringCls.endsWith = function (this: string, s: string): boolean {
-      const i = this.length - s.length;
-      return i >= 0 && this.indexOf(s, i) === i;
-    };
-  } else if (Build.MinCVer <= BrowserVer.Maybe$Promise$onlyHas$$resolved) {
-    Promise.resolve || (Promise.resolve = Promise.resolved!)
-  }
-  StringCls.includes = function (this: string, s: string, pos?: number): boolean {
-    // eslint-disable-next-line @typescript-eslint/prefer-includes
-    return this.indexOf(s, pos) >= 0;
-  };
-})();
-}
+import { OnOther as bgOnOther_, CurCVer_, BG_, bgSettings_ } from "./async_bg"
 
-// eslint-disable-next-line no-var
-declare var bgOnOther_: BrowserType;
-if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
-    : typeof browser !== "undefined" && (browser && (browser as typeof chrome).runtime) != null) {
-  window.chrome = browser as typeof chrome;
-}
-(window as PartialOf<typeof globalThis, "VimiumInjector">).VimiumInjector = null
-// eslint-disable-next-line no-var
-var $ = <T extends HTMLElement>(selector: string): T => document.querySelector(selector) as T
-  , BG_ = chrome.extension.getBackgroundPage() as Window as BgWindow
-  , pTrans_: typeof chrome.i18n.getMessage = Build.BTypes & BrowserType.Firefox
-      && (!(Build.BTypes & ~BrowserType.Firefox) || BG_.OnOther === BrowserType.Firefox)
+export const $ = <T extends HTMLElement>(selector: string): T => document.querySelector(selector) as T
+
+export const pTrans_: typeof chrome.i18n.getMessage = Build.BTypes & BrowserType.Firefox
+      && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)
       ? (i, j) => BG_.trans_(i, j) : chrome.i18n.getMessage;
-if (!Build.BTypes || Build.BTypes & (Build.BTypes - 1)) {
-  (window as PartialOf<typeof globalThis, "bgOnOther_">).bgOnOther_ = BG_.OnOther as BrowserType
-}
 
-const $$ = ((selector: string, root?: HTMLElement | ShadowRoot | null) => {
+export const $$ = ((selector: string, root?: HTMLElement | ShadowRoot | null) => {
   const list = (root || document).querySelectorAll(selector)
   return Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
       && Build.MinCVer >= BrowserVer.MinTestedES6Environment
-      && BG_.CurCVer_ < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
+      && CurCVer_ < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
       ? [].slice.call(list) : list
-}) as <T extends HTMLElement>(selector: string, root?: HTMLElement | ShadowRoot | null) => ArrayLike<T>,
-lang_ = chrome.i18n.getMessage("lang1");
+}) as <T extends HTMLElement>(selector: string, root?: HTMLElement | ShadowRoot | null) => ArrayLike<T>
 
+const lang_ = chrome.i18n.getMessage("lang1")
 if (lang_) {
-  (function (): void {
     const langInput = navigator.language as string || pTrans_("lang2")
     let t = pTrans_("keyMappingsP"), el: HTMLElement | null = $("#keyMappings");
     t && el && ((el as HTMLInputElement).placeholder = t);
@@ -93,15 +59,14 @@ if (lang_) {
       }
     }
     for (el of $$("[data-i]") as HTMLElement[]) {
-      const dataset = el.dataset, i = dataset.i!, isTitle = i.endsWith("-t")
+      const i = (el.dataset as KnownOptionsDataset).i!, isTitle = i.endsWith("-t")
       t = pTrans_(isTitle ? i.slice(0, -2) : i);
       (t || i === "NS") && (isTitle ? el.title = t : el!.innerText = t)
     }
     (document.documentElement as HTMLHtmlElement).lang = lang_ === "zh" ? "zh-CN" as "" : lang_ as "";
-  })();
 }
 
-const __extends = function<Child, Super, Base> (
+(window as unknown as any).__extends = function<Child, Super, Base> (
     child: (new <Args extends any[]> (...args: Args) => Child) & {
         prototype?: Super & { "constructor": new () => Child };
     }, parent: (new <Args extends any[]> (...args: Args) => Super) & {
@@ -116,8 +81,9 @@ const __extends = function<Child, Super, Base> (
   } as {} as Middle;
   __.prototype = parent.prototype;
   child.prototype = new __();
-},
-nextTick_ = (function (): { <T>(task: (self: T) => void, context: T): void; (task: (this: void) => void): void } {
+}
+
+export const nextTick_ = ((): { <T>(task: (self: T) => void, self: T): void; (task: (this: void) => void): void } => {
   type Callback = () => void;
   const tasks: Callback[] = [],
   ticked = function (): void {
@@ -138,7 +104,7 @@ nextTick_ = (function (): { <T>(task: (self: T) => void, context: T): void; (tas
       tasks.length = 0;
     }
   };
-  return function <T> (task: ((firstArg: T) => void) | ((this: void) => void), context?: T): void {
+  return <T> (task: ((firstArg: T) => void) | ((this: void) => void), context?: T): void => {
     if (tasks.length <= 0) {
       if ((Build.MinCVer >= BrowserVer.Min$queueMicrotask || !(Build.BTypes & BrowserType.Chrome))
           && (Build.MinFFVer >= FirefoxBrowserVer.Min$queueMicrotask || !(Build.BTypes & BrowserType.Firefox))
@@ -155,8 +121,9 @@ nextTick_ = (function (): { <T>(task: (self: T) => void, context: T): void; (tas
       tasks.push(context ? (task as (firstArg: T) => void).bind(null, context) : task as (this: void) => void);
     }
   };
-})(),
-debounce_ = function<T> (this: void, func: (this: T) => void
+})()
+
+export const debounce_ = function<T> (func: (this: T) => void
     , wait: number, bound_context: T, also_immediate: number
     ): (this: void) => void {
   let timeout = 0, timestamp: number;
@@ -181,14 +148,10 @@ debounce_ = function<T> (this: void, func: (this: T) => void
       return func.call(bound_context);
     }
   };
-} as <T> (this: void, func: (this: T) => void
-          , wait: number, bound_context: T, also_immediate: BOOL
-          ) => (this: void) => void,
-bgBrowserVer_ = Build.BTypes & BrowserType.Chrome ? BG_.CurCVer_ : BrowserVer.assumedVer;
+} as <T> (func: (this: T) => void, wait: number, bound_context: T, also_immediate: BOOL) => (this: void) => void
 
-let bgSettings_ = BG_.Settings_;
 
-abstract class Option_<T extends keyof AllowedOptions> {
+export abstract class Option_<T extends keyof AllowedOptions> {
   readonly element_: HTMLElement;
   readonly field_: T;
   previous_: AllowedOptions[T];
@@ -267,7 +230,7 @@ static saveOptions_: (this: void) => boolean;
 static needSaveOptions_: (this: void) => boolean;
 showError_: (msg: string, tag?: OptionErrorType | null, errors?: boolean) => void;
 }
-type OptionErrorType = "has-error" | "highlight";
+export type OptionErrorType = "has-error" | "highlight"
 
 interface ExclusionBaseVirtualNode {
   rule_: ExclusionsNS.StoredRule;
@@ -287,11 +250,11 @@ interface ExclusionVisibleVirtualNode extends ExclusionBaseVirtualNode {
   $pattern_: HTMLInputElement & ExclusionRealNode;
   $keys_: HTMLInputElement & ExclusionRealNode;
 }
-interface ExclusionRealNode extends HTMLElement {
+export interface ExclusionRealNode extends HTMLElement {
   vnode: ExclusionVisibleVirtualNode;
 }
 
-class ExclusionRulesOption_ extends Option_<"exclusionRules"> {
+export class ExclusionRulesOption_ extends Option_<"exclusionRules"> {
   template_: HTMLTableRowElement;
   list_: Array<ExclusionVisibleVirtualNode | ExclusionInvisibleVirtualNode>;
   $list_: HTMLTableSectionElement;
@@ -305,7 +268,7 @@ constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption_) => v
     if (lang_) {
       let el: HTMLElement, t: string | null
       for (el of $$("[data-i]", element) as HTMLElement[]) {
-        t = pTrans_(el.dataset.i as string);
+        t = pTrans_((el.dataset as KnownOptionsDataset).i!);
         t && (el.innerText = t);
       }
       for (el of $$("[title]", this.template_) as HTMLElement[]) {
@@ -512,17 +475,17 @@ sortRules_: (el?: HTMLElement) => void;
 timer_?: number;
 }
 
-let setupBorderWidth_ = (Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
+export let setupBorderWidth_ = (Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
       && Build.BTypes & BrowserType.Chrome
-      && bgBrowserVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo)
+      && CurCVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo)
     || devicePixelRatio < 2 && (Build.MinCVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
-        || bgBrowserVer_ >= BrowserVer.MinRoundedBorderWidthIsNotEnsured)
+        || CurCVer_ >= BrowserVer.MinRoundedBorderWidthIsNotEnsured)
     ? (): void => {
   const css = document.createElement("style"), ratio = devicePixelRatio;
   const onlyInputs = (Build.MinCVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
-    || bgBrowserVer_ >= BrowserVer.MinRoundedBorderWidthIsNotEnsured) && ratio >= 1;
+    || CurCVer_ >= BrowserVer.MinRoundedBorderWidthIsNotEnsured) && ratio >= 1;
   let scale: string | number = Build.MinCVer >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
-    || onlyInputs || bgBrowserVer_ >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1 / ratio : 1;
+    || onlyInputs || CurCVer_ >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1 / ratio : 1;
   scale = scale + 0.00000999;
   scale = ("" + scale).slice(0, 7).replace(<RegExpOne> /\.?0+$/, "");
   css.textContent = onlyInputs ? `html { --tiny: ${scale}px; }` : `* { border-width: ${scale}px !important; }`;
@@ -614,7 +577,7 @@ Promise.resolve((BG_.BgUtils_.GC_(1), bgSettings_.restore_) && bgSettings_.resto
   if (notRunnable) {
     const retryInjectElement = $<HTMLAnchorElement>("#retryInject")
     if (Build.BTypes & ~BrowserType.Firefox
-        && (!(Build.BTypes & BrowserType.Firefox) || BG_.OnOther !== BrowserType.Firefox)
+        && (!(Build.BTypes & BrowserType.Firefox) || bgOnOther_ !== BrowserType.Firefox)
         && (<RegExpOne> /^(file|ftps?|https?):/).test(_url)) {
       retryInjectElement.onclick = (event) => {
         event.preventDefault()
