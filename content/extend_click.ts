@@ -511,8 +511,8 @@ const noop = (): 1 => { return 1 }
 if (!MayNotEdge
     || (MayEdge || MayChrome && Build.MinCVer < BrowserVer.Min$queueMicrotask) && typeof queueMicroTask_ !== kFunc) {
   if (MayChrome && Build.MinCVer <= BrowserVer.Maybe$Promise$onlyHas$$resolved) {
-    const P = Promise
-    queueMicroTask_ = (P.resolve ? P.resolve() : P.resolved!()) as any
+    const promise_ = Promise
+    queueMicroTask_ = (promise_.resolve ? promise_.resolve() : promise_.resolved!()) as any
   } else {
     queueMicroTask_ = Promise.resolve() as any
   }
