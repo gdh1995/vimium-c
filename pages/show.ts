@@ -15,7 +15,7 @@ interface KnownShowDataset extends KnownDataset {
   colon: string // colon string in i18n
 }
 
-import { OnOther as bgOnOther_, CurCVer_, BG_ } from "./async_bg"
+import { CurCVer_, CurFFVer_, BG_, OnChrome, OnFirefox, OnEdge } from "./async_bg"
 
 let VData: VDataTy2 = null as never
 
@@ -169,7 +169,7 @@ window.onhashchange = function (this: void): void {
       VData.auto = false;
       this.onerror = this.onload = null as never;
       this.alt = VData.error = pTrans_("failInLoading")
-      if (Build.MinCVer >= BrowserVer.MinNoBorderForBrokenImage || !(Build.BTypes & BrowserType.Chrome)
+      if (!OnChrome || Build.MinCVer >= BrowserVer.MinNoBorderForBrokenImage
           || CurCVer_ >= BrowserVer.MinNoBorderForBrokenImage) {
         this.classList.add("broken");
       }
@@ -365,9 +365,10 @@ function clickLink(this: void, options: { [key: string]: string }
     , event: MouseEventToPrevent | KeyboardEventToPrevent): void {
   event.preventDefault();
   if (!VData.url) { return; }
-  const a = document.createElement("a"), setProto_old_cr = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf
-      && Build.BTypes & BrowserType.Chrome ? Object.setPrototypeOf : 0 as never as null;
-  if (Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && Build.BTypes & BrowserType.Chrome) {
+  const a = document.createElement("a")
+  const setProto_old_cr = OnChrome && Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf
+      ? Object.setPrototypeOf : 0 as never as null;
+  if (OnChrome && Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf) {
     setProto_old_cr ? setProto_old_cr(options, null) : ((options as any).__proto__ = null);
   } else {
     Object.setPrototypeOf(options, null);
@@ -503,7 +504,7 @@ function copyThing(event: EventToPrevent): void {
     }
     event.preventDefault();
     const clipboard = navigator.clipboard;
-    if (Build.BTypes & BrowserType.Firefox || !(Build.BTypes & ~BrowserType.Chrome)
+    if (OnFirefox || OnChrome
           && Build.MinCVer >= BrowserVer.MinEnsured$Clipboard$$write$and$ClipboardItem
         || clipboard && clipboard.write) {
       const blobPromise = _shownBlob != null ? Promise.resolve(_shownBlob) : fetch(VData.url, {
@@ -520,8 +521,7 @@ function copyThing(event: EventToPrevent): void {
           "text/plain": new Blob([VData.url], {type: "text/plain"})
         }
         const doWrite = (): Promise<void> => clipboard!.write!([new ClipboardItem(item)])
-        if (!(Build.BTypes & BrowserType.Chrome)
-            || Build.BTypes & ~BrowserType.Chrome && bgOnOther_ !== BrowserType.Chrome
+        if (!OnChrome
             || Build.MinCVer < BrowserVer.MinClipboardWriteHTML && CurCVer_ < BrowserVer.MinClipboardWriteHTML) {
           return doWrite()
         }
@@ -531,8 +531,7 @@ function copyThing(event: EventToPrevent): void {
         item["text/html"] = new Blob([img.outerHTML], {type: "text/html"})
         return doWrite().catch(() => (delete item["text/html"], doWrite()))
       }),
-      finalPromise = !(Build.BTypes & ~BrowserType.Firefox)
-          || Build.BTypes & BrowserType.Firefox && bgOnOther_ === BrowserType.Firefox
+      finalPromise = OnFirefox
           ? navClipPromise.catch(_ => {
             const thisBrowser = typeof browser === "object" && _shownBlob ? browser as typeof chrome : 0,
             clip = thisBrowser && (thisBrowser as any).clipboard;
@@ -822,16 +821,16 @@ function fetchImage_(url: string, element: HTMLImageElement): void {
   if (!is_blob && (!is_data || url.length < 1e4)
       && ((!VData.incognito && !BG_.Settings_.get_("showInIncognito"))
           || !(<RegExpOne> /^(ht|s?f)tp|^data:/).test(url_prefix)
-          || !!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinEnsured$fetch
+          || OnChrome && Build.MinCVer < BrowserVer.MinEnsured$fetch
               && !(window as any).fetch
-          || !!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinEnsuredFetchRequestCache
+          || OnChrome && Build.MinCVer < BrowserVer.MinEnsuredFetchRequestCache
               // has known MinMaybe$fetch$And$Request == MinMaybe$fetch == 41
               && !("cache" in Request.prototype))) {
     element.src = url;
   } else {
     destroyObject_();
     body.replaceChild(text, element);
-    Promise.resolve(blobCache[url] || (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFetchDataURL
+    Promise.resolve(blobCache[url] || (OnChrome && Build.MinCVer < BrowserVer.MinFetchDataURL
         && CurCVer_ < BrowserVer.MinFetchDataURL ? new Promise<Blob>((resolve, reject): void => {
       const req = new XMLHttpRequest() as BlobXHR
       req.responseType = "blob"
@@ -923,19 +922,11 @@ function recoverHash_(notUpdateHistoryState?: BOOL): void {
 }
 
 function encodeAsciiComponent (url: string): string { return url.replace(
-    Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || bgOnOther_ & BrowserType.Edge)
-      || Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp && Build.BTypes & BrowserType.Chrome
+    OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
         && CurCVer_ < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
-      || Build.MinFFVer < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
-        && Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ & BrowserType.Firefox)
+      || OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
         && CurFFVer_ < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
     ? <RegExpG & RegExpSearchable<0>> /[\x00-`{-\u0390\u03ca-\u4dff\u9fa6-\uffff\s]+/g // Greek letters / CJK
-    : (Build.MinCVer >= BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp || !(Build.BTypes & BrowserType.Chrome))
-      && (Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
-          || !(Build.BTypes & BrowserType.Firefox))
-      && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-    ? <RegExpG & RegExpSearchable<0>> /[^\p{L}\p{N}]+/ug
     : <RegExpG & RegExpSearchable<0>> new RegExp("[^\\p{L}\\p{N}]+", "ug" as "g"),
     encodeURIComponent)
 }

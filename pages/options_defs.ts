@@ -1,4 +1,4 @@
-import { OnOther as bgOnOther_, CurCVer_, BG_, bgSettings_ } from "./async_bg"
+import { CurCVer_, BG_, bgSettings_, OnChrome, OnFirefox } from "./async_bg"
 import {
   Option_, AllowedOptions, pTrans_, Checker, PossibleOptionNames, nextTick_, ExclusionRulesOption_, $, $$,
   KnownOptionsDataset, OptionErrorType, ExclusionRealNode
@@ -218,8 +218,7 @@ export class TextOption_<T extends TextualizedOptionNames> extends Option_<T> {
     const ops = this.ops_!
     ops.indexOf("lower") >= 0 ? value = value.toUpperCase().toLowerCase()
     : ops.indexOf("upper") >= 0 ? (value = value.toLowerCase().toUpperCase()) : 0
-    value = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$String$$Normalize
-        && !value.normalize ? value : value.normalize()
+    value = OnChrome && Build.MinCVer < BrowserVer.Min$String$$Normalize && !value.normalize ? value : value.normalize()
     if (ops.indexOf("chars") < 0 || this.status_ & 2 && !(this.status_ & 1)) {
       return value
     }
@@ -312,8 +311,7 @@ TextOption_.prototype.atomicUpdate_ = NumberOption_.prototype.atomicUpdate_ = fu
   this.locked_ = locked
   this.element_.select()
   document.execCommand("insertText", false, value)
-  if (!(Build.BTypes & ~BrowserType.Firefox)
-      || Build.BTypes & BrowserType.Firefox && bgOnOther_ === BrowserType.Firefox) {
+  if (OnFirefox) {
     if (this.element_.value !== value) {
       this.element_.value = value
     }
@@ -369,8 +367,7 @@ export const createNewOption = ((): <T extends keyof AllowedOptions> (_element: 
     if (this.locked_) { return }
     if (this.saved_ = this.areEqual_(this.readValueFromElement_(), this.previous_)) {
       if (status && !Option_.needSaveOptions_()) {
-        if (Build.BTypes & BrowserType.Firefox
-            && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
+        if (OnFirefox) {
           saveBtn.blur()
         }
         saveBtn.disabled = true;
@@ -387,8 +384,7 @@ export const createNewOption = ((): <T extends keyof AllowedOptions> (_element: 
     savedStatus(true)
     saveBtn.disabled = false;
     (saveBtn.firstChild as Text).data = pTrans_("o115_2")
-    if (Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
+    if (OnFirefox) {
       exportBtn.blur()
     }
     exportBtn.disabled = true
@@ -405,7 +401,7 @@ export const createNewOption = ((): <T extends keyof AllowedOptions> (_element: 
     instance.fetch_()
     return Option_.all_[instance.field_] = instance as any
   }
-  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes) {
+  if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes) {
     [].forEach.call($$("[data-model]") as HTMLElement[], createNewOption)
   } else {
     ($$("[data-model]") as HTMLElement[]).forEach(createNewOption)
@@ -418,8 +414,7 @@ Option_.all_.exclusionRules.onInited_ = function (): void {
   table.ondragstart = (event): void => {
     let dragged = exclusionRules.dragged_ = event.target as HTMLTableRowElement
     dragged.style.opacity = "0.5"
-    if (!(Build.BTypes & ~BrowserType.Firefox)
-        || Build.BTypes & BrowserType.Firefox && bgOnOther_ === BrowserType.Firefox) {
+    if (OnFirefox) {
       event.dataTransfer.setData("text/plain", "")
     }
   }
@@ -433,7 +428,8 @@ Option_.all_.exclusionRules.onInited_ = function (): void {
     event.preventDefault()
     const dragged = exclusionRules.dragged_
     let target: Element | null = event.target as Element
-    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest) {
+    if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest
+        && CurCVer_ < BrowserVer.MinEnsured$Element$$Closest) {
       while (target && target.classList.contains("exclusionRule")) {
         target = target.parentElement as SafeHTMLElement | null
       }
@@ -506,8 +502,7 @@ Option_.all_.vomnibarPage.onSave_ = function (): void {
   const opt = this
   let {element_: element2} = opt, url: string = opt.previous_
     , isExtPage = url.startsWith(location.protocol) || url.startsWith("front/")
-  if (Build.MinCVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg
-      && Build.BTypes & BrowserType.Chrome
+  if (OnChrome && Build.MinCVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg
       && CurCVer_ < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
     nextTick_((): void => {
       element2.style.textDecoration = isExtPage ? "" : "line-through"
@@ -533,8 +528,7 @@ Option_.all_.newTabUrl.checker_ = {
     let url = (<RegExpI> /^\/?pages\/[a-z]+.html\b/i).test(value)
         ? chrome.runtime.getURL(value) : BG_.BgUtils_.convertToUrl_(value.toLowerCase())
     url = url.split("?", 1)[0].split("#", 1)[0]
-    if (!(Build.BTypes & ~BrowserType.Firefox)
-        || Build.BTypes & BrowserType.Firefox && bgOnOther_ === BrowserType.Firefox) {
+    if (OnFirefox) {
       let err = ""
       if ((<RegExpI> /^chrome|^(javascript|data|file):|^about:(?!(newtab|blank)\/?$)/i).test(url)) {
         err = pTrans_("refusedURLs", [url])

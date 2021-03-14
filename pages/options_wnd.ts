@@ -1,5 +1,5 @@
 /// <reference path="./define.ts" />
-import { OnOther as bgOnOther_, CurCVer_, BG_, bgSettings_, reloadBG_ } from "./async_bg"
+import { CurCVer_, CurFFVer_, BG_, bgSettings_, reloadBG_, OnFirefox, OnChrome, OnEdge } from "./async_bg"
 import {
   KnownOptionsDataset,
   setupBorderWidth_, nextTick_, Option_, pTrans_, PossibleOptionNames, AllowedOptions, debounce_, $, $$
@@ -40,8 +40,7 @@ saveBtn.onclick = function (virtually): void {
     }
     const toSync = Option_.syncToFrontend_;
     Option_.syncToFrontend_ = [];
-    if (Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
+    if (OnFirefox) {
       this.blur();
     }
     this.disabled = true;
@@ -94,9 +93,7 @@ let optionsInit1_ = function (): void {
     Option_.suppressPopulate_ = false;
     for (let key in Option_.all_) {
       const obj = Option_.all_[key as "vimSync"]
-      if (Build.BTypes & BrowserType.Firefox
-          && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ & BrowserType.Firefox)
-          && bgSettings_.payload_.o === kOS.unixLike && obj instanceof BooleanOption_) {
+      if (OnFirefox && bgSettings_.payload_.o === kOS.unixLike && obj instanceof BooleanOption_) {
         obj.element_.classList.add("text-bottom");
       }
       obj.populateElement_(obj.previous_);
@@ -183,7 +180,7 @@ let optionsInit1_ = function (): void {
     _ref[_i].onclick = func;
   }
 
-  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredWebkitUserSelectAll
+  if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredWebkitUserSelectAll
       && CurCVer_ < BrowserVer.MinEnsuredWebkitUserSelectAll) {
   _ref = $$(".sel-all");
   func = function (this: HTMLElement, event): void {
@@ -208,13 +205,10 @@ let optionsInit1_ = function (): void {
     element2.style.display = "";
     (element2.nextElementSibling as SafeHTMLElement).style.display = "none";
     });
-    if (Build.MinCVer >= BrowserVer.MinCorrectBoxWidthForOptionsUI
-        || !(Build.BTypes & BrowserType.Chrome)
+    if (!OnChrome || Build.MinCVer >= BrowserVer.MinCorrectBoxWidthForOptionsUI
         || CurCVer_ >= BrowserVer.MinCorrectBoxWidthForOptionsUI) { return; }
     ratio > 1 && ((document.body as HTMLBodyElement).style.width = 910 / ratio + "px");
-    ( !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-      && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.Min$Tabs$$getZoom)
-      || Build.BTypes & BrowserType.ChromeOrFirefox && chrome.tabs.getZoom) &&
+    !OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Tabs$$getZoom || chrome.tabs.getZoom) &&
     chrome.tabs.getZoom(curTabId, function (zoom): void {
       if (!zoom) { return chrome.runtime.lastError; }
       const ratio2 = Math.round(devicePixelRatio / zoom * 1024) / 1024;
@@ -246,8 +240,7 @@ let optionsInit1_ = function (): void {
       let el: HTMLElement = els[i];
       let key = (el.dataset as KnownOptionsDataset).permission!
       if (key[0] === "C") {
-        if (!(Build.BTypes & BrowserType.Chrome)
-            || Build.BTypes & ~BrowserType.Chrome && bgOnOther_ !== BrowserType.Chrome) {
+        if (!OnChrome) {
           if (key === "C") { // hide directly
             nextTick_((parentEl): void => {
               parentEl.style.display = "none";
@@ -291,7 +284,7 @@ let optionsInit1_ = function (): void {
       }
     }, $$(".require-shortcuts"));
   }
-  if (Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || bgOnOther_ === BrowserType.Edge)) {
+  if (OnEdge) {
     nextTick_((tipForNoShadow): void => {
       tipForNoShadow.innerHTML = '(On Edge, may need "<kbd>#VimiumUI</kbd>" as prefix if no Shadow DOM)';
     }, $("#tipForNoShadow"));
@@ -310,12 +303,10 @@ let optionsInit1_ = function (): void {
 
 
   _element = $<HTMLAnchorElement>("#openExtensionsPage");
-  if (Build.MinCVer < BrowserVer.MinEnsuredChromeURL$ExtensionShortcuts
-      && Build.BTypes & BrowserType.Chrome
+  if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredChromeURL$ExtensionShortcuts
       && CurCVer_ < BrowserVer.MinEnsuredChromeURL$ExtensionShortcuts) {
     (_element as HTMLAnchorElement).href = "chrome://extensions/configureCommands";
-  } else if (Build.BTypes & BrowserType.Firefox
-      && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
+  } else if (OnFirefox) {
     nextTick_(([el, el2, el3]) => {
       el.textContent = el.href = "about:addons";
       const el1 = el.parentElement as HTMLElement, prefix = GlobalConsts.FirefoxAddonPrefix;
@@ -329,27 +320,22 @@ let optionsInit1_ = function (): void {
   }
   (_element as HTMLAnchorElement).onclick = function (event): void {
     event.preventDefault();
-    if (Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
+    if (OnFirefox) {
       window.VApi ? VApi.t({ k: kTip.haveToOpenManually }) : alert(pTrans_("" + kTip.haveToOpenManually));
     } else {
       BG_.Backend_.reqH_[kFgReq.focusOrLaunch]({ u: this.href, r: ReuseType.reuse, p: true })
     }
   };
 
-  if (Build.BTypes & BrowserType.ChromeOrFirefox
-      && (!(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
-          || (bgOnOther_ & BrowserType.ChromeOrFirefox))) {
+  if (OnFirefox || OnChrome) {
     nextTick_((el): void => {
       const children = el.children, anchor = children[1] as HTMLAnchorElement, name = pTrans_("NewTabAdapter");
-      if (Build.BTypes & BrowserType.Firefox
-          && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
+      if (OnFirefox) {
         children[0].textContent = "moz";
         anchor.textContent = name;
         anchor.href = GlobalConsts.FirefoxAddonPrefix + "newtab-adapter/?src=external-vc-options_omni";
       }
-      anchor.title = name + " - " + pTrans_(Build.BTypes & BrowserType.Firefox
-          && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox) ? "addons" : "webstore");
+      anchor.title = name + " - " + pTrans_(OnFirefox ? "addons" : "webstore");
     }, $("#chromeExtVomnibar"));
   }
 
@@ -362,7 +348,7 @@ let optionsInit1_ = function (): void {
     const node2 = Option_.all_[this.getAttribute("for") as "ignoreKeyboardLayout"
         ].element_.nextElementSibling as SafeHTMLElement;
     {
-      Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
+      OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
         && CurCVer_ < BrowserVer.MinScrollIntoViewOptions
       ? node2.scrollIntoViewIfNeeded!()
       : node2.scrollIntoView({ block: "center" });
@@ -402,10 +388,11 @@ if (!bgSettings_.payload_.o) {
 
 (window.onhashchange as () => void)();
 
-if (Build.BTypes & BrowserType.ChromeOrFirefox
-    && (Build.BTypes & BrowserType.Chrome && CurCVer_ > BrowserVer.MinMediaQuery$PrefersColorScheme
-      || Build.BTypes & BrowserType.Firefox && BG_.CurFFVer_ > FirefoxBrowserVer.MinMediaQuery$PrefersColorScheme
-      )) {
+if (OnChrome && (Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersColorScheme
+        || CurCVer_ > BrowserVer.MinMediaQuery$PrefersColorScheme - 1)
+    || OnFirefox && (Build.MinFFVer >= FirefoxBrowserVer.MinMediaQuery$PrefersColorScheme
+        || CurFFVer_ > FirefoxBrowserVer.MinMediaQuery$PrefersColorScheme)
+    ) {
   const media = matchMedia("(prefers-color-scheme: dark)");
   media.onchange = function (): void {
     bgSettings_.updateMediaQueries_();
@@ -426,7 +413,7 @@ if (Build.BTypes & BrowserType.ChromeOrFirefox
   setTimeout(useLocalStyle, 800)
 }
 
-if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && bgOnOther_ & BrowserType.Firefox) {
+if (OnFirefox) {
   setTimeout((): void => {
     const test = document.createElement("div")
     test.style.display = "none"
@@ -482,7 +469,7 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
   }
 }, 1200, $("#userDefinedCss") as HTMLTextAreaElement, 0));
 
-if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Option$HasReliableFontSize
+if (OnChrome && Build.MinCVer < BrowserVer.Min$Option$HasReliableFontSize
     && CurCVer_ < BrowserVer.Min$Option$HasReliableFontSize) {
   $("select").classList.add("font-fix");
 }
@@ -494,17 +481,14 @@ $("#importButton").onclick = function (): void {
 
 nextTick_((el0): void => {
 const platform = bgSettings_.CONST_.Platform_;
-el0.textContent = (Build.BTypes & BrowserType.Edge
-        && (!(Build.BTypes & ~BrowserType.Edge) || bgOnOther_ === BrowserType.Edge)
-    ? "MS Edge (EdgeHTML)"
-    : Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)
-    ? "Firefox " + BG_.CurFFVer_
-    : (BG_.IsEdg_ ? ["MS Edge"]
+const IsEdg: boolean = OnChrome && (<RegExpOne> /\sEdg\//).test(navigator.appVersion)
+el0.textContent = (OnEdge ? "MS Edge (EdgeHTML)"
+    : OnFirefox ? "Firefox " + CurFFVer_
+    : (IsEdg ? ["MS Edge"]
         : (<RegExpOne> /\bChromium\b/).exec(navigator.appVersion) || ["Chrome"])[0] + " " + CurCVer_
   ) + pTrans_("comma") + pTrans_("NS") + (pTrans_(platform)
         || platform[0].toUpperCase() + platform.slice(1));
-if (Build.BTypes & BrowserType.Chrome && BG_.IsEdg_) {
+if (OnChrome && IsEdg) {
   const a = $<HTMLAnchorElement>("#openExtensionsPage");
   a.textContent = a.href = "edge://extensions/shortcuts";
 }
@@ -578,7 +562,7 @@ window.onhashchange = function (this: void): void {
         window.scrollTo(0, 0);
       }
       const node2 = node as Element;
-      Build.BTypes & BrowserType.Chrome ? node2.scrollIntoViewIfNeeded!() : node2.scrollIntoView();
+      !(OnEdge || OnFirefox) ? node2.scrollIntoViewIfNeeded!() : node2.scrollIntoView();
     };
     if (document.readyState === "complete") { return callback(); }
     window.scrollTo(0, 0);
@@ -662,10 +646,7 @@ document.addEventListener("click", function onClickOnce(): void {
     }
   }, true);
 
-  if (!(Build.BTypes & BrowserType.Chrome) || Build.BTypes & ~BrowserType.Chrome && bgOnOther_ & ~BrowserType.Chrome) {
-    return
-  }
-  document.addEventListener("click", (event): void => {
+  OnChrome && document.addEventListener("click", (event): void => {
     const el = event.target as Element
     if (el.localName !== "a" || !(event.ctrlKey || event.metaKey)) { return }
     const api = window.VApi, hintWorker = api && api.b, stat = hintWorker && hintWorker.$()

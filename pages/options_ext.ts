@@ -1,4 +1,4 @@
-import { OnOther as bgOnOther_, CurCVer_, BG_, bgSettings_ } from "./async_bg"
+import { CurCVer_, BG_, bgSettings_, OnChrome, OnEdge, OnFirefox } from "./async_bg"
 import { $, AllowedOptions, ExclusionRulesOption_, Option_, pTrans_ } from "./options_base"
 import { SaveBtn } from "./options_defs"
 import { AdvancedOptBtn, click, ElementWithDelay, loadChecker, loadJS, OptionWindow } from "./options_wnd"
@@ -105,8 +105,7 @@ $<ElementWithDelay>("#exportButton").onclick = function (event): void {
     extension: bgSettings_.CONST_.VerCode_,
     platform: bgSettings_.CONST_.Platform_
   };
-  if (Build.BTypes & BrowserType.Chrome
-      && (!(Build.BTypes & ~BrowserType.Chrome) || bgOnOther_ === BrowserType.Chrome)) {
+  if (OnChrome) {
     exported_object.environment.chrome = CurCVer_;
   }
   const storedKeys: Array<keyof SettingsNS.PersistentSettings> = [],
@@ -155,7 +154,7 @@ $<ElementWithDelay>("#exportButton").onclick = function (event): void {
 
   type BlobSaver = (blobData: Blob, fileName: string) => any;
   interface NavigatorEx extends Navigator { msSaveOrOpenBlob?: BlobSaver }
-  if (Build.BTypes & BrowserType.Edge && (navigator as NavigatorEx).msSaveOrOpenBlob) {
+  if (OnEdge && (navigator as NavigatorEx).msSaveOrOpenBlob) {
     (navigator as NavigatorEx & {msSaveOrOpenBlob: BlobSaver}).msSaveOrOpenBlob(blob, file_name);
   } else {
     const nodeA = document.createElement("a");
@@ -210,9 +209,9 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
     window.VApi && VApi.t({ k: kTip.cancelImport })
     return;
   }
-  const setProto_old_cr = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf
-      && Build.BTypes & BrowserType.Chrome ? Object.setPrototypeOf : 0 as never as null;
-  if (Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && Build.BTypes & BrowserType.Chrome) {
+  const setProto_old_cr = OnChrome && Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf
+      ? Object.setPrototypeOf : 0 as never as null;
+  if (OnChrome && Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf) {
     setProto_old_cr ? setProto_old_cr(new_data, null) : ((new_data as any).__proto__ = null);
   } else {
     Object.setPrototypeOf(new_data, null);
@@ -261,7 +260,7 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
     }
   }
   delKeys("findModeRawQuery findModeRawQueryList innerCSS findCSS omniCSS newTabUrl_f hookAccessKeys vomnibarPage_f");
-  if (Build.BTypes & BrowserType.Firefox) {
+  if (OnFirefox) {
     delKeys("i18n_f");
   }
   for (let key in bgSettings_.legacyNames_) {
@@ -414,7 +413,7 @@ _el.onchange = function (this: HTMLSelectElement): void {
     return;
   }
   const recommended = "../settings-template.json";
-  if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinFetchExtensionFiles
+  if (!OnChrome || Build.MinCVer >= BrowserVer.MinFetchExtensionFiles
       || CurCVer_ >= BrowserVer.MinFetchExtensionFiles) {
     fetch(recommended).then(r => r.text()).then(t => importSettings_(0, t, true));
     return;

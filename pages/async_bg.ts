@@ -29,7 +29,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$Stri
   })();
 }
 
-export const OnOther: BrowserType = Build.BTypes && !(Build.BTypes & (Build.BTypes - 1))
+const OnOther: BrowserType = Build.BTypes && !(Build.BTypes & (Build.BTypes - 1))
     ? Build.BTypes as number
     : Build.BTypes & BrowserType.Chrome
       && (typeof browser === "undefined" || (browser && (browser as typeof chrome).runtime) == null
@@ -39,10 +39,20 @@ export const OnOther: BrowserType = Build.BTypes && !(Build.BTypes & (Build.BTyp
     : Build.BTypes & BrowserType.Firefox ? BrowserType.Firefox
     : /* an invalid state */ BrowserType.Unknown
 
-export const CurCVer_: BrowserVer = Build.BTypes & BrowserType.Chrome ? 0 | (
-    (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
-    && navigator.appVersion.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/)
+export const OnChrome: boolean = !(Build.BTypes & ~BrowserType.Chrome)
+    || !!(Build.BTypes & BrowserType.Chrome && OnOther & BrowserType.Chrome)
+export const OnFirefox: boolean = !(Build.BTypes & ~BrowserType.Firefox)
+    || !!(Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox)
+export const OnEdge: boolean = !(Build.BTypes & ~BrowserType.Edge)
+    || !!(Build.BTypes & BrowserType.Edge && OnOther & BrowserType.Edge)
+export const OnSafari: boolean = false
+
+export const CurCVer_: BrowserVer = OnChrome ? 0 | (
+    navigator.appVersion.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/)
     || [0, BrowserVer.assumedVer])[1] as number : BrowserVer.assumedVer
+export const CurFFVer_: FirefoxBrowserVer = OnFirefox
+    ? 0 | (navigator.userAgent.match(<RegExpOne> /\bFirefox\/(\d+)/) || [0, FirefoxBrowserVer.assumedVer])[1] as number
+    : FirefoxBrowserVer.None
 
 export let BG_ = chrome.extension && chrome.extension.getBackgroundPage() as Window as BgWindow
 if (!(BG_ && BG_.BgUtils_ && BG_.BgUtils_.convertToUrl_)) {
@@ -58,7 +68,6 @@ export const reloadBG_ = (): void => {
   }
 }
 
-if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
-    : typeof browser !== "undefined" && (browser && (browser as typeof chrome).runtime) != null) {
+if (!OnChrome) {
   window.chrome = browser as typeof chrome
 }

@@ -32,17 +32,16 @@ export interface KnownOptionsDataset extends KnownDataset {
   href: `vimium://${string}`
 }
 
-import { OnOther as bgOnOther_, CurCVer_, BG_, bgSettings_ } from "./async_bg"
+import { CurCVer_, BG_, bgSettings_, OnFirefox, OnEdge, OnChrome } from "./async_bg"
 
 export const $ = <T extends HTMLElement>(selector: string): T => document.querySelector(selector) as T
 
-export const pTrans_: typeof chrome.i18n.getMessage = Build.BTypes & BrowserType.Firefox
-      && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)
+export const pTrans_: typeof chrome.i18n.getMessage = OnFirefox
       ? (i, j) => BG_.trans_(i, j) : chrome.i18n.getMessage;
 
 export const $$ = ((selector: string, root?: HTMLElement | ShadowRoot | null) => {
   const list = (root || document).querySelectorAll(selector)
-  return Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
+  return OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
       && Build.MinCVer >= BrowserVer.MinTestedES6Environment
       && CurCVer_ < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
       ? [].slice.call(list) : list
@@ -93,9 +92,9 @@ export const nextTick_ = ((): { <T>(task: (self: T) => void, self: T): void; (ta
     }
     if (tasks.length > oldSize) {
       tasks.splice(0, oldSize);
-      if ((Build.MinCVer >= BrowserVer.Min$queueMicrotask || !(Build.BTypes & BrowserType.Chrome))
-          && (Build.MinFFVer >= FirefoxBrowserVer.Min$queueMicrotask || !(Build.BTypes & BrowserType.Firefox))
-          && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)) {
+      if (OnChrome ? Build.MinCVer >= BrowserVer.Min$queueMicrotask
+          : OnFirefox ? Build.MinFFVer >= FirefoxBrowserVer.Min$queueMicrotask
+          : !OnEdge) {
         queueMicrotask(ticked);
       } else {
         Promise.resolve().then(ticked);
@@ -106,9 +105,9 @@ export const nextTick_ = ((): { <T>(task: (self: T) => void, self: T): void; (ta
   };
   return <T> (task: ((firstArg: T) => void) | ((this: void) => void), context?: T): void => {
     if (tasks.length <= 0) {
-      if ((Build.MinCVer >= BrowserVer.Min$queueMicrotask || !(Build.BTypes & BrowserType.Chrome))
-          && (Build.MinFFVer >= FirefoxBrowserVer.Min$queueMicrotask || !(Build.BTypes & BrowserType.Firefox))
-          && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)) {
+      if (OnChrome ? Build.MinCVer >= BrowserVer.Min$queueMicrotask
+          : OnFirefox ? Build.MinFFVer >= FirefoxBrowserVer.Min$queueMicrotask
+          : !OnEdge) {
         queueMicrotask(ticked);
       } else {
         Promise.resolve().then(ticked);
@@ -314,7 +313,7 @@ addRule_ (pattern: string, autoFocus?: false | undefined): void {
   this.onRowChange_(1);
 }
 populateElement_ (rules: ExclusionsNS.StoredRule[]): void {
-  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinTbodyAcceptInnerTextSetter) {
+  if (OnChrome && Build.MinCVer < BrowserVer.MinTbodyAcceptInnerTextSetter) {
     this.$list_.textContent = "";
   } else {
     (this.$list_ as HTMLElement).innerText = "";
@@ -475,16 +474,15 @@ sortRules_: (el?: HTMLElement) => void;
 timer_?: number;
 }
 
-export let setupBorderWidth_ = (Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
-      && Build.BTypes & BrowserType.Chrome
+export let setupBorderWidth_ = (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
       && CurCVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo)
-    || devicePixelRatio < 2 && (Build.MinCVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
+    || devicePixelRatio < 2 && (!OnChrome || Build.MinCVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
         || CurCVer_ >= BrowserVer.MinRoundedBorderWidthIsNotEnsured)
     ? (): void => {
   const css = document.createElement("style"), ratio = devicePixelRatio;
-  const onlyInputs = (Build.MinCVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
+  const onlyInputs = (!OnChrome || Build.MinCVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
     || CurCVer_ >= BrowserVer.MinRoundedBorderWidthIsNotEnsured) && ratio >= 1;
-  let scale: string | number = Build.MinCVer >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
+  let scale: string | number = !OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
     || onlyInputs || CurCVer_ >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1 / ratio : 1;
   scale = scale + 0.00000999;
   scale = ("" + scale).slice(0, 7).replace(<RegExpOne> /\.?0+$/, "");
@@ -505,13 +503,11 @@ Promise.resolve((BG_.BgUtils_.GC_(1), bgSettings_.restore_) && bgSettings_.resto
     blockedMsg.style.display = "";
     (blockedMsg.querySelector(".version") as HTMLElement).textContent = bgSettings_.CONST_.VerName_;
     const refreshTip = blockedMsg.querySelector("#refresh-after-install") as HTMLElement;
-    if (!(Build.BTypes & ~BrowserType.Firefox)
-        || Build.BTypes & BrowserType.Firefox && bgOnOther_ === BrowserType.Firefox
+    if (OnFirefox
         || !curTab || !_url || !(<RegExpI> /^(ht|s?f)tp/i).test(_url)
         ) {
       refreshTip.remove();
-    } else if (Build.BTypes & BrowserType.Edge
-        && (!(Build.BTypes & ~BrowserType.Edge) || bgOnOther_ === BrowserType.Edge)) {
+    } else if (OnEdge) {
       (refreshTip.querySelector(".action") as HTMLElement).textContent = "open a new web page";
     } else if ((<RegExpOne> /\bOpera\//).test(navigator.userAgent)
         && (<RegExpOne> /\.(google|bing|baidu)\./).test(_url.split("/", 4).slice(0, 3).join("/"))) {
@@ -521,13 +517,13 @@ Promise.resolve((BG_.BgUtils_.GC_(1), bgSettings_.restore_) && bgSettings_.resto
     body.appendChild(blockedMsg);
     const extHost = _url.startsWith(location.protocol) && !_url.startsWith(location.origin) ? new URL(_url).host : "",
     extStat = extHost ? bgSettings_.extAllowList_.get(extHost) : null
-    if (extStat != null && (Build.BTypes & ~BrowserType.Chrome ? !extStat || typeof extStat === "string" : !extStat)) {
+    if (extStat != null && (!OnChrome ? !extStat || typeof extStat === "string" : !extStat)) {
       const refusedEl = $<EnsuredMountedHTMLElement>("#injection-refused");
       refusedEl.style.display = "";
       refusedEl.nextElementSibling.remove();
       $<HTMLAnchorElement>("#doAllowExt").onclick = function () {
         let list = bgSettings_.get_("extAllowList"), old = list.split("\n"), extIdToAdd = extHost;
-        if (Build.BTypes & ~BrowserType.Chrome) {
+        if (!OnChrome) {
           let maybeId = bgSettings_.extAllowList_.get(extHost)
           extIdToAdd = typeof maybeId === "string" && maybeId ? maybeId : extIdToAdd;
         }
@@ -576,9 +572,7 @@ Promise.resolve((BG_.BgUtils_.GC_(1), bgSettings_.restore_) && bgSettings_.resto
   }
   if (notRunnable) {
     const retryInjectElement = $<HTMLAnchorElement>("#retryInject")
-    if (Build.BTypes & ~BrowserType.Firefox
-        && (!(Build.BTypes & BrowserType.Firefox) || bgOnOther_ !== BrowserType.Firefox)
-        && (<RegExpOne> /^(file|ftps?|https?):/).test(_url)) {
+    if (!OnFirefox && (<RegExpOne> /^(file|ftps?|https?):/).test(_url)) {
       retryInjectElement.onclick = (event) => {
         event.preventDefault()
         if (!BG_.Backend_.indexPorts_(curTab.id)) {
@@ -737,8 +731,7 @@ Promise.resolve((BG_.BgUtils_.GC_(1), bgSettings_.restore_) && bgSettings_.resto
     inited = 3;
     updateState(true);
     (saveBtn2.firstChild as Text).data = pTrans_("o115_3")
-    if (Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
+    if (OnFirefox) {
       saveBtn2.blur()
     }
     saveBtn2.disabled = true
@@ -775,9 +768,7 @@ Promise.resolve((BG_.BgUtils_.GC_(1), bgSettings_.restore_) && bgSettings_.resto
     });
   }
   initBottomLeft()
-  if (!(Build.BTypes & BrowserType.Chrome)
-      || Build.BTypes & ~BrowserType.Chrome && bgOnOther_ !== BrowserType.Chrome
-      || !bgSettings_.payload_.o
+  if (!OnChrome || !bgSettings_.payload_.o
       ) {
     window.addEventListener("keydown", function (event): void {
       if (event.altKey

@@ -9,13 +9,22 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
   window.chrome = browser as typeof chrome;
 }
 chrome.runtime && chrome.runtime.getManifest && (function () {
+  const OnOther: BrowserType = Build.BTypes && !(Build.BTypes & (Build.BTypes - 1))
+      ? Build.BTypes as number
+      : Build.BTypes & BrowserType.Chrome
+        && (typeof browser === "undefined" || (browser && (browser as typeof chrome).runtime) == null
+            || location.protocol.startsWith("chrome")) // in case Chrome also supports `browser` in the future
+      ? BrowserType.Chrome
+      : Build.BTypes & BrowserType.Edge && !!(window as {} as {StyleMedia: unknown}).StyleMedia ? BrowserType.Edge
+      : Build.BTypes & BrowserType.Firefox ? BrowserType.Firefox
+      : /* an invalid state */ BrowserType.Unknown
   let loader = document.currentScript as HTMLScriptElement;
   const head = loader.parentElement as HTMLElement
     , scripts: HTMLScriptElement[] = [loader]
     , prefix = chrome.runtime.getURL("")
     , curPath = location.pathname.toLowerCase()
     , arr = chrome.runtime.getManifest().content_scripts[0].js;
-  if (!(Build.BTypes & BrowserType.Edge)) {
+  if (OnOther !== BrowserType.Edge) {
     for (const src of arr) {
       const scriptElement = document.createElement("script");
       scriptElement.async = false;
@@ -34,7 +43,7 @@ chrome.runtime && chrome.runtime.getManifest && (function () {
   function onLastLoad(): void {
     for (let i = scripts.length; 0 <= --i; ) { scripts[i].remove(); }
     let bg: BgWindow2;
-    if (Build.BTypes & BrowserType.Firefox && Build.MayOverrideNewTab
+    if (OnOther === BrowserType.Firefox && Build.MayOverrideNewTab
         && (bg = chrome.extension.getBackgroundPage() as BgWindow2)
         && bg.Settings_ && bg.Settings_.CONST_.OverrideNewTab_
         && curPath.indexOf("newtab") >= 0) {
@@ -58,7 +67,7 @@ chrome.runtime && chrome.runtime.getManifest && (function () {
   }
   if (curPath.indexOf("blank") > 0) {
     if (chrome.i18n.getMessage("lang1")) {
-      let s = (Build.BTypes & BrowserType.Firefox && bg0 && bg0.trans_ || chrome.i18n.getMessage)("vBlank");
+      let s = (OnOther === BrowserType.Firefox && bg0 && bg0.trans_ || chrome.i18n.getMessage)("vBlank");
       s && (document.title = s);
     }
   }
@@ -82,15 +91,14 @@ chrome.runtime && chrome.runtime.getManifest && (function () {
     scripts.push(scriptElement);
     head.appendChild(scriptElement);
   }
-  if (!(Build.BTypes & ~BrowserType.Firefox)
-      || Build.BTypes & BrowserType.Firefox && bg0 && bg0.OnOther === BrowserType.Firefox) {
+  if (OnOther === BrowserType.Firefox) {
     const iconLink = document.createElement("link")
     iconLink.rel = "icon"
     iconLink.href = "../icons/icon128.png"
     iconLink.type = "image/png"
     document.head!.appendChild(iconLink)
   }
-  if (Build.BTypes & BrowserType.Edge) {
+  if (OnOther === BrowserType.Edge) {
     setTimeout(function (): void {
       next(0);
     }, 100);
