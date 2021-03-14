@@ -634,22 +634,28 @@ function outputJSResult(stream) {
       stream = stream.pipe(getGulpTerser()(config));
     }
     stream = stream.pipe(gulpMap(postTerser.bind(null, config)))
-  } else {
-    const es5 = getBuildItem("BTypes") & BrowserType.Edge || getBuildItem("BTypes") & BrowserType.Chrome
-        && getBuildItem("MinCVer") < /* MinUsableScript$type$$module$InExtensions */ 63
+  }
+  {
+    const es5 = locally ? !compilerOptions.module.startsWith("es")
+        : getBuildItem("BTypes") & BrowserType.Edge || getBuildItem("BTypes") & BrowserType.Chrome
+          && getBuildItem("MinCVer") < /* MinUsableScript$type$$module$InExtensions */ 63
     stream = stream.pipe(gulpMap(file => {
       const path = file.relative.replace(/\\/g, "/")
-      if (path.includes("pages/") && /show|options|env|async_bg/.test(path)) {
+      if (path.includes("pages/") && /show|options|async_bg/.test(path)) {
+        const data = ToString(file.contents)
+        const isAMDModule = data.startsWith("define") || data.startsWith("(factory")
+            || data.startsWith("(function(factory)") || data.startsWith("(function (factory)");
         if (es5) {
+          var banner = "window.__filename = " + JSON.stringify(file.relative.replace(/\\/g, "/")) + ";\n"
+          if (isAMDModule) {
+            file.contents = ToBuffer(banner + data)
+            return
+          }
           return gulpUtils.rollupOne(file, {
             treeshake: false, output: { format: "amd", preserveModules: true }
-          }, (code, file) => {
-            var banner = "window.__filename = " + JSON.stringify(file.relative.replace(/\\/g, "/")) + ";\n"
-            return banner + code
-          })
+          }, (code) => { return banner + code })
         } else {
-          file.contents = ToBuffer(ToString(file.contents
-              ).replace(/\bimport\b[^'"}]+\}?\s?\bfrom\b\s?['"][.\/\w]+['"]/g, s => {
+          file.contents = ToBuffer(data.replace(/\bimport\b[^'"}]+\}?\s?\bfrom\b\s?['"][.\/\w]+['"]/g, s => {
             return s.includes(".js") ? s : s.slice(0, -1) + ".js" + s.slice(-1)
           }))
         }

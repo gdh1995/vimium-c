@@ -106,6 +106,9 @@ var writeFile = function(path, data, writeBom) {
         data = typeof patched === "string" ? patched : patched[0] + patched[1] + patched[2];
       }
     }
+    data = data.replace(/\bimport\b[^'"}]+\}?\s?\bfrom\b\s?['"][.\/\w]+['"]/g, s => {
+      return s.includes(".js") ? s : s.slice(0, -1) + ".js" + s.slice(-1)
+    })
     data = lib.addMetaData(path, data)
     same = same && lib.readFile(path, {}) === data;
   }

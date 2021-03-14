@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "incremental": true,
+    "module": "es6",
     "outDir": "..",
     "rootDir": "..",
     "tsBuildInfoFile": "../scripts/.ts.pages.build",
