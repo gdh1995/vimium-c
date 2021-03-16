@@ -468,9 +468,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
   _keyNames_old_cr_ee: Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.BTypes & BrowserType.Chrome
       || Build.BTypes & BrowserType.Edge
-      ? [kChar.space, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
+      ? AsOmni_<readonly kChar[]>([kChar.space, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
         kChar.left, kChar.up, kChar.right, kChar.down,
-        /* 41 */ "", "", "", "", kChar.insert, kChar.delete] as readonly kChar[]
+        /* 41 */ kChar.None, kChar.None, kChar.None, kChar.None, kChar.insert, kChar.delete])
       : 0 as never as null,
   _codeCorrectionMap: ["Semicolon", "Equal", "Comma", "Minus", "Period", "Slash", "Backquote",
     "BracketLeft", "Backslash", "BracketRight", "Quote", "IntlBackslash"],
@@ -550,7 +550,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     return key;
   },
-  ctrlCharOrShiftKeyMap_: {
+  ctrlCharOrShiftKeyMap_: AsOmni_<{ readonly [char in kChar]?: AllowedActions }>({
     // for Ctrl / Meta
     space: AllowedActions.toggle, b: AllowedActions.pageup
     , j: AllowedActions.down, k: AllowedActions.up, n: AllowedActions.down, p: AllowedActions.up
@@ -558,13 +558,13 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     // for Shift
     , up: AllowedActions.pageup, down: AllowedActions.pagedown
     , tab: AllowedActions.up, delete: AllowedActions.remove
-  } as Readonly<Dict<AllowedActions>>,
-  normalMap_: {
+  }),
+  normalMap_: AsOmni_<{ readonly [char in kChar]?: AllowedActions }>({
     tab: AllowedActions.down, esc: AllowedActions.dismiss
     , pageup: AllowedActions.pageup, pagedown: AllowedActions.pagedown
     , up: AllowedActions.up, down: AllowedActions.down
     , f1: AllowedActions.backspace, f2: AllowedActions.blur
-  } as Readonly<Dict<AllowedActions>>,
+  }),
   onKeydown_ (event: KeyboardEventToPrevent): void {
     const a = Vomnibar_, n = event.keyCode, focused = a.focused_,
     key = n !== kKeyCode.ime ? a.getMappedKey_(event) : "";
