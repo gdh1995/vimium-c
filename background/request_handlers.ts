@@ -405,9 +405,11 @@ set_reqH_([
       key = arr[arr.length - 1]
       count = 1
     }
-    const registryEntry = ref.get(key)!
+    const registryEntry = ref.get(key)
     BgUtils_.resetRe_()
-    executeCommand(registryEntry, count, request.l, port, 0)
+    if (registryEntry) {
+      executeCommand(registryEntry, count, request.l, port, 0)
+    }
   },
   /** kFgReq.marks: */ (request: FgReq[kFgReq.marks], port: Port): void => {
     set_cPort(port)

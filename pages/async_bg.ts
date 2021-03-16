@@ -47,12 +47,18 @@ export const OnEdge: boolean = !(Build.BTypes & ~BrowserType.Edge)
     || !!(Build.BTypes & BrowserType.Edge && OnOther & BrowserType.Edge)
 export const OnSafari: boolean = false
 
-export const CurCVer_: BrowserVer = OnChrome ? 0 | (
+export let CurCVer_: BrowserVer = OnChrome ? 0 | (
     navigator.appVersion.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/)
     || [0, BrowserVer.assumedVer])[1] as number : BrowserVer.assumedVer
 export const CurFFVer_: FirefoxBrowserVer = OnFirefox
     ? 0 | (navigator.userAgent.match(<RegExpOne> /\bFirefox\/(\d+)/) || [0, FirefoxBrowserVer.assumedVer])[1] as number
     : FirefoxBrowserVer.None
+if (OnChrome && Build.MinCVer <= BrowserVer.FlagFreezeUserAgentGiveFakeUAMajor
+    && CurCVer_ === BrowserVer.FakeUAMajorWhenFreezeUserAgent && matchMedia("(prefers-color-scheme)").matches) {
+  CurCVer_ = BrowserVer.FlagFreezeUserAgentGiveFakeUAMajor
+}
+
+if (!OnChrome) { window.chrome = browser as typeof chrome }
 
 export let BG_ = chrome.extension && chrome.extension.getBackgroundPage() as Window as BgWindow
 if (!(BG_ && BG_.BgUtils_ && BG_.BgUtils_.convertToUrl_)) {
@@ -66,8 +72,4 @@ export const reloadBG_ = (): void => {
     bgSettings_ = BG_.Settings_
     if (!bgSettings_) { BG_ = null as never }
   }
-}
-
-if (!OnChrome) {
-  window.chrome = browser as typeof chrome
 }

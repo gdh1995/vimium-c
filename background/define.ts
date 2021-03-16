@@ -12,7 +12,6 @@ if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox &&
 
 // eslint-disable-next-line no-var
 var Backend_: BackendHandlersNS.BackendHandlers,
-trans_ = chrome.i18n.getMessage,
 CurCVer_: BrowserVer = Build.BTypes & BrowserType.Chrome ? 0 | (
     (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
     && navigator.appVersion.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/)
@@ -42,6 +41,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer <= BrowserVer.FlagFreezeU
 if (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) {
   window.chrome = browser as typeof chrome
 }
+
+var trans_ = chrome.i18n.getMessage
 
 Build.NDEBUG || (function (): void {
   type ModuleTy = Dict<any> & { __esModule?: boolean }

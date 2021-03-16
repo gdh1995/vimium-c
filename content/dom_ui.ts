@@ -70,9 +70,9 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
       adjust2 && !doesAdjustFirst && adjustUI()
     };
     setUICSS = (innerCSS): void => {
-      if ((OnChrome && Build.MinCVer < BrowserVer.MinShadowDOMV0
+      if (OnEdge || (OnChrome && Build.MinCVer < BrowserVer.MinShadowDOMV0
             || OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredShadowDOMV1)
-          && (OnEdge || box_ === root_)) {
+          && (box_ === root_)) {
         box_!.id = "VimiumUI"
       }
       const S = "style" as const

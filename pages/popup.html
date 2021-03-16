@@ -4,7 +4,8 @@
     <meta charset="utf-8">
     <title>Vimium C Popup</title>
     <link rel="stylesheet" href="options.css">
-    <script defer src="options_base.js"></script>
+    <script type="module" src="async_bg.js"></script>
+    <script type="module" src="options_base.js"></script>
     <style>
 * {
 	margin: 0;
@@ -108,7 +109,8 @@ a.decorate-none:not(:hover) {
                 spellcheck="false" />
           </td>
           <td>
-            <svg class="remove" role="button" tabindex="0" title="Remove"><path d="M4 4l8 8zM4 12L12 4" /></svg>
+            <span class="remove" role="button" tabindex="0" title="Remove"
+                ><svg class="btn_svg" viewBox="0 0 16 16"><path d="M4 4l8 8zM4 12L12 4"></path></svg></span>
           </td>
         </tr></table>
       </template>
