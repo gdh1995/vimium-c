@@ -105,13 +105,13 @@ let keyMappingChecker_ = {
   check_ (str: string): string {
     if (!str) { return str; }
     this.init_ && this.init_();
-    str = "\n" + str.replace(<RegExpG & RegExpSearchable<0>> /\\\\?\n/g, i => i.length === 3 ? i : "\\\r");
+    str = str.replace(<RegExpG & RegExpSearchable<0>> /\\\\?\n/g, i => i.length === 3 ? i : "\\\r")
     str = str.replace(<RegExpG & RegExpSearchable<3>
-        > /(\n[ \t]*(?:#\s?)?map\s+(?:<(?!<)(?:.-){0,4}.[\w:]*?>|\S)\s+)(<(?!<)(?:[ACMSVacmsv]--){0,4}.\w*?>)(?=\s|$)/g
+        > /^([ \t]*(?:#\s?)?map\s+(?:<(?!<)(?:.-){0,4}.[\w:]*?>|\S)\s+)(<(?!<)(?:[ACMSVacmsv]-){0,4}.\w*?>)(?=\s|$)/gm
         , this.correctMapKey_);
-    str = str.replace(<RegExpG & RegExpSearchable<3>> /(\n[ \t]*(?:#\s?)?(?:un)?map(?:[kK]ey)?\s+)(\S+)([^\n]*)/g
+    str = str.replace(<RegExpG & RegExpSearchable<3>> /^([ \t]*(?:#\s?)?(?:un)?map(?:[kK]ey)?\s+)(\S+)([^\n]*)/gm
         , this.normalizeMap_);
-    str = str.replace(<RegExpG & RegExpSearchable<3>> /(\n[ \t]*(?:#\s?)?(?:command|shortcut)\s+)(\S+)([^\n]*)/g,
+    str = str.replace(<RegExpG & RegExpSearchable<3>> /^([ \t]*(?:#\s?)?(?:command|shortcut)\s+)(\S+)([^\n]*)/gm,
         this.normalizeCmd_);
     str = str.replace(<RegExpG & RegExpSearchable<0>> /\\\r/g, "\\\n").trim();
     return str;

@@ -1,4 +1,3 @@
-/// <reference no-default-lib="true"/>
 /// <reference path="../typings/base/index.d.ts" />
 /// <reference path="../typings/lib/index.d.ts" />
 /// <reference path="../typings/build/index.d.ts" />
