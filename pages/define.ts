@@ -6,11 +6,12 @@ var define: any
 var __filename: string | null | undefined
 
 (function (): void {
-  type ModuleTy = Dict<any> & { __esModule?: boolean }
+  type ModuleTy = Dict<any> & { __esModule?: boolean, __default?: Function }
   type RequireTy = (target: string) => ModuleTy
   type FactoryTy = (require?: RequireTy, exports?: ModuleTy, ...deps: ModuleTy[]) => any
   interface DefineTy {
     (deps: string[], factory: FactoryTy): any
+    (factory: FactoryTy): any
     amd: boolean
     modules_?: Dict<ModuleTy>
     noConflict (): void
@@ -35,7 +36,7 @@ var __filename: string | null | undefined
 
   const modules: Dict<ModuleTy | ((url: string, exports: ModuleTy) => void)> = {}
   const readyMap: Dict<Promise<1 | void> | 1> = {}
-  const fullFeaturedDefine: DefineTy = (depNames, factory): void => {
+  const fullFeaturedDefine: DefineTy = (rawDepNames: string[] | FactoryTy, rawFactory?: FactoryTy): void => {
     const selfScript = document.currentScript as HTMLScriptElement
     const url = selfScript != null ? selfScript.src : __filename!
     const filename = url.slice(url.lastIndexOf("/") + 1).replace(".js", "")
@@ -43,12 +44,15 @@ var __filename: string | null | undefined
       throw new Error(`module filenames must be unique: duplicated "${filename}"`)
     }
     const isRoot = !readyMap[filename]
+    const depNames = rawFactory ? rawDepNames as string[] : [], factory = rawFactory || rawDepNames as FactoryTy
     const depsReady = Promise.all(depNames.map(waitJS.bind(0, url)))
-    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith
-        ? filename.lastIndexOf("__", 0) === 0 : filename.startsWith("__")) {
+    if (depNames.length === 1 && WithModule) {
+      __filename = depNames[0]
+    }
+    if (OnChrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith
+        ? filename.indexOf("__loader_", 0) >= 0 : filename.includes("__loader_")) {
       depsReady.then((): void => {
-        depNames.map(myRequire)
-        factory()
+        factory.apply(null, depNames.map(myRequire) as never)
       })
       return
     }
@@ -60,7 +64,13 @@ var __filename: string | null | undefined
     })
     modules[filename] = (_url, exports): void => {
       const args = depNames.map(dep => dep === "require" ? myRequire : dep === "exports" ? exports : myRequire(dep))
-      factory(... <[RequireTy, ...ModuleTy[]]> args)
+      if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
+          ? args.indexOf(exports) >= 0 : args.includes!(exports)) {
+        factory(... <[RequireTy, ...ModuleTy[]]> args)
+      } else {
+        const obj = factory(... <[RequireTy, ...ModuleTy[]]> args)
+        modules[filename] = !obj ? exports : typeof obj === "function" ? { __default: obj } : obj
+      }
     }
   }
   const waitJS = (baseUrl: string, targetFile: string): Promise<1 | void> | 1 => {
@@ -70,15 +80,18 @@ var __filename: string | null | undefined
     if (!ready) {
       const ind = baseUrl.lastIndexOf("/")
       let base = ind > 0 ? baseUrl.slice(0, ind) : ind === 0 ? "" : "."
+      let ensuredAbsolute = ind === 0
       let targetPath = targetFile.slice(-3) !== ".js" ? targetFile + ".js" : targetFile, i: number
       while ((i = targetPath.indexOf("/")) >= 0) {
         const folder = targetPath.slice(0, i)
         if (folder === "..") {
           let j = base.lastIndexOf("/")
           base = j > 0 ? base.slice(0, j) : ""
+          ensuredAbsolute = !base
         } else if (!folder) {
           base = ""
           targetPath = targetPath.slice(1)
+          ensuredAbsolute = true
           break
         } else if (folder !== ".") {
           base = base ? base + "/" + folder : folder
@@ -87,12 +100,13 @@ var __filename: string | null | undefined
       }
       const script = document.createElement("script")
       if (WithModule) {
+        __filename = null
         script.type = "module"
         if (OnChrome) {
           script.async = true /** @todo: trace https://bugs.chromium.org/p/chromium/issues/detail?id=717643 */
         }
       }
-      script.src = base + "/" + targetPath
+      script.src = (ensuredAbsolute ? "/" : "" ) + base + "/" + targetPath
       ready = new Promise((resolve, reject): void => {
         script.onload = (): void => {
           const newReady = readyMap[filename]
@@ -113,8 +127,9 @@ var __filename: string | null | undefined
       modules[filename] = exportsOrFactory = {}
       Build.NDEBUG || ((fullFeaturedDefine as any)[filename] = exportsOrFactory)
       factory(url, exportsOrFactory)
+      exportsOrFactory = modules[filename]!
     }
-    return exportsOrFactory
+    return (exportsOrFactory as ModuleTy).__default as never || exportsOrFactory
   }
   fullFeaturedDefine.amd = true
   if (!Build.NDEBUG) { fullFeaturedDefine.modules_ = modules }

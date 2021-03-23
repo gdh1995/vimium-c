@@ -38,12 +38,10 @@ interface ViewerType {
   zoomTo(ratio: number): ViewerType;
   rotate(degree: number): any;
 }
+type ViewerModule = new (root: HTMLElement) => ViewerType
 interface ImportBody {
   (id: "shownImage"): HTMLImageElement;
   (id: "shownText"): HTMLDivElement;
-}
-interface CurWnd extends Window {
-  Viewer: new (root: HTMLElement) => ViewerType
 }
 type ValidNodeTypes = HTMLImageElement | HTMLDivElement;
 
@@ -52,6 +50,7 @@ pTrans_ = chrome.i18n.getMessage
 const blobCache: Dict<Blob> = {}
 const body = document.body as HTMLBodyElement
 
+let ViewerModule: ViewerModule | undefined
 let VShown: ValidNodeTypes | null = null;
 let bgLink = $<HTMLAnchorElement & SafeHTMLElement>("#bgLink");
 let tempEmit: ((succeed: boolean) => void) | null = null;
@@ -564,24 +563,12 @@ function toggleInvert(event: EventToPrevent): void {
   }
 }
 
-function requireJS(name: string, src: string): Promise<any> {
-  if ((window as any)[name]) {
-    return Promise.resolve((window as any)[name]);
-  }
-  return (window as any)[name] = new Promise(function (resolve, reject) {
-    const script = document.createElement("script");
-    script.src = src;
-    if (!Build.NDEBUG) {
-      script.onerror = function () {
-        reject("ImportError: " + name);
-      };
-    }
-    script.onload = function () {
-      const obj = (window as any)[name];
-      Build.NDEBUG || obj ? resolve(obj) : (this.onerror as () => void)();
-    };
-    (document.head as HTMLHeadElement).appendChild(script);
-  });
+function requireJS(url: string): Promise<any> {
+  const filename = url.slice(url.lastIndexOf("/") + 1).replace(".js", "")
+  __filename = location.pathname + `?__loader_` + filename
+  return new Promise<void>((resolve): void => {
+    define([url], resolve)
+  })
 }
 
 function loadCSS(src: string): void {
@@ -598,14 +585,13 @@ function defaultOnError(err: any): void {
   err && console.log("%o", err);
 }
 
-function loadViewer(): Promise<CurWnd["Viewer"]> {
-  const viewer = (window as CurWnd).Viewer
-  if (viewer) {
-    return Promise.resolve(viewer)
+function loadViewer(): Promise<ViewerModule> {
+  if (ViewerModule) {
+    return Promise.resolve(ViewerModule)
   }
   loadCSS("../lib/viewer.min.css");
-  return requireJS("Viewer", "../lib/viewer.min.js").then<CurWnd["Viewer"]>(function (ViewerModule): CurWnd["Viewer"] {
-    ViewerModule.setDefaults({
+  return requireJS("../lib/viewer.min.js").then<ViewerModule>(viewerJS => {
+    viewerJS.setDefaults({
       navbar: false,
       shown (this: void) {
         bgLink.style.display = "none";
@@ -617,11 +603,12 @@ function loadViewer(): Promise<CurWnd["Viewer"]> {
         if (tempEmit) { tempEmit(false); }
       }
     });
-    return ViewerModule;
+    ViewerModule = viewerJS
+    return viewerJS
   });
 }
 
-function showSlide(ViewerModule: CurWnd["Viewer"], zoomToFit?: boolean): Promise<ViewerType> | ViewerType {
+function showSlide(ViewerModule: ViewerModule, zoomToFit?: boolean): Promise<ViewerType> | ViewerType {
   const needToScroll = scrollX || scrollY;
   const sel = getSelection();
   sel.type === "Range" && sel.collapseToStart();
