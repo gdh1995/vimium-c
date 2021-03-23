@@ -148,13 +148,14 @@ const onOmniDisconnect = (port: Port): void => {
 }
 
 const formatPortSender = (port: Port): Frames.Sender => {
-  const sender = (port as Frames.BrowserPort).sender, tab = sender.tab || {
+  const sender = (port as Frames.BrowserPort).sender
+  const tab = sender.tab || (Build.BTypes & BrowserType.Edge ? {
     id: _fakeTabId--, url: "", incognito: false
-  }, url = Build.BTypes & BrowserType.Edge ? sender.url || tab.url || "" : sender.url!
+  } : { id: _fakeTabId--, incognito: false })
+  const url = Build.BTypes & BrowserType.Edge ? sender.url || tab.url || "" : sender.url!
   if (!(Build.BTypes & ~BrowserType.Chrome)) { sender.tab = null as never }
   return (port as Frames.Port).s = {
-    i: Build.MinCVer >= BrowserVer.MinWithFrameId || !(Build.BTypes & BrowserType.Chrome)
-        ? sender.frameId! : sender.frameId || 0,
+    i: sender.frameId || 0, // frameId may not exist if no sender.tab
     a: tab.incognito, s: Frames.Status.enabled, f: Frames.Flags.blank, t: tab.id, u: url
   }
 }
