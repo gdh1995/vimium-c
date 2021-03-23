@@ -411,7 +411,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
         else if (scroll = keyNames_.indexOf(keybody), scroll > 2 && scroll & 5 ^ 5) {
           beginScroll(eventWrapper, key, keybody);
         }
-        else if (keybody > kChar.i && keybody < kChar.l) {
+        else if (keybody === kChar.j || keybody === kChar.k) { // not use `> kChar.i` in case of keys like `<c-j123>`
           onHostKeydown(eventWrapper)
         }
         else { h = HandlerResult.Suppress; }
@@ -458,7 +458,7 @@ const onHostKeydown = (event: HandlerNS.Event): HandlerResult => {
       doFocus()
       return HandlerResult.Prevent;
     } else if (key.length > 1 && "c-m-".includes(key[0] + key[1])
-        && (keybody = keybody_(key)) > kChar.i && keybody < kChar.l) {
+        && ((keybody = keybody_(key)) === kChar.j || keybody === kChar.k)) {
       if (!hasResults) { /* empty */ }
       else if (key.length > 4) {
         highlightInViewport()

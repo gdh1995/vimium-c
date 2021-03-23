@@ -399,13 +399,13 @@ set_reqH_([
       key = key.slice(prefix.length)
       count = prefix !== "-" ? parseInt(prefix, 10) || 1 : -1
     }
-    const ref = CommandsData_.keyToCommandRegistry_
-    if (!ref.has(key)) {
+    let registryEntry = CommandsData_.keyToCommandRegistry_.get(key)
+    if (!registryEntry) {
       arr = key.match(BgUtils_.keyRe_)!
       key = arr[arr.length - 1]
       count = 1
+      registryEntry = CommandsData_.keyToCommandRegistry_.get(key)
     }
-    const registryEntry = ref.get(key)
     BgUtils_.resetRe_()
     if (registryEntry) {
       executeCommand(registryEntry, count, request.l, port, 0)

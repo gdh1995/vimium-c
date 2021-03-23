@@ -153,7 +153,7 @@ var KeyMappings = {
       key = splitLine[0];
       if (key === "map") {
         key = splitLine[1] || ""
-        if (!key || key === "__proto__") {
+        if (!key || key.length > 8 && (key === "__proto__" || key.includes("<__proto__>"))) {
           a.logError_('Unsupported key sequence %c"%s"', colorRed, key || '""', `for "${splitLine[2] || ""}"`);
         } else if (registry.has(key) && !(builtinKeys && builtinKeys.has(key))) {
           a.logError_('Key %c"%s"', colorRed, key, "has been mapped to", registry.get(key)!.command_)
@@ -194,9 +194,10 @@ var KeyMappings = {
         if (splitLine.length !== 3) {
           a.logError_(`mapKey: need %s source and target keys:`, splitLine.length > 3 ? "only" : "both", line);
         } else if ((key = splitLine[1]).length > 1
-            && !(<RegExpOne> /^<(?!<[^:])([acms]-){0,4}.\w*?(:[a-z])?>$/).test(key)) {
+            && !(<RegExpOne> /^<(?!<[^:]|__proto__>)([acms]-){0,4}.\w*(:[a-z])?>$/).test(key)) {
           a.logError_("mapKey: a source key should be a single key with an optional mode id:", line);
-        } else if (splitLine[2].length > 1 && !(<RegExpOne> /^<(?!<)(.-){0,4}.\w*?>$/).test(splitLine[2])) {
+        } else if (splitLine[2].length > 1
+            && !(<RegExpOne> /^<(?!<|__proto__>)([a-z]-){0,4}.\w*>$/).test(splitLine[2])) {
           a.logError_("mapKey: a target key should be a single key:", line);
         } else if (key = BgUtils_.stripKey_(key), key in mkReg && mkReg[key] !== BgUtils_.stripKey_(splitLine[2])) {
           key = mkReg[key]!;

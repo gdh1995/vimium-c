@@ -474,10 +474,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       : 0 as never as null,
   _codeCorrectionMap: ["Semicolon", "Equal", "Comma", "Minus", "Period", "Slash", "Backquote",
     "BracketLeft", "Backslash", "BracketRight", "Quote", "IntlBackslash"],
-  _modifierKeys: {
-    __proto__: null as never,
+  _modifierKeys: AsOmni_<Dict<1>>({
     Alt: 1, AltGraph: 1, Control: 1, Meta: 1, OS: 1, Shift: 1
-  } as SafeEnum,
+  }) as SafeEnum,
   keyIdCorrectionOffset_old_cr_: Build.BTypes & BrowserType.Chrome
       && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
       ? 185 as 185 | 300 : 0 as never as null,
@@ -1128,6 +1127,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.onWheel_ = a.onWheel_.bind(a);
     VUtils_.safer_(a.ctrlCharOrShiftKeyMap_);
     VUtils_.safer_(a.normalMap_);
+    VUtils_.safer_(a._modifierKeys)
     const list = a.list_ = document.getElementById("list") as EnsuredMountedHTMLElement;
     const ver: BrowserVer = Build.BTypes & BrowserType.Chrome ? a.browserVer_ : BrowserVer.assumedVer,
     listen = addEventListener,

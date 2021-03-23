@@ -697,7 +697,9 @@ export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey]): void => {
       key = key.slice(prefix.length)
       count = prefix !== "-" ? parseInt(prefix, 10) || 1 : -1
     }
-    let registryEntry = CommandsData_.keyToCommandRegistry_.get(key)
+    let registryEntry = Build.BTypes & BrowserType.Chrome
+        && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol && key === "__proto__" ? null
+        : CommandsData_.keyToCommandRegistry_.get(key)
     if (!registryEntry) {
       showHUD(`the "${key}" has not been mapped`)
     } else if (registryEntry.alias_ === kBgCmd.runKey && registryEntry.background_) {
