@@ -110,6 +110,9 @@ var __filename: string | null | undefined
       ready = new Promise((resolve, reject): void => {
         script.onload = (): void => {
           const newReady = readyMap[filename]
+          if (modules[filename] == null) {
+            modules[filename] = {}
+          }
           resolve(newReady !== ready ? newReady : 1)
         }
         script.onerror = reject

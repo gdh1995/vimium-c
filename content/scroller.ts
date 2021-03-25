@@ -501,8 +501,8 @@ export const scrollIntoView_s = (el?: SafeElement | null): void => {
 }
 
 export const shouldScroll_s = (element: SafeElement, di: BOOL | 2 | 3, amount: number): -1 | 0 | 1 => {
-    const st = getComputedStyle_(element);
-    return (di ? st.overflowY : st.overflowX) === HDN && di < 2
+    const st = getComputedStyle_(element), overflow = di ? st.overflowY : st.overflowX
+    return (overflow === HDN || overflow === "clip") && di < 2
       || st.display === NONE || !isRawStyleVisible(st) ? -1
       : <BOOL> +doesScroll(element, (di & 1) as BOOL, amount || +!dimSize_(element, kDim.positionX + di))
 }

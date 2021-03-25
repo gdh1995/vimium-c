@@ -272,7 +272,8 @@ const openUrls = (tabs: [Tab] | [] | undefined): void => {
     get_cOptions<C.openUrl, true>().formatted_ = 1
   }
   const reuse = parseReuse(get_cOptions<C.openUrl, true>().reuse), pinned = !!get_cOptions<C.openUrl>().pinned,
-  wndOpt: chrome.windows.CreateData | null = reuse === ReuseType.newWindow || get_cOptions<C.openUrl>().window ? {
+  wndOpt: Partial<Omit<chrome.windows.CreateData, "focused">> | null = reuse === ReuseType.newWindow
+      || get_cOptions<C.openUrl>().window ? {
     url: urls.length > 0 ? urls: void 0, incognito: !!get_cOptions<C.openUrl>().incognito
   } : null
   let active = reuse > ReuseType.newFg - 1, index = tab && newTabIndex(tab, get_cOptions<C.openUrl>().position)

@@ -13,7 +13,7 @@ export interface InfoToCreateMultiTab extends
 
 export const browser_: typeof chrome = Build.BTypes & ~BrowserType.Chrome
     && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)
-    ? browser as typeof chrome : chrome
+    ? (browser as typeof chrome) : chrome
 export const browserTabs = browser_.tabs
 export const browserWindows = browser_.windows
 export const browserSessions = (): typeof chrome.sessions => browser_.sessions
@@ -178,9 +178,14 @@ export const makeTempWindow = (tabIdUrl: number | "about:blank", incognito: bool
     type: "normal", focused: false, incognito, state: "minimized",
     tabId: isId ? tabIdUrl as number : undefined, url: isId ? undefined : tabIdUrl as string
   }
-  if (Build.MinCVer < BrowserVer.MinCreateWndWithState && Build.BTypes & BrowserType.Chrome
+  if (Build.BTypes & BrowserType.Firefox
+      && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+    delete options.focused
+  }
+  if (Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
+      || Build.MinCVer < BrowserVer.MinCreateWndWithState && Build.BTypes & BrowserType.Chrome
       && CurCVer_ < BrowserVer.MinCreateWndWithState) {
-    options.state = undefined
+    delete options.state
     options.left = options.top = 0, options.width = options.height = 50
   }
   browserWindows.create(options, callback)

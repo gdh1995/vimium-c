@@ -750,7 +750,7 @@ const beforeTerser = exports.beforeTerser = (file) => {
       contents = s1 + contents.slice(1000);
     }
   }
-  if (locally && doesMinifyLocalFiles) {
+  if (locally ? doesMinifyLocalFiles : allPathStr.includes("pages/")) {
     get()
     if (!known_defs) {
       known_defs = {}

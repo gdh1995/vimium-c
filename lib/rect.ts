@@ -219,7 +219,7 @@ export const getCroppedRect_ = function (el: Element, crect: Rect | null): Rect 
   let parent: Element | null = el, prect: Rect | null | undefined, i: number = crect ? 3 : 0, bcr: Rect
   while (0 < i-- && (parent = GetParent_unsafe_(parent, PNType.RevealSlotAndGotoParent))) {
     const overflow = getComputedStyle_(parent).overflow
-    if (overflow === HDN || overflow === "crop") {
+    if (overflow === HDN || overflow === "clip") {
       bcr = padClientRect_(getBoundingClientRect_(parent))
       prect = cropRectToVisible_(bcr.l, bcr.t, bcr.r, bcr.b)
       crect = prect && isContaining_(crect!, prect) ? prect : crect
@@ -337,9 +337,9 @@ export const getViewBox_ = function (needBox?: 1 | /** dialog-found */ 2): ViewB
                                      ih - float(st.borderBottomWidth) * scale] : null
   if (!needBox) { return [x, y]; }
   // here rect.right is not accurate because <html> may be smaller than <body>
-  const sEl = scrollingEl_(),
-  xScrollable = st.overflowX !== HDN && st2.overflowX !== HDN,
-  yScrollable = st.overflowY !== HDN && st2.overflowY !== HDN
+  const sEl = scrollingEl_(), nonScrollableRe = <RegExpOne> /hidden|clip/,
+  xScrollable = !nonScrollableRe.test("" + st.overflowX + st2.overflowX),
+  yScrollable = !nonScrollableRe.test("" + st.overflowY + st2.overflowY)
   if (xScrollable) {
     mw += 64 * zoom2
     iw = containHasPaint ? iw : sEl && (dimSize_(sEl, kDim.scrollW) - scrollX) / zoom

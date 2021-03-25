@@ -527,6 +527,8 @@ exports.replace_global_defs = (global_defs, code) => {
       if (prefix) {
         to_replace.push([pos - 1 - prefix[0].length, pos + key.length, global_defs[key]])
       }
+    } else if ("|&?)".includes(code.substr(pos + key.length, 64).trimLeft()[0] || "a")) {
+      to_replace.push([pos, pos + key.length, global_defs[key]])
     }
   }
   if (!to_replace.length) { return code }
