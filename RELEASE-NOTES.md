@@ -153,7 +153,7 @@ bug fixes:
 #### 1.84.1
 * FindMode: **better support for regexp queries**, like matching `\ra(?!nd)` in `abc and def`
 * mapped **long keys ending with `:i` always work in a plain insert mode**
-  * for example, `map <c-j:i> editText run="auto,forward,line"` will move caret down by a line, only in insert mode
+  * for example, `map <c-j:i> editText run="auto,forward,line"` will move caret down by a line, only in insert mode
   * not in any global insert mode of `enterInsertMode`
 * fix it could not enter VisualMode if FindMode had never been activated
 * LinkHints: a new option `newtab=last-window` to open links in the other window

@@ -181,7 +181,7 @@ function decodeStrOption (new_value: string | string[]): string {
   if (new_value instanceof Array) {
     new_value = new_value.join("\n").trimRight();
   }
-  new_value = new_value.replace(<RegExpG> /\r\n?/g, "\n");
+  new_value = new_value.replace(<RegExpG> /\r\n?/g, "\n").replace(<RegExpG> /\xa0/g, " ")
   return new_value.replace(<RegExpG & RegExpSearchable<1>> /^\$base64:(.*)/gm, (f, masked) => {
     try {
       return decodeURIComponent(([] as string[]).map.call<string[], [(s: string) => string], string[]>(

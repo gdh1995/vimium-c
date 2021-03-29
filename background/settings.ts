@@ -362,12 +362,12 @@ shortcut-forwarding-tool@gdh1995.cn`
     searchEngines: (navigator.language as string).startsWith("zh")
 ? `b|ba|baidu|Baidu|\u767e\u5ea6: https://www.baidu.com/s?ie=utf-8&wd=%s \\
   blank=https://www.baidu.com/ \u767e\u5ea6
-bi: https://cn.bing.com/search?q=$s
+bi: https://cn.bing.com/search?q=$s
 bi|bing|Bing|\u5fc5\u5e94: https://www.bing.com/search?q=%s \\
   blank=https://cn.bing.com/ \u5fc5\u5e94
 g|go|gg|google|Google|\u8c37\u6b4c: https://www.google.com/search?q=%s\\
-  www.google.com re=/^(?:\\.[a-z]{2,4})?\\/search\\b.*?[#&?]q=([^#&]*)/i\\
-  blank=https://www.google.com/ Google
+  www.google.com re=/^(?:\\.[a-z]{2,4})?\\/search\\b.*?[#&?]q=([^#&]*)/i\\
+  blank=https://www.google.com/ Google
 d|ddg|duckduckgo: https://duckduckgo.com/?q=%s DuckDuckGo
 qw|qwant: https://www.qwant.com/?q=%s Qwant
 
@@ -386,8 +386,8 @@ y|yt: https://www.youtube.com/results?search_query=%s \\
 w|wiki: https://www.wikipedia.org/w/index.php?search=%s Wikipedia
 b.x|b.xs|bx|bxs|bxueshu: https://xueshu.baidu.com/s?ie=utf-8&wd=%s \\
   blank=https://xueshu.baidu.com/ \u767e\u5ea6\u5b66\u672f
-gs|g.s|gscholar|g.x|gx|gxs: https://scholar.google.com/scholar?q=$s \\
-  scholar.google.com re=/^(?:\\.[a-z]{2,4})?\\/scholar\\b.*?[#&?]q=([^#&]*)/i\\
+gs|g.s|gscholar|g.x|gx|gxs: https://scholar.google.com/scholar?q=$s \\
+  scholar.google.com re=/^(?:\\.[a-z]{2,4})?\\/scholar\\b.*?[#&?]q=([^#&]*)/i\\
   blank=https://scholar.google.com/ \u8c37\u6b4c\u5b66\u672f
 
 t|tb|taobao|ali|\u6dd8\u5b9d: https://s.taobao.com/search?ie=utf8&q=%s \\
@@ -398,20 +398,20 @@ az|amazon: https://www.amazon.com/s/?field-keywords=%s \\
   blank=https://www.amazon.com/ \u4e9a\u9a6c\u900a
 
 v.m|v\\:math: vimium://math\\ $S re= \u8ba1\u7b97\u5668
-gh|github: https://github.com/search?q=$s \\
-  blank=https://github.com/ GitHub 仓库
-ge|gitee: https://search.gitee.com/?type=repository&q=$s \\
-  blank=https://gitee.com/ Gitee 仓库
+gh|github: https://github.com/search?q=$s \\
+  blank=https://github.com/ GitHub 仓库
+ge|gitee: https://search.gitee.com/?type=repository&q=$s \\
+  blank=https://gitee.com/ Gitee 仓库
 js\\:|Js: javascript:\\ $S; JavaScript`
 
-: `bi: https://cn.bing.com/search?q=$s
+: `bi: https://cn.bing.com/search?q=$s
 bi|bing: https://www.bing.com/search?q=%s \\
   blank=https://www.bing.com/ Bing
 b|ba|baidu|\u767e\u5ea6: https://www.baidu.com/s?ie=utf-8&wd=%s \\
   blank=https://www.baidu.com/ \u767e\u5ea6
 g|go|gg|google|Google: https://www.google.com/search?q=%s \\
-  www.google.com re=/^(?:\\.[a-z]{2,4})?\\/search\\b.*?[#&?]q=([^#&]*)/i\\
-  blank=https://www.google.com/ Google
+  www.google.com re=/^(?:\\.[a-z]{2,4})?\\/search\\b.*?[#&?]q=([^#&]*)/i\\
+  blank=https://www.google.com/ Google
 d|ddg|duckduckgo: https://duckduckgo.com/?q=%s DuckDuckGo
 qw|qwant: https://www.qwant.com/?q=%s Qwant
 
@@ -422,8 +422,8 @@ b.m|bm|map|b.map|bmap|\u767e\u5ea6\u5730\u56fe: \\
 y|yt: https://www.youtube.com/results?search_query=%s \\
   blank=https://www.youtube.com/ YouTube
 w|wiki: https://www.wikipedia.org/w/index.php?search=%s Wikipedia
-g.s|gs|gscholar: https://scholar.google.com/scholar?q=$s \\
-  scholar.google.com re=/^(?:\\.[a-z]{2,4})?\\/scholar\\b.*?[#&?]q=([^#&]*)/i\\
+g.s|gs|gscholar: https://scholar.google.com/scholar?q=$s \\
+  scholar.google.com re=/^(?:\\.[a-z]{2,4})?\\/scholar\\b.*?[#&?]q=([^#&]*)/i\\
   blank=https://scholar.google.com/ Google Scholar
 
 a|ae|ali|alie|aliexp: https://www.aliexpress.com/wholesale?SearchText=%s \\
@@ -434,10 +434,10 @@ az|amazon: https://www.amazon.com/s/?field-keywords=%s \\
   blank=https://www.amazon.com/ Amazon
 
 v.m|v\\:math: vimium://math\\ $S re= Calculate
-gh|github: https://github.com/search?q=$s \\
-  blank=https://github.com/ GitHub Repo
-ge|gitee: https://search.gitee.com/?type=repository&q=$s \\
-  blank=https://gitee.com/ Gitee 仓库
+gh|github: https://github.com/search?q=$s \\
+  blank=https://github.com/ GitHub Repo
+ge|gitee: https://search.gitee.com/?type=repository&q=$s \\
+  blank=https://gitee.com/ Gitee 仓库
 js\\:|Js: javascript:\\ $S; JavaScript`,
     showActionIcon: true,
     showAdvancedCommands: true,
