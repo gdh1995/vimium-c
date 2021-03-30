@@ -5,7 +5,7 @@ import {
 } from "../lib/utils"
 import { CLK, MDW, OnDocLoaded_, isHTML_, set_createElement_, createElement_ } from "../lib/dom_utils"
 import { grabBackFocus } from "./insert"
-import { coreHints } from "./link_hints"
+import { coreHints, doesWantToReloadLinkHints } from "./link_hints"
 
 declare function exportFunction(func: unknown, targetScope: object
     , options?: { defineAs?: string; allowCrossOriginArguments?: boolean }): unknown
@@ -63,7 +63,7 @@ export const main_ff = (OnFirefox ? (): void => {
       }
       OnDocLoaded_((): void => {
         timeout_(function (): void {
-          coreHints.h - 1 || timeout_(coreHints.x, 34)
+          coreHints.h - 1 || doesWantToReloadLinkHints("lo") && timeout_(coreHints.x, 34)
         }, GlobalConsts.ExtendClick_DelayToFindAll)
       }, 1)
     }

@@ -35,7 +35,10 @@ interface BgCmdOptions {
     start: boolean
   }
   // endregion: need cport
-  [kBgCmd.addBookmark]: { folder: string; /** (deprecated) */ path: string } & LimitedRangeOptions
+  [kBgCmd.addBookmark]: {
+    folder: string; /** (deprecated) */ path: string
+    all: true | "window"
+  } & LimitedRangeOptions
   [kBgCmd.autoOpenFallback]: { keyword: string }
   [kBgCmd.captureTab]: {
     /** 0..100; 0 means .png */ jpeg: number
@@ -87,7 +90,7 @@ interface BgCmdOptions {
   }
   [kBgCmd.reopenTab]: {}
   [kBgCmd.restoreGivenTab]: {}
-  [kBgCmd.restoreTab]: {}
+  [kBgCmd.restoreTab]: { incognito: "force" | true }
   [kBgCmd.runKey]: {
     expect: CommandsNS.EnvItemWithKeys[] | Dict<string | string[]>
     keys: string[] | /** space-seperated list */ string

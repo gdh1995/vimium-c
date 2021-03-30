@@ -236,7 +236,8 @@ export const paste_: typeof BgUtils_.paste_ = !settings.CONST_.AllowClipboardRea
   textArea.value = ""
   textArea.remove()
   textArea.removeAttribute("maxlength")
-  if (!newLenLimit && (value.slice(0, 5).toLowerCase() === "data:" || BgUtils_.isJSUrl_(value))) {
+  if (!newLenLimit && value.length >= GlobalConsts.MaxBufferLengthForPastingNormalText * 0.8
+      && (value.slice(0, 5).toLowerCase() === "data:" || BgUtils_.isJSUrl_(value))) {
     return BgUtils_.paste_(sed, GlobalConsts.MaxBufferLengthForPastingLongURL) as string
   }
   return reformat_(value, sed)

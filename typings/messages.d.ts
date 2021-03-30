@@ -244,6 +244,7 @@ declare namespace HintsNS {
       [selector: string]: string;
     };
     auto?: boolean;
+    autoReload?: "click" | "cl" | "pageLoad" | "lo" | "click,pageLoad"
     ctrlShiftForWindow?: boolean | null;
     noCtrlPlusShift?: boolean;
     swapCtrlAndShift?: boolean;

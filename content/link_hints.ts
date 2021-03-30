@@ -25,7 +25,10 @@ interface BaseHintWorker extends HintsNS.BaseHintWorker {
   /** manager */ p: HintManager | null
   /** render */ r: typeof render
   /** rotate1 */ t: typeof rotate1
-  /** checkLast_ */ x: typeof checkLast
+  /** checkLast_ */ x: {
+    (el?: WeakRef<LinkEl> | TimerType.fake, r?: Rect | null): void | BOOL
+    (el: 1, r?: Rect | null): void | 1 | 2
+  }
   /** yankedList */ y: string[]
 }
 interface HintManager extends BaseHintWorker {
@@ -59,7 +62,7 @@ export type AddChildIndirectly = (officer: BaseHintWorker
 import {
   VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_, max_, min_, math, OnEdge,
   clearTimeout_, fgCache, doc, readyState_, chromeVer_, vApi, deref_, getTime, weakRef_, unwrap_ff, OnFirefox, OnChrome,
-  WithDialog
+  WithDialog, Lower
 } from "../lib/utils"
 import {
   querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_,
@@ -590,28 +593,25 @@ const setupCheck: HintManager["w"] = (officer?: BaseHintWorker | null
 
 // checkLast: if not el, then reinit if only no key stroke and hints.length < 64
 const checkLast = ((el?: WeakRef<LinkEl> | LinkEl | TimerType.fake | 9 | 1 | null, r?: Rect | null): BOOL | 2 => {
+  const hasEl = (!OnChrome || Build.MinCVer >= BrowserVer.MinNo$TimerType$$Fake || el !== TimerType.fake) && el
   let r2: Rect | null | undefined, hidden: boolean
   if (!isAlive_) { return 0 }
   else if (window.closed) { return 1 }
   else if (el === 1) { return 2 }
   else {
-    r2 = el && (!OnChrome || Build.MinCVer >= BrowserVer.MinNo$TimerType$$Fake || el !== TimerType.fake)
-        && (el = deref_(el as WeakRef<LinkEl>)) ? padClientRect_(getBoundingClientRect_(el)) : null
-    hidden = !r2 || r2.r - r2.l < 2 && r2.b - r2.t < 2 || !isStyleVisible_(el as LinkEl) // use 2px: may be safer
+    r2 = hasEl && (el = deref_(el as WeakRef<LinkEl>)) ? padClientRect_(getBoundingClientRect_(el)) : null
+    hidden = !r2 || (r2.r - r2.l) * (r2.b - r2.t) < 4 || !isStyleVisible_(el as LinkEl)
     if (hidden && deref_(lastHovered_) === el) {
       set_lastHovered_(null)
     }
     if ((!r2 || r) && (manager_ || coreHints).$().n
         && (hidden || math.abs(r2!.l - r!.l) > 100 || math.abs(r2!.t - r!.t) > 60)) {
-      return manager_ ? 1 : (reinit(1), 0)
+      return hasEl && !doesWantToReloadLinkHints("cl") ? 0 : manager_ ? 1 : (reinit(1), 0)
     } else {
       return 0
     }
   }
-}) as {
-    (el?: WeakRef<LinkEl> | TimerType.fake, r?: Rect | null): void | BOOL;
-    (el: 1, r?: Rect | null): void | 1 | 2;
-}
+}) as BaseHintWorker["x"]
 
 const resetHints = (): void => {
     // here should not consider about .manager_
@@ -727,6 +727,11 @@ export const detectUsableChild = (el: KnownIFrameElement): VApiTy | null => {
     }
   }
   return err ? null : childEvents || null;
+}
+
+export const doesWantToReloadLinkHints = (reason: NonNullable<HintsNS.Options["autoReload"]>) => {
+  const conf = options_.autoReload
+  return !conf || Lower(conf).includes(reason)
 }
 
 const coreHints: HintManager = {

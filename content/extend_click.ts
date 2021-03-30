@@ -3,10 +3,11 @@ import {
   loc_, replaceBrokenTimerFunc, allowRAF_old_cr_, getTime, recordLog, VTr, vApi, Stop_, isTY, OnEdge, OnFirefox
 } from "../lib/utils"
 import {
-  createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, removeEl_s, attr_s, setOrRemoveAttr_s, parentNode_unsafe_s
+  createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, removeEl_s, attr_s, setOrRemoveAttr_s,
+  parentNode_unsafe_s
 } from "../lib/dom_utils"
 import { safeDestroy } from "./port"
-import { coreHints } from "./link_hints"
+import { coreHints, doesWantToReloadLinkHints } from "./link_hints"
 import { grabBackFocus } from "./insert"
 
 export const main_not_ff = (!OnFirefox ? (): void => {
@@ -142,7 +143,7 @@ export const main_not_ff = (!OnFirefox ? (): void => {
     }
     if (isFirstResolve & fromAttrs) {
       isFirstResolve ^= fromAttrs;
-      coreHints.h - 1 || timeout_(coreHints.x, 34);
+      coreHints.h - 1 || doesWantToReloadLinkHints("lo") && timeout_(coreHints.x, 34)
     }
   }
   function resolve(isBox: BOOL, nodeIndexArray: number[]): void {

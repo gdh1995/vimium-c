@@ -170,6 +170,7 @@ const BackgroundCommands: {
   /* kBgCmd.addBookmark: */ (): void | kBgCmd.addBookmark => {
     const path: string | UnknownValue = get_cOptions<C.addBookmark>().folder || get_cOptions<C.addBookmark>().path
     const nodes = path ? (path + "").replace(<RegExpG> /\\/g, "/").split("/").filter(i => i) : []
+    const allTabs = !!get_cOptions<C.addBookmark>().all
     if (!nodes.length) { showHUD('Need "path" to a bookmark folder.'); return }
     browser_.bookmarks.getTree((tree): void => {
       if (!tree) { return runtimeError_() }
@@ -190,12 +191,12 @@ const BackgroundCommands: {
         roots = folder.children!
         if (!roots) { break }
       }
-      (cRepeat * cRepeat < 2 ? getCurTab : Build.BTypes & BrowserType.Firefox
+      (!allTabs && cRepeat * cRepeat < 2 ? getCurTab : Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
           ? getCurShownTabs_ff_only! : getCurTabs)(function doAddBookmarks(tabs?: Tab[]): void {
         if (!tabs || !tabs.length) { runtimeError_(); return }
         const ind = (Build.BTypes & BrowserType.Firefox ? selectFrom(tabs, 1) : selectFrom(tabs)).index
-        let [start, end] = getTabRange(ind, tabs.length)
+        let [start, end] = allTabs ? [0, tabs.length] : getTabRange(ind, tabs.length)
         let count = end - start
         if (count > 20) {
           if (Build.BTypes & ~BrowserType.Chrome) {
@@ -211,7 +212,7 @@ const BackgroundCommands: {
         for (const tab of tabs.slice(start, end)) {
           browser_.bookmarks.create({ parentId: folder!.id, title: tab.title, url: getTabUrl(tab) }, runtimeError_)
         }
-        showHUD(`Add ${end - start} bookmark${end > start + 1 ? "s" : ""}.`)
+        showHUD(`Added ${end - start} bookmark${end > start + 1 ? "s" : ""}.`)
       })
     })
   },
@@ -459,7 +460,8 @@ const BackgroundCommands: {
       return complainNoSession()
     }
     let count = cRepeat
-    if (abs(count) < 2 && (cPort ? cPort.s.a : TabRecency_.incognito_ === IncognitoType.true)) {
+    if (abs(count) < 2 && (cPort ? cPort.s.a : TabRecency_.incognito_ === IncognitoType.true)
+        && !get_cOptions<C.restoreTab>().incognito) {
       return showHUD(trans_("notRestoreIfIncog"))
     }
     const limit = sessions.MAX_SESSION_RESULTS
