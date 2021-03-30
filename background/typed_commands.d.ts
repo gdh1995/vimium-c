@@ -106,6 +106,7 @@ interface BgCmdOptions {
   [kBgCmd.toggleVomnibarStyle]: { style: string; current: boolean }
   [kBgCmd.toggleZoom]: { level: number }
   [kBgCmd.visitPreviousTab]: {}
+  [kBgCmd.closeDownloadBar]: { newWindow?: true | false; all: 1 }
 }
 
 type UnknownValue = "42" | -0 | false | { fake: 42 } | undefined | null

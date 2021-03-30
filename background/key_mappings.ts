@@ -476,7 +476,7 @@ availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeO
   blank: [ kBgCmd.blank, 1, 1 ],
   clearCS: [ kBgCmd.clearCS, 1, 1, { type: "images" } ],
   clearFindHistory: [ kBgCmd.clearFindHistory, 1, 1 ],
-  closeDownloadBar: [ kBgCmd.moveTabToNewWindow, 1, 1, { all: 1 } ],
+  closeDownloadBar: [ kBgCmd.closeDownloadBar, 1, 1, { all: 1 } ],
   closeOtherTabs: [ kBgCmd.removeTabsR, 1, 1, { other: true } ],
   closeTabsOnLeft: [ kBgCmd.removeTabsR, 1, 0, { count: -1e6 } ],
   closeTabsOnRight: [ kBgCmd.removeTabsR, 1, 0, { count: 1e6 } ],

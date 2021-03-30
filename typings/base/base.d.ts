@@ -123,3 +123,11 @@ declare namespace chrome.bookmarks {
 declare namespace chrome.clipboard {
   export function setImageData(data: ArrayBuffer, format: "png"): void
 }
+
+declare namespace chrome.downloads {
+  export function setShelfEnabled(enable: boolean): void
+}
+
+declare namespace chrome.permissions {
+  export function contains(query: { permissions: string[] }, callback: (result: boolean) => void): void
+}

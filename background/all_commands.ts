@@ -65,7 +65,8 @@ const BgCmdInfo: { readonly [K in keyof BgCmdOptions]: K extends keyof BgCmdInfo
   /* kBgCmd.restoreTab      */ Info.NoTab, Info.NoTab, Info.ActiveTab, Info.NoTab, Info.NoTab, Info.ActiveTab,
   /* kBgCmd.togglePinTab    */ Info.NoTab, Info.CurWndTabsIfRepeat, Info.ActiveTab, Info.ActiveTab, Info.NoTab,
       Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-      ? Info.CurShownTabs : Info.CurWndTabs
+      ? Info.CurShownTabs : Info.CurWndTabs,
+  /* kBgCmd.closeDownloadBar*/ Info.NoTab
 ]
 
 const BackgroundCommands: {
@@ -537,6 +538,20 @@ const BackgroundCommands: {
     const tab = tabs[cRepeat > 0 ? Math.min(cRepeat, tabs.length) - 1
       : Math.max(0, tabs.length + cRepeat)]
     tab && selectTab(tab.id)
+  },
+  /* kBgCmd.closeDownloadBar: */ (): void | kBgCmd.closeDownloadBar => {
+    chrome.permissions.contains({permissions:['downloads.shelf','downloads']}, (permitted): void => {
+      if (permitted) {
+        const set = chrome.downloads.setShelfEnabled
+        set(false)
+        set(true)
+      } else if (get_cOptions<C.closeDownloadBar>().newWindow !== false) {
+        BackgroundCommands[kBgCmd.moveTabToNewWindow]()
+      } else {
+        showHUD("No permissions to close download bar")
+      }
+      return runtimeError_()
+    })
   }
 ]
 

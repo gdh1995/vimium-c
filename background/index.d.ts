@@ -440,7 +440,7 @@ interface CmdNameIds {
   captureTab: kBgCmd.captureTab
   clearCS: kBgCmd.clearCS
   clearFindHistory: kBgCmd.clearFindHistory
-  closeDownloadBar: kBgCmd.moveTabToNewWindow
+  closeDownloadBar: kBgCmd.closeDownloadBar
   closeOtherTabs: kBgCmd.removeTabsR
   closeTabsOnLeft: kBgCmd.removeTabsR
   closeTabsOnRight: kBgCmd.removeTabsR
