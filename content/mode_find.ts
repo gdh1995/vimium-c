@@ -333,7 +333,7 @@ const doFocus = (): void => {
     box_.contentWindow.focus()
   }
   // fix that: search "a" in VFind, Ctrl+F, "a", Esc, select normal text using mouse, `/` can not refocus
-  (root_ || innerDoc_).activeElement === input_ && input_.blur()
+  OnChrome && (root_ || innerDoc_).activeElement === input_ && input_.blur()
   focus_(input_)
   doesCheckAlive = 1
 }

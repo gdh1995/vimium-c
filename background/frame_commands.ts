@@ -270,16 +270,17 @@ export const openImgReq = (req: FgReq[kFgReq.openImage], port?: Port): void => {
 
 export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null
     , curTab?: Pick<Tab, "id" | "url" | "pendingUrl" | "index">): void => {
-  const tabID = Build.BTypes & BrowserType.Chrome && curTab ? curTab.id : port!.s.t,
-  count = req.s, reuse = parseReuse(req.r || ReuseType.current)
-  let needToExecCode: boolean = Build.BTypes & BrowserType.Chrome ? false : true
-  if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.Min$Tabs$$goBack)
-      && (!(Build.BTypes & BrowserType.Chrome)
-          || Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome
-          || CurCVer_ < BrowserVer.Min$Tabs$$goBack)) {
-    // on old Chrome || on other browsers
-    const url = Build.BTypes & BrowserType.Chrome && curTab ? getTabUrl(curTab)
-        : (port!.s.i ? indexFrame(tabID, 0)! : port!).s.u
+  const hasTabsGoBack = Build.BTypes & BrowserType.Chrome
+        && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
+        && Build.MinCVer >= BrowserVer.Min$Tabs$$goBack
+      || Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
+        && Build.MinFFVer >= FirefoxBrowserVer.Min$Tabs$$goBack
+      || Build.BTypes & ~BrowserType.Edge
+        && (!(Build.BTypes & BrowserType.Edge) || OnOther !== BrowserType.Edge)
+        && browserTabs.goBack
+  if (!hasTabsGoBack) {
+    const url = curTab ? getTabUrl(curTab) : (port!.s.i ? indexFrame(port!.s.t, 0)! : port!).s.u
     if (!url.startsWith(BrowserProtocol_)
         || !!(Build.BTypes & BrowserType.Firefox)
             && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
@@ -290,9 +291,6 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null
       showHUD(trans_("noTabHistory"))
       return
     }
-    if (Build.BTypes & BrowserType.Chrome) {
-      needToExecCode = true
-    }
   }
   const execGoBack = (tab: Pick<Tab, "id">, goStep: number): void => {
     browserTabs.executeScript(tab.id, {
@@ -300,16 +298,16 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null
       runAt: "document_start"
     }, runtimeError_)
   }
-  if (!(Build.BTypes & BrowserType.Chrome) || reuse) {
+  const tabID = curTab ? curTab.id : port!.s.t
+  const count = req.s, reuse = parseReuse(req.r || ReuseType.current)
+  if (reuse) {
     const position = req.p
     browserTabs.duplicate(tabID, (tab): void => {
       if (!tab) { return runtimeError_() }
       if (reuse === ReuseType.newBg) {
         selectTab(tabID)
       }
-      if (!(Build.BTypes & BrowserType.Chrome)
-          || (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.Min$Tabs$$goBack)
-              && needToExecCode) {
+      if (!hasTabsGoBack) {
         execGoBack(tab, count)
       } else {
         framesGoBack({ s: count, r: ReuseType.current }, null, tab)
@@ -321,11 +319,10 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null
       }
     })
   } else {
-    // Chrome + reuse=0: must be from a shortcut or Chrome is new enough
     const jump = count > 0 ? browserTabs.goForward : browserTabs.goBack
-    if (jump) {
+    if (hasTabsGoBack || jump) {
       for (let i = 0, end = count > 0 ? count : -count; i < end; i++) {
-        jump(tabID, runtimeError_)
+        jump!(tabID, runtimeError_)
       }
     } else {
       execGoBack(curTab!, count)
@@ -515,8 +512,9 @@ export const executeShortcut = (shortcutName: StandardShortcutNames, ports: Fram
   let registry = CommandsData_.shortcutRegistry_.get(shortcutName)!, cmdName = registry.command_,
   cmdFallback: keyof BgCmdOptions = 0
   if (cmdName === "goBack" || cmdName === "goForward") {
-    if (Build.BTypes & BrowserType.Chrome
-        && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)) {
+    if (Build.BTypes & ~BrowserType.Edge
+        && (!(Build.BTypes & BrowserType.Edge) || OnOther !== BrowserType.Edge)
+        && browserTabs.goBack) {
       cmdFallback = kBgCmd.goBackFallback
     }
   } else if (cmdName === "autoOpen") {

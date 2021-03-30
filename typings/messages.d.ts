@@ -282,7 +282,7 @@ interface CmdOptions {
     dir?: 1 | -1 | 0.5 | -0.5;
     view?: 0 | /** means 0 */ undefined | 1 | "max" | /* all others are treated as "view" */ 2 | "view";
     dest?: undefined;
-    keepHover?: boolean | "auto" | "never"
+    keepHover?: true | false | "auto" | "never" | /* or >= 20 */ 20
   } | {
     /** continuous */ $c?: kKeyCode;
     dest: "min" | "max";
@@ -290,7 +290,7 @@ interface CmdOptions {
     view?: undefined;
     sel?: "clear";
     dir?: undefined;
-    keepHover?: boolean | "auto" | "never" | /* or >= 20 */ 20
+    keepHover?: true | false | "auto" | "never" | /* or >= 20 */ 20
   };
   [kFgCmd.toggle]: {
     k: keyof SettingsNS.FrontendSettingsSyncingItems;

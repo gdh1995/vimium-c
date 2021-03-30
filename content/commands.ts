@@ -1,7 +1,7 @@
 import {
   chromeVer_, doc, esc, EscF, fgCache, isTop, set_esc, VTr, safer, timeout_, loc_, weakRef_, deref_,
   keydownEvents_, parseSedOptions, Stop_, suppressCommonEvents, setupEventListener, vApi, locHref, isTY, max_, min_,
-  OnChrome, OnFirefox, OnEdge
+  OnChrome, OnFirefox, OnEdge, firefoxVer_
 } from "../lib/utils"
 import {
   isHTML_, htmlTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK,
@@ -52,11 +52,14 @@ set_contentCommands_([
         options.url ? (loc_.href = options.url) : loc_.reload(!!options.hard)
       }, 17)
     }
-    else if (OnChrome && maxStep > 1
-        && (Build.MinCVer >= BrowserVer.Min$Tabs$$goBack || chromeVer_ > BrowserVer.Min$Tabs$$goBack - 1)
-        && (reuse == null || !isCurrent)
+    else if ((OnChrome ? Build.MinCVer >= BrowserVer.Min$Tabs$$goBack
+              : OnFirefox ? Build.MinFFVer >= FirefoxBrowserVer.Min$Tabs$$goBack : !OnEdge)
+        || (OnChrome && chromeVer_ > BrowserVer.Min$Tabs$$goBack - 1
+              || OnFirefox && firefoxVer_ > FirefoxBrowserVer.Min$Tabs$$goBack - 1
+            ) && maxStep > 1 && reuse == null
         || maxStep && reuse && !isCurrent
     ) {
+      // maxStep > 1 && reuse == null || maxStep && reuse && !isCurrent
       post_({ H: kFgReq.framesGoBack, s: realStep, r: reuse, p: options.position });
     } else {
       maxStep && history.go(realStep);

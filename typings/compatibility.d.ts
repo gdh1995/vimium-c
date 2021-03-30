@@ -525,8 +525,10 @@ declare const enum FirefoxBrowserVer {
   // but doesn't support code changes focus during input events when is composing
   // tested on Win 10 + MS PinYin and Ubuntu 18 + an inner PinYin IME
   MinContentEditableInShadowSupportIME = 69,
+  Min$Blob$$arrayBuffer = 69,
   Min$MathMLElement$Prototype = 71,
   MinCrossOriginResourcePolicy = 74, // not break Vomnibar
+  Min$Tabs$$goBack = 77,
   MinCSS$readOnly$selector = 78, // https://developer.mozilla.org/en-US/docs/Web/CSS/:read-only
   MinEnsuredUnicodePropertyEscapesInRegExp = 78,
   MinEnsuredCSS$is$selector = 81,

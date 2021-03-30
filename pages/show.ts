@@ -1,4 +1,5 @@
 /// <reference path="../lib/base.d.ts" />
+/// <reference path="./define.ts" />
 interface VDataTy2 extends VDataTy {
   type: "image" | "url" | "";
   original: string;
@@ -495,10 +496,14 @@ function showText(tip: string | Urls.kEval, body: string | string[]): void {
 }
 
 function copyThing(event: EventToPrevent): void {
-  const sel = getSelection();
-  if ("" + sel) { return; }
+  const sel = getSelection(), selText = "" + sel
+  if (selText && (VData.type !== "image" || selText.trim() !== (VShown as HTMLImageElement).alt.trim())) {
+    // on Firefox, Selection will grab .alt text
+    return
+  }
   if (VData.type === "image" && VData.url) {
-    if (sel.type === "Range") { // e.g. Ctrl+A and then Ctrl+C; work well with MS Word
+    if (sel.type === "Range" && !VData.url.startsWith(location.protocol)) {
+      // e.g. Ctrl+A and then Ctrl+C; work well with MS Word
       return;
     }
     event.preventDefault();
@@ -531,10 +536,11 @@ function copyThing(event: EventToPrevent): void {
         return doWrite().catch(() => (delete item["text/html"], doWrite()))
       }),
       finalPromise = OnFirefox
-          ? navClipPromise.catch(_ => {
-            const thisBrowser = typeof browser === "object" && _shownBlob ? browser as typeof chrome : 0,
-            clip = thisBrowser && (thisBrowser as any).clipboard;
-            return clip && (_shownBlob as Blob).arrayBuffer().then(arr => clip.setImageData(arr, "png"));
+          ? navClipPromise.catch((): any => {
+            const clip = _shownBlob && (browser as typeof chrome).clipboard
+            return clip && (Build.MinFFVer < FirefoxBrowserVer.Min$Blob$$arrayBuffer
+                  && !(_shownBlob as Blob).arrayBuffer ? new Response(_shownBlob as Blob) : _shownBlob as Blob
+                ).arrayBuffer().then(arr => clip.setImageData(arr, "png"))
           }) : navClipPromise;
       finalPromise.catch(ex => { console.log(ex); _copyStr(VData.url); });
       return;

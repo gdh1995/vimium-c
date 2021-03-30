@@ -114,6 +114,12 @@ interface HTMLEditableELement {
 interface HTMLInputElement extends HTMLEditableELement {}
 interface HTMLTextAreaElement extends HTMLEditableELement {}
 
+declare var Response: { new (blob: Blob): Response }
+
 declare namespace chrome.bookmarks {
   export function create(bookmark: BookmarkCreateArg, callback?: (result: BookmarkTreeNode) => void): 1;
+}
+
+declare namespace chrome.clipboard {
+  export function setImageData(data: ArrayBuffer, format: "png"): void
 }

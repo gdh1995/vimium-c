@@ -97,7 +97,7 @@ const BackgroundCommands: {
       if (hasPlaceholder && next) {
         set_cRepeat(count)
         set_cOptions(BgUtils_.extendIf_(BgUtils_.safer_<UnknownOptions<kBgCmd.openUrl>>({
-            url_f: next, goNext: false, sed: false }), get_cOptions<kBgCmd.openUrl>()))
+            url_f: next, goNext: false, sed: false }), get_cOptions<C.openUrl>()))
         if (get_cOptions<C.openUrl>().reuse === void 0) {
           get_cOptions<C.openUrl, true>().reuse = ReuseType.current
         }
@@ -322,8 +322,7 @@ const BackgroundCommands: {
       })
     }
   },
-  // only work on Chrome: Firefox has neither tabs.goBack, nor support for tabs.update("javascript:...")
-  /* kBgCmd.goBackFallback: */ Build.BTypes & BrowserType.Chrome ? (tabs: [Tab]): void | kBgCmd.goBackFallback => {
+  /* kBgCmd.goBackFallback: */ Build.BTypes & ~BrowserType.Edge ? (tabs: [Tab]): void | kBgCmd.goBackFallback => {
     if (!tabs.length) { return }
     framesGoBack({ s: cRepeat, r: get_cOptions<C.goBackFallback, true>().reuse }, null, tabs[0])
   } : BgUtils_.blank_,
