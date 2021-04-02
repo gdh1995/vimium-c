@@ -366,6 +366,18 @@ const BackgroundCommands: {
     const tab = selectFrom(tabs), pinned = tab.pinned
     let index = Math.max(0, Math.min(tabs.length - 1, tab.index + cRepeat))
     while (pinned !== tabs[index].pinned) { index -= cRepeat > 0 ? 1 : -1 }
+    if (Build.BTypes & ~BrowserType.Edge && get_cOptions<kBgCmd.moveTab>().group !== "ignore") {
+      let curGroup = tab.groupId, newGroup = tabs[index].groupId
+      if (newGroup !== curGroup) {
+        if (curGroup && curGroup >= 0) {
+          index = tab.index
+          newGroup = curGroup
+        }
+        while (index += cRepeat > 0 ? 1 : -1, 0 <= index && index < tabs.length && tabs[index].groupId === newGroup) {
+        }
+        index -= cRepeat > 0 ? 1 : -1
+      }
+    }
     if (index !== tab.index) {
       browserTabs.move(tab.id, { index })
     }

@@ -177,6 +177,15 @@ export const moveTabToNewWindow = (): void | kBgCmd.moveTabToNewWindow => {
     const tab = selectFrom(tabs), { incognito: curIncognito, index: activeTabIndex } = tab
     let range: [number, number], count: number
     if (all) {
+      if (Build.BTypes & ~BrowserType.Edge) {
+        for (const i of tabs) {
+          if (i.groupId) {
+            /** @todo: fix it with Manifest V3 */
+            showHUD("Can not keep groups info during this command")
+            return
+          }
+        }
+      }
       range = [0, count = total]
     } else {
       range = getTabRange(activeTabIndex, total), count = range[1] - range[0]

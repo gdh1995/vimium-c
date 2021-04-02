@@ -66,7 +66,7 @@ interface BgCmdOptions {
     windows: "" | "current" | "all"
   }
   [kBgCmd.mainFrame]: {}
-  [kBgCmd.moveTab]: {}
+  [kBgCmd.moveTab]: { group: "keep" | "ignore" }
   [kBgCmd.moveTabToNewWindow]: { all: boolean | BOOL; incognito: boolean } & LimitedRangeOptions
   [kBgCmd.moveTabToNextWindow]: { minimized: false; min: false; end: boolean; right: boolean }
   [kBgCmd.openUrl]: OpenUrlOptions & MasksForOpenUrl & {
