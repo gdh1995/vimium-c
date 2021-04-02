@@ -77,7 +77,7 @@ declare const enum kFgReq {
   /** can be used only with `FgCmdAcrossFrames` and when a fg command is just being called */
   gotoMainFrame,
   setOmniStyle, findFromVisual, framesGoBack, i18n, learnCSS, visualMode,
-  respondForRunKey,
+  respondForRunKey, downloadLink,
   END,
   msg = 90, inject = 99,
   command = "command", id = "id", shortcut = "shortcut",
@@ -613,6 +613,10 @@ interface FgReq {
     /** className attr */ c: string
     /** id attr */ i: string
     /** not fullscreen */ f: boolean
+  }
+  [kFgReq.downloadLink]: {
+    /** url */ u: string
+    /** filename */ f: string | null
   }
 }
 

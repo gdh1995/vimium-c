@@ -124,10 +124,23 @@ declare namespace chrome.clipboard {
   export function setImageData(data: ArrayBuffer, format: "png"): void
 }
 
-declare namespace chrome.downloads {
+declare module chrome.downloads {
+  export interface DownloadOptions {
+    url: string
+    filename?: string
+    incognito?: boolean
+  }
   export function setShelfEnabled(enable: boolean): void
+  export const download: ((opts: DownloadOptions) => Promise<string>) | undefined
 }
 
-declare namespace chrome.permissions {
-  export function contains(query: { permissions: string[] }, callback: (result: boolean) => void): void
+declare module chrome.permissions {
+  export type kPermissions = "downloads" | "downloads.shelf" | "chrome://new-tab-page/"
+      | "clipboardRead" | "contentSettings" | "notifications"
+  export interface Request { origins?: kPermissions[]; permissions?: kPermissions[] }
+  export function contains(query: Request, callback: (result: boolean) => void): void
+  export function remove(query: Request, callback: (result: boolean) => void): void
+  export function request(query: Request, callback: (result: boolean) => void): void
+  export const onAdded: chrome.events.Event<(changes: Request, _fake: FakeArg) => void>
+  export const onRemoved: chrome.events.Event<(changes: Request, _fake: FakeArg) => void>
 }

@@ -1,3 +1,5 @@
+// @ts-nocheck
+/// <reference path="./typings/base/chrome.d.ts" />
 "use strict";
 var fs = require("fs");
 var gulp = require("gulp");
@@ -32,6 +34,7 @@ var gNoComments = process.env.NO_COMMENT === "1";
 var disableErrors = process.env.SHOW_ERRORS !== "1" && process.env.SHOW_ERRORS === "0";
 var ignoreHeaderChanges = process.env.IGNORE_HEADER_CHANGES !== "0";
 var onlyTestSize = false;
+/** @type {chrome.runtime.Manifest} */
 var manifest = readJSON("manifest.json", true);
 var compilerOptions = loadValidCompilerOptions("scripts/gulp.tsconfig.json");
 var has_dialog_ui = manifest.options_ui != null && manifest.options_ui.open_in_tab !== true;
@@ -363,13 +366,20 @@ var Tasks = {
       delete manifest.key;
       delete manifest.update_url;
     }
-    if (!(browser & ~BrowserType.Firefox)) {
+    const permissions = manifest.permissions
+    let optional = manifest.optional_permissions
+    if (browser === BrowserType.Firefox) {
       delete manifest.background.persistent;
     }
     if (browser === BrowserType.Chrome) {
       delete manifest.browser_specific_settings;
-    } else if (browser === BrowserType.Firefox) {
-      manifest.permissions.splice(manifest.permissions.indexOf("contentSettings") || manifest.length, 1);
+    } else {
+      permissions.splice((permissions.indexOf("contentSettings") + 1 || permissions.length + 1) - 1, 1)
+      if (optional) {
+        optional = optional.filter(i => {
+          return !i.includes("chrome:") && i !== "downloads.shelf" && i !== "contentSettings"
+        })
+      }
     }
     if (!(browser & BrowserType.Chrome) || browser & ~BrowserType.Chrome && !locally || minVer < 35) {
       delete manifest.offline_enabled;
@@ -390,7 +400,7 @@ var Tasks = {
       }
     }
     if (browser & BrowserType.Firefox) {
-      locally && manifest.permissions.push("tabHide");
+      locally && permissions.push("tabHide")
     }
     var dialog_ui = getBuildItem("NoDialogUI");
     if (dialog_ui != null && !!dialog_ui !== has_dialog_ui && !dialog_ui) {
@@ -408,6 +418,11 @@ var Tasks = {
     }
     if (manifest.chrome_url_overrides && Object.keys(manifest.chrome_url_overrides) == 0) {
       delete manifest.chrome_url_overrides;
+    }
+    if (!optional && optional.length == 0) {
+      delete manifest.optional_permissions
+    } else {
+      manifest.optional_permissions = optional
     }
     let newManifest = {};
     for (let key of Object.keys(manifest).sort()) { newManifest[key] = manifest[key]; }

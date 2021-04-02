@@ -116,6 +116,12 @@
   "omnibox": {
     "keyword": "v"
   },
+  "optional_permissions": [
+    "chrome://new-tab-page/",
+    "contentSettings",
+    "downloads",
+    "downloads.shelf"
+  ],
   "options_page": "pages/options.html",
   "options_ui": {
     "page": "pages/options.html",
@@ -126,7 +132,6 @@
     "bookmarks",
     "clipboardRead",
     "clipboardWrite",
-    "contentSettings",
     "history",
     "notifications",
     "sessions",

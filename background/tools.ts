@@ -1,14 +1,19 @@
 type CSTypes = chrome.contentSettings.ValidTypes;
 type Tab = chrome.tabs.Tab;
 
-const ContentSettings_ = Build.PContentSettings ? {
+const ContentSettings_ = Build.BTypes & BrowserType.Chrome ? {
   makeKey_ (this: void, contentType: CSTypes, url?: string): string {
     return "vimiumContent|" + contentType + (url ? "|" + url : "");
   },
   complain_ (this: void, contentType: CSTypes, url: string): boolean {
-    const css = chrome.contentSettings;
+    let css: typeof chrome.contentSettings | null = chrome.contentSettings
+    try {
+      css && css.images.get({ primaryUrl: "https://127.0.0.1/" }, BgUtils_.runtimeError_)
+    } catch { // Chrome 89 would throw an exception if .cs was disabled after being used
+      css = null
+    }
     if (!css) {
-      Backend_.showHUD_("This version of Vimium C has no permissions to set CSs");
+      Backend_.showHUD_("Has not permitted to set contentSettings")
       return true;
     }
     if (!css[contentType] || (<RegExpOne> /^[A-Z]/).test(contentType) || !css[contentType].get) {
@@ -65,9 +70,8 @@ const ContentSettings_ = Build.PContentSettings ? {
     return cur !== last;
   },
   Clear_ (this: void, contentType: CSTypes, incognito?: Frames.Sender["a"]): void {
-    const css = chrome.contentSettings, cs = css && css[contentType],
+    const css = chrome.contentSettings, cs = css[contentType],
     kIncognito = "incognito_session_only", kRegular = "regular";
-    if (!cs || !cs.clear) { return; }
     if (incognito != null) {
       cs.clear({ scope: (incognito ? kIncognito : kRegular) });
       return;
@@ -619,10 +623,12 @@ BgUtils_.timeout_(120, function (): void {
   settings.updateOmniStyles_ = MediaWatcher_.update_;
   settings.updateMediaQueries_ = MediaWatcher_.RefreshAll_;
 
-  if (!Build.PContentSettings) { return; }
+  if (!(Build.BTypes & BrowserType.Chrome) || Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome) {
+    return
+  }
   for (const i of ["images", "plugins", "javascript", "cookies"] as const) {
     localStorage.getItem(ContentSettings_.makeKey_(i)) != null &&
-    setTimeout(ContentSettings_.Clear_, 100, i);
+    chrome.contentSettings && setTimeout(ContentSettings_.Clear_, 100, i);
   }
 });
 

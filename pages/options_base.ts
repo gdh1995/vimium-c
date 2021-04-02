@@ -173,6 +173,7 @@ constructor (element: HTMLElement, onUpdated: () => void) {
     onUpdated = this._onCacheUpdated.bind(this, onUpdated);
   }
   this.onUpdated_ = debounce_(onUpdated, 330, this, 1);
+  this.init_(element)
 }
 
 fetch_ (): void {
@@ -194,10 +195,21 @@ allowToSave_ (): boolean { return true; }
 save_ (): void {
   let value = this.readValueFromElement_(), isJSON = typeof value === "object"
     , previous = isJSON ? JSON.stringify(this.previous_) : this.previous_
-    , pod = isJSON ? JSON.stringify(value) : value;
+    , pod = isJSON ? JSON.stringify(value) : value as string
   if (pod === previous) { return; }
   previous = pod;
   value = this.normalize_(value, isJSON, isJSON ? pod as string : "");
+  this.previous_ = value = this.executeSave_(value, isJSON, pod)
+  this.saved_ = true
+  if (previous !== (isJSON ? JSON.stringify(value) : value) || this.doesPopulateOnSave_(value)) {
+    this.populateElement_(value, true)
+  }
+  this.onSave_()
+}
+_isDirty (): boolean {
+  return !this.areEqual_(this.previous_, bgSettings_.get_(this.field_))
+}
+executeSave_ (value: AllowedOptions[T], isJSON: boolean, pod: string): AllowedOptions[T] {
   if (isJSON) {
     pod = JSON.stringify(value);
     if (pod === JSON.stringify(bgSettings_.defaults_[this.field_])) {
@@ -205,16 +217,12 @@ save_ (): void {
     }
   }
   bgSettings_.set_<keyof AllowedOptions>(this.field_, value);
-  this.previous_ = value = bgSettings_.get_(this.field_);
-  this.saved_ = true;
-  if (previous !== (isJSON ? JSON.stringify(value) : value) || this.doesPopulateOnSave_(value)) {
-    this.populateElement_(value, true);
-  }
   if (this.field_ in bgSettings_.valuesToLoad_) {
     Option_.syncToFrontend_.push(this.field_ as keyof typeof bgSettings_.valuesToLoad_);
   }
-  this.onSave_();
+  return bgSettings_.get_(this.field_)
 }
+abstract init_ (element: HTMLElement): void
 abstract readValueFromElement_ (): AllowedOptions[T];
 abstract populateElement_ (value: AllowedOptions[T], enableUndo?: boolean): void;
 doesPopulateOnSave_ (_val: AllowedOptions[T]): boolean { return false }
@@ -259,9 +267,7 @@ export class ExclusionRulesOption_ extends Option_<"exclusionRules"> {
   $list_: HTMLTableSectionElement;
   dragged_: HTMLTableRowElement | null;
   onInited_?: () => void;
-constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption_) => void) {
-  super(element, onUpdated);
-  {
+  init_ (element: HTMLElement): void {
     this.template_ = (element.querySelector("#exclusionTemplate") as HTMLTemplateElement
         ).content.querySelector(".exclusionRule") as HTMLTableRowElement;
     if (lang_) {
@@ -291,8 +297,7 @@ constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption_) => v
       this.template_.draggable = true;
     }
     nextTick_(() => this.onInited_ && this.onInited_());
-  };
-}
+  }
 onRowChange_ (_isInc: number): void { /* empty */ }
 static MarkChanged_ (this: void, event: Event): void {
   const vnode = (event.target as HTMLInputElement & Partial<ExclusionRealNode>).vnode;

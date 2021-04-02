@@ -188,6 +188,21 @@ key: https://c.com/$s/space=\s\ space_end
         <header id="advanced" data-i="o39">Advanced Options</header>
       </td><td></td></tr></tbody>
       <tbody id="advancedOptions" style="display: none;">
+        <tr id="optionalPermissionsBox">
+          <td class="caption" data-i="o103_2">Optional<br/>permissions</td>
+          <td id="optionalPermissions" data-check="change">
+            <template id="optionalPermissionsTemplate">
+              <label class="optional-permission" tabindex="-1" aria-hidden="true">
+                <input type="checkbox" tabindex="-1" aria-hidden="true"/>
+                <span class="checkboxHint" role="checkbox" tabindex="0" aria-hidden="false"></span>
+              </label>
+            </template>
+          </td>
+          <td class="help"><div class="help-inner">
+            <div data-i="o103_3">Check to enable some features on this computer.</div>
+            <span data-i="o103_4">Note: these may not be synchronized by your browser.</span>
+          </div></td>
+        </tr>
         <tr>
           <td class="caption" data-i="o40">Scroll step size</td>
           <td>

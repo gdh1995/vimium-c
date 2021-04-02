@@ -1255,7 +1255,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       fav = !str || str.toLowerCase() === "true" ? 2 : 0;
     } else if (canShowOnExtOrWeb && (f = chrome.runtime.getManifest) && (manifest = f())) {
       const arr = manifest.permissions || [];
-      fav = arr.indexOf("<all_urls>") >= 0 || arr.indexOf("chrome://favicon/") >= 0 ? 1 : 0;
+      fav = arr.indexOf("<all_urls>") >= 0 || arr.join(" ").includes("://favicon/") ? 1 : 0
     }
     a.mode_.i = fav;
   },

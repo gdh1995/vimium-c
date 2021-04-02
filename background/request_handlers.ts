@@ -1,5 +1,5 @@
 import {
-  browserTabs, runtimeError_, selectTab, safeUpdate, selectWnd, browserSessions, browserWebNav
+  browserTabs, runtimeError_, selectTab, safeUpdate, selectWnd, browserSessions, browserWebNav, browser_
 } from "./browser"
 import {
   set_cPort, set_cRepeat, set_cOptions, needIcon_, set_cKey, cKey, get_cOptions, set_reqH_, reqH_, executeCommand,
@@ -461,7 +461,17 @@ set_reqH_([
     if (performance.now() - request.n < 500) {
       runKeyWithCond(request)
     }
-  }
+  },
+  /** kFgReq.downloadLink: */ Build.BTypes & BrowserType.Firefox ? (request: FgReq[kFgReq.downloadLink]): void => {
+    browser_.permissions.contains({ permissions: ['downloads'] }, (permitted: boolean): void => {
+      if (permitted) {
+        const opts: chrome.downloads.DownloadOptions = { url: request.u }
+        if (request.f) { opts.filename = request.f }
+        browser_.downloads.download!(opts).catch((): void => {})
+      }
+      return chrome.runtime.lastError
+    })
+  } : BgUtils_.blank_
 ])
   
 const upperGitUrls = (url: string, path: string): string | void | null => {

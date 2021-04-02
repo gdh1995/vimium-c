@@ -19,7 +19,7 @@ Option_.saveOptions_ = function (): boolean {
   const arr = Option_.all_, dirty: string[] = []
   for (const i in arr) {
     const opt = arr[i as keyof AllowedOptions]
-    if (!opt.saved_ && !(opt as Option_<any>).areEqual_(opt.previous_, bgSettings_.get_(opt.field_))) {
+    if (!opt.saved_ && opt._isDirty()) {
       dirty.push(opt.field_)
     }
   }
@@ -66,12 +66,11 @@ export class NumberOption_<T extends UniversalNumberSettings> extends Option_<T>
   previous_: number
   wheelTime_: number
   checker_: NumberChecker
-  constructor (element: HTMLInputElement, onUpdated: (this: NumberOption_<T>) => void) {
-    super(element, onUpdated)
+  init_ (): void {
     let s: string, i: number
     this.checker_ = {
-      min: (s = element.min) && !isNaN(i = parseFloat(s)) ? i : null,
-      max: (s = element.max) && !isNaN(i = parseFloat(s)) ? i : null,
+      min: (s = this.element_.min) && !isNaN(i = parseFloat(s)) ? i : null,
+      max: (s = this.element_.max) && !isNaN(i = parseFloat(s)) ? i : null,
       default: bgSettings_.defaults_[this.field_],
       check_: NumberOption_.Check_
     }
@@ -134,16 +133,15 @@ export class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
   static readonly map_for_2_ = [false, true] as const
   static readonly map_for_3_ = [false, null, true] as const
   inner_status_: 0 | 1 | 2
-  constructor (element: HTMLInputElement, onUpdated: (this: BooleanOption_<T>) => void) {
-    super(element, onUpdated)
-    let map = (element.dataset as KnownOptionsDataset).map
-    this.map_ = map ? JSON.parse(map)
-        : (this.element_.dataset as KnownOptionsDataset).allowNull ? BooleanOption_.map_for_3_ : BooleanOption_.map_for_2_
+  init_ (): void {
+    const el = this.element_ as HTMLInputElement & { dataset: KnownOptionsDataset }
+    let map = el.dataset.map
+    this.map_ = map ? JSON.parse(map) : el.dataset.allowNull ? BooleanOption_.map_for_3_ : BooleanOption_.map_for_2_
     this.true_index_ = (this.map_.length - 1) as 2 | 1
     if (this.true_index_ > 1 && this.field_ !== "vimSync") {
-      this.element_.addEventListener("change", this.onTripleStatusesClicked.bind(this), true)
+      el.addEventListener("change", this.onTripleStatusesClicked.bind(this), true)
     }
-    this.element_.onchange = this.onUpdated_
+    el.onchange = this.onUpdated_
   }
   populateElement_ (value: FullSettings[T]): void {
     // support false/true when .map_ is like [0, 1, 2]
@@ -170,8 +168,7 @@ type TextOptionNames = PossibleOptionNames<string>
 export class TextOption_<T extends TextualizedOptionNames> extends Option_<T> {
   readonly element_: TextElement
   checker_?: Checker<T> & { ops_?: string[], status_: 0 | 1 | 2 | 3 }
-  constructor (element: TextElement, onUpdated: (this: TextOption_<T>) => void) {
-    super(element, onUpdated)
+  init_ (): void {
     const converter = (this.element_.dataset as KnownOptionsDataset).converter || ""
     const ops = converter ? converter.split(" ") : []
     this.element_.oninput = this.onUpdated_
@@ -269,14 +266,14 @@ export class JSONOption_<T extends JSONOptionNames> extends TextOption_<T> {
 }
 
 export class MaskedText_<T extends TextOptionNames> extends TextOption_<T> {
+  readonly element_: HTMLTextAreaElement
   masked_: boolean
   _myCancelMask: (() => void) | null
-  constructor (element: TextElement, onUpdated: (this: TextOption_<T>) => void) {
-    super(element, onUpdated)
+  init_ (): void {
     this.masked_ = true
     nextTick_((): void => { this.element_.classList.add("masked") })
     this._myCancelMask = this.cancelMask_.bind(this);
-    (this.element_ as HTMLTextAreaElement).addEventListener("focus", this._myCancelMask)
+    this.element_.addEventListener("focus", this._myCancelMask)
   }
   cancelMask_ (): void {
     if (!this._myCancelMask) { return }
@@ -359,6 +356,7 @@ export interface SaveBtn extends HTMLButtonElement { onclick (this: SaveBtn, vir
 export const saveBtn = $<SaveBtn>("#saveOptions")
 export const exportBtn = $<HTMLButtonElement>("#exportButton")
 export let savedStatus: (newStat?: boolean | null) => boolean
+export let registerClass: (type: string, cls: new (el: HTMLElement, cb: () => void) => Option_<"nextPatterns">) => void
 
 export const createNewOption = ((): <T extends keyof AllowedOptions> (_element: HTMLElement) => Option_<T> => {
   let status = false
@@ -406,6 +404,7 @@ export const createNewOption = ((): <T extends keyof AllowedOptions> (_element: 
   } else {
     ($$("[data-model]") as HTMLElement[]).forEach(createNewOption)
   }
+  registerClass = (name, cls) => { (types as Dict<new (el: any, cb: () => void) => any>)[name] = cls }
   return createNewOption
 })()
 

@@ -377,7 +377,20 @@ function clickLink(this: void, options: { [key: string]: string }
     a.setAttribute(i, options[i]);
   }
   a.href = VData.url; // lgtm [js/client-side-unvalidated-url-redirection]
-  simulateClick(a, event);
+  if (!OnFirefox) {
+    simulateClick(a, event)
+    return
+  }
+  chrome.permissions.contains({ permissions: ['downloads'] }, (permitted: boolean): void => {
+    if (!permitted) {
+      simulateClick(a, event);
+    } else {
+      const opts: chrome.downloads.DownloadOptions = { url: a.href }
+      if (a.download) { opts.filename = a.download }
+      (browser as typeof chrome).downloads.download!(opts).catch((): void => {})
+    }
+    return chrome.runtime.lastError
+  })
 }
 
 function simulateClick(a: HTMLElement, event: MouseEvent | KeyboardEvent): boolean {

@@ -441,6 +441,29 @@ setTimeout(function (loadI18nPayload: () => void): void {
 Settings_.temp_.loadI18nPayload_ = null;
 }
 
+Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
+&& (Build.MinCVer >= BrowserVer.MinChromeURL$NewTabPage || CurCVer_ >= BrowserVer.MinChromeURL$NewTabPage)
+&& BgUtils_.timeout_(100, (): void => {
+  const onTabsUpdated = (tabId: number, changeInfo: chrome.tabs.TabChangeInfo, tab: chrome.tabs.Tab): void => {
+    if (tab.url === "chrome://newtab/" && changeInfo.status === "loading") {
+      const js = Settings_.CONST_.ContentScripts_, offset = location.origin.length
+      for (let _j = 0, _len = js.length - 1; _j < _len; ++_j) {
+        chrome.tabs.executeScript(tabId, { file: js[_j].slice(offset) }, BgUtils_.runtimeError_)
+      }
+    }
+  }
+  const recheck = (): void => {
+    chrome.permissions.contains({ origins: ["chrome://new-tab-page/"] }, allowed => {
+      const err = BgUtils_.runtimeError_()
+      if (err) { return err }
+      chrome.permissions[allowed ? "onRemoved" : "onAdded"].addListener(recheck)
+      chrome.permissions[allowed ? "onAdded" : "onRemoved"].removeListener(recheck)
+      chrome.tabs.onUpdated[allowed ? "addListener" : "removeListener"](onTabsUpdated)
+    })
+  }
+  recheck()
+})
+
 // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
 chrome.runtime.onInstalled.addListener(Settings_.temp_.onInstall_ =
 function (details: chrome.runtime.InstalledDetails): void {

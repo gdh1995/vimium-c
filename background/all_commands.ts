@@ -226,7 +226,7 @@ const BackgroundCommands: {
   },
   /* kBgCmd.captureTab: */ captureTab,
   /* kBgCmd.clearCS: */ (): void | kBgCmd.clearCS => {
-    Build.PContentSettings ? ContentSettings_.clearCS_(get_cOptions<C.clearCS, true>(), cPort)
+    Build.BTypes & BrowserType.Chrome ? ContentSettings_.clearCS_(get_cOptions<C.clearCS, true>(), cPort)
     : (ContentSettings_.complain_ as () => any)()
   },
   /* kBgCmd.clearFindHistory: */ (): void | kBgCmd.clearFindHistory => {
@@ -509,7 +509,7 @@ const BackgroundCommands: {
     showHUD(text ? text + "" : trans_("needText"))
   },
   /* kBgCmd.toggleCS: */ (tabs: [Tab]): void | kBgCmd.toggleCS => {
-    Build.PContentSettings ? ContentSettings_.toggleCS_(get_cOptions<C.toggleCS, true>(), cRepeat, tabs)
+    Build.BTypes & BrowserType.Chrome ? ContentSettings_.toggleCS_(get_cOptions<C.toggleCS, true>(), cRepeat, tabs)
         : (ContentSettings_.complain_ as () => any)()
   },
   /* kBgCmd.toggleMuteTab: */ toggleMuteTab,

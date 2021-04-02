@@ -4,7 +4,8 @@ import {
   KnownOptionsDataset,
   setupBorderWidth_, nextTick_, Option_, pTrans_, PossibleOptionNames, AllowedOptions, debounce_, $, $$
 } from "./options_base"
-import { saveBtn, exportBtn, savedStatus, createNewOption, BooleanOption_ } from "./options_defs"
+import { saveBtn, exportBtn, savedStatus, createNewOption, BooleanOption_, registerClass } from "./options_defs"
+import kPermissions = chrome.permissions.kPermissions
 
 interface ElementWithHash extends HTMLElement {
   onclick (this: ElementWithHash, event: MouseEventToPrevent | null, hash?: "hash"): void;
@@ -15,6 +16,8 @@ export interface ElementWithDelay extends HTMLElement {
 export interface OptionWindow extends Window {
   _delayed: [string, MouseEventToPrevent | null];
 }
+
+const IsEdg: boolean = OnChrome && (<RegExpOne> /\sEdg\//).test(navigator.appVersion)
 
 setupBorderWidth_ && nextTick_(setupBorderWidth_);
 nextTick_((versionEl): void => {
@@ -435,6 +438,128 @@ if (OnFirefox) {
 }
 };
 
+const browserPermissions = !OnEdge ? chrome.permissions : null
+let optional = (chrome.runtime.getManifest().optional_permissions || []) as kPermissions[]
+if (!browserPermissions || !optional.length) {
+  $("#optionalPermissionsBox").style.display = "none"
+} else {
+  const ignored: Array<kPermissions | RegExpOne> = OnFirefox ? ["downloads.shelf"] : ["downloads"]
+  OnChrome || ignored.push(<RegExpOne> /^chrome:/, "contentSettings")
+  OnChrome && !IsEdg || ignored.push("chrome://new-tab-page/")
+  optional = optional.filter(i => !ignored.some(j => typeof j === "string" ? i === j : j.test(i)))
+  Promise.all(optional.map(i => new Promise<boolean>(resolve => {
+    browserPermissions.contains(i.includes(":") ? { origins: [i] }
+        : { permissions: i === "downloads.shelf" ? ["downloads", i] : [i] }, allowed => {
+      resolve(allowed || false)
+      return chrome.runtime.lastError
+    })
+  }))).then((previous_array: boolean[]): void => {
+    interface PermissionItem { name_: kPermissions; previous_: boolean; element_: HTMLInputElement }
+    const fragment = document.createDocumentFragment()
+    const i18nItems: { [key in kPermissions]?: string } = {
+      "chrome://new-tab-page/": "opt_cNewtab",
+      "downloads.shelf": "opt_closeShelf"
+    }
+    const placeholder = $<HTMLTemplateElement & EnsuredMountedHTMLElement>("#optionalPermissionsTemplate")
+    const template = placeholder.content.firstElementChild as HTMLElement
+    const shownItems: PermissionItem[] = []
+    for (let i = 0; i < optional.length; i++) {
+      const node = document.importNode(template, true) as EnsuredMountedHTMLElement
+      const checkbox = node.querySelector("input")!
+      const name = optional[i], previous = previous_array[i], i18nKey = i18nItems[name]
+      checkbox.checked = previous
+      checkbox.value = name
+      const i18nName = pTrans_(i18nKey || "opt_" + name) || name
+      let suffix = name.startsWith("chrome:") ? pTrans_("optOfChromeUrl") : ""
+      if (Build.BTypes & BrowserType.Chrome && name === "chrome://new-tab-page/"
+          && (Build.MinCVer < BrowserVer.MinChromeURL$NewTabPage && CurCVer_ < BrowserVer.MinChromeURL$NewTabPage)) {
+        suffix = pTrans_("requireChromium", [BrowserVer.MinChromeURL$NewTabPage])
+        checkbox.disabled = true
+        checkbox.checked = false
+        node.title = pTrans_("invalidOption", [pTrans_("beforeChromium", [BrowserVer.MinChromeURL$NewTabPage])])
+      }
+      node.lastElementChild.textContent = i18nName + suffix
+      if (optional.length === 1) {
+        node.classList.add("single")
+      }
+      fragment.appendChild(node)
+      shownItems.push({ name_: name, previous_: previous, element_: checkbox })
+    }
+    const container = placeholder.parentElement
+    container.appendChild(fragment);
+    (container.dataset as KnownOptionsDataset).model = "OptionalPermissions"
+    registerClass("OptionalPermissions", class extends Option_<"nextPatterns"> {
+      init_ (): void {
+        this.element_.onchange = this.onUpdated_
+      }
+      readValueFromElement_ (): string { return shownItems.map(i => i.element_.checked ? "1" : "0").join("") }
+      fetch_ (): void {
+        this.saved_ = true
+        this.previous_ = shownItems.map(i => i.previous_ ? "1" : "0").join("")
+        this.populateElement_(this.previous_)
+      }
+      populateElement_ (value: string): void {
+        for (let i = 0; i < shownItems.length; i++) {
+          shownItems[i].element_.checked = value[i] === "1"
+        }
+      }
+      _isDirty () { return false }
+      executeSave_ (wanted_value: string): string {
+        const new_permissions: kPermissions[] = [], new_origins: kPermissions[] = []
+        const changed: { [key in kPermissions]?: PermissionItem } = {}
+        shownItems.forEach((i): void => {
+          const wanted = i.element_.checked
+          if (i.previous_ === wanted) { return }
+          i.previous_ = wanted
+          if (wanted) {
+            i.name_ === "downloads.shelf" && new_permissions.push("downloads");
+            (i.name_.includes(":") ? new_origins : new_permissions).push(i.name_)
+            changed[i.name_] = i
+          } else {
+            browserPermissions.remove(i.name_.includes(":") ? { origins: [i.name_] } : {
+              permissions: i.name_ === "downloads.shelf" ? ["downloads", i.name_] : [i.name_]
+            }, (ok): void => {
+              const err = chrome.runtime.lastError as any
+              (err || !ok) && console.log('Can not remove the permission %o :', i.name_, err && err.message || err)
+              return err
+            })
+          }
+        })
+        const cb = (arr: kPermissions[], ok?: boolean): void => {
+          const err = chrome.runtime.lastError as any
+          (err || !ok) && console.log('Can not request permissions of %o :', arr, err && err.message || err)
+          if (!ok) {
+            for (const name of arr) {
+              const item = changed[name]
+              if (item) {
+                item.previous_ = false
+                if (err) {
+                  const box = item.element_.parentElement as Element as EnsuredMountedHTMLElement
+                  let errEl = box.nextElementSibling as HTMLElement | null
+                  if (!errEl || !errEl.classList.contains("tip")) {
+                    errEl = document.createElement("div")
+                    errEl.className = "tip"
+                    box.parentElement.insertBefore(errEl, box.nextElementSibling)
+                  }
+                  errEl.textContent = box.title = pTrans_("exc") + (err && err.message || JSON.stringify(err))
+                  box.lastElementChild.classList.add("has-error")
+                }
+              }
+            }
+            this.fetch_()
+          }
+          return err
+        }
+        new_permissions.length && browserPermissions.request({ permissions: new_permissions }
+            , cb.bind(0, new_permissions))
+        new_origins.length && browserPermissions.request({ origins: new_origins }, cb.bind(0, new_origins))
+        return wanted_value
+      }
+    })
+    createNewOption(container)
+  })
+}
+
 $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
   const self = Option_.all_.userDefinedCss
   const isDebugging = self.element_.classList.contains("debugging")
@@ -481,7 +606,6 @@ $("#importButton").onclick = function (): void {
 
 nextTick_((el0): void => {
 const platform = bgSettings_.CONST_.Platform_;
-const IsEdg: boolean = OnChrome && (<RegExpOne> /\sEdg\//).test(navigator.appVersion)
 el0.textContent = (OnEdge ? "MS Edge (EdgeHTML)"
     : OnFirefox ? "Firefox " + CurFFVer_
     : (IsEdg ? ["MS Edge"]

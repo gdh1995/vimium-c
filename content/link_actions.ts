@@ -116,13 +116,17 @@ const downloadOrOpenMedia = (): void => {
       f: filename, u: text
     })
   } else {
-    const url = text, i = text.indexOf("://"), a = createElement_("a")
+    const url = text, i = text.indexOf("://")
     text = i > 0 ? text.slice(text.indexOf("/", i + 4) + 1) : text
     text = text.length > 40 ? text.slice(0, 39) + "\u2026" : text
-    a.href = url
-    a.download = filename
-    /** @todo: how to trigger download */
-    mouse_(a, CLK, [0, 0], [!0, !1, !1, !1])
+    if (OnFirefox) {
+      post_({ H: kFgReq.downloadLink, u: url, f: filename })
+    } else {
+      const a = createElement_("a")
+      a.href = url
+      a.download = filename
+      mouse_(a, CLK, [0, 0], [!0, !1, !1, !1])
+    }
     hintApi.t({ k: kTip.downloaded, t: text })
   }
 }
@@ -280,6 +284,10 @@ const downloadLink = (): void => {
     link = notAnchor ? createElement_("a") : clickEl as HTMLAnchorElement,
     oldUrl: string | null = notAnchor ? null : attr_s(link, H),
     url = getUrlData(), changed = notAnchor || url !== link.href
+    if (OnFirefox) {
+      post_({ H: kFgReq.downloadLink, u: url, f: link.getAttribute(kD) })
+      return
+    }
     if (changed) {
       link.href = url;
       if (notAnchor) {

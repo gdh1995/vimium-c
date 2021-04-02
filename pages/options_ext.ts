@@ -73,6 +73,7 @@ interface ExportedSettings {
   time?: number;
   environment?: {
     chrome?: number;
+    firefox?: number
     extension?: string;
     platform?: string;
   };
@@ -107,6 +108,9 @@ $<ElementWithDelay>("#exportButton").onclick = function (event): void {
   };
   if (OnChrome) {
     exported_object.environment.chrome = CurCVer_;
+  }
+  if (OnFirefox) {
+    exported_object.environment.firefox = CurFFVer_
   }
   const storedKeys: Array<keyof SettingsNS.PersistentSettings> = [],
   storage = localStorage, all = bgSettings_.defaults_;
