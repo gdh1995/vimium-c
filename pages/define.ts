@@ -38,7 +38,8 @@ var __filename: string | null | undefined
   const readyMap: Dict<Promise<1 | void> | 1> = {}
   const fullFeaturedDefine: DefineTy = (rawDepNames: string[] | FactoryTy, rawFactory?: FactoryTy): void => {
     const selfScript = document.currentScript as HTMLScriptElement
-    const url = selfScript != null ? selfScript.src : __filename!
+    const url = selfScript != null ? selfScript.src
+        : __filename!.lastIndexOf("pages/", 0) === 0 ? "/" + __filename : __filename!
     const filename = url.slice(url.lastIndexOf("/") + 1).replace(".js", "")
     if (!Build.NDEBUG && modules[filename]) {
       throw new Error(`module filenames must be unique: duplicated "${filename}"`)
@@ -106,7 +107,7 @@ var __filename: string | null | undefined
           script.async = true /** @todo: trace https://bugs.chromium.org/p/chromium/issues/detail?id=717643 */
         }
       }
-      script.src = (ensuredAbsolute ? "/" : "" ) + base + "/" + targetPath
+      script.src = (ensuredAbsolute && base ? "/" : "" ) + base + "/" + targetPath
       ready = new Promise((resolve, reject): void => {
         script.onload = (): void => {
           const newReady = readyMap[filename]

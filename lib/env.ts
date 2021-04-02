@@ -1,7 +1,4 @@
 /* eslint-disable no-var, @typescript-eslint/no-unused-vars */
-if (!Build.NDEBUG) {
-  var __filename: string | null | undefined;
-}
 if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) {
   var browser: unknown;
 }
@@ -31,6 +28,7 @@ if (Build.BTypes & BrowserType.Chrome) {
 var VApi: VApiTy, VimiumInjector: VimiumInjectorTy | undefined | null;
 
 declare var define: any
+declare var __filename: string | null | undefined
 
 Build.NDEBUG || (function (): void {
   type ModuleTy = Dict<any> & { __esModule: boolean }
@@ -83,7 +81,9 @@ Build.NDEBUG || (function (): void {
   myDefine.amd = true;
   myDefine.modules_ = modules;
   myDefine.noConflict = (): void => {
+    if ((window as PartialOf<typeof globalThis, "define">).define !== myDefine) { return }
     (window as PartialOf<typeof globalThis, "define">).define = oldDefine
+    if (!oldDefine) { return }
     if (oldDefine.modules_) {
       for (let key in modules) {
         oldDefine.modules_[key] = modules[key]
@@ -92,5 +92,6 @@ Build.NDEBUG || (function (): void {
       oldDefine.modules_ = modules;
     }
   }
+  (window as PartialOf<typeof globalThis, "__filename">).__filename = undefined;
   (window as PartialOf<typeof globalThis, "define">).define = myDefine
 })()

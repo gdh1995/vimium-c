@@ -540,15 +540,22 @@ const BackgroundCommands: {
     tab && selectTab(tab.id)
   },
   /* kBgCmd.closeDownloadBar: */ (): void | kBgCmd.closeDownloadBar => {
-    chrome.permissions.contains({permissions:['downloads.shelf','downloads']}, (permitted): void => {
+    const newWindow = get_cOptions<C.closeDownloadBar>().newWindow
+    if (!(Build.BTypes & ~BrowserType.Firefox)
+        || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
+        || newWindow === true || Build.BTypes & ~BrowserType.ChromeOrFirefox && !chrome.permissions) {
+      BackgroundCommands[kBgCmd.moveTabToNewWindow]()
+      return
+    }
+    chrome.permissions.contains({ permissions: ['downloads.shelf', 'downloads'] }, (permitted: boolean): void => {
       if (permitted) {
         const set = chrome.downloads.setShelfEnabled
         set(false)
         set(true)
-      } else if (get_cOptions<C.closeDownloadBar>().newWindow !== false) {
-        BackgroundCommands[kBgCmd.moveTabToNewWindow]()
-      } else {
+      } else if (newWindow === false && cPort) {
         showHUD("No permissions to close download bar")
+      } else {
+        BackgroundCommands[kBgCmd.moveTabToNewWindow]()
       }
       return runtimeError_()
     })

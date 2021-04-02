@@ -384,8 +384,7 @@ exports.addMetaData = (path, data) => {
       || data.startsWith("(function(factory)") || data.startsWith("(function (factory)");
   if (!isAMDModule) { return data; }
   path = path.replace(/\\/g, "/").replace(projectRoot, "").replace(/^\//, "")
-  var prefix = path.startsWith("background/") || path.startsWith("pages/") ? "window." : "var "
-  var banner = prefix + "__filename = " + JSON.stringify(path) + ";\n"
+  var banner = "__filename = " + JSON.stringify(path) + ";\n"
   return banner + data;
 }
 

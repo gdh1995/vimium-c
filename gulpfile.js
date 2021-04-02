@@ -646,7 +646,7 @@ function outputJSResult(stream) {
         const isAMDModule = data.startsWith("define") || data.startsWith("(factory")
             || data.startsWith("(function(factory)") || data.startsWith("(function (factory)");
         if (es5) {
-          var banner = "window.__filename = " + JSON.stringify(file.relative.replace(/\\/g, "/")) + ";\n"
+          var banner = "__filename = " + JSON.stringify(path.replace(/^\//, "")) + ";\n"
           if (isAMDModule) {
             file.contents = ToBuffer(banner + data)
             return
@@ -730,9 +730,6 @@ const beforeTerser = exports.beforeTerser = (file) => {
     }
     if (!(btypes & BrowserType.Chrome)) {
       toRemovedGlobal += "WeakRef|";
-    }
-    if (getNonNullBuildItem("NDEBUG")) {
-      toRemovedGlobal += "__filename|";
     }
     toRemovedGlobal = toRemovedGlobal.slice(0, -1);
     toRemovedGlobal = toRemovedGlobal && new RegExp(`(const|let|var|,)\\s?(${toRemovedGlobal})[,;]\n?\n?`, "g");
