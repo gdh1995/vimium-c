@@ -910,11 +910,25 @@ tabEngine = {
       }
     }
     const tabs: TabEx[] = [], wndIds: number[] = [];
+    const hasMarks = !noFilter && (<RegExpG & RegExpSearchable<0>> /^:[a-z]+/gm).test(queryTerms.join("\n"))
     for (const tab of tabs0) {
       if (!wantInCurrentWindow && inNormal && tab.incognito) { continue; }
       const url = Build.BTypes & BrowserType.Chrome ? tab.url || tab.pendingUrl : tab.url
-      const text = tab.text || (tab.text = Decoder.decodeURL_(url, tab.incognito ? "" : url))
-      if (noFilter || RankingUtils.Match2_(text, tab.title)) {
+      let text = tab.text || (tab.text = Decoder.decodeURL_(url, tab.incognito ? "" : url))
+      let title = tab.title
+      if (hasMarks) {
+        if (queryTerms.length === 1) { text = title = "" }
+        if (tab.audible) {
+          title += " :audible :audio"
+          title += Build.MinCVer < BrowserVer.MinMutedInfo && Build.BTypes & BrowserType.Chrome
+              && CurCVer_ < BrowserVer.MinMutedInfo ? tab.muted : tab.mutedInfo.muted
+              ? " :muted" : " :unmuted"
+        }
+        tab.discarded && (title += " :discarded")
+        tab.incognito && (title += " :incognito")
+        tab.pinned && (title += " :pinned")
+      }
+      if (noFilter || RankingUtils.Match2_(text, title)) {
         const wndId = tab.windowId;
         !wantInCurrentWindow && wndIds.lastIndexOf(wndId) < 0 && wndIds.push(wndId);
         tabs.push(tab as TabEx);
@@ -966,6 +980,8 @@ tabEngine = {
       }
       if (!inNormal && tab.incognito) { label += "*" }
       if (tab.discarded || Build.BTypes & BrowserType.Firefox && tab.hidden) { label += "~" }
+      if (tab.audible) { label += (Build.MinCVer < BrowserVer.MinMutedInfo && Build.BTypes & BrowserType.Chrome
+        && CurCVer_ < BrowserVer.MinMutedInfo ? tab.muted : tab.mutedInfo.muted) ? "\u266a" : "\u266c" }
       suggestion.visit = visit ? visit.t + timeOffset
           : Build.BTypes & BrowserType.Firefox
             && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)
@@ -2050,17 +2066,18 @@ Completion_ = {
     if (arr === knownCs.tab) {
        wantInCurrentWindow = !!(otherFlags & CompletersNS.QueryFlags.TabInCurrentWindow);
     }
-    autoSelect = arr != null && arr.length === 1;
+    autoSelect = arr.length === 1
     if (str.length === 2 && str[0] === ":") {
       str = str[1];
-      arr = str === "b" ? knownCs.bookm : str === "h" ? knownCs.history
+      const newArr = str === "b" ? knownCs.bookm : str === "h" ? knownCs.history
         : str === "t" || str === "w" || str === "W" ? (wantInCurrentWindow = str !== "t",
             otherFlags |= Build.BTypes & BrowserType.Firefox && str > "Z" ? CompletersNS.QueryFlags.EvenHiddenTabs : 0,
             knownCs.tab)
         : str === "B" ? (otherFlags |= CompletersNS.QueryFlags.PreferBookmarks, knownCs.omni)
         : str === "H" ? (otherFlags |= CompletersNS.QueryFlags.NoTabEngine, knownCs.omni)
         : str === "d" ? knownCs.domain : str === "s" ? knownCs.search : str === "o" ? knownCs.omni : null;
-      if (arr) {
+      if (newArr) {
+        arr = newArr
         autoSelect = arr.length === 2
         rawMode = queryTerms.shift()!
         rawComponents |= CompletersNS.QComponent.mode
@@ -2088,7 +2105,7 @@ Completion_ = {
     if (rawQuery) {
       rawComponents |= CompletersNS.QComponent.query
     }
-    Completers.filter_(arr || knownCs.omni);
+    Completers.filter_(arr)
   },
   removeSug_ (url, type, callback): void {
     switch (type) {

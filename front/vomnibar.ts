@@ -482,7 +482,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       ? 185 as 185 | 300 : 0 as never as null,
   char_ (event: Pick<KeyboardEvent, "code" | "key" | "keyCode" | "keyIdentifier" | "location" | "shiftKey">): string {
     const charCorrectionList = kChar.CharCorrectionList, enNumTrans = kChar.EnNumTrans;
-    let {key, shiftKey} = event;
+    let {key, shiftKey} = event as typeof event & { key: string }
     if (!(Build.BTypes & BrowserType.Edge)
         || Build.BTypes & ~BrowserType.Edge && Vomnibar_.browser_ !== BrowserType.Edge
         ? Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.BTypes & BrowserType.Chrome && !key
@@ -513,18 +513,19 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         if (prefix === "Ke" || prefix === "Di" || prefix === "Ar") {
           code = code.slice(code < "K" ? 5 : 3);
         }
-        key = code.length === 1 && key!.length < 2
+        key = code.length === 1 && key.length < 2
               ? !shiftKey || code < "0" || code > "9" ? code : enNumTrans[+code]
-              : this._modifierKeys[key!]
+              : this._modifierKeys[key]
                 ? Vomnibar_.mapModifier_ && event.location === Vomnibar_.mapModifier_ ? kChar.Modifier
                 : key === "Alt" ? key : ""
-              : key === "Escape" ? kChar.esc : code.length < 2 ? key
+              : key === "Escape" ? kChar.esc
+              // e.g. https://github.com/philc/vimium/issues/3451#issuecomment-569124026
+              : code.length < 2 ? key.startsWith("Arrow") ? key.slice(5) : key
               : (mapped = this._codeCorrectionMap.indexOf(code)) < 0 ? code
               : charCorrectionList[mapped + 12 * +shiftKey]
             ;
       }
-      key = shiftKey && key!.length < 2 ? key!
-          : key === "Unidentified" ? "" : key!.toLowerCase();
+      key = shiftKey && key.length < 2 ? key : key === "Unidentified" ? "" : key.toLowerCase()
     }
     return key;
   },

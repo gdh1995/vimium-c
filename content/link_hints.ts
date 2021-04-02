@@ -124,7 +124,7 @@ let api_: VApiTy = null as never
 let addChildFrame_: AddChildDirectly | AddChildIndirectly | null | undefined
 
 export {
-  isActive as isHintsActive, box_ as hint_box,
+  isActive as isHintsActive, box_ as hint_box, wantDialogMode_,
   hints_ as allHints, keyStatus_ as hintKeyStatus, useFilter_, frameArray, chars_ as hintChars,
   mode_ as hintMode_, mode1_, options_ as hintOptions, count_ as hintCount_,
   forHover_, isClickListened_, forceToScroll_, tooHigh_, kSafeAllSelector, addChildFrame_,
@@ -273,7 +273,7 @@ const render = (hints: readonly HintItem[], arr: ViewBox, raw_apis: VApiTy): voi
     ensureBorder(wdZoom_ / dScale_);
     if (hints.length) {
       if (WithDialog) {
-        box_ = addElementList(hints, arr, managerOrA.d);
+        box_ = addElementList(hints, arr, managerOrA.d || coreHints.d)
       } else {
         box_ = addElementList(hints, arr);
       }

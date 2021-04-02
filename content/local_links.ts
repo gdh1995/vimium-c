@@ -5,7 +5,7 @@ type NestedFrame = false | 0 | null | KnownIFrameElement
 
 import {
   clickable_, isJSUrl, doc, isImageUrl, fgCache, readyState_, chromeVer_, VTr, createRegExp, unwrap_ff, max_, OnChrome,
-  math, includes_, OnFirefox, OnEdge
+  math, includes_, OnFirefox, OnEdge, WithDialog
 } from "../lib/utils"
 import {
   isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, findMainSummary_, htmlTag_, isAriaNotTrue_,
@@ -21,11 +21,11 @@ import {
 import { find_box } from "./mode_find"
 import { omni_box } from "./omni"
 import {
-  kSafeAllSelector, coreHints, addChildFrame_, mode1_, forHover_, hintOptions, AddChildDirectly,
+  kSafeAllSelector, coreHints, addChildFrame_, mode1_, forHover_, hintOptions, AddChildDirectly, wantDialogMode_,
   isClickListened_, forceToScroll_, hintMode_, set_isClickListened_, tooHigh_, useFilter_, hintChars, hintManager
 } from "./link_hints"
 import { shouldScroll_s, getPixelScaleToScroll, scrolled, set_scrolled, suppressScroll } from "./scroller"
-import { ui_root, ui_box, helpBox } from "./dom_ui"
+import { ui_root, ui_box, helpBox, curModalElement } from "./dom_ui"
 
 let frameNested_: NestedFrame = false
 let extraClickable_: ElementSet | null
@@ -86,6 +86,11 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
   case "details":
     isClickable = isNotReplacedBy(findMainSummary_(element as HTMLDetailsElement), hints);
     break;
+  case "dialog":
+    if ((element as HTMLDialogElement).open && WithDialog && element !== curModalElement && !wantDialogMode_) {
+      coreHints.d = 1
+    }
+    return
   case "label":
     isClickable = isNotReplacedBy((element as HTMLLabelElement).control as SafeHTMLElement | null);
     break;

@@ -68,7 +68,7 @@ const _getKeyCharUsingKeyIdentifier_old_cr = !OnChrome
 export const char_ = (eventWrapper: HandlerNS.Event): kChar => {
   let event: Pick<KeyboardEvent, "code" | "key" | "keyCode" | "keyIdentifier" | "location" | "shiftKey" | "altKey">
         = eventWrapper.e
-  let mapped: number | undefined, key = event.key, shiftKey = event.shiftKey
+  let mapped: number | undefined, key = event.key!, shiftKey = event.shiftKey
   if (Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && OnChrome && !key) {
     // since Browser.Min$KeyboardEvent$MayHave$$Key and before .MinEnsured$KeyboardEvent$$Key
     // event.key may be an empty string if some modifier keys are held on
@@ -87,19 +87,20 @@ export const char_ = (eventWrapper: HandlerNS.Event): kChar => {
       // Note: <Alt+P> may generate an upper-case '\u013b' on Mac,
       // so for /^Key[A-Z]/, can assume the status of CapsLock.
       // https://github.com/philc/vimium/issues/2161#issuecomment-225813082
-      key = code.length === 1 && key!.length < 2
+      key = code.length === 1 && key.length < 2
             ? !shiftKey || code < "0" || code > "9" ? code : kChar.EnNumTrans[+code]
-            : _modifierKeys[key!] ? fgCache.a && event.location === fgCache.a ? kChar.Modifier : ""
+            : _modifierKeys[key] ? fgCache.a && event.location === fgCache.a ? kChar.Modifier : ""
             : key === "Escape" ? kChar.esc // e.g. https://github.com/gdh1995/vimium-c/issues/129
-            : code.length < 2 ? key // e.g. https://github.com/philc/vimium/issues/3451#issuecomment-569124026
+            // e.g. https://github.com/philc/vimium/issues/3451#issuecomment-569124026
+            : code.length < 2 ? key.startsWith("Arrow") ? key.slice(5) : key
             : (mapped = _codeCorrectionMap.indexOf(code)) < 0 ? code
             : (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
                 ? kCrct! : kChar.CharCorrectionList)[mapped + 12 * +shiftKey]
     }
-    key = shiftKey && key!.length < 2 ? key : Lower(key!)
+    key = shiftKey && key.length < 2 ? key : Lower(key)
   } else {
-    key = key!.length > 1 || key === " " ? /*#__NOINLINE__*/ _getKeyName(event)
-        : fgCache.i ? shiftKey ? key!.toUpperCase() : Lower(key!) : key!
+    key = key.length > 1 || key === " " ? /*#__NOINLINE__*/ _getKeyName(event)
+        : fgCache.i ? shiftKey ? key.toUpperCase() : Lower(key) : key
   }
   return eventWrapper.c = key as kChar
 }
