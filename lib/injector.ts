@@ -32,9 +32,10 @@ const MayEdge = !!(Build.BTypes & BrowserType.Edge)
 const mayBrowser_ = MayChrome && MayNotChrome
     && typeof browser === "object" && !("tagName" in (browser as unknown as Element))
     ? (browser as typeof chrome) : null
-let runtime = ((!MayNotChrome ? false : !MayChrome ? true
-      : !!(mayBrowser_ && mayBrowser_.runtime && mayBrowser_.runtime.connect)
-    ) ? (browser as typeof chrome) : chrome).runtime
+const useBrowser = !MayNotChrome ? false : !MayChrome ? true
+    : !(typeof chrome === "object" && chrome && chrome.runtime && chrome.runtime.connect)
+      && !!(mayBrowser_ && mayBrowser_.runtime && mayBrowser_.runtime.connect)
+let runtime = (useBrowser ? (browser as typeof chrome) : chrome).runtime
 const curEl = document.currentScript as HTMLScriptElement, scriptSrc = curEl.src, i0 = scriptSrc.indexOf("://") + 3
 let onIdle = MayChrome && Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback || MayEdge
     ? window.requestIdleCallback : requestIdleCallback
@@ -47,9 +48,9 @@ VimiumInjector.id = extID;
 if (MayChrome && Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback || MayEdge) {
   onIdle = typeof onIdle !== "function" || "tagName" in (onIdle as unknown as Element) ? null as never : onIdle
 }
-function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined | false): void {
-  type LastError = chrome.runtime.LastError;
-  let str: string | undefined, noBackend: boolean, err = runtime.lastError as void | LastError;
+type LastError = chrome.runtime.LastError;
+function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined | false, err?: LastError): void {
+  let str: string | undefined, noBackend: boolean
   const _old = VimiumInjector, oldClickable = _old && _old.clickable, oldCallback = _old && _old.callback;
   if (!res) {
     const msg: string | void = err && err.message,
@@ -119,10 +120,17 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
   });
   oldCallback && newInjector.callback!(0, "loading");
 }
-function call(): void {
+const call = useBrowser ? (): void => {
+  (runtime.sendMessage(extID, <ExternalMsgs[kFgReq.inject]["req"]> {
+    handler: kFgReq.inject, scripts: true
+  }) as any as Promise<ExternalMsgs[kFgReq.inject]["res"]>).then(handler, err => handler(undefined, err))
+} : (): void => {
   runtime.sendMessage(extID, <ExternalMsgs[kFgReq.inject]["req"]> {
     handler: kFgReq.inject, scripts: true
-  }, handler);
+  }, (res): void => {
+    const err = runtime.lastError as void | LastError
+    err ? handler(undefined, err) : handler(res)
+  });
 }
 function start(): void {
   removeEventListener("DOMContentLoaded", start);
