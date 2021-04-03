@@ -477,6 +477,21 @@ var BgUtils_ = {
         arr = arr[0].split(a.spacesRe_);
       }
       break;
+    case "sed": case "substitute": case "sed-p": case "sed.p": case "sed2":
+      const first = path.split(" ", 1)[0]
+      path = path.slice(first.length + 1).trim()
+      const second = cmd === "sed2" ? path.split(" ", 1)[0] : ""
+      path = path.slice(second.length).trim()
+      path = path && a.sed_(path, cmd.endsWith("p") ? SedContext.paste : SedContext.NONE,
+              second ? { r: first, k: second }
+              : (<RegExpOne> /^[@#$-]?[a-z]+$|^\.$/).test(first) ? { r: null, k: first } : { r: first, k: null } )
+      return [path, Urls.kEval.paste]
+    case "sed2":
+      cmd = path.split(" ", 1)[0]
+      path = cmd.length === path.length ? ""
+          : a.sed_(path.slice(cmd.length + 1).trim(), SedContext.NONE
+              , (<RegExpOne> /^[@#$-]?[a-z]+$|^\.$/).test(cmd) ? { r: null, k: cmd } : { r: cmd, k: null } )
+      return [path, Urls.kEval.paste]
     case "u": case "url": case "search":
       // here path is not empty, and so `decodeEscapedURL(path).trim()` is also not empty
       arr = a.decodeEscapedURL_(path).split(a.spacesRe_);
