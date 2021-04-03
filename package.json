@@ -10,7 +10,7 @@
   },
   "devDependencies": {
     "bl": ">=2.2.1",
-    "clean-css": "^5.1.2",
+    "clean-css": "^4.2.3",
     "deepcopy": "^2.1.0",
     "gulp": "^4.0.2",
     "gulp-changed": "^4.0.2",
