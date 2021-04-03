@@ -22,7 +22,7 @@ const SedActionMap: ReadonlySafeDict<SedAction> = {
 
 let staticSeds_: readonly ClipSubItem[] | null = null
 
-const parseSeds_ = (text: string): readonly ClipSubItem[] => {
+const parseSeds_ = (text: string, fixedContexts: SedContext): readonly ClipSubItem[] => {
   const result: ClipSubItem[] = []
   for (let line of text.split("\n")) {
     line = line.trim()
@@ -51,7 +51,7 @@ const parseSeds_ = (text: string): readonly ClipSubItem[] => {
     }
     const matchRe = BgUtils_.makeRegexp_(body[1], retainMatched ? flags.replace("g", "") : flags)
     matchRe && result.push({
-      contexts_: parseSedKeys_(head),
+      contexts_: fixedContexts || parseSedKeys_(head),
       host_: host,
       match_: matchRe,
       retainMatched_: retainMatched,
@@ -101,14 +101,13 @@ export const substitute_ = (text: string, context: SedContext, mixedSed?: MixedS
   const notParsed = !mixedSed || typeof mixedSed !== "object"
   let rules = notParsed ? mixedSed as Exclude<typeof mixedSed, ParsedSedOpts> : (mixedSed as ParsedSedOpts).r
   if (rules === false) { return text }
-  let arr = staticSeds_ || (staticSeds_ = parseSeds_(settings.get_("clipSub")))
+  let arr = staticSeds_ || (staticSeds_ = parseSeds_(settings.get_("clipSub"), SedContext.NONE))
+  context = !notParsed && (mixedSed as ParsedSedOpts).k && parseSedKeys_((mixedSed as ParsedSedOpts).k!) || context
   // note: `sed` may come from options of key mappings, so here always convert it to a string
   if (rules && rules !== true) {
     rules = (rules + "").replace(<RegExpG> /(?!\\) ([a-z]{1,6})(?![\x00- A-Za-z\\])/g, "\n$1")
-    arr = arr.concat(parseSeds_(rules))
+    arr = parseSeds_(rules, context || (context = SedContext.NO_STATIC)).concat(arr)
   }
-  context = !notParsed && (mixedSed as ParsedSedOpts).k ? parseSedKeys_((mixedSed as ParsedSedOpts).k!)
-      : context
   let parsedUrl: URL | null, host: string | null = "", hostType: number
   for (const item of arr) {
     if (item.contexts_ & context && (!item.host_

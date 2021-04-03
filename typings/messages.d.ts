@@ -432,6 +432,7 @@ declare const enum SedContext {
   /** `n` */ goNext = 1 << 13,
   /** `o` */ omni = 1 << 14,
   /** `r` */ goToRoot = 1 << 17,
+  NO_STATIC = 1 << 30,
 }
 
 interface FgRes {

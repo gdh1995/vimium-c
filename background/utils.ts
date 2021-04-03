@@ -404,32 +404,7 @@ var BgUtils_ = {
     } }
     if (workType === Urls.WorkType.ActIfNoSideEffects) { switch (cmd) {
     case "e": case "exec": case "eval": case "expr": case "calc": case "m": case "math":
-      return a.require_("MathParser").catch(() => null
-      ).then<Urls.MathEvalResult>(function (MathParser): Urls.MathEvalResult {
-        BgUtils_.quotedStringRe_.test(path) && (path = path.slice(1, -1));
-        path = path.replace(/\uff0c/g as RegExpG, " ");
-        const re2 = /([\u2070-\u2079\xb2\xb3\xb9]+)|[\xb0\uff0b\u2212\xd7\xf7]|''?/g
-        path = path.replace(<RegExpG> /deg\b/g, "\xb0")
-            .replace(<RegExpG & RegExpSearchable<0>> /[\xb0']\s*\d+(\s*)(?=\)|$)/g, (str, g1): string => {
-          str = str.trim()
-          return str + (str[0] === "'"  ? "''" : "'") + g1
-        }).replace(<RegExpG & RegExpSearchable<1>> re2, (str, g1): string => {
-          let out = "", i: number
-          if (!g1) {
-            return str === "\xb0" ? "/180*PI+" : (i = "\uff0b\u2212\xd7\xf7".indexOf(str)) >= 0 ? "+-*/"[i]
-                : `/${str === "''" ? 3600 : 60}/180*PI+`
-          }
-          for (const ch of str) {
-            out += ch < "\xba" ? ch > "\xb3" ? 1 : ch < "\xb3" ? 2 : 3 : ch.charCodeAt(0) - 0x2070
-          }
-          return out && "**" + out
-        }).replace(<RegExpG>/\*PI\+(?!\s*\d)/g, "*PI").replace(<RegExpG> /([\d.])rad\b/g, "$1")
-        let nParenthesis = ([].reduce as (cb: (o: number, c: string) => number, o: number) => number
-            ).call(path, (n, ch) => n + (ch === "(" ? 1 : ch === ")" ? -1 : 0), 0)
-        while (nParenthesis-- > 0) { path += ")" }
-        let result = BgUtils_.tryEvalMath_(path, MathParser) || "";
-        return [result, Urls.kEval.math, path];
-      });
+      return a.require_("MathParser").catch(a.blank_).then<Urls.MathEvalResult>(a.tryEvalMath_.bind(0, path))
     case "error":
       return [path, Urls.kEval.ERROR];
     } }
@@ -527,13 +502,35 @@ var BgUtils_ = {
     a._nestedEvalCounter = 0;
     return <Urls.Url> res;
   } as Urls.Executor,
-  tryEvalMath_ (expr: string, mathParser: any): string | null {
-    let result: any = null;
+  tryEvalMath_ (path: string, mathParser: any): Urls.MathEvalResult {
+    BgUtils_.quotedStringRe_.test(path) && (path = path.slice(1, -1));
+    path = path.replace(/\uff0c/g as RegExpG, " ");
+    const re2 = /([\u2070-\u2079\xb2\xb3\xb9]+)|[\xb0\uff0b\u2212\xd7\xf7]|''?/g
+    path = path.replace(<RegExpG> /deg\b/g, "\xb0")
+        .replace(<RegExpG & RegExpSearchable<0>> /[\xb0']\s*\d+(\s*)(?=\)|$)/g, (str, g1): string => {
+      str = str.trim()
+      return str + (str[0] === "'"  ? "''" : "'") + g1
+    }).replace(<RegExpG & RegExpSearchable<1>> re2, (str, g1): string => {
+      let out = "", i: number
+      if (!g1) {
+        return str === "\xb0" ? "/180*PI+" : (i = "\uff0b\u2212\xd7\xf7".indexOf(str)) >= 0 ? "+-*/"[i]
+            : `/${str === "''" ? 3600 : 60}/180*PI+`
+      }
+      for (const ch of str) {
+        out += ch < "\xba" ? ch > "\xb3" ? 1 : ch < "\xb3" ? 2 : 3 : ch.charCodeAt(0) - 0x2070
+      }
+      return out && "**" + out
+    }).replace(<RegExpG>/\*PI\+(?!\s*\d)/g, "*PI").replace(<RegExpG> /([\d.])rad\b/g, "$1")
+    let nParenthesis = ([].reduce as (cb: (o: number, c: string) => number, o: number) => number
+        ).call(path, (n, ch) => n + (ch === "(" ? 1 : ch === ")" ? -1 : 0), 0)
+    while (nParenthesis-- > 0) { path += ")" }
+
+    let result: any = ""
     if ((mathParser = mathParser || window.MathParser || {}).evaluate) {
       try {
-        result = mathParser.evaluate(expr);
+        result = mathParser.evaluate(path)
         if (typeof result === "function") {
-          result = null;
+          result = ""
         } else {
           result = "" + result;
         }
@@ -541,7 +538,7 @@ var BgUtils_ = {
       mathParser.clean();
       mathParser.errormsg && (mathParser.errormsg = "")
     }
-    return result;
+    return [result, Urls.kEval.math, path];
   },
   copy_: (() => "") as (text: string | any[], join?: FgReq[kFgReq.copy]["j"], sed?: MixedSedOpts | null) => string,
   paste_: (() => "") as (this: void, sed?: MixedSedOpts | null, len?: number) => string | Promise<string | null> | null,

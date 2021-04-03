@@ -18,9 +18,9 @@ let isPassKeysReversed = false
 let mapKeyTypes = kMapKey.NONE
 let mappedKeys: SafeDict<string> | null = null
 let keyFSM: KeyFSM
-let currentKeys = ""
-let curKeyTimestamp = 0
-let nextKeys: KeyFSM | ReadonlyChildKeyFSM & SafeObject | null = null
+let currentKeys: string
+let curKeyTimestamp: number
+let nextKeys: KeyFSM | ReadonlyChildKeyFSM & SafeObject | null
 
 let isWaitingAccessKey = false
 let isCmdTriggered: kKeyCode = kKeyCode.None
