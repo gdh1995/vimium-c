@@ -116,6 +116,12 @@ interface HTMLTextAreaElement extends HTMLEditableELement {}
 
 declare var Response: { new (blob: Blob): Response }
 
+declare namespace chrome.tabs {
+  interface Tab {
+    groupId?: number
+  }
+}
+
 declare namespace chrome.bookmarks {
   export function create(bookmark: BookmarkCreateArg, callback?: (result: BookmarkTreeNode) => void): 1;
 }
