@@ -17,7 +17,7 @@ declare var VData: VDataTy
 
 import {
   injector, isAlive_, keydownEvents_, readyState_, timeout_, clearTimeout_, loc_, recordLog, chromeVer_, math, OnChrome,
-  interval_, clearInterval_, locHref, vApi, createRegExp, isTY, safeObj, isTop, OnFirefox, OnEdge
+  interval_, clearInterval_, locHref, vApi, createRegExp, isTY, safeObj, isTop, OnFirefox, OnEdge, safeCall
 } from "../lib/utils"
 import { removeHandler_, replaceOrSuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
 import {
@@ -112,7 +112,7 @@ export const activate = function (options: FullOptions, count: number): void {
       if (tryNestedFrame(kFgCmd.vomnibar, options, count)) { return; }
       status = VomnibarNS.Status.Initing
       init(options)
-    } else if (isAboutBlank()) {
+    } else if (safeCall(isAboutBlank_throwable)) {
       secondActivateWithNewOptions = activate.bind(0, options, count);
       (status > VomnibarNS.Status.ToShow - 1 || timeout_ != setTimeout) && resetWhenBoxExists()
       return;
@@ -204,7 +204,7 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
       loaded = 1
       clearTimeout_(slowLoadTimer!) // safe even if undefined
       if (!isAlive_) { return }
-      if (type !== VomnibarNS.PageType.inner && isAboutBlank()) {
+      if (type !== VomnibarNS.PageType.inner && safeCall(isAboutBlank_throwable)) {
         recordLog(kTip.logOmniFallback)
         reload()
         return
@@ -226,7 +226,7 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
       const doPostMsg = (postMsgStat?: TimerType.fake | 1): void => {
         const wnd = el.contentWindow, isFile = page.startsWith("file:")
         if (status !== VomnibarNS.Status.Initing || !wnd
-            || postMsgStat !== 1 && isAboutBlank() || isFile && el.src !== page) { return }
+            || postMsgStat !== 1 && safeCall(isAboutBlank_throwable) || isFile && el.src !== page) { return }
         const channel = new MessageChannel();
         portToOmni = channel.port1;
         (portToOmni as typeof channel.port1).onmessage = onOmniMessage
@@ -262,12 +262,9 @@ const resetWhenBoxExists = (redo?: boolean): void | 1 => {
     }
 }
 
-const isAboutBlank = (): boolean => {
-    try {
+const isAboutBlank_throwable = (): boolean | null => {
       const doc = box!.contentDocument
-      if (doc && doc.URL === "about:blank") { return true; }
-    } catch {}
-    return false;
+      return doc && doc.URL === "about:blank"
 }
 
 const onOmniMessage = function (this: OmniPort, msg: { data: any, target?: MessagePort }): void {

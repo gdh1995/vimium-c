@@ -194,7 +194,15 @@ export const createRegExp = <S extends kTip, T extends "g" | "i" | ""> (pattern:
 
 export const tryCreateRegExp = <T extends "g" | "gi" | "gim" | "gm" | "i" | "u" | ""> (pattern: string, flags: T
     ): (T extends "" ? RegExpOne : T extends "i" ? RegExpI : RegExpG) | void => {
-  try { return <any> new RegExp(pattern, flags as "g") } catch {}
+  return <any> safeCall(RegExp as any, pattern, flags)
+}
+
+export const safeCall = (<T1, T2, Ret>(func: (arg1: T1, arg2: T2) => Ret, arg1: T1, arg2: T2): Ret | void => {
+  try { return func(arg1, arg2) } catch {}
+}) as {
+  <T1, T2, Ret>(func: (arg1: T1, arg2: T2) => Ret, arg1: T1, arg2: T2): Ret | void
+  <T1, Ret>(func: (arg1: T1, args2?: undefined) => Ret, arg1: T1): Ret | void
+  <Ret>(func: (arg1?: undefined, arg2?: undefined) => Ret): Ret | void
 }
 
 /** ==== shortcuts of constant code ==== */

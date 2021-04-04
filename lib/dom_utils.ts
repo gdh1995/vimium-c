@@ -384,13 +384,6 @@ export const getEditableType_ = function (element: Element): EditableType {
     (element: Element): element is LockableElement; // this line is just to avoid a warning on VS Code
 }
 
-export const isInputInTextMode_cr_old = !OnChrome || Build.MinCVer >= BrowserVer.Min$selectionStart$MayBeNull
-      ? 0 as never : (el: TextElement): boolean | void => {
-    try {
-      return el.selectionEnd != null;
-    } catch {}
-}
-
 export const isSelected_ = (): boolean => {
     const element = activeEl_unsafe_()!, sel = getSelection_(), node = getAccessibleSelectedNode(sel)
     return !node ? false

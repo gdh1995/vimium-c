@@ -37,7 +37,7 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
       || ((s = attr_s(element, "role")) ? (<RegExpI> /^(button|link)$/i).test(s)
           : ngEnabled && attr_s(element, "ng-click")))
     if (isClickable && isVisibleInPage(element)) {
-      hints.push(element)
+      hints.push([element])
     }
     if (isIFrameElement(element)) {
       if (OnFirefox || OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1
@@ -66,8 +66,8 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
     }
   }
   for (let wsRe = <RegExpOne> /\s+/, _len = links.length - 1; 0 <= --_len; ) {
-    const link = links[_len];
-    if (contains_s(link, links[_len + 1]) || (s = link.innerText).length > totalMax) { continue }
+    const link = links[_len][0]
+    if (contains_s(link, links[_len + 1][0]) || (s = link.innerText).length > totalMax) { continue }
     if (s = s.length > 2 ? s : !s && (ch = (link as HTMLInputElement).value) && isTY(ch, kTY.str) && ch
             || attr_s(link, ALA) || link.title || s) {
       if (s.length > totalMax) { continue; }

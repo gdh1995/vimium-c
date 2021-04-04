@@ -1,6 +1,6 @@
 import {
   setupEventListener, isTop, keydownEvents_, timeout_, fgCache, doc, isAlive_, isJSUrl, chromeVer_, VTr, deref_, OnEdge,
-  vApi, Stop_, createRegExp, isTY, OBJECT_TYPES, OnChrome, OnFirefox, WithDialog, injector
+  vApi, Stop_, createRegExp, isTY, OBJECT_TYPES, OnChrome, OnFirefox, WithDialog, injector, safeCall
 } from "../lib/utils"
 import { prevent_ } from "../lib/keyboard_utils"
 import {
@@ -348,7 +348,7 @@ export const resetSelectionToDocStart = function (sel?: Selection, range?: Range
 
 export const selectAllOfNode = (node: Node) => { getSelection_().selectAllChildren(node) }
 
-export const moveSel_s = (element: LockableElement, action: SelectActions | undefined): void => {
+export const moveSel_s_throwable = (element: LockableElement, action: SelectActions | undefined): void => {
     const elTag = htmlTag_(element), type = elTag === "textarea" ? EditableType.TextBox
         : elTag === INP ? EditableType.input_
         : element.isContentEditable ? EditableType.rich_
@@ -363,7 +363,6 @@ export const moveSel_s = (element: LockableElement, action: SelectActions | unde
       return;
     }
     // not need `this.getSelection_()`
-    try {
       if (type === EditableType.rich_) {
         selectAllOfNode(element)
       } else {
@@ -379,7 +378,6 @@ export const moveSel_s = (element: LockableElement, action: SelectActions | unde
         }
       }
       (gotoEnd || gotoStart) && collpaseSelection(getSelection_(), <BOOL> +gotoEnd)
-    } catch {}
 }
 
 export const collpaseSelection = (sel: Selection, toEnd?: VisualModeNS.ForwardDir | boolean): void => {
@@ -486,7 +484,7 @@ export const evalIfOK = (url: Pick<BgReq[kBgReq.eval], "u"> | string): boolean =
   let el: HTMLScriptElement | undefined
   if (createRegExp(kTip.voidJS, "").test(str)) { /* empty */ }
   else if (!parentNode_unsafe_s(el = runJS_(VTr(kTip.removeCurScript), 0)!)) {
-    try { str = decodeURIComponent(str); } catch {}
+    str = safeCall(decodeURIComponent, str) || str
     timeout_(runJS_.bind(0, str, null), 0)
   } else {
     removeEl_s(el)

@@ -340,6 +340,7 @@ type Hint = [
   offset?: HintOffset,
   relatedMap?: HTMLElementUsingMap
 ]
+type Hint0 = [ element: SafeHTMLElement ]
 interface Hint4 extends Hint {
   [3]: HintOffset;
 }

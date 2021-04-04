@@ -51,7 +51,7 @@ let keyIsDown = 0
 let preventPointEvents: BOOL | 2 | ScrollConsts.MinLatencyToAutoPreventHover
 let scale = 1
 let joined: VApiTy | null | undefined
-let scrolled = 0
+let scrolled: 0 | 1 | 2 = 0
 
 export { currentScrolling, cachedScrollable, keyIsDown, scrolled }
 export function set_scrolled (_newScrolled: 0): void { scrolled = _newScrolled }

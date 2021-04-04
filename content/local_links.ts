@@ -242,13 +242,13 @@ export const getEditable = (hints: Hint[], element: SafeHTMLElement): void => {
   getIfOnlyVisible(hints, element)
 }
 
-export const getIfOnlyVisible = (hints: Hint[], element: SafeElement): void => {
+export const getIfOnlyVisible = (hints: Array<Hint | Hint0>, element: SafeElement): void => {
   let arr = getVisibleClientRect_(element)
   arr && hints.push([element as SafeElementForMouse, arr, ClickType.Default])
 }
 
-export const traverse = ((selector: string, options: CSSOptions, filter: Filter<Hint | SafeHTMLElement>
-    , notWantVUI?: 1, wholeDoc?: 1 | Element): Hint[] | SafeHTMLElement[] => {
+export const traverse = ((selector: string, options: CSSOptions, filter: Filter<Hint | Hint0>
+    , notWantVUI?: 1, wholeDoc?: 1 | Element): Hint[] | Hint0[] => {
 
 const matchSafeElements = ((selector: string, rootNode: Element | ShadowRoot | null
     , udSelector: string | null, mayBeUnsafe?: 1): HintSources | void => {
@@ -332,13 +332,13 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   }
 }
 
-  const output: Hint[] | SafeHTMLElement[] = [],
+  const output: Hint[] | Hint0[] = [],
   wantClickable = filter === getClickable,
   isInAnElement = !Build.NDEBUG && !!wholeDoc && wholeDoc !== 1 && wholeDoc.tagName != null,
   traverseRoot = !wholeDoc ? fullscreenEl_unsafe_() : !Build.NDEBUG && isInAnElement && wholeDoc as Element || null
   let matchSelector = options.match || null,
   clickableSelector = wantClickable && options.clickable || null,
-  matchAll = (!Build.NDEBUG && !OnFirefox && selector === "*" // for easier debugging
+  matchAll = (!Build.NDEBUG && selector === "*" // for easier debugging
       ? selector = kSafeAllSelector : selector) === kSafeAllSelector && !matchSelector,
   cur_arr: HintSources | null = matchSafeElements(selector, traverseRoot, matchSelector, 1) || (matchSelector = " ", [])
   if (wantClickable) {
@@ -346,7 +346,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
     initTestRegExps()
   }
   if (matchSelector) {
-    filter = /*#__NOINLINE__*/ getIfOnlyVisible as Filter<Hint> as Filter<Hint | SafeHTMLElement>
+    filter = /*#__NOINLINE__*/ getIfOnlyVisible
   } else if (matchAll) {
     if (ngEnabled == null) {
       ngEnabled = !!querySelector_unsafe_(".ng-scope");
@@ -382,15 +382,14 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
       (cur_arr = ([] as SafeElement[]).slice.call(cur_arr)).unshift(traverseRoot as SafeElement)
     }
   }
-  let cur_scope: [HintSources, number, ElementSet | null] | undefined
   const prefixedShadow = OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
       && chromeVer_ < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
   const tree_scopes: Array<typeof cur_scope> = [[cur_arr, 0
       , createElementSet(clickableSelector && querySelectorAll_unsafe_(clickableSelector, traverseRoot, 1)
           || (clickableSelector = null, [])) ]]
+  let cur_scope: [HintSources, number, ElementSet | null] | undefined, cur_tree: HintSources, i: number
   for (; cur_scope = tree_scopes.pop(); ) {
-    extraClickable_ = cur_scope[2]
-    for (let cur_tree = cur_scope[0], i = cur_scope[1]; i < cur_tree.length; ) {
+    for ([cur_tree, i, extraClickable_] = cur_scope; i < cur_tree.length; ) {
       const el = cur_tree[i++] as SafeElement
       if ((el as ElementToHTML).lang != null) {
         filter(output, el as SafeHTMLElement)
@@ -408,18 +407,18 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
         }
       } else if (wantClickable) {
         (matchSelector ? getIfOnlyVisible : /*#__NOINLINE__*/ isOtherClickable
-            )(output as Exclude<typeof output, SafeHTMLElement[]>
+            )(output as Exclude<typeof output, Hint0[]>
             , el as NonHTMLButFormattedElement | SafeElementWithoutFormat);
       }
     }
   }
+  extraClickable_ = cur_tree = cur_arr = null as never
   if (Build.NDEBUG ? wholeDoc : wholeDoc && !isInAnElement) {
     // this requires not detecting scrollable elements if wholeDoc
     if (!(Build.NDEBUG || !wantClickable && !isInAnElement)) {
       console.log("Assert error: `!wantClickable if wholeDoc` in VHints.traverse_");
     }
   } else {
-  cur_arr = cur_scope = null as never
   if (!OnEdge && ui_root
       && (OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
           || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
@@ -544,11 +543,10 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
     frameNested_ = null
   }
   }
-  extraClickable_ = null
   return output
 }) as {
-  (key: string, options: CSSOptions, filter: Filter<SafeHTMLElement>, notWantVUI?: 1, wholeDoc?: 1): SafeHTMLElement[]
   (key: string, options: CSSOptions, filter: Filter<Hint>, notWantVUI?: 1): Hint[]
+  (key: string, options: CSSOptions, filter: Filter<Hint0>, notWantVUI?: 1, wholeDoc?: 1): Hint0[]
 }
 
 const isDescendant = function (c: Element | null, p: Element, shouldBeSingleChild: BOOL | boolean): boolean {

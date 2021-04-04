@@ -32,10 +32,10 @@ declare const enum kYank { // should have no overlap with ReuseType
   MIN = 7, Exit = 7, NotExit = 8, RichTextButNotExit = 9,
 }
 
-import { VTr, safer, fgCache, doc, chromeVer_, tryCreateRegExp, isTY, OnFirefox, OnChrome } from "../lib/utils"
+import { VTr, safer, fgCache, doc, chromeVer_, tryCreateRegExp, isTY, OnFirefox, OnChrome, safeCall } from "../lib/utils"
 import {
   getSelection_, getSelectionFocusEdge_, isHTML_, docEl_unsafe_, notSafe_not_ff_, getEditableType_, editableTypes_,
-  GetChildNodes_not_ff, isInputInTextMode_cr_old, rangeCount_, getAccessibleSelectedNode, scrollingEl_, isNode_,
+  GetChildNodes_not_ff, rangeCount_, getAccessibleSelectedNode, scrollingEl_, isNode_,
   getDirectionOfNormalSelection, selOffset_, modifySel, kDir, parentNode_unsafe_s
 } from "../lib/dom_utils"
 import {
@@ -48,7 +48,7 @@ import {
   toggleSelectableStyle, find_query, executeFind, find_hasResults, updateQuery as findUpdateQuery, findCSS, set_findCSS,
   execCommand,
 } from "./mode_find"
-import { insert_Lock_ } from "./insert"
+import { insert_Lock_, raw_insert_lock } from "./insert"
 import { hudTip, hudHide, hudShow } from "./hud"
 import { post_, send_ } from "./port"
 import {
@@ -587,7 +587,6 @@ const getDirection = function (magic?: string
     // editable text elements
     const lock = insert_Lock_();
     if (lock && parentNode_unsafe_s(lock) === anchorNode) { // safe because lock is LockableElement
-      type TextModeElement = TextElement;
       if ((oldDiType & DiType.Unknown)
           && editableTypes_[lock.localName]! > EditableType.MaxNotTextModeElement) {
         const child = (OnFirefox ? (anchorNode as Element).childNodes as NodeList
@@ -595,14 +594,14 @@ const getDirection = function (magic?: string
             )[num1 >= 0 ? num1 : selOffset_(sel)] as Node | undefined;
         if (lock === child || /** tend to trust that the selected is a textbox */ !child) {
           if (!OnChrome || Build.MinCVer >= BrowserVer.Min$selectionStart$MayBeNull
-              ? (lock as TextModeElement).selectionEnd != null
-              : /*#__NOINLINE__*/ isInputInTextMode_cr_old(lock as TextModeElement)) {
+              ? (lock as TextElement).selectionEnd != null
+              : safeCall(/*#__NOINLINE__*/ isLockedInputInTextMode_cr_old)) {
             diType_ = DiType.TextBox | (oldDiType & DiType.isUnsafe)
           }
         }
       }
       if (diType_ & DiType.TextBox) {
-        return di_ = (lock as TextModeElement).selectionDirection !== kDir[0]
+        return di_ = (lock as TextElement).selectionDirection !== kDir[0]
           ? kDirTy.right : kDirTy.left;
       }
     }
@@ -636,6 +635,11 @@ const getDirection = function (magic?: string
 } as {
     (magic: ""): unknown;
     (magic?: string): kDirTy.left | kDirTy.right;
+}
+
+const isLockedInputInTextMode_cr_old = !OnChrome || Build.MinCVer >= BrowserVer.Min$selectionStart$MayBeNull
+    ? 0 as never : (): boolean | void => {
+  return (raw_insert_lock! as TextElement).selectionEnd != null
 }
 
   /** @tolerate_di_if_caret di will be 1 */

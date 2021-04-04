@@ -1,5 +1,5 @@
 import {
-  OnChrome, OnFirefox, OnEdge, doc, deref_, weakRef_, chromeVer_, isJSUrl, getTime, parseSedOptions
+  OnChrome, OnFirefox, OnEdge, doc, deref_, weakRef_, chromeVer_, isJSUrl, getTime, parseSedOptions, safeCall
 } from "../lib/utils"
 import {
   IsInDOM_, activeEl_unsafe_, isInTouchMode_cr_, MDW, htmlTag_, CLK, attr_s, contains_s, focus_
@@ -8,7 +8,7 @@ import { suppressTail_ } from "../lib/keyboard_utils"
 import { center_, getVisibleClientRect_, view_ } from "../lib/rect"
 import { insert_Lock_ } from "./insert"
 import { post_ } from "./port"
-import { flash_, moveSel_s } from "./dom_ui"
+import { flash_, moveSel_s_throwable } from "./dom_ui"
 import { hintApi } from "./link_hints"
 import { beginToPreventClick_ff, wrappedDispatchMouseEvent_ff } from "./extend_click_ff"
 
@@ -363,7 +363,15 @@ export const select_ = (element: LockableElement, rect?: Rect | null, show_flash
     show_flash && flash_(element)
     if (element !== insert_Lock_()) { return }
     // then `element` is always safe
-    moveSel_s(element, action)
+    if (Build.NDEBUG) {
+      safeCall(/*#__INLINE__*/ moveSel_s_throwable, element, action)
+    } else {
+      try {
+        moveSel_s_throwable(element, action)
+      } catch (e) {
+        console.log("Vimium C: failed in moving caret.", e)
+      }
+    }
     if (suppressRepeated) { suppressTail_() }
   })
 }
