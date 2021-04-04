@@ -45,6 +45,7 @@ interface ParsedSearch {
 interface CSSOptions {
   match?: "css-selector" | " " | null | undefined
   clickable?: "css-selector" | null | undefined
+  exclude?: "css-selector" | null | undefined
 }
 
 interface FindCSS {

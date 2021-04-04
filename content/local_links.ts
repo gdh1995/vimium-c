@@ -5,13 +5,13 @@ type NestedFrame = false | 0 | null | KnownIFrameElement
 
 import {
   clickable_, isJSUrl, doc, isImageUrl, fgCache, readyState_, chromeVer_, VTr, createRegExp, unwrap_ff, max_, OnChrome,
-  math, includes_, OnFirefox, OnEdge, WithDialog
+  math, includes_, OnFirefox, OnEdge, WithDialog, safeCall
 } from "../lib/utils"
 import {
   isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, findMainSummary_, htmlTag_, isAriaNotTrue_,
   NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, notSafe_not_ff_, docEl_unsafe_,
   GetParent_unsafe_, unsafeFramesetTag_old_cr_, isHTML_, querySelectorAll_unsafe_, isNode_, INP, attr_s,
-  getMediaTag, getMediaUrl, contains_s, GetShadowRoot_, parentNode_unsafe_s
+  getMediaTag, getMediaUrl, contains_s, GetShadowRoot_, parentNode_unsafe_s, ElementProto
 } from "../lib/dom_utils"
 import {
   getVisibleClientRect_, getZoomedAndCroppedRect_, getClientRectsForAreas_, getCroppedRect_, padClientRect_,
@@ -332,7 +332,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   }
 }
 
-  const output: Hint[] | Hint0[] = [],
+  const excludedSelector = options.exclude,
   wantClickable = filter === getClickable,
   isInAnElement = !Build.NDEBUG && !!wholeDoc && wholeDoc !== 1 && wholeDoc.tagName != null,
   traverseRoot = !wholeDoc ? fullscreenEl_unsafe_() : !Build.NDEBUG && isInAnElement && wholeDoc as Element || null
@@ -340,6 +340,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   clickableSelector = wantClickable && options.clickable || null,
   matchAll = (!Build.NDEBUG && selector === "*" // for easier debugging
       ? selector = kSafeAllSelector : selector) === kSafeAllSelector && !matchSelector,
+  output: Hint[] | Hint0[] = [],
   cur_arr: HintSources | null = matchSafeElements(selector, traverseRoot, matchSelector, 1) || (matchSelector = " ", [])
   if (wantClickable) {
     getPixelScaleToScroll();
@@ -419,30 +420,6 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
       console.log("Assert error: `!wantClickable if wholeDoc` in VHints.traverse_");
     }
   } else {
-  if (!OnEdge && ui_root
-      && (OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
-          || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
-          || ui_root !== ui_box)
-      && (Build.NDEBUG && (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
-          ? !notWantVUI : !notWantVUI && ui_root.mode === "closed")
-      ) {
-    const bz = !OnFirefox ? bZoom_ : 1, notHookScroll = scrolled === 0
-    if (!OnFirefox && bz !== 1 && !traverseRoot) {
-      set_bZoom_(1)
-      prepareCrop_(1);
-    }
-    cur_arr = querySelectorAll_unsafe_(selector, ui_root) as NodeListOf<SafeElement>
-    if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
-        && Build.MinCVer >= BrowserVer.MinTestedES6Environment) {
-      for (let i = 0; i < cur_arr.length; i++) { htmlTag_(cur_arr[i]) && filter(output, cur_arr[i] as SafeHTMLElement) }
-    } else {
-      for (const i of cur_arr as ArrayLike<Element> as Element[]) { htmlTag_(i) && filter(output, <SafeHTMLElement> i) }
-    }
-    OnFirefox || set_bZoom_(bz)
-    if (notHookScroll) {
-      set_scrolled(0)
-    }
-  }
   scrolled === 1 && suppressScroll();
   if (wantClickable && !matchSelector) { // deduplicate
     ((list: Hint[]): void => {
@@ -542,6 +519,30 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   } else if (output.length > 0) {
     frameNested_ = null
   }
+  }
+  if (excludedSelector && !(OnChrome && Build.MinCVer < BrowserVer.Min$Element$$matches && !ElementProto().matches)) {
+    output = safeCall((output as Hint0[]).filter.bind(output), el => !el[0].matches!(excludedSelector)) || output
+  }
+  if (!OnEdge && ui_root && !wholeDoc
+      && (OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+          || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
+          || ui_root !== ui_box)
+      && (Build.NDEBUG && (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
+          ? !notWantVUI : !notWantVUI && ui_root.mode === "closed")) {
+    const bz = !OnFirefox ? bZoom_ : 1, hasHookedScroll = scrolled
+    if (!OnFirefox && bz !== 1 && !traverseRoot) {
+      set_bZoom_(1)
+      prepareCrop_(1)
+    }
+    cur_arr = querySelectorAll_unsafe_(selector, ui_root) as NodeListOf<SafeElement>
+    if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
+        && Build.MinCVer >= BrowserVer.MinTestedES6Environment) {
+      for (let i = 0; i < cur_arr.length; i++) { htmlTag_(cur_arr[i]) && filter(output, cur_arr[i] as SafeHTMLElement) }
+    } else {
+      for (const i of cur_arr as ArrayLike<Element> as Element[]) { htmlTag_(i) && filter(output, <SafeHTMLElement> i) }
+    }
+    OnFirefox || set_bZoom_(bz)
+    hasHookedScroll || set_scrolled(0)
   }
   return output
 }) as {
