@@ -77,7 +77,9 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
       }
       const S = "style" as const
       styleIn_ = createElement_(S)
-      setUICSS = finalSetCSS
+      setUICSS = (css): void => {
+        createStyle(cssPatch_ ? cssPatch_[1](css) : css, styleIn_ as HTMLStyleElement)
+      }
       setUICSS(innerCSS)
       appendNode_s(root_, styleIn_)
       /**
@@ -203,10 +205,6 @@ export const createStyle = (text: string, css?: HTMLStyleElement): HTMLStyleElem
 }
 
 export let setUICSS = (innerCSS: string): void => { styleIn_ = innerCSS }
-
-const finalSetCSS: typeof setUICSS = (css): void => {
-  createStyle(cssPatch_ ? cssPatch_[1](css) : css, styleIn_ as HTMLStyleElement)
-}
 
 export const learnCSS = (srcStyleIn: typeof styleIn_, force?: 1): void => {
     if (!OnChrome || Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor

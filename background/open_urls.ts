@@ -548,7 +548,7 @@ export const focusAndExecute = (req: Omit<FgReq[kFgReq.gotoMainFrame], "f">
 }
 
 /** safe when cPort is null */
-export const focusOrLaunch = (request: MarksNS.FocusOrLaunch, port?: Port | null, notFolder?: true): void => {
+export const focusOrLaunch = (request: FgReq[kFgReq.focusOrLaunch], port?: Port | null, notFolder?: true): void => {
   // * do not limit windowId or windowType
   let url = BgUtils_.reformatURL_(request.u.split("#", 1)[0]), callback = focusAndExecuteArr[0]
   if (Backend_.checkHarmfulUrl_(url, port)) {

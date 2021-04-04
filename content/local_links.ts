@@ -292,7 +292,7 @@ const addChildTrees = (parts: HintSources, allNodes: NodeListOf<SafeElement>): H
     if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
           && matchWebkit ? el.webkitShadowRoot : el.shadowRoot) {
       hosts.push(el)
-    } else if (local_addChildFrame_ && isIFrameElement(el)) {
+    } else if (isIFrameElement(el) && local_addChildFrame_) {
       if (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1
           || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
           || el !== omni_box && el !== find_box) {

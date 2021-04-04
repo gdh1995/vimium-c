@@ -359,7 +359,7 @@ set_reqH_([
     return !!iport
   },
   /** kFgReq.initHelp: */ initHelp,
-  /** kFgReq.css: */ (_0: {}, port: Port): void => {
+  /** kFgReq.css: */ (_0: FgReq[kFgReq.css], port: Port): void => {
     (port as Frames.Port).s.f |= Frames.Flags.hasCSSAndActed
     port.postMessage({ N: kBgReq.showHUD, H: innerCSS_ })
   },
