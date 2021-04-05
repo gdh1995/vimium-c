@@ -24,11 +24,10 @@ const isVisibleInPage = (element: SafeHTMLElement): boolean => {
 }
 
 export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxLen): number => {
-
-  if (!isAlive_) { return maxLen }
   // Note: this traverser should not need a prepareCrop
-  set_addChildFrame_((_, el, _2, subList) => !subList!.push(el as KnownIFrameElement & SafeHTMLElement) )
-  const links = traverse(kSafeAllSelector, options, (hints, element): void => {
+  const links = isAlive_ ? (set_addChildFrame_((_, el, _view, subList): void => {
+    subList!.push(el as KnownIFrameElement & SafeHTMLElement)
+  }), traverse(kSafeAllSelector, options, (hints, element): void => {
     let s: string | null
     const tag = element.localName, isClickable = tag === "a" || tag && (
       tag === "button" ? !(element as HTMLButtonElement).disabled
@@ -47,15 +46,18 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
         childApi && iframesToSearchForNext!.push(childApi)
       }
     }
-  }, 1, 1),
+  }, 1, 1)) : [],
   isNext = options.n, lenLimits = options.l, totalMax = options.m,
   quirk = isNext ? ">>" : "<<", quirkIdx = names.indexOf(quirk),
   rel = isNext ? "next" : "prev", relIdx = names.indexOf(rel),
   detectQuirk = quirkIdx > 0 ? names.lastIndexOf(quirk[0], quirkIdx) : -1,
+  wsRe = <RegExpOne> /\s+/,
   refusedStr = isNext ? "<" : ">";
+  // @ts-ignore
+  let i = isAlive_ ? 0 : GlobalConsts.MaxNumberOfNextPatterns + 1
+  let candInd = 0, index = links.length
   set_addChildFrame_(null)
   links.push(docEl_unsafe_() as never);
-  let ch: string, s: string, len: number, i = 0, candInd = 0
   for (; i < names.length; i++) {
     if (GlobalConsts.SelectorPrefixesInPatterns.includes(names[i][0])) {
       const arr = querySelectorAll_unsafe_(names[i]);
@@ -65,9 +67,10 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
       }
     }
   }
-  for (let wsRe = <RegExpOne> /\s+/, _len = links.length - 1; 0 <= --_len; ) {
-    const link = links[_len][0]
-    if (contains_s(link, links[_len + 1][0]) || (s = link.innerText).length > totalMax) { continue }
+  let ch: string, s: string, len: number
+  for (; 0 <= --index; ) {
+    const link = links[index][0]
+    if (contains_s(link, links[index + 1][0]) || (s = link.innerText).length > totalMax) { continue }
     if (s = s.length > 2 ? s : !s && (ch = (link as HTMLInputElement).value) && isTY(ch, kTY.str) && ch
             || attr_s(link, ALA) || link.title || s) {
       if (s.length > totalMax) { continue; }

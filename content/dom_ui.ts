@@ -8,7 +8,7 @@ import {
   GetParent_unsafe_, getSelection_, ElementProto, GetChildNodes_not_ff, GetShadowRoot_, getEditableType_, htmlTag_,
   notSafe_not_ff_, CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_, getAccessibleSelectedNode, removeEl_s,
   appendNode_s, append_not_ff, setClassName_s, isNode_, INP, contains_s, setOrRemoveAttr_s, selOffset_, textContent_s,
-  parentNode_unsafe_s
+  parentNode_unsafe_s, setDisplaying_s
 } from "../lib/dom_utils"
 import {
   bZoom_, dScale_, getZoom_, wdZoom_, getSelectionBoundingBox_, prepareCrop_, getClientRectsForAreas_,
@@ -97,7 +97,7 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
     if (styleIn_) {
       setUICSS(styleIn_ as Exclude<typeof styleIn_, Element | null | undefined | "">)
     } else {
-      box_.style.display = NONE
+      setDisplaying_s(box_)
       adjust_type! > AdjustType.MustAdjust - 1 && adjustUI()
       post_({ H: kFgReq.css });
     }

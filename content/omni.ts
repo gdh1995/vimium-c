@@ -21,7 +21,7 @@ import {
 } from "../lib/utils"
 import { removeHandler_, replaceOrSuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
 import {
-  isHTML_, fullscreenEl_unsafe_, NONE, createElement_, removeEl_s, setClassName_s, setOrRemoveAttr_s,
+  isHTML_, fullscreenEl_unsafe_, setDisplaying_s, createElement_, removeEl_s, setClassName_s, setOrRemoveAttr_s,
   toggleClass_s
 } from "../lib/dom_utils"
 import { getViewBox_, docZoom_, dScale_, prepareCrop_, bZoom_, wndSize_, viewportRight } from "../lib/rect"
@@ -164,7 +164,8 @@ export const hide = ((fromInner?: 1 | null): void => {
     oldIsActive || focus()
     if (OnChrome && Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval) {
       let style_old_cr = box!.style
-      style_old_cr!.height = style_old_cr!.top = ""; style_old_cr!.display = NONE;
+      style_old_cr!.height = style_old_cr!.top = ""
+      setDisplaying_s(box!, 1)
     } else {
       box!.style.cssText = "display:none"
     }
@@ -181,7 +182,7 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
     }
     const el = createElement_("iframe") as NonNullable<typeof box>, kRef = "referrerPolicy"
     setClassName_s(el, "R UI Omnibar")
-    el.style.display = NONE;
+    setDisplaying_s(el)
     if (type !== VomnibarNS.PageType.web) { /* empty */ }
     else if (createRegExp(kTip.nonLocalhostRe, "i").test(page) && !(<RegExpOne> /^http:/).test(locHref())) {
       // not allowed by Chrome; recheck because of `tryNestedFrame`
@@ -292,7 +293,7 @@ const onOmniMessage = function (this: OmniPort, msg: { data: any, target?: Messa
         top = screenHeight_ > topHalfThreshold * 2 ? ((50 - maxBoxHeight * 0.6 / screenHeight_ * 100) | 0
             ) + (canUseVW ? "vh" : "%") : ""
         style.top = !Build.NoDialogUI && VimiumInjector === null && loc_.hash === "#dialog-ui" ? "8px" : top;
-        style.display = "";
+        setDisplaying_s(box!, 1)
         timeout_(refreshKeyHandler, 160)
       }
       break;

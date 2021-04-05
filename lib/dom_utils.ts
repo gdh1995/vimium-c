@@ -468,6 +468,10 @@ export const setVisibility_s = (el: SafeHTMLElement | HTMLDivElement | HTMLSpanE
   el.style.visibility = visible ? "" : HDN
 }
 
+export const setDisplaying_s = (el: SafeHTMLElement | HTMLDivElement | HTMLSpanElement, display?: BOOL): void => {
+  el.style.display = display ? "" : NONE
+}
+
 export const setOrRemoveAttr_s = (el: SafeElement, attr: string, newVal?: string | null): void => {
   newVal != null ? el.setAttribute(attr, newVal) : el.removeAttribute(attr)
 }

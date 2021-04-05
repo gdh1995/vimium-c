@@ -57,7 +57,7 @@ interface FrameHintsInfo {
 /** return whether the element's VHints is not accessible */
 export type AddChildDirectly = (officer: BaseHintWorker, el: KnownIFrameElement, rect: Rect | null) => boolean
 export type AddChildIndirectly = (officer: BaseHintWorker
-    , el: KnownIFrameElement, rect: Rect | null, elList: SafeElement[]) => boolean
+    , el: KnownIFrameElement, rect: Rect | null, elList: SafeElement[]) => void
 
 import {
   VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_, max_, min_, math, OnEdge,
@@ -132,7 +132,7 @@ export {
 }
 export function set_kSafeAllSelector (_newKSafeAll: string): void { kSafeAllSelector = _newKSafeAll as any }
 export function set_isClickListened_ (_newIsClickListened: boolean): void { isClickListened_ = _newIsClickListened }
-export function set_addChildFrame_ (_newACF: typeof addChildFrame_): void { addChildFrame_ = _newACF }
+export function set_addChildFrame_<T extends typeof addChildFrame_> (_newACF: T): void { addChildFrame_ = _newACF }
 
 export const activate = (options: HintsNS.ContentOptions, count: number, force?: 2 | TimerType.fake): void => {
     if (isActive && force !== 2 || !isEnabled_) { return; }

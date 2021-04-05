@@ -10,7 +10,8 @@ import {
 import {
   attachShadow_, getSelectionFocusEdge_, activeEl_unsafe_, rangeCount_, setClassName_s, compareDocumentPosition,
   getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, focus_, fullscreenEl_unsafe_, docEl_unsafe_,
-  getSelection_, isSelected_, docSelectable_, isHTML_, createElement_, CLK, MDW, NONE, removeEl_s, appendNode_s,
+  getSelection_, isSelected_, docSelectable_, isHTML_, createElement_, CLK, MDW, removeEl_s, appendNode_s,
+  setDisplaying_s,
   getAccessibleSelectedNode,  INP, BU, UNL, contains_s, setOrRemoveAttr_s, textContent_s, modifySel, parentNode_unsafe_s
 } from "../lib/dom_utils"
 import {
@@ -152,7 +153,8 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
 
     const outerBox = outerBox_ = createElement_(OnChrome ? getBoxTagName_cr_() : "div"),
     st = outerBox.style
-    st.display = NONE; st.width = "0";
+    st.width = "0";
+    setDisplaying_s(outerBox)
     if (!OnFirefox && wdZoom_ !== 1) { st.zoom = "" + 1 / wdZoom_; }
     setClassName_s(outerBox, "R UI HUD" + fgCache.d)
     if (OnFirefox) {
@@ -304,7 +306,7 @@ export const onLoad = (later?: Event): void => {
         || !OnEdge && root2 !== body) {
       setClassName_s(body, fgCache.d.trim())
     }
-    outerBox_.style.display = ""
+    setDisplaying_s(outerBox_, 1)
     replaceOrSuppressMost_(kHandler.find, onHostKeydown)
     // delay hudHide, so that avoid flicker on Firefox
     hudHide(TimerType.noTimer);
