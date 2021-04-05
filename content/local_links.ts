@@ -388,20 +388,20 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   const tree_scopes: Array<typeof cur_scope> = [[cur_arr, 0
       , createElementSet(clickableSelector && querySelectorAll_unsafe_(clickableSelector, traverseRoot, 1)
           || (clickableSelector = null, [])) ]]
-  let cur_scope: [HintSources, number, ElementSet | null] | undefined, cur_tree: HintSources, i: number
+  let cur_scope: [HintSources, number, ElementSet | null] | undefined, cur_tree: HintSources, cur_ind: number
   for (; cur_scope = tree_scopes.pop(); ) {
-    for ([cur_tree, i, extraClickable_] = cur_scope; i < cur_tree.length; ) {
-      const el = cur_tree[i++] as SafeElement
+    for ([cur_tree, cur_ind, extraClickable_] = cur_scope; cur_ind < cur_tree.length; ) {
+      const el = cur_tree[cur_ind++] as SafeElement
       if ((el as ElementToHTML).lang != null) {
         filter(output, el as SafeHTMLElement)
         const shadowRoot = (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0 && prefixedShadow
             ? el.webkitShadowRoot : el.shadowRoot) as ShadowRoot | null | undefined;
         if (shadowRoot) {
-          tree_scopes.push([cur_tree, i, extraClickable_])
+          tree_scopes.push([cur_tree, cur_ind, extraClickable_])
           cur_tree = matchSafeElements(selector, shadowRoot, matchSelector)
           cur_tree = matchAll ? cur_tree : addChildTrees(cur_tree
               , querySelectorAll_unsafe_(kSafeAllSelector, shadowRoot) as NodeListOf<SafeElement>)
-          i = 0
+          cur_ind = 0
           if (clickableSelector) {
             extraClickable_ = createElementSet(querySelectorAll_unsafe_(clickableSelector, shadowRoot)!)
           }

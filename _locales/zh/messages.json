@@ -418,7 +418,7 @@
   "Once": { "message": "一次" },
   "Upgrade": { "message": "已更新" },
   "upgradeMsg": { "message": "您的 Vimium C 已经更新至 $1 版。\n" },
-  "upgradeMsg2": { "message": "" },
+  "upgradeMsg2": { "message": "支持了“可选权限”，您可以按需启用高级特性" },
   "clickForMore": { "message": "点击阅读详细信息。" },
   "vOptions": { "message": "Vimium C 设置" },
   "vDisplay": { "message": "展示" },

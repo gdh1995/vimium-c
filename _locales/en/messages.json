@@ -283,7 +283,7 @@
   "Once": { "message": " for once" },
   "Upgrade": { "message": "Upgrade" },
   "upgradeMsg": { "message": "Vimium C has been upgraded to v$1.\n" },
-  "upgradeMsg2": { "message": "" },
+  "upgradeMsg2": { "message": "Support optional permissions to empower Vimium C as you like" },
   "clickForMore": { "message": "Click here for more information." },
   "cmdList": { "message": "Command Listing" },
   "help": { "message": "Help" },

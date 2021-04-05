@@ -4,6 +4,22 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### 1.89.0
+* add new options to request optional permissions like `downloads`
+  * with `downloads`, `closeDownloadBar` will be able to keep your tab groups unchanged
+  * if the flag `#extensions-on-chrome-urls` is enabled, now work on the native New Tab Page on Chrome 85+
+    * note: only tested on Chrome, and other browsers like MS Edge may refuses this injection
+  * `contentSettings` has been moved to optional, so in a fresh installation `toggleCS` may not work but show an error tip
+* fix a compatibility issue about fullscreen on new MS Edge
+* VisualMode: fix behavior of `w` on Firefox
+* `LinkHints`: support `exclude: css-selector` to exclude special elements
+* add `vimium://sed`, `sed-p` and `sed2`
+  * see https://github.com/gdh1995/vimium-c/commit/41e239654b4652417aec3b9645b2360557842418 for detailed usages
+* Firefox: allow restoring an incognito tab if `incognito="force"`
+* Chrome: `moveTab` now keeps tab in its group, unless `group="ignore"`
+* add some other options to commands like `zoomIn`, `toggleMuteTab`
+* fix some bugs
+
 #### 1.88.2
 * refuse to open known "harmful" URLs and show a tip: for example, the `...\condrv\kernelconnect` will trigger an error
 * key mappings: `env`: add `fullscreen: boolean` to detect element-wise fullscreen mode

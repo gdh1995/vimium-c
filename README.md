@@ -114,28 +114,21 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
-#### 1.88.2
-* refuse to open known "harmful" URLs and show a tip: for example, the `...\condrv\kernelconnect` will trigger an error
-* key mappings: `env`: add `fullscreen: boolean` to detect element-wise fullscreen mode
-* `LinkHints.click`: add `direct="element" match=... index=<number>|"count"` to directly select any element and click
-* Scroller: support `keepHover=true|"auto"|false|"never"|<number>`
-* Scroller: fix broken `scrollPx*` and some other issues
-* Vomnibar: if in domain mode (query starts with `:d `), then show a list of matched domains
-* Vomnibar: fix an order bug on pagedown
-* `goNext`: prefer the value of `[aria-label]` if text is very short (up to 2 characters, like icons)
-* improved `vimium://show #!image`
-
-#### 1.88.0
-* add `map *** runKey expect={env1:key1} keys=<default_key>` with `env name ...conditions`
-  * now Vimium C can trigger different commands on different websites / for different active elements
-  * see https://github.com/gdh1995/vimium-c/wiki/Map-a-key-to-different-commands-on-different-websites
-* add `LinkHints.click` to click selected text, focused element or the nearest clicked
-* `ignoreKeyboardLayout`: add a partly-checked state which requires <kbd>Alt</kbd> to ignore layouts
-* FindMode: use `normalize` to normalize text before finding and get a more accurate count
-* when operate multiple tabs, not limit the range to one side if count \< 10
-* `gotoRoot`: if there're sed rules marked with `"r"`, then use them to learn sub roots
-* some other enhancements
-* fix some bugs including that `goToRoot` and `showTip` may break
+#### 1.89.0
+* add new options to request optional permissions like `downloads`
+  * with `downloads`, `closeDownloadBar` will be able to keep your tab groups unchanged
+  * if the flag `#extensions-on-chrome-urls` is enabled, now work on the native New Tab Page on Chrome 85+
+    * note: only tested on Chrome, and other browsers like MS Edge may refuses this injection
+  * `contentSettings` has been moved to optional, so in a fresh installation `toggleCS` may not work but show an error tip
+* fix a compatibility issue about fullscreen on new MS Edge
+* VisualMode: fix behavior of `w` on Firefox
+* `LinkHints`: support `exclude: css-selector` to exclude special elements
+* add `vimium://sed`, `sed-p` and `sed2`
+  * see https://github.com/gdh1995/vimium-c/commit/41e239654b4652417aec3b9645b2360557842418 for detailed usages
+* Firefox: allow restoring an incognito tab if `incognito="force"`
+* Chrome: `moveTab` now keeps tab in its group, unless `group="ignore"`
+* add some other options to commands like `zoomIn`, `toggleMuteTab`
+* fix some bugs
 
 Refer to [RELEASE-NOTES.md](RELEASE-NOTES.md).
 
