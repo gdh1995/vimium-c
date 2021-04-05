@@ -75,18 +75,21 @@ var KeyMappings = {
         const lhOpt = options as Partial<HintsNS.Options> & CommandsNS.RawLinkHintsOptions
         let mode = lhOpt.mode, stdMode = lhOpt.m!
         const rawChars = lhOpt.characters
+        const action = lhOpt.action
         const chars = rawChars && Settings_.updatePayload_<"c" | "n">("c", rawChars)
         if (rawChars) {
           delete lhOpt.characters
           lhOpt.c = chars!
         }
+        action && delete lhOpt.action
         if (mode != null) {
           delete lhOpt.mode
           if (typeof mode !== "number") {
-            mode = (this.hintModes_[lhOpt.action || mode || 0] as number | undefined | {} as number) | 0
+            mode = (this.hintModes_[action || mode || 0] as number | undefined | {} as number) | 0
           }
         } else {
-          mode = stdMode
+          mode = action ? this.hintModes_[action] : null
+          mode = mode != null ? mode : stdMode
         }
         if (mode > HintMode.max_mouse_events) {
           mode = mode === HintMode.EDIT_TEXT ? lhOpt.url ? HintMode.EDIT_LINK_URL : mode
@@ -584,7 +587,8 @@ availableCommands_: <{[key: string]: CommandsNS.Description | undefined} & SafeO
   zoomOut: [ kBgCmd.toggleZoom, 1, 0, { count: -1 } ],
   zoomReset: [ kBgCmd.toggleZoom, 1, 0, { count: 9e4 } ]
 }),
-  hintModes_: As_<Dict<HintMode>>({
+  hintModes_: As_<SafeDict<HintMode>>({
+    __proto__: null as never,
     "copy-text": HintMode.COPY_TEXT, focus: HintMode.FOCUS, hover: HintMode.HOVER,
     image: HintMode.OPEN_IMAGE, input: HintMode.FOCUS_EDITABLE, leave: HintMode.UNHOVER,
     text: HintMode.COPY_TEXT, unhover: HintMode.UNHOVER, url: HintMode.COPY_URL, visual: HintMode.ENTER_VISUAL_MODE
