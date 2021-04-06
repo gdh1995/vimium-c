@@ -743,7 +743,7 @@ const beforeTerser = exports.beforeTerser = (file) => {
     if (!(btypes & ~BrowserType.Chrome) && minCVer >= /* MinEnsured$visualViewport$ */ 61) {
       toRemovedGlobal += "visualViewport|";
     }
-    if (!(btypes & BrowserType.Chrome)) {
+    if (!(btypes & BrowserType.Chrome || btypes & BrowserType.Firefox)) {
       toRemovedGlobal += "WeakRef|";
     }
     toRemovedGlobal = toRemovedGlobal.slice(0, -1);

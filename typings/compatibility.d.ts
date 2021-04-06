@@ -480,7 +480,7 @@ declare const enum BrowserVer {
   FlagOutOfBlinkCorsMayCauseBug = 81,
   // #freeze-user-agent: https://www.chromestatus.com/features/5704553745874944
   FlagFreezeUserAgentGiveFakeUAMajor = 81, // FakeUAMajorWhenFreezeUserAgent
-  MinMaybe$WeakRef = 83, // no `WeakRef` if LEGACY
+  MinMaybe$WeakRef = 84, // no `WeakRef` if LEGACY
   /** @see #Min$CrossOriginIsolation$Flag */
   MinEnsuredCrossOriginEmbedderPolicy = 83, // https://www.chromestatus.com/features/5642721685405696
   // require special CSP; not applied to extension contexts; seems to begin from C73 if EXPERIMENTAL
@@ -532,6 +532,7 @@ declare const enum FirefoxBrowserVer {
   Min$Tabs$$goBack = 77,
   MinCSS$readOnly$selector = 78, // https://developer.mozilla.org/en-US/docs/Web/CSS/:read-only
   MinEnsuredUnicodePropertyEscapesInRegExp = 78,
+  MinMaybe$WeakRef = 79, // no `WeakRef` if javascript.options.weakrefs=false
   MinEnsuredCSS$is$selector = 81,
   /** @todo: trace https://bugzilla.mozilla.org/show_bug.cgi?id=1587723 */
   MinMediaChangeEventsOnBackgroundPage = 1000,

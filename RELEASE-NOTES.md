@@ -4,6 +4,9 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### 1.89.1
+* Firefox: fix breaking before Firefox 79
+
 #### 1.89.0
 * add new options to request optional permissions like `downloads`
   * with `downloads`, `closeDownloadBar` will be able to keep your tab groups unchanged
