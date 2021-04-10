@@ -150,3 +150,12 @@ declare module chrome.permissions {
   export const onAdded: chrome.events.Event<(changes: Request, _fake: FakeArg) => void>
   export const onRemoved: chrome.events.Event<(changes: Request, _fake: FakeArg) => void>
 }
+
+interface HTMLMediaElement {
+  controls: boolean
+  paused: boolean
+  play(): void
+  pause(): void
+}
+interface Element { mozRequestFullScreen(): void }
+interface Document { mozCancelFullScreen(): void }

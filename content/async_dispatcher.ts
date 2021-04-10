@@ -2,7 +2,7 @@ import {
   OnChrome, OnFirefox, OnEdge, doc, deref_, weakRef_, chromeVer_, isJSUrl, getTime, parseSedOptions, safeCall
 } from "../lib/utils"
 import {
-  IsInDOM_, activeEl_unsafe_, isInTouchMode_cr_, MDW, htmlTag_, CLK, attr_s, contains_s, focus_
+  IsInDOM_, activeEl_unsafe_, isInTouchMode_cr_, MDW, htmlTag_, CLK, attr_s, contains_s, focus_, fullscreenEl_unsafe_
 } from "../lib/dom_utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
 import { center_, getVisibleClientRect_, view_ } from "../lib/rect"
@@ -268,11 +268,11 @@ export const click_ = async (element: SafeElementForMouse
       return
     }
   }
-  await mouse_(element, MDW, center, modifiers, null, button)
+  const mousedownNotPrevented = await mouse_(element, MDW, center, modifiers, null, button)
   await 0
   if (!IsInDOM_(element)) { return }
   // Note: here we can check doc.activeEl only when @click is used on the current focused document
-  if (addFocus && element !== insert_Lock_() && element !== activeEl_unsafe_() &&
+  if (addFocus && mousedownNotPrevented && element !== insert_Lock_() && element !== activeEl_unsafe_() &&
       !(element as Partial<HTMLInputElement>).disabled) {
     focus_(element)
     if (!IsInDOM_(element)) { return }
@@ -291,16 +291,16 @@ export const click_ = async (element: SafeElementForMouse
   }
   const enum ActionType {
     OnlyDispatch = 0,
-    DispatchAndCheckInDOM = 1,
-    DispatchAndMayOpenTab = 2,
-    OpenTabButNotDispatch = 3,
+    dblClick = kClickAction.FlagDblClick, interact = kClickAction.FlagInteract,
+    MinOpenUrl = kClickAction.MaxNeverInteract - kClickAction.MaxOpenForAnchor,
+    DispatchAndMayOpenTab = MinOpenUrl, OpenTabButNotDispatch,
   }
   let result: ActionType = ActionType.OnlyDispatch, url: string | null
   let parentAnchor: Partial<Pick<HTMLAnchorElement, "target" | "href" | "rel">> & Element | null | undefined
   /** @todo: range of specialAction */
   if (specialAction) {
     // for forceToDblclick, element can be OtherSafeElement; for 1..MaxOpenForAnchor, element must be in <html:a>
-    result = specialAction > kClickAction.MaxOpenForAnchor ? ActionType.DispatchAndCheckInDOM
+    result = specialAction > kClickAction.BaseMayInteract ? specialAction - kClickAction.BaseMayInteract
         : !(parentAnchor = OnChrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest && !element.closest
               ? element
               : (parentAnchor = element.closest!("a")) && htmlTag_(parentAnchor) ? parentAnchor : null)
@@ -318,12 +318,33 @@ export const click_ = async (element: SafeElementForMouse
             await await mouse_(element, CLK, center, modifiers) && result))
       && getVisibleClientRect_(element)) {
     // require element is still visible
-    if (specialAction! > kClickAction.MaxOpenForAnchor /* === (specialAction === kClickAction.forceToDblclick) */) {
-      if (!(element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
+    if (result! < ActionType.MinOpenUrl) {
+      if (result & ActionType.dblClick
+          && !(element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
         // use old rect
         await click_(element, rect, 0, modifiers, kClickAction.none, kClickButton.primaryAndTwice)
-        if (getVisibleClientRect_(element)) {
-          await mouse_(element, "dblclick", center, modifiers, null, kClickButton.primaryAndTwice)
+        if (!getVisibleClientRect_(element)
+            || !await await mouse_(element, "dblclick", center, modifiers, null, kClickButton.primaryAndTwice)
+            || !getVisibleClientRect_(element)) {
+          return
+        }
+      }
+      if (result & ActionType.interact) {
+        if (result & ActionType.dblClick) {
+          if (htmlTag_(element) === "video") {
+            if ((!OnChrome ? !OnFirefox || element.requestFullscreen
+                  : Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
+                    || chromeVer_ > BrowserVer.MinEnsured$Document$$fullscreenElement - 1)) {
+              fullscreenEl_unsafe_() ? doc.exitFullscreen() : element.requestFullscreen!()
+            } else {
+              fullscreenEl_unsafe_()
+              ? OnFirefox ? doc.mozCancelFullScreen() : doc.webkitExitFullscreen()
+              : OnFirefox ? element.mozRequestFullScreen() : element.webkitRequestFullscreen()
+            }
+          }
+        } else {
+          (element as HTMLMediaElement).paused ? (element as HTMLMediaElement).play()
+          : (element as HTMLMediaElement).pause()
         }
       }
       return

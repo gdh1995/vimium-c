@@ -325,8 +325,11 @@ const defaultClick = (): void => {
     noCtrlPlusShiftForActive: boolean | undefined = cnsForWin != null ? cnsForWin : hintOptions.noCtrlPlusShift,
     ctrl = newTab && !(newtab_n_active && noCtrlPlusShiftForActive) || newWindow && !!noCtrlPlusShiftForActive,
     shift = newWindow || newtab_n_active,
-    specialActions = dblClick ? kClickAction.forceToDblclick : otherActions
-        || (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$Element$$Closest
+    interactive = (tag === "video" || tag === "audio") && !isRight && (clickEl as HTMLMediaElement).controls,
+    doInteract = interactive && hintOptions.interact !== !1,
+    specialActions = dblClick || doInteract
+        ? kClickAction.BaseMayInteract + +dblClick + kClickAction.FlagInteract * <number> <number | boolean> doInteract
+        : otherActions || (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$Element$$Closest
             || clickEl.closest ? !clickEl.closest!("a") : tag !== "a") ? kClickAction.none
         : newTabStr === "force" ? newTab
             ? kClickAction.forceToOpenInNewTab | kClickAction.newTabFromMode : kClickAction.forceToOpenInNewTab
@@ -338,14 +341,14 @@ const defaultClick = (): void => {
           : newTab // need to work around Firefox's popup blocker
             ? kClickAction.plainMayOpenManually | kClickAction.newTabFromMode : kClickAction.plainMayOpenManually
         : kClickAction.none;
-    catchAsyncErrorSilently(click_(clickEl
-        , rect, mask > 0 || (clickEl as ElementToHTMLorOtherFormatted).tabIndex! >= 0
+    catchAsyncErrorSilently(click_(clickEl, rect
+        , mask > 0 || interactive || (clickEl as ElementToHTMLorOtherFormatted).tabIndex! >= 0
         , [!1, ctrl && !isMac, ctrl && isMac, shift]
         , specialActions, isRight ? kClickButton.second : kClickButton.none
         , !OnChrome || otherActions || newTab ? 0 : hintOptions.touch
         , hintOptions))
     .then((ret): void => {
-      autoUnhover ? unhover_() : isQueue || ret && pushHandler_(unhoverOnEsc, kHandler.unhoverOnEsc)
+      autoUnhover && !interactive ? unhover_() : isQueue || ret && pushHandler_(unhoverOnEsc, kHandler.unhoverOnEsc)
     })
 }
 

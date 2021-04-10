@@ -59,8 +59,8 @@ declare const enum kClickAction {
   forceToOpenInNewTab = 2, forceToOpenInLastWnd = 4, newTabFromMode = 8,
   openInNewWindow = 16,
   // the 1..MaxOpenForAnchor before this line should always mean HTML <a>
-  forceToDblclick = 32,
   MinNotPlainOpenManually = 2, MaxOpenForAnchor = 31,
+  BaseMayInteract = 32, FlagDblClick = 1, FlagInteract = 2, MaxNeverInteract = BaseMayInteract + 4,
 }
 
 /**
