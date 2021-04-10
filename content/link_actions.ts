@@ -25,12 +25,13 @@ import { omni_box, focusOmni } from "./omni"
 import { execCommand } from "./mode_find"
 type LinkEl = Hint[0];
 
-let hintKeyCode_ = kKeyCode.None
 let removeFlash: (() => void) | null | undefined
 
-export { removeFlash, hintKeyCode_ as hintKeyCode }
+export { removeFlash }
 export function set_removeFlash (_newRmFlash: null): void { removeFlash = _newRmFlash }
-export function set_hintKeyCode_ (_newHintKeyCode: kKeyCode): void { hintKeyCode_ = _newHintKeyCode }
+
+export const executeHintInOfficer = (hint: HintItem | Pick<HintItem, "d" | "r"> & {m?: null}
+    , event?: HandlerNS.Event | null | 0, knownRect?: Rect | null | 0 | false): Rect | null | undefined | 0 => {
 
 const unhoverOnEsc: HandlerNS.Handler = event => {
   removeHandler_(kHandler.unhoverOnEsc)
@@ -40,9 +41,6 @@ const unhoverOnEsc: HandlerNS.Handler = event => {
   }
   return HandlerResult.Nothing;
 }
-
-export const executeHintInOfficer = (hint: HintItem | Pick<HintItem, "d" | "r"> & {m?: null}
-    , event?: HandlerNS.Event | null | 0, knownRect?: Rect | null | 0 | false): Rect | null | undefined | 0 => {
 
 const accessElAttr = (isUrl?: 1): [string: string, isUserCustomized?: BOOL] => {
   type primitiveObject = boolean | number | string
@@ -363,7 +361,7 @@ const defaultClick = (): void => {
   }
   if (event) {
     prevent_(event.e)
-    keydownEvents_[hintKeyCode_ = event.i] = 1
+    keydownEvents_[event.i] = 1
   }
   masterOrA.v() // here .keyStatus_ is reset
   if (IsInDOM_(clickEl)) {
@@ -396,7 +394,7 @@ const defaultClick = (): void => {
           childApi.f(kFgCmd.linkHints, hintOptions, hintCount_, 1)
         } else {
           send_(kFgReq.execInChild, {
-            u: clickEl.src, c: kFgCmd.linkHints, n: hintCount_, k: hintKeyCode_, a: hintOptions
+            u: clickEl.src, c: kFgCmd.linkHints, n: hintCount_, k: event ? event.i : kKeyCode.None, a: hintOptions
           }, (res): void => { !res || clickEl.contentWindow.focus() })
         }
       } else {

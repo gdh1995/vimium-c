@@ -82,7 +82,7 @@ interface BgCmdOptions {
     /** (deprecated) */ left: boolean
     mayClose: boolean
     /** (deprecated) */ allow_close: boolean
-    keepWindow: "always" | "last"
+    keepWindow: "at-least-one" | "always"
   }
   [kBgCmd.removeTabsR]: {
     filter: "url" | "hash" | "host" | "url+title" | "hash+title" | "host+title"

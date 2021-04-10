@@ -92,7 +92,7 @@ import {
   matchHintsByKey, zIndexes_, rotate1, initFilterEngine, initAlphabetEngine, renderMarkers, generateHintText,
   getMatchingHints, activeHint_, hintFilterReset, set_maxPrefixLen_, set_zIndexes_, adjustMarkers, createHint
 } from "./hint_filters"
-import { executeHintInOfficer, removeFlash, set_removeFlash, set_hintKeyCode_ } from "./link_actions"
+import { executeHintInOfficer, removeFlash, set_removeFlash } from "./link_actions"
 import { lastHovered_, set_lastHovered_ } from "./async_dispatcher"
 import { hookOnWnd, contentCommands_ } from "./port"
 
@@ -662,7 +662,6 @@ export const clear = (onlySelfOrEvent?: 0 | 1 | Event, suppressTimeout?: number)
     /*#__INLINE__*/ localLinkClear()
     set_maxPrefixLen_(0)
     lastMode_ = mode_ = mode1_ = count_ = forceToScroll_ = coreHints.h = 0
-    set_hintKeyCode_(kKeyCode.None)
     useFilter_ = noHUD_ = tooHigh_ = false
     if (WithDialog) { coreHints.d = 0 }
     chars_ = "";
