@@ -253,7 +253,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.timer_ > 0 && clearTimeout(a.timer_);
     window.onkeyup = null as never;
     el.blur();
-    fromContent || VPort_.post_({ H: kFgReq.nextFrame, t: Frames.NextType.current, k: a.lastKey_ });
+    fromContent || VPort_ && VPort_.post_({ H: kFgReq.nextFrame, t: Frames.NextType.current, k: a.lastKey_ })
     if (Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval && Build.BTypes & BrowserType.Chrome) {
       a.bodySt_.zoom = "";
       (Build.BTypes & BrowserType.Firefox && a.browser_ === BrowserType.Firefox
@@ -282,7 +282,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
   },
   onHidden_ (): void {
-    VPort_.postToOwner_({ N: VomnibarNS.kFReq.hide });
+    VPort_ && VPort_.postToOwner_({ N: VomnibarNS.kFReq.hide })
     const a = Vomnibar_;
     a.timer_ = a.height_ = a.matchType_ = a.sugTypes_ = a.wheelStart_ = a.wheelTime_ = a.actionType_ =
     a.total_ = a.lastKey_ = a.wheelDelta_ = VUtils_.timeCache_ = 0;
@@ -293,7 +293,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.mode_.o = "omni";
     a.mode_.t = CompletersNS.SugType.Empty;
     a.isSearchOnTop_ = false;
-    a.doEnter_ ? setTimeout(a.doEnter_, 0) : (<RegExpOne> /a?/).test("");
+    a.doEnter_ && VPort_ ? setTimeout(a.doEnter_, 0) : (<RegExpOne> /a?/).test("")
     a.doEnter_ = null;
   },
   reset_ (input: string, start?: number, end?: number): void {
@@ -778,7 +778,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     const item: SuggestionE | UrlInfo = sel >= 0 ? a.completions_[sel] : { u: a.input_.value.trim() },
     action = a.actionType_, https = a.isHttps_, incognito = a.doesOpenInIncognito_,
     func = function (this: void): void {
-      item.s != null ? Vomnibar_.gotoSession_(item as SuggestionE & Ensure<SuggestionE, "s">)
+      !VPort_ ? 0 : item.s != null ? Vomnibar_.gotoSession_(item as SuggestionE & Ensure<SuggestionE, "s">)
         : Vomnibar_.navigateToUrl_(item.u, action, https, incognito, sel);
       (<RegExpOne> /a?/).test("");
     };
@@ -864,7 +864,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       el.setSelectionRange(0, left.length, "backward");
     }
   },
-  OnTimer_ (this: void): void { if (Vomnibar_ && Vomnibar_.isActive_) { Vomnibar_.fetch_() } },
+  OnTimer_ (this: void): void { if (VPort_ && Vomnibar_.isActive_) { Vomnibar_.fetch_() } },
   onWheel_ (event: WheelEvent & ToPrevent): void {
     if (event.ctrlKey || event.metaKey
         || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
