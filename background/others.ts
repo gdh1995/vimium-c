@@ -442,10 +442,11 @@ Settings_.temp_.loadI18nPayload_ = null;
 }
 
 Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
-&& (Build.MinCVer >= BrowserVer.MinChromeURL$NewTabPage || CurCVer_ >= BrowserVer.MinChromeURL$NewTabPage)
 && BgUtils_.timeout_(100, (): void => {
+  let status: 0 | 1 | 2 | 3 = 0, protocol = IsEdg_ ? "edge:" : "chrome:", ntp = protocol + "//newtab/"
   const onTabsUpdated = (tabId: number, changeInfo: chrome.tabs.TabChangeInfo, tab: chrome.tabs.Tab): void => {
-    if (tab.url === "chrome://newtab/" && changeInfo.status === "loading") {
+    if (tab.url.startsWith(protocol) && status & (tab.url === ntp ? 2 : 1)
+        && changeInfo.status === "loading") {
       const js = Settings_.CONST_.ContentScripts_, offset = location.origin.length
       for (let _j = 0, _len = js.length - 1; _j < _len; ++_j) {
         chrome.tabs.executeScript(tabId, { file: js[_j].slice(offset) }, BgUtils_.runtimeError_)
@@ -453,12 +454,21 @@ Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || O
     }
   }
   const recheck = (): void => {
-    chrome.permissions.contains({ origins: ["chrome://new-tab-page/"] }, allowed => {
+    chrome.permissions.contains({ origins: ["chrome://*/*"] }, allAllowed => {
       const err = BgUtils_.runtimeError_()
       if (err) { return err }
-      chrome.permissions[allowed ? "onRemoved" : "onAdded"].addListener(recheck)
-      chrome.permissions[allowed ? "onAdded" : "onRemoved"].removeListener(recheck)
-      chrome.tabs.onUpdated[allowed ? "addListener" : "removeListener"](onTabsUpdated)
+      const cb = (ntpAllowed: boolean | null): void => {
+        chrome.permissions.onAdded[allAllowed && ntpAllowed !== false ? "removeListener" : "addListener"](recheck)
+        status = ((allAllowed ? 1 : 0) + (ntpAllowed ? 2 : 0)) as 0 | 1 | 2 | 3
+        chrome.permissions.onRemoved[status ? "addListener" : "removeListener"](recheck)
+        chrome.tabs.onUpdated[status ? "addListener" : "removeListener"](onTabsUpdated)
+      }
+      if ((Build.MinCVer >= BrowserVer.MinChromeURL$NewTabPage || CurCVer_ > BrowserVer.MinChromeURL$NewTabPage - 1)
+          && !IsEdg_) {
+        chrome.permissions.contains({ origins: ["chrome://new-tab-page/"] }, cb)
+      } else {
+        cb(null)
+      }
     })
   }
   recheck()

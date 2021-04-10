@@ -229,6 +229,7 @@
   "optOfChromeUrl": { "message": " (need #extensions-on-chrome-urls)" },
   "opt_closeShelf": { "message": "The \"downloads\" permission, only to close the download bar" },
   "opt_downloads": { "message": "Let browser download files" },
+  "opt_chromeUrl": { "message": "Run on chrome://* pages" },
   "opt_cNewtab": { "message": "Run on Chrome's native New Tab Page" },
   "opt_contentSettings": { "message": "Modify content settings of websites like images and JavaScript" },
   "opt_clipboardRead": { "message": "Read text in system clipboard (only during related commands)" },

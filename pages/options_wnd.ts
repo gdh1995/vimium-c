@@ -449,14 +449,13 @@ if (!browserPermissions || !optional.length) {
   optional = optional.filter(i => !ignored.some(j => typeof j === "string" ? i === j : j.test(i)))
   Promise.all(optional.map(i => new Promise<boolean>(resolve => {
     browserPermissions.contains(i.includes(":") ? { origins: [i] }
-        : { permissions: i === "downloads.shelf" ? ["downloads", i] : [i] }, allowed => {
-      resolve(allowed || false)
-      return chrome.runtime.lastError
-    })
+        : { permissions: i === "downloads.shelf" ? ["downloads", i] : [i] },
+    resolve) // DO NOT return `chrome.runtime.lastError`, so that logic errors will be exposed
   }))).then((previous_array: boolean[]): void => {
     interface PermissionItem { name_: kPermissions; previous_: boolean; element_: HTMLInputElement }
     const fragment = document.createDocumentFragment()
     const i18nItems: { [key in kPermissions]?: string } = {
+      "chrome://*/*": "opt_chromeUrl",
       "chrome://new-tab-page/": "opt_cNewtab",
       "downloads.shelf": "opt_closeShelf"
     }
@@ -466,11 +465,15 @@ if (!browserPermissions || !optional.length) {
     for (let i = 0; i < optional.length; i++) {
       const node = document.importNode(template, true) as EnsuredMountedHTMLElement
       const checkbox = node.querySelector("input")!
-      const name = optional[i], previous = previous_array[i], i18nKey = i18nItems[name]
+      const name = optional[i], previous = previous_array[i] || false, i18nKey = i18nItems[name]
       checkbox.checked = previous
       checkbox.value = name
-      const i18nName = pTrans_(i18nKey || "opt_" + name) || name
-      let suffix = name.startsWith("chrome:") ? pTrans_("optOfChromeUrl") : ""
+      let i18nName = pTrans_(i18nKey || "opt_" + name) || name
+      let suffix = ""
+      if (name.startsWith("chrome:")) {
+        i18nName = i18nName.replace("chrome:", "edge:")
+        suffix = pTrans_("optOfChromeUrl").replace(IsEdg ? "chrome" : "edge", "edge")
+      }
       if (Build.BTypes & BrowserType.Chrome && name === "chrome://new-tab-page/"
           && (Build.MinCVer < BrowserVer.MinChromeURL$NewTabPage && CurCVer_ < BrowserVer.MinChromeURL$NewTabPage)) {
         suffix = pTrans_("requireChromium", [BrowserVer.MinChromeURL$NewTabPage])
@@ -507,24 +510,27 @@ if (!browserPermissions || !optional.length) {
       executeSave_ (wanted_value: string): string {
         const new_permissions: kPermissions[] = [], new_origins: kPermissions[] = []
         const changed: { [key in kPermissions]?: PermissionItem } = {}
-        shownItems.forEach((i): void => {
+        let waiting = 1
+        for (const i of shownItems) {
           const wanted = i.element_.checked
-          if (i.previous_ === wanted) { return }
+          if (i.previous_ === wanted) { continue }
           i.previous_ = wanted
           if (wanted) {
             i.name_ === "downloads.shelf" && new_permissions.push("downloads");
             (i.name_.includes(":") ? new_origins : new_permissions).push(i.name_)
             changed[i.name_] = i
           } else {
+            waiting++
             browserPermissions.remove(i.name_.includes(":") ? { origins: [i.name_] } : {
               permissions: i.name_ === "downloads.shelf" ? ["downloads", i.name_] : [i.name_]
             }, (ok): void => {
               const err = chrome.runtime.lastError as any
               (err || !ok) && console.log('Can not remove the permission %o :', i.name_, err && err.message || err)
+              tryRefreshing()
               return err
             })
           }
-        })
+        }
         const cb = (arr: kPermissions[], ok?: boolean): void => {
           const err = chrome.runtime.lastError as any
           (err || !ok) && console.log('Can not request permissions of %o :', arr, err && err.message || err)
@@ -548,11 +554,29 @@ if (!browserPermissions || !optional.length) {
             }
             this.fetch_()
           }
+          tryRefreshing()
           return err
         }
+        const tryRefreshing = () => {
+          waiting--
+          if (waiting > 0) { return }
+          let refreshing = 0
+          for (const i of shownItems) {
+            const name = i.name_
+            refreshing++
+            browserPermissions.contains(name.includes(":") ? { origins: [name] }
+                : { permissions: name === "downloads.shelf" ? ["downloads", name] : [name] }, allowed => {
+              i.previous_ = allowed || false
+              refreshing--
+              refreshing || this.fetch_()
+            })
+          }
+        }
+        waiting += (new_permissions.length && 1) + (new_origins.length && 1)
         new_permissions.length && browserPermissions.request({ permissions: new_permissions }
             , cb.bind(0, new_permissions))
         new_origins.length && browserPermissions.request({ origins: new_origins }, cb.bind(0, new_origins))
+        tryRefreshing()
         return wanted_value
       }
     })
