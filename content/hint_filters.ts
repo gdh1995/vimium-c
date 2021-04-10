@@ -503,10 +503,11 @@ export const matchHintsByKey = (keyStatus: KeyStatus
     zIndexes_ = zIndexes_ && null;
     keyStatus.k = sequence;
     const notDoSubCheck = !keyStatus.b, limit = sequence.length - keyStatus.b,
+    fewer = doesDetectMatchSingle > 0,
     wantedPrefix = sequence.slice(0, limit), lastChar = notDoSubCheck ? "" : sequence[limit]
-    hintArray = keyStatus.c = (doesDetectMatchSingle ? hintArray : allHints!).filter(hint => {
-      const pass = hint.a.startsWith(wantedPrefix) && (notDoSubCheck || hint.a[limit] !== lastChar)
-      setVisibility_s(hint.m, pass)
+    hintArray = keyStatus.c = (fewer ? hintArray : allHints!).filter(hint => {
+      const pass = hint.a.startsWith(wantedPrefix) && (notDoSubCheck || hint.a[limit] !== lastChar);
+      pass && fewer || setVisibility_s(hint.m, pass)
       return pass;
     });
     type MarkerElementChild = Exclude<MarkerElement["firstChild"], Text | null>;

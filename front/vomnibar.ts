@@ -156,7 +156,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       url = VUtils_.decodeURL_(url).replace(<RegExpG> /\s$/g, "%20");
       if (!keyword && (<RegExpI> /^https?:\/\//i).test(url)) {
         a.baseHttps_ = (url.charCodeAt(4) | kCharCode.CASE_DELTA) === kCharCode.s;
-        url = url.slice(a.baseHttps_ ? 8 : 7, url.indexOf("/", 8) === url.length - 1 ? -1 : void 0);
+        url = url.slice(a.baseHttps_ ? 0 : 7, url.indexOf("/", 8) === url.length - 1 ? -1 : void 0)
       }
     } else {
       url = VUtils_.decodeURL_(url, decodeURIComponent).trim().replace(a.spacesRe_, " ");

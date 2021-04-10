@@ -566,6 +566,7 @@ const BackgroundCommands: {
         const set = chrome.downloads.setShelfEnabled
         set(false)
         set(true)
+        showHUD("The download bar has been closed")
       } else if (newWindow === false && cPort) {
         showHUD("No permissions to close download bar")
       } else {
