@@ -5,6 +5,7 @@
 interface KnownDataset {
   vimiumId: string
   extensionId: string
+  blockFocus: "" | "true" | "false" // if "true" then do grab
   vimiumHooks: "" | "true" | "false" // if "false" then not hook addEventListener
 }
 
@@ -14,7 +15,7 @@ var VimiumInjector: VimiumInjectorTy | undefined | null
   const old = VimiumInjector, cur: VimiumInjectorTy = {
     id: "", alive: -1, host: "", version: "", cache: null,
     clickable: undefined, reload: null as never, checkIfEnabled: null as never,
-    $: null as never, $h: "", $m: null as never, $r: null as never,
+    $: null as never, $h: "", $m: null as never, $r: null as never, $g: null,
     getCommandCount: null as never, callback: null, destroy: null
   };
   if (old) {
@@ -23,6 +24,7 @@ var VimiumInjector: VimiumInjectorTy | undefined | null
     }
   }
   cur.alive = -1
+  cur.$g = null
   VimiumInjector = cur
 })();
 
@@ -37,6 +39,7 @@ const useBrowser = !MayNotChrome ? false : !MayChrome ? true
       && !!(mayBrowser_ && mayBrowser_.runtime && mayBrowser_.runtime.connect)
 let runtime = (useBrowser ? (browser as typeof chrome) : chrome).runtime
 const curEl = document.currentScript as HTMLScriptElement, scriptSrc = curEl.src, i0 = scriptSrc.indexOf("://") + 3
+const confBlockFocus = curEl.dataset.blockFocus
 let onIdle = MayChrome && Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback || MayEdge
     ? window.requestIdleCallback : requestIdleCallback
 let tick = 1, extID = scriptSrc.slice(i0, scriptSrc.indexOf("/", i0));
@@ -94,6 +97,7 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
     $h: res ? res.h : "",
     $m (task): void { VimiumInjector && VimiumInjector.$r(typeof task === "object" ? task.t : task); },
     $r (): void { /* empty */ },
+    $g: confBlockFocus != null ? (confBlockFocus === "" || confBlockFocus.toLowerCase() === "true") : null,
     getCommandCount: null as never,
     callback: oldCallback || null,
     destroy: null

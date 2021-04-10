@@ -56,7 +56,7 @@ export const insertInit = (): void => {
   let activeEl = activeEl_unsafe_(),
   notBody = activeEl !== doc.body && (!OnFirefox ? true : isHTML_() || activeEl !== docEl_unsafe_()) && !!activeEl
   set_keydownEvents_(safeObj(null))
-  if (fgCache.g && grabBackFocus) {
+  if (injector ? injector.$g : fgCache.g && grabBackFocus) {
     let counter = 0
     if (notBody = notBody && !!getEditableType_(activeEl!)) {
       insert_last_ = null;

@@ -483,6 +483,7 @@ interface VimiumInjectorTy {
   reload (req?: boolean | InjectorTask.reload): void;
   destroy: ((this: void, silent?: boolean) => void) | null;
   callback: ((this: void, code: number, error: string) => unknown) | null;
+  /** block focus */ $g: null | boolean // null means false
 }
 
 interface Document extends DocumentAttrsToBeDetected {}
