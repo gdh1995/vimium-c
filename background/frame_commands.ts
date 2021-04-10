@@ -446,7 +446,7 @@ export const confirm_ = <T extends kCName, force extends BOOL = 0> (
     console.log("Assert error: command should has no limit on repeats: %c%s", "color:red", command)
   }
   let msg = trans_("cmdConfirm", [count, trans_(command)])
-  if (Build.BTypes & ~BrowserType.Chrome) {
+  if (!(Build.BTypes & BrowserType.Chrome) || Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome) {
     if (cPort) {
       gOnConfirmCallback = onConfirmWrapper.bind(0, get_cOptions() as any, cRepeat, cPort, callback!)
       setupSingletonCmdTimer(setTimeout(onConfirm, 3000, 0));

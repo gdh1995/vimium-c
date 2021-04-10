@@ -191,7 +191,8 @@ export const moveTabToNewWindow = (): void | kBgCmd.moveTabToNewWindow => {
       range = getTabRange(activeTabIndex, total), count = range[1] - range[0]
       if (count >= total) { return showHUD(trans_("moveAllTabs")) }
       if (count > 30) {
-        if (Build.BTypes & ~BrowserType.Chrome) {
+        if (!(Build.BTypes & BrowserType.Chrome)
+            || Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome) {
           if (cNeedConfirm) {
             confirm_("moveTabToNewWindow", count, moveTabToNewWindow0.bind(null, wnd))
             return
@@ -371,7 +372,7 @@ export const reloadTab = (tabs?: Tab[] | never[] | [Tab]): void => {
   }
   let count = end - start
   if (count > 20) {
-    if (Build.BTypes & ~BrowserType.Chrome) {
+    if (!(Build.BTypes & BrowserType.Chrome) || Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome) {
       if (cNeedConfirm) {
         confirm_("reloadTab", count, reloadTab.bind(null, tabs))
         return
@@ -411,7 +412,8 @@ export const removeTab = (phase?: 1 | 2, tabs?: readonly Tab[]): void => {
     const range = getTabRange(i, total - skipped, total)
     count = range[1] - range[0]
     if (count > 20) {
-      if (Build.BTypes & ~BrowserType.Chrome) {
+      if (!(Build.BTypes & BrowserType.Chrome)
+          || Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome) {
         if (cNeedConfirm) {
           confirm_("removeTab", count, removeTab.bind(null, 2, tabs))
           return
@@ -559,7 +561,7 @@ export const togglePinTab = (tabs: Tab[]): void => {
   }
   end = wantedTabIds.length
   if (end > 30) {
-    if (Build.BTypes & ~BrowserType.Chrome) {
+    if (!(Build.BTypes & BrowserType.Chrome) || Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome) {
       if (cNeedConfirm) {
         confirm_("togglePinTab", end, togglePinTab.bind(null, tabs))
         return

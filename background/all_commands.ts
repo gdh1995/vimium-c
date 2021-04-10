@@ -200,7 +200,8 @@ const BackgroundCommands: {
         let [start, end] = allTabs ? [0, tabs.length] : getTabRange(ind, tabs.length)
         let count = end - start
         if (count > 20) {
-          if (Build.BTypes & ~BrowserType.Chrome) {
+          if (!(Build.BTypes & BrowserType.Chrome)
+              || Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome) {
             if (cNeedConfirm) {
               confirm_("addBookmark", count, doAddBookmarks.bind(0, tabs))
               return
@@ -267,7 +268,8 @@ const BackgroundCommands: {
       , end = Math.max(0, Math.min(current + cRepeat, tabs.length - 1)),
     count = abs(end - current), step = end > current ? 1 : -1
     if (count > 20) {
-      if (Build.BTypes & ~BrowserType.Chrome) {
+      if (!(Build.BTypes & BrowserType.Chrome)
+          || Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome) {
         if (cNeedConfirm) {
           confirm_("discardTab", count, BackgroundCommands[kBgCmd.discardTab].bind(null, tabs))
           return
