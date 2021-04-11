@@ -183,7 +183,8 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
                 ? kMapKey.normal_long | kMapKey.char | kMapKey.insertMode : kMapKey.insertMode | kMapKey.normal_long)
           || (insert_global_ ? insert_global_.k
                 : mapKeyTypes & kMapKey.directInsert || key > kKeyCode.maxNotFn && key < kKeyCode.minNotFn)
-              && (key < kKeyCode.N0 || key > kKeyCode.MinNotAlphabet || getKeyStat_(event) & KeyStat.ExceptShift)
+              && (key < kKeyCode.N0 || key > kKeyCode.menuKey || key > kKeyCode.N9 && key < kKeyCode.A
+                  || getKeyStat_(event) & KeyStat.ExceptShift)
           || (OnFirefox && key === kKeyCode.bracketleftOnFF || key > kKeyCode.minNotFn
               ? event.ctrlKey : key === kKeyCode.esc)
           ? getMappedKey(eventWrapper, mapKeyTypes & kMapKey.insertMode ? kModeId.Insert : kModeId.Normal)

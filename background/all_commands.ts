@@ -113,9 +113,11 @@ const BackgroundCommands: {
     hud = (_hud = get_cOptions<C.insertMode>().hideHUD) != null ? !_hud
         : (_hud = get_cOptions<C.insertMode>().hideHud) != null ? !_hud
         : !settings.cache_.hideHud,
-    key = _key && typeof _key === "string" && _key.length > 3 ? BgUtils_.stripKey_(_key) : ""
+    key = _key && typeof _key === "string"
+        && (_key.length > 2 || _key.length < 2 && !(<RegExpI> /[0-9a-z]/i).test(_key)) ? BgUtils_.stripKey_(_key) : ""
     sendFgCmd(kFgCmd.insertMode, hud, {
-      h: hud ? trans_("" + kTip.globalInsertMode, [key && ": " + _key]) : null,
+      h: hud ? trans_("" + kTip.globalInsertMode, [key && ": " + (key.length === 1 ? `" ${key} "` : _key)])
+          : null,
       k: key || null,
       i: !!get_cOptions<C.insertMode>().insert,
       p: !!get_cOptions<C.insertMode>().passExitKey,
