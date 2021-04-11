@@ -128,7 +128,7 @@ var BgUtils_ = {
       return str;
     }
     let type: Urls.Type | Urls.TempType.Unspecified | Urls.TldType = Urls.TempType.Unspecified
-      , expected: Urls.Type.Full | Urls.Type.NoProtocolName | Urls.Type.NoSchema = Urls.Type.Full
+      , expected: Urls.Type.Full | Urls.Type.NoProtocolName | Urls.Type.NoScheme = Urls.Type.Full
       , hasPath = false, index: number, index2: number, oldString: string
       , arr: [never, string | undefined, string | undefined, string, string | undefined] | null | undefined;
     // refer: https://cs.chromium.org/chromium/src/url/url_canon_etc.cc?type=cs&q=IsRemovableURLWhitespace&g=0&l=18
@@ -158,7 +158,7 @@ var BgUtils_ = {
       if (index !== -1 && str.lastIndexOf("/", index) < 0) {
         type = a.checkSpecialSchemes_(oldString.toLowerCase(), index, str.length % oldString.length);
       }
-      expected = Urls.Type.NoSchema; index2 = oldString.length;
+      expected = Urls.Type.NoScheme; index2 = oldString.length;
       if (type === Urls.TempType.Unspecified && str.startsWith("//")) {
         str = str.slice(2);
         expected = Urls.Type.NoProtocolName;
@@ -211,7 +211,7 @@ var BgUtils_ = {
     }
 
     // Note: here `string` should be just a host, and can only become a hostname.
-    //       Otherwise `type` must not be `NoSchema | NoProtocolName`
+    //       Otherwise `type` must not be `NoScheme | NoProtocolName`
     if (type === Urls.TempType.Unspecified && str.lastIndexOf("%") >= 0) {
       str = BgUtils_.DecodeURLPart_(str);
       if (str.includes("/")) { type = Urls.Type.Search; }
@@ -222,7 +222,7 @@ var BgUtils_ = {
       type = Urls.Type.Search;
       if (str.length === oldString.length && a.isIPHost_(str = `[${str}]`, 6)) {
         oldString = str;
-        type = Urls.Type.NoSchema;
+        type = Urls.Type.NoScheme;
       }
     } else if ((str = arr[3]).endsWith("]")) {
       type = a.isIPHost_(str, 6) ? expected : Urls.Type.Search;
@@ -234,29 +234,29 @@ var BgUtils_ = {
       index2 = str.length - index - 1;
       // the new gTLDs allow long and notEnglish TLDs
       // https://en.wikipedia.org/wiki/Generic_top-level_domain#New_top-level_domains
-      type = expected !== Urls.Type.NoSchema && (index < 0 || index2 >= 3 && index2 <= 5)
+      type = expected !== Urls.Type.NoScheme && (index < 0 || index2 >= 3 && index2 <= 5)
         || a.checkInDomain_(str, arr[4]) > 0 ? expected : Urls.Type.Search;
     } else if ((<RegExpOne> /[^.\da-z\-]|^xn--|^-/).test(str)) {
       // non-English domain, maybe with an English but non-CC TLD
       type = (str.length === index + 3 || type !== Urls.TldType.ENTld ? !expected
           : a.checkInDomain_(str, arr[4])) ? expected : Urls.Type.Search;
-    } else if (expected !== Urls.Type.NoSchema || hasPath) {
+    } else if (expected !== Urls.Type.NoScheme || hasPath) {
       type = expected;
     } else if (str.endsWith(".so") && str.startsWith("lib") && str.indexOf(".") === str.length - 3) {
       type = Urls.Type.Search;
     // the below check the username field
     } else if (arr[2] || arr[4] || !arr[1] || (<RegExpOne> /^ftps?(\b|_)/).test(str)) {
-      type = Urls.Type.NoSchema;
+      type = Urls.Type.NoScheme;
     // the below means string is like "(?<=abc@)(uvw.)*xyz.tld"
     } else if (str.startsWith("mail") || str.indexOf(".mail") > 0
         || (index2 = str.indexOf(".")) === index) {
       type = Urls.Type.Search;
     } else if (str.indexOf(".", ++index2) !== index) {
-      type = Urls.Type.NoSchema;
+      type = Urls.Type.NoScheme;
     } else if (str.length === index + 3 && type === Urls.TldType.ENTld) { // treat as a ccTLD
-      type = a.isTld_(str.slice(index2, index), true) ? Urls.Type.Search : Urls.Type.NoSchema;
+      type = a.isTld_(str.slice(index2, index), true) ? Urls.Type.Search : Urls.Type.NoScheme;
     } else {
-      type = Urls.Type.NoSchema;
+      type = Urls.Type.NoScheme;
     }
     a.resetRe_();
     a.lastUrlType_ = type;
@@ -266,7 +266,7 @@ var BgUtils_ = {
         a.createSearchUrl_(oldStrForSearch.split(a.spacesRe_), keyword || "~", vimiumUrlWork)
       : type <= Urls.Type.MaxOfInputIsPlainUrl ?
         (a.checkInDomain_(str, arr && arr[4]) === 2 ? "https:" : "http:")
-        + (type === Urls.Type.NoSchema ? "//" : "") + oldString
+        + (type === Urls.Type.NoScheme ? "//" : "") + oldString
       : oldString;
   } as Urls.Converter,
   checkInDomain_ (host: string, port?: string | null): 0 | 1 | 2 {
@@ -813,7 +813,7 @@ var BgUtils_ = {
             val = val.replace(<RegExpG & RegExpSearchable<1>> /%24(s)/gi, "$$$1");
             ind = val.search(re as RegExp as RegExpOne) + 1;
           } else if (a.lastUrlType_ !== Urls.Type.Full) {
-            ind += a.lastUrlType_ === Urls.Type.NoSchema ? 7 : 5;
+            ind += a.lastUrlType_ === Urls.Type.NoScheme ? 7 : 5;
           }
           if (tmpRule = a.reParseSearchUrl_(val.toLowerCase(), ind)) {
             if (key.includes("$")) {

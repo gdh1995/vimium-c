@@ -1485,17 +1485,17 @@ VUtils_ = {
     let i = str.startsWith("http://") ? ProtocolType.http : str === "https://" ? ProtocolType.https
             : ProtocolType.others;
     i >= url.length && (i = ProtocolType.others);
-    let wantSchema = !i;
+    let wantScheme = !i;
     if (i === ProtocolType.https) {
       let j = url.indexOf("/", i);
       if (j > 0 ? j < url.length : /* domain has port */ (<RegExpOne> /:\d+\/?$/).test(url)) {
-        wantSchema = true;
+        wantScheme = true;
       }
     }
     if (!text) {
-      text = !wantSchema && i ? url.slice(i) : url;
+      text = !wantScheme && i ? url.slice(i) : url;
     } else if (i) {
-      if (wantSchema && !text.startsWith(str)) {
+      if (wantScheme && !text.startsWith(str)) {
         text = str + text;
       }
       if (url.endsWith("/") && !str.endsWith("/") && str.includes("/")) {

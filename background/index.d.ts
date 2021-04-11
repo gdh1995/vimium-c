@@ -64,8 +64,8 @@ declare namespace Urls {
     Full = 0,
     Default = Full,
     NoProtocolName = 1,
-    NoSchema = 2,
-    MaxOfInputIsPlainUrl = NoSchema,
+    NoScheme = 2,
+    MaxOfInputIsPlainUrl = NoScheme,
     PlainVimium = 3,
     Search = 4, // eslint-disable-line no-shadow
     Functional = 5,
@@ -115,7 +115,7 @@ declare namespace Urls {
     browser = 1, vimium = 2,
   }
 
-  const enum SchemaId {
+  const enum SchemeId {
     HTTP = 7, HTTPS = 8,
     FTP = 6,
   }

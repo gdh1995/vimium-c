@@ -415,15 +415,15 @@ readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"] {
       this.updateVNode_(vnode, "", passKeys);
       continue;
     }
-    let schemaLen = pattern.startsWith(":") ? 0 : pattern.indexOf("://");
-    if (!schemaLen) { /* empty */ }
+    let schemeLen = pattern.startsWith(":") ? 0 : pattern.indexOf("://");
+    if (!schemeLen) { /* empty */ }
     else if (!(<RegExpOne> /^[\^*]|[^\\][$()*+?\[\]{|}]/).test(pattern)) {
-      fixTail = !pattern.includes("/", schemaLen + 3) && !pattern.startsWith("vimium:");
+      fixTail = !pattern.includes("/", schemeLen + 3) && !pattern.startsWith("vimium:");
       pattern = pattern.replace(<RegExpG> /\\(.)/g, "$1");
-      pattern = (schemaLen < 0 ? ":http://" : ":") + pattern;
+      pattern = (schemeLen < 0 ? ":http://" : ":") + pattern;
     } else if (!pattern.startsWith("^")) {
-      fixTail = !pattern.includes("/", schemaLen + 3);
-      pattern = (schemaLen < 0 ? "^https?://" : "^") +
+      fixTail = !pattern.includes("/", schemeLen + 3);
+      pattern = (schemeLen < 0 ? "^https?://" : "^") +
           (!pattern.startsWith("*") || pattern[1] === "."
             ? ((pattern = pattern.replace(<RegExpG> /\./g, "\\.")), // lgtm [js/incomplete-sanitization]
               !pattern.startsWith("*") ? pattern.replace("://*\\.", "://(?:[^./]+\\.)*?")

@@ -452,7 +452,7 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port): void =>
       url = BgUtils_.convertToUrl_(url, keyword
           , isWeb ? Urls.WorkType.ConvertKnown : Urls.WorkType.EvenAffectStatus)
       const type = BgUtils_.lastUrlType_
-      if (request.h != null && (type === Urls.Type.NoSchema || type === Urls.Type.NoProtocolName)) {
+      if (request.h != null && (type === Urls.Type.NoScheme || type === Urls.Type.NoProtocolName)) {
         url = (request.h ? "https" : "http") + (url as string).slice((url as string)[4] === "s" ? 5 : 4)
       } else if (isWeb && type === Urls.Type.PlainVimium && (url as string).startsWith("vimium:")) {
         url = BgUtils_.convertToUrl_(url as string)

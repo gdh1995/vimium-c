@@ -873,10 +873,10 @@ function destroyObject_(): void {
 }
 
 function tryDecryptUrl(url: string): string {
-  const schema = url.split(":", 1)[0];
-  switch (schema.toLowerCase()) {
+  const scheme = url.split(":", 1)[0];
+  switch (scheme.toLowerCase()) {
   case "thunder": case "flashget": case "qqdl":
-    url = url.slice(schema.length + 3).split("&", 1)[0];
+    url = url.slice(scheme.length + 3).split("&", 1)[0];
     break;
   default: return "";
   }

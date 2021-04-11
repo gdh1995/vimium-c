@@ -68,7 +68,7 @@ interface BrowserUrlItem {
 }
 interface UrlDomain {
   domain_: string;
-  schema_: Urls.SchemaId;
+  scheme_: Urls.SchemeId;
 }
 interface WritableTabEx extends Readonly<chrome.tabs.Tab> {
   text?: string;
@@ -446,12 +446,12 @@ bookmarkEngine = {
       bookmarkEngine.path_ = oldPath;
       return;
     }
-    const url = bookmark.url!, jsSchema = "javascript:", isJS = url.startsWith(jsSchema);
+    const url = bookmark.url!, jsScheme = "javascript:", isJS = url.startsWith(jsScheme);
     bookmarkEngine.bookmarks_.push({
       id_: id, path_: path, title_: title || id,
-      t: isJS ? jsSchema : url,
+      t: isJS ? jsScheme : url,
       visible_: omniBlockList ? BlockListFilter.TestNotMatched_(url, title) : kVisibility.visible,
-      u: isJS ? jsSchema : url,
+      u: isJS ? jsScheme : url,
       jsUrl_: isJS ? url : null, jsText_: isJS ? BgUtils_.DecodeURLPart_(url) : null
     });
   },
@@ -858,25 +858,25 @@ domainEngine = {
     for (const { u: url, time_: time, visible_: visible } of history) {
       const item = parse(url);
       if (!item) { continue; }
-      const {domain_: domain, schema_: schema} = item, slot = d.get(domain)
+      const {domain_: domain, scheme_: scheme} = item, slot = d.get(domain)
       if (slot) {
         if (slot.time_ < time) { slot.time_ = time; }
         slot.count_ += visible;
-        if (schema >= Urls.SchemaId.HTTP) { slot.https_ = schema === Urls.SchemaId.HTTPS ? 1 : 0; }
+        if (scheme >= Urls.SchemeId.HTTP) { slot.https_ = scheme === Urls.SchemeId.HTTPS ? 1 : 0; }
       } else {
-        d.set(domain, {time_: time, count_: visible, https_: schema === Urls.SchemaId.HTTPS ? 1 : 0})
+        d.set(domain, {time_: time, count_: visible, https_: scheme === Urls.SchemeId.HTTPS ? 1 : 0})
       }
     }
   },
   ParseDomainAndScheme_ (this: void, url: string): UrlDomain | null {
-    let n = url.lastIndexOf(":", 5), schema = n > 0 ? url.slice(0, n) : "", d: Urls.SchemaId, i: number;
-    if (schema === "http") { d = Urls.SchemaId.HTTP; }
-    else if (schema === "https") { d = Urls.SchemaId.HTTPS; }
-    else if (schema === "ftp") { d = Urls.SchemaId.FTP; }
+    let n = url.lastIndexOf(":", 5), scheme = n > 0 ? url.slice(0, n) : "", d: Urls.SchemeId, i: number;
+    if (scheme === "http") { d = Urls.SchemeId.HTTP; }
+    else if (scheme === "https") { d = Urls.SchemeId.HTTPS; }
+    else if (scheme === "ftp") { d = Urls.SchemeId.FTP; }
     else { return null; }
     i = url.indexOf("/", d);
     url = url.slice(d, i < 0 ? url.length : i);
-    return { domain_: url !== "__proto__" ? url : ".__proto__", schema_: d };
+    return { domain_: url !== "__proto__" ? url : ".__proto__", scheme_: d };
   },
   rsortByR_: (a: { r: number }, b: { r: number }): number => b.r - a.r
 },
@@ -1665,10 +1665,10 @@ knownCs = {
         else if (slot = d.get(domain.domain_)) {
           slot.time_ = time;
           if (i < 0) { slot.count_ += j.visible_; }
-          if (domain.schema_ >= Urls.SchemaId.HTTP) { slot.https_ = domain.schema_ === Urls.SchemaId.HTTPS ? 1 : 0; }
+          if (domain.scheme_ >= Urls.SchemeId.HTTP) { slot.https_ = domain.scheme_ === Urls.SchemeId.HTTPS ? 1 : 0; }
         } else {
           d.set(domain.domain_, {
-            time_: time, count_: j.visible_, https_: domain.schema_ === Urls.SchemaId.HTTPS ? 1 : 0
+            time_: time, count_: j.visible_, https_: domain.scheme_ === Urls.SchemeId.HTTPS ? 1 : 0
           })
         }
       }
