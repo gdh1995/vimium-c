@@ -7,6 +7,7 @@ import { allHints, isHintsActive, hintManager, setMode as setHintMode, hintMode_
 import { insert_global_ } from "./insert"
 import { visual_mode, visual_mode_name } from "./visual"
 import { find_box } from "./mode_find"
+import { wdZoom_ } from "../lib/rect"
 
 let tweenId: ValidIntervalID = TimerID.None
 let box: HTMLDivElement | null = null
@@ -38,9 +39,7 @@ export const hudShow = (tid: kTip | HintMode, args?: Array<string | number> | st
   appendNode_s(box, $text = new Text(text))
   if (!embed) {
     toggleOpacity("0")
-    if (!OnChrome || Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor) {
-      ui_box || ensureBorder() // safe to skip `getZoom_`
-    }
+    ui_box || ensureBorder(wdZoom_) // safe to skip `getZoom_`
   }
   addUIElement(box, allHints ? AdjustType.NotAdjust : AdjustType.DEFAULT)
 }

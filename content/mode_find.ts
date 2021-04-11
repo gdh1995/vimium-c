@@ -90,9 +90,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     query || (query = options.q);
     isActive || query === query_ && options.l || setPreviousMarkPosition()
     checkDocSelectable();
-    if (!OnChrome || Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor) {
-      ensureBorder();
-    }
+    ensureBorder()
     if (options.l) {
       if (query = query || query_) {
         styleSelColorOut || initSelColors(AdjustType.MustAdjust)

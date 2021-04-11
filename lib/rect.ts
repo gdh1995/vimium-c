@@ -316,7 +316,7 @@ export const getViewBox_ = function (needBox?: 1 | /** dialog-found */ 2): ViewB
     return [0, 0, OnFirefox ? iw : (iw * docZoom_ / wdZoom_) | 0, OnFirefox ? ih : (ih * docZoom_ / wdZoom_) | 0, 0]
   }
   bScale_ = box2 && (_trans = st2.transform) && !_trans.startsWith(kM) && float(_trans.slice(7)) || 1
-  wdZoom_ = OnFirefox ? min_(wndSize_(2), 1) : round(zoom * min_(ratio, 1) * 1000) / 1000
+  wdZoom_ = OnFirefox ? min_(ratio, 1) : round(zoom * min_(ratio, 1) * 1000) / 1000
   if (!OnFirefox) { docZoom_ = zoom }
   let x = !stacking ? float(st.marginLeft) : OnFirefox ? -float(st.borderLeftWidth) : 0 | -box.clientLeft
     , y = !stacking ? float(st.marginTop ) : OnFirefox ? -float(st.borderTopWidth ) : 0 | -box.clientTop

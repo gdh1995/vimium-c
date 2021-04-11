@@ -140,12 +140,11 @@ const loadCSS = (action: MergeAction, cssStr?: string): SettingsNS.MergedCustomC
       css = css.split("\nbody", 1)[0]
     }
     css = css.replace(<RegExpG> /\n/g, "")
-    if (Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo && Build.BTypes & BrowserType.Chrome
-        && CurCVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo) {
-      css = css.replace(<RegExpG> /0\.01px|\/\*!DPI\*\/ ?[\w.]+/g, "/*!DPI*/1px")
-    } else if (Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor && Build.BTypes & BrowserType.Chrome
+    if (Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor && Build.BTypes & BrowserType.Chrome
         && CurCVer_ < BrowserVer.MinBorderWidth$Ensure1$Or$Floor) {
-      css = css.replace(<RegExpG> /0\.01px|\/\*!DPI\*\/ ?[\w.]+/g, "0.5px")
+      const defaultWidth = Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
+          && CurCVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1 : 0.5
+      css = css.replace(<RegExpG> /0\.01|\/\*!DPI\*\/ ?[\d.]+/g, "/*!DPI*/" + defaultWidth)
     }
     settings.storage_.setItem("innerCSS", StyleCacheId_ + css)
     let findCSS = cssFile.find!

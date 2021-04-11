@@ -1,6 +1,6 @@
 import {
   setupEventListener, isTop, keydownEvents_, timeout_, fgCache, doc, isAlive_, isJSUrl, chromeVer_, VTr, deref_, OnEdge,
-  vApi, Stop_, createRegExp, isTY, OBJECT_TYPES, OnChrome, OnFirefox, WithDialog, injector, safeCall
+  vApi, Stop_, createRegExp, isTY, OBJECT_TYPES, OnChrome, OnFirefox, WithDialog, injector, safeCall, max_
 } from "../lib/utils"
 import { prevent_ } from "../lib/keyboard_utils"
 import {
@@ -29,7 +29,7 @@ export declare const enum kExitOnClick {
 let box_: HTMLDivElement & SafeHTMLElement | null = null
 let styleIn_: HTMLStyleElement | string | null = null
 let root_: VUIRoot = null as never
-let cssPatch_: [string, (css: string) => string] | null = null
+let cssPatch_: [string | number, (css: string) => string] | null = null
 let lastFlashEl: SafeHTMLElement | null = null
 let _toExitOnClick = kExitOnClick.NONE
 let flashTime = 0;
@@ -179,23 +179,29 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
     }
 }
 
-export const ensureBorder = !OnChrome || Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor
-      ? (zoom?: number): void => {
-    if (OnChrome && !(chromeVer_ < BrowserVer.MinBorderWidth$Ensure1$Or$Floor)) {
-      return
-    }
-    zoom || (getZoom_(), zoom = wdZoom_);
-    if (!cssPatch_ && zoom >= 1) { return; }
-    let width = ("" + (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
-        && chromeVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
-        ? 1.01 : 0.51) / zoom).slice(0, 5);
+export const ensureBorder = (zoom?: number): void => {
+    const dPR = max_(wndSize_(2), 1)
+    zoom = (zoom || (getZoom_(), wdZoom_)) * dPR
     if (!cssPatch_) {
-      cssPatch_ = ["", (css) => css.replace(createRegExp(kTip.css0d5px, "g"), VTr(kTip.css0d5Patch, cssPatch_![0]))]
+      if (zoom >= 1 ? zoom < 2
+          : OnChrome && (Build.MinCVer >= BrowserVer.MinBorderWidth$Ensure1$Or$Floor
+              || chromeVer_ > BrowserVer.MinBorderWidth$Ensure1$Or$Floor - 1)) {
+        return
+      }
+    }
+    let width = zoom >= 2 && zoom <= 4 ? 1
+      : zoom < 2 && OnChrome && (Build.MinCVer >= BrowserVer.MinBorderWidth$Ensure1$Or$Floor
+          || chromeVer_ > BrowserVer.MinBorderWidth$Ensure1$Or$Floor - 1) ? 0.01
+      : ("" + (zoom > 4 ? 4 : OnChrome && Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
+        && chromeVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
+        ? 1.01 * dPR : 0.51) / zoom).slice(0, 5);
+    if (!cssPatch_) {
+      cssPatch_ = [0, (css) => css.replace(createRegExp(kTip.css0d01OrDPI, "g"), "/*!DPI*/" + cssPatch_![0])]
     }
     if (cssPatch_[0] === width) { return; }
     cssPatch_[0] = width;
     (vApi.l as typeof learnCSS)(styleIn_, 1)
-} : ((): void => {}) as never
+}
 
 export const createStyle = (text: string, css?: HTMLStyleElement): HTMLStyleElement => {
     css = css || createElement_("style");

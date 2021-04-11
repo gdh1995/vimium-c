@@ -438,7 +438,7 @@ set_contentCommands_([
       })
     }
     shouldShowAdvanced && toggleAdvanced()
-    ensureBorder() // safe to skip `getZoom_`
+    ensureBorder(wdZoom_) // safe to skip `getZoom_`
     addUIElement(OnFirefox ? box : outerBox_not_ff!, AdjustType.Normal, true)
     options.e && setupExitOnClick(kExitOnClick.helpDialog)
     doc.hasFocus() || vApi.f()
