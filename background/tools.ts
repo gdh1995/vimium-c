@@ -557,11 +557,23 @@ TabRecency_ = {
 };
 
 BgUtils_.timeout_(120, function (): void {
-  const cache = TabRecency_.tabs_, noneWnd = TabRecency_.curWnd_;
-  let stamp = 1, time = 0;
-  function clean(): void {
+  const noneWnd = TabRecency_.curWnd_
+  let cache = TabRecency_.tabs_, stamp = 1, time = 0
+  const clean = (tabs: Tab[] | undefined): void => {
+    const existing = tabs ? tabs.map(i => [i.id, cache.get(i.id)] as const)
+        .filter((i): i is [number, {i: number, t: number}] => <boolean> <any> i[1])
+        .sort(i => i[1].i) : []
+    if (existing.length > GlobalConsts.MaxTabsKeepingRecency) {
+      existing.splice(0, existing.length - GlobalConsts.MaxTabsKeepingRecency)
+    }
+    existing.forEach((i, ind) => i[1].i = ind + 2)
+    stamp = existing.length > 0 ? existing[existing.length - 1][1].i : 1
+    if (stamp > 1) {
+      cache = TabRecency_.tabs_ = new Map(existing)
+      return
+    }
     cache.forEach((val, i) => {
-      if (val.i < GlobalConsts.MaxTabRecency - GlobalConsts.MaxTabsKeepingRecency + 1) { cache.delete(i) }
+      if (val.i < GlobalConsts.MaxTabRecency - GlobalConsts.MaxTabsKeepingRecency + 2) { cache.delete(i) }
       else { val.i -= GlobalConsts.MaxTabRecency - GlobalConsts.MaxTabsKeepingRecency }
     })
     stamp = GlobalConsts.MaxTabsKeepingRecency + 1;
@@ -569,11 +581,12 @@ BgUtils_.timeout_(120, function (): void {
   function listener(info: { tabId: number }): void {
     const now = performance.now();
     if (now - time > GlobalConsts.MinStayTimeToRecordTabRecency) {
-      cache.set(TabRecency_.curTab_, {
-        i: ++stamp,
-        t: Build.BTypes & BrowserType.ChromeOrFirefox && Settings_.payload_.o === kOS.unixLike ? Date.now() : now
-      })
-      if (stamp >= GlobalConsts.MaxTabRecency) { clean(); }
+      const old = cache.get(TabRecency_.curTab_),
+      monoNow = Build.BTypes & BrowserType.ChromeOrFirefox && Settings_.payload_.o === kOS.unixLike ? Date.now() : now
+      old ? (old.i = ++stamp, old.t = monoNow) : cache.set(TabRecency_.curTab_, { i: ++stamp, t: monoNow })
+      if (stamp > GlobalConsts.MaxTabRecency - 10) { // with MinStayTimeToRecordTabRecency, safe enough
+        chrome.tabs.query({}, clean)
+      }
     }
     TabRecency_.curTab_ = info.tabId; time = now;
   }
