@@ -17,7 +17,7 @@ import { contentCommands_ } from "./port"
 
 let iframesToSearchForNext: VApiTy[] | null
 
-const isVisibleInPage = (element: SafeHTMLElement): boolean => {
+export const isVisibleInPage = (element: SafeHTMLElement): boolean => {
   let rect: ClientRect
   return isAriaNotTrue_(element, kAria.disabled)
       && (rect = getBoundingClientRect_(element)).width > 2 && rect.height > 2 && isStyleVisible_(element)
@@ -61,8 +61,8 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
   for (; i < names.length; i++) {
     if (GlobalConsts.SelectorPrefixesInPatterns.includes(names[i][0])) {
       const arr = querySelectorAll_unsafe_(names[i]);
-      if (arr && arr.length === 1 && htmlTag_(arr[0])) {
-        candidates.push([arr[0] as SafeHTMLElement, vApi, i << 23, ""])
+      if (arr && arr.length === 1 && htmlTag_<1>(arr[0])) {
+        candidates.push([arr[0], vApi, i << 23, ""])
         names.length = i + 1
       }
     }
@@ -138,14 +138,14 @@ export const findNextInRel = (relName: string): GoNextBaseCandidate | null | und
       : OnFirefox ? VTr(kTip.webkitWithRel).replace("webkit", "moz") : VTr(kTip.webkitWithRel))!
   let s: string | null | undefined;
   type HTMLElementWithRel = HTMLAnchorElement | HTMLAreaElement | HTMLLinkElement;
-  let matched: HTMLElementWithRel | undefined, tag: string;
+  let matched: HTMLElementWithRel | undefined, tag: "a" | "area" | "link"
   const re1 = <RegExpOne> /\s/
   const array = OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
       && Build.MinCVer >= BrowserVer.MinTestedES6Environment
       && chromeVer_ < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
       ? [].slice.call(elements) : elements as { [i: number]: Element } as Element[]
   for (const element of array) {
-    if ((tag = htmlTag_(element))
+    if ((tag = htmlTag_(element) as typeof tag)
         && (s = OnChrome && Build.MinCVer < BrowserVer.Min$HTMLAreaElement$rel
                 ? attr_s(element as SafeHTMLElement, "rel")
                 : (element as TypeToPick<HTMLElement, HTMLElementWithRel, "rel">).rel)

@@ -1,7 +1,7 @@
 import HintItem = HintsNS.HintItem
 import {
   safer, fgCache, isImageUrl, isJSUrl, set_keydownEvents_, keydownEvents_, timeout_, doc, chromeVer_, weakRef_,
-  parseSedOptions, createRegExp, isTY, max_, min_, OnFirefox, OnChrome
+  parseSedOptions, createRegExp, isTY, max_, min_, OnFirefox, OnChrome, safeCall
 } from "../lib/utils"
 import { getVisibleClientRect_, center_, view_, selRange_ } from "../lib/rect"
 import {
@@ -53,11 +53,10 @@ const accessElAttr = (isUrl?: 1): [string: string, isUserCustomized?: BOOL] => {
     let json: Dict<primitiveObject | null> | primitiveObject | null | undefined | Element = el
     for (const prop of arr[+!!selector].split(".")) {
       if (json && isTY(json)) {
-        try { json = JSON.parse(json) }
-        catch { json = 0 }
+        json = safeCall<string, any>(JSON.parse, json)
       }
       json = json != el ? json && isTY(json, kTY.obj) && (json as Dict<primitiveObject | null>)[prop]
-          : el ? htmlTag_(el) && ((el as SafeHTMLElement).dataset as Dict<string>)[prop] || attr_s(el, prop)
+          : el ? htmlTag_<1>(el) && (el.dataset as Dict<string>)[prop] || attr_s(el, prop)
           : 0
     }
     if (json && isTY(json)) { return [json, 1] }
@@ -228,7 +227,7 @@ const copyText = (): void => {
               (<RegExpI> /^mailto:./i).test(str) ? str.slice(7)
               : str
                 || GetShadowRoot_(clickEl) && (childEl = querySelector_unsafe_("div,span", GetShadowRoot_(clickEl)!))
-                    && htmlTag_(childEl) && (childEl as SafeHTMLElement).innerText
+                    && htmlTag_<1>(childEl) && childEl.innerText
                 || str).trim()
             || (str = textContent_s(clickEl).trim()) && str.replace(<RegExpG> /\s+/g, " ")
       }

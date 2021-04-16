@@ -174,15 +174,15 @@ export const getClientRectsForAreas_ = function (element: HTMLElementUsingMap, o
     const root = (OnFirefox || !OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Node$$getRootNode)
         || element.getRootNode) ? element.getRootNode!() as ShadowRoot | Document : doc
     const map = querySelector_unsafe_(selector, root)
-    if (!map || !htmlTag_(map)) { return null }
-    areas = querySelectorAll_unsafe_("area", map as SafeHTMLElement)!
+    if (!map || !htmlTag_<1>(map)) { return null }
+    areas = querySelectorAll_unsafe_("area", map)!
   }
   const toInt = (a: string): number => (a as string | number as number) | 0
   for (let _i = 0, _len = areas.length; _i < _len; _i++) {
-    const area = areas[_i] as SafeElement & (HTMLAreaElement | NonHTMLButFormattedElement | SafeElementWithoutFormat)
-    if (!htmlTag_(area)) { continue }
-    let coords = (area as HTMLAreaElement).coords.split(",").map(toInt)
-    switch (Lower((area as HTMLAreaElement).shape)) {
+    const area = areas[_i] as HTMLAreaElement | Element
+    if (!htmlTag_<1>(area)) { continue }
+    let coords = area.coords.split(",").map(toInt)
+    switch (Lower(area.shape)) {
     case "circle": case "circ": // note: "circ" is non-conforming
       x2 = coords[0]; y2 = coords[1]; diff = coords[2] / math.sqrt(2)
       x1 = x2 - diff; x2 += diff; y1 = y2 - diff; y2 += diff
@@ -210,10 +210,7 @@ export const getClientRectsForAreas_ = function (element: HTMLElementUsingMap, o
     }
   }
   return output.length ? output[0][1] : null
-} as {
-  (element: HTMLElementUsingMap, output: Hint[], areas?: HTMLCollectionOf<HTMLAreaElement> | HTMLAreaElement[]
-    ): Rect | null
-}
+} as (element: HTMLElementUsingMap, output: Hint[], areas?: HTMLAreaElement[]) => Rect | null
 
 export const getCroppedRect_ = function (el: Element, crect: Rect | null): Rect | null {
   let parent: Element | null = el, prect: Rect | null | undefined, i: number = crect ? 3 : 0, bcr: Rect

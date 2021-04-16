@@ -89,7 +89,12 @@ export const htmlTag_ = (!OnFirefox ? (element: Element | HTMLElement): string =
     }
     return "";
   } : (element: Element): string => "lang" in element ? (element as SafeHTMLElement).localName : ""
-) as (element: Element) => string // duplicate the signature, for easier F12 in VS Code
+) as {
+  (element: Element): "" | keyof HTMLElementTagNameMap
+  <Ty extends 2>(element: HTMLElement): element is SafeHTMLElement
+  <Ty extends 1>(element: Element): element is SafeHTMLElement
+  (element: Element): "" | keyof HTMLElementTagNameMap; // this line is just to avoid a warning on VS Code
+}
 
 export const isInTouchMode_cr_ = OnChrome ? (): boolean => {
     const viewport_meta = querySelector_unsafe_("meta[name=viewport]")
@@ -279,17 +284,16 @@ export const findMainSummary_ = ((details: HTMLDetailsElement | Element | null):
     // `HTMLDetailsElement::FindMainSummary()` in
     // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_details_element.cc?g=0&l=101
     if (!OnChrome || Build.MinCVer >= BrowserVer.Min$Array$$find$$findIndex) {
-      return ([].find as (predicate: (value: Element) => boolean) => Element | undefined).call(details!.children
-          , summary => htmlTag_(summary) === "summary") as SafeHTMLElement | null || null
+      return ([].find as (predicate: (el: Element) => el is SafeHTMLElement) => SafeHTMLElement | undefined
+          ).call(details!.children, (el): el is SafeHTMLElement => htmlTag_(el) === "summary") || null
     }
-    for (let summaries = details!.children, i = 0, len = summaries.length; i < len; i++) {
+    let found: SafeHTMLElement | null = null
+    for (let summaries = details!.children, i = 0; i < summaries.length && !found; i++) {
       const summary = summaries[i];
       // there's no window.HTMLSummaryElement on C70
-      if (htmlTag_(summary) === "summary") {
-        return summary as SafeHTMLElement;
-      }
+      found = htmlTag_(summary) === "summary" ? summary as SafeHTMLElement : found
     }
-    return null;
+    return found
 }) as (details: HTMLDetailsElement) => SafeHTMLElement | null
 
 export const IsInDOM_ = function (this: void, element: Element, root?: Element | Document | Window | RadioNodeList
@@ -355,7 +359,11 @@ export const uneditableInputs_: SafeEnum = { __proto__: null as never,
     bu: 1, ch: 1, co: 1, fi: 1, hi: 1, im: 1, ra: 1, re: 1, su: 1
 }
 
-export const editableTypes_: ReadonlySafeDict<EditableType> & { keygen?: EditableType } = { __proto__: null as never,
+export const editableTypes_: SafeObject & { readonly [localName in ""]?: undefined } & {
+  [localName in "keygen"]?: EditableType | undefined
+} & {
+  readonly [localName in keyof HTMLElementTagNameMap]?: EditableType | undefined
+} = { __proto__: null as never,
     input: EditableType.input_, textarea: EditableType.TextBox,
     select: EditableType.Select,
     embed: EditableType.Embed, object: EditableType.Embed
@@ -377,7 +385,7 @@ export const getEditableType_ = function (element: Element): EditableType {
 } as {
     (element: Element): element is LockableElement;
     <Ty extends 0>(element: Element): EditableType;
-    <Ty extends 2>(element: EventTarget): element is LockableElement;
+    <Ty extends EventTarget>(element: EventTarget): element is LockableElement
     (element: Element): element is LockableElement; // this line is just to avoid a warning on VS Code
 }
 

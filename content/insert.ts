@@ -251,7 +251,7 @@ export const onFocus = (event: Event | FocusEvent): void => {
     set_cachedScrollable(0)
   }
   lastWndFocusTime = 0;
-  if (getEditableType_<2>(target)) {
+  if (getEditableType_<EventTarget>(target)) {
     if (grabBackFocus) {
       (grabBackFocus as Exclude<typeof grabBackFocus, boolean>)(event, target);
       return;

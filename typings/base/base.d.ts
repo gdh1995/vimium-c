@@ -136,7 +136,7 @@ declare module chrome.downloads {
     filename?: string
     incognito?: boolean
   }
-  export function setShelfEnabled(enable: boolean): void
+  export function setShelfEnabled(enable: boolean, _exArg?: FakeArg): void
   export const download: ((opts: DownloadOptions) => Promise<string>) | undefined
 }
 
@@ -159,3 +159,4 @@ interface HTMLMediaElement {
 }
 interface Element { mozRequestFullScreen(): void }
 interface Document { mozCancelFullScreen(): void }
+interface HTMLElementTagNameMap { "slot": HTMLSlotElement }

@@ -209,13 +209,13 @@ const isNotReplacedBy = (element: SafeHTMLElement | null, isExpected?: Hint[]): 
   return element ? !arr2.length : !!isExpected || null;
 }
 
-const inferTypeOfListener = (el: SafeHTMLElement, tag: string): boolean => {
+const inferTypeOfListener = ((el: SafeHTMLElement, tag: "" | keyof HTMLElementTagNameMap): boolean => {
   // Note: should avoid nested calling to isNotReplacedBy_
-  let el2: Element | null | undefined, D = "div";
+  let el2: Element | null | undefined, D = "div" as const
   return tag !== D && tag !== "li"
       ? tag === "tr"
         ? (el2 = querySelector_unsafe_("input[type=checkbox]", el) as SafeElement | null,
-          !!(el2 && htmlTag_(el2) && isNotReplacedBy(el2 as SafeHTMLElement)))
+          !!(el2 && htmlTag_<1>(el2) && isNotReplacedBy(el2)))
         : tag !== "table"
       : !(el2 = el.firstElementChild as Element | null) ||
         !(!el.className && !el.id && tag === D
@@ -228,7 +228,7 @@ const inferTypeOfListener = (el: SafeHTMLElement, tag: string): boolean => {
               && (el2 = (el2 as HTMLHeadingElement).firstElementChild as Element | null)
               && htmlTag_(el2) === "a")
         );
-}
+}) as (el: SafeHTMLElement, tag: keyof HTMLElementTagNameMap) => boolean
 
 /** Note: required by {@link #kFgCmd.focusInput}, should only add LockableElement instances */
 export const getEditable = (hints: Hint[], element: SafeHTMLElement): void => {
@@ -463,9 +463,9 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
         element = element.lastElementChild as Element;
         prect = list[i][1];
         crect = OnFirefox || !notSafe_not_ff_!(element) ? getVisibleClientRect_(element as SafeElement) : null
-        if (crect && isContaining_(crect, prect) && htmlTag_(element)) {
+        if (crect && isContaining_(crect, prect) && htmlTag_<1>(element)) {
           if (parentNode_unsafe_s(list[i + 1][0]) !== element) {
-            list[i] = [element as SafeHTMLElement, crect, ClickType.tabindex];
+            list[i] = [element, crect, ClickType.tabindex];
           } else if (list[i + 1][2] === ClickType.codeListener) {
             // [tabindex] > :listened, then [i] is only a layout container
             ++splice
@@ -539,7 +539,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
         && Build.MinCVer >= BrowserVer.MinTestedES6Environment) {
       for (let i = 0; i < cur_arr.length; i++) { htmlTag_(cur_arr[i]) && filter(output, cur_arr[i] as SafeHTMLElement) }
     } else {
-      for (const i of cur_arr as ArrayLike<Element> as Element[]) { htmlTag_(i) && filter(output, <SafeHTMLElement> i) }
+      for (const i of cur_arr as ArrayLike<Element> as Element[]) { htmlTag_<1>(i) && filter(output, i) }
     }
     OnFirefox || set_bZoom_(bz)
     hasHookedScroll || set_scrolled(0)

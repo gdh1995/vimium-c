@@ -62,7 +62,7 @@ export type AddChildIndirectly = (officer: BaseHintWorker
 import {
   VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_, max_, min_, math, OnEdge,
   clearTimeout_, fgCache, doc, readyState_, chromeVer_, vApi, deref_, getTime, weakRef_, unwrap_ff, OnFirefox, OnChrome,
-  WithDialog, Lower
+  WithDialog, Lower, safeCall
 } from "../lib/utils"
 import {
   querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_,
@@ -645,11 +645,12 @@ export const clear = (onlySelfOrEvent?: 0 | 1 | Event, suppressTimeout?: number)
     isActive = _timer = 0
     manager_ = coreHints.p = null;
     manager && manager.c(onlySelfOrEvent, suppressTimeout);
-    frameArray.forEach((frameInfo: FrameHintsInfo): void => { try {
+    frameArray.forEach(safeCall.bind<void, (ori_arg: FrameHintsInfo) => void, [arg1: FrameHintsInfo], void>(0,
+        (frameInfo: FrameHintsInfo): void => {
       let frame = frameInfo.s, hasManager = frame.p
       frame.p = null
       hasManager && frame.c(0, suppressTimeout)
-    } catch { /* empty */ } }, suppressTimeout);
+    }), suppressTimeout);
     coreHints.y = frameArray = [];
     setupEventListener(0, UNL, clear, 1);
     resetHints();
