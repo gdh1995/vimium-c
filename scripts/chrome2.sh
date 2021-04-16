@@ -177,7 +177,7 @@ if test $ALSO_VC -gt 0; then
 fi
 
 if test -f "/usr/bin/env.exe"; then
-  RUN=/usr/bin/start2.exe
+  RUN=$(which start2.exe)
   REALPATH=/usr/bin/cygpath.exe
 else
   RUN=$(which env.exe)' start2.exe'

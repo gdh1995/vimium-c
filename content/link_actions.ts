@@ -43,21 +43,21 @@ const unhoverOnEsc: HandlerNS.Handler = event => {
 }
 
 const accessElAttr = (isUrl?: 1): [string: string, isUserCustomized?: BOOL] => {
-  type primitiveObject = boolean | number | string
+  type primitiveObject = boolean | number | string | object
   const dataset = (clickEl as SafeHTMLElement).dataset
   for (let accessor of ((hintOptions.access || "") + "").split(",")) {
-    const arr = accessor.split(":"), selector = arr.length === 2 ? arr[0] : 0
+    const arr = accessor.trim().split(":"), selector = arr.length === 2 ? arr[0] : 0
     const el: SafeElement | null = !selector ? clickEl
         : OnFirefox ? querySelector_unsafe_(selector) as SafeElement | null
         : SafeEl_not_ff_!(querySelector_unsafe_(selector))
     let json: Dict<primitiveObject | null> | primitiveObject | null | undefined | Element = el
-    for (const prop of (selector ? arr[1] : accessor).split(".")) {
+    for (const prop of arr[+!!selector].split(".")) {
       if (json && isTY(json)) {
         try { json = JSON.parse(json) }
         catch { json = 0 }
       }
       json = json != el ? json && isTY(json, kTY.obj) && (json as Dict<primitiveObject | null>)[prop]
-          : el ? htmlTag_(el) && ((el as SafeHTMLElement).dataset as Dict<string>)[prop] || attr_s(clickEl, prop)
+          : el ? htmlTag_(el) && ((el as SafeHTMLElement).dataset as Dict<string>)[prop] || attr_s(el, prop)
           : 0
     }
     if (json && isTY(json)) { return [json, 1] }

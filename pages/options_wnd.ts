@@ -471,7 +471,7 @@ if (!browserPermissions || !optional.length) {
       let i18nName = pTrans_(i18nKey || "opt_" + name) || name
       let suffix = ""
       if (name.startsWith("chrome:")) {
-        i18nName = i18nName.replace("chrome:", "edge:")
+        i18nName = IsEdg ? i18nName.replace("chrome:", "edge:") : i18nName
         suffix = pTrans_("optOfChromeUrl").replace(IsEdg ? "chrome" : "edge", "edge")
       }
       if (Build.BTypes & BrowserType.Chrome && name === "chrome://new-tab-page/"

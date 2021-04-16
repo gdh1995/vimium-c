@@ -274,10 +274,7 @@ export const getAccessibleSelectedNode = (sel: Selection, focused?: 1): Node | n
   /** computation section */
 
 export const findMainSummary_ = ((details: HTMLDetailsElement | Element | null): SafeHTMLElement | null => {
-    if (!OnEdge) { // https://developer.mozilla.org/en-US/docs/Web/CSS/:scope
-      details = querySelector_unsafe_(':scope>summary', details as HTMLDetailsElement)
-      return details && htmlTag_(details) ? details as SafeHTMLElement : null
-    }
+    // not query `:scope>summary` for more consistent performance
     // Specification: https://html.spec.whatwg.org/multipage/interactive-elements.html#the-summary-element
     // `HTMLDetailsElement::FindMainSummary()` in
     // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_details_element.cc?g=0&l=101
