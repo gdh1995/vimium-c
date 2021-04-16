@@ -547,7 +547,14 @@ if (!browserPermissions || !optional.length) {
                     errEl.className = "tip"
                     box.parentElement.insertBefore(errEl, box.nextElementSibling)
                   }
-                  errEl.textContent = box.title = pTrans_("exc") + (err && err.message || JSON.stringify(err))
+                  let msg = (err && err.message || JSON.stringify(err)) + ""
+                  if (name.startsWith("chrome://") && msg.includes("Only permissions specified in the manifest")) {
+                    if (name.startsWith("chrome:")) {
+                      msg = pTrans_("optNeedChromeUrlFirst")
+                      msg = IsEdg ? msg.replace("chrome:", "edge:") : msg
+                    }
+                  }
+                  errEl.textContent = box.title = pTrans_("exc") + msg
                   box.lastElementChild.classList.add("has-error")
                 }
               }

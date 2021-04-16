@@ -227,6 +227,7 @@
   "o147": { "message": " (on this tab, $1 for once)" },
   "o148": { "message": " if reset" },
   "optOfChromeUrl": { "message": " (need #extensions-on-chrome-urls)" },
+  "optNeedChromeUrlFirst": { "message": "Please enable the \"#extensions-on-chrome-urls\" browser flag first." },
   "opt_closeShelf": { "message": "The \"downloads\" permission, only to close the download bar" },
   "opt_downloads": { "message": "Let browser download files" },
   "opt_chromeUrl": { "message": "Run on chrome://* pages" },

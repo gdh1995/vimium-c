@@ -348,6 +348,7 @@
   "o147": { "message": "（当前网页处于 临时$1 状态）" },
   "o148": { "message": "（保存时自动取消状态锁定）" },
   "optOfChromeUrl": { "message": "（需要 #extensions-on-chrome-urls）" },
+  "optNeedChromeUrlFirst": { "message": "请先启用名为“#extensions-on-chrome-urls”的浏览器标记。" },
   "opt_closeShelf": { "message": "“下载”权限，仅用于关闭下载进度栏" },
   "opt_downloads": { "message": "使浏览器下载文件" },
   "opt_chromeUrl": { "message": "在 chrome://* 页面上运行" },
