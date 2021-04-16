@@ -253,6 +253,7 @@ declare namespace HintsNS {
     hideHud?: boolean;
     hideHUD?: boolean;
     autoUnhover?: boolean;
+    reachable?: null | boolean // null means "in modes for mouse events and settings.mouseReachable"
     richText?: boolean;
     visual?: false;
   }
@@ -398,6 +399,7 @@ interface CmdOptions {
     flash?: boolean;
     reachable?: boolean; // default to true
     prefer?: string;
+    fallback?: ":last" | ".css-selector,#css2,:last" | /* css-selector */ string
   } & CSSOptions;
   [kFgCmd.editText]: {
     dom?: boolean;

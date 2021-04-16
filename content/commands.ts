@@ -1,11 +1,12 @@
 import {
   chromeVer_, doc, esc, EscF, fgCache, isTop, set_esc, VTr, safer, timeout_, loc_, weakRef_, deref_,
   keydownEvents_, parseSedOptions, Stop_, suppressCommonEvents, setupEventListener, vApi, locHref, isTY, max_, min_,
-  OnChrome, OnFirefox, OnEdge, firefoxVer_
+  OnChrome, OnFirefox, OnEdge, firefoxVer_, safeCall
 } from "../lib/utils"
 import {
   isHTML_, htmlTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK,
-  querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s, modifySel, focus_
+  querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s, modifySel,
+  focus_, fullscreenEl_unsafe_, getEditableType_
 } from "../lib/dom_utils"
 import {
   pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
@@ -35,9 +36,9 @@ import {
   activate as scActivate, set_cachedScrollable, onActivate, currentScrolling, set_currentScrolling
 } from "./scroller"
 import { activate as omniActivate, hide as omniHide } from "./omni"
-import { findNextInText, findNextInRel } from "./pagination"
+import { findNextInText, findNextInRel, isVisibleInPage } from "./pagination"
 import { traverse, getEditable, filterOutNonReachable } from "./local_links"
-import { select_, unhover_, set_lastHovered_, lastHovered_ } from "./async_dispatcher"
+import { select_, unhover_, set_lastHovered_, lastHovered_, click_ } from "./async_dispatcher"
 
 export const RSC = "readystatechange"
 
@@ -225,7 +226,9 @@ set_contentCommands_([
     insert_inputHint && (insert_inputHint.h = null as never);
     const arr: ViewOffset = getViewBox_();
     prepareCrop_(1);
-    interface InputHint extends Hint { [0]: HintsNS.InputHintItem["d"] }
+    interface BaseInputHint { [0]: HintsNS.InputHintItem["d"]; [1]: Rect }
+    type InputHintInList = Hint & BaseInputHint
+    interface InputHint extends InputHintInList {}
     // here those editable and inside UI root are always detected, in case that a user modifies the shadow DOM
     const visibleInputs = traverse(!OnFirefox
           ? VTr(kTip.editableSelector) + kSafeAllSelector : VTr(kTip.editableSelector), options, getEditable
@@ -235,19 +238,44 @@ set_contentCommands_([
       curModalElement || filterOutNonReachable(visibleInputs, 1)
     }
     let sel = visibleInputs.length;
+    let firstInput = visibleInputs[0], firstElement: (typeof firstInput)[0]
     if (!sel) {
       exitInputHint();
-      return hudTip(kTip.noInputToFocus, 1000);
-    } else if (sel < 2) {
-      exitInputHint();
-      select_(visibleInputs[0][0], visibleInputs[0][1], true, action, true)
+      const fallbackSelectors = ((options.fallback || "") + "").split(",")
+      for (let i = 0; i < fallbackSelectors.length && !firstInput; i++) {
+        const fallbacks = fallbackSelectors[i] && (fallbackSelectors[i].trim() === ":last" ? known_last && [known_last]
+            : querySelectorAll_unsafe_(fallbackSelectors[i], fullscreenEl_unsafe_(), 1)) || []
+        for (let j = 0; j < fallbacks.length && !firstInput; j++) {
+          const el = fallbacks[j]
+          if (htmlTag_<1>(el) && isVisibleInPage(el)) {
+            firstInput = [el, null as never as Rect] as BaseInputHint as InputHint
+          }
+        }
+        break
+      }
+    }
+    if (!firstInput) {
+      hudTip(kTip.noInputToFocus, 1000)
       return
     }
-    const preferredSelector = options.prefer
-    const preferred: Element[] = [].slice.call(preferredSelector && querySelectorAll_unsafe_(preferredSelector) || [])
+    if (firstElement = firstInput[0], sel < 2) {
+      exitInputHint();
+      getEditableType_<0>(firstElement) > EditableType.TextBox - 1
+      ? select_(firstElement, firstInput[1], true, action, true) : click_(firstElement, null, true)
+      return
+    }
+    let preferredSelector = (options.prefer || "") + ""
+    const preferred: Element[] | null = OnChrome && Build.MinCVer < BrowserVer.Min$Element$$matches
+        && chromeVer_ < BrowserVer.Min$Element$$matches
+        ? [].slice.call(preferredSelector && querySelectorAll_unsafe_(preferredSelector) || [])
+        : (preferredSelector && safeCall(firstElement.matches!.bind(firstElement), preferredSelector) == null
+            && (preferredSelector = ""), null)
     for (let ind = 0; ind < sel; ind++) {
       const hint = visibleInputs[ind], j = hint[0].tabIndex;
-      hint[2] = preferred.indexOf(hint[0]) >= 0 ? 0.5 : j < 1 ? -ind
+      hint[2] = (OnChrome && Build.MinCVer < BrowserVer.Min$Element$$matches && preferred
+            ? preferred.indexOf(hint[0]) >= 0 : preferredSelector && hint[0].matches!(preferredSelector))
+          ? (OnChrome ? Build.MinCVer >= BrowserVer.MinStableSort : !OnEdge) ? 0.5 : 0.5 + ind / 8192
+          : j < 1 ? -ind
           : (OnChrome ? Build.MinCVer >= BrowserVer.MinStableSort : !OnEdge)
           ? j : j + ind / 8192;
     }
@@ -453,5 +481,5 @@ set_contentCommands_([
     }, kHandler.helpDialog)
     // if no [tabindex=0], `.focus()` works if :exp and since MinElement$Focus$MayMakeArrowKeySelectIt or on Firefox
     timeout_((): void => { focus_(box) }, 17)
-  }) as (options: CmdOptions[kFgCmd.showHelpDialog]) => any
+  }) as (options: CmdOptions[kFgCmd.showHelpDialog]) => void
 ])

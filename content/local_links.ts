@@ -645,7 +645,7 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
 }
 
 export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
-  let _i: number = mode1_, B = "[style*=background]",
+  let _i: number = mode1_, B = "[style*=background]", reachable = hintOptions.reachable,
   visibleElements = _i > HintMode.min_media - 1 && _i < HintMode.max_media + 1
     // not check `img[src]` in case of `<img srcset=... >`
     ? traverse(`a[href],img,div${B},span${B},[data-src]` + (OnFirefox ? "" : kSafeAllSelector)
@@ -709,9 +709,10 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
       })
     : traverse(OnFirefox ? VTr(kTip.editableSelector) : VTr(kTip.editableSelector) + kSafeAllSelector
         , hintOptions, /*#__NOINLINE__*/ getEditable)
-  if ((_i < HintMode.max_mouse_events + 1 || _i === HintMode.FOCUS_EDITABLE)
+  if ((reachable != null ? reachable
+        : (_i < HintMode.max_mouse_events + 1 || _i === HintMode.FOCUS_EDITABLE) && fgCache.e)
       && visibleElements.length < GlobalConsts.MinElementCountToStopPointerDetection) {
-    fgCache.e && filterOutNonReachable(visibleElements, _i > HintMode.FOCUS_EDITABLE - 1);
+    filterOutNonReachable(visibleElements, _i > HintMode.max_mouse_events)
   }
   maxLeft_ = view[2], maxTop_ = view[3], maxRight_ = view[4];
   if ((!OnChrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar)
