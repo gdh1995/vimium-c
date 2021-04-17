@@ -486,7 +486,7 @@ exports.patchTerser = () => {
   }
 }
 
-exports.BrowserType = {
+const BrowserType = exports.BrowserType = {
   Chrome: 1,
   Firefox: 2,
   Edge: 4,
@@ -498,8 +498,8 @@ exports.BrowserType = {
  * @argument {number} btypes
  */
 exports.fill_global_defs = (global_defs, btypes) => {
-  for (const key of Object.keys(exports.BrowserType)) {
-    const val = exports.BrowserType[key], onlyVal = btypes === val
+  for (const key of Object.keys(BrowserType)) {
+    const val = BrowserType[key], onlyVal = btypes === val
     if (onlyVal || !(btypes & val)) {
       global_defs[key.startsWith("With") ? key : "On" + key] = onlyVal
     }
@@ -547,7 +547,7 @@ exports.replace_global_defs = (global_defs, code) => {
  * @returns {Promise<string>}
  */
 exports.remove_dead_code = async (_global_defs, code, config) => {
-  const keys = Object.keys(exports.BrowserType).map(i => i.startsWith("With") ? i : "On" + i).join("|")
+  const keys = Object.keys(BrowserType).map(i => i.startsWith("With") ? i : "On" + i).join("|")
   const raw_code = code
   for (let re1 = new RegExp(`!*[\\w$]+\\.(?:${keys}) (&&|\\|\\|) (false|true)`, "g"), old_len = 0
       ; code.length !== old_len; ) {
@@ -562,4 +562,54 @@ exports.remove_dead_code = async (_global_defs, code, config) => {
   return (await require('terser').minify(code, {
     ...config, mangle: false, compress: { ...config.compress, dead_code: true, conditionals: true }
   })).code
+}
+
+/**
+ * @argument {number} btypes
+ * @argument {number} minCVer
+ * @argument {() => string} get_code
+ * @returns {string | null}
+ */
+exports.skip_declaring_known_globals = (btypes, minCVer, get_code) =>{
+  var toRemovedGlobal = "";
+  if (btypes === BrowserType.Chrome || !(btypes & BrowserType.Chrome)) {
+    toRemovedGlobal += "browser|";
+  }
+  if (!(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsuredES6WeakMapAndWeakSet */ 36) {
+    toRemovedGlobal += "Weak(Set|Map)|";
+  }
+  if (!(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsuredES6$ForOf$Map$SetAnd$Symbol */ 38) {
+    toRemovedGlobal += "Set|";
+  }
+  if (!(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsured$InputDeviceCapabilities */ 47) {
+    toRemovedGlobal += "InputDeviceCapabilities|";
+  }
+  if ((!(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsured$requestIdleCallback */ 47)
+      && !(btypes & BrowserType.Edge)) {
+    toRemovedGlobal += "requestIdleCallback|";
+  }
+  if (!(btypes & ~BrowserType.Chrome) && minCVer >= /* MinEnsured$visualViewport$ */ 61) {
+    toRemovedGlobal += "visualViewport|";
+  }
+  if (!(btypes & BrowserType.Chrome || btypes & BrowserType.Firefox)) {
+    toRemovedGlobal += "WeakRef|";
+  }
+  toRemovedGlobal = toRemovedGlobal.slice(0, -1);
+  if (toRemovedGlobal) {
+    const re = new RegExp(`(const|let|var|,)\\s?(${toRemovedGlobal})[,;]\n?\n?`, "g")
+    let n = 0, remove = str => str[0] === "," ? str.slice(-1) : str.slice(-1) === "," ? str.split(/\s/)[0] + " " : "";
+    const contents = get_code()
+    let s1 = contents.slice(0, 1000);
+    for (; ; n++) {
+      let s2 = s1.replace(re, remove);
+      if (s2.length === s1.length) {
+        break;
+      }
+      s1 = s2;
+    }
+    if (n > 0) {
+      return s1 + contents.slice(1000)
+    }
+  }
+  return null
 }

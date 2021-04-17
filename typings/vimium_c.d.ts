@@ -466,7 +466,9 @@ declare const enum InjectorTask {
   reportLiving = 3,
   extInited = 4,
 }
-interface VApiTy {}
+interface VApiTy {
+  /** destroy */ d: (this: void, silent?: boolean | BOOL | 9) => void
+}
 interface VimiumInjectorTy {
   id: string;
   alive: 0 | 0.5 | 1 | -1;

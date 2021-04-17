@@ -12,7 +12,7 @@ var osPath = require('path');
 var {
   getGitCommit, readJSON, readFile, patchTSNamespace, logFileSize, addMetaData, patchTerser,
   patchExtendClick: _patchExtendClick, BrowserType, fill_global_defs, replace_global_defs, remove_dead_code,
-  loadTerserConfig: _loadTerserConfig,
+  loadTerserConfig: _loadTerserConfig, skip_declaring_known_globals,
 } = require("./scripts/dependencies");
 var gulpUtils = require("./scripts/gulp-utils")
 var { print, ToBuffer, ToString, cleanByPath, minifyJSFiles, set_minifier_env,
@@ -64,22 +64,18 @@ const KnownBackendGlobals = [
 
 var CompileTasks = {
   background: ["background/*.ts", "background/*.d.ts"],
-  content: [["content/*.ts", "lib/*.ts", "!" + POLYFILL_FILE, "!lib/injector.ts"], "content/*.d.ts"],
+  content: [["content/*.ts", "lib/*.ts", "!" + POLYFILL_FILE, "!lib/injector.ts"], "lib/*.d.ts"],
   lib: ["lib/*.ts"].concat(has_polyfill ? [] : ["!" + POLYFILL_FILE]),
   front: [["front/*.ts", has_polyfill ? POLYFILL_FILE : "!" + POLYFILL_FILE
-            , "lib/injector.ts", "pages/*.ts"
-            , may_have_newtab ? NEWTAB_FILE : "!" + NEWTAB_FILE
-            , "!pages/options*.ts", "!pages/show.ts", "!pages/async_bg.ts"]
-          , ["background/index.d.ts", "content/*.d.ts"]
-          , { inBatch: false }],
-  vomnibar: ["front/vomnibar*.ts", ["background/index.d.ts", "content/*.d.ts"]],
+            , "lib/injector.ts"], ["lib/base.omni.d.ts"], { inBatch: false }],
+  vomnibar: ["front/vomnibar*.ts", ["lib/base.omni.d.ts"]],
   polyfill: [POLYFILL_FILE],
   injector: ["lib/injector.ts"],
-  options: [["pages/options*.ts", "pages/async_bg.ts"], ["background/*.d.ts", "content/*.d.ts"]],
-  show: [["pages/show.ts", "pages/async_bg.ts"], ["background/index.d.ts", "content/*.d.ts"]],
-  others: [ ["pages/*.ts", "front/*.ts", "!pages/options*.ts", "!pages/show.ts", "!pages/async_bg.ts"
-              , "!front/vomnibar*.ts"]
-            , "background/index.d.ts" ],
+  options: [["pages/options*.ts", "pages/async_bg.ts"], ["background/*.d.ts", "lib/base.d.ts"], {module: "mayES6"}],
+  show: [["pages/show.ts", "pages/async_bg.ts"], ["background/index.d.ts", "lib/base.d.ts"], {module: "mayES6"}],
+  others: [ ["pages/*.ts", may_have_newtab ? NEWTAB_FILE : "!" + NEWTAB_FILE
+              , "!pages/options*.ts", "!pages/show.ts", "!pages/async_bg.ts"]
+            , "background/index.d.ts", { inBatch: false, module: "mayES6" } ],
 }
 
 var Tasks = {
@@ -174,7 +170,7 @@ var Tasks = {
       gulp.series("png2bin")();
     }
     if (!has_dialog_ui) {
-      arr.push("!*/dialog_ui.*");
+      arr.push("!pages/dialog_ui.*")
     }
     return copyByPath(arr);
   }],
@@ -328,12 +324,12 @@ var Tasks = {
     });
     gulp.task("min/others/misc", function() {
       var oriManifest = readJSON("manifest.json", true);
-      var res = ["**/*.js", "!background/*.js", "!content/*.js", "!front/vomnibar*", "!helpers/*/*.js"
+      var res = ["front/*.js", "lib/*.js", "pages/*.js", "!front/vomnibar*"
           , "!pages/options*", "!pages/show*", "!pages/async_bg*"];
       has_polyfill || res.push("!" + POLYFILL_FILE.replace(".ts", ".*"));
       may_have_newtab || res.push("!" + NEWTAB_FILE.replace(".ts", ".*"));
       if (!has_dialog_ui) {
-        res.push("!*/dialog_ui.*");
+        res.push("!pages/dialog_ui.*")
       }
       for (var arr = oriManifest.content_scripts[0].js, i = 0, len = arr.length; i < len; i++) {
         if (arr[i].lastIndexOf("lib/", 0) === 0) {
@@ -488,7 +484,7 @@ var Tasks = {
   p: ["pages"],
   pa: ["pages"],
   pg: ["pages"],
-  local: ["scripts", "options", "show"],
+  local: ["scripts", "pages"],
   "local/": ["local"],
   tsc: ["locally", function(done) {
     debugging = true;
@@ -505,7 +501,7 @@ var Tasks = {
   debug: ["locally", function(done) {
     ignoreHeaderChanges = disableErrors = willListFiles = false;
     willListEmittedFiles = debugging = true;
-    ["background", "content", "vomnibar", "polyfill", "injector", "options", "show", "others"].forEach(makeWatchTask);
+    ["background", "content", "front", "polyfill", "injector", "options", "show", "others"].forEach(makeWatchTask)
     done();
   }],
   eslint: function (done) {
@@ -553,8 +549,7 @@ var Tasks = {
 };
 
 if (!has_dialog_ui) {
-  CompileTasks.front[0].push("!*/dialog_ui.*");
-  CompileTasks.others[0].push("!*/dialog_ui.*");
+  CompileTasks.others[0].push("!pages/dialog_ui.*")
 }
 gulp.task("locally", function(done) {
   if (locally) { return done(); }
@@ -572,18 +567,14 @@ gulp.task("locally", function(done) {
   var old_has_newtab = may_have_newtab;
   may_have_newtab = getNonNullBuildItem("MayOverrideNewTab") > 0;
   if (may_have_newtab != old_has_newtab) {
-    CompileTasks.front[0][4] = may_have_newtab ? NEWTAB_FILE : "!" + NEWTAB_FILE;
+    CompileTasks.others[0][1] = may_have_newtab ? NEWTAB_FILE : "!" + NEWTAB_FILE
   }
   minify_viewer = !(getBuildItem("BTypes") & BrowserType.Chrome)
       || getBuildItem("MinCVer") >= /* MinTestedES6Environment */ 49;
   if (!has_dialog_ui) {
-    let i = CompileTasks.others[0].indexOf("!*/dialog_ui.*");
+    let i = CompileTasks.others[0].indexOf("!pages/dialog_ui.*")
     if (i >= 0) {
       CompileTasks.others[0].splice(i, 1);
-    }
-    i = CompileTasks.front[0].indexOf("!*/dialog_ui.*");
-    if (i >= 0) {
-      CompileTasks.front[0].splice(i, 1);
     }
   }
   JSDEST = process.env.LOCAL_DIST || ".";
@@ -600,7 +591,7 @@ function makeWatchTask(taskName) {
   var glob = CompileTasks[taskName][0];
   typeof glob === "string" && (glob = [glob]);
   if (!debugging) {
-    glob.push("!background/*.d.ts", "!content/*.d.ts", "!pages/*.d.ts",
+    glob.push("!background/*.d.ts", "!lib/*.d.ts", "!pages/*.d.ts",
       "!typings/**/*.ts", "!typings/*.d.ts", "!node_modules/**/*.ts");
   }
   gulp.watch(glob, function() {
@@ -614,14 +605,18 @@ function makeWatchTask(taskName) {
   });
 }
 
-function tsProject() {
+function tsProject(forceES6Module) {
   gTypescript = gulpUtils.loadTypeScriptCompiler(null, compilerOptions, gTypescript);
   gulpUtils.removeSomeTypeScriptOptions(compilerOptions, gTypescript)
   var btypes = getBuildItem("BTypes"), cver = getBuildItem("MinCVer");
   var noGenerator = !(btypes & BrowserType.Chrome) || cver >= /* MinEnsuredGeneratorFunction */ 39;
   var wrapGeneratorToken = !!(btypes & BrowserType.Chrome) && cver < /* MinEnsuredGeneratorFunction */ 39;
   patchTSNamespace(gTypescript, logger, noGenerator, wrapGeneratorToken);
-  return disableErrors ? ts(compilerOptions, ts.reporter.nullReporter()) : ts(compilerOptions);
+  var localOptions = {...compilerOptions}
+  if (forceES6Module) {
+    localOptions.module = "es6"
+  }
+  return disableErrors ? ts(localOptions, ts.reporter.nullReporter()) : ts(localOptions);
 }
 
 function compile(pathOrStream, header_files, done, options) {
@@ -636,11 +631,16 @@ function compile(pathOrStream, header_files, done, options) {
   var extra = ignoreHeaderChanges || header_files === false ? undefined
     : ["typings/**/*.d.ts", "typings/*.d.ts", "!typings/build/*.ts"].concat(header_files
         ).concat(buildConfig ? ["scripts/gulp.tsconfig.json"] : []);
+  if (locally && options && (options.module || "").toLowerCase() === "mayes6") {
+    options.module = getBuildItem("BTypes") & BrowserType.Edge || getBuildItem("BTypes") & BrowserType.Chrome
+        && getBuildItem("MinCVer") < /* MinUsableScript$type$$module$InExtensions */ 63
+        ? null : "es6"
+  }
   gulpUtils.compileTS(stream, options, extra, done, doesMergeProjects
       , debugging, JSDEST, willListFiles, getBuildConfigStream, beforeCompile, outputJSResult, tsProject)
 }
 
-function outputJSResult(stream) {
+function outputJSResult(stream, forceES6Module) {
   if (locally) {
     stream = stream.pipe(gulpMap(beforeTerser))
     var config
@@ -651,7 +651,7 @@ function outputJSResult(stream) {
     stream = stream.pipe(gulpMap(postTerser.bind(null, config)))
   }
   {
-    const es5 = locally ? !compilerOptions.module.startsWith("es")
+    const es5 = locally ? !forceES6Module && !compilerOptions.module.startsWith("es")
         : getBuildItem("BTypes") & BrowserType.Edge || getBuildItem("BTypes") & BrowserType.Chrome
           && getBuildItem("MinCVer") < /* MinUsableScript$type$$module$InExtensions */ 63
     stream = stream.pipe(gulpMap(file => {
@@ -668,7 +668,7 @@ function outputJSResult(stream) {
           }
           return gulpUtils.rollupOne(file, {
             treeshake: false, output: { format: "amd", preserveModules: true }
-          }, (code) => { return banner + code })
+          }, code => banner + code)
         } else {
           file.contents = ToBuffer(data.replace(/\bimport\b[^'"}]+\}?\s?\bfrom\b\s?['"][.\/\w]+['"]/g, s => {
             return s.includes(".js") ? s : s.slice(0, -1) + ".js" + s.slice(-1)
@@ -723,43 +723,9 @@ const beforeTerser = exports.beforeTerser = (file) => {
     }
   }
   if (allPathStr.includes("/env.js")) {
-    toRemovedGlobal = "";
-    if (btypes === BrowserType.Chrome || !(btypes & BrowserType.Chrome)) {
-      toRemovedGlobal += "browser|";
-    }
-    if (!(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsuredES6WeakMapAndWeakSet */ 36) {
-      toRemovedGlobal += "Weak(Set|Map)|";
-    }
-    if (!(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsuredES6$ForOf$Map$SetAnd$Symbol */ 38) {
-      toRemovedGlobal += "Set|";
-    }
-    if (!(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsured$InputDeviceCapabilities */ 47) {
-      toRemovedGlobal += "InputDeviceCapabilities|";
-    }
-    if ((!(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsured$requestIdleCallback */ 47)
-        && !(btypes & BrowserType.Edge)) {
-      toRemovedGlobal += "requestIdleCallback|";
-    }
-    if (!(btypes & ~BrowserType.Chrome) && minCVer >= /* MinEnsured$visualViewport$ */ 61) {
-      toRemovedGlobal += "visualViewport|";
-    }
-    if (!(btypes & BrowserType.Chrome || btypes & BrowserType.Firefox)) {
-      toRemovedGlobal += "WeakRef|";
-    }
-    toRemovedGlobal = toRemovedGlobal.slice(0, -1);
-    toRemovedGlobal = toRemovedGlobal && new RegExp(`(const|let|var|,)\\s?(${toRemovedGlobal})[,;]\n?\n?`, "g");
-    let n = 0, remove = str => str[0] === "," ? str.slice(-1) : str.slice(-1) === "," ? str.split(/\s/)[0] + " " : "";
-    get()
-    let s1 = contents.slice(0, 1000);
-    for (; ; n++) {
-      let s2 = s1.replace(toRemovedGlobal, remove);
-      if (s2.length === s1.length) {
-        break;
-      }
-      s1 = s2;
-    }
-    if (n > 0) {
-      contents = s1 + contents.slice(1000);
+    const result = skip_declaring_known_globals(btypes, minCVer, () => (get(), contents))
+    if (result != null) {
+      contents = result
     }
   }
   if (locally ? doesMinifyLocalFiles : allPathStr.includes("pages/")) {
@@ -769,6 +735,11 @@ const beforeTerser = exports.beforeTerser = (file) => {
       fill_global_defs(known_defs, getBuildItem("BTypes"))
     }
     contents = replace_global_defs(known_defs, contents)
+  }
+  var noAppendChild = !(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsured$ParentNode$$appendAndPrepend */ 54;
+  if (noAppendChild && (allPathStr.includes("front/") || allPathStr.includes("pages/"))) {
+    get();
+    contents = contents.replace(/\bappendChild\b(?!\.call\([\w.]*doc)/g, "append");
   }
   if (oldLen > 0 && contents.length !== oldLen) {
     file.contents = ToBuffer(contents);
@@ -792,7 +763,9 @@ const postTerser = exports.postTerser = async (terserConfig, file, allPaths) => 
     get();
     contents = patchExtendClick(contents);
   }
-  if (allPathStr.includes("content/") || allPathStr.includes("lib/") && !allPathStr.includes("/env.js")) {
+  if (locally
+      && (allPathStr.includes("content/") || allPathStr.includes("lib/") && !allPathStr.includes("/env.js")
+          || allPathStr.includes("background/"))) {
     get();
     contents = addMetaData(file.relative, contents)
   }

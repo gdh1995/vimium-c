@@ -100,7 +100,7 @@ var writeFile = function(path, data, writeBom) {
   try {
   if (!skip) {
     if (doesMinifyLocalFiles && isJS) {
-      data = await getTerser()(data);
+      data = await getTerser()(data, null, path);
       if (path.indexOf("extend_click.") >= 0) {
         var patched = lib.patchExtendClick(data, true);
         data = typeof patched === "string" ? patched : patched[0] + patched[1] + patched[2];
@@ -130,6 +130,7 @@ var writeFile = function(path, data, writeBom) {
 /** @type {import("./dependencies").TerserOptions | null} */
 var defaultTerserConfig = null;
 var known_defs = null
+var other_consts = null
 var getTerser = function() {
   var terser;
   try {
@@ -140,7 +141,7 @@ var getTerser = function() {
     console.log("Can not load terser, so skip minifying JS")
     minify = function(data) { return Promise.resolve(data); };
   } else {
-    minify = function(data, config) {
+    minify = function(data, config, path) {
       config || (config = getDefaultTerserConfig());
       data = lib.replace_global_defs(known_defs, data)
       var output = terser.minify(data, config);
@@ -153,8 +154,11 @@ var getTerser = function() {
         output.error ? reject(output.error) : resolve(output);
       })).then(function (output) {
         data = output.code;
-        if (config.ecma && config.ecma >= 2017) {
+        if ((path.includes("front/") || path.includes("pages/")) && config.ecma && config.ecma >= 2017) {
           data = data.replace(/\bappendChild\b(?!`|\.call\([\w.]*doc)/g, "append");
+        }
+        if (path.includes("/env")) {
+          data = lib.skip_declaring_known_globals(other_consts.BTypes, other_consts.MinCVer, () => data) || data
         }
         return data.replace(/![01]\b/g, s => s === "!0")
       });
@@ -177,11 +181,16 @@ function getDefaultTerserConfig() {
   }
   if (!known_defs) {
     known_defs = {}
+    other_consts = {}
     var _buildConfigTSContent = lib.readFile(root + "typings/build/index.d.ts")
     _buildConfigTSContent.replace(/\b([A-Z]\w+)\s?=\s?([^,}]+)/g, function(_, key, literalVal) {
       if (key === "BTypes") {
         lib.fill_global_defs(known_defs, +literalVal)
       }
+      try {
+        literalVal = JSON.parse(literalVal)
+        other_consts[key] = literalVal
+      } catch (e) {}
       return ""
     });
   }

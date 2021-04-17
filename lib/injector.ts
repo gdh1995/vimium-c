@@ -160,15 +160,20 @@ if (document.readyState !== "loading") {
     }
     function doReload(): void {
       const docEl = document.documentElement as HTMLHtmlElement | null;
-      if (!docEl) { return; }
+      const parentNode = document.head || document.body || docEl
       const script = document.createElement("script");
+      if (!parentNode) { return }
       script.type = "text/javascript";
       script.async = false;
       script.src = scriptSrc;
       console.log("%cVimium C%c begins to reload%s."
         , "color:red", "color:auto"
         , isAsync === InjectorTask.reload ? " because it has been updated." : "");
-      (document.head || document.body || docEl).appendChild(script);
+      if (Build.BTypes && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
+        parentNode.appendChild(script)
+      } else {
+        parentNode.append!(script)
+      }
     }
     isAsync ? setTimeout(doReload, 200) : doReload();
   };

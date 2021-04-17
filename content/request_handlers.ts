@@ -12,7 +12,7 @@ import {
 } from "../lib/dom_utils"
 import {
   port_callbacks, post_, safePost, set_requestHandlers, requestHandlers, hookOnWnd, set_hookOnWnd,
-  contentCommands_,
+  HookAction, contentCommands_,
 } from "./port"
 import {
   addUIElement, adjustUI, createStyle, getParentVApi, getBoxTagName_cr_, setUICSS, ui_box, evalIfOK, checkHidden,
@@ -29,7 +29,7 @@ import {
   exitGrab, grabBackFocus, insertInit, set_grabBackFocus, onFocus, onBlur, insert_Lock_, raw_insert_lock
 } from "./insert"
 import { onActivate } from "./scroller"
-import { omni_status, omni_box } from "./omni"
+import { Status as VomnibarStatus, omni_status, omni_box } from "./omni"
 
 let framemask_more = false
 let framemask_node: HTMLDivElement | null = null
@@ -286,7 +286,7 @@ export const focusAndRun = (cmd?: FgCmdAcrossFrames, options?: FgOptions, count?
   let oldOnWndFocus = onWndFocus, failed = true;
   set_onWndFocus((): void => { failed = false })
   if (OnFirefox) {
-    omni_status === VomnibarNS.Status.Showing && omni_box!.blur()
+    omni_status === VomnibarStatus.Showing && omni_box!.blur()
     // cur is safe because on Firefox
     const cur = activeEl_unsafe_() as SafeElement | null;
     cur && isIFrameElement(cur) && cur.blur()

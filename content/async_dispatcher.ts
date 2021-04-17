@@ -5,12 +5,25 @@ import {
   IsInDOM_, activeEl_unsafe_, isInTouchMode_cr_, MDW, htmlTag_, CLK, attr_s, contains_s, focus_, fullscreenEl_unsafe_
 } from "../lib/dom_utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
-import { center_, getVisibleClientRect_, view_ } from "../lib/rect"
+import { Point2D, center_, getVisibleClientRect_, view_ } from "../lib/rect"
 import { insert_Lock_ } from "./insert"
 import { post_ } from "./port"
 import { flash_, moveSel_s_throwable } from "./dom_ui"
 import { hintApi } from "./link_hints"
 import { beginToPreventClick_ff, wrappedDispatchMouseEvent_ff } from "./extend_click_ff"
+
+export declare const enum kClickAction {
+  none = 0,
+  /** should only be used on Firefox */ plainMayOpenManually = 1,
+  forceToOpenInNewTab = 2, forceToOpenInLastWnd = 4, newTabFromMode = 8,
+  openInNewWindow = 16,
+  // the 1..MaxOpenForAnchor before this line should always mean HTML <a>
+  MinNotPlainOpenManually = 2, MaxOpenForAnchor = 31,
+  BaseMayInteract = 32, FlagDblClick = 1, FlagInteract = 2, MaxNeverInteract = BaseMayInteract + 4,
+}
+export declare const enum kClickButton { none = 0, primary = 1, second = 2, primaryAndTwice = 4 }
+type AcceptableClickButtons = kClickButton.none | kClickButton.second | kClickButton.primaryAndTwice
+type MyMouseControlKeys = [ altKey: boolean, ctrlKey: boolean, metaKey: boolean, shiftKey: boolean ]
 
 type kMouseMoveEvents = "mouseover" | "mouseenter" | "mousemove" | "mouseout" | "mouseleave"
 type kMouseClickEvents = "mousedown" | "mouseup" | "click" | "auxclick" | "dblclick"

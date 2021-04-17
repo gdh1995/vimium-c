@@ -1,4 +1,10 @@
-/// <reference path="../lib/base.d.ts" />
+/// <reference path="../lib/base.omni.d.ts" />
+// eslint-disable-next-line no-var
+declare var VApi: VApiTy
+// eslint-disable-next-line no-var
+declare var parent: unknown
+
+const enum SimpleKeyResult { Nothing, Suppress, Prevent }
 interface SuggestionE extends Readonly<CompletersNS.BaseSuggestion> {
   favIcon?: string;
   label?: string;
@@ -209,7 +215,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   barCls_: null as never as DOMTokenList,
   isSelOriginal_: true,
   lastKey_: kKeyCode.None,
-  keyResult_: HandlerResult.Nothing,
+  keyResult_: SimpleKeyResult.Nothing,
   list_: null as never as EnsuredMountedHTMLElement,
   onUpdate_: null as (() => void) | null,
   doEnter_: null as ((this: void) => void) | null,
@@ -573,7 +579,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       a.inAlt_ && !a._modifierKeys[Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
             && Build.BTypes & BrowserType.Chrome ? event.key || "" : event.key!] && a.toggleAlt_(0);
       a.keyResult_ = focused && !(n === kKeyCode.menuKey && a.os_) && n !== kKeyCode.ime
-          ? HandlerResult.Suppress : HandlerResult.Nothing;
+          ? SimpleKeyResult.Suppress : SimpleKeyResult.Nothing;
       return;
     }
     let action: AllowedActions = AllowedActions.nothing, ind: number;
@@ -612,7 +618,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         return a.onBashAction_(char.length === 1
             ? char.charCodeAt(0) - (kCharCode.maxNotAlphabet | kCharCode.CASE_DELTA) : -1);
       }
-      if (mainModifier === "a-") { a.keyResult_ = HandlerResult.Nothing; return; }
+      if (mainModifier === "a-") { a.keyResult_ = SimpleKeyResult.Nothing; return; }
     }
     if (char === kChar.enter) {
       if (event.key === "Enter" || n === kKeyCode.enter) {
@@ -637,7 +643,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           && char === kChar.backspace && !a.os_) {
         return a.onBashAction_(-1);
       } else if (char === kChar.delete) {
-        a.keyResult_ = HandlerResult.Suppress;
+        a.keyResult_ = SimpleKeyResult.Suppress;
       } else {
         action = char === kChar.bracketLeft ? AllowedActions.dismiss
           : char === kChar.bracketRight ? AllowedActions.toggle
@@ -649,11 +655,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     else if (action = a.normalMap_[char] || AllowedActions.nothing) { /* empty */ }
     else if (char > kChar.maxNotF_num && char < kChar.minNotF_num) { // "f" + N
-      a.keyResult_ = HandlerResult.Nothing;
+      a.keyResult_ = SimpleKeyResult.Nothing;
       return;
     }
     else if (n === kKeyCode.backspace) {
-      if (focused) { a.keyResult_ = HandlerResult.Suppress; }
+      if (focused) { a.keyResult_ = SimpleKeyResult.Suppress; }
       return;
     }
     else if (char !== kChar.space) { /* empty */ }
@@ -668,7 +674,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
 
     if (focused || char.length !== 1 || isNaN(ind = parseInt(char, 10))) {
       a.keyResult_ = (focused ? !(n === kKeyCode.menuKey && a.os_) : key.length > 1)
-          ? HandlerResult.Suppress : HandlerResult.Nothing;
+          ? SimpleKeyResult.Suppress : SimpleKeyResult.Nothing;
     } else {
       ind = ind || 10;
       if (ind <= a.completions_.length) {
@@ -827,14 +833,14 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
   onClick_ (event: MouseEventToPrevent): void {
     const a = Vomnibar_;
-    let el: SafeHTMLElement | null = event.target as SafeHTMLElement;
+    let el: HTMLElement | null = event.target as HTMLElement;
     if ((Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
           : event.isTrusted === false || !(event instanceof MouseEvent))
         || event.button
         || el === a.input_ || getSelection().type === "Range") { return; }
     if (el === a.input_.parentElement) { return a.focus_(); }
     if (a.timer_) { VUtils_.Stop_(event, 1); return; }
-    while (el && el.parentElement !== a.list_) { el = el.parentElement as SafeHTMLElement | null; }
+    while (el && el.parentElement !== a.list_) { el = el.parentElement as HTMLElement | null; }
     if (!el) { return; }
     a.lastKey_ = kKeyCode.None;
     a.onEnter_(<number> <boolean|number> event.altKey |
@@ -843,11 +849,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       (<number> <boolean|number> event.shiftKey * 8), ([] as Node[]).indexOf.call(a.list_.children, el));
   },
   OnMenu_ (this: void, event: Event): void {
-    let el = event.target as SafeHTMLElement, item: Element | null, Anchor = HTMLAnchorElement;
-    if (!(el instanceof Anchor)) { el = el.parentElement as SafeHTMLElement; }
+    let el = event.target as HTMLElement, item: Element | null, Anchor = HTMLAnchorElement;
+    if (!(el instanceof Anchor)) { el = el.parentElement as HTMLElement; }
     if (!(el instanceof Anchor) || el.href) { return; }
     for (item = el; item && item.parentElement !== Vomnibar_.list_;
-          item = item.parentElement as SafeHTMLElement | null) {
+          item = item.parentElement as HTMLElement | null) {
       /* empty */
     }
     const _i = ([] as Array<Node | null>).indexOf.call(Vomnibar_.list_.children, item);
@@ -1263,7 +1269,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   HandleKeydown_ (this: void, event: KeyboardEventToPrevent): void {
     if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
         : event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)) { return; }
-    Vomnibar_.keyResult_ = HandlerResult.Prevent as HandlerResult;
+    Vomnibar_.keyResult_ = SimpleKeyResult.Prevent as SimpleKeyResult;
     if (window.onkeyup) {
       let keyCode = event.keyCode, stop = !event.repeat, now = 0;
       if (!Vomnibar_.lastScrolling_) {
@@ -1277,8 +1283,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     } else if (Vomnibar_.isActive_) {
       Vomnibar_.onKeydown_(event);
     }
-    if (Vomnibar_.keyResult_ === HandlerResult.Nothing) { return; }
-    VUtils_.Stop_(event, Vomnibar_.keyResult_ === HandlerResult.Prevent);
+    if (Vomnibar_.keyResult_ === SimpleKeyResult.Nothing) { return; }
+    VUtils_.Stop_(event, Vomnibar_.keyResult_ === SimpleKeyResult.Prevent);
   },
   toggleAlt_ (enable: /** disable */ 0 | /** enable */ -1 | KeyboardEvent): void {
     const inAlt = Vomnibar_.inAlt_;

@@ -31,6 +31,21 @@ import { post_, send_ } from "./port"
 import { insert_Lock_, setupSuppress } from "./insert"
 import { lastHovered_, set_lastHovered_, select_ } from "./async_dispatcher"
 
+export declare const enum FindAction {
+  PassDirectly = -1,
+  DoNothing = 0, Exit, ExitNoAnyFocus, ExitNoFocus, ExitUnexpectedly,
+  MaxExitButNoWork = ExitUnexpectedly, MinExitAndWork,
+  ExitAndReFocus = MinExitAndWork, ExitToPostMode,
+  MinNotExit, CtrlDelete = MinNotExit,
+}
+interface ExecuteOptions extends Partial<Pick<CmdOptions[kFgCmd.findMode], "c">> {
+  /** highlight */ h?: [number, number] | false;
+  /** ignore$hasResult */ i?: 1;
+  /** just inputted */ j?: 1;
+  noColor?: BOOL | boolean
+  caseSensitive?: boolean;
+}
+
 let isActive = false
 let query_ = ""
 let query0_ = ""
@@ -186,7 +201,7 @@ export const onLoad = (later?: Event): void => {
     } catch {}
     if (!innerDoc_) {
       if (isActive) {
-        deactivate(FindNS.Action.ExitUnexpectedly)
+        deactivate(FindAction.ExitUnexpectedly)
         hudTip(kTip.findFrameFail, 2000)
       }
       return
@@ -324,7 +339,7 @@ const onIframeFocus = function (this: Window, event: Event): void {
 
 const onIframeUnload = (e: Event): void => {
   isActive && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted ? !e.isTrusted : e.isTrusted === false)
-  && deactivate(FindNS.Action.ExitUnexpectedly)
+  && deactivate(FindAction.ExitUnexpectedly)
 }
 
 const doFocus = (): void => {
@@ -387,19 +402,18 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
     if (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted
         ? !event.isTrusted : event.isTrusted === false) { return; }
     if (n === kKeyCode.ime || scroll_keyIsDown && onScrolls(event) || event.type === "keyup") { return; }
-    type Result = FindNS.Action;
     const eventWrapper: HandlerNS.Event = {c: kChar.INVALID, e: event, i: n},
     key = getMappedKey(eventWrapper, kModeId.Find), keybody = keybody_(key);
-    const i: Result | KeyStat = key.includes("a-") && event.altKey ? FindNS.Action.DoNothing
+    const i: FindAction | KeyStat = key.includes("a-") && event.altKey ? FindAction.DoNothing
       : keybody === ENTER
-        ? key > "s" ? FindNS.Action.PassDirectly
-          : (query_ && post_({ H: kFgReq.findQuery, q: query0_ }), FindNS.Action.ExitToPostMode)
+        ? key > "s" ? FindAction.PassDirectly
+          : (query_ && post_({ H: kFgReq.findQuery, q: query0_ }), FindAction.ExitToPostMode)
       : keybody !== DEL && keybody !== BSP
-        ? isEscape_(key) ? FindNS.Action.ExitAndReFocus : FindNS.Action.DoNothing
+        ? isEscape_(key) ? FindAction.ExitAndReFocus : FindAction.DoNothing
       : OnFirefox && fgCache.o === kOS.unixLike && "cs".includes(key[0])
-        ? FindNS.Action.CtrlDelete
-      : query_ || (n === kKeyCode.deleteKey && fgCache.o || event.repeat) ? FindNS.Action.PassDirectly
-      : FindNS.Action.Exit;
+        ? FindAction.CtrlDelete
+      : query_ || (n === kKeyCode.deleteKey && fgCache.o || event.repeat) ? FindAction.PassDirectly
+      : FindAction.Exit;
     let h = HandlerResult.Prevent, scroll: number;
     if (!i) {
       if (keybody !== key) {
@@ -434,13 +448,13 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
         }
       }
       else { h = HandlerResult.Suppress; }
-    } else if (i === FindNS.Action.PassDirectly) {
+    } else if (i === FindAction.PassDirectly) {
       h = HandlerResult.Suppress;
     }
     h < HandlerResult.Prevent || prevent_(event);
-    if (i < FindNS.Action.DoNothing + 1) { return; }
+    if (i < FindAction.DoNothing + 1) { return; }
     keydownEvents_[n] = 1;
-    if (OnFirefox && i === FindNS.Action.CtrlDelete) {
+    if (OnFirefox && i === FindAction.CtrlDelete) {
       const sel = getSelectionOf(innerDoc_)!
       // on Chrome 79 + Win 10 / Firefox 69 + Ubuntu 18, delete a range itself
       // while on Firefox 70 + Win 10 it collapses first
@@ -469,7 +483,7 @@ const onHostKeydown = (event: HandlerNS.Event): HandlerResult => {
     }
     if (!insert_Lock_() && isEscape_(key)) {
       prevent_(event.e); // safer
-      deactivate(FindNS.Action.ExitNoFocus) // should exit
+      deactivate(FindAction.ExitNoFocus) // should exit
       return HandlerResult.Prevent;
     }
     return HandlerResult.Nothing;
@@ -479,17 +493,17 @@ const onHostKeydown = (event: HandlerNS.Event): HandlerResult => {
    * * press <Enter> on HUD to exit FindMode
    * * a host script has removed all ranges
    */
-export const deactivate = (i: FindNS.Action): void => {
+export const deactivate = (i: FindAction): void => {
     let sin = styleSelColorIn, noStyle = !sin || !parentNode_unsafe_s(sin), hasResult = hasResults
-      , maxNotRunPost = postOnEsc ? FindNS.Action.ExitAndReFocus - 1 : FindNS.Action.ExitToPostMode - 1
+      , maxNotRunPost = postOnEsc ? FindAction.ExitAndReFocus - 1 : FindAction.ExitToPostMode - 1
       , el: SafeElement | null | undefined, el2: Element | null;
-    i === FindNS.Action.ExitNoAnyFocus ? hookSel(1) : focus()
+    i === FindAction.ExitNoAnyFocus ? hookSel(1) : focus()
     clear()
-    if (i > FindNS.Action.MaxExitButNoWork) {
+    if (i > FindAction.MaxExitButNoWork) {
       el = getSelectionFocusEdge_(getSelected())
       el && focus_(el)
     }
-    if ((i === FindNS.Action.ExitAndReFocus || !hasResult || visual_mode) && !noStyle) {
+    if ((i === FindAction.ExitAndReFocus || !hasResult || visual_mode) && !noStyle) {
       toggleStyle(1)
       restoreSelection(true)
     }
@@ -497,9 +511,9 @@ export const deactivate = (i: FindNS.Action): void => {
       visualActivate(safer<CmdOptions[kFgCmd.visualMode]>({ r: true }))
       return;
     }
-    if (i > FindNS.Action.MaxExitButNoWork && hasResult && (!el || el !== insert_Lock_())) {
+    if (i > FindAction.MaxExitButNoWork && hasResult && (!el || el !== insert_Lock_())) {
       let container = focusFoundLinkIfAny()
-      if (container && i === FindNS.Action.ExitAndReFocus && (el2 = activeEl_unsafe_())
+      if (container && i === FindAction.ExitAndReFocus && (el2 = activeEl_unsafe_())
           && getEditableType_<0>(el2) > EditableType.TextBox - 1 && contains_s(container, el2)) {
         prepareCrop_();
         select_(el2 as LockableElement).then((): void => {
@@ -722,7 +736,7 @@ const restoreSelection = (isCur?: boolean): void => {
 const highlightInViewport = (): void => {
   prepareCrop_(1)
   const oldActiveRegexIndex = activeRegexIndex
-  const opt: FindNS.ExecuteOptions = { h: [scrollX, scrollY], i: 1 }
+  const opt: ExecuteOptions = { h: [scrollX, scrollY], i: 1 }
   const sel = getSelected(), range = selRange_(sel)
   range && collpaseSelection(sel)
   let arr = executeFind("", opt), el: LockableElement | null
@@ -740,7 +754,7 @@ const highlightInViewport = (): void => {
   const timer = timeout_(highlighting = () => { highlighting = null; clearTimeout_(timer); cbs.map(callFunc) }, 2400)
 }
 
-export const executeFind = (query: string | null, options: FindNS.ExecuteOptions): Rect[] => {
+export const executeFind = (query: string | null, options: ExecuteOptions): Rect[] => {
 /**
  * According to https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/editor.cc?q=FindRangeOfString&g=0&l=815 ,
  * the range to find is either `[selection..docEnd]` or `[docStart..selection]`,

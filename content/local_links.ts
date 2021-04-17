@@ -1,22 +1,17 @@
-import Filter = HintsNS.Filter
-import ClickType = HintsNS.ClickType
-type HintSources = readonly SafeElement[] | NodeListOf<SafeElement>;
-type NestedFrame = false | 0 | null | KnownIFrameElement
-
 import {
   clickable_, isJSUrl, doc, isImageUrl, fgCache, readyState_, chromeVer_, VTr, createRegExp, unwrap_ff, max_, OnChrome,
   math, includes_, OnFirefox, OnEdge, WithDialog, safeCall
 } from "../lib/utils"
 import {
   isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, findMainSummary_, htmlTag_, isAriaNotTrue_,
-  NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, notSafe_not_ff_, docEl_unsafe_,
+  kMediaTag, kAria, NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, notSafe_not_ff_, docEl_unsafe_,
   GetParent_unsafe_, unsafeFramesetTag_old_cr_, isHTML_, querySelectorAll_unsafe_, isNode_, INP, attr_s,
   getMediaTag, getMediaUrl, contains_s, GetShadowRoot_, parentNode_unsafe_s, ElementProto
 } from "../lib/dom_utils"
 import {
   getVisibleClientRect_, getZoomedAndCroppedRect_, getClientRectsForAreas_, getCroppedRect_, padClientRect_,
   getBoundingClientRect_, cropRectToVisible_, bZoom_, set_bZoom_, prepareCrop_, wndSize_, isContaining_,
-  isDocZoomStrange_, docZoom_, SubtractSequence_, dimSize_,
+  isDocZoomStrange_, docZoom_, SubtractSequence_, dimSize_, ViewBox
 } from "../lib/rect"
 import { find_box } from "./mode_find"
 import { omni_box } from "./omni"
@@ -26,6 +21,17 @@ import {
 } from "./link_hints"
 import { shouldScroll_s, getPixelScaleToScroll, scrolled, set_scrolled, suppressScroll } from "./scroller"
 import { ui_root, ui_box, helpBox, curModalElement } from "./dom_ui"
+
+export declare const enum ClickType {
+  Default = 0, edit = 1,
+  MaxNotWeak = 1, attrListener = 2, MinWeak = 2, codeListener = 3, classname = 4, tabindex = 5, MaxWeak = 5,
+  MinNotWeak = 6, // should <= MaxNotBox
+  MaxNotBox = 6, frame = 7, scrollX = 8, scrollY = 9,
+}
+type Filter<T> = (hints: T[], element: SafeHTMLElement) => void
+type AllowedClickTypeForNonHTML = ClickType.attrListener | ClickType.tabindex
+type HintSources = readonly SafeElement[] | NodeListOf<SafeElement>
+type NestedFrame = false | 0 | null | KnownIFrameElement
 
 let frameNested_: NestedFrame = false
 let extraClickable_: ElementSet | null
@@ -313,7 +319,7 @@ const addChildTrees = (parts: HintSources, allNodes: NodeListOf<SafeElement>): H
 const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | SafeElementWithoutFormat): void => {
   const tabIndex = (element as ElementToHTMLorOtherFormatted).tabIndex
   let anotherEl: NonHTMLButFormattedElement, arr: Rect | null | undefined, s: string | null
-  let type: ClickType.Default | HintsNS.AllowedClickTypeForNonHTML = clickable_.has(element)
+  let type: ClickType.Default | AllowedClickTypeForNonHTML = clickable_.has(element)
         || extraClickable_ && extraClickable_.has(element)
         || tabIndex != null && (OnFirefox
             ? (anotherEl = unwrap_ff(element as NonHTMLButFormattedElement)).onclick || anotherEl.onmousedown
@@ -429,7 +435,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   while (0 <= --i) {
     k = list[i][2];
     notRemoveParents = k === ClickType.classname;
-    /** {@see #HintsNS.AllowedClickTypeForNonHTML} */
+    /** {@see #AllowedClickTypeForNonHTML} */
     if (!notRemoveParents) {
       if (k === ClickType.codeListener) {
         if (s = ((element = list[i][0]) as SafeHTMLElement).localName, s === "i" || s === D) {

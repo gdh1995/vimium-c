@@ -1,4 +1,3 @@
-/// <reference path="./define.ts" />
 import { CurCVer_, CurFFVer_, BG_, bgSettings_, reloadBG_, OnFirefox, OnChrome, OnEdge } from "./async_bg"
 import {
   KnownOptionsDataset,
@@ -16,6 +15,7 @@ export interface ElementWithDelay extends HTMLElement {
 export interface OptionWindow extends Window {
   _delayed: [string, MouseEventToPrevent | null];
 }
+declare var define: any
 
 const IsEdg: boolean = OnChrome && (<RegExpOne> /\sEdg\//).test(navigator.appVersion)
 

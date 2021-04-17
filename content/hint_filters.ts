@@ -1,19 +1,15 @@
-import HintItem = HintsNS.HintItem
-import FilteredHintItem = HintsNS.FilteredHintItem
-import MarkerElement = HintsNS.MarkerElement
-import ClickType = HintsNS.ClickType
-
 import { chromeVer_, createRegExp, Lower, math, max_, OnChrome, OnEdge, OnFirefox } from "../lib/utils"
 import {
   createElement_, querySelector_unsafe_, getInputType, htmlTag_, docEl_unsafe_, ElementProto, removeEl_s, ALA, attr_s,
-  contains_s, setClassName_s, setVisibility_s, toggleClass_s, textContent_s
+  contains_s, setClassName_s, setVisibility_s, toggleClass_s, textContent_s, appendNode_s
 } from "../lib/dom_utils"
 import {
+  HintItem, FilteredHintItem, MarkerElement, HintText,
   hintMode_, useFilter_, coreHints, hintKeyStatus, KeyStatus, hintChars, allHints, setMode, resetMode, hintOptions
 } from "./link_hints"
 import { bZoom_, padClientRect_, getBoundingClientRect_, dimSize_ } from "../lib/rect"
 import { BSP, DEL, ENTER, SPC } from "../lib/keyboard_utils"
-import { closableClasses_, maxLeft_, maxRight_, maxTop_ } from "./local_links"
+import { ClickType, closableClasses_, maxLeft_, maxRight_, maxTop_ } from "./local_links"
 import { ui_root } from "./dom_ui"
 import { omni_box } from "./omni"
 
@@ -161,7 +157,7 @@ export const initFilterEngine = (hints: readonly FilteredHintItem[]): void => {
   pageNumberHintArray = hints.slice(curRangeSecond - 1, curRangeSecond + curRangeCountS1)
   getMatchingHints(hintKeyStatus, "", "", 0);
 }
-export const generateHintText = (hint: Hint, hintInd: number, allItems: readonly HintItem[]): HintsNS.HintText => {
+export const generateHintText = (hint: Hint, hintInd: number, allItems: readonly HintItem[]): HintText => {
   const el = hint[0], localName = el.localName
   let text = "", show: 0 | 1 | 2 = 0, ind: number;
   if (!("lang" in el)) { // SVG elements or plain `Element` nodes
@@ -366,7 +362,7 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
  *
  * so, use `~ * 1e4` to ensure delta > 1
  */
-const scoreHint = (textHint: HintsNS.HintText, queryWordArray: readonly string[]): number => {
+const scoreHint = (textHint: HintText, queryWordArray: readonly string[]): number => {
   let hintWordArray = textHint.w!, total = 0;
   if (!hintWordArray.length) { return 0; }
   for (const search of queryWordArray) {
@@ -408,11 +404,15 @@ export const renderMarkers = (hintItemArray: readonly HintItem[]): void => {
       for (const markerChar of hint.a.slice(0, -1)) {
         const node = createElement_("span")
         node.textContent = markerChar
-        marker.appendChild(node);
+        if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
+          marker.appendChild(node)
+      } else {
+          marker.append!(node)
+        }
       }
     }
     if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend && noAppend) {
-      marker.appendChild(new Text(right)); // lgtm [js/superfluous-trailing-arguments]
+      appendNode_s(marker, new Text(right))
     } else {
       marker.append!(right);
     }

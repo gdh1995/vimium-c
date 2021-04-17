@@ -231,7 +231,7 @@ exports.readTSConfig = function (tsConfigFile, throwError) {
 }
 
 exports.loadTypeScriptCompiler = function (path, compilerOptions, cachedTypescript) {
-  if (cachedTypescript) { return; }
+  if (cachedTypescript) { return cachedTypescript; }
   var typescript1;
   path = path || compilerOptions.typescript || null;
   if (typeof path === "string") {
@@ -307,7 +307,7 @@ exports.normalizeTSConfig = function (tsconfig) {
   return opts;
 }
 
-var _mergedProject = null, _mergedProjectInput = null
+var _mergedProject5 = null, _mergedProjectInput5 = null, _mergedProject6 = null, _mergedProjectInput6 = null
 
 exports.compileTS = function (stream, options, extra, done, doesMergeProjects
     , debugging, dest, willListFiles, getBuildConfigStream, beforeCompile, outputJSResult, tsProject) {
@@ -328,11 +328,12 @@ exports.compileTS = function (stream, options, extra, done, doesMergeProjects
   }
   if (willListFiles) { stream = stream.pipe(gulpPrint()); }
   stream = stream.pipe(exports.gulpMap(beforeCompile));
-  var merged = doesMergeProjects ? _mergedProjectInput : null;
+  var es6 = !!options && options.module === "es6"
+  var merged = doesMergeProjects ? es6 ? _mergedProjectInput6 : _mergedProjectInput5 : null
   var isInitingMerged = merged == null;
   if (isInitingMerged) {
     merged = exports.gulpMerge();
-    doesMergeProjects && (_mergedProjectInput = merged);
+    doesMergeProjects && (es6 ? _mergedProjectInput6 = merged : _mergedProjectInput5 = merged)
   }
   stream.pipe(merged.attachSource());
   if (isInitingMerged) {
@@ -341,12 +342,14 @@ exports.compileTS = function (stream, options, extra, done, doesMergeProjects
       var t = file.relative, s = ".d.ts", i = t.length - s.length;
       return i < 0 || t.indexOf(s, i) !== i;
     }));
-    var project = tsProject();
+    var project = tsProject(es6);
     merged = merged.pipe(project);
-    merged = outputJSResult(merged.js);
-    _mergedProject = merged;
+    merged = outputJSResult(merged.js, es6);
+    if (doesMergeProjects) {
+      es6 ? _mergedProject6 = merged : _mergedProject5 = merged;
+    }
   }
-  merged = _mergedProject;
+  if (doesMergeProjects) { merged = es6 ? _mergedProject6 : _mergedProject5 }
   merged.on("finish", done);
 }
 

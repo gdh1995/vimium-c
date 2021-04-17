@@ -7,7 +7,7 @@ import { suppressTail_, getMappedKey } from "../lib/keyboard_utils"
 import { frameElement_, set_OnDocLoaded_ } from "../lib/dom_utils"
 import { wndSize_ } from "../lib/rect"
 import {
-  safePost, set_port_, runtime_port, SafeDestoryF, set_safeDestroy,
+  HookAction, safePost, set_port_, runtime_port, SafeDestoryF, set_safeDestroy,
   runtimeConnect, safeDestroy, post_, send_, hookOnWnd, requestHandlers, contentCommands_,
 } from "./port"
 import {

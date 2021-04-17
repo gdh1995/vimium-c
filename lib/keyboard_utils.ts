@@ -107,12 +107,11 @@ export const char_ = (eventWrapper: HandlerNS.Event): kChar => {
 
 export const keybody_ = (key: string): kChar => (key.slice(key.lastIndexOf("-") + 1) || key && kChar.minus) as kChar
 
-export const getKeyStat_ = (event: EventControlKeys): KeyStat => {
-    return <number> <boolean|number> event.altKey |
+export const getKeyStat_ = (event: Pick<KeyboardEvent, "altKey" | "ctrlKey" | "metaKey" | "shiftKey">): KeyStat =>
+    <number> <boolean|number> event.altKey |
             (<number> <boolean|number> event.ctrlKey * 2) |
             (<number> <boolean|number> event.metaKey * 4) |
             (<number> <boolean|number> event.shiftKey * 8);
-}
 
 export const isEscape_ = (key: string): HandlerResult.AdvancedEsc | HandlerResult.PlainEsc | HandlerResult.Nothing => {
     return key === kChar.esc ? HandlerResult.AdvancedEsc

@@ -1,4 +1,3 @@
-import HintItem = HintsNS.HintItem
 import {
   safer, fgCache, isImageUrl, isJSUrl, set_keydownEvents_, keydownEvents_, timeout_, doc, chromeVer_, weakRef_,
   parseSedOptions, createRegExp, isTY, max_, min_, OnFirefox, OnChrome, safeCall
@@ -6,12 +5,13 @@ import {
 import { getVisibleClientRect_, center_, view_, selRange_ } from "../lib/rect"
 import {
   IsInDOM_, createElement_, htmlTag_, getComputedStyle_, getEditableType_, isIFrameElement, GetParent_unsafe_, focus_,
-  ElementProto, querySelector_unsafe_, getInputType, uneditableInputs_, GetShadowRoot_, CLK, scrollingEl_,
+  kMediaTag, ElementProto, querySelector_unsafe_, getInputType, uneditableInputs_, GetShadowRoot_, CLK, scrollingEl_,
   findMainSummary_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s,
   setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_
 } from "../lib/dom_utils"
 import {
   hintOptions, mode1_, hintMode_, hintApi, hintManager, coreHints, setMode, detectUsableChild, hintCount_,
+  ExecutableHintItem
 } from "./link_hints"
 import { currentScrolling, set_cachedScrollable, set_currentScrolling } from "./scroller"
 import { post_, send_ } from "./port"
@@ -20,7 +20,9 @@ import {
 } from "./dom_ui"
 import { pushHandler_, removeHandler_, isEscape_, getMappedKey, prevent_, suppressTail_ } from "../lib/keyboard_utils"
 import { insert_Lock_ } from "./insert"
-import { unhover_, hover_, click_, select_, mouse_, catchAsyncErrorSilently } from "./async_dispatcher"
+import {
+  kClickAction, kClickButton, unhover_, hover_, click_, select_, mouse_, catchAsyncErrorSilently
+} from "./async_dispatcher"
 import { omni_box, focusOmni } from "./omni"
 import { execCommand } from "./mode_find"
 type LinkEl = Hint[0];
@@ -30,7 +32,7 @@ let removeFlash: (() => void) | null | undefined
 export { removeFlash }
 export function set_removeFlash (_newRmFlash: null): void { removeFlash = _newRmFlash }
 
-export const executeHintInOfficer = (hint: HintItem | Pick<HintItem, "d" | "r"> & {m?: null}
+export const executeHintInOfficer = (hint: ExecutableHintItem
     , event?: HandlerNS.Event | null | 0, knownRect?: Rect | null | 0 | false): Rect | null | undefined | 0 => {
 
 const unhoverOnEsc: HandlerNS.Handler = event => {
@@ -237,10 +239,9 @@ const copyText = (): void => {
       }
     }
   if (mode1 > HintMode.min_edit - 1 && mode1 < HintMode.max_edit + 1) {
-      let newtab = hintOptions.newtab
+      let newtab = hintOptions.newtab;
       // this frame is normal, so during Vomnibar.activate, checkHidden will only pass (in most cases)
-      type Options = FgReq[kFgReq.vomnibar] & { c: number } & Partial<VomnibarNS.ContentOptions>;
-      (post_ as ComplicatedVPort)<kFgReq.vomnibar, Options>({
+      (post_ as (req: Partial<VomnibarNS.GlobalOptions> & Req.fg<kFgReq.vomnibar>) => void | 1)({
         H: kFgReq.vomnibar,
         c: 1,
         newtab: newtab != null ? !!newtab : !isUrl,
@@ -443,7 +444,7 @@ const defaultClick = (): void => {
     } else if (m < HintMode.max_edit + 1) {
       copyText()
     } else if (m < HintMode.FOCUS_EDITABLE + 1) {
-      select_(clickEl as HintsNS.InputHintItem["d"], rect, !removeFlash)
+      select_(clickEl as LockableElement, rect, !removeFlash)
       showRect = 0
     } else { // HintMode.ENTER_VISUAL_MODE
       selectAllOfNode(clickEl)

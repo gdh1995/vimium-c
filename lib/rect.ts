@@ -5,6 +5,11 @@ import {
   IsInDOM_, scrollIntoView_, rangeCount_, removeEl_s, append_not_ff, htmlTag_
 } from "./dom_utils"
 
+declare const enum VisibilityType { Visible = 0, OutOfView = 1, NoSpace = 2 }
+export type Point2D = readonly [ left: number, top: number ]
+export type ViewBox = readonly [ left: number, top: number, width: number, height: number, maxLeft: number ]
+export type ViewOffset = readonly [ left: number, top: number ] | ViewBox
+
 let paintBox_: [number, number] | null = null // it may need to use `paintBox[] / <body>.zoom`
 let wdZoom_ = 1 // <html>.zoom * min(devicePixelRatio, 1) := related to physical pixels
 let docZoom_ = 1 // zoom of <html>

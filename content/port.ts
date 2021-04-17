@@ -11,6 +11,7 @@ export interface Port extends chrome.runtime.Port {
   postMessage<k extends keyof FgReq>(request: Req.fg<k>): 1;
   onMessage: chrome.events.Event<(message: any, port: Port, exArg: FakeArg) => void>;
 }
+export declare const enum HookAction { Install = 0, SuppressListenersOnDocument = 1, Suppress = 2, Destroy = 3 }
 export type SafeDestoryF = (silent?: boolean | BOOL | 9) => void
 
 const port_callbacks: { [msgId: number]: <k extends keyof FgRes>(this: void, res: FgRes[k]) => void } = safeObj(null)

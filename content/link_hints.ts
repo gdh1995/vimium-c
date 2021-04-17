@@ -1,6 +1,33 @@
-import HintItem = HintsNS.HintItem
-import LinkEl = HintsNS.LinkEl
-import FilteredHintItem = HintsNS.FilteredHintItem
+interface ContentOptions extends HintsNS.Options, SafeObject {}
+type LinkEl = Hint[0]
+export interface MarkerElement extends SafeHTMLElement {
+  readonly localName: "span"
+  readonly firstChild: HTMLSpanElement | Text | null
+  readonly firstElementChild: HTMLSpanElement | null
+  readonly childNodes: NodeListOf<HTMLSpanElement | Text>
+}
+export interface BaseHintItem {
+  /** marker */ m: MarkerElement | null
+  /** dest */ d: LinkEl
+}
+export interface ExecutableHintItem extends BaseHintItem {
+  /** refer */ r: HTMLElementUsingMap | LinkEl | null
+}
+export interface DrawableHintItem extends BaseHintItem { m: MarkerElement }
+export interface HintText {
+  /** rawText */ t: string
+  /** words */ w: string[] | null
+}
+export interface HintItem extends DrawableHintItem, ExecutableHintItem {
+  /** marker */ m: MarkerElement
+  /** key */ a: string
+  /** text */ h: HintText | null
+  /** score (if not filterHints, it's count of matched characters) */ i: number
+  /** zIndex */ z?: number
+}
+export interface FilteredHintItem extends HintItem { h: HintText }
+export interface InputHintItem extends DrawableHintItem { d: LockableElement }
+
 export interface KeyStatus {
     /** curHints */ c: readonly HintItem[];
     /** keySequence */ k: string;
@@ -62,7 +89,7 @@ export type AddChildIndirectly = (officer: BaseHintWorker
 import {
   VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_, max_, min_, math, OnEdge,
   clearTimeout_, fgCache, doc, readyState_, chromeVer_, vApi, deref_, getTime, weakRef_, unwrap_ff, OnFirefox, OnChrome,
-  WithDialog, Lower, safeCall
+  WithDialog, Lower, safeCall, loc_
 } from "../lib/utils"
 import {
   querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_,
@@ -70,7 +97,7 @@ import {
   getSelectionFocusEdge_, activeEl_unsafe_, SafeEl_not_ff_, rangeCount_
 } from "../lib/dom_utils"
 import {
-  getViewBox_, prepareCrop_, wndSize_, bZoom_, wdZoom_, dScale_, padClientRect_, getBoundingClientRect_,
+  ViewBox, getViewBox_, prepareCrop_, wndSize_, bZoom_, wdZoom_, dScale_, padClientRect_, getBoundingClientRect_,
   docZoom_, bScale_, dimSize_, isSelARange, getSelectionBoundingBox_,
 } from "../lib/rect"
 import {
@@ -86,7 +113,7 @@ import { hudTip, hudShow, hudHide, hud_tipTimer } from "./hud"
 import { set_onWndBlur2, insert_Lock_ } from "./insert"
 import {
   getVisibleElements, localLinkClear, frameNested_, checkNestedFrame, set_frameNested_, filterOutNonReachable, traverse,
-  getIfOnlyVisible
+  getIfOnlyVisible, ClickType
 } from "./local_links"
 import {
   matchHintsByKey, zIndexes_, rotate1, initFilterEngine, initAlphabetEngine, renderMarkers, generateHintText,
@@ -94,7 +121,7 @@ import {
 } from "./hint_filters"
 import { executeHintInOfficer, removeFlash, set_removeFlash } from "./link_actions"
 import { lastHovered_, set_lastHovered_ } from "./async_dispatcher"
-import { hookOnWnd, contentCommands_ } from "./port"
+import { HookAction, hookOnWnd, contentCommands_ } from "./port"
 
 let box_: HTMLDivElement | HTMLDialogElement | null = null
 let wantDialogMode_: boolean | null | undefined
@@ -116,7 +143,7 @@ let onTailEnter: ((this: unknown, event: HandlerNS.Event, key: string, keybody: 
 let onWaitingKey: HandlerNS.VoidHandler<HandlerResult> | null | undefined
 let isActive: BOOL = 0
 let noHUD_ = false
-let options_: HintsNS.ContentOptions = null as never
+let options_: ContentOptions = null as never
 let _timer: ValidTimeoutID = TimerID.None
 let kSafeAllSelector = OnFirefox ? "*" as const : ":not(form)" as const
 let manager_: HintManager | null = null
@@ -134,7 +161,7 @@ export function set_kSafeAllSelector (_newKSafeAll: string): void { kSafeAllSele
 export function set_isClickListened_ (_newIsClickListened: boolean): void { isClickListened_ = _newIsClickListened }
 export function set_addChildFrame_<T extends typeof addChildFrame_> (_newACF: T): void { addChildFrame_ = _newACF }
 
-export const activate = (options: HintsNS.ContentOptions, count: number, force?: 2 | TimerType.fake): void => {
+export const activate = (options: ContentOptions, count: number, force?: 2 | TimerType.fake): void => {
     if (isActive && force !== 2 || !isEnabled_) { return; }
     if (checkHidden(kFgCmd.linkHints, options, count)) {
       return clear(1)
@@ -225,7 +252,7 @@ export const activate = (options: HintsNS.ContentOptions, count: number, force?:
     }
 }
 
-const collectFrameHints = (options: HintsNS.ContentOptions, count: number
+const collectFrameHints = (options: ContentOptions, count: number
       , chars: string, useFilter: boolean, outerView: Rect | null
       , manager: HintManager | null, frameInfo: FrameHintsInfo
       , newAddChildFrame: AddChildDirectly): void => {
@@ -267,7 +294,9 @@ const collectFrameHints = (options: HintsNS.ContentOptions, count: number
 const render = (hints: readonly HintItem[], arr: ViewBox, raw_apis: VApiTy): void => {
     const managerOrA = manager_ || coreHints;
     let body = doc.body
-    manager_ && body && htmlTag_(body) && body.isContentEditable && hookOnWnd(HookAction.Install)
+    if (manager_ && (body && htmlTag_(body) && body.isContentEditable || loc_.href.startsWith("about"))) {
+      hookOnWnd(HookAction.Install)
+    }
     removeBox()
     api_ = OnFirefox && manager_ ? unwrap_ff(raw_apis) : raw_apis
     ensureBorder(wdZoom_ / dScale_);
@@ -324,7 +353,7 @@ const getPreciseChildRect = (frameEl: KnownIFrameElement, view: Rect): Rect | nu
         l: (l - x0) * zoom, t: (t - y0) * zoom, r: (r - x0) * zoom, b: (b - y0) * zoom} : null;
     let hints: Hint[] | null;
     return !cropped || fgCache.e && !(
-        filterOutNonReachable(hints = [[frameEl as SafeHTMLElement, {l, t, r, b}, HintsNS.ClickType.frame]]),
+        filterOutNonReachable(hints = [[frameEl as SafeHTMLElement, {l, t, r, b}, ClickType.frame]]),
         hints.length) ? null : cropped
 }
 
@@ -447,7 +476,7 @@ const rotateHints = (reverse: boolean, list: FrameHintsInfo): void => {
   list.s.t(list.h, reverse, !keyStatus_.k && !keyStatus_.t)
 }
 
-const callExecuteHint = (hint: HintItem, event?: HandlerNS.Event): void => {
+const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): void => {
   const selectedHintWorker = locateHint(hint), clickEl = weakRef_(hint.d),
   result = selectedHintWorker.e(hint, event)
   result !== 0 && timeout_((): void => {
@@ -468,12 +497,12 @@ const callExecuteHint = (hint: HintItem, event?: HandlerNS.Event): void => {
   }, isActive = 0)
 }
 
-const activateDirectly = (options: HintsNS.ContentOptions, count: number) => {
+const activateDirectly = (options: ContentOptions, count: number) => {
   const d = options.direct! as string, match = options.match, elIndex = options.index,
   allTypes = (d as typeof options.direct) === !0, mode = options.m &= ~HintMode.queue,
   next = (): void => {
     let rect: ClientRect | 0, sel: Selection
-    IsInDOM_(el!) && (coreHints.e({d: el as LinkEl, r: null}, 0
+    IsInDOM_(el!) && (coreHints.e({d: el as LinkEl, r: null, m: null}, 0
       , isSel && (sel = getSelected(), rect = rangeCount_(sel) && getSelectionBoundingBox_(sel),
                   rect && padClientRect_(rect))
     ), --count > 0)
@@ -504,11 +533,11 @@ const activateDirectly = (options: HintsNS.ContentOptions, count: number) => {
   }
 }
 
-const locateHint = (matchedHint: HintItem): BaseHintWorker => {
+const locateHint = (matchedHint: ExecutableHintItem): BaseHintWorker => {
     /** safer; necessary since {@link #highlightChild} calls {@link #detectUsableChild} */
   for (var i = frameArray.length; 0 < --i; ) {
     if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
-        ? frameArray[i].h.indexOf(matchedHint) >= 0 : frameArray[i].h.includes!(matchedHint)) {
+        ? frameArray[i].h.indexOf(matchedHint as HintItem) >= 0 : frameArray[i].h.includes!(matchedHint as HintItem)) {
       break
     }
   }
@@ -530,7 +559,7 @@ export const resetMode = (silent?: BOOL): void => {
     }
 }
 
-const delayToExecute = (officer: BaseHintWorker, hint: HintItem, flashEl: SafeHTMLElement | null): void => {
+const delayToExecute = (officer: BaseHintWorker, hint: ExecutableHintItem, flashEl: SafeHTMLElement | null): void => {
     const waitEnter = OnChrome && fgCache.w,
     callback = (event?: HandlerNS.Event, key?: string, keybody?: string): void => {
       let closed: void | 1 | 2
@@ -729,7 +758,7 @@ export const detectUsableChild = (el: KnownIFrameElement): VApiTy | null => {
   return err ? null : childEvents || null;
 }
 
-export const doesWantToReloadLinkHints = (reason: NonNullable<HintsNS.Options["autoReload"]>) => {
+export const doesWantToReloadLinkHints = (reason: NonNullable<ContentOptions["autoReload"]>) => {
   const conf = options_.autoReload
   return !conf || Lower(conf).includes(reason)
 }

@@ -1,5 +1,4 @@
 /// <reference path="../lib/base.d.ts" />
-/// <reference path="./define.ts" />
 interface VDataTy2 extends VDataTy {
   type: "image" | "url" | "";
   original: string;
@@ -17,6 +16,8 @@ interface KnownShowDataset extends KnownDataset {
 }
 
 import { CurCVer_, CurFFVer_, BG_, OnChrome, OnFirefox, OnEdge } from "./async_bg"
+declare var define: any
+declare var __filename: string | null | undefined
 
 let VData: VDataTy2 = null as never
 

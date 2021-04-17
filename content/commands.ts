@@ -24,9 +24,11 @@ import {
 } from "./dom_ui"
 import { hudHide, hudShow, hudTip, hud_text } from "./hud"
 import { onKeyup2, set_onKeyup2, passKeys, set_nextKeys, set_passKeys, keyFSM } from "./key_handler"
-import { activate as linkActivate, clear as linkClear, kSafeAllSelector } from "./link_hints"
+import { InputHintItem, activate as linkActivate, clear as linkClear, kSafeAllSelector } from "./link_hints"
 import { activate as markActivate, gotoMark } from "./marks"
-import { activate as findActivate, deactivate as findDeactivate, execCommand, styleSelColorOut } from "./mode_find"
+import {
+  FindAction, activate as findActivate, deactivate as findDeactivate, execCommand, styleSelColorOut
+} from "./mode_find"
 import {
   exitInputHint, insert_inputHint, insert_last_, raw_insert_lock, insert_Lock_, resetInsert, set_is_last_mutable,
   set_inputHint, set_insert_global_, set_isHintingInput, set_insert_last_, onWndBlur, exitPassMode, set_exitPassMode,
@@ -81,7 +83,7 @@ set_contentCommands_([
     if (opt.r) {
       set_cachedScrollable(0), set_currentScrolling(null), set_lastHovered_(null)
       resetInsert(), linkClear((2 - opt.r) as BOOL), visualDeactivate()
-      styleSelColorOut && findDeactivate(FindNS.Action.ExitNoAnyFocus)
+      styleSelColorOut && findDeactivate(FindAction.ExitNoAnyFocus)
       omniHide(), hideHelp && hideHelp()
       onWndBlur()
     }
@@ -224,9 +226,9 @@ set_contentCommands_([
       }
     }
     insert_inputHint && (insert_inputHint.h = null as never);
-    const arr: ViewOffset = getViewBox_();
+    const arr = getViewBox_()
     prepareCrop_(1);
-    interface BaseInputHint { [0]: HintsNS.InputHintItem["d"]; [1]: Rect }
+    interface BaseInputHint { [0]: InputHintItem["d"]; [1]: Rect }
     type InputHintInList = Hint & BaseInputHint
     interface InputHint extends InputHintInList {}
     // here those editable and inside UI root are always detected, in case that a user modifies the shadow DOM
@@ -260,6 +262,7 @@ set_contentCommands_([
     }
     if (firstElement = firstInput[0], sel < 2) {
       exitInputHint();
+      /** @todo: call view_ and use jumpToNextLink */
       getEditableType_<0>(firstElement) > EditableType.TextBox - 1
       ? select_(firstElement, firstInput[1], true, action, true) : click_(firstElement, null, true)
       return
@@ -279,10 +282,10 @@ set_contentCommands_([
           : (OnChrome ? Build.MinCVer >= BrowserVer.MinStableSort : !OnEdge)
           ? j : j + ind / 8192;
     }
-    const hints: HintsNS.InputHintItem[] = visibleInputs.sort(
+    const hints: InputHintItem[] = visibleInputs.sort(
         (a, b) => a[2] < 1 || b[2] < 1 ? b[2] - a[2] : a[2] - b[2]).map(
-          (link): HintsNS.InputHintItem => {
-      const marker = createElement_("span") as HintsNS.BaseHintItem["m"],
+          (link): InputHintItem => {
+      const marker = createElement_("span") as InputHintItem["m"],
       rect = padClientRect_(getBoundingClientRect_(link[0]), 3);
       rect.l--, rect.t--, rect.r--, rect.b--;
       setClassName_s(marker, "IH")

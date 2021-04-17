@@ -7,17 +7,7 @@
   },
   "include": [
     "*.ts",
-    "../lib/injector.ts",
-    "../pages/*.ts"
-  ],
-  "exclude": [
-    "../pages/dialog_ui*.ts",
-    "../pages/define.ts",
-    "../pages/async_bg.ts",
-    "../pages/loader.ts",
-    "../pages/newtab*.ts",
-    "../pages/options*.ts",
-    "../pages/show.ts"
+    "../lib/injector.ts"
   ],
   "extends": "../tsconfig.json"
 }

@@ -1,6 +1,3 @@
-interface HTMLScriptElement {
-  noModule?: boolean
-}
 /** limitation: file names must be unique */
 var define: any
 var __filename: string | null | undefined

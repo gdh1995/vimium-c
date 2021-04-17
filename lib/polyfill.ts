@@ -1,5 +1,4 @@
-/// <reference no-default-lib="true"/>
-/// <reference lib="es6" />
+// DO NOT USE `no-default-lib` - tsc.js will not output into the corresponding JS file if with it
 
 (function (): void {
   type primitiveObject = boolean | number | string;

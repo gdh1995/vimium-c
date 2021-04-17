@@ -15,11 +15,6 @@ declare const enum HandlerResult {
   PlainEsc = 4, MaxNotEsc = 3,
   AdvancedEsc = 5,
 }
-declare const enum VisibilityType {
-  Visible = 0,
-  OutOfView = 1,
-  NoSpace = 2,
-}
 declare const enum kHandler {
   linkHints, omni, find, visual, marks,
   postFind, unhoverOnEsc, grabBackFocus, helpDialog, focusInput,
@@ -43,24 +38,6 @@ declare namespace HandlerNS {
 
 interface KeydownCacheArray extends SafeObject {
   [keyCode: number]: BOOL | 2 | undefined;
-}
-
-declare const enum kAria {
-  hidden = 0, disabled = 1,
-}
-
-declare const enum kClickButton {
-  none = 0, primary = 1, second = 2, primaryAndTwice = 4,
-}
-type AcceptableClickButtons = kClickButton.none | kClickButton.second | kClickButton.primaryAndTwice;
-declare const enum kClickAction {
-  none = 0,
-  /** should only be used on Firefox */ plainMayOpenManually = 1,
-  forceToOpenInNewTab = 2, forceToOpenInLastWnd = 4, newTabFromMode = 8,
-  openInNewWindow = 16,
-  // the 1..MaxOpenForAnchor before this line should always mean HTML <a>
-  MinNotPlainOpenManually = 2, MaxOpenForAnchor = 31,
-  BaseMayInteract = 32, FlagDblClick = 1, FlagInteract = 2, MaxNeverInteract = BaseMayInteract + 4,
 }
 
 /**
@@ -114,13 +91,6 @@ interface SafeHTMLElement extends BaseSafeHTMLElement {
 interface LockableElement extends SafeHTMLElement {
 }
 
-interface EventControlKeys {
-  altKey: boolean;
-  ctrlKey: boolean;
-  metaKey: boolean;
-  shiftKey: boolean;
-}
-
 interface WritableRect {
   l: number; // left
   t: number; // top
@@ -132,17 +102,6 @@ interface Rect extends WritableRect {
   readonly t: number; // top
   readonly r: number; // right
   readonly b: number; // bottom
-}
-type Point2D = readonly [ left: number, top: number ]
-
-type ViewBox = readonly [ left: number, top: number, width: number, height: number, maxLeft: number ]
-type ViewOffset = readonly [ left: number, top: number ] | ViewBox
-
-declare const enum HookAction {
-  Install = 0,
-  SuppressListenersOnDocument = 1,
-  Suppress = 2,
-  Destroy = 3,
 }
 
 declare const enum PNType {
@@ -178,155 +137,15 @@ declare const enum EditableType {
   rich_ = 5,
 }
 
-declare const enum SelType {
-  None = 0,
-  Caret = 1,
-  Range = 2,
-}
-
 declare namespace HintsNS {
-  interface ContentOptions extends Options, SafeObject {}
-  type LinkEl = Hint[0];
-
-  interface MarkerElement extends SafeHTMLElement {
-    readonly localName: "span"
-    readonly firstChild: HTMLSpanElement | Text | null;
-    readonly firstElementChild: HTMLSpanElement | null
-    readonly childNodes: NodeListOf<HTMLSpanElement | Text>;
-  }
-  interface BaseHintItem {
-    /** marker */ m: MarkerElement;
-    /** dest */ d: LinkEl;
-  }
-
-  interface HintText {
-    /** rawText */ t: string;
-    /** words */ w: string[] | null;
-  }
-  interface HintItem extends BaseHintItem {
-    /** key */ a: string;
-    /** text */ h: HintText | null;
-    /** refer */ r: HTMLElementUsingMap | Hint[0] | null;
-    /** score (if not filterHints, it's count of matched characters) */ i: number;
-    /** zIndex */ z?: number;
-  }
-
-  interface InputHintItem extends BaseHintItem {
-    d: LockableElement;
-  }
-  interface FilteredHintItem extends HintItem {
-    h: HintText;
-  }
-
-  interface Filter<T> {
-    (this: void, hints: T[], element: SafeHTMLElement): void
-  }
-
   interface BaseHintStatus {
     /** isActive */ a: BOOL
     /** box */ b: HTMLDivElement | HTMLDialogElement | null
     /** mode */ m: HintMode
   }
-
   interface BaseHintWorker {
     /** get stat */ $ (): Readonly<BaseHintStatus>
   }
-
-  const enum ClickType {
-    Default = 0, edit = 1,
-    MaxNotWeak = 1, attrListener = 2, MinWeak = 2, codeListener = 3, classname = 4, tabindex = 5, MaxWeak = 5,
-    MinNotWeak = 6, // should <= MaxNotBox
-    MaxNotBox = 6, frame = 7, scrollX = 8, scrollY = 9,
-  }
-  type AllowedClickTypeForNonHTML = ClickType.attrListener | ClickType.tabindex
-}
-
-declare namespace FindNS {
-  const enum Action {
-    PassDirectly = -1,
-    DoNothing = 0, Exit, ExitNoAnyFocus, ExitNoFocus, ExitUnexpectedly,
-    MaxExitButNoWork = ExitUnexpectedly, MinExitAndWork,
-    ExitAndReFocus = MinExitAndWork, ExitToPostMode,
-    MinNotExit, CtrlDelete = MinNotExit,
-  }
-  interface ExecuteOptions extends Partial<Pick<CmdOptions[kFgCmd.findMode], "c">> {
-    /** highlight */ h?: [number, number] | false;
-    /** ignore$hasResult */ i?: 1;
-    /** just inputted */ j?: 1;
-    noColor?: BOOL | boolean
-    caseSensitive?: boolean;
-  }
-}
-
-declare namespace VomnibarNS {
-  const enum Status {
-    NeedRedo = -3,
-    KeepBroken = -2,
-    NotInited = -1,
-    Inactive = 0,
-    Initing = 1,
-    ToShow = 2,
-    Showing = 3,
-  }
-  interface BaseFgOptions extends Pick<CmdOptions[kFgCmd.vomnibar], "s" | "t" | "d"> {
-    // physical pixel size (if C<52) and devicePixelRatio
-    w: number;
-    h: number;
-    z: number;
-    p: "" | FgRes[kFgReq.parseSearchUrl];
-  }
-  interface FgOptions extends BaseFgOptions, Partial<GlobalOptions> {
-    url?: string | null;
-  }
-  type MessageData = [number, FgOptions | null];
-  interface Msg<T extends (kCReq | kFReq) & number> { N: T }
-
-  const enum kCReq {
-    activate, hide, focus,
-    _mask = "",
-  }
-  const enum kFReq {
-    hide, focus, style, iframeIsAlive,
-    hud, evalJS, scroll, scrollGoing, scrollEnd, broken, unload,
-    _mask = "",
-  }
-  interface CReq {
-    [kCReq.activate]: FgOptions & Msg<kCReq.activate>;
-    [kCReq.hide]: kCReq.hide;
-    [kCReq.focus]: kCReq.focus;
-  }
-  interface FReq {
-    [kFReq.hide]: {
-    };
-    [kFReq.scroll]: {
-      /** key */ k: string;
-      /** keybody */ b: kChar;
-    };
-    [kFReq.style]: {
-      // unit: physical pixel (if C<52)
-      h: number;
-      m?: number;
-    };
-    [kFReq.hud]: { k: kTip };
-    [kFReq.focus]: {
-      /** lastKey */ l: kKeyCode;
-    };
-    [kFReq.evalJS]: {
-      u: string;
-    };
-    [kFReq.broken]: {};
-    [kFReq.scrollEnd]: {};
-    [kFReq.scrollGoing]: {};
-    [kFReq.unload]: {};
-    [kFReq.iframeIsAlive]: { /** hasOptionsPassed */ o: BOOL };
-  }
-  interface IframePort {
-    postMessage<K extends keyof FReq> (this: IframePort, msg: FReq[K] & Msg<K>): void | 1;
-    onmessage (this: void, msg: { data: CReq[keyof CReq] }): void | 1;
-  }
-  type FgOptionsToFront = CReq[kCReq.activate];
-
-  interface ContentOptions extends GlobalOptions {}
 }
 
 type HintOffset = [ rectBehindCur: Rect, offsetX: number ]
@@ -366,15 +185,11 @@ type ScrollByY = kDim.byX | kDim.byY;
 
 type KnownIFrameElement = HTMLIFrameElement | HTMLFrameElement
 
-type VimiumContainerElementType = "div" | "span" | "style" | "iframe" | "a" | "script" | "dialog";
 /** ShadowRoot | HTMLDivElement */
 type VUIRoot = ShadowRoot | (HTMLDivElement & { mode?: undefined });
 
-type MyMouseControlKeys = [ altKey: boolean, ctrlKey: boolean, metaKey: boolean, shiftKey: boolean ]
+type VTransType = (tid: kTip | HintMode, args?: Array<string | number> | string) => string
 
-interface ComplicatedVPort {
-  <K extends keyof FgReq, T extends FgReq[K]>(this: void, req: T & Req.baseFg<K>): void | 1
-}
 interface VApiTy {
   /** KeydownCacheArray */ a: {
     (this: void, srcCacheArray: KeydownCacheArray): boolean
@@ -388,7 +203,6 @@ interface VApiTy {
     (di: ScrollByY, amount: number, isTo: 1
       , factor?: undefined | 0, fromMax?: boolean, options?: CmdOptions[kFgCmd.scroll]): void
   }
-  /** destroy */ d: (this: void, silent?: boolean | BOOL | 9) => void
   /** execute content commands */ e: ((this: void, cmd: ValidContentCommands) => void) | null
   /** focusAndRun */ f: {
     (this: void): void
@@ -440,8 +254,6 @@ interface VDataTy {
 }
 declare var VData: VDataTy | null | undefined
 
-type VTransType = (tid: kTip | HintMode, args?: Array<string | number> | string) => string;
-
 declare const enum kContentCmd {
   _fake = 0,
   AutoFindAllOnClick = 1,
@@ -485,7 +297,6 @@ interface Window {
 declare var parent: unknown;
 
 declare const enum kTY { str = 0, obj = 1, func = 2, num = 3 }
-declare const enum kMediaTag { img = 0, otherMedias = 1, a = 2, others = 3, MIN_NOT_MEDIA_EL = 2, LAST = 3 }
 
 interface KnownDataset {
   vimium: string // secret of extend click; or prefix and suffix in the Find HUD

@@ -1,6 +1,8 @@
 import { chromeVer_, doc, createRegExp, isTY, Lower, OBJECT_TYPES, OnFirefox, OnChrome, OnEdge } from "./utils"
 import { dimSize_, selRange_ } from "./rect"
 
+export declare const enum kMediaTag { img = 0, otherMedias = 1, a = 2, others = 3, MIN_NOT_MEDIA_EL = 2, LAST = 3 }
+export declare const enum kAria { hidden = 0, disabled = 1 }
 interface kNodeToType {
   [kNode.TEXT_NODE]: Text
   [kNode.ELEMENT_NODE]: Element
@@ -446,7 +448,8 @@ export { OnDocLoaded_ }
 export function set_OnDocLoaded_ (_newOnDocLoaded: typeof OnDocLoaded_): void { OnDocLoaded_ = _newOnDocLoaded }
 
 export let createElement_ = doc.createElement.bind(doc) as {
-    <K extends VimiumContainerElementType> (this: void, htmlTagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement;
+  <K extends "div" | "span" | "style" | "iframe" | "a" | "script" | "dialog"> (
+      this: void, htmlTagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement
 }
 export function set_createElement_ (_newCreateEl: typeof createElement_): void { createElement_ = _newCreateEl }
 

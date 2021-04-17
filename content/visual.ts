@@ -31,6 +31,7 @@ type ValidDiTypes = DiType.Normal | DiType.UnsafeTextBox | DiType.SafeTextBox | 
 declare const enum kYank { // should have no overlap with ReuseType
   MIN = 7, Exit = 7, NotExit = 8, RichTextButNotExit = 9,
 }
+declare const enum SelType { None = 0, Caret = 1, Range = 2 }
 
 import { VTr, safer, fgCache, doc, chromeVer_, tryCreateRegExp, isTY, OnFirefox, OnChrome, safeCall } from "../lib/utils"
 import {

@@ -13,11 +13,11 @@ import {
 import {
   bZoom_, dScale_, getZoom_, wdZoom_, getSelectionBoundingBox_, prepareCrop_, getClientRectsForAreas_,
   getVisibleClientRect_, getBoundingClientRect_, padClientRect_, isContaining_, cropRectToVisible_, getCroppedRect_,
-  setBoundary_, wndSize_, dimSize_, selRange_, isSelARange,
+  setBoundary_, wndSize_, dimSize_, selRange_, isSelARange, ViewOffset
 } from "../lib/rect"
 import { currentScrolling } from "./scroller"
 import { find_box, styleSelectable } from "./mode_find"
-import { isHintsActive, hintManager, coreHints } from "./link_hints"
+import { DrawableHintItem, isHintsActive, hintManager, coreHints } from "./link_hints"
 import { post_ } from "./port"
 import { insert_Lock_ } from "./insert"
 import { hide as omniHide, omni_box } from "./omni"
@@ -110,7 +110,7 @@ export const getBoxTagName_cr_ = OnChrome ? (): "div" =>
 : 0 as never
 
 export const addElementList = function <T extends boolean | BOOL> (
-      array: readonly HintsNS.BaseHintItem[], offset: ViewOffset, dialogContainer?: T
+      array: readonly DrawableHintItem[], offset: ViewOffset, dialogContainer?: T
       ): (T extends true | 1 ? HTMLDialogElement : HTMLDivElement) & SafeElement {
     const parent = createElement_(WithDialog && dialogContainer ? "dialog"
         : OnChrome ? getBoxTagName_cr_() : "div");

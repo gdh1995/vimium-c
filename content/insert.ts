@@ -22,12 +22,13 @@ import {
   SafeEl_not_ff_, MDW, fullscreenEl_unsafe_, removeEl_s, isNode_, BU
 } from "../lib/dom_utils"
 import { pushHandler_, removeHandler_, prevent_ } from "../lib/keyboard_utils"
+import { InputHintItem } from "./link_hints"
 
 let shadowNodeMap: ShadowNodeMap | undefined
 let lock_ = null as LockableElement | null
 let insert_global_: InsertModeOptions | null = null
 let isHintingInput: BOOL = 0
-let inputHint: { /** box */ b: HTMLDivElement | null; /** hints */ h: HintsNS.InputHintItem[] } | null = null
+let inputHint: { /** box */ b: HTMLDivElement | null; /** hints */ h: InputHintItem[] } | null = null
 let suppressType: string | null = null
 let insert_last_: WeakRef<LockableElement> | null | undefined
 let is_last_mutable: BOOL = 1
