@@ -184,7 +184,7 @@ export const touch_cr_ = OnChrome ? (element: SafeElementForMouse
 /** async dispatchers */
 
 /** note: will NOT skip even if newEl == @lastHovered */
-export const hover_ = (async (newEl?: NullableSafeElForM, center?: Point2D): Promise<void> => {
+export const hover_async = (async (newEl?: NullableSafeElForM, center?: Point2D): Promise<void> => {
   // if center is affected by zoom / transform, then still dispatch mousemove
   let elFromPoint = center && doc.elementFromPoint(center[0], center[1]),
   canDispatchMove: boolean = !newEl || elFromPoint === newEl || !elFromPoint || !contains_s(newEl, elFromPoint),
@@ -216,24 +216,24 @@ export const hover_ = (async (newEl?: NullableSafeElForM, center?: Point2D): Pro
   (newEl?: null): Promise<void>
 }
 
-export const unhover_ = (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredGeneratorFunction
+export const unhover_async = (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredGeneratorFunction
 ? async (element?: NullableSafeElForM): Promise<void> => {
   const old = deref_(lastHovered_), active = element || old
   if (old !== element) {
-    await hover_()
+    await hover_async()
   }
   lastHovered_ = weakRef_(element)
-  await hover_()
+  await hover_async()
   if (active && activeEl_unsafe_() === active) { active.blur && active.blur() }
 }
 : (el?: NullableSafeElForM, step?: 1 | 2, old?: NullableSafeElForM): Promise<0> | 0 => {
   if (!step) {
     old = deref_(lastHovered_)
-    return Promise.resolve<void | false>(old !== el && hover_()).then(unhover_
+    return Promise.resolve<void | false>(old !== el && hover_async()).then(unhover_async
         .bind<void, NullableSafeElForM, 1, NullableSafeElForM, [], Promise<0>>(0, el, 1, el || old))
   } else if (step < 2) {
     lastHovered_ = weakRef_(el)
-    return hover_().then(unhover_.bind<0, NullableSafeElForM, 2, [], 0>(0, old, 2))
+    return hover_async().then(unhover_async.bind<0, NullableSafeElForM, 2, [], 0>(0, old, 2))
   } else {
     return <0> <any> (el && activeEl_unsafe_() === el && el.blur && el.blur())
   }
@@ -245,7 +245,7 @@ export const unhover_ = (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredGene
 }
 
 
-export const click_ = async (element: SafeElementForMouse
+export const click_async = async (element: SafeElementForMouse
     , rect?: Rect | null, addFocus?: boolean | BOOL, modifiers?: MyMouseControlKeys | null
     , specialAction?: kClickAction, button?: AcceptableClickButtons
     , /** default: false */ touchMode?: null | false | /** false */ 0 | true | "auto"
@@ -271,7 +271,7 @@ export const click_ = async (element: SafeElementForMouse
     if (!IsInDOM_(element)) { return }
   }
   if (element !== deref_(lastHovered_)) {
-    await hover_(element, center)
+    await hover_async(element, center)
     if (!lastHovered_) { return }
   }
   if (OnFirefox) {
@@ -310,7 +310,6 @@ export const click_ = async (element: SafeElementForMouse
   }
   let result: ActionType = ActionType.OnlyDispatch, url: string | null
   let parentAnchor: Partial<Pick<HTMLAnchorElement, "target" | "href" | "rel">> & Element | null | undefined
-  /** @todo: range of specialAction */
   if (specialAction) {
     // for forceToDblclick, element can be OtherSafeElement; for 1..MaxOpenForAnchor, element must be in <html:a>
     result = specialAction > kClickAction.BaseMayInteract ? specialAction - kClickAction.BaseMayInteract
@@ -335,7 +334,7 @@ export const click_ = async (element: SafeElementForMouse
       if (result & ActionType.dblClick
           && !(element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
         // use old rect
-        await click_(element, rect, 0, modifiers, kClickAction.none, kClickButton.primaryAndTwice)
+        await click_async(element, rect, 0, modifiers, kClickAction.none, kClickButton.primaryAndTwice)
         if (!getVisibleClientRect_(element)
             || !await await mouse_(element, "dblclick", center, modifiers, null, kClickButton.primaryAndTwice)
             || !getVisibleClientRect_(element)) {
@@ -391,7 +390,7 @@ export const click_ = async (element: SafeElementForMouse
 export const select_ = (element: LockableElement, rect?: Rect | null, show_flash?: boolean
     , action?: SelectActions, suppressRepeated?: boolean): Promise<void> => {
   const y = scrollY
-  return catchAsyncErrorSilently(click_(element, rect, 1)).then((): void => {
+  return catchAsyncErrorSilently(click_async(element, rect, 1)).then((): void => {
     view_(element, y)
     // re-compute rect of element, in case that an input is resized when focused
     show_flash && flash_(element)
@@ -411,7 +410,7 @@ export const select_ = (element: LockableElement, rect?: Rect | null, show_flash
 }
 
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredGeneratorFunction) {
-  if (!(Build.NDEBUG || (<RegExpOne> /\.label_\b/).test(click_ + ""))) {
+  if (!(Build.NDEBUG || (<RegExpOne> /\.label_\b/).test(click_async + ""))) {
     alert("Assert error: async functions should have used `label_` and `sent_`")
   }
 }

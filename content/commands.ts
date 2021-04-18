@@ -40,7 +40,7 @@ import {
 import { activate as omniActivate, hide as omniHide } from "./omni"
 import { findNextInText, findNextInRel } from "./pagination"
 import { traverse, getEditable, filterOutNonReachable } from "./local_links"
-import { select_, unhover_, set_lastHovered_, lastHovered_ } from "./async_dispatcher"
+import { select_, unhover_async, set_lastHovered_, lastHovered_, catchAsyncErrorSilently } from "./async_dispatcher"
 
 export const RSC = "readystatechange"
 
@@ -77,7 +77,7 @@ set_contentCommands_([
   /* kFgCmd.vomnibar: */ omniActivate,
   /* kFgCmd.insertMode: */ (opt: CmdOptions[kFgCmd.insertMode]): void => {
     if (opt.u) {
-      unhover_()
+      catchAsyncErrorSilently(unhover_async())
       hudTip(kTip.didUnHoverLast)
     }
     if (opt.r) {

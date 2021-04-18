@@ -193,7 +193,7 @@ set_requestHandlers([
     set_mapKeyTypes(request.t)
     set_mappedKeys(request.m)
     mappedKeys && safer(mappedKeys)
-    esc!(HandlerResult.Nothing) // in case storage.sync changed
+    esc!(HandlerResult.ExitPassMode) // in case storage.sync changed
   },
   /* kBgReq.execute: */ function<O extends keyof CmdOptions> (request: BaseExecute<CmdOptions[O], O>): void {
     if (request.H) { setUICSS(request.H); }

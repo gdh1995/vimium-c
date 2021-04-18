@@ -12,7 +12,7 @@ import { traverse, ngEnabled } from "./local_links"
 import { find_box } from "./mode_find"
 import { omni_box } from "./omni"
 import { flash_ } from "./dom_ui"
-import { click_ } from "./async_dispatcher"
+import { catchAsyncErrorSilently, click_async } from "./async_dispatcher"
 import { contentCommands_ } from "./port"
 
 let iframesToSearchForNext: VApiTy[] | null
@@ -170,6 +170,6 @@ export const jumpToNextLink = (linkElement: GoNextBaseCandidate[0]): void => {
   if (url) {
     contentCommands_[kFgCmd.framesGoBack](safer({ r: 1, url }))
   } else {
-    timeout_((): void => { click_(linkElement) }, 100)
+    timeout_((): void => { catchAsyncErrorSilently(click_async(linkElement)) }, 100)
   }
 }

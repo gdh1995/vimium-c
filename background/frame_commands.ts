@@ -608,7 +608,7 @@ const matchEnvRule = (rule: CommandsNS.EnvItem, cur: CurrentEnvCache
 
 export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey]): void => {
   const envMap = CommandsData_.envRegistry_
-  const expected_rules = get_cOptions<kBgCmd.runKey, true>().expect
+  let expected_rules = get_cOptions<kBgCmd.runKey>().expect
   const absCRepeat = Math.abs(cRepeat)
   const curEnvCache: CurrentEnvCache = {}
   let matchedIndex: number | string = -1
@@ -649,6 +649,7 @@ export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey]): void => {
   }
   if (matchedIndex === -1 && expected_rules
       && typeof expected_rules === "object" && !(expected_rules instanceof Array)) {
+    BgUtils_.safer_(expected_rules)
     if (!envMap) {
       showHUD('No environments have been declared')
       return
@@ -664,7 +665,7 @@ export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey]): void => {
       if (res === EnvMatchResult.matched) {
         matchedIndex = ruleName
         matchedRule = rule
-        keys = expected_rules[ruleName]
+        keys = (expected_rules as Exclude<BgCmdOptions[kBgCmd.runKey]["expect"] & object, unknown[]>)[ruleName]
         break
       }
     }

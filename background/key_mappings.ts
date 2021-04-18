@@ -228,10 +228,12 @@ var KeyMappings = {
       } else if (key === "env") {
         if (splitLine.length < 3) {
           a.logError_("Lacking conditions in env declaration:", line)
+        } else if (key = splitLine[1], key === "__proto__") {
+          a.logError_('Unsupported env name %c"%s"', colorRed, key)
         } else if (envMap && envMap.has(key)) {
           a.logError_('The environment name %c"%s"', colorRed, key, "has been used")
         } else {
-          (envMap || (envMap = new Map())).set(splitLine[1], a.getOptions_(splitLine, 2) as CommandsNS.EnvItem)
+          (envMap || (envMap = new Map())).set(key, a.getOptions_(splitLine, 2) as CommandsNS.EnvItem)
           continue
         }
       } else if (key !== "unmap") {

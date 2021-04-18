@@ -21,7 +21,7 @@ import {
 import { pushHandler_, removeHandler_, isEscape_, getMappedKey, prevent_, suppressTail_ } from "../lib/keyboard_utils"
 import { insert_Lock_ } from "./insert"
 import {
-  kClickAction, kClickButton, unhover_, hover_, click_, select_, mouse_, catchAsyncErrorSilently
+  kClickAction, kClickButton, unhover_async, hover_async, click_async, select_, mouse_, catchAsyncErrorSilently
 } from "./async_dispatcher"
 import { omni_box, focusOmni } from "./omni"
 import { execCommand } from "./mode_find"
@@ -38,7 +38,7 @@ export const executeHintInOfficer = (hint: ExecutableHintItem
 const unhoverOnEsc: HandlerNS.Handler = event => {
   removeHandler_(kHandler.unhoverOnEsc)
   if (isEscape_(getMappedKey(event, kModeId.Link)) && !insert_Lock_()) {
-    unhover_();
+    catchAsyncErrorSilently(unhover_async())
     return HandlerResult.Prevent;
   }
   return HandlerResult.Nothing;
@@ -148,7 +148,7 @@ const hoverEl = (): void => {
     // here not check lastHovered on purpose
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
     set_currentScrolling(weakRef_(clickEl))
-    catchAsyncErrorSilently(hover_(clickEl, center_(rect!))).then((): void => {
+    catchAsyncErrorSilently(hover_async(clickEl, center_(rect!))).then((): void => {
     type || !isIFrameElement(clickEl) && focus_(clickEl)
     set_cachedScrollable(currentScrolling)
     if (mode1_ < HintMode.min_job) { // called from Modes[-1]
@@ -297,7 +297,7 @@ const downloadLink = (): void => {
     if (hadNoDownload) {
       link[kD] = "";
     }
-  catchAsyncErrorSilently(click_(link, rect, 0, [!0, !1, !1, !1])).then((): void => {
+  catchAsyncErrorSilently(click_async(link, rect, 0, [!0, !1, !1, !1])).then((): void => {
     if (hadNoDownload) {
       setOrRemoveAttr_s(link, kD)
     }
@@ -341,14 +341,15 @@ const defaultClick = (): void => {
           : newTab // need to work around Firefox's popup blocker
             ? kClickAction.plainMayOpenManually | kClickAction.newTabFromMode : kClickAction.plainMayOpenManually
         : kClickAction.none;
-    catchAsyncErrorSilently(click_(clickEl, rect
+    catchAsyncErrorSilently(click_async(clickEl, rect
         , mask > 0 || interactive || (clickEl as ElementToHTMLorOtherFormatted).tabIndex! >= 0
         , [!1, ctrl && !isMac, ctrl && isMac, shift]
         , specialActions, isRight ? kClickButton.second : kClickButton.none
         , !OnChrome || otherActions || newTab ? 0 : hintOptions.touch
         , hintOptions))
     .then((ret): void => {
-      autoUnhover && !interactive ? unhover_() : isQueue || ret && pushHandler_(unhoverOnEsc, kHandler.unhoverOnEsc)
+      autoUnhover && !interactive ? catchAsyncErrorSilently(unhover_async())
+      : isQueue || ret && pushHandler_(unhoverOnEsc, kHandler.unhoverOnEsc)
     })
 }
 
@@ -410,7 +411,7 @@ const defaultClick = (): void => {
           // `HTMLSummaryElement::DefaultEventHandler(event)` in
           // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_summary_element.cc?l=109
           const rect2 = (clickEl as HTMLDetailsElement).open || !rect ? getVisibleClientRect_(summary) : rect
-          catchAsyncErrorSilently(click_(summary, rect2, 1)).then((): void => {
+          catchAsyncErrorSilently(click_async(summary, rect2, 1)).then((): void => {
             removeFlash || rect2 && flash_(null, rect2)
           })
           showRect = 0
@@ -426,7 +427,7 @@ const defaultClick = (): void => {
         /*#__NOINLINE__*/ defaultClick()
       }
     } else if (m < HintMode.UNHOVER + 1) {
-      m < HintMode.HOVER + 1 ? hoverEl() : unhover_(clickEl)
+      m < HintMode.HOVER + 1 ? hoverEl() : catchAsyncErrorSilently(unhover_async(clickEl))
     } else if (m < HintMode.FOCUS + 1) {
       view_(clickEl)
       focus_(clickEl)
