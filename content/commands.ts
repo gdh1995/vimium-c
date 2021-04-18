@@ -6,15 +6,15 @@ import {
 import {
   isHTML_, htmlTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK,
   querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s, modifySel,
-  focus_, fullscreenEl_unsafe_, getEditableType_
+  focus_
 } from "../lib/dom_utils"
 import {
   pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
-  replaceOrSuppressMost_
+  replaceOrSuppressMost_, suppressTail_
 } from "../lib/keyboard_utils"
 import {
   view_, wndSize_, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, padClientRect_, isSelARange,
-  getBoundingClientRect_, setBoundary_, wdZoom_, dScale_, getVisibleClientRect_,
+  getBoundingClientRect_, setBoundary_, wdZoom_, dScale_
 } from "../lib/rect"
 import { post_, set_contentCommands_ } from "./port"
 import {
@@ -38,9 +38,9 @@ import {
   activate as scActivate, set_cachedScrollable, onActivate, currentScrolling, set_currentScrolling
 } from "./scroller"
 import { activate as omniActivate, hide as omniHide } from "./omni"
-import { findNextInText, findNextInRel, isVisibleInPage } from "./pagination"
-import { traverse, getEditable, filterOutNonReachable, getIfOnlyVisible } from "./local_links"
-import { select_, unhover_, set_lastHovered_, lastHovered_, click_ } from "./async_dispatcher"
+import { findNextInText, findNextInRel } from "./pagination"
+import { traverse, getEditable, filterOutNonReachable } from "./local_links"
+import { select_, unhover_, set_lastHovered_, lastHovered_ } from "./async_dispatcher"
 
 export const RSC = "readystatechange"
 
@@ -237,58 +237,22 @@ set_contentCommands_([
     if (reachable != null ? reachable : fgCache.e) {
       curModalElement || filterOutNonReachable(visibleInputs as Hint[], 1)
     }
-    let sel = visibleInputs.length;
-    let firstInput: InputHint | null | undefined = visibleInputs[0], firstElement: NonNullable<typeof firstInput>[0]
-    if (!firstInput) {
+    let sel = visibleInputs.length, firstInput = visibleInputs[0]
+    if (!sel) {
       exitInputHint();
-      const fallbackOpt = (options.fallback || "") + "",
-      inVisible = !options.fallInDoc,
-      cssSelectors = fallbackOpt.replace(<RegExpOne> /:last\s*(,|$)|,\s*$/g, ""),
-      fallbackSelectors = fallbackOpt.split(",")
-      let fallbacks = OnChrome && Build.MinCVer < BrowserVer.Min$Element$$matches
-          && chromeVer_ < BrowserVer.Min$Element$$matches ? null : !cssSelectors.trim() ? []
-          : traverse(kSafeAllSelector, {match: cssSelectors as "css-selector"},
-              inVisible ? getIfOnlyVisible : (hints: Hint0[], el) => { isVisibleInPage(el) && hints.push([el, null]) },
-              1) as InputHint[]
-      let i = 0
-      for (; i < fallbackSelectors.length && !firstInput; i++) {
-        if (fallbackSelectors[i].trim() === ":last") {
-          if (known_last && isVisibleInPage(known_last)) {
-            firstInput = [known_last, null as never]
-          }
-        } else if (!OnChrome || Build.MinCVer >= BrowserVer.Min$Array$$find$$findIndex
-            && Build.MinCVer >= BrowserVer.Min$Element$$matches) {
-          firstInput = fallbacks!.find(hint => hint[0].matches!(fallbackSelectors[i]))
-        } else if (Build.MinCVer < BrowserVer.Min$Element$$matches && !fallbacks) {
-          let el = [].filter.call<ArrayLike<Element>, [(el: Element) => boolean], SafeHTMLElement[]>(
-              querySelectorAll_unsafe_(fallbackSelectors[i], fullscreenEl_unsafe_(), 1) || [],
-              el => htmlTag_<1>(el) && (inVisible ? getVisibleClientRect_(el) as any : isVisibleInPage(el)))[0]
-          firstInput = el && [el, null as never]
-        } else {
-          for (let j = 0; j < fallbacks!.length && !firstInput; j++) {
-            if (fallbacks![j][0].matches!(fallbackSelectors[i])) {
-              firstInput = fallbacks![j]
-            }
-          }
-        }
-      }
-    }
-    if (!firstInput) {
-      hudTip(kTip.noInputToFocus, 1000)
+      runFallbackKey(options, kTip.noInputToFocus)
       return
     }
-    if (firstElement = firstInput[0], sel < 2) {
+    if (sel < 2) {
       exitInputHint();
-      /** @todo: call view_ and use jumpToNextLink */
-      getEditableType_<0>(firstElement) > EditableType.TextBox - 1
-      ? select_(firstElement, firstInput[1], true, action, true) : click_(firstElement, null, true)
+      select_(firstInput[0], firstInput[1], true, action, true)
       return
     }
     let preferredSelector = (options.prefer || "") + ""
     const preferred: Element[] | null = OnChrome && Build.MinCVer < BrowserVer.Min$Element$$matches
         && chromeVer_ < BrowserVer.Min$Element$$matches
         ? [].slice.call(preferredSelector && querySelectorAll_unsafe_(preferredSelector) || [])
-        : (preferredSelector && safeCall(firstElement.matches!.bind(firstElement), preferredSelector) == null
+        : (preferredSelector && safeCall(firstInput[0].matches!.bind(firstInput[0]), preferredSelector) == null
             && (preferredSelector = ""), null)
     for (let ind = 0; ind < sel; ind++) {
       const hint = visibleInputs[ind] as Hint & InputHint, j = hint[0].tabIndex;
@@ -503,3 +467,14 @@ set_contentCommands_([
     timeout_((): void => { focus_(box) }, 17)
   }) as (options: CmdOptions[kFgCmd.showHelpDialog]) => void
 ])
+
+
+const runFallbackKey = (options: { fallback?: any }, anotherTip?: kTip): void => {
+  const fallback = options.fallback
+  if (fallback && isTY(fallback)) {
+    suppressTail_(GlobalConsts.TimeOfSuppressingUnexpectedKeydownEvents)
+    post_({ H: kFgReq.key, k: fallback, l: kKeyCode.None })
+  } else {
+    anotherTip && hudTip(anotherTip)
+  }
+}

@@ -399,8 +399,7 @@ interface CmdOptions {
     flash?: boolean;
     reachable?: boolean; // default to true
     prefer?: string;
-    fallback?: ":last" | ".css-selector,#css2,:last" | /* css-selector */ string
-    fallInDoc?: boolean
+    fallback?: /** key sequence */ string
   } & CSSOptions;
   [kFgCmd.editText]: {
     dom?: boolean;
