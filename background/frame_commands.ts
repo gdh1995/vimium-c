@@ -583,6 +583,15 @@ const matchEnvRule = (rule: CommandsNS.EnvItem, cur: CurrentEnvCache
         if (host[0] === "^") {
           const re = BgUtils_.makeRegexp_(host, "")
           host = re ? { t: ExclusionsNS.TesterType.RegExp, v: re as RegExpOne } : null
+        } else if (host === "localhost" || !host.includes("/") && host.includes(".")
+            && (!(<RegExpOne> /:(?!\d+$)/).test(host) || BgUtils_.isIPHost_(host, 6))) { // ignore rare `IPV6 + :port`
+          host = host.toLowerCase()
+          host = { t: ExclusionsNS.TesterType.RegExp, v: new RegExp(
+            "^https?://" + (!host.startsWith("*") || host[1] === "."
+              ? (host = host.replace(<RegExpG> /\./g, "\\."), // lgtm [js/incomplete-sanitization]
+                !host.startsWith("*") ? host : host.replace("*\\.", "(?:[^./]+\\.)*?"))
+              : "[^/]" + host), ""
+          ) }
         } else {
           host = { t: ExclusionsNS.TesterType.StringPrefix, v: host[0] === ":" ? host.slice(1) : host }
         }
@@ -646,6 +655,15 @@ export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey]): void => {
       }
       break
     }
+  }
+  if (typeof expected_rules === "string" && expected_rules.includes(":") && !expected_rules.startsWith("{")) {
+    expected_rules = expected_rules.split(<RegExpG> /[,\s]+/g).map(i => i.split(":")).reduce((obj, i) => {
+      if (i.length === 2 && i[0] !== "__proto__" && (<RegExpOne> /^[\x21-\x7f]+$/).test(i[1])) {
+        obj[i[0]] = i[1]
+      }
+      return obj
+    }, BgUtils_.safeObj_<string>())
+    get_cOptions<kBgCmd.runKey, true>().expect = expected_rules
   }
   if (matchedIndex === -1 && expected_rules
       && typeof expected_rules === "object" && !(expected_rules instanceof Array)) {

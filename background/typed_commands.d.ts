@@ -92,7 +92,7 @@ interface BgCmdOptions {
   [kBgCmd.restoreGivenTab]: {}
   [kBgCmd.restoreTab]: { incognito: "force" | true }
   [kBgCmd.runKey]: {
-    expect: CommandsNS.EnvItemWithKeys[] | Dict<string | string[]>
+    expect: CommandsNS.EnvItemWithKeys[] | Dict<string | string[]> | `${string}:${string},${string}:${string},`
     keys: string[] | /** space-seperated list */ string
     options?: object
   }
