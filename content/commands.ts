@@ -14,7 +14,7 @@ import {
 } from "../lib/keyboard_utils"
 import {
   view_, wndSize_, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, padClientRect_, isSelARange,
-  getBoundingClientRect_, setBoundary_, wdZoom_, dScale_,
+  getBoundingClientRect_, setBoundary_, wdZoom_, dScale_, getVisibleClientRect_,
 } from "../lib/rect"
 import { post_, set_contentCommands_ } from "./port"
 import {
@@ -39,7 +39,7 @@ import {
 } from "./scroller"
 import { activate as omniActivate, hide as omniHide } from "./omni"
 import { findNextInText, findNextInRel, isVisibleInPage } from "./pagination"
-import { traverse, getEditable, filterOutNonReachable } from "./local_links"
+import { traverse, getEditable, filterOutNonReachable, getIfOnlyVisible } from "./local_links"
 import { select_, unhover_, set_lastHovered_, lastHovered_, click_ } from "./async_dispatcher"
 
 export const RSC = "readystatechange"
@@ -228,32 +228,49 @@ set_contentCommands_([
     insert_inputHint && (insert_inputHint.h = null as never);
     const arr = getViewBox_()
     prepareCrop_(1);
-    interface BaseInputHint { [0]: InputHintItem["d"]; [1]: Rect }
-    type InputHintInList = Hint & BaseInputHint
-    interface InputHint extends InputHintInList {}
+    interface InputHint { [0]: InputHintItem["d"]; [1]: Rect }
     // here those editable and inside UI root are always detected, in case that a user modifies the shadow DOM
     const visibleInputs = traverse(!OnFirefox
           ? VTr(kTip.editableSelector) + kSafeAllSelector : VTr(kTip.editableSelector), options, getEditable
         ) as InputHint[],
     action = options.select, keep = options.keep, pass = options.passExitKey, reachable = options.reachable;
     if (reachable != null ? reachable : fgCache.e) {
-      curModalElement || filterOutNonReachable(visibleInputs, 1)
+      curModalElement || filterOutNonReachable(visibleInputs as Hint[], 1)
     }
     let sel = visibleInputs.length;
-    let firstInput = visibleInputs[0], firstElement: (typeof firstInput)[0]
-    if (!sel) {
+    let firstInput: InputHint | null | undefined = visibleInputs[0], firstElement: NonNullable<typeof firstInput>[0]
+    if (!firstInput) {
       exitInputHint();
-      const fallbackSelectors = ((options.fallback || "") + "").split(",")
-      for (let i = 0; i < fallbackSelectors.length && !firstInput; i++) {
-        const fallbacks = fallbackSelectors[i] && (fallbackSelectors[i].trim() === ":last" ? known_last && [known_last]
-            : querySelectorAll_unsafe_(fallbackSelectors[i], fullscreenEl_unsafe_(), 1)) || []
-        for (let j = 0; j < fallbacks.length && !firstInput; j++) {
-          const el = fallbacks[j]
-          if (htmlTag_<1>(el) && isVisibleInPage(el)) {
-            firstInput = [el, null as never as Rect] as BaseInputHint as InputHint
+      const fallbackOpt = (options.fallback || "") + "",
+      inVisible = !options.fallInDoc,
+      cssSelectors = fallbackOpt.replace(<RegExpOne> /:last\s*(,|$)|,\s*$/g, ""),
+      fallbackSelectors = fallbackOpt.split(",")
+      let fallbacks = OnChrome && Build.MinCVer < BrowserVer.Min$Element$$matches
+          && chromeVer_ < BrowserVer.Min$Element$$matches ? null : !cssSelectors.trim() ? []
+          : traverse(kSafeAllSelector, {match: cssSelectors as "css-selector"},
+              inVisible ? getIfOnlyVisible : (hints: Hint0[], el) => { isVisibleInPage(el) && hints.push([el, null]) },
+              1) as InputHint[]
+      let i = 0
+      for (; i < fallbackSelectors.length && !firstInput; i++) {
+        if (fallbackSelectors[i].trim() === ":last") {
+          if (known_last && isVisibleInPage(known_last)) {
+            firstInput = [known_last, null as never]
+          }
+        } else if (!OnChrome || Build.MinCVer >= BrowserVer.Min$Array$$find$$findIndex
+            && Build.MinCVer >= BrowserVer.Min$Element$$matches) {
+          firstInput = fallbacks!.find(hint => hint[0].matches!(fallbackSelectors[i]))
+        } else if (Build.MinCVer < BrowserVer.Min$Element$$matches && !fallbacks) {
+          let el = [].filter.call<ArrayLike<Element>, [(el: Element) => boolean], SafeHTMLElement[]>(
+              querySelectorAll_unsafe_(fallbackSelectors[i], fullscreenEl_unsafe_(), 1) || [],
+              el => htmlTag_<1>(el) && (inVisible ? getVisibleClientRect_(el) as any : isVisibleInPage(el)))[0]
+          firstInput = el && [el, null as never]
+        } else {
+          for (let j = 0; j < fallbacks!.length && !firstInput; j++) {
+            if (fallbacks![j][0].matches!(fallbackSelectors[i])) {
+              firstInput = fallbacks![j]
+            }
           }
         }
-        break
       }
     }
     if (!firstInput) {
@@ -274,7 +291,7 @@ set_contentCommands_([
         : (preferredSelector && safeCall(firstElement.matches!.bind(firstElement), preferredSelector) == null
             && (preferredSelector = ""), null)
     for (let ind = 0; ind < sel; ind++) {
-      const hint = visibleInputs[ind], j = hint[0].tabIndex;
+      const hint = visibleInputs[ind] as Hint & InputHint, j = hint[0].tabIndex;
       hint[2] = (OnChrome && Build.MinCVer < BrowserVer.Min$Element$$matches && preferred
             ? preferred.indexOf(hint[0]) >= 0 : preferredSelector && hint[0].matches!(preferredSelector))
           ? (OnChrome ? Build.MinCVer >= BrowserVer.MinStableSort : !OnEdge) ? 0.5 : 0.5 + ind / 8192
@@ -282,7 +299,7 @@ set_contentCommands_([
           : (OnChrome ? Build.MinCVer >= BrowserVer.MinStableSort : !OnEdge)
           ? j : j + ind / 8192;
     }
-    const hints: InputHintItem[] = visibleInputs.sort(
+    const hints: InputHintItem[] = (visibleInputs as Array<Hint & InputHint>).sort(
         (a, b) => a[2] < 1 || b[2] < 1 ? b[2] - a[2] : a[2] - b[2]).map(
           (link): InputHintItem => {
       const marker = createElement_("span") as InputHintItem["m"],

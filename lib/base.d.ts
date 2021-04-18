@@ -159,7 +159,7 @@ type Hint = [
   offset?: HintOffset,
   relatedMap?: HTMLElementUsingMap
 ]
-type Hint0 = [ element: SafeHTMLElement ]
+type Hint0 = { [0]: SafeHTMLElement }
 interface Hint4 extends Hint {
   [3]: HintOffset;
 }

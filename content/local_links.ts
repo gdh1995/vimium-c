@@ -413,7 +413,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
           }
         }
       } else if (wantClickable) {
-        (matchSelector ? getIfOnlyVisible : /*#__NOINLINE__*/ isOtherClickable
+        (matchSelector ? filter as typeof getIfOnlyVisible : /*#__NOINLINE__*/ isOtherClickable
             )(output as Exclude<typeof output, Hint0[]>
             , el as NonHTMLButFormattedElement | SafeElementWithoutFormat);
       }
