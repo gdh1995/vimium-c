@@ -279,6 +279,7 @@ function cutUrl(this: void, str: string, ranges: number[], deltaLen: number, max
     out += BgUtils_.escapeText_(slice);
     out += "</match>";
   }
+  out = BgUtils_.decodeFileURL_(out)
   if (str.length <= maxLen) {
     slice = str.slice(end);
     return Build.BTypes & BrowserType.Firefox
@@ -708,7 +709,7 @@ historyEngine = {
     Completers.next_(historyArr as Suggestion[], SugType.history);
   } as (historyArr: BrowserUrlItem[]) => void,
   MakeSuggestion_ (e: BrowserUrlItem, i: number, arr: Array<BrowserUrlItem | Suggestion>): void {
-    const u = e.u, o = new Suggestion("history", u, Decoder.decodeURL_(u, u), e.title_ || "",
+    const u = e.u, o = new Suggestion("history", u, BgUtils_.decodeFileURL_(Decoder.decodeURL_(u, u)), e.title_ || "",
       get2ndArg, (99 - i) / 100),
     sessionId = e.sessionId_
     o.visit = e.visit_

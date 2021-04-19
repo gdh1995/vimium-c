@@ -215,10 +215,12 @@ BgUtils_.timeout_(600, function (): void {
           type === "tab" ? sugItem.s !== TabRecency_.curTab_ : type === "history" && !hasSessionId
         );
       if (urlDict.has(url)) {
-        url = `:${i + di} ` + url;
+        url = `:${i + di} ${url}`
       } else {
         urlDict.add(url)
       }
+      url = BgUtils_.encodeAsciiURI(url, 1).replace(<RegExpG> /%20/g, " ")
+      url = BgUtils_.decodeFileURL_(url)
       if (canBeDeleted) {
         info.type_ = <SubInfo["type_"]> type;
         desc = ` ~${i + di}~`

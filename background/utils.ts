@@ -664,8 +664,8 @@ var BgUtils_ = {
         ? BgUtils_.DecodeURLPart_(url).trim() : url
     return BgUtils_.decodeUrlForCopy_(url)
   },
-  encodeAsciiURI (this: unknown, url: string): string {
-    return encodeURI(url).replace(<RegExpG & RegExpSearchable<0>> /%(?:[CD].%..|E.%..%..)/g, (s): string => {
+  encodeAsciiURI: (url: string, encoded?: 1): string =>
+    (encoded ? url : encodeURI(url)).replace(<RegExpG & RegExpSearchable<0>> /%(?:[CD].%..|E.%..%..)/g, (s): string => {
       const t = decodeURIComponent(s)
       const re = Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther & BrowserType.Edge)
           || Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp && Build.BTypes & BrowserType.Chrome
@@ -684,6 +684,19 @@ var BgUtils_ = {
           : <RegExpOne> new RegExp("[\\p{L}\\p{N}]", "u")
       return re.test(t) ? t : s
     })
+  ,
+  decodeFileURL_ (url: string): string {
+    if (Settings_.payload_.o === kOS.win && url.startsWith("file:///")) {
+      url = url[8].toUpperCase() + url.slice(9)
+      let sep = (<RegExpOne> /[?#]/).exec(url), index = sep ? sep.index : 0
+      let tail = index ? url.slice(index) : ""
+      url = index ? url.slice(0, index) : url
+      url = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredLookBehindInRegexp
+          ? url.replace(<RegExpG> /(?<!<)\//g, "\\")
+          : url.replace(<RegExpG & RegExpSearchable<0>> /[^<]\//g, s => s[0] + "\\")
+      url = index ? url + tail : url
+    }
+    return url
   },
   encodeAsciiComponent: (url: string): string => url.replace(
       Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther & BrowserType.Edge)
