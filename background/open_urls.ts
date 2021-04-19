@@ -1,7 +1,7 @@
 import C = kBgCmd
 import {
   selectFrom, selectWnd, getCurTab, runtimeError_, tabsGet, getTabUrl, getCurWnd, Tab, Window, browserTabs,
-  browserWindows, getAllWindows, tabsCreate, safeUpdate, InfoToCreateMultiTab, openMultiTab, makeWindow, browser_
+  browserWindows, getAllWindows, tabsCreate, safeUpdate, InfoToCreateMultiTab, openMultiTab, makeWindow, browser_, selectTab
 } from "./browser"
 import { cKey, cPort, cRepeat, get_cOptions, settings, set_cOptions, set_cPort, set_cRepeat } from "./store"
 import {
@@ -79,8 +79,9 @@ export const parseReuse = (reuse: UserReuseType | null | undefined): ReuseType =
     : reuse === "newwindow" ? ReuseType.newWindow
     : reuse === "newfg" ? ReuseType.newFg : reuse === "newbg" ? ReuseType.newBg
     : reuse === "current" ? ReuseType.current
-    : (reuse = reuse.replace("-", "") as (typeof reuse & string),
+    : (reuse = reuse.replace("-", ""),
       reuse === "lastwndfg") ? ReuseType.lastWndFg : reuse === "lastwndbg" ? ReuseType.lastWndBg
+    : reuse === "lastwndbgbg" || reuse === "lastwndbginactive" ? ReuseType.lastWndBgInactive
     : ReuseType.newFg
 
 
@@ -150,10 +151,14 @@ const openUrlInNewTab = (url: string, reuse: Exclude<ReuseType, ReuseType.reuse 
     if (reuse < ReuseType.lastWndFg + 1 && TabRecency_.lastWnd_ >= 0) {
       browserTabs.create({ windowId: TabRecency_.lastWnd_, active: reuse > ReuseType.lastWndBg,
         url: !url || settings.newTabs_.get(url) === Urls.NewTabType.browser ? void 0 : url
-      }, (): void => {
+      }, (newTab): void => {
         if (runtimeError_()) {
           openUrlInNewTab(url, ReuseType.newWindow, options, tabs)
           return runtimeError_()
+        } else if (reuse > ReuseType.lastWndBg) {
+          selectWnd(newTab)
+        } else if (reuse > ReuseType.lastWndBgInactive) {
+          selectTab(newTab.id, false)
         }
       })
       return

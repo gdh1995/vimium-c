@@ -229,6 +229,7 @@ declare const enum ReuseType {
   newBg = -2,
   lastWndFg = -5,
   lastWndBg = -6,
+  lastWndBgInactive = -7,
   FLAG_LAST_WINDOW = -4,
   Default = newFg,
   MAX = 2,
@@ -236,6 +237,7 @@ declare const enum ReuseType {
 declare type UserReuseType = ReuseType | keyof typeof ReuseType
     | "newwindow" | "new-window" | "newfg" | "new-fg" | "newbg" | "new-bg"
     | "lastwndfg" | "last-wnd-fg" | "lastwndbg" | "last-wnd-bg"
+    | "last-wnd-bgbg" | "lastwndbgbg" | "last-wnd-bg-inactive" | "lastwndbginactive"
 
 declare const enum FrameMaskType {
   NoMaskAndNoFocus = 0,

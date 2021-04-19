@@ -42,3 +42,12 @@ interface WeakRefConstructor {
 }
 /** WeakRefConstructor | undefined */
 declare var WeakRef: unknown
+
+type ReplaceStrOnce <A extends string, S extends string, T extends string>
+    = A extends `${infer x}${S}${infer y}` ? `${x}${T}${y}` : A
+type ReplaceStrAll <A extends string, S extends string, T extends string>
+    = A extends `${infer x}${S}${infer y}` ? ReplaceStrAll<`${x}${T}${y}`, S, T> : A
+interface String {
+  replace <Self extends string, S extends string, T extends string> (
+     this: Self, searchValue: S, replaceValue: T): ReplaceStrAll<Self, S , T>
+}
