@@ -452,20 +452,3 @@ export const setBoundary_ = (style: CSSStyleDeclaration, r: WritableRect, allow_
   style.width = (r.r - r.l) + P, style.height = (r.b - r.t) + P
   return need_abs
 }
-
-export const SubtractSequence_ = function (this: {l: Rect[]; t: Rect}, rect1: Rect): void { // rect1 - rect2
-  let rect2 = this.t, a = this.l, x1: number, x2: number
-    , y1 = rect1.t > rect2.t ? rect1.t : rect2.t, y2 = rect1.b < rect2.b ? rect1.b : rect2.b
-  if (y1 >= y2 || ((x1 = rect1.l > rect2.l ? rect1.l : rect2.l) >= (x2 = rect1.r < rect2.r ? rect1.r : rect2.r))) {
-    a.push(rect1)
-    return
-  }
-  // 1 2 3
-  // 4   5
-  // 6 7 8
-  const x0 = rect1.l, x3 = rect1.r, y0 = rect1.t, y3 = rect1.b
-  x0 < x1 && a.push({l: x0, t: y0, r: x1, b: y3}); // (1)4(6)
-  y0 < y1 && a.push({l: x1, t: y0, r: x3, b: y1}); // 2(3)
-  y2 < y3 && a.push({l: x1, t: y2, r: x3, b: y3}); // 7(8)
-  x2 < x3 && a.push({l: x2, t: y1, r: x3, b: y2}); // 5
-}

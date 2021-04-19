@@ -11,7 +11,7 @@ import {
 import {
   getVisibleClientRect_, getZoomedAndCroppedRect_, getClientRectsForAreas_, getCroppedRect_, padClientRect_,
   getBoundingClientRect_, cropRectToVisible_, bZoom_, set_bZoom_, prepareCrop_, wndSize_, isContaining_,
-  isDocZoomStrange_, docZoom_, SubtractSequence_, dimSize_, ViewBox
+  isDocZoomStrange_, docZoom_, dimSize_, ViewBox
 } from "../lib/rect"
 import { find_box } from "./mode_find"
 import { omni_box } from "./omni"
@@ -413,7 +413,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
           }
         }
       } else if (wantClickable) {
-        (matchSelector ? filter as typeof getIfOnlyVisible : /*#__NOINLINE__*/ isOtherClickable
+        (matchSelector ? <typeof getIfOnlyVisible> filter : /*#__NOINLINE__*/ isOtherClickable
             )(output as Exclude<typeof output, Hint0[]>
             , el as NonHTMLButFormattedElement | SafeElementWithoutFormat);
       }
@@ -574,7 +574,7 @@ const isDescendant = function (c: Element | null, p: Element, shouldBeSingleChil
 } as (c: Element, p: Element, shouldBeSingleChild: BOOL | boolean) => boolean
 
 export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean | BOOL, _a3?: void): void => {
-  let i = list.length, el: SafeElement, root: Document | ShadowRoot, tag: string,
+  let i = list.length, el: SafeElement, root: Document | ShadowRoot, tag: "" | keyof HTMLElementTagNameMap,
   fromPoint: Element | null | undefined, temp: Element | null, index2 = 0;
   const zoom = OnChrome ? docZoom_ * bZoom_ : 1,
   zoomD2 = OnChrome ? zoom / 2 : 0.5,
@@ -615,7 +615,7 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
       continue;
     }
     type MayBeLabel = TypeToAssert<Element, HTMLLabelElement, "control">;
-    if ((tag = el.localName) === "img"
+    if ((tag = el.localName as keyof HTMLElementTagNameMap) === "img"
         ? isDescendant(el, fromPoint!, 0)
         : tag === "area" ? fromPoint === list[i][4]
         : tag === INP && ((htmlTag_(fromPoint!) !== "label" && !notSafe_not_ff_!(fromPoint!)
@@ -652,6 +652,20 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
 }
 
 export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
+  let r2 = null as Rect[] | null, subtractor: Rect, subtracted: Rect[]
+  const subtractSequence = (rect1: Rect): void => { // rect1 - rect2
+    let x1: number, x2: number, rect2 = subtractor
+      , y1 = rect1.t > rect2.t ? rect1.t : rect2.t, y2 = rect1.b < rect2.b ? rect1.b : rect2.b
+    if (y1 >= y2 || ((x1 = rect1.l > rect2.l ? rect1.l : rect2.l) >= (x2 = rect1.r < rect2.r ? rect1.r : rect2.r))) {
+      subtracted.push(rect1)
+    } else {
+      const x0 = rect1.l, x3 = rect1.r, y0 = rect1.t, y3 = rect1.b // [1 2 3; 4 ~ 5; 6 7 8]
+      x0 < x1 && subtracted.push({l: x0, t: y0, r: x1, b: y3}); // (1)4(6)
+      y0 < y1 && subtracted.push({l: x1, t: y0, r: x3, b: y1}); // 2(3)
+      y2 < y3 && subtracted.push({l: x1, t: y2, r: x3, b: y3}); // 7(8)
+      x2 < x3 && subtracted.push({l: x2, t: y1, r: x3, b: y2}); // 5
+    }
+  }
   let _i: number = mode1_, B = "[style*=background]", reachable = hintOptions.reachable,
   visibleElements = _i > HintMode.min_media - 1 && _i < HintMode.max_media + 1
     // not check `img[src]` in case of `<img srcset=... >`
@@ -724,13 +738,11 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
   maxLeft_ = view[2], maxTop_ = view[3], maxRight_ = view[4];
   if ((!OnChrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar)
       && maxRight_ > 0) {
-    _i = math.ceil(math.log(visibleElements.length) / math.log(hintChars.length));
-    maxLeft_ -= 16 * _i + 12;
+    maxLeft_ -= 16 * math.ceil(math.log(visibleElements.length) / math.log(hintChars.length)) + 12
   }
   visibleElements.reverse();
 
-  const obj = {l: null as never, t: null as never} as {l: Rect[]; t: Rect}, func = SubtractSequence_.bind(obj);
-  let r2 = null as Rect[] | null, t: Rect, reason: ClickType, visibleElement: Hint;
+  let t: Rect, reason: ClickType, visibleElement: Hint
   for (let _len = visibleElements.length, _j = max_(0, _len - 16); 0 < --_len; ) {
     _j > 0 && --_j;
     visibleElement = visibleElements[_len];
@@ -739,9 +751,9 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
     for (_i = _len; _j <= --_i; ) {
       t = visibleElements[_i][1];
       if (r.b > t.t && r.r > t.l && r.l < t.r && r.t < t.b && visibleElements[_i][2] < ClickType.MaxNotBox + 1) {
-        obj.l = []; obj.t = t;
-        r2 !== null ? r2.forEach(func) : func(r);
-        if ((r2 = obj.l).length === 0) { break; }
+        subtracted = []; subtractor = t
+        r2 !== null ? r2.forEach(subtractSequence) : subtractSequence(r)
+        if ((r2 = subtracted).length === 0) { break; }
       }
     }
     if (r2 === null) { continue; }
