@@ -614,13 +614,14 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
         && contains_s((root as ShadowRoot).host as SafeElement, fromPoint!)) {
       continue;
     }
+    type MayBeLabel = TypeToAssert<Element, HTMLLabelElement, "control">;
     if ((tag = el.localName) === "img"
         ? isDescendant(el, fromPoint!, 0)
         : tag === "area" ? fromPoint === list[i][4]
-        : tag === INP && ((htmlTag_(fromPoint!) !== "label"
-              && (OnFirefox || !notSafe_not_ff_!(fromPoint!))
-              && (fromPoint as SafeElement).parentElement || fromPoint!) as HTMLLabelElement).control === el
-          && (notForAllClickable || (i < 1 || list[i - 1][0] !== el) && (i >= list.length || list[i + 1][0] !== el))) {
+        : tag === INP && ((htmlTag_(fromPoint!) !== "label" && !notSafe_not_ff_!(fromPoint!)
+              && fromPoint!.parentElement || fromPoint!) as MayBeLabel).control === el
+          && (notForAllClickable
+              || (i < 1 || list[i - 1][0] !== el) && (i + 2 > list.length || list[i + 1][0] !== el))) {
       continue;
     }
     const stack = root.elementsFromPoint(cx, cy),
