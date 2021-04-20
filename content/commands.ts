@@ -469,11 +469,11 @@ set_contentCommands_([
 ])
 
 
-const runFallbackKey = (options: { fallback?: any }, anotherTip?: kTip): void => {
+const runFallbackKey = (options: Req.FallbackOptions, anotherTip?: kTip): void => {
   const fallback = options.fallback
   if (fallback && isTY(fallback)) {
     suppressTail_(GlobalConsts.TimeOfSuppressingUnexpectedKeydownEvents)
-    post_({ H: kFgReq.key, k: fallback, l: kKeyCode.None })
+    post_({ H: kFgReq.key, k: fallback, l: kKeyCode.None, f: options.$f || 1 })
   } else {
     anotherTip && hudTip(anotherTip)
   }

@@ -18,7 +18,7 @@ export let cRepeat = 1
 
 export let reqH_: BackendHandlersNS.FgRequestHandlers
 export let executeCommand: (registryEntry: CommandsNS.Item, count: number, lastKey: kKeyCode, port: Port
-    , overriddenCount: number) => void
+    , overriddenCount: number, fallbackCounter?: number) => void
 
 export const set_cKey = (_newKey: kKeyCode): void => { cKey = _newKey }
 export const set_cNeedConfirm = (_newNeedC: BOOL): void => { cNeedConfirm = _newNeedC }

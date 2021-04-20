@@ -597,17 +597,17 @@ export const executeExternalCmd = (message: Partial<ExternalMsgs[kFgReq.command]
       : BgUtils_.require_("KeyMappings").then(() => executeExternalCmd(message, sender))
 }
 
-const onLargeCountConfirmed = (registryEntry: CommandsNS.Item): void => {
-  executeCommand(registryEntry, 1, cKey, cPort, cRepeat)
+const onLargeCountConfirmed = (registryEntry: CommandsNS.Item, fallbackCounter: number | undefined): void => {
+  executeCommand(registryEntry, 1, cKey, cPort, cRepeat, fallbackCounter)
 }
 
 set_executeCommand((registryEntry: CommandsNS.Item, count: number, lastKey: kKeyCode, port: Port
-    , overriddenCount: number): void => {
+    , overriddenCount: number, fallbackCounter?: number): void => {
   if (gOnConfirmCallback) {
     set_gOnConfirmCallback(null) // just in case that some callbacks were thrown away
     return
   }
-  const { options_: options, repeat_: repeat } = registryEntry
+  let { options_: options, repeat_: repeat } = registryEntry
   let scale: number | undefined
   // .count may be invalid, if from other extensions
   if (options && (scale = options.count)) { count = count * scale || 1 }
@@ -624,7 +624,8 @@ set_executeCommand((registryEntry: CommandsNS.Item, count: number, lastKey: kKey
         set_cOptions(null)
         set_cPort(port)
         set_cRepeat(count)
-        confirm_<kCName, 1>(registryEntry.command_, abs(count), onLargeCountConfirmed.bind(null, registryEntry))
+        confirm_<kCName, 1>(registryEntry.command_, abs(count),
+            onLargeCountConfirmed.bind(null, registryEntry, fallbackCounter))
         return
       }
     } else {
@@ -632,6 +633,17 @@ set_executeCommand((registryEntry: CommandsNS.Item, count: number, lastKey: kKey
     }
     if (!count) { return }
   } else { count = count || 1 }
+  if (fallbackCounter) {
+    if (fallbackCounter > 5) {
+      set_cPort(port)
+      showHUD("Run fallbacks 5 times but all failed")
+      return
+    }
+    if (options && (options as Req.FallbackOptions).fallback) {
+      options = BgUtils_.extendIf_(BgUtils_.safeObj_(), options);
+      (options as Req.FallbackOptions).$f = fallbackCounter + 1
+    }
+  }
   if (!registryEntry.background_) {
     const { alias_: fgAlias } = registryEntry,
     wantCSS = (kFgCmd.END <= 32 || fgAlias < 32) && <BOOL> (((

@@ -408,7 +408,7 @@ set_reqH_([
     }
     BgUtils_.resetRe_()
     if (registryEntry) {
-      executeCommand(registryEntry, count, request.l, port, 0)
+      executeCommand(registryEntry, count, request.l, port, 0, request.f)
     }
   },
   /** kFgReq.marks: */ (request: FgReq[kFgReq.marks], port: Port): void => {

@@ -399,8 +399,7 @@ interface CmdOptions {
     flash?: boolean;
     reachable?: boolean; // default to true
     prefer?: string;
-    fallback?: /** key sequence */ string
-  } & CSSOptions;
+  } & CSSOptions & Req.FallbackOptions;
   [kFgCmd.editText]: {
     dom?: boolean;
     run: string;
@@ -561,6 +560,7 @@ interface FgReq {
   [kFgReq.key]: {
     /* keySequence */ k: string;
     /** lastKey */ l: kKeyCode;
+    /** fallback counter */ f?: number
   };
   [kFgReq.marks]: ({ /** action */ a: kMarkAction.create } & (MarksNS.NewTopMark | MarksNS.NewMark)) | {
     /** action */ a: kMarkAction.clear;
@@ -658,6 +658,10 @@ declare namespace Req {
   }
 
   interface FgCmd<O extends keyof CmdOptions> extends BaseExecute<CmdOptions[O], O>, baseBg<kBgReq.execute> {}
+  interface FallbackOptions {
+    /** key sequence */ fallback?: string
+    /** fallback counter */ $f?: number
+  }
 }
 
 interface SetSettingReq<T extends keyof SettingsNS.FrontUpdateAllowedSettings> extends Req.baseFg<kFgReq.setSetting> {
