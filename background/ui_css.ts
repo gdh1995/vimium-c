@@ -1,5 +1,4 @@
-import { framesForTab } from "./ports"
-import { findCSS_, innerCSS_, omniPayload, settings, set_findCSS_, set_innerCSS_ } from "./store"
+import { framesForTab, findCSS_, innerCSS_, omniPayload, settings, set_findCSS_, set_innerCSS_ } from "./store"
 
 declare const enum MergeAction {
   virtual = -1, readFromCache = 0, rebuildWhenInit = 1, rebuildAndBroadcast = 2,
@@ -212,8 +211,7 @@ const mergeCSS = (css2Str: string, action: MergeAction | "userDefinedCss"): Sett
   loadCSS(MergeAction.readFromCache, newInnerCSS)
   if (action !== MergeAction.readFromCache && action !== MergeAction.rebuildWhenInit) {
     const request: Req.bg<kBgReq.showHUD> = { N: kBgReq.showHUD, H: innerCSS_, f: findCSS_ }
-    for (const tabId in framesForTab) {
-      const frames = framesForTab[+tabId]!
+    framesForTab.forEach((frames): void => {
       for (let i = frames.length; 0 < --i; ) {
         const status = frames[i].s
         if (status.f & Frames.Flags.hasCSS) {
@@ -221,7 +219,7 @@ const mergeCSS = (css2Str: string, action: MergeAction | "userDefinedCss"): Sett
           status.f |= Frames.Flags.hasFindCSS
         }
       }
-    }
+    })
     settings.broadcastOmni_({ N: kBgReq.omni_updateOptions, d: { c: omniPayload.c } })
   }
 }

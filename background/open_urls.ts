@@ -3,9 +3,11 @@ import {
   selectFrom, selectWnd, getCurTab, runtimeError_, tabsGet, getTabUrl, getCurWnd, Tab, Window, browserTabs,
   browserWindows, getAllWindows, tabsCreate, safeUpdate, InfoToCreateMultiTab, openMultiTab, makeWindow, browser_, selectTab
 } from "./browser"
-import { cKey, cPort, cRepeat, get_cOptions, settings, set_cOptions, set_cPort, set_cRepeat } from "./store"
 import {
-  framesForTab, ensureInnerCSS, safePost, showHUD, complainLimits, findCPort, isNotVomnibarPage, portSendFgCmd
+  framesForTab, cKey, cPort, cRepeat, get_cOptions, settings, set_cOptions, set_cPort, set_cRepeat
+} from "./store"
+import {
+  ensureInnerCSS, safePost, showHUD, complainLimits, findCPort, isNotVomnibarPage, portSendFgCmd
 } from "./ports"
 import { parseSedOptions_, paste_, substitute_ } from "./clipboard"
 
@@ -513,7 +515,7 @@ const focusAndExecuteArr = [function (tabs): void {
   let tab: Tab = selectFrom(tabs2)
   if (tab.url.length > tabs2[0].url.length) { tab = tabs2[0]; }
   if (Build.BTypes & BrowserType.Chrome
-      && url.startsWith(settings.CONST_.OptionsPage_) && !framesForTab[tab.id] && !this.s) {
+      && url.startsWith(settings.CONST_.OptionsPage_) && !framesForTab.get(tab.id) && !this.s) {
     tabsCreate({ url })
     browserTabs.remove(tab.id)
   } else {

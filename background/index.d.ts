@@ -148,22 +148,16 @@ declare namespace Frames {
     onMessage: chrome.events.Event<(message: any, port: Frames.Port, exArg: FakeArg) => void>;
   }
 
-  interface Frames extends ReadonlyArray<Port> {
-  }
+  type Frames = readonly Port[]
 
   interface WritableFrames extends Array<Port> {
   }
 
-  interface FramesMap {
-    [tabId: number]: Frames | undefined;
-    readonly __proto__: never;
-  }
-
-  interface FramesMapToDestroy extends FramesMap {
-    [tabId: number]: Frames;
-    /** omni */ o?: Frames;
+  interface FramesMap extends Map<number, Frames> {
+    forEach (callback: (frames: Frames, tabId: number) => void): void
   }
 }
+
 interface Port extends Frames.Port {
   readonly s: Readonly<Frames.Sender>;
 }
@@ -370,7 +364,7 @@ declare namespace SettingsNS {
       > {
   }
 
-  type DynamicFiles = "HelpDialog" | "KeyMappings" | "MathParser";
+  type DynamicFiles = "HelpDialog" | "MathParser";
 
   interface Sync {
     set<K extends keyof PersistentSettings> (key: K, value: PersistentSettings[K] | null): void;
@@ -392,7 +386,6 @@ interface OtherCNamesForDebug {
 }
 declare const enum CNameLiterals {
   focusOptions = "focusOptions",
-  quickNext = "quickNext",
   userCustomized = "userCustomized"
 }
 
@@ -539,7 +532,7 @@ interface CmdNameIds {
 }
 type kCName = keyof CmdNameIds
 
-declare const enum kShortcutAliases { _mask = 0, nextTab1 = CNameLiterals.quickNext }
+declare const enum kShortcutAliases { nextTab1 = "quickNext" }
 type StandardShortcutNames = "createTab" | "goBack" | "goForward" | "previousTab"
     | "nextTab" | "reloadTab" | CNameLiterals.userCustomized
 
@@ -600,7 +593,6 @@ declare namespace BackendHandlersNS {
       (this: void): Frames.FramesMap;
     };
     curTab_ (): number,
-    ExecuteShortcut_ (this: void, command: string): void;
     onInit_: ((this: void) => void) | null;
   }
   const enum kInitStat {
@@ -612,13 +604,8 @@ declare namespace BackendHandlersNS {
 interface TextSet extends Set<string> {}
 interface CommandsDataTy {
   errors_: null | string[][];
-  builtinKeys_: TextSet | null
   keyFSM_: KeyFSM;
   mappedKeyRegistry_: SafeDict<string> | null;
-  mappedKeyTypes_: kMapKey;
-  envRegistry_: Map<string, CommandsNS.EnvItem> | null
-  visualGranularities_: GranularityNames;
-  visualKeys_: VisualModeNS.KeyMap;
 }
 
 interface BaseHelpDialog {
@@ -627,7 +614,6 @@ interface BaseHelpDialog {
 
 interface Window {
   readonly MathParser?: object;
-  readonly KeyMappings?: object;
   readonly CommandsData_: CommandsDataTy & { keyToCommandRegistry_: Map<string, CommandsNS.BaseItem> }
   readonly Completion_: CompletersNS.GlobalCompletersConstructor;
   readonly Exclusions?: object;

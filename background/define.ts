@@ -1,4 +1,5 @@
 declare var define: any
+type SimulatedMap = IterableMap<string, any> & Set<string> & { map_: SafeDict<1>, isSet_: BOOL }
 
 if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
   (window as Writable<Window>).OnOther = Build.BTypes & BrowserType.Chrome

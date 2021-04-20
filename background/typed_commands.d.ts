@@ -175,5 +175,4 @@ declare namespace CommandsNS {
 
 interface CommandsDataTy {
   keyToCommandRegistry_: Map<string, CommandsNS.Item>
-  shortcutRegistry_: Map<StandardShortcutNames, CommandsNS.Item>
 }

@@ -419,10 +419,10 @@ IncognitoWatcher_ = {
     IncognitoWatcher_.timer_ = 0;
     if (Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
         || CurCVer_ >= BrowserVer.MinNoAbnormalIncognito) {
-      let left = false, arr = Backend_.indexPorts_();
-      for (const i in arr) {
-        if (arr[+i]![0].s.a) { left = true; break; }
-      }
+      let left = false
+      Backend_.indexPorts_().forEach((frames): void => {
+        if (frames[0].s.a) { left = true }
+      })
       if (left) { return; }
     }
     chrome.windows.getAll(function (wnds): void {
@@ -573,7 +573,7 @@ BgUtils_.timeout_(120, function (): void {
       return
     }
     cache.forEach((val, i) => {
-      if (val.i < GlobalConsts.MaxTabRecency - GlobalConsts.MaxTabsKeepingRecency + 2) { cache.delete(i) }
+      if (val.i < GlobalConsts.MaxTabRecency - GlobalConsts.MaxTabsKeepingRecency + 2) { cache.delete(i as number) }
       else { val.i -= GlobalConsts.MaxTabRecency - GlobalConsts.MaxTabsKeepingRecency }
     })
     stamp = GlobalConsts.MaxTabsKeepingRecency + 1;

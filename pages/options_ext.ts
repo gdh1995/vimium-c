@@ -1,7 +1,7 @@
 import { CurCVer_, CurFFVer_, BG_, bgSettings_, OnChrome, OnEdge, OnFirefox } from "./async_bg"
 import { $, AllowedOptions, ExclusionRulesOption_, Option_, pTrans_ } from "./options_base"
 import { SaveBtn } from "./options_defs"
-import { AdvancedOptBtn, click, ElementWithDelay, loadChecker, loadJS, OptionWindow } from "./options_wnd"
+import { AdvancedOptBtn, click, ElementWithDelay, loadJS, OptionWindow } from "./options_wnd"
 
 $<ElementWithDelay>("#showCommands").onclick = function showHelp(this: void, event): void {
   if (!window.VApi || !VApi.z) {
@@ -66,7 +66,7 @@ function formatDate_(time: number | Date): string {
   return new Date(+time - new Date().getTimezoneOffset() * 1000 * 60).toJSON().slice(0, -5).replace("T", " ")
 }
 
-interface ExportedSettings {
+interface ExportedSettings extends Dict<any> {
   name: "Vimium C";
   author?: string;
   description?: string;
@@ -79,7 +79,6 @@ interface ExportedSettings {
   };
   findModeRawQueryList?: never;
   vimSync: SettingsNS.BackendSettings["vimSync"]
-  [key: string]: any;
 }
 
 let _lastBlobURL = "";
@@ -381,10 +380,9 @@ function importSettings_(time: number | string | Date, data: string, is_recommen
       return alert(err_msg);
     }
   }
-  const promisedChecker = Option_.all_.keyMappings.checker_ ? null as never as void
-      : (loadChecker.info_ = "", loadJS("options_checker.js"))
+  const promisedChecker = Option_.all_.keyMappings.checker_ ? Promise.resolve() : loadJS("options_checker.js")
   const t2 = time, d2 = new_data
-  Promise.all([BG_.BgUtils_.require_("KeyMappings"), promisedChecker]).then((): void => {
+  promisedChecker.then((): void => {
     setTimeout(_importSettings, 17, t2, d2, is_recommended);
   });
 }

@@ -10,9 +10,9 @@ interface ReadonlySafeDict<T> extends SafeDict<T> {
   readonly [key: string]: T | undefined;
 }
 interface SafeEnum extends ReadonlySafeDict<1> {}
-interface EnsuredSafeDict<T> extends SafeDict<T> {
-  [key: string]: T;
-}
+interface EnsuredDict<T> { [key: string]: T }
+interface EnsuredSafeDict<T> extends EnsuredDict<T>, SafeObject {}
+
 type EnsureItemsNonNull<T> = { [P in keyof T]-?: NonNullable<T[P]> };
 type OnlyEnsureItemsNonNull<T> = { [P in keyof T]: NonNullable<T[P]> }; // for lang server to show comments
 type EnsureNonNull<T> = EnsureItemsNonNull<NonNullable<T>>;

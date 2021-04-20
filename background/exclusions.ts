@@ -112,11 +112,11 @@ var Exclusions = {
       });
       return;
     }
-    const ref = Backend_.indexPorts_(),
+    const
     needIcon = !!Settings_.temp_.IconBuffer_ && (Settings_.temp_.IconBuffer_() || Settings_.get_("showActionIcon"));
     let pass: string | null = null, status: Frames.ValidStatus = Frames.Status.enabled;
-    for (const tabId in ref) {
-      const frames = ref[+tabId]!, status0 = frames[0].s.s;
+    Backend_.indexPorts_().forEach((frames, tabId): void => {
+      const status0 = frames[0].s.s;
       for (let i = frames.length; 0 < --i; ) {
         const port = frames[i];
         if (always_enabled) {
@@ -136,9 +136,9 @@ var Exclusions = {
         port.s.s = status;
       }
       if (needIcon && status0 !== (status = frames[0].s.s)) {
-        Backend_.setIcon_(+tabId, status);
+        Backend_.setIcon_(tabId, status)
       }
-    }
+    })
   },
   updateListeners_ (this: void): void {
     const a = Exclusions, listenHistory = a.rules_.length > 0,
@@ -156,16 +156,15 @@ var Exclusions = {
       listenHash ? e.addListener(l) : e.removeListener(l);
     }
   }
-};
+}, CommandsData_: CommandsDataTy;
 
 Settings_.updateHooks_.exclusionRules = function (this: void, rules: ExclusionsNS.StoredRule[]): void {
   const isEmpty = !Exclusions.rules_.length, curKeyFSM = CommandsData_.keyFSM_
   Exclusions.setRules_(rules);
-  BgUtils_.GC_();
   setTimeout(function (): void {
     setTimeout(Exclusions.RefreshStatus_, 10, isEmpty);
     if (CommandsData_.keyFSM_ === curKeyFSM) {
-      BgUtils_.require_("KeyMappings").then(() => Settings_.postUpdate_("keyMappings", null));
+      Settings_.postUpdate_("keyMappings", null)
     }
   }, 1);
 };

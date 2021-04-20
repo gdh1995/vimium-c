@@ -55,12 +55,11 @@ BgUtils_.timeout_(150, function (): void {
         if (Build.BTypes & BrowserType.Chrome) { tabIds = null; }
         if (Build.BTypes & ~BrowserType.Chrome
             && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) {
-          const ref2 = Backend_.indexPorts_();
-          for (const tabId in ref2) {
-            if (ref2[+tabId]![0].s.s !== Frames.Status.enabled) {
-              Backend_.setIcon_(+tabId, Frames.Status.enabled);
+          Backend_.indexPorts_().forEach((frames, tabId): void => {
+            if (frames[0].s.s !== Frames.Status.enabled) {
+              Backend_.setIcon_(tabId, Frames.Status.enabled)
             }
-          }
+          })
           return;
         }
       }, 200);
@@ -74,13 +73,12 @@ BgUtils_.timeout_(150, function (): void {
       tabIds = new Map()
     }
     // only do partly updates: ignore "rare" cases like `sender.s` is enabled but the real icon isn't
-    const ref = Backend_.indexPorts_();
-    for (const tabId in ref) {
-      const sender = ref[+tabId]![0].s;
+    Backend_.indexPorts_().forEach((frames, tabId): void => {
+      const sender = frames[0].s;
       if (sender.s !== Frames.Status.enabled) {
-        Backend_.setIcon_(sender.t, sender.s);
+        Backend_.setIcon_(tabId, sender.s)
       }
-    }
+    })
   } as IconNS.AccessIconBuffer;
   Backend_.setIcon_ = function (this: void, tabId: number, type: Frames.ValidStatus, isLater?: true): void {
     /** Firefox does not use ImageData as inner data format
@@ -568,37 +566,6 @@ function (details: chrome.runtime.InstalledDetails): void {
   });
   });
 });
-
-BgUtils_.GC_ = function (inc0?: number): void {
-  /**
-   * GC should work as a "robust" debouncing function,
-   * which means `later` should never be called in the next real-world time period after once GC().
-   * As a result, `Date.now` is not strong enough, so a frequent `clearTimeout` is necessary.
-   */
-  let now = 0, timeout = 0, referenceCount = 0;
-  BgUtils_.GC_ = function (inc?: number): void {
-    inc && (referenceCount = referenceCount + inc > 0 ? referenceCount + inc : 0);
-    if (referenceCount > 0 || !KeyMappings) {
-      if (timeout) { clearTimeout(timeout); timeout = 0; }
-      return;
-    }
-    now = performance.now();
-    timeout = timeout || setTimeout(later, GlobalConsts.TimeoutToReleaseBackendModules);
-  };
-  return BgUtils_.GC_(inc0);
-  function later(): void {
-    if (Math.abs(performance.now() - now) < GlobalConsts.ToleranceForTimeoutToGC) {
-      timeout = setTimeout(later, GlobalConsts.TimeoutToReleaseBackendModules);
-      return;
-    }
-    timeout = 0;
-    const hook = Settings_.updateHooks_;
-    if (KeyMappings) {
-      hook.keyMappings = null as never;
-      KeyMappings = null as never;
-    }
-  }
-};
 
 BgUtils_.timeout_(1200, function (): void {
   Settings_.temp_.onInstall_ && chrome.runtime.onInstalled.removeListener(Settings_.temp_.onInstall_);

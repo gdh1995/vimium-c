@@ -2,17 +2,19 @@ import C = kBgCmd
 import { browserTabs, browserWebNav, getTabUrl, runtimeError_, selectTab } from "./browser"
 import {
   cPort, NoFrameId, cRepeat, get_cOptions, set_cPort, getSecret, set_cOptions, set_cRepeat, set_cNeedConfirm,
+  framesForTab, framesForOmni,
   executeCommand, reqH_, omniPayload, settings, findCSS_, visualWordsRe_, set_cKey, cKey
 } from "./store"
 import {
-  framesForTab, indexFrame, portSendFgCmd, framesForOmni, focusFrame, sendFgCmd, showHUD, complainLimits, safePost
+  indexFrame, portSendFgCmd, focusFrame, sendFgCmd, showHUD, complainLimits, safePost
 } from "./ports"
 import { parseSedOptions_, substitute_ } from "./clipboard"
 import { parseReuse, newTabIndex, openUrlWithActions } from "./open_urls"
+import { envRegistry_, shortcutRegistry_, visualGranularities_, visualKeys_ } from "./key_mappings"
 
 export const nextFrame = (): void | kBgCmd.nextFrame => {
   let port = cPort, ind = -1
-  const frames = framesForTab[port.s.t]
+  const frames = framesForTab.get(port.s.t)
   if (frames && frames.length > 2) {
     ind = Math.max(0, frames.indexOf(port, 1))
     for (let count = Math.abs(cRepeat); count > 0; count--) {
@@ -30,7 +32,7 @@ export const parentFrame = (): void | kBgCmd.parentFrame => {
   const sender = cPort.s,
   msg = Build.MinCVer < BrowserVer.MinWithFrameId && Build.BTypes & BrowserType.Chrome && NoFrameId
     ? `Vimium C can not know parent frame before Chrome ${BrowserVer.MinWithFrameId}`
-    : !(sender.t >= 0 && framesForTab[sender.t]) ? "Vimium C can not access frames in current tab" : null
+    : !(sender.t >= 0 && framesForTab.get(sender.t)) ? "Vimium C can not access frames in current tab" : null
   msg && showHUD(msg)
   if (!sender.i
       || Build.MinCVer < BrowserVer.MinWithFrameId && Build.BTypes & BrowserType.Chrome && NoFrameId
@@ -168,8 +170,8 @@ export const enterVisualMode = (): void | kBgCmd.visualMode => {
       sender.f |= Frames.Flags.hasFindCSS
       sentFindCSS = findCSS_
     }
-    keyMap = CommandsData_.visualKeys_
-    granularities = CommandsData_.visualGranularities_
+    keyMap = visualKeys_
+    granularities = visualGranularities_
     sender.f |= Frames.Flags.hadVisualMode
   }
   sendFgCmd(kFgCmd.visualMode, true, {
@@ -332,7 +334,7 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null
 
 export const mainFrame = (): void | kBgCmd.mainFrame => {
   const tabId = cPort ? cPort.s.t : TabRecency_.curTab_, port = indexFrame(tabId, 0)
-  port && focusFrame(port, true, framesForTab[tabId]![0] === port ? FrameMaskType.OnlySelf : FrameMaskType.ForcedSelf)
+  port && focusFrame(port, true, framesForTab.get(tabId)![0] === port ? FrameMaskType.OnlySelf : FrameMaskType.ForcedSelf)
 }
 
 export const setOmniStyle = (req: FgReq[kFgReq.setOmniStyle], port?: Port): void => {
@@ -495,7 +497,7 @@ export const onConfirmResponse = (request: FgReq[kFgReq.cmd], port: Port): void 
     onConfirm(request.r)
     return
   }
-  executeCommand(CommandsData_.shortcutRegistry_.get(cmd)!, request.n, kKeyCode.None, port, 0)
+  executeCommand(shortcutRegistry_!.get(cmd)!, request.n, kKeyCode.None, port, 0)
 }
 
 export const executeShortcut = (shortcutName: StandardShortcutNames, ports: Frames.Frames | null | undefined): void => {
@@ -510,7 +512,7 @@ export const executeShortcut = (shortcutName: StandardShortcutNames, ports: Fram
     port.s.f |= Frames.Flags.userActed
     return
   }
-  let registry = CommandsData_.shortcutRegistry_.get(shortcutName)!, cmdName = registry.command_,
+  let registry = shortcutRegistry_!.get(shortcutName)!, cmdName = registry.command_,
   cmdFallback: keyof BgCmdOptions = 0
   if (cmdName === "goBack" || cmdName === "goForward") {
     if (Build.BTypes & ~BrowserType.Edge
@@ -522,7 +524,7 @@ export const executeShortcut = (shortcutName: StandardShortcutNames, ports: Fram
     cmdFallback = kBgCmd.autoOpenFallback
   }
   if (cmdFallback) {
-    /** this object shape should keep the same as the one in {@link key_mappings.ts#KeyMappings.makeCommand_} */
+    /** this object shape should keep the same as the one in {@link key_mappings.ts#makeCommand_} */
     registry = { alias_: cmdFallback, background_: 1, command_: cmdName, help_: null,
       options_: registry.options_, repeat_: registry.repeat_
     }
@@ -616,7 +618,6 @@ const matchEnvRule = (rule: CommandsNS.EnvItem, cur: CurrentEnvCache
 }
 
 export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey]): void => {
-  const envMap = CommandsData_.envRegistry_
   let expected_rules = get_cOptions<kBgCmd.runKey>().expect
   const absCRepeat = Math.abs(cRepeat)
   const curEnvCache: CurrentEnvCache = {}
@@ -625,7 +626,7 @@ export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey]): void => {
       = get_cOptions<kBgCmd.runKey, true>()
   let keys: string | string[] | null | undefined
   if (!cPort) {
-    const frames = framesForTab[TabRecency_.curTab_]
+    const frames = framesForTab.get(TabRecency_.curTab_)
     set_cPort(frames ? frames[0] : null)
   }
   cPort && ((cPort as Frames.Port).s.f |= Frames.Flags.userActed)
@@ -634,11 +635,11 @@ export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey]): void => {
     let rule: CommandsNS.EnvItem | CommandsNS.EnvItemWithKeys = (expected_rules as CommandsNS.EnvItemWithKeys[])[i]
     const ruleName = (rule as CommandsNS.EnvItemWithKeys).env
     if (ruleName) {
-      if (!envMap) {
+      if (!envRegistry_) {
         showHUD('No environments have been declared')
         return
       }
-      const rule2 = envMap.get(ruleName)
+      const rule2 = envRegistry_.get(ruleName)
       if (!rule2) {
         showHUD(`No environment named "${ruleName}"`)
         return
@@ -668,12 +669,12 @@ export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey]): void => {
   if (matchedIndex === -1 && expected_rules
       && typeof expected_rules === "object" && !(expected_rules instanceof Array)) {
     BgUtils_.safer_(expected_rules)
-    if (!envMap) {
+    if (!envRegistry_) {
       showHUD('No environments have been declared')
       return
     }
     for (let ruleName in expected_rules) {
-      const rule = CommandsData_.envRegistry_!.get(ruleName)
+      const rule = envRegistry_.get(ruleName)
       if (!rule) {
         showHUD(`No environment named "${ruleName}"`)
         return

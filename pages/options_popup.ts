@@ -211,11 +211,10 @@ const initExclusionRulesTable = (): void => {
   }
   window.onunload = function (): void {
     bgExclusions.testers_ = null as never
-    BG_.BgUtils_.GC_(-1)
   }
 }
 
-Promise.resolve((BG_.BgUtils_.GC_(1), bgSettings_.restore_) && bgSettings_.restore_()).then(((callback): () => void =>
+Promise.resolve(bgSettings_.restore_ && bgSettings_.restore_()).then(((callback): () => void =>
     (): void => { chrome.tabs.query({currentWindow: true, active: true}, callback) }
 )((activeTabs: [chrome.tabs.Tab] | never[]): void => {
   const curTab = activeTabs[0], _url = curTab.url

@@ -170,18 +170,6 @@ Option_.all_.keyboard.checker_ = {
   }
 };
 
-(function (): void {
-  const info = loadChecker.info_
-  loadChecker.info_ = ""
   for (const element of $$("[data-check]") as HTMLElement[]) {
     element.removeEventListener((element.dataset as KnownOptionsDataset).check || "input", loadChecker)
   }
-
-  if (info === "keyMappings") { return ReloadCommands(); }
-  (Option_.all_.keyMappings.element_ as HTMLInputElement).addEventListener("input", ReloadCommands)
-  function ReloadCommands(this: HTMLElement | void, event?: Event): void {
-    BG_.KeyMappings || BG_.BgUtils_.require_("KeyMappings");
-    if (!event) { return; }
-    (this as HTMLElement).removeEventListener("input", ReloadCommands);
-  }
-})();

@@ -3,10 +3,10 @@ import {
 } from "./browser"
 import {
   set_cPort, set_cRepeat, set_cOptions, needIcon_, set_cKey, cKey, get_cOptions, set_reqH_, reqH_, executeCommand,
-  settings, innerCSS_
+  settings, innerCSS_, framesForTab
 } from "./store"
 import {
-  findCPort, isNotVomnibarPage, framesForTab, indexFrame, onExitGrab, focusFrame, sendFgCmd, safePost,
+  findCPort, isNotVomnibarPage, indexFrame, onExitGrab, focusFrame, sendFgCmd, safePost,
   complainNoSession, showHUD, complainLimits
 } from "./ports"
 import { paste_, substitute_ } from "./clipboard"
@@ -272,7 +272,7 @@ set_reqH_([
         port.postMessage({ N: kBgReq.injectorRun, t: InjectorTask.reportLiving })
       }
     }
-    let tabId = port.s.t, ref = framesForTab[tabId], status: Frames.ValidStatus
+    let tabId = port.s.t, ref = framesForTab.get(tabId), status: Frames.ValidStatus
     if (!ref) {
       needIcon_ && Backend_.setIcon_(tabId, port.s.s)
       return
@@ -301,7 +301,7 @@ set_reqH_([
     if (sender.s !== status) {
       if (sender.f & Frames.Flags.locked) { return }
       sender.s = status
-      if (needIcon_ && framesForTab[sender.t]![0] === port) {
+      if (needIcon_ && framesForTab.get(sender.t)![0] === port) {
         Backend_.setIcon_(sender.t, status)
       }
     } else if (!pattern || pattern === Backend_.getExcluded_(oldUrl, sender)) {
@@ -317,7 +317,7 @@ set_reqH_([
     let ports: Frames.Frames | undefined
     if (type !== Frames.NextType.current) {
       type === Frames.NextType.parent ? parentFrame() : nextFrame()
-    } else if (ports = framesForTab[port.s.t]) {
+    } else if (ports = framesForTab.get(port.s.t)) {
       focusFrame(ports[0], ports.length <= 3, FrameMaskType.NoMask)
     } else {
       safePost(port, { N: kBgReq.omni_returnFocus, l: cKey })
@@ -326,7 +326,7 @@ set_reqH_([
   /** kFgReq.exitGrab: */ onExitGrab,
   /** kFgReq.execInChild: */ (request: FgReqWithRes[kFgReq.execInChild]
       , port: Port): FgRes[kFgReq.execInChild] => {
-    const tabId = port.s.t, ports = framesForTab[tabId], url = request.u
+    const tabId = port.s.t, ports = framesForTab.get(tabId), url = request.u
     if (!ports || ports.length < 3) { return false }
     let iport: Port | null = null, i = ports.length
     while (1 <= --i) {
@@ -512,7 +512,6 @@ const onCompletions = function (this: Port, favIcon0: 0 | 1 | 2, list: Array<Rea
       && (Build.MinCVer >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon
         || CurCVer_ >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon)) {
     url = url.slice(0, url.indexOf("/", url.indexOf("://") + 3) + 1)
-    const map = framesForTab
     let frame1 = gTabIdOfExtWithVomnibar >= 0 ? indexFrame(gTabIdOfExtWithVomnibar, 0) : null
     if (frame1 != null) {
       if (frame1.s.u.startsWith(url)) {
@@ -522,20 +521,18 @@ const onCompletions = function (this: Port, favIcon0: 0 | 1 | 2, list: Array<Rea
       }
     }
     if (!favIcon) {
-    for (const tabId in map) {
-      let frames = map[+tabId]!
-      for (let i = 1, len = frames.length; i < len; i++) {
+    framesForTab.forEach((frames, tabId) => {
+      for (let i = 1, len = frames.length; !favIcon && i < len; i++) {
         let { s: sender } = frames[i]
         if (sender.i === 0) {
           if (sender.u.startsWith(url)) {
             favIcon = 1
-            gTabIdOfExtWithVomnibar = +tabId
+            gTabIdOfExtWithVomnibar = tabId
           }
           break
         }
       }
-      if (favIcon) { break }
-    }
+    })
     }
   }
   safePost(this, {

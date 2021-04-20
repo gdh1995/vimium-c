@@ -4,7 +4,7 @@ type SettingsToSync = SettingsNS.PersistentSettings
 type SettingsToUpdate = { [key in keyof SettingsToSync]?: SettingsToSync[key] | null }
 interface SerializationMetaData { $_serialize: "split"; k: string; s: number }
 interface SingleSerialized { $_serialize: "single"; d: any }
-type MultiLineSerialized = { [key: string]: SerializationMetaData | string | undefined } & {
+type MultiLineSerialized = Dict<SerializationMetaData | string> & {
     [key in keyof SettingsToUpdate]: SerializationMetaData }
 type StorageChange = chrome.storage.StorageChange
 
@@ -17,22 +17,22 @@ const doNotSync: PartialTypedSafeEnum<SettingsToSync> = BgUtils_.safer_({
 let __sync: chrome.storage.StorageArea | undefined
 let to_update: SettingsToUpdate | null = null
 let keyInDownloading: keyof SettingsWithDefaults | "" = ""
-let changes_to_merge: { [key: string]: StorageChange } | null = null
+let changes_to_merge: EnsuredDict<StorageChange> | null = null
 let textDecoder: TextDecoder | null = null
 let restoringPromise: Promise<void> | null = null
 let cachedSync: SettingsWithDefaults["vimSync"]
 
 const storage = (): chrome.storage.StorageArea & {
-  onChanged?: chrome.events.Event<(changes: { [key: string]: StorageChange }, exArg: FakeArg) => void>
+  onChanged?: chrome.events.Event<(changes: EnsuredDict<StorageChange>, exArg: FakeArg) => void>
 } => __sync || (__sync = chrome.storage && chrome.storage.sync)
 
-const HandleSyncAreaUpdate = (changes: { [key: string]: StorageChange }): void => {
+const HandleSyncAreaUpdate = (changes: EnsuredDict<StorageChange>): void => {
   HandleStorageUpdate(changes, "sync")
 }
 
-const HandleStorageUpdate = (changes: { [key: string]: StorageChange }, area: string | FakeArg): void => {
+const HandleStorageUpdate = (changes: EnsuredDict<StorageChange>, area: string | FakeArg): void => {
   if (area !== "sync") { return }
-  const waitAndUpdate = (items: { [key: string]: any }): void => {
+  const waitAndUpdate = (items: Dict<any>): void => {
     if (changes_to_merge) {
       BgUtils_.safer_(items)
       for (const key in changes_to_merge) {
@@ -90,7 +90,7 @@ const storeAndPropagate = (key: string, value: any, map?: Dict<any>): void | 8 =
     if (localStorage.getItem(key) != null) {
       restoringPromise ||
       log("sync.this: reset", key)
-      doSet(key, defaultVal)
+      setAndPost(key, defaultVal)
     }
     return
   }
@@ -114,16 +114,7 @@ const storeAndPropagate = (key: string, value: any, map?: Dict<any>): void | 8 =
     typeof value === "string"
     ? (value.length > 32 ? value.slice(0, 30) + "..." : value).replace(<RegExpG> /\n/g, "\\n")
     : value)
-  doSet(key, value)
-}
-
-const doSet = (key: keyof SettingsToSync, value: any): void => {
-  const wanted = key === "keyMappings" || key === "exclusionRules" ? "KeyMappings" : ""
-  if (!wanted) {
-    return setAndPost(key, value)
-  }
-  BgUtils_.require_(wanted).then(setAndPost.bind(null, key, value))
-  BgUtils_.GC_()
+  setAndPost(key, value)
 }
 
 const setAndPost = (key: keyof SettingsToSync, value: any): void => {
@@ -496,16 +487,13 @@ Settings_.updateHooks_.vimSync = (value): void => {
 Settings_.restore_ = (): Promise<void> | null => {
   if (restoringPromise) { /* empty */ }
   else if (!localStorage.length) {
-    BgUtils_.GC_()
     // eslint-disable-next-line arrow-body-style
-    restoringPromise = BgUtils_.require_("KeyMappings").then(_ => {
-      return new Promise<void>(resolve => {
+    restoringPromise = new Promise<void>(resolve => {
         cachedSync ? storage().get(items => {
           const err = BgUtils_.runtimeError_()
           err ? (Settings_.restore_ = null, resolve()) : beginToRestore(items, 1, resolve)
           return err
         }) : beginToRestore({}, 2, resolve)
-      })
     }).then(_ => { restoringPromise = null })
   } else {
     return null
@@ -522,7 +510,6 @@ if (cachedSync === false || !cachedSync && !Settings_.temp_.hasEmptyLocalStorage
   return
 }
 
-BgUtils_.GC_()
 if (!storage()) { Settings_.restore_ = null; return }
 storage().get((items): void => {
   const err = BgUtils_.runtimeError_()

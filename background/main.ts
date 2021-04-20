@@ -1,14 +1,36 @@
 import { runtimeError_, getTabUrl, tabsGet, browserTabs, tabsCreate, browserSessions, browser_ } from "./browser"
-import { contentPayload, cPort, needIcon_, reqH_, settings, set_cPort, set_needIcon_, set_visualWordsRe_ } from "./store"
-import "./ui_css"
 import {
-  framesForTab, indexFrame, findCPort, framesForOmni, OnConnect, isExtIdAllowed, getPortUrl, showHUD, complainLimits
-} from "./ports"
+  framesForTab, framesForOmni,
+  contentPayload, cPort, needIcon_, reqH_, settings, set_cPort, set_needIcon_, set_visualWordsRe_
+} from "./store"
+import "./ui_css"
+import { indexFrame, findCPort, OnConnect, isExtIdAllowed, getPortUrl, showHUD, complainLimits } from "./ports"
 import { executeShortcut } from "./frame_commands"
-import { executeExternalCmd } from "./all_commands"
+import "./all_commands"
 import "./request_handlers"
+import { executeCmd_, shortcutRegistry_, visualKeys_ } from "./key_mappings"
 
 declare const enum RefreshTabStep { start = 0, s1, s2, s3, s4, end }
+
+const executeShortcutEntry = (cmd: StandardShortcutNames | kShortcutAliases): void => {
+  const tabId = TabRecency_.curTab_, ports = framesForTab.get(tabId)
+  if (cmd === kShortcutAliases.nextTab1) { cmd = "nextTab" }
+  const map = shortcutRegistry_
+  if (!map || !map.get(cmd)) {
+    // usually, only userCustomized* and those from 3rd-party extensions will enter this branch
+    if (map && map.get(cmd) !== null) {
+      map.set(cmd, null)
+      console.log("Shortcut %o has not been configured.", cmd)
+    }
+  } else if (ports == null || (ports[0].s.f & Frames.Flags.userActed) || tabId < 0) {
+    executeShortcut(cmd as StandardShortcutNames, ports)
+  } else {
+    tabsGet(tabId, (tab): void => {
+      executeShortcut(cmd as StandardShortcutNames, tab && tab.status === "complete" ? framesForTab.get(tab.id) : null)
+      return runtimeError_()
+    })
+  }
+}
 
 Backend_ = {
     reqH_,
@@ -157,7 +179,7 @@ Backend_ = {
       return bsod
     },
     forceStatus_ (act: Frames.ForcedStatusText, tabId?: number): void {
-      const ref = framesForTab[tabId || (tabId = TabRecency_.curTab_)];
+      const ref = framesForTab.get(tabId || (tabId = TabRecency_.curTab_));
       if (!ref) { return; }
       set_cPort(indexFrame(tabId, 0) || ref[0])
       let spaceInd = act.search(<RegExpOne> /\/| /), newPassedKeys = spaceInd > 0 ? act.slice(spaceInd + 1) : ""
@@ -226,30 +248,9 @@ Backend_ = {
         Backend_.setIcon_(tabId, newStatus);
       }
     },
-    ExecuteShortcut_ (this: void, cmd: string): void {
-      const tabId = TabRecency_.curTab_, ports = framesForTab[tabId];
-      if (cmd === <string> <unknown> kShortcutAliases.nextTab1) { cmd = AsC_("nextTab") }
-      const map = CommandsData_.shortcutRegistry_ as Map<string, CommandsNS.Item | null>
-      if (!map || !map.get(cmd)) {
-        // usually, only userCustomized* and those from 3rd-party extensions will enter this branch
-        if (map && map.get(cmd) !== null) {
-          map.set(cmd, null)
-          console.log("Shortcut %o has not been configured.", cmd);
-        }
-        return;
-      }
-      if (ports == null || (ports[0].s.f & Frames.Flags.userActed) || tabId < 0) {
-        return executeShortcut(cmd as StandardShortcutNames, ports)
-      }
-      tabsGet(tabId, function (tab): void {
-        executeShortcut(cmd as StandardShortcutNames,
-          tab && tab.status === "complete" ? framesForTab[tab.id] : null);
-        return runtimeError_()
-      });
-    },
     indexPorts_: function (tabId?: number, frameId?: number): Frames.FramesMap | Frames.Frames | Port | null {
       return tabId == null ? framesForTab
-        : frameId == null ? (tabId === GlobalConsts.VomnibarFakeTabId ? framesForOmni : framesForTab[tabId] || null)
+        : frameId == null ? (tabId === GlobalConsts.VomnibarFakeTabId ? framesForOmni : framesForTab.get(tabId) || null)
         : indexFrame(tabId, frameId);
     } as BackendHandlersNS.BackendHandlers["indexPorts_"],
     curTab_: () => TabRecency_.curTab_,
@@ -257,12 +258,9 @@ Backend_ = {
       if (settings.temp_.initing_ !== BackendHandlersNS.kInitStat.FINISHED) { return; }
       if (!CommandsData_.keyFSM_) {
         settings.postUpdate_("keyMappings");
-        if (!settings.get_("vimSync") && !settings.temp_.hasEmptyLocalStorage_) {
-          KeyMappings = null as never
+        if (Build.BTypes & ~BrowserType.Edge && contentPayload.o === kOS.mac) {
+          visualKeys_["m-s-c"] = VisualAction.YankRichText
         }
-      }
-      if (contentPayload.o === kOS.mac) {
-        CommandsData_.visualKeys_["m-s-c"] = VisualAction.YankRichText
       }
       // the line below requires all necessary have inited when calling this
       Backend_.onInit_ = null;
@@ -299,6 +297,12 @@ Backend_ = {
     }
 };
 
+(Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox)
+    && !chrome.commands ||
+(chrome.commands.onCommand as chrome.events.Event<
+      (command: StandardShortcutNames | kShortcutAliases & string, exArg: FakeArg) => void
+    >).addListener(executeShortcutEntry);
+
 (!(Build.BTypes & BrowserType.Edge) || browser_.runtime.onMessageExternal) &&
 (browser_.runtime.onMessageExternal!.addListener((
       message: boolean | number | string | null | undefined | ExternalMsgs[keyof ExternalMsgs]["req"]
@@ -308,7 +312,7 @@ Backend_ = {
       return;
     }
     if (typeof message === "string") {
-      executeExternalCmd({command: message}, sender);
+      executeCmd_({command: message}, sender)
       return;
     }
     else if (typeof message !== "object" || !message) {
@@ -318,7 +322,7 @@ Backend_ = {
     case kFgReq.shortcut:
       let shortcut = message.shortcut;
       if (shortcut) {
-        Backend_.ExecuteShortcut_(shortcut + "");
+        executeShortcutEntry(shortcut + "" as StandardShortcutNames | kShortcutAliases)
       }
       break;
     case kFgReq.id:
@@ -339,16 +343,16 @@ Backend_ = {
       });
       break;
     case kFgReq.command:
-      executeExternalCmd(message, sender);
+      executeCmd_(message, sender)
       break;
     }
 }), settings.postUpdate_("extAllowList"))
 
 browserTabs.onReplaced.addListener((addedTabId, removedTabId) => {
-    const ref = framesForTab, frames = ref[removedTabId];
+    const frames = framesForTab.get(removedTabId)
     if (!frames) { return; }
-    delete ref[removedTabId];
-    ref[addedTabId] = frames;
+    framesForTab.delete(removedTabId)
+    framesForTab.set(addedTabId, frames)
     for (let i = frames.length; 0 < --i; ) {
       (frames[i].s as Writable<Frames.Sender>).t = addedTabId;
     }
@@ -369,14 +373,12 @@ window.onunload = (event): void => {
     if (event
         && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
             ? !event.isTrusted : event.isTrusted === false)) { return; }
-    let ref = framesForTab as Frames.FramesMapToDestroy;
-    ref.o = framesForOmni;
-    for (const tabId in ref) {
-      const arr = ref[tabId];
+    framesForTab.set("o" as string | number as number, framesForOmni)
+    framesForTab.forEach((arr): void => {
       for (let i = arr.length; 0 < --i; ) {
         arr[i].disconnect();
       }
-    }
+    })
     if (framesForOmni.length > 0) {
       framesForOmni[0].disconnect();
     }

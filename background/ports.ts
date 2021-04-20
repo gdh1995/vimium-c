@@ -1,9 +1,9 @@
 import { removeTempTab, tabsGet, runtimeError_, getCurTab, getTabUrl, browserTabs, browserWebNav } from "./browser"
-import { needIcon_, NoFrameId, cPort, getSecret, set_cPort, cKey, reqH_, contentPayload, omniPayload, settings, innerCSS_ } from "./store"
-
-export const framesForTab: Frames.FramesMap = BgUtils_.safeObj_<Frames.Frames>()
-export const framesForOmni: Frames.WritableFrames = []
-let _fakeTabId: number = GlobalConsts.MaxImpossibleTabId
+import { mappedKeyTypes_ } from "./key_mappings"
+import {
+  needIcon_, NoFrameId, cPort, getSecret, set_cPort, cKey, reqH_, contentPayload, omniPayload, settings, innerCSS_,
+  framesForOmni, framesForTab, getNextFakeTabId
+} from "./store"
 
 const onMessage = <K extends keyof FgReq, T extends keyof FgRes> (request: Req.fg<K> | Req.fgWithRes<T>
     , port: Frames.Port): void => {
@@ -28,7 +28,7 @@ const onMessage = <K extends keyof FgReq, T extends keyof FgRes> (request: Req.f
 
 export const OnConnect = (port: Frames.Port, type: number): void => {
   const sender = /*#__NOINLINE__*/ formatPortSender(port), { t: tabId, u: url } = sender
-    , ref = framesForTab[tabId]
+    , ref = framesForTab.get(tabId)
     , isOmni = url === settings.cache_.vomnibarPage_f
   let status: Frames.ValidStatus = Frames.Status.enabled
   if (type >= PortType.omnibar || isOmni) {
@@ -64,7 +64,7 @@ export const OnConnect = (port: Frames.Port, type: number): void => {
     }
     port.postMessage({
       N: kBgReq.init, s: flags, c: contentPayload, p: pass,
-      m: CommandsData_.mappedKeyRegistry_, t: CommandsData_.mappedKeyTypes_, k: CommandsData_.keyFSM_
+      m: CommandsData_.mappedKeyRegistry_, t: mappedKeyTypes_, k: CommandsData_.keyFSM_
     })
   }
   sender.s = status
@@ -80,7 +80,7 @@ export const OnConnect = (port: Frames.Port, type: number): void => {
       (ref as Frames.WritableFrames)[0] = port
     }
   } else {
-    framesForTab[tabId] = [port, port]
+    framesForTab.set(tabId, [port, port])
     status !== Frames.Status.enabled && needIcon_ && Backend_.setIcon_(tabId, status)
   }
   if (Build.MinCVer < BrowserVer.MinWithFrameId && Build.BTypes & BrowserType.Chrome && NoFrameId) {
@@ -89,11 +89,11 @@ export const OnConnect = (port: Frames.Port, type: number): void => {
 }
 
 const onDisconnect = (port: Port): void => {
-  let { t: tabId } = port.s, i: number, ref = framesForTab[tabId] as Frames.WritableFrames | undefined
+  let { t: tabId } = port.s, i: number, ref = framesForTab.get(tabId) as Frames.WritableFrames | undefined
   if (!ref) { return }
   i = ref.lastIndexOf(port)
   if (!port.s.i) {
-    i >= 0 && delete framesForTab[tabId]
+    i >= 0 && framesForTab.delete(tabId)
     return
   }
   if (i === ref.length - 1) {
@@ -102,7 +102,7 @@ const onDisconnect = (port: Port): void => {
     ref.splice(i, 1)
   }
   if (ref.length <= 1) {
-    delete framesForTab[tabId]
+    framesForTab.delete(tabId)
     return
   }
   if (port === ref[0]) { ref[0] = ref[1] }
@@ -112,7 +112,7 @@ const onOmniConnect = (port: Frames.Port, tabId: number, type: PortType): boolea
   if (type >= PortType.omnibar) {
     if (!isNotVomnibarPage(port, false)) {
       if (tabId < 0) {
-        (port.s as Writable<Frames.Sender>).t = type !== PortType.omnibar ? _fakeTabId--
+        (port.s as Writable<Frames.Sender>).t = type !== PortType.omnibar ? getNextFakeTabId()
             : cPort ? cPort.s.t : TabRecency_.curTab_
       }
       framesForOmni.push(port)
@@ -150,8 +150,7 @@ const onOmniDisconnect = (port: Port): void => {
 const formatPortSender = (port: Port): Frames.Sender => {
   const sender = (port as Frames.BrowserPort).sender
   const tab = sender.tab || (Build.BTypes & BrowserType.Edge ? {
-    id: _fakeTabId--, url: "", incognito: false
-  } : { id: _fakeTabId--, incognito: false })
+      id: getNextFakeTabId(), url: "", incognito: false } : { id: getNextFakeTabId(), incognito: false })
   const url = Build.BTypes & BrowserType.Edge ? sender.url || tab.url || "" : sender.url!
   if (!(Build.BTypes & ~BrowserType.Chrome)) { sender.tab = null as never }
   return (port as Frames.Port).s = {
@@ -208,7 +207,7 @@ export const requireURL = <k extends keyof FgReq>(request: Req.fg<k> & {u: "url"
 }
 
 export const findCPort = (port: Port | null | undefined): Port | null => {
-  const frames = framesForTab[port ? port.s.t : TabRecency_.curTab_]
+  const frames = framesForTab.get(port ? port.s.t : TabRecency_.curTab_)
   return frames ? frames[0] : null as never as Port
 }
 
@@ -236,7 +235,7 @@ export const isExtIdAllowed = (extId: string | null | undefined, url: string | u
 }
 
 export const indexFrame = (tabId: number, frameId: number): Port | null => {
-  const ref = framesForTab[tabId]
+  const ref = framesForTab.get(tabId)
   if (!ref) { return null }
   for (let i = 1, len = ref.length; i < len; i++) {
     if (ref[i].s.i === frameId) {
@@ -253,7 +252,7 @@ export const ensureInnerCSS = (sender: Frames.Sender): string | null => {
 }
 
 export const onExitGrab = (_0: FgReq[kFgReq.exitGrab], port: Port): void => {
-  const ports = framesForTab[port.s.t]
+  const ports = framesForTab.get(port.s.t)
   if (!ports) { return }
   ports[0].s.f |= Frames.Flags.userActed
   if (ports.length < 3) { return }

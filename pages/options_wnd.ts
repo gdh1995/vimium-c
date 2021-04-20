@@ -657,13 +657,9 @@ export const loadJS = (url: string): Promise<void> => {
   })
 }
 
-export const loadChecker = function (this: HTMLElement): void {
-  if (loadChecker.info_ != null) { return }
-  loadChecker.info_ = this.id
-  loadJS("options_checker.js");
-} as { (this: HTMLElement): void; info_?: string }
+export const loadChecker = (): void => { loadJS("options_checker.js") } 
 
-document.addEventListener("keydown", function (this: void, event): void {
+document.addEventListener("keydown", (event): void => {
   if (event.keyCode !== kKeyCode.space) {
     if (!window.VApi || !VApi.z || "input textarea".includes(document.activeElement!.localName as string)) { return; }
     const key = VApi.m({c: kChar.INVALID, e: event, i: event.keyCode}, kModeId.NO_MAP_KEY)
@@ -691,7 +687,7 @@ document.addEventListener("keydown", function (this: void, event): void {
   }
 });
 
-window.onhashchange = function (this: void): void {
+window.onhashchange = (): void => {
   let hash = location.hash, node: HTMLElement | null;
   hash = hash.slice(hash[1] === "!" ? 2 : 1);
   if (Build.MayOverrideNewTab
@@ -734,9 +730,7 @@ bgSettings_.restore_ && bgSettings_.restore_() ? (
 // below is for programmer debugging
 window.onunload = function (): void {
   BG_.removeEventListener("unload", OnBgUnload);
-  BG_.BgUtils_.GC_(-1);
 };
-BG_.BgUtils_.GC_(1);
 
 function OnBgUnload(): void {
   BG_.removeEventListener("unload", OnBgUnload);
@@ -762,18 +756,12 @@ function OnBgUnload(): void {
         opt.previous_ = bgSettings_.get_(opt.field_);
       }
     }
-    let needCommands = false
-    if (ref.exclusionRules.list_.length || ref.keyMappings.checker_) {
-      needCommands = true
-    }
-    needCommands && !BG_.KeyMappings && BG_.BgUtils_.require_("KeyMappings");
-    BG_.BgUtils_.GC_(1);
   }
 }
 BG_.addEventListener("unload", OnBgUnload);
 
 const cmdRegistry = BG_.CommandsData_.keyToCommandRegistry_.get("?")
-if (!cmdRegistry || cmdRegistry.alias_ !== kBgCmd.showHelp) { (function (): void {
+if (!cmdRegistry || cmdRegistry.alias_ !== kBgCmd.showHelp) {
   const arr = BG_.CommandsData_.keyToCommandRegistry_
   let matched = "";
   arr.forEach((item, key): void => {
@@ -784,7 +772,7 @@ if (!cmdRegistry || cmdRegistry.alias_ !== kBgCmd.showHelp) { (function (): void
   if (matched) {
     nextTick_(el => el.textContent = matched, $("#questionShortcut"));
   }
-})(); }
+}
 
 document.addEventListener("click", function onClickOnce(): void {
   const api = window.VApi, misc = api && api.y()

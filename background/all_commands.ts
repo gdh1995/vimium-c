@@ -5,12 +5,10 @@ import {
 } from "./browser"
 import {
   cPort, cRepeat, cKey, get_cOptions, set_cPort, set_cOptions, set_cRepeat, set_cKey, cNeedConfirm, set_executeCommand,
-  executeCommand, contentPayload, settings
+  executeCommand, contentPayload, settings, framesForTab, framesForOmni
 } from "./store"
 import {
-  framesForTab, portSendFgCmd, indexFrame, requireURL, framesForOmni, sendFgCmd, complainNoSession, showHUD,
-  complainLimits,
-  getPortUrl,
+  portSendFgCmd, indexFrame, requireURL, sendFgCmd, complainNoSession, showHUD, complainLimits, getPortUrl
 } from "./ports"
 import { maySedRuleExist, parseSedOptions_, substitute_ } from "./clipboard"
 import { goToNextUrl, newTabIndex, openUrl } from "./open_urls"
@@ -151,7 +149,7 @@ const BackgroundCommands: {
       showHUD(msg)
     } else {
       value = settings.updatePayload_(key2, value)
-      const ports = framesForTab[cPort.s.t]!
+      const ports = framesForTab.get(cPort.s.t)!
       for (let i = 1; i < ports.length; i++) {
         let isCur = ports[i] === ports[0]
         portSendFgCmd(ports[i], kFgCmd.toggle, isCur, { k: key2, n: isCur ? keyRepr : "", v: value }, 1)
@@ -587,14 +585,6 @@ const executeCmdOnTabs = (tabs: Tab[] | [Tab] | undefined): void => {
   set_gOnConfirmCallback(null)
   callback && (callback as unknown as BgCmdCurWndTabs<kBgCmd>)(tabs!)
   return tabs ? void 0 : runtimeError_()
-}
-
-/** this functions needs to accept any types of arguments and normalize them */
-export const executeExternalCmd = (message: Partial<ExternalMsgs[kFgReq.command]["req"]>
-    , sender: chrome.runtime.MessageSender): void => {
-  BgUtils_.GC_()
-  KeyMappings ? KeyMappings.execute_(message, sender, executeCommand)
-      : BgUtils_.require_("KeyMappings").then(() => executeExternalCmd(message, sender))
 }
 
 const onLargeCountConfirmed = (registryEntry: CommandsNS.Item, fallbackCounter: number | undefined): void => {

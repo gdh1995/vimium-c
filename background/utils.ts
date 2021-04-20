@@ -935,8 +935,7 @@ var BgUtils_ = {
         tabs[i].index = i;
       }
     }
-  } : 0 as never as null,
-  GC_: function (this: void): void { /* empty */ } as (this: void, inc?: number) => void
+  } : 0 as never as null
 }
 
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) {

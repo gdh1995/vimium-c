@@ -126,13 +126,11 @@ var Settings_ = {
       }
       Settings_.temp_.newSettingsToBroadcast_ = null;
     }
-    const ref = Backend_.indexPorts_();
-    for (const tabId in ref) {
-      const frames = ref[+tabId]!;
+    Backend_.indexPorts_().forEach((frames) => {
       for (let i = frames.length; 0 < --i; ) {
         frames[i].postMessage(request as Req.baseBg<K> as Req.bg<K>);
       }
-    }
+    })
   },
   broadcastOmni_<K extends ValidBgVomnibarReq> (request: Req.bg<K>): void {
     for (const frame of Backend_.indexPorts_(GlobalConsts.VomnibarFakeTabId)) {
@@ -508,7 +506,6 @@ js\\:|Js: javascript:\\ $S; JavaScript`,
     KnownPages_: ["blank", "newtab", "options", "show"],
     MathParser: "/lib/math_parser.js",
     HelpDialog: "/background/help_dialog.js",
-    KeyMappings: "/background/key_mappings.js",
     InjectEnd_: "content/injected_end.js",
     NewTabForNewUser_: Build.MayOverrideNewTab ? "pages/options.html#!newTabUrl" : "",
     OverrideNewTab_: Build.MayOverrideNewTab ? true : false,
@@ -615,8 +612,8 @@ chrome.runtime.getPlatformInfo(function (info): void {
     ref3.set(chromeNewTabPage, Urls.NewTabType.browser); ref3.set(chromeNewTabPage + "/", Urls.NewTabType.browser)
   }
   (settings.cache_ as WritableSettingsCache).searchEngineMap = new Map()
-  obj.GlobalCommands_ = (<Array<StandardShortcutNames | kShortcutAliases & string>> Object.keys(ref.commands || {})
-      ).map(i => i === <string> <unknown> kShortcutAliases.nextTab1 ? AsC_("nextTab") : i);
+  obj.GlobalCommands_ = (<Array<StandardShortcutNames | kShortcutAliases>> Object.keys(ref.commands || {})
+      ).map(i => i === kShortcutAliases.nextTab1 ? "nextTab" : i)
   obj.VerCode_ = ref.version;
   obj.VerName_ = ref.version_name || ref.version;
   obj.OptionsPage_ = func(ref.options_page || obj.OptionsPage_);

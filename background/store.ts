@@ -9,6 +9,9 @@ export let innerCSS_: string
 export let needIcon_ = false
 export let visualWordsRe_: string
 
+export const framesForTab = new Map() as Frames.FramesMap
+export const framesForOmni: Frames.WritableFrames = []
+
 export let cKey: kKeyCode = kKeyCode.None
 export let cNeedConfirm: BOOL = 1
 let cOptions: CommandsNS.Options = null as never
@@ -36,7 +39,7 @@ export const set_visualWordsRe_ = (_newVisualWord: string): void => { visualWord
 export const set_reqH_ = (_newRH: BackendHandlersNS.FgRequestHandlers): void => { reqH_ = _newRH }
 export const set_executeCommand = (_newEC: typeof executeCommand): void => { executeCommand = _newEC }
 
-let _secret = 0, _time = 0
+let _secret = 0, _time = 0, fakeTabId: number = GlobalConsts.MaxImpossibleTabId
 
 export const getSecret = (): number => {
   const now = Date.now() // safe for time changes
@@ -45,4 +48,13 @@ export const getSecret = (): number => {
   }
   _time = now
   return _secret
+}
+
+export const getNextFakeTabId = (): number => fakeTabId--
+
+if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+    && CurCVer_ < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) {
+  framesForTab.forEach = (cb: any): void => {
+    const map = (framesForTab as any as SimulatedMap).map_; for (let key in map) { cb(map[key], +key) }
+  }
 }
