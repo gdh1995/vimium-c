@@ -11,7 +11,7 @@ import { coreHints, doesWantToReloadLinkHints } from "./link_hints"
 import { grabBackFocus } from "./insert"
 
 export const main_not_ff = (!OnFirefox ? (): void => {
-(function extendClick(this: void, isFirstTime?: boolean): void | false {
+(function extendClick(this: void, isFirstTime?: boolean): void {
 /** Note(gdh1995):
  * According to source code of C72,
  *     getElementsByTagName has a special cache (per container node) for tag name queries,
@@ -84,7 +84,8 @@ export const main_not_ff = (!OnFirefox ? (): void => {
   if ((script as Element as ElementToHTML).lang == null) {
     set_createElement_(doc.createElementNS.bind(doc, VTr(kTip.XHTML) as "http://www.w3.org/1999/xhtml"
         ) as typeof createElement_)
-    return isFirstTime != null && OnDocLoaded_(extendClick); // retry after a while, using a real <script>
+    isFirstTime != null && OnDocLoaded_(extendClick); // retry after a while, using a real <script>
+    return
   }
   script.dataset.vimium = secret
 
@@ -574,7 +575,7 @@ FProto[kToS] = myToStr
   // for the case JavaScript is disabled in CS: https://github.com/philc/vimium/issues/3187
   if (!parentNode_unsafe_s(script)) { // It succeeded in hooking.
     // wait the inner listener of `start` to finish its work
-    return OnDocLoaded_((): void => {
+    OnDocLoaded_((): void => {
       // only for new versions of Chrome (and Edge);
       // CSP would block a <script> before MinEnsuredNewScriptsFromExtensionOnSandboxedPage
       // not check isFirstTime, to auto clean VApi.execute_
@@ -584,6 +585,7 @@ FProto[kToS] = myToStr
         isFirstResolve = 0;
       }, GlobalConsts.ExtendClick_DelayToFindAll), 1);
     });
+    return
   }
   // else: CSP script-src before C68, CSP sandbox before C68 or JS-disabled-in-CS on C/E
   removeEl_s(script)
@@ -596,7 +598,8 @@ FProto[kToS] = myToStr
   recordLog(kTip.logNotWorkOnSandboxed)
   if (Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage
       && appVer && appVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage) {
-    return safeDestroy(1)
+    safeDestroy(1)
+    return
   }
   /*#__INLINE__*/
   replaceBrokenTimerFunc(function (func: (info?: TimerType.fake) => void, timeout: number): number {

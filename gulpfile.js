@@ -181,7 +181,7 @@ var Tasks = {
         , "*/*.html", "*/*.css", "**/*.json", "**/*.js", "!helpers/*/*.js"
         , FILE_URLS_CSS], DEST)
   },
-  "build/_all": ["build/scripts", "build/options", "build/show"],
+  "build/_all": ["build/scripts", "build/pages"],
   "build/ts": function(cb) {
     var btypes = getBuildItem("BTypes");
     var curConfig = [btypes, getBuildItem("MinCVer"), compilerOptions.target
