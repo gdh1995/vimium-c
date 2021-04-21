@@ -9,6 +9,7 @@ import {
   findMainSummary_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s,
   setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_
 } from "../lib/dom_utils"
+import { getPreferredRectOfAnchor } from "./local_links"
 import {
   hintOptions, mode1_, hintMode_, hintApi, hintManager, coreHints, setMode, detectUsableChild, hintCount_,
   ExecutableHintItem
@@ -367,7 +368,8 @@ const defaultClick = (): void => {
   if (IsInDOM_(clickEl)) {
     // must get outline first, because clickEl may hide itself when activated
     // must use UI.getRect, so that zooms are updated, and prepareCrop is called
-    rect = knownRect || getRect(clickEl, hint.r !== clickEl ? hint.r as HTMLElementUsingMap | null : null)
+    rect = knownRect || tag === "a" && getPreferredRectOfAnchor(clickEl as HTMLAnchorElement)
+        || getRect(clickEl, hint.r !== clickEl ? hint.r as HTMLElementUsingMap | null : null)
     if (hint.m && keyStatus.t && !keyStatus.k && !keyStatus.n) {
       if ((!OnChrome || Build.MinCVer < BrowserVer.MinUserActivationV2 && chromeVer_ < BrowserVer.MinUserActivationV2)
           && !fgCache.w) {

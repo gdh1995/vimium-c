@@ -698,15 +698,13 @@ function beforeCompile(file) {
   }
 }
 
-var toRemovedGlobal = null;
-
 const beforeTerser = exports.beforeTerser = (file) => {
   var allPathStr = file.history.join("|").replace(/\\/g, "/");
   var contents = null, oldLen = 0;
   function get(c) { contents == null && (contents = ToString(file.contents), oldLen = contents.length) }
   if (!locally && outputES6) {
     get();
-    contents = contents.replace(/\bconst([\s{\[])/g, "let$1");
+    contents = contents.replace(/(?<!export\s)\bconst([\s{\[])/g, "let$1");
   }
   var btypes = getBuildItem("BTypes"), minCVer = getBuildItem("MinCVer");
   if (btypes & BrowserType.Chrome && minCVer < /* MinEnsuredAsyncFunctions */ 57

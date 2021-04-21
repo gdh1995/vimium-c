@@ -563,11 +563,11 @@ const BackgroundCommands: {
     }
     chrome.permissions.contains({ permissions: ['downloads.shelf', 'downloads'] }, (permitted: boolean): void => {
       if (permitted) {
-        const set = chrome.downloads.setShelfEnabled
+        const toggleShelf = chrome.downloads.setShelfEnabled
         let err: string | undefined
         try {
-          set(false)
-          setTimeout((): void => { set(true) }, 256)
+          toggleShelf(false)
+          setTimeout((): void => { toggleShelf(true) }, 256)
         } catch (e: any) { err = (e && e.message || e) + "" }
         showHUD(err ? "Can not close the shelf: " + err : "The download bar has been closed")
       } else if (newWindow === false && cPort) {

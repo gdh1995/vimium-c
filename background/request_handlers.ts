@@ -310,10 +310,10 @@ set_reqH_([
     port.postMessage({ N: kBgReq.reset, p: pattern, f: 0 })
   },
   /** kFgReq.nextFrame: */ (request: FgReq[kFgReq.nextFrame], port: Port): void => {
-    set_cPort(port)
-    set_cRepeat(1)
-    set_cKey(request.k)
     const type = request.t || Frames.NextType.Default
+    set_cPort(port)
+    set_cRepeat(type || cRepeat > 0 ? 1 : -1)
+    set_cKey(request.k)
     let ports: Frames.Frames | undefined
     if (type !== Frames.NextType.current) {
       type === Frames.NextType.parent ? parentFrame() : nextFrame()

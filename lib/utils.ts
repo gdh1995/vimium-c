@@ -211,7 +211,7 @@ const TYPES = ["string", "object", "function", "number"]
 export { TYPES as OBJECT_TYPES }
 export const isTY = ((obj: any, ty?: kTY): boolean => typeof obj == TYPES[ty || kTY.str]) as {
   <T extends kTY> (obj: any, ty: T): obj is (T extends kTY.str ? string
-      : T extends kTY.obj ? object : T extends kTY.func ? Function : T extends kTY.num ? number : never)
+      : T extends kTY.obj ? object | null : T extends kTY.func ? Function : T extends kTY.num ? number : never)
   (obj: any): obj is string
 }
 

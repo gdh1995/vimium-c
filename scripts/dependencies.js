@@ -393,15 +393,14 @@ exports.addMetaData = (path, data) => {
  * @returns { string }
  */
 exports.inlineAllSetters = (code) => {
-  const allNames = code.match(/\bset_\w+\b/g);
+  const allNames = code.match(/\bset_[a-zA-Z]\w*\b/g);
   for (let i = 0; i < allNames.length; i++) {
     const name = allNames[i].slice(4);
     if (!new RegExp("\\b" + name + " ?=").test(code)) {
       throw new Error('Can not find symbol "' + name + '"');
     }
   }
-  return code.replace(/\b[gs]et_(\w+)\(([^\n]+)/g, function (fullStr, name, data, ind) {
-    var parenthesis = 1;
+  code = code.replace(/\b[gs]et_([a-zA-Z]\w*)\(([^\n]+)/g, function (fullStr, name, data, ind) {
     if (code.slice(ind - 16, ind).trim().endsWith("function")) {
       return fullStr;
     }
@@ -414,6 +413,11 @@ exports.inlineAllSetters = (code) => {
     }
     return "(" + name + " = " + data;
   });
+  const left = code.match(/\bset_[a-zA-Z]\b/g)
+  if (left) {
+    console.log("[WARNING] inlineSetters: found unsupported short names:", [...left].join(", "))
+  }
+  return code
 }
 
 /**

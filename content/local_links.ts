@@ -59,7 +59,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
   switch (tag) {
   case "a":
     isClickable = true;
-    arr = /*#__NOINLINE__*/ checkAnchor(element as HTMLAnchorElement);
+    arr = /*#__NOINLINE__*/ getPreferredRectOfAnchor(element as HTMLAnchorElement)
     break;
   case "audio": case "video": isClickable = true; break;
   case "frame": case "iframe":
@@ -181,17 +181,18 @@ const checkJSAction = (str: string): boolean => {
   return false;
 }
 
-const checkAnchor = (anchor: HTMLAnchorElement): Rect | null => {
+/** Note: should be as pure as possible */
+export const getPreferredRectOfAnchor = (anchor: HTMLAnchorElement): Rect | null => {
   // for Google search result pages
   let mayBeSearchResult = !!(anchor.rel || attr_s(anchor, "onmousedown")
         || (OnChrome ? anchor.ping : attr_s(anchor, "ping"))),
   el = mayBeSearchResult && querySelector_unsafe_("h3,h4", anchor)
         || (mayBeSearchResult || anchor.childElementCount === 1) && anchor.firstElementChild as Element | null
         || null,
-  tag = el ? htmlTag_(el) : "";
+  tag = el && htmlTag_(el)
   return el && (mayBeSearchResult
         // use `^...$` to exclude custom tags
-      ? (<RegExpOne> /^h\d$/).test(tag) && isNotReplacedBy(el as HTMLHeadingElement & SafeHTMLElement)
+      ? (<RegExpOne> /^h\d$/).test(tag!) && isNotReplacedBy(el as HTMLHeadingElement & SafeHTMLElement)
         ? getVisibleClientRect_(el as HTMLHeadingElement & SafeHTMLElement) : null
       : tag === "img" && !dimSize_(anchor, kDim.elClientH)
         ? getCroppedRect_(el as HTMLImageElement, getVisibleClientRect_(el as HTMLImageElement))
