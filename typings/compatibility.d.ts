@@ -527,6 +527,7 @@ declare const enum FirefoxBrowserVer {
   // tested on Win 10 + MS PinYin and Ubuntu 18 + an inner PinYin IME
   MinContentEditableInShadowSupportIME = 69,
   Min$Blob$$arrayBuffer = 69,
+  Min$downloads$$download$acceptReferer = 70,
   Min$MathMLElement$Prototype = 71,
   MinCrossOriginResourcePolicy = 74, // not break Vomnibar
   Min$Tabs$$goBack = 77,

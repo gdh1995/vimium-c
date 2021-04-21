@@ -1,11 +1,11 @@
 import {
   safer, fgCache, isImageUrl, isJSUrl, set_keydownEvents_, keydownEvents_, timeout_, doc, chromeVer_, weakRef_,
-  parseSedOptions, createRegExp, isTY, max_, min_, OnFirefox, OnChrome, safeCall
+  parseSedOptions, createRegExp, isTY, max_, min_, OnFirefox, OnChrome, safeCall, loc_
 } from "../lib/utils"
 import { getVisibleClientRect_, center_, view_, selRange_ } from "../lib/rect"
 import {
   IsInDOM_, createElement_, htmlTag_, getComputedStyle_, getEditableType_, isIFrameElement, GetParent_unsafe_, focus_,
-  kMediaTag, ElementProto, querySelector_unsafe_, getInputType, uneditableInputs_, GetShadowRoot_, CLK, scrollingEl_,
+  kMediaTag, ElementProto, querySelector_unsafe_, getInputType, uneditableInputs_, GetShadowRoot_, scrollingEl_,
   findMainSummary_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s,
   setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_
 } from "../lib/dom_utils"
@@ -21,7 +21,7 @@ import {
 import { pushHandler_, removeHandler_, isEscape_, getMappedKey, prevent_, suppressTail_ } from "../lib/keyboard_utils"
 import { insert_Lock_ } from "./insert"
 import {
-  kClickAction, kClickButton, unhover_async, hover_async, click_async, select_, mouse_, catchAsyncErrorSilently
+  kClickAction, kClickButton, unhover_async, hover_async, click_async, select_, catchAsyncErrorSilently
 } from "./async_dispatcher"
 import { omni_box, focusOmni } from "./omni"
 import { execCommand } from "./mode_find"
@@ -114,18 +114,11 @@ const downloadOrOpenMedia = (): void => {
       f: filename, u: text
     })
   } else {
-    const url = text, i = text.indexOf("://")
-    text = i > 0 ? text.slice(text.indexOf("/", i + 4) + 1) : text
+    downloadLink(text, filename)
+    n = text.indexOf("://")
+    text = n > 0 ? text.slice(text.indexOf("/", n + 4) + 1) : text
     text = text.length > 40 ? text.slice(0, 39) + "\u2026" : text
-    if (OnFirefox) {
-      post_({ H: kFgReq.downloadLink, u: url, f: filename, m: 1 })
-    } else {
-      const a = createElement_("a")
-      a.href = url
-      a.download = filename
-      mouse_(a, CLK, [0, 0], [!0, !1, !1, !1])
-    }
-    hintApi.t({ k: kTip.downloaded, t: text })
+    timeout_((): void => { hintApi.t({ k: kTip.downloaded, t: text! }) }, 0)
   }
 }
 
@@ -276,16 +269,19 @@ const copyText = (): void => {
   }
 }
 
-const downloadLink = (): void => {
-    let notAnchor = tag !== "a", H = "href",
+const downloadLink = (url?: string, filename?: string): void => {
+  let notAnchor = mode1_ < HintMode.DOWNLOAD_LINK || tag !== "a", H = "href",
     link = notAnchor ? createElement_("a") : clickEl as HTMLAnchorElement,
     oldUrl: string | null = notAnchor ? null : attr_s(link, H),
-    url = getUrlData(), changed = notAnchor || url !== link.href
-    const filename = attr_s(clickEl, kD) || ""
-    if (OnFirefox) {
-      post_({ H: kFgReq.downloadLink, u: url, f: filename })
+    changed = notAnchor || url !== link.href
+  url = url || getUrlData()
+  filename = filename || attr_s(clickEl, kD) || ""
+  if (OnFirefox || OnChrome && hintOptions.download === "force") {
+      post_({
+        H: kFgReq.downloadLink, u: url, f: filename, r: loc_.href, m: mode1_ < HintMode.DOWNLOAD_LINK
+      })
       return
-    }
+  }
     if (changed) {
       link.href = url;
       if (notAnchor) {

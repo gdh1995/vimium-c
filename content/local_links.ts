@@ -122,7 +122,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
       isClickable = true;
     }
     break;
-  case "div": case "ul": case "pre": case "ol": case "code": case "table": case "tbody":
+  case "code": case "div": case "nav": case "ol": case "pre": case "table": case "tbody": case "ul":
     clientSize = 1;
     break;
   }
@@ -541,8 +541,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
       prepareCrop_(1)
     }
     cur_arr = querySelectorAll_unsafe_(selector, ui_root) as NodeListOf<SafeElement>
-    if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
-        && Build.MinCVer >= BrowserVer.MinTestedES6Environment) {
+    if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes) {
       for (let i = 0; i < cur_arr.length; i++) { htmlTag_(cur_arr[i]) && filter(output, cur_arr[i] as SafeHTMLElement) }
     } else {
       for (const i of cur_arr as ArrayLike<Element> as Element[]) { htmlTag_<1>(i) && filter(output, i) }

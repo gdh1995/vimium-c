@@ -134,10 +134,11 @@ declare module chrome.downloads {
   export interface DownloadOptions {
     url: string
     filename?: string
+    headers?: readonly { name: string, value: string }[]
     incognito?: boolean
   }
   export function setShelfEnabled(enable: boolean, _exArg?: FakeArg): void
-  export const download: ((opts: DownloadOptions) => Promise<string>) | undefined
+  export const download: ((opts: DownloadOptions, cb?: () => void) => Promise<string>) | undefined
 }
 
 declare module chrome.permissions {
@@ -159,4 +160,4 @@ interface HTMLMediaElement {
 }
 interface Element { mozRequestFullScreen(): void }
 interface Document { mozCancelFullScreen(): void }
-interface HTMLElementTagNameMap { "slot": HTMLSlotElement }
+interface HTMLElementTagNameMap { "slot": HTMLSlotElement; "nav": HTMLElement }

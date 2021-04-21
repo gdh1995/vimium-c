@@ -226,6 +226,7 @@ declare namespace HintsNS {
     index?: "count" | number
     action?: string;
     caret?: boolean;
+    download?: "" | "force"
     ordinal?: boolean
     useFilter?: boolean;
     url?: boolean;
@@ -622,6 +623,7 @@ interface FgReq {
   [kFgReq.downloadLink]: {
     /** url */ u: string
     /** filename */ f: string | null
+    /** referer */ r: string
     /** is media */ m: boolean | BOOL
   }
 }
