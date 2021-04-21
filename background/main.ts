@@ -13,7 +13,7 @@ import { executeCmd_, shortcutRegistry_, visualKeys_ } from "./key_mappings"
 declare const enum RefreshTabStep { start = 0, s1, s2, s3, s4, end }
 
 const executeShortcutEntry = (cmd: StandardShortcutNames | kShortcutAliases): void => {
-  const tabId = TabRecency_.curTab_, ports = framesForTab.get(tabId)
+  const tabId = TabRecency_.curTab_, ref = framesForTab.get(tabId)
   if (cmd === kShortcutAliases.nextTab1) { cmd = "nextTab" }
   const map = shortcutRegistry_
   if (!map || !map.get(cmd)) {
@@ -22,8 +22,8 @@ const executeShortcutEntry = (cmd: StandardShortcutNames | kShortcutAliases): vo
       map.set(cmd, null)
       console.log("Shortcut %o has not been configured.", cmd)
     }
-  } else if (ports == null || (ports[0].s.f & Frames.Flags.userActed) || tabId < 0) {
-    executeShortcut(cmd as StandardShortcutNames, ports)
+  } else if (ref == null || (ref.cur_.s.flags_ & Frames.Flags.userActed) || tabId < 0) {
+    executeShortcut(cmd as StandardShortcutNames, ref)
   } else {
     tabsGet(tabId, (tab): void => {
       executeShortcut(cmd as StandardShortcutNames, tab && tab.status === "complete" ? framesForTab.get(tab.id) : null)
@@ -181,7 +181,7 @@ Backend_ = {
     forceStatus_ (act: Frames.ForcedStatusText, tabId?: number): void {
       const ref = framesForTab.get(tabId || (tabId = TabRecency_.curTab_));
       if (!ref) { return; }
-      set_cPort(indexFrame(tabId, 0) || ref[0])
+      set_cPort(ref.top_ || ref.cur_)
       let spaceInd = act.search(<RegExpOne> /\/| /), newPassedKeys = spaceInd > 0 ? act.slice(spaceInd + 1) : ""
       act = act.toLowerCase() as Frames.ForcedStatusText;
       if (spaceInd > 0) {
@@ -200,9 +200,9 @@ Backend_ = {
       }
       let pattern: string | null
       const curSender = cPort.s,
-      always_enabled = !Exclusions.rules_.length, oldStatus = curSender.s,
+      always_enabled = !Exclusions.rules_.length, oldStatus = curSender.status_,
       stdStatus = always_enabled ? Frames.Status.enabled : oldStatus === Frames.Status.partial ? oldStatus
-          : (pattern = Backend_.getExcluded_(curSender.u, curSender),
+          : (pattern = Backend_.getExcluded_(curSender.url_, curSender),
               pattern ? Frames.Status.partial : pattern === null ? Frames.Status.enabled : Frames.Status.disabled),
       stat = act === "enable" ? Frames.Status.enabled : act === "disable" ? Frames.Status.disabled
         : act === "toggle-disabled" ? oldStatus !== Frames.Status.disabled
@@ -227,28 +227,29 @@ Backend_ = {
       };
       // avoid Status.partial even if `newPassedKeys`, to keep other checks about Flags.locked correct
       let newStatus: Frames.ValidStatus = locked ? stat! : Frames.Status.enabled;
-      for (let i = ref.length; 1 <= --i; ) {
-        const port = ref[i], sender = port.s;
-        sender.f = locked ? sender.f | Frames.Flags.locked : sender.f & ~Frames.Flags.locked;
+      ref.lock_ = locked ? { status_: stat!, passKeys_: msg.p } : null
+      for (const port of ref.ports_) {
+        const sender = port.s
+        sender.flags_ = locked ? sender.flags_ | Frames.Flags.locked : sender.flags_ & ~Frames.Flags.locked;
         if (unknown) {
-          let pattern = msg.p = Backend_.getExcluded_(sender.u, sender)
+          let pattern = msg.p = Backend_.getExcluded_(sender.url_, sender)
           newStatus = pattern === null ? Frames.Status.enabled : pattern
             ? Frames.Status.partial : Frames.Status.disabled;
-          if (newStatus !== Frames.Status.partial && sender.s === newStatus) { continue; }
+          if (newStatus !== Frames.Status.partial && sender.status_ === newStatus) { continue; }
         }
         // must send "reset" messages even if port keeps enabled by 'v.st enable'
         // - frontend may need to reinstall listeners
-        sender.s = newStatus;
+        sender.status_ = newStatus;
         port.postMessage(msg);
       }
-      newStatus = ref[0].s.s
+      newStatus = ref.cur_.s.status_
       silent || shown || showHUD(trans_("newStat", trans_(newStatus === Frames.Status.enabled && !enableWithPassedKeys
           ? "fullEnabled" : newStatus === Frames.Status.disabled ? "fullDisabled" : "halfDisabled")))
       if (needIcon_ && newStatus !== oldStatus) {
         Backend_.setIcon_(tabId, newStatus);
       }
     },
-    indexPorts_: function (tabId?: number, frameId?: number): Frames.FramesMap | Frames.Frames | Port | null {
+    indexPorts_: function (tabId?: number, frameId?: number): Frames.FramesMap | Frames.Frames | Port[] | Port | null {
       return tabId == null ? framesForTab
         : frameId == null ? (tabId === GlobalConsts.VomnibarFakeTabId ? framesForOmni : framesForTab.get(tabId) || null)
         : indexFrame(tabId, frameId);
@@ -289,7 +290,7 @@ Backend_ = {
             return;
           }
           OnConnect(port as Frames.Port, (arr[0].slice(PortNameEnum.PrefixLen) as string | number as number) | 0);
-          (port as Frames.Port).s.f |= Frames.Flags.OtherExtension;
+          (port as Frames.Port).s.flags_ |= Frames.Flags.OtherExtension;
         } else {
           port.disconnect();
         }
@@ -353,8 +354,8 @@ browserTabs.onReplaced.addListener((addedTabId, removedTabId) => {
     if (!frames) { return; }
     framesForTab.delete(removedTabId)
     framesForTab.set(addedTabId, frames)
-    for (let i = frames.length; 0 < --i; ) {
-      (frames[i].s as Writable<Frames.Sender>).t = addedTabId;
+    for (const port of frames.ports_) {
+      (port.s as Writable<Frames.Sender>).tabId_ = addedTabId;
     }
 });
 
@@ -373,14 +374,11 @@ window.onunload = (event): void => {
     if (event
         && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
             ? !event.isTrusted : event.isTrusted === false)) { return; }
-    framesForTab.set("o" as string | number as number, framesForOmni)
-    framesForTab.forEach((arr): void => {
-      for (let i = arr.length; 0 < --i; ) {
-        arr[i].disconnect();
+    framesForTab.set("o" as string | number as number, { ports_: framesForOmni } as Frames.Frames)
+    for (const frames of framesForTab.values()) {
+      for (let port of frames.ports_) {
+        port.disconnect();
       }
-    })
-    if (framesForOmni.length > 0) {
-      framesForOmni[0].disconnect();
     }
 }
 

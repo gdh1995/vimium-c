@@ -27,7 +27,7 @@ const onMessage = <K extends keyof FgReq, T extends keyof FgRes> (request: Req.f
 }
 
 export const OnConnect = (port: Frames.Port, type: number): void => {
-  const sender = /*#__NOINLINE__*/ formatPortSender(port), { t: tabId, u: url } = sender
+  const sender = /*#__NOINLINE__*/ formatPortSender(port), { tabId_: tabId, url_: url } = sender
     , ref = framesForTab.get(tabId)
     , isOmni = url === settings.cache_.vomnibarPage_f
   let status: Frames.ValidStatus = Frames.Status.enabled
@@ -36,17 +36,17 @@ export const OnConnect = (port: Frames.Port, type: number): void => {
       if (/*#__NOINLINE__*/ onOmniConnect(port, tabId, type)) {
         return
       }
-      sender.f = Frames.Flags.userActed
+      sender.flags_ = Frames.Flags.userActed
     } else if (type === PortType.CloseSelf) {
-      Build.BTypes & ~BrowserType.Chrome && tabId >= 0 && !sender.i &&
-      removeTempTab(tabId, (port as Frames.BrowserPort).sender.tab!.windowId, sender.u)
+      Build.BTypes & ~BrowserType.Chrome && tabId >= 0 && !sender.frameId_ &&
+      removeTempTab(tabId, (port as Frames.BrowserPort).sender.tab!.windowId, sender.url_)
       return
     } else {
       status = ((type >>> PortType.BitOffsetOfKnownStatus) & PortType.MaskOfKnownStatus) - 1
       if (type & PortType.isLocked && status === Frames.Status.partial) {
         status = type & PortType.isLockedAsDisabled ? Frames.Status.disabled : Frames.Status.enabled
       }
-      sender.f = ((type & PortType.isLocked) ? Frames.Flags.lockedAndUserActed : Frames.Flags.userActed
+      sender.flags_ = ((type & PortType.isLocked) ? Frames.Flags.lockedAndUserActed : Frames.Flags.userActed
         ) + ((type & PortType.hasCSS) && Frames.Flags.hasCSS)
     }
   }
@@ -54,8 +54,8 @@ export const OnConnect = (port: Frames.Port, type: number): void => {
     port.postMessage({ N: kBgReq.settingsUpdate, d: contentPayload })
   } else {
     let pass: null | string, flags: Frames.Flags = Frames.Flags.blank
-    if (ref && ((flags = sender.f = ref[0].s.f & Frames.Flags.InheritedFlags) & Frames.Flags.locked)) {
-      status = ref[0].s.s
+    if (ref && ((flags = sender.flags_ = ref.cur_.s.flags_ & Frames.Flags.InheritedFlags) & Frames.Flags.locked)) {
+      status = ref.cur_.s.status_
       // @todo: rewrite framesForTab to store forced passKeys
       pass = status !== Frames.Status.disabled ? null : ""
     } else {
@@ -67,53 +67,60 @@ export const OnConnect = (port: Frames.Port, type: number): void => {
       m: CommandsData_.mappedKeyRegistry_, t: mappedKeyTypes_, k: CommandsData_.keyFSM_
     })
   }
-  sender.s = status
+  sender.status_ = status
   if (Build.BTypes & ~BrowserType.Chrome) { (port as Frames.BrowserPort).sender.tab = null as never }
   port.onDisconnect.addListener(/*#__NOINLINE__*/ onDisconnect)
   port.onMessage.addListener(/*#__NOINLINE__*/ onMessage)
   if (ref) {
-    (ref as Frames.WritableFrames).push(port)
+    ref.ports_.push(port)
     if (type & PortType.hasFocus) {
-      if (needIcon_ && ref[0].s.s !== status) {
+      if (needIcon_ && ref.cur_.s.status_ !== status) {
         Backend_.setIcon_(tabId, status)
       }
-      (ref as Frames.WritableFrames)[0] = port
+      ref.cur_ = port
+    }
+    if (!sender.frameId_ && !ref.top_) {
+      (ref as Writable<Frames.Frames>).top_ = port
     }
   } else {
-    framesForTab.set(tabId, [port, port])
+    framesForTab.set(tabId, {
+      cur_: port, top_: sender.frameId_ ? null : port, ports_: [port],
+      lock_: null, flags_: Frames.Flags.Default
+    })
     status !== Frames.Status.enabled && needIcon_ && Backend_.setIcon_(tabId, status)
   }
   if (Build.MinCVer < BrowserVer.MinWithFrameId && Build.BTypes & BrowserType.Chrome && NoFrameId) {
-    (sender as Writable<Frames.Sender>).i = (type & PortType.isTop) ? 0 : ((Math.random() * 9999997) | 0) + 2
+    (sender as Writable<Frames.Sender>).frameId_ = (type & PortType.isTop) ? 0 : ((Math.random() * 9999997) | 0) + 2
   }
 }
 
 const onDisconnect = (port: Port): void => {
-  let { t: tabId } = port.s, i: number, ref = framesForTab.get(tabId) as Frames.WritableFrames | undefined
+  let { tabId_: tabId } = port.s, i: number, ref = framesForTab.get(tabId)
   if (!ref) { return }
-  i = ref.lastIndexOf(port)
-  if (!port.s.i) {
+  const ports = ref.ports_
+  i = ports.lastIndexOf(port)
+  if (!port.s.frameId_) {
     i >= 0 && framesForTab.delete(tabId)
     return
   }
-  if (i === ref.length - 1) {
-    --ref.length
-  } else if (i >= 1) {
-    ref.splice(i, 1)
+  if (i === ports.length - 1) {
+    --ports.length
+  } else if (i >= 0) {
+    ports.splice(i, 1)
   }
-  if (ref.length <= 1) {
+  if (!ports.length) {
     framesForTab.delete(tabId)
-    return
+  } else if (port === ref.cur_) {
+    ref.cur_ = ports[0]
   }
-  if (port === ref[0]) { ref[0] = ref[1] }
 }
 
 const onOmniConnect = (port: Frames.Port, tabId: number, type: PortType): boolean => {
   if (type >= PortType.omnibar) {
     if (!isNotVomnibarPage(port, false)) {
       if (tabId < 0) {
-        (port.s as Writable<Frames.Sender>).t = type !== PortType.omnibar ? getNextFakeTabId()
-            : cPort ? cPort.s.t : TabRecency_.curTab_
+        (port.s as Writable<Frames.Sender>).tabId_ = type !== PortType.omnibar ? getNextFakeTabId()
+            : cPort ? cPort.s.tabId_ : TabRecency_.curTab_
       }
       framesForOmni.push(port)
       if (Build.BTypes & ~BrowserType.Chrome) { (port as Frames.BrowserPort).sender.tab = null as never }
@@ -126,11 +133,11 @@ const onOmniConnect = (port: Frames.Port, tabId: number, type: PortType): boolea
   } else if (tabId < 0 // should not be true; just in case of misusing
       || (Build.MinCVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg && Build.BTypes & BrowserType.Chrome
           && CurCVer_ < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg)
-      || port.s.i === 0
+      || port.s.frameId_ === 0
       ) { /* empty */ }
   else {
     browserTabs.executeScript(tabId, {
-      file: settings.CONST_.VomnibarScript_, frameId: port.s.i, runAt: "document_start"
+      file: settings.CONST_.VomnibarScript_, frameId: port.s.frameId_, runAt: "document_start"
     }, runtimeError_)
     port.disconnect()
     return true
@@ -154,8 +161,8 @@ const formatPortSender = (port: Port): Frames.Sender => {
   const url = Build.BTypes & BrowserType.Edge ? sender.url || tab.url || "" : sender.url!
   if (!(Build.BTypes & ~BrowserType.Chrome)) { sender.tab = null as never }
   return (port as Frames.Port).s = {
-    i: sender.frameId || 0, // frameId may not exist if no sender.tab
-    a: tab.incognito, s: Frames.Status.enabled, f: Frames.Flags.blank, t: tab.id, u: url
+    frameId_: sender.frameId || 0, // frameId may not exist if no sender.tab
+    incognito_: tab.incognito, status_: Frames.Status.enabled, flags_: Frames.Flags.blank, tabId_: tab.id, url_: url
   }
 }
 
@@ -163,17 +170,17 @@ const formatPortSender = (port: Port): Frames.Sender => {
 export const getPortUrl = (port?: Port | null, ignoreHash?: boolean, request?: Req.baseFg<kFgReq>
     ): string | Promise<string> => {
   port = port || indexFrame(TabRecency_.curTab_, 0)
-  return port && Exclusions.rules_.length && (ignoreHash || Exclusions._listeningHash) ? port.s.u
+  return port && Exclusions.rules_.length && (ignoreHash || Exclusions._listeningHash) ? port.s.url_
       : new Promise<string>((resolve): void => {
     const webNav = Build.BTypes & ~BrowserType.Edge
         && (!(Build.BTypes & BrowserType.Edge) || OnOther !== BrowserType.Edge)
         && (!(Build.BTypes & ~BrowserType.Chrome)
             || Build.MinCVer >= BrowserVer.Min$webNavigation$$getFrame$IgnoreProcessId
             || CurCVer_ > BrowserVer.Min$webNavigation$$getFrame$IgnoreProcessId - 1)
-        && port && port.s.i ? browserWebNav() : null
+        && port && port.s.frameId_ ? browserWebNav() : null
     port ? (webNav ? webNav.getFrame : tabsGet as never as typeof chrome.webNavigation.getFrame)(
-        webNav ? {tabId: port.s.t, frameId: port.s.i}
-          : port.s.t as Parameters<typeof chrome.tabs.get>[0] as never,
+        webNav ? {tabId: port.s.tabId_, frameId: port.s.frameId_}
+          : port.s.tabId_ as Parameters<typeof chrome.tabs.get>[0] as never,
         (tab?: chrome.webNavigation.GetFrameResultDetails | chrome.tabs.Tab | null): void => {
       const url = tab ? tab.url : ""
       if (!url && webNav) {
@@ -207,8 +214,8 @@ export const requireURL = <k extends keyof FgReq>(request: Req.fg<k> & {u: "url"
 }
 
 export const findCPort = (port: Port | null | undefined): Port | null => {
-  const frames = framesForTab.get(port ? port.s.t : TabRecency_.curTab_)
-  return frames ? frames[0] : null as never as Port
+  const frames = framesForTab.get(port ? port.s.tabId_ : TabRecency_.curTab_)
+  return frames ? frames.cur_ : null as never as Port
 }
 
 export const isExtIdAllowed = (extId: string | null | undefined, url: string | undefined): boolean | string => {
@@ -236,49 +243,49 @@ export const isExtIdAllowed = (extId: string | null | undefined, url: string | u
 
 export const indexFrame = (tabId: number, frameId: number): Port | null => {
   const ref = framesForTab.get(tabId)
-  if (!ref) { return null }
-  for (let i = 1, len = ref.length; i < len; i++) {
-    if (ref[i].s.i === frameId) {
-      return ref[i]
+  if (frameId === 0) { return ref ? ref.top_ : null }
+  for (const port of ref ? ref.ports_ : []) {
+    if (port.s.frameId_ === frameId) {
+      return port
     }
   }
   return null
 }
 
 export const ensureInnerCSS = (sender: Frames.Sender): string | null => {
-  if (sender.f & Frames.Flags.hasCSS) { return null }
-  sender.f |= Frames.Flags.hasCSSAndActed
+  if (sender.flags_ & Frames.Flags.hasCSS) { return null }
+  sender.flags_ |= Frames.Flags.hasCSSAndActed
   return innerCSS_
 }
 
 export const onExitGrab = (_0: FgReq[kFgReq.exitGrab], port: Port): void => {
-  const ports = framesForTab.get(port.s.t)
-  if (!ports) { return }
-  ports[0].s.f |= Frames.Flags.userActed
-  if (ports.length < 3) { return }
-  for (let msg: Req.bg<kBgReq.exitGrab> = { N: kBgReq.exitGrab }, i = ports.length; 0 < --i; ) {
-    const p = ports[i]
+  const ref = framesForTab.get(port.s.tabId_)
+  if (!ref) { return }
+  ref.cur_.s.flags_ |= Frames.Flags.userActed
+  if (ref.ports_.length < 2) { return }
+  const msg: Req.bg<kBgReq.exitGrab> = { N: kBgReq.exitGrab }
+  for (const p of ref.ports_) {
     if (p !== port) {
       p.postMessage(msg)
-      p.s.f |= Frames.Flags.userActed
+      p.s.flags_ |= Frames.Flags.userActed
     }
   }
 }
 
 /** `true` means `port` is NOT vomnibar port */
 export const isNotVomnibarPage = (port: Frames.Port, noLog: boolean): boolean => {
-  let info = port.s, f = info.f
+  let info = port.s, f = info.flags_
   if (!(f & Frames.Flags.vomnibarChecked)) {
     f |= Frames.Flags.vomnibarChecked |
-      (info.u === settings.cache_.vomnibarPage_f || info.u === settings.CONST_.VomnibarPageInner_
+      (info.url_ === settings.cache_.vomnibarPage_f || info.url_ === settings.CONST_.VomnibarPageInner_
         ? Frames.Flags.isVomnibar : 0)
-    info.f = f
+    info.flags_ = f
   }
   if (f & Frames.Flags.isVomnibar) { return false }
-  if (!noLog && !(f & Frames.Flags.sourceWarned)) {
+  if (!noLog && !(f & Frames.Flags.SOURCE_WARNED)) {
     console.warn("Receive a request from %can unsafe source page%c (should be vomnibar) :\n %s @ tab %o",
-      "color:red", "color:auto", info.u.slice(0, 128), info.t)
-    info.f |= f
+      "color:red", "color:auto", info.url_.slice(0, 128), info.tabId_)
+    info.flags_ |= f
   }
   return true
 }
@@ -326,4 +333,27 @@ export const complainNoSession = (): void => {
   || Build.MinCVer >= BrowserVer.MinSessions || CurCVer_ >= BrowserVer.MinSessions
   ? complainLimits("control tab sessions")
   : showHUD(`Vimium C can not control tab sessions before Chrome ${BrowserVer.MinSessions}`)
+}
+
+
+if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.BuildMinForOf) {
+  framesForTab.values = (): any[] => {
+    let cur: IteratorResult<unknown>
+    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+        && CurCVer_ < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) {
+      const res: unknown[] = []
+      const map = (framesForTab as any as SimulatedMap).map_ as Dict<any> as Dict<Frames.Frames>
+      for (let key in map) { res.push(map[key]) }
+      return res
+    } else {
+      const iter = (Map.prototype as any).values.call(framesForTab) as IterableIterator<unknown>
+      if (Build.MinCVer < BrowserVer.Min$Array$$From && CurCVer_ < BrowserVer.Min$Array$$From)  {
+        const res: any[] = []
+        while (cur = iter.next(), !cur.done) { res.push(cur.value) }
+        return res
+      } else {
+        return Array.from(iter as any)
+      }
+    }
+  }
 }

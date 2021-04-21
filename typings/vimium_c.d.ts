@@ -258,6 +258,7 @@ declare namespace Frames {
     enabled = 0, partial = 1, disabled = 2,
     __fake = -1
   }
+  // upper-case items are for tabs
   const enum Flags {
     Default = 0, blank = Default,
     locked = 1,
@@ -269,15 +270,14 @@ declare namespace Frames {
     hadHelpDialog = 8,
     hadVisualMode = 16,
     hasFindCSS = 32,
-    OtherExtension = 64,
-    vomnibarChecked = 128,
-    isVomnibar = 256,
-    sourceWarned = 512,
+    Incognito = 64,
+    OtherExtension = 128,
+    vomnibarChecked = 256,
+    isVomnibar = 512,
+    SOURCE_WARNED = 1024,
   }
   const enum NextType {
-    next = 0, Default = next,
-    parent = 1,
-    current = 2,
+    next = 0, Default = next, parent = 1, current = 2,
   }
 }
 

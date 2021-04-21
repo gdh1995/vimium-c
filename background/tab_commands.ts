@@ -55,7 +55,7 @@ export const copyWindowInfo = (): void | kBgCmd.copyWindowInfo => {
   type = get_cOptions<C.copyWindowInfo>().type
   const sed = parseSedOptions_(get_cOptions<C.copyWindowInfo, true>())
   if (type === "frame" && cPort) {
-    if (cPort.s.f & Frames.Flags.OtherExtension) {
+    if (cPort.s.flags_ & Frames.Flags.OtherExtension) {
       cPort.postMessage({
         N: kBgReq.url, H: kFgReq.copy, d: decoded, e: sed
       } as Req.bg<kBgReq.url> & FgReq[kFgReq.copy])
@@ -75,7 +75,7 @@ export const copyWindowInfo = (): void | kBgCmd.copyWindowInfo => {
       }, cPort)
       return
     }
-    const incognito = cPort ? cPort.s.a : TabRecency_.incognito_ === IncognitoType.true,
+    const incognito = cPort ? cPort.s.incognito_ : TabRecency_.incognito_ === IncognitoType.true,
     rawFormat = get_cOptions<C.copyWindowInfo>().format, format = "" + (rawFormat || "${title}: ${url}"),
     join = get_cOptions<C.copyWindowInfo, true>().join, isPlainJSON = join === "json" && !rawFormat,
     nameRe = <RegExpG & RegExpSearchable<1>> /\$\{([^}]+)\}/g
@@ -300,7 +300,7 @@ export const moveTabToNewWindow = (): void | kBgCmd.moveTabToNewWindow => {
     })
   }
   const incognito = !!get_cOptions<C.moveTabToNewWindow>().incognito
-  if (incognito && (cPort ? cPort.s.a : TabRecency_.incognito_ === IncognitoType.true)) {
+  if (incognito && (cPort ? cPort.s.incognito_ : TabRecency_.incognito_ === IncognitoType.true)) {
     showHUD(trans_(kInc))
   } else {
     getCurWnd(true, incognito ? moveTabToIncognito : moveTabToNewWindow0)
@@ -521,7 +521,7 @@ export const toggleMuteTab = (): void | kBgCmd.toggleMuteTab => {
   }
   browserTabs.query({audible: true}, (tabs: Tab[]): void => {
     let curId = get_cOptions<C.toggleMuteTab>().other || get_cOptions<C.toggleMuteTab>().others
-          ? cPort ? cPort.s.t : TabRecency_.curTab_ : GlobalConsts.TabIdNone
+          ? cPort ? cPort.s.tabId_ : TabRecency_.curTab_ : GlobalConsts.TabIdNone
       , prefix = curId === GlobalConsts.TabIdNone ? "All" : "Other"
       , mute = tabs.length === 0 || curId !== GlobalConsts.TabIdNone && tabs.length === 1 && tabs[0].id === curId
     if (get_cOptions<kBgCmd.toggleMuteTab>().mute != null) {

@@ -61,15 +61,16 @@ const ContentSettings_ = Build.BTypes & BrowserType.Chrome ? {
     }
     return result;
   },
-  hasOtherOrigins_ (ports: Frames.Frames): boolean {
-    let last: string | undefined, i = ports.length, cur: string;
-    do {
-      cur = new URL(ports[--i].s.u).host;
-      last || (last = cur);
-    } while (1 < i && cur === last);
-    return cur !== last;
+  hasOtherOrigins_ (frames: Frames.Frames): boolean {
+    let last: string | undefined
+    for (const { s: { url_: url } } of frames.ports_) {
+      let cur = new URL(url).host
+      if (last && last !== cur) { return true }
+      last = cur
+    }
+    return false
   },
-  Clear_ (this: void, contentType: CSTypes, incognito?: Frames.Sender["a"]): void {
+  Clear_ (this: void, contentType: CSTypes, incognito?: Frames.Sender["incognito_"]): void {
     const css = chrome.contentSettings, cs = css[contentType],
     kIncognito = "incognito_session_only", kRegular = "regular";
     if (incognito != null) {
@@ -83,7 +84,7 @@ const ContentSettings_ = Build.BTypes & BrowserType.Chrome ? {
   clearCS_ (options: KnownOptions<kBgCmd.clearCS>, port: Port | null): void {
     const ty = ("" + options.type!) as NonNullable<typeof options.type>
     if (!ContentSettings_.complain_(ty, "http://a.cc/")) {
-      ContentSettings_.Clear_(ty, port ? port.s.a : TabRecency_.incognito_ === IncognitoType.true);
+      ContentSettings_.Clear_(ty, port ? port.s.incognito_ : TabRecency_.incognito_ === IncognitoType.true);
       return Backend_.showHUD_(trans_("csCleared", [trans_(ty) || ty]));
     }
   },
@@ -116,7 +117,8 @@ const ContentSettings_ = Build.BTypes & BrowserType.Chrome ? {
                 // work around a bug of Chrome
                 && (Build.MinCVer >= BrowserVer.MinIframeInRestoredSessionTabHasPreviousTopFrameContentSettings
                     || CurCVer_ >= BrowserVer.MinIframeInRestoredSessionTabHasPreviousTopFrameContentSettings)
-                && (arr = Backend_.indexPorts_(tab.id)) && arr.length > 2 && ContentSettings_.hasOtherOrigins_(arr)
+                && (arr = Backend_.indexPorts_(tab.id)) && arr.ports_.length > 1
+                && ContentSettings_.hasOtherOrigins_(arr)
             ;
         if (tab.incognito || reopen) {
           ++tab.index;
@@ -263,9 +265,9 @@ Marks_ = { // NOTE: all public members should be static
     port.postMessage<1, kFgCmd.goToMarks>({ N: kBgReq.execute, H: null, c: kFgCmd.goToMarks, n: 1, a: options});
   },
   createMark_ (this: void, request: MarksNS.NewTopMark | MarksNS.NewMark, port: Port): void {
-    let tabId = port.s.t;
+    let tabId = port.s.tabId_;
     if (request.s) {
-      Marks_.set_(request, port.s.a, tabId)
+      Marks_.set_(request, port.s.incognito_, tabId)
       return
     }
     (port = Backend_.indexPorts_(tabId, 0) || port) && port.postMessage({
@@ -275,7 +277,7 @@ Marks_ = { // NOTE: all public members should be static
   },
   gotoMark_ (this: void, request: MarksNS.FgQuery, port: Port): void {
     const { l: local, n: markName } = request, key = Marks_.getLocationKey_(markName, local ? request.u : "");
-    const str = port.s.a && Marks_.cacheI_ && Marks_.cacheI_.get(key) || Marks_.cache_.getItem(key)
+    const str = port.s.incognito_ && Marks_.cacheI_ && Marks_.cacheI_.get(key) || Marks_.cache_.getItem(key)
     if (local) {
       let scroll: MarksNS.FgMark | null = str ? JSON.parse(str) as MarksNS.FgMark : null;
       if (!scroll) {
@@ -420,9 +422,9 @@ IncognitoWatcher_ = {
     if (Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
         || CurCVer_ >= BrowserVer.MinNoAbnormalIncognito) {
       let left = false
-      Backend_.indexPorts_().forEach((frames): void => {
-        if (frames[0].s.a) { left = true }
-      })
+      for (let frames of Backend_.indexPorts_().values!()) {
+        if (frames.cur_.s.incognito_) { left = true; break }
+      }
       if (left) { return; }
     }
     chrome.windows.getAll(function (wnds): void {

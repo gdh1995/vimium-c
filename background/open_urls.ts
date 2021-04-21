@@ -254,7 +254,7 @@ export const openShowPage = (url: string, reuse: ReuseType, options: OpenUrlOpti
     } else {
       browserTabs.update(tab.id, { url: prefix })
     }
-  } else if (incognito) {
+  } else if (incognito && [ReuseType.current, ReuseType.newBg, ReuseType.newFg].indexOf(reuse) >= 0) {
     tabsCreate({ url: prefix, active: reuse !== ReuseType.newBg })
   } else {
     // reuse may be ReuseType.reuse, but just treat it as .newFg
@@ -436,9 +436,9 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port): void =>
   const opts: KnownOptions<kBgCmd.openUrl> & SafeObject = BgUtils_.safeObj_()
   const _rawKey = request.k, keyword = (_rawKey || "") + ""
   const _rawTest = request.t, testUrl = _rawTest != null ? _rawTest : !keyword
-  const incognito = request.i === "reverse" ? cPort ? !cPort.s.a : null : request.i
+  const incognito = request.i === "reverse" ? cPort ? !cPort.s.incognito_ : null : request.i
   const reuse = request.r, sed = request.e
-  opts.reuse = incognito != null && (!reuse || reuse === "current") && (!cPort || incognito !== cPort.s.a)
+  opts.reuse = incognito != null && (!reuse || reuse === "current") && (!cPort || incognito !== cPort.s.incognito_)
       ? ReuseType.newFg : reuse
   opts.incognito = incognito
   opts.sed = sed
@@ -539,9 +539,9 @@ const focusAndExecuteArr = [function (tabs): void {
 ]
 
 export const focusAndExecute = (req: Omit<FgReq[kFgReq.gotoMainFrame], "f">
-    , port: Port, mainPort: Port | null, focusAndShowFrameBorder: BOOL): void => {
-  if (mainPort && mainPort.s.s !== Frames.Status.disabled) {
-    mainPort.postMessage({
+    , port: Port, targetPort: Port | null, focusAndShowFrameBorder: BOOL): void => {
+  if (targetPort && targetPort.s.status_ !== Frames.Status.disabled) {
+    targetPort.postMessage({
       N: kBgReq.focusFrame,
       H: focusAndShowFrameBorder || req.c !== kFgCmd.scroll ? ensureInnerCSS(port.s) : null,
       m: focusAndShowFrameBorder ? FrameMaskType.ForcedSelf : FrameMaskType.NoMaskAndNoFocus,

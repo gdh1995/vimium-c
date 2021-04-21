@@ -107,7 +107,7 @@ const saveOptions = (): void => {
     return
   }
   const testers = bgExclusions.testers_
-  BG_.Backend_.forceStatus_("reset silent", frameInfo.t)
+  BG_.Backend_.forceStatus_("reset silent", frameInfo.tabId_)
   exclusions.save_()
   setTimeout(function () {
     bgExclusions.testers_ = testers
@@ -136,14 +136,14 @@ const collectPass = (pass: string): string => {
 
 const forceState = (act: "Reset" | "Enable" | "Disable", event?: EventToPrevent): void => {
   event && event.preventDefault()
-  BG_.Backend_.forceStatus_(act.toLowerCase() as "reset" | "enable" | "disable", frameInfo.t)
+  BG_.Backend_.forceStatus_(act.toLowerCase() as "reset" | "enable" | "disable", frameInfo.tabId_)
   window.close()
 }
 
 const initBottomLeft = (): void => {
-  toggleAction = frameInfo.s !== Frames.Status.disabled ? "Disable" : "Enable"
-  curIsLocked = !!(frameInfo.f & Frames.Flags.locked)
-  curLockedStatus = curIsLocked ? frameInfo.s : Frames.Status.__fake
+  toggleAction = frameInfo.status_ !== Frames.Status.disabled ? "Disable" : "Enable"
+  curIsLocked = !!(frameInfo.flags_ & Frames.Flags.locked)
+  curLockedStatus = curIsLocked ? frameInfo.status_ : Frames.Status.__fake
   let el0 = $<EnsuredMountedHTMLElement>("#toggleOnce"), el1 = el0.nextElementSibling
   nextTick_(() => {
     el0.firstElementChild.textContent = (pTrans_(toggleAction) || toggleAction) + (curIsLocked ? "" : pTrans_("Once"))
@@ -214,9 +214,10 @@ const initExclusionRulesTable = (): void => {
   }
 }
 
-Promise.resolve(bgSettings_.restore_ && bgSettings_.restore_()).then(((callback): () => void =>
-    (): void => { chrome.tabs.query({currentWindow: true, active: true}, callback) }
-)((activeTabs: [chrome.tabs.Tab] | never[]): void => {
+Promise.all([bgSettings_.restore_ && bgSettings_.restore_(), new Promise<[chrome.tabs.Tab]>(resolve => {
+  chrome.tabs.query({currentWindow: true, active: true}, resolve)
+})]).then((_resolved): void => {
+  const activeTabs: [chrome.tabs.Tab] | never[] = _resolved[1]
   const curTab = activeTabs[0], _url = curTab.url
   let ref = BG_.Backend_.indexPorts_(curTab.id), blockedMsg = $("#blocked-msg")
   const notRunnable = !(ref || curTab && _url && curTab.status === "loading" && (<RegExpOne> /^(ht|s?f)tp/).test(_url))
@@ -235,19 +236,19 @@ Promise.resolve(bgSettings_.restore_ && bgSettings_.restore_()).then(((callback)
   }, $(".version"))
 
   bgExclusions = BG_.Exclusions as typeof Exclusions
-  frameInfo = ref && (!ref[0].s.i || BG_.BgUtils_.protocolRe_.test(ref[0].s.u)) ? ref[0].s : {
+  frameInfo = ref && (!ref.cur_.s.frameId_ || BG_.BgUtils_.protocolRe_.test(ref.cur_.s.url_)) ? ref.cur_.s : {
     /** must keep aligned with {@link ../background/main.ts#formatPortSender} */
-    i: 0,
-    a: curTab.incognito,
-    s: Frames.Status.enabled, // not real
-    f: Frames.Flags.blank,
-    t: curTab.id,
-    u: _url
+    frameId_: 0,
+    incognito_: curTab.incognito,
+    status_: Frames.Status.enabled, // not real
+    flags_: Frames.Flags.blank,
+    tabId_: curTab.id,
+    url_: _url
   }
-  if (frameInfo.i) {
-    topUrl = ((BG_.Backend_.indexPorts_(curTab.id, 0) || {} as Frames.Port).s || {} as Frames.Sender).u || _url
+  if (frameInfo.frameId_) {
+    topUrl = ((BG_.Backend_.indexPorts_(curTab.id, 0) || {} as Frames.Port).s || {} as Frames.Sender).url_ || _url
   }
-  url = frameInfo.u
+  url = frameInfo.url_
 
   saveBtn2.onclick = saveOptions
   document.addEventListener("keyup", function (event): void {
@@ -261,7 +262,7 @@ Promise.resolve(bgSettings_.restore_ && bgSettings_.restore_()).then(((callback)
   initBottomLeft()
   initExclusionRulesTable()
   setupBorderWidth_ && nextTick_(setupBorderWidth_)
-}))
+})
 
 const onNotRunnable = (blockedMsg: HTMLElement, curTab: chrome.tabs.Tab | null, _url: string) => {
   const body = document.body as HTMLBodyElement, docEl = document.documentElement as HTMLHtmlElement

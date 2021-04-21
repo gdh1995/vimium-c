@@ -10,7 +10,7 @@ export let needIcon_ = false
 export let visualWordsRe_: string
 
 export const framesForTab = new Map() as Frames.FramesMap
-export const framesForOmni: Frames.WritableFrames = []
+export const framesForOmni: Port[] = []
 
 export let cKey: kKeyCode = kKeyCode.None
 export let cNeedConfirm: BOOL = 1
@@ -51,10 +51,3 @@ export const getSecret = (): number => {
 }
 
 export const getNextFakeTabId = (): number => fakeTabId--
-
-if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
-    && CurCVer_ < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) {
-  framesForTab.forEach = (cb: any): void => {
-    const map = (framesForTab as any as SimulatedMap).map_; for (let key in map) { cb(map[key], +key) }
-  }
-}

@@ -14,34 +14,34 @@ import { envRegistry_, shortcutRegistry_, visualGranularities_, visualKeys_ } fr
 
 export const nextFrame = (): void | kBgCmd.nextFrame => {
   let port = cPort, ind = -1
-  const frames = framesForTab.get(port.s.t)
-  if (frames && frames.length > 2) {
-    ind = Math.max(0, frames.indexOf(port, 1))
+  const ref = framesForTab.get(port.s.tabId_), ports = ref && ref.ports_
+  if (ports && ports.length > 1) {
+    ind = ports.indexOf(port)
     for (let count = Math.abs(cRepeat); count > 0; count--) {
       ind += cRepeat > 0 ? 1 : -1
-      if (ind === frames.length) { ind = 1 }
-      else if (ind < 1) { ind = frames.length - 1 }
+      if (ind === ports.length) { ind = 0 }
+      else if (ind < 0) { ind = ports.length - 1 }
     }
-    port = frames[ind]
+    port = ports[ind]
   }
-  focusFrame(port, port.s.i === 0
-    , port !== cPort && frames && port !== frames[0] ? FrameMaskType.NormalNext : FrameMaskType.OnlySelf)
+  focusFrame(port, port.s.frameId_ === 0
+    , port !== cPort && ref && port !== ref.cur_ ? FrameMaskType.NormalNext : FrameMaskType.OnlySelf)
 }
 
 export const parentFrame = (): void | kBgCmd.parentFrame => {
   const sender = cPort.s,
   msg = Build.MinCVer < BrowserVer.MinWithFrameId && Build.BTypes & BrowserType.Chrome && NoFrameId
     ? `Vimium C can not know parent frame before Chrome ${BrowserVer.MinWithFrameId}`
-    : !(sender.t >= 0 && framesForTab.get(sender.t)) ? "Vimium C can not access frames in current tab" : null
+    : !(sender.tabId_ >= 0 && framesForTab.get(sender.tabId_)) ? "Vimium C can not access frames in current tab" : null
   msg && showHUD(msg)
-  if (!sender.i
+  if (!sender.frameId_
       || Build.MinCVer < BrowserVer.MinWithFrameId && Build.BTypes & BrowserType.Chrome && NoFrameId
       || !browserWebNav()) {
     mainFrame()
     return
   }
-  let self = sender.i, frameId = self, found: boolean, count = cRepeat
-  browserWebNav()!.getAllFrames({ tabId: sender.t }, (frames): void => {
+  let self = sender.frameId_, frameId = self, found: boolean, count = cRepeat
+  browserWebNav()!.getAllFrames({ tabId: sender.tabId_ }, (frames): void => {
     do {
       found = false
       for (const i of frames) {
@@ -52,7 +52,7 @@ export const parentFrame = (): void | kBgCmd.parentFrame => {
         }
       }
     } while (found && 0 < --count)
-    const port = frameId > 0 && frameId !== self ? indexFrame(sender.t, frameId) : null
+    const port = frameId > 0 && frameId !== self ? indexFrame(sender.tabId_, frameId) : null
     port ? focusFrame(port, true, FrameMaskType.ForcedSelf) : mainFrame()
   })
 }
@@ -63,8 +63,8 @@ export const performFind = (): void | kBgCmd.performFind => {
             : rawIndex >= 0 ? -1 - (0 | <number> <number | string> rawIndex) : 0 : 0,
   leave = !!nth || !get_cOptions<C.performFind>().active
   let sentFindCSS: CmdOptions[kFgCmd.findMode]["f"] = null
-  if (!(sender.f & Frames.Flags.hasFindCSS)) {
-    sender.f |= Frames.Flags.hasFindCSS
+  if (!(sender.flags_ & Frames.Flags.hasFindCSS)) {
+    sender.flags_ |= Frames.Flags.hasFindCSS
     sentFindCSS = findCSS_
   }
   sendFgCmd(kFgCmd.findMode, true, {
@@ -73,7 +73,7 @@ export const performFind = (): void | kBgCmd.performFind => {
     r: get_cOptions<C.performFind>().returnToViewport === true,
     s: !nth && absRepeat < 2 && !!get_cOptions<C.performFind>().selected,
     p: !!get_cOptions<C.performFind>().postOnEsc,
-    q: leave || get_cOptions<C.performFind>().last ? FindModeHistory_.query_(sender.a, "", nth < 0 ? -nth : nth) : ""
+    q: leave || get_cOptions<C.performFind>().last ? FindModeHistory_.query_(sender.incognito_, "", nth < 0 ? -nth : nth) : ""
   })
 }
 
@@ -85,10 +85,10 @@ export const initHelp = (request: FgReq[kFgReq.initHelp], port: Port): void => {
       settings.fetchFile_(kHD, (text) => { settings.set_(kHD, text); resolve() })
     })
   ])).then((args): void => {
-    const port2 = request.w && indexFrame(port.s.t, 0) || port,
-    isOptionsPage = port2.s.u.startsWith(settings.CONST_.OptionsPage_),
+    const port2 = request.w && indexFrame(port.s.tabId_, 0) || port,
+    isOptionsPage = port2.s.url_.startsWith(settings.CONST_.OptionsPage_),
     options = request.a || {};
-    (port2 as Frames.Port).s.f |= Frames.Flags.hadHelpDialog
+    (port2 as Frames.Port).s.flags_ |= Frames.Flags.hadHelpDialog
     set_cPort(port2)
     sendFgCmd(kFgCmd.showHelpDialog, true, {
       h: args[0].render_(isOptionsPage),
@@ -110,12 +110,12 @@ export const showVomnibar = (forceInner?: boolean): void | kBgCmd.showVomnibar =
     delete get_cOptions<C.showVomnibar, true>().url
   }
   if (!port) {
-    port = indexFrame(TabRecency_.curTab_, 0)!
+    port = indexFrame(TabRecency_.curTab_, 0)
     set_cPort(port)
     if (!port) { return }
     // not go to the top frame here, so that a current frame can suppress keys for a while
   }
-  const page = settings.cache_.vomnibarPage_f, { u: url } = port.s, preferWeb = !page.startsWith(BrowserProtocol_),
+  const page = settings.cache_.vomnibarPage_f, { url_: url } = port.s, preferWeb = !page.startsWith(BrowserProtocol_),
   isCurOnExt = url.startsWith(BrowserProtocol_),
   inner = forceInner || !page.startsWith(location.origin) ? settings.CONST_.VomnibarPageInner_ : page
   forceInner = forceInner ? forceInner
@@ -124,8 +124,8 @@ export const showVomnibar = (forceInner?: boolean): void | kBgCmd.showVomnibar =
       // that HTTPS refusing HTTP iframes.
       || page.startsWith("http:") && !(<RegExpOne> /^http:/).test(url)
           && !(<RegExpOne>/^http:\/\/localhost[:/]/i).test(page)
-    : port.s.a || isCurOnExt && !page.startsWith(url.slice(0, url.indexOf("/", url.indexOf("://") + 3) + 1))
-  const useInner: boolean = forceInner || page === inner || port.s.t < 0,
+    : port.s.incognito_ || isCurOnExt && !page.startsWith(url.slice(0, url.indexOf("/", url.indexOf("://") + 3) + 1))
+  const useInner: boolean = forceInner || page === inner || port.s.tabId_ < 0,
   _trailingSlash0 = get_cOptions<C.showVomnibar>().trailingSlash,
   _trailingSlash1 = get_cOptions<C.showVomnibar>().trailing_slash,
   trailingSlash: boolean | null | undefined = _trailingSlash0 != null ? !!_trailingSlash0
@@ -160,19 +160,19 @@ export const enterVisualMode = (): void | kBgCmd.visualMode => {
   let sentFindCSS: CmdOptions[kFgCmd.visualMode]["f"] = null
   let words = "", keyMap: CmdOptions[kFgCmd.visualMode]["k"] = null
   let granularities: CmdOptions[kFgCmd.visualMode]["g"] = null
-  if (~sender.f & Frames.Flags.hadVisualMode) {
+  if (~sender.flags_ & Frames.Flags.hadVisualMode) {
     if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
         || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
             && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) {
       words = visualWordsRe_
     }
-    if (!(sender.f & Frames.Flags.hasFindCSS)) {
-      sender.f |= Frames.Flags.hasFindCSS
+    if (!(sender.flags_ & Frames.Flags.hasFindCSS)) {
+      sender.flags_ |= Frames.Flags.hasFindCSS
       sentFindCSS = findCSS_
     }
     keyMap = visualKeys_
     granularities = visualGranularities_
-    sender.f |= Frames.Flags.hadVisualMode
+    sender.flags_ |= Frames.Flags.hadVisualMode
   }
   sendFgCmd(kFgCmd.visualMode, true, {
     m: str === "caret" ? VisualModeNS.Mode.Caret : str === "line" ? VisualModeNS.Mode.Line : VisualModeNS.Mode.Visual,
@@ -282,7 +282,7 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null
         && (!(Build.BTypes & BrowserType.Edge) || OnOther !== BrowserType.Edge)
         && browserTabs.goBack
   if (!hasTabsGoBack) {
-    const url = curTab ? getTabUrl(curTab) : (port!.s.i ? indexFrame(port!.s.t, 0)! : port!).s.u
+    const url = curTab ? getTabUrl(curTab) : (port!.s.frameId_ ? framesForTab.get(port!.s.tabId_)!.top_! : port!).s.url_
     if (!url.startsWith(BrowserProtocol_)
         || !!(Build.BTypes & BrowserType.Firefox)
             && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
@@ -300,7 +300,7 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null
       runAt: "document_start"
     }, runtimeError_)
   }
-  const tabID = curTab ? curTab.id : port!.s.t
+  const tabID = curTab ? curTab.id : port!.s.tabId_
   const count = req.s, reuse = parseReuse(req.r || ReuseType.current)
   if (reuse) {
     const position = req.p
@@ -333,8 +333,9 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null
 }
 
 export const mainFrame = (): void | kBgCmd.mainFrame => {
-  const tabId = cPort ? cPort.s.t : TabRecency_.curTab_, port = indexFrame(tabId, 0)
-  port && focusFrame(port, true, framesForTab.get(tabId)![0] === port ? FrameMaskType.OnlySelf : FrameMaskType.ForcedSelf)
+  const tabId = cPort ? cPort.s.tabId_ : TabRecency_.curTab_, ref = framesForTab.get(tabId),
+  port = ref && ref.top_
+  port && focusFrame(port, true, port === ref!.cur_ ? FrameMaskType.OnlySelf : FrameMaskType.ForcedSelf)
 }
 
 export const setOmniStyle = (req: FgReq[kFgReq.setOmniStyle], port?: Port): void => {
@@ -452,7 +453,7 @@ export const confirm_ = <T extends kCName, force extends BOOL = 0> (
     if (cPort) {
       gOnConfirmCallback = onConfirmWrapper.bind(0, get_cOptions() as any, cRepeat, cPort, callback!)
       setupSingletonCmdTimer(setTimeout(onConfirm, 3000, 0));
-      (indexFrame(cPort.s.t, 0) || cPort).postMessage({
+      (indexFrame(cPort.s.tabId_, 0) || cPort).postMessage({
         N: kBgReq.count, c: "", i: _gCmdTimer, m: msg
       })
     } else {
@@ -503,13 +504,13 @@ export const onConfirmResponse = (request: FgReq[kFgReq.cmd], port: Port): void 
 export const executeShortcut = (shortcutName: StandardShortcutNames, ports: Frames.Frames | null | undefined): void => {
   setupSingletonCmdTimer(0)
   if (ports) {
-    let port = ports[0]
+    let port = ports.cur_
     setupSingletonCmdTimer(setTimeout(executeShortcut, 100, shortcutName, null))
     port.postMessage({ N: kBgReq.count, c: shortcutName, i: _gCmdTimer, m: "" })
-    if (!(port.s.f & Frames.Flags.hasCSSAndActed)) {
+    if (!(port.s.flags_ & Frames.Flags.hasCSSAndActed)) {
       reqH_[kFgReq.exitGrab]({}, port)
     }
-    port.s.f |= Frames.Flags.userActed
+    port.s.flags_ |= Frames.Flags.userActed
     return
   }
   let registry = shortcutRegistry_!.get(shortcutName)!, cmdName = registry.command_,
@@ -601,10 +602,10 @@ const matchEnvRule = (rule: CommandsNS.EnvItem, cur: CurrentEnvCache
       }
       if (host) {
         if (!cur.portUrl_) {
-          let portUrl = cPort.s.u
-          if (cPort.s.i && portUrl.lastIndexOf("://", 5) < 0 && !BgUtils_.protocolRe_.test(portUrl)) {
-            const mainFrame = Backend_.indexPorts_(cPort.s.t, 0)
-            portUrl = mainFrame ? mainFrame.s.u : portUrl
+          let portUrl = cPort.s.url_
+          if (cPort.s.frameId_ && portUrl.lastIndexOf("://", 5) < 0 && !BgUtils_.protocolRe_.test(portUrl)) {
+            const frames = framesForTab.get(cPort.s.tabId_)
+            portUrl = frames && frames.top_ ? frames.top_.s.url_ : portUrl
           }
           cur.portUrl_ = portUrl
         }
@@ -627,9 +628,9 @@ export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey]): void => {
   let keys: string | string[] | null | undefined
   if (!cPort) {
     const frames = framesForTab.get(TabRecency_.curTab_)
-    set_cPort(frames ? frames[0] : null)
+    set_cPort(frames ? frames.cur_ : null)
   }
-  cPort && ((cPort as Frames.Port).s.f |= Frames.Flags.userActed)
+  cPort && ((cPort as Frames.Port).s.flags_ |= Frames.Flags.userActed)
   for (let i = 0, size = expected_rules instanceof Array ? expected_rules.length : 0
         ; i < size; i++) {
     let rule: CommandsNS.EnvItem | CommandsNS.EnvItemWithKeys = (expected_rules as CommandsNS.EnvItemWithKeys[])[i]

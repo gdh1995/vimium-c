@@ -601,7 +601,7 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
     chrome.tabs.query({ currentWindow: true, active: true }, (tabs?: [chrome.tabs.Tab?]): void => {
       if (tabs && tabs[0] && tabs[0].url === location.href) {
         const port = BG_.Backend_.indexPorts_(tabs[0].id, 0) as Frames.Port | null
-        port && (port.s.f |= Frames.Flags.hasCSS | Frames.Flags.hasFindCSS)
+        port && (port.s.flags_ |= Frames.Flags.hasCSS | Frames.Flags.hasFindCSS)
       }
     })
   }

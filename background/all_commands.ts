@@ -88,7 +88,7 @@ const BackgroundCommands: {
       framesGoNext(isNext, rel)
       return
     }
-    Promise.resolve(getPortUrl(indexFrame(cPort.s.t, 0))).then((tabUrl): void => {
+    Promise.resolve(getPortUrl(framesForTab.get(cPort.s.tabId_)!.top_)).then((tabUrl): void => {
       const count = isNext ? cRepeat : -cRepeat
       const template = tabUrl && substitute_(tabUrl, SedContext.goNext, sed)
       const [hasPlaceholder, next] = template ? goToNextUrl(template, count
@@ -149,15 +149,15 @@ const BackgroundCommands: {
       showHUD(msg)
     } else {
       value = settings.updatePayload_(key2, value)
-      const ports = framesForTab.get(cPort.s.t)!
-      for (let i = 1; i < ports.length; i++) {
-        let isCur = ports[i] === ports[0]
-        portSendFgCmd(ports[i], kFgCmd.toggle, isCur, { k: key2, n: isCur ? keyRepr : "", v: value }, 1)
+      const frames = framesForTab.get(cPort.s.tabId_)!, cur = frames.cur_
+      for (const port of frames.ports_) {
+        let isCur = port === cur
+        portSendFgCmd(port, kFgCmd.toggle, isCur, { k: key2, n: isCur ? keyRepr : "", v: value }, 1)
       }
     }
   },
   /* kBgCmd.showHelp: */ (): void | kBgCmd.showHelp => {
-    if (cPort.s.i === 0 && !(cPort.s.f & Frames.Flags.hadHelpDialog)) {
+    if (cPort.s.frameId_ === 0 && !(cPort.s.flags_ & Frames.Flags.hadHelpDialog)) {
       initHelp({ a: get_cOptions<C.showHelp, true>() }, cPort)
     } else {
       window.HelpDialog || BgUtils_.require_("HelpDialog")
@@ -231,7 +231,7 @@ const BackgroundCommands: {
     : (ContentSettings_.complain_ as () => any)()
   },
   /* kBgCmd.clearFindHistory: */ (): void | kBgCmd.clearFindHistory => {
-    const incognito = cPort ? cPort.s.a : TabRecency_.incognito_ === IncognitoType.true
+    const incognito = cPort ? cPort.s.incognito_ : TabRecency_.incognito_ === IncognitoType.true
     FindModeHistory_.removeAll_(incognito)
     return showHUD(trans_("fhCleared", [incognito ? trans_("incog") : ""]))
   },
@@ -295,7 +295,7 @@ const BackgroundCommands: {
     }
   },
   /* kBgCmd.duplicateTab: */ (): void | kBgCmd.duplicateTab => {
-    const tabId = cPort ? cPort.s.t : TabRecency_.curTab_
+    const tabId = cPort ? cPort.s.tabId_ : TabRecency_.curTab_
     if (tabId < 0) {
       return complainLimits(trans_("dupTab"))
     }
@@ -352,8 +352,8 @@ const BackgroundCommands: {
     if (!toSelect.active) { selectTab(toSelect.id) }
   },
   /* kBgCmd.goUp: */ (): void | kBgCmd.goUp => {
-    if (get_cOptions<C.goUp>().type !== "frame" && cPort && cPort.s.i) {
-      set_cPort(indexFrame(cPort.s.t, 0) || cPort)
+    if (get_cOptions<C.goUp>().type !== "frame" && cPort && cPort.s.frameId_) {
+      set_cPort(indexFrame(cPort.s.tabId_, 0) || cPort)
     }
     requireURL({ H: kFgReq.parseUpperUrl, u: "" as "url",
       p: cRepeat,
@@ -475,7 +475,7 @@ const BackgroundCommands: {
       return complainNoSession()
     }
     let count = cRepeat
-    if (abs(count) < 2 && (cPort ? cPort.s.a : TabRecency_.incognito_ === IncognitoType.true)
+    if (abs(count) < 2 && (cPort ? cPort.s.incognito_ : TabRecency_.incognito_ === IncognitoType.true)
         && !get_cOptions<C.restoreTab>().incognito) {
       return showHUD(trans_("notRestoreIfIncog"))
     }
@@ -537,7 +537,7 @@ const BackgroundCommands: {
       return
     }
     for (const frame of framesForOmni) {
-      if (frame.s.t === tabId) {
+      if (frame.s.tabId_ === tabId) {
         frame.postMessage({ N: kBgReq.omni_toggleStyle, t: toggled, c: current })
         return
       }

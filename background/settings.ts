@@ -126,11 +126,11 @@ var Settings_ = {
       }
       Settings_.temp_.newSettingsToBroadcast_ = null;
     }
-    Backend_.indexPorts_().forEach((frames) => {
-      for (let i = frames.length; 0 < --i; ) {
-        frames[i].postMessage(request as Req.baseBg<K> as Req.bg<K>);
+    for (const frames of Backend_.indexPorts_().values()) {
+      for (let port of frames.ports_) {
+        port.postMessage(request as Req.baseBg<K> as Req.bg<K>)
       }
-    })
+    }
   },
   broadcastOmni_<K extends ValidBgVomnibarReq> (request: Req.bg<K>): void {
     for (const frame of Backend_.indexPorts_(GlobalConsts.VomnibarFakeTabId)) {

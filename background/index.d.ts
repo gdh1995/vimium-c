@@ -1,3 +1,5 @@
+type SimulatedMap = IterableMap<string, any> & Set<string> & { map_: SafeDict<1>, isSet_: BOOL }
+
 declare namespace Search {
   interface RawEngine {
     url_: string;
@@ -128,12 +130,12 @@ declare namespace Frames {
       | "__ANY_CASE__";
 
   interface Sender {
-    /** frameId */ readonly i: number;
-    /** incognito (anonymous) */ readonly a: boolean;
-    /** tabId */ readonly t: number;
-    /** url */ u: string;
-    /** status */ s: ValidStatus;
-    /** flags */ f: Flags;
+    /** frameId */ readonly frameId_: number;
+    /** incognito (anonymous) */ readonly incognito_: boolean;
+    /** tabId */ readonly tabId_: number;
+    /** url */ url_: string;
+    /** status */ status_: ValidStatus;
+    /** flags */ flags_: Flags;
   }
 
   type BrowserPort = chrome.runtime.Port
@@ -148,13 +150,20 @@ declare namespace Frames {
     onMessage: chrome.events.Event<(message: any, port: Frames.Port, exArg: FakeArg) => void>;
   }
 
-  type Frames = readonly Port[]
-
-  interface WritableFrames extends Array<Port> {
+  interface Frames {
+    cur_: Port
+    readonly top_: Port | null
+    readonly ports_: Port[]
+    lock_: { status_: ValidStatus, passKeys_: string | null } | null
+    flags_: Flags
   }
 
   interface FramesMap extends Map<number, Frames> {
-    forEach (callback: (frames: Frames, tabId: number) => void): void
+    keys: never
+    // use a fake returned type, just to make `for-of` happy
+    values(): readonly Frames[]
+    entries: never
+    forEach: never // (callback: (frames: Frames, tabId: number) => void): void
   }
 }
 
@@ -588,7 +597,7 @@ declare namespace BackendHandlersNS {
     forceStatus_ (this: BackendHandlers, act: Frames.ForcedStatusText, tabId?: number): void;
     indexPorts_: {
       (this: void, tabId: number, frameId: number): Port | null;
-      (this: void, tabId: GlobalConsts.VomnibarFakeTabId): Frames.Frames;
+      (this: void, tabId: GlobalConsts.VomnibarFakeTabId): readonly Frames.Port[];
       (this: void, tabId: number): Frames.Frames | null;
       (this: void): Frames.FramesMap;
     };
@@ -646,8 +655,5 @@ interface SetTimeout {
 }
 
 interface IterableMap<K extends string | number, V> extends Map<K, V> {
-  keys (): IterableIterator<K>
-}
-interface SimulatedMapWithKeys<K extends string | number, V> extends Map<K, V> {
-  keys (): SafeDict<V>
+  keys (): IterableIterator<K> & K[]
 }

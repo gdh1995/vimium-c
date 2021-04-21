@@ -3,7 +3,7 @@ import {
 } from "./browser"
 import {
   set_cPort, set_cRepeat, set_cOptions, needIcon_, set_cKey, cKey, get_cOptions, set_reqH_, reqH_, executeCommand,
-  settings, innerCSS_, framesForTab
+  settings, innerCSS_, framesForTab, cRepeat
 } from "./store"
 import {
   findCPort, isNotVomnibarPage, indexFrame, onExitGrab, focusFrame, sendFgCmd, safePost,
@@ -17,7 +17,6 @@ import {
 } from "./frame_commands"
 import { copyData } from "./tab_commands"
 
-/** any change to `cRepeat` should ensure it won't be `0` */
 let gTabIdOfExtWithVomnibar: number = GlobalConsts.TabIdNone
 
 set_reqH_([
@@ -42,7 +41,7 @@ set_reqH_([
   },
   /** kFgReq.findQuery: */ (request: FgReq[kFgReq.findQuery] | FgReqWithRes[kFgReq.findQuery]
       , port: Port): FgRes[kFgReq.findQuery] | void => {
-    return FindModeHistory_.query_(port.s.a, request.q, request.i)
+    return FindModeHistory_.query_(port.s.incognito_, request.q, request.i)
   },
   /** kFgReq.parseSearchUrl: */ (request: FgReqWithRes[kFgReq.parseSearchUrl]
       , port: Port): FgRes[kFgReq.parseSearchUrl] | void => {
@@ -260,7 +259,7 @@ set_reqH_([
       return err
     })
     if (active) { return }
-    let tabId = port!.s.t
+    let tabId = port!.s.tabId_
     tabId >= 0 || (tabId = TabRecency_.curTab_)
     if (tabId >= 0) { selectTab(tabId) }
   },
@@ -268,22 +267,21 @@ set_reqH_([
   /** kFgReq.onFrameFocused: */ (_0: FgReq[kFgReq.onFrameFocused], port: Port): void => {
     if (!(Build.BTypes & ~BrowserType.Firefox)
         || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox) {
-      if (port.s.f & Frames.Flags.OtherExtension) {
+      if (port.s.flags_ & Frames.Flags.OtherExtension) {
         port.postMessage({ N: kBgReq.injectorRun, t: InjectorTask.reportLiving })
       }
     }
-    let tabId = port.s.t, ref = framesForTab.get(tabId), status: Frames.ValidStatus
+    let tabId = port.s.tabId_, ref = framesForTab.get(tabId), status: Frames.ValidStatus
     if (!ref) {
-      needIcon_ && Backend_.setIcon_(tabId, port.s.s)
+      needIcon_ && Backend_.setIcon_(tabId, port.s.status_)
       return
     }
-    if (port === ref[0]) { return }
-    if (needIcon_ && (status = port.s.s) !== ref[0].s.s) {
-      (ref as Writable<typeof ref>)[0] = port
+    let last = ref.cur_
+    if (port === last) { return }
+    ref.cur_ = port
+    if (needIcon_ && (status = port.s.status_) !== last.s.status_) {
       Backend_.setIcon_(tabId, status)
-      return
     }
-    (ref as Writable<typeof ref>)[0] = port
   },
   /** kFgReq.checkIfEnabled: */ (request: ExclusionsNS.Details | FgReq[kFgReq.checkIfEnabled]
       , from_content?: Frames.Port): void => {
@@ -292,17 +290,17 @@ set_reqH_([
       port = indexFrame((request as ExclusionsNS.Details).tabId, (request as ExclusionsNS.Details).frameId)
       if (!port) { return }
     }
-    const { s: sender } = port, { u: oldUrl } = sender,
+    const { s: sender } = port, { url_: oldUrl } = sender,
     url1: string | undefined = (request as ExclusionsNS.Details).url,
-    pattern = Backend_.getExcluded_(sender.u = from_content ? (request as FgReq[kFgReq.checkIfEnabled]).u
+    pattern = Backend_.getExcluded_(sender.url_ = from_content ? (request as FgReq[kFgReq.checkIfEnabled]).u
                 : url1
       , sender),
     status = pattern === null ? Frames.Status.enabled : pattern ? Frames.Status.partial : Frames.Status.disabled
-    if (sender.s !== status) {
-      if (sender.f & Frames.Flags.locked) { return }
-      sender.s = status
-      if (needIcon_ && framesForTab.get(sender.t)![0] === port) {
-        Backend_.setIcon_(sender.t, status)
+    if (sender.status_ !== status) {
+      if (sender.flags_ & Frames.Flags.locked) { return }
+      sender.status_ = status
+      if (needIcon_ && framesForTab.get(sender.tabId_)!.cur_ === port) {
+        Backend_.setIcon_(sender.tabId_, status)
       }
     } else if (!pattern || pattern === Backend_.getExcluded_(oldUrl, sender)) {
       return
@@ -314,11 +312,11 @@ set_reqH_([
     set_cPort(port)
     set_cRepeat(type || cRepeat > 0 ? 1 : -1)
     set_cKey(request.k)
-    let ports: Frames.Frames | undefined
+    let ref: Frames.Frames | undefined
     if (type !== Frames.NextType.current) {
       type === Frames.NextType.parent ? parentFrame() : nextFrame()
-    } else if (ports = framesForTab.get(port.s.t)) {
-      focusFrame(ports[0], ports.length <= 3, FrameMaskType.NoMask)
+    } else if (ref = framesForTab.get(port.s.tabId_)) {
+      focusFrame(ref.cur_, ref.ports_.length <= 2, FrameMaskType.NoMask)
     } else {
       safePost(port, { N: kBgReq.omni_returnFocus, l: cKey })
     }
@@ -326,21 +324,21 @@ set_reqH_([
   /** kFgReq.exitGrab: */ onExitGrab,
   /** kFgReq.execInChild: */ (request: FgReqWithRes[kFgReq.execInChild]
       , port: Port): FgRes[kFgReq.execInChild] => {
-    const tabId = port.s.t, ports = framesForTab.get(tabId), url = request.u
-    if (!ports || ports.length < 3) { return false }
-    let iport: Port | null = null, i = ports.length
-    while (1 <= --i) {
-      if (ports[i].s.u === url) {
+    const tabId = port.s.tabId_, ref = framesForTab.get(tabId), url = request.u
+    if (!ref || ref.ports_.length < 2) { return false }
+    let iport: Port | null | undefined
+    for (const i of ref.ports_) {
+      if (i.s.url_ === url) {
         if (iport) { iport = null; break }
-        iport = ports[i]
+        iport = i
       }
     }
     if (iport) {
       set_cKey(request.k)
       focusAndExecute(request, port, iport, 1)
     } else {
-      browserWebNav() && browserWebNav()!.getAllFrames({tabId: port.s.t}, (frames): void => {
-        let childId = 0, self = port.s.i
+      browserWebNav() && browserWebNav()!.getAllFrames({tabId: port.s.tabId_}, (frames): void => {
+        let childId = 0, self = port.s.frameId_
         for (const i1 of frames) {
           if (i1.parentFrameId === self) {
             if (childId) { childId = 0; break }
@@ -360,7 +358,7 @@ set_reqH_([
   },
   /** kFgReq.initHelp: */ initHelp,
   /** kFgReq.css: */ (_0: FgReq[kFgReq.css], port: Port): void => {
-    (port as Frames.Port).s.f |= Frames.Flags.hasCSSAndActed
+    (port as Frames.Port).s.flags_ |= Frames.Flags.hasCSSAndActed
     port.postMessage({ N: kBgReq.showHUD, H: innerCSS_ })
   },
   /** kFgReq.vomnibar: */ (request: FgReq[kFgReq.vomnibar]
@@ -369,8 +367,8 @@ set_reqH_([
     set_cKey(kKeyCode.None) // it's only from LinkHints' task / Vomnibar reloading, so no Key to suppress
     if (count != null) {
       delete request.c, delete (request as Partial<Req.baseFg<kFgReq.vomnibar>>).H, delete request.i
-      set_cRepeat(+count || 1)
       set_cOptions<CommandsNS.Options>(BgUtils_.safer_(request))
+      set_cRepeat(parseInt(count as any) || 1)
     } else if (request.r !== true) {
       return
     } else if (get_cOptions<any>() == null || get_cOptions<kBgCmd.showVomnibar>().secret !== -1) {
@@ -391,7 +389,7 @@ set_reqH_([
   },
   /** kFgReq.copy: */ copyData,
   /** kFgReq.key: */ (request: FgReq[kFgReq.key], port: Port): void => {
-    (port as Frames.Port).s.f |= Frames.Flags.userActed
+    (port as Frames.Port).s.flags_ |= Frames.Flags.userActed
     let key: string = request.k, count = 1
       , arr: null | string[] = (<RegExpOne> /^\d+|^-\d*/).exec(key)
     if (arr != null) {
@@ -435,7 +433,7 @@ set_reqH_([
   },
   /** kFgReq.gotoMainFrame: */ (req: FgReq[kFgReq.gotoMainFrame], port: Port): void => {
     // Now that content scripts always auto-reconnect, it's not needed to find a parent frame.
-    focusAndExecute(req, port, indexFrame(port.s.t, 0), req.f)
+    focusAndExecute(req, port, indexFrame(port.s.tabId_, 0), req.f)
   },
   /** kFgReq.setOmniStyle: */ setOmniStyle,
   /** kFgReq.findFromVisual */ (_: FgReq[kFgReq.findFromVisual], port: Port): void => {
@@ -449,7 +447,7 @@ set_reqH_([
     return { m: settings.i18nPayload_ }
   },
   /** kFgReq.learnCSS */ (_req: FgReq[kFgReq.learnCSS], port: Port): void => {
-    (port as Frames.Port).s.f |= Frames.Flags.hasCSS
+    (port as Frames.Port).s.flags_ |= Frames.Flags.hasCSS
   },
   /** kFgReq.visualMode: */ (request: FgReq[kFgReq.visualMode], port: Port): void => {
     const isCaret = !!request.c
@@ -530,7 +528,7 @@ const upperGitUrls = (url: string, path: string): string | void | null => {
 const onCompletions = function (this: Port, favIcon0: 0 | 1 | 2, list: Array<Readonly<Suggestion>>
     , autoSelect: boolean, matchType: CompletersNS.MatchType, sugTypes: CompletersNS.SugType, total: number
     , realMode: string, queryComponents: CompletersNS.QComponent): void {
-  let { u: url } = this.s, favIcon: 0 | 1 | 2 = favIcon0 === 2 ? 2 : 0
+  let { url_: url } = this.s, favIcon: 0 | 1 | 2 = favIcon0 === 2 ? 2 : 0
   if (Build.BTypes & BrowserType.Firefox
       && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
     favIcon = list.some(i => i.e === "tab") ? favIcon && 2 : 0
@@ -545,25 +543,23 @@ const onCompletions = function (this: Port, favIcon0: 0 | 1 | 2, list: Array<Rea
     url = url.slice(0, url.indexOf("/", url.indexOf("://") + 3) + 1)
     let frame1 = gTabIdOfExtWithVomnibar >= 0 ? indexFrame(gTabIdOfExtWithVomnibar, 0) : null
     if (frame1 != null) {
-      if (frame1.s.u.startsWith(url)) {
+      if (frame1.s.url_.startsWith(url)) {
         favIcon = 1
       } else {
         gTabIdOfExtWithVomnibar = GlobalConsts.TabIdNone
       }
     }
-    if (!favIcon) {
-    framesForTab.forEach((frames, tabId) => {
-      for (let i = 1, len = frames.length; !favIcon && i < len; i++) {
-        let { s: sender } = frames[i]
-        if (sender.i === 0) {
-          if (sender.u.startsWith(url)) {
+    for (const frames of !favIcon ? framesForTab.values() : []) {
+      for (let { s: sender } of frames.ports_) {
+        if (sender.frameId_ === 0) {
+          if (sender.url_.startsWith(url)) {
             favIcon = 1
-            gTabIdOfExtWithVomnibar = tabId
+            gTabIdOfExtWithVomnibar = sender.tabId_
           }
           break
         }
       }
-    })
+      if (favIcon) { break }
     }
   }
   safePost(this, {

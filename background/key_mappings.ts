@@ -398,8 +398,9 @@ export const executeCmd_ = (message: Partial<ExternalMsgs[kFgReq.command]["req"]
     command = command ? command + "" : "";
     const description = command ? availableCommands_[command] : null
     if (!description) { return; }
+    let ref: Frames.Frames | null
     const port: Port | null = sender.tab ? Backend_.indexPorts_(sender.tab.id, sender.frameId || 0)
-            || (Backend_.indexPorts_(sender.tab.id) || [null])[0] : null;
+        || (ref = Backend_.indexPorts_(sender.tab.id), ref ? ref.cur_ : null) : null
     if (!port && !description[1]) { /** {@link index.d.ts#CommandsNS.FgDescription} */
       return;
     }

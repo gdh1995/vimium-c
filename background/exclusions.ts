@@ -59,10 +59,10 @@ var Exclusions = {
         matchedKeys += str;
       }
     }
-    if (!matchedKeys && sender.i && url.lastIndexOf("://", 5) < 0 && !BgUtils_.protocolRe_.test(url)) {
-      const mainFrame = Backend_.indexPorts_(sender.t, 0);
+    if (!matchedKeys && sender.frameId_ && url.lastIndexOf("://", 5) < 0 && !BgUtils_.protocolRe_.test(url)) {
+      const mainFrame = Backend_.indexPorts_(sender.tabId_, 0);
       if (mainFrame) {
-        return Backend_.getExcluded_(mainFrame.s.u, mainFrame.s);
+        return Backend_.getExcluded_(mainFrame.s.url_, mainFrame.s);
       }
     }
     return matchedKeys || null;
@@ -76,8 +76,8 @@ var Exclusions = {
         const ref = Backend_.indexPorts_(details.tabId),
         msg: Req.bg<kBgReq.url> = { N: kBgReq.url, H: kFgReq.checkIfEnabled };
         // force the tab's ports to reconnect and refresh their pass keys
-        for (let i = ref ? ref.length : 0; 0 < --i; ) {
-          ref![i].postMessage(msg);
+        for (const port of ref ? ref.ports_ : []) {
+          port.postMessage(msg)
         }
       };
     this.getOnURLChange_ = () => onURLChange;
@@ -115,30 +115,29 @@ var Exclusions = {
     const
     needIcon = !!Settings_.temp_.IconBuffer_ && (Settings_.temp_.IconBuffer_() || Settings_.get_("showActionIcon"));
     let pass: string | null = null, status: Frames.ValidStatus = Frames.Status.enabled;
-    Backend_.indexPorts_().forEach((frames, tabId): void => {
-      const status0 = frames[0].s.s;
-      for (let i = frames.length; 0 < --i; ) {
-        const port = frames[i];
+    for (const frames of Backend_.indexPorts_().values!()) {
+      const status0 = frames.cur_.s.status_;
+      for (const port of frames.ports_) {
         if (always_enabled) {
-          if (port.s.s === Frames.Status.enabled) {
+          if (port.s.status_ === Frames.Status.enabled) {
             continue;
           }
         } else {
-          pass = Backend_.getExcluded_(port.s.u, port.s);
+          pass = Backend_.getExcluded_(port.s.url_, port.s);
           status = pass === null ? Frames.Status.enabled : pass
             ? Frames.Status.partial : Frames.Status.disabled;
-          if (!pass && port.s.s === status) {
+          if (!pass && port.s.status_ === status) {
             continue;
           }
         }
-        if (port.s.f & Frames.Flags.locked) { continue; }
+        if (port.s.flags_ & Frames.Flags.locked) { continue; }
         port.postMessage(always_enabled || { N: kBgReq.reset, p: pass, f: 0 });
-        port.s.s = status;
+        port.s.status_ = status;
       }
-      if (needIcon && status0 !== (status = frames[0].s.s)) {
-        Backend_.setIcon_(tabId, status)
+      if (needIcon && status0 !== (status = frames.cur_.s.status_)) {
+        Backend_.setIcon_(frames.cur_.s.tabId_, status)
       }
-    })
+    }
   },
   updateListeners_ (this: void): void {
     const a = Exclusions, listenHistory = a.rules_.length > 0,
