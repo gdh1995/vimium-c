@@ -77,6 +77,7 @@ const getUrlData = (): string => {
 
 /** return: img is HTMLImageElement | HTMLAnchorElement | HTMLElement[style={backgroundImage}] */
 const downloadOrOpenMedia = (): void => {
+  const filename = attr_s(clickEl, kD) || attr_s(clickEl, "alt") || (clickEl as SafeHTMLElement).title
   let mediaTag = getMediaTag(clickEl as SafeHTMLElement)
   let srcObj = accessElAttr(), src = srcObj[0]
   let text: string | null, n: number
@@ -104,10 +105,8 @@ const downloadOrOpenMedia = (): void => {
       || src.length > text.length + 7 && (text === (clickEl as HTMLElement & {href?: string}).href)) {
     text = src;
   }
-  const filename = attr_s(clickEl, kD) || attr_s(clickEl, "alt") || (clickEl as SafeHTMLElement).title
   if (!text) { hintApi.t({ k: kTip.notImg }) }
-  else if (OnFirefox && (!Build.DetectAPIOnFirefox || hintOptions.keyword != null)
-      || mode1_ === HintMode.OPEN_IMAGE) {
+  else if (OnFirefox && hintOptions.keyword != null || mode1_ === HintMode.OPEN_IMAGE) {
     post_({
       H: kFgReq.openImage, r: hintMode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
       k: OnFirefox && mode1_ !== HintMode.OPEN_IMAGE ? "" : hintOptions.keyword,
@@ -119,7 +118,7 @@ const downloadOrOpenMedia = (): void => {
     text = i > 0 ? text.slice(text.indexOf("/", i + 4) + 1) : text
     text = text.length > 40 ? text.slice(0, 39) + "\u2026" : text
     if (OnFirefox) {
-      post_({ H: kFgReq.downloadLink, u: url, f: filename })
+      post_({ H: kFgReq.downloadLink, u: url, f: filename, m: 1 })
     } else {
       const a = createElement_("a")
       a.href = url
@@ -282,8 +281,9 @@ const downloadLink = (): void => {
     link = notAnchor ? createElement_("a") : clickEl as HTMLAnchorElement,
     oldUrl: string | null = notAnchor ? null : attr_s(link, H),
     url = getUrlData(), changed = notAnchor || url !== link.href
+    const filename = attr_s(clickEl, kD) || ""
     if (OnFirefox) {
-      post_({ H: kFgReq.downloadLink, u: url, f: link.getAttribute(kD) })
+      post_({ H: kFgReq.downloadLink, u: url, f: filename })
       return
     }
     if (changed) {
@@ -295,7 +295,7 @@ const downloadLink = (): void => {
     }
     const hadNoDownload = !link.hasAttribute(kD);
     if (hadNoDownload) {
-      link[kD] = "";
+      link[kD] = filename
     }
   catchAsyncErrorSilently(click_async(link, rect, 0, [!0, !1, !1, !1])).then((): void => {
     if (hadNoDownload) {

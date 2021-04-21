@@ -502,11 +502,12 @@ const activateDirectly = (options: ContentOptions, count: number) => {
   allTypes = (d as typeof options.direct) === !0, mode = options.m &= ~HintMode.queue,
   next = (): void => {
     let rect: ClientRect | 0, sel: Selection
-    IsInDOM_(el!) && (coreHints.e({d: el as LinkEl, r: null, m: null}, 0
+    if (count < 1) { clear(); return }
+    count = IsInDOM_(el!) ? (coreHints.e({d: el as LinkEl, r: null, m: null}, 0
       , isSel && (sel = getSelected(), rect = rangeCount_(sel) && getSelectionBoundingBox_(sel),
                   rect && padClientRect_(rect))
-    ), --count > 0)
-    ? setTimeout(next, count > 99 ? 1 : 17) : clear()
+    ), count - 1) : 0
+    timeout_(next, count > 99 ? 1 : count && 17)
   }
   let docActive: SafeElement | null, isSel: boolean | undefined, matched: Hint[], matchedOne: Hint | undefined
   let el: SafeElement | null | undefined

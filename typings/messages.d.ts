@@ -622,6 +622,7 @@ interface FgReq {
   [kFgReq.downloadLink]: {
     /** url */ u: string
     /** filename */ f: string | null
+    /** is media */ m: boolean | BOOL
   }
 }
 

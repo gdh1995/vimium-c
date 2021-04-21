@@ -115,7 +115,7 @@ export const activate = function (options: FullOptions, count: number): void {
       init(options)
     } else if (safeCall(isAboutBlank_throwable)) {
       secondActivateWithNewOptions = activate.bind(0, options, count);
-      (status > Status.ToShow - 1 || timeout_ != setTimeout) && resetWhenBoxExists()
+      (status > Status.ToShow - 1 || timeout_ == interval_) && resetWhenBoxExists()
       return;
     } else if (status === Status.Inactive) {
       status = Status.ToShow

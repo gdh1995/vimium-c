@@ -462,12 +462,22 @@ set_reqH_([
       runKeyWithCond(request)
     }
   },
-  /** kFgReq.downloadLink: */ Build.BTypes & BrowserType.Firefox ? (request: FgReq[kFgReq.downloadLink]): void => {
+  /** kFgReq.downloadLink: */ Build.BTypes & BrowserType.Firefox ? (req: FgReq[kFgReq.downloadLink], port): void => {
+    const fallback = () => {
+      reqH_[kFgReq.openImage]({ r: ReuseType.newFg, e: null, f: req.f, u: req.u }, port)
+    }
+    const fallback = () => {
+      reqH_[kFgReq.openImage]({ r: ReuseType.newFg, e: null, f: req.f, u: req.u }, port)
+    }
     browser_.permissions.contains({ permissions: ['downloads'] }, (permitted: boolean): void => {
       if (permitted) {
-        const opts: chrome.downloads.DownloadOptions = { url: request.u }
-        if (request.f) { opts.filename = request.f }
-        browser_.downloads.download!(opts).catch((): void => {})
+        const opts: chrome.downloads.DownloadOptions = { url: req.u }
+        if (req.f) {
+          opts.filename = req.f
+        }
+          browser_.downloads.download!(opts).catch((): void => {})
+      } else if (req.m) {
+        fallback()
       }
       return chrome.runtime.lastError
     })
