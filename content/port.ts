@@ -1,8 +1,6 @@
 import {
-  injector, safeObj, timeout_, isAlive_, isEnabled_, isLocked_, isTop, doc, set_i18n_getMsg, locHref, OnEdge, OnChrome,
-  OnFirefox
+  injector, safeObj, timeout_, isAlive_, isTop, doc, set_i18n_getMsg, locHref, OnEdge, OnChrome, OnFirefox
 } from "../lib/utils"
-import { passKeys } from "./key_handler"
 import { style_ui } from "./dom_ui"
 
 export interface Port extends chrome.runtime.Port {
@@ -61,10 +59,9 @@ export const safePost = <k extends keyof FgReq> (request: FgReq[k] & Req.baseFg<
 export const runtimeConnect = (function (this: void): void {
   const api = OnChrome ? chrome : browser as typeof chrome,
   status = requestHandlers[kBgReq.init] ? PortType.initing
-      : (isEnabled_ ? passKeys ? PortType.knownPartial : PortType.knownEnabled : PortType.knownDisabled)
-        + PortType.isLocked * isLocked_
-        + PortType.hasCSS * <number> <number | boolean> !!style_ui,
-  name = PortType.isTop * +isTop + PortType.hasFocus * +doc.hasFocus() + status,
+      : PortType.reconnect + (PortType.hasCSS * <number> <boolean | number> !!style_ui),
+  name = (PortType.isTop === 1 ? <number> <boolean | number> isTop : PortType.isTop * <number> <number | boolean> isTop)
+      + PortType.hasFocus * <number> <number | boolean> doc.hasFocus() + status,
   data = { name: injector ? PortNameEnum.Prefix + name + injector.$h
                   : OnEdge ? name + PortNameEnum.Delimiter + locHref() : "" + name },
   connect = api.runtime.connect

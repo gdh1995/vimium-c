@@ -745,7 +745,7 @@ domainEngine = {
     let sugs: Suggestion[] = [], result = "", matchedDomain: Domain | undefined, result_score = -1.1
     RankingUtils.maxScoreP_ = RankingEnums.maximumScore;
     if (Build.MinCVer >= BrowserVer.MinTestedES6Environment || !(Build.BTypes & BrowserType.Chrome)) {
-      for (const domain of (ref as IterableMap<string, Domain>).keys() as unknown as string[]) {
+      for (const domain of (ref as IterableMap<string, Domain>).keys()) {
         if (!domain.includes(word)) { continue }
         matchedDomain = ref.get(domain)!
         if (showThoseInBlocklist || matchedDomain.count_ > 0) {
@@ -756,7 +756,7 @@ domainEngine = {
       }
     } else if (Build.MinCVer >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
         || CurCVer_ > BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol - 1) {
-      const iterator = (ref as IterableMap<string, Domain>).keys()
+      const iterator: IterableIterator<string> = (ref as IterableMap<string, Domain>).keys()
       let iter_i: IteratorResult<string> | undefined
       while (iter_i = iterator.next(), !iter_i.done) {
         const domain = iter_i.value
@@ -769,7 +769,7 @@ domainEngine = {
         }
       }
     } else {
-      for (let domain in (ref as IterableMap<string, Domain>).keys() as any as SafeDict<Domain>) {
+      for (let domain in (ref as any as SimulatedMap).map_ as any as SafeDict<Domain>) {
         if (!domain.includes(word)) { continue; }
         matchedDomain = ref.get(domain)!
         if (showThoseInBlocklist || matchedDomain.count_ > 0) {

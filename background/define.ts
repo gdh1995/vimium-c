@@ -1,5 +1,4 @@
 declare var define: any
-type SimulatedMap = IterableMap<string, any> & Set<string> & { map_: SafeDict<1>, isSet_: BOOL }
 
 if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
   (window as Writable<Window>).OnOther = Build.BTypes & BrowserType.Chrome
@@ -23,7 +22,7 @@ IsEdg_: boolean = Build.BTypes & BrowserType.Chrome
 CurFFVer_: FirefoxBrowserVer = !(Build.BTypes & ~BrowserType.Firefox)
     || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
     ? 0 | (navigator.userAgent.match(<RegExpOne> /\bFirefox\/(\d+)/) || [0, FirefoxBrowserVer.assumedVer])[1] as number
-    : FirefoxBrowserVer.None,
+    : FirefoxBrowserVer.assumedVer,
 BrowserProtocol_ = Build.BTypes & ~BrowserType.Chrome
       && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)
     ? Build.BTypes & BrowserType.Firefox
@@ -95,7 +94,6 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$Stri
     }
     if (Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
         && CurCVer_ < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) {
-      type SimulatedMap = IterableMap<string, any> & Set<string> & { map_: SafeDict<1>, isSet_: BOOL }
       const proto = {
         add (k: string): any { this.map_[k] = 1 },
         clear (): void { this.map_ = BgUtils_.safeObj_<1>() },
@@ -108,7 +106,6 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$Stri
         },
         get (k: string): any { return this.map_[k] },
         has (k: string): boolean { return this.map_[k] === 1 },
-        keys (): any { return this.map_ as any },
         set (k: string, v: any): any { this.map_[k] = v }
       } as SimulatedMap
       const setProto = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && Build.BTypes & BrowserType.Chrome

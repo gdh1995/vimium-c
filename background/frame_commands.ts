@@ -501,16 +501,16 @@ export const onConfirmResponse = (request: FgReq[kFgReq.cmd], port: Port): void 
   executeCommand(shortcutRegistry_!.get(cmd)!, request.n, kKeyCode.None, port, 0)
 }
 
-export const executeShortcut = (shortcutName: StandardShortcutNames, ports: Frames.Frames | null | undefined): void => {
+export const executeShortcut = (shortcutName: StandardShortcutNames, ref: Frames.Frames | null | undefined): void => {
   setupSingletonCmdTimer(0)
-  if (ports) {
-    let port = ports.cur_
+  if (ref) {
+    let port = ref.cur_
     setupSingletonCmdTimer(setTimeout(executeShortcut, 100, shortcutName, null))
     port.postMessage({ N: kBgReq.count, c: shortcutName, i: _gCmdTimer, m: "" })
-    if (!(port.s.flags_ & Frames.Flags.hasCSSAndActed)) {
+    if (!(port.s.flags_ & Frames.Flags.hasCSS || ref.flags_ & Frames.Flags.userActed)) {
       reqH_[kFgReq.exitGrab]({}, port)
     }
-    port.s.flags_ |= Frames.Flags.userActed
+    ref.flags_ |= Frames.Flags.userActed
     return
   }
   let registry = shortcutRegistry_!.get(shortcutName)!, cmdName = registry.command_,
@@ -626,11 +626,11 @@ export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey]): void => {
   let matchedRule: KnownOptions<kBgCmd.runKey> | CommandsNS.EnvItem | CommandsNS.EnvItemWithKeys
       = get_cOptions<kBgCmd.runKey, true>()
   let keys: string | string[] | null | undefined
+  const frames = framesForTab.get(cPort ? cPort.s.tabId_ : TabRecency_.curTab_)
   if (!cPort) {
-    const frames = framesForTab.get(TabRecency_.curTab_)
     set_cPort(frames ? frames.cur_ : null)
   }
-  cPort && ((cPort as Frames.Port).s.flags_ |= Frames.Flags.userActed)
+  frames && (frames.flags_ |= Frames.Flags.userActed)
   for (let i = 0, size = expected_rules instanceof Array ? expected_rules.length : 0
         ; i < size; i++) {
     let rule: CommandsNS.EnvItem | CommandsNS.EnvItemWithKeys = (expected_rules as CommandsNS.EnvItemWithKeys[])[i]

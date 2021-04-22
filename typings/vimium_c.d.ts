@@ -260,21 +260,9 @@ declare namespace Frames {
   }
   // upper-case items are for tabs
   const enum Flags {
-    Default = 0, blank = Default,
-    locked = 1,
-    userActed = 2,
-    lockedAndUserActed = locked | userActed,
-    InheritedFlags = locked | userActed,
-    hasCSS = 4,
-    hasCSSAndActed = hasCSS | userActed,
-    hadHelpDialog = 8,
-    hadVisualMode = 16,
-    hasFindCSS = 32,
-    Incognito = 64,
-    OtherExtension = 128,
-    vomnibarChecked = 256,
-    isVomnibar = 512,
-    SOURCE_WARNED = 1024,
+    Default = 0, blank = Default, locked = 1, lockedAndDisabled = 3, MASK_LOCK_STATUS = 3, userActed = 4,
+    hasCSS = 8, hadVisualMode = 16, hasFindCSS = 32, hadHelpDialog = 64,
+    OtherExtension = 128, vomnibarChecked = 256, isVomnibar = 512, SOURCE_WARNED = 1024,
   }
   const enum NextType {
     next = 0, Default = next, parent = 1, current = 2,
@@ -288,19 +276,8 @@ declare const enum PortNameEnum {
 }
 
 declare const enum PortType {
-  initing = 1,
-  hasFocus = 2,
-  isTop = 4,
-  omnibar = 8, omnibarRe = 9,
-  /** the below should keep the consistent with Frames.Status, so that code in OnConnect works */
-  BitOffsetOfKnownStatus = 4, MaskOfKnownStatus = 3,
-  knownStatusBase = 1 << BitOffsetOfKnownStatus, flagsBase = knownStatusBase << 2,
-  knownEnabled = knownStatusBase + (0 << BitOffsetOfKnownStatus),
-  knownPartial = knownStatusBase + (1 << BitOffsetOfKnownStatus),
-  knownDisabled = knownStatusBase + (2 << BitOffsetOfKnownStatus),
-  hasCSS = flagsBase,
-  isLocked = flagsBase * 2, isLockedAsDisabled = isLocked * 3,
-  // isLocked can be 0 | 1 | 3, so a next new stat should start from flagsBase * 8 = 512
+  initing = 0, isTop = 1, hasFocus = 2, reconnect = 4, hasCSS = 8,
+  omnibar = 16, omnibarRe = omnibar & reconnect, otherExtension = 32,
   CloseSelf = 999,
 }
 

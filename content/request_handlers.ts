@@ -41,7 +41,7 @@ export function set_needToRetryParentClickable (_newNeeded: 1): void { needToRet
 
 set_requestHandlers([
   /* kBgReq.init: */ function (request: BgReq[kBgReq.init]): void {
-    const load = request.c, flags = request.s
+    const load = request.c, flags = request.f
     OnChrome && set_chromeVer_(load.v as BrowserVer)
     OnFirefox && set_firefoxVer_(load.v as FirefoxBrowserVer)
     set_fgCache(vApi.z = load)
@@ -59,8 +59,7 @@ set_requestHandlers([
     }
     if (flags) {
       set_grabBackFocus(grabBackFocus && !(flags & Frames.Flags.userActed))
-      set_isLocked_(Frames.Flags.locked === 1 ? (flags & Frames.Flags.locked) as BOOL
-          : flags & Frames.Flags.locked ? 1 : 0)
+      set_isLocked_(flags & Frames.Flags.MASK_LOCK_STATUS)
     }
     requestHandlers[kBgReq.keyFSM](request);
     (requestHandlers[kBgReq.reset] as (request: BgReq[kBgReq.reset | kBgReq.init], initing?: 1) => void)(request, 1)
@@ -127,7 +126,7 @@ set_requestHandlers([
     if (initing) {
       return;
     }
-    set_isLocked_(request.f!)
+    set_isLocked_((request as BgReq[kBgReq.reset]).f)
     // if true, recover listeners on shadow roots;
     // otherwise listeners on shadow roots will be removed on next blur events
     if (isEnabled_) {

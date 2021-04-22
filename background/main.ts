@@ -22,7 +22,7 @@ const executeShortcutEntry = (cmd: StandardShortcutNames | kShortcutAliases): vo
       map.set(cmd, null)
       console.log("Shortcut %o has not been configured.", cmd)
     }
-  } else if (ref == null || (ref.cur_.s.flags_ & Frames.Flags.userActed) || tabId < 0) {
+  } else if (ref == null || (ref.flags_ & Frames.Flags.userActed) || tabId < 0) {
     executeShortcut(cmd as StandardShortcutNames, ref)
   } else {
     tabsGet(tabId, (tab): void => {
@@ -218,7 +218,8 @@ Backend_ = {
         ? oldStatus !== Frames.Status.enabled ? Frames.Status.enabled : Frames.Status.disabled
         : (act !== "reset" && logAndShow(`Unknown status action: "${act}", so reset`) , null),
       enableWithPassedKeys = !!newPassedKeys && act === "enable",
-      locked = stat !== null ? stat === Frames.Status.disabled ? 3 : 1 : 0,
+      locked = stat === null ? Frames.Flags.blank
+          : stat === Frames.Status.disabled ? Frames.Flags.lockedAndDisabled : Frames.Flags.locked,
       unknown = !(locked || always_enabled),
       msg: Req.bg<kBgReq.reset> = {
         N: kBgReq.reset,
@@ -227,10 +228,9 @@ Backend_ = {
       };
       // avoid Status.partial even if `newPassedKeys`, to keep other checks about Flags.locked correct
       let newStatus: Frames.ValidStatus = locked ? stat! : Frames.Status.enabled;
-      ref.lock_ = locked ? { status_: stat!, passKeys_: msg.p } : null
+      ref.lock_ = locked ? { status_: newStatus, passKeys_: msg.p } : null
       for (const port of ref.ports_) {
         const sender = port.s
-        sender.flags_ = locked ? sender.flags_ | Frames.Flags.locked : sender.flags_ & ~Frames.Flags.locked;
         if (unknown) {
           let pattern = msg.p = Backend_.getExcluded_(sender.url_, sender)
           newStatus = pattern === null ? Frames.Status.enabled : pattern
@@ -289,8 +289,8 @@ Backend_ = {
             port.disconnect();
             return;
           }
-          OnConnect(port as Frames.Port, (arr[0].slice(PortNameEnum.PrefixLen) as string | number as number) | 0);
-          (port as Frames.Port).s.flags_ |= Frames.Flags.OtherExtension;
+          OnConnect(port as Frames.Port, (arr[0].slice(PortNameEnum.PrefixLen) as string | number as number
+              ) | PortType.otherExtension)
         } else {
           port.disconnect();
         }

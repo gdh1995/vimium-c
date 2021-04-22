@@ -26,65 +26,68 @@ const onMessage = <K extends keyof FgReq, T extends keyof FgRes> (request: Req.f
   }
 }
 
-export const OnConnect = (port: Frames.Port, type: number): void => {
+export const OnConnect = (port: Frames.Port, type: PortType): void => {
   const sender = /*#__NOINLINE__*/ formatPortSender(port), { tabId_: tabId, url_: url } = sender
-    , ref = framesForTab.get(tabId)
+    , ref = framesForTab.get(tabId), lock = ref ? ref.lock_ : null
     , isOmni = url === settings.cache_.vomnibarPage_f
-  let status: Frames.ValidStatus = Frames.Status.enabled
-  if (type >= PortType.omnibar || isOmni) {
-    if (type < PortType.knownStatusBase || isOmni) {
-      if (/*#__NOINLINE__*/ onOmniConnect(port, tabId, type)) {
-        return
-      }
-      sender.flags_ = Frames.Flags.userActed
-    } else if (type === PortType.CloseSelf) {
+  if (type > PortType.reconnect - 1 || isOmni) {
+    if (type === PortType.CloseSelf) {
       Build.BTypes & ~BrowserType.Chrome && tabId >= 0 && !sender.frameId_ &&
       removeTempTab(tabId, (port as Frames.BrowserPort).sender.tab!.windowId, sender.url_)
       return
-    } else {
-      status = ((type >>> PortType.BitOffsetOfKnownStatus) & PortType.MaskOfKnownStatus) - 1
-      if (type & PortType.isLocked && status === Frames.Status.partial) {
-        status = type & PortType.isLockedAsDisabled ? Frames.Status.disabled : Frames.Status.enabled
-      }
-      sender.flags_ = ((type & PortType.isLocked) ? Frames.Flags.lockedAndUserActed : Frames.Flags.userActed
-        ) + ((type & PortType.hasCSS) && Frames.Flags.hasCSS)
+    } else if (type & PortType.omnibar || isOmni) {
+      /*#__NOINLINE__*/ onOmniConnect(port, tabId, type)
+      return
     }
   }
-  if (type >= PortType.knownStatusBase) {
+  let status: Frames.ValidStatus
+  let passKeys: null | string, flags: BgReq[kBgReq.reset]["f"]
+  if (lock) {
+    passKeys = lock.passKeys_
+    status = lock.status_
+    flags = status === Frames.Status.disabled ? Frames.Flags.lockedAndDisabled : Frames.Flags.locked
+  } else {
+    passKeys = Backend_.getExcluded_(url, sender)
+    status = passKeys === null ? Frames.Status.enabled : passKeys ? Frames.Status.partial : Frames.Status.disabled
+    flags = Frames.Flags.blank
+  }
+  sender.status_ = status
+  if (ref) {
+    flags |= ref.flags_ & Frames.Flags.userActed
+    if (type & PortType.otherExtension) {
+      flags |= Frames.Flags.OtherExtension
+      ref.flags_ |= Frames.Flags.OtherExtension
+    }
+    sender.flags_ = flags
+  }
+  if (type & PortType.reconnect) {
+    sender.flags_ |= PortType.hasCSS === <number> Frames.Flags.hasCSS ? type & PortType.hasCSS
+        : (type & PortType.hasCSS) && Frames.Flags.hasCSS
+    port.postMessage({ N: kBgReq.reset, p: passKeys, f: flags & Frames.Flags.MASK_LOCK_STATUS })
     port.postMessage({ N: kBgReq.settingsUpdate, d: contentPayload })
   } else {
-    let pass: null | string, flags: Frames.Flags = Frames.Flags.blank
-    if (ref && ((flags = sender.flags_ = ref.cur_.s.flags_ & Frames.Flags.InheritedFlags) & Frames.Flags.locked)) {
-      status = ref.cur_.s.status_
-      // @todo: rewrite framesForTab to store forced passKeys
-      pass = status !== Frames.Status.disabled ? null : ""
-    } else {
-      pass = Backend_.getExcluded_(url, sender)
-      status = pass === null ? Frames.Status.enabled : pass ? Frames.Status.partial : Frames.Status.disabled
-    }
     port.postMessage({
-      N: kBgReq.init, s: flags, c: contentPayload, p: pass,
+      N: kBgReq.init, f: flags, c: contentPayload, p: passKeys,
       m: CommandsData_.mappedKeyRegistry_, t: mappedKeyTypes_, k: CommandsData_.keyFSM_
     })
   }
-  sender.status_ = status
   if (Build.BTypes & ~BrowserType.Chrome) { (port as Frames.BrowserPort).sender.tab = null as never }
   port.onDisconnect.addListener(/*#__NOINLINE__*/ onDisconnect)
   port.onMessage.addListener(/*#__NOINLINE__*/ onMessage)
   if (ref) {
-    ref.ports_.push(port)
     if (type & PortType.hasFocus) {
       if (needIcon_ && ref.cur_.s.status_ !== status) {
         Backend_.setIcon_(tabId, status)
       }
       ref.cur_ = port
     }
-    if (!sender.frameId_ && !ref.top_) {
+    if (type & PortType.isTop && !ref.top_) {
       (ref as Writable<Frames.Frames>).top_ = port
     }
+    ref.ports_.push(port)
   } else {
     framesForTab.set(tabId, {
-      cur_: port, top_: sender.frameId_ ? null : port, ports_: [port],
+      cur_: port, top_: type & PortType.isTop ? port : null, ports_: [port],
       lock_: null, flags_: Frames.Flags.Default
     })
     status !== Frames.Status.enabled && needIcon_ && Backend_.setIcon_(tabId, status)
@@ -116,17 +119,17 @@ const onDisconnect = (port: Port): void => {
 }
 
 const onOmniConnect = (port: Frames.Port, tabId: number, type: PortType): boolean => {
-  if (type >= PortType.omnibar) {
+  if (type > PortType.omnibar - 1) {
     if (!isNotVomnibarPage(port, false)) {
       if (tabId < 0) {
-        (port.s as Writable<Frames.Sender>).tabId_ = type !== PortType.omnibar ? getNextFakeTabId()
+        (port.s as Writable<Frames.Sender>).tabId_ = type & PortType.reconnect ? getNextFakeTabId()
             : cPort ? cPort.s.tabId_ : TabRecency_.curTab_
       }
       framesForOmni.push(port)
       if (Build.BTypes & ~BrowserType.Chrome) { (port as Frames.BrowserPort).sender.tab = null as never }
       port.onDisconnect.addListener(/*#__NOINLINE__*/ onOmniDisconnect)
       port.onMessage.addListener(/*#__NOINLINE__*/ onMessage)
-      type === PortType.omnibar &&
+      type & PortType.reconnect ||
       port.postMessage({ N: kBgReq.omni_init, l: omniPayload, s: getSecret() })
       return true
     }
@@ -254,14 +257,16 @@ export const indexFrame = (tabId: number, frameId: number): Port | null => {
 
 export const ensureInnerCSS = (sender: Frames.Sender): string | null => {
   if (sender.flags_ & Frames.Flags.hasCSS) { return null }
-  sender.flags_ |= Frames.Flags.hasCSSAndActed
+  const ref = framesForTab.get(sender.tabId_)
+  ref && (ref.flags_ |= Frames.Flags.userActed)
+  sender.flags_ |= Frames.Flags.hasCSS | Frames.Flags.userActed
   return innerCSS_
 }
 
 export const onExitGrab = (_0: FgReq[kFgReq.exitGrab], port: Port): void => {
   const ref = framesForTab.get(port.s.tabId_)
   if (!ref) { return }
-  ref.cur_.s.flags_ |= Frames.Flags.userActed
+  ref.flags_ |= Frames.Flags.userActed
   if (ref.ports_.length < 2) { return }
   const msg: Req.bg<kBgReq.exitGrab> = { N: kBgReq.exitGrab }
   for (const p of ref.ports_) {
@@ -285,7 +290,7 @@ export const isNotVomnibarPage = (port: Frames.Port, noLog: boolean): boolean =>
   if (!noLog && !(f & Frames.Flags.SOURCE_WARNED)) {
     console.warn("Receive a request from %can unsafe source page%c (should be vomnibar) :\n %s @ tab %o",
       "color:red", "color:auto", info.url_.slice(0, 128), info.tabId_)
-    info.flags_ |= f
+    info.flags_ |= Frames.Flags.SOURCE_WARNED
   }
   return true
 }

@@ -141,7 +141,6 @@ export const findNextInRel = (relName: string): GoNextBaseCandidate | null | und
   let matched: HTMLElementWithRel | undefined, tag: "a" | "area" | "link"
   const re1 = <RegExpOne> /\s/
   const array = OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
-      && Build.MinCVer >= BrowserVer.MinTestedES6Environment
       && chromeVer_ < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
       ? [].slice.call(elements) : elements as { [i: number]: Element } as Element[]
   for (const element of array) {

@@ -42,7 +42,6 @@ export const pTrans_: typeof chrome.i18n.getMessage = OnFirefox
 export const $$ = ((selector: string, root?: HTMLElement | ShadowRoot | null) => {
   const list = (root || document).querySelectorAll(selector)
   return OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
-      && Build.MinCVer >= BrowserVer.MinTestedES6Environment
       && CurCVer_ < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
       ? [].slice.call(list) : list
 }) as <T extends HTMLElement>(selector: string, root?: HTMLElement | ShadowRoot | null) => ArrayLike<T>

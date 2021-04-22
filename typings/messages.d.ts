@@ -86,10 +86,9 @@ declare const enum kFgReq {
 
 interface BgReq {
   [kBgReq.init]: {
-    /** status */ s: Frames.Flags;
+    /** flags */ f: Frames.Flags;
     /** cache (aka. payload) */ c: SettingsNS.FrontendSettingCache;
     /** passKeys */ p: string | null;
-    /** forced */ f?: undefined
     /** mappedKeys */ m: SafeDict<string> | null;
     /** keyFSM */ k: KeyFSM;
     /** mappedKeyTypes */ t: kMapKey;
@@ -99,7 +98,7 @@ interface BgReq {
   };
   [kBgReq.reset]: {
     /** passKeys */ p: string | null;
-    /** forced: if .H is .reset, then must exist */ f: 0 | 1 | 3
+    /** flags: in .reset must exist */ f: Frames.Flags.blank | Frames.Flags.locked | Frames.Flags.lockedAndDisabled
   };
   [kBgReq.msg]: {
     /** mid */ m: number;

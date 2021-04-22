@@ -21,7 +21,7 @@ var BgUtils_ = {
         arr.push(iter_i.value)
       }
     } else {
-      arr = Object.keys((map as Map<string, any> as SimulatedMapWithKeys<string, any>).keys())
+      arr = Object.keys((map as any as SimulatedMap).map_)
     }
     return arr
   },
@@ -340,7 +340,7 @@ var BgUtils_ = {
     }
     return false;
   },
-  safeParseURL_(url: string): URL | null { try { return new URL(url); } catch {} return null; },
+  safeParseURL_(url: string): URL | null { try { return new URL(url) } catch { return null } },
   formatVimiumUrl_ (fullPath: string, partly: boolean, vimiumUrlWork: Urls.WorkType): string {
     let ind: number, subPath = "", query = "", tempStr: string | undefined, path = fullPath.trim();
     if (!path) { return partly ? "" : location.origin + "/pages/"; }

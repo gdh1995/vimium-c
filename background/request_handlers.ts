@@ -283,7 +283,7 @@ set_reqH_([
       Backend_.setIcon_(tabId, status)
     }
   },
-  /** kFgReq.checkIfEnabled: */ (request: ExclusionsNS.Details | FgReq[kFgReq.checkIfEnabled]
+  /** kFgReq.checkIfEnabled: */ (request: ExclusionsNS.Details & {u?: undefined} | FgReq[kFgReq.checkIfEnabled]
       , from_content?: Frames.Port): void => {
     let port: Frames.Port | null | undefined = from_content
     if (!port) {
@@ -292,14 +292,13 @@ set_reqH_([
     }
     const { s: sender } = port, { url_: oldUrl } = sender,
     url1: string | undefined = (request as ExclusionsNS.Details).url,
-    pattern = Backend_.getExcluded_(sender.url_ = from_content ? (request as FgReq[kFgReq.checkIfEnabled]).u
-                : url1
-      , sender),
+    ref = framesForTab.get(sender.tabId_)
+    if (ref && ref.lock_) { return }
+    const pattern = Backend_.getExcluded_(sender.url_ = from_content ? request.u! : url1, sender),
     status = pattern === null ? Frames.Status.enabled : pattern ? Frames.Status.partial : Frames.Status.disabled
     if (sender.status_ !== status) {
-      if (sender.flags_ & Frames.Flags.locked) { return }
       sender.status_ = status
-      if (needIcon_ && framesForTab.get(sender.tabId_)!.cur_ === port) {
+      if (needIcon_ && ref!.cur_ === port) {
         Backend_.setIcon_(sender.tabId_, status)
       }
     } else if (!pattern || pattern === Backend_.getExcluded_(oldUrl, sender)) {
@@ -358,7 +357,9 @@ set_reqH_([
   },
   /** kFgReq.initHelp: */ initHelp,
   /** kFgReq.css: */ (_0: FgReq[kFgReq.css], port: Port): void => {
-    (port as Frames.Port).s.flags_ |= Frames.Flags.hasCSSAndActed
+    const ref = framesForTab.get(port.s.tabId_)!
+    ref.flags_ |= Frames.Flags.userActed;
+    (port as Frames.Port).s.flags_ |= Frames.Flags.hasCSS | Frames.Flags.userActed
     port.postMessage({ N: kBgReq.showHUD, H: innerCSS_ })
   },
   /** kFgReq.vomnibar: */ (request: FgReq[kFgReq.vomnibar]
@@ -389,7 +390,12 @@ set_reqH_([
   },
   /** kFgReq.copy: */ copyData,
   /** kFgReq.key: */ (request: FgReq[kFgReq.key], port: Port): void => {
-    (port as Frames.Port).s.flags_ |= Frames.Flags.userActed
+    const sender = (port as Frames.Port).s
+    if (!(sender.flags_ & Frames.Flags.userActed)) {
+      sender.flags_ |= Frames.Flags.userActed
+      const ref = framesForTab.get(sender.tabId_)
+      ref && (ref.flags_ |= Frames.Flags.userActed)
+    }
     let key: string = request.k, count = 1
       , arr: null | string[] = (<RegExpOne> /^\d+|^-\d*/).exec(key)
     if (arr != null) {

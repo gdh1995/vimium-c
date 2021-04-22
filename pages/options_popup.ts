@@ -9,7 +9,7 @@ let url: string, topUrl = ""
 let inited: 0 | 1 /* no initial matches */ | 2 /* some matched */ | 3 /* is saving (temp status) */ = 0
 let saved = true, oldPass: string | null = null, curLockedStatus = Frames.Status.__fake
 let exclusions: PopExclusionRulesOption = null as never
-let toggleAction: "Disable" | "Enable", curIsLocked: boolean
+let toggleAction: "Disable" | "Enable", curIsLocked = false
 
 const stateAction = $<EnsuredMountedHTMLElement>("#state-action")
 const saveBtn2 = $<HTMLButtonElement>("#saveOptions") as HTMLButtonElement & { firstChild: Text }
@@ -142,8 +142,6 @@ const forceState = (act: "Reset" | "Enable" | "Disable", event?: EventToPrevent)
 
 const initBottomLeft = (): void => {
   toggleAction = frameInfo.status_ !== Frames.Status.disabled ? "Disable" : "Enable"
-  curIsLocked = !!(frameInfo.flags_ & Frames.Flags.locked)
-  curLockedStatus = curIsLocked ? frameInfo.status_ : Frames.Status.__fake
   let el0 = $<EnsuredMountedHTMLElement>("#toggleOnce"), el1 = el0.nextElementSibling
   nextTick_(() => {
     el0.firstElementChild.textContent = (pTrans_(toggleAction) || toggleAction) + (curIsLocked ? "" : pTrans_("Once"))
@@ -236,6 +234,10 @@ Promise.all([bgSettings_.restore_ && bgSettings_.restore_(), new Promise<[chrome
   }, $(".version"))
 
   bgExclusions = BG_.Exclusions as typeof Exclusions
+  if (ref && ref.lock_) {
+    curIsLocked = true
+    curLockedStatus = ref.lock_.status_
+  }
   frameInfo = ref && (!ref.cur_.s.frameId_ || BG_.BgUtils_.protocolRe_.test(ref.cur_.s.url_)) ? ref.cur_.s : {
     /** must keep aligned with {@link ../background/main.ts#formatPortSender} */
     frameId_: 0,

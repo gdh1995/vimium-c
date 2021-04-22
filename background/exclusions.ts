@@ -130,7 +130,7 @@ var Exclusions = {
             continue;
           }
         }
-        if (port.s.flags_ & Frames.Flags.locked) { continue; }
+        if (frames.lock_) { continue }
         port.postMessage(always_enabled || { N: kBgReq.reset, p: pass, f: 0 });
         port.s.status_ = status;
       }
