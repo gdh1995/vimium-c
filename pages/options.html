@@ -24,7 +24,7 @@
       </td><td></td></tr></thead>
       <tbody>
       <tr>
-        <td class="caption" data-i="o1">Excluded URLs<br/>and keys</td>
+        <td class="caption" data-i="o1">Excluded URLs<br>and keys</td>
         <td>
           <div id="exclusionRules" data-model="ExclusionRules">
             <table id="exclusionTable" class="code">
@@ -37,10 +37,10 @@
             </table>
             <template id="exclusionTemplate"><table><tr class="exclusionRule">
                 <td>
-                  <input autocomplete="off" type="text" class="pattern" placeholder=":https://example.net/" />
+                  <input type="text" class="pattern" placeholder=":https://example.net/" autocomplete="off" />
                 </td>
                 <td>
-                  <input autocomplete="off" type="text" class="passKeys" placeholder="f j &lt;c-j&gt; K" lang="en" />
+                  <input type="text" class="passKeys" placeholder="f j &lt;c-j&gt; K" lang="en" autocomplete="off" />
                 </td>
                 <td>
                   <span class="remove" role="button" tabindex="0" title="Remove"
@@ -74,18 +74,18 @@
               if it starts with "</span><kbd class="wrap-space">^</kbd><span data-i="o8">",
             or "</span><kbd class="wrap-space">:</kbd><span data-i="o9">" + the header of a URL.
             Otherwise it will be converted.</span>
-          <br/>
+          <br>
           <span data-i="o10">If "</span><var data-i="Keys">Keys</var><span data-i="o11">" is empty,
-            Vimium C gets wholly disabled;</span><br/>
+            Vimium C gets wholly disabled;</span><br>
           <span data-i="o12">if "</span><var data-i="Keys">Keys</var><span data-i="o13">"
               starts with "</span><kbd class="wrap-space">^</kbd><span data-i="o14">",
-            only listed keys are enabled,<br/>
-          and all others are passed through;<br/></span><span
+            only listed keys are enabled,<br>
+          and all others are passed through;<br></span><span
               data-i="o15">otherwise, just the listed keys are passed through.</span>
         </div></td>
       </tr>
       <tr>
-        <td class="caption" data-i="o16">Custom key<br/>mappings</td>
+        <td class="caption" data-i="o16">Custom key<br>mappings</td>
         <td id="mappingsHelp">
           <textarea id="keyMappings" class="code" inputmode="text" data-model="Text" data-check=""
             placeholder="# Insert your preferred key mappings here."></textarea>
@@ -111,15 +111,15 @@ mapKey &lt;c-s-e&gt; &lt;esc&gt;
           </span><a
               class="wrap-left-space" data-auto-resize="keyMappings" role="button" tabindex="0" data-i="autoResize">
             Auto resize</a><span data-i="period">.</span>
-          <br/><a href="" target="_blank" rel="noopener noreferrer"
+          <br><a href="" target="_blank" rel="noopener noreferrer"
               data-href="vimium://home/wiki/Use-in-another-keyboard-layout" data-i="o20">
             How to map keys in another keyboard layout?
           </a>
-          <br/><a href="" target="_blank" rel="noopener noreferrer"
+          <br><a href="" target="_blank" rel="noopener noreferrer"
               data-href="vimium://home/wiki/Map-a-key-to-different-commands-on-different-websites" data-i="o20_2">
             How to map differently on some websites?
           </a>
-          <span class="require-shortcuts"><br/><i data-i="o21">Global shortcuts</i><span data-i="o22"> are
+          <span class="require-shortcuts"><br><i data-i="o21">Global shortcuts</i><span data-i="o22"> are
             on </span><a id="openExtensionsPage" href="chrome://extensions/shortcuts"
             >chrome://extensions/&#8230;</a><span data-i="o23">. </span><a id="shortcutHelper" data-i="o24"
               target="_blank" rel="noopener noreferrer"
@@ -129,12 +129,12 @@ mapKey &lt;c-s-e&gt; &lt;esc&gt;
         </div></td>
       </tr>
       <tr>
-        <td class="caption" data-i="o37" id="o37">Characters used<br/> for link hints</td>
+        <td class="caption" data-i="o37" id="o37">Characters used<br> for link hints</td>
         <td>
           <input id="linkHintCharacters" type="text" data-model="NonEmptyText"
-            data-converter="lower chars" class="code"
+            data-converter="lower chars" class="code" autocomplete="off"
             /><input id="linkHintNumbers" type="text" data-model="NonEmptyText"
-            data-converter="lower chars" class="code" style="display: none;" />
+            data-converter="lower chars" class="code" style="display: none;" autocomplete="off" />
           <div class="info">
             <span data-i="o16_2">The related option "</span><label for="filterLinkHints"
                 class="ref-text" role="link" data-i="o37_2">Use link name</label><span data-i="o16_3"
@@ -148,9 +148,9 @@ mapKey &lt;c-s-e&gt; &lt;esc&gt;
         </div></td>
       </tr>
       <tr id="searchUrlBox">
-        <td class="caption" data-i="o29">Default search<br/>engine</td>
+        <td class="caption" data-i="o29">Default search<br>engine</td>
         <td>
-          <input id="searchUrl" type="text" inputmode="url" data-model="NonEmptyText" data-check="" />
+          <input id="searchUrl" type="text" inputmode="url" data-model="NonEmptyText" data-check="" autocomplete="off"/>
           <div class="info" data-i="nonEmpty">Delete all to reset this option.</div>
         </td>
         <td class="help"><div class="help-inner line-input">
@@ -158,9 +158,9 @@ mapKey &lt;c-s-e&gt; &lt;esc&gt;
         </div></td>
       </tr>
       <tr>
-        <td class="caption" data-i="o32">Custom search<br/>engines</td>
+        <td class="caption" data-i="o32">Custom search<br>engines</td>
         <td>
-          <textarea id="searchEngines" data-model="NonEmptyText"></textarea>
+          <textarea id="searchEngines" data-model="NonEmptyText" autocomplete="off"></textarea>
           <div class="info" data-i="nonEmpty">Delete all to reset this option.</div>
         </td>
         <td class="help"><div class="help-inner">
@@ -176,7 +176,7 @@ key: https://c.com/$s/space=\s\ space_end
             <span data-i="o35">will be replaced with real queries</span><span data-i="period">.</span><span
               data-i="NS"></span><a
               data-auto-resize="searchEngines" role="button" tabindex="0" data-i="autoResize">Auto resize
-            </a><span data-i="period">.</span><br/>
+            </a><span data-i="period">.</span><br>
           <a href="" target="_blank" rel="noopener noreferrer" data-i="o36"
               data-href="vimium://home/wiki/Search-engine-rules">
             How to write advanced search engine rules?
@@ -189,7 +189,7 @@ key: https://c.com/$s/space=\s\ space_end
       </td><td></td></tr></tbody>
       <tbody id="advancedOptions" style="display: none;">
         <tr id="optionalPermissionsBox">
-          <td class="caption" data-i="o103_2">Optional<br/>permissions</td>
+          <td class="caption" data-i="o103_2">Optional<br>permissions</td>
           <td id="optionalPermissions" data-check="change">
             <template id="optionalPermissionsTemplate">
               <label class="optional-permission" tabindex="-1" aria-hidden="true">
@@ -207,7 +207,7 @@ key: https://c.com/$s/space=\s\ space_end
           <td class="caption" data-i="o40">Scroll step size</td>
           <td>
             <input id="scrollStepSize" type="number" min="30" max="300" step="10" lang="en"
-              data-model="Number" />
+              data-model="Number" autocomplete="off" />
             <label for="scrollStepSize" data-i="o41">px</label>
           </td>
           <td class="help"><div class="help-inner line-input" data-i="o42">
@@ -215,7 +215,7 @@ key: https://c.com/$s/space=\s\ space_end
           </div></td>
         </tr>
         <tr>
-          <td class="caption" rowspan="2" data-i="o43">Miscellaneous<br/>options</td>
+          <td class="caption" rowspan="2" data-i="o43">Miscellaneous<br>options</td>
           <td colspan="2">
             <label class="booleanOption" tabindex="-1" aria-hidden="true">
               <input id="smoothScroll" type="checkbox" tabindex="-1" aria-hidden="true" data-model="Boolean" />
@@ -404,7 +404,7 @@ key: https://c.com/$s/space=\s\ space_end
             </label>
           </td>
           <td class="help"><div id="showActionIconHelp" class="help-inner line-help" data-i="o64">
-            Make it reflect working states on a current page.<br/>
+            Make it reflect working states on a current page.<br>
             If this is unchecked, Vimium C will be a little faster.
           </div></td>
         </tr>
@@ -463,7 +463,7 @@ title="Warning: Chrome has a bug of mistaken dialogue width if you has changed s
         <tr id="newTabUrlBox">
           <td class="caption" data-i="o25">New tab URL</td>
           <td>
-            <input id="newTabUrl" type="text" inputmode="url" data-model="NonEmptyText" />
+            <input id="newTabUrl" type="text" inputmode="url" data-model="NonEmptyText" autocomplete="off" />
             <div class="info" data-i="nonEmpty">Delete all to reset this option.</div>
           </td>
           <td class="help"><div class="help-inner">
@@ -483,7 +483,7 @@ title="Warning: Chrome has a bug of mistaken dialogue width if you has changed s
         <tr>
           <td class="caption" data-i="o68">Previous patterns</td>
           <td>
-            <input id="previousPatterns" type="text" data-model="NonEmptyText" />
+            <input id="previousPatterns" type="text" data-model="NonEmptyText" autocomplete="off" />
             <div class="info" data-i="nonEmpty">Delete all to reset this option.</div>
           </td>
           <td class="help"><div class="help-inner" data-i="o69">
@@ -493,7 +493,7 @@ title="Warning: Chrome has a bug of mistaken dialogue width if you has changed s
         <tr>
           <td class="caption" data-i="o70">Next patterns</td>
           <td>
-            <input id="nextPatterns" type="text" data-model="NonEmptyText" />
+            <input id="nextPatterns" type="text" data-model="NonEmptyText" autocomplete="off" />
             <div class="info" data-i="nonEmpty">Delete all to reset this option.</div>
           </td>
           <td class="help"><div class="help-inner" data-i="o71">
@@ -501,7 +501,7 @@ title="Warning: Chrome has a bug of mistaken dialogue width if you has changed s
           </div></td>
         </tr>
         <tr>
-          <td class="caption" data-i="o72">Custom CSS<br/>for Vimium C UI</td>
+          <td class="caption" data-i="o72">Custom CSS<br>for Vimium C UI</td>
           <td>
             <textarea id="userDefinedCss" class="code min-height-4" inputmode="text" data-model="Text" lang="en"
               placeholder="/* example: */ .LH { color: red; }
@@ -513,11 +513,11 @@ title="Warning: Chrome has a bug of mistaken dialogue width if you has changed s
           <td class="help"><div class="help-inner">
             <span data-i="o73">To style Vimium C nodes, use selectors such as "</span><kbd>.S</kbd><span
                 data-i="o74">" and "</span><kbd>.LH &gt; .MC</kbd><span
-                data-i="o75">"</span><span id="tipForNoShadow"></span><span data-i="period">.</span><br/>
+                data-i="o75">"</span><span id="tipForNoShadow"></span><span data-i="period">.</span><br>
             <span data-i="o76">These styles work in addition to and take precedence over Vimium C's
               default styles.
             </span><a class="wrap-left-space" data-auto-resize="userDefinedCss" role="button" tabindex="0"
-                data-i="autoResize">Auto resize</a><span data-i="period">.</span><br/>
+                data-i="autoResize">Auto resize</a><span data-i="period">.</span><br>
             <a href="" target="_blank" rel="noopener noreferrer" data-i="o76_2"
                 data-href="vimium://home/wiki/Style-the-UI-of-Vimium-C-using-Custom-CSS">
               How to style UI components in different DOM scopes?</a>
@@ -534,23 +534,23 @@ title="Warning: Chrome has a bug of mistaken dialogue width if you has changed s
             <div data-i="o78">Adjust some inner behaviors of Vomnibar:</div>
             <div class="help-block">
               "<var>maxMatches</var>" <span data-i="o79">should be in</span> <kbd>3 ~ 25</kbd>
-                <span data-i="o79_2"></span><span data-i="semicolon">;</span><br/>
+                <span data-i="o79_2"></span><span data-i="semicolon">;</span><br>
               "<var>queryInterval</var>" <span data-i="o79">should be in</span> <kbd>0 ~ 1200</kbd><span data-i="o81">
-                (unit: ms)</span><span data-i="o80"> ;</span><br/>
-              "<var>size</var>" <span data-i="o82">is to calculate Vomnibar's height;</span><br/>
+                (unit: ms)</span><span data-i="o80"> ;</span><br>
+              "<var>size</var>" <span data-i="o82">is to calculate Vomnibar's height;</span><br>
               "<var>styles</var>" <span data-i="o83">may be</span> <span>"<kbd class="sel-all">dark</kbd>"<span
                   data-i="o83_2"> &amp; </span>"<kbd class="sel-all">mono-url</kbd>"<span
                   data-i="o83_2"> &amp; </span>"<kbd class="sel-all">time</kbd>"</span>
-              <span data-i="o84">.</span><br/>
+              <span data-i="o84">.</span><br>
               "<var>actions</var>" <span data-i="o83">may be</span> <span>"<kbd class="sel-all">opener</kbd>"</span>
-              <span data-i="o84">.</span><br/>
+              <span data-i="o84">.</span><br>
             </div>
             <span data-i="o85">A low</span> <var>queryInterval</var>
               <span data-i="o86">will cause CPU cost a bit higher.</span>
           </div></td>
         </tr>
         <tr>
-          <td class="caption" data-i="o86_2">Substitution for<br/> clipboard text</td>
+          <td class="caption" data-i="o86_2">Substitution for<br> clipboard text</td>
           <td>
             <textarea id="clipSub" class="code min-height-4" data-model="Text"
               placeholder="/* example: */
@@ -559,8 +559,8 @@ p:regexp-to-replace:target-string:i"
               ></textarea>
           </td>
           <td class="help"><div class="help-inner"><span data-i="o86_3">
-            Substitute text before doing real actions, when copying / pasting through Vimium C's commands.<br/>
-            Support a simpler version of syntax of the "sed" tool.<br/>
+            Substitute text before doing real actions, when copying / pasting through Vimium C's commands.<br>
+            Support a simpler version of syntax of the "sed" tool.<br>
             The prefix character may be </span><kbd>c|p|s|i|g</kbd><span data-i="o86_4">&#8230;;
             "c" means copying, "p" for pasting and "s" for both</span><span data-i="period">.</span><span data-i="NS">
             </span><a class="wrap-left-space" data-auto-resize="clipSub" role="button" tabindex="0"
@@ -568,9 +568,9 @@ p:regexp-to-replace:target-string:i"
           </div></td>
         </tr>
         <tr>
-          <td class="caption" data-i="o87">Block list of words<br/> for Vomnibar</td>
+          <td class="caption" data-i="o87">Block list of words<br> for Vomnibar</td>
           <td>
-            <textarea id="omniBlockList" class="code min-height-4" data-model="MaskedText"></textarea>
+            <textarea id="omniBlockList" class="code min-height-4 masked" data-model="MaskedText"></textarea>
           </td>
           <td class="help"><div class="help-inner">
             <div data-i="o88">For a bookmark / history item,
@@ -583,7 +583,7 @@ p:regexp-to-replace:target-string:i"
           </div></td>
         </tr>
         <tr>
-          <td class="caption" data-i="o91">Allow list of other<br/> extension IDs</td>
+          <td class="caption" data-i="o91">Allow list of other<br> extension IDs</td>
           <td>
             <textarea id="extAllowList" class="code min-height-4" data-model="NonEmptyText"
               data-permission="web_accessible_resources"></textarea>
@@ -596,16 +596,17 @@ p:regexp-to-replace:target-string:i"
               "</span><kbd>_</kbd><span data-i="o94">" will be ignored</span><span
                 data-i="period">.</span><span data-i="NS">
             </span><a class="wrap-left-space" data-auto-resize="extAllowList" role="button" tabindex="0"
-                data-i="autoResize">Auto resize</a><span data-i="period">.</span><br/>
+                data-i="autoResize">Auto resize</a><span data-i="period">.</span><br>
             <a href="" target="_blank" rel="noopener noreferrer" data-i="o95"
                 data-href="vimium://home/wiki/Inject-into-other-extensions">
               How to inject Vimium C into other extensions?</a>
           </div></td>
         </tr>
         <tr>
-          <td class="caption" data-i="o96">Preferred<br/> Vomnibar Page</td>
+          <td class="caption" data-i="o96">Preferred<br> Vomnibar Page</td>
           <td>
-            <input id="vomnibarPage" type="text" inputmode="url" data-model="NonEmptyText" lang="en" />
+            <input id="vomnibarPage" type="text" inputmode="url" lang="en"
+                data-model="NonEmptyText" autocomplete="off" />
             <div class="info" data-i="nonEmpty">Delete all to reset this option.</div>
           </td>
           <td class="help"><div class="help-inner break-all">
@@ -625,12 +626,12 @@ so only the default inner version will be used on them"
         <tr>
           <td class="caption" data-i="o99">Local encoding</td>
           <td>
-            <input id="localeEncoding" type="text" inputmode="text" data-model="Text" data-converter="lower"
-                lang="en" />
+            <input id="localeEncoding" type="text" inputmode="text" lang="en"
+                data-model="Text" data-converter="lower" autocomplete="off" />
           </td>
           <td class="help"><div class="help-inner">
             <span data-i="o100">In order to recognize URLs not encoded by</span> <kbd>utf-8</kbd>
-              <span data-i="o101">.</span><br/>
+              <span data-i="o101">.</span><br>
             <span data-i="o102">The default</span> <kbd class="sel-all">gbk</kbd>
               <span data-i="o103">is for Chinese, Japanese and Korean.</span>
           </div></td>
@@ -638,7 +639,8 @@ so only the default inner version will be used on them"
         <tr>
           <td class="caption" data-i="o104">Keyboard settings</td>
           <td>
-            <input id="keyboard" type="text" inputmode="numeric" data-model="JSON" data-check="" lang="en" />
+            <input id="keyboard" type="text" inputmode="numeric"
+                data-model="JSON" data-check="" lang="en" autocomplete="off" />
             <div class="info" data-i="nonEmpty">Delete all to reset this option.</div>
           </td>
           <td class="help"><div class="help-inner">
@@ -647,7 +649,7 @@ so only the default inner version will be used on them"
             </div>
             <span data-i="o106">Format: </span><kbd>[&lt;<span
                 data-i="o107">delay</span>&gt;, &lt;<span data-i="o108">repeat period</span>&gt;]</kbd><span
-                data-i="o81"> (unit: ms).</span><br/>
+                data-i="o81"> (unit: ms).</span><br>
             <span data-i="o109">Note: this option will never be synchronized.</span>
           </div></td>
         </tr>
@@ -662,7 +664,7 @@ so only the default inner version will be used on them"
           <a href="" data-href="vimium://release"
               target="_blank" rel="noopener noreferrer"><span class="version"></span></a><span
               data-i="comma">,</span><span data-i="NS">
-            </span><span id="browserName"></span><span data-i="period">.</span></span><br/>
+            </span><span id="browserName"></span><span data-i="period">.</span></span><br>
           <strong><kbd>&lt;c-enter&gt;</kbd></strong> <span data-i="o112">to save <i>all</i> options,
           </span><strong id="questionShortcut">?</strong> <span data-i="o113">to show help.</span>
         </span>

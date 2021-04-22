@@ -1,6 +1,6 @@
 import { BG_, bgSettings_, OnFirefox, OnEdge, OnChrome } from "./async_bg"
 import {
-  ExclusionVisibleVirtualNode, ExclusionRulesOption_, Option_, $, nextTick_, pTrans_, setupBorderWidth_
+  ExclusionVisibleVirtualNode, ExclusionRulesOption_, Option_, $, nextTick_, pTrans_, setupBorderWidth_, showI18n
 } from "./options_base"
 
 let bgExclusions: typeof Exclusions
@@ -31,19 +31,18 @@ class PopExclusionRulesOption extends ExclusionRulesOption_ {
   }
   populateElement_ (rules1: ExclusionsNS.StoredRule[]): void {
     super.populateElement_(rules1)
-    const a = this
-    a.populateElement_ = null as never // ensure .populateElement_ is only executed for once
+    this.populateElement_ = null as never // ensure .populateElement_ is only executed for once
     (document.documentElement as HTMLHtmlElement).style.height = ""
     PopExclusionRulesOption.prototype.isPatternMatched_ = ExclusionRulesOption_.prototype.isPatternMatched_
-    let visible_ = a.list_.filter(i => i.visible_) as ExclusionVisibleVirtualNode[], some = visible_.length > 0
+    let visible_ = this.list_.filter(i => i.visible_) as ExclusionVisibleVirtualNode[], some = visible_.length > 0
     let element1: SafeHTMLElement
     inited = some ? 2 : 1
     if (some) {
       element1 = visible_[0].$keys_
       updateState(true)
     } else {
-      a.addRule_("", false)
-      element1 = (a.list_[a.list_.length - 1] as ExclusionVisibleVirtualNode).$keys_
+      this.addRule_("", false)
+      element1 = (this.list_[this.list_.length - 1] as ExclusionVisibleVirtualNode).$keys_
     }
     nextTick_(() => element1.focus())
   }
@@ -157,10 +156,14 @@ const initBottomLeft = (): void => {
 const initOptionsLink = (_url: string): void => {
   const element = $<HTMLAnchorElement>(".options-link"), optionsUrl = bgSettings_.CONST_.OptionsPage_
   if (_url.startsWith(optionsUrl)) {
-    (element.nextElementSibling as HTMLElement).remove()
-    element.remove()
+    nextTick_((): void => {
+      (element.nextElementSibling as HTMLElement).remove()
+      element.remove()
+    })
   } else {
-    element.href !== optionsUrl && (element.href = optionsUrl)
+    element.href !== optionsUrl && nextTick_((): void => {
+      element.href = optionsUrl
+    })
     element.onclick = (event: EventToPrevent): void => {
       event.preventDefault()
       const a: MarksNS.FocusOrLaunch = BG_.Object.create(null)
@@ -201,8 +204,10 @@ const initExclusionRulesTable = (): void => {
     }
     updateState(inited < 2)
   })
-  Option_.suppressPopulate_ = false
-  exclusions.fetch_()
+  nextTick_((): void => {
+    Option_.suppressPopulate_ = false
+    exclusions.fetch_()
+  })
   if (!Build.NDEBUG) {
     interface WindowEx extends Window { exclusions?: PopExclusionRulesOption }
     (window as WindowEx).exclusions = exclusions
@@ -222,6 +227,7 @@ Promise.all([bgSettings_.restore_ && bgSettings_.restore_(), new Promise<[chrome
   if (notRunnable) {
     onNotRunnable(blockedMsg, curTab, _url)
     initOptionsLink(_url)
+    nextTick_(showI18n)
     return
   }
   nextTick_((versionEl): void => {
@@ -263,6 +269,7 @@ Promise.all([bgSettings_.restore_ && bgSettings_.restore_(), new Promise<[chrome
   initOptionsLink(_url)
   initBottomLeft()
   initExclusionRulesTable()
+  nextTick_(showI18n)
   setupBorderWidth_ && nextTick_(setupBorderWidth_)
 })
 

@@ -39,24 +39,25 @@ export const $ = <T extends HTMLElement>(selector: string): T => document.queryS
 export const pTrans_: typeof chrome.i18n.getMessage = OnFirefox
       ? (i, j) => BG_.trans_(i, j) : chrome.i18n.getMessage;
 
-export const $$ = ((selector: string, root?: HTMLElement | ShadowRoot | null) => {
+export const $$ = ((selector: string, root?: HTMLElement | ShadowRoot | null): ArrayLike<Element> => {
   const list = (root || document).querySelectorAll(selector)
   return OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
       && CurCVer_ < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
       ? [].slice.call(list) : list
-}) as <T extends HTMLElement>(selector: string, root?: HTMLElement | ShadowRoot | null) => ArrayLike<T>
+}) as <T extends HTMLElement>(selector: string, root?: HTMLElement | ShadowRoot | null) => T[]
 
 const lang_ = chrome.i18n.getMessage("lang1")
-if (lang_) {
+export const showI18n = (): void => {
+    if (!lang_) { return }
     const langInput = navigator.language as string || pTrans_("lang2")
     let t = pTrans_("keyMappingsP"), el: HTMLElement | null = $("#keyMappings");
     t && el && ((el as HTMLInputElement).placeholder = t);
     if (langInput && (lang_ !== "zh" || langInput !== "zh-CN")) {
-      for (el of $$("input[type=text], textarea") as HTMLElement[]) {
+      for (el of $$("input[type=text], textarea")) {
         el.lang = langInput as ""
       }
     }
-    for (el of $$("[data-i]") as HTMLElement[]) {
+    for (el of $$("[data-i]")) {
       const i = (el.dataset as KnownOptionsDataset).i!, isTitle = i.endsWith("-t")
       t = pTrans_(isTitle ? i.slice(0, -2) : i);
       (t || i === "NS") && (isTitle ? el.title = t : el!.innerText = t)
@@ -234,7 +235,6 @@ static areJSONEqual_ (this: void, a: object, b: object): boolean {
 }
 static saveOptions_: (this: void) => boolean;
 static needSaveOptions_: (this: void) => boolean;
-showError_: (msg: string, tag?: OptionErrorType | null, errors?: boolean) => void;
 }
 export type OptionErrorType = "has-error" | "highlight"
 
@@ -265,37 +265,17 @@ export class ExclusionRulesOption_ extends Option_<"exclusionRules"> {
   list_: Array<ExclusionVisibleVirtualNode | ExclusionInvisibleVirtualNode>;
   $list_: HTMLTableSectionElement;
   dragged_: HTMLTableRowElement | null;
-  onInited_?: () => void;
+  _rendered: boolean
   init_ (element: HTMLElement): void {
     this.template_ = (element.querySelector("#exclusionTemplate") as HTMLTemplateElement
         ).content.querySelector(".exclusionRule") as HTMLTableRowElement;
-    if (lang_) {
-      let el: HTMLElement, t: string | null
-      for (el of $$("[data-i]", element) as HTMLElement[]) {
-        t = pTrans_((el.dataset as KnownOptionsDataset).i!);
-        t && (el.innerText = t);
-      }
-      for (el of $$("[title]", this.template_) as HTMLElement[]) {
-        t = el.title
-        if (t) {
-          t = pTrans_(t)
-          t && (el.title = t)
-        } else {
-          t = pTrans_(el.getAttribute("title")!)
-          t && el.setAttribute("title", t)
-        }
-      }
-    }
     this.$list_ = element.querySelector("tbody") as HTMLTableSectionElement;
     this.list_ = [];
     this.$list_.addEventListener("input", ExclusionRulesOption_.MarkChanged_);
     this.$list_.addEventListener("input", this.onUpdated_);
     this.$list_.addEventListener("click", e => this.onRemoveRow_(e));
+    this._rendered = false
     $("#exclusionAddButton").onclick = () => this.addRule_("");
-    if (Option_.syncToFrontend_) { // is on options page
-      this.template_.draggable = true;
-    }
-    nextTick_(() => this.onInited_ && this.onInited_());
   }
 onRowChange_ (_isInc: number): void { /* empty */ }
 static MarkChanged_ (this: void, event: Event): void {
@@ -317,6 +297,14 @@ addRule_ (pattern: string, autoFocus?: false | undefined): void {
   this.onRowChange_(1);
 }
 populateElement_ (rules: ExclusionsNS.StoredRule[]): void {
+  if (!this._rendered) {
+    this._rendered = true
+    if (Option_.syncToFrontend_) { this.template_.draggable = true }
+    for (const el of lang_ ? $$("[title]", this.template_) : []) {
+      const t = pTrans_(el.title)
+      t && (el.title = t)
+    }
+  }
   if (OnChrome && Build.MinCVer < BrowserVer.MinTbodyAcceptInnerTextSetter) {
     this.$list_.textContent = "";
   } else {

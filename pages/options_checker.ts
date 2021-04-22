@@ -170,6 +170,6 @@ Option_.all_.keyboard.checker_ = {
   }
 };
 
-  for (const element of $$("[data-check]") as HTMLElement[]) {
+for (const element of $$("[data-check]")) {
     element.removeEventListener((element.dataset as KnownOptionsDataset).check || "input", loadChecker)
-  }
+}

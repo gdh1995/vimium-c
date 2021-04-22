@@ -76,7 +76,6 @@ export class NumberOption_<T extends UniversalNumberSettings> extends Option_<T>
     }
     this.element_.oninput = this.onUpdated_
     this.element_.onfocus = this.addWheelListener_.bind(this)
-    this.element_.setAttribute("autocomplete", "off")
   }
   populateElement_ (value: number): void {
     this.element_.value = "" + value
@@ -179,7 +178,6 @@ export class TextOption_<T extends TextualizedOptionNames> extends Option_<T> {
         check_: TextOption_.normalizeByOps_
       }
     }
-    this.element_.setAttribute("autocomplete", "off")
   }
   fetch_ (): void {
     super.fetch_()
@@ -211,6 +209,27 @@ export class TextOption_<T extends TextualizedOptionNames> extends Option_<T> {
     return value as AllowedOptions[T]
   }
   doesPopulateOnSave_ (val: any): boolean { return val !== this.readRaw_() }
+  showError_ (msg: string, tag?: OptionErrorType | null, errors?: boolean): void {
+    const { element_: el, element_: { classList: cls, parentElement: par } } = this
+    let errEl = el.nextElementSibling as HTMLElement | null
+    errEl = errEl && errEl.classList.contains("tip") ? errEl : null
+    errors != null || (errors = !!msg)
+    if (!errors && !errEl) { return }
+    nextTick_((): void => {
+      if (errors) {
+        if (errEl == null) {
+          errEl = document.createElement("div")
+          errEl.className = "tip"
+          par!.insertBefore(errEl, el.nextElementSibling as Element | null)
+        }
+        errEl.textContent = msg
+        tag !== null && cls.add(tag || "has-error")
+      } else {
+        cls.remove("has-error"), cls.remove("highlight")
+        errEl && errEl.remove()
+      }
+    })
+  }
   static normalizeByOps_ (this: NonNullable<TextOption_<TextOptionNames>["checker_"]>, value: string): string {
     const ops = this.ops_!
     ops.indexOf("lower") >= 0 ? value = value.toUpperCase().toLowerCase()
@@ -271,7 +290,6 @@ export class MaskedText_<T extends TextOptionNames> extends TextOption_<T> {
   _myCancelMask: (() => void) | null
   init_ (): void {
     this.masked_ = true
-    nextTick_((): void => { this.element_.classList.add("masked") })
     this._myCancelMask = this.cancelMask_.bind(this);
     this.element_.addEventListener("focus", this._myCancelMask)
   }
@@ -315,27 +333,6 @@ TextOption_.prototype.atomicUpdate_ = NumberOption_.prototype.atomicUpdate_ = fu
   }
   newFocused && this.element_.blur()
   this.locked_ = false
-}
-
-TextOption_.prototype.showError_ = function(msg: string, tag?: OptionErrorType | null, errors?: boolean): void {
-  errors != null || (errors = !!msg)
-  const { element_: el, element_: { classList: cls, parentElement: par } } = this
-  let errEl = el.nextElementSibling as HTMLElement | null
-  errEl = errEl && errEl.classList.contains("tip") ? errEl : null
-  nextTick_((): void => {
-    if (errors) {
-      if (errEl == null) {
-        errEl = document.createElement("div")
-        errEl.className = "tip"
-        par!.insertBefore(errEl, el.nextElementSibling as Element | null)
-      }
-      errEl.textContent = msg
-      tag !== null && cls.add(tag || "has-error")
-    } else {
-      cls.remove("has-error"), cls.remove("highlight")
-      errEl && errEl.remove()
-    }
-  })
 }
 
 JSONOption_.prototype.areEqual_ = Option_.areJSONEqual_
@@ -399,17 +396,13 @@ export const createNewOption = ((): <T extends keyof AllowedOptions> (_element: 
     instance.fetch_()
     return Option_.all_[instance.field_] = instance as any
   }
-  if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes) {
-    [].forEach.call($$("[data-model]") as HTMLElement[], createNewOption)
-  } else {
-    ($$("[data-model]") as HTMLElement[]).forEach(createNewOption)
-  }
+  $$("[data-model]").forEach(createNewOption)
   registerClass = (name, cls) => { (types as Dict<new (el: any, cb: () => void) => any>)[name] = cls }
   return createNewOption
 })()
 
-Option_.all_.exclusionRules.onInited_ = function (): void {
-  const exclusionRules = this, table = exclusionRules.$list_
+{
+  const exclusionRules = Option_.all_.exclusionRules, table = exclusionRules.$list_
   table.ondragstart = (event): void => {
     let dragged = exclusionRules.dragged_ = event.target as HTMLTableRowElement
     dragged.style.opacity = "0.5"

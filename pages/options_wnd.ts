@@ -1,6 +1,6 @@
 import { CurCVer_, CurFFVer_, BG_, bgSettings_, reloadBG_, OnFirefox, OnChrome, OnEdge } from "./async_bg"
 import {
-  KnownOptionsDataset,
+  KnownOptionsDataset, showI18n,
   setupBorderWidth_, nextTick_, Option_, pTrans_, PossibleOptionNames, AllowedOptions, debounce_, $, $$
 } from "./options_base"
 import { saveBtn, exportBtn, savedStatus, createNewOption, BooleanOption_, registerClass } from "./options_defs"
@@ -18,6 +18,7 @@ export interface OptionWindow extends Window {
 
 const IsEdg: boolean = OnChrome && (<RegExpOne> /\sEdg\//).test(navigator.appVersion)
 
+nextTick_(showI18n)
 setupBorderWidth_ && nextTick_(setupBorderWidth_);
 nextTick_((versionEl): void => {
   const docCls = (document.documentElement as HTMLHtmlElement).classList;
@@ -437,20 +438,18 @@ if (OnFirefox) {
 }
 };
 
-const browserPermissions = !OnEdge ? chrome.permissions : null
-let optional = (chrome.runtime.getManifest().optional_permissions || []) as kPermissions[]
-if (!browserPermissions || !optional.length) {
-  $("#optionalPermissionsBox").style.display = "none"
-} else {
+let optional = (!OnEdge && chrome.runtime.getManifest().optional_permissions || []) as kPermissions[]
+if (!OnEdge) {
   const ignored: Array<kPermissions | RegExpOne> = OnFirefox ? ["downloads.shelf"] : ["downloads"]
   OnChrome || ignored.push(<RegExpOne> /^chrome:/, "contentSettings")
   OnChrome && !IsEdg || ignored.push("chrome://new-tab-page/")
   optional = optional.filter(i => !ignored.some(j => typeof j === "string" ? i === j : j.test(i)))
-  Promise.all(optional.map(i => new Promise<boolean>(resolve => {
-    browserPermissions.contains(i.includes(":") ? { origins: [i] }
-        : { permissions: i === "downloads.shelf" ? ["downloads", i] : [i] },
-    resolve) // DO NOT return `chrome.runtime.lastError`, so that logic errors will be exposed
-  }))).then((previous_array: boolean[]): void => {
+}
+if (OnEdge || !optional.length) {
+  nextTick_((): void => { $("#optionalPermissionsBox").style.display = "none" })
+} else {
+  ((optional_permissions: kPermissions[]): void => {
+    const browserPermissions = chrome.permissions
     interface PermissionItem { name_: kPermissions; previous_: boolean; element_: HTMLInputElement }
     const fragment = document.createDocumentFragment()
     const i18nItems: { [key in kPermissions]?: string } = {
@@ -461,11 +460,10 @@ if (!browserPermissions || !optional.length) {
     const placeholder = $<HTMLTemplateElement & EnsuredMountedHTMLElement>("#optionalPermissionsTemplate")
     const template = placeholder.content.firstElementChild as HTMLElement
     const shownItems: PermissionItem[] = []
-    for (let i = 0; i < optional.length; i++) {
+    for (const name of optional_permissions) {
       const node = document.importNode(template, true) as EnsuredMountedHTMLElement
       const checkbox = node.querySelector("input")!
-      const name = optional[i], previous = previous_array[i] || false, i18nKey = i18nItems[name]
-      checkbox.checked = previous
+      const i18nKey = i18nItems[name]
       checkbox.value = name
       let i18nName = pTrans_(i18nKey || "opt_" + name) || name
       let suffix = ""
@@ -485,11 +483,10 @@ if (!browserPermissions || !optional.length) {
         node.classList.add("single")
       }
       fragment.appendChild(node)
-      shownItems.push({ name_: name, previous_: previous, element_: checkbox })
+      shownItems.push({ name_: name, previous_: false, element_: checkbox })
     }
     const container = placeholder.parentElement
-    container.appendChild(fragment);
-    (container.dataset as KnownOptionsDataset).model = "OptionalPermissions"
+    nextTick_((children): void => { container.appendChild(children) }, fragment)
     registerClass("OptionalPermissions", class extends Option_<"nextPatterns"> {
       init_ (): void {
         this.element_.onchange = this.onUpdated_
@@ -586,11 +583,25 @@ if (!browserPermissions || !optional.length) {
         return wanted_value
       }
     })
-    createNewOption(container)
-  })
+    setTimeout((): void => {
+      let done = 0
+      for (const item of shownItems) {
+        const name = item.name_
+        browserPermissions.contains(name.includes(":") ? { origins: [name] }
+              : { permissions: name === "downloads.shelf" ? ["downloads", name] : [name] }, (result): void => {
+          item.previous_ = item.element_.checked = result || false
+          done++
+          if (done === shownItems.length) {
+            (container.dataset as KnownOptionsDataset).model = "OptionalPermissions"
+            createNewOption(container)
+          }
+        })
+      }
+    }, 17)
+  })(optional)
 }
 
-$("#userDefinedCss").addEventListener("input", debounce_(function (): void {
+(Option_.all_.userDefinedCss.element_ as HTMLTextAreaElement).addEventListener("input", debounce_((): void => {
   const self = Option_.all_.userDefinedCss
   const isDebugging = self.element_.classList.contains("debugging")
   if (self.saved_ && !isDebugging || !window.VApi || !VApi.z) { return }
@@ -622,11 +633,11 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
     styleDebug.classList.add("debugged")
     styleDebug.textContent = (isSame ? "\n" : "\n.transparent { opacity: 1; }\n") + (css.omni && css.omni + "\n" || "")
   }
-}, 1200, $("#userDefinedCss") as HTMLTextAreaElement, 0));
+}, 1200, null, 0))
 
 if (OnChrome && Build.MinCVer < BrowserVer.Min$Option$HasReliableFontSize
     && CurCVer_ < BrowserVer.Min$Option$HasReliableFontSize) {
-  $("select").classList.add("font-fix");
+  nextTick_((el) => { el.classList.add("font-fix") }, $("select"))
 }
 
 $("#importButton").onclick = function (): void {
@@ -775,7 +786,7 @@ if (!cmdRegistry || cmdRegistry.alias_ !== kBgCmd.showHelp) {
     }
   })
   if (matched) {
-    nextTick_(el => el.textContent = matched, $("#questionShortcut"));
+    nextTick_(([el, text]) => el.textContent = text, [$("#questionShortcut"), matched] as const)
   }
 }
 
