@@ -585,10 +585,8 @@ function toggleInvert(event: EventToPrevent): void {
 
 function requireJS(url: string): Promise<any> {
   const filename = url.slice(url.lastIndexOf("/") + 1).replace(".js", "")
-  __filename = location.pathname + `?__loader_` + filename
-  return new Promise<void>((resolve): void => {
-    define([url], resolve)
-  })
+  __filename = "__loader_" + filename
+  return define([url])
 }
 
 function loadCSS(src: string): void {

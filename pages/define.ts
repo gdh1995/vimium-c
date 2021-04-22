@@ -33,7 +33,8 @@ var __filename: string | null | undefined
 
   const modules: Dict<ModuleTy | ((url: string, exports: ModuleTy) => void)> = {}
   const readyMap: Dict<Promise<1 | void> | 1> = {}
-  const fullFeaturedDefine: DefineTy = (rawDepNames: string[] | FactoryTy, rawFactory?: FactoryTy): void => {
+  const fullFeaturedDefine: DefineTy = (rawDepNames: string[] | FactoryTy, rawFactory?: FactoryTy
+      ): void | Promise<ModuleTy> => {
     const selfScript = document.currentScript as HTMLScriptElement
     const url = selfScript != null ? selfScript.src
         : __filename!.lastIndexOf("pages/", 0) === 0 ? "/" + __filename : __filename!
@@ -42,17 +43,15 @@ var __filename: string | null | undefined
       throw new Error(`module filenames must be unique: duplicated "${filename}"`)
     }
     const isRoot = !readyMap[filename]
-    const depNames = rawFactory ? rawDepNames as string[] : [], factory = rawFactory || rawDepNames as FactoryTy
+    const depNames = typeof rawDepNames !== "function" && rawDepNames || []
+    const factory = typeof rawDepNames === "function" ? rawDepNames : rawFactory!
     const depsReady = Promise.all(depNames.map(waitJS.bind(0, url)))
     if (depNames.length === 1 && WithModule) {
       __filename = depNames[0]
     }
     if (OnChrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith
-        ? filename.indexOf("__loader_", 0) >= 0 : filename.includes("__loader_")) {
-      depsReady.then((): void => {
-        factory.apply(null, depNames.map(myRequire) as never)
-      })
-      return
+        ? filename.indexOf("__loader_", 0) === 0 : filename.startsWith("__loader_")) {
+      return depsReady.then(() => depNames.map(myRequire)[0])
     }
     readyMap[filename] = isRoot ? 1 : depsReady.then((): void => {
       readyMap[filename] = 1

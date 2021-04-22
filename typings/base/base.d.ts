@@ -161,3 +161,10 @@ interface HTMLMediaElement {
 interface Element { mozRequestFullScreen(): void }
 interface Document { mozCancelFullScreen(): void }
 interface HTMLElementTagNameMap { "slot": HTMLSlotElement; "nav": HTMLElement }
+
+interface Navigator {
+  scheduling?: {
+    isInputPending (options?: { includeContinuous?: boolean }): boolean // options must be an cls intance on C84 if exp
+    isFramePending? (options?: {}): boolean
+  }
+}

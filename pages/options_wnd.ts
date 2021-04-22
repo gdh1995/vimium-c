@@ -15,7 +15,6 @@ export interface ElementWithDelay extends HTMLElement {
 export interface OptionWindow extends Window {
   _delayed: [string, MouseEventToPrevent | null];
 }
-declare var define: any
 
 const IsEdg: boolean = OnChrome && (<RegExpOne> /\sEdg\//).test(navigator.appVersion)
 
@@ -650,11 +649,17 @@ if (OnChrome && IsEdg) {
 }, $("#browserName"));
 
 export const loadJS = (url: string): Promise<void> => {
+  if (!(Build.BTypes & BrowserType.Edge)
+      && (Build.MinCVer >= BrowserVer.MinUsableScript$type$$module$InExtensions
+          && Build.MinCVer >= BrowserVer.MinES$DynamicImport || !(Build.BTypes & BrowserType.Chrome))
+      && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredES$DynamicImport)
+      ) {
+    // @ts-ignore
+    return import("./" + url)
+  }
   const filename = url.slice(url.lastIndexOf("/") + 1).replace(".js", "")
-  __filename = `__loader_` + filename
-  return new Promise<void>((resolve): void => {
-    define([url], (): void => resolve())
-  })
+  __filename = "__loader_" + filename
+  return define([url])
 }
 
 export const loadChecker = (): void => { loadJS("options_checker.js") } 
@@ -812,4 +817,9 @@ export const click = function (a: Element): boolean {
   mouseEvent.initMouseEvent("click", true, true, window, 1, 0, 0, 0, 0
     , false, false, false, false, 0, null);
   return a.dispatchEvent(mouseEvent);
+}
+
+if (!Build.NDEBUG) {
+  const exported: Dict<any> = { Option_, BG_, bgSettings_, nextTick_ }
+  for (let key in exported) { if (exported.hasOwnProperty(key)) { (window as any)[key] = exported[key]; } }
 }

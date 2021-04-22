@@ -760,8 +760,16 @@ export const detectUsableChild = (el: KnownIFrameElement): VApiTy | null => {
 }
 
 export const doesWantToReloadLinkHints = (reason: NonNullable<ContentOptions["autoReload"]>) => {
-  const conf = options_.autoReload
-  return !conf || Lower(conf).includes(reason)
+  let conf = options_.autoReload, accept = !conf || Lower(conf).includes(reason)
+  let scheduling: Navigator["scheduling"] | undefined
+  if (OnChrome) {
+    accept = Build.MinCVer >= BrowserVer.MinEnsuredNavigator$scheduling$$isInputPending
+        ? accept && !navigator.scheduling!.isInputPending()
+        : accept && !((Build.MinCVer >= BrowserVer.MinMaybeUsableNavigator$scheduling$$isInputPending
+              || chromeVer_ > BrowserVer.MinMaybeUsableNavigator$scheduling$$isInputPending - 1)
+            && (scheduling = navigator.scheduling) && scheduling.isInputPending!())
+  }
+  return accept
 }
 
 const coreHints: HintManager = {

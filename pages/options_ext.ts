@@ -240,10 +240,11 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
     (method: string, key: string, val: any): any;
     (method: string, key: string, actionName: string, val: any): any;
   };
+  console.group("Import settings at " + formatDate_(Date.now()))
   if (time > 10000) {
-    console.info("IMPORT settings saved at %c%s%c.", "color:darkblue", formatDate_(time), "color:auto");
+    console.info("load settings saved at %c%s%c.", "color:darkblue", formatDate_(time), "color:auto")
   } else {
-    console.info("IMPORT settings:", is_recommended ? "recommended." : "saved before.");
+    console.info("load the settings:", is_recommended ? "recommended." : "saved before.")
   }
 
   const delKeys = (keys: string): void => keys.split(" ").forEach(k => delete new_data[k]);
@@ -347,7 +348,8 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
   if ($("#advancedOptionsButton").getAttribute("aria-checked") !== "" + bgSettings_.get_("showAdvancedOptions")) {
     $<AdvancedOptBtn>("#advancedOptionsButton").onclick(null, true);
   }
-  console.info("IMPORT settings: finished.");
+  console.info("import settings: finished.")
+  console.groupEnd()
   const root = window.VApi && VApi.y().r
   const node = root && root.querySelector("#HCls") as HTMLElement;
   if (node) { // reload help dialog

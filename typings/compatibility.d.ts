@@ -363,6 +363,7 @@ declare const enum BrowserVer {
   MinSelector$deep$InDynamicCssMeansNothing = 63,
   MinCSS$OverscrollBehavior = 63,
   MinOmniboxSupportDeleting = 63,
+  MinES$DynamicImport = 63,
   Min$addEventListener$IsInStrictMode = 64, // otherwise addEventListener has null .caller and null .arguments
   MinCSS$textDecorationSkipInk = 64,
   MinNoMultipleShadowRootsOfV0 = 64,
@@ -493,9 +494,17 @@ declare const enum BrowserVer {
   // 2->0.25/0.5; 5->0.04/0.2; 6->0.027778/0.166667
   MinBorderWidth$Ensure1$Or$Floor = 85, // even if EXPERIMENTAL or LEGACY
   MinChromeURL$NewTabPage = 85, // chrome://new-tab-page/ ; even if EXPERIMENTAL or LEGACY
+  // on C84 options must be `new IsInputPendingOptions()`
+  // before C84 it logs a warning of "requires site-per-process" on Vimium C Options page
+  MinMaybeUsableNavigator$scheduling$$isInputPending = 85, // if EXPERIMENTAL
   MinClipboardWriteHTML = 86,
+  // if EXPERIMENTAL, since 79 there's also `navigator.scheduling.isFramePending()`
+  MinEnsuredNavigator$scheduling$$isInputPending = 87, // even if LEGACY; since 74 if EXPERIMENTAL
   Min$TargetIsBlank$Implies$Noopener = 88, // https://chromestatus.com/features/6140064063029248
+  MinEnsuredES$TopLevelAwait = 89, // even if LEGACY; since 84 if EXPERIMENTAL
+  MinForcedColorsMode = 89, // even if EXPERIMENTAL or LEGACY; enable `(forced-colors: active|none)` and color schemes
   MinCSS$overflow$clip = 90, // even if EXPERIMENTAL or LEGACY
+  MinESModulesInServiceWorker = 91,
   /** @todo: trace https://bugs.chromium.org/p/chromium/issues/detail?id=968651&can=2&q=reduced-motion%20change */
   MinMediaChangeEventsOnBackgroundPage = 1000,
   MinNo$TimerType$$Fake = 999,
@@ -517,6 +526,7 @@ declare const enum FirefoxBrowserVer {
   MinExpandoObjectForSandboxWindowWrapperNotGetLost = 67, // https://github.com/philc/vimium/issues/2675
   // https://bugzilla.mozilla.org/show_bug.cgi?id=1522083
   Min$TargetIsBlank$Implies$Noopener = 67, // treats `[rel]=null` as `[rel=noopener]`
+  MinEnsuredES$DynamicImport = 67,
   MinFollowSelectionColorOnInactiveFrame = 68,
   Min$visualViewport$OnAndroid = 68, // for desktop version: https://bugzilla.mozilla.org/show_bug.cgi?id=1551302
   MinNoKeygenElement = 69,
