@@ -140,8 +140,8 @@ export const findNextInRel = (relName: string): GoNextBaseCandidate | null | und
   type HTMLElementWithRel = HTMLAnchorElement | HTMLAreaElement | HTMLLinkElement;
   let matched: HTMLElementWithRel | undefined, tag: "a" | "area" | "link"
   const re1 = <RegExpOne> /\s/
-  const array = OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
-      && chromeVer_ < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
+  const array = OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$ForDOMListTypes
+      && chromeVer_ < BrowserVer.MinEnsured$ForOf$ForDOMListTypes
       ? [].slice.call(elements) : elements as { [i: number]: Element } as Element[]
   for (const element of array) {
     if ((tag = htmlTag_(element) as typeof tag)

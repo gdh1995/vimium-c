@@ -32,26 +32,14 @@ export interface KnownOptionsDataset extends KnownDataset {
   href: `vimium://${string}`
 }
 
-import { CurCVer_, BG_, bgSettings_, OnFirefox, OnEdge, OnChrome } from "./async_bg"
-
-export const $ = <T extends HTMLElement>(selector: string): T => document.querySelector(selector) as T
-
-export const pTrans_: typeof chrome.i18n.getMessage = OnFirefox
-      ? (i, j) => BG_.trans_(i, j) : chrome.i18n.getMessage;
-
-export const $$ = ((selector: string, root?: HTMLElement | ShadowRoot | null): ArrayLike<Element> => {
-  const list = (root || document).querySelectorAll(selector)
-  return OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
-      && CurCVer_ < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
-      ? [].slice.call(list) : list
-}) as <T extends HTMLElement>(selector: string, root?: HTMLElement | ShadowRoot | null) => T[]
+import { CurCVer_, BG_, bgSettings_, OnFirefox, OnEdge, OnChrome, $, $$, pTrans_ } from "./async_bg"
 
 const lang_ = chrome.i18n.getMessage("lang1")
 export const showI18n = (): void => {
     if (!lang_) { return }
     const langInput = navigator.language as string || pTrans_("lang2")
-    let t = pTrans_("keyMappingsP"), el: HTMLElement | null = $("#keyMappings");
-    t && el && ((el as HTMLInputElement).placeholder = t);
+    let el: HTMLElement | null = $("#keyMappings"), t = el && pTrans_("keyMappingsP")
+    t && ((el as HTMLInputElement).placeholder = t)
     if (langInput && (lang_ !== "zh" || langInput !== "zh-CN")) {
       for (el of $$("input[type=text], textarea")) {
         el.lang = langInput as ""

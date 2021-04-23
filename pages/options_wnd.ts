@@ -1,7 +1,10 @@
-import { CurCVer_, CurFFVer_, BG_, bgSettings_, reloadBG_, OnFirefox, OnChrome, OnEdge } from "./async_bg"
+import {
+  CurCVer_, CurFFVer_, BG_, bgSettings_, reloadBG_, OnFirefox, OnChrome, OnEdge, $, $$, pTrans_,
+  toggleDark, toggleReduceMotion
+} from "./async_bg"
 import {
   KnownOptionsDataset, showI18n,
-  setupBorderWidth_, nextTick_, Option_, pTrans_, PossibleOptionNames, AllowedOptions, debounce_, $, $$
+  setupBorderWidth_, nextTick_, Option_, PossibleOptionNames, AllowedOptions, debounce_
 } from "./options_base"
 import { saveBtn, exportBtn, savedStatus, createNewOption, BooleanOption_, registerClass } from "./options_defs"
 import kPermissions = chrome.permissions.kPermissions
@@ -21,13 +24,6 @@ const IsEdg: boolean = OnChrome && (<RegExpOne> /\sEdg\//).test(navigator.appVer
 nextTick_(showI18n)
 setupBorderWidth_ && nextTick_(setupBorderWidth_);
 nextTick_((versionEl): void => {
-  const docCls = (document.documentElement as HTMLHtmlElement).classList;
-  const kEventName = "DOMContentLoaded", onload = (): void => {
-    removeEventListener(kEventName, onload);
-    bgSettings_.payload_.d && docCls.add("auto-dark");
-    bgSettings_.payload_.m && docCls.add("less-motion");
-  };
-  addEventListener(kEventName, onload);
   versionEl.textContent = bgSettings_.CONST_.VerName_;
 }, $(".version"))
 
@@ -399,22 +395,51 @@ if (OnChrome && (Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersColorScheme
   const media = matchMedia("(prefers-color-scheme: dark)");
   media.onchange = function (): void {
     bgSettings_.updateMediaQueries_();
-    useLocalStyle()
     setTimeout(useLocalStyle, 34)
   }
-  const useLocalStyle = () => {
+  const useLocalStyle = (first?: 1 | TimerType.fake): void => {
     const darkOpt = Option_.all_.autoDarkMode
-    if (darkOpt.previous_ && darkOpt.saved_ && window.VApi && VApi.z) {
+    if (darkOpt.previous_ && darkOpt.saved_) {
       const val = media.matches
-      const root = VApi.y().r, hud_box = root && root.querySelector(".HUD:not(.UI)")
-      bgSettings_.updatePayload_("d", val, VApi.z)
-      hud_box && hud_box.classList.toggle("D", val);
+      if (window.VApi && VApi.z) {
+        const root = VApi.y().r
+        if (root) {
+          for (let el of OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$ForDOMListTypes
+                ? [].slice.call(root.children) : root.children as ArrayLike<Element> as HTMLElement[]) {
+            if (el.localName !== "style") {
+              el.classList.toggle("D", val)
+              el = el.firstElementChild as HTMLElement | null || el
+              if (el.localName === "iframe") {
+                const isFind = el.classList.contains("Find")
+                const childDoc = (el as HTMLIFrameElement).contentDocument!
+                const dark = childDoc.querySelector("style#dark") as HTMLStyleElement
+                dark && dark.sheet && (dark.sheet.disabled = !val)
+                childDoc.body!.classList.toggle(isFind ? "D" : "has-dark", val)
+                if (isFind) {
+                  const input = VApi.y().f
+                  input && input.parentElement!.classList.toggle("D", val)
+                }
+              }
+            }
+          }
+        }
+        bgSettings_.updatePayload_("d", val, VApi.z)
+      } else if (first === 1 && (val !== !!bgSettings_.payload_.d)) {
+        setTimeout(useLocalStyle, 500)
+      }
+      toggleDark(val)
     }
   }
   // As https://bugzilla.mozilla.org/show_bug.cgi?id=1550804 said, to simulate color schemes, enable
   // https://developer.mozilla.org/en-US/docs/Mozilla/Firefox/Experimental_features#Color_scheme_simulation
-  setTimeout(useLocalStyle, 800)
+  useLocalStyle(1)
 }
+
+Option_.all_.autoDarkMode.onSave_ = function (): void {
+  bgSettings_.updateMediaQueries_()
+  toggleDark(this.previous_)
+}
+Option_.all_.autoReduceMotion.onSave_ = function (): void { toggleReduceMotion(this.previous_) }
 
 if (OnFirefox) {
   setTimeout((): void => {

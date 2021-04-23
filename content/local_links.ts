@@ -276,8 +276,8 @@ const createElementSet = (list: NodeListOf<Element> | Element[]): ElementSet | n
   let set: ElementSet | null
   if (!list.length) { set = null }
   else if (!OnChrome
-      || Build.MinCVer >= BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
-      || chromeVer_ > BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes - 1) {
+      || Build.MinCVer >= BrowserVer.MinEnsured$ForOf$ForDOMListTypes
+      || chromeVer_ > BrowserVer.MinEnsured$ForOf$ForDOMListTypes - 1) {
     set = new WeakSet!(list as ArrayLike<Element> as readonly Element[])
   } else if (Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || WeakSet) {
     set = new WeakSet!;
@@ -542,7 +542,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
       prepareCrop_(1)
     }
     cur_arr = querySelectorAll_unsafe_(selector, ui_root) as NodeListOf<SafeElement>
-    if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes) {
+    if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$ForDOMListTypes) {
       for (let i = 0; i < cur_arr.length; i++) { htmlTag_(cur_arr[i]) && filter(output, cur_arr[i] as SafeHTMLElement) }
     } else {
       for (const i of cur_arr as ArrayLike<Element> as Element[]) { htmlTag_<1>(i) && filter(output, i) }
@@ -618,7 +618,8 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
     if ((tag = el.localName as keyof HTMLElementTagNameMap) === "img"
         ? isDescendant(el, fromPoint!, 0)
         : tag === "area" ? fromPoint === list[i][4]
-        : tag === INP && ((htmlTag_(fromPoint!) !== "label" && !notSafe_not_ff_!(fromPoint!)
+        : tag === INP && ((OnFirefox ? htmlTag_(fromPoint!) !== "label"
+                : htmlTag_(fromPoint!) !== "label" && !notSafe_not_ff_!(fromPoint!)
               && fromPoint!.parentElement || fromPoint!) as MayBeLabel).control === el
           && (notForAllClickable
               || (i < 1 || list[i - 1][0] !== el) && (i + 2 > list.length || list[i + 1][0] !== el))) {
@@ -711,7 +712,7 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
     : _i - HintMode.FOCUS_EDITABLE ? traverse(kSafeAllSelector, hintOptions
           , _i - HintMode.ENTER_VISUAL_MODE ? getClickable : (hints: Hint[], element: SafeHTMLElement): void => {
         const arr = element.childNodes as NodeList
-        if (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes) {
+        if (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$ForOf$ForDOMListTypes) {
           for (const node of arr as ArrayLike<Node> as Node[]) {
             if (isNode_(node, kNode.TEXT_NODE) && node.data.trim().length > 2) {
               getIfOnlyVisible(hints, element)

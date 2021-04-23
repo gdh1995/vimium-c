@@ -240,6 +240,7 @@ interface VApiTy {
     /** clickable */ c: ElementSet
     /** Scroller::keyIsDown */ k: number
     /** UI root */ r: VUIRoot | null
+    /** find input */ f: SafeHTMLElement | null
   }
   /** cache */ z: SettingsNS.FrontendSettingCache | null
   /** VScroller.$sc */ $: (element: SafeElement | null, di: ScrollByY, amount: number

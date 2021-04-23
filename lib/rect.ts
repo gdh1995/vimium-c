@@ -101,7 +101,7 @@ export let getBoundingClientRect_: (el: Element) => ClientRect = !OnFirefox ? (e
   return getBoundingClientRect_(el)
 } : el => el.getBoundingClientRect()
 
-export const getVisibleClientRect_ = OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$forEach$ForDOMListTypes
+export const getVisibleClientRect_ = OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$ForDOMListTypes
 ? (element: SafeElement, el_style?: CSSStyleDeclaration | null): Rect | null => {
   let cr: Rect | null, I: "inline" | undefined, useChild: boolean, isInline: boolean | undefined, str: string
   const arr = element.getClientRects()

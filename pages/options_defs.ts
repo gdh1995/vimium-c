@@ -1,6 +1,6 @@
-import { CurCVer_, BG_, bgSettings_, OnChrome, OnFirefox } from "./async_bg"
+import { CurCVer_, BG_, bgSettings_, OnChrome, OnFirefox, $, $$, pTrans_ } from "./async_bg"
 import {
-  Option_, AllowedOptions, pTrans_, Checker, PossibleOptionNames, nextTick_, ExclusionRulesOption_, $, $$,
+  Option_, AllowedOptions, Checker, PossibleOptionNames, nextTick_, ExclusionRulesOption_,
   KnownOptionsDataset, OptionErrorType, ExclusionRealNode
 } from "./options_base"
 
@@ -532,13 +532,6 @@ Option_.all_.newTabUrl.checker_ = {
       || (<RegExpI> /^(?!http|ftp)[a-z\-]+:\/?\/?newtab\b\/?/i).test(value)
       ) ? bgSettings_.defaults_.newTabUrl : value
   }
-}
-
-Option_.all_.autoDarkMode.onSave_ = function (): void {
-  document.documentElement!.classList.toggle("auto-dark", this.previous_)
-}
-Option_.all_.autoReduceMotion.onSave_ = function (): void {
-  document.documentElement!.classList.toggle("less-motion", this.previous_)
 }
 
 Option_.all_.userDefinedCss.onSave_ = function () {

@@ -1,5 +1,5 @@
-import { BG_, bgSettings_ } from "./async_bg"
-import { Option_, pTrans_, AllowedOptions, $$, KnownOptionsDataset } from "./options_base"
+import { BG_, bgSettings_, $$, pTrans_ } from "./async_bg"
+import { Option_, AllowedOptions, KnownOptionsDataset } from "./options_base"
 import { loadChecker } from "./options_wnd"
 
 let keyMappingChecker_ = {

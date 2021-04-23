@@ -18,7 +18,7 @@ import { currentKeys } from "./key_handler"
 import { set_needToRetryParentClickable, focusAndRun } from "./request_handlers"
 import { coreHints } from "./link_hints"
 import { executeScroll, scrollTick, $sc, keyIsDown as scroll_keyIsDown } from "./scroller"
-import { onLoad as findOnLoad, find_box } from "./mode_find"
+import { onLoad as findOnLoad, find_box, find_input } from "./mode_find"
 import { filterTextToGoNext, jumpToNextLink } from "./pagination"
 import { main_not_ff as extend_click_not_ff } from  "./extend_click"
 import { main_ff as extend_click_ff } from  "./extend_click_ff"
@@ -66,8 +66,8 @@ set_vApi(VApi = {
     return arg
   }], s: suppressTail_, t: requestHandlers[kBgReq.showHUD], u: locHref, x: flash_,
   y: OnFirefox ? () => ( {
-    w: onWndFocus, b: find_box, c: clickable_, k: scroll_keyIsDown, r: ui_root
-  } ) : () => ( {  b: find_box, c: clickable_, k: scroll_keyIsDown, r: ui_root } )
+    w: onWndFocus, b: find_box, c: clickable_, k: scroll_keyIsDown, r: ui_root, f: find_input
+  } ) : () => ( {  b: find_box, c: clickable_, k: scroll_keyIsDown, r: ui_root, f: find_input } )
 })
 
 if (OnFirefox && injector === void 0) {

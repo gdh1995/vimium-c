@@ -393,9 +393,10 @@ set_contentCommands_([
       box = new DOMParser().parseFromString((html as Exclude<typeof html, string>).b, "text/html"
           ).body.firstChild as SafeHTMLElement
       box.prepend!(createStyle((html as Exclude<typeof html, string>).h))
+      box.className += fgCache.d
     } else {
       outerBox_not_ff = createElement_(OnChrome ? getBoxTagName_cr_() : "div")
-      setClassName_s(outerBox_not_ff, "R H")
+      setClassName_s(outerBox_not_ff, "R H" + fgCache.d)
       outerBox_not_ff.innerHTML = html as string
       box = outerBox_not_ff.lastChild as SafeHTMLElement
     }

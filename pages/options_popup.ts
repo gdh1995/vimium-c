@@ -1,6 +1,6 @@
-import { BG_, bgSettings_, OnFirefox, OnEdge, OnChrome } from "./async_bg"
+import { BG_, bgSettings_, OnFirefox, OnEdge, OnChrome, $, pTrans_ } from "./async_bg"
 import {
-  ExclusionVisibleVirtualNode, ExclusionRulesOption_, Option_, $, nextTick_, pTrans_, setupBorderWidth_, showI18n
+  ExclusionVisibleVirtualNode, ExclusionRulesOption_, Option_, nextTick_, setupBorderWidth_, showI18n
 } from "./options_base"
 
 let bgExclusions: typeof Exclusions
@@ -234,7 +234,7 @@ Promise.all([bgSettings_.restore_ && bgSettings_.restore_(), new Promise<[chrome
     blockedMsg.remove()
     blockedMsg = null as never
     const docCls = (document.documentElement as HTMLHtmlElement).classList
-    docCls.toggle("auto-dark", !!bgSettings_.payload_.d)
+    docCls.toggle("no-dark", !bgSettings_.payload_.d)
     docCls.toggle("less-motion", !!bgSettings_.payload_.m)
     versionEl.textContent = bgSettings_.CONST_.VerName_
   }, $(".version"))
@@ -320,7 +320,7 @@ const onNotRunnable = (blockedMsg: HTMLElement, curTab: chrome.tabs.Tab | null, 
       })
     }
   }
-  docEl.classList.toggle("auto-dark", !!bgSettings_.payload_.d)
+  docEl.classList.toggle("no-dark", !bgSettings_.payload_.d)
   docEl.style.height = ""
   const retryInjectElement = $<HTMLAnchorElement>("#retryInject")
   if (!OnFirefox && (<RegExpOne> /^(file|ftps?|https?):/).test(_url) && curTab) {

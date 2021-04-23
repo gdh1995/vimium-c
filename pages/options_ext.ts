@@ -1,5 +1,5 @@
-import { CurCVer_, CurFFVer_, BG_, bgSettings_, OnChrome, OnEdge, OnFirefox } from "./async_bg"
-import { $, AllowedOptions, ExclusionRulesOption_, Option_, pTrans_ } from "./options_base"
+import { CurCVer_, CurFFVer_, BG_, bgSettings_, OnChrome, OnEdge, OnFirefox, $, pTrans_ } from "./async_bg"
+import { AllowedOptions, ExclusionRulesOption_, Option_ } from "./options_base"
 import { SaveBtn } from "./options_defs"
 import { AdvancedOptBtn, click, ElementWithDelay, loadJS, OptionWindow } from "./options_wnd"
 

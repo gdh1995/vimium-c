@@ -17,7 +17,7 @@ html {
   --transition-duration: 0;
 }
 @media (prefers-color-scheme: dark) {
-  .auto-dark {
+  html:not(.no-dark) {
     --plain-color: #abb0b5;
     --background-color: #000;
     --panel-background-color: #18191b;
@@ -675,7 +675,7 @@ select:-moz-focusring {
     color: var(--item-caption-color);
   }
 }
-@media (-ms-high-contrast:active) {
+@media (-ms-high-contrast:active), (forced-colors: active) {
   * {
     border-radius:0 !important;
   }

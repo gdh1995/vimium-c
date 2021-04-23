@@ -202,7 +202,12 @@ elif test "$VER" == wo; then
   EXE=$WORKING_DIR/Chrome-bin/chrome.exe
 else
   EXE=$WORKING_DIR/${VER:-cur}/chrome.exe
-  test -f "$EXE" || EXE=$CHROME_ROOT/${VER:-Chrome}/chrome.exe
+  if ! test -f "$EXE"; then
+    EXE=$CHROME_ROOT/${VER:-Chrome}/chrome.exe
+    if test ! -f "$EXE" -a -n "$VER" && find "$CHROME_ROOT/Chrome/" -name "${VER}.*" >/dev/null 2>&1; then
+      EXE=$CHROME_ROOT/Chrome/chrome.exe
+    fi
+  fi
 fi
 VC_ROOT="$(/usr/bin/realpath ${VC_ROOT})"
 if test $DIST -gt 0; then

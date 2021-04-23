@@ -51,8 +51,8 @@ export let CurCVer_: BrowserVer = OnChrome ? 0 | (
     navigator.appVersion.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/)
     || [0, BrowserVer.assumedVer])[1] as number : BrowserVer.assumedVer
 export const CurFFVer_: FirefoxBrowserVer = OnFirefox
-    ? 0 | (navigator.userAgent.match(<RegExpOne> /\bFirefox\/(\d+)/) || [0, FirefoxBrowserVer.assumedVer])[1] as number
-    : FirefoxBrowserVer.None
+    && 0 | (navigator.userAgent.match(<RegExpOne> /\bFirefox\/(\d+)/) || [0, FirefoxBrowserVer.assumedVer])[1] as number
+    || FirefoxBrowserVer.assumedVer
 if (OnChrome && Build.MinCVer <= BrowserVer.FlagFreezeUserAgentGiveFakeUAMajor
     && CurCVer_ === BrowserVer.FakeUAMajorWhenFreezeUserAgent && matchMedia("(prefers-color-scheme)").matches) {
   CurCVer_ = BrowserVer.FlagFreezeUserAgentGiveFakeUAMajor
@@ -73,3 +73,26 @@ export const reloadBG_ = (): void => {
     if (!bgSettings_) { BG_ = null as never }
   }
 }
+
+export const pTrans_: typeof chrome.i18n.getMessage = OnFirefox
+      ? (i, j) => BG_.trans_(i, j) : chrome.i18n.getMessage;
+
+export const $ = <T extends HTMLElement>(selector: string): T => document.querySelector(selector) as T
+
+export const $$ = ((selector: string, root?: HTMLElement | ShadowRoot | null): ArrayLike<Element> => {
+  const list = (root || document).querySelectorAll(selector)
+  return OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$ForDOMListTypes
+      && CurCVer_ < BrowserVer.MinEnsured$ForOf$ForDOMListTypes
+      ? [].slice.call(list) : list
+}) as <T extends HTMLElement>(selector: string, root?: HTMLElement | ShadowRoot | null) => T[]
+
+export const toggleDark = (dark: boolean): void => {
+  (document.head!.querySelector("meta[name=color-scheme]") as HTMLMetaElement).content = dark ? "light dark" : "light"
+  document.documentElement!.classList.toggle("no-dark", !dark)
+}
+export const toggleReduceMotion = (reduced: boolean): void => {
+  document.documentElement!.classList.toggle("less-motion", reduced)
+}
+
+bgSettings_.payload_.d || toggleDark(false)
+bgSettings_.payload_.m && toggleReduceMotion(true)

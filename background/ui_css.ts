@@ -11,7 +11,9 @@ interface ParsedSections {
 
 const StyleCacheId_ = settings.CONST_.VerCode_ + ","
     + ( !(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && OnOther === BrowserType.Chrome
-        ? CurCVer_ : Build.BTypes & BrowserType.Firefox ? CurFFVer_ : 0)
+        ? CurCVer_
+        : !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox
+        ? CurFFVer_ : 0)
     + ( (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
           && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
           && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
@@ -117,6 +119,11 @@ const loadCSS = (action: MergeAction, cssStr?: string): SettingsNS.MergedCustomC
       }
       css = css.slice(0, ind1) + items + css.slice(ind2)
     }
+    if (Build.BTypes & BrowserType.Firefox && isHighContrast_ff) {
+      css = css.split("\n.D", 1)[0]
+    } else if (!(Build.BTypes & BrowserType.Chrome) || !IsEdg_) {
+      css = css.split("\nbody", 1)[0]
+    }
     if (!((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
           && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
           && !(Build.BTypes & ~BrowserType.ChromeOrFirefox))
@@ -132,11 +139,6 @@ const loadCSS = (action: MergeAction, cssStr?: string): SettingsNS.MergedCustomC
       css = prefix + css.slice(5, hostEnd) +
           /** Note: {@link ../front/vimium-c.css}: this requires no ID/attr selectors in "ui" styles */
           body.replace(<RegExpG> /\.[A-Z][^,{]*/g, prefix + " $&")
-    }
-    if (Build.BTypes & BrowserType.Firefox && isHighContrast_ff) {
-      css = css.split("\n.D", 1)[0]
-    } else if (!(Build.BTypes & BrowserType.Chrome) || !IsEdg_) {
-      css = css.split("\nbody", 1)[0]
     }
     css = css.replace(<RegExpG> /\n/g, "")
     if (Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor && Build.BTypes & BrowserType.Chrome

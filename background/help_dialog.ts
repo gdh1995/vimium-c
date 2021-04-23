@@ -83,7 +83,6 @@ var HelpDialog = {
       keys.push([key, registry])
     })
     const result = BgUtils_.safer_<Dict<string>>({
-      className: Settings_.payload_.d,
       title: trans_(isOptionsPage ? "cmdList" : "help"),
       tip: showNames ? trans_("tipClickToCopy")  : "",
       lbPad: showNames ? '\n\t\t<tr><td class="HelpTd TdBottom">&#160;</td></tr>' : ""
@@ -97,7 +96,7 @@ var HelpDialog = {
     a.template_ = null;
     return Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-        ? { h: html[0], b: div } : (html[0].replace("{{className}}", Settings_.payload_.d) + div) as any as "html"
+        ? { h: html[0], b: div } : (html[0] + div) as any as "html"
   }) as BaseHelpDialog["render_"],
   // eslint-disable-next-line object-shorthand
   groupHtml_: (function (this: {}, group: string, commandToKeys: Map<string, [string, CommandsNS.BaseItem][]>

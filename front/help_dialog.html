@@ -1,7 +1,8 @@
-<div class="R Scroll UI{{className}}" id="HDlg" tabindex="0">
+<div class="R Scroll UI" id="HDlg" tabindex="0">
 <style type="text/css">
 .R.H {
 	contain: none;
+	/** add this line just in case */ pointer-events: all;
 	-webkit-user-select: auto;
 	user-select: auto;
 }
@@ -207,8 +208,7 @@
 		padding-right: 12px;
 	}
 }
-
-#HDlg.D {
+.D>#HDlg {
 	background: #000;
 	border-color: #555;
 	color: #aab0b6;
@@ -224,10 +224,10 @@
 	color: #aab0b6;
 	border-color: #666;
 }
-.D.Scroll::-webkit-scrollbar:vertical, .D.Scroll::-webkit-scrollbar:horizontal {
+.D>.Scroll::-webkit-scrollbar:vertical, .D>.Scroll::-webkit-scrollbar:horizontal {
 	border-color: #555;
 }
-.D.Scroll:hover::-webkit-scrollbar-thumb {
+.D>.Scroll:hover::-webkit-scrollbar-thumb {
 	background: #666;
 }
 

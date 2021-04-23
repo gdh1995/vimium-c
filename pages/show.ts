@@ -15,7 +15,7 @@ interface KnownShowDataset extends KnownDataset {
   colon: string // colon string in i18n
 }
 
-import { CurCVer_, CurFFVer_, BG_, OnChrome, OnFirefox, OnEdge } from "./async_bg"
+import { CurCVer_, CurFFVer_, BG_, OnChrome, OnFirefox, OnEdge, $, pTrans_ } from "./async_bg"
 declare var define: any
 declare var __filename: string | null | undefined
 
@@ -47,8 +47,6 @@ interface ImportBody {
 }
 type ValidNodeTypes = HTMLImageElement | HTMLDivElement;
 
-const $ = <T extends HTMLElement>(selector: string): T => document.querySelector(selector) as T,
-pTrans_ = chrome.i18n.getMessage
 const blobCache: Dict<Blob> = {}
 const body = document.body as HTMLBodyElement
 
@@ -765,7 +763,7 @@ function parseSmartImageUrl_(originUrl: string): string | null {
           && !ImageExtRe.test(path.slice(Math.max(0, offset - 6), offset))) {
         search = arr2[0];
       }
-    } else if (arr1 = (<RegExpOne> /\b([\da-f]{8,48})([_-][a-z]{1,2})\.[a-z]{2,4}$/).exec(search)) {
+    } else if (arr1 = (<RegExpOne> /\b([\da-f]{8,48})([_-](?:[a-z]{1,2}|\d{3,4}[whp]?))\.[a-z]{2,4}$/).exec(search)) {
       offset += arr1.index + arr1[1].length;
       search = search.slice(arr1.index + arr1[1].length + arr1[2].length);
     } else {
@@ -773,7 +771,7 @@ function parseSmartImageUrl_(originUrl: string): string | null {
     }
   }
   if (found || index > 2) { found = found || 0; }
-  else if (arr1 = (<RegExpOne> /_(0x)?[1-9]\d{2,3}(x0)?\./).exec(search)) {
+  else if (arr1 = (<RegExpOne> /_(0x)?[1-9]\d{2,3}([whp]|x0)?\./).exec(search)) {
     search = search.slice(0, arr1.index) + search.slice(arr1.index + arr1[0].length - 1);
   } else if (search.startsWith("thumb_")) {
     search = search.slice(6);
