@@ -154,23 +154,36 @@ declare namespace CommandsNS {
   }
   // encoded info
   interface CustomHelpInfo {
-    key_: string; desc_: string; $key_?: unknown
+    key_: string; desc_: string; $key_?: undefined
   }
-  interface NormalizedCustomHelpInfo extends CustomHelpInfo {
+  interface NormalizedCustomHelpInfo {
     $key_: string; $desc_: string
   }
   type BgDescription = [ alias: keyof BgCmdOptions, background: 1, repeat: number, defaultOptions?: {} ]
   type FgDescription = [ alias: keyof CmdOptions, background: 0, repeat: number, defaultOptions?: {} ]
   /** [ enum, is background, count limit, default options ] */
   type Description = BgDescription | FgDescription
-  interface BaseItem {
-    readonly options_: Options | null
+  interface BaseHelpItem {
+    help_: CustomHelpInfo | NormalizedCustomHelpInfo | null
+  }
+  interface BaseItem extends BaseHelpItem {
+    readonly options_: Options | RawOptions | "__not_parsed__" | null
     readonly repeat_: number
     readonly command_: kCName
-    readonly help_: CustomHelpInfo | null
   }
-  type Item = (BaseItem & { readonly alias_: keyof BgCmdOptions; readonly background_: 1
-      }) | (BaseItem & { readonly alias_: keyof CmdOptions; readonly background_: 0 })
+  interface NormalizedItem extends BaseItem {
+    readonly options_: Options | null
+  }
+  interface UnnormalizedItem extends BaseItem {
+    readonly options_: "__not_parsed__"
+    help_: null
+  }
+  interface ItemWithHelpInfo extends BaseHelpItem {
+    help_: NormalizedCustomHelpInfo | null
+  }
+  type ValidItem = NormalizedItem | UnnormalizedItem
+  type Item = ValidItem & ({ readonly alias_: keyof BgCmdOptions; readonly background_: 1
+      } | { readonly alias_: keyof CmdOptions; readonly background_: 0 })
 }
 
 interface CommandsDataTy {

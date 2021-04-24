@@ -20,7 +20,7 @@ import {
 import { hudTip, hud_box } from "./hud"
 import {
   currentKeys, mappedKeys, set_keyFSM, anyClickHandler, onKeydown, onKeyup,
-  set_isPassKeysReversed, isPassKeysReversed, set_passKeys, set_mappedKeys, set_mapKeyTypes,
+  set_isPassKeysReversed, isPassKeysReversed, set_passKeys, set_mappedKeys, set_mapKeyTypes, keyFSM,
 } from "./key_handler"
 import { HintManager, kSafeAllSelector, set_kSafeAllSelector } from "./link_hints"
 import { createMark } from "./marks"
@@ -130,7 +130,7 @@ set_requestHandlers([
     // if true, recover listeners on shadow roots;
     // otherwise listeners on shadow roots will be removed on next blur events
     if (isEnabled_) {
-      esc!(HandlerResult.Nothing); // for passNextKey#normal
+      esc!(HandlerResult.ExitPassMode); // for passNextKey#normal
       old || insertInit();
       (old && !isLocked_) || hookOnWnd(HookAction.Install);
       // here should not return even if old - a url change may mean the fullscreen mode is changed
@@ -188,11 +188,11 @@ set_requestHandlers([
   },
   /* kBgReq.exitGrab: */ exitGrab as (this: void, request: Req.bg<kBgReq.exitGrab>) => void,
   /* kBgReq.keyFSM: */ function (request: BgReq[kBgReq.keyFSM]): void {
-    safer(set_keyFSM(request.k))
+    safer(set_keyFSM(request.k || keyFSM))
     set_mapKeyTypes(request.t)
     set_mappedKeys(request.m)
     mappedKeys && safer(mappedKeys)
-    esc!(HandlerResult.ExitPassMode) // in case storage.sync changed
+    esc!(HandlerResult.Nothing) // so that passNextKey#normal refreshes nextKeys to the new keyFSM
   },
   /* kBgReq.execute: */ function<O extends keyof CmdOptions> (request: BaseExecute<CmdOptions[O], O>): void {
     if (request.H) { setUICSS(request.H); }

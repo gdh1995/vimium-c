@@ -22,6 +22,7 @@ var Settings_ = {
     IconBuffer_: null as IconNS.AccessIconBuffer | null,
     loadI18nPayload_: null as (() => void) | null,
     omniStyleOverridden_: false,
+    getNormalizedOptions_: null as never as (item: CommandsNS.BaseItem) => CommandsNS.Options | null,
     shownHash_: null as ((this: void) => string) | null
   },
   payload_: <SettingsNS.FrontendSettingCache> As_<SettingsNS.DeclaredFrontendValues>({

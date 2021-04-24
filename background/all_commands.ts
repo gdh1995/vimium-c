@@ -20,6 +20,7 @@ import {
   copyWindowInfo, getTabRange, joinTabs, moveTabToNewWindow, moveTabToNextWindow, reloadTab, removeTab, toggleMuteTab,
   togglePinTab, toggleTabUrl
 } from "./tab_commands"
+import { normalizedOptions_ } from "./key_mappings"
 
 declare const enum Info { NoTab = 0, ActiveTab = 1, CurWndTabsIfRepeat = 2, CurWndTabs = 3, CurShownTabs = 4 }
 type BgCmdNoTab<T extends kBgCmd> = (this: void, _fakeArg?: undefined) => void | T
@@ -597,8 +598,8 @@ set_executeCommand((registryEntry: CommandsNS.Item, count: number, lastKey: kKey
     set_gOnConfirmCallback(null) // just in case that some callbacks were thrown away
     return
   }
-  let { options_: options, repeat_: repeat } = registryEntry
   let scale: number | undefined
+  let options = normalizedOptions_(registryEntry), repeat = registryEntry.repeat_
   // .count may be invalid, if from other extensions
   if (options && (scale = options.count)) { count = count * scale || 1 }
   count = Build.BTypes & ~BrowserType.Chrome && overriddenCount

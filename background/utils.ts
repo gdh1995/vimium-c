@@ -774,7 +774,7 @@ var BgUtils_ = {
     });
     for (let val of str.replace(<RegExpSearchable<0>> /\\\\?\n/g, t => t.length === 3 ? "\\\n" : "").split("\n")) {
       val = val.trim();
-      if (!(val && val.charCodeAt(0) > kCharCode.maxCommentHead)) { continue; } // mask: /[!"#]/
+      if (val < kChar.minNotCommentHead) { continue; } // mask: /[!"#]/
       ind = 0;
       do {
         ind = val.indexOf(":", ind + 1);

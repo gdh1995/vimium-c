@@ -61,7 +61,7 @@ var HelpDialog = {
       body = body.replace(<RegExpSearchable<1>> /\{\{(\w+)}}/g, (_, group: string) => consts[group] || _);
       a.html_ = [head, body];
     }
-    const commandToKeys = new Map<string, [string, CommandsNS.BaseItem][]>(),
+    const commandToKeys = new Map<string, [string, CommandsNS.NormalizedItem][]>(),
     ref = CommandsData_.keyToCommandRegistry_, hideUnbound = !isOptionsPage, showNames = isOptionsPage;
     ref.forEach((registry, key): void => {
       let command: string = registry.command_;
@@ -80,7 +80,10 @@ var HelpDialog = {
       }
       let keys = commandToKeys.get(command)
       keys || commandToKeys.set(command, keys = [])
-      keys.push([key, registry])
+      if (typeof registry.options_ === "string") {
+        Settings_.temp_.getNormalizedOptions_(registry)
+      }
+      keys.push([key, registry as CommandsNS.NormalizedItem])
     })
     const result = BgUtils_.safer_<Dict<string>>({
       title: trans_(isOptionsPage ? "cmdList" : "help"),
@@ -99,7 +102,7 @@ var HelpDialog = {
         ? { h: html[0], b: div } : (html[0] + div) as any as "html"
   }) as BaseHelpDialog["render_"],
   // eslint-disable-next-line object-shorthand
-  groupHtml_: (function (this: {}, group: string, commandToKeys: Map<string, [string, CommandsNS.BaseItem][]>
+  groupHtml_: (function (this: {}, group: string, commandToKeys: Map<string, [string, CommandsNS.NormalizedItem][]>
       , hideUnbound: boolean, showNames: boolean): string {
     const a = this as typeof HelpDialog;
     const renderItem = a.commandHtml_
@@ -123,8 +126,7 @@ var HelpDialog = {
       if (keys && keys.length > 0) {
         bindings = '\n\t\t<span class="HelpKey">';
         for (const item of keys) {
-          const help = item[1].help_ as Partial<CommandsNS.NormalizedCustomHelpInfo> | null;
-          help && a.normalizeHelpInfo_(help);
+          const help = a.normalizeHelpInfo_(item[1])
           const key = help && help.$key_ || BgUtils_.escapeText_(item[0]), desc2 = help && help.$desc_;
           if (desc2) {
             let singleBinding = `\n\t\t<span class="HelpKey">${key}</span>\n\t`;
@@ -167,8 +169,9 @@ var HelpDialog = {
     }
     return html + "</td>\n</tr>\n";
   }),
-  normalizeHelpInfo_ (help: Partial<CommandsNS.NormalizedCustomHelpInfo>): void {
-    if (help.$key_ != null) { return; }
+  normalizeHelpInfo_ (item: CommandsNS.BaseHelpItem): CommandsNS.NormalizedCustomHelpInfo | null {
+    const help = item.help_
+    if (!help || help.$key_ != null) { return help as CommandsNS.NormalizedCustomHelpInfo | null }
     let a = this.template_;
     if (Build.BTypes & ~BrowserType.Firefox && !a) {
       const template = document.createElement("template"),
@@ -179,8 +182,10 @@ var HelpDialog = {
     } else if (!a) {
       a = this.template_ = new DOMParser();
     }
-    help.$key_ = help.key_ ? this.safeHTML_(help.key_, a) : "";
-    help.$desc_ = help.desc_ ? this.safeHTML_(help.desc_, a) : "";
+    return (item as CommandsNS.ItemWithHelpInfo).help_ = {
+      $key_: help.key_ ? this.safeHTML_(help.key_, a) : "",
+      $desc_: help.desc_ ? this.safeHTML_(help.desc_, a) : ""
+    }
   },
   // https://support.zendesk.com/hc/en-us/articles/115015895948-Allowing-unsafe-HTML-in-articles
   _safeTags: {

@@ -10,7 +10,7 @@ import {
 } from "./ports"
 import { parseSedOptions_, substitute_ } from "./clipboard"
 import { parseReuse, newTabIndex, openUrlWithActions } from "./open_urls"
-import { envRegistry_, shortcutRegistry_, visualGranularities_, visualKeys_ } from "./key_mappings"
+import { envRegistry_, normalizedOptions_, shortcutRegistry_, visualGranularities_, visualKeys_ } from "./key_mappings"
 
 export const nextFrame = (): void | kBgCmd.nextFrame => {
   let port = cPort, ind = -1
@@ -526,9 +526,10 @@ export const executeShortcut = (shortcutName: StandardShortcutNames, ref: Frames
   }
   if (cmdFallback) {
     /** this object shape should keep the same as the one in {@link key_mappings.ts#makeCommand_} */
-    registry = { alias_: cmdFallback, background_: 1, command_: cmdName, help_: null,
+    registry = <CommandsNS.Item> As_<CommandsNS.ValidItem>({
+      alias_: cmdFallback, background_: 1, command_: cmdName, help_: null,
       options_: registry.options_, repeat_: registry.repeat_
-    }
+    })
   }
   if (!registry.background_) {
     return
@@ -536,7 +537,7 @@ export const executeShortcut = (shortcutName: StandardShortcutNames, ref: Frames
   if (registry.alias_ > kBgCmd.MAX_NEED_CPORT || registry.alias_ < kBgCmd.MIN_NEED_CPORT) {
     executeCommand(registry, 1, kKeyCode.None, null as never as Port, 0)
   } else {
-    let opts = registry.options_
+    let opts = normalizedOptions_(registry)
     if (!opts || !opts.$noWarn) {
       let rawOpts: CommandsNS.Options = (registry as Writable<typeof registry>).options_ = BgUtils_.safeObj_<any>()
       opts && BgUtils_.extendIf_(rawOpts, opts)
@@ -729,11 +730,14 @@ export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey]): void => {
       count = keys.length === 1 ? count * cRepeat : absCRepeat !== cRepeat ? -count : count
       const specialOptions = matchedRule.options
       if (specialOptions || !expected_rules && Object.keys(get_cOptions<C.runKey>()).length > 1) {
+        const originalOptions = normalizedOptions_(registryEntry)
         registryEntry = BgUtils_.extendIf_(BgUtils_.safeObj_<{}>(), registryEntry)
         let newOptions: CommandsNS.Options & KnownOptions<kBgCmd.runKey> = BgUtils_.safeObj_<{}>()
         BgUtils_.extendIf_(newOptions, specialOptions || get_cOptions<C.runKey>())
         specialOptions || delete newOptions.keys
-        registryEntry.options_ && BgUtils_.extendIf_(newOptions, registryEntry.options_);
+        if (originalOptions) {
+          BgUtils_.extendIf_(newOptions, originalOptions);
+        }
         (registryEntry as Writable<typeof registryEntry>).options_ = newOptions
       }
       executeCommand(registryEntry, count, cKey, cPort, 0)

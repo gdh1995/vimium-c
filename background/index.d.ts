@@ -224,6 +224,7 @@ declare namespace CommandsNS {
   interface BaseItem {
     readonly alias_: (kBgCmd | kFgCmd) & number; readonly background_: BOOL
   }
+  interface Options {}
   interface EnvItem {
     element?: string
     host?: string | Pick<ExclusionsNS.Tester, "t" | "v"> | null
