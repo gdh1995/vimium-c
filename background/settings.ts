@@ -12,6 +12,7 @@ const AsC_ = <T extends kCName> (i: T): T => i
 var Settings_ = {
   cache_: BgUtils_.safeObj_() as Readonly<SettingsNS.FullCache>,
   temp_: {
+    isHighContrast_ff_: false,
     hasEmptyLocalStorage_: localStorage.length <= 0,
     backupSettingsToLocal_: null as null | ((wait: number) => void) | true,
     onInstall_: null as Parameters<chrome.runtime.RuntimeInstalledEvent["addListener"]>[0] | null,
@@ -272,6 +273,10 @@ var Settings_ = {
         options.queryInterval = newQueryInterval;
         options.sizes = newSizes;
         options.styles = newStyles;
+      }
+      if (Build.BTypes & BrowserType.Firefox && a.temp_.isHighContrast_ff_
+          && !(<RegExpOne> /(^|\s)high-contrast(\s|$)/).test(styles)) {
+        styles += "high-contrast"
       }
       (a.cache_ as WritableSettingsCache).vomnibarOptions = isSame ? defaultOptions : options!;
       payload.n = maxMatches;

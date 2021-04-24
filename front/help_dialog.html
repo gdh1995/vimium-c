@@ -243,12 +243,12 @@
 }
 .Scroll::-webkit-scrollbar:vertical {
 	border-radius: 0 6px 6px 0;
-	border-left: 0.5px solid #ddd;
+	border-left: 1px solid #ddd;
 	width: 12px;
 }
 .Scroll::-webkit-scrollbar:horizontal {
 	border-radius: 0 0 6px 6px;
-	border-top: 0.5px solid #ddd;
+	border-top: 1px solid #ddd;
 	height: 12px;
 }
 .Scroll:hover::-webkit-scrollbar-thumb {
@@ -265,6 +265,29 @@
 }
 #HDlg.Scroll::-webkit-scrollbar-thumb:active {
 	background: #666;
+}
+@media (forced-colors: active), (-ms-high-contrast: active) {
+	#HDlg {
+		border-radius: 0;
+	}
+	.HelpKey {
+		border-bottom-width: 1px;
+		border-radius: 0;
+		padding: 1px 4px;
+	}
+	.D #HCls { color: #5b96f5; }
+	.Scroll::-webkit-scrollbar-thumb:vertical {
+		border: 2px solid #ddd;
+		border-left-width: 1px;
+		border-radius: 0;
+		border-right: none;
+	}
+	.Scroll::-webkit-scrollbar-thumb:horizontal {
+		border: 1px solid #ddd;
+		border-bottom: none;
+		border-radius: 0;
+		border-top-width: 1px;
+	}
 }
 </style>
 

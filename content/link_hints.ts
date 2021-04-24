@@ -60,6 +60,7 @@ interface BaseHintWorker extends HintsNS.BaseHintWorker {
 }
 interface HintManager extends BaseHintWorker {
     hints_?: readonly HintItem[] | null
+    keyStatus_?: KeyStatus | null
     /** get stat (also reset mode if needed) */ $ (resetMode?: 1): Readonly<HintStatus>
     /** reinit */ i: typeof reinit
     /** onKeydown */ n: typeof onKeydown
@@ -149,13 +150,14 @@ let kSafeAllSelector = OnFirefox ? "*" as const : ":not(form)" as const
 let manager_: HintManager | null = null
 let api_: VApiTy = null as never
 let addChildFrame_: AddChildDirectly | AddChildIndirectly | null | undefined
+let isHC_: boolean | null | undefined
 
 export {
   isActive as isHintsActive, box_ as hint_box, wantDialogMode_,
   hints_ as allHints, keyStatus_ as hintKeyStatus, useFilter_, frameArray, chars_ as hintChars,
   mode_ as hintMode_, mode1_, options_ as hintOptions, count_ as hintCount_,
   forHover_, isClickListened_, forceToScroll_, tooHigh_, kSafeAllSelector, addChildFrame_,
-  api_ as hintApi, manager_ as hintManager,
+  api_ as hintApi, manager_ as hintManager, isHC_
 }
 export function set_kSafeAllSelector (_newKSafeAll: string): void { kSafeAllSelector = _newKSafeAll as any }
 export function set_isClickListened_ (_newIsClickListened: boolean): void { isClickListened_ = _newIsClickListened }
@@ -245,6 +247,9 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
     useFilter ? /*#__NOINLINE__*/ initFilterEngine(allHints as readonly FilteredHintItem[])
         : initAlphabetEngine(allHints)
     renderMarkers(allHints)
+    isHC_ = matchMedia(VTr(
+        OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode && chromeVer_ < BrowserVer.MinForcedColorsMode
+        ? kTip.forcedColors : kTip.highContrast_WOB)).matches
     setMode(mode_);
     coreHints.h = 1
     for (const frame of frameArray) {
@@ -318,13 +323,13 @@ const render = (hints: readonly HintItem[], arr: ViewBox, raw_apis: VApiTy): voi
 
 /** must be called from the manager context, or be used to sync mode from the manager */
 export const setMode = (mode: HintMode, silent?: BOOL): void => {
-    let msg: string
     mode_ - mode ? lastMode_ = mode_ = mode : 0
     mode1_ = mode & ~HintMode.queue;
     forHover_ = mode1_ > HintMode.min_hovering - 1 && mode1_ < HintMode.max_hovering + 1;
     if (silent || noHUD_ || hud_tipTimer) { return }
-    msg = VTr(mode_) + (useFilter_ ? ` [${keyStatus_.t}]` : "")
-    if (WithDialog) {
+    let key: string | undefined
+    let msg = VTr(mode_) + (useFilter_ || isHC_ ? ` [${key = isHC_ ? keyStatus_.k + keyStatus_.t : keyStatus_.t}]` : "")
+    if (WithDialog && !((useFilter_ || isHC_) && key)) {
       msg += (manager_ || coreHints).d ? VTr(kTip.modalHints) : "";
     }
     hudShow(kTip.raw, msg, true)
@@ -654,6 +659,7 @@ const resetHints = (): void => {
       k: "", t: "",
       n: 0, b: 0
     };
+    if (!Build.NDEBUG) { coreHints.keyStatus_ = keyStatus_ }
     for (const frame of frameArray) {
       frame.h = [];
     }
@@ -688,7 +694,7 @@ export const clear = (onlySelfOrEvent?: 0 | 1 | Event, suppressTimeout?: number)
     suppressTimeout != null && suppressTail_(suppressTimeout);
     set_onWndBlur2(null)
     removeFlash && removeFlash();
-    api_ = options_ = null as never
+    isHC_ = api_ = options_ = null as never
     set_removeFlash(null)
     /*#__INLINE__*/ localLinkClear()
     set_maxPrefixLen_(0)
@@ -783,7 +789,7 @@ const coreHints: HintManager = {
   p: null,
   n: onKeydown, s: resetMode, i: reinit, v: resetHints, u: onFrameUnload, w: setupCheck
 }
-if (!Build.NDEBUG) { coreHints.hints_ = null }
+if (!Build.NDEBUG) { coreHints.hints_ = coreHints.keyStatus_ = null }
 
 export { HintManager, coreHints }
 

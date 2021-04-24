@@ -53,6 +53,7 @@ interface ConfigurableItems {
 interface KnownDataset {
   favicons: "" | "true" | "false" // if "" or "true" then always show favicons
   version: `${number}.${number}` // html version
+  media: "" | "(...)"
 }
 interface Window extends ConfigurableItems {}
 import PixelData = VomnibarNS.PixelData;
@@ -1051,7 +1052,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     for (let i = 0; i < styles.length; i++) {
       const style = styles[i] as HTMLStyleElement
       const key = " " + style.id + " ", isCustom = key === " custom ", found = isCustom || omniStyles.includes(key)
-      style.sheet!.disabled = !found;
+      if (style.dataset.media) {
+        style.media = found ? "" : style.dataset.media
+      } else {
+        style.sheet!.disabled = !found;
+      }
       isCustom || body.classList.toggle("has-" + style.id, found)
       if (found) {
         omniStyles = omniStyles.replace(key, " ");

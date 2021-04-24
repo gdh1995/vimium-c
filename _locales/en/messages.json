@@ -398,7 +398,7 @@
 "auxclick beforecopy beforecut beforeinput compositionend compositionstart compositionupdate contextmenu copy cut keypress mouseup paste selectionchange selectstart wheel textInput "
   },
   "20": { "message": "Copied: $1" },
-  "21": { "message": "(-ms-high-contrast:active)" },
+  "21": { "message": "(forced-colors:active)" },
   "22": { "message": "Too many links to select" },
   "23": { "message": "Now $1 use $2" },
   "24": { "message": "Now $1 is on" },
@@ -466,6 +466,7 @@
   "115": { "message": "start" },
   "116": { "message": "end" },
   "117": { "message": "\\b(?:[Cc]lose)(?:$$|[-\\sA-Z_])" },
+  "118": { "message": "(-ms-high-contrast:active)" },
   "200": { "message": "Not allowed to open the target new tab URL" },
   "201": { "message": "You cancelled importing" },
   "202": { "message": "Import settings data: OK!" },

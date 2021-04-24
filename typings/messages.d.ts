@@ -3,7 +3,7 @@ declare const enum kTip {
   /* 4..9 */ didUnHoverLast = 4, globalInsertMode, noPassKeys, normalMode, nTimes, passNext,
   /* 10..15 */ noLinksToGo, noFocused, focusedIsHidden, noInputToFocus, noUrlCopied, noTextCopied,
   /* 17: */ kCommonEvents = 17,
-  /* 20..25 */ copiedIs = 20, highContrast_WOB, tooManyLinks, useVal, turnOn, turnOff,
+  /* 20..25 */ copiedIs = 20, forcedColors, tooManyLinks, useVal, turnOn, turnOff,
   /* 26..31 */ nMatches, oneMatch, someMatches, noMatches, modalHints, haveToOpenManually,
   /* 39, 41: */ global = 39, local = 41, // neither 39 nor 41 is in HintMode
   /* 44..47 */ selectLineBoundary = 44, frameUnloaded, waitEnter, logGrabFocus,
@@ -18,7 +18,7 @@ declare const enum kTip {
   /* 100: */ notANestedFrame, cssUrl, imgExt, clickableClasses, clickableRoles,
   /* 105: */ invisibleHintText, notMatchedHintText, metaKeywordsForMobile, css0d01OrDPI,
   /* 110: */ voidJS = 110, nonLocalhostRe, redditHost, buttonOrA, wrapWhenFind,
-  /* 115: */ atStart, atEnd, closableClasses,
+  /* 115: */ atStart, atEnd, closableClasses, highContrast_WOB,
   INJECTED_CONTENT_END,
   /* 200: */ firefoxRefuseURL = 200, cancelImport, importOK, XHTML, redditOverlay,
   /** used by {@link ../Gulpfile.js} */ extendClick = 999,

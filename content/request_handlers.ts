@@ -15,7 +15,7 @@ import {
   HookAction, contentCommands_,
 } from "./port"
 import {
-  addUIElement, adjustUI, createStyle, getParentVApi, getBoxTagName_cr_, setUICSS, ui_box, evalIfOK, checkHidden,
+  addUIElement, adjustUI, createStyle, getParentVApi, getBoxTagName_old_cr, setUICSS, ui_box, evalIfOK, checkHidden,
 } from "./dom_ui"
 import { hudTip, hud_box } from "./hud"
 import {
@@ -251,7 +251,8 @@ export const showFrameMask = (mask: FrameMaskType): void => {
   if (framemask_node) {
     framemask_more = true;
   } else {
-    framemask_node = createElement_(OnChrome ? getBoxTagName_cr_() : "div")
+    framemask_node = createElement_(OnChrome
+        && Build.MinCVer < BrowserVer.MinForcedColorsMode ? getBoxTagName_old_cr() : "div")
     setClassName_s(framemask_node, "R Frame" + (mask === FrameMaskType.OnlySelf ? " One" : ""))
     framemask_fmTimer = interval_((fake?: TimerType.fake): void => { // safe-interval
       const more_ = framemask_more;

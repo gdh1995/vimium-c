@@ -675,7 +675,7 @@ select:-moz-focusring {
     color: var(--item-caption-color);
   }
 }
-@media (-ms-high-contrast:active), (forced-colors: active) {
+@media (forced-colors: active), (-ms-high-contrast:active) {
   * {
     border-radius:0 !important;
   }

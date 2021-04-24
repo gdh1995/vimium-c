@@ -64,9 +64,14 @@ const loadCSS = (action: MergeAction, cssStr?: string): SettingsNS.MergedCustomC
       css = css.replace(<RegExpG> /\r\n?/g, "\n")
     }
     const cssFile = parseSections_(css)
-    const isHighContrast_ff = !!(Build.BTypes & BrowserType.Firefox)
-        && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-        && settings.storage_.getItem(GlobalConsts.kIsHighContrast) == "1"
+    let isHighContrast_ff = false, hcChanged_ff = false
+    if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox) {
+      if (!matchMedia('(forced-colors)').matches) {
+        isHighContrast_ff = settings.storage_.getItem(GlobalConsts.kIsHighContrast) === "1"
+      }
+      hcChanged_ff = settings.temp_.isHighContrast_ff_ !== isHighContrast_ff
+      settings.temp_.isHighContrast_ff_ = isHighContrast_ff
+    }
     css = cssFile.ui!
     if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinUsableCSS$All || hasAll) {
       // Note: must not move "all:" into ":host" even when "s" and >= MinSelector$deep$InDynamicCssMeansNothing
@@ -114,15 +119,13 @@ const loadCSS = (action: MergeAction, cssStr?: string): SettingsNS.MergedCustomC
         || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox) {
       const ind1 = css.indexOf(".LH{") + 4, ind2 = css.indexOf("}", ind1)
       let items = css.slice(ind1, ind2).replace("2.5px 3px 2px", "3px").replace("0.5px", "1px")
-      if (isHighContrast_ff) {
-        items = items.replace(<RegExpOne> /\bbackground:[^;}]+/, "background:#000")
-      }
       css = css.slice(0, ind1) + items + css.slice(ind2)
     }
     if (Build.BTypes & BrowserType.Firefox && isHighContrast_ff) {
-      css = css.split("\n.D", 1)[0]
-    } else if (!(Build.BTypes & BrowserType.Chrome) || !IsEdg_) {
-      css = css.split("\nbody", 1)[0]
+      css = css.replace(<RegExpOne> /\n\.D[^@]+/, "").replace("@media(forced-colors:active){", "").slice(0, -1)
+    } else if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinForcedColorsMode
+        && IsEdg_ && CurCVer_ < BrowserVer.MinForcedColorsMode) {
+      css = css.replace("forced-colors", "-ms-high-contrast")
     }
     if (!((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
           && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
@@ -149,20 +152,9 @@ const loadCSS = (action: MergeAction, cssStr?: string): SettingsNS.MergedCustomC
     }
     settings.storage_.setItem("innerCSS", StyleCacheId_ + css)
     let findCSS = cssFile.find!
-    if (!(Build.BTypes & BrowserType.Chrome) || !IsEdg_) {
-      findCSS = findCSS.replace("@media(-ms-high-contrast:active){", "").slice(0, -1)
-    }
-    if (Build.BTypes & BrowserType.ChromeOrFirefox) {
-      findCSS = findCSS.replace((Build.BTypes & BrowserType.Firefox
-            ? isHighContrast_ff || Build.BTypes & BrowserType.Chrome && IsEdg_ : IsEdg_)
-          ? <RegExpG> /\.HC\b/g : <RegExpG> /\.HC\b[^]+?}\s?/g, "").trim()
-    }
     settings.storage_.setItem("findCSS", findCSS.length + "\n" + findCSS)
-    const O = "omniCSS"
-    if (Build.BTypes & BrowserType.Firefox && isHighContrast_ff) {
-      settings.storage_.setItem(O, cssFile.omni!.replace(<RegExpG> /\n/g, ""))
-    } else {
-      settings.storage_.removeItem(O)
+    if (Build.BTypes & BrowserType.Firefox && hcChanged_ff && Backend_) {
+      settings.postUpdate_("vomnibarOptions")
     }
     mergeCSS(settings.get_("userDefinedCss"), action)
   })

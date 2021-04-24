@@ -4,7 +4,7 @@ import {
   contains_s, setClassName_s, setVisibility_s, toggleClass_s, textContent_s, appendNode_s
 } from "../lib/dom_utils"
 import {
-  HintItem, FilteredHintItem, MarkerElement, HintText,
+  HintItem, FilteredHintItem, MarkerElement, HintText, isHC_,
   hintMode_, useFilter_, coreHints, hintKeyStatus, KeyStatus, hintChars, allHints, setMode, resetMode, hintOptions
 } from "./link_hints"
 import { bZoom_, padClientRect_, getBoundingClientRect_, dimSize_ } from "../lib/rect"
@@ -309,14 +309,13 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
         return 2;
       }
     }
-    inited && setMode(hintMode_)
   }
-  const hintsUnderSeq = seq ? hints.filter(hint => hint.a.startsWith(seq)) : hints,
-  newUnerSeq = hintsUnderSeq.length;
+  const hintsMatchingSeq = seq ? hints.filter(hint => hint.a.startsWith(seq)) : hints
+  const newMatchingSeq = hintsMatchingSeq.length
   if (keyStatus.k !== seq) {
     keyStatus.k = seq;
     zIndexes_ = zIndexes_ && null;
-    if (newUnerSeq < 2) { return newUnerSeq ? hintsUnderSeq[0] : 0; }
+    if (newMatchingSeq < 2) { return newMatchingSeq ? hintsMatchingSeq[0] : 0 }
     let el: HTMLSpanElement
     for (const { m: marker, a: key } of hints) {
       const match = key.startsWith(seq);
@@ -340,9 +339,10 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
       }
     }
   }
-  hints = hintsUnderSeq;
+  inited && (oldTextSeq !== text || isHC_) && setMode(hintMode_)
+  hints = hintsMatchingSeq
   const oldActive = activeHint_;
-  const newActive = hints[(keyStatus.b < 0 ? (keyStatus.b += newUnerSeq) : keyStatus.b) % newUnerSeq];
+  const newActive = hints[(keyStatus.b < 0 ? (keyStatus.b += newMatchingSeq) : keyStatus.b) % newMatchingSeq]
   if (oldActive !== newActive) {
     if (oldActive) {
       toggleClass_s(oldActive.m, "MH", 0)
@@ -520,6 +520,6 @@ export const matchHintsByKey = (keyStatus: KeyStatus
       }
       hint.i = limit
     }
-    return hintArray.length ? 2 : 0;
+    return hintArray.length ? (isHC_ && setMode(hintMode_), 2) : 0
   }
 }

@@ -103,8 +103,8 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
     }
 } as (element: HTMLElement, adjust: AdjustType, before?: Element | null | true) => void
 
-export const getBoxTagName_cr_ = OnChrome ? (): "div" =>
-    OnChrome
+export const getBoxTagName_old_cr = OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode ? (): "div" =>
+    chromeVer_ < BrowserVer.MinForcedColorsMode
         && (Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1 || chromeVer_ > BrowserVer.MinEnsuredShadowDOMV1 - 1)
         && matchMedia(VTr(kTip.highContrast_WOB)).matches ? "body" as never as "div" : "div"
 : 0 as never
@@ -113,12 +113,13 @@ export const addElementList = function <T extends boolean | BOOL> (
       array: readonly DrawableHintItem[], offset: ViewOffset, dialogContainer?: T
       ): (T extends true | 1 ? HTMLDialogElement : HTMLDivElement) & SafeElement {
     const parent = createElement_(WithDialog && dialogContainer ? "dialog"
-        : OnChrome ? getBoxTagName_cr_() : "div");
+        : OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode ? getBoxTagName_old_cr() : "div");
     let cls = "R HM" + (WithDialog && dialogContainer ? " DHM" : "") + fgCache.d
     let innerBox_cr: HTMLDivElement | HTMLDialogElement | undefined = parent
     setClassName_s(parent, cls)
-    if (OnChrome && dialogContainer && array.length && getBoxTagName_cr_() < "d") { // <body>
-      innerBox_cr = createElement_(getBoxTagName_cr_())
+    if (OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode
+        && dialogContainer && array.length && getBoxTagName_old_cr() < "d") { // <body>
+      innerBox_cr = createElement_(getBoxTagName_old_cr())
       appendNode_s(parent, innerBox_cr)
       setClassName_s(innerBox_cr, cls)
     }
@@ -406,7 +407,8 @@ export const flash_ = function (el: Element | null, rect?: Rect | null, lifeTime
       ): (() => void) | void {
     rect || (rect = getRect(el!))
     if (!rect) { return; }
-    const flashEl = createElement_(OnChrome ? getBoxTagName_cr_() : "div"),
+    const flashEl = createElement_(OnChrome
+        && Build.MinCVer < BrowserVer.MinForcedColorsMode ? getBoxTagName_old_cr() : "div"),
     nfs = !fullscreenEl_unsafe_()
     setClassName_s(flashEl, "R Flash" + (classNames || "") + (setBoundary_(flashEl.style, rect, nfs) ? " AbsF" : ""))
     OnChrome &&

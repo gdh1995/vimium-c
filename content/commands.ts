@@ -19,7 +19,7 @@ import {
 import { post_, set_contentCommands_ } from "./port"
 import {
   addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, getParentVApi, curModalElement, createStyle,
-  getBoxTagName_cr_, setupExitOnClick, addUIElement, removeSelection, ui_root, kExitOnClick, collpaseSelection,
+  getBoxTagName_old_cr, setupExitOnClick, addUIElement, removeSelection, ui_root, kExitOnClick, collpaseSelection,
   hideHelp, set_hideHelp, set_helpBox,
 } from "./dom_ui"
 import { hudHide, hudShow, hudTip, hud_text } from "./hud"
@@ -395,7 +395,8 @@ set_contentCommands_([
       box.prepend!(createStyle((html as Exclude<typeof html, string>).h))
       box.className += fgCache.d
     } else {
-      outerBox_not_ff = createElement_(OnChrome ? getBoxTagName_cr_() : "div")
+      outerBox_not_ff = createElement_(OnChrome
+          && Build.MinCVer < BrowserVer.MinForcedColorsMode ? getBoxTagName_old_cr() : "div")
       setClassName_s(outerBox_not_ff, "R H" + fgCache.d)
       outerBox_not_ff.innerHTML = html as string
       box = outerBox_not_ff.lastChild as SafeHTMLElement

@@ -19,7 +19,7 @@ import {
   cropRectToVisible_,
 } from "../lib/rect"
 import {
-  ui_box, ui_root, getSelectionParent_unsafe, resetSelectionToDocStart, getBoxTagName_cr_, collpaseSelection,
+  ui_box, ui_root, getSelectionParent_unsafe, resetSelectionToDocStart, getBoxTagName_old_cr, collpaseSelection,
   createStyle, getSelectionText, checkDocSelectable, adjustUI, ensureBorder, addUIElement, getSelected, flash_,
   getSelectionOf
 } from "./dom_ui"
@@ -164,7 +164,8 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     parsedRegexp_ = regexMatches = null
     activeRegexIndex = 0
 
-    const outerBox = outerBox_ = createElement_(OnChrome ? getBoxTagName_cr_() : "div"),
+    const outerBox = outerBox_ = createElement_(OnChrome
+        && Build.MinCVer < BrowserVer.MinForcedColorsMode ? getBoxTagName_old_cr() : "div"),
     st = outerBox.style
     st.width = "0";
     setDisplaying_s(outerBox)

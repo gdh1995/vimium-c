@@ -2,7 +2,7 @@ import {
   fgCache, doc, isEnabled_, VTr, isAlive_, timeout_, clearTimeout_, interval_, clearInterval_, isLocked_, OnChrome,
 } from "../lib/utils"
 import { isHTML_, createElement_, setClassName_s, appendNode_s, setVisibility_s } from "../lib/dom_utils"
-import { ui_box, ensureBorder, addUIElement, adjustUI, getBoxTagName_cr_ } from "./dom_ui"
+import { ui_box, ensureBorder, addUIElement, adjustUI, getBoxTagName_old_cr } from "./dom_ui"
 import { allHints, isHintsActive, hintManager, setMode as setHintMode, hintMode_ } from "./link_hints"
 import { insert_global_ } from "./insert"
 import { visual_mode, visual_mode_name } from "./visual"
@@ -34,7 +34,7 @@ export const hudShow = (tid: kTip | HintMode, args?: Array<string | number> | st
     embed && toggleOpacity("")
     return
   }
-  box = createElement_(OnChrome ? getBoxTagName_cr_() : "div")
+  box = createElement_(OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode ? getBoxTagName_old_cr() : "div")
   setClassName_s(box, "R HUD" + fgCache.d)
   appendNode_s(box, $text = new Text(text))
   if (!embed) {

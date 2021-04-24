@@ -387,11 +387,11 @@ if (!bgSettings_.payload_.o) {
 
 (window.onhashchange as () => void)();
 
-if (OnChrome && (Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersColorScheme
+if (OnChrome ? (Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersColorScheme
         || CurCVer_ > BrowserVer.MinMediaQuery$PrefersColorScheme - 1)
-    || OnFirefox && (Build.MinFFVer >= FirefoxBrowserVer.MinMediaQuery$PrefersColorScheme
+    : OnFirefox ? (Build.MinFFVer >= FirefoxBrowserVer.MinMediaQuery$PrefersColorScheme
         || CurFFVer_ > FirefoxBrowserVer.MinMediaQuery$PrefersColorScheme)
-    ) {
+    : !OnEdge) {
   const media = matchMedia("(prefers-color-scheme: dark)");
   media.onchange = function (): void {
     bgSettings_.updateMediaQueries_();
@@ -443,15 +443,20 @@ Option_.all_.autoReduceMotion.onSave_ = function (): void { toggleReduceMotion(t
 
 if (OnFirefox) {
   setTimeout((): void => {
-    const test = document.createElement("div")
-    test.style.display = "none"
-    test.style.color = "#543";
-    (document.body as HTMLBodyElement).append!(test)
+    const K = GlobalConsts.kIsHighContrast, storage = localStorage
+    const hasFC = matchMedia('(forced-colors)').matches
+    const test = hasFC ? null : document.createElement("div")
+    if (test) {
+      test.style.display = "none"
+      test.style.color = "#543";
+      (document.body as HTMLBodyElement).append!(test)
+    } else if (storage.getItem(K) == null) {
+      return
+    }
     requestIdleCallback!((): void => {
-      const K = GlobalConsts.kIsHighContrast, storage = localStorage
-      const newColor = (getComputedStyle(test).color || "").replace(<RegExpG> / /g, '').toLowerCase()
-      const isHC = !!newColor && newColor != "rgb(85,68,51)"
-      test.remove()
+      const newColor = test && (getComputedStyle(test).color || "").replace(<RegExpG> / /g, '').toLowerCase()
+      const isHC = hasFC ? false : !!newColor && newColor != "rgb(85,68,51)"
+      test && test.remove()
       const oldIsHC = storage.getItem(K) == "1"
       if (isHC != oldIsHC) {
         isHC ? storage.setItem(K, "1") : storage.removeItem(K);
