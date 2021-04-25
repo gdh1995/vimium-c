@@ -4,7 +4,7 @@ import {
 } from "../lib/utils"
 import {
   docEl_unsafe_, htmlTag_, isAriaNotTrue_, isStyleVisible_, querySelectorAll_unsafe_, isIFrameElement, ALA, attr_s,
-  kAria, contains_s
+  kAria, contains_s, notSafe_not_ff_
 } from "../lib/dom_utils"
 import { getBoundingClientRect_, view_ } from "../lib/rect"
 import { kSafeAllSelector, detectUsableChild, set_addChildFrame_ } from "./link_hints"
@@ -17,7 +17,7 @@ import { contentCommands_ } from "./port"
 
 let iframesToSearchForNext: VApiTy[] | null
 
-export const isVisibleInPage = (element: SafeHTMLElement): boolean => {
+export const isVisibleInPage = (element: SafeElement): boolean => {
   let rect: ClientRect
   return isAriaNotTrue_(element, kAria.disabled)
       && (rect = getBoundingClientRect_(element)).width > 2 && rect.height > 2 && isStyleVisible_(element)
@@ -25,19 +25,11 @@ export const isVisibleInPage = (element: SafeHTMLElement): boolean => {
 
 export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxLen): number => {
   // Note: this traverser should not need a prepareCrop
+  const fromMatchSelector = !!options.match
   const links = isAlive_ ? (set_addChildFrame_((_, el, _view, subList): void => {
     subList!.push(el as KnownIFrameElement & SafeHTMLElement)
-  }), traverse(kSafeAllSelector, options, (hints, element): void => {
+  }), traverse(kSafeAllSelector, options, (hints: Hint0[], element: SafeElement): void => {
     let s: string | null
-    const tag = element.localName, isClickable = tag === "a" || tag && (
-      tag === "button" ? !(element as HTMLButtonElement).disabled
-      : clickable_.has(element)
-      || (OnFirefox ? unwrap_ff(element).onclick : attr_s(element, "onclick"))
-      || ((s = attr_s(element, "role")) ? (<RegExpI> /^(button|link)$/i).test(s)
-          : ngEnabled && attr_s(element, "ng-click")))
-    if (isClickable && isVisibleInPage(element)) {
-      hints.push([element])
-    }
     if (isIFrameElement(element)) {
       if (OnFirefox || OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1
           || element !== find_box && element !== omni_box) {
@@ -45,8 +37,16 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
         childApi = rect.width > 99 && rect.height > 15 && detectUsableChild(element)
         childApi && iframesToSearchForNext!.push(childApi)
       }
+    } else if (fromMatchSelector || (s = htmlTag_(element)) === "a"
+        || (s === "button" ? !(element as HTMLButtonElement).disabled : s && clickable_.has(element))
+        || (OnFirefox ? unwrap_ff(element as HTMLElement | SVGElement).onclick : attr_s(element, "onclick"))
+        || ((s = attr_s(element, "role")) ? (<RegExpI> /^(button|link)$/i).test(s)
+          : ngEnabled && attr_s(element, "ng-click"))) {
+      if (isVisibleInPage(element)) {
+        hints.push([element as SafeElementForMouse])
+      }
     }
-  }, 1, 1)) : [],
+  }, 1, 1, 1)) : [],
   isNext = options.n, lenLimits = options.l, totalMax = options.m,
   quirk = isNext ? ">>" : "<<", quirkIdx = names.indexOf(quirk),
   rel = isNext ? "next" : "prev", relIdx = names.indexOf(rel),
@@ -61,8 +61,8 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
   for (; i < names.length; i++) {
     if (GlobalConsts.SelectorPrefixesInPatterns.includes(names[i][0])) {
       const arr = querySelectorAll_unsafe_(names[i]);
-      if (arr && arr.length === 1 && htmlTag_<1>(arr[0])) {
-        candidates.push([arr[0], vApi, i << 23, ""])
+      if (arr && arr.length === 1 && (OnFirefox || !notSafe_not_ff_!(arr[0]))) {
+        candidates.push([arr[0] as SafeElement as SafeElementForMouse, vApi, i << 23, ""])
         names.length = i + 1
       }
     }
@@ -70,9 +70,10 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
   let ch: string, s: string, len: number
   for (; 0 <= --index; ) {
     const link = links[index][0]
-    if (contains_s(link, links[index + 1][0]) || (s = link.innerText).length > totalMax) { continue }
+    if (contains_s(link, links[index + 1][0]) || (s = "lang" in link
+            ? (link as SafeHTMLElement).innerText : link.textContent.trim()).length > totalMax) { continue }
     if (s = s.length > 2 ? s : !s && (ch = (link as HTMLInputElement).value) && isTY(ch, kTY.str) && ch
-            || attr_s(link, ALA) || link.title || s) {
+            || attr_s(link, ALA) || (link as TypeToPick<Element, HTMLElement, "title">).title || s) {
       if (s.length > totalMax) { continue; }
       s = Lower(s)
       for (i = 0; i < names.length; i++) {
@@ -91,6 +92,8 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
           break;
         }
       }
+    } else if (fromMatchSelector) {
+      candidates.push([link, vApi, (names.length - 1) << 23, ""])
     }
     // for non-English pages like www.google.co.jp
     if (s.length < 5 && relIdx >= 0 && (ch = link.id) && ch.includes(rel)) {

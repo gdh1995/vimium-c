@@ -159,7 +159,7 @@ type Hint = [
   offset?: HintOffset,
   relatedMap?: HTMLElementUsingMap
 ]
-type Hint0 = { [0]: SafeHTMLElement }
+type Hint0 = { [0]: SafeElementForMouse }
 interface Hint4 extends Hint {
   [3]: HintOffset;
 }
@@ -167,7 +167,7 @@ interface Hint5 extends Hint4 {
   [4]: HTMLElementUsingMap; // fixed rect
 }
 
-type GoNextBaseCandidate = [element: SafeHTMLElement, api: VApiTy, score?: number, text?: string ]
+type GoNextBaseCandidate = [element: Hint0[0], api: VApiTy, score?: number, text?: string ]
 interface GoNextCandidate extends GoNextBaseCandidate { [2]: number; [3]: string }
 
 declare const enum AdjustType {
@@ -212,7 +212,7 @@ interface VApiTy {
   /** filterTextToGoNext */ g: (candidates: GoNextCandidate[], names: string[]
       , options: CmdOptions[kFgCmd.goNext], maxLen: number) => number
   /** innerHeight_ff */ i?: (type?: undefined) => number
-  /** jumpToNext */ j: (nextLink: SafeHTMLElement) => void
+  /** jumpToNext */ j: (nextLink: Hint0[0]) => void
   /** scrollTick */ k: (willContinue: BOOL | 2) => void
   /** learnCSS */ l: (srcStyleUI: HTMLStyleElement | string | null, force?: undefined) => void
   /** getMappedKey */ m: (eventWrapper: HandlerNS.Event, mode: kModeId) => string

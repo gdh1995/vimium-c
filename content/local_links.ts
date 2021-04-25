@@ -28,7 +28,9 @@ export declare const enum ClickType {
   MinNotWeak = 6, // should <= MaxNotBox
   MaxNotBox = 6, frame = 7, scrollX = 8, scrollY = 9,
 }
-type Filter<T> = (hints: T[], element: SafeHTMLElement) => void
+type BaseFilter<T> = (hints: T[], element: SafeElement) => void
+type HTMLFilter<T> = (hints: T[], element: SafeHTMLElement) => void
+type Filter<T> = BaseFilter<T> | HTMLFilter<T>
 type AllowedClickTypeForNonHTML = ClickType.attrListener | ClickType.tabindex
 type HintSources = readonly SafeElement[] | NodeListOf<SafeElement>
 type NestedFrame = false | 0 | null | KnownIFrameElement
@@ -249,13 +251,13 @@ export const getEditable = (hints: Hint[], element: SafeHTMLElement): void => {
   getIfOnlyVisible(hints, element)
 }
 
-export const getIfOnlyVisible = (hints: Array<Hint | Hint0>, element: SafeElement): void => {
+export const getIfOnlyVisible = (hints: (Hint | Hint0)[], element: SafeElement): void => {
   let arr = getVisibleClientRect_(element)
   arr && hints.push([element as SafeElementForMouse, arr, ClickType.Default])
 }
 
 export const traverse = ((selector: string, options: CSSOptions, filter: Filter<Hint | Hint0>
-    , notWantVUI?: 1, wholeDoc?: 1 | Element): Hint[] | Hint0[] => {
+    , notWantVUI?: 1, wholeDoc?: 1 | Element, acceptNonHTML?: 1): Hint[] | Hint0[] => {
 
 const matchSafeElements = ((selector: string, rootNode: Element | ShadowRoot | null
     , udSelector: string | null, mayBeUnsafe?: 1): HintSources | void => {
@@ -354,7 +356,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
     initTestRegExps()
   }
   if (matchSelector) {
-    filter = /*#__NOINLINE__*/ getIfOnlyVisible
+    wholeDoc || (filter = getIfOnlyVisible)
   } else if (matchAll) {
     if (ngEnabled == null) {
       ngEnabled = !!querySelector_unsafe_(".ng-scope");
@@ -390,6 +392,9 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
       (cur_arr = ([] as SafeElement[]).slice.call(cur_arr)).unshift(traverseRoot as SafeElement)
     }
   }
+  const checkNonHTML: BaseFilter<Hint0 | Hint> | null = wantClickable
+      ? matchSelector ? <typeof getIfOnlyVisible> filter : isOtherClickable as BaseFilter<Hint> as BaseFilter<Hint0>
+      : acceptNonHTML ? filter as BaseFilter<Hint0 | Hint> : null
   const prefixedShadow = OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
       && chromeVer_ < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
   const tree_scopes: Array<typeof cur_scope> = [[cur_arr, 0
@@ -413,10 +418,8 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
             extraClickable_ = createElementSet(querySelectorAll_unsafe_(clickableSelector, shadowRoot)!)
           }
         }
-      } else if (wantClickable) {
-        (matchSelector ? <typeof getIfOnlyVisible> filter : /*#__NOINLINE__*/ isOtherClickable
-            )(output as Exclude<typeof output, Hint0[]>
-            , el as NonHTMLButFormattedElement | SafeElementWithoutFormat);
+      } else if (checkNonHTML) {
+        checkNonHTML(output, el)
       }
     }
   }
@@ -552,8 +555,9 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   }
   return output
 }) as {
+  (key: string, options: CSSOptions, filter: Filter<Hint0>, notWantVUI: 1
+      , wholeDoc: 1 | boolean, acceptNonHTML?: 1): Hint0[]
   (key: string, options: CSSOptions, filter: Filter<Hint>, notWantVUI?: 1): Hint[]
-  (key: string, options: CSSOptions, filter: Filter<Hint0>, notWantVUI?: 1, wholeDoc?: 1): Hint0[]
 }
 
 const isDescendant = function (c: Element | null, p: Element, shouldBeSingleChild: BOOL | boolean): boolean {
