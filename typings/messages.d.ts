@@ -109,7 +109,7 @@ interface BgReq {
   };
   [kBgReq.keyFSM]: {
     /** mappedKeys */ m: SafeDict<string> | null;
-    /** keyMap */ k: KeyFSM;
+    /** keyMap */ k: KeyFSM | null;
     /** mappedKeyTypes */ t: kMapKey;
   };
   [kBgReq.showHUD]: {

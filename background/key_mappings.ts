@@ -78,7 +78,7 @@ const normalizeCommand_ = (cmd: Writable<CommandsNS.BaseItem>, details?: Command
         delete options.$desc;
       }
       if (options.$if) {
-        if (doesNotMatchEnv_(options) === "f") { return false; }
+        if (doesMatchEnv_(options) === "f") { return false }
         delete options.$if;
       }
       if (opt) {
@@ -137,7 +137,7 @@ const makeCommand_ = <T extends CommandsNS.RawOptions | "__not_parsed__" | null>
       repeat_: details[2]
   }
   if (options && typeof options === "object") {
-    if (normalizeCommand_(cmd, details)) {
+    if (!normalizeCommand_(cmd, details)) {
       return null as CommandsNS.RawOptions | string extends T ? null : never
     }
   }
@@ -153,13 +153,12 @@ export const normalizedOptions_ = (item: CommandsNS.ValidItem): CommandsNS.Norma
   return opts
 }
 
-const doesNotMatchEnv_ = (options: CommandsNS.RawOptions | string | null): "t" | "f" | "" => {
+const doesMatchEnv_ = (options: CommandsNS.RawOptions | string | null): "t" | "f" | "" => {
     const condition = options && typeof options === "object" && options.$if
     return condition ? !!condition.sys && condition.sys !== Settings_.CONST_.Platform_
         || !!condition.browser
-          && !(condition.browser & (Build.BTypes & ~BrowserType.Chrome
-                  && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge
-                ? OnOther : Build.BTypes & BrowserType._mask)) ? "t" : "f"
+          && !(condition.browser & (Build.BTypes && !(Build.BTypes & (Build.BTypes - 1))
+                ? Build.BTypes : OnOther)) ? "f" : "t"
         : ""
 }
 
@@ -227,7 +226,7 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
         continue;
       } else if (cmd === "mapkey" || key === "mapKey") {
         if (!val || line.length > knownLen
-            && (key2 = doesNotMatchEnv_(getOptions_(line, knownLen)), !key2)) {
+            && (key2 = doesMatchEnv_(getOptions_(line, knownLen)), !key2)) {
           logError_(`mapKey: need %s source and target keys:`, val ? "only" : "both", line)
         } else if (line.length > knownLen && key2 === "f") {
           continue

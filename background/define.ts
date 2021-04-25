@@ -1,6 +1,6 @@
 declare var define: any
 
-if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
+if (!Build.BTypes || Build.BTypes & (Build.BTypes - 1)) {
   (window as Writable<Window>).OnOther = Build.BTypes & BrowserType.Chrome
       && (typeof browser === "undefined" || (browser && (browser as typeof chrome).runtime) == null
           || location.protocol.lastIndexOf("chrome", 0) >= 0) // in case Chrome also supports `browser` in the future
