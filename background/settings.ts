@@ -277,7 +277,7 @@ var Settings_ = {
       }
       if (Build.BTypes & BrowserType.Firefox && a.temp_.isHighContrast_ff_
           && !(<RegExpOne> /(^|\s)high-contrast(\s|$)/).test(styles)) {
-        styles += "high-contrast"
+        styles += " high-contrast"
       }
       (a.cache_ as WritableSettingsCache).vomnibarOptions = isSame ? defaultOptions : options!;
       payload.n = maxMatches;
