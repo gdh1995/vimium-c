@@ -218,11 +218,16 @@ interface UserSedOptions {
 }
 
 declare namespace HintsNS {
-  interface Options extends UserSedOptions, CSSOptions {
+  interface Options extends UserSedOptions, CSSOptions, Req.FallbackOptions {
     /** mode */ m: HintMode
     /** hint characters */ c?: string
     /** click directly */ direct?: boolean | "element" | "sel" | "focus" | "hover" | "click" | "element,sel,focus,hover"
-    index?: "count" | number
+    directOptions?: {
+      search?: "view" | "doc" | "document"
+      offset?: 0 | "cur" | "current" | "end" | "last"
+      index?: "count" | number
+    }
+    /** (deprecated) */ index?: "count" | number
     action?: string;
     caret?: boolean;
     download?: "" | "force"

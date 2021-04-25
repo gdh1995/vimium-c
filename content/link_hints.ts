@@ -95,11 +95,11 @@ import {
 import {
   querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_,
   getComputedStyle_, isStyleVisible_, htmlTag_, fullscreenEl_unsafe_, removeEl_s, UNL, toggleClass_s, doesSupportDialog,
-  getSelectionFocusEdge_, activeEl_unsafe_, SafeEl_not_ff_, rangeCount_
+  getSelectionFocusEdge_, activeEl_unsafe_, SafeEl_not_ff_, rangeCount_, compareDocumentPosition
 } from "../lib/dom_utils"
 import {
   ViewBox, getViewBox_, prepareCrop_, wndSize_, bZoom_, wdZoom_, dScale_, padClientRect_, getBoundingClientRect_,
-  docZoom_, bScale_, dimSize_, isSelARange, getSelectionBoundingBox_,
+  docZoom_, bScale_, dimSize_, isSelARange, getSelectionBoundingBox_, view_,
 } from "../lib/rect"
 import {
   replaceOrSuppressMost_, removeHandler_, getMappedKey, keybody_, isEscape_, getKeyStat_, keyNames_, suppressTail_,
@@ -109,7 +109,7 @@ import {
   style_ui, addElementList, ensureBorder, adjustUI, flash_, getParentVApi, getWndVApi_ff, checkHidden, removeModal,
   getSelected
 } from "./dom_ui"
-import { scrollTick, beginScroll } from "./scroller"
+import { scrollTick, beginScroll, currentScrolling } from "./scroller"
 import { hudTip, hudShow, hudHide, hud_tipTimer } from "./hud"
 import { set_onWndBlur2, insert_Lock_ } from "./insert"
 import {
@@ -122,7 +122,8 @@ import {
 } from "./hint_filters"
 import { executeHintInOfficer, removeFlash, set_removeFlash } from "./link_actions"
 import { lastHovered_, set_lastHovered_ } from "./async_dispatcher"
-import { HookAction, hookOnWnd, contentCommands_ } from "./port"
+import { HookAction, hookOnWnd, contentCommands_, runFallbackKey } from "./port"
+import { isVisibleInPage } from "./pagination"
 
 let box_: HTMLDivElement | HTMLDialogElement | null = null
 let wantDialogMode_: boolean | null | undefined
@@ -503,7 +504,9 @@ const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): voi
 }
 
 const activateDirectly = (options: ContentOptions, count: number) => {
-  const d = options.direct! as string, match = options.match, elIndex = options.index,
+  const d = options.direct! as string, exOpts = options.directOptions || {},
+  _ei = exOpts.index, elIndex = _ei != null ? _ei : options.index,
+  offset = exOpts.offset || "", wholeDoc = ("" + exOpts.search).startsWith("doc"),
   allTypes = (d as typeof options.direct) === !0, mode = options.m &= ~HintMode.queue,
   next = (): void => {
     let rect: ClientRect | 0, sel: Selection
@@ -513,14 +516,29 @@ const activateDirectly = (options: ContentOptions, count: number) => {
                   rect && padClientRect_(rect))
     ), count - 1) : 0
     timeout_(next, count > 99 ? 1 : count && 17)
+  },
+  computeOffset = (): number => {
+    const cur = deref_(currentScrolling) || activeEl_unsafe_() !== doc.body && activeEl_unsafe_()
+    let low = 0, high = cur && IsInDOM_(cur) ? matches.length - 1 : -1, mid: number | undefined
+    while (low <= high) {
+      mid = (low + high) >> 1
+      const midEl = matches[mid][0]
+      if (midEl === cur) { low = mid + <number> <number | boolean> (matchIndex >= 0); break }
+      compareDocumentPosition(midEl, cur as Element) & kNode.DOCUMENT_POSITION_FOLLOWING // midEl < cur
+      ? low = mid + 1 : high = mid - 1
+    }
+    return low < -matchIndex ? matches.length : low + matchIndex
   }
-  let docActive: SafeElement | null, isSel: boolean | undefined, matched: Hint[], matchedOne: Hint | undefined
+  let docActive: SafeElement | null, isSel: boolean | undefined
+  let matches: (Hint | Hint0)[], oneMatch: Hint | Hint0 | undefined, matchIndex: number
   let el: SafeElement | null | undefined
-  el = (prepareCrop_(), allTypes || d.includes("ele")) && match // target | element
-          && (matched = traverse(kSafeAllSelector, options, getIfOnlyVisible, 1)).length > 0
-          && (matchedOne = matched.slice(elIndex === "count" ? count < 0 ? count : count - 1 : +elIndex! || 0)[0])
-          && matchedOne[0]
-      || (allTypes || d.includes("se")) // selected
+  el = (prepareCrop_(), allTypes || d.includes("ele")) && options.match // target | element
+      && (matches = traverse(kSafeAllSelector, options, wholeDoc ? (hints: Hint0[], el: SafeElement): void => {
+              isVisibleInPage(el) && hints.push([el as SafeElementForMouse]) } : getIfOnlyVisible, 1, wholeDoc),
+          oneMatch = matches.slice((matchIndex = elIndex === "count" ? count < 0 ? count : count - 1 : +elIndex! || 0,
+              offset > "e" ? ~matchIndex : offset < "c" ? matchIndex : computeOffset()))[0])
+      ? oneMatch[0]
+      : (allTypes || d.includes("se")) // selected
           && isSelARange(getSelection()) && (el = getSelectionFocusEdge_(getSelected()), isSel = !!el, el)
       || (allTypes || d.includes("f")) // focused
           && (insert_Lock_()
@@ -529,12 +547,13 @@ const activateDirectly = (options: ContentOptions, count: number) => {
       || (allTypes || d.includes("h") || d.includes("i") ? deref_(lastHovered_) : null) // hover | clicked
   el = mode < HintMode.min_job || el && htmlTag_(el) ? el : null
   if (!el || !IsInDOM_(el)) {
-    hudTip(kTip.noLinks)
+    runFallbackKey(options, kTip.noLinks)
   } else {
     count = mode < HintMode.min_job ? min_(count, 3e3) : 1
     api_ = vApi
     options_ = options
     setMode(mode, count_ = isActive = 1)
+    wholeDoc && view_(el)
     next()
   }
 }

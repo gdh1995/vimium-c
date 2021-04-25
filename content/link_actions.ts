@@ -429,6 +429,8 @@ const defaultClick = (): void => {
     } else if (m < HintMode.FOCUS + 1) {
       view_(clickEl)
       focus_(clickEl)
+      set_currentScrolling(weakRef_(clickEl))
+      set_cachedScrollable(currentScrolling)
       removeFlash || flash_(clickEl)
       showRect = 0
     } else if (m < HintMode.max_media + 1) {
