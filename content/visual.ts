@@ -51,7 +51,7 @@ import {
 } from "./mode_find"
 import { insert_Lock_, raw_insert_lock } from "./insert"
 import { hudTip, hudHide, hudShow } from "./hud"
-import { post_, send_ } from "./port"
+import { post_, send_, runFallbackKey } from "./port"
 import {
   removeHandler_, getMappedKey, keybody_, isEscape_, prevent_, ENTER, suppressTail_, replaceOrSuppressMost_
 } from "../lib/keyboard_utils"
@@ -167,9 +167,9 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     ui_box || hudShow(kTip.raw)
     toggleSelectableStyle(1)
 
-  if (/* type === SelType.None */ !type && !establishInitialSelectionAnchor()) {
+  if (/* type === SelType.None */ !type && (options.fallback || !establishInitialSelectionAnchor())) {
       deactivate()
-      hudTip(kTip.needSel)
+      runFallbackKey(options, kTip.needSel)
       return
   }
   if (!isAlertExtend && isRange) {

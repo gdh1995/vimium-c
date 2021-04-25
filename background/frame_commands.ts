@@ -69,6 +69,8 @@ export const performFind = (): void | kBgCmd.performFind => {
   }
   sendFgCmd(kFgCmd.findMode, true, {
     c: nth > 0 ? cRepeat / absRepeat : cRepeat, l: leave, f: sentFindCSS,
+    fallback: get_cOptions<C.performFind, true>().fallback,
+    $f: get_cOptions<C.performFind, true>().$f,
     m: !!get_cOptions<C.performFind>().highlight, n: !!get_cOptions<C.performFind>().normalize,
     r: get_cOptions<C.performFind>().returnToViewport === true,
     s: !nth && absRepeat < 2 && !!get_cOptions<C.performFind>().selected,
@@ -176,6 +178,8 @@ export const enterVisualMode = (): void | kBgCmd.visualMode => {
   }
   sendFgCmd(kFgCmd.visualMode, true, {
     m: str === "caret" ? VisualModeNS.Mode.Caret : str === "line" ? VisualModeNS.Mode.Line : VisualModeNS.Mode.Visual,
+    fallback: get_cOptions<C.visualMode, true>().fallback,
+    $f: get_cOptions<C.visualMode, true>().$f,
     f: sentFindCSS, g: granularities, k: keyMap,
     t: !!get_cOptions<C.visualMode>().richText, s: !!get_cOptions<C.visualMode>().start, w: words
   })
@@ -430,7 +434,9 @@ export const framesGoNext = (isNext: boolean, rel: string): void => {
     r: get_cOptions<C.goNext>().noRel ? "" : rel, n: isNext,
     exclude: (get_cOptions<C.goNext, true>() as CSSOptions).exclude,
     match: get_cOptions<C.goNext, true>().match,
-    p: patterns, l: maxLens, m: totalMaxLen > 0 && totalMaxLen < 99 ? totalMaxLen : 32
+    p: patterns, l: maxLens, m: totalMaxLen > 0 && totalMaxLen < 99 ? totalMaxLen : 32,
+    fallback: get_cOptions<C.goNext, true>().fallback,
+    $f: get_cOptions<C.goNext, true>().$f
   })
 }
 

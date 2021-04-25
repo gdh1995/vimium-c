@@ -15,14 +15,14 @@ import {
 } from "./dom_ui"
 import { grabBackFocus } from "./insert"
 import { currentKeys } from "./key_handler"
-import { set_needToRetryParentClickable, focusAndRun } from "./request_handlers"
 import { coreHints } from "./link_hints"
 import { executeScroll, scrollTick, $sc, keyIsDown as scroll_keyIsDown } from "./scroller"
 import { onLoad as findOnLoad, find_box, find_input } from "./mode_find"
 import { filterTextToGoNext, jumpToNextLink } from "./pagination"
+import { set_needToRetryParentClickable, focusAndRun } from "./request_handlers"
+import { RSC } from "./commands"
 import { main_not_ff as extend_click_not_ff } from  "./extend_click"
 import { main_ff as extend_click_ff } from  "./extend_click_ff"
-import { RSC } from "./commands"
 
 declare var XPCNativeWrapper: <T extends object> (wrapped: T) => XrayedObject<T>;
 

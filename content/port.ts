@@ -1,7 +1,9 @@
 import {
-  injector, safeObj, timeout_, isAlive_, isTop, doc, set_i18n_getMsg, locHref, OnEdge, OnChrome, OnFirefox
+  injector, safeObj, timeout_, isAlive_, isTop, doc, set_i18n_getMsg, locHref, OnEdge, OnChrome, OnFirefox, isTY
 } from "../lib/utils"
+import { suppressTail_ } from "../lib/keyboard_utils"
 import { style_ui } from "./dom_ui"
+import { hudTip } from "./hud"
 
 export interface Port extends chrome.runtime.Port {
   postMessage<k extends keyof FgRes>(request: Req.fgWithRes<k>): 1;
@@ -84,4 +86,15 @@ const onBgReq = <T extends keyof BgReq> (response: Req.bg<T>): void => {
     type TypeToCheck = { [k in keyof BgReq]: (this: void, request: BgReq[k]) => unknown };
     type TypeChecked = { [k in keyof BgReq]: <T2 extends keyof BgReq>(this: void, request: BgReq[T2]) => unknown };
     (requestHandlers as TypeToCheck as TypeChecked)[response.N](response);
+}
+
+export const runFallbackKey = (options: Req.FallbackOptions
+    , anotherTip?: kTip, tipArgs?: string | Array<string | number>): void => {
+  const fallback = options.fallback
+  if (fallback && isTY(fallback)) {
+    suppressTail_(GlobalConsts.TimeOfSuppressingUnexpectedKeydownEvents)
+    post_({ H: kFgReq.key, k: fallback, l: kKeyCode.None, f: options.$f || 1 })
+  } else {
+    anotherTip && hudTip(anotherTip, 0, tipArgs)
+  }
 }

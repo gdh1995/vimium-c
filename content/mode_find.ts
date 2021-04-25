@@ -27,7 +27,7 @@ import { visual_mode, highlightRange, activate as visualActivate } from "./visua
 import { keyIsDown as scroll_keyIsDown, beginScroll, onScrolls } from "./scroller"
 import { scrollToMark, setPreviousMarkPosition } from "./marks"
 import { hudHide, hud_box, hudTip, hud_opacity, toggleOpacity as hud_toggleOpacity } from "./hud"
-import { post_, send_ } from "./port"
+import { post_, send_, runFallbackKey } from "./port"
 import { insert_Lock_, setupSuppress } from "./insert"
 import { lastHovered_, set_lastHovered_, select_ } from "./async_dispatcher"
 
@@ -130,7 +130,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
           toggleStyle(1)
           if (!isActive) {
             toggleSelectableStyle()
-            hudTip(kTip.noMatchFor, 0, query_)
+            runFallbackKey(options, kTip.noMatchFor, query)
           }
         } else {
           focusFoundLinkIfAny()

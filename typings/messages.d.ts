@@ -328,7 +328,7 @@ interface CmdOptions {
     /** patterns */ p: string[];
     /** length limit list */ l: number[];
     /** max of length limit list */ m: number;
-  } & CSSOptions;
+  } & CSSOptions & Req.FallbackOptions;
   [kFgCmd.insertMode]: {
     /** unhover last */ u: true;
     /** reset all: 2=destroying */ r?: 0;
@@ -351,7 +351,7 @@ interface CmdOptions {
     /** words */ w?: string;
     /** collapse to start */ s?: boolean
     /** richText */ t?: boolean
-  };
+  } & Req.FallbackOptions
   [kFgCmd.showHelpDialog]: {
     /** html */ h: "html" | /** for Firefox */ { /** head->style */ h: string; /** body */ b: string };
     /** optionUrl */ o: string;
@@ -368,7 +368,7 @@ interface CmdOptions {
     /** findCSS */ f: FindCSS | null;
     /** use post mode on esc */ p: boolean;
     /** normalize text */ n: boolean
-  };
+  } & Req.FallbackOptions
   [kFgCmd.goToMarks]: {
     /** local */ l: 0 | /** kTip.local - kTip.global */ 2
     /** markName */ n?: string | undefined;
@@ -399,7 +399,7 @@ interface CmdOptions {
     flash?: boolean;
     reachable?: boolean; // default to true
     prefer?: string;
-  } & CSSOptions & Req.FallbackOptions;
+  } & CSSOptions & Req.FallbackOptions
   [kFgCmd.editText]: {
     dom?: boolean;
     run: string;
@@ -661,8 +661,8 @@ declare namespace Req {
 
   interface FgCmd<O extends keyof CmdOptions> extends BaseExecute<CmdOptions[O], O>, baseBg<kBgReq.execute> {}
   interface FallbackOptions {
-    /** key sequence */ fallback?: string
-    /** fallback counter */ $f?: number
+    /** key sequence */ fallback?: string | null
+    /** fallback counter */ $f?: number | null
   }
 }
 

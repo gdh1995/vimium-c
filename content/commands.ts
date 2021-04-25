@@ -10,13 +10,13 @@ import {
 } from "../lib/dom_utils"
 import {
   pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
-  replaceOrSuppressMost_, suppressTail_
+  replaceOrSuppressMost_
 } from "../lib/keyboard_utils"
 import {
   view_, wndSize_, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, padClientRect_, isSelARange,
   getBoundingClientRect_, setBoundary_, wdZoom_, dScale_
 } from "../lib/rect"
-import { post_, set_contentCommands_ } from "./port"
+import { post_, set_contentCommands_, runFallbackKey } from "./port"
 import {
   addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, getParentVApi, curModalElement, createStyle,
   getBoxTagName_old_cr, setupExitOnClick, addUIElement, removeSelection, ui_root, kExitOnClick, collpaseSelection,
@@ -77,8 +77,9 @@ set_contentCommands_([
   /* kFgCmd.vomnibar: */ omniActivate,
   /* kFgCmd.insertMode: */ (opt: CmdOptions[kFgCmd.insertMode]): void => {
     if (opt.u) {
-      catchAsyncErrorSilently(unhover_async())
-      hudTip(kTip.didUnHoverLast)
+      catchAsyncErrorSilently(unhover_async()).then((): void => {
+        hudTip(kTip.didUnHoverLast)
+      })
     }
     if (opt.r) {
       set_cachedScrollable(0), set_currentScrolling(null), set_lastHovered_(null)
@@ -169,7 +170,7 @@ set_contentCommands_([
         && (req.r && findNextInRel(req.r) || req.p.length && findNextInText(req.p, req))) {
       chosen[1].j(chosen[0])
     } else {
-      hudTip(kTip.noLinksToGo, 0, VTr(kTip.prev + <number> <boolean | number> req.n))
+      runFallbackKey(req, kTip.noLinksToGo, VTr(kTip.prev + <number> <boolean | number> req.n))
     }
   },
   /* kFgCmd.autoOpen: */ (options: CmdOptions[kFgCmd.autoOpen]): void => {
@@ -209,7 +210,7 @@ set_contentCommands_([
           newEl.blur();
         }
       } else if (!(newEl = known_last)) {
-        hudTip(kTip.noFocused, 1200);
+        runFallbackKey(options, kTip.noFocused)
       } else if (act !== "last-visible" && view_(newEl) || !isNotInViewport(newEl)) {
         set_insert_last_(null)
         set_is_last_mutable(1)
@@ -219,7 +220,7 @@ set_contentCommands_([
       } else if (act[0] === "l") {
         ret = 0;
       } else {
-        hudTip(kTip.focusedIsHidden, 2000);
+        runFallbackKey(options, kTip.focusedIsHidden)
       }
       if (ret) {
         return;
@@ -469,14 +470,3 @@ set_contentCommands_([
     timeout_((): void => { focus_(box) }, 17)
   }) as (options: CmdOptions[kFgCmd.showHelpDialog]) => void
 ])
-
-
-const runFallbackKey = (options: Req.FallbackOptions, anotherTip?: kTip): void => {
-  const fallback = options.fallback
-  if (fallback && isTY(fallback)) {
-    suppressTail_(GlobalConsts.TimeOfSuppressingUnexpectedKeydownEvents)
-    post_({ H: kFgReq.key, k: fallback, l: kKeyCode.None, f: options.$f || 1 })
-  } else {
-    anotherTip && hudTip(anotherTip)
-  }
-}

@@ -3,7 +3,7 @@ interface BgCmdOptions {
   // region: need cport
   [kBgCmd.goNext]: {
     isNext: boolean; noRel: boolean; patterns: string | string[]; rel: string; $n: 1; absolute: true
-  } & UserSedOptions & CSSOptions
+  } & UserSedOptions & CSSOptions & Req.FallbackOptions
   [kBgCmd.insertMode]: {
     key: string
     hideHUD: boolean
@@ -24,7 +24,7 @@ interface BgCmdOptions {
     postOnEsc: boolean
     returnToViewport: true
     selected: boolean
-  }
+  } & Req.FallbackOptions
   [kBgCmd.toggle]: { key: string; value: any }
   [kBgCmd.showHelp]: Omit<ShowHelpDialogOptions, "h">
   [kBgCmd.showVomnibar]: VomnibarNS.GlobalOptions // in fact, also accept others in VomnibarNS.FgOptions
@@ -33,7 +33,7 @@ interface BgCmdOptions {
     mode: "visual" | "Visual" | "caret" | "Caret" | "line" | "Line" | ""
     richText: boolean
     start: boolean
-  }
+  } & Req.FallbackOptions
   // endregion: need cport
   [kBgCmd.addBookmark]: {
     folder: string; /** (deprecated) */ path: string
