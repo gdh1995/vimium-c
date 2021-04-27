@@ -99,7 +99,7 @@ export const safer: <T extends object> (opt: T) => T & SafeObject
 
 export let weakRef_ = (OnChrome || OnFirefox ? <T extends object>(val: T | null | undefined
       ): WeakRef<T> | null | undefined => val && new (WeakRef as WeakRefConstructor)(val)
-    : (_newObj: object) => _newObj) as {
+    : (_newObj: object | null | undefined) => _newObj) as {
   <T extends object>(val: T): WeakRef<T>
   <T extends object>(val: T | null): WeakRef<T> | null
   <T extends object>(val: T | null | undefined): WeakRef<T> | null | undefined

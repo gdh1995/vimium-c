@@ -138,11 +138,12 @@ const openUrl = (url: string, incognito?: boolean): void => {
 
 const hoverEl = (): void => {
     const type = getEditableType_<0>(clickEl), toggleMap = hintOptions.toggle;
+    const doesFocus = !type && !isIFrameElement(clickEl)
+        && checkFocus((clickEl as ElementToHTMLorOtherFormatted).tabIndex! >= 0)
     // here not check lastHovered on purpose
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
     set_currentScrolling(weakRef_(clickEl))
-    catchAsyncErrorSilently(hover_async(clickEl, center_(rect!))).then((): void => {
-    type || !isIFrameElement(clickEl) && focus_(clickEl)
+    catchAsyncErrorSilently(hover_async(clickEl, center_(rect!), doesFocus)).then((): void => {
     set_cachedScrollable(currentScrolling)
     if (mode1_ < HintMode.min_job) { // called from Modes[-1]
       hintApi.t({ k: kTip.hoverScrollable })
@@ -339,7 +340,7 @@ const defaultClick = (): void => {
             ? kClickAction.plainMayOpenManually | kClickAction.newTabFromMode : kClickAction.plainMayOpenManually
         : kClickAction.none;
     catchAsyncErrorSilently(click_async(clickEl, rect
-        , mask > 0 || interactive || (clickEl as ElementToHTMLorOtherFormatted).tabIndex! >= 0
+        , checkFocus(mask > 0 || interactive || (clickEl as ElementToHTMLorOtherFormatted).tabIndex! >= 0)
         , [!1, ctrl && !isMac, ctrl && isMac, shift]
         , specialActions, isRight ? kClickButton.second : kClickButton.none
         , !OnChrome || otherActions || newTab ? 0 : hintOptions.touch
@@ -348,6 +349,13 @@ const defaultClick = (): void => {
       autoUnhover && !interactive ? catchAsyncErrorSilently(unhover_async())
       : isQueue || ret && pushHandler_(unhoverOnEsc, kHandler.unhoverOnEsc)
     })
+}
+
+const checkFocus = (defaultVal: boolean): boolean => {
+  let userFocus: HintsNS.Options["focus"] | void = hintOptions.focus
+  return userFocus == null ? defaultVal : !!userFocus && (!isTY(userFocus)
+      || OnChrome && Build.MinCVer < BrowserVer.Min$Element$$matches && !clickEl.matches
+      || (userFocus = safeCall(clickEl.matches!.bind(clickEl, userFocus)), userFocus != null ? userFocus : defaultVal))
 }
 
   const masterOrA = hintManager || coreHints, keyStatus = masterOrA.$().k

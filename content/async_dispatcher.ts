@@ -184,16 +184,21 @@ export const touch_cr_ = OnChrome ? (element: SafeElementForMouse
 /** async dispatchers */
 
 /** note: will NOT skip even if newEl == @lastHovered */
-export const hover_async = (async (newEl?: NullableSafeElForM, center?: Point2D): Promise<void> => {
+export const hover_async = (async (newEl?: NullableSafeElForM
+    , center?: Point2D, doesFocus?: boolean): Promise<void> => {
   // if center is affected by zoom / transform, then still dispatch mousemove
   let elFromPoint = center && doc.elementFromPoint(center[0], center[1]),
   canDispatchMove: boolean = !newEl || elFromPoint === newEl || !elFromPoint || !contains_s(newEl, elFromPoint),
   last = deref_(lastHovered_), N = lastHovered_ = null
+  const notSame = newEl !== last
   if (last && IsInDOM_(last)) {
-    const notSame = newEl !== last
     await mouse_(last, "mouseout", [0, 0], N, notSame ? newEl : N)
-    if (!newEl || notSame && !IsInDOM_(newEl, last, 1)) {
-      IsInDOM_(last) && mouse_(last, "mouseleave", [0, 0], N, newEl)
+    if ((!newEl || notSame && !IsInDOM_(newEl, last, 1)) && IsInDOM_(last)) {
+      mouse_(last, "mouseleave", [0, 0], N, newEl)
+      if (doesFocus && last.blur && IsInDOM_(last)) {
+        await 0
+        last.blur()
+      }
     }
     await 0 // should keep function effects stable - not related to what `newEl` is
   } else {
@@ -208,11 +213,12 @@ export const hover_async = (async (newEl?: NullableSafeElForM, center?: Point2D)
         mouse_(newEl, "mousemove", center!)
       }
       lastHovered_ = IsInDOM_(newEl) ? weakRef_(newEl) : N
+      notSame && doesFocus && lastHovered_ && focus_(newEl)
     }
   }
   // here always ensure lastHovered_ is "in DOM" or null
 }) as {
-  (newEl: SafeElementForMouse, center: Point2D): Promise<void>
+  (newEl: SafeElementForMouse, center: Point2D, focus?: boolean): Promise<void>
   (newEl?: null): Promise<void>
 }
 
