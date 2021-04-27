@@ -89,8 +89,10 @@ export const copyWindowInfo = (): void | kBgCmd.copyWindowInfo => {
     const data: any[] = tabs.map(i => isPlainJSON ? {
       title: i.title, url: decoded ? BgUtils_.decodeUrlForCopy_(getTabUrl(i)) : getTabUrl(i)
     } : format.replace(nameRe, (_, s1): string => { // eslint-disable-line arrow-body-style
+      let val: any
       return decoded && s1 === "url" ? BgUtils_.decodeUrlForCopy_(getTabUrl(i))
-        : s1 !== "__proto__" && (i as Dict<any>)[s1] || ""
+        : s1 !== "__proto__" && (val = (i as Dict<any>)[s1],
+          val && typeof val === "object" ? JSON.stringify(val) : val || "")
     })),
     result = copy_(data, join, sed)
     showHUD(type === "tab" && tabs.length < 2 ? result : trans_("copiedWndInfo"), kTip.noTextCopied)

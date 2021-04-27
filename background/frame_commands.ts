@@ -665,8 +665,9 @@ export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey]): void => {
       break
     }
   }
-  if (typeof expected_rules === "string" && expected_rules.includes(":") && !expected_rules.startsWith("{")) {
-    expected_rules = expected_rules.split(<RegExpG> /[,\s]+/g).map(i => i.split(":")).reduce((obj, i) => {
+  if (typeof expected_rules === "string" && (<RegExpOne> /^[^{].*?[:=]/).test(expected_rules)) {
+    expected_rules = expected_rules.split(<RegExpG> /[,\s]+/g).map((i): string[] => i.split(<RegExpOne> /[:=]/)
+        ).reduce((obj, i): SafeDict<string> => {
       if (i.length === 2 && i[0] !== "__proto__" && (<RegExpOne> /^[\x21-\x7f]+$/).test(i[1])) {
         obj[i[0]] = i[1]
       }

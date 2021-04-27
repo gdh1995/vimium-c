@@ -424,6 +424,9 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
     }
   }
   extraClickable_ = cur_tree = cur_arr = null as never
+  while (output.length && (output[0][0] === docEl_unsafe_() || !hintManager && output[0][0] === doc.body)) {
+    output.shift()
+  }
   if (Build.NDEBUG ? wholeDoc : wholeDoc && !isInAnElement) {
     // this requires not detecting scrollable elements if wholeDoc
     if (!(Build.NDEBUG || !wantClickable && !isInAnElement)) {
@@ -517,9 +520,6 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
       list.splice(j, i - j);
       i = j;
     }
-  }
-  while (list.length && ((element = list[0][0]) === docEl_unsafe_() || !hintManager && element === doc.body)) {
-    list.shift();
   }
     })(output as Hint[])
   }
