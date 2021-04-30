@@ -193,7 +193,7 @@ const hoverEl = (): void => {
 const copyText = (): void => {
     const mode1 = mode1_;
     let isUrl = mode1 > HintMode.min_link_job - 1 && mode1 < HintMode.max_link_job + 1,
-        childEl: Element | null,
+        childEl: Element | null, files: HTMLInputElement["files"],
         str: string | null | undefined;
     if (isUrl) {
       str = getUrlData()
@@ -203,15 +203,14 @@ const copyText = (): void => {
         && (str = str.trim())) { /* empty */ }
     else {
       if (tag === INP) {
-        let type = getInputType(clickEl as HTMLInputElement), f: HTMLInputElement["files"];
+        let type = getInputType(clickEl as HTMLInputElement)
         if (type === "pa") {
-          hintApi.t({ k: kTip.ignorePassword })
-          return
+          return hintApi.t({ k: kTip.ignorePassword })
         }
         if (!uneditableInputs_[type]) {
           str = (clickEl as HTMLInputElement).value || (clickEl as HTMLInputElement).placeholder;
         } else if (type === "fi") {
-          str = (f = (clickEl as HTMLInputElement).files) && f.length > 0 ? f[0].name : "";
+          str = (files = (clickEl as HTMLInputElement).files) && files.length > 0 ? files[0].name : ""
         } else if ("buimsure".includes(type)) {
           str = (clickEl as HTMLInputElement).value;
         }
@@ -256,18 +255,11 @@ const copyText = (): void => {
     let lastYanked = mode1 & HintMode.list ? (hintManager || coreHints).y : 0 as const;
     if (lastYanked && lastYanked.indexOf(str) >= 0) {
       hintApi.t({ k: kTip.noNewToCopy })
-      return
+    } else {
+      lastYanked && lastYanked.push(str)
+      hintApi.p({ H: kFgReq.copy, j: hintOptions.join, e: parseSedOptions(hintOptions),
+          d: isUrl && hintOptions.decoded !== !1, s: lastYanked || str })
     }
-    if (lastYanked) {
-      lastYanked.push(str);
-    }
-    hintApi.p({
-      H: kFgReq.copy,
-      j: hintOptions.join,
-      e: parseSedOptions(hintOptions),
-      d: isUrl && hintOptions.decoded !== !1,
-      s: lastYanked || str
-    })
   }
 }
 

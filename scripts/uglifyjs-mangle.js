@@ -2,9 +2,7 @@
 // @ts-check
 "use strict";
 
-const MAX_ALLOWED_PROPERTY_GROUPS = 0;
 const MIN_COMPLEX_CLOSURE = 100;
-const MIN_COMPLEX_OBJECT = 1;
 const MIN_ALLOWED_NAME_LENGTH = 3
 const MIN_LONG_STRING = 20;
 const MIN_STRING_LENGTH_TO_COMPUTE_GAIN = 2;
@@ -69,21 +67,20 @@ const P = Promise.all([
  * @param { MinifyOptions } options
  * @returns { Promise<{
  *   namesToMangle: string[][]
- *   namesCount: ReadonlyMap<string, number>
+ *   propsToMangle: Set<string>
  * }> }
  */
 async function collectWords(ast, options) {
-  /** @type { Map<string, number> } */
-  const map = new Map();
   /** @type { string[][] } */
   let namesToMangle = [];
-  let variableListCount = 0
+  /** @type { Set<string> } */
+  const propsToMangle = new Set();
   const _props0 = options.mangle && typeof options.mangle === "object" ? options.mangle.properties : null,
   props0 = _props0 && typeof _props0 === "object" ? _props0 : null;
   /** @type { RegExp } */
   // @ts-ignore
   const propRe = props0 && props0.regex || /^_|_$/;
-  const reservedProps = new Set(props0 && props0.reserved || [ "__proto__", "$_", "_" ]);
+  const reservedProps = new Set(props0 && props0.reserved || [ "__proto__", "$_" ]);
   ast.walk(new TreeWalker((node) => {
     switch (node.TYPE) {
     case "Accessor": case "Function": case "Arrow": case "Defun": case "Lambda":
@@ -95,15 +92,12 @@ async function collectWords(ast, options) {
       const variables = closure.variables;
       if (variables.size < MIN_COMPLEX_CLOSURE && !(closure.name && closure.name.name === "VC")) { break; }
       const names = [];
-      for (const [key, node] of closure.variables) {
+      for (const [key, node] of variables) {
         const ref_count = node.references.length;
         if (ref_count === 0) { continue; }
-        const id = ":" + key + ":" + variableListCount
-        names.push(id);
-        map.set(id, (map.get(id) || 0) + ref_count);
+        names.push(key);
       }
       if (names.length > 0) {
-        variableListCount++
         namesToMangle.push(names)
       }
       break;
@@ -111,22 +105,12 @@ async function collectWords(ast, options) {
       /** @type { import("../typings/base/terser").AST_Object } */
       // @ts-ignore
       const obj = node;
-      if (obj.properties.length < MIN_COMPLEX_OBJECT) { break; }
-      const list = obj.properties.map(i => {
+      obj.properties.filter(i => {
         const prop = i.key;
-        return typeof prop === "string" ? prop : "";
-      }).filter(i => !!i);
-      if (list.length === 0) { break; }
-      let subCounter = 0;
-      list.forEach(prop => {
-        if (propRe.test(prop) && !reservedProps.has(prop)) {
-          subCounter++;
-          map.set(prop, (map.get(prop) || 0) + 1);
+        if (typeof prop === "string" && propRe.test(prop) && !reservedProps.has(prop)) {
+          propsToMangle.add(prop)
         }
-      });
-      if (subCounter > 0) {
-        namesToMangle.push(list);
-      }
+      })
       break;
     case "Dot":
       /** @type { import("../typings/base/terser").AST_Dot } */
@@ -136,24 +120,14 @@ async function collectWords(ast, options) {
       // @ts-ignore
       const prop = dot.property;
       if (propRe.test(prop) && !reservedProps.has(prop)) {
-        map.set(prop, (map.get(prop) || 0) + 1);
+        propsToMangle.add(prop)
       }
       break;
     // no default
     }
     return false;
   }));
-  namesToMangle.forEach(arr => arr.sort((i, j) => {
-    return (map.get(j) || 0) - (map.get(i) || 0) || (i < j ? -1 : 1);
-  }));
-  let ids = namesToMangle.map(i => i.join());
-  for (let i = ids.length; 1 <= --i; ) {
-    let j = ids.indexOf(ids[i]);
-    if (j < i) {
-      namesToMangle.splice(i, 1);
-    }
-  }
-  return {namesToMangle, namesCount: map}
+  return {namesToMangle, propsToMangle: propsToMangle}
 }
 
 /**
@@ -206,25 +180,6 @@ async function collectString(text) {
   }
   return {stringsTooLong, stringGains}
 }
- 
-/**
- * @param { readonly string[][] } names
- * @param { ReadonlyMap<string, number> } countsMap
- * @return { string[] }
- */
-function findDuplicated(names, countsMap) {
-  /** @type { Map<string, number> } */
-  const dedup = new Map();
-  for (const arr of names) {
-    for (let name of arr) {
-      name = name[0] === ":" ? name.split(":")[1] : name;
-      if (!countsMap.has(name)) { continue; }
-      dedup.set(name, (dedup.get(name) || 0) + 1);
-    }
-  }
-  const duplicated = [...dedup.entries()].filter(item => item[1] > 1).map(item => item[0]);
-  return duplicated;
-}
 
 /**
  * @param { readonly string[][] } names
@@ -234,12 +189,14 @@ function findDuplicated(names, countsMap) {
 function findTooShort(names, minAllowedLength) {
   /** @type { Set<string> } */
   const short = new Set();
+  let ind = 0
   for (const arr of names) {
     for (const name of arr) {
-      if ((name[0] === ":" ? name.split(":")[1].length : name.length) < minAllowedLength) {
-        short.add(name);
+      if (name.length < minAllowedLength) {
+        short.add(`:${name}:${ind}`);
       }
     }
+    ind++
   }
   return short
 }
@@ -268,50 +225,26 @@ async function myMinify(files, options) {
     replaceLets(ast)
   }
   if (options && options.mangle) {
-    const { namesToMangle: names, namesCount: countsMap} = await collectWords(ast, options);
+    const { namesToMangle: names, propsToMangle: props } = await collectWords(ast, options);
     if (names.length > 0) {
-      const duplicated = findDuplicated(names, countsMap);
-      if (duplicated.length > 0) {
-        throw Error("Find duplicated keys: " + JSON.stringify(duplicated, null, 2));
-      }
       const tooShort = findTooShort(names, MIN_ALLOWED_NAME_LENGTH);
       ALLOWED_SHORT_NAMES.forEach(i => tooShort.delete(i))
       if (tooShort.size > 0) {
         throw Error("Some keys are too short: " + JSON.stringify([...tooShort], null, 2))
       }
-      const variables = names.filter(arr => arr[0][0] === ":");
-      if (variables.length > 2) {
-        throw Error("Too many big closures to mangle: "
-            + JSON.stringify(variables.map(list => list.slice(0, 16).map(i => i.split(":")[1]).concat(["..."]))));
-      }
-      if (variables.length < 1) {
-        throw Error("No big closure found");
-      }
-      const properties = names.filter(arr => arr[0][0] !== ":");
-      const normalProperties = properties.map(i => i.filter(j => j !== "label_" && j !== "sent_")).filter(i => i.length)
-      if (normalProperties.length > MAX_ALLOWED_PROPERTY_GROUPS) {
+      const properties = [...props];
+      const normalProperties = properties.filter(j => j !== "label_" && j !== "sent_").filter(i => i.length)
+      if (normalProperties.length > 0) {
         throw Error("Too many property groups to mangle: " + JSON.stringify(normalProperties));
-      }
-      if (properties.length < 5 && properties.length > 0) {
-        console.log("Find some property groups to mangle:", properties);
       }
       /** @type { NameCache } */
       // @ts-ignore
       const nameCache = options.nameCache || { vars: { props: {} }, props: { props: {} } };
       if (!nameCache.props) { nameCache.props = { props: {} }; }
-      const props = nameCache.props.props || (nameCache.props.props = {});
+      nameCache.props.props || (nameCache.props.props = {});
       // @ts-ignore
       if (options.format && options.format.code) {
-        disposeNameMangler = await hookMangleNamesOnce(variables[0]
-            , variables.length > 1 ? variables[1] : null, countsMap)
-      }
-      for (const arr of properties) {
-        const next = createMangler(arr);
-        for (const name of arr) {
-          if (countsMap.has(name)) {
-            props["$" + name] = next(name)
-          }
-        }
+        disposeNameMangler = await hookMangleNamesOnce()
       }
     }
   }
@@ -551,20 +484,16 @@ function* collectVariableAndValues(var1, context) {
 }
 
 /**
- * @param { readonly string[] } mainVariableNames
- * @param { readonly string[] | null } extendClickValiables
- * @param { ReadonlyMap<string, number> } countsMap
  * @returns { Promise<() => void> } dispose
  */
-async function hookMangleNamesOnce(mainVariableNames, extendClickValiables, countsMap) {
+async function hookMangleNamesOnce() {
   /** @type { { prototype: AST_Toplevel } } */
   const AST_Toplevel = (await import("terser/lib/ast")).AST_Toplevel;
   // @ts-ignore
   const oldMangle = AST_Toplevel.prototype.mangle_names;
-  const varCountMap = new Map([...countsMap].filter(i => i[0][0] === ":").map(([k, v]) => [k.split(":")[1], v]));
   const kNo$ = {}
   /** @type { (this: AST_LambdaClass, options: import("terser").MangleOptions, no$?: object) => any } */
-  const myMangle = function (options, argNo$) {
+  const myMangleNames = function (options, argNo$) {
     const mainClosure = this.body ? this.body.filter(i => i.TYPE.includes("Statement"))[0] : null;
     /** @type { VariableMap } */
     // @ts-ignore
@@ -573,14 +502,17 @@ async function hookMangleNamesOnce(mainVariableNames, extendClickValiables, coun
     /** @type {Map<string, any>} */
     const astVariables = isVC ? this.variables : expression && expression.variables;
     if (!astVariables || !isVC && astVariables.size < MIN_COMPLEX_CLOSURE) { return; }
-    const vars = (isVC ? extendClickValiables : mainVariableNames).map(i => i.split(":")[1])
-    const next = createMangler(["do", "for", "if", "in", "new", "try", "var", "let",
-        ...vars, ...(options.reserved || [])]);
-    for (const name of vars) {
-      if (varCountMap.has(name)) {
+    /** @type {Map<string, number>} */
+    const varCountMap = new Map([...astVariables].map(([name, { references: { length: count } }]) => [name, count]))
+    const reversed = ["do", "for", "if", "in", "new", "try", "var", "let"
+        // , ..."$".split("") // leave an element to make child functions smaller
+        , ...[...varCountMap.keys()].filter(i => i.length <= 3), ...(options.reserved || [])]
+    const next = createMangler(reversed)
+    const vars = [...varCountMap].filter(i => i[1] > 0).sort((i, j) => (j[1] - i[1]) || (i < j ? -1 : 1))
+    for (const [name, _count] of vars) {
         const varDef = astVariables.get(name);
         if (varDef) {
-          if (name.length < MIN_ALLOWED_NAME_LENGTH && vars.includes(name)) {
+          if (name.length < MIN_ALLOWED_NAME_LENGTH) {
             varDef.mangled_name = name
             continue
           }
@@ -590,7 +522,6 @@ async function hookMangleNamesOnce(mainVariableNames, extendClickValiables, coun
           } while (argNo$ === kNo$ && newName.includes("$"))
           varDef.mangled_name = newName
         }
-      }
     }
     const astVariableNameList = [...astVariables.keys()].filter(i => !i.startsWith("scoped_"))
     const unknownVars = astVariableNameList.filter(k => !varCountMap.has(k) && k !== "arguments" && k !== "VC")
@@ -605,7 +536,7 @@ async function hookMangleNamesOnce(mainVariableNames, extendClickValiables, coun
       case "Accessor": case "Function": case "Arrow": case "Defun": case "Lambda":
         // @ts-ignore
         if (node.name && node.name.name === "VC") {
-          myMangle.call(node, options, kNo$)
+          myMangleNames.call(node, options, kNo$)
           return true
         }
       }
@@ -616,7 +547,7 @@ async function hookMangleNamesOnce(mainVariableNames, extendClickValiables, coun
     return this.mangle_names(options)
   };
   // @ts-ignore
-  AST_Toplevel.prototype.mangle_names = myMangle;
+  AST_Toplevel.prototype.mangle_names = myMangleNames;
   let succeed = false;
   const dispose = () => {
     // @ts-ignore

@@ -41,127 +41,20 @@ let status = Status.NotInited
 let omniOptions: VomnibarNS.FgOptionsToFront | null = null
 let secondActivateWithNewOptions: (() => void) | null = null
 let timer: ValidTimeoutID = TimerID.None
-  // unit: physical pixel (if C<52)
-let screenHeight_ = 0
-let canUseVW: boolean
 
 export { box as omni_box, status as omni_status }
-
-export const activate = function (options: FullOptions, count: number): void {
-    // hide all further key events to wait iframe loading and focus changing from JS
-    replaceOrSuppressMost_(kHandler.omni)
-    secondActivateWithNewOptions = null
-    let timer1 = timeout_(refreshKeyHandler, GlobalConsts.TimeOfSuppressingTailKeydownEvents)
-    if (checkHidden(kFgCmd.vomnibar, options, count)) { return }
-    if (status === Status.KeepBroken) {
-      return hudTip(kTip.omniFrameFail, 2000)
-    }
-    if (!options || !options.k || !options.v) { return; }
-    if (readyState_ > "l") {
-      if (!timer) {
-        clearTimeout_(timer1);
-        timer = timeout_(activate.bind(0, options, count), 500)
-        return;
-      }
-    }
-    timer = TimerID.None
-    let url = options.url
-    if (isTop || !options.u || !isTY(options.u)) {
-      options.u = vApi.u()
-    }
-    if (url === true || count !== 1 && url == null) {
-      // update options.url to string, so that this block can only run once per command
-      if (options.url = url = url ? getSelectionText() : "") {
-        options.newtab = 1;
-      }
-    }
-    let parApi: ReturnType<typeof getParentVApi>;
-    if (!isTop && !options.$forced) { // check $forced to avoid dead loops
-      if (parent === top && !fullscreenEl_unsafe_() && (parApi = getParentVApi())) {
-        parApi.f(kFgCmd.vomnibar, options, count)
-      } else {
-        post_({ H: kFgReq.gotoMainFrame, f: 0, c: kFgCmd.vomnibar, n: count, a: options })
-      }
-      return;
-    }
-    if (!isHTML_()) { return; }
-    omniOptions = null
-    getViewBox_();
-    // `canUseVW` is computed for the gulp-built version of vomnibar.html
-    canUseVW = (!OnChrome || Build.MinCVer >= BrowserVer.MinCSSWidthUnit$vw$InCalc
-            || chromeVer_ > BrowserVer.MinCSSWidthUnit$vw$InCalc - 1)
-        && !fullscreenEl_unsafe_() && docZoom_ === 1 && dScale_ === 1;
-    let scale = wndSize_(2);
-    let width = canUseVW ? wndSize_(1) : (prepareCrop_()
-        , OnFirefox ? viewportRight : viewportRight * docZoom_ * bZoom_)
-    if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent) {
-      options.w = width * scale;
-      options.h = screenHeight_ = wndSize_() * scale;
-    } else {
-      options.w = width;
-      options.h = screenHeight_ = wndSize_()
-    }
-    options.z = scale;
-    if (!(Build.NDEBUG || Status.Inactive - Status.NotInited === 1)) {
-      console.log("Assert error: Status.Inactive - Status.NotInited === 1");
-    }
-    box && adjustUI()
-    if (status === Status.NotInited) {
-      if (!options.$forced) { // re-check it for safety
-        options.$forced = 1;
-      }
-      if (tryNestedFrame(kFgCmd.vomnibar, options, count)) { return; }
-      status = Status.Initing
-      init(options)
-    } else if (safeCall(isAboutBlank_throwable)) {
-      secondActivateWithNewOptions = activate.bind(0, options, count);
-      (status > Status.ToShow - 1 || timeout_ == interval_) && resetWhenBoxExists()
-      return;
-    } else if (status === Status.Inactive) {
-      status = Status.ToShow
-    } else if (status > Status.ToShow) {
-      focusOmni()
-      status = Status.ToShow
-    }
-    toggleClass_s(box!, "O2", !canUseVW)
-    options.e && setupExitOnClick(kExitOnClick.vomnibar)
-    let upper = 0;
-    if (url != null) {
-      url = options.url = url || options.u;
-      upper = count > 1 ? 1 - count : count < 0 ? -count : 0;
-    }
-    options.k = 0; options.v = options.i = "";
-    options.N = VomnibarNS.kCReq.activate;
-    options.u = "";
-    if (!url || !url.includes("://")) {
-      options.p = "";
-      status > Status.Initing ? postToOmni(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront)
-          : (omniOptions = options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront)
-      return;
-    }
-    if (injector === null && (window as PartialOf<typeof globalThis, "VData">).VData) {
-      url = VData!.o(url)
-    }
-    send_(kFgReq.parseSearchUrl, { t: options.s, p: upper, u: url }, function (search): void {
-      options.p = search;
-      if (search != null) { options.url = ""; }
-      status > Status.Initing ? postToOmni(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront)
-          : (omniOptions = options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront)
-    });
-} as (options: CmdOptions[kFgCmd.vomnibar], count: number) => void
 
 type InnerHide = (fromInner?: 1 | null) => void
 export const hide = ((fromInner?: 1 | null): void => {
     const oldIsActive = status > Status.Inactive
     status = Status.Inactive
-    screenHeight_ = 0; canUseVW = !0
     setupExitOnClick(kExitOnClick.vomnibar | kExitOnClick.REMOVE)
     if (fromInner == null) {
       oldIsActive && postToOmni(VomnibarNS.kCReq.hide)
       return
     }
     // needed, in case the iframe is focused and then a `<esc>` is pressed before removing suppressing
-    refreshKeyHandler()
+    removeHandler_(kHandler.omni)
     oldIsActive || focus()
     if (OnChrome && Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval) {
       let style_old_cr = box!.style
@@ -171,6 +64,8 @@ export const hide = ((fromInner?: 1 | null): void => {
       box!.style.cssText = "display:none"
     }
 }) as InnerHide as (_arg?: null) => void
+
+export const activate = function (options: FullOptions, count: number): void {
 
 const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
     const reload = (): void => {
@@ -323,6 +218,107 @@ const refreshKeyHandler = (): void => {
     return HandlerResult.Nothing;
   }) as (event: HandlerNS.Event) => HandlerResult)
 }
+
+  const timer1 = timeout_(refreshKeyHandler, GlobalConsts.TimeOfSuppressingTailKeydownEvents)
+  const scale = wndSize_(2)
+  let url = options.url, upper = 0, screenHeight_ = 0 // unit: physical pixel (if C<52)
+  // hide all further key events to wait iframe loading and focus changing from JS
+  replaceOrSuppressMost_(kHandler.omni)
+  secondActivateWithNewOptions = null
+  if (checkHidden(kFgCmd.vomnibar, options, count)) { return }
+  if (status === Status.KeepBroken) {
+    return hudTip(kTip.omniFrameFail, 2000)
+  }
+  if (!options || !options.k || !options.v) { return; }
+  if (readyState_ > "l") {
+    if (!timer) {
+      clearTimeout_(timer1)
+      timer = timeout_(activate.bind(0, options, count), 500)
+      return
+    }
+  }
+  timer = TimerID.None
+  if (isTop || !options.u || !isTY(options.u)) {
+    options.u = vApi.u()
+  }
+  if (url === true || count !== 1 && url == null) {
+    // update options.url to string, so that this block can only run once per command
+    if (options.url = url = url ? getSelectionText() : "") {
+      options.newtab = 1
+    }
+  }
+  let parApi: ReturnType<typeof getParentVApi>
+  if (!isTop && !options.$forced) { // check $forced to avoid dead loops
+    if (parent === top && !fullscreenEl_unsafe_() && (parApi = getParentVApi())) {
+      parApi.f(kFgCmd.vomnibar, options, count)
+    } else {
+      post_({ H: kFgReq.gotoMainFrame, f: 0, c: kFgCmd.vomnibar, n: count, a: options })
+    }
+    return
+  }
+  if (!isHTML_()) { return; }
+  omniOptions = null
+  getViewBox_()
+  // `canUseVW` is computed for the gulp-built version of vomnibar.html
+  const canUseVW = (!OnChrome || Build.MinCVer >= BrowserVer.MinCSSWidthUnit$vw$InCalc
+          || chromeVer_ > BrowserVer.MinCSSWidthUnit$vw$InCalc - 1)
+      && !fullscreenEl_unsafe_() && docZoom_ === 1 && dScale_ === 1
+  let width = canUseVW ? wndSize_(1) : (prepareCrop_()
+      , OnFirefox ? viewportRight : viewportRight * docZoom_ * bZoom_)
+  if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent) {
+    options.w = width * scale
+    options.h = screenHeight_ = wndSize_() * scale
+  } else {
+    options.w = width
+    options.h = screenHeight_ = wndSize_()
+  }
+  options.z = scale
+  if (!(Build.NDEBUG || Status.Inactive - Status.NotInited === 1)) {
+    console.log("Assert error: Status.Inactive - Status.NotInited === 1")
+  }
+  box && adjustUI()
+  if (status === Status.NotInited) {
+    if (!options.$forced) { // re-check it for safety
+      options.$forced = 1
+    }
+    if (tryNestedFrame(kFgCmd.vomnibar, options, count)) { return; }
+    status = Status.Initing
+    init(options)
+  } else if (safeCall(isAboutBlank_throwable)) {
+    secondActivateWithNewOptions = activate.bind(0, options, count);
+    (status > Status.ToShow - 1 || timeout_ == interval_) && resetWhenBoxExists()
+    return
+  } else if (status === Status.Inactive) {
+    status = Status.ToShow
+  } else if (status > Status.ToShow) {
+    focusOmni()
+    status = Status.ToShow
+  }
+  toggleClass_s(box!, "O2", !canUseVW)
+  options.e && setupExitOnClick(kExitOnClick.vomnibar)
+  if (url != null) {
+    url = options.url = url || options.u
+    upper = count > 1 ? 1 - count : count < 0 ? -count : 0
+  }
+  options.k = 0; options.v = options.i = ""
+  options.N = VomnibarNS.kCReq.activate
+  options.u = ""
+  if (!url || !url.includes("://")) {
+    options.p = ""
+    status > Status.Initing ? postToOmni(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront)
+        : (omniOptions = options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront)
+    return
+  }
+  if (injector === null && (window as PartialOf<typeof globalThis, "VData">).VData) {
+    url = VData!.o(url)
+  }
+  send_(kFgReq.parseSearchUrl, { t: options.s, p: upper, u: url }, function (search): void {
+    options.p = search
+    if (search != null) { options.url = ""; }
+    status > Status.Initing ? postToOmni(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront)
+        : (omniOptions = options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront)
+  })
+} as (options: CmdOptions[kFgCmd.vomnibar], count: number) => void
 
 export const focusOmni = (): void => {
     if (status < Status.Showing) { return; }

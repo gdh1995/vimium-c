@@ -290,9 +290,8 @@ export const findMainSummary_ = ((details: HTMLDetailsElement | Element | null):
     }
     let found: SafeHTMLElement | null = null
     for (let summaries = details!.children, i = 0; i < summaries.length && !found; i++) {
-      const summary = summaries[i];
       // there's no window.HTMLSummaryElement on C70
-      found = htmlTag_(summary) === "summary" ? summary as SafeHTMLElement : found
+      found = htmlTag_(summaries[i]) === "summary" ? summaries[i] as SafeHTMLElement : found
     }
     return found
 }) as (details: HTMLDetailsElement) => SafeHTMLElement | null

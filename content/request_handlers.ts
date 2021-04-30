@@ -157,7 +157,7 @@ set_requestHandlers([
     for (const i in delta) {
       (fgCache as Generalized<typeof fgCache>)[i as Keys] = (delta as EnsureItemsNonNull<typeof delta>)[i as Keys];
       const i2 = "_" + i as Keys;
-      (i2 in fgCache) && (safer(fgCache)[i2] = void 0 as never);
+      (i2 in fgCache) && delete safer(fgCache)[i2]
     }
     delta.d != null && hud_box && toggleClass_s(hud_box, "D", !!delta.d)
   },
@@ -165,11 +165,11 @@ set_requestHandlers([
     // Note: .c, .S are ensured to exist
     let mask = req.m, div: Element | null;
     req.H && setUICSS(req.H);
-    if (mask !== FrameMaskType.NormalNext) { /* empty */ }
-    else if (checkHidden()
-      // check <div> to detect whether no other visible elements except <frame>s in this frame
-      || (doc.body && htmlTag_(doc.body) === "frameset")
-          && (div = querySelector_unsafe_("div"), !div || div === ui_box && !handler_stack.length)
+    if (mask === FrameMaskType.NormalNext
+      && (checkHidden()
+          // check <div> to detect whether no other visible elements except <frame>s in this frame
+          || (doc.body && htmlTag_(doc.body) === "frameset")
+              && (div = querySelector_unsafe_("div"), !div || div === ui_box && !handler_stack.length))
     ) {
       post_({
         H: kFgReq.nextFrame,

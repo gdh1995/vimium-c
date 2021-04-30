@@ -23,7 +23,7 @@ import {
   createStyle, getSelectionText, checkDocSelectable, adjustUI, ensureBorder, addUIElement, getSelected, flash_,
   getSelectionOf
 } from "./dom_ui"
-import { visual_mode, highlightRange, activate as visualActivate } from "./visual"
+import { highlightRange, activate as visualActivate, visual_mode_name } from "./visual"
 import { keyIsDown as scroll_keyIsDown, beginScroll, onScrolls } from "./scroller"
 import { scrollToMark, setPreviousMarkPosition } from "./marks"
 import { hudHide, hud_box, hudTip, hud_opacity, toggleOpacity as hud_toggleOpacity } from "./hud"
@@ -83,20 +83,35 @@ let highlighting: (() => void) | undefined | null
 let isSmall = false
 let postLock: Element | null = null
 let cachedInnerText: { /** innerText */ i: string, /** timestamp */ t: number, n: boolean } | null | undefined
+let deactivate: (i: FindAction) => void
 
 export { findCSS, query_ as find_query, hasResults as find_hasResults, box_ as find_box, styleSelectable,
-    styleInHUD, styleSelColorOut, input_ as find_input }
+    styleInHUD, styleSelColorOut, input_ as find_input, deactivate }
 export function set_findCSS (_newFindCSS: FindCSS): void { findCSS = _newFindCSS }
 
 export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
-    const initSelColors = (adjust_type: AdjustType): void => {
+
+  const initSelColors = (adjust_type: AdjustType): void => {
       const css = findCSS.c, sin = styleSelColorIn = createStyle(css)
       ui_box ? adjustUI() : addUIElement(sin, adjust_type, true)
       removeEl_s(sin)
       styleSelColorOut = OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
           || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
           || !OnEdge && ui_box !== ui_root ? createStyle(css) : sin
+  }
+  /** return an element if no <a> else null */
+  const focusFoundLinkIfAny = (): SafeElement | null | void => {
+    let cur = OnFirefox ? getSelectionParent_unsafe(getSelected()) as SafeElement | null
+        : SafeEl_not_ff_!(getSelectionParent_unsafe(getSelected()))
+    for (let i = 0, el: Element | null = cur; el && el !== doc.body && i++ < 5;
+        el = GetParent_unsafe_(el, PNType.RevealSlotAndGotoParent)) {
+      if (el.localName === "a") {
+        return focus_(el as SafeElement)
+      }
     }
+    return cur;
+  }
+
     findCSS = options.f || findCSS;
     if (!isHTML_()) { return; }
     let query: string = options.s ? getSelectionText() : "";
@@ -106,7 +121,63 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     isActive || query === query_ && options.l || setPreviousMarkPosition()
     checkDocSelectable();
     ensureBorder()
-    if (options.l) {
+
+
+  /** Note: host page may have no range (type is "None"), if:
+   * * press <Enter> on HUD to exit FindMode
+   * * a host script has removed all ranges
+   */
+  deactivate = deactivate || ((i: FindAction): void => {
+    let sin = styleSelColorIn, noStyle = !sin || !parentNode_unsafe_s(sin), hasResult = hasResults
+      , maxNotRunPost = postOnEsc ? FindAction.ExitAndReFocus - 1 : FindAction.ExitToPostMode - 1
+      , el: SafeElement | null | undefined, el2: Element | null
+    i === FindAction.ExitNoAnyFocus ? hookSel(1) : focus()
+    coords && scrollToMark(coords)
+    hasResults = isActive = isSmall = notEmpty = postOnEsc = doesNormalizeLetters = wholeWord = false
+    wrapAround = true
+    removeHandler_(kHandler.find)
+    outerBox_ && removeEl_s(outerBox_)
+    highlighting && highlighting()
+    if (box_ === deref_(lastHovered_)) { set_lastHovered_(null) }
+    parsedQuery_ = query_ = query0_ = ""
+    historyIndex = matchCount = doesCheckAlive = 0;
+    styleInHUD = onUnexpectedBlur = outerBox_ = isRegex = ignoreCase =
+    box_ = innerDoc_ = root_ = input_ = countEl = parsedRegexp_ =
+    initialRange = regexMatches = coords = cachedInnerText = null as never
+    if (i > FindAction.MaxExitButNoWork) {
+      el = getSelectionFocusEdge_(getSelected())
+      el && focus_(el)
+    }
+    if ((i === FindAction.ExitAndReFocus || !hasResult || visual_mode_name) && !noStyle) {
+      toggleStyle(1)
+      restoreSelection(true)
+    }
+    if (visual_mode_name) {
+      visualActivate(safer<CmdOptions[kFgCmd.visualMode]>({ r: true }))
+      return;
+    }
+    if (i > FindAction.MaxExitButNoWork && hasResult && (!el || el !== insert_Lock_())) {
+      let container = focusFoundLinkIfAny()
+      if (container && i === FindAction.ExitAndReFocus && (el2 = activeEl_unsafe_())
+          && getEditableType_<0>(el2) > EditableType.TextBox - 1 && contains_s(container, el2)) {
+        prepareCrop_();
+        select_(el2 as LockableElement).then((): void => {
+          toggleSelectableStyle()
+          i > maxNotRunPost && postActivate()
+        })
+        return
+      } else if (el) {
+        // always call scrollIntoView if only possible, to keep a consistent behavior
+        OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions ? fixTabNav_cr_old(el) : scrollIntoView_(el)
+      }
+    }
+    toggleSelectableStyle()
+    if (i > maxNotRunPost) {
+      postActivate()
+    }
+  })
+
+  if (options.l) {
       if (query = query || query_) {
         styleSelColorOut || initSelColors(AdjustType.MustAdjust)
         if (query !== query_) {
@@ -140,18 +211,18 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
         hudTip(kTip.noOldQuery)
       }
       return
-    }
+  }
     postOnEsc = options.p
     doesNormalizeLetters = options.n
     if (OnChrome && (Build.MinCVer >= BrowserVer.MinBorderWidth$Ensure1$Or$Floor
           || chromeVer_ > BrowserVer.MinBorderWidth$Ensure1$Or$Floor - 1)) {
       getZoom_()
     }
-    if (isActive) {
+  if (isActive) {
       adjustUI()
       hudHide(TimerType.noTimer);
-      return setFirstQuery(query)
-    }
+      setFirstQuery(query)
+  } else {
     if (initialRange = selRange_(getSelected())) {
       collpaseSelection(getSelection_()) // `range.collapse` doesn't work when inside a ShadowRoot (C72)
     } else {
@@ -163,6 +234,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     parsedQuery_ = query_ = ""
     parsedRegexp_ = regexMatches = null
     activeRegexIndex = 0
+    query_ || (query0_ = query)
 
     const outerBox = outerBox_ = createElement_(OnChrome
         && Build.MinCVer < BrowserVer.MinForcedColorsMode ? getBoxTagName_old_cr() : "div"),
@@ -171,66 +243,21 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     setDisplaying_s(outerBox)
     if (!OnFirefox && wdZoom_ !== 1) { st.zoom = "" + 1 / wdZoom_; }
     setClassName_s(outerBox, "R UI HUD" + fgCache.d)
-    if (OnFirefox) {
-      setupEventListener(outerBox, MDW, onMousedown, 0, 1)
-    } else {
-      outerBox.onmousedown = onMousedown
-    }
     box_ = createElement_("iframe")
     setClassName_s(box_, "R UI Find")
     box_.onload = vApi.n
     replaceOrSuppressMost_(kHandler.find)
-    query_ || (query0_ = query)
     styleSelColorOut || initSelColors(AdjustType.NotAdjust)
     toggleSelectableStyle(1);
     isActive = true
     appendNode_s(outerBox, box_)
     addUIElement(outerBox, AdjustType.DEFAULT, hud_box);
+  }
 }
 
 export const onLoad = (later?: Event): void => {
-  if (OnEdge
-      || OnChrome && Build.MinCVer < BrowserVer.MinEnsuredShadowDOMV1
-      || OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredShadowDOMV1) {
-    if (later && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted
-          ? !later.isTrusted : later.isTrusted === false)) {
-      return
-    }
-  }
-    try {
-      innerDoc_ = (isActive ? box_.contentDocument as HTMLDocument | null : null) as HTMLDocument | never
-    } catch {}
-    if (!innerDoc_) {
-      if (isActive) {
-        deactivate(FindAction.ExitUnexpectedly)
-        hudTip(kTip.findFrameFail, 2000)
-      }
-      return
-    }
-    const wnd = box_.contentWindow, f = wnd.addEventListener.bind(wnd) as typeof addEventListener,
-    now = getTime(), t = true;
-    let tick = 0;
-    f(MDW, onMousedown, t)
-    f("keydown", onIFrameKeydown, t)
-    f("keyup", onIFrameKeydown, t)
-    f(INP, onInput, t)
-    OnChrome || f("paste", onPaste_not_cr!, t)
-    f(UNL, /*#__NOINLINE__*/ onIframeUnload, t)
-    if (OnChrome) {
-      f("compositionend", onInput, t)
-    }
-    suppressCommonEvents(wnd, CLK);
-    f(BU, onUnexpectedBlur = (event): void => {
-      const delta = getTime() - now
-      if (event && isActive && delta < 500 && delta > -99 && event.target === wnd) {
-        wnd.closed || timeout_((): void => { isActive && doFocus(); }, tick++ * 17)
-      } else {
-        setupEventListener(wnd, BU, onUnexpectedBlur, 1, 1)
-        onUnexpectedBlur = null
-      }
-    }, t);
-    f("focus", /*#__NOINLINE__*/ onIframeFocus, t)
-  let onLoad2 = (): void => {
+
+  const onLoad2 = (): void => {
     const docEl = innerDoc_.documentElement as HTMLHtmlElement,
     body = innerDoc_.body as HTMLBodyElement,
     zoom = OnFirefox ? 1 : wnd.devicePixelRatio,
@@ -240,7 +267,6 @@ export const onLoad = (later?: Event): void => {
       id && (newEl.id = id, appendNode_s(list, newEl))
       return newEl;
     };
-    onLoad2 = null as never
     addElement(0, "s").dataset.vimium = "/"
     const el = input_ = addElement(0, "i")
     addElement(0, "h");
@@ -327,12 +353,6 @@ export const onLoad = (later?: Event): void => {
     setFirstQuery(query0_)
   }
 
-  box_.onload = later ? null as never : (e): void => {
-    (e.target as typeof box_).onload = null as never; isActive && onLoad2()
-  }
-  if (later) { onLoad2() }
-}
-
 const onIframeFocus = function (this: Window, event: Event): void {
   doesCheckAlive && event.target === this && onWndFocus()
   OnFirefox || Stop_(event)
@@ -341,41 +361,6 @@ const onIframeFocus = function (this: Window, event: Event): void {
 const onIframeUnload = (e: Event): void => {
   isActive && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted ? !e.isTrusted : e.isTrusted === false)
   && deactivate(FindAction.ExitUnexpectedly)
-}
-
-const doFocus = (): void => {
-  doesCheckAlive = 0
-  if (OnFirefox) {
-    box_.contentWindow.focus()
-  }
-  // fix that: search "a" in VFind, Ctrl+F, "a", Esc, select normal text using mouse, `/` can not refocus
-  OnChrome && (root_ || innerDoc_).activeElement === input_ && input_.blur()
-  focus_(input_)
-  doesCheckAlive = 1
-}
-
-const setFirstQuery = (query: string): void => {
-  doFocus()
-  query0_ = ""
-  query_ || setQuery(query)
-  isQueryRichText_ = true
-  notEmpty = !!query_
-  notEmpty && execCommand("selectAll")
-}
-
-export const clear = (): void => {
-  coords && scrollToMark(coords)
-  hasResults = isActive = isSmall = notEmpty = postOnEsc = doesNormalizeLetters = wholeWord = false
-  wrapAround = true
-  removeHandler_(kHandler.find)
-  outerBox_ && removeEl_s(outerBox_)
-  highlighting && highlighting()
-  if (box_ === deref_(lastHovered_)) { set_lastHovered_(null) }
-  parsedQuery_ = query_ = query0_ = ""
-  historyIndex = matchCount = doesCheckAlive = 0;
-  styleInHUD = onUnexpectedBlur = outerBox_ = isRegex = ignoreCase =
-  box_ = innerDoc_ = root_ = input_ = countEl = parsedRegexp_ =
-  initialRange = regexMatches = coords = cachedInnerText = null as never
 }
 
 const onMousedown = function (this: Window | HTMLDivElement | HTMLBodyElement, event: MouseEventToPrevent): void {
@@ -488,49 +473,79 @@ const onHostKeydown = (event: HandlerNS.Event): HandlerResult => {
       return HandlerResult.Prevent;
     }
     return HandlerResult.Nothing;
-  }
+}
 
-  /** Note: host page may have no range (type is "None"), if:
-   * * press <Enter> on HUD to exit FindMode
-   * * a host script has removed all ranges
-   */
-export const deactivate = (i: FindAction): void => {
-    let sin = styleSelColorIn, noStyle = !sin || !parentNode_unsafe_s(sin), hasResult = hasResults
-      , maxNotRunPost = postOnEsc ? FindAction.ExitAndReFocus - 1 : FindAction.ExitToPostMode - 1
-      , el: SafeElement | null | undefined, el2: Element | null;
-    i === FindAction.ExitNoAnyFocus ? hookSel(1) : focus()
-    clear()
-    if (i > FindAction.MaxExitButNoWork) {
-      el = getSelectionFocusEdge_(getSelected())
-      el && focus_(el)
+  if (OnEdge
+      || OnChrome && Build.MinCVer < BrowserVer.MinEnsuredShadowDOMV1
+      || OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredShadowDOMV1) {
+    if (later && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted
+          ? !later.isTrusted : later.isTrusted === false)) {
+      return
     }
-    if ((i === FindAction.ExitAndReFocus || !hasResult || visual_mode) && !noStyle) {
-      toggleStyle(1)
-      restoreSelection(true)
+  }
+  try {
+    innerDoc_ = (isActive ? box_.contentDocument as HTMLDocument | null : null) as HTMLDocument | never
+  } catch {}
+  if (!innerDoc_) {
+    if (isActive) {
+      deactivate(FindAction.ExitUnexpectedly)
+      hudTip(kTip.findFrameFail, 2000)
     }
-    if (visual_mode) {
-      visualActivate(safer<CmdOptions[kFgCmd.visualMode]>({ r: true }))
-      return;
+    return
+  }
+  const wnd = box_.contentWindow, f = wnd.addEventListener.bind(wnd) as typeof addEventListener,
+  now = getTime(), t = true;
+  let tick = 0;
+  if (OnFirefox) {
+    setupEventListener(outerBox_, MDW, onMousedown, 0, 1)
+  } else {
+    outerBox_.onmousedown = onMousedown
+  }
+  f(MDW, onMousedown, t)
+  f("keydown", onIFrameKeydown, t)
+  f("keyup", onIFrameKeydown, t)
+  f(INP, onInput, t)
+  OnChrome || f("paste", onPaste_not_cr!, t)
+  f(UNL, /*#__NOINLINE__*/ onIframeUnload, t)
+  if (OnChrome) {
+    f("compositionend", onInput, t)
+  }
+  suppressCommonEvents(wnd, CLK);
+  f(BU, onUnexpectedBlur = (event): void => {
+    const delta = getTime() - now
+    if (event && isActive && delta < 500 && delta > -99 && event.target === wnd) {
+      wnd.closed || timeout_((): void => { isActive && doFocus(); }, tick++ * 17)
+    } else {
+      setupEventListener(wnd, BU, onUnexpectedBlur, 1, 1)
+      onUnexpectedBlur = null
     }
-    if (i > FindAction.MaxExitButNoWork && hasResult && (!el || el !== insert_Lock_())) {
-      let container = focusFoundLinkIfAny()
-      if (container && i === FindAction.ExitAndReFocus && (el2 = activeEl_unsafe_())
-          && getEditableType_<0>(el2) > EditableType.TextBox - 1 && contains_s(container, el2)) {
-        prepareCrop_();
-        select_(el2 as LockableElement).then((): void => {
-          toggleSelectableStyle()
-          i > maxNotRunPost && postActivate()
-        })
-        return
-      } else if (el) {
-        // always call scrollIntoView if only possible, to keep a consistent behavior
-        OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions ? fixTabNav_cr_old(el) : scrollIntoView_(el)
-      }
-    }
-    toggleSelectableStyle()
-    if (i > maxNotRunPost) {
-      postActivate()
-    }
+  }, t);
+  f("focus", /*#__NOINLINE__*/ onIframeFocus, t)
+
+  box_.onload = later ? null as never : (e): void => {
+    (e.target as typeof box_).onload = null as never; isActive && onLoad2()
+  }
+  if (later) { onLoad2() }
+}
+
+const doFocus = (): void => {
+  doesCheckAlive = 0
+  if (OnFirefox) {
+    box_.contentWindow.focus()
+  }
+  // fix that: search "a" in VFind, Ctrl+F, "a", Esc, select normal text using mouse, `/` can not refocus
+  OnChrome && (root_ || innerDoc_).activeElement === input_ && input_.blur()
+  focus_(input_)
+  doesCheckAlive = 1
+}
+
+const setFirstQuery = (query: string): void => {
+  doFocus()
+  query0_ = ""
+  query_ || setQuery(query)
+  isQueryRichText_ = true
+  notEmpty = !!query_
+  notEmpty && execCommand("selectAll")
 }
 
   // @see https://bugs.chromium.org/p/chromium/issues/detail?id=594613
@@ -550,20 +565,6 @@ export const fixTabNav_cr_old = OnChrome && Build.MinCVer < BrowserVer.MinScroll
     scrollIntoView_(el);
     oldPos && scrollToMark(oldPos)
 } : 0 as never
-
-  /** return an element if no <a> else null */
-const focusFoundLinkIfAny = (): SafeElement | null | void => {
-    let cur = OnFirefox ? getSelectionParent_unsafe(getSelected()) as SafeElement | null
-        : SafeEl_not_ff_!(getSelectionParent_unsafe(getSelected()))
-    for (let i = 0, el: Element | null = cur; el && el !== doc.body && i++ < 5;
-        el = GetParent_unsafe_(el, PNType.RevealSlotAndGotoParent)) {
-      if (el.localName === "a") {
-        focus_(el as SafeElement)
-        return;
-      }
-    }
-    return cur;
-}
 
 const setQuery = (query: string): void => {
   if (query === query_ || !innerDoc_) { /* empty */ }
@@ -626,13 +627,14 @@ const onInput = (e?: Event): void => {
   if (!hasResults && !isRegex && !wholeWord && notEmpty && query.startsWith(s)
         && !query.includes("\\", s.length - 1)) {
     query0_ = query
-    return showCount(0)
+    showCount(0)
+  } else {
+    coords && scrollToMark(coords)
+    updateQuery(query)
+    restoreSelection()
+    executeFind(!isRegex ? parsedQuery_ : regexMatches ? regexMatches[0] : "", { j: 1 })
+    showCount(1)
   }
-  coords && scrollToMark(coords)
-  updateQuery(query)
-  restoreSelection()
-  executeFind(!isRegex ? parsedQuery_ : regexMatches ? regexMatches[0] : "", { j: 1 })
-  showCount(1)
 }
 
 const showCount = (changed: BOOL): void => {
@@ -700,6 +702,7 @@ export const updateQuery = (query: string): void => {
   const didNorm = !isRe && doesNormalizeLetters
   isRe || (query = isActive ? escapeAllForRe(didNorm ? normLetters(query) : query) : "")
 
+  let text: HTMLElement["innerText"] | undefined
   let re: RegExpG | null = query && tryCreateRegExp(ww ? WB + query + WB : query, (ignoreCase ? "gim" : "gm") as "g")
       || null
   if (re) {
@@ -709,7 +712,7 @@ export const updateQuery = (query: string): void => {
       query = cachedInnerText!.i
       delta < 500 && (cachedInnerText!.t = now)
     } else {
-      let el = fullscreenEl_unsafe_(), text: HTMLElement["innerText"] | undefined;
+      let el = fullscreenEl_unsafe_()
       while (el && (el as ElementToHTML).lang == null) { // in case of SVG elements
         el = GetParent_unsafe_(el, PNType.DirectElement);
       }

@@ -206,7 +206,8 @@ export const onFocus = (event: Event | FocusEvent): void => {
   let target: EventTarget | Element | Window | Document = event.target;
   if (target === window) {
     lastWndFocusTime = event.timeStamp
-    return onWndFocus();
+    onWndFocus()
+    return
   }
   if (!isEnabled_) { return }
   if (OnFirefox && target === doc) { return }
@@ -222,7 +223,7 @@ export const onFocus = (event: Event | FocusEvent): void => {
    *   `target !== doc.active` lets it mistakenly passes the case of `target === lock === doc.active`
    */
   if (lock_ && lock_ === activeEl_unsafe_()) { return; }
-  if (target === ui_box) { return Stop_(event); }
+  if (target === ui_box) { Stop_(event); return }
   const sr = GetShadowRoot_(target as Element);
   if (sr) {
     const path = !OnEdge && (!OnChrome
@@ -255,14 +256,14 @@ export const onFocus = (event: Event | FocusEvent): void => {
   if (getEditableType_<EventTarget>(target)) {
     if (grabBackFocus) {
       (grabBackFocus as Exclude<typeof grabBackFocus, boolean>)(event, target);
-      return;
-    }
-    esc!(HandlerResult.Nothing)
-    lock_ = target;
-    if (is_last_mutable) {
-      // here ignore the rare case of an XMLDocument with a editable node on Firefox, for smaller code
-      if (activeEl_unsafe_() !== doc.body) {
-        insert_last_ = weakRef_(target);
+    } else {
+      esc!(HandlerResult.Nothing)
+      lock_ = target
+      if (is_last_mutable) {
+        // here ignore the rare case of an XMLDocument with a editable node on Firefox, for smaller code
+        if (activeEl_unsafe_() !== doc.body) {
+          insert_last_ = weakRef_(target)
+        }
       }
     }
   }

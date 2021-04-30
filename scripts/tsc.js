@@ -256,7 +256,7 @@ function main(args) {
   if (destDirs.length === 0) {
     destDirs.push(".");
   }
-  var child_process = require('child_process');
+  var child_process = require("child_process");
   var env = process.env;
   env[_WORKER_ENV_KEY] = "1";
 

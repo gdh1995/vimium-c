@@ -4,18 +4,17 @@
 var fs = require("fs");
 var gulp = require("gulp");
 var logger = require("fancy-log");
-var gulpChanged = require('gulp-changed');
-var ts = require("gulp-typescript");
-var newer = require('gulp-newer');
-var gulpPrint = require('gulp-print');
-var osPath = require('path');
+var gulpChanged = require("gulp-changed");
+var newer = require("gulp-newer");
+var gulpPrint = require("gulp-print");
+var osPath = require("path");
 var {
   getGitCommit, readJSON, readFile, patchTSNamespace, logFileSize, addMetaData, patchTerser,
-  patchExtendClick: _patchExtendClick, BrowserType, fill_global_defs, replace_global_defs, remove_dead_code,
+  patchExtendClick: _patchExtendClick, BrowserType, fill_global_defs, replace_global_defs,
   loadTerserConfig: _loadTerserConfig, skip_declaring_known_globals,
 } = require("./scripts/dependencies");
 var gulpUtils = require("./scripts/gulp-utils")
-var { print, ToBuffer, ToString, cleanByPath, minifyJSFiles, set_minifier_env,
+var { print, ToBuffer, ToString, cleanByPath, minifyJSFiles, set_minifier_env, destCached,
       safeJSONParse, gulpMap, getGulpTerser } = gulpUtils
 
 var DEST, willListFiles, willListEmittedFiles, JSDEST;
@@ -121,16 +120,16 @@ var Tasks = {
   "minify-css": function() {
     const path = ["pages/*.css"];
     if (!getBuildItem("Minify")) { return copyByPath(path) }
+    return copyByPath(path, file => {
     const CleanCSS = require("clean-css"), clean_css = new CleanCSS();
-    return copyByPath(path, function(file) {
-      file.contents = ToBuffer(clean_css.minify(ToString(file.contents)).styles);
+      ToBuffer(file, clean_css.minify(file.contents).styles)
     });
   },
   "minify-html": function() {
     const arr = ["front/*.html", "pages/*.html", "!*/vomnibar.html"];
     may_have_newtab || arr.push("!" + NEWTAB_FILE.replace(".ts", ".*"));
     if (!getBuildItem("Minify")) { return copyByPath(arr) }
-    return copyByPath(arr, file => { file.contents = ToBuffer(require('html-minifier').minify(ToString(file.contents), {
+    return copyByPath(arr, file => { ToBuffer(file, require("html-minifier").minify(ToString(file), {
       collapseWhitespace: true,
       minifyCSS: true,
       maxLineLength: 4096
@@ -571,7 +570,7 @@ gulp.task("locally", function(done) {
   }
   minify_viewer = !(getBuildItem("BTypes") & BrowserType.Chrome)
       || getBuildItem("MinCVer") >= /* MinTestedES6Environment */ 49;
-  if (!has_dialog_ui) {
+  if (has_dialog_ui) {
     let i = CompileTasks.others[0].indexOf("!pages/dialog_ui.*")
     if (i >= 0) {
       CompileTasks.others[0].splice(i, 1);
@@ -611,11 +610,17 @@ function tsProject(forceES6Module) {
   var btypes = getBuildItem("BTypes"), cver = getBuildItem("MinCVer");
   var noGenerator = !(btypes & BrowserType.Chrome) || cver >= /* MinEnsuredGeneratorFunction */ 39;
   var wrapGeneratorToken = !!(btypes & BrowserType.Chrome) && cver < /* MinEnsuredGeneratorFunction */ 39;
-  patchTSNamespace(gTypescript, logger, noGenerator, wrapGeneratorToken);
+  var allowForOf = !!(btypes & BrowserType.Chrome) && cver >= /* MinEnsuredES6$ForOf$Map$SetAnd$Symbol */ 38
+      && cver < /* MinTestedES6Environment */ 49
+  patchTSNamespace(gTypescript, logger, noGenerator, wrapGeneratorToken, allowForOf);
   var localOptions = {...compilerOptions}
   if (forceES6Module) {
     localOptions.module = "es6"
   }
+  if (allowForOf) {
+    localOptions.downlevelIteration = false
+  }
+  var ts = require("gulp-typescript");
   return disableErrors ? ts(localOptions, ts.reporter.nullReporter()) : ts(localOptions);
 }
 
@@ -657,51 +662,47 @@ function outputJSResult(stream, forceES6Module) {
     stream = stream.pipe(gulpMap(file => {
       const path = file.relative.replace(/\\/g, "/")
       if (path.includes("pages/") && /show|options|async_bg/.test(path)) {
-        const data = ToString(file.contents)
+        const data = ToString(file)
         const isAMDModule = data.startsWith("define") || data.startsWith("(factory")
             || data.startsWith("(function(factory)") || data.startsWith("(function (factory)");
         if (es5) {
           var banner = "__filename = " + JSON.stringify(path.replace(/^\//, "")) + ";\n"
           if (isAMDModule) {
-            file.contents = ToBuffer(banner + data)
+            ToBuffer(file, banner + data)
             return
           }
           return gulpUtils.rollupOne(file, {
             treeshake: false, output: { format: "amd", preserveModules: true }
           }, code => banner + code)
         } else {
-          file.contents = ToBuffer(data.replace(/\bimport\b[^'"}]+\}?\s?\bfrom\b\s?['"][.\/\w]+['"]/g, s => {
+          ToBuffer(file, data.replace(/\bimport\b[^'"}]+\}?\s?\bfrom\b\s?['"][.\/\w]+['"]/g, s => {
             return s.includes(".js") ? s : s.slice(0, -1) + ".js" + s.slice(-1)
           }))
         }
       }
     }))
   }
-  stream = stream.pipe(gulpChanged(JSDEST, { hasChanged: gulpUtils.compareContentAndTouch }));
-  if (willListEmittedFiles) {
-    stream = stream.pipe(gulpPrint());
-  }
-  return stream.pipe(gulp.dest(JSDEST));
+  return destCached(stream, JSDEST, willListEmittedFiles, gulpUtils.compareContentAndTouch)
 }
 
 function beforeCompile(file) {
   var allPathStr = file.history.join("|").replace(/\\/g, "/");
   var contents = null, oldLen = 0;
-  function get() { contents == null && (contents = ToString(file.contents), oldLen = contents.length) }
+  function get() { contents == null && (contents = ToString(file), oldLen = contents.length) }
   if (!locally && (allPathStr.includes("background/") || allPathStr.includes("front/"))) {
     get();
     contents = contents.replace(/\b(const|let|var)?\s?As[a-zA-Z]*_\s?=[^,;\n]+[,;\n]/g, ""
         ).replace(/\bAs[a-zA-Z]*_\b/g, "");
   }
   if (oldLen > 0 && contents.length !== oldLen) {
-    file.contents = ToBuffer(contents);
+    ToBuffer(file, contents);
   }
 }
 
 const beforeTerser = exports.beforeTerser = (file) => {
   var allPathStr = file.history.join("|").replace(/\\/g, "/");
   var contents = null, oldLen = 0;
-  function get(c) { contents == null && (contents = ToString(file.contents), oldLen = contents.length) }
+  function get(c) { contents == null && (contents = ToString(file), oldLen = contents.length) }
   if (!locally && outputES6) {
     get();
     contents = contents.replace(/(?<!export\s)\bconst([\s{\[])/g, "let$1");
@@ -740,14 +741,14 @@ const beforeTerser = exports.beforeTerser = (file) => {
     contents = contents.replace(/\bappendChild\b(?!\.call\([\w.]*doc)/g, "append");
   }
   if (oldLen > 0 && contents.length !== oldLen) {
-    file.contents = ToBuffer(contents);
+    ToBuffer(file, contents);
   }
 }
 
 const postTerser = exports.postTerser = async (terserConfig, file, allPaths) => {
   var allPathStr = (allPaths || file.history).join("|").replace(/\\/g, "/");
   var contents = null, oldLen = 0;
-  function get() { contents == null && (contents = ToString(file.contents), oldLen = contents.length); }
+  function get() { contents == null && (contents = ToString(file), oldLen = contents.length); }
   if (locally ? doesMinifyLocalFiles
       : terserConfig.compress && terserConfig.compress.booleans && false) {
     get()
@@ -768,7 +769,7 @@ const postTerser = exports.postTerser = async (terserConfig, file, allPaths) => 
     contents = addMetaData(file.relative, contents)
   }
   if (oldLen > 0 && contents.length !== oldLen) {
-    file.contents = ToBuffer(contents);
+    ToBuffer(file, contents);
   }
 }
 
@@ -778,25 +779,21 @@ function copyByPath(path, mapFuncOrPipe) {
     .pipe(gulpMap(function(file) {
       var fileName = file.history.join("|");
       if (fileName.indexOf("vimium-c.css") >= 0) {
-        file.contents = ToBuffer(ToString(file.contents).replace(/\r\n?/g, "\n"));
+        ToBuffer(file, ToString(file).replace(/\r\n?/g, "\n"))
       } else if (fileName.indexOf("vomnibar.html") >= 0
           && getBuildItem("BTypes") === BrowserType.Firefox) {
-        file.contents = ToBuffer(ToString(file.contents).replace(/(\d)px\b/g, "$1rem"
-            ).replace(/body ?\{/, "html{font-size:1px;}\nbody{"));
+        ToBuffer(file, ToString(file).replace(/(\d)px\b/g, "$1rem"
+            ).replace(/body ?\{/, "html{font-size:1px;}\nbody{"))
       } else if (fileName.indexOf("help_dialog.html") >= 0
           && getBuildItem("BTypes") === BrowserType.Firefox) {
-        let str = ToString(file.contents), ind = str.indexOf("-webkit-scrollbar"),
+        let str = ToString(file).replace(/\r\n?/g, "\n"), ind = str.indexOf("-webkit-scrollbar"),
         start = str.lastIndexOf("\n", ind), end = str.indexOf("</style>", ind);
-        file.contents = ToBuffer(str.slice(0, start + 1) + str.slice(end));
+        ToBuffer(file, str.slice(0, start + 1) + "/* stripped */" + str.slice(end))
       }
     }));
   stream = mapFuncOrPipe instanceof require("stream").Transform ? stream.pipe(mapFuncOrPipe)
       : typeof mapFuncOrPipe === "function" ? stream.pipe(gulpMap(mapFuncOrPipe)) : stream
-  stream = stream.pipe(gulpChanged(DEST, { hasChanged: gulpUtils.compareContentAndTouch }));
-  if (willListEmittedFiles) {
-    stream = stream.pipe(gulpPrint());
-  }
-  return stream.pipe(gulp.dest(DEST));
+  return destCached(stream, DEST, willListEmittedFiles, gulpUtils.compareContentAndTouch)
 }
 
 function loadValidCompilerOptions(tsConfigFile) {
@@ -808,8 +805,8 @@ function loadValidCompilerOptions(tsConfigFile) {
     var btypes = getBuildItem("BTypes"), cver = getBuildItem("MinCVer");
     outputES6 = !(btypes & BrowserType.Chrome && cver < /* MinTestedES6Environment */ 49);
     opts.target = outputES6
-      ? !(btypes & BrowserType.Chrome && cver < /* MinEnsuredAsyncFunctions */ 57) ? "es2017"
-      : "es6" : "es5";
+        ? !(btypes & BrowserType.Chrome && cver < /* MinEnsuredAsyncFunctions */ 57) ? "es2017"
+        : "es6" : "es5";
   }
   var oldTS = gTypescript || compilerOptions && compilerOptions.typescript;
   if (oldTS && !opts.typescript) {
@@ -831,19 +828,30 @@ function getBuildConfigStream() {
   return gulp.src("typings/build/index.d.ts").pipe(gulpMap(function(file) {
     if (debugging && !_buildConfigPrinted) {
       _buildConfigPrinted = true;
-      print("Current build config is:\n" + _buildConfigTSContent.trim());
+      print("Current build config is:\n" + _getBuildConfigTSContent().trim());
     }
-    file.contents = ToBuffer(_buildConfigTSContent);
+    ToBuffer(file, _getBuildConfigTSContent());
   }));
 }
 
-var _buildConfigTSContent;
-function createBuildConfigCache() {
-  _buildConfigTSContent = _buildConfigTSContent || readFile("typings/build/index.d.ts");
+var _buildConfigTSContent
+var _getBuildConfigTSContent = () => {
   _buildConfigTSContent = _buildConfigTSContent.replace(/\b([A-Z]\w+)\s?=\s?([^,}]+)/g, function(_, key, literalVal) {
     var newVal = getBuildItem(key, literalVal);
     return key + " = " + (newVal != null ? JSON.stringify(newVal) : buildOptionCache[key][0]);
   });
+  _getBuildConfigTSContent = () => _buildConfigTSContent
+  return _buildConfigTSContent
+}
+
+function createBuildConfigCache() {
+  if (!_buildConfigTSContent) {
+    _buildConfigTSContent = readFile("typings/build/index.d.ts")
+    _buildConfigTSContent.replace(/\b([A-Z]\w+)\s?=\s?([^,}]+)/g, function(_, key, literalVal) {
+      getBuildItem(key, literalVal, true)
+      return ""
+    });
+  }
   if (!(getBuildItem("BTypes") & (BrowserType.Chrome | BrowserType.Firefox | BrowserType.Edge))) {
     throw new Error("Unsupported Build.BTypes: " + getBuildItem("BTypes"));
   }
@@ -869,7 +877,7 @@ function getNonNullBuildItem(key) {
   return value;
 }
 
-function getBuildItem(key, literalVal) {
+function getBuildItem(key, literalVal, notParse) {
   let cached = buildOptionCache[key];
   if (!cached) {
     if (key === "MayOverrideNewTab") {
@@ -880,24 +888,24 @@ function getBuildItem(key, literalVal) {
     cached && (buildOptionCache[key] = cached);
   }
   if (cached != null) {
-    return parseBuildItem(key, cached[1]);
+    if (typeof cached[1] === "function") {
+      cached[1] = cached[1](key, locally, cached[0])
+    }
+    return notParse || parseBuildItem(key, cached[1])
   }
   var newVal = gulpUtils.parseBuildEnv(key, literalVal, LOCAL_SILENT, locally)
   if (newVal != null) {
     buildOptionCache[key] = [literalVal, newVal]
-    return parseBuildItem(key, newVal)
+    return notParse || parseBuildItem(key, newVal)
   }
   newVal = buildConfig && buildConfig[key];
   buildOptionCache[key] = [literalVal, newVal != null ? newVal : null];
-  return parseBuildItem(key, newVal);
+  return notParse || parseBuildItem(key, newVal)
 }
 
 function parseBuildItem(key, newVal) {
   if (newVal != null && newVal instanceof Array && newVal.length === 2) {
     newVal = newVal[locally ? 0 : 1];
-  }
-  if (typeof newVal === "function") {
-    newVal = newVal(key, buildOptionCache[key][0]);
   }
   if (newVal == null) {
     if (key === "NoDialogUI") {

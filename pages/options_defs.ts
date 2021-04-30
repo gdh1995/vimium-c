@@ -341,8 +341,8 @@ ExclusionRulesOption_.prototype.onRowChange_ = function (this: ExclusionRulesOpt
   if (this.list_.length !== isAdd) { return }
   const el = $("#exclusionToolbar"), options = $$("[data-model]", el)
   el.style.visibility = isAdd ? "" : "hidden"
-  for (let i = 0, len = options.length; i < len; i++) {
-    const opt = Option_.all_[options[i].id as keyof AllowedOptions],
+  for (const optionEl of options) {
+    const opt = Option_.all_[optionEl.id as keyof AllowedOptions],
     style = (opt.element_.parentNode as HTMLElement).style
     style.visibility = isAdd || opt.saved_ ? "" : "visible"
     style.display = !isAdd && opt.saved_ ? "none" : ""
@@ -396,7 +396,7 @@ export const createNewOption = ((): <T extends keyof AllowedOptions> (_element: 
     instance.fetch_()
     return Option_.all_[instance.field_] = instance as any
   }
-  $$("[data-model]").forEach(createNewOption)
+  for (const el of ($$("[data-model]") as HTMLElement[])) { createNewOption(el) }
   registerClass = (name, cls) => { (types as Dict<new (el: any, cb: () => void) => any>)[name] = cls }
   return createNewOption
 })()
@@ -539,9 +539,8 @@ Option_.all_.userDefinedCss.onSave_ = function () {
   if (!this.element_.classList.contains("debugging")) { return }
   setTimeout(function () {
     const root = VApi.y().r
-    const iframes = $$<HTMLIFrameElement>("iframe", root)
-    for (let i = 0, end = iframes.length; i < end; i++) {
-      const frame = iframes[i], isFind = frame.classList.contains("HUD"),
+    for (const frame of $$<HTMLIFrameElement>("iframe", root)) {
+      const isFind = frame.classList.contains("HUD"),
       style = frame.contentDocument!.querySelector("style.debugged") as HTMLStyleElement | null
       if (!style) { /* empty */ }
       else if (isFind) {

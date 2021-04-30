@@ -338,16 +338,15 @@ export const click_async = async (element: SafeElementForMouse
     // require element is still visible
     if (result! < ActionType.MinOpenUrl) {
       if (result & ActionType.dblClick
-          && !(element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
-        // use old rect
-        await click_async(element, rect, 0, modifiers, kClickAction.none, kClickButton.primaryAndTwice)
-        if (!getVisibleClientRect_(element)
+          && !(element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled
+          && (// use old rect
+            await click_async(element, rect, 0, modifiers, kClickAction.none, kClickButton.primaryAndTwice),
+            !getVisibleClientRect_(element)
             || !await await mouse_(element, "dblclick", center, modifiers, null, kClickButton.primaryAndTwice)
-            || !getVisibleClientRect_(element)) {
-          return
-        }
-      }
-      if (result & ActionType.interact) {
+            || !getVisibleClientRect_(element)
+          )) {
+        /* empty */
+      } else if (result & ActionType.interact) {
         if (result & ActionType.dblClick) {
           if (htmlTag_(element) === "video") {
             if ((!OnChrome ? !OnFirefox || element.requestFullscreen

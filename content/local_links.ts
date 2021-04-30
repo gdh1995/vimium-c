@@ -34,9 +34,10 @@ type Filter<T> = BaseFilter<T> | HTMLFilter<T>
 type AllowedClickTypeForNonHTML = ClickType.attrListener | ClickType.tabindex
 type HintSources = readonly SafeElement[] | NodeListOf<SafeElement>
 type NestedFrame = false | 0 | null | KnownIFrameElement
+type BareElementSet = Pick<ElementSet, "has">
 
 let frameNested_: NestedFrame = false
-let extraClickable_: ElementSet | null
+let extraClickable_: BareElementSet | null
 let ngEnabled: boolean | undefined
 let jsaEnabled_: boolean | undefined
 let maxLeft_ = 0
@@ -274,7 +275,7 @@ const matchSafeElements = ((selector: string, rootNode: Element | ShadowRoot | n
   (selector: string, rootNode: Element | null, udSelector: string | null, mayBeUnsafe: 1): HintSources | void
 }
 
-const createElementSet = (list: NodeListOf<Element> | Element[]): ElementSet | null => {
+const createElementSet = (list: NodeListOf<Element> | Element[]): BareElementSet | null => {
   let set: ElementSet | null
   if (!list.length) { set = null }
   else if (!OnChrome
@@ -401,7 +402,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   const tree_scopes: Array<typeof cur_scope> = [[cur_arr, 0
       , createElementSet(clickableSelector && querySelectorAll_unsafe_(clickableSelector, traverseRoot, 1)
           || (clickableSelector = null, [])) ]]
-  let cur_scope: [HintSources, number, ElementSet | null] | undefined, cur_tree: HintSources, cur_ind: number
+  let cur_scope: [HintSources, number, BareElementSet | null] | undefined, cur_tree: HintSources, cur_ind: number
   for (; cur_scope = tree_scopes.pop(); ) {
     for ([cur_tree, cur_ind, extraClickable_] = cur_scope; cur_ind < cur_tree.length; ) {
       const el = cur_tree[cur_ind++] as SafeElement

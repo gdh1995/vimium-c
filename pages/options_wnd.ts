@@ -9,6 +9,9 @@ import {
 import { saveBtn, exportBtn, savedStatus, createNewOption, BooleanOption_, registerClass } from "./options_defs"
 import kPermissions = chrome.permissions.kPermissions
 
+declare var define: any
+declare var __filename: string | null | undefined
+
 interface ElementWithHash extends HTMLElement {
   onclick (this: ElementWithHash, event: MouseEventToPrevent | null, hash?: "hash"): void;
 }

@@ -56,25 +56,16 @@ import {
   removeHandler_, getMappedKey, keybody_, isEscape_, prevent_, ENTER, suppressTail_, replaceOrSuppressMost_
 } from "../lib/keyboard_utils"
 
-let _kGranularity: GranularityNames
-
-let mode_ = Mode.NotActive
 let modeName: string
-let retainSelection: BOOL | boolean | undefined
-let richText: BOOL | boolean | undefined
-let curSelection: Selection
 /** need real diType */
-let selType: () => SelType
-let keyMap: SafeDict<VisualAction | SafeDict<VisualAction>>
-let isAlertExtend: BOOL | boolean
-let di_: ForwardDir | kDirTy.unknown = kDirTy.unknown
-let diType_: ValidDiTypes | DiType.UnsafeUnknown | DiType.SafeUnknown
-/** 0 means it's invalid; >=2 means real_length + 2; 1 means uninited */
-let oldLen_ = 0
+let kGranularity: GranularityNames
+let keyMap: VisualModeNS.SafeKeyMap
 let WordsRe_ff_old_cr: RegExpOne | RegExpU | null
 let rightWhiteSpaceRe: RegExpOne | null
+/** @safe_di */
+let deactivate: (isEsc?: 1) => void
 
-export { mode_ as visual_mode, modeName as visual_mode_name }
+export { modeName as visual_mode_name, deactivate }
 
   /** @safe_di */
 export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
@@ -131,12 +122,223 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     }
   }
 
+  /**
+   * @safe_di if not `magic`
+   *
+   * @param {string} magic two means
+   * * `""` means only checking type, and may not detect `di_` when `DiType.Complicated`;
+   * * `char[1..]` means initial selection text and not to extend back when `oldLen_ >= 2`
+   */
+  const getDirection = function (magic?: string
+      ): kDirTy.left | kDirTy.right | kDirTy.unknown {
+    if (di_ !== kDirTy.unknown) { return di_ }
+    const oldDiType = diType_, sel = curSelection, anchorNode = getAccessibleSelectedNode(sel)
+    let num1 = -1, num2: number
+    if (OnFirefox && !anchorNode) {
+      diType_ = DiType.Normal
+      return di_ = kDirTy.right
+    }
+    if (!oldDiType || (oldDiType & (DiType.Unknown | DiType.Complicated))) {
+      const focusNode = getAccessibleSelectedNode(sel, 1)
+      // common HTML nodes
+      if (anchorNode !== focusNode) {
+        diType_ = DiType.Normal
+        return di_ = getDirectionOfNormalSelection(sel, anchorNode!, focusNode!)
+      }
+      num1 = selOffset_(sel)
+      // here rechecks `!anchorNode` is just for safety.
+      if ((num2 = selOffset_(sel, 1) - num1) || !anchorNode || isNode_(anchorNode, kNode.TEXT_NODE)) {
+        diType_ = DiType.Normal
+        return di_ = num2 >= 0 ? kDirTy.right : kDirTy.left
+      }
+    }
+    // editable text elements
+    const lock = insert_Lock_()
+    if (lock && parentNode_unsafe_s(lock) === anchorNode) { // safe because lock is LockableElement
+      if ((oldDiType & DiType.Unknown)
+          && editableTypes_[lock.localName]! > EditableType.MaxNotTextModeElement) {
+        const child = (OnFirefox ? (anchorNode as Element).childNodes as NodeList
+            : GetChildNodes_not_ff!(anchorNode as Element)
+            )[num1 >= 0 ? num1 : selOffset_(sel)] as Node | undefined
+        if (lock === child || /** tend to trust that the selected is a textbox */ !child) {
+          if (!OnChrome || Build.MinCVer >= BrowserVer.Min$selectionStart$MayBeNull
+              ? (lock as TextElement).selectionEnd != null
+              : safeCall(/*#__NOINLINE__*/ isLockedInputInTextMode_cr_old)) {
+            diType_ = DiType.TextBox | (oldDiType & DiType.isUnsafe)
+          }
+        }
+      }
+      if (diType_ & DiType.TextBox) {
+        return di_ = (lock as TextElement).selectionDirection !== kDir[0] ? kDirTy.right : kDirTy.left
+      }
+    }
+    // nodes under shadow DOM or in other unknown edge cases
+    // (edge case: an example is, focusNode is a <div> and focusOffset points to #text, and then collapse to it)
+    diType_ = oldDiType & DiType.Unknown
+      ? DiType.Complicated | (oldDiType & DiType.isUnsafe)
+      : oldDiType & (DiType.Complicated | DiType.isUnsafe)
+    if (magic === "") { return kDirTy.unknown }
+    const initial = magic || "" + sel
+    num1 = initial.length
+    if (!num1) {
+      return di_ = kDirTy.right
+    }
+    extend(kDirTy.right)
+    diType_ = diType_ && selOffset_(sel) !== selOffset_(sel, 1) ? DiType.Normal
+      : diType_ & ~DiType.isUnsafe
+    num2 = ("" + sel).length - num1
+    /**
+     * Note (tested on C70):
+     * the `extend` above may go back by 2 steps when cur pos is the right of an element with `select:all`,
+     * so a detection and the third `extend` may be necessary
+     */
+    if (num2 && !magic) {
+      extend(kDirTy.left)
+      "" + sel !== initial && extend(kDirTy.right)
+    } else {
+      oldLen_ = 2 + num1
+    }
+    return di_ = num2 >= 0 || magic && num2 === -num1 ? kDirTy.right : kDirTy.left
+  } as {
+    (magic: ""): unknown
+    (magic?: string): kDirTy.left | kDirTy.right
+  }
+
+  /**
+   * @must_be_range_and_know_di_if_unsafe `selType == Range && getDirection_()` is safe enough
+   *
+   * @fix_unsafe_in_diType
+   *
+   * @di_will_be_1
+   */
+  const collapseToRight = (/** to-right if text is left-to-right */ toRight: ForwardDir): void => {
+    const sel = curSelection
+    if (diType_ & DiType.isUnsafe) {
+      // Chrome 60/70 need this "extend" action; otherwise a text box would "blur" and a mess gets selected
+      const sameEnd = toRight === <ForwardDir> di_
+      const fixSelAll = sameEnd && (diType_ & DiType.Complicated) && ("" + sel).length
+      // r / r : l ; r / l : r ; l / r : l ; l / l : r
+      extend(1 - <ForwardDir> di_)
+      sameEnd && extend(toRight)
+      fixSelAll && ("" + sel).length !== fixSelAll && extend(1 - toRight)
+    }
+    collpaseSelection(sel, toRight)
+    di_ = kDirTy.right
+  }
+
+  /** @unknown_di_result */
+  const extend = (d: ForwardDir, g?: kG): void | 1 => {
+    modifySel(curSelection, 1, d, kGranularity[(g! | 0) as kG])
+    diType_ &= ~DiType.isUnsafe
+  }
+
+  /** @unknown_di_result */
+  const modify = (d: ForwardDir, g: kG): void => {
+    modifySel(curSelection, isAlertExtend, d, kGranularity[g])
+  }
+
+  const selType = (): SelType => {
+    const type = typeIdx[curSelection.type]
+    return OnChrome && Build.MinCVer <= BrowserVer.$Selection$NotShowStatusInTextBox
+        && chromeVer_ === BrowserVer.$Selection$NotShowStatusInTextBox
+        && type === SelType.Caret && diType_ && ("" + curSelection) ? SelType.Range : type
+  }
+
+    const typeIdx = { None: SelType.None, Caret: SelType.Caret, Range: SelType.Range }
     const initialScope: {r?: ShadowRoot | null} = {}
-    let mode: Mode = options.m || Mode.Visual
+    let mode_: Mode = options.m || Mode.Visual
+    let curSelection: Selection
     let currentCount = 0
     let currentSeconds: SafeDict<VisualAction> | null = null
+    let retainSelection: BOOL | boolean | undefined
+    let richText: BOOL | boolean | undefined
+    let isAlertExtend: BOOL | boolean
+    let di_: ForwardDir | kDirTy.unknown = kDirTy.unknown
+    let diType_: ValidDiTypes | DiType.UnsafeUnknown | DiType.SafeUnknown
+    /** 0 means it's invalid; >=2 means real_length + 2; 1 means uninited */
+    let oldLen_ = 0
+
     set_findCSS(options.f || findCSS)
-    init && init(options.w!, options.k!, _kGranularity = options.g!)
+  if (!keyMap) {
+      const func = safer
+/**
+ * Call stack (Chromium > icu):
+ * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/visible_units_word.cc?type=cs&q=NextWordPositionInternal&g=0&l=86
+ * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/platform/wtf/text/unicode.h?type=cs&q=IsAlphanumeric&g=0&l=177
+ * * https://cs.chromium.org/chromium/src/third_party/icu/source/common/uchar.cpp?q=u_isalnum&g=0&l=151
+ * Result: \p{L | Nd} || '_' (\u005F)
+ * Definitions:
+ * * General Category (Unicode): https://unicode.org/reports/tr44/#GC_Values_Table
+ * * valid GC in RegExp: https://tc39.github.io/proposal-regexp-unicode-property-escapes/#sec-runtime-semantics-unicodematchpropertyvalue-p-v
+ * * \w in RegExp: https://unicode.org/reports/tr18/#word
+ *   * \w = \p{Alpha | gc=Mark | Digit | gc=Connector_Punctuation | Join_Control}
+ *   * Alphabetic: https://unicode.org/reports/tr44/#Alphabetic
+ * But \p{L} = \p{Lu | Ll | Lt | Lm | Lo}, so it's much more accurate to use \p{L}
+ * if no unicode RegExp, The list of words will be loaded into {@link background/settings.ts#Settings_.CONST_.WordsRe_}
+ */
+  // icu@u_isalnum: http://icu-project.org/apiref/icu4c/uchar_8h.html#a5dff81615fcb62295bf8b1c63dd33a14
+      if (OnFirefox && !Build.NativeWordMoveOnFirefox
+          || OnChrome && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
+              && chromeVer_ < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) {
+          if (BrowserVer.MinSelExtendForwardOnlySkipWhitespaces <= BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
+              && OnChrome) {
+            WordsRe_ff_old_cr = tryCreateRegExp(options.w!, "")!
+          } else {
+            // note: here thinks the `/[^]*[~~~]/` has acceptable performance
+            WordsRe_ff_old_cr = tryCreateRegExp(options.w! || "[^]*[\\p{L}\\p{Nd}_]", options.w! ? "" : "u" as never)!
+          }
+      }
+/** C72
+ * The real is ` (!IsSpaceOrNewline(c) && c != kNoBreakSpaceCharacter) || c == '\n' `
+ * in https://cs.chromium.org/chromium/src/third_party/blink/renderer/platform/wtf/text/string_impl.h?type=cs&q=IsSpaceOrNewline&sq=package:chromium&g=0&l=800
+ * `IsSpaceOrNewline` says "Bidi=WS" doesn't include '\n'", it's because:
+ * * the upstream is (2002/11/07) https://chromium.googlesource.com/chromium/src/+/68f88bec7f005b2abc9018b086396a88f1ffc18e%5E%21/#F3 ,
+ * * and then the specification it used in `< 128 ? isspace : DirWS` was https://unicode.org/Public/2.1-Update4/PropList-2.1.9.txt
+ * * it thinks the "White space" and "Bidi: Whitespace" properties are different, and Bidi:WS only includes 0020,2000..200B,2028,3000
+ * While the current https://unicode.org/reports/tr44/#BC_Values_Table does not:
+ * * in https://unicode.org/Public/UCD/latest/ucd/PropList.txt , WS covers `WebTemplateFramework::IsASCIISpace` totally (0009..000D,0020)
+ * /\s/
+ * * Run ` for(var a="",i=0,ch=''; i<=0xffff; i++) /\s/.test(String.fromCharCode(i)) && (a+='\\u' + (0x10000 + i).toString(16).slice(1)); a; ` gets
+ * * \u0009\u000a\u000b\u000c\u000d\u0020\u00a0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u202f\u205f\u3000\ufeff (C72)
+ * * when <= C58 (Min$Space$NotMatch$U180e$InRegExp), there's \u180e (it's added by Unicode standard v4.0.0 and then removed since v6.3.0)
+ * * compared to "\p{WS}", it ("\s") lacks \u0085 (it's added in v3.0.0), but adds an extra \ufeff
+ * * "\s" in regexp is not affected by the "unicode" flag https://mathiasbynens.be/notes/es6-unicode-regex
+ * During tests: not skip \u0085\u180e\u2029\u202f\ufeff since C59; otherwise all including \u0085\ufeff are skipped
+ */
+      /** Changes
+       * MinSelExtendForwardOnlySkipWhitespaces=59
+       *  : https://chromium.googlesource.com/chromium/src/+/117a5ba5073a1c78d08d3be3210afc09af96158c%5E%21/#F2
+       * Min$Space$NotMatch$U180e$InRegExp=59
+       */
+      (!OnChrome
+        || Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
+        || chromeVer_ > BrowserVer.MinSelExtendForwardOnlySkipWhitespaces - 1) &&
+      // on Firefox 65 stable, Win 10 x64, there're '\r\n' parts in Selection.toString()
+      // ignore "\ufeff" for shorter code since it's too rare
+      (rightWhiteSpaceRe = <RegExpOne> (OnFirefox ? /[^\S\n\r\u2029\u202f]+$/ : /[^\S\n\u2029\u202f]+$/))
+      func(keyMap = options.k! as VisualModeNS.SafeKeyMap)
+      func(keyMap.a as Dict<VisualAction>); func(keyMap.g as Dict<VisualAction>)
+      kGranularity = options.g!
+  }
+  /** @safe_di */
+  deactivate = (isEsc?: 1): void => {
+      di_ = kDirTy.unknown
+      diType_ = DiType.UnsafeUnknown
+      getDirection("")
+      const oldDiType: DiType = diType_
+      removeHandler_(kHandler.visual)
+      if (!retainSelection) {
+        collapseToFocus(isEsc && mode_ !== Mode.Caret ? 1 : 0)
+      }
+      modeName = ""
+      const el = insert_Lock_()
+      oldDiType & (DiType.TextBox | DiType.Complicated) || el && el.blur()
+      toggleSelectableStyle()
+      set_scrollingTop(null)
+      deactivate = null as never
+      hudHide()
+  }
+
     checkDocSelectable();
     set_scrollingTop(scrollingEl_(1))
     getZoom_(1)
@@ -144,8 +346,8 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     diType_ = DiType.UnsafeUnknown
     curSelection = getSelected(initialScope)
     let type: SelType = selType(), scope = initialScope.r as Exclude<typeof initialScope.r, undefined>
-    if (!mode_) { retainSelection = type === SelType.Range; richText = options.t }
-    if (mode !== Mode.Caret) {
+    if (!modeName || mode_ !== Mode.Caret) {
+      if (!modeName) { retainSelection = type === SelType.Range; richText = options.t }
       if (!insert_Lock_() && /* (type === SelType.Caret || type === SelType.Range) */ type) {
         const r = padClientRect_(getSelectionBoundingBox_(curSelection))
         prepareCrop_();
@@ -158,12 +360,11 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
         type = selType()
       }
     }
-    const isRange = type === SelType.Range, newMode: Mode = isRange ? mode : Mode.Caret,
-    diff = newMode !== mode
-    modeName = VTr(kTip.OFFSET_VISUAL_MODE + newMode)
+    const isRange = type === SelType.Range, diff = !isRange && (mode_ !== Mode.Caret)
+    mode_ = diff ? Mode.Caret : mode_
+    modeName = VTr(kTip.OFFSET_VISUAL_MODE + mode_)
     di_ = isRange ? kDirTy.unknown : kDirTy.right
-    mode_ = newMode
-    isAlertExtend = newMode !== Mode.Caret
+    isAlertExtend = mode_ !== Mode.Caret
     ui_box || hudShow(kTip.raw)
     toggleSelectableStyle(1)
 
@@ -174,9 +375,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
   }
   if (!isAlertExtend && isRange) {
       // `sel` is not changed by @establish... , since `isRange`
-      mode = ("" + curSelection).length;
-      collapseToRight((<number> <number | boolean> !options.s
-          & getDirection() & <number> <number | boolean> (mode > 1)) as BOOL)
+      collapseToRight(<BOOL> +(!options.s && ("" + curSelection).length > 1) && getDirection())
   }
   replaceOrSuppressMost_(kHandler.visual, (event: HandlerNS.Event): HandlerResult => {
     const doPass = event.i === kKeyCode.ime || event.i === kKeyCode.menuKey && fgCache.o,
@@ -477,7 +676,7 @@ const ensureLine = (command: number): void => {
     (curSelection + "").length - len || modify(di, kG.line)
     return
   }
-  for (let mode = 2; 0 < mode--; ) {
+  for (let _iter = 2; 0 < _iter--; ) {
     reverseSelection()
     di = di_ = (1 - di) as ForwardDir
     modify(di, kG.lineBoundary)
@@ -551,93 +750,6 @@ const ensureLine = (command: number): void => {
   diType_ & DiType.Complicated || scrollIntoView_s(getSelectionFocusEdge_(curSelection, di_ as ForwardDir))
 }
 
-  commandHandler(VisualAction.Noop, 1)
-  diff ? hudTip(kTip.noUsableSel, 1000) : hudShow(kTip.inVisualMode, modeName, options.r)
-}
-
-  /**
-   * @safe_di if not `magic`
-   *
-   * @param {string} magic two means
-   * * `""` means only checking type, and may not detect `di_` when `DiType.Complicated`;
-   * * `char[1..]` means initial selection text and not to extend back when `oldLen_ >= 2`
-   */
-const getDirection = function (magic?: string
-      ): kDirTy.left | kDirTy.right | kDirTy.unknown {
-    if (di_ !== kDirTy.unknown) { return di_ }
-    const oldDiType = diType_, sel = curSelection, anchorNode = getAccessibleSelectedNode(sel)
-    let num1 = -1, num2: number;
-    if (OnFirefox && !anchorNode) {
-      diType_ = DiType.Normal
-      return di_ = kDirTy.right
-    }
-    if (!oldDiType || (oldDiType & (DiType.Unknown | DiType.Complicated))) {
-      const focusNode = getAccessibleSelectedNode(sel, 1)
-      // common HTML nodes
-      if (anchorNode !== focusNode) {
-        diType_ = DiType.Normal
-        return di_ = getDirectionOfNormalSelection(sel, anchorNode!, focusNode!)
-      }
-      num1 = selOffset_(sel)
-      // here rechecks `!anchorNode` is just for safety.
-      if ((num2 = selOffset_(sel, 1) - num1) || !anchorNode || isNode_(anchorNode, kNode.TEXT_NODE)) {
-        diType_ = DiType.Normal
-        return di_ = num2 >= 0 ? kDirTy.right : kDirTy.left
-      }
-    }
-    // editable text elements
-    const lock = insert_Lock_();
-    if (lock && parentNode_unsafe_s(lock) === anchorNode) { // safe because lock is LockableElement
-      if ((oldDiType & DiType.Unknown)
-          && editableTypes_[lock.localName]! > EditableType.MaxNotTextModeElement) {
-        const child = (OnFirefox ? (anchorNode as Element).childNodes as NodeList
-            : GetChildNodes_not_ff!(anchorNode as Element)
-            )[num1 >= 0 ? num1 : selOffset_(sel)] as Node | undefined;
-        if (lock === child || /** tend to trust that the selected is a textbox */ !child) {
-          if (!OnChrome || Build.MinCVer >= BrowserVer.Min$selectionStart$MayBeNull
-              ? (lock as TextElement).selectionEnd != null
-              : safeCall(/*#__NOINLINE__*/ isLockedInputInTextMode_cr_old)) {
-            diType_ = DiType.TextBox | (oldDiType & DiType.isUnsafe)
-          }
-        }
-      }
-      if (diType_ & DiType.TextBox) {
-        return di_ = (lock as TextElement).selectionDirection !== kDir[0]
-          ? kDirTy.right : kDirTy.left;
-      }
-    }
-    // nodes under shadow DOM or in other unknown edge cases
-    // (edge case: an example is, focusNode is a <div> and focusOffset points to #text, and then collapse to it)
-    diType_ = oldDiType & DiType.Unknown
-      ? DiType.Complicated | (oldDiType & DiType.isUnsafe)
-      : oldDiType & (DiType.Complicated | DiType.isUnsafe)
-    if (magic === "") { return kDirTy.unknown; }
-    const initial = magic || "" + sel;
-    num1 = initial.length;
-    if (!num1) {
-      return di_ = kDirTy.right
-    }
-    extend(kDirTy.right)
-    diType_ = diType_ && selOffset_(sel) !== selOffset_(sel, 1) ? DiType.Normal
-      : diType_ & ~DiType.isUnsafe
-    num2 = ("" + sel).length - num1;
-    /**
-     * Note (tested on C70):
-     * the `extend` above may go back by 2 steps when cur pos is the right of an element with `select:all`,
-     * so a detection and the third `extend` may be necessary
-     */
-    if (num2 && !magic) {
-      extend(kDirTy.left)
-      "" + sel !== initial && extend(kDirTy.right)
-    } else {
-      oldLen_ = 2 + num1
-    }
-    return di_ = num2 >= 0 || magic && num2 === -num1 ? kDirTy.right : kDirTy.left
-} as {
-    (magic: ""): unknown;
-    (magic?: string): kDirTy.left | kDirTy.right;
-}
-
 const isLockedInputInTextMode_cr_old = !OnChrome || Build.MinCVer >= BrowserVer.Min$selectionStart$MayBeNull
     ? 0 as never : (): boolean | void => {
   return (raw_insert_lock! as TextElement).selectionEnd != null
@@ -649,100 +761,13 @@ const collapseToFocus = (toFocus: BOOL) => {
   di_ = kDirTy.right
 }
 
-  /**
-   * @must_be_range_and_know_di_if_unsafe `selType == Range && getDirection_()` is safe enough
-   *
-   * @fix_unsafe_in_diType
-   *
-   * @di_will_be_1
-   */
-const collapseToRight = (/** to-right if text is left-to-right */ toRight: ForwardDir): void => {
-    const sel = curSelection
-    if (diType_ & DiType.isUnsafe) {
-      // Chrome 60/70 need this "extend" action; otherwise a text box would "blur" and a mess gets selected
-      const sameEnd = toRight === <ForwardDir> di_
-      const fixSelAll = sameEnd && (diType_ & DiType.Complicated) && ("" + sel).length
-      // r / r : l ; r / l : r ; l / r : l ; l / l : r
-      extend(1 - <ForwardDir> di_)
-      sameEnd && extend(toRight)
-      fixSelAll && ("" + sel).length !== fixSelAll && extend(1 - toRight)
-    }
-    collpaseSelection(sel, toRight)
-    di_ = kDirTy.right
-}
-
   /** @argument el must be in text mode  */
 const TextOffset = (el: TextElement, di: ForwardDir | boolean): number => {
     return (di ? el.selectionEnd : el.selectionStart)!;
 }
 
-/** @not_related_to_di */
-let init = (words: string, map: VisualModeNS.KeyMap, _g: any) => {
-  const func = safer, typeIdx = { None: SelType.None, Caret: SelType.Caret, Range: SelType.Range }
-  init = null as never
-  selType = (): SelType => {
-    const type = typeIdx[curSelection.type]
-    return OnChrome && Build.MinCVer <= BrowserVer.$Selection$NotShowStatusInTextBox
-        && chromeVer_ === BrowserVer.$Selection$NotShowStatusInTextBox
-        && type === SelType.Caret && diType_ && ("" + curSelection) ? SelType.Range : type
-  };
-/**
- * Call stack (Chromium > icu):
- * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/visible_units_word.cc?type=cs&q=NextWordPositionInternal&g=0&l=86
- * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/platform/wtf/text/unicode.h?type=cs&q=IsAlphanumeric&g=0&l=177
- * * https://cs.chromium.org/chromium/src/third_party/icu/source/common/uchar.cpp?q=u_isalnum&g=0&l=151
- * Result: \p{L | Nd} || '_' (\u005F)
- * Definitions:
- * * General Category (Unicode): https://unicode.org/reports/tr44/#GC_Values_Table
- * * valid GC in RegExp: https://tc39.github.io/proposal-regexp-unicode-property-escapes/#sec-runtime-semantics-unicodematchpropertyvalue-p-v
- * * \w in RegExp: https://unicode.org/reports/tr18/#word
- *   * \w = \p{Alpha | gc=Mark | Digit | gc=Connector_Punctuation | Join_Control}
- *   * Alphabetic: https://unicode.org/reports/tr44/#Alphabetic
- * But \p{L} = \p{Lu | Ll | Lt | Lm | Lo}, so it's much more accurate to use \p{L}
- * if no unicode RegExp, The list of words will be loaded into {@link background/settings.ts#Settings_.CONST_.WordsRe_}
- */
-  // icu@u_isalnum: http://icu-project.org/apiref/icu4c/uchar_8h.html#a5dff81615fcb62295bf8b1c63dd33a14
-  if (OnFirefox && !Build.NativeWordMoveOnFirefox
-      || OnChrome && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
-          && chromeVer_ < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) {
-      if (BrowserVer.MinSelExtendForwardOnlySkipWhitespaces <= BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
-          && OnChrome) {
-        WordsRe_ff_old_cr = tryCreateRegExp(words, "")!
-      } else {
-        // note: here thinks the `/[^]*[~~~]/` has acceptable performance
-        WordsRe_ff_old_cr = tryCreateRegExp(words || "[^]*[\\p{L}\\p{Nd}_]", words ? "" : "u" as never)!
-      }
-  }
-/** C72
- * The real is ` (!IsSpaceOrNewline(c) && c != kNoBreakSpaceCharacter) || c == '\n' `
- * in https://cs.chromium.org/chromium/src/third_party/blink/renderer/platform/wtf/text/string_impl.h?type=cs&q=IsSpaceOrNewline&sq=package:chromium&g=0&l=800
- * `IsSpaceOrNewline` says "Bidi=WS" doesn't include '\n'", it's because:
- * * the upstream is (2002/11/07) https://chromium.googlesource.com/chromium/src/+/68f88bec7f005b2abc9018b086396a88f1ffc18e%5E%21/#F3 ,
- * * and then the specification it used in `< 128 ? isspace : DirWS` was https://unicode.org/Public/2.1-Update4/PropList-2.1.9.txt
- * * it thinks the "White space" and "Bidi: Whitespace" properties are different, and Bidi:WS only includes 0020,2000..200B,2028,3000
- * While the current https://unicode.org/reports/tr44/#BC_Values_Table does not:
- * * in https://unicode.org/Public/UCD/latest/ucd/PropList.txt , WS covers `WebTemplateFramework::IsASCIISpace` totally (0009..000D,0020)
- * /\s/
- * * Run ` for(var a="",i=0,ch=''; i<=0xffff; i++) /\s/.test(String.fromCharCode(i)) && (a+='\\u' + (0x10000 + i).toString(16).slice(1)); a; ` gets
- * * \u0009\u000a\u000b\u000c\u000d\u0020\u00a0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u202f\u205f\u3000\ufeff (C72)
- * * when <= C58 (Min$Space$NotMatch$U180e$InRegExp), there's \u180e (it's added by Unicode standard v4.0.0 and then removed since v6.3.0)
- * * compared to "\p{WS}", it ("\s") lacks \u0085 (it's added in v3.0.0), but adds an extra \ufeff
- * * "\s" in regexp is not affected by the "unicode" flag https://mathiasbynens.be/notes/es6-unicode-regex
- * During tests: not skip \u0085\u180e\u2029\u202f\ufeff since C59; otherwise all including \u0085\ufeff are skipped
- */
-  /** Changes
-   * MinSelExtendForwardOnlySkipWhitespaces=59
-   *  : https://chromium.googlesource.com/chromium/src/+/117a5ba5073a1c78d08d3be3210afc09af96158c%5E%21/#F2
-   * Min$Space$NotMatch$U180e$InRegExp=59
-   */
-  (!OnChrome
-    || Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
-    || chromeVer_ > BrowserVer.MinSelExtendForwardOnlySkipWhitespaces - 1) &&
-  // on Firefox 65 stable, Win 10 x64, there're '\r\n' parts in Selection.toString()
-  // ignore "\ufeff" for shorter code since it's too rare
-  (rightWhiteSpaceRe = <RegExpOne> (OnFirefox ? /[^\S\n\r\u2029\u202f]+$/ : /[^\S\n\u2029\u202f]+$/));
-  func(keyMap = map as VisualModeNS.SafeKeyMap)
-  func(map.a as Dict<VisualAction>); func(map.g as Dict<VisualAction>)
+  commandHandler(VisualAction.Noop, 1)
+  diff ? hudTip(kTip.noUsableSel, 1000) : hudShow(kTip.inVisualMode, modeName, options.r)
 }
 
 export const highlightRange = (sel: Selection): void => {
@@ -751,39 +776,6 @@ export const highlightRange = (sel: Selection): void => {
     let cr = cropRectToVisible_(br.l - 4, br.t - 5, br.r + 3, br.b + 4)
     cr && flash_(null, cr, 660, " Sel")
   }
-}
-
-/** @unknown_di_result */
-const extend = (d: ForwardDir, g?: kG): void | 1 => {
-  modifySel(curSelection, 1, d, _kGranularity[(g! | 0) as kG])
-  diType_ &= ~DiType.isUnsafe
-}
-
-/** @unknown_di_result */
-const modify = (d: ForwardDir, g: kG): void => {
-  modifySel(curSelection, isAlertExtend, d, _kGranularity[g])
-}
-
-/** @safe_di */
-export const deactivate = (isEsc?: 1): void => {
-  if (!mode_) { return }
-  di_ = kDirTy.unknown
-  diType_ = DiType.UnsafeUnknown
-  getDirection("")
-  const oldDiType: DiType = diType_
-  removeHandler_(kHandler.visual)
-  if (!retainSelection) {
-    collapseToFocus(isEsc && mode_ !== Mode.Caret ? 1 : 0)
-  }
-  mode_ = Mode.NotActive
-  modeName = ""
-  const el = insert_Lock_()
-  oldDiType & (DiType.TextBox | DiType.Complicated) || el && el.blur()
-  toggleSelectableStyle()
-  retainSelection = richText = oldLen_ = 0
-  set_scrollingTop(null)
-  curSelection = null as never
-  hudHide()
 }
 
 if (!(Build.NDEBUG || kYank.MIN > ReuseType.MAX)) {

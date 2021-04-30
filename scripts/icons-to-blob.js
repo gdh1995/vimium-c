@@ -19,8 +19,6 @@ var fs = require("fs");
 /** @type {import("./dependencies").ProcessType} */
 // @ts-ignore
 var process = require("process");
-// @ts-ignore
-var PNG = require("pngjs").PNG;
 try {
   var lib = require("./dependencies");
 } catch (ex) { lib = null; }
@@ -41,6 +39,7 @@ destRoot = require("path").resolve(destRoot || srcRoot);
  */
 function readPNGImage(src) {
   return new Promise((resolve, reject) => {
+    var PNG = require("pngjs").PNG;
     fs.createReadStream(src).pipe(new PNG({
       filterType: 6
     })).on('parsed', function () {

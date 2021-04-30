@@ -246,14 +246,15 @@ export const checkDocSelectable = (): void => {
 export const getSelectionOf = (node: DocumentOrShadowRootMixin): Selection | null => node.getSelection!()
 
 export const getSelected = (notExpectCount?: {r?: ShadowRoot | null}): Selection => {
-  let el: Node | null | undefined, sel: Selection | null
+  let el: Node | null | undefined, sel: Selection | null, offset: number
   let sr: ShadowRoot | null = null
+  let pn: Node | null
   if (el = deref_(currentScrolling)) {
       if ((OnChrome ? Build.MinCVer >= BrowserVer.Min$Node$$getRootNode : !OnEdge)
           || el.getRootNode) {
         el = el.getRootNode!();
       } else {
-        for (let pn: Node | null; pn = GetParent_unsafe_(el, PNType.DirectNode); el = pn) { /* empty */ }
+        for (; pn = GetParent_unsafe_(el, PNType.DirectNode); el = pn) { /* empty */ }
       }
       if (el !== doc && isNode_(el, kNode.DOCUMENT_FRAGMENT_NODE)
           && isTY((el as ShadowRoot).getSelection, kTY.func)) {
@@ -265,7 +266,7 @@ export const getSelected = (notExpectCount?: {r?: ShadowRoot | null}): Selection
   }
   if (!sr) {
     sel = getSelection_();
-    let offset: number, sel2: Selection | null = sel
+    let sel2: Selection | null = sel
     if (OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
         || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
         || (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
@@ -296,7 +297,7 @@ export const getSelected = (notExpectCount?: {r?: ShadowRoot | null}): Selection
 
 /** return HTMLElement if there's only Firefox */
 export const getSelectionParent_unsafe = ((sel: Selection, re?: RegExpG & RegExpSearchable<0>): Element | null | 0 => {
-    let range = selRange_(sel)
+    let range = selRange_(sel), text: HTMLElement["innerText"] | undefined
       , selected: string | undefined, match: RegExpExecArray | null, result = 0
       , par: Node | null = range && range.commonAncestorContainer, lastPar = par!
     while (par && !(par as NodeToElement).tagName) {
@@ -305,7 +306,6 @@ export const getSelectionParent_unsafe = ((sel: Selection, re?: RegExpG & RegExp
     // now par is Element or null, and may be a <form> / <frameset>
     if (re && par && range && !range.collapsed && (selected = range + "")) {
       if (isNode_(lastPar, kNode.TEXT_NODE) && lastPar.data.trim().length <= selected.length) {
-        let text: HTMLElement["innerText"] | undefined
         while (par
             && (text = (par as TypeToAssert<Element, HTMLElement, "innerText">).innerText, OnFirefox ? 1 : isTY(text))
             && selected.length >= (text as string).length) {

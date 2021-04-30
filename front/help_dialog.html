@@ -223,14 +223,24 @@
 	color: #aab0b6;
 	border-color: #666;
 }
+@media (forced-colors: active), (-ms-high-contrast: active) {
+	#HDlg {
+		border-radius: 0;
+	}
+	.HelpKey {
+		border-bottom-width: 1px;
+		border-radius: 0;
+		padding: 1px 4px;
+	}
+}
+
+/* Scrollbar */
 .D>.Scroll::-webkit-scrollbar:vertical, .D>.Scroll::-webkit-scrollbar:horizontal {
 	border-color: #555;
 }
 .D>.Scroll:hover::-webkit-scrollbar-thumb {
 	background: #666;
 }
-
-/* Scrollbar */
 .Scroll::-webkit-scrollbar,
 .Scroll::-webkit-scrollbar-track,
 .Scroll::-webkit-scrollbar-thumb {
@@ -266,14 +276,6 @@
 	background: #666;
 }
 @media (forced-colors: active), (-ms-high-contrast: active) {
-	#HDlg {
-		border-radius: 0;
-	}
-	.HelpKey {
-		border-bottom-width: 1px;
-		border-radius: 0;
-		padding: 1px 4px;
-	}
 	.Scroll::-webkit-scrollbar-thumb:vertical {
 		border: 2px solid #ddd;
 		border-left-width: 1px;

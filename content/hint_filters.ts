@@ -312,29 +312,29 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
   }
   const hintsMatchingSeq = seq ? hints.filter(hint => hint.a.startsWith(seq)) : hints
   const newMatchingSeq = hintsMatchingSeq.length
+  let span: HTMLSpanElement
   if (keyStatus.k !== seq) {
     keyStatus.k = seq;
     zIndexes_ = zIndexes_ && null;
     if (newMatchingSeq < 2) { return newMatchingSeq ? hintsMatchingSeq[0] : 0 }
-    let el: HTMLSpanElement
     for (const { m: marker, a: key } of hints) {
       const match = key.startsWith(seq);
       setVisibility_s(marker, match)
       if (match) {
         let child = marker.firstChild!
         if (child.nodeType === kNode.TEXT_NODE) {
-          el = createElement_("span")
+          span = createElement_("span")
           if (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
-            marker.prepend!(el)
+            marker.prepend!(span)
           } else {
-            marker.insertBefore(el, child)
+            marker.insertBefore(span, child)
           }
-          setClassName_s(el, "MC")
+          setClassName_s(span, "MC")
         } else {
-          el = child;
+          span = child;
           child = child.nextSibling as Text;
         }
-        el.textContent = seq;
+        span.textContent = seq;
         child.data = key.slice(seq.length);
       }
     }

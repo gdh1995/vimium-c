@@ -5,7 +5,7 @@ import { isHTML_, createElement_, setClassName_s, appendNode_s, setVisibility_s 
 import { ui_box, ensureBorder, addUIElement, adjustUI, getBoxTagName_old_cr } from "./dom_ui"
 import { allHints, isHintsActive, hintManager, setMode as setHintMode, hintMode_ } from "./link_hints"
 import { insert_global_ } from "./insert"
-import { visual_mode, visual_mode_name } from "./visual"
+import { visual_mode_name } from "./visual"
 import { find_box } from "./mode_find"
 import { wdZoom_ } from "../lib/rect"
 
@@ -73,7 +73,7 @@ export const hudHide = (info?: TimerType.fake | TimerType.noTimer): void => {
       setHintMode(hintMode_)
       return
     }
-    if (!find_box && visual_mode) {
+    if (!find_box && visual_mode_name) {
       hudShow(kTip.inVisualMode, visual_mode_name, info)
       return
     }

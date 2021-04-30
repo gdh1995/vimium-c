@@ -188,42 +188,12 @@ exports.loadTerserConfig = (path, reload) => {
       f.comments = ToRegExp(comments);
     }
     exports.patchTerser();
-    var ver = "", terser = null;
+    var ver = ""
     try {
       ver = require("terser/package.json").version;
     } catch (e) {
       console.log("Can not read the version of terser.");
-    }
-    try {
-      // @ts-ignore
-      terser = require("terser");
-    } catch (e) {
-      console.log("Can not read the module of terser.");
-    }
-    if (ver) {
-      if (m) {
-          if (p.undeclared == null) {
-            p.undeclared = true;
-          }
-      }
-    }
-    // @ts-ignore
-    if (terser && terser.default_options) {
-      // @ts-ignore
-      var allowed = terser.default_options();
-      if (allowed) {
-        var allowedKeys = new Set(Object.keys(allowed.compress)), skipped = [];
-        for (var key1 in c) {
-          if (!allowedKeys.has(key1)) {
-            skipped.push(key1);
-            delete c[key1];
-          }
-        }
-        if (skipped.length > 0 && !_configWarningLogged) {
-          _configWarningLogged = true;
-          require("fancy-log")(`Skip these terser options: ${skipped.join(", ")}`);
-        }
-      }
+      throw e;
     }
   }
   return a;
@@ -425,8 +395,9 @@ exports.inlineAllSetters = (code) => {
  * @param {{ (...args: any[]): any; error(message: string): any; }} [logger]
  * @argument {boolean} [noGenerator]
  * @argument {boolean} [wrapGeneratorToken]
+ * @argument {boolean} [allowForOf]
  */
-exports.patchTSNamespace = (ts, logger, noGenerator, wrapGeneratorToken) => {
+exports.patchTSNamespace = (ts, logger, noGenerator, wrapGeneratorToken, allowForOf) => {
   var key, bak = "_bak_"
 
   key = "transformGenerators"
@@ -485,7 +456,7 @@ exports.patchTerser = () => {
   }
   if (mod) {
     require("fs").writeFileSync(path, JSON.stringify(terserPackage, null, 2))
-    delete require.cache[require('path').resolve(path)]
+    delete require.cache[require("path").resolve(path)]
     require("fancy-log")("Patch terser/package.json: succeed");
   }
 }
@@ -563,7 +534,8 @@ exports.remove_dead_code = async (_global_defs, code, config) => {
   if (code.length === raw_code.length) {
     return raw_code
   }
-  return (await require('terser').minify(code, {
+  exports.patchTerser()
+  return (await require("terser").minify(code, {
     ...config, mangle: false, compress: { ...config.compress, dead_code: true, conditionals: true }
   })).code
 }

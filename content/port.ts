@@ -78,15 +78,13 @@ export const runtimeConnect = (function (this: void): void {
       }
     }, requestHandlers[kBgReq.init] ? 2000 : 5000);
   });
-  port_.onMessage.addListener(/*#__NOINLINE__*/ onBgReq)
-  set_i18n_getMsg(api.i18n.getMessage)
-})
-
-const onBgReq = <T extends keyof BgReq> (response: Req.bg<T>): void => {
+  port_.onMessage.addListener(<T extends keyof BgReq> (response: Req.bg<T>): void => {
     type TypeToCheck = { [k in keyof BgReq]: (this: void, request: BgReq[k]) => unknown };
     type TypeChecked = { [k in keyof BgReq]: <T2 extends keyof BgReq>(this: void, request: BgReq[T2]) => unknown };
     (requestHandlers as TypeToCheck as TypeChecked)[response.N](response);
-}
+  })
+  set_i18n_getMsg(api.i18n.getMessage)
+})
 
 export const runFallbackKey = (options: Req.FallbackOptions
     , anotherTip?: kTip, tipArgs?: string | Array<string | number>): void => {

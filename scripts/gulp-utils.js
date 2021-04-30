@@ -1,15 +1,17 @@
 //@ts-check
 "use strict";
+/** @typedef {{ contents: Buffer & { _str?: string, _changed?: 0 | 1 } }} FileWithCachedContents  */
 var dependencies = require("./dependencies");
 var fs = require("fs");
 var gulp = require("gulp");
-var gulpChanged = require('gulp-changed');
-var gulpPrint = require('gulp-print').default;
-var gulpSome = require('gulp-some');
+var gulpChanged = require("gulp-changed");
+var gulpPrint = require("gulp-print").default;
+var gulpSome = require("gulp-some");
 var logger = require("fancy-log");
-var newer = require('gulp-newer');
-var osPath = require('path');
+var newer = require("gulp-newer");
+var osPath = require("path");
 var gulpfile = require("../gulpfile")
+var Transform = require("stream").Transform
 
 var DEST, JSDEST;
 
@@ -34,20 +36,20 @@ exports.formatPath = function (path, base) {
 
 exports.cleanByPath = function (path, dest) {
   path = exports.formatPath(path, dest);
-  var rimraf = require("rimraf");
   return gulp.src(path, {
       base: ".", read: false, dot: true, allowEmpty: true, nodir: true
   }).pipe(exports.gulpMap(file => {
+    var rimraf = require("rimraf")
     rimraf.sync(file.path, { disableGlob: true });
   }));
 }
 
 exports.minifyJson = function (file) {
-  var contents = exports.ToString(file.contents), oldLen = contents.length;
+  var contents = exports.ToString(file), oldLen = contents.length;
   var data = JSON.parse(contents);
   contents = JSON.stringify(data);
   if (contents.length !== oldLen) {
-    file.contents = exports.ToBuffer(contents);
+    exports.ToBuffer(file, contents)
   }
 }
 
@@ -92,7 +94,6 @@ exports.compareContentAndTouch = function (_stream, sourceFile, targetPath) {
 }
 
 exports.gulpAllIfNotEmpty = function () {
-  var Transform = require('stream').Transform
   /** @type { Transform & { files: any[] } } */
   // @ts-ignore
   var b = new Transform({objectMode: true})
@@ -117,7 +118,6 @@ exports.gulpAllIfNotEmpty = function () {
 }
 
 exports.gulpCheckEmpty = function (callback) {
-  var Transform = require('stream').Transform
   /** @type { Transform & { _empty: boolean } } */
   // @ts-ignore
   var a = new Transform({objectMode: true})
@@ -133,8 +133,32 @@ exports.gulpCheckEmpty = function (callback) {
   return a
 }
 
+/**
+ * @argument {() => NodeJS.WriteStream} streamFactory
+ * @argument {(stream: NodeJS.WriteStream) => NodeJS.ReadStream} [getResultStream]
+ */
+exports.gulpLazyStream = function(streamFactory, getResultStream) {
+  /** @type {NodeJS.WriteStream | null} */
+  var lazyStream = null
+  var srcTransformer = new Transform({objectMode: true})
+  var allDone
+  srcTransformer._transform = function(srcFile, encoding, done) {
+    if (!lazyStream) {
+      lazyStream = streamFactory()
+      lazyStream.resume()
+      const result = getResultStream ? getResultStream(lazyStream) : lazyStream
+      streamFactory = getResultStream = null
+      result.on("data", (dstFile) => dstFile != null && srcTransformer.push(dstFile))
+      result.on("end", () => allDone ? allDone() : allDone = true)
+      result.on("error", (err) => srcTransformer.emit("error", err))
+    }
+    lazyStream.write(srcFile, done)
+  }
+  srcTransformer._flush = (done) => { !lazyStream || allDone === true ? done() : (allDone = done, lazyStream.end()) }
+  return srcTransformer
+}
+
 exports.gulpMap = function (map, async) {
-  var Transform = require('stream').Transform
   var transformer = new Transform({objectMode: true})
   transformer._transform = function(srcFile, encoding, done) {
     if (async) {
@@ -162,9 +186,9 @@ exports.gulpMap = function (map, async) {
 }
 
 exports.gulpMerge = function () {
-  var Transform = require('stream').Transform
   var knownFiles = {}
   var ref = 0
+  /** @type { Transform & { attachSource? (): Transform } } */
   var merged = new Transform({objectMode: true})
   var push = function(srcFile, _encoding, done) {
     var path = "@" + srcFile.history[0]
@@ -180,7 +204,6 @@ exports.gulpMerge = function () {
     }
     done()
   }
-  // @ts-ignore
   merged.attachSource = function() {
     var proxy = new Transform({objectMode: true})
     proxy._transform = push
@@ -193,9 +216,40 @@ exports.gulpMerge = function () {
 
 exports.print = print
 
-exports.ToBuffer = function (string) { return Buffer.from ? Buffer.from(string) : new Buffer(string) }
+/**
+ * @argument {FileWithCachedContents} file
+ * @argument {string} string
+ * */
+exports.ToBuffer = (file, string) => {
+  file.contents._str = string
+  file.contents._changed = 1
+  return null
+}
 
-exports.ToString = function (buffer) { return buffer.toString('utf8') }
+/** @argument {FileWithCachedContents} file */
+exports.correctBuffer = (file) => {
+  if (file.contents._changed) {
+    const string = file.contents._str
+    file.contents = Buffer.from ? Buffer.from(string) : new Buffer(string)
+  }
+}
+
+/** @argument {FileWithCachedContents} file */
+exports.ToString = (file) => {
+  const contents = file.contents
+  return contents._str || (contents._changed = 0, contents._str = contents.toString("utf8"))
+}
+
+exports.destCached = (stream, dest, print, hasChanged) => {
+  stream = stream.pipe(exports.gulpMap(exports.correctBuffer))
+  if (hasChanged) {
+    stream = stream.pipe(gulpChanged(dest, { hasChanged: hasChanged }))
+  }
+  if (print) {
+    stream = stream.pipe(gulpPrint())
+  }
+  return stream.pipe(gulp.dest(dest))
+}
 
 exports.safeJSONParse = function (literalVal, defaultVal, type) {
   var newVal = defaultVal != null ? defaultVal : null;
@@ -338,13 +392,17 @@ exports.compileTS = function (stream, options, extra, done, doesMergeProjects
   stream.pipe(merged.attachSource());
   if (isInitingMerged) {
     getBuildConfigStream().pipe(merged.attachSource());
+    merged.on("end", () => es6 ? _mergedProjectInput6 = _mergedProject6 = null
+        : _mergedProjectInput5 = _mergedProject5 = null)
     merged = merged.pipe(gulpSome(function(file) {
       var t = file.relative, s = ".d.ts", i = t.length - s.length;
       return i < 0 || t.indexOf(s, i) !== i;
-    }));
-    var project = tsProject(es6);
+    })).pipe(exports.gulpMap(exports.correctBuffer))
+    var project = exports.gulpLazyStream(() => tsProject(es6)
+        // @ts-ignore
+        , (tsStream) => tsStream.js)
     merged = merged.pipe(project);
-    merged = outputJSResult(merged.js, es6);
+    merged = outputJSResult(merged, es6);
     if (doesMergeProjects) {
       es6 ? _mergedProject6 = merged : _mergedProject5 = merged;
     }
@@ -375,16 +433,16 @@ exports.makeCompileTasks = function (tasks, compile) {
 var _hasLoggedTerserPasses = false
 exports.getGulpTerser = function (aggressiveMangle, unique_passes, noComments) {
   dependencies.patchTerser()
-  var aggressive = aggressiveMangle && require("./uglifyjs-mangle")
-  var terser = require("terser")
   const passes = unique_passes && unique_passes > 1 ? unique_passes : 0
-  const minifier = passes ? {
+  const betterMinifier = {
       minify: async function (files, config) {
-        let firstOut = await (aggressive || terser).minify(files, { ...config,
-          mangle: aggressive ? config.mangle : null,
+        var terser = require("terser")
+        var aggressiveTerser = aggressiveMangle ? require("./uglifyjs-mangle") : terser
+        let firstOut = await aggressiveTerser.minify(files, { ...config,
+          mangle: aggressiveMangle ? config.mangle : null,
           format: { ...config.format, comments: /^[!@#]/, preserve_annotations: true,
-              ast: !aggressive, code: !!aggressive },
-        }), ast = aggressive ? firstOut.code
+              ast: !aggressiveMangle, code: !!aggressiveMangle },
+        }), ast = aggressiveMangle ? firstOut.code
             // @ts-ignore
             : firstOut.ast;
         // @ts-ignore
@@ -400,23 +458,24 @@ exports.getGulpTerser = function (aggressiveMangle, unique_passes, noComments) {
         }
         _hasLoggedTerserPasses || print("terser: last pass #%o, seqences=%o", unique_passes, maxDistSequences)
         _hasLoggedTerserPasses = true
-        return await terser.minify(ast, { ...config, mangle: aggressive ? null : config.mangle,
+        return await terser.minify(ast, { ...config, mangle: aggressiveMangle ? null : config.mangle,
           compress: { ...config.compress, sequences: maxDistSequences, passes: 1 },
           format: { ...config.format, comments: noComments ? false : /^!/,
             preserve_annotations: false, ast: false, code: true },
         })
       }
-  } : aggressive || terser
+  }
   return terserOptions => {
     return exports.gulpMap(function (file, done) {
       const stream = this;
-      minifier.minify(exports.ToString(file.contents), terserOptions).then(result => {
+      const minifier1 = passes ? betterMinifier : aggressiveMangle ? require("./uglifyjs-mangle") : require("terser")
+      minifier1.minify(exports.ToString(file), terserOptions).then(result => {
         // @ts-ignore
         if (!result || result.error) {
           // @ts-ignore
           throw new Error(result ? result.error.message ? result.error.message : "(empty-message)" : "(null)");
         }
-        file.contents = exports.ToBuffer(result.code);
+        exports.ToBuffer(file, result.code)
         stream.push(file);
         done();
       }, err => {
@@ -555,9 +614,9 @@ exports.minifyJSFiles = function (path, output, exArgs) {
       stream = stream.pipe(gulpPrint());
     }
     if (exArgs.rollup) {
-      stream = rollupContent(stream, excludedPathRe)
+      stream = stream.pipe(gulpRollupContent(excludedPathRe))
     }
-    stream = stream.pipe(require('gulp-concat')(output));
+    stream = stream.pipe(exports.gulpMap(exports.correctBuffer)).pipe(require("gulp-concat")(output));
   }
   var nameCache = exArgs.nameCache;
   var stdConfig = gulpfile.loadTerserConfig(!!nameCache)
@@ -582,15 +641,11 @@ exports.minifyJSFiles = function (path, output, exArgs) {
       gulpfile.postTerser(stdConfig, file, allPaths)
     }));
   }
-  if (willListEmittedFiles && !is_file) {
-    stream = stream.pipe(gulpPrint());
-  }
-  return stream.pipe(gulp.dest(DEST));
+  return exports.destCached(stream, DEST, willListEmittedFiles && !is_file)
 }
 
 var oriRollupConfig;
-function rollupContent(stream, localExcludedPathRe) {
-  var Transform = require('stream').Transform;
+function gulpRollupContent(localExcludedPathRe) {
   var transformer = new Transform({objectMode: true});
   var others = []
   var historys = []
@@ -617,22 +672,22 @@ function rollupContent(stream, localExcludedPathRe) {
       }
       var code = result.output[0].code
       code = dependencies.inlineAllSetters(code)
-      file.contents = exports.ToBuffer(code)
+      exports.ToBuffer(file, code)
       file.history = historys
       this.push(file)
       done()
-    })
+    }, err => done(err))
   };
-  return stream.pipe(transformer)
+  return transformer
 }
 
 exports.rollupOne = function (file, oriRollupConfig, codeCB) {
   const rollup = require("rollup")
-  const input = exports.ToString(file.contents)
+  const input = exports.ToString(file)
   const path = file.relative
   const preserve = oriRollupConfig.output.preserveModules
   return rollup.rollup({ ...oriRollupConfig, output: null, input: path,
-    plugins: [  {
+    plugins: [ {
       name: 'virtual',
       resolveId(id) {
         if (preserve) {
@@ -646,11 +701,11 @@ exports.rollupOne = function (file, oriRollupConfig, codeCB) {
   .then(result => {
     let code = result.output[0].code
     code = codeCB ? codeCB(code, file) : code
-    file.contents = exports.ToBuffer(code)
+    exports.ToBuffer(file, code)
   })
 }
 
-exports.parseBuildEnv = function (key, literalVal, LOCAL_SILENT, locally) {
+exports.parseBuildEnv = function (key, literalVal, LOCAL_SILENT) {
   var newVal = process.env["BUILD_" + key];
   if (!newVal) {
     let env_key = key.replace(/[A-Z]+[a-z\d]*/g, word => "_" + word.toUpperCase()).replace(/^_/, "");
@@ -665,14 +720,13 @@ exports.parseBuildEnv = function (key, literalVal, LOCAL_SILENT, locally) {
     }
   } else if (key.startsWith("Random")) {
     // @ts-ignore
-    newVal = (id) => exports.getRandom(id, locally
+    newVal = (id, locally) => exports.getRandom(id, locally
         , () =>  `${osPath.resolve(__dirname).replace(/\\/g, "/")}@${
                   // @ts-ignore
                   parseInt(+fs.statSync("manifest.json").mtimeMs)}/`)
   } else if (key === "Commit") {
     // @ts-ignore
-    newVal = [
-        exports.safeJSONParse(literalVal, null, String), locally ? null : dependencies.getGitCommit()]
+    newVal = (_, locally) => locally ? exports.safeJSONParse(literalVal, null, String) : dependencies.getGitCommit()
   }
   return newVal
 }
@@ -720,7 +774,7 @@ exports.getRandom = function (id, locally, getSeed) {
     var rng;
     if (!locally) {
       try {
-        rng = require('seedrandom');
+        rng = require("seedrandom");
       } catch (e) {}
     }
     if (rng) {
@@ -743,7 +797,7 @@ exports.getRandom = function (id, locally, getSeed) {
 }
 
 function compute_hash(str) {
-  var crypto = require('crypto')
+  var crypto = require("crypto")
   var md5 = crypto.createHash('sha1')
   md5.update(str)
   return md5.digest('hex')
