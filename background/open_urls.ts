@@ -357,7 +357,8 @@ const openCopiedUrl = (tabs: [Tab] | [] | undefined, url: string | null): void =
     url = url.slice(1, -1)
   } else {
     const keyword = get_cOptions<C.openUrl>().keyword
-    if (!keyword || keyword === "~" || get_cOptions<C.openUrl>().testUrl) {
+    const _rawTest = get_cOptions<C.openUrl>().testUrl
+    if (_rawTest != null ? _rawTest : !keyword || keyword === "~") {
       url = BgUtils_.detectLinkDeclaration_(url)
     }
   }

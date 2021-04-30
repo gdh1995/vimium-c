@@ -310,10 +310,17 @@ var BgUtils_ = {
   },
   detectLinkDeclaration_ (str: string): string {
     let i = str.indexOf("\uff1a") + 1 || str.indexOf(":") + 1;
-    if (!i || str[i] === "/") { return str; }
-    let s = str.slice(0, i - 1).trim().toLowerCase();
-    if (s !== "link" && s !== "\u94fe\u63a5") { return str; }
-    let url = str.slice(i).trim();
+    let url: string
+    if (!i || str[i] === "/") {
+      if (!i || !str.includes("://", i - 1)) {
+        return str
+      }
+      url = str
+    } else {
+      let s = str.slice(0, i - 1).trim().toLowerCase();
+      if (s !== "link" && s !== "\u94fe\u63a5") { return str; }
+      url = str.slice(i).trim()
+    }
     url = url.split(" ", 1)[0];
     ",.;\u3002\uff0c\uff1b".includes(url.slice(-1)) && (url = url.slice(0, -1));
     url = this.convertToUrl_(url, null, Urls.WorkType.KeepAll);
