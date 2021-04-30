@@ -1,4 +1,4 @@
-import { doc, chromeVer_, Lower, max_, min_, math, OnChrome, OnFirefox, OnEdge, WithDialog } from "./utils"
+import { doc, chromeVer_, Lower, max_, min_, math, OnChrome, OnFirefox, OnEdge, WithDialog, evenHidden_, set_evenHidden_ } from "./utils"
 import {
   docEl_unsafe_, scrollingEl_, notSafe_not_ff_, ElementProto, isRawStyleVisible, getComputedStyle_, NONE,
   querySelector_unsafe_, querySelectorAll_unsafe_, GetParent_unsafe_, HDN, createElement_, fullscreenEl_unsafe_,
@@ -109,7 +109,8 @@ export const getVisibleClientRect_ = OnChrome && Build.MinCVer < BrowserVer.MinE
     const rect = arr[i]
     if (rect.height > 0 && rect.width > 0) {
       if (cr = cropRectToVisible_(rect.left, rect.top, rect.right, rect.bottom)) {
-        return isRawStyleVisible(el_style || getComputedStyle_(element)) ? cr : null
+        return isRawStyleVisible(el_style || getComputedStyle_(element))
+            || (evenHidden_ & kHidden.VisibilityHidden) ? cr : null
       }
       continue
     }
@@ -141,7 +142,8 @@ export const getVisibleClientRect_ = OnChrome && Build.MinCVer < BrowserVer.MinE
   for (const rect of <ClientRect[]> <{[i: number]: ClientRect}> element.getClientRects()) {
     if (rect.height > 0 && rect.width > 0) {
       if (cr = cropRectToVisible_(rect.left, rect.top, rect.right, rect.bottom)) {
-        return isRawStyleVisible(el_style || getComputedStyle_(element)) ? cr : null
+        return isRawStyleVisible(el_style || getComputedStyle_(element))
+            || (evenHidden_ & kHidden.VisibilityHidden) ? cr : null
       }
       continue
     }
@@ -216,6 +218,12 @@ export const getClientRectsForAreas_ = function (element: HTMLElementUsingMap, o
   }
   return output.length ? output[0][1] : null
 } as (element: HTMLElementUsingMap, output: Hint[], areas?: HTMLAreaElement[]) => Rect | null
+
+export const getIFrameRect = (element: SafeElement): Rect | null => {
+  const oldEvenHidden = evenHidden_, rect = (set_evenHidden_(kHidden.None), getVisibleClientRect_(element))
+  set_evenHidden_(oldEvenHidden)
+  return rect
+}
 
 export const getCroppedRect_ = function (el: Element, crect: Rect | null): Rect | null {
   let parent: Element | null = el, prect: Rect | null | undefined, i: number = crect ? 3 : 0, bcr: Rect

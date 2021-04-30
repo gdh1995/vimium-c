@@ -1,8 +1,7 @@
-import { chromeVer_, doc, createRegExp, isTY, Lower, OBJECT_TYPES, OnFirefox, OnChrome, OnEdge } from "./utils"
+import { chromeVer_, doc, createRegExp, isTY, Lower, OBJECT_TYPES, OnFirefox, OnChrome, OnEdge, evenHidden_ } from "./utils"
 import { dimSize_, selRange_ } from "./rect"
 
 export declare const enum kMediaTag { img = 0, otherMedias = 1, a = 2, others = 3, MIN_NOT_MEDIA_EL = 2, LAST = 3 }
-export declare const enum kAria { hidden = 0, disabled = 1 }
 interface kNodeToType {
   [kNode.TEXT_NODE]: Text
   [kNode.ELEMENT_NODE]: Element
@@ -338,7 +337,7 @@ export const isRawStyleVisible = (style: CSSStyleDeclaration): boolean => style.
 
 export const isAriaNotTrue_ = (element: SafeElement, ariaType: kAria): boolean => {
     let s = element.getAttribute(ariaType ? "aria-disabled" : "aria-hidden");
-    return s === null || (!!s && Lower(s) !== "true");
+    return s === null || (!!s && Lower(s) !== "true") || !!(evenHidden_ & (kHidden.BASE_ARIA << ariaType))
 }
 
 export const getMediaTag = (element: SafeHTMLElement) => {

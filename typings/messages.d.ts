@@ -41,11 +41,17 @@ interface ParsedSearch {
   /** error */ e?: string | null;
 }
 
+declare const enum kAria { hidden = 0, disabled = 1 }
+declare const enum kHidden {
+  None = 0, VisibilityHidden = 1,
+  BASE_ARIA = 16, AriaHidden = BASE_ARIA << kAria.hidden, AriaDisabled = BASE_ARIA << kAria.disabled,
+}
 // Note: `clickable` is not used in `focusInput`
 interface CSSOptions {
   match?: "css-selector" | " " | null | undefined
   clickable?: "css-selector" | null | undefined
   exclude?: "css-selector" | null | undefined
+  evenIf?: kHidden | null | undefined
 }
 
 interface FindCSS {

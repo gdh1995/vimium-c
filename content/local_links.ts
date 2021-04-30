@@ -1,17 +1,17 @@
 import {
   clickable_, isJSUrl, doc, isImageUrl, fgCache, readyState_, chromeVer_, VTr, createRegExp, unwrap_ff, max_, OnChrome,
-  math, includes_, OnFirefox, OnEdge, WithDialog, safeCall
+  math, includes_, OnFirefox, OnEdge, WithDialog, safeCall, evenHidden_, set_evenHidden_
 } from "../lib/utils"
 import {
   isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, findMainSummary_, htmlTag_, isAriaNotTrue_,
-  kMediaTag, kAria, NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, notSafe_not_ff_, docEl_unsafe_,
+  kMediaTag, NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, notSafe_not_ff_, docEl_unsafe_,
   GetParent_unsafe_, unsafeFramesetTag_old_cr_, isHTML_, querySelectorAll_unsafe_, isNode_, INP, attr_s,
   getMediaTag, getMediaUrl, contains_s, GetShadowRoot_, parentNode_unsafe_s, ElementProto
 } from "../lib/dom_utils"
 import {
   getVisibleClientRect_, getZoomedAndCroppedRect_, getClientRectsForAreas_, getCroppedRect_, padClientRect_,
   getBoundingClientRect_, cropRectToVisible_, bZoom_, set_bZoom_, prepareCrop_, wndSize_, isContaining_,
-  isDocZoomStrange_, docZoom_, dimSize_, ViewBox
+  isDocZoomStrange_, docZoom_, dimSize_, ViewBox, getIFrameRect
 } from "../lib/rect"
 import { find_box } from "./mode_find"
 import { omni_box } from "./omni"
@@ -66,7 +66,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
   case "audio": case "video": isClickable = true; break;
   case "frame": case "iframe":
     if (isClickable = element !== find_box) {
-      arr = getVisibleClientRect_(element);
+      arr = getIFrameRect(element)
       if (element !== omni_box) {
         isClickable = addChildFrame_ ? (addChildFrame_ as AddChildDirectly)(coreHints
             , element as KnownIFrameElement, arr) : !!arr
@@ -252,7 +252,7 @@ export const getEditable = (hints: Hint[], element: SafeHTMLElement): void => {
 }
 
 export const getIfOnlyVisible = (hints: (Hint | Hint0)[], element: SafeElement): void => {
-  let arr = getVisibleClientRect_(element)
+  let arr = getVisibleClientRect_(element, null)
   arr && hints.push([element as SafeElementForMouse, arr, ClickType.Default])
 }
 
@@ -305,7 +305,7 @@ const addChildTrees = (parts: HintSources, allNodes: NodeListOf<SafeElement>): H
       if (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1
           || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
           || el !== omni_box && el !== find_box) {
-        local_addChildFrame_(coreHints, el, getVisibleClientRect_(el), hosts)
+        local_addChildFrame_(coreHints, el, getIFrameRect(el), hosts)
       }
     }
   }
@@ -351,6 +351,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
       ? selector = kSafeAllSelector : selector) === kSafeAllSelector && !matchSelector,
   output: Hint[] | Hint0[] = [],
   cur_arr: HintSources | null = matchSafeElements(selector, traverseRoot, matchSelector, 1) || (matchSelector = " ", [])
+  set_evenHidden_(options.evenIf! | 0)
   if (wantClickable) {
     getPixelScaleToScroll();
     initTestRegExps()
@@ -424,6 +425,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
     }
   }
   extraClickable_ = cur_tree = cur_arr = null as never
+  set_evenHidden_(kHidden.None)
   while (output.length && (output[0][0] === docEl_unsafe_() || !hintManager && output[0][0] === doc.body)) {
     output.shift()
   }
@@ -486,8 +488,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
         }
       } else if (notRemoveParents
           = k === ClickType.edit && i > 0 && (element = list[i - 1][0]) === parentNode_unsafe_s(list[i][0])
-          && element.childElementCount < 2 && element.localName === "a"
-          && !(element as TypeToPick<Element, HTMLElement, "innerText">).innerText) {
+          && element.childElementCount < 2 && htmlTag_(element) === "a" && !(element as SafeHTMLElement).innerText) {
         // a rare case that <a> has only a clickable <input>
         splice = i--
       }
@@ -690,7 +691,7 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
               h > 3 ? 0 : h = 3;
             }
             cr = cropRectToVisible_(l, t, l + w, t + h);
-            if (cr && isStyleVisible_(element)) {
+            if (cr && (isStyleVisible_(element) || (evenHidden_ & kHidden.VisibilityHidden))) {
               cr = getCroppedRect_(element, cr)
               cr && hints.push([element, cr, ClickType.Default])
             }

@@ -434,6 +434,7 @@ export const framesGoNext = (isNext: boolean, rel: string): void => {
     r: get_cOptions<C.goNext>().noRel ? "" : rel, n: isNext,
     exclude: (get_cOptions<C.goNext, true>() as CSSOptions).exclude,
     match: get_cOptions<C.goNext, true>().match,
+    evenIf: get_cOptions<C.goNext, true>().evenIf,
     p: patterns, l: maxLens, m: totalMaxLen > 0 && totalMaxLen < 99 ? totalMaxLen : 32,
     fallback: get_cOptions<C.goNext, true>().fallback,
     $f: get_cOptions<C.goNext, true>().$f

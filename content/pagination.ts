@@ -1,10 +1,10 @@
 import {
   clickable_, vApi, isAlive_, safer, timeout_, escapeAllForRe, tryCreateRegExp, VTr, unwrap_ff, isTY, Lower, chromeVer_,
-  OnChrome, OnFirefox, OnEdge
+  OnChrome, OnFirefox, OnEdge, evenHidden_
 } from "../lib/utils"
 import {
   docEl_unsafe_, htmlTag_, isAriaNotTrue_, isStyleVisible_, querySelectorAll_unsafe_, isIFrameElement, ALA, attr_s,
-  kAria, contains_s, notSafe_not_ff_
+  contains_s, notSafe_not_ff_
 } from "../lib/dom_utils"
 import { getBoundingClientRect_, view_ } from "../lib/rect"
 import { kSafeAllSelector, detectUsableChild, set_addChildFrame_ } from "./link_hints"
@@ -17,24 +17,24 @@ import { contentCommands_ } from "./port"
 
 let iframesToSearchForNext: VApiTy[] | null
 
-export const isVisibleInPage = (element: SafeElement): boolean => {
+export const isInteractiveInPage = (element: SafeElement): boolean => {
   let rect: ClientRect
   return isAriaNotTrue_(element, kAria.disabled)
-      && (rect = getBoundingClientRect_(element)).width > 2 && rect.height > 2 && isStyleVisible_(element)
+      && (rect = getBoundingClientRect_(element)).width > 2 && rect.height > 2
+      && (isStyleVisible_(element) || !!(evenHidden_ & kHidden.VisibilityHidden))
 }
 
 export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxLen): number => {
   // Note: this traverser should not need a prepareCrop
   const fromMatchSelector = !!options.match
-  const links = isAlive_ ? (set_addChildFrame_((_, el, _view, subList): void => {
-    subList!.push(el as KnownIFrameElement & SafeHTMLElement)
-  }), traverse(kSafeAllSelector, options, (hints: Hint0[], element: SafeElement): void => {
+  const links = isAlive_ ? traverse(kSafeAllSelector, options, (hints: Hint0[], element: SafeElement): void => {
     let s: string | null
     if (isIFrameElement(element)) {
-      if (OnFirefox || OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1
+      if (OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
+          || OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1
           || element !== find_box && element !== omni_box) {
         const rect = getBoundingClientRect_(element),
-        childApi = rect.width > 99 && rect.height > 15 && detectUsableChild(element)
+        childApi = rect.width > 99 && rect.height > 15 && isStyleVisible_(element) && detectUsableChild(element)
         childApi && iframesToSearchForNext!.push(childApi)
       }
     } else if (fromMatchSelector || (s = htmlTag_(element)) === "a"
@@ -42,11 +42,13 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
         || (OnFirefox ? unwrap_ff(element as HTMLElement | SVGElement).onclick : attr_s(element, "onclick"))
         || ((s = attr_s(element, "role")) ? (<RegExpI> /^(button|link)$/i).test(s)
           : ngEnabled && attr_s(element, "ng-click"))) {
-      if (isVisibleInPage(element)) {
+      if (isInteractiveInPage(element)) {
         hints.push([element as SafeElementForMouse])
       }
     }
-  }, 1, 1, 1)) : [],
+  }, (set_addChildFrame_((_, el, _view, subList): void => {
+    subList!.push(el as KnownIFrameElement & SafeHTMLElement)
+  }), 1), 1, 1) : [],
   isNext = options.n, lenLimits = options.l, totalMax = options.m,
   quirk = isNext ? ">>" : "<<", quirkIdx = names.indexOf(quirk),
   rel = isNext ? "next" : "prev", relIdx = names.indexOf(rel),
@@ -153,7 +155,7 @@ export const findNextInRel = (relName: string): GoNextBaseCandidate | null | und
                 : (element as TypeToPick<HTMLElement, HTMLElementWithRel, "rel">).rel)
         && Lower(s).split(re1).indexOf(relName) >= 0
         && ((s = (element as HTMLElementWithRel).href) || tag < "aa")
-        && (tag > "b" || isVisibleInPage(element as SafeHTMLElement))) {
+        && (tag > "b" || isInteractiveInPage(element as SafeHTMLElement))) {
       if (matched) {
         if (s && matched.href && s.split("#")[0] !== matched.href.split("#")[0]) {
           return null;

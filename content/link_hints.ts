@@ -123,7 +123,7 @@ import {
 import { executeHintInOfficer, removeFlash, set_removeFlash } from "./link_actions"
 import { lastHovered_, set_lastHovered_ } from "./async_dispatcher"
 import { HookAction, hookOnWnd, contentCommands_, runFallbackKey } from "./port"
-import { isVisibleInPage } from "./pagination"
+import { isInteractiveInPage } from "./pagination"
 
 let box_: HTMLDivElement | HTMLDialogElement | null = null
 let wantDialogMode_: boolean | null | undefined
@@ -534,7 +534,8 @@ const activateDirectly = (options: ContentOptions, count: number) => {
   let el: SafeElement | null | undefined
   el = (prepareCrop_(), allTypes || d.includes("ele")) && options.match // target | element
       && (matches = traverse(kSafeAllSelector, options, wholeDoc ? (hints: Hint0[], el: SafeElement): void => {
-              isVisibleInPage(el) && hints.push([el as SafeElementForMouse]) } : getIfOnlyVisible, 1, wholeDoc),
+                isInteractiveInPage(el) && hints.push([el as SafeElementForMouse])
+              } : getIfOnlyVisible, 1, wholeDoc),
           oneMatch = matches.slice((matchIndex = elIndex === "count" ? count < 0 ? count : count - 1 : +elIndex! || 0,
               offset > "e" ? ~matchIndex : offset < "c" ? matchIndex : computeOffset()))[0])
       ? oneMatch[0]

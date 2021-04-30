@@ -49,6 +49,9 @@ export function set_readyState_ (_newReadyState: Document["readyState"]): void {
 export let allowRAF_old_cr_: BOOL = 1
 export function set_allowRAF_old_cr_ (_newAllowRAF: BOOL): void { allowRAF_old_cr_ = _newAllowRAF }
 
+export let evenHidden_: kHidden = kHidden.None
+export function set_evenHidden_ (_newEvenHidden_: kHidden): void { evenHidden_ = _newEvenHidden_ }
+
 /** ==== Cache ==== */
 
 export let fgCache: OnlyEnsureItemsNonNull<SettingsNS.FrontendSettingCache>
