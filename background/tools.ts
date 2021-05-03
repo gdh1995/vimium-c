@@ -419,13 +419,25 @@ IncognitoWatcher_ = {
   },
   TestIncognitoWnd_ (this: void): void {
     IncognitoWatcher_.timer_ = 0;
+    let next: IteratorResult<Frames.Frames>
     if (Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
-        || CurCVer_ >= BrowserVer.MinNoAbnormalIncognito) {
-      let left = false
-      for (let frames of Backend_.indexPorts_().values!()) {
-        if (frames.cur_.s.incognito_) { left = true; break }
+        || CurCVer_ > BrowserVer.MinNoAbnormalIncognito - 1) {
+      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+          && CurCVer_ < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) {
+        const map = (Backend_.indexPorts_() as any as SimulatedMap).map_ as Dict<any> as Dict<Frames.Frames>
+        for (let tabId in map) {
+          if (map[tabId]!.cur_.s.incognito_) { return }
+        }
+      } else if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.BuildMinForOf) {
+        const iter = Backend_.indexPorts_().values() as Iterable<Frames.Frames> as IterableIterator<Frames.Frames>
+        while (next = iter.next(), !next.done) {
+          if (next.value.cur_.s.incognito_) { return }
+        }
+      } else {
+        for (let frames of Backend_.indexPorts_().values()) {
+          if (frames.cur_.s.incognito_) { return }
+        }
       }
-      if (left) { return; }
     }
     chrome.windows.getAll(function (wnds): void {
       wnds.some(wnd => wnd.incognito) || IncognitoWatcher_.cleanI_();

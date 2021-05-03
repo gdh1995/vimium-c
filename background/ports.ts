@@ -340,25 +340,15 @@ export const complainNoSession = (): void => {
   : showHUD(`Vimium C can not control tab sessions before Chrome ${BrowserVer.MinSessions}`)
 }
 
-
-if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.BuildMinForOf) {
-  framesForTab.values = (): any[] => {
-    let cur: IteratorResult<unknown>
-    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
-        && CurCVer_ < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) {
-      const res: unknown[] = []
-      const map = (framesForTab as any as SimulatedMap).map_ as Dict<any> as Dict<Frames.Frames>
-      for (let key in map) { res.push(map[key]) }
-      return res
-    } else {
-      const iter = (Map.prototype as any).values.call(framesForTab) as IterableIterator<unknown>
-      if (Build.MinCVer < BrowserVer.Min$Array$$From && CurCVer_ < BrowserVer.Min$Array$$From)  {
-        const res: any[] = []
-        while (cur = iter.next(), !cur.done) { res.push(cur.value) }
-        return res
-      } else {
-        return Array.from(iter as any)
-      }
+if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+    && CurCVer_ < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) {
+  framesForTab.forEach = (callback): void => {
+    const map = (framesForTab as any as SimulatedMap).map_ as Dict<any> as Dict<Frames.Frames>
+    for (const key in map) {
+      callback(map[key]!, +key)
     }
   }
+}
+if (!(Build.NDEBUG || BrowserVer.BuildMinForOf >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol)) {
+  throw new Error("expect BrowserVer.BuildMinForOf >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol")
 }

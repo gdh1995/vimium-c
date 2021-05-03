@@ -390,6 +390,34 @@ exports.inlineAllSetters = (code) => {
   return code
 }
 
+var tsPatched = ""
+/** @argument {string} path */
+exports.patchTypeScript = (path) => {
+  if (tsPatched && tsPatched === path) { return }
+  let todo = 1
+  let code = fs.readFileSync(path).toString("utf8")
+  const oldSize = code.length
+  {
+    const start = code.indexOf("function convertIterationStatementBodyIfNecessary(")
+    const slice = start > 0 ? code.substr(start, 4096) : ""
+    const ind1 = slice.includes("ts.allowForOf") ? (todo--, -1)
+        : slice.indexOf("{", 0)
+    if (ind1 > 0) {
+      code = code.slice(0, start + ind1 + 1)
+          + "\n            convert = ts.allowForOf ? null : convert;"
+          + code.slice(start + ind1 + 1)
+      todo--
+    }
+  }
+  if (code.length !== oldSize) {
+    require("fancy-log")("Patch TypeScript/lib/typescript.js: succeed")
+    fs.writeFileSync(path, code)
+    tsPatched = path
+  } else if (todo) {
+    throw new Error("Can not patch TypeScript/lib/typescript.js")
+  }
+}
+
 /**
  * @argument {any} ts
  * @param {{ (...args: any[]): any; error(message: string): any; }} [logger]
@@ -434,6 +462,9 @@ exports.patchTSNamespace = (ts, logger, noGenerator, wrapGeneratorToken, allowFo
     }
     ts[bak + key] = wrapGeneratorToken ? originalAccessProp : null
     ts[key] = wrapGeneratorToken ? wrappedAccessProp : originalAccessProp
+  }
+  if (allowForOf) {
+    ts.allowForOf = true;
   }
 }
 

@@ -374,12 +374,12 @@ window.onunload = (event): void => {
     if (event
         && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
             ? !event.isTrusted : event.isTrusted === false)) { return; }
-    framesForTab.set("o" as string | number as number, { ports_: framesForOmni } as Frames.Frames)
-    for (const frames of framesForTab.values()) {
+    framesForTab.set("-1" as string | number as number, { ports_: framesForOmni } as Frames.Frames)
+    framesForTab.forEach((frames): void => {
       for (let port of frames.ports_) {
         port.disconnect();
       }
-    }
+    })
 }
 
 if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox

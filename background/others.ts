@@ -55,11 +55,11 @@ BgUtils_.timeout_(150, function (): void {
         if (Build.BTypes & BrowserType.Chrome) { tabIds = null; }
         if (Build.BTypes & ~BrowserType.Chrome
             && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) {
-          for (const { cur_: { s: sender } } of Backend_.indexPorts_().values()) {
+          Backend_.indexPorts_().forEach(({ cur_: { s: sender } }): void => {
             if (sender.status_ !== Frames.Status.enabled) {
               Backend_.setIcon_(sender.tabId_, Frames.Status.enabled)
             }
-          }
+          })
           return;
         }
       }, 200);
@@ -73,11 +73,11 @@ BgUtils_.timeout_(150, function (): void {
       tabIds = new Map()
     }
     // only do partly updates: ignore "rare" cases like `sender.s` is enabled but the real icon isn't
-    for (const { cur_: { s: sender } } of Backend_.indexPorts_().values()) {
+    Backend_.indexPorts_().forEach(({ cur_: { s: sender } }): void => {
       if (sender.status_ !== Frames.Status.enabled) {
         Backend_.setIcon_(sender.tabId_, sender.status_)
       }
-    }
+    })
   } as IconNS.AccessIconBuffer;
   Backend_.setIcon_ = function (this: void, tabId: number, type: Frames.ValidStatus, isLater?: true): void {
     /** Firefox does not use ImageData as inner data format

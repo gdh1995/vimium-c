@@ -82,9 +82,11 @@ export const $ = <T extends HTMLElement>(selector: string): T => document.queryS
 export const $$ = ((selector: string, root?: HTMLElement | ShadowRoot | null): ArrayLike<Element> => {
   const list = (root || document).querySelectorAll(selector)
   return OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$ForDOMListTypes
+      && Build.MinCVer >= BrowserVer.BuildMinForOf
       && CurCVer_ < BrowserVer.MinEnsured$ForOf$ForDOMListTypes
       ? [].slice.call(list) : list
-}) as <T extends HTMLElement>(selector: string, root?: HTMLElement | ShadowRoot | null) => T[]
+}) as <T extends HTMLElement>(selector: string, root?: HTMLElement | ShadowRoot | null
+    ) => T[] & { forEach: never }
 
 export const toggleDark = (dark: boolean): void => {
   (document.head!.querySelector("meta[name=color-scheme]") as HTMLMetaElement).content = dark ? "light dark" : "light"

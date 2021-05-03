@@ -163,7 +163,7 @@ declare namespace Frames {
     // use a fake returned type, just to make `for-of` happy
     values(): readonly Frames[]
     entries: never
-    forEach: never // (callback: (frames: Frames, tabId: number) => void): void
+    forEach (callback: (frames: Frames, tabId: number) => void): void
   }
 }
 

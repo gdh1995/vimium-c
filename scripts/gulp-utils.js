@@ -300,7 +300,11 @@ exports.loadTypeScriptCompiler = function (path, compilerOptions, cachedTypescri
         path = osPath.join(path, "typescript");
       }
       path = osPath.resolve(path)
+      exists1 = fs.existsSync(path)
       try {
+        if (exists1 || fs.existsSync(path + ".js")) {
+          dependencies.patchTypeScript(exists1 ? path : path + ".js")
+        }
         typescript1 = require(path);
       } catch (e) {}
     }
@@ -311,6 +315,9 @@ exports.loadTypeScriptCompiler = function (path, compilerOptions, cachedTypescri
     }
   }
   if (typescript1 == null) {
+    path = "typescript/lib/typescript"
+    exists1 = fs.existsSync(path)
+    dependencies.patchTypeScript(exists1 ? path : path + ".js")
     typescript1 = require("typescript/lib/typescript");
   }
   return compilerOptions.typescript = typescript1;
@@ -398,10 +405,7 @@ exports.compileTS = function (stream, options, extra, done, doesMergeProjects
       var t = file.relative, s = ".d.ts", i = t.length - s.length;
       return i < 0 || t.indexOf(s, i) !== i;
     })).pipe(exports.gulpMap(exports.correctBuffer))
-    var project = exports.gulpLazyStream(() => tsProject(es6)
-        // @ts-ignore
-        , (tsStream) => tsStream.js)
-    merged = merged.pipe(project);
+    merged = merged.pipe(tsProject(es6));
     merged = outputJSResult(merged, es6);
     if (doesMergeProjects) {
       es6 ? _mergedProject6 = merged : _mergedProject5 = merged;

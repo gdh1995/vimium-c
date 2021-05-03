@@ -65,6 +65,7 @@ declare const enum BrowserVer {
   MinMaybe$Symbol$$Iterator$existsAndWorksFor$Set$and$Map = 37,
   // for-of is only for generators before C38, so an array can not be iterated on C37 even if EXPERIMENTAL
   MinEnsuredES6$ForOf$Map$SetAnd$Symbol = 38, // even if LEGACY; still exists on C31 if EXPERIMENTAL
+  BuildMinForOf = 38,
   // .repeat exists since C32, but only works since C38, even if EXPERIMENTAL
   // because there seems no simple fix, just ignore it
   // https://bugs.chromium.org/p/chromium/issues/detail?id=394907
@@ -111,6 +112,7 @@ declare const enum BrowserVer {
   // since C42@exp, <option> is visible, but its text has a strange extra prefix of "A" - fixed on C43
   Min$Option$HasReliableFontSize = 43, // even if LEGACY
   Min$DocumentOrShadowRoot$$elementsFromPoint = 43, // even if EXPERIMENTAL or LEGACY
+  MinEnsuredES6LetAndConst = 43, // even if LEGACY; only in "use strict" mode
   MinEnsuredES6$String$$StartsWithEndsWithRepeatAndIncludes = 43, // even if LEGACY
   MinSafe$String$$StartsWith = MinEnsuredES6$String$$StartsWithEndsWithRepeatAndIncludes,
   MinRuntimePlatformOs = 44,
@@ -186,7 +188,6 @@ declare const enum BrowserVer {
   MinSVG$Path$MayHave$d$CSSAttribute = 49, // if EXPERIMENTAL
   MinEnsuredCSSVariables = 49, // even if LEGACY; works on C48 if EXPERIMENTAL
   MinTestedES6Environment = 49, // must be <= MinEnsuredFullES6Environment
-  BuildMinForOf = 49,
   // Object.observe is from C36 to C49 even if EXPERIMENTAL or LEGACY
   MinES6No$Object$$Observe = 50,
   // The real support for arg frameId of chrome.tabs.executeScript is since C50,

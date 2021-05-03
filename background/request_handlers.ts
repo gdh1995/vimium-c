@@ -535,6 +535,8 @@ const onCompletions = function (this: Port, favIcon0: 0 | 1 | 2, list: Array<Rea
     , autoSelect: boolean, matchType: CompletersNS.MatchType, sugTypes: CompletersNS.SugType, total: number
     , realMode: string, queryComponents: CompletersNS.QComponent): void {
   let { url_: url } = this.s, favIcon: 0 | 1 | 2 = favIcon0 === 2 ? 2 : 0
+  let next: IteratorResult<Frames.Frames>
+  let top: Frames.Frames["top_"], sender: Frames.Sender | null
   if (Build.BTypes & BrowserType.Firefox
       && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
     favIcon = list.some(i => i.e === "tab") ? favIcon && 2 : 0
@@ -547,7 +549,7 @@ const onCompletions = function (this: Port, favIcon0: 0 | 1 | 2, list: Array<Rea
       && (Build.MinCVer >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon
         || CurCVer_ >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon)) {
     url = url.slice(0, url.indexOf("/", url.indexOf("://") + 3) + 1)
-    let frame1 = gTabIdOfExtWithVomnibar >= 0 ? indexFrame(gTabIdOfExtWithVomnibar, 0) : null
+    let frame1 = gTabIdOfExtWithVomnibar !== GlobalConsts.TabIdNone ? indexFrame(gTabIdOfExtWithVomnibar, 0) : null
     if (frame1 != null) {
       if (frame1.s.url_.startsWith(url)) {
         favIcon = 1
@@ -555,17 +557,37 @@ const onCompletions = function (this: Port, favIcon0: 0 | 1 | 2, list: Array<Rea
         gTabIdOfExtWithVomnibar = GlobalConsts.TabIdNone
       }
     }
-    for (const frames of !favIcon ? framesForTab.values() : []) {
-      for (let { s: sender } of frames.ports_) {
-        if (sender.frameId_ === 0) {
-          if (sender.url_.startsWith(url)) {
-            favIcon = 1
-            gTabIdOfExtWithVomnibar = sender.tabId_
-          }
+    if (favIcon) { /* empty */ }
+    else if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+        && CurCVer_ < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) {
+      const map = (framesForTab as any as SimulatedMap).map_ as Dict<any> as Dict<Frames.Frames>
+      for (let tabId in map) {
+        top = map[tabId]!.top_, sender = top && top.s
+        if (sender && sender.url_.startsWith(url)) {
+          favIcon = 1, gTabIdOfExtWithVomnibar = +tabId
           break
         }
       }
-      if (favIcon) { break }
+    } else if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.BuildMinForOf) {
+      const iter = framesForTab.values() as Iterable<Frames.Frames> as IterableIterator<Frames.Frames>
+      while (next = iter.next(), !next.done) {
+        top = next.value.top_, sender = top && top.s
+        if (sender && sender.url_.startsWith(url)) {
+          favIcon = 1, gTabIdOfExtWithVomnibar = sender.tabId_
+          break
+        }
+      }
+    } else {
+      for (const frames of framesForTab.values()) {
+        top = frames.top_, sender = top && top.s
+        if (sender) {
+          if (sender.url_.startsWith(url)) {
+            favIcon = 1
+            gTabIdOfExtWithVomnibar = sender.tabId_
+            break
+          }
+        }
+      }
     }
   }
   safePost(this, {

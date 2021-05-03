@@ -604,24 +604,52 @@ function makeWatchTask(taskName) {
   });
 }
 
-function tsProject(forceES6Module) {
+function _tsProject(forceES6Module, allowForOf) {
   gTypescript = gulpUtils.loadTypeScriptCompiler(null, compilerOptions, gTypescript);
   gulpUtils.removeSomeTypeScriptOptions(compilerOptions, gTypescript)
   var btypes = getBuildItem("BTypes"), cver = getBuildItem("MinCVer");
   var noGenerator = !(btypes & BrowserType.Chrome) || cver >= /* MinEnsuredGeneratorFunction */ 39;
   var wrapGeneratorToken = !!(btypes & BrowserType.Chrome) && cver < /* MinEnsuredGeneratorFunction */ 39;
-  var allowForOf = !!(btypes & BrowserType.Chrome) && cver >= /* MinEnsuredES6$ForOf$Map$SetAnd$Symbol */ 38
-      && cver < /* MinTestedES6Environment */ 49
   patchTSNamespace(gTypescript, logger, noGenerator, wrapGeneratorToken, allowForOf);
   var localOptions = {...compilerOptions}
   if (forceES6Module) {
     localOptions.module = "es6"
   }
-  if (allowForOf) {
-    localOptions.downlevelIteration = false
-  }
   var ts = require("gulp-typescript");
   return disableErrors ? ts(localOptions, ts.reporter.nullReporter()) : ts(localOptions);
+}
+
+function tsProject(forceES6Module) {
+  var btypes = getBuildItem("BTypes"), cver = getBuildItem("MinCVer");
+  var allowForOfSpecially = !!(btypes & BrowserType.Chrome)
+      && cver >= /* MinEnsuredES6$ForOf$Map$SetAnd$Symbol & BuildMinForOf */ 38
+      && cver < /* MinTestedES6Environment */ 49
+  const getResp = (tsStream) => {
+    return !allowForOfSpecially ? tsStream.js : tsStream.js.pipe(gulpMap(file => {
+      let code = ToString(file), oldSize = code.length
+      code = code.replace(/\bfor\s?\(var ([^,=]+)[,=](.*?) of ([^\r\n]+)[\r\n](\s*)/g, (_, i, others, arr, indent) => {
+        console.log("[TEST] convert in ", file.relative, ":", _)
+        const isBlock = arr.trimRight().endsWith("{")
+        if (!isBlock) {
+          throw new Error("Can not convert for-of without a block body")
+        }
+        i = i.trim()
+        if (!others.includes(",")) {
+          const iOut = `_${i}_out`
+          return `for (var ${iOut} of ${arr}\n`
+              + indent + `var ${i} = ${others.replace(/\(void 0\)/, iOut)};\n`
+              + indent
+        }
+        return `for (var ${i} of ${arr}\n`
+          + indent + `var ${others.trim().replace(/^void 0,\s*/, "")};\n`
+          + indent
+      })
+      if (code.length !== oldSize) {
+        ToBuffer(file, code)
+      }
+    }))
+  }
+  return gulpUtils.gulpLazyStream(() => _tsProject(forceES6Module, allowForOfSpecially), getResp)
 }
 
 function compile(pathOrStream, header_files, done, options) {

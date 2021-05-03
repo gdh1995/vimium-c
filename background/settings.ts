@@ -128,7 +128,13 @@ var Settings_ = {
       }
       Settings_.temp_.newSettingsToBroadcast_ = null;
     }
-    for (const frames of Backend_.indexPorts_().values()) {
+    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.BuildMinForOf) {
+      Backend_.indexPorts_().forEach((frames: Frames.Frames): void => {
+        for (const port of frames.ports_) {
+          port.postMessage(request as Req.baseBg<K> as Req.bg<K>)
+        }
+      })
+    } else for (const frames of Backend_.indexPorts_().values()) {
       for (let port of frames.ports_) {
         port.postMessage(request as Req.baseBg<K> as Req.bg<K>)
       }

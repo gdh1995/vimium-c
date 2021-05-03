@@ -115,7 +115,7 @@ var Exclusions = {
     const
     needIcon = !!Settings_.temp_.IconBuffer_ && (Settings_.temp_.IconBuffer_() || Settings_.get_("showActionIcon"));
     let pass: string | null = null, status: Frames.ValidStatus = Frames.Status.enabled;
-    for (const frames of Backend_.indexPorts_().values!()) {
+    Backend_.indexPorts_().forEach((frames): void => {
       const status0 = frames.cur_.s.status_;
       for (const port of frames.ports_) {
         if (always_enabled) {
@@ -137,7 +137,7 @@ var Exclusions = {
       if (needIcon && status0 !== (status = frames.cur_.s.status_)) {
         Backend_.setIcon_(frames.cur_.s.tabId_, status)
       }
-    }
+    })
   },
   updateListeners_ (this: void): void {
     const a = Exclusions, listenHistory = a.rules_.length > 0,

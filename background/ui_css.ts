@@ -205,7 +205,16 @@ const mergeCSS = (css2Str: string, action: MergeAction | "userDefinedCss"): Sett
   loadCSS(MergeAction.readFromCache, newInnerCSS)
   if (action !== MergeAction.readFromCache && action !== MergeAction.rebuildWhenInit) {
     const request: Req.bg<kBgReq.showHUD> = { N: kBgReq.showHUD, H: innerCSS_, f: findCSS_ }
-    for (const frames of framesForTab.values()) {
+    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.BuildMinForOf) {
+      framesForTab.forEach((frames: Frames.Frames): void => {
+        for (const port of frames.ports_) {
+          if (port.s.flags_ & Frames.Flags.hasCSS) {
+            port.postMessage(request)
+            port.s.flags_ |= Frames.Flags.hasFindCSS
+          }
+        }
+      })
+    } else for (const frames of framesForTab.values()) {
       for (const port of frames.ports_) {
         if (port.s.flags_ & Frames.Flags.hasCSS) {
           port.postMessage(request)

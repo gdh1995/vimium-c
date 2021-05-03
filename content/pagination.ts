@@ -137,7 +137,7 @@ export const findNextInText = (names: string[], options: CmdOptions[kFgCmd.goNex
 }
 
 export const findNextInRel = (relName: string): GoNextBaseCandidate | null | undefined => {
-  const elements = querySelectorAll_unsafe_(OnEdge ? "a[rel],area[rel],link[rel]"
+  let elements: ArrayLike<Element> = querySelectorAll_unsafe_(OnEdge ? "a[rel],area[rel],link[rel]"
       : OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredCSS$is$selector
       ? VTr(kTip.webkitWithRel).replace("-webkit-any", "is")
       : OnFirefox ? VTr(kTip.webkitWithRel).replace("webkit", "moz") : VTr(kTip.webkitWithRel))!
@@ -145,10 +145,12 @@ export const findNextInRel = (relName: string): GoNextBaseCandidate | null | und
   type HTMLElementWithRel = HTMLAnchorElement | HTMLAreaElement | HTMLLinkElement;
   let matched: HTMLElementWithRel | undefined, tag: "a" | "area" | "link"
   const re1 = <RegExpOne> /\s/
-  const array = OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$ForDOMListTypes
-      && chromeVer_ < BrowserVer.MinEnsured$ForOf$ForDOMListTypes
-      ? [].slice.call(elements) : elements as { [i: number]: Element } as Element[]
-  for (const element of array) {
+  if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$ForDOMListTypes
+      && Build.MinCVer >= BrowserVer.BuildMinForOf
+      && chromeVer_ < BrowserVer.MinEnsured$ForOf$ForDOMListTypes) {
+    elements = [].slice.call(elements)
+  }
+  for (const element of elements as Element[]) {
     if ((tag = htmlTag_(element) as typeof tag)
         && (s = OnChrome && Build.MinCVer < BrowserVer.Min$HTMLAreaElement$rel
                 ? attr_s(element as SafeHTMLElement, "rel")
