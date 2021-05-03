@@ -59,7 +59,7 @@ export const hide = ((fromInner?: 1 | null): void => {
     if (OnChrome && Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval) {
       let style_old_cr = box!.style
       style_old_cr!.height = style_old_cr!.top = ""
-      setDisplaying_s(box!, 1)
+      setDisplaying_s(box!)
     } else {
       box!.style.cssText = "display:none"
     }

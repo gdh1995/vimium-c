@@ -525,10 +525,10 @@ export const onActivate = (event: Event): void => {
     const path = !OnEdge && (!OnChrome
           || Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow)
         ? event.composedPath!() : event.path,
-    el = (!OnEdge && (!OnChrome
+    el = !OnEdge && (!OnChrome
               || Build.MinCVer >= BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInClosedShadowDOM
               || Build.MinCVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow)
-          || (OnEdge ? path : path!.length > 1))
+        || (OnEdge || Build.MinCVer >= BrowserVer.MinEnsured$Event$$Path || path) && path!.length > 1
         ? path![0] as Element : event.target as Element;
     currentScrolling = weakRef_(OnFirefox ? el as SafeElement | null : SafeEl_not_ff_!(el))
     cachedScrollable = 0
