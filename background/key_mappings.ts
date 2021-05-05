@@ -19,7 +19,7 @@ type ValidMappingInstructions = "map" | "mapkey" | "mapKey" | "env" | "shortcut"
 let builtinKeys_: Set<string> | null | undefined
 let mappedKeyTypes_ = kMapKey.NONE
 let shortcutRegistry_: Map<StandardShortcutNames, CommandsNS.Item | null> | null | undefined
-let envRegistry_: Map<string, CommandsNS.EnvItem> | null | undefined
+let envRegistry_: Map<string, CommandsNS.EnvItem | "__not_parsed__"> | null | undefined
 
 export { builtinKeys_, mappedKeyTypes_, envRegistry_, shortcutRegistry_ }
 
@@ -29,7 +29,7 @@ const getOptions_ = (line: string, start: number): CommandsNS.RawOptions | "__no
       : line.slice(start + 1) as "__not_parsed__"
 }
 
-const parseOptions_ = (options_line: string): CommandsNS.RawOptions | null => {
+export const parseOptions_ = (options_line: string): CommandsNS.RawOptions | null => {
     let opt: CommandsNS.RawOptions, ind: number, str: string | undefined, val: string;
     opt = BgUtils_.safeObj_();
     for (str of options_line.split(" ")) {
@@ -168,7 +168,7 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
       , registry: CommandsDataTy["keyToCommandRegistry_"] = new Map()
       , cmdMap: typeof shortcutRegistry_ = new Map(), envMap: typeof envRegistry_ = null
       , builtinKeys: TextSet | null = null
-      , regItem: CommandsNS.Item | null
+      , regItem: CommandsNS.Item | null, options: ReturnType<typeof getOptions_>
       , mkReg = BgUtils_.safeObj_<string>();
     const colorRed = "color:red", shortcutLogPrefix = 'Shortcut %c"%s"';
     CommandsData_.errors_ = null
@@ -251,10 +251,12 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
         } else if (cmdMap.has(key as StandardShortcutNames)) {
           logError_(shortcutLogPrefix, colorRed, key, "has been configured")
         } else {
-          key2 = setupUserCustomized_(cmdMap, key as StandardShortcutNames,
-              getOptions_(line, knownLen - 1 - val.length))
-          if (!key2) { continue; }
-          logError_(shortcutLogPrefix, colorRed, key, key2)
+          options = getOptions_(line, knownLen - 1 - val.length)
+          if (doesMatchEnv_(options) !== "f") {
+            key2 = setupUserCustomized_(cmdMap, key as StandardShortcutNames, options)
+            if (!key2) { continue; }
+            logError_(shortcutLogPrefix, colorRed, key, key2)
+          }
         }
       } else if (cmd === "env") {
         if (!val) {
@@ -264,7 +266,10 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
         } else if (envMap && envMap.has(key)) {
           logError_('The environment name %c"%s"', colorRed, key, "has been used")
         } else {
-          (envMap || (envMap = new Map())).set(key, getOptions_(line, knownLen - 1 - val.length) as CommandsNS.EnvItem)
+          options = getOptions_(line, knownLen - 1 - val.length)
+          if (doesMatchEnv_(options) !== "f") {
+            (envMap || (envMap = new Map())).set(key, options)
+          }
           continue
         }
       } else if (cmd !== "unmap") {

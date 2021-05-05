@@ -8,6 +8,7 @@ import {
 import {
   indexFrame, portSendFgCmd, focusFrame, sendFgCmd, showHUD, complainLimits, safePost
 } from "./ports"
+import { parseOptions_ } from "./key_mappings"
 import { parseSedOptions_, substitute_ } from "./clipboard"
 import { parseReuse, newTabIndex, openUrlWithActions } from "./open_urls"
 import { envRegistry_, normalizedOptions_, shortcutRegistry_, visualGranularities_, visualKeys_ } from "./key_mappings"
@@ -641,19 +642,23 @@ export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey]): void => {
   frames && (frames.flags_ |= Frames.Flags.userActed)
   for (let i = 0, size = expected_rules instanceof Array ? expected_rules.length : 0
         ; i < size; i++) {
-    let rule: CommandsNS.EnvItem | CommandsNS.EnvItemWithKeys = (expected_rules as CommandsNS.EnvItemWithKeys[])[i]
+    let rule: CommandsNS.EnvItem | "__not_parsed__" | CommandsNS.EnvItemWithKeys | null | undefined
+        = (expected_rules as CommandsNS.EnvItemWithKeys[])[i]
     const ruleName = (rule as CommandsNS.EnvItemWithKeys).env
     if (ruleName) {
       if (!envRegistry_) {
         showHUD('No environments have been declared')
         return
       }
-      const rule2 = envRegistry_.get(ruleName)
-      if (!rule2) {
+      rule = envRegistry_.get(ruleName)
+      if (!rule) {
         showHUD(`No environment named "${ruleName}"`)
         return
       }
-      rule = rule2
+      if (typeof rule === "string") {
+        rule = parseOptions_(rule) as CommandsNS.EnvItem
+        envRegistry_.set(ruleName, rule)
+      }
     }
     const res = matchEnvRule(rule, curEnvCache, info)
     if (res === EnvMatchResult.abort) { return }
@@ -684,10 +689,14 @@ export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey]): void => {
       return
     }
     for (let ruleName in expected_rules) {
-      const rule = envRegistry_.get(ruleName)
+      let rule = envRegistry_.get(ruleName)
       if (!rule) {
         showHUD(`No environment named "${ruleName}"`)
         return
+      }
+      if (typeof rule === "string") {
+        rule = parseOptions_(rule) as CommandsNS.EnvItem
+        envRegistry_.set(ruleName, rule)
       }
       const res = matchEnvRule(rule, curEnvCache, info)
       if (res === EnvMatchResult.abort) { return }
