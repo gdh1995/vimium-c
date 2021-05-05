@@ -321,11 +321,7 @@ const refreshKeyHandler = (): void => {
 } as (options: CmdOptions[kFgCmd.vomnibar], count: number) => void
 
 export const focusOmni = (): void => {
-    if (status < Status.Showing) { return; }
-    if (OnChrome && Build.MinCVer < BrowserVer.MinFocus3rdPartyIframeDirectly) {
-      box!.contentWindow.focus()
-    }
-    postToOmni(VomnibarNS.kCReq.focus)
+  status < Status.Showing || postToOmni(VomnibarNS.kCReq.focus)
 }
 
 const postToOmni = <K extends keyof VomnibarNS.CReq> (msg: VomnibarNS.CReq[K]): void => {

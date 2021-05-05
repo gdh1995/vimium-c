@@ -530,11 +530,11 @@ const onHostKeydown = (event: HandlerNS.Event): HandlerResult => {
 
 const doFocus = (): void => {
   doesCheckAlive = 0
-  if (OnFirefox) {
-    box_.contentWindow.focus()
+  // fix that: search for "a" in VFind, Ctrl+F, "a", Esc, select any normal text using mouse - then `/` can not refocus
+  if (OnChrome && (Build.MinCVer >= BrowserVer.MinShadowDOMV0 ? root_! : root_ || innerDoc_).activeElement === input_) {
+    input_.blur()
   }
-  // fix that: search "a" in VFind, Ctrl+F, "a", Esc, select normal text using mouse, `/` can not refocus
-  OnChrome && (root_ || innerDoc_).activeElement === input_ && input_.blur()
+  OnChrome && Build.MinCVer >= BrowserVer.MinFocusIframeDirectlyBy$activeElement$$focus || box_.contentWindow.focus()
   focus_(input_)
   doesCheckAlive = 1
 }

@@ -24,6 +24,8 @@ declare const enum BrowserVer {
   Min$selectionStart$MayThrow = 33,
   Min$Promise$$Then$Accepts$null = 33,
   Maybe$Promise$onlyHas$$resolved = 33, // only if EXPERIMENTAL
+  // before 33, `a=activeElement; a.blur(); a.focus()` can not make its iframe grab focus
+  MinFocusIframeDirectlyWithout$wnd$$focus = 33, // even if EXPERIMENTAL or LEGACY; need .contentWindow.focus() before
   MinCSSWidthUnit$vw$InCalc = 34, // even if EXPERIMENTAL or LEGACY
   Min$Object$$setPrototypeOf = 34,
   // before C34, 2 images share a size part (the first one's), and different height/width would work as the smaller one
@@ -357,7 +359,7 @@ declare const enum BrowserVer {
   CreateShadowRootOnDocReadyBreakPages1 = 62,
   CreateShadowRootOnDocReadyBreakPages2 = 63,
   MinUsableScript$type$$module$InExtensions = 63, // even if EXPERIMENTAL or LEGACY
-  // the 6 below are correct even if EXPERIMENTAL or LEGACY
+  // the 8 below are correct even if EXPERIMENTAL or LEGACY
   // `/deep/` works on C35 even if LEGACY
   // static `/deep/` selector in query is still supported on Chrome LATEST_TESTED
   // https://www.chromestatus.com/features/6750456638341120
@@ -368,8 +370,9 @@ declare const enum BrowserVer {
   Min$addEventListener$IsInStrictMode = 64, // otherwise addEventListener has null .caller and null .arguments
   MinCSS$textDecorationSkipInk = 64,
   MinNoMultipleShadowRootsOfV0 = 64,
+  /** replace {@link #BrowserVer.MinFocusIframeDirectlyWithout$wnd$$focus} */
+  MinFocusIframeDirectlyBy$activeElement$$focus = 64, // need .activeElement.blur() or .contentWindow.focus() before
   MinEnsuredUnicodePropertyEscapesInRegExp = 64, // https://www.chromestatus.com/features/6706900393525248
-  MinFocus3rdPartyIframeDirectly = 64, // even if EXPERIMENTAL; or need .contentWindow.focus()
   MinEnsuredFetchRequestCache = 64, // even if LEGACY
   MinEnsuredLookBehindInRegexp = 64, // even if LEGACY
   // a 3rd-party Vomnibar will trigger "navigation" and clear all logs in console on Chrome 64

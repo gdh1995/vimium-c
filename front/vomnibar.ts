@@ -51,6 +51,7 @@ interface ConfigurableItems {
   VomnibarMaxPageNum?: number;
 }
 interface KnownDataset {
+  vimiumId: string
   favicons: "" | "true" | "false" // if "" or "true" then always show favicons
   version: `${number}.${number}` // html version
   media: "" | "(...)"
@@ -329,8 +330,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.codeFocusTime_ = performance.now();
     a.codeFocusReceived_ = false;
     if (focus !== false) {
-      if (Build.BTypes & BrowserType.Firefox) {
-        window.focus();
+      if (Build.BTypes & ~BrowserType.Chrome
+          || Build.MinCVer < BrowserVer.MinFocusIframeDirectlyBy$activeElement$$focus) {
+        window.focus() // if call contentWindow.focus(), then there's a huge delay and then the below logs failures
       }
       a.input_.focus();
       if (!a.codeFocusReceived_ || !a.focused_) {
@@ -343,7 +345,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
             console.log("Vomnibar: fail in focusing the input bar.");
           }
         }
-        focus < 5 && focus >= 0 && setTimeout(a.focus_, 33, focus + 1);
+        focus < 5 && (TimerType.fake >= 0 || focus >= 0) && setTimeout(a.focus_, 33, focus + 1)
       }
     } else {
       VPort_.post_({ H: kFgReq.nextFrame, t: Frames.NextType.current, k: a.lastKey_ });
