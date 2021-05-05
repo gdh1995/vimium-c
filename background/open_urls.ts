@@ -222,10 +222,10 @@ export const openShowPage = (url: string, reuse: ReuseType, options: OpenUrlOpti
     return true
   }
   url = url.slice(prefix.length)
-  if (url.startsWith("#!image ") && TabRecency_.incognito_ === IncognitoType.true) {
+  const { incognito } = tab
+  if (url.startsWith("#!image ") && incognito) {
     url = "#!image incognito=1&" + url.slice(8).trim()
   }
-  const { incognito } = tab
   const arr: ShowPageData = [url, null, 0]
   settings.temp_.shownHash_ = arr[1] = function (this: void) {
     clearTimeout(arr[2])
@@ -267,7 +267,7 @@ export const openShowPage = (url: string, reuse: ReuseType, options: OpenUrlOpti
 const openUrls = (tabs: [Tab] | [] | undefined): void => {
   const tab = tabs && tabs[0], windowId = tab && tab.windowId
   let urls: string[] = get_cOptions<C.openUrl, true>().urls!, repeat = cRepeat
-  if (!get_cOptions<C.openUrl>().formatted_) {
+  if (!get_cOptions<C.openUrl>().$fmt) {
     for (let i = 0; i < urls.length; i++) {
       urls[i] = BgUtils_.convertToUrl_(urls[i] + "")
     }
@@ -276,24 +276,25 @@ const openUrls = (tabs: [Tab] | [] | undefined): void => {
       urls = urls.filter(i => settings.newTabs_.get(i) !== Urls.NewTabType.browser && !(<RegExpI> /file:\/\//i).test(i))
       get_cOptions<C.openUrl, true>().urls = urls
     }
-    get_cOptions<C.openUrl, true>().formatted_ = 1
+    get_cOptions<C.openUrl, true>().$fmt = 1
   }
-  const reuse = parseReuse(get_cOptions<C.openUrl, true>().reuse), pinned = !!get_cOptions<C.openUrl>().pinned,
-  wndOpt: Partial<Omit<chrome.windows.CreateData, "focused">> | null = reuse === ReuseType.newWindow
-      || get_cOptions<C.openUrl>().window ? {
-    url: urls.length > 0 ? urls: void 0, incognito: !!get_cOptions<C.openUrl>().incognito
-  } : null
-  let active = reuse > ReuseType.newFg - 1, index = tab && newTabIndex(tab, get_cOptions<C.openUrl>().position)
-  set_cOptions(null)
   for (const url of urls) {
     if (Backend_.checkHarmfulUrl_(url)) {
       return
     }
   }
+  const reuse = parseReuse(get_cOptions<C.openUrl, true>().reuse), pinned = !!get_cOptions<C.openUrl>().pinned,
+  tabIncognito = tab && tab.incognito, incognito = get_cOptions<C.openUrl>().incognito,
+  wndOpt: Partial<Omit<chrome.windows.CreateData, "focused">> | null = reuse === ReuseType.newWindow
+      || get_cOptions<C.openUrl>().window ? {
+    url: urls.length > 0 ? urls: void 0, incognito: incognito != null ? !!incognito : tabIncognito
+  } : null
+  let active = reuse > ReuseType.newFg - 1, index = tab && newTabIndex(tab, get_cOptions<C.openUrl>().position)
+  set_cOptions(null)
   do {
     if (wndOpt) {
       browserWindows.create(wndOpt, runtimeError_)
-      continue
+      break // not accept repeat if the target .reuse is `newWindow`
     }
     for (const url of urls) {
       tabsCreate({ url, index, windowId, active, pinned })

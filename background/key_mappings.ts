@@ -424,8 +424,8 @@ const warnInactive_ = (obj: ReadonlyChildKeyFSM | string, newKey: string): void 
 }
 
   /** this functions needs to accept any types of arguments and normalize them */
-export const executeCmd_ = (message: Partial<ExternalMsgs[kFgReq.command]["req"]>, sender: chrome.runtime.MessageSender
-     ): void => {
+export const executeExternalCmd = (
+      message: Partial<ExternalMsgs[kFgReq.command]["req"]>, sender: chrome.runtime.MessageSender): void => {
     let command = message.command;
     command = command ? command + "" : "";
     const description = command ? availableCommands_[command] : null

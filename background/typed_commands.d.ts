@@ -70,7 +70,7 @@ interface BgCmdOptions {
   [kBgCmd.moveTabToNewWindow]: { all: boolean | BOOL; incognito: boolean } & LimitedRangeOptions
   [kBgCmd.moveTabToNextWindow]: { minimized: false; min: false; end: boolean; right: boolean }
   [kBgCmd.openUrl]: OpenUrlOptions & MasksForOpenUrl & {
-    urls: string[]; formatted_: 1
+    urls: string[]; $fmt: 1
     url: string; url_f: Urls.Url
     copied: boolean; goNext: boolean | "absolute"; keyword: string; testUrl: boolean
   }

@@ -8,7 +8,7 @@ import { indexFrame, findCPort, OnConnect, isExtIdAllowed, getPortUrl, showHUD, 
 import { executeShortcut } from "./frame_commands"
 import "./all_commands"
 import "./request_handlers"
-import { executeCmd_, shortcutRegistry_, visualKeys_ } from "./key_mappings"
+import { executeExternalCmd, shortcutRegistry_, visualKeys_ } from "./key_mappings"
 
 declare const enum RefreshTabStep { start = 0, s1, s2, s3, s4, end }
 
@@ -313,7 +313,7 @@ Backend_ = {
       return;
     }
     if (typeof message === "string") {
-      executeCmd_({command: message}, sender)
+      executeExternalCmd({command: message}, sender)
       return;
     }
     else if (typeof message !== "object" || !message) {
@@ -344,7 +344,7 @@ Backend_ = {
       });
       break;
     case kFgReq.command:
-      executeCmd_(message, sender)
+      executeExternalCmd(message, sender)
       break;
     }
 }), settings.postUpdate_("extAllowList"))
