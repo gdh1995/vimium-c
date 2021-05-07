@@ -79,6 +79,7 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
     const el = createElement_("iframe") as NonNullable<typeof box>, kRef = "referrerPolicy"
     setClassName_s(el, "R UI Omnibar")
     setDisplaying_s(el)
+    // setOrRemoveAttr_s(el, "allow", "clipboard-read; clipboard-write")
     if (type !== VomnibarNS.PageType.web) { /* empty */ }
     else if (createRegExp(kTip.nonLocalhostRe, "i").test(page) && !(<RegExpOne> /^http:/).test(locHref())) {
       // not allowed by Chrome; recheck because of `tryNestedFrame`

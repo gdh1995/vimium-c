@@ -89,7 +89,7 @@ export const main_not_ff = (!OnFirefox ? (): void => {
   }
   script.dataset.vimium = secret
 
-  let box: Element | undefined | 0, hookRetryTimes = 0,
+  let box: Element | undefined | 0, hookRetryTimes = 0, counterResolvePath = 0,
   isFirstResolve: 0 | 1 | 2 | 3 | 4 = isTop ? 3 : 4,
   hook = function (event: Event): void {
     const t = (event as TypeToAssert<Event, DelegateEventCls["prototype"], "relatedTarget">).relatedTarget,
@@ -132,7 +132,9 @@ export const main_not_ff = (!OnFirefox ? (): void => {
         return;
       }
     }
-    if (!Build.NDEBUG) {
+    if (!Build.NDEBUG && (++counterResolvePath <= 32
+        || Math.floor(Math.log(counterResolvePath) / Math.log(1.414)) !==
+           Math.floor(Math.log(counterResolvePath - 1) / Math.log(1.414)))) {
       console.log(`Vimium C: extend click: resolve ${detail ? "[%o + %o]" : "<%o>%s"} in %o @t=%o .`
         , detail ? detail[0].length
           : target && (isTY(target.localName) ? target.localName : target + "")
