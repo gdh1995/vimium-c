@@ -16,10 +16,10 @@ export declare const enum kClickAction {
   none = 0,
   /** should only be used on Firefox */ plainMayOpenManually = 1,
   forceToOpenInNewTab = 2, forceToOpenInLastWnd = 4, newTabFromMode = 8,
-  openInNewWindow = 16,
+  openInNewWindow = 16, forceToOpenInCurrnt = 32,
   // the 1..MaxOpenForAnchor before this line should always mean HTML <a>
-  MinNotPlainOpenManually = 2, MaxOpenForAnchor = 31,
-  BaseMayInteract = 32, FlagDblClick = 1, FlagInteract = 2, MaxNeverInteract = BaseMayInteract + 4,
+  MinNotPlainOpenManually = 2, MaxOpenForAnchor = 63,
+  BaseMayInteract = 64, FlagDblClick = 1, FlagInteract = 2, MaxNeverInteract = 68,
 }
 export declare const enum kClickButton { none = 0, primary = 1, second = 2, primaryAndTwice = 4 }
 type AcceptableClickButtons = kClickButton.none | kClickButton.second | kClickButton.primaryAndTwice
@@ -251,8 +251,8 @@ export const unhover_async = (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsure
 }
 
 
-export const click_async = async (element: SafeElementForMouse
-    , rect?: Rect | null, addFocus?: boolean | BOOL, modifiers?: MyMouseControlKeys | null
+export const click_async = (async (element: SafeElementForMouse
+    , rect?: Rect | null, addFocus?: boolean | BOOL, modifiers?: MyMouseControlKeys
     , specialAction?: kClickAction, button?: AcceptableClickButtons
     , /** default: false */ touchMode?: null | false | /** false */ 0 | true | "auto"
     , /** .opener: default to true */ userOptions?: OpenUrlOptions): Promise<void | 1> => {
@@ -324,8 +324,8 @@ export const click_async = async (element: SafeElementForMouse
               : (parentAnchor = element.closest!("a")) && htmlTag_(parentAnchor) ? parentAnchor : null)
           || (OnFirefox ? specialAction < kClickAction.MinNotPlainOpenManually && parentAnchor.target !== "_blank" : 0)
           || !(url = attr_s(parentAnchor as SafeElement, "href"))
-          || specialAction & (kClickAction.forceToOpenInNewTab | kClickAction.forceToOpenInLastWnd)
-              && url[0] === "#"
+          || specialAction & (kClickAction.forceToOpenInNewTab
+                | kClickAction.forceToOpenInLastWnd | kClickAction.openInNewWindow) && url[0] === "#"
           || isJSUrl(url)
         ? ActionType.OnlyDispatch
         : OnFirefox && specialAction & (kClickAction.plainMayOpenManually | kClickAction.openInNewWindow)
@@ -373,11 +373,11 @@ export const click_async = async (element: SafeElementForMouse
         : (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredES6$Array$$Includes
             ? relAttr.split(<RegExpOne> /\s/).includes!("noopener")
             : relAttr.split(<RegExpOne> /\s/).indexOf("noopener") >= 0),
-    reuse = OnFirefox && specialAction! & kClickAction.openInNewWindow
-        ? ReuseType.newWindow
+    reuse = specialAction! & kClickAction.openInNewWindow
+        ? ReuseType.newWindow : specialAction! & kClickAction.forceToOpenInCurrnt ? ReuseType.current
         : specialAction! & kClickAction.forceToOpenInLastWnd
           ? specialAction! < kClickAction.newTabFromMode ? ReuseType.lastWndFg : ReuseType.lastWndBg
-        : modifiers && modifiers[3] || specialAction! < kClickAction.newTabFromMode
+        : /** result > 0, so specialAction exists */ modifiers![3] || specialAction! < kClickAction.newTabFromMode
           ? ReuseType.newFg : ReuseType.newBg;
     (hintApi ? hintApi.p : post_)({
       H: kFgReq.openUrl,
@@ -390,6 +390,17 @@ export const click_async = async (element: SafeElementForMouse
     })
     return 1
   }
+}) as {
+  (element: SafeElementForMouse
+    , rect: Rect | null | undefined, addFocus: boolean | BOOL, modifiers: MyMouseControlKeys
+    , specialAction: kClickAction, button: AcceptableClickButtons
+    , /** default: false */ touchMode: null | undefined | false | /** false */ 0 | true | "auto"
+    , /** .opener: default to true */ userOptions: OpenUrlOptions): Promise<void | 1>
+  (element: SafeElementForMouse
+    , rect: Rect | null, addFocus: boolean | BOOL, modifiers: MyMouseControlKeys | undefined
+    , specialAction: kClickAction.none, button: kClickButton.primaryAndTwice): Promise<void | 1>
+  (element: SafeElementForMouse
+    , rect?: Rect | null, addFocus?: boolean | BOOL, useAltKey?: [true, false, false, false]): Promise<void | 1>
 }
 
 export const select_ = (element: LockableElement, rect?: Rect | null, show_flash?: boolean

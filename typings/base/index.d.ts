@@ -14,6 +14,11 @@ type TypeName<T> =
     T extends undefined ? "undefined" :
     T extends Function ? "function" :
     "object";
+type ToString<T> = T extends null ? "null" : T extends undefined ? "undefined" :
+    T extends boolean ? T extends true ? "true" : "false" :
+    T extends string ? string extends T ? string : T :
+    T extends number ? number extends T ? string : `${T}` :
+    unknown
 type Parameters<F extends Function> = F extends (...args: infer A) => any ? A : never;
 type ConstructorParameters<T extends new (...args: any[]) => any> = T extends new (...args: infer P) => any ? P : never;
 type ReturnType<T> = T extends (...args: any[]) => infer R ? R : never;

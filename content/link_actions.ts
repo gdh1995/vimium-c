@@ -304,7 +304,7 @@ const defaultClick = (): void => {
     const mask = hintMode_ & HintMode.mask_focus_new, isMac = !fgCache.o,
     isRight = hintOptions.button === "right",
     dblClick = !!hintOptions.dblclick && !isRight,
-    newTabStr = hintOptions.newtab + "",
+    newTabStr = (hintOptions.newtab + "") as ToString<Exclude<HintsNS.Options["newtab"], boolean>>,
     otherActions = isRight || dblClick,
     newWindow = newTabStr === "window" && !otherActions,
     newTab = mask > HintMode.newTab - 1 && !newWindow && !otherActions,
@@ -321,13 +321,16 @@ const defaultClick = (): void => {
         ? kClickAction.BaseMayInteract + +dblClick + kClickAction.FlagInteract * <number> <number | boolean> doInteract
         : otherActions || (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$Element$$Closest
             || clickEl.closest ? !clickEl.closest!("a") : tag !== "a") ? kClickAction.none
+        : newTabStr === "force-mode" ? newTab
+            ? kClickAction.forceToOpenInNewTab | kClickAction.newTabFromMode : kClickAction.forceToOpenInCurrnt
+        : newTabStr === "force-current" ? kClickAction.forceToOpenInCurrnt
         : newTabStr === "force" ? newTab
             ? kClickAction.forceToOpenInNewTab | kClickAction.newTabFromMode : kClickAction.forceToOpenInNewTab
         : newTabStr === "last-window" ? newTab
             ? kClickAction.forceToOpenInLastWnd | kClickAction.newTabFromMode : kClickAction.forceToOpenInLastWnd
         : OnFirefox
         ? newWindow ? kClickAction.openInNewWindow
-          : newTabStr.startsWith("no-") ? kClickAction.none // to skip "click" events, one should use "force"
+          : newTabStr.startsWith("no-") ? kClickAction.none // to skip "click" events, one should use "force*"
           : newTab // need to work around Firefox's popup blocker
             ? kClickAction.plainMayOpenManually | kClickAction.newTabFromMode : kClickAction.plainMayOpenManually
         : kClickAction.none;

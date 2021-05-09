@@ -248,7 +248,9 @@ declare namespace HintsNS {
     testUrl?: boolean
     dblclick?: boolean;
     interact?: true | false
-    newtab?: boolean | "force" | "last-window" | "window" | /** Firefox-only */ "no-prevent";
+    newtab?: null | /** only in editing mode */ boolean
+        | "force" | "force-current" | "force-mode"
+        | "last-window" | "window" | /** Firefox-only */ "no-prevent"
     button?: "right";
     scroll?: "force";
     touch?: null | boolean | "auto";
