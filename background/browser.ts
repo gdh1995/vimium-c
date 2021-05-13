@@ -130,9 +130,12 @@ export const openMultiTab = (options: InfoToCreateMultiTab, count: number, evenI
   tabsCreate(options, options.active ? (tab): void => {
     tab && tab.windowId !== TabRecency_.curWnd_ && selectWnd(tab)
   } : null, evenIncognito)
-  if (count < 2) { return }
+  count > 1 && openInactiveTabs(options, count - 1, hasIndex)
+}
+
+export const openInactiveTabs = (options: InfoToCreateMultiTab, count: number, hasIndex: boolean): void => {
   options.active = false
-  while (count-- > 1) {
+  while (count-- > 0) {
     hasIndex && ++options.index!
     browserTabs.create(options)
   }
@@ -141,14 +144,11 @@ export const openMultiTab = (options: InfoToCreateMultiTab, count: number, evenI
 export const makeWindow = (options: chrome.windows.CreateData, state?: chrome.windows.ValidStates | ""
     , callback?: ((wnd: Window & {tabs: [Tab]}, exArg?: FakeArg) => void) | null): void => {
   const focused = options.focused !== false, kM = "minimized"
-  if (!focused) {
-    state !== kM && (state = "normal")
-  } else if (state === kM) {
-    state = "normal"
-  }
-  if (state && (Build.MinCVer >= BrowserVer.MinCreateWndWithState || !(Build.BTypes & BrowserType.Chrome)
+  state = !state ? "" : ((state === kM) === focused) || options.type === "popup"
+      || state === "normal" || state === "docked" ? "" : state
+  if ((Build.MinCVer >= BrowserVer.MinCreateWndWithState || !(Build.BTypes & BrowserType.Chrome)
                 || CurCVer_ >= BrowserVer.MinCreateWndWithState)) {
-    if (!state.includes("fullscreen")) {
+    if (state && !state.includes("fullscreen")) {
       (options as chrome.windows.CreateDataEx).state = state
       state = ""
     }
@@ -165,7 +165,7 @@ export const makeWindow = (options: chrome.windows.CreateData, state?: chrome.wi
   }
   browserWindows.create(options, state || !focused ? (wnd): void => {
     callback && callback(wnd)
-    if (!wnd) { return } // do not return lastError: just throw errors for easier debugging
+    if (!wnd) { return callback === runtimeError_ ? runtimeError_() : undefined }
     const opt: chrome.windows.UpdateInfo = focused ? {} : { focused: false }
     state && (opt.state = state)
     browserWindows.update(wnd.id, opt)

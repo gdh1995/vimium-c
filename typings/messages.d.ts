@@ -645,10 +645,11 @@ interface OpenUrlOptions extends UserSedOptions {
   window?: boolean | "popup" | "normal" | null
 }
 interface OpenPageUrlOptions extends Pick<OpenUrlOptions, "position" | "window"> {
-  keyword?: string; testUrl?: boolean
+  keyword?: string; replace?: string | ValidUrlMatchers | null; testUrl?: boolean
 }
 interface ParsedOpenPageUrlOptions {
   /** keyword */ k?: OpenPageUrlOptions["keyword"]
+  /** match a tab to replace */ m?: OpenPageUrlOptions["replace"]
   /** position */ p?: OpenPageUrlOptions["position"]
   /** test-URL */ t?: OpenPageUrlOptions["testUrl"]
   /** sed */ s?: ParsedSedOpts | null

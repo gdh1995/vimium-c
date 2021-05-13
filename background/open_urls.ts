@@ -1,7 +1,8 @@
 import C = kBgCmd
 import {
+  PopWindow, InfoToCreateMultiTab, openInactiveTabs,
   selectFrom, selectWnd, getCurTab, runtimeError_, tabsGet, getTabUrl, getCurWnd, Tab, Window, browserTabs,
-  browserWindows, getAllWindows, tabsCreate, safeUpdate, InfoToCreateMultiTab, openMultiTab, makeWindow, browser_, selectTab
+  browserWindows, getAllWindows, tabsCreate, safeUpdate, openMultiTab, makeWindow, browser_, selectTab
 } from "./browser"
 import {
   framesForTab, cKey, cPort, cRepeat, get_cOptions, settings, set_cOptions, set_cPort, set_cRepeat
@@ -20,7 +21,7 @@ const ReuseValues: {
 } = {
   current: ReuseType.current, reuse: ReuseType.reuse, newwnd: ReuseType.newWnd,
   newbg: ReuseType.newBg, lastwndfg: ReuseType.lastWndFg, lastwnd: ReuseType.lastWndFg,
-  lastwndbg: ReuseType.lastWndBg,
+  lastwndbg: ReuseType.lastWndBg, iflastwnd: ReuseType.ifLastWnd,
   lastwndbgbg: ReuseType.lastWndBgInactive, lastwndbginactive: ReuseType.lastWndBgInactive
 }
 
@@ -36,6 +37,26 @@ export const newTabIndex = (tab: Readonly<Pick<Tab, "index">>, pos: OpenUrlOptio
 
 const normalizeWndType = (wndType: string | boolean | null | undefined): "popup" | "normal" | undefined =>
     wndType === "popup" || wndType === "normal" ? wndType : undefined
+
+const findLastVisibleWindow = (wndType: "popup" | "normal" | undefined, alsoCur: boolean
+    , incognito: OpenUrlOptions["incognito"] | null): Promise<Window | null> => {
+  const filter = (wnd: Window): boolean =>
+      (!wndType || wnd.type === wndType) && (incognito == null || wnd.incognito === !!incognito)
+      && wnd.state !== "minimized"
+  const p = (TabRecency_.lastWnd_ < 0 ? Promise.resolve(null) : new Promise<Window | null>(resolve => {
+    browserWindows.get(TabRecency_.lastWnd_, wnd => {
+      resolve(wnd ? filter(wnd) ? wnd : null : (TabRecency_.lastWnd_ = GlobalConsts.WndIdNone, null))
+      return runtimeError_()
+    })
+  }))
+  return p.then(wnd => wnd || new Promise(resolve => getAllWindows((wnds): void => {
+    const last = wnds.filter(i => filter(i) && i.id !== TabRecency_.curWnd_)
+    const wnd2 = last.length > 0 ? last.sort((i, j) => j.id - i.id)[0] : null
+    wnd2 && TabRecency_.lastWnd_ < 0 && (TabRecency_.lastWnd_ = wnd2.id)
+    resolve(wnd2 || !alsoCur ? wnd2
+        : wnds.find(w => w.id === TabRecency_.curWnd_) || wnds.find(w => w.focused) || null)
+  })))
+}
 
 const onEvalUrl_ = (workType: Urls.WorkType, options: OpenUrlOptions, tabs: [Tab] | [] | undefined
     , arr: Urls.SpecialUrl): void => {
@@ -138,6 +159,39 @@ const fillUrlMasks = (url: string, tabs: [Tab?] | undefined, url_mark: string | 
   return url
 }
 
+const openUrlInAnotherWindow = (url: string, reuse: Exclude<ReuseType, ReuseType.reuse | ReuseType.current>
+    , incognito: OpenUrlOptions["incognito"], isCurWndIncognito: boolean
+    , options: Readonly<Pick<OpenUrlOptions, "position" | "opener" | "window" | "incognito" | "pinned">>): void => {
+  let p: Promise<PopWindow | null>
+  p = reuse > ReuseType.OFFSET_LAST_WINDOW ? new Promise(resolve => {
+    getCurWnd(true, wnd => (resolve(wnd || null), runtimeError_()))
+  }) : findLastVisibleWindow(normalizeWndType(options.window), true, incognito).then(wnd => wnd &&
+    new Promise(resolve => browserWindows.get(wnd.id, { populate: true }, i => resolve((i || wnd) as PopWindow))))
+  p.then(wnd => {
+    const isWndLast = !!wnd && !wnd.focused && wnd.id !== TabRecency_.curWnd_ // in case a F12 window is focused
+    const fallbackInCur = reuse === ReuseType.ifLastWnd && !isWndLast
+    if (!wnd || !(isWndLast || reuse === ReuseType.ifLastWnd && (incognito == null || wnd.incognito === !!incognito))) {
+      makeWindowFrom(url, reuse > ReuseType.lastWndBgInactive, incognito != null ? !!incognito : isCurWndIncognito
+          , options, options as any, wnd)
+      return
+    }
+    const args: InfoToCreateMultiTab = {
+      url, active: reuse > ReuseType.lastWndBg || fallbackInCur, windowId: wnd.id,
+      pinned: !!options.pinned,
+      index: wnd.tabs && wnd.tabs.length > 0 ? newTabIndex(selectFrom(wnd.tabs), options.position) : undefined
+    }
+    tabsCreate(args, (newTab): void => {
+      if (runtimeError_()) { return runtimeError_() }
+      if (reuse > ReuseType.lastWndBg) {
+        isWndLast && selectWnd(newTab)
+      } else if (reuse > ReuseType.lastWndBgInactive && !fallbackInCur) {
+        selectTab(newTab.id, false)
+      }
+      cRepeat > 1 && openInactiveTabs(args, cRepeat - 1, true)
+    }, incognito === "force")
+  })
+}
+
 const openUrlInNewTab = (url: string, reuse: Exclude<ReuseType, ReuseType.reuse | ReuseType.current>
     , options: Readonly<Pick<OpenUrlOptions, "position" | "opener" | "window" | "incognito" | "pinned">>
     , tabs: [Tab] | []): void => {
@@ -164,26 +218,7 @@ const openUrlInNewTab = (url: string, reuse: Exclude<ReuseType, ReuseType.reuse 
     }
   }
   if (window) {
-    if (reuse < ReuseType.lastWndFg + 1 && TabRecency_.lastWnd_ >= 0) {
-      // if last-wnd, ignore .incognito
-      browserTabs.create({ windowId: TabRecency_.lastWnd_, active: reuse > ReuseType.lastWndBg,
-        url: !url || settings.newTabs_.get(url) === Urls.NewTabType.browser ? void 0 : url
-      }, (newTab): void => {
-        if (runtimeError_()) {
-          openUrlInNewTab(url, ReuseType.newWindow, options, tabs)
-          return runtimeError_()
-        } else if (reuse > ReuseType.lastWndBg) {
-          selectWnd(newTab)
-        } else if (reuse > ReuseType.lastWndBgInactive) {
-          selectTab(newTab.id, false)
-        }
-      })
-      return
-    }
-    getCurWnd(false, ({ state }): void => {
-      makeWindow({ url, focused: active, incognito: incognito != null ? !!incognito : isCurWndIncognito
-      }, state !== "minimized" && state !== "docked" ? state : "")
-    })
+    openUrlInAnotherWindow(url, reuse, incognito, isCurWndIncognito, options)
     return
   }
   let openerTabId = options.opener && tab ? tab.id : undefined
@@ -197,6 +232,64 @@ const openUrlInNewTab = (url: string, reuse: Exclude<ReuseType, ReuseType.reuse 
     args.openInReaderMode = inReader
   }
   openMultiTab(args, cRepeat, (incognito as typeof options.incognito) === "force")
+}
+
+const replaceOrOpenInNewTab = <Reuse extends Exclude<ReuseType, ReuseType.current>> (
+    url: string, reuse: Reuse, replace: KnownOptions<C.openUrl>["replace"], rawWndType: OpenUrlOptions["window"]
+    , options: Reuse extends ReuseType.reuse ? MarksNS.FocusOrLaunch : KnownOptions<C.openUrl>
+    , tabs?: [Tab] | []): void => {
+  const matcher = !replace ? null
+      : typeof replace === "string" ? Exclusions.createSimpleUrlMatcher_(replace)
+      : typeof replace !== "object" || !replace.t || !replace.v ? null : replace
+  const allWindows = reuse === ReuseType.newWnd || reuse === ReuseType.reuse
+  const wndType = normalizeWndType(rawWndType)
+  const incognito = reuse !== ReuseType.reuse ? (options as KnownOptions<C.openUrl>).incognito : null
+  set_cRepeat(1)
+  if ("replace" in options) {
+    (options as KnownOptions<C.openUrl>).replace = matcher
+  }
+  let p: Promise<Pick<Window, "id"> | null>
+  if (reuse < ReuseType.OFFSET_LAST_WINDOW + 1 && matcher) {
+    p = findLastVisibleWindow(wndType, reuse === ReuseType.ifLastWnd, incognito)
+  } else {
+    p = Promise.resolve(!allWindows && TabRecency_.curWnd_ >= 0 ? {id: TabRecency_.curWnd_} : null)
+  }
+  p.then<Tab | null>(preferredWnd => !matcher || !preferredWnd && !allWindows ? null : new Promise(resolve => {
+    browserTabs.query(preferredWnd ? { windowId: preferredWnd.id } : {
+      windowType: wndType || undefined
+    }, (tabs): void => {
+      const refused = incognito != null ? !incognito
+          : reuse > ReuseType.OFFSET_LAST_WINDOW ? TabRecency_.incognito_ !== IncognitoType.true : -2
+      let matched = (tabs || []).filter(tab => Exclusions.matchSimply_(matcher, tab.url) && tab.incognito !== refused)
+      matched.sort((a, b) => {
+        const cachedB = TabRecency_.tabs_.get(b.id), cachedA = TabRecency_.tabs_.get(a.id)
+        return cachedA ? cachedB ? cachedB.i - cachedA.i : 1 : cachedB ? -1 : b.id - a.id
+      })
+      if (reuse === ReuseType.reuse) {
+        const inCurWnd = matched.filter(tab => tab.windowId === TabRecency_.curWnd_)
+        matched = inCurWnd.length > 0 ? inCurWnd : matched
+      }
+      resolve(matched.length ? matched[0] : null)
+      return runtimeError_()
+    })
+  })).then<void>(matchedTab => {
+    if (matchedTab == null || matchedTab.id === TabRecency_.curTab_ && reuse !== ReuseType.reuse) {
+      reuse === ReuseType.reuse ? focusOrLaunch(options as MarksNS.FocusOrLaunch)
+      : tabs ? openUrlInNewTab(url, reuse as Exclude<ReuseType, ReuseType.current | ReuseType.reuse>
+            , options as KnownOptions<C.openUrl>, tabs)
+      : getCurTab(openUrlInNewTab.bind(null, url, reuse as Exclude<ReuseType, ReuseType.current | ReuseType.reuse>
+            , options as KnownOptions<C.openUrl>))
+    } else {
+      browserTabs.update(matchedTab.id, {
+        url: url
+      }, (): void => {
+        if (matchedTab.windowId !== TabRecency_.curWnd_ && reuse > ReuseType.lastWndBg) {
+          selectWnd(matchedTab)
+        }
+      })
+      browserTabs.update(matchedTab.id, {active: reuse !== ReuseType.newBg && reuse !== ReuseType.lastWndBgInactive})
+    }
+  })
 }
 
 export const openJSUrl = (url: string, onBrowserFail?: () => void): void => {
@@ -357,9 +450,10 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, tabs?
       : openShowPage(url, reuse, options) ? 0
       : BgUtils_.isJSUrl_(url) ? /*#__NOINLINE__*/ openJSUrl(url)
       : Backend_.checkHarmfulUrl_(url) ? 0
-      : reuse === ReuseType.reuse ? focusOrLaunch(
-            { u: url, p: options.prefix, q: { p: options.position, w: options.window } })
+      : reuse === ReuseType.reuse ? replaceOrOpenInNewTab(url, reuse, options.replace, options.window
+            , { u: url, p: options.prefix, q: { p: options.position, w: options.window } }, tabs)
       : reuse === ReuseType.current ? safeUpdate(url)
+      : options.replace ? replaceOrOpenInNewTab(url, reuse, options.replace, options.window, options, tabs)
       : tabs ? openUrlInNewTab(url, reuse, options, tabs)
       : getCurTab(openUrlInNewTab.bind(null, url, reuse, options))
 
@@ -588,6 +682,11 @@ export const focusOrLaunch = (request: FgReq[kFgReq.focusOrLaunch], port?: Port 
   let url = BgUtils_.reformatURL_(request.u.split("#", 1)[0]), callback = focusAndExecuteArr[0]
   if (Backend_.checkHarmfulUrl_(url, port)) {
     return
+  }
+  if (request.q && request.q.m) {
+    const replace = request.q.m
+    request.q.m = null
+    return replaceOrOpenInNewTab(request.u, ReuseType.reuse, replace, request.q.w, request)
   }
   let cb2: (result: Tab[], exArg?: FakeArg) => void
   if (!notFolder && (url.startsWith("file:") || url.startsWith("ftp:"))
