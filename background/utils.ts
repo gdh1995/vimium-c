@@ -266,6 +266,7 @@ var BgUtils_ = {
       : type === Urls.Type.Search ?
         a.createSearchUrl_(oldStrForSearch.split(a.spacesRe_), keyword || "~", vimiumUrlWork)
       : type <= Urls.Type.MaxOfInputIsPlainUrl ?
+        type === Urls.Type.NoScheme && a._guessDomain(oldString, str) ||
         (a.checkInDomain_(str, arr && arr[4]) === 2 ? "https:" : "http:")
         + (type === Urls.Type.NoScheme ? "//" : "") + oldString
       : oldString;
@@ -273,6 +274,16 @@ var BgUtils_ = {
   checkInDomain_ (host: string, port?: string | null): 0 | 1 | 2 {
     const domain = port && this.domains_.get(host + port) || this.domains_.get(host)
     return domain ? domain.https_ ? 2 : 1 : 0;
+  },
+  _guessDomain (url: string, host: string): string {
+    if ((<RegExpOne> /^(?!www\.)[a-z\d-]+\.([a-z]{3}(\.[a-z]{2})?|[a-z]{2})\/?$/i).test(url)
+        && !this.checkInDomain_(host)) {
+      const domain2 = this.domains_.get("www." + host)
+      if (domain2) {
+        return `${domain2.https_ ? "https" : "http"}://www.${url.toLowerCase().replace("/", "")}/`
+      }
+    }
+    return ""
   },
   checkSpecialSchemes_ (str: string, i: number, spacePos: number): Urls.Type | Urls.TempType.Unspecified {
     const a = this;

@@ -435,6 +435,7 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, tabs?
       url = substitute_(url, SedContext.goNext)
       url = goToNextUrl(url, cRepeat, goNext)[1]
     }
+    url = typeof url === "string" ? BgUtils_.reformatURL_(url) : url
   } else {
     url = settings.cache_.newTabUrl_f
   }
@@ -641,8 +642,10 @@ const focusAndExecuteArr = [function (tabs): void {
     tabsCreate({ url })
     browserTabs.remove(tab.id)
   } else {
+    const cur = Build.BTypes & BrowserType.Chrome && IsEdg_ ? tab.url.replace(<RegExpOne> /^edge:/, "chrome:") : tab.url
+    const wanted = Build.BTypes & BrowserType.Chrome && IsEdg_ ? url.replace(<RegExpOne> /^edge:/, "chrome:") : url
     browserTabs.update(tab.id, {
-      url: tab.url === url || tab.url.startsWith(url) ? undefined : url, active: true
+      url: cur.startsWith(wanted) ? undefined : url, active: true
     }, this.s ? focusAndExecuteArr[3].bind(this as MarksNS.MarkToGo, 0) : null)
     tab.windowId !== wndId && selectWnd(tab)
   }
