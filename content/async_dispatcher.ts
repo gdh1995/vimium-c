@@ -1,5 +1,5 @@
 import {
-  OnChrome, OnFirefox, OnEdge, doc, deref_, weakRef_, chromeVer_, isJSUrl, getTime, parseSedOptions, safeCall
+  OnChrome, OnFirefox, OnEdge, doc, deref_, weakRef_, chromeVer_, isJSUrl, getTime, parseOpenPageUrlOptions, safeCall
 } from "../lib/utils"
 import {
   IsInDOM_, activeEl_unsafe_, isInTouchMode_cr_, MDW, htmlTag_, CLK, attr_s, contains_s, focus_, fullscreenEl_unsafe_
@@ -255,7 +255,7 @@ export const click_async = (async (element: SafeElementForMouse
     , rect?: Rect | null, addFocus?: boolean | BOOL, modifiers?: MyMouseControlKeys
     , specialAction?: kClickAction, button?: AcceptableClickButtons
     , /** default: false */ touchMode?: null | false | /** false */ 0 | true | "auto"
-    , /** .opener: default to true */ userOptions?: OpenUrlOptions): Promise<void | 1> => {
+    , /** .opener: default to true */ userOptions?: HintsNS.Options): Promise<void | 1> => {
   /**
    * for important events including `mousedown`, `mouseup`, `click` and `dblclick`, wait for two micro tasks;
    * for other events, just wait for one micro task
@@ -374,19 +374,14 @@ export const click_async = (async (element: SafeElementForMouse
             ? relAttr.split(<RegExpOne> /\s/).includes!("noopener")
             : relAttr.split(<RegExpOne> /\s/).indexOf("noopener") >= 0),
     reuse = specialAction! & kClickAction.openInNewWindow
-        ? ReuseType.newWindow : specialAction! & kClickAction.forceToOpenInCurrnt ? ReuseType.current
+        ? ReuseType.newWnd : specialAction! & kClickAction.forceToOpenInCurrnt ? ReuseType.current
         : specialAction! & kClickAction.forceToOpenInLastWnd
           ? specialAction! < kClickAction.newTabFromMode ? ReuseType.lastWndFg : ReuseType.lastWndBg
         : /** result > 0, so specialAction exists */ modifiers![3] || specialAction! < kClickAction.newTabFromMode
           ? ReuseType.newFg : ReuseType.newBg;
     (hintApi ? hintApi.p : post_)({
       H: kFgReq.openUrl,
-      u: parentAnchor!.href,
-      f: !0,
-      e: userOptions && parseSedOptions(userOptions),
-      n: noopener,
-      p: userOptions && userOptions.position,
-      r: reuse
+      u: parentAnchor!.href, f: !0, n: noopener, r: reuse, o: userOptions && parseOpenPageUrlOptions(userOptions)
     })
     return 1
   }
@@ -395,7 +390,7 @@ export const click_async = (async (element: SafeElementForMouse
     , rect: Rect | null | undefined, addFocus: boolean | BOOL, modifiers: MyMouseControlKeys
     , specialAction: kClickAction, button: AcceptableClickButtons
     , /** default: false */ touchMode: null | undefined | false | /** false */ 0 | true | "auto"
-    , /** .opener: default to true */ userOptions: OpenUrlOptions): Promise<void | 1>
+    , /** .opener: default to true */ userOptions: HintsNS.Options): Promise<void | 1>
   (element: SafeElementForMouse
     , rect: Rect | null, addFocus: boolean | BOOL, modifiers: MyMouseControlKeys | undefined
     , specialAction: kClickAction.none, button: kClickButton.primaryAndTwice): Promise<void | 1>

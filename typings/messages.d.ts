@@ -229,7 +229,8 @@ interface UserSedOptions {
 }
 
 declare namespace HintsNS {
-  interface Options extends UserSedOptions, CSSOptions, Req.FallbackOptions {
+  interface Options extends CSSOptions, UserSedOptions, OpenPageUrlOptions, Pick<OpenUrlOptions, "opener">
+      , Req.FallbackOptions {
     /** mode */ m: HintMode
     /** hint characters */ c?: string
     /** click directly */ direct?: boolean | "element" | "sel" | "focus" | "hover" | "click" | "element,sel,focus,hover"
@@ -246,11 +247,9 @@ declare namespace HintsNS {
     ordinal?: boolean
     useFilter?: boolean;
     url?: boolean;
-    keyword?: string;
     // access el.dataset[<json keys>] || el.attrs[key][json keys]
     // format: [<css selector>":"]<dataset-key or attr-name>[...("."<json key>)], like img:viewer.url
     access?: string
-    testUrl?: boolean
     dblclick?: boolean;
     interact?: true | false
     newtab?: null | /** only in editing mode */ boolean
@@ -298,7 +297,7 @@ interface CmdOptions {
     mode?: "create" | /* all others are treated as "goto"  */ "goto" | "goTo";
     prefix?: true | false;
     swap?: false | true;
-  };
+  } & OpenPageUrlOptions;
   [kFgCmd.scroll]: {
     /** continuous */ $c?: kKeyCode;
     axis?: "y" | "x";
@@ -391,8 +390,6 @@ interface CmdOptions {
   [kFgCmd.autoOpen]: {
     /** for autoOpen */
     o?: 1;
-    keyword?: string;
-    testUrl?: boolean
     reuse?: UserReuseType;
     copy?: boolean;
     /** for autoCopy */
@@ -403,7 +400,7 @@ interface CmdOptions {
     s?: 1;
     /** default to true */ copied?: boolean;
     /** default to true */ selected?: boolean;
-  } & UserSedOptions;
+  } & UserSedOptions & OpenPageUrlOptions
   [kFgCmd.focusInput]: {
     act?: "" | "backspace" | "switch" | "last" | "last-visible";
     action?: "" | "backspace" | "switch" | "last" | "last-visible";
@@ -520,15 +517,12 @@ interface FgReq {
   [kFgReq.openUrl]: {
     // note: need to sync members to ReqH::openUrl in main.ts
     /** url */ u?: string;
-    /** test-URL */ t?: boolean;
-    /** sed */ e?: ParsedSedOpts | null;
+    /** command options */ o?: ParsedOpenPageUrlOptions
     /** formatted-by-<a>.href */ f?: boolean;
     /** copied */ c?: boolean;
-    /** keyword */ k?: string | null;
     /** incognito */ i?: boolean | null | "reverse";
     /** https */ h?: boolean | null;
     /** reuse */ r?: UserReuseType;
-    /** position */ p?: OpenUrlOptions["position"];
     /** noopener */ n?: boolean;
   };
   [kFgReq.onFrameFocused]: {};
@@ -579,7 +573,7 @@ interface FgReq {
   [kFgReq.marks]: ({ /** action */ a: kMarkAction.create } & (MarksNS.NewTopMark | MarksNS.NewMark)) | {
     /** action */ a: kMarkAction.clear;
     /** url */ u: string;
-  } | ({ /** action */ a: kMarkAction.goto } & MarksNS.FgQuery);
+  } | ({ /** action */ a: kMarkAction.goto; q: ParsedOpenPageUrlOptions } & MarksNS.FgQuery)
   /**
    * .url is guaranteed to be well formatted by frontend
    */
@@ -642,13 +636,23 @@ interface FgReq {
 }
 
 interface OpenUrlOptions extends UserSedOptions {
-  incognito?: boolean | null
+  incognito?: boolean | /** even when url is like chrome-extension:// */ "force" | null
   /** default to false */ opener?: boolean | null
   /* pasted */ $p?: 1 | null
   position?: "start" | "begin" | "end" | "before" | "after" | "default" | null
   pinned?: boolean | null
   reuse?: UserReuseType | null
-  window?: boolean | null
+  window?: boolean | "popup" | "normal" | null
+}
+interface OpenPageUrlOptions extends Pick<OpenUrlOptions, "position" | "window"> {
+  keyword?: string; testUrl?: boolean
+}
+interface ParsedOpenPageUrlOptions {
+  /** keyword */ k?: OpenPageUrlOptions["keyword"]
+  /** position */ p?: OpenPageUrlOptions["position"]
+  /** test-URL */ t?: OpenPageUrlOptions["testUrl"]
+  /** sed */ s?: ParsedSedOpts | null
+  /** window */ w?: OpenPageUrlOptions["window"]
 }
 
 declare namespace Req {

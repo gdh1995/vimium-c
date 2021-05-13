@@ -1,6 +1,6 @@
 import {
   safer, fgCache, isImageUrl, isJSUrl, set_keydownEvents_, keydownEvents_, timeout_, doc, chromeVer_, weakRef_,
-  parseSedOptions, createRegExp, isTY, max_, min_, OnFirefox, OnChrome, safeCall, loc_
+  parseSedOptions, createRegExp, isTY, max_, min_, OnFirefox, OnChrome, safeCall, loc_, parseOpenPageUrlOptions
 } from "../lib/utils"
 import { getVisibleClientRect_, center_, view_, selRange_ } from "../lib/rect"
 import {
@@ -127,12 +127,8 @@ const openUrl = (url: string, incognito?: boolean): void => {
   hintApi.p({
     H: kFgReq.openUrl,
     r: (hintMode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg)
-       + ReuseType.FLAG_LAST_WINDOW * <number> <number | boolean> (hintOptions.newtab === "last-window"),
-    u: url,
-    f: incognito,
-    e: parseSedOptions(hintOptions),
-    i: incognito,
-    k: hintOptions.keyword, t: hintOptions.testUrl
+       + ReuseType.OFFSET_LAST_WINDOW * <number> <number | boolean> (hintOptions.newtab === "last-window"),
+    u: url, f: incognito, i: incognito, o: parseOpenPageUrlOptions(hintOptions)
   });
 }
 

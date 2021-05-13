@@ -55,7 +55,7 @@ interface BgCmdOptions {
     /** default to "${title}: ${url}" */ format: string
     join: "json" | string | boolean
   }
-  [kBgCmd.createTab]: OpenUrlOptions & { url: string; urls: string[]; evenIncognito: boolean | -1 }
+  [kBgCmd.createTab]: OpenUrlOptions & { url: string; urls: string[]; evenIncognito: boolean | -1, $pure: boolean }
   [kBgCmd.discardTab]: {}
   [kBgCmd.duplicateTab]: {}
   [kBgCmd.goBackFallback]: { reuse: UserReuseType }
@@ -72,8 +72,8 @@ interface BgCmdOptions {
   [kBgCmd.openUrl]: OpenUrlOptions & MasksForOpenUrl & {
     urls: string[]; $fmt: 1
     url: string; url_f: Urls.Url
-    copied: boolean; goNext: boolean | "absolute"; keyword: string; testUrl: boolean
-  }
+    copied: boolean; goNext: boolean | "absolute"; /** for ReuseType.reuse */ prefix: boolean
+  } & Ensure<OpenPageUrlOptions, keyof OpenPageUrlOptions>
   [kBgCmd.reloadTab]: { hard: true; /** (deprecated) */ bypassCache: true; single: boolean } & LimitedRangeOptions
   [kBgCmd.removeRightTab]: LimitedRangeOptions
   [kBgCmd.removeTab]: LimitedRangeOptions & {

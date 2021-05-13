@@ -13,6 +13,17 @@ import { parseSedOptions_, paste_, substitute_ } from "./clipboard"
 
 type ShowPageData = [string, typeof Settings_.temp_.shownHash_, number]
 
+const ReuseValues: {
+  [K in Exclude<UserReuseType & string
+        , "newfg" | "new-fg" | "newFg" | "newwindow" | "newWindow" | "new-window"> as NormalizeKeywords<K>]:
+      K extends keyof typeof ReuseType ? (typeof ReuseType)[K] : never
+} = {
+  current: ReuseType.current, reuse: ReuseType.reuse, newwnd: ReuseType.newWnd,
+  newbg: ReuseType.newBg, lastwndfg: ReuseType.lastWndFg, lastwnd: ReuseType.lastWndFg,
+  lastwndbg: ReuseType.lastWndBg,
+  lastwndbgbg: ReuseType.lastWndBgInactive, lastwndbginactive: ReuseType.lastWndBgInactive
+}
+
 export const newTabIndex = (tab: Readonly<Pick<Tab, "index">>, pos: OpenUrlOptions["position"] | UnknownValue
       , openerTabId?: boolean | null): number | undefined =>
     pos === "before" ? tab.index : pos === "start" || pos === "begin" ? 0
@@ -22,6 +33,9 @@ export const newTabIndex = (tab: Readonly<Pick<Tab, "index">>, pos: OpenUrlOptio
       && pos === "end" && openerTabId ? 3e4
     // Chrome: open at end; Firefox: (if opener) at the end of its children, just like a normal click
     : undefined
+
+const normalizeWndType = (wndType: string | boolean | null | undefined): "popup" | "normal" | undefined =>
+    wndType === "popup" || wndType === "normal" ? wndType : undefined
 
 const onEvalUrl_ = (workType: Urls.WorkType, options: OpenUrlOptions, tabs: [Tab] | [] | undefined
     , arr: Urls.SpecialUrl): void => {
@@ -53,13 +67,24 @@ const onEvalUrl_ = (workType: Urls.WorkType, options: OpenUrlOptions, tabs: [Tab
   }
 }
 
-const openUrlInIncognito = (url: string
-    , active: boolean , opts: Readonly<Pick<OpenUrlOptions, "position" | "opener" | "window">>
+const makeWindowFrom = (url: string | string[], focused: boolean, incognito: boolean, options: OpenUrlOptions
+    , exOpts: chrome.windows.CreateDataEx, wnd: Pick<Window, "state"> | null | undefined): void => {
+  makeWindow({ url, focused, incognito,
+    type: (typeof url === "string" || url.length === 1) ? normalizeWndType(options.window) : undefined,
+    left: exOpts.left, top: exOpts.top, width: exOpts.width, height: exOpts.height
+  }, exOpts.state != null ? exOpts.state as chrome.windows.ValidStates
+      : wnd && wnd.state !== "minimized" ? wnd.state : "")
+}
+
+const openUrlInIncognito = (url: string, reuse: ReuseType
+    , opts: Readonly<Pick<OpenUrlOptions, "position" | "opener" | "window">>
     , tab: Tab | undefined, wnds: Array<Pick<Window, "id" | "focused" | "incognito" | "type" | "state">>): void => {
-  let oldWnd = tab && wnds.filter(wnd => wnd.id === tab.windowId)[0]
+  const active = reuse !== ReuseType.newBg
+  let oldWnd = tab && wnds.find(wnd => wnd.id === tab.windowId) || wnds.find(wnd => wnd.id === TabRecency_.curWnd_)
     , inCurWnd = oldWnd != null && oldWnd.incognito
   // eslint-disable-next-line arrow-body-style
-  if (!opts.window && (inCurWnd || (wnds = wnds.filter(w => w.incognito && w.type === "normal")).length > 0)) {
+  if (!opts.window && reuse !== ReuseType.newWnd
+      && (inCurWnd || (wnds = wnds.filter(w => w.incognito && w.type === "normal")).length > 0)) {
     const options: InfoToCreateMultiTab & { windowId: number } = {
       url, active, windowId: inCurWnd ? tab!.windowId : wnds[wnds.length - 1].id
     }
@@ -70,21 +95,15 @@ const openUrlInIncognito = (url: string
     openMultiTab(options, cRepeat)
     !inCurWnd && active && selectWnd(options)
   } else {
-    makeWindow({ url, incognito: true, focused: active }, oldWnd && oldWnd.type === "normal" ? oldWnd.state : "")
+    makeWindowFrom(url, true, true, opts, opts as any, oldWnd)
   }
 }
 
 export const parseReuse = (reuse: UserReuseType | null | undefined): ReuseType =>
     reuse == null ? ReuseType.newFg
-    : typeof reuse !== "string" ? (<number> <number | null | undefined> reuse) | 0
-    : (reuse = reuse.toLowerCase().replace("-", "") as (typeof reuse & string), reuse === "reuse") ? ReuseType.reuse
-    : reuse === "newwindow" ? ReuseType.newWindow
-    : reuse === "newfg" ? ReuseType.newFg : reuse === "newbg" ? ReuseType.newBg
-    : reuse === "current" ? ReuseType.current
-    : (reuse = reuse.replace("-", ""),
-      reuse === "lastwndfg") ? ReuseType.lastWndFg : reuse === "lastwndbg" ? ReuseType.lastWndBg
-    : reuse === "lastwndbgbg" || reuse === "lastwndbginactive" ? ReuseType.lastWndBgInactive
-    : ReuseType.newFg
+    : typeof reuse !== "string" ? isNaN(+reuse) ? ReuseType.newFg : reuse | 0
+    : (reuse = reuse.toLowerCase().replace("window", "wnd").replace(<RegExpG & { source: "-" }> /-/g, ""),
+      reuse in ReuseValues ? ReuseValues[reuse as keyof typeof ReuseValues] : ReuseType.newFg)
 
 
 const fillUrlMasks = (url: string, tabs: [Tab?] | undefined, url_mark: string | UnknownValue): string => {
@@ -123,34 +142,30 @@ const openUrlInNewTab = (url: string, reuse: Exclude<ReuseType, ReuseType.reuse 
     , options: Readonly<Pick<OpenUrlOptions, "position" | "opener" | "window" | "incognito" | "pinned">>
     , tabs: [Tab] | []): void => {
   const tab: Tab | undefined = tabs[0], tabIncognito = !!tab && tab.incognito,
-  incognito = options.incognito, active = reuse !== ReuseType.newBg && reuse !== ReuseType.lastWndBg
-  let window = reuse === ReuseType.newWindow || reuse < ReuseType.lastWndFg + 1 || options.window
+  isCurWndIncognito = tabIncognito || TabRecency_.incognito_ === IncognitoType.true,
+  active = reuse !== ReuseType.newBg && reuse !== ReuseType.lastWndBgInactive
+  let window: boolean = reuse === ReuseType.newWnd || reuse < ReuseType.OFFSET_LAST_WINDOW + 1 || !!options.window
+  let incognito = options.incognito
   let inReader: boolean | undefined
   if (Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)
       && url.startsWith("about:reader?url=")) {
     url = BgUtils_.decodeEscapedURL_(url.slice(17))
     inReader = true
   }
-  if (Backend_.checkHarmfulUrl_(url)) {
-    return
-  }
-  if (BgUtils_.isRefusingIncognito_(url)) {
-    if (tabIncognito || TabRecency_.incognito_ === IncognitoType.true) {
-      window = true
-    }
-  } else if (tabIncognito) {
-    if (incognito !== false) {
-      openUrlInIncognito(url, active, options, tab
-        , [{ id: tab!.windowId, incognito: true, type: "normal", state: "normal", focused: true }])
+  if (incognito !== "force" && BgUtils_.isRefusingIncognito_(url)) {
+    window = isCurWndIncognito || window
+    incognito = false
+  } else if (isCurWndIncognito) {
+    window = incognito === false || window
+  } else if (incognito) {
+    if (reuse > ReuseType.OFFSET_LAST_WINDOW) {
+      getAllWindows(openUrlInIncognito.bind(null, url, reuse, options, tab))
       return
     }
-    window = true
-  } else if (incognito) {
-    getAllWindows(openUrlInIncognito.bind(null, url, active, options, tab))
-    return
   }
   if (window) {
     if (reuse < ReuseType.lastWndFg + 1 && TabRecency_.lastWnd_ >= 0) {
+      // if last-wnd, ignore .incognito
       browserTabs.create({ windowId: TabRecency_.lastWnd_, active: reuse > ReuseType.lastWndBg,
         url: !url || settings.newTabs_.get(url) === Urls.NewTabType.browser ? void 0 : url
       }, (newTab): void => {
@@ -166,7 +181,8 @@ const openUrlInNewTab = (url: string, reuse: Exclude<ReuseType, ReuseType.reuse 
       return
     }
     getCurWnd(false, ({ state }): void => {
-      makeWindow({ url, focused: active }, state !== "minimized" && state !== "docked" ? state : "")
+      makeWindow({ url, focused: active, incognito: incognito != null ? !!incognito : isCurWndIncognito
+      }, state !== "minimized" && state !== "docked" ? state : "")
     })
     return
   }
@@ -180,7 +196,7 @@ const openUrlInNewTab = (url: string, reuse: Exclude<ReuseType, ReuseType.reuse 
       && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox) && inReader) {
     args.openInReaderMode = inReader
   }
-  openMultiTab(args, cRepeat)
+  openMultiTab(args, cRepeat, (incognito as typeof options.incognito) === "force")
 }
 
 export const openJSUrl = (url: string, onBrowserFail?: () => void): void => {
@@ -265,7 +281,6 @@ export const openShowPage = (url: string, reuse: ReuseType, options: OpenUrlOpti
 
 // use Urls.WorkType.Default
 const openUrls = (tabs: [Tab] | [] | undefined): void => {
-  const tab = tabs && tabs[0], windowId = tab && tab.windowId
   let urls: string[] = get_cOptions<C.openUrl, true>().urls!, repeat = cRepeat
   if (!get_cOptions<C.openUrl>().$fmt) {
     for (let i = 0; i < urls.length; i++) {
@@ -283,17 +298,20 @@ const openUrls = (tabs: [Tab] | [] | undefined): void => {
       return
     }
   }
+  const incognito = get_cOptions<C.openUrl, true>().incognito
+  const tab = tabs && (incognito == null || tabs[0] && tabs[0].incognito === !!incognito) && tabs[0] || undefined
+  const windowId = tab && tab.windowId
   const reuse = parseReuse(get_cOptions<C.openUrl, true>().reuse), pinned = !!get_cOptions<C.openUrl>().pinned,
-  tabIncognito = tab && tab.incognito, incognito = get_cOptions<C.openUrl>().incognito,
-  wndOpt: Partial<Omit<chrome.windows.CreateData, "focused">> | null = reuse === ReuseType.newWindow
-      || get_cOptions<C.openUrl>().window ? {
-    url: urls.length > 0 ? urls: void 0, incognito: incognito != null ? !!incognito : tabIncognito
-  } : null
+  tabIncognito = tab && tab.incognito || TabRecency_.incognito_ === IncognitoType.true,
+  newWnd = reuse === ReuseType.newWnd || tabs && !tab || get_cOptions<C.openUrl>().window
   let active = reuse > ReuseType.newFg - 1, index = tab && newTabIndex(tab, get_cOptions<C.openUrl>().position)
   set_cOptions(null)
   do {
-    if (wndOpt) {
-      browserWindows.create(wndOpt, runtimeError_)
+    if (newWnd) {
+      getCurWnd(false, curWnd => {
+        makeWindowFrom(urls, true, incognito != null ? !!incognito : tabIncognito
+            , get_cOptions<C.openUrl, true>(), get_cOptions<C.openUrl, true>() as any, curWnd)
+      })
       break // not accept repeat if the target .reuse is `newWindow`
     }
     for (const url of urls) {
@@ -338,7 +356,9 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, tabs?
       ? /*#__NOINLINE__*/ onEvalUrl_(workType, options, tabs, url)
       : openShowPage(url, reuse, options) ? 0
       : BgUtils_.isJSUrl_(url) ? /*#__NOINLINE__*/ openJSUrl(url)
-      : reuse === ReuseType.reuse ? focusOrLaunch({ u: url })
+      : Backend_.checkHarmfulUrl_(url) ? 0
+      : reuse === ReuseType.reuse ? focusOrLaunch(
+            { u: url, p: options.prefix, q: { p: options.position, w: options.window } })
       : reuse === ReuseType.current ? safeUpdate(url)
       : tabs ? openUrlInNewTab(url, reuse, options, tabs)
       : getCurTab(openUrlInNewTab.bind(null, url, reuse, options))
@@ -435,15 +455,19 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port): void =>
   set_cPort(isWeb ? port! : findCPort(port) || cPort)
   let url: Urls.Url | undefined = request.u
   // { url_f: string, ... } | { copied: true, ... }
-  const opts: KnownOptions<kBgCmd.openUrl> & SafeObject = BgUtils_.safeObj_()
-  const _rawKey = request.k, keyword = (_rawKey || "") + ""
-  const _rawTest = request.t, testUrl = _rawTest != null ? _rawTest : !keyword
+  const opts: KnownOptions<C.openUrl> & SafeObject = BgUtils_.safeObj_()
+  const o2: Readonly<Partial<FgReq[kFgReq.openUrl]["o"]>> = request.o || BgUtils_.safeObj_() as {}
+  const _rawKey = o2.k, keyword = (_rawKey || "") + ""
+  const _rawTest = o2.t, testUrl = _rawTest != null ? _rawTest : !keyword
   const incognito = request.i === "reverse" ? cPort ? !cPort.s.incognito_ : null : request.i
-  const reuse = request.r, sed = request.e
+  const reuse = request.r, sed = o2.s
   opts.reuse = incognito != null && (!reuse || reuse === "current") && (!cPort || incognito !== cPort.s.incognito_)
       ? ReuseType.newFg : reuse
   opts.incognito = incognito
   opts.sed = sed
+  opts.replace = o2.m
+  opts.position = o2.p
+  opts.window = o2.w
   if (url) {
     if (url[0] === ":" && isWeb && (<RegExpOne> /^:[bdhostw]\s/).test(url)) {
       url = url.slice(2).trim()
@@ -474,7 +498,6 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port): void =>
   } else {
     opts.copied = request.c, opts.keyword = keyword, opts.testUrl = _rawTest
   }
-  opts.position = request.p
   set_cRepeat(1)
   set_cOptions(opts)
   openUrl()
@@ -496,12 +519,15 @@ const focusAndExecuteArr = [function (tabs): void {
 }, function (tabs) {
   // if `this.s`, then `typeof this` is `MarksNS.MarkToGo`
   const callback = this.s ? focusAndExecuteArr[3].bind(this as MarksNS.MarkToGo, 0) : null
-  if (tabs.length <= 0 || TabRecency_.incognito_ === IncognitoType.true && !tabs[0].incognito) {
-    makeWindow({url: this.u}, "", callback && function (wnd: Window): void {
+  if (tabs.length <= 0 || this.q && this.q.w
+      || TabRecency_.incognito_ === IncognitoType.true && !tabs[0].incognito) {
+    makeWindow({ url: this.u, type: normalizeWndType(this.q && this.q.w),
+      incognito: TabRecency_.incognito_ === IncognitoType.true && !BgUtils_.isRefusingIncognito_(this.u)
+    }, "", callback && function (wnd: Window): void {
       if (wnd.tabs && wnd.tabs.length > 0) { callback(wnd.tabs[0]) }
     })
   } else {
-    tabsCreate({ index: tabs[0].index + 1, url: this.u, windowId: tabs[0].windowId }, callback)
+    tabsCreate({ index: newTabIndex(tabs[0], this.q && this.q.p), url: this.u, windowId: tabs[0].windowId }, callback)
   }
 }, function (tabs, wnd): void {
   const wndId = wnd.id, url = this.u
@@ -574,5 +600,6 @@ export const focusOrLaunch = (request: FgReq[kFgReq.focusOrLaunch], port?: Port 
     request.p && (url += "*")
     cb2 = callback.bind(request)
   }
-  browserTabs.query({ url, windowType: "normal" }, cb2)
+  // if no .replace, then only search in normal windows by intent
+  browserTabs.query({ url, windowType: normalizeWndType(request.q && request.q.w) || "normal" }, cb2)
 }

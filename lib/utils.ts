@@ -189,6 +189,10 @@ export const parseSedOptions = (opts: UserSedOptions): ParsedSedOpts => {
   return isTY(sed, kTY.obj) && sed || { r: sed, k: opts.sedKeys || opts.sedKey }
 }
 
+export const parseOpenPageUrlOptions = (opts: OpenPageUrlOptions & UserSedOptions): ParsedOpenPageUrlOptions => ({
+  k: opts.keyword, t: opts.testUrl, p: opts.position, s: parseSedOptions(opts), w: opts.window
+})
+
 export const escapeAllForRe = (str: string): string => str.replace(<RegExpG> /[$()*+.?\[\\\]\^{|}]/g, "\\$&")
 
 export const createRegExp = <S extends kTip, T extends "g" | "i" | ""> (pattern: S, flags: T

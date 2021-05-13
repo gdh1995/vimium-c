@@ -1,7 +1,7 @@
 import {
   chromeVer_, doc, esc, EscF, fgCache, isTop, set_esc, VTr, safer, timeout_, loc_, weakRef_, deref_,
   keydownEvents_, parseSedOptions, Stop_, suppressCommonEvents, setupEventListener, vApi, locHref, isTY, max_, min_,
-  OnChrome, OnFirefox, OnEdge, firefoxVer_, safeCall
+  OnChrome, OnFirefox, OnEdge, firefoxVer_, safeCall, parseOpenPageUrlOptions
 } from "../lib/utils"
 import {
   isHTML_, htmlTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK,
@@ -182,7 +182,7 @@ set_contentCommands_([
       d: options.decoded || options.decode
     })
     options.o && (url && evalIfOK(url) || post_({
-      H: kFgReq.openUrl, c: !url, k: options.keyword, t: options.testUrl, u: url, r: options.reuse
+      H: kFgReq.openUrl, c: !url, u: url, r: options.reuse, o: parseOpenPageUrlOptions(options)
     }))
     options.s && post_({
       H: kFgReq.searchAs,

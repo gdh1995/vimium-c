@@ -120,9 +120,11 @@ declare namespace MarksNS {
     /** prefix */ p?: boolean; /** default to false */
     /** local */ l?: 0; /** default to false */
     /** url */ u?: undefined;
+    /** openPageUrlOptions */ q?: ParsedOpenPageUrlOptions
   }
   interface FgLocalQuery extends BaseMark {
     /** prefix */ p?: undefined;
+    /** openPageUrlOptions */ q?: undefined
     /** local */ l: 2;
     /** url */ u: string;
     /** old */ o?: {
@@ -140,8 +142,9 @@ declare namespace MarksNS {
   interface FocusOrLaunch {
     /** scroll */ s?: ScrollInfo;
     /** url */ u: string;
-    /** prefix */ p?: boolean;
+    /** prefix */ p?: boolean | null
     /** reuse */ r?: ReuseType;
+    /** match a tab to replace */ q?: Partial<ParsedOpenPageUrlOptions>
   }
 }
 
@@ -239,19 +242,23 @@ type TextElement = HTMLInputElement | HTMLTextAreaElement;
 declare const enum ReuseType {
   current = 0,
   reuse = 1,
-  newWindow = 2,
+  newWnd = 2,
+  /** @deprecated */ newWindow = newWnd,
   newFg = -1,
   newBg = -2,
+  OFFSET_LAST_WINDOW = -4,
   lastWndFg = -5,
+  /** @deprecated */ lastWnd = lastWndFg,
   lastWndBg = -6,
   lastWndBgInactive = -7,
-  FLAG_LAST_WINDOW = -4,
+  /** @deprecated */ lastWndBgBg = lastWndBgInactive,
   Default = newFg,
   MAX = 2,
 }
-declare type UserReuseType = ReuseType | keyof typeof ReuseType
-    | "newwindow" | "new-window" | "newfg" | "new-fg" | "newbg" | "new-bg"
-    | "lastwndfg" | "last-wnd-fg" | "lastwndbg" | "last-wnd-bg"
+type ValidReuseNames = Exclude<keyof typeof ReuseType, "MAX" | "OFFSET_LAST_WINDOW" | "Default">
+declare type UserReuseType = ReuseType | ValidReuseNames
+    | "newwindow" | "new-window" | "newwnd" | "new-wnd" | "newfg" | "new-fg" | "newbg" | "new-bg"
+    | "lastwndfg" | "lastwnd" | "last-wnd-fg" | "last-wnd" | "lastwndbg" | "last-wnd-bg"
     | "last-wnd-bgbg" | "lastwndbgbg" | "last-wnd-bg-inactive" | "lastwndbginactive"
 
 declare const enum FrameMaskType {

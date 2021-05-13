@@ -1,4 +1,4 @@
-import { VTr, safer, loc_, vApi, locHref, isTY, isTop } from "../lib/utils"
+import { VTr, safer, loc_, vApi, locHref, isTY, isTop, parseOpenPageUrlOptions } from "../lib/utils"
 import { post_ } from "./port"
 import { hudHide, hudShow, hudTip } from "./hud"
 import { removeHandler_, getMappedKey, isEscape_, replaceOrSuppressMost_ } from "../lib/keyboard_utils"
@@ -64,9 +64,8 @@ export const activate = (options: CmdOptions[kFgCmd.marks], count: number): void
     }
   } else {
     const req: Extract<Req.fg<kFgReq.marks>, { a: kMarkAction.goto }> = {
-      H: kFgReq.marks, a: kMarkAction.goto,
-      p: prefix,
-      n: keyChar
+      H: kFgReq.marks, a: kMarkAction.goto, p: prefix, n: keyChar,
+      q: parseOpenPageUrlOptions(options)
     }
     if (event.e.shiftKey !== swap) {
       hudHide()

@@ -73,8 +73,12 @@ Build.NDEBUG || (function (): void {
   (window as PartialOf<typeof globalThis, "define">).define = myDefine
 })()
 
-if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".includes) {
+if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Array$$find$$findIndex && ![].find) {
   (function (): void {
+    Array.prototype.find = function (this: any[], cond: (i: any) => boolean): any { return this.filter(cond)[0] } as any
+    if (Build.MinCVer >= BrowserVer.MinSafe$String$$StartsWith || "".includes) {
+      return
+    }
     const StringCls = String.prototype
     /** startsWith may exist - {@see #BrowserVer.Min$String$$StartsWithEndsWithAndIncludes$ByDefault} */
     if (!"".startsWith) {

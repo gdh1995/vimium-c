@@ -817,8 +817,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     const a = Vomnibar_, type = a.clickLike_ === true ? "chrome" : a.clickLike_ + "",
     hasCtrl = event & KeyStat.PrimaryModifier, hasShift = event & KeyStat.shiftKey,
     likeVivaldi = type.endsWith("2") ? type.includes("chro") : type.includes("viva")
-    return likeVivaldi ? hasCtrl ? hasShift ? ReuseType.newWindow : ReuseType.newBg : ReuseType.newFg
-        : hasCtrl ? hasShift ? ReuseType.newFg : ReuseType.newBg : ReuseType.newWindow // likeChrome / likeFirefox
+    return likeVivaldi ? hasCtrl ? hasShift ? ReuseType.newWnd : ReuseType.newBg : ReuseType.newFg
+        : hasCtrl ? hasShift ? ReuseType.newFg : ReuseType.newBg : ReuseType.newWnd // likeChrome / likeFirefox
   },
   removeCur_ (): void {
     if (Vomnibar_.selection_ < 0) { return; }
@@ -1416,7 +1416,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       return;
     }
     VPort_.post_({ H: kFgReq.openUrl, r: reuse, h: https, u: url, i: incognito,
-        e: sel === -1 ? Vomnibar_.sed_ : { r: false, k: "" } })
+        o: { s: sel === -1 ? Vomnibar_.sed_ : { r: false, k: "" } }})
     if (reuse === ReuseType.newBg
         && (!Vomnibar_.lastQuery_ || (<RegExpOne> /^\+\d{0,2}$/).exec(Vomnibar_.lastQuery_))) {
       return Vomnibar_.refresh_();

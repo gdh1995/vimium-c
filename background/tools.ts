@@ -294,7 +294,7 @@ Marks_ = { // NOTE: all public members should be static
     const stored = JSON.parse(str) as MarksNS.StoredGlobalMark;
     const tabId = +stored.tabId, markInfo: MarksNS.MarkToGo = {
       u: stored.url, s: stored.scroll, t: stored.tabId,
-      n: markName, p: true
+      n: markName, p: true, q: request.q
     };
     markInfo.p = request.p !== false && markInfo.s[1] === 0 && markInfo.s[0] === 0 &&
         !!BgUtils_.IsURLHttp_(markInfo.u);

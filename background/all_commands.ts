@@ -241,16 +241,17 @@ const BackgroundCommands: {
     : requireURL({ H: kFgReq.marks, u: "" as "url", a: kMarkAction.clear }, true) : Marks_.clear_()
   },
   /* kBgCmd.copyWindowInfo: */ copyWindowInfo,
-  /* kBgCmd.createTab: */ function createTab(tabs?: [Tab] | Tab): void {
-    if (get_cOptions<C.createTab>().url || get_cOptions<C.createTab>().urls) {
-      openUrl(tabs as [Tab] | undefined)
-      return runtimeError_()
+  /* kBgCmd.createTab: */ function createTab(tabs: [Tab] | undefined): void {
+    let pure = get_cOptions<C.createTab, true>().$pure, tab: Tab | null
+    if (pure == null) {
+      pure = get_cOptions<C.createTab, true>().$pure = !(Object.keys(get_cOptions<C.createTab>()
+          ) as (keyof BgCmdOptions[C.createTab])[])
+          .some(i => i !== "opener" && i !== "position" && i !== "evenIncognito")
     }
-    let tab: Tab | null = null
-    if (tabs && !(tabs instanceof Array)) { tab = tabs; TabRecency_.curTab_ = tab.id }
-    else if (tabs && tabs.length > 0) { tab = tabs[0] }
-    if (!tab && TabRecency_.curTab_ >= 0) {
-      tabsGet(TabRecency_.curTab_, createTab)
+    if (!pure) {
+      openUrl(tabs)
+    } else if (!(tab = tabs && tabs.length > 0 ? tabs[0] : null) && TabRecency_.curTab_ >= 0 && !runtimeError_()) {
+      tabsGet(TabRecency_.curTab_, tab => BackgroundCommands[kBgCmd.createTab](tab && [tab]))
     } else {
       openMultiTab((tab ? {
         active: true, windowId: tab.windowId,
@@ -317,7 +318,7 @@ const BackgroundCommands: {
       tabsGet(tabId, fallback)
     } else {
       getCurWnd(true, (wnd): void => {
-        const tab = wnd && wnd.tabs.filter(tab2 => tab2.id === tabId)[0]
+        const tab = wnd && wnd.tabs.find(tab2 => tab2.id === tabId)
         if (!tab || !wnd!.incognito || tab.incognito) {
           return tab ? fallback(tab) : runtimeError_()
         }
