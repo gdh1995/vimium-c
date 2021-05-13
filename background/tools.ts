@@ -592,7 +592,11 @@ BgUtils_.timeout_(120, function (): void {
     })
     stamp = GlobalConsts.MaxTabsKeepingRecency + 1;
   }
-  function listener(info: { tabId: number }): void {
+  function listener(info: chrome.tabs.TabActiveInfo): void {
+    if (info.windowId !== TabRecency_.curWnd_) {
+      chrome.windows.get(info.windowId, maybeOnBgWndActiveTabChange)
+      return
+    }
     const now = performance.now();
     if (now - time > GlobalConsts.MinStayTimeToRecordTabRecency) {
       const old = cache.get(TabRecency_.curTab_),
@@ -604,8 +608,21 @@ BgUtils_.timeout_(120, function (): void {
     }
     TabRecency_.curTab_ = info.tabId; time = now;
   }
+  function maybeOnBgWndActiveTabChange(wnd: chrome.windows.Window): void {
+    if (!wnd.focused) { return }
+    const newWndId = wnd.id, curWnd = TabRecency_.curWnd_
+    if (newWndId !== curWnd) {
+      TabRecency_.lastWnd_ = curWnd
+      TabRecency_.curWnd_ = newWndId
+    }
+    chrome.tabs.query({windowId: newWndId, active: true}, (tabs): void => {
+      if (tabs && tabs.length > 0 && newWndId === TabRecency_.curWnd_) {
+        onFocusChanged(tabs)
+      }
+    })
+  }
   function onFocusChanged(tabs: [chrome.tabs.Tab] | never[]): void {
-    if (!tabs || !tabs[0]) { return BgUtils_.runtimeError_() }
+    if (!tabs || tabs.length === 0) { return BgUtils_.runtimeError_() }
     let a = tabs[0], current = a.windowId, last = TabRecency_.curWnd_
     if (current !== last) {
       TabRecency_.curWnd_ = current
@@ -616,7 +633,7 @@ BgUtils_.timeout_(120, function (): void {
         : Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
         ? IncognitoType.ensuredFalse : IncognitoType.mayFalse;
       Completion_.onWndChange_();
-      return listener({ tabId: a.id });
+      listener({ tabId: a.id, windowId: current })
     }
   }
   chrome.tabs.onActivated.addListener(listener);
