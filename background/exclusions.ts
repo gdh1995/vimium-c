@@ -7,8 +7,8 @@ var Exclusions = {
     keys = keys && keys.replace(<RegExpG> /<(\S+)>/g, "$1");
     if (cur) {
       return {
-        t: cur.t as ExclusionsNS.TesterType.RegExp,
-        v: (cur as ExclusionsNS.RegExpTester).v,
+        t: cur.t as kMatchUrl.RegExp,
+        v: (cur as RegExpUrlMatcher).v,
         k: keys
       };
     }
@@ -20,11 +20,11 @@ var Exclusions = {
       }
     }
     rule = re ? {
-      t: ExclusionsNS.TesterType.RegExp,
+      t: kMatchUrl.RegExp,
       v: re as RegExpOne,
       k: keys
     } : {
-      t: ExclusionsNS.TesterType.StringPrefix,
+      t: kMatchUrl.StringPrefix,
       v: pattern.startsWith(":vimium://")
           ? BgUtils_.formatVimiumUrl_(pattern.slice(10), false, Urls.WorkType.ConvertKnown) : pattern.slice(1),
       k: keys
@@ -32,6 +32,28 @@ var Exclusions = {
     this.testers_.set(pattern, rule)
     return rule
   },
+  createSimpleUrlMatcher_ (host: string): ValidUrlMatchers | null {
+    if (host[0] === "^") {
+      const re = BgUtils_.makeRegexp_(host.startsWith("^$|") ? host.slice(3) : host, "")
+      return re ? { t: kMatchUrl.RegExp, v: re as RegExpOne } : null
+    } else if (host === "localhost" || !host.includes("/") && host.includes(".")
+        && (!(<RegExpOne> /:(?!\d+$)/).test(host) || BgUtils_.isIPHost_(host, 6))) { // ignore rare `IPV6 + :port`
+      host = host.toLowerCase()
+      return { t: kMatchUrl.RegExp, v: new RegExp(
+        "^https?://" + (!host.startsWith("*") || host[1] === "."
+          ? (host = host.replace(<RegExpG> /\./g, "\\."), // lgtm [js/incomplete-sanitization]
+            !host.startsWith("*") ? host : host.replace("*\\.", "(?:[^./]+\\.)*?"))
+          : "[^/]" + host), ""
+      ) }
+    } else {
+      return {
+        t: kMatchUrl.StringPrefix,
+        v: (host[0] === ":" ? host.slice(1) : host).replace(<RegExpOne> /([\/?#])\*$/, "$1")
+      }
+    }
+  },
+  matchSimply_: (matcher: ValidUrlMatchers, url: string): boolean =>
+      matcher.t === kMatchUrl.StringPrefix ? url.startsWith(matcher.v) : matcher.v.test(url),
   _listening: false,
   _listeningHash: false,
   onlyFirstMatch_: Settings_.get_("exclusionOnlyFirstMatch"),
@@ -52,7 +74,7 @@ var Exclusions = {
   GetPassKeys_ (this: void, url: string, sender: Frames.Sender): string | null {
     let matchedKeys = "";
     for (const rule of Exclusions.rules_) {
-      if (rule.t === ExclusionsNS.TesterType.StringPrefix
+      if (rule.t === kMatchUrl.StringPrefix
           ? url.startsWith(rule.v) : rule.v.test(url)) {
         const str = rule.k;
         if (str.length === 0 || Exclusions.onlyFirstMatch_ || str[0] === "^" && str.length > 2) { return str; }

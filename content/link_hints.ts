@@ -237,14 +237,13 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
       for (const i of toCleanArray) { i.p = null; i.c() }
       total = allHints.length;
       if (!total || total > GlobalConsts.MaxCountToHint) {
-        hudTip(total ? kTip.tooManyLinks : kTip.noLinks)
+        hudTip(total ? kTip.tooManyLinks : mode_ < HintMode.min_job && !options.match ? kTip.noLinks : kTip.noTargets)
         return clear()
       }
       hints_ = keyStatus_.c = allHints
       if (!Build.NDEBUG) { coreHints.hints_ = allHints }
     }
-    noHUD_ = !(useFilter || topFrameInfo.v[3] > 40 && topFrameInfo.v[2] > 320)
-        || (options.hideHUD || options.hideHud) === true;
+    noHUD_ = !(useFilter || topFrameInfo.v[3] > 40 && topFrameInfo.v[2] > 320) || !!(options.hideHUD || options.hideHud)
     useFilter ? /*#__NOINLINE__*/ initFilterEngine(allHints as readonly FilteredHintItem[])
         : initAlphabetEngine(allHints)
     renderMarkers(allHints)
@@ -329,10 +328,9 @@ export const setMode = (mode: HintMode, silent?: BOOL): void => {
     forHover_ = mode1_ > HintMode.min_hovering - 1 && mode1_ < HintMode.max_hovering + 1;
     if (silent || noHUD_ || hud_tipTimer) { return }
     let key: string | undefined
-    let msg = VTr(mode_) + (useFilter_ || isHC_ ? ` [${key = isHC_ ? keyStatus_.k + keyStatus_.t : keyStatus_.t}]` : "")
-    if (WithDialog && !((useFilter_ || isHC_) && key)) {
-      msg += (manager_ || coreHints).d ? VTr(kTip.modalHints) : "";
-    }
+    let msg = onTailEnter && !onWaitingKey ? VTr(kTip.waitForEnter) : VTr(mode_)
+        + (useFilter_ || isHC_ ? ` [${key = isHC_ ? keyStatus_.k + keyStatus_.t : keyStatus_.t}]` : "")
+        + (WithDialog && !((useFilter_ || isHC_) && key) && (manager_ || coreHints).d ? VTr(kTip.modalHints) : "")
     hudShow(kTip.raw, msg, true)
 }
 
@@ -519,18 +517,18 @@ const activateDirectly = (options: ContentOptions, count: number) => {
   },
   computeOffset = (): number => {
     const cur = deref_(currentScrolling) || activeEl_unsafe_() !== doc.body && activeEl_unsafe_()
-    let low = 0, high = cur && IsInDOM_(cur) ? matches.length - 1 : -1, mid: number | undefined
+    let low = 0, high = cur && IsInDOM_(cur) ? matches!.length - 1 : -1, mid: number | undefined
     while (low <= high) {
       mid = (low + high) >> 1
-      const midEl = matches[mid][0]
+      const midEl = matches![mid][0]
       if (midEl === cur) { low = mid + <number> <number | boolean> (matchIndex >= 0); break }
       compareDocumentPosition(midEl, cur as Element) & kNode.DOCUMENT_POSITION_FOLLOWING // midEl < cur
       ? low = mid + 1 : high = mid - 1
     }
-    return low < -matchIndex ? matches.length : low + matchIndex
+    return low < -matchIndex ? matches!.length : low + matchIndex
   }
   let docActive: SafeElement | null, isSel: boolean | undefined
-  let matches: (Hint | Hint0)[], oneMatch: Hint | Hint0 | undefined, matchIndex: number
+  let matches: (Hint | Hint0)[] | undefined, oneMatch: Hint | Hint0 | undefined, matchIndex: number
   let el: SafeElement | null | undefined
   el = (prepareCrop_(), allTypes || d.includes("ele")) && options.match // target | element
       && (matches = traverse(kSafeAllSelector, options, wholeDoc ? (hints: Hint0[], el: SafeElement): void => {
@@ -548,7 +546,7 @@ const activateDirectly = (options: ContentOptions, count: number) => {
       || (allTypes || d.includes("h") || d.includes("i") ? deref_(lastHovered_) : null) // hover | clicked
   el = mode < HintMode.min_job || el && htmlTag_(el) ? el : null
   if (!el || !IsInDOM_(el)) {
-    runFallbackKey(options, kTip.noLinks)
+    runFallbackKey(options, kTip.noTargets)
   } else {
     count = mode < HintMode.min_job ? min_(count, 3e3) : 1
     api_ = vApi
@@ -587,7 +585,7 @@ export const resetMode = (silent?: BOOL): void => {
 
 const delayToExecute = (officer: BaseHintWorker, hint: ExecutableHintItem, flashEl: SafeHTMLElement | null): void => {
     const waitEnter = OnChrome && fgCache.w,
-    callback = (event?: HandlerNS.Event, key?: string, keybody?: string): void => {
+    callback = (event?: HandlerNS.Event, key?: string, keybody?: kChar): void => {
       let closed: void | 1 | 2
       try {
         closed = officer.x(1);
@@ -610,7 +608,7 @@ const delayToExecute = (officer: BaseHintWorker, hint: ExecutableHintItem, flash
     if (OnChrome && !waitEnter) {
       onWaitingKey = suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents, callback)
     } else {
-      hudShow(kTip.waitEnter);
+      setMode(mode_)
     }
 }
 

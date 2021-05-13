@@ -49,10 +49,20 @@ interface WeakRefConstructor {
 declare var WeakRef: unknown
 
 type ReplaceStrOnce <A extends string, S extends string, T extends string>
-    = A extends `${infer x}${S}${infer y}` ? `${x}${T}${y}` : A
+    = string extends S ? string : string extends A ? string : A extends `${infer x}${S}${infer y}` ? `${x}${T}${y}` : A
 type ReplaceStrAll <A extends string, S extends string, T extends string>
-    = A extends `${infer x}${S}${infer y}` ? ReplaceStrAll<`${x}${T}${y}`, S, T> : A
+    = string extends S ? string : string extends A ? string
+      : A extends `${infer x}${S}${infer y}` ? ReplaceStrAll<`${x}${T}${y}`, S, T> : A
+type Lowercase<S extends string> = intrinsic;
+type Uppercase<S extends string> = intrinsic;
 interface String {
   replace <Self extends string, S extends string, T extends string> (
-     this: Self, searchValue: S, replaceValue: T): ReplaceStrAll<Self, S , T>
+     this: Self, searchValue: RegExpG & { source: S }, replaceValue: T): ReplaceStrAll<Self, S , T>
+  replace <Self extends string, S extends string, T extends string> (
+     this: Self, searchValue: S, replaceValue: T): ReplaceStrOnce<Self, S , T>
+  toLowerCase <Self extends string> (this: Self): `${Lowercase<Self>}`
+  toUpperCase <Self extends string> (this: Self): `${Uppercase<Self>}`
 }
+
+type NormalizeKeywords<K extends string> = K extends `${infer x}-${infer y}`
+    ? `${Lowercase<x>}${NormalizeKeywords<y>}` : Lowercase<K>

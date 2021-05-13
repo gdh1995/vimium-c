@@ -195,21 +195,7 @@ declare namespace ExclusionsNS {
     pattern: string;
     passKeys: string;
   }
-  const enum TesterType { RegExp = 0, StringPrefix = 1, _mask = "", }
-  interface BaseTester {
-    /** type */ readonly t: TesterType & number;
-    /** value */ readonly v: RegExpOne | string;
-    /** passed keys */ readonly k: string;
-  }
-  interface RegExpTester extends BaseTester {
-    /** type */ readonly t: TesterType.RegExp;
-    /** value */ readonly v: RegExpOne;
-  }
-  interface PrefixTester extends BaseTester {
-    /** type */ readonly t: TesterType.StringPrefix;
-    /** value */ readonly v: string;
-  }
-  type Tester = RegExpTester | PrefixTester;
+  type Tester = ValidUrlMatchers & { /** passed keys */ readonly k: string }
   type Rules = Tester[];
   type Details = chrome.webNavigation.WebNavigationFramedCallbackDetails;
   interface Listener {
@@ -227,7 +213,7 @@ declare namespace CommandsNS {
   interface Options {}
   interface EnvItem {
     element?: string
-    host?: string | Pick<ExclusionsNS.Tester, "t" | "v"> | null
+    host?: string | ValidUrlMatchers | null
     fullscreen?: boolean
     options?: object
   }

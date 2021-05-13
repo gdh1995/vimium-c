@@ -23,7 +23,7 @@ import {
   set_isPassKeysReversed, isPassKeysReversed, set_passKeys, set_mappedKeys, set_mapKeyTypes, keyFSM,
 } from "./key_handler"
 import { HintManager, kSafeAllSelector, set_kSafeAllSelector } from "./link_hints"
-import { createMark } from "./marks"
+import { createMark, gotoMark } from "./marks"
 import { set_findCSS, styleInHUD, styleSelectable } from "./mode_find"
 import {
   exitGrab, grabBackFocus, insertInit, set_grabBackFocus, onFocus, onBlur, insert_Lock_, raw_insert_lock
@@ -236,7 +236,8 @@ set_requestHandlers([
     post_({ H: kFgReq.respondForRunKey, n: request.n,
       t: tag, c: tag && lock!.className, i: tag && lock!.id, f: !fullscreenEl_unsafe_()
     })
-  }
+  },
+  /* kBgReq.goToMark: */ gotoMark
 ])
 
 export const showFrameMask = (mask: FrameMaskType): void => {

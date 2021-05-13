@@ -118,7 +118,7 @@ export const createMark = (req: BgReq[kBgReq.createMark], local?: 0 | 2): void =
         [ VTr(kTip.didCreate), VTr(local ? kTip.local : kTip.global), req.n ])
 }
 
-export const gotoMark = ({ n: a, s: scroll, l: local }: CmdOptions[kFgCmd.goToMarks]): void => {
+export const gotoMark = ({ n: a, s: scroll, l: local }: BgReq[kBgReq.goToMark]): void => {
     a && setPreviousMarkPosition()
     scrollToMark(scroll)
     local || vApi.f()

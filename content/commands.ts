@@ -25,7 +25,7 @@ import {
 import { hudHide, hudShow, hudTip, hud_text } from "./hud"
 import { onKeyup2, set_onKeyup2, passKeys, set_nextKeys, set_passKeys, keyFSM } from "./key_handler"
 import { InputHintItem, activate as linkActivate, clear as linkClear, kSafeAllSelector } from "./link_hints"
-import { activate as markActivate, gotoMark } from "./marks"
+import { activate as markActivate } from "./marks"
 import { FindAction, activate as findActivate, deactivate as findDeactivate, execCommand } from "./mode_find"
 import {
   exitInputHint, insert_inputHint, insert_last_, raw_insert_lock, insert_Lock_, resetInsert, set_is_last_mutable,
@@ -69,7 +69,6 @@ set_contentCommands_([
   /* kFgCmd.findMode: */ findActivate,
   /* kFgCmd.linkHints: */ linkActivate,
   /* kFgCmd.marks: */ markActivate,
-  /* kFgCmd.goToMarks: */ gotoMark,
   /* kFgCmd.scroll: */ scActivate,
   /* kFgCmd.visualMode: */ visualActivate,
   /* kFgCmd.vomnibar: */ omniActivate,

@@ -22,7 +22,7 @@ class PopExclusionRulesOption extends ExclusionRulesOption_ {
   isPatternMatched_ (pattern: string): boolean {
     if (!pattern) { return false }
     const rule = bgExclusions.testers_.get(pattern)!
-    if (rule.t === ExclusionsNS.TesterType.StringPrefix
+    if (rule.t === kMatchUrl.StringPrefix
         ? url.startsWith(rule.v) && (!topUrl || topUrl.startsWith(rule.v))
         : rule.v.test(url) && (!topUrl || rule.v.test(topUrl))) {
       return true
@@ -53,7 +53,7 @@ class PopExclusionRulesOption extends ExclusionRulesOption_ {
       return
     }
     const parsedPattern = bgExclusions.createRule_(pattern, ""), patternElement = vnode.$pattern_
-    if (parsedPattern.t === ExclusionsNS.TesterType.StringPrefix
+    if (parsedPattern.t === kMatchUrl.StringPrefix
         ? url.startsWith(parsedPattern.v) : parsedPattern.v.test(url)) {
       patternElement.title = patternElement.style.color = ""
     } else {

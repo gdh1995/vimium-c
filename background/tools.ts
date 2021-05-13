@@ -261,9 +261,6 @@ Marks_ = { // NOTE: all public members should be static
     incognito ? (Marks_.cacheI_ || (IncognitoWatcher_.watch_(), Marks_.cacheI_ = new Map())).set(key, val)
         : Marks_.cache_.setItem(key, val)
   },
-  _goto (port: Port, options: CmdOptions[kFgCmd.goToMarks]) {
-    port.postMessage<1, kFgCmd.goToMarks>({ N: kBgReq.execute, H: null, c: kFgCmd.goToMarks, n: 1, a: options});
-  },
   createMark_ (this: void, request: MarksNS.NewTopMark | MarksNS.NewMark, port: Port): void {
     let tabId = port.s.tabId_;
     if (request.s) {
@@ -287,7 +284,8 @@ Marks_ = { // NOTE: all public members should be static
         }
       }
       if (scroll) {
-        return Marks_._goto(port, { n: markName, s: scroll, l: 2 });
+        port.postMessage({ N: kBgReq.goToMark, l: (kTip.local - kTip.global) as 2, n: markName, s: scroll })
+        return
       }
     }
     if (!str) {
@@ -321,7 +319,7 @@ Marks_ = { // NOTE: all public members should be static
   },
   scrollTab_ (this: void, markInfo: MarksNS.InfoToGo, tab: chrome.tabs.Tab): void {
     const tabId = tab.id, port = Backend_.indexPorts_(tabId, 0);
-    port && Marks_._goto(port, { n: markInfo.n, s: markInfo.s, l: 0 });
+    port && port.postMessage({ N: kBgReq.goToMark, l: 0, n: markInfo.n, s: markInfo.s })
     if (markInfo.t !== tabId && markInfo.n) {
       return Marks_.set_(markInfo as MarksNS.MarkToGo, TabRecency_.incognito_ === IncognitoType.true, tabId);
     }

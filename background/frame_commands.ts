@@ -592,34 +592,19 @@ const matchEnvRule = (rule: CommandsNS.EnvItem, cur: CurrentEnvCache
     if (host) {
       if (!cPort) { return EnvMatchResult.abort }
       if (typeof host === "string") {
-        if (host[0] === "^") {
-          const re = BgUtils_.makeRegexp_(host, "")
-          host = re ? { t: ExclusionsNS.TesterType.RegExp, v: re as RegExpOne } : null
-        } else if (host === "localhost" || !host.includes("/") && host.includes(".")
-            && (!(<RegExpOne> /:(?!\d+$)/).test(host) || BgUtils_.isIPHost_(host, 6))) { // ignore rare `IPV6 + :port`
-          host = host.toLowerCase()
-          host = { t: ExclusionsNS.TesterType.RegExp, v: new RegExp(
-            "^https?://" + (!host.startsWith("*") || host[1] === "."
-              ? (host = host.replace(<RegExpG> /\./g, "\\."), // lgtm [js/incomplete-sanitization]
-                !host.startsWith("*") ? host : host.replace("*\\.", "(?:[^./]+\\.)*?"))
-              : "[^/]" + host), ""
-          ) }
-        } else {
-          host = { t: ExclusionsNS.TesterType.StringPrefix, v: host[0] === ":" ? host.slice(1) : host }
-        }
-        rule.host = host
+        host = rule.host = Exclusions.createSimpleUrlMatcher_(host)
       }
       if (host) {
-        if (!cur.portUrl_) {
-          let portUrl = cPort.s.url_
+        let portUrl = cur.portUrl_
+        if (!portUrl) {
+          portUrl = cPort.s.url_
           if (cPort.s.frameId_ && portUrl.lastIndexOf("://", 5) < 0 && !BgUtils_.protocolRe_.test(portUrl)) {
             const frames = framesForTab.get(cPort.s.tabId_)
             portUrl = frames && frames.top_ ? frames.top_.s.url_ : portUrl
           }
           cur.portUrl_ = portUrl
         }
-        if (host.t === ExclusionsNS.TesterType.StringPrefix
-            ? !cur.portUrl_.startsWith(host.v as string) : !(host.v as RegExpOne).test(cur.portUrl_)) {
+        if (Exclusions.matchSimply_(host, portUrl)) {
           return EnvMatchResult.nextEnv
         }
       }

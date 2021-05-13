@@ -6,7 +6,7 @@ declare const enum kTip {
   /* 20..25 */ copiedIs = 20, forcedColors, tooManyLinks, useVal, turnOn, turnOff,
   /* 26..31 */ nMatches, oneMatch, someMatches, noMatches, modalHints, haveToOpenManually,
   /* 39, 41: */ global = 39, local = 41, // neither 39 nor 41 is in HintMode
-  /* 44..47 */ selectLineBoundary = 44, frameUnloaded, waitEnter, logGrabFocus,
+  /* 44..47 */ selectLineBoundary = 44, frameUnloaded, waitForEnter, logGrabFocus,
   /* 60..63 */ logOmniFallback = 60, logNotWorkOnSandboxed, prev, next,
   /* 68..70 */ START_FOR_OTHERS = 68, OFFSET_VISUAL_MODE = 67, visual, line, caret,
   /* 71: */ noLinks, exitForIME, linkRemoved, notImg,
@@ -16,9 +16,9 @@ declare const enum kTip {
   /* 90: */ inVisualMode, noUsableSel, loseSel, needSel, omniFrameFail,
   /* 95: */ failToDelSug, fewChars, editableSelector, removeCurScript, webkitWithRel,
   /* 100: */ notANestedFrame, cssUrl, imgExt, clickableClasses, clickableRoles,
-  /* 105: */ invisibleHintText, notMatchedHintText, metaKeywordsForMobile, css0d01OrDPI,
+  /* 105: */ invisibleHintText, notMatchedHintText, metaKeywordsForMobile, css0d01OrDPI, visibleElementsInScopeChildren,
   /* 110: */ voidJS = 110, nonLocalhostRe, redditHost, buttonOrA, wrapWhenFind,
-  /* 115: */ atStart, atEnd, closableClasses, highContrast_WOB,
+  /* 115: */ atStart, atEnd, noTargets, closableClasses, highContrast_WOB,
   INJECTED_CONTENT_END,
   /* 200: */ firefoxRefuseURL = 200, cancelImport, importOK, XHTML, redditOverlay,
   /** used by {@link ../Gulpfile.js} */ extendClick = 999,
@@ -68,7 +68,7 @@ declare const enum kBgReq {
   START = 0,
   init = START, reset, injectorRun, url, msg, eval,
   settingsUpdate, focusFrame, exitGrab, keyFSM, execute,
-  createMark, showHUD, count, queryForRunKey,
+  createMark, showHUD, count, queryForRunKey, goToMark,
   OMNI_MIN = 42,
   omni_init = OMNI_MIN, omni_omni, omni_parsed, omni_returnFocus,
   omni_toggleStyle, omni_updateOptions,
@@ -147,6 +147,11 @@ interface BgReq {
     /** message-in-confirmation-dialog */ m: string;
   };
   [kBgReq.queryForRunKey]: { n: number }
+  [kBgReq.goToMark]: {
+    /** local */ l: 0 | /** kTip.local - kTip.global */ 2
+    /** markName */ n?: string | undefined
+    /** scroll */ s: MarksNS.FgMark
+  }
 }
 
 interface BgVomnibarSpecialReq {
@@ -202,7 +207,7 @@ declare const enum kBgCmd {
 }
 
 declare const enum kFgCmd {
-  framesGoBack, findMode, linkHints, marks, goToMarks, scroll, visualMode, vomnibar, insertMode, toggle,
+  framesGoBack, findMode, linkHints, marks, scroll, visualMode, vomnibar, insertMode, toggle,
   passNextKey, goNext, autoOpen, focusInput, editText, scrollSelect, toggleStyle, showHelpDialog,
   END, ENDS = "END",
 }
@@ -383,11 +388,6 @@ interface CmdOptions {
     /** use post mode on esc */ p: boolean;
     /** normalize text */ n: boolean
   } & Req.FallbackOptions
-  [kFgCmd.goToMarks]: {
-    /** local */ l: 0 | /** kTip.local - kTip.global */ 2
-    /** markName */ n?: string | undefined;
-    /** scroll */ s: MarksNS.FgMark;
-  };
   [kFgCmd.autoOpen]: {
     /** for autoOpen */
     o?: 1;

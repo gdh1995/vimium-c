@@ -132,7 +132,7 @@ Backend_ = {
           }, 50 * step * step);
         };
         if (needTempBlankTab) {
-          browserTabs.create({url: "about:blank", active: false, windowId: tab.windowId}, (temp_tab): void => {
+          tabsCreate({url: "about:blank", active: false, windowId: tab.windowId}, (temp_tab): void => {
             tempTabId /* === -1 */ ? (tempTabId = temp_tab.id) : browserTabs.remove(temp_tab.id);
           });
         }

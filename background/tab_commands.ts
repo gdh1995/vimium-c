@@ -278,7 +278,7 @@ export const moveTabToNewWindow = (): void | kBgCmd.moveTabToNewWindow => {
           if (typeof url2 === "string" && (!url2 || settings.newTabs_.get(url2) === Urls.NewTabType.browser)) {
             url2 = undefined
           }
-          browserTabs.create({url: url2, index: tab2.index + 1, windowId: tab2.windowId})
+          tabsCreate({url: url2, index: tab2.index + 1, windowId: tab2.windowId})
           selectWnd(tab2)
           browserTabs.remove(tabId2)
         })

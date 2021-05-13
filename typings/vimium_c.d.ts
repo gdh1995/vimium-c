@@ -219,6 +219,21 @@ declare const enum kMapKey {
   normal_long = 16, all_esc = 32, directInsert = 64,
 }
 
+declare const enum kMatchUrl { RegExp = 1, StringPrefix = 2 }
+interface BaseUrlMatcher {
+  /** type */ readonly t: kMatchUrl
+  /** value */ readonly v: unknown
+}
+interface RegExpUrlMatcher extends BaseUrlMatcher {
+  /** type */ readonly t: kMatchUrl.RegExp
+  /** value */ readonly v: RegExpOne
+}
+interface PrefixUrlMatcher extends BaseUrlMatcher {
+  /** type */ readonly t: kMatchUrl.StringPrefix
+  /** value */ readonly v: string
+}
+type ValidUrlMatchers = RegExpUrlMatcher | PrefixUrlMatcher
+
 type TextElement = HTMLInputElement | HTMLTextAreaElement;
 
 declare const enum ReuseType {
