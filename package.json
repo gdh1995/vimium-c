@@ -36,7 +36,8 @@
     "@typescript-eslint/eslint-plugin": "^3.4.0",
     "@typescript-eslint/parser": "^3.4.0",
     "eslint": "^7.6.0",
-    "web-ext": "^6.0.0"
+    "postcss": ">=8.2.10",
+    "web-ext": "^6.1.0"
   },
   "scripts": {
     "tsc": "node scripts/tsc.js",
