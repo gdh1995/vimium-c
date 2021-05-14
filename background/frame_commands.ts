@@ -210,9 +210,7 @@ export const captureTab = (tabs?: [Tab]): void | kBgCmd.captureTab => {
       if (!(Build.BTypes & ~BrowserType.Firefox)
           || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox
           || show) {
-        openImgReq({ o: "pixel=1&",
-          u: msg, f: title, a: false, e: null, r: ReuseType.newFg
-        }, cPort)
+        openImgReq({ o: "pixel=1&", u: msg, f: title, a: false, r: ReuseType.newFg }, cPort)
         return
       }
       const a = document.createElement("a")
@@ -266,12 +264,19 @@ export const openImgReq = (req: FgReq[kFgReq.openImage], port?: Port): void => {
     prefix += "auto=once&"
   }
   req.o && (prefix += req.o)
-  url = req.e ? substitute_(url, SedContext.paste, req.e) : url
-  set_cOptions(BgUtils_.safer_<KnownOptions<C.openUrl>>({ opener: true, reuse: req.r }))
+  const opts2 = req.q || As_<ParsedOpenPageUrlOptions>(BgUtils_.safeObj_() as {})
+  const keyword = Build.BTypes & BrowserType.Firefox
+      && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)
+      && req.m === HintMode.DOWNLOAD_MEDIA ? "" : opts2.k
+  url = opts2.s ? substitute_(url, SedContext.paste, opts2.s) : url
+  set_cOptions(BgUtils_.safer_<KnownOptions<C.openUrl>>({
+    opener: true, reuse: req.r,
+    replace: opts2.m, position: opts2.p, sed: false, window: opts2.w
+  }))
   // not use v:show for those from other extensions
-  openUrlWithActions(typeof req.k !== "string"
+  openUrlWithActions(typeof keyword !== "string"
         && (!url.startsWith(location.protocol) || url.startsWith(location.origin)) ? prefix + url
-        : req.k ? BgUtils_.convertToUrl_(url, req.k, Urls.WorkType.ActAnyway) : url
+        : keyword ? BgUtils_.convertToUrl_(url, keyword, Urls.WorkType.ActAnyway) : url
       , Urls.WorkType.FakeType)
 }
 

@@ -106,8 +106,9 @@ const normalizeCommand_ = (cmd: Writable<CommandsNS.BaseItem>, details?: Command
         }
         if (mode > HintMode.max_mouse_events) {
           mode = mode === HintMode.EDIT_TEXT ? lhOpt.url ? HintMode.EDIT_LINK_URL : mode
-            : mode === HintMode.COPY_TEXT
+            : mode === HintMode.COPY_TEXT ? !lhOpt.url
               ? lhOpt.join ? HintMode.COPY_TEXT | HintMode.queue | HintMode.list : mode
+              : lhOpt.join ? HintMode.COPY_URL | HintMode.queue | HintMode.list : HintMode.COPY_URL
             : mode > HintMode.min_disable_queue + HintMode.queue - 1 ? mode - HintMode.queue : mode;
         }
         if (mode != stdMode) {
@@ -634,9 +635,19 @@ const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
 
 const hintModes_: SafeDict<HintMode> = {
     __proto__: null as never,
-    "copy-text": HintMode.COPY_TEXT, focus: HintMode.FOCUS, hover: HintMode.HOVER,
-    image: HintMode.OPEN_IMAGE, input: HintMode.FOCUS_EDITABLE, leave: HintMode.UNHOVER,
-    text: HintMode.COPY_TEXT, unhover: HintMode.UNHOVER, url: HintMode.COPY_URL, visual: HintMode.ENTER_VISUAL_MODE
+  hover: HintMode.HOVER, unhover: HintMode.UNHOVER, leave: HintMode.UNHOVER,
+  focus: HintMode.FOCUS,
+  "download-media": HintMode.DOWNLOAD_MEDIA, "download-image": HintMode.DOWNLOAD_MEDIA,
+  image: HintMode.OPEN_IMAGE, "open-image": HintMode.OPEN_IMAGE, media: HintMode.OPEN_IMAGE,
+  search: HintMode.SEARCH_TEXT, "search-text": HintMode.SEARCH_TEXT,
+  copy: HintMode.COPY_TEXT, "copy-text": HintMode.COPY_TEXT,
+  "copy-list": HintMode.COPY_TEXT | HintMode.list | HintMode.queue,
+  "copy-url": HintMode.COPY_URL, "copy-url-list": HintMode.COPY_URL | HintMode.list | HintMode.queue,
+  download: HintMode.DOWNLOAD_LINK, incognito: HintMode.OPEN_INCOGNITO_LINK,
+  "edit-url": HintMode.EDIT_LINK_URL, edit: HintMode.EDIT_TEXT, "edit-text": HintMode.EDIT_TEXT,
+  input: HintMode.FOCUS_EDITABLE, "focus-input": HintMode.FOCUS_EDITABLE, editable: HintMode.FOCUS_EDITABLE,
+  "focus-editable": HintMode.FOCUS_EDITABLE,
+  visual: HintMode.ENTER_VISUAL_MODE
 }
 
 CommandsData_ = {

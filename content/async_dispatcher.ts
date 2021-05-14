@@ -373,7 +373,8 @@ export const click_async = (async (element: SafeElementForMouse
         : (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredES6$Array$$Includes
             ? relAttr.split(<RegExpOne> /\s/).includes!("noopener")
             : relAttr.split(<RegExpOne> /\s/).indexOf("noopener") >= 0),
-    reuse = specialAction! & kClickAction.openInNewWindow
+    reuse = userOptions && userOptions.reuse != null ? userOptions.reuse
+        : specialAction! & kClickAction.openInNewWindow
         ? ReuseType.newWnd : specialAction! & kClickAction.forceToOpenInCurrnt ? ReuseType.current
         : specialAction! & kClickAction.forceToOpenInLastWnd
           ? specialAction! < kClickAction.newTabFromMode ? ReuseType.lastWndFg : ReuseType.lastWndBg

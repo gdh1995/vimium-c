@@ -110,8 +110,7 @@ const downloadOrOpenMedia = (): void => {
   else if (OnFirefox && hintOptions.keyword != null || mode1_ === HintMode.OPEN_IMAGE) {
     post_({
       H: kFgReq.openImage, r: hintMode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
-      k: OnFirefox && mode1_ !== HintMode.OPEN_IMAGE ? "" : hintOptions.keyword,
-      e: parseSedOptions(hintOptions), a: hintOptions.auto,
+      m: mode1_, q: parseOpenPageUrlOptions(hintOptions), a: hintOptions.auto,
       f: filename, u: text
     })
   } else {
@@ -123,11 +122,11 @@ const downloadOrOpenMedia = (): void => {
   }
 }
 
-const openUrl = (url: string, incognito?: boolean): void => {
+const openTextOrUrl = (url: string, incognito?: boolean): void => {
   hintApi.p({
     H: kFgReq.openUrl,
-    r: (hintMode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg)
-       + ReuseType.OFFSET_LAST_WINDOW * <number> <number | boolean> (hintOptions.newtab === "last-window"),
+    r: hintOptions.reuse != null ? hintOptions.reuse : (hintMode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg)
+       + ReuseType.OFFSET_LAST_WINDOW * <number> <number | boolean> (hintOptions.newtab === kLW),
     u: url, f: incognito, i: incognito, o: parseOpenPageUrlOptions(hintOptions)
   });
 }
@@ -187,8 +186,7 @@ const hoverEl = (): void => {
 }
 
 const copyText = (): void => {
-    const mode1 = mode1_;
-    let isUrl = mode1 > HintMode.min_link_job - 1 && mode1 < HintMode.max_link_job + 1,
+    let isUrl = mode1_ > HintMode.min_link_job - 1 && mode1_ < HintMode.max_link_job + 1,
         childEl: Element | null, files: HTMLInputElement["files"],
         str: string | null | undefined;
     if (isUrl) {
@@ -227,7 +225,7 @@ const copyText = (): void => {
         str = (clickEl as SafeHTMLElement).title.trim() || (attr_s(clickEl, ALA) || "").trim();
       }
     }
-  if (mode1 > HintMode.min_edit - 1 && mode1 < HintMode.max_edit + 1) {
+  if (mode1_ > HintMode.min_edit - 1 && mode1_ < HintMode.max_edit + 1) {
       let newtab = hintOptions.newtab;
       // this frame is normal, so during Vomnibar.activate, checkHidden will only pass (in most cases)
       (post_ as (req: Partial<VomnibarNS.GlobalOptions> & Req.fg<kFgReq.vomnibar>) => void | 1)({
@@ -244,11 +242,11 @@ const copyText = (): void => {
       resetSelectionToDocStart(sel, range)
   } else if (!str) {
       hintApi.t({ k: isUrl ? kTip.noUrlCopied : kTip.noTextCopied })
-  } else if (mode1 === HintMode.SEARCH_TEXT) {
-      openUrl(str)
+  } else if (mode1_ === HintMode.SEARCH_TEXT) {
+    openTextOrUrl(str)
   } else {
     // then mode1 can only be HintMode.COPY_*
-    let lastYanked = mode1 & HintMode.list ? (hintManager || coreHints).y : 0 as const;
+    let lastYanked = mode1_ & HintMode.list ? (hintManager || coreHints).y : 0 as const;
     if (lastYanked && lastYanked.indexOf(str) >= 0) {
       hintApi.t({ k: kTip.noNewToCopy })
     } else {
@@ -322,7 +320,7 @@ const defaultClick = (): void => {
         : newTabStr === "force-current" ? kClickAction.forceToOpenInCurrnt
         : newTabStr === "force" ? newTab
             ? kClickAction.forceToOpenInNewTab | kClickAction.newTabFromMode : kClickAction.forceToOpenInNewTab
-        : newTabStr === "last-window" ? newTab
+        : newTabStr === kLW ? newTab
             ? kClickAction.forceToOpenInLastWnd | kClickAction.newTabFromMode : kClickAction.forceToOpenInLastWnd
         : OnFirefox
         ? newWindow ? kClickAction.openInNewWindow
@@ -352,7 +350,7 @@ const checkFocus = (defaultVal: boolean): boolean => {
   const masterOrA = hintManager || coreHints, keyStatus = masterOrA.$().k
   const clickEl: LinkEl = hint.d
   const tag = htmlTag_(clickEl)
-  const kD = "download"
+  const kD = "download", kLW = "last-window"
   let rect: Rect | null | undefined
   let showRect: BOOL | undefined
   if (hintManager) {
@@ -423,7 +421,7 @@ const checkFocus = (defaultVal: boolean): boolean => {
       } else {
         /*#__NOINLINE__*/ defaultClick()
       }
-    } else if (m < HintMode.UNHOVER + 1) {
+    } else if (m < HintMode.max_hovering + 1) {
       m < HintMode.HOVER + 1 ? hoverEl() : catchAsyncErrorSilently(unhover_async(clickEl))
     } else if (m < HintMode.FOCUS + 1) {
       view_(clickEl)
@@ -440,7 +438,7 @@ const checkFocus = (defaultVal: boolean): boolean => {
       /*#__NOINLINE__*/ downloadLink()
     } else if (m < HintMode.OPEN_INCOGNITO_LINK + 1) {
       const url = getUrlData()
-      evalIfOK(url) || openUrl(url, !0)
+      evalIfOK(url) || openTextOrUrl(url, !0)
     } else if (m < HintMode.max_edit + 1) {
       copyText()
     } else if (m < HintMode.FOCUS_EDITABLE + 1) {

@@ -404,7 +404,7 @@ declare const enum HintMode {
   DOWNLOAD_MEDIA, min_media = DOWNLOAD_MEDIA,
   OPEN_IMAGE, max_media = OPEN_IMAGE,
   SEARCH_TEXT,
-  COPY_TEXT = ((SEARCH_TEXT + 1) & ~1), min_copying = COPY_TEXT, mode1_text_list = COPY_TEXT | list,
+  COPY_TEXT = (SEARCH_TEXT & ~1) + 2, min_copying = COPY_TEXT, mode1_text_list = COPY_TEXT | list,
   COPY_URL, mode1_url_list = COPY_URL | list, min_link_job = COPY_URL, max_copying = mode1_url_list,
   DOWNLOAD_LINK,
   OPEN_INCOGNITO_LINK,

@@ -1,6 +1,6 @@
 import {
   clickable_, isJSUrl, doc, isImageUrl, fgCache, readyState_, chromeVer_, VTr, createRegExp, unwrap_ff, max_, OnChrome,
-  math, includes_, OnFirefox, OnEdge, WithDialog, safeCall, evenHidden_, set_evenHidden_
+  math, includes_, OnFirefox, OnEdge, WithDialog, safeCall, evenHidden_, set_evenHidden_, tryCreateRegExp
 } from "../lib/utils"
 import {
   isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, findMainSummary_, htmlTag_, isAriaNotTrue_,
@@ -38,6 +38,7 @@ type BareElementSet = Pick<ElementSet, "has">
 
 let frameNested_: NestedFrame = false
 let extraClickable_: BareElementSet | null
+let clickTypeFilter_: ClickType = 0
 let ngEnabled: boolean | undefined
 let jsaEnabled_: boolean | undefined
 let maxLeft_ = 0
@@ -170,6 +171,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
       && (hintMode_ > HintMode.min_job - 1 || isAriaNotTrue_(element, kAria.disabled))
       && (type < ClickType.codeListener  || type > ClickType.classname
           || !(s = element.getAttribute("unselectable")) || s.toLowerCase() !== "on")
+      && (0 === clickTypeFilter_ || clickTypeFilter_ & (1 << type))
   ) { hints.push([element, arr, type]); }
 }
 
@@ -337,6 +339,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   if (type && (arr = getVisibleClientRect_(element, null))
       && isAriaNotTrue_(element, kAria.hidden)
       && (hintMode_ > HintMode.min_job - 1 || isAriaNotTrue_(element, kAria.disabled))
+      && (0 === clickTypeFilter_ || clickTypeFilter_ & (1 << type))
       ) {
     hints.push([element, arr, type])
   }
@@ -347,6 +350,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   isInAnElement = !Build.NDEBUG && !!wholeDoc && wholeDoc !== 1 && wholeDoc.tagName != null,
   traverseRoot = !wholeDoc ? fullscreenEl_unsafe_() : !Build.NDEBUG && isInAnElement && wholeDoc as Element || null
   let matchSelector = options.match || null,
+  textFilter: (typeof hintOptions.textFilter) | void | RegExpI | RegExpOne | false = hintOptions.textFilter,
   clickableSelector = wantClickable && options.clickable || null,
   matchAll = (!Build.NDEBUG && selector === "*" // for easier debugging
       ? selector = kSafeAllSelector : selector) === kSafeAllSelector && !matchSelector,
@@ -356,6 +360,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   if (wantClickable) {
     getPixelScaleToScroll();
     initTestRegExps()
+    clickTypeFilter_ = options.typeFilter! | 0
   }
   if (matchSelector) {
     wholeDoc || (filter = getIfOnlyVisible)
@@ -547,8 +552,19 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
     frameNested_ = null
   }
   }
+  clickTypeFilter_ = 0
   if (excludedSelector && !(OnChrome && Build.MinCVer < BrowserVer.Min$Element$$matches && !ElementProto().matches)) {
-    output = safeCall((output as Hint0[]).filter.bind(output), el => !el[0].matches!(excludedSelector)) || output
+    output = safeCall((output as Hint0[]).filter.bind(output), hint => !hint[0].matches!(excludedSelector)) || output
+  }
+  if (textFilter) {
+    cur_ind = (textFilter = textFilter + "" as Extract<typeof textFilter, string>).lastIndexOf("/")
+    textFilter = cur_ind > 1 && tryCreateRegExp(textFilter.slice(1, cur_ind), textFilter.slice(cur_ind + 1) as "" | "i")
+    if (textFilter) {
+      output = output.filter((hint): boolean => {
+        const text = (hint[0] as TypeToPick<Element, HTMLElement, "innerText">).innerText as string | undefined
+        return (textFilter as RegExpOne).test(text != null ? text : hint[0].textContent)
+      })
+    }
   }
   if (!OnEdge && ui_root && !wholeDoc
       && (OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
@@ -731,7 +747,8 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
         }
       })
     : _i - HintMode.FOCUS_EDITABLE ? traverse(kSafeAllSelector, hintOptions
-          , _i - HintMode.ENTER_VISUAL_MODE ? getClickable : (hints: Hint[], element: SafeHTMLElement): void => {
+          , _i - HintMode.ENTER_VISUAL_MODE && !hintOptions.anyText ? getClickable
+            : (hints: Hint[], element: SafeHTMLElement): void => {
         const arr = element.childNodes as NodeList
         if (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$ForOf$ForDOMListTypes) {
           for (const node of arr as ArrayLike<Node> as Node[]) {
@@ -825,7 +842,7 @@ export const checkNestedFrame = (output?: Hint[]): void => {
   } else if (fullscreenEl_unsafe_()) {
     res = 0
   } else {
-    if (output == null) {
+    if (output == null || clickTypeFilter_) {
       output = [];
       for (let arr = querySelectorAll_unsafe_(VTr(kTip.notANestedFrame))! as ArrayLike<ElementToHTML>
               , i = arr.length; (len = output.length) < 2 && i-- > 0; ) {

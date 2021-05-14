@@ -52,6 +52,7 @@ interface CSSOptions {
   clickable?: "css-selector" | null | undefined
   exclude?: "css-selector" | null | undefined
   evenIf?: kHidden | null | undefined
+  typeFilter?: /** 1 <<< kClickType */ number | null | undefined
 }
 
 interface FindCSS {
@@ -255,11 +256,14 @@ declare namespace HintsNS {
     newtab?: null | /** only in editing mode */ boolean
         | "force" | "force-current" | "force-mode"
         | "last-window" | "window" | /** Firefox-only */ "no-prevent"
+    reuse?: UserReuseType
     button?: "right";
     scroll?: "force";
     touch?: null | boolean | "auto";
     join?: FgReq[kFgReq.copy]["j"];
     decoded?: boolean;
+    anyText?: boolean
+    textFilter?: "regexp"
     toggle?: {
       [selector: string]: string;
     };
@@ -589,10 +593,10 @@ interface FgReq {
   [kFgReq.openImage]: {
     /** file */ f: string | null;
     /** url */ u: string;
-    /** sed */ e: ParsedSedOpts | null;
-    /** keyword: `""` means to use raw URL directly */ k?: string
+    /** hint mode */ m?: HintMode
     /** reuse */ r: ReuseType;
     /** other options */ o?: string;
+    /** options for openUrl */ q?: ParsedOpenPageUrlOptions
     /** auto: default to true */ a?: boolean;
   };
   [kFgReq.evalJSFallback]: {

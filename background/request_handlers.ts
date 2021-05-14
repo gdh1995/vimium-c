@@ -468,7 +468,7 @@ set_reqH_([
   },
   /** kFgReq.downloadLink: */ (req: FgReq[kFgReq.downloadLink], port): void => {
     const fallback = () => {
-      reqH_[kFgReq.openImage]({ r: ReuseType.newFg, e: null, f: req.f, u: req.u }, port)
+      reqH_[kFgReq.openImage]({ r: ReuseType.newFg, f: req.f, u: req.u }, port)
     }
     if (!(Build.BTypes & BrowserType.ChromeOrFirefox)
         || Build.BTypes & ~BrowserType.ChromeOrFirefox && OnOther & ~BrowserType.ChromeOrFirefox) {
