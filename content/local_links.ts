@@ -442,11 +442,19 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   const D = "div"
   let i = list.length, j: number, k: ClickType, s: string, notRemoveParents: boolean;
   let element: Element | null, prect: Rect, crect: Rect | null, splice: number = 0
+  let shadowRoot: ShadowRoot | null | undefined
   while (0 <= --i) {
     k = list[i][2];
     notRemoveParents = k === ClickType.classname;
+    if ((notRemoveParents || k === ClickType.codeListener)
+        && (shadowRoot = list[i][0].shadowRoot as ShadowRoot | null | undefined)
+        && i + 1 < list.length && list[j = i + 1][0].parentNode === shadowRoot
+        && isContaining_(list[i][1], list[j][1])
+        && (querySelectorAll_unsafe_(VTr(kTip.visibleElementsInScopeChildren), shadowRoot)!).length === 1) {
+      notRemoveParents = 0 < ++splice
+    }
     /** {@see #AllowedClickTypeForNonHTML} */
-    if (!notRemoveParents) {
+    else if (!notRemoveParents) {
       if (k === ClickType.codeListener) {
         if (s = ((element = list[i][0]) as SafeHTMLElement).localName, s === "i" || s === D) {
           if (notRemoveParents
@@ -459,7 +467,14 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
             ++splice
           }
         }
-        if (s === D && !splice
+        if (s[0] === "h" && (<RegExpOne> /^h\d$/).test(s)) {
+          if (i > 0 && ((k = list[i - 1][2]) < ClickType.MinNotWeak + 1 && k !== ClickType.edit)
+              && (element = list[i - 1][0]).childElementCount === 1
+              && getComputedStyle_(element).display === "inline"
+              && isDescendant(list[i][0], element, 0)) {
+            splice = i--
+          }
+        } else if (s === D && !splice
             && (j = i + 1) < list.length
             && (s = list[j][0].localName, s === D || s === "a")) {
           prect = list[i][1]; crect = list[j][1];
