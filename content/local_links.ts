@@ -259,7 +259,7 @@ export const getIfOnlyVisible = (hints: (Hint | Hint0)[], element: SafeElement):
   arr && hints.push([element as SafeElementForMouse, arr, ClickType.Default])
 }
 
-export const traverse = ((selector: string, options: CSSOptions, filter: Filter<Hint | Hint0>
+export const traverse = ((selector: string, options: CSSOptions & OtherFilterOptions, filter: Filter<Hint | Hint0>
     , notWantVUI?: 1, wholeDoc?: 1 | Element, acceptNonHTML?: 1): Hint[] | Hint0[] => {
 
 const matchSafeElements = ((selector: string, rootNode: Element | ShadowRoot | null
@@ -350,7 +350,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   isInAnElement = !Build.NDEBUG && !!wholeDoc && wholeDoc !== 1 && wholeDoc.tagName != null,
   traverseRoot = !wholeDoc ? fullscreenEl_unsafe_() : !Build.NDEBUG && isInAnElement && wholeDoc as Element || null
   let matchSelector = options.match || null,
-  textFilter: (typeof hintOptions.textFilter) | void | RegExpI | RegExpOne | false = hintOptions.textFilter,
+  textFilter: OtherFilterOptions["textFilter"] | void | RegExpI | RegExpOne | false = options.textFilter,
   clickableSelector = wantClickable && options.clickable || null,
   matchAll = (!Build.NDEBUG && selector === "*" // for easier debugging
       ? selector = kSafeAllSelector : selector) === kSafeAllSelector && !matchSelector,
@@ -588,9 +588,9 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   }
   return output
 }) as {
-  (key: string, options: CSSOptions, filter: Filter<Hint0>, notWantVUI: 1
+  (key: string, options: CSSOptions & OtherFilterOptions, filter: Filter<Hint0>, notWantVUI: 1
       , wholeDoc: 1 | boolean, acceptNonHTML?: 1): Hint0[]
-  (key: string, options: CSSOptions, filter: Filter<Hint>, notWantVUI?: 1): Hint[]
+  (key: string, options: CSSOptions& OtherFilterOptions, filter: Filter<Hint>, notWantVUI?: 1): Hint[]
 }
 
 const isDescendant = function (c: Element | null, p: Element, shouldBeSingleChild: BOOL | boolean): boolean {

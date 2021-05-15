@@ -52,7 +52,10 @@ interface CSSOptions {
   clickable?: "css-selector" | null | undefined
   exclude?: "css-selector" | null | undefined
   evenIf?: kHidden | null | undefined
+}
+interface OtherFilterOptions {
   typeFilter?: /** 1 <<< kClickType */ number | null | undefined
+  textFilter?: "regexp"
 }
 
 interface FindCSS {
@@ -230,7 +233,8 @@ interface UserSedOptions {
 }
 
 declare namespace HintsNS {
-  interface Options extends CSSOptions, UserSedOptions, OpenPageUrlOptions, Pick<OpenUrlOptions, "opener">
+  interface Options extends CSSOptions, OtherFilterOptions
+      , UserSedOptions, OpenPageUrlOptions, Pick<OpenUrlOptions, "opener">
       , Req.FallbackOptions {
     /** mode */ m: HintMode
     /** hint characters */ c?: string
@@ -263,7 +267,6 @@ declare namespace HintsNS {
     join?: FgReq[kFgReq.copy]["j"];
     decoded?: boolean;
     anyText?: boolean
-    textFilter?: "regexp"
     toggle?: {
       [selector: string]: string;
     };
