@@ -84,7 +84,7 @@ var Exclusions = {
     if (!matchedKeys && sender.frameId_ && url.lastIndexOf("://", 5) < 0 && !BgUtils_.protocolRe_.test(url)) {
       const mainFrame = Backend_.indexPorts_(sender.tabId_, 0);
       if (mainFrame) {
-        return Backend_.getExcluded_(mainFrame.s.url_, mainFrame.s);
+        return Exclusions.GetPassKeys_(mainFrame.s.url_, mainFrame.s)
       }
     }
     return matchedKeys || null;

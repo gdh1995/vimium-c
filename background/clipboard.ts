@@ -78,7 +78,7 @@ export const parseSedOptions_ = (sed: UserSedOptions): ParsedSedOpts | null => {
       : !r || typeof r !== "object" ? { r, k } : r.r != null || r.k ? r : null
 }
 
-export const parseSedKeys_ = (keys: string): SedContext => {
+const parseSedKeys_ = (keys: string): SedContext => {
   let context = SedContext.NONE
   for (let i = 0; i < keys.length; i++) {
     const ch = keys.charCodeAt(i) & ~kCharCode.CASE_DELTA
@@ -88,8 +88,12 @@ export const parseSedKeys_ = (keys: string): SedContext => {
   return context
 }
 
-export const maySedRuleExist = (context: SedContext): boolean => {
-  for (const item of staticSeds_ || []) {
+export const doesNeedToSed = (context: SedContext, sed: ParsedSedOpts | null): boolean => {
+  if (sed && (sed.r === false || sed.r && typeof sed.r === "string")) { return sed.r !== false }
+  // if (!sed || sed.r === false || !sed.k && )
+  context = sed && sed.k && parseSedKeys_(sed.k) || context
+  staticSeds_ || context && substitute_("", SedContext.NONE, { r: "", k: "" })
+  for (const item of staticSeds_!) {
     if (item.contexts_ & context) {
       return true
     }
@@ -135,7 +139,7 @@ export const substitute_ = (text: string, context: SedContext, mixedSed?: MixedS
         end = (item.match_ as RegExpG).lastIndex = 0
         text = text.replace(item.match_ as RegExpG, item.replaced_)
       }
-      if (end < 0) {
+      if (end < 0 || !text) {
         continue
       }
       host = ""

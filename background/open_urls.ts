@@ -537,9 +537,7 @@ export const openUrl = (tabs?: [Tab] | []): void => {
     }
   } else {
     let url_f = get_cOptions<C.openUrl, true>().url_f!
-    if (sed && typeof url_f === "string" && url_f) {
-      url_f = substitute_(url_f, SedContext.paste, sed)
-    }
+    // no sed
     openUrlWithActions(url_f || "", Urls.WorkType.FakeType, tabs)
   }
 }
@@ -559,23 +557,18 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port): void =>
   opts.reuse = incognito != null && (!reuse || reuse === "current") && (!cPort || incognito !== cPort.s.incognito_)
       ? ReuseType.newFg : reuse
   opts.incognito = incognito
-  opts.sed = sed
   opts.replace = o2.m
   opts.position = o2.p
   opts.window = o2.w
   if (url) {
-    if (url[0] === ":" && isWeb && (<RegExpOne> /^:[bdhostw]\s/).test(url)) {
+    if (url[0] === ":" && !isWeb && (<RegExpOne> /^:[bhtwWBHdso]\s/).test(url)) {
       url = url.slice(2).trim()
-      url || (isWeb = false)
     }
-    if (request.f) { /* empty */ }
+    url = substitute_(url as string, !isWeb ? SedContext.omni : request.f ? SedContext.NONE : SedContext.pageText, sed)
+    if (request.f) {
+      url = url !== request.u ? BgUtils_.convertToUrl_(url) : url
+    }
     else if (testUrl) {
-      if (!isWeb) {
-        url = substitute_(url as string, SedContext.omni, sed)
-        if (sed && typeof sed === "object" && sed.r !== false) {
-            opts.sed = { r: sed.r, k: null }
-        }
-      }
       url = BgUtils_.fixCharsInUrl_(url)
       url = BgUtils_.convertToUrl_(url, keyword
           , isWeb ? Urls.WorkType.ConvertKnown : Urls.WorkType.EvenAffectStatus)
@@ -592,6 +585,7 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port): void =>
     opts.url_f = url
   } else {
     opts.copied = request.c, opts.keyword = keyword, opts.testUrl = _rawTest
+    opts.sed = sed
   }
   set_cRepeat(1)
   set_cOptions(opts)

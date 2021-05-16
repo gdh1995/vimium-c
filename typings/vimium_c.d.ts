@@ -300,7 +300,7 @@ declare const enum PortNameEnum {
 
 declare const enum PortType {
   initing = 0, isTop = 1, hasFocus = 2, reconnect = 4, hasCSS = 8,
-  omnibar = 16, omnibarRe = omnibar & reconnect, otherExtension = 32,
+  omnibar = 16, otherExtension = 32,
   CloseSelf = 999,
 }
 

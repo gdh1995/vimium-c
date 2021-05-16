@@ -180,13 +180,15 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
   if (options.l) {
       if (query = query || query_) {
         styleSelColorOut || initSelColors(AdjustType.MustAdjust)
-        if (query !== query_) {
+        const isNewQuery = query !== query_
+        if (isNewQuery) {
           updateQuery(query)
           if (isActive) {
             textContent_s(input_, query.replace(<RegExpOne> /^ /, "\xa0"))
             showCount(1)
           }
         }
+        if (isNewQuery) { activeRegexIndex -= options.c > 0 ? 1 : -1 }
         isQueryRichText_ = true
         const hud_showing = !isActive && hud_opacity === 1
         hud_showing && hud_toggleOpacity("0")
@@ -222,6 +224,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
       adjustUI()
       hudHide(TimerType.noTimer);
       setFirstQuery(query)
+      replaceOrSuppressMost_(kHandler.find, onHostKeydown)
   } else {
     if (initialRange = selRange_(getSelected())) {
       collpaseSelection(getSelection_()) // `range.collapse` doesn't work when inside a ShadowRoot (C72)
@@ -451,30 +454,6 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
     deactivate(i)
 }
 
-const onHostKeydown = (event: HandlerNS.Event): HandlerResult => {
-    let key = getMappedKey(event, kModeId.Find), keybody: kChar
-    if (key === kChar.f2) {
-      onUnexpectedBlur && onUnexpectedBlur()
-      doFocus()
-      return HandlerResult.Prevent;
-    } else if (key.length > 1 && "c-m-".includes(key[0] + key[1])
-        && ((keybody = keybody_(key)) === kChar.j || keybody === kChar.k)) {
-      if (!hasResults) { /* empty */ }
-      else if (key.length > 4) {
-        highlightInViewport()
-      } else {
-        executeFind("", { c: -(keybody > kChar.j), i: 1 })
-      }
-      return HandlerResult.Prevent
-    }
-    if (!insert_Lock_() && isEscape_(key)) {
-      prevent_(event.e); // safer
-      deactivate(FindAction.ExitNoFocus) // should exit
-      return HandlerResult.Prevent;
-    }
-    return HandlerResult.Nothing;
-}
-
   if (OnEdge
       || OnChrome && Build.MinCVer < BrowserVer.MinEnsuredShadowDOMV1
       || OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredShadowDOMV1) {
@@ -526,6 +505,30 @@ const onHostKeydown = (event: HandlerNS.Event): HandlerResult => {
     (e.target as typeof box_).onload = null as never; isActive && onLoad2()
   }
   if (later) { onLoad2() }
+}
+
+const onHostKeydown = (event: HandlerNS.Event): HandlerResult => {
+  let key = getMappedKey(event, kModeId.Find), keybody: kChar
+  if (key === kChar.f2) {
+    onUnexpectedBlur && onUnexpectedBlur()
+    doFocus()
+    return HandlerResult.Prevent;
+  } else if (key.length > 1 && "c-m-".includes(key[0] + key[1])
+      && ((keybody = keybody_(key)) === kChar.j || keybody === kChar.k)) {
+    if (!hasResults) { /* empty */ }
+    else if (key.length > 4) {
+      highlightInViewport()
+    } else {
+      executeFind("", { c: -(keybody > kChar.j), i: 1 })
+    }
+    return HandlerResult.Prevent
+  }
+  if (!insert_Lock_() && isEscape_(key)) {
+    prevent_(event.e); // safer
+    deactivate(FindAction.ExitNoFocus) // should exit
+    return HandlerResult.Prevent;
+  }
+  return HandlerResult.Nothing;
 }
 
 const doFocus = (): void => {

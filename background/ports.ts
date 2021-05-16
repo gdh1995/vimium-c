@@ -136,6 +136,7 @@ const _onOmniConnect = (port: Frames.Port, type: PortType, isOmniUrl: boolean): 
       port.onMessage.addListener(/*#__NOINLINE__*/ onMessage)
       type & PortType.reconnect ||
       port.postMessage({ N: kBgReq.omni_init, l: omniPayload, s: getSecret() })
+      return
     }
   } else if (port.s.tabId_ < 0 // e.g.: inside a sidebar on MS Edge
       || (Build.MinCVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg && Build.BTypes & BrowserType.Chrome
@@ -146,8 +147,8 @@ const _onOmniConnect = (port: Frames.Port, type: PortType, isOmniUrl: boolean): 
     browserTabs.executeScript(port.s.tabId_, {
       file: settings.CONST_.VomnibarScript_, frameId: port.s.frameId_, runAt: "document_start"
     }, runtimeError_)
-    port.disconnect()
   }
+  port.disconnect()
 }
 
 const onOmniDisconnect = (port: Port): void => {

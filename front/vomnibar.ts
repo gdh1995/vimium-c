@@ -935,7 +935,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
       a.isInputComposing_ = isComposing!;
     }
-    a.update_(-1);
+    a.update_(-1, a.inAlt_ ? a.toggleAlt_ : null)
   },
   omni_ (response: BgVomnibarSpecialReq[kBgReq.omni_omni]): void {
     const a = Vomnibar_;
@@ -987,6 +987,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         list.firstElementChild.classList.add("s");
       }
       list.lastElementChild.classList.add("b");
+    }
+    if (a.onUpdate_ === a.toggleAlt_) {
+      a.toggleAlt_(0)
+      a.onUpdate_ = null
     }
     if (earlyPost) {
       return a.postUpdate_();
@@ -1114,7 +1118,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     setTimeout(a.blurred_, 50, null);
     if (!blurred) {
       VPort_.post_({ H: kFgReq.cmd, c: "", n: 1, i: -1, r: 0 });
-      if (a.pageType_ === VomnibarNS.PageType.ext && VPort_) {
+      if (a.pageType_ !== VomnibarNS.PageType.inner && VPort_) {
         setTimeout(function (): void {
           VPort_ && !VPort_._port && VPort_.postToOwner_({ N: VomnibarNS.kFReq.broken });
         }, 50);
@@ -1293,12 +1297,13 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (Vomnibar_.keyResult_ === SimpleKeyResult.Nothing) { return; }
     VUtils_.Stop_(event, Vomnibar_.keyResult_ === SimpleKeyResult.Prevent);
   },
-  toggleAlt_ (enable: /** disable */ 0 | /** enable */ -1 | KeyboardEvent): void {
+  toggleAlt_ (enable?: /** disable */ 0 | /** enable */ -1 | KeyboardEvent): void {
     const inAlt = Vomnibar_.inAlt_;
-    if (enable !== -1 && enable !== 0) {
+    if (enable !== -1 && enable !== 0 && enable !== undefined) {
       if (enable.keyCode !== kKeyCode.altKey) { return; }
       enable = 0;
     }
+    enable = enable || 0
     if (inAlt !== enable) {
       if (inAlt > 0 && !enable) { clearTimeout(inAlt); }
       if ((inAlt === -1) !== !!enable) {
@@ -1665,7 +1670,7 @@ VPort_ = {
       , msg: VomnibarNS.FReq[K] & VomnibarNS.Msg<K>) => void | 1,
   post_<K extends keyof FgReq> (request: FgReq[K] & Req.baseFg<K>): void {
     try {
-      (this._port || this.connect_(PortType.omnibarRe)).postMessage<K>(request);
+      (this._port || this.connect_(PortType.omnibar | PortType.reconnect)).postMessage<K>(request);
     } catch {
       VPort_ = null as never;
       this.postToOwner_({ N: VomnibarNS.kFReq.broken });

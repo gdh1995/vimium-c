@@ -270,9 +270,9 @@ export const openImgReq = (req: FgReq[kFgReq.openImage], port?: Port): void => {
       && req.m === HintMode.DOWNLOAD_MEDIA ? "" : opts2.k
   url = opts2.s ? substitute_(url, SedContext.paste, opts2.s) : url
   set_cOptions(BgUtils_.safer_<KnownOptions<C.openUrl>>({
-    opener: true, reuse: req.r,
-    replace: opts2.m, position: opts2.p, sed: false, window: opts2.w
+    opener: true, reuse: req.r, replace: opts2.m, position: opts2.p, window: opts2.w
   }))
+  set_cRepeat(1)
   // not use v:show for those from other extensions
   openUrlWithActions(typeof keyword !== "string"
         && (!url.startsWith(location.protocol) || url.startsWith(location.origin)) ? prefix + url

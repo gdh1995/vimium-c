@@ -10,7 +10,7 @@ import {
 import {
   portSendFgCmd, indexFrame, requireURL, sendFgCmd, complainNoSession, showHUD, complainLimits, getPortUrl
 } from "./ports"
-import { maySedRuleExist, parseSedOptions_, substitute_ } from "./clipboard"
+import { doesNeedToSed, parseSedOptions_, substitute_ } from "./clipboard"
 import { goToNextUrl, newTabIndex, openUrl } from "./open_urls"
 import {
   parentFrame, enterVisualMode, showVomnibar, toggleZoom, confirm_, gOnConfirmCallback, captureTab, runKeyWithCond,
@@ -85,7 +85,7 @@ const BackgroundCommands: {
     const isNext = get_cOptions<C.goNext>().isNext != null ? !!get_cOptions<C.goNext>().isNext
         : !rel.includes("prev") && !rel.includes("before")
     const sed = parseSedOptions_(get_cOptions<C.goNext, true>())
-    if (!sed || sed.r === false || !sed.k && !maySedRuleExist(SedContext.goNext)) {
+    if (!doesNeedToSed(SedContext.goNext, sed)) {
       framesGoNext(isNext, rel)
       return
     }
@@ -96,8 +96,8 @@ const BackgroundCommands: {
           , get_cOptions<C.goNext>().absolute ? "absolute" : true) : [false, tabUrl]
       if (hasPlaceholder && next) {
         set_cRepeat(count)
-        set_cOptions(BgUtils_.extendIf_(BgUtils_.safer_<UnknownOptions<kBgCmd.openUrl>>({
-            url_f: next, goNext: false, sed: false }), get_cOptions<C.openUrl>()))
+        set_cOptions(BgUtils_.extendIf_(BgUtils_.safer_<KnownOptions<kBgCmd.openUrl>>({
+            url_f: next, goNext: false }), get_cOptions<C.openUrl, true>()))
         if (get_cOptions<C.openUrl>().reuse === void 0) {
           get_cOptions<C.openUrl, true>().reuse = ReuseType.current
         }

@@ -80,6 +80,9 @@ BgUtils_.timeout_(150, function (): void {
     })
   } as IconNS.AccessIconBuffer;
   Backend_.setIcon_ = function (this: void, tabId: number, type: Frames.ValidStatus, isLater?: true): void {
+    if (tabId < 0) {
+      return
+    }
     /** Firefox does not use ImageData as inner data format
      * * https://dxr.mozilla.org/mozilla-central/source/toolkit/components/extensions/schemas/manifest.json#577
      *   converts ImageData objects in parameters into data:image/png,... URLs
@@ -94,10 +97,8 @@ BgUtils_.timeout_(150, function (): void {
     }
     let data: IconNS.IconBuffer | null | undefined;
     if (data = imageData![type]) {
-      const f = browserAction.setIcon, args: chrome.browserAction.TabIconDetails = {
-        tabId,
-        imageData: data
-      };
+      const f = browserAction.setIcon
+      const args: chrome.browserAction.TabIconDetails = { tabId, imageData: data }
       isLater ? f(args, BgUtils_.runtimeError_) : f(args);
     } else if (tabIds!.has(type)) {
       tabIds!.get(type)!.push(tabId)
