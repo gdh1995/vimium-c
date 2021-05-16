@@ -580,7 +580,7 @@ declare namespace BackendHandlersNS {
     complain_ (this: BackendHandlers, message: string): void;
     showHUD_ (message: string, isCopy?: kTip): void
     checkHarmfulUrl_ (url: string, port?: Port | null): boolean
-    getExcluded_: ExclusionsNS.GetExcluded;
+    getExcluded_: ExclusionsNS.GetExcluded | null
     forceStatus_ (this: BackendHandlers, act: Frames.ForcedStatusText, tabId?: number): void;
     indexPorts_: {
       (this: void, tabId: number, frameId: number): Port | null;

@@ -27,32 +27,36 @@ const onMessage = <K extends keyof FgReq, T extends keyof FgRes> (request: Req.f
 }
 
 export const OnConnect = (port: Frames.Port, type: PortType): void => {
-  const sender = /*#__NOINLINE__*/ formatPortSender(port), { tabId_: tabId, url_: url } = sender
-    , ref = framesForTab.get(tabId), lock = ref ? ref.lock_ : null
-    , isOmni = url === settings.cache_.vomnibarPage_f
+  const sender = /*#__NOINLINE__*/ formatPortSender(port)
+  const url = sender.url_, isOmni = url === settings.cache_.vomnibarPage_f
   if (type > PortType.reconnect - 1 || isOmni) {
     if (type === PortType.CloseSelf) {
-      Build.BTypes & ~BrowserType.Chrome && tabId >= 0 && !sender.frameId_ &&
-      removeTempTab(tabId, (port as Frames.BrowserPort).sender.tab!.windowId, sender.url_)
+      Build.BTypes & ~BrowserType.Chrome && sender.tabId_ >= 0 && !sender.frameId_ &&
+      removeTempTab(sender.tabId_, (port as Frames.BrowserPort).sender.tab!.windowId, sender.url_)
       return
     } else if (type & PortType.omnibar || isOmni) {
-      /*#__NOINLINE__*/ onOmniConnect(port, tabId, type)
+      /*#__NOINLINE__*/ _onOmniConnect(port, type
+          , isOmni || url === settings.CONST_.VomnibarPageInner_)
       return
     }
   }
+  let tabId = sender.tabId_
+  const ref = tabId >= 0 ? framesForTab.get(tabId)
+      : ((tabId = (sender as Writable<Frames.Sender>).tabId_ = getNextFakeTabId()), undefined)
+  const lock = ref !== undefined ? ref.lock_ : null
   let status: Frames.ValidStatus
-  let passKeys: null | string, flags: BgReq[kBgReq.reset]["f"]
-  if (lock) {
+  let passKeys: null | string, flags: BgReq[kBgReq.reset]["f"], getExcluded = Backend_.getExcluded_
+  if (lock !== null) {
     passKeys = lock.passKeys_
     status = lock.status_
     flags = status === Frames.Status.disabled ? Frames.Flags.lockedAndDisabled : Frames.Flags.locked
   } else {
-    passKeys = Backend_.getExcluded_(url, sender)
+    passKeys = getExcluded !== null ? getExcluded(url, sender) : null
     status = passKeys === null ? Frames.Status.enabled : passKeys ? Frames.Status.partial : Frames.Status.disabled
     flags = Frames.Flags.blank
   }
   sender.status_ = status
-  if (ref) {
+  if (ref !== undefined) {
     flags |= ref.flags_ & Frames.Flags.userActed
     if (type & PortType.otherExtension) {
       flags |= Frames.Flags.OtherExtension
@@ -74,7 +78,7 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
   if (Build.BTypes & ~BrowserType.Chrome) { (port as Frames.BrowserPort).sender.tab = null as never }
   port.onDisconnect.addListener(/*#__NOINLINE__*/ onDisconnect)
   port.onMessage.addListener(/*#__NOINLINE__*/ onMessage)
-  if (ref) {
+  if (ref !== undefined) {
     if (type & PortType.hasFocus) {
       if (needIcon_ && ref.cur_.s.status_ !== status) {
         Backend_.setIcon_(tabId, status)
@@ -118,34 +122,32 @@ const onDisconnect = (port: Port): void => {
   }
 }
 
-const onOmniConnect = (port: Frames.Port, tabId: number, type: PortType): boolean => {
+const _onOmniConnect = (port: Frames.Port, type: PortType, isOmniUrl: boolean): void => {
   if (type > PortType.omnibar - 1) {
-    if (!isNotVomnibarPage(port, false)) {
-      if (tabId < 0) {
+    if (isOmniUrl) {
+      if (port.s.tabId_ < 0) {
         (port.s as Writable<Frames.Sender>).tabId_ = type & PortType.reconnect ? getNextFakeTabId()
             : cPort ? cPort.s.tabId_ : TabRecency_.curTab_
       }
+      port.s.flags_ |= Frames.Flags.isVomnibar
       framesForOmni.push(port)
       if (Build.BTypes & ~BrowserType.Chrome) { (port as Frames.BrowserPort).sender.tab = null as never }
       port.onDisconnect.addListener(/*#__NOINLINE__*/ onOmniDisconnect)
       port.onMessage.addListener(/*#__NOINLINE__*/ onMessage)
       type & PortType.reconnect ||
       port.postMessage({ N: kBgReq.omni_init, l: omniPayload, s: getSecret() })
-      return true
     }
-  } else if (tabId < 0 // should not be true; just in case of misusing
+  } else if (port.s.tabId_ < 0 // e.g.: inside a sidebar on MS Edge
       || (Build.MinCVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg && Build.BTypes & BrowserType.Chrome
           && CurCVer_ < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg)
       || port.s.frameId_ === 0
       ) { /* empty */ }
   else {
-    browserTabs.executeScript(tabId, {
+    browserTabs.executeScript(port.s.tabId_, {
       file: settings.CONST_.VomnibarScript_, frameId: port.s.frameId_, runAt: "document_start"
     }, runtimeError_)
     port.disconnect()
-    return true
   }
-  return false
 }
 
 const onOmniDisconnect = (port: Port): void => {
@@ -160,7 +162,7 @@ const onOmniDisconnect = (port: Port): void => {
 const formatPortSender = (port: Port): Frames.Sender => {
   const sender = (port as Frames.BrowserPort).sender
   const tab = sender.tab || (Build.BTypes & BrowserType.Edge ? {
-      id: getNextFakeTabId(), url: "", incognito: false } : { id: getNextFakeTabId(), incognito: false })
+      id: -1, url: "", incognito: false } : { id: -1, incognito: false })
   const url = Build.BTypes & BrowserType.Edge ? sender.url || tab.url || "" : sender.url!
   if (!(Build.BTypes & ~BrowserType.Chrome)) { sender.tab = null as never }
   return (port as Frames.Port).s = {
@@ -280,12 +282,6 @@ export const onExitGrab = (_0: FgReq[kFgReq.exitGrab], port: Port): void => {
 /** `true` means `port` is NOT vomnibar port */
 export const isNotVomnibarPage = (port: Frames.Port, noLog: boolean): boolean => {
   let info = port.s, f = info.flags_
-  if (!(f & Frames.Flags.vomnibarChecked)) {
-    f |= Frames.Flags.vomnibarChecked |
-      (info.url_ === settings.cache_.vomnibarPage_f || info.url_ === settings.CONST_.VomnibarPageInner_
-        ? Frames.Flags.isVomnibar : 0)
-    info.flags_ = f
-  }
   if (f & Frames.Flags.isVomnibar) { return false }
   if (!noLog && !(f & Frames.Flags.SOURCE_WARNED)) {
     console.warn("Receive a request from %can unsafe source page%c (should be vomnibar) :\n %s @ tab %o",

@@ -34,7 +34,7 @@ const executeShortcutEntry = (cmd: StandardShortcutNames | kShortcutAliases): vo
 
 Backend_ = {
     reqH_,
-    getExcluded_: BgUtils_.getNull_,
+    getExcluded_: null,
     getPortUrl_: getPortUrl,
     removeSug_ (this: void, { t: type, u: url }: FgReq[kFgReq.removeSug], port?: Port | null): void {
       const name = type === "tab" ? type : type + " item"
@@ -199,9 +199,9 @@ Backend_ = {
         newPassedKeys = newPassedKeys.replace(<RegExpG> /<(\S+)>/g, "$1").replace(BgUtils_.spacesRe_, " ")
       }
       let pattern: string | null
-      const curSender = cPort.s,
-      always_enabled = !Exclusions.rules_.length, oldStatus = curSender.status_,
-      stdStatus = always_enabled ? Frames.Status.enabled : oldStatus === Frames.Status.partial ? oldStatus
+      const curSender = cPort.s, oldStatus = curSender.status_,
+      stdStatus = Backend_.getExcluded_ == null ? Frames.Status.enabled
+          : oldStatus === Frames.Status.partial ? oldStatus
           : (pattern = Backend_.getExcluded_(curSender.url_, curSender),
               pattern ? Frames.Status.partial : pattern === null ? Frames.Status.enabled : Frames.Status.disabled),
       stat = act === "enable" ? Frames.Status.enabled : act === "disable" ? Frames.Status.disabled
@@ -220,7 +220,6 @@ Backend_ = {
       enableWithPassedKeys = !!newPassedKeys && act === "enable",
       locked = stat === null ? Frames.Flags.blank
           : stat === Frames.Status.disabled ? Frames.Flags.lockedAndDisabled : Frames.Flags.locked,
-      unknown = !(locked || always_enabled),
       msg: Req.bg<kBgReq.reset> = {
         N: kBgReq.reset,
         p: stat === Frames.Status.disabled || enableWithPassedKeys ? newPassedKeys : null,
@@ -231,7 +230,7 @@ Backend_ = {
       ref.lock_ = locked ? { status_: newStatus, passKeys_: msg.p } : null
       for (const port of ref.ports_) {
         const sender = port.s
-        if (unknown) {
+        if (!locked && Backend_.getExcluded_ !== null) {
           let pattern = msg.p = Backend_.getExcluded_(sender.url_, sender)
           newStatus = pattern === null ? Frames.Status.enabled : pattern
             ? Frames.Status.partial : Frames.Status.disabled;

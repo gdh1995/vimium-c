@@ -285,7 +285,7 @@ declare namespace Frames {
   const enum Flags {
     Default = 0, blank = Default, locked = 1, lockedAndDisabled = 3, MASK_LOCK_STATUS = 3, userActed = 4,
     hasCSS = 8, hadVisualMode = 16, hasFindCSS = 32, hadHelpDialog = 64,
-    OtherExtension = 128, vomnibarChecked = 256, isVomnibar = 512, SOURCE_WARNED = 1024,
+    OtherExtension = 128, isVomnibar = 256, SOURCE_WARNED = 512
   }
   const enum NextType {
     next = 0, Default = next, parent = 1, current = 2,

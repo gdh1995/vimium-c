@@ -294,14 +294,15 @@ set_reqH_([
     url1: string | undefined = (request as ExclusionsNS.Details).url,
     ref = framesForTab.get(sender.tabId_)
     if (ref && ref.lock_) { return }
-    const pattern = Backend_.getExcluded_(sender.url_ = from_content ? request.u! : url1, sender),
+    const pattern = Backend_.getExcluded_ === null ? null
+        : Backend_.getExcluded_(sender.url_ = from_content ? request.u! : url1, sender),
     status = pattern === null ? Frames.Status.enabled : pattern ? Frames.Status.partial : Frames.Status.disabled
     if (sender.status_ !== status) {
       sender.status_ = status
       if (needIcon_ && ref!.cur_ === port) {
         Backend_.setIcon_(sender.tabId_, status)
       }
-    } else if (!pattern || pattern === Backend_.getExcluded_(oldUrl, sender)) {
+    } else if (!pattern || pattern === Backend_.getExcluded_!(oldUrl, sender)) {
       return
     }
     port.postMessage({ N: kBgReq.reset, p: pattern, f: 0 })

@@ -61,7 +61,7 @@ var Exclusions = {
   setRules_ (rules: ExclusionsNS.StoredRule[]): void {
     if (rules.length === 0) {
       this.rules_ = [];
-      Backend_.getExcluded_ = BgUtils_.getNull_;
+      Backend_.getExcluded_ = null;
       this.updateListeners_();
       return;
     }
@@ -145,7 +145,7 @@ var Exclusions = {
             continue;
           }
         } else {
-          pass = Backend_.getExcluded_(port.s.url_, port.s);
+          pass = Backend_.getExcluded_!(port.s.url_, port.s)
           status = pass === null ? Frames.Status.enabled : pass
             ? Frames.Status.partial : Frames.Status.disabled;
           if (!pass && port.s.status_ === status) {
