@@ -223,9 +223,16 @@ export const findCPort = (port: Port | null | undefined): Port | null => {
   return frames ? frames.cur_ : null as never as Port
 }
 
-export const isExtIdAllowed = (extId: string | null | undefined, url: string | undefined): boolean | string => {
-  if (extId == null) { extId = "unknown_sender" }
+export const isExtIdAllowed = (sender: chrome.runtime.MessageSender): boolean | string => {
+  const extId: string | null | undefined = sender.id ?? "unknown_sender"
+  let url: string | undefined = sender.url, tab = sender.tab
   const list = settings.extAllowList_, stat = list.get(extId)
+  if (stat !== true && tab) {
+    const ref = framesForTab.get(tab.id), oldInfo = ref ? ref.unknownExt_ : null
+    if (ref && (oldInfo == null || oldInfo !== extId && typeof oldInfo === "string")) {
+      ref.unknownExt_ = oldInfo == null ? extId : 2
+    }
+  }
   if (stat != null) { return stat }
   if (url === settings.cache_.vomnibarPage_f) { return true }
   if (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)

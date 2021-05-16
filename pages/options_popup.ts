@@ -224,8 +224,8 @@ Promise.all([bgSettings_.restore_ && bgSettings_.restore_(), new Promise<[chrome
   const curTab = activeTabs[0], _url = curTab.url
   let ref = BG_.Backend_.indexPorts_(curTab.id), blockedMsg = $("#blocked-msg")
   const notRunnable = !(ref || curTab && _url && curTab.status === "loading" && (<RegExpOne> /^(ht|s?f)tp/).test(_url))
-  if (notRunnable) {
-    onNotRunnable(blockedMsg, curTab, _url)
+  if (notRunnable || hasUnknownExt(ref)) {
+    onNotRunnable(blockedMsg, curTab, _url, ref)
     initOptionsLink(_url)
     nextTick_(showI18n)
     return
@@ -273,7 +273,13 @@ Promise.all([bgSettings_.restore_ && bgSettings_.restore_(), new Promise<[chrome
   setupBorderWidth_ && nextTick_(setupBorderWidth_)
 })
 
-const onNotRunnable = (blockedMsg: HTMLElement, curTab: chrome.tabs.Tab | null, _url: string) => {
+const hasUnknownExt = (frames: Frames.Frames | null) => {
+  return !!frames && typeof frames.unknownExt_ === "string"
+      && bgSettings_.extAllowList_.get(frames.unknownExt_) !== true
+}
+
+const onNotRunnable = (blockedMsg: HTMLElement, curTab: chrome.tabs.Tab | null, _url: string
+    , frames: Frames.Frames | null) => {
   const body = document.body as HTMLBodyElement, docEl = document.documentElement as HTMLHtmlElement
   body.innerText = ""
   blockedMsg.style.display = ""
@@ -291,12 +297,16 @@ const onNotRunnable = (blockedMsg: HTMLElement, curTab: chrome.tabs.Tab | null, 
   }
   body.style.width = "auto"
   body.appendChild(blockedMsg)
-  const extHost = _url.startsWith(location.protocol) && !_url.startsWith(location.origin) ? new URL(_url).host : "",
+  const extHost = hasUnknownExt(frames) ? frames!.unknownExt_ as string
+      : _url.startsWith(location.protocol) && !_url.startsWith(location.origin) ? new URL(_url).host : "",
   extStat = extHost ? bgSettings_.extAllowList_.get(extHost) : null
-  if (extStat != null && (!OnChrome ? !extStat || typeof extStat === "string" : !extStat)) {
+  if (extStat != null && extStat !== true) {
     const refusedEl = $<EnsuredMountedHTMLElement>("#injection-refused")
     refusedEl.style.display = ""
     refusedEl.nextElementSibling.remove()
+    if (frames) {
+      frames.unknownExt_ = -1
+    }
     $<HTMLAnchorElement>("#doAllowExt").onclick = function () {
       let list = bgSettings_.get_("extAllowList"), old = list.split("\n"), extIdToAdd = extHost
       if (!OnChrome) {
@@ -309,6 +319,7 @@ const onNotRunnable = (blockedMsg: HTMLElement, curTab: chrome.tabs.Tab | null, 
         list = old.join("\n")
         bgSettings_.set_("extAllowList", list)
       }
+      frames && (frames.unknownExt_ = null)
       this.onclick = null as never
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs1): void => {
         const cb = (): void => {

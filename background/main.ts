@@ -280,8 +280,7 @@ Backend_ = {
       }
       browser_.runtime.onConnectExternal!.addListener(function (port): void {
         let { sender, name } = port, arr: string[];
-        if (sender
-            && isExtIdAllowed(sender.id, sender.url)
+        if (sender && isExtIdAllowed(sender)
             && name.startsWith(PortNameEnum.Prefix) && (arr = name.split(PortNameEnum.Delimiter)).length > 1) {
           if (arr[1] !== settings.CONST_.GitVer) {
             (port as Port).postMessage({ N: kBgReq.injectorRun, t: InjectorTask.reload });
@@ -307,7 +306,7 @@ Backend_ = {
 (browser_.runtime.onMessageExternal!.addListener((
       message: boolean | number | string | null | undefined | ExternalMsgs[keyof ExternalMsgs]["req"]
       , sender, sendResponse): void => {
-    if (!isExtIdAllowed(sender.id, sender.url)) {
+    if (!isExtIdAllowed(sender)) {
       sendResponse(false);
       return;
     }
