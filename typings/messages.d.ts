@@ -308,19 +308,18 @@ interface CmdOptions {
   [kFgCmd.scroll]: {
     /** continuous */ $c?: kKeyCode;
     axis?: "y" | "x";
+    smooth?: boolean
+    keepHover?: true | false | "auto" | "never" | /* or >= 20 */ 20
+  } & ({
     dir?: 1 | -1 | 0.5 | -0.5;
     view?: 0 | /** means 0 */ undefined | 1 | "max" | /* all others are treated as "view" */ 2 | "view";
     dest?: undefined;
-    keepHover?: true | false | "auto" | "never" | /* or >= 20 */ 20
   } | {
-    /** continuous */ $c?: kKeyCode;
     dest: "min" | "max";
-    axis?: "y" | "x";
     view?: undefined;
     sel?: "clear";
     dir?: undefined;
-    keepHover?: true | false | "auto" | "never" | /* or >= 20 */ 20
-  };
+  });
   [kFgCmd.toggle]: {
     k: keyof SettingsNS.FrontendSettingsSyncingItems;
     n: string; // `"${SettingsNS.FrontendSettingsSyncingItems[keyof SettingsNS.FrontendSettingsSyncingItems][0]}"`
@@ -392,6 +391,7 @@ interface CmdOptions {
     /* auto use selected text */ s: boolean;
     /** findCSS */ f: FindCSS | null;
     /** use post mode on esc */ p: boolean;
+    /** restart finding */ e: boolean;
     /** normalize text */ n: boolean
   } & Req.FallbackOptions
   [kFgCmd.autoOpen]: {
@@ -466,6 +466,7 @@ interface FgRes {
   };
   [kFgReq.execInChild]: boolean;
   [kFgReq.i18n]: { /** rawMessages */ m: string[] | null };
+  [kFgReq.searchAs]: /** tip if not found */ string | 0
 }
 interface FgReqWithRes {
   [kFgReq.findQuery]: {
@@ -497,6 +498,12 @@ interface FgReqWithRes {
     /** ensured args */ a: FgOptions;
   } & Omit<BaseExecute<FgOptions, FgCmdAcrossFrames>, "H">;
   [kFgReq.i18n]: {};
+  [kFgReq.searchAs]: {
+    /** url */ u: string;
+    /** selected text */ t: string;
+    /** sed */ s: ParsedSedOpts | null;
+    /** copied */ c: boolean | undefined;
+  };
 }
 
 interface FgReq {
@@ -511,12 +518,6 @@ interface FgReq {
   [kFgReq.findQuery]: {
     /** query */ q: string;
     /** index */ i?: undefined;
-  };
-  [kFgReq.searchAs]: {
-    /** url */ u: string;
-    /** selected text */ t: string;
-    /** sed */ s: ParsedSedOpts | null;
-    /** copied */ c: boolean | undefined;
   };
   [kFgReq.gotoSession]: {
     /** sessionId */ s: string | number;
@@ -592,7 +593,8 @@ interface FgReq {
   };
   [kFgReq.removeSug]: {
     /** type */ t: "tab" | "history";
-    /** url */ u: string;
+    /** sessionId / tabId */ s?: string | number | null
+    /** url */ u: string
   };
   [kFgReq.openImage]: {
     /** file */ f: string | null;
@@ -653,7 +655,7 @@ interface OpenUrlOptions extends UserSedOptions {
   window?: boolean | "popup" | "normal" | null
 }
 interface OpenPageUrlOptions extends Pick<OpenUrlOptions, "position" | "window"> {
-  keyword?: string; replace?: string | ValidUrlMatchers | null; testUrl?: boolean
+  keyword?: string; replace?: string | ValidUrlMatchers | null; testUrl?: null | boolean | "whole-string"
 }
 interface ParsedOpenPageUrlOptions {
   /** keyword */ k?: OpenPageUrlOptions["keyword"]

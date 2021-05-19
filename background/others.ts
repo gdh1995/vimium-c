@@ -210,7 +210,9 @@ BgUtils_.timeout_(600, function (): void {
         , canBeDeleted = (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeleting
               || (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox) && mayDelete)
             && !(autoSelect && i === 0) && (
-          type === "tab" ? sugItem.s !== TabRecency_.curTab_ : type === "history" && !hasSessionId
+          type === "tab" ? sugItem.s !== TabRecency_.curTab_
+          : type === "history" && (!(Build.BTypes & ~BrowserType.Firefox)
+              || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox || !hasSessionId) 
         );
       if (urlDict.has(url)) {
         url = `:${i + di} ${url}`
@@ -394,7 +396,7 @@ BgUtils_.timeout_(600, function (): void {
     if (url![0] === ":") {
       url = url!.slice(url!.indexOf(" ") + 1);
     }
-    return Backend_.removeSug_({ t: type, u: type === "tab" ? info!.sessionId_ as string : url! });
+    Backend_.reqH_[kFgReq.removeSug]({ t: type, u: type === "tab" ? info!.sessionId_ as string : url! }, null)
   });
 });
 

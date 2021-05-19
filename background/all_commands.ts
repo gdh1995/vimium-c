@@ -220,10 +220,8 @@ const BackgroundCommands: {
     })
   },
   /* kBgCmd.autoOpenFallback: */ (): void | kBgCmd.autoOpenFallback => {
-    set_cOptions(BgUtils_.safer_<KnownOptions<C.openUrl>>({
-      copied: true,
-      keyword: get_cOptions<C.autoOpenFallback, true>().keyword
-    }))
+    set_cOptions(BgUtils_.extendIf_(
+        BgUtils_.safer_<KnownOptions<C.openUrl>>({ copied: true }), get_cOptions<C.openUrl, true>()))
     openUrl()
   },
   /* kBgCmd.captureTab: */ captureTab,

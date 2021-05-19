@@ -217,14 +217,15 @@ const performScroll = ((el: SafeElement | null, di: ScrollByY, amount: number, b
 }
 
 /** should not use `scrollingTop` (including `dimSize_(scrollingTop, clientH/W)`) */
-export const $sc = (element: SafeElement | null, di: ScrollByY, amount: number): void => {
+export const $sc = (element: SafeElement | null, di: ScrollByY, amount: number
+      , options?: CmdOptions[kFgCmd.scroll]): void => {
     if (hasSpecialScrollSnap(element)) {
       while (amount * amount >= 1 && !performScroll(element, di, amount)) {
         amount /= 2;
       }
       checkCurrent(element)
-    } else if (OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
-        ? fgCache.s && allowRAF_old_cr_ : fgCache.s) {
+    } else if ((options && options.smooth != null ? options.smooth : fgCache.s)
+        && !(OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && !allowRAF_old_cr_)) {
       amount && performAnimate(element, di, amount)
       scrollTick(1)
     } else if (amount) {
@@ -286,7 +287,7 @@ export const executeScroll = function (di: ScrollByY, amount0: number, isTo: BOO
       && (core = !fullscreenEl_unsafe_() && getParentVApi())
       && (Lower(attr_s(frameElement_()!, "scrolling") || "") === "no"
           || !doesScroll(element, di, amount || (fromMax ? 1 : 0)))) {
-        core.c(di, amount0, isTo as 0, factor, fromMax as false);
+        core.c(di, amount0, isTo as 0, factor, fromMax as false, options)
         if (core.y().k) {
           scrollTick(1)
           joined = core

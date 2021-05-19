@@ -262,7 +262,9 @@ var BgUtils_ = {
     a.resetRe_();
     a.lastUrlType_ = type;
     return type === Urls.Type.Full
-      ? Build.BTypes & BrowserType.Chrome && oldString.startsWith("extension://") ? "chrome-" + oldString : oldString
+      ? (<RegExpI> /^extension:\/\//i).test(oldString) ? (Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) ? "moz-" : "chrome-"
+        ) + oldString : oldString
       : type === Urls.Type.Search ?
         a.createSearchUrl_(oldStrForSearch.split(a.spacesRe_), keyword || "~", vimiumUrlWork)
       : type <= Urls.Type.MaxOfInputIsPlainUrl ?
@@ -324,7 +326,7 @@ var BgUtils_ = {
     let i = str.indexOf("\uff1a") + 1 || str.indexOf(":") + 1;
     let url: string
     if (!i || str[i] === "/") {
-      if (!i || !str.includes("://", i - 1)) {
+      if (!i || str.substr(i + 1, 1) !== "/") {
         return str
       }
       url = str
@@ -334,8 +336,11 @@ var BgUtils_ = {
       url = str.slice(i).trim()
     }
     url = url.split(" ", 1)[0];
-    ",.;\u3002\uff0c\uff1b".includes(url.slice(-1)) && (url = url.slice(0, -1));
-    url = this.convertToUrl_(url, null, Urls.WorkType.KeepAll);
+    if (',.;")\u2018\u2019\u201c\u201d\u3002\u300b\uff09\uff0c\uff1b\uff1e'.includes(url.slice(-1))) {
+      url = url.slice(0, -1)
+    }
+    '"(\u2018\u2019\u201c\u201d\u300a\uff08\uff1c'.includes(url[0]) && (url = url.slice(1))
+    url = BgUtils_.fixCharsInUrl_(url, false, true)
     return BgUtils_.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl && !url.startsWith("vimium:") ? url : str;
   },
   isTld_ (tld: string, onlyEN?: boolean): Urls.TldType {
@@ -733,13 +738,14 @@ var BgUtils_ = {
       ? <RegExpG & RegExpSearchable<0>> /[^\p{L}\p{N}]+/ug
       : <RegExpG & RegExpSearchable<0>> new RegExp("[^\\p{L}\\p{N}]+", "ug" as "g"),
       encodeURIComponent),
-  fixCharsInUrl_ (url: string, alwaysNo3002?: boolean): string {
+  fixCharsInUrl_ (url: string, alwaysNo3002?: boolean, forceConversion?: boolean): string {
     let type = +url.includes("\u3002") + 2 * +url.includes("\uff1a");
-    if (!type) { return url; }
+    if (!type && !forceConversion) { return url; }
     let i = url.indexOf("//");
     i = url.indexOf("/", i >= 0 ? i + 2 : 0);
     if (i >= 0 && i < 4) { return url; }
     let str = i > 0 ? url.slice(0, i) : url;
+    if ((<RegExpI> /^(data|javascript)[:\uff1a]/i).test(str)) { return url }
     if (type & 1) {
       str = str.replace(<RegExpG> /\u3002/g, ".");
     }

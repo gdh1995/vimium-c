@@ -100,6 +100,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.caseInsensitive_ = !!options.icase;
     a.forceNewTab_ = !!options.newtab;
     a.selectFirst_ = options.autoSelect;
+    a.position_ = options.position
     a.notSearchInput_ = options.searchInput === false;
     a.baseHttps_ = null;
     a.noSessionsOnStart_ = options.noSessions === "start"
@@ -188,6 +189,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   maxPageNum_: Math.min(Math.max(3, (window.VomnibarMaxPageNum! | 0) || 10), 100),
   isEditing_: false,
   isInputComposing_: false,
+  position_: null as OpenPageUrlOptions["position"],
   baseHttps_: null as boolean | null,
   isHttps_: null as boolean | null,
   isSearchOnTop_: false,
@@ -823,15 +825,13 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   removeCur_ (): void {
     if (Vomnibar_.selection_ < 0) { return; }
     const completion = Vomnibar_.completions_[Vomnibar_.selection_], type = completion.e;
-    if (type !== "tab" && (type !== "history" || completion.s != null)) {
+    if (type !== "tab" && (type !== "history" || (Build.BTypes & ~BrowserType.Firefox
+          && (!(Build.BTypes & BrowserType.Firefox) || Vomnibar_.browser_ !== BrowserType.Firefox)
+          && completion.s != null))) {
       VPort_.postToOwner_({ N: VomnibarNS.kFReq.hud, k: kTip.failToDelSug });
       return;
     }
-    VPort_.post_({
-      H: kFgReq.removeSug,
-      t: type,
-      u: type === "tab" ? completion.s + "" : completion.u
-    });
+    VPort_.post_({ H: kFgReq.removeSug, t: type, s: completion.s, u: completion.u })
     return Vomnibar_.refresh_();
   },
   onClick_ (event: MouseEventToPrevent): void {
@@ -1421,7 +1421,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       return;
     }
     VPort_.post_({ H: kFgReq.openUrl, r: reuse, h: https, u: url, i: incognito,
-        o: { s: sel === -1 ? Vomnibar_.sed_ : { r: false, k: "" } }})
+        o: { s: sel === -1 ? Vomnibar_.sed_ : { r: false, k: "" }, p: Vomnibar_.position_ }})
     if (reuse === ReuseType.newBg
         && (!Vomnibar_.lastQuery_ || (<RegExpOne> /^\+\d{0,2}$/).exec(Vomnibar_.lastQuery_))) {
       return Vomnibar_.refresh_();

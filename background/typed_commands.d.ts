@@ -22,6 +22,8 @@ interface BgCmdOptions {
     index: "other" | "count" | number
     last: boolean
     postOnEsc: boolean
+    query: string
+    restart: boolean
     returnToViewport: true
     selected: boolean
   } & Req.FallbackOptions
@@ -72,7 +74,7 @@ interface BgCmdOptions {
   [kBgCmd.openUrl]: OpenUrlOptions & MasksForOpenUrl & {
     urls: string[]; $fmt: 1
     url: string; url_f: Urls.Url
-    copied: boolean; goNext: boolean | "absolute"; /** for ReuseType.reuse */ prefix: boolean
+    copied: boolean; paste: boolean; goNext: boolean | "absolute"; /** for ReuseType.reuse */ prefix: boolean
   } & Ensure<OpenPageUrlOptions, keyof OpenPageUrlOptions>
   [kBgCmd.reloadTab]: { hard: true; /** (deprecated) */ bypassCache: true; single: boolean } & LimitedRangeOptions
   [kBgCmd.removeRightTab]: LimitedRangeOptions

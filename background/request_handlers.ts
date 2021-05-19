@@ -205,7 +205,7 @@ set_reqH_([
       str = decoded ? enc(path) : path
       url = url.slice(0, start) + (end ? str + url.slice(end) : str)
     }
-    let substituted = substitute_(url, SedContext.gotoUrl, request.s) || url
+    let substituted = substitute_(url, SedContext.gotoUpperUrl, request.s) || url
     if (substituted !== url) {
       // if substitution returns an invalid URL, then refuse it
       const url4 = BgUtils_.convertToUrl_(substituted, null, Urls.WorkType.KeepAll)
@@ -214,14 +214,15 @@ set_reqH_([
     BgUtils_.resetRe_()
     return { u: url, p: path }
   }) as BackendHandlersNS.SpecialHandlers[kFgReq.parseUpperUrl],
-  /** kFgReq.searchAs: */ (request: FgReq[kFgReq.searchAs], port: Port): void => {
+  /** kFgReq.searchAs: */ (request: FgReqWithRes[kFgReq.searchAs], port: Port): FgRes[kFgReq.searchAs] => {
     let search = Backend_.parse_(request), query: string | null | Promise<string | null>
     if (!search || !search.k) {
       set_cPort(port)
-      return showHUD(trans_("noEngineFound"))
+      return trans_("noEngineFound")
     }
-    query = request.t.trim() || (request.c ? paste_(request.s) : "")
-    const doSearch = (query2: string | null): void => {
+    query = request.t.trim() && substitute_(request.t.trim(), SedContext.pageText, request.s).trim()
+        || (request.c ? paste_(request.s) : "")
+    Promise.resolve(query).then((query2: string | null): void => {
       let err = query2 === null ? "It's not allowed to read clipboard"
         : (query2 = query2.trim()) ? "" : trans_("noSelOrCopied")
       if (err) {
@@ -231,12 +232,8 @@ set_reqH_([
       }
       query2 = BgUtils_.createSearchUrl_(query2!.split(BgUtils_.spacesRe_), search!.k)
       openShowPage(query2, ReuseType.current, {}) || safeUpdate(query2)
-    }
-    if (query instanceof Promise) {
-      query.then(doSearch)
-      return
-    }
-    doSearch(query)
+    })
+    return 0
   },
   /** kFgReq.gotoSession: */ (request: FgReq[kFgReq.gotoSession], port?: Port): void => {
     const id = request.s, active = request.a !== false
@@ -427,8 +424,30 @@ set_reqH_([
   },
   /** kFgReq.focusOrLaunch: */ focusOrLaunch,
   /** kFgReq.cmd: */ onConfirmResponse,
-  /** kFgReq.removeSug: */ (req: FgReq[kFgReq.removeSug], port?: Port): void => {
-    Backend_.removeSug_(req, port)
+  /** kFgReq.removeSug: */ ({ t: rawType, s: sId, u: url }: FgReq[kFgReq.removeSug], port?: Port | null): void => {
+    const type = rawType === "history" && sId != null ? "session" : rawType
+    const name = type === "tab" ? type : type + " item"
+    const cb = (succeed?: boolean | BOOL | void): void => {
+      showHUD(trans_(succeed ? "delSug" : "notDelSug", [trans_("sug_" + type) || name]))
+    }
+    set_cPort(findCPort(port))
+    if (type === "tab" && TabRecency_.curTab_ === +sId!) {
+      showHUD(trans_("notRemoveCur"))
+    } else if (type !== "session") {
+      Completion_.removeSug_(url, type, cb)
+    } else {
+      const sessions = browserSessions()
+      if ((Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox
+            || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSessions) && !sessions) {
+        return
+      }
+      (sessions.getRecentlyClosed as unknown as () => Promise<chrome.sessions.Session[]>)().then((list): void => {
+        const found = list.filter(i => i.tab && i.tab.sessionId === sId)[0]
+        if (found) {
+          sessions.forgetClosedTab(found.tab!.windowId, sId as string).then(() => 1 as const, BgUtils_.blank_).then(cb)
+        }
+      })
+    }
   },
   /** kFgReq.openImage: */ openImgReq,
   /** kFgReq.evalJSFallback" */ (req: FgReq[kFgReq.evalJSFallback], port: Port): void => {

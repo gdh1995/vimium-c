@@ -99,6 +99,15 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
           || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
           || !OnEdge && ui_box !== ui_root ? createStyle(css) : sin
   }
+  const initStartPoint = (): void => {
+    if (initialRange = selRange_(getSelected())) {
+      collpaseSelection(getSelection_()) // `range.collapse` doesn't work when inside a ShadowRoot (C72)
+    } else {
+      (initialRange = doc.createRange()).setStart(doc.body || docEl_unsafe_()!, 0)
+    }
+    initialRange.collapse(!0)
+    if (options.r) { coords = [scrollX, scrollY] }
+  }
   /** return an element if no <a> else null */
   const focusFoundLinkIfAny = (): SafeElement | null | void => {
     let cur = OnFirefox ? getSelectionParent_unsafe(getSelected()) as SafeElement | null
@@ -181,6 +190,8 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
       if (query = query || query_) {
         styleSelColorOut || initSelColors(AdjustType.MustAdjust)
         const isNewQuery = query !== query_
+        initialRange || query_ || initStartPoint()
+        if (options.e) { activeRegexIndex = 0; restoreSelection() }
         if (isNewQuery) {
           updateQuery(query)
           if (isActive) {
@@ -188,7 +199,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
             showCount(1)
           }
         }
-        if (isNewQuery) { activeRegexIndex -= options.c > 0 ? 1 : -1 }
+        if (options.e || isNewQuery) { activeRegexIndex -= options.c > 0 ? 1 : -1 }
         isQueryRichText_ = true
         const hud_showing = !isActive && hud_opacity === 1
         hud_showing && hud_toggleOpacity("0")
@@ -207,6 +218,19 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
           }
         } else {
           focusFoundLinkIfAny()
+          if (!isActive) {
+            replaceOrSuppressMost_(kHandler.find, (event: HandlerNS.Event): HandlerResult => {
+              const exit = isEscape_(getMappedKey(event, kModeId.Insert))
+              removeHandler_(kHandler.find)
+              if (exit) {
+                const old = initialRange
+                deactivate(FindAction.ExitNoAnyFocus)
+                toggleStyle(1)
+                resetSelectionToDocStart(getSelection_(), old)
+              }
+              return exit ? HandlerResult.Prevent : HandlerResult.Nothing;
+            })
+          }
           postActivate()
         }
       } else {
@@ -226,14 +250,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
       setFirstQuery(query)
       replaceOrSuppressMost_(kHandler.find, onHostKeydown)
   } else {
-    if (initialRange = selRange_(getSelected())) {
-      collpaseSelection(getSelection_()) // `range.collapse` doesn't work when inside a ShadowRoot (C72)
-    } else {
-      (initialRange = doc.createRange()).setStart(doc.body || docEl_unsafe_()!, 0)
-    }
-    initialRange.collapse(!0)
-    if (options.r) { coords = [scrollX, scrollY] }
-
+    initStartPoint()
     parsedQuery_ = query_ = ""
     parsedRegexp_ = regexMatches = null
     activeRegexIndex = 0

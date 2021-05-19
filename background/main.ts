@@ -4,7 +4,7 @@ import {
   contentPayload, cPort, needIcon_, reqH_, settings, set_cPort, set_needIcon_, set_visualWordsRe_
 } from "./store"
 import "./ui_css"
-import { indexFrame, findCPort, OnConnect, isExtIdAllowed, getPortUrl, showHUD, complainLimits } from "./ports"
+import { indexFrame, OnConnect, isExtIdAllowed, getPortUrl, showHUD, complainLimits } from "./ports"
 import { executeShortcut } from "./frame_commands"
 import "./all_commands"
 import "./request_handlers"
@@ -36,17 +36,6 @@ Backend_ = {
     reqH_,
     getExcluded_: null,
     getPortUrl_: getPortUrl,
-    removeSug_ (this: void, { t: type, u: url }: FgReq[kFgReq.removeSug], port?: Port | null): void {
-      const name = type === "tab" ? type : type + " item"
-      set_cPort(findCPort(port))
-      if (type === "tab" && TabRecency_.curTab_ === +url) {
-        showHUD(trans_("notRemoveCur"))
-      } else {
-        Completion_.removeSug_(url, type, (succeed): void => {
-          showHUD(trans_(succeed ? "delSug" : "notDelSug", [trans_("sug_" + type) || name]))
-        })
-      }
-    },
     setIcon_ (): void { /* empty */ },
     complain_: complainLimits,
     parse_ (this: void, request: FgReqWithRes[kFgReq.parseSearchUrl]): FgRes[kFgReq.parseSearchUrl] {

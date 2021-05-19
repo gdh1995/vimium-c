@@ -550,6 +550,7 @@ declare namespace BackendHandlersNS {
     };
     [kFgReq.focusOrLaunch]: (this: void, request: MarksNS.FocusOrLaunch, _port?: Port | null, notFolder?: true) => void;
     [kFgReq.setOmniStyle]: (this: void, request: FgReq[kFgReq.setOmniStyle], _port?: Port) => void;
+    [kFgReq.removeSug]: (this: void, request: FgReq[kFgReq.removeSug], _port?: Port | null) => void
     [kFgReq.framesGoBack]: {
       (this: void, req: FgReq[kFgReq.framesGoBack], port: Port): void;
       (this: void, req: FgReq[kFgReq.framesGoBack], port: null
@@ -577,7 +578,6 @@ declare namespace BackendHandlersNS {
     reopenTab_ (tab: chrome.tabs.Tab, refresh?: /* false */ 0 | /* a temp blank tab */ 1 | /* directly */ 2,
         exProps?: chrome.tabs.CreateProperties & {openInReaderMode?: boolean}): void;
     setIcon_ (tabId: number, type: Frames.ValidStatus, isLater?: true): void;
-    removeSug_ (this: void, req: FgReq[kFgReq.removeSug], port?: Port): void;
     complain_ (this: BackendHandlers, message: string): void;
     showHUD_ (message: string, isCopy?: kTip): void
     checkHarmfulUrl_ (url: string, port?: Port | null): boolean

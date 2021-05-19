@@ -58,6 +58,11 @@ const findLastVisibleWindow = (wndType: "popup" | "normal" | undefined, alsoCur:
   })))
 }
 
+const findUrlInText = (url: string, testUrl: OpenPageUrlOptions["testUrl"] | UnknownValue): string => {
+  return typeof testUrl === "string" && testUrl.toLowerCase().startsWith("whole")
+    ? BgUtils_.fixCharsInUrl_(url) : BgUtils_.detectLinkDeclaration_(url)
+}
+
 const onEvalUrl_ = (workType: Urls.WorkType, options: OpenUrlOptions, tabs: [Tab] | [] | undefined
     , arr: Urls.SpecialUrl): void => {
   if (arr instanceof Promise) {
@@ -475,7 +480,7 @@ const openCopiedUrl = (tabs: [Tab] | [] | undefined, url: string | null): void =
     const keyword = get_cOptions<C.openUrl>().keyword
     const _rawTest = get_cOptions<C.openUrl>().testUrl
     if (_rawTest != null ? _rawTest : !keyword || keyword === "~") {
-      url = BgUtils_.detectLinkDeclaration_(url)
+      url = findUrlInText(url, _rawTest)
     }
   }
   let start = url.indexOf("://") + 3
@@ -522,13 +527,11 @@ export const openUrl = (tabs?: [Tab] | []): void => {
     return runtimeError_() || <any> void getCurTab(openUrl)
   }
   let sed = parseSedOptions_(get_cOptions<C.openUrl, true>())
-  if (get_cOptions<C.openUrl>().url) {
-    let url = get_cOptions<C.openUrl>().url + ""
-    if (sed) {
-      url = substitute_(url, SedContext.paste, sed)
-    }
-    openUrlWithActions(url, Urls.WorkType.EvenAffectStatus, tabs)
-  } else if (get_cOptions<C.openUrl>().copied) {
+  let rawUrl = get_cOptions<C.openUrl>().url
+  if (rawUrl) {
+    rawUrl = sed ? substitute_(rawUrl + "", SedContext.NONE, sed) : rawUrl + ""
+    openUrlWithActions(rawUrl, Urls.WorkType.EvenAffectStatus, tabs)
+  } else if (get_cOptions<C.openUrl>().copied || get_cOptions<C.openUrl>().paste) {
     const url = paste_(sed)
     if (url instanceof Promise) {
       url.then(/*#__NOINLINE__*/ openCopiedUrl.bind(null, tabs))
@@ -569,7 +572,7 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port): void =>
       url = url !== request.u ? BgUtils_.convertToUrl_(url) : url
     }
     else if (testUrl) {
-      url = BgUtils_.fixCharsInUrl_(url)
+      url = findUrlInText(url, testUrl)
       url = BgUtils_.convertToUrl_(url, keyword
           , isWeb ? Urls.WorkType.ConvertKnown : Urls.WorkType.EvenAffectStatus)
       const type = BgUtils_.lastUrlType_
