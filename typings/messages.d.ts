@@ -223,7 +223,7 @@ type SelectActions = "" | "all" | "all-input" | "all-line" | "start" | "end";
 
 interface ParsedSedOpts {
   /** sed rules, split by spaces */ r: string | boolean | null | undefined
-  /** keys */ k: string | null | undefined
+  /** keys */ k: string | null | undefined | object
 }
 type MixedSedOpts = string | boolean | ParsedSedOpts
 interface UserSedOptions {
@@ -447,12 +447,13 @@ declare const enum kMarkAction {
 declare const enum SedContext {
   NONE = 0,
   /** `c` */ copy = 1 << 2,
-  /** `p` */ paste = 1 << 15,
+  /** `g` */ gotoUpperUrl = 1 << 6,
   /** `i` */ image = 1 << 8,
-  /** `g` */ gotoUrl = 1 << 6,
   /** `n` */ goNext = 1 << 13,
   /** `o` */ omni = 1 << 14,
+  /** `p` */ paste = 1 << 15,
   /** `r` */ goToRoot = 1 << 17,
+  /** `t` */ pageText = 1 << 19,
   NO_STATIC = 1 << 30,
 }
 

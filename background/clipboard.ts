@@ -1,38 +1,52 @@
 import { settings } from "./store"
 
 declare const enum SedAction {
-  NONE = 0, decodeForCopy = 1, decodeMaybeEscaped = 2, unescape = 3,
-  upper = 4, lower = 5, normalize = 6, reverseText = 7, base64Decode = 8, base64Encode = 9,
-  encode = 10, encodeComp = 11,
+  NONE = 0, decodeForCopy = 1, decode = 1, decodeuri = 1, decodeurl = 1,
+  decodeMaybeEscaped = 2, decodecomp = 2, unescape = 3,
+  upper = 4, lower = 5, normalize = 6, reverseText = 7, reverse = 7,
+  base64Decode = 8, atob = 8, base64 = 8, base64Encode = 9, btoa = 9,
+  encode = 10, encodeComp = 11, encodeAll = 12, encodeAllComp = 13,
+  camel = 14, camelcase = 14, dash = 15, dashed = 15, hyphen = 15, capitalize = 16, capitalizeAll = 17,
 }
+type Contexts = { normal_: SedContext, extras_: kCharCode[] | null}
 interface ClipSubItem {
-  readonly contexts_: SedContext; readonly host_: string | null; readonly match_: RegExp
+  readonly contexts_: Contexts; readonly host_: string | null; readonly match_: RegExp
   readonly retainMatched_: BOOL; readonly actions_: SedAction[]; readonly replaced_: string
 }
 
-const SedActionMap: ReadonlySafeDict<SedAction> = {
+const SedActionMap: ReadonlySafeDict<SedAction> = As_<SafeObject & {
+  [key in Exclude<keyof typeof SedAction, "NONE"> as NormalizeKeywords<key>]: (typeof SedAction)[key]
+}>({
   __proto__: null as never,
-  atob: SedAction.base64Decode, base64: SedAction.base64Decode, btoa: SedAction.base64Encode,
-  base64encode: SedAction.base64Encode,
+  atob: SedAction.base64Decode, base64: SedAction.base64Decode, base64decode: SedAction.base64Decode,
+  btoa: SedAction.base64Encode, base64encode: SedAction.base64Encode, decodeforcopy: SedAction.decodeForCopy,
   decode: SedAction.decodeForCopy, decodeuri: SedAction.decodeForCopy, decodeurl: SedAction.decodeForCopy,
+  decodemaybeescaped: SedAction.decodeMaybeEscaped,
   decodecomp: SedAction.decodeMaybeEscaped, encode: SedAction.encode, encodecomp: SedAction.encodeComp,
+  encodeall: SedAction.encodeAll, encodeallcomp: SedAction.encodeAllComp,
   unescape: SedAction.unescape, upper: SedAction.upper, lower: SedAction.lower,
-  normalize: SedAction.normalize, reverse: SedAction.reverseText
-}
+  capitalize: SedAction.capitalize, capitalizeall: SedAction.capitalizeAll,
+  camel: SedAction.camel, camelcase: SedAction.camelcase, dash: SedAction.dash, dashed: SedAction.dash,
+  hyphen: SedAction.hyphen,
+  normalize: SedAction.normalize, reverse: SedAction.reverseText, reversetext: SedAction.reverseText,
+})
 
 let staticSeds_: readonly ClipSubItem[] | null = null
 
-const parseSeds_ = (text: string, fixedContexts: SedContext): readonly ClipSubItem[] => {
+const parseSeds_ = (text: string, fixedContexts: Contexts | null): readonly ClipSubItem[] => {
   const result: ClipSubItem[] = []
+  const sepReCache: Map<string, RegExpOne> = new Map()
   for (let line of text.split("\n")) {
     line = line.trim()
-    const prefix = (<RegExpOne> /^([a-z]{1,6})([^\x00- A-Za-z\\])/).exec(line)
+    const prefix = (<RegExpOne> /^([A-Za-z\x80-\ufffd]{1,6})([^\x00- A-Za-z\\\x7f-\uffff])/).exec(line)
     if (!prefix) { continue }
-    const sep = "\\u" + (prefix[2].charCodeAt(0) + 0x10000).toString(16).slice(1),
-    head = prefix[1],
-    body = new RegExp(`^((?:\\\\${sep}|[^${sep}])+)${sep}(.*)${sep
-        }([a-zD]{0,9})((,[A-Za-z]+|,host=[\\w.*-]+)*)$`
-        ).exec(line.slice(prefix[0].length))
+    let sep = prefix[2], sepRe = sepReCache.get(sep)
+    if (!sepRe) {
+      const s = "\\u" + (sep.charCodeAt(0) + 0x10000).toString(16).slice(1)
+      sepRe = new RegExp(`^((?:\\\\${s}|[^${s}])+)${s}(.*)${s}([a-zD]{0,9})((?:,[A-Za-z-]+|,host=[\\w.*-]+)*)$`)
+      sepReCache.set(sep, sepRe)
+    }
+    const head = prefix[1], body = sepRe.exec(line.slice(prefix[0].length))
     if (!body) { continue }
     let suffix = body[3]
     let flags = suffix.replace(<RegExpG> /[dDr]/g, "")
@@ -45,13 +59,13 @@ const parseSeds_ = (text: string, fixedContexts: SedContext): readonly ClipSubIt
       } else if (i === "matched") {
         retainMatched = 1
       } else {
-        let action = SedActionMap[i] || SedAction.NONE
+        let action = SedActionMap[i.replace(<RegExpG> /-/g, "")] || SedAction.NONE
         action && actions.push(action)
       }
     }
     const matchRe = BgUtils_.makeRegexp_(body[1], retainMatched ? flags.replace("g", "") : flags)
     matchRe && result.push({
-      contexts_: fixedContexts || parseSedKeys_(head),
+      contexts_: fixedContexts || parseSedKeys_(head)!,
       host_: host,
       match_: matchRe,
       retainMatched_: retainMatched,
@@ -72,49 +86,138 @@ const decodeSlash_ = (text: string): string =>
             : s // like r"abc\.def" / r"abc\\def"
     )
 
+const convertCaseWithLocale = (text: string, action: SedAction): string => {
+  const camel = action === SedAction.camel, dash = action === SedAction.dash, cap = action === SedAction.capitalize
+  const capAll = action === SedAction.capitalizeAll
+  const re = <RegExpG>
+    (Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther & BrowserType.Edge)
+      || Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp && Build.BTypes & BrowserType.Chrome
+        && CurCVer_ < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+      || Build.MinFFVer < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+        && Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)
+        && CurFFVer_ < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+    ? camel || dash
+      ? /(?:[-_\s\/+\u2010-\u2015]|(\d)|^)([a-z\u03b1-\u03c9]|[A-Z\u0391-\u03a9]+[a-z\u03b1-\u03c9]?)|[\t\r\n\/+]/g
+      : cap ? /(\b|_)[a-z\u03b1-\u03c9]/ : capAll ? /(\b|_)[a-z\u03b1-\u03c9]/g : null
+    : (Build.MinCVer >= BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp || !(Build.BTypes & BrowserType.Chrome))
+      && (Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+          || !(Build.BTypes & BrowserType.Firefox))
+      && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+    ? camel || dash ? /(?:[-_\t\r\n\/+\u2010-\u2015\p{Z}]|(\p{N})|^)(\p{Ll}|\p{Lu}+\p{Ll}?)|[\t\r\n\/+]/ug
+      : cap ? /(\b|_)\p{Ll}/u : capAll ? /(\b|_)\p{Ll}/ug : null
+    : new RegExp(camel || dash
+        ? "(?:[-_\\t\\r\\n/+\\u2010-\\u2015\\p{Z}]|(\\p{N})|^)(\\p{Ll}|\\p{Lu}+\\p{Ll}?)|[\\t\\r\\n/+]"
+        : cap || capAll ? "(\\b|_)\\p{Ll}" : "", (cap ? "u" : "ug") as "g"))
+  let count = 0, start = 0
+  const toLower = (s: string, lower: boolean): string => lower ? s.toLocaleLowerCase!() : s.toLocaleUpperCase!()
+  text = camel || dash ? text.replace(re as RegExpG & RegExpSearchable<2>, (s, p, b, i): string => {
+    const resetStart = "\t\r\n/+".includes(s[0])
+    const isFirst = resetStart || !count++ && text.slice(start, i).toUpperCase() === text.slice(start, i).toLowerCase()
+    if (resetStart) { count = 0; start = i + 1 }
+    b = !b ? "" : b.length > 2 && b.slice(-1).toLowerCase() === b.slice(-1)
+        && !(<RegExpOne> /^e?s\b/).test(text.substr(i + s.length - 1, 3))
+        ? dash ? toLower(b.slice(0, -2), true) + "-" + toLower(b.slice(-2), true)
+          : toLower(b[0], isFirst) + toLower(b.slice(1, -2), true) + toLower(b.slice(-2, -1), false) + b.slice(-1)
+        : dash ? toLower(b, true) : toLower(b[0], isFirst) + toLower(b.slice(1), true)
+    return (resetStart ? s[0] : (p || "") + (p || dash && !isFirst ? "-" : "")) + b
+  }) : cap || capAll ? text.replace(re as RegExpG & RegExpSearchable<1>, s => toLower(s, false)) : text
+  if (dash) {
+    text = text.replace(<RegExpG & RegExpSearchable<1>> (Build.BTypes & BrowserType.Edge
+        && (!(Build.BTypes & ~BrowserType.Edge) || OnOther & BrowserType.Edge)
+      || Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp && Build.BTypes & BrowserType.Chrome
+        && CurCVer_ < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+      || Build.MinFFVer < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+        && Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)
+        && CurFFVer_ < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+      ? /[a-z\u03b1-\u03c9]([A-Z\u0391-\u03a9]+[a-z\u03b1-\u03c9]?)/g
+      : (Build.MinCVer >= BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp || !(Build.BTypes & BrowserType.Chrome))
+        && (Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+            || !(Build.BTypes & BrowserType.Firefox))
+        && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+      ? /\p{Ll}(\p{Lu}+\p{Ll}?)/ : new RegExp("\\p{Ll}(\\p{Lu}+\\p{Ll})", "ug" as "g"))
+    , (s, b, i): string => {
+      // s[0] + "-" + toLower(s.slice(1), true))
+      b = b.length > 2 && b.slice(-1).toLowerCase() === b.slice(-1)
+          && !(<RegExpOne> /^e?s\b/).test(text.substr(i + s.length - 1, 3))
+          ? toLower(b.slice(0, -2), true) + "-" + toLower(b.slice(-2), true) : toLower(b, true)
+      return s[0] + "-" + b
+    })
+  }
+  return text
+}
+
 export const parseSedOptions_ = (sed: UserSedOptions): ParsedSedOpts | null => {
   let r = sed.sed, k = sed.sedKeys || sed.sedKey
   return r == null && !k ? null
       : !r || typeof r !== "object" ? { r, k } : r.r != null || r.k ? r : null
 }
 
-const parseSedKeys_ = (keys: string): SedContext => {
-  let context = SedContext.NONE
+const parseSedKeys_ = (keys: string | object, parsed?: ParsedSedOpts): Contexts | null => {
+  if (typeof keys === "object") {
+    return (keys as Contexts).normal_ || (keys as Contexts).extras_ ? keys as Contexts : parsed ? parsed.k = null : null
+  }
+  let extras_: kCharCode[] | null = null, normal_ = SedContext.NONE
   for (let i = 0; i < keys.length; i++) {
-    const ch = keys.charCodeAt(i) & ~kCharCode.CASE_DELTA
-    context |= ch < kCharCode.minAlphabet || ch > kCharCode.maxAlphabet ? SedContext.NONE
+    const code = keys.charCodeAt(i)
+    if (code > 0x7f) {
+      extras_ || (extras_ = [])
+      if (parsed || (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
+                      ? extras_.indexOf(code) < 0 : !extras_.includes!(code))) {
+        extras_.push(code)
+      }
+      continue
+    }
+    const ch = code & ~kCharCode.CASE_DELTA
+    normal_ |= ch < kCharCode.minAlphabet || ch > kCharCode.maxAlphabet ? SedContext.NONE
       : ch === kCharCode.S ? SedContext.copy | SedContext.paste : (1 << (ch - kCharCode.A)) as SedContext
   }
-  return context
+  const result = normal_ || extras_ ? { normal_, extras_ } : null
+  return parsed ? parsed.k = result : result
+}
+
+const intersectContexts = (a: Contexts, b: Contexts): boolean => {
+  if (a.normal_ & b.normal_) { return true }
+  const e2 = b.extras_
+  if (!a.extras_ || !e2) { return false }
+  for (const i of a.extras_) {
+    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
+        ?  e2.indexOf(i) >= 0 : e2.includes!(i)) { return true }
+  }
+  return false
 }
 
 export const doesNeedToSed = (context: SedContext, sed: ParsedSedOpts | null): boolean => {
-  if (sed && (sed.r === false || sed.r && typeof sed.r === "string")) { return sed.r !== false }
+  if (sed && (sed.r === false || sed.r && sed.r !== true)) { return sed.r !== false }
   // if (!sed || sed.r === false || !sed.k && )
-  context = sed && sed.k && parseSedKeys_(sed.k) || context
-  staticSeds_ || context && substitute_("", SedContext.NONE, { r: "", k: "" })
-  for (const item of staticSeds_!) {
-    if (item.contexts_ & context) {
+  const contexts: Contexts | null = sed && sed.k && parseSedKeys_(sed.k, sed)
+      || (context ? { normal_: context, extras_: null } : null)
+  staticSeds_ || contexts && (staticSeds_ = parseSeds_(settings.get_("clipSub"), null))
+  for (const item of contexts ? staticSeds_! : []) {
+    if (intersectContexts(item.contexts_, contexts!)) {
       return true
     }
   }
-  return !staticSeds_
+  return false
 }
 
-export const substitute_ = (text: string, context: SedContext, mixedSed?: MixedSedOpts | null): string => {
-  const notParsed = !mixedSed || typeof mixedSed !== "object"
-  let rules = notParsed ? mixedSed as Exclude<typeof mixedSed, ParsedSedOpts> : (mixedSed as ParsedSedOpts).r
+export const substitute_ = (text: string, normalContext: SedContext, mixedSed?: MixedSedOpts | null): string => {
+  const rules = !mixedSed || typeof mixedSed !== "object" ? mixedSed : mixedSed.r
   if (rules === false) { return text }
-  let arr = staticSeds_ || (staticSeds_ = parseSeds_(settings.get_("clipSub"), SedContext.NONE))
-  context = !notParsed && (mixedSed as ParsedSedOpts).k && parseSedKeys_((mixedSed as ParsedSedOpts).k!) || context
+  let arr = staticSeds_ || (staticSeds_ = parseSeds_(settings.get_("clipSub"), null))
+  let contexts = mixedSed && typeof mixedSed === "object" && mixedSed.k && parseSedKeys_(mixedSed.k!, mixedSed)
+      || (normalContext ? { normal_: normalContext, extras_: null } : null)
   // note: `sed` may come from options of key mappings, so here always convert it to a string
   if (rules && rules !== true) {
-    rules = (rules + "").replace(<RegExpG> /(?!\\) ([a-z]{1,6})(?![\x00- A-Za-z\\])/g, "\n$1")
-    arr = parseSeds_(rules, context || (context = SedContext.NO_STATIC)).concat(arr)
+    contexts || (arr = [])
+    arr = parseSeds_((rules + "").replace(
+          <RegExpG> /(?!\\) ([A-Za-z\x80-\ufffd]{1,6})(?![\x00- A-Za-z\\\x7f-\uffff])/g, "\n$1")
+        , contexts || (contexts = { normal_: SedContext.NO_STATIC, extras_: null })).concat(arr)
   }
   let parsedUrl: URL | null, host: string | null = "", hostType: number
-  for (const item of arr) {
-    if (item.contexts_ & context && (!item.host_
+  for (const item of contexts ? arr : []) {
+    if (intersectContexts(item.contexts_, contexts!) && (!item.host_
           || (host = host !== "" ? host
                 : (parsedUrl = BgUtils_.safeParseURL_(text), parsedUrl && parsedUrl.host.toLowerCase()))
               && (hostType = 2 * +item.host_.endsWith(".*") + +item.host_.startsWith("*."),
@@ -151,6 +254,8 @@ export const substitute_ = (text: string, context: SedContext, mixedSed?: MixedS
             : action === SedAction.lower ? text.toLocaleLowerCase!()
             : action === SedAction.encode ? BgUtils_.encodeAsciiURI(text)
             : action === SedAction.encodeComp ? BgUtils_.encodeAsciiComponent(text)
+            : action === SedAction.encodeAll ? encodeURI(text)
+            : action === SedAction.encodeAllComp ? encodeURIComponent(text)
             : action === SedAction.base64Decode ? BgUtils_.DecodeURLPart_(text, "atob")
             : action === SedAction.base64Encode ? btoa(text)
             : (text = (action === SedAction.normalize || action === SedAction.reverseText)
@@ -159,6 +264,8 @@ export const substitute_ = (text: string, context: SedContext, mixedSed?: MixedS
               action === SedAction.reverseText
               ? (Build.MinCVer < BrowserVer.Min$Array$$From && Build.BTypes & BrowserType.Chrome
                 && !Array.from ? text.split("") : Array.from(text)).reverse().join("")
+              : action === SedAction.camel || action === SedAction.dash || action === SedAction.capitalize ||
+                action === SedAction.capitalizeAll ? convertCaseWithLocale(text, action)
               : text
             )
       }
