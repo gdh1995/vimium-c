@@ -41,6 +41,7 @@ import { isCmdTriggered } from "./key_handler"
 import { hint_box, tryNestedFrame } from "./link_hints"
 import { setPreviousMarkPosition } from "./marks"
 import { keyNames_, prevent_ } from "../lib/keyboard_utils"
+import { runFallbackKey } from "./port"
 
 let toggleAnimation: ((scrolling?: BOOL) => void) | null = null
 let maxKeyInterval = 1
@@ -306,12 +307,15 @@ export const executeScroll = function (di: ScrollByY, amount0: number, isTo: BOO
         : keepHover === "auto" ? ScrollConsts.MinLatencyToAutoPreventHover
         : keepHover! > ScrollConsts.MinLatencyToAutoPreventHover - 1
         ? keepHover as ScrollConsts.MinLatencyToAutoPreventHover : 0
+    const thenKey = options && options.$then
+    thenKey && amount && (options!.smooth = false)
     vApi.$(element, di, amount, options)
     preventPointEvents = keyIsDown ? preventPointEvents : 0
     scrolled = 0
     if (amount && readyState_ > "i" && overrideScrollRestoration) {
       overrideScrollRestoration("scrollRestoration", "manual")
     }
+    thenKey && runFallbackKey(options!, 0)
 } as {
     (di: ScrollByY, amount: number, isTo: 0
       , factor?: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined, fromMax?: false

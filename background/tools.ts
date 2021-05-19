@@ -319,7 +319,7 @@ Marks_ = { // NOTE: all public members should be static
   },
   scrollTab_ (this: void, markInfo: MarksNS.InfoToGo, tab: chrome.tabs.Tab): void {
     const tabId = tab.id, port = Backend_.indexPorts_(tabId, 0);
-    port && port.postMessage({ N: kBgReq.goToMark, l: 0, n: markInfo.n, s: markInfo.s })
+    port && port.postMessage({ N: kBgReq.goToMark, l: 0, n: markInfo.n, s: markInfo.s, f: markInfo.f })
     if (markInfo.t !== tabId && markInfo.n) {
       return Marks_.set_(markInfo as MarksNS.MarkToGo, TabRecency_.incognito_ === IncognitoType.true, tabId);
     }

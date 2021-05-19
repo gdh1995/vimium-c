@@ -4,7 +4,7 @@ import {
   runtimeError_, IncNormalWnd, selectWnd, selectTab, getCurWnd, getCurTabs, getCurTab
 } from "./browser"
 import { cRepeat, get_cOptions, cPort, set_cOptions, cNeedConfirm, set_cPort, settings } from "./store"
-import { complainLimits, focusFrame, requireURL, showHUD } from "./ports"
+import { complainLimits, focusFrame, requireURL, runNextCmd, showHUD } from "./ports"
 import { copy_, parseSedOptions_ } from "./clipboard"
 import { openUrlWithActions } from "./open_urls"
 import { confirm_ } from "./frame_commands"
@@ -518,6 +518,7 @@ export const toggleMuteTab = (): void | kBgCmd.toggleMuteTab => {
       const mute = get_cOptions<kBgCmd.toggleMuteTab>().mute != null ? !!get_cOptions<kBgCmd.toggleMuteTab>().mute : neg
       mute === neg && browserTabs.update(tab.id, { muted: mute })
       showHUD(trans_(mute ? "muted" : "unmuted"))
+      runNextCmd(1, get_cOptions<C.toggleMuteTab, true>())
     })
     return
   }
@@ -544,6 +545,7 @@ export const toggleMuteTab = (): void | kBgCmd.toggleMuteTab => {
       }
     }
     showHUD(trans_(mute ? "mute" : "unmute", [trans_(prefix)]))
+    runNextCmd(1, get_cOptions<C.toggleMuteTab, true>())
   })
 }
 
@@ -577,6 +579,7 @@ export const togglePinTab = (tabs: Tab[]): void => {
   for (start = 0; start < end; start++) {
     browserTabs.update(wantedTabIds[start], action)
   }
+  runNextCmd(1, get_cOptions<C.togglePinTab, true>())
 }
 
 export const toggleTabUrl = (tabs: [Tab]): void | kBgCmd.toggleTabUrl => {

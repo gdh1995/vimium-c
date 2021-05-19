@@ -13,8 +13,8 @@ interface BgCmdOptions {
     reset: boolean
     unhover: boolean
   }
-  [kBgCmd.nextFrame]: {}
-  [kBgCmd.parentFrame]: {}
+  [kBgCmd.nextFrame]: Req.FallbackOptions
+  [kBgCmd.parentFrame]: Req.FallbackOptions
   [kBgCmd.performFind]: {
     active: boolean
     highlight: boolean
@@ -27,7 +27,7 @@ interface BgCmdOptions {
     returnToViewport: true
     selected: boolean
   } & Req.FallbackOptions
-  [kBgCmd.toggle]: { key: string; value: any }
+  [kBgCmd.toggle]: { key: string; value: any } & Req.FallbackOptions
   [kBgCmd.showHelp]: Omit<ShowHelpDialogOptions, "h">
   [kBgCmd.showVomnibar]: VomnibarNS.GlobalOptions // in fact, also accept others in VomnibarNS.FgOptions
       & { secret: number } & Pick<CmdOptions[kFgCmd.vomnibar], "v">
@@ -67,7 +67,7 @@ interface BgCmdOptions {
     sort: "" | "time" | "create" | "recency" | "recent" | "id"
     windows: "" | "current" | "all"
   }
-  [kBgCmd.mainFrame]: {}
+  [kBgCmd.mainFrame]: Req.FallbackOptions
   [kBgCmd.moveTab]: { group: "keep" | "ignore" }
   [kBgCmd.moveTabToNewWindow]: { all: boolean | BOOL; incognito: boolean } & LimitedRangeOptions
   [kBgCmd.moveTabToNextWindow]: { minimized: false; min: false; end: boolean; right: boolean }
@@ -76,6 +76,7 @@ interface BgCmdOptions {
     url: string; url_f: Urls.Url
     copied: boolean; paste: boolean; goNext: boolean | "absolute"; /** for ReuseType.reuse */ prefix: boolean
   } & Ensure<OpenPageUrlOptions, keyof OpenPageUrlOptions>
+    & /** for .replace, ReuseType.reuse and JS URLs */ Req.FallbackOptions
   [kBgCmd.reloadTab]: { hard: true; /** (deprecated) */ bypassCache: true; single: boolean } & LimitedRangeOptions
   [kBgCmd.removeRightTab]: LimitedRangeOptions
   [kBgCmd.removeTab]: LimitedRangeOptions & {
@@ -91,23 +92,24 @@ interface BgCmdOptions {
     other: boolean
   }
   [kBgCmd.reopenTab]: {}
-  [kBgCmd.restoreGivenTab]: {}
-  [kBgCmd.restoreTab]: { incognito: "force" | true }
+  [kBgCmd.restoreGivenTab]: Req.FallbackOptions
+  [kBgCmd.restoreTab]: { incognito: "force" | true } & Req.FallbackOptions
   [kBgCmd.runKey]: {
     expect: CommandsNS.EnvItemWithKeys[] | Dict<string | string[]> | `${string}:${string},${string}:${string},`
     keys: string[] | /** space-seperated list */ string
     options?: object
   }
-  [kBgCmd.searchInAnother]: { keyword: string; reuse: UserReuseType }
-  [kBgCmd.sendToExtension]: { id: string; data: any; raw: true }
-  [kBgCmd.showTip]: { text: string }
+  [kBgCmd.searchInAnother]: { keyword: string; reuse: UserReuseType } & Req.FallbackOptions
+      & OpenUrlOptions & MasksForOpenUrl & OpenPageUrlOptions
+  [kBgCmd.sendToExtension]: { id: string; data: any; raw: true } & Req.FallbackOptions
+  [kBgCmd.showTip]: { text: string } & Req.FallbackOptions
   [kBgCmd.toggleCS]: { action: "" | "reopen"; incognito: boolean; type: chrome.contentSettings.ValidTypes }
-  [kBgCmd.toggleMuteTab]: { all: boolean; other: boolean; others: boolean; mute: boolean }
-  [kBgCmd.togglePinTab]: LimitedRangeOptions
+  [kBgCmd.toggleMuteTab]: { all: boolean; other: boolean; others: boolean; mute: boolean } & Req.FallbackOptions
+  [kBgCmd.togglePinTab]: LimitedRangeOptions & Req.FallbackOptions
   [kBgCmd.toggleTabUrl]: { keyword: string; parsed: string; reader: boolean } & OpenUrlOptions
   [kBgCmd.toggleVomnibarStyle]: { style: string; current: boolean }
   [kBgCmd.toggleZoom]: { level: number }
-  [kBgCmd.visitPreviousTab]: {}
+  [kBgCmd.visitPreviousTab]: Req.FallbackOptions
   [kBgCmd.closeDownloadBar]: { newWindow?: null | true | false; all: 1 }
 }
 

@@ -1,9 +1,9 @@
 import { contentPayload, executeCommand } from "./store"
 
 type RawCmdDesc<c extends kCName, e extends CmdNameIds[c] = CmdNameIds[c]> =
-    e extends keyof CmdOptions ? [e, 0, 0 | 1, CmdOptions[e]?]
-    : e extends keyof BgCmdOptions ? [e, 1, 0 | 1, Partial<BgCmdOptions[e] & {count: number}>?]
-    : never
+    e extends keyof CmdOptions ? [alias: e, bg: 0, repeat: 0 | 1, options?: CmdOptions[e]]
+    : e extends keyof BgCmdOptions ? [alias: e, bg: 1, repeat: 0 | 1
+        , options?: Partial<BgCmdOptions[e] & {count: number}>] : never
 /** [ enum, is background, count limit, default options ] */
 type NameMetaMap = {
   readonly [k in kCName]: k extends kCName ? RawCmdDesc<k> : never
@@ -35,7 +35,7 @@ export const parseOptions_ = (options_line: string): CommandsNS.RawOptions | nul
     for (str of options_line.split(" ")) {
       ind = str.indexOf("=");
       if (ind === 0 || str === "__proto__"
-          || str[0] === "$" && !"$if=$key=$desc=$count=".includes(str.slice(0, ind + 1))) {
+          || str[0] === "$" && !"$if=$key=$desc=$count=$then=$else=$retry=".includes(str.slice(0, ind + 1))) {
         logError_("%s option key:", ind === 0 ? "Missing" : "Unsupported", str)
       } else if (ind < 0) {
         opt[str] = true;

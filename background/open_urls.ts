@@ -8,7 +8,8 @@ import {
   framesForTab, cKey, cPort, cRepeat, get_cOptions, settings, set_cOptions, set_cPort, set_cRepeat
 } from "./store"
 import {
-  ensureInnerCSS, safePost, showHUD, complainLimits, findCPort, isNotVomnibarPage, portSendFgCmd
+  ensureInnerCSS, safePost, showHUD, complainLimits, findCPort, isNotVomnibarPage, portSendFgCmd, runNextCmd,
+  parseFallbackOptions
 } from "./ports"
 import { parseSedOptions_, paste_, substitute_ } from "./clipboard"
 
@@ -280,6 +281,7 @@ const replaceOrOpenInNewTab = <Reuse extends Exclude<ReuseType, ReuseType.curren
   })).then<void>(matchedTab => {
     if (matchedTab == null || matchedTab.id === TabRecency_.curTab_ && reuse !== ReuseType.reuse) {
       reuse === ReuseType.reuse ? focusOrLaunch(options as MarksNS.FocusOrLaunch)
+      : runNextCmd(0, options as Req.FallbackOptions) ? 0
       : tabs ? openUrlInNewTab(url, reuse as Exclude<ReuseType, ReuseType.current | ReuseType.reuse>
             , options as KnownOptions<C.openUrl>, tabs)
       : getCurTab(openUrlInNewTab.bind(null, url, reuse as Exclude<ReuseType, ReuseType.current | ReuseType.reuse>
@@ -297,21 +299,21 @@ const replaceOrOpenInNewTab = <Reuse extends Exclude<ReuseType, ReuseType.curren
   })
 }
 
-export const openJSUrl = (url: string, onBrowserFail?: () => void): void => {
+export const openJSUrl = (url: string, options: Req.FallbackOptions, onBrowserFail?: (() => void) | null): void => {
   if ("void 0;void(0);".includes(url.slice(11).trim())) {
     return
   }
   if (!onBrowserFail && cPort) {
-    if (safePost(cPort, { N: kBgReq.eval, u: url })) {
+    if (safePost(cPort, { N: kBgReq.eval, u: url, f: parseFallbackOptions(options)})) {
       return
     }
     set_cPort(null)
   }
   const callback1 = (opt?: object | -1): void => {
-    if (opt !== -1 && !runtimeError_()) { return; }
+    if (opt !== -1 && !runtimeError_()) { runNextCmd(1, options); return; }
     const code = BgUtils_.DecodeURLPart_(url.slice(11))
     browserTabs.executeScript({ code }, (): void => {
-      runtimeError_() && onBrowserFail && onBrowserFail()
+      runtimeError_() ? onBrowserFail && onBrowserFail() : runNextCmd(1, options)
       return runtimeError_()
     })
     return runtimeError_()
@@ -454,10 +456,12 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, tabs?
   typeof url !== "string"
       ? /*#__NOINLINE__*/ onEvalUrl_(workType, options, tabs, url)
       : openShowPage(url, reuse, options) ? 0
-      : BgUtils_.isJSUrl_(url) ? /*#__NOINLINE__*/ openJSUrl(url)
+      : BgUtils_.isJSUrl_(url) ? /*#__NOINLINE__*/ openJSUrl(url, options)
       : Backend_.checkHarmfulUrl_(url) ? 0
       : reuse === ReuseType.reuse ? replaceOrOpenInNewTab(url, reuse, options.replace, options.window
-            , { u: url, p: options.prefix, q: { p: options.position, w: options.window } }, tabs)
+            , { u: url, p: options.prefix, q: { p: options.position, w: options.window },
+                f: parseFallbackOptions(options)
+              }, tabs)
       : reuse === ReuseType.current ? safeUpdate(url)
       : options.replace ? replaceOrOpenInNewTab(url, reuse, options.replace, options.window, options, tabs)
       : tabs ? openUrlInNewTab(url, reuse, options, tabs)
@@ -610,6 +614,9 @@ const focusAndExecuteArr = [function (tabs): void {
   return runtimeError_()
 }, function (tabs) {
   // if `this.s`, then `typeof this` is `MarksNS.MarkToGo`
+  if (this.f && runNextCmd(0, this.f)) {
+    return
+  }
   const callback = this.s ? focusAndExecuteArr[3].bind(this as MarksNS.MarkToGo, 0) : null
   if (tabs.length <= 0 || this.q && this.q.w
       || TabRecency_.incognito_ === IncognitoType.true && !tabs[0].incognito) {
@@ -668,6 +675,7 @@ export const focusAndExecute = (req: Omit<FgReq[kFgReq.gotoMainFrame], "f">
       H: focusAndShowFrameBorder || req.c !== kFgCmd.scroll ? ensureInnerCSS(port.s) : null,
       m: focusAndShowFrameBorder ? FrameMaskType.ForcedSelf : FrameMaskType.NoMaskAndNoFocus,
       k: focusAndShowFrameBorder ? cKey : kKeyCode.None,
+      f: {},
       c: req.c, n: req.n, a: req.a
     })
   } else {

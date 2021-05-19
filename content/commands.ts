@@ -237,14 +237,10 @@ set_contentCommands_([
       curModalElement || filterOutNonReachable(visibleInputs as Hint[], 1)
     }
     let sel = visibleInputs.length, firstInput = visibleInputs[0]
-    if (!sel) {
-      exitInputHint();
-      runFallbackKey(options, kTip.noInputToFocus)
-      return
-    }
     if (sel < 2) {
       exitInputHint();
-      select_(firstInput[0], firstInput[1], true, action, true)
+      sel && select_(firstInput[0], firstInput[1], true, action, true)
+      runFallbackKey(options, sel ? 0 : kTip.noInputToFocus)
       return
     }
     let preferredSelector = (options.prefer || "") + ""
@@ -345,6 +341,7 @@ set_contentCommands_([
           }
         }
       }
+      runFallbackKey(options, 0)
     }, 0);
   },
   /* kFgCmd.scrollSelect: */ ({ dir, position: pos }: CmdOptions[kFgCmd.scrollSelect], count: number): void => {
@@ -371,6 +368,7 @@ set_contentCommands_([
       par = OnFirefox ? (doc.head || docEl_unsafe_()) as SafeElement | null : SafeEl_not_ff_!(doc.head)
       par && appendNode_s(par, el)
     }
+    (el || id) && runFallbackKey(options, 0)
   },
   /* kFgCmd.showHelpDialog: */ ((options: Exclude<CmdOptions[kFgCmd.showHelpDialog], {h?: null}>): any => {
     // Note: not suppress key on the top, because help dialog may need a while to render,

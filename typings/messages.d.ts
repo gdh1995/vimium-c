@@ -133,6 +133,7 @@ interface BgReq {
     /** key */ k: kKeyCode;
     // ensure .c, .S exist, for safer code
     /** command */ c: FgCmdAcrossFrames | 0;
+    /** fallback options */ f: Req.FallbackOptions
   } & BgCSSReq & Partial<Pick<BaseExecute<FgOptions, FgCmdAcrossFrames>, "n" | "a">>;
   [kBgReq.execute]: BaseExecute<object> & Req.baseBg<kBgReq.execute>;
   [kBgReq.exitGrab]: Req.baseBg<kBgReq.exitGrab>;
@@ -144,7 +145,8 @@ interface BgReq {
   } & Req.baseFg<keyof FgReq> & Partial<Req.baseBg<kBgReq.url>>;
   [kBgReq.eval]: {
     /** url */ u: string; // a javascript: URL
-  } & Req.baseBg<kBgReq.eval>;
+    /** only $then */ f?: Req.FallbackOptions | null
+  }
   [kBgReq.count]: {
     /** cmd */ c: string | "";
     /** id */ i: number;
@@ -155,6 +157,7 @@ interface BgReq {
     /** local */ l: 0 | /** kTip.local - kTip.global */ 2
     /** markName */ n?: string | undefined
     /** scroll */ s: MarksNS.FgMark
+    /** fallback options */ f?: Req.FallbackOptions | null
   }
 }
 
@@ -319,7 +322,7 @@ interface CmdOptions {
     view?: undefined;
     sel?: "clear";
     dir?: undefined;
-  });
+  }) & Req.FallbackOptions
   [kFgCmd.toggle]: {
     k: keyof SettingsNS.FrontendSettingsSyncingItems;
     n: string; // `"${SettingsNS.FrontendSettingsSyncingItems[keyof SettingsNS.FrontendSettingsSyncingItems][0]}"`
@@ -375,7 +378,7 @@ interface CmdOptions {
     /** words */ w?: string;
     /** collapse to start */ s?: boolean
     /** richText */ t?: boolean
-  } & Req.FallbackOptions
+  } & OpenPageUrlOptions & UserSedOptions & Req.FallbackOptions
   [kFgCmd.showHelpDialog]: {
     /** html */ h: "html" | /** for Firefox */ { /** head->style */ h: string; /** body */ b: string };
     /** optionUrl */ o: string;
@@ -407,7 +410,7 @@ interface CmdOptions {
     s?: 1;
     /** default to true */ copied?: boolean;
     /** default to true */ selected?: boolean;
-  } & UserSedOptions & OpenPageUrlOptions
+  } & UserSedOptions & OpenPageUrlOptions & Req.FallbackOptions
   [kFgCmd.focusInput]: {
     act?: "" | "backspace" | "switch" | "last" | "last-visible";
     action?: "" | "backspace" | "switch" | "last" | "last-visible";
@@ -421,12 +424,12 @@ interface CmdOptions {
   [kFgCmd.editText]: {
     dom?: boolean;
     run: string;
-  };
+  } & Req.FallbackOptions;
   [kFgCmd.scrollSelect]: {
     position?: "begin" | "home" | "start" | "end" | "last"
     dir?: "down" | "next" | "prev" | "up" | 1 | -1
   };
-  [kFgCmd.toggleStyle]: {
+  [kFgCmd.toggleStyle]: ({
     selector?: undefined
     id: string
     css?: string
@@ -434,7 +437,7 @@ interface CmdOptions {
     selector: string
     id?: undefined
     css?: undefined
-  }
+  }) & Req.FallbackOptions
 }
 
 declare const enum kMarkAction {
@@ -541,6 +544,7 @@ interface FgReq {
   [kFgReq.nextFrame]: {
     /** type */ t?: Frames.NextType;
     /** key */ k: kKeyCode;
+    /** fallback options */ f?: Req.FallbackOptions;
   };
   [kFgReq.exitGrab]: {};
   [kFgReq.initHelp]: {
@@ -577,7 +581,7 @@ interface FgReq {
   [kFgReq.key]: {
     /* keySequence */ k: string;
     /** lastKey */ l: kKeyCode;
-    /** fallback counter */ f?: number
+    /** then/else counter */ f?: { /** counter */ c: number; /** maxRetried */ r: number | null | undefined } | null
   };
   [kFgReq.marks]: ({ /** action */ a: kMarkAction.create } & (MarksNS.NewTopMark | MarksNS.NewMark)) | {
     /** action */ a: kMarkAction.clear;
@@ -690,7 +694,10 @@ declare namespace Req {
 
   interface FgCmd<O extends keyof CmdOptions> extends BaseExecute<CmdOptions[O], O>, baseBg<kBgReq.execute> {}
   interface FallbackOptions {
-    /** key sequence */ fallback?: string | null
+    /** key sequence if succeed */ $then?: string | null
+    /** key sequence if fail */ $else?: string | null
+    /** key sequence if fail */ fallback?: string | null
+    /** [1..20] */ $retry?: number | null
     /** fallback counter */ $f?: number | null
   }
 }

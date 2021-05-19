@@ -12,7 +12,7 @@ import {
 } from "../lib/dom_utils"
 import {
   port_callbacks, post_, safePost, set_requestHandlers, requestHandlers, hookOnWnd, set_hookOnWnd,
-  HookAction, contentCommands_,
+  HookAction, contentCommands_, runFallbackKey,
 } from "./port"
 import {
   addUIElement, adjustUI, createStyle, getParentVApi, getBoxTagName_old_cr, setUICSS, ui_box, evalIfOK, checkHidden,
@@ -171,18 +171,13 @@ set_requestHandlers([
           || (doc.body && htmlTag_(doc.body) === "frameset")
               && (div = querySelector_unsafe_("div"), !div || div === ui_box && !handler_stack.length))
     ) {
-      post_({
-        H: kFgReq.nextFrame,
-        k: req.k
-      });
+      post_({ H: kFgReq.nextFrame, k: req.k, f: req.f })
       return;
     }
-    mask && timeout_((): void => { vApi.f() }, 1); // require FrameMaskType.NoMaskAndNoFocus is 0
-    if (req.c) {
-      type TypeChecked = { [key1 in FgCmdAcrossFrames]: <T2 extends FgCmdAcrossFrames>(this: void,
-          options: CmdOptions[T2] & FgOptions, count: number) => void; };
-      (contentCommands_ as TypeChecked)[req.c](req.a!, req.n!);
-    }
+    (mask || req.c) && timeout_((): void => {
+      vApi.f(req.c, req.a!, req.n!)
+      isAlive_ && runFallbackKey(req.f, mask === FrameMaskType.OnlySelf ? 2 : 0)
+    }, 1); // require FrameMaskType.NoMaskAndNoFocus is 0
     keydownEvents_[req.k] = 1;
     showFrameMask(mask);
   },
@@ -305,7 +300,7 @@ export const focusAndRun = (cmd?: FgCmdAcrossFrames, options?: FgOptions, count?
     esc!(HandlerResult.Nothing);
     if (cmd) {
       type TypeChecked = { [key in FgCmdAcrossFrames]: <T2 extends FgCmdAcrossFrames>(this: void,
-          options: CmdOptions[T2] & FgOptions, count: number, exArgsOrForce?: number) => void; };
+          options: CmdOptions[T2] & FgOptions, count: number, exArgsOrForce?: 1 | 2) => void; };
       (contentCommands_ as TypeChecked)[cmd](options!, count!, showBorder);
     }
     showBorder! & 1 && showFrameMask(FrameMaskType.ForcedSelf);

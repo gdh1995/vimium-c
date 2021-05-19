@@ -309,11 +309,12 @@ set_reqH_([
     set_cPort(port)
     set_cRepeat(type || cRepeat > 0 ? 1 : -1)
     set_cKey(request.k)
+    set_cOptions(BgUtils_.safer_(request.f || {}))
     let ref: Frames.Frames | undefined
     if (type !== Frames.NextType.current) {
       type === Frames.NextType.parent ? parentFrame() : nextFrame()
     } else if (ref = framesForTab.get(port.s.tabId_)) {
-      focusFrame(ref.cur_, ref.ports_.length <= 2, FrameMaskType.NoMask)
+      focusFrame(ref.cur_, ref.ports_.length <= 2, FrameMaskType.NoMask, get_cOptions<kBgCmd.nextFrame, true>())
     } else {
       safePost(port, { N: kBgReq.omni_returnFocus, l: cKey })
     }
@@ -452,7 +453,7 @@ set_reqH_([
   /** kFgReq.openImage: */ openImgReq,
   /** kFgReq.evalJSFallback" */ (req: FgReq[kFgReq.evalJSFallback], port: Port): void => {
     set_cPort(null)
-    openJSUrl(req.u, (): void => {
+    openJSUrl(req.u, {}, (): void => {
       set_cPort(port)
       showHUD(trans_("jsFail"))
     })

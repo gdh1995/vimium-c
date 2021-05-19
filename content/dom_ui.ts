@@ -18,7 +18,7 @@ import {
 import { currentScrolling } from "./scroller"
 import { find_box, styleSelectable } from "./mode_find"
 import { DrawableHintItem, isHintsActive, hintManager, coreHints } from "./link_hints"
-import { post_ } from "./port"
+import { post_, runFallbackKey } from "./port"
 import { insert_Lock_ } from "./insert"
 import { hide as omniHide, omni_box } from "./omni"
 
@@ -481,8 +481,8 @@ export let getParentVApi = OnFirefox && injector === void 0 ? (): VApiTy | null 
 
 export function set_getParentVApi (_newGetParVApi: () => VApiTy | null | void): void { getParentVApi = _newGetParVApi }
 
-export const evalIfOK = (url: Pick<BgReq[kBgReq.eval], "u"> | string): boolean => {
-  isTY(url) ? 0 : url = url.u
+export const evalIfOK = (req: BgReq[kBgReq.eval] | string): boolean => {
+  const url = isTY(req) ? req : req.u
   if (!isJSUrl(url)) {
     return false;
   }
@@ -491,7 +491,10 @@ export const evalIfOK = (url: Pick<BgReq[kBgReq.eval], "u"> | string): boolean =
   if (createRegExp(kTip.voidJS, "").test(str)) { /* empty */ }
   else if (!parentNode_unsafe_s(el = runJS_(VTr(kTip.removeCurScript), 0)!)) {
     str = safeCall(decodeURIComponent, str) || str
-    timeout_(runJS_.bind(0, str, null), 0)
+    timeout_((): void => {
+      runJS_(str)
+      isTY(req) || req.f && runFallbackKey(req.f, 0)
+    }, 0)
   } else {
     removeEl_s(el)
     post_({ H: kFgReq.evalJSFallback, u: url })

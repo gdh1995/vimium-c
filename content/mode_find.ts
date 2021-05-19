@@ -232,6 +232,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
             })
           }
           postActivate()
+          runFallbackKey(options, 0)
         }
       } else {
         hudTip(kTip.noOldQuery)

@@ -8,7 +8,8 @@ import {
   executeCommand, contentPayload, settings, framesForTab, framesForOmni
 } from "./store"
 import {
-  portSendFgCmd, indexFrame, requireURL, sendFgCmd, complainNoSession, showHUD, complainLimits, getPortUrl
+  portSendFgCmd, indexFrame, requireURL, sendFgCmd, complainNoSession, showHUD, complainLimits, getPortUrl, runNextCmd,
+  parseFallbackOptions
 } from "./ports"
 import { doesNeedToSed, parseSedOptions_, substitute_ } from "./clipboard"
 import { goToNextUrl, newTabIndex, openUrl } from "./open_urls"
@@ -155,6 +156,7 @@ const BackgroundCommands: {
         let isCur = port === cur
         portSendFgCmd(port, kFgCmd.toggle, isCur, { k: key2, n: isCur ? keyRepr : "", v: value }, 1)
       }
+      runNextCmd(1, get_cOptions<C.toggle, true>())
     }
   },
   /* kBgCmd.showHelp: */ (): void | kBgCmd.showHelp => {
@@ -457,13 +459,17 @@ const BackgroundCommands: {
         return showHUD(trans_("indexOOR"))
       }
       const session = list[cRepeat - 1], item = session.tab || session.window
-      item && sessions.restore(item.sessionId)
+      if (item) {
+        sessions.restore(item.sessionId)
+        runNextCmd(1, get_cOptions<C.restoreGivenTab, true>())
+      }
     }
     if (cRepeat > sessions.MAX_SESSION_RESULTS) {
       return doRestore([])
     }
     if (cRepeat <= 1) {
       sessions.restore(null, runtimeError_)
+      runNextCmd(1, get_cOptions<C.restoreGivenTab, true>())
       return
     }
     sessions.getRecentlyClosed(doRestore)
@@ -484,18 +490,25 @@ const BackgroundCommands: {
     do {
       sessions.restore(null, runtimeError_)
     } while (0 < --count)
+    runNextCmd(1, get_cOptions<C.restoreTab, true>())
   },
   /* kBgCmd.runKey: */ runKeyWithCond,
   /* kBgCmd.searchInAnother: */ (tabs: [Tab]): void | kBgCmd.searchInAnother => {
     let keyword = (get_cOptions<C.searchInAnother>().keyword || "") + ""
     const query = Backend_.parse_({ u: getTabUrl(tabs[0]) })
     if (!query || !keyword) {
-      showHUD(trans_(keyword ? "noQueryFound" : "noKw"))
+      if (query || !runNextCmd(0, get_cOptions<C.searchInAnother, true>())) {
+        showHUD(trans_(keyword ? "noQueryFound" : "noKw"))
+      }
       return
     }
+    let sed = parseSedOptions_(get_cOptions<C.searchInAnother, true>())
+    query.u = substitute_(query.u, SedContext.NONE, sed)
     let url_f = BgUtils_.createSearchUrl_(query.u.split(" "), keyword, Urls.WorkType.ActAnyway)
-    let reuse = get_cOptions<C.searchInAnother>().reuse
-    set_cOptions(BgUtils_.safer_({ reuse: reuse ?? ReuseType.current, opener: true, url_f }))
+    let reuse = get_cOptions<C.searchInAnother, true>().reuse
+    set_cOptions(BgUtils_.extendIf_(BgUtils_.safer_<KnownOptions<C.openUrl>>({
+      url_f, reuse: reuse ?? ReuseType.current, opener: true, keyword: ""
+    }), get_cOptions<C.openUrl, true>()))
     openUrl(tabs)
   },
   /* kBgCmd.sendToExtension: */ (): void | kBgCmd.sendToExtension => {
@@ -512,6 +525,7 @@ const BackgroundCommands: {
         } else if (typeof cb === "string" && Math.abs(Date.now() - now) < 1e3) {
           showHUD(cb)
         }
+        err || runNextCmd(1, get_cOptions<C.sendToExtension, true>())
         return err
       })
     } else {
@@ -521,6 +535,7 @@ const BackgroundCommands: {
   /* kBgCmd.showTip: */ (): void | kBgCmd.showTip => {
     let text = get_cOptions<C.showTip>().text
     showHUD(text ? text + "" : trans_("needText"))
+    text && runNextCmd(1, get_cOptions<C.showTip, true>())
   },
   /* kBgCmd.toggleCS: */ (tabs: [Tab]): void | kBgCmd.toggleCS => {
     Build.BTypes & BrowserType.Chrome ? ContentSettings_.toggleCS_(get_cOptions<C.toggleCS, true>(), cRepeat, tabs)
@@ -546,12 +561,15 @@ const BackgroundCommands: {
   },
   /* kBgCmd.toggleZoom: */ toggleZoom,
   /* kBgCmd.visitPreviousTab: */ (tabs: Tab[]): void | kBgCmd.visitPreviousTab => {
-    if (tabs.length < 2) { return }
+    if (tabs.length < 2) { runNextCmd(1, get_cOptions<C.visitPreviousTab, true>()); return }
     tabs.splice((Build.BTypes & BrowserType.Firefox ? selectFrom(tabs, 1) : selectFrom(tabs)).index, 1)
     tabs = tabs.filter(i => TabRecency_.tabs_.has(i.id)).sort(TabRecency_.rCompare_)
     const tab = tabs[cRepeat > 0 ? Math.min(cRepeat, tabs.length) - 1
       : Math.max(0, tabs.length + cRepeat)]
-    tab && selectTab(tab.id)
+    if (tab) {
+      selectTab(tab.id)
+      runNextCmd(1, get_cOptions<C.visitPreviousTab, true>())
+    }
   },
   /* kBgCmd.closeDownloadBar: */ (): void | kBgCmd.closeDownloadBar => {
     const newWindow = get_cOptions<C.closeDownloadBar>().newWindow
@@ -587,12 +605,12 @@ const executeCmdOnTabs = (tabs: Tab[] | [Tab] | undefined): void => {
   return tabs ? void 0 : runtimeError_()
 }
 
-const onLargeCountConfirmed = (registryEntry: CommandsNS.Item, fallbackCounter: number | undefined): void => {
+const onLargeCountConfirmed = (registryEntry: CommandsNS.Item, fallbackCounter: FgReq[kFgReq.key]["f"]): void => {
   executeCommand(registryEntry, 1, cKey, cPort, cRepeat, fallbackCounter)
 }
 
 set_executeCommand((registryEntry: CommandsNS.Item, count: number, lastKey: kKeyCode, port: Port
-    , overriddenCount: number, fallbackCounter?: number): void => {
+    , overriddenCount: number, fallbackCounter?: FgReq[kFgReq.key]["f"]): void => {
   if (gOnConfirmCallback) {
     set_gOnConfirmCallback(null) // just in case that some callbacks were thrown away
     return
@@ -623,15 +641,17 @@ set_executeCommand((registryEntry: CommandsNS.Item, count: number, lastKey: kKey
     }
     if (!count) { return }
   } else { count = count || 1 }
-  if (fallbackCounter) {
-    if (fallbackCounter > 5) {
+  if (fallbackCounter != null) {
+    const maxRetried = Math.max(2, Math.min((fallbackCounter.r! | 0) || 6, 20))
+    if (fallbackCounter.c >= maxRetried) {
       set_cPort(port)
-      showHUD("Run fallbacks 5 times but all failed")
+      showHUD(`Has ran sequential commands for ${maxRetried} times`)
       return
     }
-    if (options && (options as Req.FallbackOptions).fallback) {
-      options = BgUtils_.extendIf_(BgUtils_.safeObj_(), options);
-      (options as Req.FallbackOptions).$f = fallbackCounter + 1
+    if (options && parseFallbackOptions(options as Req.FallbackOptions)) {
+      options = BgUtils_.extendIf_(BgUtils_.safer_<Req.FallbackOptions>({
+        $f: (fallbackCounter.c | 0) + 1, $retry: maxRetried
+      }), options)
     }
   }
   if (!registryEntry.background_) {

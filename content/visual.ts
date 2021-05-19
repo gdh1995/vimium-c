@@ -33,7 +33,10 @@ declare const enum kYank { // should have no overlap with ReuseType
 }
 declare const enum SelType { None = 0, Caret = 1, Range = 2 }
 
-import { VTr, safer, fgCache, doc, chromeVer_, tryCreateRegExp, isTY, OnFirefox, OnChrome, safeCall } from "../lib/utils"
+import {
+  VTr, safer, fgCache, doc, chromeVer_, tryCreateRegExp, isTY, OnFirefox, OnChrome, safeCall, parseOpenPageUrlOptions,
+  parseSedOptions
+} from "../lib/utils"
 import {
   getSelection_, getSelectionFocusEdge_, isHTML_, docEl_unsafe_, notSafe_not_ff_, getEditableType_, editableTypes_,
   GetChildNodes_not_ff, rangeCount_, getAccessibleSelectedNode, scrollingEl_, isNode_,
@@ -113,12 +116,12 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     const str = "" + curSelection, rich = richText
     action < kYank.NotExit && deactivate()
     if (action < kYank.MIN) {
-      post_({ H: kFgReq.openUrl, u: str, r: action as ReuseType })
+      post_({ H: kFgReq.openUrl, u: str, r: action as ReuseType, o: parseOpenPageUrlOptions(options) })
     } else if (rich || action > kYank.RichTextButNotExit - 1) {
       execCommand("copy", doc)
       hudTip(kTip.copiedIs, 0, "# " + str)
     } else {
-      post_({ H: kFgReq.copy, s: str })
+      post_({ H: kFgReq.copy, s: str, e: parseSedOptions(options) })
     }
   }
 
@@ -368,7 +371,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     ui_box || hudShow(kTip.raw)
     toggleSelectableStyle(1)
 
-  if (/* type === SelType.None */ !type && (options.fallback || !establishInitialSelectionAnchor())) {
+  if (/* type === SelType.None */ !type && (options.$else || options.fallback || !establishInitialSelectionAnchor())) {
       deactivate()
       runFallbackKey(options, kTip.needSel)
       return

@@ -1,5 +1,5 @@
 import { VTr, safer, loc_, vApi, locHref, isTY, isTop, parseOpenPageUrlOptions } from "../lib/utils"
-import { post_ } from "./port"
+import { post_, runFallbackKey } from "./port"
 import { hudHide, hudShow, hudTip } from "./hud"
 import { removeHandler_, getMappedKey, isEscape_, replaceOrSuppressMost_ } from "../lib/keyboard_utils"
 import { createElement_, textContent_s } from "../lib/dom_utils"
@@ -117,7 +117,7 @@ export const createMark = (req: BgReq[kBgReq.createMark], local?: 0 | 2): void =
         [ VTr(kTip.didCreate), VTr(local ? kTip.local : kTip.global), req.n ])
 }
 
-export const gotoMark = ({ n: a, s: scroll, l: local }: BgReq[kBgReq.goToMark]): void => {
+export const gotoMark = ({ n: a, s: scroll, l: local, f }: BgReq[kBgReq.goToMark]): void => {
     a && setPreviousMarkPosition()
     scrollToMark(scroll)
     local || vApi.f()
@@ -125,6 +125,7 @@ export const gotoMark = ({ n: a, s: scroll, l: local }: BgReq[kBgReq.goToMark]):
       hudTip(kTip.didNormalMarkTask, local ? 1000 : 2000,
           [ VTr(kTip.didJumpTo), VTr(kTip.global + local), a ])
     }
+    f && runFallbackKey(f, 0)
 }
 
 if (!(Build.NDEBUG || kTip.nowGotoMark + 1 === kTip.nowCreateMark)) {

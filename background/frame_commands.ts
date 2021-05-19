@@ -6,7 +6,7 @@ import {
   executeCommand, reqH_, omniPayload, settings, findCSS_, visualWordsRe_, set_cKey, cKey
 } from "./store"
 import {
-  indexFrame, portSendFgCmd, focusFrame, sendFgCmd, showHUD, complainLimits, safePost
+  indexFrame, portSendFgCmd, focusFrame, sendFgCmd, showHUD, complainLimits, safePost, wrapFallbackOptions
 } from "./ports"
 import { parseOptions_ } from "./key_mappings"
 import { parseSedOptions_, substitute_ } from "./clipboard"
@@ -26,7 +26,8 @@ export const nextFrame = (): void | kBgCmd.nextFrame => {
     port = ports[ind]
   }
   focusFrame(port, port.s.frameId_ === 0
-    , port !== cPort && ref && port !== ref.cur_ ? FrameMaskType.NormalNext : FrameMaskType.OnlySelf)
+    , port !== cPort && ref && port !== ref.cur_ ? FrameMaskType.NormalNext : FrameMaskType.OnlySelf
+    , get_cOptions<C.nextFrame, true>())
 }
 
 export const parentFrame = (): void | kBgCmd.parentFrame => {
@@ -54,7 +55,7 @@ export const parentFrame = (): void | kBgCmd.parentFrame => {
       }
     } while (found && 0 < --count)
     const port = frameId > 0 && frameId !== self ? indexFrame(sender.tabId_, frameId) : null
-    port ? focusFrame(port, true, FrameMaskType.ForcedSelf) : mainFrame()
+    port ? focusFrame(port, true, FrameMaskType.ForcedSelf, get_cOptions<C.parentFrame, true>()) : mainFrame()
   })
 }
 
@@ -68,16 +69,17 @@ export const performFind = (): void | kBgCmd.performFind => {
     sender.flags_ |= Frames.Flags.hasFindCSS
     sentFindCSS = findCSS_
   }
-  sendFgCmd(kFgCmd.findMode, true, {
+  sendFgCmd(kFgCmd.findMode, true, wrapFallbackOptions<CmdOptions[kFgCmd.findMode]>({
     c: nth > 0 ? cRepeat / absRepeat : cRepeat, l: leave, f: sentFindCSS,
-    fallback: get_cOptions<C.performFind, true>().fallback,
-    $f: get_cOptions<C.performFind, true>().$f,
     m: !!get_cOptions<C.performFind>().highlight, n: !!get_cOptions<C.performFind>().normalize,
     r: get_cOptions<C.performFind>().returnToViewport === true,
     s: !nth && absRepeat < 2 && !!get_cOptions<C.performFind>().selected,
     p: !!get_cOptions<C.performFind>().postOnEsc,
-    q: leave || get_cOptions<C.performFind>().last ? FindModeHistory_.query_(sender.incognito_, "", nth < 0 ? -nth : nth) : ""
-  })
+    e: !!get_cOptions<C.performFind>().restart,
+    q: get_cOptions<C.performFind>().query ? get_cOptions<C.performFind>().query + ""
+      : leave || get_cOptions<C.performFind>().last
+      ? FindModeHistory_.query_(sender.incognito_, "", nth < 0 ? -nth : nth) : ""
+  }, get_cOptions<C.performFind, true>()))
 }
 
 export const initHelp = (request: FgReq[kFgReq.initHelp], port: Port): void => {
@@ -177,13 +179,11 @@ export const enterVisualMode = (): void | kBgCmd.visualMode => {
     granularities = visualGranularities_
     sender.flags_ |= Frames.Flags.hadVisualMode
   }
-  sendFgCmd(kFgCmd.visualMode, true, {
+  sendFgCmd(kFgCmd.visualMode, true, wrapFallbackOptions<CmdOptions[kFgCmd.visualMode]>({
     m: str === "caret" ? VisualModeNS.Mode.Caret : str === "line" ? VisualModeNS.Mode.Line : VisualModeNS.Mode.Visual,
-    fallback: get_cOptions<C.visualMode, true>().fallback,
-    $f: get_cOptions<C.visualMode, true>().$f,
     f: sentFindCSS, g: granularities, k: keyMap,
     t: !!get_cOptions<C.visualMode>().richText, s: !!get_cOptions<C.visualMode>().start, w: words
-  })
+  }, get_cOptions<C.visualMode, true>()))
 }
 
 let _tempBlob: [number, string] | null | undefined
@@ -345,7 +345,8 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null
 export const mainFrame = (): void | kBgCmd.mainFrame => {
   const tabId = cPort ? cPort.s.tabId_ : TabRecency_.curTab_, ref = framesForTab.get(tabId),
   port = ref && ref.top_
-  port && focusFrame(port, true, port === ref!.cur_ ? FrameMaskType.OnlySelf : FrameMaskType.ForcedSelf)
+  port && focusFrame(port, true, port === ref!.cur_ ? FrameMaskType.OnlySelf : FrameMaskType.ForcedSelf
+      , get_cOptions<C.mainFrame, true>())
 }
 
 export const setOmniStyle = (req: FgReq[kFgReq.setOmniStyle], port?: Port): void => {
@@ -436,15 +437,13 @@ export const framesGoNext = (isNext: boolean, rel: string): void => {
   }
   const maxLens: number[] = patterns.map(i => Math.max(i.length + 12, i.length * 4)),
   totalMaxLen: number = Math.max.apply(Math, maxLens)
-  sendFgCmd(kFgCmd.goNext, true, {
+  sendFgCmd(kFgCmd.goNext, true, wrapFallbackOptions<CmdOptions[kFgCmd.goNext]>({
     r: get_cOptions<C.goNext>().noRel ? "" : rel, n: isNext,
     exclude: (get_cOptions<C.goNext, true>() as CSSOptions).exclude,
     match: get_cOptions<C.goNext, true>().match,
     evenIf: get_cOptions<C.goNext, true>().evenIf,
-    p: patterns, l: maxLens, m: totalMaxLen > 0 && totalMaxLen < 99 ? totalMaxLen : 32,
-    fallback: get_cOptions<C.goNext, true>().fallback,
-    $f: get_cOptions<C.goNext, true>().$f
-  })
+    p: patterns, l: maxLens, m: totalMaxLen > 0 && totalMaxLen < 99 ? totalMaxLen : 32
+  }, get_cOptions<C.goNext, true>()))
 }
 
 /** `confirm()` simulator section */

@@ -308,8 +308,10 @@ export const safePost = <K extends keyof FullBgReq>(port: Port, req: Req.bg<K>):
   } catch { return 0 }
 }
 
-export const focusFrame = (port: Port, css: boolean, mask: FrameMaskType): void => {
-  port.postMessage({ N: kBgReq.focusFrame, H: css ? ensureInnerCSS(port.s) : null, m: mask, k: cKey, c: 0 })
+export const focusFrame = (port: Port, css: boolean, mask: FrameMaskType, fallback?: Req.FallbackOptions): void => {
+  port.postMessage({ N: kBgReq.focusFrame, H: css ? ensureInnerCSS(port.s) : null, m: mask, k: cKey, c: 0,
+    f: fallback && parseFallbackOptions(fallback) || {}
+  })
 }
 
 export const sendFgCmd = <K extends keyof CmdOptions> (cmd: K, css: boolean, opts: CmdOptions[K]): void => {
@@ -333,6 +335,31 @@ export const showHUD = (text: string, isCopy?: kTip): void => {
   })) {
     set_cPort(null)
   }
+}
+
+export const parseFallbackOptions = (options: Req.FallbackOptions): Req.FallbackOptions | null => {
+  const thenKey = options.$then, elseKey = options.$else || options.fallback
+  return thenKey || elseKey ? {
+    $then: thenKey, $else: elseKey, $retry: options.$retry, $f: options.$f
+  } : null
+}
+
+export const wrapFallbackOptions = <T extends object> (options: T, fallbackOptions: Req.FallbackOptions): T => {
+  return BgUtils_.extendIf_(BgUtils_.safer_<T>(options),
+      parseFallbackOptions(fallbackOptions) || BgUtils_.safeObj_())
+}
+
+export const runNextCmd = (useThen: BOOL, options: Req.FallbackOptions): boolean => {
+  const nextKey = useThen ? options.$then : options.$else || options.fallback
+  const hasFallback = !!nextKey && typeof nextKey === "string"
+  if (hasFallback) {
+    setTimeout((): void => {
+      reqH_[kFgReq.key](As_<Req.fg<kFgReq.key>>({
+        H: kFgReq.key, k: nextKey as string, l: kKeyCode.None, f: { c: options.$f! | 0, r: options.$retry }
+      }), cPort)
+    }, 34)
+  }
+  return hasFallback
 }
 
 export const complainLimits = (action: string): void => { showHUD(trans_("notAllowA", [action])) }

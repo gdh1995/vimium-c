@@ -145,6 +145,7 @@ declare namespace MarksNS {
     /** prefix */ p?: boolean | null
     /** reuse */ r?: ReuseType;
     /** match a tab to replace */ q?: Partial<ParsedOpenPageUrlOptions>
+    /** fallback */ f?: Req.FallbackOptions | null
   }
 }
 

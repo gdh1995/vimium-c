@@ -488,6 +488,7 @@ const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): voi
     set_removeFlash(null)
     if (!(mode_ & HintMode.queue)) {
       coreHints.w(selectedHintWorker, clickEl)
+      runFallbackKey(options_!, 0)
       clear(0, 0)
     } else {
       clearTimeout_(_timer)
@@ -508,7 +509,7 @@ const activateDirectly = (options: ContentOptions, count: number) => {
   allTypes = (d as typeof options.direct) === !0, mode = options.m &= ~HintMode.queue,
   next = (): void => {
     let rect: ClientRect | 0, sel: Selection
-    if (count < 1) { clear(); return }
+    if (count < 1) { runFallbackKey(options_, 0); clear(); return }
     count = IsInDOM_(el!) ? (coreHints.e({d: el as LinkEl, r: null, m: null}, 0
       , isSel && (sel = getSelected(), rect = rangeCount_(sel) && getSelectionBoundingBox_(sel),
                   rect && padClientRect_(rect))
