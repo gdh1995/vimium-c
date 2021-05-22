@@ -173,7 +173,7 @@ set_contentCommands_([
   /* kFgCmd.autoOpen: */ (options: CmdOptions[kFgCmd.autoOpen]): void => {
     const selected = options.selected, reuse = options.reuse, opts2 = parseOpenPageUrlOptions(options),
     str = options.s && !selected ? "" : getSelectionText(1) || (options.text || "") + "",
-    url = str.trim()
+    url = str.trim(), copied = options.copied
     options.copy && (url || !options.o) && post_({
       H: kFgReq.copy,
       s: str as never as undefined,
@@ -182,10 +182,10 @@ set_contentCommands_([
       d: options.decoded || options.decode
     })
     options.o && (url && evalIfOK(url) || post_({
-      H: kFgReq.openUrl, c: !url, u: url, r: reuse, o: opts2
+      H: kFgReq.openUrl, c: copied, u: url, r: reuse, o: opts2
     }))
     options.s && send_(kFgReq.searchAs, {
-      u: vApi.u(), c: options.copied, t: selected ? url : "", r: reuse, o: opts2
+      u: vApi.u(), c: copied, t: selected ? url : "", r: reuse, o: opts2
     }, (err): void => {
       err && runFallbackKey(options, kTip.raw, err)
     })

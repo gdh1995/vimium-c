@@ -8,7 +8,9 @@ import {
 } from "./store"
 import { ensureInnerCSS, safePost, showHUD, complainLimits, findCPort, isNotVomnibarPage } from "./ports"
 import { parseSedOptions_, paste_, substitute_ } from "./clipboard"
-import { runNextCmdBy, parseFallbackOptions, portSendFgCmd, replaceCmdOptions, overrideOption } from "./run_commands"
+import {
+  copyCmdOptions, runNextCmdBy, parseFallbackOptions, portSendFgCmd, replaceCmdOptions, overrideOption, runNextCmd
+} from "./run_commands"
 import C = kBgCmd
 
 type ShowPageData = [string, typeof Settings_.temp_.shownHash_, number]
@@ -379,36 +381,36 @@ export const openShowPage = (url: string, reuse: ReuseType, options: OpenUrlOpti
 
 // use Urls.WorkType.Default
 const openUrls = (tabs: [Tab] | [] | undefined): void => {
-  let urls: string[] = get_cOptions<C.openUrl, true>().urls!, repeat = cRepeat
-  if (!get_cOptions<C.openUrl>().$fmt) {
-    for (let i = 0; i < urls.length; i++) {
-      urls[i] = BgUtils_.convertToUrl_(urls[i] + "")
+  const options = get_cOptions<C.openUrl, true>()
+  let urls: string[] = options.urls!, repeat = cRepeat
+  if (options.$fmt !== 2) {
+    if (options.$fmt !== 1) {
+      for (let i = 0; i < urls.length; i++) { urls[i] = BgUtils_.convertToUrl_(urls[i] + "") }
     }
     if (!(Build.BTypes & ~BrowserType.Firefox)
         || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox) {
       urls = urls.filter(i => settings.newTabs_.get(i) !== Urls.NewTabType.browser && !(<RegExpI> /file:\/\//i).test(i))
       overrideOption<C.openUrl, "urls">("urls", urls)
     }
-    overrideOption<C.openUrl, "$fmt">("$fmt", 1)
+    overrideOption<C.openUrl, "$fmt">("$fmt", 2)
   }
   for (const url of urls) {
     if (Backend_.checkHarmfulUrl_(url)) {
       return
     }
   }
-  const incognito = get_cOptions<C.openUrl, true>().incognito
+  const incognito = options.incognito
   const tab = tabs && (incognito == null || tabs[0] && tabs[0].incognito === !!incognito) && tabs[0] || undefined
   const windowId = tab && tab.windowId
-  const reuse = parseReuse(get_cOptions<C.openUrl, true>().reuse), pinned = !!get_cOptions<C.openUrl>().pinned,
+  const reuse = parseReuse(options.reuse), pinned = !!options.pinned,
   tabIncognito = tab && tab.incognito || TabRecency_.incognito_ === IncognitoType.true,
-  newWnd = reuse === ReuseType.newWnd || tabs && !tab || get_cOptions<C.openUrl>().window
-  let active = reuse > ReuseType.newFg - 1, index = tab && newTabIndex(tab, get_cOptions<C.openUrl>().position)
+  newWnd = reuse === ReuseType.newWnd || tabs && !tab || options.window
+  let active = reuse > ReuseType.newFg - 1, index = tab && newTabIndex(tab, options.position)
   set_cOptions(null)
   do {
     if (newWnd) {
       getCurWnd(false, curWnd => {
-        makeWindowFrom(urls, true, incognito != null ? !!incognito : tabIncognito
-            , get_cOptions<C.openUrl, true>(), get_cOptions<C.openUrl, true>() as any, curWnd)
+        makeWindowFrom(urls, true, incognito != null ? !!incognito : tabIncognito, options, options as any, curWnd)
       })
       break // not accept repeat if the target .reuse is `newWindow`
     }
@@ -476,12 +478,42 @@ const openCopiedUrl = (tabs: [Tab] | [] | undefined, url: string | null): void =
     showHUD(trans_("noCopied"))
     return
   }
+  let urls: string[]
+  const copied = get_cOptions<C.openUrl>().copied, searchLines = typeof copied === "string" && copied.includes("any")
+  if ((copied === "urls" || searchLines) && (urls = url.split(<RegExpG> /[\r\n]+/g)).length > 1) {
+    const urls2: string[] = [], keyword = searchLines && get_cOptions<C.openUrl>().keyword
+        ? get_cOptions<C.openUrl>().keyword + "" : null
+    let has_err = false
+    for (let i of urls) {
+      i = i.trim()
+      if (i) {
+        i = BgUtils_.convertToUrl_(i, keyword, Urls.WorkType.Default)
+        if (searchLines || BgUtils_.lastUrlType_ < Urls.Type.MaxOfInputIsPlainUrl) {
+          urls2.push(i)
+        } else {
+          urls2.length = 0
+          has_err = true
+          break
+        }
+      }
+    }
+    if (urls2.length > 1) {
+      set_cOptions(copyCmdOptions(BgUtils_.safeObj_(), get_cOptions<C.openUrl>(), 1))
+      get_cOptions<C.openUrl, true>().urls = urls2
+      get_cOptions<C.openUrl, true>().$fmt = 1
+      tabs && tabs.length > 0 ? openUrls(tabs) : getCurTab(openUrls)
+      return
+    }
+    if (has_err) {
+      runNextCmd<C.openUrl>(0)
+      return
+    }
+  }
   if (BgUtils_.quotedStringRe_.test(url)) {
     url = url.slice(1, -1)
   } else {
-    const keyword = get_cOptions<C.openUrl>().keyword
     const _rawTest = get_cOptions<C.openUrl>().testUrl
-    if (_rawTest != null ? _rawTest : !keyword || keyword === "~") {
+    if (_rawTest != null ? _rawTest : !get_cOptions<C.openUrl>().keyword) {
       url = findUrlInText(url, _rawTest)
     }
   }
@@ -521,7 +553,7 @@ export const goToNextUrl = (url: string, count: number, abs: true | "absolute"):
 export const openUrl = (tabs?: [Tab] | []): void => {
   if (get_cOptions<C.openUrl>().urls) {
     if (get_cOptions<C.openUrl>().urls instanceof Array) {
-      tabs && tabs.length > 0 ? /*#__NOINLINE__*/ openUrls(tabs) : getCurTab(/*#__NOINLINE__*/ openUrls)
+      tabs && tabs.length > 0 ? openUrls(tabs) : getCurTab(openUrls)
     }
     return
   }
@@ -589,7 +621,8 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port): void =>
     opts.opener = isWeb ? !request.n : settings.cache_.vomnibarOptions.actions.includes("opener")
     opts.url_f = url
   } else {
-    opts.copied = request.c, opts.keyword = keyword, opts.testUrl = _rawTest
+    if (request.c === false) { return }
+    opts.copied = request.c != null ? request.c : true, opts.keyword = keyword, opts.testUrl = _rawTest
     opts.sed = sed
   }
   set_cRepeat(1)

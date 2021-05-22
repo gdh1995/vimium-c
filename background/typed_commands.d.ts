@@ -79,9 +79,10 @@ interface BgCmdOptions {
   [kBgCmd.moveTabToNewWindow]: { all: boolean | BOOL; incognito: boolean } & LimitedRangeOptions
   [kBgCmd.moveTabToNextWindow]: { minimized: false; min: false; end: boolean; right: boolean }
   [kBgCmd.openUrl]: OpenUrlOptions & MasksForOpenUrl & {
-    urls: string[]; $fmt: 1
+    urls: string[]; $fmt: 1 | 2
     url: string; url_f: Urls.Url
-    copied: boolean; goNext: boolean | "absolute"; /** for ReuseType.reuse */ prefix: boolean
+    copied: boolean | "urls" | "any-urls"
+    goNext: boolean | "absolute"; /** for ReuseType.reuse */ prefix: boolean
   } & Ensure<OpenPageUrlOptions, keyof OpenPageUrlOptions>
     & /** for .replace, ReuseType.reuse and JS URLs */ Req.FallbackOptions
   [kBgCmd.reloadTab]: { hard: true; /** (deprecated) */ bypassCache: true; single: boolean } & LimitedRangeOptions

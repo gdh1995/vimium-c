@@ -408,8 +408,9 @@ interface CmdOptions {
     decoded?: boolean; decode?: boolean;
     /** for searchAs */
     s?: 1;
-    /** default to true */ copied?: boolean;
     /** default to true */ selected?: boolean;
+  } & {
+    /** default to true */ copied?: boolean | "urls" | "any-urls";
   } & UserSedOptions & OpenPageUrlOptions & Req.FallbackOptions
   [kFgCmd.focusInput]: {
     act?: "" | "backspace" | "switch" | "last" | "last-visible";
@@ -506,7 +507,7 @@ interface FgReqWithRes {
     /** selected text */ t: string;
     /** options for openUrl */ o: ParsedOpenPageUrlOptions | null
     /** reuse */ r: UserReuseType | null | undefined
-    /** copied */ c: boolean | undefined;
+    /** copied */ c: boolean | "urls" | "any-urls" | undefined;
   };
 }
 
@@ -532,7 +533,7 @@ interface FgReq {
     /** url */ u?: string;
     /** command options */ o?: ParsedOpenPageUrlOptions
     /** formatted-by-<a>.href */ f?: boolean;
-    /** copied */ c?: boolean;
+    /** copied */ c?: boolean | "urls" | "any-urls";
     /** incognito */ i?: boolean | null | "reverse";
     /** https */ h?: boolean | null;
     /** reuse */ r?: UserReuseType;
