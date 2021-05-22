@@ -212,11 +212,12 @@ declare namespace CommandsNS {
     readonly alias_: (kBgCmd | kFgCmd) & number; readonly background_: BOOL
   }
   interface Options {}
+  interface EnvItemOptions extends Req.FallbackOptions {}
   interface EnvItem {
     element?: string
     host?: string | ValidUrlMatchers | null
     fullscreen?: boolean
-    options?: object
+    options?: object & EnvItemOptions
   }
   interface EnvItemWithKeys extends EnvItem {
     env: string

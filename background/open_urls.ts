@@ -1,4 +1,3 @@
-import C = kBgCmd
 import {
   PopWindow, InfoToCreateMultiTab, openInactiveTabs,
   selectFrom, selectWnd, getCurTab, runtimeError_, tabsGet, getTabUrl, getCurWnd, Tab, Window, browserTabs,
@@ -7,11 +6,10 @@ import {
 import {
   framesForTab, cKey, cPort, cRepeat, get_cOptions, settings, set_cOptions, set_cPort, set_cRepeat
 } from "./store"
-import {
-  ensureInnerCSS, safePost, showHUD, complainLimits, findCPort, isNotVomnibarPage, portSendFgCmd, runNextCmd,
-  parseFallbackOptions
-} from "./ports"
+import { ensureInnerCSS, safePost, showHUD, complainLimits, findCPort, isNotVomnibarPage } from "./ports"
 import { parseSedOptions_, paste_, substitute_ } from "./clipboard"
+import { runNextCmdBy, parseFallbackOptions, portSendFgCmd, replaceCmdOptions, overrideOption } from "./run_commands"
+import C = kBgCmd
 
 type ShowPageData = [string, typeof Settings_.temp_.shownHash_, number]
 
@@ -64,7 +62,7 @@ const findUrlInText = (url: string, testUrl: OpenPageUrlOptions["testUrl"] | Unk
     ? BgUtils_.fixCharsInUrl_(url) : BgUtils_.detectLinkDeclaration_(url)
 }
 
-const onEvalUrl_ = (workType: Urls.WorkType, options: OpenUrlOptions, tabs: [Tab] | [] | undefined
+const onEvalUrl_ = (workType: Urls.WorkType, options: OpenUrlOptions & SafeObject, tabs: [Tab] | [] | undefined
     , arr: Urls.SpecialUrl): void => {
   if (arr instanceof Promise) {
     arr.then(onEvalUrl_.bind(0, workType, options, tabs))
@@ -79,11 +77,11 @@ const onEvalUrl_ = (workType: Urls.WorkType, options: OpenUrlOptions, tabs: [Tab
   case Urls.kEval.plainUrl:
     if (options.$p || arr[1] === Urls.kEval.plainUrl) {
       workType = Urls.WorkType.Default
-    } else {
+    } else { // should not use `overrideCmdOptions` - `.$p` may be computed from clipboard text and then unstable
       options = BgUtils_.extendIf_(BgUtils_.safeObj_(), options)
       options.$p = 1
     }
-    set_cOptions(options as CommandsNS.Options)
+    set_cOptions(options)
     openUrlWithActions(BgUtils_.convertToUrl_((arr as Urls.PasteEvalResult)[0]), workType, tabs)
     break
   case Urls.kEval.status:
@@ -281,7 +279,7 @@ const replaceOrOpenInNewTab = <Reuse extends Exclude<ReuseType, ReuseType.curren
   })).then<void>(matchedTab => {
     if (matchedTab == null || matchedTab.id === TabRecency_.curTab_ && reuse !== ReuseType.reuse) {
       reuse === ReuseType.reuse ? focusOrLaunch(options as MarksNS.FocusOrLaunch)
-      : runNextCmd(0, options as Req.FallbackOptions) ? 0
+      : runNextCmdBy(0, options as KnownOptions<C.openUrl>) ? 0
       : tabs ? openUrlInNewTab(url, reuse as Exclude<ReuseType, ReuseType.current | ReuseType.reuse>
             , options as KnownOptions<C.openUrl>, tabs)
       : getCurTab(openUrlInNewTab.bind(null, url, reuse as Exclude<ReuseType, ReuseType.current | ReuseType.reuse>
@@ -310,10 +308,10 @@ export const openJSUrl = (url: string, options: Req.FallbackOptions, onBrowserFa
     set_cPort(null)
   }
   const callback1 = (opt?: object | -1): void => {
-    if (opt !== -1 && !runtimeError_()) { runNextCmd(1, options); return; }
+    if (opt !== -1 && !runtimeError_()) { runNextCmdBy(1, options); return; }
     const code = BgUtils_.DecodeURLPart_(url.slice(11))
     browserTabs.executeScript({ code }, (): void => {
-      runtimeError_() ? onBrowserFail && onBrowserFail() : runNextCmd(1, options)
+      runtimeError_() ? onBrowserFail && onBrowserFail() : runNextCmdBy(1, options)
       return runtimeError_()
     })
     return runtimeError_()
@@ -389,9 +387,9 @@ const openUrls = (tabs: [Tab] | [] | undefined): void => {
     if (!(Build.BTypes & ~BrowserType.Firefox)
         || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox) {
       urls = urls.filter(i => settings.newTabs_.get(i) !== Urls.NewTabType.browser && !(<RegExpI> /file:\/\//i).test(i))
-      get_cOptions<C.openUrl, true>().urls = urls
+      overrideOption<C.openUrl, "urls">("urls", urls)
     }
-    get_cOptions<C.openUrl, true>().$fmt = 1
+    overrideOption<C.openUrl, "$fmt">("$fmt", 1)
   }
   for (const url of urls) {
     if (Backend_.checkHarmfulUrl_(url)) {
@@ -530,13 +528,13 @@ export const openUrl = (tabs?: [Tab] | []): void => {
   if ((get_cOptions<C.openUrl>().url_mask != null || get_cOptions<C.openUrl>().url_mark != null) && !tabs) {
     return runtimeError_() || <any> void getCurTab(openUrl)
   }
-  let sed = parseSedOptions_(get_cOptions<C.openUrl, true>())
   let rawUrl = get_cOptions<C.openUrl>().url
   if (rawUrl) {
+    let sed = parseSedOptions_(get_cOptions<C.openUrl, true>())
     rawUrl = sed ? substitute_(rawUrl + "", SedContext.NONE, sed) : rawUrl + ""
     openUrlWithActions(rawUrl, Urls.WorkType.EvenAffectStatus, tabs)
-  } else if (get_cOptions<C.openUrl>().copied || get_cOptions<C.openUrl>().paste) {
-    const url = paste_(sed)
+  } else if (get_cOptions<C.openUrl>().copied) {
+    const url = paste_(parseSedOptions_(get_cOptions<C.openUrl, true>()))
     if (url instanceof Promise) {
       url.then(/*#__NOINLINE__*/ openCopiedUrl.bind(null, tabs))
     } else {
@@ -555,7 +553,7 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port): void =>
   set_cPort(isWeb ? port! : findCPort(port) || cPort)
   let url: Urls.Url | undefined = request.u
   // { url_f: string, ... } | { copied: true, ... }
-  const opts: KnownOptions<C.openUrl> & SafeObject = BgUtils_.safeObj_()
+  const opts: KnownOptions<C.openUrl> = {}
   const o2: Readonly<Partial<FgReq[kFgReq.openUrl]["o"]>> = request.o || BgUtils_.safeObj_() as {}
   const _rawKey = o2.k, keyword = (_rawKey || "") + ""
   const _rawTest = o2.t, testUrl = _rawTest != null ? _rawTest : !keyword
@@ -595,7 +593,7 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port): void =>
     opts.sed = sed
   }
   set_cRepeat(1)
-  set_cOptions(opts)
+  replaceCmdOptions(opts)
   openUrl()
 }
 
@@ -614,7 +612,7 @@ const focusAndExecuteArr = [function (tabs): void {
   return runtimeError_()
 }, function (tabs) {
   // if `this.s`, then `typeof this` is `MarksNS.MarkToGo`
-  if (this.f && runNextCmd(0, this.f)) {
+  if (this.f && runNextCmdBy(0, this.f)) {
     return
   }
   const callback = this.s ? focusAndExecuteArr[3].bind(this as MarksNS.MarkToGo, 0) : null
@@ -679,7 +677,7 @@ export const focusAndExecute = (req: Omit<FgReq[kFgReq.gotoMainFrame], "f">
       c: req.c, n: req.n, a: req.a
     })
   } else {
-    req.a.$forced = true
+    req.a.$forced = 1
     portSendFgCmd(port, req.c, false, req.a as any, req.n)
   }
 }

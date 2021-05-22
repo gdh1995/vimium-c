@@ -127,7 +127,7 @@
   "restoreGivenTab": { "message": "Restore the last N-th tab" },
   "restoreTab": { "message": "Restore closed tabs" },
   "runKey": { "message": "Select and run another mapped key sequence" },
-  "runKey_p": { "message": "keys:KeySequence[]|string" },
+  "runKey_p": { "message": "expect:Envs, keys:KeySequence[]|string" },
   "scrollDown": { "message": "Scroll down" },
   "scrollDown_p": { "message": "keepHover=true|false|auto|never" },
   "scrollFullPageDown": { "message": "Scroll a full page down" },

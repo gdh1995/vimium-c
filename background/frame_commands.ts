@@ -1,17 +1,16 @@
-import C = kBgCmd
 import { browserTabs, browserWebNav, getTabUrl, runtimeError_, selectTab } from "./browser"
 import {
-  cPort, NoFrameId, cRepeat, get_cOptions, set_cPort, getSecret, set_cOptions, set_cRepeat, set_cNeedConfirm,
-  framesForTab, framesForOmni,
-  executeCommand, reqH_, omniPayload, settings, findCSS_, visualWordsRe_, set_cKey, cKey
+  cPort, NoFrameId, cRepeat, get_cOptions, set_cPort, getSecret, set_cOptions, set_cRepeat, framesForTab, framesForOmni,
+  omniPayload, settings, findCSS_, visualWordsRe_, cKey
 } from "./store"
+import { indexFrame, showHUD, complainLimits, ensureInnerCSS } from "./ports"
+import { substitute_ } from "./clipboard"
+import { visualGranularities_, visualKeys_ } from "./key_mappings"
 import {
-  indexFrame, portSendFgCmd, focusFrame, sendFgCmd, showHUD, complainLimits, safePost, wrapFallbackOptions
-} from "./ports"
-import { parseOptions_ } from "./key_mappings"
-import { parseSedOptions_, substitute_ } from "./clipboard"
+  wrapFallbackOptions, copyCmdOptions, parseFallbackOptions, portSendFgCmd, sendFgCmd, replaceCmdOptions, overrideOption
+} from "./run_commands"
 import { parseReuse, newTabIndex, openUrlWithActions } from "./open_urls"
-import { envRegistry_, normalizedOptions_, shortcutRegistry_, visualGranularities_, visualKeys_ } from "./key_mappings"
+import C = kBgCmd
 
 export const nextFrame = (): void | kBgCmd.nextFrame => {
   let port = cPort, ind = -1
@@ -69,7 +68,7 @@ export const performFind = (): void | kBgCmd.performFind => {
     sender.flags_ |= Frames.Flags.hasFindCSS
     sentFindCSS = findCSS_
   }
-  sendFgCmd(kFgCmd.findMode, true, wrapFallbackOptions<CmdOptions[kFgCmd.findMode]>({
+  sendFgCmd(kFgCmd.findMode, true, wrapFallbackOptions<kFgCmd.findMode, C.performFind>({
     c: nth > 0 ? cRepeat / absRepeat : cRepeat, l: leave, f: sentFindCSS,
     m: !!get_cOptions<C.performFind>().highlight, n: !!get_cOptions<C.performFind>().normalize,
     r: get_cOptions<C.performFind>().returnToViewport === true,
@@ -79,7 +78,7 @@ export const performFind = (): void | kBgCmd.performFind => {
     q: get_cOptions<C.performFind>().query ? get_cOptions<C.performFind>().query + ""
       : leave || get_cOptions<C.performFind>().last
       ? FindModeHistory_.query_(sender.incognito_, "", nth < 0 ? -nth : nth) : ""
-  }, get_cOptions<C.performFind, true>()))
+  }))
 }
 
 export const initHelp = (request: FgReq[kFgReq.initHelp], port: Port): void => {
@@ -120,6 +119,7 @@ export const showVomnibar = (forceInner?: boolean): void | kBgCmd.showVomnibar =
     if (!port) { return }
     // not go to the top frame here, so that a current frame can suppress keys for a while
   }
+  if (get_cOptions<C.showVomnibar>().mode === "bookmark") { overrideOption<C.showVomnibar, "mode">("mode", "bookm") }
   const page = settings.cache_.vomnibarPage_f, { url_: url } = port.s, preferWeb = !page.startsWith(BrowserProtocol_),
   isCurOnExt = url.startsWith(BrowserProtocol_),
   inner = forceInner || !page.startsWith(location.origin) ? settings.CONST_.VomnibarPageInner_ : page
@@ -135,7 +135,7 @@ export const showVomnibar = (forceInner?: boolean): void | kBgCmd.showVomnibar =
   _trailingSlash1 = get_cOptions<C.showVomnibar>().trailing_slash,
   trailingSlash: boolean | null | undefined = _trailingSlash0 != null ? !!_trailingSlash0
       : _trailingSlash1 != null ? !!_trailingSlash1 : null,
-  options: CmdOptions[kFgCmd.vomnibar] & SafeObject & KnownOptions<C.showVomnibar> = BgUtils_.extendIf_(
+  options: CmdOptions[kFgCmd.vomnibar] & SafeObject & KnownOptions<C.showVomnibar> = copyCmdOptions(
       BgUtils_.safer_<CmdOptions[kFgCmd.vomnibar]>({
     v: useInner ? inner : page,
     i: useInner ? null : inner,
@@ -143,12 +143,8 @@ export const showVomnibar = (forceInner?: boolean): void | kBgCmd.showVomnibar =
     s: trailingSlash,
     j: useInner ? "" : settings.CONST_.VomnibarScript_f_,
     e: !!(get_cOptions<C.showVomnibar>()).exitOnClick,
-    d: parseSedOptions_(get_cOptions<C.showVomnibar, true>()),
     k: getSecret()
-  }), get_cOptions<C.showVomnibar, true>())
-  if (options.mode === "bookmark") {
-    options.mode = "bookm"
-  }
+  }), get_cOptions<C.showVomnibar, true>(), 1) as CmdOptions[kFgCmd.vomnibar] & SafeObject
   portSendFgCmd(port, kFgCmd.vomnibar, true, options, cRepeat)
   options.k = -1
   set_cOptions(options) // safe on renaming
@@ -179,11 +175,11 @@ export const enterVisualMode = (): void | kBgCmd.visualMode => {
     granularities = visualGranularities_
     sender.flags_ |= Frames.Flags.hadVisualMode
   }
-  sendFgCmd(kFgCmd.visualMode, true, wrapFallbackOptions<CmdOptions[kFgCmd.visualMode]>({
+  sendFgCmd(kFgCmd.visualMode, true, wrapFallbackOptions<kFgCmd.visualMode, C.visualMode>({
     m: str === "caret" ? VisualModeNS.Mode.Caret : str === "line" ? VisualModeNS.Mode.Line : VisualModeNS.Mode.Visual,
     f: sentFindCSS, g: granularities, k: keyMap,
     t: !!get_cOptions<C.visualMode>().richText, s: !!get_cOptions<C.visualMode>().start, w: words
-  }, get_cOptions<C.visualMode, true>()))
+  }))
 }
 
 let _tempBlob: [number, string] | null | undefined
@@ -269,9 +265,7 @@ export const openImgReq = (req: FgReq[kFgReq.openImage], port?: Port): void => {
       && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)
       && req.m === HintMode.DOWNLOAD_MEDIA ? "" : opts2.k
   url = opts2.s ? substitute_(url, SedContext.paste, opts2.s) : url
-  set_cOptions(BgUtils_.safer_<KnownOptions<C.openUrl>>({
-    opener: true, reuse: req.r, replace: opts2.m, position: opts2.p, window: opts2.w
-  }))
+  replaceCmdOptions<C.openUrl>({ opener: true, reuse: req.r, replace: opts2.m, position: opts2.p, window: opts2.w })
   set_cRepeat(1)
   // not use v:show for those from other extensions
   openUrlWithActions(typeof keyword !== "string"
@@ -422,7 +416,7 @@ export const framesGoNext = (isNext: boolean, rel: string): void => {
         : (useDefaultPatterns = true, isNext ? settings.cache_.nextPatterns : settings.cache_.previousPatterns)
     patterns = patterns.split(",")
   }
-  if (useDefaultPatterns || !get_cOptions<C.goNext>().$n) {
+  if (useDefaultPatterns || !get_cOptions<C.goNext>().$fmt) {
     let p2: string[] = []
     for (let i of patterns) {
       i = i && (i + "").trim()
@@ -431,322 +425,25 @@ export const framesGoNext = (isNext: boolean, rel: string): void => {
     }
     patterns = p2
     if (!useDefaultPatterns) {
-      get_cOptions<C.goNext, true>().patterns = patterns
-      get_cOptions<C.goNext, true>().$n = 1
+      overrideOption<C.goNext, "patterns">("patterns", patterns)
+      overrideOption<C.goNext, "$fmt">("$fmt", 1)
     }
   }
   const maxLens: number[] = patterns.map(i => Math.max(i.length + 12, i.length * 4)),
   totalMaxLen: number = Math.max.apply(Math, maxLens)
-  sendFgCmd(kFgCmd.goNext, true, wrapFallbackOptions<CmdOptions[kFgCmd.goNext]>({
+  sendFgCmd(kFgCmd.goNext, true, wrapFallbackOptions<kFgCmd.goNext, C.goNext>({
     r: get_cOptions<C.goNext>().noRel ? "" : rel, n: isNext,
     exclude: (get_cOptions<C.goNext, true>() as CSSOptions).exclude,
     match: get_cOptions<C.goNext, true>().match,
     evenIf: get_cOptions<C.goNext, true>().evenIf,
     p: patterns, l: maxLens, m: totalMaxLen > 0 && totalMaxLen < 99 ? totalMaxLen : 32
-  }, get_cOptions<C.goNext, true>()))
+  }))
+}
+
+export const focusFrame = (port: Port, css: boolean, mask: FrameMaskType, fallback?: Req.FallbackOptions): void => {
+  port.postMessage({ N: kBgReq.focusFrame, H: css ? ensureInnerCSS(port.s) : null, m: mask, k: cKey, c: 0,
+    f: fallback && parseFallbackOptions(fallback) || {}
+  })
 }
 
 /** `confirm()` simulator section */
-
-export let gOnConfirmCallback: ((force1: boolean, arg?: FakeArg) => void) | null | undefined
-let _gCmdTimer = 0
-
-export function set_gOnConfirmCallback (_newGocc: typeof gOnConfirmCallback) { gOnConfirmCallback = _newGocc }
-
-/** 0=cancel, 1=force1, count=accept */
-export const confirm_ = <T extends kCName, force extends BOOL = 0> (
-    command: CmdNameIds[T] extends kBgCmd ? T : force extends 1 ? kCName : never
-    , count: number, callback?: (_arg?: FakeArg) => void): number | void => {
-  if (!(Build.NDEBUG || !command.includes("."))) {
-    console.log("Assert error: command should has no limit on repeats: %c%s", "color:red", command)
-  }
-  let msg = trans_("cmdConfirm", [count, trans_(command)])
-  if (!(Build.BTypes & BrowserType.Chrome) || Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome) {
-    if (cPort) {
-      gOnConfirmCallback = onConfirmWrapper.bind(0, get_cOptions() as any, cRepeat, cPort, callback!)
-      setupSingletonCmdTimer(setTimeout(onConfirm, 3000, 0));
-      (indexFrame(cPort.s.tabId_, 0) || cPort).postMessage({
-        N: kBgReq.count, c: "", i: _gCmdTimer, m: msg
-      })
-    } else {
-      gOnConfirmCallback = null // clear old commands
-    }
-    return
-  }
-  const now = Date.now(), result = window.confirm(msg)
-  return Math.abs(Date.now() - now) > 9 ? result ? count : 0
-      : (Build.NDEBUG || console.log("A confirmation dialog may fail in showing."), 1)
-}
-
-const onConfirmWrapper = (bakOptions: SafeObject, count: number, port: Port
-    , callback: (arg?: FakeArg) => void, force1?: boolean) => {
-  force1 || set_cKey(kKeyCode.None)
-  set_cOptions(bakOptions)
-  set_cRepeat(force1 ? count > 0 ? 1 : -1 : count)
-  set_cPort(port)
-  callback()
-}
-
-export const onConfirm = (response: FgReq[kFgReq.cmd]["r"]): void => {
-  const callback = gOnConfirmCallback
-  gOnConfirmCallback = null
-  if (response > 1 && callback) {
-    set_cNeedConfirm(0)
-    callback(response < 3)
-    set_cNeedConfirm(1)
-  }
-}
-
-export const setupSingletonCmdTimer = (newTimer: number): void => {
-  _gCmdTimer && clearTimeout(_gCmdTimer)
-  _gCmdTimer = newTimer
-}
-
-export const onConfirmResponse = (request: FgReq[kFgReq.cmd], port: Port): void => {
-  const cmd = request.c as StandardShortcutNames, id = request.i
-  if (id >= -1 && _gCmdTimer !== id) { return } // an old / aborted / test message
-  setupSingletonCmdTimer(0)
-  if (request.r) {
-    onConfirm(request.r)
-    return
-  }
-  executeCommand(shortcutRegistry_!.get(cmd)!, request.n, kKeyCode.None, port, 0)
-}
-
-export const executeShortcut = (shortcutName: StandardShortcutNames, ref: Frames.Frames | null | undefined): void => {
-  setupSingletonCmdTimer(0)
-  if (ref) {
-    let port = ref.cur_
-    setupSingletonCmdTimer(setTimeout(executeShortcut, 100, shortcutName, null))
-    port.postMessage({ N: kBgReq.count, c: shortcutName, i: _gCmdTimer, m: "" })
-    if (!(port.s.flags_ & Frames.Flags.hasCSS || ref.flags_ & Frames.Flags.userActed)) {
-      reqH_[kFgReq.exitGrab]({}, port)
-    }
-    ref.flags_ |= Frames.Flags.userActed
-    return
-  }
-  let registry = shortcutRegistry_!.get(shortcutName)!, cmdName = registry.command_,
-  cmdFallback: keyof BgCmdOptions = 0
-  if (cmdName === "goBack" || cmdName === "goForward") {
-    if (Build.BTypes & ~BrowserType.Edge
-        && (!(Build.BTypes & BrowserType.Edge) || OnOther !== BrowserType.Edge)
-        && browserTabs.goBack) {
-      cmdFallback = kBgCmd.goBackFallback
-    }
-  } else if (cmdName === "autoOpen") {
-    cmdFallback = kBgCmd.autoOpenFallback
-  }
-  if (cmdFallback) {
-    /** this object shape should keep the same as the one in {@link key_mappings.ts#makeCommand_} */
-    registry = <CommandsNS.Item> As_<CommandsNS.ValidItem>({
-      alias_: cmdFallback, background_: 1, command_: cmdName, help_: null,
-      options_: registry.options_, repeat_: registry.repeat_
-    })
-  }
-  if (!registry.background_) {
-    return
-  }
-  if (registry.alias_ > kBgCmd.MAX_NEED_CPORT || registry.alias_ < kBgCmd.MIN_NEED_CPORT) {
-    executeCommand(registry, 1, kKeyCode.None, null as never as Port, 0)
-  } else {
-    let opts = normalizedOptions_(registry)
-    if (!opts || !opts.$noWarn) {
-      let rawOpts: CommandsNS.Options = (registry as Writable<typeof registry>).options_ = BgUtils_.safeObj_<any>()
-      opts && BgUtils_.extendIf_(rawOpts, opts)
-      rawOpts.$noWarn = true
-      console.log("Error: Command", cmdName, "must run on pages which are not privileged")
-    }
-  }
-}
-
-declare const enum EnvMatchResult { abort, nextEnv, matched }
-interface CurrentEnvCache {
-  element_?: Element
-  portUrl_?: string
-}
-
-const matchEnvRule = (rule: CommandsNS.EnvItem, cur: CurrentEnvCache
-      , info?: FgReq[kFgReq.respondForRunKey]): EnvMatchResult => {
-    let elSelector = rule.element, host = rule.host, fullscreen = rule.fullscreen
-    if (elSelector || fullscreen != null) {
-      if (!info) {
-        cPort && safePost(cPort, { N: kBgReq.queryForRunKey, n: performance.now() })
-        return EnvMatchResult.abort
-      }
-      if (!elSelector) { /* empty */ }
-      else if ((<RegExpOne> /^[A-Za-z][-\w]+$/).test(elSelector)) {
-        if (info.t !== elSelector) { return EnvMatchResult.nextEnv }
-      } else {
-        if (!cur.element_) {
-          const activeEl = document.createElement(info.t)
-          activeEl.className = info.c
-          activeEl.id = info.i
-          cur.element_ = activeEl
-        }
-        if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Element$$matches
-            && CurCVer_ < BrowserVer.Min$Element$$matches ? !cur.element_.webkitMatchesSelector!(info.t)
-            : !cur.element_.matches!(info.t)) { return EnvMatchResult.nextEnv }
-      }
-      if (fullscreen != null) {
-        if (!!fullscreen !== !info.f) {
-          return EnvMatchResult.nextEnv
-        }
-      }
-    }
-    if (host) {
-      if (!cPort) { return EnvMatchResult.abort }
-      if (typeof host === "string") {
-        host = rule.host = Exclusions.createSimpleUrlMatcher_(host)
-      }
-      if (host) {
-        let portUrl = cur.portUrl_
-        if (!portUrl) {
-          portUrl = cPort.s.url_
-          if (cPort.s.frameId_ && portUrl.lastIndexOf("://", 5) < 0 && !BgUtils_.protocolRe_.test(portUrl)) {
-            const frames = framesForTab.get(cPort.s.tabId_)
-            portUrl = frames && frames.top_ ? frames.top_.s.url_ : portUrl
-          }
-          cur.portUrl_ = portUrl
-        }
-        if (Exclusions.matchSimply_(host, portUrl)) {
-          return EnvMatchResult.nextEnv
-        }
-      }
-    }
-    return EnvMatchResult.matched
-}
-
-export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey]): void => {
-  let expected_rules = get_cOptions<kBgCmd.runKey>().expect
-  const absCRepeat = Math.abs(cRepeat)
-  const curEnvCache: CurrentEnvCache = {}
-  let matchedIndex: number | string = -1
-  let matchedRule: KnownOptions<kBgCmd.runKey> | CommandsNS.EnvItem | CommandsNS.EnvItemWithKeys
-      = get_cOptions<kBgCmd.runKey, true>()
-  let keys: string | string[] | null | undefined
-  const frames = framesForTab.get(cPort ? cPort.s.tabId_ : TabRecency_.curTab_)
-  if (!cPort) {
-    set_cPort(frames ? frames.cur_ : null)
-  }
-  frames && (frames.flags_ |= Frames.Flags.userActed)
-  for (let i = 0, size = expected_rules instanceof Array ? expected_rules.length : 0
-        ; i < size; i++) {
-    let rule: CommandsNS.EnvItem | "__not_parsed__" | CommandsNS.EnvItemWithKeys | null | undefined
-        = (expected_rules as CommandsNS.EnvItemWithKeys[])[i]
-    const ruleName = (rule as CommandsNS.EnvItemWithKeys).env
-    if (ruleName) {
-      if (!envRegistry_) {
-        showHUD('No environments have been declared')
-        return
-      }
-      rule = envRegistry_.get(ruleName)
-      if (!rule) {
-        showHUD(`No environment named "${ruleName}"`)
-        return
-      }
-      if (typeof rule === "string") {
-        rule = parseOptions_(rule) as CommandsNS.EnvItem
-        envRegistry_.set(ruleName, rule)
-      }
-    }
-    const res = matchEnvRule(rule, curEnvCache, info)
-    if (res === EnvMatchResult.abort) { return }
-    if (res === EnvMatchResult.matched) {
-      matchedIndex = ruleName || i
-      matchedRule = rule
-      if (ruleName) {
-        keys = (expected_rules as CommandsNS.EnvItemWithKeys[])[i].keys
-      }
-      break
-    }
-  }
-  if (typeof expected_rules === "string" && (<RegExpOne> /^[^{].*?[:=]/).test(expected_rules)) {
-    expected_rules = expected_rules.split(<RegExpG> /[,\s]+/g).map((i): string[] => i.split(<RegExpOne> /[:=]/)
-        ).reduce((obj, i): SafeDict<string> => {
-      if (i.length === 2 && i[0] !== "__proto__" && (<RegExpOne> /^[\x21-\x7f]+$/).test(i[1])) {
-        obj[i[0]] = i[1]
-      }
-      return obj
-    }, BgUtils_.safeObj_<string>())
-    get_cOptions<kBgCmd.runKey, true>().expect = expected_rules
-  }
-  if (matchedIndex === -1 && expected_rules
-      && typeof expected_rules === "object" && !(expected_rules instanceof Array)) {
-    BgUtils_.safer_(expected_rules)
-    if (!envRegistry_) {
-      showHUD('No environments have been declared')
-      return
-    }
-    for (let ruleName in expected_rules) {
-      let rule = envRegistry_.get(ruleName)
-      if (!rule) {
-        showHUD(`No environment named "${ruleName}"`)
-        return
-      }
-      if (typeof rule === "string") {
-        rule = parseOptions_(rule) as CommandsNS.EnvItem
-        envRegistry_.set(ruleName, rule)
-      }
-      const res = matchEnvRule(rule, curEnvCache, info)
-      if (res === EnvMatchResult.abort) { return }
-      if (res === EnvMatchResult.matched) {
-        matchedIndex = ruleName
-        matchedRule = rule
-        keys = (expected_rules as Exclude<BgCmdOptions[kBgCmd.runKey]["expect"] & object, unknown[]>)[ruleName]
-        break
-      }
-    }
-  }
-  keys = keys || (matchedRule as KnownOptions<kBgCmd.runKey> | CommandsNS.EnvItemWithKeys).keys
-  if (typeof keys === "string") {
-    keys = keys.trim().split(BgUtils_.spacesRe_);
-    if (typeof matchedIndex === "number") {
-      (matchedRule as KnownOptions<kBgCmd.runKey> | CommandsNS.EnvItemWithKeys).keys = keys
-    } else {
-      (expected_rules as Dict<string | string[]>)[matchedIndex] = keys
-    }
-  }
-  let key: string
-  const sub_name = typeof matchedIndex === "number" && matchedIndex >= 0 ? `[${matchedIndex + 1}] ` : ""
-  if (!(keys instanceof Array)) {
-    showHUD(sub_name + "Require keys: space-seperated-string | string[]")
-    return
-  } else if (absCRepeat > keys.length && keys.length !== 1) {
-    showHUD(sub_name + 'Has no such a key')
-    return
-  } else if (key = keys[keys.length === 1 ? 0 : absCRepeat - 1], typeof key !== "string" || !key) {
-    showHUD(sub_name + 'The key is invalid')
-  }
-  if (key) {
-    let count = 1, arr: null | string[] = (<RegExpOne> /^\d+|^-\d*/).exec(key)
-    if (arr != null) {
-      let prefix = arr[0]
-      key = key.slice(prefix.length)
-      count = prefix !== "-" ? parseInt(prefix, 10) || 1 : -1
-    }
-    let registryEntry = Build.BTypes & BrowserType.Chrome
-        && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol && key === "__proto__" ? null
-        : CommandsData_.keyToCommandRegistry_.get(key)
-    if (!registryEntry) {
-      showHUD(`the "${key}" has not been mapped`)
-    } else if (registryEntry.alias_ === kBgCmd.runKey && registryEntry.background_) {
-      showHUD('"runKey" can not be nested')
-    } else {
-      BgUtils_.resetRe_()
-      count = keys.length === 1 ? count * cRepeat : absCRepeat !== cRepeat ? -count : count
-      const specialOptions = matchedRule.options
-      if (specialOptions || !expected_rules && Object.keys(get_cOptions<C.runKey>()).length > 1) {
-        const originalOptions = normalizedOptions_(registryEntry)
-        registryEntry = BgUtils_.extendIf_(BgUtils_.safeObj_<{}>(), registryEntry)
-        let newOptions: CommandsNS.Options & KnownOptions<kBgCmd.runKey> = BgUtils_.safeObj_<{}>()
-        BgUtils_.extendIf_(newOptions, specialOptions || get_cOptions<C.runKey>())
-        specialOptions || delete newOptions.keys
-        if (originalOptions) {
-          BgUtils_.extendIf_(newOptions, originalOptions);
-        }
-        (registryEntry as Writable<typeof registryEntry>).options_ = newOptions
-      }
-      executeCommand(registryEntry, count, cKey, cPort, 0)
-    }
-  }
-}

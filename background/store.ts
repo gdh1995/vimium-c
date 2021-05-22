@@ -20,8 +20,16 @@ export let cPort: Frames.Port = null as never
 export let cRepeat = 1
 
 export let reqH_: BackendHandlersNS.FgRequestHandlers
-export let executeCommand: (registryEntry: CommandsNS.Item, count: number, lastKey: kKeyCode, port: Port
-    , overriddenCount: number, fallbackCounter?: FgReq[kFgReq.key]["f"]) => void
+export let bgC_: {
+  readonly [K in keyof BgCmdOptions]: K extends keyof BgCmdInfoMap
+    ? BgCmdInfoMap[K] extends kCmdInfo.ActiveTab ? BgCmdActiveTab<K>
+      : BgCmdInfoMap[K] extends kCmdInfo.CurWndTabsIfRepeat | kCmdInfo.CurWndTabs | kCmdInfo.CurShownTabs
+      ? BgCmdCurWndTabs<K>
+      : BgCmdInfoMap[K] extends kCmdInfo.ActiveTab | kCmdInfo.NoTab ? BgCmdActiveTabOrNoTab<K>
+      : never
+    : BgCmdNoTab<K>
+}
+export let cmdInfo_: { [k in number]: kCmdInfo }
 
 export const set_cKey = (_newKey: kKeyCode): void => { cKey = _newKey }
 export const set_cNeedConfirm = (_newNeedC: BOOL): void => { cNeedConfirm = _newNeedC }
@@ -37,7 +45,8 @@ export const set_needIcon_ = (_newNeedIcon: boolean): void => { needIcon_ = _new
 export const set_visualWordsRe_ = (_newVisualWord: string): void => { visualWordsRe_ = _newVisualWord }
 
 export const set_reqH_ = (_newRH: BackendHandlersNS.FgRequestHandlers): void => { reqH_ = _newRH }
-export const set_executeCommand = (_newEC: typeof executeCommand): void => { executeCommand = _newEC }
+export const set_bgC_ = (_newBgC: typeof bgC_): void => { bgC_ = _newBgC }
+export const set_cmdInfo_ = (_newCmdInfo: typeof cmdInfo_): void => { cmdInfo_ = _newCmdInfo }
 
 let _secret = 0, _time = 0, fakeTabId: number = GlobalConsts.MaxImpossibleTabId
 

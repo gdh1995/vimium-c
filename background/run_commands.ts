@@ -1,0 +1,520 @@
+import { browserTabs, runtimeError_, getCurTab, getCurShownTabs_ff_only, getCurTabs } from "./browser"
+import {
+  framesForTab, get_cOptions, cPort, cRepeat, reqH_, bgC_, cmdInfo_,
+  set_cOptions, set_cPort, cKey, set_cKey, set_cRepeat, set_cNeedConfirm
+} from "./store"
+import {
+  shortcutRegistry_, normalizedOptions_, envRegistry_, parseOptions_, normalizeCommand_, availableCommands_,
+  makeCommand_
+} from "./key_mappings"
+import { ensureInnerCSS, indexFrame, safePost, showHUD } from "./ports"
+import C = kBgCmd
+
+const abs = Math.abs
+let _gCmdTimer = 0
+let _confirmationMayFail = 0
+let gOnConfirmCallback: ((force1: boolean, arg?: FakeArg) => void) | null | undefined
+
+/** operate command options */
+
+export const replaceCmdOptions = <T extends keyof BgCmdOptions> (known: CmdOptionSafeToClone<T>): void => {
+  set_cOptions(BgUtils_.safer_(known))
+}
+
+/** skip commands' private ".$xxx" options and ".$count", except those shared public fields */
+export const copyCmdOptions = (dest: CommandsNS.RawOptions, src: CommandsNS.Options
+    , allow$f: BOOL): CommandsNS.RawOptions => {
+  for (const i in src) {
+    if (i[0] !== "$" || !i.includes("=") && "$then=$else=$retry=".includes(i + "=") || (allow$f && i === "$f")) {
+      i in dest || (dest[i] = src![i])
+    }
+  }
+  return dest
+}
+
+/** keep all private and public fields in cOptions */
+export const overrideCmdOptions = <T extends keyof BgCmdOptions> (known: CmdOptionSafeToClone<T>): void => {
+  BgUtils_.extendIf_(BgUtils_.safer_(known as KnownOptions<T>), get_cOptions<T, true>());
+  (known as any as CommandsNS.Options).$o = get_cOptions<T, true>()
+  set_cOptions(known as KnownOptions<T> as KnownOptions<T> & SafeObject)
+}
+
+type BgO = BgCmdOptions
+export const overrideOption = <T extends keyof BgO, K extends keyof BgO[T]>(
+    field: K, value: NonNullable<BgO[T][K]>, curOptions?: KnownOptions<T>): void => {
+  curOptions = curOptions || get_cOptions<T, true>() as KnownOptions<T>
+  curOptions[field] = value
+  const parentOptions = (get_cOptions<T, true>() as CommandsNS.Options).$o
+  if (parentOptions != null) { overrideOption(field, value, parentOptions as unknown as KnownOptions<T>) }
+}
+
+/** execute a command normally */
+
+const executeCmdOnTabs = (tabs: Tab[] | [Tab] | undefined): void => {
+  const callback = gOnConfirmCallback
+  gOnConfirmCallback = null
+  callback && (callback as unknown as BgCmdCurWndTabs<kBgCmd>)(tabs!)
+  return tabs ? void 0 : runtimeError_()
+}
+
+const onLargeCountConfirmed = (registryEntry: CommandsNS.Item, fallbackCounter: FgReq[kFgReq.key]["f"]): void => {
+  executeCommand(registryEntry, 1, cKey, cPort, cRepeat, fallbackCounter)
+}
+
+export const executeCommand = (registryEntry: CommandsNS.Item, count: number, lastKey: kKeyCode, port: Port
+    , overriddenCount: number, fallbackCounter?: FgReq[kFgReq.key]["f"]): void => {
+  if (gOnConfirmCallback) {
+    gOnConfirmCallback = null // just in case that some callbacks were thrown away
+    return
+  }
+  let scale: number | undefined
+  let options = normalizedOptions_(registryEntry), repeat = registryEntry.repeat_
+  // .count may be invalid, if from other extensions
+  if (options && (scale = options.$count)) { count = count * scale || 1 }
+  count = Build.BTypes & ~BrowserType.Chrome && overriddenCount
+    || (count >= GlobalConsts.CommandCountLimit + 1 ? GlobalConsts.CommandCountLimit
+        : count <= -GlobalConsts.CommandCountLimit - 1 ? -GlobalConsts.CommandCountLimit
+        : (count | 0) || 1)
+  if (count === 1) { /* empty */ }
+  else if (repeat === 1) { count = 1 }
+  else if (repeat > 0 && (count > repeat || count < -repeat)) {
+    if (Build.BTypes & ~BrowserType.Chrome) {
+      if (!overriddenCount) {
+        set_cKey(lastKey)
+        set_cOptions(null)
+        set_cPort(port)
+        set_cRepeat(count)
+        confirm_<kCName, 1>(registryEntry.command_, abs(count),
+            onLargeCountConfirmed.bind(null, registryEntry, fallbackCounter))
+        return
+      }
+    } else {
+      count = confirm_<kCName, 1>(registryEntry.command_, abs(count))! * (count < 0 ? -1 : 1)
+    }
+    if (!count) { return }
+  } else { count = count || 1 }
+  if (fallbackCounter != null) {
+    const maxRetried = Math.max(2, Math.min((fallbackCounter.r! | 0) || 6, 20))
+    if (fallbackCounter.c >= maxRetried) {
+      set_cPort(port)
+      showHUD(`Has ran sequential commands for ${maxRetried} times`)
+      return
+    }
+    if (options && (registryEntry.alias_ === kBgCmd.runKey || parseFallbackOptions(options as Req.FallbackOptions))) {
+      set_cOptions(options)
+      overrideCmdOptions<kBgCmd.runKey>(As_<Req.FallbackOptions>({
+        $f: (fallbackCounter.c | 0) + 1, $retry: maxRetried
+      }))
+      options = get_cOptions()
+    }
+  }
+  if (!registryEntry.background_) {
+    const { alias_: fgAlias } = registryEntry,
+    wantCSS = (kFgCmd.END <= 32 || fgAlias < 32) && <BOOL> (((
+      (1 << kFgCmd.marks) | (1 << kFgCmd.passNextKey) | (1 << kFgCmd.focusInput)
+    ) >> fgAlias) & 1)
+        || fgAlias === kFgCmd.scroll && (!!options && (options as CmdOptions[kFgCmd.scroll]).keepHover === false)
+    set_cPort(port)
+    portSendFgCmd(port, fgAlias, wantCSS, options as any, count)
+    return
+  }
+  const { alias_: alias } = registryEntry, func = bgC_[alias]
+  // safe on renaming
+  set_cKey(lastKey)
+  set_cOptions(options || BgUtils_.safeObj_())
+  set_cPort(port)
+  set_cRepeat(count)
+  count = cmdInfo_[alias]
+  if (count < kCmdInfo.ActiveTab) {
+    (func as BgCmdNoTab<kBgCmd>)()
+  } else {
+    gOnConfirmCallback = func as BgCmdCurWndTabs<kBgCmd> as any;
+    (count < kCmdInfo.CurWndTabsIfRepeat || count === kCmdInfo.CurWndTabsIfRepeat && abs(cRepeat) < 2 ? getCurTab
+        : Build.BTypes & BrowserType.Firefox && count > kCmdInfo.CurWndTabs ? getCurShownTabs_ff_only!
+        : getCurTabs)(/*#__NOINLINE__*/ executeCmdOnTabs)
+  }
+}
+
+/** show a confirmation dialog */
+
+/** 0=cancel, 1=force1, count=accept */
+export const confirm_ = <T extends kCName, force extends BOOL = 0> (
+    command: CmdNameIds[T] extends kBgCmd ? T : force extends 1 ? kCName : never
+    , count: number, callback?: (_arg?: FakeArg) => void): number | void => {
+  if (!(Build.NDEBUG || !command.includes("."))) {
+    console.log("Assert error: command should has no limit on repeats: %c%s", "color:red", command)
+  }
+  let msg = trans_("cmdConfirm", [count, trans_(command)])
+  if (!(Build.BTypes & BrowserType.Chrome) || Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome) {
+    if (cPort) {
+      gOnConfirmCallback = onConfirmWrapper.bind(0, get_cOptions() as any, cRepeat, cPort, callback!)
+      setupSingletonCmdTimer(setTimeout(onConfirm, 3000, 0));
+      (indexFrame(cPort.s.tabId_, 0) || cPort).postMessage({
+        N: kBgReq.count, c: "", i: _gCmdTimer, m: msg
+      })
+    } else {
+      gOnConfirmCallback = null // clear old commands
+    }
+    return
+  }
+  const now = Date.now(), result = window.confirm(msg)
+  return Math.abs(Date.now() - now) > 9 ? result ? count : 0
+      : (Build.NDEBUG || _confirmationMayFail || (_confirmationMayFail = 1,
+          console.log("A confirmation dialog may fail in showing.")), 1)
+}
+
+const onConfirmWrapper = (bakOptions: SafeObject, count: number, port: Port
+    , callback: (arg?: FakeArg) => void, force1?: boolean) => {
+  force1 || set_cKey(kKeyCode.None)
+  set_cOptions(bakOptions)
+  set_cRepeat(force1 ? count > 0 ? 1 : -1 : count)
+  set_cPort(port)
+  callback()
+}
+
+export const onConfirm = (response: FgReq[kFgReq.cmd]["r"]): void => {
+  const callback = gOnConfirmCallback
+  gOnConfirmCallback = null
+  if (response > 1 && callback) {
+    set_cNeedConfirm(0)
+    callback(response < 3)
+    set_cNeedConfirm(1)
+  }
+}
+
+const setupSingletonCmdTimer = (newTimer: number): void => {
+  _gCmdTimer && clearTimeout(_gCmdTimer)
+  _gCmdTimer = newTimer
+}
+
+export const onConfirmResponse = (request: FgReq[kFgReq.cmd], port: Port): void => {
+  const cmd = request.c as StandardShortcutNames, id = request.i
+  if (id >= -1 && _gCmdTimer !== id) { return } // an old / aborted / test message
+  setupSingletonCmdTimer(0)
+  if (request.r) {
+    onConfirm(request.r)
+    return
+  }
+  executeCommand(shortcutRegistry_!.get(cmd)!, request.n, kKeyCode.None, port, 0)
+}
+
+/** forward a triggered command */
+
+export const sendFgCmd = <K extends keyof CmdOptions> (cmd: K, css: boolean, opts: CmdOptions[K]): void => {
+  portSendFgCmd(cPort, cmd, css, opts, 1)
+}
+
+export const portSendFgCmd = <K extends keyof CmdOptions> (
+    port: Port, cmd: K, css: boolean | BOOL, opts: CmdOptions[K], count: number): void => {
+  port.postMessage<1, K>({ N: kBgReq.execute, H: css ? ensureInnerCSS(port.s) : null, c: cmd, n: count, a: opts })
+}
+
+export const executeShortcut = (shortcutName: StandardShortcutNames, ref: Frames.Frames | null | undefined): void => {
+  setupSingletonCmdTimer(0)
+  if (ref) {
+    let port = ref.cur_
+    setupSingletonCmdTimer(setTimeout(executeShortcut, 100, shortcutName, null))
+    port.postMessage({ N: kBgReq.count, c: shortcutName, i: _gCmdTimer, m: "" })
+    if (!(port.s.flags_ & Frames.Flags.hasCSS || ref.flags_ & Frames.Flags.userActed)) {
+      reqH_[kFgReq.exitGrab]({}, port)
+    }
+    ref.flags_ |= Frames.Flags.userActed
+    return
+  }
+  let registry = shortcutRegistry_!.get(shortcutName)!, cmdName = registry.command_,
+  cmdFallback: keyof BgCmdOptions = 0
+  if (cmdName === "goBack" || cmdName === "goForward") {
+    if (Build.BTypes & ~BrowserType.Edge
+        && (!(Build.BTypes & BrowserType.Edge) || OnOther !== BrowserType.Edge)
+        && browserTabs.goBack) {
+      cmdFallback = kBgCmd.goBackFallback
+    }
+  } else if (cmdName === "autoOpen") {
+    cmdFallback = kBgCmd.autoOpenFallback
+  }
+  if (cmdFallback) {
+    /** this object shape should keep the same as the one in {@link key_mappings.ts#makeCommand_} */
+    registry = <CommandsNS.Item> As_<CommandsNS.ValidItem>({
+      alias_: cmdFallback, background_: 1, command_: cmdName, help_: null,
+      options_: registry.options_, repeat_: registry.repeat_
+    })
+  }
+  if (!registry.background_) {
+    return
+  }
+  if (registry.alias_ > kBgCmd.MAX_NEED_CPORT || registry.alias_ < kBgCmd.MIN_NEED_CPORT) {
+    executeCommand(registry, 1, kKeyCode.None, null as never as Port, 0)
+  } else {
+    let opts = normalizedOptions_(registry)
+    if (!opts || !opts.$noWarn) {
+      opts = opts || ((registry as Writable<typeof registry>).options_ = BgUtils_.safeObj_<any>());
+      (overrideOption as (field: keyof CommandsNS.SharedInnerOptions, value: true
+          , curOptions: CommandsNS.SharedInnerOptions) => void)("$noWarn", true, opts)
+      console.log("Error: Command", cmdName, "must run on pages which are not privileged")
+    }
+  }
+}
+
+/** this functions needs to accept any types of arguments and normalize them */
+export const executeExternalCmd = (
+    message: Partial<ExternalMsgs[kFgReq.command]["req"]>, sender: chrome.runtime.MessageSender): void => {
+  let command = message.command;
+  command = command ? command + "" : "";
+  const description = command ? availableCommands_[command] : null
+  if (!description) { return; }
+  let ref: Frames.Frames | null
+  const port: Port | null = sender.tab ? Backend_.indexPorts_(sender.tab.id, sender.frameId || 0)
+      || (ref = Backend_.indexPorts_(sender.tab.id), ref ? ref.cur_ : null) : null
+  if (!port && !description[1]) { /** {@link index.d.ts#CommandsNS.FgDescription} */
+    return;
+  }
+  let options = (message.options || null) as CommandsNS.RawOptions | null
+    , lastKey: kKeyCode | undefined = message.key
+    , regItem = makeCommand_(command, options)
+    , count = message.count as number | string | undefined;
+  if (!regItem) { return; }
+  count = count !== "-" ? parseInt(count as string, 10) || 1 : -1;
+  options && typeof options === "object" ?
+      BgUtils_.safer_(options) : (options = null);
+  lastKey = 0 | lastKey!;
+  executeCommand(regItem, count, lastKey, port!, 0)
+}
+
+/** execute a command when in a special environment */
+
+declare const enum EnvMatchResult { abort, nextEnv, matched }
+interface CurrentEnvCache {
+  element_?: Element
+  portUrl_?: string
+}
+
+const matchEnvRule = (rule: CommandsNS.EnvItem, cur: CurrentEnvCache
+    , info?: FgReq[kFgReq.respondForRunKey]): EnvMatchResult => {
+  let elSelector = rule.element, host = rule.host, fullscreen = rule.fullscreen
+  if (elSelector || fullscreen != null) {
+    if (!info) {
+      cPort && safePost(cPort, { N: kBgReq.queryForRunKey, n: performance.now() })
+      return EnvMatchResult.abort
+    }
+    if (!elSelector) { /* empty */ }
+    else if ((<RegExpOne> /^[A-Za-z][-\w]+$/).test(elSelector)) {
+      if (info.t !== elSelector) { return EnvMatchResult.nextEnv }
+    } else {
+      if (!cur.element_) {
+        const activeEl = document.createElement(info.t)
+        activeEl.className = info.c
+        activeEl.id = info.i
+        cur.element_ = activeEl
+      }
+      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Element$$matches
+          && CurCVer_ < BrowserVer.Min$Element$$matches ? !cur.element_.webkitMatchesSelector!(info.t)
+          : !cur.element_.matches!(info.t)) { return EnvMatchResult.nextEnv }
+    }
+    if (fullscreen != null) {
+      if (!!fullscreen !== !info.f) {
+        return EnvMatchResult.nextEnv
+      }
+    }
+  }
+  if (host) {
+    if (!cPort) { return EnvMatchResult.abort }
+    if (typeof host === "string") {
+      host = rule.host = Exclusions.createSimpleUrlMatcher_(host)
+    }
+    if (host) {
+      let portUrl = cur.portUrl_
+      if (!portUrl) {
+        portUrl = cPort.s.url_
+        if (cPort.s.frameId_ && portUrl.lastIndexOf("://", 5) < 0 && !BgUtils_.protocolRe_.test(portUrl)) {
+          const frames = framesForTab.get(cPort.s.tabId_)
+          portUrl = frames && frames.top_ ? frames.top_.s.url_ : portUrl
+        }
+        cur.portUrl_ = portUrl
+      }
+      if (Exclusions.matchSimply_(host, portUrl)) {
+        return EnvMatchResult.nextEnv
+      }
+    }
+  }
+  return EnvMatchResult.matched
+}
+
+export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey]): void => {
+  let expected_rules = get_cOptions<kBgCmd.runKey>().expect
+  const absCRepeat = Math.abs(cRepeat)
+  const curEnvCache: CurrentEnvCache = {}
+  let matchedIndex: number | string = -1
+  let matchedRule: KnownOptions<kBgCmd.runKey> | CommandsNS.EnvItem | CommandsNS.EnvItemWithKeys
+      = get_cOptions<kBgCmd.runKey, true>()
+  let keys: string | string[] | null | undefined
+  const frames = framesForTab.get(cPort ? cPort.s.tabId_ : TabRecency_.curTab_)
+  if (!cPort) {
+    set_cPort(frames ? frames.cur_ : null)
+  }
+  frames && (frames.flags_ |= Frames.Flags.userActed)
+  for (let i = 0, size = expected_rules instanceof Array ? expected_rules.length : 0
+        ; i < size; i++) {
+    let rule: CommandsNS.EnvItem | "__not_parsed__" | CommandsNS.EnvItemWithKeys | null | undefined
+        = (expected_rules as CommandsNS.EnvItemWithKeys[])[i]
+    const ruleName = (rule as CommandsNS.EnvItemWithKeys).env
+    if (ruleName) {
+      if (!envRegistry_) {
+        showHUD('No environments have been declared')
+        return
+      }
+      rule = envRegistry_.get(ruleName)
+      if (!rule) {
+        showHUD(`No environment named "${ruleName}"`)
+        return
+      }
+      if (typeof rule === "string") {
+        rule = parseOptions_(rule) as CommandsNS.EnvItem
+        envRegistry_.set(ruleName, rule)
+      }
+    }
+    const res = matchEnvRule(rule, curEnvCache, info)
+    if (res === EnvMatchResult.abort) { return }
+    if (res === EnvMatchResult.matched) {
+      matchedIndex = ruleName || i
+      matchedRule = rule
+      if (ruleName) {
+        keys = (expected_rules as CommandsNS.EnvItemWithKeys[])[i].keys
+      }
+      break
+    }
+  }
+  if (typeof expected_rules === "string" && (<RegExpOne> /^[^{].*?[:=]/).test(expected_rules)) {
+    expected_rules = expected_rules.split(<RegExpG> /[,\s]+/g).map((i): string[] => i.split(<RegExpOne> /[:=]/)
+        ).reduce((obj, i): SafeDict<string> => {
+      if (i.length === 2 && i[0] !== "__proto__" && (<RegExpOne> /^[\x21-\x7f]+$/).test(i[1])) {
+        obj[i[0]] = i[1]
+      }
+      return obj
+    }, BgUtils_.safeObj_<string>())
+    overrideOption<C.runKey, "expect">("expect", expected_rules)
+  }
+  if (matchedIndex === -1 && expected_rules
+      && typeof expected_rules === "object" && !(expected_rules instanceof Array)) {
+    BgUtils_.safer_(expected_rules)
+    if (!envRegistry_) {
+      showHUD('No environments have been declared')
+      return
+    }
+    for (let ruleName in expected_rules) {
+      let rule = envRegistry_.get(ruleName)
+      if (!rule) {
+        showHUD(`No environment named "${ruleName}"`)
+        return
+      }
+      if (typeof rule === "string") {
+        rule = parseOptions_(rule) as CommandsNS.EnvItem
+        envRegistry_.set(ruleName, rule)
+      }
+      const res = matchEnvRule(rule, curEnvCache, info)
+      if (res === EnvMatchResult.abort) { return }
+      if (res === EnvMatchResult.matched) {
+        matchedIndex = ruleName
+        matchedRule = rule
+        keys = (expected_rules as Exclude<BgCmdOptions[kBgCmd.runKey]["expect"] & object, unknown[]>)[ruleName]
+        break
+      }
+    }
+  }
+  keys = keys || (matchedRule as KnownOptions<kBgCmd.runKey> | CommandsNS.EnvItemWithKeys).keys
+  if (typeof keys === "string") {
+    keys = keys.trim().split(BgUtils_.spacesRe_);
+    if (typeof matchedIndex === "number") {
+      (matchedRule as KnownOptions<kBgCmd.runKey> | CommandsNS.EnvItemWithKeys).keys = keys
+    } else {
+      (expected_rules as Dict<string | string[]>)[matchedIndex] = keys
+    }
+  }
+  let key: string
+  const sub_name = typeof matchedIndex === "number" && matchedIndex >= 0 ? `[${matchedIndex + 1}] ` : ""
+  if (!(keys instanceof Array)) {
+    showHUD(sub_name + "Require keys: space-seperated-string | string[]")
+  } else if (absCRepeat > keys.length && keys.length !== 1) {
+    showHUD(sub_name + 'Has no such a key')
+  } else if (key = keys[keys.length === 1 ? 0 : absCRepeat - 1], typeof key !== "string" || !key) {
+    showHUD(sub_name + 'The key is invalid')
+  } else {
+    runKeyWithOptions(key, keys.length === 1 ? cRepeat : absCRepeat !== cRepeat ? -1 : 1
+        , matchedRule.options || get_cOptions<kBgCmd.runKey, true>().options)
+  }
+}
+
+const runKeyWithOptions = (key: string, countScale: number, exOptions?: CommandsNS.EnvItemOptions | null): void => {
+  let count = 1, arr: null | string[] = (<RegExpOne> /^\d+|^-\d*/).exec(key)
+  if (arr != null) {
+    let prefix = arr[0]
+    key = key.slice(prefix.length)
+    count = prefix !== "-" ? parseInt(prefix, 10) || 1 : -1
+  }
+  let registryEntry = Build.BTypes & BrowserType.Chrome
+      && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol && key === "__proto__" ? null
+      : CommandsData_.keyToCommandRegistry_.get(key)
+  if (!registryEntry) {
+    showHUD(`the "${key}" has not been mapped`)
+    return
+  } else if (registryEntry.alias_ === kBgCmd.runKey && registryEntry.background_) {
+    showHUD('"runKey" can not be nested')
+    return
+  }
+  BgUtils_.resetRe_()
+  count = count * countScale
+  const fallOpts = parseFallbackOptions(get_cOptions<C.runKey, true>())
+  const fStatus = get_cOptions<C.runKey, true>().$f
+  if (exOptions && typeof exOptions === "object" || fallOpts || fStatus) {
+    const originalOptions = normalizedOptions_(registryEntry)
+    registryEntry = BgUtils_.extendIf_(BgUtils_.safeObj_<{}>(), registryEntry)
+    let newOptions: CommandsNS.RawOptions & NonNullable<CommandsNS.EnvItem["options"]> = BgUtils_.safeObj_()
+    exOptions && copyCmdOptions(newOptions, BgUtils_.safer_(exOptions), 0)
+    fallOpts ? BgUtils_.extendIf_(newOptions, BgUtils_.safer_(fallOpts)) : fStatus && (newOptions.$f = fStatus)
+    originalOptions && copyCmdOptions(newOptions, originalOptions, 0)
+    if (exOptions && "$count" in exOptions) {
+      newOptions.$count = exOptions.$count
+    } else if (originalOptions && "$count" in originalOptions) {
+      exOptions && "count" in exOptions || (newOptions.$count = originalOptions.$count)
+    }
+    (registryEntry as Writable<typeof registryEntry>).options_ = newOptions
+    if (registryEntry.alias_ === kFgCmd.linkHints && !registryEntry.background_) {
+      (registryEntry as Writable<typeof registryEntry>).repeat_ = 0
+    }
+    normalizeCommand_(registryEntry)
+  }
+  executeCommand(registryEntry, count, cKey, cPort, 0)
+}
+
+/** execute a command referred by .$then or .$else */
+
+export const parseFallbackOptions = (options: Req.FallbackOptions): Req.FallbackOptions | null => {
+  const thenKey = options.$then, elseKey = options.$else || options.fallback
+  return thenKey || elseKey ? {
+    $then: thenKey, $else: elseKey, $retry: options.$retry, $f: options.$f
+  } : null
+}
+
+export const wrapFallbackOptions = <T extends KeysWithFallback<CmdOptions>, S extends KeysWithFallback<BgCmdOptions>> (
+    options: CmdOptionSafeToClone<T>): CmdOptions[T] => {
+  const fallback = parseFallbackOptions(get_cOptions<S, true>() as Partial<BgCmdOptions[S]>)
+  fallback && BgUtils_.extendIf_(BgUtils_.safer_(options as unknown as CmdOptions[T]), fallback)
+  return options as unknown as CmdOptions[T]
+}
+
+export const runNextCmd = <T extends KeysWithFallback<BgCmdOptions> = never> (
+    useThen: T extends kBgCmd ? BOOL : "need kBgCmd"): boolean => {
+  return runNextCmdBy(useThen, get_cOptions<T, true>() as Req.FallbackOptions)
+}
+
+export const runNextCmdBy = (useThen: BOOL, options: Req.FallbackOptions): boolean => {
+  const nextKey = useThen ? options.$then : options.$else || options.fallback
+  const hasFallback = !!nextKey && typeof nextKey === "string"
+  if (hasFallback) {
+    setTimeout((): void => {
+      reqH_[kFgReq.key](As_<Req.fg<kFgReq.key>>({
+        H: kFgReq.key, k: nextKey as string, l: kKeyCode.None, f: { c: options.$f! | 0, r: options.$retry }
+      }), cPort)
+    }, 34)
+  }
+  return hasFallback
+}

@@ -1,9 +1,9 @@
-import { contentPayload, executeCommand } from "./store"
+import { contentPayload } from "./store"
 
 type RawCmdDesc<c extends kCName, e extends CmdNameIds[c] = CmdNameIds[c]> =
     e extends keyof CmdOptions ? [alias: e, bg: 0, repeat: 0 | 1, options?: CmdOptions[e]]
     : e extends keyof BgCmdOptions ? [alias: e, bg: 1, repeat: 0 | 1
-        , options?: Partial<BgCmdOptions[e] & {count: number}>] : never
+        , options?: Partial<BgCmdOptions[e] & CommandsNS.SharedPublicOptions>] : never
 /** [ enum, is background, count limit, default options ] */
 type NameMetaMap = {
   readonly [k in kCName]: k extends kCName ? RawCmdDesc<k> : never
@@ -21,7 +21,7 @@ let mappedKeyTypes_ = kMapKey.NONE
 let shortcutRegistry_: Map<StandardShortcutNames, CommandsNS.Item | null> | null | undefined
 let envRegistry_: Map<string, CommandsNS.EnvItem | "__not_parsed__"> | null | undefined
 
-export { builtinKeys_, mappedKeyTypes_, envRegistry_, shortcutRegistry_ }
+export { mappedKeyTypes_, envRegistry_, shortcutRegistry_ }
 
 const getOptions_ = (line: string, start: number): CommandsNS.RawOptions | "__not_parsed__" | null => {
   return line.length <= start ? null
@@ -55,7 +55,7 @@ const parseVal_ = (val: string): any => {
     return val;
 }
 
-const normalizeCommand_ = (cmd: Writable<CommandsNS.BaseItem>, details?: CommandsNS.Description
+export const normalizeCommand_ = (cmd: Writable<CommandsNS.BaseItem>, details?: CommandsNS.Description
       ): cmd is CommandsNS.NormalizedItem => {
     let options: CommandsNS.RawOptions | string | null = cmd.options_, command = cmd.command_
     if (!details) { details = availableCommands_[command]! }
@@ -65,12 +65,11 @@ const normalizeCommand_ = (cmd: Writable<CommandsNS.BaseItem>, details?: Command
       options = parseOptions_(options)
     }
     if (options) {
-      if (options.$count) {
-        let n = parseFloat(options.$count) || 1;
-        delete options.$count;
-        options.count = n;
-      } else if ("count" in options) {
-        options.count = details[2] === 1 ? 1 : (parseFloat(options.count!) || 1) * (opt && opt.count || 1);
+      if ("$count" in options || "count" in options) {
+        details[2] === 1 ? delete options.$count
+        : options.$count = options.$count != null ? parseFloat(options.$count) || 1
+              : (parseFloat(options.count || 1) || 1) * (opt && opt.$count || 1)
+        delete options.count
       }
       if (options.$desc || options.$key) {
         cmd.help_ = { key_: options.$key || "", desc_: options.$desc || "" }
@@ -90,28 +89,20 @@ const normalizeCommand_ = (cmd: Writable<CommandsNS.BaseItem>, details?: Command
         const rawChars = lhOpt.characters
         const action = lhOpt.action
         const chars = rawChars && Settings_.updatePayload_<"c" | "n">("c", rawChars)
-        if (rawChars) {
-          delete lhOpt.characters
-          lhOpt.c = chars!
-        }
-        action && delete lhOpt.action
-        if (mode != null) {
-          delete lhOpt.mode
-          if (typeof mode !== "number") {
-            mode = (hintModes_[action || mode || 0] as number | undefined | {} as number) | 0
-          }
-        } else {
-          mode = action ? hintModes_[action] : null
-          mode = mode != null ? mode : stdMode
-        }
+        chars ? lhOpt.c = chars : "c" in lhOpt && delete lhOpt.c
+        rawChars != null && delete lhOpt.characters
+        "action" in lhOpt && delete lhOpt.action
+        "mode" in lhOpt && delete lhOpt.mode
+        mode = action ? hintModes_[action] : mode && typeof mode !== "number" ? hintModes_[mode] : null
+        mode = mode != null ? mode : Math.max(0, stdMode | 0)
         if (mode > HintMode.max_mouse_events) {
           mode = mode === HintMode.EDIT_TEXT ? lhOpt.url ? HintMode.EDIT_LINK_URL : mode
             : mode === HintMode.COPY_TEXT ? !lhOpt.url
-              ? lhOpt.join ? HintMode.COPY_TEXT | HintMode.queue | HintMode.list : mode
-              : lhOpt.join ? HintMode.COPY_URL | HintMode.queue | HintMode.list : HintMode.COPY_URL
+              ? lhOpt.join != null ? HintMode.COPY_TEXT | HintMode.queue | HintMode.list : mode
+              : lhOpt.join != null ? HintMode.COPY_URL | HintMode.queue | HintMode.list : HintMode.COPY_URL
             : mode > HintMode.min_disable_queue + HintMode.queue - 1 ? mode - HintMode.queue : mode;
         }
-        if (mode != stdMode) {
+        if (mode !== stdMode) {
           lhOpt.m = mode
         }
         if (mode > HintMode.min_disable_queue - 1) {
@@ -125,8 +116,8 @@ const normalizeCommand_ = (cmd: Writable<CommandsNS.BaseItem>, details?: Command
     return true
 }
 
-const makeCommand_ = <T extends CommandsNS.RawOptions | "__not_parsed__" | null> (command: string, options: T
-    , details?: CommandsNS.Description
+export const makeCommand_ = <T extends CommandsNS.RawOptions | "__not_parsed__" | null> (
+    command: string, options: T, details?: CommandsNS.Description
     ): CommandsNS.Item | (CommandsNS.RawOptions | "__not_parsed__" extends T ? null : never) => {
   if (!details) { details = availableCommands_[command]! }
   const cmd: Writable<CommandsNS.BaseItem> = {
@@ -168,20 +159,20 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
       , _len: number, details: CommandsNS.Description | undefined, errors = 0, ch: number
       , registry: CommandsDataTy["keyToCommandRegistry_"] = new Map()
       , cmdMap: typeof shortcutRegistry_ = new Map(), envMap: typeof envRegistry_ = null
-      , builtinKeys: TextSet | null = null
       , regItem: CommandsNS.Item | null, options: ReturnType<typeof getOptions_>
       , mkReg = BgUtils_.safeObj_<string>();
     const colorRed = "color:red", shortcutLogPrefix = 'Shortcut %c"%s"';
+    builtinKeys_ = null
     CommandsData_.errors_ = null
     lines = wholeMappings.replace(<RegExpSearchable<0>> /\\\\?\n/g, t => t.length === 3 ? "\\\n" : ""
                ).replace(<RegExpG> /[\t ]+/g, " ").split("\n");
     if (lines[0] !== "unmapAll" && lines[0] !== "unmapall") {
-      builtinKeys = new Set!()
+      builtinKeys_ = new Set!()
       const defaultMap = defaultKeyMappings_.split(" ")
       for (_i = defaultMap.length; 0 < _i; ) {
         _i -= 2;
         registry.set(defaultMap[_i], makeCommand_(defaultMap[_i + 1], null))
-        builtinKeys.add(defaultMap[_i])
+        builtinKeys_.add(defaultMap[_i])
       }
     } else {
       _i = 1;
@@ -197,7 +188,7 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
       if (cmd === "map") {
         if (!key || key.length > 8 && (key === "__proto__" || key.includes("<__proto__>"))) {
           logError_('Unsupported key sequence %c"%s"', colorRed, key || '""', `for "${val || ""}"`)
-        } else if (registry.has(key) && !(builtinKeys && builtinKeys.has(key))) {
+        } else if (registry.has(key) && !(builtinKeys_ && builtinKeys_.has(key))) {
           logError_('Key %c"%s"', colorRed, key, "has been mapped to", registry.get(key)!.command_)
         } else if (!val) {
           logError_('Lacking command when mapping %c"%s"', colorRed, key)
@@ -210,7 +201,7 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
           regItem = makeCommand_(val, getOptions_(line, knownLen), details)
           if (regItem) {
             registry.set(key, regItem)
-            builtinKeys && builtinKeys.delete(key)
+            builtinKeys_ && builtinKeys_.delete(key)
           }
           continue;
         }
@@ -218,7 +209,7 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
         registry = new Map()
         cmdMap = new Map()
         envMap = null
-        builtinKeys = null;
+        builtinKeys_ = null;
         mkReg = BgUtils_.safeObj_<string>(), mk = 0;
         if (errors > 0) {
           logError_("All key mappings is unmapped, but there %s been %c%d error%s%c before this instruction"
@@ -278,7 +269,7 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
       } else if (!key || val) {
         logError_(`unmap: ${val ? "only " : ""}needs one mapped key:`, line)
       } else if (registry.has(key)) {
-        builtinKeys && builtinKeys.delete(key)
+        builtinKeys_ && builtinKeys_.delete(key)
         registry.delete(key)
         continue;
       } else {
@@ -424,31 +415,6 @@ const warnInactive_ = (obj: ReadonlyChildKeyFSM | string, newKey: string): void 
     ++Settings_.temp_.cmdErrors_;
 }
 
-  /** this functions needs to accept any types of arguments and normalize them */
-export const executeExternalCmd = (
-      message: Partial<ExternalMsgs[kFgReq.command]["req"]>, sender: chrome.runtime.MessageSender): void => {
-    let command = message.command;
-    command = command ? command + "" : "";
-    const description = command ? availableCommands_[command] : null
-    if (!description) { return; }
-    let ref: Frames.Frames | null
-    const port: Port | null = sender.tab ? Backend_.indexPorts_(sender.tab.id, sender.frameId || 0)
-        || (ref = Backend_.indexPorts_(sender.tab.id), ref ? ref.cur_ : null) : null
-    if (!port && !description[1]) { /** {@link index.d.ts#CommandsNS.FgDescription} */
-      return;
-    }
-    let options = (message.options || null) as CommandsNS.RawOptions | null
-      , lastKey: kKeyCode | undefined = message.key
-      , regItem = makeCommand_(command, options)
-      , count = message.count as number | string | undefined;
-    if (!regItem) { return; }
-    count = count !== "-" ? parseInt(count as string, 10) || 1 : -1;
-    options && typeof options === "object" ?
-        BgUtils_.safer_(options) : (options = null);
-    lastKey = 0 | lastKey!;
-    executeCommand(regItem, count, lastKey, port!, 0)
-}
-
 const defaultKeyMappings_: string =
   "? "     +AsC_("showHelp")           +" d "     +AsC_("scrollPageDown")  +" f "      +AsC_("LinkHints.activate")  +
   " gf "   +AsC_("nextFrame")          +" gg "    +AsC_("scrollToTop")     +" gi "     +AsC_("focusInput")          +
@@ -479,7 +445,7 @@ const defaultKeyMappings_: string =
   " T "    +AsC_("Vomnibar.activateTabSelection")      + " <a-f> " + AsC_("LinkHints.activateModeWithQueue")        +
   (Build.NDEBUG ? "" : ` <a-s-f12> ${AsC_("debugBackground")} <s-f12> ${CNameLiterals.focusOptions}`)
 
-const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
+export const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
     As_<NameMetaMap & SafeObject>({
   __proto__: null as never,
   "LinkHints.activate": [ kFgCmd.linkHints, 0, 0, { m: HintMode.DEFAULT } ],
@@ -526,8 +492,8 @@ const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
   clearFindHistory: [ kBgCmd.clearFindHistory, 1, 1 ],
   closeDownloadBar: [ kBgCmd.closeDownloadBar, 1, 1, { all: 1 } ],
   closeOtherTabs: [ kBgCmd.removeTabsR, 1, 1, { other: true } ],
-  closeTabsOnLeft: [ kBgCmd.removeTabsR, 1, 0, { count: -1e6 } ],
-  closeTabsOnRight: [ kBgCmd.removeTabsR, 1, 0, { count: 1e6 } ],
+  closeTabsOnLeft: [ kBgCmd.removeTabsR, 1, 0, { $count: -1e6 } ],
+  closeTabsOnRight: [ kBgCmd.removeTabsR, 1, 0, { $count: 1e6 } ],
   captureTab: [ kBgCmd.captureTab, 1, 1 ],
   copyCurrentTitle: [ kBgCmd.copyWindowInfo, 1, 1, { type: "title" } ],
   copyCurrentUrl: [ kBgCmd.copyWindowInfo, 1, 1 ],
@@ -560,11 +526,11 @@ const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
   goNext: [ kBgCmd.goNext, 1, 0, { sed: true } ],
   goPrevious: [ kBgCmd.goNext, 1, 0, { sed: true, rel: "prev" } ],
   goToRoot: [ kBgCmd.goUp, 1, 0, { } ],
-  goUp: [ kBgCmd.goUp, 1, 0, { count: -1, type: "frame" } ],
+  goUp: [ kBgCmd.goUp, 1, 0, { $count: -1, type: "frame" } ],
   joinTabs: [ kBgCmd.joinTabs, 1, 1 ],
-  lastTab: [ kBgCmd.goToTab, 1, 0, { count: -1, absolute: true } ],
+  lastTab: [ kBgCmd.goToTab, 1, 0, { $count: -1, absolute: true } ],
   mainFrame: [ kBgCmd.mainFrame, 1, 1 ],
-  moveTabLeft: [ kBgCmd.moveTab, 1, 0, { count: -1 } ],
+  moveTabLeft: [ kBgCmd.moveTab, 1, 0, { $count: -1 } ],
   moveTabRight: [ kBgCmd.moveTab, 1, 0 ],
   moveTabToIncognito: [ kBgCmd.moveTabToNewWindow, 1, 1, { incognito: true } ],
   moveTabToNewWindow: [ kBgCmd.moveTabToNewWindow, 1, /** 30 in tab_commands.ts */ 0 ],
@@ -578,9 +544,9 @@ const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
   parentFrame: [ kBgCmd.parentFrame, 1, 0 ],
   passNextKey: [ kFgCmd.passNextKey, 0, 0 ],
   performAnotherFind: [ kBgCmd.performFind, 1, 0, { index: "other" } ],
-  performBackwardsFind: [ kBgCmd.performFind, 1, 0, { count: -1 } ],
+  performBackwardsFind: [ kBgCmd.performFind, 1, 0, { $count: -1 } ],
   performFind: [ kBgCmd.performFind, 1, 0 ],
-  previousTab: [ kBgCmd.goToTab, 1, 0, { count: -1 } ],
+  previousTab: [ kBgCmd.goToTab, 1, 0, { $count: -1 } ],
   quickNext: [ kBgCmd.goToTab, 1, 0 ],
   reload: [ kFgCmd.framesGoBack, 0, 1, { r: 1 } ],
   reloadGivenTab: [ kBgCmd.reloadTab, 1, 0, { single: true } ],
@@ -629,8 +595,8 @@ const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
   toggleVomnibarStyle: [ kBgCmd.toggleVomnibarStyle, 1, 1, { style: "dark" } ],
   visitPreviousTab: [ kBgCmd.visitPreviousTab, 1, 0 ],
   zoomIn: [ kBgCmd.toggleZoom, 1, 0 ],
-  zoomOut: [ kBgCmd.toggleZoom, 1, 0, { count: -1 } ],
-  zoomReset: [ kBgCmd.toggleZoom, 1, 0, { count: 9e4 } ]
+  zoomOut: [ kBgCmd.toggleZoom, 1, 0, { $count: -1 } ],
+  zoomReset: [ kBgCmd.toggleZoom, 1, 0, { $count: 9e4 } ]
 })
 
 const hintModes_: SafeDict<HintMode> = {

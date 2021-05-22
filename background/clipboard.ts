@@ -149,9 +149,10 @@ const convertCaseWithLocale = (text: string, action: SedAction): string => {
 }
 
 export const parseSedOptions_ = (sed: UserSedOptions): ParsedSedOpts | null => {
+  if (sed.$sed != null) { return sed.$sed }
   let r = sed.sed, k = sed.sedKeys || sed.sedKey
   return r == null && !k ? null
-      : !r || typeof r !== "object" ? { r, k } : r.r != null || r.k ? r : null
+      : !r || typeof r !== "object" ? sed.$sed = { r, k } : r.r != null || r.k ? r : null
 }
 
 const parseSedKeys_ = (keys: string | object, parsed?: ParsedSedOpts): Contexts | null => {

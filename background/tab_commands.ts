@@ -1,13 +1,14 @@
-import C = kBgCmd
 import {
   browserTabs, getAllWindows, makeTempWindow, makeWindow, PopWindow, Tab, tabsCreate, Window, getTabUrl, selectFrom,
   runtimeError_, IncNormalWnd, selectWnd, selectTab, getCurWnd, getCurTabs, getCurTab
 } from "./browser"
-import { cRepeat, get_cOptions, cPort, set_cOptions, cNeedConfirm, set_cPort, settings } from "./store"
-import { complainLimits, focusFrame, requireURL, runNextCmd, showHUD } from "./ports"
+import { cRepeat, get_cOptions, cPort, cNeedConfirm, set_cPort, settings } from "./store"
+import { complainLimits, requireURL, showHUD } from "./ports"
 import { copy_, parseSedOptions_ } from "./clipboard"
+import { confirm_, runNextCmd, overrideCmdOptions } from "./run_commands"
 import { openUrlWithActions } from "./open_urls"
-import { confirm_ } from "./frame_commands"
+import { focusFrame } from "./frame_commands"
+import C = kBgCmd
 
 const abs = Math.abs
 
@@ -73,6 +74,7 @@ export const copyWindowInfo = (): void | kBgCmd.copyWindowInfo => {
         u: (type === "title" ? tabs[0].title : getTabUrl(tabs[0])) as "url",
         d: decoded, e: sed
       }, cPort)
+      runNextCmd<C.copyWindowInfo>(1)
       return
     }
     const incognito = cPort ? cPort.s.incognito_ : TabRecency_.incognito_ === IncognitoType.true,
@@ -96,6 +98,7 @@ export const copyWindowInfo = (): void | kBgCmd.copyWindowInfo => {
     })),
     result = copy_(data, join, sed)
     showHUD(type === "tab" && tabs.length < 2 ? result : trans_("copiedWndInfo"), kTip.noTextCopied)
+    runNextCmd<C.copyWindowInfo>(1)
   })
 }
 
@@ -428,13 +431,13 @@ export const removeTab = (phase?: 1 | 2, tabs?: readonly Tab[]): void => {
       start = skipped + range[0], end = skipped + range[1]
     }
   } else if (optHighlighted) {
-    const highlighted = tabs.filter(j => j.highlighted), noCurrent = optHighlighted === "no-current"
+    const highlighted = tabs.filter(j => j.highlighted && j !== tab), noCurrent = optHighlighted === "no-current"
     count = highlighted.length
-    if (count > 1 && (noCurrent || count < total)) {
-      browserTabs.remove(highlighted.filter(j => j !== tab).map(j => j.id), runtimeError_)
+    if (count > 0 && (noCurrent || count < total - 1)) {
+      browserTabs.remove(highlighted.map(j => j.id), runtimeError_)
       count = 1
     }
-    if (noCurrent) { return }
+    if (noCurrent) { count > 0 && runNextCmd<kBgCmd.removeTab>(1); return }
   }
   if (!start && count >= total
       && (get_cOptions<C.removeTab>().mayClose != null ? get_cOptions<C.removeTab>().mayClose
@@ -462,6 +465,7 @@ export const removeTab = (phase?: 1 | 2, tabs?: readonly Tab[]): void => {
     selectTab(tabs[goToIndex].id)
   }
   removeTabsInOrder(tab, tabs, start, end)
+  runNextCmd<C.removeTab>(1)
 }
 
 const removeAllTabsInWnd = (tab: Tab, curTabs: readonly Tab[], wnds: Window[]): void => {
@@ -491,6 +495,7 @@ const removeAllTabsInWnd = (tab: Tab, curTabs: readonly Tab[], wnds: Window[]): 
     tabsCreate({ index: curTabs.length, url: "", windowId })
   }
   removeTabsInOrder(tab, curTabs, 0, curTabs.length)
+  runNextCmd<C.removeTab>(1)
 }
 
 const removeTabsInOrder = (tab: Tab, tabs: readonly Tab[], start: number, end: number): void => {
@@ -518,7 +523,7 @@ export const toggleMuteTab = (): void | kBgCmd.toggleMuteTab => {
       const mute = get_cOptions<kBgCmd.toggleMuteTab>().mute != null ? !!get_cOptions<kBgCmd.toggleMuteTab>().mute : neg
       mute === neg && browserTabs.update(tab.id, { muted: mute })
       showHUD(trans_(mute ? "muted" : "unmuted"))
-      runNextCmd(1, get_cOptions<C.toggleMuteTab, true>())
+      runNextCmd<C.toggleMuteTab>(1)
     })
     return
   }
@@ -545,7 +550,7 @@ export const toggleMuteTab = (): void | kBgCmd.toggleMuteTab => {
       }
     }
     showHUD(trans_(mute ? "mute" : "unmute", [trans_(prefix)]))
-    runNextCmd(1, get_cOptions<C.toggleMuteTab, true>())
+    runNextCmd<C.toggleMuteTab>(1)
   })
 }
 
@@ -579,7 +584,7 @@ export const togglePinTab = (tabs: Tab[]): void => {
   for (start = 0; start < end; start++) {
     browserTabs.update(wantedTabIds[start], action)
   }
-  runNextCmd(1, get_cOptions<C.togglePinTab, true>())
+  runNextCmd<C.togglePinTab>(1)
 }
 
 export const toggleTabUrl = (tabs: [Tab]): void | kBgCmd.toggleTabUrl => {
@@ -592,8 +597,7 @@ export const toggleTabUrl = (tabs: [Tab]): void | kBgCmd.toggleTabUrl => {
   if (reader && keyword) {
     const query = Backend_.parse_({ u: url })
     if (query && query.k === keyword) {
-      set_cOptions(BgUtils_.extendIf_(BgUtils_.safer_<UnknownOptions<kBgCmd.openUrl>>({
-          keyword: ""}), get_cOptions<kBgCmd.openUrl>()))
+      overrideCmdOptions<kBgCmd.openUrl>({ keyword: ""})
       openUrlWithActions(query.u, Urls.WorkType.Default, tabs)
     } else {
       url = BgUtils_.convertToUrl_(query && get_cOptions<C.toggleTabUrl>().parsed ? query.u : url, keyword)

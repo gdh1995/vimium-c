@@ -29,9 +29,8 @@ type Unpacked<T> =
     T extends Promise<infer U> ? U :
     T;
 
-type Omit<T, K extends keyof T> = {
-  [P in Exclude<keyof T, K>]: T[P];
-};
+// not write `{ [k extends Exclude<...>]: ... }` to avoid losing property tracking
+type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 
 type TypeToAssert<Parent, Child extends Parent, Key extends keyof Child, Others extends keyof Parent = never> =
     { readonly [P in Others]: unknown; } & { readonly [key in Key]?: Child[key]; };

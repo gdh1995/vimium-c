@@ -558,12 +558,14 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   }
   if (textFilter) {
     cur_ind = (textFilter = textFilter + "" as Extract<typeof textFilter, string>).lastIndexOf("/")
-    textFilter = cur_ind > 1 && tryCreateRegExp(textFilter.slice(1, cur_ind), textFilter.slice(cur_ind + 1) as "" | "i")
+    textFilter = cur_ind > 1 && textFilter[0] === "/" && tryCreateRegExp(
+        textFilter.slice(1, cur_ind), textFilter.slice(cur_ind + 1).replace(<RegExpG> /g/g, "") as "" | "i")
     if (textFilter) {
       output = (output as (Hint | [Hint0[0]])[]).filter((hint): boolean => {
-        const text = (hint[0] as TypeToPick<Element, HTMLElement, "innerText">).innerText as string | undefined
+        let text: string | undefined
         return hint.length > 2 && (hint[2] === ClickType.edit || hint[2]! > ClickType.MaxNotBox)
-            || (textFilter as RegExpOne).test(text != null ? text : hint[0].textContent)
+            || (textFilter as RegExpOne).test((text = (hint[0] as TypeToPick<SafeElement, SafeHTMLElement, "innerText">
+                  ).innerText) != null ? text : hint[0].textContent)
       })
     }
   }

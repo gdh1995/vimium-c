@@ -111,6 +111,7 @@ var BgUtils_ = {
   spacesRe_: <RegExpG> /\s+/g,
   A0Re_: <RegExpG> /\xa0/g,
   protocolRe_: <RegExpOne> /^[a-z][\+\-\.\da-z]+:\/\//,
+  customProtocolRe_: <RegExpOne> /^(?:ext|web)\+[a-z]+:/,
   quotedStringRe_: <RegExpOne> /^"[^"]*"$|^'[^']*'$|^\u201c[^\u201d]*\u201d$/,
   lastUrlType_: Urls.Type.Default,
   convertToUrl_: function (str: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkType): Urls.Url {
@@ -190,6 +191,9 @@ var BgUtils_ = {
       } else if (typeof oldString !== "string") {
         type = Urls.Type.Functional;
       }
+    }
+    else if (a.customProtocolRe_.test(str)) {
+      type = Urls.Type.Full
     }
     else if ((index2 = str.indexOf("/", index + 3)) === -1
         ? str.length < oldString.length : str.charCodeAt(index2 + 1) < kCharCode.minNotSpace
@@ -315,7 +319,9 @@ var BgUtils_ = {
       : (i = str.indexOf("/", i)) > 0 && str.lastIndexOf("?", i) < 0
       ? Urls.TempType.Unspecified : Urls.Type.Full;
     case "tel": return (<RegExpOne> /\d/).test(str) ? Urls.Type.Full : Urls.Type.Search;
-    default: return isSlash ? Urls.Type.Search : Urls.TempType.Unspecified;
+    default:
+      return a.customProtocolRe_.test(str) ? Urls.Type.Full
+          : isSlash ? Urls.Type.Search : Urls.TempType.Unspecified;
     }
   },
   removeComposedScheme_ (url: string): string {
@@ -767,6 +773,9 @@ var BgUtils_ = {
   reformatURL_ (url: string): string {
     let ind = url.indexOf(":"), ind2 = ind;
     if (ind <= 0) { return url; }
+    if (this.customProtocolRe_.test(url.slice(0, ind + 1).toLowerCase())) {
+      return url.slice(0, ind).toLowerCase() + url.slice(ind)
+    }
     if (url.substr(ind, 3) === "://") {
       ind = url.indexOf("/", ind + 3);
       if (ind < 0) {

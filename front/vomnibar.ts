@@ -104,7 +104,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.notSearchInput_ = options.searchInput === false;
     a.baseHttps_ = null;
     a.noSessionsOnStart_ = options.noSessions === "start"
-    a.sed_ = options.d
+    {
+      const sed = options.sed
+      a.sed_ = typeof sed === "object" && sed || { r: sed, k: options.sedKeys || options.sedKey }
+    }
     a.clickLike_ = options.clickLike
     let { url, keyword, p: search } = options, start: number | undefined;
     let scale = Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent

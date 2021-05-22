@@ -4,11 +4,11 @@ import {
   contentPayload, cPort, needIcon_, reqH_, settings, set_cPort, set_needIcon_, set_visualWordsRe_
 } from "./store"
 import "./ui_css"
+import { shortcutRegistry_, visualKeys_ } from "./key_mappings"
 import { indexFrame, OnConnect, isExtIdAllowed, getPortUrl, showHUD, complainLimits } from "./ports"
-import { executeShortcut } from "./frame_commands"
-import "./all_commands"
+import { executeShortcut, executeExternalCmd } from "./run_commands"
 import "./request_handlers"
-import { executeExternalCmd, shortcutRegistry_, visualKeys_ } from "./key_mappings"
+import "./all_commands"
 
 declare const enum RefreshTabStep { start = 0, s1, s2, s3, s4, end }
 

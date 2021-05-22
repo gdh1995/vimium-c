@@ -171,7 +171,7 @@ set_contentCommands_([
     }
   },
   /* kFgCmd.autoOpen: */ (options: CmdOptions[kFgCmd.autoOpen]): void => {
-    let selected = options.selected,
+    const selected = options.selected, reuse = options.reuse, opts2 = parseOpenPageUrlOptions(options),
     str = options.s && !selected ? "" : getSelectionText(1) || (options.text || "") + "",
     url = str.trim()
     options.copy && (url || !options.o) && post_({
@@ -182,13 +182,10 @@ set_contentCommands_([
       d: options.decoded || options.decode
     })
     options.o && (url && evalIfOK(url) || post_({
-      H: kFgReq.openUrl, c: !url, u: url, r: options.reuse, o: parseOpenPageUrlOptions(options)
+      H: kFgReq.openUrl, c: !url, u: url, r: reuse, o: opts2
     }))
     options.s && send_(kFgReq.searchAs, {
-      u: vApi.u(),
-      c: options.copied,
-      s: parseSedOptions(options),
-      t: selected ? url : ""
+      u: vApi.u(), c: options.copied, t: selected ? url : "", r: reuse, o: opts2
     }, (err): void => {
       err && runFallbackKey(options, kTip.raw, err)
     })

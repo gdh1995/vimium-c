@@ -1,19 +1,19 @@
 import {
-  browserTabs, runtimeError_, selectTab, safeUpdate, selectWnd, browserSessions, browserWebNav, browser_
+  browserTabs, runtimeError_, selectTab, selectWnd, browserSessions, browserWebNav, browser_
 } from "./browser"
 import {
-  set_cPort, set_cRepeat, set_cOptions, needIcon_, set_cKey, cKey, get_cOptions, set_reqH_, reqH_, executeCommand,
+  set_cPort, set_cRepeat, set_cOptions, needIcon_, set_cKey, cKey, get_cOptions, set_reqH_, reqH_,
   settings, innerCSS_, framesForTab, cRepeat
 } from "./store"
 import {
-  findCPort, isNotVomnibarPage, indexFrame, onExitGrab, focusFrame, sendFgCmd, safePost,
-  complainNoSession, showHUD, complainLimits
+  findCPort, isNotVomnibarPage, indexFrame, onExitGrab, safePost, complainNoSession, showHUD, complainLimits
 } from "./ports"
 import { paste_, substitute_ } from "./clipboard"
-import { openShowPage, focusAndExecute, focusOrLaunch, openJSUrl, openUrlReq } from "./open_urls"
+import { sendFgCmd, replaceCmdOptions, runKeyWithCond, onConfirmResponse, executeCommand } from "./run_commands"
+import { focusAndExecute, focusOrLaunch, openJSUrl, openUrlReq } from "./open_urls"
 import {
-  initHelp, openImgReq, setOmniStyle, framesGoBack, onConfirmResponse, enterVisualMode, showVomnibar, parentFrame,
-  nextFrame, performFind, runKeyWithCond
+  initHelp, openImgReq, setOmniStyle, framesGoBack, enterVisualMode, showVomnibar, parentFrame,
+  nextFrame, performFind, focusFrame
 } from "./frame_commands"
 import { copyData } from "./tab_commands"
 
@@ -220,8 +220,9 @@ set_reqH_([
       set_cPort(port)
       return trans_("noEngineFound")
     }
-    query = request.t.trim() && substitute_(request.t.trim(), SedContext.pageText, request.s).trim()
-        || (request.c ? paste_(request.s) : "")
+    const o2 = request.o || {}
+    query = request.t.trim() && substitute_(request.t.trim(), SedContext.pageText, o2.s).trim()
+        || (request.c ? paste_(o2.s) : "")
     Promise.resolve(query).then((query2: string | null): void => {
       let err = query2 === null ? "It's not allowed to read clipboard"
         : (query2 = query2.trim()) ? "" : trans_("noSelOrCopied")
@@ -230,8 +231,8 @@ set_reqH_([
         showHUD(err)
         return
       }
-      query2 = BgUtils_.createSearchUrl_(query2!.split(BgUtils_.spacesRe_), search!.k)
-      openShowPage(query2, ReuseType.current, {}) || safeUpdate(query2)
+      o2.k = search!.k // not change .testUrl, in case a user specifies it
+      reqH_[kFgReq.openUrl]({ u: query2!, o: o2, r: request.r != null ? request.r : ReuseType.current }, port)
     })
     return 0
   },
@@ -309,7 +310,7 @@ set_reqH_([
     set_cPort(port)
     set_cRepeat(type || cRepeat > 0 ? 1 : -1)
     set_cKey(request.k)
-    set_cOptions(BgUtils_.safer_(request.f || {}))
+    replaceCmdOptions<kBgCmd.nextFrame>(request.f || {})
     let ref: Frames.Frames | undefined
     if (type !== Frames.NextType.current) {
       type === Frames.NextType.parent ? parentFrame() : nextFrame()
@@ -464,7 +465,7 @@ set_reqH_([
   },
   /** kFgReq.setOmniStyle: */ setOmniStyle,
   /** kFgReq.findFromVisual */ (_: FgReq[kFgReq.findFromVisual], port: Port): void => {
-    set_cOptions(BgUtils_.safer_<UnknownOptions<kBgCmd.performFind>>({ active: true, returnToViewport: true }))
+    replaceCmdOptions<kBgCmd.performFind>({ active: true, returnToViewport: true })
     set_cPort(port), set_cRepeat(1)
     performFind()
   },
@@ -478,7 +479,7 @@ set_reqH_([
   },
   /** kFgReq.visualMode: */ (request: FgReq[kFgReq.visualMode], port: Port): void => {
     const isCaret = !!request.c
-    set_cOptions(BgUtils_.safer_<UnknownOptions<kBgCmd.visualMode>>({ mode: isCaret ? "caret" : "", start: true }))
+    replaceCmdOptions<kBgCmd.visualMode>({ mode: isCaret ? "caret" : "", start: true })
     set_cPort(port), set_cRepeat(1)
     enterVisualMode()
   },

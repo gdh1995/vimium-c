@@ -1,9 +1,16 @@
+declare const enum kCmdInfo { NoTab = 0, ActiveTab = 1, CurWndTabsIfRepeat = 2, CurWndTabs = 3, CurShownTabs = 4 }
+
+type BgCmdNoTab<T extends kBgCmd> = (this: void, _fakeArg?: undefined) => void | T
+type BgCmdActiveTab<T extends kBgCmd> = (this: void, tabs1: [Tab]) => void | T
+type BgCmdActiveTabOrNoTab<T extends kBgCmd> = (this: void, tabs1?: [Tab]) => void | T
+type BgCmdCurWndTabs<T extends kBgCmd> = (this: void, tabs1: Tab[]) => void | T
+
 interface BgCmdOptions {
   [kBgCmd.blank]: {}
   // region: need cport
   [kBgCmd.goNext]: {
-    isNext: boolean; noRel: boolean; patterns: string | string[]; rel: string; $n: 1; absolute: true
-  } & UserSedOptions & CSSOptions & Req.FallbackOptions
+    isNext: boolean; noRel: boolean; patterns: string | string[]; rel: string; $fmt: 1; absolute: true
+  } & UserSedOptions & CSSOptions & Req.FallbackOptions & OpenUrlOptions
   [kBgCmd.insertMode]: {
     key: string
     hideHUD: boolean
@@ -56,7 +63,7 @@ interface BgCmdOptions {
     type: "" | "frame" | "browser" | "window" | "tab" | "title" | "url"
     /** default to "${title}: ${url}" */ format: string
     join: "json" | string | boolean
-  }
+  } & Req.FallbackOptions
   [kBgCmd.createTab]: OpenUrlOptions & { url: string; urls: string[]; evenIncognito: boolean | -1, $pure: boolean }
   [kBgCmd.discardTab]: {}
   [kBgCmd.duplicateTab]: {}
@@ -74,11 +81,11 @@ interface BgCmdOptions {
   [kBgCmd.openUrl]: OpenUrlOptions & MasksForOpenUrl & {
     urls: string[]; $fmt: 1
     url: string; url_f: Urls.Url
-    copied: boolean; paste: boolean; goNext: boolean | "absolute"; /** for ReuseType.reuse */ prefix: boolean
+    copied: boolean; goNext: boolean | "absolute"; /** for ReuseType.reuse */ prefix: boolean
   } & Ensure<OpenPageUrlOptions, keyof OpenPageUrlOptions>
     & /** for .replace, ReuseType.reuse and JS URLs */ Req.FallbackOptions
   [kBgCmd.reloadTab]: { hard: true; /** (deprecated) */ bypassCache: true; single: boolean } & LimitedRangeOptions
-  [kBgCmd.removeRightTab]: LimitedRangeOptions
+  [kBgCmd.removeRightTab]: LimitedRangeOptions & Req.FallbackOptions
   [kBgCmd.removeTab]: LimitedRangeOptions & {
     highlighted: boolean | "no-current"
     goto: "left" | "right" | "previous"
@@ -86,19 +93,19 @@ interface BgCmdOptions {
     mayClose: boolean
     /** (deprecated) */ allow_close: boolean
     keepWindow: "at-least-one" | "always"
-  }
+  } & Req.FallbackOptions
   [kBgCmd.removeTabsR]: {
     filter: "url" | "hash" | "host" | "url+title" | "hash+title" | "host+title"
     other: boolean
-  }
+  } & Req.FallbackOptions
   [kBgCmd.reopenTab]: {}
   [kBgCmd.restoreGivenTab]: Req.FallbackOptions
   [kBgCmd.restoreTab]: { incognito: "force" | true } & Req.FallbackOptions
   [kBgCmd.runKey]: {
     expect: CommandsNS.EnvItemWithKeys[] | Dict<string | string[]> | `${string}:${string},${string}:${string},`
     keys: string[] | /** space-seperated list */ string
-    options?: object
-  }
+    options?: CommandsNS.EnvItemWithKeys["options"]
+  } & Req.FallbackOptions
   [kBgCmd.searchInAnother]: { keyword: string; reuse: UserReuseType } & Req.FallbackOptions
       & OpenUrlOptions & MasksForOpenUrl & OpenPageUrlOptions
   [kBgCmd.sendToExtension]: { id: string; data: any; raw: true } & Req.FallbackOptions
@@ -111,6 +118,27 @@ interface BgCmdOptions {
   [kBgCmd.toggleZoom]: { level: number }
   [kBgCmd.visitPreviousTab]: Req.FallbackOptions
   [kBgCmd.closeDownloadBar]: { newWindow?: null | true | false; all: 1 }
+}
+
+interface BgCmdInfoMap {
+  [kBgCmd.captureTab]: kCmdInfo.ActiveTab
+  [kBgCmd.createTab]: kCmdInfo.ActiveTab
+  [kBgCmd.discardTab]: kCmdInfo.CurWndTabs
+  [kBgCmd.goBackFallback]: kCmdInfo.ActiveTab
+  [kBgCmd.goToTab]: kCmdInfo.CurShownTabs | kCmdInfo.CurWndTabs
+  [kBgCmd.moveTab]: kCmdInfo.CurWndTabs
+  [kBgCmd.moveTabToNextWindow]: kCmdInfo.ActiveTab
+  [kBgCmd.openUrl]: kCmdInfo.ActiveTab | kCmdInfo.NoTab
+  [kBgCmd.reloadTab]: kCmdInfo.CurWndTabsIfRepeat
+  [kBgCmd.removeRightTab]: kCmdInfo.CurWndTabs
+  [kBgCmd.removeTabsR]: kCmdInfo.CurWndTabs
+  [kBgCmd.reopenTab]: kCmdInfo.ActiveTab
+  [kBgCmd.searchInAnother]: kCmdInfo.ActiveTab
+  [kBgCmd.toggleCS]: kCmdInfo.ActiveTab
+  [kBgCmd.togglePinTab]: kCmdInfo.CurWndTabsIfRepeat
+  [kBgCmd.toggleTabUrl]: kCmdInfo.ActiveTab
+  [kBgCmd.toggleVomnibarStyle]: kCmdInfo.ActiveTab
+  [kBgCmd.visitPreviousTab]: kCmdInfo.CurShownTabs | kCmdInfo.CurWndTabs
 }
 
 type UnknownValue = "42" | -0 | false | { fake: 42 } | undefined | null
@@ -136,8 +164,8 @@ interface LimitedRangeOptions {
 
 declare namespace CommandsNS {
   interface RawOptions extends SafeDict<any> {
-    count?: number | string // float factor to scale count
-    $count?: number // absolute count: will ignore .count in default options
+    count?: number | string // float factor to scale the `$count` in its default options
+    $count?: number // absolute count: will ignore .count if manually specified
     $desc?: string
     $key?: string
     $if?: {
@@ -145,8 +173,12 @@ declare namespace CommandsNS {
       browser?: BrowserType
     } | null
   }
-  interface Options extends ReadonlySafeDict<any> {
-    count?: number
+  interface Options extends ReadonlySafeDict<any>, SharedPublicOptions, SharedInnerOptions {}
+  interface SharedPublicOptions {
+    $count?: number
+  }
+  interface SharedInnerOptions {
+    $o?: Options
     $noWarn?: boolean
   }
   interface RawCustomizedOptions extends RawOptions {
@@ -188,8 +220,21 @@ declare namespace CommandsNS {
   type ValidItem = NormalizedItem | UnnormalizedItem
   type Item = ValidItem & ({ readonly alias_: keyof BgCmdOptions; readonly background_: 1
       } | { readonly alias_: keyof CmdOptions; readonly background_: 0 })
+  interface EnvItemOptions extends CommandsNS.SharedPublicOptions {}
+  interface EnvItemOptions extends Pick<CommandsNS.RawOptions, "count"> {}
 }
 
 interface CommandsDataTy {
   keyToCommandRegistry_: Map<string, CommandsNS.Item>
 }
+
+type KeysWithFallback<O extends object, K extends keyof O = keyof O> = 
+    K extends keyof O ? O[K] extends Req.FallbackOptions ? K : never : never
+type SafeOptionKeys<O, K extends keyof O = keyof O> =
+    K extends keyof O ? K extends `$${infer _U}` ? K extends "$f" | "$retry"? K : never
+    : K extends "fallback" ? never : K : never
+type OptionalPick<T, K extends keyof T> = { [P in K]?: T[P] | null; };
+type CmdOptionSafeToClone<K extends keyof BgCmdOptions | keyof CmdOptions> =
+  K extends keyof BgCmdOptions ? OptionalPick<BgCmdOptions[K], SafeOptionKeys<BgCmdOptions[K]>>
+  : K extends keyof CmdOptions ? Pick<CmdOptions[K], SafeOptionKeys<CmdOptions[K]>>
+  : never

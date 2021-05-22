@@ -233,6 +233,7 @@ interface UserSedOptions {
   sed?: MixedSedOpts | null
   sedKeys?: string | null
   sedKey?: string | null
+  /** cached parsing result */ $sed?: ParsedSedOpts | null
 }
 
 declare namespace HintsNS {
@@ -347,7 +348,6 @@ interface CmdOptions {
     /** <script> */ j: string;
     /** secret */ k: number;
     /** exitOnClick */ e: boolean;
-    /** sed */ d: ParsedSedOpts | null
   };
   [kFgCmd.goNext]: {
     /** rel */ r: string;
@@ -504,7 +504,8 @@ interface FgReqWithRes {
   [kFgReq.searchAs]: {
     /** url */ u: string;
     /** selected text */ t: string;
-    /** sed */ s: ParsedSedOpts | null;
+    /** options for openUrl */ o: ParsedOpenPageUrlOptions | null
+    /** reuse */ r: UserReuseType | null | undefined
     /** copied */ c: boolean | undefined;
   };
 }

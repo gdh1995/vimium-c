@@ -1,9 +1,9 @@
 import { removeTempTab, tabsGet, runtimeError_, getCurTab, getTabUrl, browserTabs, browserWebNav } from "./browser"
-import { mappedKeyTypes_ } from "./key_mappings"
 import {
-  needIcon_, NoFrameId, cPort, getSecret, set_cPort, cKey, reqH_, contentPayload, omniPayload, settings, innerCSS_,
+  needIcon_, NoFrameId, cPort, getSecret, set_cPort, reqH_, contentPayload, omniPayload, settings, innerCSS_,
   framesForOmni, framesForTab, getNextFakeTabId
 } from "./store"
+import { mappedKeyTypes_ } from "./key_mappings"
 
 const onMessage = <K extends keyof FgReq, T extends keyof FgRes> (request: Req.fg<K> | Req.fgWithRes<T>
     , port: Frames.Port): void => {
@@ -308,21 +308,6 @@ export const safePost = <K extends keyof FullBgReq>(port: Port, req: Req.bg<K>):
   } catch { return 0 }
 }
 
-export const focusFrame = (port: Port, css: boolean, mask: FrameMaskType, fallback?: Req.FallbackOptions): void => {
-  port.postMessage({ N: kBgReq.focusFrame, H: css ? ensureInnerCSS(port.s) : null, m: mask, k: cKey, c: 0,
-    f: fallback && parseFallbackOptions(fallback) || {}
-  })
-}
-
-export const sendFgCmd = <K extends keyof CmdOptions> (cmd: K, css: boolean, opts: CmdOptions[K]): void => {
-  portSendFgCmd(cPort, cmd, css, opts, 1)
-}
-
-export const portSendFgCmd = <K extends keyof CmdOptions> (
-    port: Port, cmd: K, css: boolean | BOOL, opts: CmdOptions[K], count: number): void => {
-  port.postMessage<1, K>({ N: kBgReq.execute, H: css ? ensureInnerCSS(port.s) : null, c: cmd, n: count, a: opts })
-}
-
 export const showHUD = (text: string, isCopy?: kTip): void => {
   if (isCopy) {
     if (text.startsWith(!(Build.BTypes & ~BrowserType.Firefox) ? "moz-" : "chrome-") && text.includes("://")) {
@@ -335,31 +320,6 @@ export const showHUD = (text: string, isCopy?: kTip): void => {
   })) {
     set_cPort(null)
   }
-}
-
-export const parseFallbackOptions = (options: Req.FallbackOptions): Req.FallbackOptions | null => {
-  const thenKey = options.$then, elseKey = options.$else || options.fallback
-  return thenKey || elseKey ? {
-    $then: thenKey, $else: elseKey, $retry: options.$retry, $f: options.$f
-  } : null
-}
-
-export const wrapFallbackOptions = <T extends object> (options: T, fallbackOptions: Req.FallbackOptions): T => {
-  return BgUtils_.extendIf_(BgUtils_.safer_<T>(options),
-      parseFallbackOptions(fallbackOptions) || BgUtils_.safeObj_())
-}
-
-export const runNextCmd = (useThen: BOOL, options: Req.FallbackOptions): boolean => {
-  const nextKey = useThen ? options.$then : options.$else || options.fallback
-  const hasFallback = !!nextKey && typeof nextKey === "string"
-  if (hasFallback) {
-    setTimeout((): void => {
-      reqH_[kFgReq.key](As_<Req.fg<kFgReq.key>>({
-        H: kFgReq.key, k: nextKey as string, l: kKeyCode.None, f: { c: options.$f! | 0, r: options.$retry }
-      }), cPort)
-    }, 34)
-  }
-  return hasFallback
 }
 
 export const complainLimits = (action: string): void => { showHUD(trans_("notAllowA", [action])) }
