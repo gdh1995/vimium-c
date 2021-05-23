@@ -67,6 +67,10 @@ export const selectWnd = (tab?: { windowId: number }): void => {
   return runtimeError_()
 }
 
+export const selectWndIfNeed = (tab: { windowId: number }): void => {
+  tab.windowId !== TabRecency_.curWnd_ && selectWnd(tab)
+}
+
 /* if not args.url, then "openerTabId" must not in args */
 export const tabsCreate = (args: chrome.tabs.CreateProperties, callback?: ((tab: Tab, exArg: FakeArg) => void) | null
     , evenIncognito?: boolean | -1 | null): 1 => {
@@ -74,7 +78,7 @@ export const tabsCreate = (args: chrome.tabs.CreateProperties, callback?: ((tab:
   if (!url) {
     url = settings.cache_.newTabUrl_f
     if (TabRecency_.incognito_ === IncognitoType.true
-        && (evenIncognito == -1 ? url.endsWith(settings.CONST_.BlankNewTab_) && url.startsWith(location.origin)
+        && (evenIncognito === -1 ? url.endsWith(settings.CONST_.BlankNewTab_) && url.startsWith(location.origin)
             : !evenIncognito && url.startsWith(location.protocol))) { /* empty */ }
     else if (Build.MayOverrideNewTab && settings.CONST_.OverrideNewTab_
         ? settings.cache_.focusNewTabContent
@@ -120,25 +124,27 @@ export const safeUpdate = (url: string, secondTimes?: true, tabs1?: [Tab]): void
   BgUtils_.resetRe_()
 }
 
-/** options.url should not be required for kBgCmd.createTab. If count <= 1, only open once */
-export const openMultiTab = (options: InfoToCreateMultiTab, count: number, evenIncognito?: boolean | -1 | null
-    ): void => {
-  const hasIndex = options.index != null
-  if (options.url && Backend_.checkHarmfulUrl_(options.url)) {
-    return
-  }
-  tabsCreate(options, options.active ? (tab): void => {
-    tab && tab.windowId !== TabRecency_.curWnd_ && selectWnd(tab)
-  } : null, evenIncognito)
-  count > 1 && openInactiveTabs(options, count - 1, hasIndex)
-}
-
-export const openInactiveTabs = (options: InfoToCreateMultiTab, count: number, hasIndex: boolean): void => {
-  options.active = false
-  while (count-- > 0) {
-    hasIndex && ++options.index!
-    browserTabs.create(options)
-  }
+/** the order is [A,B,C; A,B,C; ...]; require urls.length === 0 || args.url === urls[0] */
+export const openMultiTabs = (options: InfoToCreateMultiTab, count: number
+    , evenIncognito: boolean | -1 | null | undefined
+    , urls: string[] | [null], cb?: ((tab: Tab) => void) | null): void => {
+  tabsCreate(options, (newTab): void => {
+    if (!runtimeError_()) {
+      options.index = newTab.index
+      options.windowId = newTab.windowId
+      cb && cb(newTab)
+    }
+    options.active = false
+    const hasIndex = options.index != null, loopSize = urls ? urls.length : 1
+    urls.length > 1 && (urls[0] = options.url)
+    for (let i = 0; i < count; i++) {
+      for (let j = i > 0 ? 0 : 1; j < loopSize; j++) {
+        urls.length > 1 && (options.url = urls[j]!)
+        hasIndex && ++options.index!
+        browserTabs.create(options, runtimeError_)
+      }
+    }
+  }, evenIncognito)
 }
 
 export const makeWindow = (options: chrome.windows.CreateData, state?: chrome.windows.ValidStates | ""

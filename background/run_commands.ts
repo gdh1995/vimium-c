@@ -510,9 +510,10 @@ export const runNextCmdBy = (useThen: BOOL, options: Req.FallbackOptions): boole
   const nextKey = useThen ? options.$then : options.$else || options.fallback
   const hasFallback = !!nextKey && typeof nextKey === "string"
   if (hasFallback) {
+    const fStatus = { c: options.$f! | 0, r: options.$retry }
     setTimeout((): void => {
       reqH_[kFgReq.key](As_<Req.fg<kFgReq.key>>({
-        H: kFgReq.key, k: nextKey as string, l: kKeyCode.None, f: { c: options.$f! | 0, r: options.$retry }
+        H: kFgReq.key, k: nextKey as string, l: kKeyCode.None, f: fStatus
       }), cPort)
     }, 34)
   }

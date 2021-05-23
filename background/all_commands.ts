@@ -1,6 +1,6 @@
 import {
-  browserTabs, browserWindows, InfoToCreateMultiTab, openMultiTab, Tab, tabsGet, getTabUrl, selectFrom, runtimeError_,
-  selectTab, getCurWnd, getCurTabs, getCurTab, getCurShownTabs_ff_only, browserSessions, browser_
+  browserTabs, browserWindows, InfoToCreateMultiTab, openMultiTabs, Tab, tabsGet, getTabUrl, selectFrom, runtimeError_,
+  selectTab, getCurWnd, getCurTabs, getCurTab, getCurShownTabs_ff_only, browserSessions, browser_, selectWndIfNeed
 } from "./browser"
 import {
   cPort, cRepeat, cKey, get_cOptions, set_cPort, set_cRepeat, cNeedConfirm, contentPayload, settings, framesForTab,
@@ -217,11 +217,11 @@ set_bgC_([
     } else if (!(tab = tabs && tabs.length > 0 ? tabs[0] : null) && TabRecency_.curTab_ >= 0 && !runtimeError_()) {
       tabsGet(TabRecency_.curTab_, tab => bgC_[kBgCmd.createTab](tab && [tab]))
     } else {
-      openMultiTab((tab ? {
+      openMultiTabs(<InfoToCreateMultiTab> As_<Omit<InfoToCreateMultiTab, "url">>(tab ? {
         active: true, windowId: tab.windowId,
         openerTabId: get_cOptions<C.createTab>().opener ? tab.id : void 0,
         index: newTabIndex(tab, get_cOptions<C.createTab>().position)
-      } : {active: true}) as InfoToCreateMultiTab, cRepeat, get_cOptions<C.createTab, true>().evenIncognito)
+      } : {active: true}), cRepeat, get_cOptions<C.createTab, true>().evenIncognito, [null], selectWndIfNeed)
     }
     return runtimeError_()
   },
@@ -268,11 +268,10 @@ set_bgC_([
     browserTabs.duplicate(tabId)
     if (cRepeat < 2) { return }
     const fallback = (tab: Tab): void => {
-      openMultiTab({
+      openMultiTabs({
         url: getTabUrl(tab), active: false, windowId: tab.windowId,
-        pinned: tab.pinned,
-        index: tab.index + 2 , openerTabId: tab.id
-      }, cRepeat - 1)
+        pinned: tab.pinned, index: tab.index + 2, openerTabId: tab.id
+      }, cRepeat - 1, true, [null])
     }
     if (Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
         || CurCVer_ >= BrowserVer.MinNoAbnormalIncognito
