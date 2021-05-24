@@ -49,13 +49,15 @@ export const main_ff = (OnFirefox ? (): void => {
           opts?: EventListenerOptions | boolean
         ) => 42 | void>(_listen!),
     resolve = !Build.NDEBUG ? (): void => {
+      (++counterResolvePath <= 32 || Math.floor(Math.log(counterResolvePath) / Math.log(1.414)) !==
+           Math.floor(Math.log(counterResolvePath - 1) / Math.log(1.414))) &&
       console.log("Vimium C: extend click: resolve %o in %o @t=%o .", resolved
           , loc_.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"), getTime() % 3600000)
       timer && clearTimeout_(timer)
       timer = resolved = 0
     } : 0 as never
   
-    let alive = false, timer: ValidTimeoutID = TimerID.None, resolved = 0
+    let alive = false, timer: ValidTimeoutID = TimerID.None, resolved = 0, counterResolvePath = 0
     if (grabBackFocus) {
       if (alive = isTY(_listen, kTY.func)) {
         doExport(Cls!, _listen.name as "addEventListener", newListen)
