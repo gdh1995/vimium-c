@@ -471,7 +471,9 @@ set_bgC_([
     query.u = substitute_(query.u, SedContext.NONE, sed)
     let url_f = BgUtils_.createSearchUrl_(query.u.split(" "), keyword, Urls.WorkType.ActAnyway)
     let reuse = get_cOptions<C.searchInAnother, true>().reuse
-    overrideCmdOptions<C.openUrl>({ url_f, reuse: reuse ?? ReuseType.current, opener: true, keyword: "" })
+    overrideCmdOptions<C.openUrl>({
+      url_f, reuse: reuse != null ? reuse : ReuseType.current, opener: true, keyword: ""
+    })
     openUrl(tabs)
   },
   /* kBgCmd.sendToExtension: */ (): void | kBgCmd.sendToExtension => {

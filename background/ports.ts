@@ -225,7 +225,7 @@ export const findCPort = (port: Port | null | undefined): Port | null => {
 }
 
 export const isExtIdAllowed = (sender: chrome.runtime.MessageSender): boolean | string => {
-  const extId: string | null | undefined = sender.id ?? "unknown_sender"
+  const extId: string = sender.id != null ? sender.id : "unknown_sender"
   let url: string | undefined = sender.url, tab = sender.tab
   const list = settings.extAllowList_, stat = list.get(extId)
   if (stat !== true && tab) {

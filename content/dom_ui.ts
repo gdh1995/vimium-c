@@ -17,7 +17,7 @@ import {
 } from "../lib/rect"
 import { currentScrolling } from "./scroller"
 import { find_box, styleSelectable } from "./mode_find"
-import { DrawableHintItem, isHintsActive, hintManager, coreHints } from "./link_hints"
+import { DrawableHintItem, isHintsActive, hintManager, coreHints, isHC_ } from "./link_hints"
 import { post_, runFallbackKey } from "./port"
 import { insert_Lock_ } from "./insert"
 import { hide as omniHide, omni_box } from "./omni"
@@ -106,8 +106,9 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
 export const getBoxTagName_old_cr = OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode ? (): "div" =>
     chromeVer_ < BrowserVer.MinForcedColorsMode
         && (Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1 || chromeVer_ > BrowserVer.MinEnsuredShadowDOMV1 - 1)
-        && matchMedia(VTr(kTip.highContrast_WOB)).matches ? "body" as never as "div" : "div"
-: 0 as never
+        && (isHC_ != null ? isHC_ : matchMedia(VTr(kTip.highContrast_WOB)).matches)
+        ? "body" as never as "div" : "div"
+  : 0 as never
 
 export const addElementList = function <T extends boolean | BOOL> (
       array: readonly DrawableHintItem[], offset: ViewOffset, dialogContainer?: T

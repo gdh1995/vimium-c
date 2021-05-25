@@ -194,6 +194,9 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
       hudTip(kTip.fewChars, 1000)
       return clear()
     }
+    isHC_ = matchMedia(VTr(
+        OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode && chromeVer_ < BrowserVer.MinForcedColorsMode
+        ? kTip.highContrast_WOB : kTip.forcedColors)).matches
     if (WithDialog) {
       if (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredShadowDOMV1
           || BrowserVer.MinEnsuredHTMLDialogElement < BrowserVer.MinShadowDOMV0
@@ -247,9 +250,6 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
     useFilter ? /*#__NOINLINE__*/ initFilterEngine(allHints as readonly FilteredHintItem[])
         : initAlphabetEngine(allHints)
     renderMarkers(allHints)
-    isHC_ = matchMedia(VTr(
-        OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode && chromeVer_ < BrowserVer.MinForcedColorsMode
-        ? kTip.forcedColors : kTip.highContrast_WOB)).matches
     setMode(mode_);
     coreHints.h = 1
     for (const frame of frameArray) {
