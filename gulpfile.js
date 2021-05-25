@@ -628,7 +628,6 @@ function tsProject(forceES6Module) {
     return !allowForOfSpecially ? tsStream.js : tsStream.js.pipe(gulpMap(file => {
       let code = ToString(file), oldSize = code.length
       code = code.replace(/\bfor\s?\(var ([^,=]+)[,=](.*?) of ([^\r\n]+)[\r\n](\s*)/g, (_, i, others, arr, indent) => {
-        console.log("[TEST] convert in ", file.relative, ":", _)
         const isBlock = arr.trimRight().endsWith("{")
         if (!isBlock) {
           throw new Error("Can not convert for-of without a block body")
