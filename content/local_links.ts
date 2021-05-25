@@ -413,16 +413,16 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
       const el = cur_tree[cur_ind++] as SafeElement
       if ((el as ElementToHTML).lang != null) {
         filter(output, el as SafeHTMLElement)
-        const shadowRoot = (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0 && prefixedShadow
+        const shadow = (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0 && prefixedShadow
             ? el.webkitShadowRoot : el.shadowRoot) as ShadowRoot | null | undefined;
-        if (shadowRoot) {
+        if (shadow) {
           tree_scopes.push([cur_tree, cur_ind, extraClickable_])
-          cur_tree = matchSafeElements(selector, shadowRoot, matchSelector)
+          cur_tree = matchSafeElements(selector, shadow, matchSelector)
           cur_tree = matchAll ? cur_tree : addChildTrees(cur_tree
-              , querySelectorAll_unsafe_(kSafeAllSelector, shadowRoot) as NodeListOf<SafeElement>)
+              , querySelectorAll_unsafe_(kSafeAllSelector, shadow) as NodeListOf<SafeElement>)
           cur_ind = 0
           if (clickableSelector) {
-            extraClickable_ = createElementSet(querySelectorAll_unsafe_(clickableSelector, shadowRoot)!)
+            extraClickable_ = createElementSet(querySelectorAll_unsafe_(clickableSelector, shadow)!)
           }
         }
       } else if (checkNonHTML) {
