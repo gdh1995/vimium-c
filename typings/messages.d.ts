@@ -698,7 +698,6 @@ declare namespace Req {
   interface FallbackOptions {
     /** key sequence if succeed */ $then?: string | null
     /** key sequence if fail */ $else?: string | null
-    /** key sequence if fail */ fallback?: string | null
     /** [1..20] */ $retry?: number | null
     /** fallback counter */ $f?: number | null
   }

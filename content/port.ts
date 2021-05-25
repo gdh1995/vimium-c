@@ -86,10 +86,10 @@ export const runtimeConnect = (function (this: void): void {
   set_i18n_getMsg(api.i18n.getMessage)
 })
 
-/** if anotherTip is 0, then use .$then; otherwise use .$else or .fallback */
+/** if anotherTip is 0, then use .$then; otherwise use .$else */
 export const runFallbackKey = ((options: Req.FallbackOptions
     , anotherTip: kTip | 0 | 2, tipArgs?: string | Array<string | number>): void => {
-  const fallback = !anotherTip ? options.$then : options.$else || options.fallback
+  const fallback = !anotherTip ? options.$then : options.$else
   if (fallback && isTY(fallback)) {
     if (!(Build.NDEBUG || Build.Minify)) {
       console.log("Vimium C: run another command %o for type & tip = %o", fallback, anotherTip)

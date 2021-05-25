@@ -488,7 +488,7 @@ const runKeyWithOptions = (key: string, countScale: number, exOptions?: Commands
 /** execute a command referred by .$then or .$else */
 
 export const parseFallbackOptions = (options: Req.FallbackOptions): Req.FallbackOptions | null => {
-  const thenKey = options.$then, elseKey = options.$else || options.fallback
+  const thenKey = options.$then, elseKey = options.$else
   return thenKey || elseKey ? {
     $then: thenKey, $else: elseKey, $retry: options.$retry, $f: options.$f
   } : null
@@ -507,7 +507,7 @@ export const runNextCmd = <T extends KeysWithFallback<BgCmdOptions> = never> (
 }
 
 export const runNextCmdBy = (useThen: BOOL, options: Req.FallbackOptions): boolean => {
-  const nextKey = useThen ? options.$then : options.$else || options.fallback
+  const nextKey = useThen ? options.$then : options.$else
   const hasFallback = !!nextKey && typeof nextKey === "string"
   if (hasFallback) {
     const fStatus = { c: options.$f! | 0, r: options.$retry }

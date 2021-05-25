@@ -371,7 +371,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     ui_box || hudShow(kTip.raw)
     toggleSelectableStyle(1)
 
-  if (/* type === SelType.None */ !type && (options.$else || options.fallback || !establishInitialSelectionAnchor())) {
+  if (/* type === SelType.None */ !type && (options.$else || !establishInitialSelectionAnchor())) {
       deactivate()
       runFallbackKey(options, kTip.needSel)
       return
