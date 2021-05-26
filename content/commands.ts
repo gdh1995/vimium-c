@@ -45,8 +45,7 @@ export const RSC = "readystatechange"
 set_contentCommands_([
   /* kFgCmd.framesGoBack: */ (options: CmdOptions[kFgCmd.framesGoBack], rawStep?: number): void => {
     const maxStep = min_(rawStep! < 0 ? -rawStep! : rawStep!, history.length - 1),
-    reuse = (options as typeof options & {r: 0}).reuse,
-    isCurrent = reuse === "current" || reuse === ReuseType.current,
+    reuse = (options as Extract<typeof options, {r?: null}>).reuse,
     realStep = rawStep! < 0 ? -maxStep : maxStep;
     if (options.r) {
       timeout_((): void => {
@@ -58,10 +57,10 @@ set_contentCommands_([
         || (OnChrome && chromeVer_ > BrowserVer.Min$Tabs$$goBack - 1
               || OnFirefox && firefoxVer_ > FirefoxBrowserVer.Min$Tabs$$goBack - 1
             ) && maxStep > 1 && reuse == null
-        || maxStep && reuse && !isCurrent
+        || maxStep && reuse && reuse !== "current" // then reuse !== ReuseType.current
     ) {
       // maxStep > 1 && reuse == null || maxStep && reuse && !isCurrent
-      post_({ H: kFgReq.framesGoBack, s: realStep, r: reuse, p: options.position });
+      post_({ H: kFgReq.framesGoBack, s: realStep, r: reuse, o: parseOpenPageUrlOptions(options) });
     } else {
       maxStep && history.go(realStep);
     }

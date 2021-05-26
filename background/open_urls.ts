@@ -9,7 +9,8 @@ import {
 import { ensureInnerCSS, safePost, showHUD, complainLimits, findCPort, isNotVomnibarPage } from "./ports"
 import { parseSedOptions_, paste_, substitute_ } from "./clipboard"
 import {
-  copyCmdOptions, runNextCmdBy, parseFallbackOptions, portSendFgCmd, replaceCmdOptions, overrideOption, runNextCmd
+  copyCmdOptions, runNextCmdBy, parseFallbackOptions, portSendFgCmd, replaceCmdOptions, overrideOption, runNextCmd,
+  overrideCmdOptions
 } from "./run_commands"
 import C = kBgCmd
 
@@ -64,7 +65,7 @@ const findUrlInText = (url: string, testUrl: OpenPageUrlOptions["testUrl"] | Unk
     ? BgUtils_.fixCharsInUrl_(url) : BgUtils_.detectLinkDeclaration_(url)
 }
 
-const onEvalUrl_ = (workType: Urls.WorkType, options: OpenUrlOptions & SafeObject, tabs: [Tab] | [] | undefined
+const onEvalUrl_ = (workType: Urls.WorkType, options: OpenUrlOptions, tabs: [Tab] | [] | undefined
     , arr: Urls.SpecialUrl): void => {
   if (arr instanceof Promise) {
     arr.then(onEvalUrl_.bind(0, workType, options, tabs))
@@ -77,13 +78,13 @@ const onEvalUrl_ = (workType: Urls.WorkType, options: OpenUrlOptions & SafeObjec
     break
   case Urls.kEval.paste:
   case Urls.kEval.plainUrl:
+    replaceCmdOptions(options)
     if (options.$p || arr[1] === Urls.kEval.plainUrl) {
       workType = Urls.WorkType.Default
-    } else { // should not use `overrideCmdOptions` - `.$p` may be computed from clipboard text and then unstable
-      options = BgUtils_.extendIf_(BgUtils_.safeObj_(), options)
-      options.$p = 1
+    } else { // `.$p` may be computed from clipboard text and then unstable
+      overrideCmdOptions<C.openUrl>({}, true)
+      overrideOption<C.openUrl, "$p">("$p", 1)
     }
-    set_cOptions(options)
     openUrlWithActions(BgUtils_.convertToUrl_((arr as Urls.PasteEvalResult)[0]), workType, tabs)
     break
   case Urls.kEval.status:

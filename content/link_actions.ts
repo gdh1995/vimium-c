@@ -231,9 +231,9 @@ const copyText = (): void => {
       (post_ as (req: Partial<VomnibarNS.GlobalOptions> & Req.fg<kFgReq.vomnibar>) => void | 1)({
         H: kFgReq.vomnibar,
         c: 1,
-        newtab: newtab != null ? !!newtab : !isUrl,
-        url: str,
-        keyword: hintOptions.keyword
+        u: str,
+        n: newtab != null ? !!newtab : !isUrl,
+        o: parseOpenPageUrlOptions(hintOptions)
       });
   } else if (hintOptions.richText) {
       const sel = getSelected({}), range = selRange_(getSelection_())

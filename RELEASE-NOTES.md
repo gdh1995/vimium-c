@@ -4,6 +4,10 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### 1.90.1
+* fix broken `goBack`
+* fix `moveTabToNextWindow` would create an extra tab
+
 #### 1.90.0
 * key mappings: now a name of key can include <kbd>_</kbd> ("underscore")
   * so a key can be named `<v-hint_mode1>` - much more readable

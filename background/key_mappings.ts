@@ -1,9 +1,15 @@
 import { contentPayload } from "./store"
 
+type WiderOmit<T, K> = Pick<T, Exclude<keyof T, K>>
 type RawCmdDesc<c extends kCName, e extends CmdNameIds[c] = CmdNameIds[c]> =
-    e extends keyof CmdOptions ? [alias: e, bg: 0, repeat: 0 | 1, options?: CmdOptions[e]]
+    e extends keyof CmdOptions ? [alias: e, bg: 0, repeat: 0 | 1
+        , options?: CmdOptions[e] & CommandsNS.SharedPublicOptions]
     : e extends keyof BgCmdOptions ? [alias: e, bg: 1, repeat: 0 | 1
-        , options?: Partial<BgCmdOptions[e] & CommandsNS.SharedPublicOptions>] : never
+        , options?: e extends keyof StatefulBgCmdOptions
+          ? StatefulBgCmdOptions[e] extends null ? never
+            : Partial<WiderOmit<BgCmdOptions[e], StatefulBgCmdOptions[e]> & CommandsNS.SharedPublicOptions>
+          : Partial<BgCmdOptions[e]> & CommandsNS.SharedPublicOptions
+    ] : never
 /** [ enum, is background, count limit, default options ] */
 type NameMetaMap = {
   readonly [k in kCName]: k extends kCName ? RawCmdDesc<k> : never
@@ -521,7 +527,7 @@ export const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
   firstTab: [ kBgCmd.goToTab, 1, 0, { absolute: true } ],
   focusInput: [ kFgCmd.focusInput, 0, 0 ],
   focusOrLaunch: [ kBgCmd.openUrl, 1, 1, { reuse: ReuseType.reuse } ],
-  goBack: [ kFgCmd.framesGoBack, 0, 0, { count: -1 } ],
+  goBack: [ kFgCmd.framesGoBack, 0, 0, { $count: -1 } ],
   goForward: [ kFgCmd.framesGoBack, 0, 0 ],
   goNext: [ kBgCmd.goNext, 1, 0, { sed: true } ],
   goPrevious: [ kBgCmd.goNext, 1, 0, { sed: true, rel: "prev" } ],

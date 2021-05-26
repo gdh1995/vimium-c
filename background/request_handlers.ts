@@ -364,12 +364,11 @@ set_reqH_([
   },
   /** kFgReq.vomnibar: */ (request: FgReq[kFgReq.vomnibar]
       , port: Port): void => {
-    const { c: count, i: inner } = request
+    const { i: inner } = request
     set_cKey(kKeyCode.None) // it's only from LinkHints' task / Vomnibar reloading, so no Key to suppress
-    if (count != null) {
-      delete request.c, delete (request as Partial<Req.baseFg<kFgReq.vomnibar>>).H, delete request.i
-      set_cOptions<CommandsNS.Options>(BgUtils_.safer_(request))
-      set_cRepeat(parseInt(count as any) || 1)
+    if (request.c != null) {
+      replaceCmdOptions<kBgCmd.showVomnibar>({ url: request.u, newtab: request.n, keyword: request.o.k })
+      set_cRepeat(1)
     } else if (request.r !== true) {
       return
     } else if (get_cOptions<any>() == null || get_cOptions<kBgCmd.showVomnibar>().secret !== -1) {

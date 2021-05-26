@@ -332,14 +332,8 @@ interface CmdOptions {
   [kFgCmd.passNextKey]: {
     normal?: false | true;
   };
-  [kFgCmd.framesGoBack]: {
-    reuse?: UserReuseType;
-    count?: -1; // just for key_mappings.ts
-    position?: OpenUrlOptions["position"]
-    r?: 0
-  } | {
-    r: 1
-  } & ({ url: string; hard?: undefined } | { url?: undefined; hard?: boolean })
+  [kFgCmd.framesGoBack]: Pick<OpenUrlOptions, "reuse" | "position"> & { r?: null }
+      | { r: 1 } & ({ url: string; hard?: undefined } | { url?: undefined; hard?: boolean })
   [kFgCmd.vomnibar]: {
     /* vomnibar */ v: string;
     /* vomnibar2 */ i: string | null;
@@ -555,10 +549,13 @@ interface FgReq {
   };
   [kFgReq.css]: {};
   [kFgReq.vomnibar]: ({
-    /** count */ c: number;
+    /** count */ c: 1;
+    /** url */ u: string | null
+    /** newtab */ n: boolean
+    /** only use .keyword */ o: Pick<ParsedOpenPageUrlOptions, "k">
     /** redo */ r?: undefined;
   } | {
-    /** count */ c?: never;
+    /** count */ c?: undefined
     /** redo */ r: boolean;
   }) & {
     /** inner */ i?: boolean;
@@ -629,8 +626,8 @@ interface FgReq {
   [kFgReq.findFromVisual]: {};
   [kFgReq.framesGoBack]: {
     /** step */ s: number
-    /** reuse */ r?: UserReuseType | null
-    /** position */ p?: OpenUrlOptions["position"]
+    /** reuse */ r: UserReuseType | null | undefined
+    /** only use o.position */ o: Pick<ParsedOpenPageUrlOptions, "p">
   }
   [kFgReq.learnCSS]: {};
   [kFgReq.visualMode]: {

@@ -166,7 +166,7 @@ export const makeWindow = (options: chrome.windows.CreateData, state?: chrome.wi
     options.focused = true
   }
   let url = options.url
-  if (!url) {
+  if (!url && options.tabId == null) {
     url = options.url = settings.cache_.newTabUrl_f
   }
   if (typeof url === "string" && (settings.newTabs_.get(url) === Urls.NewTabType.browser)) {

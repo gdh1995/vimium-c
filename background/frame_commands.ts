@@ -276,15 +276,15 @@ export const openImgReq = (req: FgReq[kFgReq.openImage], port?: Port): void => {
 
 export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null
     , curTab?: Pick<Tab, "id" | "url" | "pendingUrl" | "index">): void => {
-  const hasTabsGoBack = Build.BTypes & BrowserType.Chrome
+  const hasTabsGoBack: boolean = !!(Build.BTypes & BrowserType.Chrome)
         && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
         && Build.MinCVer >= BrowserVer.Min$Tabs$$goBack
-      || Build.BTypes & BrowserType.Firefox
+      || !!(Build.BTypes & BrowserType.Firefox)
         && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
         && Build.MinFFVer >= FirefoxBrowserVer.Min$Tabs$$goBack
-      || Build.BTypes & ~BrowserType.Edge
+      || !!(Build.BTypes & ~BrowserType.Edge)
         && (!(Build.BTypes & BrowserType.Edge) || OnOther !== BrowserType.Edge)
-        && browserTabs.goBack
+        && !!browserTabs.goBack
   if (!hasTabsGoBack) {
     const url = curTab ? getTabUrl(curTab) : (port!.s.frameId_ ? framesForTab.get(port!.s.tabId_)!.top_! : port!).s.url_
     if (!url.startsWith(BrowserProtocol_)
@@ -307,7 +307,7 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null
   const tabID = curTab ? curTab.id : port!.s.tabId_
   const count = req.s, reuse = parseReuse(req.r || ReuseType.current)
   if (reuse) {
-    const position = req.p
+    const position = req.o.p
     browserTabs.duplicate(tabID, (tab): void => {
       if (!tab) { return runtimeError_() }
       if (reuse === ReuseType.newBg) {
@@ -316,7 +316,7 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null
       if (!hasTabsGoBack) {
         execGoBack(tab, count)
       } else {
-        framesGoBack({ s: count, r: ReuseType.current }, null, tab)
+        framesGoBack({ s: count, r: ReuseType.current, o: {} }, null, tab)
       }
       const newTabIdx = tab.index--
       const wantedIdx = position === "end" ? 3e4 : newTabIndex(tab, position)

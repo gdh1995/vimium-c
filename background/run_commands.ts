@@ -33,18 +33,29 @@ export const copyCmdOptions = (dest: CommandsNS.RawOptions, src: CommandsNS.Opti
 }
 
 /** keep all private and public fields in cOptions */
-export const overrideCmdOptions = <T extends keyof BgCmdOptions> (known: CmdOptionSafeToClone<T>): void => {
+export const overrideCmdOptions = <T extends keyof BgCmdOptions> (known: CmdOptionSafeToClone<T>
+    , disconnected?: true): void => {
   BgUtils_.extendIf_(BgUtils_.safer_(known as KnownOptions<T>), get_cOptions<T, true>());
-  (known as any as CommandsNS.Options).$o = get_cOptions<T, true>()
+  if (!disconnected) {
+    (known as any as CommandsNS.Options).$o = get_cOptions<T, true>()
+  }
   set_cOptions(known as KnownOptions<T> as KnownOptions<T> & SafeObject)
 }
 
-type BgO = BgCmdOptions
-export const overrideOption = <T extends keyof BgO, K extends keyof BgO[T]>(
-    field: K, value: NonNullable<BgO[T][K]>, curOptions?: KnownOptions<T>): void => {
+type StrStartWith$<K extends string> = K extends `$${infer _U}` ? K : never
+type BgCmdCanBeOverride = keyof SafeStatefulBgCmdOptions | keyof StatefulBgCmdOptions
+type KeyCanBeOverride<T extends BgCmdCanBeOverride> =
+    T extends keyof SafeStatefulBgCmdOptions ? SafeStatefulBgCmdOptions[T]
+    : T extends keyof StatefulBgCmdOptions
+    ? (StatefulBgCmdOptions[T] extends null ? never : StatefulBgCmdOptions[T] & keyof BgCmdOptions[T])
+      | Exclude<StrStartWith$<keyof BgCmdOptions[T] & string>, keyof Req.FallbackOptions>
+    : never
+export const overrideOption = <T extends BgCmdCanBeOverride, K extends KeyCanBeOverride<T> = KeyCanBeOverride<T>>(
+    field: K, value: K extends keyof BgCmdOptions[T] ? NonNullable<BgCmdOptions[T][K]> : never,
+    curOptions?: KnownOptions<T>): void => {
   curOptions = curOptions || get_cOptions<T, true>() as KnownOptions<T>
-  curOptions[field] = value
-  const parentOptions = (get_cOptions<T, true>() as CommandsNS.Options).$o
+  curOptions[field as keyof BgCmdOptions[T]] = value!
+  const parentOptions = (curOptions as unknown as CommandsNS.Options).$o
   if (parentOptions != null) { overrideOption(field, value, parentOptions as unknown as KnownOptions<T>) }
 }
 
@@ -121,7 +132,7 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
   const { alias_: alias } = registryEntry, func = bgC_[alias]
   // safe on renaming
   set_cKey(lastKey)
-  set_cOptions(options || BgUtils_.safeObj_())
+  set_cOptions(options || ((registryEntry as Writable<typeof registryEntry>).options_ = BgUtils_.safeObj_()))
   set_cPort(port)
   set_cRepeat(count)
   count = cmdInfo_[alias]

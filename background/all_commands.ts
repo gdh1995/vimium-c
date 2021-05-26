@@ -187,6 +187,7 @@ set_bgC_([
     })
   },
   /* kBgCmd.autoOpenFallback: */ (): void | kBgCmd.autoOpenFallback => {
+    if (get_cOptions<kBgCmd.autoOpenFallback>().copied === false) { return }
     overrideCmdOptions<C.openUrl>({ copied: true })
     openUrl()
   },
@@ -205,7 +206,7 @@ set_bgC_([
     : requireURL({ H: kFgReq.marks, u: "" as "url", a: kMarkAction.clear }, true) : Marks_.clear_()
   },
   /* kBgCmd.copyWindowInfo: */ copyWindowInfo,
-  /* kBgCmd.createTab: */ function createTab(tabs: [Tab] | undefined): void {
+  /* kBgCmd.createTab: */ (tabs: [Tab] | undefined): void => {
     let pure = get_cOptions<C.createTab, true>().$pure, tab: Tab | null
     if (pure == null) {
       overrideOption<C.createTab, "$pure">("$pure", pure = !(Object.keys(get_cOptions<C.createTab>()
@@ -291,10 +292,13 @@ set_bgC_([
       })
     }
   },
-  /* kBgCmd.goBackFallback: */ Build.BTypes & ~BrowserType.Edge ? (tabs: [Tab]): void | kBgCmd.goBackFallback => {
-    if (!tabs.length) { return }
-    framesGoBack({ s: cRepeat, r: get_cOptions<C.goBackFallback, true>().reuse }, null, tabs[0])
-  } : BgUtils_.blank_,
+  !(Build.BTypes & ~BrowserType.Edge) ? BgUtils_.blank_ :
+  /* kBgCmd.goBackFallback: */ (tabs: [Tab]): void | kBgCmd.goBackFallback => {
+    tabs.length &&
+    framesGoBack({ s: cRepeat, r: get_cOptions<C.goBackFallback, true>().reuse,
+      o: { p: get_cOptions<C.goBackFallback, true>().position },
+    }, null, tabs[0])
+  },
   /* kBgCmd.goToTab: */ (tabs: Tab[]): void | kBgCmd.goToTab => {
     if (tabs.length < 2) { return }
     const count = cRepeat, len = tabs.length

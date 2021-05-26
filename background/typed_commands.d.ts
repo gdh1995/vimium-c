@@ -48,7 +48,7 @@ interface BgCmdOptions {
     folder: string; /** (deprecated) */ path: string
     all: true | "window"
   } & LimitedRangeOptions
-  [kBgCmd.autoOpenFallback]: { keyword: string }
+  [kBgCmd.autoOpenFallback]: Extract<CmdOptions[kFgCmd.autoOpen], { o?: 1 }>
   [kBgCmd.captureTab]: {
     /** 0..100; 0 means .png */ jpeg: number
     name: "" | "title"
@@ -67,7 +67,7 @@ interface BgCmdOptions {
   [kBgCmd.createTab]: OpenUrlOptions & { url: string; urls: string[]; evenIncognito: boolean | -1, $pure: boolean }
   [kBgCmd.discardTab]: {}
   [kBgCmd.duplicateTab]: {}
-  [kBgCmd.goBackFallback]: { reuse: UserReuseType }
+  [kBgCmd.goBackFallback]: Extract<CmdOptions[kFgCmd.framesGoBack], {r?: null}>
   [kBgCmd.goToTab]: { absolute: boolean; noPinned: boolean }
   [kBgCmd.goUp]: { type: "tab" | "frame" } & TrailingSlashOptions & UserSedOptions
   [kBgCmd.joinTabs]: {
@@ -227,6 +227,16 @@ declare namespace CommandsNS {
 
 interface CommandsDataTy {
   keyToCommandRegistry_: Map<string, CommandsNS.Item>
+}
+
+interface StatefulBgCmdOptions {
+  [kBgCmd.createTab]: null
+  [kBgCmd.goNext]: "patterns" | "reuse"
+  [kBgCmd.openUrl]: "urls"
+}
+interface SafeStatefulBgCmdOptions {
+  [kBgCmd.runKey]: "expect"
+  [kBgCmd.showVomnibar]: "mode"
 }
 
 type KeysWithFallback<O extends object, K extends keyof O = keyof O> = 
