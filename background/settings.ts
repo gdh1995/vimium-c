@@ -7,7 +7,7 @@ type SettingsUpdateMsg = {
 }
 
 const As_ = <T> (i: T): T => i;
-const AsC_ = <T extends kCName> (i: T): T => i
+const AsC_ = <T extends kCName> (i: T) => i
 // eslint-disable-next-line no-var
 var Settings_ = {
   cache_: BgUtils_.safeObj_() as Readonly<SettingsNS.FullCache>,
@@ -17,7 +17,6 @@ var Settings_ = {
     backupSettingsToLocal_: null as null | ((wait: number) => void) | true,
     onInstall_: null as Parameters<chrome.runtime.RuntimeInstalledEvent["addListener"]>[0] | null,
     initing_: BackendHandlersNS.kInitStat.START,
-    cmdErrors_: 0,
     newSettingsToBroadcast_: null as Extract<SettingsUpdateMsg["d"], string[]> | null,
     IconBuffer_: null as IconNS.AccessIconBuffer | null,
     loadI18nPayload_: null as (() => void) | null,
