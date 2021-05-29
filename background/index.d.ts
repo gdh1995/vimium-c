@@ -511,9 +511,11 @@ interface CmdNameIds {
   sendToExtension: kBgCmd.sendToExtension
   showHelp: kBgCmd.showHelp
   simBackspace: kFgCmd.focusInput
+  simulateBackspace: kFgCmd.focusInput
   sortTabs: kBgCmd.joinTabs
   switchFocus: kFgCmd.focusInput
   toggleCS: kBgCmd.toggleCS
+  toggleContentSettings: kBgCmd.toggleCS
   toggleLinkHintCharacters: kBgCmd.toggle
   toggleMuteTab: kBgCmd.toggleMuteTab
   togglePinTab: kBgCmd.togglePinTab
@@ -601,8 +603,8 @@ declare namespace BackendHandlersNS {
 
 interface TextSet extends Set<string> {}
 interface CommandsDataTy {
-  errors_: null | string[][];
-  keyFSM_: KeyFSM;
+  errors_: null | string[][]
+  keyFSM_: KeyFSM | null
   mappedKeyRegistry_: SafeDict<string> | null;
 }
 

@@ -98,7 +98,7 @@ export const initHelp = (request: FgReq[kFgReq.initHelp], port: Port): void => {
       h: args[0].render_(isOptionsPage),
       o: settings.CONST_.OptionsPage_,
       e: !!options.exitOnClick,
-      c: settings.get_("showAdvancedCommands", true) || isOptionsPage && settings.temp_.cmdErrors_ !== 0
+      c: settings.get_("showAdvancedCommands", true) || isOptionsPage && !!CommandsData_.errors_
     })
   }, Build.NDEBUG ? Build.MinCVer < BrowserVer.Min$Promise$$Then$Accepts$null && Build.BTypes & BrowserType.Chrome
       ? undefined : null as never : (args): void => {

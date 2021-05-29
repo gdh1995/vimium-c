@@ -367,8 +367,9 @@ set_bgC_([
   /* kBgCmd.removeTabsR: */ (tabs: Tab[]): void | kBgCmd.removeTabsR => {
     /** `direction` is treated as limited; limited by pinned */
     let activeTab = selectFrom(tabs), direction = get_cOptions<C.removeTabsR>().other ? 0 : cRepeat
-    let i = activeTab.index, noPinned = false
+    let i = activeTab ? activeTab.index : 0, noPinned = false
     const filter = get_cOptions<C.removeTabsR, true>().filter
+    if (!activeTab) { return }
     if (direction > 0) {
       ++i
       tabs = tabs.slice(i, i + direction)

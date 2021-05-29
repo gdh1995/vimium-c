@@ -61,29 +61,33 @@ var HelpDialog = {
       body = body.replace(<RegExpSearchable<1>> /\{\{(\w+)}}/g, (_, group: string) => consts[group] || _);
       a.html_ = [head, body];
     }
-    const commandToKeys = new Map<string, [string, CommandsNS.NormalizedItem][]>(),
+    const commandToKeys = new Map<string, [string, CommandsNS.Item][]>(),
     ref = CommandsData_.keyToCommandRegistry_, hideUnbound = !isOptionsPage, showNames = isOptionsPage;
     ref.forEach((registry, key): void => {
-      let command: string = registry.command_;
+      let command = registry.command_
       if (command.endsWith(".activateMode")) {
-        command = command.slice(0, -4);
+        command = (command as StringEndsWith<kCName, ".activateMode">).replace("Mode", "")
       } else if (command.endsWith("GotoMode")) {
-        command = command.slice(0, -8)
+        command = command.replace("GotoMode", "")
       } else if (command.endsWith("Unhover")) {
-        command = command.slice(0, -6) + "Leave"
+        command = command.replace("Unhover", "Leave")
+      } else if (command.endsWith("ContentSettings")) {
+        command = command.replace("ContentSettings", "CS")
       } else if (command.includes("EditUrl")) {
         command = command.replace("EditUrl", "Url");
       } else if (command === <string> <unknown> kShortcutAliases.nextTab1) {
         command = AsC_("nextTab");
       } else if (command === AsC_("newTab")) {
         command = AsC_("createTab")
+      } else if (command === AsC_("simulateBackspace")) {
+        command = AsC_("simBackspace")
       }
       let keys = commandToKeys.get(command)
       keys || commandToKeys.set(command, keys = [])
-      if (typeof registry.options_ === "string") {
+      if (typeof registry.options_ === "string" && (<RegExpOne> /\$(?:key|desc)=/).test(registry.options_)) {
         Settings_.temp_.getNormalizedOptions_(registry)
       }
-      keys.push([key, registry as CommandsNS.NormalizedItem])
+      keys.push([key, registry])
     })
     const result = BgUtils_.safer_<Dict<string>>({
       title: trans_(isOptionsPage ? "cmdList" : "help"),
@@ -102,7 +106,7 @@ var HelpDialog = {
         ? { h: html[0], b: div } : (html[0] + div) as any as "html"
   }) as BaseHelpDialog["render_"],
   // eslint-disable-next-line object-shorthand
-  groupHtml_: (function (this: {}, group: string, commandToKeys: Map<string, [string, CommandsNS.NormalizedItem][]>
+  groupHtml_: (function (this: {}, group: string, commandToKeys: Map<string, [string, CommandsNS.Item][]>
       , hideUnbound: boolean, showNames: boolean): string {
     const a = this as typeof HelpDialog;
     const renderItem = a.commandHtml_

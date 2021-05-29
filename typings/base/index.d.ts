@@ -54,6 +54,13 @@ type ReplaceStrAll <A extends string, S extends string, T extends string>
       : A extends `${infer x}${S}${infer y}` ? ReplaceStrAll<`${x}${T}${y}`, S, T> : A
 type Lowercase<S extends string> = intrinsic;
 type Uppercase<S extends string> = intrinsic;
+type StringIncluded<A extends string, S extends string>
+    = string extends S ? string : string extends A ? string : A extends `${infer _x}${S}${infer _y}` ? A : never
+type StringEndsWith<A extends string, S extends string>
+    = string extends S ? string : string extends A ? string : A extends `${infer _x}${S}` ? A : never
+type StringSliced<A extends string, T extends string>
+    = string extends T ? string : string extends A ? string : A extends `${infer _x}${T}${infer _y}` ? T
+        : "__invalid__" | 42 | { _fake: 42 } | false
 interface String {
   replace <Self extends string, S extends string, T extends string> (
      this: Self, searchValue: RegExpG & { source: S }, replaceValue: T): ReplaceStrAll<Self, S , T>

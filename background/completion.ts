@@ -165,9 +165,16 @@ function prepareHtml(sug: Suggestion): void {
     return;
   }
   sug.title = cutTitle(sug.title);
-  const text = sug.t, str = shortenUrl(text);
+  const text = sug.t
+  let str = BgUtils_.decodeFileURL_(text), range: number[]
+  if (str.length !== text.length) {
+    range = getMatchRangesWithOffset(text, str[0] === "\\" ? 5 : 8)
+  } else {
+    str = shortenUrl(text)
+    range = getMatchRanges(str)
+  }
   sug.t = text.length !== sug.u.length ? str : "";
-  sug.textSplit = /*#__NOINLINE__*/ cutUrl(str, getMatchRanges(str), text.length - str.length
+  sug.textSplit = /*#__NOINLINE__*/ cutUrl(str, range, text.length - str.length
     , isForAddressBar ? maxChars - 13 - Math.min(sug.title.length, 40) : maxChars);
 }
 function cutTitle(title: string, knownRange?: [number, number] | []): string {
@@ -196,6 +203,19 @@ function highlight(this: void, str: string, ranges: number[]): string {
 function shortenUrl(this: void, url: string): string {
   const i = BgUtils_.IsURLHttp_(url);
   return !i || i >= url.length ? url : url.slice(i, url.length - +(url.endsWith("/") && !url.endsWith("://")));
+}
+function getMatchRangesWithOffset(str: string, offset: number): number[] {
+  const range = getMatchRanges(str)
+  for (let i = 0; i < range.length; ) {
+    if (range[i + 1] <= offset) {
+      range.splice(i, 2)
+    } else {
+      range[i] = Math.max(range[i] - offset, 0)
+      range[i + 1] -= offset
+      i += 2
+    }
+  }
+  return range
 }
 function getMatchRanges(str: string): number[] {
   const ranges: MatchRange[] = [];
@@ -279,7 +299,6 @@ function cutUrl(this: void, str: string, ranges: number[], deltaLen: number, max
     out += BgUtils_.escapeText_(slice);
     out += "</match>";
   }
-  out = BgUtils_.decodeFileURL_(out)
   if (str.length <= maxLen) {
     slice = str.slice(end);
     return Build.BTypes & BrowserType.Firefox
@@ -709,7 +728,7 @@ historyEngine = {
     Completers.next_(historyArr as Suggestion[], SugType.history);
   } as (historyArr: BrowserUrlItem[]) => void,
   MakeSuggestion_ (e: BrowserUrlItem, i: number, arr: Array<BrowserUrlItem | Suggestion>): void {
-    const u = e.u, o = new Suggestion("history", u, BgUtils_.decodeFileURL_(Decoder.decodeURL_(u, u)), e.title_ || "",
+    const u = e.u, o = new Suggestion("history", u, Decoder.decodeURL_(u, u), e.title_ || "",
       get2ndArg, (99 - i) / 100),
     sessionId = e.sessionId_
     o.visit = e.visit_
@@ -2036,7 +2055,16 @@ Completion_ = {
   filter_ (this: void, query: string, options: CompletersNS.FullOptions
       , callback: CompletersNS.Callback): void {
     autoSelect = false;
-    rawInput = rawQuery = (query = query.trim()) && query.replace(BgUtils_.spacesRe_, " ");
+    query = query.trim()
+    if (query && Settings_.payload_.o === kOS.win) {
+      if ((<RegExpI> /^[a-z]:\\|^\\\\[\w$.-]+(\\|$)|^\\\\$/i).test(query)) {
+        query = (query[1] === ":" ? "" : "//")
+            + query.slice(query[1] === ":" ? 0 : 2).replace(<RegExpG> /\\+/g, "/").toLowerCase()
+      } else if (query.slice(0, 5).toLowerCase() === "file:") {
+        query = query.toLowerCase()
+      }
+    }
+    rawInput = rawQuery = query && query.replace(BgUtils_.spacesRe_, " ");
     rawMode = ""
     rawComponents = CompletersNS.QComponent.NONE
     Completers.getOffset_();

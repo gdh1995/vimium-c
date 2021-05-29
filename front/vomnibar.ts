@@ -1502,14 +1502,16 @@ VUtils_ = {
     return url;
   },
   decodeFileURL_ (url: string): string {
-    if (Vomnibar_.os_ === kOS.win && url.startsWith("file:///")) {
-      url = url[8].toUpperCase() + url.slice(9)
+    if (Vomnibar_.os_ === kOS.win && url.startsWith("file://")) {
+      const slash = url.indexOf("/", 7)
+      if (slash < 0 || slash === url.length - 1) { return slash < 0 ? url + "/" : url }
+      url = slash === 7 && url.substr(9, 1) === ":" ? url[8].toUpperCase() + url.slice(9) : "\\\\" + url.slice(7)
       let sep = (<RegExpOne> /[?#]/).exec(url), index = sep ? sep.index : 0
       let tail = index ? url.slice(index) : ""
-      url = index ? url.slice(0, index) : url
+      url = (index ? url.slice(0, index) : url).replace(<RegExpG> /\/\/+/g, "/")
       url = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredLookBehindInRegexp
           ? url.replace(<RegExpG> /(?<!<)\//g, "\\")
-          : url.replace(<RegExpG & RegExpSearchable<0>> /[^<]\//g, s => s[0] + "\\")
+          : url.replace(<RegExpG & RegExpSearchable<1>> /([^<])\//g, "$1\\")
       url = index ? url + tail : url
     }
     return url

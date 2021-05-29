@@ -72,7 +72,7 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
   } else {
     port.postMessage({
       N: kBgReq.init, f: flags, c: contentPayload, p: passKeys,
-      m: CommandsData_.mappedKeyRegistry_, t: mappedKeyTypes_, k: CommandsData_.keyFSM_
+      m: CommandsData_.mappedKeyRegistry_, t: mappedKeyTypes_, k: CommandsData_.keyFSM_!
     })
   }
   if (Build.BTypes & ~BrowserType.Chrome) { (port as Frames.BrowserPort).sender.tab = null as never }

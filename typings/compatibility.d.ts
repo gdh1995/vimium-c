@@ -507,6 +507,7 @@ declare const enum BrowserVer {
   Min$TargetIsBlank$Implies$Noopener = 88, // https://chromestatus.com/features/6140064063029248
   MinEnsuredES$TopLevelAwait = 89, // even if LEGACY; since 84 if EXPERIMENTAL
   MinForcedColorsMode = 89, // even if EXPERIMENTAL or LEGACY; enable `(forced-colors: active|none)` and color schemes
+  MinCaptureBeforeBubbleOnEventTarget = 89, // even if EXPERIMENTAL or LEGACY
   MinCSS$overflow$clip = 90, // even if EXPERIMENTAL or LEGACY
   MinESModulesInServiceWorker = 91,
   /** @todo: trace https://bugs.chromium.org/p/chromium/issues/detail?id=968651&can=2&q=reduced-motion%20change */
