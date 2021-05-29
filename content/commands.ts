@@ -378,7 +378,10 @@ set_contentCommands_([
       return
     }
     let shouldShowAdvanced = options.c, optionUrl = options.o
-    let box: SafeHTMLElement, outerBox_not_ff: SafeHTMLElement | undefined
+    const outerBox = createElement_(OnChrome
+        && Build.MinCVer < BrowserVer.MinForcedColorsMode ? getBoxTagName_old_cr() : "div")
+    setClassName_s(outerBox, "R H" + fgCache.d)
+    let box: SafeHTMLElement
     if (OnFirefox) {
       // on FF66, if a page is limited by "script-src 'self'; style-src 'self'"
       //   then `<style>`s created by `.innerHTML = ...` has no effects;
@@ -386,13 +389,10 @@ set_contentCommands_([
       box = new DOMParser().parseFromString((html as Exclude<typeof html, string>).b, "text/html"
           ).body.firstChild as SafeHTMLElement
       box.prepend!(createStyle((html as Exclude<typeof html, string>).h))
-      box.className += fgCache.d
+      outerBox.append!(box)
     } else {
-      outerBox_not_ff = createElement_(OnChrome
-          && Build.MinCVer < BrowserVer.MinForcedColorsMode ? getBoxTagName_old_cr() : "div")
-      setClassName_s(outerBox_not_ff, "R H" + fgCache.d)
-      outerBox_not_ff.innerHTML = html as string
-      box = outerBox_not_ff.lastChild as SafeHTMLElement
+      outerBox.innerHTML = html as string
+      box = outerBox.lastChild as SafeHTMLElement
     }
     box.onclick = Stop_
     suppressCommonEvents(box, MDW)
@@ -415,13 +415,13 @@ set_contentCommands_([
       event && prevent_(event)
       advCmd.onclick = optLink.onclick = closeBtn.onclick = null as never
       let i: Element | null | undefined = deref_(lastHovered_)
-      i && contains_s(box, i) && set_lastHovered_(null)
+      i && contains_s(outerBox, i) && set_lastHovered_(null)
       if ((i = deref_(currentScrolling)) && contains_s(box, i)) {
         set_currentScrolling(null)
         set_cachedScrollable(0)
       }
       removeHandler_(kHandler.helpDialog)
-      removeEl_s(OnFirefox ? box : outerBox_not_ff!)
+      removeEl_s(outerBox)
       setupExitOnClick(kExitOnClick.helpDialog | kExitOnClick.REMOVE)
       closeBtn.click()
     })
@@ -446,7 +446,7 @@ set_contentCommands_([
     }
     shouldShowAdvanced && toggleAdvanced()
     ensureBorder(wdZoom_) // safe to skip `getZoom_`
-    addUIElement(OnFirefox ? box : outerBox_not_ff!, AdjustType.Normal, true)
+    addUIElement(outerBox, AdjustType.Normal, true)
     options.e && setupExitOnClick(kExitOnClick.helpDialog)
     doc.hasFocus() || vApi.f()
     set_currentScrolling(weakRef_(box))

@@ -1,7 +1,7 @@
 import { CurCVer_, CurFFVer_, BG_, bgSettings_, OnChrome, OnEdge, OnFirefox, $, pTrans_ } from "./async_bg"
 import { AllowedOptions, ExclusionRulesOption_, Option_ } from "./options_base"
 import { SaveBtn } from "./options_defs"
-import { AdvancedOptBtn, click, ElementWithDelay, loadJS, OptionWindow } from "./options_wnd"
+import { AdvancedOptBtn, click, ElementWithDelay, loadJS, delayed_task, clear_delayed_task } from "./options_wnd"
 
 $<ElementWithDelay>("#showCommands").onclick = function showHelp(this: void, event): void {
   if (!window.VApi || !VApi.z) {
@@ -432,9 +432,9 @@ _el.onchange = function (this: HTMLSelectElement): void {
 };
 _el = null;
 
-(window as OptionWindow)._delayed && (function () {
-  const arr = (window as OptionWindow)._delayed;
-  delete (window as Partial<OptionWindow>)._delayed;
+delayed_task && (function () {
+  const arr = delayed_task
+  clear_delayed_task()
   const node = $<ElementWithDelay>(arr[0]), event = arr[1];
   node.onclick && node.onclick(event);
 })();

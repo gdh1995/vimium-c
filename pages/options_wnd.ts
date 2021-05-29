@@ -18,11 +18,11 @@ interface ElementWithHash extends HTMLElement {
 export interface ElementWithDelay extends HTMLElement {
   onclick (this: ElementWithDelay, event?: MouseEventToPrevent | null): void;
 }
-export interface OptionWindow extends Window {
-  _delayed: [string, MouseEventToPrevent | null];
-}
 
 const IsEdg: boolean = OnChrome && (<RegExpOne> /\sEdg\//).test(navigator.appVersion)
+
+export let delayed_task: [string, MouseEventToPrevent | null] | null | undefined
+export const clear_delayed_task = (): void => { delayed_task = null }
 
 nextTick_(showI18n)
 setupBorderWidth_ && nextTick_(setupBorderWidth_);
@@ -165,7 +165,7 @@ let optionsInit1_ = function (): void {
       event && event.preventDefault();
     }
     if (str === "event") { e = event || null; }
-    (window as OptionWindow)._delayed = ["#" + this.id, e];
+    delayed_task = ["#" + this.id, e]
     if (document.readyState === "complete") {
       loadJS("options_ext.js");
       return;
