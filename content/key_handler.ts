@@ -1,5 +1,6 @@
 import {
-  doc, esc, fgCache, isEnabled_, isTop, keydownEvents_, set_esc, safer, Stop_, isTY, Lower, OnChrome, OnFirefox
+  doc, esc, fgCache, isEnabled_, isTop, keydownEvents_, set_esc, safer, Stop_, isTY, Lower, OnChrome, OnFirefox,
+  chromeVer_
 } from "../lib/utils"
 import {
   set_getMappedKey, char_, getMappedKey, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_, SPC
@@ -12,6 +13,7 @@ import {
   exitInsertMode, focusUpper, insert_global_, insert_Lock_, isInInsert, raw_insert_lock, setupSuppress, suppressType,
 } from "./insert"
 import { keyIsDown as scroll_keyIsDown, onScrolls, scrollTick } from "./scroller"
+import { evIDC_cr, set_evIDC_cr } from "./async_dispatcher"
 
 let passKeys: Set<string> | null = null
 let isPassKeysReversed = false
@@ -228,6 +230,10 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
   if (action < HandlerResult.MinStopOrPreventEvents) { return; }
   if (action > HandlerResult.MaxNotPrevent) {
     OnChrome && checkAccessKey_cr(eventWrapper)
+    if (OnChrome && !evIDC_cr && (Build.MinCVer >= BrowserVer.MinEnsured$InputDeviceCapabilities
+        || chromeVer_ >= BrowserVer.MinEnsured$InputDeviceCapabilities)) {
+      set_evIDC_cr((event as UIEvent & {sourceCapabilities?: InputDeviceCapabilities}).sourceCapabilities)
+    }
     prevent_(event);
   } else {
     Stop_(event);

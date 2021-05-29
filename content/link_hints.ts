@@ -121,7 +121,7 @@ import {
   getMatchingHints, activeHint_, hintFilterReset, set_maxPrefixLen_, set_zIndexes_, adjustMarkers, createHint
 } from "./hint_filters"
 import { executeHintInOfficer, removeFlash, set_removeFlash } from "./link_actions"
-import { lastHovered_, set_lastHovered_ } from "./async_dispatcher"
+import { hover_async, lastHovered_ } from "./async_dispatcher"
 import { HookAction, hookOnWnd, contentCommands_, runFallbackKey } from "./port"
 import { isInteractiveInPage } from "./pagination"
 
@@ -656,7 +656,7 @@ const checkLast = ((el?: WeakRef<LinkEl> | LinkEl | TimerType.fake | 9 | 1 | nul
     r2 = hasEl && (el = deref_(el as WeakRef<LinkEl>)) ? padClientRect_(getBoundingClientRect_(el)) : null
     hidden = !r2 || (r2.r - r2.l) * (r2.b - r2.t) < 4 || !isStyleVisible_(el as LinkEl)
     if (hidden && deref_(lastHovered_) === el) {
-      set_lastHovered_(null)
+      hover_async()
     }
     if ((!r2 || r) && (manager_ || coreHints).$().n
         && (hidden || math.abs(r2!.l - r!.l) > 100 || math.abs(r2!.t - r!.t) > 60)) {

@@ -38,7 +38,9 @@ import {
 import { activate as omniActivate, hide as omniHide } from "./omni"
 import { findNextInText, findNextInRel } from "./pagination"
 import { traverse, getEditable, filterOutNonReachable } from "./local_links"
-import { select_, unhover_async, set_lastHovered_, lastHovered_, catchAsyncErrorSilently } from "./async_dispatcher"
+import {
+  select_, unhover_async, set_lastHovered_, hover_async, lastHovered_, catchAsyncErrorSilently
+} from "./async_dispatcher"
 
 export const RSC = "readystatechange"
 
@@ -78,7 +80,8 @@ set_contentCommands_([
       })
     }
     if (opt.r) {
-      set_cachedScrollable(0), set_currentScrolling(null), set_lastHovered_(null)
+      set_cachedScrollable(0), set_currentScrolling(null)
+      hover_async()
       resetInsert(), linkClear((2 - opt.r) as BOOL), visualDeactivate && visualDeactivate()
       findDeactivate && findDeactivate(FindAction.ExitNoAnyFocus)
       omniHide(), hideHelp && hideHelp()

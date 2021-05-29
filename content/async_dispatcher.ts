@@ -34,11 +34,12 @@ type YieldedPos = { label_: number; sent_ (): YieldedValue | undefined }
 type YieldableFunction = (pos: YieldedPos) => [/** step */ number, /** returned */ YieldedValue?]
 declare const enum Instruction { next = 0, return = 2, /** aka. "goto" */ break = 3, yield = 4 }
 
-let _idc: InputDeviceCapabilities | undefined
+let evIDC_cr: InputDeviceCapabilities | undefined
 let lastHovered_: WeakRef<SafeElementForMouse> | null | undefined
 
-export { lastHovered_ }
+export { lastHovered_, evIDC_cr }
 export function set_lastHovered_ (_newHovered: null): void { lastHovered_ = _newHovered }
+export function set_evIDC_cr (_newIDC: InputDeviceCapabilities | undefined): void { evIDC_cr = _newIDC }
 
 /** util functions */
 
@@ -119,6 +120,7 @@ export const mouse_ = function (element: SafeElementForMouse
   tyKey = type.slice(5, 6),
   // is: down | up | (click) | dblclick | auxclick
   detail = !"dui".includes(tyKey) ? 0 : button! & kClickButton.primaryAndTwice ? 2 : 1,
+  bubbles = tyKey !== "e" && tyKey !== "l", // not (enter | leave)
   x = center[0], y = center[1],
   altKey = modifiers ? modifiers[0] : !1, ctrlKey = modifiers ? modifiers[1] : !1,
   metaKey = modifiers ? modifiers[2] : !1, shiftKey = modifiers ? modifiers[3] : !1
@@ -131,7 +133,7 @@ export const mouse_ = function (element: SafeElementForMouse
       || chromeVer_ >= BrowserVer.MinUsable$MouseEvent$$constructor) {
     // Note: The `composed` here may require Shadow DOM support
     const init: ValidMouseEventInit = {
-      bubbles: !0, cancelable: !0, composed: !0, detail, view,
+      bubbles, cancelable: bubbles, composed: !0, detail, view,
       screenX: x, screenY: y, clientX: x, clientY: y, ctrlKey, shiftKey, altKey, metaKey,
       button, buttons: tyKey === "d" ? button || 1 : 0,
       relatedTarget
@@ -139,14 +141,14 @@ export const mouse_ = function (element: SafeElementForMouse
     IDC = !OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$InputDeviceCapabilities
         ? null : InputDeviceCapabilities
     if (OnChrome && (Build.MinCVer >= BrowserVer.MinEnsured$InputDeviceCapabilities || IDC)) {
-      init.sourceCapabilities = _idc = _idc ||
+      init.sourceCapabilities = evIDC_cr = evIDC_cr ||
           new (Build.MinCVer >= BrowserVer.MinEnsured$InputDeviceCapabilities ? InputDeviceCapabilities
                 : IDC)!({fireTouchEvents: !1})
     }
     mouseEvent = new MouseEvent(type, init)
   } else {
     mouseEvent = doc.createEvent("MouseEvents")
-    mouseEvent.initMouseEvent(type, !0, !0, view, detail, x, y, x, y
+    mouseEvent.initMouseEvent(type, bubbles, bubbles, view, detail, x, y, x, y
       , ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget)
   }
   if (OnFirefox) {
@@ -173,7 +175,7 @@ export const touch_cr_ = OnChrome ? (element: SafeElementForMouse
     radiusX: 8, radiusY: 8, force: 1
   }), touches = id ? [] : [touchObj],
   touchEvent = new TouchEvent(id ? "touchend" : "touchstart", {
-    cancelable: true, bubbles: true,
+    cancelable: !0, bubbles: !0,
     touches, targetTouches: touches,
     changedTouches: [touchObj]
   })
@@ -191,11 +193,12 @@ export const hover_async = (async (newEl?: NullableSafeElForM
   canDispatchMove: boolean = !newEl || elFromPoint === newEl || !elFromPoint || !contains_s(newEl, elFromPoint),
   last = deref_(lastHovered_), N = lastHovered_ = null
   const notSame = newEl !== last
-  if (last && IsInDOM_(last)) {
+  if (last && IsInDOM_(last, doc)) {
+    // MS Edge 90 dispatches mouseout and mouseleave if only a target element is in doc
     await mouse_(last, "mouseout", [0, 0], N, notSame ? newEl : N)
-    if ((!newEl || notSame && !IsInDOM_(newEl, last, 1)) && IsInDOM_(last)) {
+    if ((!newEl || notSame && !IsInDOM_(newEl, last, 1)) && IsInDOM_(last, doc)) {
       mouse_(last, "mouseleave", [0, 0], N, newEl)
-      if (doesFocus && last.blur && IsInDOM_(last)) {
+      if (doesFocus && last.blur && IsInDOM_(last)) { // always blur even when moved to another document
         await 0
         last.blur()
       }
