@@ -58,8 +58,8 @@ export const selectFrom = (tabs: readonly Tab[], overrideIndexes?: BOOL): Active
 /** action section */
 
 /** if `alsoWnd`, then it's safe when tab does not exist */
-export const selectTab = (tabId: number, alsoWnd?: boolean): void => {
-  browserTabs.update(tabId, {active: true}, alsoWnd ? selectWnd : null)
+export const selectTab = (tabId: number, callback?: ((tab?: Tab) => void) | null): void => {
+  browserTabs.update(tabId, {active: true}, callback)
 }
 
 export const selectWnd = (tab?: { windowId: number }): void => {
@@ -173,8 +173,8 @@ export const makeWindow = (options: chrome.windows.CreateData, state?: chrome.wi
     delete options.url
   }
   browserWindows.create(options, state || !focused ? (wnd): void => {
-    callback && callback(wnd)
-    if (!wnd) { return callback === runtimeError_ ? runtimeError_() : undefined }
+    const res = callback && callback(wnd)
+    if (!wnd) { return callback === runtimeError_ ? runtimeError_() : res || undefined }
     const opt: chrome.windows.UpdateInfo = focused ? {} : { focused: false }
     state && (opt.state = state)
     browserWindows.update(wnd.id, opt)

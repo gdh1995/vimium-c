@@ -332,7 +332,7 @@ export const moveTabToNextWindow = ([tab]: [Tab]): void | kBgCmd.moveTabToNextWi
           const callback = (): void => {
             browserTabs.move(tab.id, { index, windowId: tab2.windowId }, (): void => {
               notifyCKey()
-              selectTab(tab.id, true)
+              selectTab(tab.id, selectWnd)
             })
           }
           Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)

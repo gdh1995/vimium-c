@@ -81,6 +81,8 @@ var HelpDialog = {
         command = AsC_("createTab")
       } else if (command === AsC_("simulateBackspace")) {
         command = AsC_("simBackspace")
+      } else if (command === AsC_("wait")) {
+        command = AsC_("blank")
       }
       let keys = commandToKeys.get(command)
       keys || commandToKeys.set(command, keys = [])

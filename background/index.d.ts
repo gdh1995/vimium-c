@@ -526,6 +526,7 @@ interface CmdNameIds {
   toggleVomnibarStyle: kBgCmd.toggleVomnibarStyle
   showTip: kBgCmd.showTip
   visitPreviousTab: kBgCmd.visitPreviousTab
+  wait: kBgCmd.blank
   zoomIn: kBgCmd.toggleZoom
   zoomOut: kBgCmd.toggleZoom
   zoomReset: kBgCmd.toggleZoom
@@ -554,6 +555,7 @@ declare namespace BackendHandlersNS {
     [kFgReq.focusOrLaunch]: (this: void, request: MarksNS.FocusOrLaunch, _port?: Port | null, notFolder?: true) => void;
     [kFgReq.setOmniStyle]: (this: void, request: FgReq[kFgReq.setOmniStyle], _port?: Port) => void;
     [kFgReq.removeSug]: (this: void, request: FgReq[kFgReq.removeSug], _port?: Port | null) => void
+    [kFgReq.key]: (this: void, request: FgReq[kFgReq.key], port: Port | null) => void
     [kFgReq.framesGoBack]: {
       (this: void, req: FgReq[kFgReq.framesGoBack], port: Port): void;
       (this: void, req: FgReq[kFgReq.framesGoBack], port: null

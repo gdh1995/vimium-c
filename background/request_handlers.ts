@@ -240,7 +240,7 @@ set_reqH_([
     const id = request.s, active = request.a !== false
     set_cPort(findCPort(port))
     if (typeof id === "number") {
-      browserTabs.update(id, {active: true}, (tab): void => {
+      selectTab(id, (tab): void => {
         runtimeError_() ? showHUD(trans_("noTabItem")) : selectWnd(tab)
         return runtimeError_()
       })
@@ -388,9 +388,9 @@ set_reqH_([
           port, (request.i! | 0) as 0 | 1 | 2))
   },
   /** kFgReq.copy: */ copyData,
-  /** kFgReq.key: */ (request: FgReq[kFgReq.key], port: Port): void => {
-    const sender = (port as Frames.Port).s
-    if (!(sender.flags_ & Frames.Flags.userActed)) {
+  /** kFgReq.key: */ (request: FgReq[kFgReq.key], port: Port | null): void => {
+    const sender = port != null ? (port as Frames.Port).s : null
+    if (sender !== null && !(sender.flags_ & Frames.Flags.userActed)) {
       sender.flags_ |= Frames.Flags.userActed
       const ref = framesForTab.get(sender.tabId_)
       ref && (ref.flags_ |= Frames.Flags.userActed)

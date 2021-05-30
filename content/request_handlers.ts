@@ -200,7 +200,9 @@ set_requestHandlers([
     type TypeChecked = {
       [key in Keys]: <T2 extends Keys>(this: void, options: CmdOptions[T2] & SafeObject, count: number) => void;
     };
-    (contentCommands_ as TypeToCheck as TypeChecked)[request.c](options ? safer(options) : safeObj(null), request.n);
+    if (isEnabled_) { // in case of $then / $else
+      (contentCommands_ as TypeToCheck as TypeChecked)[request.c](options ? safer(options) : safeObj(null), request.n)
+    }
   } as (req: BaseExecute<object, keyof CmdOptions>) => void,
   /* kBgReq.createMark: */ createMark,
   /* kBgReq.showHUD: */ <VApiTy["t"]> function (req: BgReq[kBgReq.showHUD]): void {

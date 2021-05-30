@@ -1,4 +1,4 @@
-import { browserTabs, runtimeError_, getCurTab, getCurShownTabs_ff_only, getCurTabs } from "./browser"
+import { browserTabs, runtimeError_, getCurTab, getCurShownTabs_ff_only, getCurTabs, tabsGet } from "./browser"
 import {
   framesForTab, get_cOptions, cPort, cRepeat, reqH_, bgC_, cmdInfo_,
   set_cOptions, set_cPort, cKey, set_cKey, set_cRepeat, set_cNeedConfirm
@@ -68,12 +68,13 @@ const executeCmdOnTabs = (tabs: Tab[] | [Tab] | undefined): void => {
   return tabs ? void 0 : runtimeError_()
 }
 
-const onLargeCountConfirmed = (registryEntry: CommandsNS.Item, fallbackCounter: FgReq[kFgReq.key]["f"]): void => {
-  executeCommand(registryEntry, 1, cKey, cPort, cRepeat, fallbackCounter)
+const onLargeCountConfirmed = (registryEntry: CommandsNS.Item): void => {
+  executeCommand(registryEntry, 1, cKey, cPort, cRepeat)
 }
 
-export const executeCommand = (registryEntry: CommandsNS.Item, count: number, lastKey: kKeyCode, port: Port
+export const executeCommand = (registryEntry: CommandsNS.Item, count: number, lastKey: kKeyCode, port: Port | null
     , overriddenCount: number, fallbackCounter?: FgReq[kFgReq.key]["f"]): void => {
+  setupSingletonCmdTimer(0)
   if (gOnConfirmCallback) {
     gOnConfirmCallback = null // just in case that some callbacks were thrown away
     return
@@ -89,20 +90,22 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
   if (count === 1) { /* empty */ }
   else if (repeat === 1) { count = 1 }
   else if (repeat > 0 && (count > repeat || count < -repeat)) {
-    if (Build.BTypes & ~BrowserType.Chrome) {
+    if (fallbackCounter != null) {
+      count = count < 0 ? -1 : 1
+    } else if (Build.BTypes & ~BrowserType.Chrome) {
       if (!overriddenCount) {
         set_cKey(lastKey)
         set_cOptions(null)
         set_cPort(port)
         set_cRepeat(count)
         confirm_<kCName, 1>(registryEntry.command_, abs(count),
-            onLargeCountConfirmed.bind(null, registryEntry, fallbackCounter))
+        (/*#__NOINLINE__*/ onLargeCountConfirmed).bind(null, registryEntry))
         return
       }
     } else {
       count = confirm_<kCName, 1>(registryEntry.command_, abs(count))! * (count < 0 ? -1 : 1)
+      if (!count) { return }
     }
-    if (!count) { return }
   } else { count = count || 1 }
   if (fallbackCounter != null) {
     const maxRetried = Math.max(2, Math.min((fallbackCounter.r! | 0) || 6, 20))
@@ -126,7 +129,7 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
     ) >> fgAlias) & 1)
         || fgAlias === kFgCmd.scroll && (!!options && (options as CmdOptions[kFgCmd.scroll]).keepHover === false)
     set_cPort(port)
-    portSendFgCmd(port, fgAlias, wantCSS, options as any, count)
+    port == null || portSendFgCmd(port, fgAlias, wantCSS, options as any, count)
     return
   }
   const { alias_: alias } = registryEntry, func = bgC_[alias]
@@ -136,7 +139,9 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
   set_cPort(port)
   set_cRepeat(count)
   count = cmdInfo_[alias]
-  if (count < kCmdInfo.ActiveTab) {
+  if (port == null && (alias > kBgCmd.MAX_NEED_CPORT || alias < kBgCmd.MIN_NEED_CPORT)) {
+    /* empty */
+  } else if (count < kCmdInfo.ActiveTab) {
     (func as BgCmdNoTab<kBgCmd>)()
   } else {
     gOnConfirmCallback = func as BgCmdCurWndTabs<kBgCmd> as any;
@@ -517,16 +522,44 @@ export const runNextCmd = <T extends KeysWithFallback<BgCmdOptions> = never> (
   return runNextCmdBy(useThen, get_cOptions<T, true>() as Req.FallbackOptions)
 }
 
-export const runNextCmdBy = (useThen: BOOL, options: Req.FallbackOptions): boolean => {
+export const runNextCmdBy = (useThen: BOOL, options: Req.FallbackOptions, timeout?: number): boolean => {
   const nextKey = useThen ? options.$then : options.$else
   const hasFallback = !!nextKey && typeof nextKey === "string"
   if (hasFallback) {
     const fStatus = { c: options.$f! | 0, r: options.$retry }
     setTimeout((): void => {
-      reqH_[kFgReq.key](As_<Req.fg<kFgReq.key>>({
-        H: kFgReq.key, k: nextKey as string, l: kKeyCode.None, f: fStatus
-      }), cPort)
-    }, 34)
+      const frames = framesForTab.get(TabRecency_.curTab_),
+      port = cPort && cPort.s.tabId_ === TabRecency_.curTab_ && frames && frames.ports_.indexOf(cPort) > 0
+          ? cPort : frames && frames.cur_ || null
+      if ((<RegExpI> /^[a-z]+(\.[a-zA-Z]+)?$/i).test(nextKey!) && nextKey! in availableCommands_) {
+        executeCommand(makeCommand_(nextKey!, null), 1, kKeyCode.None, port, 0, fStatus)
+      } else {
+        reqH_[kFgReq.key](As_<Req.fg<kFgReq.key>>({ H: kFgReq.key, k: nextKey!, l: kKeyCode.None, f: fStatus }), port)
+      }
+    }, timeout || 34)
   }
   return hasFallback
+}
+
+export const runNextOnTabLoaded = (options: OpenUrlOptions | Req.FallbackOptions
+    , targetTab: Tab | null | undefined | /* in cur without wait */ false, callback?: () => void): void => {
+  const nextKey = (options as Req.FallbackOptions).$then
+  if ((!nextKey || typeof nextKey !== "string") && !callback) {
+    return
+  }
+  const onTimer = (tab1?: Tab): void => {
+    const now = Date.now()
+    if (!tab1) { setupSingletonCmdTimer(0); return runtimeError_() }
+    if (tab1.status === "complete" || now < start - 200 || now - start >= timeout) {
+      setupSingletonCmdTimer(0)
+      callback && callback()
+      nextKey && runNextCmdBy(1, options as {}, callback ? 67 : 0)
+    }
+  }
+  const timeout = targetTab !== false ? 1500 : 300
+  let tabId = targetTab ? targetTab.id : targetTab !== false ? -1 : TabRecency_.curTab_,
+  start = Date.now()
+  setupSingletonCmdTimer(setInterval((): void => {
+    tabsGet(tabId !== GlobalConsts.TabIdNone ? tabId : tabId = TabRecency_.curTab_, onTimer)
+  }, 100)) // it's safe to clear an interval using `clearTimeout`
 }

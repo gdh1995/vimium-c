@@ -6,7 +6,7 @@ type BgCmdActiveTabOrNoTab<T extends kBgCmd> = (this: void, tabs1?: [Tab]) => vo
 type BgCmdCurWndTabs<T extends kBgCmd> = (this: void, tabs1: Tab[]) => void | T
 
 interface BgCmdOptions {
-  [kBgCmd.blank]: {}
+  [kBgCmd.blank]: { /** ms */ for: CountValueOrRef; wait: CountValueOrRef } & Req.FallbackOptions
   // region: need cport
   [kBgCmd.goNext]: {
     isNext: boolean; noRel: boolean; patterns: string | string[]; rel: string; $fmt: 1; absolute: true
@@ -143,6 +143,7 @@ interface BgCmdInfoMap {
 }
 
 type UnknownValue = "42" | -0 | false | { fake: 42 } | undefined | null
+type CountValueOrRef = number | "count" | "number"
 type KnownOptions<K extends keyof BgCmdOptions> = {
   [P in keyof BgCmdOptions[K]]?: BgCmdOptions[K][P] | null
 }

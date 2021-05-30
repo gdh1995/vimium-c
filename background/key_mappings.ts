@@ -494,7 +494,7 @@ export const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
   addBookmark: [ kBgCmd.addBookmark, 1, /* 20 in all_commands.ts */ 0 ],
   autoCopy: [ kFgCmd.autoOpen, 0, 1, { copy: true } ],
   autoOpen: [ kFgCmd.autoOpen, 0, 1, { o: 1 } ],
-  blank: [ kBgCmd.blank, 1, 1 ],
+  blank: [ kBgCmd.blank, 1, 0 ],
   clearCS: [ kBgCmd.clearCS, 1, 1, { type: "images" } ],
   clearFindHistory: [ kBgCmd.clearFindHistory, 1, 1 ],
   closeDownloadBar: [ kBgCmd.closeDownloadBar, 1, 1, { all: 1 } ],
@@ -603,6 +603,7 @@ export const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
   toggleReaderMode: [ kBgCmd.toggleTabUrl, 1, 1, { reader: true, reuse: ReuseType.current, opener: true } ],
   toggleVomnibarStyle: [ kBgCmd.toggleVomnibarStyle, 1, 1, { style: "dark" } ],
   visitPreviousTab: [ kBgCmd.visitPreviousTab, 1, 0 ],
+  wait: [ kBgCmd.blank, 1, 0, { wait: "count" } ],
   zoomIn: [ kBgCmd.toggleZoom, 1, 0 ],
   zoomOut: [ kBgCmd.toggleZoom, 1, 0, { $count: -1 } ],
   zoomReset: [ kBgCmd.toggleZoom, 1, 0, { $count: 9e4 } ]
