@@ -50,7 +50,7 @@ export function set_inputHint (_newIHint: typeof inputHint): void { inputHint = 
 export function set_isHintingInput (_newIsHintingInput: BOOL): void { isHintingInput = _newIsHintingInput }
 export function set_grabBackFocus (_newGrabBackFocus: typeof grabBackFocus): void { grabBackFocus = _newGrabBackFocus }
 export function set_onWndBlur2 (_newOnBlur: typeof onWndBlur2): void { onWndBlur2 = _newOnBlur }
-export function set_exitPassMode <T extends typeof exitPassMode> (_nEPM: T): T { return exitPassMode = _nEPM }
+export function set_exitPassMode <T extends typeof exitPassMode> (_nEPM: T): T { return exitPassMode = _nEPM as T }
 
 export const insertInit = (): void => {
   /** if `notBody` then `activeEl` is not null */

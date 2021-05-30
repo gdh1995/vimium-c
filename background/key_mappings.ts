@@ -243,9 +243,9 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
           logError_("mapKey: a target key should be a single key:", line)
         } else if (key2 = BgUtils_.stripKey_(key), key2 in mkReg && mkReg[key2] !== BgUtils_.stripKey_(val)) {
           logError_('The key %c"%s"', colorRed, key, "has been mapped to another key:"
-              , mkReg[key]!.length > 1 ? `<${mkReg[key]!}>` : mkReg[key]!)
+              , mkReg[key2]!.length > 1 ? `<${mkReg[key2]!}>` : mkReg[key2]!)
         } else {
-          mkReg[key] = BgUtils_.stripKey_(val)
+          mkReg[key2] = BgUtils_.stripKey_(val)
           mk++;
         }
       } else if (cmd === "shortcut" || cmd === "command") {
@@ -342,7 +342,7 @@ const populateKeyMap_ = (value: string | null): void => {
     kWarn = 'Inactive key: %o with "%s"', isOldWrong = d.errors_ !== null
     if (hasFoundChanges) {
       d.errors_ = d.keyFSM_ = null
-      parseKeyMappings_(value!)
+      /*#__NOINLINE__*/ parseKeyMappings_(value!)
     }
     const allKeys = BgUtils_.keys_(d.keyToCommandRegistry_),
     mappedKeyReg = d.mappedKeyRegistry_,
@@ -444,12 +444,12 @@ const defaultKeyMappings_: string =
   " zH "   +AsC_("scrollToLeft")        +" zL "     +AsC_("scrollToRight")   +" / "      +AsC_("enterFindMode")       +
   " ` "    +AsC_("Marks.activate")      +" ^ "      +AsC_("visitPreviousTab")+" [[ "     +AsC_("goPrevious")          +
   " ]] "   +AsC_("goNext")              +" << "     +AsC_("moveTabLeft")     +" >> "     +AsC_("moveTabRight")        +
-  " b "    +AsC_("Vomnibar.activateBookmarks")         + " ge "    + AsC_("Vomnibar.activateUrl")                   +
-  " gE "   +AsC_("Vomnibar.activateUrlInNewTab")       + " m "     + AsC_("Marks.activateCreateMode")               +
-  " p "    +AsC_("openCopiedUrlInCurrentTab")          + " yf "    + AsC_("LinkHints.activateModeToCopyLinkUrl")    +
-  " B "    +AsC_("Vomnibar.activateBookmarksInNewTab") + " F "     + AsC_("LinkHints.activateModeToOpenInNewTab")   +
-  " O "    +AsC_("Vomnibar.activateInNewTab")          + " P "     + AsC_("openCopiedUrlInNewTab")                  +
-  " T "    +AsC_("Vomnibar.activateTabSelection")      + " <a-f> " + AsC_("LinkHints.activateModeWithQueue")        +
+  " b "    +AsC_("Vomnibar.activateBookmarks")             + " ge "    + AsC_("Vomnibar.activateUrl")                 +
+  " gE "   +AsC_("Vomnibar.activateUrlInNewTab")           + " m "     + AsC_("Marks.activateCreateMode")             +
+  " p "    +AsC_("openCopiedUrlInCurrentTab")              + " yf "    + AsC_("LinkHints.activateModeToCopyLinkUrl")  +
+  " B "    +AsC_("Vomnibar.activateBookmarksInNewTab")     + " F "     + AsC_("LinkHints.activateModeToOpenInNewTab") +
+  " O "    +AsC_("Vomnibar.activateInNewTab")              + " P "     + AsC_("openCopiedUrlInNewTab")                +
+  " T "    +AsC_("Vomnibar.activateTabSelection")          + " <a-f> " + AsC_("LinkHints.activateModeWithQueue")      +
   (Build.NDEBUG ? "" : ` <a-s-f12> ${AsC_("debugBackground")} <s-f12> ${CNameLiterals.focusOptions}`)
 
 export const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
@@ -610,6 +610,8 @@ export const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
 
 const hintModes_: SafeDict<HintMode> = {
     __proto__: null as never,
+  newtab: HintMode.OPEN_IN_NEW_BG_TAB,
+  "new-active": HintMode.OPEN_IN_NEW_FG_TAB, "newtab-active": HintMode.OPEN_IN_NEW_FG_TAB,
   hover: HintMode.HOVER, unhover: HintMode.UNHOVER, leave: HintMode.UNHOVER,
   focus: HintMode.FOCUS,
   "download-media": HintMode.DOWNLOAD_MEDIA, "download-image": HintMode.DOWNLOAD_MEDIA,

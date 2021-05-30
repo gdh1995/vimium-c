@@ -66,9 +66,9 @@ set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
       mapped = mode && mapKeyTypes & (kMapKey.insertMode | kMapKey.otherMode)
           && mappedKeys[key + GlobalConsts.DelimeterForKeyCharAndMode + GlobalConsts.ModeIds[mode]]
           || (mapKeyTypes & kMapKey.normal ? mappedKeys[key] : "")
-      key = mapped ? mapped : mapKeyTypes & kMapKey.char && !isLong && (mapped = mappedKeys[chLower])
+      key = mapped || (mapKeyTypes & kMapKey.char && !isLong && (mapped = mappedKeys[chLower])
             && mapped.length < 2 && (baseMod = mapped.toUpperCase()) !== mapped
-          ? mod ? mod + mapped : char === chLower ? mapped : baseMod : key
+          ? mod ? mod + mapped : char === chLower ? mapped : baseMod : key)
     }
   }
   return key;
@@ -189,7 +189,8 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
                   || getKeyStat_(event) & KeyStat.ExceptShift)
           || (OnFirefox && key === kKeyCode.bracketleftOnFF || key > kKeyCode.minNotFn
               ? event.ctrlKey : key === kKeyCode.esc)
-          ? getMappedKey(eventWrapper, mapKeyTypes & kMapKey.insertMode ? kModeId.Insert : kModeId.Normal)
+          ? getMappedKey(eventWrapper, kMapKey.insertMode === 1 && !kModeId.Normal
+                ? mapKeyTypes & kMapKey.insertMode : mapKeyTypes & kMapKey.insertMode ? kModeId.Insert : kModeId.Normal)
           : (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$KeyboardEvent$$Key
               || event.key) && event.key!.length === 1 ? kChar.INVALID : ""
     if (insert_global_ ? insert_global_.k ? keyStr === insert_global_.k : isEscape_(keyStr)

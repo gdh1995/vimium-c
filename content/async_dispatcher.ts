@@ -318,13 +318,14 @@ export const click_async = (async (element: SafeElementForMouse
     DispatchAndMayOpenTab = MinOpenUrl, OpenTabButNotDispatch,
   }
   let result: ActionType = ActionType.OnlyDispatch, url: string | null
-  let parentAnchor: Partial<Pick<HTMLAnchorElement, "target" | "href" | "rel">> & Element | null | undefined
+  type ParAnchor = Pick<HTMLAnchorElement, "target" | "href" | "rel">
+  let parentAnchor: ParAnchor & Partial<SafeHTMLElement> | Element | null | undefined
   if (specialAction) {
     // for forceToDblclick, element can be OtherSafeElement; for 1..MaxOpenForAnchor, element must be in <html:a>
     result = specialAction > kClickAction.BaseMayInteract ? specialAction - kClickAction.BaseMayInteract
-        : !(parentAnchor = OnChrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest && !element.closest
-              ? element
-              : (parentAnchor = element.closest!("a")) && htmlTag_(parentAnchor) ? parentAnchor : null)
+        : !(parentAnchor = (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest && !element.closest
+                ? element : (parentAnchor = element.closest!("a")) && htmlTag_<1>(parentAnchor) ? parentAnchor : null
+              ) as ParAnchor | null)
           || (OnFirefox ? specialAction < kClickAction.MinNotPlainOpenManually && parentAnchor.target !== "_blank" : 0)
           || !(url = attr_s(parentAnchor as SafeElement, "href"))
           || specialAction & (kClickAction.forceToOpenInNewTab
@@ -370,12 +371,13 @@ export const click_async = (async (element: SafeElementForMouse
       return
     }
     // use latest attributes
-    const relAttr = parentAnchor!.rel, openerOpt = userOptions && userOptions.opener,
+    const relAttr = (parentAnchor as ParAnchor).rel, openerOpt = userOptions && userOptions.opener,
+    isTargetBlank = (parentAnchor as ParAnchor).target === "_blank",
     /** {@link #BrowserVer.Min$TargetIsBlank$Implies$Noopener} and FirefoxBrowserVer's */
-    noopener = openerOpt != null ? !openerOpt : !relAttr ? parentAnchor!.target === "_blank"
-        : (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredES6$Array$$Includes
-            ? relAttr.split(<RegExpOne> /\s/).includes!("noopener")
-            : relAttr.split(<RegExpOne> /\s/).indexOf("noopener") >= 0),
+    noopener = openerOpt != null ? !openerOpt
+        : isTargetBlank !== (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredES6$Array$$Includes
+            ? relAttr.split(<RegExpOne> /\s/).includes!(isTargetBlank ? "opener" : "noopener")
+            : relAttr.split(<RegExpOne> /\s/).indexOf(isTargetBlank ? "opener" : "noopener") >= 0),
     reuse = userOptions && userOptions.reuse != null ? userOptions.reuse
         : specialAction! & kClickAction.openInNewWindow
         ? ReuseType.newWnd : specialAction! & kClickAction.forceToOpenInCurrnt ? ReuseType.current
@@ -384,8 +386,8 @@ export const click_async = (async (element: SafeElementForMouse
         : /** result > 0, so specialAction exists */ modifiers![3] || specialAction! < kClickAction.newTabFromMode
           ? ReuseType.newFg : ReuseType.newBg;
     (hintApi ? hintApi.p : post_)({
-      H: kFgReq.openUrl,
-      u: parentAnchor!.href, f: !0, n: noopener, r: reuse, o: userOptions && parseOpenPageUrlOptions(userOptions)
+      H: kFgReq.openUrl, u: (parentAnchor as ParAnchor).href, f: !0, n: noopener,
+      r: reuse, o: userOptions && parseOpenPageUrlOptions(userOptions)
     })
     return 1
   }
