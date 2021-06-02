@@ -75,7 +75,7 @@ interface BgCmdOptions {
     windows: "" | "current" | "all"
   }
   [kBgCmd.mainFrame]: Req.FallbackOptions
-  [kBgCmd.moveTab]: { group: "keep" | "ignore" }
+  [kBgCmd.moveTab]: { group: "keep" | "ignore" | boolean }
   [kBgCmd.moveTabToNewWindow]: { all: boolean | BOOL }
       & Pick<OpenUrlOptions, "incognito" | "position"> & LimitedRangeOptions
   [kBgCmd.moveTabToNextWindow]: { minimized: false; min: false; end: boolean; right: boolean }
@@ -101,7 +101,7 @@ interface BgCmdOptions {
     filter: "url" | "hash" | "host" | "url+title" | "hash+title" | "host+title"
     other: boolean
   } & Req.FallbackOptions
-  [kBgCmd.reopenTab]: {}
+  [kBgCmd.reopenTab]: Pick<OpenUrlOptions, "group">
   [kBgCmd.restoreGivenTab]: Req.FallbackOptions
   [kBgCmd.restoreTab]: { incognito: "force" | true } & Req.FallbackOptions
   [kBgCmd.runKey]: {
@@ -242,10 +242,10 @@ interface SafeStatefulBgCmdOptions {
   [kBgCmd.showVomnibar]: "mode"
 }
 
-type KeysWithFallback<O extends object, K extends keyof O = keyof O> = 
+type KeysWithFallback<O extends object, K extends keyof O = keyof O> =
     K extends keyof O ? O[K] extends Req.FallbackOptions ? K : never : never
 type SafeOptionKeys<O, K extends keyof O = keyof O> =
-    K extends keyof O ? K extends `$${infer _U}` ? K extends "$f" | "$retry"? K : never
+    K extends keyof O ? K extends `$${string}` ? K extends "$f" | "$retry"? K : never
     : K extends "fallback" ? never : K : never
 type OptionalPick<T, K extends keyof T> = { [P in K]?: T[P] | null; };
 type CmdOptionSafeToClone<K extends keyof BgCmdOptions | keyof CmdOptions> =

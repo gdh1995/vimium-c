@@ -1,4 +1,7 @@
-import { runtimeError_, getTabUrl, tabsGet, browserTabs, tabsCreate, browserSessions, browser_ } from "./browser"
+import {
+  runtimeError_, getTabUrl, tabsGet, browserTabs, tabsCreate, browserSessions, browser_, openMultiTabs,
+  InfoToCreateMultiTab, getGroupId
+} from "./browser"
 import {
   framesForTab, framesForOmni,
   contentPayload, cPort, needIcon_, reqH_, settings, set_cPort, set_needIcon_, set_visualWordsRe_
@@ -23,7 +26,7 @@ const executeShortcutEntry = (cmd: StandardShortcutNames | kShortcutAliases): vo
       console.log("Shortcut %o has not been configured.", cmd)
     }
   } else if (ref == null || (ref.flags_ & Frames.Flags.userActed) || tabId < 0) {
-    executeShortcut(cmd as StandardShortcutNames, ref)
+    executeShortcut(cmd, ref)
   } else {
     tabsGet(tabId, (tab): void => {
       executeShortcut(cmd as StandardShortcutNames, tab && tab.status === "complete" ? framesForTab.get(tab.id) : null)
@@ -99,11 +102,11 @@ Backend_ = {
         s: selectLast ? url.lastIndexOf(" ") + 1 : 0
       };
     },
-    reopenTab_ (this: void, tab: Tab, refresh, exProps): void {
+    reopenTab_ (this: void, tab: Tab, refresh, exProps, useGroup): void {
       const tabId = tab.id, needTempBlankTab = refresh === 1;
-      if (Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox
+      if ((Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox
             || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSessions
-          ? refresh && browserSessions() : refresh) {
+          ? refresh && browserSessions() : refresh) && (useGroup !== false || getGroupId(tab) == null)) {
         let step = RefreshTabStep.start,
         tempTabId = -1,
         onRefresh = function (this: void): void {
@@ -121,8 +124,8 @@ Backend_ = {
           }, 50 * step * step);
         };
         if (needTempBlankTab) {
-          tabsCreate({url: "about:blank", active: false, windowId: tab.windowId}, (temp_tab): void => {
-            tempTabId /* === -1 */ ? (tempTabId = temp_tab.id) : browserTabs.remove(temp_tab.id);
+          /* safe-for-group */ tabsCreate({url: "about:blank", active: false, windowId: tab.windowId}, (t2): void => {
+            tempTabId /* === -1 */ ? (tempTabId = t2.id) : browserTabs.remove(t2.id)
           });
         }
         browserTabs.remove(tabId, runtimeError_);
@@ -153,11 +156,15 @@ Backend_ = {
         pinned: tab.pinned,
         openerTabId: tab.openerTabId
       }
-      if (Build.BTypes & BrowserType.Firefox
-          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox) && exProps) {
-        BgUtils_.extendIf_(args, exProps)
+      if (!(Build.BTypes & ~BrowserType.Firefox)
+          || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox) {
+        exProps && BgUtils_.extendIf_(args, exProps)
+        // on Firefox 88, if `.cookieStorageId && (create; remove)`, then tab will unexpectedly move right
+        args.index != null && getGroupId(tab) == null && args.index++
+      } else if (args.index != null) {
+        args.index++
       }
-      tabsCreate(args, callback);
+      openMultiTabs(args as InfoToCreateMultiTab, 1, true, [null], useGroup, tab, callback)
       browserTabs.remove(tabId);
       // should never remove its session item - in case that goBack/goForward might be wanted
       // not seems to need to restore muted status
@@ -226,7 +233,7 @@ Backend_ = {
       for (const port of ref.ports_) {
         const sender = port.s
         if (!locked && Backend_.getExcluded_ !== null) {
-          let pattern = msg.p = Backend_.getExcluded_(sender.url_, sender)
+          pattern = msg.p = Backend_.getExcluded_(sender.url_, sender)
           newStatus = pattern === null ? Frames.Status.enabled : pattern
             ? Frames.Status.partial : Frames.Status.disabled;
           if (newStatus !== Frames.Status.partial && sender.status_ === newStatus) { continue; }

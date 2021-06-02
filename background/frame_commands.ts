@@ -265,6 +265,7 @@ export const openImgReq = (req: FgReq[kFgReq.openImage], port?: Port): void => {
       && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)
       && req.m === HintMode.DOWNLOAD_MEDIA ? "" : opts2.k
   url = opts2.s ? substitute_(url, SedContext.paste, opts2.s) : url
+  // no group during openImg
   replaceCmdOptions<C.openUrl>({ opener: true, reuse: req.r, replace: opts2.m, position: opts2.p, window: opts2.w })
   set_cRepeat(1)
   // not use v:show for those from other extensions
@@ -319,7 +320,7 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null
         framesGoBack({ s: count, r: ReuseType.current, o: {} }, null, tab)
       }
       const newTabIdx = tab.index--
-      const wantedIdx = position === "end" ? 3e4 : newTabIndex(tab, position)
+      const wantedIdx = position === "end" ? 3e4 : newTabIndex(tab, position, false, true)
       if (wantedIdx != null && wantedIdx !== newTabIdx) {
         browserTabs.move(tab.id, { index: wantedIdx }, runtimeError_)
       }

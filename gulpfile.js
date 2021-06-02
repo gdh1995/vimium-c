@@ -4,7 +4,6 @@
 var fs = require("fs");
 var gulp = require("gulp");
 var logger = require("fancy-log");
-var gulpChanged = require("gulp-changed");
 var newer = require("gulp-newer");
 var gulpPrint = require("gulp-print");
 var osPath = require("path");
@@ -366,15 +365,18 @@ var Tasks = {
     if (browser === BrowserType.Firefox) {
       delete manifest.background.persistent;
     }
+    if (optional && !(browser & BrowserType.Chrome)) {
+      optional = optional.filter(i => { return i !== "cookies" })
+    }
     if (browser === BrowserType.Chrome) {
       delete manifest.browser_specific_settings;
     } else {
       permissions.splice((permissions.indexOf("contentSettings") + 1 || permissions.length + 1) - 1, 1)
-      if (optional) {
+    }
+    if (optional && !(browser & BrowserType.Chrome)) {
         optional = optional.filter(i => {
           return !i.includes("chrome:") && i !== "downloads.shelf" && i !== "contentSettings"
         })
-      }
     }
     if (!(browser & BrowserType.Chrome) || browser & ~BrowserType.Chrome && !locally || minVer < 35) {
       delete manifest.offline_enabled;

@@ -117,9 +117,16 @@ interface HTMLTextAreaElement extends HTMLEditableELement {}
 declare var Response: { new (blob: Blob): Response }
 
 declare namespace chrome.tabs {
+  type GroupId = "firefox-default" | "unknown1" | "unknown2" | number
   interface Tab {
     groupId?: number
+    cookieStoreId?: GroupId
   }
+  interface CreateProperties {
+    groupId?: Tab["groupId"]
+    cookieStoreId?: GroupId
+  }
+  export function group (options: { tabIds: number | number[], groupId?: number }): Promise<object>
 }
 
 declare namespace chrome.bookmarks {
@@ -143,7 +150,7 @@ declare module chrome.downloads {
 
 declare module chrome.permissions {
   export type kPermissions = "downloads" | "downloads.shelf" | "chrome://new-tab-page/" | "chrome://*/*"
-      | "clipboardRead" | "contentSettings" | "notifications"
+      | "clipboardRead" | "contentSettings" | "notifications" | "cookies"
   export interface Request { origins?: kPermissions[]; permissions?: kPermissions[] }
   export function contains(query: Request, callback: (result: boolean) => void): void
   export function remove(query: Request, callback: (result: boolean) => void): void

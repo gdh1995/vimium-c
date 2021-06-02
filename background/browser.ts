@@ -8,8 +8,8 @@ export interface ActiveTab extends Tab { active: true }
 export interface PopWindow extends Window { tabs: Tab[] }
 
 export interface InfoToCreateMultiTab extends
-    Partial<Pick<chrome.tabs.CreateProperties, "index" | "openerTabId" | "windowId">> {
-  url: string; active: boolean; pinned?: boolean }
+      Partial<Pick<chrome.tabs.CreateProperties, "index" | "openerTabId" | "windowId" | "pinned">> {
+    url: string; active: boolean; }
 
 export const browser_: typeof chrome = Build.BTypes & ~BrowserType.Chrome
     && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)
@@ -22,6 +22,12 @@ export const browserWebNav = (): typeof chrome.webNavigation | undefined => brow
 export const runtimeError_ = BgUtils_.runtimeError_
 
 export const tabsGet = browserTabs.get
+
+export const getGroupId: (tab: Tab) => chrome.tabs.GroupId | null = !(Build.BTypes & ~BrowserType.Firefox)
+    || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox
+    ? tab => tab.cookieStoreId && tab.cookieStoreId !== "firefox-default" ? tab.cookieStoreId : null
+    : Build.BTypes & ~BrowserType.Edge ? i => i.groupId !== -1 && i.groupId != null ? i.groupId : null
+    : () => null
 
 export const getTabUrl = (tab_may_pending: Pick<Tab, "url" | "pendingUrl">): string =>
     Build.BTypes & BrowserType.Chrome ? tab_may_pending.url || tab_may_pending.pendingUrl : tab_may_pending.url
@@ -126,25 +132,58 @@ export const safeUpdate = (url: string, secondTimes?: true, tabs1?: [Tab]): void
 
 /** the order is [A,B,C; A,B,C; ...]; require urls.length === 0 || args.url === urls[0] */
 export const openMultiTabs = (options: InfoToCreateMultiTab, count: number
-    , evenIncognito: boolean | -1 | null | undefined
-    , urls: string[] | [null], cb?: ((tab: Tab) => void) | null): void => {
-  tabsCreate(options, (newTab): void => {
-    if (!runtimeError_()) {
+    , evenIncognito: boolean | -1 | null | undefined, urls: string[] | [null]
+    , doesGroup: boolean | null | undefined, curTab: Tab | null | undefined
+    , callback: ((tab: Tab) => void) | null | undefined): void => {
+  const cb1 = (newTab: Tab): void => {
+    if (runtimeError_()) { return runtimeError_() }
       options.index = newTab.index
       options.windowId = newTab.windowId
-      cb && cb(newTab)
-    }
+    !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox
+    ? (options as chrome.tabs.CreateProperties).cookieStoreId = getGroupId(newTab) ?? undefined
+    : Build.BTypes & ~BrowserType.Edge && groupId != null
+      && browserTabs.group({ tabIds: newTab.id, groupId: groupId as number })
+    callback && callback(newTab)
     options.active = false
     const hasIndex = options.index != null, loopSize = urls ? urls.length : 1
+    const onOtherTabs = Build.BTypes & ~(BrowserType.Edge | BrowserType.Firefox) && groupId != null
+        ? (t2?: Tab): void => (t2 && browserTabs.group({ tabIds: t2.id, groupId: groupId as number }), runtimeError_())
+        : runtimeError_
     urls.length > 1 && (urls[0] = options.url)
     for (let i = 0; i < count; i++) {
       for (let j = i > 0 ? 0 : 1; j < loopSize; j++) {
         urls.length > 1 && (options.url = urls[j]!)
-        hasIndex && ++options.index!
-        browserTabs.create(options, runtimeError_)
+        hasIndex && ++options.index
+        browserTabs.create(options, onOtherTabs)
       }
     }
-  }, evenIncognito)
+  }
+  let groupId: chrome.tabs.GroupId | null | undefined
+  doesGroup = doesGroup !== false
+  if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox) {
+    if (doesGroup) {
+      if (curTab && (groupId = getGroupId(curTab)) != null) {
+        (options as chrome.tabs.CreateProperties).cookieStoreId = groupId
+        tabsCreate(options, (newTab): void => {
+          if (runtimeError_() && (runtimeError_() + "").includes("No permission for cookieStoreId")) {
+            delete (options as chrome.tabs.CreateProperties).cookieStoreId
+            browserTabs.create(options, cb1)
+          } else {
+            cb1(newTab)
+          }
+          return runtimeError_()
+        }, evenIncognito)
+        return
+      }
+    } else if (options.openerTabId != null && (!curTab || curTab.cookieStoreId !== "firefox-default")) {
+      delete options.openerTabId
+    }
+  } else if (Build.BTypes & ~BrowserType.Edge) {
+    groupId = curTab != null ? getGroupId(curTab) as number | null : null
+    if (!doesGroup && groupId != null) { delete options.index }
+    groupId = doesGroup && groupId != null && browserTabs.group ? groupId : undefined
+  }
+  tabsCreate(options, cb1, evenIncognito)
 }
 
 export const makeWindow = (options: chrome.windows.CreateData, state?: chrome.windows.ValidStates | ""

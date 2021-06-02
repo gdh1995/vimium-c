@@ -581,7 +581,7 @@ declare namespace BackendHandlersNS {
      */
     getPortUrl_ (port?: Frames.Port | null, ignoreHash?: boolean, req?: Req.baseFg<kFgReq>): string | Promise<string>;
     reopenTab_ (tab: chrome.tabs.Tab, refresh?: /* false */ 0 | /* a temp blank tab */ 1 | /* directly */ 2,
-        exProps?: chrome.tabs.CreateProperties & {openInReaderMode?: boolean}): void;
+        exProps?: chrome.tabs.CreateProperties & {openInReaderMode?: boolean}, useGroup?: true | false): void;
     setIcon_ (tabId: number, type: Frames.ValidStatus, isLater?: true): void;
     complain_ (this: BackendHandlers, message: string): void;
     showHUD_ (message: string, isCopy?: kTip): void

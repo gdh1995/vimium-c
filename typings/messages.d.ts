@@ -656,11 +656,13 @@ interface OpenUrlOptions extends UserSedOptions {
   pinned?: boolean | null
   reuse?: UserReuseType | null
   window?: boolean | "popup" | "normal" | null
+  group?: true | null | false
 }
-interface OpenPageUrlOptions extends Pick<OpenUrlOptions, "position" | "window"> {
+interface OpenPageUrlOptions extends Pick<OpenUrlOptions, "position" | "window" | "group"> {
   keyword?: string; replace?: string | ValidUrlMatchers | null; testUrl?: null | boolean | "whole-string"
 }
 interface ParsedOpenPageUrlOptions {
+  /** group */ g?: OpenPageUrlOptions["group"]
   /** keyword */ k?: OpenPageUrlOptions["keyword"]
   /** match a tab to replace */ m?: OpenPageUrlOptions["replace"]
   /** position */ p?: OpenPageUrlOptions["position"]

@@ -121,7 +121,6 @@ const ContentSettings_ = Build.BTypes & BrowserType.Chrome ? {
                 && ContentSettings_.hasOtherOrigins_(arr)
             ;
         if (tab.incognito || reopen) {
-          ++tab.index;
           return Backend_.reopenTab_(tab);
         } else if (tab.index > 0) {
           return Backend_.reopenTab_(tab, couldNotRefresh ? 0 : 2);
@@ -169,12 +168,14 @@ const ContentSettings_ = Build.BTypes & BrowserType.Chrome ? {
           console.log("%cContentSettings.ensure", "color:red"
             , "get incognito content settings", opt, " but can not find an incognito window.");
           return;
-        } else if (opt && opt.setting === "allow") {
-          return ContentSettings_.updateTab_(tab, wnds[wnds.length - 1].id);
+        }
+        const preferred = wnds.find(i => i.id === TabRecency_.lastWnd_) || wnds[wnds.length - 1]!
+        if (opt && opt.setting === "allow") {
+          return ContentSettings_.updateTab_(tab, preferred.id)
         }
         const wndId = tab.windowId, isIncNor = tab.incognito && wnds.some(wnd => wnd.id === wndId);
         return ContentSettings_.setAndUpdate_(count, contentType, tab, pattern
-          , isIncNor ? undefined : wnds[wnds.length - 1].id);
+          , isIncNor ? undefined : preferred.id)
       });
     });
   },
@@ -230,9 +231,7 @@ const ContentSettings_ = Build.BTypes & BrowserType.Chrome ? {
   },
   updateTab_ (this: void, tab: Tab, newWindowId?: number): void {
     tab.active = true;
-    if (typeof newWindowId !== "number" || tab.windowId === newWindowId) {
-      ++tab.index;
-    } else {
+    if (typeof newWindowId === "number" && tab.windowId !== newWindowId) {
       (tab as chrome.tabs.CreateProperties).index = undefined;
       tab.windowId = newWindowId;
     }

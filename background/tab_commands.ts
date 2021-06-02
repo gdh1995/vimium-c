@@ -1,6 +1,6 @@
 import {
   browserTabs, getAllWindows, makeTempWindow, makeWindow, PopWindow, Tab, tabsCreate, Window, getTabUrl, selectFrom,
-  runtimeError_, IncNormalWnd, selectWnd, selectTab, getCurWnd, getCurTabs, getCurTab
+  runtimeError_, IncNormalWnd, selectWnd, selectTab, getCurWnd, getCurTabs, getCurTab, getGroupId
 } from "./browser"
 import { cRepeat, get_cOptions, cPort, cNeedConfirm, set_cPort, settings } from "./store"
 import { complainLimits, requireURL, showHUD } from "./ports"
@@ -179,12 +179,12 @@ export const moveTabToNewWindow = (): void | kBgCmd.moveTabToNewWindow => {
     if (!wnd) { return runtimeError_() }
     const tabs = wnd.tabs, total = tabs.length, all = !!get_cOptions<C.moveTabToNewWindow>().all
     if (!all && total <= 1) { return } // not need to show a tip
-    const tab = selectFrom(tabs), { incognito: curIncognito, index: activeTabIndex } = tab
+    const { incognito: curIncognito, index: activeTabIndex } = selectFrom(tabs)
     let range: [number, number], count: number
     if (all) {
       if (Build.BTypes & ~BrowserType.Edge) {
         for (const i of tabs) {
-          if (i.groupId != null && i.groupId !== -1) {
+          if (getGroupId(i) != null) {
             /** @todo: fix it with Manifest V3 */
             showHUD("Can not keep groups info during this command")
             return
@@ -252,7 +252,8 @@ export const moveTabToNewWindow = (): void | kBgCmd.moveTabToNewWindow => {
     if (!wnd) { return runtimeError_() }
     const tab = selectFrom(wnd.tabs)
     if (wnd.incognito && tab.incognito) { return showHUD(trans_(kInc)) }
-    const options: chrome.windows.CreateData & {url?: string} = {tabId: tab.id, incognito: true},
+    const tabId = tab.id
+    const options: {tabId?: number, url?: string, incognito: true, focused?: true} = {incognito: true},
     url = getTabUrl(tab)
     if (tab.incognito) { /* empty */ }
     else if (Build.MinCVer < BrowserVer.MinNoAbnormalIncognito && Build.BTypes & BrowserType.Chrome
@@ -260,7 +261,6 @@ export const moveTabToNewWindow = (): void | kBgCmd.moveTabToNewWindow => {
       if (BgUtils_.isRefusingIncognito_(url)) {
         return showHUD(trans_(kInc))
       }
-      ++tab.index
       return Backend_.reopenTab_(tab)
     } else if (BgUtils_.isRefusingIncognito_(url)) {
       return complainLimits(trans_("openIncog"))
@@ -269,37 +269,35 @@ export const moveTabToNewWindow = (): void | kBgCmd.moveTabToNewWindow => {
     }
     wnd.tabs = null as never
     getAllWindows((wnds): void => {
-      let tabId: number | undefined
       // eslint-disable-next-line arrow-body-style
       wnds = wnds.filter((wnd2: Window): wnd2 is IncNormalWnd => {
         return wnd2.incognito && wnd2.type === "normal"
       })
       if (wnds.length) {
         browserTabs.query({ windowId: preferLastWnd(wnds).id, active: true }, ([tab2]): void => {
-          const tabId2 = options.tabId!
-          let url2: string | undefined = options.url
-          if (typeof url2 === "string" && (!url2 || settings.newTabs_.get(url2) === Urls.NewTabType.browser)) {
-            url2 = undefined
-          }
-          tabsCreate({url: url2, index: tab2.index + 1, windowId: tab2.windowId})
+          /* safe-for-group */ tabsCreate({
+              url, windowId: tab2.windowId,
+              index: newTabIndex(tab2, get_cOptions<C.moveTabToNewWindow>().position, false, false)
+          })
           selectWnd(tab2)
-          browserTabs.remove(tabId2)
+          browserTabs.remove(tabId)
         })
         return
       }
       let state: chrome.windows.ValidStates | "" = wnd.type === "normal" ? wnd.state : ""
-      if (options.url) {
-        tabId = options.tabId
-        options.tabId = undefined
+      let useUrl: boolean
+      if (useUrl = options.url != null) {
         if (settings.CONST_.DisallowIncognito_) {
           options.focused = true
           state = ""
         }
+      } else {
+        options.tabId = tabId
       }
       // in tests on Chrome 46/51, Chrome hangs at once after creating a new normal window from an incognito tab
       // so there's no need to worry about stranger edge cases like "normal window + incognito tab + not allowed"
       makeWindow(options, state, tabId ? null : notifyCKey)
-      if (tabId) {
+      if (useUrl) {
         browserTabs.remove(tabId)
       }
     })
@@ -329,7 +327,7 @@ export const moveTabToNextWindow = ([tab]: [Tab]): void | kBgCmd.moveTabToNextWi
         browserTabs.query({windowId: ids[dest], active: true}, ([tab2]): void => {
           const newIndex = get_cOptions<C.moveTabToNextWindow>().end ? null
               : get_cOptions<C.moveTabToNextWindow>().position != null
-              ? newTabIndex(tab, get_cOptions<C.moveTabToNextWindow>().position)
+              ? newTabIndex(tab, get_cOptions<C.moveTabToNextWindow>().position, false, false)
               : tab2.index + (get_cOptions<C.moveTabToNextWindow>().right ? 1 : 0)
           const callback = (): void => {
             browserTabs.move(tab.id, { index: newIndex ?? 3e4, windowId: tab2.windowId }, (): void => {
@@ -494,7 +492,7 @@ const removeAllTabsInWnd = (tab: Tab, curTabs: readonly Tab[], wnds: Window[]): 
     }
   }
   if (protect) {
-    tabsCreate({ index: curTabs.length, url: "", windowId })
+    /* safe-for-group */ tabsCreate({ index: curTabs.length, url: "", windowId })
   }
   removeTabsInOrder(tab, curTabs, 0, curTabs.length)
   runNextCmd<C.removeTab>(1)
@@ -536,7 +534,7 @@ export const toggleMuteTab = (): void | kBgCmd.toggleMuteTab => {
       , mute = tabs.length === 0 || curId !== GlobalConsts.TabIdNone && tabs.length === 1 && tabs[0].id === curId
     if (get_cOptions<kBgCmd.toggleMuteTab>().mute != null) {
       mute = !!get_cOptions<kBgCmd.toggleMuteTab>().mute
-    } else for (const tab of tabs) {
+    } else for (const tab of tabs) { // eslint-disable-line curly
       if (tab.id !== curId && (Build.MinCVer < BrowserVer.MinMutedInfo && Build.BTypes & BrowserType.Chrome
               && CurCVer_ < BrowserVer.MinMutedInfo ? !tab.muted : !tab.mutedInfo.muted)) {
         mute = true

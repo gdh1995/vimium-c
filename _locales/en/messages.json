@@ -233,6 +233,7 @@
   "opt_chromeUrl": { "message": "Run on chrome://* pages" },
   "opt_cNewtab": { "message": "Run on Chrome's native New Tab Page" },
   "opt_contentSettings": { "message": "Modify content settings of websites like images and JavaScript" },
+  "opt_cookies": { "message": "cookies: only for contextual info to work with Multi-Account Containers" },
   "opt_clipboardRead": { "message": "Read text in system clipboard (only during related commands)" },
   "dirtyOptions": { "message":
     "Such options have been changed at other places:\n      * $1\n    Continue to save and override these changes?" },

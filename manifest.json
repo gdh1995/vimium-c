@@ -121,6 +121,7 @@
     "chrome://*/*",
     "chrome://new-tab-page/",
     "contentSettings",
+    "cookies",
     "downloads",
     "downloads.shelf"
   ],

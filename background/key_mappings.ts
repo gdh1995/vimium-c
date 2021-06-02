@@ -234,7 +234,7 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
       } else if (cmd === "mapkey" || cmd === "mapKey") {
         if (!val || line.length > knownLen
             && (key2 = doesMatchEnv_(getOptions_(line, knownLen)), !key2)) {
-          logError_(`mapKey: need %s source and target keys:`, val ? "only" : "both", line)
+          logError_("mapKey: need %s source and target keys:", val ? "only" : "both", line)
         } else if (line.length > knownLen && key2 === "f") {
           /* empty */
         } else if (key.length > 1 && !(<RegExpOne> /^<(?!<[^:]|__proto__>)([acms]-){0,4}.\w*(:[a-z])?>$/).test(key)) {
@@ -388,7 +388,7 @@ const populateKeyMap_ = (value: string | null): void => {
         d.errors_.map(line => console.log(...line))
         console.groupEnd()
       } else {
-        console.log.apply(console, (d.errors_ as Exclude<CommandsDataTy["errors_"], false | null>)[0])
+        console.log.apply(console, d.errors_[0])
       }
     } else if (isOldWrong) {
       console.log("The new key mappings have no errors");
@@ -508,7 +508,7 @@ export const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
   createTab: [ kBgCmd.createTab, 1, 20 as 0 ],
   debugBackground: [ kBgCmd.openUrl, 1, 1,
     {
-      reuse: ReuseType.reuse,
+      reuse: ReuseType.reuse, group: false,
       url: Build.BTypes & ~BrowserType.Chrome &&
             (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)
         ? Build.BTypes & BrowserType.Firefox &&
@@ -667,8 +667,8 @@ export const visualKeys_: VisualModeNS.KeyMap = {
 }
 
 if (!Build.NDEBUG) {
-  (availableCommands_ as unknown as Writable<NameMetaMapEx>)["focusOptions"] = [
-    kBgCmd.openUrl, 1, 1, { reuse: ReuseType.reuse, url: "vimium://options" }
+  (availableCommands_ as unknown as Writable<NameMetaMapEx>).focusOptions = [
+    kBgCmd.openUrl, 1, 1, { reuse: ReuseType.reuse, url: "vimium://options", group: false }
   ];
 }
 

@@ -1,6 +1,7 @@
 import {
   browserTabs, browserWindows, InfoToCreateMultiTab, openMultiTabs, Tab, tabsGet, getTabUrl, selectFrom, runtimeError_,
-  selectTab, getCurWnd, getCurTabs, getCurTab, getCurShownTabs_ff_only, browserSessions, browser_, selectWndIfNeed
+  selectTab, getCurWnd, getCurTabs, getCurTab, getCurShownTabs_ff_only, browserSessions, browser_, selectWndIfNeed,
+  getGroupId
 } from "./browser"
 import {
   cPort, cRepeat, cKey, get_cOptions, set_cPort, set_cRepeat, cNeedConfirm, contentPayload, settings, framesForTab,
@@ -229,8 +230,8 @@ set_bgC_([
       openMultiTabs(<InfoToCreateMultiTab> As_<Omit<InfoToCreateMultiTab, "url">>(tab ? {
         active: true, windowId: tab.windowId,
         openerTabId: opener ? tab.id : void 0,
-        index: newTabIndex(tab, get_cOptions<C.createTab>().position, opener)
-      } : {active: true}), cRepeat, get_cOptions<C.createTab, true>().evenIncognito, [null], selectWndIfNeed)
+        index: newTabIndex(tab, get_cOptions<C.createTab>().position, opener, true)
+      } : {active: true}), cRepeat, get_cOptions<C.createTab, true>().evenIncognito, [null], true, tab, selectWndIfNeed)
     }
     return runtimeError_()
   },
@@ -280,7 +281,7 @@ set_bgC_([
       openMultiTabs({
         url: getTabUrl(tab), active: false, windowId: tab.windowId,
         pinned: tab.pinned, index: tab.index + 2, openerTabId: tab.id
-      }, cRepeat - 1, true, [null])
+      }, cRepeat - 1, true, [null], true, tab, runtimeError_)
     }
     if (Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
         || CurCVer_ >= BrowserVer.MinNoAbnormalIncognito
@@ -342,24 +343,26 @@ set_bgC_([
   /* kBgCmd.joinTabs: */ joinTabs,
   /* kBgCmd.mainFrame: */ mainFrame,
   /* kBgCmd.moveTab: */ (tabs: Tab[]): void | kBgCmd.moveTab => {
-    const tab = selectFrom(tabs), pinned = tab.pinned
+    const tab = selectFrom(tabs), pinned = tab.pinned, useGroup = get_cOptions<kBgCmd.moveTab>().group
     const curIndex = tabs.indexOf(tab)
     let index = Math.max(0, Math.min(tabs.length - 1, curIndex + cRepeat))
     while (pinned !== tabs[index].pinned) { index -= cRepeat > 0 ? 1 : -1 }
-    if (Build.BTypes & ~BrowserType.Edge && get_cOptions<kBgCmd.moveTab>().group !== "ignore") {
-      let curGroup = tab.groupId, newGroup = tabs[index].groupId
-      if (newGroup !== curGroup) {
-        if (curGroup && curGroup >= 0) {
+    if (index !== curIndex && Build.BTypes & ~BrowserType.Edge && useGroup !== "ignore" && useGroup !== false) {
+      let curGroup = getGroupId(tab), newGroup = getGroupId(tabs[index])
+      if (newGroup !== curGroup && (Math.abs(cRepeat) === 1 || curGroup !== getGroupId(tabs[
+            cRepeat > 0 ? index < tabs.length - 1 ? index + 1 : index : index && index - 1]))) {
+        if (curGroup !== null) {
           index = curIndex
           newGroup = curGroup
         }
-        while (index += cRepeat > 0 ? 1 : -1, 0 <= index && index < tabs.length && tabs[index].groupId === newGroup) {
-        }
+        while (index += cRepeat > 0 ? 1 : -1,
+                0 <= index && index < tabs.length && getGroupId(tabs[index]) === newGroup) { /* empty */ }
         index -= cRepeat > 0 ? 1 : -1
       }
     }
     if (index !== curIndex) {
-      browserTabs.move(tab.id, { index })
+      browserTabs.move(tab.id, { index: index < 0 ? 0
+          : index < tabs.length ? tabs[index].index : tabs[tabs.length - 1].index + 1 })
     }
   },
   /* kBgCmd.moveTabToNewWindow: */ moveTabToNewWindow,
@@ -411,19 +414,18 @@ set_bgC_([
   },
   /* kBgCmd.reopenTab: */ (tabs: [Tab] | never[]): void | kBgCmd.reopenTab => {
     if (tabs.length <= 0) { return }
-    const tab = tabs[0]
-    ++tab.index
+    const tab = tabs[0], group = get_cOptions<C.reopenTab>().group !== false
     if (Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
         || CurCVer_ >= BrowserVer.MinNoAbnormalIncognito
         || TabRecency_.incognito_ === IncognitoType.ensuredFalse || settings.CONST_.DisallowIncognito_
         || !BgUtils_.isRefusingIncognito_(getTabUrl(tab))) {
-      Backend_.reopenTab_(tab)
+      Backend_.reopenTab_(tab, undefined, undefined, group)
     } else {
       browserWindows.get(tab.windowId, (wnd): void => {
         if (wnd.incognito && !tab.incognito) {
           tab.openerTabId = tab.windowId = undefined as never
         }
-        Backend_.reopenTab_(tab)
+        Backend_.reopenTab_(tab, undefined, undefined, group)
       })
     }
   },

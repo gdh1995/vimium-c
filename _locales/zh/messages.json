@@ -354,6 +354,7 @@
   "opt_chromeUrl": { "message": "在 chrome://* 页面上运行" },
   "opt_cNewtab": { "message": "在 Chrome 原生的新标签页上运行" },
   "opt_contentSettings": { "message": "修改网站对 图像、JS 等功能的使用权限" },
+  "opt_cookies": { "message": "cookies: 只用来获取标签页所属容器，以兼容“多账户容器”扩展" },
   "opt_clipboardRead": { "message": "（执行到相应命令时）读取系统剪贴板里的文字" },
   "s1": { "message": "以下是截图：" },
   "keyMappingsP": { "message": "# 在此处定义新的按键映射和快捷键" },
