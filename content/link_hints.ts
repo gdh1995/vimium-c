@@ -518,7 +518,8 @@ const activateDirectly = (options: ContentOptions, count: number) => {
   },
   computeOffset = (): number => {
     const cur = deref_(currentScrolling) || activeEl_unsafe_() !== doc.body && activeEl_unsafe_()
-    let low = 0, high = cur && IsInDOM_(cur) ? matches!.length - 1 : -1, mid: number | undefined
+    let low = 0, mid: number | undefined,
+    high = cur && (!OnFirefox && notSafe_not_ff_!(cur) || IsInDOM_(cur as SafeElement)) ? matches!.length - 1 : -1
     while (low <= high) {
       mid = (low + high) >> 1
       const midEl = matches![mid][0]

@@ -298,27 +298,22 @@ export const findMainSummary_ = ((details: HTMLDetailsElement | Element | null):
 
 export const IsInDOM_ = function (this: void, element: Element, root?: Element | Document | Window | RadioNodeList
       , checkMouseEnter?: 1): boolean {
-    if (!root) {
+    if (!root || isNode_(root as Element | Document, kNode.DOCUMENT_NODE)) {
       const isConnected = element.isConnected; /** {@link #BrowserVer.Min$Node$$isConnected} */
-      if (!(OnChrome || OnEdge) || isConnected === !!isConnected) {
-        return isConnected!; // is boolean : exists and is not overridden
+      if (!(OnChrome && Build.MinCVer < BrowserVer.Min$Node$$isConnected || OnEdge) || isConnected != null) {
+        return isConnected! && (!root || element.ownerDocument === root); // is boolean : exists and is not overridden
       }
     }
     let f: Node["getRootNode"], pe: Element | null;
-    root = <Element | Document> root || (OnFirefox ? element.ownerDocument as Document
-        : (root = element.ownerDocument, OnChrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter &&
-            unsafeFramesetTag_old_cr_ && (root as WindowWithTop).top === top ||
-            !isNode_(root as Document | RadioNodeList as Document, kNode.DOCUMENT_NODE)
-            ? doc : root as Document))
-    if (OnFirefox || !OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Node$$getRootNode)
-        ? isNode_(root, kNode.DOCUMENT_NODE) : isNode_(root, kNode.DOCUMENT_NODE) && (f = doc.getRootNode)) {
-      return OnFirefox
-        ? element.getRootNode!({composed: true}) === root
-        : (!OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Node$$getRootNode)
-            ? doc.getRootNode : f)!.call(element, {composed: true}) === root;
+    if (OnChrome && Build.MinCVer < BrowserVer.Min$Node$$isConnected || OnEdge) {
+      root = <Element | Document> root || (element.ownerDocument as Document | null) || doc
+      if (BrowserVer.Min$Node$$getRootNode < BrowserVer.Min$Node$$isConnected
+          && isNode_(root, kNode.DOCUMENT_NODE) && (f = element.getRootNode)) {
+        return f.call(element, {composed: true}) === root
+      }
     }
-    if (!OnFirefox ? doc.contains.call(root, element)
-        : contains_s(root as SafeElement | Exclude<typeof root, Element>, element)) {
+    if (!OnFirefox ? element.contains.call((root as Element | Document), element)
+        : contains_s(root as SafeElement | Document, element)) {
       return true;
     }
     while ((pe = GetParent_unsafe_(element
@@ -329,7 +324,7 @@ export const IsInDOM_ = function (this: void, element: Element, root?: Element |
     // if not pe, then PNType.DirectNode won't return an Element
     // because .GetParent_ will only return a real parent, but not a fake <form>.parentNode
     return (pe || GetParent_unsafe_(element, PNType.DirectNode)) === root;
-} as (this: void,  element: Element, root?: Element | Document, checkMouseEnter?: 1) => boolean
+} as (this: void, element: SafeElement, root?: Element | Document, checkMouseEnter?: 1) => boolean
 
 export const isStyleVisible_ = (element: Element): boolean => isRawStyleVisible(getComputedStyle_(element))
 export const isRawStyleVisible = (style: CSSStyleDeclaration): boolean => style.visibility === "visible"

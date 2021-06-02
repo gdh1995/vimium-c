@@ -393,13 +393,13 @@ export const collpaseSelection = (sel: Selection, toEnd?: VisualModeNS.ForwardDi
   toEnd ? sel.collapseToEnd() : sel.collapseToStart()
 }
 
-export const getRect = (clickEl: Element, refer?: HTMLElementUsingMap | null): Rect | null => {
+export const getRect = (clickEl: SafeElement, refer?: HTMLElementUsingMap | null): Rect | null => {
     getZoom_(clickEl);
     prepareCrop_();
     if (refer) {
       return getClientRectsForAreas_(refer, [], [clickEl as HTMLAreaElement]);
     }
-    const rect = OnFirefox || !notSafe_not_ff_!(clickEl) ? getVisibleClientRect_(clickEl as SafeElement) : null,
+    const rect = OnFirefox || !notSafe_not_ff_!(clickEl) ? getVisibleClientRect_(clickEl) : null,
     cr = getBoundingClientRect_(clickEl),
     bcr = padClientRect_(cr, 8),
     rect2 = rect && !isContaining_(bcr, rect) ? rect
@@ -407,7 +407,7 @@ export const getRect = (clickEl: Element, refer?: HTMLElementUsingMap | null): R
     return rect2 && getCroppedRect_(clickEl, rect2);
 }
 
-export const flash_ = function (el: Element | null, rect?: Rect | null, lifeTime?: number, classNames?: string
+export const flash_ = function (el: SafeElement | null, rect?: Rect | null, lifeTime?: number, classNames?: string
       ): (() => void) | void {
     rect || (rect = getRect(el!))
     if (!rect) { return; }
@@ -430,7 +430,7 @@ export const flash_ = function (el: Element | null, rect?: Rect | null, lifeTime
     return remove;
 } as {
     (el: null, rect: Rect, lifeTime?: number, classNames?: string): () => void;
-    (el: Element, rect?: null, lifeTime?: number, classNames?: string): (() => void) | void;
+    (el: SafeElement, rect?: null, lifeTime?: number, classNames?: string): (() => void) | void;
 }
 
   /** key: 1 := help dialog; 2 := vomnibar; -1: remove for help dialog; -2: remove for vomnibar */
