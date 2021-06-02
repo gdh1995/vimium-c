@@ -4,6 +4,12 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### 1.90.2
+* fix broken `mapKey`
+* fix simulated `mouseenter` and `mouseleave`
+* improve logic about `$then` and `$else`
+* add a basic support for tab containers on Firefox
+
 #### 1.90.1
 * fix broken `goBack`
 * fix `moveTabToNextWindow` would create an extra tab

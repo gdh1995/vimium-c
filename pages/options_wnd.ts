@@ -476,6 +476,7 @@ if (!OnEdge) {
   const ignored: Array<kPermissions | RegExpOne> = OnFirefox ? ["downloads.shelf"] : ["downloads"]
   OnChrome || ignored.push(<RegExpOne> /^chrome:/, "contentSettings")
   OnChrome && !IsEdg || ignored.push("chrome://new-tab-page/")
+  OnFirefox || ignored.push("cookies")
   optional = optional.filter(i => !ignored.some(j => typeof j === "string" ? i === j : j.test(i)))
 }
 if (OnEdge || !optional.length) {

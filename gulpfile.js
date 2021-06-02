@@ -365,7 +365,7 @@ var Tasks = {
     if (browser === BrowserType.Firefox) {
       delete manifest.background.persistent;
     }
-    if (optional && !(browser & BrowserType.Chrome)) {
+    if (optional && !(browser & BrowserType.Firefox)) {
       optional = optional.filter(i => { return i !== "cookies" })
     }
     if (browser === BrowserType.Chrome) {
