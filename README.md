@@ -226,7 +226,7 @@ The [Vimium C](https://microsoftedge.microsoft.com/addons/detail/vimium-c/aibcgl
 This behavior is only to make these extensions easier to use, but<br>
 **DOES NOT EXPRESS OR IMPLIED** the author (gdh1995) "agrees or has no objection to"
     that "Taiwan" can be parallel to "China",
-    which was an **inappropriate** status quo in the stores' pages on 2020-07-30.
+    which was an **inappropriate** status quo in the stores' (developer) pages on 2021-06-03.
 
 According to [The Constitution of the People's Republic of China](
     http://www.npc.gov.cn/npc/c505/201803/e87e5cd7c1ce46ef866f4ec8e2d709ea.shtml)
