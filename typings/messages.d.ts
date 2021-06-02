@@ -531,7 +531,7 @@ interface FgReq {
     /** incognito */ i?: boolean | null | "reverse";
     /** https */ h?: boolean | null;
     /** reuse */ r?: UserReuseType;
-    /** noopener */ n?: boolean;
+    /** opener */ p?: true | null | false
   };
   [kFgReq.onFrameFocused]: {};
   [kFgReq.checkIfEnabled]: {
@@ -652,7 +652,7 @@ interface OpenUrlOptions extends UserSedOptions {
   incognito?: boolean | /** even when url is like chrome-extension:// */ "force" | null
   /** default to false */ opener?: boolean | null
   /* pasted */ $p?: 1 | null
-  position?: "start" | "begin" | "end" | "before" | "after" | "default" | null
+  position?: null | "next" | "start" | "begin" | "end" | "before" | "after" | "default"
   pinned?: boolean | null
   reuse?: UserReuseType | null
   window?: boolean | "popup" | "normal" | null

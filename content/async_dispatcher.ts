@@ -380,7 +380,7 @@ export const click_async = (async (element: SafeElementForMouse
         : /** result > 0, so specialAction exists */ modifiers![3] || specialAction! < kClickAction.newTabFromMode
           ? ReuseType.newFg : ReuseType.newBg;
     (hintApi ? hintApi.p : post_)({
-      H: kFgReq.openUrl, u: (parentAnchor as ParAnchor).href, f: !0, n: !!userOptions && userOptions.opener === false,
+      H: kFgReq.openUrl, u: (parentAnchor as ParAnchor).href, f: !0, p: userOptions && userOptions.opener,
       r: reuse, o: userOptions && parseOpenPageUrlOptions(userOptions)
     })
     return 1

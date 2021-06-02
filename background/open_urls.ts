@@ -27,15 +27,16 @@ const ReuseValues: {
   lastwndbgbg: ReuseType.lastWndBgInactive, lastwndbginactive: ReuseType.lastWndBgInactive
 }
 
-export const newTabIndex = (tab: Readonly<Pick<Tab, "index">>, pos: OpenUrlOptions["position"] | UnknownValue
-      , openerTabId?: boolean | null): number | undefined =>
-    pos === "before" ? tab.index : pos === "start" || pos === "begin" ? 0
-    : pos === "after" || !pos ? tab.index + 1
-    /** pos is "end" or "default" */ 
+/** if not opener, then return `tab.index + 1` by default; otherwise a default position is `undefined` */
+export const newTabIndex = (tab: Readonly<Tab>
+      , pos: OpenUrlOptions["position"] | UnknownValue, opener?: boolean
+      ): number | undefined =>
+    pos === "before" ? tab.index : pos === "after" || pos === "next" ? tab.index + 1
+    : pos === "start" || pos === "begin" ? 0
+    : As_<"end" | "default" | UnknownValue>(pos) === "end" ? opener ? 3e4 : undefined
+    /** pos is undefined, or "default" */
     : Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)
-      && pos === "end" && openerTabId ? 3e4
-    // Chrome: open at end; Firefox: (if opener) at the end of its children, just like a normal click
-    : undefined
+      && opener || pos === "default" ? undefined : tab.index + 1
 
 export const preferLastWnd = <T extends Pick<Window, "id">> (wnds: T[]): T => {
   return wnds.find(i => i.id === TabRecency_.lastWnd_) || wnds[wnds.length - 1]!
@@ -126,8 +127,9 @@ const openUrlInIncognito = (urls: string[], reuse: ReuseType
       url: urls[0], active, windowId: inCurWnd ? oldWnd!.id : preferLastWnd(wnds).id
     }
     if (inCurWnd) {
-      args.index = newTabIndex(tab!, options.position, options.opener)
-      options.opener && (args.openerTabId = tab!.id)
+      const opener = options.opener === true
+      args.index = newTabIndex(tab!, options.position, opener)
+      opener && (args.openerTabId = tab!.id)
     }
     openMultiTabs(args, cRepeat, true, urls, (tab2): void => {
       !inCurWnd && active && selectWnd(tab2)
@@ -625,7 +627,7 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port): void =>
     } else {
       url = BgUtils_.createSearchUrl_(url.trim().split(BgUtils_.spacesRe_), keyword || "~")
     }
-    opts.opener = isWeb ? !request.n : settings.cache_.vomnibarOptions.actions.includes("opener")
+    opts.opener = isWeb ? request.p !== false : settings.cache_.vomnibarOptions.actions.includes("opener")
     opts.url_f = url
   } else {
     if (request.c === false) { return }
