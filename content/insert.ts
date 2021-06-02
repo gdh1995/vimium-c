@@ -50,6 +50,7 @@ export function set_inputHint (_newIHint: typeof inputHint): void { inputHint = 
 export function set_isHintingInput (_newIsHintingInput: BOOL): void { isHintingInput = _newIsHintingInput }
 export function set_grabBackFocus (_newGrabBackFocus: typeof grabBackFocus): void { grabBackFocus = _newGrabBackFocus }
 export function set_onWndBlur2 (_newOnBlur: typeof onWndBlur2): void { onWndBlur2 = _newOnBlur }
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 export function set_exitPassMode <T extends typeof exitPassMode> (_nEPM: T): T { return exitPassMode = _nEPM as T }
 
 export const insertInit = (): void => {
@@ -119,6 +120,7 @@ export const isInInsert = (): boolean => {
     return !suppressType;
   }
   const el: Element | null = activeEl_unsafe_();
+  /* eslint-disable max-len */
 /** Ignore standalone usages of `{-webkit-user-modify:}` without `[contenteditable]`
 * On Chromestatus, this is tagged `WebKitUserModify{PlainText,ReadWrite,ReadOnly}Effective`
 * * https://www.chromestatus.com/metrics/css/timeline/popularity/338
@@ -131,6 +133,7 @@ export const isInInsert = (): boolean => {
 * And in top sites only "tre-rj.*.br" (Brazil) and "slatejs.org" causes `WebKitUserModify{RW/PT}Effective`
 * * in slatejs.org, there's `[contenteditable=true]` and `{-webkit-user-modify:*plaintext*}` for browser compatibility
 */
+  /* eslint-enable max-len */
   if (el && (el as TypeToAssert<Element, HTMLElement, "isContentEditable">).isContentEditable === true) {
     esc!(HandlerResult.Nothing);
     lock_ = el as LockableElement;

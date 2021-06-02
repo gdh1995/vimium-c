@@ -1,6 +1,6 @@
 /** limitation: file names must be unique */
-var define: any
-var __filename: string | null | undefined
+// eslint-disable-next-line no-var
+var define: any, __filename: string | null | undefined
 
 (function (): void {
   type ModuleTy = Dict<any> & { __esModule?: boolean, __default?: Function }
@@ -143,12 +143,12 @@ var __filename: string | null | undefined
       const scripts = document.querySelectorAll("script[type=module]") as NodeListOf<HTMLScriptElement>
       if (scripts.length === 0) { return }
       const deps: string[] = [], pathOffset = location.origin.length
-      for (let i = 0; i < scripts.length; i++) {
+      for (let i = 0; i < scripts.length; i++) { // eslint-disable-line @typescript-eslint/prefer-for-of
         deps.push(scripts[i].src.slice(pathOffset))
         scripts[i].remove()
       }
       __filename = "__module_polyfill"
-      fullFeaturedDefine(deps, (): void => {})
+      fullFeaturedDefine(deps, (): void => { /* empty */ })
     }, { once: true })
   }
 })()

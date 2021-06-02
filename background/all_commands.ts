@@ -63,7 +63,7 @@ set_bgC_([
       framesGoNext(isNext, rel)
       return
     }
-    Promise.resolve(getPortUrl(framesForTab.get(cPort.s.tabId_)!.top_)).then((tabUrl): void => {
+    void Promise.resolve(getPortUrl(framesForTab.get(cPort.s.tabId_)!.top_)).then((tabUrl): void => {
       const count = isNext ? cRepeat : -cRepeat
       const template = tabUrl && substitute_(tabUrl, SedContext.goNext, sed)
       const [hasPlaceholder, next] = template ? goToNextUrl(template, count
@@ -501,7 +501,7 @@ set_bgC_([
       }, (cb): void => {
         let err: any = runtimeError_()
         if (err) {
-          console.log(`Can not send message to the extension %o:`, targetID, err)
+          console.log("Can not send message to the extension %o:", targetID, err)
           showHUD("Error: " + (err.message || err))
         } else if (typeof cb === "string" && Math.abs(Date.now() - now) < 1e3) {
           showHUD(cb)
@@ -560,7 +560,7 @@ set_bgC_([
       bgC_[kBgCmd.moveTabToNewWindow]()
       return
     }
-    chrome.permissions.contains({ permissions: ['downloads.shelf', 'downloads'] }, (permitted: boolean): void => {
+    chrome.permissions.contains({ permissions: ["downloads.shelf", "downloads"] }, (permitted: boolean): void => {
       if (permitted) {
         const toggleShelf = chrome.downloads.setShelfEnabled
         let err: string | undefined

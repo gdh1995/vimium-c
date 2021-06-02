@@ -22,7 +22,7 @@ import { post_, runFallbackKey } from "./port"
 import { insert_Lock_ } from "./insert"
 import { hide as omniHide, omni_box } from "./omni"
 
-export declare const enum kExitOnClick {
+export declare const enum kExitOnClick { // eslint-disable-next-line @typescript-eslint/no-shadow
   NONE = 0, REMOVE = 8, helpDialog = 1, vomnibar = 2,
 }
 
@@ -38,10 +38,10 @@ let hideHelp: ((event?: EventToPrevent) => void) | undefined | null
 
 export { box_ as ui_box, root_ as ui_root, styleIn_ as style_ui, lastFlashEl, curModalElement, helpBox, hideHelp }
 export const removeModal = WithDialog ? (): void => {
-  curModalElement && removeEl_s(curModalElement), curModalElement = null
-} : (): void => {}
-export function set_hideHelp (_newHide: typeof hideHelp) { hideHelp = _newHide }
-export function set_helpBox (_newHelpBox: typeof helpBox) { helpBox = _newHelpBox }
+  curModalElement && (removeEl_s(curModalElement), curModalElement = null)
+} : (): void => { /* empty */ }
+export function set_hideHelp (_newHide: typeof hideHelp): void { hideHelp = _newHide }
+export function set_helpBox (_newHelpBox: typeof helpBox): void { helpBox = _newHelpBox }
 
 export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustType): void {
     box_ = createElement_("div");
@@ -201,7 +201,7 @@ export const ensureBorder = (zoom?: number): void => {
         && chromeVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
         ? 1.01 * dPR : 0.51) / zoom).slice(0, 5);
     if (!cssPatch_) {
-      cssPatch_ = [0, (css) => css.replace(createRegExp(kTip.css0d01OrDPI, "g"), "/*!DPI*/" + cssPatch_![0])]
+      cssPatch_ = [0, css => css.replace(createRegExp(kTip.css0d01OrDPI, "g"), "/*!DPI*/" + cssPatch_![0])]
     }
     if (cssPatch_[0] === width) { return; }
     cssPatch_[0] = width;
@@ -347,15 +347,12 @@ export const removeSelection = function (root?: VUIRoot & Pick<DocumentOrShadowR
     return !!ret
 } as (root?: VUIRoot) => boolean
 
-export const resetSelectionToDocStart = function (sel?: Selection, range?: Range | null): void {
+export const resetSelectionToDocStart = (sel?: Selection, range?: Range | null): void => {
     (sel || getSelection_()).removeAllRanges();
     range && sel!.addRange(range)
-} as {
-  (sel: Selection, range?: Range | null): void;
-  (): void;
 }
 
-export const selectAllOfNode = (node: Node) => { getSelection_().selectAllChildren(node) }
+export const selectAllOfNode = (node: Node): void => { getSelection_().selectAllChildren(node) }
 
 export const moveSel_s_throwable = (element: LockableElement, action: SelectActions | undefined): void => {
     const elTag = htmlTag_(element), type = elTag === "textarea" ? EditableType.TextBox

@@ -1,4 +1,6 @@
-import { chromeVer_, doc, createRegExp, isTY, Lower, OBJECT_TYPES, OnFirefox, OnChrome, OnEdge, evenHidden_ } from "./utils"
+import {
+  chromeVer_, doc, createRegExp, isTY, Lower, OBJECT_TYPES, OnFirefox, OnChrome, OnEdge, evenHidden_
+} from "./utils"
 import { dimSize_, selRange_ } from "./rect"
 
 export declare const enum kMediaTag { img = 0, otherMedias = 1, a = 2, others = 3, MIN_NOT_MEDIA_EL = 2, LAST = 3 }
@@ -92,7 +94,7 @@ export const htmlTag_ = (!OnFirefox ? (element: Element | HTMLElement): string =
   } : (element: Element): string => "lang" in element ? (element as SafeHTMLElement).localName : ""
 ) as {
   (element: Element): "" | keyof HTMLElementTagNameMap
-  <Ty extends 2>(element: HTMLElement): element is SafeHTMLElement
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   <Ty extends 1>(element: Element): element is SafeHTMLElement
   (element: Element): "" | keyof HTMLElementTagNameMap; // this line is just to avoid a warning on VS Code
 }
@@ -152,7 +154,7 @@ export const GetChildNodes_not_ff = !OnFirefox ? (el: Element): NodeList => {
   if (!OnChrome || Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype) {
     return Getter_not_ff_!(Node, el, "childNodes")!
   } else {
-    let cn = (el as Element).childNodes
+    let cn = el.childNodes
     return cn instanceof NodeList && !("value" in cn) ? cn
         : Getter_not_ff_!(Node, el, "childNodes") || <NodeList> <{[index: number]: Node}> []
   }
@@ -186,7 +188,7 @@ export const GetParent_unsafe_ = function (this: void, el: Node | Element
   if (!OnFirefox) {
     pn = (!OnChrome || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
           || !unsafeFramesetTag_old_cr_ || (pn as ParentNodeProp as WindowWithTop).top !== top)
-        && pn!.nodeType && doc.contains.call(pn as Node, el) ? pn
+        && pn.nodeType && doc.contains.call(pn, el) ? pn
         : !OnChrome || Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype
           || chromeVer_ > BrowserVer.MinParentNodeGetterInNodePrototype - 1 ? Getter_not_ff_!(Node, el, "parentNode")
         : (Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
@@ -263,7 +265,7 @@ export let frameElement_ = (): SafeHTMLElement | null | void => {
     }
 }
 
-export const compareDocumentPosition = (anchorNode: Node, focusNode: Node) =>
+export const compareDocumentPosition = (anchorNode: Node, focusNode: Node): kNode =>
     !OnFirefox ? Node.prototype.compareDocumentPosition.call(anchorNode, focusNode)
     : anchorNode.compareDocumentPosition(focusNode)
 
@@ -276,8 +278,8 @@ export const getAccessibleSelectedNode = (sel: Selection, focused?: 1): Node | n
   }
   return node
 }
-    
-  /** computation section */
+
+/** computation section */
 
 export const findMainSummary_ = ((details: HTMLDetailsElement | Element | null): SafeHTMLElement | null => {
     // not query `:scope>summary` for more consistent performance
@@ -334,7 +336,7 @@ export const isAriaNotTrue_ = (element: SafeElement, ariaType: kAria): boolean =
     return s === null || (!!s && Lower(s) !== "true") || !!(evenHidden_ & (kHidden.BASE_ARIA << ariaType))
 }
 
-export const getMediaTag = (element: SafeHTMLElement) => {
+export const getMediaTag = (element: SafeHTMLElement): kMediaTag => {
   const tag = element.localName
   return tag === "img" ? kMediaTag.img : tag === "video" || tag === "audio" ? kMediaTag.otherMedias
       : tag === "a" ? kMediaTag.a : kMediaTag.others
@@ -379,7 +381,9 @@ export const getEditableType_ = function (element: Element): EditableType {
       : uneditableInputs_[getInputType(element as HTMLInputElement)] ? EditableType.NotEditable : EditableType.TextBox
 } as {
     (element: Element): element is LockableElement;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     <Ty extends 0>(element: Element): EditableType;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     <Ty extends EventTarget>(element: EventTarget): element is LockableElement
     (element: Element): element is LockableElement; // this line is just to avoid a warning on VS Code
 }
@@ -413,12 +417,12 @@ export const getSelectionFocusEdge_ = (sel: Selection, knownDi?: VisualModeNS.Fo
     if ((el as NodeToElement).tagName) {
       o = (OnFirefox ? el.childNodes as NodeList : GetChildNodes_not_ff!(el as Element))[selOffset_(sel, 1)]
     } else {
-      el = GetParent_unsafe_(el as Node, PNType.DirectNode)
+      el = GetParent_unsafe_(el, PNType.DirectNode)
     }
     for (; o && (!OnChrome || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
           ? <number> <Element | RadioNodeList | kNode> o.nodeType - kNode.ELEMENT_NODE
           : isTY(nt = o.nodeType, kTY.num) && nt - kNode.ELEMENT_NODE)
-        ; o = knownDi ? o!.previousSibling : o!.nextSibling) { /* empty */ }
+        ; o = knownDi ? o.previousSibling : o.nextSibling) { /* empty */ }
     if (o && anc) {
       const num = compareDocumentPosition(anc, o)
       if (!(num & (kNode.DOCUMENT_POSITION_CONTAINS | kNode.DOCUMENT_POSITION_CONTAINED_BY))

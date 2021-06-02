@@ -32,7 +32,8 @@ import {
 } from "../lib/dom_utils"
 import {
   scrollWndBy_, wndSize_, getZoom_, wdZoom_, bZoom_, isNotInViewport, prepareCrop_, padClientRect_, instantScOpt,
-  getBoundingClientRect_, cropRectToVisible_, getVisibleClientRect_, dimSize_, scrollingTop, set_scrollingTop, isSelARange,
+  getBoundingClientRect_, cropRectToVisible_, getVisibleClientRect_, dimSize_, scrollingTop, set_scrollingTop,
+  isSelARange
 } from "../lib/rect"
 import {
   getParentVApi, resetSelectionToDocStart, checkHidden, addElementList, curModalElement, removeModal
@@ -403,7 +404,7 @@ const findScrollable = (di: ScrollByY, amount: number): SafeElement | null => {
 
     const top = scrollingTop, activeEl: SafeElement | null | undefined = deref_(currentScrolling)
     let element = activeEl;
-    if (element) {;
+    if (element) {
       while (element !== top && shouldScroll_s(element!
               , element === cachedScrollable ? (di + 2) as 2 | 3 : di
               , amount) < 1) {

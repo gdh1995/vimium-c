@@ -46,9 +46,9 @@ export const showI18n = (): void => {
       }
     }
     for (el of $$("[data-i]")) {
-      const i = (el.dataset as KnownOptionsDataset).i!, isTitle = i.endsWith("-t")
+      const i = (el.dataset as KnownOptionsDataset).i, isTitle = i.endsWith("-t")
       t = pTrans_(isTitle ? i.slice(0, -2) : i);
-      (t || i === "NS") && (isTitle ? el.title = t : el!.innerText = t)
+      (t || i === "NS") && (isTitle ? el.title = t : el.innerText = t)
     }
     (document.documentElement as HTMLHtmlElement).lang = lang_ === "zh" ? "zh-CN" as "" : lang_ as "";
 }
@@ -85,7 +85,7 @@ export const nextTick_ = ((): { <T>(task: (self: T) => void, self: T): void; (ta
           : !OnEdge) {
         queueMicrotask(ticked);
       } else {
-        Promise.resolve().then(ticked);
+        void Promise.resolve().then(ticked)
       }
     } else {
       tasks.length = 0;
@@ -98,7 +98,7 @@ export const nextTick_ = ((): { <T>(task: (self: T) => void, self: T): void; (ta
           : !OnEdge) {
         queueMicrotask(ticked);
       } else {
-        Promise.resolve().then(ticked);
+        void Promise.resolve().then(ticked)
       }
     }
     if (context as unknown as number === 9) {
@@ -148,7 +148,7 @@ export abstract class Option_<T extends keyof AllowedOptions> {
   onSave_ (): void { /* empty */ }
   checker_?: Checker<T>;
 
-  static all_: { [T in keyof AllowedOptions]: OptionType<T> } & SafeObject
+  static all_: { [N in keyof AllowedOptions]: OptionType<N> } & SafeObject
   static syncToFrontend_: Array<keyof SettingsNS.AutoSyncedNameMap>;
   static suppressPopulate_ = true;
 
@@ -186,7 +186,7 @@ save_ (): void {
     , pod = isJSON ? JSON.stringify(value) : value as string
   if (pod === previous) { return; }
   previous = pod;
-  value = this.normalize_(value, isJSON, isJSON ? pod as string : "");
+  value = this.normalize_(value, isJSON, isJSON ? pod : "");
   this.previous_ = value = this.executeSave_(value, isJSON, pod)
   this.saved_ = true
   if (previous !== (isJSON ? JSON.stringify(value) : value) || this.doesPopulateOnSave_(value)) {
@@ -254,7 +254,7 @@ export class ExclusionRulesOption_ extends Option_<"exclusionRules"> {
   $list_: HTMLTableSectionElement;
   dragged_: HTMLTableRowElement | null;
   _rendered: boolean
-  init_ (element: HTMLElement): void {
+  override init_ (element: HTMLElement): void {
     this.template_ = (element.querySelector("#exclusionTemplate") as HTMLTemplateElement
         ).content.querySelector(".exclusionRule") as HTMLTableRowElement;
     this.$list_ = element.querySelector("tbody") as HTMLTableSectionElement;
@@ -284,7 +284,7 @@ addRule_ (pattern: string, autoFocus?: false | undefined): void {
   }
   this.onRowChange_(1);
 }
-populateElement_ (rules: ExclusionsNS.StoredRule[]): void {
+override populateElement_ (rules: ExclusionsNS.StoredRule[]): void {
   if (!this._rendered) {
     this._rendered = true
     if (Option_.syncToFrontend_) { this.template_.draggable = true }
@@ -372,7 +372,7 @@ static formatKeys_ (keys: string): string {
   return keys && keys.replace(<RegExpG & RegExpSearchable<2>> /<(?!<)((?:[acm]-){0,3})(\S|[A-Za-z]\w+)>/g
       , ExclusionRulesOption_.onFormatKey_)
 }
-readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"] {
+override readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"] {
   const rules: ExclusionsNS.StoredRule[] = [];
   part = (part === true);
   for (const vnode of this.list_) {
@@ -437,7 +437,7 @@ updateVNode_ (vnode: ExclusionVisibleVirtualNode, pattern: string, keys: string)
     ExclusionRulesOption_.OnNewKeys_(vnode);
   }
 }
-onSave_ (): void {
+override onSave_ (): void {
   for (let rule of this.list_) {
     if (!rule.visible_) { continue; }
     if (rule.$pattern_.value !== rule.rule_.pattern) {
@@ -450,7 +450,7 @@ onSave_ (): void {
   }
 }
 
-readonly areEqual_ = Option_.areJSONEqual_;
+override readonly areEqual_ = Option_.areJSONEqual_;
 sortRules_: (el?: HTMLElement) => void;
 timer_?: number;
 }

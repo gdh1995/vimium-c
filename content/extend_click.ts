@@ -247,7 +247,7 @@ kEventName2 = kVOnClick + BuildStr.RandomClick,
 kReady = "readystatechange", kFunc = "function",
 docCreateElement = doc0.createElement,
 StringSplit = !Build.Minify ? kReady.split : 0 as never, StringSubstr = kReady.substr,
-checkIsNotVerifier = (func?: InnerVerifier | unknown): void => {
+checkIsNotVerifier = (func?: InnerVerifier | unknown): void | 42 => {
   if (!Build.Minify && !verifierPrefixLen) {
     verifierLen = (verifierStrPrefix = call(_toString, V)).length,
     verifierPrefixLen = (verifierStrPrefix = call(StringSplit, verifierStrPrefix, sec)[0]).length
@@ -276,7 +276,7 @@ const hooks = {
                       : (verifierLen = (verifierStrPrefix = call(_toString, V)).length,
                         verifierPrefixLen = (verifierStrPrefix = call(StringSplit, verifierStrPrefix, sec)[0]).length),
                       myAELStr = call(_toString, myAEL)))
-    args[0] as unknown === kMk && checkIsNotVerifier(args[1]) as any
+    args[0] === kMk && checkIsNotVerifier(args[1])
     detectDisabled && str === detectDisabled && executeCmd()
     return mayStrBeToStr && str !== myToStrStr
         ? str.length !== (!Build.Minify ? verifierLen
@@ -287,17 +287,18 @@ const hooks = {
               ) !== verifierStrPrefix
           ? str : call(_toString, noop)
         : a === myToStr || a === myAEL || (I = 0,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-call
           mayStrBeToStr ? call(a as any, noop, kMk, V) : (a as any)(kVOnClick, noop, 0, V), I)
         ? call(_toString, mayStrBeToStr ? _toString : _listen) : str
   },
   addEventListener: function addEventListener(this: EventTarget, type: string
       , listener: EventListenerOrEventListenerObject): void {
     const a = this, args = arguments, len = args.length;
-    const ret = type === kVOnClick ? checkIsNotVerifier(args[3]) as any
+    const ret = type === kVOnClick ? checkIsNotVerifier(args[3])
         : len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2])
         : call(_apply as (this: (this: EventTarget, ...args: any[]) => void
                         , self: EventTarget, args: IArguments) => void,
-             _listen as (this: EventTarget, ...args: any[]) => void, a, args);
+             _listen as (this: EventTarget, ...args1: any[]) => void, a, args);
     if (type === "click" || type === "mousedown" || type === "dblclick"
         ? listener && a instanceof ElCls && a.localName !== "a"
         : type === kEventName2 && !isReRegistering
@@ -571,7 +572,7 @@ FProto[kToS] = myToStr
   if (OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
       && appVer === BrowserVer.NoRAFOrRICOnSandboxedPage) {
     set_allowRAF_old_cr_(0)
-    rAF_!(() => { set_allowRAF_old_cr_(1) })
+    rAF_((): void => { set_allowRAF_old_cr_(1) })
   }
   // not check MinEnsuredNewScriptsFromExtensionOnSandboxedPage
   // for the case JavaScript is disabled in CS: https://github.com/philc/vimium/issues/3187

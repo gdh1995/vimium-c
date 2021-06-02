@@ -86,7 +86,7 @@ export const initHelp = (request: FgReq[kFgReq.initHelp], port: Port): void => {
   Promise.all(As_<readonly [Promise<BaseHelpDialog>, unknown]>([
     BgUtils_.require_("HelpDialog"),
     (kHD in settings.cache_) || new Promise<void>((resolve): void => {
-      settings.fetchFile_(kHD, (text) => { settings.set_(kHD, text); resolve() })
+      settings.fetchFile_(kHD, (text): void => { settings.set_(kHD, text); resolve() })
     })
   ])).then((args): void => {
     const port2 = request.w && indexFrame(port.s.tabId_, 0) || port,
@@ -115,8 +115,8 @@ export const showVomnibar = (forceInner?: boolean): void | kBgCmd.showVomnibar =
   }
   if (!port) {
     port = indexFrame(TabRecency_.curTab_, 0)
-    set_cPort(port)
     if (!port) { return }
+    set_cPort(port)
     // not go to the top frame here, so that a current frame can suppress keys for a while
   }
   if (get_cOptions<C.showVomnibar>().mode === "bookmark") { overrideOption<C.showVomnibar, "mode">("mode", "bookm") }
@@ -189,10 +189,10 @@ export const captureTab = (tabs?: [Tab]): void | kBgCmd.captureTab => {
   jpeg = Math.min(Math.max(get_cOptions<C.captureTab, true>().jpeg! | 0, 0), 100)
   const cb = (url?: string): void => {
     if (!url) { return runtimeError_() }
-    const onerror = (err: any | Event) => {
+    const onerror = (err: any | Event): void => {
       console.log("captureTab: can not request a data: URL:", err)
     }
-    const cb2 = (msg: Blob | string) => {
+    const cb2 = (msg: Blob | string): void => {
       if (typeof msg !== "string") { msg = URL.createObjectURL(msg) }
       if (msg.startsWith("blob:")) {
         if (_tempBlob) {
@@ -234,7 +234,8 @@ export const captureTab = (tabs?: [Tab]): void | kBgCmd.captureTab => {
   }
   const tabId = tabs && tabs[0] ? tabs[0].id : TabRecency_.curTab_
   let title = tabs && tabs[0] ? tabs[0].title : ""
-  title = get_cOptions<C.captureTab>().name === "title" || !title || tabId < 0 ? title || "" + tabId : tabId + "-" + title
+  title = get_cOptions<C.captureTab>().name === "title" || !title || tabId < 0
+      ? title || "" + tabId : tabId + "-" + title
   if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFormatOptionWhenCaptureTab
       && CurCVer_ < BrowserVer.MinFormatOptionWhenCaptureTab) {
     title += ".jpg"

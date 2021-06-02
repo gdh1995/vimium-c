@@ -62,11 +62,11 @@ interface NumberChecker extends Checker<"scrollStepSize"> {
 export type UniversalNumberSettings =
     Exclude<PossibleOptionNames<number>, "ignoreCapsLock" | "mapModifier" | "ignoreKeyboardLayout">
 export class NumberOption_<T extends UniversalNumberSettings> extends Option_<T> {
-  readonly element_: HTMLInputElement
-  previous_: number
+  override readonly element_: HTMLInputElement
+  override previous_: number
   wheelTime_: number
-  checker_: NumberChecker
-  init_ (): void {
+  override checker_: NumberChecker
+  override init_ (): void {
     let s: string, i: number
     this.checker_ = {
       min: (s = this.element_.min) && !isNaN(i = parseFloat(s)) ? i : null,
@@ -77,10 +77,10 @@ export class NumberOption_<T extends UniversalNumberSettings> extends Option_<T>
     this.element_.oninput = this.onUpdated_
     this.element_.onfocus = this.addWheelListener_.bind(this)
   }
-  populateElement_ (value: number): void {
+  override populateElement_ (value: number): void {
     this.element_.value = "" + value
   }
-  readValueFromElement_ (): number {
+  override readValueFromElement_ (): number {
     return parseFloat(this.element_.value)
   }
   addWheelListener_ (): void {
@@ -125,14 +125,14 @@ export class NumberOption_<T extends UniversalNumberSettings> extends Option_<T>
 }
 
 export class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
-  readonly element_: HTMLInputElement
-  previous_: FullSettings[T]
+  override readonly element_: HTMLInputElement
+  override previous_: FullSettings[T]
   map_: any[]
   true_index_: 2 | 1
   static readonly map_for_2_ = [false, true] as const
   static readonly map_for_3_ = [false, null, true] as const
   inner_status_: 0 | 1 | 2
-  init_ (): void {
+  override init_ (): void {
     const el = this.element_ as HTMLInputElement & { dataset: KnownOptionsDataset }
     let map = el.dataset.map
     this.map_ = map ? JSON.parse(map) : el.dataset.allowNull ? BooleanOption_.map_for_3_ : BooleanOption_.map_for_2_
@@ -142,14 +142,14 @@ export class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
     }
     el.onchange = this.onUpdated_
   }
-  populateElement_ (value: FullSettings[T]): void {
+  override populateElement_ (value: FullSettings[T]): void {
     // support false/true when .map_ is like [0, 1, 2]
     const is_true = value === true || value === this.map_[this.true_index_]
     this.element_.checked = is_true
     this.element_.indeterminate = this.true_index_ > 1 && value === this.map_[1]
     this.inner_status_ = is_true ? this.true_index_ : Math.max(0, this.map_.indexOf(value)) as 0 | 1 | 2
   }
-  readValueFromElement_ (): FullSettings[T] {
+  override readValueFromElement_ (): FullSettings[T] {
     let value = this.element_.indeterminate ? this.map_[1] : this.map_[this.element_.checked ? this.true_index_ : 0]
     return value
   }
@@ -165,9 +165,9 @@ export class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
 export type TextualizedOptionNames = PossibleOptionNames<string | object>
 type TextOptionNames = PossibleOptionNames<string>
 export class TextOption_<T extends TextualizedOptionNames> extends Option_<T> {
-  readonly element_: TextElement
-  checker_?: Checker<T> & { ops_?: string[], status_: 0 | 1 | 2 | 3 }
-  init_ (): void {
+  override readonly element_: TextElement
+  override checker_?: Checker<T> & { ops_?: string[], status_: 0 | 1 | 2 | 3 }
+  override init_ (): void {
     const converter = (this.element_.dataset as KnownOptionsDataset).converter || ""
     const ops = converter ? converter.split(" ") : []
     this.element_.oninput = this.onUpdated_
@@ -179,16 +179,16 @@ export class TextOption_<T extends TextualizedOptionNames> extends Option_<T> {
       }
     }
   }
-  fetch_ (): void {
+  override fetch_ (): void {
     super.fetch_()
     const checker = this.checker_
     if (checker) {
       // allow old users to correct mistaken chars and save
       checker.status_ = 0
-      checker.status_ = checker!.check_(this.previous_) === this.previous_ ? 1 : 0
+      checker.status_ = checker.check_(this.previous_) === this.previous_ ? 1 : 0
     }
   }
-  populateElement_ (value: AllowedOptions[T] | string, enableUndo?: boolean): void {
+  override populateElement_ (value: AllowedOptions[T] | string, enableUndo?: boolean): void {
     const value2 = (value as string).replace(<RegExpG> / /g, "\xa0")
     if (enableUndo !== true) {
       this.element_.value = value2
@@ -198,7 +198,7 @@ export class TextOption_<T extends TextualizedOptionNames> extends Option_<T> {
   }
   readRaw_ (): string { return this.element_.value.trim().replace(<RegExpG> /\xa0/g, " ") }
   /** @returns `string` in fact */
-  readValueFromElement_ (): AllowedOptions[T] {
+  override readValueFromElement_ (): AllowedOptions[T] {
     let value = this.readRaw_()
     const checker = (this as any as TextOption_<TextOptionNames>).checker_
     if (value && checker && checker.check_ === TextOption_.normalizeByOps_) {
@@ -208,7 +208,7 @@ export class TextOption_<T extends TextualizedOptionNames> extends Option_<T> {
     }
     return value as AllowedOptions[T]
   }
-  doesPopulateOnSave_ (val: any): boolean { return val !== this.readRaw_() }
+  override doesPopulateOnSave_ (val: AllowedOptions[T]): boolean { return val !== this.readRaw_() }
   showError_ (msg: string, tag?: OptionErrorType | null, errors?: boolean): void {
     const { element_: el, element_: { classList: cls, parentElement: par } } = this
     let errEl = el.nextElementSibling as HTMLElement | null
@@ -249,7 +249,7 @@ export class TextOption_<T extends TextualizedOptionNames> extends Option_<T> {
 }
 
 export class NonEmptyTextOption_<T extends TextOptionNames> extends TextOption_<T> {
-  readValueFromElement_ (): string {
+  override readValueFromElement_ (): string {
     let value = super.readValueFromElement_()
     if (!value) {
       value = bgSettings_.defaults_[this.field_]
@@ -265,11 +265,11 @@ export class JSONOption_<T extends JSONOptionNames> extends TextOption_<T> {
     const one = this.element_ instanceof HTMLInputElement, s0 = JSON.stringify(obj, null, one ? 1 : 2)
     return one ? s0.replace(<RegExpG & RegExpSearchable<1>> /(,?)\n\s*/g, (_, s) => s ? ", " : "") : s0
   }
-  populateElement_ (obj: AllowedOptions[T], enableUndo?: boolean): void {
+  override populateElement_ (obj: AllowedOptions[T], enableUndo?: boolean): void {
     super.populateElement_(this.formatValue_(obj), enableUndo)
   }
-  doesPopulateOnSave_ (obj: any): boolean { return this.formatValue_(obj) !== this.readRaw_() }
-  readValueFromElement_ (): AllowedOptions[T] {
+  override doesPopulateOnSave_ (obj: AllowedOptions[T]): boolean { return this.formatValue_(obj) !== this.readRaw_() }
+  override readValueFromElement_ (): AllowedOptions[T] {
     let value = super.readValueFromElement_(), obj: AllowedOptions[T] = null as never
     if (value) {
       try {
@@ -285,10 +285,10 @@ export class JSONOption_<T extends JSONOptionNames> extends TextOption_<T> {
 }
 
 export class MaskedText_<T extends TextOptionNames> extends TextOption_<T> {
-  readonly element_: HTMLTextAreaElement
+  override readonly element_: HTMLTextAreaElement
   masked_: boolean
   _myCancelMask: (() => void) | null
-  init_ (): void {
+  override init_ (): void {
     this.masked_ = true
     this._myCancelMask = this.cancelMask_.bind(this);
     this.element_.addEventListener("focus", this._myCancelMask)
@@ -302,14 +302,14 @@ export class MaskedText_<T extends TextOptionNames> extends TextOption_<T> {
     this.element_.removeAttribute("placeholder")
     this.fetch_()
   }
-  populateElement_ (value: AllowedOptions[T], enableUndo?: boolean): void {
+  override populateElement_ (value: AllowedOptions[T], enableUndo?: boolean): void {
     if (this.masked_) {
       this.element_.placeholder = pTrans_("clickToUnmask")
       return
     }
     super.populateElement_(value, enableUndo)
   }
-  readValueFromElement_ (): AllowedOptions[T] {
+  override readValueFromElement_ (): AllowedOptions[T] {
     return this.masked_ ? this.previous_ : super.readValueFromElement_()
   }
 }
@@ -390,15 +390,15 @@ export const createNewOption = ((): <T extends keyof AllowedOptions> (_element: 
     Text: TextOption_, NonEmptyText: NonEmptyTextOption_, JSON: JSONOption_, MaskedText: MaskedText_,
     ExclusionRules: ExclusionRulesOption_
   }
-  const createNewOption = <T extends keyof AllowedOptions> (element: HTMLElement): Option_<T> => {
+  const createOption = <T extends keyof AllowedOptions> (element: HTMLElement): Option_<T> => {
     const cls = types[(element.dataset as KnownOptionsDataset).model as "Text"]
     const instance = new cls(element as TextElement, onUpdated)
     instance.fetch_()
     return Option_.all_[instance.field_] = instance as any
   }
-  for (const el of ($$("[data-model]") as HTMLElement[])) { createNewOption(el) }
+  for (const el of ($$("[data-model]") as HTMLElement[])) { createOption(el) }
   registerClass = (name, cls) => { (types as Dict<new (el: any, cb: () => void) => any>)[name] = cls }
-  return createNewOption
+  return createOption
 })()
 
 {

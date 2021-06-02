@@ -28,7 +28,7 @@ set_reqH_([
     }
     const key = allowed[k], p = settings.restore_ && settings.restore_()
     if (settings.get_(key) === request.v) { return }
-    p ? p.then(() => { settings.set_(key, request.v) }) : settings.set_(key, request.v)
+    p ? void p.then(() => { settings.set_(key, request.v) }) : settings.set_(key, request.v)
     interface BaseCheck { key: 123 }
     type Map1<T> = T extends keyof SettingsNS.DirectlySyncedItems ? T : 123
     interface Check extends BaseCheck { key: Map1<keyof SettingsNS.FrontUpdateAllowedSettings> }
@@ -223,7 +223,7 @@ set_reqH_([
     const o2 = request.o || {}
     query = request.t.trim() && substitute_(request.t.trim(), SedContext.pageText, o2.s).trim()
         || (request.c ? paste_(o2.s) : "")
-    Promise.resolve(query).then((query2: string | null): void => {
+    void Promise.resolve(query).then((query2: string | null): void => {
       let err = query2 === null ? "It's not allowed to read clipboard"
         : (query2 = query2.trim()) ? "" : trans_("noSelOrCopied")
       if (err) {
@@ -238,7 +238,7 @@ set_reqH_([
   },
   /** kFgReq.gotoSession: */ (request: FgReq[kFgReq.gotoSession], port?: Port): void => {
     const id = request.s, active = request.a !== false
-    set_cPort(findCPort(port))
+    set_cPort(findCPort(port)!)
     if (typeof id === "number") {
       selectTab(id, (tab): void => {
         runtimeError_() ? showHUD(trans_("noTabItem")) : selectWnd(tab)
@@ -431,7 +431,7 @@ set_reqH_([
     const cb = (succeed?: boolean | BOOL | void): void => {
       showHUD(trans_(succeed ? "delSug" : "notDelSug", [trans_("sug_" + type) || name]))
     }
-    set_cPort(findCPort(port))
+    set_cPort(findCPort(port)!)
     if (type === "tab" && TabRecency_.curTab_ === +sId!) {
       showHUD(trans_("notRemoveCur"))
     } else if (type !== "session") {
@@ -442,17 +442,18 @@ set_reqH_([
             || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSessions) && !sessions) {
         return
       }
-      (sessions.getRecentlyClosed as unknown as () => Promise<chrome.sessions.Session[]>)().then((list): void => {
+      void (sessions.getRecentlyClosed as unknown as () => Promise<chrome.sessions.Session[]>)().then((list): void => {
         const found = list.filter(i => i.tab && i.tab.sessionId === sId)[0]
         if (found) {
-          sessions.forgetClosedTab(found.tab!.windowId, sId as string).then(() => 1 as const, BgUtils_.blank_).then(cb)
+          void sessions.forgetClosedTab(found.tab!.windowId, sId as string)
+              .then(() => 1 as const, BgUtils_.blank_).then(cb)
         }
       })
     }
   },
   /** kFgReq.openImage: */ openImgReq,
   /** kFgReq.evalJSFallback" */ (req: FgReq[kFgReq.evalJSFallback], port: Port): void => {
-    set_cPort(null)
+    set_cPort(null as never)
     openJSUrl(req.u, {}, (): void => {
       set_cPort(port)
       showHUD(trans_("jsFail"))
@@ -488,7 +489,7 @@ set_reqH_([
     }
   },
   /** kFgReq.downloadLink: */ (req: FgReq[kFgReq.downloadLink], port): void => {
-    const fallback = () => {
+    const fallback = (): void => {
       reqH_[kFgReq.openImage]({ r: ReuseType.newFg, f: req.f, u: req.u }, port)
     }
     if (!(Build.BTypes & BrowserType.ChromeOrFirefox)
@@ -496,7 +497,7 @@ set_reqH_([
       req.m && fallback()
       return
     }
-    browser_.permissions.contains({ permissions: ['downloads'] }, (permitted: boolean): void => {
+    browser_.permissions.contains({ permissions: ["downloads"] }, (permitted: boolean): void => {
       if (permitted) {
         const opts: chrome.downloads.DownloadOptions = { url: req.u }
         if (req.f) {
@@ -518,9 +519,9 @@ set_reqH_([
         }
         if (Build.BTypes & BrowserType.Chrome
             && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther & BrowserType.Chrome)) {
-          browser_.downloads.download!(opts, runtimeError_)
+          void browser_.downloads.download!(opts, runtimeError_)
         } else {
-          browser_.downloads.download!(opts).catch((): void => {})
+          browser_.downloads.download!(opts).catch((): void => { /* empty */ })
         }
       } else if (req.m) {
         fallback()
@@ -529,7 +530,7 @@ set_reqH_([
     })
   }
 ])
-  
+
 const upperGitUrls = (url: string, path: string): string | void | null => {
   const obj = BgUtils_.safeParseURL_(url), host: string | undefined = obj ? obj.host : ""
   if (!host) { return }

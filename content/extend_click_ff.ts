@@ -6,6 +6,7 @@ import {
 import { CLK, MDW, OnDocLoaded_, isHTML_, set_createElement_, createElement_ } from "../lib/dom_utils"
 import { grabBackFocus } from "./insert"
 import { coreHints, doesWantToReloadLinkHints } from "./link_hints"
+/* eslint-disable @typescript-eslint/await-thenable */
 
 declare function exportFunction(func: unknown, targetScope: object
     , options?: { defineAs?: string; allowCrossOriginArguments?: boolean }): unknown
@@ -32,7 +33,7 @@ export const main_ff = (OnFirefox ? (): void => {
       len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2])
         : (apply as (this: (this: EventTarget, ...args: any[]) => void
               , self: EventTarget, args: IArguments) => void
-          ).call(_listen as (this: EventTarget, ...args: any[]) => void, a, args)
+          ).call(_listen as (this: EventTarget, ...args1: any[]) => void, a, args)
       if ((type === CLK || type === MDW || type === "dblclick") && alive
           && listener && !(a instanceof HTMLAnchorElement) && a instanceof Element) {
         if (!Build.NDEBUG) {
@@ -56,7 +57,7 @@ export const main_ff = (OnFirefox ? (): void => {
       timer && clearTimeout_(timer)
       timer = resolved = 0
     } : 0 as never
-  
+
     let alive = false, timer: ValidTimeoutID = TimerID.None, resolved = 0, counterResolvePath = 0
     if (grabBackFocus) {
       if (alive = isTY(_listen, kTY.func)) {
@@ -103,7 +104,7 @@ export const main_ff = (OnFirefox ? (): void => {
               , event.currentTarget === window ? "#window" : event.currentTarget)
         }
       } else {
-        listenToPreventClick(event)
+        void listenToPreventClick(event)
         isHandingTheSecondTime = 1
       }
     },
@@ -139,7 +140,7 @@ export const main_ff = (OnFirefox ? (): void => {
         const self = this, ret = apply.call(stdFunc, self, arguments)
         self !== clickEventToPrevent_ ? 0
         : idx < kAct.stopImm || self.defaultPrevented ? isClickEventPreventedByPage = 1 // idx === kAct.prevent
-        : idx > kAct.stopImm ? /*#__NOINLINE__*/ listenToPreventClick(self) // idx === kAct.stopProp
+        : idx > kAct.stopImm ? /*#__NOINLINE__*/ void listenToPreventClick(self) // idx === kAct.stopProp
         : /*#__NOINLINE__*/ callPreviousPreventSafely(self) // idx === kAct.stopImm
         return ret
       });
@@ -164,7 +165,7 @@ export const wrappedDispatchMouseEvent_ff = (targetElement: Element, mouseEventM
     console.log("Assert error: a target element is bound to window.wrappedJSObject");
   }
   if (clickEventToPrevent_) {
-    preventEventOnWindow!(view!)
+    void preventEventOnWindow!(view!)
   }
   const rawDispatchRetVal = targetElement.dispatchEvent(mouseEventMayBePrevented),
   wrappedRetVal = rawDispatchRetVal || !!clickEventToPrevent_ && !isClickEventPreventedByPage

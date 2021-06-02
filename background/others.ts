@@ -28,7 +28,7 @@ BgUtils_.timeout_(150, function (): void {
       cache[large] = new ImageData(uint8Array.subarray(firstSize), large, large);
       imageData![type] = cache;
       const arr = tabIds!.get(type)!
-      tabIds!.delete!(type)
+      tabIds!.delete(type)
       for (let w = 0, h = arr.length; w < h; w++) {
         Backend_.setIcon_(arr[w], type, true);
       }
@@ -212,7 +212,7 @@ BgUtils_.timeout_(600, function (): void {
             && !(autoSelect && i === 0) && (
           type === "tab" ? sugItem.s !== TabRecency_.curTab_
           : type === "history" && (!(Build.BTypes & ~BrowserType.Firefox)
-              || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox || !hasSessionId) 
+              || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox || !hasSessionId)
         );
       if (urlDict.has(url)) {
         url = `:${i + di} ${url}`
@@ -434,9 +434,9 @@ setTimeout(function (loadI18nPayload: () => void): void {
       fixTrans(1);
     }
   };
-  for (const langName of new Set!<string>(["en", lang1, lang2]) as any) {
+  for (const langName of new Set!<string>(["en", lang1, lang2]) as unknown as string[]) {
     if (langName) {
-      fetch(`/_locales/${langName}/messages.json`).then(r => r.json<Dict<any>>()).then(onload);
+      void fetch(`/_locales/${langName}/messages.json`).then(r => r.json<Dict<any>>()).then(onload)
       toDos++;
     }
   }
@@ -520,7 +520,7 @@ function (details: chrome.runtime.InstalledDetails): void {
 
   if (!reason) {
     const p = Settings_.restore_ && Settings_.restore_() || Promise.resolve()
-    p.then(() => Backend_.onInit_ ? new Promise(resolve => setTimeout(resolve, 200)) : 0).then((): void => {
+    void p.then(() => Backend_.onInit_ ? new Promise(resolve => setTimeout(resolve, 200)) : 0).then((): void => {
       Backend_.reqH_[kFgReq.focusOrLaunch]({
         u: Settings_.CONST_.OptionsPage_ + (Build.NDEBUG ? "#commands" : "#installed")
       })

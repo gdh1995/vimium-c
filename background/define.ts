@@ -1,4 +1,4 @@
-declare var define: any
+declare var define: any // eslint-disable-line no-var
 
 if (!Build.BTypes || Build.BTypes & (Build.BTypes - 1)) {
   (window as Writable<Window>).OnOther = Build.BTypes & BrowserType.Chrome
@@ -42,7 +42,7 @@ if (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) 
   window.chrome = browser as typeof chrome
 }
 
-var trans_ = chrome.i18n.getMessage
+var trans_ = chrome.i18n.getMessage // eslint-disable-line no-var
 
 Build.NDEBUG || (function (): void {
   type ModuleTy = Dict<any> & { __esModule?: boolean }
@@ -102,10 +102,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Array$$f
         add (k: string): any { this.map_[k] = 1 },
         clear (): void { this.map_ = BgUtils_.safeObj_<1>() },
         delete (k: string): any { delete this.map_[k] },
-        forEach (cb: any): any {
+        forEach (cb): any {
           const isSet = this.isSet_, map = this.map_
           for (let key in map) {
-            isSet ? cb(key) : cb(map[key], key)
+            isSet ? (cb as (value: string) => void)(key) : cb(map[key], key)
           }
         },
         get (k: string): any { return this.map_[k] },
@@ -114,7 +114,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Array$$f
       } as SimulatedMap
       const setProto = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && Build.BTypes & BrowserType.Chrome
           && !Object.setPrototypeOf ? (obj: SimulatedMap): void => { (obj as any).__proto__ = proto }
-          : (opt: SimulatedMap): void => { (Object.setPrototypeOf as any)(opt, proto) };
+          : (opt: SimulatedMap): void => { Object.setPrototypeOf(opt, proto as any as null) };
       (window as any as typeof globalThis).Set = function (this: SimulatedMap): any {
         setProto(this)
         this.map_ = BgUtils_.safeObj_<1>()

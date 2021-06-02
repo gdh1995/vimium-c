@@ -50,7 +50,7 @@ const HandleStorageUpdate = (changes: EnsuredDict<StorageChange>, area: string |
   if (needToRestoreFirst) {
     changes_to_merge && BgUtils_.extendIf_(changes, changes_to_merge)
     changes_to_merge = changes
-    needToRestoreFirst.then(_ => HandleStorageUpdate({}, area))
+    void needToRestoreFirst.then(() => HandleStorageUpdate({}, area))
     return
   }
   if (changes_to_merge) {
@@ -200,7 +200,7 @@ const deserialize = (key: keyof SettingsToUpdate, value: SingleSerialized | Seri
     // check whether changes are only synced partially
     for (let { k: prefix, s: slice } = value, i = 0; i < slice; i++) {
       let part = map![key + ":" + i]
-      if (!part || !part.startsWith(prefix)) { return 8 } // only parts
+      if (!part || typeof part !== "string" || !part.startsWith(prefix)) { return 8 } // only parts
       serialized += part.slice(prefix.length)
     }
     break

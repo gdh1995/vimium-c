@@ -186,7 +186,7 @@ export const getPortUrl = (port?: Port | null, ignoreHash?: boolean, request?: R
         && port && port.s.frameId_ ? browserWebNav() : null
     port ? (webNav ? webNav.getFrame : tabsGet as never as typeof chrome.webNavigation.getFrame)(
         webNav ? {tabId: port.s.tabId_, frameId: port.s.frameId_}
-          : port.s.tabId_ as Parameters<typeof chrome.tabs.get>[0] as never,
+          : As_<Parameters<typeof chrome.tabs.get>[0]>(port.s.tabId_) as never,
         (tab?: chrome.webNavigation.GetFrameResultDetails | chrome.tabs.Tab | null): void => {
       const url = tab ? tab.url : ""
       if (!url && webNav) {
@@ -209,7 +209,7 @@ export const requireURL = <k extends keyof FgReq>(request: Req.fg<k> & {u: "url"
   set_cPort(cPort || indexFrame(TabRecency_.curTab_, 0))
   const res = getPortUrl(cPort, ignoreHash, request)
   if (typeof res !== "string") {
-    res.then(url => {
+    void res.then(url => {
       request.u = url as "url"
       url && (reqH_ as Req1 as Req2)[request.H](request, cPort)
     })
@@ -318,7 +318,7 @@ export const showHUD = (text: string, isCopy?: kTip): void => {
   if (cPort && !safePost(cPort, {
       N: kBgReq.showHUD, H: ensureInnerCSS(cPort.s), k: isCopy ? text ? kTip.copiedIs : isCopy : kTip.raw, t: text
   })) {
-    set_cPort(null)
+    set_cPort(null as never)
   }
 }
 

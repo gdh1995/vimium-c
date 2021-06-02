@@ -41,6 +41,7 @@ import { traverse, getEditable, filterOutNonReachable } from "./local_links"
 import {
   select_, unhover_async, set_lastHovered_, hover_async, lastHovered_, catchAsyncErrorSilently
 } from "./async_dispatcher"
+/* eslint-disable @typescript-eslint/no-floating-promises */
 
 export const RSC = "readystatechange"
 
@@ -89,7 +90,7 @@ set_contentCommands_([
     }
     if (opt.i) {
       set_insert_global_(opt)
-      opt.h && hudShow(kTip.raw, opt.h!)
+      opt.h && hudShow(kTip.raw, opt.h)
     }
   },
 
@@ -283,7 +284,7 @@ set_contentCommands_([
     })
     exitInputHint();
     set_inputHint({ b: null, h: hints })
-    pushHandler_((event) => {
+    pushHandler_((event): HandlerResult => {
       const keyCode = event.i, isIME = keyCode === kKeyCode.ime, repeat = event.e.repeat,
       key = isIME || repeat ? "" : getMappedKey(event, kModeId.Insert)
       if (OnFirefox && !insert_Lock_()) {

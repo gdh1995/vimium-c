@@ -134,7 +134,7 @@ let matchType: MatchType = MatchType.plain,
     otherFlags = CompletersNS.QueryFlags.None,
     maxChars = 0, maxResults = 0, maxTotal = 0, matchedTotal = 0, offset = 0,
     queryTerms: string[] = [""], rawInput = "", rawMode = "", rawQuery = "", rawMore = "",
-    rawComponents = CompletersNS.QComponent.NONE, 
+    rawComponents = CompletersNS.QComponent.NONE,
     mayRawQueryChangeNextTime_ = false,
     wantInCurrentWindow = false,
     historyUrlToSkip = "", bookmarkUrlToSkip = "",
@@ -204,14 +204,14 @@ function shortenUrl(this: void, url: string): string {
   const i = BgUtils_.IsURLHttp_(url);
   return !i || i >= url.length ? url : url.slice(i, url.length - +(url.endsWith("/") && !url.endsWith("://")));
 }
-function getMatchRangesWithOffset(str: string, offset: number): number[] {
+function getMatchRangesWithOffset(str: string, offset1: number): number[] {
   const range = getMatchRanges(str)
   for (let i = 0; i < range.length; ) {
-    if (range[i + 1] <= offset) {
+    if (range[i + 1] <= offset1) {
       range.splice(i, 2)
     } else {
-      range[i] = Math.max(range[i] - offset, 0)
-      range[i + 1] -= offset
+      range[i] = Math.max(range[i] - offset1, 0)
+      range[i + 1] -= offset1
       i += 2
     }
   }
@@ -732,7 +732,7 @@ historyEngine = {
       get2ndArg, (99 - i) / 100),
     sessionId = e.sessionId_
     o.visit = e.visit_
-    sessionId && (o.s = sessionId, o.label = `<span class="undo">&#8630;</span>`);
+    sessionId && (o.s = sessionId, o.label = '<span class="undo">&#8630;</span>')
     arr[i] = o;
   }
 },
@@ -841,7 +841,7 @@ domainEngine = {
     Completers.next_(sugs, SugType.domain);
   },
   createDomainSug_ (key: string, matchedDomain: Domain, scoreInMany: number, extraSlash: boolean): Suggestion[] {
-      let useHttps = matchedDomain!.https_ > 0, title = ""
+      let useHttps = matchedDomain.https_ > 0, title = ""
       if (bookmarkEngine.status_ === BookmarkStatus.inited) {
         const re: RegExpOne = new RegExp(`^https?://${key.replace(escapeAllRe, "\\$&")}/?$`)
         let matchedBookmarks = bookmarkEngine.bookmarks_.filter(
@@ -1330,7 +1330,7 @@ Completers = {
         return;
       }
       if (ret) {
-        ret.then(Completers._filter2.bind(null, completers, query, i));
+        void ret.then(Completers._filter2.bind(null, completers, query, i))
         return;
       }
       i = 2;

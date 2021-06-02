@@ -416,12 +416,12 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
   /** @unknown_di_result */
 const commandHandler = (command: VisualAction, count: number): void => {
 
-const findV = (count: number): void => {
+const findV = (count1: number): void => {
     if (!find_query) {
       send_(kFgReq.findQuery, {}, (query): void => {
         if (query) {
           findUpdateQuery(query);
-          findV(count)
+          findV(count1)
         } else {
           hudTip(kTip.noOldQuery, 1000)
         }
@@ -429,7 +429,7 @@ const findV = (count: number): void => {
       return;
     }
     const sel = curSelection, range = rangeCount_(sel) && (getDirection(""), !diType_) && selRange_(sel)
-    executeFind("", { noColor: 1, c: count })
+    executeFind("", { noColor: 1, c: count1 })
     if (find_hasResults) {
       diType_ = DiType.UnsafeUnknown
       if (mode_ === Mode.Caret && selType() === SelType.Range) {
@@ -492,7 +492,7 @@ const getNextRightCharacter = (isMove: BOOL): string => {
 }
 
 const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord
-      , count: number): void => {
+      , count1: number): void => {
     const shouldSkipSpaceWhenMovingRight = granularity === kVimG.vimWord
     let fixWord: BOOL = 0;
     if (shouldSkipSpaceWhenMovingRight || granularity === kG.word) {
@@ -502,13 +502,13 @@ const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord
             : (fgCache.o > kOS.MAX_NOT_WIN) !== shouldSkipSpaceWhenMovingRight)) {
         fixWord = 1;
         if (OnFirefox ? !Build.NativeWordMoveOnFirefox : !shouldSkipSpaceWhenMovingRight) {
-          count--;
+          count1--;
         }
       }
       granularity = kG.word
     }
     const oldDi = di_
-    while (0 < count--) {
+    while (0 < count1--) {
       modify(direction, granularity as kG)
     }
     // it's safe to remove `isUnsafe` here, because:
@@ -643,7 +643,7 @@ const reverseSelection = (): void => {
 }
 
   /** after called, VVisual must exit at once */
-const selectLine = (count: number): void => {
+const selectLine = (count1: number): void => {
   const oldDi = getDirection()
   mode_ = Mode.Visual // safer
   isAlertExtend = 1
@@ -653,7 +653,7 @@ const selectLine = (count: number): void => {
     di_ = kDirTy.left // safe
     reverseSelection()
   }
-  while (0 < --count) { modify(kDirTy.right, kG.line) }
+  while (0 < --count1) { modify(kDirTy.right, kG.line) }
   modify(kDirTy.right, kG.lineBoundary)
   const ch = getNextRightCharacter(0)
   const num1 = oldLen_
@@ -665,11 +665,11 @@ const selectLine = (count: number): void => {
   }
 }
 
-const ensureLine = (command: number): void => {
+const ensureLine = (command1: number): void => {
   let di = getDirection()
-  if (di && command < VisualAction.MinNotWrapSelectionModify
-      && command >= VisualAction.MinWrapSelectionModify && !diType_ && selType() === SelType.Caret) {
-    di = (1 & ~command) as ForwardDir // old Di
+  if (di && command1 < VisualAction.MinNotWrapSelectionModify
+      && command1 >= VisualAction.MinWrapSelectionModify && !diType_ && selType() === SelType.Caret) {
+    di = (1 & ~command1) as ForwardDir // old Di
     modify(di, kG.lineBoundary)
     selType() !== SelType.Range && modify(di, kG.line)
     di_ = di
@@ -759,7 +759,7 @@ const isLockedInputInTextMode_cr_old = !OnChrome || Build.MinCVer >= BrowserVer.
 }
 
   /** @tolerate_di_if_caret di will be 1 */
-const collapseToFocus = (toFocus: BOOL) => {
+const collapseToFocus = (toFocus: BOOL): void => {
   selType() === SelType.Range && collapseToRight((getDirection() ^ toFocus ^ 1) as BOOL)
   di_ = kDirTy.right
 }
@@ -781,6 +781,4 @@ export const highlightRange = (sel: Selection): void => {
   }
 }
 
-if (!(Build.NDEBUG || kYank.MIN > ReuseType.MAX)) {
-  console.log('Assert error: kYank.MIN > ReuseType.MAX');
-}
+if (!(Build.NDEBUG || kYank.MIN > ReuseType.MAX)) { console.log("Assert error: kYank.MIN > ReuseType.MAX") }

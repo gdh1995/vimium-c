@@ -66,7 +66,7 @@ const loadCSS = (action: MergeAction, cssStr?: string): SettingsNS.MergedCustomC
     const cssFile = parseSections_(css)
     let isHighContrast_ff = false, hcChanged_ff = false
     if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox) {
-      if (!matchMedia('(forced-colors)').matches) {
+      if (!matchMedia("(forced-colors)").matches) {
         isHighContrast_ff = settings.storage_.getItem(GlobalConsts.kIsHighContrast) === "1"
       }
       hcChanged_ff = settings.temp_.isHighContrast_ff_ !== isHighContrast_ff
@@ -214,7 +214,7 @@ const mergeCSS = (css2Str: string, action: MergeAction | "userDefinedCss"): Sett
           }
         }
       })
-    } else for (const frames of framesForTab.values()) {
+    } else for (const frames of framesForTab.values()) { // eslint-disable-line curly
       for (const port of frames.ports_) {
         if (port.s.flags_ & Frames.Flags.hasCSS) {
           port.postMessage(request)

@@ -177,7 +177,7 @@ var HelpDialog = {
   }),
   normalizeHelpInfo_ (item: CommandsNS.BaseHelpItem): CommandsNS.NormalizedCustomHelpInfo | null {
     const help = item.help_
-    if (!help || help.$key_ != null) { return help as CommandsNS.NormalizedCustomHelpInfo | null }
+    if (!help || help.$key_ != null) { return help }
     let a = this.template_;
     if (Build.BTypes & ~BrowserType.Firefox && !a) {
       const template = document.createElement("template"),

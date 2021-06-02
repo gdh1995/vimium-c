@@ -47,7 +47,7 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
       }
     }
   }, (set_addChildFrame_((_, el, _view, subList): void => {
-    subList!.push(el as KnownIFrameElement & SafeHTMLElement)
+    subList.push(el as KnownIFrameElement & SafeHTMLElement)
   }), 1), 1, 1) : [],
   isNext = options.n, lenLimits = options.l, totalMax = options.m,
   quirk = isNext ? ">>" : "<<", quirkIdx = names.indexOf(quirk),
@@ -55,7 +55,6 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
   detectQuirk = quirkIdx > 0 ? names.lastIndexOf(quirk[0], quirkIdx) : -1,
   wsRe = <RegExpOne> /\s+/,
   refusedStr = isNext ? "<" : ">";
-  // @ts-ignore
   let i = isAlive_ ? 0 : GlobalConsts.MaxNumberOfNextPatterns + 1
   let candInd = 0, index = links.length
   set_addChildFrame_(null)
@@ -73,7 +72,7 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
   for (; 0 <= --index; ) {
     const link = links[index][0]
     if (contains_s(link, links[index + 1][0]) || (s = "lang" in link
-            ? (link as SafeHTMLElement).innerText : link.textContent.trim()).length > totalMax) { continue }
+            ? link.innerText : link.textContent.trim()).length > totalMax) { continue }
     if (s = s.length > 2 ? s : !s && (ch = (link as HTMLInputElement).value) && isTY(ch, kTY.str) && ch
             || attr_s(link, ALA) || (link as TypeToPick<Element, HTMLElement, "title">).title || s) {
       if (s.length > totalMax) { continue; }
@@ -115,7 +114,7 @@ export const findNextInText = (names: string[], options: CmdOptions[kFgCmd.goNex
   let array: GoNextCandidate[] = [], officer: VApiTy | undefined, maxLen = options.m, s: string
   let curLenLimit: number
   iframesToSearchForNext = [vApi]
-  while (officer = iframesToSearchForNext!.pop()) {
+  while (officer = iframesToSearchForNext.pop()) {
     try {
       maxLen = officer.g(array, names, options, maxLen)
     } catch {}
@@ -176,6 +175,6 @@ export const jumpToNextLink = (linkElement: GoNextBaseCandidate[0]): void => {
   if (url) {
     contentCommands_[kFgCmd.framesGoBack](safer({ r: 1, url }))
   } else {
-    timeout_((): void => { catchAsyncErrorSilently(click_async(linkElement)) }, 100)
+    timeout_((): void => { void catchAsyncErrorSilently(click_async(linkElement)) }, 100)
   }
 }

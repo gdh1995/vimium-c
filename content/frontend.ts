@@ -1,7 +1,8 @@
 import {
   doc, isTop, injector, initialDocState, set_esc, esc, setupEventListener, set_isEnabled_, XrayedObject,
   set_clickable_, clickable_, isAlive_, set_VTr, setupKeydownEvents, onWndFocus, includes_,
-  set_readyState_, readyState_, callFunc, recordLog, set_vApi, vApi, locHref, unwrap_ff, raw_unwrap_ff, math, OnFirefox, OnChrome, OnEdge,
+  set_readyState_, readyState_, callFunc, recordLog, set_vApi, vApi, locHref, unwrap_ff, raw_unwrap_ff, math, OnFirefox,
+  OnChrome, OnEdge
 } from "../lib/utils"
 import { suppressTail_, getMappedKey } from "../lib/keyboard_utils"
 import { frameElement_, set_OnDocLoaded_ } from "../lib/dom_utils"
@@ -24,7 +25,7 @@ import { RSC } from "./commands"
 import { main_not_ff as extend_click_not_ff } from  "./extend_click"
 import { main_ff as extend_click_ff } from  "./extend_click_ff"
 
-declare var XPCNativeWrapper: <T extends object> (wrapped: T) => XrayedObject<T>;
+declare var XPCNativeWrapper: <T extends object> (wrapped: T) => XrayedObject<T>; // eslint-disable-line no-var
 
 const docReadyListeners: Array<(this: void) => void> = [], completeListeners: Array<(this: void) => void> = []
 
@@ -45,7 +46,7 @@ set_safeDestroy((silent?: Parameters<SafeDestoryF>[0]): void => {
     VApi = null as never;
 
     if (!Build.NDEBUG) {
-      injector || define.noConflict()
+      injector || define.noConflict() // eslint-disable-line @typescript-eslint/no-unsafe-call
     }
 
     if (runtime_port) { try { runtime_port.disconnect(); } catch {} }
@@ -74,7 +75,7 @@ if (OnFirefox && injector === void 0) {
   ((): void => {
     type Comparer = (this: void, rand2: number, testEncrypted: string) => boolean
     type SandboxGetterFunc = (this: void, comparer: Comparer, rand1: number) => VApiTy | 0 | null | undefined | void
-    type GetterWrapper = { _get: SandboxGetterFunc }
+    interface GetterWrapper { _get: SandboxGetterFunc }
     type WindowWithGetter = Window & { __VimiumC__: GetterWrapper }
     let randomKey = 0, recvTick = 0, sendTick = 0
     const name = BuildStr.CoreGetterFuncName as string as "__VimiumC__"
@@ -90,6 +91,7 @@ if (OnFirefox && injector === void 0) {
     }
     const comparer: Comparer = (rand2, testEncrypted): boolean => {
         "use strict";
+        // eslint-disable-next-line spaced-comment
         /*! @OUTPUT {"use strict";} */
         const diff = encrypt(randomKey, +rand2) !== testEncrypted, d2 = recvTick > 64
         recvTick += d2 ? 0 : diff ? 2 : 1
@@ -127,7 +129,7 @@ if (OnFirefox && injector === void 0) {
     try {
       raw_unwrap_ff(window as XrayedObject<WindowWithGetter>)![name] = getterWrapper
     } catch { // if window[name] is not configurable
-      set_getWndVApi_ff(() => {})
+      set_getWndVApi_ff((): void => { /* empty */ })
     }
   })()
 }

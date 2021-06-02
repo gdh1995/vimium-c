@@ -159,7 +159,7 @@ type Hint = [
   offset?: HintOffset,
   relatedMap?: HTMLElementUsingMap
 ]
-type Hint0 = { [0]: SafeElementForMouse }
+type Hint0 = { [0]: SafeElementForMouse } // eslint-disable-line @typescript-eslint/consistent-type-definitions
 interface Hint4 extends Hint {
   [3]: HintOffset;
 }
@@ -232,7 +232,7 @@ interface VApiTy {
   /** urlToCopy */ u (): string
   /** flash */ x: {
     (el: null, rect: Rect, lifeTime?: number, classNames?: string): () => void
-    (el: Element, rect?: null, lifeTime?: number, classNames?: string): (() => void) | void
+    (el: SafeElement, rect?: null, lifeTime?: number, classNames?: string): (() => void) | void
   }
   /** misc */ y (): {
     /** onWndFocus */ w?: (this: void) => void
@@ -275,7 +275,7 @@ type SecondLevelContentCmds = kContentCmd.AutoFindAllOnClick | kContentCmd.Manua
 declare const enum TimerID { None = 0, Valid = 42, Timeout = "43", Interval = "44", __mask = "" }
 type ValidTimeoutID = 0 | 42 | "43"
 type ValidIntervalID = 0 | 42 | "44"
-    
+
 interface Window {
   readonly VApi?: VApiTy;
 }

@@ -99,7 +99,7 @@ set_requestHandlers([
         const manager = parHints && parHints.p || parHints
         if (manager && manager.h && manager.h - 1) {
           const delta = getTime() - manager.h
-          delta < 1200 && delta >= 0 && manager!.i(1)
+          delta < 1200 && delta >= 0 && manager.i(1)
         }
       }, 330);
     });

@@ -164,7 +164,7 @@ export const generateHintText = (hint: Hint, hintInd: number, allItems: readonly
     // SVG: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/text
     // demo: https://developer.mozilla.org/en-US/docs/Web/MathML/Element/mfrac on Firefox
     text = textContent_s(el).replace(<RegExpG> /\s{2,}/g, " ")
-  } else switch (localName) {
+  } else switch (localName) { // eslint-disable-line curly
   case "input": case "select": case "textarea":
     let labels = (el as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement).labels;
     if (labels && labels.length

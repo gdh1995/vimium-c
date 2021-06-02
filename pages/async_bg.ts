@@ -45,7 +45,7 @@ export const OnFirefox: boolean = !(Build.BTypes & ~BrowserType.Firefox)
     || !!(Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox)
 export const OnEdge: boolean = !(Build.BTypes & ~BrowserType.Edge)
     || !!(Build.BTypes & BrowserType.Edge && OnOther & BrowserType.Edge)
-export const OnSafari: boolean = false
+export const OnSafari: boolean = false // eslint-disable-line @typescript-eslint/no-inferrable-types
 
 export let CurCVer_: BrowserVer = OnChrome ? 0 | (
     navigator.appVersion.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/)

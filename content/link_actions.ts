@@ -27,6 +27,7 @@ import {
 import { omni_box, focusOmni } from "./omni"
 import { execCommand } from "./mode_find"
 type LinkEl = Hint[0];
+/* eslint-disable @typescript-eslint/no-floating-promises */
 
 let removeFlash: (() => void) | null | undefined
 
@@ -36,9 +37,9 @@ export function set_removeFlash (_newRmFlash: null): void { removeFlash = _newRm
 export const executeHintInOfficer = (hint: ExecutableHintItem
     , event?: HandlerNS.Event | null | 0, knownRect?: Rect | null | 0 | false): Rect | null | undefined | 0 => {
 
-const unhoverOnEsc: HandlerNS.Handler = event => {
+const unhoverOnEsc: HandlerNS.Handler = event1 => {
   removeHandler_(kHandler.unhoverOnEsc)
-  if (isEscape_(getMappedKey(event, kModeId.Link)) && !insert_Lock_()) {
+  if (isEscape_(getMappedKey(event1, kModeId.Link)) && !insert_Lock_()) {
     catchAsyncErrorSilently(unhover_async())
     return HandlerResult.Prevent;
   }
@@ -58,7 +59,7 @@ const accessElAttr = (isUrl?: 1): [string: string, isUserCustomized?: BOOL] => {
       if (json && isTY(json)) {
         json = safeCall<string, any>(JSON.parse, json)
       }
-      json = json != el ? json && isTY(json, kTY.obj) && (json as Dict<primitiveObject | null>)[prop]
+      json = json !== el ? json && isTY(json, kTY.obj) && (json as Dict<primitiveObject | null>)[prop]
           : el ? htmlTag_<1>(el) && (el.dataset as Dict<string>)[prop] || attr_s(el, prop)
           : 0
     }

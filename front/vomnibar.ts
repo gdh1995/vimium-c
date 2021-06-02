@@ -43,7 +43,7 @@ declare namespace Intl {
   interface RelativeTimeFormat {
     format (num: number, unit: "year" | "quarter" | "month" | "week" | "day" | "hour" | "minute" | "second"): string
   }
-  var RelativeTimeFormat: { new (lang: string, options: {
+  const RelativeTimeFormat: { new (lang: string, options: {
     localeMatcher?: "best fit" | "lookup"; numeric?: "always" | "auto"; style?: "long" | "short" | "narrow"
   }): RelativeTimeFormat } | undefined
 }
@@ -1058,7 +1058,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     // Note: should not use style[title], because "title" on style/link has special semantics
     // https://html.spec.whatwg.org/multipage/semantics.html#the-style-element
     const styles = document.querySelectorAll("style[id]")
-    for (let i = 0; i < styles.length; i++) {
+    for (let i = 0; i < styles.length; i++) { // eslint-disable-line @typescript-eslint/prefer-for-of
       const style = styles[i] as HTMLStyleElement
       const key = " " + style.id + " ", isCustom = key === " custom ", found = isCustom || omniStyles.includes(key)
       if (style.dataset.media) {
@@ -1215,7 +1215,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.onStyleUpdate_(a.styles_);
     if (a.pageType_ === VomnibarNS.PageType.inner) {
       const els = document.querySelectorAll("[title]")
-      for (let i = 0; i < els.length; i++) {
+      for (let i = 0; i < els.length; i++) { // eslint-disable-line @typescript-eslint/prefer-for-of
         const el = els[i] as HTMLElement
         let t = chrome.i18n.getMessage(el.title.replace(" ", "_"));
         t && (el.title = t);
@@ -1485,7 +1485,7 @@ VUtils_ = {
               : objectArray[index][key as keyof SuggestionE] || "";
         }
         html += a[len];
-      };
+      }
       if (Build.BTypes & ~BrowserType.Firefox) {
         element.innerHTML = html;
       } else {
@@ -1785,7 +1785,7 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
   autoUnloadTimer = setTimeout(function (): void {
     if (!Build.NDEBUG) {
       console.log("Error: Vomnibar page hadn't received a valid secret")
-      debugger
+      debugger // eslint-disable-line no-debugger
     }
     location.href = "about:blank"
   }, 700)

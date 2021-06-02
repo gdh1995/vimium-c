@@ -1,4 +1,6 @@
-import { doc, chromeVer_, Lower, max_, min_, math, OnChrome, OnFirefox, OnEdge, WithDialog, evenHidden_, set_evenHidden_ } from "./utils"
+import {
+  doc, chromeVer_, Lower, max_, min_, math, OnChrome, OnFirefox, OnEdge, WithDialog, evenHidden_, set_evenHidden_
+} from "./utils"
 import {
   docEl_unsafe_, scrollingEl_, notSafe_not_ff_, ElementProto, isRawStyleVisible, getComputedStyle_, NONE,
   querySelector_unsafe_, querySelectorAll_unsafe_, GetParent_unsafe_, HDN, createElement_, fullscreenEl_unsafe_,
@@ -94,7 +96,7 @@ export const cropRectToVisible_ = (left: number, top: number, right: number, bot
     return cr.r - cr.l > 2 && cr.b - cr.t > 2 ? cr : null
 }
 
-export let getBoundingClientRect_: (el: Element) => ClientRect = !OnFirefox ? (el) => {
+export let getBoundingClientRect_: (el: Element) => ClientRect = !OnFirefox ? el => {
   type ClientRectGetter = (this: Element) => ClientRect
   const func = ElementProto().getBoundingClientRect as ClientRectGetter
   getBoundingClientRect_ = func.call.bind<(this: ClientRectGetter, self: Element) => ClientRect>(func)
@@ -105,7 +107,7 @@ export const getVisibleClientRect_ = OnChrome && Build.MinCVer < BrowserVer.MinE
 ? (element: SafeElement, el_style?: CSSStyleDeclaration | null): Rect | null => {
   let cr: Rect | null, I: "inline" | undefined, useChild: boolean, isInline: boolean | undefined, str: string
   const arr = element.getClientRects()
-  for (let i = 0; i < arr.length; i++) {
+  for (let i = 0; i < arr.length; i++) { // eslint-disable-line @typescript-eslint/prefer-for-of
     const rect = arr[i]
     if (rect.height > 0 && rect.width > 0) {
       if (cr = cropRectToVisible_(rect.left, rect.top, rect.right, rect.bottom)) {
@@ -119,7 +121,7 @@ export const getVisibleClientRect_ = OnChrome && Build.MinCVer < BrowserVer.MinE
     if (I) { continue }
     I = "inline"
     const children = element.children
-    for (let j = 0; j < children.length; j++) {
+    for (let j = 0; j < children.length; j++) { // eslint-disable-line @typescript-eslint/prefer-for-of
       const el2 = children[j], st = getComputedStyle_(el2)
       if (useChild = st.float !== NONE || ((str = st.position) !== "static" && str !== "relative")) { /* empty */ }
       else if (rect.height === 0) {
@@ -175,7 +177,7 @@ export const getClientRectsForAreas_ = function (element: HTMLElementUsingMap, o
   if (crHeight < 3 || crWidth < 3) { return null }
   // replace is necessary: chrome allows "&quot;", and also allows no "#"
   if (!areas) {
-    const selector = `map[name="${element.useMap.replace(<RegExpOne> /^#/, "").replace(<RegExpG> /"|\\/g, '\\$&')}"]`
+    const selector = `map[name="${element.useMap.replace(<RegExpOne> /^#/, "").replace(<RegExpG> /"|\\/g, "\\$&")}"]`
     // on C73, if a <map> is moved outside from a #shadowRoot, then the relation of the <img> and it is kept
     // while on F65 the relation will get lost.
     const root = (OnFirefox || !OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Node$$getRootNode)
@@ -265,10 +267,10 @@ const _fixDocZoom_cr = OnChrome ? (zoom: number, docEl: Element, devRatio: numbe
 let _getPageZoom_cr = OnChrome ? function (devRatio: number, docElZoom: number, _testEl: Element | null): number {
   // only detect once, so that its cost is not too big
   let iframe: HTMLIFrameElement = createElement_("iframe"),
-  pageZoom: number | null | undefined, doc: Document | null
+  pageZoom: number | null | undefined, doc1: Document | null
   try {
     append_not_ff(_testEl!, iframe)
-    _testEl = (doc = iframe.contentDocument) && doc.documentElement
+    _testEl = (doc1 = iframe.contentDocument) && doc1.documentElement
     pageZoom = _testEl && +getComputedStyle_(_testEl).zoom
   } catch {}
   removeEl_s(iframe)
@@ -280,7 +282,7 @@ let _getPageZoom_cr = OnChrome ? function (devRatio: number, docElZoom: number, 
  * also update docZoom_
  * update bZoom_ if target
  */
-export const getZoom_ = !OnFirefox ? function (target?: 1 | Element): void {
+export const getZoom_ = !OnFirefox ? function (target?: 1 | SafeElement): void {
   let docEl = docEl_unsafe_()!, ratio = wndSize_(2)
     , gcs = getComputedStyle_, st = gcs(docEl), zoom = +st.zoom || 1
     , el: Element | null = fullscreenEl_unsafe_()
@@ -409,7 +411,7 @@ export const view_ = (el: Element, oldY?: number): boolean => {
   return ty === VisibilityType.Visible
 }
 
-export const instantScOpt = (di: number, amount: number): ScrollToOptions => 
+export const instantScOpt = (di: number, amount: number): ScrollToOptions =>
     ({behavior: "instant", [di ? "top" : "left"]: amount})
 
 export const scrollWndBy_ = (di: ScrollByY, amount: number): void => {

@@ -15,7 +15,7 @@ export const OnFirefox: boolean = !(Build.BTypes & ~BrowserType.Firefox)
     || !!(Build.BTypes & BrowserType.Firefox && _browser & BrowserType.Firefox)
 export const OnEdge: boolean = !(Build.BTypes & ~BrowserType.Edge)
     || !!(Build.BTypes & BrowserType.Edge && _browser & BrowserType.Edge)
-export const OnSafari: boolean = false
+export const OnSafari: boolean = false // eslint-disable-line @typescript-eslint/no-inferrable-types
 export const WithDialog: boolean = OnChrome || OnFirefox
 
 /** its initial value should be 0, need by {@see ../content/request_handlers#hookOnWnd} */
@@ -85,7 +85,7 @@ export function set_i18n_getMsg (_newGetMsg: typeof i18n_getMsg): void { i18n_ge
 
 export const callFunc = (callback: (this: void) => any): void => { callback(); }
 
-export const locHref = () => loc_.href
+export const locHref = (): string => loc_.href
 
 export const getTime = Date.now
 
@@ -129,9 +129,9 @@ export let timeout_: TimerFunc<ValidTimeoutID> =
 export let interval_: TimerFunc<ValidIntervalID> =
     (Build.NDEBUG ? setInterval : (func, period) => setInterval(func, period)) as TimerFunc<ValidIntervalID>
 export const clearTimeout_: (timer: ValidTimeoutID) => void =
-    Build.NDEBUG ? clearTimeout as never : (timer) => clearTimeout(timer as number)
+    Build.NDEBUG ? clearTimeout as never : timer => clearTimeout(timer as number)
 export const clearInterval_: (timer: ValidIntervalID) => void =
-    Build.NDEBUG ? clearInterval as never : (timer) => clearInterval(timer as number)
+    Build.NDEBUG ? clearInterval as never : timer => clearInterval(timer as number)
 
 export function replaceBrokenTimerFunc (_newTimerFunc: TimerFunc<number>): void {
   timeout_ = interval_ = _newTimerFunc as TimerFunc<TimerID & number>
@@ -190,7 +190,8 @@ export const parseSedOptions = (opts: UserSedOptions): ParsedSedOpts => {
 }
 
 export const parseOpenPageUrlOptions = (opts: OpenPageUrlOptions & UserSedOptions): ParsedOpenPageUrlOptions => ({
-  k: opts.keyword, t: opts.testUrl, m: opts.replace, p: opts.position, s: parseSedOptions(opts), w: opts.window
+  k: opts.keyword, t: opts.testUrl, m: opts.replace, p: opts.position, s: parseSedOptions(opts), w: opts.window,
+  g: opts.group
 })
 
 export const escapeAllForRe = (str: string): string => str.replace(<RegExpG> /[$()*+.?\[\\\]\^{|}]/g, "\\$&")
@@ -201,7 +202,7 @@ export const createRegExp = <S extends kTip, T extends "g" | "i" | ""> (pattern:
 
 export const tryCreateRegExp = <T extends "g" | "gi" | "gim" | "gm" | "i" | "u" | ""> (pattern: string, flags: T
     ): (T extends "" ? RegExpOne : T extends "i" ? RegExpI : RegExpG) | void => {
-  return <any> safeCall(RegExp as any, pattern, flags)
+  return safeCall(RegExp as any, pattern, flags)
 }
 
 export const safeCall = (<T1, T2, Ret>(func: (arg1: T1, arg2: T2) => Ret, arg1: T1, arg2: T2): Ret | void => {

@@ -170,7 +170,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
       if (container && i === FindAction.ExitAndReFocus && (el2 = activeEl_unsafe_())
           && getEditableType_<0>(el2) > EditableType.TextBox - 1 && contains_s(container, el2)) {
         prepareCrop_();
-        select_(el2 as LockableElement).then((): void => {
+        void select_(el2 as LockableElement).then((): void => {
           toggleSelectableStyle()
           i > maxNotRunPost && postActivate()
         })
@@ -576,7 +576,7 @@ const setFirstQuery = (query: string): void => {
  * Tracking:
  * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/element.cc?q=ScrollIntoViewNoVisualUpdate&g=0&l=717
  * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/document.cc?q=SetSequentialFocusNavigationStartingPoint&g=0&l=4773
- * 
+ *
  * Firefox seems to have "focused" it
  */
 export const fixTabNav_cr_old = OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
@@ -597,8 +597,8 @@ const setQuery = (query: string): void => {
   }
 }
 
-export const execCommand = (cmd: string, doc?: Document | 0, value?: string) => {
-  (doc || innerDoc_).execCommand(cmd, false, value)
+export const execCommand = (cmd: string, doc1?: Document | 0, value?: string): void => {
+  (doc1 || innerDoc_).execCommand(cmd, false, value)
 }
 
 const postActivate = (): void => {
@@ -691,7 +691,7 @@ export const updateQuery = (query: string): void => {
     if (flag === kCharCode.backslash) { return str }
     flag &= ~kCharCode.CASE_DELTA
     if (flag === kCharCode.I || flag === kCharCode.C) { ignoreCase = enabled === (flag === kCharCode.I) }
-    else if (flag === kCharCode.R) { isRe = enabled } 
+    else if (flag === kCharCode.R) { isRe = enabled }
     else if (isRe) { return str }
     else { flag > kCharCode.A ? ww = enabled : wrapAround = enabled }
     return ""
@@ -730,8 +730,8 @@ export const updateQuery = (query: string): void => {
     let now = getTime()
     if (cachedInnerText && cachedInnerText.n === didNorm && (delta = math.abs(now - cachedInnerText.t))
           < (didNorm || cachedInnerText.i.length > 1e5 ? 6e3 : 3e3)) {
-      query = cachedInnerText!.i
-      delta < 500 && (cachedInnerText!.t = now)
+      query = cachedInnerText.i
+      delta < 500 && (cachedInnerText.t = now)
     } else {
       let el = fullscreenEl_unsafe_()
       while (el && (el as ElementToHTML).lang == null) { // in case of SVG elements

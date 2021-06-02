@@ -135,7 +135,7 @@ const collectPass = (pass: string): string => {
 
 const forceState = (act: "Reset" | "Enable" | "Disable", event?: EventToPrevent): void => {
   event && event.preventDefault()
-  BG_.Backend_.forceStatus_(act.toLowerCase() as "reset" | "enable" | "disable", frameInfo.tabId_)
+  BG_.Backend_.forceStatus_(act.toLowerCase(), frameInfo.tabId_)
   window.close()
 }
 
@@ -217,7 +217,7 @@ const initExclusionRulesTable = (): void => {
   }
 }
 
-Promise.all([bgSettings_.restore_ && bgSettings_.restore_(), new Promise<[chrome.tabs.Tab]>(resolve => {
+void Promise.all([bgSettings_.restore_ && bgSettings_.restore_(), new Promise<[chrome.tabs.Tab]>(resolve => {
   chrome.tabs.query({currentWindow: true, active: true}, resolve)
 })]).then((_resolved): void => {
   const activeTabs: [chrome.tabs.Tab] | never[] = _resolved[1]
@@ -273,13 +273,13 @@ Promise.all([bgSettings_.restore_ && bgSettings_.restore_(), new Promise<[chrome
   setupBorderWidth_ && nextTick_(setupBorderWidth_)
 })
 
-const hasUnknownExt = (frames: Frames.Frames | null) => {
+const hasUnknownExt = (frames: Frames.Frames | null): boolean => {
   return !!frames && typeof frames.unknownExt_ === "string"
       && bgSettings_.extAllowList_.get(frames.unknownExt_) !== true
 }
 
 const onNotRunnable = (blockedMsg: HTMLElement, curTab: chrome.tabs.Tab | null, _url: string
-    , frames: Frames.Frames | null) => {
+    , frames: Frames.Frames | null): void => {
   const body = document.body as HTMLBodyElement, docEl = document.documentElement as HTMLHtmlElement
   body.innerText = ""
   blockedMsg.style.display = ""
@@ -335,10 +335,10 @@ const onNotRunnable = (blockedMsg: HTMLElement, curTab: chrome.tabs.Tab | null, 
   docEl.style.height = ""
   const retryInjectElement = $<HTMLAnchorElement>("#retryInject")
   if (!OnFirefox && (<RegExpOne> /^(file|ftps?|https?):/).test(_url) && curTab) {
-    retryInjectElement.onclick = (event) => {
+    retryInjectElement.onclick = (event): void => {
       event.preventDefault()
       if (!BG_.Backend_.indexPorts_(curTab.id)) {
-        const offset = location.origin.length, ignoreErr = (): void => {}
+        const offset = location.origin.length, ignoreErr = (): void => { /* empty */ }
         for (let js of bgSettings_.CONST_.ContentScripts_) {
           chrome.tabs.executeScript(curTab.id, {file: js.slice(offset), allFrames: true}, ignoreErr)
         }

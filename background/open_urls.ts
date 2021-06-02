@@ -74,7 +74,7 @@ const findUrlInText = (url: string, testUrl: OpenPageUrlOptions["testUrl"] | Unk
 const onEvalUrl_ = (workType: Urls.WorkType, options: OpenUrlOptions, tabs: [Tab] | [] | undefined
     , arr: Urls.SpecialUrl): void => {
   if (arr instanceof Promise) {
-    arr.then(onEvalUrl_.bind(0, workType, options, tabs))
+    void arr.then(onEvalUrl_.bind(0, workType, options, tabs))
     return
   }
   BgUtils_.resetRe_()
@@ -155,16 +155,16 @@ const fillUrlMasks = (url: string, tabs: [Tab?] | undefined, url_mark: string | 
     get_cOptions<C.openUrl>().tabid_mask || get_cOptions<C.openUrl>().tabId_mask
       || get_cOptions<C.openUrl>().tabid_mark || get_cOptions<C.openUrl>().tabId_mark,
     get_cOptions<C.openUrl>().title_mask || get_cOptions<C.openUrl>().title_mark,
-    get_cOptions<C.openUrl>().id_mask || get_cOptions<C.openUrl>().id_mark || get_cOptions<C.openUrl>().id_marker,
+    get_cOptions<C.openUrl>().id_mask || get_cOptions<C.openUrl>().id_mark || get_cOptions<C.openUrl>().id_marker
   ]
   const matches: [number, number, string][] = []
   for (let i = 0; i < masks.length; i++) {
     const mask = masks[i] != null ? masks[i] + "" : "", ind = mask ? url.indexOf(mask) : -1
     if (ind >= 0) {
-      let end = ind + mask!.length
+      let end = ind + mask.length
       for (const j of matches) { if (ind < j[1] && end >= j[0]) { continue } }
       matches.push([ ind, end, i === 0
-          ? (<RegExpOne> /[%$]s/).test(mask!) ? BgUtils_.encodeAsciiComponent(tabUrl) : tabUrl
+          ? (<RegExpOne> /[%$]s/).test(mask) ? BgUtils_.encodeAsciiComponent(tabUrl) : tabUrl
           : i === 1 ? new URL(tabUrl).host : i === 2 ? tabUrl && "" + tabs![0]!.id
           : i === 3 ? tabUrl && "" + BgUtils_.encodeAsciiComponent(tabs![0]!.title) : browser_.runtime.id ])
     }
@@ -189,7 +189,7 @@ const openUrlInAnotherWindow = (urls: string[], reuse: Exclude<ReuseType, ReuseT
     getCurWnd(true, wnd => (resolve(wnd || null), runtimeError_()))
   }) : findLastVisibleWindow(normalizeWndType(options.window), true, incognito).then(wnd => wnd &&
     new Promise(resolve => browserWindows.get(wnd.id, { populate: true }, i => resolve((i || wnd) as PopWindow))))
-  p.then(wnd => {
+  void p.then((wnd): void => {
     const isWndLast = !!wnd && !wnd.focused && wnd.id !== TabRecency_.curWnd_ // in case a F12 window is focused
     const fallbackInCur = reuse === ReuseType.ifLastWnd && !isWndLast
     if (!wnd || !(isWndLast || reuse === ReuseType.ifLastWnd && (incognito == null || wnd.incognito === !!incognito))) {
@@ -334,7 +334,7 @@ export const openJSUrl = (url: string, options: Req.FallbackOptions, onBrowserFa
     if (safePost(cPort, { N: kBgReq.eval, u: url, f: parseFallbackOptions(options)})) {
       return
     }
-    set_cPort(null)
+    set_cPort(null as never)
   }
   const callback1 = (opt?: object | -1): void => {
     if (opt !== -1 && !runtimeError_()) { runNextOnTabLoaded(options, null); return; }
@@ -486,7 +486,7 @@ const openCopiedUrl = (tabs: [Tab] | [] | undefined, url: string | null): void =
     complainLimits("read clipboard")
     return
   }
-  if (!(url = url.trim())) { 
+  if (!(url = url.trim())) {
     showHUD(trans_("noCopied"))
     return
   }
@@ -582,7 +582,7 @@ export const openUrl = (tabs?: [Tab] | []): void => {
   } else if (get_cOptions<C.openUrl>().copied) {
     const url = paste_(parseSedOptions_(get_cOptions<C.openUrl, true>()))
     if (url instanceof Promise) {
-      url.then(/*#__NOINLINE__*/ openCopiedUrl.bind(null, tabs))
+      void url.then(/*#__NOINLINE__*/ openCopiedUrl.bind(null, tabs))
     } else {
       openCopiedUrl(tabs, url)
     }
@@ -616,7 +616,7 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port): void =>
     if (url[0] === ":" && !isWeb && (<RegExpOne> /^:[bhtwWBHdso]\s/).test(url)) {
       url = url.slice(2).trim()
     }
-    url = substitute_(url as string, !isWeb ? SedContext.omni : request.f ? SedContext.NONE : SedContext.pageText, sed)
+    url = substitute_(url, !isWeb ? SedContext.omni : request.f ? SedContext.NONE : SedContext.pageText, sed)
     if (request.f) {
       url = url !== request.u ? BgUtils_.convertToUrl_(url) : url
     }

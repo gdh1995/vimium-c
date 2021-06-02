@@ -8,7 +8,7 @@ declare const enum SedAction {
   encode = 10, encodeComp = 11, encodeAll = 12, encodeAllComp = 13,
   camel = 14, camelcase = 14, dash = 15, dashed = 15, hyphen = 15, capitalize = 16, capitalizeAll = 17,
 }
-type Contexts = { normal_: SedContext, extras_: kCharCode[] | null}
+interface Contexts { normal_: SedContext, extras_: kCharCode[] | null }
 interface ClipSubItem {
   readonly contexts_: Contexts; readonly host_: string | null; readonly match_: RegExp
   readonly retainMatched_: BOOL; readonly actions_: SedAction[]; readonly replaced_: string
@@ -207,7 +207,7 @@ export const substitute_ = (text: string, normalContext: SedContext, mixedSed?: 
   const rules = !mixedSed || typeof mixedSed !== "object" ? mixedSed : mixedSed.r
   if (rules === false) { return text }
   let arr = staticSeds_ || (staticSeds_ = parseSeds_(settings.get_("clipSub"), null))
-  let contexts = mixedSed && typeof mixedSed === "object" && mixedSed.k && parseSedKeys_(mixedSed.k!, mixedSed)
+  let contexts = mixedSed && typeof mixedSed === "object" && mixedSed.k && parseSedKeys_(mixedSed.k, mixedSed)
       || (normalContext ? { normal_: normalContext, extras_: null } : null)
   // note: `sed` may come from options of key mappings, so here always convert it to a string
   if (rules && rules !== true) {

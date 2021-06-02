@@ -58,7 +58,7 @@ export const hide = ((fromInner?: 1 | null): void => {
     oldIsActive || focus()
     if (OnChrome && Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval) {
       let style_old_cr = box!.style
-      style_old_cr!.height = style_old_cr!.top = ""
+      style_old_cr.height = style_old_cr.top = ""
       setDisplaying_s(box!)
     } else {
       box!.style.cssText = "display:none"
@@ -287,7 +287,7 @@ const refreshKeyHandler = (): void => {
     init(options)
   } else if (safeCall(isAboutBlank_throwable)) {
     secondActivateWithNewOptions = activate.bind(0, options, count);
-    (status > Status.ToShow - 1 || timeout_ == interval_) && resetWhenBoxExists()
+    (status > Status.ToShow - 1 || timeout_ === interval_) && resetWhenBoxExists()
     return
   } else if (status === Status.Inactive) {
     status = Status.ToShow

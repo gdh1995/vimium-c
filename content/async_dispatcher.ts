@@ -11,6 +11,7 @@ import { post_ } from "./port"
 import { flash_, moveSel_s_throwable } from "./dom_ui"
 import { hintApi } from "./link_hints"
 import { beginToPreventClick_ff, wrappedDispatchMouseEvent_ff } from "./extend_click_ff"
+/* eslint-disable @typescript-eslint/await-thenable */
 
 export declare const enum kClickAction {
   none = 0,
@@ -29,8 +30,8 @@ type kMouseMoveEvents = "mouseover" | "mouseenter" | "mousemove" | "mouseout" | 
 type kMouseClickEvents = "mousedown" | "mouseup" | "click" | "auxclick" | "dblclick"
 type NullableSafeElForM = SafeElementForMouse | null | undefined
 
-type YieldedValue = { 42: true }
-type YieldedPos = { label_: number; sent_ (): YieldedValue | undefined }
+interface YieldedValue { 42: true }
+interface YieldedPos { label_: number; sent_ (): YieldedValue | undefined }
 type YieldableFunction = (pos: YieldedPos) => [/** step */ number, /** returned */ YieldedValue?]
 declare const enum Instruction { next = 0, return = 2, /** aka. "goto" */ break = 3, yield = 4 }
 
@@ -108,7 +109,7 @@ export { __generator as __asyncGenerator, __awaiter as __asyncAwaiter }
 
 export const catchAsyncErrorSilently = <T> (p: Promise<T>): Promise<T | void> =>
     OnChrome && Build.MinCVer < BrowserVer.MinEnsuredAsyncFunctions ? p
-    : p.catch(Build.NDEBUG ? (): void => {} : e => { console.log("Vimium C: unexpected error\n", e) })
+    : p.catch(Build.NDEBUG ? (): void => { /* empty  */} : e => { console.log("Vimium C: unexpected error\n", e) })
 
 /** sync dispatchers */
 
@@ -116,7 +117,7 @@ export const mouse_ = function (element: SafeElementForMouse
     , type: kMouseClickEvents | kMouseMoveEvents
     , center: Point2D, modifiers?: MyMouseControlKeys | null, relatedTarget?: NullableSafeElForM
     , button?: AcceptableClickButtons): boolean {
-  const doc = element.ownerDocument as Document, view = doc.defaultView || window,
+  const doc1 = element.ownerDocument as Document, view = doc1.defaultView || window,
   tyKey = type.slice(5, 6),
   // is: down | up | (click) | dblclick | auxclick
   detail = !"dui".includes(tyKey) ? 0 : button! & kClickButton.primaryAndTwice ? 2 : 1,
@@ -125,7 +126,7 @@ export const mouse_ = function (element: SafeElementForMouse
   altKey = modifiers ? modifiers[0] : !1, ctrlKey = modifiers ? modifiers[1] : !1,
   metaKey = modifiers ? modifiers[2] : !1, shiftKey = modifiers ? modifiers[3] : !1
   button = (button! & kClickButton.second) as kClickButton.none | kClickButton.second
-  relatedTarget = relatedTarget && relatedTarget.ownerDocument === doc ? relatedTarget : null
+  relatedTarget = relatedTarget && relatedTarget.ownerDocument === doc1 ? relatedTarget : null
   let mouseEvent: MouseEvent
   // note: there seems no way to get correct screenX/Y of an element
   if (!OnChrome
@@ -147,7 +148,7 @@ export const mouse_ = function (element: SafeElementForMouse
     }
     mouseEvent = new MouseEvent(type, init)
   } else {
-    mouseEvent = doc.createEvent("MouseEvents")
+    mouseEvent = doc1.createEvent("MouseEvents")
     mouseEvent.initMouseEvent(type, bubbles, bubbles, view, detail, x, y, x, y
       , ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget)
   }
@@ -340,7 +341,7 @@ export const click_async = (async (element: SafeElementForMouse
             (await await mouse_(element, CLK, center, modifiers)) && result))
       && getVisibleClientRect_(element)) {
     // require element is still visible
-    if (result! < ActionType.MinOpenUrl) {
+    if (result < ActionType.MinOpenUrl) {
       if (result & ActionType.dblClick
           && !(element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled
           && (// use old rect
@@ -356,7 +357,7 @@ export const click_async = (async (element: SafeElementForMouse
             if ((!OnChrome ? !OnFirefox || element.requestFullscreen
                   : Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
                     || chromeVer_ > BrowserVer.MinEnsured$Document$$fullscreenElement - 1)) {
-              fullscreenEl_unsafe_() ? doc.exitFullscreen() : element.requestFullscreen!()
+              fullscreenEl_unsafe_() ? doc.exitFullscreen() : element.requestFullscreen()
             } else {
               fullscreenEl_unsafe_()
               ? OnFirefox ? doc.mozCancelFullScreen() : doc.webkitExitFullscreen()

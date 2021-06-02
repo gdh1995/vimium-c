@@ -61,7 +61,7 @@ interface BaseHintWorker extends HintsNS.BaseHintWorker {
 interface HintManager extends BaseHintWorker {
     hints_?: readonly HintItem[] | null
     keyStatus_?: KeyStatus | null
-    /** get stat (also reset mode if needed) */ $ (resetMode?: 1): Readonly<HintStatus>
+    /** get stat (also reset mode if needed) */ $ (doesResetMode?: 1): Readonly<HintStatus>
     /** reinit */ i: typeof reinit
     /** onKeydown */ n: typeof onKeydown
     p: null;
@@ -337,7 +337,7 @@ export const setMode = (mode: HintMode, silent?: BOOL): void => {
 const getPreciseChildRect = (frameEl: KnownIFrameElement, view: Rect): Rect | null => {
     const V = "visible",
     brect = padClientRect_(getBoundingClientRect_(frameEl)),
-    docEl = docEl_unsafe_(), body = doc.body, inBody = !!body && IsInDOM_(frameEl, body, 1),
+    docEl = docEl_unsafe_(), body = doc.body, inBody = !!body && IsInDOM_(frameEl as SafeHTMLElement, body, 1),
     zoom = (OnChrome ? docZoom_ * (inBody ? bZoom_ : 1) : 1) / dScale_ / (inBody ? bScale_ : 1);
     let x0 = min_(view.l, brect.l), y0 = min_(view.t, brect.t), l = x0, t = y0, r = view.r, b = view.b
     for (let el: Element | null = frameEl; el = GetParent_unsafe_(el, PNType.RevealSlotAndGotoParent); ) {
@@ -488,7 +488,7 @@ const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): voi
     set_removeFlash(null)
     if (!(mode_ & HintMode.queue)) {
       coreHints.w(selectedHintWorker, clickEl)
-      runFallbackKey(options_!, 0)
+      runFallbackKey(options_, 0)
       clear(0, 0)
     } else {
       clearTimeout_(_timer)
@@ -502,7 +502,7 @@ const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): voi
   }, isActive = 0)
 }
 
-const activateDirectly = (options: ContentOptions, count: number) => {
+const activateDirectly = (options: ContentOptions, count: number): void => {
   const d = options.direct! as string, exOpts = options.directOptions || {},
   _ei = exOpts.index, elIndex = _ei != null ? _ei : options.index,
   offset = exOpts.offset || "", wholeDoc = ("" + exOpts.search).startsWith("doc"),
@@ -533,8 +533,8 @@ const activateDirectly = (options: ContentOptions, count: number) => {
   let matches: (Hint | Hint0)[] | undefined, oneMatch: Hint | Hint0 | undefined, matchIndex: number
   let el: SafeElement | null | undefined
   el = (prepareCrop_(), allTypes || d.includes("ele")) && options.match // target | element
-      && (matches = traverse(kSafeAllSelector, options, wholeDoc ? (hints: Hint0[], el: SafeElement): void => {
-                isInteractiveInPage(el) && hints.push([el as SafeElementForMouse])
+      && (matches = traverse(kSafeAllSelector, options, wholeDoc ? (hints: Hint0[], el1: SafeElement): void => {
+                isInteractiveInPage(el1) && hints.push([el1 as SafeElementForMouse])
               } : getIfOnlyVisible, 1, wholeDoc),
           oneMatch = matches.slice((matchIndex = elIndex === "count" ? count < 0 ? count : count - 1 : +elIndex! || 0,
               offset > "e" ? ~matchIndex : offset < "c" ? matchIndex : computeOffset()))[0])
@@ -561,7 +561,8 @@ const activateDirectly = (options: ContentOptions, count: number) => {
 
 const locateHint = (matchedHint: ExecutableHintItem): BaseHintWorker => {
     /** safer; necessary since {@link #highlightChild} calls {@link #detectUsableChild} */
-  for (var i = frameArray.length; 0 < --i; ) {
+  let i = frameArray.length
+  while (0 < --i) {
     if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
         ? frameArray[i].h.indexOf(matchedHint as HintItem) >= 0 : frameArray[i].h.includes!(matchedHint as HintItem)) {
       break
@@ -639,9 +640,9 @@ const setupCheck: HintManager["w"] = (officer?: BaseHintWorker | null
       let doesReinit: BOOL | boolean | void | undefined
       try {
         doesReinit = !(OnChrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i)
-            && (OnFirefox ? unwrap_ff(officer!) : officer).x(el, r)
+            && (OnFirefox ? unwrap_ff(officer) : officer).x(el, r)
       } catch {}
-      doesReinit && reinit(1) // not wait for unhovering in a child iframe
+      doesReinit && reinit(1) // not wait for unhovering in a child iframe, to simplify logic
       coreHints.h = isActive && getTime()
     }, frameArray.length > 1 ? 380 : 255) : TimerID.None;
 }
@@ -657,11 +658,11 @@ const checkLast = ((el?: WeakRef<LinkEl> | LinkEl | TimerType.fake | 9 | 1 | nul
     r2 = hasEl && (el = deref_(el as WeakRef<LinkEl>)) ? padClientRect_(getBoundingClientRect_(el)) : null
     hidden = !r2 || (r2.r - r2.l) * (r2.b - r2.t) < 4 || !isStyleVisible_(el as LinkEl)
     if (hidden && deref_(lastHovered_) === el) {
-      hover_async()
+      void hover_async()
     }
     if ((!r2 || r) && (manager_ || coreHints).$().n
         && (hidden || math.abs(r2!.l - r!.l) > 100 || math.abs(r2!.t - r!.t) > 60)) {
-      return hasEl && !doesWantToReloadLinkHints("cl") ? 0 : manager_ ? 1 : (timeout_((): void => { reinit(1) }, 1), 0)
+      return hasEl && !doesWantToReloadLinkHints("cl") ? 0 : manager_ ? 1 : (timeout_(() => reinit(1), 0), 0)
     } else {
       return 0
     }
@@ -729,8 +730,8 @@ export const clear = (onlySelfOrEvent?: 0 | 1 | Event, suppressTimeout?: number)
 const removeBox = (): void => {
     if (box_) {
       removeEl_s(box_)
+      box_ = null
     }
-    box_ = null
     removeModal()
 }
 
@@ -757,7 +758,7 @@ const onFrameUnload = (officer: HintOfficer): void => {
     } else if (useFilter_) {
       getMatchingHints(keyStatus_, "", "", 1)
     } else {
-      hints_!.forEach(i => { i.m.innerText = "" })
+      hints_!.forEach(hint => { hint.m.innerText = "" })
       initAlphabetEngine(hints_!)
       renderMarkers(hints_!)
     }
@@ -785,7 +786,7 @@ export const detectUsableChild = (el: KnownIFrameElement): VApiTy | null => {
   return err ? null : childEvents || null;
 }
 
-export const doesWantToReloadLinkHints = (reason: NonNullable<ContentOptions["autoReload"]>) => {
+export const doesWantToReloadLinkHints = (reason: NonNullable<ContentOptions["autoReload"]>): boolean => {
   let conf = options_.autoReload, accept = !conf || Lower(conf).includes(reason)
   let scheduling: Navigator["scheduling"] | undefined
   if (OnChrome) {
@@ -793,14 +794,14 @@ export const doesWantToReloadLinkHints = (reason: NonNullable<ContentOptions["au
         ? accept && !navigator.scheduling!.isInputPending()
         : accept && !((Build.MinCVer >= BrowserVer.MinMaybeUsableNavigator$scheduling$$isInputPending
               || chromeVer_ > BrowserVer.MinMaybeUsableNavigator$scheduling$$isInputPending - 1)
-            && (scheduling = navigator.scheduling) && scheduling.isInputPending!())
+            && (scheduling = navigator.scheduling) && scheduling.isInputPending())
   }
   return accept
 }
 
 const coreHints: HintManager = {
-  $: (resetMode?: 1): HintStatus => {
-    return { a: isActive, b: box_, k: keyStatus_, m: resetMode ? mode_ = HintMode.DEFAULT : mode_,
+  $: (doesResetMode?: 1): HintStatus => {
+    return { a: isActive, b: box_, k: keyStatus_, m: doesResetMode ? mode_ = HintMode.DEFAULT : mode_,
       n: isActive && hints_ && hints_.length < (frameArray.length > 1 ? 200 : 100) && !keyStatus_.k }
   },
   d: 0, h: 0, y: [],

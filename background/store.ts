@@ -36,7 +36,7 @@ export const set_cNeedConfirm = (_newNeedC: BOOL): void => { cNeedConfirm = _new
 export const get_cOptions = <K extends keyof BgCmdOptions = kBgCmd.blank, Trust extends boolean = false> (
     ): (Trust extends true ? KnownOptions<K> : UnknownOptions<K>) & SafeObject => cOptions as any
 export const set_cOptions = <T> (_newOpts: CommandsNS.Options & T | null): void => { cOptions = _newOpts! }
-export const set_cPort = (_newPort: Frames.Port | null): void => { cPort = _newPort! }
+export const set_cPort = (_newPort: Frames.Port): void => { cPort = _newPort! }
 export const set_cRepeat = (_newRepeat: number): void => { cRepeat = _newRepeat }
 
 export const set_findCSS_ = (_newFindCSS: FindCSS): void => { findCSS_ = _newFindCSS }

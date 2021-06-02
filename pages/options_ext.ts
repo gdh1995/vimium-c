@@ -384,7 +384,7 @@ function importSettings_(time: number | string | Date, data: string, is_recommen
   }
   const promisedChecker = Option_.all_.keyMappings.checker_ ? Promise.resolve() : loadJS("options_checker.js")
   const t2 = time, d2 = new_data
-  promisedChecker.then((): void => {
+  void promisedChecker.then((): void => {
     setTimeout(_importSettings, 17, t2, d2, is_recommended);
   });
 }
@@ -419,7 +419,7 @@ _el.onchange = function (this: HTMLSelectElement): void {
   const recommended = "../settings-template.json";
   if (!OnChrome || Build.MinCVer >= BrowserVer.MinFetchExtensionFiles
       || CurCVer_ >= BrowserVer.MinFetchExtensionFiles) {
-    fetch(recommended).then(r => r.text()).then(t => importSettings_(0, t, true));
+    void fetch(recommended).then(r => r.text()).then(t => importSettings_(0, t, true))
     return;
   }
   const req = new XMLHttpRequest();

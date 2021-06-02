@@ -16,8 +16,8 @@ interface KnownShowDataset extends KnownDataset {
 }
 
 import { CurCVer_, CurFFVer_, BG_, OnChrome, OnFirefox, OnEdge, $, pTrans_ } from "./async_bg"
-declare var define: any
-declare var __filename: string | null | undefined
+// eslint-disable-next-line no-var
+declare var define: any, __filename: string | null | undefined
 
 let VData: VDataTy2 = null as never
 
@@ -217,8 +217,8 @@ window.onhashchange = function (this: void): void {
             const el = importBody("snapshot-banner", true);
             (el.querySelector(".banner-close") as SVGElement)!.onclick = _e => { el.remove() }
             let arr = el.querySelectorAll("[data-i]") as ArrayLike<Element> as HTMLElement[]
-            for (let i = 0; i < arr.length; i++) {
-              const s = (arr[i].dataset as KnownShowDataset).i!, isTitle = s.endsWith("-t")
+            for (let i = 0; i < arr.length; i++) { // eslint-disable-line @typescript-eslint/prefer-for-of
+              const s = (arr[i].dataset as KnownShowDataset).i, isTitle = s.endsWith("-t")
               const t = pTrans_(isTitle ? s.slice(0, -2) : s)
               t && (isTitle ? arr[i].title = t : arr[i]!.textContent = t)
             }
@@ -257,7 +257,7 @@ window.onhashchange = function (this: void): void {
         str1 = BG_.BgUtils_.reformatURL_(str1);
       }
       else if (str1 instanceof BG_.Promise) {
-        str1.then(function (arr) {
+        void str1.then(function (arr): void {
           showText(arr[1], arr[0] || (arr[2] || ""));
         });
         break;
@@ -380,13 +380,13 @@ function clickLink(this: void, options: { [key: string]: string }
     simulateClick(a, event)
     return
   }
-  chrome.permissions.contains({ permissions: ['downloads'] }, (permitted: boolean): void => {
+  chrome.permissions.contains({ permissions: ["downloads"] }, (permitted: boolean): void => {
     if (!permitted) {
       simulateClick(a, event);
     } else {
       const opts: chrome.downloads.DownloadOptions = { url: a.href }
       if (a.download) { opts.filename = a.download }
-      (browser as typeof chrome).downloads.download!(opts).catch((): void => {})
+      (browser as typeof chrome).downloads.download!(opts).catch((): void => { /* empty */ })
     }
     return chrome.runtime.lastError
   })
@@ -491,15 +491,15 @@ function clickShownNode(event: MouseEventToPrevent): void {
   }
 }
 
-function showText(tip: string | Urls.kEval, body: string | string[]): void {
+function showText(tip: string | Urls.kEval, details: string | string[]): void {
   tip = typeof tip === "number" ? ["math", "copy", "search", "ERROR", "status", "paste"
       , "url"
       ][tip] : tip;
   ($("#textTip").dataset as KnownShowDataset).text = pTrans_("t_" + tip) || tip;
   ($(".colon").dataset as KnownShowDataset).colon = pTrans_("colon") + pTrans_("NS");
   const textBody = $("#textBody");
-  if (body) {
-    textBody.textContent = typeof body !== "string" ? body.join(" ") : body;
+  if (details) {
+    textBody.textContent = typeof details !== "string" ? details.join(" ") : details;
     (VShown as ValidNodeTypes).onclick = copyThing;
   } else {
     textBody.classList.add("null");
@@ -542,7 +542,7 @@ function copyThing(event: EventToPrevent): void {
           return doWrite()
         }
         const img = document.createElement("img")
-        img.src = VData.url
+        img.src = VData.url // lgtm [js/client-side-unvalidated-url-redirection]
         VData.file && (img.setAttribute("aria-title", img.alt = VData.file))
         item["text/html"] = new Blob([img.outerHTML], {type: "text/html"})
         return doWrite().catch(() => (delete item["text/html"], doWrite()))
@@ -584,7 +584,7 @@ function toggleInvert(event: EventToPrevent): void {
 function requireJS(url: string): Promise<any> {
   const filename = url.slice(url.lastIndexOf("/") + 1).replace(".js", "")
   __filename = "__loader_" + filename
-  return define([url])
+  return define([url]) // eslint-disable-line @typescript-eslint/no-unsafe-call
 }
 
 function loadCSS(src: string): void {
@@ -607,7 +607,7 @@ function loadViewer(): Promise<ViewerModule> {
   }
   loadCSS("../lib/viewer.min.css");
   return requireJS("../lib/viewer.min.js").then<ViewerModule>(viewerJS => {
-    viewerJS.setDefaults({
+    viewerJS.setDefaults({ // eslint-disable-line @typescript-eslint/no-unsafe-call
       navbar: false,
       shown (this: void) {
         bgLink.style.display = "none";
@@ -624,11 +624,11 @@ function loadViewer(): Promise<ViewerModule> {
   });
 }
 
-function showSlide(ViewerModule: ViewerModule, zoomToFit?: boolean): Promise<ViewerType> | ViewerType {
+function showSlide(viewerModule: ViewerModule, zoomToFit?: boolean): Promise<ViewerType> | ViewerType {
   const needToScroll = scrollX || scrollY;
   const sel = getSelection();
   sel.type === "Range" && sel.collapseToStart();
-  const v = viewer_ = viewer_ || new ViewerModule(VShown as HTMLImageElement);
+  const v = viewer_ = viewer_ || new viewerModule(VShown as HTMLImageElement);
   v.scrollbarWidth = 0
   if (v.hiding) {
     v.isShown = false
@@ -809,7 +809,7 @@ function tryToFixFileExt_(file: string): string | void {
 }
 
 function fetchImage_(url: string, element: HTMLImageElement): void {
-  const text = new Text(), body = document.body as HTMLBodyElement,
+  const text = new Text(),
   clearTimer = loadingTimer = (): void => {
     element.removeEventListener("load", clearTimer);
     element.removeEventListener("error", clearTimer);
@@ -829,11 +829,11 @@ function fetchImage_(url: string, element: HTMLImageElement): void {
           || OnChrome && Build.MinCVer < BrowserVer.MinEnsuredFetchRequestCache
               // has known MinMaybe$fetch$And$Request == MinMaybe$fetch == 41
               && !("cache" in Request.prototype))) {
-    element.src = url;
+    element.src = url; // lgtm [js/client-side-unvalidated-url-redirection]
   } else {
     destroyObject_();
     body.replaceChild(text, element);
-    Promise.resolve(blobCache[url] || (OnChrome && Build.MinCVer < BrowserVer.MinFetchDataURL
+    void Promise.resolve(blobCache[url] || (OnChrome && Build.MinCVer < BrowserVer.MinFetchDataURL
         && CurCVer_ < BrowserVer.MinFetchDataURL ? new Promise<Blob>((resolve, reject): void => {
       const req = new XMLHttpRequest() as BlobXHR
       req.responseType = "blob"
@@ -848,7 +848,7 @@ function fetchImage_(url: string, element: HTMLImageElement): void {
       blobCache[url] = blob
       return _shownBlobURL = URL.createObjectURL(_shownBlob = blob)
     }, () => url).then(newUrl => {
-      element.src = newUrl;
+      element.src = newUrl; // lgtm [js/client-side-unvalidated-url-redirection]
       text.parentNode ? body.replaceChild(element, text) : body.appendChild(element)
     });
   }

@@ -47,8 +47,8 @@ Build.NDEBUG || (function (): void {
       if (!oldDefine) {
         const name = (document.currentScript as HTMLScriptElement).src.split("/")
         const fileName = name[name.length - 1].replace(<RegExpG> /\.js|\.min/g, "")
-            .replace(<RegExpG & RegExpSearchable<0>> /\b[a-z]/g, (i) => i.toUpperCase());
-        (window as any)[fileName] = (factory as any || deps as any)()
+            .replace(<RegExpG & RegExpSearchable<0>> /\b[a-z]/g, i => i.toUpperCase());
+        (window as any)[fileName] = ((factory || deps) as () => any)()
         return
       }
       return oldDefine.apply(this, arguments)
@@ -61,7 +61,7 @@ Build.NDEBUG || (function (): void {
       (myDefine as any)[ind > 0 ? filename.slice(ind + 1) : filename] = exports
     }
     const base = ind > 0 ? filename.slice(0, ind) : filename
-    return (factory || deps as never as typeof factory)(require.bind(null, base), exports)
+    return (factory || deps)(require.bind(null, base), exports)
   }
   const require = (base: string, target: string): ModuleTy => {
     let i: number

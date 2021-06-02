@@ -9,8 +9,8 @@ import {
 import { saveBtn, exportBtn, savedStatus, createNewOption, BooleanOption_, registerClass } from "./options_defs"
 import kPermissions = chrome.permissions.kPermissions
 
-declare var define: any
-declare var __filename: string | null | undefined
+// eslint-disable-next-line no-var
+declare var define: any, __filename: string | null | undefined
 
 interface ElementWithHash extends HTMLElement {
   onclick (this: ElementWithHash, event: MouseEventToPrevent | null, hash?: "hash"): void;
@@ -51,11 +51,11 @@ saveBtn.onclick = function (virtually): void {
     savedStatus(false)
     window.onbeforeunload = null as never;
     if (toSync.length === 0) { return; }
-    setTimeout((toSync: typeof Option_.syncToFrontend_): void => {
-      bgSettings_.broadcast_({ N: kBgReq.settingsUpdate, d: toSync.map(key => bgSettings_.valuesToLoad_[key]) })
+    setTimeout((toSync1: typeof Option_.syncToFrontend_): void => {
+      bgSettings_.broadcast_({ N: kBgReq.settingsUpdate, d: toSync1.map(key => bgSettings_.valuesToLoad_[key]) })
     }, 100, toSync)
 }
-  
+
 let optionsInit1_ = function (): void {
   let advancedMode = false, _element: HTMLElement = $<AdvancedOptBtn>("#advancedOptionsButton");
   (_element as AdvancedOptBtn).onclick = function (this: AdvancedOptBtn, _0, init): void {
@@ -139,7 +139,7 @@ let optionsInit1_ = function (): void {
   let func: {
     (this: HTMLElement, event: MouseEventToPrevent): void;
   } | ElementWithDelay["onclick"] = function (this: HTMLElement): void {
-    const target = $("#" + (this.dataset as KnownOptionsDataset).autoResize!)
+    const target = $("#" + (this.dataset as KnownOptionsDataset).autoResize)
     let height = target.scrollHeight, width = target.scrollWidth, dw = width - target.clientWidth;
     if (height <= target.clientHeight && dw <= 0) { return; }
     const maxWidth = Math.max(Math.min(innerWidth, 1024) - 120, 550);
@@ -160,20 +160,20 @@ let optionsInit1_ = function (): void {
   }
 
   func = function (event): void {
-    let str = (this.dataset as KnownOptionsDataset).delay!, e = null as MouseEventToPrevent | null;
+    let str = (this.dataset as KnownOptionsDataset).delay, e = null as MouseEventToPrevent | null
     if (str !== "continue") {
       event && event.preventDefault();
     }
     if (str === "event") { e = event || null; }
     delayed_task = ["#" + this.id, e]
     if (document.readyState === "complete") {
-      loadJS("options_ext.js");
+      void loadJS("options_ext.js")
       return;
     }
     window.addEventListener("load", function onLoad(event1): void {
       if (event1.target === document) {
         window.removeEventListener("load", onLoad);
-        loadJS("options_ext.js");
+        void loadJS("options_ext.js")
       }
     });
   } as ElementWithDelay["onclick"];
@@ -240,7 +240,7 @@ let optionsInit1_ = function (): void {
     }
     for (let i = els.length; 0 <= --i; ) {
       let el: HTMLElement = els[i];
-      let key = (el.dataset as KnownOptionsDataset).permission!
+      let key = (el.dataset as KnownOptionsDataset).permission
       if (key[0] === "C") {
         if (!OnChrome) {
           if (key === "C") { // hide directly
@@ -275,7 +275,7 @@ let optionsInit1_ = function (): void {
       const el = this.querySelector("[data-permission]") as TextElement | null;
       this.onclick = null as never;
       if (!el) { return; }
-      const key = (el.dataset as KnownOptionsDataset).permission!
+      const key = (el.dataset as KnownOptionsDataset).permission
       el.placeholder = pTrans_("lackPermission", [key ? `: "${key}"` : ""]);
     }
   })(_ref);
@@ -296,7 +296,7 @@ let optionsInit1_ = function (): void {
     const ref2 = $$("[data-href]")
     for (let _i = ref2.length; 0 <= --_i; ) {
     const element = ref2[_i] as HTMLInputElement;
-    let str = BG_.BgUtils_.convertToUrl_((element.dataset as KnownOptionsDataset).href!
+    let str = BG_.BgUtils_.convertToUrl_((element.dataset as KnownOptionsDataset).href
         , null, Urls.WorkType.ConvertKnown)
     element.removeAttribute("data-href");
     element.setAttribute("href", str);
@@ -357,7 +357,7 @@ let optionsInit1_ = function (): void {
       node2.focus();
     }
     if (window.VApi) {
-      VApi.x((node2 as EnsuredMountedHTMLElement).parentElement.parentElement);
+      VApi.x((node2 as EnsuredMountedHTMLElement).parentElement.parentElement as SafeHTMLElement)
     }
   };
   for (let _i = _ref.length; 0 <= --_i; ) {
@@ -447,7 +447,7 @@ Option_.all_.autoReduceMotion.onSave_ = function (): void { toggleReduceMotion(t
 if (OnFirefox) {
   setTimeout((): void => {
     const K = GlobalConsts.kIsHighContrast, storage = localStorage
-    const hasFC = matchMedia('(forced-colors)').matches
+    const hasFC = matchMedia("(forced-colors)").matches
     const test = hasFC ? null : document.createElement("div")
     if (test) {
       test.style.display = "none"
@@ -457,11 +457,11 @@ if (OnFirefox) {
       return
     }
     requestIdleCallback!((): void => {
-      const newColor = test && (getComputedStyle(test).color || "").replace(<RegExpG> / /g, '').toLowerCase()
-      const isHC = hasFC ? false : !!newColor && newColor != "rgb(85,68,51)"
+      const newColor = test && (getComputedStyle(test).color || "").replace(<RegExpG> / /g, "").toLowerCase()
+      const isHC = hasFC ? false : !!newColor && newColor !== "rgb(85,68,51)"
       test && test.remove()
-      const oldIsHC = storage.getItem(K) == "1"
-      if (isHC != oldIsHC) {
+      const oldIsHC = storage.getItem(K) === "1"
+      if (isHC !== oldIsHC) {
         isHC ? storage.setItem(K, "1") : storage.removeItem(K);
         delete (bgSettings_.cache_ as Partial<SettingsNS.FullCache>).helpDialog
         bgSettings_.reloadCSS_(2)
@@ -521,22 +521,22 @@ if (OnEdge || !optional.length) {
     const container = placeholder.parentElement
     nextTick_((children): void => { container.appendChild(children) }, fragment)
     registerClass("OptionalPermissions", class extends Option_<"nextPatterns"> {
-      init_ (): void {
+      override init_ (): void {
         this.element_.onchange = this.onUpdated_
       }
-      readValueFromElement_ (): string { return shownItems.map(i => i.element_.checked ? "1" : "0").join("") }
-      fetch_ (): void {
+      override readValueFromElement_ (): string { return shownItems.map(i => i.element_.checked ? "1" : "0").join("") }
+      override fetch_ (): void {
         this.saved_ = true
         this.previous_ = shownItems.map(i => i.previous_ ? "1" : "0").join("")
         this.populateElement_(this.previous_)
       }
-      populateElement_ (value: string): void {
+      override populateElement_ (value: string): void {
         for (let i = 0; i < shownItems.length; i++) {
           shownItems[i].element_.checked = value[i] === "1"
         }
       }
-      _isDirty () { return false }
-      executeSave_ (wanted_value: string): string {
+      override _isDirty (): boolean { return false }
+      override executeSave_ (wanted_value: string): string {
         const new_permissions: kPermissions[] = [], new_origins: kPermissions[] = []
         const changed: { [key in kPermissions]?: PermissionItem } = {}
         let waiting = 1
@@ -554,7 +554,7 @@ if (OnEdge || !optional.length) {
               permissions: i.name_ === "downloads.shelf" ? ["downloads", i.name_] : [i.name_]
             }, (ok): void => {
               const err = chrome.runtime.lastError as any
-              (err || !ok) && console.log('Can not remove the permission %o :', i.name_, err && err.message || err)
+              (err || !ok) && console.log("Can not remove the permission %o :", i.name_, err && err.message || err)
               tryRefreshing()
               return err
             })
@@ -562,7 +562,7 @@ if (OnEdge || !optional.length) {
         }
         const cb = (arr: kPermissions[], ok?: boolean): void => {
           const err = chrome.runtime.lastError as any
-          (err || !ok) && console.log('Can not request permissions of %o :', arr, err && err.message || err)
+          (err || !ok) && console.log("Can not request permissions of %o :", arr, err && err.message || err)
           if (!ok) {
             for (const name of arr) {
               const item = changed[name]
@@ -593,7 +593,7 @@ if (OnEdge || !optional.length) {
           tryRefreshing()
           return err
         }
-        const tryRefreshing = () => {
+        const tryRefreshing = (): void => {
           waiting--
           if (waiting > 0) { return }
           let refreshing = 0
@@ -670,7 +670,7 @@ if (OnEdge || !optional.length) {
 
 if (OnChrome && Build.MinCVer < BrowserVer.Min$Option$HasReliableFontSize
     && CurCVer_ < BrowserVer.Min$Option$HasReliableFontSize) {
-  nextTick_((el) => { el.classList.add("font-fix") }, $("select"))
+  nextTick_(el => { el.classList.add("font-fix") }, $("select"))
 }
 
 $("#importButton").onclick = function (): void {
@@ -698,15 +698,16 @@ export const loadJS = (url: string): Promise<void> => {
           && Build.MinCVer >= BrowserVer.MinES$DynamicImport || !(Build.BTypes & BrowserType.Chrome))
       && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredES$DynamicImport)
       ) {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     return import("./" + url)
   }
   const filename = url.slice(url.lastIndexOf("/") + 1).replace(".js", "")
   __filename = "__loader_" + filename
-  return define([url])
+  return define([url]) // eslint-disable-line @typescript-eslint/no-unsafe-call
 }
 
-export const loadChecker = (): void => { loadJS("options_checker.js") } 
+export const loadChecker = (): void => { void loadJS("options_checker.js") }
 
 document.addEventListener("keydown", (event): void => {
   if (event.keyCode !== kKeyCode.space) {
@@ -773,7 +774,7 @@ window.onhashchange = (): void => {
 
 bgSettings_.restore_ && bgSettings_.restore_() ? (
   Build.NDEBUG || console.log("Now restore settings before page loading"),
-  bgSettings_.restore_()!.then(optionsInitAll_)
+  void bgSettings_.restore_()!.then(optionsInitAll_)
 ) : optionsInitAll_();
 
 // below is for programmer debugging
@@ -824,7 +825,7 @@ if (!cmdRegistry || cmdRegistry.alias_ !== kBgCmd.showHelp) {
 }
 
 document.addEventListener("click", function onClickOnce(): void {
-  const api = window.VApi, misc = api && api.y()
+  const api1 = window.VApi, misc = api1 && api1.y()
   if (!misc || !misc.r) { return; }
   document.removeEventListener("click", onClickOnce, true);
   misc.r.addEventListener("click", function (event): void {
@@ -841,7 +842,7 @@ document.addEventListener("click", function onClickOnce(): void {
   OnChrome && document.addEventListener("click", (event): void => {
     const el = event.target as Element
     if (el.localName !== "a" || !(event.ctrlKey || event.metaKey)) { return }
-    const api = window.VApi, hintWorker = api && api.b, stat = hintWorker && hintWorker.$()
+    const api2 = window.VApi, hintWorker = api2 && api2.b, stat = hintWorker && hintWorker.$()
     if (stat && stat.b && !stat.a) { // .b: showing hints; !.a : is calling executor
       const m1 = stat.m & ~HintMode.queue
       if (m1 < HintMode.min_job && m1 & HintMode.newTab && !(m1 & HintMode.focused)) {

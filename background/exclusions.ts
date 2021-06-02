@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-var
-var Exclusions = {
+var Exclusions = { // eslint-disable-line no-var
   testers_: null as never as Map<string, ExclusionsNS.Tester>,
   createRule_ (pattern: string, keys: string): ExclusionsNS.Tester {
     let cur: ExclusionsNS.Tester | undefined = this.testers_.get(pattern), re: RegExp | null | undefined

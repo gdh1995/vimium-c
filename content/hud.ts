@@ -94,7 +94,7 @@ export const hudHide = (info?: TimerType.fake | TimerType.noTimer): void => {
   }
 }
 
-export const toggleOpacity = (opacity: string, onlyOpacity?: 1) => {
+export const toggleOpacity = (opacity: string, onlyOpacity?: 1): void => {
   box!.style.opacity = opacity
   onlyOpacity || setVisibility_s(box!, opacity !== "0")
 }

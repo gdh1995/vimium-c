@@ -26,7 +26,7 @@ export const copyCmdOptions = (dest: CommandsNS.RawOptions, src: CommandsNS.Opti
     , allow$f: BOOL): CommandsNS.RawOptions => {
   for (const i in src) {
     if (i[0] !== "$" || !i.includes("=") && "$then=$else=$retry=".includes(i + "=") || (allow$f && i === "$f")) {
-      i in dest || (dest[i] = src![i])
+      i in dest || (dest[i] = src[i])
     }
   }
   return dest
@@ -42,7 +42,7 @@ export const overrideCmdOptions = <T extends keyof BgCmdOptions> (known: CmdOpti
   set_cOptions(known as KnownOptions<T> as KnownOptions<T> & SafeObject)
 }
 
-type StrStartWith$<K extends string> = K extends `$${infer _U}` ? K : never
+type StrStartWith$<K extends string> = K extends `$${string}` ? K : never
 type BgCmdCanBeOverride = keyof SafeStatefulBgCmdOptions | keyof StatefulBgCmdOptions
 type KeyCanBeOverride<T extends BgCmdCanBeOverride> =
     T extends keyof SafeStatefulBgCmdOptions ? SafeStatefulBgCmdOptions[T]
@@ -96,7 +96,7 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
       if (!overriddenCount) {
         set_cKey(lastKey)
         set_cOptions(null)
-        set_cPort(port)
+        set_cPort(port!)
         set_cRepeat(count)
         confirm_<kCName, 1>(registryEntry.command_, abs(count),
         (/*#__NOINLINE__*/ onLargeCountConfirmed).bind(null, registryEntry))
@@ -110,7 +110,7 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
   if (fallbackCounter != null) {
     const maxRetried = Math.max(2, Math.min((fallbackCounter.r! | 0) || 6, 20))
     if (fallbackCounter.c >= maxRetried) {
-      set_cPort(port)
+      set_cPort(port!)
       showHUD(`Has ran sequential commands for ${maxRetried} times`)
       return
     }
@@ -128,7 +128,7 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
       (1 << kFgCmd.linkHints) | (1 << kFgCmd.marks) | (1 << kFgCmd.passNextKey) | (1 << kFgCmd.focusInput)
     ) >> fgAlias) & 1)
         || fgAlias === kFgCmd.scroll && (!!options && (options as CmdOptions[kFgCmd.scroll]).keepHover === false)
-    set_cPort(port)
+    set_cPort(port!)
     port == null || portSendFgCmd(port, fgAlias, wantCSS, options as any, count)
     return
   }
@@ -136,7 +136,7 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
   // safe on renaming
   set_cKey(lastKey)
   set_cOptions(options || ((registryEntry as Writable<typeof registryEntry>).options_ = BgUtils_.safeObj_()))
-  set_cPort(port)
+  set_cPort(port!)
   set_cRepeat(count)
   count = cmdInfo_[alias]
   if (port == null && alias < kBgCmd.MAX_NEED_CPORT + 1 && alias > kBgCmd.MIN_NEED_CPORT - 1) {
@@ -180,7 +180,7 @@ export const confirm_ = <T extends kCName, force extends BOOL = 0> (
 }
 
 const onConfirmWrapper = (bakOptions: SafeObject, count: number, port: Port
-    , callback: (arg?: FakeArg) => void, force1?: boolean) => {
+    , callback: (arg?: FakeArg) => void, force1?: boolean): void => {
   force1 || set_cKey(kKeyCode.None)
   set_cOptions(bakOptions)
   set_cRepeat(force1 ? count > 0 ? 1 : -1 : count)
@@ -293,7 +293,7 @@ export const executeExternalCmd = (
   options && typeof options === "object" ?
       BgUtils_.safer_(options) : (options = null);
   lastKey = 0 | lastKey!;
-  executeCommand(regItem, count, lastKey, port!, 0)
+  executeCommand(regItem, count, lastKey, port, 0)
 }
 
 /** execute a command when in a special environment */
@@ -323,7 +323,7 @@ const matchEnvRule = (rule: CommandsNS.EnvItem, cur: CurrentEnvCache
         cur.element_ = activeEl
       }
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Element$$matches
-          && CurCVer_ < BrowserVer.Min$Element$$matches ? !cur.element_.webkitMatchesSelector!(info.t)
+          && CurCVer_ < BrowserVer.Min$Element$$matches ? !cur.element_.webkitMatchesSelector(info.t)
           : !cur.element_.matches!(info.t)) { return EnvMatchResult.nextEnv }
     }
     if (fullscreen != null) {
@@ -365,7 +365,7 @@ export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey]): void => {
   let keys: string | string[] | null | undefined
   const frames = framesForTab.get(cPort ? cPort.s.tabId_ : TabRecency_.curTab_)
   if (!cPort) {
-    set_cPort(frames ? frames.cur_ : null)
+    set_cPort(frames ? frames.cur_ : null as never)
   }
   frames && (frames.flags_ |= Frames.Flags.userActed)
   for (let i = 0, size = expected_rules instanceof Array ? expected_rules.length : 0
@@ -375,7 +375,7 @@ export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey]): void => {
     const ruleName = (rule as CommandsNS.EnvItemWithKeys).env
     if (ruleName) {
       if (!envRegistry_) {
-        showHUD('No environments have been declared')
+        showHUD("No environments have been declared")
         return
       }
       rule = envRegistry_.get(ruleName)
@@ -413,7 +413,7 @@ export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey]): void => {
       && typeof expected_rules === "object" && !(expected_rules instanceof Array)) {
     BgUtils_.safer_(expected_rules)
     if (!envRegistry_) {
-      showHUD('No environments have been declared')
+      showHUD("No environments have been declared")
       return
     }
     for (let ruleName in expected_rules) {
@@ -450,9 +450,9 @@ export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey]): void => {
   if (!(keys instanceof Array)) {
     showHUD(sub_name + "Require keys: space-seperated-string | string[]")
   } else if (absCRepeat > keys.length && keys.length !== 1) {
-    showHUD(sub_name + 'Has no such a key')
+    showHUD(sub_name + "Has no such a key")
   } else if (key = keys[keys.length === 1 ? 0 : absCRepeat - 1], typeof key !== "string" || !key) {
-    showHUD(sub_name + 'The key is invalid')
+    showHUD(sub_name + "The key is invalid")
   } else {
     runKeyWithOptions(key, keys.length === 1 ? cRepeat : absCRepeat !== cRepeat ? -1 : 1
         , matchedRule.options || get_cOptions<kBgCmd.runKey, true>().options)

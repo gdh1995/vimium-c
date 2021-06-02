@@ -7,7 +7,7 @@ type SettingsUpdateMsg = {
 }
 
 const As_ = <T> (i: T): T => i;
-const AsC_ = <T extends kCName> (i: T) => i
+const AsC_ = <T extends kCName> (i: T): T => i // lgtm [js/unused-local-variable]
 // eslint-disable-next-line no-var
 var Settings_ = {
   cache_: BgUtils_.safeObj_() as Readonly<SettingsNS.FullCache>,
@@ -88,7 +88,7 @@ var Settings_ = {
   },
   postUpdate_: function<K extends keyof SettingsWithDefaults> (this: {}, key: K, value?: FullSettings[K]): void {
     type AllK = keyof SettingsWithDefaults;
-    return (Settings_.updateHooks_[key as AllK] as SettingsNS.SimpleUpdateHook<AllK>).call(
+    return (Settings_.updateHooks_[key] as SettingsNS.SimpleUpdateHook<AllK>).call(
       this as typeof Settings_,
       value !== undefined ? value : Settings_.get_(key), key);
   } as {
@@ -99,10 +99,10 @@ var Settings_ = {
       request: K extends kBgReq.settingsUpdate ? SettingsUpdateMsg : Req.bg<K>): void {
     if (request.N !== kBgReq.settingsUpdate) {
       Settings_._BroadcastSettingsUpdates(request);
-    } else if (((request as SettingsUpdateMsg).d as Extract<SettingsUpdateMsg["d"], string[]>).length == null) {
+    } else if ((request.d as Extract<SettingsUpdateMsg["d"], string[]>).length == null) {
       Settings_._BroadcastSettingsUpdates(request)
     } else {
-      let cur = (request as SettingsUpdateMsg).d as Extract<SettingsUpdateMsg["d"], string[]>,
+      let cur = request.d as Extract<SettingsUpdateMsg["d"], string[]>,
       old = Settings_.temp_.newSettingsToBroadcast_
       if (old) {
         cur = cur.concat(old)
@@ -111,15 +111,15 @@ var Settings_ = {
           && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)) {
         queueMicrotask(Settings_._BroadcastSettingsUpdates.bind(null, request));
       } else {
-        Promise.resolve(request).then(Settings_._BroadcastSettingsUpdates);
+        void Promise.resolve(request).then(Settings_._BroadcastSettingsUpdates)
       }
       Settings_.temp_.newSettingsToBroadcast_ = cur;
-      (request as SettingsUpdateMsg).d = null as never
+      request.d = null as never
     }
   },
   _BroadcastSettingsUpdates<K extends keyof BgReq> (this: void
       , request: K extends kBgReq.settingsUpdate ? SettingsUpdateMsg : Req.bg<K>): void {
-    if (request.N === kBgReq.settingsUpdate && !(request as SettingsUpdateMsg).d) {
+    if (request.N === kBgReq.settingsUpdate && !request.d) {
       const obj = Settings_.temp_.newSettingsToBroadcast_!
       const d: BgReq[kBgReq.settingsUpdate]["d"] = (request as Req.bg<kBgReq.settingsUpdate>).d = {}
       for (const key of obj) {
@@ -133,7 +133,7 @@ var Settings_ = {
           port.postMessage(request as Req.baseBg<K> as Req.bg<K>)
         }
       })
-    } else for (const frames of Backend_.indexPorts_().values()) {
+    } else for (const frames of Backend_.indexPorts_().values()) { // eslint-disable-line curly
       for (let port of frames.ports_) {
         port.postMessage(request as Req.baseBg<K> as Req.bg<K>)
       }
@@ -151,7 +151,7 @@ var Settings_ = {
     type SettingType<T> = T extends keyof SettingsNS.FullSettings ? SettingsNS.FullSettings[T] : never
     type ValType<T extends keyof SettingsNS.AutoSyncedItems> = SettingType<SettingsNS.AutoSyncedItems[T][0]>;
     switch (shortKey) {
-    case "c": case "n": value = (value as ValType<"c" | "n">).toLowerCase().toUpperCase!(); break
+    case "c": case "n": value = (value as ValType<"c" | "n">).toLowerCase().toUpperCase(); break
     case "i":
       value = value === !!value ? value
         : (value as ValType<"i">) > 1 || (value as ValType<"i">) > 0 && !Settings_.payload_.o; break
@@ -177,7 +177,7 @@ var Settings_ = {
       const map = old || (Settings_.extAllowList_ = new Map())
       if (old && Build.BTypes & BrowserType.Chrome
           && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)) {
-        map.forEach((val, key): void => { val !== false && map.delete(key) })
+        map.forEach((v, k): void => { v !== false && map.delete(k) })
       }
       if (!val) { return; }
       for (let arr = val.split("\n"), i = arr.length, wordCharRe = /^[\da-z_]/i as RegExpI; 0 <= --i; ) {
@@ -308,7 +308,7 @@ var Settings_ = {
     filePath = "/front/" + filePath;
     if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinFetchExtensionFiles
         || CurCVer_ >= BrowserVer.MinFetchExtensionFiles) {
-      fetch(filePath).then(r => r.text()).then(callback)
+      void fetch(filePath).then(r => r.text()).then(callback)
       return;
     }
     const req = new XMLHttpRequest() as TextXHR;

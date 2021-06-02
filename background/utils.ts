@@ -567,14 +567,14 @@ var BgUtils_ = {
     let result: any = ""
     if ((mathParser = mathParser || window.MathParser || {}).evaluate) {
       try {
-        result = mathParser.evaluate(path)
+        result = mathParser.evaluate(path) // eslint-disable-line @typescript-eslint/no-unsafe-call
         if (typeof result === "function") {
           result = ""
         } else {
           result = "" + result;
         }
       } catch {}
-      mathParser.clean();
+      mathParser.clean() // eslint-disable-line @typescript-eslint/no-unsafe-call
       mathParser.errormsg && (mathParser.errormsg = "")
     }
     return [result, Urls.kEval.math, path];

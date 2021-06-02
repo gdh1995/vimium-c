@@ -38,6 +38,7 @@ type BareElementSet = Pick<ElementSet, "has">
 
 let frameNested_: NestedFrame = false
 let extraClickable_: BareElementSet | null
+// let withClickableAttrs_: BareElementSet | null
 let clickTypeFilter_: ClickType = 0
 let ngEnabled: boolean | undefined
 let jsaEnabled_: boolean | undefined
@@ -132,8 +133,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
   }
   if (isClickable === null) {
     type = (s = element.contentEditable) !== "inherit" && s && s !== "false" ? ClickType.edit
-      : (OnFirefox
-          ? (anotherEl = unwrap_ff(element)).onclick
+      : (OnFirefox ? (anotherEl = unwrap_ff(element)).onclick
             || (anotherEl as TypeToAssert<Element, SafeHTMLElement, "onmousedown">).onmousedown
           : element.getAttribute("onclick"))
         || (s = element.getAttribute("role")) && clickableRoles_.test(s)
@@ -146,14 +146,12 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
       ? ClickType.codeListener
       : (s = element.getAttribute("tabindex")) && parseInt(s, 10) >= 0 && !GetShadowRoot_(element)
         && element !== helpBox ? ClickType.tabindex
-      : clientSize
-        && ((clientSize = element.clientHeight) > GlobalConsts.MinScrollableAreaSizeForDetection - 1
+      : clientSize && (clientSize = element.clientHeight) > GlobalConsts.MinScrollableAreaSizeForDetection - 1
               && clientSize + 5 < element.scrollHeight ? ClickType.scrollY
-            : clientSize > /* scrollbar:12 + font:9 */ 20
+      : clientSize > /* scrollbar:12 + font:9 */ 20
               && (clientSize = element.clientWidth) > GlobalConsts.MinScrollableAreaSizeForDetection - 1
               && clientSize + 5 < element.scrollWidth ? ClickType.scrollX
-            : ClickType.Default)
-        || (((s = element.className) && clickableClasses_.test(s) ? type = ClickType.classname : tag === "li")
+      : (((s = element.className) && clickableClasses_.test(s) ? type = ClickType.classname : tag === "li")
             && (!(anotherEl = element.parentElement)
                 || (type ? (s = htmlTag_(anotherEl), !s.includes("button") && s !== "a")
                     : clickable_.has(anotherEl) && htmlTag_(anotherEl) === "ul" && !s.includes("active")))
@@ -164,12 +162,12 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
   if (isClickable
       && (arr = tag === "img" ? getZoomedAndCroppedRect_(element as HTMLImageElement, null, true)
               : arr || getVisibleClientRect_(element, null))
+      && (isAriaNotTrue_(element, kAria.hidden) || extraClickable_ && extraClickable_.has(element))
       && (type < ClickType.scrollX
         || shouldScroll_s(element
             , (((type - ClickType.scrollX) as ScrollByY) + forceToScroll_) as BOOL | 2 | 3, 0) > 0)
-      && (isAriaNotTrue_(element, kAria.hidden) || extraClickable_ && extraClickable_.has(element))
-      && (hintMode_ > HintMode.min_job - 1 || isAriaNotTrue_(element, kAria.disabled))
-      && (type < ClickType.codeListener  || type > ClickType.classname
+      && (mode1_ > HintMode.min_job - 1 || isAriaNotTrue_(element, kAria.disabled))
+      && (type < ClickType.codeListener || type > ClickType.classname
           || !(s = element.getAttribute("unselectable")) || s.toLowerCase() !== "on")
       && (0 === clickTypeFilter_ || clickTypeFilter_ & (1 << type))
   ) { hints.push([element, arr, type]); }
@@ -177,7 +175,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
 
 const checkJSAction = (str: string): boolean => {
   for (let jsaStr of str.split(";")) {
-    jsaStr = jsaStr!.trim()
+    jsaStr = jsaStr.trim()
     jsaStr = jsaStr.startsWith("click:") ? jsaStr.slice(6) : jsaStr && !jsaStr.includes(":") ? jsaStr : NONE
     if (jsaStr !== NONE && !(<RegExpOne> /\._\b(?![\$\.])/).test(jsaStr)) {
       return true;
@@ -262,10 +260,10 @@ export const getIfOnlyVisible = (hints: (Hint | Hint0)[], element: SafeElement):
 export const traverse = ((selector: string, options: CSSOptions & OtherFilterOptions, filter: Filter<Hint | Hint0>
     , notWantVUI?: 1, wholeDoc?: 1 | Element, acceptNonHTML?: 1): Hint[] | Hint0[] => {
 
-const matchSafeElements = ((selector: string, rootNode: Element | ShadowRoot | null
+const matchSafeElements = ((selector1: string, rootNode: Element | ShadowRoot | null
     , udSelector: string | null, mayBeUnsafe?: 1): HintSources | void => {
   let list = udSelector !== " "
-      ? querySelectorAll_unsafe_(udSelector || selector, rootNode, mayBeUnsafe as never as 0) : []
+      ? querySelectorAll_unsafe_(udSelector || selector1, rootNode, mayBeUnsafe as never as 0) : []
   if (OnFirefox) {
     return list as NodeListOf<SafeElement> | void
   }
@@ -404,13 +402,16 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
       : acceptNonHTML ? filter as BaseFilter<Hint0 | Hint> : null
   const prefixedShadow = OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
       && chromeVer_ < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+  // const cssClickableAttrs: string = !wantClickable ? "" : `[onclick],[tabindex],[contenteditable],[role]${
+  //     forHover_ ? ",[onmouseover]" : ""}${ngEnabled ? ",[ng-click]" : ""}${jsaEnabled_ ? ",[jsaction]" : ""
+  //     },[aria-selected],[data-tab]`
   const tree_scopes: Array<typeof cur_scope> = [[cur_arr, 0
       , createElementSet(clickableSelector && querySelectorAll_unsafe_(clickableSelector, traverseRoot, 1)
           || (clickableSelector = null, [])) ]]
   let cur_scope: [HintSources, number, BareElementSet | null] | undefined, cur_tree: HintSources, cur_ind: number
   for (; cur_scope = tree_scopes.pop(); ) {
     for ([cur_tree, cur_ind, extraClickable_] = cur_scope; cur_ind < cur_tree.length; ) {
-      const el = cur_tree[cur_ind++] as SafeElement
+      const el: SafeElement = cur_tree[cur_ind++]
       if ((el as ElementToHTML).lang != null) {
         filter(output, el as SafeHTMLElement)
         const shadow = (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0 && prefixedShadow
@@ -446,7 +447,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
     ((list: Hint[]): void => {
   const D = "div"
   let i = list.length, j: number, k: ClickType, s: string, notRemoveParents: boolean;
-  let element: Element | null, prect: Rect, crect: Rect | null, splice: number = 0
+  let element: Element | null, prect: Rect, crect: Rect | null, splice = 0
   let shadowRoot: ShadowRoot | null | undefined
   while (0 <= --i) {
     k = list[i][2];
@@ -582,6 +583,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
     }
     cur_arr = querySelectorAll_unsafe_(selector, ui_root) as NodeListOf<SafeElement>
     if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$ForDOMListTypes) {
+      // eslint-disable-next-line @typescript-eslint/prefer-for-of
       for (let i = 0; i < cur_arr.length; i++) { htmlTag_(cur_arr[i]) && filter(output, cur_arr[i] as SafeHTMLElement) }
     } else {
       for (const i of cur_arr as ArrayLike<Element> as Element[]) { htmlTag_<1>(i) && filter(output, i) }
@@ -761,7 +763,7 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
             }
           }
         } else {
-          for (let i = 0; i < arr.length; i++) {
+          for (let i = 0; i < arr.length; i++) { // eslint-disable-line @typescript-eslint/prefer-for-of
             const node = arr[i]
             if (isNode_(node, kNode.TEXT_NODE) && node.data.trim().length > 2) {
               getIfOnlyVisible(hints, element)

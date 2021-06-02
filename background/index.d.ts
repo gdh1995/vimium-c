@@ -69,7 +69,7 @@ declare namespace Urls {
     NoScheme = 2,
     MaxOfInputIsPlainUrl = NoScheme,
     PlainVimium = 3,
-    Search = 4, // eslint-disable-line no-shadow
+    Search = 4, // eslint-disable-line @typescript-eslint/no-shadow
     Functional = 5,
   }
   const enum TempType {
@@ -144,7 +144,8 @@ declare namespace Frames {
     s: Sender;
     postMessage<K extends 1, O extends keyof CmdOptions>(request: Req.FgCmd<O>): K;
     postMessage<K extends keyof FgRes>(response: Req.res<K>): 1;
-    postMessage<K extends 2>(response: Req.res<keyof FgRes>): 1;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    postMessage<_K extends 2>(response: Req.res<keyof FgRes>): 1;
     postMessage<K extends kBgReq>(request: Req.bg<K>): 1;
     onDisconnect: chrome.events.Event<(port: Frames.Port, exArg: FakeArg) => void>;
     onMessage: chrome.events.Event<(message: any, port: Frames.Port, exArg: FakeArg) => void>;
@@ -211,7 +212,7 @@ declare namespace CommandsNS {
   interface BaseItem {
     readonly alias_: (kBgCmd | kFgCmd) & number; readonly background_: BOOL
   }
-  interface Options {}
+  interface Options {} // eslint-disable-line @typescript-eslint/no-empty-interface
   interface EnvItemOptions extends Req.FallbackOptions {}
   interface EnvItem {
     element?: string
