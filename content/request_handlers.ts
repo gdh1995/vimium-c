@@ -32,7 +32,7 @@ import { onActivate } from "./scroller"
 import { Status as VomnibarStatus, omni_status, omni_box } from "./omni"
 
 let framemask_more = false
-let framemask_node: HTMLDivElement | null = null
+let framemask_node: HTMLDivElement | HTMLBodyElement | null = null
 let framemask_fmTimer: ValidIntervalID = TimerID.None
 let needToRetryParentClickable: BOOL = 0
 

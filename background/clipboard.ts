@@ -77,9 +77,9 @@ const parseSeds_ = (text: string, fixedContexts: Contexts | null): readonly Clip
 }
 
 const decodeSlash_ = (text: string): string =>
-    text.replace(<RegExpSearchable<1>> /\\(x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|.)/g,
+    text.replace(<RegExpSearchable<1>> /\\(x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|[^])|\$0/g,
         (_, s: string): string =>
-            s[0] === "x" || s[0] === "u"
+            !s ? "$&" : s[0] === "x" || s[0] === "u"
             ? (s = String.fromCharCode(parseInt(s.slice(1), 16)), s === "$" ? s + s : s)
             : s === "t" ? "\t" : s === "r" ? "\r" : s === "n" ? "\n"
             : s === "0" ? "$&" : s >= "1" && s <= "9" ? "$" + s // like r"\1" in sed

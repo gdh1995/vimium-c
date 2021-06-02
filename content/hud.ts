@@ -10,7 +10,7 @@ import { find_box } from "./mode_find"
 import { wdZoom_ } from "../lib/rect"
 
 let tweenId: ValidIntervalID = TimerID.None
-let box: HTMLDivElement | null = null
+let box: HTMLDivElement | HTMLBodyElement | null = null
 let $text: Text = null as never
 let text = ""
 let opacity_: 0 | 0.25 | 0.5 | 0.75 | 1 = 0

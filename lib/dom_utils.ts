@@ -446,7 +446,7 @@ export { OnDocLoaded_ }
 export function set_OnDocLoaded_ (_newOnDocLoaded: typeof OnDocLoaded_): void { OnDocLoaded_ = _newOnDocLoaded }
 
 export let createElement_ = doc.createElement.bind(doc) as {
-  <K extends "div" | "span" | "style" | "iframe" | "a" | "script" | "dialog"> (
+  <K extends "div" | "span" | "style" | "iframe" | "a" | "script" | "dialog" | "body"> (
       this: void, htmlTagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement
 }
 export function set_createElement_ (_newCreateEl: typeof createElement_): void { createElement_ = _newCreateEl }

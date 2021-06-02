@@ -2123,7 +2123,7 @@ Completion_ = {
         // if str looks like an filename extension, then generate a stricter `matchType`
         // - not so correct but the impact is quite little
         mayRawQueryChangeNextTime_ = mayRawQueryChangeNextTime_
-            && !(<RegExpOne> /^[.\u3002](\w+[.\u3002]?)*$/).test(str)
+            && !(<RegExpOne> /^[.\u3002]\w+([.\u3002]\w*)?$/).test(str)
       } else {
         mayRawQueryChangeNextTime_ = mayRawQueryChangeNextTime_ && str.includes("\uff1a")
             && !(<RegExpOne> /\uff1a([^\/\d]|\d[^\0-\xff])/).test(str)

@@ -139,7 +139,7 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
   set_cPort(port)
   set_cRepeat(count)
   count = cmdInfo_[alias]
-  if (port == null && (alias > kBgCmd.MAX_NEED_CPORT || alias < kBgCmd.MIN_NEED_CPORT)) {
+  if (port == null && alias < kBgCmd.MAX_NEED_CPORT + 1 && alias > kBgCmd.MIN_NEED_CPORT - 1) {
     /* empty */
   } else if (count < kCmdInfo.ActiveTab) {
     (func as BgCmdNoTab<kBgCmd>)()
@@ -266,7 +266,7 @@ export const executeShortcut = (shortcutName: StandardShortcutNames, ref: Frames
       opts = opts || ((registry as Writable<typeof registry>).options_ = BgUtils_.safeObj_<any>());
       (overrideOption as (field: keyof CommandsNS.SharedInnerOptions, value: true
           , curOptions: CommandsNS.SharedInnerOptions) => void)("$noWarn", true, opts)
-      console.log("Error: Command", cmdName, "must run on pages which are not privileged")
+      console.log("Error: Command", cmdName, "must run on pages which have run Vimium C")
     }
   }
 }
@@ -529,8 +529,10 @@ export const runNextCmdBy = (useThen: BOOL, options: Req.FallbackOptions, timeou
     const fStatus = { c: options.$f! | 0, r: options.$retry }
     setTimeout((): void => {
       const frames = framesForTab.get(TabRecency_.curTab_),
-      port = cPort && cPort.s.tabId_ === TabRecency_.curTab_ && frames && frames.ports_.indexOf(cPort) > 0
-          ? cPort : frames && frames.cur_ || null
+      port = cPort && cPort.s.tabId_ === TabRecency_.curTab_ && frames && frames.ports_.indexOf(cPort) > 0 ? cPort
+          : !frames ? null : frames.cur_.s.status_ === Frames.Status.disabled
+          && frames.ports_.filter(i => i.s.status_ !== Frames.Status.disabled)
+              .sort((a, b) => a.s.frameId_ - b.s.frameId_)[0] || frames.cur_
       if ((<RegExpI> /^[a-z]+(\.[a-zA-Z]+)?$/i).test(nextKey!) && nextKey! in availableCommands_) {
         executeCommand(makeCommand_(nextKey!, null), 1, kKeyCode.None, port, 0, fStatus)
       } else {

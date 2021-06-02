@@ -6,7 +6,7 @@ import { cRepeat, get_cOptions, cPort, cNeedConfirm, set_cPort, settings } from 
 import { complainLimits, requireURL, showHUD } from "./ports"
 import { copy_, parseSedOptions_ } from "./clipboard"
 import { confirm_, runNextCmd, overrideCmdOptions } from "./run_commands"
-import { openUrlWithActions } from "./open_urls"
+import { newTabIndex, preferLastWnd, openUrlWithActions } from "./open_urls"
 import { focusFrame } from "./frame_commands"
 import C = kBgCmd
 
@@ -184,7 +184,7 @@ export const moveTabToNewWindow = (): void | kBgCmd.moveTabToNewWindow => {
     if (all) {
       if (Build.BTypes & ~BrowserType.Edge) {
         for (const i of tabs) {
-          if (i.groupId) {
+          if (i.groupId != null && i.groupId !== -1) {
             /** @todo: fix it with Manifest V3 */
             showHUD("Can not keep groups info during this command")
             return
@@ -275,7 +275,7 @@ export const moveTabToNewWindow = (): void | kBgCmd.moveTabToNewWindow => {
         return wnd2.incognito && wnd2.type === "normal"
       })
       if (wnds.length) {
-        browserTabs.query({ windowId: wnds[wnds.length - 1].id, active: true }, ([tab2]): void => {
+        browserTabs.query({ windowId: preferLastWnd(wnds).id, active: true }, ([tab2]): void => {
           const tabId2 = options.tabId!
           let url2: string | undefined = options.url
           if (typeof url2 === "string" && (!url2 || settings.newTabs_.get(url2) === Urls.NewTabType.browser)) {
@@ -314,23 +314,25 @@ export const moveTabToNewWindow = (): void | kBgCmd.moveTabToNewWindow => {
 
 export const moveTabToNextWindow = ([tab]: [Tab]): void | kBgCmd.moveTabToNextWindow => {
   getAllWindows((wnds0: Window[]): void => {
-    let wnds: Window[], ids: number[], index = tab.windowId
+    let wnds: Window[], ids: number[]
     const noMin = get_cOptions<C.moveTabToNextWindow>().minimized === false
         || get_cOptions<C.moveTabToNextWindow>().min === false
     wnds = wnds0.filter(wnd => wnd.incognito === tab.incognito && wnd.type === "normal"
         && (!noMin || wnd.state !== "minimized"))
     if (wnds.length > 0) {
       ids = wnds.map(wnd => wnd.id)
-      index = ids.indexOf(index)
+      const index = ids.indexOf(tab.windowId)
       if (ids.length >= 2 || index < 0) {
         let dest = (index + cRepeat) % ids.length
         index < 0 && cRepeat < 0 && dest++
         dest < 0 && (dest += ids.length)
         browserTabs.query({windowId: ids[dest], active: true}, ([tab2]): void => {
-          const index = get_cOptions<C.moveTabToNextWindow>().end ? 3e4
+          const newIndex = get_cOptions<C.moveTabToNextWindow>().end ? null
+              : get_cOptions<C.moveTabToNextWindow>().position != null
+              ? newTabIndex(tab, get_cOptions<C.moveTabToNextWindow>().position)
               : tab2.index + (get_cOptions<C.moveTabToNextWindow>().right ? 1 : 0)
           const callback = (): void => {
-            browserTabs.move(tab.id, { index, windowId: tab2.windowId }, (): void => {
+            browserTabs.move(tab.id, { index: newIndex ?? 3e4, windowId: tab2.windowId }, (): void => {
               notifyCKey()
               selectTab(tab.id, selectWnd)
             })
@@ -343,7 +345,7 @@ export const moveTabToNextWindow = ([tab]: [Tab]): void | kBgCmd.moveTabToNextWi
         return
       }
     } else {
-      wnds = wnds0.filter(wnd => wnd.id === index)
+      wnds = wnds0.filter(wnd => wnd.id === tab.windowId)
     }
     makeWindow({
       tabId: tab.id, incognito: tab.incognito

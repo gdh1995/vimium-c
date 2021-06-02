@@ -134,10 +134,16 @@ Backend_ = {
           || (Build.BTypes & BrowserType.Edge && OnOther === BrowserType.Edge)
           || Build.MinCVer < BrowserVer.MinMuted && Build.BTypes & BrowserType.Chrome
               && CurCVer_ < BrowserVer.MinMuted) {
+        /* empty */
       } else {
         const muted = Build.MinCVer < BrowserVer.MinMutedInfo && Build.BTypes & BrowserType.Chrome
-            && CurCVer_ < BrowserVer.MinMutedInfo ? !tab.muted : !tab.mutedInfo.muted
-        callback = (tab2: Tab): void => { browserTabs.update(tab2.id, { muted }) }
+            && CurCVer_ < BrowserVer.MinMutedInfo ? tab.muted : tab.mutedInfo.muted
+        callback = (tab2: Tab): void => {
+          if ((Build.MinCVer < BrowserVer.MinMutedInfo && Build.BTypes & BrowserType.Chrome
+              && CurCVer_ < BrowserVer.MinMutedInfo ? tab2.muted : tab2.mutedInfo.muted) !== muted) {
+            browserTabs.update(tab2.id, { muted })
+          }
+        }
       }
       const args: Parameters<BackendHandlersNS.BackendHandlers["reopenTab_"]>[2] = {
         windowId: tab.windowId,

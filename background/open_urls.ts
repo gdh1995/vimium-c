@@ -37,6 +37,10 @@ export const newTabIndex = (tab: Readonly<Pick<Tab, "index">>, pos: OpenUrlOptio
     // Chrome: open at end; Firefox: (if opener) at the end of its children, just like a normal click
     : undefined
 
+export const preferLastWnd = <T extends Pick<Window, "id">> (wnds: T[]): T => {
+  return wnds.find(i => i.id === TabRecency_.lastWnd_) || wnds[wnds.length - 1]!
+}
+
 const normalizeWndType = (wndType: string | boolean | null | undefined): "popup" | "normal" | undefined =>
     wndType === "popup" || wndType === "normal" ? wndType : undefined
 
@@ -103,8 +107,8 @@ const makeWindowFrom = (url: string | string[], focused: boolean, incognito: boo
     type: (typeof url === "string" || url.length === 1) ? normalizeWndType(options.window) : undefined,
     left: exOpts.left, top: exOpts.top, width: exOpts.width, height: exOpts.height
   }, exOpts.state != null ? exOpts.state as chrome.windows.ValidStates
-      : wnd && wnd.state !== "minimized" ? wnd.state : "", (wnd): void => {
-    wnd && runNextOnTabLoaded(options, wnd.tabs[0])
+      : wnd && wnd.state !== "minimized" ? wnd.state : "", (wnd2): void => {
+    wnd2 && runNextOnTabLoaded(options, wnd2.tabs[0])
     return runtimeError_()
   })
 }
@@ -119,15 +123,15 @@ const openUrlInIncognito = (urls: string[], reuse: ReuseType
   if (!options.window && reuse !== ReuseType.newWnd
       && (inCurWnd || (wnds = wnds.filter(w => w.incognito && w.type === "normal")).length > 0)) {
     const args: InfoToCreateMultiTab & { windowId: number } = {
-      url: urls[0], active, windowId: inCurWnd ? tab!.windowId : wnds[wnds.length - 1].id
+      url: urls[0], active, windowId: inCurWnd ? oldWnd!.id : preferLastWnd(wnds).id
     }
     if (inCurWnd) {
       args.index = newTabIndex(tab!, options.position, options.opener)
       options.opener && (args.openerTabId = tab!.id)
     }
-    openMultiTabs(args, cRepeat, true, urls, (tab): void => {
-      !inCurWnd && active && selectWnd(tab)
-      runNextOnTabLoaded(options, tab)
+    openMultiTabs(args, cRepeat, true, urls, (tab2): void => {
+      !inCurWnd && active && selectWnd(tab2)
+      runNextOnTabLoaded(options, tab2)
     })
   } else {
     makeWindowFrom(urls, true, true, options, options as any, oldWnd)
@@ -145,7 +149,8 @@ const fillUrlMasks = (url: string, tabs: [Tab?] | undefined, url_mark: string | 
   const tabUrl = tabs && tabs.length > 0 ? getTabUrl(tabs[0]!) : ""
   const masks: Array<string | UnknownValue> = [url_mark,
     get_cOptions<C.openUrl>().host_mask || get_cOptions<C.openUrl>().host_mark,
-    get_cOptions<C.openUrl>().tabid_mask || get_cOptions<C.openUrl>().tabId_mask || get_cOptions<C.openUrl>().tabid_mark,
+    get_cOptions<C.openUrl>().tabid_mask || get_cOptions<C.openUrl>().tabId_mask
+      || get_cOptions<C.openUrl>().tabid_mark || get_cOptions<C.openUrl>().tabId_mark,
     get_cOptions<C.openUrl>().title_mask || get_cOptions<C.openUrl>().title_mark,
     get_cOptions<C.openUrl>().id_mask || get_cOptions<C.openUrl>().id_mark || get_cOptions<C.openUrl>().id_marker,
   ]
@@ -247,16 +252,16 @@ const openUrlInNewTab = (urls: string[], reuse: Exclude<ReuseType, ReuseType.reu
       && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox) && inReader) {
     args.openInReaderMode = inReader
   }
-  openMultiTabs(args, cRepeat, incognito === "force", urls, (tab): void => {
-    active && selectWndIfNeed(tab)
-    runNextOnTabLoaded(options, active && tab)
+  openMultiTabs(args, cRepeat, incognito === "force", urls, (tab2): void => {
+    active && selectWndIfNeed(tab2)
+    runNextOnTabLoaded(options, active && tab2)
   })
 }
 
 const replaceOrOpenInNewTab = <Reuse extends Exclude<ReuseType, ReuseType.current>> (
     url: string, reuse: Reuse, replace: KnownOptions<C.openUrl>["replace"], rawWndType: OpenUrlOptions["window"]
     , options: Reuse extends ReuseType.reuse ? MarksNS.FocusOrLaunch : KnownOptions<C.openUrl>
-    , tabs?: [Tab] | []): void => {
+    , curTabs?: [Tab] | []): void => {
   const matcher = !replace ? null
       : typeof replace === "string" ? Exclusions.createSimpleUrlMatcher_(replace)
       : typeof replace !== "object" || !replace.t || !replace.v ? null : replace
@@ -295,8 +300,8 @@ const replaceOrOpenInNewTab = <Reuse extends Exclude<ReuseType, ReuseType.curren
     if (matchedTab == null || matchedTab.id === TabRecency_.curTab_ && reuse !== ReuseType.reuse) {
       reuse === ReuseType.reuse ? focusOrLaunch(options as MarksNS.FocusOrLaunch)
       : runNextCmdBy(0, options as KnownOptions<C.openUrl>) ? 0
-      : tabs ? openUrlInNewTab([url], reuse as Exclude<ReuseType, ReuseType.current | ReuseType.reuse>
-            , options as KnownOptions<C.openUrl>, tabs)
+      : curTabs ? openUrlInNewTab([url], reuse as Exclude<ReuseType, ReuseType.current | ReuseType.reuse>
+            , options as KnownOptions<C.openUrl>, curTabs)
       : getCurTab(openUrlInNewTab.bind(null, [url], reuse as Exclude<ReuseType, ReuseType.current | ReuseType.reuse>
             , options as KnownOptions<C.openUrl>))
     } else {
@@ -307,7 +312,8 @@ const replaceOrOpenInNewTab = <Reuse extends Exclude<ReuseType, ReuseType.curren
         if (activeWnd) {
           selectWnd(matchedTab)
         }
-        runNextOnTabLoaded(options as KnownOptions<C.openUrl>, activeWnd && matchedTab)
+        runNextOnTabLoaded(reuse === ReuseType.reuse ? (options as MarksNS.FocusOrLaunch).f || {}
+            : options as KnownOptions<C.openUrl> , activeWnd && matchedTab)
       })
     }
   })
@@ -727,7 +733,7 @@ export const focusOrLaunch = (request: FgReq[kFgReq.focusOrLaunch], port?: Port 
   let cb2: (result: Tab[], exArg?: FakeArg) => void
   if (!notFolder && (url.startsWith("file:") || url.startsWith("ftp:"))
       && !url.includes(".", url.lastIndexOf("/") + 1)) {
-    url += "/"
+    url += request.p ? "/*" : "/"
     cb2 = (tabs): void => {
       tabs && tabs.length > 0 ? callback.call(request, tabs) : focusOrLaunch(request, null, true)
     }

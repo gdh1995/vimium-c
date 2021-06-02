@@ -124,7 +124,7 @@ export const main_ff = (OnFirefox ? (): void => {
       // ensure listener is the latest one
       localSetupListener(1, 1), localSetupListener(1, 3)
       phase < /** Event.BUBBLING_PHASE  */ 3 && localSetupListener(0, 1)
-      await phase > /** Event.CAPTURING_PHASE */ 1 && localSetupListener(0, 3)
+      await (phase > /** Event.CAPTURING_PHASE */ 1 && localSetupListener(0, 3))
       localSetupListener(1, 1), localSetupListener(1, 3)
     }
     preventEventOnWindow = async (wnd: Window): Promise<void> => (

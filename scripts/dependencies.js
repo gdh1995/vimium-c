@@ -103,7 +103,7 @@ exports.readJSON = (fileName, throwError) => {
 }
 
 function _makeJSONReader() {
-  var stringOrComment = /"(?:\\[\\\"]|[^"])*"|'(?:\\[\\\']|[^'])*'|\/\/[^\r\n]*|\/\*[^]*?\*\//g
+  var stringOrComment = /"(?:\\[^\r\n]|[^"\\\r\n])*"|'(?:\\[^\r\n]|[^'\\\r\n])*'|(?:\/\/|#)[^\r\n]*|\/\*[^]*?\*\//g
     , notLF = /[^\r\n]+/g, notWhiteSpace = /\S/;
   /** @type { {[path: string]: string} } */
   var cached = {};
@@ -149,13 +149,13 @@ function _makeJSONReader() {
   _readJSON = readJSON1;
 }
 
-var _terserConfig = null, _configWarningLogged = false;
+var _terserConfig = null
 
 /**
  * Load configuration of terser
  * @param {string} path - file path
  * @param {boolean} [reload] - force to reload or return the cache if possible
- * @returns {TerserOptions} parsed configuration object
+ * @returns {TerserOptions & { nameCache?: { vars?: {}, props?: {} } }} parsed configuration object
  */
 exports.loadTerserConfig = (path, reload) => {
   var a = _terserConfig;
@@ -194,6 +194,9 @@ exports.loadTerserConfig = (path, reload) => {
     } catch (e) {
       console.log("Can not read the version of terser.");
       throw e;
+    }
+    if (!ver) {
+      console.log("Warning: Can not get the version of terser.")
     }
   }
   return a;

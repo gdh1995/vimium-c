@@ -443,7 +443,7 @@ function parseJSON_(text: string): any {
   const notLFRe = <RegExpG & RegExpSearchable<0>> /[^\r\n]+/g
     , errMsgRe = <RegExpSearchable<3> & RegExpOne> /\b(?:position (\d+)|line (\d+) column (\d+))/
     , stringOrCommentRe = <RegExpG & RegExpSearchable<0>
-        > /"(?:\\[\\\"]|[^"])*"|'(?:\\[\\\']|[^'])*'|\/\/[^\r\n]*|\/\*[^]*?\*\/|#[^\r\n]*/g
+        > /"(?:\\[^\r\n]|[^"\\\r\n])*"|'(?:\\[^\r\n]|[^'\\\r\n])*'|(?:\/\/|#)[^\r\n]*|\/\*[^]*?\*\//g
     ;
   if (!text || !(text = text.trimRight())) { return null; }
   let match: string[] | null, kSpaces = " ";

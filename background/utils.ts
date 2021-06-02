@@ -516,12 +516,6 @@ var BgUtils_ = {
               second ? { r: first, k: second }
               : (<RegExpOne> /^[@#$-]?[a-z]+$|^\.$/).test(first) ? { r: null, k: first } : { r: first, k: null } )
       return [path, Urls.kEval.paste]
-    case "sed2":
-      cmd = path.split(" ", 1)[0]
-      path = cmd.length === path.length ? ""
-          : a.sed_(path.slice(cmd.length + 1).trim(), SedContext.NONE
-              , (<RegExpOne> /^[@#$-]?[a-z]+$|^\.$/).test(cmd) ? { r: null, k: cmd } : { r: cmd, k: null } )
-      return [path, Urls.kEval.paste]
     case "u": case "url": case "search":
       // here path is not empty, and so `decodeEscapedURL(path).trim()` is also not empty
       arr = a.decodeEscapedURL_(path).split(a.spacesRe_);

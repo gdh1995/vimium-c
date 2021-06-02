@@ -76,8 +76,10 @@ interface BgCmdOptions {
   }
   [kBgCmd.mainFrame]: Req.FallbackOptions
   [kBgCmd.moveTab]: { group: "keep" | "ignore" }
-  [kBgCmd.moveTabToNewWindow]: { all: boolean | BOOL; incognito: boolean } & LimitedRangeOptions
+  [kBgCmd.moveTabToNewWindow]: { all: boolean | BOOL }
+      & Pick<OpenUrlOptions, "incognito" | "position"> & LimitedRangeOptions
   [kBgCmd.moveTabToNextWindow]: { minimized: false; min: false; end: boolean; right: boolean }
+      & Pick<OpenUrlOptions, "position">
   [kBgCmd.openUrl]: OpenUrlOptions & MasksForOpenUrl & {
     urls: string[]; $fmt: 1 | 2
     url: string; url_f: Urls.Url
@@ -127,7 +129,7 @@ interface BgCmdInfoMap {
   [kBgCmd.discardTab]: kCmdInfo.CurWndTabs
   [kBgCmd.goBackFallback]: kCmdInfo.ActiveTab
   [kBgCmd.goToTab]: kCmdInfo.CurShownTabs | kCmdInfo.CurWndTabs
-  [kBgCmd.moveTab]: kCmdInfo.CurWndTabs
+  [kBgCmd.moveTab]: kCmdInfo.CurShownTabs | kCmdInfo.CurWndTabs
   [kBgCmd.moveTabToNextWindow]: kCmdInfo.ActiveTab
   [kBgCmd.openUrl]: kCmdInfo.ActiveTab | kCmdInfo.NoTab
   [kBgCmd.reloadTab]: kCmdInfo.CurWndTabsIfRepeat
@@ -155,7 +157,7 @@ interface MasksForOpenUrl {
   url_mask: string
   /** (deprecated) */ url_mark: string
   host_mask: string; host_mark: string
-  tabid_mask: string; tabId_mask: string; tabid_mark: string
+  tabid_mask: string; tabId_mask: string; tabid_mark: string; tabId_mark: string
   title_mask: string; title_mark: string
   id_mask: string; id_mark: string; id_marker: string
 }

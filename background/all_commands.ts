@@ -33,7 +33,9 @@ set_cmdInfo_(As_<{
   /* kBgCmd.goBackFallback  */ Info.ActiveTab,
       Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
       ? Info.CurShownTabs : Info.CurWndTabs, Info.NoTab, Info.NoTab, Info.NoTab,
-  /* kBgCmd.moveTab         */ Info.CurWndTabs, Info.NoTab, Info.ActiveTab, Info.NoTab, Info.CurWndTabsIfRepeat,
+  /* kBgCmd.moveTab         */
+      Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
+      ? Info.CurShownTabs : Info.CurWndTabs, Info.NoTab, Info.ActiveTab, Info.NoTab, Info.CurWndTabsIfRepeat,
   /* kBgCmd.removeRightTab  */ Info.CurWndTabs, Info.NoTab, Info.CurWndTabs, Info.ActiveTab, Info.NoTab,
   /* kBgCmd.restoreTab      */ Info.NoTab, Info.NoTab, Info.ActiveTab, Info.NoTab, Info.NoTab, Info.ActiveTab,
   /* kBgCmd.togglePinTab    */ Info.NoTab, Info.CurWndTabsIfRepeat, Info.ActiveTab, Info.ActiveTab, Info.NoTab,
@@ -210,7 +212,7 @@ set_bgC_([
     : requireURL({ H: kFgReq.marks, u: "" as "url", a: kMarkAction.clear }, true) : Marks_.clear_()
   },
   /* kBgCmd.copyWindowInfo: */ copyWindowInfo,
-  /* kBgCmd.createTab: */ (tabs: [Tab] | undefined): void => {
+  /* kBgCmd.createTab: */ function createTab(tabs: [Tab] | undefined, dedup?: "createTab-dedup"): void {
     let pure = get_cOptions<C.createTab, true>().$pure, tab: Tab | null
     if (pure == null) {
       overrideOption<C.createTab, "$pure">("$pure", pure = !(Object.keys(get_cOptions<C.createTab>()
@@ -219,13 +221,15 @@ set_bgC_([
     }
     if (!pure) {
       openUrl(tabs)
-    } else if (!(tab = tabs && tabs.length > 0 ? tabs[0] : null) && TabRecency_.curTab_ >= 0 && !runtimeError_()) {
-      tabsGet(TabRecency_.curTab_, tab => bgC_[kBgCmd.createTab](tab && [tab]))
+    } else if (!(tab = tabs && tabs.length > 0 ? tabs[0] : null) && TabRecency_.curTab_ >= 0 && !runtimeError_()
+        && dedup !== "createTab-dedup") {
+      tabsGet(TabRecency_.curTab_, newTab => createTab(newTab && [newTab], "createTab-dedup"))
     } else {
+      const opener = get_cOptions<C.createTab>().opener === true
       openMultiTabs(<InfoToCreateMultiTab> As_<Omit<InfoToCreateMultiTab, "url">>(tab ? {
         active: true, windowId: tab.windowId,
-        openerTabId: get_cOptions<C.createTab>().opener ? tab.id : void 0,
-        index: newTabIndex(tab, get_cOptions<C.createTab>().position)
+        openerTabId: opener ? tab.id : void 0,
+        index: newTabIndex(tab, get_cOptions<C.createTab>().position, opener)
       } : {active: true}), cRepeat, get_cOptions<C.createTab, true>().evenIncognito, [null], selectWndIfNeed)
     }
     return runtimeError_()
@@ -339,13 +343,14 @@ set_bgC_([
   /* kBgCmd.mainFrame: */ mainFrame,
   /* kBgCmd.moveTab: */ (tabs: Tab[]): void | kBgCmd.moveTab => {
     const tab = selectFrom(tabs), pinned = tab.pinned
-    let index = Math.max(0, Math.min(tabs.length - 1, tab.index + cRepeat))
+    const curIndex = tabs.indexOf(tab)
+    let index = Math.max(0, Math.min(tabs.length - 1, curIndex + cRepeat))
     while (pinned !== tabs[index].pinned) { index -= cRepeat > 0 ? 1 : -1 }
     if (Build.BTypes & ~BrowserType.Edge && get_cOptions<kBgCmd.moveTab>().group !== "ignore") {
       let curGroup = tab.groupId, newGroup = tabs[index].groupId
       if (newGroup !== curGroup) {
         if (curGroup && curGroup >= 0) {
-          index = tab.index
+          index = curIndex
           newGroup = curGroup
         }
         while (index += cRepeat > 0 ? 1 : -1, 0 <= index && index < tabs.length && tabs[index].groupId === newGroup) {
@@ -353,7 +358,7 @@ set_bgC_([
         index -= cRepeat > 0 ? 1 : -1
       }
     }
-    if (index !== tab.index) {
+    if (index !== curIndex) {
       browserTabs.move(tab.id, { index })
     }
   },

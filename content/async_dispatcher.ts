@@ -337,7 +337,7 @@ export const click_async = (async (element: SafeElementForMouse
   }
   if ((result > ActionType.OpenTabButNotDispatch - 1
         || (OnFirefox && /*#__INLINE__*/ beginToPreventClick_ff(result === ActionType.DispatchAndMayOpenTab),
-            await await mouse_(element, CLK, center, modifiers) && result))
+            (await await mouse_(element, CLK, center, modifiers)) && result))
       && getVisibleClientRect_(element)) {
     // require element is still visible
     if (result! < ActionType.MinOpenUrl) {
@@ -371,14 +371,8 @@ export const click_async = (async (element: SafeElementForMouse
       return
     }
     // use latest attributes
-    const relAttr = (parentAnchor as ParAnchor).rel, openerOpt = userOptions && userOptions.opener,
-    isTargetBlank = (parentAnchor as ParAnchor).target === "_blank",
-    /** {@link #BrowserVer.Min$TargetIsBlank$Implies$Noopener} and FirefoxBrowserVer's */
-    noopener = openerOpt != null ? !openerOpt
-        : isTargetBlank !== (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredES6$Array$$Includes
-            ? relAttr.split(<RegExpOne> /\s/).includes!(isTargetBlank ? "opener" : "noopener")
-            : relAttr.split(<RegExpOne> /\s/).indexOf(isTargetBlank ? "opener" : "noopener") >= 0),
-    reuse = userOptions && userOptions.reuse != null ? userOptions.reuse
+    /** ignore {@link #BrowserVer.Min$TargetIsBlank$Implies$Noopener}, since C91 and FF88 always set openerTabId */
+    const reuse = userOptions && userOptions.reuse != null ? userOptions.reuse
         : specialAction! & kClickAction.openInNewWindow
         ? ReuseType.newWnd : specialAction! & kClickAction.forceToOpenInCurrnt ? ReuseType.current
         : specialAction! & kClickAction.forceToOpenInLastWnd
@@ -386,7 +380,7 @@ export const click_async = (async (element: SafeElementForMouse
         : /** result > 0, so specialAction exists */ modifiers![3] || specialAction! < kClickAction.newTabFromMode
           ? ReuseType.newFg : ReuseType.newBg;
     (hintApi ? hintApi.p : post_)({
-      H: kFgReq.openUrl, u: (parentAnchor as ParAnchor).href, f: !0, n: noopener,
+      H: kFgReq.openUrl, u: (parentAnchor as ParAnchor).href, f: !0, n: !!userOptions && userOptions.opener === false,
       r: reuse, o: userOptions && parseOpenPageUrlOptions(userOptions)
     })
     return 1

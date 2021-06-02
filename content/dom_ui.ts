@@ -103,11 +103,11 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
     }
 } as (element: HTMLElement, adjust: AdjustType, before?: Element | null | true) => void
 
-export const getBoxTagName_old_cr = OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode ? (): "div" =>
+export const getBoxTagName_old_cr = OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode ? (): "div" | "body" =>
     chromeVer_ < BrowserVer.MinForcedColorsMode
         && (Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1 || chromeVer_ > BrowserVer.MinEnsuredShadowDOMV1 - 1)
         && (isHC_ != null ? isHC_ : matchMedia(VTr(kTip.highContrast_WOB)).matches)
-        ? "body" as never as "div" : "div"
+        ? "body" : "div"
   : 0 as never
 
 export const addElementList = function <T extends boolean | BOOL> (
@@ -115,21 +115,24 @@ export const addElementList = function <T extends boolean | BOOL> (
       ): (T extends true | 1 ? HTMLDialogElement : HTMLDivElement) & SafeElement {
     const parent = createElement_(WithDialog && dialogContainer ? "dialog"
         : OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode ? getBoxTagName_old_cr() : "div");
-    let cls = "R HM" + (WithDialog && dialogContainer ? " DHM" : "") + fgCache.d
-    let innerBox_cr: HTMLDivElement | HTMLDialogElement | undefined = parent
-    setClassName_s(parent, cls)
+    let cls = "R HM" + fgCache.d
+    let innerBox: HTMLDivElement | HTMLBodyElement | HTMLDialogElement | undefined = parent
+    setClassName_s(parent, cls + (WithDialog && dialogContainer ? " DHM" : ""))
     if (OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode
         && dialogContainer && array.length && getBoxTagName_old_cr() < "d") { // <body>
-      innerBox_cr = createElement_(getBoxTagName_old_cr())
-      appendNode_s(parent, innerBox_cr)
-      setClassName_s(innerBox_cr, cls)
+      innerBox = createElement_(getBoxTagName_old_cr())
+      appendNode_s(parent, innerBox)
+      setClassName_s(innerBox, cls)
     }
     if (!OnChrome || Build.MinCVer >= BrowserVer.MinTestedES6Environment
           && Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
-      (OnChrome ? innerBox_cr : parent).append!(...array.map(el => el.m))
+      innerBox.append!(...array.map(el => el.m))
+    } else if (Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
+        || chromeVer_ > BrowserVer.MinEnsured$ParentNode$$appendAndPrepend - 1) {
+      innerBox.append!.apply(innerBox, array.map(el => el.m))
     } else {
       for (const el of array) {
-        appendNode_s(OnChrome ? innerBox_cr : parent, el.m)
+        appendNode_s(innerBox, el.m)
       }
     }
     const style = parent.style,

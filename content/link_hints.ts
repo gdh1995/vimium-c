@@ -640,7 +640,7 @@ const setupCheck: HintManager["w"] = (officer?: BaseHintWorker | null
         doesReinit = !(OnChrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i)
             && (OnFirefox ? unwrap_ff(officer!) : officer).x(el, r)
       } catch {}
-      doesReinit && reinit(1)
+      doesReinit && reinit(1) // not wait for unhovering in a child iframe
       coreHints.h = isActive && getTime()
     }, frameArray.length > 1 ? 380 : 255) : TimerID.None;
 }
@@ -660,7 +660,7 @@ const checkLast = ((el?: WeakRef<LinkEl> | LinkEl | TimerType.fake | 9 | 1 | nul
     }
     if ((!r2 || r) && (manager_ || coreHints).$().n
         && (hidden || math.abs(r2!.l - r!.l) > 100 || math.abs(r2!.t - r!.t) > 60)) {
-      return hasEl && !doesWantToReloadLinkHints("cl") ? 0 : manager_ ? 1 : (reinit(1), 0)
+      return hasEl && !doesWantToReloadLinkHints("cl") ? 0 : manager_ ? 1 : (timeout_((): void => { reinit(1) }, 1), 0)
     } else {
       return 0
     }

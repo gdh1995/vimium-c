@@ -410,7 +410,8 @@ setTimeout(function (loadI18nPayload: () => void): void {
   i18nVer = `${lang2 || lang1 || "en"},${Settings_.CONST_.VerCode_},`,
   // eslint-disable-next-line arrow-body-style
   newTrans: typeof chrome.i18n.getMessage = (messageName, substitutions): string => {
-    return i18nKeys.has(messageName) ? nativeTrans(messageName, substitutions) : "";
+    return i18nKeys.has(messageName) || "0" <= messageName && messageName < "9" + kChar.minNotNum
+        ? nativeTrans(messageName, substitutions) : ""
   };
   let oldStr = localStorage.getItem(I18nConsts.storageKey), keyArrays: string[] = [], i18nKeys: Set<string>, toDos = 0,
   fixTrans = (updateCache: BOOL): void => {
@@ -428,7 +429,7 @@ setTimeout(function (loadI18nPayload: () => void): void {
     return;
   }
   const onload = (messages: Dict<{ message: string }>): void => {
-    keyArrays = keyArrays.concat(Object.keys(messages));
+    keyArrays = keyArrays.concat(Object.keys(messages).filter(i => !("0" <= i && i < "9" + kChar.minNotNum)))
     if (0 === --toDos) {
       fixTrans(1);
     }

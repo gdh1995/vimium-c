@@ -214,11 +214,11 @@ if (isAlive_) {
     const loaded = readyState_ < "i", arr = loaded ? completeListeners : docReadyListeners
     if (loaded) {
       set_OnDocLoaded_(callFunc)
-      setupEventListener(0, RSC, _onReadyStateChange, 1)
+      setupEventListener(0, RSC, _onReadyStateChange, 1, 1)
     }
     arr.forEach(callFunc)
     arr.length = 0
-  })
+  }, 0, 1)
 }
 
 if (OnChrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".includes) {
