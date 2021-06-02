@@ -32,7 +32,6 @@ let root_: VUIRoot = null as never
 let cssPatch_: [string | number, (css: string) => string] | null = null
 let lastFlashEl: SafeHTMLElement | null = null
 let _toExitOnClick = kExitOnClick.NONE
-let flashTime = 0;
 let curModalElement: HTMLDialogElement | null | undefined
 let helpBox: HTMLElement | null | undefined
 let hideHelp: ((event?: EventToPrevent) => void) | undefined | null
@@ -91,6 +90,7 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
       box_!.hasAttribute(S) && setOrRemoveAttr_s(box_!, S)
       if (adjust_type) {
         adjustUI()
+        adjust_type = AdjustType.DEFAULT // erase info about what's a first command
       }
     }
     appendNode_s(root_, element)
@@ -419,9 +419,7 @@ export const flash_ = function (el: SafeElement | null, rect?: Rect | null, life
     bZoom_ !== 1 && nfs && (flashEl.style.zoom = "" + bZoom_);
     addUIElement(flashEl, AdjustType.DEFAULT)
     lastFlashEl = flashEl
-    if (!Build.NDEBUG) {
-      lifeTime = lifeTime === -1 ? - 1 : Math.max(lifeTime || 0, flashTime! | 0)
-    }
+    // not need to normalize lifeTime
     const remove = (): void => {
       lastFlashEl === flashEl && (lastFlashEl = null)
       removeEl_s(flashEl)

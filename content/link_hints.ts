@@ -50,7 +50,7 @@ interface BaseHintWorker extends HintsNS.BaseHintWorker {
   /** highlightHint */ l: typeof highlightHint
   /** collectFrameHints */ o: typeof collectFrameHints
   /** manager */ p: HintManager | null
-  /** render */ r: typeof render
+  /** render */ r (hints: readonly HintItem[], arr: ViewBox, raw_apis: VApiTy): void
   /** rotate1 */ t: typeof rotate1
   /** checkLast_ */ x: {
     (el?: WeakRef<LinkEl> | TimerType.fake, r?: Rect | null): void | BOOL
@@ -95,7 +95,7 @@ import {
 import {
   querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_,
   getComputedStyle_, isStyleVisible_, htmlTag_, fullscreenEl_unsafe_, removeEl_s, UNL, toggleClass_s, doesSupportDialog,
-  getSelectionFocusEdge_, activeEl_unsafe_, SafeEl_not_ff_, rangeCount_, compareDocumentPosition
+  getSelectionFocusEdge_, activeEl_unsafe_, SafeEl_not_ff_, rangeCount_, compareDocumentPosition, notSafe_not_ff_
 } from "../lib/dom_utils"
 import {
   ViewBox, getViewBox_, prepareCrop_, wndSize_, bZoom_, wdZoom_, dScale_, padClientRect_, getBoundingClientRect_,
@@ -250,7 +250,6 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
     useFilter ? /*#__NOINLINE__*/ initFilterEngine(allHints as readonly FilteredHintItem[])
         : initAlphabetEngine(allHints)
     renderMarkers(allHints)
-    setMode(mode_);
     coreHints.h = 1
     for (const frame of frameArray) {
       frame.s.r(frame.h, frame.v, vApi);
@@ -296,7 +295,7 @@ const collectFrameHints = (options: ContentOptions, count: number
     frameInfo.v = view;
 }
 
-const render = (hints: readonly HintItem[], arr: ViewBox, raw_apis: VApiTy): void => {
+const render: BaseHintWorker["r"] = (hints, arr, raw_apis): void => {
     const managerOrA = manager_ || coreHints;
     let body = doc.body
     if (manager_ && (body && htmlTag_(body) && body.isContentEditable || loc_.href.startsWith("about"))) {
@@ -305,13 +304,14 @@ const render = (hints: readonly HintItem[], arr: ViewBox, raw_apis: VApiTy): voi
     removeBox()
     api_ = OnFirefox && manager_ ? unwrap_ff(raw_apis) : raw_apis
     ensureBorder(wdZoom_ / dScale_);
+    manager_ || setMode(mode_)
     if (hints.length) {
       if (WithDialog) {
         box_ = addElementList(hints, arr, managerOrA.d || coreHints.d)
       } else {
         box_ = addElementList(hints, arr);
       }
-    } else if (coreHints === managerOrA) {
+    } else if (!manager_) {
       adjustUI();
     }
     set_keydownEvents_((OnFirefox ? api_ : raw_apis).a())
