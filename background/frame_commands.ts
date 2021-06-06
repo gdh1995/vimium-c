@@ -1,7 +1,7 @@
-import { browserTabs, browserWebNav, getTabUrl, runtimeError_, selectTab } from "./browser"
+import { browserTabs, browserWebNav, downloadFile, getTabUrl, runtimeError_, selectTab } from "./browser"
 import {
   cPort, NoFrameId, cRepeat, get_cOptions, set_cPort, getSecret, set_cOptions, set_cRepeat, framesForTab, framesForOmni,
-  omniPayload, settings, findCSS_, visualWordsRe_, cKey
+  omniPayload, settings, findCSS_, visualWordsRe_, cKey, reqH_
 } from "./store"
 import { indexFrame, showHUD, complainLimits, ensureInnerCSS } from "./ports"
 import { substitute_ } from "./clipboard"
@@ -186,31 +186,47 @@ let _tempBlob: [number, string] | null | undefined
 
 export const captureTab = (tabs?: [Tab]): void | kBgCmd.captureTab => {
   const show = get_cOptions<C.captureTab>().show,
-  jpeg = Math.min(Math.max(get_cOptions<C.captureTab, true>().jpeg! | 0, 0), 100)
+  png = !!get_cOptions<C.captureTab>().png,
+  jpeg = png ? 0 : Math.min(Math.max(get_cOptions<C.captureTab, true>().jpeg! | 0, 0), 100)
   const cb = (url?: string): void => {
     if (!url) { return runtimeError_() }
     const onerror = (err: any | Event): void => {
       console.log("captureTab: can not request a data: URL:", err)
     }
     const cb2 = (msg: Blob | string): void => {
-      if (typeof msg !== "string") { msg = URL.createObjectURL(msg) }
-      if (msg.startsWith("blob:")) {
+      const finalUrl = typeof msg !== "string" ? URL.createObjectURL(msg) : msg
+      if (finalUrl.startsWith("blob:")) {
         if (_tempBlob) {
           clearTimeout(_tempBlob[0]), URL.revokeObjectURL(_tempBlob[1])
         }
         _tempBlob = [setTimeout((): void => {
           _tempBlob && URL.revokeObjectURL(_tempBlob[1]); _tempBlob = null
-        }, !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox
-            || show ? 5000 : 30000), msg]
+        }, show ? 5000 : 30000), finalUrl]
       }
-      if (!(Build.BTypes & ~BrowserType.Firefox)
-          || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox
-          || show) {
-        openImgReq({ o: "pixel=1&", u: msg, f: title, a: false, r: ReuseType.newFg }, cPort)
+      if (show) {
+        doShow(finalUrl)
         return
       }
+      const port = cPort && indexFrame(cPort.s.tabId_, 0) || cPort
+      downloadFile(finalUrl, title, port ? port.s.url_ : null, (): void => {
+        if (!(Build.BTypes & ~BrowserType.Firefox)
+            || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox) {
+          doShow(finalUrl)
+        } else {
+          clickAnchor_cr(finalUrl)
+        }
+      })
+    }
+    const doShow = (finalUrl: string): void => {
+      reqH_[kFgReq.openImage]({ o: "pixel=1&", u: finalUrl, f: title, a: false, r: ReuseType.newFg, q: {
+        r: get_cOptions<C.captureTab, true>().reuse, m: get_cOptions<C.captureTab, true>().replace,
+        p: get_cOptions<C.captureTab, true>().position, w: get_cOptions<C.captureTab, true>().window
+      } }, cPort)
+      return
+    }
+    const clickAnchor_cr = (finalUrl: string): void => {
       const a = document.createElement("a")
-      a.href = msg
+      a.href = finalUrl
       a.download = title
       a.target = "_blank"
       a.click()

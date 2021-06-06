@@ -104,7 +104,8 @@ export const copyWindowInfo = (): void | kBgCmd.copyWindowInfo => {
 
 export const joinTabs = (): void | kBgCmd.joinTabs => {
   // { time/recency, create/id } | "all"
-  const sortOpt = get_cOptions<C.joinTabs, true>().sort
+  const sortOpt = get_cOptions<C.joinTabs, true>().order != null ? get_cOptions<C.joinTabs, true>().order
+      : get_cOptions<C.joinTabs, true>().sort
   const windowsOpt: string | undefined | null = get_cOptions<C.joinTabs, true>().windows
   const onlyCurrent = windowsOpt === "current"
   if (Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther & BrowserType.Edge)
@@ -123,24 +124,62 @@ export const joinTabs = (): void | kBgCmd.joinTabs => {
     const _curWnd = _cur0.length ? _cur0[0] : null
     if (!onlyCurrent && !_curWnd) { return }
     const cb = (curWnd: typeof wnds[0] | null): void => {
-      const allTabs: Tab[] = [], push = (j: Tab): void => { allTabs.push(j) }
+      let allTabs: Tab[] = [], push = (j: Tab): void => { allTabs.push(j) }
       wnds.sort((i, j) => i.id - j.id).forEach(i => i.tabs.forEach(push))
       if (!allTabs.length) { return }
       if (sortOpt) {
-        const curTabId = TabRecency_.curTab_
-        const map: {[key: number]: number} = BgUtils_.safeObj_()
-        if (sortOpt.includes("time") && !sortOpt.includes("creat") || sortOpt.includes("recen")) {
-          for (let tab of allTabs) {
-            const id = tab.id, recency = TabRecency_.tabs_.get(id)
-            map[id] = id === curTabId ? GlobalConsts.MaxTabRecency + 1 : recency != null ? recency.i
+        interface TabInfo {
+          index: number; group: chrome.tabs.GroupId | null; time: number | null; rhost: string | null; tab: Tab
+        }
+        type ValidKeys = Extract<BgCmdOptions[kBgCmd.joinTabs]["order"], any[]>[0]
+        const refreshInd = (i: TabInfo, ind: number): void => { i.index = ind }
+        const compareStr = (a: string, b: string): number => a < b ? -1 : a > b ? 1 : 0
+        const list: TabInfo[] = allTabs.map((i, ind): TabInfo => ({
+          tab: i, index: ind, time: null, rhost: null, group: getGroupId(i),
+        }))
+        let scale: number, work = -1, changed = false
+        for (const key of (sortOpt instanceof Array ? sortOpt.slice(0)
+                : (sortOpt === true ? "time" : sortOpt + "").split(<RegExpG> /[, ]+/g)).reverse() as ValidKeys[]) {
+          scale = key[0] === "r" ? -1 : 1
+          if (key.includes("time") && !key.includes("creat") || key.includes("recen")) {
+            list[0].time == null && list.forEach(i => {
+              const id = i.tab.id, recency = TabRecency_.tabs_.get(id)
+              i.time = id === TabRecency_.curTab_ ? 1 : recency != null ? GlobalConsts.MaxTabRecency - recency.i
                 : Build.BTypes & BrowserType.Firefox
                   && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)
-                  && (tab as Tab & {lastAccessed?: number}).lastAccessed || id + (GlobalConsts.MaxTabRecency + 2)
+                  && (i.tab as Tab & {lastAccessed?: number}).lastAccessed || id + 2
+            })
+            scale = key[0] === "r" && key[1] !== "e" ? -1 : 1
+            work = 1
+          } else if (key.endsWith("host") || key.endsWith("url")) {
+            list[0].rhost || list.forEach(i => {
+              const url = i.tab.url, start = url.indexOf("://") + 3, end = start > 3 ? url.indexOf("/", start) : 0
+              if (end < start) { i.rhost = url; return }
+              const host = url.slice(start, end), colon = host.lastIndexOf(":")
+              const isIPv6 = colon > 0 && host.lastIndexOf(":", colon - 1) > 0
+              i.rhost = isIPv6 ? host : host.slice(0, colon > 0 ? colon : host.length)
+                  .split(".").reverse().join(".") + (colon > 0 ? " " + host.slice( + 1) : "")
+            })
+            work = key.includes("url") ? 3 : 2
+          } else {
+            work = key === "title" ? 4 : key.includes("creat") || key === "id" ? 5 : key.includes("window") ? 6
+                : key.includes("index") || key === "reverse" ? 7 : -1
           }
-          allTabs.sort((a, b) => map[a.id] - map[b.id])
-        } else {
-          allTabs.sort((a, b) => a.id - b.id)
+          if (work < 0) { continue }
+          list.sort((a, b): number => (work === 1 ? a.time! - b.time!
+              : work < 4 ? compareStr(a.rhost!, b.rhost!) || (work === 3 ? compareStr(a.tab.url, b.tab.url) : 0)
+              : work === 4 ? compareStr(a.tab.title, b.tab.title)
+              : work === 5 ? a.tab.id - b.tab.id
+              : work === 6 ? a.tab.windowId - b.tab.windowId
+              : a.index - b.index) * scale || a.index - b.index)
+          list.forEach(refreshInd)
+          changed = true
         }
+        if (changed && list.some(i => i.group != null)) {
+          list.sort((a, b) => a.group == null ? b.group == null ? a.index - b.index : 1 : b.group == null ? -1
+              : a.group < b.group ? -1 : a.group > b.group ? 1 : a.index - b.index)
+        }
+        changed && (allTabs = list.map(i => i.tab))
       }
       let start = curWnd ? curWnd.tabs.length : 0
       const curWndId = curWnd ? curWnd.id : TabRecency_.curWnd_
@@ -158,7 +197,7 @@ export const joinTabs = (): void | kBgCmd.joinTabs => {
       _curWnd.tabs = _curWnd.tabs.filter(i => i.id !== curTabId)
       makeWindow({ tabId: curTabId, incognito: _curWnd.incognito }, _curWnd.state, cb)
     } else {
-      wnds = onlyCurrent || !_curWnd || sortOpt && sortOpt.includes("all") || windowsOpt === "all" ? wnds
+      wnds = onlyCurrent || !_curWnd || windowsOpt === "all" ? wnds
           : wnds.filter(wnd => wnd.id !== _curWnd.id)
       cb(_curWnd)
     }

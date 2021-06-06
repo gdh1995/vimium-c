@@ -51,9 +51,10 @@ interface BgCmdOptions {
   [kBgCmd.autoOpenFallback]: Extract<CmdOptions[kFgCmd.autoOpen], { o?: 1 }>
   [kBgCmd.captureTab]: {
     /** 0..100; 0 means .png */ jpeg: number
+    /** if true, then ignore .jpeg */ png: boolean
     name: "" | "title"
     show: boolean
-  }
+  } & Pick<OpenPageUrlOptions, "reuse" | "replace" | "position" | "window">
   [kBgCmd.clearCS]: { type: chrome.contentSettings.ValidTypes }
   [kBgCmd.clearFindHistory]: {}
   [kBgCmd.clearMarks]: { local: boolean; all: boolean }
@@ -71,7 +72,10 @@ interface BgCmdOptions {
   [kBgCmd.goToTab]: { absolute: boolean; noPinned: boolean }
   [kBgCmd.goUp]: { type: "tab" | "frame" } & TrailingSlashOptions & UserSedOptions
   [kBgCmd.joinTabs]: {
-    sort: "" | "time" | "create" | "recency" | "recent" | "id"
+    sort: "" | /** time */ true | "time" | "create" | "recency" | "id" | "url" | "host" | "title" | "reverse"
+    order: /** split by "," */ ("time" | "rtime" | "recent" | "recency"
+          | "host" | "url" | "rhost" | "title" | "create" | "rcreate" | "id" | "window" | "rwindow"
+          | "index" | "rindex" | "reverse")[]
     windows: "" | "current" | "all"
   }
   [kBgCmd.mainFrame]: Req.FallbackOptions
