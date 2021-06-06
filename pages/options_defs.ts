@@ -393,9 +393,9 @@ export const createNewOption = ((): <T extends keyof AllowedOptions> (_element: 
   const createOption = <T extends keyof AllowedOptions> (element: HTMLElement): Option_<T> => {
     const cls = types[(element.dataset as KnownOptionsDataset).model as "Text"]
     const instance = new cls(element as TextElement, onUpdated)
-    instance.fetch_()
     return Option_.all_[instance.field_] = instance as any
   }
+  Option_.suppressPopulate_ = true
   for (const el of ($$("[data-model]") as HTMLElement[])) { createOption(el) }
   registerClass = (name, cls) => { (types as Dict<new (el: any, cb: () => void) => any>)[name] = cls }
   return createOption
@@ -438,7 +438,27 @@ export const createNewOption = ((): <T extends keyof AllowedOptions> (_element: 
   }
 }
 
-Option_.all_.keyMappings.onSave_ = function (): void {
+const keyMappingsOption_ = Option_.all_.keyMappings
+keyMappingsOption_.innerFetch_ = (): string => {
+  let value = Option_.prototype.innerFetch_.call(keyMappingsOption_)
+  const re = new RegExp(`^${kMappingsFlag.char0}${kMappingsFlag.char1}[^\\n]*|^[^\\n]|^$`
+      , "gm" as "g") as RegExpG & RegExpSearchable<0>
+  let arr: RegExpExecArray | null
+  while (arr = re.exec(value)) {
+    const line = arr[0]
+    if (!line) { /* empty */ }
+    else if (line[0] !== kMappingsFlag.char0) { break }
+    else if (line[1] === kMappingsFlag.char1) {
+      const flag = line.slice(2).trim()
+      if (flag === kMappingsFlag.noCheck) {
+        value = value.slice(0, arr.index) + value.slice(arr.index + line.length).trimLeft()
+        break
+      }
+    }
+  }
+  return value
+}
+keyMappingsOption_.onSave_ = function (): void {
   const formatCmdErrors_ = (errors: string[][]): string => {
     let i: number, line: string[], output = errors.length > 1 ? "Errors:\n" : "Error: "
     for (line of errors) {
@@ -469,20 +489,20 @@ Option_.all_.keyMappings.onSave_ = function (): void {
   this.showError_(msg)
 }
 
-const linkHintCharactersOptions_ = Option_.all_.linkHintCharacters
-const linkHintNumbersOptions_ = Option_.all_.linkHintNumbers
-const filterLinkHintsOptions_ = Option_.all_.filterLinkHints
-linkHintCharactersOptions_.onSave_ = linkHintNumbersOptions_.onSave_ = function (): void {
+const linkHintCharactersOption_ = Option_.all_.linkHintCharacters
+const linkHintNumbersOption_ = Option_.all_.linkHintNumbers
+const filterLinkHintsOption_ = Option_.all_.filterLinkHints
+linkHintCharactersOption_.onSave_ = linkHintNumbersOption_.onSave_ = function (): void {
   this.showError_(!this.element_.style.display && this.previous_.length < GlobalConsts.MinHintCharSetSize
       ? pTrans_("" + kTip.fewChars) : "")
 }
-filterLinkHintsOptions_.onSave_ = function (): void {
+filterLinkHintsOption_.onSave_ = function (): void {
   nextTick_((el): void => {
-    const enableFilterLinkHints = filterLinkHintsOptions_.readValueFromElement_() // also used during change events
-    el.style.display = linkHintNumbersOptions_.element_.style.display = enableFilterLinkHints ? "" : "none"
-    linkHintCharactersOptions_.element_.style.display = enableFilterLinkHints ? "none" : ""
-    linkHintCharactersOptions_.onSave_()
-    linkHintNumbersOptions_.onSave_()
+    const enableFilterLinkHints = filterLinkHintsOption_.readValueFromElement_() // also used during change events
+    el.style.display = linkHintNumbersOption_.element_.style.display = enableFilterLinkHints ? "" : "none"
+    linkHintCharactersOption_.element_.style.display = enableFilterLinkHints ? "none" : ""
+    linkHintCharactersOption_.onSave_()
+    linkHintNumbersOption_.onSave_()
   }, $("#waitForEnterBox"))
 }
 

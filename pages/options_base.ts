@@ -34,6 +34,9 @@ export interface KnownOptionsDataset extends KnownDataset {
 
 import { CurCVer_, BG_, bgSettings_, OnFirefox, OnEdge, OnChrome, $, $$, pTrans_ } from "./async_bg"
 
+let flagAllowNextTick_ = false
+export const allowNextTick = (): void => { flagAllowNextTick_ = true }
+
 const lang_ = chrome.i18n.getMessage("lang1")
 export const showI18n = (): void => {
     if (!lang_) { return }
@@ -92,6 +95,10 @@ export const nextTick_ = ((): { <T>(task: (self: T) => void, self: T): void; (ta
     }
   };
   return <T> (task: ((firstArg: T) => void) | ((this: void) => void), context?: T): void => {
+    if (!(Build.NDEBUG || flagAllowNextTick_)) {
+      setTimeout(() => { alert("Should not call nextTick before inited") }, 17)
+      throw new Error("Should not call nextTick before inited")
+    }
     if (tasks.length <= 0) {
       if (OnChrome ? Build.MinCVer >= BrowserVer.Min$queueMicrotask
           : OnFirefox ? Build.MinFFVer >= FirefoxBrowserVer.Min$queueMicrotask
@@ -150,7 +157,7 @@ export abstract class Option_<T extends keyof AllowedOptions> {
 
   static all_: { [N in keyof AllowedOptions]: OptionType<N> } & SafeObject
   static syncToFrontend_: Array<keyof SettingsNS.AutoSyncedNameMap>;
-  static suppressPopulate_ = true;
+  static suppressPopulate_ = false
 
 constructor (element: HTMLElement, onUpdated: () => void) {
   this.element_ = element;
@@ -166,10 +173,13 @@ constructor (element: HTMLElement, onUpdated: () => void) {
 
 fetch_ (): void {
   this.saved_ = true;
-  this.previous_ = bgSettings_.get_(this.field_);
+  this.previous_ = this.innerFetch_()
   if (!Option_.suppressPopulate_) {
     this.populateElement_(this.previous_);
   }
+}
+innerFetch_ (): AllowedOptions[T] {
+  return bgSettings_.get_(this.field_)
 }
 normalize_ (value: AllowedOptions[T], isJSON: boolean, str?: string): AllowedOptions[T] {
   const checker = this.checker_;
@@ -195,7 +205,7 @@ save_ (): void {
   this.onSave_()
 }
 _isDirty (): boolean {
-  return !this.areEqual_(this.previous_, bgSettings_.get_(this.field_))
+  return !this.areEqual_(this.previous_, this.innerFetch_())
 }
 executeSave_ (value: AllowedOptions[T], isJSON: boolean, pod: string): AllowedOptions[T] {
   if (isJSON) {
@@ -208,7 +218,7 @@ executeSave_ (value: AllowedOptions[T], isJSON: boolean, pod: string): AllowedOp
   if (this.field_ in bgSettings_.valuesToLoad_) {
     Option_.syncToFrontend_.push(this.field_ as keyof typeof bgSettings_.valuesToLoad_);
   }
-  return bgSettings_.get_(this.field_)
+  return this.innerFetch_()
 }
 abstract init_ (element: HTMLElement): void
 abstract readValueFromElement_ (): AllowedOptions[T];

@@ -1,6 +1,6 @@
 import { BG_, bgSettings_, OnFirefox, OnEdge, OnChrome, $, pTrans_ } from "./async_bg"
 import {
-  ExclusionVisibleVirtualNode, ExclusionRulesOption_, Option_, nextTick_, setupBorderWidth_, showI18n
+  ExclusionVisibleVirtualNode, ExclusionRulesOption_, nextTick_, setupBorderWidth_, showI18n, allowNextTick
 } from "./options_base"
 
 let bgExclusions: typeof Exclusions
@@ -205,7 +205,6 @@ const initExclusionRulesTable = (): void => {
     updateState(inited < 2)
   })
   nextTick_((): void => {
-    Option_.suppressPopulate_ = false
     exclusions.fetch_()
   })
   if (!Build.NDEBUG) {
@@ -224,6 +223,7 @@ void Promise.all([bgSettings_.restore_ && bgSettings_.restore_(), new Promise<[c
   const curTab = activeTabs[0], _url = curTab.url
   let ref = BG_.Backend_.indexPorts_(curTab.id), blockedMsg = $("#blocked-msg")
   const notRunnable = !(ref || curTab && _url && curTab.status === "loading" && (<RegExpOne> /^(ht|s?f)tp/).test(_url))
+  Build.NDEBUG || allowNextTick()
   if (notRunnable || hasUnknownExt(ref)) {
     onNotRunnable(blockedMsg, curTab, _url, ref)
     initOptionsLink(_url)

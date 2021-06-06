@@ -29,6 +29,7 @@
     "unsafe_math": true,
     "unsafe_methods": true,
     "unsafe_proto": true,
+    "unsafe_regexp": true,
     "unsafe": false,
     "unused": true,
     "warnings": true

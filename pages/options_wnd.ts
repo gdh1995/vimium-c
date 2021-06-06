@@ -3,7 +3,7 @@ import {
   toggleDark, toggleReduceMotion
 } from "./async_bg"
 import {
-  KnownOptionsDataset, showI18n,
+  KnownOptionsDataset, showI18n, allowNextTick,
   setupBorderWidth_, nextTick_, Option_, PossibleOptionNames, AllowedOptions, debounce_
 } from "./options_base"
 import { saveBtn, exportBtn, savedStatus, createNewOption, BooleanOption_, registerClass } from "./options_defs"
@@ -24,6 +24,7 @@ const IsEdg: boolean = OnChrome && (<RegExpOne> /\sEdg\//).test(navigator.appVer
 export let delayed_task: [string, MouseEventToPrevent | null] | null | undefined
 export const clear_delayed_task = (): void => { delayed_task = null }
 
+Build.NDEBUG || allowNextTick()
 nextTick_(showI18n)
 setupBorderWidth_ && nextTick_(setupBorderWidth_);
 nextTick_((versionEl): void => {
@@ -91,14 +92,14 @@ let optionsInit1_ = function (): void {
   }
 
   let _ref: { length: number; [index: number]: HTMLElement }
-  nextTick_(() => {
-    Option_.suppressPopulate_ = false;
+  for (let key in Option_.all_) { Option_.all_[key as "vimSync"].fetch_() }
+  nextTick_((): void => {
     for (let key in Option_.all_) {
       const obj = Option_.all_[key as "vimSync"]
       if (OnFirefox && bgSettings_.payload_.o === kOS.unixLike && obj instanceof BooleanOption_) {
         obj.element_.classList.add("text-bottom");
       }
-      obj.populateElement_(obj.previous_);
+      obj.populateElement_(obj.previous_)
     }
   });
   if (Option_.all_.exclusionRules.previous_.length > 0) {

@@ -221,6 +221,10 @@ declare const enum kMapKey {
   NONE = 0, insertMode = 1, otherMode = 2, normal = 4, char = 8,
   normal_long = 16, all_esc = 32, directInsert = 64,
 }
+declare const enum kMappingsFlag {
+  char0 = "#", char1 = "!",
+  noCheck = "no-check",
+}
 
 declare const enum kMatchUrl { RegExp = 1, StringPrefix = 2 }
 interface BaseUrlMatcher {
