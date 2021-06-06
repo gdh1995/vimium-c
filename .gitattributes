@@ -14,6 +14,8 @@
 *.rb linguist-vendored
 *.py linguist-detectable=false linguist-language=Python
 *.sh linguist-detectable=false linguist-language=Shell
+*.yml linguist-detectable=false linguist-vendored=YAML
+.github/**/*.md linguist-detectable=false linguist-language=Markdown
 lib/math_parser.js linguist-vendored
 lib/viewer.min.css linguist-generated=true linguist-vendored=true linguist-language=CSS
 lib/viewer.min.js  linguist-generated=true linguist-vendored=true linguist-language=JavaScript
