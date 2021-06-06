@@ -500,7 +500,6 @@ interface FgReqWithRes {
     /** url */ u: string;
     /** selected text */ t: string;
     /** options for openUrl */ o: ParsedOpenPageUrlOptions | null
-    /** reuse */ r: UserReuseType | null | undefined
     /** copied */ c: boolean | "urls" | "any-urls" | undefined;
   };
 }
@@ -528,10 +527,9 @@ interface FgReq {
     /** command options */ o?: ParsedOpenPageUrlOptions
     /** formatted-by-<a>.href */ f?: boolean;
     /** copied */ c?: boolean | "urls" | "any-urls";
-    /** incognito */ i?: boolean | null | "reverse";
+    /** incognito */ i?: boolean
     /** https */ h?: boolean | null;
-    /** reuse */ r?: UserReuseType;
-    /** opener */ p?: true | null | false
+    /** a fallback of reuse, in case of `! .o.reuse` */ r?: UserReuseType
   };
   [kFgReq.onFrameFocused]: {};
   [kFgReq.checkIfEnabled]: {
@@ -603,7 +601,7 @@ interface FgReq {
     /** file */ f: string | null;
     /** url */ u: string;
     /** hint mode */ m?: HintMode
-    /** reuse */ r: ReuseType;
+    /** a fallback of reuse, in case of `! .o.reuse` */ r: ReuseType;
     /** other options */ o?: string;
     /** options for openUrl */ q?: ParsedOpenPageUrlOptions
     /** auto: default to true */ a?: boolean;
@@ -626,8 +624,7 @@ interface FgReq {
   [kFgReq.findFromVisual]: {};
   [kFgReq.framesGoBack]: {
     /** step */ s: number
-    /** reuse */ r: UserReuseType | null | undefined
-    /** only use o.position */ o: Pick<ParsedOpenPageUrlOptions, "p">
+    /** only use o.position */ o: Pick<ParsedOpenPageUrlOptions, "p" | "r">
   }
   [kFgReq.learnCSS]: {};
   [kFgReq.visualMode]: {
@@ -649,26 +646,28 @@ interface FgReq {
 }
 
 interface OpenUrlOptions extends UserSedOptions {
-  incognito?: boolean | /** even when url is like chrome-extension:// */ "force" | null
-  /** default to false */ opener?: boolean | null
-  /* pasted */ $p?: 1 | null
-  position?: null | "next" | "start" | "begin" | "end" | "before" | "after" | "default"
+  group?: true | null | false
+  incognito?: boolean | /** even when url is like chrome-extension:// */ "force" | "reverse" | "keep" | "same" | null
+  opener?: boolean | null
   pinned?: boolean | null
+  position?: null | "next" | "start" | "begin" | "end" | "before" | "after" | "default"
   reuse?: UserReuseType | null
   window?: boolean | "popup" | "normal" | null
-  group?: true | null | false
 }
-interface OpenPageUrlOptions extends Pick<OpenUrlOptions, "position" | "window" | "group"> {
+
+interface OpenPageUrlOptions extends OpenUrlOptions {
   keyword?: string; replace?: string | ValidUrlMatchers | null; testUrl?: null | boolean | "whole-string"
 }
-interface ParsedOpenPageUrlOptions {
-  /** group */ g?: OpenPageUrlOptions["group"]
-  /** keyword */ k?: OpenPageUrlOptions["keyword"]
-  /** match a tab to replace */ m?: OpenPageUrlOptions["replace"]
-  /** position */ p?: OpenPageUrlOptions["position"]
-  /** test-URL */ t?: OpenPageUrlOptions["testUrl"]
+type _ParsedOpenPageUrlOptionNames = {
+  g: "group"; i: "incognito"; k: "keyword"; m: "replace"
+  o: "opener"; p: "position"; r: "reuse"; t: "testUrl"; w: "window"
+}
+type BaseParsedOpenPageUrlOptions = {
+  [k in keyof _ParsedOpenPageUrlOptionNames]?: _ParsedOpenPageUrlOptionNames[k] extends keyof OpenPageUrlOptions
+    ? OpenPageUrlOptions[_ParsedOpenPageUrlOptionNames[k]] : never
+}
+interface ParsedOpenPageUrlOptions extends BaseParsedOpenPageUrlOptions {
   /** sed */ s?: ParsedSedOpts | null
-  /** window */ w?: OpenPageUrlOptions["window"]
 }
 
 declare namespace Req {

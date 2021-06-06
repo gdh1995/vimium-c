@@ -304,8 +304,8 @@ set_bgC_([
   !(Build.BTypes & ~BrowserType.Edge) ? BgUtils_.blank_ :
   /* kBgCmd.goBackFallback: */ (tabs: [Tab]): void | kBgCmd.goBackFallback => {
     tabs.length &&
-    framesGoBack({ s: cRepeat, r: get_cOptions<C.goBackFallback, true>().reuse,
-      o: { p: get_cOptions<C.goBackFallback, true>().position },
+    framesGoBack({ s: cRepeat,
+      o: { p: get_cOptions<C.goBackFallback, true>().position, r: get_cOptions<C.goBackFallback, true>().reuse },
     }, null, tabs[0])
   },
   /* kBgCmd.goToTab: */ (tabs: Tab[]): void | kBgCmd.goToTab => {

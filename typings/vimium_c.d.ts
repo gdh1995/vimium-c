@@ -143,7 +143,6 @@ declare namespace MarksNS {
     /** scroll */ s?: ScrollInfo;
     /** url */ u: string;
     /** prefix */ p?: boolean | null
-    /** reuse */ r?: ReuseType;
     /** match a tab to replace */ q?: Partial<ParsedOpenPageUrlOptions>
     /** fallback */ f?: Req.FallbackOptions | null
   }
@@ -449,7 +448,7 @@ declare namespace VomnibarNS {
     icase?: boolean;
     searchInput?: boolean;
     tree?: boolean | "from-start"; // show tabs in tree mode
-    incognito?: boolean | null | "reverse";
+    incognito?: OpenUrlOptions["incognito"]
     noSessions?: boolean | "always" | "start"
     clickLike?: null | "chrome" | /** as "chrome" */ true | "vivaldi" | /** as "vivaldi" */ "chrome2"
     position: OpenPageUrlOptions["position"]

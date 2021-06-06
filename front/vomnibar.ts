@@ -1423,8 +1423,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       VPort_.postToOwner_({ N: VomnibarNS.kFReq.evalJS, u: url });
       return;
     }
-    VPort_.post_({ H: kFgReq.openUrl, r: reuse, h: https, u: url, i: incognito,
-        o: { s: sel === -1 ? Vomnibar_.sed_ : { r: false, k: "" }, p: Vomnibar_.position_ }})
+    VPort_.post_({ H: kFgReq.openUrl, r: reuse, h: https, u: url,
+        o: { i: incognito, s: sel === -1 ? Vomnibar_.sed_ : { r: false, k: "" }, p: Vomnibar_.position_ }})
     if (reuse === ReuseType.newBg
         && (!Vomnibar_.lastQuery_ || (<RegExpOne> /^\+\d{0,2}$/).exec(Vomnibar_.lastQuery_))) {
       return Vomnibar_.refresh_();

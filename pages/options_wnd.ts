@@ -325,7 +325,7 @@ let optionsInit1_ = function (): void {
     if (OnFirefox) {
       window.VApi ? VApi.t({ k: kTip.haveToOpenManually }) : alert(pTrans_("" + kTip.haveToOpenManually));
     } else {
-      BG_.Backend_.reqH_[kFgReq.focusOrLaunch]({ u: this.href, r: ReuseType.reuse, p: true })
+      BG_.Backend_.reqH_[kFgReq.focusOrLaunch]({ u: this.href, p: true })
     }
   };
 

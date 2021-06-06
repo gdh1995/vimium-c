@@ -232,7 +232,7 @@ set_reqH_([
         return
       }
       o2.k = o2.k == null ? search!.k : o2.k // not change .testUrl, in case a user specifies it
-      reqH_[kFgReq.openUrl]({ u: query2!, o: o2, r: request.r != null ? request.r : ReuseType.current }, port)
+      reqH_[kFgReq.openUrl]({ u: query2!, o: o2, r: ReuseType.current }, port)
     })
     return 0
   },

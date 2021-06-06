@@ -373,15 +373,14 @@ export const click_async = (async (element: SafeElementForMouse
     }
     // use latest attributes
     /** ignore {@link #BrowserVer.Min$TargetIsBlank$Implies$Noopener}, since C91 and FF88 always set openerTabId */
-    const reuse = userOptions && userOptions.reuse != null ? userOptions.reuse
-        : specialAction! & kClickAction.openInNewWindow
+    const reuse = specialAction! & kClickAction.openInNewWindow
         ? ReuseType.newWnd : specialAction! & kClickAction.forceToOpenInCurrnt ? ReuseType.current
         : specialAction! & kClickAction.forceToOpenInLastWnd
           ? specialAction! < kClickAction.newTabFromMode ? ReuseType.lastWndFg : ReuseType.lastWndBg
         : /** result > 0, so specialAction exists */ modifiers![3] || specialAction! < kClickAction.newTabFromMode
           ? ReuseType.newFg : ReuseType.newBg;
     (hintApi ? hintApi.p : post_)({
-      H: kFgReq.openUrl, u: (parentAnchor as ParAnchor).href, f: !0, p: userOptions && userOptions.opener,
+      H: kFgReq.openUrl, u: (parentAnchor as ParAnchor).href, f: !0,
       r: reuse, o: userOptions && parseOpenPageUrlOptions(userOptions)
     })
     return 1

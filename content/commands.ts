@@ -59,11 +59,11 @@ set_contentCommands_([
               : OnFirefox ? Build.MinFFVer >= FirefoxBrowserVer.Min$Tabs$$goBack : !OnEdge)
         || (OnChrome && chromeVer_ > BrowserVer.Min$Tabs$$goBack - 1
               || OnFirefox && firefoxVer_ > FirefoxBrowserVer.Min$Tabs$$goBack - 1
-            ) && maxStep > 1 && reuse == null
+            ) && maxStep > 1 && !reuse
         || maxStep && reuse && reuse !== "current" // then reuse !== ReuseType.current
     ) {
       // maxStep > 1 && reuse == null || maxStep && reuse && !isCurrent
-      post_({ H: kFgReq.framesGoBack, s: realStep, r: reuse, o: parseOpenPageUrlOptions(options) });
+      post_({ H: kFgReq.framesGoBack, s: realStep, o: parseOpenPageUrlOptions(options) })
     } else {
       maxStep && history.go(realStep);
     }
@@ -174,7 +174,7 @@ set_contentCommands_([
     }
   },
   /* kFgCmd.autoOpen: */ (options: CmdOptions[kFgCmd.autoOpen]): void => {
-    const selected = options.selected, reuse = options.reuse, opts2 = parseOpenPageUrlOptions(options),
+    const selected = options.selected, opts2 = parseOpenPageUrlOptions(options),
     str = options.s && !selected ? "" : getSelectionText(1) || (options.text || "") + "",
     url = str.trim(), copied = options.copied
     options.copy && (url || !options.o) && post_({
@@ -185,10 +185,10 @@ set_contentCommands_([
       d: options.decoded || options.decode
     })
     options.o && (url && evalIfOK(url) || post_({
-      H: kFgReq.openUrl, c: copied, u: url, r: reuse, o: opts2
+      H: kFgReq.openUrl, c: copied, u: url, o: opts2
     }))
     options.s && send_(kFgReq.searchAs, {
-      u: vApi.u(), c: copied, t: selected ? url : "", r: reuse, o: opts2
+      u: vApi.u(), c: copied, t: selected ? url : "", o: opts2
     }, (err): void => {
       err && runFallbackKey(options, kTip.raw, err)
     })

@@ -267,7 +267,9 @@ export const openImgReq = (req: FgReq[kFgReq.openImage], port?: Port): void => {
       && req.m === HintMode.DOWNLOAD_MEDIA ? "" : opts2.k
   url = opts2.s ? substitute_(url, SedContext.paste, opts2.s) : url
   // no group during openImg
-  replaceCmdOptions<C.openUrl>({ opener: true, reuse: req.r, replace: opts2.m, position: opts2.p, window: opts2.w })
+  replaceCmdOptions<C.openUrl>({
+    opener: true, reuse: opts2.r != null ? opts2.r : req.r, replace: opts2.m, position: opts2.p, window: opts2.w
+  })
   set_cRepeat(1)
   // not use v:show for those from other extensions
   openUrlWithActions(typeof keyword !== "string"
@@ -307,7 +309,7 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null
     }, runtimeError_)
   }
   const tabID = curTab ? curTab.id : port!.s.tabId_
-  const count = req.s, reuse = parseReuse(req.r || ReuseType.current)
+  const count = req.s, reuse = parseReuse(req.o.r || ReuseType.current)
   if (reuse) {
     const position = req.o.p
     browserTabs.duplicate(tabID, (tab): void => {
@@ -318,7 +320,7 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null
       if (!hasTabsGoBack) {
         execGoBack(tab, count)
       } else {
-        framesGoBack({ s: count, r: ReuseType.current, o: {} }, null, tab)
+        framesGoBack({ s: count, o: { r: ReuseType.current } }, null, tab)
       }
       const newTabIdx = tab.index--
       const wantedIdx = position === "end" ? 3e4 : newTabIndex(tab, position, false, true)

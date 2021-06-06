@@ -190,8 +190,8 @@ export const parseSedOptions = (opts: UserSedOptions): ParsedSedOpts => {
 }
 
 export const parseOpenPageUrlOptions = (opts: OpenPageUrlOptions & UserSedOptions): ParsedOpenPageUrlOptions => ({
-  k: opts.keyword, t: opts.testUrl, m: opts.replace, p: opts.position, s: parseSedOptions(opts), w: opts.window,
-  g: opts.group
+  g: opts.group, i: opts.incognito, k: opts.keyword, m: opts.replace, o: opts.opener,p: opts.position,
+  s: parseSedOptions(opts), t: opts.testUrl, w: opts.window
 })
 
 export const escapeAllForRe = (str: string): string => str.replace(<RegExpG> /[$()*+.?\[\\\]\^{|}]/g, "\\$&")
