@@ -201,7 +201,8 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
       const key = _splitLine.length > 1 ? _splitLine[1] : ""
       const val = _splitLine.length > 2 ? _splitLine[2] : ""
       const knownLen = cmd.length + key.length + val.length + 2
-      if (cmd === "map") {
+      switch (cmd) {
+      case "map":
         if (!key || key.length > 8 && (key === "__proto__" || key.includes("<__proto__>"))) {
           logError_('Unsupported key sequence %c"%s"', colorRed, key || '""', `for "${val || ""}"`)
         } else if (registry.has(key) && !(builtinKeys_ && builtinKeys_.has(key))) {
@@ -220,7 +221,8 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
             builtinKeys_ && builtinKeys_.delete(key)
           }
         }
-      } else if (cmd === "unmapAll" || cmd === "unmapall") {
+        break
+      case "unmapAll": case "unmapall":
         registry = new Map()
         cmdMap = new Map()
         envMap = null
@@ -231,7 +233,8 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
               , CommandsData_.errors_.length > 1 ? "have" : "has"
               , colorRed, CommandsData_.errors_.length, CommandsData_.errors_.length > 1 ? "s" : "", "color:auto")
         }
-      } else if (cmd === "mapkey" || cmd === "mapKey") {
+        break
+      case "mapKey": case "mapkey":
         if (!val || line.length > knownLen
             && (key2 = doesMatchEnv_(getOptions_(line, knownLen)), !key2)) {
           logError_("mapKey: need %s source and target keys:", val ? "only" : "both", line)
@@ -248,7 +251,8 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
           mkReg[key2] = BgUtils_.stripKey_(val)
           mk++;
         }
-      } else if (cmd === "shortcut" || cmd === "command") {
+        break
+      case "shortcut": case "command":
         if (!val) {
           logError_("Lacking command name and options in shortcut:", line)
         } else if (!(key.startsWith(CNameLiterals.userCustomized) && key.length > 14)
@@ -263,7 +267,8 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
             key2 && logError_(shortcutLogPrefix, colorRed, key, key2)
           }
         }
-      } else if (cmd === "env") {
+        break
+      case "env":
         if (!val) {
           logError_("Lacking conditions in env declaration:", line)
         } else if (key === "__proto__") {
@@ -276,15 +281,20 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
             (envMap || (envMap = new Map())).set(key, options)
           }
         }
-      } else if (As_<"unmap" | "__unknown__">(cmd) !== "unmap") {
-        logError_('Unknown mapping command: %c"%s"', colorRed, cmd, "in", line)
-      } else if (!key || val) {
-        logError_(`unmap: ${val ? "only " : ""}needs one mapped key:`, line)
-      } else if (registry.has(key)) {
-        builtinKeys_ && builtinKeys_.delete(key)
-        registry.delete(key)
-      } else {
-        logError_('Unmapping: %c"%s"', colorRed, key, "has not been mapped")
+        break
+      case "unmap":
+        if (!key || val) {
+          logError_(`unmap: ${val ? "only " : ""}needs one mapped key:`, line)
+        } else if (registry.has(key)) {
+          builtinKeys_ && builtinKeys_.delete(key)
+          registry.delete(key)
+        } else {
+          logError_('Unmapping: %c"%s"', colorRed, key, "has not been mapped")
+        }
+        break
+      default:
+        logError_('Unknown mapping command: %c"%s"', colorRed, As_<"__unknown__">(cmd), "in", line)
+        break
       }
     }
     for (const shortcut of Settings_.CONST_.GlobalCommands_) {

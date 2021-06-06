@@ -239,6 +239,46 @@ export const makeTempWindow = (tabIdUrl: number | "about:blank", incognito: bool
   browserWindows.create(options, callback)
 }
 
+export const downloadFile = (url: string, filename?: string | null, refer?: string | null
+    , onRefused?: (() => void) | null): void => {
+  if (!(Build.BTypes & BrowserType.ChromeOrFirefox)
+      || Build.BTypes & ~BrowserType.ChromeOrFirefox && OnOther & ~BrowserType.ChromeOrFirefox) {
+    onRefused && onRefused()
+    return
+  }
+  browser_.permissions.contains({ permissions: ["downloads"] }, (permitted: boolean): void => {
+    if (permitted) {
+      const opts: chrome.downloads.DownloadOptions = { url }
+      if (filename) {
+        const extRe = <RegExpI> /\.[a-z\d]{1,4}(?=$|[?&])/i
+        filename = BgUtils_.DecodeURLPart_(filename)
+        filename = filename[0] === "#" ? filename.slice(1) : filename
+        filename = filename.replace(<RegExpG> /[\r\n]+/g, " ").replace(<RegExpG> /[/\\?%*:|"<>_]+/g, "_")
+        if (!extRe.test(filename)) {
+          const arr = extRe.exec(url)
+          filename += arr ? arr[0] : !url.includes(".") ? ".bin" : ""
+        }
+        opts.filename = filename
+      }
+      if (Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)
+          && (Build.MinFFVer >= FirefoxBrowserVer.Min$downloads$$download$acceptReferer
+              || CurFFVer_ > FirefoxBrowserVer.Min$downloads$$download$acceptReferer - 1) && refer) {
+        opts.headers = [ { name: "Referer", value: refer } ]
+      }
+      if (Build.BTypes & BrowserType.Chrome
+          && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther & BrowserType.Chrome)) {
+        void browser_.downloads.download!(opts, runtimeError_)
+      } else {
+        browser_.downloads.download!(opts).catch((): void => { /* empty */ })
+      }
+    } else if (onRefused) {
+      onRefused()
+    }
+    return runtimeError_()
+  })
+}
+
 /** special actions for Firefox */
 
 interface LatestPromise extends Promise<void> {

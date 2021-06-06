@@ -1,5 +1,5 @@
 import {
-  browserTabs, runtimeError_, selectTab, selectWnd, browserSessions, browserWebNav, browser_
+  browserTabs, runtimeError_, selectTab, selectWnd, browserSessions, browserWebNav, downloadFile
 } from "./browser"
 import {
   set_cPort, set_cRepeat, set_cOptions, needIcon_, set_cKey, cKey, get_cOptions, set_reqH_, reqH_,
@@ -489,45 +489,9 @@ set_reqH_([
     }
   },
   /** kFgReq.downloadLink: */ (req: FgReq[kFgReq.downloadLink], port): void => {
-    const fallback = (): void => {
+    downloadFile(req.u, req.f, req.r, req.m ? (): void => {
       reqH_[kFgReq.openImage]({ r: ReuseType.newFg, f: req.f, u: req.u }, port)
-    }
-    if (!(Build.BTypes & BrowserType.ChromeOrFirefox)
-        || Build.BTypes & ~BrowserType.ChromeOrFirefox && OnOther & ~BrowserType.ChromeOrFirefox) {
-      req.m && fallback()
-      return
-    }
-    browser_.permissions.contains({ permissions: ["downloads"] }, (permitted: boolean): void => {
-      if (permitted) {
-        const opts: chrome.downloads.DownloadOptions = { url: req.u }
-        if (req.f) {
-          let filename = req.f, extRe = <RegExpI> /\.[a-z\d]{1,4}(?=$|[?&])/i
-          filename = BgUtils_.DecodeURLPart_(filename)
-          filename = filename[0] === "#" ? filename.slice(1) : filename
-          filename = filename.replace(<RegExpG> /[\r\n]+/g, " ").replace(<RegExpG> /[/\\?%*:|"<>_]+/g, "_")
-          if (!extRe.test(filename)) {
-            const arr = extRe.exec(req.u)
-            filename += arr ? arr[0] : !req.u.includes(".") ? ".bin" : ""
-          }
-          opts.filename = filename
-        }
-        if (Build.BTypes & BrowserType.Firefox
-            && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)
-            && (Build.MinFFVer >= FirefoxBrowserVer.Min$downloads$$download$acceptReferer
-                || CurFFVer_ > FirefoxBrowserVer.Min$downloads$$download$acceptReferer - 1) && req.r) {
-          opts.headers = [ { name: "Referer", value: req.r } ]
-        }
-        if (Build.BTypes & BrowserType.Chrome
-            && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther & BrowserType.Chrome)) {
-          void browser_.downloads.download!(opts, runtimeError_)
-        } else {
-          browser_.downloads.download!(opts).catch((): void => { /* empty */ })
-        }
-      } else if (req.m) {
-        fallback()
-      }
-      return chrome.runtime.lastError
-    })
+    } : null)
   }
 ])
 

@@ -662,77 +662,6 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port): void =>
 
 /** focusOrLaunch section */
 
-/** safe when cPort is null */
-const focusAndExecuteArr = [function (curTabs, tabs): void {
-  const incongito = normalizeIncognito(this.q && this.q.i)
-      ?? (TabRecency_.incognito_ !== IncognitoType.true ? false : null)
-  if (incongito !== null) {
-    tabs && (tabs = tabs.filter(tab => tab.incognito === incongito))
-  }
-  if (this.q && this.q.g && curTabs.length > 0) {
-    const curGroup = getGroupId(curTabs[0]!)
-    tabs && (tabs = tabs.filter(tab => getGroupId(tab) === curGroup))
-  }
-  if (tabs && tabs.length > 0) {
-    getCurWnd(false, focusAndExecuteArr[2].bind(this, curTabs, tabs))
-    return
-  }
-  focusAndExecuteArr[1].call(this, curTabs)
-  return runtimeError_()
-}, function (tabs) {
-  // if `this.s`, then `typeof this` is `MarksNS.MarkToGo`
-  if (this.f && runNextCmdBy(0, this.f)) {
-    return
-  }
-  const callback = this.s ? focusAndExecuteArr[3].bind(this as MarksNS.MarkToGo) : null
-  if (tabs.length <= 0 || this.q && this.q.w
-      || TabRecency_.incognito_ === IncognitoType.true && !tabs[0].incognito) {
-    makeWindow({ url: this.u, type: normalizeWndType(this.q && this.q.w),
-      incognito: TabRecency_.incognito_ === IncognitoType.true && !BgUtils_.isRefusingIncognito_(this.u)
-    }, "", callback && function (wnd: Window): void {
-      if (wnd.tabs && wnd.tabs.length > 0) { callback(wnd.tabs[0]) }
-    })
-  } else {
-    openMultiTabs({
-      url: this.u, index: newTabIndex(tabs[0], this.q && this.q.p, false, true),
-      windowId: tabs[0].windowId, active: true
-    }, 1, null, [null], this.q ? this.q.g : true, tabs[0], callback)
-  }
-}, function (curTabs, tabs, wnd): void {
-  const wndId = wnd.id, url = this.u
-  let tabs2 = tabs.filter(tab2 => tab2.windowId === wndId)
-  if (tabs2.length <= 0) {
-    tabs2 = tabs
-    if (tabs2.length <= 0) {
-      focusAndExecuteArr[1].call(this, curTabs)
-      return
-    }
-  }
-  this.p && tabs2.sort((a, b) => a.url.length - b.url.length)
-  let tab: Tab = selectFrom(tabs2)
-  if (tab.url.length > tabs2[0].url.length) { tab = tabs2[0]; }
-  if (Build.BTypes & BrowserType.Chrome
-      && url.startsWith(settings.CONST_.OptionsPage_) && !framesForTab.get(tab.id) && !this.s) {
-    /* safe-for-group */ tabsCreate({ url }, callback)
-    browserTabs.remove(tab.id)
-  } else {
-    const cur = Build.BTypes & BrowserType.Chrome && IsEdg_ ? tab.url.replace(<RegExpOne> /^edge:/, "chrome:") : tab.url
-    const wanted = Build.BTypes & BrowserType.Chrome && IsEdg_ ? url.replace(<RegExpOne> /^edge:/, "chrome:") : url
-    browserTabs.update(tab.id, {
-      url: cur.startsWith(wanted) ? undefined : url, active: true
-    }, this.s ? focusAndExecuteArr[3].bind(this as MarksNS.MarkToGo) : null)
-    tab.windowId !== wndId && selectWnd(tab)
-  }
-}, function (this: MarksNS.MarkToGo, tab: Tab): void {
-  if (!tab) { return runtimeError_(); }
-  runNextOnTabLoaded(this.f || {}, tab, (): void => { Marks_.scrollTab_(this, tab) })
-}] as [
-  (this: MarksNS.FocusOrLaunch, curTabs: [Tab] | [], tabs: Tab[]) => void,
-  (this: MarksNS.FocusOrLaunch, tabs: [Tab] | never[]) => void,
-  (this: MarksNS.FocusOrLaunch, curTabs: [Tab] | [], tabs: Tab[], wnd: Window) => void,
-  (this: MarksNS.MarkToGo, tabs: Tab | undefined) => void
-]
-
 export const focusAndExecute = (req: Omit<FgReq[kFgReq.gotoMainFrame], "f">
     , port: Port, targetPort: Port | null, focusAndShowFrameBorder: BOOL): void => {
   if (targetPort && targetPort.s.status_ !== Frames.Status.disabled) {
@@ -752,13 +681,74 @@ export const focusAndExecute = (req: Omit<FgReq[kFgReq.gotoMainFrame], "f">
 
 /** safe when cPort is null */
 export const focusOrLaunch = (request: FgReq[kFgReq.focusOrLaunch], port?: Port | null): void => {
+
+const onMatchedTabs = (tabs: Tab[]): void => {
+  const incongito = normalizeIncognito(request.q && request.q.i)
+      ?? (TabRecency_.incognito_ !== IncognitoType.true ? false : null)
+  if (incongito !== null) {
+    tabs && (tabs = tabs.filter(tab => tab.incognito === incongito))
+  }
+  if (request.q && request.q.g && curTabs.length > 0) {
+    const curGroup = getGroupId(curTabs[0]!)
+    tabs && (tabs = tabs.filter(tab => getGroupId(tab) === curGroup))
+  }
+  if (tabs && tabs.length > 0) {
+    const tabs2 = tabs.filter(tab2 => tab2.windowId === TabRecency_.curWnd_)
+    updateMatchedTab(tabs2.length > 0 ? tabs2 : tabs)
+    return
+  }
+  // if `request.s`, then `typeof request` is `MarksNS.MarkToGo`
+  if (request.f && runNextCmdBy(0, request.f)) { /* empty */ }
+  else if (curTabs.length <= 0 || request.q && request.q.w
+      || TabRecency_.incognito_ === IncognitoType.true && !curTabs[0].incognito) {
+    makeWindow({ url: request.u, type: normalizeWndType(request.q && request.q.w),
+      incognito: TabRecency_.incognito_ === IncognitoType.true && !BgUtils_.isRefusingIncognito_(request.u)
+    }, "", (wnd): void => {
+      if (wnd.tabs && wnd.tabs.length > 0) { callback(wnd.tabs[0]) }
+    })
+  } else {
+    openMultiTabs({
+      url: request.u, index: newTabIndex(curTabs[0], request.q && request.q.p, false, true),
+      windowId: curTabs[0].windowId, active: true
+    }, 1, null, [null], request.q ? request.q.g : true, curTabs[0], callback)
+  }
+  return runtimeError_()
+}
+
+const updateMatchedTab = (tabs2: Tab[]): void => {
+  const url = request.u
+  request.p && tabs2.sort((a, b) => a.url.length - b.url.length)
+  let tab: Tab = selectFrom(tabs2)
+  if (tab.url.length > tabs2[0].url.length) { tab = tabs2[0]; }
+  if (Build.BTypes & BrowserType.Chrome
+      && url.startsWith(settings.CONST_.OptionsPage_) && !framesForTab.get(tab.id) && !request.s) {
+    /* safe-for-group */ tabsCreate({ url }, callback)
+    browserTabs.remove(tab.id)
+  } else {
+    const cur = Build.BTypes & BrowserType.Chrome && IsEdg_ ? tab.url.replace(<RegExpOne> /^edge:/, "chrome:") : tab.url
+    const wanted = Build.BTypes & BrowserType.Chrome && IsEdg_ ? url.replace(<RegExpOne> /^edge:/, "chrome:") : url
+    browserTabs.update(tab.id, {
+      url: cur.startsWith(wanted) ? undefined : url, active: true
+    }, callback)
+    selectWndIfNeed(tab)
+  }
+}
+
+const callback = (tab?: Tab): void => {
+  if (!tab) { return runtimeError_(); }
+  runNextOnTabLoaded(request.f || {}, tab, request.s && ((): void => {
+    Marks_.scrollTab_(request as MarksNS.MarkToGo, tab)
+  }))
+}
+
+  let curTabs: [Tab] | never[]
   // * do not limit windowId or windowType
-  let url = BgUtils_.reformatURL_(request.u.split("#", 1)[0])
-  if (Backend_.checkHarmfulUrl_(url, port)) {
+  let toTest = BgUtils_.reformatURL_(request.u.split("#", 1)[0])
+  if (Backend_.checkHarmfulUrl_(toTest, port)) {
     return
   }
   const opts2 = request.q || (request.q = {})
-  if (opts2.g == null || url.startsWith(Settings_.CONST_.OptionsPage_)) {
+  if (opts2.g == null || toTest.startsWith(Settings_.CONST_.OptionsPage_)) {
     opts2.g = false // disable group detection by default
   }
   if (opts2.m) {
@@ -767,16 +757,17 @@ export const focusOrLaunch = (request: FgReq[kFgReq.focusOrLaunch], port?: Port 
     replaceOrOpenInNewTab(request.u, ReuseType.reuse, replace, null, request)
     return
   }
+  getCurTab((curTabs1): void => {
+  curTabs = curTabs1
   let preTest: string | undefined, windowType = normalizeWndType(opts2.w) || "normal"
-  if ((url.startsWith("file:") || url.startsWith("ftp:")) && !url.includes(".", url.lastIndexOf("/") + 1)) {
-    preTest = url + (request.p ? "/*" : "/")
+  if ((toTest.startsWith("file:") || toTest.startsWith("ftp:")) && !toTest.includes(".", toTest.lastIndexOf("/") + 1)) {
+    preTest = toTest + (request.p ? "/*" : "/")
   }
-  request.p && (url += "*")
+  request.p && (toTest += "*")
   // if no .replace, then only search in normal windows by intent
-  getCurTab((curTabs): void => {
-    browserTabs.query({ url: preTest || url, windowType }, (matched): void => {
-      matched && matched.length > 0 || !preTest ? focusAndExecuteArr[0].call(request, curTabs, matched)
-      : browserTabs.query({ url, windowType }, focusAndExecuteArr[0].bind(request, curTabs))
+    browserTabs.query({ url: preTest || toTest, windowType }, (matched): void => {
+      matched && matched.length > 0 || !preTest ? onMatchedTabs(matched)
+      : browserTabs.query({ url: toTest, windowType }, onMatchedTabs)
       return runtimeError_()
     })
     return runtimeError_()
