@@ -51,6 +51,7 @@ let query_ = ""
 let query0_ = ""
 let parsedQuery_ = ""
 let parsedRegexp_: RegExpG | null = null
+let lastInputTime_ = 0
 let historyIndex = 0
 let notEmpty = false
 let isQueryRichText_ = true
@@ -140,6 +141,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     let sin = styleSelColorIn, noStyle = !sin || !parentNode_unsafe_s(sin), hasResult = hasResults
       , maxNotRunPost = postOnEsc ? FindAction.ExitAndReFocus - 1 : FindAction.ExitToPostMode - 1
       , el: SafeElement | null | undefined, el2: Element | null
+    lastInputTime_ = 0
     i === FindAction.ExitNoAnyFocus ? hookSel(1) : focus()
     coords && scrollToMark(coords)
     hasResults = isActive = isSmall = notEmpty = postOnEsc = doesNormalizeLetters = wholeWord = false
@@ -375,6 +377,18 @@ export const onLoad = (later?: Event): void => {
   }
 
 const onIframeFocus = function (this: Window, event: Event): void {
+  // here not stop prop, so that other extensions can trace where's keybaord focus
+  if (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted ? !event.isTrusted : event.isTrusted === false) {
+    return
+  }
+  if (event.type === "blur") {
+    const delta = getTime() - lastInputTime_
+    if (delta <= (OnFirefox ? 100 : 35) && delta >= 0) {
+      lastInputTime_ = 0
+      timeout_(doFocus, 0)
+    }
+    return
+  }
   doesCheckAlive && event.target === this && onWndFocus()
   OnFirefox || Stop_(event)
 }
@@ -518,6 +532,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
     }
   }, t);
   f("focus", /*#__NOINLINE__*/ onIframeFocus, t)
+  f("blur", /*#__NOINLINE__*/ onIframeFocus, t)
 
   box_.onload = later ? null as never : (e): void => {
     (e.target as typeof box_).onload = null as never; isActive && onLoad2()
@@ -655,6 +670,7 @@ const onInput = (e?: Event): void => {
     restoreSelection()
     executeFind(!isRegex ? parsedQuery_ : regexMatches ? regexMatches[0] : "", { j: 1 })
     showCount(1)
+    lastInputTime_ = getTime()
   }
 }
 
