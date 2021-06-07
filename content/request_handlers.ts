@@ -7,7 +7,7 @@ import {
 import { set_keyIdCorrectionOffset_old_cr_, handler_stack } from "../lib/keyboard_utils"
 import {
   editableTypes_, markFramesetTagUnsafe_old_cr, OnDocLoaded_, BU, notSafe_not_ff_,
-  htmlTag_, querySelector_unsafe_, isHTML_, createElement_, setClassName_s, fullscreenEl_unsafe_,
+  htmlTag_, querySelector_unsafe_, isHTML_, createElement_, setClassName_s,
   docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, CLK, ElementProto, isIFrameElement, DAC, removeEl_s, toggleClass_s
 } from "../lib/dom_utils"
 import {
@@ -228,10 +228,9 @@ set_requestHandlers([
   },
   /* kBgReq.queryForRunAs: */ (request: BgReq[kBgReq.queryForRunKey]): void => {
     const lock = (OnFirefox ? insert_Lock_() : raw_insert_lock) || activeEl_unsafe_()
-    const tag = (OnFirefox ? !lock : !lock || notSafe_not_ff_!(lock))
-        ? "" : lock!.localName as string
-    post_({ H: kFgReq.respondForRunKey, n: request.n,
-      t: tag, c: tag && lock!.className, i: tag && lock!.id, f: !fullscreenEl_unsafe_()
+    post_({ H: kFgReq.respondForRunKey, r: request,
+      e: lock && (OnFirefox || !notSafe_not_ff_!(lock))
+          && [(lock as SafeElement).localName, lock.id, lock.className] || 0
     })
   },
   /* kBgReq.goToMark: */ gotoMark

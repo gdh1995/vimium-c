@@ -256,3 +256,9 @@ type CmdOptionSafeToClone<K extends keyof BgCmdOptions | keyof CmdOptions> =
   K extends keyof BgCmdOptions ? OptionalPick<BgCmdOptions[K], SafeOptionKeys<BgCmdOptions[K]>>
   : K extends keyof CmdOptions ? Pick<CmdOptions[K], SafeOptionKeys<CmdOptions[K]>>
   : never
+
+/** must keep plain, because it may be sent to content scripts */
+interface CurrentEnvCache {
+  fullscreen?: boolean
+  url?: string
+}

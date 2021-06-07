@@ -152,7 +152,7 @@ interface BgReq {
     /** id */ i: number;
     /** message-in-confirmation-dialog */ m: string;
   };
-  [kBgReq.queryForRunKey]: { n: number }
+  [kBgReq.queryForRunKey]: { n: number; c: CurrentEnvCache }
   [kBgReq.goToMark]: {
     /** local */ l: 0 | /** kTip.local - kTip.global */ 2
     /** markName */ n?: string | undefined
@@ -631,11 +631,8 @@ interface FgReq {
     /** caret mode */ c?: boolean
   };
   [kFgReq.respondForRunKey]: {
-    /** start time */ n: number
-    /** tag of an active element */ t: string
-    /** className attr */ c: string
-    /** id attr */ i: string
-    /** not fullscreen */ f: boolean
+    r: BgReq[kBgReq.queryForRunKey]
+    /** active element */ e: NonNullable<CurrentEnvCache["element"]>
   }
   [kFgReq.downloadLink]: {
     /** url */ u: string
@@ -643,6 +640,10 @@ interface FgReq {
     /** referer */ r: string
     /** is media */ m: boolean | BOOL
   }
+}
+
+interface CurrentEnvCache {
+  /** active element */ element?: [tag: string, id: string, className: string] | 0
 }
 
 interface OpenUrlOptions extends UserSedOptions {

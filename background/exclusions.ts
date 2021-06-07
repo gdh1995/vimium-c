@@ -45,9 +45,11 @@ var Exclusions = { // eslint-disable-line no-var
           : "[^/]" + host), ""
       ) }
     } else {
+      host = (host[0] === ":" ? host.slice(1) : host).replace(<RegExpOne> /([\/?#])\*$/, "$1")
+      const ind = host.indexOf("://")
       return {
         t: kMatchUrl.StringPrefix,
-        v: (host[0] === ":" ? host.slice(1) : host).replace(<RegExpOne> /([\/?#])\*$/, "$1")
+        v: ind > 0 && host.indexOf("/", ind + 3) < 0 ? host + "/" : host
       }
     }
   },

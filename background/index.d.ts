@@ -215,9 +215,12 @@ declare namespace CommandsNS {
   interface Options {} // eslint-disable-line @typescript-eslint/no-empty-interface
   interface EnvItemOptions extends Req.FallbackOptions {}
   interface EnvItem {
-    element?: string
+    /** e.g.: `tag#id.cls1.cls2, tag2, ...` */
+    element?: string | /* inner usage */ { readonly tag: string, readonly id: string, readonly className: string }[]
     host?: string | ValidUrlMatchers | null
+    /** (deprecated) @see host */ url?: string
     fullscreen?: boolean
+    iframe?: string | boolean | ValidUrlMatchers | null
     options?: object & EnvItemOptions
   }
   interface EnvItemWithKeys extends EnvItem {

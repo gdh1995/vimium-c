@@ -1,4 +1,6 @@
-import { browserTabs, runtimeError_, getCurTab, getCurShownTabs_ff_only, getCurTabs, tabsGet } from "./browser"
+import {
+  browserTabs, runtimeError_, getCurTab, getCurShownTabs_ff_only, getCurTabs, tabsGet, getCurWnd
+} from "./browser"
 import {
   framesForTab, get_cOptions, cPort, cRepeat, reqH_, bgC_, cmdInfo_,
   set_cOptions, set_cPort, cKey, set_cKey, set_cRepeat, set_cNeedConfirm
@@ -7,7 +9,7 @@ import {
   shortcutRegistry_, normalizedOptions_, envRegistry_, parseOptions_, normalizeCommand_, availableCommands_,
   makeCommand_
 } from "./key_mappings"
-import { ensureInnerCSS, indexFrame, safePost, showHUD } from "./ports"
+import { ensureInnerCSS, getPortUrl, indexFrame, safePost, showHUD } from "./ports"
 import C = kBgCmd
 
 const abs = Math.abs
@@ -299,66 +301,89 @@ export const executeExternalCmd = (
 /** execute a command when in a special environment */
 
 declare const enum EnvMatchResult { abort, nextEnv, matched }
-interface CurrentEnvCache {
-  element_?: Element
-  portUrl_?: string
+
+export const normalizeClassesToMatch = (s: string): string => {
+  s = s && ` ${s.trim().split(<RegExpG> /[.\s]+/g).sort().join(" ").trim()} `
+  return s && ` ${s} `
 }
 
-const matchEnvRule = (rule: CommandsNS.EnvItem, cur: CurrentEnvCache
-    , info?: FgReq[kFgReq.respondForRunKey]): EnvMatchResult => {
-  let elSelector = rule.element, host = rule.host, fullscreen = rule.fullscreen
-  if (elSelector || fullscreen != null) {
-    if (!info) {
-      cPort && safePost(cPort, { N: kBgReq.queryForRunKey, n: performance.now() })
+const matchEnvRule = (rule: CommandsNS.EnvItem, info: CurrentEnvCache): EnvMatchResult => {
+  // avoid sending messages to content scripts - in case a current tab is running slow
+  let host = rule.host, iframe = rule.iframe, fullscreen = rule.fullscreen, elSelector = rule.element
+  if (host === undefined) {
+    host = rule.host = rule.url != null ? rule.url : null
+    delete rule.url
+  }
+  if (typeof host === "string") {
+    host = rule.host = Exclusions.createSimpleUrlMatcher_(host)
+  }
+  if (host != null) {
+    let url: string | null | undefined | Promise<string> = info.url
+    if (url == null && host.t === kMatchUrl.StringPrefix
+        && host.v.indexOf("/", host.v.indexOf("://") + 3) === host.v.length - 1) {
+      const port = indexFrame(cPort ? cPort.s.tabId_ : TabRecency_.curTab_, 0) || cPort
+      url = port ? port.s.url_ : null
+    }
+    if (url == null && (url = getPortUrl(null, true)) instanceof Promise) {
+      void url.then((s): void => {
+        info.url = s || (cPort ? (indexFrame(cPort.s.tabId_, 0) || cPort).s.url_ : /** should not reach here */ "")
+        runKeyWithCond(info)
+      })
       return EnvMatchResult.abort
     }
-    if (!elSelector) { /* empty */ }
-    else if ((<RegExpOne> /^[A-Za-z][-\w]+$/).test(elSelector)) {
-      if (info.t !== elSelector) { return EnvMatchResult.nextEnv }
-    } else {
-      if (!cur.element_) {
-        const activeEl = document.createElement(info.t)
-        activeEl.className = info.c
-        activeEl.id = info.i
-        cur.element_ = activeEl
-      }
-      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Element$$matches
-          && CurCVer_ < BrowserVer.Min$Element$$matches ? !cur.element_.webkitMatchesSelector(info.t)
-          : !cur.element_.matches!(info.t)) { return EnvMatchResult.nextEnv }
+    if (!Exclusions.matchSimply_(host, url)) { return EnvMatchResult.nextEnv }
+  }
+  if (iframe != null) {
+    if (!cPort && iframe !== false) { return EnvMatchResult.abort }
+    if (typeof iframe === "string") {
+      iframe = rule.iframe = Exclusions.createSimpleUrlMatcher_(iframe) || true
     }
-    if (fullscreen != null) {
-      if (!!fullscreen !== !info.f) {
-        return EnvMatchResult.nextEnv
-      }
+    if (typeof iframe === "boolean") {
+      if (iframe !== !!(cPort && cPort.s.frameId_)) { return EnvMatchResult.nextEnv }
+    } else if (!Exclusions.matchSimply_(iframe, cPort.s.url_)) {
+      return EnvMatchResult.nextEnv
     }
   }
-  if (host) {
-    if (!cPort) { return EnvMatchResult.abort }
-    if (typeof host === "string") {
-      host = rule.host = Exclusions.createSimpleUrlMatcher_(host)
-    }
-    if (host) {
-      let portUrl = cur.portUrl_
-      if (!portUrl) {
-        portUrl = cPort.s.url_
-        if (cPort.s.frameId_ && portUrl.lastIndexOf("://", 5) < 0 && !BgUtils_.protocolRe_.test(portUrl)) {
-          const frames = framesForTab.get(cPort.s.tabId_)
-          portUrl = frames && frames.top_ ? frames.top_.s.url_ : portUrl
-        }
-        cur.portUrl_ = portUrl
-      }
-      if (!Exclusions.matchSimply_(host, portUrl)) {
-        return EnvMatchResult.nextEnv
-      }
+  if (fullscreen == null) { /* empty */ }
+  else if (info.fullscreen == null) {
+    getCurWnd(false, (wnd): void => {
+      info.fullscreen = !!wnd && wnd.state.includes("fullscreen")
+      runKeyWithCond(info)
+      return runtimeError_()
+    })
+    return EnvMatchResult.abort
+  } else if (!!fullscreen !== info.fullscreen) {
+    return EnvMatchResult.nextEnv
+  }
+  if (elSelector && elSelector !== "*") {
+    const selectorArr = typeof elSelector === "string" ? [] : elSelector
+    typeof elSelector === "string" && (rule.element = elSelector.split(",").some((s): boolean => {
+      s = s[0] === "*" ? s.slice(1) : s
+      const hash = s.indexOf("#"), dot = s.indexOf("."), len = s.length
+      s && selectorArr.push({
+        tag: s.slice(0, hash < 0 ? dot < 0 ? len : dot : dot < 0 ? hash : Math.min(dot, hash)),
+        id: hash >= 0 ? s.slice(hash + 1, dot > hash ? dot : len) : "",
+        className: normalizeClassesToMatch(dot >= 0 ? s.slice(dot + 1, hash > dot ? hash : len) : ""),
+      })
+      return s === "*" || s.includes(" ")
+    }) ? (selectorArr.length = 0, "*") : selectorArr)
+    const cur = info.element
+    if (!selectorArr.length) { /* empty */ }
+    else if (cur == null) {
+      cPort && safePost(cPort, { N: kBgReq.queryForRunKey, n: performance.now(), c: info })
+      return EnvMatchResult.abort
+    } else if (cur === 0 || ! selectorArr.some((s): any =>
+        (!s.tag || cur[0] === s.tag) && (!s.id || cur[1] === s.id) && (!s.className || cur[2].includes(s.className))
+    )) {
+      return EnvMatchResult.nextEnv
     }
   }
   return EnvMatchResult.matched
 }
 
-export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey]): void => {
+export const runKeyWithCond = (info?: CurrentEnvCache): void => {
   let expected_rules = get_cOptions<kBgCmd.runKey>().expect
   const absCRepeat = Math.abs(cRepeat)
-  const curEnvCache: CurrentEnvCache = {}
   let matchedIndex: number | string = -1
   let matchedRule: KnownOptions<kBgCmd.runKey> | CommandsNS.EnvItem | CommandsNS.EnvItemWithKeys
       = get_cOptions<kBgCmd.runKey, true>()
@@ -368,6 +393,7 @@ export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey]): void => {
     set_cPort(frames ? frames.cur_ : null as never)
   }
   frames && (frames.flags_ |= Frames.Flags.userActed)
+  info = info || {}
   for (let i = 0, size = expected_rules instanceof Array ? expected_rules.length : 0
         ; i < size; i++) {
     let rule: CommandsNS.EnvItem | "__not_parsed__" | CommandsNS.EnvItemWithKeys | null | undefined
@@ -387,8 +413,10 @@ export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey]): void => {
         rule = parseOptions_(rule) as CommandsNS.EnvItem
         envRegistry_.set(ruleName, rule)
       }
+    } else {
+      BgUtils_.safer_(rule)
     }
-    const res = matchEnvRule(rule, curEnvCache, info)
+    const res = matchEnvRule(rule, info)
     if (res === EnvMatchResult.abort) { return }
     if (res === EnvMatchResult.matched) {
       matchedIndex = ruleName || i
@@ -426,7 +454,7 @@ export const runKeyWithCond = (info?: FgReq[kFgReq.respondForRunKey]): void => {
         rule = parseOptions_(rule) as CommandsNS.EnvItem
         envRegistry_.set(ruleName, rule)
       }
-      const res = matchEnvRule(rule, curEnvCache, info)
+      const res = matchEnvRule(rule, info)
       if (res === EnvMatchResult.abort) { return }
       if (res === EnvMatchResult.matched) {
         matchedIndex = ruleName

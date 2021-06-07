@@ -9,7 +9,9 @@ import {
   findCPort, isNotVomnibarPage, indexFrame, onExitGrab, safePost, complainNoSession, showHUD, complainLimits
 } from "./ports"
 import { paste_, substitute_ } from "./clipboard"
-import { sendFgCmd, replaceCmdOptions, runKeyWithCond, onConfirmResponse, executeCommand } from "./run_commands"
+import {
+  sendFgCmd, replaceCmdOptions, runKeyWithCond, onConfirmResponse, executeCommand, normalizeClassesToMatch
+} from "./run_commands"
 import { focusAndExecute, focusOrLaunch, openJSUrl, openUrlReq } from "./open_urls"
 import {
   initHelp, openImgReq, setOmniStyle, framesGoBack, enterVisualMode, showVomnibar, parentFrame,
@@ -484,8 +486,10 @@ set_reqH_([
     enterVisualMode()
   },
   /** kFgReq.respondForRunAs: */ (request: FgReq[kFgReq.respondForRunKey]): void => {
-    if (performance.now() - request.n < 500) {
-      runKeyWithCond(request)
+    if (performance.now() - request.r.n < 500) {
+      const info = request.r.c
+      info.element = request.e && (request.e[2] = normalizeClassesToMatch(request.e[2]), request.e)
+      runKeyWithCond(info)
     }
   },
   /** kFgReq.downloadLink: */ (req: FgReq[kFgReq.downloadLink], port): void => {
