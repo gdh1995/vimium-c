@@ -60,13 +60,15 @@ saveBtn.onclick = function (virtually): void {
 let optionsInit1_ = function (): void {
   let advancedMode = false, _element: HTMLElement = $<AdvancedOptBtn>("#advancedOptionsButton");
   (_element as AdvancedOptBtn).onclick = function (this: AdvancedOptBtn, _0, init): void {
-    if (init == null || (init === "hash" && bgSettings_.get_("showAdvancedOptions") === false)) {
+    const el = $("#advancedOptions")
+    let oldVal: boolean | null = null
+    const loadOld = (): boolean => oldVal = bgSettings_.get_("showAdvancedOptions")
+    if (init == null || (init === "hash" && loadOld() === false)) {
       advancedMode = !advancedMode;
       bgSettings_.set_("showAdvancedOptions", advancedMode);
     } else {
-      advancedMode = bgSettings_.get_("showAdvancedOptions");
+      advancedMode = oldVal != null ? oldVal : loadOld()
     }
-    const el = $("#advancedOptions");
     nextTick_((): void => {
     (el.previousElementSibling as HTMLElement).style.display = el.style.display = advancedMode ? "" : "none";
     let s = advancedMode ? "Hide" : "Show";
@@ -376,6 +378,7 @@ let optionsInit1_ = function (): void {
 },
 optionsInitAll_ = function (): void {
 
+Option_.suppressPopulate_ = false
 optionsInit1_();
 optionsInit1_ = optionsInitAll_ = null as never
 
@@ -523,21 +526,14 @@ if (OnEdge || !optional.length) {
     const container = placeholder.parentElement
     nextTick_((children): void => { container.appendChild(children) }, fragment)
     registerClass("OptionalPermissions", class extends Option_<"nextPatterns"> {
-      override init_ (): void {
-        this.element_.onchange = this.onUpdated_
-      }
-      override readValueFromElement_ (): string { return shownItems.map(i => i.element_.checked ? "1" : "0").join("") }
-      override fetch_ (): void {
-        this.saved_ = true
-        this.previous_ = shownItems.map(i => i.previous_ ? "1" : "0").join("")
-        this.populateElement_(this.previous_)
-      }
+      override init_ (): void { this.element_.onchange = this.onUpdated_ }
+      override readValueFromElement_ = () => shownItems.map(i => i.element_.checked ? "1" : "0").join("")
+      override innerFetch_ = () => shownItems.map(i => i.previous_ ? "1" : "0").join("")
       override populateElement_ (value: string): void {
         for (let i = 0; i < shownItems.length; i++) {
           shownItems[i].element_.checked = value[i] === "1"
         }
       }
-      override _isDirty (): boolean { return false }
       override executeSave_ (wanted_value: string): string {
         const new_permissions: kPermissions[] = [], new_origins: kPermissions[] = []
         const changed: { [key in kPermissions]?: PermissionItem } = {}
@@ -628,7 +624,7 @@ if (OnEdge || !optional.length) {
           done++
           if (done === shownItems.length) {
             (container.dataset as KnownOptionsDataset).model = "OptionalPermissions"
-            createNewOption(container)
+            createNewOption(container).fetch_()
           }
         })
       }
@@ -805,7 +801,7 @@ function OnBgUnload(): void {
     for (const key in ref) {
       const opt = ref[key as keyof AllowedOptions], { previous_: previous } = opt;
       if (typeof previous === "object" && previous) {
-        opt.previous_ = bgSettings_.get_(opt.field_);
+        opt.previous_ = opt.innerFetch_()
       }
     }
   }

@@ -347,7 +347,7 @@ const matchEnvRule = (rule: CommandsNS.EnvItem, cur: CurrentEnvCache
         }
         cur.portUrl_ = portUrl
       }
-      if (Exclusions.matchSimply_(host, portUrl)) {
+      if (!Exclusions.matchSimply_(host, portUrl)) {
         return EnvMatchResult.nextEnv
       }
     }

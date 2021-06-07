@@ -189,10 +189,12 @@ export const parseSedOptions = (opts: UserSedOptions): ParsedSedOpts => {
   return isTY(sed, kTY.obj) && sed || { r: sed, k: opts.sedKeys || opts.sedKey }
 }
 
-export const parseOpenPageUrlOptions = (opts: OpenPageUrlOptions & UserSedOptions): ParsedOpenPageUrlOptions => ({
+type EnsureExisting<T> = { [P in keyof T]-?: T[P] }
+type AllowUndefined<T> = { [P in keyof T]: T[P] | undefined }
+export const parseOpenPageUrlOptions = ((opts): AllowUndefined<EnsureExisting<ParsedOpenPageUrlOptions>> => ({
   g: opts.group, i: opts.incognito, k: opts.keyword, m: opts.replace, o: opts.opener,p: opts.position,
-  s: parseSedOptions(opts), t: opts.testUrl, w: opts.window
-})
+  r: opts.reuse, s: parseSedOptions(opts), t: opts.testUrl, w: opts.window
+})) as (opts: OpenPageUrlOptions & UserSedOptions) => ParsedOpenPageUrlOptions
 
 export const escapeAllForRe = (str: string): string => str.replace(<RegExpG> /[$()*+.?\[\\\]\^{|}]/g, "\\$&")
 

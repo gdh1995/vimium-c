@@ -124,21 +124,22 @@ Option_.all_.searchUrl.checker_ = {
   status_: 0,
   check_ (str): string {
     const map = new (BG_ as unknown as typeof globalThis).Map<string, Search.RawEngine>()
+    const opt = Option_.all_.searchUrl
     BG_.BgUtils_.parseSearchEngines_("k:" + str, map);
     const obj = map.get("k")
     if (obj == null) {
-      return bgSettings_.get_("searchUrl", true);
+      return opt.innerFetch_()
     }
     let str2 = BG_.BgUtils_.convertToUrl_(obj.url_, null, Urls.WorkType.KeepAll);
     if (BG_.BgUtils_.lastUrlType_ > Urls.Type.MaxOfInputIsPlainUrl) {
       const err = pTrans_("nonPlainURL", [obj.url_]);
       console.log("searchUrl checker:", err);
-      Option_.all_.searchUrl.showError_(err);
-      return bgSettings_.get_("searchUrl", true);
+      opt.showError_(err)
+      return opt.innerFetch_()
     }
     str2 = str2.replace(BG_.BgUtils_.spacesRe_, "%20");
     if (obj.name_ && obj.name_ !== "k") { str2 += " " + obj.name_; }
-    Option_.all_.searchUrl.showError_("");
+    opt.showError_("")
     return str2;
   }
 };

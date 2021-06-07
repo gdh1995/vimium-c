@@ -298,7 +298,7 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
       }
       new_value = item.normalize_(new_value, typeof all[key] === "object");
     }
-    if (!item.areEqual_(bgSettings_.get_(key), new_value)) {
+    if (!item.areEqual_(item.innerFetch_(), new_value)) {
       logUpdate("import", key, new_value);
       bgSettings_.set_(key, new_value);
       if (key in bgSettings_.valuesToLoad_) {

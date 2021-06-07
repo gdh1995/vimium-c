@@ -341,7 +341,7 @@ const replaceOrOpenInNewTab = <Reuse extends Exclude<ReuseType, ReuseType.curren
 }
 
 export const openJSUrl = (url: string, options: Req.FallbackOptions, onBrowserFail?: (() => void) | null): void => {
-  if ("void 0;void(0);".includes(url.slice(11).trim())) {
+  if ((<RegExpOne> /^(void|\(void\))? ?(0|\(0\))?;?$/).test(url.slice(11).trim())) {
     return
   }
   if (!onBrowserFail && cPort) {
@@ -485,13 +485,13 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, tabs?
   }
   typeof url !== "string"
       ? /*#__NOINLINE__*/ onEvalUrl_(workType, options, tabs, url)
-      : openShowPage(url, reuse, options) ? 0
+      : /*#__NOINLINE__*/ openShowPage(url, reuse, options) ? 0
       : BgUtils_.isJSUrl_(url) ? /*#__NOINLINE__*/ openJSUrl(url, options)
       : Backend_.checkHarmfulUrl_(url) ? 0
       : reuse === ReuseType.reuse ? replaceOrOpenInNewTab(url, reuse, options.replace
             , null, { u: url, p: options.prefix, q: { g: options.group, i: options.incognito,
               p: options.position, w: options.window }, f: parseFallbackOptions(options) }, tabs)
-      : reuse === ReuseType.current ? safeUpdate(url)
+      : reuse === ReuseType.current ? /*#__NOINLINE__*/ safeUpdate(url)
       : options.replace ? replaceOrOpenInNewTab(url, reuse, options.replace, options, null, tabs)
       : tabs ? openUrlInNewTab([url], reuse, options, tabs)
       : getCurTab(openUrlInNewTab.bind(null, [url], reuse, options))

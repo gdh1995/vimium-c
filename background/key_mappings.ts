@@ -26,7 +26,6 @@ let builtinKeys_: Set<string> | null | undefined
 let mappedKeyTypes_ = kMapKey.NONE
 let shortcutRegistry_: Map<StandardShortcutNames, CommandsNS.Item | null> | null | undefined
 let envRegistry_: Map<string, CommandsNS.EnvItem | "__not_parsed__"> | null | undefined
-let lastMappings_: string | null = null
 let flagDoesCheck_ = true
 
 export { mappedKeyTypes_, envRegistry_, shortcutRegistry_ }
@@ -185,14 +184,14 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
     builtinKeys_ = null
     lines = wholeMappings.replace(<RegExpSearchable<0>> /\\\\?\n/g, t => t.length === 3 ? "\\\n" : ""
                ).replace(<RegExpG> /[\t ]+/g, " ").split("\n");
-    for (; !lines[_i] || (key2 = lines[_i])[0] === kMappingsFlag.char0; _i++) {
+    for (; _i < lines.length && (!lines[_i] || (key2 = lines[_i])[0] === kMappingsFlag.char0); _i++) {
       if (key2 && key2[1] === kMappingsFlag.char1) {
         key2 = key2.slice(2).trim()
         if (key2 === kMappingsFlag.noCheck) { noCheck = true }
       }
     }
     flagDoesCheck_ = !noCheck
-    if (lines[_i] !== "unmapAll" && lines[_i] !== "unmapall") {
+    if (_i >= lines.length || lines[_i] !== "unmapAll" && lines[_i] !== "unmapall") {
       builtinKeys_ = new Set!()
       const defaultMap = defaultKeyMappings_.split(" ")
       for (_len = defaultMap.length; 0 < _len; ) {
@@ -455,6 +454,9 @@ const populateKeyMap_ = (value: string | null): void => {
         func(val)
       }
     }
+    if (value) {
+      /*#__NOINLINE__*/ upgradeKeymappings(value)
+    }
 }
 
 const logError_ = function (): void {
@@ -712,14 +714,26 @@ if (!Build.NDEBUG) {
 }
 
 if (Settings_.temp_.initing_ & BackendHandlersNS.kInitStat.platformInfo) {
-  populateKeyMap_(lastMappings_ = Settings_.get_("keyMappings"))
+  populateKeyMap_(Settings_.get_("keyMappings"))
   if (Build.BTypes & ~BrowserType.Edge && contentPayload.o === kOS.mac) {
     visualKeys_["m-s-c"] = VisualAction.YankRichText
   }
 }
 
+const upgradeKeymappings = (value: string) => {
+  let newFlags = "", prefix = `${kMappingsFlag.char0}${kMappingsFlag.char1}`
+  if (!CommandsData_.errors_ && flagDoesCheck_) { newFlags += `${prefix} ${kMappingsFlag.noCheck}\n` }
+  if (newFlags) {
+    const hooks = Settings_.updateHooks_, old = hooks.keyMappings
+    hooks.keyMappings = undefined
+    try {
+      Settings_.set_("keyMappings", newFlags + value)
+    } catch {}
+    hooks.keyMappings = old
+  }
+}
+
 Settings_.updateHooks_.keyMappings = function (this: {}, value: string | null): void {
-  if (value !== null && value === lastMappings_) { return }
   const oldMappedKeys = CommandsData_.mappedKeyRegistry_, oldFSM = CommandsData_.keyFSM_
   populateKeyMap_(value)
   const f = JSON.stringify, curMapped = CommandsData_.mappedKeyRegistry_,
@@ -737,14 +751,5 @@ Settings_.updateHooks_.keyMappings = function (this: {}, value: string | null): 
       k: CommandsData_.mappedKeyRegistry_
     }
   });
-  if (value !== null) {
-    let flags = "", prefix = `${kMappingsFlag.char0}${kMappingsFlag.char1}`
-    if (!CommandsData_.errors_ && flagDoesCheck_) { flags += `${prefix} ${kMappingsFlag.noCheck}\n` }
-    if (flags) {
-      value = flags + value
-      Settings_.set_("keyMappings", value)
-    }
-    lastMappings_ = value
-  }
 };
 Settings_.temp_.getNormalizedOptions_ = normalizedOptions_ as (item: CommandsNS.BaseItem) => CommandsNS.Options | null

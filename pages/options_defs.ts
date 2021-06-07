@@ -439,14 +439,13 @@ export const createNewOption = ((): <T extends keyof AllowedOptions> (_element: 
 }
 
 const keyMappingsOption_ = Option_.all_.keyMappings
-keyMappingsOption_.innerFetch_ = (): string => {
-  let value = Option_.prototype.innerFetch_.call(keyMappingsOption_)
-  const re = new RegExp(`^${kMappingsFlag.char0}${kMappingsFlag.char1}[^\\n]*|^[^\\n]|^$`
+const normalizeKeyMappings = (value: string): string => {
+  const re = new RegExp(`^${kMappingsFlag.char0}${kMappingsFlag.char1}[^\\n]*|^[^]`
       , "gm" as "g") as RegExpG & RegExpSearchable<0>
   let arr: RegExpExecArray | null
   while (arr = re.exec(value)) {
     const line = arr[0]
-    if (!line) { /* empty */ }
+    if (!line || line[0] === "\n") { /* empty */ }
     else if (line[0] !== kMappingsFlag.char0) { break }
     else if (line[1] === kMappingsFlag.char1) {
       const flag = line.slice(2).trim()
@@ -457,6 +456,13 @@ keyMappingsOption_.innerFetch_ = (): string => {
     }
   }
   return value
+}
+keyMappingsOption_.innerFetch_ = function (): string {
+  return normalizeKeyMappings(Option_.prototype.innerFetch_.call(this))
+}
+keyMappingsOption_.normalize_ = function (value: string): string {
+  value = normalizeKeyMappings(value)
+  return Option_.prototype.normalize_.call(this, value, false)
 }
 keyMappingsOption_.onSave_ = function (): void {
   const formatCmdErrors_ = (errors: string[][]): string => {
