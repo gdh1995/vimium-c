@@ -86,22 +86,24 @@ export const runtimeConnect = (function (this: void): void {
   set_i18n_getMsg(api.i18n.getMessage)
 })
 
-/** if anotherTip is 0, then use .$then; otherwise use .$else */
+/** if anotherTip is 0 / false, then use .$then; otherwise use .$else */
 export const runFallbackKey = ((options: Req.FallbackOptions
-    , anotherTip: kTip | 0 | 2, tipArgs?: string | Array<string | number>): void => {
+    , anotherTip: kTip | 0 | false | 2, tipArgs?: string | Array<string | number>): void => {
   const fallback = !anotherTip ? options.$then : options.$else
   if (fallback && isTY(fallback)) {
     if (!(Build.NDEBUG || Build.Minify)) {
       console.log("Vimium C: run another command %o for type & tip = %o", fallback, anotherTip)
     }
     suppressTail_(GlobalConsts.TimeOfSuppressingUnexpectedKeydownEvents)
-    timeout_((): void => {
-      post_({ H: kFgReq.key, k: fallback, l: kKeyCode.None, f: { c: options.$f! | 0, r: options.$retry } })
-    }, 50)
+    const waitInBg = anotherTip === !1,
+    opt: Req.fg<kFgReq.key> = {
+      H: kFgReq.key, k: fallback, l: kKeyCode.None, f: { c: options.$f! | 0, r: options.$retry, w: waitInBg }
+    }
+    waitInBg ? post_(opt) : timeout_(post_.bind(null, opt), 50)
   } else {
     anotherTip && anotherTip !== 2 && hudTip(anotherTip, 0, tipArgs)
   }
 }) as {
-  (options: Req.FallbackOptions, anotherTip: 0 | 2, tipArgs?: TimerType.fake): void
+  (options: Req.FallbackOptions, anotherTip: 0 | 2 | false, tipArgs?: TimerType.fake): void
   (options: Req.FallbackOptions, anotherTip: kTip, tipArgs?: string | Array<string | number>): void
 }

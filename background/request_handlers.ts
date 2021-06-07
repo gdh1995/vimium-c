@@ -10,7 +10,8 @@ import {
 } from "./ports"
 import { paste_, substitute_ } from "./clipboard"
 import {
-  sendFgCmd, replaceCmdOptions, runKeyWithCond, onConfirmResponse, executeCommand, normalizeClassesToMatch
+  sendFgCmd, replaceCmdOptions, runKeyWithCond, onConfirmResponse, executeCommand, normalizeClassesToMatch,
+  waitAndRunKeyReq
 } from "./run_commands"
 import { focusAndExecute, focusOrLaunch, openJSUrl, openUrlReq } from "./open_urls"
 import {
@@ -412,7 +413,10 @@ set_reqH_([
       registryEntry = CommandsData_.keyToCommandRegistry_.get(key)
     }
     BgUtils_.resetRe_()
-    if (registryEntry) {
+    if (!registryEntry) { /* empty */ }
+    else if (request.f != null && request.f.w) {
+      waitAndRunKeyReq(request as (typeof request) & Ensure<typeof request, "f">)
+    } else {
       executeCommand(registryEntry, count, request.l, port, 0, request.f)
     }
   },

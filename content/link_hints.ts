@@ -483,12 +483,12 @@ const rotateHints = (reverse: boolean, list: FrameHintsInfo): void => {
 const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): void => {
   const selectedHintWorker = locateHint(hint), clickEl = weakRef_(hint.d),
   result = selectedHintWorker.e(hint, event)
+  runFallbackKey(options_, false)
   result !== 0 && timeout_((): void => {
     removeFlash && removeFlash()
     set_removeFlash(null)
     if (!(mode_ & HintMode.queue)) {
       coreHints.w(selectedHintWorker, clickEl)
-      runFallbackKey(options_, 0)
       clear(0, 0)
     } else {
       clearTimeout_(_timer)
@@ -509,11 +509,12 @@ const activateDirectly = (options: ContentOptions, count: number): void => {
   allTypes = (d as typeof options.direct) === !0, mode = options.m &= ~HintMode.queue,
   next = (): void => {
     let rect: ClientRect | 0, sel: Selection
-    if (count < 1) { runFallbackKey(options_, 0); clear(); return }
+    if (count < 1) { clear(); return }
     count = IsInDOM_(el!) ? (coreHints.e({d: el as LinkEl, r: null, m: null}, 0
       , isSel && (sel = getSelected(), rect = rangeCount_(sel) && getSelectionBoundingBox_(sel),
                   rect && padClientRect_(rect))
     ), count - 1) : 0
+    count || runFallbackKey(options_, false)
     timeout_(next, count > 99 ? 1 : count && 17)
   },
   computeOffset = (): number => {

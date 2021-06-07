@@ -110,7 +110,8 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
     }
   } else { count = count || 1 }
   if (fallbackCounter != null) {
-    const maxRetried = Math.max(2, Math.min((fallbackCounter.r! | 0) || 6, 20))
+    let maxRetried = fallbackCounter.r! | 0
+    maxRetried = Math.max(1, maxRetried >= 0 && maxRetried < 100 ? Math.min(maxRetried || 6, 20) : abs(maxRetried))
     if (fallbackCounter.c >= maxRetried) {
       set_cPort(port!)
       showHUD(`Has ran sequential commands for ${maxRetried} times`)
@@ -119,7 +120,7 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
     if (options && (registryEntry.alias_ === kBgCmd.runKey || parseFallbackOptions(options as Req.FallbackOptions))) {
       set_cOptions(options)
       overrideCmdOptions<kBgCmd.runKey>(As_<Req.FallbackOptions>({
-        $f: (fallbackCounter.c | 0) + 1, $retry: maxRetried
+        $f: (fallbackCounter.c | 0) + 1, $retry: -maxRetried
       }))
       options = get_cOptions()
     }
@@ -554,7 +555,7 @@ export const runNextCmdBy = (useThen: BOOL, options: Req.FallbackOptions, timeou
   const nextKey = useThen ? options.$then : options.$else
   const hasFallback = !!nextKey && typeof nextKey === "string"
   if (hasFallback) {
-    const fStatus = { c: options.$f! | 0, r: options.$retry }
+    const fStatus: NonNullable<FgReq[kFgReq.key]["f"]> = { c: options.$f! | 0, r: options.$retry, w: false }
     setTimeout((): void => {
       const frames = framesForTab.get(TabRecency_.curTab_),
       port = cPort && cPort.s.tabId_ === TabRecency_.curTab_ && frames && frames.ports_.indexOf(cPort) > 0 ? cPort
@@ -592,4 +593,10 @@ export const runNextOnTabLoaded = (options: OpenUrlOptions | Req.FallbackOptions
   setupSingletonCmdTimer(setInterval((): void => {
     tabsGet(tabId !== GlobalConsts.TabIdNone ? tabId : tabId = TabRecency_.curTab_, onTimer)
   }, 100)) // it's safe to clear an interval using `clearTimeout`
+}
+
+export const waitAndRunKeyReq = (request: FgReq[kFgReq.key] & Ensure<FgReq[kFgReq.key], "f">): void => {
+  request.f.w = false
+  set_cKey(request.l)
+  runNextOnTabLoaded({ $then: request.k, $else: null, $retry: request.f.r, $f: request.f.c }, null)
 }
