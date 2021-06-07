@@ -167,7 +167,7 @@ const hoverEl = (): void => {
       try {
         if (selector && (selected = up
               ? !OnFirefox
-                ? ElementProto().querySelector.call(ancestors[max_(0, min_(up + 1, ancestors.length - 1))]
+                ? ElementProto.querySelector.call(ancestors[max_(0, min_(up + 1, ancestors.length - 1))]
                     , selector)
                 : querySelector_unsafe_(selector, ancestors[max_(0, min_(up + 1, ancestors.length - 1))
                     ] as SafeElement)

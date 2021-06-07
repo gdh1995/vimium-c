@@ -241,7 +241,7 @@ export const showFrameMask = (mask: FrameMaskType): void => {
     let docEl = docEl_unsafe_();
     if (docEl) {
       OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
-      ? ElementProto().scrollIntoViewIfNeeded!.call(docEl) : scrollIntoView_(docEl)
+      ? ElementProto.scrollIntoViewIfNeeded!.call(docEl) : scrollIntoView_(docEl)
     }
   }
   if (mask < FrameMaskType.minWillMask || !isHTML_()) { return; }

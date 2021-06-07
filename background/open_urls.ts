@@ -1,7 +1,7 @@
 import {
-  PopWindow, InfoToCreateMultiTab, getGroupId,
+  PopWindow, InfoToCreateMultiTab, getGroupId, selectTab, tabsUpdate,
   selectFrom, selectWnd, getCurTab, runtimeError_, getTabUrl, getCurWnd, Tab, Window, browserTabs,
-  browserWindows, getAllWindows, tabsCreate, safeUpdate, openMultiTabs, selectWndIfNeed, makeWindow, browser_, selectTab
+  browserWindows, tabsCreate, safeUpdate, openMultiTabs, selectWndIfNeed, makeWindow, browser_
 } from "./browser"
 import {
   framesForTab, cKey, cPort, cRepeat, get_cOptions, settings, set_cOptions, set_cPort, set_cRepeat
@@ -66,7 +66,7 @@ const findLastVisibleWindow = (wndType: "popup" | "normal" | undefined, alsoCur:
       return runtimeError_()
     })
   }))
-  return p.then(wnd => wnd || new Promise(resolve => getAllWindows((wnds): void => {
+  return p.then(wnd => wnd || new Promise(resolve => browserWindows.getAll((wnds): void => {
     const last = wnds.filter(i => filter(i) && i.id !== TabRecency_.curWnd_)
     const wnd2 = last.length > 0 ? last.sort((i, j) => j.id - i.id)[0] : null
     wnd2 && TabRecency_.lastWnd_ < 0 && (TabRecency_.lastWnd_ = wnd2.id)
@@ -250,7 +250,7 @@ const openUrlInNewTab = (urls: string[], reuse: Exclude<ReuseType, ReuseType.reu
     window = incognito === false || window
   } else if (incognito) {
     if (reuse > ReuseType.OFFSET_LAST_WINDOW) {
-      getAllWindows((/*#__NOINLINE__*/ openUrlInIncognito).bind(null, urls, reuse, options, tab))
+      browserWindows.getAll((/*#__NOINLINE__*/ openUrlInIncognito).bind(null, urls, reuse, options, tab))
       return
     }
   }
@@ -329,7 +329,7 @@ const replaceOrOpenInNewTab = <Reuse extends Exclude<ReuseType, ReuseType.curren
     } else {
       const active = reuse !== ReuseType.newBg && reuse !== ReuseType.lastWndBgInactive
       const activeWnd = matchedTab.windowId !== TabRecency_.curWnd_ && reuse > ReuseType.lastWndBg
-      browserTabs.update(matchedTab.id, { url }, (): void => {
+      tabsUpdate(matchedTab.id, { url }, (): void => {
         active && selectTab(matchedTab.id)
         if (activeWnd) {
           selectWnd(matchedTab)
@@ -362,7 +362,7 @@ export const openJSUrl = (url: string, options: Req.FallbackOptions, onBrowserFa
   // e.g.: use Chrome omnibox at once on starting
   if (Build.MinCVer < BrowserVer.Min$Tabs$$Update$DoesNotAcceptJavaScriptURLs && Build.BTypes & BrowserType.Chrome &&
       CurCVer_ < BrowserVer.Min$Tabs$$Update$DoesNotAcceptJavaScriptURLs) {
-    browserTabs.update({ url }, callback1)
+    tabsUpdate({ url }, callback1)
   } else {
     callback1(-1)
   }
@@ -409,7 +409,7 @@ export const openShowPage = (url: string, reuse: ReuseType, options: OpenUrlOpti
         && views[0].location.href.startsWith(prefix) && views[0].onhashchange) {
       (views[0].onhashchange as () => void)()
     } else {
-      browserTabs.update(tab.id, { url: prefix })
+      tabsUpdate(tab.id, { url: prefix })
     }
     runNextOnTabLoaded(options, null)
   } else if (incognito && [ReuseType.current, ReuseType.newBg, ReuseType.newFg].indexOf(reuse) >= 0) {
@@ -727,7 +727,7 @@ const updateMatchedTab = (tabs2: Tab[]): void => {
   } else {
     const cur = Build.BTypes & BrowserType.Chrome && IsEdg_ ? tab.url.replace(<RegExpOne> /^edge:/, "chrome:") : tab.url
     const wanted = Build.BTypes & BrowserType.Chrome && IsEdg_ ? url.replace(<RegExpOne> /^edge:/, "chrome:") : url
-    browserTabs.update(tab.id, {
+    tabsUpdate(tab.id, {
       url: cur.startsWith(wanted) ? undefined : url, active: true
     }, callback)
     selectWndIfNeed(tab)

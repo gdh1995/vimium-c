@@ -1,5 +1,5 @@
 import {
-  browserTabs, runtimeError_, selectTab, selectWnd, browserSessions, browserWebNav, downloadFile
+  tabsUpdate, runtimeError_, selectTab, selectWnd, browserSessions, browserWebNav, downloadFile
 } from "./browser"
 import {
   set_cPort, set_cRepeat, set_cOptions, needIcon_, set_cKey, cKey, get_cOptions, set_reqH_, reqH_,
@@ -66,7 +66,7 @@ set_reqH_([
       } else if (port) {
         sendFgCmd(kFgCmd.framesGoBack, false, { r: 1, url: result.u })
       } else {
-        browserTabs.update({ url: result.u })
+        tabsUpdate({ url: result.u })
       }
       return
     }

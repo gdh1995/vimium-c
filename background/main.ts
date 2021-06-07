@@ -1,6 +1,6 @@
 import {
   runtimeError_, getTabUrl, tabsGet, browserTabs, tabsCreate, browserSessions, browser_, openMultiTabs,
-  InfoToCreateMultiTab, getGroupId
+  InfoToCreateMultiTab, getGroupId, tabsUpdate
 } from "./browser"
 import {
   framesForTab, framesForOmni,
@@ -144,7 +144,7 @@ Backend_ = {
         callback = (tab2: Tab): void => {
           if ((Build.MinCVer < BrowserVer.MinMutedInfo && Build.BTypes & BrowserType.Chrome
               && CurCVer_ < BrowserVer.MinMutedInfo ? tab2.muted : tab2.mutedInfo.muted) !== muted) {
-            browserTabs.update(tab2.id, { muted })
+            tabsUpdate(tab2.id, { muted })
           }
         }
       }

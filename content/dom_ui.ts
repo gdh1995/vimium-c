@@ -275,7 +275,7 @@ export const getSelected = (notExpectCount?: {r?: ShadowRoot | null}): Selection
         || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
         || (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
           && chromeVer_ < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-          ? Build.MinCVer >= BrowserVer.MinShadowDOMV0 || ElementProto().webkitCreateShadowRoot
+          ? Build.MinCVer >= BrowserVer.MinShadowDOMV0 || ElementProto.webkitCreateShadowRoot
           : typeof ShadowRoot == OBJECT_TYPES[kTY.func])) {
     while (sel2) {
       sel2 = null;

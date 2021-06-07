@@ -154,7 +154,7 @@ const onAnyClick_cr = OnChrome ? (event: MouseEventToPrevent): void => {
          ? Build.MinCVer >= BrowserVer.MinEnsured$Event$$Path || path
          : (Build.MinCVer >= BrowserVer.MinEnsured$Event$$Path || path) && path!.length > 1)
         ? path![0] as Element : event.target as Element;
-    if (ElementProto().getAttribute.call(t, "accesskey")) {
+    if (ElementProto.getAttribute.call(t, "accesskey")) {
       // if a script has modified [accesskey], then do nothing on - just in case.
       /*#__NOINLINE__*/ resetAnyClickHandler();
       prevent_(event);

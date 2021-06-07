@@ -268,8 +268,7 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
         }
         if (!hasSearch
             && (hintOptions.ordinal != null ? hintOptions.ordinal :
-                ((OnFirefox ? (docEl_unsafe_()! as HTMLElement).dataset.vimiumHints
-                  : ElementProto().getAttribute.call(docEl_unsafe_()!, "data-vimium-hints"))
+                ((OnFirefox || htmlTag_(docEl_unsafe_()!)) && (docEl_unsafe_()! as HTMLElement).dataset.vimiumHints
                 || "").includes("ordinal"))) {
           /* empty */
         }

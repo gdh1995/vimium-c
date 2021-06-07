@@ -22,6 +22,7 @@ export const browserWebNav = (): typeof chrome.webNavigation | undefined => brow
 export const runtimeError_ = BgUtils_.runtimeError_
 
 export const tabsGet = browserTabs.get
+export const tabsUpdate = browserTabs.update
 
 export const getGroupId: (tab: Tab) => chrome.tabs.GroupId | null = !(Build.BTypes & ~BrowserType.Firefox)
     || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox
@@ -49,8 +50,6 @@ export const getCurWnd = ((populate: boolean, callback: (window: Window, exArg: 
   (populate: false, callback: (window: Window, exArg: FakeArg) => void): 1
 }
 
-export const getAllWindows = browserWindows.getAll
-
 export const selectFrom = (tabs: readonly Tab[], overrideIndexes?: BOOL): ActiveTab => {
   Build.BTypes & BrowserType.Firefox && overrideIndexes && BgUtils_.overrideTabsIndexes_ff_!(tabs)
   for (let i = tabs.length; 0 < --i; ) {
@@ -65,7 +64,7 @@ export const selectFrom = (tabs: readonly Tab[], overrideIndexes?: BOOL): Active
 
 /** if `alsoWnd`, then it's safe when tab does not exist */
 export const selectTab = (tabId: number, callback?: ((tab?: Tab) => void) | null): void => {
-  browserTabs.update(tabId, {active: true}, callback)
+  tabsUpdate(tabId, {active: true}, callback)
 }
 
 export const selectWnd = (tab?: { windowId: number }): void => {
@@ -126,7 +125,7 @@ export const safeUpdate = (url: string, secondTimes?: true, tabs1?: [Tab]): void
     return
   }
   const arg = { url }
-  tabs1 ? browserTabs.update(tabs1[0].id, arg, runtimeError_) : browserTabs.update(arg, runtimeError_)
+  tabs1 ? tabsUpdate(tabs1[0].id, arg, runtimeError_) : tabsUpdate(arg, runtimeError_)
   BgUtils_.resetRe_()
 }
 

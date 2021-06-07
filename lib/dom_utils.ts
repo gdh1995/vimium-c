@@ -45,7 +45,7 @@ export const querySelectorAll_unsafe_ = ((selector: string, scope?: Element | Sh
     , isScopeAnElementOrNull?: 1): NodeListOf<Element> | void => {
   try {
     if (!OnFirefox) {
-      return (scope && isScopeAnElementOrNull ? ElementProto() : scope || doc
+      return (scope && isScopeAnElementOrNull ? ElementProto : scope || doc
           ).querySelectorAll.call(scope || doc, selector)
     } else {
       return (scope || doc).querySelectorAll(selector)
@@ -165,7 +165,7 @@ export const GetChildNodes_not_ff = !OnFirefox ? (el: Element): NodeList => {
   }
 } : 0 as never as null
 
-export const ElementProto = (): SafeElement => Element.prototype as SafeElement
+export const ElementProto = Element.prototype as SafeElement
 
 /** Try its best to find a real parent */
 export const GetParent_unsafe_ = function (this: void, el: Node | Element
@@ -174,7 +174,7 @@ export const GetParent_unsafe_ = function (this: void, el: Node | Element
   /** Chrome: a selection / range can only know nodes and text in a same tree scope */
   if (!OnEdge && type >= PNType.RevealSlot) {
       if (OnChrome && Build.MinCVer < BrowserVer.MinNoShadowDOMv0 && chromeVer_ < BrowserVer.MinNoShadowDOMv0) {
-        const func = ElementProto().getDestinationInsertionPoints,
+        const func = ElementProto.getDestinationInsertionPoints,
         arr = func ? func.call(el) : [], len = arr.length;
         len > 0 && (el = arr[len - 1]);
       }
@@ -463,7 +463,7 @@ export const appendNode_s = (parent: SafeElement | Document | HTMLDivElement | H
 
 export const append_not_ff = !OnFirefox ? (parent: Element, child: HTMLElement): void => {
   (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
-      ? ElementProto().appendChild : ElementProto().append!).call(parent, child)
+      ? ElementProto.appendChild : ElementProto.append!).call(parent, child)
 } : 0 as never
 
 export const removeEl_s = (el: SafeHTMLElement | HTMLDialogElement | HTMLScriptElement | HTMLSpanElement): void => {
@@ -514,7 +514,7 @@ export const attachShadow_ = <T extends HTMLDivElement | HTMLBodyElement> (box: 
 
 export const scrollIntoView_ = (el: Element, dir?: boolean): void => {
     OnFirefox ? el.scrollIntoView({ block: "nearest" })
-      : ElementProto().scrollIntoView.call(el,
+      : ElementProto.scrollIntoView.call(el,
           OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions && dir != null ? dir : { block: "nearest" })
 }
 

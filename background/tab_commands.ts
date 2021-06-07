@@ -1,6 +1,6 @@
 import {
-  browserTabs, getAllWindows, makeTempWindow, makeWindow, PopWindow, Tab, tabsCreate, Window, getTabUrl, selectFrom,
-  runtimeError_, IncNormalWnd, selectWnd, selectTab, getCurWnd, getCurTabs, getCurTab, getGroupId
+  browserTabs, browserWindows, makeTempWindow, makeWindow, PopWindow, Tab, tabsCreate, Window, getTabUrl, selectFrom,
+  runtimeError_, IncNormalWnd, selectWnd, selectTab, getCurWnd, getCurTabs, getCurTab, getGroupId, tabsUpdate
 } from "./browser"
 import { cRepeat, get_cOptions, cPort, cNeedConfirm, set_cPort, settings } from "./store"
 import { complainLimits, requireURL, showHUD } from "./ports"
@@ -188,7 +188,7 @@ export const joinTabs = (): void | kBgCmd.joinTabs => {
         browserTabs.move(tab.id, { windowId: curWndId, index: start++ })
       }
       for (const tab of allTabs) {
-        tab.pinned && browserTabs.update(tab.id, {pinned: true})
+        tab.pinned && tabsUpdate(tab.id, { pinned: true })
       }
     }
     if (_curWnd && _curWnd.type === "popup" && _curWnd.tabs.length) {
@@ -205,7 +205,7 @@ export const joinTabs = (): void | kBgCmd.joinTabs => {
   if (onlyCurrent) {
     getCurWnd(true, wnd => wnd ? onWindows([wnd]) : runtimeError_())
   } else {
-    getAllWindows(Build.MinCVer < BrowserVer.Min$windows$$GetAll$SupportWindowTypes
+    browserWindows.getAll(Build.MinCVer < BrowserVer.Min$windows$$GetAll$SupportWindowTypes
         && Build.BTypes & BrowserType.Chrome && CurCVer_ < BrowserVer.Min$windows$$GetAll$SupportWindowTypes
         ? {populate: true} : {populate: true, windowTypes: ["normal", "popup"]},
     onWindows)
@@ -283,7 +283,7 @@ export const moveTabToNewWindow = (): void | kBgCmd.moveTabToNewWindow => {
         browserTabs.move(rightTabs.map(getId), { index: leftNum + 1, windowId: wnd2.id }, runtimeError_)
       }
       for (const tab of tabs) {
-        tab.pinned && browserTabs.update(tab.id, {pinned: true})
+        tab.pinned && tabsUpdate(tab.id, { pinned: true })
       }
     })
   }
@@ -307,7 +307,7 @@ export const moveTabToNewWindow = (): void | kBgCmd.moveTabToNewWindow => {
       options.url = url
     }
     wnd.tabs = null as never
-    getAllWindows((wnds): void => {
+    browserWindows.getAll((wnds): void => {
       // eslint-disable-next-line arrow-body-style
       wnds = wnds.filter((wnd2: Window): wnd2 is IncNormalWnd => {
         return wnd2.incognito && wnd2.type === "normal"
@@ -350,7 +350,7 @@ export const moveTabToNewWindow = (): void | kBgCmd.moveTabToNewWindow => {
 }
 
 export const moveTabToNextWindow = ([tab]: [Tab]): void | kBgCmd.moveTabToNextWindow => {
-  getAllWindows((wnds0: Window[]): void => {
+  browserWindows.getAll((wnds0: Window[]): void => {
     let wnds: Window[], ids: number[]
     const noMin = get_cOptions<C.moveTabToNextWindow>().minimized === false
         || get_cOptions<C.moveTabToNextWindow>().min === false
@@ -484,7 +484,7 @@ export const removeTab = (phase?: 1 | 2, tabs?: readonly Tab[]): void => {
     if (phase < 2) { // from `getCurTab`
       getCurTabs(removeTab.bind(null, 2))
     } else {
-      getAllWindows(/*#__NOINLINE__*/ removeAllTabsInWnd.bind(null, tab, tabs))
+      browserWindows.getAll(/*#__NOINLINE__*/ removeAllTabsInWnd.bind(null, tab, tabs))
     }
     return
   } else if (phase < 2) {
@@ -560,7 +560,7 @@ export const toggleMuteTab = (): void | kBgCmd.toggleMuteTab => {
       const neg = Build.MinCVer < BrowserVer.MinMutedInfo && Build.BTypes & BrowserType.Chrome
           && CurCVer_ < BrowserVer.MinMutedInfo ? !tab.muted : !tab.mutedInfo.muted
       const mute = get_cOptions<kBgCmd.toggleMuteTab>().mute != null ? !!get_cOptions<kBgCmd.toggleMuteTab>().mute : neg
-      mute === neg && browserTabs.update(tab.id, { muted: mute })
+      mute === neg && tabsUpdate(tab.id, { muted: mute })
       showHUD(trans_(mute ? "muted" : "unmuted"))
       runNextCmd<C.toggleMuteTab>(1)
     })
@@ -585,7 +585,7 @@ export const toggleMuteTab = (): void | kBgCmd.toggleMuteTab => {
       if (tab.id !== curId
           && mute === (Build.MinCVer < BrowserVer.MinMutedInfo && Build.BTypes & BrowserType.Chrome
               && CurCVer_ < BrowserVer.MinMutedInfo ? !tab.muted : !tab.mutedInfo.muted)) {
-        browserTabs.update(tab.id, action)
+        tabsUpdate(tab.id, action)
       }
     }
     showHUD(trans_(mute ? "mute" : "unmute", [trans_(prefix)]))
@@ -621,7 +621,7 @@ export const togglePinTab = (tabs: Tab[]): void => {
     }
   }
   for (start = 0; start < end; start++) {
-    browserTabs.update(wantedTabIds[start], action)
+    tabsUpdate(wantedTabIds[start], action)
   }
   runNextCmd<C.togglePinTab>(1)
 }

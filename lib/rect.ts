@@ -98,7 +98,7 @@ export const cropRectToVisible_ = (left: number, top: number, right: number, bot
 
 export let getBoundingClientRect_: (el: Element) => ClientRect = !OnFirefox ? el => {
   type ClientRectGetter = (this: Element) => ClientRect
-  const func = ElementProto().getBoundingClientRect as ClientRectGetter
+  const func = ElementProto.getBoundingClientRect as ClientRectGetter
   getBoundingClientRect_ = func.call.bind<(this: ClientRectGetter, self: Element) => ClientRect>(func)
   return getBoundingClientRect_(el)
 } : el => el.getBoundingClientRect()
@@ -416,7 +416,7 @@ export const instantScOpt = (di: number, amount: number): ScrollToOptions =>
 
 export const scrollWndBy_ = (di: ScrollByY, amount: number): void => {
   OnFirefox || OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
-  ElementProto().scrollBy ? scrollBy(instantScOpt(di, amount)) : scrollBy(di ? 0 : amount, di && amount)
+  ElementProto.scrollBy ? scrollBy(instantScOpt(di, amount)) : scrollBy(di ? 0 : amount, di && amount)
 }
 
 export const center_ = (rect: Rect | null): Point2D => {
