@@ -6,7 +6,7 @@ import {
   isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, findMainSummary_, htmlTag_, isAriaNotTrue_,
   kMediaTag, NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, notSafe_not_ff_, docEl_unsafe_,
   GetParent_unsafe_, unsafeFramesetTag_old_cr_, isHTML_, querySelectorAll_unsafe_, isNode_, INP, attr_s,
-  getMediaTag, getMediaUrl, contains_s, GetShadowRoot_, parentNode_unsafe_s, ElementProto
+  getMediaTag, getMediaUrl, contains_s, GetShadowRoot_, parentNode_unsafe_s, testMatch
 } from "../lib/dom_utils"
 import {
   getVisibleClientRect_, getZoomedAndCroppedRect_, getClientRectsForAreas_, getCroppedRect_, padClientRect_,
@@ -554,8 +554,8 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   }
   }
   clickTypeFilter_ = 0
-  if (excludedSelector && !(OnChrome && Build.MinCVer < BrowserVer.Min$Element$$matches && !ElementProto().matches)) {
-    output = safeCall((output as Hint0[]).filter.bind(output), hint => !hint[0].matches!(excludedSelector)) || output
+  if (excludedSelector) {
+    output = safeCall((output as Hint0[]).filter.bind(output), testMatch.bind(null, excludedSelector)) || output
   }
   if (textFilter) {
     cur_ind = (textFilter = textFilter + "" as Extract<typeof textFilter, string>).lastIndexOf("/")

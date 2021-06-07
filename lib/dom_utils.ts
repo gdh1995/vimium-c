@@ -56,6 +56,11 @@ export const querySelectorAll_unsafe_ = ((selector: string, scope?: Element | Sh
   (selector: string, scope?: Element | ShadowRoot | null, isScopeAnElementOrNull?: 0): NodeListOf<Element> | void
 }
 
+export const testMatch = (selector: string, hint: Hint0): boolean => {
+  return OnChrome && Build.MinCVer < BrowserVer.Min$Element$$matches && chromeVer_ < BrowserVer.Min$Element$$matches
+      ? hint[0].webkitMatchesSelector(selector) : hint[0].matches!(selector)
+}
+
 export const isIFrameElement = (el: Element): el is KnownIFrameElement => {
   const tag = el.localName
   return (tag === "iframe" || tag === "frame") && "lang" in el

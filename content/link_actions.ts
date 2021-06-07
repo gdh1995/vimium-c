@@ -7,7 +7,7 @@ import {
   IsInDOM_, createElement_, htmlTag_, getComputedStyle_, getEditableType_, isIFrameElement, GetParent_unsafe_, focus_,
   kMediaTag, ElementProto, querySelector_unsafe_, getInputType, uneditableInputs_, GetShadowRoot_, scrollingEl_,
   findMainSummary_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s,
-  setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_
+  setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_, testMatch
 } from "../lib/dom_utils"
 import { getPreferredRectOfAnchor } from "./local_links"
 import {
@@ -344,8 +344,7 @@ const defaultClick = (): void => {
 const checkFocus = (defaultVal: boolean): boolean => {
   let userFocus: HintsNS.Options["focus"] | void = hintOptions.focus
   return userFocus == null ? defaultVal : !!userFocus && (!isTY(userFocus)
-      || OnChrome && Build.MinCVer < BrowserVer.Min$Element$$matches && !clickEl.matches
-      || (userFocus = safeCall(clickEl.matches!.bind(clickEl, userFocus)), userFocus != null ? userFocus : defaultVal))
+      || (userFocus = safeCall(testMatch, userFocus, [clickEl])), userFocus != null ? userFocus : defaultVal)
 }
 
   const masterOrA = hintManager || coreHints, keyStatus = masterOrA.$().k

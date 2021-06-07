@@ -6,7 +6,7 @@ import {
 import {
   isHTML_, htmlTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK,
   querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s, modifySel,
-  focus_
+  focus_, testMatch
 } from "../lib/dom_utils"
 import {
   pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
@@ -244,15 +244,10 @@ set_contentCommands_([
       return
     }
     let preferredSelector = (options.prefer || "") + ""
-    const preferred: Element[] | null = OnChrome && Build.MinCVer < BrowserVer.Min$Element$$matches
-        && chromeVer_ < BrowserVer.Min$Element$$matches
-        ? [].slice.call(preferredSelector && querySelectorAll_unsafe_(preferredSelector) || [])
-        : (preferredSelector && safeCall(firstInput[0].matches!.bind(firstInput[0]), preferredSelector) == null
-            && (preferredSelector = ""), null)
+    preferredSelector && safeCall(testMatch, preferredSelector, firstInput) == null && (preferredSelector = "")
     for (let ind = 0; ind < sel; ind++) {
       const hint = visibleInputs[ind] as Hint & InputHint, j = hint[0].tabIndex;
-      hint[2] = (OnChrome && Build.MinCVer < BrowserVer.Min$Element$$matches && preferred
-            ? preferred.indexOf(hint[0]) >= 0 : preferredSelector && hint[0].matches!(preferredSelector))
+      hint[2] = preferredSelector && testMatch(preferredSelector, hint)
           ? (OnChrome ? Build.MinCVer >= BrowserVer.MinStableSort : !OnEdge) ? 0.5 : 0.5 + ind / 8192
           : j < 1 ? -ind
           : (OnChrome ? Build.MinCVer >= BrowserVer.MinStableSort : !OnEdge)
