@@ -86,7 +86,7 @@ const loadCSS = (action: MergeAction, cssStr?: string): SettingsNS.MergedCustomC
       css = css.replace(<RegExpOne> /all:\s?\w+;?/, "")
     }
     if ((Build.MinCVer >= BrowserVer.MinEnsuredDisplayContents || !(Build.BTypes & BrowserType.Chrome)
-          || CurCVer_ >= BrowserVer.MinEnsuredDisplayContents)
+          || CurCVer_ > BrowserVer.MinEnsuredDisplayContents - 1)
         && !(Build.BTypes & BrowserType.Edge
               && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge))) {
       const ind2 = css.indexOf("display:"), ind1 = css.lastIndexOf("{", ind2)

@@ -316,7 +316,7 @@ export const executeScroll = function (di: ScrollByY, amount0: number, isTo: BOO
     if (amount && readyState_ > "i" && overrideScrollRestoration) {
       overrideScrollRestoration("scrollRestoration", "manual")
     }
-    thenKey && runFallbackKey(options!, 0)
+    options && runFallbackKey(options, amount ? 0 : 2)
 } as {
     (di: ScrollByY, amount: number, isTo: 0
       , factor?: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined, fromMax?: false

@@ -652,7 +652,7 @@ export const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
 
 const hintModes_: SafeDict<HintMode> = {
     __proto__: null as never,
-  newtab: HintMode.OPEN_IN_NEW_BG_TAB,
+  newtab: HintMode.OPEN_IN_NEW_BG_TAB, queue: HintMode.OPEN_WITH_QUEUE, "cur-queue": HintMode.queue,
   "new-active": HintMode.OPEN_IN_NEW_FG_TAB, "newtab-active": HintMode.OPEN_IN_NEW_FG_TAB,
   hover: HintMode.HOVER, unhover: HintMode.UNHOVER, leave: HintMode.UNHOVER,
   focus: HintMode.FOCUS,

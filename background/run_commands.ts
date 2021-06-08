@@ -580,7 +580,7 @@ export const runNextOnTabLoaded = (options: OpenUrlOptions | Req.FallbackOptions
   }
   const onTimer = (tab1?: Tab): void => {
     const now = Date.now()
-    if (!tab1) { setupSingletonCmdTimer(0); return runtimeError_() }
+    if (!tab1 || !_gCmdTimer) { setupSingletonCmdTimer(0); return runtimeError_() }
     if (tab1.status === "complete" || now < start - 200 || now - start >= timeout) {
       setupSingletonCmdTimer(0)
       callback && callback()

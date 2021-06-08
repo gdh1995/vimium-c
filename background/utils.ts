@@ -560,14 +560,20 @@ var BgUtils_ = {
       }
       return out && "**" + out
     }).replace(<RegExpG>/\*PI\+(?!\s*\d)/g, "*PI").replace(<RegExpG> /([\d.])rad\b/g, "$1")
+    path = path.replace(<RegExpG> /^=+|=+$/g, "").trim()
     let nParenthesis = ([].reduce as (cb: (o: number, c: string) => number, o: number) => number
         ).call(path, (n, ch) => n + (ch === "(" ? 1 : ch === ")" ? -1 : 0), 0)
+    for (; nParenthesis < 0; nParenthesis++) { path = "(" + path }
     while (nParenthesis-- > 0) { path += ")" }
+    if (path) {
+      while (path && path[0] === "(" && path.slice(-1) === ")") { path = path.slice(1, -1).trim() }
+      path = path || "()"
+    }
 
     let result: any = ""
     if ((mathParser = mathParser || window.MathParser || {}).evaluate) {
       try {
-        result = mathParser.evaluate(path) // eslint-disable-line @typescript-eslint/no-unsafe-call
+        result = mathParser.evaluate(path !== "()" ? path : "0") // eslint-disable-line @typescript-eslint/no-unsafe-call
         if (typeof result === "function") {
           result = ""
         } else {
