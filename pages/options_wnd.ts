@@ -541,14 +541,16 @@ if (OnEdge || !optional.length) {
         for (const i of shownItems) {
           const wanted = i.element_.checked
           if (i.previous_ === wanted) { continue }
+          const orig2: kPermissions | "" = i.name_ === "chrome://new-tab-page/" ? "chrome://newtab/" : ""
           i.previous_ = wanted
           if (wanted) {
             i.name_ === "downloads.shelf" && new_permissions.push("downloads");
             (i.name_.includes(":") ? new_origins : new_permissions).push(i.name_)
+            orig2 && new_origins.push(orig2)
             changed[i.name_] = i
           } else {
             waiting++
-            browserPermissions.remove(i.name_.includes(":") ? { origins: [i.name_] } : {
+            browserPermissions.remove(i.name_.includes(":") ? { origins: orig2 ? [i.name_, orig2] : [i.name_] } : {
               permissions: i.name_ === "downloads.shelf" ? ["downloads", i.name_] : [i.name_]
             }, (ok): void => {
               const err = chrome.runtime.lastError as any

@@ -119,7 +119,6 @@
   },
   "optional_permissions": [
     "chrome://*/*",
-    "chrome://new-tab-page/",
     "contentSettings",
     "cookies",
     "downloads",

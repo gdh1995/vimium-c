@@ -150,7 +150,8 @@ declare module chrome.downloads {
 }
 
 declare module chrome.permissions {
-  export type kPermissions = "downloads" | "downloads.shelf" | "chrome://new-tab-page/" | "chrome://*/*"
+  export type kPermissions = "downloads" | "downloads.shelf"
+      | "chrome://new-tab-page/" | "chrome://newtab/" | "chrome://*/*"
       | "clipboardRead" | "contentSettings" | "notifications" | "cookies"
   export interface Request { origins?: kPermissions[]; permissions?: kPermissions[] }
   export function contains(query: Request, callback: (result: boolean) => void): void

@@ -446,9 +446,11 @@ Settings_.temp_.loadI18nPayload_ = null;
 
 Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
 && BgUtils_.timeout_(100, (): void => {
-  let status: 0 | 1 | 2 | 3 = 0, protocol = IsEdg_ ? "edge:" : "chrome:", ntp = protocol + "//newtab/"
+  let status: 0 | 1 | 2 | 3 = 0
+  const protocol = IsEdg_ ? "edge:" : "chrome:",
+  ntp = !IsEdg_ ? protocol + "//newtab/" : "", ntp2 = !IsEdg_ ? protocol + "//new-tab-page/" : ""
   const onTabsUpdated = (tabId: number, changeInfo: chrome.tabs.TabChangeInfo, tab: chrome.tabs.Tab): void => {
-    if (tab.url.startsWith(protocol) && status & (tab.url === ntp ? 2 : 1)
+    if (tab.url.startsWith(protocol) && status & (tab.url === ntp || tab.url === ntp2 ? 2 : 1)
         && changeInfo.status === "loading") {
       const js = Settings_.CONST_.ContentScripts_, offset = location.origin.length
       for (let _j = 0, _len = js.length - 1; _j < _len; ++_j) {
