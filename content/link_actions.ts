@@ -52,16 +52,16 @@ const accessElAttr = (isUrl?: 1): [string: string, isUserCustomized?: BOOL] => {
   for (let accessor of ((hintOptions.access || "") + "").split(",")) {
     const arr = accessor.trim().split(":"), selector = arr.length === 2 ? arr[0] : 0
     const el: SafeElement | null = !selector ? clickEl
-        : OnFirefox ? querySelector_unsafe_(selector) as SafeElement | null
-        : SafeEl_not_ff_!(querySelector_unsafe_(selector))
+        : OnFirefox ? querySelector_unsafe_(selector, clickEl) as SafeElement | null
+        : SafeEl_not_ff_!(querySelector_unsafe_(selector, clickEl))
     let json: Dict<primitiveObject | null> | primitiveObject | null | undefined | Element = el
     for (const prop of arr[+!!selector].split(".")) {
       if (json && isTY(json)) {
         json = safeCall<string, any>(JSON.parse, json as string)
       }
       json = json !== el ? json && isTY(json, kTY.obj) && (json as Dict<primitiveObject | null>)[prop]
-          : el ? htmlTag_<1>(el) && (el.dataset as Dict<string>)[prop] || attr_s(el, prop)
-          : 0
+          : !el ? 0 : (el as TypeToAssert<Element, HTMLElement | SVGElement, "dataset", "tagName">).dataset
+          && ((el as HTMLElement).dataset as Dict<string>)[prop] || attr_s(el, prop)
     }
     if (json && isTY(json)) { return [json, 1] }
   }
@@ -93,9 +93,7 @@ const downloadOrOpenMedia = (): void => {
       ? src || getMediaUrl(clickEl as SafeHTMLElement, mediaTag < kMediaTag.MIN_NOT_MEDIA_EL) : ""
   if (mediaTag > kMediaTag.MIN_NOT_MEDIA_EL - 1) {
     if (!isImageUrl(text)) {
-      let arr = createRegExp(kTip.cssUrl, "i").exec(
-            (mediaTag > kMediaTag.LAST ? getComputedStyle_(clickEl)
-              : (clickEl as SafeHTMLElement).style).backgroundImage!)
+      let arr = createRegExp(kTip.cssUrl, "i").exec(getComputedStyle_(clickEl).backgroundImage!)
       if (arr && arr[1]) {
         const a1 = createElement_("a");
         a1.href = arr[1].replace(<RegExpG> /\\('|")/g, "$1");
