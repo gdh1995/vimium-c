@@ -73,7 +73,7 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
     const link = links[index][0]
     if (contains_s(link, links[index + 1][0]) || (s = "lang" in link
             ? link.innerText : link.textContent.trim()).length > totalMax) { continue }
-    if (s = s.length > 2 ? s : !s && (ch = (link as HTMLInputElement).value) && isTY(ch, kTY.str) && ch
+    if (s = s.length > 2 ? s : !s && (ch = (link as HTMLInputElement).value) && isTY(ch) && ch
             || attr_s(link, ALA) || (link as TypeToPick<Element, HTMLElement, "title">).title || s) {
       if (s.length > totalMax) { continue; }
       s = Lower(s)

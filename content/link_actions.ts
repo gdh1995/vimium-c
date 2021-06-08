@@ -47,7 +47,7 @@ const unhoverOnEsc: HandlerNS.Handler = event1 => {
 }
 
 const accessElAttr = (isUrl?: 1): [string: string, isUserCustomized?: BOOL] => {
-  type primitiveObject = boolean | number | string | object
+  type primitiveObject = boolean | number | string | { arguments?: undefined } & Dict<any>
   const dataset = (clickEl as SafeHTMLElement).dataset
   for (let accessor of ((hintOptions.access || "") + "").split(",")) {
     const arr = accessor.trim().split(":"), selector = arr.length === 2 ? arr[0] : 0
@@ -57,7 +57,7 @@ const accessElAttr = (isUrl?: 1): [string: string, isUserCustomized?: BOOL] => {
     let json: Dict<primitiveObject | null> | primitiveObject | null | undefined | Element = el
     for (const prop of arr[+!!selector].split(".")) {
       if (json && isTY(json)) {
-        json = safeCall<string, any>(JSON.parse, json)
+        json = safeCall<string, any>(JSON.parse, json as string)
       }
       json = json !== el ? json && isTY(json, kTY.obj) && (json as Dict<primitiveObject | null>)[prop]
           : el ? htmlTag_<1>(el) && (el.dataset as Dict<string>)[prop] || attr_s(el, prop)

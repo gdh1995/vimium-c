@@ -97,7 +97,7 @@ export const main_ff = (OnFirefox ? (): void => {
       else if (event.defaultPrevented) {
         isClickEventPreventedByPage = 1
       } else if (isHandingTheSecondTime) { // MUST NOT clear `clickEventToPrevent_` here
-        /*#__NOINLINE__*/ callPreviousPreventSafely(event)
+        callPreviousPreventSafely(event)
         if (!Build.NDEBUG) {
           console.log("Vimium C: event#click calls .prevetDefault at %o on %o"
               , event.eventPhase > 2 ? "bubble" : event.eventPhase > 1 ? "target" : "capture"
@@ -135,13 +135,14 @@ export const main_ff = (OnFirefox ? (): void => {
     }
     let isHandingTheSecondTime: BOOL, notDuringAct: BOOL
 
-    for (const [stdFunc, idx] of stdMembers.every(i => isTY(i[1], kTY.func)) ? stdMembers : [] as never) {
-      doExport(EventCls!, stdFunc.name as "preventDefault" | "stopPropagation", function (this: EventToPrevent): any {
+    for (const [stdFunc, idx] of stdMembers.every(i => isTY(i[0], kTY.func)) ? stdMembers : [] as never) {
+      doExport(EventCls!, stdFunc.name as "preventDefault" | "stopPropagation" | "stopImmediatePropagation"
+          , function (this: EventToPrevent): any {
         const self = this, ret = apply.call(stdFunc, self, arguments)
         self !== clickEventToPrevent_ ? 0
         : idx < kAct.stopImm || self.defaultPrevented ? isClickEventPreventedByPage = 1 // idx === kAct.prevent
-        : idx > kAct.stopImm ? /*#__NOINLINE__*/ void listenToPreventClick(self) // idx === kAct.stopProp
-        : /*#__NOINLINE__*/ callPreviousPreventSafely(self) // idx === kAct.stopImm
+        : idx > kAct.stopImm ? void listenToPreventClick(self) // idx === kAct.stopProp
+        : callPreviousPreventSafely(self) // idx === kAct.stopImm
         return ret
       });
     }

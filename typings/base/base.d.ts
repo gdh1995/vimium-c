@@ -1,4 +1,5 @@
 type BOOL = 0 | 1;
+interface Function { readonly arguments: IArguments }
 interface Dict<T> {
   [key: string]: T | undefined;
 }

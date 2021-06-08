@@ -1,6 +1,6 @@
 import { chromeVer_, createRegExp, Lower, math, max_, OnChrome, OnEdge, OnFirefox } from "../lib/utils"
 import {
-  createElement_, querySelector_unsafe_, getInputType, htmlTag_, docEl_unsafe_, ElementProto, removeEl_s, ALA, attr_s,
+  createElement_, querySelector_unsafe_, getInputType, htmlTag_, docEl_unsafe_, removeEl_s, ALA, attr_s,
   contains_s, setClassName_s, setVisibility_s, toggleClass_s, textContent_s, appendNode_s
 } from "../lib/dom_utils"
 import {

@@ -210,19 +210,24 @@ export const tryCreateRegExp = <T extends "g" | "gi" | "gim" | "gm" | "i" | "u" 
 export const safeCall = (<T1, T2, Ret>(func: (arg1: T1, arg2: T2) => Ret, arg1: T1, arg2: T2): Ret | void => {
   try { return func(arg1, arg2) } catch {}
 }) as {
-  <T1, T2, Ret>(func: (arg1: T1, arg2: T2) => Ret, arg1: T1, arg2: T2): Ret | void
-  <T1, Ret>(func: (arg1: T1, args2?: undefined) => Ret, arg1: T1): Ret | void
   <Ret>(func: (arg1?: undefined, arg2?: undefined) => Ret): Ret | void
+  <T1, Ret>(func: (arg1: T1, args2?: undefined) => Ret, arg1: T1): Ret | void
+  <T1, T2, Ret>(func: (arg1: T1, arg2: T2) => Ret, arg1: T1, arg2: T2): Ret | void
 }
 
 /** ==== shortcuts of constant code ==== */
 
+type PlainObject = { arguments?: undefined } & Dict<any>
+type kTyOf<V> = V extends PlainObject ? kTY.obj : V extends Function ? kTY.func : V extends number ? kTY.num : never
+interface TyMap { [kTY.obj]: null | object; [kTY.func]: Function; [kTY.num]: number  }
+
 const TYPES = ["string", "object", "function", "number"]
 export { TYPES as OBJECT_TYPES }
 export const isTY = ((obj: any, ty?: kTY): boolean => typeof obj == TYPES[ty || kTY.str]) as {
-  <T extends kTY> (obj: any, ty: T): obj is (T extends kTY.str ? string
-      : T extends kTY.obj ? object | null : T extends kTY.func ? Function : T extends kTY.num ? number : never)
-  (obj: any): obj is string
+  <V extends undefined | null | boolean | number | string | Function | PlainObject, T extends kTyOf<V>> (
+    obj: V, ty: T): obj is TyMap[T] & V
+  (obj: undefined | null | boolean | number| PlainObject): unknown
+  (obj: undefined | null | boolean | number| string | PlainObject): obj is string
 }
 
 export const Lower = (str: string): string => str.toLowerCase()
