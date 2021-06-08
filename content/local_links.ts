@@ -258,7 +258,7 @@ export const getIfOnlyVisible = (hints: (Hint | Hint0)[], element: SafeElement):
 }
 
 export const traverse = ((selector: string, options: CSSOptions & OtherFilterOptions, filter: Filter<Hint | Hint0>
-    , notWantVUI?: 1, wholeDoc?: 1 | Element, acceptNonHTML?: 1): Hint[] | Hint0[] => {
+    , notWantVUI?: 1, wholeDoc?: BOOL | Element, acceptNonHTML?: 1): Hint[] | Hint0[] => {
 
 const matchSafeElements = ((selector1: string, rootNode: Element | ShadowRoot | null
     , udSelector: string | null, mayBeUnsafe?: 1): HintSources | void => {
@@ -595,7 +595,8 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
 }) as {
   (key: string, options: CSSOptions & OtherFilterOptions, filter: Filter<Hint0>, notWantVUI: 1
       , wholeDoc: 1 | boolean, acceptNonHTML?: 1): Hint0[]
-  (key: string, options: CSSOptions& OtherFilterOptions, filter: Filter<Hint>, notWantVUI?: 1): Hint[]
+  (key: string, options: CSSOptions& OtherFilterOptions, filter: Filter<Hint>, notWantVUI?: 1
+      , wholeDoc?: 0, acceptNonHTML?: 1): Hint[]
 }
 
 const isDescendant = function (c: Element | null, p: Element, shouldBeSingleChild: BOOL | boolean): boolean {
@@ -712,9 +713,15 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
   let _i: number = mode1_, B = "[style*=background]", reachable = hintOptions.reachable,
   visibleElements = _i > HintMode.min_media - 1 && _i < HintMode.max_media + 1
     // not check `img[src]` in case of `<img srcset=... >`
-    ? traverse(`a[href],img,div${B},span${B},[data-src]` + (OnFirefox ? "" : kSafeAllSelector)
+    ? traverse(`a[href],img,svg,div${B},span${B},[data-src]` + (OnFirefox ? "" : kSafeAllSelector)
             + (_i - HintMode.DOWNLOAD_MEDIA ? "" : ",video,audio")
-          , hintOptions, (hints: Hint[], element: SafeHTMLElement): void => {
+          , hintOptions, (hints: Hint[], element: SafeHTMLElement | Element & { lang?: undefined }): void => {
+        if (element.lang == null) {
+          if (element.localName === "svg" && "ownerSVGElement" in <ElementToSVG> element) {
+            getIfOnlyVisible(hints, element as SVGSVGElement)
+          }
+          return
+        }
         const mediaTag = getMediaTag(element)
         let str: string | null | undefined = getMediaUrl(element, mediaTag < kMediaTag.MIN_NOT_MEDIA_EL)
           , cr: Rect | null | undefined
@@ -742,7 +749,7 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
           }
           str && getIfOnlyVisible(hints, element)
         }
-      }, 1)
+      }, 1, 0, 1)
     : _i > HintMode.min_link_job - 1 && _i < HintMode.max_link_job + 1
     ? traverse("a,[role=link]" + (OnFirefox ? "" : kSafeAllSelector)
           , hintOptions, (hints: Hint[], element: SafeHTMLElement): void => {

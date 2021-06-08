@@ -10,6 +10,14 @@ body {
 body.filled:not(.viewer-open) {
   overflow: overlay;
 }
+#shownImage {
+  min-width: 32px;
+  min-height: 32px;
+}
+#shownImage.svg {
+  min-width: 256px;
+  min-height: 256px;
+}
 .filled > img {
   outline: none;
 }

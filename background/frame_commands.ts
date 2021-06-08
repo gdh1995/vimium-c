@@ -264,6 +264,20 @@ export const captureTab = (tabs?: [Tab]): void | kBgCmd.captureTab => {
 
 export const openImgReq = (req: FgReq[kFgReq.openImage], port?: Port): void => {
   let url = req.u
+  if ((<RegExpI> /^<svg[\s>]/i).test(url)) {
+    let svg = new DOMParser().parseFromString(url, "image/svg+xml").firstElementChild as SVGSVGElement | null
+    if (svg) {
+      for (const el of ([] as Element[]).slice.call(svg.querySelectorAll("script,use"))) { el.remove() }
+    }
+    if (!svg || !svg.lastElementChild) {
+      set_cPort(port!)
+      showHUD(trans_("invalidImg"))
+      return
+    }
+    svg.setAttribute("xmlns", "http://www.w3.org/2000/svg")
+    url = "data:image/svg+xml," + encodeURIComponent(svg.outerHTML)
+    req.f = req.f || "SVG Image"
+  }
   if (!BgUtils_.safeParseURL_(url)) {
     set_cPort(port!)
     showHUD(trans_("invalidImg"))

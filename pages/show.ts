@@ -341,8 +341,8 @@ document.addEventListener("keydown", function (this: void, event): void {
   }
 });
 
-function listenWheelForImage(doListen: boolean): void {
-  (doListen ? addEventListener : removeEventListener)("wheel", myOnWheel, { passive: false, capture: true } as const);
+function listenWheelForImage(_doListen: boolean): void {
+  // (doListen ? addEventListener : removeEventListener)("wheel", myOnWheel, { passive: false, capture: true } as const);
 }
 
 function myOnWheel(this: void, event: WheelEvent & ToPrevent): void {
@@ -678,6 +678,7 @@ function clean(): void {
   if (VData.type === "image") {
     listenWheelForImage(false);
     const boxClass = (document.body as HTMLBodyElement).classList
+    VShown!.classList.remove("svg")
     boxClass.remove("pixel")
     boxClass.remove("filled");
     (VShown as HTMLImageElement).removeAttribute("src");
@@ -821,6 +822,9 @@ function fetchImage_(url: string, element: HTMLImageElement): void {
   element.addEventListener("error", clearTimer, true);
   const url_prefix = url.slice(0, 20).toLowerCase()
   const is_blob = url_prefix.startsWith("blob:"), is_data = url_prefix.startsWith("data:")
+  if (is_data && url_prefix.startsWith("data:image/svg+xml,")) {
+    element.classList.add("svg")
+  }
   if (!is_blob && (!is_data || url.length < 1e4)
       && ((!VData.incognito && !BG_.Settings_.get_("showInIncognito"))
           || !(<RegExpOne> /^(ht|s?f)tp|^data:/).test(url_prefix)

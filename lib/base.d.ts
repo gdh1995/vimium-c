@@ -59,6 +59,7 @@ type NodeToElement = TypeToAssert<Node, Element, "tagName", "nodeType">;
  */
 type ElementToHTMLorOtherFormatted = TypeToAssert<Element, HTMLElement | NonHTMLButFormattedElement
     , "tabIndex" | "style", "tagName">;
+type ElementToSVG = TypeToAssert<Element, SVGElement, "ownerSVGElement", "tagName">
 /**
  * Document & HTMLElement & SVGStyleElement have string .title;
  * only HTMLElement has a string .lang ;

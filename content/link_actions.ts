@@ -80,7 +80,7 @@ const getUrlData = (): string => {
 /** return: img is HTMLImageElement | HTMLAnchorElement | HTMLElement[style={backgroundImage}] */
 const downloadOrOpenMedia = (): void => {
   const filename = attr_s(clickEl, kD) || attr_s(clickEl, "alt") || (clickEl as SafeHTMLElement).title
-  let mediaTag = getMediaTag(clickEl as SafeHTMLElement)
+  let mediaTag = tag ? getMediaTag(clickEl as SafeHTMLElement) : kMediaTag.others
   let srcObj = accessElAttr(), src = srcObj[0]
   let text: string | null, n: number
   if (!mediaTag) {
@@ -90,9 +90,10 @@ const downloadOrOpenMedia = (): void => {
     }
   }
   text = srcObj[1] ? src : mediaTag < kMediaTag.others
-      ? src || getMediaUrl(clickEl as SafeHTMLElement, mediaTag < kMediaTag.MIN_NOT_MEDIA_EL) : ""
+      ? src || getMediaUrl(clickEl as SafeHTMLElement, mediaTag < kMediaTag.MIN_NOT_MEDIA_EL)
+      : tag ? "" : (clickEl as SVGSVGElement).outerHTML
   if (mediaTag > kMediaTag.MIN_NOT_MEDIA_EL - 1) {
-    if (!isImageUrl(text)) {
+    if (tag && !isImageUrl(text)) {
       let arr = createRegExp(kTip.cssUrl, "i").exec(getComputedStyle_(clickEl).backgroundImage!)
       if (arr && arr[1]) {
         const a1 = createElement_("a");
@@ -102,11 +103,11 @@ const downloadOrOpenMedia = (): void => {
     }
   }
   if (!text || isJSUrl(text)
-      || src.length > text.length + 7 && (text === (clickEl as HTMLElement & {href?: string}).href)) {
+      || src.length > text.length + 7 && (text === (clickEl as SafeElement & {href?: string}).href)) {
     text = src;
   }
   if (!text) { hintApi.t({ k: kTip.notImg }) }
-  else if (OnFirefox && hintOptions.keyword != null || mode1_ === HintMode.OPEN_IMAGE) {
+  else if (OnFirefox && hintOptions.keyword != null || mode1_ === HintMode.OPEN_IMAGE || /** <svg> */ !tag) {
     post_({
       H: kFgReq.openImage, r: hintMode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
       m: mode1_, q: parseOpenPageUrlOptions(hintOptions), a: hintOptions.auto,
