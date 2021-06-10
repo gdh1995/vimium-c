@@ -35,7 +35,7 @@ export { removeFlash }
 export function set_removeFlash (_newRmFlash: null): void { removeFlash = _newRmFlash }
 
 export const executeHintInOfficer = (hint: ExecutableHintItem
-    , event?: HandlerNS.Event | null | 0, knownRect?: Rect | null | 0 | false): Rect | null | undefined | 0 => {
+    , event?: HandlerNS.Event | null | 0, knownRect?: Rect | null | 0 | false): Promise<Rect | null> | null => {
 
 const unhoverOnEsc: HandlerNS.Handler = event1 => {
   removeHandler_(kHandler.unhoverOnEsc)
@@ -138,7 +138,7 @@ const hoverEl = (): void => {
     // here not check lastHovered on purpose
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
     set_currentScrolling(weakRef_(clickEl))
-    catchAsyncErrorSilently(hover_async(clickEl, center_(rect!), doesFocus)).then((): void => {
+  retPromise = catchAsyncErrorSilently(hover_async(clickEl, center_(rect!), doesFocus)).then((): void => {
     set_cachedScrollable(currentScrolling)
     if (mode1_ < HintMode.min_job) { // called from Modes[-1]
       hintApi.t({ k: kTip.hoverScrollable })
@@ -182,7 +182,7 @@ const hoverEl = (): void => {
         break;
       }
     }
-    })
+  })
 }
 
 const copyText = (): void => {
@@ -328,7 +328,7 @@ const defaultClick = (): void => {
           : newTab // need to work around Firefox's popup blocker
             ? kClickAction.plainMayOpenManually | kClickAction.newTabFromMode : kClickAction.plainMayOpenManually
         : kClickAction.none;
-    catchAsyncErrorSilently(click_async(clickEl, rect
+    retPromise = catchAsyncErrorSilently(click_async(clickEl, rect
         , checkFocus(mask > 0 || interactive || (clickEl as ElementToHTMLorOtherFormatted).tabIndex! >= 0)
         , [!1, ctrl && !isMac, ctrl && isMac, shift]
         , specialActions, isRight ? kClickButton.second : kClickButton.none
@@ -350,7 +350,8 @@ const checkFocus = (defaultVal: boolean): boolean => {
   const clickEl: LinkEl = hint.d
   const tag = htmlTag_(clickEl)
   const kD = "download", kLW = "last-window"
-  let rect: Rect | null | undefined
+  let rect: Rect | null = null
+  let retPromise: Promise<void | false> | undefined
   let showRect: BOOL | undefined
   if (hintManager) {
     set_keydownEvents_(hintApi.a())
@@ -374,7 +375,7 @@ const checkFocus = (defaultVal: boolean): boolean => {
       } else {
         removeFlash = rect && flash_(null, rect, -1)
         masterOrA.j(coreHints, hint, rect && lastFlashEl)
-        return 0
+        return null
       }
     }
     hintManager && focus()
@@ -415,13 +416,13 @@ const checkFocus = (defaultVal: boolean): boolean => {
       } else if (hint.r && hint.r === clickEl) {
         hoverEl()
       } else if (getEditableType_<0>(clickEl) > EditableType.TextBox - 1) {
-        select_(clickEl as LockableElement, rect, !removeFlash)
+        retPromise = select_(clickEl as LockableElement, rect, !removeFlash)
         showRect = 0
       } else {
         /*#__NOINLINE__*/ defaultClick()
       }
     } else if (m < HintMode.max_hovering + 1) {
-      m < HintMode.HOVER + 1 ? hoverEl() : catchAsyncErrorSilently(unhover_async(clickEl))
+      m < HintMode.HOVER + 1 ? hoverEl() : retPromise = catchAsyncErrorSilently(unhover_async(clickEl))
     } else if (m < HintMode.FOCUS + 1) {
       view_(clickEl)
       focus_(clickEl)
@@ -441,7 +442,7 @@ const checkFocus = (defaultVal: boolean): boolean => {
     } else if (m < HintMode.max_edit + 1) {
       copyText()
     } else if (m < HintMode.FOCUS_EDITABLE + 1) {
-      select_(clickEl as LockableElement, rect, !removeFlash)
+      retPromise = select_(clickEl as LockableElement, rect, !removeFlash)
       showRect = 0
     } else { // HintMode.ENTER_VISUAL_MODE
       selectAllOfNode(clickEl)
@@ -458,6 +459,5 @@ const checkFocus = (defaultVal: boolean): boolean => {
   } else {
     hintApi.t({ k: kTip.linkRemoved, d: 2000 })
   }
-  (<RegExpOne> /a?/).test("")
-  return rect
+  return retPromise ? retPromise.then(() => rect) : Promise.resolve(rect)
 }

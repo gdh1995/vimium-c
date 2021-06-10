@@ -481,13 +481,14 @@ const rotateHints = (reverse: boolean, list: FrameHintsInfo): void => {
 
 const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): void => {
   const selectedHintWorker = locateHint(hint), clickEl = weakRef_(hint.d),
-  result = selectedHintWorker.e(hint, event)
-  runFallbackKey(options_, false)
-  result !== 0 && timeout_((): void => {
+  p = selectedHintWorker.e(hint, event)
+  p && p.then(result => timeout_((): void => {
+    (<RegExpOne> /a?/).test("")
     removeFlash && removeFlash()
     set_removeFlash(null)
+    runFallbackKey(options_, false)
     if (!(mode_ & HintMode.queue)) {
-      setupCheck(selectedHintWorker, clickEl)
+      setupCheck(selectedHintWorker, clickEl, result)
       clear(0, 0)
     } else {
       clearTimeout_(_timer)
@@ -498,7 +499,7 @@ const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): voi
         }
       }, frameArray.length > 1 ? 50 : 18)
     }
-  }, isActive = 0)
+  }, isActive = 0))
 }
 
 const activateDirectly = (options: ContentOptions, count: number): void => {
@@ -634,7 +635,7 @@ const resetOnWaitKey = (): void => { onWaitingKey = null }
 /** should only be called on manager */
 const setupCheck = (officer: BaseHintWorker | null | undefined, el: WeakRef<LinkEl>, r: Rect | null): void => {
     clearTimeout_(_timer)
-    _timer = officer && el && mode1_ < HintMode.min_job ? timeout_((i): void => {
+    _timer = officer && mode1_ < HintMode.min_job ? timeout_((i): void => {
       _timer = TimerID.None;
       let doesReinit: BOOL | boolean | void | undefined
       try {
@@ -661,7 +662,8 @@ const checkLast = ((el?: WeakRef<LinkEl> | LinkEl | TimerType.fake | 9 | 1 | nul
     }
     if ((!r2 || r) && (manager_ || coreHints).$().n
         && (hidden || math.abs(r2!.l - (r as Rect).l) > 100 || math.abs(r2!.t - (r as Rect).t) > 60)) {
-      return hasEl && !doesWantToReloadLinkHints("cl") ? 0 : manager_ ? 1 : (timeout_(() => reinit(1), 0), 0)
+      return hasEl && !doesWantToReloadLinkHints("cl") ? 0
+          : manager_ || r != null ? 1 : (timeout_(() => reinit(1), 0), 0)
     } else {
       return 0
     }
@@ -786,7 +788,7 @@ export const detectUsableChild = (el: KnownIFrameElement): VApiTy | null => {
 }
 
 export const doesWantToReloadLinkHints = (reason: NonNullable<ContentOptions["autoReload"]>): boolean => {
-  let conf = options_.autoReload, accept = !conf || Lower(conf).includes(reason)
+  let conf = options_.autoReload, accept = !conf || conf === "all" || Lower(conf).includes(reason)
   let scheduling: Navigator["scheduling"] | undefined
   if (OnChrome) {
     accept = Build.MinCVer >= BrowserVer.MinEnsuredNavigator$scheduling$$isInputPending

@@ -275,7 +275,8 @@ declare namespace HintsNS {
       [selector: string]: string;
     };
     auto?: boolean;
-    autoReload?: "click" | "cl" | "pageLoad" | "lo" | "click,pageLoad"
+    /** clickElement / pageLoad is enabled by default */
+    autoReload?: "clickElement" | "click" | "cl" | "pageLoad" | "lo" | "delayedListen" | "delayed" | "de" | "all"
     ctrlShiftForWindow?: boolean | null;
     noCtrlPlusShift?: boolean;
     swapCtrlAndShift?: boolean;

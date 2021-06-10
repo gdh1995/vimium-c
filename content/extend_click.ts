@@ -7,7 +7,7 @@ import {
   parentNode_unsafe_s
 } from "../lib/dom_utils"
 import { safeDestroy } from "./port"
-import { coreHints, doesWantToReloadLinkHints } from "./link_hints"
+import { coreHints, doesWantToReloadLinkHints, hintOptions } from "./link_hints"
 import { grabBackFocus } from "./insert"
 
 export const main_not_ff = (!OnFirefox ? (): void => {
@@ -117,6 +117,7 @@ export const main_not_ff = (!OnFirefox ? (): void => {
     detail = rawDetail && isTY(rawDetail, kTY.obj) && isSafe ? rawDetail : "",
     fromAttrs: 0 | 1 | 2 = detail ? (detail[2] + 1) as 1 | 2 : 0;
     let path: typeof event.path,
+    reHint = 0,
     target = detail ? null : (event as DelegateEventCls["prototype"]).relatedTarget as Element | null
         || (!OnEdge
             && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow)
@@ -146,8 +147,13 @@ export const main_not_ff = (!OnFirefox ? (): void => {
     }
     if (isFirstResolve & fromAttrs) {
       isFirstResolve ^= fromAttrs;
-      coreHints.h - 1 || doesWantToReloadLinkHints("lo") && timeout_(coreHints.x, 34)
+      coreHints.h - 1 || doesWantToReloadLinkHints("lo") && (reHint = 34)
     }
+    if (coreHints.h > 1 && !reHint && hintOptions.autoReload && doesWantToReloadLinkHints("de")) {
+      reHint = math.abs(getTime() - coreHints.h) < GlobalConsts.ExtendClick_DelayToStartIteration + 100
+          ? InnerConsts.DelayForNext + 17 : 0
+    }
+    reHint && timeout_(coreHints.x, reHint)
   }
   function resolve(isBox: BOOL, nodeIndexArray: number[]): void {
     if (!nodeIndexArray.length) { return; }
