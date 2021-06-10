@@ -241,9 +241,10 @@ var BgUtils_ = {
       // https://en.wikipedia.org/wiki/Generic_top-level_domain#New_top-level_domains
       type = expected !== Urls.Type.NoScheme && (index < 0 || index2 >= 3 && index2 <= 5)
         || a.checkInDomain_(str, arr[4]) > 0 ? expected : Urls.Type.Search;
-    } else if ((<RegExpOne> /[^.\da-z\-]|^xn--|^-/).test(str)) {
+    } else if ((<RegExpOne> /[^.\da-z\-]|xn--|^-/).test(str)) {
       // non-English domain, maybe with an English but non-CC TLD
-      type = (str.length === index + 3 || type !== Urls.TldType.ENTld ? !expected
+      type = (str.startsWith("xn--") || str.includes(".xn--") ? true
+          : str.length === index + 3 || type !== Urls.TldType.ENTld ? !expected
           : a.checkInDomain_(str, arr[4])) ? expected : Urls.Type.Search;
     } else if (expected !== Urls.Type.NoScheme || hasPath) {
       type = expected;
@@ -350,8 +351,8 @@ var BgUtils_ = {
     return BgUtils_.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl && !url.startsWith("vimium:") ? url : str;
   },
   isTld_ (tld: string, onlyEN?: boolean): Urls.TldType {
-    return !onlyEN && (<RegExpOne> /[^a-z]/).test(tld) ? (this._nonENTlds.includes("." + tld + ".")
-        ? Urls.TldType.NonENTld : Urls.TldType.NotTld)
+    return !onlyEN && (<RegExpOne> /[^a-z]/).test(tld) ? ((<RegExpOne> /^xn--[\x20-\x7f]+/).test(tld)
+        || this._nonENTlds.includes("." + tld + ".") ? Urls.TldType.NonENTld : Urls.TldType.NotTld)
       : tld && tld.length < this._tlds.length && this._tlds[tld.length].includes(tld) ? Urls.TldType.ENTld
       : Urls.TldType.NotTld;
   },

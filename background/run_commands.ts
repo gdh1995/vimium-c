@@ -579,19 +579,20 @@ export const runNextOnTabLoaded = (options: OpenUrlOptions | Req.FallbackOptions
     return
   }
   const onTimer = (tab1?: Tab): void => {
-    const now = Date.now()
-    if (!tab1 || !_gCmdTimer) { setupSingletonCmdTimer(0); return runtimeError_() }
-    if (tab1.status === "complete" || now < start - 200 || now - start >= timeout) {
+    const now = Date.now(), isTimedOut = now < start - 500 || now - start >= timeout
+    // not clear the _gCmdTimer, in case a (new) tab closes itself and opens another tab
+    if (!tab1 || !_gCmdTimer) { tabId = GlobalConsts.TabIdNone; return runtimeError_() }
+    if (isTimedOut || tab1.status === "complete") {
       setupSingletonCmdTimer(0)
       callback && callback()
       nextKey && runNextCmdBy(1, options as {}, callback ? 67 : 0)
     }
   }
-  const timeout = targetTab !== false ? 1500 : 300
-  let tabId = targetTab ? targetTab.id : targetTab !== false ? -1 : TabRecency_.curTab_,
+  const timeout = targetTab !== false ? 1500 : 500
+  let tabId = targetTab ? targetTab.id : targetTab !== false ? GlobalConsts.TabIdNone : TabRecency_.curTab_,
   start = Date.now()
   setupSingletonCmdTimer(setInterval((): void => {
-    tabsGet(tabId !== GlobalConsts.TabIdNone ? tabId : tabId = TabRecency_.curTab_, onTimer)
+    tabsGet(tabId !== GlobalConsts.TabIdNone ? tabId : TabRecency_.curTab_, onTimer)
   }, 100)) // it's safe to clear an interval using `clearTimeout`
 }
 

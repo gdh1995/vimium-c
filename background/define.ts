@@ -100,7 +100,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Array$$f
         && CurCVer_ < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) {
       const proto = {
         add (k: string): any { this.map_[k] = 1 },
-        clear (): void { this.map_ = BgUtils_.safeObj_<1>() },
+        clear (): void { this.map_ = BgUtils_.safeObj_<any>() },
         delete (k: string): any { delete this.map_[k] },
         forEach (cb): any {
           const isSet = this.isSet_, map = this.map_
@@ -109,7 +109,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Array$$f
           }
         },
         get (k: string): any { return this.map_[k] },
-        has (k: string): boolean { return this.map_[k] === 1 },
+        has (k: string): boolean { return k in this.map_ },
         set (k: string, v: any): any { this.map_[k] = v }
       } as SimulatedMap
       const setProto = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && Build.BTypes & BrowserType.Chrome
@@ -122,7 +122,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Array$$f
       } as any;
       (window as any as typeof globalThis).Map = function (this: SimulatedMap): any {
         setProto(this)
-        this.map_ = BgUtils_.safeObj_<1>()
+        this.map_ = BgUtils_.safeObj_<any>()
         this.isSet_ = 0
       } as any
     }

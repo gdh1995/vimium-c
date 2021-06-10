@@ -289,7 +289,11 @@ const replaceOrOpenInNewTab = <Reuse extends Exclude<ReuseType, ReuseType.curren
           ? options!.incognito : reuseOptions!.q && reuseOptions!.q.i)
   const useGroup = (reuse !== ReuseType.reuse ? options!.group : reuseOptions!.q && reuseOptions!.q.g) === true
   set_cRepeat(1)
-  if (reuse !== ReuseType.reuse && options!.replace != null) { options!.replace = matcher }
+  if (reuse === ReuseType.reuse) { reuseOptions!.q && (reuseOptions!.q.g = useGroup) }
+  else {
+    options!.group = useGroup
+    if (options!.replace != null) { options!.replace = matcher }
+  }
   let p: Promise<Pick<Window, "id"> | null>
   if (reuse < ReuseType.OFFSET_LAST_WINDOW + 1 && matcher) {
     p = findLastVisibleWindow(wndType, reuse === ReuseType.ifLastWnd, incognito)
@@ -710,7 +714,7 @@ const onMatchedTabs = (tabs: Tab[]): void => {
     openMultiTabs({
       url: request.u, index: newTabIndex(curTabs[0], request.q && request.q.p, false, true),
       windowId: curTabs[0].windowId, active: true
-    }, 1, null, [null], request.q ? request.q.g : true, curTabs[0], callback)
+    }, 1, null, [null], request.q ? request.q.g : false, curTabs[0], callback)
   }
   return runtimeError_()
 }
