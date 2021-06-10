@@ -1,4 +1,4 @@
-import { VTr, safer, loc_, vApi, locHref, isTY, isTop, parseOpenPageUrlOptions } from "../lib/utils"
+import { VTr, safer, loc_, vApi, locHref, isTY, isTop } from "../lib/utils"
 import { post_, runFallbackKey } from "./port"
 import { hudHide, hudShow, hudTip } from "./hud"
 import { removeHandler_, getMappedKey, isEscape_, replaceOrSuppressMost_ } from "../lib/keyboard_utils"
@@ -28,7 +28,6 @@ export const setPreviousMarkPosition = (idx?: number): void => {
 export const activate = (options: CmdOptions[kFgCmd.marks], count: number): void => {
   const isCreate = options.mode === "create"
   const mcount = count < 2 || count > 9 ? 0 : count - 1
-  const prefix = options.prefix !== !1
   const swap = !!options.swap
   hudShow(<number> <number | boolean> isCreate + kTip.nowGotoMark)
   replaceOrSuppressMost_(kHandler.marks, (event): HandlerResult => {
@@ -63,9 +62,8 @@ export const activate = (options: CmdOptions[kFgCmd.marks], count: number): void
       createMark({n: keyChar}, 2)
     }
   } else {
-    const req: Extract<Req.fg<kFgReq.marks>, { a: kMarkAction.goto }> = {
-      H: kFgReq.marks, a: kMarkAction.goto, p: prefix, n: keyChar,
-      q: parseOpenPageUrlOptions(options)
+    const req: Extract<Req.fg<kFgReq.marks>, { a: kMarkAction.goto } & MarksNS.FgQuery> = {
+      H: kFgReq.marks, a: kMarkAction.goto, n: keyChar, c: options
     }
     if (event.e.shiftKey !== swap) {
       hudHide()

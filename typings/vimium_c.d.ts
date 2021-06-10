@@ -117,13 +117,11 @@ declare namespace MarksNS {
   }
 
   interface FgGlobalQuery extends BaseMark {
-    /** prefix */ p?: boolean; /** default to false */
     /** local */ l?: 0; /** default to false */
     /** url */ u?: undefined;
     /** old */ o?: undefined
   }
   interface FgLocalQuery extends BaseMark {
-    /** prefix */ p?: undefined;
     /** local */ l: 2;
     /** url */ u: string;
     /** old */ o?: {

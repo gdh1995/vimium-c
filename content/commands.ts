@@ -53,6 +53,7 @@ set_contentCommands_([
     if (options.r) {
       timeout_((): void => {
         options.url ? (loc_.href = options.url) : loc_.reload(!!options.hard)
+        runFallbackKey(options, !1)
       }, 17)
     }
     else if ((OnChrome ? Build.MinCVer >= BrowserVer.Min$Tabs$$goBack
@@ -63,9 +64,10 @@ set_contentCommands_([
         || maxStep && reuse && reuse !== "current" // then reuse !== ReuseType.current
     ) {
       // maxStep > 1 && reuse == null || maxStep && reuse && !isCurrent
-      post_({ H: kFgReq.framesGoBack, s: realStep, o: parseOpenPageUrlOptions(options) })
+      post_({ H: kFgReq.framesGoBack, s: realStep, o: options })
     } else {
       maxStep && history.go(realStep);
+      runFallbackKey(options, maxStep ? !1 : 2)
     }
   },
   /* kFgCmd.findMode: */ findActivate,
@@ -185,10 +187,10 @@ set_contentCommands_([
       d: options.decoded || options.decode
     })
     options.o && (url && evalIfOK(url) || post_({
-      H: kFgReq.openUrl, c: copied, u: url, o: opts2
+      H: kFgReq.openUrl, c: copied, u: url, o: opts2, n: options
     }))
-    options.s && post_({ H: kFgReq.searchAs,
-      u: vApi.u(), c: copied, t: selected ? url : "", o: opts2
+    options.s && !options.o && post_({
+      H: kFgReq.searchAs, u: vApi.u(), c: copied, t: selected ? url : "", o: opts2, n: options
     })
   },
   /* kFgCmd.focusInput: */ (options: CmdOptions[kFgCmd.focusInput], count: number): void => {
@@ -350,6 +352,7 @@ set_contentCommands_([
     }
     step = step >= max ? max - 1 : step < 0 ? 0 : step
     el.selectedIndex = step
+    runFallbackKey(options, 0)
   },
   /* kFgCmd.toggleStyle: */ (options: CmdOptions[kFgCmd.toggleStyle]): void => {
     let id = options.id, nodes = querySelectorAll_unsafe_(id ? "#" + id : options.selector!),

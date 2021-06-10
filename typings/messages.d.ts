@@ -309,7 +309,7 @@ interface CmdOptions {
     mode?: "create" | /* all others are treated as "goto"  */ "goto" | "goTo";
     prefix?: true | false;
     swap?: false | true;
-  } & OpenPageUrlOptions;
+  } & OpenPageUrlOptions & Req.FallbackOptions
   [kFgCmd.scroll]: {
     /** continuous */ $c?: kKeyCode;
     axis?: "y" | "x";
@@ -333,8 +333,8 @@ interface CmdOptions {
   [kFgCmd.passNextKey]: {
     normal?: false | true;
   };
-  [kFgCmd.framesGoBack]: Pick<OpenUrlOptions, "reuse" | "position"> & { r?: null }
-      | { r: 1 } & ({ url: string; hard?: undefined } | { url?: undefined; hard?: boolean })
+  [kFgCmd.framesGoBack]: (Pick<OpenUrlOptions, "reuse" | "position"> & { r?: null }
+      | { r: 1 } & ({ url: string; hard?: undefined } | { url?: undefined; hard?: boolean })) & Req.FallbackOptions
   [kFgCmd.vomnibar]: {
     /* vomnibar */ v: string;
     /* vomnibar2 */ i: string | null;
@@ -424,7 +424,7 @@ interface CmdOptions {
   [kFgCmd.scrollSelect]: {
     position?: "begin" | "home" | "start" | "end" | "last"
     dir?: "down" | "next" | "prev" | "up" | 1 | -1
-  };
+  } & Req.FallbackOptions;
   [kFgCmd.toggleStyle]: ({
     selector?: undefined
     id: string
@@ -518,7 +518,8 @@ interface FgReq {
   [kFgReq.openUrl]: {
     // note: need to sync members to ReqH::openUrl in main.ts
     /** url */ u?: string;
-    /** command options */ o?: ParsedOpenPageUrlOptions
+    /** options */ o?: ParsedOpenPageUrlOptions
+    /** command options with "$" */ n?: CmdOptions[kFgCmd.autoOpen]
     /** formatted-by-<a>.href */ f?: boolean;
     /** copied */ c?: boolean | "urls" | "any-urls";
     /** incognito */ i?: boolean
@@ -528,7 +529,8 @@ interface FgReq {
   [kFgReq.searchAs]: {
     /** url */ u: string;
     /** selected text */ t: string;
-    /** options for openUrl */ o: ParsedOpenPageUrlOptions | null
+    /** options for openUrl */ o?: ParsedOpenPageUrlOptions | null
+    /** command options with "$" */ n: CmdOptions[kFgCmd.autoOpen]
     /** copied */ c: boolean | "urls" | "any-urls" | undefined;
   };
   [kFgReq.onFrameFocused]: {};
@@ -585,7 +587,7 @@ interface FgReq {
   [kFgReq.marks]: ({ /** action */ a: kMarkAction.create } & (MarksNS.NewTopMark | MarksNS.NewMark)) | {
     /** action */ a: kMarkAction.clear;
     /** url */ u: string;
-  } | ({ /** action */ a: kMarkAction.goto; q: ParsedOpenPageUrlOptions } & MarksNS.FgQuery)
+  } | ({ /** action */ a: kMarkAction.goto; c: CmdOptions[kFgCmd.marks] } & MarksNS.FgQuery)
   /**
    * .url is guaranteed to be well formatted by frontend
    */
@@ -626,7 +628,8 @@ interface FgReq {
   [kFgReq.findFromVisual]: {};
   [kFgReq.framesGoBack]: {
     /** step */ s: number
-    /** only use o.position */ o: Pick<ParsedOpenPageUrlOptions, "p" | "r">
+    /** only use o.position */ o: PickIn<Extract<CmdOptions[kFgCmd.framesGoBack], {r?: null}>
+        , keyof (OpenUrlOptions & Req.FallbackOptions)>
   }
   [kFgReq.learnCSS]: {};
   [kFgReq.visualMode]: {
@@ -669,6 +672,7 @@ type BaseParsedOpenPageUrlOptions = {
   [k in keyof _ParsedOpenPageUrlOptionNames]?: _ParsedOpenPageUrlOptionNames[k] extends keyof OpenPageUrlOptions
     ? OpenPageUrlOptions[_ParsedOpenPageUrlOptionNames[k]] : never
 }
+type SimpleParsedOpenUrlOptions = Pick<BaseParsedOpenPageUrlOptions, "g" | "i" | "m" | "o" | "p" | "r" | "w">
 interface ParsedOpenPageUrlOptions extends BaseParsedOpenPageUrlOptions {
   /** sed */ s?: ParsedSedOpts | null
 }

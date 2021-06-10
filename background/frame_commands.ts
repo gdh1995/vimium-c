@@ -7,7 +7,8 @@ import { indexFrame, showHUD, complainLimits, ensureInnerCSS } from "./ports"
 import { substitute_ } from "./clipboard"
 import { visualGranularities_, visualKeys_ } from "./key_mappings"
 import {
-  wrapFallbackOptions, copyCmdOptions, parseFallbackOptions, portSendFgCmd, sendFgCmd, replaceCmdOptions, overrideOption
+  wrapFallbackOptions, copyCmdOptions, parseFallbackOptions, portSendFgCmd, sendFgCmd, replaceCmdOptions,
+  overrideOption, runNextOnTabLoaded
 } from "./run_commands"
 import { parseReuse, newTabIndex, openUrlWithActions } from "./open_urls"
 import C = kBgCmd
@@ -308,8 +309,7 @@ export const openImgReq = (req: FgReq[kFgReq.openImage], port?: Port): void => {
       , Urls.WorkType.FakeType)
 }
 
-export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null
-    , curTab?: Pick<Tab, "id" | "url" | "pendingUrl" | "index">): void => {
+export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null, curTab?: Tab): void => {
   const hasTabsGoBack: boolean = !!(Build.BTypes & BrowserType.Chrome)
         && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
         && Build.MinCVer >= BrowserVer.Min$Tabs$$goBack
@@ -336,12 +336,14 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null
     browserTabs.executeScript(tab.id, {
       code: `history.go(${goStep})`,
       runAt: "document_start"
-    }, runtimeError_)
+    }, (): void => {
+      return runtimeError_() || runNextOnTabLoaded(req.o, curTab)
+    })
   }
   const tabID = curTab ? curTab.id : port!.s.tabId_
-  const count = req.s, reuse = parseReuse(req.o.r || ReuseType.current)
+  const count = req.s, reuse = parseReuse(req.o.reuse || ReuseType.current)
   if (reuse) {
-    const position = req.o.p
+    const position = req.o.position
     browserTabs.duplicate(tabID, (tab): void => {
       if (!tab) { return runtimeError_() }
       if (reuse === ReuseType.newBg) {
@@ -350,7 +352,9 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null
       if (!hasTabsGoBack) {
         execGoBack(tab, count)
       } else {
-        framesGoBack({ s: count, o: { r: ReuseType.current } }, null, tab)
+        framesGoBack({ s: count,
+          o: BgUtils_.extendIf_({ reuse: ReuseType.current }, parseFallbackOptions(req.o) || {})
+        }, null, tab)
       }
       const newTabIdx = tab.index--
       const wantedIdx = position === "end" ? 3e4 : newTabIndex(tab, position, false, true)
@@ -364,6 +368,7 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null
       for (let i = 0, end = count > 0 ? count : -count; i < end; i++) {
         jump!(tabID, runtimeError_)
       }
+      runNextOnTabLoaded(req.o, curTab)
     } else {
       execGoBack(curTab!, count)
     }

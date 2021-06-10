@@ -274,6 +274,7 @@ Marks_ = { // NOTE: all public members should be static
   gotoMark_ (this: void, request: Extract<FgReq[kFgReq.marks], { a: kMarkAction.goto }>, port: Port): void {
     const { n: markName } = request, key = Marks_.getLocationKey_(markName, request.u)
     const str = port.s.incognito_ && Marks_.cacheI_ && Marks_.cacheI_.get(key) || Marks_.cache_.getItem(key)
+    const options = request.c
     if (request.l) {
       let scroll: MarksNS.FgMark | null = str ? JSON.parse(str) as MarksNS.FgMark : null;
       if (!scroll) {
@@ -283,7 +284,7 @@ Marks_ = { // NOTE: all public members should be static
         }
       }
       if (scroll) {
-        port.postMessage({ N: kBgReq.goToMark, l: (kTip.local - kTip.global) as 2, n: markName, s: scroll })
+        port.postMessage({ N: kBgReq.goToMark, l: (kTip.local - kTip.global) as 2, n: markName, s: scroll, f: options })
         return
       }
     }
@@ -294,9 +295,12 @@ Marks_ = { // NOTE: all public members should be static
     const stored = JSON.parse(str) as MarksNS.StoredGlobalMark;
     const tabId = +stored.tabId, markInfo: MarksNS.MarkToGo = {
       u: stored.url, s: stored.scroll, t: stored.tabId,
-      n: markName, p: true, q: request.q
+      n: markName, p: true,
+      q: { g: options.group, i: options.incognito, m: options.replace,
+           o: options.opener, r: options.reuse, p: options.position, w: options.window },
+      f: options // parseFallbackOptions(options)
     };
-    markInfo.p = request.p !== false && markInfo.s[1] === 0 && markInfo.s[0] === 0 &&
+    markInfo.p = options.prefix !== false && markInfo.s[1] === 0 && markInfo.s[0] === 0 &&
         !!BgUtils_.IsURLHttp_(markInfo.u);
     if (tabId >= 0 && Backend_.indexPorts_(tabId)) {
       chrome.tabs.get(tabId, Marks_.checkTab_.bind(0, markInfo));
@@ -319,7 +323,11 @@ Marks_ = { // NOTE: all public members should be static
   },
   scrollTab_ (this: void, markInfo: MarksNS.InfoToGo, tab: chrome.tabs.Tab): void {
     const tabId = tab.id, port = Backend_.indexPorts_(tabId, 0);
-    port && port.postMessage({ N: kBgReq.goToMark, l: 0, n: markInfo.n, s: markInfo.s, f: markInfo.f })
+    if (port) {
+      port.postMessage({ N: kBgReq.goToMark, l: 0, n: markInfo.n, s: markInfo.s, f: markInfo.f })
+    } else {
+      // markInfo.f && runNextCmdBy(1, markInfo.f)
+    }
     if (markInfo.t !== tabId && markInfo.n) {
       return Marks_.set_(markInfo as MarksNS.MarkToGo, TabRecency_.incognito_ === IncognitoType.true, tabId);
     }

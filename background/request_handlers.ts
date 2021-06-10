@@ -11,7 +11,7 @@ import {
 import { paste_, substitute_ } from "./clipboard"
 import {
   sendFgCmd, replaceCmdOptions, runKeyWithCond, onConfirmResponse, executeCommand, normalizeClassesToMatch,
-  waitAndRunKeyReq
+  waitAndRunKeyReq, runNextCmdBy, parseFallbackOptions
 } from "./run_commands"
 import { focusAndExecute, focusOrLaunch, openJSUrl, openUrlReq } from "./open_urls"
 import {
@@ -222,6 +222,7 @@ set_reqH_([
     if (!search || !search.k) {
       set_cPort(port)
       showHUD(trans_("noEngineFound"))
+      request.n && runNextCmdBy(0, request.n)
       return
     }
     const o2 = request.o || {}
@@ -233,10 +234,11 @@ set_reqH_([
       if (err) {
         set_cPort(port)
         showHUD(err)
+        request.n && runNextCmdBy(0, request.n)
         return
       }
       o2.k = o2.k == null ? search!.k : o2.k // not change .testUrl, in case a user specifies it
-      reqH_[kFgReq.openUrl]({ u: query2!, o: o2, r: ReuseType.current }, port)
+      reqH_[kFgReq.openUrl]({ u: query2!, o: o2, r: ReuseType.current, n: parseFallbackOptions(request.n) || {} }, port)
     })
   },
   /** kFgReq.gotoSession: */ (request: FgReq[kFgReq.gotoSession], port?: Port): void => {

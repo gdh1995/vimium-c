@@ -43,6 +43,11 @@ export const preferLastWnd = <T extends Pick<Window, "id">> (wnds: T[]): T => {
   return wnds.find(i => i.id === TabRecency_.lastWnd_) || wnds[wnds.length - 1]!
 }
 
+export const parseOpenPageUrlOptions = (options: OpenPageUrlOptions): SimpleParsedOpenUrlOptions => ({
+  g: options.group, i: options.incognito, m: options.replace,
+  o: options.opener, r: options.reuse, p: options.position, w: options.window
+})
+
 const normalizeIncognito = (incognito: OpenUrlOptions["incognito"]): boolean | null => {
   return incognito === !!incognito ? incognito
       : !incognito ? null
@@ -494,8 +499,8 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, tabs?
       : BgUtils_.isJSUrl_(url) ? /*#__NOINLINE__*/ openJSUrl(url, options)
       : Backend_.checkHarmfulUrl_(url) ? 0
       : reuse === ReuseType.reuse ? replaceOrOpenInNewTab(url, reuse, options.replace
-            , null, { u: url, p: options.prefix, q: { g: options.group, i: options.incognito,
-              p: options.position, w: options.window }, f: parseFallbackOptions(options) }, tabs)
+            , null, { u: url, p: options.prefix, q: parseOpenPageUrlOptions(options), f: parseFallbackOptions(options)
+            }, tabs)
       : reuse === ReuseType.current ? /*#__NOINLINE__*/ safeUpdate(url)
       : options.replace ? replaceOrOpenInNewTab(url, reuse, options.replace, options, null, tabs)
       : tabs ? openUrlInNewTab([url], reuse, options, tabs)
@@ -632,6 +637,8 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port): void =>
   opts.position = o2.p
   opts.reuse = o2.r != null ? o2.r : request.r
   opts.window = o2.w
+  const fallback = request.n && parseFallbackOptions(request.n)
+  fallback && BgUtils_.extendIf_(opts, fallback)
   if (url) {
     if (url[0] === ":" && !isWeb && (<RegExpOne> /^:[bhtwWBHdso]\s/).test(url)) {
       url = url.slice(2).trim()
@@ -694,7 +701,7 @@ const onMatchedTabs = (tabs: Tab[]): void => {
     tabs && (tabs = tabs.filter(tab => tab.incognito === incongito))
   }
   if (opts2.g && curTabs.length > 0) {
-    const curGroup = getGroupId(curTabs[0]!)
+    const curGroup = getGroupId(curTabs[0])
     tabs && (tabs = tabs.filter(tab => getGroupId(tab) === curGroup))
   }
   if (tabs && tabs.length > 0) {
@@ -714,6 +721,7 @@ const onMatchedTabs = (tabs: Tab[]): void => {
   } else {
     openMultiTabs({
       url: request.u, index: newTabIndex(curTabs[0], opts2.p, false, true),
+      openerTabId: opts2.o && curTabs[0] ? curTabs[0].id : undefined,
       windowId: curTabs[0].windowId, active: true
     }, 1, null, [null], opts2.g, curTabs[0], callback)
   }
