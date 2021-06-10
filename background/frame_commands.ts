@@ -144,7 +144,7 @@ export const showVomnibar = (forceInner?: boolean): void | kBgCmd.showVomnibar =
     j: useInner ? "" : settings.CONST_.VomnibarScript_f_,
     e: !!(get_cOptions<C.showVomnibar>()).exitOnClick,
     k: getSecret()
-  }), get_cOptions<C.showVomnibar, true>(), 1) as CmdOptions[kFgCmd.vomnibar] & SafeObject
+  }), get_cOptions<C.showVomnibar, true>()) as CmdOptions[kFgCmd.vomnibar] & SafeObject
   portSendFgCmd(port, kFgCmd.vomnibar, true, options, cRepeat)
   options.k = -1
   set_cOptions(options) // safe on renaming

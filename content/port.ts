@@ -95,11 +95,9 @@ export const runFallbackKey = ((options: Req.FallbackOptions
       console.log("Vimium C: run another command %o for type & tip = %o", fallback, anotherTip)
     }
     suppressTail_(GlobalConsts.TimeOfSuppressingUnexpectedKeydownEvents)
-    const waitInBg = anotherTip === !1,
-    opt: Req.fg<kFgReq.key> = {
-      H: kFgReq.key, k: fallback, l: kKeyCode.None, f: { c: options.$f! | 0, r: options.$retry, w: waitInBg }
-    }
-    waitInBg ? post_(opt) : timeout_(post_.bind(null, opt), 50)
+    post_({
+      H: kFgReq.key, k: fallback, l: kKeyCode.None, f: { c: options.$f! | 0, r: options.$retry, u: anotherTip === !1 }
+    })
   } else {
     anotherTip && anotherTip !== 2 && hudTip(anotherTip, 0, tipArgs)
   }

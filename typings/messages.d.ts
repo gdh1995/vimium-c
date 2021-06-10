@@ -579,7 +579,7 @@ interface FgReq {
     /* keySequence */ k: string;
     /** lastKey */ l: kKeyCode;
     /** then/else counter */ f?: {
-      /** counter */ c: number; /** maxRetried */ r: number | null | undefined; /** wait */ w: boolean
+      /** counter */ c: number; /** maxRetried */ r: number | null | undefined; /** may tab be updated */ u: boolean
     } | null
   };
   [kFgReq.marks]: ({ /** action */ a: kMarkAction.create } & (MarksNS.NewTopMark | MarksNS.NewMark)) | {

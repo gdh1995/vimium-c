@@ -532,7 +532,7 @@ const openCopiedUrl = (tabs: [Tab] | [] | undefined, url: string | null): void =
       }
     }
     if (urls2.length > 1) {
-      set_cOptions(copyCmdOptions(BgUtils_.safeObj_(), get_cOptions<C.openUrl>(), 1))
+      set_cOptions(copyCmdOptions(BgUtils_.safeObj_(), get_cOptions<C.openUrl>()))
       get_cOptions<C.openUrl, true>().urls = urls2
       get_cOptions<C.openUrl, true>().$fmt = 1
       tabs && tabs.length > 0 ? openUrls(tabs) : getCurTab(openUrls)

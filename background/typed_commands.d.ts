@@ -149,7 +149,7 @@ interface BgCmdInfoMap {
 }
 
 type UnknownValue = "42" | -0 | false | { fake: 42 } | undefined | null
-type CountValueOrRef = number | "count" | "number"
+type CountValueOrRef = number | "count" | "number" | "ready"
 type KnownOptions<K extends keyof BgCmdOptions> = {
   [P in keyof BgCmdOptions[K]]?: BgCmdOptions[K][P] | null
 }

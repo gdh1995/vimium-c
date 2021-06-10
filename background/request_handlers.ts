@@ -414,10 +414,10 @@ set_reqH_([
     }
     BgUtils_.resetRe_()
     if (!registryEntry) { /* empty */ }
-    else if (request.f != null && request.f.w) {
-      waitAndRunKeyReq(request as (typeof request) & Ensure<typeof request, "f">)
+    else if (request.f != null) {
+      waitAndRunKeyReq(request as (typeof request) & Ensure<typeof request, "f">, port)
     } else {
-      executeCommand(registryEntry, count, request.l, port, 0, request.f)
+      executeCommand(registryEntry, count, request.l, port, 0, null)
     }
   },
   /** kFgReq.marks: */ (request: FgReq[kFgReq.marks], port: Port): void => {

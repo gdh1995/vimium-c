@@ -24,10 +24,9 @@ export const replaceCmdOptions = <T extends keyof BgCmdOptions> (known: CmdOptio
 }
 
 /** skip commands' private ".$xxx" options and ".$count", except those shared public fields */
-export const copyCmdOptions = (dest: CommandsNS.RawOptions, src: CommandsNS.Options
-    , allow$f: BOOL): CommandsNS.RawOptions => {
+export const copyCmdOptions = (dest: CommandsNS.RawOptions, src: CommandsNS.Options): CommandsNS.RawOptions => {
   for (const i in src) {
-    if (i[0] !== "$" || !i.includes("=") && "$then=$else=$retry=".includes(i + "=") || (allow$f && i === "$f")) {
+    if (i[0] !== "$" || !i.includes("=") && "$then=$else=$retry=$f=".includes(i + "=")) {
       i in dest || (dest[i] = src[i])
     }
   }
@@ -513,9 +512,10 @@ const runKeyWithOptions = (key: string, countScale: number, exOptions?: Commands
     const originalOptions = normalizedOptions_(registryEntry)
     registryEntry = BgUtils_.extendIf_(BgUtils_.safeObj_<{}>(), registryEntry)
     let newOptions: CommandsNS.RawOptions & NonNullable<CommandsNS.EnvItem["options"]> = BgUtils_.safeObj_()
-    exOptions && copyCmdOptions(newOptions, BgUtils_.safer_(exOptions), 0)
-    fallOpts ? BgUtils_.extendIf_(newOptions, BgUtils_.safer_(fallOpts)) : fStatus && (newOptions.$f = fStatus)
-    originalOptions && copyCmdOptions(newOptions, originalOptions, 0)
+    exOptions && copyCmdOptions(newOptions, BgUtils_.safer_(exOptions))
+    fallOpts && BgUtils_.extendIf_(newOptions, BgUtils_.safer_(fallOpts))
+    originalOptions && copyCmdOptions(newOptions, originalOptions)
+    newOptions.$f = fStatus
     if (exOptions && "$count" in exOptions) {
       newOptions.$count = exOptions.$count
     } else if (originalOptions && "$count" in originalOptions) {
@@ -555,7 +555,7 @@ export const runNextCmdBy = (useThen: BOOL, options: Req.FallbackOptions, timeou
   const nextKey = useThen ? options.$then : options.$else
   const hasFallback = !!nextKey && typeof nextKey === "string"
   if (hasFallback) {
-    const fStatus: NonNullable<FgReq[kFgReq.key]["f"]> = { c: options.$f! | 0, r: options.$retry, w: false }
+    const fStatus: NonNullable<FgReq[kFgReq.key]["f"]> = { c: options.$f! | 0, r: options.$retry, u: false }
     setTimeout((): void => {
       const frames = framesForTab.get(TabRecency_.curTab_),
       port = cPort && cPort.s.tabId_ === TabRecency_.curTab_ && frames && frames.ports_.indexOf(cPort) > 0 ? cPort
@@ -567,7 +567,7 @@ export const runNextCmdBy = (useThen: BOOL, options: Req.FallbackOptions, timeou
       } else {
         reqH_[kFgReq.key](As_<Req.fg<kFgReq.key>>({ H: kFgReq.key, k: nextKey!, l: kKeyCode.None, f: fStatus }), port)
       }
-    }, timeout || 34)
+    }, timeout || 50)
   }
   return hasFallback
 }
@@ -583,6 +583,11 @@ export const runNextOnTabLoaded = (options: OpenUrlOptions | Req.FallbackOptions
     // not clear the _gCmdTimer, in case a (new) tab closes itself and opens another tab
     if (!tab1 || !_gCmdTimer) { tabId = GlobalConsts.TabIdNone; return runtimeError_() }
     if (isTimedOut || tab1.status === "complete") {
+      // not check injection status - let the command of `wait for="ready"` check it
+      // so some commands not using cPort can run earlier
+      if (callback && !isTimedOut && !framesForTab.has(tab1.id)) {
+        return
+      }
       setupSingletonCmdTimer(0)
       callback && callback()
       nextKey && runNextCmdBy(1, options as {}, callback ? 67 : 0)
@@ -596,8 +601,13 @@ export const runNextOnTabLoaded = (options: OpenUrlOptions | Req.FallbackOptions
   }, 100)) // it's safe to clear an interval using `clearTimeout`
 }
 
-export const waitAndRunKeyReq = (request: FgReq[kFgReq.key] & Ensure<FgReq[kFgReq.key], "f">): void => {
-  request.f.w = false
+export const waitAndRunKeyReq = (request: WithEnsured<FgReq[kFgReq.key], "f">, port: Port | null): void => {
+  const fallback: Req.FallbackOptions = { $then: request.k, $else: null, $retry: request.f.r, $f: request.f.c }
   set_cKey(request.l)
-  runNextOnTabLoaded({ $then: request.k, $else: null, $retry: request.f.r, $f: request.f.c }, null)
+  set_cPort(port!)
+  if (request.f.u) {
+    runNextOnTabLoaded(fallback, null)
+  } else {
+    runNextCmdBy(1, fallback)
+  }
 }

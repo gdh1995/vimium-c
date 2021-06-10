@@ -19,7 +19,8 @@ import {
   togglePinTab, toggleTabUrl
 } from "./tab_commands"
 import {
-  confirm_, overrideCmdOptions, runNextCmd, runKeyWithCond, portSendFgCmd, sendFgCmd, overrideOption, runNextCmdBy
+  confirm_, overrideCmdOptions, runNextCmd, runKeyWithCond, portSendFgCmd, sendFgCmd, overrideOption, runNextCmdBy,
+  runNextOnTabLoaded
 } from "./run_commands"
 import C = kBgCmd
 import Info = kCmdInfo
@@ -48,6 +49,11 @@ set_cmdInfo_(As_<{
 set_bgC_([
   /* kBgCmd.blank: */ (): void | kBgCmd.blank => {
     let wait = get_cOptions<C.blank, true>().for || get_cOptions<C.blank, true>().wait
+    if (wait === "ready") {
+      // run in callback, to avoid extra 67ms
+      runNextOnTabLoaded({}, null, (): void => { runNextCmdBy(1, get_cOptions<C.blank, true>(), 1) })
+      return
+    }
     wait = !wait ? 0 : Math.abs(wait === "count" || wait === "number" ? cRepeat : wait | 0)
     wait && runNextCmdBy(1, get_cOptions<C.blank, true>(), Math.max(34, wait))
   },
