@@ -16,8 +16,7 @@ type NameMetaMap = {
 }
 type NameMetaMapEx = NameMetaMap & {
   readonly [k in keyof OtherCNamesForDebug]: OtherCNamesForDebug[k] extends keyof BgCmdOptions
-      ? [OtherCNamesForDebug[k], 1, 0 | 1, Partial<BgCmdOptions[OtherCNamesForDebug[k]]>?]
-      : never
+      ? RawCmdDesc<kCName, OtherCNamesForDebug[k]> : never
 }
 type ValidMappingInstructions = "map" | "mapkey" | "mapKey" | "env" | "shortcut" | "command"
     | "unmap" | "unmapAll" | "unmapall"
@@ -549,7 +548,7 @@ export const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
   createTab: [ kBgCmd.createTab, 1, 20 as 0 ],
   debugBackground: [ kBgCmd.openUrl, 1, 1,
     {
-      reuse: ReuseType.reuse, group: false,
+      reuse: ReuseType.reuse,
       url: Build.BTypes & ~BrowserType.Chrome &&
             (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)
         ? Build.BTypes & BrowserType.Firefox &&
@@ -709,7 +708,7 @@ export const visualKeys_: VisualModeNS.KeyMap = {
 
 if (!Build.NDEBUG) {
   (availableCommands_ as unknown as Writable<NameMetaMapEx>).focusOptions = [
-    kBgCmd.openUrl, 1, 1, { reuse: ReuseType.reuse, url: "vimium://options", group: false }
+    kBgCmd.openUrl, 1, 1, { reuse: ReuseType.reuse, url: "vimium://options" }
   ];
 }
 

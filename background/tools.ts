@@ -271,15 +271,15 @@ Marks_ = { // NOTE: all public members should be static
       n: request.n
     });
   },
-  gotoMark_ (this: void, request: MarksNS.FgQuery, port: Port): void {
-    const { l: local, n: markName } = request, key = Marks_.getLocationKey_(markName, local ? request.u : "");
+  gotoMark_ (this: void, request: Extract<FgReq[kFgReq.marks], { a: kMarkAction.goto }>, port: Port): void {
+    const { n: markName } = request, key = Marks_.getLocationKey_(markName, request.u)
     const str = port.s.incognito_ && Marks_.cacheI_ && Marks_.cacheI_.get(key) || Marks_.cache_.getItem(key)
-    if (local) {
+    if (request.l) {
       let scroll: MarksNS.FgMark | null = str ? JSON.parse(str) as MarksNS.FgMark : null;
       if (!scroll) {
-        let oldPos = (request as MarksNS.FgLocalQuery).o, x: number, y: number;
+        let oldPos = request.o, x: number, y: number
         if (oldPos && (x = +oldPos.x) >= 0 && (y = +oldPos.y) >= 0) {
-          (request as MarksNS.NewMark).s = scroll = [x, y, oldPos.h];
+          scroll = [x, y, oldPos.h]
         }
       }
       if (scroll) {
@@ -288,7 +288,8 @@ Marks_ = { // NOTE: all public members should be static
       }
     }
     if (!str) {
-      return Backend_.showHUD_(trans_("noMark", [trans_(local ? "Local_" : "Global_"), markName]));
+      Backend_.showHUD_(trans_("noMark", [trans_(request.l ? "Local_" : "Global_"), markName]))
+      return
     }
     const stored = JSON.parse(str) as MarksNS.StoredGlobalMark;
     const tabId = +stored.tabId, markInfo: MarksNS.MarkToGo = {
@@ -300,7 +301,7 @@ Marks_ = { // NOTE: all public members should be static
     if (tabId >= 0 && Backend_.indexPorts_(tabId)) {
       chrome.tabs.get(tabId, Marks_.checkTab_.bind(0, markInfo));
     } else {
-      return Backend_.reqH_[kFgReq.focusOrLaunch](markInfo);
+      Backend_.reqH_[kFgReq.focusOrLaunch](markInfo)
     }
   },
   checkTab_ (this: 0, mark: MarksNS.MarkToGo, tab: chrome.tabs.Tab): void {

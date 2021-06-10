@@ -53,8 +53,8 @@ interface BaseHintWorker extends HintsNS.BaseHintWorker {
   /** render */ r (hints: readonly HintItem[], arr: ViewBox, raw_apis: VApiTy): void
   /** rotate1 */ t: typeof rotate1
   /** checkLast_ */ x: {
-    (el?: WeakRef<LinkEl> | TimerType.fake, r?: Rect | null): void | BOOL
-    (el: 1, r?: Rect | null): void | 1 | 2
+    (el?: WeakRef<LinkEl> | TimerType.fake, r?: Rect | 0): void | BOOL
+    (el: 1, r?: undefined): void | 1 | 2
   }
   /** yankedList */ y: string[]
 }
@@ -62,13 +62,12 @@ interface HintManager extends BaseHintWorker {
     hints_?: readonly HintItem[] | null
     keyStatus_?: KeyStatus | null
     /** get stat (also reset mode if needed) */ $ (doesResetMode?: 1): Readonly<HintStatus>
-    /** reinit */ i: typeof reinit
+    /** reinit */ i (auto: 1, _arg2?: undefined): void
     /** onKeydown */ n: typeof onKeydown
     p: null;
     /** resetMode */ s: typeof resetMode
     /** onFrameUnload */ u: typeof onFrameUnload
     /** resetHints */ v (): void;
-    /** setupCheck */ w (officer?: BaseHintWorker | null, el?: WeakRef<LinkEl> | null, r?: Rect | null): void
 }
 interface HintOfficer extends BaseHintWorker {
     p: HintManager | null
@@ -488,7 +487,7 @@ const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): voi
     removeFlash && removeFlash()
     set_removeFlash(null)
     if (!(mode_ & HintMode.queue)) {
-      coreHints.w(selectedHintWorker, clickEl)
+      setupCheck(selectedHintWorker, clickEl)
       clear(0, 0)
     } else {
       clearTimeout_(_timer)
@@ -624,7 +623,7 @@ const reinit = (auto?: BOOL | TimerType.fake, officer?: BaseHintWorker | null
     isActive = 0;
     resetHints();
     contentCommands_[kFgCmd.linkHints](options_, 0);
-    coreHints.w(officer, lastEl, rect);
+    setupCheck(officer, lastEl!, rect!)
     onWaitingKey = auto ? suppressTail_(GlobalConsts.TimeOfSuppressingUnexpectedKeydownEvents
         , /*#__NOINLINE__*/ resetOnWaitKey) : onWaitingKey
   }
@@ -632,24 +631,23 @@ const reinit = (auto?: BOOL | TimerType.fake, officer?: BaseHintWorker | null
 
 const resetOnWaitKey = (): void => { onWaitingKey = null }
 
-/** setupCheck: should only be called on manager */
-const setupCheck: HintManager["w"] = (officer?: BaseHintWorker | null
-      , el?: WeakRef<LinkEl> | null, r?: Rect | null): void => {
-    _timer && clearTimeout_(_timer);
+/** should only be called on manager */
+const setupCheck = (officer: BaseHintWorker | null | undefined, el: WeakRef<LinkEl>, r: Rect | null): void => {
+    clearTimeout_(_timer)
     _timer = officer && el && mode1_ < HintMode.min_job ? timeout_((i): void => {
       _timer = TimerID.None;
       let doesReinit: BOOL | boolean | void | undefined
       try {
         doesReinit = !(OnChrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i)
-            && (OnFirefox ? unwrap_ff(officer) : officer).x(el, r)
+            && (OnFirefox ? unwrap_ff(officer) : officer).x(el, r || 0)
       } catch {}
-      doesReinit && reinit(1) // not wait for unhovering in a child iframe, to simplify logic
+      doesReinit && reinit(1) // to simplify logic, not wait for unhovering a hidden element in a child iframe
       coreHints.h = isActive && getTime()
     }, frameArray.length > 1 ? 380 : 255) : TimerID.None;
 }
 
 // checkLast: if not el, then reinit if only no key stroke and hints.length < 64
-const checkLast = ((el?: WeakRef<LinkEl> | LinkEl | TimerType.fake | 9 | 1 | null, r?: Rect | null): BOOL | 2 => {
+const checkLast = ((el?: WeakRef<LinkEl> | LinkEl | TimerType.fake | 9 | 1 | null, r?: Rect | 0): BOOL | 2 => {
   const hasEl = (!OnChrome || Build.MinCVer >= BrowserVer.MinNo$TimerType$$Fake || el !== TimerType.fake) && el
   let r2: Rect | null | undefined, hidden: boolean
   if (!isAlive_) { return 0 }
@@ -662,7 +660,7 @@ const checkLast = ((el?: WeakRef<LinkEl> | LinkEl | TimerType.fake | 9 | 1 | nul
       void hover_async()
     }
     if ((!r2 || r) && (manager_ || coreHints).$().n
-        && (hidden || math.abs(r2!.l - r!.l) > 100 || math.abs(r2!.t - r!.t) > 60)) {
+        && (hidden || math.abs(r2!.l - (r as Rect).l) > 100 || math.abs(r2!.t - (r as Rect).t) > 60)) {
       return hasEl && !doesWantToReloadLinkHints("cl") ? 0 : manager_ ? 1 : (timeout_(() => reinit(1), 0), 0)
     } else {
       return 0
@@ -809,7 +807,7 @@ const coreHints: HintManager = {
   x: checkLast, c: clear, o: collectFrameHints, j: delayToExecute, e: executeHintInOfficer, g: getPreciseChildRect,
   l: highlightHint, r: render, t: rotate1,
   p: null,
-  n: onKeydown, s: resetMode, i: reinit, v: resetHints, u: onFrameUnload, w: setupCheck
+  n: onKeydown, s: resetMode, i: reinit, v: resetHints, u: onFrameUnload
 }
 if (!Build.NDEBUG) { coreHints.hints_ = coreHints.keyStatus_ = null }
 

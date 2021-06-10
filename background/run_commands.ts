@@ -281,9 +281,9 @@ export const executeExternalCmd = (
   command = command ? command + "" : "";
   const description = command ? availableCommands_[command] : null
   if (!description) { return; }
-  let ref: Frames.Frames | null
-  const port: Port | null = sender.tab ? Backend_.indexPorts_(sender.tab.id, sender.frameId || 0)
-      || (ref = Backend_.indexPorts_(sender.tab.id), ref ? ref.cur_ : null) : null
+  let ref: Frames.Frames | undefined
+  const port: Port | null = sender.tab ? indexFrame(sender.tab.id, sender.frameId || 0)
+      || (ref = framesForTab.get(sender.tab.id), ref ? ref.cur_ : null) : null
   if (!port && !description[1]) { /** {@link index.d.ts#CommandsNS.FgDescription} */
     return;
   }

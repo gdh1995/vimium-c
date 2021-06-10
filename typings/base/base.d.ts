@@ -18,13 +18,13 @@ type EnsureItemsNonNull<T> = { [P in keyof T]-?: NonNullable<T[P]> };
 type OnlyEnsureItemsNonNull<T> = { [P in keyof T]: NonNullable<T[P]> }; // for lang server to show comments
 type EnsureNonNull<T> = EnsureItemsNonNull<NonNullable<T>>;
 type Ensure<T, K extends keyof T> = { -readonly [P in K]-?: NonNullable<T[P]> };
+type PickIn<T, K extends string> = Pick<T, K & keyof T>
 
 type PartialOf<T, Keys extends keyof T> = { [P in Keys]?: T[P]; };
 type PartialOrEnsured<T, EnsuredKeys extends keyof T> = {
   [P in EnsuredKeys]: T[P];
-} & {
-  [P in Exclude<keyof T, EnsuredKeys>]?: T[P];
-};
+} & PartialOf<T, Exclude<keyof T, EnsuredKeys>>
+type WithEnsured<T, EnsuredKeys extends keyof T> = { [P in EnsuredKeys]-?: NonNullable<T[P]>; } & Omit<T, EnsuredKeys>
 
 // this is to fix a bug of TypeScript ~3.5
 type Generalized<T, K extends keyof T = keyof T> = { [k in K]: __GeneralizedValues<T, K>; };

@@ -16,7 +16,7 @@ import {
   view_, wndSize_, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, padClientRect_, isSelARange,
   getBoundingClientRect_, setBoundary_, wdZoom_, dScale_
 } from "../lib/rect"
-import { post_, set_contentCommands_, runFallbackKey, send_ } from "./port"
+import { post_, set_contentCommands_, runFallbackKey } from "./port"
 import {
   addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, getParentVApi, curModalElement, createStyle,
   getBoxTagName_old_cr, setupExitOnClick, addUIElement, removeSelection, ui_root, kExitOnClick, collpaseSelection,
@@ -187,10 +187,8 @@ set_contentCommands_([
     options.o && (url && evalIfOK(url) || post_({
       H: kFgReq.openUrl, c: copied, u: url, o: opts2
     }))
-    options.s && send_(kFgReq.searchAs, {
+    options.s && post_({ H: kFgReq.searchAs,
       u: vApi.u(), c: copied, t: selected ? url : "", o: opts2
-    }, (err): void => {
-      err && runFallbackKey(options, kTip.raw, err)
     })
   },
   /* kFgCmd.focusInput: */ (options: CmdOptions[kFgCmd.focusInput], count: number): void => {
@@ -339,7 +337,8 @@ set_contentCommands_([
       runFallbackKey(options, 0)
     }, 0);
   },
-  /* kFgCmd.scrollSelect: */ ({ dir, position: pos }: CmdOptions[kFgCmd.scrollSelect], count: number): void => {
+  /* kFgCmd.scrollSelect: */ (options: CmdOptions[kFgCmd.scrollSelect], count: number): void => {
+    const { dir, position: pos } = options
     const el = insert_Lock_() as HTMLSelectElement | null
     if (!el || htmlTag_(el) !== "select") { return }
     let max = el.options.length

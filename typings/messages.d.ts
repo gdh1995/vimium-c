@@ -464,7 +464,6 @@ interface FgRes {
   };
   [kFgReq.execInChild]: boolean;
   [kFgReq.i18n]: { /** rawMessages */ m: string[] | null };
-  [kFgReq.searchAs]: /** tip if not found */ string | 0
 }
 interface FgReqWithRes {
   [kFgReq.findQuery]: {
@@ -496,12 +495,6 @@ interface FgReqWithRes {
     /** ensured args */ a: FgOptions;
   } & Omit<BaseExecute<FgOptions, FgCmdAcrossFrames>, "H">;
   [kFgReq.i18n]: {};
-  [kFgReq.searchAs]: {
-    /** url */ u: string;
-    /** selected text */ t: string;
-    /** options for openUrl */ o: ParsedOpenPageUrlOptions | null
-    /** copied */ c: boolean | "urls" | "any-urls" | undefined;
-  };
 }
 
 interface FgReq {
@@ -530,6 +523,12 @@ interface FgReq {
     /** incognito */ i?: boolean
     /** https */ h?: boolean | null;
     /** a fallback of reuse, in case of `! .o.reuse` */ r?: UserReuseType
+  };
+  [kFgReq.searchAs]: {
+    /** url */ u: string;
+    /** selected text */ t: string;
+    /** options for openUrl */ o: ParsedOpenPageUrlOptions | null
+    /** copied */ c: boolean | "urls" | "any-urls" | undefined;
   };
   [kFgReq.onFrameFocused]: {};
   [kFgReq.checkIfEnabled]: {
@@ -659,7 +658,7 @@ interface OpenUrlOptions extends UserSedOptions {
 }
 
 interface OpenPageUrlOptions extends OpenUrlOptions {
-  keyword?: string; replace?: string | ValidUrlMatchers | null; testUrl?: null | boolean | "whole-string"
+  keyword?: string | null; replace?: string | ValidUrlMatchers | null; testUrl?: null | boolean | "whole-string"
 }
 type _ParsedOpenPageUrlOptionNames = {
   g: "group"; i: "incognito"; k: "keyword"; m: "replace"

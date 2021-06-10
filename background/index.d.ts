@@ -356,7 +356,9 @@ declare namespace SettingsNS {
       : key extends WoThisUpdateHooks ? UpdateHookWoThis<key>
       : key extends EnsuredUpdateHooks | keyof SettingsWithDefaults ? SimpleUpdateHook<key>
       : never;
-  type BaseFullUpdateHookMap = { [key in EnsuredUpdateHooks | keyof SettingsWithDefaults]: UpdateHook<key>; };
+  type BaseFullUpdateHookMap =  { [key in EnsuredUpdateHooks]: UpdateHook<key> } & {
+    [key in keyof SettingsWithDefaults]: UpdateHook<key>
+  }
   type FullUpdateHookMap = PartialOrEnsured<BaseFullUpdateHookMap, EnsuredUpdateHooks>;
 
   interface FullCache extends SafeObject, PartialOrEnsured<FullSettings
@@ -562,8 +564,7 @@ declare namespace BackendHandlersNS {
     [kFgReq.key]: (this: void, request: FgReq[kFgReq.key], port: Port | null) => void
     [kFgReq.framesGoBack]: {
       (this: void, req: FgReq[kFgReq.framesGoBack], port: Port): void;
-      (this: void, req: FgReq[kFgReq.framesGoBack], port: null
-          , tabId: Pick<chrome.tabs.Tab, "id" | "url" | "pendingUrl" | "index">): void
+      (this: void, req: FgReq[kFgReq.framesGoBack], port: null, tab: chrome.tabs.Tab): void
     };
   }
   type FgRequestHandlers = {

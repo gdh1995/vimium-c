@@ -217,11 +217,12 @@ set_reqH_([
     BgUtils_.resetRe_()
     return { u: url, p: path }
   }) as BackendHandlersNS.SpecialHandlers[kFgReq.parseUpperUrl],
-  /** kFgReq.searchAs: */ (request: FgReqWithRes[kFgReq.searchAs], port: Port): FgRes[kFgReq.searchAs] => {
+  /** kFgReq.searchAs: */ (request: FgReq[kFgReq.searchAs], port: Port): void => {
     let search = Backend_.parse_(request), query: string | null | Promise<string | null>
     if (!search || !search.k) {
       set_cPort(port)
-      return trans_("noEngineFound")
+      showHUD(trans_("noEngineFound"))
+      return
     }
     const o2 = request.o || {}
     query = request.t.trim() && substitute_(request.t.trim(), SedContext.pageText, o2.s).trim()
@@ -237,7 +238,6 @@ set_reqH_([
       o2.k = o2.k == null ? search!.k : o2.k // not change .testUrl, in case a user specifies it
       reqH_[kFgReq.openUrl]({ u: query2!, o: o2, r: ReuseType.current }, port)
     })
-    return 0
   },
   /** kFgReq.gotoSession: */ (request: FgReq[kFgReq.gotoSession], port?: Port): void => {
     const id = request.s, active = request.a !== false

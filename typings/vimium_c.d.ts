@@ -120,11 +120,10 @@ declare namespace MarksNS {
     /** prefix */ p?: boolean; /** default to false */
     /** local */ l?: 0; /** default to false */
     /** url */ u?: undefined;
-    /** openPageUrlOptions */ q?: ParsedOpenPageUrlOptions
+    /** old */ o?: undefined
   }
   interface FgLocalQuery extends BaseMark {
     /** prefix */ p?: undefined;
-    /** openPageUrlOptions */ q?: undefined
     /** local */ l: 2;
     /** url */ u: string;
     /** old */ o?: {
@@ -143,7 +142,7 @@ declare namespace MarksNS {
     /** scroll */ s?: ScrollInfo;
     /** url */ u: string;
     /** prefix */ p?: boolean | null
-    /** match a tab to replace */ q?: Partial<ParsedOpenPageUrlOptions>
+    /** match a tab to replace */ q?: SimpleParsedOpenUrlOptions
     /** fallback */ f?: Req.FallbackOptions | null
   }
 }

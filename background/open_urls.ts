@@ -283,16 +283,17 @@ const replaceOrOpenInNewTab = <Reuse extends Exclude<ReuseType, ReuseType.curren
       : typeof replace === "string" ? Exclusions.createSimpleUrlMatcher_(replace)
       : typeof replace !== "object" || !replace.t || !replace.v ? null : replace
   const allWindows = reuse === ReuseType.newWnd || reuse === ReuseType.reuse
-  const rawWndType = reuse === ReuseType.reuse ? reuseOptions!.q!.w : options!.window
+  const reuseO2 = reuse === ReuseType.reuse && reuseOptions!.q || {}
+  const rawWndType = reuse === ReuseType.reuse ? reuseO2.w : options!.window
   const wndType = normalizeWndType(rawWndType)
-  const incognito = normalizeIncognito(reuse !== ReuseType.reuse
-          ? options!.incognito : reuseOptions!.q && reuseOptions!.q.i)
-  const useGroup = (reuse !== ReuseType.reuse ? options!.group : reuseOptions!.q && reuseOptions!.q.g) === true
+  const incognito = normalizeIncognito(reuse !== ReuseType.reuse ? options!.incognito : reuseO2.i)
+  // here it's by intent to make .group default to false
+  const useGroup = (reuse !== ReuseType.reuse ? options!.group : reuseO2.g) === true
   set_cRepeat(1)
-  if (reuse === ReuseType.reuse) { reuseOptions!.q && (reuseOptions!.q.g = useGroup) }
+  if (reuse === ReuseType.reuse) { reuseO2.m = null; reuseO2.g = useGroup }
   else {
-    options!.group = useGroup
-    if (options!.replace != null) { options!.replace = matcher }
+    overrideOption("group", useGroup, options!)
+    if (options!.replace != null) { overrideOption("replace", matcher!, options!) }
   }
   let p: Promise<Pick<Window, "id"> | null>
   if (reuse < ReuseType.OFFSET_LAST_WINDOW + 1 && matcher) {
@@ -687,12 +688,12 @@ export const focusAndExecute = (req: Omit<FgReq[kFgReq.gotoMainFrame], "f">
 export const focusOrLaunch = (request: FgReq[kFgReq.focusOrLaunch], port?: Port | null): void => {
 
 const onMatchedTabs = (tabs: Tab[]): void => {
-  const incongito = normalizeIncognito(request.q && request.q.i)
+  const incongito = normalizeIncognito(opts2.i)
       ?? (TabRecency_.incognito_ !== IncognitoType.true ? false : null)
   if (incongito !== null) {
     tabs && (tabs = tabs.filter(tab => tab.incognito === incongito))
   }
-  if (request.q && request.q.g && curTabs.length > 0) {
+  if (opts2.g && curTabs.length > 0) {
     const curGroup = getGroupId(curTabs[0]!)
     tabs && (tabs = tabs.filter(tab => getGroupId(tab) === curGroup))
   }
@@ -703,18 +704,18 @@ const onMatchedTabs = (tabs: Tab[]): void => {
   }
   // if `request.s`, then `typeof request` is `MarksNS.MarkToGo`
   if (request.f && runNextCmdBy(0, request.f)) { /* empty */ }
-  else if (curTabs.length <= 0 || request.q && request.q.w
+  else if (curTabs.length <= 0 || opts2.w
       || TabRecency_.incognito_ === IncognitoType.true && !curTabs[0].incognito) {
-    makeWindow({ url: request.u, type: normalizeWndType(request.q && request.q.w),
+    makeWindow({ url: request.u, type: normalizeWndType(opts2.w),
       incognito: TabRecency_.incognito_ === IncognitoType.true && !BgUtils_.isRefusingIncognito_(request.u)
     }, "", (wnd): void => {
       if (wnd.tabs && wnd.tabs.length > 0) { callback(wnd.tabs[0]) }
     })
   } else {
     openMultiTabs({
-      url: request.u, index: newTabIndex(curTabs[0], request.q && request.q.p, false, true),
+      url: request.u, index: newTabIndex(curTabs[0], opts2.p, false, true),
       windowId: curTabs[0].windowId, active: true
-    }, 1, null, [null], request.q ? request.q.g : false, curTabs[0], callback)
+    }, 1, null, [null], opts2.g, curTabs[0], callback)
   }
   return runtimeError_()
 }
@@ -756,9 +757,7 @@ const callback = (tab?: Tab): void => {
     opts2.g = false // disable group detection by default
   }
   if (opts2.m) {
-    const replace = opts2.m
-    opts2.m = null
-    replaceOrOpenInNewTab(request.u, ReuseType.reuse, replace, null, request)
+    replaceOrOpenInNewTab(request.u, opts2.r != null && parseReuse(opts2.r) || ReuseType.reuse, opts2.m, null, request)
     return
   }
   getCurTab((curTabs1): void => {

@@ -239,7 +239,7 @@ interface CommandsDataTy {
 interface StatefulBgCmdOptions {
   [kBgCmd.createTab]: null
   [kBgCmd.goNext]: "patterns" | "reuse"
-  [kBgCmd.openUrl]: "urls"
+  [kBgCmd.openUrl]: "urls" | "group" | "replace"
 }
 interface SafeStatefulBgCmdOptions {
   [kBgCmd.runKey]: "expect"

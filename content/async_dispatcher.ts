@@ -236,22 +236,21 @@ export const unhover_async = (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsure
   await hover_async()
   if (active && activeEl_unsafe_() === active) { active.blur && active.blur() }
 }
-: (el?: NullableSafeElForM, step?: 1 | 2, old?: NullableSafeElForM): Promise<0> | 0 => {
+: (el?: NullableSafeElForM, step?: 1 | 2, old?: NullableSafeElForM): Promise<void | false> | void | false => {
   if (!step) {
     old = deref_(lastHovered_)
     return Promise.resolve<void | false>(old !== el && hover_async()).then(unhover_async
-        .bind<void, NullableSafeElForM, 1, NullableSafeElForM, [], Promise<0>>(0, el, 1, el || old))
+        .bind<void, NullableSafeElForM, 1, NullableSafeElForM, [], Promise<void | false>>(0, el, 1, el || old))
   } else if (step < 2) {
     lastHovered_ = weakRef_(el)
-    return hover_async().then(unhover_async.bind<0, NullableSafeElForM, 2, [], 0>(0, old, 2))
+    return hover_async().then(unhover_async.bind<0, NullableSafeElForM, 2, [], void | false>(0, old, 2))
   } else {
-    return <0> <any> (el && activeEl_unsafe_() === el && el.blur && el.blur())
+    return <void | false> <any> (el && activeEl_unsafe_() === el && el.blur && el.blur())
   }
 }) as {
-  (element?: NullableSafeElForM, step?: undefined, active?: undefined): Promise<void | 0>
-  (element: NullableSafeElForM, step: 1, active: NullableSafeElForM): Promise<0>
-  (element: NullableSafeElForM, step: 2): /* all false values */ 0
-  (element: NullableSafeElForM, rect: Rect | null): Promise<void | 0> // only since MinEnsuredAsyncFunctions
+  (element?: NullableSafeElForM, step?: undefined, active?: undefined): Promise<void | false>
+  (element: NullableSafeElForM, step: 1, active: NullableSafeElForM): Promise<void | false>
+  (element: NullableSafeElForM, step: 2): /* all false values */ void | false
 }
 
 
