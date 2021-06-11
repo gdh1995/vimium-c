@@ -1,3 +1,9 @@
+type NoaliasInCNames<k extends kCName> = 
+    k extends `${string}activate${string}Mode${string}` | `${string}Unhover` | `${string}CS${string}`
+        | `${string}vateUrl${string}` | `${string}TabSelection`
+        | "clearContentSetting" | kShortcutAliases.nextTab1 | "newTab" | `simBackspace` | "wait"
+    ? never : k
+
 // eslint-disable-next-line no-var
 var HelpDialog = {
   html_: null as [string, string] | null,
@@ -65,22 +71,28 @@ var HelpDialog = {
     ref = CommandsData_.keyToCommandRegistry_, hideUnbound = !isOptionsPage, showNames = isOptionsPage;
     ref.forEach((registry, key): void => {
       let command = registry.command_
-      if (command.endsWith(".activateMode")) {
-        command = (command as StringEndsWith<kCName, ".activateMode">).replace("Mode", "")
-      } else if (command.endsWith("GotoMode")) {
-        command = command.replace("GotoMode", "")
-      } else if (command.endsWith("Unhover")) {
+      if (key.startsWith("<v-") && key.endsWith(">")) { return }
+      if (command.includes("Mode") && command.includes(".activate")) {
+        if (command.includes(".activateMode")) {
+          command = (command as StringIncluded<kCName, ".activateMode">).replace("ModeTo", "")
+        }
+        command = (command as StringIncluded<StringEndsWith<kCName, "Mode">, ".activate">).replace("Mode", "")
+      }
+      if (command.endsWith("Unhover")) {
         command = command.replace("Unhover", "Leave")
-      } else if (command.endsWith("ContentSettings")) {
-        command = command.replace("ContentSettings", "CS")
-      } else if (command.includes("EditUrl")) {
-        command = command.replace("EditUrl", "Url");
+      } else if (command.includes("CS")) {
+        command = command.startsWith("clear") ? "clearContentSettings"
+            : (command as Exclude<StringIncluded<kCName, "CS">, `clear${string}`>).replace("CS", "ContentSetting")
+      } else if (command.endsWith("vateUrl")) {
+        command = command.replace("vateUrl", "vateEditUrl")
+      } else if (command.endsWith("TabSelection")) {
+        command = command.replace("TabSelection", "Tabs")
       } else if (command === <string> <unknown> kShortcutAliases.nextTab1) {
         command = AsC_("nextTab");
       } else if (command === AsC_("newTab")) {
         command = AsC_("createTab")
-      } else if (command === AsC_("simulateBackspace")) {
-        command = AsC_("simBackspace")
+      } else if (command === AsC_("simBackspace")) {
+        command = AsC_("simulateBackspace")
       } else if (command === AsC_("wait")) {
         command = AsC_("blank")
       }
@@ -238,7 +250,7 @@ var HelpDialog = {
   commandGroups_: As_<{
     readonly [key in
         "pageNavigation" | "vomnibarCommands" | "historyNavigation" | "findCommands" | "tabManipulation" | "misc"
-        ]: readonly kCName[]
+        ]: readonly NoaliasInCNames<kCName>[]
   } & SafeObject>({
     __proto__: null as never,
     pageNavigation: ["scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop"
@@ -247,26 +259,26 @@ var HelpDialog = {
       , "scrollFullPageDown", "scrollFullPageUp", "scrollSelect"
       , "reload", "reloadTab", "reloadGivenTab"
       , "zoomIn", "zoomOut", "zoomReset", "toggleViewSource"
-      , "copyCurrentUrl", "copyCurrentTitle", "switchFocus", "simBackspace"
-      , "LinkHints.activateModeToCopyLinkUrl", "LinkHints.activateModeToCopyLinkText"
+      , "copyCurrentUrl", "copyCurrentTitle", "switchFocus", "simulateBackspace"
+      , "LinkHints.activateCopyLinkUrl", "LinkHints.activateCopyLinkText"
       , "openCopiedUrlInCurrentTab", "openCopiedUrlInNewTab", "goUp", "goToRoot"
-      , "focusInput", "LinkHints.activate", "LinkHints.activateModeToOpenInNewTab"
-      , "LinkHints.activateModeToOpenInNewForegroundTab", "LinkHints.activateModeWithQueue"
-      , "LinkHints.activateModeToDownloadImage", "LinkHints.activateModeToOpenImage"
-      , "LinkHints.activateModeToDownloadLink", "LinkHints.activateModeToOpenIncognito"
-      , "LinkHints.activateModeToHover", "LinkHints.activateModeToLeave", "LinkHints.unhoverLast"
-      , "LinkHints.activateModeToSearchLinkText", "LinkHints.activateModeToEdit"
-      , "LinkHints.activateModeToSelect", "LinkHints.click"
+      , "focusInput", "LinkHints.activate", "LinkHints.activateOpenInNewTab"
+      , "LinkHints.activateOpenInNewForegroundTab", "LinkHints.activateWithQueue"
+      , "LinkHints.activateDownloadImage", "LinkHints.activateOpenImage"
+      , "LinkHints.activateDownloadLink", "LinkHints.activateOpenIncognito"
+      , "LinkHints.activateHover", "LinkHints.activateLeave", "LinkHints.unhoverLast"
+      , "LinkHints.activateSearchLinkText", "LinkHints.activateEdit"
+      , "LinkHints.activateSelect", "LinkHints.click"
       , "goPrevious", "goNext", "nextFrame", "mainFrame", "parentFrame"
       , "enterInsertMode", "enterVisualMode", "enterVisualLineMode"
-      , "Marks.activateCreateMode", "Marks.activate"
+      , "Marks.activateCreate", "Marks.activate"
       , "Marks.clearLocal", "Marks.clearGlobal", "openUrl", "focusOrLaunch"
       ],
     vomnibarCommands: ["Vomnibar.activate", "Vomnibar.activateInNewTab"
       , "Vomnibar.activateBookmarks", "Vomnibar.activateBookmarksInNewTab", "Vomnibar.activateHistory"
-      , "Vomnibar.activateHistoryInNewTab", "Vomnibar.activateTabSelection"
-      , "Vomnibar.activateUrl", "Vomnibar.activateUrlInNewTab"
-      , "LinkHints.activateModeToOpenVomnibar", "toggleVomnibarStyle"],
+      , "Vomnibar.activateHistoryInNewTab", "Vomnibar.activateTabs"
+      , "Vomnibar.activateEditUrl", "Vomnibar.activateEditUrlInNewTab"
+      , "LinkHints.activateOpenVomnibar", "toggleVomnibarStyle"],
     historyNavigation: ["goBack", "goForward", "reopenTab"],
     findCommands: ["enterFindMode", "performFind", "performBackwardsFind", "performAnotherFind"
       , "clearFindHistory"],
@@ -276,32 +288,32 @@ var HelpDialog = {
       , "joinTabs", "sortTabs"
       , "togglePinTab", "toggleMuteTab", "visitPreviousTab", "closeTabsOnLeft"
       , "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"
-      , "enableCSTemp", "toggleCS", "clearCS", "copyWindowInfo", "captureTab"],
+      , "enableContentSettingTemp", "toggleContentSetting", "clearContentSettings", "copyWindowInfo", "captureTab"],
     misc: ["showHelp", "autoCopy", "autoOpen", "searchAs", "searchInAnother"
       , "addBookmark"
       , "toggleStyle", "toggleLinkHintCharacters"
       , "toggleSwitchTemp", "passNextKey", "debugBackground", "closeDownloadBar"
       , "reset", "runKey", "sendToExtension", "blank"]
   }),
-  advancedCommands_: As_<{ readonly [k in kCName]?: 1 | 0; } & SafeObject>({ __proto__: null as never,
+  advancedCommands_: As_<{ readonly [k in NoaliasInCNames<kCName>]?: 1 | 0; } & SafeObject>({ __proto__: null as never,
     toggleViewSource: 1, clearFindHistory: 1
     , scrollToLeft: 1, scrollToRight: 1, moveTabToNextWindow: 1
     , moveTabToNewWindow: 1, moveTabToIncognito: 1, reloadGivenTab: 1
     , focusOrLaunch: 1
-    , goUp: 1, goToRoot: 1, focusInput: 1, "LinkHints.activateModeWithQueue": 1
-    , enableCSTemp: 1, toggleCS: 1, toggleStyle: 1, clearCS: 1
-    , "LinkHints.activateModeToDownloadImage": 1, reopenTab: 1
-    , "LinkHints.activateModeToOpenImage": 1, removeRightTab: 1
-    , "LinkHints.activateModeToDownloadLink": 1, restoreGivenTab: 1, runKey: 1, sendToExtension: 1
+    , goUp: 1, goToRoot: 1, focusInput: 1, "LinkHints.activateWithQueue": 1
+    , enableContentSettingTemp: 1, toggleContentSetting: 1, toggleStyle: 1, clearContentSettings: 1
+    , "LinkHints.activateDownloadImage": 1, reopenTab: 1
+    , "LinkHints.activateOpenImage": 1, removeRightTab: 1
+    , "LinkHints.activateDownloadLink": 1, restoreGivenTab: 1, runKey: 1, sendToExtension: 1
     , discardTab: 1, copyWindowInfo: 1
-    , "LinkHints.activateModeToOpenIncognito": 1, passNextKey: 1
+    , "LinkHints.activateOpenIncognito": 1, passNextKey: 1
     , goNext: 1, goPrevious: 1, "Marks.clearLocal": 1, "Marks.clearGlobal": 1
     , moveTabLeft: 1, moveTabRight: 1, closeTabsOnLeft: 1, closeTabsOnRight: 1
     , closeOtherTabs: 1, scrollPxDown: 1, scrollPxUp: 1, scrollPxLeft: 1
     , scrollPxRight: 1, debugBackground: 1, blank: 1, reset: 1, scrollSelect: 1
-    , "LinkHints.activateModeToHover": 1, "LinkHints.unhoverLast": 1
-    , toggleLinkHintCharacters: 1, toggleSwitchTemp: 1, "LinkHints.activateModeToLeave": 1
-    , "Vomnibar.activateUrl": 1, "Vomnibar.activateUrlInNewTab": 1
+    , "LinkHints.activateHover": 1, "LinkHints.unhoverLast": 1
+    , toggleLinkHintCharacters: 1, toggleSwitchTemp: 1, "LinkHints.activateLeave": 1
+    , "Vomnibar.activateEditUrl": 1, "Vomnibar.activateEditUrlInNewTab": 1
     , closeDownloadBar: Build.BTypes & BrowserType.Chrome ? 0 : 1
   }),
   descriptions_: new Map<kCName, string>()

@@ -395,6 +395,13 @@ declare const enum CNameLiterals {
 
 interface CmdNameIds {
   "LinkHints.activate": kFgCmd.linkHints
+  "LinkHints.activateCopyLinkText": kFgCmd.linkHints
+  "LinkHints.activateCopyLinkUrl": kFgCmd.linkHints
+  "LinkHints.activateDownloadImage": kFgCmd.linkHints
+  "LinkHints.activateDownloadLink": kFgCmd.linkHints
+  "LinkHints.activateEdit": kFgCmd.linkHints
+  "LinkHints.activateHover": kFgCmd.linkHints
+  "LinkHints.activateLeave": kFgCmd.linkHints
   "LinkHints.activateMode": kFgCmd.linkHints
   "LinkHints.activateModeToCopyLinkText": kFgCmd.linkHints
   "LinkHints.activateModeToCopyLinkUrl": kFgCmd.linkHints
@@ -403,7 +410,6 @@ interface CmdNameIds {
   "LinkHints.activateModeToEdit": kFgCmd.linkHints
   "LinkHints.activateModeToHover": kFgCmd.linkHints
   "LinkHints.activateModeToLeave": kFgCmd.linkHints
-  "LinkHints.activateModeToUnhover": kFgCmd.linkHints
   "LinkHints.activateModeToOpenImage": kFgCmd.linkHints
   "LinkHints.activateModeToOpenIncognito": kFgCmd.linkHints
   "LinkHints.activateModeToOpenInNewForegroundTab": kFgCmd.linkHints
@@ -411,11 +417,23 @@ interface CmdNameIds {
   "LinkHints.activateModeToOpenVomnibar": kFgCmd.linkHints
   "LinkHints.activateModeToSearchLinkText": kFgCmd.linkHints
   "LinkHints.activateModeToSelect": kFgCmd.linkHints
+  "LinkHints.activateModeToUnhover": kFgCmd.linkHints
   "LinkHints.activateModeWithQueue": kFgCmd.linkHints
+  "LinkHints.activateOpenImage": kFgCmd.linkHints
+  "LinkHints.activateOpenIncognito": kFgCmd.linkHints
+  "LinkHints.activateOpenInNewForegroundTab": kFgCmd.linkHints
+  "LinkHints.activateOpenInNewTab": kFgCmd.linkHints
+  "LinkHints.activateOpenVomnibar": kFgCmd.linkHints
+  "LinkHints.activateSearchLinkText": kFgCmd.linkHints
+  "LinkHints.activateSelect": kFgCmd.linkHints
+  "LinkHints.activateUnhover": kFgCmd.linkHints
+  "LinkHints.activateWithQueue": kFgCmd.linkHints
   "LinkHints.click": kFgCmd.linkHints
   "LinkHints.unhoverLast": kFgCmd.insertMode
   "Marks.activate": kFgCmd.marks
+  "Marks.activateCreate": kFgCmd.marks
   "Marks.activateCreateMode": kFgCmd.marks
+  "Marks.activateGoto": kFgCmd.marks
   "Marks.activateGotoMode": kFgCmd.marks
   "Marks.clearGlobal": kBgCmd.clearMarks
   "Marks.clearLocal": kBgCmd.clearMarks
@@ -427,6 +445,7 @@ interface CmdNameIds {
   "Vomnibar.activateHistory": kBgCmd.showVomnibar
   "Vomnibar.activateHistoryInNewTab": kBgCmd.showVomnibar
   "Vomnibar.activateInNewTab": kBgCmd.showVomnibar
+  "Vomnibar.activateTabs": kBgCmd.showVomnibar
   "Vomnibar.activateTabSelection": kBgCmd.showVomnibar
   "Vomnibar.activateUrl": kBgCmd.showVomnibar
   "Vomnibar.activateUrlInNewTab": kBgCmd.showVomnibar
@@ -436,6 +455,8 @@ interface CmdNameIds {
   blank: kBgCmd.blank
   captureTab: kBgCmd.captureTab
   clearCS: kBgCmd.clearCS
+  clearContentSetting: kBgCmd.clearCS
+  clearContentSettings: kBgCmd.clearCS
   clearFindHistory: kBgCmd.clearFindHistory
   closeDownloadBar: kBgCmd.closeDownloadBar
   closeOtherTabs: kBgCmd.removeTabsR
@@ -450,6 +471,7 @@ interface CmdNameIds {
   duplicateTab: kBgCmd.duplicateTab
   editText: kFgCmd.editText
   enableCSTemp: kBgCmd.toggleCS
+  enableContentSettingTemp: kBgCmd.toggleCS
   enterFindMode: kBgCmd.performFind
   enterInsertMode: kBgCmd.insertMode
   enterVisualLineMode: kBgCmd.visualMode
@@ -521,7 +543,7 @@ interface CmdNameIds {
   sortTabs: kBgCmd.joinTabs
   switchFocus: kFgCmd.focusInput
   toggleCS: kBgCmd.toggleCS
-  toggleContentSettings: kBgCmd.toggleCS
+  toggleContentSetting: kBgCmd.toggleCS
   toggleLinkHintCharacters: kBgCmd.toggle
   toggleMuteTab: kBgCmd.toggleMuteTab
   togglePinTab: kBgCmd.togglePinTab

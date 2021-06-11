@@ -263,7 +263,7 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
       new_data[key] = null;
     }
   }
-  delKeys("findModeRawQuery findModeRawQueryList innerCSS findCSS omniCSS newTabUrl_f hookAccessKeys vomnibarPage_f");
+  delKeys("findModeRawQueryList innerCSS findCSS omniCSS newTabUrl_f vomnibarPage_f")
   if (OnFirefox) {
     delKeys("i18n_f");
   }

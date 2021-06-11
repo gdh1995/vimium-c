@@ -455,6 +455,7 @@ const normalizeKeyMappings = (value: string): string => {
       }
     }
   }
+  value = value.replace(<RegExpG> /\.activateMode(To)?/g, ".activate")
   return value
 }
 keyMappingsOption_.innerFetch_ = function (): string {

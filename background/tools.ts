@@ -82,14 +82,14 @@ const ContentSettings_ = Build.BTypes & BrowserType.Chrome ? {
     localStorage.removeItem(ContentSettings_.makeKey_(contentType));
   },
   clearCS_ (options: KnownOptions<kBgCmd.clearCS>, port: Port | null): void {
-    const ty = ("" + options.type!) as NonNullable<typeof options.type>
+    const ty = (options.type ? "" + options.type : "images") as NonNullable<typeof options.type>
     if (!ContentSettings_.complain_(ty, "http://a.cc/")) {
       ContentSettings_.Clear_(ty, port ? port.s.incognito_ : TabRecency_.incognito_ === IncognitoType.true);
       return Backend_.showHUD_(trans_("csCleared", [trans_(ty) || ty]));
     }
   },
   toggleCS_ (options: KnownOptions<kBgCmd.toggleCS>, count: number, tabs: [Tab]): void {
-    const ty = ("" + options.type!) as NonNullable<typeof options.type>, tab = tabs[0];
+    const ty = (options.type ? "" + options.type : "images") as NonNullable<typeof options.type>, tab = tabs[0]
     return options.incognito ? ContentSettings_.ensureIncognito_(count, ty, tab)
       : ContentSettings_.toggleCurrent_(ty, count, tab, options.action === "reopen");
   },

@@ -486,17 +486,24 @@ const defaultKeyMappings_: string =
   " ` "    +AsC_("Marks.activate")      +" ^ "      +AsC_("visitPreviousTab")+" [[ "     +AsC_("goPrevious")          +
   " ]] "   +AsC_("goNext")              +" << "     +AsC_("moveTabLeft")     +" >> "     +AsC_("moveTabRight")        +
   " b "    +AsC_("Vomnibar.activateBookmarks")             + " ge "    + AsC_("Vomnibar.activateUrl")                 +
-  " gE "   +AsC_("Vomnibar.activateUrlInNewTab")           + " m "     + AsC_("Marks.activateCreateMode")             +
-  " p "    +AsC_("openCopiedUrlInCurrentTab")              + " yf "    + AsC_("LinkHints.activateModeToCopyLinkUrl")  +
-  " B "    +AsC_("Vomnibar.activateBookmarksInNewTab")     + " F "     + AsC_("LinkHints.activateModeToOpenInNewTab") +
+  " gE "   +AsC_("Vomnibar.activateUrlInNewTab")           + " m "     + AsC_("Marks.activateCreate")                 +
+  " p "    +AsC_("openCopiedUrlInCurrentTab")              + " yf "    + AsC_("LinkHints.activateCopyLinkUrl")        +
+  " B "    +AsC_("Vomnibar.activateBookmarksInNewTab")     + " F "     + AsC_("LinkHints.activateOpenInNewTab")       +
   " O "    +AsC_("Vomnibar.activateInNewTab")              + " P "     + AsC_("openCopiedUrlInNewTab")                +
-  " T "    +AsC_("Vomnibar.activateTabSelection")          + " <a-f> " + AsC_("LinkHints.activateModeWithQueue")      +
+  " T "    +AsC_("Vomnibar.activateTabs")                  + " <a-f> " + AsC_("LinkHints.activateWithQueue")          +
   (Build.NDEBUG ? "" : ` <a-s-f12> ${AsC_("debugBackground")} <s-f12> ${CNameLiterals.focusOptions}`)
 
 export const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
     As_<NameMetaMap & SafeObject>({
   __proto__: null as never,
   "LinkHints.activate": [ kFgCmd.linkHints, 0, 0, { m: HintMode.DEFAULT } ],
+  "LinkHints.activateCopyLinkText": [ kFgCmd.linkHints, 0, 0, { m: HintMode.COPY_TEXT } ],
+  "LinkHints.activateCopyLinkUrl": [ kFgCmd.linkHints, 0, 0, { m: HintMode.COPY_URL } ],
+  "LinkHints.activateDownloadImage": [ kFgCmd.linkHints, 0, 0, { m: HintMode.DOWNLOAD_MEDIA } ],
+  "LinkHints.activateDownloadLink": [ kFgCmd.linkHints, 0, 0, { m: HintMode.DOWNLOAD_LINK } ],
+  "LinkHints.activateEdit": [ kFgCmd.linkHints, 0, 1, { m: HintMode.FOCUS_EDITABLE } ],
+  "LinkHints.activateHover": [ kFgCmd.linkHints, 0, 0, { m: HintMode.HOVER } ],
+  "LinkHints.activateLeave": [ kFgCmd.linkHints, 0, 0, { m: HintMode.UNHOVER } ],
   "LinkHints.activateMode": [ kFgCmd.linkHints, 0, 0, { m: HintMode.DEFAULT } ],
   "LinkHints.activateModeToCopyLinkText": [ kFgCmd.linkHints, 0, 0, { m: HintMode.COPY_TEXT } ],
   "LinkHints.activateModeToCopyLinkUrl": [ kFgCmd.linkHints, 0, 0, { m: HintMode.COPY_URL } ],
@@ -505,7 +512,6 @@ export const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
   "LinkHints.activateModeToEdit": [ kFgCmd.linkHints, 0, 1, { m: HintMode.FOCUS_EDITABLE } ],
   "LinkHints.activateModeToHover": [ kFgCmd.linkHints, 0, 0, { m: HintMode.HOVER } ],
   "LinkHints.activateModeToLeave": [ kFgCmd.linkHints, 0, 0, { m: HintMode.UNHOVER } ],
-  "LinkHints.activateModeToUnhover": [ kFgCmd.linkHints, 0, 0, { m: HintMode.UNHOVER } ],
   "LinkHints.activateModeToOpenImage": [ kFgCmd.linkHints, 0, 0, { m: HintMode.OPEN_IMAGE } ],
   "LinkHints.activateModeToOpenIncognito": [ kFgCmd.linkHints, 0, 0, { m: HintMode.OPEN_INCOGNITO_LINK } ],
   "LinkHints.activateModeToOpenInNewForegroundTab": [ kFgCmd.linkHints, 0, 0, {m: HintMode.OPEN_IN_NEW_FG_TAB} ],
@@ -513,11 +519,23 @@ export const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
   "LinkHints.activateModeToOpenVomnibar": [ kFgCmd.linkHints, 0, 1, { m: HintMode.EDIT_TEXT } ],
   "LinkHints.activateModeToSearchLinkText": [ kFgCmd.linkHints, 0, 0, { m: HintMode.SEARCH_TEXT } ],
   "LinkHints.activateModeToSelect": [ kFgCmd.linkHints, 0, 0, { m: HintMode.ENTER_VISUAL_MODE } ],
+  "LinkHints.activateModeToUnhover": [ kFgCmd.linkHints, 0, 0, { m: HintMode.UNHOVER } ],
   "LinkHints.activateModeWithQueue": [ kFgCmd.linkHints, 0, 0, { m: HintMode.OPEN_WITH_QUEUE } ],
+  "LinkHints.activateOpenImage": [ kFgCmd.linkHints, 0, 0, { m: HintMode.OPEN_IMAGE } ],
+  "LinkHints.activateOpenIncognito": [ kFgCmd.linkHints, 0, 0, { m: HintMode.OPEN_INCOGNITO_LINK } ],
+  "LinkHints.activateOpenInNewForegroundTab": [ kFgCmd.linkHints, 0, 0, {m: HintMode.OPEN_IN_NEW_FG_TAB} ],
+  "LinkHints.activateOpenInNewTab": [ kFgCmd.linkHints, 0, 0, { m: HintMode.OPEN_IN_NEW_BG_TAB } ],
+  "LinkHints.activateOpenVomnibar": [ kFgCmd.linkHints, 0, 1, { m: HintMode.EDIT_TEXT } ],
+  "LinkHints.activateSearchLinkText": [ kFgCmd.linkHints, 0, 0, { m: HintMode.SEARCH_TEXT } ],
+  "LinkHints.activateSelect": [ kFgCmd.linkHints, 0, 0, { m: HintMode.ENTER_VISUAL_MODE } ],
+  "LinkHints.activateUnhover": [ kFgCmd.linkHints, 0, 0, { m: HintMode.UNHOVER } ],
+  "LinkHints.activateWithQueue": [ kFgCmd.linkHints, 0, 0, { m: HintMode.OPEN_WITH_QUEUE } ],
   "LinkHints.click": [ kFgCmd.linkHints, 0, 0, { direct: true, m: HintMode.DEFAULT } ],
   "LinkHints.unhoverLast": [ kFgCmd.insertMode, 0, 1, { u: true } ],
   "Marks.activate": [ kFgCmd.marks, 0, 0 ],
+  "Marks.activateCreate": [ kFgCmd.marks, 0, 0, { mode: "create" } ],
   "Marks.activateCreateMode": [ kFgCmd.marks, 0, 0, { mode: "create" } ],
+  "Marks.activateGoto": [ kFgCmd.marks, 0, 0 ],
   "Marks.activateGotoMode": [ kFgCmd.marks, 0, 0 ],
   "Marks.clearGlobal": [ kBgCmd.clearMarks, 1, 1 ],
   "Marks.clearLocal": [ kBgCmd.clearMarks, 1, 1, { local: true } ],
@@ -529,6 +547,7 @@ export const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
   "Vomnibar.activateHistory": [ kBgCmd.showVomnibar, 1, 1, { mode: "history", autoSelect: 1 } ],
   "Vomnibar.activateHistoryInNewTab": [ kBgCmd.showVomnibar, 1, 1, { mode: "history", newtab: 1, autoSelect: 1 } ],
   "Vomnibar.activateInNewTab": [ kBgCmd.showVomnibar, 1, 0, { newtab: 1 } ],
+  "Vomnibar.activateTabs": [ kBgCmd.showVomnibar, 1, 1, { mode: "tab", newtab: 1, autoSelect: 1 } ],
   "Vomnibar.activateTabSelection": [ kBgCmd.showVomnibar, 1, 1, { mode: "tab", newtab: 1, autoSelect: 1 } ],
   "Vomnibar.activateUrl": [ kBgCmd.showVomnibar, 1, 0, { url: true } ],
   "Vomnibar.activateUrlInNewTab": [ kBgCmd.showVomnibar, 1, 0, { url: true, newtab: 1 } ],
@@ -536,7 +555,9 @@ export const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
   autoCopy: [ kFgCmd.autoOpen, 0, 1, { copy: true } ],
   autoOpen: [ kFgCmd.autoOpen, 0, 1, { o: 1 } ],
   blank: [ kBgCmd.blank, 1, 0 ],
-  clearCS: [ kBgCmd.clearCS, 1, 1, { type: "images" } ],
+  clearCS: [ kBgCmd.clearCS, 1, 1 ],
+  clearContentSetting: [ kBgCmd.clearCS, 1, 1 ],
+  clearContentSettings: [ kBgCmd.clearCS, 1, 1 ],
   clearFindHistory: [ kBgCmd.clearFindHistory, 1, 1 ],
   closeDownloadBar: [ kBgCmd.closeDownloadBar, 1, 1, { all: 1 } ],
   closeOtherTabs: [ kBgCmd.removeTabsR, 1, 1, { other: true } ],
@@ -561,7 +582,8 @@ export const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
   discardTab: [ kBgCmd.discardTab, 1, /* 20 in all_commands.ts */ 0 ],
   duplicateTab: [ kBgCmd.duplicateTab, 1, 20 as 0 ],
   editText: [ kFgCmd.editText, 0, 0 ],
-  enableCSTemp: [ kBgCmd.toggleCS, 1, 0, { type: "images", incognito: true } ],
+  enableCSTemp: [ kBgCmd.toggleCS, 1, 0, { incognito: true } ],
+  enableContentSettingTemp: [ kBgCmd.toggleCS, 1, 0, { incognito: true } ],
   enterFindMode: [ kBgCmd.performFind, 1, 1, {active: true, selected: true} ],
   enterInsertMode: [ kBgCmd.insertMode, 1, 1, { insert: true } ],
   enterVisualLineMode: [ kBgCmd.visualMode, 1, 1, { mode: "line" } ],
@@ -633,8 +655,8 @@ export const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
   simulateBackspace: [ kFgCmd.focusInput, 0, 1, { act: "backspace" } ],
   sortTabs: [ kBgCmd.joinTabs, 1, 1, { sort: "recency", windows: "current" } ],
   switchFocus: [ kFgCmd.focusInput, 0, 1, { act: "switch" } ],
-  toggleCS: [ kBgCmd.toggleCS, 1, 0, { type: "images" } ],
-  toggleContentSettings: [ kBgCmd.toggleCS, 1, 0, { type: "images" } ],
+  toggleCS: [ kBgCmd.toggleCS, 1, 0 ],
+  toggleContentSetting: [ kBgCmd.toggleCS, 1, 0 ],
   toggleLinkHintCharacters: [ kBgCmd.toggle, 1, 1, { key: "linkHintCharacters" } ],
   toggleMuteTab: [ kBgCmd.toggleMuteTab, 1, 1 ],
   togglePinTab: [ kBgCmd.togglePinTab, 1, /** 30 in all_commands.ts */ 0 ],
