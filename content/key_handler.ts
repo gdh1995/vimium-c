@@ -63,7 +63,7 @@ set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
     }
     key = isLong || mod ? mod + chLower : char;
     if (mappedKeys && mode < kModeId.NO_MAP_KEY) {
-      mapped = mode && mapKeyTypes & (kMapKey.insertMode | kMapKey.otherMode)
+      mapped = mapKeyTypes & (mode ? kMapKey.insertMode | kMapKey.otherMode : kMapKey.normalOnlyMode)
           && mappedKeys[key + GlobalConsts.DelimeterForKeyCharAndMode + GlobalConsts.ModeIds[mode]]
           || (mapKeyTypes & kMapKey.normal ? mappedKeys[key] : "")
       key = mapped || (mapKeyTypes & kMapKey.char && !isLong && (mapped = mappedKeys[chLower])

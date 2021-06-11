@@ -216,7 +216,7 @@ type KeyFSM = ReadonlySafeDict<ValidKeyAction | ReadonlyChildKeyFSM>;
 
 declare const enum kMapKey {
   NONE = 0, insertMode = 1, otherMode = 2, normal = 4, char = 8,
-  normal_long = 16, all_esc = 32, directInsert = 64,
+  normal_long = 16, normalOnlyMode = 32, directInsert = 64,
 }
 declare const enum kMappingsFlag {
   char0 = "#", char1 = "!",
@@ -566,6 +566,7 @@ declare const enum GlobalConsts {
   DelimeterForKeyCharAndMode = ":",
   ModeIds = "nilofvmes",
   InsertModeId = "i",
+  NormalOnlyModeId = "n",
   OmniModeId = "o",
   KeySequenceTimeout = 3e5,
 }

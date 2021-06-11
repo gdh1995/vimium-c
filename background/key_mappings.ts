@@ -362,7 +362,8 @@ const collectMapKeyTypes_ = (mapKeys: NonNullable<CommandsDataTy["mappedKeyRegis
         types |= val.length > 1 ? kMapKey.normal | kMapKey.normal_long
             : key.toUpperCase() !== key && val.toUpperCase() !== val ? kMapKey.char : kMapKey.normal
       } else if (len > 2 && key[len - 2] === GlobalConsts.DelimeterForKeyCharAndMode) {
-        types |= key[len - 1] === GlobalConsts.InsertModeId ? kMapKey.insertMode : kMapKey.otherMode
+        types |= key[len - 1] === GlobalConsts.InsertModeId ? kMapKey.insertMode
+            : key[len - 1] === GlobalConsts.NormalOnlyModeId ? kMapKey.normalOnlyMode : kMapKey.otherMode
       } else {
         types |= mapKeys[key]!.length > 1 ? kMapKey.normal | kMapKey.normal_long : kMapKey.normal
       }
